@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FnQL Distribution Notes</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: rgba(10, 16, 32, 0.88);
+      --panel-alt: rgba(15, 23, 42, 0.78);
+      --line: rgba(148, 163, 184, 0.22);
+      --text: #e5edf7;
+      --muted: #9db0ca;
+      --accent: #4ade80;
+      --accent-2: #38bdf8;
+      --accent-3: #a78bfa;
+      --accent-4: #f59e0b;
+      --shadow: 0 24px 60px rgba(2, 6, 23, 0.45);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI Variable Display", "Aptos", "Trebuchet MS", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 28%),
+        radial-gradient(circle at top right, rgba(74, 222, 128, 0.12), transparent 24%),
+        linear-gradient(160deg, #060913 0%, #0b1020 48%, #121a30 100%);
+    }
+
+    main {
+      width: min(1040px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 40px 0 56px;
+    }
+
+    .hero,
+    .section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .hero {
+      padding: 36px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -120px -120px auto;
+      width: 280px;
+      height: 280px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(245, 158, 11, 0.24), rgba(245, 158, 11, 0));
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      color: var(--accent-2);
+      font-size: 0.82rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 18px 0 8px;
+      font-size: clamp(2.4rem, 5vw, 4.2rem);
+      line-height: 0.95;
+    }
+
+    .tagline {
+      margin: 0 0 14px;
+      color: #f8fafc;
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .subtitle,
+    .lead,
+    li,
+    .card p,
+    .footer {
+      color: var(--muted);
+      line-height: 1.72;
+    }
+
+    .subtitle {
+      max-width: 780px;
+      margin: 0;
+      font-size: 1.06rem;
+    }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 170px;
+      padding: 12px 18px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+    }
+
+    .button-primary {
+      color: #07111f;
+      background: linear-gradient(135deg, var(--accent), #86efac);
+      box-shadow: 0 12px 28px rgba(74, 222, 128, 0.18);
+    }
+
+    .button-secondary {
+      color: var(--text);
+      background: rgba(15, 23, 42, 0.72);
+      border: 1px solid rgba(148, 163, 184, 0.24);
+    }
+
+    .stats,
+    .feature-grid,
+    .doc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .stats {
+      margin-top: 22px;
+    }
+
+    .section {
+      margin-top: 22px;
+      padding: 28px 30px;
+    }
+
+    .section-header {
+      margin-bottom: 16px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1.2rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--accent-4);
+    }
+
+    h3 {
+      margin: 0 0 10px;
+      color: #f8fafc;
+      font-size: 1.02rem;
+    }
+
+    .lead {
+      margin: 10px 0 0;
+      max-width: 820px;
+    }
+
+    .card,
+    .feature-group,
+    .doc-column {
+      padding: 18px;
+      border-radius: 18px;
+      background: var(--panel-alt);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+    }
+
+    .card strong,
+    .feature-group strong,
+    .doc-column strong {
+      display: block;
+      margin-bottom: 8px;
+      color: #f8fafc;
+      font-size: 1rem;
+    }
+
+    ol,
+    ul {
+      margin: 14px 0 0;
+      padding-left: 22px;
+    }
+
+    .feature-grid,
+    .doc-grid {
+      margin-top: 18px;
+    }
+
+    .doc-column ul,
+    .feature-group ul {
+      margin-top: 10px;
+    }
+
+    a {
+      color: var(--accent-2);
+    }
+
+    code {
+      padding: 0.15rem 0.45rem;
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.82);
+      color: #dbeafe;
+      font-family: "Cascadia Code", "Consolas", monospace;
+    }
+
+    .footer {
+      margin-top: 18px;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 640px) {
+      main {
+        width: min(100% - 20px, 1040px);
+        padding-top: 18px;
+      }
+
+      .hero,
+      .section {
+        border-radius: 18px;
+        padding: 24px 20px;
+      }
+
+      .button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <div class="eyebrow">FnQL distribution notes</div>
+      <h1>FnQL</h1>
+      <p class="tagline">Fappin' Quake Live</p>
+      <p class="subtitle">
+        <strong>FnQL</strong> brings FnQ3's modern rendering, audio, input, platform, and quality-of-life improvements to the retail Steam release of <em>Quake Live</em>.
+      </p>
+      <div class="buttons">
+        <a class="button button-primary" href="https://github.com/themuffinator/FnQL/releases/latest">Download latest release</a>
+        <a class="button button-secondary" href="#getting-started">Getting started</a>
+        <a class="button button-secondary" href="#documentation">Documentation</a>
+        <a class="button button-secondary" href="https://github.com/themuffinator/FnQL/blob/main/BUILD.md">Build guide</a>
+        <a class="button button-secondary" href="LICENSE">License</a>
+      </div>
+      <div class="stats">
+        <article class="card">
+          <strong>Compatibility target</strong>
+          <p>Retail Quake Live (Steam)</p>
+        </article>
+        <article class="card">
+          <strong>Base version</strong>
+          <p>0.1.0</p>
+        </article>
+        <article class="card">
+          <strong>Current build</strong>
+          <p>0.1.0</p>
+        </article>
+        <article class="card">
+          <strong>Tagged release format</strong>
+          <p><code>v0.1.0</code></p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="introduction">
+      <div class="section-header">
+        <h2>1. Introduction</h2>
+        <p class="lead"><strong>FnQL</strong> is a modernized Quake Live engine for players who want the retail Steam game to retain its familiar behavior while gaining faster rendering, modern audio and input, stronger platform support, and useful quality-of-life improvements.</p>
+      </div>
+      <p class="lead">Retail Quake Live compatibility comes first. FnQL is engine-only and does not reconstruct or distribute Quake Live game code or assets, so a legitimate <a href="https://store.steampowered.com/app/282440/Quake_Live/">Quake Live installation on Steam</a> is required.</p>
+      <p class="footer">The official Windows package includes FnQL's open-source engine, its WebUI overlay, and the compiled closed-source Steam provider. Linux packages contain only redistributable FnQL components. No package includes Valve's <code>steam_api.dll</code> or any retail game content.</p>
+    </section>
+
+    <section class="section" id="features">
+      <div class="section-header">
+        <h2>2. Features</h2>
+        <p class="lead">Extensive retail compatibility with the modern engine features players expect on current hardware.</p>
+      </div>
+      <div class="feature-grid">
+        <article class="feature-group">
+          <h3>Extensive Quake Live compatibility</h3>
+          <p>Built around the retail Steam release, with support for official assets and game modules, protocol 91 networking, <code>.dm_91</code> demos, BSP v47 maps, advertisements, factories, player profiles, the retail WebUI, Steam integration and Workshop content.</p>
+        </article>
+        <article class="feature-group">
+          <h3>Fast, modern hardware rendering</h3>
+          <p>Choose between optimized <strong>GLx</strong>, <strong>Vulkan raster</strong> and <strong>Vulkan RTX</strong> renderers, with GPU-cached world geometry, optimized lightmaps, reduced rendering overhead, improved depth precision and better performance on large or demanding maps.</p>
+        </article>
+        <article class="feature-group">
+          <h3>Modern visual upgrades</h3>
+          <p>Optional HDR rendering and output, MSAA, supersampling, render scaling, anisotropic filtering, bloom, tone mapping, colour grading, high-quality dynamic lighting and shadows, motion blur, lens flares, soft particles, enhanced liquids and per-map fog.</p>
+        </article>
+        <article class="feature-group">
+          <h3>Improved player visibility</h3>
+          <p>Optional player rim lighting, stencil outlines or both, with configurable enemy, teammate, team and free-for-all colours, intensity and outline thickness. Cel shading, model outlines and world-edge outlines are also available.</p>
+        </article>
+        <article class="feature-group">
+          <h3>Better modern hardware and OS support</h3>
+          <p>SDL3-based video and input, OpenAL audio, modern graphics APIs, high-resolution and high-refresh displays, borderless/windowed/fullscreen modes, fast Alt+Enter switching, controller hotplugging and improved compatibility with current desktop systems.</p>
+        </article>
+        <article class="feature-group">
+          <h3>Low-latency, configurable controls</h3>
+          <p>Raw mouse input, Quake Live-accurate CPI scaling, signed acceleration, sensitivity caps and angle-history filtering, while retaining classic Quake3e/ioquake3 mouse styles. Modern gamepads and Unicode text input are also supported.</p>
+        </article>
+        <article class="feature-group">
+          <h3>Modern spatial audio</h3>
+          <p>OpenAL and HRTF headphone positioning, surround output, reverb, geometry-based occlusion, output-device selection, live device recovery and automatic fallback to the classic software mixer.</p>
+        </article>
+        <article class="feature-group">
+          <h3>Major quality-of-life improvements</h3>
+          <p>Scalable TTF console text, smooth scrolling, mouse selection, clipboard support, drag-and-drop editing, live command/CVar/map completion, minimize hotkeys, focus muting, lower background CPU usage and more flexible player configuration.</p>
+        </article>
+        <article class="feature-group">
+          <h3>Better screenshots, video and streaming tools</h3>
+          <p>PNG, TGA, JPEG and BMP capture, clipboard screenshots, custom filenames, camera metadata, configurable levelshots, watermarks, cubemap capture, arbitrary-resolution output and FFmpeg video piping.</p>
+        </article>
+        <article class="feature-group">
+          <h3>Faster content handling</h3>
+          <p>Quicker startup and map restarts with large PK3 libraries, raised filesystem and map limits, fast redirected downloads and automatic handling of server-required Workshop content.</p>
+        </article>
+        <article class="feature-group">
+          <h3>Greater stability and security</h3>
+          <p>Extensive Quake3e and FnQ3 bug fixes, improved memory management, lower memory usage, stronger network protection and graceful fallbacks when optional rendering, audio, WebUI or Steam functionality is unavailable.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="getting-started">
+      <div class="section-header">
+        <h2>3. Getting Started</h2>
+        <p class="lead">Keep your legitimate retail installation and add the platform-appropriate FnQL package beside it.</p>
+      </div>
+      <ol>
+        <li>Install <a href="https://store.steampowered.com/app/282440/Quake_Live/">Quake Live through Steam</a> and launch the retail game once so Steam creates its normal files and player profile.</li>
+        <li>Download the supported Windows <code>.zip</code> or Linux <code>.tar.gz</code> from the <a href="https://github.com/themuffinator/FnQL/releases/latest">latest FnQL release</a>.</li>
+      </ol>
+      <div class="feature-grid">
+        <article class="feature-group">
+          <h3>Windows retail client</h3>
+          <ol>
+            <li>Extract the <code>.zip</code> into the Quake Live installation folder.</li>
+            <li>Keep <code>FnQL-pkg.fnz</code>, <code>fnql-web.pak</code>, the renderer modules, and packaged runtime libraries beside <code>fnql.exe</code>.</li>
+            <li>Leave Steam running and launch <code>fnql.exe</code>. The official build is Win32/x86 so it can load the retail game modules and WebUI.</li>
+          </ol>
+        </article>
+        <article class="feature-group">
+          <h3>Native Linux dedicated server</h3>
+          <ol>
+            <li>Install the 32-bit runtime libraries reported by <code>ldd ./fnql.ded</code>. The release is i686 so it can load retail <code>qagamei386.so</code>.</li>
+            <li>Preserve executable modes by extracting with <code>tar -xzf fnql-*-linux-x86.tar.gz -C "&lt;Quake Live folder&gt;"</code>.</li>
+            <li>From that folder run <code>./fnql.ded +set fs_steampath "$PWD" +set dedicated 2 +map campgrounds</code>.</li>
+          </ol>
+        </article>
+      </div>
+      <p class="footer">Official releases support the Windows Win32/x86 retail client and Linux i686 dedicated server. Retail <code>bin.pk3</code> includes native <code>qagamei386.so</code> and <code>qagamex64.so</code> server modules, so the Linux server loads the i386 ELF directly rather than attempting to load the Win32 PE DLL. Retail ships no native Linux client/UI modules and no macOS game, client, UI, or QVM modules, so FnQL publishes no macOS package and makes no native macOS retail-play claim.</p>
+      <p class="footer">FnQL locates conventional Steam libraries automatically. For a custom library, start it with <code>+set fs_steampath "&lt;Quake Live folder&gt;"</code>. Steam and WebUI features fail safely when optional runtime components are unavailable.</p>
+      <p class="footer">To compile FnQL yourself, use the <a href="https://github.com/themuffinator/FnQL/blob/main/BUILD.md">Build Guide</a>.</p>
+    </section>
+
+    <section class="section" id="documentation">
+      <div class="section-header">
+        <h2>4. Documentation</h2>
+        <p class="lead">Start with the player guides for setup and tuning. Build, compatibility, and implementation details live in the technical references.</p>
+      </div>
+      <div class="doc-grid">
+        <article class="doc-column">
+          <h3>Player guides</h3>
+          <ul>
+            <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/DISPLAY.md">Display Guide</a> for renderers, display modes, HDR, scaling, anti-aliasing, bloom, lighting, shadows, fog, liquids, lens flares, and motion blur.</li>
+            <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/RTX.md">RTX Renderer Guide</a> for requirements, renderer selection, fallback behavior, safe settings, and troubleshooting.</li>
+            <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/VISUALS.md">Visuals Guide</a> for player highlighting, colours, cel shading, and outlines.</li>
+            <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/ASPECT_CORRECTION.md">Aspect Handling Guide</a> for the retail WebUI, menus, and cinematics.</li>
+            <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/AUDIO.md">Audio Guide</a> for devices, HRTF, spatial effects, fallback behavior, and troubleshooting.</li>
+            <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/CONSOLE.md">Console Guide</a> for layout, scaling, completion, clipboard use, and mouse interaction.</li>
+            <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/SCREENSHOTS.md">Screenshot Guide</a> for formats, filenames, metadata, levelshots, watermarks, and cubemaps.</li>
+            <li><a href="https://github.com/themuffinator/FnQL/releases">Release History</a> for published changelogs and downloads.</li>
+          </ul>
+        </article>
+        <article class="doc-column">
+          <h3>Technical and build docs</h3>
+          <ul>
+            <li><a href="https://github.com/themuffinator/FnQL/blob/main/BUILD.md">Build Guide</a> for compiling FnQL locally.</li>
+            <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/GLX.md">GLx Renderer Guide</a> for the default OpenGL-lineage renderer, diagnostics, and troubleshooting.</li>
+            <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/fnql/INPUT_COMPATIBILITY.md">Input Compatibility Notes</a> for retail mouse math, text input, controllers, and legacy profiles.</li>
+            <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/fnql/WEBUI_BACKEND.md">WebUI Backend Notes</a> for retail resources, platform boundaries, overlay order, and fallbacks.</li>
+            <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/fnql/STEAM_PROVIDER.md">Steam Provider Notes</a> for the open loader ABI, provider distribution, and runtime policy.</li>
+            <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/fnql/RTX_RENDERER.md">RTX Renderer Contract</a> for the Quake Live ABI boundary, conservative defaults, and runtime validation.</li>
+            <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/fnql/TECHNICAL.md">Technical Notes</a> for repository structure, release flow, compatibility workflow, and maintainer conventions.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="credits">
+      <div class="section-header">
+        <h2>5. Credits</h2>
+        <p class="lead">FnQL follows a clear upstream lineage from the Quake III Arena SDK, through ioquake3, Quake3e, FnQ3, and QLSRP.</p>
+      </div>
+      <p class="lead">Additional compatibility and feature work draws from projects and references such as <a href="https://bitbucket.org/CPMADevs/cnq3">CNQ3</a>, <a href="https://github.com/zturtleman/spearmint">Spearmint</a>, <a href="https://github.com/brugal/wolfcamql">WolfcamQL</a>, Luigi Auriemma's <a href="https://aluigi.altervista.org/papers.htm#qldec">qldec</a>, and <a href="https://github.com/Paril/DarkMatter-Q2">DarkMatter-Q2</a>.</p>
+      <p class="footer">See the full upstream chain and acknowledgements in <a href="https://github.com/themuffinator/FnQL/blob/main/CREDITS.md">CREDITS.md</a>.</p>
+    </section>
+  </main>
+</body>
+</html>

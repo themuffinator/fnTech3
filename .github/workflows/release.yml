@@ -1,0 +1,456 @@
+name: release
+
+permissions:
+  contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  FNQL_LINUX_GLIBC_MAX: "2.31"
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      build_number: ${{ steps.meta.outputs.build_number }}
+      build_date: ${{ steps.meta.outputs.build_date }}
+      base_version: ${{ steps.meta.outputs.base_version }}
+      version_string: ${{ steps.meta.outputs.version_string }}
+      head_commit: ${{ steps.meta.outputs.head_commit }}
+      head_commit_short: ${{ steps.meta.outputs.head_commit_short }}
+      previous_release_commit: ${{ steps.meta.outputs.previous_release_commit }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Fetch tags
+        run: git fetch --force --tags origin
+
+      - name: Resolve release metadata
+        id: meta
+        run: |
+          python scripts/manual_release.py github-output --build-date "$(date -u +%F)" >> "$GITHUB_OUTPUT"
+
+      - name: Summarize
+        run: |
+          echo "Release build metadata resolved"
+          echo "Base version: ${{ steps.meta.outputs.base_version }}"
+          echo "Build version: ${{ steps.meta.outputs.version_string }}"
+          echo "Head commit: ${{ steps.meta.outputs.head_commit }}"
+          echo "Previous release commit: ${{ steps.meta.outputs.previous_release_commit }}"
+
+  windows-msys32:
+    needs: [prepare]
+    name: Build Windows-MSYS2 x86
+    runs-on: windows-latest
+    steps:
+      - name: Checkout current repo
+        uses: actions/checkout@v6
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW32
+          update: true
+          install: git
+          pacboy: >-
+            toolchain:p
+            meson:p
+            ninja:p
+
+      - name: Stamp release build version
+        shell: msys2 {0}
+        run: |
+          python scripts/manual_release.py stamp-version --build-number ${{ needs.prepare.outputs.build_number }}
+          python scripts/generate_docs.py
+
+      - name: Build
+        shell: msys2 {0}
+        run: |
+          mkdir -p bin
+          meson setup meson/build-x86 \
+            --buildtype=release \
+            --wrap-mode=forcefallback \
+            --prefix "$PWD/bin" \
+            -Dc_link_args=-static \
+            -Dcpp_link_args=-static \
+            -Dcurl=enabled \
+            -Dcurl-dlopen=false \
+            -Dsdl=disabled \
+            -Drenderer-dlopen=true \
+            -Drenderers=glx,vk,rtx \
+            -Drenderer-default=glx \
+            -Daudio-tests=true \
+            -Dglx-tests=true \
+            -Dzlib:default_library=static \
+            -Dlibjpeg-turbo:simd=disabled
+          meson compile -C meson/build-x86
+          meson install -C meson/build-x86 --no-rebuild --skip-subprojects
+
+      - name: Run complete regression suite
+        shell: msys2 {0}
+        run: meson test -C meson/build-x86 --print-errorlogs
+
+      - name: Stage pinned Steam provider
+        shell: msys2 {0}
+        run: python scripts/fetch_steam_provider.py --output bin/fnql_steam.dll
+
+      - name: Check Windows runtime dependencies
+        shell: msys2 {0}
+        run: python scripts/check_windows_runtime_deps.py --require-pe bin
+
+      - name: Verify release layout
+        shell: msys2 {0}
+        run: python scripts/verify_release_layout.py bin/FnQL-pkg.fnz
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: windows-mingw-x86
+          path: bin
+          if-no-files-found: error
+          retention-days: 5
+
+  windows-msvc:
+    needs: [prepare]
+    name: Build Windows-MSVC x86
+    runs-on: windows-2022
+    steps:
+      - uses: microsoft/setup-msbuild@v3
+
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Stamp release build version
+        run: |
+          python scripts/manual_release.py stamp-version --build-number ${{ needs.prepare.outputs.build_number }}
+          python scripts/generate_docs.py
+
+      - name: Install Meson
+        run: python -m pip install meson ninja
+
+      - name: Build
+        shell: cmd
+        run: |
+          if not exist bin mkdir bin
+
+          for /f "usebackq tokens=*" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath`) do set VSINSTALL=%%i
+          call "%VSINSTALL%\Common7\Tools\VsDevCmd.bat" -arch=x86 -host_arch=x64 || exit /b
+          meson setup meson\build-x86 --buildtype=release --wrap-mode=forcefallback --prefix "%CD%\bin" -Db_vscrt=static_from_buildtype -Dzlib:default_library=static -Dcurl=enabled -Dcurl-dlopen=false -Dsdl=disabled -Drenderer-dlopen=true -Drenderers=glx,vk,rtx -Drenderer-default=glx -Daudio-tests=true -Dglx-tests=true -Dlibjpeg-turbo:simd=disabled || exit /b
+          meson compile -C meson\build-x86 || exit /b
+          meson install -C meson\build-x86 --no-rebuild --skip-subprojects || exit /b
+
+      - name: Run complete regression suite
+        shell: cmd
+        run: |
+          for /f "usebackq tokens=*" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath`) do set VSINSTALL=%%i
+          call "%VSINSTALL%\Common7\Tools\VsDevCmd.bat" -arch=x86 -host_arch=x64 || exit /b
+          meson test -C meson\build-x86 --print-errorlogs || exit /b
+
+      - name: Stage pinned Steam provider
+        run: python scripts/fetch_steam_provider.py --output bin/fnql_steam.dll
+
+      - name: Check Windows runtime dependencies
+        run: python scripts/check_windows_runtime_deps.py --require-pe bin
+
+      - name: Verify release layout
+        run: python scripts/verify_release_layout.py bin/FnQL-pkg.fnz
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: windows-msvc-x86
+          path: bin
+          if-no-files-found: error
+          retention-days: 5
+
+  source-validation:
+    needs: [prepare]
+    name: Release source validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install source regression runner
+        run: python -m pip install pytest==8.4.1
+
+      - name: Run complete source regression suite
+        run: python -m pytest
+
+  linux-x86-regression:
+    needs: [prepare]
+    name: Run Linux i686 Meson regressions
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install i686 Meson build dependencies
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get -qq update
+          sudo apt-get install -y \
+            file \
+            gcc-multilib \
+            g++-multilib \
+            glslang-tools \
+            libasound2-dev:i386 \
+            libc6-dev-i386 \
+            libgl-dev:i386 \
+            libx11-dev:i386 \
+            libxext-dev:i386 \
+            libxrandr-dev:i386 \
+            libxxf86dga-dev:i386 \
+            libxxf86vm-dev:i386 \
+            linux-libc-dev:i386 \
+            mesa-common-dev:i386 \
+            meson \
+            ninja-build \
+            pkg-config \
+            python3
+
+      - name: Build Linux i686 regression targets
+        run: |
+          meson setup .tmp/meson-linux-release-tests \
+            --cross-file misc/meson/linux-x86.ini \
+            --buildtype=release \
+            -Daudio-tests=true \
+            -Dbuild-client=true \
+            -Dbuild-server=false \
+            -Dcurl=disabled \
+            -Dglx-tests=true \
+            -Dogg-vorbis=false \
+            -Drenderer-dlopen=true \
+            -Drenderer-default=glx \
+            -Drenderers=glx,vk,rtx \
+            -Dsdl=disabled
+          meson compile -C .tmp/meson-linux-release-tests
+
+      - name: Run complete Linux i686 regression suite
+        run: meson test -C .tmp/meson-linux-release-tests --print-errorlogs
+
+  ubuntu-x86:
+    needs: [prepare]
+    name: Build Ubuntu x86
+    runs-on: ubuntu-24.04
+    container:
+      image: ubuntu:20.04
+      env:
+        DEBIAN_FRONTEND: noninteractive
+    steps:
+      - name: Install tools
+        run: |
+          dpkg --add-architecture i386
+          apt-get -qq update
+          apt-get -y install git make python3 python3-pip binutils gcc-multilib g++-multilib libcurl4-openssl-dev:i386 libjpeg-dev:i386 libogg-dev:i386 libvorbis-dev:i386 mesa-common-dev:i386 libxxf86dga-dev:i386 libxrandr-dev:i386 libxxf86vm-dev:i386 libasound2-dev:i386 libopenal-dev:i386
+          python3 -m pip install meson==1.9.1
+
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Fetch pinned FontStash source
+        run: meson subprojects download fontstash
+
+      - name: Stamp release build version
+        run: python3 scripts/manual_release.py stamp-version --build-number "${{ needs.prepare.outputs.build_number }}"
+
+      - name: Build
+        run: |
+          make install -j$(nproc) ARCH=x86 COMPILE_ARCH=x86 CC=gcc DESTDIR=bin USE_SDL=0 USE_RENDERER_DLOPEN=1 USE_GLX=1 USE_VK=1 USE_RTX=1
+
+      - name: Check glibc baseline
+        run: python3 scripts/check_elf_glibc.py --max-glibc "$FNQL_LINUX_GLIBC_MAX" --require-elf bin
+
+      - name: Verify release layout
+        run: python3 scripts/verify_release_layout.py bin/FnQL-pkg.fnz
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: linux-x86
+          path: bin
+          if-no-files-found: error
+          retention-days: 5
+
+  push-build-validation:
+    if: always()
+    needs: [prepare, windows-msys32, windows-msvc, source-validation, linux-x86-regression, ubuntu-x86]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check platform build results
+        env:
+          NEEDS_JSON: ${{ toJson(needs) }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import sys
+
+          needs = json.loads(os.environ["NEEDS_JSON"])
+          failed = {
+              name: data["result"]
+              for name, data in needs.items()
+              if data["result"] != "success"
+          }
+
+          if failed:
+              for name, result in failed.items():
+                  print(f"{name}: {result}")
+              sys.exit(1)
+
+          print("All platform build validations passed.")
+          PY
+
+  publish:
+    if: >-
+      ${{
+        always() &&
+        github.event_name == 'workflow_dispatch' &&
+        needs.prepare.result == 'success' &&
+        needs.push-build-validation.result == 'success'
+      }}
+    needs: [prepare, push-build-validation]
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: write
+      models: read
+      pull-requests: read
+    env:
+      HAS_COPILOT_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN != '' }}
+      HAS_DISCORD_WEBHOOK: ${{ secrets.DISCORD_RELEASE_WEBHOOK != '' }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Fetch tags
+        run: git fetch --force --tags origin
+
+      - name: Stamp release build version
+        run: python scripts/manual_release.py stamp-version --build-number "${{ needs.prepare.outputs.build_number }}"
+
+      - name: Download MinGW artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: windows-mingw-x86
+          path: artifacts/windows-mingw-x86
+
+      - name: Download MSVC artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: windows-msvc-x86
+          path: artifacts/windows-msvc-x86
+
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: linux-x86
+          path: artifacts/linux-x86
+
+      - name: Resolve release version metadata
+        run: |
+          python scripts/version.py github-env --channel manual --build-number "${{ needs.prepare.outputs.build_number }}" --build-date "${{ needs.prepare.outputs.build_date }}" --commit "${{ needs.prepare.outputs.head_commit }}" >> "$GITHUB_ENV"
+
+      - name: Package release archives
+        run: |
+          python scripts/release.py --channel manual --artifact-root artifacts --build-number "${{ needs.prepare.outputs.build_number }}" --build-date "${{ needs.prepare.outputs.build_date }}" --commit "${{ needs.prepare.outputs.head_commit }}"
+
+      - name: Build Copilot changelog cleanup
+        id: copilot_notes
+        if: ${{ env.HAS_COPILOT_TOKEN == 'true' && needs.prepare.outputs.previous_release_commit != '' }}
+        uses: github/copilot-release-notes@v1.0.1
+        with:
+          base-ref: ${{ needs.prepare.outputs.previous_release_commit }}
+          head-ref: ${{ needs.prepare.outputs.head_commit }}
+          instructions: .github/release-notes-instructions.md
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+
+      - name: Save Copilot highlights
+        if: ${{ steps.copilot_notes.outputs.release-notes != '' }}
+        env:
+          COPILOT_RELEASE_NOTES: ${{ steps.copilot_notes.outputs.release-notes }}
+        run: |
+          mkdir -p .tmp
+          printf '%s\n' "$COPILOT_RELEASE_NOTES" > .tmp/copilot-release-notes.md
+
+      - name: Build release notes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          FROM_ARGS=()
+          if [ -n "${{ needs.prepare.outputs.previous_release_commit }}" ]; then
+            FROM_ARGS+=(--from-commit "${{ needs.prepare.outputs.previous_release_commit }}")
+          fi
+          HIGHLIGHTS_ARGS=()
+          if [ -s .tmp/copilot-release-notes.md ]; then
+            HIGHLIGHTS_ARGS+=(--highlights-file .tmp/copilot-release-notes.md)
+          fi
+          python scripts/manual_release.py release-notes \
+            --build-number "${{ needs.prepare.outputs.build_number }}" \
+            --build-date "${{ needs.prepare.outputs.build_date }}" \
+            --to-commit "${{ needs.prepare.outputs.head_commit }}" \
+            "${FROM_ARGS[@]}" \
+            "${HIGHLIGHTS_ARGS[@]}" \
+            --output .tmp/release-notes.md
+
+      - name: Create release
+        id: create_release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${FNQL_RELEASE_TAG}" \
+            .install/packages/*.zip \
+            .install/packages/*.tar.gz \
+            .install/release-manifest.json \
+            .install/SHA256SUMS.txt \
+            --target "${{ needs.prepare.outputs.head_commit }}" \
+            --title "${FNQL_RELEASE_TITLE}" \
+            --notes-file .tmp/release-notes.md
+
+      - name: Clear pending changelog
+        if: ${{ github.ref_type == 'branch' }}
+        run: |
+          python scripts/changelog.py clear-unreleased
+          if git diff --quiet -- docs/fnql/CHANGELOG.md; then
+            echo "Pending changelog already clean."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/fnql/CHANGELOG.md
+          git commit -m "Reset pending changelog after release"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+
+      - name: Announce release on Discord
+        if: >-
+          ${{
+            always() &&
+            env.HAS_DISCORD_WEBHOOK == 'true' &&
+            steps.create_release.outcome == 'success'
+          }}
+        env:
+          FNQL_DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
+          FNQL_DISCORD_RELEASE_EMOJI: ${{ vars.FNQL_DISCORD_RELEASE_EMOJI || '<:quakelive:1390987057454776481>' }}
+          FNQL_DISCORD_RELEASE_MENTIONS: ${{ vars.FNQL_DISCORD_RELEASE_MENTIONS || '<@&1424165541572120647> <@&1390287267276525628>' }}
+          FNQL_DISCORD_FEEDBACK_CHANNEL: ${{ vars.FNQL_DISCORD_FEEDBACK_CHANNEL || '<#1528370439997362216>' }}
+        run: |
+          python scripts/discord_release.py \
+            --manifest .install/release-manifest.json \
+            --notes-file .tmp/release-notes.md \
+            --release-tag "${FNQL_RELEASE_TAG}" \
+            --release-title "${FNQL_RELEASE_TITLE}" \
+            --version "${FNQL_VERSION}" \
+            --build-date "${FNQL_BUILD_DATE}" \
+            --commit "${FNQL_COMMIT}" \
+            --require-webhook

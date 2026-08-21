@@ -1,0 +1,105 @@
+/*
+===========================================================================
+Copyright (C) 2026
+
+This file is part of FnQL.
+
+FnQL is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+===========================================================================
+*/
+
+#pragma once
+
+#include <algorithm>
+
+namespace fnql_audio_occlusion {
+
+constexpr float kMinimumDistance = 64.0f;
+constexpr float kProbeFanDistance = 96.0f;
+constexpr float kProbeSpreadScale = 0.04f;
+constexpr float kProbeSpreadMinimum = 10.0f;
+constexpr float kProbeSpreadMaximum = 28.0f;
+constexpr float kPartialOcclusionBias = 0.18f;
+constexpr float kCenterBlockedMinimum = 0.55f;
+// Impact and explosion events are emitted exactly on the surface they hit, and
+// the network origin snap can leave them a fraction of a unit inside it. Lift
+// the direct-path sample clear of that surface before tracing so a detonation
+// in plain sight is not measured against the geometry it is resting on. Both
+// steps stay under half the thinnest structural brush a map is built from, so
+// the sample can never travel through a wall to the listener's side.
+constexpr float kSurfaceBias = 2.0f;
+constexpr float kSurfaceEscape = 4.0f;
+constexpr float kThinnestStructuralBrush = 8.0f;
+
+constexpr float kDirectAttenuation = 0.72f;
+constexpr float kDirectGainMinimum = 0.18f;
+constexpr float kDirectHFCut = 0.92f;
+constexpr float kDirectHFMinimum = 0.08f;
+constexpr float kWetBoost = 0.35f;
+constexpr float kWetHFCut = 0.42f;
+constexpr float kWetHFMinimum = 0.08f;
+// Wet send level curve: reverberant energy is already present close to a
+// source in a real room, so keep a solid near-field send and grow it with
+// distance instead of starting from near silence.
+constexpr float kWetNearLevel = 0.55f;
+constexpr float kWetDistanceLevel = 0.45f;
+
+inline float Clamp01( float value ) {
+	return ( std::max )( 0.0f, ( std::min )( value, 1.0f ) );
+}
+
+inline bool DistanceCanOcclude( float distance ) {
+	return distance >= kMinimumDistance;
+}
+
+inline bool UsesProbeFan( float distance ) {
+	return distance > kProbeFanDistance;
+}
+
+inline float ProbeSpreadForDistance( float distance ) {
+	return ( std::max )( kProbeSpreadMinimum,
+		( std::min )( distance * kProbeSpreadScale, kProbeSpreadMaximum ) );
+}
+
+inline float OcclusionFromProbeHits( int blocked, int total, bool centerBlocked ) {
+	if ( blocked <= 0 || total <= 0 ) {
+		return 0.0f;
+	}
+
+	float occlusion = Clamp01( static_cast<float>( blocked ) / static_cast<float>( total ) );
+	if ( blocked < total ) {
+		occlusion = kPartialOcclusionBias + occlusion * ( 1.0f - kPartialOcclusionBias );
+	}
+	if ( centerBlocked ) {
+		occlusion = ( std::max )( occlusion, kCenterBlockedMinimum );
+	}
+	return Clamp01( occlusion );
+}
+
+inline float ApplyStrength( float occlusion, float strength ) {
+	return Clamp01( Clamp01( occlusion ) * ( std::max )( strength, 0.0f ) );
+}
+
+inline float DirectGain( float occlusion ) {
+	return ( std::max )( kDirectGainMinimum, 1.0f - Clamp01( occlusion ) * kDirectAttenuation );
+}
+
+inline float DirectHF( float environmentDirectHF, float occlusion ) {
+	return ( std::max )( kDirectHFMinimum,
+		( std::min )( Clamp01( environmentDirectHF ) * ( 1.0f - Clamp01( occlusion ) * kDirectHFCut ), 1.0f ) );
+}
+
+inline float WetGain( float environmentWetGain, float distanceMix, float occlusion ) {
+	return Clamp01( Clamp01( environmentWetGain ) * ( kWetNearLevel + Clamp01( distanceMix ) * kWetDistanceLevel ) +
+		Clamp01( occlusion ) * kWetBoost );
+}
+
+inline float WetHF( float environmentWetHF, float occlusion ) {
+	return ( std::max )( kWetHFMinimum,
+		( std::min )( Clamp01( environmentWetHF ) * ( 1.0f - Clamp01( occlusion ) * kWetHFCut ), 1.0f ) );
+}
+
+} // namespace fnql_audio_occlusion

@@ -1,0 +1,133 @@
+/*
+===========================================================================
+Copyright (C) 2026 FnQL contributors
+
+This file is part of FnQL.
+
+FnQL is free software: you can redistribute it and/or modify it under the
+terms of the GNU General Public License as published by the Free Software
+Foundation, either version 2 of the License, or (at your option) any later
+version.
+===========================================================================
+*/
+
+#ifndef TR_QL_CVARS_H
+#define TR_QL_CVARS_H
+
+/*
+ * Retail Quake Live added a small renderer-control surface on top of the
+ * Quake III cvars.  Keep those controls in one renderer-neutral contract so
+ * the GLx, Vulkan, and RTX backends cannot drift apart.
+ *
+ * Post-processing controls are deliberately excluded. FnQL keeps the FnQ3
+ * framebuffer, HDR, color-grade, and bloom control surfaces and rendering
+ * paths without a second QL post-process owner or compatibility shim.
+ */
+typedef struct qlRendererCvars_s {
+	cvar_t *fastSkyColor;
+	cvar_t *drawSkyFloor;
+	cvar_t *forceMergeEntities;
+	cvar_t *ignoreFastPath;
+	cvar_t *primitives;
+	cvar_t *smp;
+	cvar_t *showSmp;
+	cvar_t *uiFullscreen;
+	cvar_t *skipSmallBatches;
+	cvar_t *skipLargeBatches;
+	cvar_t *debugShaderIndex;
+	cvar_t *debugSortExcept;
+	cvar_t *debugAds;
+} qlRendererCvars_t;
+
+extern qlRendererCvars_t qlRendererCvars;
+
+static ID_INLINE cvar_t *R_QLRegisterCvar( const char *name,
+	const char *value, int flags, const char *minValue, const char *maxValue,
+	cvarValidator_t validator, const char *description )
+{
+	cvar_t *cvar = ri.Cvar_Get( name, value, flags );
+
+	if ( minValue || maxValue || validator != CV_NONE ) {
+		ri.Cvar_CheckRange( cvar, minValue, maxValue, validator );
+	}
+	ri.Cvar_SetDescription( cvar, description );
+	ri.Cvar_SetGroup( cvar, CVG_RENDERER );
+	return cvar;
+}
+
+static ID_INLINE void R_QLRegisterRendererCvars( void )
+{
+	const int profileFlags = CVAR_ARCHIVE | CVAR_CLOUD;
+
+	qlRendererCvars.fastSkyColor = R_QLRegisterCvar( "r_fastSkyColor", "0x000000",
+		CVAR_ARCHIVE | CVAR_PROTECTED | CVAR_CLOUD, NULL, NULL, CV_NONE,
+		"Packed 0xRRGGBB clear color used by r_fastsky." );
+	qlRendererCvars.drawSkyFloor = R_QLRegisterCvar( "r_drawSkyFloor", "1",
+		profileFlags, "0", "1", CV_INTEGER,
+		"Draw the bottom face of sky and cloud boxes." );
+	qlRendererCvars.forceMergeEntities = R_QLRegisterCvar( "r_forceMergeEntities", "0",
+		CVAR_CHEAT, "0", "1", CV_INTEGER,
+		"Allow compatible draw surfaces to batch across entity boundaries." );
+	qlRendererCvars.ignoreFastPath = R_QLRegisterCvar( "r_ignoreFastPath", "1",
+		CVAR_ARCHIVE | CVAR_LATCH, "0", "1", CV_INTEGER,
+		"Suppress retail's fixed-function tessellation fast path. FnQL renderers use the general path." );
+	qlRendererCvars.primitives = R_QLRegisterCvar( "r_primitives", "0",
+		CVAR_ARCHIVE, "0", "3", CV_INTEGER,
+		"Retail primitive submission selector; modern FnQL backends safely use indexed submission." );
+	qlRendererCvars.smp = R_QLRegisterCvar( "r_smp", "0", CVAR_ROM,
+		"0", "0", CV_INTEGER,
+		"Retail renderer-thread status. FnQL renderers submit deterministically on one renderer thread." );
+	qlRendererCvars.showSmp = R_QLRegisterCvar( "r_showSmp", "0", CVAR_CHEAT,
+		"0", "1", CV_INTEGER,
+		"Print retail renderer-thread stall diagnostics; inert while r_smp reports the single-threaded FnQL path." );
+	qlRendererCvars.uiFullscreen = R_QLRegisterCvar( "r_uifullscreen", "0", 0,
+		"0", "1", CV_INTEGER,
+		"Set by the UI while a full-screen menu is active." );
+	qlRendererCvars.skipSmallBatches = R_QLRegisterCvar( "r_skipSmallBatches", "0",
+		CVAR_CHEAT, "0", "1", CV_INTEGER,
+		"Skip draw batches containing at most 512 indexes for diagnostics." );
+	qlRendererCvars.skipLargeBatches = R_QLRegisterCvar( "r_skipLargeBatches", "0",
+		CVAR_CHEAT, "0", "1", CV_INTEGER,
+		"Skip draw batches containing at least 2000 indexes for diagnostics." );
+	qlRendererCvars.debugShaderIndex = R_QLRegisterCvar( "r_debugShaderIndex", "0",
+		CVAR_CHEAT, NULL, NULL, CV_INTEGER,
+		"Highlight a single shader index with the triangle diagnostic overlay." );
+	qlRendererCvars.debugSortExcept = R_QLRegisterCvar( "r_debugSortExcept", "0",
+		CVAR_CHEAT, NULL, NULL, CV_INTEGER,
+		"Shader sort value exempted from r_debugSort filtering." );
+	qlRendererCvars.debugAds = R_QLRegisterCvar( "r_debugAds", "0", CVAR_TEMP,
+		NULL, NULL, CV_INTEGER,
+		"Print a bounded retail advertisement-surface diagnostic snapshot." );
+	(void)R_QLRegisterCvar( "r_qlOcclusionQueries", "0", CVAR_TEMP | CVAR_PROTECTED,
+		"0", "1", CV_INTEGER,
+		"Internal common-backend occlusion-query capability status." );
+}
+
+static ID_INLINE void R_QLFastSkyColor( vec4_t color )
+{
+	char *end = NULL;
+	unsigned long rgb = 0;
+	const char *value = qlRendererCvars.fastSkyColor
+		? qlRendererCvars.fastSkyColor->string : NULL;
+
+	if ( value && value[0] ) {
+		rgb = strtoul( value, &end, 0 );
+		if ( end == value ) {
+			rgb = (unsigned long)qlRendererCvars.fastSkyColor->integer;
+		}
+	}
+	color[0] = ( ( rgb >> 16 ) & 0xff ) / 255.0f;
+	color[1] = ( ( rgb >> 8 ) & 0xff ) / 255.0f;
+	color[2] = ( rgb & 0xff ) / 255.0f;
+	color[3] = 1.0f;
+}
+
+static ID_INLINE qboolean R_QLSkipBatch( int numIndexes )
+{
+	return ( qlRendererCvars.skipSmallBatches->integer && numIndexes > 0
+			&& numIndexes <= 512 )
+		|| ( qlRendererCvars.skipLargeBatches->integer && numIndexes >= 2000 )
+		? qtrue : qfalse;
+}
+
+#endif /* TR_QL_CVARS_H */

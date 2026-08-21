@@ -1,0 +1,60 @@
+/* FnQL settings overlay.
+   Rows injected into the retail settings sections reuse retail's own .cvar,
+   .range and .Select markup, so this stylesheet only covers the parts retail
+   has no equivalent for: removed retail rows, the per-row cvar name and help
+   line, and the section note. */
+
+.game-settings .fnql-retail-hidden {
+  display: none;
+}
+
+.game-settings section .fnql-note {
+  display: block;
+  margin: 0.35em 0 0;
+  font-size: 11pt;
+  font-weight: normal;
+  line-height: 1.4;
+  color: #999;
+}
+
+.game-settings section .fnql-group h1 {
+  margin: 0.75em 0 0.25em 0.2em;
+}
+
+/* Retail fixes .cvar .children to a single 24px line. FnQL rows carry a cvar
+   name and an optional help line, so they grow instead. */
+.game-settings section .fnql-cvar .children {
+  height: auto;
+  min-height: 24px;
+  padding-top: 6px;
+}
+
+.game-settings section .fnql-cvar-name {
+  font-family: monospace;
+  font-size: 0.85em;
+  color: #777;
+}
+
+.game-settings section .fnql-cvar-flag {
+  padding: 0 0.4em;
+  border: 1px solid #4a4a4a;
+  border-radius: 2px;
+  font-size: 0.75em;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9a8b4a;
+  white-space: nowrap;
+}
+
+.game-settings section .fnql-cvar-help {
+  margin-top: 0.35em;
+  padding-right: 1em;
+  font-size: 0.85em;
+  line-height: 1.4;
+  color: #8a8a8a;
+}
+
+.game-settings section .fnql-cvar .val > .Select,
+.game-settings section .fnql-cvar .val > input[type="text"] {
+  width: 100%;
+}
