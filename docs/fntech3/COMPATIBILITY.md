@@ -85,6 +85,9 @@ client/dedicated tests; end-to-end invalid-filesystem recovery remains open.
 The [packaged-profile checkpoint](2026-09-08-packaged-profiles.md) verifies
 byte-identical archives after timestamp changes and both profiles running
 from one unchanged extraction. Independent-build reproducibility remains open.
+The [audio restart checkpoint](2026-09-08-audio-restart.md) adds muted legacy
+and OpenAL initialization/restart sessions for both profiles. Audible output
+and OpenAL Soft spatial features remain unverified.
 
 The target is one shared, drop-in binary set. It must select `q3` or `ql` before
 compatibility-sensitive initialization and then use that profile's complete,
