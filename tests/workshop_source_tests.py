@@ -484,8 +484,9 @@ int main() {
         assert_in_order(
             self,
             startup,
+            "if ( Com_GameProfile()->supportsWorkshop )",
             "scanWorkshopArchives = FS_HasTrustedBasePakOnDisk();",
-            'WARNING: Skipping workshop PK3s since pak00 doesn\'t exist.',
+            "Com_GameProfile()->basePakName",
             "FS_AddWorkshopDirectories( scanWorkshopArchives );",
             "FS_AddGameDirectory( fs_steampath->string",
             "FS_AddGameDirectory( fs_basepath->string",
@@ -889,7 +890,7 @@ class WorkshopClientSourceTests(unittest.TestCase):
         assert_in_order(
             self,
             init_downloads,
-            "ForWireProfile( clc.netchan.wireProfile )",
+            "ForWireProfile( CL_ActiveWireProfile() )",
             "!clc.demoplaying",
             "activeContract.Has( fnql::protocol::Capability::WorkshopContent )",
             "CL_Workshop_BeginRequiredDownloads",

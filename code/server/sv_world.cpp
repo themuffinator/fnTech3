@@ -37,18 +37,23 @@ be returned, otherwise a custom box tree will be constructed.
 ================
 */
 clipHandle_t SV_ClipHandleForEntity( const sharedEntity_t *ent, qboolean capsule ) {
-	if ( ent->r.bmodel ) {
+	sharedEntity_t entity;
+	if ( !SV_ReadGameEntity( ent, &entity ) ) {
+		Com_Error( ERR_DROP, "%s: bad gEnt", __func__ );
+		return 0;
+	}
+	if ( entity.r.bmodel ) {
 		// explicit hulls in the BSP model
-		return CM_InlineModel( ent->s.modelindex );
+		return CM_InlineModel( entity.s.modelindex );
 	}
 	if ( fnql::server::collision::UseCapsuleEntityModel(
-		SV_AsBool( capsule ), ( ent->r.svFlags & SVF_CAPSULE ) != 0 ) ) {
+		SV_AsBool( capsule ), ( entity.r.svFlags & SVF_CAPSULE ) != 0 ) ) {
 		// create a temp capsule from bounding box sizes
-		return CM_TempBoxModel( ent->r.mins, ent->r.maxs, qtrue );
+		return CM_TempBoxModel( entity.r.mins, entity.r.maxs, qtrue );
 	}
 
 	// create a temp tree from bounding box sizes
-	return CM_TempBoxModel( ent->r.mins, ent->r.maxs, qfalse );
+	return CM_TempBoxModel( entity.r.mins, entity.r.maxs, qfalse );
 }
 
 
@@ -177,10 +182,19 @@ void SV_UnlinkEntity( sharedEntity_t *gEnt ) {
 	svEntity_t		*ent;
 	svEntity_t		*scan;
 	worldSector_t	*ws;
+	sharedEntity_t entity;
 
 	ent = SV_SvEntityForGentity( gEnt );
 
-	gEnt->r.linked = qfalse;
+	if ( !SV_ReadGameEntity( gEnt, &entity ) ) {
+		Com_Error( ERR_DROP, "%s: bad gEnt", __func__ );
+		return;
+	}
+	entity.r.linked = qfalse;
+	if ( !SV_WriteGameEntity( gEnt, &entity ) ) {
+		Com_Error( ERR_DROP, "%s: game-data write failed", __func__ );
+		return;
+	}
 
 	ws = ent->worldSector;
 	if ( !ws ) {
@@ -221,57 +235,62 @@ void SV_LinkEntity( sharedEntity_t *gEnt ) {
 	int			lastLeaf;
 	float		*origin, *angles;
 	svEntity_t	*ent;
+	sharedEntity_t entity;
 
 	ent = SV_SvEntityForGentity( gEnt );
 
 	if ( ent->worldSector ) {
 		SV_UnlinkEntity( gEnt );	// unlink from old position
 	}
+	if ( !SV_ReadGameEntity( gEnt, &entity ) ) {
+		Com_Error( ERR_DROP, "%s: bad gEnt", __func__ );
+		return;
+	}
 
 	// encode the size into the entityState_t for client prediction
-	if ( gEnt->r.bmodel ) {
-		gEnt->s.solid = SOLID_BMODEL;		// a solid_box will never create this value
-	} else if ( gEnt->r.contents & ( CONTENTS_SOLID | CONTENTS_BODY ) ) {
+	if ( entity.r.bmodel ) {
+		entity.s.solid = SOLID_BMODEL;		// a solid_box will never create this value
+	} else if ( entity.r.contents & ( CONTENTS_SOLID | CONTENTS_BODY ) ) {
 		// assume that x/y are equal and symmetric
-		i = std::clamp( static_cast<int>( gEnt->r.maxs[0] ), 1, 255 );
+		i = std::clamp( static_cast<int>( entity.r.maxs[0] ), 1, 255 );
 		// z is not symmetric
-		j = std::clamp( static_cast<int>( -gEnt->r.mins[2] ), 1, 255 );
+		j = std::clamp( static_cast<int>( -entity.r.mins[2] ), 1, 255 );
 		// and z maxs can be negative...
-		k = std::clamp( static_cast<int>( gEnt->r.maxs[2] + 32 ), 1, 255 );
+		k = std::clamp( static_cast<int>( entity.r.maxs[2] + 32 ), 1, 255 );
 
-		gEnt->s.solid = (k<<16) | (j<<8) | i;
+		entity.s.solid = (k<<16) | (j<<8) | i;
 	} else {
-		gEnt->s.solid = 0;
+		entity.s.solid = 0;
 	}
 
 	// get the position
-	origin = gEnt->r.currentOrigin;
-	angles = gEnt->r.currentAngles;
+	origin = entity.r.currentOrigin;
+	angles = entity.r.currentAngles;
 
 	// set the abs box
-	if ( gEnt->r.bmodel && (angles[0] || angles[1] || angles[2]) ) {
+	if ( entity.r.bmodel && (angles[0] || angles[1] || angles[2]) ) {
 		// expand for rotation
 		float		max;
 
-		max = RadiusFromBounds( gEnt->r.mins, gEnt->r.maxs );
+		max = RadiusFromBounds( entity.r.mins, entity.r.maxs );
 		for (i=0 ; i<3 ; i++) {
-			gEnt->r.absmin[i] = origin[i] - max;
-			gEnt->r.absmax[i] = origin[i] + max;
+			entity.r.absmin[i] = origin[i] - max;
+			entity.r.absmax[i] = origin[i] + max;
 		}
 	} else {
 		// normal
-		VectorAdd (origin, gEnt->r.mins, gEnt->r.absmin);	
-		VectorAdd (origin, gEnt->r.maxs, gEnt->r.absmax);
+		VectorAdd (origin, entity.r.mins, entity.r.absmin);
+		VectorAdd (origin, entity.r.maxs, entity.r.absmax);
 	}
 
 	// because movement is clipped an epsilon away from an actual edge,
 	// we must fully check even when bounding boxes don't quite touch
-	gEnt->r.absmin[0] -= 1;
-	gEnt->r.absmin[1] -= 1;
-	gEnt->r.absmin[2] -= 1;
-	gEnt->r.absmax[0] += 1;
-	gEnt->r.absmax[1] += 1;
-	gEnt->r.absmax[2] += 1;
+	entity.r.absmin[0] -= 1;
+	entity.r.absmin[1] -= 1;
+	entity.r.absmin[2] -= 1;
+	entity.r.absmax[0] += 1;
+	entity.r.absmax[1] += 1;
+	entity.r.absmax[2] += 1;
 
 	// link to PVS leafs
 	ent->numClusters = 0;
@@ -280,12 +299,15 @@ void SV_LinkEntity( sharedEntity_t *gEnt ) {
 	ent->areanum2 = -1;
 
 	//get all leafs, including solids
-	num_leafs = CM_BoxLeafnums( gEnt->r.absmin, gEnt->r.absmax,
+	num_leafs = CM_BoxLeafnums( entity.r.absmin, entity.r.absmax,
 		leafs.data(), SV_ArraySize(leafs), &lastLeaf );
 
 	// if none of the leafs were inside the map, the
 	// entity is outside the world and can be considered unlinked
 	if ( !num_leafs ) {
+		if ( !SV_WriteGameEntity( gEnt, &entity ) ) {
+			Com_Error( ERR_DROP, "%s: game-data write failed", __func__ );
+		}
 		return;
 	}
 
@@ -298,8 +320,8 @@ void SV_LinkEntity( sharedEntity_t *gEnt ) {
 			if (ent->areanum != -1 && ent->areanum != area) {
 				if (ent->areanum2 != -1 && ent->areanum2 != area && sv.state == SS_LOADING) {
 					Com_DPrintf ("Object %i touching 3 areas at %f %f %f\n",
-					gEnt->s.number,
-					gEnt->r.absmin[0], gEnt->r.absmin[1], gEnt->r.absmin[2]);
+					entity.s.number,
+					entity.r.absmin[0], entity.r.absmin[1], entity.r.absmin[2]);
 				}
 				ent->areanum2 = area;
 			} else {
@@ -325,7 +347,7 @@ void SV_LinkEntity( sharedEntity_t *gEnt ) {
 		ent->lastCluster = CM_LeafCluster( lastLeaf );
 	}
 
-	gEnt->r.linkcount++;
+	entity.r.linkcount++;
 
 	// find the first world sector node that the ent's box crosses
 	node = sv_worldSectors.data();
@@ -333,20 +355,25 @@ void SV_LinkEntity( sharedEntity_t *gEnt ) {
 	{
 		if (node->axis == -1)
 			break;
-		if ( gEnt->r.absmin[node->axis] > node->dist)
+		if ( entity.r.absmin[node->axis] > node->dist)
 			node = node->children[0];
-		else if ( gEnt->r.absmax[node->axis] < node->dist)
+		else if ( entity.r.absmax[node->axis] < node->dist)
 			node = node->children[1];
 		else
 			break;		// crosses the node
 	}
 	
+	entity.r.linked = qtrue;
+	if ( !SV_WriteGameEntity( gEnt, &entity ) ) {
+		Com_Error( ERR_DROP, "%s: game-data write failed", __func__ );
+		return;
+	}
+
 	// link it in
 	ent->worldSector = node;
 	ent->nextEntityInWorldSector = node->entities;
 	node->entities = ent;
 
-	gEnt->r.linked = qtrue;
 }
 
 /*
@@ -375,19 +402,22 @@ SV_AreaEntities_r
 */
 static void SV_AreaEntities_r( worldSector_t *node, areaParms_t &ap ) {
 	svEntity_t	*check, *next;
-	sharedEntity_t *gcheck;
+	sharedEntity_t entity;
 
 	for ( check = node->entities  ; check ; check = next ) {
 		next = check->nextEntityInWorldSector;
 
-		gcheck = SV_GEntityForSvEntity( check );
+		if ( !SV_ReadGameEntityByNum( SV_SvEntityIndex( check ), &entity ) ) {
+			Com_Error( ERR_DROP, "%s: invalid world entity", __func__ );
+			return;
+		}
 
-		if ( gcheck->r.absmin[0] > ap.maxs[0]
-		|| gcheck->r.absmin[1] > ap.maxs[1]
-		|| gcheck->r.absmin[2] > ap.maxs[2]
-		|| gcheck->r.absmax[0] < ap.mins[0]
-		|| gcheck->r.absmax[1] < ap.mins[1]
-		|| gcheck->r.absmax[2] < ap.mins[2]) {
+		if ( entity.r.absmin[0] > ap.maxs[0]
+		|| entity.r.absmin[1] > ap.maxs[1]
+		|| entity.r.absmin[2] > ap.maxs[2]
+		|| entity.r.absmax[0] < ap.mins[0]
+		|| entity.r.absmax[1] < ap.mins[1]
+		|| entity.r.absmax[2] < ap.mins[2]) {
 			continue;
 		}
 
@@ -452,17 +482,22 @@ SV_ClipToEntity
 */
 void SV_ClipToEntity( trace_t *trace, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int entityNum, int contentmask, qboolean capsule ) {
 	sharedEntity_t	*touch;
+	sharedEntity_t	entity;
 	clipHandle_t	clipHandle;
 	float			*origin;
 	const float *angles;
 
 	touch = SV_GentityNum( entityNum );
+	if ( !SV_ReadGameEntity( touch, &entity ) ) {
+		Com_Error( ERR_DROP, "%s: invalid gentity %i", __func__, entityNum );
+		return;
+	}
 
 	*trace = {};
 
 	// if it doesn't have any brushes of a type we
 	// are looking for, ignore it
-	if ( ! ( contentmask & touch->r.contents ) ) {
+	if ( ! ( contentmask & entity.r.contents ) ) {
 		trace->fraction = 1.0;
 		return;
 	}
@@ -470,10 +505,10 @@ void SV_ClipToEntity( trace_t *trace, const vec3_t start, const vec3_t mins, con
 	// might intersect, so do an exact clip
 	clipHandle = SV_ClipHandleForEntity( touch, capsule );
 
-	origin = touch->r.currentOrigin;
-	angles = touch->r.currentAngles;
+	origin = entity.r.currentOrigin;
+	angles = entity.r.currentAngles;
 
-	if ( !touch->r.bmodel ) {
+	if ( !entity.r.bmodel ) {
 		angles = vec3_origin;	// boxes don't rotate
 	}
 
@@ -482,7 +517,7 @@ void SV_ClipToEntity( trace_t *trace, const vec3_t start, const vec3_t mins, con
 		origin, angles, capsule);
 
 	if ( trace->fraction < 1 ) {
-		trace->entityNum = touch->s.number;
+		trace->entityNum = entity.s.number;
 	}
 }
 
@@ -500,6 +535,7 @@ static void SV_ClipMoveToEntities( moveclip_t &clip ) {
 	// every trace is pure memset in the hottest server path.
 	std::array<int, MAX_GENTITIES> touchlist;
 	sharedEntity_t *touch;
+	sharedEntity_t entity;
 	int			passOwnerNum;
 	trace_t		trace;
 	clipHandle_t	clipHandle;
@@ -509,7 +545,12 @@ static void SV_ClipMoveToEntities( moveclip_t &clip ) {
 	num = SV_AreaEntities( clip.boxmins, clip.boxmaxs, touchlist.data(), SV_ArraySize(touchlist) );
 
 	if ( clip.passEntityNum != ENTITYNUM_NONE ) {
-		passOwnerNum = ( SV_GentityNum( clip.passEntityNum ) )->r.ownerNum;
+		if ( !SV_ReadGameEntityByNum( clip.passEntityNum, &entity ) ) {
+			Com_Error( ERR_DROP, "%s: invalid pass entity %i", __func__,
+				clip.passEntityNum );
+			return;
+		}
+		passOwnerNum = entity.r.ownerNum;
 		if ( passOwnerNum == ENTITYNUM_NONE ) {
 			passOwnerNum = -1;
 		}
@@ -522,34 +563,39 @@ static void SV_ClipMoveToEntities( moveclip_t &clip ) {
 			return;
 		}
 		touch = SV_GentityNum( touchlist[i] );
+		if ( !SV_ReadGameEntity( touch, &entity ) ) {
+			Com_Error( ERR_DROP, "%s: invalid gentity %i", __func__,
+				touchlist[i] );
+			return;
+		}
 
 		// see if we should ignore this entity
 		if ( clip.passEntityNum != ENTITYNUM_NONE ) {
 			if ( touchlist[i] == clip.passEntityNum ) {
 				continue;	// don't clip against the pass entity
 			}
-			if ( touch->r.ownerNum == clip.passEntityNum ) {
+			if ( entity.r.ownerNum == clip.passEntityNum ) {
 				continue;	// don't clip against own missiles
 			}
-			if ( touch->r.ownerNum == passOwnerNum ) {
+			if ( entity.r.ownerNum == passOwnerNum ) {
 				continue;	// don't clip against other missiles from our owner
 			}
 		}
 
 		// if it doesn't have any brushes of a type we
 		// are looking for, ignore it
-		if ( ! ( clip.contentmask & touch->r.contents ) ) {
+		if ( ! ( clip.contentmask & entity.r.contents ) ) {
 			continue;
 		}
 
 		// might intersect, so do an exact clip
 		clipHandle = SV_ClipHandleForEntity( touch, SV_QBool( clip.capsule ) );
 
-		origin = touch->r.currentOrigin;
-		angles = touch->r.currentAngles;
+		origin = entity.r.currentOrigin;
+		angles = entity.r.currentAngles;
 
 
-		if ( !touch->r.bmodel ) {
+		if ( !entity.r.bmodel ) {
 			angles = vec3_origin;	// boxes don't rotate
 		}
 
@@ -559,17 +605,17 @@ static void SV_ClipMoveToEntities( moveclip_t &clip ) {
 
 		if ( trace.allsolid ) {
 			clip.trace.allsolid = qtrue;
-			trace.entityNum = touch->s.number;
+			trace.entityNum = entity.s.number;
 		} else if ( trace.startsolid ) {
 			clip.trace.startsolid = qtrue;
-			trace.entityNum = touch->s.number;
+			trace.entityNum = entity.s.number;
 		}
 
 		if ( trace.fraction < clip.trace.fraction ) {
 			// make sure we keep a startsolid from a previous trace
 			const bool oldStart = SV_AsBool( clip.trace.startsolid );
 
-			trace.entityNum = touch->s.number;
+			trace.entityNum = entity.s.number;
 			clip.trace = trace;
 			if ( oldStart ) {
 				clip.trace.startsolid = qtrue;
@@ -646,6 +692,7 @@ int SV_PointContents( const vec3_t p, int passEntityNum ) {
 	// see SV_ClipMoveToEntities(): write-before-read, bounded by the return value
 	std::array<int, MAX_GENTITIES> touch;
 	sharedEntity_t *hit;
+	sharedEntity_t entity;
 	int			i, num;
 	int			contents, c2;
 	clipHandle_t	clipHandle;
@@ -662,14 +709,19 @@ int SV_PointContents( const vec3_t p, int passEntityNum ) {
 			continue;
 		}
 		hit = SV_GentityNum( touch[i] );
+		if ( !SV_ReadGameEntity( hit, &entity ) ) {
+			Com_Error( ERR_DROP, "%s: invalid gentity %i", __func__, touch[i] );
+			return contents;
+		}
 		// might intersect, so do an exact clip
 		clipHandle = SV_ClipHandleForEntity( hit, qfalse );
-		angles = hit->r.currentAngles;
-		if ( !hit->r.bmodel ) {
+		angles = entity.r.currentAngles;
+		if ( !entity.r.bmodel ) {
 			angles = vec3_origin;	// boxes don't rotate
 		}
 
-		c2 = CM_TransformedPointContents (p, clipHandle, hit->r.currentOrigin, angles);
+		c2 = CM_TransformedPointContents (p, clipHandle,
+			entity.r.currentOrigin, angles);
 
 		contents |= c2;
 	}

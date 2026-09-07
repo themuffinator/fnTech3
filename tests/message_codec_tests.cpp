@@ -5,16 +5,21 @@ extern "C" {
 
 #include <array>
 #include <cstdarg>
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <limits>
 
 #define CHECK( expression ) do { if ( !( expression ) ) return __LINE__; } while ( false )
 
+extern "C" int Test_CatchMessageDrop( void (*callback)( void * ), void *context );
+extern "C" void Test_RaiseExpectedMessageDrop( void );
+
 extern "C" void QDECL Com_Printf( const char *, ... ) {
 }
 
 extern "C" void QDECL Com_Error( errorParm_t, const char *, ... ) {
+	Test_RaiseExpectedMessageDrop();
 	std::abort();
 }
 
@@ -73,14 +78,16 @@ int TestWireProfileUserCommandHash() {
 
 	msg_t writer{};
 	MSG_Init( &writer, storage.data(), static_cast<int>( storage.size() ) );
-	MSG_WriteDeltaUsercmdKey( &writer, retailKey, &baseline, &sent );
+	CHECK( MSG_WriteDeltaUsercmdKeyForWireProfile( &writer, retailKey,
+		&baseline, &sent, NETCHAN_WIRE_QL_RETAIL ) );
 	CHECK( !writer.overflowed );
 
 	msg_t reader{};
 	MSG_Init( &reader, storage.data(), static_cast<int>( storage.size() ) );
 	reader.cursize = writer.cursize;
 	MSG_BeginReading( &reader );
-	MSG_ReadDeltaUsercmdKey( &reader, retailKey, &baseline, &received );
+	CHECK( MSG_ReadDeltaUsercmdKeyForWireProfile( &reader, retailKey,
+		&baseline, &received, NETCHAN_WIRE_QL_RETAIL ) );
 	CHECK( received.serverTime == sent.serverTime );
 	CHECK( received.angles[PITCH] == sent.angles[PITCH] );
 	CHECK( received.buttons == sent.buttons );
@@ -134,6 +141,674 @@ int TestWireProfileCommandStrings() {
 	return 0;
 }
 
+int TestUserCommandWireLayouts() {
+	std::array<byte, 64> q3Storage{};
+	std::array<byte, 64> ioq3Storage{};
+	std::array<byte, 64> qlStorage{};
+	usercmd_t baseline{};
+	usercmd_t sent{};
+	baseline.serverTime = 1000;
+	sent = baseline;
+	sent.weaponPrimary = 7;
+	sent.fov = 110;
+
+	msg_t q3Writer{};
+	MSG_Init( &q3Writer, q3Storage.data(),
+		static_cast<int>( q3Storage.size() ) );
+	MSG_RawBitstream( &q3Writer );
+	CHECK( MSG_WriteDeltaUsercmdKeyForWireProfile( &q3Writer, 0x12345678,
+		&baseline, &sent, NETCHAN_WIRE_LEGACY_Q3 ) );
+	CHECK( q3Writer.bit == 10 );
+	CHECK( q3Writer.cursize == 2 );
+	// Independent no-change vector derived from FnQuake3 msg.c at
+	// 7d8c9629cdc7979f09697266470359101ffd9eda: short time delta 0,
+	// followed by the Q3 common-fields no-change bit.
+	CHECK( q3Storage[0] == 0x01 );
+	CHECK( q3Storage[1] == 0x00 );
+
+	msg_t ioq3Writer{};
+	MSG_Init( &ioq3Writer, ioq3Storage.data(),
+		static_cast<int>( ioq3Storage.size() ) );
+	MSG_RawBitstream( &ioq3Writer );
+	CHECK( MSG_WriteDeltaUsercmdKeyForWireProfile( &ioq3Writer, 0x12345678,
+		&baseline, &sent, NETCHAN_WIRE_IOQ3 ) );
+	CHECK( ioq3Writer.bit == q3Writer.bit );
+	CHECK( std::memcmp( q3Storage.data(), ioq3Storage.data(),
+		static_cast<std::size_t>( q3Writer.cursize ) ) == 0 );
+
+	msg_t qlWriter{};
+	MSG_Init( &qlWriter, qlStorage.data(),
+		static_cast<int>( qlStorage.size() ) );
+	MSG_RawBitstream( &qlWriter );
+	CHECK( MSG_WriteDeltaUsercmdKeyForWireProfile( &qlWriter, 0x12345678,
+		&baseline, &sent, NETCHAN_WIRE_QL_RETAIL ) );
+	CHECK( qlWriter.bit == 36 );
+	CHECK( qlWriter.bit > q3Writer.bit );
+
+	usercmd_t q3Base = baseline;
+	q3Base.weaponPrimary = 0xa5;
+	q3Base.fov = 0x5a;
+	usercmd_t q3Received{};
+	msg_t q3Reader{};
+	MSG_Init( &q3Reader, q3Storage.data(),
+		static_cast<int>( q3Storage.size() ) );
+	q3Reader.cursize = q3Writer.cursize;
+	MSG_BeginReading( &q3Reader );
+	MSG_RawBitstream( &q3Reader );
+	CHECK( MSG_ReadDeltaUsercmdKeyForWireProfile( &q3Reader, 0x12345678,
+		&q3Base, &q3Received, NETCHAN_WIRE_LEGACY_Q3 ) );
+	CHECK( q3Reader.bit == q3Writer.bit );
+	CHECK( q3Received.serverTime == sent.serverTime );
+	CHECK( q3Received.weaponPrimary == 0 );
+	CHECK( q3Received.fov == 0 );
+
+	usercmd_t qlReceived{};
+	msg_t qlReader{};
+	MSG_Init( &qlReader, qlStorage.data(),
+		static_cast<int>( qlStorage.size() ) );
+	qlReader.cursize = qlWriter.cursize;
+	MSG_BeginReading( &qlReader );
+	MSG_RawBitstream( &qlReader );
+	CHECK( MSG_ReadDeltaUsercmdKeyForWireProfile( &qlReader, 0x12345678,
+		&baseline, &qlReceived, NETCHAN_WIRE_QL_RETAIL ) );
+	CHECK( qlReader.bit == qlWriter.bit );
+	CHECK( qlReceived.weaponPrimary == sent.weaponPrimary );
+	CHECK( qlReceived.fov == sent.fov );
+	return 0;
+}
+
+int TestEntityWireLayouts() {
+	std::array<byte, MAX_MSGLEN_BUF> q3Storage{};
+	std::array<byte, MAX_MSGLEN_BUF> ioq3Storage{};
+	std::array<byte, MAX_MSGLEN_BUF> qlStorage{};
+	entityState_t baseline{};
+	entityState_t sent{};
+	sent.number = 17;
+	sent.pos.gravity = 800.0f;
+	sent.apos.gravity = -25.0f;
+	sent.health = 125;
+	sent.armor = 75;
+	sent.location = 63;
+	sent.jumpTime = 123456;
+	sent.doubleJumped = 1;
+
+	msg_t q3Writer{};
+	MSG_Init( &q3Writer, q3Storage.data(),
+		static_cast<int>( q3Storage.size() ) );
+	MSG_RawBitstream( &q3Writer );
+	CHECK( MSG_WriteDeltaEntityForWireProfile( &q3Writer, &baseline, &sent,
+		qtrue, NETCHAN_WIRE_LEGACY_Q3 ) );
+	CHECK( q3Writer.bit == 12 );
+	// FnQuake3's forced no-delta entity record is the ten-bit entity number,
+	// then the not-removed and no-delta bits.
+	CHECK( q3Storage[0] == 0x11 );
+	CHECK( q3Storage[1] == 0x00 );
+
+	msg_t ioq3Writer{};
+	MSG_Init( &ioq3Writer, ioq3Storage.data(),
+		static_cast<int>( ioq3Storage.size() ) );
+	MSG_RawBitstream( &ioq3Writer );
+	CHECK( MSG_WriteDeltaEntityForWireProfile( &ioq3Writer, &baseline, &sent,
+		qtrue, NETCHAN_WIRE_IOQ3 ) );
+	CHECK( ioq3Writer.bit == q3Writer.bit );
+	CHECK( std::memcmp( q3Storage.data(), ioq3Storage.data(),
+		static_cast<std::size_t>( q3Writer.cursize ) ) == 0 );
+
+	msg_t qlWriter{};
+	MSG_Init( &qlWriter, qlStorage.data(),
+		static_cast<int>( qlStorage.size() ) );
+	MSG_RawBitstream( &qlWriter );
+	CHECK( MSG_WriteDeltaEntityForWireProfile( &qlWriter, &baseline, &sent,
+		qtrue, NETCHAN_WIRE_QL_RETAIL ) );
+	CHECK( qlWriter.bit > q3Writer.bit );
+
+	entityState_t q3Received{};
+	msg_t q3Reader{};
+	MSG_Init( &q3Reader, q3Storage.data(),
+		static_cast<int>( q3Storage.size() ) );
+	q3Reader.cursize = q3Writer.cursize;
+	MSG_BeginReading( &q3Reader );
+	MSG_RawBitstream( &q3Reader );
+	const int q3Number = MSG_ReadEntitynum( &q3Reader );
+	CHECK( q3Number == sent.number );
+	CHECK( MSG_ReadDeltaEntityForWireProfile( &q3Reader, &sent, &q3Received,
+		q3Number, NETCHAN_WIRE_LEGACY_Q3 ) );
+	CHECK( q3Reader.bit == q3Writer.bit );
+	CHECK( q3Received.number == sent.number );
+	CHECK( q3Received.pos.gravity == 0.0f );
+	CHECK( q3Received.apos.gravity == 0.0f );
+	CHECK( q3Received.health == 0 );
+	CHECK( q3Received.armor == 0 );
+	CHECK( q3Received.location == 0 );
+	CHECK( q3Received.jumpTime == 0 );
+	CHECK( q3Received.doubleJumped == 0 );
+
+	entityState_t qlReceived{};
+	msg_t qlReader{};
+	MSG_Init( &qlReader, qlStorage.data(),
+		static_cast<int>( qlStorage.size() ) );
+	qlReader.cursize = qlWriter.cursize;
+	MSG_BeginReading( &qlReader );
+	MSG_RawBitstream( &qlReader );
+	const int qlNumber = MSG_ReadEntitynum( &qlReader );
+	CHECK( qlNumber == sent.number );
+	CHECK( MSG_ReadDeltaEntityForWireProfile( &qlReader, &baseline,
+		&qlReceived, qlNumber, NETCHAN_WIRE_QL_RETAIL ) );
+	CHECK( qlReader.bit == qlWriter.bit );
+	CHECK( std::memcmp( &sent, &qlReceived, sizeof( sent ) ) == 0 );
+	return 0;
+}
+
+int TestPlayerStateWireLayouts() {
+	std::array<byte, MAX_MSGLEN_BUF> q3Storage{};
+	std::array<byte, MAX_MSGLEN_BUF> ioq3Storage{};
+	std::array<byte, MAX_MSGLEN_BUF> qlStorage{};
+	playerState_t baseline{};
+	playerState_t sent{};
+	baseline.pm_flags = 0x1234;
+	sent = baseline;
+	sent.pm_flags = 0x00ab1234;
+	sent.location = 14;
+	sent.weaponPrimary = 2;
+	sent.fov = 103;
+	sent.jumpTime = 123456;
+	sent.doubleJumped = 1;
+	sent.crouchTime = 654321;
+	sent.crouchSlideTime = 777;
+	sent.forwardmove = -127;
+	sent.rightmove = 100;
+	sent.upmove = -4;
+
+	msg_t q3Writer{};
+	MSG_Init( &q3Writer, q3Storage.data(),
+		static_cast<int>( q3Storage.size() ) );
+	MSG_RawBitstream( &q3Writer );
+	CHECK( MSG_WriteDeltaPlayerstateForWireProfile( &q3Writer, &baseline,
+		&sent, NETCHAN_WIRE_LEGACY_Q3 ) );
+	CHECK( q3Writer.bit == 9 );
+	CHECK( q3Storage[0] == 0x00 );
+	CHECK( q3Storage[1] == 0x00 );
+
+	msg_t ioq3Writer{};
+	MSG_Init( &ioq3Writer, ioq3Storage.data(),
+		static_cast<int>( ioq3Storage.size() ) );
+	MSG_RawBitstream( &ioq3Writer );
+	CHECK( MSG_WriteDeltaPlayerstateForWireProfile( &ioq3Writer, &baseline,
+		&sent, NETCHAN_WIRE_IOQ3 ) );
+	CHECK( ioq3Writer.bit == q3Writer.bit );
+	CHECK( std::memcmp( q3Storage.data(), ioq3Storage.data(),
+		static_cast<std::size_t>( q3Writer.cursize ) ) == 0 );
+
+	msg_t qlWriter{};
+	MSG_Init( &qlWriter, qlStorage.data(),
+		static_cast<int>( qlStorage.size() ) );
+	MSG_RawBitstream( &qlWriter );
+	CHECK( MSG_WriteDeltaPlayerstateForWireProfile( &qlWriter, &baseline,
+		&sent, NETCHAN_WIRE_QL_RETAIL ) );
+	CHECK( qlWriter.bit > q3Writer.bit );
+
+	playerState_t q3Base = sent;
+	q3Base.commandMirrorPad = 0x5a;
+	q3Base.armorTier = 3;
+	playerState_t q3Received{};
+	msg_t q3Reader{};
+	MSG_Init( &q3Reader, q3Storage.data(),
+		static_cast<int>( q3Storage.size() ) );
+	q3Reader.cursize = q3Writer.cursize;
+	MSG_BeginReading( &q3Reader );
+	MSG_RawBitstream( &q3Reader );
+	CHECK( MSG_ReadDeltaPlayerstateForWireProfile( &q3Reader, &q3Base,
+		&q3Received, NETCHAN_WIRE_LEGACY_Q3 ) );
+	CHECK( q3Reader.bit == q3Writer.bit );
+	CHECK( q3Received.pm_flags == 0x1234 );
+	CHECK( q3Received.location == 0 );
+	CHECK( q3Received.weaponPrimary == 0 );
+	CHECK( q3Received.fov == 0 );
+	CHECK( q3Received.jumpTime == 0 );
+	CHECK( q3Received.doubleJumped == 0 );
+	CHECK( q3Received.crouchTime == 0 );
+	CHECK( q3Received.crouchSlideTime == 0 );
+	CHECK( q3Received.forwardmove == 0 );
+	CHECK( q3Received.rightmove == 0 );
+	CHECK( q3Received.upmove == 0 );
+	CHECK( q3Received.commandMirrorPad == 0 );
+	CHECK( q3Received.armorTier == 0 );
+
+	playerState_t qlReceived{};
+	msg_t qlReader{};
+	MSG_Init( &qlReader, qlStorage.data(),
+		static_cast<int>( qlStorage.size() ) );
+	qlReader.cursize = qlWriter.cursize;
+	MSG_BeginReading( &qlReader );
+	MSG_RawBitstream( &qlReader );
+	CHECK( MSG_ReadDeltaPlayerstateForWireProfile( &qlReader, &baseline,
+		&qlReceived, NETCHAN_WIRE_QL_RETAIL ) );
+	CHECK( qlReader.bit == qlWriter.bit );
+	CHECK( qlReceived.pm_flags == sent.pm_flags );
+	CHECK( qlReceived.location == sent.location );
+	CHECK( qlReceived.weaponPrimary == sent.weaponPrimary );
+	CHECK( qlReceived.fov == sent.fov );
+	CHECK( qlReceived.jumpTime == sent.jumpTime );
+	CHECK( qlReceived.doubleJumped == sent.doubleJumped );
+	CHECK( qlReceived.crouchTime == sent.crouchTime );
+	CHECK( qlReceived.crouchSlideTime == sent.crouchSlideTime );
+	CHECK( qlReceived.forwardmove == sent.forwardmove );
+	CHECK( qlReceived.rightmove == sent.rightmove );
+	CHECK( qlReceived.upmove == sent.upmove );
+	return 0;
+}
+
+int TestPinnedQuake3RawVectors() {
+	// These raw-bit vectors were derived field-by-field from the pinned
+	// FnQuake3 msg.c table at 7d8c9629cdc7979f09697266470359101ffd9eda,
+	// independently of fnTech3's tables. They lock the placement of Q3's
+	// event field (index 9) and loopSound player field (index 47).
+	static constexpr std::array<byte, 6> entityGolden{
+		0x11, 0xa8, 0x00, 0xe0, 0x02, 0x00
+	};
+	std::array<byte, 64> entityStorage{};
+	entityState_t entityBase{};
+	entityState_t entitySent{};
+	entitySent.number = 17;
+	entitySent.event = 5;
+	msg_t entityWriter{};
+	MSG_Init( &entityWriter, entityStorage.data(),
+		static_cast<int>( entityStorage.size() ) );
+	MSG_RawBitstream( &entityWriter );
+	CHECK( MSG_WriteDeltaEntityForWireProfile( &entityWriter, &entityBase,
+		&entitySent, qtrue, NETCHAN_WIRE_LEGACY_Q3 ) );
+	CHECK( entityWriter.bit == 41 );
+	CHECK( std::memcmp( entityStorage.data(), entityGolden.data(),
+		entityGolden.size() ) == 0 );
+
+	entityState_t entityReceived{};
+	msg_t entityReader{};
+	MSG_Init( &entityReader, entityStorage.data(),
+		static_cast<int>( entityStorage.size() ) );
+	entityReader.cursize = entityWriter.cursize;
+	MSG_BeginReading( &entityReader );
+	MSG_RawBitstream( &entityReader );
+	const int entityNumber = MSG_ReadEntitynum( &entityReader );
+	CHECK( MSG_ReadDeltaEntityForWireProfile( &entityReader, &entityBase,
+		&entityReceived, entityNumber, NETCHAN_WIRE_LEGACY_Q3 ) );
+	CHECK( entityReader.bit == entityWriter.bit );
+	CHECK( entityReceived.number == entitySent.number );
+	CHECK( entityReceived.event == entitySent.event );
+
+	static constexpr std::array<byte, 10> playerGolden{
+		0x30, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x34, 0x12, 0x00
+	};
+	std::array<byte, 64> playerStorage{};
+	playerState_t playerBase{};
+	playerState_t playerSent{};
+	playerSent.loopSound = 0x1234;
+	msg_t playerWriter{};
+	MSG_Init( &playerWriter, playerStorage.data(),
+		static_cast<int>( playerStorage.size() ) );
+	MSG_RawBitstream( &playerWriter );
+	CHECK( MSG_WriteDeltaPlayerstateForWireProfile( &playerWriter,
+		&playerBase, &playerSent, NETCHAN_WIRE_LEGACY_Q3 ) );
+	CHECK( playerWriter.bit == 73 );
+	CHECK( std::memcmp( playerStorage.data(), playerGolden.data(),
+		playerGolden.size() ) == 0 );
+
+	playerState_t playerReceived{};
+	msg_t playerReader{};
+	MSG_Init( &playerReader, playerStorage.data(),
+		static_cast<int>( playerStorage.size() ) );
+	playerReader.cursize = playerWriter.cursize;
+	MSG_BeginReading( &playerReader );
+	MSG_RawBitstream( &playerReader );
+	CHECK( MSG_ReadDeltaPlayerstateForWireProfile( &playerReader, &playerBase,
+		&playerReceived, NETCHAN_WIRE_LEGACY_Q3 ) );
+	CHECK( playerReader.bit == playerWriter.bit );
+	CHECK( playerReceived.loopSound == playerSent.loopSound );
+	return 0;
+}
+
+int TestInvalidDeltaWireProfile() {
+	const auto invalidProfile = static_cast<netchanWireProfile_t>( 99 );
+	std::array<byte, 64> storage{};
+	storage.fill( 0xa5 );
+	msg_t writer{};
+	MSG_Init( &writer, storage.data(), static_cast<int>( storage.size() ) );
+	MSG_RawBitstream( &writer );
+	usercmd_t userFrom{};
+	usercmd_t userTo{};
+	entityState_t entityFrom{};
+	entityState_t entityTo{};
+	entityTo.number = 1;
+	playerState_t playerFrom{};
+	playerState_t playerTo{};
+	CHECK( !MSG_WriteDeltaUsercmdKeyForWireProfile( &writer, 0,
+		&userFrom, &userTo, invalidProfile ) );
+	CHECK( !MSG_WriteDeltaEntityForWireProfile( &writer, &entityFrom,
+		&entityTo, qtrue, invalidProfile ) );
+	CHECK( !MSG_WriteDeltaPlayerstateForWireProfile( &writer, &playerFrom,
+		&playerTo, invalidProfile ) );
+	CHECK( writer.bit == 0 );
+	CHECK( writer.cursize == 0 );
+	CHECK( storage.front() == 0xa5 );
+
+	msg_t reader{};
+	MSG_Init( &reader, storage.data(), static_cast<int>( storage.size() ) );
+	reader.cursize = static_cast<int>( storage.size() );
+	MSG_BeginReading( &reader );
+	MSG_RawBitstream( &reader );
+	usercmd_t userOut{};
+	userOut.serverTime = 0x12345678;
+	const usercmd_t expectedUser = userOut;
+	entityState_t entityOut{};
+	entityOut.number = 77;
+	const entityState_t expectedEntity = entityOut;
+	playerState_t playerOut{};
+	playerOut.commandTime = 0x23456789;
+	const playerState_t expectedPlayer = playerOut;
+	CHECK( !MSG_ReadDeltaUsercmdKeyForWireProfile( &reader, 0, &userFrom,
+		&userOut, invalidProfile ) );
+	CHECK( !MSG_ReadDeltaEntityForWireProfile( &reader, &entityFrom,
+		&entityOut, 1, invalidProfile ) );
+	CHECK( !MSG_ReadDeltaPlayerstateForWireProfile( &reader, &playerFrom,
+		&playerOut, invalidProfile ) );
+	CHECK( reader.bit == 0 );
+	CHECK( reader.readcount == 0 );
+	CHECK( std::memcmp( &userOut, &expectedUser, sizeof( userOut ) ) == 0 );
+	CHECK( std::memcmp( &entityOut, &expectedEntity, sizeof( entityOut ) ) == 0 );
+	CHECK( std::memcmp( &playerOut, &expectedPlayer, sizeof( playerOut ) ) == 0 );
+	return 0;
+}
+
+template<typename State, typename ReadDelta>
+int CheckTruncatedDeltaReads( const msg_t &writer, const State &sent,
+	ReadDelta readDelta ) {
+	// Exercise every incomplete byte prefix, including truncation inside a
+	// Huffman symbol, a float, and the playerstate array masks and payloads.
+	// A rejected packet must leave the caller's last usable state untouched.
+	for ( int length = 0; length < ( writer.bit + 7 ) / 8; ++length ) {
+		msg_t reader = writer;
+		reader.cursize = length;
+		MSG_BeginReading( &reader );
+		if ( writer.rawbit ) MSG_RawBitstream( &reader );
+		State received = sent;
+		CHECK( !readDelta( &reader, &received ) );
+		CHECK( reader.readcount > reader.cursize );
+		CHECK( std::memcmp( &received, &sent, sizeof( sent ) ) == 0 );
+	}
+
+	msg_t reader = writer;
+	MSG_BeginReading( &reader );
+	if ( writer.rawbit ) MSG_RawBitstream( &reader );
+	State received{};
+	CHECK( readDelta( &reader, &received ) );
+	CHECK( reader.bit == writer.bit );
+	return 0;
+}
+
+int TestTruncatedDeltaReads() {
+	for ( const auto profile : { NETCHAN_WIRE_LEGACY_Q3,
+		NETCHAN_WIRE_IOQ3, NETCHAN_WIRE_QL_RETAIL } ) {
+		for ( const bool raw : { false, true } ) {
+			std::array<byte, 1024> storage{};
+			msg_t writer{};
+			MSG_Init( &writer, storage.data(), static_cast<int>( storage.size() ) );
+			if ( raw ) MSG_RawBitstream( &writer );
+
+			usercmd_t userBase{};
+			usercmd_t userSent{};
+			userSent.serverTime = 123456;
+			userSent.angles[0] = 32767;
+			userSent.angles[1] = 16384;
+			userSent.buttons = 0x5a5a;
+			userSent.forwardmove = -127;
+			userSent.rightmove = 64;
+			userSent.upmove = -12;
+			userSent.weapon = 7;
+			userSent.weaponPrimary = 2;
+			userSent.fov = 100;
+			CHECK( MSG_WriteDeltaUsercmdKeyForWireProfile( &writer, 0x12345678,
+				&userBase, &userSent, profile ) );
+			CHECK( !writer.overflowed );
+			if ( const int result = CheckTruncatedDeltaReads( writer, userSent,
+				[&]( msg_t *reader, usercmd_t *out ) {
+					return MSG_ReadDeltaUsercmdKeyForWireProfile( reader,
+						0x12345678, &userBase, out, profile );
+				} ) ) return result;
+
+			MSG_Clear( &writer );
+			entityState_t entityBase{};
+			entityState_t entitySent{};
+			entitySent.number = 17;
+			entitySent.pos.trBase[0] = 123.5f;
+			entitySent.pos.trTime = 123456;
+			entitySent.frame = 0x1234;
+			entitySent.location = 5;
+			CHECK( MSG_WriteDeltaEntityForWireProfile( &writer, &entityBase,
+				&entitySent, qtrue, profile ) );
+			CHECK( !writer.overflowed );
+			if ( const int result = CheckTruncatedDeltaReads( writer, entitySent,
+				[&]( msg_t *reader, entityState_t *out ) {
+					(void)MSG_ReadEntitynum( reader );
+					return MSG_ReadDeltaEntityForWireProfile( reader,
+						&entityBase, out, entitySent.number, profile );
+				} ) ) return result;
+
+			MSG_Clear( &writer );
+			playerState_t playerBase{};
+			playerState_t playerSent{};
+			playerSent.commandTime = 424242;
+			playerSent.origin[0] = 12.5f;
+			playerSent.weaponTime = -125;
+			playerSent.viewheight = -16;
+			playerSent.loopSound = 0x1234;
+			playerSent.forwardmove = -127;
+			playerSent.stats[15] = 321;
+			playerSent.persistant[15] = -45;
+			playerSent.ammo[15] = 200;
+			playerSent.powerups[15] = 999999;
+			CHECK( MSG_WriteDeltaPlayerstateForWireProfile( &writer, &playerBase,
+				&playerSent, profile ) );
+			CHECK( !writer.overflowed );
+			if ( const int result = CheckTruncatedDeltaReads( writer, playerSent,
+				[&]( msg_t *reader, playerState_t *out ) {
+					return MSG_ReadDeltaPlayerstateForWireProfile( reader,
+						&playerBase, out, profile );
+				} ) ) return result;
+		}
+	}
+	return 0;
+}
+
+template<typename State, typename ReadDelta>
+int CheckMalformedDeltaDrop( const State &baseline, ReadDelta readDelta ) {
+	State received = baseline;
+	auto callback = [&]() {
+		readDelta( &received );
+	};
+	const int dropped = Test_CatchMessageDrop( []( void *context ) {
+		(*static_cast<decltype( callback ) *>( context ))();
+	}, &callback );
+	CHECK( dropped );
+	CHECK( std::memcmp( &received, &baseline, sizeof( baseline ) ) == 0 );
+	return 0;
+}
+
+int TestMalformedDeltaFieldCounts() {
+	for ( const auto profile : { NETCHAN_WIRE_LEGACY_Q3,
+		NETCHAN_WIRE_IOQ3, NETCHAN_WIRE_QL_RETAIL } ) {
+		const int entityFields = profile == NETCHAN_WIRE_QL_RETAIL ? 58 : 51;
+		const int playerFields = profile == NETCHAN_WIRE_QL_RETAIL ? 58 : 48;
+		// Entity body: not removed, has delta, field count one past the
+		// selected profile's table. No entity number is included in the body.
+		std::array<byte, 2> entityBytes{
+			static_cast<byte>( ( ( entityFields + 1 ) << 2 ) | 2 ), 0
+		};
+		msg_t entityReader{};
+		MSG_Init( &entityReader, entityBytes.data(),
+			static_cast<int>( entityBytes.size() ) );
+		entityReader.cursize = static_cast<int>( entityBytes.size() );
+		MSG_RawBitstream( &entityReader );
+		entityState_t entityBase{};
+		entityBase.number = 17;
+		entityBase.pos.trTime = 123456;
+		if ( const int result = CheckMalformedDeltaDrop( entityBase,
+			[&]( entityState_t *out ) {
+				MSG_ReadDeltaEntityForWireProfile( &entityReader,
+					&entityBase, out, entityBase.number, profile );
+			} ) ) return result;
+
+		std::array<byte, 1> playerBytes{ static_cast<byte>( playerFields + 1 ) };
+		msg_t playerReader{};
+		MSG_Init( &playerReader, playerBytes.data(),
+			static_cast<int>( playerBytes.size() ) );
+		playerReader.cursize = static_cast<int>( playerBytes.size() );
+		MSG_RawBitstream( &playerReader );
+		playerState_t playerBase{};
+		playerBase.commandTime = 424242;
+		playerBase.stats[3] = 200;
+		if ( const int result = CheckMalformedDeltaDrop( playerBase,
+			[&]( playerState_t *out ) {
+				MSG_ReadDeltaPlayerstateForWireProfile( &playerReader,
+					&playerBase, out, profile );
+			} ) ) return result;
+	}
+	return 0;
+}
+
+struct RawFloatVector {
+	std::array<byte, 64> bytes{};
+	int bits = 0;
+
+	void Append( std::uint32_t value, int width ) {
+		for ( int i = 0; i < width; ++i, ++bits ) {
+			bytes[bits / 8] |= static_cast<byte>( ( ( value >> i ) & 1u ) << ( bits % 8 ) );
+		}
+	}
+};
+
+std::uint32_t FloatBits( const float &value ) {
+	std::uint32_t bits;
+	std::memcpy( &bits, &value, sizeof( bits ) );
+	return bits;
+}
+
+int TestFloatDeltaBitPatterns() {
+	struct FloatCase {
+		std::uint32_t bits;
+		bool compact;
+		int integer;
+	};
+	// The expected representation is specified independently for each bit
+	// pattern. Compact floats use the original 13-bit, bias-4096 contract.
+	static constexpr FloatCase cases[] = {
+		{ 0x00000000u, true, 0 },       // +0
+		{ 0x80000000u, true, 0 },       // -0 keeps the legacy zero normalization
+		{ 0x3f800000u, true, 1 },
+		{ 0xbf800000u, true, -1 },
+		{ 0x457ff000u, true, 4095 },    // compact upper integer
+		{ 0xc5800000u, true, -4096 },   // compact lower integer
+		{ 0x45800000u, false, 0 },      // +4096
+		{ 0xc5800800u, false, 0 },      // -4097
+		{ 0x457ff800u, false, 0 },      // +4095.5
+		{ 0xc5800200u, false, 0 },      // -4096.25
+		{ 0x3fa00000u, false, 0 },      // +1.25
+		{ 0x00000001u, false, 0 },      // smallest positive subnormal
+		{ 0x80000001u, false, 0 },      // smallest negative subnormal
+		{ 0x4f000000u, false, 0 },      // +2^31, outside int range
+		{ 0xcf000000u, false, 0 },      // -2^31
+		{ 0xcf000001u, false, 0 },      // below -2^31
+		{ 0x7f7fffffu, false, 0 },      // FLT_MAX
+		{ 0xff7fffffu, false, 0 },      // -FLT_MAX
+		{ 0x7f800000u, false, 0 },      // +infinity
+		{ 0xff800000u, false, 0 },      // -infinity
+		{ 0x7fc12345u, false, 0 },      // quiet NaN payload
+		{ 0xffc54321u, false, 0 },      // negative quiet NaN payload
+		{ 0x7f800001u, false, 0 }       // signaling NaN payload
+	};
+	for ( const auto profile : { NETCHAN_WIRE_LEGACY_Q3,
+		NETCHAN_WIRE_IOQ3, NETCHAN_WIRE_QL_RETAIL } ) {
+		for ( const bool raw : { false, true } ) {
+			for ( const FloatCase &sample : cases ) {
+				std::array<byte, 256> storage{};
+				msg_t writer{};
+				MSG_Init( &writer, storage.data(), static_cast<int>( storage.size() ) );
+				if ( raw ) MSG_RawBitstream( &writer );
+				entityState_t entityBase{};
+				entityBase.number = 17;
+				entityBase.pos.trBase[0] = 2.0f;
+				entityState_t entitySent = entityBase;
+				std::memcpy( &entitySent.pos.trBase[0], &sample.bits, sizeof( sample.bits ) );
+				CHECK( MSG_WriteDeltaEntityForWireProfile( &writer, &entityBase,
+					&entitySent, qtrue, profile ) );
+				CHECK( !writer.overflowed );
+				if ( raw ) {
+					RawFloatVector expected;
+					expected.Append( 17, 10 ); // entity number
+					expected.Append( 0, 1 );  // not removed
+					expected.Append( 1, 1 );  // delta
+					expected.Append( 2, 8 );  // pos.trBase[0] is field 1 in both layouts
+					expected.Append( 0, 1 );  // unchanged pos.trTime
+					expected.Append( 1, 1 );  // changed pos.trBase[0]
+					const bool zero = ( sample.bits & 0x7fffffffu ) == 0;
+					expected.Append( zero ? 0 : 1, 1 );
+					if ( !zero ) {
+						expected.Append( sample.compact ? 0 : 1, 1 );
+						expected.Append( sample.compact ?
+							static_cast<std::uint32_t>( sample.integer + 4096 ) : sample.bits,
+							sample.compact ? 13 : 32 );
+					}
+					CHECK( writer.bit == expected.bits );
+					CHECK( std::memcmp( storage.data(), expected.bytes.data(),
+						static_cast<std::size_t>( writer.cursize ) ) == 0 );
+				}
+				msg_t reader = writer;
+				MSG_BeginReading( &reader );
+				if ( raw ) MSG_RawBitstream( &reader );
+				entityState_t entityReceived{};
+				const int number = MSG_ReadEntitynum( &reader );
+				CHECK( MSG_ReadDeltaEntityForWireProfile( &reader, &entityBase,
+					&entityReceived, number, profile ) );
+				const std::uint32_t expectedBits =
+					sample.bits == 0x80000000u ? 0 : sample.bits;
+				CHECK( FloatBits( entityReceived.pos.trBase[0] ) == expectedBits );
+				CHECK( reader.bit == writer.bit );
+
+				MSG_Clear( &writer );
+				storage.fill( 0 );
+				playerState_t playerBase{};
+				playerBase.origin[0] = 2.0f;
+				playerState_t playerSent = playerBase;
+				std::memcpy( &playerSent.origin[0], &sample.bits, sizeof( sample.bits ) );
+				CHECK( MSG_WriteDeltaPlayerstateForWireProfile( &writer, &playerBase,
+					&playerSent, profile ) );
+				CHECK( !writer.overflowed );
+				if ( raw ) {
+					RawFloatVector expected;
+					expected.Append( 2, 8 ); // origin[0] is field 1 in both layouts
+					expected.Append( 0, 1 ); // unchanged commandTime
+					expected.Append( 1, 1 ); // changed origin[0]
+					expected.Append( sample.compact ? 0 : 1, 1 );
+					expected.Append( sample.compact ?
+						static_cast<std::uint32_t>( sample.integer + 4096 ) : sample.bits,
+						sample.compact ? 13 : 32 );
+					expected.Append( 0, 1 ); // unchanged arrays
+					CHECK( writer.bit == expected.bits );
+					CHECK( std::memcmp( storage.data(), expected.bytes.data(),
+						static_cast<std::size_t>( writer.cursize ) ) == 0 );
+				}
+				reader = writer;
+				MSG_BeginReading( &reader );
+				if ( raw ) MSG_RawBitstream( &reader );
+				playerState_t playerReceived{};
+				CHECK( MSG_ReadDeltaPlayerstateForWireProfile( &reader, &playerBase,
+					&playerReceived, profile ) );
+				CHECK( FloatBits( playerReceived.origin[0] ) == expectedBits );
+				CHECK( reader.bit == writer.bit );
+			}
+		}
+	}
+	return 0;
+}
+
 int TestUserCommandRoundTrip() {
 	std::array<byte, 256> storage{};
 	msg_t writer{};
@@ -157,14 +832,16 @@ int TestUserCommandRoundTrip() {
 	sent.upmove = -12;
 
 	MSG_Init( &writer, storage.data(), static_cast<int>( storage.size() ) );
-	MSG_WriteDeltaUsercmdKey( &writer, 0x10203040, &from, &sent );
+	CHECK( MSG_WriteDeltaUsercmdKeyForWireProfile( &writer, 0x10203040,
+		&from, &sent, NETCHAN_WIRE_QL_RETAIL ) );
 	CHECK( !writer.overflowed );
 
 	msg_t reader{};
 	MSG_Init( &reader, storage.data(), static_cast<int>( storage.size() ) );
 	reader.cursize = writer.cursize;
 	MSG_BeginReading( &reader );
-	MSG_ReadDeltaUsercmdKey( &reader, 0x10203040, &from, &received );
+	CHECK( MSG_ReadDeltaUsercmdKeyForWireProfile( &reader, 0x10203040,
+		&from, &received, NETCHAN_WIRE_QL_RETAIL ) );
 	CHECK( sent.serverTime == received.serverTime );
 	CHECK( sent.angles[0] == received.angles[0] );
 	CHECK( sent.angles[1] == received.angles[1] );
@@ -193,14 +870,16 @@ int TestUserCommandClockWrap() {
 	sent.serverTime = ( std::numeric_limits<int>::min )() + 4;
 
 	MSG_Init( &writer, storage.data(), static_cast<int>( storage.size() ) );
-	MSG_WriteDeltaUsercmdKey( &writer, 0x10203040, &from, &sent );
+	CHECK( MSG_WriteDeltaUsercmdKeyForWireProfile( &writer, 0x10203040,
+		&from, &sent, NETCHAN_WIRE_QL_RETAIL ) );
 	CHECK( !writer.overflowed );
 
 	msg_t reader{};
 	MSG_Init( &reader, storage.data(), static_cast<int>( storage.size() ) );
 	reader.cursize = writer.cursize;
 	MSG_BeginReading( &reader );
-	MSG_ReadDeltaUsercmdKey( &reader, 0x10203040, &from, &received );
+	CHECK( MSG_ReadDeltaUsercmdKeyForWireProfile( &reader, 0x10203040,
+		&from, &received, NETCHAN_WIRE_QL_RETAIL ) );
 	CHECK( received.serverTime == sent.serverTime );
 	CHECK( reader.readcount <= reader.cursize );
 	return 0;
@@ -228,7 +907,8 @@ int TestEntityRoundTrip() {
 	sent.doubleJumped = 1;
 
 	MSG_Init( &writer, storage.data(), static_cast<int>( storage.size() ) );
-	MSG_WriteDeltaEntity( &writer, &baseline, &sent, qtrue );
+	CHECK( MSG_WriteDeltaEntityForWireProfile( &writer, &baseline, &sent,
+		qtrue, NETCHAN_WIRE_QL_RETAIL ) );
 	CHECK( !writer.overflowed );
 
 	msg_t reader{};
@@ -237,7 +917,8 @@ int TestEntityRoundTrip() {
 	MSG_BeginReading( &reader );
 	const int entityNumber = MSG_ReadEntitynum( &reader );
 	CHECK( entityNumber == sent.number );
-	MSG_ReadDeltaEntity( &reader, &baseline, &received, entityNumber );
+	CHECK( MSG_ReadDeltaEntityForWireProfile( &reader, &baseline, &received,
+		entityNumber, NETCHAN_WIRE_QL_RETAIL ) );
 	CHECK( std::memcmp( &sent, &received, sizeof( sent ) ) == 0 );
 	CHECK( reader.readcount <= reader.cursize );
 	return 0;
@@ -268,14 +949,16 @@ int TestPlayerStateRoundTrip() {
 	sent.powerups[2] = 999999;
 
 	MSG_Init( &writer, storage.data(), static_cast<int>( storage.size() ) );
-	MSG_WriteDeltaPlayerstate( &writer, &baseline, &sent );
+	CHECK( MSG_WriteDeltaPlayerstateForWireProfile( &writer, &baseline,
+		&sent, NETCHAN_WIRE_QL_RETAIL ) );
 	CHECK( !writer.overflowed );
 
 	msg_t reader{};
 	MSG_Init( &reader, storage.data(), static_cast<int>( storage.size() ) );
 	reader.cursize = writer.cursize;
 	MSG_BeginReading( &reader );
-	MSG_ReadDeltaPlayerstate( &reader, &baseline, &received );
+	CHECK( MSG_ReadDeltaPlayerstateForWireProfile( &reader, &baseline,
+		&received, NETCHAN_WIRE_QL_RETAIL ) );
 	CHECK( std::memcmp( &sent, &received, sizeof( sent ) ) == 0 );
 	CHECK( reader.readcount <= reader.cursize );
 	return 0;
@@ -287,6 +970,14 @@ int main() {
 	if ( const int result = TestBounds() ) return result;
 	if ( const int result = TestWireProfileUserCommandHash() ) return result;
 	if ( const int result = TestWireProfileCommandStrings() ) return result;
+	if ( const int result = TestUserCommandWireLayouts() ) return result;
+	if ( const int result = TestEntityWireLayouts() ) return result;
+	if ( const int result = TestPlayerStateWireLayouts() ) return result;
+	if ( const int result = TestPinnedQuake3RawVectors() ) return result;
+	if ( const int result = TestInvalidDeltaWireProfile() ) return result;
+	if ( const int result = TestTruncatedDeltaReads() ) return result;
+	if ( const int result = TestMalformedDeltaFieldCounts() ) return result;
+	if ( const int result = TestFloatDeltaBitPatterns() ) return result;
 	if ( const int result = TestUserCommandRoundTrip() ) return result;
 	if ( const int result = TestUserCommandClockWrap() ) return result;
 	if ( const int result = TestEntityRoundTrip() ) return result;

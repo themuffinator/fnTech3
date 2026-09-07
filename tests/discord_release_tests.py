@@ -130,7 +130,7 @@ class DiscordReleasePayloadTests(unittest.TestCase):
         payload = sample_payload()
         embed = payload["embeds"][0]  # type: ignore[index]
 
-        self.assertEqual(payload["username"], "FnQL Releases")
+        self.assertEqual(payload["username"], "fnTech3 Releases")
         self.assertEqual(payload["avatar_url"], discord_release.DEFAULT_AVATAR_URL)
         self.assertEqual(
             payload["allowed_mentions"],
@@ -138,17 +138,17 @@ class DiscordReleasePayloadTests(unittest.TestCase):
         )
         self.assertEqual(
             payload["content"],
-            "<:quakelive:1390987057454776481> FnQL 0.1.0.58 release published! "
+            "<:quakelive:1390987057454776481> fnTech3 0.1.0.58 release published! "
             "<@&1424165541572120647> <@&1390287267276525628>",
         )
         self.assertEqual(embed["color"], 0xE60000)
-        self.assertEqual(embed["title"], "FnQL 0.1.0.58")
+        self.assertEqual(embed["title"], "fnTech3 0.1.0.58")
         self.assertEqual(
             embed["url"],
             "https://github.com/themuffinator/FnQL/releases/tag/0.1.0.58-20260728-f35445c9",
         )
         self.assertEqual(embed["timestamp"], "2026-07-28T00:00:00Z")
-        self.assertEqual(embed["footer"], {"text": "Fappin' Quake Live | Target: Retail Quake Live (Steam)"})
+        self.assertEqual(embed["footer"], {"text": "fnTech3 | Target: Quake III Arena and Quake Live"})
 
     def test_payload_fields_report_version_state_and_ordered_downloads(self) -> None:
         fields = sample_payload()["embeds"][0]["fields"]  # type: ignore[index]
@@ -362,7 +362,7 @@ class DiscordReleaseCommandTests(unittest.TestCase):
         self.assertEqual(status, 0)
         post.assert_not_called()
         self.assertEqual(payload["embeds"][0]["color"], 0xE60000)
-        self.assertEqual(payload["embeds"][0]["title"], "FnQL 0.1.0.58")
+        self.assertEqual(payload["embeds"][0]["title"], "fnTech3 0.1.0.58")
 
     def test_missing_release_identity_fails_before_posting(self) -> None:
         with mock.patch.object(discord_release, "post_payload") as post:

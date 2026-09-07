@@ -79,10 +79,15 @@ class FactoryRuntimeSourceTests(unittest.TestCase):
         map_command = function_body(self.commands, "static void SV_Map_f( void )")
         self.assertIn("SV_FactoryPrepareMap( map, Cmd_Argv( 2 )", map_command)
         self.assertIn("SV_QBool( Cmd_Argc() >= 3 )", map_command)
+        self.assertIn("const bool\t\tquakeLive = Com_GameIsQuakeLive() != 0;", map_command)
+        factory_preflight = (
+            "quakeLive && !singlePlayerCommand && Cmd_Argc() < 3"
+        )
         self.assertLess(
-            map_command.index("Cmd_Argc() < 3 && !SV_FactoryHasActive()"),
+            map_command.index(factory_preflight),
             map_command.index('Com_sprintf( expanded.data()'),
         )
+        self.assertIn("if ( !quakeLive ) {\n\t\t\treturn;", map_command)
         self.assertIn("} else if ( activeFactory ) {", self.runtime)
         self.assertIn("FactoryIsHidden( *selected ) && svServerType", self.runtime)
         self.assertIn("const bool explicitHiddenFactory = explicitFactory", self.runtime)

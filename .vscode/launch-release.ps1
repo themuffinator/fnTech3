@@ -30,9 +30,9 @@ $buildRoot = if ([System.IO.Path]::IsPathRooted($BuildDir)) {
 
 $suffix = Get-BinarySuffix
 $executableName = if ($Target -eq 'dedicated') {
-	"fnql.ded$suffix.exe"
+	"fntech3.ded$suffix.exe"
 } else {
-	"fnql$suffix.exe"
+	"fntech3$suffix.exe"
 }
 $executablePath = Join-Path $buildRoot $executableName
 

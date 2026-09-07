@@ -792,15 +792,12 @@ static void CL_ToggleMenuInternal( int key, qboolean sendKeyUp, unsigned time ) 
 		return;
 	}
 
-	// Retail event 5 closes only the active cgame command overlay (including
-	// the spectator join page) before the native in-game menu is activated.
-	// CGAME_EVENT_NONE tears down broader team-menu state and, paired with a
-	// spectator UIMENU_TEAM substitution, stacks the join page over the Escape
-	// root and mixes the two menus' content and positioning.
+	// Retail event 5 closes the command overlay; legacy Q3 modules expose
+	// only the ordinary CGAME_EVENT_NONE transition at this boundary.
 	if ( Key_GetCatcher( ) & KEYCATCH_CGAME ) {
 		if ( cgvm ) {
 			VM_Call( cgvm, 1, CG_EVENT_HANDLING,
-				CGAME_EVENT_CLOSECOMMANDOVERLAY );
+				cgvm->dllExports ? CGAME_EVENT_CLOSECOMMANDOVERLAY : CGAME_EVENT_NONE );
 		}
 		// A missing or older module must not leave stale cgame ownership behind.
 		Key_SetCatcher( Key_GetCatcher( ) & ~KEYCATCH_CGAME );

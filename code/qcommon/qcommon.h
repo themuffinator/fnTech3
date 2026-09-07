@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <sys/types.h>
 #include "cm_public.h"
+#include "game_profile.h"
 #include "netchan_profile.h"
 
 //Ignore __attribute__ on non-gcc/clang platforms
@@ -134,13 +135,31 @@ int   MSG_ReadEntitynum(msg_t *sb);
 
 void MSG_WriteDeltaUsercmdKey( msg_t *msg, int key, const usercmd_t *from, const usercmd_t *to );
 void MSG_ReadDeltaUsercmdKey( msg_t *msg, int key, const usercmd_t *from, usercmd_t *to );
+// Profile readers return false for unsupported profiles or truncated messages,
+// leaving the destination unchanged. Malformed field counts still raise ERR_DROP.
+qboolean MSG_WriteDeltaUsercmdKeyForWireProfile( msg_t *msg, int key,
+	const usercmd_t *from, const usercmd_t *to, netchanWireProfile_t profile );
+qboolean MSG_ReadDeltaUsercmdKeyForWireProfile( msg_t *msg, int key,
+	const usercmd_t *from, usercmd_t *to, netchanWireProfile_t profile );
 
 void MSG_WriteDeltaEntity( msg_t *msg, const entityState_t *from, const entityState_t *to, qboolean force );
 void MSG_ReadDeltaEntity( msg_t *msg, const entityState_t *from, entityState_t *to, int number );
+qboolean MSG_WriteDeltaEntityForWireProfile( msg_t *msg,
+	const entityState_t *from, const entityState_t *to, qboolean force,
+	netchanWireProfile_t profile );
+qboolean MSG_ReadDeltaEntityForWireProfile( msg_t *msg,
+	const entityState_t *from, entityState_t *to, int number,
+	netchanWireProfile_t profile );
 void MSG_ReadDeltaEntityLegacy( msg_t *msg, const entityState_t *from, entityState_t *to, int number, int protocol );
 
 void MSG_WriteDeltaPlayerstate( msg_t *msg, const playerState_t *from, const playerState_t *to );
 void MSG_ReadDeltaPlayerstate( msg_t *msg, const playerState_t *from, playerState_t *to );
+qboolean MSG_WriteDeltaPlayerstateForWireProfile( msg_t *msg,
+	const playerState_t *from, const playerState_t *to,
+	netchanWireProfile_t profile );
+qboolean MSG_ReadDeltaPlayerstateForWireProfile( msg_t *msg,
+	const playerState_t *from, playerState_t *to,
+	netchanWireProfile_t profile );
 void MSG_ReadDeltaPlayerstateLegacy( msg_t *msg, const playerState_t *from, playerState_t *to, int protocol );
 
 void MSG_ReportChangeVectors_f( void );

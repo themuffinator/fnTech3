@@ -13,7 +13,7 @@ from scripts.fnql_meta import base_metadata
 
 
 FEATURE_HEADINGS = (
-    "Extensive Quake Live compatibility",
+    "Q3/QL compatibility work",
     "Fast, modern hardware rendering",
     "Modern visual upgrades",
     "Improved player visibility",

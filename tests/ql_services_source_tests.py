@@ -107,12 +107,14 @@ class QLServicesSourceTests(unittest.TestCase):
         self.assertIn("SelectHandshakeProtocol", client)
         self.assertNotIn("Protocol 91 server is not an FnQL host", client)
 
-    def test_protocol_91_is_the_canonical_runtime_default(self) -> None:
+    def test_protocol_91_remains_the_quake_live_profile_default(self) -> None:
         header = (ROOT / "code/qcommon/qcommon.h").read_text(encoding="utf-8")
+        common = (ROOT / "code/qcommon/common.c").read_text(encoding="utf-8")
         client = (ROOT / "code/client/cl_main.cpp").read_text(encoding="utf-8")
         server = (ROOT / "code/server/sv_client.cpp").read_text(encoding="utf-8")
         self.assertIn("#define DEFAULT_PROTOCOL_VERSION\tQL_RETAIL_PROTOCOL_VERSION", header)
-        self.assertIn("clc.netchan.wireProfile ).demoProtocol", client)
+        self.assertIn("Com_GameProfile()->preferredProtocol", common)
+        self.assertIn("CL_ActiveWireProfile() ).demoProtocol", client)
         self.assertIn("SV_DemoProtocol( const client_t *client )", server)
 
     def test_collision_loader_validates_ql_advertisement_contract(self) -> None:

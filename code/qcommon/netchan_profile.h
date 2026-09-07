@@ -22,6 +22,7 @@ version.
  * connections can coexist without overloading the broader "compat" policy.
  */
 #define NETCHAN_QL_RETAIL_PROTOCOL_VERSION 91
+#define NETCHAN_LEGACY_Q3_PROTOCOL_VERSION 68
 
 typedef enum {
 	NETCHAN_WIRE_LEGACY_Q3,
@@ -45,6 +46,11 @@ NETCHAN_PROFILE_INLINE netchanWireProfile_t Netchan_SelectWireProfile(
 	int protocol, int legacyCompat ) {
 	if ( protocol == NETCHAN_QL_RETAIL_PROTOCOL_VERSION ) {
 		return NETCHAN_WIRE_QL_RETAIL;
+	}
+	// Protocol 68 is always the Q3 framing contract. A loopback connection
+	// can skip the challenge exchange that normally sets legacyCompat.
+	if ( protocol == NETCHAN_LEGACY_Q3_PROTOCOL_VERSION ) {
+		return NETCHAN_WIRE_LEGACY_Q3;
 	}
 
 	return legacyCompat ? NETCHAN_WIRE_LEGACY_Q3 : NETCHAN_WIRE_IOQ3;

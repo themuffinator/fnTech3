@@ -684,7 +684,9 @@ static void RB_FogPass( qboolean rebindIndex ) {
 		vk_bind_index();
 	}
 	VK_SetFogParams( &uniform, &fog_stage );
-	VK_PushUniform( &uniform );
+	if ( VK_PushUniform( &uniform ) == ~0U ) {
+		return;
+	}
 	vk_update_descriptor( VK_DESC_FOG_ONLY, tr.fogImage->descriptor );
 	vk_draw_geometry( DEPTH_RANGE_NORMAL, qtrue );
 #else
@@ -1208,7 +1210,10 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 
 		if ( pushUniform ) {
 			pushUniform = qfalse;
-			VK_PushUniform( &uniform );
+			if ( VK_PushUniform( &uniform ) == ~0U ) {
+				GL_SelectTexture( 0 );
+				return;
+			}
 		}
 
 		GL_SelectTexture( 0 );
@@ -1300,7 +1305,9 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 
 #ifdef USE_VULKAN
 	if ( pushUniform ) {
-		VK_PushUniform( &uniform );
+		if ( VK_PushUniform( &uniform ) == ~0U ) {
+			return;
+		}
 	}
 	if ( tess_flags ) // fog-only shaders?
 		vk_bind_geometry( tess_flags );
@@ -1532,20 +1539,40 @@ static void VK_SetLightParams( vkUniform_t *uniformData, const dlight_t *dl ) {
 
 
 uint32_t VK_PushUniform( const vkUniform_t *uniformData ) {
-	const VkDeviceSize aligned_offset = ( vk.cmd->vertex_buffer_offset + (VkDeviceSize)vk.uniform_alignment - 1 )
+	VkDeviceSize aligned_offset;
+	VkDeviceSize end_offset;
+	uint32_t offset;
+
+	/* Vulkan dynamic offsets and the shared geometry allocators use 32-bit
+	 * offsets. Reject before alignment arithmetic can wrap, and leave the
+	 * previous uniform and descriptor bindings intact on every failure. */
+	if ( vk.geometry_buffer_size_new ||
+		vk.cmd->vertex_buffer_offset > UINT32_MAX ||
+		vk.uniform_alignment == 0 ||
+		( vk.uniform_alignment & ( vk.uniform_alignment - 1 ) ) != 0 ||
+		vk.uniform_item_size < sizeof( *uniformData ) ) {
+		return ~0U;
+	}
+
+	aligned_offset = ( vk.cmd->vertex_buffer_offset + (VkDeviceSize)vk.uniform_alignment - 1 )
 		& ~( (VkDeviceSize)vk.uniform_alignment - 1 );
-
-	if ( aligned_offset > UINT32_MAX )
+	end_offset = aligned_offset + (VkDeviceSize)vk.uniform_item_size;
+	if ( aligned_offset > UINT32_MAX || end_offset > UINT32_MAX ) {
 		return ~0U;
+	}
 
-	const uint32_t offset = vk.cmd->uniform_read_offset = (uint32_t)aligned_offset;
-
-	if ( offset + vk.uniform_item_size > vk.geometry_buffer_size )
+	if ( end_offset > vk.geometry_buffer_size ) {
+		/* VBO draws can exhaust only uniform storage, so no later vertex
+		 * upload is guaranteed to schedule the usual end-of-frame resize. */
+		vk.geometry_buffer_size_new = MAX( end_offset,
+			MIN( vk.geometry_buffer_size * 2, (VkDeviceSize)UINT32_MAX ) );
 		return ~0U;
+	}
 
-	// push uniform
+	offset = (uint32_t)aligned_offset;
 	Com_Memcpy( vk.cmd->vertex_buffer_ptr + offset, uniformData, sizeof( *uniformData ) );
-	vk.cmd->vertex_buffer_offset = offset + vk.uniform_item_size;
+	vk.cmd->vertex_buffer_offset = end_offset;
+	vk.cmd->uniform_read_offset = offset;
 
 	vk_reset_descriptor( VK_DESC_UNIFORM );
 	vk_update_descriptor( VK_DESC_UNIFORM, vk.cmd->uniform_descriptor );

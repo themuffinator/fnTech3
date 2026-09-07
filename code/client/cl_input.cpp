@@ -1523,7 +1523,12 @@ void CL_WritePacket( int repeat ) {
 			j = fnql::net::CounterAdd(
 				firstCommand, static_cast<std::uint32_t>( i ) ) & CMD_MASK;
 			cmd = &cl.cmds[j];
-			MSG_WriteDeltaUsercmdKey (&buf, key, oldcmd, cmd);
+			if ( !MSG_WriteDeltaUsercmdKeyForWireProfile( &buf, key,
+				oldcmd, cmd, clc.netchan.wireProfile ) ) {
+				Com_Error( ERR_DROP,
+					"CL_WritePacket: invalid frozen wire profile" );
+				return;
+			}
 			oldcmd = cmd;
 		}
 	}

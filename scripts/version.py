@@ -8,7 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from fnql_meta import channel_metadata, to_json
+from fntech3_meta import channel_metadata, to_json
 
 
 def non_negative_int(value: str) -> int:
@@ -22,7 +22,7 @@ def non_negative_int(value: str) -> int:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="FnQL version metadata helper")
+    parser = argparse.ArgumentParser(description="fnTech3 version metadata helper")
     parser.add_argument(
         "command",
         choices=("summary", "json", "github-env"),
@@ -31,7 +31,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--channel", choices=("release", "manual"), default="release")
     parser.add_argument("--build-number", type=non_negative_int)
-    parser.add_argument("--build-date", default=os.environ.get("FNQL_BUILD_DATE"))
+    parser.add_argument("--build-date", default=os.environ.get("FNTECH3_BUILD_DATE", os.environ.get("FNQL_BUILD_DATE")))
     parser.add_argument("--commit", default=os.environ.get("GITHUB_SHA"))
     parser.add_argument("--ref-name", default=os.environ.get("GITHUB_REF_NAME"))
     return parser.parse_args()
@@ -40,12 +40,12 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     if args.build_number is None:
-        env_build_number = os.environ.get("FNQL_BUILD_NUMBER")
+        env_build_number = os.environ.get("FNTECH3_BUILD_NUMBER", os.environ.get("FNQL_BUILD_NUMBER"))
         if env_build_number:
             try:
                 args.build_number = non_negative_int(env_build_number)
             except argparse.ArgumentTypeError as exc:
-                print(f"Invalid FNQL_BUILD_NUMBER: {exc}", file=sys.stderr)
+                print(f"Invalid build number: {exc}", file=sys.stderr)
                 return 2
     try:
         meta = channel_metadata(
@@ -79,6 +79,8 @@ def main() -> int:
             "FNQL_CHANNEL": meta["channel"],
         }
         for key, value in mapping.items():
+            print(f"{key.replace('FNQL_', 'FNTECH3_', 1)}={value}")
+            # Existing CI consumers retain these aliases during migration.
             print(f"{key}={value}")
         return 0
 

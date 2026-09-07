@@ -246,6 +246,7 @@ struct clientConnection_t {
 	qboolean	demoplaying;
 	qboolean	demoLegacyFormat;
 	int			demoLegacyProtocol;
+	netchanWireProfile_t demoWireProfile;
 	qboolean	demowaiting;	// don't record until a non-delta message is received
 	qboolean	firstDemoFrameSkipped;
 	fileHandle_t	demofile;
@@ -504,6 +505,7 @@ void CL_StartHunkUsers( void );
 void CL_Disconnect_f( void );
 void CL_ReadDemoMessage( void );
 void CL_StopRecord_f( void );
+netchanWireProfile_t CL_ActiveWireProfile( void );
 
 void CL_InitDownloads( void );
 void CL_NextDownload( void );

@@ -55,7 +55,9 @@ SV_EmitPacketEntities
 Writes a delta update of an entityState_t list to the message.
 =============
 */
-static void SV_EmitPacketEntities( const clientSnapshot_t *from, const clientSnapshot_t *to, msg_t *msg ) {
+static void SV_EmitPacketEntities( const clientSnapshot_t *from,
+	const clientSnapshot_t *to, msg_t *msg,
+	netchanWireProfile_t profile ) {
 	entityState_t	*oldent, *newent;
 	int		oldindex, newindex;
 	int		oldnum, newnum;
@@ -91,7 +93,12 @@ static void SV_EmitPacketEntities( const clientSnapshot_t *from, const clientSna
 			// delta update from old position
 			// because the force parm is qfalse, this will not result
 			// in any bytes being emitted if the entity has not changed at all
-			MSG_WriteDeltaEntity (msg, oldent, newent, qfalse );
+			if ( !MSG_WriteDeltaEntityForWireProfile(
+				msg, oldent, newent, qfalse, profile ) ) {
+				Com_Error( ERR_DROP, "%s: invalid wire profile %i",
+					__func__, static_cast<int>( profile ) );
+				return;
+			}
 			oldindex++;
 			newindex++;
 			continue;
@@ -99,14 +106,24 @@ static void SV_EmitPacketEntities( const clientSnapshot_t *from, const clientSna
 
 		if ( newnum < oldnum ) {
 			// this is a new entity, send it from the baseline
-			MSG_WriteDeltaEntity (msg, &sv.svEntities[newnum].baseline, newent, qtrue );
+			if ( !MSG_WriteDeltaEntityForWireProfile( msg,
+				&sv.svEntities[newnum].baseline, newent, qtrue, profile ) ) {
+				Com_Error( ERR_DROP, "%s: invalid wire profile %i",
+					__func__, static_cast<int>( profile ) );
+				return;
+			}
 			newindex++;
 			continue;
 		}
 
 		if ( newnum > oldnum ) {
 			// the old entity isn't present in the new message
-			MSG_WriteDeltaEntity (msg, oldent, nullptr, qtrue );
+			if ( !MSG_WriteDeltaEntityForWireProfile(
+				msg, oldent, nullptr, qtrue, profile ) ) {
+				Com_Error( ERR_DROP, "%s: invalid wire profile %i",
+					__func__, static_cast<int>( profile ) );
+				return;
+			}
 			oldindex++;
 			continue;
 		}
@@ -209,14 +226,17 @@ static void SV_WriteSnapshotToClient( const client_t *client, msg_t *msg ) {
 	}
 
 	// delta encode the playerstate
-	if ( oldframe ) {
-		MSG_WriteDeltaPlayerstate( msg, &oldframe->ps, &frame->ps );
-	} else {
-		MSG_WriteDeltaPlayerstate( msg, nullptr, &frame->ps );
+	const playerState_t *oldPlayerState = oldframe ? &oldframe->ps : nullptr;
+	if ( !MSG_WriteDeltaPlayerstateForWireProfile( msg, oldPlayerState,
+		&frame->ps, client->netchan.wireProfile ) ) {
+		Com_Error( ERR_DROP, "%s: invalid wire profile %i",
+			__func__, static_cast<int>( client->netchan.wireProfile ) );
+		return;
 	}
 
 	// delta encode the entities
-	SV_EmitPacketEntities (oldframe, frame, msg);
+	SV_EmitPacketEntities(
+		oldframe, frame, msg, client->netchan.wireProfile );
 
 	// padding for rate debugging
 	if ( sv_padPackets->integer ) {
@@ -320,25 +340,25 @@ static void SV_SortEntityNumbers( SnapshotEntityNumbers &numbers ) {
 SV_EntityPassesSnapshotClientFlags
 ===============
 */
-static bool SV_EntityPassesSnapshotClientFlags( const sharedEntity_t *ent, int clientNum ) {
+static bool SV_EntityPassesSnapshotClientFlags( const sharedEntity_t &entity, int clientNum ) {
 	// entities can be flagged to be sent to only one client
-	if ( ent->r.svFlags & SVF_SINGLECLIENT ) {
-		if ( ent->r.singleClient != clientNum ) {
+	if ( entity.r.svFlags & SVF_SINGLECLIENT ) {
+		if ( entity.r.singleClient != clientNum ) {
 			return false;
 		}
 	}
 	// entities can be flagged to be sent to everyone but one client
-	if ( ent->r.svFlags & SVF_NOTSINGLECLIENT ) {
-		if ( ent->r.singleClient == clientNum ) {
+	if ( entity.r.svFlags & SVF_NOTSINGLECLIENT ) {
+		if ( entity.r.singleClient == clientNum ) {
 			return false;
 		}
 	}
 	// entities can be flagged to be sent to a given mask of clients
-	if ( ent->r.svFlags & SVF_CLIENTMASK ) {
+	if ( entity.r.svFlags & SVF_CLIENTMASK ) {
 		if ( clientNum >= 32 ) {
 			Com_Error( ERR_DROP, "SVF_CLIENTMASK: clientNum >= 32" );
 		}
-		if ( ~ent->r.singleClient & ( 1 << clientNum ) ) {
+		if ( ~entity.r.singleClient & ( 1u << clientNum ) ) {
 			return false;
 		}
 	}
@@ -475,7 +495,7 @@ static void SV_AddAudioReachableEntities( const vec3_t origin, int clientarea, c
 
 	for ( e = 0 ; e < svs.currFrame->count ; e++ ) {
 		entityState_t *es;
-		sharedEntity_t *ent;
+		sharedEntity_t entity;
 		svEntity_t *svEnt;
 
 		if ( added >= sv_audioPVSMaxEntities->integer ) {
@@ -487,8 +507,11 @@ static void SV_AddAudioReachableEntities( const vec3_t origin, int clientarea, c
 			continue;
 		}
 
-		ent = SV_GentityNum( es->number );
-		if ( !SV_EntityPassesSnapshotClientFlags( ent, frame->ps.clientNum ) ) {
+		if ( !SV_ReadGameEntityByNum( es->number, &entity ) ) {
+			Com_Error( ERR_DROP, "%s: invalid entity %i", __func__, es->number );
+			return;
+		}
+		if ( !SV_EntityPassesSnapshotClientFlags( entity, frame->ps.clientNum ) ) {
 			continue;
 		}
 
@@ -499,7 +522,7 @@ static void SV_AddAudioReachableEntities( const vec3_t origin, int clientarea, c
 		if ( !SV_AreasVisibleForSnapshot( clientarea, svEnt ) ) {
 			continue;
 		}
-		if ( DistanceSquared( origin, ent->r.currentOrigin ) > rangeSquared ) {
+		if ( DistanceSquared( origin, entity.r.currentOrigin ) > rangeSquared ) {
 			continue;
 		}
 
@@ -518,7 +541,6 @@ SV_AddEntitiesVisibleFromPoint
 static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_t *frame,
 									SnapshotEntityNumbers &eNums, bool portal ) {
 	int		e, i;
-	sharedEntity_t *ent;
 	svEntity_t	*svEnt;
 	entityState_t  *es;
 	int		l;
@@ -544,10 +566,15 @@ static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_
 	clientpvs = CM_ClusterPVS (clientcluster);
 
 	for ( e = 0 ; e < svs.currFrame->count; e++ ) {
-		es = svs.currFrame->ents[ e ];
-		ent = SV_GentityNum( es->number );
+		sharedEntity_t entity;
 
-		if ( !SV_EntityPassesSnapshotClientFlags( ent, frame->ps.clientNum ) ) {
+		es = svs.currFrame->ents[ e ];
+		if ( !SV_ReadGameEntityByNum( es->number, &entity ) ) {
+			Com_Error( ERR_DROP, "%s: invalid entity %i", __func__, es->number );
+			return;
+		}
+
+		if ( !SV_EntityPassesSnapshotClientFlags( entity, frame->ps.clientNum ) ) {
 			continue;
 		}
 
@@ -559,7 +586,7 @@ static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_
 		}
 
 		// broadcast entities are always sent
-		if ( ent->r.svFlags & SVF_BROADCAST ) {
+		if ( entity.r.svFlags & SVF_BROADCAST ) {
 			eNums.Add( *svEnt, e );
 			continue;
 		}
@@ -610,23 +637,28 @@ static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_
 		eNums.Add( *svEnt, e );
 
 		// if it's a portal entity, add everything visible from its camera position
-		if ( ent->r.svFlags & SVF_PORTAL && !portal ) {
-			if ( ent->s.generic1 ) {
+		if ( entity.r.svFlags & SVF_PORTAL && !portal ) {
+			if ( entity.s.generic1 ) {
 				vec3_t dir;
-				VectorSubtract(ent->s.origin, origin, dir);
-				if ( VectorLengthSquared(dir) > static_cast<float>( ent->s.generic1 ) * ent->s.generic1 ) {
+				VectorSubtract(entity.s.origin, origin, dir);
+				if ( VectorLengthSquared(dir) > static_cast<float>( entity.s.generic1 ) * entity.s.generic1 ) {
 					continue;
 				}
 			}
 			eNums.MarkUnordered();
-			SV_AddEntitiesVisibleFromPoint( ent->s.origin2, frame, eNums, portal );
+			SV_AddEntitiesVisibleFromPoint( entity.s.origin2, frame, eNums, portal );
 		}
 	}
 
-	ent = SV_GentityNum( frame->ps.clientNum );
-	// extension: merge second PVS at ent->r.s.origin2
-	if ( ent->r.svFlags & SVF_SELF_PORTAL2 && !portal ) {
-		SV_AddEntitiesVisibleFromPoint( ent->r.s.origin2, frame, eNums, true );
+	sharedEntity_t clientEntity;
+	if ( !SV_ReadGameEntityByNum( frame->ps.clientNum, &clientEntity ) ) {
+		Com_Error( ERR_DROP, "%s: invalid client entity %i",
+			__func__, frame->ps.clientNum );
+		return;
+	}
+	// extension: merge second PVS at clientEntity.r.s.origin2
+	if ( clientEntity.r.svFlags & SVF_SELF_PORTAL2 && !portal ) {
+		SV_AddEntitiesVisibleFromPoint( clientEntity.r.s.origin2, frame, eNums, true );
 		eNums.MarkUnordered();
 	}
 }
@@ -680,8 +712,7 @@ This always allocates new common snapshot frame
 */
 static void SV_BuildCommonSnapshot( void ) 
 {
-	std::array<sharedEntity_t *, MAX_GENTITIES> list{};
-	sharedEntity_t	*ent;
+	std::array<int, MAX_GENTITIES> list{};
 	
 	snapshotFrame_t	*tmp;
 	snapshotFrame_t	*sf;
@@ -692,24 +723,32 @@ static void SV_BuildCommonSnapshot( void )
 	// gather all linked entities
 	if ( sv.state != SS_DEAD ) {
 		for ( int num : SV_Indices( sv.num_entities ) ) {
-			ent = SV_GentityNum( num );
+			sharedEntity_t entity;
+			if ( !SV_ReadGameEntityByNum( num, &entity ) ) {
+				Com_Error( ERR_DROP, "%s: invalid entity %i", __func__, num );
+				return;
+			}
 
 			// never send entities that aren't linked in
-			if ( !ent->r.linked ) {
+			if ( !entity.r.linked ) {
 				continue;
 			}
 	
-			if ( ent->s.number != num ) {
-				Com_DPrintf( "FIXING ENT->S.NUMBER %i => %i\n", ent->s.number, num );
-				ent->s.number = num;
+			if ( entity.s.number != num ) {
+				Com_DPrintf( "FIXING ENT->S.NUMBER %i => %i\n", entity.s.number, num );
+				entity.s.number = num;
+				if ( !SV_WriteGameEntityByNum( num, &entity ) ) {
+					Com_Error( ERR_DROP, "%s: failed to repair entity %i", __func__, num );
+					return;
+				}
 			}
 
 			// entities can be flagged to explicitly not be sent to the client
-			if ( ent->r.svFlags & SVF_NOCLIENT ) {
+			if ( entity.r.svFlags & SVF_NOCLIENT ) {
 				continue;
 			}
 
-			list[ count++ ] = ent;
+			list[ count++ ] = num;
 			sv.svEntities[ num ].snapshotCounter = -1;
 		}
 	}
@@ -755,8 +794,13 @@ static void SV_BuildCommonSnapshot( void )
 	// setup start index
 	index = sf->start;
 	for ( int i : SV_Indices( count ) ) {
+		sharedEntity_t entity;
+		if ( !SV_ReadGameEntityByNum( list[ i ], &entity ) ) {
+			Com_Error( ERR_DROP, "%s: invalid entity %i", __func__, list[ i ] );
+			return;
+		}
 		//index %= svs.numSnapshotEntities;
-		svs.snapshotEntities[ index ] = list[ i ]->s;
+		svs.snapshotEntities[ index ] = entity.s;
 		sf->ents[ i ] = &svs.snapshotEntities[ index ];
 		index = (index+1) % svs.numSnapshotEntities;
 	}
@@ -785,7 +829,7 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 	int							clientArea;
 	svEntity_t					*svEnt;
 	int							clientNum;
-	playerState_t				*ps;
+	playerState_t				playerState;
 
 	// this is the frame we are creating
 	frame = &client->frames[ client->netchan.outgoingSequence & PACKET_MASK ];
@@ -805,8 +849,11 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 		return;
 
 	// grab the current playerState_t
-	ps = SV_GameClientNum( cl );
-	frame->ps = *ps;
+	if ( !SV_ReadGameClient( cl, &playerState ) ) {
+		Com_Error( ERR_DROP, "%s: invalid game client %i", __func__, cl );
+		return;
+	}
+	frame->ps = playerState;
 
 	clientNum = frame->ps.clientNum;
 	if ( clientNum < 0 || clientNum >= MAX_GENTITIES ) {
@@ -836,8 +883,8 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 	svEnt->snapshotCounter = sv.snapshotCounter;
 
 	// find the client's viewpoint
-	VectorCopy( ps->origin, org );
-	org[2] += ps->viewheight;
+	VectorCopy( playerState.origin, org );
+	org[2] += playerState.viewheight;
 	clientLeaf = CM_PointLeafnum( org );
 	clientArea = CM_LeafArea( clientLeaf );
 

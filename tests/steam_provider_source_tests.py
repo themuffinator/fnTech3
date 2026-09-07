@@ -379,7 +379,8 @@ class SteamProviderSourceTests(unittest.TestCase):
         self.assertIn("FNQL_Steam_UpdateGameServerUser", platform)
         self.assertIn("FNQL_Steam_SetGameServerBotCount", platform)
         self.assertIn("FNQL_Steam_CreateUnauthenticatedUser", platform)
-        self.assertIn("playerState->persistant[PERS_SCORE]", platform)
+        self.assertIn("if ( !SV_ReadGameClient( index, &playerState ) ) continue;", platform)
+        self.assertIn("playerState.persistant[PERS_SCORE]", platform)
 
     def test_favorites_and_server_details_keep_native_owners_and_fallbacks(self) -> None:
         api = (ROOT / "code/platform/fnql_steam_api.h").read_text(encoding="utf-8")

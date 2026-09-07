@@ -6,7 +6,7 @@ from string import Template
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from fnql_meta import base_metadata
+from fntech3_meta import base_metadata
 
 
 ROOT = Path(__file__).resolve().parents[1]

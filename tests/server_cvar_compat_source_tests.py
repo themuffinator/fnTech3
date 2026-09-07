@@ -20,6 +20,7 @@ class ServerCvarCompatibilitySourceTests(unittest.TestCase):
         cls.platform = read("code/server/sv_platform.cpp")
         cls.collision = read("code/qcommon/cm_trace.c")
         cls.collision_load = read("code/qcommon/cm_load.c")
+        cls.collision_game_contract = read("code/qcommon/cm_game_contract.h")
         cls.common = read("code/qcommon/common.c")
         cls.api = read("code/platform/fnql_steam_api.h")
         cls.server_sources = "\n".join(
@@ -125,11 +126,15 @@ class ServerCvarCompatibilitySourceTests(unittest.TestCase):
         self.assertIn("std::memchr", self.game)
         self.assertIn("SelectServerEntityString()", self.game)
         self.assertIn("serverEntityOverride.clear()", self.game)
-        # Retail preserves advertisement entities at the qagame boundary and
-        # sv_dumpEntities writes those original classnames verbatim.
-        self.assertNotIn("CMod_CopyRewrittenEntityString", self.collision_load)
-        self.assertIn("Com_Memcpy( cm.entityString", self.collision_load)
-        self.assertIn("cm.entityString[ l->filelen ] = '\\0';", self.collision_load)
+        # QL preserves advertisement entities at the retail qagame boundary;
+        # Q3 retains FnQuake3's func_static compatibility rewrite.
+        self.assertIn("CM_CopyEntityStringForGame( CMod_ActiveGameId()",
+                      self.collision_load)
+        self.assertIn("gameId != COM_GAME_QUAKE3", self.collision_game_contract)
+        self.assertIn('static const char advertisement[] = "advertisement"',
+                      self.collision_game_contract)
+        self.assertIn('static const char replacement[] = "func_static"',
+                      self.collision_game_contract)
 
     def test_lifecycle_and_error_policies_are_wired_at_transition_owners(self) -> None:
         self.assertIn("SV_ShouldErrorExit( code )", self.common)
@@ -151,7 +156,8 @@ class ServerCvarCompatibilitySourceTests(unittest.TestCase):
             self.collision.index("static void CM_TraceCapsuleThroughCapsule")
         ]
         self.assertIn('Cvar_Get( "sv_cylinderScale", "1.1f", 0 )', function)
-        self.assertIn("radius *= cylinderScale->value", function)
+        self.assertIn("gameProfile->id == COM_GAME_QUAKELIVE", function)
+        self.assertIn("CM_VerticalCylinderRadiusForGame(", function)
         self.assertNotIn("halfheight *=", function)
 
     def test_steam_surface_preserves_fnql_policy_and_exposes_retail_fields(self) -> None:

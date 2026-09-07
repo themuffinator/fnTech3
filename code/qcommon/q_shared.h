@@ -26,14 +26,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // q_shared.h -- included first by ALL program modules.
 // A user mod should never modify this file
 
-#include "../../version/fnql_version.h"
+#include "../../version/fntech3_version.h"
 
-#define Q3_VERSION            FNQL_PROJECT_NAME_SHORT " " FNQL_VERSION_STRING
+#define Q3_VERSION            FNTECH3_PROJECT_NAME_SHORT " " FNTECH3_VERSION_STRING
 #ifndef SVN_VERSION
   #define SVN_VERSION Q3_VERSION
 #endif
-#define CLIENT_WINDOW_TITLE   FNQL_PROJECT_NAME
-#define CONSOLE_WINDOW_TITLE  FNQL_PROJECT_NAME " Console"
+#define CLIENT_WINDOW_TITLE   FNTECH3_PROJECT_NAME
+#define CONSOLE_WINDOW_TITLE  FNTECH3_PROJECT_NAME " Console"
 // 1.32 released 7-10-2002
 
 //#define DEFAULT_GAME			"edawn"

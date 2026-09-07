@@ -160,6 +160,7 @@ static void SV_Map_f( void ) {
 	const char		*cmd;
 	const char		*map;
 	bool		killBots, cheat, singlePlayerCommand;
+	const bool		quakeLive = Com_GameIsQuakeLive() != 0;
 	std::array<char, MAX_QPATH> expanded{};
 	std::array<char, MAX_QPATH> mapname{};
 	int			len;
@@ -168,7 +169,9 @@ static void SV_Map_f( void ) {
 	singlePlayerCommand = Q_stricmpn( cmd, "sp", 2 ) == 0;
 	map = Cmd_Argv(1);
 	if ( !map || !*map ) {
-		if ( singlePlayerCommand ) {
+		if ( !quakeLive ) {
+			return;
+		} else if ( singlePlayerCommand ) {
 			Com_Printf( "%s <mapname>\n", cmd );
 		} else {
 			SV_FactoryPrintMapUsage( cmd );
@@ -178,7 +181,8 @@ static void SV_Map_f( void ) {
 	// Retail enforces the factory argument threshold before touching the BSP.
 	// An explicitly present empty argv[2] still passes this preflight and is
 	// subsequently treated as an invalid exact factory when no selection exists.
-	if ( !singlePlayerCommand && Cmd_Argc() < 3 && !SV_FactoryHasActive() ) {
+	if ( quakeLive && !singlePlayerCommand && Cmd_Argc() < 3
+		&& !SV_FactoryHasActive() ) {
 		SV_FactoryPrintMapUsage( cmd );
 		return;
 	}
@@ -194,19 +198,24 @@ static void SV_Map_f( void ) {
 		Com_Printf( "Can't find map %s\n", expanded.data() );
 		return;
 	}
-	if ( com_sv_running->integer && SV_HandleQuitOnExitLevel( map ) ) {
+	if ( quakeLive && com_sv_running->integer
+		&& SV_HandleQuitOnExitLevel( map ) ) {
 		return;
 	}
 
 	// force latched values to get set
 	Cvar_Get ("g_gametype", "0", CVAR_SERVERINFO | CVAR_USERINFO | CVAR_LATCH );
-	(void)Cvar_Get( "g_ammoPack", "0", CVAR_LATCH );
+	if ( quakeLive ) {
+		(void)Cvar_Get( "g_ammoPack", "0", CVAR_LATCH );
+	}
 
 	if ( singlePlayerCommand ) {
 		// The inherited single-player aliases do not select a retail factory.
 		// Drop any previous factory snapshots before applying their SP cvars so
 		// overrides cannot leak into this path or be reused by a later map call.
-		SV_FactoryDeactivate();
+		if ( quakeLive ) {
+			SV_FactoryDeactivate();
+		}
 		Cvar_SetIntegerValue( "g_gametype", GT_SINGLE_PLAYER );
 		Cvar_Set( "g_doWarmup", "0" );
 		// may not set sv_maxclients directly, always set latched
@@ -236,7 +245,7 @@ static void SV_Map_f( void ) {
 	// Retail QL's map command owns factory selection.  Keep the inherited
 	// single-player aliases intact, but require/reuse a factory for map and
 	// devmap before any level state is torn down.
-	if ( !singlePlayerCommand &&
+	if ( quakeLive && !singlePlayerCommand &&
 		!SV_FactoryPrepareMap( map, Cmd_Argv( 2 ), SV_QBool( Cmd_Argc() >= 3 ),
 			SV_QBool( cheat ) ) ) {
 		return;
@@ -294,7 +303,8 @@ static void SV_MapRestart_f( void ) {
 		return;
 	}
 
-	if ( SV_HandleQuitOnExitLevel( "map_restart" ) ) {
+	if ( Com_GameIsQuakeLive()
+		&& SV_HandleQuitOnExitLevel( "map_restart" ) ) {
 		return;
 	}
 
@@ -313,10 +323,23 @@ static void SV_MapRestart_f( void ) {
 		return;
 	}
 
-	// Retail skips these transition checks once qagame marks g_restarted. On a
-	// normal restart, ammo-pack or gametype changes require a full spawn, while
-	// a max-client change resizes the retained client array before the fast path.
-	if ( Cvar_VariableValue( "g_restarted" ) == 0.0f ) {
+	if ( !Com_GameIsQuakeLive()
+		&& ( sv_maxclients->modified || sv_gametype->modified
+			|| sv_pure->modified ) ) {
+		std::array<char, MAX_QPATH> mapname{};
+
+		Com_Printf( "variable change -- restarting.\n" );
+		Q_strncpyz( mapname.data(), Cvar_VariableString( "mapname" ),
+			SV_ArraySize(mapname) );
+		SV_SpawnServer( mapname.data(), qfalse );
+		return;
+	}
+
+	// Retail QL skips these transition checks once qagame marks g_restarted.
+	// On a normal restart, ammo-pack or gametype changes require a full spawn,
+	// while a max-client change resizes the retained client array in place.
+	if ( Com_GameIsQuakeLive()
+		&& Cvar_VariableValue( "g_restarted" ) == 0.0f ) {
 		if ( ( sv_ammoPack && sv_ammoPack->modified ) || sv_gametype->modified ) {
 			std::array<char, MAX_QPATH> mapname{};
 
@@ -424,12 +447,19 @@ static void SV_MapRestart_f( void ) {
 			// catches up to this time, which for any non-zero ping spans the
 			// frames in which the game respawns everyone, so the angles left
 			// here are the anchor trap_GetUsercmd() hands those spawns.
-			client.lastUsercmd.serverTime =
-				fnql::net::CounterSubtract( sv.time, 1u );
+			if ( Com_GameIsQuakeLive() ) {
+				client.lastUsercmd.serverTime =
+					fnql::net::CounterSubtract( sv.time, 1u );
+			} else {
+				client.lastUsercmd = {};
+				client.lastUsercmd.serverTime = sv.time - 1;
+			}
 		}
 	}
 
-	SV_MapPoolRefreshCvars();
+	if ( Com_GameIsQuakeLive() ) {
+		SV_MapPoolRefreshCvars();
+	}
 }
 
 
@@ -1240,7 +1270,7 @@ SV_Status_f
 static void SV_Status_f( void ) {
 	int l;
 	const client_t *cl;
-	const playerState_t *ps;
+	playerState_t ps;
 	const char *s;
 	int max_namelength;
 	int max_addrlength;
@@ -1316,8 +1346,13 @@ static void SV_Status_f( void ) {
 			continue;
 
 		Com_Printf( "%2i ", slot.index ); // id
-		ps = SV_GameClientNum( slot.index );
-		Com_Printf( "%5i ", SV_GameGetClientScore( slot.index, ps->persistant[PERS_SCORE] ) );
+		if ( !SV_ReadGameClient( slot.index, &ps ) ) {
+			Com_Error( ERR_DROP, "%s: invalid game client %i", __func__,
+				slot.index );
+			return;
+		}
+		Com_Printf( "%5i ", SV_GameGetClientScore( slot.index,
+			ps.persistant[PERS_SCORE] ) );
 
 		// ping/status
 		if ( cl->state == CS_PRIMED )
@@ -1721,7 +1756,9 @@ void SV_AddOperatorCommands( void ) {
 #endif
 
 	SV_AddCommandSet( commands );
-	SV_AddCommandSet( workshopCommands );
+	if ( Com_GameProfile()->supportsWorkshop ) {
+		SV_AddCommandSet( workshopCommands );
+	}
 #ifndef STANDALONE
 #ifdef USE_BANS
 	if(!Cvar_VariableIntegerValue("com_standalone"))
@@ -1732,7 +1769,9 @@ void SV_AddOperatorCommands( void ) {
 #endif
 	SV_AddCommandSet( mapCommands );
 	SV_SetMapCompletionForCommands( mapCommands );
-	SV_AddCommandSet( qlFactoryCommands );
+	if ( Com_GameIsQuakeLive() ) {
+		SV_AddCommandSet( qlFactoryCommands );
+	}
 #ifndef PRE_RELEASE_DEMO
 	SV_AddCommandSet( extraMapCommands );
 	SV_SetMapCompletionForCommands( extraMapCommands );

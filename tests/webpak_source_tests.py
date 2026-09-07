@@ -97,8 +97,22 @@ class WebPakSourceTests(unittest.TestCase):
     def test_client_lifecycle_initializes_and_releases_webpak(self) -> None:
         client = (ROOT / "code" / "client" / "cl_main.cpp").read_text(encoding="utf-8")
 
-        self.assertIn("CL_WebPak_Init();\n\tCL_WebHost_BootstrapAwesomiumMenu();", client)
-        self.assertIn("CL_WebHost_Shutdown();\n\tCL_WebPak_Shutdown();", client)
+        self.assertIn(
+            "if ( quakeLive ) {\n"
+            "\t\tQLWebHost_RegisterCommands();\n"
+            "\t\tCL_WebPak_Init();\n"
+            "\t\tCL_WebHost_BootstrapAwesomiumMenu();\n"
+            "\t}",
+            client,
+        )
+        self.assertIn(
+            "if ( Com_GameIsQuakeLive() ) {\n"
+            "\t\tCL_Workshop_Shutdown();\n"
+            "\t\tCL_WebHost_Shutdown();\n"
+            "\t\tCL_WebPak_Shutdown();\n"
+            "\t}",
+            client,
+        )
 
     def test_build_manifests_include_webpak_client_source(self) -> None:
         expected = "code/client/cl_webpak.cpp"

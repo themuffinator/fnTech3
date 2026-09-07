@@ -51,6 +51,12 @@ cvar_t		*cm_noAreas, *cm_noCurves, *cm_playerCurveClip;
 static cvar_t	stubCvars[8];
 static int		stubCvarCount;
 static cmodel_t	stubModel;
+static comGameProfile_t stubGameProfile;
+
+const comGameProfile_t *Com_GameProfile( void )
+{
+	return &stubGameProfile;
+}
 
 cvar_t *Cvar_Get( const char *var_name, const char *value, int flags )
 {
@@ -180,6 +186,54 @@ static qboolean NearlyEqual( float value, float expected )
 /* --------------------------------------------------------------- tests */
 
 /*
+ * Q3 uses the inherited expanded capsule radius (30 for this fixture).  QL
+ * alone applies sv_cylinderScale, making the default radius 33.  Switching the
+ * test stub back after the QL cvar exists proves that the cvar cannot select
+ * QL collision behavior by itself.
+ */
+static void TestGameProfileOwnsCylinderScale( void )
+{
+	cvar_t *cylinderScale;
+	float quake3Fraction;
+	float quakeLiveFraction;
+	int cvarsBeforeTrace;
+	int i;
+
+	stubGameProfile.id = COM_GAME_QUAKE3;
+	cvarsBeforeTrace = stubCvarCount;
+	quake3Fraction = SweepFraction( 80, 0, 0, 20, 0, 0 );
+	CHECK( NearlyEqual( quake3Fraction, 0.816667f ) );
+	CHECK( stubCvarCount == cvarsBeforeTrace );
+
+	stubGameProfile.id = COM_GAME_QUAKELIVE;
+	quakeLiveFraction = SweepFraction( 80, 0, 0, 20, 0, 0 );
+	CHECK( NearlyEqual( quakeLiveFraction, 0.766667f ) );
+	CHECK( stubCvarCount == cvarsBeforeTrace + 1 );
+	CHECK( quakeLiveFraction < quake3Fraction );
+
+	cylinderScale = NULL;
+	for ( i = 0; i < stubCvarCount; ++i ) {
+		if ( !strcmp( stubCvars[i].name, "sv_cylinderScale" ) ) {
+			cylinderScale = &stubCvars[i];
+			break;
+		}
+	}
+	CHECK( cylinderScale != NULL );
+	if ( !cylinderScale ) {
+		return;
+	}
+
+	cylinderScale->value = 2.0f;
+	CHECK( NearlyEqual( SweepFraction( 80, 0, 0, 20, 0, 0 ), 0.316667f ) );
+
+	stubGameProfile.id = COM_GAME_QUAKE3;
+	CHECK( NearlyEqual( SweepFraction( 80, 0, 0, 20, 0, 0 ), 0.816667f ) );
+
+	cylinderScale->value = 1.1f;
+	stubGameProfile.id = COM_GAME_QUAKELIVE;
+}
+
+/*
  * A capsule target is a cylinder capped by a sphere at each end.  Every
  * approach that reaches the hull has to be blocked, including the ones that
  * only the cap spheres can catch.  An engine that models the target as one
@@ -306,11 +360,13 @@ static void TestPlaneContractHoldsAcrossTheWorld( void )
 int main( void )
 {
 	cm.numNodes = 1;
+	stubGameProfile.id = COM_GAME_QUAKELIVE;
 	cm_noCurves = Cvar_Get( "cm_noCurves", "0", 0 );
 	cm_playerCurveClip = Cvar_Get( "cm_playerCurveClip", "1", 0 );
 	VectorCopy( playerMins, stubModel.mins );
 	VectorCopy( playerMaxs, stubModel.maxs );
 
+	TestGameProfileOwnsCylinderScale();
 	TestEveryApproachIsBlocked();
 	TestCapContactsFaceTheSweep();
 	TestContactContentsStayRetailShaped();

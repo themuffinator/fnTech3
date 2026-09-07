@@ -840,6 +840,10 @@ static void CL_WebPak_RefreshCvars( void ) {
 }
 
 void CL_WebPak_Init( void ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return;
+	}
+
 	static const char *retailPathCvars[] = { "fs_homepath", "fs_basepath", "fs_steampath" };
 	static const char *overlayPathCvars[] = { "fs_homepath", "fs_apppath", "fs_basepath", "fs_steampath" };
 	char rootPath[MAX_OSPATH];

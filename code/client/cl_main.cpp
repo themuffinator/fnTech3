@@ -341,6 +341,22 @@ static bool CL_DemoProtocolSupported( int protocol )
 		( com_protocol && protocol == com_protocol->integer );
 }
 
+static netchanWireProfile_t CL_DemoWireProfileForProtocol( int protocol )
+{
+	if ( protocol == QL_RETAIL_PROTOCOL_VERSION ) {
+		return NETCHAN_WIRE_QL_RETAIL;
+	}
+	if ( protocol == NEW_PROTOCOL_VERSION ) {
+		return NETCHAN_WIRE_IOQ3;
+	}
+	return NETCHAN_WIRE_LEGACY_Q3;
+}
+
+netchanWireProfile_t CL_ActiveWireProfile( void )
+{
+	return clc.demoplaying ? clc.demoWireProfile : clc.netchan.wireProfile;
+}
+
 /*
 ====================
 CL_DetectLegacyDemoProtocol
@@ -569,13 +585,13 @@ void CL_StopRecord_f( void ) {
 
 		// Select the extension from the actual wire contract. Explicit legacy
 		// demo playback retains the source protocol recorded in the file.
-		if ( clc.dm68compat ) {
+		if ( clc.dm68compat && CL_ActiveWireProfile() != NETCHAN_WIRE_QL_RETAIL ) {
 			protocol = OLD_PROTOCOL_VERSION;
 		} else if ( clc.demoplaying && clc.demoLegacyProtocol ) {
 			protocol = clc.demoLegacyProtocol;
 		} else {
 			protocol = fnql::protocol::ForWireProfile(
-				clc.netchan.wireProfile ).demoProtocol;
+				CL_ActiveWireProfile() ).demoProtocol;
 		}
 
 		Com_sprintf( tempName.data(), static_cast<int>( tempName.size() ), "%s.tmp", clc.recordName );
@@ -627,11 +643,31 @@ static void CL_WriteServerCommands( msg_t *msg ) {
 			MSG_WriteLong( msg, i );
 			MSG_WriteStringForWireProfile( msg,
 				clc.serverCommands[ i & ( MAX_RELIABLE_COMMANDS - 1 ) ],
-				clc.netchan.wireProfile );
+				CL_ActiveWireProfile() );
 		}
 	}
 
 	clc.demoCommandSequence = clc.serverCommandSequence;
+}
+
+static void CL_WriteDeltaEntityForActiveProfile( msg_t *msg,
+	const entityState_t *from, const entityState_t *to, qboolean force )
+{
+	if ( !MSG_WriteDeltaEntityForWireProfile( msg, from, to, force,
+		CL_ActiveWireProfile() ) ) {
+		Com_Error( ERR_DROP,
+			"CL demo writer: invalid frozen wire profile" );
+	}
+}
+
+static void CL_WriteDeltaPlayerstateForActiveProfile( msg_t *msg,
+	const playerState_t *from, const playerState_t *to )
+{
+	if ( !MSG_WriteDeltaPlayerstateForWireProfile( msg, from, to,
+		CL_ActiveWireProfile() ) ) {
+		Com_Error( ERR_DROP,
+			"CL demo writer: invalid frozen wire profile" );
+	}
 }
 
 
@@ -678,7 +714,7 @@ static void CL_WriteGamestate( qboolean initial )
 		MSG_WriteByte( &msg, svc_configstring );
 		MSG_WriteShort( &msg, i );
 		MSG_WriteBigStringForWireProfile(
-			&msg, s, clc.netchan.wireProfile );
+			&msg, s, CL_ActiveWireProfile() );
 	}
 
 	// baselines
@@ -687,7 +723,8 @@ static void CL_WriteGamestate( qboolean initial )
 			continue;
 		ent = &cl.entityBaselines[ i ];
 		MSG_WriteByte( &msg, svc_baseline );
-		MSG_WriteDeltaEntity( &msg, &nullstate, ent, qtrue );
+		CL_WriteDeltaEntityForActiveProfile(
+			&msg, &nullstate, ent, qtrue );
 	}
 
 	// finalize message
@@ -760,7 +797,8 @@ static void CL_EmitPacketEntities( clSnapshot_t *from, clSnapshot_t *to, msg_t *
 			// delta update from old position
 			// because the force parm is qfalse, this will not result
 			// in any bytes being emitted if the entity has not changed at all
-			MSG_WriteDeltaEntity (msg, oldent, newent, qfalse );
+			CL_WriteDeltaEntityForActiveProfile(
+				msg, oldent, newent, qfalse );
 			oldindex++;
 			newindex++;
 			continue;
@@ -768,14 +806,16 @@ static void CL_EmitPacketEntities( clSnapshot_t *from, clSnapshot_t *to, msg_t *
 
 		if ( newnum < oldnum ) {
 			// this is a new entity, send it from the baseline
-			MSG_WriteDeltaEntity (msg, &cl.entityBaselines[newnum], newent, qtrue );
+			CL_WriteDeltaEntityForActiveProfile(
+				msg, &cl.entityBaselines[newnum], newent, qtrue );
 			newindex++;
 			continue;
 		}
 
 		if ( newnum > oldnum ) {
 			// the old entity isn't present in the new message
-			MSG_WriteDeltaEntity (msg, oldent, nullptr, qtrue );
+			CL_WriteDeltaEntityForActiveProfile(
+				msg, oldent, nullptr, qtrue );
 			oldindex++;
 			continue;
 		}
@@ -827,9 +867,11 @@ static void CL_WriteSnapshot( void ) {
 	MSG_WriteByte( &msg, snap->areabytes );  // areabytes
 	MSG_WriteData( &msg, snap->areamask, snap->areabytes );
 	if ( oldSnap )
-		MSG_WriteDeltaPlayerstate( &msg, &oldSnap->ps, &snap->ps );
+		CL_WriteDeltaPlayerstateForActiveProfile(
+			&msg, &oldSnap->ps, &snap->ps );
 	else
-		MSG_WriteDeltaPlayerstate( &msg, nullptr, &snap->ps );
+		CL_WriteDeltaPlayerstateForActiveProfile(
+			&msg, nullptr, &snap->ps );
 
 	CL_EmitPacketEntities( oldSnap, snap, &msg, saved_ents );
 
@@ -960,8 +1002,9 @@ static void CL_Record_f( void ) {
 	// don't start saving messages until a non-delta compressed message is received
 	clc.demowaiting = qtrue;
 
-	// we will rename record to dm_68 or dm_71 depending from this flag
-	clc.dm68compat = qtrue;
+	// Only Q3 message bodies can retain the dm_68 fallback until an
+	// extension message requires dm_71. QL bodies always require dm_91.
+	clc.dm68compat = ToQboolean( CL_ActiveWireProfile() != NETCHAN_WIRE_QL_RETAIL );
 
 	// write out the gamestate message
 	CL_WriteGamestate( qtrue );
@@ -1321,6 +1364,7 @@ static void CL_PlayDemo_f( void ) {
 
 	clc.demoLegacyFormat = CL_IsLegacyDemoExt( COM_GetExtension( name.data() ) );
 	clc.demoLegacyProtocol = clc.demoLegacyFormat ? CL_DetectLegacyDemoProtocol( clc.demofile ) : 0;
+	clc.demoWireProfile = CL_DemoWireProfileForProtocol( protocol );
 	Q_strncpyz( clc.demoName, shortname, sizeof( clc.demoName ) );
 
 	Con_Close();
@@ -1926,7 +1970,7 @@ fallback when that external browser runtime cannot resume.
 =====================
 */
 static void CL_RestoreMainMenuAfterDisconnect( void ) {
-	if ( CL_WebHost_ShowAfterDisconnect() ) {
+	if ( Com_GameIsQuakeLive() && CL_WebHost_ShowAfterDisconnect() ) {
 		return;
 	}
 
@@ -2534,13 +2578,24 @@ static void CL_SendPureChecksums( void ) {
 	if ( !cl_connectedToPureServer || clc.demoplaying )
 		return;
 
-	// if we are pure we need to send back a command with our referenced pk3 checksums
-	if ( !FS_FileIsInPAK( QL_NATIVE_CGAME_DLL, &binChecksum, nullptr ) ) {
-		Com_Error( ERR_FATAL, "CL_SendPureChecksums: no pak file for %s", QL_NATIVE_CGAME_DLL );
+	// Q3's filesystem proof starts with cgame/UI QVM pak checksums. Retail
+	// QL instead identifies its single native-module pak before general refs.
+	if ( Com_GameIsQuake3() ) {
+		len = Com_sprintf( cMsg.data(), static_cast<int>( cMsg.size() ),
+			"cp %d ", cl.serverId );
+	} else {
+		if ( !FS_FileIsInPAK( QL_NATIVE_CGAME_DLL, &binChecksum, nullptr ) ) {
+			Com_Error( ERR_FATAL, "CL_SendPureChecksums: no pak file for %s", QL_NATIVE_CGAME_DLL );
+		}
+		len = Com_sprintf( cMsg.data(), static_cast<int>( cMsg.size() ),
+			"cp %d %d ", cl.serverId, binChecksum );
 	}
 
-	len = Com_sprintf( cMsg.data(), static_cast<int>( cMsg.size() ), "cp %d %d ", cl.serverId, binChecksum );
 	pChecksums = FS_ReferencedPakPureChecksums( static_cast<int>( cMsg.size() ) - len - 1 );
+	if ( !pChecksums[0] ) {
+		Com_Error( ERR_DROP, "CL_SendPureChecksums: referenced pak proof exceeds command capacity" );
+		return;
+	}
 	Q_strncpyz( cMsg.data() + len, pChecksums, static_cast<int>( cMsg.size() ) - len );
 
 	CL_AddReliableCommand( cMsg.data(), qfalse );
@@ -3210,7 +3265,7 @@ void CL_ResumeDownloadsAfterWorkshop( void ) {
 void CL_InitDownloads( void ) {
 	constexpr int QL_STEAM_REFERENCED_CONFIGSTRING = 0x2cb;
 	const fnql::protocol::Contract &activeContract =
-		fnql::protocol::ForWireProfile( clc.netchan.wireProfile );
+		fnql::protocol::ForWireProfile( CL_ActiveWireProfile() );
 	if ( !clc.demoplaying &&
 		activeContract.Has( fnql::protocol::Capability::WorkshopContent ) &&
 		CL_Workshop_BeginRequiredDownloads(
@@ -3790,9 +3845,22 @@ static bool CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 			}
 		}
 
+		contract = fnql::protocol::Find(
+			negotiatedProtocol, clc.compat != qfalse );
+		if ( !contract || !Com_GameProfileAllowsProtocol(
+			Com_GameProfile(), negotiatedProtocol ) ) {
+			Com_Printf(
+				"ConnectResponse selected protocol %d, which is not supported by the active %s profile. Ignored.\n",
+				negotiatedProtocol, Com_GameProfile()->displayName );
+			return false;
+		}
+
 		Netchan_Setup( NS_CLIENT, &clc.netchan, from,
 			Cvar_VariableIntegerValue( "net_qport" ), clc.challenge,
 			Netchan_SelectWireProfile( negotiatedProtocol, clc.compat ) );
+		// Loopback skips challenge negotiation. Derive the legacy policy from
+		// the accepted framing contract instead of its zero-initialized flag.
+		clc.compat = ToQboolean( clc.netchan.wireProfile == NETCHAN_WIRE_LEGACY_Q3 );
 
 		cls.state = CA_CONNECTED;
 		clc.lastPacketSentTime = cls.realtime - 9999; // send first packet immediately
@@ -4134,6 +4202,10 @@ cvars exist and again whenever the account or persona can have changed.
 ==================
 */
 void CL_RefreshSteamIdentity( void ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return;
+	}
+
 	const qboolean changed = CL_ReadSteamIdentity();
 
 	CL_PublishSteamIdentity();
@@ -4166,6 +4238,10 @@ persona edit or an account transition is picked up without a callback.
 ==================
 */
 void CL_EnforceSteamIdentity( void ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return;
+	}
+
 	const uint32_t now = static_cast<uint32_t>( Sys_Milliseconds() );
 
 	if ( !steamIdentity.nextStatusPoll
@@ -4380,8 +4456,12 @@ void CL_Frame( int msec, int realMsec ) {
 	cls.gameFrametime = gameMsec;
 	cls.realtime += realMsec;
 	cls.gametime += gameMsec;
-	CL_SteamP2PFrame();
-	CL_Workshop_Frame();
+	if ( Com_GameProfile()->usesSteam ) {
+		CL_SteamP2PFrame();
+	}
+	if ( Com_GameProfile()->supportsWorkshop ) {
+		CL_Workshop_Frame();
+	}
 
 	if ( cl_timegraph->integer ) {
 		SCR_DebugGraph( realMsec * 0.25f );
@@ -5339,6 +5419,7 @@ CL_Init
 void CL_Init( void ) {
 	const char *s;
 	cvar_t *cv;
+	const bool quakeLive = Com_GameIsQuakeLive() != 0;
 
 	Com_Printf( "----- Client Initialization -----\n" );
 	cl_windowResize.Reset();
@@ -5364,25 +5445,33 @@ void CL_Init( void ) {
 	cl_motd = Cvar_Get( "cl_motd", "1", 0 );
 	Cvar_SetDescription( cl_motd, "Toggle the display of the 'Message of the day'. When Quake 3 Arena starts a map up, it sends the GL_RENDERER string to the Message Of The Day server at id. This responds back with a message of the day to the client." );
 
-	// Retail Quake Live uses a 40 second connection timeout. Existing user-set
-	// values remain valid, while new profiles receive the retail reset value.
-	cl_timeout = Cvar_Get( "cl_timeout", "40", 0 );
+	// Keep the reset value owned by the selected game. Quake III historically
+	// allows much longer stalls while Quake Live drops after forty seconds.
+	cl_timeout = Cvar_Get( "cl_timeout", quakeLive ? "40" : "200", 0 );
 	Cvar_CheckRange( cl_timeout, "5", nullptr, CV_INTEGER );
 	Cvar_SetDescription( cl_timeout, "Duration of receiving nothing from server for client to decide it must be disconnected (in seconds)." );
 
 	cl_autoNudge = Cvar_Get( "cl_autoNudge", "0", CVAR_TEMP );
 	Cvar_CheckRange( cl_autoNudge, "0", "1", CV_FLOAT );
-	Cvar_SetDescription( cl_autoNudge, "FnQL fractional median-ping auto nudge; zero yields ownership to retail cl_autoTimeNudge/cl_timeNudge." );
-	cl_autoTimeNudge = Cvar_Get( "cl_autoTimeNudge", "0",
-		CVAR_ARCHIVE | CVAR_PROTECTED | CVAR_VM_CREATED );
-	Cvar_CheckRange( cl_autoTimeNudge, "0", "1", CV_INTEGER );
-	Cvar_SetDescription( cl_autoTimeNudge, "Retail Quake Live automatic half-ping time nudge selector." );
-	cl_timeNudge = Cvar_Get( "cl_timeNudge", "0",
-		CVAR_ARCHIVE | CVAR_PROTECTED | CVAR_VM_CREATED );
-	Cvar_CheckRange( cl_timeNudge, "-20", "0", CV_INTEGER );
-	Cvar_SetDescription( cl_timeNudge, "Retail client interpolation nudge in milliseconds, bounded to -20 through 0." );
-	Cvar_SetDescription( Cvar_Get( "cg_spectating", "0", CVAR_ROM ),
-		"Read-only retail cgame timing bridge; spectators do not apply client time nudge." );
+	if ( quakeLive ) {
+		Cvar_SetDescription( cl_autoNudge, "fnTech3 fractional median-ping auto nudge; zero yields ownership to retail cl_autoTimeNudge/cl_timeNudge." );
+		cl_autoTimeNudge = Cvar_Get( "cl_autoTimeNudge", "0",
+			CVAR_ARCHIVE | CVAR_PROTECTED | CVAR_VM_CREATED );
+		Cvar_CheckRange( cl_autoTimeNudge, "0", "1", CV_INTEGER );
+		Cvar_SetDescription( cl_autoTimeNudge, "Retail Quake Live automatic half-ping time nudge selector." );
+		cl_timeNudge = Cvar_Get( "cl_timeNudge", "0",
+			CVAR_ARCHIVE | CVAR_PROTECTED | CVAR_VM_CREATED );
+		Cvar_CheckRange( cl_timeNudge, "-20", "0", CV_INTEGER );
+		Cvar_SetDescription( cl_timeNudge, "Retail client interpolation nudge in milliseconds, bounded to -20 through 0." );
+		Cvar_SetDescription( Cvar_Get( "cg_spectating", "0", CVAR_ROM ),
+			"Read-only retail cgame timing bridge; spectators do not apply client time nudge." );
+	} else {
+		Cvar_SetDescription( cl_autoNudge, "Automatic time nudge that uses your average ping as the time nudge, values:\n  0 - use fixed \\cl_timeNudge\n (0..1] - factor of median average ping to use as timenudge\n" );
+		cl_autoTimeNudge = nullptr;
+		cl_timeNudge = Cvar_Get( "cl_timeNudge", "0", CVAR_TEMP );
+		Cvar_CheckRange( cl_timeNudge, "-30", "30", CV_INTEGER );
+		Cvar_SetDescription( cl_timeNudge, "Allows more or less latency to be added in the interest of better smoothness or better responsiveness." );
+	}
 
 	cl_shownet = Cvar_Get ("cl_shownet", "0", CVAR_TEMP );
 	Cvar_SetDescription( cl_shownet, "Toggle the display of current network status." );
@@ -5408,45 +5497,62 @@ void CL_Init( void ) {
 		CVAR_ARCHIVE | CVAR_PROTECTED | CVAR_CLOUD );
 	Cvar_SetDescription( cl_allowConsoleChat, "Allow bare console text to be sent as chat; slash-prefixed text always remains a command." );
 
-	const bool hadRetailRecordCvar =
-		( Cvar_Flags( "cl_demoRecordMessage" ) & CVAR_NONEXISTENT ) == 0;
-	const bool hadLegacyRecordCvar =
-		( Cvar_Flags( "cl_drawRecording" ) & CVAR_NONEXISTENT ) == 0;
-	cl_demoRecordMessage = Cvar_Get( "cl_demoRecordMessage", "2",
-		CVAR_ARCHIVE | CVAR_PROTECTED | CVAR_CLOUD );
-	cl_drawRecording = Cvar_Get( "cl_drawRecording", "2", CVAR_ARCHIVE );
-	Cvar_CheckRange( cl_demoRecordMessage, "0", "2", CV_INTEGER );
-	Cvar_CheckRange( cl_drawRecording, "0", "2", CV_INTEGER );
-	if ( !hadRetailRecordCvar && hadLegacyRecordCvar ) {
-		Cvar_SetIntegerValue( "cl_demoRecordMessage", cl_drawRecording->integer );
+	if ( quakeLive ) {
+		const bool hadRetailRecordCvar =
+			( Cvar_Flags( "cl_demoRecordMessage" ) & CVAR_NONEXISTENT ) == 0;
+		const bool hadLegacyRecordCvar =
+			( Cvar_Flags( "cl_drawRecording" ) & CVAR_NONEXISTENT ) == 0;
+		cl_demoRecordMessage = Cvar_Get( "cl_demoRecordMessage", "2",
+			CVAR_ARCHIVE | CVAR_PROTECTED | CVAR_CLOUD );
+		cl_drawRecording = Cvar_Get( "cl_drawRecording", "2", CVAR_ARCHIVE );
+		Cvar_CheckRange( cl_demoRecordMessage, "0", "2", CV_INTEGER );
+		Cvar_CheckRange( cl_drawRecording, "0", "2", CV_INTEGER );
+		if ( !hadRetailRecordCvar && hadLegacyRecordCvar ) {
+			Cvar_SetIntegerValue( "cl_demoRecordMessage", cl_drawRecording->integer );
+		} else {
+			Cvar_SetIntegerValue( "cl_drawRecording", cl_demoRecordMessage->integer );
+		}
+		cl_demoRecordMessageModificationCount =
+			cl_demoRecordMessage->modificationCount;
+		cl_drawRecordingModificationCount = cl_drawRecording->modificationCount;
+		Cvar_SetDescription( cl_demoRecordMessage, "Retail demo recording indicator: hidden (0), detailed (1), or compact REC icon (2)." );
+		Cvar_SetDescription( cl_drawRecording, "fnTech3 compatibility alias for cl_demoRecordMessage." );
 	} else {
-		Cvar_SetIntegerValue( "cl_drawRecording", cl_demoRecordMessage->integer );
+		cl_demoRecordMessage = nullptr;
+		cl_drawRecording = Cvar_Get( "cl_drawRecording", "1", CVAR_ARCHIVE );
+		Cvar_CheckRange( cl_drawRecording, "0", "1", CV_INTEGER );
+		Cvar_SetDescription( cl_drawRecording, "Hide (0) or shorten (1) the RECORDING HUD message when recording a demo." );
 	}
-	cl_demoRecordMessageModificationCount =
-		cl_demoRecordMessage->modificationCount;
-	cl_drawRecordingModificationCount = cl_drawRecording->modificationCount;
-	Cvar_SetDescription( cl_demoRecordMessage, "Retail demo recording indicator: hidden (0), detailed (1), or compact REC icon (2)." );
-	Cvar_SetDescription( cl_drawRecording, "FnQL compatibility alias for cl_demoRecordMessage." );
-	const unsigned menuAspectFlags = Cvar_Flags( "cl_menuAspect" );
-	const bool hadArchivedMenuAspect =
-		menuAspectFlags != CVAR_NONEXISTENT && ( menuAspectFlags & CVAR_ARCHIVE ) != 0;
-	cvar_t *menuAspectPolicyVersion = Cvar_Get( "cl_menuAspectPolicyVersion", "0",
-		CVAR_ARCHIVE_ND | CVAR_PRIVATE | CVAR_NOTABCOMPLETE );
-	cl_menuAspect = Cvar_Get( "cl_menuAspect", "1", CVAR_ARCHIVE );
-	Cvar_CheckRange( cl_menuAspect, "0", "1", CV_INTEGER );
-	if ( fnql::client::ShouldMigrateMenuAspectToRetail( hadArchivedMenuAspect,
-		cl_menuAspect->integer, menuAspectPolicyVersion->integer ) ) {
-		Cvar_SetIntegerValue( "cl_menuAspect", 1 );
-		Com_Printf( "Migrated legacy cl_menuAspect 0 to the retail menu drawing policy.\n" );
+
+	if ( quakeLive ) {
+		const unsigned menuAspectFlags = Cvar_Flags( "cl_menuAspect" );
+		const bool hadArchivedMenuAspect = menuAspectFlags != CVAR_NONEXISTENT
+			&& ( menuAspectFlags & CVAR_ARCHIVE ) != 0;
+		cvar_t *menuAspectPolicyVersion = Cvar_Get( "cl_menuAspectPolicyVersion", "0",
+			CVAR_ARCHIVE_ND | CVAR_PRIVATE | CVAR_NOTABCOMPLETE );
+		cl_menuAspect = Cvar_Get( "cl_menuAspect", "1", CVAR_ARCHIVE );
+		Cvar_CheckRange( cl_menuAspect, "0", "1", CV_INTEGER );
+		if ( fnql::client::ShouldMigrateMenuAspectToRetail( hadArchivedMenuAspect,
+			cl_menuAspect->integer, menuAspectPolicyVersion->integer ) ) {
+			Cvar_SetIntegerValue( "cl_menuAspect", 1 );
+			Com_Printf( "Migrated legacy cl_menuAspect 0 to the retail menu drawing policy.\n" );
+		}
+		if ( menuAspectPolicyVersion->integer < fnql::client::kRetailMenuAspectPolicyVersion ) {
+			Cvar_SetIntegerValue( "cl_menuAspectPolicyVersion",
+				fnql::client::kRetailMenuAspectPolicyVersion );
+		}
+		Cvar_SetDescription( cl_menuAspect,
+			"Menu aspect correction:\n"
+			" 1 - retain the retail QL centered 4:3 menu layout (default)\n"
+			" 0 - stretch menu widgets, including 3D model viewports, to the framebuffer" );
+	} else {
+		cl_menuAspect = Cvar_Get( "cl_menuAspect", "0", CVAR_ARCHIVE );
+		Cvar_CheckRange( cl_menuAspect, "0", "1", CV_INTEGER );
+		Cvar_SetDescription( cl_menuAspect,
+			"Menu aspect correction:\n"
+			" 0 - stretch menu widgets to the framebuffer\n"
+			" 1 - keep menu widgets, including 3D model viewports, in centered 4:3 space" );
 	}
-	if ( menuAspectPolicyVersion->integer < fnql::client::kRetailMenuAspectPolicyVersion ) {
-		Cvar_SetIntegerValue( "cl_menuAspectPolicyVersion",
-			fnql::client::kRetailMenuAspectPolicyVersion );
-	}
-	Cvar_SetDescription( cl_menuAspect,
-		"Menu aspect correction:\n"
-		" 1 - retain the retail QL centered 4:3 menu layout (default)\n"
-		" 0 - stretch menu widgets, including 3D model viewports, to the framebuffer" );
 	cl_menuBlur = Cvar_Get( "cl_menuBlur", "1", CVAR_ARCHIVE );
 	Cvar_CheckRange( cl_menuBlur, "0", "1", CV_FLOAT );
 	Cvar_SetDescription( cl_menuBlur,
@@ -5558,27 +5664,33 @@ void CL_Init( void ) {
 
 	// init cg_autoswitch so the ui will have it correctly even
 	// if the cgame hasn't been started
-	Cvar_Get ("cg_autoswitch", "0", CVAR_ARCHIVE);
+	Cvar_Get ("cg_autoswitch", quakeLive ? "0" : "1", CVAR_ARCHIVE);
 
 	cl_motdString = Cvar_Get( "cl_motdString", "", CVAR_ROM );
 	Cvar_SetDescription( cl_motdString, "Message of the day string from id's master server, it is a read only variable." );
-	cl_platform = Cvar_Get( "cl_platform", "1", CVAR_ROM );
-	Cvar_SetDescription( cl_platform, "Retail platform marker (1 identifies the Steam Quake Live client contract)." );
+	if ( quakeLive ) {
+		cl_platform = Cvar_Get( "cl_platform", "1", CVAR_ROM );
+		Cvar_SetDescription( cl_platform, "Retail platform marker (1 identifies the Steam Quake Live client contract)." );
+	} else {
+		cl_platform = nullptr;
+	}
 
 	cv = Cvar_Get( "cl_maxPing", "800", CVAR_ARCHIVE_ND );
 	Cvar_CheckRange( cv, "100", "999", CV_INTEGER );
 	Cvar_SetDescription( cv, "Specify the maximum allowed ping to a server." );
 
-	Cvar_SetDescription( Cvar_Get( "cl_downloadName", "", CVAR_TEMP ),
-		"Current retail-compatible direct or Workshop download display name." );
-	Cvar_SetDescription( Cvar_Get( "cl_downloadTime", "0", CVAR_TEMP ),
-		"Client real-time timestamp at which the current download began." );
-	Cvar_SetDescription( Cvar_Get( "cl_downloadItem", "", CVAR_TEMP ),
-		"Current Workshop item identifier, empty when no item download is active." );
-	Cvar_SetDescription( Cvar_Get( "cl_downloadCount", "0", CVAR_TEMP ),
-		"Downloaded byte count published for retained UI progress consumers." );
-	Cvar_SetDescription( Cvar_Get( "cl_downloadSize", "0", CVAR_TEMP ),
-		"Total download byte count published for retained UI progress consumers." );
+	if ( quakeLive ) {
+		Cvar_SetDescription( Cvar_Get( "cl_downloadName", "", CVAR_TEMP ),
+			"Current retail-compatible direct or Workshop download display name." );
+		Cvar_SetDescription( Cvar_Get( "cl_downloadTime", "0", CVAR_TEMP ),
+			"Client real-time timestamp at which the current download began." );
+		Cvar_SetDescription( Cvar_Get( "cl_downloadItem", "", CVAR_TEMP ),
+			"Current Workshop item identifier, empty when no item download is active." );
+		Cvar_SetDescription( Cvar_Get( "cl_downloadCount", "0", CVAR_TEMP ),
+			"Downloaded byte count published for retained UI progress consumers." );
+		Cvar_SetDescription( Cvar_Get( "cl_downloadSize", "0", CVAR_TEMP ),
+			"Total download byte count published for retained UI progress consumers." );
+	}
 
 	cl_lanForcePackets = Cvar_Get( "cl_lanForcePackets", "1", CVAR_ARCHIVE_ND );
 	Cvar_SetDescription( cl_lanForcePackets, "Bypass \\cl_maxpackets for LAN games, send packets every frame." );
@@ -5586,7 +5698,8 @@ void CL_Init( void ) {
 	cl_guidServerUniq = Cvar_Get( "cl_guidServerUniq", "1", CVAR_ARCHIVE_ND );
 	Cvar_SetDescription( cl_guidServerUniq, "Makes cl_guid unique for each server." );
 
-	cl_dlURL = Cvar_Get( "cl_dlURL", "", CVAR_ARCHIVE_ND );
+	cl_dlURL = Cvar_Get( "cl_dlURL", quakeLive ? "" :
+		"http://ws.q3df.org/maps/download/%1", CVAR_ARCHIVE_ND );
 	Cvar_SetDescription( cl_dlURL, "Cvar must point to download location." );
 
 	cl_dlDirectory = Cvar_Get( "cl_dlDirectory", "0", CVAR_ARCHIVE_ND );
@@ -5599,19 +5712,22 @@ void CL_Init( void ) {
 	cl_reconnectArgs = Cvar_Get( "cl_reconnectArgs", "", CVAR_ARCHIVE_ND | CVAR_NOTABCOMPLETE );
 
 	// userinfo
-	Cvar_Get ("name", fnql::identity::kUnnamedPlayer,
-		CVAR_USERINFO | CVAR_ARCHIVE_ND );
-	// Retail publishes the Steam account country alongside the persona name and
-	// archives it, so a profile config carries both identity keys.
-	Cvar_SetDescription( Cvar_Get( "country", "",
-		CVAR_USERINFO | CVAR_ARCHIVE_ND | CVAR_PROTECTED ),
-		"Steam account country code published in userinfo; empty without a Steam identity." );
-	cl_steamNameLock = Cvar_Get( "cl_steamNameLock", "1", CVAR_ARCHIVE_ND );
-	Cvar_CheckRange( cl_steamNameLock, "0", "1", CV_INTEGER );
-	Cvar_SetDescription( cl_steamNameLock,
-		"Keep \\name matching the signed-in Steam persona like retail Quake Live:\n"
-		" 0 - manage \\name locally (FnQL extension)\n"
-		" 1 - the Steam profile name owns \\name and reverts local writes" );
+	Cvar_Get ("name", "UnnamedPlayer", CVAR_USERINFO | CVAR_ARCHIVE_ND );
+	if ( quakeLive ) {
+		// Retail publishes the Steam account country alongside the persona name and
+		// archives it, so a profile config carries both identity keys.
+		Cvar_SetDescription( Cvar_Get( "country", "",
+			CVAR_USERINFO | CVAR_ARCHIVE_ND | CVAR_PROTECTED ),
+			"Steam account country code published in userinfo; empty without a Steam identity." );
+		cl_steamNameLock = Cvar_Get( "cl_steamNameLock", "1", CVAR_ARCHIVE_ND );
+		Cvar_CheckRange( cl_steamNameLock, "0", "1", CV_INTEGER );
+		Cvar_SetDescription( cl_steamNameLock,
+			"Keep \\name matching the signed-in Steam persona like retail Quake Live:\n"
+			" 0 - manage \\name locally (fnTech3 extension)\n"
+			" 1 - the Steam profile name owns \\name and reverts local writes" );
+	} else {
+		cl_steamNameLock = nullptr;
+	}
 	Cvar_Get ("rate", "25000", CVAR_USERINFO | CVAR_ARCHIVE );
 	Cvar_Get ("snaps", "40", CVAR_USERINFO | CVAR_ARCHIVE );
 	Cvar_Get ("model", "sarge", CVAR_USERINFO | CVAR_ARCHIVE_ND );
@@ -5632,15 +5748,21 @@ void CL_Init( void ) {
 
 	// FNQL_Steam_Init() already ran, so a signed-in persona takes ownership of
 	// the identity keys before any archived value can reach a server.
-	CL_RefreshSteamIdentity();
+	if ( quakeLive ) {
+		CL_RefreshSteamIdentity();
+	}
 
 
 	// cgame might not be initialized before menu is used
 	Cvar_Get ("cg_viewsize", "100", CVAR_ARCHIVE_ND );
-	Cvar_Get ("cg_stereoSeparation", "0.4", CVAR_ARCHIVE);
-
-	CL_WebHost_Init();
-	CL_Workshop_Init();
+	if ( quakeLive ) {
+		Cvar_Get ("cg_stereoSeparation", "0.4", CVAR_ARCHIVE);
+		CL_WebHost_Init();
+		CL_Workshop_Init();
+	} else {
+		// Quake III treats this deprecated cvar as read-only zero.
+		Cvar_Get ("cg_stereoSeparation", "0", CVAR_ROM);
+	}
 
 	//
 	// register client commands
@@ -5686,9 +5808,11 @@ void CL_Init( void ) {
 	Cmd_SetCommandCompletionFunc( "dlmap", CL_CompleteDownloadMap );
 #endif
 	Cmd_AddCommand( "modelist", CL_ModeList_f );
-	QLWebHost_RegisterCommands();
-	CL_WebPak_Init();
-	CL_WebHost_BootstrapAwesomiumMenu();
+	if ( quakeLive ) {
+		QLWebHost_RegisterCommands();
+		CL_WebPak_Init();
+		CL_WebHost_BootstrapAwesomiumMenu();
+	}
 
 	Cvar_Set( "cl_running", "1" );
 #ifdef USE_MD5
@@ -5728,9 +5852,11 @@ void CL_Shutdown( const char *finalmsg, qboolean quit ) {
 
 	noGameRestart = quit != qfalse;
 	CL_Disconnect( qfalse );
-	CL_Workshop_Shutdown();
-	CL_WebHost_Shutdown();
-	CL_WebPak_Shutdown();
+	if ( Com_GameIsQuakeLive() ) {
+		CL_Workshop_Shutdown();
+		CL_WebHost_Shutdown();
+		CL_WebPak_Shutdown();
+	}
 
 	// clear and mute all sounds until next registration
 	S_DisableSounds();

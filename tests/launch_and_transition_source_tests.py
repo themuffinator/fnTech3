@@ -250,7 +250,10 @@ class LaunchAndTransitionSourceTests(unittest.TestCase):
         self.assertNotIn("CL_Hud", cgame)
         self.assertNotIn("cl_hudAspect", main)
         self.assertNotIn("r_fovCorrection", main)
-        self.assertNotIn("RDF_NOFOVCORRECTION", public)
+        self.assertIn("RDF_NOFOVCORRECTION 0x0002", public)
+        fov = read_source("code/renderercommon/tr_q3_fov.h")
+        self.assertIn('ri.Cvar_VariableString( "com_gameProfile" ), "quake3"', fov)
+        self.assertIn("if ( !correction || !correction->integer", fov)
 
     def test_screen_update_recursion_is_depth_bounded(self) -> None:
         screen = read_source("code/client/cl_scrn.cpp")

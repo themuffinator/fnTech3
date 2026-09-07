@@ -33,6 +33,17 @@ enum class Family : std::uint8_t {
 	QuakeLive
 };
 
+/*
+ * Netchan framing and game-message bodies are independent compatibility
+ * choices.  Protocols 68 and 71 differ at the transport layer, but both use
+ * the original Quake III usercmd/entity/playerstate delta layouts.  Protocol
+ * 91 uses the extended Quake Live layouts.
+ */
+enum class GameMessageLayout : std::uint8_t {
+	Quake3,
+	QuakeLive
+};
+
 enum class Capability : std::uint32_t {
 	ClientQport = 1u << 0,
 	ReliableXor = 1u << 1,
@@ -96,6 +107,7 @@ struct Contract {
 	int protocol;
 	int demoProtocol;
 	netchanWireProfile_t wireProfile;
+	GameMessageLayout gameMessageLayout;
 	std::uint32_t capabilities;
 	Commands commands;
 	InfoKeys infoKeys;
@@ -132,6 +144,7 @@ inline constexpr Limits QuakeLiveLimits{
 
 inline constexpr Contract LegacyQuake3{
 	Family::LegacyQuake3, 68, 68, NETCHAN_WIRE_LEGACY_Q3,
+	GameMessageLayout::Quake3,
 	Bit( Capability::ClientQport ) | Bit( Capability::ReliableXor ) |
 		Bit( Capability::CompressedConnect ),
 	QuakeCommands, QuakeInfoKeys, ModernizedQ3Limits
@@ -139,6 +152,7 @@ inline constexpr Contract LegacyQuake3{
 
 inline constexpr Contract Ioquake3{
 	Family::Ioquake3, 71, 71, NETCHAN_WIRE_IOQ3,
+	GameMessageLayout::Quake3,
 	Bit( Capability::ClientQport ) | Bit( Capability::SequenceChecksum ) |
 		Bit( Capability::CompressedConnect ),
 	QuakeCommands, QuakeInfoKeys, ModernizedQ3Limits
@@ -147,6 +161,7 @@ inline constexpr Contract Ioquake3{
 inline constexpr Contract QuakeLive{
 	Family::QuakeLive, NETCHAN_QL_RETAIL_PROTOCOL_VERSION,
 	NETCHAN_QL_RETAIL_PROTOCOL_VERSION, NETCHAN_WIRE_QL_RETAIL,
+	GameMessageLayout::QuakeLive,
 	Bit( Capability::ClientQport ) | Bit( Capability::ReliableXor ) |
 		Bit( Capability::CompressedConnect ) |
 		Bit( Capability::PlatformAuthentication ) |
@@ -160,26 +175,38 @@ inline constexpr Contract QuakeLive{
 	if ( protocol == QuakeLive.protocol ) {
 		return &QuakeLive;
 	}
-	if ( protocol == LegacyQuake3.protocol || legacyCompatibility ) {
+	if ( protocol == LegacyQuake3.protocol ) {
 		return &LegacyQuake3;
 	}
 	if ( protocol == Ioquake3.protocol ) {
 		return &Ioquake3;
 	}
+	if ( legacyCompatibility ) {
+		return &LegacyQuake3;
+	}
 	return nullptr;
+}
+
+[[nodiscard]] constexpr const Contract *TryForWireProfile(
+	netchanWireProfile_t profile ) noexcept {
+	switch ( profile ) {
+	case NETCHAN_WIRE_QL_RETAIL:
+		return &QuakeLive;
+	case NETCHAN_WIRE_IOQ3:
+		return &Ioquake3;
+	case NETCHAN_WIRE_LEGACY_Q3:
+		return &LegacyQuake3;
+	default:
+		return nullptr;
+	}
 }
 
 [[nodiscard]] constexpr const Contract &ForWireProfile(
 	netchanWireProfile_t profile ) noexcept {
-	switch ( profile ) {
-	case NETCHAN_WIRE_QL_RETAIL:
-		return QuakeLive;
-	case NETCHAN_WIRE_IOQ3:
-		return Ioquake3;
-	case NETCHAN_WIRE_LEGACY_Q3:
-	default:
-		return LegacyQuake3;
-	}
+	const Contract *contract = TryForWireProfile( profile );
+	/* Existing trusted call sites use this reference helper. New parsers must
+	 * call TryForWireProfile and reject a null result before consuming bytes. */
+	return contract ? *contract : LegacyQuake3;
 }
 
 } // namespace fnql::protocol

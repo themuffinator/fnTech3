@@ -7,10 +7,10 @@ IF(NOT DEFINED CMAKE_OSX_DEPLOYMENT_TARGET)
 	SET(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum supported macOS version")
 ENDIF()
 
-file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/version/fnql_version.h" FNQL_VERSION_STRING_LINE REGEX "^#define FNQL_VERSION_STRING \"[^\"]+\"$")
-string(REGEX REPLACE "^#define FNQL_VERSION_STRING \"([^\"]+)\"$" "\\1" FNQL_VERSION_STRING "${FNQL_VERSION_STRING_LINE}")
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/version/fntech3_version.h" FNTECH3_VERSION_STRING_LINE REGEX "^#define FNTECH3_VERSION_STRING \"[^\"]+\"$")
+string(REGEX REPLACE "^#define FNTECH3_VERSION_STRING \"([^\"]+)\"$" "\\1" FNTECH3_VERSION_STRING "${FNTECH3_VERSION_STRING_LINE}")
 
-PROJECT(FnQL VERSION ${FNQL_VERSION_STRING} LANGUAGES C CXX)
+PROJECT(fnTech3 VERSION ${FNTECH3_VERSION_STRING} LANGUAGES C CXX)
 
 # Retail Quake Live's native modules and WebUI are 32-bit x86 ABI boundaries.
 # Probe compiler-defined target macros as well as pointer width so a misleading
@@ -37,7 +37,7 @@ TRY_COMPILE(FNQL_TARGET_IS_32BIT_X86
 	OUTPUT_VARIABLE FNQL_X86_TARGET_PROBE_OUTPUT)
 IF(NOT FNQL_TARGET_IS_32BIT_X86)
 	MESSAGE(FATAL_ERROR
-		"FnQL supports only 32-bit x86 targets. Select Win32 on Windows or "
+		"fnTech3 shared Q3/QL builds support only 32-bit x86 targets. Select Win32 on Windows or "
 		"configure an i686 toolchain (for example, -m32) on other platforms.")
 ENDIF()
 
@@ -64,10 +64,11 @@ IF(MSVC)
 		$<$<COMPILE_LANGUAGE:CXX>:/wd4201>)
 ENDIF()
 
-SET(CNAME "fnql")
-SET(DNAME "fnql.ded")
+SET(CNAME "fntech3")
+SET(DNAME "fntech3.ded")
 
-SET(RENDERER_PREFIX ${CNAME})
+# Keep the renderer loader ABI names independent of the engine identity.
+SET(RENDERER_PREFIX "fnql")
 SET(RENDERER_DEFAULT glx CACHE STRING "Default renderer: glx, vk, or rtx")
 set_property(CACHE RENDERER_DEFAULT PROPERTY STRINGS glx vk rtx)
 set(FNQL_CMAKE_RENDERERS glx vk rtx)
@@ -134,6 +135,7 @@ ENDIF()
 
 AUX_SOURCE_DIRECTORY(code/qcommon QCOMMON_SRCS)
 list(APPEND QCOMMON_SRCS
+	code/compat/game_abi_adapter.c
 	code/platform/fnql_steam.cpp
 	code/platform/fnql_workshop.cpp)
 # exclude platform-dependent QVM bytecode compilers
@@ -153,6 +155,7 @@ TARGET_COMPILE_DEFINITIONS(botlib PRIVATE BOTLIB)
 SET(SERVER_SRCS
 	code/server/factory_catalog.cpp
 	code/server/factory_rotation.cpp
+	code/server/server_game_data.cpp
 	code/server/sv_bot.cpp
 	code/server/sv_ccmds.cpp
 	code/server/sv_client.cpp
@@ -425,6 +428,29 @@ IF(FNQL_GLX_LOGIC_TESTS)
 ENDIF()
 
 enable_testing()
+
+ADD_EXECUTABLE(fntech3_game_abi_layout_tests tests/game_abi_layout_tests.cpp)
+target_compile_features(fntech3_game_abi_layout_tests PRIVATE cxx_std_17)
+add_test(NAME fntech3_game_abi_layouts COMMAND fntech3_game_abi_layout_tests)
+ADD_EXECUTABLE(fntech3_game_abi_adapter_tests
+	tests/game_abi_adapter_tests.cpp
+	code/compat/game_abi_adapter.c)
+target_compile_features(fntech3_game_abi_adapter_tests PRIVATE cxx_std_17)
+target_include_directories(fntech3_game_abi_adapter_tests PRIVATE code/qcommon code/compat)
+add_test(NAME fntech3_game_abi_adapters COMMAND fntech3_game_abi_adapter_tests)
+ADD_EXECUTABLE(fntech3_server_game_data_tests
+	tests/server_game_data_tests.cpp
+	code/server/server_game_data.cpp
+	code/compat/game_abi_adapter.c)
+target_compile_features(fntech3_server_game_data_tests PRIVATE cxx_std_17)
+target_include_directories(fntech3_server_game_data_tests PRIVATE
+	code/qcommon code/compat code/server)
+add_test(NAME fntech3_server_game_data COMMAND fntech3_server_game_data_tests)
+ADD_EXECUTABLE(fntech3_collision_game_contract_tests
+	tests/collision_game_contract_tests.cpp)
+target_compile_features(fntech3_collision_game_contract_tests PRIVATE cxx_std_17)
+add_test(NAME fntech3_collision_game_contract
+	COMMAND fntech3_collision_game_contract_tests)
 ADD_EXECUTABLE(fnql_bmp_loader_tests
 	tests/bmp_loader_tests.c
 	code/renderercommon/tr_image_bmp.c)
@@ -492,6 +518,16 @@ target_compile_features(fnql_netchan_codec_tests PRIVATE cxx_std_17)
 target_include_directories(fnql_netchan_codec_tests PRIVATE code/qcommon)
 add_test(NAME fnql_netchan_codec COMMAND fnql_netchan_codec_tests)
 
+ADD_EXECUTABLE(fnql_message_codec_tests
+	tests/message_codec_tests.cpp
+	tests/message_drop_trap.c
+	code/qcommon/msg.cpp
+	code/qcommon/huffman_static.c)
+target_compile_features(fnql_message_codec_tests PRIVATE cxx_std_17)
+target_compile_definitions(fnql_message_codec_tests PRIVATE DEDICATED)
+target_include_directories(fnql_message_codec_tests PRIVATE code/qcommon)
+add_test(NAME fnql_message_codec COMMAND fnql_message_codec_tests)
+
 ADD_EXECUTABLE(fnql_demo_stream_tests tests/demo_stream_tests.cpp)
 target_compile_features(fnql_demo_stream_tests PRIVATE cxx_std_17)
 target_include_directories(fnql_demo_stream_tests PRIVATE code/client)
@@ -528,6 +564,24 @@ add_test(NAME fnql_factory_rotation COMMAND fnql_factory_rotation_tests)
 
 find_package(Python3 COMPONENTS Interpreter)
 IF(Python3_Interpreter_FOUND)
+	add_test(NAME fntech3_server_user_move
+		COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tests/server_user_move_tests.py")
+	add_test(NAME fntech3_cgame_usercmd_abi
+		COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tests/cgame_usercmd_abi_tests.py")
+	add_test(NAME fntech3_cgame_extension_contract
+		COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tests/cgame_extension_contract_tests.py")
+	add_test(NAME fntech3_vm_native_module
+		COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tests/vm_native_module_tests.py")
+	add_test(NAME fntech3_ui_module_abi
+		COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tests/ui_module_abi_tests.py")
+	add_test(NAME fntech3_q3_fov_profile
+		COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tests/q3_fov_profile_tests.py")
+	add_test(NAME fntech3_profile_config
+		COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tests/profile_config_tests.py")
+	add_test(NAME fntech3_pure_profile_contract
+		COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tests/pure_profile_contract_tests.py")
+	add_test(NAME fntech3_demo_record_profile
+		COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tests/demo_record_profile_tests.py")
 	set(FNQL_WEBPAK_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/generated/fnql-web.pak")
 	set(FNQL_WEBPAK_SOURCES
 		"${CMAKE_CURRENT_SOURCE_DIR}/code/client/webui/index.html"

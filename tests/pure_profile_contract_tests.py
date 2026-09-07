@@ -1,0 +1,216 @@
+"""Run the actual filesystem/client/server pure-proof path with synthetic paks."""
+
+from pathlib import Path
+import os
+import re
+import shutil
+import subprocess
+import tempfile
+import unittest
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def function(source: str, signature: str) -> str:
+    start = source.index(signature)
+    return source[start:source.index("\n}", start) + 2]
+
+
+PRELUDE = r'''
+#include <algorithm>
+#include <array>
+#include <cassert>
+#include <cstdint>
+#include <cstdio>
+#include <cstdarg>
+#include <cstring>
+#include <limits>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <vector>
+typedef int qboolean;
+enum {qfalse, qtrue, ERR_FATAL, ERR_DROP, CS_ZOMBIE, CS_ACTIVE};
+#define MAX_STRING_CHARS 1024
+#define S_COLOR_YELLOW ""
+#define QL_NATIVE_CGAME_DLL "cgamex86.dll"
+#define Com_sprintf snprintf
+static bool q3, missingUi;
+static bool cl_connectedToPureServer = true;
+static struct { int serverId; } cl = {17};
+static struct { bool demoplaying; } clc;
+static struct { int pure, serverId, checksumFeed; } sv = {1,17,7};
+static struct { int time; } svs = {10000};
+struct client_t { int gotCP, pureAuthentic, lastSnapshotTime, state; const char *name; };
+struct pack_t { int referenced, pure_checksum; };
+struct searchpath_t { pack_t *pack; const searchpath_t *next; };
+static pack_t packs[] = {{FS_CGAME_REF|FS_GENERAL_REF,11}, {FS_UI_REF|FS_GENERAL_REF,22}, {FS_GENERAL_REF,99}};
+static searchpath_t paths[] = {{packs,paths+1}, {packs+1,paths+2}, {packs+2,nullptr}};
+static const searchpath_t *fs_searchpaths = paths;
+static int fs_checksumFeed = 7;
+static int drops, snapshots, binaryLookups, reliableCommands;
+static std::string sent;
+static std::vector<std::string> arguments;
+static int Com_GameIsQuake3() { return q3; }
+static void Com_Printf(const char *, ...) {}
+static void Com_DPrintf(const char *, ...) {}
+[[noreturn]] static void Com_Error(int, const char *, ...) { throw std::runtime_error("engine error"); }
+static char *Q_stradd(char *to, const char *from) {
+    const size_t length = std::strlen(from); std::memcpy(to,from,length+1); return to + length;
+}
+static void Q_strncpyz(char *to, const char *from, int length) {
+    assert(length > 0); std::snprintf(to,static_cast<size_t>(length),"%s",from);
+}
+static const char *va(const char *format, ...) {
+    static char text[128]; va_list args;
+    va_start(args,format); std::vsnprintf(text,sizeof(text),format,args); va_end(args);
+    return text;
+}
+static bool FS_FileIsInPAK(const char *name,int *checksum,void *) {
+    if (!std::strcmp(name,QL_NATIVE_CGAME_DLL)) {
+        assert(!q3); ++binaryLookups; *checksum = 99; return true;
+    }
+    assert(q3);
+    if (!std::strcmp(name,"vm/cgame.qvm")) { *checksum = 11; return true; }
+    assert(!std::strcmp(name,"vm/ui.qvm")); *checksum = 22; return !missingUi;
+}
+static void CL_AddReliableCommand(const char *command,qboolean) { sent = command; ++reliableCommands; }
+static int Cmd_Argc() { return static_cast<int>(arguments.size()); }
+static const char *Cmd_Argv(int index) {
+    return index >= 0 && index < Cmd_Argc() ? arguments[index].c_str() : "";
+}
+static std::vector<int> SV_Indices(int begin,int end) {
+    std::vector<int> indices; for(int i=begin;i<end;++i) indices.push_back(i); return indices;
+}
+static std::vector<int> SV_Indices(int count) { return SV_Indices(0,count); }
+template<typename T,size_t N> static int SV_ArraySize(const std::array<T,N> &) { return static_cast<int>(N); }
+static bool FS_IsPureChecksum(int sum) { return sum == 11 || sum == 22 || sum == 99 || sum == INT32_MIN; }
+static void SV_SendClientSnapshot(client_t *client) { assert(client->state == CS_ZOMBIE); ++snapshots; }
+static void SV_DropClient(client_t *,const char *) { ++drops; }
+'''
+
+
+CHECKS = r'''
+static client_t Verify(const std::string &command) {
+    std::istringstream input(command); std::string token;
+    arguments.clear();
+    while(input >> token) arguments.push_back(token);
+    drops = snapshots = 0;
+    client_t client = {0,0,0,CS_ACTIVE,"fixture"};
+    SV_VerifyPaks_f(&client);
+    return client;
+}
+static void Reject(const std::string &command) {
+    client_t client = Verify(command);
+    assert(!client.pureAuthentic && client.gotCP && drops == 1 && snapshots == 1);
+}
+int main() {
+    q3 = true;
+    CL_SendPureChecksums();
+    assert(sent == "cp 17 11 22 @ 11 22 99 122 " && binaryLookups == 0);
+    assert(Verify(sent).pureAuthentic && !drops && !snapshots);
+    Reject("cp 17 99 @ 11 22 99 122"); /* QL shape cannot authenticate Q3. */
+    Reject("cp 17 11 22 @oops 11 22 99 122");
+    Reject("cp 17 11x 22 @ 11 22 99 122");
+    Reject("cp 17 11 22 @ 11junk 22 99 122");
+    Reject("cp 17 11 22 @ 2147483648 122");
+    Reject("cp 17 11 22 @ -2147483649 122");
+    Reject("cp 17 11 22 @ 11 11 5"); /* Duplicate references. */
+    Reject("cp 17 11 22 @ 55 49"); /* Unloaded pak, even with correct XOR. */
+    Reject("cp 17 11 22 @ 11 22 99 123");
+    Reject("cp 17 11 22 @");
+    Reject("cp 17garbage 11 22 @ 11 22 99 122");
+    std::string excessive = "cp 17 11 22 @";
+    for(int i=0;i<508;++i) excessive += " 0";
+    Reject(excessive); /* More than 512 arguments must not be silently clipped. */
+    assert(Verify("cp 17 11 22 @ 7").pureAuthentic); /* Pinned Q3 allows no general refs. */
+    client_t stale = Verify("cp 16 11 22 @ 11 22 99 122");
+    assert(!stale.gotCP && !stale.pureAuthentic && !drops && !snapshots);
+    missingUi = true;
+    Reject(sent);
+    missingUi = false;
+    int parsed = 42;
+    for(const char *bad : {"", "+", "-", "0x1", " 1", "1 ", "--1", "99999999999999999999999999"}) {
+        assert(!SV_ParsePureChecksum(bad,parsed));
+    }
+    assert(SV_ParsePureChecksum("-2147483648",parsed) && parsed == INT32_MIN);
+    assert(SV_ParsePureChecksum("+2147483647",parsed) && parsed == INT32_MAX);
+    assert(SV_ParsePureChecksum("-0",parsed) && parsed == 0);
+
+    std::string proof = FS_ReferencedPakPureChecksums(1023);
+    assert(proof == "11 22 @ 11 22 99 122 ");
+    assert(proof == FS_ReferencedPakPureChecksums(static_cast<int>(proof.size())));
+    assert(!FS_ReferencedPakPureChecksums(static_cast<int>(proof.size())-1)[0]);
+    assert(!FS_ReferencedPakPureChecksums(-1)[0]);
+    assert(!FS_ReferencedPakPureChecksums(0)[0]);
+    assert(proof == FS_ReferencedPakPureChecksums(INT32_MAX));
+    q3 = false;
+    CL_SendPureChecksums();
+    assert(sent == "cp 17 99 @ 11 22 99 122 " && binaryLookups == 1);
+    assert(Verify(sent).pureAuthentic && !drops);
+    Reject("cp 17 11 22 @ 11 22 99 122");
+    Reject("cp 17 99 @x 11 22 99 122");
+    Reject("cp 17 99 @ 11 11 5");
+    Reject("cp 17 99 @ 55 49");
+    assert(!Verify("cp 16 99 @ 11 22 99 122").gotCP && !drops);
+    assert(std::string(FS_ReferencedPakPureChecksums(1023)) == "@ 11 22 99 122 ");
+    clc.demoplaying = true;
+    int commands = reliableCommands;
+    CL_SendPureChecksums();
+    assert(reliableCommands == commands);
+    clc.demoplaying = false; cl_connectedToPureServer = false;
+    CL_SendPureChecksums();
+    assert(reliableCommands == commands);
+    cl_connectedToPureServer = true;
+    std::vector<pack_t> manyPacks(600,{FS_GENERAL_REF,INT32_MIN});
+    std::vector<searchpath_t> manyPaths(600);
+    for(size_t i=0;i<manyPaths.size();++i) {
+        manyPaths[i] = {&manyPacks[i],i+1 < manyPaths.size() ? &manyPaths[i+1] : nullptr};
+    }
+    fs_searchpaths = manyPaths.data();
+    assert(!FS_ReferencedPakPureChecksums(INT32_MAX)[0]);
+    try { CL_SendPureChecksums(); assert(false); } catch(const std::runtime_error &) {}
+    assert(reliableCommands == commands); /* No truncated proof is sent. */
+    return 0;
+}
+'''
+
+
+class PureProfileContractTests(unittest.TestCase):
+    def test_actual_profile_proof_generation_and_bounded_server_verification(self) -> None:
+        compiler = next((path for name in ("clang++", "g++", "c++")
+            if (path := shutil.which(name))), None)
+        if compiler is None:
+            self.skipTest("requires a C++17 compiler")
+        files = (ROOT / "code/qcommon/files.c").read_text(encoding="utf-8")
+        client = (ROOT / "code/client/cl_main.cpp").read_text(encoding="utf-8")
+        server = (ROOT / "code/server/sv_client.cpp").read_text(encoding="utf-8")
+        public = (ROOT / "code/qcommon/qcommon.h").read_text(encoding="utf-8")
+        constants = "\n".join(re.findall(r"^#define\s+FS_(?:GENERAL|UI|CGAME)_REF\s+\S+", public, re.M))
+        extracted = "\n".join(function(source, signature) for source, signature in (
+            (files, "static char *FS_AddPureChecksumToken"),
+            (files, "const char *FS_ReferencedPakPureChecksums"),
+            (client, "static void CL_SendPureChecksums"),
+            (server, "static bool SV_HasDuplicateClientChecksums"),
+            (server, "static bool SV_ClientChecksumsArePure"),
+            (server, "static int SV_MixedClientChecksumFeed"),
+            (server, "static bool SV_ParsePureChecksum"),
+            (server, "static void SV_VerifyPaks_f"),
+        ))
+        scratch = ROOT / ".tmp"
+        scratch.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix="pure-profile-", dir=scratch) as folder:
+            path = Path(folder)
+            fixture = path / "pure.cpp"
+            executable = path / ("pure.exe" if os.name == "nt" else "pure")
+            fixture.write_text(constants + "\n" + PRELUDE + extracted + CHECKS, encoding="utf-8")
+            build = subprocess.run([compiler, "-std=c++17", "-Wall", "-Wextra", "-Werror",
+                str(fixture), "-o", str(executable)], text=True, capture_output=True, timeout=60)
+            self.assertEqual(build.returncode, 0, build.stdout + build.stderr)
+            result = subprocess.run([str(executable)], text=True, capture_output=True, timeout=15)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+
+if __name__ == "__main__":
+    unittest.main()

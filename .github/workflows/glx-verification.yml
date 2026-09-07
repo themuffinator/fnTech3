@@ -198,7 +198,7 @@ jobs:
             python scripts/glx_runtime_sweep.py \
               --gate "$gate" \
               --dry-run \
-              --exe ".tmp/glx-gate-plans/fnql" \
+              --exe ".tmp/glx-gate-plans/fntech3" \
               --basepath ".tmp/glx-gate-plans/basepath" \
               --output-dir ".tmp/glx-gate-plans" \
               --summary-markdown ".tmp/glx-gate-plans/${gate}.md" \

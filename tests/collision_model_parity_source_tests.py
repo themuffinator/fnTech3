@@ -30,6 +30,7 @@ class CollisionModelParitySourceTests(unittest.TestCase):
         cls.load = read("code/qcommon/cm_load.c")
         cls.trace = read("code/qcommon/cm_trace.c")
         cls.contract = read("code/qcommon/cm_trace_contract.h")
+        cls.game_contract = read("code/qcommon/cm_game_contract.h")
         cls.surfaceflags = read("code/qcommon/surfaceflags.h")
         cls.world = read("code/server/sv_world.cpp")
         cls.game = read("code/server/sv_game.cpp")
@@ -52,7 +53,7 @@ class CollisionModelParitySourceTests(unittest.TestCase):
         self.assertRegex(
             selector,
             re.compile(r"UseCapsuleEntityModel\(\s*SV_AsBool\( capsule \),"
-                       r"\s*\( ent->r\.svFlags & SVF_CAPSULE \) != 0 \)"),
+                       r"\s*\( entity\.r\.svFlags & SVF_CAPSULE \) != 0 \)"),
         )
 
     def test_every_server_query_supplies_its_trace_shape(self) -> None:
@@ -103,13 +104,21 @@ class CollisionModelParitySourceTests(unittest.TestCase):
         self.assertNotIn("CONTENTS_HEAD", self.trace)
         self.assertNotIn("CONTENTS_HEAD", self.contract)
 
-    def test_retail_cylinder_scale_is_preserved(self) -> None:
+    def test_cylinder_scale_is_owned_by_the_ql_profile(self) -> None:
         cylinder_trace = function_body(
             self.trace,
             "static void CM_TraceThroughVerticalCylinder(",
         )
         self.assertIn('"sv_cylinderScale", "1.1f"', cylinder_trace)
-        self.assertIn("radius *= cylinderScale->value", cylinder_trace)
+        self.assertIn(
+            "gameProfile->id == COM_GAME_QUAKELIVE", cylinder_trace
+        )
+        self.assertIn("CM_VerticalCylinderRadiusForGame(", cylinder_trace)
+        self.assertIn(
+            "gameId != COM_GAME_QUAKELIVE", self.game_contract
+        )
+        self.assertIn("return radius;", self.game_contract)
+        self.assertIn("return radius * quakeLiveScale;", self.game_contract)
 
     def test_plane_invariant_matches_the_producing_path(self) -> None:
         """Only stored BSP planes are unit.

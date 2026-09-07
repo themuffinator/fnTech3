@@ -83,11 +83,11 @@ typedef struct {
 	const char		*entityParsePoint;	// used during game VM init
 
 	// the game virtual machine will update these on init and changes
-	sharedEntity_t	*gentities;
+	void			*gentities;			// opaque module-owned entity records
 	int				gentitySize;
 	int				num_entities;		// current number, <= MAX_GENTITIES
 
-	playerState_t	*gameClients;
+	void			*gameClients;		// opaque module-owned player records
 	int				gameClientSize;		// will be > sizeof(playerState_t) due to game private data
 
 	int				restartTime;
@@ -177,7 +177,7 @@ typedef struct client_s {
 	usercmd_t		lastUsercmd;
 	int				lastClientCommand;	// reliable client message sequence
 	char			lastClientCommandString[MAX_STRING_CHARS];
-	sharedEntity_t	*gentity;			// SV_GentityNum(clientnum)
+	void			*gentity;			// opaque SV_GentityNum(clientnum) handle
 	char			name[MAX_NAME_LENGTH];			// extracted from userinfo, high bits masked
 	char			platformSteamId[SV_PLATFORM_STEAM_ID_SIZE];	// server-owned QL SteamID
 	uint64_t		platformSteamIdValue;				// parsed provider identity
@@ -500,9 +500,13 @@ int SV_RemainingGameState( void );
 //
 int	SV_NumForGentity( sharedEntity_t *ent );
 sharedEntity_t *SV_GentityNum( int num );
-playerState_t *SV_GameClientNum( int num );
+qboolean	SV_ReadGameEntity( const void *entity, sharedEntity_t *destination );
+qboolean	SV_WriteGameEntity( void *entity, const sharedEntity_t *source );
+qboolean	SV_ReadGameEntityByNum( int num, sharedEntity_t *destination );
+qboolean	SV_WriteGameEntityByNum( int num, const sharedEntity_t *source );
+qboolean	SV_ReadGameClient( int num, playerState_t *destination );
+qboolean	SV_SetGameClientPing( int num, int ping );
 svEntity_t	*SV_SvEntityForGentity( sharedEntity_t *gEnt );
-sharedEntity_t *SV_GEntityForSvEntity( svEntity_t *svEnt );
 void		SV_InitGameProgs ( void );
 void		SV_RegisterGameCvars( void );
 const svPlatformServiceStatus_t *SV_GetPlatformServiceStatus( svPlatformCapability_t capability );

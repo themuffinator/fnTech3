@@ -4053,7 +4053,7 @@ def candidate_exe_names() -> list[str]:
             arch_suffixes = ["x86"]
         else:
             arch_suffixes = [machine]
-        names = [f"fnql.{arch}.exe" for arch in arch_suffixes]
+        names = ["fntech3.exe"] + [f"fnql.{arch}.exe" for arch in arch_suffixes]
         names.append("fnql.exe")
         return names
 
@@ -4067,7 +4067,7 @@ def candidate_exe_names() -> list[str]:
         arch_suffixes = [machine]
     else:
         arch_suffixes = [machine]
-    return [f"fnql.{arch}" for arch in arch_suffixes] + ["fnql"]
+    return ["fntech3"] + [f"fnql.{arch}" for arch in arch_suffixes] + ["fnql"]
 
 
 def resolve_exe(explicit: Path | None, allow_missing: bool = False) -> Path:

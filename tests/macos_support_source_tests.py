@@ -72,7 +72,7 @@ class MacOSSupportSourceTests(unittest.TestCase):
     def test_cmake_retains_bundle_sources_behind_the_x86_only_gate(self) -> None:
         cmake = read("CMakeLists.txt")
         self.assertIn("IF(NOT FNQL_TARGET_IS_32BIT_X86)", cmake)
-        self.assertIn("FnQL supports only 32-bit x86 targets", cmake)
+        self.assertIn("fnTech3 shared Q3/QL builds support only 32-bit x86 targets", cmake)
         self.assertIn("ADD_COMPILE_DEFINITIONS(MACOS_X)", cmake)
         self.assertIn("macOS client builds require SDL3", cmake)
         self.assertNotIn("code/asm/snd_mix_x86_64_preprocessed.S", cmake)

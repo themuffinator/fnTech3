@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "q_shared.h"
 #include "qcommon.h"
+#include "../compat/game_abi_adapter.h"
 
 #ifndef DEDICATED
 void CL_WebView_PublishCvarChange( const char *name, const char *value, qboolean replicate );
@@ -2293,14 +2294,15 @@ static void Cvar_CopyRetailToLegacy( legacyVmCvar_t *legacy, const vmCvar_t *ret
 void Cvar_RegisterLegacy( void *vmCvar, const char *varName, const char *defaultValue, int flags, int privateFlag ) {
 	legacyVmCvar_t *legacy = (legacyVmCvar_t *)vmCvar;
 	vmCvar_t retail;
+	const int translatedFlags = (int)FnTech3_Q3CvarFlagsToInternal( (uint32_t)flags );
 
 	if ( !legacy ) {
-		Cvar_Register( NULL, varName, defaultValue, flags, privateFlag );
+		Cvar_Register( NULL, varName, defaultValue, translatedFlags, privateFlag );
 		return;
 	}
 
 	Com_Memset( &retail, 0, sizeof( retail ) );
-	Cvar_Register( &retail, varName, defaultValue, flags, privateFlag );
+	Cvar_Register( &retail, varName, defaultValue, translatedFlags, privateFlag );
 	Cvar_CopyRetailToLegacy( legacy, &retail );
 }
 

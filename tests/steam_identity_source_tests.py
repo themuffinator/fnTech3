@@ -50,7 +50,7 @@ class SteamIdentitySourceTests(unittest.TestCase):
             r'Cvar_Get\s*\(\s*"name",\s*([^,]+),\s*([^)]*)\)', self.main
         )
         self.assertIsNotNone(registration)
-        self.assertIn("kUnnamedPlayer", registration.group(1))
+        self.assertEqual('"UnnamedPlayer"', registration.group(1).strip())
         self.assertIn("CVAR_USERINFO", registration.group(2))
         self.assertIn("CVAR_ARCHIVE_ND", registration.group(2))
         self.assertIn('kUnnamedPlayer[] = "UnnamedPlayer"', self.identity)

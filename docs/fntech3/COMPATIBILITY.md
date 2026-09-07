@@ -1,0 +1,200 @@
+# fnTech3 compatibility ledger
+
+## Status
+
+fnTech3 does **not** yet claim full Quake III Arena or Quake Live
+compatibility. Immutable profile selection, Q3/QL module adapters, server-memory
+views, and profile-specific live delta codecs are integrated and tested. The
+same Windows x86 client now loads legitimate Q3 QVMs and QL native modules,
+passes local pure admission, reaches `CS_ACTIVE`, and writes engine screenshots
+under both profiles. Dedicated probes load maps and advertise protocols 68/91
+under automatic and explicit selection. These observations do not close the
+complete renderer, demo, authentication, or bidirectional interoperability gates.
+The [2026-09-06 checkpoint](2026-09-06-merger-checkpoint.md) records exact
+executable identities, intermediate failures, test totals, and limitations.
+The subsequent [RTX work round](2026-09-06-rtx-round.md) fixes the recorded Q3
+black-polygon defect and establishes separate native-RT Q3 x64 evidence. The
+shared x86 GPU/driver path still lacks native-RT capability on this machine.
+The subsequent [WebUI request port](2026-09-06-webui-request-port.md) records
+FnQL's request/avatar retry corrections, the preserved QL-only boundary, and
+new fnTech3 build and offscreen retail-adapter evidence. Gameplay performance
+and the broader WebUI lifecycle gates remain open.
+
+The target is one shared, drop-in binary set. It must select `q3` or `ql` before
+compatibility-sensitive initialization and then use that profile's complete,
+internally coherent contracts for the rest of the process.
+
+## Evidence vocabulary
+
+| Level | Meaning |
+| --- | --- |
+| Source | A pinned implementation/reference comparison establishes a contract or identifies a gap. |
+| Unit | Deterministic tests exercise a contract without launching the game or using proprietary inputs. |
+| Build | A supported configuration compiles and links the shared targets. |
+| Fixture | The built engine is exercised against legitimate local modules/assets or recorded non-proprietary data. |
+| Live | A real client/server or renderer session exercises the contract. |
+| Interop | Both directions work with the intended retail/reference peer. |
+
+Evidence does not automatically promote upward. In particular, Source + Unit +
+Build is not a live-compatibility claim. Every closed gate should link or record
+the commit, executable, platform, profile, command, inputs, and result.
+
+## Profile contract summary
+
+| Contract | Quake III Arena (`q3`) | Quake Live (`ql`) |
+| --- | --- | --- |
+| Installation identity | `baseq3/pak0.pk3`; Q3 installation/Steam identity including AppID 2200 where applicable | `baseq3/pak00.pk3`, `bin.pk3`, and `web.pak` as required; retail Steam AppID 282440 |
+| Preferred network/demo | Protocol 68, with the supported Q3/ioquake3 legacy set kept explicit; Q3 demo extensions selected by their protocol | Retail protocol 91 and `.dm_91` |
+| Module boundary | Q3 QVM and legacy native trap/syscall contracts: GAME API 8, CGAME import API 4, UI API 6 with the known API-4 compatibility path | Exact retail structured qagame/cgame/UI tables and x86 layouts: native GAME API 10, CGAME API 8, and UI API 8; legacy fallback only where explicitly supported |
+| Shared data layout | Frozen Q3 `vmCvar_t`/trajectory/usercmd/entity/player-state boundary PODs (32-bit ABI): 272/36/24/208/468 bytes | Separate frozen QL PODs (32-bit ABI): 276/40/28/236/504 known bytes, including QL-only fields; the retail native snapshot reserves `0x250` player-state bytes and the trailing `0x58` remains unmodelled |
+| Maps/assets | Q3 pak/pure rules, BSP 46 plus explicitly supported legacy formats, shaders/models/images/audio/cinematics | BSP 47, QL advertisements/material behavior, retail pak/WebUI/native-module assets |
+| Platform constraint | Shared x86 binary is the initial all-in-one proof target; broader Q3 platforms remain desirable | Retail client compatibility requires Windows x86; dedicated-server claims are recorded separately |
+
+Supported legacy protocols and demo formats must remain enumerated in code and
+tests rather than inferred from the preferred value. The imported references
+identify Q3 protocols 68/71 and legacy Q3 demo handling (including the existing
+`.dm_66`, `.dm_67`, `.dm_68`, `.dm_71`, and supported `.dm3` paths), but every
+format still needs verification through the fnTech3 profile boundary.
+
+## Compatibility and gate matrix
+
+Status values are `PASS`, `PARTIAL`, `OPEN`, or `BLOCKED`. A `PASS` applies only
+to the evidence level named in the same cell.
+
+| Surface | Q3 status/evidence | QL status/evidence | Required promotion gate |
+| --- | --- | --- | --- |
+| Immutable early profile selection | **PARTIAL — Unit/Build/Fixture.** Explicit aliases, marker precedence, ambiguity rejection, and immutability have tests; automatic and explicit dedicated startup pass against a legitimate installation. Canonical profile mirrors survive startup-variable replay. | **PARTIAL — Unit/Build/Fixture.** Same seam and successful automatic/explicit dedicated startup against retail assets. | Validate pak identity beyond marker existence, Q3 Steam/AppID discovery, mixed trees, restart behavior, and broader installations. |
+| Project identity and packaging | **PARTIAL — Unit/Build/Fixture.** Canonical metadata and primary output names are migrated. The engine-only x86 stage passes dependency/root-archive checks and profile probes. | **PARTIAL — Unit/Build/Fixture.** The same artifacts retain explicitly bound renderer, root-package, and WebUI sidecar names; the proprietary provider is excluded. | Validate reproducible release artifacts and resolve inherited closed-source provider staging policy and remaining platform packaging paths without renaming external contracts. |
+| Filesystem, configs, pak order, and pure checks | **PARTIAL — Unit/Live.** Q3 config order and two-module pure proof are restored. Local QVM clients pass pure admission; malformed and oversized proofs have executable regressions. | **PARTIAL — Unit/Live.** Single-native-module pure proof and profile-specific config/service paths are preserved; local native clients pass pure admission. | Golden search-path/pure transcripts and clean-install probes, including home/config names, mod paths, downloads, case/path behavior, and server-referenced paks. |
+| Module ABI and VM/native loading | **PARTIAL — Unit/Live.** Retail qagame, cgame, and UI QVMs load and run a local session. Frozen POD adapters, transactional DLL loading, QVM bounds, cgame traps/extensions, UI policy, and cvar flags have executable regressions. | **PARTIAL — Unit/Live.** Retail qagame API 10 and cgame/UI API 8 load and run through the same client. Structured contracts remain separate; the native snapshot's additional `0x58` bytes remain unresolved. | Resolve or safely contain the QL snapshot tail, complete the boundary audit, and broaden Q3 native and packaged-client module coverage. |
+| Live network codec and handshake | **PARTIAL — Unit/Live.** Local protocol-68 sessions reach active state after legacy framing and pure admission. Field parity, truncated messages, and float encodings are tested for protocols 68/71. | **PARTIAL — Unit/Live.** Local protocol-91 sessions reach active state. Field parity and malformed-input tests pass; invalid usercmd batches drop only their sender without partial execution. | Golden packet transcripts, malformed/fuzz corpus, remote fragmentation/reliable/pure/download coverage, then bidirectional retail interop for each profile. |
+| Demos | **PARTIAL — Unit/Live.** New local `.dm_68` recordings play to normal completion. Executable tests preserve protocol-71 fallback and extension behavior. | **PARTIAL — Unit/Live.** New local `.dm_91` recordings play to normal completion after fixing an incorrect `.dm_68` suffix for QL captures without voice messages. | Record and play every claimed format; cover truncation, oversize, seeking, timedemo, protocol switching, and unchanged termination behavior. |
+| BSP, collision, and renderer asset decode | **PARTIAL — Unit/Live.** q3dm6 loads with GLx/Vulkan/RTX raster; the recorded RTX black-polygon defect is fixed and verified on the frozen demo. Separate Q3 x64 native probes cover baked lightmap and vertex-lit world materials. See the [RTX round](2026-09-06-rtx-round.md). | **PARTIAL — Unit/Live.** campgrounds BSP 47 loads with all three raster renderers and produces engine screenshots; the final shared RTX raster probe passes. | Broaden maps and collision paths, exercise malformed lumps, compare equivalent screenshot scenes, and prove live advertisement presentation/fallback. |
+| Other assets (models, shaders, images, audio, cinematics, UI resources) | **OPEN.** No fnTech3 end-to-end inventory is signed off. | **PARTIAL — inherited source/fixture evidence.** Retail paths exist, including WebUI resources, but unified regression is incomplete. | Per-format fixtures plus windowed runtime scenes for both profiles; confirm error handling and cross-renderer/audio consistency without redistributing assets. |
+| WebUI native requests and pending avatars | **PARTIAL — Source.** QL-only activation and frame guards are preserved; this port does not enable WebUI for Q3. | **PARTIAL — Unit/Build/Fixture.** Notification scheduling, bounded Unicode transport, avatar backoff/batching, and reload cleanup are tested; fnTech3's production adapter passes an offscreen retail-runtime probe. See the [port record](2026-09-06-webui-request-port.md). | Confirm affected Linux/Proton gameplay performance, live Steam-avatar callbacks through the engine, and windowed renderer/lifecycle stress. The source-reported DataPak document-query limitation remains open. |
+| Renderer API/lifecycle | **PARTIAL — Unit/Live.** All three modules initialize, render a local session, and shut down. Q3 x64 native RT survives renderer restart and windowed resize with Vulkan validation; that evidence applies to the diagnostic Q3-only executable. | **PARTIAL — Unit/Live.** All three modules initialize, render the native join UI/world, and shut down with WebUI disabled. Native RT remains unverified: this machine's x86 driver lacks required extensions. | Shared x86 native RT, broader renderer switch/restart and screenshot parity; HDR, performance, and WebUI resize/device-loss/crash stress. RTX raster startup does not prove ray tracing. |
+| Steam and optional services | **OPEN.** Q3 AppID/path behavior is not yet a complete neutral profile service. | **PARTIAL — inherited Source/Unit/Live.** QL provider boundaries and a retail join exist in FnQL, not yet as fnTech3 closure. | Q3 Steam-path validation; QL logged-in/offline/failure behavior; session-ticket admission both ways; callback/shutdown fault tests; live match reports, unattended Workshop download, and sustained GameServer stress. |
+| Dedicated server | **PARTIAL — Build/Unit/Fixture.** q3dm6, retail qagame QVM, botlib, pure=1 info response with protocol 68, and clean shutdown pass for automatic and explicit profile selection. | **PARTIAL — Build/Unit/Fixture.** campgrounds/ffa, retail API-10 qagame, botlib, pure=1 info response with protocol 91, and clean shutdown pass using the same binary. | Connect the corresponding retail clients, exercise actual pure admission and live messages, and run long/faulted sessions. A connectionless pure=1 response does not prove pure negotiation. |
+| Cross-profile isolation | **PARTIAL — Unit/Fixture.** Active profile is immutable; config read and write select `q3config.cfg`. Both profiles start sequentially from the same staged distribution with isolated homes. | **PARTIAL — Unit/Fixture.** Active profile is immutable and QL's `qzconfig.cfg`/`repconfig.cfg` save path is preserved. | Broaden restart, config persistence, cached-module, download, Steam-state, protocol-state, and sidecar isolation checks. |
+| Release/build matrix | **PARTIAL — Build/Fixture.** Fresh Windows x86 MSVC release configuration plus incremental compatibility fixes builds; complete Meson tests pass with one unavailable OpenAL-loopback skip. Staged client/dedicated/renderer probes pass their bounded startup checks. A separate diagnostic Q3-only x64 configuration builds and exercises native RT. | **PARTIAL — Build/Fixture.** The same shared x86 artifacts pass QL startup/demo/RTX raster checks. The Q3-only x64 executable rejects QL and cannot establish this release contract. | A clean reproducible source checkout, supported dedicated-server platforms and legacy frontends, complete packaged runtime gates, and resolved visual/service failures. |
+
+## Current blockers
+
+1. **Boundary ABI verification.** Q3 adapters and profile-specific server-memory
+   access are integrated, with Q3 QVM and QL native client/server observations.
+   Complete client and extension audits, Q3 native module coverage, and broader
+   runtime probes are still required.
+2. **Live wire evidence.** Live usercmd/entity/playerstate call sites select
+   explicit wire profiles. Field-table parity and transactional malformed-input
+   regressions pass, but complete packet flows and bidirectional retail peers
+   are still required. Local active sessions exercise more than connectionless
+   info queries but do not establish remote-peer interoperability.
+3. **QL snapshot tail is unresolved.** The known QL player-state fields occupy
+   `0x1f8` bytes, while the retail native snapshot reserves `0x250`. The
+   remaining `0x58` bytes must not be labelled padding or exposed without
+   retail evidence and bounded handling.
+4. **Detection is not yet authoritative.** Marker existence is an initial hint,
+   not proof of a valid installation. Q3 Steam discovery/AppID 2200 and
+   profile-specific asset validation still need integration.
+5. **Release packaging remains open.** Canonical metadata and primary artifacts
+   now use fnTech3 identity. Retained external sidecar names, unsupported legacy
+   packaging paths, and inherited closed-source provider staging still need
+   explicit release-policy validation.
+6. **Q3 coverage remains incomplete.** Local QVM startup, pure admission, world
+   rendering, and HUD are observed. The RTX raster black geometry defect is fixed
+   and verified on the frozen demo; broader formats, native modules, remote peers,
+   and packaged runtime paths remain open.
+7. **QL coverage remains incomplete.** Unified native-module startup, local pure
+   admission, and join UI/world rendering are observed. Service authentication,
+   WebUI presentation, remote peers, broader gameplay, and lifecycle stress still
+   require new fnTech3 evidence.
+8. **Retail Q3 interop probe is blocked before engine startup.** The legitimate
+   Steam retail executable, copied with base paks into an isolated temporary
+   fixture, reported `Failed to find Steam`. No retail engine log or connection
+   was observed; this is a probe environment/dependency blocker, not evidence
+   of a network failure or success.
+
+## Open live gates
+
+### Quake III Arena
+
+- Windowed clean-install startup and engine-screenshot smoke scenes using
+  legitimate Q3 assets.
+- Q3 QVM and supported native module loading with exact trap/API behavior.
+- Protocol 68/71 golden and live sessions, including pure/download flows.
+- fnTech3 Q3 client to a reference Q3 server and a reference Q3 client to the
+  fnTech3 dedicated server.
+- Record/playback for every claimed Q3 demo format and representative malformed
+  inputs.
+- Renderer/collision/asset coverage across the claimed BSP and media formats.
+
+### Quake Live
+
+- Re-run legitimate retail qagame/cgame/UI module probes through the fnTech3
+  `ql` profile and packaged binaries.
+- Broaden retail protocol-91 packet captures/server coverage and prove a retail
+  QL client can join the fnTech3 dedicated server.
+- Complete `.dm_91` seek/timedemo and malformed message-body stress coverage.
+- Exercise live advertisements and deterministic missing-service fallback in
+  every enabled renderer.
+- Stress WebUI resize, renderer restart/switch, device loss, child crash, and
+  repeated recovery while preserving native-UI fallback.
+- Complete live match-report conversion, logged-in unattended Workshop
+  subscription/download, provider loss/fault injection, and sustained
+  GameServer callback tests.
+
+### Shared release
+
+- Run the full automated suite and supported build matrix on a clean checkout.
+- Run both profiles from the same packaged binaries with isolated homepaths and
+  no file replacement between launches.
+- Validate only windowed sessions unless fullscreen permission is explicit.
+  Rendering evidence must come from the engine `screenshot` command, never an
+  operating-system capture. Automated probes must not control user input
+  without narrowly scoped permission.
+- Archive non-proprietary logs, manifests, packet/demo fixtures, checksums, and
+  test summaries. Do not archive retail assets, modules, runtimes, tickets, or
+  credentials.
+
+## Evidence snapshot: merger foundation
+
+The following evidence establishes the starting point, not compatibility:
+
+- FnQuake3 source baseline pinned at
+  `7d8c9629cdc7979f09697266470359101ffd9eda`: its existing Python suite passed
+  624 tests with 9 skips and 440 subtests during the import audit. The dirty
+  local worktree was catalogued separately and was not treated as committed
+  baseline evidence.
+- FnQL source baseline pinned at
+  `fce44fe714564621e6ceb79e3da7c53089646af2`: its existing Python suite passed
+  1,192 tests with 7 skips and 24,957 subtests during the import audit.
+- On 2026-08-21, a fresh Windows x86 MSVC Meson configuration of the merged
+  baseline compiled all 1,142 build steps, including the client, dedicated
+  server, renderers, and the focused fnTech3 game-profile test executable.
+- The game-profile test executable separately passed under a strict C++17
+  compile. No fnTech3 game runtime was launched for this foundation snapshot.
+- The frozen Q3/QL ABI headers passed standalone C11 checking and strict C++17
+  layout tests, including i686 size/offset parity against their pinned source
+  structures. This proves the declarations, not their complete runtime use.
+
+Later evidence must be appended or linked with its commit and environment; do
+not silently reinterpret these baseline results as proof for subsequent code.
+
+## Full-compatibility sign-off
+
+The initial goal is complete only when every required matrix row is `PASS` at
+its stated highest evidence level for both profiles, all blockers and open live
+gates are closed or explicitly removed from the supported contract, and the
+same release artifacts pass:
+
+1. automatic and explicit profile selection;
+2. exact module API/ABI and asset loading;
+3. client and dedicated-server networking in both interoperability directions;
+4. all claimed demo formats and malformed-input gates;
+5. representative gameplay/render/audio/input sessions using legitimate data;
+6. cross-profile isolation and deterministic packaging; and
+7. complete automated, build, and documented windowed runtime gates.
+
+Sign-off must identify the exact release artifacts and evidence bundle. A
+partial profile, one-way client connection, inherited FnQL result, or source
+claim cannot satisfy the goal.

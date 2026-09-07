@@ -13,13 +13,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from fnql_meta import ROOT, base_metadata, normalize_date
+from fntech3_meta import ROOT, base_metadata, normalize_date
 
 
 DEFAULT_MANIFEST = ROOT / ".install" / "release-manifest.json"
 DEFAULT_NOTES = ROOT / ".tmp" / "release-notes.md"
 DEFAULT_REPOSITORY = "themuffinator/FnQL"
-DEFAULT_USERNAME = "FnQL Releases"
+DEFAULT_USERNAME = "fnTech3 Releases"
 DEFAULT_AVATAR_URL = (
     "https://raw.githubusercontent.com/themuffinator/FnQL/main/docs/assets/fnql-discord-avatar.png"
 )
@@ -447,7 +447,7 @@ def retry_after_from_body(detail: str) -> float | None:
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Announce an FnQL release on Discord")
+    parser = argparse.ArgumentParser(description="Announce a fnTech3 release on Discord")
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
     parser.add_argument("--notes-file", type=Path, default=DEFAULT_NOTES)
     parser.add_argument("--release-tag")

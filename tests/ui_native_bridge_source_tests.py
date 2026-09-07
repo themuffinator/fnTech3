@@ -397,24 +397,24 @@ class UiNativeBridgeSourceTests(unittest.TestCase):
         self.assertIn("return VM_DLL_ENTRY_STRUCTURED;", selector)
         self.assertIn("entryAbi = VM_SelectDllEntryAbi", loader)
         self.assertIn("if ( entryAbi == VM_DLL_ENTRY_STRUCTURED )", loader)
-        self.assertIn("dllEntryNative( dllExports, dllImports, dllApiVersion );", loader)
+        self.assertIn("dllEntryNative( &moduleExports, dllImports, &moduleApiVersion );", loader)
         self.assertIn("if ( entryAbi == VM_DLL_ENTRY_LEGACY )", loader)
         self.assertIn("dllEntry( systemcalls );", loader)
         structured_branch = loader[
             loader.index("if ( entryAbi == VM_DLL_ENTRY_STRUCTURED )"):
             loader.index("if ( entryAbi == VM_DLL_ENTRY_LEGACY )")
         ]
-        self.assertIn("if ( !*dllExports )", structured_branch)
+        self.assertIn("if ( !moduleExports )", structured_branch)
         self.assertIn("Sys_UnloadLibrary( libHandle );", structured_branch)
         self.assertIn("return NULL;", structured_branch)
         self.assertIn("return libHandle;", structured_branch)
         self.assertLess(
-            structured_branch.index("if ( !*dllExports )"),
+            structured_branch.index("if ( !moduleExports )"),
             structured_branch.index("return libHandle;"),
         )
         self.assertLess(
             loader.index("entryAbi = VM_SelectDllEntryAbi"),
-            loader.index("dllEntryNative( dllExports, dllImports, dllApiVersion );"),
+            loader.index("dllEntryNative( &moduleExports, dllImports, &moduleApiVersion );"),
         )
 
     def test_client_ui_initializes_full_ql_import_table(self) -> None:
@@ -807,7 +807,9 @@ class UiNativeBridgeSourceTests(unittest.TestCase):
         self.assertIn("VM_Call( gvm, 1, GAME_GET_CLIENT_SCORE, clientNum )", sv_game)
         self.assertIn("static unsigned long long SV_StatusClientSteamId", sv_ccmds)
         self.assertIn("SV_ClientSteamId( clientNum, &low, &high )", sv_ccmds)
-        self.assertIn("SV_GameGetClientScore( slot.index, ps->persistant[PERS_SCORE] )", sv_ccmds)
+        self.assertIn("SV_ReadGameClient( slot.index, &ps )", sv_ccmds)
+        self.assertIn("SV_GameGetClientScore( slot.index,", sv_ccmds)
+        self.assertIn("ps.persistant[PERS_SCORE]", sv_ccmds)
         self.assertIn('Com_Printf( " rate steamid\\n" );', sv_ccmds)
         self.assertIn("VM_CreateNative( VM_GAME", sv_game)
         self.assertIn("static qboolean SV_CallGameRegisterCvarsOnce( vm_t *vm )", sv_game)
@@ -922,9 +924,11 @@ class UiNativeBridgeSourceTests(unittest.TestCase):
             sv_client.index("static void SV_ResetPureClient_f")
         ]
         self.assertIn("FS_FileIsInPAK( QL_NATIVE_CGAME_DLL, &nBinChkSum, nullptr )", verify_paks)
-        self.assertIn("SV_ParseInt(pArg) != nBinChkSum", verify_paks)
-        self.assertNotIn('"vm/cgame.qvm"', verify_paks)
-        self.assertNotIn('"vm/ui.qvm"', verify_paks)
+        self.assertIn("moduleChecksum != nBinChkSum", verify_paks)
+        self.assertIn("SV_ParsePureChecksum( pArg, moduleChecksum )", verify_paks)
+        self.assertIn('FS_FileIsInPAK( "vm/cgame.qvm", &nBinChkSum, nullptr )', verify_paks)
+        self.assertIn('FS_FileIsInPAK( "vm/ui.qvm", &nUiChkSum, nullptr )', verify_paks)
+        self.assertIn("if ( Com_GameIsQuake3() )", verify_paks)
 
         self.assertIn("FS_TouchFileInPak( QL_NATIVE_CGAME_DLL );", sv_init)
         self.assertNotIn('FS_TouchFileInPak( "vm/cgame.qvm" );', sv_init)

@@ -122,6 +122,7 @@ class WindowManagementSourceTests(unittest.TestCase):
             "code/win32/resource.h",
             "code/win32/fnql.ico",
             "version/fnql_version.h",
+            "version/fntech3_version.h",
         ):
             self.assertIn(f"'{dependency}'", build)
         self.assertEqual(2, build.count("depend_files: win_resource_deps"))

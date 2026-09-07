@@ -926,6 +926,9 @@ static qboolean RB_DrawSurfListNeedsLiquidSnapshot( drawSurf_t *drawSurfs,
 		shader_t *shader;
 		int entityNum, fogNum, dlighted;
 
+		if ( drawSurfs[i].flags & DSF_SHADOW_CASTER_ONLY ) {
+			continue;
+		}
 		R_DecomposeSort( drawSurfs[i].sort, &entityNum, &shader,
 			&fogNum, &dlighted );
 		if ( !RB_DrawSurfIncluded( entityNum, shader, fogNum, mode ) ) {
@@ -994,6 +997,12 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs, rbDr
 	}
 
 	for (i = 0, drawSurf = drawSurfs ; i < numDrawSurfs ; i++, drawSurf++) {
+		/* Personal models remain available to the shadow atlas, but must not
+		 * enter color or depth batches. Test before the equal-sort fast path:
+		 * visibility flags are intentionally separate from the sort key. */
+		if ( drawSurf->flags & DSF_SHADOW_CASTER_ONLY ) {
+			continue;
+		}
 		sortDecomposed = qfalse;
 		if ( mode != RB_DRAWSURFS_ALL ) {
 			R_DecomposeSort( drawSurf->sort, &entityNum, &shader, &fogNum, &dlighted );

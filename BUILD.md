@@ -5,29 +5,34 @@ places external renderer modules beside it, so renderer selection stays a
 runtime `\cl_renderer` choice instead of a reason to produce separate client
 executables.
 
-FnQL targets retail Quake Live compatibility. A successful build proves the
-engine compiled, but compatibility-sensitive runtime work should still be
-validated against a legitimate Steam installation.
+fnTech3 targets one shared engine for Quake III Arena and Quake Live. A
+successful build proves compilation and linkage; both profiles must separately
+pass the runtime and interoperability gates in the
+[compatibility ledger](docs/fntech3/COMPATIBILITY.md). Full compatibility is
+not yet established.
 
-Steam service integration is optional and is never required to build FnQL.
+Steam service integration is optional and is never required to build fnTech3.
 Developers with the separate `../FnQL-Steam` repository can pass `-WithSteam`
 to `.vscode/build-release.ps1` to build its strict dynamic-library target and
-stage only the resulting provider beside FnQL. See
+stage only the resulting provider beside fnTech3. See
 [`docs/fnql/STEAM_PROVIDER.md`](docs/fnql/STEAM_PROVIDER.md).
 
-FnQL is a **32-bit x86-only project**. Build, test, package, and run Win32 on
-Windows or i686 on Linux; x86_64, ARM, and macOS targets are unsupported.
+fnTech3 shared Q3/QL builds are **32-bit x86 only**. Build, test, package, and run Win32 on
+Windows or i686 on Linux; x86_64, ARM, and macOS targets are unsupported for
+that shared release contract. The separate Windows Q3-only RTX diagnostic
+build below permits x86_64 with a narrower claim.
 
 On Windows, use the **Win32/x86 client for retail Quake Live runtime tests**.
 Retail `bin.pk3` ships `qagamex86.dll`, `cgamex86.dll`, and `uix86.dll`; the x64
-ABI cannot load those x86 modules in-process and is not a FnQL target.
+ABI cannot load those x86 modules in-process. Use the shared Win32 build for QL.
 
-Official release support is limited to the Windows Win32/x86 retail client and
-Linux i686 dedicated server. macOS is disabled and unsupported.
+The initial proof targets are the Windows Win32/x86 shared client and Linux
+i686 dedicated server. Runtime gates remain open. macOS is disabled and unsupported;
+the diagnostic Windows Q3-only build does not satisfy those shared-profile gates.
 
 All maintained build graphs generate `fnql-web.pak` beside the client. Keep
 that sidecar with the executable when copying a build manually. It contains
-only FnQL's settings overrides and still requires the legitimate retail
+only fnTech3's settings overrides and still requires the legitimate retail
 `web.pak` for every untouched launcher resource. To build only the sidecar,
 run `python scripts/build_webpak.py --source-root code/client/webui --output
 .tmp/fnql-web.pak`.
@@ -46,13 +51,15 @@ Then build and run tests:
 
 `meson test -C meson/build`
 
-The default Meson build produces one client executable (`fnql` with the platform suffix where applicable), one dedicated server executable, and exactly three renderer modules: `fnql_glx_<arch>`, `fnql_vk_<arch>`, and `fnql_rtx_<arch>`.
+The default Meson build produces one client executable (`fntech3` with the platform suffix where applicable), one dedicated server executable, and exactly three renderer modules: `fnql_glx_<arch>`, `fnql_vk_<arch>`, and `fnql_rtx_<arch>`.
 
 Project Meson options:
 
-`-Dbuild-client=true|false` - build the unified FnQL client executable, enabled by default
+`-Dbuild-client=true|false` - build the unified fnTech3 client executable, enabled by default
 
 `-Dbuild-server=true|false` - build the dedicated server executable, enabled by default
+
+`-Dq3-only=true|false` - opt into the experimental Windows x86_64 Q3-only diagnostic target below; disabled by default
 
 `-Drenderer-dlopen=true|false` - build external renderer modules and one unified client executable, enabled by default
 
@@ -82,7 +89,12 @@ Project Meson options:
 
 `-Dglx-tests=true|false` - build deterministic GLx renderer logic tests, enabled by default
 
-`-Dstrict-warnings=true|false` - treat diagnostics in FnQL-owned targets as errors without applying project warning policy to fallback dependencies, disabled by default
+The Windows build helpers select the static MSVC runtime and pin the nested
+`zlib` fallback to a static library. Existing manually configured build
+directories need `-Dzlib:default_library=static` on reconfigure to adopt that
+policy; do not copy a fallback `z-1.dll` into a distribution.
+
+`-Dstrict-warnings=true|false` - treat diagnostics in fnTech3-owned targets as errors without applying project warning policy to fallback dependencies, disabled by default
 
 Legacy Make inputs remain available while CI and packaging finish migrating,
 but new local work should prefer `meson/build`. The Visual Studio solution is
@@ -130,6 +142,32 @@ strict warnings enabled and all renderer modules selected. Build directories
 are isolated below `meson/build/vs/`. Only Win32 configurations are exposed;
 direct project invocations also reject x64 and ARM64 before compilation.
 
+#### Windows Q3-only RTX diagnostics (x86_64)
+
+Use this explicit Meson target when the installed Vulkan driver exposes the
+required KHR ray-tracing features to a 64-bit process but not to Win32. It is
+an experimental Q3-only diagnostic build; the default shared Q3/QL release
+target remains Win32. From an **x64 Native Tools** developer prompt at the
+repository root, configure a separate build directory:
+
+```bat
+meson setup .tmp/meson-q3-rtx-x64 --buildtype=release -Dq3-only=true ^
+  -Dbuild-server=false -Drenderers=rtx -Drenderer-default=rtx ^
+  -Db_vscrt=static_from_buildtype -Ddefault_library=static -Dstrict-warnings=true
+meson compile -C .tmp/meson-q3-rtx-x64 fntech3-q3 fnql_rtx_x86_64
+meson test -C .tmp/meson-q3-rtx-x64 --print-errorlogs
+```
+
+The outputs are `fntech3-q3.exe` and `fnql_rtx_x86_64.dll`; enabling
+`-Dbuild-server=true` also produces `fntech3.ded-q3.exe`. Explicit and
+autodetected QL selection fail before filesystem startup with an instruction
+to use the shared Win32 binary. Keep this build separate from release staging
+and use legitimate Q3 assets. Native RT still requires the device capability
+checks; building this target alone does not establish rendering compatibility.
+See the [RTX feature ledger](docs/fntech3/RTX_Q2RTX_PARITY.md) and
+[2026-09-06 runtime report](docs/fntech3/2026-09-06-rtx-round.md) for controls,
+driver evidence and remaining gates.
+
 ---
 
 ### windows/msys2
@@ -162,7 +200,7 @@ Build with `make ARCH=x86`, then either copy the resulting binaries from the `bu
 Linux has two distinct compatibility surfaces:
 
 - Native dedicated servers load the retail `qagamei386.so` from
-  `baseq3/bin.pk3`; FnQL does not build or validate the x86_64 alternative.
+  `baseq3/bin.pk3`; fnTech3 does not build or validate the x86_64 alternative.
 - The same retail archive also contains `qagamex64.so` and the Win32
   `qagamex86.dll`, `cgamex86.dll`, and `uix86.dll`. Native Linux i686 uses
   `qagamei386.so`; `dlopen` cannot load PE32 DLLs, so the Linux server does not
@@ -175,19 +213,19 @@ Linux has two distinct compatibility surfaces:
 
 Official Linux downloads are deterministic `.tar.gz` archives. Extract them
 with `tar`, rather than copying individual files out of a browser, so the
-executable modes on `fnql`, `fnql.ded`, and the renderer modules survive:
+executable modes on `fntech3`, `fntech3.ded`, and the renderer modules survive:
 
 ```sh
 ql_dir="$HOME/.local/share/Steam/steamapps/common/Quake Live"
-tar -xzf fnql-*-linux-x86.tar.gz -C "$ql_dir"
+tar -xzf fntech3-*-linux-x86.tar.gz -C "$ql_dir"
 cd "$ql_dir"
-ldd ./fnql.ded | grep 'not found' || true
-./fnql.ded +set fs_steampath "$ql_dir" +set dedicated 2 +map campgrounds
+ldd ./fntech3.ded | grep 'not found' || true
+./fntech3.ded +set com_gameProfile ql +set fs_steampath "$ql_dir" +set dedicated 2 +map campgrounds
 ```
 
 Steam may instead use `~/.steam/steam/steamapps/common/Quake Live` or a custom
 library. Pass that exact directory through `fs_steampath`; do not copy retail
-assets into the repository or FnQL package.
+assets into the repository or fnTech3 package.
 
 #### Meson i686 development build
 
@@ -228,7 +266,7 @@ meson setup meson/build-linux-sdl-x86 \
   --force-fallback-for=sdl3,fontstash \
   -Dbuild-server=false -Dcurl=disabled -Dogg-vorbis=false \
   -Drenderer-dlopen=false -Drenderer-default=glx -Dsdl=enabled
-meson compile -C meson/build-linux-sdl-x86 fnql
+meson compile -C meson/build-linux-sdl-x86 fntech3
 ```
 
 Stage a build without writing into the Steam library, verify it, and then copy
@@ -264,7 +302,7 @@ make -j"$(nproc)" release ARCH=x86 COMPILE_ARCH=x86 USE_SDL=0 \
   USE_RENDERER_DLOPEN=1 USE_GLX=1 USE_VK=1 USE_RTX=1
 make install ARCH=x86 COMPILE_ARCH=x86 USE_SDL=0 DESTDIR="$PWD/.tmp/linux-x86/"
 python3 scripts/verify_release_layout.py .tmp/linux-x86/FnQL-pkg.fnz
-file .tmp/linux-x86/fnql .tmp/linux-x86/fnql.ded
+file .tmp/linux-x86/fntech3 .tmp/linux-x86/fntech3.ded
 ```
 
 The release packager accepts a `linux-x86` artifact directory, restores
@@ -276,7 +314,7 @@ renderer modules, package sidecars, ELF i386 identity, and safe archive paths.
 
 ### Other platforms
 
-FnQL does not build, test, package, or launch macOS, ARM, PowerPC, BSD, or
+fnTech3 does not build, test, package, or launch macOS, ARM, PowerPC, BSD, or
 other non-x86 targets. Windows Win32/x86 and Linux i686 are the supported
 platform/ABI combinations.
 

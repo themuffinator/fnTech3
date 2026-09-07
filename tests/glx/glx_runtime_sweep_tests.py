@@ -1930,6 +1930,7 @@ class GlxRuntimeSweepExecutableTests(unittest.TestCase):
     def test_default_executable_candidates_use_unified_client_names(self) -> None:
         names = glx_runtime_sweep.candidate_exe_names()
 
+        self.assertTrue(names[0].startswith("fntech3"))
         self.assertTrue(any(name.startswith("fnql") for name in names))
         self.assertFalse(any(".glx" in name for name in names))
         self.assertFalse(any(".opengl" in name for name in names))

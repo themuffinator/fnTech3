@@ -179,7 +179,7 @@ function Assert-WindowsOutputs {
 	$rendererArch = Get-ExpectedRendererArch -SelectedPlatform $SelectedPlatform
 
 	if ($SelectedTarget -in @('client', 'both')) {
-		$clientExe = Join-Path $BuildPath "fnql$suffix.exe"
+		$clientExe = Join-Path $BuildPath "fntech3$suffix.exe"
 		if (-not (Test-Path $clientExe)) {
 			throw "Client executable was not produced: $clientExe"
 		}
@@ -193,7 +193,7 @@ function Assert-WindowsOutputs {
 	}
 
 	if ($SelectedTarget -in @('dedicated', 'both')) {
-		$dedicatedExe = Join-Path $BuildPath "fnql.ded$suffix.exe"
+		$dedicatedExe = Join-Path $BuildPath "fntech3.ded$suffix.exe"
 		if (-not (Test-Path $dedicatedExe)) {
 			throw "Dedicated executable was not produced: $dedicatedExe"
 		}
@@ -230,7 +230,7 @@ function Remove-StaleNativeTestBinaries {
 		$searchArgs.Recurse = $true
 	}
 	$staleTests = @(Get-ChildItem @searchArgs | Where-Object {
-		$_.BaseName -like 'fnql*_tests' -and $_.Extension -in @('.exe', '.pdb')
+		($_.BaseName -like 'fnql*_tests' -or $_.BaseName -like 'fntech3*_tests') -and $_.Extension -in @('.exe', '.pdb')
 	})
 	foreach ($staleTest in $staleTests) {
 		Remove-Item -LiteralPath $staleTest.FullName -Force
@@ -334,6 +334,7 @@ $setupArgs = @(
 	'-Drenderer-dlopen=true',
 	"-Drenderers=$rendererCsv",
 	"-Drenderer-default=$RendererDefault",
+	'-Dzlib:default_library=static',
 	'-Dogg:default_library=static'
 )
 
@@ -386,14 +387,14 @@ if (-not $RunTests) {
 	# CI or command-line -RunTests builds.
 	$compileTargets = New-Object System.Collections.Generic.List[string]
 	if ($Target -in @('client', 'both')) {
-		$compileTargets.Add('fnql')
+		$compileTargets.Add('fntech3')
 		foreach ($rendererName in ($rendererCsv -split ',')) {
 			$compileTargets.Add("fnql_${rendererName}_x86")
 		}
 		$compileTargets.Add('fnql-web.pak')
 	}
 	if ($Target -in @('dedicated', 'both')) {
-		$compileTargets.Add('fnql.ded')
+		$compileTargets.Add('fntech3.ded')
 	}
 	if ($Archive) {
 		$compileTargets.Add('FnQL-pkg.fnz')

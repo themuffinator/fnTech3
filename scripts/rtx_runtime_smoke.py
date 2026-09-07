@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Run a bounded, windowed FnQL RTX smoke test against retail Quake Live.
+"""Run a bounded, windowed fnTech3 RTX smoke against legitimate Q3 or QL assets.
 
 The probe is deliberately asset-agnostic: the caller supplies a retail map
-name and the engine resolves it through the legitimate Steam installation.
+name and the engine resolves it through the supplied legitimate installation.
 Nothing is copied into or written beneath that installation.  Each profile
 gets a new ``fs_homepath`` below ``.tmp`` (or ``--output-dir``), and the probe
 never connects to an online server or manufactures Steam authentication.
@@ -30,6 +30,8 @@ from typing import Sequence
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_DIR = ROOT / ".tmp" / "rtx-runtime-smoke"
 RETAIL_PATH_ENV = "FNQL_RETAIL_QL_PATH"
+GAME_PATH_ENVS = {"q3": "FNTECH3_RETAIL_Q3_PATH", "ql": RETAIL_PATH_ENV}
+GAME_INSTALL_NAMES = {"q3": "Quake 3 Arena", "ql": "Quake Live"}
 QUAKE_LIVE_APP_ID = "282440"
 MAP_NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
 GAME_TYPE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
@@ -84,22 +86,24 @@ HASH_BLOCK_BYTES = 1024 * 1024
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Run FnQL's optional RTX renderer against a legitimate retail "
-            "Quake Live Steam installation."
+            "Run fnTech3's RTX renderer against a legitimate Quake III Arena "
+            "or Quake Live installation."
         )
     )
-    parser.add_argument("--exe", type=Path, help="FnQL client executable to launch")
+    parser.add_argument("--exe", type=Path, help="fnTech3 client executable to launch")
+    parser.add_argument("--game-profile", choices=("q3", "ql"), default="ql")
     parser.add_argument(
         "--retail-root",
         type=Path,
-        help=f"Quake Live Steam installation (or set {RETAIL_PATH_ENV})",
+        help=("legitimate game installation (or set FNTECH3_RETAIL_Q3_PATH for Q3, "
+              f"{RETAIL_PATH_ENV} for QL)"),
     )
     parser.add_argument(
         "--map",
         dest="map_name",
-        help="retail Quake Live map name to load; intentionally has no implicit default",
+        help="installed map name to load; intentionally has no implicit default",
     )
-    parser.add_argument("--gametype", default="ffa", help="retail game type for devmap")
+    parser.add_argument("--gametype", default="ffa", help="QL game type for devmap; unused for Q3")
     parser.add_argument("--profile", choices=PROFILE_CHOICES, default="raster")
     parser.add_argument("--width", type=int, default=960)
     parser.add_argument("--height", type=int, default=540)
@@ -115,44 +119,54 @@ def create_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def conventional_retail_roots() -> list[Path]:
+def conventional_retail_roots(game_profile: str = "ql") -> list[Path]:
     candidates: list[Path] = []
+    install_name = GAME_INSTALL_NAMES[game_profile]
     for variable in ("ProgramFiles(x86)", "ProgramFiles"):
         value = os.environ.get(variable, "").strip()
         if value:
-            candidates.append(Path(value) / "Steam" / "steamapps" / "common" / "Quake Live")
+            candidates.append(Path(value) / "Steam" / "steamapps" / "common" / install_name)
 
     home = Path.home()
     candidates.extend(
         (
-            home / ".local" / "share" / "Steam" / "steamapps" / "common" / "Quake Live",
-            home / ".steam" / "steam" / "steamapps" / "common" / "Quake Live",
+            home / ".local" / "share" / "Steam" / "steamapps" / "common" / install_name,
+            home / ".steam" / "steam" / "steamapps" / "common" / install_name,
         )
     )
     return candidates
 
 
-def resolve_retail_root(explicit: Path | None) -> Path:
+def resolve_retail_root(explicit: Path | None, game_profile: str = "ql") -> Path:
     if explicit is not None:
         return explicit.expanduser().resolve()
 
-    configured = os.environ.get(RETAIL_PATH_ENV, "").strip()
+    path_env = GAME_PATH_ENVS[game_profile]
+    configured = os.environ.get(path_env, "").strip()
     if configured:
         return Path(configured).expanduser().resolve()
 
-    for candidate in conventional_retail_roots():
+    for candidate in conventional_retail_roots(game_profile):
         if candidate.is_dir():
             return candidate.resolve()
 
     raise ValueError(
-        "retail Quake Live was not found; pass --retail-root or set "
-        f"{RETAIL_PATH_ENV}"
+        f"retail {GAME_INSTALL_NAMES[game_profile]} was not found; "
+        f"pass --retail-root or set {path_env}"
     )
 
 
-def validate_retail_install(root: Path) -> None:
+def validate_retail_install(root: Path, game_profile: str = "ql") -> None:
     if not root.is_dir():
         raise ValueError(f"retail root does not exist or is not a directory: {root}")
+
+    if game_profile == "q3":
+        pak = root / "baseq3" / "pak0.pk3"
+        if not pak.is_file():
+            raise ValueError(f"Quake III Arena installation is missing its base pak: {pak}")
+        return
+    if game_profile != "ql":
+        raise ValueError(f"unknown game profile: {game_profile}")
 
     app_id_path = root / "steam_appid.txt"
     if not app_id_path.is_file():
@@ -178,7 +192,7 @@ def validate_options(args: argparse.Namespace) -> None:
     if args.exe is None:
         raise ValueError("--exe is required")
     if not args.plan and not args.exe.expanduser().is_file():
-        raise ValueError(f"FnQL executable does not exist: {args.exe}")
+        raise ValueError(f"fnTech3 executable does not exist: {args.exe}")
     if not args.map_name:
         raise ValueError("--map is required; the smoke test never guesses a retail asset")
     if not MAP_NAME_RE.fullmatch(args.map_name):
@@ -201,13 +215,20 @@ def selected_profiles(choice: str) -> tuple[str, ...]:
     return tuple(PROFILE_SPECS) if choice == "all" else (choice,)
 
 
-def profile_cvars(profile_name: str, width: int, height: int) -> dict[str, str]:
+def profile_cvars(profile_name: str, width: int, height: int, game_profile: str = "ql") -> dict[str, str]:
     spec = PROFILE_SPECS[profile_name]
     return {
         "cl_allowDownload": "0",
         "cl_renderer": "rtx",
+        "cl_webuiEnable": "0",
+        "com_gameProfile": game_profile,
         "com_introplayed": "1",
+        "com_steamIntegration": "0",
         "developer": "1",
+        "fs_skipWorkshop": "1",
+        "in_joystick": "0",
+        "in_mouse": "0",
+        "in_nograb": "1",
         "logfile": "2",
         "r_customHeight": str(height),
         "r_customWidth": str(width),
@@ -218,6 +239,7 @@ def profile_cvars(profile_name: str, width: int, height: int) -> dict[str, str]:
         "r_liquid": "0",
         "r_mode": "-1",
         "r_surfaceLightProxies": "0",
+        "r_vertexLight": "0",
         "rtx_rt_async_overlap": "0",
         "rtx_rt_dynamic_blas": "0",
         "rtx_rt_material_heuristics": "0",
@@ -238,31 +260,46 @@ def build_launch_command(
     height: int,
     map_wait: int,
     capture_wait: int,
+    game_profile: str = "ql",
 ) -> tuple[list[str], str]:
-    screenshot_name = f"fnql-rtx-{profile_name}-{map_name}"
+    screenshot_prefix = "fnql" if game_profile == "ql" else "fntech3-q3"
+    screenshot_name = f"{screenshot_prefix}-rtx-{profile_name}-{map_name}"
     command = [
         str(exe),
         "+set", "fs_basepath", str(retail_root),
-        "+set", "fs_steampath", str(retail_root),
         "+set", "fs_homepath", str(homepath),
     ]
-    for name, value in profile_cvars(profile_name, width, height).items():
+    if game_profile == "ql":
+        command.extend(("+set", "fs_steampath", str(retail_root)))
+    for name, value in profile_cvars(profile_name, width, height, game_profile).items():
+        if name == "r_fogMode":
+            # Applied in the post-init command queue below: it is not latched
+            # and shader uniforms read it when drawing. Preserve an early
+            # startup slot for r_vertexLight, which controls map ingestion.
+            continue
         command.extend(("+set", name, value))
+    command.extend(("+devmap", map_name))
+    if game_profile == "ql":
+        command.append(gametype)
+    # Keep startup-sensitive cvars as individual +set commands. The bounded
+    # post-init sequence is one command-buffer line, with each semicolon its
+    # own argv token so platform argument quoting cannot hide the separators.
     command.extend(
         (
-            "+devmap", map_name, gametype,
-            "+wait", str(map_wait),
-            "+gfxinfo",
-            "+vkinfo",
-            "+screenshotPNG", screenshot_name,
-            "+wait", str(capture_wait),
-            "+quit",
+            ";", "set", "r_fogMode", "0",
+            ";", "wait", str(map_wait),
+            ";", "gfxinfo",
+            ";", "vkinfo",
+            ";", "screenshotPNG", screenshot_name,
+            ";", "wait", str(capture_wait),
+            ";", "quit",
         )
     )
     command_count = sum(argument.startswith("+") for argument in command)
-    if command_count > MAX_STARTUP_COMMANDS:
+    # Com_ParseCommandLine also reserves the initial segment before the first +.
+    if command_count + 1 > MAX_STARTUP_COMMANDS:
         raise ValueError(
-            f"startup command count {command_count} exceeds engine limit {MAX_STARTUP_COMMANDS}"
+            f"startup command count {command_count + 1} exceeds engine limit {MAX_STARTUP_COMMANDS}"
         )
     return command, screenshot_name
 
@@ -779,8 +816,9 @@ def run_smoke(args: argparse.Namespace, retail_root: Path) -> tuple[dict[str, ob
         "executableEvidence": executable_evidence,
         "platform": platform_evidence(),
         "retailRoot": str(retail_root),
+        "gameProfile": args.game_profile,
         "map": args.map_name,
-        "gametype": args.gametype,
+        "gametype": args.gametype if args.game_profile == "ql" else None,
         "window": {"width": args.width, "height": args.height, "fullscreen": False},
         "profiles": [],
         "failures": manifest_failures,
@@ -802,6 +840,7 @@ def run_smoke(args: argparse.Namespace, retail_root: Path) -> tuple[dict[str, ob
             args.height,
             args.map_wait,
             args.capture_wait,
+            args.game_profile,
         )
         result = run_process(command, executable.parent, process_log, args.timeout)
         text, qconsole_logs = collect_evidence(process_log, homepath)
@@ -869,11 +908,12 @@ def planned_manifest(args: argparse.Namespace, retail_root: Path) -> dict[str, o
             args.height,
             args.map_wait,
             args.capture_wait,
+            args.game_profile,
         )
         profiles.append(
             {
                 "name": profile_name,
-                "cvars": profile_cvars(profile_name, args.width, args.height),
+                "cvars": profile_cvars(profile_name, args.width, args.height, args.game_profile),
                 "command": command,
                 "commandLine": command_to_string(command),
                 "screenshotName": screenshot_name,
@@ -886,8 +926,9 @@ def planned_manifest(args: argparse.Namespace, retail_root: Path) -> dict[str, o
         "executableEvidence": file_evidence(args.exe),
         "platform": platform_evidence(),
         "retailRoot": str(retail_root),
+        "gameProfile": args.game_profile,
         "map": args.map_name,
-        "gametype": args.gametype,
+        "gametype": args.gametype if args.game_profile == "ql" else None,
         "profiles": profiles,
     }
 
@@ -897,8 +938,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         validate_options(args)
-        retail_root = resolve_retail_root(args.retail_root)
-        validate_retail_install(retail_root)
+        retail_root = resolve_retail_root(args.retail_root, args.game_profile)
+        validate_retail_install(retail_root, args.game_profile)
         if args.plan:
             print(json.dumps(planned_manifest(args, retail_root), indent=2))
             return 0

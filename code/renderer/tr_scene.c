@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "tr_local.h"
+#include "../renderercommon/tr_q3_fov.h"
 #include "../renderercommon/tr_cubemap.h"
 #include "../renderercommon/tr_liquid.h"
 #include "../renderercommon/tr_muzzle_flash_light.h"
@@ -1436,6 +1437,7 @@ void RE_RenderScene( const refdef_t *fd ) {
 	tr.refdef.height = fd->height;
 	tr.refdef.fov_x = fd->fov_x;
 	tr.refdef.fov_y = fd->fov_y;
+	R_ApplyProfileFovCorrection( fd, &tr.refdef.fov_x, &tr.refdef.fov_y );
 
 	VectorCopy( fd->vieworg, tr.refdef.vieworg );
 	VectorCopy( fd->viewaxis[0], tr.refdef.viewaxis[0] );

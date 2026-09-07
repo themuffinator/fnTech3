@@ -13,11 +13,33 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from scripts import fnql_meta
+from scripts import fntech3_meta
 from scripts import manual_release
 from scripts import version
 
 
 class VersionMetadataTests(unittest.TestCase):
+    def test_legacy_metadata_import_uses_the_canonical_fntech3_identity(self) -> None:
+        self.assertEqual(fnql_meta.VERSION_HEADER, fntech3_meta.VERSION_HEADER)
+        meta = fntech3_meta.base_metadata()
+        self.assertEqual(fnql_meta.base_metadata(), meta)
+        self.assertEqual(meta["project_name"], "fnTech3")
+        self.assertEqual(meta["artifact_prefix"], "fntech3")
+        self.assertEqual(meta["executable_basename"], "fntech3")
+
+    def test_stamping_updates_only_the_canonical_version_definitions(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            header = Path(tmp) / "fntech3_version.h"
+            header.write_bytes(fntech3_meta.VERSION_HEADER.read_bytes())
+            manual_release.stamp_version(header, 42)
+            meta = fntech3_meta.base_metadata(header)
+            self.assertEqual(meta["version"], "0.1.0.42")
+            self.assertEqual(meta["version_tweak"], 42)
+            defines = fntech3_meta.read_version_defines(header)
+            self.assertEqual(defines["FNTECH3_WINDOWS_FILE_VERSION"], "0,1,0,42")
+            self.assertEqual(defines["FNTECH3_WINDOWS_PRODUCT_VERSION"], "0,1,0,42")
+            self.assertNotIn("FNQL_VERSION_STRING", defines)
+
     def test_normalize_commit_accepts_hex_ids_and_local_fallback(self) -> None:
         self.assertEqual(fnql_meta.normalize_commit(None), "local")
         self.assertEqual(fnql_meta.normalize_commit("ABCDEF1234567890"), "abcdef12")
@@ -54,11 +76,11 @@ class VersionMetadataTests(unittest.TestCase):
         )
         self.assertEqual(
             fnql_meta.package_archive_name(meta, "windows-x86_64"),
-            "fnql-0.1.0.1-20260620-abcdef12-windows-x86_64.zip",
+            "fntech3-0.1.0.1-20260620-abcdef12-windows-x86_64.zip",
         )
         self.assertEqual(
             fnql_meta.package_archive_name(meta, "linux-x86"),
-            "fnql-0.1.0.1-20260620-abcdef12-linux-x86.tar.gz",
+            "fntech3-0.1.0.1-20260620-abcdef12-linux-x86.tar.gz",
         )
         for name in ("../windows", "linux/x64", "bad\nname"):
             with self.subTest(name=name):

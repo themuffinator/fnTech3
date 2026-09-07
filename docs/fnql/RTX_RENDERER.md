@@ -1,5 +1,9 @@
 # RTX Renderer Contract
 
+This inherited document describes the shared renderer. Current fnTech3 changes
+and the comparison against Q2RTX are tracked in the
+[RTX feature ledger](../fntech3/RTX_Q2RTX_PARITY.md).
+
 ## Status
 
 FnQL carries the renderer introduced by
@@ -122,8 +126,9 @@ The renderer also treats retail content as untrusted input:
 - WebUI dimensions are bounded before calculating RGBA upload bytes;
 - material ownership remains conservative. Broad texture-name guesses and
   unrelated surface flags are not compatibility evidence;
-- lightmapped surfaces stay raster-owned until native closest-hit shading can
-  consume their authored lightmap semantics correctly;
+- static collapsed base-times-lightmap surfaces carry independent BSP lightmap
+  UVs and a separate texture/scale in the native material contract. Complex,
+  animated, fogged, or blended authored stages retain raster ownership;
 - trace/copy failures leave render-pass state recoverable for fallback, or
   terminate a strict-RT run explicitly.
 
@@ -257,8 +262,10 @@ native-RT runtime evidence.
   instead of emitting a misleading single-face image; ordinary screenshots,
   clipboard BMP capture, AVI frames, and levelshots remain available.
 - Dynamic BLAS participation remains experimental and default-off. Dynamic
-  entities remain raster-visible but do not automatically become native RT
-  shadow or reflection geometry.
+  entities remain raster-visible. Explicit activation includes eligible posed
+  MD3/IQM/MDR and brush models in shadow and secondary radiance geometry, while
+  keeping primary composition raster-owned. First-person/depth-hacked and
+  no-shadow models are excluded from this caster path.
 - Portals, mirrors, stereo/cube views, partial viewports, and later secondary
   scenes are deliberately raster-owned until they have independent history and
   composition contracts.

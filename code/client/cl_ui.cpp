@@ -28,6 +28,7 @@ extern "C" {
 
 #include "client_cpp.h"
 #include "ql_font_bridge.hpp"
+#include "../compat/game_abi_adapter.h"
 
 #include <algorithm>
 #include <array>
@@ -851,12 +852,18 @@ static intptr_t CL_UISystemCalls( intptr_t *args ) {
 		return 0;
 
 	case UI_CVAR_CREATE:
-		Cvar_Register( nullptr, VMA(1), VMA(2), args[3], uivm->privateFlag );
+		if ( uivm->dllExports ) {
+			Cvar_Register( nullptr, VMA(1), VMA(2), args[3], uivm->privateFlag );
+		} else {
+			Cvar_RegisterLegacy( nullptr, VMA(1), VMA(2), args[3], uivm->privateFlag );
+		}
 		return 0;
 
 	case UI_CVAR_INFOSTRINGBUFFER:
 		VM_CHECKBOUNDS( uivm, args[2], args[3] );
-		Cvar_InfoStringBuffer( args[1], VMA(2), args[3] );
+		Cvar_InfoStringBuffer( uivm->dllExports ? args[1]
+			: FnTech3_Q3CvarFlagsToInternal( static_cast<uint32_t>( args[1] ) ),
+			VMA(2), args[3] );
 		return 0;
 
 	case UI_ARGC:
@@ -936,6 +943,9 @@ static intptr_t CL_UISystemCalls( intptr_t *args ) {
 	case UI_R_RENDERSCENE: {
 		const refdef_t *vmRefdef = VMA(1);
 		refdef_t refdef = *vmRefdef;
+		if ( Com_GameIsQuake3() ) {
+			refdef.rdflags |= RDF_NOFOVCORRECTION;
+		}
 		CL_UIAdjustRefdef( &refdef );
 		re.RenderScene( &refdef );
 		return 0;
@@ -1970,7 +1980,15 @@ whether reactivating the main menu would replace an already-visible menu.
 ====================
 */
 qboolean CL_UIMenusAreVisible( void ) {
-	return ( uivm && VM_Call( uivm, 0, UI_MENUS_ANY_VISIBLE ) ) ? qtrue : qfalse;
+	if ( !uivm ) {
+		return qfalse;
+	}
+	if ( !uivm->dllExports ) {
+		// Q3's legacy export table has no menu-stack query. Its UI owns
+		// input while a menu is active; never call a retail QL-only ordinal.
+		return ( Key_GetCatcher() & KEYCATCH_UI ) ? qtrue : qfalse;
+	}
+	return VM_Call( uivm, 0, UI_MENUS_ANY_VISIBLE ) ? qtrue : qfalse;
 }
 
 
@@ -1998,6 +2016,29 @@ CL_InitUI
 ====================
 */
 #define UI_OLD_API_VERSION	4
+
+static bool CL_UIApiVersionSupported( int version, bool structured ) {
+	if ( Com_GameIsQuake3() ) {
+		return !structured && ( version == UI_OLD_API_VERSION
+			|| version == UI_Q3_API_VERSION );
+	}
+	if ( structured ) {
+		return version == UI_QL_API_VERSION;
+	}
+	// Retain the inherited QL legacy fallback acceptance set. Its runtime
+	// compatibility still needs separate evidence from retail structured UI.
+	return version == UI_OLD_API_VERSION || version == UI_Q3_API_VERSION
+		|| version == UI_API_VERSION || version == UI_QL_API_VERSION;
+}
+
+static const char *CL_UIModuleLoadFailureMessage( void ) {
+	if ( Com_GameIsQuake3() ) {
+		return "VM_Create on UI failed for Quake III Arena; verify the selected "
+			"baseq3/mod contains vm/ui.qvm or a compatible native UI module";
+	}
+	return "VM_Create on UI failed; retail Quake Live on Windows requires "
+		"the Win32 fnTech3 build and legitimate retail UI modules";
+}
 
 void CL_InitUI( void ) {
 	int		v;
@@ -2030,21 +2071,24 @@ void CL_InitUI( void ) {
 			FS_PureServerSetLoadedPaks( "", "" );
 			uivm = VM_CreateNative( VM_UI, CL_UISystemCalls, UI_DllSyscall, interpret, ql_ui_imports, UI_QL_API_VERSION );
 			if ( !uivm ) {
-				Com_Error( ERR_FATAL, "VM_Create on UI failed; retail Quake Live on Windows requires the Win32 FnQL build" );
+				Com_Error( ERR_FATAL, "%s", CL_UIModuleLoadFailureMessage() );
 			}
 		} else {
-			Com_Error( ERR_FATAL, "VM_Create on UI failed; retail Quake Live on Windows requires the Win32 FnQL build" );
+			Com_Error( ERR_FATAL, "%s", CL_UIModuleLoadFailureMessage() );
 		}
 	}
 
 	// sanity check
 	v = VM_Call( uivm, 0, UI_GETAPIVERSION );
-	if ( v != UI_OLD_API_VERSION && v != UI_Q3_API_VERSION && v != UI_API_VERSION && v != UI_QL_API_VERSION ) {
+	if ( !CL_UIApiVersionSupported( v, uivm->dllExports != nullptr ) ) {
+		const char *expected = Com_GameIsQuake3() ? "4 or 6"
+			: uivm->dllExports ? "8" : "4, 6, 7 or 8";
 		// Free uivm now, so UI_SHUTDOWN doesn't get called later.
 		VM_Free( uivm );
 		uivm = nullptr;
 
-		Com_Error( ERR_DROP, "User Interface is version %d, expected %d or %d", v, UI_API_VERSION, UI_QL_API_VERSION );
+		Com_Error( ERR_DROP, "User Interface is version %d, expected %s for %s",
+			v, expected, Com_GameProfile()->displayName );
 		cls.uiStarted = qfalse;
 		return;
 	}

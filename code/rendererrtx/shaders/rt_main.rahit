@@ -14,6 +14,23 @@ const uint RTX_RT_MATFLAG_ALPHA_LT = 1u << 8;
 const uint RTX_RT_MATFLAG_CULL_FRONT = 1u << 9;
 const uint RTX_RT_MATFLAG_CULL_BACK = 1u << 10;
 const uint RTX_RT_MATFLAG_RASTER_OVERLAY = 1u << 11;
+const uint RTX_RT_MATFLAG_SECONDARY_VISIBLE = 1u << 12;
+
+struct RtRadiancePayload {
+	vec3 color;
+	float hitT;
+	vec3 normal;
+	uint flags;
+	float shadowFactor;
+	float shadowResponse;
+	vec3 shadowLoss;
+	vec3 nextOrigin;
+	vec3 nextDirection;
+	vec3 nextWeight;
+	uint pathDepth;
+};
+
+layout(location = 0) rayPayloadInEXT RtRadiancePayload payloadRadiance;
 
 struct RtPackedVertex {
 	vec4 xyz;
@@ -22,6 +39,7 @@ struct RtPackedVertex {
 	vec2 texCoord;
 	uint color;
 	uint materialIndex;
+	vec4 lightmapData;
 };
 
 struct RtGpuMaterial {
@@ -132,11 +150,15 @@ void main()
 	if ((materialFlags & RTX_RT_MATFLAG_RASTER_OVERLAY) != 0u) {
 		if (!shadowRay) {
 			/*
-			 * Authored overlays never replace the native RT primary result.
-			 * Their raster pass supplies final color after the trace.
+			 * Camera overlays stay raster owned. Only explicit opaque/masked
+			 * model casters can supply radiance to a secondary scene ray;
+			 * unsupported authored world stages cannot become fake mirrors.
 			 */
-			ignoreIntersectionEXT;
-			return;
+			if (payloadRadiance.pathDepth == 0u ||
+				(materialFlags & RTX_RT_MATFLAG_SECONDARY_VISIBLE) == 0u) {
+				ignoreIntersectionEXT;
+				return;
+			}
 		}
 
 		if ((materialFlags &

@@ -4614,7 +4614,9 @@ static void vk_create_geometry_buffers( VkDeviceSize size )
 		SET_OBJECT_NAME( vk.tess[i].vertex_buffer, va( "geometry buffer %i", i ), VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT );
 	}
 
-	vk.geometry_buffer_size = vb_memory_requirements.size;
+	/* Allocation padding separates the mapped buffers but is not addressable
+	 * through VkBuffer. Upload/descriptor bounds must use its logical size. */
+	vk.geometry_buffer_size = size;
 
 	vk_reset_transient_stats();
 }

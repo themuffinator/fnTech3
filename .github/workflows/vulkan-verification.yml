@@ -183,7 +183,7 @@ jobs:
             python scripts/vk_runtime_sweep.py \
               --gate "$gate" \
               --dry-run \
-              --exe ".tmp/vk-gate-plans/fnql" \
+              --exe ".tmp/vk-gate-plans/fntech3" \
               --basepath ".tmp/vk-gate-plans/basepath" \
               --output-dir ".tmp/vk-gate-plans" \
               --summary-markdown ".tmp/vk-gate-plans/${gate}.md"

@@ -160,7 +160,7 @@ class RtxRendererContractSourceTests(unittest.TestCase):
         self.assertIn('ri.Cmd_AddCommand( "advertlist", R_AdvertisementList_f );', init)
         self.assertIn('ri.Cmd_RemoveCommand( "advertlist" );', init)
 
-    def test_rtx_keeps_ql_view_flags_and_does_not_reintroduce_fov_correction(self) -> None:
+    def test_rtx_keeps_ql_view_flags_and_uses_profile_gated_fov_policy(self) -> None:
         renderer_sources = "\n".join(
             path.read_text(encoding="utf-8", errors="ignore")
             for path in (ROOT / "code" / "rendererrtx").glob("*.[ch]")
@@ -170,6 +170,9 @@ class RtxRendererContractSourceTests(unittest.TestCase):
         self.assertIn("RDF_NOFIRSTPERSON", main)
         self.assertNotIn("r_fovCorrection", renderer_sources)
         self.assertNotIn("RDF_NOFOVCORRECTION", renderer_sources)
+        self.assertIn("R_ApplyProfileFovCorrection", renderer_sources)
+        fov = read("code/renderercommon/tr_q3_fov.h")
+        self.assertIn('ri.Cvar_VariableString( "com_gameProfile" ), "quake3"', fov)
 
     def test_new_presentation_and_rt_features_are_conservative_by_default(self) -> None:
         init = read("code/rendererrtx/tr_init.c")
@@ -566,8 +569,8 @@ class RtxRendererContractSourceTests(unittest.TestCase):
                 "shader_t *R_FindShaderByName"
             )
         ]
-        self.assertIn("lightmapBundleCount == 0", native)
-        self.assertIn("current RT vertex/material ABI carries only base UVs", native)
+        self.assertIn("lightmapBundleCount <= 1", native)
+        self.assertIn("Native vertices carry independent lightmap coordinates", native)
 
         material_start = vk.index("static void vk_rt_translate_shader_to_material")
         material_start = vk.index(

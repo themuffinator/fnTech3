@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 #include "cm_local.h"
+#include "cm_game_contract.h"
 #include "cm_trace_contract.h"
 
 // always use bbox vs. bbox collision and never capsule vs. bbox or vice versa
@@ -823,20 +824,18 @@ the cylinder extends halfheight above and below the origin
 */
 static void CM_TraceThroughVerticalCylinder( traceWork_t *tw, const vec3_t origin, float radius, float halfheight, const vec3_t start, const vec3_t end ) {
 	static cvar_t *cylinderScale;
+	const comGameProfile_t *gameProfile = Com_GameProfile();
 	float length, scale, fraction, l1, l2;
 	//float a;
 	float b, c, d, sqrtd;
 	vec3_t v1, dir, start2d, end2d, org2d, intersection;
 
-	if ( !cylinderScale ) {
-		cylinderScale = Cvar_Get( "sv_cylinderScale", "1.1f", 0 );
-	}
-	/* SV_Init bounds this operator-facing value. Retain a local finite-range
-	 * fallback because collision can also be entered during early tooling. */
-	if ( cylinderScale->value >= 0.0f && cylinderScale->value <= 16.0f ) {
-		radius *= cylinderScale->value;
-	} else {
-		radius *= 1.1f;
+	if ( gameProfile && gameProfile->id == COM_GAME_QUAKELIVE ) {
+		if ( !cylinderScale ) {
+			cylinderScale = Cvar_Get( "sv_cylinderScale", "1.1f", 0 );
+		}
+		radius = CM_VerticalCylinderRadiusForGame(
+			gameProfile->id, radius, cylinderScale->value );
 	}
 
 	// 2d coordinates

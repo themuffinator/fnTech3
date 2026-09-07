@@ -727,9 +727,14 @@ static void SV_WritePureAwareConfigstring( msg_t &msg, int index,
 }
 
 
-static void SV_WriteBaselineMessage( msg_t &msg, const entityState_t &nullstate, int entityNum ) {
+static void SV_WriteBaselineMessage( msg_t &msg, const entityState_t &nullstate,
+	int entityNum, netchanWireProfile_t profile ) {
 	MSG_WriteByte( &msg, svc_baseline );
-	MSG_WriteDeltaEntity( &msg, &nullstate, &sv.svEntities[ entityNum ].baseline, qtrue );
+	if ( !MSG_WriteDeltaEntityForWireProfile( &msg, &nullstate,
+		&sv.svEntities[ entityNum ].baseline, qtrue, profile ) ) {
+		Com_Error( ERR_DROP, "%s: invalid wire profile %i",
+			__func__, static_cast<int>( profile ) );
+	}
 }
 
 
@@ -763,7 +768,8 @@ static void SV_WriteDemoGamestate( client_t *client )
 			continue;
 		}
 
-		SV_WriteBaselineMessage( msg, nullstate, entityNum );
+		SV_WriteBaselineMessage( msg, nullstate, entityNum,
+			client->netchan.wireProfile );
 	}
 
 	MSG_WriteByte( &msg, svc_EOF );
@@ -1169,7 +1175,8 @@ static void SV_UnlockEventAchievement( int clientNum,
 }
 
 static void SV_FlushClientStats( int clientNum ) {
-	if ( clientNum < 0 || clientNum >= MAX_CLIENTS || !svs.clients ) {
+	if ( !Com_GameIsQuakeLive() || clientNum < 0
+		|| clientNum >= MAX_CLIENTS || !svs.clients ) {
 		return;
 	}
 	client_t &client = svs.clients[clientNum];
@@ -1234,6 +1241,10 @@ static void SV_FlushClientStats( int clientNum ) {
 }
 
 void SV_FlushAllSteamStats( void ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return;
+	}
+
 	for ( int clientNum = 0; clientNum < sv.maxclients; ++clientNum ) {
 		SV_FlushClientStats( clientNum );
 	}
@@ -1241,6 +1252,10 @@ void SV_FlushAllSteamStats( void ) {
 
 void SV_HandleSteamProviderEvent( unsigned int type, int result,
 		uint64_t subjectId ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return;
+	}
+
 	if ( subjectId == 0 || !svs.clients ) {
 		return;
 	}
@@ -1502,6 +1517,7 @@ void SV_DirectConnect( const netadr_t *from ) {
 	bool		platformAuthSession = false;
 	bool		platformAuthTicketSession = false;
 	bool		platformAuthValidated = false;
+	const fnql::protocol::Contract *protocolContract;
 
 	Com_DPrintf( "SVC_DirectConnect()\n" );
 
@@ -1580,6 +1596,16 @@ void SV_DirectConnect( const netadr_t *from ) {
 		return;
 	}
 	cl_proto = SV_ParseInt( v );
+	if ( !Com_GameProfileAllowsProtocol( Com_GameProfile(), cl_proto ) ) {
+		if ( !SVC_RateLimit( &bucket, 10, 200 ) ) {
+			NET_OutOfBandPrint( NS_SERVER, from,
+				"print\nProtocol version %i is not supported by this game profile.\n",
+				cl_proto );
+		}
+		Com_DPrintf( "    rejected connect from unsupported protocol %i\n",
+			cl_proto );
+		return;
+	}
 
 	sv_proto = com_protocol->integer;
 
@@ -1622,6 +1648,16 @@ void SV_DirectConnect( const netadr_t *from ) {
 			// enforce dm68-compatible stream for other clients
 			compat = true;
 		}
+	}
+	protocolContract = fnql::protocol::Find( cl_proto, compat );
+	if ( !protocolContract ) {
+		if ( !SVC_RateLimit( &bucket, 10, 200 ) ) {
+			NET_OutOfBandPrint( NS_SERVER, from,
+				"print\nUnsupported protocol version %i.\n", cl_proto );
+		}
+		Com_DPrintf( "    rejected connect without an exact protocol contract for %i\n",
+			cl_proto );
+		return;
 	}
 
 	// we don't need these keys after connection, release some space in userinfo
@@ -2093,7 +2129,8 @@ int SV_RemainingGameState( void )
 		if ( !sv.baselineUsed[ entityNum ] ) {
 			continue;
 		}
-		SV_WriteBaselineMessage( msg, nullstate, entityNum );
+		SV_WriteBaselineMessage( msg, nullstate, entityNum,
+			NETCHAN_WIRE_QL_RETAIL );
 	}
 
 	MSG_WriteByte( &msg, svc_EOF );
@@ -2206,7 +2243,8 @@ static void SV_SendClientGameState( client_t *client ) {
 		if ( !sv.baselineUsed[ entityNum ] ) {
 			continue;
 		}
-		SV_WriteBaselineMessage( msg, nullstate, entityNum );
+		SV_WriteBaselineMessage( msg, nullstate, entityNum,
+			client->netchan.wireProfile );
 	}
 
 	MSG_WriteByte( &msg, svc_EOF );
@@ -2249,6 +2287,7 @@ SV_ClientEnterWorld
 */
 void SV_ClientEnterWorld( client_t *client, const usercmd_t *cmd ) {
 	sharedEntity_t *ent;
+	sharedEntity_t entity;
 	bool isBot;
 	int clientNum;
 
@@ -2274,7 +2313,15 @@ void SV_ClientEnterWorld( client_t *client, const usercmd_t *cmd ) {
 	// set up the entity for the client
 	clientNum = SV_ClientIndex( client );
 	ent = SV_GentityNum( clientNum );
-	ent->s.number = clientNum;
+	if ( !SV_ReadGameEntity( ent, &entity ) ) {
+		Com_Error( ERR_DROP, "%s: invalid client gentity", __func__ );
+		return;
+	}
+	entity.s.number = clientNum;
+	if ( !SV_WriteGameEntity( ent, &entity ) ) {
+		Com_Error( ERR_DROP, "%s: client gentity write failed", __func__ );
+		return;
+	}
 	client->gentity = ent;
 
 	client->deltaMessage = fnql::net::RetreatSequence(
@@ -2772,37 +2819,73 @@ static int SV_MixedClientChecksumFeed( const std::array<int, 512> &checksums, in
 }
 
 
+static bool SV_ParsePureChecksum( const char *text, int &value ) {
+	uint32_t magnitude = 0;
+	bool negative = false;
+	if ( !text || !*text ) {
+		return false;
+	}
+	if ( *text == '-' || *text == '+' ) {
+		negative = *text++ == '-';
+	}
+	if ( !*text ) {
+		return false;
+	}
+	const uint32_t limit = negative ? UINT32_C( 2147483648 ) : UINT32_C( 2147483647 );
+	for ( ; *text; ++text ) {
+		if ( *text < '0' || *text > '9' ) {
+			return false;
+		}
+		const uint32_t digit = static_cast<uint32_t>( *text - '0' );
+		if ( magnitude > ( limit - digit ) / 10 ) {
+			return false;
+		}
+		magnitude = magnitude * 10 + digit;
+	}
+	value = negative ? static_cast<int>( -static_cast<int64_t>( magnitude ) )
+		: static_cast<int>( magnitude );
+	return true;
+}
+
 static void SV_VerifyPaks_f( client_t *cl ) {
-	int nBinChkSum, nChkSum1, nClientPaks, i, nCurArg;
+	int nBinChkSum, nUiChkSum, nChkSum1, nClientPaks, i, nCurArg;
 	std::array<int, 512> nClientChkSum{};
 	const char *pArg;
 	bool bGood = true;
 
 	// if we are pure, we "expect" the client to load certain things from
 	// certain pk3 files, namely we want the client to have loaded the
-	// retail cgame binary that we think should be loaded based on the pure setting
+	// profile's cgame/UI modules based on the pure setting
 	//
 	if ( sv.pure != 0 ) {
 
-		nBinChkSum = nChkSum1 = 0;
-		bGood = FS_FileIsInPAK( QL_NATIVE_CGAME_DLL, &nBinChkSum, nullptr );
+		nBinChkSum = nUiChkSum = nChkSum1 = 0;
+		if ( Com_GameIsQuake3() ) {
+			bGood = FS_FileIsInPAK( "vm/cgame.qvm", &nBinChkSum, nullptr );
+			if ( !FS_FileIsInPAK( "vm/ui.qvm", &nUiChkSum, nullptr ) ) {
+				bGood = false;
+			}
+		} else {
+			bGood = FS_FileIsInPAK( QL_NATIVE_CGAME_DLL, &nBinChkSum, nullptr );
+		}
 
 		nClientPaks = Cmd_Argc();
 
 		if ( nClientPaks > SV_ArraySize(nClientChkSum) )
-			nClientPaks = SV_ArraySize(nClientChkSum);
+			bGood = false;
 
 		// start at arg 2 ( skip serverId cl_paks )
 		nCurArg = 1;
 
 		pArg = Cmd_Argv(nCurArg++);
-		if ( !*pArg ) {
+		int incomingServerId;
+		if ( !SV_ParsePureChecksum( pArg, incomingServerId ) ) {
 			bGood = false;
 		}
 		else
 		{
 			// we may get incoming cp sequences from a previous serverId, which we need to ignore
-			if ( SV_ParseInt( pArg ) != sv.serverId /* || !cl->gamestateAcked */ ) {
+			if ( incomingServerId != sv.serverId /* || !cl->gamestateAcked */ ) {
 				Com_DPrintf( "ignoring outdated cp command from client %s\n", cl->name );
 				return;
 			}
@@ -2811,27 +2894,41 @@ static void SV_VerifyPaks_f( client_t *cl ) {
 		// we basically use this while loop to avoid using 'goto' :)
 		while (bGood) {
 
-			// must be at least 6: "cl_paks serverId bin @ firstref ... numChecksums"
-			// numChecksums is encoded
+			// Q3: cp serverId cgame ui @ refs... mixedChecksum (zero refs allowed).
+			// QL: cp serverId bin @ firstref refs... mixedChecksum.
 			if (nClientPaks < 6) {
 				bGood = false;
 				break;
 			}
 			// verify first to be the binary checksum
 			pArg = Cmd_Argv(nCurArg++);
-			if ( !*pArg || *pArg == '@' || SV_ParseInt(pArg) != nBinChkSum ) {
+			int moduleChecksum;
+			if ( !SV_ParsePureChecksum( pArg, moduleChecksum ) || moduleChecksum != nBinChkSum ) {
 				bGood = false;
 				break;
 			}
+			if ( Com_GameIsQuake3() ) {
+				if ( !SV_ParsePureChecksum( Cmd_Argv(nCurArg++), moduleChecksum )
+					|| moduleChecksum != nUiChkSum ) {
+					bGood = false;
+					break;
+				}
+			}
 			// should be sitting at the delimeter now
 			pArg = Cmd_Argv(nCurArg++);
-			if (*pArg != '@') {
+			if ( strcmp( pArg, "@" ) != 0 ) {
 				bGood = false;
 				break;
 			}
 			// store checksums since tokenization is not re-entrant
 			for (i = 0; nCurArg < nClientPaks; i++) {
-				nClientChkSum[i] = SV_ParseInt(Cmd_Argv(nCurArg++));
+				if ( !SV_ParsePureChecksum( Cmd_Argv(nCurArg++), nClientChkSum[i] ) ) {
+					bGood = false;
+					break;
+				}
+			}
+			if ( !bGood ) {
+				break;
 			}
 
 			// store number to compare against (minus one cause the last is the number of checksums)
@@ -3325,7 +3422,11 @@ static void SV_UserMove( client_t *cl, msg_t *msg, bool delta ) {
 	oldcmd = &nullcmd;
 	for ( int i : SV_Indices( cmdCount ) ) {
 		cmd = &cmds[i];
-		MSG_ReadDeltaUsercmdKey( msg, key, oldcmd, cmd );
+		if ( !MSG_ReadDeltaUsercmdKeyForWireProfile( msg, key, oldcmd, cmd,
+			cl->netchan.wireProfile ) ) {
+			SV_DropClient( cl, "Invalid or truncated user command" );
+			return;
+		}
 		oldcmd = cmd;
 	}
 

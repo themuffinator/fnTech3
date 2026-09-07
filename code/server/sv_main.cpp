@@ -780,7 +780,7 @@ static void SVC_Status( const netadr_t *from ) {
 	std::array<char, MAX_NAME_LENGTH + 32> player{}; // score + ping + name
 	std::array<char, MAX_PACKETLEN> status{};
 	char	*s;
-	playerState_t	*ps;
+	playerState_t	ps;
 	int		statusLength;
 	int		playerLength;
 	std::array<char, MAX_INFO_STRING + 160> infostring{}; // add some space for challenge string
@@ -825,9 +825,11 @@ static void SVC_Status( const netadr_t *from ) {
 	for ( SV_ClientSlot slot : SV_ClientSlots() ) {
 		if ( slot.client.state >= CS_CONNECTED ) {
 
-			ps = SV_GameClientNum( slot.index );
+			if ( !SV_ReadGameClient( slot.index, &ps ) ) {
+				continue;
+			}
 			playerLength = Com_sprintf( player.data(), SV_ArraySize(player), "%i %i \"%s\"\n", 
-				ps->persistant[ PERS_SCORE ], slot.client.ping, slot.client.name );
+				ps.persistant[ PERS_SCORE ], slot.client.ping, slot.client.name );
 			
 			if ( statusLength + playerLength >= MAX_PACKETLEN-4 )
 				break; // can't hold any more
@@ -1184,7 +1186,6 @@ static void SV_CalcPings( void ) {
 	int			j;
 	int			total, count;
 	int			delta;
-	playerState_t	*ps;
 
 	for ( SV_ClientSlot slot : SV_ClientSlots() ) {
 		client_t &client = slot.client;
@@ -1221,8 +1222,11 @@ static void SV_CalcPings( void ) {
 		}
 
 		// let the game dll know about the ping
-		ps = SV_GameClientNum( slot.index );
-		ps->ping = client.ping;
+		if ( !SV_SetGameClientPing( slot.index, client.ping ) ) {
+			Com_Error( ERR_DROP, "%s: invalid game client %i", __func__,
+				slot.index );
+			return;
+		}
 	}
 }
 

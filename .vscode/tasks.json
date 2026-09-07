@@ -106,7 +106,7 @@
       ]
     },
     {
-      "label": "Release: Build FnQL Full",
+      "label": "Release: Build fnTech3 Full",
       "dependsOrder": "sequence",
       "dependsOn": [
         "meson: build (Steam)"
@@ -120,7 +120,7 @@
       "args": [
         "${workspaceFolder}\\scripts\\glx_runtime_sweep.py",
         "--exe",
-        "${workspaceFolder}\\meson\\build\\win32\\fnql.exe",
+        "${workspaceFolder}\\meson\\build\\win32\\fntech3.exe",
         "--renderers",
         "glx,vk",
         "--switch-sequence",

@@ -117,7 +117,7 @@ def make_macos_release_members(
         member("FnQL.app/Contents/MacOS/FnQL", macho, 0o755),
         member("FnQL.app/Contents/MacOS/FnQL-pkg.fnz", b"package", 0o644),
         member("FnQL.app/Contents/MacOS/fnql-web.pak", b"web", 0o644),
-        member("fnql.ded", macho, 0o755),
+        member("fntech3.ded", macho, 0o755),
         member("fnql-audiozonesc", macho, 0o755),
         *(
             member(f"{renderer_parent}/fnql_{renderer}_x86_64.dylib", macho, 0o755)
@@ -134,9 +134,9 @@ def make_macos_release_members(
 
 def populate_linux_release_stage(stage_root: Path, *, include_server: bool = True) -> None:
     elf = make_elf_i386()
-    (stage_root / "fnql").write_bytes(elf)
+    (stage_root / "fntech3").write_bytes(elf)
     if include_server:
-        (stage_root / "fnql.ded").write_bytes(elf)
+        (stage_root / "fntech3.ded").write_bytes(elf)
     for renderer in release.PUBLIC_RENDERERS:
         (stage_root / f"fnql_{renderer}_x86.so").write_bytes(elf)
     release.copy_docs(stage_root)
@@ -149,7 +149,7 @@ def populate_macos_release_stage(stage_root: Path) -> None:
     macos.mkdir(parents=True)
     macho = make_macho64(release.MACOS_X86_64_CPU)
     (macos / "FnQL").write_bytes(macho)
-    (stage_root / "fnql.ded").write_bytes(macho)
+    (stage_root / "fntech3.ded").write_bytes(macho)
     (stage_root / "fnql-audiozonesc").write_bytes(macho)
     for renderer in release.PUBLIC_RENDERERS:
         (macos / f"fnql_{renderer}_x86_64.dylib").write_bytes(macho)
@@ -183,7 +183,7 @@ class ReleasePackagingTests(unittest.TestCase):
             source = root / "artifact"
             target = root / "stage"
             source.mkdir()
-            (source / "fnql.x86").write_text("binary", encoding="utf-8")
+            (source / "fntech3").write_text("binary", encoding="utf-8")
             (source / "README.txt").write_text("keep", encoding="utf-8")
             (source / "baseq3" / "maps").mkdir(parents=True)
             (source / "baseq3" / "maps" / "q3dm1.azb").write_bytes(b"zones")
@@ -211,7 +211,7 @@ class ReleasePackagingTests(unittest.TestCase):
                 "README.txt",
                 "baseq3/maps/q3dm1.azb",
                 "cpma/vm/cgame.qvm",
-                "fnql.x86",
+                "fntech3",
             ],
         )
         self.assertIn("renderer.pdb", skipped)
@@ -224,6 +224,9 @@ class ReleasePackagingTests(unittest.TestCase):
         destinations = {destination.as_posix() for _source, destination in release.DEFAULT_DOCS}
 
         self.assertIn("LICENSE", destinations)
+        self.assertIn("CREDITS.md", destinations)
+        self.assertIn("THIRD_PARTY_NOTICES.md", destinations)
+        self.assertIn("docs/fntech3/COMPATIBILITY.md", destinations)
         self.assertIn("README.html", destinations)
         self.assertIn("docs/fnql/TECHNICAL.md", destinations)
         self.assertIn("docs/fnql/RTX_RENDERER.md", destinations)
@@ -254,8 +257,8 @@ class ReleasePackagingTests(unittest.TestCase):
             verify_release_layout.verify_release_layout(first)
             members = {member.name: member for member in release.read_release_archive(first)}
 
-        self.assertEqual(members["fnql"].mode, 0o755)
-        self.assertEqual(members["fnql.ded"].mode, 0o755)
+        self.assertEqual(members["fntech3"].mode, 0o755)
+        self.assertEqual(members["fntech3.ded"].mode, 0o755)
         self.assertEqual(members[release.FNQL_WEBPAK_NAME].mode, 0o644)
         for renderer in release.PUBLIC_RENDERERS:
             self.assertEqual(members[f"fnql_{renderer}_x86.so"].mode, 0o755)
@@ -305,11 +308,11 @@ class ReleasePackagingTests(unittest.TestCase):
                 "linux-x86",
             )
 
-            self.assertEqual(identities["client"]["member"], "fnql")
+            self.assertEqual(identities["client"]["member"], "fntech3")
             self.assertEqual(identities["glxModule"]["member"], "fnql_glx_x86.so")
             self.assertEqual(
                 identities["client"]["sha256"],
-                hashlib.sha256((stage_root / "fnql").read_bytes()).hexdigest(),
+                hashlib.sha256((stage_root / "fntech3").read_bytes()).hexdigest(),
             )
             self.assertEqual(
                 identities["glxModule"]["sha256"],
@@ -320,7 +323,7 @@ class ReleasePackagingTests(unittest.TestCase):
             windows_stage.mkdir()
             windows_client = make_pe(dll=False)
             windows_glx = make_pe(dll=True)
-            (windows_stage / "fnql.exe").write_bytes(windows_client)
+            (windows_stage / "fntech3.exe").write_bytes(windows_client)
             (windows_stage / "fnql_glx_x86.dll").write_bytes(windows_glx)
             windows_archive = root / "fnql-windows-x86.zip"
             release.write_release_archive(windows_stage, windows_archive)
@@ -330,7 +333,7 @@ class ReleasePackagingTests(unittest.TestCase):
                     windows_archive,
                     variant,
                 )
-                self.assertEqual(windows_identities["client"]["member"], "fnql.exe")
+                self.assertEqual(windows_identities["client"]["member"], "fntech3.exe")
                 self.assertEqual(
                     windows_identities["glxModule"]["member"],
                     "fnql_glx_x86.dll",
@@ -388,17 +391,17 @@ class ReleasePackagingTests(unittest.TestCase):
             root = Path(tmp)
             stage_root = root / "stage"
             stage_root.mkdir()
-            (stage_root / "fnql.exe").write_bytes(b"not-a-real-binary")
+            (stage_root / "fntech3.exe").write_bytes(b"not-a-real-binary")
             first = root / "fnql-windows-x86.zip"
             second = root / "fnql-windows-x86-copy.zip"
 
             release.write_release_archive(stage_root, first)
-            (stage_root / "fnql.exe").touch()
+            (stage_root / "fntech3.exe").touch()
             release.write_release_archive(stage_root, second)
 
             self.assertEqual(first.read_bytes(), second.read_bytes())
             with zipfile.ZipFile(first) as archive:
-                info = archive.getinfo("fnql.exe")
+                info = archive.getinfo("fntech3.exe")
                 self.assertEqual(info.date_time, release.RELEASE_ZIP_DATETIME)
                 self.assertEqual((info.external_attr >> 16) & 0o7777, 0o644)
 
@@ -640,7 +643,7 @@ class ReleasePackagingTests(unittest.TestCase):
     def test_windows_release_requires_the_closed_provider_binary(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            (root / "fnql.exe").write_text("binary", encoding="utf-8")
+            (root / "fntech3.exe").write_text("binary", encoding="utf-8")
 
             with self.assertRaisesRegex(ValueError, "missing fnql_steam.dll"):
                 release.validate_stage_tree(root)
@@ -648,7 +651,7 @@ class ReleasePackagingTests(unittest.TestCase):
     def test_windows_release_forbids_valve_redistributable(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            (root / "fnql.exe").write_text("binary", encoding="utf-8")
+            (root / "fntech3.exe").write_text("binary", encoding="utf-8")
             (root / "fnql_steam.dll").write_bytes(make_pe(dll=True))
             (root / "steam_api.dll").write_bytes(make_pe(dll=True))
 
@@ -659,7 +662,7 @@ class ReleasePackagingTests(unittest.TestCase):
         for runtime in ("libgcc_s_dw2-1.dll", "z-1.dll"):
             with self.subTest(runtime=runtime), tempfile.TemporaryDirectory() as tmp:
                 root = Path(tmp)
-                (root / "fnql.exe").write_bytes(
+                (root / "fntech3.exe").write_bytes(
                     make_pe(dll=False, imports=("KERNEL32.dll", runtime))
                 )
                 (root / "fnql_steam.dll").write_bytes(make_pe(dll=True))
@@ -761,7 +764,7 @@ class ReleasePackagingTests(unittest.TestCase):
             binary[60:64] = (64).to_bytes(4, "little")
             binary[64:68] = b"PE\0\0"
             binary[68:70] = (0x8664).to_bytes(2, "little")
-            (root / "fnql.exe").write_bytes(binary)
+            (root / "fntech3.exe").write_bytes(binary)
 
             with self.assertRaisesRegex(ValueError, "PE machine 0x8664"):
                 release.validate_stage_tree(root)
@@ -774,7 +777,7 @@ class ReleasePackagingTests(unittest.TestCase):
         elf[18:20] = (62).to_bytes(2, "little")
 
         for name, binary in (
-            ("fnql", bytes(elf)),
+            ("fntech3", bytes(elf)),
             ("fnql.dylib", b"\xcf\xfa\xed\xfe" + bytes(60)),
         ):
             with self.subTest(name=name):
@@ -821,7 +824,7 @@ class ReleasePackagingTests(unittest.TestCase):
             macos.mkdir(parents=True)
             macho = make_macho64(release.MACOS_X86_64_CPU)
             (macos / "FnQL").write_bytes(macho)
-            (stage / "fnql.ded").write_bytes(macho)
+            (stage / "fntech3.ded").write_bytes(macho)
             (stage / "fnql-audiozonesc").write_bytes(macho)
             for renderer in release.PUBLIC_RENDERERS:
                 (macos / f"fnql_{renderer}_x86_64.dylib").write_bytes(macho)
@@ -1001,6 +1004,7 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertIn("-Db_vscrt=static_from_buildtype", workflow)
         self.assertEqual(workflow.count("--wrap-mode=forcefallback"), 2)
         meson = (ROOT / "meson.build").read_text(encoding="utf-8")
+        self.assertIn("'zlib:default_library=static'", meson)
         self.assertIn("'zstd=disabled'", meson)
         self.assertIn("'brotli=disabled'", meson)
         self.assertIn("'ssh=disabled'", meson)

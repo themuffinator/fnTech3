@@ -94,13 +94,81 @@ class RtxRuntimeSmokeTests(unittest.TestCase):
         (retail / "web.pak").write_bytes(b"retail-marker")
         return retail
 
-    def test_script_does_not_assume_quake_three_fixture_names_or_game_dirs(self) -> None:
+    def test_script_does_not_guess_maps_or_mutate_the_installation(self) -> None:
         source = SCRIPT_PATH.read_text(encoding="utf-8").lower()
         self.assertNotIn("q3dm", source)
-        self.assertNotIn("baseq3", source)
         self.assertNotIn("missionpack", source)
         self.assertNotIn("rmtree", source)
         self.assertNotIn(".unlink(", source)
+
+    def test_q3_validation_uses_base_pak_without_ql_or_steam_markers(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            retail = Path(temporary_directory) / "Quake III Arena"
+            (retail / "baseq3").mkdir(parents=True)
+            with self.assertRaisesRegex(ValueError, "missing its base pak"):
+                rtx_runtime_smoke.validate_retail_install(retail, "q3")
+            (retail / "baseq3" / "pak0.pk3").write_bytes(b"fixture-marker")
+            rtx_runtime_smoke.validate_retail_install(retail, "q3")
+            self.assertFalse((retail / "steam_appid.txt").exists())
+            with self.assertRaisesRegex(ValueError, "missing Steam identity"):
+                rtx_runtime_smoke.validate_retail_install(retail, "ql")
+
+    def test_install_discovery_does_not_cross_game_environment_overrides(self) -> None:
+        with mock.patch.dict(rtx_runtime_smoke.os.environ, {
+            "FNQL_RETAIL_QL_PATH": "fixture-ql",
+            "FNTECH3_RETAIL_Q3_PATH": "fixture-q3",
+        }, clear=True):
+            self.assertEqual(rtx_runtime_smoke.resolve_retail_root(None), Path("fixture-ql").resolve())
+            self.assertEqual(rtx_runtime_smoke.resolve_retail_root(None, "q3"), Path("fixture-q3").resolve())
+            self.assertEqual(rtx_runtime_smoke.resolve_retail_root(Path("explicit"), "q3"), Path("explicit").resolve())
+
+    def test_both_profiles_disable_input_and_services_and_preserve_devmap_syntax(self) -> None:
+        for game_profile in ("q3", "ql"):
+            for render_profile in ("raster", "native"):
+                with self.subTest(game=game_profile, renderer=render_profile):
+                    command, screenshot = rtx_runtime_smoke.build_launch_command(
+                        Path("fntech3.exe"), Path("retail"), Path("home"), render_profile,
+                        "fixture_map", "ffa", 960, 540, 600, 30, game_profile)
+                    for name, expected in {
+                        "com_gameProfile": game_profile, "in_mouse": "0", "in_nograb": "1",
+                        "in_joystick": "0", "com_steamIntegration": "0", "fs_skipWorkshop": "1",
+                        "cl_webuiEnable": "0", "r_fullscreen": "0",
+                        "r_vertexLight": "0",
+                    }.items():
+                        self.assertEqual(cvar_value(command, name), expected)
+                    action = command[command.index("+devmap"):]
+                    expected_map = ["+devmap", "fixture_map"] + (["ffa"] if game_profile == "ql" else [])
+                    self.assertEqual(action[:action.index(";")], expected_map)
+                    self.assertEqual(action[action.index(";"):], [
+                        ";", "set", "r_fogMode", "0",
+                        ";", "wait", "600", ";", "gfxinfo", ";", "vkinfo", ";", "screenshotPNG",
+                        screenshot, ";", "wait", "30", ";", "quit"])
+                    self.assertLessEqual(1 + sum(arg.startswith("+") for arg in command),
+                                         rtx_runtime_smoke.MAX_STARTUP_COMMANDS)
+                    self.assertEqual("fs_steampath" in command, game_profile == "ql")
+
+    def test_q3_plan_is_explicit_and_read_only(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            retail = root / "Quake III Arena"
+            (retail / "baseq3").mkdir(parents=True)
+            (retail / "baseq3" / "pak0.pk3").write_bytes(b"fixture-marker")
+            output = root / "must-not-be-created"
+            stdout = io.StringIO()
+            with redirect_stdout(stdout), mock.patch.object(rtx_runtime_smoke, "run_process") as launch:
+                result = rtx_runtime_smoke.main([
+                    "--exe", str(root / "not-built.exe"), "--retail-root", str(retail),
+                    "--game-profile", "q3", "--map", "fixture_map", "--profile", "all",
+                    "--output-dir", str(output), "--plan"])
+            self.assertEqual(result, 0)
+            launch.assert_not_called()
+            self.assertFalse(output.exists())
+            plan = json.loads(stdout.getvalue())
+            self.assertEqual(plan["gameProfile"], "q3")
+            self.assertIsNone(plan["gametype"])
+            self.assertEqual([entry["name"] for entry in plan["profiles"]], ["raster", "native"])
+            for entry in plan["profiles"]:
+                self.assertEqual(entry["cvars"]["com_gameProfile"], "q3")
 
     def test_retail_install_is_verified_by_steam_identity_and_ql_markers(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -407,7 +475,7 @@ class RtxRuntimeSmokeTests(unittest.TestCase):
 
             def fake_run(command, _cwd, log_path, _timeout):
                 homepath = Path(cvar_value(command, "fs_homepath"))
-                screenshot_name = command[command.index("+screenshotPNG") + 1]
+                screenshot_name = command[command.index("screenshotPNG") + 1]
                 screenshot = homepath / "baseq3-not-assumed" / "screenshots" / f"{screenshot_name}.png"
                 screenshot.parent.mkdir(parents=True)
                 screenshot.write_bytes(make_test_png(32, 24))
@@ -420,6 +488,7 @@ class RtxRuntimeSmokeTests(unittest.TestCase):
             with mock.patch.object(rtx_runtime_smoke, "run_process", side_effect=fake_run):
                 manifest, manifest_path = rtx_runtime_smoke.run_smoke(args, root / "retail")
             self.assertTrue(manifest["passed"])
+            self.assertEqual(manifest["gameProfile"], "ql")
             self.assertEqual(
                 manifest["executableEvidence"]["sha256"],
                 hashlib.sha256(executable.read_bytes()).hexdigest(),

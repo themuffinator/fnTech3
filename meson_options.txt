@@ -1,7 +1,12 @@
+option('q3-only',
+  type: 'boolean',
+  value: false,
+  description: 'Experimental Windows x86_64 Q3-only diagnostic build; rejects Quake Live and uses separate output names')
+
 option('build-client',
   type: 'boolean',
   value: true,
-  description: 'Build the unified FnQL client executable')
+  description: 'Build the shared fnTech3 client executable')
 
 option('build-server',
   type: 'boolean',
@@ -74,4 +79,4 @@ option('glx-tests',
 option('strict-warnings',
   type: 'boolean',
   value: false,
-  description: 'Treat warnings in FnQL-owned targets as build errors')
+  description: 'Treat warnings in fnTech3-owned targets as build errors')

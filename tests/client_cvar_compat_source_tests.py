@@ -131,7 +131,6 @@ class ClientCvarCompatibilitySourceTests(unittest.TestCase):
             "cl_showSend": "0",
             "cl_showTimeDelta": "0",
             "cl_timeNudge": "0",
-            "cl_timeout": "40",
             "cl_viewAccel": "1.7",
             "cl_yawspeed": "140",
         }
@@ -145,7 +144,7 @@ class ClientCvarCompatibilitySourceTests(unittest.TestCase):
 
         self.assertRegex(
             self.main,
-            r'Cvar_Get\(\s*"cl_timeout",\s*"40",\s*0\s*\)',
+            r'Cvar_Get\(\s*"cl_timeout",\s*quakeLive\s*\?\s*"40"\s*:\s*"200",\s*0\s*\)',
         )
         self.assertRegex(
             self.main,
@@ -197,6 +196,29 @@ class ClientCvarCompatibilitySourceTests(unittest.TestCase):
             "cl_renderer",
         ):
             self.assertIn(f'"{name}"', self.client_sources)
+
+    def test_q3_module_cvar_flags_cross_an_explicit_translation_boundary(self) -> None:
+        cvar = read("code/qcommon/cvar.c")
+        ui = read("code/client/cl_ui.cpp")
+        adapter = read("code/compat/game_abi_adapter.c")
+
+        self.assertIn("FnTech3_Q3CvarFlagsToInternal", cvar)
+        self.assertIn("translatedFlags", cvar)
+        self.assertRegex(
+            ui,
+            r"(?s)case UI_CVAR_CREATE:.*?if \( uivm->dllExports \).*?"
+            r"Cvar_RegisterLegacy\( nullptr,",
+        )
+        self.assertIn(
+            "FNTECH3_MAP_Q3_CVAR_BIT( FNTECH3_Q3_CVAR_SERVER_CREATED, "
+            "CVAR_SERVER_CREATED )",
+            adapter,
+        )
+        self.assertIn(
+            "FNTECH3_MAP_Q3_CVAR_BIT( FNTECH3_Q3_CVAR_PROTECTED, "
+            "CVAR_PROTECTED )",
+            adapter,
+        )
 
 
 if __name__ == "__main__":

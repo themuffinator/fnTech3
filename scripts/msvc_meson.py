@@ -69,6 +69,9 @@ def configure(
             str(build_dir),
             str(SOURCE_ROOT),
             f"--buildtype={buildtype}",
+            "-Db_vscrt=static_from_buildtype",
+            "-Dzlib:default_library=static",
+            "-Dogg:default_library=static",
             "-Dstrict-warnings=true",
             f"-Drenderers={','.join(renderers)}",
         ]

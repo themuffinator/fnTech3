@@ -16,9 +16,9 @@
     <NMakeBuildCommandLine>$(FnQLPython) "$(FnQLMesonDriver)" build --build-dir "$(FnQLMesonBuildDir)" --buildtype $(FnQLMesonBuildType) --platform $(Platform)</NMakeBuildCommandLine>
     <NMakeReBuildCommandLine>$(FnQLPython) "$(FnQLMesonDriver)" rebuild --build-dir "$(FnQLMesonBuildDir)" --buildtype $(FnQLMesonBuildType) --platform $(Platform)</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>$(FnQLPython) "$(FnQLMesonDriver)" clean --build-dir "$(FnQLMesonBuildDir)" --buildtype $(FnQLMesonBuildType) --platform $(Platform)</NMakeCleanCommandLine>
-    <NMakeOutput>$(FnQLMesonBuildDir)\fnql.exe</NMakeOutput>
+    <NMakeOutput>$(FnQLMesonBuildDir)\fntech3.exe</NMakeOutput>
   </PropertyGroup>
   <Target Name="FnQLRejectUnsupportedPlatform" BeforeTargets="PrepareForBuild;PrepareForNMakeBuild;ClCompile;Link;Lib;NMakeCompileSelectedFiles" Condition="'$(Platform)'!='Win32' Or ('$(PlatformTarget)'!='' And '$(PlatformTarget)'!='x86')">
-    <Error Text="FnQL supports only the Win32 (32-bit x86) platform; select the Win32/x86 target in Configuration Manager." />
+    <Error Text="fnTech3 shared Q3/QL builds support only the Win32 (32-bit x86) platform; select the Win32/x86 target in Configuration Manager." />
   </Target>
 </Project>

@@ -1,9 +1,9 @@
-project('FnQL', 'c', 'cpp',
+project('fnTech3', 'c', 'cpp',
   license: 'GPL-2.0-or-later',
   version: run_command(
     find_program('python3', 'python', required: true),
     '-c',
-    'import re, pathlib; text = pathlib.Path("version/fnql_version.h").read_text(); print(re.search(r"#define FNQL_VERSION_STRING \\"([^\\"]+)\\"", text).group(1))',
+    'import re, pathlib; text = pathlib.Path("version/fntech3_version.h").read_text(); print(re.search(r"#define FNTECH3_VERSION_STRING \\"([^\\"]+)\\"", text).group(1))',
     check: true,
   ).stdout().strip(),
   meson_version: '>= 0.60.0',
@@ -12,6 +12,9 @@ project('FnQL', 'c', 'cpp',
     'cpp_std=c++17',
     'buildtype=debugoptimized',
     'b_vscrt=from_buildtype',
+    # curl's static fallback has a separate zlib subproject. Keep that nested
+    # fallback static too, so installed engines do not depend on z-1.dll.
+    'zlib:default_library=static',
     'warning_level=3',
   ],
 )
@@ -57,6 +60,7 @@ if darwin
   add_languages('objc')
 endif
 cpu_family = host_machine.cpu_family()
+q3_only = get_option('q3-only')
 fnql_x86_target_probe = '''
 #if !defined(_M_IX86) && !defined(__i386__)
 #error FnQL requires an x86 target
@@ -65,8 +69,22 @@ typedef char fnql_pointer_width_must_be_32_bits[(sizeof(void *) == 4) ? 1 : -1];
 int main(void) { return 0; }
 '''
 fnql_target_is_32bit_x86 = cc.compiles(fnql_x86_target_probe, name: '32-bit x86 target')
+if q3_only
+  q3_x64_target_probe = '''
+#if !defined(_WIN32) || (!defined(_M_AMD64) && !defined(__x86_64__))
+#error Q3-only diagnostic builds require Windows x86_64
+#endif
+typedef char q3_pointer_width_must_be_64_bits[(sizeof(void *) == 8) ? 1 : -1];
+int main(void) { return 0; }
+'''
+  if not win32 or cpu_family != 'x86_64' or not cc.compiles(q3_x64_target_probe, name: 'Q3-only Windows x86_64 target')
+    error('-Dq3-only=true is an experimental Windows x86_64 diagnostic target. Configure with a 64-bit Windows compiler; use the default shared Win32 build for Quake Live.')
+  endif
+  warning('Q3-only diagnostic build: Quake Live is disabled. This build does not satisfy the shared Q3/QL release contract.')
+else
 if cpu_family != 'x86' or not fnql_target_is_32bit_x86
-  error('FnQL supports only 32-bit x86 targets; Meson configured host CPU family "' + cpu_family + '" or the compiler target probe failed. Select Win32 on Windows or use an i686 cross file on other platforms.')
+  error('fnTech3 shared Q3/QL builds support only 32-bit x86 targets; Meson configured host CPU family "' + cpu_family + '" or the compiler target probe failed. Select Win32 on Windows or use an i686 cross file on other platforms.')
+endif
 endif
 
 renderer_prefix = 'fnql'
@@ -90,14 +108,22 @@ endif
 
 renderer_arch = 'x86'
 binary_suffix = ''
+if q3_only
+  renderer_arch = 'x86_64'
+  binary_suffix = '-q3'
+endif
 
-client_binary_name = 'fnql' + binary_suffix
-server_binary_name = 'fnql.ded' + binary_suffix
+client_binary_name = 'fntech3' + binary_suffix
+server_binary_name = 'fntech3.ded' + binary_suffix
 
 common_c_args = []
 common_cpp_args = []
 link_args = []
 dll_link_args = []
+if q3_only
+  common_c_args += ['-DFNTECH3_Q3_ONLY=1']
+  common_cpp_args += ['-DFNTECH3_Q3_ONLY=1']
+endif
 
 if cc.get_argument_syntax() == 'gcc'
   common_c_args += cc.get_supported_arguments([
@@ -204,6 +230,7 @@ include_dirs = include_directories(
 )
 
 qcommon_src = [
+	'code/compat/game_abi_adapter.c',
 	'code/platform/fnql_steam.cpp',
 	'code/platform/fnql_workshop.cpp',
 	'code/qcommon/cm_load.c',
@@ -214,8 +241,9 @@ qcommon_src = [
   'code/qcommon/cmd.c',
   'code/qcommon/common.c',
   'code/qcommon/cvar.c',
-  'code/qcommon/files.c',
-  'code/qcommon/history.c',
+	'code/qcommon/files.c',
+	'code/qcommon/game_profile.cpp',
+	'code/qcommon/history.c',
   'code/qcommon/huffman_static.c',
   'code/qcommon/huffman.c',
   'code/qcommon/keys.c',
@@ -254,6 +282,7 @@ endif
 server_src = [
 	'code/server/factory_catalog.cpp',
 	'code/server/factory_rotation.cpp',
+	'code/server/server_game_data.cpp',
   'code/server/sv_bot.cpp',
   'code/server/sv_ccmds.cpp',
   'code/server/sv_client.cpp',
@@ -638,6 +667,7 @@ if win32
     'code/win32/resource.h',
     'code/win32/fnql.ico',
     'version/fnql_version.h',
+    'version/fntech3_version.h',
   )
   if rc_prog.found()
     if rc_prog.full_path().to_lower().contains('windres')
@@ -924,7 +954,7 @@ root_package_assets = stock_audio_zone_sidecars + stock_global_fog_sidecars + fi
 custom_target('FnQL-pkg.fnz',
   input: root_package_assets + files(
     'scripts/build_root_archive.py',
-    'scripts/fnql_meta.py',
+    'scripts/fntech3_meta.py',
     'scripts/root_archive.py',
     'scripts/stock_ql_maps.py',
   ),
@@ -975,6 +1005,7 @@ if get_option('audio-tests')
     output: 'audiozone_authoring_test.azb',
     input: 'tests/audio/authoring_metadata.audiozones',
     command: [audiozonesc, '-o', '@OUTPUT@', '@INPUT@'],
+    build_by_default: true,
   )
   test('fnql_audio_zone_authoring_audit', audiozonesc,
     args: ['--audit', '--strict', '--samples', '512', audiozone_fixture],
@@ -1042,6 +1073,45 @@ if get_option('audio-tests')
     args: [files('tests/audio/audio_zone_material_map_tests.py'), audiozonesc],
   )
 endif
+
+game_profile_tests = executable('fntech3_game_profile_tests',
+  [
+    'tests/game_profile_tests.cpp',
+    'code/qcommon/game_profile.cpp',
+  ],
+  include_directories: include_directories('code/qcommon'),
+  cpp_args: common_cpp_args,
+)
+test('fntech3_game_profiles', game_profile_tests)
+
+game_abi_layout_tests = executable('fntech3_game_abi_layout_tests',
+  'tests/game_abi_layout_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_game_abi_layouts', game_abi_layout_tests)
+
+game_abi_adapter_tests = executable('fntech3_game_abi_adapter_tests',
+  [
+    'tests/game_abi_adapter_tests.cpp',
+    'code/compat/game_abi_adapter.c',
+  ],
+  include_directories: include_directories('code/qcommon', 'code/compat'),
+  c_args: common_c_args,
+  cpp_args: common_cpp_args,
+)
+test('fntech3_game_abi_adapters', game_abi_adapter_tests)
+
+server_game_data_tests = executable('fntech3_server_game_data_tests',
+  [
+    'tests/server_game_data_tests.cpp',
+    'code/server/server_game_data.cpp',
+    'code/compat/game_abi_adapter.c',
+  ],
+  include_directories: include_directories('code/qcommon', 'code/compat', 'code/server'),
+  c_args: common_c_args,
+  cpp_args: common_cpp_args,
+)
+test('fntech3_server_game_data', server_game_data_tests)
 
 netchan_profile_tests = executable('fnql_netchan_profile_tests',
   'tests/netchan_profile_tests.cpp',
@@ -1202,6 +1272,7 @@ test('fnql_spawn_view_angle_source', python,
 
 message_codec_tests = executable('fnql_message_codec_tests',
   'tests/message_codec_tests.cpp',
+  'tests/message_drop_trap.c',
   'code/qcommon/msg.cpp',
   'code/qcommon/huffman_static.c',
   include_directories: include_directories('code/qcommon'),
@@ -1301,6 +1372,12 @@ collision_model_parity_tests = executable('fnql_collision_model_parity_tests',
 )
 test('fnql_collision_model_parity', collision_model_parity_tests)
 
+collision_game_contract_tests = executable('fntech3_collision_game_contract_tests',
+  'tests/collision_game_contract_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_collision_game_contract', collision_game_contract_tests)
+
 # Links the real trace path against a stub collision model so the capsule
 # geometry and the debug trace-plane invariant are exercised, not just
 # described.
@@ -1371,6 +1448,30 @@ test('fnql_rtx_vulkan_safety_source', python,
 test('fnql_rtx_runtime_smoke_source', python,
   args: files('tests/rtx_runtime_smoke_tests.py'),
 )
+test('fntech3_rtx_raster_execution', python,
+  args: files('tests/rtx_raster_execution_tests.py'),
+)
+test('fntech3_rtx_lightmap_execution', python,
+  args: files('tests/rtx_lightmap_execution_tests.py'),
+)
+test('fntech3_rtx_transport', python,
+  args: files('tests/rtx_transport_tests.py'),
+)
+test('fntech3_rtx_lifecycle', python,
+  args: files('tests/rtx_lifecycle_tests.py'),
+)
+rtx_mdr_geometry_tests = executable('fntech3_rtx_mdr_geometry_tests',
+  files('tests/rtx_mdr_geometry_tests.c'),
+  c_args: common_c_args,
+  dependencies: [cc.find_library('m', required: false)],
+)
+test('fntech3_rtx_mdr_geometry', rtx_mdr_geometry_tests)
+rtx_scene_signature_tests = executable('fntech3_rtx_scene_signature_tests',
+  files('tests/rtx_scene_signature_tests.c'),
+  c_args: common_c_args,
+  dependencies: [cc.find_library('m', required: false)],
+)
+test('fntech3_rtx_scene_signature', rtx_scene_signature_tests)
 test('fnql_cvar_factory_snapshot_source', python,
   args: files('tests/cvar_factory_snapshot_tests.py'),
 )
@@ -1413,6 +1514,20 @@ webui_backend_tests = executable('fnql_webui_backend_tests',
   cpp_args: common_cpp_args,
 )
 test('fnql_webui_backend', webui_backend_tests)
+
+webui_request_schedule_tests = executable('fnql_webui_request_schedule_tests',
+  'tests/webui_request_schedule_tests.cpp',
+  include_directories: include_directories('code/client'),
+  cpp_args: common_cpp_args,
+)
+test('fnql_webui_request_schedule', webui_request_schedule_tests)
+
+webui_resource_queue_tests = executable('fnql_webui_resource_queue_tests',
+  'tests/webui_resource_queue_tests.cpp',
+  include_directories: include_directories('code/client'),
+  cpp_args: common_cpp_args,
+)
+test('fnql_webui_resource_queue', webui_resource_queue_tests)
 
 zmq_endpoint_tests = executable('fnql_zmq_endpoint_tests',
   'tests/zmq_endpoint_tests.cpp',
@@ -1493,4 +1608,4 @@ summary({
   'cURL': curl_summary,
   'JPEG': jpeg_source,
   'Ogg Vorbis': ogg_vorbis_source,
-}, section: 'FnQL build')
+}, section: 'fnTech3 build')

@@ -52,11 +52,12 @@ USE_RENDERER_DLOPEN = 1
 # valid options: glx, vk, rtx
 RENDERER_DEFAULT = glx
 
-CNAME            = fnql
-DNAME            = fnql.ded
+CNAME            = fntech3
+DNAME            = fntech3.ded
 
-RENDERER_PREFIX  = $(CNAME)
-VERSION_HEADER   = version/fnql_version.h
+# Renderer names remain bound to the existing loader contract.
+RENDERER_PREFIX  = fnql
+VERSION_HEADER   = version/fntech3_version.h
 
 
 ifeq ($(V),1)
@@ -144,7 +145,7 @@ override FNQL_REQUIRE_BUILD_INPUTS := $(FNQL_ENFORCE_X86)
 
 ifeq ($(FNQL_ENFORCE_X86),1)
   ifneq ($(strip $(ARCH)),x86)
-    $(error FnQL supports only 32-bit x86 targets; set ARCH=x86 and select a 32-bit toolchain (got ARCH=$(ARCH)))
+    $(error fnTech3 shared Q3/QL builds support only 32-bit x86 targets; set ARCH=x86 and select a 32-bit toolchain (got ARCH=$(ARCH)))
   endif
 endif
 
@@ -172,7 +173,7 @@ export CROSS_COMPILING
 DESTDIR ?=
 ifneq ($(filter install,$(MAKECMDGOALS)),)
   ifeq ($(strip $(DESTDIR)),)
-    $(error DESTDIR is required; choose an explicit FnQL staging or retail Quake Live directory)
+    $(error DESTDIR is required; choose an explicit fnTech3 staging directory)
   endif
 endif
 
@@ -292,6 +293,7 @@ SDLHDIR=$(MOUNT_DIR)/libsdl/include
 FONTSTASHDIR ?= subprojects/fontstash/src
 
 CMDIR=$(MOUNT_DIR)/qcommon
+COMPATDIR=$(MOUNT_DIR)/compat
 UDIR=$(MOUNT_DIR)/unix
 W32DIR=$(MOUNT_DIR)/win32
 BLIBDIR=$(MOUNT_DIR)/botlib
@@ -380,7 +382,7 @@ else
 endif
 
 # extract version info
-VERSION=$(shell grep -m1 FNQL_VERSION_STRING $(VERSION_HEADER) | cut -d\" -f2)
+VERSION=$(shell grep -m1 FNTECH3_VERSION_STRING $(VERSION_HEADER) | cut -d\" -f2)
 
 # common qvm definition
 ifeq ($(ARCH),x86_64)
@@ -1237,8 +1239,10 @@ Q3OBJ = \
 	\
   $(B)/client/cmd.o \
   $(B)/client/common.o \
+	$(B)/client/game_abi_adapter.o \
   $(B)/client/cvar.o \
   $(B)/client/files.o \
+	$(B)/client/game_profile.o \
   $(B)/client/history.o \
   $(B)/client/keys.o \
   $(B)/client/md4.o \
@@ -1262,6 +1266,7 @@ Q3OBJ = \
   \
   $(B)/client/factory_catalog.o \
   $(B)/client/factory_rotation.o \
+	$(B)/client/server_game_data.o \
   $(B)/client/sv_bot.o \
   $(B)/client/sv_ccmds.o \
   $(B)/client/sv_client.o \
@@ -1477,6 +1482,7 @@ $(B)/$(TARGET_RENDRTX): $(Q3RENDRTXOBJ)
 Q3DOBJ = \
   $(B)/ded/factory_catalog.o \
   $(B)/ded/factory_rotation.o \
+	$(B)/ded/server_game_data.o \
   $(B)/ded/sv_bot.o \
   $(B)/ded/sv_client.o \
   $(B)/ded/sv_ccmds.o \
@@ -1500,8 +1506,10 @@ Q3DOBJ = \
 	$(B)/ded/fnql_workshop.o \
   $(B)/ded/cmd.o \
   $(B)/ded/common.o \
+	$(B)/ded/game_abi_adapter.o \
   $(B)/ded/cvar.o \
   $(B)/ded/files.o \
+	$(B)/ded/game_profile.o \
   $(B)/ded/history.o \
   $(B)/ded/keys.o \
   $(B)/ded/md4.o \
@@ -1627,6 +1635,9 @@ $(B)/client/%.o: $(CMDIR)/%.c
 $(B)/client/%.o: $(CMDIR)/%.cpp
 	$(DO_CXX)
 
+$(B)/client/%.o: $(COMPATDIR)/%.c
+	$(DO_CC)
+
 $(B)/client/%.o: $(PDIR)/%.cpp
 	$(DO_CXX)
 
@@ -1717,6 +1728,9 @@ $(B)/ded/%.o: $(CMDIR)/%.c
 $(B)/ded/%.o: $(CMDIR)/%.cpp
 	$(DO_DED_CXX)
 
+$(B)/ded/%.o: $(COMPATDIR)/%.c
+	$(DO_DED_CC)
+
 $(B)/ded/%.o: $(PDIR)/%.cpp
 	$(DO_DED_CXX)
 
@@ -1744,7 +1758,7 @@ $(B)/ded/%.o: $(W32DIR)/%.cpp
 $(B)/ded/%.o: $(W32DIR)/%.rc
 	$(DO_WINDRES)
 
-$(B)/$(ROOT_ARCHIVE): $(TARGETS) $(PKG_FILES) scripts/build_root_archive.py scripts/root_archive.py scripts/fnql_meta.py
+$(B)/$(ROOT_ARCHIVE): $(TARGETS) $(PKG_FILES) scripts/build_root_archive.py scripts/root_archive.py scripts/fntech3_meta.py
 	$(echo_cmd) "ROOTARCHIVE $@"
 	$(Q)$(PYTHON) scripts/build_root_archive.py --package-root "$(PKG_ROOT)" --output "$@"
 

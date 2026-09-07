@@ -55,9 +55,9 @@ jobs:
             USE_SDL=0 \
             USE_VK=0 \
             USE_VULKAN_API=0
-          test -x build/release-linux-x86/fnql.ded
-          file build/release-linux-x86/fnql.ded | grep -F 'ELF 32-bit LSB'
-          file build/release-linux-x86/fnql.ded | grep -F 'Intel 80386'
+          test -x build/release-linux-x86/fntech3.ded
+          file build/release-linux-x86/fntech3.ded | grep -F 'ELF 32-bit LSB'
+          file build/release-linux-x86/fntech3.ded | grep -F 'Intel 80386'
 
   meson-x86:
     name: Meson i686 server, renderers, and tests
@@ -117,9 +117,9 @@ jobs:
             -Dglx-tests=false \
             -Dogg-vorbis=false \
             -Dsdl=disabled
-          meson compile -C .tmp/meson-linux-server-only fnql.ded
-          file .tmp/meson-linux-server-only/fnql.ded | grep -F 'ELF 32-bit LSB'
-          file .tmp/meson-linux-server-only/fnql.ded | grep -F 'Intel 80386'
+          meson compile -C .tmp/meson-linux-server-only fntech3.ded
+          file .tmp/meson-linux-server-only/fntech3.ded | grep -F 'ELF 32-bit LSB'
+          file .tmp/meson-linux-server-only/fntech3.ded | grep -F 'Intel 80386'
 
       - name: Build i686 renderer modules
         run: |
@@ -161,9 +161,9 @@ jobs:
             -Drenderer-dlopen=false \
             -Drenderer-default=glx \
             -Dsdl=enabled
-          meson compile -C .tmp/meson-linux-sdl fnql
-          file .tmp/meson-linux-sdl/fnql | grep -F 'ELF 32-bit LSB'
-          file .tmp/meson-linux-sdl/fnql | grep -F 'Intel 80386'
+          meson compile -C .tmp/meson-linux-sdl fntech3
+          file .tmp/meson-linux-sdl/fntech3 | grep -F 'ELF 32-bit LSB'
+          file .tmp/meson-linux-sdl/fntech3 | grep -F 'Intel 80386'
 
       - name: Build CMake i686 dedicated server
         run: |
@@ -179,6 +179,6 @@ jobs:
             -DUSE_OGG_VORBIS=OFF \
             -DUSE_SDL=OFF \
             -DUSE_SYSTEM_JPEG=OFF
-          cmake --build .tmp/cmake-linux-server --parallel 2 --target fnql.ded
-          file .tmp/cmake-linux-server/fnql.ded | grep -F 'ELF 32-bit LSB'
-          file .tmp/cmake-linux-server/fnql.ded | grep -F 'Intel 80386'
+          cmake --build .tmp/cmake-linux-server --parallel 2 --target fntech3.ded
+          file .tmp/cmake-linux-server/fntech3.ded | grep -F 'ELF 32-bit LSB'
+          file .tmp/cmake-linux-server/fntech3.ded | grep -F 'Intel 80386'

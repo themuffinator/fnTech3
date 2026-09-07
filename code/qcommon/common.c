@@ -86,6 +86,7 @@ cvar_t	*com_dedicated;
 cvar_t	*com_timescale;
 static cvar_t *com_fixedtime;
 cvar_t	*com_journal;
+cvar_t	*com_gameProfile;
 cvar_t	*com_protocol;
 qboolean com_protocolCompat;
 #ifndef DEDICATED
@@ -642,6 +643,11 @@ void Com_StartupVariable( const char *match ) {
 
 		name = Cmd_Argv( 1 );
 		if ( !match || Q_stricmp( name, match ) == 0 ) {
+			// Once selected, the public mirror must keep the canonical profile
+			// key. Replaying +set auto/q3/ql after configs must not replace it.
+			if ( Com_GameProfile() && !Q_stricmp( name, "com_gameProfile" ) ) {
+				continue;
+			}
 			if ( Cvar_Flags( name ) == CVAR_NONEXISTENT )
 				Cvar_Get( name, Cmd_ArgsFrom( 2 ), CVAR_USER_CREATED );
 			else
@@ -3123,6 +3129,18 @@ static void Com_ExecuteCfg( void )
 	Cbuf_ExecuteText(EXEC_NOW, "exec default.cfg\n");
 	Cbuf_Execute(); // Always execute after exec to prevent text buffer overflowing
 
+	if ( Com_GameIsQuake3() ) {
+		// Preserve Q3's config order and safe-mode contract. QL profile-root
+		// files must not supply settings to Q3, even in a mixed writable home.
+		if ( !Com_SafeMode() ) {
+			Cbuf_ExecuteText( EXEC_NOW, "exec " Q3CONFIG_CFG "\n" );
+			Cbuf_Execute();
+			Cbuf_ExecuteText( EXEC_NOW, "exec autoexec.cfg\n" );
+			Cbuf_Execute();
+		}
+		return;
+	}
+
 	// Retail QL stores the managed client config at the active Steam profile
 	// root. Existing FnQ3/FnQL q3config.cfg files remain a one-way migration
 	// fallback when no qzconfig.cfg exists yet.
@@ -3894,6 +3912,56 @@ static void Com_SetAffinityMask( const char *str )
 
 /*
 =================
+Com_InitGameProfile
+
+Select the compatibility contract before protocol, filesystem, VM, renderer,
+or platform-service initialization.  Once selected, a process cannot switch
+profiles: ABI-visible structures and wire codecs must never be mixed.
+=================
+*/
+static void Com_InitGameProfile( void ) {
+	comGameDetectionInputs_t inputs;
+	comGameDetectionResult_t detection;
+	const char *basePath;
+
+	Com_StartupVariable( "com_gameProfile" );
+	com_gameProfile = Cvar_Get( "com_gameProfile", "auto",
+		CVAR_INIT | CVAR_PROTECTED );
+	basePath = Cvar_VariableString( "fs_basepath" );
+
+	inputs.requestedProfile = com_gameProfile->string;
+	inputs.basePath = ( basePath && basePath[0] ) ? basePath : NULL;
+	inputs.appPath = Sys_DefaultBasePath();
+	inputs.steamPath = Sys_SteamPath();
+	detection = Com_DetectGameProfile( &inputs );
+
+	if ( detection.status != COM_GAME_DETECTION_OK || !detection.profile ) {
+		Com_Error( ERR_FATAL,
+			"fnTech3 game profile detection failed (%s, evidence: %s). "
+			"Place the binaries in a Quake III Arena or Quake Live installation, "
+			"set fs_basepath, or use +set com_gameProfile quake3|quakelive.",
+			Com_GameDetectionStatusName( detection.status ),
+			Com_GameDetectionEvidenceName( detection.evidence ) );
+	}
+
+	if ( !Com_ActivateGameProfile( detection.profile->id ) ) {
+		Com_Error( ERR_FATAL, "fnTech3 attempted to change an active game profile" );
+	}
+
+	Cvar_Set2( "com_gameProfile", detection.profile->key, qtrue );
+	com_gameProfile->flags &= ~CVAR_USER_CREATED;
+	com_gameProfile->flags |= CVAR_INIT | CVAR_PROTECTED | CVAR_ROM;
+	Cvar_SetDescription( com_gameProfile,
+		"Immutable compatibility profile selected at startup. Use auto, quake3, or quakelive on the command line." );
+
+	Com_Printf( "Game profile: %s (%s, detected from %s)\n",
+		detection.profile->displayName, detection.profile->key,
+		Com_GameDetectionEvidenceName( detection.evidence ) );
+}
+
+
+/*
+=================
 Com_Init
 =================
 */
@@ -3954,8 +4022,11 @@ void Com_Init( char *commandLine ) {
 	Cvar_CheckRange( com_journal, "0", "2", CV_INTEGER );
 	Cvar_SetDescription( com_journal, "When enabled, writes events and its data to 'journal.dat' and 'journaldata.dat'.");
 
-	com_protocol = Cvar_Get( "protocol", XSTRING( DEFAULT_PROTOCOL_VERSION ), 0 );
-	Cvar_SetDescription( com_protocol, "Network protocol version. FnQL defaults to retail Quake Live protocol 91; select 68 or 71 only for explicit compatibility testing." );
+	Com_InitGameProfile();
+
+	com_protocol = Cvar_Get( "protocol", va( "%i", Com_GameProfile()->preferredProtocol ), 0 );
+	Cvar_SetDescription( com_protocol,
+		"Network protocol version. The selected game profile supplies the compatibility-safe default." );
 	if ( Q_stristr( com_protocol->string, "-compat" ) > com_protocol->string ) {
 		// strip -compat suffix
 		Cvar_Set2( "protocol", va( "%i", com_protocol->integer ), qtrue );
@@ -3966,6 +4037,12 @@ void Com_Init( char *commandLine ) {
 	}
 
 	Cvar_CheckRange( com_protocol, "0", NULL, CV_INTEGER );
+	if ( !Com_GameProfileAllowsProtocol( Com_GameProfile(),
+		com_protocol->integer ) ) {
+		Com_Error( ERR_FATAL,
+			"Protocol %i is not supported by the active %s game profile.",
+			com_protocol->integer, Com_GameProfile()->displayName );
+	}
 	com_protocol->flags &= ~CVAR_USER_CREATED;
 	com_protocol->flags |= CVAR_SERVERINFO | CVAR_ROM;
 
@@ -4140,20 +4217,19 @@ void Com_Init( char *commandLine ) {
 	VM_Init();
 	SV_Init();
 	SV_RegisterGameCvars();
-	FNQL_Steam_Init( com_dedicated->integer
-		? FNQL_STEAM_ROLE_GAME_SERVER
-		: ( FNQL_STEAM_ROLE_CLIENT | FNQL_STEAM_ROLE_GAME_SERVER ) );
-	/* Retail initializes the Steam GameServer owner during common startup, not
-	 * on the first map.  Besides matching publication lifetime, this lets a
-	 * dedicated provider expose SteamGameServerUGC before the Workshop snapshot
-	 * is captured and the filesystem is reloaded. */
-	SV_SteamGameServerStart( "" );
-	Com_WorkshopInit();
-	/* Workshop initialization can mount subscribed packages and restart the
-	 * filesystem. Rebuild the engine-owned retail content registries only after
-	 * those paths are visible. */
-	SV_FactoryRefreshMountedContent();
-	SV_RefreshPlatformServiceCvars();
+	if ( Com_GameProfile()->usesSteam ) {
+		FNQL_Steam_Init( com_dedicated->integer
+			? FNQL_STEAM_ROLE_GAME_SERVER
+			: ( FNQL_STEAM_ROLE_CLIENT | FNQL_STEAM_ROLE_GAME_SERVER ) );
+		/* Retail initializes the Steam GameServer owner during common startup,
+		 * not on the first map. */
+		SV_SteamGameServerStart( "" );
+		Com_WorkshopInit();
+		/* Workshop initialization can mount subscribed packages and restart the
+		 * filesystem. Rebuild retail registries after those paths are visible. */
+		SV_FactoryRefreshMountedContent();
+		SV_RefreshPlatformServiceCvars();
+	}
 
 	com_dedicated->modified = qfalse;
 
@@ -4315,7 +4391,7 @@ void Com_WriteConfiguration( void ) {
 	}
 
 #ifndef DEDICATED
-	if ( !com_dedicated->integer ) {
+	if ( Com_GameIsQuakeLive() && !com_dedicated->integer ) {
 		if ( !Com_WriteQLConfigurationFiles() ) {
 			return;
 		}
@@ -4568,8 +4644,10 @@ void Com_Frame( qboolean noDelay ) {
 	realMsec = com_frameTime - lastTime;
 
 	Cbuf_Execute();
-	FNQL_Steam_Pump();
-	Com_WorkshopFrame();
+	if ( Com_GameProfile()->usesSteam ) {
+		FNQL_Steam_Pump();
+		Com_WorkshopFrame();
+	}
 
 	// mess with msec if needed
 	gameMsec = Com_ModifyMsec( realMsec );
@@ -4611,12 +4689,14 @@ void Com_Frame( qboolean noDelay ) {
 			SV_AddDedicatedCommands();
 			gw_minimized = qtrue;
 		}
-		FNQL_Steam_Reconfigure( com_dedicated->integer
-			? FNQL_STEAM_ROLE_GAME_SERVER
-			: ( FNQL_STEAM_ROLE_CLIENT | FNQL_STEAM_ROLE_GAME_SERVER ) );
-		SV_SteamGameServerStart( "" );
-		Com_WorkshopProviderChanged();
-		SV_RefreshPlatformServiceCvars();
+		if ( Com_GameProfile()->usesSteam ) {
+			FNQL_Steam_Reconfigure( com_dedicated->integer
+				? FNQL_STEAM_ROLE_GAME_SERVER
+				: ( FNQL_STEAM_ROLE_CLIENT | FNQL_STEAM_ROLE_GAME_SERVER ) );
+			SV_SteamGameServerStart( "" );
+			Com_WorkshopProviderChanged();
+			SV_RefreshPlatformServiceCvars();
+		}
 	}
 
 #ifdef DEDICATED
@@ -4641,7 +4721,9 @@ void Com_Frame( qboolean noDelay ) {
 
 		Cbuf_Execute();
 
-		CL_WebHost_Frame();
+		if ( Com_GameIsQuakeLive() ) {
+			CL_WebHost_Frame();
+		}
 
 		//
 		// client side
@@ -4705,8 +4787,10 @@ Com_Shutdown
 =================
 */
 static void Com_Shutdown( void ) {
-	Com_WorkshopShutdown();
-	FNQL_Steam_Shutdown();
+	if ( Com_GameProfile() && Com_GameProfile()->usesSteam ) {
+		Com_WorkshopShutdown();
+		FNQL_Steam_Shutdown();
+	}
 	Zmq_ShutdownRuntime();
 
 	if ( logfile != FS_INVALID_HANDLE ) {

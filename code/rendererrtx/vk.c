@@ -6,6 +6,8 @@
 
 #include "tr_local.h"
 #include "vk.h"
+#include "rtx_mdr_geometry.h"
+#include "rtx_scene_signature.h"
 #include "../renderercommon/tr_menu_blur.h"
 #include "../renderercommon/tr_motion_blur.h"
 #include "../renderercommon/tr_underwater.h"
@@ -298,7 +300,11 @@ typedef struct {
 	float texCoord[2];
 	uint32_t color;
 	uint32_t materialIndex;
+	float lightmapData[4];	// independent BSP lightmap UV, reserved[2]
 } rtxRtPackedVertex_t;
+
+typedef char rtxRtPackedVertexSizeCheck[(sizeof(rtxRtPackedVertex_t) == 80) ? 1 : -1];
+typedef char rtxRtLightmapOffsetCheck[(offsetof(rtxRtPackedVertex_t, lightmapData) == 64) ? 1 : -1];
 
 typedef enum {
 	RTX_RT_COLORSPACE_LINEAR = 0,
@@ -319,7 +325,8 @@ typedef enum {
 	RTX_RT_MATFLAG_ALPHA_LT = 1u << 8,
 	RTX_RT_MATFLAG_CULL_FRONT = 1u << 9,
 	RTX_RT_MATFLAG_CULL_BACK = 1u << 10,
-	RTX_RT_MATFLAG_RASTER_OVERLAY = 1u << 11
+	RTX_RT_MATFLAG_RASTER_OVERLAY = 1u << 11,
+	RTX_RT_MATFLAG_SECONDARY_VISIBLE = 1u << 12
 } rtxRtMaterialFlags_t;
 
 typedef struct {
@@ -335,6 +342,9 @@ typedef struct {
 	uint32_t normalColorSpace;
 	uint32_t emissiveColorSpace;
 	int32_t albedoTextureIndex;
+	int32_t lightmapTextureIndex;
+	float lightmapScale;
+	uint32_t vertexLighting;
 	uint32_t sourceStageCount;
 } rtxRtMaterial_t;
 
@@ -343,7 +353,7 @@ typedef struct {
 	float emissiveColorScale[4];
 	float pbrParams[4];			// roughness, metallic, alphaCutoff, ior
 	uint32_t metadata[4];		// flags, albedoCS, normalCS, emissiveCS
-	uint32_t textureInfo[4];	// albedoTextureIndex, reserved[3]
+	uint32_t textureInfo[4];	// albedo, lightmap, vertex lighting bit, float bits of lightmap scale
 } rtxRtGpuMaterial_t;
 
 typedef struct {
@@ -587,7 +597,7 @@ static qboolean vk_rt_append_surface_triangles_geometry( rtxRtCpuGeometry_t *geo
 static qboolean vk_rt_append_brush_entity_geometry( rtxRtCpuGeometry_t *geometry, const trRefEntity_t *ent, const model_t *model );
 static qboolean vk_rt_append_md3_entity_geometry( rtxRtCpuGeometry_t *geometry, const trRefEntity_t *ent );
 static qboolean vk_rt_append_iqm_entity_geometry( rtxRtCpuGeometry_t *geometry, const trRefEntity_t *ent );
-static qboolean vk_rt_append_mdr_proxy_geometry( rtxRtCpuGeometry_t *geometry, const trRefEntity_t *ent, const shader_t *shader );
+static qboolean vk_rt_append_mdr_entity_geometry( rtxRtCpuGeometry_t *geometry, const trRefEntity_t *ent );
 static qboolean vk_rt_append_sprite_entity_geometry( rtxRtCpuGeometry_t *geometry, const trRefEntity_t *ent );
 static qboolean vk_rt_append_beam_entity_geometry( rtxRtCpuGeometry_t *geometry, const trRefEntity_t *ent );
 static qboolean vk_rt_append_poly_geometry( rtxRtCpuGeometry_t *geometry, const srfPoly_t *poly );
@@ -907,10 +917,7 @@ static uint32_t vk_rt_hash_mix_u32( uint32_t hash, uint32_t value )
 
 static uint32_t vk_rt_hash_quantized_float( uint32_t hash, float value, float quantStep )
 {
-	const float step = ( quantStep > 0.0f ) ? quantStep : 1.0f;
-	const float scaled = value / step;
-	const int32_t quantized = (int32_t)( scaled >= 0.0f ? floorf( scaled + 0.5f ) : ceilf( scaled - 0.5f ) );
-	return vk_rt_hash_mix_u32( hash, (uint32_t)quantized );
+	return vk_rt_hash_mix_u32( hash, RTX_QuantizeSceneFloat( value, quantStep ) );
 }
 
 static qboolean vk_rt_entity_visible_in_current_view( const trRefEntity_t *ent )
@@ -932,6 +939,18 @@ static qboolean vk_rt_entity_visible_in_current_view( const trRefEntity_t *ent )
 	return qtrue;
 }
 
+static qboolean vk_rt_model_casts_in_current_view( const trRefEntity_t *ent )
+{
+	/* Dynamic BLAS models are secondary geometry. The hidden first-person
+	 * player's body must still cast shadows, while view weapons and explicitly
+	 * shadow-disabled entities must not occlude world lighting. */
+	if ( !ent || ent->e.reType != RT_MODEL || ent->e.hModel <= 0 ||
+		( ent->e.renderfx & ( RF_NOSHADOW | RF_DEPTHHACK | RF_FIRST_PERSON ) ) ) {
+		return qfalse;
+	}
+	return qtrue;
+}
+
 static uint32_t vk_rt_estimate_dynamic_scene_signature( vec3_t outCentroid, uint32_t *outModelCount, uint32_t *outEffectCount, float quantStep )
 {
 	uint32_t hash = 2166136261u;
@@ -948,14 +967,15 @@ static uint32_t vk_rt_estimate_dynamic_scene_signature( vec3_t outCentroid, uint
 		*outEffectCount = 0;
 	}
 
-	for ( i = 0; i < backEnd.refdef.num_entities; i++ ) {
+	for ( i = 0; backEnd.refdef.entities && i < backEnd.refdef.num_entities; i++ ) {
 		const trRefEntity_t *ent = &backEnd.refdef.entities[i];
 		const refEntity_t *ref = &ent->e;
 		vec3_t sampledOrigin;
 		qboolean include = qfalse;
 		uint32_t modelHandle = 0u;
 
-		if ( !vk_rt_entity_visible_in_current_view( ent ) ) {
+		if ( ref->reType == RT_MODEL ? !vk_rt_model_casts_in_current_view( ent ) :
+			!vk_rt_entity_visible_in_current_view( ent ) ) {
 			continue;
 		}
 
@@ -973,6 +993,8 @@ static uint32_t vk_rt_estimate_dynamic_scene_signature( vec3_t outCentroid, uint
 			}
 			hash = vk_rt_hash_mix_u32( hash, (uint32_t)ref->frame );
 			hash = vk_rt_hash_mix_u32( hash, (uint32_t)ref->oldframe );
+			hash = vk_rt_hash_mix_u32( hash, (uint32_t)ref->skinNum );
+			hash = vk_rt_hash_mix_u32( hash, (uint32_t)ref->customSkin );
 			hash = vk_rt_hash_quantized_float( hash, ref->backlerp, 0.01f );
 			hash = vk_rt_hash_quantized_float( hash, ref->axis[0][0], axisQuant );
 			hash = vk_rt_hash_quantized_float( hash, ref->axis[0][1], axisQuant );
@@ -990,6 +1012,8 @@ static uint32_t vk_rt_estimate_dynamic_scene_signature( vec3_t outCentroid, uint
 		case RT_RAIL_RINGS:
 		case RT_LIGHTNING:
 			include = qtrue;
+			hash = vk_rt_hash_quantized_float( hash, ref->radius, 0.125f );
+			hash = vk_rt_hash_quantized_float( hash, ref->rotation, 0.25f );
 			if ( outEffectCount ) {
 				*outEffectCount += 1u;
 			}
@@ -997,6 +1021,13 @@ static uint32_t vk_rt_estimate_dynamic_scene_signature( vec3_t outCentroid, uint
 				ref->reType == RT_RAIL_RINGS || ref->reType == RT_LIGHTNING ) {
 				VectorAdd( ref->origin, ref->oldorigin, sampledOrigin );
 				VectorScale( sampledOrigin, 0.5f, sampledOrigin );
+				/* Equal beam midpoints do not imply equal length/direction. */
+				hash = vk_rt_hash_quantized_float( hash, ref->origin[0], originQuant );
+				hash = vk_rt_hash_quantized_float( hash, ref->origin[1], originQuant );
+				hash = vk_rt_hash_quantized_float( hash, ref->origin[2], originQuant );
+				hash = vk_rt_hash_quantized_float( hash, ref->oldorigin[0], originQuant );
+				hash = vk_rt_hash_quantized_float( hash, ref->oldorigin[1], originQuant );
+				hash = vk_rt_hash_quantized_float( hash, ref->oldorigin[2], originQuant );
 			}
 			break;
 		default:
@@ -1010,15 +1041,34 @@ static uint32_t vk_rt_estimate_dynamic_scene_signature( vec3_t outCentroid, uint
 		hash = vk_rt_hash_mix_u32( hash, (uint32_t)ref->reType );
 		hash = vk_rt_hash_mix_u32( hash, modelHandle );
 		hash = vk_rt_hash_mix_u32( hash, (uint32_t)ref->renderfx );
+		hash = vk_rt_hash_mix_u32( hash, (uint32_t)ref->customShader );
+		hash = vk_rt_hash_mix_u32( hash, ref->shader.u32 );
 		hash = vk_rt_hash_quantized_float( hash, sampledOrigin[0], originQuant );
 		hash = vk_rt_hash_quantized_float( hash, sampledOrigin[1], originQuant );
 		hash = vk_rt_hash_quantized_float( hash, sampledOrigin[2], originQuant );
 
-		VectorAdd( sumOrigin, sampledOrigin, sumOrigin );
-		sampleCount++;
+		if ( vk_rt_vec3_in_finite_range( sampledOrigin, RTX_RT_MAX_LIGHT_COORDINATE ) ) {
+			VectorAdd( sumOrigin, sampledOrigin, sumOrigin );
+			sampleCount++;
+		}
 	}
 
 	hash = vk_rt_hash_mix_u32( hash, (uint32_t)backEnd.refdef.numPolys );
+	for ( i = 0; backEnd.refdef.polys && i < backEnd.refdef.numPolys; i++ ) {
+		const srfPoly_t *poly = &backEnd.refdef.polys[i];
+		int v;
+		hash = vk_rt_hash_mix_u32( hash, (uint32_t)poly->hShader );
+		hash = vk_rt_hash_mix_u32( hash, (uint32_t)poly->numVerts );
+		for ( v = 0; poly->verts && v < poly->numVerts; v++ ) {
+			const polyVert_t *vertex = &poly->verts[v];
+			hash = vk_rt_hash_quantized_float( hash, vertex->xyz[0], originQuant );
+			hash = vk_rt_hash_quantized_float( hash, vertex->xyz[1], originQuant );
+			hash = vk_rt_hash_quantized_float( hash, vertex->xyz[2], originQuant );
+			hash = vk_rt_hash_quantized_float( hash, vertex->st[0], 0.001f );
+			hash = vk_rt_hash_quantized_float( hash, vertex->st[1], 0.001f );
+			hash = vk_rt_hash_mix_u32( hash, vertex->modulate.u32 );
+		}
+	}
 
 	if ( sampleCount > 0 ) {
 		const float invCount = 1.0f / (float)sampleCount;
@@ -1642,12 +1692,12 @@ static float vk_rt_shadow_softness( void )
 	return MAX( 0.0f, rtx_rt_shadow_softness->value );
 }
 
-static qboolean vk_rt_indirect_bounce_enabled( void )
+static uint32_t vk_rt_indirect_bounce_count( void )
 {
 	if ( !rtx_rt_indirect_bounce ) {
 		return qtrue;
 	}
-	return rtx_rt_indirect_bounce->integer ? qtrue : qfalse;
+	return (uint32_t)Com_Clamp( 0, 4, rtx_rt_indirect_bounce->integer );
 }
 
 static float vk_rt_indirect_strength( void )
@@ -2151,9 +2201,9 @@ static qboolean vk_rt_upload_material_buffer( const rtxRtMaterial_t *materials, 
 			dst->metadata[2] = src->normalColorSpace;
 			dst->metadata[3] = src->emissiveColorSpace;
 			dst->textureInfo[0] = ( src->albedoTextureIndex >= 0 ) ? (uint32_t)src->albedoTextureIndex : RTX_RT_INVALID_TEXTURE_INDEX;
-			dst->textureInfo[1] = 0u;
-			dst->textureInfo[2] = 0u;
-			dst->textureInfo[3] = 0u;
+			dst->textureInfo[1] = ( src->lightmapTextureIndex >= 0 ) ? (uint32_t)src->lightmapTextureIndex : RTX_RT_INVALID_TEXTURE_INDEX;
+			dst->textureInfo[2] = src->vertexLighting ? 1u : 0u;
+			Com_Memcpy( &dst->textureInfo[3], &src->lightmapScale, sizeof( src->lightmapScale ) );
 		}
 
 	if ( materialCount == 0 ) {
@@ -2164,6 +2214,7 @@ static qboolean vk_rt_upload_material_buffer( const rtxRtMaterial_t *materials, 
 		gpuMaterials[0].pbrParams[0] = 0.85f;
 		gpuMaterials[0].pbrParams[3] = vk_rt_refractive_ior();
 		gpuMaterials[0].textureInfo[0] = RTX_RT_INVALID_TEXTURE_INDEX;
+		gpuMaterials[0].textureInfo[1] = RTX_RT_INVALID_TEXTURE_INDEX;
 	}
 
 	if ( !vk_rt_ensure_buffer_capacity(
@@ -3593,6 +3644,29 @@ static void vk_rt_apply_material_overrides( rtxRtMaterial_t *material )
 	}
 }
 
+static void vk_rt_apply_native_bundle_lighting( const shader_t *shader,
+	const textureBundle_t *bundle, qboolean lightmap, rtxRtMaterial_t *material )
+{
+	if ( !R_RtShaderNativeSupported( shader ) ) {
+		return;
+	}
+	if ( lightmap ) {
+		material->lightmapTextureIndex = vk_rt_image_to_scene_texture_index( bundle->image[0] );
+		material->lightmapScale = ( bundle->rgbGen == CGEN_IDENTITY_LIGHTING ) ? tr.identityLight : 1.0f;
+	} else if ( ( bundle->vertexLightmap ||
+		( !shader->explicitlyDefined && shader->lightmapIndex == LIGHTMAP_BY_VERTEX &&
+		  bundle->rgbGen == CGEN_EXACT_VERTEX ) ) &&
+		( bundle->rgbGen == CGEN_EXACT_VERTEX || bundle->rgbGen == CGEN_VERTEX ) ) {
+		/* BSP vertex RGB carries baked irradiance independently of the base
+		 * texture's reflectance in the native path. */
+		material->vertexLighting = 1u;
+		material->lightmapTextureIndex = -1;
+		material->lightmapScale = ( bundle->rgbGen == CGEN_VERTEX ) ? tr.identityLight : 1.0f;
+	} else if ( bundle->rgbGen == CGEN_IDENTITY_LIGHTING ) {
+		VectorSet( material->baseColor, tr.identityLight, tr.identityLight, tr.identityLight );
+	}
+}
+
 static void vk_rt_translate_shader_to_material( const shader_t *shader, rtxRtMaterial_t *material )
 {
 	int i;
@@ -3623,6 +3697,8 @@ static void vk_rt_translate_shader_to_material( const shader_t *shader, rtxRtMat
 	material->normalColorSpace = RTX_RT_COLORSPACE_LINEAR;
 	material->emissiveColorSpace = RTX_RT_COLORSPACE_SRGB;
 	material->albedoTextureIndex = -1;
+	material->lightmapTextureIndex = -1;
+	material->lightmapScale = 1.0f;
 
 	if ( useHeuristics && rtx_rt_emissive_keyword_boost ) {
 		emissiveKeywordBoost = MAX( 0.0f, rtx_rt_emissive_keyword_boost->value );
@@ -3743,6 +3819,9 @@ static void vk_rt_translate_shader_to_material( const shader_t *shader, rtxRtMat
 			if ( !albedoImage && image && !lightmap ) {
 				albedoImage = (image_t *)image;
 			}
+			/* Only the verified static subset owns authored lightmap shading.
+			 * Complex stages keep their raster composition contract. */
+			vk_rt_apply_native_bundle_lighting( shader, bundle, lightmap, material );
 
 			if ( !lightmap && bundle->rgbGen == CGEN_CONST ) {
 				material->baseColor[0] = bundle->constantColor.rgba[0] / 255.0f;
@@ -3944,6 +4023,7 @@ static qboolean vk_rt_cpu_geometry_add_vertex( rtxRtCpuGeometry_t *geometry, con
 	vertex->texCoord[1] = texCoord[1];
 	vertex->color = color;
 	vertex->materialIndex = materialIndex;
+	Com_Memset( vertex->lightmapData, 0, sizeof( vertex->lightmapData ) );
 
 	if ( outIndex ) {
 		*outIndex = geometry->numVertices;
@@ -4078,6 +4158,8 @@ static qboolean vk_rt_append_surface_face_geometry( rtxRtCpuGeometry_t *geometry
 		if ( !vk_rt_cpu_geometry_add_vertex( geometry, xyz, normal, tangent, texCoord, packedColor.u, materialIndex, NULL ) ) {
 			return qfalse;
 		}
+		geometry->vertices[baseVertex + i].lightmapData[0] = p[5];
+		geometry->vertices[baseVertex + i].lightmapData[1] = p[6];
 	}
 
 	for ( i = 0; i < completeIndexCount; i += 3 ) {
@@ -4156,6 +4238,8 @@ static qboolean vk_rt_append_surface_grid_geometry( rtxRtCpuGeometry_t *geometry
 			if ( !vk_rt_cpu_geometry_add_vertex( geometry, vertex->xyz, vertex->normal, tangent, vertex->st, vertex->color.u32, materialIndex, NULL ) ) {
 				return qfalse;
 			}
+			geometry->vertices[geometry->numVertices - 1].lightmapData[0] = vertex->lightmap[0];
+			geometry->vertices[geometry->numVertices - 1].lightmapData[1] = vertex->lightmap[1];
 		}
 	}
 
@@ -4228,6 +4312,8 @@ static qboolean vk_rt_append_surface_triangles_geometry( rtxRtCpuGeometry_t *geo
 		if ( !vk_rt_cpu_geometry_add_vertex( geometry, surface->verts[i].xyz, surface->verts[i].normal, tangent, surface->verts[i].st, surface->verts[i].color.u32, materialIndex, NULL ) ) {
 			return qfalse;
 		}
+		geometry->vertices[baseVertex + i].lightmapData[0] = surface->verts[i].lightmap[0];
+		geometry->vertices[baseVertex + i].lightmapData[1] = surface->verts[i].lightmap[1];
 	}
 
 	for ( i = 0; i < completeIndexCount; i += 3 ) {
@@ -4416,6 +4502,10 @@ static qboolean vk_rt_generate_tangents( rtxRtCpuGeometry_t *geometry )
 static qboolean vk_rt_extract_world_geometry( rtxRtCpuGeometry_t *geometry )
 {
 	const bmodel_t *worldModel;
+	const shader_t *diagnosticShaders[128];
+	int diagnosticFog[128];
+	int diagnosticCount = 0;
+	qboolean diagnosticLimitReported = qfalse;
 	int i;
 	uint32_t faceCount = 0;
 	uint32_t gridCount = 0;
@@ -4426,6 +4516,9 @@ static qboolean vk_rt_extract_world_geometry( rtxRtCpuGeometry_t *geometry )
 	uint32_t nonOccludingOverlaySkipCount = 0;
 	uint32_t referenceTriangleCount = 0;
 	uint32_t shaderFallbacks = 0;
+	uint32_t nativeSurfaceCount = 0;
+	uint32_t nativeTriangleCount = 0;
+	uint32_t nativeMaterialCount = 0;
 
 	vk_rt_cpu_geometry_init( geometry );
 
@@ -4442,6 +4535,53 @@ static qboolean vk_rt_extract_world_geometry( rtxRtCpuGeometry_t *geometry )
 		const msurface_t *surface = &worldModel->firstSurface[i];
 		const shader_t *shader = surface->shader ? surface->shader : tr.defaultShader;
 		uint32_t materialFlags = RTX_RT_MATFLAG_NONE;
+		uint32_t trianglesBefore;
+
+		if ( shader && vk_rt_debug_as_stats_level() >= 2 ) {
+			int entry;
+			for ( entry = 0; entry < diagnosticCount; entry++ ) {
+				if ( diagnosticShaders[entry] == shader && diagnosticFog[entry] == surface->fogIndex ) {
+					break;
+				}
+			}
+			if ( entry == diagnosticCount && diagnosticCount < (int)ARRAY_LEN( diagnosticShaders ) ) {
+				int stageIndex;
+				diagnosticShaders[diagnosticCount] = shader;
+				diagnosticFog[diagnosticCount++] = surface->fogIndex;
+				ri.Printf( PRINT_DEVELOPER,
+					"RTX RT native shader '%s': native=%d fog=%d sort=%g passes=%d remap=%d sky=%d polygonOffset=%d deforms=%d screenMap=%d vertexLight=%d\n",
+					shader->name, R_RtShaderNativeSupported( shader ) && surface->fogIndex == 0,
+					surface->fogIndex, (double)shader->sort, shader->numUnfoggedPasses,
+					shader->remappedShader != NULL, shader->isSky, shader->polygonOffset,
+					shader->numDeforms, shader->hasScreenMap, r_vertexLight ? r_vertexLight->integer : 0 );
+				for ( stageIndex = 0; stageIndex < shader->numUnfoggedPasses && stageIndex < MAX_SHADER_STAGES; stageIndex++ ) {
+					const shaderStage_t *stage = shader->stages[stageIndex];
+					uint32_t bundleIndex;
+					if ( !stage ) {
+						ri.Printf( PRINT_DEVELOPER, "  stage %d: missing\n", stageIndex );
+						continue;
+					}
+					ri.Printf( PRINT_DEVELOPER,
+						"  stage %d: active=%d depthFragment=%d state=0x%x bundles=%u mtEnv=0x%x mtEnv3=0x%x\n",
+						stageIndex, stage->active, stage->depthFragment, (unsigned int)stage->stateBits,
+						(unsigned int)stage->numTexBundles, (unsigned int)stage->mtEnv, (unsigned int)stage->mtEnv3 );
+					for ( bundleIndex = 0; bundleIndex < stage->numTexBundles && bundleIndex < NUM_TEXTURE_BUNDLES; bundleIndex++ ) {
+						const textureBundle_t *bundle = &stage->bundle[bundleIndex];
+						const image_t *image = bundle->image[0];
+						ri.Printf( PRINT_DEVELOPER,
+							"    bundle %u: image='%s' rgbGen=%d alphaGen=%d tcGen=%d lightmap=%d vertexLightmap=%d animations=%d tcmods=%d video=%d screen=%d imageFlags=0x%x\n",
+							bundleIndex, image ? image->imgName : "<none>", bundle->rgbGen,
+							bundle->alphaGen, bundle->tcGen, bundle->lightmap, bundle->vertexLightmap,
+							bundle->numImageAnimations, bundle->numTexMods, bundle->isVideoMap,
+							bundle->isScreenMap, image ? (unsigned int)image->flags : 0u );
+					}
+				}
+			} else if ( entry == diagnosticCount && !diagnosticLimitReported ) {
+				ri.Printf( PRINT_DEVELOPER, "RTX RT: native shader diagnostics capped at %u material/fog pairs\n",
+					(unsigned int)ARRAY_LEN( diagnosticShaders ) );
+				diagnosticLimitReported = qtrue;
+			}
+		}
 
 		if ( !surface->shader ) {
 			shaderFallbacks++;
@@ -4469,6 +4609,7 @@ static qboolean vk_rt_extract_world_geometry( rtxRtCpuGeometry_t *geometry )
 			}
 		}
 
+		trianglesBefore = geometry->sourceTriangleCount;
 		switch ( *surface->data ) {
 		case SF_FACE:
 		{
@@ -4508,6 +4649,10 @@ static qboolean vk_rt_extract_world_geometry( rtxRtCpuGeometry_t *geometry )
 		default:
 			break;
 		}
+		if ( !( materialFlags & RTX_RT_MATFLAG_RASTER_OVERLAY ) && geometry->sourceTriangleCount > trianglesBefore ) {
+			nativeSurfaceCount++;
+			nativeTriangleCount += geometry->sourceTriangleCount - trianglesBefore;
+		}
 	}
 
 	if ( !vk_rt_generate_tangents( geometry ) ) {
@@ -4529,6 +4674,16 @@ static qboolean vk_rt_extract_world_geometry( rtxRtCpuGeometry_t *geometry )
 	}
 
 	if ( vk_rt_debug_as_stats_level() >= 1 ) {
+		uint32_t materialIndex;
+		for ( materialIndex = 0; materialIndex < geometry->numMaterials; materialIndex++ ) {
+			if ( !( geometry->materials[materialIndex].flags & RTX_RT_MATFLAG_RASTER_OVERLAY ) ) {
+				nativeMaterialCount++;
+			}
+		}
+		ri.Printf( PRINT_DEVELOPER,
+			"RTX RT: native world coverage (surfaces=%u, triangles=%u/%u, materials=%u/%u, vertexLight=%d)\n",
+			nativeSurfaceCount, nativeTriangleCount, geometry->sourceTriangleCount,
+			nativeMaterialCount, geometry->numMaterials, r_vertexLight ? r_vertexLight->integer : 0 );
 		ri.Printf( PRINT_DEVELOPER,
 			"RTX RT: world extraction complete (faces=%u, grids=%u, triangles=%u, trianglesRef=%u, vertices=%u, indices=%u, materials=%u, maskedTriangles=%u, anyHitTriangles=%u, degenerate=%u, shaderFallbacks=%u)\n",
 			faceCount,
@@ -5152,7 +5307,7 @@ static qboolean vk_rt_append_poly_geometry( rtxRtCpuGeometry_t *geometry, const 
 	uint32_t indexCount;
 	int i;
 
-	if ( !poly || poly->numVerts < 3 ) {
+	if ( !poly || !poly->verts || poly->numVerts < 3 ) {
 		return qtrue;
 	}
 	triangleCount = (uint32_t)poly->numVerts - 2u;
@@ -5206,66 +5361,108 @@ static qboolean vk_rt_append_poly_geometry( rtxRtCpuGeometry_t *geometry, const 
 	return qtrue;
 }
 
-static qboolean vk_rt_append_mdr_proxy_geometry( rtxRtCpuGeometry_t *geometry, const trRefEntity_t *ent, const shader_t *shader )
+static const shader_t *vk_rt_resolve_mdr_shader( const trRefEntity_t *ent, const mdrSurface_t *surface )
 {
-	static const uint32_t kCubeIndices[36] = {
-		0, 2, 1, 0, 3, 2,
-		4, 5, 6, 4, 6, 7,
-		0, 1, 5, 0, 5, 4,
-		2, 3, 7, 2, 7, 6,
-		1, 2, 6, 1, 6, 5,
-		3, 0, 4, 3, 4, 7
-	};
-	vec3_t mins;
-	vec3_t maxs;
-	vec3_t cornersLocal[8];
-	vec3_t cornerWorld;
-	vec3_t normal = { 0.0f, 0.0f, 1.0f };
-	vec2_t uv = { 0.0f, 0.0f };
-	vec4_t tangent = { 1.0f, 0.0f, 0.0f, 1.0f };
-	uint32_t materialIndex = 0;
-	uint32_t baseVertex;
+	int i;
+	if ( ent->e.customShader ) {
+		return R_GetShaderByHandle( ent->e.customShader );
+	}
+	if ( ent->e.customSkin > 0 && ent->e.customSkin < tr.numSkins ) {
+		const skin_t *skin = R_GetSkinByHandle( ent->e.customSkin );
+		if ( skin ) {
+			for ( i = 0; i < skin->numSurfaces; i++ ) {
+				if ( !strcmp( skin->surfaces[i].name, surface->name ) ) {
+					return skin->surfaces[i].shader;
+				}
+			}
+		}
+		return tr.defaultShader;
+	}
+	return surface->shaderIndex > 0 ? R_GetShaderByHandle( surface->shaderIndex ) : tr.defaultShader;
+}
+
+static qboolean vk_rt_append_mdr_entity_geometry( rtxRtCpuGeometry_t *geometry, const trRefEntity_t *ent )
+{
+	const model_t *model = R_GetModelByHandle( ent->e.hModel );
+	const mdrHeader_t *header;
+	const mdrLOD_t *lod;
+	mdrBone_t bones[MDR_MAX_BONES];
+	size_t surfaceOffset;
 	int i;
 
-	R_ModelBounds( ent->e.hModel, mins, maxs );
-	if ( mins[0] >= maxs[0] || mins[1] >= maxs[1] || mins[2] >= maxs[2] ) {
+	if ( !model || model->type != MOD_MDR || !model->modelData ) {
 		return qtrue;
 	}
-
-	if ( !vk_rt_cpu_geometry_find_or_add_material( geometry, shader ? shader : tr.defaultShader, &materialIndex ) ) {
+	header = (const mdrHeader_t *)model->modelData;
+	if ( model->dataSize <= 0 ||
+		!RTX_MDRPreparePose( header, (size_t)model->dataSize, ent->e.frame, ent->e.oldframe,
+			( ent->e.renderfx & RF_WRAP_FRAMES ) ? qtrue : qfalse, ent->e.backlerp, bones ) ) {
+		ri.Printf( PRINT_WARNING, "RTX RT: refusing malformed MDR pose for '%s'\n", model->name );
 		return qfalse;
 	}
-
-	VectorSet( cornersLocal[0], mins[0], mins[1], mins[2] );
-	VectorSet( cornersLocal[1], maxs[0], mins[1], mins[2] );
-	VectorSet( cornersLocal[2], maxs[0], maxs[1], mins[2] );
-	VectorSet( cornersLocal[3], mins[0], maxs[1], mins[2] );
-	VectorSet( cornersLocal[4], mins[0], mins[1], maxs[2] );
-	VectorSet( cornersLocal[5], maxs[0], mins[1], maxs[2] );
-	VectorSet( cornersLocal[6], maxs[0], maxs[1], maxs[2] );
-	VectorSet( cornersLocal[7], mins[0], maxs[1], maxs[2] );
-
-	if ( !vk_rt_cpu_geometry_reserve( geometry, 8, ARRAY_LEN( kCubeIndices ) ) ) {
+	/* Secondary-ray silhouettes must not depend on the main camera's LOD or
+	 * frontend tr.currentModel. Raster shadow-caster passes also use LOD zero. */
+	lod = RTX_MDRGetLOD( header, 0 );
+	if ( !lod ) {
+		ri.Printf( PRINT_WARNING, "RTX RT: refusing malformed MDR LOD for '%s'\n", model->name );
 		return qfalse;
 	}
+	surfaceOffset = (size_t)lod->ofsSurfaces;
+	for ( i = 0; i < lod->numSurfaces; i++ ) {
+		const mdrSurface_t *surface;
+		const mdrVertex_t *vertex;
+		const mdrTriangle_t *triangles;
+		uint32_t materialIndex, baseVertex, surfaceIndexCount;
+		uint32_t validTriangleCount = 0;
+		vec4_t tangent = { 1.0f, 0.0f, 0.0f, 1.0f };
+		int v, t;
 
-	baseVertex = geometry->numVertices;
-	for ( i = 0; i < 8; i++ ) {
-		vk_rt_transform_point( ent, cornersLocal[i], cornerWorld );
-		if ( !vk_rt_cpu_geometry_add_vertex( geometry, cornerWorld, normal, tangent, uv, 0xFFFFFFFFu, materialIndex, NULL ) ) {
+		if ( surfaceOffset > (size_t)lod->ofsEnd || sizeof( *surface ) > (size_t)lod->ofsEnd - surfaceOffset ) {
 			return qfalse;
 		}
-	}
-
-	for ( i = 0; i < ARRAY_LEN( kCubeIndices ); i++ ) {
-		if ( !vk_rt_cpu_geometry_add_index( geometry, baseVertex + kCubeIndices[i] ) ) {
+		surface = (const mdrSurface_t *)( (const byte *)lod + surfaceOffset );
+		if ( !RTX_MDRValidateSurface( surface, (size_t)lod->ofsEnd - surfaceOffset, header->numBones ) ||
+			!vk_rt_checked_u32_multiply( (uint32_t)surface->numTriangles, 3u, &surfaceIndexCount ) ) {
+			ri.Printf( PRINT_WARNING, "RTX RT: refusing malformed MDR surface for '%s'\n", model->name );
 			return qfalse;
 		}
-	}
-
-	geometry->sourceTriangleCount += ARRAY_LEN( kCubeIndices ) / 3;
-	if ( geometry->materials[ materialIndex ].flags & RTX_RT_MATFLAG_MASKED ) {
-		geometry->maskedTriangleCount += ARRAY_LEN( kCubeIndices ) / 3;
+		if ( !vk_rt_cpu_geometry_find_or_add_material( geometry, vk_rt_resolve_mdr_shader( ent, surface ), &materialIndex ) ||
+			!vk_rt_cpu_geometry_reserve( geometry, (uint32_t)surface->numVerts, surfaceIndexCount ) ) {
+			return qfalse;
+		}
+		baseVertex = geometry->numVertices;
+		vertex = (const mdrVertex_t *)( (const byte *)surface + surface->ofsVerts );
+		for ( v = 0; v < surface->numVerts; v++ ) {
+			vec3_t position, normal, worldPosition, worldNormal;
+			if ( !RTX_MDRSkinVertex( vertex, bones, position, normal ) ) {
+				return qfalse;
+			}
+			vk_rt_transform_point( ent, position, worldPosition );
+			vk_rt_transform_direction( ent, normal, worldNormal );
+			if ( !vk_rt_cpu_geometry_add_vertex( geometry, worldPosition, worldNormal, tangent,
+				vertex->texCoords, 0xFFFFFFFFu, materialIndex, NULL ) ) {
+				return qfalse;
+			}
+			vertex = (const mdrVertex_t *)&vertex->weights[vertex->numWeights];
+		}
+		triangles = (const mdrTriangle_t *)( (const byte *)surface + surface->ofsTriangles );
+		for ( t = 0; t < surface->numTriangles; t++ ) {
+			int i0 = triangles[t].indexes[0], i1 = triangles[t].indexes[1], i2 = triangles[t].indexes[2];
+			if ( i0 < 0 || i0 >= surface->numVerts || i1 < 0 || i1 >= surface->numVerts ||
+				i2 < 0 || i2 >= surface->numVerts ) {
+				continue;
+			}
+			if ( !vk_rt_cpu_geometry_add_triangle( geometry, baseVertex + (uint32_t)i0,
+				baseVertex + (uint32_t)i1, baseVertex + (uint32_t)i2 ) ) {
+				return qfalse;
+			}
+			validTriangleCount++;
+		}
+		geometry->sourceTriangleCount += validTriangleCount;
+		if ( geometry->materials[materialIndex].flags & RTX_RT_MATFLAG_MASKED ) {
+			geometry->maskedTriangleCount += validTriangleCount;
+		}
+		surfaceOffset += (size_t)surface->ofsEnd;
 	}
 	geometry->sourceEntityCount++;
 	return qtrue;
@@ -5275,7 +5472,6 @@ static qboolean vk_rt_append_md3_entity_geometry( rtxRtCpuGeometry_t *geometry, 
 {
 	const model_t *model = R_GetModelByHandle( ent->e.hModel );
 	const md3Header_t *header;
-	int lod;
 	int frame;
 	int oldFrame;
 	float backlerp;
@@ -5286,15 +5482,9 @@ static qboolean vk_rt_append_md3_entity_geometry( rtxRtCpuGeometry_t *geometry, 
 		return qtrue;
 	}
 
-	lod = R_ComputeLOD( (trRefEntity_t *)ent );
-	if ( lod < 0 ) {
-		lod = 0;
-	}
-	if ( lod >= MD3_MAX_LODS ) {
-		lod = MD3_MAX_LODS - 1;
-	}
-
-	header = model->md3[lod];
+	/* Match shadow-caster geometry, including models outside the camera frustum.
+	 * R_ComputeLOD uses frontend globals and cannot be called from this pass. */
+	header = model->md3[0];
 	if ( !header || header->numSurfaces <= 0 ) {
 		return qtrue;
 	}
@@ -5863,7 +6053,7 @@ static qboolean vk_rt_append_dynamic_model_entity_geometry( rtxRtCpuGeometry_t *
 		counted = qtrue;
 		break;
 	case MOD_MDR:
-		if ( !vk_rt_append_mdr_proxy_geometry( geometry, ent, tr.defaultShader ) ) {
+		if ( !vk_rt_append_mdr_entity_geometry( geometry, ent ) ) {
 			return qfalse;
 		}
 		counted = qtrue;
@@ -5910,6 +6100,40 @@ static qboolean vk_rt_poly_is_mark_decal( const srfPoly_t *poly )
 	return qfalse;
 }
 
+static qboolean vk_rt_model_material_secondary_supported( const shader_t *shader )
+{
+	const shaderStage_t *stage;
+	const textureBundle_t *bundle;
+	if ( R_RtShaderNativeSupported( shader ) ) {
+		return qtrue;
+	}
+	/* Model skins use lightingDiffuse or vertex lighting in raster. Secondary
+	 * radiance evaluates lighting at the actual hit, retaining their texture
+	 * and alpha coverage; animated/multipass shader effects remain authored. */
+	if ( !shader || shader->remappedShader ||
+		( shader->sort != SS_OPAQUE && shader->sort != SS_SEE_THROUGH ) ||
+		shader->isSky || ( shader->surfaceFlags & SURF_SKY ) || shader->polygonOffset ||
+		shader->numDeforms != 0 || shader->hasScreenMap || shader->numUnfoggedPasses != 1 ) {
+		return qfalse;
+	}
+	stage = shader->stages[0];
+	if ( !stage || !stage->active || stage->depthFragment || stage->numTexBundles != 1 ||
+		stage->mtEnv || stage->mtEnv3 || !( stage->stateBits & GLS_DEPTHMASK_TRUE ) ||
+		( stage->stateBits & ( GLS_BLEND_BITS | GLS_DEPTHTEST_DISABLE | GLS_DEPTHFUNC_EQUAL | GLS_POLYMODE_LINE ) ) ) {
+		return qfalse;
+	}
+	bundle = &stage->bundle[0];
+	if ( !bundle->image[0] || bundle->numImageAnimations > 1 || bundle->numTexMods != 0 ||
+		bundle->isVideoMap || bundle->isScreenMap || bundle->tcGen != TCGEN_TEXTURE ||
+		( bundle->rgbGen != CGEN_IDENTITY && bundle->rgbGen != CGEN_IDENTITY_LIGHTING &&
+		  bundle->rgbGen != CGEN_CONST && bundle->rgbGen != CGEN_LIGHTING_DIFFUSE &&
+		  bundle->rgbGen != CGEN_VERTEX && bundle->rgbGen != CGEN_EXACT_VERTEX ) ||
+		( bundle->alphaGen != AGEN_SKIP && bundle->alphaGen != AGEN_IDENTITY ) ) {
+		return qfalse;
+	}
+	return qtrue;
+}
+
 static qboolean vk_rt_extract_dynamic_geometry( rtxRtCpuGeometry_t *geometry )
 {
 	uint32_t effectMode = ( rtx_rt_dynamic_effects ? (uint32_t)MAX( 0, rtx_rt_dynamic_effects->integer ) : 1u );
@@ -5929,14 +6153,14 @@ static qboolean vk_rt_extract_dynamic_geometry( rtxRtCpuGeometry_t *geometry )
 	}
 
 	for ( pass = 0; pass < modelPasses; pass++ ) {
-		for ( i = 0; i < backEnd.refdef.num_entities; i++ ) {
+		for ( i = 0; backEnd.refdef.entities && i < backEnd.refdef.num_entities; i++ ) {
 			const trRefEntity_t *ent = &backEnd.refdef.entities[i];
 			qboolean isFirstPerson;
 
 			if ( ent->e.reType != RT_MODEL ) {
 				continue;
 			}
-			if ( !vk_rt_entity_visible_in_current_view( ent ) ) {
+			if ( !vk_rt_model_casts_in_current_view( ent ) ) {
 				continue;
 			}
 
@@ -5961,8 +6185,17 @@ static qboolean vk_rt_extract_dynamic_geometry( rtxRtCpuGeometry_t *geometry )
 		}
 	}
 
+	/* Mark model materials before appending effects. Their ownership flag
+	 * also prevents a shared shader from aliasing a later particle material. */
+	for ( i = 0; i < (int)geometry->numMaterials; i++ ) {
+		if ( vk_rt_model_material_secondary_supported( geometry->materialShaders[i] ) ) {
+			geometry->materials[i].flags |= RTX_RT_MATFLAG_SECONDARY_VISIBLE;
+		}
+		geometry->materials[i].flags |= RTX_RT_MATFLAG_RASTER_OVERLAY;
+	}
+
 	if ( effectMode > 0 ) {
-		for ( i = 0; i < backEnd.refdef.num_entities; i++ ) {
+		for ( i = 0; backEnd.refdef.entities && i < backEnd.refdef.num_entities; i++ ) {
 			const trRefEntity_t *ent = &backEnd.refdef.entities[i];
 
 			if ( !vk_rt_entity_visible_in_current_view( ent ) ) {
@@ -6012,8 +6245,8 @@ static qboolean vk_rt_extract_dynamic_geometry( rtxRtCpuGeometry_t *geometry )
 
 	/*
 	 * Dynamic entities remain authored raster overlays.  Their RT geometry is
-	 * retained for shadow/visibility rays, while the any-hit shader rejects it
-	 * from primary camera rays so it cannot replace animated raster shading.
+	 * retained for shadow rays and supported model skins for indirect radiance,
+	 * while any-hit rejects primary camera rays to preserve raster animation.
 	 */
 	for ( i = 0; i < (int)geometry->numMaterials; i++ ) {
 		geometry->materials[i].flags |= RTX_RT_MATFLAG_RASTER_OVERLAY;
@@ -7544,6 +7777,16 @@ static qboolean vk_rt_update_temporal_state( void )
 	uint32_t flags = 0;
 	qboolean logReset = temporalReset;
 
+	/* Changed transport must not be blended with the previous lighting model. */
+	if ( vk_rt_consume_cvar_modified( rtx_rt_indirect_bounce ) |
+		vk_rt_consume_cvar_modified( rtx_rt_indirect_strength ) |
+		vk_rt_consume_cvar_modified( rtx_rt_reflection_strength ) |
+		vk_rt_consume_cvar_modified( rtx_rt_refractive_mode ) |
+		vk_rt_consume_cvar_modified( rtx_rt_refractive_ior ) ) {
+		temporalReset = qtrue;
+		logReset = qtrue;
+	}
+
 	VectorCopy( backEnd.viewParms.or.origin, currentOrigin );
 	VectorCopy( backEnd.viewParms.or.axis[0], currentForward );
 	VectorScale( backEnd.viewParms.or.axis[1], -1.0f, currentRight );
@@ -7913,7 +8156,7 @@ static void vk_rt_fill_push_constants( rtxRtPushConstants_t *push )
 	push->refractionIor = vk_rt_refractive_ior();
 	push->sunIntensity = vk_rt_sun_intensity();
 	push->refractiveMode = (uint32_t)Com_Clamp( 0, 2, vk_rt_refractive_mode() );
-	push->indirectBounce = vk_rt_indirect_bounce_enabled() ? 1u : 0u;
+	push->indirectBounce = vk_rt_indirect_bounce_count();
 }
 
 static qboolean vk_rt_init( void )
@@ -9186,12 +9429,14 @@ static void record_image_layout_transition( VkCommandBuffer command_buffer, VkIm
 
 	/*
 	 * The renderer does not enable separateDepthStencilLayouts.  A barrier
-	 * covering either of our depth/stencil images must therefore transition
+	 * covering any of our depth/stencil images must therefore transition
 	 * both aspects, even when the image view and copy region intentionally
 	 * address only the depth aspect.
 	 */
-	if ( glConfig.stencilBits > 0 &&
-		( image == vk.depth_image || image == vk.liquidDepth.image ) ) {
+	if ( ( image_aspect_flags & VK_IMAGE_ASPECT_DEPTH_BIT ) &&
+		( vk.depth_format == VK_FORMAT_D16_UNORM_S8_UINT ||
+			vk.depth_format == VK_FORMAT_D24_UNORM_S8_UINT ||
+			vk.depth_format == VK_FORMAT_D32_SFLOAT_S8_UINT ) ) {
 		image_aspect_flags |= VK_IMAGE_ASPECT_STENCIL_BIT;
 	}
 
@@ -13133,7 +13378,6 @@ void vk_init_descriptors( void )
 				VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_EXT );
 		}
 
-		vk_update_attachment_descriptors();
 	}
 
 	if ( vk.dlight_shadow_image_view ) {
@@ -13166,6 +13410,8 @@ void vk_init_descriptors( void )
 			VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_EXT );
 	}
 
+	/* Pool reset invalidates retained handles, including shadow descriptors.
+	 * Publish writes only after every attachment set has been reallocated. */
 	vk_update_attachment_descriptors();
 }
 
@@ -13237,7 +13483,9 @@ static void vk_create_geometry_buffers( VkDeviceSize size )
 
 	SET_OBJECT_NAME( vk.geometry_buffer_memory, "geometry buffer memory", VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT );
 
-	vk.geometry_buffer_size = vb_memory_requirements.size;
+	/* Allocation padding separates the mapped buffers but is not addressable
+	 * through VkBuffer. Upload/descriptor bounds must use its logical size. */
+	vk.geometry_buffer_size = size;
 
 	Com_Memset( &vk.stats, 0, sizeof( vk.stats ) );
 	vk_lifetime_mark_create( RTX_VK_RESOURCE_GEOMETRY_BUFFERS, __func__ );
@@ -16506,6 +16754,11 @@ void vk_queue_wait_idle( void )
 void vk_release_resources( refShutdownCode_t code ) {
 	int i, j;
 
+	/* Capability rejection can call RE_Shutdown before a device or its
+	 * function table exists. There are no device-owned resources to release. */
+	if ( vk.device == VK_NULL_HANDLE || qvkDeviceWaitIdle == NULL ) {
+		return;
+	}
 	vk_wait_idle();
 #ifdef USE_UPLOAD_QUEUE
 	if ( code == REF_KEEP_CONTEXT ) {
@@ -16544,7 +16797,9 @@ void vk_release_resources( refShutdownCode_t code ) {
 	}
 	vk.pipelines_count = vk.pipelines_world_base;
 
-	VK_CHECK( qvkResetDescriptorPool( vk.device, vk.descriptor_pool, 0 ) );
+	if ( vk.descriptor_pool != VK_NULL_HANDLE ) {
+		VK_CHECK( qvkResetDescriptorPool( vk.device, vk.descriptor_pool, 0 ) );
+	}
 
 	if ( vk_world.num_image_chunks > 1 ) {
 		// if we allocated more than 2 image chunks - use doubled default size
@@ -16564,8 +16819,10 @@ void vk_release_resources( refShutdownCode_t code ) {
 		vk.tess[i].vertex_buffer_offset = 0;
 	}
 
-	Com_Memset( vk.cmd->buf_offset, 0, sizeof( vk.cmd->buf_offset ) );
-	Com_Memset( vk.cmd->vbo_offset, 0, sizeof( vk.cmd->vbo_offset ) );
+	if ( vk.cmd ) {
+		Com_Memset( vk.cmd->buf_offset, 0, sizeof( vk.cmd->buf_offset ) );
+		Com_Memset( vk.cmd->vbo_offset, 0, sizeof( vk.cmd->vbo_offset ) );
+	}
 
 	Com_Memset( &vk.stats, 0, sizeof( vk.stats ) );
 

@@ -52,12 +52,12 @@ def verify_release_layout(root: Path) -> None:
 
 def parse_args(argv: Sequence[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Verify that a FnQL install/release root has required data layout.",
+        description="Verify that a fnTech3 install/release root has required data layout.",
     )
     parser.add_argument(
         "root",
         type=Path,
-        help="FnQL install or release root, for example a CI bin directory.",
+        help="fnTech3 install or release root, for example a CI bin directory.",
     )
     return parser.parse_args(argv)
 

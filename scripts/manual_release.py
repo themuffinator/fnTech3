@@ -13,7 +13,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from fnql_meta import (
+from fntech3_meta import (
     ROOT,
     VERSION_HEADER,
     base_metadata,
@@ -60,7 +60,7 @@ def write_text_lf(path: Path, content: str) -> None:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="FnQL manual release build helper")
+    parser = argparse.ArgumentParser(description="fnTech3 manual release build helper")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     for command in ("summary", "github-output"):
@@ -218,10 +218,10 @@ def stamp_version(header: Path, build_number: int) -> dict[str, object]:
     )
 
     replacements = {
-        "FNQL_VERSION_TWEAK": str(build_number),
-        "FNQL_VERSION_STRING": f'"{version_string}"',
-        "FNQL_WINDOWS_FILE_VERSION": windows_version,
-        "FNQL_WINDOWS_PRODUCT_VERSION": windows_version,
+        "FNTECH3_VERSION_TWEAK": str(build_number),
+        "FNTECH3_VERSION_STRING": f'"{version_string}"',
+        "FNTECH3_WINDOWS_FILE_VERSION": windows_version,
+        "FNTECH3_WINDOWS_PRODUCT_VERSION": windows_version,
     }
 
     lines = header.read_text(encoding="utf-8").splitlines()
@@ -390,7 +390,7 @@ def release_note_generation_context(
                 commit_lines_for_prompt.append(body)
 
     lines = [
-        f"Project: FnQL, a modernized Quake Live engine branch derived from FnQ3.",
+        f"Project: fnTech3, one engine with Quake III Arena and Quake Live profiles. Compatibility gates remain open; do not claim complete compatibility.",
         f"Release version: {version_string}",
         f"Build number: {build_number}",
         f"Build date: {build_date}",
@@ -399,7 +399,7 @@ def release_note_generation_context(
         "",
         "Project priorities:",
         "- Preserve retail Quake Live Steam compatibility.",
-        "- Keep game-code reconstruction out of scope for FnQL releases.",
+        "- Keep game-code reconstruction out of scope for fnTech3 releases.",
         "- Keep hot paths and tooling fast.",
         "- Improve modern platform support without regressing existing targets.",
         "- Keep cross-platform viability visible.",
@@ -433,7 +433,7 @@ def sanitize_generated_notes(text: str) -> str:
     sanitized: list[str] = []
     for line in stripped.splitlines():
         clean = line.rstrip()
-        if re.match(r"^#{1,2}\s+(fnql|release notes|changelog highlights|what'?s changed)\b", clean, flags=re.IGNORECASE):
+        if re.match(r"^#{1,2}\s+(fntech3|fnql|release notes|changelog highlights|what'?s changed)\b", clean, flags=re.IGNORECASE):
             continue
         if clean.startswith("::"):
             clean = "\\" + clean
@@ -465,7 +465,7 @@ def github_models_highlights(context: str, *, model: str, timeout: int) -> str:
 
     system_prompt = textwrap.dedent(
         """
-        You write user-facing release notes for FnQL.
+        You write user-facing release notes for fnTech3. Distinguish observed compatibility evidence from open gates.
         Audience: players, server operators, mod users, and testers.
         Produce 3-12 concise Markdown bullets with only useful highlights. Avoid duplicated ideas,
         merge noise, raw commit lists, tiny refactor details, and maintainer-only trivia.

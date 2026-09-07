@@ -528,7 +528,7 @@
       "source": "rt_main.rgen",
       "stage": "rgen",
       "defines": [],
-      "byte_size": 29184,
+      "byte_size": 35408,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -593,7 +593,7 @@
       "source": "rt_main.rmiss",
       "stage": "rmiss",
       "defines": [],
-      "byte_size": 4768,
+      "byte_size": 5508,
       "reflection": {
         "descriptor_bindings": [],
         "push_constants": [
@@ -609,7 +609,7 @@
       "source": "rt_shadow.rmiss",
       "stage": "rmiss",
       "defines": [],
-      "byte_size": 320,
+      "byte_size": 756,
       "reflection": {
         "descriptor_bindings": [],
         "push_constants": []
@@ -620,7 +620,7 @@
       "source": "rt_main.rchit",
       "stage": "rchit",
       "defines": [],
-      "byte_size": 51916,
+      "byte_size": 74320,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -717,7 +717,7 @@
       "source": "rt_main.rahit",
       "stage": "rahit",
       "defines": [],
-      "byte_size": 11368,
+      "byte_size": 12160,
       "reflection": {
         "descriptor_bindings": [
           {

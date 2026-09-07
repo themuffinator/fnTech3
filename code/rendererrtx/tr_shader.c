@@ -4108,9 +4108,12 @@ qboolean R_RtShaderNativeSupported( const shader_t *materialShader )
 	if ( bundleCount < 1 || bundleCount > 2 ||
 		( bundleCount == 1 && ( stage->mtEnv || stage->mtEnv3 ) ) ||
 		( bundleCount == 2 &&
-			( stage->mtEnv != GL_MODULATE || stage->mtEnv3 ) ) ) {
+			( ( stage->mtEnv != GL_MODULATE && stage->mtEnv != GL_BLEND_MODULATE ) || stage->mtEnv3 ) ) ) {
 		return qfalse;
 	}
+	/* GL_BLEND_MODULATE still multiplies the two texture/color results.
+	 * CollapseMultitexture selects it when bundle color generators differ;
+	 * validate each generator below instead of discarding that exact product. */
 
 	for ( i = 0; i < bundleCount; i++ ) {
 		const textureBundle_t *bundle = &stage->bundle[i];
@@ -4144,7 +4147,12 @@ qboolean R_RtShaderNativeSupported( const shader_t *materialShader )
 		if ( bundle->tcGen != TCGEN_TEXTURE ||
 			( bundle->rgbGen != CGEN_IDENTITY &&
 			  bundle->rgbGen != CGEN_IDENTITY_LIGHTING &&
-			  bundle->rgbGen != CGEN_CONST ) ||
+			  bundle->rgbGen != CGEN_CONST &&
+			  !( bundleCount == 1 &&
+				( bundle->vertexLightmap ||
+				  ( !materialShader->explicitlyDefined && materialShader->lightmapIndex == LIGHTMAP_BY_VERTEX &&
+					bundle->rgbGen == CGEN_EXACT_VERTEX ) ) &&
+				( bundle->rgbGen == CGEN_EXACT_VERTEX || bundle->rgbGen == CGEN_VERTEX ) ) ) ||
 			( bundle->alphaGen != AGEN_SKIP &&
 			  bundle->alphaGen != AGEN_IDENTITY &&
 			  !( bundle->alphaGen == AGEN_CONST &&
@@ -4154,10 +4162,13 @@ qboolean R_RtShaderNativeSupported( const shader_t *materialShader )
 		baseBundleCount++;
 	}
 
-	/* The current RT vertex/material ABI carries only base UVs and one texture
-	 * index.  Keep authored lightmaps raster-owned until closest-hit can sample
-	 * their independent coordinates and texture without approximating them. */
-	return ( baseBundleCount == 1 && lightmapBundleCount == 0 ) ?
+	/* Native vertices carry independent lightmap coordinates and baked RGB.
+	 * Accept the exact base-times-lightmap product or the renderer-generated
+	 * single-bundle vertex-lightmap replacement. The implicit BY_VERTEX shader
+	 * created by R_CreateDefaultShading has the same baked role without setting
+	 * bundle.vertexLightmap. Authored vertex stages without provenance and
+	 * animated stages stay raster owned. */
+	return ( baseBundleCount == 1 && lightmapBundleCount <= 1 ) ?
 		qtrue : qfalse;
 #else
 	(void)materialShader;

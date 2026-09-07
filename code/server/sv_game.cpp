@@ -23,8 +23,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "server.h"
 #include "server_cvar_compat.hpp"
+#include "server_game_data.h"
 
 #include "../botlib/botlib.h"
+#include "../compat/game_abi_adapter.h"
 #define JSON_IMPLEMENTATION
 #include "../qcommon/json.h"
 #undef JSON_IMPLEMENTATION
@@ -46,6 +48,17 @@ botlib_export_t	*botlib_export;
 namespace {
 
 std::string serverEntityOverride;
+fntech3::server::ServerGameDataView serverGameData;
+
+void InvalidateServerGameData()
+{
+	serverGameData.Invalidate();
+	sv.gentities = nullptr;
+	sv.gentitySize = 0;
+	sv.num_entities = 0;
+	sv.gameClients = nullptr;
+	sv.gameClientSize = 0;
+}
 
 std::string CurrentEntityMapName()
 {
@@ -126,42 +139,129 @@ const char *SelectServerEntityString()
 // these functions must be used instead of pointer arithmetic, because
 // the game allocates gentities with private information after the server shared part
 int	SV_NumForGentity( sharedEntity_t *ent ) {
-	int		num;
-
-	num = ( reinterpret_cast<byte *>( ent ) - reinterpret_cast<byte *>( sv.gentities ) ) / sv.gentitySize;
-
-	return num;
+	fntech3::server::GameEntityRef reference;
+	if ( !serverGameData.EntityRefForPointer( ent, reference ) ) {
+		Com_Error( ERR_DROP, "%s: bad gEnt", __func__ );
+		return 0;
+	}
+	return reference.index;
 }
 
 
 sharedEntity_t *SV_GentityNum( int num ) {
-	sharedEntity_t *ent;
-
-	ent = reinterpret_cast<sharedEntity_t *>( reinterpret_cast<byte *>( sv.gentities ) + sv.gentitySize * num );
-
-	return ent;
+	fntech3::server::GameEntityRef reference;
+	if ( !serverGameData.EntityRefAt( num, reference ) ) {
+		Com_Error( ERR_DROP, "%s: bad entity number %i", __func__, num );
+		return nullptr;
+	}
+	return static_cast<sharedEntity_t *>( serverGameData.EntityPointer( reference ) );
 }
 
 
-playerState_t *SV_GameClientNum( int num ) {
-	playerState_t	*ps;
+qboolean SV_ReadGameEntity( const void *entity,
+	sharedEntity_t *destination ) {
+	fntech3::server::GameEntityRef reference;
+	if ( !destination
+		|| !serverGameData.EntityRefForPointer( entity, reference ) ) {
+		return qfalse;
+	}
 
-	ps = reinterpret_cast<playerState_t *>( reinterpret_cast<byte *>( sv.gameClients ) + sv.gameClientSize * num );
+	*destination = {};
+	int value = 0;
+	return serverGameData.ReadEntityState( reference, destination->s )
+		&& serverGameData.GetLinked( reference, value )
+		&& ( destination->r.linked = SV_QBool( value != 0 ), true )
+		&& serverGameData.GetLinkcount( reference, destination->r.linkcount )
+		&& serverGameData.GetSvFlags( reference, destination->r.svFlags )
+		&& serverGameData.GetSingleClient( reference, destination->r.singleClient )
+		&& serverGameData.GetBmodel( reference, value )
+		&& ( destination->r.bmodel = SV_QBool( value != 0 ), true )
+		&& serverGameData.GetMins( reference, destination->r.mins )
+		&& serverGameData.GetMaxs( reference, destination->r.maxs )
+		&& serverGameData.GetContents( reference, destination->r.contents )
+		&& serverGameData.GetAbsmin( reference, destination->r.absmin )
+		&& serverGameData.GetAbsmax( reference, destination->r.absmax )
+		&& serverGameData.GetCurrentOrigin( reference,
+			destination->r.currentOrigin )
+		&& serverGameData.GetCurrentAngles( reference,
+			destination->r.currentAngles )
+		&& serverGameData.GetOwnerNum( reference, destination->r.ownerNum )
+		&& serverGameData.GetSharedStateOrigin2( reference,
+			destination->r.s.origin2 ) ? qtrue : qfalse;
+}
 
-	return ps;
+
+qboolean SV_WriteGameEntity( void *entity,
+	const sharedEntity_t *source ) {
+	fntech3::server::GameEntityRef reference;
+	if ( !source || !serverGameData.EntityRefForPointer( entity, reference ) ) {
+		return qfalse;
+	}
+
+	return serverGameData.WriteEntityState( reference, source->s )
+		&& serverGameData.SetLinked( reference, source->r.linked )
+		&& serverGameData.SetLinkcount( reference, source->r.linkcount )
+		&& serverGameData.SetSvFlags( reference, source->r.svFlags )
+		&& serverGameData.SetSingleClient( reference, source->r.singleClient )
+		&& serverGameData.SetBmodel( reference, source->r.bmodel )
+		&& serverGameData.SetMins( reference, source->r.mins )
+		&& serverGameData.SetMaxs( reference, source->r.maxs )
+		&& serverGameData.SetContents( reference, source->r.contents )
+		&& serverGameData.SetAbsmin( reference, source->r.absmin )
+		&& serverGameData.SetAbsmax( reference, source->r.absmax )
+		&& serverGameData.SetCurrentOrigin( reference,
+			source->r.currentOrigin )
+		&& serverGameData.SetCurrentAngles( reference,
+			source->r.currentAngles )
+		&& serverGameData.SetOwnerNum( reference, source->r.ownerNum )
+		&& serverGameData.SetSharedStateOrigin2( reference,
+			source->r.s.origin2 ) ? qtrue : qfalse;
+}
+
+
+qboolean SV_ReadGameEntityByNum( int num, sharedEntity_t *destination ) {
+	fntech3::server::GameEntityRef reference;
+	if ( !destination || !serverGameData.EntityRefAt( num, reference ) ) {
+		return qfalse;
+	}
+	return SV_ReadGameEntity(
+		static_cast<const sharedEntity_t *>( serverGameData.EntityPointer( reference ) ),
+		destination );
+}
+
+
+qboolean SV_WriteGameEntityByNum( int num, const sharedEntity_t *source ) {
+	fntech3::server::GameEntityRef reference;
+	if ( !source || !serverGameData.EntityRefAt( num, reference ) ) {
+		return qfalse;
+	}
+	return SV_WriteGameEntity(
+		static_cast<sharedEntity_t *>( serverGameData.EntityPointer( reference ) ),
+		source );
+}
+
+
+qboolean SV_ReadGameClient( int num, playerState_t *destination ) {
+	return destination && serverGameData.ReadPlayerState( num, *destination )
+		? qtrue : qfalse;
+}
+
+
+qboolean SV_SetGameClientPing( int num, int ping ) {
+	return serverGameData.SetPlayerPing( num, ping ) ? qtrue : qfalse;
 }
 
 
 svEntity_t	*SV_SvEntityForGentity( sharedEntity_t *gEnt ) {
-	if ( !gEnt || gEnt->s.number < 0 || gEnt->s.number >= MAX_GENTITIES ) {
+	fntech3::server::GameEntityRef reference;
+	int number = -1;
+	if ( !serverGameData.EntityRefForPointer( gEnt, reference )
+		|| !serverGameData.GetNumber( reference, number )
+		|| number < 0 || number >= MAX_GENTITIES ) {
 		Com_Error( ERR_DROP, "SV_SvEntityForGentity: bad gEnt" );
+		return nullptr;
 	}
-	return &sv.svEntities[ gEnt->s.number ];
-}
-
-
-sharedEntity_t *SV_GEntityForSvEntity( svEntity_t *svEnt ) {
-	return SV_GentityNum( SV_SvEntityIndex( svEnt ) );
+	return &sv.svEntities[ number ];
 }
 
 
@@ -209,6 +309,7 @@ sets mins and maxs for inline bmodels
 static void SV_SetBrushModel( sharedEntity_t *ent, const char *name ) {
 	clipHandle_t	h;
 	vec3_t			mins, maxs;
+	sharedEntity_t	entity;
 
 	if ( !name ) {
 		Com_Error( ERR_DROP, "SV_SetBrushModel: NULL" );
@@ -218,15 +319,23 @@ static void SV_SetBrushModel( sharedEntity_t *ent, const char *name ) {
 		Com_Error( ERR_DROP, "SV_SetBrushModel: %s isn't a brush model", name );
 	}
 
-	ent->s.modelindex = SV_ParseInt( name + 1 );
+	if ( !SV_ReadGameEntity( ent, &entity ) ) {
+		Com_Error( ERR_DROP, "SV_SetBrushModel: bad gEnt" );
+		return;
+	}
+	entity.s.modelindex = SV_ParseInt( name + 1 );
 
-	h = CM_InlineModel( ent->s.modelindex );
+	h = CM_InlineModel( entity.s.modelindex );
 	CM_ModelBounds( h, mins, maxs );
-	VectorCopy (mins, ent->r.mins);
-	VectorCopy (maxs, ent->r.maxs);
-	ent->r.bmodel = qtrue;
+	VectorCopy (mins, entity.r.mins);
+	VectorCopy (maxs, entity.r.maxs);
+	entity.r.bmodel = qtrue;
 
-	ent->r.contents = -1;		// we don't know exactly what is in the brushes
+	entity.r.contents = -1;		// we don't know exactly what is in the brushes
+	if ( !SV_WriteGameEntity( ent, &entity ) ) {
+		Com_Error( ERR_DROP, "SV_SetBrushModel: game-data write failed" );
+		return;
+	}
 
 	SV_LinkEntity( ent );		// FIXME: remove
 }
@@ -311,16 +420,20 @@ SV_EntityContact
 ==================
 */
 static bool SV_EntityContact( const vec3_t mins, const vec3_t maxs, const sharedEntity_t *gEnt, bool capsule ) {
-	const float	*origin, *angles;
 	clipHandle_t	ch;
 	trace_t			trace;
+	sharedEntity_t entity;
 
 	// check for exact collision
-	origin = gEnt->r.currentOrigin;
-	angles = gEnt->r.currentAngles;
+	if ( !SV_ReadGameEntity( gEnt, &entity ) ) {
+		Com_Error( ERR_DROP, "SV_EntityContact: bad gEnt" );
+		return false;
+	}
 
 	ch = SV_ClipHandleForEntity( gEnt, SV_QBool( capsule ) );
-	CM_TransformedBoxTrace( &trace, vec3_origin, vec3_origin, mins, maxs, ch, -1, origin, angles, SV_QBool( capsule ) );
+	CM_TransformedBoxTrace( &trace, vec3_origin, vec3_origin, mins, maxs,
+		ch, -1, entity.r.currentOrigin, entity.r.currentAngles,
+		SV_QBool( capsule ) );
 
 	return trace.startsolid;
 }
@@ -350,34 +463,67 @@ SV_LocateGameData
 
 ===============
 */
-static void SV_LocateGameData( sharedEntity_t *gEnts, int numGEntities, int sizeofGEntity_t, playerState_t *clients, int sizeofGameClient ) {
+static void SV_LocateGameData( intptr_t entityAddress, int numGEntities, int sizeofGEntity_t, intptr_t clientAddress, int sizeofGameClient ) {
+	// Rejecting a new binding must also discard the previous server metadata.
+	InvalidateServerGameData();
+	fntech3::server::NativeGameDataBinding binding;
+	binding.entityCount = numGEntities;
+	binding.entityStride = sizeofGEntity_t > 0
+		? static_cast<std::size_t>( sizeofGEntity_t ) : 0;
+	binding.clientCount = MAX_CLIENTS;
+	binding.clientStride = sizeofGameClient > 0
+		? static_cast<std::size_t>( sizeofGameClient ) : 0;
 
-	if ( !gvm->entryPoint && !gvm->dllExports ) {
-		// <= 0 must be rejected here: numGEntities is the divisor below, and the
-		// mixed int/uint32_t operands make that an unsigned division, so zero
-		// traps rather than merely being undefined
-		if ( numGEntities <= 0 || numGEntities > MAX_GENTITIES ) {
-			Com_Error( ERR_DROP, "%s: bad entity count %i", __func__, numGEntities );
-		} else {
-			if ( sizeofGEntity_t < 0 || static_cast<uint32_t>( sizeofGEntity_t ) > gvm->exactDataLength / numGEntities ) {
-				Com_Error( ERR_DROP, "%s: bad entity size %i", __func__, sizeofGEntity_t );	
-			} else if ( reinterpret_cast<byte *>( gEnts ) + ( numGEntities * sizeofGEntity_t ) > ( gvm->dataBase + gvm->exactDataLength ) ) {
-				Com_Error( ERR_DROP, "%s: entities located out of data segment", __func__ );
-			}
-		}
-
-		if ( sizeofGameClient < 0 || static_cast<uint32_t>( sizeofGameClient ) > gvm->exactDataLength / MAX_CLIENTS ) {
-			Com_Error( ERR_DROP, "%s: bad game client size %i", __func__, sizeofGameClient );	
-		} else if ( reinterpret_cast<byte *>( clients ) + ( sizeofGameClient * MAX_CLIENTS ) > gvm->dataBase + gvm->exactDataLength ) {
-			Com_Error( ERR_DROP, "%s: clients located out of data segment", __func__ );
+	const bool qvmBacked = !gvm->entryPoint && !gvm->dllExports;
+	if ( qvmBacked ) {
+		// Do not pass these offsets through VM_ArgPtr: masking there would
+		// turn a forged out-of-range offset into an apparently valid binding.
+		if ( !fntech3::server::ResolveQvmGameDataPointer( gvm->dataBase,
+			gvm->exactDataLength, entityAddress, binding.entityBase,
+			binding.entitySpanBytes )
+			|| !fntech3::server::ResolveQvmGameDataPointer( gvm->dataBase,
+				gvm->exactDataLength, clientAddress, binding.clientBase,
+				binding.clientSpanBytes ) ) {
+			Com_Error( ERR_DROP, "%s: game data located outside VM data segment",
+				__func__ );
+			return;
 		}
 	}
+	else {
+		binding.entityBase = reinterpret_cast<void *>( entityAddress );
+		binding.clientBase = reinterpret_cast<void *>( clientAddress );
+		const auto claimedSpan = []( int count, int stride ) -> std::size_t {
+			if ( count <= 0 || stride <= 0 ) {
+				return 0;
+			}
+			const std::size_t unsignedCount = static_cast<std::size_t>( count );
+			const std::size_t unsignedStride = static_cast<std::size_t>( stride );
+			if ( unsignedStride > ( std::numeric_limits<std::size_t>::max )()
+				/ unsignedCount ) {
+				return 0;
+			}
+			return unsignedStride * unsignedCount;
+		};
+		binding.entitySpanBytes = claimedSpan( numGEntities,
+			sizeofGEntity_t );
+		binding.clientSpanBytes = claimedSpan( MAX_CLIENTS,
+			sizeofGameClient );
+	}
 
-	sv.gentities = gEnts;
+	const fntech3::server::GameDataBindError bindError =
+		serverGameData.BindNative( Com_GameProfile()->id, binding );
+	if ( bindError != fntech3::server::GameDataBindError::None ) {
+		Com_Error( ERR_DROP, "%s: invalid %s game-data binding: %s",
+			__func__, Com_GameProfile()->displayName,
+			fntech3::server::GameDataBindErrorName( bindError ) );
+		return;
+	}
+
+	sv.gentities = binding.entityBase;
 	sv.gentitySize = sizeofGEntity_t;
 	sv.num_entities = numGEntities;
 
-	sv.gameClients = clients;
+	sv.gameClients = binding.clientBase;
 	sv.gameClientSize = sizeofGameClient;
 }
 
@@ -393,6 +539,15 @@ static void SV_GetUsercmd( int clientNum, usercmd_t *cmd ) {
 	} else {
 		Com_Error( ERR_DROP, "%s(): bad clientNum: %i", __func__, clientNum );
 	}
+}
+
+
+static void SV_GetQ3Usercmd( int clientNum,
+	fntech3_q3_usercmd_t *destination ) {
+	usercmd_t internal;
+
+	SV_GetUsercmd( clientNum, &internal );
+	FnTech3_Q3UsercmdFromInternal( destination, &internal );
 }
 
 
@@ -479,6 +634,10 @@ static qboolean sv_gameRankStubAnnounced = qfalse;
 static int sv_gameRankStubServerId = -1;
 
 void SV_GameRefreshRankingsPolicyCvars( void ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return;
+	}
+
 	Cvar_Set( "sv_rankingsProvider", SV_GAME_RANKINGS_PROVIDER );
 	Cvar_Set( "sv_rankingsPolicy", SV_GAME_RANKINGS_POLICY );
 	Cvar_Set( "sv_rankingsActive", "0" );
@@ -634,7 +793,7 @@ static intptr_t SV_GameSystemCalls( intptr_t *args ) {
 		return FS_GetFileList( VMA(1), VMA(2), VMA(3), args[4] );
 
 	case G_LOCATE_GAME_DATA:
-		SV_LocateGameData( VMA(1), args[2], args[3], VMA(4), args[5] );
+		SV_LocateGameData( args[1], args[2], args[3], args[4], args[5] );
 		return 0;
 	case G_DROP_CLIENT:
 		SV_GameDropClient( args[1], VMA(2) );
@@ -727,7 +886,13 @@ static intptr_t SV_GameSystemCalls( intptr_t *args ) {
 		return 0;
 
 	case G_GET_USERCMD:
-		SV_GetUsercmd( args[1], VMA(2) );
+		if ( gvm->dllExports ) {
+			VM_CHECKBOUNDS( gvm, args[2], sizeof( usercmd_t ) );
+			SV_GetUsercmd( args[1], VMA(2) );
+		} else {
+			VM_CHECKBOUNDS( gvm, args[2], sizeof( fntech3_q3_usercmd_t ) );
+			SV_GetQ3Usercmd( args[1], VMA(2) );
+		}
 		return 0;
 	case G_GET_ENTITY_TOKEN:
 		{
@@ -1613,8 +1778,15 @@ static void SV_GameResendConfigstring( int index ) {
 			continue;
 		}
 
-		if ( index == CS_SERVERINFO && client.gentity && ( client.gentity->r.svFlags & SVF_NOSERVERINFO ) ) {
-			continue;
+		if ( index == CS_SERVERINFO && client.gentity ) {
+			sharedEntity_t entity;
+			if ( !SV_ReadGameEntity( client.gentity, &entity ) ) {
+				Com_Error( ERR_DROP, "%s: invalid client gentity", __func__ );
+				return;
+			}
+			if ( entity.r.svFlags & SVF_NOSERVERINFO ) {
+				continue;
+			}
 		}
 
 		len = static_cast<int>( strlen( val ) );
@@ -2441,11 +2613,13 @@ Called every time a map changes
 */
 void SV_ShutdownGameProgs( void ) {
 	if ( !gvm ) {
+		InvalidateServerGameData();
 		serverEntityOverride.clear();
 		SV_ResetGameCvarRegistration();
 		return;
 	}
 	VM_Call( gvm, 1, GAME_SHUTDOWN, qfalse );
+	InvalidateServerGameData();
 	VM_Free( gvm );
 	gvm = nullptr;
 	serverEntityOverride.clear();
@@ -2515,6 +2689,7 @@ static void SV_InitGameVM( bool restart ) {
 	for ( client_t &client : SV_Clients() ) {
 		client.gentity = nullptr;
 	}
+	InvalidateServerGameData();
 	
 	// use the current msec count for a random seed
 	// init for this gamestate
@@ -2531,10 +2706,12 @@ Called on a map_restart, but not on a normal map change
 */
 void SV_RestartGameProgs( void ) {
 	if ( !gvm ) {
+		InvalidateServerGameData();
 		SV_ResetGameCvarRegistration();
 		return;
 	}
 	VM_Call( gvm, 1, GAME_SHUTDOWN, qtrue );
+	InvalidateServerGameData();
 	SV_ResetGameCvarRegistration();
 
 	// do a restart instead of a free
@@ -2598,7 +2775,7 @@ void SV_RegisterGameCvars( void ) {
 	//FIXME these are temp while I make bots run in vm
 	extern int	bot_enable;
 
-	if ( sv_gameCvarsRegistered ) {
+	if ( !Com_GameIsQuakeLive() || sv_gameCvarsRegistered ) {
 		return;
 	}
 

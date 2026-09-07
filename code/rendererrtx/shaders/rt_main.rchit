@@ -6,6 +6,7 @@ const float PI = 3.14159265359;
 const uint RTX_RT_COLORSPACE_SRGB = 1u;
 const uint RTX_RT_MAX_SCENE_TEXTURES = 2048u;
 const uint RTX_RT_INVALID_TEXTURE_INDEX = 0xFFFFFFFFu;
+const uint RTX_RT_LIGHTING_VERTEX_LIGHTMAP = 1u << 0;
 const uint RTX_RT_MATFLAG_MASKED = 1u << 0;
 const uint RTX_RT_MATFLAG_EMISSIVE = 1u << 1;
 const uint RTX_RT_MATFLAG_TRANSLUCENT = 1u << 2;
@@ -26,6 +27,10 @@ struct RtRadiancePayload {
 	float shadowFactor;
 	float shadowResponse;
 	vec3 shadowLoss;
+	vec3 nextOrigin;
+	vec3 nextDirection;
+	vec3 nextWeight;
+	uint pathDepth;
 };
 
 struct RtPackedVertex {
@@ -35,6 +40,7 @@ struct RtPackedVertex {
 	vec2 texCoord;
 	uint color;
 	uint materialIndex;
+	vec4 lightmapData;
 };
 
 struct RtGpuMaterial {
@@ -53,7 +59,9 @@ struct RtLight {
 };
 
 layout(location = 0) rayPayloadInEXT RtRadiancePayload payloadRadiance;
-layout(location = 1) rayPayloadEXT uint payloadShadow;
+/* The shared any-hit group requires the same incoming payload ABI for every
+ * ray type, even though shadow rays only consume the visibility scalar. */
+layout(location = 1) rayPayloadEXT RtRadiancePayload payloadShadow;
 hitAttributeEXT vec2 barycentrics;
 
 layout(set = 0, binding = 0) uniform accelerationStructureEXT u_tlas;
@@ -272,6 +280,151 @@ vec3 FresnelSchlick(float cosTheta, vec3 F0)
 	return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
+/* Standard GGX equations, independently expressed for the native integrator. */
+float native_ggx_distribution(float NdotH, float roughness)
+{
+	float alphaSquared = pow(roughness, 4.0);
+	float cosineSquared = NdotH * NdotH;
+	float denominator = (1.0 - cosineSquared) + alphaSquared * cosineSquared;
+	return alphaSquared / max(PI * denominator * denominator, 1e-12);
+}
+
+float native_ggx_masking(float cosine, float roughness)
+{
+	float alphaSquared = pow(roughness, 4.0);
+	return 2.0 * cosine / max(cosine +
+		sqrt(alphaSquared + (1.0 - alphaSquared) * cosine * cosine), 1e-6);
+}
+
+vec3 native_brdf(vec3 N, vec3 V, vec3 L, vec3 albedo, vec3 F0,
+	float roughness, float metallic, float diffuseScale, float specularScale)
+{
+	float NdotL = max(dot(N, L), 0.0);
+	float NdotV = max(dot(N, V), 0.0);
+	if (NdotL <= 0.0 || NdotV <= 0.0) {
+		return vec3(0.0);
+	}
+	vec3 H = safe_normalize(V + L, N);
+	vec3 F = FresnelSchlick(max(dot(V, H), 0.0), F0);
+	float D = native_ggx_distribution(max(dot(N, H), 0.0), roughness);
+	float G = native_ggx_masking(NdotV, roughness) * native_ggx_masking(NdotL, roughness);
+	return (vec3(1.0) - F) * (1.0 - metallic) * albedo * (diffuseScale / PI) +
+		F * (specularScale * D * G / max(4.0 * NdotL * NdotV, 1e-7));
+}
+
+vec3 sample_ggx_reflection(vec3 N, vec3 V, float roughness, inout uint seed)
+{
+	float u = rand01(seed);
+	float phi = 2.0 * PI * rand01(seed);
+	float alphaSquared = pow(roughness, 4.0);
+	float cosTheta = sqrt((1.0 - u) / max(1.0 + (alphaSquared - 1.0) * u, 1e-7));
+	float sinTheta = sqrt(max(1.0 - cosTheta * cosTheta, 0.0));
+	vec3 tangent;
+	vec3 bitangent;
+	basis_from_dir(N, tangent, bitangent);
+	vec3 H = safe_normalize(tangent * (cos(phi) * sinTheta) +
+		bitangent * (sin(phi) * sinTheta) + N * cosTheta, N);
+	return reflect(-V, H);
+}
+
+float dielectric_fresnel(float cosine, float eta)
+{
+	float sinTransmittedSquared = eta * eta * max(1.0 - cosine * cosine, 0.0);
+	if (sinTransmittedSquared >= 1.0) {
+		return 1.0;
+	}
+	float cosTransmitted = sqrt(max(1.0 - sinTransmittedSquared, 0.0));
+	float parallel = (cosine - eta * cosTransmitted) /
+		max(cosine + eta * cosTransmitted, 1e-6);
+	float perpendicular = (eta * cosine - cosTransmitted) /
+		max(eta * cosine + cosTransmitted, 1e-6);
+	return clamp(0.5 * (parallel * parallel + perpendicular * perpendicular), 0.0, 1.0);
+}
+
+vec3 offset_ray_origin(vec3 position, vec3 geometricNormal, vec3 direction)
+{
+	/* Scale beyond several float ULPs in large Q3 worlds, on the outgoing side. */
+	float magnitude = max(max(abs(position.x), abs(position.y)), abs(position.z));
+	float epsilon = max(0.002, magnitude * 9.5367431640625e-7);
+	return position + geometricNormal * (dot(geometricNormal, direction) >= 0.0 ? epsilon : -epsilon);
+}
+
+void sample_native_continuation(vec3 position, vec3 geometricNormal, vec3 N, vec3 V,
+	vec3 albedo, vec3 F0, float roughness, float metallic, float materialAlpha,
+	uint materialFlags, inout uint seed)
+{
+	float diffuseScale = pc.indirectBounce > payloadRadiance.pathDepth ? max(pc.indirectStrength, 0.0) : 0.0;
+	float specularScale = max(pc.reflectionStrength, 0.0);
+	vec3 transmissionWeight = vec3(0.0);
+	vec3 transmissionDirection = -V;
+	bool translucent = (materialFlags & RTX_RT_MATFLAG_TRANSLUCENT) != 0u && pc.refractiveMode > 0u;
+	if (translucent) {
+		float ior = max(pc.refractionIor, 1.0);
+		float eta = gl_HitKindEXT == gl_HitKindFrontFacingTriangleEXT ? 1.0 / ior : ior;
+		float fresnel = dielectric_fresnel(max(dot(N, V), 0.0), eta);
+		float etaScale = 1.0;
+		if (pc.refractiveMode > 1u) {
+			transmissionDirection = refract(-V, N, eta);
+			etaScale = eta * eta;
+		} else {
+			/* Thin alpha glass traverses the original direction and medium. */
+			fresnel = dielectric_fresnel(max(dot(N, V), 0.0), 1.0 / ior);
+		}
+		if (dot(transmissionDirection, transmissionDirection) < 1e-8) {
+			/* Total internal reflection must stay in the incident medium. */
+			payloadRadiance.nextDirection = reflect(-V, N);
+			payloadRadiance.nextOrigin = offset_ray_origin(position, geometricNormal, payloadRadiance.nextDirection);
+			payloadRadiance.nextWeight = vec3(1.0 - materialAlpha);
+			return;
+		}
+		transmissionWeight = (1.0 - materialAlpha) * (1.0 - fresnel) * albedo * etaScale;
+		diffuseScale *= materialAlpha;
+		float dielectricF0 = (ior - 1.0) / (ior + 1.0);
+		F0 = mix(vec3(dielectricF0 * dielectricF0), albedo, metallic);
+	}
+
+	vec3 viewFresnel = FresnelSchlick(max(dot(N, V), 0.0), F0);
+	float diffuseImportance = luminance((vec3(1.0) - viewFresnel) * albedo) * (1.0 - metallic) * diffuseScale;
+	float specularImportance = luminance(viewFresnel) * specularScale;
+	float reflectionImportance = diffuseImportance + specularImportance;
+	float transmissionImportance = luminance(transmissionWeight);
+	float totalImportance = reflectionImportance + transmissionImportance;
+	if (totalImportance <= 1e-6) {
+		return;
+	}
+	float transmissionProbability = transmissionImportance / totalImportance;
+	vec3 direction;
+	vec3 weight;
+	if (transmissionImportance > 0.0 && rand01(seed) < transmissionProbability) {
+		direction = safe_normalize(transmissionDirection, -V);
+		weight = transmissionWeight / max(transmissionProbability, 1e-7);
+	} else {
+		float specularProbability = specularImportance / max(reflectionImportance, 1e-7);
+		if (diffuseImportance > 0.0 && specularImportance > 0.0) {
+			specularProbability = clamp(specularProbability, 0.05, 0.95);
+		}
+		direction = rand01(seed) < specularProbability ?
+			sample_ggx_reflection(N, V, roughness, seed) : sample_cosine_hemisphere(N, seed);
+		float NdotL = max(dot(N, direction), 0.0);
+		if (NdotL <= 0.0 || dot(geometricNormal, direction) <= 0.0) {
+			return;
+		}
+		vec3 H = safe_normalize(V + direction, N);
+		float NdotH = max(dot(N, H), 0.0);
+		float specularPdf = native_ggx_distribution(NdotH, roughness) * NdotH /
+			max(4.0 * abs(dot(V, H)), 1e-7);
+		float pdf = mix(NdotL / PI, specularPdf, specularProbability) * (1.0 - transmissionProbability);
+		weight = native_brdf(N, V, direction, albedo, F0, roughness, metallic,
+			diffuseScale, specularScale) * (NdotL / max(pdf, 1e-7));
+	}
+	if (any(isnan(weight)) || any(isinf(weight))) {
+		return;
+	}
+	payloadRadiance.nextDirection = direction;
+	payloadRadiance.nextOrigin = offset_ray_origin(position, geometricNormal, direction);
+	payloadRadiance.nextWeight = max(weight, vec3(0.0));
+}
+
 vec3 decode_albedo_sample(vec3 sampledColor, uint sampledColorSpace)
 {
 	/*
@@ -347,7 +500,11 @@ float estimate_albedo_lod(
 
 float trace_shadow_visibility(vec3 origin, vec3 direction, float maxT)
 {
-	payloadShadow = 0u;
+	if (maxT <= 0.01) {
+		return 1.0;
+	}
+	payloadShadow.shadowFactor = 0.0;
+	payloadShadow.pathDepth = 0u;
 	traceRayEXT(
 		u_tlas,
 		gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT,
@@ -360,7 +517,7 @@ float trace_shadow_visibility(vec3 origin, vec3 direction, float maxT)
 		direction,
 		maxT,
 		1);
-	return float(payloadShadow);
+	return payloadShadow.shadowFactor;
 }
 
 void main()
@@ -418,6 +575,7 @@ void main()
 	albedo = clamp(albedo, 0.0, 1.0);
 	vec3 V = safe_normalize(-gl_WorldRayDirectionEXT, vec3(0.0, 0.0, 1.0));
 	vec3 N = safe_normalize(normal, vec3(0.0, 0.0, 1.0));
+	vec3 geometricNormal = safe_normalize(cross(v1.xyz.xyz - v0.xyz.xyz, v2.xyz.xyz - v0.xyz.xyz), N);
 	float NdotV;
 	vec3 F0 = mix(vec3(0.04), albedo, metallic);
 	vec3 Lo = vec3(0.0);
@@ -431,13 +589,22 @@ void main()
 		gl_PrimitiveID * 7477u + gl_InstanceCustomIndexEXT * 341u;
 	uint temporalSeed =
 		rasterReferenceCompat ? 0u : pc.frameIndex * 1597u;
-	uint seed = hash_u32(stableGeometrySeed + temporalSeed);
+	uint seed = hash_u32(stableGeometrySeed + temporalSeed + payloadRadiance.pathDepth * 0x9e3779b9u);
 	seed = hash_u32(seed ^ hash_world_cell(worldPos) ^ floatBitsToUint(gl_HitTEXT));
 
 	if (dot(N, V) < 0.0) {
 		N = -N;
 	}
+	if (dot(geometricNormal, V) < 0.0) {
+		geometricNormal = -geometricNormal;
+	}
+	/* Interpolated normals must remain on the visible geometric hemisphere. */
+	if (dot(N, geometricNormal) <= 0.0) {
+		N = geometricNormal;
+	}
 	NdotV = max(dot(N, V), 0.0);
+	vec3 shadowOrigin = rasterReferenceCompat ? worldPos + N * 0.01 :
+		offset_ray_origin(worldPos, geometricNormal, N);
 
 	payloadRadiance.hitT = gl_HitTEXT;
 	payloadRadiance.normal = N;
@@ -525,11 +692,11 @@ void main()
 				if (!rasterReferenceCompat) {
 					seed = shadowSeed;
 				}
-				vis0 = trace_shadow_visibility(worldPos + N * 0.01, shadowDir0, maxT);
-				vis1 = trace_shadow_visibility(worldPos + N * 0.01, shadowDir1, maxT);
+				vis0 = trace_shadow_visibility(shadowOrigin, shadowDir0, maxT);
+				vis1 = trace_shadow_visibility(shadowOrigin, shadowDir1, maxT);
 				visibility = 0.5 * (vis0 + vis1);
 			} else {
-				visibility = trace_shadow_visibility(worldPos + N * 0.01, L, maxT);
+				visibility = trace_shadow_visibility(shadowOrigin, L, maxT);
 			}
 		}
 		if (castsShadows && !shadowOnly) {
@@ -549,6 +716,9 @@ void main()
 		vec3 radiance = lightColor * radianceScale;
 		vec3 directContribution =
 			(kD * albedo / PI + specular) * radiance * NdotL;
+		if (!rasterReferenceCompat) {
+			directContribution = native_brdf(N, V, L, albedo, F0, roughness, metallic, 1.0, 1.0) * radiance * NdotL;
+		}
 
 		if (shadowOnly) {
 			/*
@@ -568,58 +738,83 @@ void main()
 		contributingLights++;
 	}
 
-	{
-		vec3 reflectDir = reflect(-V, N);
-		float coneAngle = roughness * roughness * 0.6;
-		vec3 glossyDir = sample_cone(reflectDir, coneAngle, seed);
-		if (dot(glossyDir, N) > 0.001 && pc.reflectionStrength > 0.0) {
-			float environmentSpecularVisibility =
-				trace_shadow_visibility(
-					worldPos + N * 0.01,
-					glossyDir,
-					100000.0);
-			vec3 envSpec = evaluate_environment(glossyDir);
-			vec3 F = FresnelSchlick(NdotV, F0);
-			/*
-			 * The analytic sky is only a valid reflection source when the
-			 * glossy ray can actually escape the scene. This remains a
-			 * bounded environment reflection rather than pretending a
-			 * blocked ray saw scene radiance.
-			 */
-			Lo += envSpec *
-				F *
-				pc.reflectionStrength *
-				environmentSpecularVisibility;
+	if (rasterReferenceCompat) {
+		{
+			vec3 reflectDir = reflect(-V, N);
+			float coneAngle = roughness * roughness * 0.6;
+			vec3 glossyDir = sample_cone(reflectDir, coneAngle, seed);
+			if (dot(glossyDir, N) > 0.001 && pc.reflectionStrength > 0.0) {
+				float environmentSpecularVisibility =
+					trace_shadow_visibility(
+						worldPos + N * 0.01,
+						glossyDir,
+						100000.0);
+				vec3 envSpec = evaluate_environment(glossyDir);
+				vec3 F = FresnelSchlick(NdotV, F0);
+				/*
+				 * The analytic sky is only a valid reflection source when the
+				 * glossy ray can actually escape the scene. This remains a
+				 * bounded environment reflection rather than pretending a
+				 * blocked ray saw scene radiance.
+				 */
+				Lo += envSpec *
+					F *
+					pc.reflectionStrength *
+					environmentSpecularVisibility;
+			}
 		}
-	}
 
-	if (pc.indirectBounce != 0u) {
-		vec3 diffuseDir = sample_cosine_hemisphere(N, seed);
-		if (pc.shadowMode > 0u) {
-			float sampledVisibility =
-				trace_shadow_visibility(worldPos + N * 0.01, diffuseDir, 100000.0);
-			/*
-			 * One stochastic visibility sample is an ambient-occlusion
-			 * refinement, not enough evidence to erase all diffuse energy in
-			 * enclosed Quake spaces. Retain a bounded floor so authored
-			 * albedo remains legible while temporal accumulation resolves the
-			 * ray-tested occlusion.
-			 */
-			environmentDiffuseVisibility = mix(0.25, 1.0, sampledVisibility);
+		if (pc.indirectBounce != 0u) {
+			vec3 diffuseDir = sample_cosine_hemisphere(N, seed);
+			if (pc.shadowMode > 0u) {
+				float sampledVisibility =
+					trace_shadow_visibility(worldPos + N * 0.01, diffuseDir, 100000.0);
+				/*
+				 * One stochastic visibility sample is an ambient-occlusion
+				 * refinement, not enough evidence to erase all diffuse energy in
+				 * enclosed Quake spaces. Retain a bounded floor so authored
+				 * albedo remains legible while temporal accumulation resolves the
+				 * ray-tested occlusion.
+				 */
+				environmentDiffuseVisibility = mix(0.25, 1.0, sampledVisibility);
+			}
+		}
+		/*
+		 * Direct lights and their shadow rays remain authoritative, but Quake maps
+		 * do not retain enough source-light transport to illuminate every
+		 * interior texel from direct emitters alone. A bounded analytic
+		 * environment-diffuse term preserves the legacy hybrid's appearance.
+		 * The optional hemisphere ray above only occludes this compatibility
+		 * baseline; native transport below instead follows scene radiance.
+		 */
+		Lo += evaluate_environment(N) *
+			(albedo * (1.0 - metallic)) *
+			pc.indirectStrength *
+			environmentDiffuseVisibility;
+	} else {
+		/*
+		 * Q3's retained lightmap is authored illumination, not an analytic sky
+		 * substitute. It remains an explicit baked diffuse source at a path
+		 * hit; the continuation below gathers actual visible scene radiance.
+		 */
+		uint lightmapIndex = material.textureInfo.y;
+		float lightmapScale = uintBitsToFloat(material.textureInfo.w);
+		if (!isnan(lightmapScale) && !isinf(lightmapScale) && lightmapScale > 0.0) {
+			vec3 bakedDiffuse = vec3(0.0);
+			if ((material.textureInfo.z & RTX_RT_LIGHTING_VERTEX_LIGHTMAP) != 0u) {
+				/* r_vertexLight's collapsed BSP colors are baked irradiance,
+				 * never a second tint on the material's albedo/BRDF. */
+				bakedDiffuse = vertexColor;
+			} else if (lightmapIndex != RTX_RT_INVALID_TEXTURE_INDEX && lightmapIndex < RTX_RT_MAX_SCENE_TEXTURES) {
+				vec2 lightmapUv = v0.lightmapData.xy * b0 + v1.lightmapData.xy * b1 + v2.lightmapData.xy * b2;
+				bakedDiffuse = textureLod(u_sceneTextures[nonuniformEXT(lightmapIndex)], lightmapUv, 0.0).rgb;
+			}
+			Lo += albedo * (1.0 - metallic) * max(bakedDiffuse, vec3(0.0)) * lightmapScale;
+		}
+		if ((materialFlags & RTX_RT_MATFLAG_TRANSLUCENT) != 0u && pc.refractiveMode > 0u) {
+			Lo *= materialAlpha;
 		}
 	}
-	/*
-	 * Direct lights and their shadow rays remain authoritative, but Quake maps
-	 * do not retain enough source-light transport to illuminate every
-	 * interior texel from direct emitters alone. A bounded analytic
-	 * environment-diffuse term keeps native RT materials readable without
-	 * importing raster scene color or shadow maps. The optional hemisphere
-	 * ray above only occludes this baseline.
-	 */
-	Lo += evaluate_environment(N) *
-		(albedo * (1.0 - metallic)) *
-		pc.indirectStrength *
-		environmentDiffuseVisibility;
 
 	Lo += emissive;
 
@@ -633,7 +828,7 @@ void main()
 		Lo = mix(Lo, scatter + emissive, 0.65);
 	}
 
-	if ((materialFlags & RTX_RT_MATFLAG_TRANSLUCENT) != 0u && pc.refractiveMode > 0u) {
+	if (rasterReferenceCompat && (materialFlags & RTX_RT_MATFLAG_TRANSLUCENT) != 0u && pc.refractiveMode > 0u) {
 		float alpha = clamp(material.baseColor.a, 0.05, 0.95);
 		vec3 transmissionDir = -V;
 		if (pc.refractiveMode > 1u) {
@@ -691,4 +886,8 @@ void main()
 
 	payloadRadiance.color = max(Lo, vec3(0.0));
 	payloadRadiance.normal = N;
+	if (!rasterReferenceCompat) {
+		sample_native_continuation(worldPos, geometricNormal, N, V, albedo, F0,
+			roughness, metallic, materialAlpha, materialFlags, seed);
+	}
 }

@@ -386,6 +386,10 @@ int CL_ParseRequiredWorkshopItems( const char *text,
 }
 
 void CL_Workshop_Init( void ) {
+	if ( !Com_GameProfile() || !Com_GameProfile()->supportsWorkshop ) {
+		return;
+	}
+
 	if ( workshopQueue.initialized ) {
 		return;
 	}
@@ -419,6 +423,10 @@ qboolean CL_WorkshopDownloadsActive( void ) {
 }
 
 qboolean CL_Workshop_BeginRequiredDownloads( const char *requiredItems ) {
+	if ( !Com_GameProfile() || !Com_GameProfile()->supportsWorkshop ) {
+		return qfalse;
+	}
+
 	ResetQueueState();
 	if ( !requiredItems || !requiredItems[0] ) {
 		return qfalse;
@@ -476,6 +484,10 @@ qboolean CL_Workshop_BeginRequiredDownloads( const char *requiredItems ) {
 }
 
 void CL_Workshop_Frame( void ) {
+	if ( !Com_GameProfile() || !Com_GameProfile()->supportsWorkshop ) {
+		return;
+	}
+
 	if ( workshopQueue.phase == QueuePhase::Idle ) {
 		return;
 	}

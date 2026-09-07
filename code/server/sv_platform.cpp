@@ -286,7 +286,8 @@ void PublishSteamAccountState( const fnqlSteamGameServerConfig_t &config )
 } // namespace
 
 void SV_PublishWorkshopReferences( void ) {
-	if ( !com_sv_running || !com_sv_running->integer || sv.state == SS_DEAD ) {
+	if ( !Com_GameIsQuakeLive() || !com_sv_running
+		|| !com_sv_running->integer || sv.state == SS_DEAD ) {
 		return;
 	}
 
@@ -299,6 +300,10 @@ void SV_PublishWorkshopReferences( void ) {
 }
 
 void SV_RegisterSteamEventSink( void ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return;
+	}
+
 	if ( !FNQL_Steam_AddEventSink( SteamProviderEvent, nullptr ) ) {
 		Com_Printf( S_COLOR_YELLOW
 			"Server could not register for Steam provider events; authenticated hosting is unavailable.\n" );
@@ -313,6 +318,10 @@ const svPlatformServiceStatus_t *SV_GetPlatformServiceStatus( svPlatformCapabili
 }
 
 qboolean SV_PlatformServiceAvailable( svPlatformCapability_t capability ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return qfalse;
+	}
+
 	const svPlatformServiceStatus_t *status = SV_GetPlatformServiceStatus( capability );
 	return status ? status->available : qfalse;
 }
@@ -350,6 +359,10 @@ const char *SV_GetServerStatsPolicyLabel( void ) {
 }
 
 void SV_RefreshPlatformServiceCvars( void ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return;
+	}
+
 	const svPlatformServiceStatus_t &online = Status( SV_PLATFORM_CAPABILITY_ONLINE );
 
 	SetReadOnlyStatus( "sv_onlineServicesMode", online.provider,
@@ -375,6 +388,10 @@ void SV_RefreshPlatformServiceCvars( void ) {
 }
 
 void SV_SteamGameServerStart( const char *mapName ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return;
+	}
+
 	cvar_t *secure = Cvar_Get( "sv_steamSecure", "0", CVAR_ARCHIVE | CVAR_LATCH );
 
 	Cvar_CheckRange( secure, "0", "1", CV_INTEGER );
@@ -413,6 +430,10 @@ void SV_SteamGameServerStart( const char *mapName ) {
 }
 
 void SV_SteamGameServerStop( void ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return;
+	}
+
 	FNQL_Steam_StopGameServer();
 	lastGameServerConfig = {};
 	hasLastGameServerConfig = false;
@@ -423,12 +444,20 @@ void SV_SteamGameServerStop( void ) {
 }
 
 void SV_SteamP2PCloseClient( uint64_t steamId ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return;
+	}
+
 	if ( steamId && FNQL_Steam_Available( FNQL_STEAM_CAP_GAME_SERVER_P2P ) ) {
 		(void)FNQL_Steam_CloseP2PSession( FNQL_STEAM_ROLE_GAME_SERVER, steamId );
 	}
 }
 
 void SV_SteamHandleIncomingPacket( const netadr_t *from, const msg_t *msg ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return;
+	}
+
 	if ( !from || !msg || !msg->data || msg->cursize <= 0 || from->type != NA_IP
 		|| !FNQL_Steam_Available( FNQL_STEAM_CAP_GAME_SERVER_PACKET_IO )
 		|| !com_sv_running || !com_sv_running->integer ) return;
@@ -519,15 +548,20 @@ static void SV_SteamPublishGameServerMetadata( void ) {
 			}
 		}
 		if ( !client.platformSteamIdValue ) continue;
-		const playerState_t *playerState = SV_GameClientNum( index );
-		if ( !playerState ) continue;
+		playerState_t playerState;
+		if ( !SV_ReadGameClient( index, &playerState ) ) continue;
 		(void)FNQL_Steam_UpdateGameServerUser( client.platformSteamIdValue,
-			client.name, static_cast<uint32_t>( playerState->persistant[PERS_SCORE] ) );
+			client.name, static_cast<uint32_t>(
+				playerState.persistant[PERS_SCORE] ) );
 	}
 	(void)FNQL_Steam_SetGameServerBotCount( botCount );
 }
 
 void SV_SteamP2PFrame( void ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return;
+	}
+
 	static int lastKeepalive;
 	SV_SteamRefreshGameServerConfig();
 	SV_SteamDrainGameServerPackets();

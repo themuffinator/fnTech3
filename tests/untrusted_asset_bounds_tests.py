@@ -109,15 +109,47 @@ class ServerUntrustedInputTests(unittest.TestCase):
         self.assertLess(block.index("SV_FreeClient( &client );"), block.index("SV_ClearServer();"))
         self.assertLess(block.index("SV_ClearServer();"), block.index("SV_ZFree( svs.clients );"))
 
-    def test_locate_game_data_rejects_a_zero_entity_count(self) -> None:
+    def test_locate_game_data_uses_the_checked_profile_binding(self) -> None:
         source = read("code/server/sv_game.cpp")
-        block = body(source, "static void SV_LocateGameData", "sv.gentities = gEnts;")
-        # numGEntities is the divisor below, in an unsigned division that traps
-        self.assertIn("if ( numGEntities <= 0 || numGEntities > MAX_GENTITIES ) {", block)
+        block = body(source, "static void SV_LocateGameData", "static void SV_GetUsercmd")
+        view = read("code/server/server_game_data.cpp")
+
+        self.assertIn("binding.entityCount = numGEntities;", block)
+        self.assertIn("serverGameData.BindNative( Com_GameProfile()->id, binding )", block)
+        self.assertIn("bindError != fntech3::server::GameDataBindError::None", block)
         self.assertLess(
-            block.index("numGEntities <= 0"),
-            block.index("gvm->exactDataLength / numGEntities"),
+            block.index("serverGameData.BindNative"),
+            block.index("sv.gentities = binding.entityBase;"),
         )
+        self.assertIn("binding.entityCount <= 0", view)
+        self.assertIn("binding.entityCount > FNTECH3_Q3_MAX_GENTITIES", view)
+        self.assertIn(
+            "SV_LocateGameData( args[1], args[2], args[3], args[4], args[5] );",
+            source,
+        )
+        self.assertIn("ResolveQvmGameDataPointer( gvm->dataBase", block)
+        self.assertLess(
+            block.index("InvalidateServerGameData();"),
+            block.index("ResolveQvmGameDataPointer"),
+        )
+
+    def test_module_game_records_remain_opaque_at_server_call_sites(self) -> None:
+        header = read("code/server/server.h")
+        game = read("code/server/sv_game.cpp")
+        world = read("code/server/sv_world.cpp")
+        snapshot = read("code/server/sv_snapshot.cpp")
+
+        self.assertIn("void\t\t\t*gentities;", header)
+        self.assertIn("void\t\t\t*gameClients;", header)
+        self.assertIn("void\t\t\t*gentity;", header)
+        self.assertNotIn("SV_GameClientNum(", header)
+        self.assertNotIn("SV_GameClientNum(", game)
+        self.assertNotIn("gEnt->", world)
+        self.assertNotIn("touch->r.", world)
+        self.assertNotIn("hit->r.", world)
+        self.assertNotIn("SV_GentityNum(", snapshot)
+        self.assertIn("SV_ReadGameEntityByNum(", snapshot)
+        self.assertIn("SV_ReadGameClient(", snapshot)
 
     def test_trace_scratch_arrays_are_not_value_initialized(self) -> None:
         source = read("code/server/sv_world.cpp")

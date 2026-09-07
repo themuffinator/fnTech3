@@ -5,7 +5,7 @@ import zipfile
 from pathlib import Path
 from typing import Iterable
 
-from fnql_meta import ROOT
+from fntech3_meta import ROOT
 from stock_ql_maps import STOCK_QL_MAPS
 
 

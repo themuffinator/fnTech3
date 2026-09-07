@@ -264,12 +264,12 @@
     <section class="hero">
       <div class="eyebrow">${project_name_short} distribution notes</div>
       <h1>${project_name_short}</h1>
-      <p class="tagline">Fappin' Quake Live</p>
+      <p class="tagline">One engine, Quake III Arena and Quake Live profiles</p>
       <p class="subtitle">
-        <strong>${project_name_short}</strong> brings FnQ3's modern rendering, audio, input, platform, and quality-of-life improvements to the retail Steam release of <em>Quake Live</em>.
+        <strong>${project_name_short}</strong> combines FnQuake3 modernization and the FnQL compatibility baseline in one engine with <em>Quake III Arena</em> and <em>Quake Live</em> profiles.
       </p>
       <div class="buttons">
-        <a class="button button-primary" href="https://github.com/themuffinator/FnQL/releases/latest">Download latest release</a>
+        <a class="button button-primary" href="docs/fntech3/COMPATIBILITY.md">Compatibility status</a>
         <a class="button button-secondary" href="#getting-started">Getting started</a>
         <a class="button button-secondary" href="#documentation">Documentation</a>
         <a class="button button-secondary" href="https://github.com/themuffinator/FnQL/blob/main/BUILD.md">Build guide</a>
@@ -298,21 +298,21 @@
     <section class="section" id="introduction">
       <div class="section-header">
         <h2>1. Introduction</h2>
-        <p class="lead"><strong>${project_name_short}</strong> is a modernized Quake Live engine for players who want the retail Steam game to retain its familiar behavior while gaining faster rendering, modern audio and input, stronger platform support, and useful quality-of-life improvements.</p>
+        <p class="lead"><strong>${project_name_short}</strong> selects one immutable Q3 or QL profile before compatibility-sensitive startup. Both profiles use the same client and dedicated-server binaries.</p>
       </div>
-      <p class="lead">Retail Quake Live compatibility comes first. FnQL is engine-only and does not reconstruct or distribute Quake Live game code or assets, so a legitimate <a href="https://store.steampowered.com/app/282440/Quake_Live/">Quake Live installation on Steam</a> is required.</p>
-      <p class="footer">The official Windows package includes FnQL's open-source engine, its WebUI overlay, and the compiled closed-source Steam provider. Linux packages contain only redistributable FnQL components. No package includes Valve's <code>steam_api.dll</code> or any retail game content.</p>
+      <p class="lead"><strong>Full compatibility is not yet established for either profile.</strong> Build and unit results do not replace runtime and retail-interoperability evidence. The <a href="docs/fntech3/COMPATIBILITY.md">compatibility ledger</a> records open gates and observed results.</p>
+      <p class="footer">Supply your own legitimate installation. Retail modules, assets, and proprietary runtimes remain there. The inherited Windows release workflow still stages a separate closed-source Steam provider; its distribution policy requires review before a fnTech3 release can be approved.</p>
     </section>
 
     <section class="section" id="features">
       <div class="section-header">
         <h2>2. Features</h2>
-        <p class="lead">Extensive retail compatibility with the modern engine features players expect on current hardware.</p>
+        <p class="lead">Capabilities inherited from the engine baselines are being validated across both profiles.</p>
       </div>
       <div class="feature-grid">
         <article class="feature-group">
-          <h3>Extensive Quake Live compatibility</h3>
-          <p>Built around the retail Steam release, with support for official assets and game modules, protocol 91 networking, <code>.dm_91</code> demos, BSP v47 maps, advertisements, factories, player profiles, the retail WebUI, Steam integration and Workshop content.</p>
+          <h3>Q3/QL compatibility work</h3>
+          <p>Separate installation, module ABI, protocol, demo, filesystem, asset, and optional-service contracts. Retail QL behavior remains evidence while Q3 boundaries are integrated and tested.</p>
         </article>
         <article class="feature-group">
           <h3>Fast, modern hardware rendering</h3>
@@ -360,33 +360,20 @@
     <section class="section" id="getting-started">
       <div class="section-header">
         <h2>3. Getting Started</h2>
-        <p class="lead">Keep your legitimate retail installation and add the platform-appropriate FnQL package beside it.</p>
+        <p class="lead">Build the shared Windows x86 client or Linux i686 dedicated server and supply the legitimate installation for your chosen profile.</p>
       </div>
-      <ol>
-        <li>Install <a href="https://store.steampowered.com/app/282440/Quake_Live/">Quake Live through Steam</a> and launch the retail game once so Steam creates its normal files and player profile.</li>
-        <li>Download the supported Windows <code>.zip</code> or Linux <code>.tar.gz</code> from the <a href="https://github.com/themuffinator/FnQL/releases/latest">latest FnQL release</a>.</li>
-      </ol>
+      <p>Keep <code>FnQL-pkg.fnz</code>, <code>fnql-web.pak</code>, <code>fnql_&lt;renderer&gt;_x86</code> modules, and required redistributable libraries beside <code>${executable_basename}.exe</code> and <code>${executable_basename}.ded.exe</code>. The sidecar names preserve existing loader contracts.</p>
       <div class="feature-grid">
         <article class="feature-group">
-          <h3>Windows retail client</h3>
-          <ol>
-            <li>Extract the <code>.zip</code> into the Quake Live installation folder.</li>
-            <li>Keep <code>FnQL-pkg.fnz</code>, <code>fnql-web.pak</code>, the renderer modules, and packaged runtime libraries beside <code>fnql.exe</code>.</li>
-            <li>Leave Steam running and launch <code>fnql.exe</code>. The official build is Win32/x86 so it can load the retail game modules and WebUI.</li>
-          </ol>
+          <h3>Windows client profile selection</h3>
+          <p>Use <code>+set com_gameProfile q3</code> or <code>+set com_gameProfile ql</code>, <code>+set fs_basepath "&lt;game installation&gt;"</code>, a separate writable <code>fs_homepath</code>, and <code>+set r_fullscreen 0</code> for windowed testing.</p>
         </article>
         <article class="feature-group">
           <h3>Native Linux dedicated server</h3>
-          <ol>
-            <li>Install the 32-bit runtime libraries reported by <code>ldd ./fnql.ded</code>. The release is i686 so it can load retail <code>qagamei386.so</code>.</li>
-            <li>Preserve executable modes by extracting with <code>tar -xzf fnql-*-linux-x86.tar.gz -C "&lt;Quake Live folder&gt;"</code>.</li>
-            <li>From that folder run <code>./fnql.ded +set fs_steampath "$$PWD" +set dedicated 2 +map campgrounds</code>.</li>
-          </ol>
+          <p>Run <code>./${executable_basename}.ded</code> with the same explicit profile and isolated home-path options. The QL server loads retail <code>qagamei386.so</code>; native Linux clients cannot load Win32-only QL client/UI modules.</p>
         </article>
       </div>
-      <p class="footer">Official releases support the Windows Win32/x86 retail client and Linux i686 dedicated server. Retail <code>bin.pk3</code> includes native <code>qagamei386.so</code> and <code>qagamex64.so</code> server modules, so the Linux server loads the i386 ELF directly rather than attempting to load the Win32 PE DLL. Retail ships no native Linux client/UI modules and no macOS game, client, UI, or QVM modules, so FnQL publishes no macOS package and makes no native macOS retail-play claim.</p>
-      <p class="footer">FnQL locates conventional Steam libraries automatically. For a custom library, start it with <code>+set fs_steampath "&lt;Quake Live folder&gt;"</code>. Steam and WebUI features fail safely when optional runtime components are unavailable.</p>
-      <p class="footer">To compile FnQL yourself, use the <a href="https://github.com/themuffinator/FnQL/blob/main/BUILD.md">Build Guide</a>.</p>
+      <p class="footer">Automatic selection needs unambiguous installation evidence. The selected profile is immutable. Startup, module loading, demos, play, and retail interoperability must pass the profile-specific gates before release compatibility is claimed.</p>
     </section>
 
     <section class="section" id="documentation">
@@ -405,13 +392,13 @@
             <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/AUDIO.md">Audio Guide</a> for devices, HRTF, spatial effects, fallback behavior, and troubleshooting.</li>
             <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/CONSOLE.md">Console Guide</a> for layout, scaling, completion, clipboard use, and mouse interaction.</li>
             <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/SCREENSHOTS.md">Screenshot Guide</a> for formats, filenames, metadata, levelshots, watermarks, and cubemaps.</li>
-            <li><a href="https://github.com/themuffinator/FnQL/releases">Release History</a> for published changelogs and downloads.</li>
+            <li><a href="https://github.com/themuffinator/FnQL/releases">FnQL baseline release history</a> for historical changelogs and downloads; these are not fnTech3 releases.</li>
           </ul>
         </article>
         <article class="doc-column">
           <h3>Technical and build docs</h3>
           <ul>
-            <li><a href="https://github.com/themuffinator/FnQL/blob/main/BUILD.md">Build Guide</a> for compiling FnQL locally.</li>
+            <li><a href="https://github.com/themuffinator/FnQL/blob/main/BUILD.md">Build Guide</a> for compiling fnTech3 locally.</li>
             <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/GLX.md">GLx Renderer Guide</a> for the default OpenGL-lineage renderer, diagnostics, and troubleshooting.</li>
             <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/fnql/INPUT_COMPATIBILITY.md">Input Compatibility Notes</a> for retail mouse math, text input, controllers, and legacy profiles.</li>
             <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/fnql/WEBUI_BACKEND.md">WebUI Backend Notes</a> for retail resources, platform boundaries, overlay order, and fallbacks.</li>
@@ -426,10 +413,10 @@
     <section class="section" id="credits">
       <div class="section-header">
         <h2>5. Credits</h2>
-        <p class="lead">FnQL follows a clear upstream lineage from the Quake III Arena SDK, through ioquake3, Quake3e, FnQ3, and QLSRP.</p>
+        <p class="lead">fnTech3 combines FnQuake3 and FnQL with the id Software, ioquake3, and Quake3e engine lineage. QLSRP provides behavioral and ABI evidence for independently written implementation work.</p>
       </div>
       <p class="lead">Additional compatibility and feature work draws from projects and references such as <a href="https://bitbucket.org/CPMADevs/cnq3">CNQ3</a>, <a href="https://github.com/zturtleman/spearmint">Spearmint</a>, <a href="https://github.com/brugal/wolfcamql">WolfcamQL</a>, Luigi Auriemma's <a href="https://aluigi.altervista.org/papers.htm#qldec">qldec</a>, and <a href="https://github.com/Paril/DarkMatter-Q2">DarkMatter-Q2</a>.</p>
-      <p class="footer">See the full upstream chain and acknowledgements in <a href="https://github.com/themuffinator/FnQL/blob/main/CREDITS.md">CREDITS.md</a>.</p>
+      <p class="footer">See the full upstream chain and acknowledgements in <a href="CREDITS.md">CREDITS.md</a>.</p>
     </section>
   </main>
 </body>

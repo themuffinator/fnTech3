@@ -105,8 +105,15 @@ void SV_UpdateConfigstrings(client_t *client)
 			continue;
 
 		// do not always send server info to all clients
-		if ( index == CS_SERVERINFO && ( SV_GentityNum( SV_ClientIndex( client ) )->r.svFlags & SVF_NOSERVERINFO ) ) {
-			continue;
+		if ( index == CS_SERVERINFO ) {
+			sharedEntity_t entity;
+			if ( !SV_ReadGameEntityByNum( SV_ClientIndex( client ), &entity ) ) {
+				Com_Error( ERR_DROP, "%s: invalid client gentity", __func__ );
+				return;
+			}
+			if ( entity.r.svFlags & SVF_NOSERVERINFO ) {
+				continue;
+			}
 		}
 
 		SV_SendConfigstring(client, index);
@@ -152,8 +159,16 @@ void SV_SetConfigstring (int index, const char *val) {
 				continue;
 			}
 			// do not always send server info to all clients
-			if ( index == CS_SERVERINFO && ( SV_GentityNum( SV_ClientIndex( &client ) )->r.svFlags & SVF_NOSERVERINFO ) ) {
-				continue;
+			if ( index == CS_SERVERINFO ) {
+				sharedEntity_t entity;
+				if ( !SV_ReadGameEntityByNum( SV_ClientIndex( &client ),
+					&entity ) ) {
+					Com_Error( ERR_DROP, "%s: invalid client gentity", __func__ );
+					return;
+				}
+				if ( entity.r.svFlags & SVF_NOSERVERINFO ) {
+					continue;
+				}
 			}
 
 			SV_SendConfigstring(&client, index);
@@ -171,6 +186,10 @@ these exact configstrings during bootstrap and whenever a flagged cvar changes.
 ================
 */
 void SV_UpdateQLCvarConfigstrings( qboolean force ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return;
+	}
+
 	for ( const QLCvarConfigstringChannel &channel : kQLCvarConfigstringChannels ) {
 		if ( !force && !( cvar_modifiedFlags & channel.cvarFlag ) ) {
 			continue;
@@ -260,19 +279,27 @@ baseline will be transmitted
 ================
 */
 static void SV_CreateBaseline( void ) {
-	sharedEntity_t *ent;
+	sharedEntity_t entity;
 
 	for ( int entnum : SV_Indices( sv.num_entities ) ) {
-		ent = SV_GentityNum( entnum );
-		if ( !ent->r.linked ) {
+		if ( !SV_ReadGameEntityByNum( entnum, &entity ) ) {
+			Com_Error( ERR_DROP, "%s: invalid gentity %i", __func__, entnum );
+			return;
+		}
+		if ( !entity.r.linked ) {
 			continue;
 		}
-		ent->s.number = entnum;
+		entity.s.number = entnum;
+		if ( !SV_WriteGameEntityByNum( entnum, &entity ) ) {
+			Com_Error( ERR_DROP, "%s: gentity write failed for %i",
+				__func__, entnum );
+			return;
+		}
 
 		//
 		// take current state as baseline
 		//
-		sv.svEntities[ entnum ].baseline = ent->s;
+		sv.svEntities[ entnum ].baseline = entity.s;
 		sv.baselineUsed[ entnum ] = 1;
 	}
 }
@@ -659,15 +686,20 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	SV_BotFrame( sv.time );
 	svs.time += 100;
 
-	// Retail QL pure validation keys off the native cgame binary pak.
-	FS_TouchFileInPak( QL_NATIVE_CGAME_DLL );
+	// Retail QL pure validation keys off the native cgame binary pak. Quake III
+	// has no equivalent implicit reference and must retain its original pak set.
+	if ( Com_GameIsQuakeLive() ) {
+		FS_TouchFileInPak( QL_NATIVE_CGAME_DLL );
+	}
 
 	// the server sends these to the clients so they can figure
 	// out which pk3s should be auto-downloaded
 	p = FS_ReferencedPakNames();
 	if ( FS_ExcludeReference() ) {
-		// \fs_excludeReference may mask our current native cgame binary.
-		FS_TouchFileInPak( QL_NATIVE_CGAME_DLL );
+		// \fs_excludeReference may mask the current QL native cgame binary.
+		if ( Com_GameIsQuakeLive() ) {
+			FS_TouchFileInPak( QL_NATIVE_CGAME_DLL );
+		}
 		// rebuild referenced paks list
 		p = FS_ReferencedPakNames();
 	}
@@ -712,7 +744,9 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	// Retail clients consume Workshop dependencies from this dedicated
 	// configstring.  Publish it after all map and module pak references have
 	// settled, independently of whether a Steam GameServer identity exists.
-	SV_PublishWorkshopReferences();
+	if ( Com_GameProfile()->supportsWorkshop ) {
+		SV_PublishWorkshopReferences();
+	}
 
 	// save systeminfo and serverinfo strings
 	SV_SetConfigstring( CS_SYSTEMINFO, Cvar_InfoString_Big( CVAR_SYSTEMINFO, nullptr ) );
@@ -721,15 +755,22 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	SV_SetConfigstring( CS_SERVERINFO, Cvar_InfoString( CVAR_SERVERINFO, nullptr ) );
 	cvar_modifiedFlags &= ~CVAR_SERVERINFO;
 
-	// Retail native cgame prediction consumes these engine-owned cvar groups.
-	SV_UpdateQLCvarConfigstrings( qtrue );
+	if ( Com_GameIsQuakeLive() ) {
+		// Retail native cgame prediction consumes these engine-owned cvar groups.
+		SV_UpdateQLCvarConfigstrings( qtrue );
+	} else {
+		// This is a normal Quake III map spawn, not demo cinema playback.
+		Cvar_Set( "sv_playingDemo", "0" );
+	}
 
 	// any media configstring setting now should issue a warning
 	// and any configstring changes should be reliably transmitted
 	// to all clients
 	sv.state = SS_GAME;
-	Zmq_InitStatsPublisher();
-	SV_SteamGameServerStart( mapname );
+	if ( Com_GameIsQuakeLive() ) {
+		Zmq_InitStatsPublisher();
+		SV_SteamGameServerStart( mapname );
+	}
 
 	// send a heartbeat now so the master will get up to date info
 	SV_Heartbeat_f();
@@ -739,7 +780,9 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	Com_Printf ("-----------------------------------\n");
 
 	Sys_SetStatus( "Running map %s", mapname );
-	SV_MapPoolRefreshCvars();
+	if ( Com_GameIsQuakeLive() ) {
+		SV_MapPoolRefreshCvars();
+	}
 
 	// suppress hitch warning
 	Com_FrameInit();
@@ -755,6 +798,8 @@ Only called at main exe startup, not for each game
 */
 void SV_Init( void )
 {
+	const bool quakeLive = Com_GameIsQuakeLive() != 0;
+
 	SV_AddOperatorCommands();
 
 	if ( com_dedicated->integer )
@@ -762,30 +807,43 @@ void SV_Init( void )
 
 	// serverinfo vars
 	Cvar_Get ("dmflags", "0", CVAR_SERVERINFO);
-	// Retail loads arena metadata, the factory registry, and its map pool
-	// before registering the gameplay-facing server cvars below.
-	SV_FactoryInit();
-	// The currently shipped retail qagame registers 50 here. Match the module
-	// boundary so startup does not retain a stale Quake III reset value.
-	Cvar_Get ("fraglimit", "50", CVAR_SERVERINFO);
+	if ( quakeLive ) {
+		// Retail loads arena metadata, the factory registry, and its map pool
+		// before registering the gameplay-facing server cvars below.
+		SV_FactoryInit();
+	}
+	Cvar_Get ("fraglimit", quakeLive ? "50" : "20", CVAR_SERVERINFO);
 	Cvar_Get ("timelimit", "0", CVAR_SERVERINFO);
 	sv_gametype = Cvar_Get ("g_gametype", "0", CVAR_SERVERINFO | CVAR_LATCH );
 	Cvar_SetDescription( sv_gametype, "Set the gametype to mod." );
-	sv_ammoPack = Cvar_Get( "g_ammoPack", "1", CVAR_LATCH );
-	Cvar_SetDescription( sv_ammoPack,
-		"Select the retail Quake Live ammunition-pack ruleset." );
+	if ( quakeLive ) {
+		sv_ammoPack = Cvar_Get( "g_ammoPack", "1", CVAR_LATCH );
+		Cvar_SetDescription( sv_ammoPack,
+			"Select the retail Quake Live ammunition-pack ruleset." );
+	} else {
+		sv_ammoPack = nullptr;
+	}
 	Cvar_Get ("sv_keywords", "", CVAR_SERVERINFO);
 	//Cvar_Get ("protocol", va("%i", PROTOCOL_VERSION), CVAR_SERVERINFO | CVAR_ROM);
 	sv_mapname = Cvar_Get ("mapname", "nomap", CVAR_SERVERINFO | CVAR_ROM);
 	Cvar_SetDescription( sv_mapname, "Display the name of the current map being used on a server." );
+	if ( !quakeLive ) {
+		Cvar_SetDescription(
+			Cvar_Get( "sv_playingDemo", "0", CVAR_SERVERINFO | CVAR_ROM ),
+			"Read-only: 1 while the server is replaying a demo, 0 otherwise." );
+	}
 	sv_privateClients = Cvar_Get( "sv_privateClients", "0", CVAR_SERVERINFO );
 	Cvar_CheckRange( sv_privateClients, "0", va( "%i", MAX_CLIENTS-1 ), CV_INTEGER );
 	Cvar_SetDescription( sv_privateClients, "The number of spots, out of sv_maxclients, reserved for players with the server password (sv_privatePassword)." );
 	sv_hostname = Cvar_Get ("sv_hostname", "noname", CVAR_SERVERINFO | CVAR_ARCHIVE );
 	Cvar_SetDescription( sv_hostname, "Sets the name of the server." );
-	sv_tags = Cvar_Get( "sv_tags", "", CVAR_ARCHIVE );
-	Cvar_SetDescription( sv_tags,
-		"Comma-separated custom tags appended to the retail Steam server tag set." );
+	if ( quakeLive ) {
+		sv_tags = Cvar_Get( "sv_tags", "", CVAR_ARCHIVE );
+		Cvar_SetDescription( sv_tags,
+			"Comma-separated custom tags appended to the retail Steam server tag set." );
+	} else {
+		sv_tags = nullptr;
+	}
 	sv_maxclients = Cvar_Get ("sv_maxclients", "8", CVAR_SERVERINFO | CVAR_LATCH);
 	Cvar_CheckRange( sv_maxclients, "1", XSTRING(MAX_CLIENTS), CV_INTEGER );
 	Cvar_SetDescription( sv_maxclients, "Maximum number of people allowed to join the server." );
@@ -807,49 +865,64 @@ void SV_Init( void )
 	Cvar_SetDescription( sv_dlRate, "Bandwidth allotted to pack archive downloads via UDP, in kbyte/s." );
 	sv_floodProtect = Cvar_Get( "sv_floodProtect", "1", CVAR_ARCHIVE | CVAR_SERVERINFO );
 	Cvar_SetDescription( sv_floodProtect, "Toggle server flood protection to keep players from bringing the server down." );
-	sv_enableRankings = Cvar_Get( "sv_enableRankings", "0", CVAR_ARCHIVE | CVAR_SERVERINFO );
-	Cvar_CheckRange( sv_enableRankings, "0", "1", CV_INTEGER );
-	Cvar_SetDescription( sv_enableRankings, "Retained Quake Live rankings compatibility toggle. FnQL keeps this disabled because no live rankings service is owned by the engine." );
-	sv_rankingsActive = Cvar_Get( "sv_rankingsActive", "0", CVAR_SERVERINFO );
-	Cvar_SetDescription( sv_rankingsActive, "Reports whether the retained Quake Live rankings compatibility surface is active." );
-	sv_gtid = Cvar_Get( "sv_gtid", "", CVAR_SERVERINFO | CVAR_ROM );
-	Cvar_SetDescription( sv_gtid,
-		"Retail Quake Live game-type identifier published by compatible game modules." );
-	sv_idleRestart = Cvar_Get( "sv_idleRestart", "1", 0 );
-	Cvar_CheckRange( sv_idleRestart, "0", "1", CV_INTEGER );
-	Cvar_SetDescription( sv_idleRestart,
-		"Restart an unattended server after the retail 24-hour uptime boundary." );
-	sv_idleExit = Cvar_Get( "sv_idleExit", "120", 0 );
-	Cvar_CheckRange( sv_idleExit, "0", nullptr, CV_INTEGER );
-	Cvar_SetDescription( sv_idleExit,
-		"Exit a dedicated process that has no running map after this many seconds; zero disables it." );
-	sv_errorExit = Cvar_Get( "sv_errorExit", "1", 0 );
-	Cvar_CheckRange( sv_errorExit, "0", "2", CV_INTEGER );
-	Cvar_SetDescription( sv_errorExit,
-		"Retail recoverable-error policy: 0 recovers, 1 exits while a server is running, 2 always exits." );
-	sv_quitOnEmpty = Cvar_Get( "sv_quitOnEmpty", "0", 0 );
-	Cvar_CheckRange( sv_quitOnEmpty, "0", nullptr, CV_INTEGER );
-	Cvar_SetDescription( sv_quitOnEmpty,
-		"Quit after this many seconds without a connected human client; zero disables it." );
-	sv_quitOnExitLevel = Cvar_Get( "sv_quitOnExitLevel", "0", 0 );
-	Cvar_CheckRange( sv_quitOnExitLevel, "0", nullptr, CV_INTEGER );
-	Cvar_SetDescription( sv_quitOnExitLevel,
-		"Level-exit policy: 0 continues, 1 stops the server, and values above 1 quit the process." );
-	sv_altEntDir = Cvar_Get( "sv_altEntDir", "", 0 );
-	Cvar_SetDescription( sv_altEntDir,
-		"Virtual-filesystem directory containing per-map retail .ent overrides." );
-	sv_dumpEntities = Cvar_Get( "sv_dumpEntities", "0", 0 );
-	Cvar_CheckRange( sv_dumpEntities, "0", "1", CV_INTEGER );
-	Cvar_SetDescription( sv_dumpEntities,
-		"Dump the entity text used by qagame to ents/<map>.ent." );
-	sv_cylinderScale = Cvar_Get( "sv_cylinderScale", "1.1f", 0 );
-	Cvar_CheckRange( sv_cylinderScale, "0", "16", CV_FLOAT );
-	Cvar_SetDescription( sv_cylinderScale,
-		"Retail radius scale for vertical cylinder collision traces." );
-	sv_vac = Cvar_Get( "sv_vac", "1", CVAR_INIT );
-	Cvar_CheckRange( sv_vac, "0", "1", CV_INTEGER );
-	Cvar_SetDescription( sv_vac,
-		"Allow an explicitly requested Steam secure server; FnQL's sv_steamSecure opt-in remains authoritative." );
+	if ( quakeLive ) {
+		sv_enableRankings = Cvar_Get( "sv_enableRankings", "0", CVAR_ARCHIVE | CVAR_SERVERINFO );
+		Cvar_CheckRange( sv_enableRankings, "0", "1", CV_INTEGER );
+		Cvar_SetDescription( sv_enableRankings, "Retained Quake Live rankings compatibility toggle. fnTech3 keeps this disabled because no live rankings service is owned by the engine." );
+		sv_rankingsActive = Cvar_Get( "sv_rankingsActive", "0", CVAR_SERVERINFO );
+		Cvar_SetDescription( sv_rankingsActive, "Reports whether the retained Quake Live rankings compatibility surface is active." );
+		sv_gtid = Cvar_Get( "sv_gtid", "", CVAR_SERVERINFO | CVAR_ROM );
+		Cvar_SetDescription( sv_gtid,
+			"Retail Quake Live game-type identifier published by compatible game modules." );
+		sv_idleRestart = Cvar_Get( "sv_idleRestart", "1", 0 );
+		Cvar_CheckRange( sv_idleRestart, "0", "1", CV_INTEGER );
+		Cvar_SetDescription( sv_idleRestart,
+			"Restart an unattended server after the retail 24-hour uptime boundary." );
+		sv_idleExit = Cvar_Get( "sv_idleExit", "120", 0 );
+		Cvar_CheckRange( sv_idleExit, "0", nullptr, CV_INTEGER );
+		Cvar_SetDescription( sv_idleExit,
+			"Exit a dedicated process that has no running map after this many seconds; zero disables it." );
+		sv_errorExit = Cvar_Get( "sv_errorExit", "1", 0 );
+		Cvar_CheckRange( sv_errorExit, "0", "2", CV_INTEGER );
+		Cvar_SetDescription( sv_errorExit,
+			"Retail recoverable-error policy: 0 recovers, 1 exits while a server is running, 2 always exits." );
+		sv_quitOnEmpty = Cvar_Get( "sv_quitOnEmpty", "0", 0 );
+		Cvar_CheckRange( sv_quitOnEmpty, "0", nullptr, CV_INTEGER );
+		Cvar_SetDescription( sv_quitOnEmpty,
+			"Quit after this many seconds without a connected human client; zero disables it." );
+		sv_quitOnExitLevel = Cvar_Get( "sv_quitOnExitLevel", "0", 0 );
+		Cvar_CheckRange( sv_quitOnExitLevel, "0", nullptr, CV_INTEGER );
+		Cvar_SetDescription( sv_quitOnExitLevel,
+			"Level-exit policy: 0 continues, 1 stops the server, and values above 1 quit the process." );
+		sv_altEntDir = Cvar_Get( "sv_altEntDir", "", 0 );
+		Cvar_SetDescription( sv_altEntDir,
+			"Virtual-filesystem directory containing per-map retail .ent overrides." );
+		sv_dumpEntities = Cvar_Get( "sv_dumpEntities", "0", 0 );
+		Cvar_CheckRange( sv_dumpEntities, "0", "1", CV_INTEGER );
+		Cvar_SetDescription( sv_dumpEntities,
+			"Dump the entity text used by qagame to ents/<map>.ent." );
+		sv_cylinderScale = Cvar_Get( "sv_cylinderScale", "1.1f", 0 );
+		Cvar_CheckRange( sv_cylinderScale, "0", "16", CV_FLOAT );
+		Cvar_SetDescription( sv_cylinderScale,
+			"Retail radius scale for vertical cylinder collision traces." );
+		sv_vac = Cvar_Get( "sv_vac", "1", CVAR_INIT );
+		Cvar_CheckRange( sv_vac, "0", "1", CV_INTEGER );
+		Cvar_SetDescription( sv_vac,
+			"Allow an explicitly requested Steam secure server; the provider opt-in remains authoritative." );
+	} else {
+		sv_enableRankings = nullptr;
+		sv_rankingsActive = nullptr;
+		sv_gtid = nullptr;
+		sv_idleRestart = nullptr;
+		sv_idleExit = nullptr;
+		sv_errorExit = nullptr;
+		sv_quitOnEmpty = nullptr;
+		sv_quitOnExitLevel = nullptr;
+		sv_altEntDir = nullptr;
+		sv_dumpEntities = nullptr;
+		sv_cylinderScale = nullptr;
+		sv_vac = nullptr;
+	}
 
 	// systeminfo
 	sv_cheats = Cvar_Get( "sv_cheats", "1", CVAR_SYSTEMINFO | CVAR_ROM );
@@ -861,21 +934,23 @@ void SV_Init( void )
 	Cvar_Get( "sv_referencedPaks", "", CVAR_SYSTEMINFO | CVAR_ROM );
 	sv_referencedPakNames = Cvar_Get( "sv_referencedPakNames", "", CVAR_SYSTEMINFO | CVAR_ROM );
 	Cvar_SetDescription( sv_referencedPakNames, "Variable holds a list of all the pack archives the server loaded data from." );
-	cvar_t *svReferencedSteamworks = Cvar_Get( "sv_referencedSteamworks", "", CVAR_ROM );
-	Cvar_SetDescription( svReferencedSteamworks,
-		"Space-separated Workshop item IDs required by the current server map." );
-	Cvar_Get( "sv_rankingsProvider", "Unavailable", CVAR_ROM );
-	Cvar_Get( "sv_rankingsPolicy", "compatibility-unavailable", CVAR_ROM );
-	SV_RefreshPlatformServiceCvars();
-	SV_RegisterSteamEventSink();
-	SV_GameRefreshRankingsPolicyCvars();
+	if ( quakeLive ) {
+		cvar_t *svReferencedSteamworks = Cvar_Get( "sv_referencedSteamworks", "", CVAR_ROM );
+		Cvar_SetDescription( svReferencedSteamworks,
+			"Space-separated Workshop item IDs required by the current server map." );
+		Cvar_Get( "sv_rankingsProvider", "Unavailable", CVAR_ROM );
+		Cvar_Get( "sv_rankingsPolicy", "compatibility-unavailable", CVAR_ROM );
+		SV_RefreshPlatformServiceCvars();
+		SV_RegisterSteamEventSink();
+		SV_GameRefreshRankingsPolicyCvars();
+	}
 
 	// server vars
 	sv_rconPassword = Cvar_Get ("rconPassword", "", CVAR_TEMP | CVAR_PRIVATE );
 	Cvar_SetDescription( sv_rconPassword, "Password for remote server commands." );
 	sv_privatePassword = Cvar_Get ("sv_privatePassword", "", CVAR_TEMP | CVAR_PRIVATE );
 	Cvar_SetDescription( sv_privatePassword, "Set password for private clients to login with." );
-	sv_fps = Cvar_Get ("sv_fps", "40", CVAR_TEMP );
+	sv_fps = Cvar_Get ("sv_fps", quakeLive ? "40" : "20", CVAR_TEMP );
 	Cvar_CheckRange( sv_fps, "10", "125", CV_INTEGER );
 	Cvar_SetDescription( sv_fps, "Set the max frames per second the server sends the client." );
 	sv_audioPVS = Cvar_Get( "sv_audioPVS", "0", CVAR_ARCHIVE_ND );
@@ -915,11 +990,15 @@ void SV_Init( void )
 	sv_reconnectlimit = Cvar_Get( "sv_reconnectlimit", "3", 0 );
 	Cvar_CheckRange( sv_reconnectlimit, "0", "12", CV_INTEGER );
 	Cvar_SetDescription( sv_reconnectlimit, "Number of seconds a disconnected client should wait before next reconnect." );
-	sv_showloss = Cvar_Get( "sv_showloss", "0", 0 );
-	Cvar_SetDescription( sv_showloss,
-		"Retained retail server packet-loss diagnostic toggle." );
-	(void)Cvar_Get( "sv_setSteamAccount", "",
-		CVAR_ARCHIVE | CVAR_PROTECTED | CVAR_PRIVATE );
+	if ( quakeLive ) {
+		sv_showloss = Cvar_Get( "sv_showloss", "0", 0 );
+		Cvar_SetDescription( sv_showloss,
+			"Retained retail server packet-loss diagnostic toggle." );
+		(void)Cvar_Get( "sv_setSteamAccount", "",
+			CVAR_ARCHIVE | CVAR_PROTECTED | CVAR_PRIVATE );
+	} else {
+		sv_showloss = nullptr;
+	}
 
 	sv_padPackets = Cvar_Get( "sv_padPackets", "0", CVAR_DEVELOPER );
 	Cvar_SetDescription( sv_padPackets, "Adds padding bytes to network packets for rate debugging." );
@@ -959,8 +1038,10 @@ void SV_Init( void )
 	Cvar_SetGroup( sv_minRate, CVG_SERVER );
 	Cvar_SetGroup( sv_maxRate, CVG_SERVER );
 	Cvar_SetGroup( sv_fps, CVG_SERVER );
-	Cvar_SetGroup( sv_enableRankings, CVG_SERVER );
-	Cvar_SetGroup( sv_rankingsActive, CVG_SERVER );
+	if ( quakeLive ) {
+		Cvar_SetGroup( sv_enableRankings, CVG_SERVER );
+		Cvar_SetGroup( sv_rankingsActive, CVG_SERVER );
+	}
 	Cvar_SetGroup( sv_audioPVS, CVG_SERVER );
 	Cvar_SetGroup( sv_audioPVSRange, CVG_SERVER );
 	Cvar_SetGroup( sv_audioPVSMaxEntities, CVG_SERVER );
@@ -1033,10 +1114,14 @@ void SV_Shutdown( const char *finalmsg ) {
 
 	SV_RemoveOperatorCommands();
 	SV_MasterShutdown();
-	SV_FlushAllSteamStats();
-	SV_SteamGameServerStop();
+	if ( Com_GameIsQuakeLive() ) {
+		SV_FlushAllSteamStats();
+		SV_SteamGameServerStop();
+	}
 	SV_ShutdownGameProgs();
-	Zmq_ShutdownStatsPublisher();
+	if ( Com_GameIsQuakeLive() ) {
+		Zmq_ShutdownStatsPublisher();
+	}
 	SV_InitChallenger();
 
 	// Free the clients BEFORE SV_ClearServer(): it memsets sv, and SV_Clients()
@@ -1060,7 +1145,9 @@ void SV_Shutdown( const char *finalmsg ) {
 	}
 	// Retail restores factory-backed cvars after GAME_SHUTDOWN, level clearing,
 	// and client destruction, but before the server-static state is zeroed.
-	SV_FactoryShutdown();
+	if ( Com_GameIsQuakeLive() ) {
+		SV_FactoryShutdown();
+	}
 	// Keep shutdown safe on the small Win32 game thread stack.  An aggregate
 	// assignment here creates a temporary larger than 512 KiB in debug builds.
 	std::memset( &svs, 0, sizeof( svs ) );
@@ -1068,6 +1155,9 @@ void SV_Shutdown( const char *finalmsg ) {
 
 	Cvar_Set( "sv_running", "0" );
 	SV_ResetServerCvarRuntime();
+	if ( !Com_GameIsQuakeLive() ) {
+		Cvar_Set( "sv_playingDemo", "0" );
+	}
 
 #ifndef DEDICATED
 	Cvar_Set( "ui_singlePlayerActive", "0" );
@@ -1084,7 +1174,9 @@ void SV_Shutdown( const char *finalmsg ) {
 	// clean some server cvars
 	Cvar_Set( "sv_referencedPaks", "" );
 	Cvar_Set( "sv_referencedPakNames", "" );
-	Cvar_Set( "sv_referencedSteamworks", "" );
+	if ( Com_GameIsQuakeLive() ) {
+		Cvar_Set( "sv_referencedSteamworks", "" );
+	}
 	Cvar_Set( "sv_mapChecksum", "" );
 	Cvar_Set( "sv_serverid", "0" );
 

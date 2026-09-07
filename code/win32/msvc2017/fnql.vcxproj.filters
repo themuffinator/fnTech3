@@ -82,6 +82,12 @@
     <ClCompile Include="..\..\qcommon\common.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\qcommon\game_profile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\compat\game_abi_adapter.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\qcommon\cvar.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -288,7 +294,16 @@
     <ClInclude Include="..\..\client\client.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-	<ClInclude Include="..\..\platform\fnql_steam.h">
+    <ClInclude Include="..\..\compat\game_abi_adapter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\compat\q3_game_abi.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\compat\ql_game_abi.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\platform\fnql_steam.h">
 	  <Filter>Header Files</Filter>
 	</ClInclude>
 	<ClInclude Include="..\..\platform\fnql_steam_api.h">

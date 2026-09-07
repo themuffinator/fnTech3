@@ -416,7 +416,11 @@ class CGameNativeBridgeSourceTests(unittest.TestCase):
         qcommon_h = read_repo_file("code/qcommon/qcommon.h")
         vm_c = read_repo_file("code/qcommon/vm.c")
 
-        self.assertIn('Cvar_Get( "vm_cgame", "0"', vm_c)
+        self.assertIn(
+            'gameProfile->preferredModuleApi & COM_MODULE_API_QVM',
+            vm_c,
+        )
+        self.assertIn('Cvar_Get( "vm_cgame", moduleDefault', vm_c)
         self.assertIn("VM_Free( vm );\n\t\treturn NULL;", vm_c)
         self.assertIn("vm->entryPoint || vm->dllExports", vm_c)
         self.assertIn("VM_CreateNative", qcommon_h)
@@ -459,18 +463,22 @@ class CGameNativeBridgeSourceTests(unittest.TestCase):
         self.assertIn("static void CL_SetUserCmdValue( int userCmdValue, int userCmdPrimary, float sensitivityScale, int userCmdFov )", cl_cgame)
         self.assertIn("cl.cgameUserCmdPrimary = userCmdPrimary;", cl_cgame)
         self.assertIn("cl.cgameUserCmdFov = userCmdFov;", cl_cgame)
-        self.assertIn("CL_SetUserCmdValue( args[1], args[2], VMF(3), args[4] );", cl_cgame)
+        self.assertIn("CL_SetUserCmdValue( args[1], 0, VMF(2), 0 );", cl_cgame)
         self.assertIn("CL_SetUserCmdValue( static_cast<int>( args[1] ), static_cast<int>( args[2] ), _vmf( args[3] ), static_cast<int>( args[4] ) );", cl_cgame)
         self.assertIn("cmd->weaponPrimary = cl.cgameUserCmdPrimary;", cl_input)
         self.assertIn("cmd->fov = cl.cgameUserCmdFov;", cl_input)
         self.assertIn("from->weaponPrimary == to->weaponPrimary", msg_c)
         self.assertIn("from->fov == to->fov", msg_c)
-        self.assertIn("MSG_WriteDeltaKey( msg, key, from->weaponPrimary, to->weaponPrimary, 8 );", msg_c)
+        self.assertIn("GameMessageLayout::QuakeLive", msg_c)
+        self.assertIn("if ( quakeLive )", msg_c)
+        self.assertIn("MSG_WriteDeltaKey( msg, key, from->weaponPrimary,", msg_c)
         self.assertIn("MSG_WriteDeltaKey( msg, key, from->fov, to->fov, 8 );", msg_c)
-        self.assertIn("to->weaponPrimary = MSG_ReadDeltaKey( msg, key, from->weaponPrimary, 8);", msg_c)
-        self.assertIn("to->fov = MSG_ReadDeltaKey( msg, key, from->fov, 8);", msg_c)
+        self.assertIn("to->weaponPrimary = MSG_ReadDeltaKey( msg, key,", msg_c)
+        self.assertIn("to->fov = MSG_ReadDeltaKey( msg, key, from->fov, 8 );", msg_c)
         self.assertIn("to->weaponPrimary = from->weaponPrimary;", msg_c)
         self.assertIn("to->fov = from->fov;", msg_c)
+        self.assertIn("to->weaponPrimary = 0;", msg_c)
+        self.assertIn("to->fov = 0;", msg_c)
 
     def test_native_getglconfig_uses_retail_ql_layout(self) -> None:
         cl_cgame = read_repo_file("code/client/cl_cgame.cpp")
@@ -515,7 +523,14 @@ class CGameNativeBridgeSourceTests(unittest.TestCase):
         self.assertIn("static qboolean CL_GetRetailNativeSnapshot", cl_cgame)
         self.assertIn("if ( arg == CG_GETSNAPSHOT )", cl_cgame)
         self.assertIn("return CL_GetRetailNativeSnapshot", cl_cgame)
-        self.assertIn("case CG_GETSNAPSHOT:\n\t\treturn CL_GetSnapshot", cl_cgame)
+        self.assertIn("static qboolean CL_GetQ3Snapshot", cl_cgame)
+        self.assertIn("FnTech3_Q3PlayerStateFromInternal", cl_cgame)
+        self.assertIn("FnTech3_Q3EntityStateFromInternal", cl_cgame)
+        self.assertIn(
+            "VM_CHECKBOUNDS( cgvm, args[2], sizeof( fntech3_q3_snapshot_t ) )",
+            cl_cgame,
+        )
+        self.assertIn("return CL_GetQ3Snapshot( args[1], VMA(2) );", cl_cgame)
 
     def test_snapshot_structs_and_deltas_use_ql_native_layout(self) -> None:
         q_shared = read_repo_file("code/qcommon/q_shared.h")

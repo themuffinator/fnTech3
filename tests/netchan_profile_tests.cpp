@@ -11,6 +11,8 @@ static_assert( !fnql::net::ParsePackedIpv4Host( "-1" ).valid );
 static_assert( !fnql::net::ParsePackedIpv4Host( "" ).valid );
 
 static_assert( Netchan_SelectWireProfile( 68, 1 ) == NETCHAN_WIRE_LEGACY_Q3 );
+// Local Q3 startup skips the challenge exchange and initially has compat=0.
+static_assert( Netchan_SelectWireProfile( 68, 0 ) == NETCHAN_WIRE_LEGACY_Q3 );
 static_assert( Netchan_SelectWireProfile( 71, 0 ) == NETCHAN_WIRE_IOQ3 );
 static_assert( Netchan_SelectWireProfile( 71, 1 ) == NETCHAN_WIRE_LEGACY_Q3 );
 static_assert( Netchan_SelectWireProfile( NETCHAN_QL_RETAIL_PROTOCOL_VERSION, 0 ) ==

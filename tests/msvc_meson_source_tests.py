@@ -30,6 +30,8 @@ class VisualStudioMesonBridgeTests(unittest.TestCase):
         self.assertIn('find_spec("mesonbuild.mesonmain")', driver)
         self.assertIn('shutil.which("cl")', driver)
         self.assertIn('"-Dstrict-warnings=true"', driver)
+        self.assertIn('"-Db_vscrt=static_from_buildtype"', driver)
+        self.assertIn('"-Dzlib:default_library=static"', driver)
         self.assertIn(
             'DEFAULT_RENDERERS = ("glx", "vk", "rtx")',
             driver,
@@ -69,7 +71,7 @@ class VisualStudioMesonBridgeTests(unittest.TestCase):
             )
             self.assertIn("'$(Platform)'!='Win32'", enforcement)
             self.assertIn("'$(PlatformTarget)'!='x86'", enforcement)
-            self.assertIn("FnQL supports only the Win32 (32-bit x86) platform", enforcement)
+            self.assertIn("fnTech3 shared Q3/QL builds support only the Win32 (32-bit x86) platform", enforcement)
 
         legacy = ROOT / "code/win32/msvc2005"
         self.assertNotIn("Win64", (legacy / "fnql.sln").read_text(encoding="utf-8"))

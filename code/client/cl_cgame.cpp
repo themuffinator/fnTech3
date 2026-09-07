@@ -30,6 +30,7 @@ extern "C" {
 #include "client_cpp.h"
 #include "client_cvar_compat.hpp"
 #include "ql_font_bridge.hpp"
+#include "../compat/game_abi_adapter.h"
 #include "../qcommon/netchan_safety.hpp"
 
 #include <algorithm>
@@ -1157,6 +1158,20 @@ static qboolean CL_GetUserCmd( int cmdNumber, usercmd_t *ucmd ) {
 }
 
 
+/* Legacy vmMain DLLs and QVMs own the original 24-byte Q3 usercmd ABI. */
+static qboolean CL_GetQ3UserCmd( int cmdNumber,
+	fntech3_q3_usercmd_t *destination ) {
+	usercmd_t internal;
+
+	if ( !CL_GetUserCmd( cmdNumber, &internal ) ) {
+		return qfalse;
+	}
+
+	FnTech3_Q3UsercmdFromInternal( destination, &internal );
+	return qtrue;
+}
+
+
 /*
 ====================
 CL_GetCurrentCmdNumber
@@ -1228,6 +1243,63 @@ static qboolean CL_GetSnapshot( int snapshotNumber, snapshot_t *snapshot ) {
 
 	// FIXME: configstring changes and server commands!!!
 
+	return qtrue;
+}
+
+
+/*
+====================
+CL_GetQ3Snapshot
+
+Marshal the canonical snapshot into the frozen Q3 cgame ABI. The current
+engine structures are a QL superset and must never be copied into a QVM or
+legacy vmMain DLL destination.
+====================
+*/
+static qboolean CL_GetQ3Snapshot( int snapshotNumber,
+	fntech3_q3_snapshot_t *snapshot ) {
+	clSnapshot_t *clSnap;
+	int count;
+
+	if ( !snapshot ) {
+		return qfalse;
+	}
+	if ( cl.snap.messageNum - snapshotNumber < 0 ) {
+		Com_Error( ERR_DROP,
+			"CL_GetQ3Snapshot: snapshotNumber (%i) > cl.snapshot.messageNum (%i)",
+			snapshotNumber, cl.snap.messageNum );
+	}
+	if ( cl.snap.messageNum - snapshotNumber >= PACKET_BACKUP ) {
+		return qfalse;
+	}
+
+	clSnap = &cl.snapshots[snapshotNumber & PACKET_MASK];
+	if ( !clSnap->valid ||
+		cl.parseEntitiesNum - clSnap->parseEntitiesNum >= MAX_PARSE_ENTITIES ) {
+		return qfalse;
+	}
+
+	std::memset( snapshot, 0, sizeof( *snapshot ) );
+	snapshot->snapFlags = clSnap->snapFlags;
+	snapshot->ping = clSnap->ping;
+	snapshot->serverTime = clSnap->serverTime;
+	std::copy_n( clSnap->areamask, sizeof( snapshot->areamask ),
+		snapshot->areamask );
+	FnTech3_Q3PlayerStateFromInternal( &snapshot->ps, &clSnap->ps );
+
+	count = std::min<int>( clSnap->numEntities,
+		FNTECH3_Q3_MAX_ENTITIES_IN_SNAPSHOT );
+	if ( count != clSnap->numEntities ) {
+		Com_DPrintf( "CL_GetQ3Snapshot: truncated %i entities to %i\n",
+			clSnap->numEntities, count );
+	}
+	snapshot->numEntities = count;
+	for ( int index = 0; index < count; ++index ) {
+		const entityState_t &source = cl.parseEntities[
+			( clSnap->parseEntitiesNum + index ) & ( MAX_PARSE_ENTITIES - 1 ) ];
+		FnTech3_Q3EntityStateFromInternal( &snapshot->entities[index], &source );
+	}
+	snapshot->serverCommandSequence = clSnap->serverCommandNum;
 	return qtrue;
 }
 
@@ -1629,31 +1701,63 @@ private:
 #undef VMA
 #define VMA(x) VmArgPtr( VM_ArgPtr( args[x] ) )
 
+static intptr_t CL_CGameTrapForProfile( intptr_t trap ) {
+	if ( !Com_GameIsQuake3() ) {
+		return trap;
+	}
+
+	switch ( trap ) {
+	case FNTECH3_Q3_CG_R_ADDREFENTITYTOSCENE2:
+		return CG_R_ADDREFENTITYTOSCENE2;
+	case FNTECH3_Q3_CG_R_FORCEFIXEDDLIGHTS:
+		return CG_R_FORCEFIXEDDLIGHTS;
+	case FNTECH3_Q3_CG_R_ADDLINEARLIGHTTOSCENE:
+		return CG_R_ADDLINEARLIGHTTOSCENE;
+	case FNTECH3_Q3_CG_IS_RECORDING_DEMO:
+		return CG_IS_RECORDING_DEMO;
+	case FNTECH3_Q3_CG_CVAR_SETDESCRIPTION:
+		return CG_CVAR_SETDESCRIPTION;
+	default:
+		// These shifted QL extensions have no Q3 ordinal. In particular,
+		// Q3 trap 116 was already mapped once to Cvar_SetDescription above.
+		if ( trap >= CG_R_FORCEFIXEDDLIGHTS && trap <= CG_CVAR_SETDESCRIPTION ) {
+			return -1;
+		}
+		return trap;
+	}
+}
+
 
 static qboolean CL_GetValue( char* value, int valueSize, const char* key ) {
+	const bool quake3 = Com_GameIsQuake3() != 0;
 
 	if ( !Q_stricmp( key, "trap_R_AddRefEntityToScene2" ) ) {
-		Com_sprintf( value, valueSize, "%i", CG_R_ADDREFENTITYTOSCENE2 );
+		Com_sprintf( value, valueSize, "%i", quake3 ?
+			static_cast<int>( FNTECH3_Q3_CG_R_ADDREFENTITYTOSCENE2 ) : CG_R_ADDREFENTITYTOSCENE2 );
 		return qtrue;
 	}
 
 	if ( !Q_stricmp( key, "trap_R_ForceFixedDLights" ) ) {
-		Com_sprintf( value, valueSize, "%i", CG_R_FORCEFIXEDDLIGHTS );
+		Com_sprintf( value, valueSize, "%i", quake3 ?
+			static_cast<int>( FNTECH3_Q3_CG_R_FORCEFIXEDDLIGHTS ) : CG_R_FORCEFIXEDDLIGHTS );
 		return qtrue;
 	}
 
 	if ( !Q_stricmp( key, "trap_R_AddLinearLightToScene_Q3E" ) && re.AddLinearLightToScene ) {
-		Com_sprintf( value, valueSize, "%i", CG_R_ADDLINEARLIGHTTOSCENE );
+		Com_sprintf( value, valueSize, "%i", quake3 ?
+			static_cast<int>( FNTECH3_Q3_CG_R_ADDLINEARLIGHTTOSCENE ) : CG_R_ADDLINEARLIGHTTOSCENE );
 		return qtrue;
 	}
 
 	if ( !Q_stricmp( key, "trap_IsRecordingDemo" ) ) {
-		Com_sprintf( value, valueSize, "%i", CG_IS_RECORDING_DEMO );
+		Com_sprintf( value, valueSize, "%i", quake3 ?
+			static_cast<int>( FNTECH3_Q3_CG_IS_RECORDING_DEMO ) : CG_IS_RECORDING_DEMO );
 		return qtrue;
 	}
 
 	if ( !Q_stricmp( key, "trap_Cvar_SetDescription_Q3E" ) ) {
-		Com_sprintf( value, valueSize, "%i", CG_CVAR_SETDESCRIPTION );
+		Com_sprintf( value, valueSize, "%i", quake3 ?
+			static_cast<int>( FNTECH3_Q3_CG_CVAR_SETDESCRIPTION ) : CG_CVAR_SETDESCRIPTION );
 		return qtrue;
 	}
 
@@ -1679,7 +1783,7 @@ The cgame module is making a system call
 ====================
 */
 static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
-	switch( args[0] ) {
+	switch( CL_CGameTrapForProfile( args[0] ) ) {
 	case CG_PRINT:
 		Com_Printf( "%s", VMA(1).String() );
 		return 0;
@@ -1932,15 +2036,27 @@ static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		CL_GetCurrentSnapshotNumber( VMA(1), VMA(2) );
 		return 0;
 	case CG_GETSNAPSHOT:
-		return CL_GetSnapshot( args[1], VMA(2) );
+		if ( cgvm->dllExports ) {
+			VM_CHECKBOUNDS( cgvm, args[2], sizeof( snapshot_t ) );
+			return CL_GetSnapshot( args[1], VMA(2) );
+		}
+		VM_CHECKBOUNDS( cgvm, args[2], sizeof( fntech3_q3_snapshot_t ) );
+		return CL_GetQ3Snapshot( args[1], VMA(2) );
 	case CG_GETSERVERCOMMAND:
 		return CL_GetServerCommand( args[1] );
 	case CG_GETCURRENTCMDNUMBER:
 		return CL_GetCurrentCmdNumber();
 	case CG_GETUSERCMD:
-		return CL_GetUserCmd( args[1], VMA(2) );
+		if ( cgvm->dllExports ) {
+			VM_CHECKBOUNDS( cgvm, args[2], sizeof( usercmd_t ) );
+			return CL_GetUserCmd( args[1], VMA(2) );
+		}
+		VM_CHECKBOUNDS( cgvm, args[2], sizeof( fntech3_q3_usercmd_t ) );
+		return CL_GetQ3UserCmd( args[1], VMA(2) );
 	case CG_SETUSERCMDVALUE:
-		CL_SetUserCmdValue( args[1], args[2], VMF(3), args[4] );
+		// QVM and legacy vmMain modules pass weapon and sensitivity only.
+		// The structured QL import consumes its four arguments in CG_Import_Dispatch.
+		CL_SetUserCmdValue( args[1], 0, VMF(2), 0 );
 		return 0;
 	case CG_MEMORY_REMAINING:
 		return Hunk_MemoryRemaining();

@@ -62,6 +62,7 @@ SV_BotAllocateClient
 */
 int SV_BotAllocateClient( void ) {
 	client_t	*cl = nullptr;
+	sharedEntity_t entity;
 
 	// find a client slot
 	for ( client_t &candidate : SV_Clients() ) {
@@ -78,7 +79,15 @@ int SV_BotAllocateClient( void ) {
 	const int i = SV_ClientIndex( cl );
 
 	cl->gentity = SV_GentityNum( i );
-	cl->gentity->s.number = i;
+	if ( !SV_ReadGameEntity( cl->gentity, &entity ) ) {
+		Com_Error( ERR_DROP, "%s: invalid bot gentity", __func__ );
+		return -1;
+	}
+	entity.s.number = i;
+	if ( !SV_WriteGameEntity( cl->gentity, &entity ) ) {
+		Com_Error( ERR_DROP, "%s: bot gentity write failed", __func__ );
+		return -1;
+	}
 	cl->state = CS_ACTIVE;
 	cl->lastPacketTime = svs.time;
 	cl->snapshotMsec = 1000 / sv_fps->integer;
@@ -100,6 +109,7 @@ SV_BotFreeClient
 */
 void SV_BotFreeClient( int clientNum ) {
 	client_t	*cl;
+	sharedEntity_t entity;
 
 	if ( !SV_IsClientIndex( clientNum ) ) {
 		Com_Error( ERR_DROP, "SV_BotFreeClient: bad clientNum: %i", clientNum );
@@ -110,7 +120,15 @@ void SV_BotFreeClient( int clientNum ) {
 	cl->name[0] = '\0';
 	cl->platformSteamId[0] = '\0';
 	if ( cl->gentity ) {
-		cl->gentity->r.svFlags &= ~SVF_BOT;
+		if ( !SV_ReadGameEntity( cl->gentity, &entity ) ) {
+			Com_Error( ERR_DROP, "%s: invalid bot gentity", __func__ );
+			return;
+		}
+		entity.r.svFlags &= ~SVF_BOT;
+		if ( !SV_WriteGameEntity( cl->gentity, &entity ) ) {
+			Com_Error( ERR_DROP, "%s: bot gentity write failed", __func__ );
+			return;
+		}
 	}
 }
 
@@ -144,8 +162,12 @@ void BotDrawDebugPolygons(void (*drawPoly)(int color, int numPoints, float *poin
 		if (bot_reachability->integer) parm0 |= 2;
 		if (bot_groundonly->integer) parm0 |= 4;
 		botlib_export->BotLibVarSet("bot_highlightarea", bot_highlightarea->string);
-		botlib_export->Test(parm0, nullptr, debugClient.gentity->r.currentOrigin, 
-			debugClient.gentity->r.currentAngles);
+		sharedEntity_t entity;
+		if ( debugClient.gentity
+			&& SV_ReadGameEntity( debugClient.gentity, &entity ) ) {
+			botlib_export->Test( parm0, nullptr, entity.r.currentOrigin,
+				entity.r.currentAngles );
+		}
 	} //end if
 	//draw all debug polys
 	for (i = 0; i < bot_maxdebugpolys; i++) {

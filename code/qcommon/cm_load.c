@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // cmodel.c -- model loading
 
 #include "cm_local.h"
+#include "cm_game_contract.h"
 #include "bsp_v43.h"
 #include "ql_bsp.h"
 
@@ -469,11 +470,22 @@ static void CMod_LoadBrushSides( const lump_t *l )
 CMod_LoadEntityString
 =================
 */
+static comGameId_t CMod_ActiveGameId( void ) {
+#ifdef BSPC
+	/* Standalone map tools do not activate an engine runtime profile. */
+	return COM_GAME_AUTO;
+#else
+	const comGameProfile_t *gameProfile = Com_GameProfile();
+
+	return gameProfile ? gameProfile->id : COM_GAME_AUTO;
+#endif
+}
+
 static void CMod_LoadEntityString( const lump_t *l ) {
 	cm.entityString = Hunk_Alloc( l->filelen + 1, h_high );
-	Com_Memcpy( cm.entityString, cmod_base + l->fileofs, l->filelen );
-	cm.entityString[ l->filelen ] = '\0';
-	cm.numEntityChars = l->filelen;
+	cm.numEntityChars = CM_CopyEntityStringForGame( CMod_ActiveGameId(),
+		(const char *)( cmod_base + l->fileofs ), l->filelen,
+		cm.entityString );
 }
 
 

@@ -389,11 +389,16 @@ VM_Init
 ==============
 */
 void VM_Init( void ) {
+	const comGameProfile_t *gameProfile = Com_GameProfile();
+	const char *moduleDefault = gameProfile
+		&& ( gameProfile->preferredModuleApi & COM_MODULE_API_QVM )
+		? "2" : "0";
+
 #ifndef DEDICATED
-	Cvar_Get( "vm_ui", "0", CVAR_ARCHIVE | CVAR_PROTECTED );	// Quake Live ships native UI modules by default.
-	Cvar_Get( "vm_cgame", "0", CVAR_ARCHIVE | CVAR_PROTECTED );	// Quake Live ships native cgame by default.
+	Cvar_Get( "vm_ui", moduleDefault, CVAR_ARCHIVE | CVAR_PROTECTED );
+	Cvar_Get( "vm_cgame", moduleDefault, CVAR_ARCHIVE | CVAR_PROTECTED );
 #endif
-	Cvar_Get( "vm_game", "0", CVAR_ARCHIVE | CVAR_PROTECTED );
+	Cvar_Get( "vm_game", moduleDefault, CVAR_ARCHIVE | CVAR_PROTECTED );
 
 	Cmd_AddCommand( "vmprofile", VM_VmProfile_f );
 	Cmd_AddCommand( "vminfo", VM_VmInfo_f );
@@ -1999,6 +2004,16 @@ static vmDllEntryAbi_t VM_SelectDllEntryAbi( dllEntry_t dllEntry, vmMainFunc_t e
 	return VM_DLL_ENTRY_INVALID;
 }
 
+static unsigned VM_ModuleApiForDllEntryAbi( vmDllEntryAbi_t entryAbi ) {
+	if ( entryAbi == VM_DLL_ENTRY_LEGACY ) {
+		return COM_MODULE_API_LEGACY_NATIVE;
+	}
+	if ( entryAbi == VM_DLL_ENTRY_STRUCTURED ) {
+		return COM_MODULE_API_STRUCTURED_NATIVE;
+	}
+	return 0;
+}
+
 static void *VM_LoadDllFromPakCache( vmIndex_t index, const char *filename ) {
 	void	*buffer;
 	int		length;
@@ -2100,8 +2115,23 @@ static void * QDECL VM_LoadDll( vmIndex_t index, const char *name,
 	dllEntry_t	dllEntry;
 	dllEntryNative_t dllEntryNative;
 	vmDllEntryAbi_t entryAbi;
+	unsigned moduleApi;
 	void		*dllEntrySymbol;
 	void		*vmMainSymbol;
+	vmMainFunc_t moduleEntryPoint = NULL;
+	void *moduleExports = NULL;
+	int moduleApiVersion = 0;
+
+	/* Publish callable pointers only after accepting the library. A failed
+	 * native attempt may fall back to QVM loading, where a stale vmMain would
+	 * bypass VM memory translation and could call into an unloaded library. */
+	*entryPoint = NULL;
+	if ( dllExports ) {
+		*dllExports = NULL;
+	}
+	if ( dllApiVersion ) {
+		*dllApiVersion = 0;
+	}
 
 	Com_sprintf( filename, sizeof( filename ), "%s" ARCH_STRING DLL_EXT, name );
 	libHandle = VM_OpenNativeModule( index, filename, pinnedOnly );
@@ -2138,25 +2168,32 @@ static void * QDECL VM_LoadDll( vmIndex_t index, const char *name,
 	vmMainSymbol = Sys_LoadFunction( libHandle, "vmMain" );
 	if ( !VM_AssignDllFunction( &dllEntry, sizeof( dllEntry ), dllEntrySymbol, "dllEntry" ) ||
 		 !VM_AssignDllFunction( &dllEntryNative, sizeof( dllEntryNative ), dllEntrySymbol, "dllEntry" ) ||
-		 !VM_AssignDllFunction( entryPoint, sizeof( *entryPoint ), vmMainSymbol, "vmMain" ) ) {
+		 !VM_AssignDllFunction( &moduleEntryPoint, sizeof( moduleEntryPoint ), vmMainSymbol, "vmMain" ) ) {
 		Sys_UnloadLibrary( libHandle );
 		return NULL;
 	}
-	if ( dllExports ) {
-		*dllExports = NULL;
-	}
-	if ( dllApiVersion ) {
-		*dllApiVersion = 0;
-	}
 
-	entryAbi = VM_SelectDllEntryAbi( dllEntry, *entryPoint, dllExports, dllImports, dllApiVersion );
+	entryAbi = VM_SelectDllEntryAbi( dllEntry, moduleEntryPoint, dllExports, dllImports, dllApiVersion );
+	moduleApi = VM_ModuleApiForDllEntryAbi( entryAbi );
+	if ( !Com_GameProfileAllowsModuleApi( Com_GameProfile(), moduleApi ) ) {
+		Com_Printf( "VM_LoadDll(%s) rejected %s native module for the %s profile\n",
+			name,
+			moduleApi == COM_MODULE_API_STRUCTURED_NATIVE
+				? "structured" : moduleApi == COM_MODULE_API_LEGACY_NATIVE
+					? "legacy" : "invalid",
+			Com_GameProfile() ? Com_GameProfile()->displayName : "inactive" );
+		Sys_UnloadLibrary( libHandle );
+		return NULL;
+	}
 	if ( entryAbi == VM_DLL_ENTRY_STRUCTURED ) {
-		dllEntryNative( dllExports, dllImports, dllApiVersion );
-		if ( !*dllExports ) {
+		dllEntryNative( &moduleExports, dllImports, &moduleApiVersion );
+		if ( !moduleExports ) {
 			Com_Printf( "VM_LoadDll(%s) did not publish native exports\n", name );
 			Sys_UnloadLibrary( libHandle );
 			return NULL;
 		}
+		*dllExports = moduleExports;
+		*dllApiVersion = moduleApiVersion;
 
 		Com_Printf( "VM_LoadDll(%s) found native exports at %p (api %d)\n",
 			name, *dllExports, *dllApiVersion );
@@ -2166,6 +2203,7 @@ static void * QDECL VM_LoadDll( vmIndex_t index, const char *name,
 	if ( entryAbi == VM_DLL_ENTRY_LEGACY ) {
 		Com_Printf( "VM_LoadDll(%s) found legacy vmMain at %p\n", name, vmMainSymbol );
 		dllEntry( systemcalls );
+		*entryPoint = moduleEntryPoint;
 		Com_Printf( "VM_LoadDll(%s) succeeded!\n", name );
 		return libHandle;
 	}
@@ -2260,6 +2298,15 @@ vm_t *VM_CreateNative( vmIndex_t index, syscall_t systemCalls, dllSyscall_t dllS
 #endif
 		Com_Printf( "Failed to load dll, looking for qvm.\n" );
 		interpret = VMI_COMPILED;
+	}
+
+	if ( !Com_GameProfileAllowsModuleApi(
+		Com_GameProfile(), COM_MODULE_API_QVM ) ) {
+		Com_Printf( "VM_Create(%s) rejected QVM module for the %s profile\n",
+			name, Com_GameProfile()
+				? Com_GameProfile()->displayName : "inactive" );
+		VM_Free( vm );
+		return NULL;
 	}
 
 	// load the image

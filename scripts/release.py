@@ -19,7 +19,7 @@ from typing import NamedTuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from fnql_meta import ROOT, channel_metadata, package_archive_name
+from fntech3_meta import ROOT, channel_metadata, package_archive_name
 from build_webpak import build_webpak
 from glx_runtime_sweep import (
     GLX_RELEASE_PROOF_VARIANTS,
@@ -47,6 +47,9 @@ from windows_pe import PE_I386, PeInfo, validate_windows_runtime_dependencies
 
 DEFAULT_DOCS = [
     (ROOT / "LICENSE", Path("LICENSE")),
+    (ROOT / "CREDITS.md", Path("CREDITS.md")),
+    (ROOT / "THIRD_PARTY_NOTICES.md", Path("THIRD_PARTY_NOTICES.md")),
+    (ROOT / "docs" / "fntech3" / "COMPATIBILITY.md", Path("docs") / "fntech3" / "COMPATIBILITY.md"),
     (ROOT / "docs" / "fnql" / "TECHNICAL.md", Path("docs") / "fnql" / "TECHNICAL.md"),
     (
         ROOT / "docs" / "fnql" / "RTX_RENDERER.md",
@@ -76,7 +79,7 @@ REQUIRED_RELEASE_ARCHIVE_ENTRIES = [
     *(destination.as_posix() for _source, destination in DEFAULT_DOCS),
 ]
 
-LINUX_RELEASE_EXECUTABLES = ("fnql", "fnql.ded")
+LINUX_RELEASE_EXECUTABLES = ("fntech3", "fntech3.ded")
 LINUX_RELEASE_RENDERER_MODULES = (
     "fnql_glx_x86.so",
     "fnql_vk_x86.so",
@@ -98,15 +101,15 @@ PUBLISHED_RELEASE_ARTIFACTS = frozenset(
 )
 RELEASE_PROOF_RUNTIME_MEMBERS = {
     "windows-mingw-x86": {
-        "client": "fnql.exe",
+        "client": "fntech3.exe",
         "glxModule": "fnql_glx_x86.dll",
     },
     "windows-msvc-x86": {
-        "client": "fnql.exe",
+        "client": "fntech3.exe",
         "glxModule": "fnql_glx_x86.dll",
     },
     "linux-x86": {
-        "client": "fnql",
+        "client": "fntech3",
         "glxModule": "fnql_glx_x86.so",
     },
 }
@@ -253,7 +256,7 @@ def non_negative_int(value: str) -> int:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Package FnQL manual or tagged release artifacts")
+    parser = argparse.ArgumentParser(description="Package fnTech3 manual or tagged release artifacts")
     parser.add_argument("--channel", choices=("manual", "release"), required=True)
     parser.add_argument("--artifact-root", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, default=ROOT / ".install")
@@ -875,7 +878,7 @@ def validate_macos_distribution_files(
     dedicated = [
         member.name
         for member in members
-        if "/" not in member.name and member.name.casefold().startswith("fnql.ded")
+        if "/" not in member.name and member.name.casefold().startswith("fntech3.ded")
     ]
     if not dedicated:
         raise ValueError(f"{archive_name} is missing the macOS dedicated-server executable")

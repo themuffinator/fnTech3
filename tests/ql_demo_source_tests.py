@@ -63,6 +63,18 @@ class QuakeLiveDemoSourceTests(unittest.TestCase):
             "cl->netchan.wireProfile == NETCHAN_WIRE_QL_RETAIL", sv_client
         )
 
+    def test_server_demo_gamestate_uses_the_frozen_client_wire_profile(self) -> None:
+        sv_client = read_repo_file("code/server/sv_client.cpp")
+        start = sv_client.index("static void SV_WriteDemoGamestate")
+        end = sv_client.index("void SV_StartDemoRecord", start)
+        demo_gamestate = sv_client[start:end]
+
+        self.assertRegex(
+            demo_gamestate,
+            r"SV_WriteBaselineMessage\(\s*msg,\s*nullstate,\s*entityNum,\s*"
+            r"client->netchan\.wireProfile\s*\)",
+        )
+
     def test_compat_suffix_does_not_downgrade_protocol_91(self) -> None:
         cl_main = read_repo_file("code/client/cl_main.cpp")
         sv_client = read_repo_file("code/server/sv_client.cpp")

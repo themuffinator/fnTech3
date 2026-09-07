@@ -23,6 +23,7 @@ layout(set = 0, binding = 11, std430) readonly buffer RtTemporalParamsBuffer {
 
 const uint RTX_RT_PAYLOAD_FLAG_HIT = 1u << 0;
 const uint RTX_RT_PAYLOAD_FLAG_DYNAMIC = 1u << 1;
+const uint RTX_RT_PAYLOAD_FLAG_REACTIVE = 1u << 2;
 const uint RTX_RT_TEMPORAL_FLAG_HISTORY_VALID = 1u << 0;
 const uint RTX_RT_TEMPORAL_FLAG_RESET = 1u << 1;
 const uint RTX_RT_TEMPORAL_FLAG_AUTO_EXPOSURE = 1u << 2;
@@ -37,6 +38,10 @@ struct RtRadiancePayload {
 	float shadowFactor;
 	float shadowResponse;
 	vec3 shadowLoss;
+	vec3 nextOrigin;
+	vec3 nextDirection;
+	vec3 nextWeight;
+	uint pathDepth;
 };
 
 layout(location = 0) rayPayloadEXT RtRadiancePayload payloadRadiance;
@@ -92,6 +97,21 @@ float luminance(vec3 color)
 	return max(dot(color, vec3(0.2126, 0.7152, 0.0722)), 0.0);
 }
 
+float finite_radiance_channel(float value, float ceiling)
+{
+	if (isnan(value) || value <= 0.0) {
+		return 0.0;
+	}
+	return min(value, ceiling);
+}
+
+vec3 finite_radiance(vec3 value, float ceiling)
+{
+	return vec3(finite_radiance_channel(value.r, ceiling),
+		finite_radiance_channel(value.g, ceiling),
+		finite_radiance_channel(value.b, ceiling));
+}
+
 vec3 aces_fitted(vec3 x)
 {
 	const float a = 2.51;
@@ -104,7 +124,9 @@ vec3 aces_fitted(vec3 x)
 
 vec3 tone_map(vec3 color, float exposure, uint mode)
 {
-	vec3 mapped = max(color, vec3(0.0)) * max(exposure, 0.001);
+	/* Leave room for the fitted curve's quadratic terms even with extreme
+	 * configured exposure, and prevent inf/inf in either tone mapper. */
+	vec3 mapped = finite_radiance(color * max(exposure, 0.001), 1e16);
 	if (mode == 1u) {
 		return mapped / (vec3(1.0) + mapped);
 	}
@@ -122,7 +144,7 @@ vec3 linear_to_srgb(vec3 color)
 	return mix(encodedLow, encodedHigh, step(vec3(0.0031308), color));
 }
 
-RtRadiancePayload trace_radiance(vec3 origin, vec3 direction)
+RtRadiancePayload trace_surface(vec3 origin, vec3 direction, uint pathDepth)
 {
 	payloadRadiance.color = vec3(0.0);
 	payloadRadiance.hitT = 0.0;
@@ -131,6 +153,10 @@ RtRadiancePayload trace_radiance(vec3 origin, vec3 direction)
 	payloadRadiance.shadowFactor = 1.0;
 	payloadRadiance.shadowResponse = 0.0;
 	payloadRadiance.shadowLoss = vec3(0.0);
+	payloadRadiance.nextOrigin = vec3(0.0);
+	payloadRadiance.nextDirection = vec3(0.0);
+	payloadRadiance.nextWeight = vec3(0.0);
+	payloadRadiance.pathDepth = pathDepth;
 
 	traceRayEXT(
 		u_tlas,
@@ -145,6 +171,44 @@ RtRadiancePayload trace_radiance(vec3 origin, vec3 direction)
 		100000.0,
 		0);
 	return payloadRadiance;
+}
+
+RtRadiancePayload trace_radiance(vec3 origin, vec3 direction)
+{
+	RtRadiancePayload primary = trace_surface(origin, direction, 0u);
+	primary.color = finite_radiance(primary.color, 1e16);
+	if ((u_temporal.modes.w & RTX_RT_MODE_FLAG_RASTER_REFERENCE) != 0u ||
+		(pc.debugMode > 0u && pc.debugMode < 9u)) {
+		return primary;
+	}
+
+	/*
+	 * Continue in raygen, so each closest-hit shader only nests its shadow
+	 * query. Four surface bounces still require a Vulkan recursion depth of
+	 * two; reflected and transmitted rays see the same material/alpha rules.
+	 */
+	uint bounceLimit = min(pc.indirectBounce, 4u);
+	if (pc.reflectionStrength > 0.0 || pc.refractiveMode > 0u) {
+		bounceLimit = max(bounceLimit, 1u);
+	}
+	RtRadiancePayload surface = primary;
+	vec3 throughput = vec3(1.0);
+	vec3 radiance = primary.color;
+	for (uint bounce = 0u; bounce < bounceLimit; bounce++) {
+		throughput *= surface.nextWeight;
+		if (any(isnan(throughput)) || any(isinf(throughput)) ||
+			max(max(throughput.r, throughput.g), throughput.b) <= 1e-5) {
+			break;
+		}
+		surface = trace_surface(surface.nextOrigin, surface.nextDirection, bounce + 1u);
+		radiance = finite_radiance(radiance + throughput * surface.color, 1e16);
+		if ((surface.flags & RTX_RT_PAYLOAD_FLAG_DYNAMIC) != 0u) {
+			/* A moving reflected object invalidates static-wall history too. */
+			primary.flags |= RTX_RT_PAYLOAD_FLAG_REACTIVE;
+		}
+	}
+	primary.color = max(radiance, vec3(0.0));
+	return primary;
 }
 
 bool project_prev_uv(vec3 worldPos, out vec2 prevUv)
@@ -177,7 +241,7 @@ vec3 spatial_filter(vec3 origin, vec2 ndc, vec2 launchSize, RtRadiancePayload ce
 		vec2(0.0, -ndcStep.y),
 		vec2(0.0,  ndcStep.y)
 	);
-	vec3 centerNormal = normalize(center.normal);
+	vec3 centerNormal = safe_normalize(center.normal, vec3(0.0, 0.0, 1.0));
 	float depthSigma = u_temporal.denoiseParams.x;
 	float normalSharpness = u_temporal.denoiseParams.y;
 	vec3 sum = center.color;
@@ -192,11 +256,11 @@ vec3 spatial_filter(vec3 origin, vec2 ndc, vec2 launchSize, RtRadiancePayload ce
 				w *= exp(-abs(samplePayload.hitT - center.hitT) * depthSigma);
 			}
 			if (normalSharpness > 0.0) {
-				float nDot = clamp(dot(centerNormal, normalize(samplePayload.normal)), 0.0, 1.0);
+				float nDot = clamp(dot(centerNormal, safe_normalize(samplePayload.normal, centerNormal)), 0.0, 1.0);
 				w *= pow(nDot, normalSharpness);
 			}
 		} else if ((center.flags & RTX_RT_PAYLOAD_FLAG_HIT) != (samplePayload.flags & RTX_RT_PAYLOAD_FLAG_HIT)) {
-			w *= 0.25;
+			w = 0.0;
 		}
 
 		sum += samplePayload.color * w;
@@ -321,6 +385,7 @@ void main()
 	if (((u_temporal.modes.x != 0u) || pc.debugMode == 9u || pc.debugMode == 10u) && !debugRaster) {
 		vec2 prevUv = uv;
 		bool validReprojection = false;
+		float expectedPreviousDepth = 0.0;
 
 		if ((center.flags & RTX_RT_PAYLOAD_FLAG_HIT) != 0u) {
 			vec3 worldPos = origin + direction * center.hitT;
@@ -328,8 +393,10 @@ void main()
 				worldPos -= u_temporal.dynamicMotionAndExposure.xyz * u_temporal.exposureParams.w;
 			}
 			validReprojection = project_prev_uv(worldPos, prevUv);
+			expectedPreviousDepth = length(worldPos - u_temporal.prevCameraOriginTanHalfFovX.xyz);
 		} else {
-			validReprojection = project_prev_uv(origin + direction * 2048.0, prevUv);
+			/* An infinite environment has rotational motion, never parallax. */
+			validReprojection = project_prev_uv(u_temporal.prevCameraOriginTanHalfFovX.xyz + direction * 2048.0, prevUv);
 		}
 
 		if (validReprojection) {
@@ -343,10 +410,18 @@ void main()
 			all(lessThanEqual(prevUv, vec2(1.0)))) {
 			ivec2 prevPixel = ivec2(clamp(prevUv * launch_size, vec2(0.0), launch_size - vec2(1.0)));
 			vec4 historySample = imageLoad(u_historyIn, prevPixel);
-			bool historyAccepted = true;
+			bool currentHit = (center.flags & RTX_RT_PAYLOAD_FLAG_HIT) != 0u;
+			bool previousHit = historySample.w > 0.0;
+			bool historyAccepted = currentHit == previousHit &&
+				!any(isnan(historySample)) && !any(isinf(historySample));
+			/* Average scene velocity cannot identify an animated triangle's
+			 * previous position. Reject until per-instance motion is available. */
+			historyAccepted = historyAccepted &&
+				(center.flags & (RTX_RT_PAYLOAD_FLAG_DYNAMIC | RTX_RT_PAYLOAD_FLAG_REACTIVE)) == 0u;
+			historyAccepted = historyAccepted && currentDepth <= 65504.0 && expectedPreviousDepth <= 65504.0;
 
-			if ((center.flags & RTX_RT_PAYLOAD_FLAG_HIT) != 0u && historySample.w > 0.0) {
-				if (abs(historySample.w - currentDepth) > u_temporal.temporalParams0.z) {
+			if (currentHit && previousHit) {
+				if (abs(historySample.w - expectedPreviousDepth) > max(u_temporal.temporalParams0.z, 0.0)) {
 					historyAccepted = false;
 				}
 			}
@@ -363,7 +438,8 @@ void main()
 		}
 	}
 
-	imageStore(u_historyOut, pixel, vec4(accumulatedColor, currentDepth));
+	/* RGBA16F history must never store overflow infinities. */
+	imageStore(u_historyOut, pixel, vec4(finite_radiance(accumulatedColor, 65504.0), min(currentDepth, 65504.0)));
 
 	exposure = clamp(u_temporal.dynamicMotionAndExposure.w, u_temporal.exposureParams.x, u_temporal.exposureParams.y);
 	rasterReference = texture(u_sceneColor, uv).rgb;
@@ -413,5 +489,5 @@ void main()
 			exposure / max(u_temporal.exposureParams.y, 0.001));
 	}
 
-	imageStore(u_output, pixel, vec4(max(finalColor, vec3(0.0)), 1.0));
+	imageStore(u_output, pixel, vec4(finite_radiance(finalColor, 65504.0), 1.0));
 }

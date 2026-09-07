@@ -61,39 +61,39 @@
     <IntDir>.\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</IntDir>
     <LinkIncremental>true</LinkIncremental>
     <EmbedManifest>false</EmbedManifest>
-    <TargetName>fnql-debug</TargetName>
+    <TargetName>fntech3-debug</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>.\output\</OutDir>
     <IntDir>.\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</IntDir>
     <LinkIncremental>true</LinkIncremental>
     <EmbedManifest>false</EmbedManifest>
-    <TargetName>fnql-debug.x64</TargetName>
+    <TargetName>fntech3-debug.x64</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <LinkIncremental>true</LinkIncremental>
     <EmbedManifest>false</EmbedManifest>
     <OutDir>.\output\</OutDir>
     <IntDir>.\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</IntDir>
-    <TargetName>fnql-debug.arm64</TargetName>
+    <TargetName>fntech3-debug.arm64</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>.\output\</OutDir>
     <IntDir>.\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</IntDir>
     <EmbedManifest>false</EmbedManifest>
-    <TargetName>fnql</TargetName>
+    <TargetName>fntech3</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>.\output\</OutDir>
     <IntDir>.\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</IntDir>
     <EmbedManifest>false</EmbedManifest>
-    <TargetName>fnql.x64</TargetName>
+    <TargetName>fntech3.x64</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <EmbedManifest>false</EmbedManifest>
     <OutDir>.\output\</OutDir>
     <IntDir>.\build\$(ProjectName)_$(Configuration)_$(PlatformTarget)\</IntDir>
-    <TargetName>fnql.arm64</TargetName>
+    <TargetName>fntech3.arm64</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -288,6 +288,8 @@
     <ClCompile Include="..\..\qcommon\cm_test.c" />
     <ClCompile Include="..\..\qcommon\cm_trace.c" />
     <ClCompile Include="..\..\qcommon\common.c" />
+    <ClCompile Include="..\..\qcommon\game_profile.cpp" />
+    <ClCompile Include="..\..\compat\game_abi_adapter.c" />
     <ClCompile Include="..\..\qcommon\cvar.c" />
     <ClCompile Include="..\..\qcommon\files.c" />
     <ClCompile Include="..\..\qcommon\history.c" />
@@ -371,7 +373,10 @@
     <ClInclude Include="..\..\client\audio\openal\AudioSystemWorld.inl" />
     <ClInclude Include="..\..\cgame\cg_public.h" />
     <ClInclude Include="..\..\client\client.h" />
-	<ClInclude Include="..\..\platform\fnql_steam.h" />
+    <ClInclude Include="..\..\platform\fnql_steam.h" />
+    <ClInclude Include="..\..\compat\game_abi_adapter.h" />
+    <ClInclude Include="..\..\compat\q3_game_abi.h" />
+    <ClInclude Include="..\..\compat\ql_game_abi.h" />
 	<ClInclude Include="..\..\platform\fnql_steam_api.h" />
     <ClInclude Include="..\..\client\cl_curl.h" />
     <ClInclude Include="..\..\client\keycodes.h" />

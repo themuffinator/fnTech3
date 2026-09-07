@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "q_shared.h"
 #include "qcommon.h"
 #include "netchan_safety.hpp"
+#include "protocol_contract.hpp"
 
 #include <algorithm>
 #include <cstddef>
@@ -70,6 +71,23 @@ void MSG_SetReadPastEnd( msg_t *msg ) noexcept {
 	int limit ) noexcept {
 	return position >= 0 && amount >= 0 && position <= limit &&
 		amount <= limit - position;
+}
+
+[[nodiscard]] bool MSG_ReadSucceeded( const msg_t *msg ) noexcept {
+	return MSG_ValidStorage( msg ) && msg->cursize >= 0 &&
+		msg->cursize <= msg->maxsize && msg->readcount >= 0 &&
+		msg->readcount <= msg->cursize && msg->bit >= 0 &&
+		msg->bit <= MSG_ReadBitLimit( msg );
+}
+
+template<typename State>
+qboolean MSG_CommitDeltaRead( const msg_t *msg, State *destination,
+	const State &decoded ) {
+	if ( !MSG_ReadSucceeded( msg ) ) {
+		return qfalse;
+	}
+	*destination = decoded;
+	return qtrue;
 }
 
 } // namespace
@@ -838,11 +856,20 @@ usercmd_t communication
 */
 
 /*
-=====================
-MSG_WriteDeltaUsercmdKey
-=====================
+=======================================
+MSG_WriteDeltaUsercmdKeyForWireProfile
+=======================================
 */
-void MSG_WriteDeltaUsercmdKey( msg_t *msg, int key, const usercmd_t *from, const usercmd_t *to ) {
+qboolean MSG_WriteDeltaUsercmdKeyForWireProfile( msg_t *msg, int key,
+	const usercmd_t *from, const usercmd_t *to,
+	netchanWireProfile_t profile ) {
+	const fnql::protocol::Contract *contract =
+		fnql::protocol::TryForWireProfile( profile );
+	if ( !contract ) {
+		return qfalse;
+	}
+	const bool quakeLive = contract->gameMessageLayout ==
+		fnql::protocol::GameMessageLayout::QuakeLive;
 	const std::uint32_t serverTimeDelta = fnql::net::CounterDistance(
 		to->serverTime, from->serverTime );
 	if ( serverTimeDelta < 256u ) {
@@ -860,10 +887,11 @@ void MSG_WriteDeltaUsercmdKey( msg_t *msg, int key, const usercmd_t *from, const
 		from->upmove == to->upmove &&
 		from->buttons == to->buttons &&
 		from->weapon == to->weapon &&
-		from->weaponPrimary == to->weaponPrimary &&
-		from->fov == to->fov) {
+		( !quakeLive ||
+			( from->weaponPrimary == to->weaponPrimary &&
+			from->fov == to->fov ) ) ) {
 			MSG_WriteBits( msg, 0, 1 );				// no change
-			return;
+			return qtrue;
 	}
 	key ^= to->serverTime;
 	MSG_WriteBits( msg, 1, 1 );
@@ -875,17 +903,34 @@ void MSG_WriteDeltaUsercmdKey( msg_t *msg, int key, const usercmd_t *from, const
 	MSG_WriteDeltaKey( msg, key, from->upmove, to->upmove, 8 );
 	MSG_WriteDeltaKey( msg, key, from->buttons, to->buttons, 16 );
 	MSG_WriteDeltaKey( msg, key, from->weapon, to->weapon, 8 );
-	MSG_WriteDeltaKey( msg, key, from->weaponPrimary, to->weaponPrimary, 8 );
-	MSG_WriteDeltaKey( msg, key, from->fov, to->fov, 8 );
+	if ( quakeLive ) {
+		MSG_WriteDeltaKey( msg, key, from->weaponPrimary,
+			to->weaponPrimary, 8 );
+		MSG_WriteDeltaKey( msg, key, from->fov, to->fov, 8 );
+	}
+	return qtrue;
 }
 
 
 /*
-=====================
-MSG_ReadDeltaUsercmdKey
-=====================
+======================================
+MSG_ReadDeltaUsercmdKeyForWireProfile
+======================================
 */
-void MSG_ReadDeltaUsercmdKey( msg_t *msg, int key, const usercmd_t *from, usercmd_t *to ) {
+qboolean MSG_ReadDeltaUsercmdKeyForWireProfile( msg_t *msg, int key,
+	const usercmd_t *from, usercmd_t *to, netchanWireProfile_t profile ) {
+	const fnql::protocol::Contract *contract =
+		fnql::protocol::TryForWireProfile( profile );
+	if ( !contract ) {
+		return qfalse;
+	}
+	const bool quakeLive = contract->gameMessageLayout ==
+		fnql::protocol::GameMessageLayout::QuakeLive;
+	// A malformed command must not replace the caller's last valid state.
+	usercmd_t decoded{};
+	usercmd_t *destination = to;
+	to = &decoded;
+
 	if ( MSG_ReadBits( msg, 1 ) ) {
 		to->serverTime = fnql::net::CounterAdd( from->serverTime,
 			static_cast<std::uint32_t>( MSG_ReadBits( msg, 8 ) ) );
@@ -908,8 +953,11 @@ void MSG_ReadDeltaUsercmdKey( msg_t *msg, int key, const usercmd_t *from, usercm
 			to->upmove = -127;
 		to->buttons = MSG_ReadDeltaKey( msg, key, from->buttons, 16);
 		to->weapon = MSG_ReadDeltaKey( msg, key, from->weapon, 8);
-		to->weaponPrimary = MSG_ReadDeltaKey( msg, key, from->weaponPrimary, 8);
-		to->fov = MSG_ReadDeltaKey( msg, key, from->fov, 8);
+		if ( quakeLive ) {
+			to->weaponPrimary = MSG_ReadDeltaKey( msg, key,
+				from->weaponPrimary, 8 );
+			to->fov = MSG_ReadDeltaKey( msg, key, from->fov, 8 );
+		}
 	} else {
 		to->angles[0] = from->angles[0];
 		to->angles[1] = from->angles[1];
@@ -919,9 +967,30 @@ void MSG_ReadDeltaUsercmdKey( msg_t *msg, int key, const usercmd_t *from, usercm
 		to->upmove = from->upmove;
 		to->buttons = from->buttons;
 		to->weapon = from->weapon;
-		to->weaponPrimary = from->weaponPrimary;
-		to->fov = from->fov;
+		if ( quakeLive ) {
+			to->weaponPrimary = from->weaponPrimary;
+			to->fov = from->fov;
+		}
 	}
+	if ( !quakeLive ) {
+		// Q3 has no bytes for the QL usercmd tail. Never allow a copied QL
+		// delta base to manufacture fields that were absent from the packet.
+		to->weaponPrimary = 0;
+		to->fov = 0;
+	}
+	return MSG_CommitDeltaRead( msg, destination, decoded );
+}
+
+void MSG_WriteDeltaUsercmdKey( msg_t *msg, int key,
+	const usercmd_t *from, const usercmd_t *to ) {
+	(void)MSG_WriteDeltaUsercmdKeyForWireProfile( msg, key, from, to,
+		NETCHAN_WIRE_QL_RETAIL );
+}
+
+void MSG_ReadDeltaUsercmdKey( msg_t *msg, int key,
+	const usercmd_t *from, usercmd_t *to ) {
+	(void)MSG_ReadDeltaUsercmdKeyForWireProfile( msg, key, from, to,
+		NETCHAN_WIRE_QL_RETAIL );
 }
 
 /*
@@ -957,7 +1026,66 @@ typedef struct {
 // using the stringizing operator to save typing...
 #define	NETF(x) #x, offsetof( entityState_t, x )
 
-static const netField_t entityStateFields[] =
+/* Protocols 68 and 71 use the original Quake III semantic field order.
+ * Offsets intentionally target the canonical QL-superset entityState_t;
+ * the table was cross-checked against FnQuake3 msg.c at
+ * 7d8c9629cdc7979f09697266470359101ffd9eda. */
+static const netField_t quake3EntityStateFields[] =
+{
+{ NETF(pos.trTime), 32 },
+{ NETF(pos.trBase[0]), 0 },
+{ NETF(pos.trBase[1]), 0 },
+{ NETF(pos.trDelta[0]), 0 },
+{ NETF(pos.trDelta[1]), 0 },
+{ NETF(pos.trBase[2]), 0 },
+{ NETF(apos.trBase[1]), 0 },
+{ NETF(pos.trDelta[2]), 0 },
+{ NETF(apos.trBase[0]), 0 },
+{ NETF(event), 10 },
+{ NETF(angles2[1]), 0 },
+{ NETF(eType), 8 },
+{ NETF(torsoAnim), 8 },
+{ NETF(eventParm), 8 },
+{ NETF(legsAnim), 8 },
+{ NETF(groundEntityNum), GENTITYNUM_BITS },
+{ NETF(pos.trType), 8 },
+{ NETF(eFlags), 19 },
+{ NETF(otherEntityNum), GENTITYNUM_BITS },
+{ NETF(weapon), 8 },
+{ NETF(clientNum), 8 },
+{ NETF(angles[1]), 0 },
+{ NETF(pos.trDuration), 32 },
+{ NETF(apos.trType), 8 },
+{ NETF(origin[0]), 0 },
+{ NETF(origin[1]), 0 },
+{ NETF(origin[2]), 0 },
+{ NETF(solid), 24 },
+{ NETF(powerups), MAX_POWERUPS },
+{ NETF(modelindex), 8 },
+{ NETF(otherEntityNum2), GENTITYNUM_BITS },
+{ NETF(loopSound), 8 },
+{ NETF(generic1), 8 },
+{ NETF(origin2[2]), 0 },
+{ NETF(origin2[0]), 0 },
+{ NETF(origin2[1]), 0 },
+{ NETF(modelindex2), 8 },
+{ NETF(angles[0]), 0 },
+{ NETF(time), 32 },
+{ NETF(apos.trTime), 32 },
+{ NETF(apos.trDuration), 32 },
+{ NETF(apos.trBase[2]), 0 },
+{ NETF(apos.trDelta[0]), 0 },
+{ NETF(apos.trDelta[1]), 0 },
+{ NETF(apos.trDelta[2]), 0 },
+{ NETF(time2), 32 },
+{ NETF(angles[2]), 0 },
+{ NETF(angles2[0]), 0 },
+{ NETF(angles2[2]), 0 },
+{ NETF(constantLight), 32 },
+{ NETF(frame), 16 }
+};
+
+static const netField_t quakeLiveEntityStateFields[] =
 {
 { NETF(pos.trTime), 32 },
 { NETF(pos.trBase[0]), 0 },
@@ -1018,6 +1146,33 @@ static const netField_t entityStateFields[] =
 { NETF(armor), 16 },
 { NETF(location), 8 }
 };
+
+static_assert( ARRAY_LEN( quake3EntityStateFields ) == 51,
+	"Quake III entity delta contract must remain 51 fields" );
+static_assert( ARRAY_LEN( quakeLiveEntityStateFields ) == 58,
+	"Quake Live entity delta contract must remain 58 fields" );
+
+static void MSG_EntityFieldsForLayout(
+	fnql::protocol::GameMessageLayout layout, const netField_t **fields,
+	int *numFields ) {
+	if ( layout == fnql::protocol::GameMessageLayout::QuakeLive ) {
+		*fields = quakeLiveEntityStateFields;
+		*numFields = ARRAY_LEN( quakeLiveEntityStateFields );
+	} else {
+		*fields = quake3EntityStateFields;
+		*numFields = ARRAY_LEN( quake3EntityStateFields );
+	}
+}
+
+static void MSG_CanonicalizeQuake3EntityState( entityState_t *state ) {
+	state->pos.gravity = 0.0f;
+	state->apos.gravity = 0.0f;
+	state->health = 0;
+	state->armor = 0;
+	state->location = 0;
+	state->jumpTime = 0;
+	state->doubleJumped = 0;
+}
 
 typedef struct {
 	unsigned int	words[2];
@@ -1246,6 +1401,18 @@ static void MSG_GetLegacyEntityFields( int protocol, const netField_t **field, i
 #define	FLOAT_INT_BITS	13
 #define	FLOAT_INT_BIAS	(1<<(FLOAT_INT_BITS-1))
 
+static bool MSG_FloatAsSmallInteger( float value, int *integer ) {
+	// Range-test before conversion: NaNs, infinities and large finite values
+	// use the existing full-float representation, retaining their source bits.
+	// Every value reaching the cast is representable as an int, and adding
+	// FLOAT_INT_BIAS cannot overflow.
+	if ( !( value >= -FLOAT_INT_BIAS && value < FLOAT_INT_BIAS ) ) {
+		return false;
+	}
+	*integer = static_cast<int>( value );
+	return *integer == value;
+}
+
 /*
 ==================
 MSG_WriteDeltaEntity
@@ -1257,7 +1424,9 @@ If force is not set, then nothing at all will be generated if the entity is
 identical, under the assumption that the in-order delta code will catch it.
 ==================
 */
-void MSG_WriteDeltaEntity( msg_t *msg, const entityState_t *from, const entityState_t *to, qboolean force ) {
+qboolean MSG_WriteDeltaEntityForWireProfile( msg_t *msg,
+	const entityState_t *from, const entityState_t *to, qboolean force,
+	netchanWireProfile_t profile ) {
 	int			i, lc;
 	int			numFields;
 	const netField_t *field;
@@ -1266,13 +1435,19 @@ void MSG_WriteDeltaEntity( msg_t *msg, const entityState_t *from, const entitySt
 	const int	*fromF, *toF;
 	size_t		serializedBytes;
 
-	numFields = ARRAY_LEN( entityStateFields );
+	const fnql::protocol::Contract *contract =
+		fnql::protocol::TryForWireProfile( profile );
+	if ( !contract ) {
+		return qfalse;
+	}
+	MSG_EntityFieldsForLayout(
+		contract->gameMessageLayout, &field, &numFields );
 
 	serializedBytes = sizeof( from->number );
 	for ( i = 0; i < numFields; i++ ) {
-		assert( ( entityStateFields[i].offset & 3 ) == 0 );
-		if ( entityStateFields[i].offset + 4 > serializedBytes ) {
-			serializedBytes = entityStateFields[i].offset + 4;
+		assert( ( field[i].offset & 3 ) == 0 );
+		if ( field[i].offset + 4 > serializedBytes ) {
+			serializedBytes = field[i].offset + 4;
 		}
 	}
 	assert( serializedBytes <= sizeof( *from ) );
@@ -1280,20 +1455,21 @@ void MSG_WriteDeltaEntity( msg_t *msg, const entityState_t *from, const entitySt
 	// a NULL to is a delta remove message
 	if ( to == NULL ) {
 		if ( from == NULL ) {
-			return;
+			return qtrue;
 		}
 		MSG_WriteBits( msg, from->number, GENTITYNUM_BITS );
 		MSG_WriteBits( msg, 1, 1 );
-		return;
+		return qtrue;
 	}
 
 	if ( to->number < 0 || to->number >= MAX_GENTITIES ) {
 		Com_Error( ERR_DROP, "MSG_WriteDeltaEntity: Bad entity number: %i", to->number );
+		return qfalse;
 	}
 
 	lc = 0;
 	// build the change vector as bytes so it is endian independent
-	for ( i = 0, field = entityStateFields ; i < numFields ; i++, field++ ) {
+	for ( i = 0; i < numFields; i++, field++ ) {
 		fromF = (int *)( (byte *)from + field->offset );
 		toF = (int *)( (byte *)to + field->offset );
 		if ( *fromF != *toF ) {
@@ -1304,13 +1480,13 @@ void MSG_WriteDeltaEntity( msg_t *msg, const entityState_t *from, const entitySt
 	if ( lc == 0 ) {
 		// nothing at all changed
 		if ( !force ) {
-			return;		// nothing at all
+			return qtrue;		// nothing at all
 		}
 		// write two bits for no change
 		MSG_WriteBits( msg, to->number, GENTITYNUM_BITS );
 		MSG_WriteBits( msg, 0, 1 );		// not removed
 		MSG_WriteBits( msg, 0, 1 );		// no delta
-		return;
+		return qtrue;
 	}
 
 	MSG_WriteBits( msg, to->number, GENTITYNUM_BITS );
@@ -1319,7 +1495,9 @@ void MSG_WriteDeltaEntity( msg_t *msg, const entityState_t *from, const entitySt
 
 	MSG_WriteByte( msg, lc );	// # of changes
 
-	for ( i = 0, field = entityStateFields ; i < lc ; i++, field++ ) {
+	MSG_EntityFieldsForLayout(
+		contract->gameMessageLayout, &field, &numFields );
+	for ( i = 0; i < lc ; i++, field++ ) {
 		fromF = (int *)( (byte *)from + field->offset );
 		toF = (int *)( (byte *)to + field->offset );
 
@@ -1333,14 +1511,12 @@ void MSG_WriteDeltaEntity( msg_t *msg, const entityState_t *from, const entitySt
 		if ( field->bits == 0 ) {
 			// float
 			fullFloat = *(const float *)toF;
-			trunc = (int)fullFloat;
 
 			if (fullFloat == 0.0f) {
 				MSG_WriteBits( msg, 0, 1 );
 			} else {
 				MSG_WriteBits( msg, 1, 1 );
-				if ( trunc == fullFloat && trunc + FLOAT_INT_BIAS >= 0 && 
-					trunc + FLOAT_INT_BIAS < ( 1 << FLOAT_INT_BITS ) ) {
+				if ( MSG_FloatAsSmallInteger( fullFloat, &trunc ) ) {
 					// send as small integer
 					MSG_WriteBits( msg, 0, 1 );
 					MSG_WriteBits( msg, trunc + FLOAT_INT_BIAS, FLOAT_INT_BITS );
@@ -1360,6 +1536,7 @@ void MSG_WriteDeltaEntity( msg_t *msg, const entityState_t *from, const entitySt
 			}
 		}
 	}
+	return qtrue;
 }
 
 /*
@@ -1374,7 +1551,9 @@ If the delta removes the entity, entityState_t->number will be set to MAX_GENTIT
 Can go from either a baseline or a previous packet_entity
 ==================
 */
-void MSG_ReadDeltaEntity( msg_t *msg, const entityState_t *from, entityState_t *to, int number ) {
+qboolean MSG_ReadDeltaEntityForWireProfile( msg_t *msg,
+	const entityState_t *from, entityState_t *to, int number,
+	netchanWireProfile_t profile ) {
 	int			i, lc;
 	int			numFields;
 	const netField_t *field;
@@ -1383,9 +1562,22 @@ void MSG_ReadDeltaEntity( msg_t *msg, const entityState_t *from, entityState_t *
 	int			print;
 	int			trunc;
 	int			startBit, endBit;
+	const fnql::protocol::Contract *contract =
+		fnql::protocol::TryForWireProfile( profile );
+	if ( !contract ) {
+		return qfalse;
+	}
+	const bool quake3 = contract->gameMessageLayout ==
+		fnql::protocol::GameMessageLayout::Quake3;
+	MSG_EntityFieldsForLayout(
+		contract->gameMessageLayout, &field, &numFields );
+	entityState_t decoded{};
+	entityState_t *destination = to;
+	to = &decoded;
 
 	if ( number < 0 || number >= MAX_GENTITIES ) {
 		Com_Error( ERR_DROP, "Bad delta entity number: %i", number );
+		return qfalse;
 	}
 
 	if ( msg->bit == 0 ) {
@@ -1403,23 +1595,30 @@ void MSG_ReadDeltaEntity( msg_t *msg, const entityState_t *from, entityState_t *
 			Com_Printf( "%3i: #%-3i remove\n", msg->readcount, number );
 		}
 #endif
-		return;
+		return MSG_CommitDeltaRead( msg, destination, decoded );
 	}
 
 	// check for no delta
 	if ( MSG_ReadBits( msg, 1 ) == 0 ) {
 		*to = *from;
 		to->number = number;
-		return;
+		if ( quake3 ) {
+			MSG_CanonicalizeQuake3EntityState( to );
+		}
+		return MSG_CommitDeltaRead( msg, destination, decoded );
 	}
 
-	numFields = ARRAY_LEN( entityStateFields );
 	lc = MSG_ReadByte(msg);
+	if ( !MSG_ReadSucceeded( msg ) ) {
+		return qfalse;
+	}
 
 	if ( lc > numFields || lc < 0 ) {
 		Com_Error( ERR_DROP, "invalid entityState field count" );
+		return qfalse;
 	}
 
+	*to = *from;
 	to->number = number;
 
 #ifndef DEDICATED
@@ -1435,7 +1634,7 @@ void MSG_ReadDeltaEntity( msg_t *msg, const entityState_t *from, entityState_t *
 		print = 0;
 #endif
 
-	for ( i = 0, field = entityStateFields ; i < lc ; i++, field++ ) {
+	for ( i = 0; i < lc ; i++, field++ ) {
 		fromF = (const int *)( (const byte *)from + field->offset );
 		toF = (int *)( (byte *)to + field->offset );
 
@@ -1479,7 +1678,9 @@ void MSG_ReadDeltaEntity( msg_t *msg, const entityState_t *from, entityState_t *
 //			pcount[i]++;
 		}
 	}
-	for ( i = lc, field = &entityStateFields[lc] ; i < numFields ; i++, field++ ) {
+	MSG_EntityFieldsForLayout(
+		contract->gameMessageLayout, &field, &numFields );
+	for ( i = lc, field = &field[lc] ; i < numFields ; i++, field++ ) {
 		fromF = (int *)( (byte *)from + field->offset );
 		toF = (int *)( (byte *)to + field->offset );
 		// no change
@@ -1494,6 +1695,22 @@ void MSG_ReadDeltaEntity( msg_t *msg, const entityState_t *from, entityState_t *
 		}
 		Com_Printf( " (%i bits)\n", endBit - startBit  );
 	}
+	if ( quake3 ) {
+		MSG_CanonicalizeQuake3EntityState( to );
+	}
+	return MSG_CommitDeltaRead( msg, destination, decoded );
+}
+
+void MSG_WriteDeltaEntity( msg_t *msg, const entityState_t *from,
+	const entityState_t *to, qboolean force ) {
+	(void)MSG_WriteDeltaEntityForWireProfile( msg, from, to, force,
+		NETCHAN_WIRE_QL_RETAIL );
+}
+
+void MSG_ReadDeltaEntity( msg_t *msg, const entityState_t *from,
+	entityState_t *to, int number ) {
+	(void)MSG_ReadDeltaEntityForWireProfile( msg, from, to, number,
+		NETCHAN_WIRE_QL_RETAIL );
 }
 
 static qboolean MSG_LegacyChangeVectorHasBit( const legacyChangeVector_t *changeVector, int index ) {
@@ -1584,7 +1801,62 @@ plyer_state_t communication
 #define	PSF_OFFSET(x) offsetof( playerState_t, x )
 #define	PSF(x) #x,PSF_OFFSET(x)
 
-static const netField_t playerStateFields[] = 
+/* Protocols 68 and 71 use the 48-field Quake III semantic order. Offsets
+ * target the canonical QL-superset playerState_t and were cross-checked
+ * against FnQuake3 msg.c at 7d8c9629cdc7979f09697266470359101ffd9eda. */
+static const netField_t quake3PlayerStateFields[] =
+{
+{ PSF(commandTime), 32 },
+{ PSF(origin[0]), 0 },
+{ PSF(origin[1]), 0 },
+{ PSF(bobCycle), 8 },
+{ PSF(velocity[0]), 0 },
+{ PSF(velocity[1]), 0 },
+{ PSF(viewangles[1]), 0 },
+{ PSF(viewangles[0]), 0 },
+{ PSF(weaponTime), -16 },
+{ PSF(origin[2]), 0 },
+{ PSF(velocity[2]), 0 },
+{ PSF(legsTimer), 8 },
+{ PSF(pm_time), -16 },
+{ PSF(eventSequence), 16 },
+{ PSF(torsoAnim), 8 },
+{ PSF(movementDir), 4 },
+{ PSF(events[0]), 8 },
+{ PSF(legsAnim), 8 },
+{ PSF(events[1]), 8 },
+{ PSF(pm_flags), 16 },
+{ PSF(groundEntityNum), GENTITYNUM_BITS },
+{ PSF(weaponstate), 4 },
+{ PSF(eFlags), 16 },
+{ PSF(externalEvent), 10 },
+{ PSF(gravity), 16 },
+{ PSF(speed), 16 },
+{ PSF(delta_angles[1]), 16 },
+{ PSF(externalEventParm), 8 },
+{ PSF(viewheight), -8 },
+{ PSF(damageEvent), 8 },
+{ PSF(damageYaw), 8 },
+{ PSF(damagePitch), 8 },
+{ PSF(damageCount), 8 },
+{ PSF(generic1), 8 },
+{ PSF(pm_type), 8 },
+{ PSF(delta_angles[0]), 16 },
+{ PSF(delta_angles[2]), 16 },
+{ PSF(torsoTimer), 12 },
+{ PSF(eventParms[0]), 8 },
+{ PSF(eventParms[1]), 8 },
+{ PSF(clientNum), 8 },
+{ PSF(weapon), 5 },
+{ PSF(viewangles[2]), 0 },
+{ PSF(grapplePoint[0]), 0 },
+{ PSF(grapplePoint[1]), 0 },
+{ PSF(grapplePoint[2]), 0 },
+{ PSF(jumppad_ent), GENTITYNUM_BITS },
+{ PSF(loopSound), 16 }
+};
+
+static const netField_t quakeLivePlayerStateFields[] =
 {
 { PSF(commandTime), 32 },
 { PSF(origin[0]), 0 },
@@ -1646,6 +1918,39 @@ static const netField_t playerStateFields[] =
 { PSF(upmove), 8 }
 };
 
+static_assert( ARRAY_LEN( quake3PlayerStateFields ) == 48,
+	"Quake III playerstate delta contract must remain 48 fields" );
+static_assert( ARRAY_LEN( quakeLivePlayerStateFields ) == 58,
+	"Quake Live playerstate delta contract must remain 58 fields" );
+
+static void MSG_PlayerFieldsForLayout(
+	fnql::protocol::GameMessageLayout layout, const netField_t **fields,
+	int *numFields ) {
+	if ( layout == fnql::protocol::GameMessageLayout::QuakeLive ) {
+		*fields = quakeLivePlayerStateFields;
+		*numFields = ARRAY_LEN( quakeLivePlayerStateFields );
+	} else {
+		*fields = quake3PlayerStateFields;
+		*numFields = ARRAY_LEN( quake3PlayerStateFields );
+	}
+}
+
+static void MSG_CanonicalizeQuake3PlayerState( playerState_t *state ) {
+	state->pm_flags &= 0xffff;
+	state->location = 0;
+	state->weaponPrimary = 0;
+	state->fov = 0;
+	state->jumpTime = 0;
+	state->doubleJumped = 0;
+	state->crouchTime = 0;
+	state->crouchSlideTime = 0;
+	state->forwardmove = 0;
+	state->rightmove = 0;
+	state->upmove = 0;
+	state->commandMirrorPad = 0;
+	state->armorTier = 0;
+}
+
 /*
 ===================
 MSG_PlayerStateFieldIsSignedByte
@@ -1669,6 +1974,16 @@ static int MSG_PlayerStateFieldValue( const playerState_t *ps, const netField_t 
 	}
 
 	return *(const int *)( (const byte *)ps + field->offset );
+}
+
+static int MSG_PlayerStateFieldValueForLayout( const playerState_t *ps,
+	const netField_t *field, fnql::protocol::GameMessageLayout layout ) {
+	const int value = MSG_PlayerStateFieldValue( ps, field );
+	if ( layout == fnql::protocol::GameMessageLayout::Quake3 &&
+		field->offset == PSF_OFFSET(pm_flags) ) {
+		return value & 0xffff;
+	}
+	return value;
 }
 
 /*
@@ -1871,7 +2186,9 @@ MSG_WriteDeltaPlayerstate
 
 =============
 */
-void MSG_WriteDeltaPlayerstate( msg_t *msg, const playerState_t *from, const playerState_t *to ) {
+qboolean MSG_WriteDeltaPlayerstateForWireProfile( msg_t *msg,
+	const playerState_t *from, const playerState_t *to,
+	netchanWireProfile_t profile ) {
 	static const playerState_t dummy{};
 	int				i;
 	int				statsbits;
@@ -1884,17 +2201,25 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, const playerState_t *from, const pla
 	int				fromValue, toValue;
 	float			fullFloat;
 	int				trunc, lc;
+	const fnql::protocol::Contract *contract =
+		fnql::protocol::TryForWireProfile( profile );
+	if ( !contract ) {
+		return qfalse;
+	}
 
 	if ( !from ) {
 		from = &dummy;
 	}
 
-	numFields = ARRAY_LEN( playerStateFields );
+	MSG_PlayerFieldsForLayout(
+		contract->gameMessageLayout, &field, &numFields );
 
 	lc = 0;
-	for ( i = 0, field = playerStateFields ; i < numFields ; i++, field++ ) {
-		fromValue = MSG_PlayerStateFieldValue( from, field );
-		toValue = MSG_PlayerStateFieldValue( to, field );
+	for ( i = 0; i < numFields ; i++, field++ ) {
+		fromValue = MSG_PlayerStateFieldValueForLayout(
+			from, field, contract->gameMessageLayout );
+		toValue = MSG_PlayerStateFieldValueForLayout(
+			to, field, contract->gameMessageLayout );
 		if ( fromValue != toValue ) {
 			lc = i+1;
 		}
@@ -1902,9 +2227,13 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, const playerState_t *from, const pla
 
 	MSG_WriteByte( msg, lc );	// # of changes
 
-	for ( i = 0, field = playerStateFields ; i < lc ; i++, field++ ) {
-		fromValue = MSG_PlayerStateFieldValue( from, field );
-		toValue = MSG_PlayerStateFieldValue( to, field );
+	MSG_PlayerFieldsForLayout(
+		contract->gameMessageLayout, &field, &numFields );
+	for ( i = 0; i < lc ; i++, field++ ) {
+		fromValue = MSG_PlayerStateFieldValueForLayout(
+			from, field, contract->gameMessageLayout );
+		toValue = MSG_PlayerStateFieldValueForLayout(
+			to, field, contract->gameMessageLayout );
 
 		if ( fromValue == toValue ) {
 			MSG_WriteBits( msg, 0, 1 );	// no change
@@ -1918,10 +2247,8 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, const playerState_t *from, const pla
 			// float
 			toF = (const int *)( (byte *)to + field->offset );
 			fullFloat = *(const float *)toF;
-			trunc = (int)fullFloat;
 
-			if ( trunc == fullFloat && trunc + FLOAT_INT_BIAS >= 0 && 
-				trunc + FLOAT_INT_BIAS < ( 1 << FLOAT_INT_BITS ) ) {
+			if ( MSG_FloatAsSmallInteger( fullFloat, &trunc ) ) {
 				// send as small integer
 				MSG_WriteBits( msg, 0, 1 );
 				MSG_WriteBits( msg, trunc + FLOAT_INT_BIAS, FLOAT_INT_BITS );
@@ -1967,7 +2294,7 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, const playerState_t *from, const pla
 
 	if (!statsbits && !persistantbits && !ammobits && !powerupbits) {
 		MSG_WriteBits( msg, 0, 1 );	// no change
-		return;
+		return qtrue;
 	}
 	MSG_WriteBits( msg, 1, 1 );	// changed
 
@@ -2013,6 +2340,7 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, const playerState_t *from, const pla
 	} else {
 		MSG_WriteBits( msg, 0, 1 );	// no change
 	}
+	return qtrue;
 }
 
 
@@ -2021,7 +2349,9 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, const playerState_t *from, const pla
 MSG_ReadDeltaPlayerstate
 ===================
 */
-void MSG_ReadDeltaPlayerstate( msg_t *msg, const playerState_t *from, playerState_t *to ) {
+qboolean MSG_ReadDeltaPlayerstateForWireProfile( msg_t *msg,
+	const playerState_t *from, playerState_t *to,
+	netchanWireProfile_t profile ) {
 	int			i, lc;
 	int			bits;
 	const netField_t *field;
@@ -2032,6 +2362,16 @@ void MSG_ReadDeltaPlayerstate( msg_t *msg, const playerState_t *from, playerStat
 	int			value;
 	int			trunc;
 	playerState_t	dummy;
+	const fnql::protocol::Contract *contract =
+		fnql::protocol::TryForWireProfile( profile );
+	if ( !contract ) {
+		return qfalse;
+	}
+	const bool quake3 = contract->gameMessageLayout ==
+		fnql::protocol::GameMessageLayout::Quake3;
+	playerState_t decoded{};
+	playerState_t *destination = to;
+	to = &decoded;
 
 	if ( !from ) {
 		from = &dummy;
@@ -2058,14 +2398,19 @@ void MSG_ReadDeltaPlayerstate( msg_t *msg, const playerState_t *from, playerStat
 		print = 0;
 #endif
 
-	numFields = ARRAY_LEN( playerStateFields );
+	MSG_PlayerFieldsForLayout(
+		contract->gameMessageLayout, &field, &numFields );
 	lc = MSG_ReadByte(msg);
+	if ( !MSG_ReadSucceeded( msg ) ) {
+		return qfalse;
+	}
 
 	if ( lc > numFields || lc < 0 ) {
 		Com_Error( ERR_DROP, "invalid playerState field count" );
+		return qfalse;
 	}
 
-	for ( i = 0, field = playerStateFields ; i < lc ; i++, field++ ) {
+	for ( i = 0; i < lc ; i++, field++ ) {
 		if ( ! MSG_ReadBits( msg, 1 ) ) {
 			// no change
 			MSG_SetPlayerStateFieldValue( to, field, MSG_PlayerStateFieldValue( from, field ) );
@@ -2099,7 +2444,9 @@ void MSG_ReadDeltaPlayerstate( msg_t *msg, const playerState_t *from, playerStat
 			}
 		}
 	}
-	for ( i=lc,field = &playerStateFields[lc];i<numFields; i++, field++) {
+	MSG_PlayerFieldsForLayout(
+		contract->gameMessageLayout, &field, &numFields );
+	for ( i = lc, field = &field[lc]; i < numFields; i++, field++ ) {
 		// no change
 		MSG_SetPlayerStateFieldValue( to, field, MSG_PlayerStateFieldValue( from, field ) );
 	}
@@ -2160,6 +2507,22 @@ void MSG_ReadDeltaPlayerstate( msg_t *msg, const playerState_t *from, playerStat
 		}
 		Com_Printf( " (%i bits)\n", endBit - startBit  );
 	}
+	if ( quake3 ) {
+		MSG_CanonicalizeQuake3PlayerState( to );
+	}
+	return MSG_CommitDeltaRead( msg, destination, decoded );
+}
+
+void MSG_WriteDeltaPlayerstate( msg_t *msg, const playerState_t *from,
+	const playerState_t *to ) {
+	(void)MSG_WriteDeltaPlayerstateForWireProfile( msg, from, to,
+		NETCHAN_WIRE_QL_RETAIL );
+}
+
+void MSG_ReadDeltaPlayerstate( msg_t *msg, const playerState_t *from,
+	playerState_t *to ) {
+	(void)MSG_ReadDeltaPlayerstateForWireProfile( msg, from, to,
+		NETCHAN_WIRE_QL_RETAIL );
 }
 
 void MSG_ReadDeltaPlayerstateLegacy( msg_t *msg, const playerState_t *from, playerState_t *to, int protocol ) {

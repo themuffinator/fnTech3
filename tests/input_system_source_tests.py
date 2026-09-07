@@ -495,8 +495,12 @@ class ClientInputStateTests(unittest.TestCase):
         server = read_text("code/server/sv_client.cpp")
         create_new = function_body(client, "CL_CreateNewCommands")
         write_packet = function_body(client, "CL_WritePacket")
-        write_delta = function_body(messages, "MSG_WriteDeltaUsercmdKey")
-        read_delta = function_body(messages, "MSG_ReadDeltaUsercmdKey")
+        write_delta = function_body(
+            messages, "MSG_WriteDeltaUsercmdKeyForWireProfile"
+        )
+        read_delta = function_body(
+            messages, "MSG_ReadDeltaUsercmdKeyForWireProfile"
+        )
         user_move = section(server, "static void SV_UserMove", "SV_ExecuteClientMessage")
 
         self.assertIn("fnql::net::NextCounter( cl.cmdNumber )", create_new)
@@ -506,6 +510,8 @@ class ClientInputStateTests(unittest.TestCase):
         self.assertIn("fnql::net::CounterDistance(", write_delta)
         self.assertIn("fnql::net::CounterAdd(", read_delta)
         self.assertEqual(user_move.count("fnql::net::IsNewerCounter("), 2)
+        self.assertIn("MSG_ReadDeltaUsercmdKeyForWireProfile(", user_move)
+        self.assertIn("cl->netchan.wireProfile", user_move)
 
     def test_protocol_91_uses_the_retail_usercmd_hash_on_both_ends(self) -> None:
         client = function_body(
@@ -531,7 +537,7 @@ class ClientInputStateTests(unittest.TestCase):
         self.assertNotIn("string[i] == '%'", profile_hash)
         self.assertIn("profile == NETCHAN_WIRE_QL_RETAIL", profile_string)
         self.assertIn(
-            "MSG_ReadCommandStringForWireProfile( msg, clc.netchan.wireProfile )",
+            "MSG_ReadCommandStringForWireProfile( msg, CL_ActiveWireProfile() )",
             read_text("code/client/cl_parse.cpp"),
         )
         self.assertIn(

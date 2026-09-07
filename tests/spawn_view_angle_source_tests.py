@@ -30,19 +30,39 @@ def function_body(source: str, name: str) -> str:
     match = signature.search(source)
     if match is None:
         return ""
-    open_brace = source.find("{", match.start())
+    open_brace = match.end() - 1
+    tokens = re.compile(
+        r'''//[^\n]*|/\*.*?\*/|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[{}]''',
+        re.DOTALL,
+    )
     depth = 0
-    for index in range(open_brace, len(source)):
-        if source[index] == "{":
+    for token in tokens.finditer(source, open_brace):
+        if token.group() == "{":
             depth += 1
-        elif source[index] == "}":
+        elif token.group() == "}":
             depth -= 1
             if depth == 0:
-                return source[match.start() : index + 1]
-    return source[match.start() :]
+                return source[match.start() : token.end()]
+    return ""
 
 
 class SpawnViewAngleAnchorTests(unittest.TestCase):
+    def test_function_extraction_ignores_comments_and_string_braces(self) -> None:
+        source = r'''static void target() {
+// { a disabled block
+/* } another comment */
+const char *value = "a } string with an escaped \" quote";
+char brace = '{';
+if (value) { /* nested */ }
+}
+static void following() { }
+'''
+        body = function_body(source, "target")
+        self.assertTrue(body.endswith("\n}"))
+        self.assertIn("if (value)", body)
+        self.assertNotIn("following", body)
+        self.assertEqual(function_body("static void missing() {", "missing"), "")
+
     def test_entering_the_world_takes_the_command_that_brought_the_client_in(self) -> None:
         self.assertIn(
             "void SV_ClientEnterWorld( client_t *client, const usercmd_t *cmd );",
@@ -80,9 +100,10 @@ class SpawnViewAngleAnchorTests(unittest.TestCase):
         # The packet is decoded first, so the anchor is a command this client
         # really sent rather than whatever the gate reset left behind.
         self.assertLess(
-            body.index("MSG_ReadDeltaUsercmdKey( msg, key, oldcmd, cmd );"),
+            body.index("MSG_ReadDeltaUsercmdKeyForWireProfile("),
             body.index("SV_ClientEnterWorld( cl, &cmds[0] );"),
         )
+        self.assertIn("cl->netchan.wireProfile", body)
         self.assertLess(
             body.index("SV_ClientEnterWorld( cl, &cmds[0] );"),
             body.index("SV_ClientThink( cl, &cmds[ i ] );"),
@@ -110,6 +131,14 @@ class SpawnViewAngleAnchorTests(unittest.TestCase):
             with self.subTest(function=name):
                 self.assertIn(assignment, body)
                 self.assertIn(gate, body)
+                if name == "SV_MapRestart_f":
+                    # The retained Q3 restart contract clears the old command;
+                    # the QL spawn fix applies only to the QL profile branch.
+                    ql_branch = body[body.index("if ( Com_GameIsQuakeLive() )",
+                        body.index("for ( client_t &client : SV_Clients() )")):]
+                    ql_branch, q3_branch = ql_branch.split("} else {", 1)
+                    self.assertIn("client.lastUsercmd = {};", q3_branch)
+                    body = ql_branch
                 self.assertNotIn("lastUsercmd = {}", body)
 
 

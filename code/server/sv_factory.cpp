@@ -499,6 +499,10 @@ bool FactoryIsHidden( const factory::Definition &definition ) {
 } // namespace
 
 void SV_FactoryInit( void ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return;
+	}
+
 	if ( factoryRuntimeInitialized ) {
 		return;
 	}
@@ -520,10 +524,18 @@ void SV_FactoryInit( void ) {
 }
 
 void SV_FactoryShutdown( void ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return;
+	}
+
 	RestoreActiveFactorySettings();
 }
 
 void SV_FactoryDeactivate( void ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return;
+	}
+
 	RestoreActiveFactorySettings();
 	activeFactory.reset();
 	Cvar_Set( "g_factory", "" );
@@ -531,6 +543,10 @@ void SV_FactoryDeactivate( void ) {
 }
 
 qboolean SV_FactoryExists( const char *factoryName ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return qfalse;
+	}
+
 	if ( !factoryRuntimeInitialized ) {
 		SV_FactoryInit();
 	}
@@ -541,6 +557,10 @@ qboolean SV_FactoryExists( const char *factoryName ) {
 }
 
 qboolean SV_FactoryHasActive( void ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return qfalse;
+	}
+
 	if ( !factoryRuntimeInitialized ) {
 		SV_FactoryInit();
 	}
@@ -548,6 +568,10 @@ qboolean SV_FactoryHasActive( void ) {
 }
 
 void SV_FactoryPrintMapUsage( const char *commandName ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return;
+	}
+
 	Com_Printf( "%s (map) (factory)\n",
 		commandName && commandName[0] ? commandName : "map" );
 	Com_Printf( "Valid factories: " );
@@ -561,6 +585,10 @@ void SV_FactoryPrintMapUsage( const char *commandName ) {
 
 qboolean SV_FactoryPrepareMap( const char *mapName, const char *factoryName,
 	qboolean factoryArgumentPresent, qboolean developerMap ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return qfalse;
+	}
+
 	if ( !factoryRuntimeInitialized ) {
 		SV_FactoryInit();
 	}
@@ -632,6 +660,10 @@ qboolean SV_FactoryPrepareMap( const char *mapName, const char *factoryName,
 }
 
 qboolean SV_FactoryBuildWebCatalogJson( char *buffer, int bufferSize ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return qfalse;
+	}
+
 	if ( !buffer || bufferSize < 3 ) {
 		return qfalse;
 	}
@@ -651,6 +683,10 @@ qboolean SV_FactoryBuildWebCatalogJson( char *buffer, int bufferSize ) {
 }
 
 int SV_FactoryWebCatalogJsonSize( void ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return 0;
+	}
+
 	if ( !factoryRuntimeInitialized ) {
 		SV_FactoryInit();
 	}
@@ -664,6 +700,10 @@ int SV_FactoryWebCatalogJsonSize( void ) {
 }
 
 qboolean SV_MapPoolBuildWebCatalogJson( char *buffer, int bufferSize ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return qfalse;
+	}
+
 	if ( !buffer || bufferSize < 3 ) {
 		return qfalse;
 	}
@@ -684,6 +724,10 @@ qboolean SV_MapPoolBuildWebCatalogJson( char *buffer, int bufferSize ) {
 }
 
 int SV_MapPoolWebCatalogJsonSize( void ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return 0;
+	}
+
 	if ( !factoryRuntimeInitialized ) {
 		SV_FactoryInit();
 	}
@@ -698,6 +742,10 @@ int SV_MapPoolWebCatalogJsonSize( void ) {
 }
 
 void SV_FactoryRefreshMountedContent( void ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return;
+	}
+
 	if ( !factoryRuntimeInitialized ) {
 		return;
 	}
@@ -707,6 +755,10 @@ void SV_FactoryRefreshMountedContent( void ) {
 }
 
 void SV_FactoryReload_f( void ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return;
+	}
+
 	if ( activeFactory ) {
 		Com_Printf( "not clearing currently loaded factory id %s, continuing\n",
 			activeFactory->definition.id.c_str() );
@@ -715,16 +767,28 @@ void SV_FactoryReload_f( void ) {
 }
 
 void SV_ArenaReload_f( void ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return;
+	}
+
 	Com_Printf( "reloading arena definitions...\n" );
 	LoadArenaRegistry();
 }
 
 void SV_MapPoolReload_f( void ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return;
+	}
+
 	Com_Printf( "reloading map pool...\n" );
 	LoadMapPool();
 }
 
 void SV_StartRandomMap_f( void ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return;
+	}
+
 	if ( !factoryRuntimeInitialized ) {
 		SV_FactoryInit();
 	}
@@ -741,6 +805,10 @@ void SV_StartRandomMap_f( void ) {
 }
 
 void SV_MapPoolRefreshCvars( void ) {
+	if ( !Com_GameIsQuakeLive() ) {
+		return;
+	}
+
 	if ( !factoryRuntimeInitialized ) {
 		return;
 	}

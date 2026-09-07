@@ -29,12 +29,21 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  * translation unit independently rejects a mismatched or flag-dropping
  * compiler wrapper. QVM bytecode and preprocessed assembly are not host engine
  * objects and cannot evaluate the C sizeof expression.
+ * The explicit Meson Q3-only diagnostic target uses Windows x86_64 and rejects
+ * every Quake Live selection before filesystem/module initialization.
  */
 #if !defined( Q3_VM ) && !defined( __ASSEMBLER__ )
+#if defined( FNTECH3_Q3_ONLY )
+#if !defined( _WIN32 ) || ( !defined( _M_AMD64 ) && !defined( __x86_64__ ) )
+#error "fnTech3 Q3-only diagnostic builds require Windows x86_64"
+#endif
+typedef char fntech3_q3_pointer_width_must_be_64_bits[( sizeof( void * ) == 8 ) ? 1 : -1];
+#else
 #if !defined( _M_IX86 ) && !defined( __i386__ )
-#error "FnQL supports only 32-bit x86 engine targets"
+#error "fnTech3 shared Q3/QL builds support only 32-bit x86 engine targets"
 #endif
 typedef char fnql_pointer_width_must_be_32_bits[( sizeof( void * ) == 4 ) ? 1 : -1];
+#endif
 #endif
 
 #define QDECL

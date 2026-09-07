@@ -85,6 +85,10 @@ class JoinMenuSourceTests(unittest.TestCase):
         self.assertNotIn("CG_EVENT_HANDLING, CGAME_EVENT_NONE", body)
         self.assertIn("CGAME_EVENT_CLOSECOMMANDOVERLAY", body)
         self.assertIn(
+            "cgvm->dllExports ? CGAME_EVENT_CLOSECOMMANDOVERLAY : CGAME_EVENT_NONE",
+            body,
+        )
+        self.assertIn(
             "CL_ActivateNativeMenu( UIMENU_INGAME );",
             body,
         )

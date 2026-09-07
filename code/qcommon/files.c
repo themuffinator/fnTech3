@@ -6377,9 +6377,11 @@ static const char *FS_DefaultHomePath( const char *basePath )
 	const char *homePath;
 
 #ifdef _WIN32
-	homePath = Sys_QuakeLiveProfilePath( basePath );
-	if ( homePath && homePath[0] ) {
-		return homePath;
+	if ( Com_GameIsQuakeLive() ) {
+		homePath = Sys_QuakeLiveProfilePath( basePath );
+		if ( homePath && homePath[0] ) {
+			return homePath;
+		}
 	}
 #endif
 
@@ -6410,14 +6412,17 @@ static void FS_Startup( void ) {
 	Cvar_SetDescription( fs_debug, "Debugging tool for the filesystem. Run the game in debug mode. Prints additional information regarding read files into the console." );
 	fs_copyfiles = Cvar_Get( "fs_copyfiles", "0", CVAR_INIT );
 	Cvar_SetDescription( fs_copyfiles, "Whether or not to copy files when loading them into the game. Every file found in the cdpath will be copied over." );
-	steamPath = Sys_SteamPath();
+	steamPath = Com_GameIsQuakeLive() ? Sys_SteamPath() : "";
 	defaultBasePath = ( steamPath && steamPath[0] ) ? steamPath : Sys_DefaultBasePath();
 	fs_basepath = Cvar_Get( "fs_basepath", defaultBasePath, CVAR_INIT | CVAR_PROTECTED | CVAR_PRIVATE );
-	Cvar_SetDescription( fs_basepath, "Write-protected CVAR specifying the path to the retail Quake Live installation folder." );
+	Cvar_SetDescription( fs_basepath, "Write-protected path to the selected game's installation folder." );
 	fs_basegame = Cvar_Get( "fs_basegame", BASEGAME, CVAR_INIT | CVAR_PROTECTED );
 	Cvar_SetDescription( fs_basegame, "Write-protected CVAR specifying the path to the base game(s) folder(s), separated by '/'." );
 	fs_steampath = Cvar_Get( "fs_steampath", steamPath ? steamPath : "", CVAR_INIT | CVAR_PROTECTED | CVAR_PRIVATE );
-	Cvar_SetDescription( fs_steampath, "Write-protected CVAR specifying the auto-detected retail Quake Live Steam installation folder." );
+	if ( !Com_GameIsQuakeLive() && fs_steampath->string[0] ) {
+		Cvar_Set2( "fs_steampath", "", qtrue );
+	}
+	Cvar_SetDescription( fs_steampath, "Auto-detected Steam installation path; used only by Steam-backed game profiles." );
 	fs_skipWorkshop = Cvar_Get( "fs_skipWorkshop", "0", CVAR_INIT );
 	Cvar_SetDescription( fs_skipWorkshop, "Skip mounting registered Steam Workshop content." );
 
@@ -6450,8 +6455,8 @@ static void FS_Startup( void ) {
 
 	fs_homepath = Cvar_Get( "fs_homepath", homePath, CVAR_INIT | CVAR_PROTECTED | CVAR_PRIVATE );
 	Cvar_SetDescription( fs_homepath, "Directory to store user configuration and downloaded files." );
-	Com_Printf( "Retail QL filesystem: install '%s', home '%s'\n",
-		fs_basepath->string, fs_homepath->string );
+	Com_Printf( "%s filesystem: install '%s', home '%s'\n",
+		Com_GameProfile()->displayName, fs_basepath->string, fs_homepath->string );
 
 	fs_gamedirvar = Cvar_Get( "fs_game", "", CVAR_INIT | CVAR_SYSTEMINFO );
 	Cvar_CheckRange( fs_gamedirvar, NULL, NULL, CV_FSPATH );
@@ -6477,14 +6482,15 @@ static void FS_Startup( void ) {
 	/* Retail checks the exact normal base marker before either Workshop skip
 	 * gate.  Missing-base roots remain available for loose files, but their
 	 * archives cannot establish or replace retail base identity. */
-	scanWorkshopArchives = FS_HasTrustedBasePakOnDisk();
-	if ( !scanWorkshopArchives ) {
-		Com_Printf( "WARNING: Skipping workshop PK3s since pak00 doesn't exist.\n" );
+	scanWorkshopArchives = qfalse;
+	if ( Com_GameProfile()->supportsWorkshop ) {
+		scanWorkshopArchives = FS_HasTrustedBasePakOnDisk();
+		if ( !scanWorkshopArchives ) {
+			Com_Printf( "WARNING: Skipping Workshop PK3s since %s doesn't exist.\n",
+				Com_GameProfile()->basePakName );
+		}
+		FS_AddWorkshopDirectories( scanWorkshopArchives );
 	}
-
-	/* Retail QL mounts Workshop sources first.  Because each later source is
-	 * prepended, the normal Steam/base/home roots below retain higher priority. */
-	FS_AddWorkshopDirectories( scanWorkshopArchives );
 
 	// add search path elements in reverse priority order
 	if ( fs_steampath->string[0] && Q_stricmp( fs_steampath->string, fs_basepath->string ) ) {
@@ -6639,8 +6645,16 @@ static void FS_CheckIdPaks( void )
 	qboolean founddemo = qfalse;
 	unsigned foundPak = 0;
 
-	if ( FS_HasQuakeLiveBasePak() ) {
-		return;
+	if ( Com_GameIsQuakeLive() ) {
+		if ( FS_HasQuakeLiveBasePak() ) {
+			return;
+		}
+
+		FS_PrintSearchPaths();
+		Com_Error( ERR_FATAL,
+			"\n*** Quake Live pak00.pk3 is missing from %s; "
+			"fnTech3 will not start the Quake Live profile with Quake III assets ***",
+			fs_basepath->string );
 	}
 
 	for ( path = fs_searchpaths; path; path = path->next )
@@ -6705,28 +6719,21 @@ static void FS_CheckIdPaks( void )
 	{
 		FS_PrintSearchPaths();
 
-		if((foundPak&1) != 1 )
-		{
-			Com_Printf("\n\n"
-			"Quake Live pak00.pk3 is missing. Please verify\n"
-			"your legitimate Steam Quake Live installation.\n");
-		}
-
-		if((foundPak&0x1fe) != 0x1fe )
+		if( (foundPak & 0x1ff) != 0x1ff )
 		{
 			Com_Printf("\n\n"
 			"Legacy Quake III Point Release files are missing.\n");
 		}
 
-		Com_Printf("\n\n"
-			"Also check that fs_basepath or fs_steampath points at\n"
-			"your retail Quake Live Steam install and that every file\n"
-			"in the %s directory is present and readable.\n", BASEGAME);
+		Com_Printf("\n\nCheck that fs_basepath points at your %s install "
+			"and that every file in the %s directory is present and readable.\n",
+			Com_GameProfile()->displayName, BASEGAME);
 
 		if(!fs_gamedirvar->string[0]
 		|| !Q_stricmp( fs_gamedirvar->string, BASEGAME )
 		|| !Q_stricmp( fs_gamedirvar->string, BASETA ))
-			Com_Error(ERR_FATAL, "\n*** you need a valid retail Quake Live Steam installation in order to play ***");
+			Com_Error(ERR_FATAL, "\n*** you need a valid %s installation in order to play ***",
+				Com_GameProfile()->displayName);
 	}
 }
 
@@ -6928,31 +6935,47 @@ CL_SendPureChecksums, and normally reaches this helper with native modules as
 general references rather than cgame/ui qvm must-have slots.
 =====================
 */
+static char *FS_AddPureChecksumToken( char *position, const char *end,
+	const char *token ) {
+	if ( strlen( token ) > (size_t)( end - position ) ) {
+		return NULL;
+	}
+	return Q_stradd( position, token );
+}
+
 const char *FS_ReferencedPakPureChecksums( int maxlen ) {
 	static char	info[ MAX_STRING_CHARS*2 ];
 	char *s, *max;
 	const searchpath_t	*search;
 	int nFlags, numPaks, checksum;
 
-	max = info + maxlen; // maxlen is always smaller than MAX_STRING_CHARS so we can overflow a bit
+	if ( maxlen < 0 ) {
+		maxlen = 0;
+	} else if ( maxlen >= (int)sizeof( info ) ) {
+		maxlen = (int)sizeof( info ) - 1;
+	}
+	max = info + maxlen;
 	s = info;
 	*s = '\0';
 
 	checksum = fs_checksumFeed;
 	numPaks = 0;
-	for ( nFlags = FS_CGAME_REF; nFlags; nFlags = nFlags >> 1 ) {
+	for ( nFlags = Com_GameIsQuake3() ? FS_CGAME_REF : FS_GENERAL_REF;
+		nFlags; nFlags = nFlags >> 1 ) {
 		if ( nFlags & FS_GENERAL_REF ) {
 			// add a delimiter between must haves and general refs
-			s = Q_stradd( s, "@ " );
-			if ( s > max ) // client-side overflow
-				break;
+			s = FS_AddPureChecksumToken( s, max, "@ " );
+			if ( !s ) {
+				goto overflow;
+			}
 		}
 		for ( search = fs_searchpaths ; search ; search = search->next ) {
 			// is the element a pak file and has it been referenced based on flag?
 			if ( search->pack && (search->pack->referenced & nFlags)) {
-				s = Q_stradd( s, va( "%i ", search->pack->pure_checksum ) );
-				if ( s > max ) // client-side overflow
-					break;
+				s = FS_AddPureChecksumToken( s, max, va( "%i ", search->pack->pure_checksum ) );
+				if ( !s ) {
+					goto overflow;
+				}
 				if ( nFlags & (FS_CGAME_REF | FS_UI_REF) ) {
 					break;
 				}
@@ -6964,13 +6987,18 @@ const char *FS_ReferencedPakPureChecksums( int maxlen ) {
 
 	// last checksum is the encoded number of referenced pk3s
 	checksum ^= numPaks;
-	s = Q_stradd( s, va( "%i ", checksum ) );
-	if ( s > max ) { 
-		// client-side overflow
-		Com_Printf( S_COLOR_YELLOW "WARNING: pure checksum list is too long (%i), you might be not able to play on remote server!\n", (int)(s - info) );
-		*max = '\0';
+	s = FS_AddPureChecksumToken( s, max, va( "%i ", checksum ) );
+	if ( !s ) {
+		goto overflow;
 	}
 	
+	return info;
+
+overflow:
+	// A truncated token list can accidentally form a different valid proof.
+	// Report failure to the caller instead of emitting any partial command.
+	info[0] = '\0';
+	Com_Printf( S_COLOR_YELLOW "WARNING: pure checksum list exceeds %i bytes\n", maxlen );
 	return info;
 }
 

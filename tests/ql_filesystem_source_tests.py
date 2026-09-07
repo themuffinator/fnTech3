@@ -19,14 +19,21 @@ class QuakeLiveFilesystemSourceTests(unittest.TestCase):
 
         self.assertIn("FS_DefaultHomePath( fs_basepath->string )", source)
         self.assertIn("Sys_QuakeLiveProfilePath( basePath )", source)
-        self.assertIn("Retail QL filesystem:", source)
+        self.assertIn("if ( Com_GameIsQuakeLive() )", source)
+        self.assertIn('Com_GameProfile()->displayName, fs_basepath->string', source)
+        self.assertIn("steamPath = Com_GameIsQuakeLive() ? Sys_SteamPath()", source)
 
     def test_retail_ui_defaults_native_and_fails_once_with_guidance(self):
         vm = (ROOT / "code/qcommon/vm.c").read_text(encoding="utf-8")
         ui = (ROOT / "code/client/cl_ui.cpp").read_text(encoding="utf-8")
 
-        self.assertIn('Cvar_Get( "vm_ui", "0"', vm)
-        self.assertIn("retail Quake Live on Windows requires the Win32 FnQL build", ui)
+        self.assertIn(
+            'gameProfile->preferredModuleApi & COM_MODULE_API_QVM', vm
+        )
+        self.assertIn('Cvar_Get( "vm_ui", moduleDefault', vm)
+        self.assertIn("retail Quake Live on Windows requires ", ui)
+        self.assertIn("the Win32 fnTech3 build", ui)
+        self.assertIn("CL_UIModuleLoadFailureMessage()", ui)
         self.assertNotIn('Com_Error( ERR_DROP, "VM_Create on UI failed"', ui)
 
     def test_retail_configs_use_profile_root_without_widening_search_paths(self):

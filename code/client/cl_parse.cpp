@@ -397,16 +397,20 @@ static void CL_ReadDeltaEntity( msg_t *msg, const entityState_t *from, entitySta
 	if ( CL_IsLegacyDemoMessage() ) {
 		MSG_ReadDeltaEntityLegacy( msg, from, to, number, CL_LegacyDemoProtocol() );
 		CL_CanonicalizeLegacyEntityState( to );
-	} else {
-		MSG_ReadDeltaEntity( msg, from, to, number );
+	} else if ( !MSG_ReadDeltaEntityForWireProfile( msg, from, to, number,
+		CL_ActiveWireProfile() ) ) {
+		Com_Error( ERR_DROP,
+			"CL_ReadDeltaEntity: invalid or truncated entity delta" );
 	}
 }
 
 static void CL_ReadDeltaPlayerstate( msg_t *msg, const playerState_t *from, playerState_t *to ) {
 	if ( CL_IsLegacyDemoMessage() ) {
 		MSG_ReadDeltaPlayerstateLegacy( msg, from, to, CL_LegacyDemoProtocol() );
-	} else {
-		MSG_ReadDeltaPlayerstate( msg, from, to );
+	} else if ( !MSG_ReadDeltaPlayerstateForWireProfile( msg, from, to,
+		CL_ActiveWireProfile() ) ) {
+		Com_Error( ERR_DROP,
+			"CL_ReadDeltaPlayerstate: invalid or truncated player-state delta" );
 	}
 }
 
@@ -1009,7 +1013,7 @@ static void CL_ParseGamestate( msg_t *msg ) {
 			}
 
 			s = MSG_ReadBigStringForWireProfile(
-				msg, clc.netchan.wireProfile );
+				msg, CL_ActiveWireProfile() );
 			len = strlen( s );
 			i = CL_TranslateLegacyConfigstringIndex( rawIndex );
 			if ( i < 0 ) {
@@ -1175,7 +1179,7 @@ static void CL_ParseDownload( msg_t *msg ) {
 		if (clc.downloadSize < 0)
 		{
 			Com_Error( ERR_DROP, "%s", MSG_ReadStringForWireProfile(
-				msg, clc.netchan.wireProfile ) );
+				msg, CL_ActiveWireProfile() ) );
 			return;
 		}
 	}
@@ -1268,11 +1272,11 @@ static void CL_ParseCommandString( msg_t *msg ) {
 	const char *storedCommand;
 
 	seq = MSG_ReadLong( msg );
-	s = MSG_ReadCommandStringForWireProfile( msg, clc.netchan.wireProfile );
+	s = MSG_ReadCommandStringForWireProfile( msg, CL_ActiveWireProfile() );
 	wireHash = MSG_HashKeyForWireProfile(
-		clc.netchan.wireProfile, s, 32 );
+		CL_ActiveWireProfile(), s, 32 );
 	storedCommand = s;
-	if ( clc.netchan.wireProfile == NETCHAN_WIRE_QL_RETAIL ) {
+	if ( CL_ActiveWireProfile() == NETCHAN_WIRE_QL_RETAIL ) {
 		std::size_t offset = 0;
 		for ( ; s[offset] != '\0' && offset + 1 < safeCommand.size(); ++offset ) {
 			safeCommand[offset] = s[offset] == '%' ? '.' : s[offset];
