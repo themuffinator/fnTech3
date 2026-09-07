@@ -77,6 +77,9 @@ the earlier config-migration revision, keeping their evidence scopes separate.
 The [profile path-conversion correction](2026-09-08-profile-path-conversion.md)
 contains unrepresentable candidate paths before filesystem marker queries,
 with Windows/Linux tests and both-profile automatic dedicated startup.
+The [filesystem recovery correction](2026-09-08-filesystem-recovery-config.md)
+keeps QL profile-root configs out of Q3's recovery queue, with executable
+client/dedicated tests; end-to-end invalid-filesystem recovery remains open.
 
 The target is one shared, drop-in binary set. It must select `q3` or `ql` before
 compatibility-sensitive initialization and then use that profile's complete,

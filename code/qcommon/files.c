@@ -7320,20 +7320,25 @@ void FS_Restart( int checksumFeed ) {
 		Com_Error( ERR_FATAL, "Couldn't load default.cfg" );
 	}
 
-	// new check before safeMode
 	if ( Q_stricmp(fs_gamedirvar->string, lastValidGame) && execConfig ) {
-		// Reapply the profile-global QL configuration after a game-directory
-		// transition. Preserve q3config.cfg solely as a legacy fallback.
-		if ( !Com_SafeMode() ) {
-			if ( FS_ProfileFileExists( QL_CONFIG_HARDWARE_FILE ) ) {
-				Cbuf_AddText( "execq " QL_CONFIG_HARDWARE_FILE "\n" );
-			} else {
-				Cbuf_AddText( "execq " Q3CONFIG_CFG "\n" );
+		if ( Com_GameIsQuake3() ) {
+			// Q3 reloads the selected mod's config, never QL profile-root files.
+			if ( !Com_SafeMode() ) {
+				Cbuf_AddText( "exec " Q3CONFIG_CFG "\n" );
 			}
-		}
+		} else {
+			// QL reapplies profile-global settings after a mod transition.
+			if ( !Com_SafeMode() ) {
+				if ( FS_ProfileFileExists( QL_CONFIG_HARDWARE_FILE ) ) {
+					Cbuf_AddText( "execq " QL_CONFIG_HARDWARE_FILE "\n" );
+				} else {
+					Cbuf_AddText( "execq " Q3CONFIG_CFG "\n" );
+				}
+			}
 #ifndef DEDICATED
-		Cbuf_AddText( "execq " QL_CONFIG_REPLICATE_FILE "\n" );
+			Cbuf_AddText( "execq " QL_CONFIG_REPLICATE_FILE "\n" );
 #endif
+		}
 	}
 	execConfig = qfalse;
 
