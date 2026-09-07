@@ -33,3 +33,25 @@ does not resolve those warnings or prove rendering/collision parity. Coverage
 of `.dm_67`, extension-bearing `.dm_71`, malformed/truncated bodies, seeking and
 broader QL recordings remains open. These four fixtures do not close the full
 demo compatibility gate.
+
+## Follow-up: stock asset isolation
+
+At `fc19056`, inspection found an additional `zz-q3netpack.pk3` in the live
+installation. The initial runs above used shipped demo bytes but did not
+isolate the surrounding assets from that add-on. This limits their use as
+stock-rendering evidence.
+
+All four demos were rerun against the existing external fixture containing
+only pak0 through pak8, with fresh writable homes. All four again reached
+normal completion, processed frames and exited cleanly. The
+[stock-fixture record](evidence/2026-09-07-q3-stock-demo-isolation.json) includes
+the complete nine-pak hash inventory, demo hashes, commands and outcomes.
+Logs remain in `.tmp/demo-q3-builtin-stock-*/`.
+
+The missing-parenthesis warnings disappear in these isolated runs. The add-on
+overrides the named shaders with unparenthesized `q3map_lightRGB` directives;
+the current renderer parser expects parentheses for that directive. Thus the
+earlier warnings are evidence of add-on parsing behavior, not a stock Q3
+shader-syntax defect. The collision-bevel warnings remain in the stock fixture
+and still need separate reference comparison. No installation files or renderer
+behavior were changed during this follow-up.
