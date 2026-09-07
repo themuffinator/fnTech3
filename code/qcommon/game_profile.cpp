@@ -16,6 +16,10 @@ General Public License, version 2 or (at your option) any later version.
 
 namespace {
 
+/* Steam AppIDs and conventional directories were observed in the local retail
+ * manifests; see docs/fntech3/2026-09-07-steam-discovery.md. Discovery identity
+ * is independent of each profile's optional service integration contract. */
+
 const comGameProfile_t quake3Profile = {
 	COM_GAME_QUAKE3,
 	"quake3",
@@ -28,7 +32,9 @@ const comGameProfile_t quake3Profile = {
 	COM_MODULE_API_QVM | COM_MODULE_API_LEGACY_NATIVE,
 	COM_MODULE_API_QVM,
 	0,
-	0
+	0,
+	"2200",
+	"Quake 3 Arena"
 };
 
 const comGameProfile_t quakeLiveProfile = {
@@ -45,7 +51,9 @@ const comGameProfile_t quakeLiveProfile = {
 		| COM_MODULE_API_STRUCTURED_NATIVE,
 	COM_MODULE_API_STRUCTURED_NATIVE,
 	1,
-	1
+	1,
+	"282440",
+	"Quake Live"
 };
 
 const comGameProfile_t *activeProfile;
@@ -222,7 +230,8 @@ comGameDetectionResult_t Com_DetectGameProfile(
 	markerInputs.requestedProfile = inputs->requestedProfile;
 	markerInputs.basePathMarkers = Com_ProbeGameProfileMarkers( inputs->basePath );
 	markerInputs.appPathMarkers = Com_ProbeGameProfileMarkers( inputs->appPath );
-	markerInputs.steamPathMarkers = Com_ProbeGameProfileMarkers( inputs->steamPath );
+	markerInputs.steamPathMarkers = Com_ProbeGameProfileMarkers( inputs->q3SteamPath )
+		| Com_ProbeGameProfileMarkers( inputs->qlSteamPath );
 	return Com_DetectGameProfileMarkers( &markerInputs );
 }
 

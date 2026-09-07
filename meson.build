@@ -1084,6 +1084,12 @@ game_profile_tests = executable('fntech3_game_profile_tests',
 )
 test('fntech3_game_profiles', game_profile_tests)
 
+steam_path_tests = executable('fntech3_steam_path_tests',
+  ['tests/steam_path_tests.cpp', 'code/qcommon/game_profile.cpp'],
+  cpp_args: common_cpp_args,
+)
+test('fntech3_steam_paths', steam_path_tests)
+
 game_abi_layout_tests = executable('fntech3_game_abi_layout_tests',
   'tests/game_abi_layout_tests.cpp',
   cpp_args: common_cpp_args,

@@ -1478,7 +1478,8 @@ qboolean Sys_ResetReadOnlyAttribute( const char *ospath );
 const char *Sys_Pwd( void );
 const char *Sys_DefaultBasePath( void );
 const char *Sys_DefaultHomePath( void );
-const char *Sys_SteamPath( void );
+/* Discovery is valid before activation and never initializes Steam services. */
+const char *Sys_SteamPath( comGameId_t game );
 #ifdef _WIN32
 const char *Sys_QuakeLiveProfilePath( const char *installPath );
 #endif

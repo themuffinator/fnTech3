@@ -3932,7 +3932,8 @@ static void Com_InitGameProfile( void ) {
 	inputs.requestedProfile = com_gameProfile->string;
 	inputs.basePath = ( basePath && basePath[0] ) ? basePath : NULL;
 	inputs.appPath = Sys_DefaultBasePath();
-	inputs.steamPath = Sys_SteamPath();
+	inputs.q3SteamPath = Sys_SteamPath( COM_GAME_QUAKE3 );
+	inputs.qlSteamPath = Sys_SteamPath( COM_GAME_QUAKELIVE );
 	detection = Com_DetectGameProfile( &inputs );
 
 	if ( detection.status != COM_GAME_DETECTION_OK || !detection.profile ) {

@@ -6403,6 +6403,7 @@ static void FS_Startup( void ) {
 	const char *homePath;
 	const char *steamPath;
 	const char *defaultBasePath;
+	unsigned profileMarker;
 	qboolean scanWorkshopArchives;
 	int i, start, end;
 
@@ -6412,17 +6413,24 @@ static void FS_Startup( void ) {
 	Cvar_SetDescription( fs_debug, "Debugging tool for the filesystem. Run the game in debug mode. Prints additional information regarding read files into the console." );
 	fs_copyfiles = Cvar_Get( "fs_copyfiles", "0", CVAR_INIT );
 	Cvar_SetDescription( fs_copyfiles, "Whether or not to copy files when loading them into the game. Every file found in the cdpath will be copied over." );
-	steamPath = Com_GameIsQuakeLive() ? Sys_SteamPath() : "";
-	defaultBasePath = ( steamPath && steamPath[0] ) ? steamPath : Sys_DefaultBasePath();
+	steamPath = Sys_SteamPath( Com_GameProfile()->id );
+	defaultBasePath = Sys_DefaultBasePath();
+	profileMarker = Com_GameIsQuake3() ? COM_GAME_MARKER_QUAKE3 : COM_GAME_MARKER_QUAKELIVE;
+	/* Match detection priority: a local installation wins over Steam discovery. */
+	if ( Com_ProbeGameProfileMarkers( defaultBasePath ) != profileMarker && steamPath && steamPath[0] ) {
+		defaultBasePath = steamPath;
+	}
 	fs_basepath = Cvar_Get( "fs_basepath", defaultBasePath, CVAR_INIT | CVAR_PROTECTED | CVAR_PRIVATE );
 	Cvar_SetDescription( fs_basepath, "Write-protected path to the selected game's installation folder." );
 	fs_basegame = Cvar_Get( "fs_basegame", BASEGAME, CVAR_INIT | CVAR_PROTECTED );
 	Cvar_SetDescription( fs_basegame, "Write-protected CVAR specifying the path to the base game(s) folder(s), separated by '/'." );
-	fs_steampath = Cvar_Get( "fs_steampath", steamPath ? steamPath : "", CVAR_INIT | CVAR_PROTECTED | CVAR_PRIVATE );
+	/* Preserve Q3 search paths: discovery supplies its default basepath but does
+	 * not mount a second installation over an explicitly chosen Q3 tree. */
+	fs_steampath = Cvar_Get( "fs_steampath", Com_GameIsQuakeLive() && steamPath ? steamPath : "", CVAR_INIT | CVAR_PROTECTED | CVAR_PRIVATE );
 	if ( !Com_GameIsQuakeLive() && fs_steampath->string[0] ) {
 		Cvar_Set2( "fs_steampath", "", qtrue );
 	}
-	Cvar_SetDescription( fs_steampath, "Auto-detected Steam installation path; used only by Steam-backed game profiles." );
+	Cvar_SetDescription( fs_steampath, "Additional Quake Live Steam installation search path; Q3 discovery supplies fs_basepath only." );
 	fs_skipWorkshop = Cvar_Get( "fs_skipWorkshop", "0", CVAR_INIT );
 	Cvar_SetDescription( fs_skipWorkshop, "Skip mounting registered Steam Workshop content." );
 

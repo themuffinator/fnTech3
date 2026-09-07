@@ -12,6 +12,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import socket
 import subprocess
@@ -27,8 +28,14 @@ def sha256(path: Path) -> str:
         return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
+def installation_observed(log: str, marker: Path) -> bool:
+    expected = os.path.normcase(os.path.normpath(str(marker.resolve())))
+    return any(os.path.normcase(os.path.normpath(match.group(1))) == expected
+               for match in re.finditer(r"^(.+) \(\d+ files\)\r?$", log, re.MULTILINE))
+
+
 def probe(executable: Path, install: Path, profile: str, selection: str,
-          output: Path, timeout: float) -> dict:
+          output: Path, timeout: float, steam_discovery: bool = False) -> dict:
     protocol, mapname = (68, "q3dm6") if profile == "q3" else (91, "campgrounds")
     # Reserve a candidate loopback port. A concurrent claimant is detected by
     # the per-run challenge/map checks and the server log; no public bind occurs.
@@ -36,7 +43,8 @@ def probe(executable: Path, install: Path, profile: str, selection: str,
         reservation.bind(("127.0.0.1", 0))
         port = reservation.getsockname()[1]
     result = {"profile": profile, "selection": selection, "map": mapname,
-              "protocol": protocol, "installation": str(install), "passed": False}
+              "protocol": protocol, "installation": str(install), "passed": False,
+              "steamDiscovery": steam_discovery}
     marker = install / "baseq3" / ("pak0.pk3" if profile == "q3" else "pak00.pk3")
     result["basePakSha256"] = sha256(marker)
     with tempfile.TemporaryDirectory(prefix="fntech3-profile-") as temporary:
@@ -49,8 +57,12 @@ def probe(executable: Path, install: Path, profile: str, selection: str,
             "com_steamIntegration": "0", "fs_skipWorkshop": "1",
             "sv_autoRecordDemos": "0", "r_fullscreen": "0",
         }.items():
+            if steam_discovery and name == "fs_basepath":
+                continue
             command.extend(["+set", name, value])
-        command.extend(["+map", mapname])
+        # Early FS startup precedes logfile creation; query the mounted paks
+        # after initialization instead of treating a missing early line as failure.
+        command.extend(["+path", "+map", mapname])
         if profile == "ql":
             command.append("ffa")
         command.extend(["+wait", "300", "+quit"])
@@ -103,7 +115,9 @@ def probe(executable: Path, install: Path, profile: str, selection: str,
                 (output / f"{profile}-{selection}-replies.json").write_text(json.dumps(replies, indent=2), encoding="utf-8")
                 module = "VM_LoadDll(qagame) found native exports" if profile == "ql" else "qagame loaded in"
                 result["moduleObserved"] = module in log
+                result["installationObserved"] = installation_observed(log, marker)
                 result["passed"] = bool(result.get("serverInfo") and result["moduleObserved"]
+                                        and result["installationObserved"]
                                         and process.returncode == 0 and "error" not in result)
     return result
 
@@ -115,6 +129,8 @@ def main() -> int:
     parser.add_argument("--ql", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--timeout", type=float, default=35)
+    parser.add_argument("--steam-discovery", action="store_true",
+                        help="omit fs_basepath and test explicit profiles against discovered Steam installs")
     args = parser.parse_args()
     if not (args.q3 or args.ql):
         parser.error("provide --q3 and/or --ql installations")
@@ -129,8 +145,9 @@ def main() -> int:
                 "platform": os.name, "runs": []}
     for profile, install in (("q3", args.q3), ("ql", args.ql)):
         if install:
-            for selection in ("auto", profile):
-                result = probe(executable, install.resolve(strict=True), profile, selection, output, args.timeout)
+            for selection in ((profile,) if args.steam_discovery else ("auto", profile)):
+                result = probe(executable, install.resolve(strict=True), profile, selection, output,
+                               args.timeout, args.steam_discovery)
                 manifest["runs"].append(result)
                 (output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
                 print(f"{profile}/{selection}: {'PASS' if result['passed'] else 'FAIL'}; exit={result['exitCode']}", flush=True)

@@ -468,7 +468,7 @@ static qboolean Sys_RegularFileExists( const char *path )
 #undef SYS_STEAM_PATH_ALTERNATE_SEPARATOR_CHAR
 
 
-static qboolean Sys_TrySteamRoot( const char *steamRoot, char *out, int outSize )
+static qboolean Sys_TrySteamRoot( const comGameProfile_t *profile, const char *steamRoot, char *out, int outSize )
 {
 	char normalized[MAX_OSPATH];
 
@@ -478,11 +478,11 @@ static qboolean Sys_TrySteamRoot( const char *steamRoot, char *out, int outSize 
 
 	Q_strncpyz( normalized, steamRoot, sizeof( normalized ) );
 	Sys_NormalizeSteamPath( normalized );
-	return Sys_SteamAppPathFromRoot( normalized, out, outSize );
+	return Sys_SteamAppPathFromRoot( profile, normalized, out, outSize );
 }
 
 
-static qboolean Sys_TrySteamRootUnderHome( const char *home, const char *suffix, char *out, int outSize )
+static qboolean Sys_TrySteamRootUnderHome( const comGameProfile_t *profile, const char *home, const char *suffix, char *out, int outSize )
 {
 	char root[MAX_OSPATH];
 
@@ -491,30 +491,37 @@ static qboolean Sys_TrySteamRootUnderHome( const char *home, const char *suffix,
 	}
 
 	Sys_SteamJoinPath( root, sizeof( root ), home, suffix );
-	return Sys_TrySteamRoot( root, out, outSize );
+	return Sys_TrySteamRoot( profile, root, out, outSize );
 }
 
 
-const char *Sys_SteamPath( void )
+const char *Sys_SteamPath( comGameId_t game )
 {
-	static char steamPath[ MAX_OSPATH ];
+	static char steamPaths[2][MAX_OSPATH];
+	const comGameProfile_t *profile = Com_GameProfileById( game );
+	char *steamPath;
 	const char *home;
 	const char *steamRoot;
 #if !defined( MACOS_X )
 	const char *platformDataRoot;
 #endif
 
+	if ( !profile ) {
+		return "";
+	}
+	steamPath = steamPaths[game == COM_GAME_QUAKE3 ? 0 : 1];
+
 	if ( steamPath[0] ) {
 		return steamPath;
 	}
 
 	steamRoot = getenv( "STEAM_DIR" );
-	if ( Sys_TrySteamRoot( steamRoot, steamPath, sizeof( steamPath ) ) ) {
+	if ( Sys_TrySteamRoot( profile, steamRoot, steamPath, MAX_OSPATH ) ) {
 		return steamPath;
 	}
 
 	steamRoot = getenv( "STEAM_HOME" );
-	if ( Sys_TrySteamRoot( steamRoot, steamPath, sizeof( steamPath ) ) ) {
+	if ( Sys_TrySteamRoot( profile, steamRoot, steamPath, MAX_OSPATH ) ) {
 		return steamPath;
 	}
 
@@ -523,16 +530,16 @@ const char *Sys_SteamPath( void )
 	 * that location before the conventional HOME-relative fallback. */
 	platformDataRoot = getenv( "XDG_DATA_HOME" );
 	if ( platformDataRoot && platformDataRoot[0] == '/'
-		&& Sys_TrySteamRootUnderHome( platformDataRoot, "Steam",
-			steamPath, sizeof( steamPath ) ) ) {
+		&& Sys_TrySteamRootUnderHome( profile, platformDataRoot, "Steam",
+			steamPath, MAX_OSPATH ) ) {
 		return steamPath;
 	}
 
 	/* The Steam Snap exposes its persistent per-user root here. */
 	platformDataRoot = getenv( "SNAP_USER_COMMON" );
 	if ( platformDataRoot && platformDataRoot[0] == '/'
-		&& Sys_TrySteamRootUnderHome( platformDataRoot, ".local/share/Steam",
-			steamPath, sizeof( steamPath ) ) ) {
+		&& Sys_TrySteamRootUnderHome( profile, platformDataRoot, ".local/share/Steam",
+			steamPath, MAX_OSPATH ) ) {
 		return steamPath;
 	}
 #endif
@@ -540,26 +547,26 @@ const char *Sys_SteamPath( void )
 	home = getenv( "HOME" );
 	if ( home && home[0] ) {
 #ifdef MACOS_X
-		if ( Sys_TrySteamRootUnderHome( home, "Library/Application Support/Steam", steamPath, sizeof( steamPath ) ) ) {
+		if ( Sys_TrySteamRootUnderHome( profile, home, "Library/Application Support/Steam", steamPath, MAX_OSPATH ) ) {
 			return steamPath;
 		}
 #else
 		/* Also cover discovery from outside the Steam Snap. */
-		if ( Sys_TrySteamRootUnderHome( home, "snap/steam/common/.local/share/Steam",
-			steamPath, sizeof( steamPath ) ) ) {
+		if ( Sys_TrySteamRootUnderHome( profile, home, "snap/steam/common/.local/share/Steam",
+			steamPath, MAX_OSPATH ) ) {
 			return steamPath;
 		}
 
-		if ( Sys_TrySteamRootUnderHome( home, ".steam/steam", steamPath, sizeof( steamPath ) ) ) {
+		if ( Sys_TrySteamRootUnderHome( profile, home, ".steam/steam", steamPath, MAX_OSPATH ) ) {
 			return steamPath;
 		}
-		if ( Sys_TrySteamRootUnderHome( home, ".steam/root", steamPath, sizeof( steamPath ) ) ) {
+		if ( Sys_TrySteamRootUnderHome( profile, home, ".steam/root", steamPath, MAX_OSPATH ) ) {
 			return steamPath;
 		}
-		if ( Sys_TrySteamRootUnderHome( home, ".local/share/Steam", steamPath, sizeof( steamPath ) ) ) {
+		if ( Sys_TrySteamRootUnderHome( profile, home, ".local/share/Steam", steamPath, MAX_OSPATH ) ) {
 			return steamPath;
 		}
-		if ( Sys_TrySteamRootUnderHome( home, ".var/app/com.valvesoftware.Steam/.local/share/Steam", steamPath, sizeof( steamPath ) ) ) {
+		if ( Sys_TrySteamRootUnderHome( profile, home, ".var/app/com.valvesoftware.Steam/.local/share/Steam", steamPath, MAX_OSPATH ) ) {
 			return steamPath;
 		}
 #endif

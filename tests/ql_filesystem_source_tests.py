@@ -21,7 +21,7 @@ class QuakeLiveFilesystemSourceTests(unittest.TestCase):
         self.assertIn("Sys_QuakeLiveProfilePath( basePath )", source)
         self.assertIn("if ( Com_GameIsQuakeLive() )", source)
         self.assertIn('Com_GameProfile()->displayName, fs_basepath->string', source)
-        self.assertIn("steamPath = Com_GameIsQuakeLive() ? Sys_SteamPath()", source)
+        self.assertIn("steamPath = Sys_SteamPath( Com_GameProfile()->id )", source)
 
     def test_retail_ui_defaults_native_and_fails_once_with_guidance(self):
         vm = (ROOT / "code/qcommon/vm.c").read_text(encoding="utf-8")

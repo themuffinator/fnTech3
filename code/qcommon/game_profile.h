@@ -67,6 +67,8 @@ typedef struct comGameProfile_s {
 	unsigned preferredModuleApi;
 	int usesSteam;
 	int supportsWorkshop;
+	const char *steamAppId;
+	const char *steamInstallName;
 } comGameProfile_t;
 
 typedef struct comGameMarkerInputs_s {
@@ -80,7 +82,8 @@ typedef struct comGameDetectionInputs_s {
 	const char *requestedProfile;
 	const char *basePath;
 	const char *appPath;
-	const char *steamPath;
+	const char *q3SteamPath;
+	const char *qlSteamPath;
 } comGameDetectionInputs_t;
 
 typedef struct comGameDetectionResult_s {

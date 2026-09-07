@@ -215,19 +215,21 @@ static qboolean Sys_QueryRegistryString( HKEY root, const char *keyPath, REGSAM 
 }
 
 
-static qboolean Sys_FindSteamAppInstallFromRegistry( char *out, int outSize )
+static qboolean Sys_FindSteamAppInstallFromRegistry( const comGameProfile_t *profile, char *out, int outSize )
 {
-	const char *appKey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Steam App " STEAMPATH_APPID;
+	char appKey[128];
 	const HKEY roots[] = { HKEY_LOCAL_MACHINE, HKEY_CURRENT_USER };
 	const REGSAM views[] = { KEY_WOW64_32KEY, KEY_WOW64_64KEY, 0 };
 	size_t rootIndex;
 	size_t viewIndex;
 	char candidate[MAX_OSPATH];
 
+	snprintf( appKey, sizeof( appKey ), "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Steam App %s", profile->steamAppId );
+
 	for ( rootIndex = 0; rootIndex < ARRAY_LEN( roots ); rootIndex++ ) {
 		for ( viewIndex = 0; viewIndex < ARRAY_LEN( views ); viewIndex++ ) {
 			if ( Sys_QueryRegistryString( roots[rootIndex], appKey, views[viewIndex], "InstallLocation", candidate, sizeof( candidate ) )
-				&& Sys_CopyValidQuakeLiveSteamInstall( candidate, out, outSize ) ) {
+				&& Sys_CopyValidSteamInstall( profile, candidate, out, outSize ) ) {
 				return qtrue;
 			}
 		}
@@ -260,7 +262,7 @@ static qboolean Sys_FindSteamRootFromRegistry( char *out, int outSize )
 }
 
 
-static qboolean Sys_FindSteamRootFromKnownPaths( char *out, int outSize )
+static qboolean Sys_FindSteamRootFromKnownPaths( const comGameProfile_t *profile, char *out, int outSize )
 {
 	const char *programFilesX86;
 	const char *programFiles;
@@ -269,7 +271,7 @@ static qboolean Sys_FindSteamRootFromKnownPaths( char *out, int outSize )
 	programFilesX86 = getenv( "ProgramFiles(x86)" );
 	if ( programFilesX86 && programFilesX86[0] ) {
 		Sys_SteamJoinPath( candidate, sizeof( candidate ), programFilesX86, "Steam" );
-		if ( Sys_SteamAppPathFromRoot( candidate, out, outSize ) ) {
+		if ( Sys_SteamAppPathFromRoot( profile, candidate, out, outSize ) ) {
 			return qtrue;
 		}
 	}
@@ -277,34 +279,41 @@ static qboolean Sys_FindSteamRootFromKnownPaths( char *out, int outSize )
 	programFiles = getenv( "ProgramFiles" );
 	if ( programFiles && programFiles[0] ) {
 		Sys_SteamJoinPath( candidate, sizeof( candidate ), programFiles, "Steam" );
-		if ( Sys_SteamAppPathFromRoot( candidate, out, outSize ) ) {
+		if ( Sys_SteamAppPathFromRoot( profile, candidate, out, outSize ) ) {
 			return qtrue;
 		}
 	}
 
-	return Sys_SteamAppPathFromRoot( "C:\\Program Files (x86)\\Steam", out, outSize );
+	return Sys_SteamAppPathFromRoot( profile, "C:\\Program Files (x86)\\Steam", out, outSize );
 }
 
 
-const char *Sys_SteamPath( void )
+const char *Sys_SteamPath( comGameId_t game )
 {
-	static char steamPath[ MAX_OSPATH ];
+	static char steamPaths[2][MAX_OSPATH];
+	const comGameProfile_t *profile = Com_GameProfileById( game );
+	char *steamPath;
 	char steamRoot[MAX_OSPATH];
+
+	if ( !profile ) {
+		return "";
+	}
+	steamPath = steamPaths[game == COM_GAME_QUAKE3 ? 0 : 1];
 
 	if ( steamPath[0] ) {
 		return steamPath;
 	}
 
-	if ( Sys_FindSteamAppInstallFromRegistry( steamPath, sizeof( steamPath ) ) ) {
+	if ( Sys_FindSteamAppInstallFromRegistry( profile, steamPath, MAX_OSPATH ) ) {
 		return steamPath;
 	}
 
 	if ( Sys_FindSteamRootFromRegistry( steamRoot, sizeof( steamRoot ) )
-		&& Sys_SteamAppPathFromRoot( steamRoot, steamPath, sizeof( steamPath ) ) ) {
+		&& Sys_SteamAppPathFromRoot( profile, steamRoot, steamPath, MAX_OSPATH ) ) {
 		return steamPath;
 	}
 
-	Sys_FindSteamRootFromKnownPaths( steamPath, sizeof( steamPath ) );
+	Sys_FindSteamRootFromKnownPaths( profile, steamPath, MAX_OSPATH );
 	return steamPath;
 }
 

@@ -1,6 +1,7 @@
 /*
 ===========================================================================
-Shared Steam library discovery helpers for FnQL platform bootstrap.
+Shared Steam library discovery helpers for fnTech3 profile-aware platform bootstrap.
+Copyright (C) 2026 fnTech3 contributors. GPL-2.0-or-later.
 ===========================================================================
 */
 
@@ -17,6 +18,7 @@ Shared Steam library discovery helpers for FnQL platform bootstrap.
 
 typedef enum {
 	SYS_VDF_TOKEN_NONE,
+	SYS_VDF_TOKEN_ERROR,
 	SYS_VDF_TOKEN_STRING,
 	SYS_VDF_TOKEN_OPEN_BRACE,
 	SYS_VDF_TOKEN_CLOSE_BRACE
@@ -45,23 +47,30 @@ static void Sys_NormalizeSteamPath( char *path )
 	}
 
 	len = strlen( path );
-	while ( len > 0 && Sys_SteamPathSeparator( path[len - 1] ) ) {
+	while ( len > 1 && Sys_SteamPathSeparator( path[len - 1] )
+		&& !( len == 3 && path[1] == ':' ) ) {
 		path[--len] = '\0';
 	}
 }
 
 
-static void Sys_SteamJoinPath( char *out, int outSize, const char *base, const char *leaf )
+static qboolean Sys_SteamJoinPath( char *out, int outSize, const char *base, const char *leaf )
 {
 	char separator[2];
 
 	if ( !out || outSize <= 0 ) {
-		return;
+		return qfalse;
 	}
 
 	out[0] = '\0';
 	if ( !base || !base[0] ) {
-		return;
+		return qfalse;
+	}
+	const size_t baseLength = strlen( base );
+	const size_t leafLength = leaf ? strlen( leaf ) : 0;
+	const size_t separatorLength = leafLength && !Sys_SteamPathSeparator( base[baseLength - 1] ) ? 1 : 0;
+	if ( baseLength + leafLength + separatorLength + 1 > (size_t)outSize ) {
+		return qfalse;
 	}
 
 	Q_strncpyz( out, base, outSize );
@@ -76,6 +85,7 @@ static void Sys_SteamJoinPath( char *out, int outSize, const char *base, const c
 		Q_strcat( out, outSize, leaf );
 		Sys_NormalizeSteamPath( out );
 	}
+	return qtrue;
 }
 
 
@@ -88,34 +98,31 @@ static void Sys_SteamJoinSteamAppsPath( char *out, int outSize, const char *libr
 }
 
 
-static qboolean Sys_QuakeLiveSteamInstallIsValid( const char *installPath )
+static qboolean Sys_SteamInstallIsValid( const comGameProfile_t *profile, const char *installPath )
 {
 	char basePath[MAX_OSPATH];
 	char assetPath[MAX_OSPATH];
 
-	Sys_SteamJoinPath( basePath, sizeof( basePath ), installPath, BASEGAME );
-	Sys_SteamJoinPath( assetPath, sizeof( assetPath ), basePath, "pak00.pk3" );
-	if ( Sys_RegularFileExists( assetPath ) ) {
-		return qtrue;
-	}
+	Sys_SteamJoinPath( basePath, sizeof( basePath ), installPath, profile->baseGame );
+	Sys_SteamJoinPath( assetPath, sizeof( assetPath ), basePath, profile->basePakName );
 
-	Sys_SteamJoinPath( assetPath, sizeof( assetPath ), basePath, "default.cfg" );
 	return Sys_RegularFileExists( assetPath );
 }
 
 
-static qboolean Sys_CopyValidQuakeLiveSteamInstall( const char *path, char *out, int outSize )
+static qboolean Sys_CopyValidSteamInstall( const comGameProfile_t *profile, const char *path, char *out, int outSize )
 {
 	char normalized[MAX_OSPATH];
 
-	if ( !path || !path[0] ) {
+	if ( !path || !path[0] || !out || outSize <= 0
+		|| strlen( path ) >= sizeof( normalized ) || strlen( path ) >= (size_t)outSize ) {
 		return qfalse;
 	}
 
 	Q_strncpyz( normalized, path, sizeof( normalized ) );
 	Sys_NormalizeSteamPath( normalized );
 
-	if ( !Sys_QuakeLiveSteamInstallIsValid( normalized ) ) {
+	if ( !Sys_SteamInstallIsValid( profile, normalized ) ) {
 		return qfalse;
 	}
 
@@ -142,7 +149,8 @@ static char *Sys_ReadTextFile( const char *path )
 	}
 
 	length = ftell( file );
-	if ( length < 0 ) {
+	/* Steam metadata is small. Bound allocations before parsing untrusted text. */
+	if ( length < 0 || length > 1024 * 1024 ) {
 		fclose( file );
 		return NULL;
 	}
@@ -160,234 +168,306 @@ static char *Sys_ReadTextFile( const char *path )
 
 	bytesRead = fread( buffer, 1, (size_t)length, file );
 	fclose( file );
+	if ( bytesRead != (size_t)length || memchr( buffer, '\0', bytesRead ) ) {
+		free( buffer );
+		return NULL;
+	}
 	buffer[bytesRead] = '\0';
 	return buffer;
 }
 
 
-static const char *Sys_ReadVdfToken( const char *cursor, char *token, int tokenSize, sysVdfToken_t *type )
+/* Reject truncated tokens instead of treating their prefixes as paths/keys. */
+static sysVdfToken_t Sys_ReadVdfToken( const char **input, char *token, int tokenSize )
 {
-	int len;
-
-	*type = SYS_VDF_TOKEN_NONE;
-	if ( tokenSize > 0 ) {
-		token[0] = '\0';
+	const char *cursor = *input;
+	int len = 0;
+	qboolean quoted;
+	if ( tokenSize <= 0 ) {
+		return SYS_VDF_TOKEN_ERROR;
 	}
-
-	while ( *cursor && (unsigned char)*cursor <= ' ' ) {
-		cursor++;
+	token[0] = '\0';
+	for ( ;; ) {
+		while ( *cursor && (unsigned char)*cursor <= ' ' ) {
+			cursor++;
+		}
+		if ( cursor[0] != '/' || cursor[1] != '/' ) {
+			break;
+		}
+		while ( *cursor && *cursor != '\n' ) {
+			cursor++;
+		}
 	}
-
+	*input = cursor;
 	if ( !*cursor ) {
-		return cursor;
+		return SYS_VDF_TOKEN_NONE;
 	}
-
-	if ( *cursor == '{' ) {
-		*type = SYS_VDF_TOKEN_OPEN_BRACE;
-		return cursor + 1;
+	if ( *cursor == '{' || *cursor == '}' ) {
+		*input = cursor + 1;
+		return *cursor == '{' ? SYS_VDF_TOKEN_OPEN_BRACE : SYS_VDF_TOKEN_CLOSE_BRACE;
 	}
-
-	if ( *cursor == '}' ) {
-		*type = SYS_VDF_TOKEN_CLOSE_BRACE;
-		return cursor + 1;
-	}
-
-	*type = SYS_VDF_TOKEN_STRING;
-	len = 0;
-
-	if ( *cursor == '"' ) {
+	quoted = *cursor == '"' ? qtrue : qfalse;
+	if ( quoted ) {
 		cursor++;
-		while ( *cursor && *cursor != '"' ) {
-			if ( *cursor == '\\' && cursor[1] ) {
-				if ( len < tokenSize - 1 ) {
-					token[len++] = cursor[1];
-				}
-				cursor += 2;
-				continue;
-			}
-			if ( len < tokenSize - 1 ) {
-				token[len++] = *cursor;
-			}
-			cursor++;
-		}
-		if ( *cursor == '"' ) {
-			cursor++;
-		}
-	} else {
-		while ( *cursor && (unsigned char)*cursor > ' ' && *cursor != '{' && *cursor != '}' ) {
-			if ( len < tokenSize - 1 ) {
-				token[len++] = *cursor;
-			}
-			cursor++;
-		}
 	}
-
-	if ( tokenSize > 0 ) {
-		token[len] = '\0';
+	while ( *cursor ) {
+		char value = *cursor;
+		if ( quoted ? value == '"' : ( (unsigned char)value <= ' ' || value == '{' || value == '}' ) ) {
+			break;
+		}
+		if ( quoted && value == '\\' && ( cursor[1] == '\\' || cursor[1] == '"' ) ) {
+			value = *++cursor;
+		}
+		if ( len >= tokenSize - 1 ) {
+			return SYS_VDF_TOKEN_ERROR;
+		}
+		token[len++] = value;
+		cursor++;
 	}
-	return cursor;
+	if ( quoted ) {
+		if ( *cursor != '"' ) {
+			return SYS_VDF_TOKEN_ERROR;
+		}
+		cursor++;
+	}
+	token[len] = '\0';
+	*input = cursor;
+	return SYS_VDF_TOKEN_STRING;
 }
 
-
-static qboolean Sys_SteamManifestInstallDir( const char *libraryPath, char *installDir, int installDirSize )
+static qboolean Sys_SkipVdfObject( const char **cursor, int depth )
 {
-	char manifestPath[MAX_OSPATH];
 	char token[MAX_OSPATH];
-	char *manifestText;
-	const char *cursor;
 	sysVdfToken_t type;
-	qboolean found;
-
-	Sys_SteamJoinSteamAppsPath( manifestPath, sizeof( manifestPath ), libraryPath, "appmanifest_" STEAMPATH_APPID ".acf" );
-	manifestText = Sys_ReadTextFile( manifestPath );
-	if ( !manifestText ) {
+	if ( depth > 16 ) {
 		return qfalse;
 	}
-
-	found = qfalse;
-	cursor = manifestText;
-	while ( *cursor ) {
-		cursor = Sys_ReadVdfToken( cursor, token, sizeof( token ), &type );
-		if ( type != SYS_VDF_TOKEN_STRING || Q_stricmp( token, "installdir" ) ) {
-			continue;
+	for ( ;; ) {
+		type = Sys_ReadVdfToken( cursor, token, sizeof( token ) );
+		if ( type == SYS_VDF_TOKEN_CLOSE_BRACE ) {
+			return qtrue;
 		}
-
-		cursor = Sys_ReadVdfToken( cursor, installDir, installDirSize, &type );
-		found = ( type == SYS_VDF_TOKEN_STRING && installDir[0] ) ? qtrue : qfalse;
-		break;
+		if ( type != SYS_VDF_TOKEN_STRING ) {
+			return qfalse;
+		}
+		type = Sys_ReadVdfToken( cursor, token, sizeof( token ) );
+		if ( type == SYS_VDF_TOKEN_OPEN_BRACE ) {
+			if ( !Sys_SkipVdfObject( cursor, depth + 1 ) ) {
+				return qfalse;
+			}
+		} else if ( type != SYS_VDF_TOKEN_STRING ) {
+			return qfalse;
+		}
 	}
-
-	free( manifestText );
-	return found;
 }
 
-
-static qboolean Sys_SteamAppPathFromLibrary( const char *libraryPath, char *out, int outSize )
+static qboolean Sys_VdfHeader( const char **cursor, const char *name )
 {
-	char installDir[MAX_OSPATH];
-	char commonPath[MAX_OSPATH];
-	char candidate[MAX_OSPATH];
+	char token[MAX_OSPATH];
+	return Sys_ReadVdfToken( cursor, token, sizeof( token ) ) == SYS_VDF_TOKEN_STRING
+		&& !Q_stricmp( token, name )
+		&& Sys_ReadVdfToken( cursor, token, sizeof( token ) ) == SYS_VDF_TOKEN_OPEN_BRACE ? qtrue : qfalse;
+}
 
+static qboolean Sys_SteamInstallDirIsValid( const char *name )
+{
+	/* installdir is one child of steamapps/common, never an arbitrary path. */
+	const size_t len = strlen( name );
+	for ( const unsigned char *c = (const unsigned char *)name; *c; ++c ) {
+		if ( *c < 32 ) {
+			return qfalse;
+		}
+	}
+	return len && strcmp( name, "." ) && strcmp( name, ".." )
+		&& !strpbrk( name, "/\\:*?\"<>|\r\n\t" )
+		&& name[len - 1] != '.' && name[len - 1] != ' ' ? qtrue : qfalse;
+}
+
+static qboolean Sys_SteamManifestInstallDir( const comGameProfile_t *profile,
+	const char *libraryPath, char *installDir, int installDirSize )
+{
+	char manifestPath[MAX_OSPATH], manifestName[64], key[MAX_OSPATH], value[MAX_OSPATH];
+	char *text;
+	const char *cursor;
+	qboolean appSeen = qfalse, dirSeen = qfalse, valid = qfalse;
+	sysVdfToken_t type;
+	if ( !installDir || installDirSize <= 0 ) {
+		return qfalse;
+	}
+	installDir[0] = '\0';
+	if ( !profile || !libraryPath || !libraryPath[0] ) {
+		return qfalse;
+	}
+	snprintf( manifestName, sizeof( manifestName ), "appmanifest_%s.acf", profile->steamAppId );
+	Sys_SteamJoinSteamAppsPath( manifestPath, sizeof( manifestPath ), libraryPath, manifestName );
+	text = Sys_ReadTextFile( manifestPath );
+	if ( !text ) {
+		return qfalse;
+	}
+	cursor = text;
+	if ( !Sys_VdfHeader( &cursor, "AppState" ) ) {
+		free( text );
+		return qfalse;
+	}
+	for ( ;; ) {
+		type = Sys_ReadVdfToken( &cursor, key, sizeof( key ) );
+		if ( type == SYS_VDF_TOKEN_CLOSE_BRACE ) {
+			valid = appSeen && dirSeen
+				&& Sys_ReadVdfToken( &cursor, key, sizeof( key ) ) == SYS_VDF_TOKEN_NONE ? qtrue : qfalse;
+			break;
+		}
+		if ( type != SYS_VDF_TOKEN_STRING ) {
+			break;
+		}
+		type = Sys_ReadVdfToken( &cursor, value, sizeof( value ) );
+		if ( !Q_stricmp( key, "appid" ) ) {
+			if ( appSeen || type != SYS_VDF_TOKEN_STRING || strcmp( value, profile->steamAppId ) ) {
+				break;
+			}
+			appSeen = qtrue;
+		} else if ( !Q_stricmp( key, "installdir" ) ) {
+			if ( dirSeen || type != SYS_VDF_TOKEN_STRING || !Sys_SteamInstallDirIsValid( value )
+				|| strlen( value ) >= (size_t)installDirSize ) {
+				break;
+			}
+			Q_strncpyz( installDir, value, installDirSize );
+			dirSeen = qtrue;
+		} else if ( type == SYS_VDF_TOKEN_OPEN_BRACE ) {
+			if ( !Sys_SkipVdfObject( &cursor, 1 ) ) {
+				break;
+			}
+		} else if ( type != SYS_VDF_TOKEN_STRING ) {
+			break;
+		}
+	}
+	free( text );
+	if ( !valid ) {
+		installDir[0] = '\0';
+	}
+	return valid;
+}
+
+static qboolean Sys_SteamAppPathFromLibrary( const comGameProfile_t *profile,
+	const char *libraryPath, char *out, int outSize )
+{
+	char installDir[MAX_OSPATH], commonPath[MAX_OSPATH], candidate[MAX_OSPATH];
 	if ( !libraryPath || !libraryPath[0] ) {
 		return qfalse;
 	}
-
 	Sys_SteamJoinSteamAppsPath( commonPath, sizeof( commonPath ), libraryPath, "common" );
-	if ( Sys_SteamManifestInstallDir( libraryPath, installDir, sizeof( installDir ) ) ) {
-		Sys_SteamJoinPath( candidate, sizeof( candidate ), commonPath, installDir );
-		if ( Sys_CopyValidQuakeLiveSteamInstall( candidate, out, outSize ) ) {
-			return qtrue;
-		}
+	if ( Sys_SteamManifestInstallDir( profile, libraryPath, installDir, sizeof( installDir ) )
+		&& Sys_SteamJoinPath( candidate, sizeof( candidate ), commonPath, installDir )
+		&& Sys_CopyValidSteamInstall( profile, candidate, out, outSize ) ) {
+		return qtrue;
 	}
-
-	Sys_SteamJoinPath( candidate, sizeof( candidate ), commonPath, STEAMPATH_NAME );
-	return Sys_CopyValidQuakeLiveSteamInstall( candidate, out, outSize );
+	return Sys_SteamJoinPath( candidate, sizeof( candidate ), commonPath, profile->steamInstallName )
+		&& Sys_CopyValidSteamInstall( profile, candidate, out, outSize ) ? qtrue : qfalse;
 }
 
-
-static qboolean Sys_SteamAppPathFromLibraryFolders( const char *steamRoot, char *out, int outSize )
+static qboolean Sys_SteamLibraryIndex( const char *key )
 {
-	char libraryFile[MAX_OSPATH];
-	char libraryPath[MAX_OSPATH];
-	char token[MAX_OSPATH];
-	char *libraryText;
+	if ( !*key ) {
+		return qfalse;
+	}
+	for ( ; *key; ++key ) {
+		if ( *key < '0' || *key > '9' ) {
+			return qfalse;
+		}
+	}
+	return qtrue;
+}
+
+static qboolean Sys_SteamAppPathFromLibraryFolders( const comGameProfile_t *profile,
+	const char *steamRoot, char *out, int outSize )
+{
+	char libraryFile[MAX_OSPATH], libraryPath[MAX_OSPATH], selected[MAX_OSPATH] = "";
+	char key[MAX_OSPATH], value[MAX_OSPATH];
+	char *text;
 	const char *cursor;
+	qboolean valid = qfalse;
 	sysVdfToken_t type;
-	int depth;
-	int appsDepth;
-	qboolean nextOpenIsApps;
-	qboolean inApps;
-	qboolean found;
-
 	Sys_SteamJoinSteamAppsPath( libraryFile, sizeof( libraryFile ), steamRoot, "libraryfolders.vdf" );
-	libraryText = Sys_ReadTextFile( libraryFile );
-	if ( !libraryText ) {
+	text = Sys_ReadTextFile( libraryFile );
+	if ( !text ) {
 		return qfalse;
 	}
-
-	libraryPath[0] = '\0';
-	cursor = libraryText;
-	depth = 0;
-	appsDepth = -1;
-	nextOpenIsApps = qfalse;
-	inApps = qfalse;
-	found = qfalse;
-
-	while ( *cursor && !found ) {
-		cursor = Sys_ReadVdfToken( cursor, token, sizeof( token ), &type );
-
-		if ( type == SYS_VDF_TOKEN_OPEN_BRACE ) {
-			depth++;
-			if ( nextOpenIsApps ) {
-				appsDepth = depth;
-				inApps = qtrue;
-				nextOpenIsApps = qfalse;
-			}
-			continue;
-		}
-
+	cursor = text;
+	if ( !Sys_VdfHeader( &cursor, "libraryfolders" ) ) {
+		free( text );
+		return qfalse;
+	}
+	for ( ;; ) {
+		qboolean index;
+		type = Sys_ReadVdfToken( &cursor, key, sizeof( key ) );
 		if ( type == SYS_VDF_TOKEN_CLOSE_BRACE ) {
-			if ( inApps && depth == appsDepth ) {
-				inApps = qfalse;
-				appsDepth = -1;
-			}
-			if ( depth > 0 ) {
-				depth--;
-			}
-			continue;
+			valid = Sys_ReadVdfToken( &cursor, key, sizeof( key ) ) == SYS_VDF_TOKEN_NONE ? qtrue : qfalse;
+			break;
 		}
-
 		if ( type != SYS_VDF_TOKEN_STRING ) {
-			continue;
+			break;
 		}
-
-		if ( inApps ) {
-			if ( !Q_stricmp( token, STEAMPATH_APPID ) && libraryPath[0] ) {
-				found = Sys_SteamAppPathFromLibrary( libraryPath, out, outSize );
+		index = Sys_SteamLibraryIndex( key );
+		type = Sys_ReadVdfToken( &cursor, value, sizeof( value ) );
+		libraryPath[0] = '\0';
+		if ( type == SYS_VDF_TOKEN_STRING ) {
+			if ( index ) {
+				Q_strncpyz( libraryPath, value, sizeof( libraryPath ) );
 			}
-			continue;
-		}
-
-		if ( !Q_stricmp( token, "path" ) ) {
-			cursor = Sys_ReadVdfToken( cursor, libraryPath, sizeof( libraryPath ), &type );
-			if ( type == SYS_VDF_TOKEN_STRING ) {
-				Sys_NormalizeSteamPath( libraryPath );
-			} else {
-				libraryPath[0] = '\0';
+		} else if ( type == SYS_VDF_TOKEN_OPEN_BRACE && index ) {
+			qboolean pathSeen = qfalse;
+			for ( ;; ) {
+				type = Sys_ReadVdfToken( &cursor, key, sizeof( key ) );
+				if ( type != SYS_VDF_TOKEN_STRING ) {
+					break;
+				}
+				type = Sys_ReadVdfToken( &cursor, value, sizeof( value ) );
+				if ( !Q_stricmp( key, "path" ) ) {
+					if ( pathSeen || type != SYS_VDF_TOKEN_STRING ) {
+						type = SYS_VDF_TOKEN_ERROR;
+						break;
+					}
+					Q_strncpyz( libraryPath, value, sizeof( libraryPath ) );
+					pathSeen = qtrue;
+				} else if ( type == SYS_VDF_TOKEN_OPEN_BRACE ) {
+					if ( !Sys_SkipVdfObject( &cursor, 1 ) ) {
+						type = SYS_VDF_TOKEN_ERROR;
+						break;
+					}
+				} else if ( type != SYS_VDF_TOKEN_STRING ) {
+					break;
+				}
 			}
-			continue;
+			if ( type != SYS_VDF_TOKEN_CLOSE_BRACE ) {
+				break;
+			}
+		} else if ( type == SYS_VDF_TOKEN_OPEN_BRACE ) {
+			if ( !Sys_SkipVdfObject( &cursor, 1 ) ) {
+				break;
+			}
+		} else {
+			break;
 		}
-
-		if ( !Q_stricmp( token, "apps" ) ) {
-			nextOpenIsApps = qtrue;
+		if ( libraryPath[0] && !selected[0] ) {
+			Sys_NormalizeSteamPath( libraryPath );
+			Sys_SteamAppPathFromLibrary( profile, libraryPath, selected, sizeof( selected ) );
 		}
 	}
-
-	free( libraryText );
-	return found;
+	free( text );
+	return valid && selected[0] && Sys_CopyValidSteamInstall( profile, selected, out, outSize ) ? qtrue : qfalse;
 }
 
-
-static qboolean Sys_SteamAppPathFromRoot( const char *steamRoot, char *out, int outSize )
+static qboolean Sys_SteamAppPathFromRoot( const comGameProfile_t *profile,
+	const char *steamRoot, char *out, int outSize )
 {
-	char commonPath[MAX_OSPATH];
-	char candidate[MAX_OSPATH];
-
-	if ( !steamRoot || !steamRoot[0] ) {
+	if ( !out || outSize <= 0 ) {
 		return qfalse;
 	}
-
-	if ( Sys_SteamAppPathFromLibraryFolders( steamRoot, out, outSize ) ) {
-		return qtrue;
+	out[0] = '\0';
+	if ( !profile || !steamRoot || !steamRoot[0] ) {
+		return qfalse;
 	}
-
-	if ( Sys_SteamAppPathFromLibrary( steamRoot, out, outSize ) ) {
-		return qtrue;
-	}
-
-	Sys_SteamJoinSteamAppsPath( commonPath, sizeof( commonPath ), steamRoot, "common" );
-	Sys_SteamJoinPath( candidate, sizeof( candidate ), commonPath, STEAMPATH_NAME );
-	return Sys_CopyValidQuakeLiveSteamInstall( candidate, out, outSize );
+	return Sys_SteamAppPathFromLibraryFolders( profile, steamRoot, out, outSize )
+		|| Sys_SteamAppPathFromLibrary( profile, steamRoot, out, outSize ) ? qtrue : qfalse;
 }
 
 #endif // FNQL_STEAM_PATH_SHARED_H

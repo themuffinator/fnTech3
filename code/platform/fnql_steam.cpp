@@ -219,7 +219,7 @@ void BuildSteamApiPath(const char *configured, char *target, size_t capacity) {
 		}
 		return;
 	}
-	const char *retailPath = Sys_SteamPath();
+	const char *retailPath = Sys_SteamPath( COM_GAME_QUAKELIVE );
 	if (!retailPath || !retailPath[0]) {
 		target[0] = '\0';
 		return;
@@ -602,7 +602,7 @@ SteamSession StartSteamProvider(uint32_t roles, const cvar_t *enabled,
 	startup.app_id = kQuakeLiveAppId;
 	startup.roles = roles;
 	CopyText(startup.retail_install_path, sizeof(startup.retail_install_path),
-		Sys_SteamPath());
+		Sys_SteamPath(COM_GAME_QUAKELIVE));
 	BuildSteamApiPath(steamApiName, startup.steam_api_path,
 		sizeof(startup.steam_api_path));
 	if (!startup.steam_api_path[0]) {
