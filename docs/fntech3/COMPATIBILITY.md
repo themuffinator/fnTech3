@@ -87,7 +87,9 @@ byte-identical archives after timestamp changes and both profiles running
 from one unchanged extraction. Independent-build reproducibility remains open.
 The [audio restart checkpoint](2026-09-08-audio-restart.md) adds muted legacy
 and OpenAL initialization/restart sessions for both profiles. Audible output
-and OpenAL Soft spatial features remain unverified.
+remains unverified. Its pinned x86 OpenAL Soft follow-up passes 41 synthetic
+PCM assertions and both profiles' muted HRTF-enabled restart probes; complete
+game-audio parity and device-loss recovery remain open.
 
 The target is one shared, drop-in binary set. It must select `q3` or `ql` before
 compatibility-sensitive initialization and then use that profile's complete,

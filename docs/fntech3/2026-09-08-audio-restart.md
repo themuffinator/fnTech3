@@ -30,3 +30,35 @@ and screenshots were not committed. Existing resource/font warnings remain;
 the OpenAL capability limitation is now recorded explicitly. Audible quality,
 resampling/parity, OpenAL Soft features, device-loss recovery, prolonged stress
 and the full audio gate remain open.
+
+## Pinned x86 OpenAL Soft follow-up
+
+At `fa5efd2`, the cached [OpenAL Soft 1.25.2 source](https://github.com/kcat/openal-soft/tree/1.25.2)
+was built with MSVC x86 in an isolated CMake directory. Its archive SHA-256
+matches the repository wrap, and every upstream source file matched the
+archive. The source's LGPL terms are compatible with the GPL engine; no
+implementation source was copied into project-owned files. The generated
+DLL was used only in a disposable test directory and was not added to the
+release stage or system installation. Existing local reference DLLs were x64
+and could not validate the shared x86 contract.
+
+The previously skipped OpenAL loopback executable passed all 41 assertions
+with that runtime. Its synthetic PCM tests cover silence, HRTF status/mode
+switching, distance attenuation, stereo/multichannel layout and isolation,
+encoded sound-field acceptance, filters, reverb/send calibration and air
+absorption. This tests the runtime with synthetic signals, not complete game
+audio through the engine mixer.
+
+Both profile clients also completed their muted local pure sessions and one
+`snd_restart` using the exact x86 DLL. Logs report HRTF enabled, stereo-HRTF
+output, limiter enabled and an active 48,000 Hz/100 Hz context before and after
+restart. Snapshots continued, engine screenshots showed world/HUD or native
+join UI, and client/server exits were normal. The same window/input/home
+restrictions above apply. The [OpenAL Soft record](evidence/2026-09-08-openal-soft.json)
+pins the build command, source/runtime hashes, complete loopback results and
+profile runtime observations.
+
+This adds the missing loopback evidence without changing the default system
+runtime or retroactively turning earlier suite skips into passes. Audible
+gameplay parity, device-loss recovery, prolonged stress and release-runtime
+distribution remain open. No new unrelated issue was found.
