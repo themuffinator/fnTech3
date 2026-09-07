@@ -27,3 +27,20 @@ No runtime recovery claim is made: a full invalid-filesystem rollback with
 live modules still needs separate evidence. The complete filesystem/config
 gate remains open. No external implementation was incorporated and no new
 unrelated issue was found.
+
+Follow-up at `6dd1b37`: a second executable harness now runs the entire
+production `FS_Restart` function, including its static saved-path history and
+recursive rollback. Filesystem startup/read outcomes are controlled stubs;
+the actual recovery control flow and config queue execute unchanged. Each
+fresh process establishes its own history. The 96 combinations per platform
+cover client/dedicated builds, both profiles, safe mode, QL hardware config
+presence, base/mod game directories, initial failure, successful rollback and
+failure of the restored filesystem itself. Windows and Linux pass.
+
+Assertions verify shutdown/startup counts, pure-list clearing before restored
+cvar writes, restored base/game paths, checksum feed, factory refresh, exact
+config commands and the expected fatal/drop outcome. After successful
+rollback, another restart queues no stale commands. A failed restored path
+stops with a fatal error rather than recursing indefinitely. This strengthens
+the recovery evidence but still does not substitute for live filesystem and
+module teardown/reload coverage.
