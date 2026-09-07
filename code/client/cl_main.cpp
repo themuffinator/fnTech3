@@ -4626,10 +4626,11 @@ static void CL_InitRenderer( void ) {
 	cls.charSetShader = re.RegisterShader( "gfx/2d/bigchars" );
 	cls.recordShader = re.RegisterShaderNoMip( "icons/record" );
 	cls.whiteShader = re.RegisterShader( "white" );
-	// pak00 contains two historical shaders named "console"; the earlier Q3
-	// definition references textures not shipped by retail QL. Use FnQL's
-	// uniquely named sidecar shader, which reproduces the complete QL variant.
-	cls.consoleShader = re.RegisterShader( "fnql/console" );
+	// Q3 owns the stock "console" shader. QL's pak00 contains duplicate
+	// definitions with that name, including one referencing absent Q3 images;
+	// only QL needs the uniquely named sidecar alias for its retail variant.
+	cls.consoleShader = re.RegisterShader(
+		Com_GameProfile()->id == COM_GAME_QUAKELIVE ? "fnql/console" : "console" );
 	cls.cursorShader = re.RegisterShaderNoMip( "menu/art/3_cursor2" );
 
 	// Rebuild every client-owned canvas from the renderer's actual drawable
