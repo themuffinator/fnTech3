@@ -207,7 +207,14 @@ unsigned Com_ProbeGameProfileMarkers( const char *rootPath )
 		return markers;
 	}
 
-	basePath = std::filesystem::u8path( rootPath ) / "baseq3";
+	try {
+		basePath = std::filesystem::u8path( rootPath ) / "baseq3";
+	} catch ( const std::system_error & ) {
+		// Windows path conversion can fail before the error-code filesystem
+		// queries below. An unrepresentable candidate supplies no evidence;
+		// do not let a conversion exception escape this C-facing probe.
+		return markers;
+	}
 	if ( IsRegularFile( basePath / quake3Profile.basePakName ) ) {
 		markers |= COM_GAME_MARKER_QUAKE3;
 	}

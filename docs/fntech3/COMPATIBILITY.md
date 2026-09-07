@@ -74,6 +74,9 @@ with malformed-input tests and both-profile playback in all three renderers.
 The [2026-09-08 regression checkpoint](2026-09-08-regression-checkpoint.md)
 records the complete local suite after these corrections and clean CI for
 the earlier config-migration revision, keeping their evidence scopes separate.
+The [profile path-conversion correction](2026-09-08-profile-path-conversion.md)
+contains unrepresentable candidate paths before filesystem marker queries,
+with Windows/Linux tests and both-profile automatic dedicated startup.
 
 The target is one shared, drop-in binary set. It must select `q3` or `ql` before
 compatibility-sensitive initialization and then use that profile's complete,
