@@ -1192,6 +1192,12 @@ static void CL_ParseDownload( msg_t *msg ) {
 	}
 
 	MSG_ReadData(msg, data.data(), size);
+	if ( msg->readcount > msg->cursize ) {
+		// The outer parser checks overruns too late to protect the download
+		// file and nextdl acknowledgement from a partial chunk.
+		Com_Error( ERR_DROP, "CL_ParseDownload: Truncated download chunk" );
+		return;
+	}
 
 	if((clc.downloadBlock & 0xFFFF) != block)
 	{
