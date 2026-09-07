@@ -62,3 +62,21 @@ This adds the missing loopback evidence without changing the default system
 runtime or retroactively turning earlier suite skips into passes. Audible
 gameplay parity, device-loss recovery, prolonged stress and release-runtime
 distribution remain open. No new unrelated issue was found.
+
+## Unavailable requested device
+
+At `550e104`, both profiles started with the pinned x86 OpenAL Soft runtime
+and an intentionally nonexistent `s_alDevice`. The backend reported the
+requested-device failure (`ALC_INVALID_VALUE`) and explicitly identified its
+working system-default fallback. The startup script then cleared `s_alDevice`
+and executed `snd_restart`. Afterward, `s_info` reported the default request
+and a connected active device without a stale fallback label. Snapshots
+continued and both clients and servers exited normally.
+
+The [device-fallback record](evidence/2026-09-08-audio-device-fallback.json)
+contains exact arguments/configs, binary/runtime hashes and before/after
+diagnostics. Output remained muted, homes isolated and input capture disabled;
+no system device settings were changed. This validates unavailable-name
+fallback and setting recovery when a default device exists. Physical device
+loss, failure of all devices and live reopening without `snd_restart` remain
+separate open cases. No new unrelated issue was found.
