@@ -41,6 +41,9 @@ and clean CI evidence for the earlier engine-only packaging correction.
 The [shipped Q3 demo checkpoint](2026-09-07-q3-shipped-demos.md) adds successful
 playback of retail-provided `.dm_66`, `.dm_68` and two `.dm3` fixtures. Visual
 parity, other formats and malformed-input coverage remain open.
+The [QL truncated-demo probe](2026-09-07-ql-truncated-demo.md) adds bounded
+recovery evidence for an independently confirmed incomplete `.dm_91` payload;
+it is not counted as complete external-demo playback.
 
 The target is one shared, drop-in binary set. It must select `q3` or `ql` before
 compatibility-sensitive initialization and then use that profile's complete,
