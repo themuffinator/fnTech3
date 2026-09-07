@@ -78,5 +78,28 @@ contains exact arguments/configs, binary/runtime hashes and before/after
 diagnostics. Output remained muted, homes isolated and input capture disabled;
 no system device settings were changed. This validates unavailable-name
 fallback and setting recovery when a default device exists. Physical device
-loss, failure of all devices and live reopening without `snd_restart` remain
-separate open cases. No new unrelated issue was found.
+loss and failure of all devices remain separate open cases. The following
+probe addresses live reopening without `snd_restart`. No new unrelated issue
+was found.
+
+## Connected-device guard and live reopen
+
+At `067646d`, both profiles repeated the unavailable-name startup with the
+same pinned x86 OpenAL Soft runtime. While each pure session was active,
+`s_alRecoverDevice` correctly skipped the still-connected default device.
+`s_alRecoverDevice force` then reported a successful default-device reopen.
+The nonexistent requested name remained configured, so the subsequent
+`s_info` correctly retained the fallback label and reported HRTF enabled.
+
+Both sessions had one sound initialization and one server-observed transition
+to an active client. No initialization was logged between the recovery
+markers; snapshots continued after reopening and after the ending marker.
+Engine screenshots showed Q3 world/HUD and QL native join UI/world. Both
+clients and servers exited normally. The [live-reopen record](evidence/2026-09-08-audio-live-reopen.json)
+pins commands/configs, executable/runtime hashes and log observations.
+
+Output remained muted, input capture disabled and writable homes isolated on
+an unswitched private desktop. No system device settings were changed. This
+establishes the connected guard and explicit reopening of a working fallback
+device, not physical disconnection, automatic recovery or audible continuity.
+No new unrelated issue was found; existing image/font warnings remain open.

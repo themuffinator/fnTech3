@@ -89,7 +89,9 @@ The [audio restart checkpoint](2026-09-08-audio-restart.md) adds muted legacy
 and OpenAL initialization/restart sessions for both profiles. Audible output
 remains unverified. Its pinned x86 OpenAL Soft follow-up passes 41 synthetic
 PCM assertions and both profiles' muted HRTF-enabled restart probes; complete
-game-audio parity and device-loss recovery remain open.
+game-audio parity and device-loss recovery remain open. The same checkpoint
+also records both profiles passing the connected-device recovery guard and
+forced live reopening of a working default fallback without sound restart.
 
 The target is one shared, drop-in binary set. It must select `q3` or `ql` before
 compatibility-sensitive initialization and then use that profile's complete,
