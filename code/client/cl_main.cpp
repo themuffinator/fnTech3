@@ -337,8 +337,10 @@ static bool CL_ParseDemoProtocolExtension( const char *ext, int *protocol )
 
 static bool CL_DemoProtocolSupported( int protocol )
 {
-	return Com_DemoProtocolSupported( protocol ) ||
-		( com_protocol && protocol == com_protocol->integer );
+	return Com_DemoProtocolSupported( protocol ) &&
+		( Com_GameProfile()->id == COM_GAME_QUAKELIVE
+			? protocol == QL_RETAIL_PROTOCOL_VERSION
+			: protocol != QL_RETAIL_PROTOCOL_VERSION );
 }
 
 static netchanWireProfile_t CL_DemoWireProfileForProtocol( int protocol )
@@ -1178,13 +1180,11 @@ static int CL_WalkDemoExt( const char *arg, char *name, int name_len, ScopedFile
 	int i;
 
 	handle.reset();
-	preferredProtocol = ( com_protocol &&
-		com_protocol->integer == QL_RETAIL_PROTOCOL_VERSION ) ?
+	preferredProtocol = ( Com_GameProfile()->id == COM_GAME_QUAKELIVE ) ?
 		QL_RETAIL_PROTOCOL_VERSION : 0;
 
-	// Preserve the historical multi-protocol order outside the explicit QL
-	// profile, while ensuring a retail session never silently chooses a same-
-	// named legacy demo before its dm_91 capture.
+	// Search only the active profile's formats. Preserve Q3's historical
+	// order; QL owns protocol 91 and must not fall back to a Q3 codec.
 	if ( preferredProtocol && CL_TryDemoProtocol( arg, preferredProtocol,
 		name, name_len, handle ) ) {
 		return preferredProtocol;
@@ -1192,7 +1192,8 @@ static int CL_WalkDemoExt( const char *arg, char *name, int name_len, ScopedFile
 
 	for ( i = 0; demo_protocols[ i ]; i++ )
 	{
-		if ( demo_protocols[ i ] == preferredProtocol ) {
+		if ( demo_protocols[ i ] == preferredProtocol ||
+			!CL_DemoProtocolSupported( demo_protocols[ i ] ) ) {
 			continue;
 		}
 		if ( CL_TryDemoProtocol( arg, demo_protocols[ i ], name, name_len,
@@ -1200,6 +1201,8 @@ static int CL_WalkDemoExt( const char *arg, char *name, int name_len, ScopedFile
 			return demo_protocols[ i ];
 		}
 	}
+
+	if ( Com_GameProfile()->id == COM_GAME_QUAKELIVE ) return -1;
 
 	Com_sprintf( name, name_len, "demos/%s.%s", arg, LEGACY_DEMOEXT );
 	OpenPureFileRead( name, handle );
@@ -1228,7 +1231,7 @@ static qboolean CL_DemoNameCallback_f( const char *filename, int length )
 
 	if ( length >= legacy_ext_len && filename[ length - legacy_ext_len ] == '.' &&
 		!Q_stricmp( filename + length - static_cast<int>( strlen( LEGACY_DEMOEXT ) ), LEGACY_DEMOEXT ) )
-		return qtrue;
+		return ToQboolean( Com_GameProfile()->id == COM_GAME_QUAKE3 );
 
 	extension = COM_GetExtension( filename );
 	if ( !CL_ParseDemoProtocolExtension( extension, &version ) )
@@ -1298,6 +1301,10 @@ static void CL_PlayDemo_f( void ) {
 	ext_test = strrchr(arg, '.');
 	if ( ext_test && CL_IsLegacyDemoExt( ext_test + 1 ) )
 	{
+		if ( Com_GameProfile()->id == COM_GAME_QUAKELIVE ) {
+			Com_Printf( "Legacy .dm3 demos require the q3 profile.\n" );
+			return;
+		}
 		protocol = OLD_PROTOCOL_VERSION;
 		Com_sprintf( name.data(), static_cast<int>( name.size() ), "demos/%s", arg );
 		OpenPureFileRead( name.data(), hFile );
@@ -1306,6 +1313,12 @@ static void CL_PlayDemo_f( void ) {
 	{
 		if ( !CL_ParseDemoProtocolExtension( ext_test + 1, &protocol ) ) {
 			protocol = -1;
+		}
+
+		if ( Com_DemoProtocolSupported( protocol ) && !CL_DemoProtocolSupported( protocol ) ) {
+			Com_Printf( "Demo protocol %d is incompatible with profile %s. Start the matching game profile.\n",
+				protocol, Com_GameProfile()->displayName );
+			return;
 		}
 
 		if ( CL_DemoProtocolSupported( protocol ) )

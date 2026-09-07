@@ -44,6 +44,9 @@ parity, other formats and malformed-input coverage remain open.
 The [QL truncated-demo probe](2026-09-07-ql-truncated-demo.md) adds bounded
 recovery evidence for an independently confirmed incomplete `.dm_91` payload;
 it is not counted as complete external-demo playback.
+The [demo isolation correction](2026-09-07-demo-profile-isolation.md) prevents
+format selection and automatic fallback from crossing the active Q3/QL
+profile boundary, with executable search tests and runtime rejection probes.
 
 The target is one shared, drop-in binary set. It must select `q3` or `ql` before
 compatibility-sensitive initialization and then use that profile's complete,
