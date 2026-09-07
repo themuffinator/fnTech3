@@ -61,7 +61,9 @@ raster, including renewed pure proofs, snapshots and engine screenshots.
 Repeated stress, renderer switching and WebUI/audio lifecycle remain open.
 The same checkpoint now also records one successful GLx → Vulkan → RTX raster
 → GLx cycle per profile, preserving the connection and renewing pure proofs.
-All directed transitions and sustained switching stress remain unverified.
+All six directed renderer transitions now pass three repetitions per profile
+in the checkpoint's follow-up. Long-duration stability and the remaining
+WebUI/audio/native-RT lifecycle gates remain open.
 The [config migration correction](2026-09-07-config-migration.md) prevents
 legacy Q3 QVM selectors from breaking first-launch QL native-module startup.
 Alternating client launches now retain separate settings in a shared home.

@@ -63,3 +63,28 @@ Audio, WebUI and Steam remained disabled; ray tracing stayed disabled in RTX.
 One cycle does not establish sustained switching stress or cover all directed
 renderer transitions. No new unrelated issue was identified; the existing
 resource diagnostics remain unresolved.
+
+## Repeated directed transitions
+
+At `6ca1474`, each profile repeated the sequence GLx → RTX raster → Vulkan →
+GLx → Vulkan → RTX raster → GLx three times in one local pure session. This
+exercises all six directed transitions three times, for 18 switches per
+profile. Each switch waited 60 frames before its end marker. The client used
+engine console commands only; no user input was controlled.
+
+Each client retained one connection, received snapshots between every switch's
+markers and completed all 18 commands. Each server received 18 reset commands
+and 19 pure proofs including initial admission. Three engine screenshots were
+written per profile; visual inspection of the final images showed intact Q3
+world/HUD and QL world/native join UI. All processes exited normally.
+
+The [repeated-switch record](evidence/2026-09-08-renderer-switch-stress.json)
+contains exact binaries, arguments/configs, transition counts, snapshot counts
+and log/image hashes. Total probe durations include scheduled server idle time
+after the clients exited and are not gameplay-performance measurements.
+Windowed rendering, isolated homes, unswitched private desktops and disabled
+input capture were retained. WebUI, audio, Steam and ray tracing remained
+disabled. This establishes bounded repeated replacement across every renderer
+pair, not long-duration resource stability, resize/device loss or the remaining
+service/audio/native-RT lifecycle gates. Existing resource warnings remain;
+no new unrelated issue was found.
