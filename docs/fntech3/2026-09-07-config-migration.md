@@ -34,6 +34,23 @@ user configs are not committed. The temporary home from the successful probe
 was removed after evidence collection.
 
 This closes the observed migration failure and adds bounded mixed-home
-persistence evidence. Broader mod/config/download isolation and dedicated
-runtime migration coverage remain open. Existing font/resource diagnostics
+persistence evidence. Broader mod/config/download isolation and extended
+migration coverage remain open. Existing font/resource diagnostics
 remain unrelated and unresolved.
+
+Follow-up at `57f201a`: the same Windows x86 dedicated executable loaded maps
+under both profiles with an isolated legacy config containing `vm_game=2`.
+Q3 retained `2`, compiled the retail qagame QVM and loaded q3dm6. QL selected
+`0`, loaded retail native qagame API 10 and loaded campgrounds/ffa. Both reached
+the post-map script marker and shut down normally. These short startup probes
+do not establish a live client connection or sustained dedicated operation.
+The [dedicated and suite record](evidence/2026-09-07-dedicated-config-migration.json)
+contains executable identity, full arguments/configs and log excerpts.
+
+The complete local Meson suite at that revision passed 110 tests with zero
+failures and one unavailable OpenAL-loopback skip. Its aggregate Python suite
+ran 1,248 tests with seven skips. This used the existing MSVC x86 build with
+the latest client/dedicated rebuild and `--no-rebuild`; it is not a clean-build
+claim. The earlier demo-header revision `04314c9` also now has a successful
+[clean Linux CI run](https://github.com/themuffinator/fnTech3/actions/runs/34166837006).
+That CI result does not cover the subsequent config-migration correction.
