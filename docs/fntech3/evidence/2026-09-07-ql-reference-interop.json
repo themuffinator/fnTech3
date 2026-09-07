@@ -1,0 +1,516 @@
+[
+  {
+    "mode": "fnclient-refserver",
+    "utc": "2026-09-07T22:15:48.139338+00:00",
+    "commit": "90a8cb20f4f6f37619868abbb8f61851df648eac",
+    "worktreeDirty": false,
+    "referenceSourceRevision": "not established for the existing binary; not asserted to be the pinned baseline",
+    "fixture": {
+      "installation": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live",
+      "profile": "ql",
+      "paks": [
+        {
+          "name": "pak00.pk3",
+          "bytes": 962052238,
+          "sha256": "7d5fd8d4786f9e140804b7279ce2589c8a7babdcf2886763a63a992ad9ef634b"
+        },
+        {
+          "name": "bin.pk3",
+          "bytes": 1381099,
+          "sha256": "0587e55a98516d9645d2dd7ad894822db4bc5190f53e11f82e7486876b753ce0"
+        }
+      ]
+    },
+    "privateDesktop": "fntech3_probe_47673f1f5e6e404caa3088b1bb6e8d26",
+    "desktopSwitched": false,
+    "queries": [
+      "\u00ff\u00ff\u00ff\u00ffinfoResponse\n\\challenge\\referenceprobe\\protocol\\91\\hostname\\fntech3-reference-probe\\mapname\\campgrounds\\clients\\0\\g_humanplayers\\0\\sv_maxclients\\16\\gametype\\0\\pure\\1\\g_needpass\\0"
+    ],
+    "mergedArtifacts": [
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.exe",
+        "sha256": "6e38d766f64541a504ad4031b39fdef035661584a904856a9d2ef064c6f1360c"
+      },
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.ded.exe",
+        "sha256": "c7654e659ca80f475080bf556a7105e300393300dc29359d0cc715c27ed4549a"
+      },
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fnql_glx_x86.dll",
+        "sha256": "157f0f61b29bb11246018aedfb0091f747c918c21204d3c279bb4f1660968a33"
+      },
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\FnQL-pkg.fnz",
+        "sha256": "1d1ff86488c3134a936486790c24954bef87abd22177e1ca8b5542cc2f06115a"
+      },
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fnql-web.pak",
+        "sha256": "6c210165880fff668900fd3e4e3c90137623043e1b5315f24b693f367f756382"
+      }
+    ],
+    "referenceArtifacts": [
+      {
+        "path": "E:\\Repositories\\FnQL\\meson\\build-win32\\fnql.exe",
+        "sha256": "8302fc8853091768c82268b5593b7193f2d3774482ebe63b821d946f9ffce14c"
+      },
+      {
+        "path": "E:\\Repositories\\FnQL\\meson\\build-win32\\fnql.ded.exe",
+        "sha256": "c215166492e316cf80e05d5bbd58f2ce0efa2d0f7ed920cb69ce62a20305a6d1"
+      },
+      {
+        "path": "E:\\Repositories\\FnQL\\meson\\build-win32\\fnql_glx_x86.dll",
+        "sha256": "a7ff11c3894a333d198fdde35f43c3a305e36b5889014d1294075348a6a64073"
+      },
+      {
+        "path": "E:\\Repositories\\FnQL\\meson\\build-win32\\FnQL-pkg.fnz",
+        "sha256": "fd5918f9be0dae26758d85c298e02b8ce85c00361b2d4327ac2eb878c8f93c2a"
+      }
+    ],
+    "server": {
+      "exe": "E:\\Repositories\\FnQL\\meson\\build-win32\\fnql.ded.exe",
+      "sha256": "c215166492e316cf80e05d5bbd58f2ce0efa2d0f7ed920cb69ce62a20305a6d1",
+      "command": [
+        "E:\\Repositories\\FnQL\\meson\\build-win32\\fnql.ded.exe",
+        "+set",
+        "fs_basepath",
+        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live",
+        "+set",
+        "fs_homepath",
+        "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-cm17c_df\\server",
+        "+set",
+        "fs_game",
+        "",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "3",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "64340",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "protocol",
+        "91",
+        "+set",
+        "cl_renderer",
+        "glx",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "640",
+        "+set",
+        "r_windowedHeight",
+        "480",
+        "+set",
+        "com_gameProfile",
+        "ql",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+exec",
+        "interop.cfg"
+      ],
+      "home": "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-cm17c_df\\server",
+      "exitCode": 0,
+      "terminated": false,
+      "screenshots": [],
+      "config": "set sv_pure 1\nset sv_autoRecordDemos 0\nset sv_hostname \"fntech3-reference-probe\"\nset sv_maxclients 2\nset sv_fps 20\nset cl_motd 0\nset cl_allowDownload 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset name \"fntech3_reference_probe\"\nset cl_shownet 2\nversion\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nmap campgrounds ffa\nwait 700\nquit\n",
+      "evidenceLines": [
+        "Going from CS_PRIMED to CS_ACTIVE for fntech3_reference_probe",
+        "Going from CS_ACTIVE to CS_ZOMBIE for fntech3_reference_probe"
+      ]
+    },
+    "client": {
+      "exe": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.exe",
+      "sha256": "6e38d766f64541a504ad4031b39fdef035661584a904856a9d2ef064c6f1360c",
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.exe",
+        "+set",
+        "fs_basepath",
+        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live",
+        "+set",
+        "fs_homepath",
+        "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-cm17c_df\\client",
+        "+set",
+        "fs_game",
+        "",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "3",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "64341",
+        "+set",
+        "dedicated",
+        "0",
+        "+set",
+        "protocol",
+        "91",
+        "+set",
+        "cl_renderer",
+        "glx",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "640",
+        "+set",
+        "r_windowedHeight",
+        "480",
+        "+set",
+        "com_gameProfile",
+        "ql",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+exec",
+        "interop.cfg"
+      ],
+      "home": "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-cm17c_df\\client",
+      "exitCode": 0,
+      "terminated": false,
+      "screenshots": [
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\ql-reference-fnclient-refserver-initial\\client-interop-proof.png",
+          "sha256": "f09d6a2400c22cdcdc4de8eb548de70d59aebedff8fe7f1c9c24620aedc15d2c"
+        }
+      ],
+      "config": "set sv_pure 1\nset sv_autoRecordDemos 0\nset sv_hostname \"fntech3-reference-probe\"\nset sv_maxclients 2\nset sv_fps 20\nset cl_motd 0\nset cl_allowDownload 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset name \"fntech3_reference_probe\"\nset cl_shownet 2\nversion\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nconnect 127.0.0.1:64340\nwait 120\nscreenshotPNG interop-proof\nwait 3\nquit\n",
+      "evidenceLines": [
+        "CL packet 127.0.0.1:64340: connectResponse 109079716 91",
+        "^5Connected to a pure server."
+      ]
+    },
+    "serverReady": true,
+    "elapsedSeconds": 18.391,
+    "requestedProtocol": 91,
+    "services": "Steam, Workshop and WebUI disabled; no authentication claim"
+  },
+  {
+    "mode": "refclient-fnserver",
+    "utc": "2026-09-07T22:16:17.418843+00:00",
+    "commit": "90a8cb20f4f6f37619868abbb8f61851df648eac",
+    "worktreeDirty": false,
+    "referenceSourceRevision": "not established for the existing binary; not asserted to be the pinned baseline",
+    "fixture": {
+      "installation": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live",
+      "profile": "ql",
+      "paks": [
+        {
+          "name": "pak00.pk3",
+          "bytes": 962052238,
+          "sha256": "7d5fd8d4786f9e140804b7279ce2589c8a7babdcf2886763a63a992ad9ef634b"
+        },
+        {
+          "name": "bin.pk3",
+          "bytes": 1381099,
+          "sha256": "0587e55a98516d9645d2dd7ad894822db4bc5190f53e11f82e7486876b753ce0"
+        }
+      ]
+    },
+    "privateDesktop": "fntech3_probe_b5f7cd55ddc74861a76af5b83cf6e908",
+    "desktopSwitched": false,
+    "queries": [
+      "\u00ff\u00ff\u00ff\u00ffinfoResponse\n\\challenge\\referenceprobe\\protocol\\91\\hostname\\fntech3-reference-probe\\mapname\\campgrounds\\clients\\0\\g_humanplayers\\0\\sv_maxclients\\16\\gametype\\0\\pure\\1\\g_needpass\\0"
+    ],
+    "mergedArtifacts": [
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.exe",
+        "sha256": "6e38d766f64541a504ad4031b39fdef035661584a904856a9d2ef064c6f1360c"
+      },
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.ded.exe",
+        "sha256": "c7654e659ca80f475080bf556a7105e300393300dc29359d0cc715c27ed4549a"
+      },
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fnql_glx_x86.dll",
+        "sha256": "157f0f61b29bb11246018aedfb0091f747c918c21204d3c279bb4f1660968a33"
+      },
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\FnQL-pkg.fnz",
+        "sha256": "1d1ff86488c3134a936486790c24954bef87abd22177e1ca8b5542cc2f06115a"
+      },
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fnql-web.pak",
+        "sha256": "6c210165880fff668900fd3e4e3c90137623043e1b5315f24b693f367f756382"
+      }
+    ],
+    "referenceArtifacts": [
+      {
+        "path": "E:\\Repositories\\FnQL\\meson\\build-win32\\fnql.exe",
+        "sha256": "8302fc8853091768c82268b5593b7193f2d3774482ebe63b821d946f9ffce14c"
+      },
+      {
+        "path": "E:\\Repositories\\FnQL\\meson\\build-win32\\fnql.ded.exe",
+        "sha256": "c215166492e316cf80e05d5bbd58f2ce0efa2d0f7ed920cb69ce62a20305a6d1"
+      },
+      {
+        "path": "E:\\Repositories\\FnQL\\meson\\build-win32\\fnql_glx_x86.dll",
+        "sha256": "a7ff11c3894a333d198fdde35f43c3a305e36b5889014d1294075348a6a64073"
+      },
+      {
+        "path": "E:\\Repositories\\FnQL\\meson\\build-win32\\FnQL-pkg.fnz",
+        "sha256": "fd5918f9be0dae26758d85c298e02b8ce85c00361b2d4327ac2eb878c8f93c2a"
+      }
+    ],
+    "server": {
+      "exe": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.ded.exe",
+      "sha256": "c7654e659ca80f475080bf556a7105e300393300dc29359d0cc715c27ed4549a",
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.ded.exe",
+        "+set",
+        "fs_basepath",
+        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live",
+        "+set",
+        "fs_homepath",
+        "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-7ij_ppet\\server",
+        "+set",
+        "fs_game",
+        "",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "3",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "64041",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "protocol",
+        "91",
+        "+set",
+        "cl_renderer",
+        "glx",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "640",
+        "+set",
+        "r_windowedHeight",
+        "480",
+        "+set",
+        "com_gameProfile",
+        "ql",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+exec",
+        "interop.cfg"
+      ],
+      "home": "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-7ij_ppet\\server",
+      "exitCode": 0,
+      "terminated": false,
+      "screenshots": [],
+      "config": "set sv_pure 1\nset sv_autoRecordDemos 0\nset sv_hostname \"fntech3-reference-probe\"\nset sv_maxclients 2\nset sv_fps 20\nset cl_motd 0\nset cl_allowDownload 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset name \"fntech3_reference_probe\"\nset cl_shownet 2\nversion\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nmap campgrounds ffa\nwait 700\nquit\n",
+      "evidenceLines": [
+        "Going from CS_PRIMED to CS_ACTIVE for fntech3_reference_probe",
+        "Going from CS_ACTIVE to CS_ZOMBIE for fntech3_reference_probe"
+      ]
+    },
+    "client": {
+      "exe": "E:\\Repositories\\FnQL\\meson\\build-win32\\fnql.exe",
+      "sha256": "8302fc8853091768c82268b5593b7193f2d3774482ebe63b821d946f9ffce14c",
+      "command": [
+        "E:\\Repositories\\FnQL\\meson\\build-win32\\fnql.exe",
+        "+set",
+        "fs_basepath",
+        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live",
+        "+set",
+        "fs_homepath",
+        "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-7ij_ppet\\client",
+        "+set",
+        "fs_game",
+        "",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "3",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "64042",
+        "+set",
+        "dedicated",
+        "0",
+        "+set",
+        "protocol",
+        "91",
+        "+set",
+        "cl_renderer",
+        "glx",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "640",
+        "+set",
+        "r_windowedHeight",
+        "480",
+        "+set",
+        "com_gameProfile",
+        "ql",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+exec",
+        "interop.cfg"
+      ],
+      "home": "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-7ij_ppet\\client",
+      "exitCode": 0,
+      "terminated": false,
+      "screenshots": [
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\ql-reference-refclient-fnserver-initial\\client-interop-proof.png",
+          "sha256": "d58250963060217361f3517b8a6ab365e955a577c2f68def24deccc9abbde6e0"
+        }
+      ],
+      "config": "set sv_pure 1\nset sv_autoRecordDemos 0\nset sv_hostname \"fntech3-reference-probe\"\nset sv_maxclients 2\nset sv_fps 20\nset cl_motd 0\nset cl_allowDownload 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset name \"fntech3_reference_probe\"\nset cl_shownet 2\nversion\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nconnect 127.0.0.1:64041\nwait 120\nscreenshotPNG interop-proof\nwait 3\nquit\n",
+      "evidenceLines": [
+        "CL packet 127.0.0.1:64041: connectResponse 1938792857 91",
+        "^5Connected to a pure server."
+      ]
+    },
+    "serverReady": true,
+    "elapsedSeconds": 17.89,
+    "requestedProtocol": 91,
+    "services": "Steam, Workshop and WebUI disabled; no authentication claim"
+  }
+]

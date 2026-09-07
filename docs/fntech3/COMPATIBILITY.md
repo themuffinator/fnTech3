@@ -47,6 +47,9 @@ it is not counted as complete external-demo playback.
 The [demo isolation correction](2026-09-07-demo-profile-isolation.md) prevents
 format selection and automatic fallback from crossing the active Q3/QL
 profile boundary, with executable search tests and runtime rejection probes.
+The [QL reference-peer checkpoint](2026-09-07-ql-reference-interop.md) adds
+bidirectional protocol-91 pure/native-module sessions with existing FnQL
+binaries. Retail executable and Steam-authenticated interoperability remain open.
 
 The target is one shared, drop-in binary set. It must select `q3` or `ql` before
 compatibility-sensitive initialization and then use that profile's complete,
