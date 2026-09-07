@@ -1227,8 +1227,10 @@ static void CL_ParseDownload( msg_t *msg ) {
 		}
 	}
 
-	if (size)
-		FileWrite( clc.download, data.data(), size );
+	if ( size && FileWrite( clc.download, data.data(), size ) != size ) {
+		Com_Error( ERR_DROP, "CL_ParseDownload: Failed writing %s", clc.downloadTempName );
+		return;
+	}
 
 	CL_AddReliableCommand( va("nextdl %d", clc.downloadBlock), qfalse );
 	clc.downloadBlock++;

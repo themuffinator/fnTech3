@@ -43,7 +43,7 @@ const char* MSG_ReadStringForWireProfile(msg_t*,int){return "server refusal";}
 struct Connection{char downloadTempName[64]="baseq3/test.pk3.tmp",downloadName[64]="baseq3/test.pk3";int recordfile=0,download=0,downloadBlock=0,downloadSize=0,downloadCount=0;}clc;
 std::vector<std::string> commands;
 std::vector<byte> written;
-int opens,closes,renames,packets,next;
+int opens,closes,renames,packets,next,writeLimit=16384;
 void Com_Printf(const char*,...){}
 void Com_DPrintf(const char*,...){}
 [[noreturn]] void Com_Error(int,const char*,...){throw 1;}
@@ -53,7 +53,7 @@ void CL_AddReliableCommand(const char*c,bool){commands.emplace_back(c);}
 const char*va(const char*f,...){static char text[128];va_list a;va_start(a,f);vsnprintf(text,sizeof(text),f,a);va_end(a);return text;}
 bool CL_ValidPakSignature(const byte*d,int n){return n>=4&&!memcmp(d,"PK\3\4",4);}
 int FS_SV_FOpenFileWrite(const char*){++opens;return 1;}
-void FileWrite(int,const byte*d,int n){written.insert(written.end(),d,d+n);}
+int FileWrite(int,const byte*d,int n){int count=n<writeLimit?n:writeLimit;written.insert(written.end(),d,d+count);return count;}
 void CloseFile(int&f){++closes;f=0;}
 void FS_SV_Rename(const char*,const char*){++renames;}
 void CL_WritePacket(int){++packets;}
@@ -86,6 +86,13 @@ int main(){
   reset(4,1);auto stale=chunk(3,false,4,{'a','b','c','d'});CL_ParseDownload(&stale);unchanged(4,4);
   reset(65536,1);auto wrap=chunk(0,false,4,{'a','b','c','d'});CL_ParseDownload(&wrap);
   assert(clc.downloadBlock==65537&&commands.back()=="nextdl 65536");
+  for(writeLimit=0;writeLimit<4;++writeLimit){
+   reset(1,1);auto failed=chunk(1,false,4,{'a','b','c','d'});bool dropped=false;
+   try{CL_ParseDownload(&failed);}catch(int){dropped=true;}
+   assert(dropped&&commands.empty()&&clc.downloadBlock==1&&clc.downloadCount==4);
+   assert(!renames&&!packets&&!next&&written.size()==size_t(writeLimit));
+  }
+  writeLimit=16384;
  }
 }
 '''

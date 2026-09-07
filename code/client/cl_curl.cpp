@@ -292,8 +292,10 @@ static size_t CL_cURL_CallbackWrite( void *buffer, size_t size, size_t nmemb, vo
 		}
 	}
 
-	FileWrite( static_cast<fileHandle_t *>( stream )[0], buffer, bytes );
-	return bytes;
+	const int written = FileWrite( static_cast<fileHandle_t *>( stream )[0], buffer, bytes );
+	// A short return makes libcurl fail the transfer instead of accepting
+	// bytes that never reached the temporary archive.
+	return written > 0 ? static_cast<size_t>( written ) : 0;
 }
 
 
@@ -863,9 +865,8 @@ static size_t Com_DL_CallbackWrite( void *ptr, size_t size, size_t nmemb, void *
 		}
 	}
 
-	FileWrite( dl->fHandle, ptr, bytes );
-
-	return bytes;
+	const int written = FileWrite( dl->fHandle, ptr, bytes );
+	return written > 0 ? static_cast<size_t>( written ) : 0;
 }
 
 
