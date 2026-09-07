@@ -177,7 +177,11 @@ class NativeModuleLoadingTests(unittest.TestCase):
             fixture = path / "loader.c"
             executable = path / ("loader.exe" if os.name == "nt" else "loader")
             fixture.write_text(PRELUDE + extracted + CHECKS, encoding="utf-8")
-            build = subprocess.run([compiler, "-std=c11", "-Wall", "-Wextra",
+            command = [compiler]
+            if (os.name == "nt" and "clang" in Path(compiler).name.lower()
+                    and os.environ.get("VSCMD_ARG_TGT_ARCH", "").lower() == "x86"):
+                command.append("--target=i686-pc-windows-msvc")
+            build = subprocess.run([*command, "-std=c11", "-Wall", "-Wextra",
                 "-Werror", "-I", str(ROOT), str(fixture), "-o", str(executable)],
                 text=True, capture_output=True, timeout=60)
             self.assertEqual(build.returncode, 0, build.stdout + build.stderr)

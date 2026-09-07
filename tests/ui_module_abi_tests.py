@@ -9,6 +9,9 @@ import tempfile
 import unittest
 
 
+from compiler_support import compiler_target_args
+
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -126,7 +129,7 @@ class UiModuleAbiTests(unittest.TestCase):
             fixture = path / "ui.cpp"
             executable = path / ("ui.exe" if os.name == "nt" else "ui")
             fixture.write_text(constants + PRELUDE + extracted + CHECKS, encoding="utf-8")
-            build = subprocess.run([compiler, "-std=c++17", "-Wall", "-Wextra",
+            build = subprocess.run([compiler, *compiler_target_args(compiler), "-std=c++17", "-Wall", "-Wextra",
                 "-Werror", str(fixture), "-o", str(executable)],
                 text=True, capture_output=True, timeout=60)
             self.assertEqual(build.returncode, 0, build.stdout + build.stderr)

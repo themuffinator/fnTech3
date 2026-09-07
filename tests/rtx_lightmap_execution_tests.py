@@ -240,7 +240,8 @@ int main(void) {
     assert(vk_rt_cpu_geometry_add_vertex(&g,xyz,n,t,uv,0xff123456,3,&index));
     assert(index==0 && g.numVertices==1 && g.vertices[0].materialIndex==3);
     for (int i=0;i<4;++i) assert(g.vertices[0].lightmapData[i]==0);
-    assert(g.vertices[0].texCoord[0]==.2f && g.vertices[0].xyz[2]==3);
+    /* Verify the packed float bytes, independent of x87 excess precision. */
+    assert(!memcmp(g.vertices[0].texCoord,uv,sizeof(uv)) && g.vertices[0].xyz[2]==3);
     assert(vk_rt_cpu_geometry_add_vertex(&g,xyz,n,t,uv,0,0,0));
     assert(!vk_rt_cpu_geometry_add_vertex(&g,xyz,n,t,uv,0,0,0));
     assert(g.numVertices==2);

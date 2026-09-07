@@ -7,6 +7,9 @@ import subprocess
 import tempfile
 import unittest
 
+from compiler_support import compiler_target_args
+
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -81,7 +84,7 @@ int main(void) {
             for dedicated in (False, True):
                 with self.subTest(dedicated=dedicated):
                     executable = Path(folder) / ("write-config.exe" if os.name == "nt" else "write-config")
-                    command = [compiler, "-std=c11", "-Wall", "-Wextra", "-Werror"]
+                    command = [compiler, *compiler_target_args(compiler), "-std=c11", "-Wall", "-Wextra", "-Werror"]
                     if dedicated:
                         command.append("-DDEDICATED")
                     build = subprocess.run([*command, str(cfile), "-o", str(executable)],
@@ -155,7 +158,7 @@ int main(void) {
             cfile = Path(folder) / "startup.c"
             executable = Path(folder) / ("startup.exe" if os.name == "nt" else "startup")
             cfile.write_text(fixture, encoding="utf-8")
-            build = subprocess.run([compiler, "-std=c11", "-Wall", "-Wextra", "-Werror",
+            build = subprocess.run([compiler, *compiler_target_args(compiler), "-std=c11", "-Wall", "-Wextra", "-Werror",
                                     str(cfile), "-o", str(executable)], capture_output=True, text=True, timeout=60)
             self.assertEqual(build.returncode, 0, build.stdout + build.stderr)
             run = subprocess.run([str(executable)], capture_output=True, text=True, timeout=15)
@@ -228,7 +231,7 @@ int main(void) {
             for dedicated in (False, True):
                 with self.subTest(dedicated=dedicated):
                     executable = path / ("config.exe" if os.name == "nt" else "config")
-                    command = [compiler, "-std=c11", "-Wall", "-Wextra", "-Werror"]
+                    command = [compiler, *compiler_target_args(compiler), "-std=c11", "-Wall", "-Wextra", "-Werror"]
                     if dedicated:
                         command.append("-DDEDICATED")
                     build = subprocess.run([*command, str(cfile), "-o", str(executable)],

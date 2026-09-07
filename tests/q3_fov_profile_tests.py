@@ -9,6 +9,9 @@ import tempfile
 import unittest
 
 
+from compiler_support import compiler_target_args
+
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -144,7 +147,7 @@ class Q3FovProfileTests(unittest.TestCase):
             fixture.write_text(flags + "\n" + HARNESS, encoding="utf-8")
             for mode in (None, "USE_FBO", "USE_VULKAN"):
                 with self.subTest(mode=mode):
-                    command = [compiler, "-std=c11", "-Wall", "-Wextra", "-Werror",
+                    command = [compiler, *compiler_target_args(compiler), "-std=c11", "-Wall", "-Wextra", "-Werror",
                         "-I", str(ROOT), str(fixture), "-o", str(executable)]
                     if mode:
                         command.append("-D" + mode)

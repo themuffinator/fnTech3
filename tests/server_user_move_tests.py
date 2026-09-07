@@ -11,6 +11,9 @@ import unittest
 
 from spawn_view_angle_source_tests import function_body
 
+from compiler_support import compiler_target_args
+
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -148,10 +151,10 @@ class ServerUserMoveTests(unittest.TestCase):
             harness.write_text(HARNESS.replace("@SV_USER_MOVE@", body), encoding="utf-8")
             include = str(ROOT / "code/qcommon")
             if Path(compiler).stem.lower() == "cl":
-                command = [compiler, "/nologo", "/std:c++20", "/EHsc", "/W4", "/WX",
+                command = [compiler, *compiler_target_args(compiler), "/nologo", "/std:c++20", "/EHsc", "/W4", "/WX",
                            "/I" + include, str(harness), "/Fe:" + str(executable)]
             else:
-                command = [compiler, "-std=c++20", "-Wall", "-Wextra", "-Werror",
+                command = [compiler, *compiler_target_args(compiler), "-std=c++20", "-Wall", "-Wextra", "-Werror",
                            "-I" + include, str(harness), "-o", str(executable)]
             built = subprocess.run(command, cwd=folder, capture_output=True, text=True, timeout=60)
             self.assertEqual(built.returncode, 0, built.stdout + built.stderr)

@@ -180,6 +180,9 @@ class PlatformPortSafetyTests(unittest.TestCase):
                     executable = Path(temporary) / ("banner.exe" if os.name == "nt" else "banner")
                     command = [compiler, "-std=c++17", "-Wall", "-Wextra", "-Werror",
                                "-I", str(ROOT), str(source), "-o", str(executable)]
+                    if (os.name == "nt" and "clang" in Path(compiler).name.lower()
+                            and os.environ.get("VSCMD_ARG_TGT_ARCH", "").lower() == "x86"):
+                        command.append("--target=i686-pc-windows-msvc")
                     if dedicated:
                         command.append("-DDEDICATED")
                     built = subprocess.run(command, capture_output=True, text=True, timeout=60)

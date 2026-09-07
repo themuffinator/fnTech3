@@ -39,12 +39,19 @@ class X86BuildConstraintTests(unittest.TestCase):
             source.write_text('#include "q_platform.h"\nint main(void) { return 0; }\n')
             command = [compiler, "-fsyntax-only", "-DFNTECH3_Q3_ONLY=1",
                        "-I", str(ROOT / "code/qcommon"), str(source)]
-            wide = subprocess.run(command + ["-m64"], capture_output=True, text=True, timeout=30)
-            if os.name == "nt":
-                self.assertEqual(wide.returncode, 0, wide.stdout + wide.stderr)
-            else:
-                self.assertNotEqual(wide.returncode, 0)
-                self.assertIn("Q3-only diagnostic builds require Windows x86_64", wide.stderr)
+            with self.subTest(architecture="x64"):
+                capability = Path(temp) / "capability.c"
+                capability.write_text('_Static_assert(sizeof(void *) == 8, "64-bit compiler");\n')
+                supported = subprocess.run([compiler, "-fsyntax-only", "-m64", str(capability)],
+                                           capture_output=True, text=True, timeout=30)
+                if supported.returncode:
+                    self.skipTest("selected compiler cannot target x64; x86 rejection is still tested")
+                wide = subprocess.run(command + ["-m64"], capture_output=True, text=True, timeout=30)
+                if os.name == "nt":
+                    self.assertEqual(wide.returncode, 0, wide.stdout + wide.stderr)
+                else:
+                    self.assertNotEqual(wide.returncode, 0)
+                    self.assertIn("Q3-only diagnostic builds require Windows x86_64", wide.stderr)
             narrow = subprocess.run(command + ["-m32"], capture_output=True, text=True, timeout=30)
             self.assertNotEqual(narrow.returncode, 0)
             self.assertIn("Q3-only diagnostic builds require Windows x86_64", narrow.stderr)
@@ -59,6 +66,9 @@ class X86BuildConstraintTests(unittest.TestCase):
                     executable = Path(temp) / ("q3-only.exe" if q3_only else "shared.exe")
                     command = [compiler, "-std=c++17", str(ROOT / "tests/game_profile_tests.cpp"),
                                str(ROOT / "code/qcommon/game_profile.cpp"), "-o", str(executable)]
+                    if (os.name == "nt" and "clang" in Path(compiler).name.lower()
+                            and os.environ.get("VSCMD_ARG_TGT_ARCH", "").lower() == "x86"):
+                        command.append("--target=i686-pc-windows-msvc")
                     if q3_only:
                         command.append("-DFNTECH3_Q3_ONLY=1")
                     compiled = subprocess.run(command, capture_output=True, text=True, timeout=60)

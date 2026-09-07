@@ -9,6 +9,9 @@ import tempfile
 import unittest
 
 
+from compiler_support import compiler_target_args
+
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -205,7 +208,7 @@ class PureProfileContractTests(unittest.TestCase):
             fixture = path / "pure.cpp"
             executable = path / ("pure.exe" if os.name == "nt" else "pure")
             fixture.write_text(constants + "\n" + PRELUDE + extracted + CHECKS, encoding="utf-8")
-            build = subprocess.run([compiler, "-std=c++17", "-Wall", "-Wextra", "-Werror",
+            build = subprocess.run([compiler, *compiler_target_args(compiler), "-std=c++17", "-Wall", "-Wextra", "-Werror",
                 str(fixture), "-o", str(executable)], text=True, capture_output=True, timeout=60)
             self.assertEqual(build.returncode, 0, build.stdout + build.stderr)
             result = subprocess.run([str(executable)], text=True, capture_output=True, timeout=15)

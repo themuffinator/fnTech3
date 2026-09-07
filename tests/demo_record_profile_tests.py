@@ -9,6 +9,9 @@ import tempfile
 import unittest
 
 
+from compiler_support import compiler_target_args
+
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -102,7 +105,7 @@ int main() {
             cpp = path / "record.cpp"
             executable = path / ("record.exe" if os.name == "nt" else "record")
             cpp.write_text(fixture, encoding="utf-8")
-            result = subprocess.run([compiler,"-std=c++17","-Wall","-Wextra","-Werror",
+            result = subprocess.run([compiler, *compiler_target_args(compiler),"-std=c++17","-Wall","-Wextra","-Werror",
                 "-I",str(ROOT),str(cpp),"-o",str(executable)], text=True,
                 capture_output=True, timeout=60)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)

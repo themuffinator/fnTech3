@@ -114,7 +114,7 @@ int main(int argc, char **argv) {
         const fs::path invalid = root / profile->key;
         const fs::path manifest = invalid / "steamapps" / ("appmanifest_" + std::string(profile->steamAppId) + ".acf");
         char dir[MAX_OSPATH];
-        for (const std::string &name : {"..", ".", "../escape", "/absolute", "C:\\\\escape", "bad.", "bad ", "bad:name", "bad?name"}) {
+        for (const char *name : {"..", ".", "../escape", "/absolute", "C:\\\\escape", "bad.", "bad ", "bad:name", "bad?name"}) {
             Write(manifest, Manifest(profile, name));
             assert(!Sys_SteamManifestInstallDir(profile, invalid.string().c_str(), dir, sizeof(dir)));
             assert(!dir[0]);
