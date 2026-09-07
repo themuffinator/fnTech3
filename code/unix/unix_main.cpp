@@ -865,10 +865,10 @@ void Sys_PrintBinVersion( const char* name )
 	fprintf( stdout, "\n\n%s\n", sep );
 #ifdef DEDICATED
 	fprintf( stdout, "%s Dedicated Server (%s-%s) [%s %s]\n",
-		FNQL_PROJECT_NAME, OS_STRING, ARCH_STRING, date, time );
+		FNTECH3_PROJECT_NAME, OS_STRING, ARCH_STRING, date, time );
 #else
 	fprintf( stdout, "%s Client (%s-%s) [%s %s]\n",
-		FNQL_PROJECT_NAME, OS_STRING, ARCH_STRING, date, time );
+		FNTECH3_PROJECT_NAME, OS_STRING, ARCH_STRING, date, time );
 #endif
 	fprintf( stdout, " local install: %s\n", name );
 	fprintf( stdout, "%s\n\n", sep );

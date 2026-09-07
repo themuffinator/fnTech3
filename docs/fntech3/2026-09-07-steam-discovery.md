@@ -112,3 +112,13 @@ module startup, protocol/map response and exit 0. The additional manifest is
   This dependency failure does not establish a renderer compile defect.
 
 The [compatibility ledger](COMPATIBILITY.md) retains the broader open gates.
+
+## Linux build follow-up
+
+The Unix version banner now uses `FNTECH3_PROJECT_NAME`. Its previous substring
+test accepted the obsolete macro without checking that the declaration existed.
+The replacement regression compiles and executes the actual banner function
+against the canonical version header in both client and dedicated-server lanes;
+the focused platform suite passes all 21 tests. This is host compiler evidence,
+not a claim that the complete Linux engine or build matrix has passed. The next
+Linux CI run must validate the full Make/Meson/CMake and i686 test paths.

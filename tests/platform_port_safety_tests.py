@@ -1,6 +1,10 @@
 from __future__ import annotations
 
 import unittest
+import os
+import shutil
+import subprocess
+import tempfile
 from pathlib import Path
 
 
@@ -158,16 +162,33 @@ class PlatformPortSafetyTests(unittest.TestCase):
         self.assertLess(provider.index("appRoot, PATH_SEP"), provider.index("baseRoot, PATH_SEP"))
         self.assertIn("std::strcmp(appRoot, baseRoot) != 0", provider)
 
-    def test_unix_version_banner_uses_fnql_platform_identity(self) -> None:
+    def test_unix_version_banner_compiles_with_canonical_metadata(self) -> None:
+        compiler = shutil.which("clang++") or shutil.which("g++")
+        if compiler is None:
+            self.skipTest("a native C++ compiler is unavailable")
         unix = read("code/unix/unix_main.cpp")
-
-        banner_start = unix.index("void Sys_PrintBinVersion")
-        banner_end = unix.index("#ifdef __APPLE__", banner_start)
-        banner = unix[banner_start:banner_end]
-        self.assertIn("FNQL_PROJECT_NAME", banner)
-        self.assertIn("OS_STRING", banner)
-        self.assertIn("ARCH_STRING", banner)
-        self.assertNotIn("Quake3", banner)
+        start = unix.index("void Sys_PrintBinVersion")
+        banner = unix[start:unix.index("\n}", start) + 2]
+        fixture = ('#include <cstdio>\n#include "version/fntech3_version.h"\n'
+                   '#define OS_STRING "linux"\n#define ARCH_STRING "i386"\n' + banner +
+                   '\nint main() { Sys_PrintBinVersion("synthetic-install"); }\n')
+        with tempfile.TemporaryDirectory(prefix="fntech3-unix-banner-") as temporary:
+            source = Path(temporary) / "banner.cpp"
+            source.write_text(fixture, encoding="utf-8")
+            for dedicated in (False, True):
+                with self.subTest(dedicated=dedicated):
+                    executable = Path(temporary) / ("banner.exe" if os.name == "nt" else "banner")
+                    command = [compiler, "-std=c++17", "-Wall", "-Wextra", "-Werror",
+                               "-I", str(ROOT), str(source), "-o", str(executable)]
+                    if dedicated:
+                        command.append("-DDEDICATED")
+                    built = subprocess.run(command, capture_output=True, text=True, timeout=60)
+                    self.assertEqual(built.returncode, 0, built.stdout + built.stderr)
+                    run = subprocess.run([str(executable)], capture_output=True, text=True, timeout=15)
+                    self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+                    role = "Dedicated Server" if dedicated else "Client"
+                    self.assertIn(f"fnTech3 {role} (linux-i386)", run.stdout)
+                    self.assertIn("local install: synthetic-install", run.stdout)
 
     def test_linux_ansi_console_conversion_is_bounded(self) -> None:
         unix = read("code/unix/unix_main.cpp")
