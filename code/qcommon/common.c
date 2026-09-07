@@ -3145,12 +3145,23 @@ static void Com_ExecuteCfg( void )
 	// root. Existing FnQ3/FnQL q3config.cfg files remain a one-way migration
 	// fallback when no qzconfig.cfg exists yet.
 	if ( !Com_SafeMode() ) {
-		if ( FS_ProfileFileExists( QL_CONFIG_HARDWARE_FILE ) ) {
+		const qboolean legacyConfig = !FS_ProfileFileExists( QL_CONFIG_HARDWARE_FILE );
+		if ( !legacyConfig ) {
 			Cbuf_ExecuteText( EXEC_NOW, "execq " QL_CONFIG_HARDWARE_FILE "\n" );
 		} else {
 			Cbuf_ExecuteText( EXEC_NOW, "execq " Q3CONFIG_CFG "\n" );
 		}
 		Cbuf_Execute();
+		if ( legacyConfig ) {
+			// Q3 archives compiled-QVM choices in this shared legacy filename.
+			// Migrate user settings without selecting QVMs for retail QL. Later
+			// QL configs/autoexec and command-line replay retain their overrides.
+#ifndef DEDICATED
+			Cvar_Set( "vm_ui", "0" );
+			Cvar_Set( "vm_cgame", "0" );
+#endif
+			Cvar_Set( "vm_game", "0" );
+		}
 	}
 
 #ifndef DEDICATED

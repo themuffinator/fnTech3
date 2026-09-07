@@ -62,6 +62,9 @@ Repeated stress, renderer switching and WebUI/audio lifecycle remain open.
 The same checkpoint now also records one successful GLx → Vulkan → RTX raster
 → GLx cycle per profile, preserving the connection and renewing pure proofs.
 All directed transitions and sustained switching stress remain unverified.
+The [config migration correction](2026-09-07-config-migration.md) prevents
+legacy Q3 QVM selectors from breaking first-launch QL native-module startup.
+Alternating client launches now retain separate settings in a shared home.
 
 The target is one shared, drop-in binary set. It must select `q3` or `ql` before
 compatibility-sensitive initialization and then use that profile's complete,

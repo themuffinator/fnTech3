@@ -179,7 +179,20 @@ int main(void) {
 #define Q3CONFIG_CFG "q3config.cfg"
 #define QL_CONFIG_HARDWARE_FILE "qzconfig.cfg"
 #define QL_CONFIG_REPLICATE_FILE "repconfig.cfg"
-static int quake3, safe, hardware, probes, count, executions;
+typedef int qboolean;
+static int quake3, safe, hardware, probes, count, executions, moduleResets;
+static void Cvar_Set(const char *name, const char *value) {
+    assert(!quake3 && !safe && !hardware);
+    assert(executions == 2); // Only after the legacy config has executed.
+    assert(!strcmp(value,"0"));
+#ifdef DEDICATED
+    assert(!strcmp(name,"vm_game"));
+#else
+    const char *names[] = {"vm_ui","vm_cgame","vm_game"};
+    assert(moduleResets < 3 && !strcmp(name,names[moduleResets]));
+#endif
+    ++moduleResets;
+}
 static const char *commands[8];
 static int Com_GameIsQuake3(void) { return quake3; }
 static int Com_SafeMode(void) { return safe; }
@@ -196,9 +209,14 @@ int main(void) {
     for (quake3 = 0; quake3 <= 1; ++quake3)
     for (safe = 0; safe <= 1; ++safe)
     for (hardware = 0; hardware <= 1; ++hardware) {
-        count = executions = probes = 0;
+        count = executions = probes = moduleResets = 0;
         Com_ExecuteCfg();
         assert(count == executions);
+#ifdef DEDICATED
+        assert(moduleResets == (!quake3 && !safe && !hardware ? 1 : 0));
+#else
+        assert(moduleResets == (!quake3 && !safe && !hardware ? 3 : 0));
+#endif
         assert(!strcmp(commands[0], "exec default.cfg\n"));
         if (quake3) {
             assert(probes == 0);
