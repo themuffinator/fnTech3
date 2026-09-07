@@ -37,3 +37,29 @@ fast/keep-window restart, renderer switching, resize/device loss, WebUI or
 audio lifecycle gates. The shared x86 native-RT gate also remains open.
 Unrelated existing missing compiler-light-image, font fallback and mixed-image-
 flag diagnostics remain visible; these probes do not resolve those asset issues.
+
+## Renderer replacement cycle
+
+At `10c752b`, both profiles additionally completed one GLx → Vulkan → RTX
+raster → GLx cycle in an active local pure session. The startup script used
+`renderer_switch vk`, `renderer_switch rtx`, and `renderer_switch glx`, with
+120 frames and an engine screenshot after each transition. These commands
+use the default keep-window request; changing the renderer causes
+`CL_ShutdownRef` to promote shutdown to DLL unload, so this is evidence for
+renderer replacement rather than same-renderer fast restart.
+
+Each client logged exactly one connection response. Each server logged one
+active-state transition, three `vdr` resets and four `cp` proofs including
+initial admission. Snapshot counts between each switch's begin/end markers
+were 71/71/73 for Q3 and 156/168/160 for QL. All clients and servers exited
+normally. All six post-switch engine PNGs were visually inspected: Q3 retained
+its world/HUD and QL retained its world/native join UI through the return to
+GLx. This is a functional rendering check, not pixel-parity evidence.
+
+The [cycle record](evidence/2026-09-07-renderer-cycle.json) contains exact
+commands/configs, artifact and image hashes, fixture identity and log excerpts.
+The same windowed, isolated-home, no-input-control restrictions above apply.
+Audio, WebUI and Steam remained disabled; ray tracing stayed disabled in RTX.
+One cycle does not establish sustained switching stress or cover all directed
+renderer transitions. No new unrelated issue was identified; the existing
+resource diagnostics remain unresolved.

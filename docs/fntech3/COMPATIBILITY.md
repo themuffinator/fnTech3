@@ -59,6 +59,9 @@ The [shared x86 renderer-restart checkpoint](2026-09-07-renderer-restart.md)
 adds one successful full restart for each profile with GLx, Vulkan and RTX
 raster, including renewed pure proofs, snapshots and engine screenshots.
 Repeated stress, renderer switching and WebUI/audio lifecycle remain open.
+The same checkpoint now also records one successful GLx → Vulkan → RTX raster
+→ GLx cycle per profile, preserving the connection and renewing pure proofs.
+All directed transitions and sustained switching stress remain unverified.
 
 The target is one shared, drop-in binary set. It must select `q3` or `ql` before
 compatibility-sensitive initialization and then use that profile's complete,
