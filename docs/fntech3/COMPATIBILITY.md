@@ -68,6 +68,9 @@ Alternating client launches now retain separate settings in a shared home.
 The [Q3 native-module checkpoint](2026-09-07-q3-native-modules.md) adds a
 legacy-native non-pure session and restores Q3's required QVM selection at
 pure admission. QL pinned-native admission still passes with the same client.
+The [shader light-RGB correction](2026-09-07-shader-light-rgb.md) accepts the
+bare triples observed in a Q3 add-on while preserving parenthesized syntax,
+with malformed-input tests and both-profile playback in all three renderers.
 
 The target is one shared, drop-in binary set. It must select `q3` or `ql` before
 compatibility-sensitive initialization and then use that profile's complete,

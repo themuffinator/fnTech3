@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 #include "tr_local.h"
+#include <float.h>
 
 // tr_shader.c -- this file deals with the parsing and definition of shaders
 
@@ -1957,10 +1958,31 @@ static void ParseQ3MapLightRGB( const char **text )
 {
 	vec3_t color;
 	float maxColor;
+	const char *cursor = *text;
+	const char *token = COM_ParseExt( &cursor, qfalse );
+	const qboolean parenthesized = !strcmp( token, "(" );
+	int i;
 
-	if ( !ParseVector( text, 3, color ) ) {
+	// Compiler-light metadata occurs as either a bare RGB triple or a tuple.
+	// Parse transactionally so malformed input cannot consume the next stage.
+	for ( i = 0; i < 3; ++i ) {
+		char *end;
+		double value;
+		if ( i || parenthesized ) {
+			token = COM_ParseExt( &cursor, qfalse );
+		}
+		value = strtod( token, &end );
+		if ( end == token || *end || !( value >= -FLT_MAX && value <= FLT_MAX ) ) {
+			ri.Printf( PRINT_WARNING, "WARNING: invalid q3map_lightRGB in shader '%s'\n", shader.name );
+			return;
+		}
+		color[i] = (float)value;
+	}
+	if ( parenthesized && strcmp( COM_ParseExt( &cursor, qfalse ), ")" ) ) {
+		ri.Printf( PRINT_WARNING, "WARNING: missing q3map_lightRGB parenthesis in shader '%s'\n", shader.name );
 		return;
 	}
+	*text = cursor;
 
 	maxColor = MAX( color[0], MAX( color[1], color[2] ) );
 	if ( maxColor <= 0.0f ) {
