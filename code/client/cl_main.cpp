@@ -1113,7 +1113,14 @@ void CL_ReadDemoMessage( void ) {
 	case fnql::demo::EnvelopeStatus::Message:
 		break;
 	case fnql::demo::EnvelopeStatus::EndOfStreamTrailer:
+		CL_DemoCompleted();
+		return;
 	case fnql::demo::EnvelopeStatus::TruncatedHeader:
+		// EOF between records remains tolerated for historical recordings, but
+		// a partial record header is evidence of truncation, just like its body.
+		if ( envelope.headerBytes != 0 ) {
+			Com_Printf( "Demo file was truncated.\n" );
+		}
 		CL_DemoCompleted();
 		return;
 	case fnql::demo::EnvelopeStatus::TruncatedPayload:
