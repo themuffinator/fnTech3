@@ -71,6 +71,9 @@ pure admission. QL pinned-native admission still passes with the same client.
 The [shader light-RGB correction](2026-09-07-shader-light-rgb.md) accepts the
 bare triples observed in a Q3 add-on while preserving parenthesized syntax,
 with malformed-input tests and both-profile playback in all three renderers.
+The [2026-09-08 regression checkpoint](2026-09-08-regression-checkpoint.md)
+records the complete local suite after these corrections and clean CI for
+the earlier config-migration revision, keeping their evidence scopes separate.
 
 The target is one shared, drop-in binary set. It must select `q3` or `ql` before
 compatibility-sensitive initialization and then use that profile's complete,
@@ -134,7 +137,7 @@ to the evidence level named in the same cell.
 
 1. **Boundary ABI verification.** Q3 adapters and profile-specific server-memory
    access are integrated, with Q3 QVM and QL native client/server observations.
-   Complete client and extension audits, Q3 native module coverage, and broader
+   Complete client and extension audits, broader Q3 native module coverage, and
    runtime probes are still required.
 2. **Live wire evidence.** Live usercmd/entity/playerstate call sites select
    explicit wire profiles. Field-table parity and transactional malformed-input
@@ -161,7 +164,9 @@ to the evidence level named in the same cell.
    now use fnTech3 identity. Retained external sidecar names, unsupported legacy
    packaging paths and reproducible/package-runtime evidence remain open.
    The [engine-only correction](2026-09-07-engine-only-packaging.md) removes
-   inherited closed-source provider staging; clean CI must verify this revision.
+   inherited closed-source provider staging. Subsequent clean CI now validates
+   that packaging path; see the [regression checkpoint](2026-09-08-regression-checkpoint.md).
+   Reproducibility and packaged runtime gates remain open.
 6. **Q3 coverage remains incomplete.** Local QVM startup, pure admission, world
    rendering, and HUD are observed. The RTX raster black geometry defect is fixed
    and verified on the frozen demo; broader formats, native modules, remote peers,

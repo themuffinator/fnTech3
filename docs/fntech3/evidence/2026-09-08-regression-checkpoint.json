@@ -1,0 +1,48 @@
+{
+  "commit": "b60580fbd16fe5ab998000f9ef94bf84b23d73c1",
+  "platform": "Windows MSVC x86",
+  "command": "cmd /c .tmp\\test-profile-msvc-environment.cmd",
+  "build": "Existing .tmp/meson-msvc-x86-release, vcvars32; meson test --no-rebuild --print-errorlogs",
+  "meson": {
+    "passed": 110,
+    "failed": 0,
+    "skipped": 1,
+    "skip": "OpenAL loopback unavailable (exit 77)"
+  },
+  "python": {
+    "tests": 1250,
+    "skipped": 7
+  },
+  "logs": [
+    {
+      "path": ".tmp/merger-full-validation-b60580f.log",
+      "sha256": "5cd9ed3a2978a5525cc2d0ac0770d15b1c2e136ebd28377fa2b0f742ec1bd724"
+    },
+    {
+      "path": ".tmp/meson-msvc-x86-release/meson-logs/testlog.txt",
+      "sha256": "10d44d69c1512982eea344eda251ab14fa130de6c79f6dbfc5707a35c0c0f189"
+    }
+  ],
+  "artifacts": [
+    {
+      "name": "fntech3.exe",
+      "sha256": "8268eb0dbada7ceb4caa87b64bf2061f220634c9eaaf391466712bdb7c24b386"
+    },
+    {
+      "name": "fntech3.ded.exe",
+      "sha256": "237591ac13327d43c806467c5ef0508d622c97a2a15327ed72aafaf2bd26a5f3"
+    },
+    {
+      "name": "fnql_glx_x86.dll",
+      "sha256": "69f933d55b1007ffec7933537316ca34a7ba21b19ac0b7279acd62cdd30dfdaa"
+    },
+    {
+      "name": "fnql_vk_x86.dll",
+      "sha256": "aa56a961bb145c5bbaafa87f9e6c77493a790f17afb5bc26c807a07a76722d83"
+    },
+    {
+      "name": "fnql_rtx_x86.dll",
+      "sha256": "a6dc1d482fdf9b51b82ab0d195908d7ca8353603b355e437c2032fa5185f79e5"
+    }
+  ]
+}
