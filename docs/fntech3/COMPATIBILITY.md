@@ -55,6 +55,10 @@ historical EOF handling, with shared reader tests and both-profile probes.
 The [QL reference-peer checkpoint](2026-09-07-ql-reference-interop.md) adds
 bidirectional protocol-91 pure/native-module sessions with existing FnQL
 binaries. Retail executable and Steam-authenticated interoperability remain open.
+The [shared x86 renderer-restart checkpoint](2026-09-07-renderer-restart.md)
+adds one successful full restart for each profile with GLx, Vulkan and RTX
+raster, including renewed pure proofs, snapshots and engine screenshots.
+Repeated stress, renderer switching and WebUI/audio lifecycle remain open.
 
 The target is one shared, drop-in binary set. It must select `q3` or `ql` before
 compatibility-sensitive initialization and then use that profile's complete,
