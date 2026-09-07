@@ -2936,9 +2936,11 @@ void CL_InitCGame( void ) {
 	interpret = static_cast<vmInterpret_t>( Cvar_VariableIntegerValue( "vm_cgame" ) );
 	if ( cl_connectedToPureServer )
 	{
-		// Retail QL has no cgame QVM. Permit only the exact native image
-		// pinned before the server's pure filesystem policy took effect.
-		if ( interpret != VMI_COMPILED && interpret != VMI_BYTECODE ) {
+		if ( Com_GameIsQuake3() ) {
+			// Q3 pure servers require QVMs, including when startup used a DLL.
+			interpret = VMI_COMPILED;
+		} else if ( interpret != VMI_COMPILED && interpret != VMI_BYTECODE ) {
+			// QL pure reloads require the native image pinned before admission.
 			interpret = VM_HasPinnedNativeModule( VM_CGAME )
 				? VMI_PINNED_NATIVE : VMI_COMPILED;
 		}

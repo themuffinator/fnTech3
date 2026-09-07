@@ -2051,9 +2051,11 @@ void CL_InitUI( void ) {
 	interpret = static_cast<vmInterpret_t>( Cvar_VariableIntegerValue( "vm_ui" ) );
 	if ( cl_connectedToPureServer )
 	{
-		// Retail QL has no UI QVM. A pure server may reload only the exact
-		// native image pinned before its filesystem policy took effect.
-		if ( interpret != VMI_COMPILED && interpret != VMI_BYTECODE ) {
+		if ( Com_GameIsQuake3() ) {
+			// Q3 pure servers require QVMs, including when startup used a DLL.
+			interpret = VMI_COMPILED;
+		} else if ( interpret != VMI_COMPILED && interpret != VMI_BYTECODE ) {
+			// QL pure reloads require the native image pinned before admission.
 			interpret = VM_HasPinnedNativeModule( VM_UI )
 				? VMI_PINNED_NATIVE : VMI_COMPILED;
 		}
