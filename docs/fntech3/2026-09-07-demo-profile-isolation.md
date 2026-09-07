@@ -34,7 +34,7 @@ The [runtime record](evidence/2026-09-07-demo-profile-isolation.json) contains
 binary hashes, commands/configs and outcomes. Runs used isolated writable homes,
 windowed GLx, disabled mouse/joystick capture and startup console commands. No
 input injection or screen capture was used; no proprietary inputs were added.
-Broad demo-format, active-session preservation, malformed-input and full
+Broad demo-format, malformed-input and full
 interoperability gates remain open. Existing resource warnings are unchanged.
 
 Follow-up at `a03b5d3`: the executable selector harness now also runs the
@@ -45,3 +45,23 @@ request does reach it. Production filename completion is tested with mixed
 case, cross-profile formats, trailing junk, negative values, missing digits
 and integer overflow. These checks pass on Windows and Linux. This strengthens
 the control-flow evidence; it is not an end-to-end active-session runtime test.
+
+Runtime follow-up at `3703a60`: the same Windows MSVC x86 client and dedicated
+server were exercised under both profiles. After pure admission and an active
+local session, Q3 rejected `demo cross.dm_91` and QL rejected `demo cross.dm_68`.
+Both returned to the next scripted command and continued receiving snapshots
+without reconnecting. Each server recorded exactly one transition to
+`CS_ACTIVE`; both clients and servers exited normally. Engine-generated PNGs
+showed the Q3 world/HUD and QL world/native join screen beneath the console.
+The [active-session record](evidence/2026-09-07-active-demo-rejection.json)
+contains exact binary hashes, startup arguments, configs, log excerpts and
+screenshot hashes. These probes supplied no cross-profile demo file; the
+executable harness above covers rejection when such files exist. Runs used
+isolated homes, windowed GLx and an unswitched private desktop, with mouse and
+joystick capture disabled and no input injection. Proprietary inputs and
+screenshots remain outside version control.
+
+The clean [Linux i686 CI run at `90a8cb2`](https://github.com/themuffinator/fnTech3/actions/runs/34165958465)
+also passed. This adds build/test evidence for demo isolation; broader demo
+formats, malformed payloads and retail interoperability remain open. No new
+unrelated issue was found in these active-session probes.
