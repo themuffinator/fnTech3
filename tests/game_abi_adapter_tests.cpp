@@ -126,7 +126,56 @@ static int TestPlayerTranslation() {
 	return 0;
 }
 
+// The current internal layouts match the frozen QL prefix. Distinct finite
+// words make this a byte-for-byte baseline check of every field and array slot,
+// while guard bytes detect writes beyond the native player-state envelope.
+template<class T> static void FillQLBaseline( T &value ) {
+	static_assert( sizeof( T ) % 4 == 0 );
+	for ( std::size_t i = 0; i < sizeof( T ) / 4; ++i ) {
+		const std::uint32_t word = 0x3f000000u + static_cast<std::uint32_t>( i );
+		std::memcpy( reinterpret_cast<unsigned char *>( &value ) + i * 4, &word, 4 );
+	}
+}
+
+static int TestQLSnapshotTranslation() {
+	playerState_t player;
+	FillQLBaseline( player );
+	player.forwardmove = -127;
+	player.rightmove = 127;
+	player.upmove = -1;
+	struct GuardedPlayer {
+		unsigned char before[16];
+		unsigned char envelope[FNTECH3_QL_RETAIL_SNAPSHOT_PLAYERSTATE_BYTES];
+		unsigned char after[16];
+	} guarded;
+	std::memset( &guarded, 0xa5, sizeof( guarded ) );
+	FnTech3_QLSnapshotPlayerStateFromInternal( guarded.envelope, &player );
+	static_assert( sizeof( player ) == sizeof( fntech3_ql_playerState_t ) );
+	CHECK( std::memcmp( guarded.envelope, &player, sizeof( player ) ) == 0 );
+	for ( std::size_t i = sizeof( player ); i < sizeof( guarded.envelope ); ++i )
+		CHECK( guarded.envelope[i] == 0 );
+	for ( unsigned char byte : guarded.before ) CHECK( byte == 0xa5 );
+	for ( unsigned char byte : guarded.after ) CHECK( byte == 0xa5 );
+
+	entityState_t entity;
+	FillQLBaseline( entity );
+	entity.pos.trType = TR_QL_ACCEL;
+	entity.apos.trType = TR_GRAVITY;
+	struct GuardedEntity {
+		std::uint32_t before;
+		fntech3_ql_entityState_t value;
+		std::uint32_t after;
+	} output;
+	std::memset( &output, 0xa5, sizeof( output ) );
+	FnTech3_QLEntityStateFromInternal( &output.value, &entity );
+	static_assert( sizeof( entity ) == sizeof( output.value ) );
+	CHECK( std::memcmp( &output.value, &entity, sizeof( entity ) ) == 0 );
+	CHECK( output.before == 0xa5a5a5a5u && output.after == 0xa5a5a5a5u );
+	return 0;
+}
+
 int main() {
+	if ( const int result = TestQLSnapshotTranslation() ) return result;
 	if ( const int result = TestCvarFlagTranslation() ) return result;
 	if ( const int result = TestUsercmdTranslation() ) return result;
 	if ( const int result = TestEntityTranslation() ) return result;

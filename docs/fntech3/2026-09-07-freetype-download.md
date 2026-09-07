@@ -22,6 +22,13 @@ must still validate the changed wrap. Vulkan verification now triggers on
 wrap-file changes, matching the dependency coverage already present in Linux
 verification. Font/platform tests passed: 38 tests and two subtests.
 
+Follow-up: the initial force-fallback project was stopped after expanding into
+optional HarfBuzz/GLib dependencies. A separate focused configuration disabled
+FreeType's optional harfbuzz/png/zlib/brotli/bzip2 features and completed all
+45 build steps, linking `libfreetype.so.6.20.6`; its log is
+`.tmp/freetype-mirror-focused.log`. These options apply only to that disposable
+download/build probe, not the engine's dependency configuration.
+
 All runtime, interoperability and release gates remain as recorded in the
 compatibility ledger. Dependency-host availability remains an external risk;
 this change provides an alternative primary endpoint, not an uptime guarantee.

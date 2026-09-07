@@ -1319,7 +1319,7 @@ struct RetailNativeSnapshot {
 	byte areamask[MAX_MAP_AREA_BYTES];
 	byte playerState[kRetailPlayerStateBytes];
 	int numEntities;
-	entityState_t entities[kRetailSnapshotEntityCount];
+	fntech3_ql_entityState_t entities[kRetailSnapshotEntityCount];
 	int numServerCommands;
 	int serverCommandSequence;
 };
@@ -1330,9 +1330,10 @@ static_assert( offsetof( RetailNativeSnapshot, numEntities ) == 0x27c,
 	"retail snapshot entity-count offset changed" );
 static_assert( offsetof( RetailNativeSnapshot, entities ) == 0x280,
 	"retail snapshot entity-array offset changed" );
-static_assert( sizeof( entityState_t ) == 0xec,
+static_assert( sizeof( fntech3_ql_entityState_t ) == 0xec,
 	"retail entityState ABI changed" );
-static_assert( sizeof( playerState_t ) <= kRetailPlayerStateBytes,
+static_assert( sizeof( fntech3_ql_playerState_t ) == 0x1f8 &&
+	FNTECH3_QL_RETAIL_SNAPSHOT_PLAYERSTATE_BYTES == kRetailPlayerStateBytes,
 	"playerState no longer fits the retail native snapshot" );
 static_assert( sizeof( RetailNativeSnapshot ) == 0x16488,
 	"retail native snapshot size changed" );
@@ -1362,7 +1363,7 @@ static qboolean CL_GetRetailNativeSnapshot( int snapshotNumber, void *destinatio
 	snapshot.ping = source.ping;
 	snapshot.serverTime = source.serverTime;
 	std::memcpy( snapshot.areamask, source.areamask, sizeof( snapshot.areamask ) );
-	std::memcpy( snapshot.playerState, &source.ps, sizeof( source.ps ) );
+	FnTech3_QLSnapshotPlayerStateFromInternal( snapshot.playerState, &source.ps );
 
 	const int entityCount = std::min( source.numEntities,
 		kRetailSnapshotEntityCount );
@@ -1372,8 +1373,8 @@ static qboolean CL_GetRetailNativeSnapshot( int snapshotNumber, void *destinatio
 	}
 	snapshot.numEntities = entityCount;
 	for ( int i = 0; i < entityCount; ++i ) {
-		snapshot.entities[i] = cl.parseEntities[
-			( source.parseEntitiesNum + i ) & ( MAX_PARSE_ENTITIES - 1 ) ];
+		FnTech3_QLEntityStateFromInternal( &snapshot.entities[i], &cl.parseEntities[
+			( source.parseEntitiesNum + i ) & ( MAX_PARSE_ENTITIES - 1 ) ] );
 	}
 	snapshot.serverCommandSequence = source.serverCommandNum;
 	return qtrue;

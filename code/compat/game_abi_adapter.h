@@ -12,6 +12,7 @@ General Public License, version 2 or (at your option) any later version.
 
 #include "../qcommon/q_shared.h"
 #include "q3_game_abi.h"
+#include "ql_game_abi.h"
 
 #include <stdint.h>
 
@@ -42,6 +43,14 @@ void FnTech3_Q3PlayerStateFromInternal( fntech3_q3_playerState_t *destination,
 	const playerState_t *source );
 void FnTech3_InternalPlayerStateFromQ3( playerState_t *destination,
 	const fntech3_q3_playerState_t *source );
+
+/* Marshal only the source-known QL fields. Unknown native player-state bytes
+ * are deterministic zero; they are not inferred to be padding. */
+void FnTech3_QLEntityStateFromInternal( fntech3_ql_entityState_t *destination,
+	const entityState_t *source );
+void FnTech3_QLSnapshotPlayerStateFromInternal(
+	uint8_t destination[FNTECH3_QL_RETAIL_SNAPSHOT_PLAYERSTATE_BYTES],
+	const playerState_t *source );
 
 #ifdef __cplusplus
 }

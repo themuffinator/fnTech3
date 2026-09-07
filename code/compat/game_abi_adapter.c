@@ -325,3 +325,116 @@ void FnTech3_InternalPlayerStateFromQ3( playerState_t *destination,
 	destination->jumppad_frame = source->jumppad_frame;
 	destination->entityEventSequence = source->entityEventSequence;
 }
+
+void FnTech3_QLEntityStateFromInternal( fntech3_ql_entityState_t *destination,
+	const entityState_t *source ) {
+	destination->number = source->number;
+	destination->eType = source->eType;
+	destination->eFlags = source->eFlags;
+	destination->pos.trType = (fntech3_ql_trType_t)source->pos.trType;
+	destination->pos.trTime = source->pos.trTime;
+	destination->pos.trDuration = source->pos.trDuration;
+	for ( int i = 0; i < 3; ++i ) destination->pos.trBase[i] = source->pos.trBase[i];
+	for ( int i = 0; i < 3; ++i ) destination->pos.trDelta[i] = source->pos.trDelta[i];
+	destination->pos.gravity = source->pos.gravity;
+	destination->apos.trType = (fntech3_ql_trType_t)source->apos.trType;
+	destination->apos.trTime = source->apos.trTime;
+	destination->apos.trDuration = source->apos.trDuration;
+	for ( int i = 0; i < 3; ++i ) destination->apos.trBase[i] = source->apos.trBase[i];
+	for ( int i = 0; i < 3; ++i ) destination->apos.trDelta[i] = source->apos.trDelta[i];
+	destination->apos.gravity = source->apos.gravity;
+	destination->time = source->time;
+	destination->time2 = source->time2;
+	for ( int i = 0; i < 3; ++i ) destination->origin[i] = source->origin[i];
+	for ( int i = 0; i < 3; ++i ) destination->origin2[i] = source->origin2[i];
+	for ( int i = 0; i < 3; ++i ) destination->angles[i] = source->angles[i];
+	for ( int i = 0; i < 3; ++i ) destination->angles2[i] = source->angles2[i];
+	destination->otherEntityNum = source->otherEntityNum;
+	destination->otherEntityNum2 = source->otherEntityNum2;
+	destination->groundEntityNum = source->groundEntityNum;
+	destination->constantLight = source->constantLight;
+	destination->loopSound = source->loopSound;
+	destination->modelindex = source->modelindex;
+	destination->modelindex2 = source->modelindex2;
+	destination->clientNum = source->clientNum;
+	destination->frame = source->frame;
+	destination->solid = source->solid;
+	destination->event = source->event;
+	destination->eventParm = source->eventParm;
+	destination->powerups = source->powerups;
+	destination->health = source->health;
+	destination->armor = source->armor;
+	destination->weapon = source->weapon;
+	destination->location = source->location;
+	destination->legsAnim = source->legsAnim;
+	destination->torsoAnim = source->torsoAnim;
+	destination->generic1 = source->generic1;
+	destination->jumpTime = source->jumpTime;
+	destination->doubleJumped = source->doubleJumped;
+}
+
+void FnTech3_QLSnapshotPlayerStateFromInternal(
+	uint8_t destination[FNTECH3_QL_RETAIL_SNAPSHOT_PLAYERSTATE_BYTES],
+	const playerState_t *source ) {
+	fntech3_ql_playerState_t prefix;
+	memset( &prefix, 0, sizeof( prefix ) );
+	prefix.commandTime = source->commandTime;
+	prefix.pm_type = source->pm_type;
+	prefix.bobCycle = source->bobCycle;
+	prefix.pm_flags = source->pm_flags;
+	prefix.pm_time = source->pm_time;
+	for ( int i = 0; i < 3; ++i ) prefix.origin[i] = source->origin[i];
+	for ( int i = 0; i < 3; ++i ) prefix.velocity[i] = source->velocity[i];
+	prefix.weaponTime = source->weaponTime;
+	prefix.gravity = source->gravity;
+	prefix.speed = source->speed;
+	for ( int i = 0; i < 3; ++i ) prefix.delta_angles[i] = source->delta_angles[i];
+	prefix.groundEntityNum = source->groundEntityNum;
+	prefix.legsTimer = source->legsTimer;
+	prefix.legsAnim = source->legsAnim;
+	prefix.torsoTimer = source->torsoTimer;
+	prefix.torsoAnim = source->torsoAnim;
+	prefix.movementDir = source->movementDir;
+	for ( int i = 0; i < 3; ++i ) prefix.grapplePoint[i] = source->grapplePoint[i];
+	prefix.eFlags = source->eFlags;
+	prefix.eventSequence = source->eventSequence;
+	for ( int i = 0; i < FNTECH3_QL_MAX_PS_EVENTS; ++i ) prefix.events[i] = source->events[i];
+	for ( int i = 0; i < FNTECH3_QL_MAX_PS_EVENTS; ++i ) prefix.eventParms[i] = source->eventParms[i];
+	prefix.externalEvent = source->externalEvent;
+	prefix.externalEventParm = source->externalEventParm;
+	prefix.clientNum = source->clientNum;
+	prefix.location = source->location;
+	prefix.weapon = source->weapon;
+	prefix.weaponPrimary = source->weaponPrimary;
+	prefix.weaponstate = source->weaponstate;
+	prefix.fov = source->fov;
+	for ( int i = 0; i < 3; ++i ) prefix.viewangles[i] = source->viewangles[i];
+	prefix.viewheight = source->viewheight;
+	prefix.damageEvent = source->damageEvent;
+	prefix.damageYaw = source->damageYaw;
+	prefix.damagePitch = source->damagePitch;
+	prefix.damageCount = source->damageCount;
+	for ( int i = 0; i < FNTECH3_QL_MAX_STATS; ++i ) prefix.stats[i] = source->stats[i];
+	for ( int i = 0; i < FNTECH3_QL_MAX_PERSISTANT; ++i ) prefix.persistant[i] = source->persistant[i];
+	for ( int i = 0; i < FNTECH3_QL_MAX_POWERUPS; ++i ) prefix.powerups[i] = source->powerups[i];
+	for ( int i = 0; i < FNTECH3_QL_MAX_WEAPONS; ++i ) prefix.ammo[i] = source->ammo[i];
+	prefix.generic1 = source->generic1;
+	prefix.loopSound = source->loopSound;
+	prefix.jumppad_ent = source->jumppad_ent;
+	prefix.jumpTime = source->jumpTime;
+	prefix.doubleJumped = source->doubleJumped;
+	prefix.crouchTime = source->crouchTime;
+	prefix.crouchSlideTime = source->crouchSlideTime;
+	prefix.forwardmove = source->forwardmove;
+	prefix.rightmove = source->rightmove;
+	prefix.upmove = source->upmove;
+	prefix.commandMirrorPad = source->commandMirrorPad;
+	prefix.ping = source->ping;
+	prefix.pmove_framecount = source->pmove_framecount;
+	prefix.jumppad_frame = source->jumppad_frame;
+	prefix.entityEventSequence = source->entityEventSequence;
+	prefix.externalEventTime = source->externalEventTime;
+	prefix.armorTier = source->armorTier;
+	memset( destination, 0, FNTECH3_QL_RETAIL_SNAPSHOT_PLAYERSTATE_BYTES );
+	memcpy( destination, &prefix, sizeof( prefix ) );
+}

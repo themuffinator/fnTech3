@@ -109,6 +109,9 @@ to the evidence level named in the same cell.
    `0x1f8` bytes, while the retail native snapshot reserves `0x250`. The
    remaining `0x58` bytes must not be labelled padding or exposed without
    retail evidence and bounded handling.
+   The [snapshot marshalling correction](2026-09-07-ql-snapshot-marshalling.md)
+   now converts the frozen known prefix explicitly and tests zeroed unknown
+   bytes and destination guards; the tail's meaning remains unverified.
 4. **Detection is not yet authoritative.** Marker existence is an initial hint,
    not proof of a valid installation. Profile-owned Q3/QL Steam discovery
    now passes bounded Unit/Build/Fixture checks; archive identity and complete
