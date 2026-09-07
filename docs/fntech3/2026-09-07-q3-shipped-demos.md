@@ -55,3 +55,25 @@ earlier warnings are evidence of add-on parsing behavior, not a stock Q3
 shader-syntax defect. The collision-bevel warnings remain in the stock fixture
 and still need separate reference comparison. No installation files or renderer
 behavior were changed during this follow-up.
+
+## Follow-up: collision warning reference check
+
+At `7aa8153`, the existing FnQuake3 x64 reference client played `demo001.dm3`
+from the same pak0–pak8 fixture. It processed the same 1,346 frames, reached
+the completion marker and exited cleanly. Both engines emitted exactly two
+`CM_AddFacetBevels... invalid bevel` warnings. Their current `cm_patch.c`
+source files also match after line-ending normalization. The
+[reference record](evidence/2026-09-07-q3-bevel-reference.json) preserves the
+binary hash, commands, outcomes and comparison.
+
+The first reference probe completed playback but did not honor fnTech3's
+quit-on-completion cvar, and required timeout cleanup. The successful rerun
+used `nextdemo` with an explicit `quit` command. Both attempts remained
+windowed with input capture disabled; no input injection was used.
+
+These observations support classifying the warning as inherited reference
+behavior rather than a newly observed merger regression. They do not prove
+collision parity or that every discarded bevel is harmless. The reference
+binary's source revision is still unknown; matching current checkout source
+does not establish that artifact's build provenance. No collision code or
+diagnostic severity was changed.
