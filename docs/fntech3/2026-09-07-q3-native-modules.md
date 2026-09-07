@@ -52,3 +52,24 @@ The pre-correction pure rejection is preserved as a failure in the bundle.
 These short local sessions do not close the entire native ABI, mod, extension
 or retail-peer matrix. Existing resource/font warnings remain unresolved;
 no new unrelated engine issue was identified.
+
+## Native map restart
+
+At `7552cd0`, an additional Q3 non-pure session with the same native fixture
+modules executed server `map_restart 0` after initial client admission. The
+server shut down/reloaded native qagame, reinitialized q3dm6 and admitted the
+client again; the native UI/cgame reloaded and the world/HUD rendered with
+continuing snapshots. This observed path includes map reinitialization, not
+a claim that every restart used the fast in-place path.
+
+A matching QL pure session restarted its retail API-10 qagame on campgrounds.
+The client processed the `map_restart` server command and continued receiving
+snapshots and rendering the world/native join UI. Both clients and servers
+exited normally. Post-restart engine PNGs were visually inspected.
+
+The [map-restart record](evidence/2026-09-07-native-map-restart.json) includes
+artifact hashes, full arguments/configs and lifecycle excerpts. The windowed,
+isolated-home, no-input-control restrictions above remain in force. Audio,
+WebUI and Steam were disabled. This adds one bounded restart per profile;
+extended restart stress, all mod/native ABI paths and authenticated peers
+remain open. No new unrelated issue was found.
