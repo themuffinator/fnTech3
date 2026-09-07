@@ -113,8 +113,10 @@ to the evidence level named in the same cell.
    now converts the frozen known prefix explicitly and tests zeroed unknown
    bytes and destination guards; the tail's meaning remains unverified.
    [Snapshot history validation](2026-09-07-snapshot-history.md) also rejects
-   malformed/stale module requests before writes; parser counter-wrap handling
-   still requires follow-up.
+   malformed/stale module requests before writes. The subsequent
+   [entity-history correction](2026-09-07-entity-history-wrap.md) covers parser
+   increments and client/demo indexing, with executable wrap tests and both
+   profiles' record/playback probes; sustained network-wrap evidence is open.
 4. **Detection is not yet authoritative.** Marker existence is an initial hint,
    not proof of a valid installation. Profile-owned Q3/QL Steam discovery
    now passes bounded Unit/Build/Fixture checks; archive identity and complete

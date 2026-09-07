@@ -230,7 +230,7 @@ static void CL_RebuildLiquidEntityKinds( void ) {
 
 	for ( i = 0; i < cl.snap.numEntities; i++ ) {
 		const entityState_t *state = &cl.parseEntities[
-			( cl.snap.parseEntitiesNum + i ) & ( MAX_PARSE_ENTITIES - 1 ) ];
+			( static_cast<std::uint32_t>( cl.snap.parseEntitiesNum ) + i ) & ( MAX_PARSE_ENTITIES - 1 ) ];
 		clLiquidEntityKind_t *kind;
 
 		if ( state->number < 0 || state->number >= MAX_GENTITIES ) {
@@ -825,7 +825,7 @@ static const entityState_t *CL_FindEnemyHighlightPlayerState( const refEntity_t 
 	CL_GetEnemyHighlightMatchOrigin( ent, matchOrigin );
 
 	for ( i = 0; i < cl.snap.numEntities; i++ ) {
-		const entityState_t *state = &cl.parseEntities[ ( cl.snap.parseEntitiesNum + i ) & ( MAX_PARSE_ENTITIES - 1 ) ];
+		const entityState_t *state = &cl.parseEntities[ ( static_cast<std::uint32_t>( cl.snap.parseEntitiesNum ) + i ) & ( MAX_PARSE_ENTITIES - 1 ) ];
 		float distSq;
 
 		if ( state->eType != ET_PLAYER ) {
