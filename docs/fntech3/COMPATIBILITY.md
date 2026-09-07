@@ -92,6 +92,9 @@ PCM assertions and both profiles' muted HRTF-enabled restart probes; complete
 game-audio parity and device-loss recovery remain open. The same checkpoint
 also records both profiles passing the connected-device recovery guard and
 forced live reopening of a working default fallback without sound restart.
+The [pak download correction](2026-09-08-pak-download-policy.md) scopes QL's
+`pak00` retail exclusion to QL, restoring Q3 add-on download eligibility and
+covering both profiles' missing-pak planning with executable regressions.
 
 The target is one shared, drop-in binary set. It must select `q3` or `ql` before
 compatibility-sensitive initialization and then use that profile's complete,

@@ -6005,7 +6005,10 @@ qboolean FS_idPak(const char *pak, const char *base, int numPaks)
 {
 	int i;
 
-	if ( !Q_stricmp( base, BASEGAME ) && !FS_FilenameCompare( pak, va( "%s/pak00", base ) ) ) {
+	// The two-digit retail pak name belongs to QL. Q3 servers may reference
+	// an ordinary add-on with that name; retain Q3's numbered-pak policy.
+	if ( Com_GameIsQuakeLive() && !Q_stricmp( base, BASEGAME )
+		&& !FS_FilenameCompare( pak, va( "%s/pak00", base ) ) ) {
 		return qtrue;
 	}
 
