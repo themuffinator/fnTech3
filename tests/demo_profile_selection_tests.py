@@ -21,13 +21,17 @@ class DemoProfileSelectionTests(unittest.TestCase):
             return source[start:source.index("\n}", start)+2]
         harness = r'''
 #include <cassert>
+#include <array>
+#include <charconv>
+#include <cctype>
+#include <cstring>
 #include <cstdio>
 #include <set>
 #include <string>
 #include <vector>
 enum { COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, OLD_PROTOCOL_VERSION = 68,
        QL_RETAIL_PROTOCOL_VERSION = 91 };
-struct Profile { int id; } profile;
+struct Profile { int id; const char *displayName = "fixture"; } profile;
 Profile *Com_GameProfile() { return &profile; }
 const int demo_protocols[] = {66, 67, 68, 71, 91, 0};
 bool Com_DemoProtocolSupported(int p) {
@@ -48,9 +52,40 @@ void Com_Printf(const char *, ...) {}
 #define Com_sprintf snprintf
 #define DEMOEXT "dm_"
 #define LEGACY_DEMOEXT "dm3"
+
+#define MAX_OSPATH 256
+#define ARRAY_LEN(a) (sizeof(a)/sizeof((a)[0]))
+#define S_COLOR_YELLOW ""
+using qboolean = int;
+constexpr int qfalse = 0;
+int ToQboolean(bool b) { return b; }
+int Q_stricmpn(const char *a, const char *b, int n) {
+    for (int i=0; i<n; ++i) {
+        int x=std::tolower(static_cast<unsigned char>(a[i]));
+        int y=std::tolower(static_cast<unsigned char>(b[i]));
+        if (x!=y || !x || !y) return x-y;
+    }
+    return 0;
+}
+int Q_stricmp(const char *a,const char *b) { return Q_stricmpn(a,b,256); }
+void Q_strncpyz(char *out,const char *in,int size) { snprintf(out,size,"%s",in); }
+const char *COM_GetExtension(const char *p) {
+    auto dot=std::strrchr(p,'.'); return dot ? dot+1 : "";
+}
+std::string argument;
+int transitions=0;
+int Cmd_Argc() { return 2; }
+const char *Cmd_Argv(int) { return argument.c_str(); }
+
 ''' + function("static bool CL_DemoProtocolSupported(") + "\n" + function(
             "static bool CL_TryDemoProtocol(") + "\n" + function(
-            "static int CL_WalkDemoExt(") + r'''
+            "static int CL_WalkDemoExt(") + "\n" + function(
+            "static qboolean CL_IsLegacyDemoExt(") + "\n" + function(
+            "static bool CL_ParseDemoProtocolExtension(") + "\n" + function(
+            "static qboolean CL_DemoNameCallback_f(") + "\n" + source[
+                source.index("static void CL_PlayDemo_f("):source.index(
+                    "\n\thFile.reset();", source.index("static void CL_PlayDemo_f("))
+            ] + "\n++transitions;\n}\n" + r'''
 int main() {
     char name[256] = {};
     ScopedFileHandle handle;
@@ -68,6 +103,26 @@ int main() {
     assert(attempts == std::vector<std::string>{"demos/mixed.dm_91"});
     assert(!handle && !CL_DemoProtocolSupported(68));
     assert(CL_DemoProtocolSupported(91));
+    // Explicit cross-profile files exist, with a same-name matching fallback.
+    files = {"demos/mixed.dm_91", "demos/mixed.dm_68", "demos/mixed.dm3"};
+    attempts.clear(); argument="mixed.dm_68";
+    CL_PlayDemo_f(); assert(transitions==0 && attempts.empty());
+    argument="mixed.dm3";
+    CL_PlayDemo_f(); assert(transitions==0 && attempts.empty());
+    profile.id=COM_GAME_QUAKE3; argument="mixed.dm_91";
+    CL_PlayDemo_f(); assert(transitions==0 && attempts.empty());
+    argument="mixed.dm_68";
+    CL_PlayDemo_f(); assert(transitions==1 && attempts.size()==1);
+    assert(CL_DemoNameCallback_f("x.DM3",5));
+    assert(CL_DemoNameCallback_f("x.DM_68",7));
+    assert(!CL_DemoNameCallback_f("x.dm_91",7));
+    profile.id=COM_GAME_QUAKELIVE;
+    assert(!CL_DemoNameCallback_f("x.DM3",5));
+    assert(!CL_DemoNameCallback_f("x.dm_68",7));
+    assert(CL_DemoNameCallback_f("x.DM_91",7));
+    for (const char *bad : {"x.dm_91junk", "x.dm_-1", "x.dm_2147483648", "x.dm_"})
+        assert(!CL_DemoNameCallback_f(bad, static_cast<int>(std::strlen(bad))));
+
 }
 '''
         with tempfile.TemporaryDirectory() as tmp:

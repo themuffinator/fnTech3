@@ -36,3 +36,12 @@ windowed GLx, disabled mouse/joystick capture and startup console commands. No
 input injection or screen capture was used; no proprietary inputs were added.
 Broad demo-format, active-session preservation, malformed-input and full
 interoperability gates remain open. Existing resource warnings are unchanged.
+
+Follow-up at `a03b5d3`: the executable selector harness now also runs the
+production `CL_PlayDemo_f` selection prefix, stopping at its disconnect
+boundary. With both Q3 and QL files present, explicit cross-profile requests
+return without any file-open attempt or reaching that boundary; a matching Q3
+request does reach it. Production filename completion is tested with mixed
+case, cross-profile formats, trailing junk, negative values, missing digits
+and integer overflow. These checks pass on Windows and Linux. This strengthens
+the control-flow evidence; it is not an end-to-end active-session runtime test.
