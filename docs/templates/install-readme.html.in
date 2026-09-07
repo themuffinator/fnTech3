@@ -301,7 +301,7 @@
         <p class="lead"><strong>${project_name_short}</strong> selects one immutable Q3 or QL profile before compatibility-sensitive startup. Both profiles use the same client and dedicated-server binaries.</p>
       </div>
       <p class="lead"><strong>Full compatibility is not yet established for either profile.</strong> Build and unit results do not replace runtime and retail-interoperability evidence. The <a href="docs/fntech3/COMPATIBILITY.md">compatibility ledger</a> records open gates and observed results.</p>
-      <p class="footer">Supply your own legitimate installation. Retail modules, assets, and proprietary runtimes remain there. The inherited Windows release workflow still stages a separate closed-source Steam provider; its distribution policy requires review before a fnTech3 release can be approved.</p>
+      <p class="footer">Supply your own legitimate installation. Retail modules, assets, and proprietary runtimes remain there. Release packages exclude the optional proprietary Steam provider and Valve Steam runtimes. Steam services require a separately supplied compatible provider; unavailable services are reported honestly.</p>
     </section>
 
     <section class="section" id="features">

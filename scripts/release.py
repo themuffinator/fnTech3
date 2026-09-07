@@ -42,7 +42,7 @@ from root_archive import (
     validate_root_archive_names,
     write_root_archive,
 )
-from windows_pe import PE_I386, PeInfo, validate_windows_runtime_dependencies
+from windows_pe import validate_windows_runtime_dependencies
 
 
 DEFAULT_DOCS = [
@@ -677,19 +677,19 @@ def validate_release_binary_stream(
             )
 
 
-def validate_windows_distribution_files(names: list[str], *, name: str) -> None:
-    normalized = [entry.replace("\\", "/").casefold() for entry in names]
-    if any(Path(entry).name.casefold() == "steam_api.dll" for entry in normalized):
-        raise ValueError(f"{name} must not redistribute Valve's steam_api.dll")
-    if any(entry.endswith(".exe") for entry in normalized) and "fnql_steam.dll" not in normalized:
-        raise ValueError(f"{name} is a Windows release but is missing fnql_steam.dll")
-
-
-def validate_steam_provider_identity(name: str, info: PeInfo | None) -> None:
-    if name.replace("\\", "/").casefold() != "fnql_steam.dll":
-        return
-    if info is None or info.machine != PE_I386 or not info.is_dll:
-        raise ValueError("fnql_steam.dll must be a 32-bit i386 PE DLL")
+def validate_engine_only_distribution_files(names: list[str], *, name: str) -> None:
+    # Apply to every package, including nested files and non-Windows artifacts.
+    # The optional loader ABI does not grant redistribution rights.
+    forbidden = {
+        "fnql_steam.dll", "fnql_steam.so", "libfnql_steam.so",
+        "fnql_steam.dylib", "libfnql_steam.dylib",
+        "steam_api.dll", "steam_api64.dll", "libsteam_api.so",
+        "libsteam_api.dylib",
+    }
+    for entry in names:
+        basename = entry.replace("\\", "/").rsplit("/", 1)[-1].casefold()
+        if basename in forbidden:
+            raise ValueError(f"{name} must not redistribute {entry}; fnTech3 releases are engine-only")
 
 
 def read_release_zip(archive_path: Path) -> list[ReleaseArchiveMember]:
@@ -980,8 +980,7 @@ def validate_release_archive_contents(
                 member.name, expected_macos_arch
             ),
         )
-        pe_info = validate_windows_runtime_dependencies(member.data, name=member.name)
-        validate_steam_provider_identity(member.name, pe_info)
+        validate_windows_runtime_dependencies(member.data, name=member.name)
     archived_name_set = set(archived_names)
     missing_release_entries = [
         name
@@ -993,7 +992,7 @@ def validate_release_archive_contents(
             f"{archive_path.name} is missing required release files: "
             + ", ".join(missing_release_entries)
         )
-    validate_windows_distribution_files(archived_names, name=archive_path.name)
+    validate_engine_only_distribution_files(archived_names, name=archive_path.name)
     if platform == "linux":
         validate_linux_distribution_files(members, archive_name=archive_path.name)
     elif platform == "macos":
@@ -1044,9 +1043,8 @@ def validate_stage_tree(stage_root: Path, *, artifact_name: str | None = None) -
                 relative_name, expected_macos_arch
             ),
         )
-        pe_info = validate_windows_runtime_dependencies(member_data, name=relative_name)
-        validate_steam_provider_identity(relative_name, pe_info)
-    validate_windows_distribution_files(staged_names, name=stage_root.name)
+        validate_windows_runtime_dependencies(member_data, name=relative_name)
+    validate_engine_only_distribution_files(staged_names, name=stage_root.name)
 
 
 def release_artifact_dirs(artifact_root: Path) -> list[Path]:

@@ -1,5 +1,15 @@
 # FnQL Steam provider boundary
 
+## fnTech3 distribution policy
+
+fnTech3 retains this loader contract, but its engine-only release packages do
+not bundle the proprietary provider or Valve Steam runtimes. Its CI does not
+fetch the provider. A user may supply a compatible provider separately through
+the existing loader. The FnQL distribution terms and pinned metadata below
+are historical reference material, not permission to bundle it with fnTech3.
+
+## Inherited FnQL reference
+
 FnQL integrates Steam through an optional dynamic provider. The provider source
 is maintained in a separate, closed-source sibling repository, normally
 `../FnQL-Steam`; it must remain private and is never copied into FnQL. Official

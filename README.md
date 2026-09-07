@@ -30,9 +30,9 @@ inherited FnQL feature does not close a fnTech3 runtime gate.
 fnTech3 is engine-only. Supply a legitimate Quake III Arena or
 [Quake Live installation](https://store.steampowered.com/app/282440/Quake_Live/)
 for the selected profile. Retail modules, assets, and proprietary runtimes stay
-in that installation. The inherited Windows release workflow still stages a
-separate closed-source Steam provider; its distribution policy requires review
-before a fnTech3 release can be approved.
+in that installation. Release packages exclude the optional proprietary Steam
+provider and Valve Steam runtimes. Steam services require a separately supplied
+compatible provider; missing services report their unavailability honestly.
 
 ## 2. Features
 

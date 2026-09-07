@@ -29,6 +29,9 @@ The [Q3 reference-peer checkpoint](2026-09-07-q3-reference-interop.md) adds
 bidirectional protocol-68 pure admission and active sessions against existing
 FnQuake3 binaries. Their source revision is unknown, so retail interoperability
 and the broader network gate remain open.
+The [engine-only packaging correction](2026-09-07-engine-only-packaging.md)
+removes inherited proprietary provider staging and rejects known provider and
+Steam runtime libraries in release trees and archives.
 
 The target is one shared, drop-in binary set. It must select `q3` or `ql` before
 compatibility-sensitive initialization and then use that profile's complete,
@@ -74,7 +77,7 @@ to the evidence level named in the same cell.
 | Surface | Q3 status/evidence | QL status/evidence | Required promotion gate |
 | --- | --- | --- | --- |
 | Immutable early profile selection | **PARTIAL — Unit/Build/Fixture.** Explicit aliases, marker precedence, ambiguity rejection, and immutability have tests; automatic and explicit dedicated startup pass against a legitimate installation. Canonical profile mirrors survive startup-variable replay. | **PARTIAL — Unit/Build/Fixture.** Same seam and successful automatic/explicit dedicated startup against retail assets. | Validate pak identity beyond marker existence, mixed trees, restart behavior, and broader installations. Q3/QL Steam discovery now has Unit/Build/Fixture evidence; see the [discovery checkpoint](2026-09-07-steam-discovery.md). |
-| Project identity and packaging | **PARTIAL — Unit/Build/Fixture.** Canonical metadata and primary output names are migrated. The engine-only x86 stage passes dependency/root-archive checks and profile probes. | **PARTIAL — Unit/Build/Fixture.** The same artifacts retain explicitly bound renderer, root-package, and WebUI sidecar names; the proprietary provider is excluded. | Validate reproducible release artifacts and resolve inherited closed-source provider staging policy and remaining platform packaging paths without renaming external contracts. |
+| Project identity and packaging | **PARTIAL — Unit/Build/Fixture.** Canonical metadata and primary output names are migrated. The engine-only x86 stage passes dependency/root-archive checks and profile probes. | **PARTIAL — Unit/Build/Fixture.** The same artifacts retain explicitly bound renderer, root-package, and WebUI sidecar names; the proprietary provider is excluded. | Provider staging is removed and known proprietary libraries are rejected; see the [packaging correction](2026-09-07-engine-only-packaging.md). Validate clean CI, reproducible artifacts and remaining packaging paths without renaming external contracts. |
 | Filesystem, configs, pak order, and pure checks | **PARTIAL — Unit/Live.** Q3 config order and two-module pure proof are restored. Local QVM clients pass pure admission; malformed and oversized proofs have executable regressions. | **PARTIAL — Unit/Live.** Single-native-module pure proof and profile-specific config/service paths are preserved; local native clients pass pure admission. | Golden search-path/pure transcripts and clean-install probes, including home/config names, mod paths, downloads, case/path behavior, and server-referenced paks. |
 | Module ABI and VM/native loading | **PARTIAL — Unit/Live.** Retail qagame, cgame, and UI QVMs load and run a local session. Frozen POD adapters, transactional DLL loading, QVM bounds, cgame traps/extensions, UI policy, and cvar flags have executable regressions. | **PARTIAL — Unit/Live.** Retail qagame API 10 and cgame/UI API 8 load and run through the same client. Structured contracts remain separate; the native snapshot's additional `0x58` bytes remain unresolved. | Resolve or safely contain the QL snapshot tail, complete the boundary audit, and broaden Q3 native and packaged-client module coverage. |
 | Live network codec and handshake | **PARTIAL — Unit/Live.** Local protocol-68 sessions and both directions against existing FnQuake3 binaries reach active state after pure admission; see the [reference-peer checkpoint](2026-09-07-q3-reference-interop.md). The peer source revision is unverified. Field parity, truncated messages, and float encodings are tested for protocols 68/71. | **PARTIAL — Unit/Live.** Local protocol-91 sessions reach active state. Field parity and malformed-input tests pass; invalid usercmd batches drop only their sender without partial execution. | Golden packet transcripts, malformed/fuzz corpus, remote fragmentation/reliable/pure/download coverage, then bidirectional retail interop for each profile. |
@@ -109,8 +112,9 @@ to the evidence level named in the same cell.
    profile-specific asset validation remain open.
 5. **Release packaging remains open.** Canonical metadata and primary artifacts
    now use fnTech3 identity. Retained external sidecar names, unsupported legacy
-   packaging paths, and inherited closed-source provider staging still need
-   explicit release-policy validation.
+   packaging paths and reproducible/package-runtime evidence remain open.
+   The [engine-only correction](2026-09-07-engine-only-packaging.md) removes
+   inherited closed-source provider staging; clean CI must verify this revision.
 6. **Q3 coverage remains incomplete.** Local QVM startup, pure admission, world
    rendering, and HUD are observed. The RTX raster black geometry defect is fixed
    and verified on the frozen demo; broader formats, native modules, remote peers,

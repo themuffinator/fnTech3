@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class SteamProviderSourceTests(unittest.TestCase):
-    def test_release_policy_distributes_only_the_pinned_closed_provider_binary(self) -> None:
+    def test_engine_release_does_not_stage_the_legacy_pinned_provider(self) -> None:
         manifest = json.loads(
             (ROOT / "version" / "fnql_steam_provider.json").read_text(encoding="utf-8")
         )
@@ -27,7 +27,7 @@ class SteamProviderSourceTests(unittest.TestCase):
         self.assertEqual(manifest["asset"], "fnql_steam.dll")
         self.assertEqual(manifest["pe_machine"], "i386")
         self.assertEqual(len(manifest["sha256"]), 64)
-        self.assertEqual(workflow.count("fetch_steam_provider.py"), 2)
+        self.assertNotIn("fetch_steam_provider.py", workflow)
         self.assertNotIn("FnQL-Steam.git", workflow)
         self.assertIn("must remain private", policy)
         self.assertIn("Provider source is not fetched or published", policy)

@@ -570,7 +570,6 @@ class ReleasePackagingTests(unittest.TestCase):
             stage_root = root / "stage"
             stage_root.mkdir()
             (stage_root / "fnql.x86.exe").write_text("binary", encoding="utf-8")
-            (stage_root / "fnql_steam.dll").write_bytes(make_pe(dll=True))
             (stage_root / "cpma" / "vm").mkdir(parents=True)
             (stage_root / "cpma" / "vm" / "cgame.qvm").write_text(
                 "mod data",
@@ -632,7 +631,6 @@ class ReleasePackagingTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             (root / "fnql.x86.exe").write_text("binary", encoding="utf-8")
-            (root / "fnql_steam.dll").write_bytes(make_pe(dll=True))
             for renderer in ("glx", "vk", "rtx"):
                 (root / f"fnql_{renderer}_x86.dll").write_text(
                     renderer, encoding="utf-8"
@@ -640,19 +638,38 @@ class ReleasePackagingTests(unittest.TestCase):
 
             release.validate_stage_tree(root)
 
-    def test_windows_release_requires_the_closed_provider_binary(self) -> None:
+    def test_windows_release_accepts_engine_without_provider(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             (root / "fntech3.exe").write_text("binary", encoding="utf-8")
 
-            with self.assertRaisesRegex(ValueError, "missing fnql_steam.dll"):
-                release.validate_stage_tree(root)
+            release.validate_stage_tree(root)
+
+    def test_engine_only_policy_rejects_nested_proprietary_libraries(self) -> None:
+        for filename in ("fnql_steam.dll", "FNQL_STEAM.DLL", "steam_api.dll",
+                         "steam_api64.dll", "libsteam_api.so", "libsteam_api.dylib",
+                         "fnql_steam.so", "libfnql_steam.dylib"):
+            with self.subTest(filename=filename), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                nested = root / "plugins"
+                nested.mkdir()
+                (nested / filename).write_bytes(b"fixture")
+                with self.assertRaisesRegex(ValueError, "must not redistribute"):
+                    release.validate_stage_tree(root)
+                release.copy_docs(root)
+                release.build_fnql_webpak(root)
+                release.build_root_archive(root)
+                archive = Path(shutil.make_archive(str(root.parent / (root.name + "-probe")), "zip", root_dir=root))
+                try:
+                    with self.assertRaisesRegex(ValueError, "must not redistribute"):
+                        release.validate_release_archive_contents(archive)
+                finally:
+                    archive.unlink()
 
     def test_windows_release_forbids_valve_redistributable(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             (root / "fntech3.exe").write_text("binary", encoding="utf-8")
-            (root / "fnql_steam.dll").write_bytes(make_pe(dll=True))
             (root / "steam_api.dll").write_bytes(make_pe(dll=True))
 
             with self.assertRaisesRegex(ValueError, "must not redistribute"):
@@ -665,7 +682,6 @@ class ReleasePackagingTests(unittest.TestCase):
                 (root / "fntech3.exe").write_bytes(
                     make_pe(dll=False, imports=("KERNEL32.dll", runtime))
                 )
-                (root / "fnql_steam.dll").write_bytes(make_pe(dll=True))
 
                 with self.assertRaisesRegex(ValueError, "unshipped Windows runtime DLLs"):
                     release.validate_stage_tree(root)
@@ -996,7 +1012,7 @@ class ReleasePackagingTests(unittest.TestCase):
             3,
         )
         self.assertEqual(workflow.count("--skip-subprojects"), 2)
-        self.assertEqual(workflow.count("fetch_steam_provider.py --output bin/fnql_steam.dll"), 2)
+        self.assertNotIn("fetch_steam_provider.py", workflow)
         self.assertEqual(workflow.count("check_windows_runtime_deps.py --require-pe bin"), 2)
         self.assertIn("-Dc_link_args=-static", workflow)
         self.assertIn("-Dcpp_link_args=-static", workflow)
