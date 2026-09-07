@@ -1198,30 +1198,35 @@ static void CL_GetCurrentSnapshotNumber( int *snapshotNumber, int *serverTime ) 
 CL_GetSnapshot
 ====================
 */
+// Snapshot numbers use the 31-bit network sequence space; entity history
+// counters use all 32 bits. Validate before any module-owned memory is written.
+static clSnapshot_t *CL_FindSnapshot( int snapshotNumber ) {
+	if ( snapshotNumber < 0 ) return nullptr;
+	if ( fnql::net::IsNewerSequence( snapshotNumber, cl.snap.messageNum ) ) {
+		Com_Error( ERR_DROP, "CL_GetSnapshot: snapshotNumber (%i) is newer than current (%i)",
+			snapshotNumber, cl.snap.messageNum );
+		return nullptr;
+	}
+	if ( fnql::net::SequenceDistance( cl.snap.messageNum, snapshotNumber ) >= PACKET_BACKUP )
+		return nullptr;
+	clSnapshot_t *source = &cl.snapshots[snapshotNumber & PACKET_MASK];
+	const std::uint32_t entityAge = fnql::net::CounterDistance(
+		cl.parseEntitiesNum, source->parseEntitiesNum );
+	if ( !source->valid || source->messageNum != snapshotNumber ||
+		source->numEntities < 0 ||
+		entityAge >= MAX_PARSE_ENTITIES ||
+		static_cast<std::uint32_t>( source->numEntities ) > entityAge )
+		return nullptr;
+	return source;
+}
+
 static qboolean CL_GetSnapshot( int snapshotNumber, snapshot_t *snapshot ) {
 	clSnapshot_t	*clSnap;
 	int				i, count;
 
-	if ( cl.snap.messageNum - snapshotNumber < 0 ) {
-		Com_Error( ERR_DROP, "CL_GetSnapshot: snapshotNumber (%i) > cl.snapshot.messageNum (%i)", snapshotNumber, cl.snap.messageNum );
-	}
-
-	// if the frame has fallen out of the circular buffer, we can't return it
-	if ( cl.snap.messageNum - snapshotNumber >= PACKET_BACKUP ) {
-		return qfalse;
-	}
-
-	// if the frame is not valid, we can't return it
-	clSnap = &cl.snapshots[snapshotNumber & PACKET_MASK];
-	if ( !clSnap->valid ) {
-		return qfalse;
-	}
-
-	// if the entities in the frame have fallen out of their
-	// circular buffer, we can't return it
-	if ( cl.parseEntitiesNum - clSnap->parseEntitiesNum >= MAX_PARSE_ENTITIES ) {
-		return qfalse;
-	}
+	if ( !snapshot ) return qfalse;
+	clSnap = CL_FindSnapshot( snapshotNumber );
+	if ( !clSnap ) return qfalse;
 
 	// write the snapshot
 	snapshot->snapFlags = clSnap->snapFlags;
@@ -1238,7 +1243,7 @@ static qboolean CL_GetSnapshot( int snapshotNumber, snapshot_t *snapshot ) {
 	snapshot->numEntities = count;
 	for ( i = 0 ; i < count ; i++ ) {
 		snapshot->entities[i] =
-			cl.parseEntities[ ( clSnap->parseEntitiesNum + i ) & (MAX_PARSE_ENTITIES-1) ];
+			cl.parseEntities[ ( static_cast<std::uint32_t>( clSnap->parseEntitiesNum ) + i ) & (MAX_PARSE_ENTITIES-1) ];
 	}
 
 	// FIXME: configstring changes and server commands!!!
@@ -1264,20 +1269,8 @@ static qboolean CL_GetQ3Snapshot( int snapshotNumber,
 	if ( !snapshot ) {
 		return qfalse;
 	}
-	if ( cl.snap.messageNum - snapshotNumber < 0 ) {
-		Com_Error( ERR_DROP,
-			"CL_GetQ3Snapshot: snapshotNumber (%i) > cl.snapshot.messageNum (%i)",
-			snapshotNumber, cl.snap.messageNum );
-	}
-	if ( cl.snap.messageNum - snapshotNumber >= PACKET_BACKUP ) {
-		return qfalse;
-	}
-
-	clSnap = &cl.snapshots[snapshotNumber & PACKET_MASK];
-	if ( !clSnap->valid ||
-		cl.parseEntitiesNum - clSnap->parseEntitiesNum >= MAX_PARSE_ENTITIES ) {
-		return qfalse;
-	}
+	clSnap = CL_FindSnapshot( snapshotNumber );
+	if ( !clSnap ) return qfalse;
 
 	std::memset( snapshot, 0, sizeof( *snapshot ) );
 	snapshot->snapFlags = clSnap->snapFlags;
@@ -1296,7 +1289,7 @@ static qboolean CL_GetQ3Snapshot( int snapshotNumber,
 	snapshot->numEntities = count;
 	for ( int index = 0; index < count; ++index ) {
 		const entityState_t &source = cl.parseEntities[
-			( clSnap->parseEntitiesNum + index ) & ( MAX_PARSE_ENTITIES - 1 ) ];
+			( static_cast<std::uint32_t>( clSnap->parseEntitiesNum ) + index ) & ( MAX_PARSE_ENTITIES - 1 ) ];
 		FnTech3_Q3EntityStateFromInternal( &snapshot->entities[index], &source );
 	}
 	snapshot->serverCommandSequence = clSnap->serverCommandNum;
@@ -1342,20 +1335,9 @@ static qboolean CL_GetRetailNativeSnapshot( int snapshotNumber, void *destinatio
 	if ( !destination ) {
 		return qfalse;
 	}
-	if ( snapshotNumber > cl.snap.messageNum ) {
-		Com_Error( ERR_DROP,
-			"CL_GetRetailNativeSnapshot: snapshotNumber (%i) > current snapshot (%i)",
-			snapshotNumber, cl.snap.messageNum );
-	}
-	if ( cl.snap.messageNum - snapshotNumber >= PACKET_BACKUP ) {
-		return qfalse;
-	}
-
-	const clSnapshot_t &source = cl.snapshots[snapshotNumber & PACKET_MASK];
-	if ( !source.valid ||
-		cl.parseEntitiesNum - source.parseEntitiesNum >= MAX_PARSE_ENTITIES ) {
-		return qfalse;
-	}
+	const clSnapshot_t *found = CL_FindSnapshot( snapshotNumber );
+	if ( !found ) return qfalse;
+	const clSnapshot_t &source = *found;
 
 	auto &snapshot = *static_cast<RetailNativeSnapshot *>( destination );
 	std::memset( &snapshot, 0, sizeof( snapshot ) );
@@ -1374,7 +1356,7 @@ static qboolean CL_GetRetailNativeSnapshot( int snapshotNumber, void *destinatio
 	snapshot.numEntities = entityCount;
 	for ( int i = 0; i < entityCount; ++i ) {
 		FnTech3_QLEntityStateFromInternal( &snapshot.entities[i], &cl.parseEntities[
-			( source.parseEntitiesNum + i ) & ( MAX_PARSE_ENTITIES - 1 ) ] );
+			( static_cast<std::uint32_t>( source.parseEntitiesNum ) + i ) & ( MAX_PARSE_ENTITIES - 1 ) ] );
 	}
 	snapshot.serverCommandSequence = source.serverCommandNum;
 	return qtrue;

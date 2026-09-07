@@ -112,6 +112,9 @@ to the evidence level named in the same cell.
    The [snapshot marshalling correction](2026-09-07-ql-snapshot-marshalling.md)
    now converts the frozen known prefix explicitly and tests zeroed unknown
    bytes and destination guards; the tail's meaning remains unverified.
+   [Snapshot history validation](2026-09-07-snapshot-history.md) also rejects
+   malformed/stale module requests before writes; parser counter-wrap handling
+   still requires follow-up.
 4. **Detection is not yet authoritative.** Marker existence is an initial hint,
    not proof of a valid installation. Profile-owned Q3/QL Steam discovery
    now passes bounded Unit/Build/Fixture checks; archive identity and complete
