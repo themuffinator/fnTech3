@@ -1,8 +1,16 @@
 // Included by AudioSystem.cpp inside its private implementation namespace.
 // Music and raw PCM stream queueing.
 
+struct StreamConversionState {
+	fntech3::audio::CubicStreamResampler resampler;
+	int rate = 0, width = 0, inputChannels = 0, outputRate = 0;
+	int requestedChannels = 0, outputChannels = 0;
+	float gain = 1.0f;
+};
+
 class StreamPlayer {
 public:
+	StreamConversionState conversion;
 	void Init( OpenALDevice *device, ALuint source );
 	void Shutdown();
 	void Clear();
@@ -55,6 +63,7 @@ void StreamPlayer::ReclaimProcessedBuffers() {
 }
 
 void StreamPlayer::Clear() {
+	conversion = {};
 	if ( device_ == nullptr || source_ == 0 ) {
 		return;
 	}

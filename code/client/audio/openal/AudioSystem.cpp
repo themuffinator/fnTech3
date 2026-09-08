@@ -33,6 +33,7 @@ extern "C" {
 #include "../shared/AudioDeviceRecovery.h"
 #include "../shared/AudioOcclusion.h"
 #include "../shared/AudioTonePolicy.h"
+#include "../shared/AudioStreamResampler.h"
 #include "../shared/AudioVoiceQueue.h"
 #include "../shared/AudioZoneFormat.h"
 #include "../shared/AudioZoneRuntime.h"

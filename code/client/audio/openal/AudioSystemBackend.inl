@@ -38,7 +38,7 @@ public:
 	void DumpSpatialDebug() const;
 
 private:
-	static std::vector<short> ConvertStreamToPCM16( int samples, int rate, int width, int channels, const byte *data, float volume, int outputRate, int outputChannels );
+	bool FlushStream( StreamPlayer &player );
 	bool QueueStreamChunk( StreamPlayer &player, int samples, int rate, int width, int channels, const byte *data, float volume, int outputChannels, bool logFallback );
 	int StreamOutputRate() const;
 	void ServiceBackgroundTrack();
@@ -92,38 +92,6 @@ static float ReadStreamPCM16Sample( const byte *data, size_t sampleIndex, int wi
 	return static_cast<float>( ConvertSignedPCM8ToPCM16( data[sampleIndex] ) );
 }
 
-static float CubicInterpolatePCM16( float p0, float p1, float p2, float p3, float fraction ) {
-	const float f2 = fraction * fraction;
-	const float f3 = f2 * fraction;
-	return 0.5f * ( ( 2.0f * p1 ) +
-		( -p0 + p2 ) * fraction +
-		( 2.0f * p0 - 5.0f * p1 + 4.0f * p2 - p3 ) * f2 +
-		( -p0 + 3.0f * p1 - 3.0f * p2 + p3 ) * f3 );
-}
-
-static float ReadInterpolatedStreamSample( const byte *data, int samples, int width, int channels, int channel, double sourcePosition ) {
-	if ( data == nullptr || samples <= 0 || channel < 0 || channel >= channels ) {
-		return 0.0f;
-	}
-
-	const int base = ClampInt( static_cast<int>( std::floor( sourcePosition ) ), 0, samples - 1 );
-	const float fraction = static_cast<float>( sourcePosition - static_cast<double>( base ) );
-	if ( samples == 1 || fraction <= 0.000001f ) {
-		return ReadStreamPCM16Sample( data, static_cast<size_t>( base ) * static_cast<size_t>( channels ) + static_cast<size_t>( channel ), width, channels );
-	}
-
-	const int i0 = ClampInt( base - 1, 0, samples - 1 );
-	const int i1 = base;
-	const int i2 = ClampInt( base + 1, 0, samples - 1 );
-	const int i3 = ClampInt( base + 2, 0, samples - 1 );
-	const size_t channelIndex = static_cast<size_t>( channel );
-	const float p0 = ReadStreamPCM16Sample( data, static_cast<size_t>( i0 ) * static_cast<size_t>( channels ) + channelIndex, width, channels );
-	const float p1 = ReadStreamPCM16Sample( data, static_cast<size_t>( i1 ) * static_cast<size_t>( channels ) + channelIndex, width, channels );
-	const float p2 = ReadStreamPCM16Sample( data, static_cast<size_t>( i2 ) * static_cast<size_t>( channels ) + channelIndex, width, channels );
-	const float p3 = ReadStreamPCM16Sample( data, static_cast<size_t>( i3 ) * static_cast<size_t>( channels ) + channelIndex, width, channels );
-	return CubicInterpolatePCM16( p0, p1, p2, p3, fraction );
-}
-
 static void WriteConvertedStreamFrame( const float *input, int inputChannels, short *output, int outputChannels, float gain ) {
 	if ( input == nullptr || output == nullptr || inputChannels <= 0 || outputChannels <= 0 ) {
 		return;
@@ -162,46 +130,6 @@ static void WriteConvertedStreamFrame( const float *input, int inputChannels, sh
 	}
 }
 
-std::vector<short> AudioSystem::ConvertStreamToPCM16( int samples, int rate, int width, int channels, const byte *data, float volume, int outputRate, int outputChannels ) {
-	std::vector<short> pcm;
-	if ( samples <= 0 || rate <= 0 || outputRate <= 0 || data == nullptr || ( width != 1 && width != 2 ) ||
-		!PCMChannelCountCanBeRepresented( channels ) || !PCMChannelCountCanBeRepresented( outputChannels ) ) {
-		return pcm;
-	}
-
-	size_t sourceBytes = 0;
-	if ( !PCMFrameByteCount( samples, channels, width, sourceBytes ) ) {
-		return pcm;
-	}
-	(void)sourceBytes;
-
-	const float gain = ClampFloat( volume, 0.0f, 8.0f );
-	const int64_t outputSamples64 = ( std::max )( static_cast<int64_t>( 1 ),
-		( static_cast<int64_t>( samples ) * static_cast<int64_t>( outputRate ) + rate - 1 ) / rate );
-	if ( outputSamples64 > std::numeric_limits<int>::max() ||
-		static_cast<uint64_t>( outputSamples64 ) > std::numeric_limits<size_t>::max() / static_cast<uint64_t>( outputChannels ) ||
-		!PCMByteCountFitsALsizei( static_cast<size_t>( outputSamples64 ) * static_cast<size_t>( outputChannels ) ) ) {
-		return pcm;
-	}
-	const int outputSamples = static_cast<int>( outputSamples64 );
-	pcm.resize( static_cast<size_t>( outputSamples ) * static_cast<size_t>( outputChannels ) );
-
-	const double sourceStep = static_cast<double>( rate ) / static_cast<double>( outputRate );
-	for ( int i = 0; i < outputSamples; ++i ) {
-		const double sourcePosition = ( std::min )( static_cast<double>( samples - 1 ), static_cast<double>( i ) * sourceStep );
-		std::array<float, kMaxPCMChannels> inputFrame = {};
-		for ( int channel = 0; channel < channels; ++channel ) {
-			inputFrame[static_cast<size_t>( channel )] = ReadInterpolatedStreamSample( data, samples, width, channels, channel, sourcePosition );
-		}
-
-		WriteConvertedStreamFrame( inputFrame.data(), channels,
-			pcm.data() + static_cast<size_t>( i ) * static_cast<size_t>( outputChannels ),
-			outputChannels, gain );
-	}
-
-	return pcm;
-}
-
 int AudioSystem::StreamOutputRate() const {
 	const int mixerRate = device_.Capabilities().mixerFrequency;
 	if ( mixerRate >= 8000 && mixerRate <= 192000 ) {
@@ -211,39 +139,80 @@ int AudioSystem::StreamOutputRate() const {
 	return ClampInt( CvarIntegerOrDefault( s_alFrequency, kFallbackStreamRate ), 8000, 192000 );
 }
 
+static std::vector<short> ConvertResampledFrames( const std::vector<float> &frames, const StreamConversionState &state, int outputChannels ) {
+	const size_t count = frames.size() / static_cast<size_t>( state.inputChannels );
+	if ( count > static_cast<size_t>( std::numeric_limits<int>::max() ) / outputChannels ||
+		!PCMByteCountFitsALsizei( count * static_cast<size_t>( outputChannels ) ) ) {
+		return {};
+	}
+	std::vector<short> pcm( count * static_cast<size_t>( outputChannels ) );
+	for ( size_t i = 0; i < count; ++i ) {
+		WriteConvertedStreamFrame( frames.data() + i * state.inputChannels, state.inputChannels,
+			pcm.data() + i * outputChannels, outputChannels, state.gain );
+	}
+	return pcm;
+}
+
+bool AudioSystem::FlushStream( StreamPlayer &player ) {
+	if ( player.conversion.rate == 0 ) return true;
+	auto next = player.conversion;
+	std::vector<float> frames;
+	if ( !next.resampler.Finish( frames ) ) return false;
+	if ( !frames.empty() ) {
+		const auto pcm = ConvertResampledFrames( frames, next, next.outputChannels );
+		if ( pcm.empty() || !player.QueuePCM16( pcm.data(), static_cast<int>( pcm.size() / next.outputChannels ),
+			next.outputChannels, next.outputRate ) ) return false;
+	}
+	player.conversion = {};
+	return true;
+}
+
 bool AudioSystem::QueueStreamChunk( StreamPlayer &player, int samples, int rate, int width, int channels, const byte *data, float volume, int outputChannels, bool logFallback ) {
-	if ( outputChannels <= 0 ) {
-		return false;
-	}
-
+	if ( samples <= 0 || rate <= 0 || data == nullptr || ( width != 1 && width != 2 ) ||
+		!PCMChannelCountCanBeRepresented( channels ) || !PCMChannelCountCanBeRepresented( outputChannels ) ) return false;
+	size_t sourceBytes = 0;
+	if ( !PCMFrameByteCount( samples, channels, width, sourceBytes ) ||
+		static_cast<size_t>( samples ) > std::numeric_limits<size_t>::max() / sizeof( float ) / channels ) return false;
+	(void)sourceBytes;
 	const int outputRate = StreamOutputRate();
-	const std::vector<short> pcm = ConvertStreamToPCM16( samples, rate, width, channels, data, volume, outputRate, outputChannels );
-	if ( pcm.empty() ) {
-		return false;
+	const float gain = ClampFloat( volume, 0.0f, 8.0f );
+	const auto &old = player.conversion;
+	if ( old.rate && old.outputRate != outputRate ) {
+		// A changed device clock cannot share an OpenAL buffer queue with
+		// its previous sample rate. Recovery starts a fresh conversion timeline.
+		player.Clear();
+	} else if ( old.rate && ( old.rate != rate || old.width != width || old.inputChannels != channels ||
+		old.requestedChannels != outputChannels || old.gain != gain ) && !FlushStream( player ) ) return false;
+	auto next = player.conversion;
+	if ( !next.rate ) {
+		if ( !next.resampler.Configure( rate, outputRate, channels ) ) return false;
+		next.rate = rate; next.width = width; next.inputChannels = channels;
+		next.outputRate = outputRate; next.requestedChannels = outputChannels;
+		next.outputChannels = outputChannels; next.gain = gain;
 	}
-
-	const int frameCount = static_cast<int>( pcm.size() / static_cast<size_t>( outputChannels ) );
-	if ( player.QueuePCM16( pcm.data(), frameCount, outputChannels, outputRate ) ) {
+	std::vector<float> input( static_cast<size_t>( samples ) * channels );
+	for ( size_t i = 0; i < input.size(); ++i ) input[i] = ReadStreamPCM16Sample( data, i, width, channels );
+	std::vector<float> frames;
+	if ( !next.resampler.Push( input.data(), samples, frames ) ) return false;
+	if ( frames.empty() ) {
+		player.conversion = std::move( next );
 		return true;
 	}
-
-	if ( outputChannels <= kDefaultStreamChannels ) {
-		return false;
+	auto pcm = ConvertResampledFrames( frames, next, next.outputChannels );
+	if ( pcm.empty() ) return false;
+	if ( player.QueuePCM16( pcm.data(), static_cast<int>( pcm.size() / next.outputChannels ), next.outputChannels, outputRate ) ) {
+		player.conversion = std::move( next );
+		return true;
 	}
-
+	if ( next.outputChannels <= kDefaultStreamChannels ) return false;
 	player.Clear();
-	const std::vector<short> stereoPCM = ConvertStreamToPCM16( samples, rate, width, channels, data, volume, outputRate, kDefaultStreamChannels );
-	if ( stereoPCM.empty() ) {
-		return false;
-	}
-
-	if ( !player.QueuePCM16( stereoPCM.data(), static_cast<int>( stereoPCM.size() / static_cast<size_t>( kDefaultStreamChannels ) ), kDefaultStreamChannels, outputRate ) ) {
-		return false;
-	}
-
+	pcm = ConvertResampledFrames( frames, next, kDefaultStreamChannels );
+	if ( pcm.empty() || !player.QueuePCM16( pcm.data(), static_cast<int>( pcm.size() / kDefaultStreamChannels ),
+		kDefaultStreamChannels, outputRate ) ) return false;
+	next.outputChannels = kDefaultStreamChannels;
+	player.conversion = std::move( next );
 	if ( logFallback && backgroundStereoFallbackChannels_ != outputChannels ) {
-		Com_DPrintf( S_COLOR_YELLOW "WARNING: OpenAL rejected %s stream buffers; using stereo downmix fallback\n",
-			PCMChannelLayoutName( outputChannels ) );
+		Com_DPrintf( S_COLOR_YELLOW "WARNING: OpenAL rejected %s stream buffers; using stereo downmix fallback\n", PCMChannelLayoutName( outputChannels ) );
 		backgroundStereoFallbackChannels_ = outputChannels;
 	}
 	return true;
@@ -741,6 +710,9 @@ void AudioSystem::Update( int msec ) {
 	if ( deferredUpdates ) {
 		device_.EndDeferredUpdates();
 	}
+	// RawSamples has no end-of-stream callback. Drain its small interpolation
+	// tail once the submitted buffers have played out; explicit clears discard it.
+	if ( rawPlayer_.Idle() ) FlushStream( rawPlayer_ );
 	rawPlayer_.Update( softMuted ? 0.0f : 1.0f );
 	const float voiceVolume = ( s_voiceVolume != nullptr ) ? ClampFloat( s_voiceVolume->value, 0.0f, 2.0f ) : 1.0f;
 	voicePlayer_.Update( softMuted ? 0.0f : voiceVolume );

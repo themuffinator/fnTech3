@@ -1,0 +1,1737 @@
+{
+  "baseCommit": "0d5bb1ae5a75e1372bc865fcfb8b61dbdb2b2d50",
+  "sourceSha256": {
+    "code/client/audio/shared/AudioStreamResampler.h": "a41f6c20dc8733d9d57dba1338686e6473a5a211bb5e8b2729a881f452b49c23",
+    "code/client/audio/openal/AudioSystem.cpp": "0eef184aca3eab2deff6aa997631a384af9296140f82a0707b117d740235ecd7",
+    "code/client/audio/openal/AudioSystemBackend.inl": "3d3ef10383e75555d073770f822cd630e628e56a8747f5febe4dcd90bce69b1a",
+    "code/client/audio/openal/AudioSystemStreams.inl": "44d8efebba44d4ad6f12789661edcc95060bcbae23505dc38539fbc2590f8c30",
+    "tests/stream_resampler_tests.py": "6a153ae9048f77ec6764eb821d517b2937cdef78a14bb43ddc57006a4b85b190"
+  },
+  "unitEvidence": {
+    "tests": 2,
+    "platforms": [
+      "Windows standalone compiler",
+      "Windows x86 full suite",
+      "Linux standalone compiler",
+      "Linux AddressSanitizer and UndefinedBehaviorSanitizer"
+    ],
+    "inputRates": [
+      8000,
+      22050,
+      44100,
+      48000,
+      96000
+    ],
+    "outputRates": [
+      8000,
+      44100,
+      48000
+    ],
+    "channels": [
+      1,
+      2,
+      6
+    ],
+    "partitionFrames": [
+      1,
+      2,
+      3,
+      7,
+      257,
+      8192
+    ],
+    "allPartitionsExactlyMatchOneShot": true,
+    "equalRateInputExactlyPreserved": true,
+    "tenSecondOutputFramesAt48000": {
+      "22050": 480000,
+      "44100": 480000,
+      "48000": 480000
+    },
+    "phaseResetMutationRejected": true,
+    "queueChecks": [
+      "failed push does not advance state",
+      "failed flush preserves pending state",
+      "retry matches successful control",
+      "rate/channel/gain transitions finish old segment",
+      "device output-rate change clears incompatible queue",
+      "stereo fallback retains history and avoids repeated multichannel rejection",
+      "clear discards pending samples"
+    ]
+  },
+  "windowsBuild": {
+    "kind": "incremental MSVC x86 release",
+    "logSha256": "978d17827b5fe14c291761181379f3adf4c849fffb8b3a87c88b5b89504ed4c2"
+  },
+  "fullSuite": {
+    "passed": 110,
+    "failed": 0,
+    "skipped": 1,
+    "pythonTests": 1300,
+    "pythonSkipped": 5,
+    "pythonSeconds": 182.894,
+    "summarySha256": "2249bae2324225e12f9ac491928ab591320f6c43119074fef0d3ab6bfbe0f6c3",
+    "fullLogSha256": "27bef90b241725e654da76d0ddfce6a3bdbdb2fbe3520af4d00e7cb1d3d00a6f"
+  },
+  "runtime": {
+    "rates": {
+      "manifest": {
+        "commit": "0d5bb1ae5a75e1372bc865fcfb8b61dbdb2b2d50",
+        "runtime": {
+          "FnQL-pkg.fnz": "1d1ff86488c3134a936486790c24954bef87abd22177e1ca8b5542cc2f06115a",
+          "fnql-web.pak": "6c210165880fff668900fd3e4e3c90137623043e1b5315f24b693f367f756382",
+          "fnql_glx_x86.dll": "f9360d552c1f83584df6a40221e24e9f531d418c7a41fb5613c660dcea98ac64",
+          "fntech3.exe": "8b5351f5e941d7951ff79d8431ef615dd049f81466f50b104e02cea67d7009df",
+          "soft_oal.dll": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+        },
+        "runs": [
+          {
+            "profile": "q3",
+            "encoding": "pcm16",
+            "sourceRate": 22050,
+            "command": [
+              "E:\\Repositories\\fnTech3\\.tmp\\audio-resample-fixed-0d5bb1a\\runtime\\fntech3.exe",
+              "+set",
+              "com_gameProfile",
+              "q3",
+              "+set",
+              "fs_basepath",
+              "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+              "+set",
+              "fs_homepath",
+              "E:\\Repositories\\fnTech3\\.tmp\\audio-resample-fixed-0d5bb1a\\q3-22050\\home",
+              "+set",
+              "fs_cdpath",
+              "",
+              "+set",
+              "r_fullscreen",
+              "0",
+              "+set",
+              "r_mode",
+              "3",
+              "+set",
+              "in_mouse",
+              "0",
+              "+set",
+              "in_joystick",
+              "0",
+              "+set",
+              "in_nograb",
+              "1",
+              "+set",
+              "s_initsound",
+              "1",
+              "+set",
+              "s_backend",
+              "openal",
+              "+set",
+              "s_volume",
+              "1",
+              "+set",
+              "s_musicVolume",
+              "0",
+              "+set",
+              "s_voiceVolume",
+              "0",
+              "+set",
+              "s_muteWhenUnfocused",
+              "0",
+              "+set",
+              "s_muteWhenMinimized",
+              "0",
+              "+set",
+              "com_steamIntegration",
+              "0",
+              "+set",
+              "fs_skipWorkshop",
+              "1",
+              "+set",
+              "cl_webuiEnable",
+              "0",
+              "+set",
+              "logfile",
+              "2",
+              "+set",
+              "com_maxfps",
+              "60",
+              "+set",
+              "com_maxfpsUnfocused",
+              "60",
+              "+set",
+              "com_maxfpsMinimized",
+              "60",
+              "+exec",
+              "probe.cfg"
+            ],
+            "config": "stopmusic\nwait 120\ns_info\nset s_musicVolume 1\nmusic music/intro.wav music/loop.wav\nwait 240\nstopmusic\nwait 120\necho AUDIO_STREAM_COMPLETE\nquit\n",
+            "exitCode": 0,
+            "forced": false,
+            "elapsedSeconds": 16.234,
+            "outputExists": true,
+            "outputBytes": 2484292,
+            "outputSha256": "6c03accb5cddb9cf34164d913241b55b2b8571bf062d3251860ea2f650f19552"
+          },
+          {
+            "profile": "q3",
+            "encoding": "pcm16",
+            "sourceRate": 44100,
+            "command": [
+              "E:\\Repositories\\fnTech3\\.tmp\\audio-resample-fixed-0d5bb1a\\runtime\\fntech3.exe",
+              "+set",
+              "com_gameProfile",
+              "q3",
+              "+set",
+              "fs_basepath",
+              "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+              "+set",
+              "fs_homepath",
+              "E:\\Repositories\\fnTech3\\.tmp\\audio-resample-fixed-0d5bb1a\\q3-44100\\home",
+              "+set",
+              "fs_cdpath",
+              "",
+              "+set",
+              "r_fullscreen",
+              "0",
+              "+set",
+              "r_mode",
+              "3",
+              "+set",
+              "in_mouse",
+              "0",
+              "+set",
+              "in_joystick",
+              "0",
+              "+set",
+              "in_nograb",
+              "1",
+              "+set",
+              "s_initsound",
+              "1",
+              "+set",
+              "s_backend",
+              "openal",
+              "+set",
+              "s_volume",
+              "1",
+              "+set",
+              "s_musicVolume",
+              "0",
+              "+set",
+              "s_voiceVolume",
+              "0",
+              "+set",
+              "s_muteWhenUnfocused",
+              "0",
+              "+set",
+              "s_muteWhenMinimized",
+              "0",
+              "+set",
+              "com_steamIntegration",
+              "0",
+              "+set",
+              "fs_skipWorkshop",
+              "1",
+              "+set",
+              "cl_webuiEnable",
+              "0",
+              "+set",
+              "logfile",
+              "2",
+              "+set",
+              "com_maxfps",
+              "60",
+              "+set",
+              "com_maxfpsUnfocused",
+              "60",
+              "+set",
+              "com_maxfpsMinimized",
+              "60",
+              "+exec",
+              "probe.cfg"
+            ],
+            "config": "stopmusic\nwait 120\ns_info\nset s_musicVolume 1\nmusic music/intro.wav music/loop.wav\nwait 240\nstopmusic\nwait 120\necho AUDIO_STREAM_COMPLETE\nquit\n",
+            "exitCode": 0,
+            "forced": false,
+            "elapsedSeconds": 12.563,
+            "outputExists": true,
+            "outputBytes": 2168900,
+            "outputSha256": "7177b988082326d67e5c5b86292bdb57808d0bd86c4406deb750d17d338deb3b"
+          },
+          {
+            "profile": "q3",
+            "encoding": "pcm16",
+            "sourceRate": 48000,
+            "command": [
+              "E:\\Repositories\\fnTech3\\.tmp\\audio-resample-fixed-0d5bb1a\\runtime\\fntech3.exe",
+              "+set",
+              "com_gameProfile",
+              "q3",
+              "+set",
+              "fs_basepath",
+              "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+              "+set",
+              "fs_homepath",
+              "E:\\Repositories\\fnTech3\\.tmp\\audio-resample-fixed-0d5bb1a\\q3-48000\\home",
+              "+set",
+              "fs_cdpath",
+              "",
+              "+set",
+              "r_fullscreen",
+              "0",
+              "+set",
+              "r_mode",
+              "3",
+              "+set",
+              "in_mouse",
+              "0",
+              "+set",
+              "in_joystick",
+              "0",
+              "+set",
+              "in_nograb",
+              "1",
+              "+set",
+              "s_initsound",
+              "1",
+              "+set",
+              "s_backend",
+              "openal",
+              "+set",
+              "s_volume",
+              "1",
+              "+set",
+              "s_musicVolume",
+              "0",
+              "+set",
+              "s_voiceVolume",
+              "0",
+              "+set",
+              "s_muteWhenUnfocused",
+              "0",
+              "+set",
+              "s_muteWhenMinimized",
+              "0",
+              "+set",
+              "com_steamIntegration",
+              "0",
+              "+set",
+              "fs_skipWorkshop",
+              "1",
+              "+set",
+              "cl_webuiEnable",
+              "0",
+              "+set",
+              "logfile",
+              "2",
+              "+set",
+              "com_maxfps",
+              "60",
+              "+set",
+              "com_maxfpsUnfocused",
+              "60",
+              "+set",
+              "com_maxfpsMinimized",
+              "60",
+              "+exec",
+              "probe.cfg"
+            ],
+            "config": "stopmusic\nwait 120\ns_info\nset s_musicVolume 1\nmusic music/intro.wav music/loop.wav\nwait 240\nstopmusic\nwait 120\necho AUDIO_STREAM_COMPLETE\nquit\n",
+            "exitCode": 0,
+            "forced": false,
+            "elapsedSeconds": 13.265,
+            "outputExists": true,
+            "outputBytes": 2179140,
+            "outputSha256": "5d61b2c1fec411dbe02621ca1ac748405130aab4eb92ae584cb25efe208b4282"
+          },
+          {
+            "profile": "ql",
+            "encoding": "pcm16",
+            "sourceRate": 22050,
+            "command": [
+              "E:\\Repositories\\fnTech3\\.tmp\\audio-resample-fixed-0d5bb1a\\runtime\\fntech3.exe",
+              "+set",
+              "com_gameProfile",
+              "ql",
+              "+set",
+              "fs_basepath",
+              "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live",
+              "+set",
+              "fs_homepath",
+              "E:\\Repositories\\fnTech3\\.tmp\\audio-resample-fixed-0d5bb1a\\ql-22050\\home",
+              "+set",
+              "fs_cdpath",
+              "",
+              "+set",
+              "r_fullscreen",
+              "0",
+              "+set",
+              "r_mode",
+              "3",
+              "+set",
+              "in_mouse",
+              "0",
+              "+set",
+              "in_joystick",
+              "0",
+              "+set",
+              "in_nograb",
+              "1",
+              "+set",
+              "s_initsound",
+              "1",
+              "+set",
+              "s_backend",
+              "openal",
+              "+set",
+              "s_volume",
+              "1",
+              "+set",
+              "s_musicVolume",
+              "0",
+              "+set",
+              "s_voiceVolume",
+              "0",
+              "+set",
+              "s_muteWhenUnfocused",
+              "0",
+              "+set",
+              "s_muteWhenMinimized",
+              "0",
+              "+set",
+              "com_steamIntegration",
+              "0",
+              "+set",
+              "fs_skipWorkshop",
+              "1",
+              "+set",
+              "cl_webuiEnable",
+              "0",
+              "+set",
+              "logfile",
+              "2",
+              "+set",
+              "com_maxfps",
+              "60",
+              "+set",
+              "com_maxfpsUnfocused",
+              "60",
+              "+set",
+              "com_maxfpsMinimized",
+              "60",
+              "+exec",
+              "probe.cfg"
+            ],
+            "config": "stopmusic\nwait 120\ns_info\nset s_musicVolume 1\nmusic music/intro.wav music/loop.wav\nwait 240\nstopmusic\nwait 120\necho AUDIO_STREAM_COMPLETE\nquit\n",
+            "exitCode": 0,
+            "forced": false,
+            "elapsedSeconds": 14.765,
+            "outputExists": true,
+            "outputBytes": 2351172,
+            "outputSha256": "736ce60cb00c740690401f594933f4002338a7582c3648a51e36ea63d12d4aa1"
+          },
+          {
+            "profile": "ql",
+            "encoding": "pcm16",
+            "sourceRate": 44100,
+            "command": [
+              "E:\\Repositories\\fnTech3\\.tmp\\audio-resample-fixed-0d5bb1a\\runtime\\fntech3.exe",
+              "+set",
+              "com_gameProfile",
+              "ql",
+              "+set",
+              "fs_basepath",
+              "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live",
+              "+set",
+              "fs_homepath",
+              "E:\\Repositories\\fnTech3\\.tmp\\audio-resample-fixed-0d5bb1a\\ql-44100\\home",
+              "+set",
+              "fs_cdpath",
+              "",
+              "+set",
+              "r_fullscreen",
+              "0",
+              "+set",
+              "r_mode",
+              "3",
+              "+set",
+              "in_mouse",
+              "0",
+              "+set",
+              "in_joystick",
+              "0",
+              "+set",
+              "in_nograb",
+              "1",
+              "+set",
+              "s_initsound",
+              "1",
+              "+set",
+              "s_backend",
+              "openal",
+              "+set",
+              "s_volume",
+              "1",
+              "+set",
+              "s_musicVolume",
+              "0",
+              "+set",
+              "s_voiceVolume",
+              "0",
+              "+set",
+              "s_muteWhenUnfocused",
+              "0",
+              "+set",
+              "s_muteWhenMinimized",
+              "0",
+              "+set",
+              "com_steamIntegration",
+              "0",
+              "+set",
+              "fs_skipWorkshop",
+              "1",
+              "+set",
+              "cl_webuiEnable",
+              "0",
+              "+set",
+              "logfile",
+              "2",
+              "+set",
+              "com_maxfps",
+              "60",
+              "+set",
+              "com_maxfpsUnfocused",
+              "60",
+              "+set",
+              "com_maxfpsMinimized",
+              "60",
+              "+exec",
+              "probe.cfg"
+            ],
+            "config": "stopmusic\nwait 120\ns_info\nset s_musicVolume 1\nmusic music/intro.wav music/loop.wav\nwait 240\nstopmusic\nwait 120\necho AUDIO_STREAM_COMPLETE\nquit\n",
+            "exitCode": 0,
+            "forced": false,
+            "elapsedSeconds": 15.062,
+            "outputExists": true,
+            "outputBytes": 2529348,
+            "outputSha256": "3bd984b6ef86ab533b0fab25b42f554611277803c7bd0f4c56d6eaafc1f4a537"
+          },
+          {
+            "profile": "ql",
+            "encoding": "pcm16",
+            "sourceRate": 48000,
+            "command": [
+              "E:\\Repositories\\fnTech3\\.tmp\\audio-resample-fixed-0d5bb1a\\runtime\\fntech3.exe",
+              "+set",
+              "com_gameProfile",
+              "ql",
+              "+set",
+              "fs_basepath",
+              "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live",
+              "+set",
+              "fs_homepath",
+              "E:\\Repositories\\fnTech3\\.tmp\\audio-resample-fixed-0d5bb1a\\ql-48000\\home",
+              "+set",
+              "fs_cdpath",
+              "",
+              "+set",
+              "r_fullscreen",
+              "0",
+              "+set",
+              "r_mode",
+              "3",
+              "+set",
+              "in_mouse",
+              "0",
+              "+set",
+              "in_joystick",
+              "0",
+              "+set",
+              "in_nograb",
+              "1",
+              "+set",
+              "s_initsound",
+              "1",
+              "+set",
+              "s_backend",
+              "openal",
+              "+set",
+              "s_volume",
+              "1",
+              "+set",
+              "s_musicVolume",
+              "0",
+              "+set",
+              "s_voiceVolume",
+              "0",
+              "+set",
+              "s_muteWhenUnfocused",
+              "0",
+              "+set",
+              "s_muteWhenMinimized",
+              "0",
+              "+set",
+              "com_steamIntegration",
+              "0",
+              "+set",
+              "fs_skipWorkshop",
+              "1",
+              "+set",
+              "cl_webuiEnable",
+              "0",
+              "+set",
+              "logfile",
+              "2",
+              "+set",
+              "com_maxfps",
+              "60",
+              "+set",
+              "com_maxfpsUnfocused",
+              "60",
+              "+set",
+              "com_maxfpsMinimized",
+              "60",
+              "+exec",
+              "probe.cfg"
+            ],
+            "config": "stopmusic\nwait 120\ns_info\nset s_musicVolume 1\nmusic music/intro.wav music/loop.wav\nwait 240\nstopmusic\nwait 120\necho AUDIO_STREAM_COMPLETE\nquit\n",
+            "exitCode": 0,
+            "forced": false,
+            "elapsedSeconds": 15.375,
+            "outputExists": true,
+            "outputBytes": 2506820,
+            "outputSha256": "d1310e9820a90aec00e027e42657c8c9c796ef3da7c0cd233e63e30d664a3074"
+          }
+        ]
+      },
+      "analysis": [
+        {
+          "run": "q3-22050",
+          "frames": 621056,
+          "signalStartSeconds": 3.2970208333333333,
+          "signalEndSeconds": 9.719645833333333,
+          "signalSpanSeconds": 6.422645833333333,
+          "introWindows": 9,
+          "loopWindows": 54,
+          "firstLoopWindowSeconds": 4.297020833333334,
+          "introRmsPerChannel": [
+            0.17672370810226457,
+            0.17674100386001432
+          ],
+          "loopRmsPerChannel": [
+            0.17652144909798778,
+            0.17594790738344826
+          ],
+          "minimumInterior10msRms": 0.1759708279579162,
+          "finalSecondPeak": 0.0,
+          "logSha256": {
+            "home/baseq3/qconsole.log": "f4b9217dd13450a845227d2381b06cb8811c83c164160ee5468a7971646965fa",
+            "openal.log": "955ca24429c0cd271d039a7cafb3237e8cc13b9f0da678ceb3880004553894a9"
+          },
+          "inputSha256": {
+            "intro.wav": "7731d312434cf127eeea0711feb3fb1eb07a931aca750fe8f60ca0b7a324304c",
+            "loop.wav": "fcc97efea645e198174b430af0e746e9e653211e8fd568bb85a8ce7efe2a8492"
+          },
+          "windowCount": 63,
+          "windowSha256": "9d8fcc58edf17ba7ed260c5a52f249159917436a41f66c8664916c7e6f9119c4"
+        },
+        {
+          "run": "q3-44100",
+          "frames": 542208,
+          "signalStartSeconds": 3.4570208333333334,
+          "signalEndSeconds": 8.5463125,
+          "signalSpanSeconds": 5.0893125,
+          "introWindows": 9,
+          "loopWindows": 40,
+          "firstLoopWindowSeconds": 4.457020833333333,
+          "introRmsPerChannel": [
+            0.17673731228649006,
+            0.176808893443999
+          ],
+          "loopRmsPerChannel": [
+            0.17672074228219,
+            0.17669122264489606
+          ],
+          "minimumInterior10msRms": 0.17650721067645636,
+          "finalSecondPeak": 0.0,
+          "logSha256": {
+            "home/baseq3/qconsole.log": "9d92e3acf67a66add8068a10f14c471160d09faf7dfcf69bccf8040ee1a8cfbf",
+            "openal.log": "6d17f2695c4d5a578b44943d879bb017d9eefdd67c5749fccb0ecaa36db0af53"
+          },
+          "inputSha256": {
+            "intro.wav": "721bb1ef0a795f6f94b1ebcd9977bf024553550a9ba17987213ce76246480bb6",
+            "loop.wav": "3c3fc8b0af358fb544ea5a3fd8afc4320c56fac2fbef6bbe7c46727e2ed7514a"
+          },
+          "windowCount": 49,
+          "windowSha256": "ab2e07d30b8afe1843b37341772e5926cc5a0c935a871b41a4f73c40d27fe363"
+        },
+        {
+          "run": "q3-48000",
+          "frames": 544768,
+          "signalStartSeconds": 3.0516875,
+          "signalEndSeconds": 9.0263125,
+          "signalSpanSeconds": 5.974645833333334,
+          "introWindows": 9,
+          "loopWindows": 49,
+          "firstLoopWindowSeconds": 4.0516875,
+          "introRmsPerChannel": [
+            0.17675211840785382,
+            0.17682714467777724
+          ],
+          "loopRmsPerChannel": [
+            0.17673942739512324,
+            0.17674751167695218
+          ],
+          "minimumInterior10msRms": 0.17655680262437062,
+          "finalSecondPeak": 0.0,
+          "logSha256": {
+            "home/baseq3/qconsole.log": "5df7d6909fbf9f913f9f7b3ed3acafe5851d43c328c113c5c2bcf1eff6be153c",
+            "openal.log": "2c95bc67efccf2c23e2ca62564ede4142126ab4035b3b9fab8422d803dfd098a"
+          },
+          "inputSha256": {
+            "intro.wav": "eac90bfd2190bc3b0341ca73f647688feb7dc7d64abcf00873c654d67dc9a124",
+            "loop.wav": "ba97cb118ac1242ea1a76275ef38e0469d9c33cb4c85363466b941c2e4b7e82b"
+          },
+          "windowCount": 58,
+          "windowSha256": "9d808f13731c7d10b49235bbc7f05c66ed46ff05c8c0bcd3930f016f27e1c10f"
+        },
+        {
+          "run": "ql-22050",
+          "frames": 587776,
+          "signalStartSeconds": 3.137020833333333,
+          "signalEndSeconds": 9.068979166666667,
+          "signalSpanSeconds": 5.931979166666666,
+          "introWindows": 9,
+          "loopWindows": 49,
+          "firstLoopWindowSeconds": 4.137020833333334,
+          "introRmsPerChannel": [
+            0.17672370810226457,
+            0.17674100386001432
+          ],
+          "loopRmsPerChannel": [
+            0.1764451776552271,
+            0.17588885337166194
+          ],
+          "minimumInterior10msRms": 0.1759708279579162,
+          "finalSecondPeak": 0.0,
+          "logSha256": {
+            "home/baseq3/qconsole.log": "22fa948d6d1510fc77ec2b49b88a4a7492439b9b63d7500d88a204dbe588690d",
+            "openal.log": "e0c2d5a26a12997c2f572284136cae16bbd868c62431cfd14140e50698c34ab5"
+          },
+          "inputSha256": {
+            "intro.wav": "7731d312434cf127eeea0711feb3fb1eb07a931aca750fe8f60ca0b7a324304c",
+            "loop.wav": "fcc97efea645e198174b430af0e746e9e653211e8fd568bb85a8ce7efe2a8492"
+          },
+          "windowCount": 58,
+          "windowSha256": "e03229f8e7bbfb5d352c97cbfbf97205ae8c1ddb800f6a9972dd04768a3e4195"
+        },
+        {
+          "run": "ql-44100",
+          "frames": 632320,
+          "signalStartSeconds": 3.5850208333333335,
+          "signalEndSeconds": 9.964979166666666,
+          "signalSpanSeconds": 6.379979166666667,
+          "introWindows": 9,
+          "loopWindows": 53,
+          "firstLoopWindowSeconds": 4.585020833333333,
+          "introRmsPerChannel": [
+            0.17673731228649006,
+            0.176808893443999
+          ],
+          "loopRmsPerChannel": [
+            0.17676703632399662,
+            0.1767271606619585
+          ],
+          "minimumInterior10msRms": 0.17650721067645636,
+          "finalSecondPeak": 0.0,
+          "logSha256": {
+            "home/baseq3/qconsole.log": "17fb908ca7aefee4f0e64366b3760df8b2fabfca57f268a2427c1c2692300fa6",
+            "openal.log": "200c7944dff357a97a4f789d43e2987862fb5dbbbf088d14bc64bf72fe4a56b4"
+          },
+          "inputSha256": {
+            "intro.wav": "721bb1ef0a795f6f94b1ebcd9977bf024553550a9ba17987213ce76246480bb6",
+            "loop.wav": "3c3fc8b0af358fb544ea5a3fd8afc4320c56fac2fbef6bbe7c46727e2ed7514a"
+          },
+          "windowCount": 62,
+          "windowSha256": "0ce83d2a25252d79d71d091d611771a6d3c8d527231846e316ff6816a1d787e7"
+        },
+        {
+          "run": "ql-48000",
+          "frames": 626688,
+          "signalStartSeconds": 3.9583541666666666,
+          "signalEndSeconds": 10.3063125,
+          "signalSpanSeconds": 6.347979166666667,
+          "introWindows": 9,
+          "loopWindows": 53,
+          "firstLoopWindowSeconds": 4.958354166666667,
+          "introRmsPerChannel": [
+            0.17675211840785382,
+            0.17682714467777724
+          ],
+          "loopRmsPerChannel": [
+            0.17679888133848717,
+            0.17679565848779785
+          ],
+          "minimumInterior10msRms": 0.17655680262437062,
+          "finalSecondPeak": 0.0,
+          "logSha256": {
+            "home/baseq3/qconsole.log": "8a015f1a697e1a3104d37702812e67099cc6145c281f0a40a4805b8379a02eeb",
+            "openal.log": "4c5422d010add52ea83e69b9b283d855f103609426cee35ef42894d819809830"
+          },
+          "inputSha256": {
+            "intro.wav": "eac90bfd2190bc3b0341ca73f647688feb7dc7d64abcf00873c654d67dc9a124",
+            "loop.wav": "ba97cb118ac1242ea1a76275ef38e0469d9c33cb4c85363466b941c2e4b7e82b"
+          },
+          "windowCount": 62,
+          "windowSha256": "371b896db5a65a484d9951b374873f850a574c9fa025f3fe3f1860422943f1ad"
+        }
+      ],
+      "analysisSha256": "e0589c9fa9052f76ee64b6d3a771fb37f3507252febfc97cd5f5de7ffef0f358"
+    },
+    "mixedRateReplay": {
+      "manifest": {
+        "commit": "0d5bb1ae5a75e1372bc865fcfb8b61dbdb2b2d50",
+        "runtime": {
+          "FnQL-pkg.fnz": "1d1ff86488c3134a936486790c24954bef87abd22177e1ca8b5542cc2f06115a",
+          "fnql-web.pak": "6c210165880fff668900fd3e4e3c90137623043e1b5315f24b693f367f756382",
+          "fnql_glx_x86.dll": "f9360d552c1f83584df6a40221e24e9f531d418c7a41fb5613c660dcea98ac64",
+          "fntech3.exe": "8b5351f5e941d7951ff79d8431ef615dd049f81466f50b104e02cea67d7009df",
+          "soft_oal.dll": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+        },
+        "runs": [
+          {
+            "profile": "q3",
+            "encoding": "pcm16",
+            "sourceRate": 44100,
+            "loopRate": 22050,
+            "command": [
+              "E:\\Repositories\\fnTech3\\.tmp\\audio-ratechange-fixed-0d5bb1a\\runtime\\fntech3.exe",
+              "+set",
+              "com_gameProfile",
+              "q3",
+              "+set",
+              "fs_basepath",
+              "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+              "+set",
+              "fs_homepath",
+              "E:\\Repositories\\fnTech3\\.tmp\\audio-ratechange-fixed-0d5bb1a\\q3-44100\\home",
+              "+set",
+              "fs_cdpath",
+              "",
+              "+set",
+              "r_fullscreen",
+              "0",
+              "+set",
+              "r_mode",
+              "3",
+              "+set",
+              "in_mouse",
+              "0",
+              "+set",
+              "in_joystick",
+              "0",
+              "+set",
+              "in_nograb",
+              "1",
+              "+set",
+              "s_initsound",
+              "1",
+              "+set",
+              "s_backend",
+              "openal",
+              "+set",
+              "s_volume",
+              "1",
+              "+set",
+              "s_musicVolume",
+              "0",
+              "+set",
+              "s_voiceVolume",
+              "0",
+              "+set",
+              "s_muteWhenUnfocused",
+              "0",
+              "+set",
+              "s_muteWhenMinimized",
+              "0",
+              "+set",
+              "com_steamIntegration",
+              "0",
+              "+set",
+              "fs_skipWorkshop",
+              "1",
+              "+set",
+              "cl_webuiEnable",
+              "0",
+              "+set",
+              "logfile",
+              "2",
+              "+set",
+              "com_maxfps",
+              "60",
+              "+set",
+              "com_maxfpsUnfocused",
+              "60",
+              "+set",
+              "com_maxfpsMinimized",
+              "60",
+              "+exec",
+              "probe.cfg"
+            ],
+            "config": "stopmusic\nwait 120\ns_info\nset s_musicVolume 1\nmusic music/intro.wav music/loop.wav\nwait 240\nstopmusic\nwait 60\necho MUSIC_REPLAY\nmusic music/intro.wav music/loop.wav\nwait 120\nstopmusic\nwait 120\necho AUDIO_STREAM_COMPLETE\nquit\n",
+            "exitCode": 0,
+            "forced": false,
+            "elapsedSeconds": 18.609,
+            "outputExists": true,
+            "outputBytes": 3371076,
+            "outputSha256": "c88fe0719fb1a01c23932e1dced1904fc0f7c3275e4b4549f6eb9dff171e5341"
+          },
+          {
+            "profile": "ql",
+            "encoding": "pcm16",
+            "sourceRate": 44100,
+            "loopRate": 22050,
+            "command": [
+              "E:\\Repositories\\fnTech3\\.tmp\\audio-ratechange-fixed-0d5bb1a\\runtime\\fntech3.exe",
+              "+set",
+              "com_gameProfile",
+              "ql",
+              "+set",
+              "fs_basepath",
+              "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live",
+              "+set",
+              "fs_homepath",
+              "E:\\Repositories\\fnTech3\\.tmp\\audio-ratechange-fixed-0d5bb1a\\ql-44100\\home",
+              "+set",
+              "fs_cdpath",
+              "",
+              "+set",
+              "r_fullscreen",
+              "0",
+              "+set",
+              "r_mode",
+              "3",
+              "+set",
+              "in_mouse",
+              "0",
+              "+set",
+              "in_joystick",
+              "0",
+              "+set",
+              "in_nograb",
+              "1",
+              "+set",
+              "s_initsound",
+              "1",
+              "+set",
+              "s_backend",
+              "openal",
+              "+set",
+              "s_volume",
+              "1",
+              "+set",
+              "s_musicVolume",
+              "0",
+              "+set",
+              "s_voiceVolume",
+              "0",
+              "+set",
+              "s_muteWhenUnfocused",
+              "0",
+              "+set",
+              "s_muteWhenMinimized",
+              "0",
+              "+set",
+              "com_steamIntegration",
+              "0",
+              "+set",
+              "fs_skipWorkshop",
+              "1",
+              "+set",
+              "cl_webuiEnable",
+              "0",
+              "+set",
+              "logfile",
+              "2",
+              "+set",
+              "com_maxfps",
+              "60",
+              "+set",
+              "com_maxfpsUnfocused",
+              "60",
+              "+set",
+              "com_maxfpsMinimized",
+              "60",
+              "+exec",
+              "probe.cfg"
+            ],
+            "config": "stopmusic\nwait 120\ns_info\nset s_musicVolume 1\nmusic music/intro.wav music/loop.wav\nwait 240\nstopmusic\nwait 60\necho MUSIC_REPLAY\nmusic music/intro.wav music/loop.wav\nwait 120\nstopmusic\nwait 120\necho AUDIO_STREAM_COMPLETE\nquit\n",
+            "exitCode": 0,
+            "forced": false,
+            "elapsedSeconds": 18.687,
+            "outputExists": true,
+            "outputBytes": 3313732,
+            "outputSha256": "b5030736fb34242dcb80694df61939eb956e49a41b2f3d4be8e583106345c908"
+          }
+        ]
+      },
+      "analysis": [
+        {
+          "profile": "q3",
+          "introRate": 44100,
+          "loopRate": 22050,
+          "segments": [
+            {
+              "startSeconds": 3.9,
+              "endSeconds": 9.4,
+              "introWindows": 9,
+              "loopWindows": 44,
+              "windowPeaks": [
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ]
+              ]
+            },
+            {
+              "startSeconds": 11.21,
+              "endSeconds": 14.4,
+              "introWindows": 9,
+              "loopWindows": 21,
+              "windowPeaks": [
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ]
+              ]
+            }
+          ],
+          "finalSecondPeak": 0,
+          "logSha256": "36a534c5fe3daaaa6b8686d0fb64e0dcc60d4f42ae5b2661e0938daca7814a76"
+        },
+        {
+          "profile": "ql",
+          "introRate": 44100,
+          "loopRate": 22050,
+          "segments": [
+            {
+              "startSeconds": 3.17,
+              "endSeconds": 9.52,
+              "introWindows": 9,
+              "loopWindows": 53,
+              "windowPeaks": [
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ]
+              ]
+            },
+            {
+              "startSeconds": 10.89,
+              "endSeconds": 14.08,
+              "introWindows": 9,
+              "loopWindows": 21,
+              "windowPeaks": [
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  997,
+                  1499
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ],
+                [
+                  2111,
+                  2801
+                ]
+              ]
+            }
+          ],
+          "finalSecondPeak": 0,
+          "logSha256": "54962e7352d9ec56a87a55397c119da054d70b762753c1e3f1a4029848047085"
+        }
+      ],
+      "analysisSha256": "d2fd795987e5a8d11a174251810900012d70438567318e8fc7cd4aec6ede1ee9"
+    }
+  },
+  "limitations": [
+    "RawSamples has no explicit EOF; its short tail drains after the queued buffers become idle.",
+    "Physical device recovery and audible hardware behavior are not established by file output.",
+    "Music rate-change/replay tests exercise 44.1 kHz intro and 22.05 kHz loop; other mixed layouts remain broader coverage work.",
+    "Linux evidence is focused executable/sanitizer testing, not a fresh full engine build."
+  ]
+}
