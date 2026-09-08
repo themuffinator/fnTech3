@@ -1082,7 +1082,10 @@ static void CL_DemoCompleted( void ) {
 
 	CL_Disconnect( qtrue );
 	CL_NextDemo();
-	if ( cl_quitOnDemoCompleted && cl_quitOnDemoCompleted->integer ) {
+	// A nextdemo action may have started another recording. Let that playback
+	// reach its own completion before applying the automatic quit policy.
+	if ( !clc.demoplaying && cl_quitOnDemoCompleted &&
+		cl_quitOnDemoCompleted->integer ) {
 		Cbuf_AddText( "quit\n" );
 	}
 }

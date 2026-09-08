@@ -10,6 +10,59 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class DemoReaderTests(unittest.TestCase):
+    def test_completion_defers_quit_to_chained_playback(self):
+        compiler = shutil.which('clang++') or shutil.which('g++')
+        if not compiler:
+            self.skipTest('C++ compiler unavailable')
+        source = (ROOT / 'code/client/cl_main.cpp').read_text(encoding='utf-8')
+        start = source.index('static void CL_DemoCompleted( void ) {')
+        function = source[start:source.index('\n}', start)+2]
+        harness = r'''
+#include <cassert>
+#include <string>
+struct Cvar { int integer; } timedemo{0}, quit{0};
+Cvar *com_timedemo=&timedemo, *cl_quitOnDemoCompleted=&quit;
+struct { bool demoplaying=true; int timeDemoStart=0, timeDemoFrames=1; } clc;
+constexpr bool qtrue=true;
+bool chain=false, enableQuit=false;
+int disconnects=0;
+std::string queued;
+int Sys_Milliseconds() { return 10; }
+template<class... T> void Com_Printf(const char *, T...) {}
+void CL_Disconnect(bool) { ++disconnects; clc.demoplaying=false; }
+void CL_NextDemo() {
+ if (chain) clc.demoplaying=true;
+ if (enableQuit) quit.integer=1;
+}
+void Cbuf_AddText(const char *s) { queued+=s; }
+''' + function + r'''
+int main() {
+ // The completed demo did not request exit; the next demo does.
+ chain=true; enableQuit=true;
+ CL_DemoCompleted();
+ assert(disconnects==1 && clc.demoplaying && queued.empty());
+ // The replacement must reach its own end before the queued quit.
+ chain=false; enableQuit=false;
+ CL_DemoCompleted();
+ assert(disconnects==2 && !clc.demoplaying && queued=="quit\n");
+ queued.clear(); quit.integer=0;
+ CL_DemoCompleted(); assert(queued.empty());
+ cl_quitOnDemoCompleted=nullptr;
+ CL_DemoCompleted(); assert(queued.empty());
+ cl_quitOnDemoCompleted=&quit; quit.integer=1; chain=true;
+ CL_DemoCompleted(); assert(clc.demoplaying && queued.empty());
+ chain=false; timedemo.integer=1;
+ CL_DemoCompleted(); assert(queued=="quit\n");
+}
+'''
+        with tempfile.TemporaryDirectory() as tmp:
+            cpp, exe = Path(tmp)/'completion.cpp', Path(tmp)/'completion.exe'
+            cpp.write_text(harness, encoding='utf-8')
+            subprocess.run([compiler, *compiler_target_args(compiler), '-std=c++17',
+                            str(cpp), '-o', str(exe)], check=True,
+                           capture_output=True, text=True)
+            subprocess.run([str(exe)], check=True, capture_output=True, text=True)
+
     def test_envelope_outcomes_do_not_parse_incomplete_messages(self):
         compiler = shutil.which('clang++') or shutil.which('g++')
         if not compiler:
