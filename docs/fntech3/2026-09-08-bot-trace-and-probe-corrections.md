@@ -44,7 +44,7 @@ a public API guarantee.
 
 The revised free-running probe revealed another real failure after the trace
 correction: `SV_AreaEntities_r: invalid world entity` during a later map
-transition. That lifecycle failure remains open. The single-map success does
+transition. The later [world-link restart checkpoint](2026-09-08-world-link-restart.md) fixes that reproducer and records free-running match progression. The single-map success here does
 not close map-restart, match-progression or retail-interoperability gates.
 
 The [evidence record](2026-09-08-bot-trace-and-probe-corrections.json) preserves

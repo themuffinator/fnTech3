@@ -10,6 +10,7 @@
 enum {
   PRINT = 0,
   CVAR_INTEGER = 6,
+  CVAR_SET = 5,
   ARGV = 9,
   SEND_CONSOLE = 14,
   LOCATE = 15,
@@ -43,6 +44,7 @@ static Entity entities[COUNT];
 static Player players[COUNT];
 static intptr_t(__cdecl *call)(intptr_t, ...);
 static int frames;
+static int worldRestart, worldPhase;
 static int liveClient = -1, liveFrames, liveCommand;
 
 static int u32(const unsigned char *p) {
@@ -81,6 +83,8 @@ static void init(void) {
   unsigned char token[128 + 16], config[64 + 16], command[24 + 16];
   int i;
   frames = 0;
+  worldRestart = (int)call(CVAR_INTEGER, "fntech3_probe_world_restart");
+  worldPhase = (int)call(CVAR_INTEGER, "fntech3_probe_world_phase");
   liveClient = -1;
   liveFrames = liveCommand = 0;
   memset(entities, 0xa5, sizeof(entities));
@@ -97,7 +101,8 @@ static void init(void) {
     result("invalid binding rejected", 0);
     return;
   }
-  call(LOCATE, entities[0].bytes + GUARD, COUNT, sizeof(Entity),
+  call(LOCATE, entities[0].bytes + GUARD,
+       worldRestart && worldPhase ? 2 : COUNT, sizeof(Entity),
        players[0].bytes + GUARD, sizeof(Player));
   result("binding", all_guards());
   memset(token, 0xa5, sizeof(token));
@@ -224,6 +229,8 @@ __declspec(dllexport) intptr_t __cdecl vmMain(int operation, ...) {
     init();
   if (operation == 1) {
     result("shutdown", all_guards());
+    if (worldRestart && call(CVAR_INTEGER, "com_errorCode"))
+      call(SEND_CONSOLE, 2, "quit\n");
     /* ERR_DROP clears the old command buffer before module shutdown. Queue
      * a fresh valid map run to prove the server can recover and rebind. */
     if (call(CVAR_INTEGER, "fntech3_probe_bad_stride"))
@@ -231,6 +238,20 @@ __declspec(dllexport) intptr_t __cdecl vmMain(int operation, ...) {
   }
   if (operation == 8 && ++frames == 1) {
     collision();
+    if (worldRestart) {
+      if (!worldPhase) {
+        unsigned char *e = entities[63].bytes + GUARD;
+        int i;
+        for (i = 0; i < 3; i++) {
+          putf(e + 436 + 4 * i, -4);
+          putf(e + 448 + 4 * i, 4);
+        }
+        call(LINK, e);
+        call(CVAR_SET, "fntech3_probe_world_phase", "1");
+        result("restart old link", all_guards() && u32(e + 416) == 1);
+      } else
+        result("restart world cleared", all_guards());
+    }
     result("frame", 1);
   }
   if (operation == 8 && liveClient >= 0 && liveClient < COUNT &&

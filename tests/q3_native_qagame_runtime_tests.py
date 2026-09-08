@@ -53,6 +53,7 @@ class Q3NativeQagameRuntimeTests(unittest.TestCase):
                     (game / 'probe.cfg').write_text(cfg)
                     values = {'com_gameProfile':'q3', 'fs_basepath':str(assets), 'fs_homepath':str(home), 'fs_game':'', 'fs_cdpath':'', 'vm_game':'0', 'sv_pure':'0', 'dedicated':'1', 'net_ip':'127.0.0.1', 'net_port':'0', 'logfile':'2', 'developer':'1', 'com_steamIntegration':'0', 'fs_skipWorkshop':'1', 'fntech3_probe_bad_stride':str(int(bad)), 'r_fullscreen':'0', 'in_mouse':'0', 'in_joystick':'0', 'in_nograb':'1'}
                     command = [str(exe)]
+                    values['fntech3_probe_world_restart'] = '0' if bad else '1'
                     for key, value in values.items():
                         command += ['+set', key, value]
                     command += ['+exec', 'probe.cfg']
@@ -87,6 +88,9 @@ class Q3NativeQagameRuntimeTests(unittest.TestCase):
                     for marker in ('binding','entity token','configstring','usercmd','bot usercmd','init','link','area','trace','contents','unlink','frame','shutdown'):
                         self.assertGreaterEqual(log.count('Q3 qagame native probe: '+marker+' ok'), 2, log[-6000:])
                     self.assertIn('Q3 qagame native probe: command ok', log)
+                    if not bad:
+                        self.assertIn('Q3 qagame native probe: restart old link ok',log)
+                        self.assertIn('Q3 qagame native probe: restart world cleared ok',log)
                     self.assertFalse(any('FAILED' in line for line in log.splitlines() if 'Q3 qagame native probe:' in line), log[-6000:])
 
 

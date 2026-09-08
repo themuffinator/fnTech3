@@ -164,6 +164,11 @@ void SV_ClearWorld( void ) {
 
 	sv_worldSectors = {};
 	sv_numworldSectors = 0;
+	// Drop both sides of the old linkage while preserving snapshot baselines.
+	for ( svEntity_t &entity : sv.svEntities ) {
+		entity.worldSector = nullptr;
+		entity.nextEntityInWorldSector = nullptr;
+	}
 
 	// get world map bounds
 	h = CM_InlineModel( 0 );

@@ -2734,6 +2734,9 @@ void SV_RestartGameProgs( void ) {
 		return;
 	}
 	VM_Call( gvm, 1, GAME_SHUTDOWN, qtrue );
+	// World links belong to the old module's entity binding. The new game
+	// may expose fewer entities or query collision before it relinks them.
+	SV_ClearWorld();
 	InvalidateServerGameData();
 	SV_ResetGameCvarRegistration();
 
