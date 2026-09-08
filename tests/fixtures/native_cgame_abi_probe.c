@@ -133,7 +133,8 @@ static int drewActiveFrame;
 static int drawFrameCount;
 static int usercmdChecked;
 static int snapshotChecked;
-static unsigned char gameState[65536];
+static unsigned char gameStateStorage[20100 + 16];
+#define gameState (gameStateStorage + 8)
 static unsigned char snapshot[1024 * 1024];
 static probeVmCvar_t rangeCvar;
 
@@ -152,11 +153,39 @@ static int Probe_StringEquals( const char *left, const char *right ) {
 	return *left == *right;
 }
 
+/* Read fixed little-endian x86 contract scalars without alignment casts. */
+static unsigned int Probe_U32( const unsigned char *bytes ) {
+ return (unsigned int)bytes[0] | ((unsigned int)bytes[1] << 8) |
+  ((unsigned int)bytes[2] << 16) | ((unsigned int)bytes[3] << 24);
+}
+
+static int Probe_Guards( const unsigned char *storage, int bytes ) {
+ int i;
+ for ( i = 0; i < 8; ++i ) {
+  if ( storage[i] != 0xa5 || storage[bytes + 8 + i] != 0xa5 ) return 0;
+ }
+ return 1;
+}
+
+static int Probe_GameStateValid( const unsigned char *data ) {
+ unsigned int count = Probe_U32( data + 20096 );
+ int i;
+ if ( count < 1 || count > 16000 || data[4096] != 0 ) return 0;
+ for ( i = 0; i < 1024; ++i ) {
+  unsigned int offset = Probe_U32( data + i * 4 ), end;
+  if ( offset >= count ) return 0;
+  for ( end = offset; end < count && data[4096 + end]; ++end ) {}
+  if ( end == count ) return 0;
+ }
+ return 1;
+}
+
 static void __cdecl Probe_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
 	float value = 0.0f;
 	int muteRoundTrip = 0;
 	int cvarRangeImport = 0;
-	unsigned char glconfig[0x2c44];
+	unsigned char glconfigStorage[0x2c44 + 16];
+	unsigned char *glconfig = glconfigStorage + 8;
 	int glconfigImport = 0;
 	int gameStateImport = 0;
 	int filesystemImport = 0;
@@ -294,23 +323,28 @@ static void __cdecl Probe_Init( int serverMessageNum, int serverCommandSequence,
 		? "FnQL cgame ABI probe: native mute imports ok\n"
 		: "FnQL cgame ABI probe: native mute imports failed\n" );
 
-	for ( index = 0; index < (int)sizeof( glconfig ); ++index ) {
-		glconfig[index] = 0xa5;
+	for ( index = 0; index < (int)sizeof( glconfigStorage ); ++index ) {
+		glconfigStorage[index] = 0xa5;
 	}
 	if ( cgameImports && cgameImports[CG_QL_IMPORT_GETGLCONFIG] ) {
 		((cgameGetGlconfig_t)cgameImports[CG_QL_IMPORT_GETGLCONFIG])( glconfig );
-		glconfigImport = glconfig[0] != 0xa5;
+		glconfigImport = Probe_Guards( glconfigStorage, 0x2c44 ) &&
+			glconfig[0] != 0 && glconfig[1023] == 0 && glconfig[2047] == 0 &&
+			glconfig[3071] == 0 && glconfig[11263] == 0 &&
+			Probe_U32( glconfig + 11264 ) > 0 &&
+			Probe_U32( glconfig + 11308 ) > 0 && Probe_U32( glconfig + 11308 ) <= 16384 &&
+			Probe_U32( glconfig + 11312 ) > 0 && Probe_U32( glconfig + 11312 ) <= 16384;
 	}
 	Probe_Print( glconfigImport
 		? "FnQL cgame ABI probe: native glconfig import ok\n"
 		: "FnQL cgame ABI probe: native glconfig import failed\n" );
 
-	for ( index = 0; index < (int)sizeof( gameState ); ++index ) {
-		gameState[index] = 0xa5;
+	for ( index = 0; index < (int)sizeof( gameStateStorage ); ++index ) {
+		gameStateStorage[index] = 0xa5;
 	}
 	if ( cgameImports && cgameImports[CG_QL_IMPORT_GETGAMESTATE] ) {
 		((cgameGetGameState_t)cgameImports[CG_QL_IMPORT_GETGAMESTATE])( gameState );
-		gameStateImport = gameState[0] != 0xa5;
+		gameStateImport = Probe_Guards( gameStateStorage, 20100 ) && Probe_GameStateValid( gameState );
 	}
 	Probe_Print( gameStateImport
 		? "FnQL cgame ABI probe: native gamestate import ok\n"
@@ -368,7 +402,8 @@ static int __cdecl Probe_ConsoleCommand( void ) {
 }
 
 static void __cdecl Probe_DrawActiveFrame( int serverTime, int stereoFrame, int demoPlayback ) {
-	probeUsercmd_t command;
+	struct { unsigned int before[2]; probeUsercmd_t command; unsigned int after[2]; } guarded;
+	probeUsercmd_t *command = &guarded.command;
 	int snapshotNumber = 0;
 	int snapshotServerTime = 0;
 	(void)serverTime;
@@ -380,13 +415,20 @@ static void __cdecl Probe_DrawActiveFrame( int serverTime, int stereoFrame, int 
 		Probe_Print( "FnQL cgame ABI probe: native draw dispatch ok\n" );
 	}
 
+	{
+		unsigned char *bytes = (unsigned char *)&guarded;
+		int i;
+		for ( i = 0; i < (int)sizeof( guarded ); ++i ) bytes[i] = 0xa5;
+	}
 	++drawFrameCount;
 	if ( !usercmdChecked && cgameImports &&
 		cgameImports[CG_QL_IMPORT_GETCURRENTCMDNUMBER] && cgameImports[CG_QL_IMPORT_GETUSERCMD] ) {
 		int commandNumber = ((cgameGetCurrentCmdNumber_t)cgameImports[CG_QL_IMPORT_GETCURRENTCMDNUMBER])();
 		if ( commandNumber > 0 &&
-			((cgameGetUserCmd_t)cgameImports[CG_QL_IMPORT_GETUSERCMD])( commandNumber, &command ) &&
-			command.weapon == 7 && command.weaponPrimary == 8 && command.fov == 110 ) {
+			((cgameGetUserCmd_t)cgameImports[CG_QL_IMPORT_GETUSERCMD])( commandNumber, command ) &&
+			command->weapon == 7 && command->weaponPrimary == 8 && command->fov == 110 &&
+			Probe_Guards( (const unsigned char *)&guarded, 28 ) &&
+			((const unsigned char *)command)[26] == 0 && ((const unsigned char *)command)[27] == 0 ) {
 			usercmdChecked = 1;
 			Probe_Print( "FnQL cgame ABI probe: native usercmd imports ok\n" );
 		}
