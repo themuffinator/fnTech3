@@ -1,0 +1,58 @@
+{
+  "baseCommit": "33e74f29e4a9af4d4d500ff3bc02f80a8c3c3fcb",
+  "source": {
+    "code/qcommon/common.c": "7b487fcafc7f8216f96c91879e8bbb151afa7766a71e7c801af179c49eb8a180",
+    "tests/startup_command_bounds_tests.py": "354bab8f9ba503aeafb7039b695d5bafa088cbb5ef4a4368513c8dc936bb0d68"
+  },
+  "runtime": {
+    "executableSha256": "26a2431c2d43fe6b215de6ef245d0c73686eeb7ebfe1da2c683070d0dde13dd4",
+    "runs": [
+      {
+        "profile": "q3",
+        "profilePosition": "first",
+        "startupSegments": 33,
+        "exitCode": 1,
+        "homeCreated": false,
+        "outputSha256": "8a76ac3fe833f83412a375baaa9a38de72cdafca332c62f02ffb8cec37324526"
+      },
+      {
+        "profile": "q3",
+        "profilePosition": "last",
+        "startupSegments": 33,
+        "exitCode": 1,
+        "homeCreated": false,
+        "outputSha256": "8a76ac3fe833f83412a375baaa9a38de72cdafca332c62f02ffb8cec37324526"
+      },
+      {
+        "profile": "ql",
+        "profilePosition": "first",
+        "startupSegments": 33,
+        "exitCode": 1,
+        "homeCreated": false,
+        "outputSha256": "8a76ac3fe833f83412a375baaa9a38de72cdafca332c62f02ffb8cec37324526"
+      },
+      {
+        "profile": "ql",
+        "profilePosition": "last",
+        "startupSegments": 33,
+        "exitCode": 1,
+        "homeCreated": false,
+        "outputSha256": "8a76ac3fe833f83412a375baaa9a38de72cdafca332c62f02ffb8cec37324526"
+      }
+    ]
+  },
+  "fixture": "33 +set segments: fs_homepath=<abs isolated nonexistent home>, probe_0 through probe_30 set to 1, and com_gameProfile=q3 or ql inserted first or last. Dedicated process, ten-second timeout, no window.",
+  "logs": {
+    "startup-bounds-before.log": "247e6d939840914e37157e0604c3d82a5f61149155743768f095455f11e3239c",
+    "startup-bounds-linux.log": "a086a966e9d58d801f26e1bf5f57472916c09d948c3e5be5d19e9a7a286c135d",
+    "startup-bounds-build.log": "2845c7ec2d474bca56db47cfba3e8d41c7eea7fe18b70e3ff0b1203bdbd7c1e7",
+    "startup-bounds-sdl-build.log": "547ce10ae60f680563b53aa1f4b597363da5f53c11f0c1f7e301dc53ef282897",
+    "startup-bounds-suite.log": "1370ff7105b18c2dd9462f9000aa2b45011c8f4d73d6c10049efbefc66cecb38"
+  },
+  "suite": {
+    "passed": 110,
+    "failed": 0,
+    "skipped": 1,
+    "pythonSummary": "Ran 1304 tests in 227.682s"
+  }
+}

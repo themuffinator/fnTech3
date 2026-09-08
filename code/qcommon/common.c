@@ -516,7 +516,8 @@ static void Com_ParseCommandLine( char *commandLine ) {
 		// if commandLine came from a file, we might have real line separators
 		if ( (*commandLine == '+' && !inq) || *commandLine == '\n'  || *commandLine == '\r' ) {
 			if ( com_numConsoleLines == MAX_CONSOLE_LINES ) {
-				break;
+				Sys_Error( "Too many startup commands (maximum %d). Move non-startup settings into a config file and load it with +exec; keep the game profile and installation paths on the command line.", MAX_CONSOLE_LINES );
+				return;
 			}
 			com_consoleLines[com_numConsoleLines] = commandLine + 1;
 			com_numConsoleLines++;
