@@ -292,6 +292,10 @@ to the evidence level named in the same cell.
    key bit through retail batch acceptance and GetUsercmd, and matches that
    QL behavior without changing Q3. Its controlled branch and finite corpus
    do not establish complete live command interoperability.
+   A [post-correction runtime check](2026-09-08-post-codec-runtime.md) passes
+   both Q3/QL self-pairs with the same Windows x86 binaries, exact split-response
+   HTTP downloads, pure-to-active admission, engine screenshots and normal
+   shutdown. QL reaches its join panel; active match gameplay is not claimed.
    [Snapshot history validation](2026-09-07-snapshot-history.md) also rejects
    malformed/stale module requests before writes. The subsequent
    [entity-history correction](2026-09-07-entity-history-wrap.md) covers parser
