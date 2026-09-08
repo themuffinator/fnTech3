@@ -6,6 +6,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+from compiler_support import compiler_target_args
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -45,7 +46,7 @@ int main(){
 '''
         with tempfile.TemporaryDirectory() as folder:
             cpp=Path(folder)/"probe.cpp";exe=Path(folder)/"probe.exe";cpp.write_text(harness)
-            build=subprocess.run([compiler,"-std=c++17",str(cpp),"-o",str(exe)],capture_output=True,text=True)
+            build=subprocess.run([compiler,*compiler_target_args(compiler),"-std=c++17",str(cpp),"-o",str(exe)],capture_output=True,text=True)
             self.assertEqual(build.returncode,0,build.stdout+build.stderr)
             run=subprocess.run([str(exe)],capture_output=True,text=True,timeout=10)
             self.assertEqual(run.returncode,0,run.stderr)

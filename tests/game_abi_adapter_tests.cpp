@@ -16,6 +16,32 @@ extern "C" {
 
 #define CHECK( expression ) do { if ( !( expression ) ) return __LINE__; } while ( false )
 
+template<typename External>
+static int TestGameStateTranslation( void (*convert)( External *, const gameState_t * ) ) {
+	gameState_t source{};
+	for ( int i = 0; i < MAX_CONFIGSTRINGS; ++i ) source.stringOffsets[i] = (i * 13) % MAX_GAMESTATE_CHARS;
+	for ( int i = 0; i < MAX_GAMESTATE_CHARS; ++i ) source.stringData[i] = static_cast<char>( i % 127 );
+	source.dataCount = MAX_GAMESTATE_CHARS;
+	struct { unsigned before; External state; unsigned after; } guarded;
+	std::memset( &guarded, 0xcc, sizeof( guarded ) );
+	convert( &guarded.state, &source );
+	CHECK( guarded.before == 0xccccccccu && guarded.after == 0xccccccccu );
+	for ( int i = 0; i < 1024; ++i ) CHECK( guarded.state.stringOffsets[i] == source.stringOffsets[i] );
+	CHECK( std::memcmp( guarded.state.stringData, source.stringData, 16000 ) == 0 );
+	CHECK( guarded.state.dataCount == 16000 );
+	source = {};
+	source.dataCount = 1;
+	convert( &guarded.state, &source );
+	for ( int i = 0; i < 1024; ++i ) CHECK( guarded.state.stringOffsets[i] == 0 );
+	for ( char value : guarded.state.stringData ) CHECK( value == 0 );
+	CHECK( guarded.state.dataCount == 1 );
+	convert( &guarded.state, nullptr );
+	CHECK( guarded.state.dataCount == 1 );
+	convert( nullptr, &source );
+	CHECK( guarded.before == 0xccccccccu && guarded.after == 0xccccccccu );
+	return 0;
+}
+
 static int TestCvarFlagTranslation() {
 	CHECK( FnTech3_Q3CvarFlagsToInternal( FNTECH3_Q3_CVAR_SERVER_CREATED ) ==
 		static_cast<std::uint32_t>( CVAR_SERVER_CREATED ) );
@@ -202,6 +228,8 @@ static int TestQLSnapshotTranslation() {
 
 int main() {
 	if ( const int result = TestQLSnapshotTranslation() ) return result;
+	if ( const int result = TestGameStateTranslation( FnTech3_Q3GameStateFromInternal ) ) return result;
+	if ( const int result = TestGameStateTranslation( FnTech3_QLGameStateFromInternal ) ) return result;
 	if ( const int result = TestCvarFlagTranslation() ) return result;
 	if ( const int result = TestUsercmdTranslation() ) return result;
 	if ( const int result = TestQLUsercmdTranslation() ) return result;

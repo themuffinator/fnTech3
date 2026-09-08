@@ -34,6 +34,12 @@ remain authoritative.
 
 ## Compatibility references and adapted work
 
+- The frozen Q3/QL configstring transfer contracts use layout facts from the pinned
+  [FnQuake3 q_shared.h](https://github.com/themuffinator/FnQ3/blob/7d8c9629cdc7979f09697266470359101ffd9eda/code/qcommon/q_shared.h)
+  and [FnQL q_shared.h](https://github.com/themuffinator/FnQL/blob/fce44fe714564621e6ceb79e3da7c53089646af2/code/qcommon/q_shared.h).
+  These GPL-2.0-or-later references are compatible with this repository; their
+  provenance remains in the boundary headers. The field adapters are independently authored.
+
 - The [PKWARE ZIP specification](https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT),
   version 6.3.10, supplies central-directory layout information for the independently
   authored early pak identity probe. No external implementation or specification

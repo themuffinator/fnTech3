@@ -36,6 +36,8 @@ A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  */
 
 enum {
+	FNTECH3_Q3_MAX_CONFIGSTRINGS = 1024,
+	FNTECH3_Q3_MAX_GAMESTATE_CHARS = 16000,
 	FNTECH3_Q3_MAX_CVAR_VALUE_STRING = 256,
 	FNTECH3_Q3_MAX_STATS = 16,
 	FNTECH3_Q3_MAX_PERSISTANT = 16,
@@ -90,6 +92,13 @@ enum {
 	( FNTECH3_Q3_CVAR_ARCHIVE | FNTECH3_Q3_CVAR_NODEFAULT )
 #define FNTECH3_Q3_CVAR_MODIFIED       UINT32_C( 0x40000000 )
 #define FNTECH3_Q3_CVAR_NONEXISTENT    UINT32_C( 0x80000000 )
+
+/* Configstring transfer layout from the pinned q_shared.h reference above. */
+typedef struct {
+	int32_t stringOffsets[FNTECH3_Q3_MAX_CONFIGSTRINGS];
+	char stringData[FNTECH3_Q3_MAX_GAMESTATE_CHARS];
+	int32_t dataCount;
+} fntech3_q3_gameState_t;
 
 /* usercmd_t button bits generated or consumed by the engine boundary. */
 enum {

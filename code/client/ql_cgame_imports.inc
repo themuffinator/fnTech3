@@ -590,7 +590,7 @@ static void QDECL QL_CG_trap_GetGlconfig( glconfig_t *glconfig ) {
 QL_CG_trap_GetGameState
 ==============
 */
-static void QDECL QL_CG_trap_GetGameState( gameState_t *gamestate ) {
+static void QDECL QL_CG_trap_GetGameState( fntech3_ql_gameState_t *gamestate ) {
 	CG_Import_Syscall( CG_GETGAMESTATE, gamestate );
 }
 

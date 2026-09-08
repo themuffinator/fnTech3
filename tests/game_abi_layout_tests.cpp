@@ -121,6 +121,20 @@ ABI_ASSERT_OFFSET( fntech3_q3_trajectory_t, trDuration, 8 );
 ABI_ASSERT_OFFSET( fntech3_q3_trajectory_t, trBase, 12 );
 ABI_ASSERT_OFFSET( fntech3_q3_trajectory_t, trDelta, 24 );
 
+ABI_ASSERT_POD( fntech3_q3_gameState_t );
+ABI_ASSERT_SIZE( fntech3_q3_gameState_t, 20100 );
+ABI_ASSERT_ALIGN( fntech3_q3_gameState_t, 4 );
+ABI_ASSERT_OFFSET( fntech3_q3_gameState_t, stringOffsets, 0 );
+ABI_ASSERT_OFFSET( fntech3_q3_gameState_t, stringData, 4096 );
+ABI_ASSERT_OFFSET( fntech3_q3_gameState_t, dataCount, 20096 );
+
+ABI_ASSERT_POD( fntech3_ql_gameState_t );
+ABI_ASSERT_SIZE( fntech3_ql_gameState_t, 20100 );
+ABI_ASSERT_ALIGN( fntech3_ql_gameState_t, 4 );
+ABI_ASSERT_OFFSET( fntech3_ql_gameState_t, stringOffsets, 0 );
+ABI_ASSERT_OFFSET( fntech3_ql_gameState_t, stringData, 4096 );
+ABI_ASSERT_OFFSET( fntech3_ql_gameState_t, dataCount, 20096 );
+
 ABI_ASSERT_POD( fntech3_q3_usercmd_t );
 ABI_ASSERT_SIZE( fntech3_q3_usercmd_t, 24 );
 ABI_ASSERT_ALIGN( fntech3_q3_usercmd_t, 4 );

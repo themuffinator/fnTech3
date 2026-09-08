@@ -71,6 +71,34 @@ static void FnTech3_CopyInternalIntArray( int *destination,
 	}
 }
 
+/* Refuse capacity changes until their profile semantics have been audited. */
+typedef char q3GameStateCapacityCheck[
+	(MAX_CONFIGSTRINGS == FNTECH3_Q3_MAX_CONFIGSTRINGS &&
+	 MAX_GAMESTATE_CHARS == FNTECH3_Q3_MAX_GAMESTATE_CHARS) ? 1 : -1];
+
+void FnTech3_Q3GameStateFromInternal( fntech3_q3_gameState_t *destination,
+	const gameState_t *source ) {
+	if ( !destination || !source ) return;
+	FnTech3_CopyInt32Array( destination->stringOffsets, source->stringOffsets,
+	 FNTECH3_Q3_MAX_CONFIGSTRINGS );
+	memcpy( destination->stringData, source->stringData, sizeof( destination->stringData ) );
+	destination->dataCount = source->dataCount;
+}
+
+/* Refuse capacity changes until their profile semantics have been audited. */
+typedef char qlGameStateCapacityCheck[
+	(MAX_CONFIGSTRINGS == FNTECH3_QL_MAX_CONFIGSTRINGS &&
+	 MAX_GAMESTATE_CHARS == FNTECH3_QL_MAX_GAMESTATE_CHARS) ? 1 : -1];
+
+void FnTech3_QLGameStateFromInternal( fntech3_ql_gameState_t *destination,
+	const gameState_t *source ) {
+	if ( !destination || !source ) return;
+	FnTech3_CopyInt32Array( destination->stringOffsets, source->stringOffsets,
+	 FNTECH3_QL_MAX_CONFIGSTRINGS );
+	memcpy( destination->stringData, source->stringData, sizeof( destination->stringData ) );
+	destination->dataCount = source->dataCount;
+}
+
 void FnTech3_QLUsercmdFromInternal( fntech3_ql_usercmd_t *destination,
 	const usercmd_t *source ) {
 	if ( !destination || !source ) {

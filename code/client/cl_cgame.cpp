@@ -576,8 +576,12 @@ static void CL_UpdateUnderwaterView( const refdef_t *refdef ) {
 CL_GetGameState
 ====================
 */
-static void CL_GetGameState( gameState_t *gs ) {
-	*gs = cl.gameState;
+static void CL_GetQ3GameState( fntech3_q3_gameState_t *gs ) {
+	FnTech3_Q3GameStateFromInternal( gs, &cl.gameState );
+}
+
+static void CL_GetQLGameState( fntech3_ql_gameState_t *gs ) {
+	FnTech3_QLGameStateFromInternal( gs, &cl.gameState );
 }
 
 
@@ -2024,8 +2028,13 @@ static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		CL_GetGlconfig( VMA(1) );
 		return 0;
 	case CG_GETGAMESTATE:
-		VM_CHECKBOUNDS( cgvm, args[1], sizeof( gameState_t ) );
-		CL_GetGameState( VMA(1) );
+		if ( cgvm->dllExports ) {
+			VM_CHECKBOUNDS( cgvm, args[1], sizeof( fntech3_ql_gameState_t ) );
+			CL_GetQLGameState( VMA(1) );
+		} else {
+			VM_CHECKBOUNDS( cgvm, args[1], sizeof( fntech3_q3_gameState_t ) );
+			CL_GetQ3GameState( VMA(1) );
+		}
 		return 0;
 	case CG_GETCURRENTSNAPSHOTNUMBER:
 		CL_GetCurrentSnapshotNumber( VMA(1), VMA(2) );
