@@ -1,0 +1,942 @@
+{
+  "profile": "ql",
+  "runs": [
+    {
+      "output": ".tmp\\ql-download-fnclient-refserver-match-93beb7b",
+      "outcome": "long server wait held COUNT_DOWN; screenshot showed Connection Interrupted",
+      "utc": "2026-09-08T09:19:12.212427+00:00",
+      "engineCommit": "93beb7be094a088535fc36af87b9178f7a99c4fd",
+      "elapsedSeconds": 36.235,
+      "serverReady": true,
+      "mode": "merged self-pair",
+      "clientLaunched": true,
+      "serverExit": 0,
+      "clientExit": 0,
+      "forcedTermination": false,
+      "statuses": [
+        {
+          "elapsed": 1.094,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "PRE_GAME",
+          "players": [
+            "0 0 \"Sarge\""
+          ]
+        },
+        {
+          "elapsed": 3.094,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "COUNT_DOWN",
+          "players": [
+            "0 0 \"Sarge\""
+          ]
+        },
+        {
+          "elapsed": 5.11,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "COUNT_DOWN",
+          "players": [
+            "0 0 \"Sarge\""
+          ]
+        },
+        {
+          "elapsed": 7.11,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "COUNT_DOWN",
+          "players": [
+            "0 0 \"Sarge\"",
+            "0 999 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 9.11,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "COUNT_DOWN",
+          "players": [
+            "0 0 \"Sarge\"",
+            "0 7 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 11.11,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "COUNT_DOWN",
+          "players": [
+            "0 0 \"Sarge\"",
+            "0 8 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 13.125,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "COUNT_DOWN",
+          "players": [
+            "0 0 \"Sarge\"",
+            "0 8 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 15.125,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "COUNT_DOWN",
+          "players": [
+            "0 0 \"Sarge\"",
+            "0 7 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 17.125,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "COUNT_DOWN",
+          "players": [
+            "0 0 \"Sarge\"",
+            "0 9 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 19.141,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "COUNT_DOWN",
+          "players": [
+            "0 0 \"Sarge\"",
+            "0 8 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 21.141,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "COUNT_DOWN",
+          "players": [
+            "0 0 \"Sarge\"",
+            "0 8 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 23.141,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "COUNT_DOWN",
+          "players": [
+            "0 0 \"Sarge\"",
+            "0 9 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 25.157,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "COUNT_DOWN",
+          "players": [
+            "0 0 \"Sarge\"",
+            "0 8 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 27.157,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "COUNT_DOWN",
+          "players": [
+            "0 0 \"Sarge\"",
+            "0 10 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 29.157,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "COUNT_DOWN",
+          "players": [
+            "0 0 \"Sarge\"",
+            "0 9 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 31.172,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "COUNT_DOWN",
+          "players": [
+            "0 0 \"Sarge\"",
+            "0 9 \"fntech3_reference_probe\""
+          ]
+        }
+      ],
+      "selectedServerLines": [
+        "Going from CS_PRIMED to CS_ACTIVE for fntech3_reference_probe",
+        "^5clientCommand: fntech3_reference_probe : 3 : team f"
+      ],
+      "screenshots": [
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\ql-download-fnclient-refserver-match-93beb7b\\client-interop-proof.png",
+          "sha256": "94313e2a13dee17cebd1f79fd542c5f112a67c54e9e5e3e2e8cbefff61d05045"
+        }
+      ],
+      "logs": {
+        "server-console.log": "a5c3706ce508f8a06ec850b1201a629001a3612711d33f220cb29f40acb9944f",
+        "client-console.log": "d318fd0bfbf602dd66bb6743c037af4d00ed214af5d5dbded3927dc53b5e8b62"
+      }
+    },
+    {
+      "output": ".tmp\\ql-download-fnclient-refserver-match-unblocked-93beb7b",
+      "outcome": "startup selected overkill; expected-map readiness failed, client not launched",
+      "utc": "2026-09-08T09:20:47.891641+00:00",
+      "engineCommit": "93beb7be094a088535fc36af87b9178f7a99c4fd",
+      "elapsedSeconds": 15.203,
+      "serverReady": false,
+      "mode": "merged self-pair",
+      "clientLaunched": false,
+      "serverExit": 0,
+      "clientExit": null,
+      "forcedTermination": false,
+      "statuses": [],
+      "selectedServerLines": [
+        "broadcast: print \"Game has been forfeited.\\n\"",
+        "Rcon from 127.0.0.1: quit"
+      ],
+      "screenshots": [],
+      "logs": {
+        "server-console.log": "2c0cf8b91f23a6d0458ee6f7a30e4588e00033f79576a8aa6a63d64389d2b81c"
+      }
+    },
+    {
+      "output": ".tmp\\ql-download-fnclient-refserver-match-scheduled-93beb7b",
+      "outcome": "readiness flood exhausted per-address query/RCON budget; bot setup not admitted; single-player forfeit and map rotation",
+      "utc": "2026-09-08T09:22:31.475428+00:00",
+      "engineCommit": "93beb7be094a088535fc36af87b9178f7a99c4fd",
+      "elapsedSeconds": 48.375,
+      "serverReady": true,
+      "mode": "merged self-pair",
+      "clientLaunched": true,
+      "serverExit": 0,
+      "clientExit": 0,
+      "forcedTermination": false,
+      "statuses": [
+        {
+          "elapsed": 4.297,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "PRE_GAME",
+          "players": []
+        },
+        {
+          "elapsed": 6.297,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "PRE_GAME",
+          "players": []
+        },
+        {
+          "elapsed": 8.313,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "PRE_GAME",
+          "players": []
+        },
+        {
+          "elapsed": 10.313,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "PRE_GAME",
+          "players": []
+        },
+        {
+          "elapsed": 12.313,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "PRE_GAME",
+          "players": [
+            "0 8 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 14.313,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 9 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 16.328,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 8 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 18.328,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 9 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 20.328,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 9 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 22.328,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 8 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 24.344,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 8 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 26.344,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 8 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 28.344,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 7 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 30.344,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 8 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 32.36,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 8 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 34.36,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 8 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 36.36,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 9 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 38.422,
+          "map": "foolishlegacy",
+          "factory": "dom",
+          "state": "PRE_GAME",
+          "players": [
+            "0 999 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 40.438,
+          "map": "foolishlegacy",
+          "factory": "dom",
+          "state": "PRE_GAME",
+          "players": [
+            "0 11 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 42.438,
+          "map": "foolishlegacy",
+          "factory": "dom",
+          "state": "PRE_GAME",
+          "players": [
+            "0 7 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 44.438,
+          "map": "foolishlegacy",
+          "factory": "dom",
+          "state": "PRE_GAME",
+          "players": [
+            "0 8 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 46.453,
+          "map": "foolishlegacy",
+          "factory": "dom",
+          "state": "PRE_GAME",
+          "players": [
+            "0 10 \"fntech3_reference_probe\""
+          ]
+        }
+      ],
+      "selectedServerLines": [
+        "Rcon from 127.0.0.1: map campgrounds ffa",
+        "Going from CS_PRIMED to CS_ACTIVE for fntech3_reference_probe",
+        "^5clientCommand: fntech3_reference_probe : 3 : team f",
+        "broadcast: print \"Game has been forfeited.\\n\"",
+        "Going from CS_PRIMED to CS_ACTIVE for fntech3_reference_probe",
+        "Rcon from 127.0.0.1: quit"
+      ],
+      "screenshots": [
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\ql-download-fnclient-refserver-match-scheduled-93beb7b\\client-interop-proof.png",
+          "sha256": "799eb85639345e67c2edb23b916560e451bc5962b6b70abfcd93bd38026b43ef"
+        }
+      ],
+      "logs": {
+        "server-console.log": "dcfe0c1c11c1db563d5380e1e376c0ab0cb58a98d8981270ef06d6909cb9b102",
+        "client-console.log": "efc293993bc9e4174d148820825bda5cef0353d3a35a834207c70f447f68628d"
+      }
+    },
+    {
+      "output": ".tmp\\ql-download-fnclient-refserver-match-paced-93beb7b",
+      "outcome": "single bot admitted, but game forfeited before client finished download; screenshot shows match summary",
+      "utc": "2026-09-08T09:24:50.605520+00:00",
+      "engineCommit": "93beb7be094a088535fc36af87b9178f7a99c4fd",
+      "elapsedSeconds": 39.453,
+      "serverReady": true,
+      "mode": "merged self-pair",
+      "clientLaunched": true,
+      "serverExit": 0,
+      "clientExit": 0,
+      "forcedTermination": false,
+      "statuses": [
+        {
+          "elapsed": 15.047,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 0 \"Sarge\""
+          ]
+        },
+        {
+          "elapsed": 17.047,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 0 \"Sarge\""
+          ]
+        },
+        {
+          "elapsed": 19.047,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 0 \"Sarge\""
+          ]
+        },
+        {
+          "elapsed": 21.047,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 0 \"Sarge\""
+          ]
+        },
+        {
+          "elapsed": 23.062,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 0 \"Sarge\"",
+            "0 11 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 25.062,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 0 \"Sarge\"",
+            "0 8 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 27.062,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 0 \"Sarge\"",
+            "0 9 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 29.062,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 0 \"Sarge\"",
+            "0 8 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 31.078,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 0 \"Sarge\"",
+            "0 8 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 33.078,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 0 \"Sarge\"",
+            "0 8 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 35.078,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 0 \"Sarge\"",
+            "0 8 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 37.078,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 0 \"Sarge\"",
+            "0 9 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 39.094,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 0 \"Sarge\"",
+            "0 19 \"fntech3_reference_probe\""
+          ]
+        }
+      ],
+      "selectedServerLines": [
+        "Rcon from 127.0.0.1: map campgrounds ffa",
+        "Rcon from 127.0.0.1: addbot Sarge 3",
+        "Rcon from 127.0.0.1: allready",
+        "broadcast: print \"Game has been forfeited.\\n\"",
+        "Going from CS_PRIMED to CS_ACTIVE for fntech3_reference_probe",
+        "^5clientCommand: fntech3_reference_probe : 3 : team f",
+        "broadcast: print \"Game has been forfeited.\\n\"",
+        "Rcon from 127.0.0.1: quit"
+      ],
+      "screenshots": [
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\ql-download-fnclient-refserver-match-paced-93beb7b\\client-interop-proof.png",
+          "sha256": "1923ce9f41a4135bdfd9b89a445d76132eeb06f94548920b542fb0834510b46a"
+        }
+      ],
+      "logs": {
+        "server-console.log": "862adb3bef5afb60410312bae7eb0df243594faeceef318221ecadfb77709788",
+        "client-console.log": "c276ca5ccef844724c2f7b3282329f0d567817f212b77fdc603724b88ccf02d3"
+      }
+    },
+    {
+      "output": ".tmp\\ql-download-fnclient-refserver-match-four-bots-93beb7b",
+      "outcome": "success: client joined FFA, live first-person HUD and bot score progression",
+      "utc": "2026-09-08T09:26:51.750748+00:00",
+      "engineCommit": "93beb7be094a088535fc36af87b9178f7a99c4fd",
+      "elapsedSeconds": 42.265,
+      "serverReady": true,
+      "mode": "merged self-pair",
+      "clientLaunched": true,
+      "serverExit": 0,
+      "clientExit": 0,
+      "forcedTermination": false,
+      "statuses": [
+        {
+          "elapsed": 25.078,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 0 \"Sarge\"",
+            "0 0 \"Grunt\"",
+            "0 0 \"Visor\"",
+            "0 0 \"Major\""
+          ]
+        },
+        {
+          "elapsed": 27.078,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 0 \"Sarge\"",
+            "0 0 \"Grunt\"",
+            "0 0 \"Visor\"",
+            "0 0 \"Major\""
+          ]
+        },
+        {
+          "elapsed": 29.093,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 0 \"Sarge\"",
+            "0 0 \"Grunt\"",
+            "0 0 \"Visor\"",
+            "0 0 \"Major\""
+          ]
+        },
+        {
+          "elapsed": 31.093,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 0 \"Sarge\"",
+            "0 0 \"Grunt\"",
+            "0 0 \"Visor\"",
+            "0 0 \"Major\""
+          ]
+        },
+        {
+          "elapsed": 33.093,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 0 \"Sarge\"",
+            "0 0 \"Grunt\"",
+            "0 0 \"Visor\"",
+            "0 0 \"Major\"",
+            "0 9 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 35.109,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 0 \"Sarge\"",
+            "0 0 \"Grunt\"",
+            "0 0 \"Visor\"",
+            "0 0 \"Major\"",
+            "0 8 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 37.125,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 0 \"Sarge\"",
+            "0 0 \"Grunt\"",
+            "0 0 \"Visor\"",
+            "0 0 \"Major\"",
+            "0 22 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 39.125,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 0 \"Sarge\"",
+            "0 0 \"Grunt\"",
+            "1 0 \"Visor\"",
+            "0 0 \"Major\"",
+            "0 8 \"fntech3_reference_probe\""
+          ]
+        },
+        {
+          "elapsed": 41.125,
+          "map": "campgrounds",
+          "factory": "ffa",
+          "state": "IN_PROGRESS",
+          "players": [
+            "0 0 \"Sarge\"",
+            "0 0 \"Grunt\"",
+            "1 0 \"Visor\"",
+            "0 0 \"Major\"",
+            "0 8 \"fntech3_reference_probe\""
+          ]
+        }
+      ],
+      "selectedServerLines": [
+        "Rcon from 127.0.0.1: map campgrounds ffa",
+        "Rcon from 127.0.0.1: addbot Sarge 3",
+        "Rcon from 127.0.0.1: addbot Grunt 3",
+        "Rcon from 127.0.0.1: addbot Visor 3",
+        "Rcon from 127.0.0.1: addbot Major 3",
+        "Rcon from 127.0.0.1: allready",
+        "Going from CS_PRIMED to CS_ACTIVE for fntech3_reference_probe",
+        "^5clientCommand: fntech3_reference_probe : 3 : team f",
+        "Rcon from 127.0.0.1: quit"
+      ],
+      "screenshots": [
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\ql-download-fnclient-refserver-match-four-bots-93beb7b\\client-interop-proof.png",
+          "sha256": "1e750109d25f38a78ead33d3e7be6f1f4ee6d0e72c9e95b5edea52ce0b122a61"
+        }
+      ],
+      "logs": {
+        "server-console.log": "a0c378d91da4b48c3cb290a76413c086b5fbcfd5a54850920a82a8b692ba7e90",
+        "client-console.log": "eddf44f3538c4841ec9567a59808975f5493198a03a869ee2b64fa3f751349c2"
+      },
+      "client": {
+        "exe": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.exe",
+        "sha256": "0f4d68fddbfcb2f12861a6edd3d29c3636c61ad7d88d1c208e1e9f3f1eb047f9",
+        "command": [
+          "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.exe",
+          "+set",
+          "fs_basepath",
+          "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live",
+          "+set",
+          "fs_homepath",
+          "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-kvotial2\\client",
+          "+set",
+          "fs_game",
+          "fntech3_download_probe",
+          "+set",
+          "fs_cdpath",
+          "",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "developer",
+          "1",
+          "+set",
+          "net_ip",
+          "127.0.0.1",
+          "+set",
+          "net_port",
+          "55986",
+          "+set",
+          "dedicated",
+          "0",
+          "+set",
+          "protocol",
+          "91",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "r_windowedMode",
+          "-1",
+          "+set",
+          "r_windowedWidth",
+          "640",
+          "+set",
+          "r_windowedHeight",
+          "480",
+          "+set",
+          "com_gameProfile",
+          "ql",
+          "+set",
+          "com_steamIntegration",
+          "0",
+          "+set",
+          "fs_skipWorkshop",
+          "1",
+          "+set",
+          "cl_webuiEnable",
+          "0",
+          "+exec",
+          "interop.cfg"
+        ],
+        "fixturePak": {
+          "exists": true,
+          "sha256": "9cc5e33aac0b21cb32c5e618fa137ad0b448acd507120558ebc56310197b3161"
+        },
+        "partialPak": {
+          "exists": false,
+          "bytes": 0
+        }
+      },
+      "server": {
+        "exe": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.ded.exe",
+        "sha256": "7754df6ae7b3266074ea897094130afec4037922f9a2e7466e9a57d38da8871d",
+        "command": [
+          "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.ded.exe",
+          "+set",
+          "fs_basepath",
+          "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live",
+          "+set",
+          "fs_homepath",
+          "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-kvotial2\\server",
+          "+set",
+          "fs_game",
+          "fntech3_download_probe",
+          "+set",
+          "fs_cdpath",
+          "",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "developer",
+          "1",
+          "+set",
+          "net_ip",
+          "127.0.0.1",
+          "+set",
+          "net_port",
+          "55983",
+          "+set",
+          "dedicated",
+          "1",
+          "+set",
+          "protocol",
+          "91",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "r_windowedMode",
+          "-1",
+          "+set",
+          "r_windowedWidth",
+          "640",
+          "+set",
+          "r_windowedHeight",
+          "480",
+          "+set",
+          "com_gameProfile",
+          "ql",
+          "+set",
+          "com_steamIntegration",
+          "0",
+          "+set",
+          "fs_skipWorkshop",
+          "1",
+          "+set",
+          "cl_webuiEnable",
+          "0",
+          "+exec",
+          "interop.cfg"
+        ]
+      },
+      "configs": {
+        "client": "set sv_pure 1\nset sv_autoRecordDemos 0\nset sv_hostname \"fntech3-reference-probe\"\nset sv_maxclients 8\nset g_doWarmup 0\nset g_warmup 0\nset g_warmupDelay 0\nset sv_fps 20\nset cl_motd 0\nset cl_allowDownload 5\nset sv_allowDownload 1\nset sv_dlURL \"http://127.0.0.1:54427\"\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset name \"fntech3_reference_probe\"\nset cl_shownet 2\nversion\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nset activeAction \"wait 60; team f; wait 900; screenshotPNG interop-proof; wait 3; quit\"\nconnect 127.0.0.1:55987\n",
+        "server": "set sv_pure 1\nset sv_autoRecordDemos 0\nset sv_hostname \"fntech3-reference-probe\"\nset sv_maxclients 8\nset g_doWarmup 0\nset g_warmup 0\nset g_warmupDelay 0\nset sv_fps 20\nset cl_motd 0\nset cl_allowDownload 5\nset sv_allowDownload 1\nset sv_dlURL \"http://127.0.0.1:54427\"\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset name \"fntech3_reference_probe\"\nset cl_shownet 2\nversion\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nset rconPassword \"<redacted temporary RCON password>\"\nmap campgrounds ffa\n"
+      },
+      "probeSha256": "c50110c45aac75846e6740f97c4a8ee4112cfdddc7d9930c945562ca2df5f8c7",
+      "normalShutdownRequested": true,
+      "pureObserved": true,
+      "screenshotObservation": "first-person campgrounds world, weapon, health/armor/ammo HUD, active timer and score display; no join panel or Connection Interrupted overlay"
+    }
+  ],
+  "safety": {
+    "windowed": true,
+    "privateDesktopNeverSwitched": true,
+    "keyboardOrMouseControl": false,
+    "engineScreenshotOnly": true,
+    "isolatedWritableHomes": true,
+    "retailInstallationUnchanged": true,
+    "rconScope": "own loopback server, map/bot/readiness setup and normal quit only; random temporary password redacted"
+  },
+  "scope": "short active QL FFA self-pair with retail modules, not independent retail engine interoperability or user-controlled combat",
+  "unrelatedIssues": [],
+  "limits": [
+    "failed preliminary runs are retained and not counted as successful gameplay",
+    "readiness query rate and queued waits were probe defects, no engine fix made",
+    "audio, Steam and WebUI disabled",
+    "no keyboard/mouse movement, aiming or firing exercised",
+    "no full automated-suite rerun for evidence-only change"
+  ]
+}

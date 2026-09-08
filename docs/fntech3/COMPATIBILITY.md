@@ -296,6 +296,11 @@ to the evidence level named in the same cell.
    both Q3/QL self-pairs with the same Windows x86 binaries, exact split-response
    HTTP downloads, pure-to-active admission, engine screenshots and normal
    shutdown. QL reaches its join panel; active match gameplay is not claimed.
+   The later [QL active-match checkpoint](2026-09-08-ql-active-match.md)
+   joins campgrounds/ffa through an engine command, with a first-person player
+   HUD, five participants, `IN_PROGRESS` samples and bot score progression.
+   It remains a short self-pair; keyboard/mouse combat and independent retail
+   engine interoperability are not exercised.
    [Snapshot history validation](2026-09-07-snapshot-history.md) also rejects
    malformed/stale module requests before writes. The subsequent
    [entity-history correction](2026-09-07-entity-history-wrap.md) covers parser
