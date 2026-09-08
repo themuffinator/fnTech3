@@ -78,134 +78,73 @@ snd_codec_t ogg_codec =
 // fread() replacement
 size_t S_OGG_Callback_read( void *ptr, size_t size, size_t nmemb, void *datasource )
 {
-	snd_stream_t *stream;
-	int byteSize = 0;
-	int bytesRead = 0;
-	size_t nMembRead = 0;
-
-	// check if input is valid
-	if (!ptr)
-	{
-		errno = EFAULT; 
-		return 0;
-	}
-	
-	if (!(size && nmemb))
-	{
-		// It's not an error, caller just wants zero bytes!
+	if ( !size || !nmemb ) {
 		errno = 0;
 		return 0;
 	}
- 
-	if (!datasource)
-	{
-		errno = EBADF; 
+	if ( !ptr || !datasource ) {
+		errno = !ptr ? EFAULT : EBADF;
 		return 0;
 	}
-	
-	// we use a snd_stream_t in the generic pointer to pass around
-	stream = static_cast<snd_stream_t *>( datasource );
-
-	// FS_Read does not support multi-byte elements
-	byteSize = nmemb * size;
-
-	bytesRead = FileRead( stream->file, ptr, byteSize );
-
-	// update the file position
-	stream->pos += bytesRead;
-
-	// this function returns the number of elements read not the number of bytes
-	nMembRead = bytesRead / size;
-
-	// even if the last member is only read partially
-	// it is counted as a whole in the return value	
-	if (bytesRead % size)
-	{
-		nMembRead++;
+	const size_t maximum = static_cast<size_t>( ( std::numeric_limits<int>::max )() );
+	if ( size > maximum || nmemb > maximum / size ) {
+		errno = EINVAL;
+		return 0;
 	}
-	
-	return nMembRead;
+	auto *stream = static_cast<snd_stream_t *>( datasource );
+	if ( stream->pos < 0 || stream->pos > stream->length ) {
+		errno = EIO;
+		return 0;
+	}
+	int bytes = static_cast<int>( size * nmemb );
+	const int remaining = stream->length - stream->pos;
+	if ( bytes > remaining ) bytes = remaining;
+	if ( !bytes ) return 0;
+	const int count = FileRead( stream->file, ptr, bytes );
+	if ( count < 0 ) {
+		errno = EIO;
+		return 0;
+	}
+	stream->pos += count;
+	// fread reports complete elements; a trailing partial element is consumed
+	// but must not be advertised as initialized output.
+	return static_cast<size_t>( count ) / size;
 }
 
 // fseek() replacement
-int S_OGG_Callback_seek(void *datasource, ogg_int64_t offset, int whence)
+int S_OGG_Callback_seek( void *datasource, ogg_int64_t offset, int whence )
 {
-	snd_stream_t *stream;
-	int retVal = 0;
-
-	// check if input is valid
-	if (!datasource)
-	{
-		errno = EBADF; 
+	if ( !datasource ) {
+		errno = EBADF;
 		return -1;
 	}
-
-	// snd_stream_t in the generic pointer
-	stream = static_cast<snd_stream_t *>( datasource );
-
-	// we must map the whence to its Q3 counterpart
-	switch (whence)
-	{
-		case SEEK_SET :
-		{
-			// set the file position in the actual file with the Q3 function
-			retVal = FS_Seek(stream->file, static_cast<long>( offset ), FS_SEEK_SET);
-
-			// something has gone wrong, so we return here
-			if (retVal < 0)
-			{
-				return retVal;
-			}
-
-			// keep track of file position
-			stream->pos = static_cast<int>( offset );
-			break;
-		}
-  
-		case SEEK_CUR :
-		{
-			// set the file position in the actual file with the Q3 function
-			retVal = FS_Seek(stream->file, static_cast<long>( offset ), FS_SEEK_CUR);
-
-			// something has gone wrong, so we return here
-			if (retVal < 0)
-			{
-				return retVal;
-			}
-
-			// keep track of file position
-			stream->pos += static_cast<int>( offset );
-			break;
-		}
- 
-		case SEEK_END :
-		{
-			// set the file position in the actual file with the Q3 function
-			retVal = FS_Seek(stream->file, static_cast<long>( offset ), FS_SEEK_END);
-
-			// something has gone wrong, so we return here
-			if (retVal < 0)
-			{
-				return retVal;
-			}
-
-			// keep track of file position
-			stream->pos = stream->length + static_cast<int>( offset );
-			break;
-		}
-  
-		default :
-		{
-			// unknown whence, so we return an error
-			errno = EINVAL;
-			return -1;
-		}
+	auto *stream = static_cast<snd_stream_t *>( datasource );
+	ogg_int64_t base;
+	switch ( whence ) {
+		case SEEK_SET: base = 0; break;
+		case SEEK_CUR: base = FS_FTell( stream->file ); break;
+		case SEEK_END: base = stream->length; break;
+		default: errno = EINVAL; return -1;
 	}
-
-	// stream->pos shouldn't be smaller than zero or bigger than the filesize
-	stream->pos = (stream->pos < 0) ? 0 : stream->pos;
-	stream->pos = (stream->pos > stream->length) ? stream->length : stream->pos;
-
+	// Compare before adding or narrowing, including extreme 64-bit offsets.
+	if ( base < 0 || base > stream->length
+		|| offset < -base || offset > stream->length - base ) {
+		errno = EINVAL;
+		return -1;
+	}
+	const int target = static_cast<int>( base + offset );
+	if ( FS_Seek( stream->file, static_cast<long>( target ), FS_SEEK_SET ) < 0 ) {
+		errno = EIO;
+		return -1;
+	}
+	// Packed-file seeks may return a positive success value. Verify the real
+	// cursor rather than assuming either zero-only success or a requested move.
+	const int actual = FS_FTell( stream->file );
+	if ( actual >= 0 && actual <= stream->length ) stream->pos = actual;
+	if ( actual != target ) {
+		errno = EIO;
+		return -1;
+	}
 	return 0;
 }
 
@@ -342,8 +281,8 @@ snd_stream_t *S_OGG_CodecOpenStream(const char *filename)
 	stream->info.dataofs = 0;
 	stream->info.speakerMask = 0;
 
-	// We use stream->pos for the file pointer in the compressed ogg file 
-	stream->pos = 0;
+	// The callbacks retain the actual compressed-file position established
+	// by ov_open_callbacks; do not reset it without seeking the file.
 	
 	// We use the generic pointer in stream for the OGG codec control structure
 	stream->ptr = vfStorage.release();
