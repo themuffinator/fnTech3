@@ -232,8 +232,11 @@ void SV_AddServerCommand( client_t *client, const char *cmd ) {
 //		return;
 //	}
 
-	// do not send commands until the gamestate has been sent
-	if ( client->state < CS_PRIMED )
+	// Downloads return to CS_CONNECTED after receiving a gamestate. Their
+	// engine-side disconnect must still arrive if the transfer fails.
+	const bool downloadDisconnect = client->state == CS_CONNECTED &&
+		client->downloading && !strncmp( cmd, "disconnect ", 11 );
+	if ( client->state < CS_PRIMED && !downloadDisconnect )
 		return;
 
 	client->reliableSequence = fnql::net::NextCounter( client->reliableSequence );

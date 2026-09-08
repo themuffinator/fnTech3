@@ -2637,13 +2637,17 @@ static int SV_WriteDownloadToClient( client_t *cl )
 		if (!cl->downloadBlocks[curindex])
 			cl->downloadBlocks[curindex] = SV_ZMallocArray<unsigned char>( downloadBlockBytes );
 
+		// The advertised size remains fixed even if the backing file grows.
+		const int remaining = cl->downloadSize - cl->downloadCount;
+		const int requested = remaining < downloadBlockBytes ? remaining : downloadBlockBytes;
 		cl->downloadBlockSize[curindex] = FS_Read( cl->downloadBlocks[curindex],
-			downloadBlockBytes, cl->download );
+			requested, cl->download );
 
-		if (cl->downloadBlockSize[curindex] < 0) {
-			// EOF right now
-			cl->downloadCount = cl->downloadSize;
-			break;
+		if ( cl->downloadBlockSize[curindex] != requested ) {
+			// A short read is not a successful EOF. Drop only this transfer's
+			// client; normal client cleanup closes the file and frees its blocks.
+			SV_DropClient( cl, "Download read failed on server" );
+			return 0;
 		}
 
 		cl->downloadCount += cl->downloadBlockSize[curindex];

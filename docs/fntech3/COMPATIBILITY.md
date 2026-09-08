@@ -101,6 +101,9 @@ cover both profiles without claiming remote fault-injection closure.
 The [UDP total-size guard](2026-09-08-download-total-size.md) rejects excess
 bytes and premature EOF before writing or finalizing a file; valid downloads
 from both reference servers still reach pure admission and active state.
+The [server read-failure checkpoint](2026-09-08-server-download-read-failure.md)
+bounds reads to the declared total and verifies explicit disconnect delivery to
+both reference clients after a generated server pak is truncated mid-transfer.
 The [download write correction](2026-09-08-download-write-errors.md) prevents
 UDP acknowledgement after a failed write and propagates short writes through
 both HTTP callbacks, with controlled failure regressions.
