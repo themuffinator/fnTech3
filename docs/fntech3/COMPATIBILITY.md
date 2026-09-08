@@ -301,6 +301,10 @@ to the evidence level named in the same cell.
    HUD, five participants, `IN_PROGRESS` samples and bot score progression.
    It remains a short self-pair; keyboard/mouse combat and independent retail
    engine interoperability are not exercised.
+   The [active QL demo checkpoint](2026-09-08-ql-active-demo.md) records a joined
+   FFA session and replays all 564 messages in normal/timedemo modes with native
+   HUD screenshots, EOF completion and normal shutdown. Seeking and independent
+   retail-engine demo interoperability remain unverified.
    [Snapshot history validation](2026-09-07-snapshot-history.md) also rejects
    malformed/stale module requests before writes. The subsequent
    [entity-history correction](2026-09-07-entity-history-wrap.md) covers parser
