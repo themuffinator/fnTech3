@@ -120,7 +120,9 @@ It does not replace the hosted client/renderer release matrix.
 The [local Linux client/renderer extension](2026-09-08-linux-renderers.md) also
 builds the non-SDL i686 client and all three renderer modules from that clean
 checkout, with 107 configured tests passing and two skips. Linux client
-runtime and bundled-SDL validation remain separate gates.
+runtime remains a separate gate. The [bundled-SDL build checkpoint](2026-09-08-linux-sdl.md)
+also builds the i686 client with embedded GLx and passes its configured suite
+(84 pass, one skip), without claiming SDL runtime validation.
 
 The target is one shared, drop-in binary set. It must select `q3` or `ql` before
 compatibility-sensitive initialization and then use that profile's complete,

@@ -1,0 +1,50 @@
+{
+  "commit": "b5776c9492e95878954b436ed47a48aadb9508e9",
+  "cleanDetachedCheckout": true,
+  "platform": "Ubuntu WSL2, GCC 13.3.0, Meson 1.10.2, Linux i686 cross configuration",
+  "configure": "meson setup .tmp/build-linux-sdl --cross-file misc/meson/linux-x86.ini --buildtype=debugoptimized --force-fallback-for=sdl3,fontstash -Daudio-tests=false -Dbuild-client=true -Dbuild-server=false -Dcurl=disabled -Dglx-tests=false -Dogg-vorbis=false -Drenderer-dlopen=false -Drenderer-default=glx -Dsdl=enabled",
+  "build": "meson compile -C .tmp/build-linux-sdl -j 6",
+  "test": "meson test -C .tmp/build-linux-sdl --no-rebuild --print-errorlogs",
+  "tests": {
+    "passed": 84,
+    "failed": 0,
+    "skipped": 1,
+    "largestPythonSuite": 1252
+  },
+  "client": {
+    "sha256": "680b575d0eab3d03557d5be793f28230bb0eff19010303b78bd06fa0071e6f18",
+    "bytes": 35552776,
+    "identity": "ELF 32-bit Intel 80386 PIE",
+    "buildId": "52468efdde08822b88716ac0eec377b36ac6ff43"
+  },
+  "sdlArchives": [
+    {
+      "kind": "source",
+      "filename": "SDL3-3.4.0.tar.gz",
+      "sha256": "082cbf5f429e0d80820f68dc2b507a94d4cc1b4e70817b119bbb8ec6a69584b8"
+    },
+    {
+      "kind": "patch",
+      "filename": "sdl3_3.4.0-2_patch.zip",
+      "sha256": "0ef4e75d1a2416c71406d81cfbe5733caabfb86d1a2a551e62cd66e78bf23472"
+    }
+  ],
+  "logs": [
+    {
+      "name": "clean-linux-sdl-setup.log",
+      "sha256": "146a2708990724d5cccf5557ee59ab08811ed1202c275d3212f0332e42bc8249"
+    },
+    {
+      "name": "clean-linux-sdl-build.log",
+      "sha256": "994f59afb3a2695961cde1c41eb2c669b7fb47588d42af6701c7a7bffc8c4530"
+    },
+    {
+      "name": "clean-linux-sdl-tests.log",
+      "sha256": "4a86882729ebba8db42aa4babde830e6a9d02bc8affce922dfcf044e6cf0a105"
+    },
+    {
+      "name": "clean-linux-sdl-ldd.log",
+      "sha256": "88bb732a322106be5763db32a18b9f6b24783b66ec67d3b99120b7563fce0a10"
+    }
+  ]
+}
