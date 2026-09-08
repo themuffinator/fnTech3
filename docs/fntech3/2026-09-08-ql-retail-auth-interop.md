@@ -65,3 +65,10 @@ Unrelated diagnostics: the retail client reported a QUAKE LIVE website load
 failure (error -2), but the direct connection and native join UI still worked.
 The provider's manifest/runtime version mismatch remains unresolved. No online
 website, audio or general optional-service success is claimed.
+
+## Dedicated-server follow-up
+
+The [next checkpoint](2026-09-08-ql-dedicated-retail-interop.md) establishes
+fnTech3 client admission and first-person warmup against the separately shipped
+Linux x86 retail dedicated server. The Windows retail client executable server-mode
+probe above remains unresolved.
