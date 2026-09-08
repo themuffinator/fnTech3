@@ -321,7 +321,9 @@ extern "C" void *S_WAV_CodecLoad( const char *filename, snd_info_t *info ) {
 	}
 
 	if ( !source.needsConversion ) {
-		FileRead( file.get(), buffer, info->size );
+		if ( FileRead( file.get(), buffer, info->size ) != info->size ) {
+			return nullptr;
+		}
 		S_ByteSwapRawSamples( info->samples, info->width, info->channels, buffer );
 		return bufferStorage.release();
 	}
@@ -337,12 +339,10 @@ extern "C" void *S_WAV_CodecLoad( const char *filename, snd_info_t *info ) {
 	}
 
 	const int bytesRead = FileRead( file.get(), sourceBuffer, sourceBytes );
-	const int samplesRead = bytesRead / source.width;
-	ConvertWavBlockToPCM16( reinterpret_cast<short *>( buffer ), sourceBuffer, samplesRead, source );
-	if ( samplesRead < sampleCount ) {
-		std::memset( buffer + static_cast<size_t>( samplesRead ) * sizeof( short ), 0,
-			static_cast<size_t>( sampleCount - samplesRead ) * sizeof( short ) );
+	if ( bytesRead != sourceBytes ) {
+		return nullptr;
 	}
+	ConvertWavBlockToPCM16( reinterpret_cast<short *>( buffer ), sourceBuffer, sampleCount, source );
 
 	return bufferStorage.release();
 }
@@ -398,6 +398,9 @@ S_WAV_CodecReadStream
 =================
 */
 extern "C" int S_WAV_CodecReadStream( snd_stream_t *stream, int bytes, void *buffer ) {
+	if ( bytes <= 0 ) {
+		return 0;
+	}
 	const int remaining = stream->info.size - stream->pos;
 	if ( remaining <= 0 ) {
 		return 0;
@@ -408,11 +411,14 @@ extern "C" int S_WAV_CodecReadStream( snd_stream_t *stream, int bytes, void *buf
 
 	const auto *state = static_cast<const WavStreamState *>( stream->ptr );
 	if ( state == nullptr ) {
-		stream->pos += bytes;
-		const int samples = ( bytes / stream->info.width ) / stream->info.channels;
-		FileRead( stream->file, buffer, bytes );
+		const int bytesRead = FileRead( stream->file, buffer, bytes );
+		if ( bytesRead <= 0 ) {
+			return 0;
+		}
+		stream->pos += bytesRead;
+		const int samples = ( bytesRead / stream->info.width ) / stream->info.channels;
 		S_ByteSwapRawSamples( samples, stream->info.width, stream->info.channels, static_cast<byte *>( buffer ) );
-		return bytes;
+		return bytesRead;
 	}
 
 	// Decode 24-bit or float source samples to 16-bit through a bounded

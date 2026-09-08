@@ -1,0 +1,97 @@
+{
+  "baseCommit": "902c7448b8b3ab4a6c9cc14d5f8a1f3c6e03ca7b",
+  "changedSourceSha256": "afccf02bae26842024ff791200c9c387152d1bced1cc6882c46019f78d099fda",
+  "regressionSha256": "9f1985b724c8b9f3b68eaefb0936a6a2470ea54bf7861cb1b11529582673d214",
+  "windowsBuild": {
+    "platform": "Windows x86 MSVC release",
+    "kind": "incremental",
+    "steps": 3,
+    "clientSha256": "d0350d0f103d627975c88cd5113067820e93d6c006bf5815ef4f52bc43811294",
+    "logSha256": "8e98414489b76de29b189297409556589bfef803c168d5a05584ff28ce71f26a"
+  },
+  "windowsSuite": {
+    "passed": 110,
+    "failed": 0,
+    "skipped": 1,
+    "pythonTests": 1297,
+    "pythonSkipped": 5,
+    "pythonSeconds": 194.599,
+    "logSha256": "6ad8708eedf20a35b7908b50d4099aa89c806cfb1711278e21973938d3f3ad68",
+    "fullLogSha256": "41eae5c8a8ab114009e7c17ef9b409a7c7d801a23be4c0d7fa8d4209ac39405a"
+  },
+  "focusedRegression": {
+    "windows": true,
+    "linux": true,
+    "oldWholeImplementationFails": true,
+    "oldStreamOnlyFails": true,
+    "formats": [
+      "PCM8",
+      "PCM16",
+      "PCM24",
+      "IEEE float32"
+    ],
+    "channels": [
+      1,
+      2
+    ],
+    "cases": [
+      "valid load",
+      "every payload truncation of eight frames",
+      "negative read result",
+      "repeated valid stream reads",
+      "short stream and repeated EOF",
+      "zero and negative requests",
+      "allocation and handle cleanup"
+    ]
+  },
+  "retailFormatInventory": {
+    "q3": {
+      "wavPaths": 631,
+      "invalidRiff": 0,
+      "shortHeader": 0,
+      "formats": {
+        "1:1:16": 608,
+        "1:2:16": 17,
+        "1:1:8": 6
+      },
+      "chunkBoundsFailures": 0
+    },
+    "ql": {
+      "wavPaths": 538,
+      "invalidRiff": 0,
+      "shortHeader": 0,
+      "formats": {
+        "1:1:16": 538
+      },
+      "chunkBoundsFailures": 0
+    }
+  },
+  "retailDecoderCorpus": {
+    "q3": {
+      "files": 631,
+      "sourceBytesWithEnvelopes": 267961507,
+      "decodedBytesWithEnvelopes": 267929521,
+      "decodedCorpusSha256": "6fcd08cf4642ada9d94de89f832d5297c3adb9984e14bd163acac129b6b9c2a1",
+      "inputInventorySha256": "2b8b410011400fc5283282fdf4a9af18874fac46d1067b7741bd223b321a7d39",
+      "allDecodedBytesMatchPythonWave": true
+    },
+    "ql": {
+      "files": 538,
+      "sourceBytesWithEnvelopes": 66280980,
+      "decodedBytesWithEnvelopes": 66143282,
+      "decodedCorpusSha256": "c526ceb5152dfcc1c0747199e50cf0bd72361d47cbd02e77553665ddec93565c",
+      "inputInventorySha256": "b53df6294bcf937421bc34ed9aac09f927a805061d4bb833557389246847365b",
+      "allDecodedBytesMatchPythonWave": true
+    }
+  },
+  "limitations": [
+    "Header truncation, RIFF identity and chunk seek bounds remain open.",
+    "Corpus uses production parser and loader with memory-backed file/allocator adapters, not an audible engine session.",
+    "Big-endian swapping is stubbed; no big-endian runtime claim.",
+    "Lexically sorted PK3 names choose the final duplicate path; this is not a runtime search-path proof."
+  ],
+  "localHarnessCorrections": [
+    "Set Windows stdin/stdout binary mode before transporting corpus bytes.",
+    "Raise the bounded probe allocation limit to accommodate legitimate Q3 music files."
+  ]
+}
