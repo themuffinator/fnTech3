@@ -330,11 +330,13 @@ to the evidence level named in the same cell.
    admission, and join UI/world rendering are observed. Service authentication,
    WebUI presentation, remote peers, broader gameplay, and lifecycle stress still
    require new fnTech3 evidence.
-8. **Retail Q3 interop probe is blocked before engine startup.** The legitimate
-   Steam retail executable, copied with base paks into an isolated temporary
-   fixture, reported `Failed to find Steam`. No retail engine log or connection
-   was observed; this is a probe environment/dependency blocker, not evidence
-   of a network failure or success.
+8. **Retail Q3 interop now has short bidirectional live evidence.** Launching
+   the installed retail executable with isolated writable homes passes pure
+   admission, active play and engine screenshots in both directions against
+   Windows x86 fnTech3. The
+   [retail checkpoint](2026-09-08-q3-retail-interop.md) retains earlier startup
+   and short-lifetime probe failures separately. Remote, long-session and
+   broader protocol coverage remain open.
 
 ## Open live gates
 
