@@ -223,7 +223,18 @@ qboolean S_ReadRIFFHeader( fileHandle_t file, int fileLength, snd_info_t *info, 
 		if ( fmtlen < 40 || !reader.Read( fmt.data() + 16, 24 ) ) {
 			return qfalse;
 		}
-		// Preserve the supported extensible subformat selection.
+		const int extensionBytes = WavLittleShort( fmt.data() + 16 );
+		if ( extensionBytes < 22 || extensionBytes > fmtlen - 18 ) {
+			return qfalse;
+		}
+		// PCM/IEEE float GUIDs share this suffix after the two-byte format
+		// tag: xxxxxxxx-0000-0010-8000-00aa00389b71 (Windows SDK ksmedia.h).
+		constexpr std::array<byte, 14> waveGuidSuffix{
+			0, 0, 0, 0, 0x10, 0, 0x80, 0, 0, 0xaa, 0, 0x38, 0x9b, 0x71
+		};
+		if ( std::memcmp( fmt.data() + 26, waveGuidSuffix.data(), waveGuidSuffix.size() ) != 0 ) {
+			return qfalse;
+		}
 		format = WavLittleShort( fmt.data() + 24 );
 		consumed = 40;
 	}

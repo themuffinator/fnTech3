@@ -1,0 +1,139 @@
+{
+  "baseCommit": "9437bef269c7e4009c970b4df53d0a897fe8ccf5",
+  "sourceSha256": "b306af3e980229ec435087207e013cd0bbdd8a2a54e15b0be95d1a7408c85fdf",
+  "testSha256": "07e9dd95ba7df9edd6bf345d1b07f9410dadbb79113e60ec59abef919c6b6836",
+  "contractSources": {
+    "description": "https://learn.microsoft.com/en-us/windows/win32/api/mmreg/ns-mmreg-waveformatextensible",
+    "guidReference": "Windows SDK 10.0.26100.0 shared/ksmedia.h lines 846 and 854",
+    "pcmGuid": "00000001-0000-0010-8000-00aa00389b71",
+    "floatGuid": "00000003-0000-0010-8000-00aa00389b71",
+    "use": "Format facts only; no implementation copied."
+  },
+  "windowsBuild": {
+    "kind": "incremental x86 MSVC release",
+    "clientSha256": "c39df787f6ef8f2e4aa0dcbeb2baf9fa11758c43a108caaed5522af9ac5c26b0",
+    "logSha256": "8e98414489b76de29b189297409556589bfef803c168d5a05584ff28ce71f26a"
+  },
+  "windowsSuite": {
+    "passed": 110,
+    "failed": 0,
+    "skipped": 1,
+    "pythonTests": 1298,
+    "pythonSkipped": 5,
+    "pythonSeconds": 175.415,
+    "logSha256": "1466418d7db700afe6c7cd343ca97a61a20f15a9cdda6c5a1d5e0804a48e8e47",
+    "fullLogSha256": "bed3718bf634a7f0cedcfcdf558b10f54926c184395e7f09da5d2e97c8181d09"
+  },
+  "focusedTests": {
+    "Windows": true,
+    "LinuxAddressAndUndefinedBehaviorSanitizers": true,
+    "priorParserFailsNewGuidFixtures": true,
+    "guidSuffixMutations": 14,
+    "invalidExtensionLengths": [
+      0,
+      1,
+      21,
+      23,
+      65535
+    ],
+    "validExtraExtensionBytes": true
+  },
+  "syntheticFullLoads": [
+    {
+      "format": 1,
+      "bits": 8,
+      "channels": 1,
+      "inputSha256": "4db3fc1c83c1ece4c98f4d0873b0257624193c910a51ceb72541cdc0d704cf77",
+      "decodedSha256": "89273d2f70b93285bb7ddb4bcee86a5347ca7159352e3cbdd20c23e9d1e507d3",
+      "decodedBytes": 4,
+      "exactMatch": true
+    },
+    {
+      "format": 1,
+      "bits": 8,
+      "channels": 2,
+      "inputSha256": "c45da444902f60afeeb5133bbf35f6e46f0a065a98835225335ba2df2a3160a7",
+      "decodedSha256": "b257f24cfd986df5764dfe153b52ed2b8c3ed4ff3c2d94b0530616ee3695ec84",
+      "decodedBytes": 8,
+      "exactMatch": true
+    },
+    {
+      "format": 1,
+      "bits": 16,
+      "channels": 1,
+      "inputSha256": "ff31f6cf1e337d3dadb7f6cbf17330ca054fcd10a245c81d94f8a2b8f2593297",
+      "decodedSha256": "556753b4da9b39610600e40b9673205bc62e4df0f649c9957c6282bd59ab42a0",
+      "decodedBytes": 10,
+      "exactMatch": true
+    },
+    {
+      "format": 1,
+      "bits": 16,
+      "channels": 2,
+      "inputSha256": "ebfe0ab2bda00147f12aec9224e671a7c4903b4444e820eedf0084e1d55fc137",
+      "decodedSha256": "64be1c8cd62fdf8c4743d643038a9799d90251336caf2502f6703307ba1c7eb4",
+      "decodedBytes": 20,
+      "exactMatch": true
+    },
+    {
+      "format": 1,
+      "bits": 24,
+      "channels": 1,
+      "inputSha256": "2996f5bd8edaa0a01946189caa88dfd690905e19520b42e515e63985d5d0fa5f",
+      "decodedSha256": "aad024d2184647c7334e7c928704b7d81decdf23a3eedba33ad990034beb4bb9",
+      "decodedBytes": 10,
+      "exactMatch": true
+    },
+    {
+      "format": 1,
+      "bits": 24,
+      "channels": 2,
+      "inputSha256": "48da352722e53113849eb17b65fcd883f35a959025276796ccc030a88d607c5b",
+      "decodedSha256": "b56a458531a55fad71820e77e06048c2aaa07dfcc04ec088296f9c0574a96a4b",
+      "decodedBytes": 20,
+      "exactMatch": true
+    },
+    {
+      "format": 3,
+      "bits": 32,
+      "channels": 1,
+      "inputSha256": "0b9edab08c9bb78a52fa59afacf323c1489bbcddf9a2160d6cd3e69944f3dd91",
+      "decodedSha256": "b1277d47da4f10a768aa51eea3c2bbf481cb1f4e2c5d9b04ef55e5d2cf90fd69",
+      "decodedBytes": 14,
+      "exactMatch": true
+    },
+    {
+      "format": 3,
+      "bits": 32,
+      "channels": 2,
+      "inputSha256": "ea89d021fda637c5d5e3272c069db60c40ce213d22647ac0ad7ffeac062b8698",
+      "decodedSha256": "ae450bc24ef8eeed2e8d6b2d378c907b56a787bd1364940f16625baa13bc0517",
+      "decodedBytes": 28,
+      "exactMatch": true
+    }
+  ],
+  "installedCorpus": {
+    "q3": {
+      "files": 631,
+      "sourceBytesWithEnvelopes": 267961507,
+      "decodedBytesWithEnvelopes": 267929521,
+      "decodedCorpusSha256": "6fcd08cf4642ada9d94de89f832d5297c3adb9984e14bd163acac129b6b9c2a1",
+      "inputInventorySha256": "2b8b410011400fc5283282fdf4a9af18874fac46d1067b7741bd223b321a7d39",
+      "allDecodedBytesMatchPythonWave": true
+    },
+    "ql": {
+      "files": 538,
+      "sourceBytesWithEnvelopes": 66280980,
+      "decodedBytesWithEnvelopes": 66143282,
+      "decodedCorpusSha256": "c526ceb5152dfcc1c0747199e50cf0bd72361d47cbd02e77553665ddec93565c",
+      "inputInventorySha256": "b53df6294bcf937421bc34ed9aac09f927a805061d4bb833557389246847365b",
+      "allDecodedBytesMatchPythonWave": true
+    }
+  },
+  "remainingGaps": [
+    "Valid-bit precision semantics",
+    "Channel masks and multichannel rendering",
+    "Audible/backend validation",
+    "Streaming CRC behavior"
+  ]
+}

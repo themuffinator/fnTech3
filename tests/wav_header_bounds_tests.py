@@ -83,8 +83,15 @@ int main(){
  parse(riff(body(fmt(3,2,32))),true);
  for(auto f:{fmt(1,0),fmt(1,32768),fmt(1,1,32),fmt(3,1,16),fmt(2)})parse(riff(body(f)),false);
  for(unsigned rate:{0u,0x80000000u,0xffffffffu}){auto f=fmt();set32(f,4,rate);parse(riff(body(f)),false);}
- auto extended=fmt(0xfffe);u16(extended,22);u16(extended,16);u32(extended,0);u16(extended,1);append(extended,Bytes(14));
+ auto extended=fmt(0xfffe);u16(extended,22);u16(extended,16);u32(extended,0);u16(extended,1);append(extended,{0,0,0,0,0x10,0,0x80,0,0,0xaa,0,0x38,0x9b,0x71});
  parse(riff(body(extended)),true);
+ for(int i=26;i<40;++i){auto f=extended;f[i]^=1;parse(riff(body(f)),false);}
+ for(unsigned count:{0u,1u,21u,23u,65535u}){auto f=extended;f[16]=count&255;f[17]=(count>>8)&255;parse(riff(body(f)),false);}
+ auto longer=extended;longer[16]=24;append(longer,{0,0});parse(riff(body(longer)),true);
+ auto floating=extended;floating[24]=3;floating[14]=32;floating[18]=32;parse(riff(body(floating)),true);
+ auto pcm24=extended;pcm24[14]=24;pcm24[18]=20;parse(riff(body(pcm24)),true);
+ auto unknown=extended;unknown[24]=2;parse(riff(body(unknown)),false);
+
  for(int n=16;n<40;++n)parse(riff(body(Bytes(extended.begin(),extended.begin()+n))),false);
  auto odd=fmt();odd.push_back(0);Bytes b=chunk("JUNK",{1,2,3});append(b,chunk("zero",{}));append(b,body(odd));auto skipped=riff(b);
  parse(skipped,true,0);parse(skipped,true,1); // loose/ZIP seek conventions.
