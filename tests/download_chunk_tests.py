@@ -26,6 +26,7 @@ class DownloadChunkTests(unittest.TestCase):
 #include <cstdio>
 #include <string>
 #include <vector>
+#include <limits>
 using byte=unsigned char;
 using qboolean=bool;
 constexpr bool qfalse=false;
@@ -81,7 +82,7 @@ int main(){
   assert(opens==1&&written.size()==4&&clc.downloadBlock==1&&clc.downloadCount==4&&commands.back()=="nextdl 0");
   reset(1,1);auto second=chunk(1,false,4,{'a','b','c','d'});CL_ParseDownload(&second);
   assert(written.size()==4&&clc.downloadBlock==2&&clc.downloadCount==8&&commands.back()=="nextdl 1");
-  reset(2,1);auto eof=chunk(2,false,0,{});CL_ParseDownload(&eof);
+  reset(2,1);clc.downloadCount=8;auto eof=chunk(2,false,0,{});CL_ParseDownload(&eof);
   assert(closes==1&&renames==1&&packets==1&&next==1&&commands.back()=="nextdl 2");
   reset(4,1);auto stale=chunk(3,false,4,{'a','b','c','d'});CL_ParseDownload(&stale);unchanged(4,4);
   reset(65536,1);auto wrap=chunk(0,false,4,{'a','b','c','d'});CL_ParseDownload(&wrap);
@@ -93,6 +94,30 @@ int main(){
    assert(!renames&&!packets&&!next&&written.size()==size_t(writeLimit));
   }
   writeLimit=16384;
+  // Declared total is authoritative: never write excess bytes or finalize early.
+  for(bool initial:{false,true}){
+   reset(initial?0:1,initial?0:1);
+   auto excess=chunk(initial?0:1,initial,9,{'P','K',3,4,'a','b','c','d','e'});
+   bool dropped=false;try{CL_ParseDownload(&excess);}catch(int){dropped=true;}
+   assert(dropped);unchanged(initial?0:1,initial?0:4);
+  }
+  reset(2,1);auto early=chunk(2,false,0,{});bool dropped=false;
+  try{CL_ParseDownload(&early);}catch(int){dropped=true;}
+  assert(dropped);unchanged(2,4);
+  // Ignore reordered chunks before applying the total-size policy.
+  reset(4,1);auto staleLarge=chunk(3,false,9,{'a','b','c','d','e','f','g','h','i'});
+  CL_ParseDownload(&staleLarge);unchanged(4,4);
+  // Subtract validated counts instead of overflowing a signed sum.
+  reset(1,1);clc.downloadSize=std::numeric_limits<int>::max();
+  clc.downloadCount=clc.downloadSize-2;int prior=clc.downloadCount;
+  auto overflow=chunk(1,false,4,{'a','b','c','d'});dropped=false;
+  try{CL_ParseDownload(&overflow);}catch(int){dropped=true;}
+  assert(dropped);unchanged(1,prior);
+  reset(1,1);clc.downloadSize=std::numeric_limits<int>::max();
+  clc.downloadCount=clc.downloadSize-4;
+  auto limit=chunk(1,false,4,{'a','b','c','d'});CL_ParseDownload(&limit);
+  assert(clc.downloadCount==std::numeric_limits<int>::max()&&written.size()==4);
+
  }
 }
 '''

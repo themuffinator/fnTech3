@@ -1208,6 +1208,15 @@ static void CL_ParseDownload( msg_t *msg ) {
 		return;
 	}
 
+	// Enforce the advertised total before writing or acknowledging this block.
+	// Subtraction avoids overflowing downloadCount on a malicious transfer.
+	if ( clc.downloadCount < 0 || clc.downloadCount > clc.downloadSize ||
+		size > clc.downloadSize - clc.downloadCount ||
+		( size == 0 && clc.downloadCount != clc.downloadSize ) ) {
+		Com_Error( ERR_DROP, "CL_ParseDownload: Download size mismatch" );
+		return;
+	}
+
 	// open the file if not opened yet
 	if ( clc.download == FS_INVALID_HANDLE )
 	{

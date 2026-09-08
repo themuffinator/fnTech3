@@ -98,6 +98,9 @@ covering both profiles' missing-pak planning with executable regressions.
 The [download chunk guard](2026-09-08-download-chunk-bounds.md) rejects truncated
 bodies before file writes or acknowledgements; its executable handler tests
 cover both profiles without claiming remote fault-injection closure.
+The [UDP total-size guard](2026-09-08-download-total-size.md) rejects excess
+bytes and premature EOF before writing or finalizing a file; valid downloads
+from both reference servers still reach pure admission and active state.
 The [download write correction](2026-09-08-download-write-errors.md) prevents
 UDP acknowledgement after a failed write and propagates short writes through
 both HTTP callbacks, with controlled failure regressions.
