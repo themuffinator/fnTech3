@@ -247,9 +247,11 @@ to the evidence level named in the same cell.
    runtime probes are still required.
 2. **Live wire evidence.** Live usercmd/entity/playerstate call sites select
    explicit wire profiles. Field-table parity and transactional malformed-input
-   regressions pass, but complete packet flows and bidirectional retail peers
-   are still required. Local active sessions exercise more than connectionless
-   info queries but do not establish remote-peer interoperability.
+   regressions pass. Short bidirectional retail sessions, authenticated QL
+   admission and full map changes now pass for both profiles, including the
+   [clean Windows x86 package](2026-09-08-clean-windows-retail-package.md).
+   Complete packet-flow coverage, Internet impairment and sustained sessions
+   remain open; the observed private-host/WSL tests do not close those gates.
 3. **QL snapshot tail is unresolved.** The known QL player-state fields occupy
    `0x1f8` bytes, while the retail native snapshot reserves `0x250`. The
    remaining `0x58` bytes must not be labelled padding or exposed without
@@ -279,7 +281,7 @@ to the evidence level named in the same cell.
    expands differential checks to 478 synthetic transitions in both directions,
    including every scalar field and array slot, and retains 58 retail-generated
    scalar boundary fixtures. Windows x86 and Linux i686 decode all retail
-   outputs correctly; full-process interoperability remains unproved.
+   outputs correctly; that corpus alone does not prove full-process interoperability.
    The [retail entity-wire checkpoint](2026-09-08-retail-entity-wire.md)
    similarly checks 402 entity writer cases (all byte-identical), 400 decoded
    payloads, and two intentional no-output cases. It pins 58 observed field
@@ -319,7 +321,11 @@ to the evidence level named in the same cell.
    profile-specific asset validation remain open.
 5. **Release packaging remains open.** Canonical metadata and primary artifacts
    now use fnTech3 identity. Retained external sidecar names, unsupported legacy
-   packaging paths and reproducible/package-runtime evidence remain open.
+   packaging paths and complete release evidence remain open. The
+   [fresh Windows package](2026-09-08-clean-windows-retail-package.md) now passes
+   a clean build/full suite, deterministic archiving, both-profile retail map
+   changes and unchanged extraction checks. This does not close independent
+   compiler reproducibility or the complete multi-platform release workflow.
    The [engine-only correction](2026-09-07-engine-only-packaging.md) removes
    inherited closed-source provider staging. Subsequent clean CI now validates
    that packaging path; see the [regression checkpoint](2026-09-08-regression-checkpoint.md).
