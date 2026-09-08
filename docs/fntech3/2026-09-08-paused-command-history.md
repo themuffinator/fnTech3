@@ -60,3 +60,10 @@ or repeated pause cycles remain open.
 Unrelated diagnostics remain: Q3 lagometer updates during pause and QL's
 pre-existing timescale-zero behavior. This correction does not claim to resolve
 either, or the previously recorded optional asset/audio/service issues.
+
+## Retail controls follow-up
+
+The [retail comparison](2026-09-08-retail-demo-controls.md) finds the same
+0.1 timescale value after requesting zero in both clients. Retail reports that
+as its minimum; cl_freezeDemo holds frames identically in both engines. This
+resolves the earlier pause-failure interpretation without changing engine code.
