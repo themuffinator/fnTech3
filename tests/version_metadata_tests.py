@@ -161,7 +161,7 @@ class VersionMetadataTests(unittest.TestCase):
     def test_curated_release_notes_take_precedence_and_keep_the_highlights_format(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             notes_dir = Path(tmp)
-            target_commit = manual_release.git("rev-parse", "HEAD")
+            target_commit = "a" * 40  # A deterministic fixture, not checkout metadata.
             (notes_dir / f"0.1.0.1-20260621-{fnql_meta.normalize_commit(target_commit)}.md").write_text(
                 "# FnQL 0.1.0.1 Release Notes\n\n"
                 "## Highlights\n\n"
@@ -171,15 +171,19 @@ class VersionMetadataTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            rendered = manual_release.render_release_notes(
-                build_number=1,
-                build_date="2026-06-21",
-                from_commit=None,
-                to_commit=target_commit,
-                changelog=ROOT / "docs" / "fnql" / "CHANGELOG.md",
-                no_ai=True,
-                curated_notes_dir=notes_dir,
-            )
+            with (
+                mock.patch.object(manual_release, "git", side_effect=AssertionError("Unexpected Git dependency")),
+                mock.patch.object(manual_release, "commit_lines", return_value=["- aaaaaaaa Fixture commit"]),
+            ):
+                rendered = manual_release.render_release_notes(
+                    build_number=1,
+                    build_date="2026-06-21",
+                    from_commit="b" * 40,
+                    to_commit=target_commit,
+                    changelog=ROOT / "docs" / "fnql" / "CHANGELOG.md",
+                    no_ai=True,
+                    curated_notes_dir=notes_dir,
+                )
 
         self.assertIn("## Highlights\n\n- Curated retail compatibility coverage.", rendered)
         self.assertIn("## Known limitations", rendered)

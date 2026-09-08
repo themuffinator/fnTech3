@@ -1,0 +1,553 @@
+{
+  "baseCommit": "b6b98a628807884b311c9317581d60f2e430aab0",
+  "scope": "Clean Linux i686 build, archive-portable tests, Q3 GLx software runtime and QL dedicated runtime. Not full compatibility.",
+  "sourceExport": {
+    "sha256": "488bb2eacb47fbb6f5579b1ceb2f71cfd8b0d17ee6f42e9b6e49e7dd3f3ad8c7",
+    "path": "/home/root/fntech3-builds/clean-b6b98a6-2gFscn",
+    "checkedRegularFiles": 1384,
+    "changedFiles": [
+      "tests/version_metadata_tests.py"
+    ]
+  },
+  "testPatchSha256": "b246787501a7335fd2de43248dde5a56dc63fd095b6aa39e079b48d9cb75e4c1",
+  "buildSteps": 928,
+  "buildScript": "set -eu\nmkdir -p /home/root/fntech3-builds\nsrc=$(mktemp -d /home/root/fntech3-builds/clean-b6b98a6-XXXXXX)\nprintf '%s\\n' \"$src\" > /mnt/e/Repositories/fnTech3/.tmp/linux-b6b98a6-source-path.txt\ntar -xf /mnt/e/Repositories/fnTech3/.tmp/linux-b6b98a6-source.tar -C \"$src\"\nmkdir -p \"$src/subprojects/packagecache\"\ncp /mnt/e/Repositories/fnTech3/subprojects/packagecache/*.xz /mnt/e/Repositories/fnTech3/subprojects/packagecache/*.gz /mnt/e/Repositories/fnTech3/subprojects/packagecache/*.zip \"$src/subprojects/packagecache/\"\ncd \"$src\"\nmeson setup .tmp/build --cross-file misc/meson/linux-x86.ini --buildtype=release -Dbuild-client=true -Dbuild-server=true -Dsdl=disabled -Dcurl=enabled -Dcurl-dlopen=true -Dogg-vorbis=true -Drenderer-dlopen=true -Drenderers=glx,vk,rtx -Daudio-tests=true -Dglx-tests=true\nmeson compile -C .tmp/build -j 8\n\nmeson test -C .tmp/build --no-rebuild --print-errorlogs\n",
+  "buildLogSha256": "7bd5dc5de7b80cebdeaca6ae580c6ce8b92857b58554c27dcb3efc60c57b9086",
+  "preliminary": {
+    "sourceTarSha256": "488bb2eacb47fbb6f5579b1ceb2f71cfd8b0d17ee6f42e9b6e49e7dd3f3ad8c7",
+    "firstBuildLogSha256": "6707710ce8b59394e6435d34512e7245854e02e0585bbea2137f431c4dd01153",
+    "firstBuildSteps": 928,
+    "firstSourcePath": "/tmp/fntech3-clean-b6b98a6-pJPtG7",
+    "firstSourceLaterAbsent": true,
+    "absenceCause": "Not established",
+    "testLaunchAttempts": [
+      {
+        "log": "linux-b6b98a6-tests.log",
+        "text": "\nERROR: No such build data file as '/mnt/e/Repositories/fnTech3/.tmp/build/meson-private/build.dat'.\n"
+      },
+      {
+        "log": "linux-b6b98a6-tests-final.log",
+        "text": "usage: meson [-h]\n             {setup,configure,dist,install,introspect,init,test,wrap,subprojects,rewrite,compile,devenv,env2mfile,reprotest,format,fmt,help}\n             ...\nmeson: error: unrecognized arguments: --print-errorlogs\n"
+      },
+      {
+        "log": "linux-b6b98a6-tests-run.log",
+        "text": "/mnt/e/Repositories/fnTech3/.tmp/test-linux-b6b98a6.sh: line 3: cd: /tmp/fntech3-clean-b6b98a6-pJPtG7: No such file or directory\n"
+      }
+    ]
+  },
+  "initialFullSuite": {
+    "passed": 108,
+    "failed": 1,
+    "skipped": 2,
+    "pythonTests": 1281,
+    "pythonSkipped": 20,
+    "error": "Curated release notes test requires Git HEAD in a source archive"
+  },
+  "buildOptions": {
+    "buildtype": "release",
+    "optimization": "3",
+    "b_ndebug": "false",
+    "build-client": true,
+    "build-server": true,
+    "renderer-dlopen": true,
+    "renderers": [
+      "glx",
+      "vk",
+      "rtx"
+    ],
+    "sdl": "disabled",
+    "curl": "enabled",
+    "curl-dlopen": "true",
+    "ogg-vorbis": true,
+    "audio-tests": true,
+    "glx-tests": true
+  },
+  "artifacts": {
+    "fnql_vk_x86.so": {
+      "sha256": "123ed121ef43d507e2d7df943a38019a318f2982d5efd8c1a3d5187bdc12915d",
+      "bytes": 2203656,
+      "identity": "/home/root/fntech3-builds/clean-b6b98a6-2gFscn/.tmp/build/fnql_vk_x86.so: ELF 32-bit LSB shared object, Intel 80386, version 1 (SYSV), dynamically linked, BuildID[sha1]=2a63d5eb0dd5f7ef19f75e1b2271f8f7eb1f5ccf, not stripped",
+      "ldd": "\tlinux-gate.so.1 (0xf7fc4000)\n\tlibm.so.6 => /lib/i386-linux-gnu/libm.so.6 (0xf7912000)\n\tlibc.so.6 => /lib/i386-linux-gnu/libc.so.6 (0xf76d7000)\n\t/lib/ld-linux.so.2 (0xf7fc6000)\n"
+    },
+    "fnql_rtx_x86.so": {
+      "sha256": "41d671c7d77e06f5fceb223a0e6a633abe95dee53bf3e648d2636ec27aaeafd0",
+      "bytes": 2541004,
+      "identity": "/home/root/fntech3-builds/clean-b6b98a6-2gFscn/.tmp/build/fnql_rtx_x86.so: ELF 32-bit LSB shared object, Intel 80386, version 1 (SYSV), dynamically linked, BuildID[sha1]=721685b14721becbc0ec9b0788e3e0955e266daa, not stripped",
+      "ldd": "\tlinux-gate.so.1 (0xf7f69000)\n\tlibm.so.6 => /lib/i386-linux-gnu/libm.so.6 (0xf7860000)\n\tlibc.so.6 => /lib/i386-linux-gnu/libc.so.6 (0xf7625000)\n\t/lib/ld-linux.so.2 (0xf7f6b000)\n"
+    },
+    "fntech3.ded": {
+      "sha256": "ff360acf8ebcb9c15568ff2acdae4f36077590139ee8834f2a10af1835eb07ef",
+      "bytes": 1717500,
+      "identity": "/home/root/fntech3-builds/clean-b6b98a6-2gFscn/.tmp/build/fntech3.ded: ELF 32-bit LSB pie executable, Intel 80386, version 1 (GNU/Linux), dynamically linked, interpreter /lib/ld-linux.so.2, BuildID[sha1]=561064bcbd1e6123e03327dcc727cd58f942cb88, for GNU/Linux 3.2.0, not stripped",
+      "ldd": "\tlinux-gate.so.1 (0xf7ed2000)\n\tlibstdc++.so.6 => /lib/i386-linux-gnu/libstdc++.so.6 (0xf754f000)\n\tlibm.so.6 => /lib/i386-linux-gnu/libm.so.6 (0xf7445000)\n\tlibgcc_s.so.1 => /lib/i386-linux-gnu/libgcc_s.so.1 (0xf740d000)\n\tlibc.so.6 => /lib/i386-linux-gnu/libc.so.6 (0xf71d2000)\n\t/lib/ld-linux.so.2 (0xf7ed4000)\n"
+    },
+    "fnql-web.pak": {
+      "sha256": "6c210165880fff668900fd3e4e3c90137623043e1b5315f24b693f367f756382",
+      "bytes": 59253,
+      "identity": "/home/root/fntech3-builds/clean-b6b98a6-2gFscn/.tmp/build/fnql-web.pak: data"
+    },
+    "fnql_glx_x86.so": {
+      "sha256": "c4354ada954f3ae9b832b58d0c114ffd21f7cc4c6815bf5577637509b3e226a6",
+      "bytes": 2285868,
+      "identity": "/home/root/fntech3-builds/clean-b6b98a6-2gFscn/.tmp/build/fnql_glx_x86.so: ELF 32-bit LSB shared object, Intel 80386, version 1 (SYSV), dynamically linked, BuildID[sha1]=b4b0a0d7d8299be71c01c692fdb20008b029b306, not stripped",
+      "ldd": "\tlinux-gate.so.1 (0xf7f41000)\n\tlibm.so.6 => /lib/i386-linux-gnu/libm.so.6 (0xf7783000)\n\tlibgcc_s.so.1 => /lib/i386-linux-gnu/libgcc_s.so.1 (0xf774b000)\n\tlibc.so.6 => /lib/i386-linux-gnu/libc.so.6 (0xf7510000)\n\t/lib/ld-linux.so.2 (0xf7f43000)\n"
+    },
+    "fntech3": {
+      "sha256": "18d7f80434d9af3e8344aa804447d812b784dcc08b5152d6e1b95fd93617a105",
+      "bytes": 4103288,
+      "identity": "/home/root/fntech3-builds/clean-b6b98a6-2gFscn/.tmp/build/fntech3: ELF 32-bit LSB pie executable, Intel 80386, version 1 (GNU/Linux), dynamically linked, interpreter /lib/ld-linux.so.2, BuildID[sha1]=659275852624e88664eb055031ed89e72107b7cc, for GNU/Linux 3.2.0, not stripped",
+      "ldd": "\tlinux-gate.so.1 (0xf7f74000)\n\tlibX11.so.6 => /lib/i386-linux-gnu/libX11.so.6 (0xf6b62000)\n\tlibstdc++.so.6 => /lib/i386-linux-gnu/libstdc++.so.6 (0xf68e3000)\n\tlibm.so.6 => /lib/i386-linux-gnu/libm.so.6 (0xf67d9000)\n\tlibgcc_s.so.1 => /lib/i386-linux-gnu/libgcc_s.so.1 (0xf67a1000)\n\tlibc.so.6 => /lib/i386-linux-gnu/libc.so.6 (0xf6566000)\n\tlibxcb.so.1 => /lib/i386-linux-gnu/libxcb.so.1 (0xf6538000)\n\t/lib/ld-linux.so.2 (0xf7f76000)\n\tlibXau.so.6 => /lib/i386-linux-gnu/libXau.so.6 (0xf6533000)\n\tlibXdmcp.so.6 => /lib/i386-linux-gnu/libXdmcp.so.6 (0xf652c000)\n\tlibbsd.so.0 => /lib/i386-linux-gnu/libbsd.so.0 (0xf6516000)\n\tlibmd.so.0 => /lib/i386-linux-gnu/libmd.so.0 (0xf6502000)\n"
+    },
+    "FnQL-pkg.fnz": {
+      "sha256": "6ed454b8ab4ea6c573f0b9402d95f5582e118ed5e452c8657dc7133da031ae4a",
+      "bytes": 1877789,
+      "identity": "/home/root/fntech3-builds/clean-b6b98a6-2gFscn/.tmp/build/FnQL-pkg.fnz: Zip archive data, at least v2.0 to extract, compression method=deflate"
+    }
+  },
+  "runs": {
+    "q3-preliminary": {
+      "utc": "2026-09-08T06:53:53.887705+00:00",
+      "sourceCommit": "b6b98a6",
+      "sourceChanges": [],
+      "platform": "Linux i686 under WSL2 and private Xvfb, software OpenGL",
+      "display": ":99",
+      "installation": "/mnt/c/Program Files (x86)/Steam/steamapps/common/Quake 3 Arena",
+      "basePakSha256": "7ce8b3910620cd50a09e4f1100f426e8c6180f68895d589f80e6bd95af54bcae",
+      "server": {
+        "command": [
+          "/tmp/fntech3-clean-b6b98a6-pJPtG7/.tmp/build/fntech3.ded",
+          "+set",
+          "com_gameProfile",
+          "q3",
+          "+set",
+          "fs_basepath",
+          "/mnt/c/Program Files (x86)/Steam/steamapps/common/Quake 3 Arena",
+          "+set",
+          "fs_homepath",
+          "/tmp/fntech3-linux-client-f3tv81tx/server",
+          "+set",
+          "fs_game",
+          "",
+          "+set",
+          "dedicated",
+          "1",
+          "+set",
+          "net_ip",
+          "127.0.0.1",
+          "+set",
+          "net_port",
+          "39498",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "com_steamIntegration",
+          "0",
+          "+set",
+          "fs_skipWorkshop",
+          "1",
+          "+set",
+          "cl_webuiEnable",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "developer",
+          "1",
+          "+exec",
+          "probe.cfg"
+        ],
+        "config": "set sv_pure 1\nset sv_autoRecordDemos 0\nset sv_maxclients 2\nset cl_allowDownload 0\nset cl_motd 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset cl_shownet 2\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nmap q3dm6\nwait 1000\nquit\n",
+        "sha256": "d20648cd44999f13a7d01f4f4c0e7ce018d2d2a442293a458496fb46e87cecdb",
+        "exitCode": 0,
+        "terminated": false,
+        "screenshots": []
+      },
+      "client": {
+        "command": [
+          "/tmp/fntech3-clean-b6b98a6-pJPtG7/.tmp/build/fntech3",
+          "+set",
+          "com_gameProfile",
+          "q3",
+          "+set",
+          "fs_basepath",
+          "/mnt/c/Program Files (x86)/Steam/steamapps/common/Quake 3 Arena",
+          "+set",
+          "fs_homepath",
+          "/tmp/fntech3-linux-client-f3tv81tx/client",
+          "+set",
+          "fs_game",
+          "",
+          "+set",
+          "dedicated",
+          "0",
+          "+set",
+          "net_ip",
+          "127.0.0.1",
+          "+set",
+          "net_port",
+          "59907",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "com_steamIntegration",
+          "0",
+          "+set",
+          "fs_skipWorkshop",
+          "1",
+          "+set",
+          "cl_webuiEnable",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "developer",
+          "1",
+          "+exec",
+          "probe.cfg"
+        ],
+        "config": "set sv_pure 1\nset sv_autoRecordDemos 0\nset sv_maxclients 2\nset cl_allowDownload 0\nset cl_motd 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset cl_shownet 2\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nset activeAction \"wait 120; screenshotPNG linux-proof; wait 3; quit\"\nconnect 127.0.0.1:39498\n",
+        "sha256": "2bd401ae7bbb8914de6d8d9d5c1659178a11dd4b0f851c3cdd9962d23f9af3c8",
+        "exitCode": 0,
+        "terminated": false,
+        "screenshots": [
+          {
+            "path": "/mnt/e/Repositories/fnTech3/.tmp/linux-q3-clean-b6b98a6/linux-proof.png",
+            "sha256": "acfc9c904776adc960932187b079ca0d10f10b96a3ee5223ef260eee6e1fa568"
+          }
+        ]
+      },
+      "elapsedSeconds": 51.45232776600005,
+      "logsSha256": {
+        "server-console.log": "e00fc9dc5b4f89c396357c58513bdf82487a259b81cf11cc3d729c59d998a221",
+        "client-console.log": "132d5ad775dc7437cd28ebc3dd6ccc317f1c0bf9a67657a65778a64ee072929e"
+      },
+      "observations": {
+        "server-console.log": [
+          "Going from CS_PRIMED to CS_ACTIVE for UnnamedPlayer",
+          "----- Server Shutdown (Server quit) -----"
+        ],
+        "client-console.log": [
+          "GLx renderer bootstrap: product tier GL41, hint modern, executor GL41/mac-modern, GL 4.5, material yes, dlight yes, post-shader yes, stream persistent-map, timer query yes, debug output no",
+          "GLx renderer bootstrap: product tier GL41, hint modern, executor GL41/mac-modern, GL 4.5, material yes, dlight yes, post-shader yes, stream persistent-map, timer query yes, debug output no",
+          "----- Client Shutdown (Client quit) -----"
+        ]
+      }
+    },
+    "q3-final": {
+      "utc": "2026-09-08T07:00:43.930196+00:00",
+      "sourceCommit": "b6b98a6",
+      "sourceChanges": [],
+      "platform": "Linux i686 under WSL2 and private Xvfb, software OpenGL",
+      "display": ":99",
+      "installation": "/mnt/c/Program Files (x86)/Steam/steamapps/common/Quake 3 Arena",
+      "basePakSha256": "7ce8b3910620cd50a09e4f1100f426e8c6180f68895d589f80e6bd95af54bcae",
+      "server": {
+        "command": [
+          "/home/root/fntech3-builds/clean-b6b98a6-2gFscn/.tmp/build/fntech3.ded",
+          "+set",
+          "com_gameProfile",
+          "q3",
+          "+set",
+          "fs_basepath",
+          "/mnt/c/Program Files (x86)/Steam/steamapps/common/Quake 3 Arena",
+          "+set",
+          "fs_homepath",
+          "/tmp/fntech3-linux-client-1007l8l2/server",
+          "+set",
+          "fs_game",
+          "",
+          "+set",
+          "dedicated",
+          "1",
+          "+set",
+          "net_ip",
+          "127.0.0.1",
+          "+set",
+          "net_port",
+          "52626",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "com_steamIntegration",
+          "0",
+          "+set",
+          "fs_skipWorkshop",
+          "1",
+          "+set",
+          "cl_webuiEnable",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "developer",
+          "1",
+          "+exec",
+          "probe.cfg"
+        ],
+        "config": "set sv_pure 1\nset sv_autoRecordDemos 0\nset sv_maxclients 2\nset cl_allowDownload 0\nset cl_motd 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset cl_shownet 2\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nmap q3dm6\nwait 1000\nquit\n",
+        "sha256": "ff360acf8ebcb9c15568ff2acdae4f36077590139ee8834f2a10af1835eb07ef",
+        "exitCode": 0,
+        "terminated": false,
+        "screenshots": []
+      },
+      "client": {
+        "command": [
+          "/home/root/fntech3-builds/clean-b6b98a6-2gFscn/.tmp/build/fntech3",
+          "+set",
+          "com_gameProfile",
+          "q3",
+          "+set",
+          "fs_basepath",
+          "/mnt/c/Program Files (x86)/Steam/steamapps/common/Quake 3 Arena",
+          "+set",
+          "fs_homepath",
+          "/tmp/fntech3-linux-client-1007l8l2/client",
+          "+set",
+          "fs_game",
+          "",
+          "+set",
+          "dedicated",
+          "0",
+          "+set",
+          "net_ip",
+          "127.0.0.1",
+          "+set",
+          "net_port",
+          "55904",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "com_steamIntegration",
+          "0",
+          "+set",
+          "fs_skipWorkshop",
+          "1",
+          "+set",
+          "cl_webuiEnable",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "developer",
+          "1",
+          "+exec",
+          "probe.cfg"
+        ],
+        "config": "set sv_pure 1\nset sv_autoRecordDemos 0\nset sv_maxclients 2\nset cl_allowDownload 0\nset cl_motd 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset cl_shownet 2\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nset activeAction \"wait 120; screenshotPNG linux-proof; wait 3; quit\"\nconnect 127.0.0.1:52626\n",
+        "sha256": "18d7f80434d9af3e8344aa804447d812b784dcc08b5152d6e1b95fd93617a105",
+        "exitCode": 0,
+        "terminated": false,
+        "screenshots": [
+          {
+            "path": "/mnt/e/Repositories/fnTech3/.tmp/linux-q3-clean-b6b98a6-final/linux-proof.png",
+            "sha256": "feed32a1103accccc1e30aef28e6695122e5043871630d667c0f5468969ac7db"
+          }
+        ]
+      },
+      "elapsedSeconds": 50.989503715999945,
+      "logsSha256": {
+        "server-console.log": "385271227fdc23030fb44bfbdf55802c207222cf019e9029228d4882b606768a",
+        "client-console.log": "028b8fb914320031be550d01ba07c97db2ea86e31d60897ec474418a63049504"
+      },
+      "observations": {
+        "server-console.log": [
+          "Going from CS_PRIMED to CS_ACTIVE for UnnamedPlayer",
+          "----- Server Shutdown (Server quit) -----"
+        ],
+        "client-console.log": [
+          "GLx renderer bootstrap: product tier GL41, hint modern, executor GL41/mac-modern, GL 4.5, material yes, dlight yes, post-shader yes, stream persistent-map, timer query yes, debug output no",
+          "GLx renderer bootstrap: product tier GL41, hint modern, executor GL41/mac-modern, GL 4.5, material yes, dlight yes, post-shader yes, stream persistent-map, timer query yes, debug output no",
+          "----- Client Shutdown (Client quit) -----"
+        ]
+      }
+    },
+    "ql-preliminary": {
+      "command": [
+        "/tmp/fntech3-clean-b6b98a6-pJPtG7/.tmp/build/fntech3.ded",
+        "+set",
+        "com_gameProfile",
+        "ql",
+        "+set",
+        "fs_basepath",
+        "/mnt/c/Program Files (x86)/Steam/steamapps/common/Quake Live",
+        "+set",
+        "fs_homepath",
+        "/tmp/fntech3-ql-clean-fuqr6oob",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+exec",
+        "probe.cfg"
+      ],
+      "config": "set sv_pure 1\nset sv_autoRecordDemos 0\nmap campgrounds ffa\nwait 80\nstatus\nquit\n",
+      "exitCode": 0,
+      "exeSha256": "d20648cd44999f13a7d01f4f4c0e7ce018d2d2a442293a458496fb46e87cecdb",
+      "assetArchiveSha256": "0587e55a98516d9645d2dd7ad894822db4bc5190f53e11f82e7486876b753ce0",
+      "logsSha256": {
+        "console.log": "5918ce8acde50bab71b663d02e3cab022a1074998439a4e67fee65f5b26dc273"
+      },
+      "observations": {
+        "console.log": [
+          "VM_LoadDll(qagame) found native exports at 0xef7f6940 (api 10)",
+          "VM_LoadDll(qagame) found native exports at 0xef7f6940 (api 10)",
+          "map: campgrounds",
+          "----- Server Shutdown (Server quit) -----"
+        ]
+      }
+    },
+    "ql-final": {
+      "command": [
+        "/home/root/fntech3-builds/clean-b6b98a6-2gFscn/.tmp/build/fntech3.ded",
+        "+set",
+        "com_gameProfile",
+        "ql",
+        "+set",
+        "fs_basepath",
+        "/mnt/c/Program Files (x86)/Steam/steamapps/common/Quake Live",
+        "+set",
+        "fs_homepath",
+        "/tmp/fntech3-ql-clean-_rj8deei",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+exec",
+        "probe.cfg"
+      ],
+      "config": "set sv_pure 1\nset sv_autoRecordDemos 0\nmap campgrounds ffa\nwait 80\nstatus\nquit\n",
+      "exitCode": 0,
+      "exeSha256": "ff360acf8ebcb9c15568ff2acdae4f36077590139ee8834f2a10af1835eb07ef",
+      "assetArchiveSha256": "0587e55a98516d9645d2dd7ad894822db4bc5190f53e11f82e7486876b753ce0",
+      "logsSha256": {
+        "console.log": "1565ac3ca89d2c6bd72f673525ee7b70ec951becec85bbe31b6003e8331c795a"
+      },
+      "observations": {
+        "console.log": [
+          "VM_LoadDll(qagame) found native exports at 0xef772940 (api 10)",
+          "VM_LoadDll(qagame) found native exports at 0xef772940 (api 10)",
+          "map: campgrounds",
+          "----- Server Shutdown (Server quit) -----"
+        ]
+      }
+    }
+  },
+  "finalFullSuite": {
+    "passed": 109,
+    "failed": 0,
+    "skipped": 2,
+    "logSha256": "4c367be636b7acb25e85d6db8e8c7cb4c5fdbcb38739833f1ef4d5d2f9b9dbdb",
+    "aggregateSummary": [
+      "Ran 1281 tests in 106.696s",
+      "OK (skipped=20)"
+    ]
+  }
+}
