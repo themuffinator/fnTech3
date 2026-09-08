@@ -7,11 +7,11 @@ import hashlib, heapq, select, socket, struct, threading, time
 
 class UdpImpairmentProxy:
 
-    def __init__(self, server_port, drop_every=17, delay_every=19, duplicate_every=23, delay_seconds=0.075):
+    def __init__(self, server_port, drop_every=17, delay_every=19, duplicate_every=23, delay_seconds=0.075, drop_first_fragment=False):
         if not 0 < server_port < 65536 or min(drop_every, delay_every, duplicate_every) < 0 or (not 0 <= delay_seconds <= 1):
             raise ValueError('invalid loopback impairment settings')
         self.server = ('127.0.0.1', server_port)
-        self.settings = dict(drop_every=drop_every, delay_every=delay_every, duplicate_every=duplicate_every, delay_seconds=delay_seconds)
+        self.settings = dict(drop_every=drop_every, delay_every=delay_every, duplicate_every=duplicate_every, delay_seconds=delay_seconds, drop_first_fragment=drop_first_fragment)
         self.front = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.back = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         try:
@@ -29,6 +29,7 @@ class UdpImpairmentProxy:
         self.error = None
         self.stats = {d: dict(received=0, connectionless=0, sequenced=0, fragments=0, dropped=0, delayed=0, duplicated=0, forwarded=0, overtakes=0, reorderedForwards=0, maxDatagramBytes=0) for d in ('to_server', 'to_client')}
         self.last_sequence = {d: None for d in self.stats}
+        self.fragment_drops = {d: [] for d in self.stats}
         self.hashes = {d: hashlib.sha256() for d in self.stats}
         self.thread = threading.Thread(target=self._run, name='fntech3-loopback-relay', daemon=True)
         self.thread.start()
@@ -71,6 +72,15 @@ class UdpImpairmentProxy:
         sequence = struct.unpack_from('<I', data)[0]
         if sequence & 2147483648:
             stat['fragments'] += 1
+            if self.settings['drop_first_fragment'] and not self.fragment_drops[direction]:
+                fragment_at = 6 if direction == 'to_server' else 4
+                self.fragment_drops[direction].append({
+                    'sequence': sequence & 0x7fffffff,
+                    'fragmentStart': struct.unpack_from('<H', data, fragment_at)[0] if len(data) >= fragment_at + 2 else None,
+                    'datagramBytes': len(data),
+                })
+                stat['dropped'] += 1
+                return
         drop = self.settings['drop_every']
         delay = self.settings['delay_every']
         duplicate = self.settings['duplicate_every']
@@ -117,4 +127,4 @@ class UdpImpairmentProxy:
             raise RuntimeError('loopback relay did not stop')
         self.front.close()
         self.back.close()
-        return {'settings': self.settings, 'stats': self.stats, 'receivedStreamSha256': {d: h.hexdigest() for d, h in self.hashes.items()}, 'pendingAtStop': len(self.pending), 'error': self.error}
+        return {'settings': self.settings, 'stats': self.stats, 'targetedFragmentDrops': self.fragment_drops, 'receivedStreamSha256': {d: h.hexdigest() for d, h in self.hashes.items()}, 'pendingAtStop': len(self.pending), 'error': self.error}
