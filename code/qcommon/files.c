@@ -3163,7 +3163,7 @@ static int FS_ReadFileFromRootArchive( const char *qpath, void **buffer )
 		return -1;
 	}
 
-	if ( fileInfo.uncompressed_size > 0x7fffffffUL ) {
+	if ( fileInfo.uncompressed_size >= (unsigned long) INT_MAX ) {
 		unzClose( archive );
 		return -1;
 	}
@@ -3274,6 +3274,10 @@ int FS_ReadFile( const char *qpath, void **buffer ) {
 				*buffer = NULL;
 				return -1;
 			}
+			if ( len < 0 || len >= INT_MAX ) {
+				if ( buffer ) *buffer = NULL;
+				return -1;
+			}
 			if (buffer == NULL) {
 				return len;
 			}
@@ -3307,6 +3311,11 @@ int FS_ReadFile( const char *qpath, void **buffer ) {
 
 	// look for it in the filesystem or pack files
 	len = FS_FOpenFileRead( qpath, &h, qfalse );
+	// The temporary allocator takes int bytes; reserve room for the NUL.
+	if ( h != FS_INVALID_HANDLE && ( len < 0 || len >= INT_MAX ) ) {
+		FS_FCloseFile( h );
+		h = FS_INVALID_HANDLE;
+	}
 	if ( h == FS_INVALID_HANDLE ) {
 		if ( buffer ) {
 			*buffer = NULL;
@@ -3385,7 +3394,10 @@ int FS_ReadProfileFile( const char *qpath, void **buffer ) {
 	int bytesRead;
 
 	length = FS_FOpenProfileFileRead( qpath, &handle );
-	if ( handle == FS_INVALID_HANDLE || length < 0 ) {
+	if ( handle == FS_INVALID_HANDLE || length < 0 || length >= INT_MAX ) {
+		if ( handle != FS_INVALID_HANDLE ) {
+			FS_FCloseFile( handle );
+		}
 		if ( buffer ) {
 			*buffer = NULL;
 		}

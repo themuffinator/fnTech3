@@ -16,8 +16,10 @@ class FilesystemPayloadTests(unittest.TestCase):
             return text[begin:text.index('\n}',begin)+2]
         crc=extract(shared,'unsigned int crc32_buffer(')
         validator=extract(source,'static qboolean FS_ZipPayloadMatches(')
+        profile=extract(source,'int FS_ReadProfileFile( const char *qpath, void **buffer ) {')
         harness=r'''
 #include <cassert>
+#include <climits>
 #include <cstdlib>
 #include <cstring>
 #include <vector>
@@ -38,9 +40,10 @@ void Com_DPrintf(const char*,...){}
 void Com_Printf(const char*,...){}
 int FS_ReadFileFromRootArchive(const char*,void**){return -1;}
 long FS_FOpenFileRead(const char*,int*h,bool){*h=7;return openLength;}
+int FS_FOpenProfileFileRead(const char*,int*h){*h=7;return static_cast<int>(openLength);}
 byte* Hunk_AllocateTempMemory(int n){++allocations;return static_cast<byte*>(std::malloc(n));}
 void Hunk_FreeTempMemory(void*p){++frees;std::free(p);}
-int FS_Read(void*p,int n,int h){assert(h==7);if(readResult>0)std::memset(p,'x',readResult);return readResult;}
+int FS_Read(void*p,int n,int h){if(h==3){assert(n==sizeof(long));std::memcpy(p,&openLength,n);return n;}assert(h==7);if(readResult>0)std::memset(p,'x',readResult);return readResult;}
 struct Handle {bool zipFile=true;struct {struct {int z=1;} file;} handleFiles;} fsh[8];
 using unzFile=int;
 struct unz_file_info {unsigned long uncompressed_size,crc;};
@@ -54,7 +57,7 @@ int unzGetCurrentFileInfo(int,unz_file_info*info,void*,int,void*,int,void*,int){
 void FS_FCloseFile(int h){assert(h==7);++closes;}
 void FS_Write(const void*p,int n,int){assert(n==sizeof(long));journalLengths.push_back(*static_cast<const long*>(p));}
 void FS_Flush(int){}
-'''+crc+'\n'+validator+'\n'+function+r'''
+'''+crc+'\n'+validator+'\n'+function+'\n'+profile+r'''
 int main(){
  for(int recording=0;recording<2;++recording){
   com_journalDataFile=recording?3:0;journal.integer=recording;
@@ -77,6 +80,26 @@ int main(){
  assert(FS_ReadFile("empty.bin",&buffer)==-1 && !buffer);
  closeResult=0;assert(FS_ReadFile("empty.bin",&buffer)==0 && buffer);
  assert(*static_cast<char*>(buffer)==0);Hunk_FreeTempMemory(buffer);
+ // Reject unrepresentable allocations without reading, allocating, or leaking.
+ for(long bad : {-1L, static_cast<long>(INT_MIN), static_cast<long>(INT_MAX)}) {
+  openLength=bad;int prior=allocations;
+  for(int query=0;query<2;++query){
+   closes=0;buffer=reinterpret_cast<void*>(1);
+   assert(FS_ReadFile("huge.bin",query?nullptr:&buffer)==-1);
+   assert(closes==1 && allocations==prior && (query || !buffer));
+   closes=0;buffer=reinterpret_cast<void*>(1);
+   assert(FS_ReadProfileFile("huge.bin",query?nullptr:&buffer)==-1);
+   assert(closes==1 && allocations==prior && (query || !buffer));
+   com_journalDataFile=3;journal.integer=2;closes=0;buffer=reinterpret_cast<void*>(1);
+   assert(FS_ReadFile("huge.cfg",query?nullptr:&buffer)==-1);
+   assert(closes==0 && allocations==prior && (query || !buffer));
+   com_journalDataFile=0;
+  }
+ }
+ openLength=INT_MAX-1;
+ assert(FS_ReadFile("largest.bin",nullptr)==INT_MAX-1);
+ assert(FS_ReadProfileFile("largest.bin",nullptr)==INT_MAX-1);
+ openLength=0;
  // Length-only queries preserve their existing metadata-only behavior.
  int before=allocations;assert(FS_ReadFile("fixture.bin",nullptr)==0);
  assert(allocations==before);

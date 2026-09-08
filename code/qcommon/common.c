@@ -2449,6 +2449,13 @@ When the files-in-use count reaches zero, all temp memory will be deleted
 void *Hunk_AllocateTempMemory( int size ) {
 	void		*buf;
 	hunkHeader_t	*hdr;
+	const size_t overhead = s_hunkData == NULL
+		? sizeof( memblock_t ) + 4u : sizeof( hunkHeader_t );
+
+	// Include alignment and the selected allocator's header before int math.
+	if ( size < 0 || (size_t) size + overhead + sizeof( intptr_t ) - 1u > INT_MAX ) {
+		Com_Error( ERR_DROP, "Hunk_AllocateTempMemory: invalid size %i", size );
+	}
 
 	// return a Z_Malloc'd block if the hunk has not been initialized
 	// this allows the config and product id files ( journal files too ) to be loaded
@@ -2463,7 +2470,7 @@ void *Hunk_AllocateTempMemory( int size ) {
 
 	size = PAD(size, sizeof(intptr_t)) + sizeof( hunkHeader_t );
 
-	if ( hunk_temp->temp + hunk_permanent->permanent + size > s_hunkTotal ) {
+	if ( (uint64_t) hunk_temp->temp + hunk_permanent->permanent + size > (uint64_t) s_hunkTotal ) {
 		Com_Error( ERR_DROP, "Hunk_AllocateTempMemory: failed on %i", size );
 	}
 
