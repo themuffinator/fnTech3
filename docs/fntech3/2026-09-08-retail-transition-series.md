@@ -53,3 +53,7 @@ reports conflicting registration defaults for bot_grapple (0/1) and g_ammoPack
 (1/0), alongside known unavailable-service diagnostics. These warnings did not
 prevent this series; their defaults were not changed or independently validated
 here. The known retail timestamp-only logging issue remains.
+
+The later [bot-profile default checkpoint](2026-09-08-bot-profile-defaults.md)
+resolves the bot_grapple mismatch and confirms the g_ammoPack registrations
+against the retail executable.

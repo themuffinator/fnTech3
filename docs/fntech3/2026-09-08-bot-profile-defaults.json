@@ -1,0 +1,527 @@
+{
+  "scope": "Profile-specific bot_grapple registration; retail binary observation, executable registration regression and runtime default/override probes. Not complete gameplay parity.",
+  "baseCommit": "2b520a0",
+  "worktreeDirty": true,
+  "observedUTC": "2026-09-08T04:50:09.452824+00:00",
+  "retailEngine": {
+    "path": "C:/Program Files (x86)/Steam/steamapps/common/Quake Live/quakelive_steam.exe",
+    "sha256": "c926fe9f6c851e00b3b9332e88903ad01f28fdd60454873891c0158f5ded1299",
+    "imageBase": "0x400000",
+    "registrationFunctionVA": "0x4ce0d0",
+    "observations": [
+      {
+        "name": "bot_grapple",
+        "nameArgumentVA": "0x4dd88b",
+        "defaultStringVA": "0x551624",
+        "default": "1",
+        "flags": 0
+      },
+      {
+        "name": "g_ammoPack",
+        "phase": "map path",
+        "nameArgumentVA": "0x4ddfb8",
+        "defaultStringVA": "0x54ffe0",
+        "default": "0",
+        "flags": 32
+      },
+      {
+        "name": "g_ammoPack",
+        "phase": "startup",
+        "nameArgumentVA": "0x4e3b96",
+        "defaultStringVA": "0x551624",
+        "default": "1",
+        "flags": 32
+      }
+    ],
+    "method": "Read-only PE inspection: resolve push arguments and NUL-terminated string data at the indicated addresses. No retail code copied or modified."
+  },
+  "sourceSha256": {
+    "code/server/sv_bot.cpp": "c59b575d9d6d2e9bf5925a309f7086f0f968a48b2b9282c672147b01f35d926d",
+    "tests/bot_profile_defaults_tests.py": "607895da6eb0edaa7244c6ecd58cc24ba07f19413eae6194464324498bac4705"
+  },
+  "runs": {
+    "q3-default": {
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.ded.exe",
+        "+set",
+        "com_gameProfile",
+        "q3",
+        "+set",
+        "fs_basepath",
+        "C:/Users/djdac/AppData/Local/Temp/fntech3-q3-retail-interop-twn4g9dy/assets",
+        "+set",
+        "fs_homepath",
+        "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-bots-unblocked-b74gs0q8",
+        "+set",
+        "fs_game",
+        "",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "64411",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "rconPassword",
+        "<redacted temporary RCON password>",
+        "+exec",
+        "bots.cfg"
+      ],
+      "config": "set sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nset sv_pure 1\nset sv_maxclients 8\nset bot_enable 1\nset bot_minplayers 0\nset g_gametype 0\nset fraglimit 0\nset timelimit 0\nset sv_autoRecordDemos 0\nset g_log bots-game.log\nmap q3dm6\nwait 10\naddbot Sarge 3\naddbot Grunt 3\naddbot Visor 3\naddbot Major 3\nset g_doWarmup 0\nset g_warmup 0\nset g_warmupDelay 0\n",
+      "actions": [
+        {
+          "atSeconds": 5.391,
+          "command": "bot_grapple",
+          "reply": [
+            "\ufffd\ufffd\ufffd\ufffdprint\n\"bot_grapple\" is:\"0^7\" default:\"0^7\"\n"
+          ]
+        },
+        {
+          "atSeconds": 6.297,
+          "command": "g_ammoPack",
+          "reply": [
+            "\ufffd\ufffd\ufffd\ufffdprint\nbroadcast: print \"server: g_ammoPack\"\n"
+          ]
+        },
+        {
+          "atSeconds": 7.313,
+          "command": "map_restart 0",
+          "reply": [
+            "\ufffd\ufffd\ufffd\ufffdprint\n==== ShutdownGame ====\nShutdownGame:\n------------------------------------------------------------\nLoading vm file vm/qagame.qvm...\nVM_Restart()\n------- Game Initialization -------\ngamename: baseq3\ngamedate: Sep 30 2002\n------------------------------------------------------------\nInitGame: \\bot_minplayers\\0\\dmflags\\0\\fraglimit\\0\\g_gametype\\0\\mapname\\q3dm6\\protocol\\68\\sv_allowDownload\\1\\sv_dlRate\\100\\sv_floodProtect\\1\\sv_hostname\\noname\\sv_maxRate\\0\\sv_maxclients\\8\\sv_minRate\\0\\sv_playingDemo\\0\\sv_privateClients\\0\\timelimit\\0\\version\\fnTech3 0.1.0 win_msvc-x86-debug Sep  8 2026\\capturelimit\\8\\g_maxGameClients\\0\\g_needpass\\0\\gamename\\baseq3\n0 teams with 0 entities\n19 items registered\n-----------------------------------\n32 bots parsed\n35 arenas parsed\nloaded cached skill 3.000000 from bots/sarge_c.c\nClientConnect: 0\nClientUserinfoChanged: 0 n\\Sarge\\t\\0\\model\\sarge\\hmodel\\sarge\\c1\\4\\c2\\5\\hc\\90\\w\\0\\l\\0\\skill\\    3.00\\tt\\0\\tl\\0\nbroadcast: print \"Sarge^7 entered the game\\n\"\nClientBegin: 0\n",
+            "\ufffd\ufffd\ufffd\ufffdprint\nloaded cached skill 3.000000 from bots/grunt_c.c\nClientConnect: 1\nClientUserinfoChanged: 1 n\\Grunt\\t\\0\\model\\grunt\\hmodel\\grunt\\c1\\4\\c2\\5\\hc\\90\\w\\0\\l\\0\\skill\\    3.00\\tt\\0\\tl\\0\nbroadcast: print \"Grunt^7 entered the game\\n\"\nClientBegin: 1\nloaded cached skill 3.000000 from bots/visor_c.c\nClientConnect: 2\nClientUserinfoChanged: 2 n\\Visor\\t\\0\\model\\visor\\hmodel\\visor\\c1\\4\\c2\\5\\hc\\90\\w\\0\\l\\0\\skill\\    3.00\\tt\\0\\tl\\0\nbroadcast: print \"Visor^7 entered the game\\n\"\nClientBegin: 2\nloaded cached skill 3.000000 from bots/major_c.c\nClientConnect: 3\nClientUserinfoChanged: 3 n\\Major\\t\\0\\model\\major\\hmodel\\major\\c1\\4\\c2\\5\\hc\\90\\w\\0\\l\\0\\skill\\    3.00\\tt\\0\\tl\\0\nbroadcast: print \"Major^7 entered the game\\n\"\nClientBegin: 3\n"
+          ]
+        },
+        {
+          "atSeconds": 8.329,
+          "command": "bot_grapple",
+          "reply": [
+            "\ufffd\ufffd\ufffd\ufffdprint\n\"bot_grapple\" is:\"0^7\" default:\"0^7\"\n"
+          ]
+        },
+        {
+          "atSeconds": 9.36,
+          "command": "quit",
+          "reply": []
+        }
+      ],
+      "elapsedSeconds": 9.36,
+      "exitCode": 0,
+      "forcedStop": false,
+      "error": null,
+      "engineSha256": "37fbdb32334b3d54391cd6f93a94229a0fc412d141a8b950920c1c141bf502ce",
+      "consoleSha256": "6c7e5b9183244f791c1f097e343568ba52e5e1789422ca58ff5fd0b12b0a37ac",
+      "privateDesktop": "fntech3_probe_936cac1918724504985604540388740c",
+      "desktopSwitched": false,
+      "commit": "2b520a0f7e6d1f3c8e829edbfe406b8f04958fd5",
+      "assets": {
+        "pak0.pk3": "7ce8b3910620cd50a09e4f1100f426e8c6180f68895d589f80e6bd95af54bcae",
+        "pak1.pk3": "d4ffd60b4b414c3419499e321b6f5c2e933cf082df85823ad2d6ae2f803e1682",
+        "pak2.pk3": "ccae938a2f13a03b24902d675181d516a431699701ed88023a307f34b5bcd58c",
+        "pak3.pk3": "d03c0a0e06b99f9ecca2be7389f57faed406e85f7c09b9c56afdfa53ba25e312",
+        "pak4.pk3": "af5f6d5c82fe4440ae0bb660f0648d1fa1731a9e8305a9eb652aa243428697f1",
+        "pak5.pk3": "69f87070ca7719e252a3ba97e6483f6663939c987ede550d1268d4d9a07b45bc",
+        "pak6.pk3": "bb4f0ae2bf603b050fb665436d3178ce7c1c20360e67bacf7c14d93daff38daf",
+        "pak7.pk3": "de6283ce23e3486a2622c5dbf73d3721a59f24debd380e90f43a97d952fea283",
+        "pak8.pk3": "812c9e97f231e89cefede3848c6110b7bd34245093af6f22c2cacde3e6b15663"
+      },
+      "worktreeDirty": true,
+      "probeSha256": "9ace00f24f0dd49724f0c0a291e0e2368982811eda979129007f0f72a097a29d",
+      "grappleWarningAbsent": true
+    },
+    "q3-override": {
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.ded.exe",
+        "+set",
+        "bot_grapple",
+        "1",
+        "+set",
+        "com_gameProfile",
+        "q3",
+        "+set",
+        "fs_basepath",
+        "C:/Users/djdac/AppData/Local/Temp/fntech3-q3-retail-interop-twn4g9dy/assets",
+        "+set",
+        "fs_homepath",
+        "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-bots-unblocked-5b9x586l",
+        "+set",
+        "fs_game",
+        "",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "50887",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "rconPassword",
+        "<redacted temporary RCON password>",
+        "+exec",
+        "bots.cfg"
+      ],
+      "config": "set sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nset sv_pure 1\nset sv_maxclients 8\nset bot_enable 1\nset bot_minplayers 0\nset g_gametype 0\nset fraglimit 0\nset timelimit 0\nset sv_autoRecordDemos 0\nset g_log bots-game.log\nmap q3dm6\nwait 10\naddbot Sarge 3\naddbot Grunt 3\naddbot Visor 3\naddbot Major 3\nset g_doWarmup 0\nset g_warmup 0\nset g_warmupDelay 0\n",
+      "actions": [
+        {
+          "atSeconds": 5.328,
+          "command": "bot_grapple",
+          "reply": [
+            "\ufffd\ufffd\ufffd\ufffdprint\n\"bot_grapple\" is:\"1^7\" default:\"0^7\"\n"
+          ]
+        },
+        {
+          "atSeconds": 6.344,
+          "command": "g_ammoPack",
+          "reply": [
+            "\ufffd\ufffd\ufffd\ufffdprint\nbroadcast: print \"server: g_ammoPack\"\n"
+          ]
+        },
+        {
+          "atSeconds": 7.375,
+          "command": "map_restart 0",
+          "reply": [
+            "\ufffd\ufffd\ufffd\ufffdprint\n==== ShutdownGame ====\nShutdownGame:\n------------------------------------------------------------\nLoading vm file vm/qagame.qvm...\nVM_Restart()\n------- Game Initialization -------\ngamename: baseq3\ngamedate: Sep 30 2002\n------------------------------------------------------------\nInitGame: \\bot_minplayers\\0\\dmflags\\0\\fraglimit\\0\\g_gametype\\0\\mapname\\q3dm6\\protocol\\68\\sv_allowDownload\\1\\sv_dlRate\\100\\sv_floodProtect\\1\\sv_hostname\\noname\\sv_maxRate\\0\\sv_maxclients\\8\\sv_minRate\\0\\sv_playingDemo\\0\\sv_privateClients\\0\\timelimit\\0\\version\\fnTech3 0.1.0 win_msvc-x86-debug Sep  8 2026\\capturelimit\\8\\g_maxGameClients\\0\\g_needpass\\0\\gamename\\baseq3\n0 teams with 0 entities\n19 items registered\n-----------------------------------\n32 bots parsed\n35 arenas parsed\nloaded cached skill 3.000000 from bots/sarge_c.c\nClientConnect: 0\nClientUserinfoChanged: 0 n\\Sarge\\t\\0\\model\\sarge\\hmodel\\sarge\\c1\\4\\c2\\5\\hc\\90\\w\\0\\l\\0\\skill\\    3.00\\tt\\0\\tl\\0\nbroadcast: print \"Sarge^7 entered the game\\n\"\nClientBegin: 0\n",
+            "\ufffd\ufffd\ufffd\ufffdprint\nloaded cached skill 3.000000 from bots/grunt_c.c\nClientConnect: 1\nClientUserinfoChanged: 1 n\\Grunt\\t\\0\\model\\grunt\\hmodel\\grunt\\c1\\4\\c2\\5\\hc\\90\\w\\0\\l\\0\\skill\\    3.00\\tt\\0\\tl\\0\nbroadcast: print \"Grunt^7 entered the game\\n\"\nClientBegin: 1\nloaded cached skill 3.000000 from bots/visor_c.c\nClientConnect: 2\nClientUserinfoChanged: 2 n\\Visor\\t\\0\\model\\visor\\hmodel\\visor\\c1\\4\\c2\\5\\hc\\90\\w\\0\\l\\0\\skill\\    3.00\\tt\\0\\tl\\0\nbroadcast: print \"Visor^7 entered the game\\n\"\nClientBegin: 2\nloaded cached skill 3.000000 from bots/major_c.c\nClientConnect: 3\nClientUserinfoChanged: 3 n\\Major\\t\\0\\model\\major\\hmodel\\major\\c1\\4\\c2\\5\\hc\\90\\w\\0\\l\\0\\skill\\    3.00\\tt\\0\\tl\\0\nbroadcast: print \"Major^7 entered the game\\n\"\nClientBegin: 3\n"
+          ]
+        },
+        {
+          "atSeconds": 8.375,
+          "command": "bot_grapple",
+          "reply": [
+            "\ufffd\ufffd\ufffd\ufffdprint\n\"bot_grapple\" is:\"1^7\" default:\"0^7\"\n"
+          ]
+        },
+        {
+          "atSeconds": 9.375,
+          "command": "quit",
+          "reply": []
+        }
+      ],
+      "elapsedSeconds": 9.39,
+      "exitCode": 0,
+      "forcedStop": false,
+      "error": null,
+      "engineSha256": "37fbdb32334b3d54391cd6f93a94229a0fc412d141a8b950920c1c141bf502ce",
+      "consoleSha256": "585e3fc297b38481c15850f4af780e2f8571dda86eaf6f1f0390d42e05326cf2",
+      "privateDesktop": "fntech3_probe_c635f68974174e4ca8b58956c696ecac",
+      "desktopSwitched": false,
+      "commit": "2b520a0f7e6d1f3c8e829edbfe406b8f04958fd5",
+      "assets": {
+        "pak0.pk3": "7ce8b3910620cd50a09e4f1100f426e8c6180f68895d589f80e6bd95af54bcae",
+        "pak1.pk3": "d4ffd60b4b414c3419499e321b6f5c2e933cf082df85823ad2d6ae2f803e1682",
+        "pak2.pk3": "ccae938a2f13a03b24902d675181d516a431699701ed88023a307f34b5bcd58c",
+        "pak3.pk3": "d03c0a0e06b99f9ecca2be7389f57faed406e85f7c09b9c56afdfa53ba25e312",
+        "pak4.pk3": "af5f6d5c82fe4440ae0bb660f0648d1fa1731a9e8305a9eb652aa243428697f1",
+        "pak5.pk3": "69f87070ca7719e252a3ba97e6483f6663939c987ede550d1268d4d9a07b45bc",
+        "pak6.pk3": "bb4f0ae2bf603b050fb665436d3178ce7c1c20360e67bacf7c14d93daff38daf",
+        "pak7.pk3": "de6283ce23e3486a2622c5dbf73d3721a59f24debd380e90f43a97d952fea283",
+        "pak8.pk3": "812c9e97f231e89cefede3848c6110b7bd34245093af6f22c2cacde3e6b15663"
+      },
+      "worktreeDirty": true,
+      "probeSha256": "470ebc94c47c50cd4d6a12c79fcc700e662c6672d0983106efa0d3595c1da742",
+      "grappleWarningAbsent": true
+    },
+    "ql-default": {
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.ded.exe",
+        "+set",
+        "com_gameProfile",
+        "ql",
+        "+set",
+        "fs_basepath",
+        "C:/Program Files (x86)/Steam/steamapps/common/Quake Live",
+        "+set",
+        "fs_homepath",
+        "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-bots-unblocked-bylr84bv",
+        "+set",
+        "fs_game",
+        "",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "50885",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "rconPassword",
+        "<redacted temporary RCON password>",
+        "+exec",
+        "bots.cfg"
+      ],
+      "config": "set sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nset sv_pure 1\nset sv_maxclients 8\nset bot_enable 1\nset bot_minplayers 0\nset g_gametype 0\nset fraglimit 0\nset timelimit 0\nset sv_autoRecordDemos 0\nset g_log bots-game.log\nmap campgrounds ffa\nwait 10\naddbot Sarge 3\naddbot Grunt 3\naddbot Visor 3\naddbot Major 3\nset g_doWarmup 0\nset g_warmup 0\nset g_warmupDelay 0\nallready\n",
+      "actions": [
+        {
+          "atSeconds": 5.328,
+          "command": "bot_grapple",
+          "reply": [
+            "\ufffd\ufffd\ufffd\ufffdprint\n\"bot_grapple\" is:\"1^7\" default:\"1^7\"\n"
+          ]
+        },
+        {
+          "atSeconds": 6.344,
+          "command": "g_ammoPack",
+          "reply": [
+            "\ufffd\ufffd\ufffd\ufffdprint\n\"g_ammoPack\" is:\"1^7\" default:\"1^7\"\nSelect the retail Quake Live ammunition-pack ruleset.\n"
+          ]
+        },
+        {
+          "atSeconds": 7.39,
+          "command": "map_restart 0",
+          "reply": [
+            "\ufffd\ufffd\ufffd\ufffdprint\n==== ShutdownGame ====\n^5Server stats achievement-query via Build-disabled (FnQL engine-only) [compatibility-disabled (no live Steam stats owner)]: inactive or bot client slot\n^5Server stats event-process via Build-disabled (FnQL engine-only) [compatibility-disabled (no live Steam stats owner)]: retail JSON adapter unavailable; event side effects safely deferred\n^5Server stats achievement-query via Build-disabled (FnQL engine-only) [compatibility-disabled (no live Steam stats owner)]: inactive or bot client slot\n^5Server stats event-process via Build-disabled (FnQL engine-only) [compatibility-disabled (no live Steam stats owner)]: retail JSON adapter unavailable; event side effects safely deferred\n^5Server stats achievement-query via Build-disabled (FnQL engine-only) [compatibility-disabled (no live Steam stats owner)]: inactive or bot client slot\n",
+            "\ufffd\ufffd\ufffd\ufffdprint\n^5Server stats event-process via Build-disabled (FnQL engine-only) [compatibility-disabled (no live Steam stats owner)]: retail JSON adapter unavailable; event side effects safely deferred\n^5Server stats achievement-query via Build-disabled (FnQL engine-only) [compatibility-disabled (no live Steam stats owner)]: inactive or bot client slot\n^5Server stats event-process via Build-disabled (FnQL engine-only) [compatibility-disabled (no live Steam stats owner)]: retail JSON adapter unavailable; event side effects safely deferred\n^5Server stats match-report via Build-disabled (FnQL engine-only) [compatibility-disabled (no live Steam stats owner)]: retail JSON adapter unavailable; published a null payload envelope\nLoading dll file qagame.\nVM_LoadDll: loaded native module cache 'C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-bots-unblocked-bylr84bv\\.tmp\\native\\1bb5cd63b5608d8ecadecb45622eccdc\\qagamex86.dll'\nVM_LoadDLL 'qagamex86.dll' ok\nVM_LoadDll(qagame) found native exports at 79A6FD08 (api 10)\n",
+            "\ufffd\ufffd\ufffd\ufffdprint\n^5Warning: cvar \"g_ammoPack\" given initial values: \"1\" and \"0\"\n------- Game Initialization -------\ngamename: baseqz\ngamedate: Jun  3 2016\n^5Warning: cvar \"g_ammoPack\" given initial values: \"1\" and \"0\"\ninitializing access list...\nloaded 0 steam ids into the access list\n0 teams with 0 entities\n0 items registered\n-----------------------------------\n34 bots parsed\nloaded cached skill 3.000000 from bots/sarge_c.c\nloaded cached skill 3.000000 from bots/grunt_c.c\nloaded cached skill 3.000000 from bots/visor_c.c\nloaded cached skill 3.000000 from bots/major_c.c\n"
+          ]
+        },
+        {
+          "atSeconds": 8.312,
+          "command": "bot_grapple",
+          "reply": [
+            "\ufffd\ufffd\ufffd\ufffdprint\n\"bot_grapple\" is:\"1^7\" default:\"1^7\"\n"
+          ]
+        },
+        {
+          "atSeconds": 9.328,
+          "command": "quit",
+          "reply": [
+            "\ufffd\ufffd\ufffd\ufffdprint\n----- Server Shutdown (Server quit) -----\n==== ShutdownGame ====\n^5Server stats achievement-query via Build-disabled (FnQL engine-only) [compatibility-disabled (no live Steam stats owner)]: inactive or bot client slot\n^5Server stats event-process via Build-disabled (FnQL engine-only) [compatibility-disabled (no live Steam stats owner)]: retail JSON adapter unavailable; event side effects safely deferred\n^5Server stats achievement-query via Build-disabled (FnQL engine-only) [compatibility-disabled (no live Steam stats owner)]: inactive or bot client slot\n^5Server stats event-process via Build-disabled (FnQL engine-only) [compatibility-disabled (no live Steam stats owner)]: retail JSON adapter unavailable; event side effects safely deferred\n^5Server stats achievement-query via Build-disabled (FnQL engine-only) [compatibility-disabled (no live Steam stats owner)]: inactive or bot client slot\n"
+          ]
+        }
+      ],
+      "elapsedSeconds": 9.328,
+      "exitCode": 0,
+      "forcedStop": false,
+      "error": null,
+      "engineSha256": "37fbdb32334b3d54391cd6f93a94229a0fc412d141a8b950920c1c141bf502ce",
+      "consoleSha256": "53fb700b05223fb213d9907495d0cc207530c85316424ace03c3b813bf0bbe37",
+      "privateDesktop": "fntech3_probe_66ade0a764ea4a80b625df85612350b7",
+      "desktopSwitched": false,
+      "commit": "2b520a0f7e6d1f3c8e829edbfe406b8f04958fd5",
+      "assets": {
+        "bin.pk3": "0587e55a98516d9645d2dd7ad894822db4bc5190f53e11f82e7486876b753ce0",
+        "pak00.pk3": "7d5fd8d4786f9e140804b7279ce2589c8a7babdcf2886763a63a992ad9ef634b"
+      },
+      "worktreeDirty": true,
+      "probeSha256": "f4c4ee8e90f1e56b1c968315d4bab2ed63be8baa0ebdb4bebfa38febc72bc613",
+      "grappleWarningAbsent": true
+    },
+    "ql-override": {
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.ded.exe",
+        "+set",
+        "bot_grapple",
+        "0",
+        "+set",
+        "com_gameProfile",
+        "ql",
+        "+set",
+        "fs_basepath",
+        "C:/Program Files (x86)/Steam/steamapps/common/Quake Live",
+        "+set",
+        "fs_homepath",
+        "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-bots-unblocked-r9f4pcy7",
+        "+set",
+        "fs_game",
+        "",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "65521",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "rconPassword",
+        "<redacted temporary RCON password>",
+        "+exec",
+        "bots.cfg"
+      ],
+      "config": "set sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nset sv_pure 1\nset sv_maxclients 8\nset bot_enable 1\nset bot_minplayers 0\nset g_gametype 0\nset fraglimit 0\nset timelimit 0\nset sv_autoRecordDemos 0\nset g_log bots-game.log\nmap campgrounds ffa\nwait 10\naddbot Sarge 3\naddbot Grunt 3\naddbot Visor 3\naddbot Major 3\nset g_doWarmup 0\nset g_warmup 0\nset g_warmupDelay 0\nallready\n",
+      "actions": [
+        {
+          "atSeconds": 5.328,
+          "command": "bot_grapple",
+          "reply": [
+            "\ufffd\ufffd\ufffd\ufffdprint\n\"bot_grapple\" is:\"0^7\" default:\"1^7\"\n"
+          ]
+        },
+        {
+          "atSeconds": 6.344,
+          "command": "g_ammoPack",
+          "reply": [
+            "\ufffd\ufffd\ufffd\ufffdprint\n\"g_ammoPack\" is:\"1^7\" default:\"1^7\"\nSelect the retail Quake Live ammunition-pack ruleset.\n"
+          ]
+        },
+        {
+          "atSeconds": 7.391,
+          "command": "map_restart 0",
+          "reply": [
+            "\ufffd\ufffd\ufffd\ufffdprint\n==== ShutdownGame ====\n^5Server stats achievement-query via Build-disabled (FnQL engine-only) [compatibility-disabled (no live Steam stats owner)]: inactive or bot client slot\n^5Server stats event-process via Build-disabled (FnQL engine-only) [compatibility-disabled (no live Steam stats owner)]: retail JSON adapter unavailable; event side effects safely deferred\n^5Server stats achievement-query via Build-disabled (FnQL engine-only) [compatibility-disabled (no live Steam stats owner)]: inactive or bot client slot\n^5Server stats event-process via Build-disabled (FnQL engine-only) [compatibility-disabled (no live Steam stats owner)]: retail JSON adapter unavailable; event side effects safely deferred\n^5Server stats achievement-query via Build-disabled (FnQL engine-only) [compatibility-disabled (no live Steam stats owner)]: inactive or bot client slot\n",
+            "\ufffd\ufffd\ufffd\ufffdprint\n^5Server stats event-process via Build-disabled (FnQL engine-only) [compatibility-disabled (no live Steam stats owner)]: retail JSON adapter unavailable; event side effects safely deferred\n^5Server stats achievement-query via Build-disabled (FnQL engine-only) [compatibility-disabled (no live Steam stats owner)]: inactive or bot client slot\n^5Server stats event-process via Build-disabled (FnQL engine-only) [compatibility-disabled (no live Steam stats owner)]: retail JSON adapter unavailable; event side effects safely deferred\n^5Server stats match-report via Build-disabled (FnQL engine-only) [compatibility-disabled (no live Steam stats owner)]: retail JSON adapter unavailable; published a null payload envelope\nLoading dll file qagame.\nVM_LoadDll: loaded native module cache 'C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-bots-unblocked-r9f4pcy7\\.tmp\\native\\97d6903c38ae9c2800749b00d856f911\\qagamex86.dll'\nVM_LoadDLL 'qagamex86.dll' ok\nVM_LoadDll(qagame) found native exports at 79C2FD08 (api 10)\n",
+            "\ufffd\ufffd\ufffd\ufffdprint\n^5Warning: cvar \"g_ammoPack\" given initial values: \"1\" and \"0\"\n------- Game Initialization -------\ngamename: baseqz\ngamedate: Jun  3 2016\n^5Warning: cvar \"g_ammoPack\" given initial values: \"1\" and \"0\"\ninitializing access list...\nloaded 0 steam ids into the access list\n0 teams with 0 entities\n0 items registered\n-----------------------------------\n34 bots parsed\nloaded cached skill 3.000000 from bots/sarge_c.c\nloaded cached skill 3.000000 from bots/grunt_c.c\nloaded cached skill 3.000000 from bots/visor_c.c\nloaded cached skill 3.000000 from bots/major_c.c\n"
+          ]
+        },
+        {
+          "atSeconds": 8.391,
+          "command": "bot_grapple",
+          "reply": [
+            "\ufffd\ufffd\ufffd\ufffdprint\n\"bot_grapple\" is:\"0^7\" default:\"1^7\"\n"
+          ]
+        },
+        {
+          "atSeconds": 9.312,
+          "command": "quit",
+          "reply": [
+            "\ufffd\ufffd\ufffd\ufffdprint\n----- Server Shutdown (Server quit) -----\n==== ShutdownGame ====\n^5Server stats achievement-query via Build-disabled (FnQL engine-only) [compatibility-disabled (no live Steam stats owner)]: inactive or bot client slot\n^5Server stats event-process via Build-disabled (FnQL engine-only) [compatibility-disabled (no live Steam stats owner)]: retail JSON adapter unavailable; event side effects safely deferred\n^5Server stats achievement-query via Build-disabled (FnQL engine-only) [compatibility-disabled (no live Steam stats owner)]: inactive or bot client slot\n^5Server stats event-process via Build-disabled (FnQL engine-only) [compatibility-disabled (no live Steam stats owner)]: retail JSON adapter unavailable; event side effects safely deferred\n^5Server stats achievement-query via Build-disabled (FnQL engine-only) [compatibility-disabled (no live Steam stats owner)]: inactive or bot client slot\n"
+          ]
+        }
+      ],
+      "elapsedSeconds": 9.312,
+      "exitCode": 0,
+      "forcedStop": false,
+      "error": null,
+      "engineSha256": "37fbdb32334b3d54391cd6f93a94229a0fc412d141a8b950920c1c141bf502ce",
+      "consoleSha256": "fefdd47548b342e916fe6f051ed2d507a4edda01dc111284cb0b54cd7cc15f18",
+      "privateDesktop": "fntech3_probe_b86a8962329247e5b44764d7c756f88d",
+      "desktopSwitched": false,
+      "commit": "2b520a0f7e6d1f3c8e829edbfe406b8f04958fd5",
+      "assets": {
+        "bin.pk3": "0587e55a98516d9645d2dd7ad894822db4bc5190f53e11f82e7486876b753ce0",
+        "pak00.pk3": "7d5fd8d4786f9e140804b7279ce2589c8a7babdcf2886763a63a992ad9ef634b"
+      },
+      "worktreeDirty": true,
+      "probeSha256": "9bc4f70cbb834fd70d9ba958195cea9d006d5a02c7e409d82d1e0826ece34ec0",
+      "grappleWarningAbsent": true
+    }
+  },
+  "validation": {
+    "windowsMeson": {
+      "passed": 110,
+      "failed": 0,
+      "skipped": 1,
+      "pythonAggregateRun": 1278,
+      "pythonAggregateSkipped": 5,
+      "logSha256": "6541e777d7e37b2d96f92393a90a0ced0ffc7649d18874136ee435d991337697"
+    },
+    "windowsBuild": "5/5 steps",
+    "linuxBuild": "3/3 incremental i686 dedicated steps, dirty scratch based on b5776c9",
+    "executableRegression": "1 test passed on Windows and WSL Ubuntu"
+  }
+}

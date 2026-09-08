@@ -559,7 +559,8 @@ void SV_BotInitCvars(void) {
 	Cvar_Get("bot_nochat", "0", 0);						//disable chats
 	Cvar_Get("bot_pause", "0", CVAR_CHEAT);				//pause the bots thinking
 	Cvar_Get("bot_report", "0", CVAR_CHEAT);			//get a full report in ctf
-	Cvar_Get("bot_grapple", "0", 0);					//enable grapple
+	// Retail QL registers 1 here; retain Q3's original default in its profile.
+	Cvar_Get("bot_grapple", Com_GameIsQuakeLive() ? "1" : "0", 0);
 	Cvar_Get("bot_rocketjump", "1", 0);					//enable rocket jumping
 	Cvar_Get("bot_challenge", "0", 0);					//challenging bot
 	Cvar_Get("bot_minplayers", "0", 0);					//minimum players in a team or the game
