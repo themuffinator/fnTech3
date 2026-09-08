@@ -77,3 +77,10 @@ collision parity or that every discarded bevel is harmless. The reference
 binary's source revision is still unknown; matching current checkout source
 does not establish that artifact's build provenance. No collision code or
 diagnostic severity was changed.
+
+## Follow-up: normal-speed playback and fixture identity
+
+The [current pacing check](2026-09-08-shipped-demo-pacing.md) verifies normal-speed
+playback and an engine screenshot for the shipped protocol-66 filename. It also
+establishes that the shipped four.dm_66 and four.dm_68 payloads are byte-identical.
+The two earlier successful paths are not distinct wire-format samples.
