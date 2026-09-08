@@ -153,7 +153,7 @@ int main(){
   assert(actual==expected);assert(S_WAV_CodecReadStream(&s,4,actual.data())==0);
   // Positive short reads may split a 24-bit or float scalar at any byte.
   // They must not discard that prefix or shift the following samples.
-  if(selected.needsConversion)for(int limit=1;limit<=9;++limit)for(int request:{2,6,38,128}){
+  for(int limit=1;limit<=9;++limit)for(int request:{2,6,38,128}){
    payload=full;reset();readLimit=limit;s=makeStream();actual.clear();
    while(s.pos<s.info.size){
     std::array<byte,128> part;part.fill(0xa5);
@@ -196,6 +196,12 @@ int main(){
   assert(S_WAV_CodecReadStream(&s,request,out.data())==request);
   for(int i=0;i<request;i+=2)assert(out[i]==0x34&&out[i+1]==0x12);
   for(int i=request;i<128;++i)assert(out[i]==0xa5);
+  for(int limit=1;limit<=5;++limit){
+   reset();readLimit=limit;s.pos=0;out.fill(0xa5);
+   assert(S_WAV_CodecReadStream(&s,request,out.data())==request);
+   for(int i=0;i<request;i+=2)assert(out[i]==0x34&&out[i+1]==0x12);
+   for(int i=request;i<128;++i)assert(out[i]==0xa5);
+  }
  }
 }
 '''

@@ -1,0 +1,60 @@
+{
+  "baseCommit": "2aa58493032ad8e53874bc9a11d378a769cca58a",
+  "source": {
+    "code/client/audio/codecs/snd_codec_wav.cpp": "b3357d87d676e8650136e76404caea56de9a5f19eeee24eaf7d77aad978afa9c",
+    "tests/wav_payload_tests.py": "8dc208b5c31eb7fd0d0065aa3868e2c26f880b03826c4c168d5b6f4586b52ba3"
+  },
+  "corpus": {
+    "q3": {
+      "files": 631,
+      "sourceBytesWithEnvelopes": 267961507,
+      "decodedBytesWithEnvelopes": 267929521,
+      "decodedCorpusSha256": "6fcd08cf4642ada9d94de89f832d5297c3adb9984e14bd163acac129b6b9c2a1",
+      "inputInventorySha256": "2b8b410011400fc5283282fdf4a9af18874fac46d1067b7741bd223b321a7d39",
+      "allDecodedBytesMatchPythonWave": true
+    },
+    "ql": {
+      "files": 538,
+      "sourceBytesWithEnvelopes": 66280980,
+      "decodedBytesWithEnvelopes": 66143282,
+      "decodedCorpusSha256": "c526ceb5152dfcc1c0747199e50cf0bd72361d47cbd02e77553665ddec93565c",
+      "inputInventorySha256": "b53df6294bcf937421bc34ed9aac09f927a805061d4bb833557389246847365b",
+      "allDecodedBytesMatchPythonWave": true
+    }
+  },
+  "corpusMethod": {
+    "path": "production header and streaming functions, extracted into filesystem harness",
+    "filesystemReadLimit": 509,
+    "decodedRequestBytes": 32768,
+    "comparison": "independent Python wave PCM extraction",
+    "harnessSha256": "5c173dae9587ca3111bc29006b3eb83352d704cfc411f0374f9f33ab7b8e0cf8",
+    "driverSha256": "7c6b257183ba1d6d4d8c33382700f8254d5f0b097a3d137316fe991aadc2b057"
+  },
+  "logs": {
+    "wav-native-short-before.log": "0a408653f02ce4ce05e55c28d2bc42735d73581803ce1f96809dfa787f9da08f",
+    "wav-native-short-after.log": "e6871846a3b23010df7ce1e43429c0639e3e070901a03d1164e9d1fd6b0b5f13",
+    "wav-native-short-build.log": "8e98414489b76de29b189297409556589bfef803c168d5a05584ff28ce71f26a",
+    "wav-native-short-sdl-build.log": "9e5db41e34a0e12aef3643c8962ba914213db1d4636eabb2f7844a731089b53e",
+    "wav-native-short-suite.log": "b432efdb436f8cd72f5a86a158d34938b4d5a6e8e465c075bf34fb54e9f5f616",
+    "wav-native-short-sanitizers.log": "633f18a2d21990606fdc8167b45268ced5d7a098f098f1bae14380112005a9c9",
+    "wav-native-short-corpus.log": "58fd6f85ecd8020acbb947b379a02c595980be522dd5b6f1b665152e040c7d72"
+  },
+  "suite": {
+    "passed": 110,
+    "failed": 0,
+    "skipped": 1,
+    "pythonSummary": "Ran 1304 tests in 186.161s"
+  },
+  "sanitizers": {
+    "tests": 5,
+    "failed": 0
+  },
+  "commands": [
+    "python tests/wav_payload_tests.py",
+    ".tmp/build-steam-profile-final.cmd",
+    ".tmp/build-sdl-timing.cmd",
+    ".tmp/test-ql-usercmd-full.cmd",
+    "wsl -d Ubuntu -- bash -c \"cd /mnt/e/Repositories/fnTech3 && python3 .tmp/test-speaker-sanitizers.py\"",
+    "python .tmp/probe-retail-wav-native-stream.py"
+  ]
+}

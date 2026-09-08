@@ -415,10 +415,22 @@ extern "C" int S_WAV_CodecReadStream( snd_stream_t *stream, int bytes, void *buf
 	if ( bytes > remaining ) {
 		bytes = remaining;
 	}
+	// Preserve sample/frame alignment for callers requesting whole frames,
+	// even when the filesystem splits those requests at arbitrary bytes.
+	const auto readPayload = [stream]( void *destination, int requested ) {
+		int total = 0;
+		while ( total < requested ) {
+			const int count = FileRead( stream->file, static_cast<byte *>( destination ) + total,
+				requested - total );
+			if ( count <= 0 ) break;
+			total += count;
+		}
+		return total;
+	};
 
 	const auto *state = static_cast<const WavStreamState *>( stream->ptr );
 	if ( state == nullptr ) {
-		const int bytesRead = FileRead( stream->file, buffer, bytes );
+		const int bytesRead = readPayload( buffer, bytes );
 		if ( bytesRead <= 0 ) {
 			return 0;
 		}
@@ -445,17 +457,7 @@ extern "C" int S_WAV_CodecReadStream( snd_stream_t *stream, int bytes, void *buf
 		const int samplesThisPass = ( std::min )( requestedSamples - decodedSamples,
 			static_cast<int>( sourceChunk.size() ) / source.width );
 		const int sourceBytes = samplesThisPass * source.width;
-		int bytesRead = 0;
-		// A positive short read need not end at a source-sample boundary.
-		// Accumulate it before converting so subsequent reads stay aligned.
-		while ( bytesRead < sourceBytes ) {
-			const int count = FileRead( stream->file, sourceChunk.data() + bytesRead,
-				sourceBytes - bytesRead );
-			if ( count <= 0 ) {
-				break;
-			}
-			bytesRead += count;
-		}
+		const int bytesRead = readPayload( sourceChunk.data(), sourceBytes );
 		const int samplesRead = bytesRead / source.width;
 		if ( samplesRead <= 0 ) {
 			break;
