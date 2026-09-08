@@ -1171,6 +1171,18 @@ static qboolean CL_GetQ3UserCmd( int cmdNumber,
 	return qtrue;
 }
 
+static qboolean CL_GetQLUserCmd( int cmdNumber,
+	fntech3_ql_usercmd_t *destination ) {
+	usercmd_t internal;
+
+	if ( !CL_GetUserCmd( cmdNumber, &internal ) ) {
+		return qfalse;
+	}
+
+	FnTech3_QLUsercmdFromInternal( destination, &internal );
+	return qtrue;
+}
+
 
 /*
 ====================
@@ -2031,8 +2043,8 @@ static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		return CL_GetCurrentCmdNumber();
 	case CG_GETUSERCMD:
 		if ( cgvm->dllExports ) {
-			VM_CHECKBOUNDS( cgvm, args[2], sizeof( usercmd_t ) );
-			return CL_GetUserCmd( args[1], VMA(2) );
+			VM_CHECKBOUNDS( cgvm, args[2], sizeof( fntech3_ql_usercmd_t ) );
+			return CL_GetQLUserCmd( args[1], VMA(2) );
 		}
 		VM_CHECKBOUNDS( cgvm, args[2], sizeof( fntech3_q3_usercmd_t ) );
 		return CL_GetQ3UserCmd( args[1], VMA(2) );

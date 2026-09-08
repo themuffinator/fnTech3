@@ -56,6 +56,32 @@ static int TestUsercmdTranslation() {
 	return 0;
 }
 
+static int TestQLUsercmdTranslation() {
+	usercmd_t internal;
+	std::memset( &internal, 0xa5, sizeof( internal ) );
+	internal.serverTime = -1234567;
+	internal.angles[0] = -2147483647; internal.angles[1] = 123456; internal.angles[2] = 2147483647;
+	internal.buttons = 0x12345678;
+	internal.weapon = 255; internal.weaponPrimary = 129; internal.fov = 240;
+	internal.forwardmove = -128; internal.rightmove = 127; internal.upmove = -1;
+	struct { unsigned before; fntech3_ql_usercmd_t cmd; unsigned after; } guarded;
+	std::memset( &guarded, 0xcc, sizeof( guarded ) );
+	FnTech3_QLUsercmdFromInternal( &guarded.cmd, &internal );
+	CHECK( guarded.before == 0xccccccccu && guarded.after == 0xccccccccu );
+	// Frozen field offsets are independently checked in game_abi_layout_tests.
+	CHECK( guarded.cmd.serverTime == -1234567 && guarded.cmd.buttons == 0x12345678 );
+	CHECK( guarded.cmd.angles[0] == -2147483647 && guarded.cmd.angles[1] == 123456 && guarded.cmd.angles[2] == 2147483647 );
+	CHECK( guarded.cmd.weapon == 255 && guarded.cmd.weaponPrimary == 129 && guarded.cmd.fov == 240 );
+	CHECK( guarded.cmd.forwardmove == -128 && guarded.cmd.rightmove == 127 && guarded.cmd.upmove == -1 );
+	const auto *bytes = reinterpret_cast<const unsigned char *>( &guarded.cmd );
+	CHECK( bytes[26] == 0 && bytes[27] == 0 );
+	const auto previous = guarded;
+	FnTech3_QLUsercmdFromInternal( &guarded.cmd, nullptr );
+	CHECK( std::memcmp( &guarded, &previous, sizeof( guarded ) ) == 0 );
+	FnTech3_QLUsercmdFromInternal( nullptr, &internal );
+	return 0;
+}
+
 static int TestEntityTranslation() {
 	fntech3_q3_entityState_t q3{};
 	q3.number = 17;
@@ -178,6 +204,7 @@ int main() {
 	if ( const int result = TestQLSnapshotTranslation() ) return result;
 	if ( const int result = TestCvarFlagTranslation() ) return result;
 	if ( const int result = TestUsercmdTranslation() ) return result;
+	if ( const int result = TestQLUsercmdTranslation() ) return result;
 	if ( const int result = TestEntityTranslation() ) return result;
 	if ( const int result = TestPlayerTranslation() ) return result;
 	return 0;

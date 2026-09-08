@@ -24,6 +24,9 @@ extern "C" {
  * colliding numeric value. Unknown bits are deliberately discarded. */
 uint32_t FnTech3_Q3CvarFlagsToInternal( uint32_t q3Flags );
 
+void FnTech3_QLUsercmdFromInternal( fntech3_ql_usercmd_t *destination,
+	const usercmd_t *source );
+
 void FnTech3_Q3UsercmdFromInternal( fntech3_q3_usercmd_t *destination,
 	const usercmd_t *source );
 void FnTech3_InternalUsercmdFromQ3( usercmd_t *destination,

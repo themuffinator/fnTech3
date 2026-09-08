@@ -17,6 +17,39 @@ def function(source: str, signature: str) -> str:
 
 
 class CgameUsercmdAbiTests(unittest.TestCase):
+    def test_ql_usercmd_failures_preserve_destination(self):
+        compiler = shutil.which("clang++") or shutil.which("g++")
+        if not compiler: self.skipTest("requires C++ compiler")
+        client = (ROOT / "code/client/cl_cgame.cpp").read_text()
+        server = (ROOT / "code/server/sv_game.cpp").read_text()
+        harness = r'''
+#include <cassert>
+#include <cstring>
+using qboolean=bool;
+constexpr bool qfalse=false,qtrue=true;
+struct usercmd_t { int value; };
+struct fntech3_ql_usercmd_t { int value; };
+int converted=0;
+bool CL_GetUserCmd(int n,usercmd_t*p){if(n<0)return false;p->value=n;return true;}
+void SV_GetUsercmd(int n,usercmd_t*p){if(n<0)throw n;p->value=n;}
+void FnTech3_QLUsercmdFromInternal(fntech3_ql_usercmd_t*d,const usercmd_t*s){++converted;d->value=s->value;}
+''' + function(client, "static qboolean CL_GetQLUserCmd(") + "\n" + function(server, "static void SV_GetQLUsercmd(") + r'''
+int main(){
+ fntech3_ql_usercmd_t output{77};
+ assert(!CL_GetQLUserCmd(-1,&output) && output.value==77 && converted==0);
+ assert(CL_GetQLUserCmd(18,&output) && output.value==18 && converted==1);
+ try {SV_GetQLUsercmd(-1,&output);assert(false);} catch(int) {}
+ assert(output.value==18 && converted==1);
+ SV_GetQLUsercmd(29,&output);assert(output.value==29 && converted==2);
+}
+'''
+        with tempfile.TemporaryDirectory() as folder:
+            cpp=Path(folder)/"probe.cpp";exe=Path(folder)/"probe.exe";cpp.write_text(harness)
+            build=subprocess.run([compiler,"-std=c++17",str(cpp),"-o",str(exe)],capture_output=True,text=True)
+            self.assertEqual(build.returncode,0,build.stdout+build.stderr)
+            run=subprocess.run([str(exe)],capture_output=True,text=True,timeout=10)
+            self.assertEqual(run.returncode,0,run.stderr)
+
     def test_legacy_and_structured_traps_consume_their_own_arguments(self) -> None:
         compiler = next((path for name in ("clang++", "g++", "c++")
                          if (path := shutil.which(name))), None)

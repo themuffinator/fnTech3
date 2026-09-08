@@ -635,7 +635,7 @@ static int QDECL QL_CG_trap_GetCurrentCmdNumber( void ) {
 QL_CG_trap_GetUserCmd
 ==============
 */
-static qboolean QDECL QL_CG_trap_GetUserCmd( int cmdNumber, usercmd_t *ucmd ) {
+static qboolean QDECL QL_CG_trap_GetUserCmd( int cmdNumber, fntech3_ql_usercmd_t *ucmd ) {
 	return CG_Import_Syscall( CG_GETUSERCMD, cmdNumber, ucmd ) ? qtrue : qfalse;
 }
 

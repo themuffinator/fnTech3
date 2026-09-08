@@ -550,6 +550,14 @@ static void SV_GetQ3Usercmd( int clientNum,
 	FnTech3_Q3UsercmdFromInternal( destination, &internal );
 }
 
+static void SV_GetQLUsercmd( int clientNum,
+	fntech3_ql_usercmd_t *destination ) {
+	usercmd_t internal;
+
+	SV_GetUsercmd( clientNum, &internal );
+	FnTech3_QLUsercmdFromInternal( destination, &internal );
+}
+
 
 //==============================================
 
@@ -887,8 +895,8 @@ static intptr_t SV_GameSystemCalls( intptr_t *args ) {
 
 	case G_GET_USERCMD:
 		if ( gvm->dllExports ) {
-			VM_CHECKBOUNDS( gvm, args[2], sizeof( usercmd_t ) );
-			SV_GetUsercmd( args[1], VMA(2) );
+			VM_CHECKBOUNDS( gvm, args[2], sizeof( fntech3_ql_usercmd_t ) );
+			SV_GetQLUsercmd( args[1], VMA(2) );
 		} else {
 			VM_CHECKBOUNDS( gvm, args[2], sizeof( fntech3_q3_usercmd_t ) );
 			SV_GetQ3Usercmd( args[1], VMA(2) );
@@ -1523,7 +1531,7 @@ QL_IMPORT3( QL_G_trap_EntityContact, G_ENTITY_CONTACT, const float *, const floa
 QL_IMPORT3( QL_G_trap_EntityContactCapsule, G_ENTITY_CONTACTCAPSULE, const float *, const float *, const sharedEntity_t * )
 QL_IMPORT0( QL_G_trap_BotAllocateClient, G_BOT_ALLOCATE_CLIENT )
 QL_IMPORT1( QL_G_trap_BotFreeClient, G_BOT_FREE_CLIENT, int )
-QL_IMPORT2( QL_G_trap_GetUsercmd, G_GET_USERCMD, int, usercmd_t * )
+QL_IMPORT2( QL_G_trap_GetUsercmd, G_GET_USERCMD, int, fntech3_ql_usercmd_t * )
 QL_IMPORT2( QL_G_trap_GetEntityToken, G_GET_ENTITY_TOKEN, char *, int )
 QL_IMPORT3( QL_G_trap_DebugPolygonCreate, G_DEBUG_POLYGON_CREATE, int, int, vec3_t * )
 QL_IMPORT1( QL_G_trap_DebugPolygonDelete, G_DEBUG_POLYGON_DELETE, int )
