@@ -32,6 +32,7 @@ extern "C" {
 }
 
 #include "../../client_cpp.h"
+#include "../shared/AudioVorbisLayout.h"
 
 // includes for the OGG codec
 #include <cerrno>
@@ -279,7 +280,8 @@ snd_stream_t *S_OGG_CodecOpenStream(const char *filename)
 	stream->info.samples = numSamples;
 	stream->info.size = stream->info.samples * stream->info.channels * stream->info.width;
 	stream->info.dataofs = 0;
-	stream->info.speakerMask = 0;
+	stream->info.speakerMask = fntech3::audio::VorbisHasEncodedFieldTag( filename, stream->info.channels ) ? 0 :
+		fntech3::audio::VorbisSpeakerMask( stream->info.channels );
 
 	// The callbacks retain the actual compressed-file position established
 	// by ov_open_callbacks; do not reset it without seeking the file.
@@ -361,6 +363,9 @@ int S_OGG_CodecReadStream(snd_stream_t *stream, int bytes, void *buffer)
 			break;
 		}
 
+		if ( stream->info.speakerMask ) {
+			fntech3::audio::ReorderVorbisFrames( bufPtr, c, stream->info.channels );
+		}
 		bytesRead += c;
 		bytesLeft -= c;
 		bufPtr += c;

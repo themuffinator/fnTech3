@@ -24,6 +24,7 @@ class OggPayloadBoundsTests(unittest.TestCase):
 #include <memory>
 #include <limits>
 #include <initializer_list>
+#include "code/client/audio/shared/AudioVorbisLayout.h"
 using byte=unsigned char;using ogg_int64_t=long long;
 struct snd_info_t {int rate,width,channels,samples,size,dataofs;unsigned speakerMask;};
 struct snd_stream_t {snd_info_t info{};int pos=0,length=100;void*ptr=nullptr;};
@@ -33,6 +34,7 @@ constexpr int OGG_SAMPLEWIDTH=2,ogg_codec=1,S_OGG_Callbacks=1;
 int handles=0,zones=0,temps=0,clears=0,decodeBytes=16,openError=0;
 bool seekable=true,hasInfo=true;int links=1;ogg_int64_t frames=4;
 vorbis_info metadata{48000,2};
+bool channelFixture=false;int nextFrame=0;
 snd_stream_t*S_CodecUtilOpen(const char*,const int*){++handles;return new snd_stream_t;}
 void S_CodecUtilClose(snd_stream_t**s){delete *s;*s=nullptr;--handles;}
 struct ScopedZoneMemory {
@@ -61,6 +63,12 @@ ogg_int64_t ov_pcm_total(OggVorbis_File*,int){return frames;}
 int ov_clear(OggVorbis_File*){++clears;return 0;}
 int ov_read(OggVorbis_File*,char*out,int bytes,int,int,int,int*){
  if(decodeBytes<0)return -1;
+ if(channelFixture){
+  int frames=bytes/(metadata.channels*2);if(frames>2)frames=2;
+  if(frames>decodeBytes/(metadata.channels*2))frames=decodeBytes/(metadata.channels*2);
+  for(int f=0;f<frames;++f)for(int c=0;c<metadata.channels;++c){short value=(16*(nextFrame+f)+c+1)*100;std::memcpy(out+(f*metadata.channels+c)*2,&value,2);}
+  int n=frames*metadata.channels*2;nextFrame+=frames;decodeBytes-=n;return n;
+ }
  int n=bytes<decodeBytes?bytes:decodeBytes;if(n>3)n=3;
  std::memset(out,0x24,n);decodeBytes-=n;return n;
 }
@@ -78,7 +86,7 @@ int main(){
   metadata.channels=channels;frames=count;int before=clears;
   bool valid=channels>0&&channels<=INT_MAX/2&&count>=0&&count<=INT_MAX/(channels*2);
   auto*s=S_OGG_CodecOpenStream("fixture.ogg");assert(bool(s)==valid);
-  if(s){assert(s->info.size==count*channels*2&&s->info.speakerMask==0);S_OGG_CodecCloseStream(s);}
+  if(s){assert(s->info.size==count*channels*2&&s->info.speakerMask==3);S_OGG_CodecCloseStream(s);}
   assert(clears==before+1);clean();
  }
  metadata.channels=2;frames=4;
@@ -92,13 +100,36 @@ int main(){
   else assert(std::memcmp(&info,&before,sizeof(info))==0);
   clean();
  }
+ // Decoder packets use Vorbis order. Both streamed and whole loads expose
+ // WAVE speaker order, with distinct channel/frame tags preventing a silent swap.
+ const unsigned masks[]{0,4,3,7,0x33,0x37,0x3f,0x70f,0x63f};
+ const int expected[9][8]={{},{0},{0,1},{0,2,1},{0,1,2,3},{0,2,1,3,4},{0,2,1,5,3,4},{0,2,1,6,5,3,4},{0,2,1,7,5,6,3,4}};
+ channelFixture=true;
+ for(int channels=1;channels<=8;++channels)for(bool whole:{false,true}){
+  metadata.channels=channels;frames=4;decodeBytes=4*channels*2;nextFrame=0;
+  snd_info_t info{};char unaligned[66];std::memset(unaligned,0x5a,sizeof(unaligned));void*data;
+  if(whole)data=S_OGG_CodecLoad("speakers.ogg",&info);
+  else {auto*s=S_OGG_CodecOpenStream("speakers.ogg");assert(s);info=s->info;data=unaligned+1;assert(S_OGG_CodecReadStream(s,info.size,data)==info.size);S_OGG_CodecCloseStream(s);}
+  assert(data&&info.speakerMask==masks[channels]);
+  for(int f=0;f<4;++f)for(int c=0;c<channels;++c){short value;std::memcpy(&value,static_cast<char*>(data)+(f*channels+c)*2,2);assert(value==(16*f+expected[channels][c]+1)*100);}
+  assert(unaligned[0]==0x5a&&unaligned[65]==0x5a);
+  if(whole)std::free(data);clean();
+ }
+ for(const char*name:{"sound/test.UHJ3.ogg","sound/B-Format-2D.ogg","sound/ambi3d.ogg"})for(int channels:{2,3,4}){
+  metadata.channels=channels;frames=4;decodeBytes=4*channels*2;nextFrame=0;
+  snd_info_t info{};void*data=S_OGG_CodecLoad(name,&info);assert(data&&info.speakerMask==0);
+  for(int f=0;f<4;++f)for(int c=0;c<channels;++c){short value;std::memcpy(&value,static_cast<char*>(data)+(f*channels+c)*2,2);assert(value==(16*f+c+1)*100);}
+  std::free(data);clean();
+ }
+ assert(!fntech3::audio::VorbisHasEncodedFieldTag("sound/notuhjx.ogg",3));
+ assert(!fntech3::audio::VorbisHasEncodedFieldTag("sound/uhj.ogg",6));
 }
 '''
         with tempfile.TemporaryDirectory() as directory:
             cpp = Path(directory) / 'ogg.cpp'
             exe = Path(directory) / 'ogg.exe'
             cpp.write_text(harness)
-            built = subprocess.run([compiler, *compiler_target_args(compiler), '-std=c++17', str(cpp), '-o', str(exe)], capture_output=True, text=True)
+            built = subprocess.run([compiler, *compiler_target_args(compiler), '-std=c++17', '-I', str(ROOT), str(cpp), '-o', str(exe)], capture_output=True, text=True)
             self.assertEqual(built.returncode, 0, built.stdout + built.stderr)
             ran = subprocess.run([str(exe)], capture_output=True, text=True)
             self.assertEqual(ran.returncode, 0, ran.stdout + ran.stderr)

@@ -34,6 +34,10 @@ remain authoritative.
 
 ## Compatibility references and adapted work
 
+- Xiph's [Vorbis output-channel documentation](https://xiph.org/vorbis/doc/vorbisfile/ov_read.html)
+  supplies channel-order facts for the independently implemented Ogg-to-speaker
+  permutation. No Xiph implementation text was incorporated for that mapping.
+
 - The independently authored synthetic Q3 UI fixture uses public ordinal/layout
   facts from the GPL-2.0-or-later pinned
   [FnQuake3 UI header](https://github.com/themuffinator/FnQ3/blob/7d8c9629cdc7979f09697266470359101ffd9eda/code/ui/ui_public.h).
