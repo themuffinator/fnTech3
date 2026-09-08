@@ -34,6 +34,12 @@ remain authoritative.
 
 ## Compatibility references and adapted work
 
+- Frozen renderer config layouts use the GPL-2.0-or-later
+  [FnQuake3 renderer header](https://github.com/themuffinator/FnQ3/blob/7d8c9629cdc7979f09697266470359101ffd9eda/code/renderercommon/tr_types.h)
+  and [FnQL retail config adapter](https://github.com/themuffinator/FnQL/blob/fce44fe714564621e6ceb79e3da7c53089646af2/code/client/cl_cgame.cpp).
+  Their layouts are compatible with this repository license; the new Q3 field
+  adapter is independently authored and the existing QL translation is retained.
+
 - The frozen Q3/QL configstring transfer contracts use layout facts from the pinned
   [FnQuake3 q_shared.h](https://github.com/themuffinator/FnQ3/blob/7d8c9629cdc7979f09697266470359101ffd9eda/code/qcommon/q_shared.h)
   and [FnQL q_shared.h](https://github.com/themuffinator/FnQL/blob/fce44fe714564621e6ceb79e3da7c53089646af2/code/qcommon/q_shared.h).

@@ -87,6 +87,29 @@ enum {
 #define FNTECH3_QL_CVAR_MODIFIED             UINT32_C( 0x40000000 )
 #define FNTECH3_QL_CVAR_NONEXISTENT          UINT32_C( 0x80000000 )
 
+/* Renderer config: pinned reference layout; external enums are 32-bit scalars. */
+typedef struct {
+	char renderer_string[1024], vendor_string[1024], version_string[1024];
+	char extensions_string[8192];
+	int32_t maxTextureSize;
+	int32_t maxActiveTextures;
+	int32_t colorBits;
+	int32_t depthBits;
+	int32_t stencilBits;
+	int32_t driverType;
+	int32_t hardwareType;
+	int32_t deviceSupportsGamma;
+	int32_t textureCompression;
+	int32_t textureEnvAddAvailable;
+	int32_t multitextureAvailable;
+	int32_t vidWidth;
+	int32_t vidHeight;
+	float windowAspect;
+	int32_t displayFrequency;
+	int32_t isFullscreen;
+	int32_t stereoEnabled;
+} fntech3_ql_glconfig_t;
+
 /* Configstring transfer layout from the pinned q_shared.h reference above. */
 typedef struct {
 	int32_t stringOffsets[FNTECH3_QL_MAX_CONFIGSTRINGS];

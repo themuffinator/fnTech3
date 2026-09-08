@@ -652,6 +652,7 @@ void	SCR_DrawStringExt( int x, int y, float size, const char *string, const floa
 void	SCR_DrawSmallStringExt( int x, int y, const char *string, const float *setColor, qboolean forceColor, qboolean noColorEscape );
 void	SCR_DrawSmallChar( int x, int y, int ch );
 void	SCR_DrawSmallString( int x, int y, const char *s, int len );
+void CL_CopyQ3Glconfig( void *destination, const glconfig_t *source );
 void	CL_CopyRetailGlconfig( void *glconfig );
 
 typedef struct {

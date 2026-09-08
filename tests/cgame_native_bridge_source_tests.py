@@ -483,7 +483,7 @@ class CGameNativeBridgeSourceTests(unittest.TestCase):
     def test_native_getglconfig_uses_retail_ql_layout(self) -> None:
         cl_cgame = read_repo_file("code/client/cl_cgame.cpp")
 
-        self.assertIn("} qlRetailGlconfig_t;", cl_cgame)
+        self.assertIn("typedef fntech3_ql_glconfig_t qlRetailGlconfig_t;", cl_cgame)
         self.assertIn("qlRetailGlconfigSizeCheck[( sizeof( qlRetailGlconfig_t ) == 0x2c44 ) ? 1 : -1 ]", cl_cgame)
         self.assertIn("void CL_CopyRetailGlconfig( void *glconfig )", cl_cgame)
         self.assertIn("retailConfig.maxActiveTextures = cls.glconfig.numTextureUnits;", cl_cgame)
@@ -491,7 +491,7 @@ class CGameNativeBridgeSourceTests(unittest.TestCase):
         self.assertIn("retailConfig.vidWidth = cls.captureWidth > 0 ? cls.captureWidth : cls.glconfig.vidWidth;", cl_cgame)
         self.assertIn("retailConfig.vidHeight = cls.captureHeight > 0 ? cls.captureHeight : cls.glconfig.vidHeight;", cl_cgame)
         self.assertIn("Com_Memcpy( glconfig, &retailConfig, sizeof( retailConfig ) );", cl_cgame)
-        self.assertIn("VM_CHECKBOUNDS( cgvm, args[1], sizeof( glconfig_t ) );\n\t\tCL_GetGlconfig( VMA(1) );", cl_cgame)
+        self.assertIn("VM_CHECKBOUNDS( cgvm, args[1], sizeof( fntech3_q3_glconfig_t ) );\n\t\tCL_GetGlconfig( VMA(1) );", cl_cgame)
         self.assertIn("CL_CopyRetailGlconfig( reinterpret_cast<void *>( args[1] ) );", cl_cgame)
 
     def test_native_renderer_calls_bridge_public_and_private_supersample_geometry(self) -> None:

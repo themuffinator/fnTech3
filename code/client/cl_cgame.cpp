@@ -590,38 +590,43 @@ static void CL_GetQLGameState( fntech3_ql_gameState_t *gs ) {
 CL_GetGlconfig
 ====================
 */
-static void CL_GetGlconfig( glconfig_t *glconfig ) {
-	*glconfig = cls.glconfig;
+void CL_CopyQ3Glconfig( void *destination, const glconfig_t *source ) {
+	if ( !destination || !source ) return;
+	fntech3_q3_glconfig_t config{};
+	static_assert( sizeof( config.renderer_string ) == sizeof( source->renderer_string ), "Audit Q3 renderer config capacity" );
+	Com_Memcpy( config.renderer_string, source->renderer_string, sizeof( config.renderer_string ) );
+	static_assert( sizeof( config.vendor_string ) == sizeof( source->vendor_string ), "Audit Q3 renderer config capacity" );
+	Com_Memcpy( config.vendor_string, source->vendor_string, sizeof( config.vendor_string ) );
+	static_assert( sizeof( config.version_string ) == sizeof( source->version_string ), "Audit Q3 renderer config capacity" );
+	Com_Memcpy( config.version_string, source->version_string, sizeof( config.version_string ) );
+	static_assert( sizeof( config.extensions_string ) == sizeof( source->extensions_string ), "Audit Q3 renderer config capacity" );
+	Com_Memcpy( config.extensions_string, source->extensions_string, sizeof( config.extensions_string ) );
+	config.maxTextureSize = source->maxTextureSize;
+	config.numTextureUnits = source->numTextureUnits;
+	config.colorBits = source->colorBits;
+	config.depthBits = source->depthBits;
+	config.stencilBits = source->stencilBits;
+	config.driverType = source->driverType;
+	config.hardwareType = source->hardwareType;
+	config.deviceSupportsGamma = source->deviceSupportsGamma;
+	config.textureCompression = source->textureCompression;
+	config.textureEnvAddAvailable = source->textureEnvAddAvailable;
+	config.vidWidth = source->vidWidth;
+	config.vidHeight = source->vidHeight;
+	config.windowAspect = source->windowAspect;
+	config.displayFrequency = source->displayFrequency;
+	config.isFullscreen = source->isFullscreen;
+	config.stereoEnabled = source->stereoEnabled;
+	config.smpActive = source->smpActive;
+	Com_Memcpy( destination, &config, sizeof( config ) );
+}
+
+static void CL_GetGlconfig( fntech3_q3_glconfig_t *glconfig ) {
+	CL_CopyQ3Glconfig( glconfig, &cls.glconfig );
 }
 
 
-typedef struct {
-	char					renderer_string[MAX_STRING_CHARS];
-	char					vendor_string[MAX_STRING_CHARS];
-	char					version_string[MAX_STRING_CHARS];
-	char					extensions_string[BIG_INFO_STRING];
-
-	int						maxTextureSize;
-	int						maxActiveTextures;
-
-	int						colorBits, depthBits, stencilBits;
-
-	glDriverType_t			driverType;
-	glHardwareType_t		hardwareType;
-
-	qboolean				deviceSupportsGamma;
-	textureCompression_t	textureCompression;
-	qboolean				textureEnvAddAvailable;
-	qboolean				multitextureAvailable;
-
-	int						vidWidth, vidHeight;
-	float					windowAspect;
-
-	int						displayFrequency;
-
-	qboolean				isFullscreen;
-	qboolean				stereoEnabled;
-} qlRetailGlconfig_t;
+typedef fntech3_ql_glconfig_t qlRetailGlconfig_t;
 
 typedef char qlRetailGlconfigSizeCheck[( sizeof( qlRetailGlconfig_t ) == 0x2c44 ) ? 1 : -1 ];
 
@@ -2024,7 +2029,7 @@ static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 	case CG_R_LERPTAG:
 		return re.LerpTag( VMA(1), args[2], args[3], args[4], VMF(5), VMA(6) );
 	case CG_GETGLCONFIG:
-		VM_CHECKBOUNDS( cgvm, args[1], sizeof( glconfig_t ) );
+		VM_CHECKBOUNDS( cgvm, args[1], sizeof( fntech3_q3_glconfig_t ) );
 		CL_GetGlconfig( VMA(1) );
 		return 0;
 	case CG_GETGAMESTATE:

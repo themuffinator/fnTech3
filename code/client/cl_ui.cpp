@@ -477,8 +477,8 @@ static int LAN_GetServerStatus( const char *serverAddress, char *serverStatus, i
 CL_GetGlConfig
 ====================
 */
-static void CL_GetGlconfig( glconfig_t *config ) {
-	*config = *re.GetConfig();
+static void CL_GetGlconfig( fntech3_q3_glconfig_t *config ) {
+	CL_CopyQ3Glconfig( config, re.GetConfig() );
 }
 
 
@@ -1049,7 +1049,7 @@ static intptr_t CL_UISystemCalls( intptr_t *args ) {
 		return 0;
 
 	case UI_GETGLCONFIG:
-		VM_CHECKBOUNDS( uivm, args[1], sizeof( glconfig_t ) );
+		VM_CHECKBOUNDS( uivm, args[1], sizeof( fntech3_q3_glconfig_t ) );
 		CL_GetGlconfig( VMA(1) );
 		return 0;
 
