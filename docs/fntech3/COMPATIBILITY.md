@@ -120,6 +120,9 @@ The [HTTP error and cURL cleanup checkpoint](2026-09-08-http-errors-and-curl-cle
 records 404/truncated-response rejection and fixes handle release before
 connection reset. Successful HTTP reconnect still passes in both profiles;
 error-probe shutdown remains incomplete and required forced termination.
+The [download initialization cleanup](2026-09-08-download-begin-cleanup.md)
+releases partial transfer state after an extension-only name is rejected,
+allowing an immediately following valid command in both profiles.
 The [general HTTP downloader checkpoint](2026-09-08-manual-http-downloads.md)
 fixes trailing-slash URL joining and verifies manual Q3/QL split-header downloads
 and same-process recovery from an empty response with temporary-file cleanup.

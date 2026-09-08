@@ -1057,6 +1057,7 @@ qboolean Com_DL_Begin( download_t *dl, const char *localName, const char *remote
 	if ( !dl->Name[0] )
 	{
 		Com_Printf( S_COLOR_YELLOW " empty filename after extension strip.\n" );
+		Com_DL_Cleanup( dl );
 		return qfalse;
 	}
 
