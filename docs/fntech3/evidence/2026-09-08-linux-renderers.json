@@ -1,0 +1,71 @@
+{
+  "commit": "b5776c9492e95878954b436ed47a48aadb9508e9",
+  "cleanDetachedCheckout": true,
+  "platform": "Ubuntu WSL2, GCC 13.3.0, Meson 1.10.2, Linux i686 cross configuration",
+  "configure": "meson setup .tmp/build-linux-renderers --cross-file misc/meson/linux-x86.ini --buildtype=debugoptimized -Daudio-tests=true -Dbuild-client=true -Dbuild-server=false -Dcurl=disabled -Dglx-tests=true -Dogg-vorbis=false -Drenderer-dlopen=true -Drenderer-default=glx -Drenderers=glx,vk,rtx -Dsdl=disabled",
+  "build": "meson compile -C .tmp/build-linux-renderers -j 6",
+  "test": "meson test -C .tmp/build-linux-renderers --no-rebuild --print-errorlogs",
+  "tests": {
+    "passed": 107,
+    "failed": 0,
+    "skipped": 2,
+    "largestPythonSuite": 1252
+  },
+  "artifacts": [
+    {
+      "name": "fntech3",
+      "bytes": 16595220,
+      "sha256": "22e991eec2b879c1ba89a29bb0df111bcad22ddecdf568fea92af4eada851c49",
+      "identity": "ELF 32-bit Intel 80386"
+    },
+    {
+      "name": "fnql_glx_x86.so",
+      "bytes": 7367328,
+      "sha256": "86a0fe568388a6818588e71bb49216555d2714c7551e339a14f63b9e47043fc1",
+      "identity": "ELF 32-bit Intel 80386"
+    },
+    {
+      "name": "fnql_vk_x86.so",
+      "bytes": 6492840,
+      "sha256": "228a7f4091339182052c79c55ed1556afaffa6ab146f80383e61b726c5144522",
+      "identity": "ELF 32-bit Intel 80386"
+    },
+    {
+      "name": "fnql_rtx_x86.so",
+      "bytes": 7102248,
+      "sha256": "9a3b6ed7455ca5bd132eca11523bb1f6592a473b6ea3069e6231ba3e462c225e",
+      "identity": "ELF 32-bit Intel 80386"
+    }
+  ],
+  "dependencyArchives": [
+    {
+      "name": "freetype2",
+      "filename": "freetype-2.14.3.tar.xz",
+      "sha256": "36bc4f1cc413335368ee656c42afca65c5a3987e8768cc28cf11ba775e785a5f"
+    },
+    {
+      "name": "openal-soft",
+      "filename": "openal-soft-1.25.2.tar.gz",
+      "sha256": "fb27e5839aa11f0e5b9d33756965291fad5d6909ab928ea1f796f4a1a6877894"
+    },
+    {
+      "name": "libjpeg-turbo",
+      "filename": "libjpeg-turbo-3.1.4.1.tar.gz",
+      "sha256": "ecae8008e2cc9ade2f2c1bb9d5e6d4fb73e7c433866a056bd82980741571a022"
+    }
+  ],
+  "logs": [
+    {
+      "name": "clean-linux-renderers-setup.log",
+      "sha256": "9ff690f05ca4522a1cfe1ef8b38ba5f001ca9e2658e2fa46a283f743687fc550"
+    },
+    {
+      "name": "clean-linux-renderers-build.log",
+      "sha256": "f0226fbec1ad6965022bb0103c0f1f00079b4fa66366ad7783657c93dbf85ac6"
+    },
+    {
+      "name": "clean-linux-renderers-tests.log",
+      "sha256": "95392a93765cff21c3065156852b3785ba0d74d6e676b1dfcfae9484acc319d7"
+    }
+  ]
+}
