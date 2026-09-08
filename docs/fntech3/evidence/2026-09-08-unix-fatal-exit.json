@@ -1,0 +1,194 @@
+{
+  "utc": "2026-09-08T01:03:33.398634+00:00",
+  "sourceCommit": "b5776c9492e95878954b436ed47a48aadb9508e9",
+  "sourceChanges": [
+    "code/unix/linux_signals.cpp",
+    "code/unix/unix_main.cpp"
+  ],
+  "platform": "Linux i686 under WSL2 and private Xvfb, software OpenGL",
+  "display": ":99",
+  "installation": "/mnt/c/Program Files (x86)/Steam/steamapps/common/Quake 3 Arena",
+  "basePakSha256": "7ce8b3910620cd50a09e4f1100f426e8c6180f68895d589f80e6bd95af54bcae",
+  "server": {
+    "command": [
+      "/mnt/e/Repositories/fnTech3/.tmp/clean-linux-b5776c9/.tmp/build-linux-i686/fntech3.ded",
+      "+set",
+      "com_gameProfile",
+      "q3",
+      "+set",
+      "fs_basepath",
+      "/mnt/c/Program Files (x86)/Steam/steamapps/common/Quake 3 Arena",
+      "+set",
+      "fs_homepath",
+      "/tmp/fntech3-linux-client-wn2kxt8q/server",
+      "+set",
+      "fs_game",
+      "",
+      "+set",
+      "dedicated",
+      "1",
+      "+set",
+      "net_ip",
+      "127.0.0.1",
+      "+set",
+      "net_port",
+      "41792",
+      "+set",
+      "r_fullscreen",
+      "0",
+      "+set",
+      "r_mode",
+      "3",
+      "+set",
+      "in_mouse",
+      "0",
+      "+set",
+      "in_joystick",
+      "0",
+      "+set",
+      "in_nograb",
+      "1",
+      "+set",
+      "s_initsound",
+      "0",
+      "+set",
+      "com_steamIntegration",
+      "0",
+      "+set",
+      "fs_skipWorkshop",
+      "1",
+      "+set",
+      "cl_webuiEnable",
+      "0",
+      "+set",
+      "logfile",
+      "2",
+      "+set",
+      "developer",
+      "1",
+      "+exec",
+      "probe.cfg"
+    ],
+    "config": "set sv_pure 1\nset sv_autoRecordDemos 0\nset sv_maxclients 2\nset cl_allowDownload 0\nset cl_motd 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset cl_shownet 2\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nmap q3dm6\nwait 1000\nquit\n",
+    "sha256": "06ce3692030c9412f36e68e2dd62fdda9a0c5fb08b908ac6c0b5c403297cc82c",
+    "exitCode": 0,
+    "terminated": false,
+    "screenshots": []
+  },
+  "client": {
+    "command": [
+      "/mnt/e/Repositories/fnTech3/.tmp/clean-linux-b5776c9/.tmp/build-linux-renderers/fntech3",
+      "+set",
+      "com_gameProfile",
+      "q3",
+      "+set",
+      "fs_basepath",
+      "/mnt/c/Program Files (x86)/Steam/steamapps/common/Quake 3 Arena",
+      "+set",
+      "fs_homepath",
+      "/tmp/fntech3-linux-client-wn2kxt8q/client",
+      "+set",
+      "fs_game",
+      "",
+      "+set",
+      "dedicated",
+      "0",
+      "+set",
+      "net_ip",
+      "127.0.0.1",
+      "+set",
+      "net_port",
+      "36245",
+      "+set",
+      "r_fullscreen",
+      "0",
+      "+set",
+      "r_mode",
+      "3",
+      "+set",
+      "in_mouse",
+      "0",
+      "+set",
+      "in_joystick",
+      "0",
+      "+set",
+      "in_nograb",
+      "1",
+      "+set",
+      "s_initsound",
+      "0",
+      "+set",
+      "com_steamIntegration",
+      "0",
+      "+set",
+      "fs_skipWorkshop",
+      "1",
+      "+set",
+      "cl_webuiEnable",
+      "0",
+      "+set",
+      "logfile",
+      "2",
+      "+set",
+      "developer",
+      "1",
+      "+exec",
+      "probe.cfg"
+    ],
+    "config": "set sv_pure 1\nset sv_autoRecordDemos 0\nset sv_maxclients 2\nset cl_allowDownload 0\nset cl_motd 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset cl_shownet 2\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nset activeAction \"wait 120; screenshotPNG linux-proof; wait 3; quit\"\nconnect 127.0.0.1:41792\n",
+    "sha256": "46a3e0d2ff54d43c48c91b140034bbbef82b6b4812cb623a917a392e57ee98a1",
+    "exitCode": 1,
+    "terminated": false,
+    "screenshots": [
+      {
+        "path": "/mnt/e/Repositories/fnTech3/.tmp/linux-q3-x11-exitfix/linux-proof.png",
+        "sha256": "49c71500c3ceade1131a855283cff294fed627c78387e91e016f31a86896272a"
+      }
+    ]
+  },
+  "elapsedSeconds": 51.22051491799999,
+  "verified": {
+    "fatalExitCode": 1,
+    "pureAdmission": true,
+    "shutdownFaultStillPresent": true
+  },
+  "modifiedSourceHashes": [
+    {
+      "path": "code/unix/linux_signals.cpp",
+      "sha256": "4d51f0d84d49a3388a154daf29e491ecd2ee1bcb80f004dac63f6ac9ad80457e"
+    },
+    {
+      "path": "code/unix/unix_main.cpp",
+      "sha256": "72873ba7b96363a2e289851f70ce0194617443b8d45c9672234ed49fa8625f03"
+    }
+  ],
+  "logs": [
+    {
+      "name": "client-console.log",
+      "sha256": "70a31b4fb2f3f4ff718d191dcd069ea999d966281ac179b5be0fe64abedf283b"
+    },
+    {
+      "name": "server-console.log",
+      "sha256": "267a02404fac2f9dca2b5001ae7d3895f5f644bccdcace83443b44cdfcf15a74"
+    }
+  ],
+  "failureExcerpt": [
+    "----- Client Shutdown (Client quit) -----",
+    "----- Client Shutdown (Signal caught (11)) -----",
+    "WARNING: Recursive CL_Shutdown()"
+  ],
+  "validation": {
+    "regressionBefore": "Fatal handler returned zero",
+    "regressionAfter": [
+      "Windows pass",
+      "Linux pass"
+    ],
+    "variants": "debug/release, client/dedicated, fatal/double/requested/idle/error",
+    "platformSafetyTests": 21,
+    "linuxBuildLogSha256": "81c0ec8cc8f4c7fb934e5e3ee110f083e364dbac0d737cb06c1c977b8c9beca6"
+  },
+  "originalFaultDebugger": {
+    "logSha256": "dea3cede0cb9fdb60eb560fcaa2b2993121607929e6650b8da3a974fd0ddd2fb",
+    "observation": "SIGSEGV inside libGLX_mesa.so.0; cannot unwind beyond first frame"
+  }
+}

@@ -75,7 +75,7 @@ static void fatal_signal_handler( int sig )
 #endif
 	SV_Shutdown( msg );
 	VM_Forced_Unload_Done();
-	Sys_Exit( 0 ); // send a 0 to avoid DOUBLE SIGNAL FAULT
+	Sys_Exit( 1 ); // A fatal signal must never report a successful run.
 }
 
 

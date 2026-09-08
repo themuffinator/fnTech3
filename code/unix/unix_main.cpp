@@ -285,8 +285,12 @@ void NORETURN Sys_Exit( int code )
 	//exit(ex);
 	_exit( code );
 #else
-	// Give me a backtrace on error exits.
-	assert( code == 0 );
+	// Error shutdown may already be handling a fatal signal. Asserting here
+	// would raise another signal and recurse through cleanup instead of
+	// preserving the failure status. Normal debug exits still run atexit.
+	if ( code != 0 ) {
+		_exit( code );
+	}
 	exit( code );
 #endif
 }

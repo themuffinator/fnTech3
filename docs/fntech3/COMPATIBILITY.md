@@ -126,6 +126,9 @@ also builds the i686 client with embedded GLx and passes its configured suite
 The subsequent [native Linux client probe](2026-09-08-linux-client-runtime.md)
 reaches Q3 pure admission but finds SDL texture corruption and an X11 shutdown
 signal fault masked by exit status zero. Linux client runtime remains open.
+The [Unix exit correction](2026-09-08-unix-fatal-exit.md) makes fatal errors
+report failure without recursive debug assertions; it does not close the
+rendering or GLX shutdown defect.
 
 The target is one shared, drop-in binary set. It must select `q3` or `ql` before
 compatibility-sensitive initialization and then use that profile's complete,
