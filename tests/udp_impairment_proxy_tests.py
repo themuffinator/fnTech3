@@ -95,6 +95,42 @@ class UdpImpairmentProxyTests(unittest.TestCase):
                 self.assertEqual(record['targetedFragmentDrops'][direction][0]['fragmentStart'], 4)
                 self.assertEqual(record['targetedFragmentDrops'][direction][0]['fragmentOrdinal'], 2)
 
+    def test_terminal_fragment_selection_handles_empty_tail_and_bad_lengths(self):
+        for checksum in (False, True):
+            for tail in (b'', b'end'):
+                with self.subTest(checksum=checksum, tail=tail), socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as server, socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as client:
+                    server.bind(('127.0.0.1', 0)); server.settimeout(1); client.bind(('127.0.0.1', 0)); client.settimeout(1)
+                    relay = UdpImpairmentProxy(server.getsockname()[1], drop_every=0, delay_every=0, duplicate_every=0, sequence_checksum=checksum, drop_terminal_fragment=True)
+                    try:
+                        client.sendto(b'\xff' * 4 + b'connect', ('127.0.0.1', relay.port))
+                        _, peer = server.recvfrom(2000)
+                        for direction, sender, destination, receiver in (
+                            ('to_server', client, ('127.0.0.1', relay.port), server),
+                            ('to_client', server, peer, client),
+                        ):
+                            prefix = struct.pack('<I', 0x80000001)
+                            if direction == 'to_server': prefix += struct.pack('<H', 1234)
+                            if checksum: prefix += struct.pack('<I', 0x12345678)
+                            full = prefix + struct.pack('<HH', 0, 1300) + b'x' * 1300
+                            bad = prefix + struct.pack('<HH', 1300, 2) + b'x'
+                            short_header = prefix + b'\0'
+                            for packet in (full, bad, short_header):
+                                sender.sendto(packet, destination)
+                                self.assertEqual(receiver.recvfrom(2000)[0], packet)
+                            terminal = prefix + struct.pack('<HH', 1300, len(tail)) + tail
+                            sender.sendto(terminal, destination)
+                            sender.sendto(terminal, destination)
+                            self.assertEqual(receiver.recvfrom(2000)[0], terminal)
+                    finally:
+                        record = relay.close()
+                    self.assertIsNone(record['error'])
+                    for direction in ('to_server', 'to_client'):
+                        self.assertEqual(record['stats'][direction]['dropped'], 1)
+                        drop = record['targetedFragmentDrops'][direction][0]
+                        self.assertEqual(drop['fragmentOrdinal'], 4)
+                        self.assertEqual(drop['fragmentLength'], len(tail))
+                        self.assertEqual(drop['fragmentStart'], 1300)
+
     def test_loss_delay_duplication_and_connectionless_preservation(self):
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as server, socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as client:
             server.bind(('127.0.0.1', 0))
