@@ -1293,6 +1293,10 @@ static void CL_ParseCommandString( msg_t *msg ) {
 
 	seq = MSG_ReadLong( msg );
 	s = MSG_ReadCommandStringForWireProfile( msg, CL_ActiveWireProfile() );
+	if ( msg->readcount > msg->cursize ) {
+		Com_Error( ERR_DROP, "CL_ParseCommandString: truncated server command" );
+		return;
+	}
 	wireHash = MSG_HashKeyForWireProfile(
 		CL_ActiveWireProfile(), s, 32 );
 	storedCommand = s;
@@ -1314,7 +1318,7 @@ static void CL_ParseCommandString( msg_t *msg ) {
 		Com_Printf( " %3i(%3i) %s\n", seq, clc.serverCommandSequence, s );
 
 	// see if we have already executed stored it off
-	if ( clc.serverCommandSequence - seq >= 0 ) {
+	if ( !fnql::net::IsNewerCounter( seq, clc.serverCommandSequence ) ) {
 		return;
 	}
 	clc.serverCommandSequence = seq;

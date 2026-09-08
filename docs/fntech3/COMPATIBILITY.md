@@ -360,6 +360,12 @@ to the evidence level named in the same cell.
    and short-lifetime probe failures separately. Remote, long-session and
    broader protocol coverage remain open.
 
+The [reliable-command transaction correction](2026-09-08-server-command-transaction.md)
+rejects truncated commands before history/hash publication and removes signed
+overflow from duplicate detection. Both-profile executable boundary tests, Linux
+sanitizers and short retail-server map changes pass; malformed live packets and
+sustained counter-wrap interoperability remain open.
+
 ## Open live gates
 
 Hosted CI currently cannot start new jobs because GitHub reports an account
