@@ -1,0 +1,858 @@
+{
+  "commit": "dde9cca",
+  "kind": "Runtime-only renderer lifecycle evidence; no engine changes or suite rerun.",
+  "probes": [
+    {
+      "label": "linux-q3-x11-switch",
+      "manifest": {
+        "utc": "2026-09-08T01:52:36.278441+00:00",
+        "sourceCommit": "b5776c9492e95878954b436ed47a48aadb9508e9",
+        "sourceChanges": [
+          "code/unix/linux_signals.cpp",
+          "code/unix/unix_main.cpp",
+          "code/unix/linux_glimp.cpp",
+          "code/unix/x11_dga.cpp",
+          "code/unix/x11_randr.cpp",
+          "code/unix/x11_vidmode.cpp",
+          "code/unix/unix_syscon.cpp",
+          "code/renderervk/vk.c"
+        ],
+        "platform": "Linux i686 WSL2, private Xvfb, Mesa lavapipe",
+        "display": ":99",
+        "installation": "/mnt/c/Program Files (x86)/Steam/steamapps/common/Quake 3 Arena",
+        "basePakSha256": "7ce8b3910620cd50a09e4f1100f426e8c6180f68895d589f80e6bd95af54bcae",
+        "server": {
+          "command": [
+            "/mnt/e/Repositories/fnTech3/.tmp/clean-linux-b5776c9/.tmp/build-linux-i686/fntech3.ded",
+            "+set",
+            "com_gameProfile",
+            "q3",
+            "+set",
+            "fs_basepath",
+            "/mnt/c/Program Files (x86)/Steam/steamapps/common/Quake 3 Arena",
+            "+set",
+            "fs_homepath",
+            "/tmp/fntech3-linux-client-kd774cse/server",
+            "+set",
+            "fs_game",
+            "",
+            "+set",
+            "dedicated",
+            "1",
+            "+set",
+            "net_ip",
+            "127.0.0.1",
+            "+set",
+            "net_port",
+            "37444",
+            "+set",
+            "cl_renderer",
+            "glx",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "developer",
+            "1",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "set sv_pure 1\nset sv_autoRecordDemos 0\nset sv_maxclients 2\nset cl_allowDownload 0\nset cl_motd 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset cl_shownet 2\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nmap q3dm6\nwait 1000\nquit\n",
+          "sha256": "06ce3692030c9412f36e68e2dd62fdda9a0c5fb08b908ac6c0b5c403297cc82c",
+          "exitCode": 0,
+          "terminated": false,
+          "screenshots": []
+        },
+        "client": {
+          "command": [
+            "/mnt/e/Repositories/fnTech3/.tmp/clean-linux-b5776c9/.tmp/build-linux-renderers/fntech3",
+            "+set",
+            "com_gameProfile",
+            "q3",
+            "+set",
+            "fs_basepath",
+            "/mnt/c/Program Files (x86)/Steam/steamapps/common/Quake 3 Arena",
+            "+set",
+            "fs_homepath",
+            "/tmp/fntech3-linux-client-kd774cse/client",
+            "+set",
+            "fs_game",
+            "",
+            "+set",
+            "dedicated",
+            "0",
+            "+set",
+            "net_ip",
+            "127.0.0.1",
+            "+set",
+            "net_port",
+            "40481",
+            "+set",
+            "cl_renderer",
+            "glx",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "developer",
+            "1",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "set sv_pure 1\nset sv_autoRecordDemos 0\nset sv_maxclients 2\nset cl_allowDownload 0\nset cl_motd 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset cl_shownet 2\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nset activeAction \"wait 40; screenshotPNG linux-proof-0; wait 3; renderer_switch vk fast; wait 40; screenshotPNG linux-proof-1; wait 3; renderer_switch glx fast; wait 40; screenshotPNG linux-proof-2; wait 3; renderer_switch vk full; wait 40; screenshotPNG linux-proof-3; wait 3; renderer_switch glx full; wait 40; screenshotPNG linux-proof-4; wait 3; quit\"\nconnect 127.0.0.1:37444\n",
+          "sha256": "8a8fe0a28abffeb5bfe2b6b6d0aa46e6045c8a0b3c124512a214686e4a51e239",
+          "exitCode": 0,
+          "terminated": false,
+          "screenshots": [
+            {
+              "path": "/mnt/e/Repositories/fnTech3/.tmp/linux-q3-x11-switch/linux-proof-4.png",
+              "sha256": "d11fc2d740440fcf2e35b1d82a2faf6c12c58fe6a5b91dca1de8789640231e50"
+            },
+            {
+              "path": "/mnt/e/Repositories/fnTech3/.tmp/linux-q3-x11-switch/linux-proof-1.png",
+              "sha256": "c04224629f10f3ecbf7f234fd09579ee5cdb3246c7784765bf4aa109b502f49e"
+            },
+            {
+              "path": "/mnt/e/Repositories/fnTech3/.tmp/linux-q3-x11-switch/linux-proof-0.png",
+              "sha256": "2e541359af7627bdd88756b899800559fd73f1d657abed0b22afda3e7f60970f"
+            },
+            {
+              "path": "/mnt/e/Repositories/fnTech3/.tmp/linux-q3-x11-switch/linux-proof-2.png",
+              "sha256": "394955a3ea2516d94183d5f70f8efafd6132ff6a78dc9e146205790595f4c5c2"
+            },
+            {
+              "path": "/mnt/e/Repositories/fnTech3/.tmp/linux-q3-x11-switch/linux-proof-3.png",
+              "sha256": "88dcdb87f2e2645d624009999c31e73aab10aeb8918cdcdf6d638a256464aaf5"
+            }
+          ]
+        },
+        "elapsedSeconds": 52.011619444000004,
+        "logs": [
+          {
+            "name": "client-console.log",
+            "sha256": "81b570724a8631b718c22a3d4ba0b3aa5bff6184460e89fae8fc4656b05717e2"
+          },
+          {
+            "name": "server-console.log",
+            "sha256": "40adda6d4c098b9474beaef7cb8e72c95b229815d4436989591fe82a6c674d56"
+          }
+        ],
+        "transitions": [
+          "renderer_switch: glx -> vk",
+          "renderer_switch: vk -> glx",
+          "renderer_switch: glx -> vk",
+          "renderer_switch: vk -> glx"
+        ],
+        "shutdownTrace": [
+          "RE_Shutdown( 0 )",
+          "RE_Shutdown( 3 )",
+          "RE_Shutdown( 3 )",
+          "RE_Shutdown( 3 )",
+          "RE_Shutdown( 3 )",
+          "RE_Shutdown( 3 )"
+        ],
+        "modifiedSourceHashes": [
+          {
+            "path": "code/unix/linux_signals.cpp",
+            "sha256": "4d51f0d84d49a3388a154daf29e491ecd2ee1bcb80f004dac63f6ac9ad80457e"
+          },
+          {
+            "path": "code/unix/unix_main.cpp",
+            "sha256": "72873ba7b96363a2e289851f70ce0194617443b8d45c9672234ed49fa8625f03"
+          },
+          {
+            "path": "code/unix/linux_glimp.cpp",
+            "sha256": "fdef2fb3ba033124feb8b0ed68b436945528da8b63ee84edc56d2c242b368d3e"
+          },
+          {
+            "path": "code/unix/x11_dga.cpp",
+            "sha256": "6bac150b959b051f758a00c5a155d80aae7668c37c524b051b8d87a41fb7d993"
+          },
+          {
+            "path": "code/unix/x11_randr.cpp",
+            "sha256": "0d20331962bcc425bc291e85733aca7318ebede87774919233cbeb69e0d80da5"
+          },
+          {
+            "path": "code/unix/x11_vidmode.cpp",
+            "sha256": "081b99fdb46d618ae061379f30a1f529367a201288cec070de64b3b9726bfc96"
+          },
+          {
+            "path": "code/unix/unix_syscon.cpp",
+            "sha256": "cd529d52baee0956e57b02454c509d58f2f940c2a9a9e10d180410030d95c7fc"
+          },
+          {
+            "path": "code/renderervk/vk.c",
+            "sha256": "897fa00ada338c9bd70557bb94f09e5514c56745dfab9a88afdbf0ad97ae4eac"
+          }
+        ],
+        "environment": {
+          "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/lvp_icd.json",
+          "LIBGL_ALWAYS_SOFTWARE": "1"
+        },
+        "rendererArtifacts": [
+          {
+            "name": "fnql_glx_x86.so",
+            "sha256": "86a0fe568388a6818588e71bb49216555d2714c7551e339a14f63b9e47043fc1"
+          },
+          {
+            "name": "fnql_vk_x86.so",
+            "sha256": "1014b32c1219c007855f6d83c1e8528bd0d30d2540aaf01d59ec8804611515d5"
+          }
+        ],
+        "verified": {
+          "pureAdmission": true,
+          "snapshots": true,
+          "fourTransitions": true,
+          "fiveEngineScreenshots": true,
+          "normalClientAndServerExit": true,
+          "visualObservation": "All five screenshots inspected: readable Q3 world/HUD or QL native join UI/world. No full image parity or entered QL match claim."
+        }
+      }
+    },
+    {
+      "label": "renderer-switch-q3-lifecycle",
+      "manifest": {
+        "mode": "local-console-q3",
+        "utc": "2026-09-08T01:53:38.585518+00:00",
+        "commit": "dde9cca81a897e2ccf599b169d9935cc91ef3c8d",
+        "worktreeDirty": false,
+        "profile": "q3",
+        "fixture": {
+          "fixture": "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-retail-interop-twn4g9dy",
+          "installation": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+          "retailExecutableSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+          "paks": [
+            {
+              "name": "pak0.pk3",
+              "bytes": 479493658,
+              "sha256": "7ce8b3910620cd50a09e4f1100f426e8c6180f68895d589f80e6bd95af54bcae"
+            },
+            {
+              "name": "pak1.pk3",
+              "bytes": 374405,
+              "sha256": "d4ffd60b4b414c3419499e321b6f5c2e933cf082df85823ad2d6ae2f803e1682"
+            },
+            {
+              "name": "pak2.pk3",
+              "bytes": 7511182,
+              "sha256": "ccae938a2f13a03b24902d675181d516a431699701ed88023a307f34b5bcd58c"
+            },
+            {
+              "name": "pak3.pk3",
+              "bytes": 276305,
+              "sha256": "d03c0a0e06b99f9ecca2be7389f57faed406e85f7c09b9c56afdfa53ba25e312"
+            },
+            {
+              "name": "pak4.pk3",
+              "bytes": 9600350,
+              "sha256": "af5f6d5c82fe4440ae0bb660f0648d1fa1731a9e8305a9eb652aa243428697f1"
+            },
+            {
+              "name": "pak5.pk3",
+              "bytes": 191872,
+              "sha256": "69f87070ca7719e252a3ba97e6483f6663939c987ede550d1268d4d9a07b45bc"
+            },
+            {
+              "name": "pak6.pk3",
+              "bytes": 7346884,
+              "sha256": "bb4f0ae2bf603b050fb665436d3178ce7c1c20360e67bacf7c14d93daff38daf"
+            },
+            {
+              "name": "pak7.pk3",
+              "bytes": 320873,
+              "sha256": "de6283ce23e3486a2622c5dbf73d3721a59f24debd380e90f43a97d952fea283"
+            },
+            {
+              "name": "pak8.pk3",
+              "bytes": 454478,
+              "sha256": "812c9e97f231e89cefede3848c6110b7bd34245093af6f22c2cacde3e6b15663"
+            }
+          ],
+          "isolation": "Copied executable and pak0..8 only; no installation config, credentials, mods, or writable install path used"
+        },
+        "privateDesktop": "fntech3_probe_ef0bb4d9dae24edab8b0591a136b20ca",
+        "desktopSwitched": false,
+        "mergedArtifacts": [
+          {
+            "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.exe",
+            "sha256": "048ed8bfcab13f5595af9233c6585b79f68892f894cdc20c301360afe98a9d6c"
+          },
+          {
+            "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.ded.exe",
+            "sha256": "ad5aaaa1b4805061fbdc6af4247c22b3a2f648687817207ea7c579d0630a9f13"
+          },
+          {
+            "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fnql_vk_x86.dll",
+            "sha256": "403abbd7f765fc063dc806004a0cbede65a59cac5b027e634d4a232a95227b5e"
+          },
+          {
+            "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fnql_glx_x86.dll",
+            "sha256": "69f933d55b1007ffec7933537316ca34a7ba21b19ac0b7279acd62cdd30dfdaa"
+          },
+          {
+            "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\FnQL-pkg.fnz",
+            "sha256": "1d1ff86488c3134a936486790c24954bef87abd22177e1ca8b5542cc2f06115a"
+          },
+          {
+            "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fnql-web.pak",
+            "sha256": "6c210165880fff668900fd3e4e3c90137623043e1b5315f24b693f367f756382"
+          }
+        ],
+        "server": {
+          "exe": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.ded.exe",
+          "sha256": "ad5aaaa1b4805061fbdc6af4247c22b3a2f648687817207ea7c579d0630a9f13",
+          "command": [
+            "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.ded.exe",
+            "+set",
+            "fs_basepath",
+            "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-retail-interop-twn4g9dy\\assets",
+            "+set",
+            "fs_homepath",
+            "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-rnrjfzdc\\server",
+            "+set",
+            "fs_game",
+            "",
+            "+set",
+            "fs_cdpath",
+            "",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "developer",
+            "1",
+            "+set",
+            "net_ip",
+            "127.0.0.1",
+            "+set",
+            "net_port",
+            "65521",
+            "+set",
+            "dedicated",
+            "1",
+            "+set",
+            "protocol",
+            "68",
+            "+set",
+            "cl_renderer",
+            "glx",
+            "+set",
+            "r_windowedMode",
+            "-1",
+            "+set",
+            "r_windowedWidth",
+            "640",
+            "+set",
+            "r_windowedHeight",
+            "480",
+            "+set",
+            "com_gameProfile",
+            "q3",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+exec",
+            "interop.cfg"
+          ],
+          "home": "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-rnrjfzdc\\server",
+          "exitCode": 0,
+          "terminated": false,
+          "screenshots": []
+        },
+        "client": {
+          "exe": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.exe",
+          "sha256": "048ed8bfcab13f5595af9233c6585b79f68892f894cdc20c301360afe98a9d6c",
+          "command": [
+            "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.exe",
+            "+set",
+            "fs_basepath",
+            "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-retail-interop-twn4g9dy\\assets",
+            "+set",
+            "fs_homepath",
+            "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-rnrjfzdc\\client",
+            "+set",
+            "fs_game",
+            "",
+            "+set",
+            "fs_cdpath",
+            "",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "developer",
+            "1",
+            "+set",
+            "net_ip",
+            "127.0.0.1",
+            "+set",
+            "net_port",
+            "65531",
+            "+set",
+            "dedicated",
+            "0",
+            "+set",
+            "protocol",
+            "68",
+            "+set",
+            "cl_renderer",
+            "glx",
+            "+set",
+            "r_windowedMode",
+            "-1",
+            "+set",
+            "r_windowedWidth",
+            "640",
+            "+set",
+            "r_windowedHeight",
+            "480",
+            "+set",
+            "com_gameProfile",
+            "q3",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+exec",
+            "interop.cfg"
+          ],
+          "home": "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-rnrjfzdc\\client",
+          "exitCode": 0,
+          "terminated": false,
+          "screenshots": [
+            {
+              "path": "E:\\Repositories\\fnTech3\\.tmp\\renderer-switch-q3-lifecycle\\client-interop-proof-0.png",
+              "sha256": "337b16a0d13d8f2eb1504e7d9b65cc92e470d2417015cca85edbe6b1ca76e496"
+            },
+            {
+              "path": "E:\\Repositories\\fnTech3\\.tmp\\renderer-switch-q3-lifecycle\\client-interop-proof-1.png",
+              "sha256": "62786c2682e7af8f9300f8cec9700a88c4cf393e60afafc118859d2b9e9f61e8"
+            },
+            {
+              "path": "E:\\Repositories\\fnTech3\\.tmp\\renderer-switch-q3-lifecycle\\client-interop-proof-2.png",
+              "sha256": "9a2176eb5e99fd3f4d03d00837dc8bf9d801c211282672209f857a92e0f9764d"
+            },
+            {
+              "path": "E:\\Repositories\\fnTech3\\.tmp\\renderer-switch-q3-lifecycle\\client-interop-proof-3.png",
+              "sha256": "d21e68a8b3dc37673c6251856b7411841e535280089142856bce58deb8f377eb"
+            },
+            {
+              "path": "E:\\Repositories\\fnTech3\\.tmp\\renderer-switch-q3-lifecycle\\client-interop-proof-4.png",
+              "sha256": "d1ed9bacccc193081056d50a07376b328fe2a59d9f5ba6f4f9681f4ded8d03ed"
+            }
+          ]
+        },
+        "serverReady": true,
+        "privateWindowDiagnostics": [],
+        "elapsedSeconds": 50.547,
+        "platform": "Windows x86, private desktop",
+        "logs": [
+          {
+            "name": "client-console.log",
+            "sha256": "5f6e41a7b11d873362d1ca0a1607967ee82cd4bb7da24efc04471dc8380a5367"
+          },
+          {
+            "name": "server-console.log",
+            "sha256": "4d87ff665252a1d63fcdba7e9f7c357be4e73475ed9ec706ee81d4df50445af9"
+          }
+        ],
+        "transitions": [
+          "renderer_switch: glx -> vk",
+          "renderer_switch: vk is already active, restarting renderer.",
+          "renderer_switch: vk -> glx",
+          "renderer_switch: glx is already active, restarting renderer."
+        ],
+        "shutdownTrace": [
+          "RE_Shutdown( 0 )",
+          "RE_Shutdown( 3 )",
+          "RE_Shutdown( 1 )",
+          "RE_Shutdown( 3 )",
+          "RE_Shutdown( 1 )",
+          "RE_Shutdown( 3 )"
+        ],
+        "verified": {
+          "pureAdmission": true,
+          "snapshots": true,
+          "fourTransitions": true,
+          "fiveEngineScreenshots": true,
+          "normalClientAndServerExit": true,
+          "visualObservation": "All five screenshots inspected: readable Q3 world/HUD or QL native join UI/world. No full image parity or entered QL match claim."
+        }
+      }
+    },
+    {
+      "label": "renderer-switch-ql-lifecycle",
+      "manifest": {
+        "mode": "local-console-ql",
+        "utc": "2026-09-08T01:54:29.414000+00:00",
+        "commit": "dde9cca81a897e2ccf599b169d9935cc91ef3c8d",
+        "worktreeDirty": false,
+        "profile": "ql",
+        "fixture": {
+          "installation": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live",
+          "profile": "ql"
+        },
+        "privateDesktop": "fntech3_probe_2bb18550fe8240ec9f62b652d466a7ce",
+        "desktopSwitched": false,
+        "mergedArtifacts": [
+          {
+            "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.exe",
+            "sha256": "048ed8bfcab13f5595af9233c6585b79f68892f894cdc20c301360afe98a9d6c"
+          },
+          {
+            "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.ded.exe",
+            "sha256": "ad5aaaa1b4805061fbdc6af4247c22b3a2f648687817207ea7c579d0630a9f13"
+          },
+          {
+            "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fnql_vk_x86.dll",
+            "sha256": "403abbd7f765fc063dc806004a0cbede65a59cac5b027e634d4a232a95227b5e"
+          },
+          {
+            "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fnql_glx_x86.dll",
+            "sha256": "69f933d55b1007ffec7933537316ca34a7ba21b19ac0b7279acd62cdd30dfdaa"
+          },
+          {
+            "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\FnQL-pkg.fnz",
+            "sha256": "1d1ff86488c3134a936486790c24954bef87abd22177e1ca8b5542cc2f06115a"
+          },
+          {
+            "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fnql-web.pak",
+            "sha256": "6c210165880fff668900fd3e4e3c90137623043e1b5315f24b693f367f756382"
+          }
+        ],
+        "server": {
+          "exe": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.ded.exe",
+          "sha256": "ad5aaaa1b4805061fbdc6af4247c22b3a2f648687817207ea7c579d0630a9f13",
+          "command": [
+            "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.ded.exe",
+            "+set",
+            "fs_basepath",
+            "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live",
+            "+set",
+            "fs_homepath",
+            "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-rkf_yh6a\\server",
+            "+set",
+            "fs_game",
+            "",
+            "+set",
+            "fs_cdpath",
+            "",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "developer",
+            "1",
+            "+set",
+            "net_ip",
+            "127.0.0.1",
+            "+set",
+            "net_port",
+            "51843",
+            "+set",
+            "dedicated",
+            "1",
+            "+set",
+            "protocol",
+            "91",
+            "+set",
+            "cl_renderer",
+            "glx",
+            "+set",
+            "r_windowedMode",
+            "-1",
+            "+set",
+            "r_windowedWidth",
+            "640",
+            "+set",
+            "r_windowedHeight",
+            "480",
+            "+set",
+            "com_gameProfile",
+            "ql",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+exec",
+            "interop.cfg"
+          ],
+          "home": "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-rkf_yh6a\\server",
+          "exitCode": 0,
+          "terminated": false,
+          "screenshots": []
+        },
+        "client": {
+          "exe": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.exe",
+          "sha256": "048ed8bfcab13f5595af9233c6585b79f68892f894cdc20c301360afe98a9d6c",
+          "command": [
+            "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.exe",
+            "+set",
+            "fs_basepath",
+            "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live",
+            "+set",
+            "fs_homepath",
+            "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-rkf_yh6a\\client",
+            "+set",
+            "fs_game",
+            "",
+            "+set",
+            "fs_cdpath",
+            "",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "developer",
+            "1",
+            "+set",
+            "net_ip",
+            "127.0.0.1",
+            "+set",
+            "net_port",
+            "51844",
+            "+set",
+            "dedicated",
+            "0",
+            "+set",
+            "protocol",
+            "91",
+            "+set",
+            "cl_renderer",
+            "glx",
+            "+set",
+            "r_windowedMode",
+            "-1",
+            "+set",
+            "r_windowedWidth",
+            "640",
+            "+set",
+            "r_windowedHeight",
+            "480",
+            "+set",
+            "com_gameProfile",
+            "ql",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+exec",
+            "interop.cfg"
+          ],
+          "home": "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-rkf_yh6a\\client",
+          "exitCode": 0,
+          "terminated": false,
+          "screenshots": [
+            {
+              "path": "E:\\Repositories\\fnTech3\\.tmp\\renderer-switch-ql-lifecycle\\client-interop-proof-0.png",
+              "sha256": "0e3d03991f8a2fa9f02de5f77ff5efc53e932b2c4b03f5defafa2203d6a134ff"
+            },
+            {
+              "path": "E:\\Repositories\\fnTech3\\.tmp\\renderer-switch-ql-lifecycle\\client-interop-proof-1.png",
+              "sha256": "cfd7fd320d7308128e697273c52cd2c4d8b41e5b6b2591a9aa5a87bee3e16fd4"
+            },
+            {
+              "path": "E:\\Repositories\\fnTech3\\.tmp\\renderer-switch-ql-lifecycle\\client-interop-proof-2.png",
+              "sha256": "6cd3a5ed387ec20f625461acf2519a17af41c343156b359365a62eee0a243a8a"
+            },
+            {
+              "path": "E:\\Repositories\\fnTech3\\.tmp\\renderer-switch-ql-lifecycle\\client-interop-proof-3.png",
+              "sha256": "57a676b8bc2ae0ba2c03eecc2131f424f31a34f2c76d76d27b959a62355aa4ba"
+            },
+            {
+              "path": "E:\\Repositories\\fnTech3\\.tmp\\renderer-switch-ql-lifecycle\\client-interop-proof-4.png",
+              "sha256": "aa30634ae60bf2dbb722427bd60754540b062db8f86b5191aad104c7661c0117"
+            }
+          ]
+        },
+        "serverReady": true,
+        "privateWindowDiagnostics": [],
+        "elapsedSeconds": 26.391,
+        "platform": "Windows x86, private desktop",
+        "logs": [
+          {
+            "name": "client-console.log",
+            "sha256": "e7d957cd208f3de0b908eb01a563ea651fd3f7e33482e8b5112c194b8ffde5ab"
+          },
+          {
+            "name": "server-console.log",
+            "sha256": "a3212a8245be9650bfe8152fe4411c7812a88fd7542d5efa49222a15bf667a98"
+          }
+        ],
+        "transitions": [
+          "renderer_switch: glx -> vk",
+          "renderer_switch: vk is already active, restarting renderer.",
+          "renderer_switch: vk -> glx",
+          "renderer_switch: glx is already active, restarting renderer."
+        ],
+        "shutdownTrace": [
+          "RE_Shutdown( 0 )",
+          "RE_Shutdown( 3 )",
+          "RE_Shutdown( 1 )",
+          "RE_Shutdown( 3 )",
+          "RE_Shutdown( 1 )",
+          "RE_Shutdown( 3 )"
+        ],
+        "verified": {
+          "pureAdmission": true,
+          "snapshots": true,
+          "fourTransitions": true,
+          "fiveEngineScreenshots": true,
+          "normalClientAndServerExit": true,
+          "visualObservation": "All five screenshots inspected: readable Q3 world/HUD or QL native join UI/world. No full image parity or entered QL match claim."
+        }
+      }
+    }
+  ],
+  "semantics": {
+    "crossRenderer": "CL_ShutdownRef promotes a modified renderer to REF_UNLOAD_DLL (3), including fast requests.",
+    "sameRendererFast": "Windows probes observe REF_KEEP_WINDOW (1); window preservation is source-backed, without a native-handle measurement."
+  }
+}

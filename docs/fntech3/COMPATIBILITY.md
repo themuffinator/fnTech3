@@ -141,6 +141,10 @@ The [Vulkan descriptor correction](2026-09-08-vulkan-descriptor-restart.md)
 fixes a native Linux crash during the pure-join resource rebuild by reallocating
 all attachment descriptor sets before updating them. Linux Q3 rendering and a
 renderer restart gain runtime evidence without closing broader parity gates.
+The [renderer-switch checkpoint](2026-09-08-renderer-switch.md) adds four-step
+GLx/Vulkan transition sequences on Linux Q3 and Windows Q3/QL, including Windows
+same-renderer fast restarts. All three probes render and exit normally; changed
+modules still take a full unload, so cross-module window retention is not claimed.
 
 The target is one shared, drop-in binary set. It must select `q3` or `ql` before
 compatibility-sensitive initialization and then use that profile's complete,
