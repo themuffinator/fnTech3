@@ -333,6 +333,10 @@ to the evidence level named in the same cell.
    later WAV/Ogg corrections in Ubuntu 20.04, passes the full configured suite
    and glibc ceiling, and repeats deterministic packaging plus Q3 pure-client
    and QL API 10 dedicated smoke checks.
+   The [clean Windows media refresh](2026-09-08-windows-media-build-refresh.md)
+   packages e114ded from a fresh export, repeats the full suite and all four
+   retail map-change directions, and verifies both-profile file audio from
+   identical packaged binaries. Hosted CI remains blocked by the account issue.
    The [engine-only correction](2026-09-07-engine-only-packaging.md) removes
    inherited closed-source provider staging. Subsequent clean CI now validates
    that packaging path; see the [regression checkpoint](2026-09-08-regression-checkpoint.md).
