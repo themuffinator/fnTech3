@@ -120,6 +120,9 @@ The [HTTP error and cURL cleanup checkpoint](2026-09-08-http-errors-and-curl-cle
 records 404/truncated-response rejection and fixes handle release before
 connection reset. Successful HTTP reconnect still passes in both profiles;
 error-probe shutdown remains incomplete and required forced termination.
+The [Linux i686 HTTP checkpoint](2026-09-08-linux-http-runtime.md) verifies
+runtime-loaded cURL, a matching generated Q3 add-on with UDP fallback disabled,
+automatic reconnect, pure admission, rendering and normal shutdown.
 The [HTTP interruption checkpoint](2026-09-08-http-interruption.md) verifies
 that short responses leave no installed add-on and that both profiles can
 download successfully in a new process reusing the same isolated home.

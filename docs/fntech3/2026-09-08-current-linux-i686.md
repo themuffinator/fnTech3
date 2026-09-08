@@ -46,8 +46,10 @@ remain untracked, and no keyboard/mouse control or OS capture was used.
 
 The source tar was checked against all 1,384 exported regular files before the
 test correction with no differences. Follow-up verification records only the
-intentional test change. Full packaging, the separate SDL path, cURL transfer
-runtime, all-renderer/driver coverage, Windows shared-client sign-off and
+intentional test change. A subsequent [Linux HTTP probe](2026-09-08-linux-http-runtime.md)
+verifies the Q3 runtime-loaded cURL success path with these artifacts. Full
+packaging, the separate SDL path, broader HTTP coverage, all-renderer/driver
+coverage, Windows shared-client sign-off and
 independent retail interoperability remain open. Existing compiler signedness/
 unused-function warnings and image/font diagnostics are not fixed here. The
 cause of the first temporary source's disappearance remains unestablished.
