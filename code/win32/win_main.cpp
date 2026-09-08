@@ -99,15 +99,20 @@ Show the early console as an error dialog
 void NORETURN FORMAT_PRINTF(1, 2) QDECL Sys_Error( const char *error, ... ) {
 	va_list	argptr;
 	char	text[4096];
-	MSG		msg;
 
 	va_start( argptr, error );
 	Q_vsnprintf( text, sizeof( text ), error, argptr );
 	va_end( argptr );
 
-#ifndef DEDICATED
+#ifdef DEDICATED
+	// Server supervisors need a diagnostic and a failing process status,
+	// including errors before the filesystem or console is initialized.
+	fprintf( stderr, "Sys_Error: %s\n", text );
+	fflush( stderr );
+	timeEndPeriod( 1 );
+#else
+	MSG msg;
 	CL_Shutdown( text, qtrue );
-#endif
 
 	Conbuf_AppendText( text );
 	Conbuf_AppendText( "\n" );
@@ -127,6 +132,7 @@ void NORETURN FORMAT_PRINTF(1, 2) QDECL Sys_Error( const char *error, ... ) {
 		DispatchMessage( &msg );
 	}
 
+#endif // DEDICATED
 	SetUnhandledExceptionFilter( NULL );
 
 	Sys_DestroyConsole();
