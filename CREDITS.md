@@ -34,6 +34,11 @@ remain authoritative.
 
 ## Compatibility references and adapted work
 
+- The independently authored synthetic Q3 UI fixture uses public ordinal/layout
+  facts from the GPL-2.0-or-later pinned
+  [FnQuake3 UI header](https://github.com/themuffinator/FnQ3/blob/7d8c9629cdc7979f09697266470359101ffd9eda/code/ui/ui_public.h).
+  It implements no retail menu behavior and uses no proprietary inputs.
+
 - The synthetic Q3 native cgame probe independently exercises the legacy ABI
   using ordinal and layout facts from the GPL-2.0-or-later pinned
   [FnQuake3 cgame header](https://github.com/themuffinator/FnQ3/blob/7d8c9629cdc7979f09697266470359101ffd9eda/code/cgame/cg_public.h).
