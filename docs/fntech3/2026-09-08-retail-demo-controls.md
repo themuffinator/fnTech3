@@ -73,3 +73,28 @@ messages, and Q3's updating lagometer. The QL timescale-zero observation is now
 classified as matching retail's observed lower limit, not an outstanding pause
 failure. No general website, audio or complete demo-control compatibility is
 claimed.
+
+## Paused restart follow-up
+
+At source baseline `70134ad`, the same client restarts each profile's demo while
+cl_freezeDemo is 1. A separate restart config installs a new activeAction before
+issuing demo again, avoiding a recursive restart loop. The new activeAction
+queries cl_freezeDemo and captures a screenshot after five frames, waits another
+90 frames, queries/captures again, and finally unpauses. The retail Windows QL
+client repeats the same sequence with the same identified QL input.
+
+All three runs retain cl_freezeDemo=1 at both checkpoints. All paused A/B image
+pairs are pixel-identical. Inspection confirms a first-person world and HUD,
+with both QL clients showing demo time 0:00.000 and paused controls. Both fnTech3
+profiles and retail QL then reach the exact completion marker and exit 0 normally
+after the explicit unpause. Commands, identities, hashes and outcomes are appended
+to the machine-readable record under pausedRestartFollowup.
+
+Retaining pause across this explicit same-demo restart matches the observed
+retail QL behavior; it is not treated as unwanted state leakage or changed in
+engine code. This does not establish cross-profile process switching (profiles
+remain immutable), live-session transition behavior, repeated restart stress,
+seeking to arbitrary times or native input routing. The same isolated,
+windowed, input-disabled engine-screenshot procedure was used. Documentation
+staging and links passed; no engine source changed or full suite rerun was needed.
+Existing retail website/audio diagnostics remain separate limitations.
