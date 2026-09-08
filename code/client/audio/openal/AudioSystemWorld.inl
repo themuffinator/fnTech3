@@ -502,13 +502,18 @@ bool SoundSample::EnsureLoaded( OpenALDevice &device, bool allowToneFallback ) {
 		return false;
 	}
 
-	const AudioSampleFormat sourceFormat = DetectAudioSampleFormatFromName( name_, info.channels );
+	const bool route = fntech3::audio::NeedsSpeakerDownmix( info.speakerMask, info.channels );
+	const auto routed = route ? fntech3::audio::DownmixSpeakers( static_cast<const byte *>( data.get() ) + info.dataofs,
+		info.samples, info.width, info.channels, info.speakerMask ) : std::vector<short>{};
+	if ( route ) { info.channels = 2; info.width = 2; info.size = info.samples * 4; info.dataofs = 0; }
+	const AudioSampleFormat sourceFormat = info.speakerMask ? AudioSampleFormat{ AudioSampleEncoding::PCM, info.channels } :
+		DetectAudioSampleFormatFromName( name_, info.channels );
 	if ( AudioSampleFormatIsEncodedSoundField( sourceFormat ) && !AudioSampleFormatCanBeRepresented( sourceFormat ) ) {
 		Com_DPrintf( S_COLOR_YELLOW "WARNING: audio sample %s is tagged as %s but has %d channels; treating it as ordinary PCM if possible\n",
 			name_.c_str(), AudioSampleFormatName( sourceFormat ), info.channels );
 	}
 	const AudioSampleFormat loadFormat = AudioSampleFormatCanBeRepresented( sourceFormat ) ? sourceFormat : AudioSampleFormat{ AudioSampleEncoding::PCM, info.channels };
-	const std::vector<short> pcm = ConvertToPCM16( info, loadFormat, static_cast<const byte *>( data.get() ) );
+	const std::vector<short> pcm = route ? routed : ConvertToPCM16( info, loadFormat, static_cast<const byte *>( data.get() ) );
 
 	if ( pcm.empty() ) {
 		missing_ = true;

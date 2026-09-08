@@ -23,6 +23,7 @@ extern "C" {
 }
 
 #include "../../client_cpp.h"
+#include "../shared/AudioSpeakerLayout.h"
 
 #include <AL/al.h>
 #include <AL/alc.h>

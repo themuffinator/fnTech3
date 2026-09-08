@@ -222,6 +222,7 @@ qboolean S_ReadRIFFHeader( fileHandle_t file, int fileLength, snd_info_t *info, 
 	const unsigned int rate = WavLittleLong( fmt.data() + 4 );
 	const int bits = WavLittleShort( fmt.data() + 14 );
 	int consumed = 16;
+	unsigned int speakerMask = 0;
 	if ( format == kWavFormatExtensible ) {
 		if ( fmtlen < 40 || !reader.Read( fmt.data() + 16, 24 ) ) {
 			return qfalse;
@@ -245,6 +246,7 @@ qboolean S_ReadRIFFHeader( fileHandle_t file, int fileLength, snd_info_t *info, 
 			return qfalse;
 		}
 		format = WavLittleShort( fmt.data() + 24 );
+		speakerMask = WavLittleLong( fmt.data() + 20 );
 		consumed = 40;
 	}
 	if ( !reader.Skip( fmtlen - consumed + ( fmtlen & 1 ) ) ) {
@@ -270,6 +272,7 @@ qboolean S_ReadRIFFHeader( fileHandle_t file, int fileLength, snd_info_t *info, 
 	parsedSource.needsConversion = ( format == kWavFormatIEEEFloat || bits == 24 || ( bits == 8 && channels > 1 ) );
 	snd_info_t parsed{};
 	parsed.channels = channels;
+	parsed.speakerMask = speakerMask;
 	parsed.rate = static_cast<int>( rate );
 	parsed.samples = dataSize / ( parsedSource.width * channels );
 	parsed.width = parsedSource.needsConversion ? 2 : parsedSource.width;

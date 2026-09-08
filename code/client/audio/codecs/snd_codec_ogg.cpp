@@ -330,6 +330,7 @@ snd_stream_t *S_OGG_CodecOpenStream(const char *filename)
 	stream->info.samples = numSamples;
 	stream->info.size = stream->info.samples * stream->info.channels * stream->info.width;
 	stream->info.dataofs = 0;
+	stream->info.speakerMask = 0;
 
 	// We use stream->pos for the file pointer in the compressed ogg file 
 	stream->pos = 0;
@@ -457,6 +458,7 @@ void *S_OGG_CodecLoad(const char *filename, snd_info_t *info)
 	info->samples = stream->info.samples;
 	info->size = stream->info.size;
 	info->dataofs = stream->info.dataofs;
+	info->speakerMask = 0;
 
 	// allocate a buffer
 	// this buffer must be free-ed by the caller of this function

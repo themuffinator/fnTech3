@@ -36,6 +36,7 @@ extern "C" {
 }
 
 #include "../../client_cpp.h"
+#include "../shared/AudioSpeakerLayout.h"
 #include "../shared/AudioInitPolicy.h"
 #include "../shared/AudioVoiceQueue.h"
 
@@ -1579,6 +1580,9 @@ static void S_Base_UpdateBackgroundTrack( void ) {
 			fileSamples = fileBytes / (s_backgroundStream->info.width * s_backgroundStream->info.channels);
 		}
 
+		fileBytes = fntech3::audio::WholeFrameReadBytes( fileBytes,
+			s_backgroundStream->info.width, s_backgroundStream->info.channels );
+		if ( !fileBytes ) return;
 		// Read
 		r = S_CodecReadStream( s_backgroundStream, fileBytes, raw.data() );
 		if( r < fileBytes )
@@ -1589,8 +1593,13 @@ static void S_Base_UpdateBackgroundTrack( void ) {
 		if ( r > 0 )
 		{
 			// add to raw buffer
-			S_Base_RawSamples( fileSamples, s_backgroundStream->info.rate,
-				s_backgroundStream->info.width, s_backgroundStream->info.channels, raw.data(), s_musicVolume->value );
+			const auto &info = s_backgroundStream->info;
+			const bool route = fntech3::audio::NeedsSpeakerDownmix( info.speakerMask, info.channels, false );
+			const auto routed = route ? fntech3::audio::DownmixSpeakers( raw.data(), fileSamples,
+				info.width, info.channels, info.speakerMask ) : std::vector<short>{};
+			if ( route && routed.empty() ) { S_Base_StopBackgroundTrack(); return; }
+			S_Base_RawSamples( fileSamples, info.rate, route ? 2 : info.width, route ? 2 : info.channels,
+				route ? reinterpret_cast<const byte *>( routed.data() ) : raw.data(), s_musicVolume->value );
 		}
 		else
 		{

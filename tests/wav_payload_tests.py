@@ -71,7 +71,7 @@ constexpr int kWavFormatPCM=1,kWavFormatIEEEFloat=3,qtrue=1;
 #define S_COLOR_RED ""
 struct WavSourceFormat {int format=kWavFormatPCM,width=0;bool needsConversion=false;};
 struct WavStreamState {int format,width;};
-struct snd_info_t {int rate=44100,width=0,channels=1,samples=0,size=0,dataofs=0;};
+struct snd_info_t {int rate=44100,width=0,channels=1,samples=0,size=0,dataofs=0;unsigned int speakerMask=0;};
 struct snd_stream_t {int file=1;snd_info_t info;int pos=0;void*ptr=nullptr;};
 std::vector<byte> payload;
 std::size_t cursor=0;

@@ -34,6 +34,7 @@ struct snd_info_t {
 	int samples;
 	int size;
 	int dataofs;
+	unsigned int speakerMask; // Internal codec metadata; zero keeps legacy channel order.
 };
 
 struct snd_codec_t;

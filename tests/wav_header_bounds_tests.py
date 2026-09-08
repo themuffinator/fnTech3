@@ -28,7 +28,7 @@ using byte=unsigned char;using fileHandle_t=int;using qboolean=bool;
 constexpr bool qfalse=false,qtrue=true;
 constexpr int kWavFormatPCM=1,kWavFormatIEEEFloat=3,kWavFormatExtensible=0xfffe,FS_SEEK_CUR=1;
 struct WavSourceFormat {int format=1,width=0;bool needsConversion=false;};
-struct snd_info_t {int rate,width,channels,samples,size,dataofs;};
+struct snd_info_t {int rate,width,channels,samples,size,dataofs;unsigned int speakerMask=0;};
 std::vector<byte> input;int pos=0,reads=0,seeks=0,failRead=-1,seekMode=0;
 int FileRead(int,void*out,int n){
  assert(n>=0&&n<=40);++reads;
@@ -63,7 +63,8 @@ bool parse(Bytes bytes,bool expected,int mode=0,int fail=-1,int length=-1,int ex
  bool ok=S_ReadRIFFHeader(1,length==-1?static_cast<int>(input.size()):length,&info,&source);
  assert(ok==expected);
  if(!ok){assert(std::memcmp(&info,&before,sizeof(info))==0);assert(source.format==7&&source.width==8&&source.needsConversion);}
- else{if(expectedWidth)assert(info.width==expectedWidth);assert(info.rate==22050&&info.channels>0&&info.width>0&&info.size>=0&&info.dataofs==0);}
+ else{if(expectedWidth)assert(info.width==expectedWidth);assert(info.rate==22050&&info.channels>0&&info.width>0&&info.size>=0&&info.dataofs==0);
+ unsigned expectedMask=bytes.size()>=60 && bytes[20]==0xfe && bytes[21]==0xff ? WavLittleLong(bytes.data()+40) : 0;assert(info.speakerMask==expectedMask);}
  return ok;
 }
 int main(){
@@ -91,6 +92,7 @@ int main(){
  for(unsigned rate:{0u,0x80000000u,0xffffffffu}){auto f=fmt();set32(f,4,rate);parse(riff(body(f)),false);}
  auto extended=fmt(0xfffe);u16(extended,22);u16(extended,16);u32(extended,0);u16(extended,1);append(extended,{0,0,0,0,0x10,0,0x80,0,0,0xaa,0,0x38,0x9b,0x71});
  parse(riff(body(extended)),true);
+ for(unsigned mask:{0u,3u,5u,0x3fu,0x80000000u}){auto f=extended;set32(f,20,mask);parse(riff(body(f)),true);}
  // Valid precision may be smaller than the byte-aligned container, never larger.
  for(int bits:{8,16,24,32}){
   auto f=extended;f[14]=bits;f[24]=bits==32?3:1;

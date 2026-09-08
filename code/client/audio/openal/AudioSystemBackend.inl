@@ -531,7 +531,10 @@ void AudioSystem::ServiceBackgroundTrack() {
 	int chunksQueuedThisCall = 0;
 	while ( musicPlayer_.QueuedBufferCount() < kQueuedStreamChunks && chunksQueuedThisCall < kMaxStreamChunksPerService ) {
 		std::array<byte, 32768> raw;
-		const int bytesRead = S_CodecReadStream( backgroundStream_, static_cast<int>( raw.size() ), raw.data() );
+		const int readBytes = fntech3::audio::WholeFrameReadBytes( static_cast<int>( raw.size() ),
+			backgroundStream_->info.width, backgroundStream_->info.channels );
+		if ( !readBytes ) { StopBackgroundTrack(); break; }
+		const int bytesRead = S_CodecReadStream( backgroundStream_, readBytes, raw.data() );
 		if ( bytesRead <= 0 ) {
 			if ( !backgroundLoop_.empty() ) {
 				if ( emptyRestarts > 0 ) {
@@ -555,7 +558,8 @@ void AudioSystem::ServiceBackgroundTrack() {
 
 		if ( backgroundStream_->info.rate <= 0 ||
 			( backgroundStream_->info.width != 1 && backgroundStream_->info.width != 2 ) ||
-			!PCMChannelCountCanBeRepresented( backgroundStream_->info.channels ) ) {
+			( !PCMChannelCountCanBeRepresented( backgroundStream_->info.channels ) &&
+				!fntech3::audio::NeedsSpeakerDownmix( backgroundStream_->info.speakerMask, backgroundStream_->info.channels ) ) ) {
 			StopBackgroundTrack();
 			break;
 		}
@@ -571,9 +575,15 @@ void AudioSystem::ServiceBackgroundTrack() {
 		if ( inputSamples <= 0 ) {
 			break;
 		}
-		const int outputChannels = SelectStreamOutputChannels( device_, backgroundStream_->info.channels );
-		if ( !QueueStreamChunk( musicPlayer_, inputSamples, backgroundStream_->info.rate, backgroundStream_->info.width,
-			backgroundStream_->info.channels, raw.data(), 1.0f, outputChannels, true ) ) {
+		const auto &info = backgroundStream_->info;
+		const bool route = fntech3::audio::NeedsSpeakerDownmix( info.speakerMask, info.channels );
+		const auto routed = route ? fntech3::audio::DownmixSpeakers( raw.data(), inputSamples,
+			info.width, info.channels, info.speakerMask ) : std::vector<short>{};
+		if ( route && routed.empty() ) { StopBackgroundTrack(); break; }
+		const int channels = route ? 2 : info.channels;
+		const int outputChannels = SelectStreamOutputChannels( device_, channels );
+		if ( !QueueStreamChunk( musicPlayer_, inputSamples, info.rate, route ? 2 : info.width,
+			channels, route ? reinterpret_cast<const byte *>( routed.data() ) : raw.data(), 1.0f, outputChannels, true ) ) {
 			break;
 		}
 		emptyRestarts = 0;
