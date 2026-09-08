@@ -104,6 +104,9 @@ from both reference servers still reach pure admission and active state.
 The [server read-failure checkpoint](2026-09-08-server-download-read-failure.md)
 bounds reads to the declared total and verifies explicit disconnect delivery to
 both reference clients after a generated server pak is truncated mid-transfer.
+The [two-client isolation checkpoint](2026-09-08-download-failure-isolation.md)
+shows continued reliable-command delivery and rendering by an already active
+client after a second download fails, for Q3/QL reference clients and self-pairs.
 The [download write correction](2026-09-08-download-write-errors.md) prevents
 UDP acknowledgement after a failed write and propagates short writes through
 both HTTP callbacks, with controlled failure regressions.

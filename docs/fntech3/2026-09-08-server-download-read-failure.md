@@ -62,3 +62,7 @@ implementation was incorporated. QL reference-client temporary-hunk warnings
 remain visible during error recovery/shutdown; this change does not explain or
 repair them. The Linux build also retains the unrelated unused `burst` parameter
 warning in SVC_BucketForAddress.
+
+The subsequent [two-client isolation checkpoint](2026-09-08-download-failure-isolation.md)
+adds bounded live evidence that an already active client continues communicating
+after another client's download fails, for both profiles and client variants.
