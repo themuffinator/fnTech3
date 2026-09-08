@@ -33,7 +33,6 @@ extern "C" {
 
 using fnql::AllocateZoneMemory;
 using fnql::FileRead;
-using fnql::FileReadObject;
 using fnql::OpenFileRead;
 using fnql::ScopedFileHandle;
 using fnql::ScopedTempMemory;
@@ -60,79 +59,73 @@ struct WavStreamState {
 	int width;
 };
 
-/*
-=================
-FGetLittleLong
-=================
-*/
-int FGetLittleLong( fileHandle_t f ) {
-	int v;
-
-	FileReadObject( f, v );
-
-	return LittleLong( v );
+// File lengths and filesystem read/seek counts use signed int. Keep each
+// chunk within both the physical file and its declared RIFF container.
+unsigned int WavLittleLong( const byte *p ) {
+	return static_cast<unsigned int>( p[0] ) |
+		( static_cast<unsigned int>( p[1] ) << 8 ) |
+		( static_cast<unsigned int>( p[2] ) << 16 ) |
+		( static_cast<unsigned int>( p[3] ) << 24 );
 }
 
-/*
-=================
-FGetLittleShort
-=================
-*/
-short FGetLittleShort( fileHandle_t f ) {
-	short v;
-
-	FileReadObject( f, v );
-
-	return LittleShort( v );
+int WavLittleShort( const byte *p ) {
+	return p[0] | ( static_cast<int>( p[1] ) << 8 );
 }
 
-int FGetLittleUnsignedShort( fileHandle_t f ) {
-	return static_cast<int>( static_cast<unsigned short>( FGetLittleShort( f ) ) );
-}
+struct WavReader {
+	fileHandle_t file;
+	int remaining;
 
-/*
-=================
-S_ReadChunkInfo
-=================
-*/
-int S_ReadChunkInfo( fileHandle_t f, char *name ) {
-	name[4] = '\0';
-
-	const int r = FileRead( f, name, 4 );
-	if ( r != 4 ) {
-		return -1;
+	bool Read( void *buffer, int bytes ) {
+		if ( bytes < 0 || bytes > remaining || FileRead( file, buffer, bytes ) != bytes ) {
+			return false;
+		}
+		remaining -= bytes;
+		return true;
 	}
 
-	const int len = FGetLittleLong( f );
-	if ( len < 0 ) {
-		Com_Printf( S_COLOR_YELLOW "WARNING: Negative chunk length\n" );
-		return -1;
+	bool Skip( int bytes ) {
+		if ( bytes < 0 || bytes > remaining ) {
+			return false;
+		}
+		if ( bytes ) {
+			const int before = FS_FTell( file );
+			// Loose files return zero on success; ZIP seeks return the offset.
+			// Verify the resulting position as ZIP seeks can hide short reads.
+			if ( before < 0 || before > 0x7fffffff - bytes ||
+				FS_Seek( file, bytes, FS_SEEK_CUR ) < 0 || FS_FTell( file ) != before + bytes ) {
+				return false;
+			}
+		}
+		remaining -= bytes;
+		return true;
 	}
+};
 
-	return len;
-}
-
-/*
-=================
-S_FindRIFFChunk
-
-Returns the length of the data in the chunk, or -1 if not found
-=================
-*/
-int S_FindRIFFChunk( fileHandle_t f, const char *chunk ) {
-	std::array<char, 5> name;
-	int len;
-
-	while ( ( len = S_ReadChunkInfo( f, name.data() ) ) >= 0 ) {
-		if ( !Q_strncmp( name.data(), chunk, 4 ) ) {
+int S_FindRIFFChunk( WavReader &reader, const char *chunk ) {
+	std::array<byte, 8> header{};
+	while ( reader.remaining >= 8 ) {
+		if ( !reader.Read( header.data(), 8 ) ) {
+			return -1;
+		}
+		const unsigned int length = WavLittleLong( header.data() + 4 );
+		if ( length > static_cast<unsigned int>( reader.remaining ) ) {
+			return -1;
+		}
+		const int len = static_cast<int>( length );
+		if ( std::memcmp( header.data(), chunk, 4 ) == 0 ) {
+			// A final data payload may omit its unused pad byte. Padding is
+			// required only when advancing to another chunk (including fmt).
 			return len;
 		}
-
-		len = PAD( len, 2 );
-
-		FS_Seek( f, len, FS_SEEK_CUR );
+		const int padding = len & 1;
+		if ( padding > reader.remaining - len ) {
+			return -1;
+		}
+		if ( !reader.Skip( len + padding ) ) {
+			return -1;
+		}
 	}
-
 	return -1;
 }
 
@@ -202,80 +195,65 @@ Fills info with the decoded (8/16-bit PCM) stream description and source
 with the on-disk sample format.
 =================
 */
-qboolean S_ReadRIFFHeader( fileHandle_t file, snd_info_t *info, WavSourceFormat *source ) {
-	std::array<char, 16> dump{};
-
-	FileRead( file, dump.data(), 12 );
-
-	const int fmtlen = S_FindRIFFChunk( file, "fmt " );
-	if ( fmtlen < 16 ) {
-		Com_Printf( S_COLOR_RED "ERROR: Couldn't find \"fmt\" chunk\n" );
+qboolean S_ReadRIFFHeader( fileHandle_t file, int fileLength, snd_info_t *info, WavSourceFormat *source ) {
+	WavReader reader{ file, fileLength };
+	std::array<byte, 12> riff{};
+	if ( !reader.Read( riff.data(), 12 ) ||
+		std::memcmp( riff.data(), "RIFF", 4 ) != 0 ||
+		std::memcmp( riff.data() + 8, "WAVE", 4 ) != 0 ) {
 		return qfalse;
 	}
+	const unsigned int riffLength = WavLittleLong( riff.data() + 4 );
+	if ( riffLength < 4 || riffLength - 4 > static_cast<unsigned int>( reader.remaining ) ) {
+		return qfalse;
+	}
+	reader.remaining = static_cast<int>( riffLength - 4 );
 
-	int format = FGetLittleUnsignedShort( file );
-	info->channels = FGetLittleShort( file );
-	info->rate = FGetLittleLong( file );
-	FGetLittleLong( file );		// byte rate
-	FGetLittleShort( file );	// block align
-	const int bits = FGetLittleShort( file );
+	const int fmtlen = S_FindRIFFChunk( reader, "fmt " );
+	std::array<byte, 40> fmt{};
+	if ( fmtlen < 16 || !reader.Read( fmt.data(), 16 ) ) {
+		return qfalse;
+	}
+	int format = WavLittleShort( fmt.data() );
+	const int channels = WavLittleShort( fmt.data() + 2 );
+	const unsigned int rate = WavLittleLong( fmt.data() + 4 );
+	const int bits = WavLittleShort( fmt.data() + 14 );
 	int consumed = 16;
-
-	if ( format == kWavFormatExtensible && fmtlen >= 40 ) {
-		FGetLittleShort( file );	// cbSize
-		FGetLittleShort( file );	// valid bits per sample
-		FGetLittleLong( file );		// channel mask
-		// The first two bytes of the SubFormat GUID hold the real format tag.
-		format = FGetLittleUnsignedShort( file );
-		std::array<char, 14> guidRemainder;
-		FileRead( file, guidRemainder.data(), static_cast<int>( guidRemainder.size() ) );
+	if ( format == kWavFormatExtensible ) {
+		if ( fmtlen < 40 || !reader.Read( fmt.data() + 16, 24 ) ) {
+			return qfalse;
+		}
+		// Preserve the supported extensible subformat selection.
+		format = WavLittleShort( fmt.data() + 24 );
 		consumed = 40;
 	}
-
-	int remaining = fmtlen - consumed;
-	if ( fmtlen & 1 ) {
-		++remaining;
+	if ( !reader.Skip( fmtlen - consumed + ( fmtlen & 1 ) ) ) {
+		return qfalse;
 	}
-	if ( remaining > 0 ) {
-		FS_Seek( file, remaining, FS_SEEK_CUR );
-	}
-
-	if ( format == kWavFormatPCM ) {
-		if ( bits != 8 && bits != 16 && bits != 24 ) {
-			Com_Printf( S_COLOR_RED "ERROR: %d bit PCM sound is not supported\n", bits );
-			return qfalse;
-		}
-	} else if ( format == kWavFormatIEEEFloat ) {
-		if ( bits != 32 ) {
-			Com_Printf( S_COLOR_RED "ERROR: %d bit float sound is not supported\n", bits );
-			return qfalse;
-		}
-	} else {
-		Com_Printf( S_COLOR_RED "ERROR: unsupported WAV format tag %d (only PCM and IEEE float are supported)\n", format );
+	if ( ( format == kWavFormatPCM && bits != 8 && bits != 16 && bits != 24 ) ||
+		( format == kWavFormatIEEEFloat && bits != 32 ) ||
+		( format != kWavFormatPCM && format != kWavFormatIEEEFloat ) ||
+		channels <= 0 || channels > 32767 || rate == 0 || rate > 0x7fffffffu ) {
 		return qfalse;
 	}
 
-	if ( info->channels <= 0 || info->rate <= 0 ) {
-		Com_Printf( S_COLOR_RED "ERROR: invalid WAV channel count or sample rate\n" );
-		return qfalse;
-	}
-
-	source->format = format;
-	source->width = bits / 8;
-	source->needsConversion = ( format == kWavFormatIEEEFloat || bits == 24 );
-
-	const int dataSize = S_FindRIFFChunk( file, "data" );
+	const int dataSize = S_FindRIFFChunk( reader, "data" );
 	if ( dataSize < 0 ) {
-		Com_Printf( S_COLOR_RED "ERROR: Couldn't find \"data\" chunk\n" );
 		return qfalse;
 	}
-
-	const int frameBytes = source->width * info->channels;
-	info->samples = dataSize / frameBytes;
-	info->width = source->needsConversion ? 2 : source->width;
-	info->size = info->samples * info->width * info->channels;
-	info->dataofs = 0;
-
+	WavSourceFormat parsedSource;
+	parsedSource.format = format;
+	parsedSource.width = bits / 8;
+	parsedSource.needsConversion = ( format == kWavFormatIEEEFloat || bits == 24 );
+	snd_info_t parsed{};
+	parsed.channels = channels;
+	parsed.rate = static_cast<int>( rate );
+	parsed.samples = dataSize / ( parsedSource.width * channels );
+	parsed.width = parsedSource.needsConversion ? 2 : parsedSource.width;
+	// Decoding never expands a source sample, so this product is <= dataSize.
+	parsed.size = parsed.samples * parsed.width * channels;
+	*info = parsed;
+	*source = parsedSource;
 	return qtrue;
 }
 
@@ -298,13 +276,13 @@ S_WAV_CodecLoad
 */
 extern "C" void *S_WAV_CodecLoad( const char *filename, snd_info_t *info ) {
 	ScopedFileHandle file;
-	OpenFileRead( filename, file, qtrue );
+	const int fileLength = OpenFileRead( filename, file, qtrue );
 	if ( !file ) {
 		return nullptr;
 	}
 
 	WavSourceFormat source;
-	if ( !S_ReadRIFFHeader( file.get(), info, &source ) ) {
+	if ( !S_ReadRIFFHeader( file.get(), fileLength, info, &source ) ) {
 		Com_Printf( S_COLOR_RED "ERROR: Incorrect/unsupported format in \"%s\"\n",
 			filename );
 		return nullptr;
@@ -359,7 +337,7 @@ extern "C" snd_stream_t *S_WAV_CodecOpenStream( const char *filename ) {
 	}
 
 	WavSourceFormat source;
-	if ( !S_ReadRIFFHeader( rv->file, &rv->info, &source ) ) {
+	if ( !S_ReadRIFFHeader( rv->file, rv->length, &rv->info, &source ) ) {
 		S_CodecUtilClose( &rv );
 		return nullptr;
 	}

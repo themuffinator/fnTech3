@@ -51,7 +51,7 @@ struct ScopedFileHandle {
  explicit operator bool()const{return opened;}
  int get()const{return 1;}
 };
-void OpenFileRead(const char*,ScopedFileHandle&f,int){f.opened=true;++openHandles;}
+int OpenFileRead(const char*,ScopedFileHandle&f,int){f.opened=true;++openHandles;return static_cast<int>(payload.size());}
 struct ScopedTempMemory {
  void*p;
  explicit ScopedTempMemory(int n):p(std::malloc(n?n:1)){++allocations;std::memset(p,0xa5,n);}
@@ -61,7 +61,7 @@ struct ScopedTempMemory {
  template<class T>T*as(){return static_cast<T*>(p);}
  void*release(){auto*r=p;p=nullptr;--allocations;return r;}
 };
-bool S_ReadRIFFHeader(int,snd_info_t*i,WavSourceFormat*s){*i=description;*s=selected;return true;}
+bool S_ReadRIFFHeader(int,int,snd_info_t*i,WavSourceFormat*s){*i=description;*s=selected;return true;}
 void Com_Printf(const char*,...){ }
 void S_ByteSwapRawSamples(int samples,int width,int channels,byte*){assert(samples>=0&&width>0&&channels>0);}
 ''' + conversion + load + stream + r'''
