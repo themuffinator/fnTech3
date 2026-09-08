@@ -228,7 +228,10 @@ BotImport_Trace
 static void BotImport_Trace(bsp_trace_t *bsptrace, vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, int passent, int contentmask) {
 	trace_t trace;
 
-	SV_Trace(&trace, start, mins, maxs, end, passent, contentmask, qfalse);
+	// Botlib's item-placement traces use -1 for no excluded entity
+	// (BotInitLevelItems). The server's canonical sentinel is ENTITYNUM_NONE.
+	SV_Trace(&trace, start, mins, maxs, end,
+		passent == -1 ? ENTITYNUM_NONE : passent, contentmask, qfalse);
 	//copy the trace information
 	bsptrace->allsolid = trace.allsolid;
 	bsptrace->startsolid = trace.startsolid;

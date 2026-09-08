@@ -1,5 +1,11 @@
 # Retail-module bot runtime after the command-boundary correction
 
+Follow-up: the [probe and trace investigation](2026-09-08-bot-trace-and-probe-corrections.md)
+identified command-queue interference in the COUNT_DOWN observations and
+reproduced timestamp-only logging inside the unmodified retail DLL. The original
+observations below are retained, but must not be treated as proof of an engine
+countdown or file-write defect.
+
 The unchanged Windows x86 dedicated executable from the
 [bot-command correction](2026-09-08-bot-usercmd-boundary.md) runs four retail Q3
 bots through pickups and combat. The legitimate QL API-10 game module also
