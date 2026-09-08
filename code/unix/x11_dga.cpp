@@ -57,7 +57,8 @@ qboolean DGA_Init( Display *_dpy )
 	return qtrue;
 
 __fail:
-	DGA_Done();
+	// Even an unavailable extension can register Xlib display callbacks.
+	// Keep their library loaded until XCloseDisplay has run.
 	return qfalse;
 }
 

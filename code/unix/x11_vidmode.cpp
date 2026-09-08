@@ -160,7 +160,8 @@ qboolean VidMode_Init( void )
 	return qtrue;
 
 __fail:
-	VidMode_Done();
+	// Even an unavailable extension can register Xlib display callbacks.
+	// Keep their library loaded until XCloseDisplay has run.
 	return qfalse;
 }
 

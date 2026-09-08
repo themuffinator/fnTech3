@@ -2648,6 +2648,7 @@ void GLimp_Shutdown( qboolean unloadDLL )
 
 	if ( unloadDLL )
 	{
+		DGA_Done();
 		RandR_Done();
 		VidMode_Done();
 	}
@@ -2720,6 +2721,7 @@ void VKimp_Shutdown( qboolean unloadDLL )
 
 	if ( unloadDLL )
 	{
+		DGA_Done();
 		RandR_Done();
 		VidMode_Done();
 	}

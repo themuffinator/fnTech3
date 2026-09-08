@@ -129,6 +129,10 @@ signal fault masked by exit status zero. Linux client runtime remains open.
 The [Unix exit correction](2026-09-08-unix-fatal-exit.md) makes fatal errors
 report failure without recursive debug assertions; it does not close the
 rendering or GLX shutdown defect.
+The [X11 callback lifetime correction](2026-09-08-x11-extension-lifetime.md)
+then identifies premature DGA library unloading and fixes the reproduced
+shutdown fault: native i686 Q3 pure admission, snapshots and normal client/server
+exit pass. SDL texture corruption and broader Linux runtime gates remain open.
 
 The target is one shared, drop-in binary set. It must select `q3` or `ql` before
 compatibility-sensitive initialization and then use that profile's complete,

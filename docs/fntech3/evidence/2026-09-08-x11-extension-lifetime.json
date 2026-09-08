@@ -1,0 +1,223 @@
+{
+  "utc": "2026-09-08T01:18:06.615481+00:00",
+  "sourceCommit": "b5776c9492e95878954b436ed47a48aadb9508e9",
+  "sourceChanges": [
+    "code/unix/linux_signals.cpp",
+    "code/unix/unix_main.cpp",
+    "code/unix/linux_glimp.cpp",
+    "code/unix/x11_dga.cpp",
+    "code/unix/x11_randr.cpp",
+    "code/unix/x11_vidmode.cpp"
+  ],
+  "platform": "Linux i686 under WSL2 and private Xvfb, software OpenGL",
+  "display": ":99",
+  "installation": "/mnt/c/Program Files (x86)/Steam/steamapps/common/Quake 3 Arena",
+  "basePakSha256": "7ce8b3910620cd50a09e4f1100f426e8c6180f68895d589f80e6bd95af54bcae",
+  "server": {
+    "command": [
+      "/mnt/e/Repositories/fnTech3/.tmp/clean-linux-b5776c9/.tmp/build-linux-i686/fntech3.ded",
+      "+set",
+      "com_gameProfile",
+      "q3",
+      "+set",
+      "fs_basepath",
+      "/mnt/c/Program Files (x86)/Steam/steamapps/common/Quake 3 Arena",
+      "+set",
+      "fs_homepath",
+      "/tmp/fntech3-linux-client-dychhlsy/server",
+      "+set",
+      "fs_game",
+      "",
+      "+set",
+      "dedicated",
+      "1",
+      "+set",
+      "net_ip",
+      "127.0.0.1",
+      "+set",
+      "net_port",
+      "49256",
+      "+set",
+      "r_fullscreen",
+      "0",
+      "+set",
+      "r_mode",
+      "3",
+      "+set",
+      "in_mouse",
+      "0",
+      "+set",
+      "in_joystick",
+      "0",
+      "+set",
+      "in_nograb",
+      "1",
+      "+set",
+      "s_initsound",
+      "0",
+      "+set",
+      "com_steamIntegration",
+      "0",
+      "+set",
+      "fs_skipWorkshop",
+      "1",
+      "+set",
+      "cl_webuiEnable",
+      "0",
+      "+set",
+      "logfile",
+      "2",
+      "+set",
+      "developer",
+      "1",
+      "+exec",
+      "probe.cfg"
+    ],
+    "config": "set sv_pure 1\nset sv_autoRecordDemos 0\nset sv_maxclients 2\nset cl_allowDownload 0\nset cl_motd 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset cl_shownet 2\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nmap q3dm6\nwait 1000\nquit\n",
+    "sha256": "06ce3692030c9412f36e68e2dd62fdda9a0c5fb08b908ac6c0b5c403297cc82c",
+    "exitCode": 0,
+    "terminated": false,
+    "screenshots": []
+  },
+  "client": {
+    "command": [
+      "/mnt/e/Repositories/fnTech3/.tmp/clean-linux-b5776c9/.tmp/build-linux-renderers/fntech3",
+      "+set",
+      "com_gameProfile",
+      "q3",
+      "+set",
+      "fs_basepath",
+      "/mnt/c/Program Files (x86)/Steam/steamapps/common/Quake 3 Arena",
+      "+set",
+      "fs_homepath",
+      "/tmp/fntech3-linux-client-dychhlsy/client",
+      "+set",
+      "fs_game",
+      "",
+      "+set",
+      "dedicated",
+      "0",
+      "+set",
+      "net_ip",
+      "127.0.0.1",
+      "+set",
+      "net_port",
+      "55948",
+      "+set",
+      "r_fullscreen",
+      "0",
+      "+set",
+      "r_mode",
+      "3",
+      "+set",
+      "in_mouse",
+      "0",
+      "+set",
+      "in_joystick",
+      "0",
+      "+set",
+      "in_nograb",
+      "1",
+      "+set",
+      "s_initsound",
+      "0",
+      "+set",
+      "com_steamIntegration",
+      "0",
+      "+set",
+      "fs_skipWorkshop",
+      "1",
+      "+set",
+      "cl_webuiEnable",
+      "0",
+      "+set",
+      "logfile",
+      "2",
+      "+set",
+      "developer",
+      "1",
+      "+exec",
+      "probe.cfg"
+    ],
+    "config": "set sv_pure 1\nset sv_autoRecordDemos 0\nset sv_maxclients 2\nset cl_allowDownload 0\nset cl_motd 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset cl_shownet 2\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nset activeAction \"wait 120; screenshotPNG linux-proof; wait 3; quit\"\nconnect 127.0.0.1:49256\n",
+    "sha256": "42bdc9d653cc75a2f5069128a93799a068d55c1afc3ee60b6b3815f84bd02f6b",
+    "exitCode": 0,
+    "terminated": false,
+    "screenshots": [
+      {
+        "path": "/mnt/e/Repositories/fnTech3/.tmp/linux-q3-x11-lifetime-final/linux-proof.png",
+        "sha256": "e49aa6fd862efb0dfc99b59880f22d6a71c413dd22976b606fefaa6dfe916d2e"
+      }
+    ]
+  },
+  "elapsedSeconds": 50.891653138999914,
+  "modifiedSourceHashes": [
+    {
+      "path": "code/unix/linux_signals.cpp",
+      "sha256": "4d51f0d84d49a3388a154daf29e491ecd2ee1bcb80f004dac63f6ac9ad80457e"
+    },
+    {
+      "path": "code/unix/unix_main.cpp",
+      "sha256": "72873ba7b96363a2e289851f70ce0194617443b8d45c9672234ed49fa8625f03"
+    },
+    {
+      "path": "code/unix/linux_glimp.cpp",
+      "sha256": "fdef2fb3ba033124feb8b0ed68b436945528da8b63ee84edc56d2c242b368d3e"
+    },
+    {
+      "path": "code/unix/x11_dga.cpp",
+      "sha256": "6bac150b959b051f758a00c5a155d80aae7668c37c524b051b8d87a41fb7d993"
+    },
+    {
+      "path": "code/unix/x11_randr.cpp",
+      "sha256": "0d20331962bcc425bc291e85733aca7318ebede87774919233cbeb69e0d80da5"
+    },
+    {
+      "path": "code/unix/x11_vidmode.cpp",
+      "sha256": "081b99fdb46d618ae061379f30a1f529367a201288cec070de64b3b9726bfc96"
+    }
+  ],
+  "verified": {
+    "pureAdmission": true,
+    "snapshots": true,
+    "normalClientAndServerExit": true,
+    "forcedTermination": false,
+    "visualObservation": "Engine screenshot has readable world and HUD textures; no visual parity claim."
+  },
+  "logs": [
+    {
+      "name": "client-console.log",
+      "sha256": "566046815bb0d2b6dd85afdc47662963457c6d04dbfdce59530987839ce5d813"
+    },
+    {
+      "name": "server-console.log",
+      "sha256": "02fd2969cec631a8163c0488fd7916d3a43c0fa41fa5276eba5c3ea0f5de3ca5"
+    }
+  ],
+  "diagnosis": {
+    "logSha256": "4bc948be2ed14be36555460b9dc841d2d9d92867d5ff914424744abaafe51442",
+    "observation": "XESetCloseDisplay registers callback 0xeb0423d0 from libXxf86dga.so.1; DGA_Init failure calls DGA_Done/dlclose. XCloseDisplay later jumps to the same address, then mapped non-executable by libGLX_mesa.so.0.",
+    "registersLogSha256": "20089e2ebcac1e300ce6f1918014f0b8f23781c89b36aa64bfa4c3928cbdf36b"
+  },
+  "regression": {
+    "beforeLogSha256": "0c63d01fbe9da4b1e02532bea6af5b6f1af6cae70e062a636ed7fdbb89592e61",
+    "before": "Production DGA_Init unloads a library with a registered Xlib callback; harness assertion fails.",
+    "after": [
+      "Windows focused test passes",
+      "Linux focused test passes"
+    ],
+    "scope": "Production DGA discovery plus OpenGL/Vulkan shutdown; unavailable extension, version failure, missing library/symbols, success, retained-display restart, repeated cleanup."
+  },
+  "linuxConfiguredSuite": {
+    "passed": 107,
+    "failed": 0,
+    "skipped": 2,
+    "skipReasons": [
+      "OpenAL loopback library unavailable",
+      "Retail QL factory fixture path not configured"
+    ],
+    "aggregatePythonTests": 1254,
+    "aggregatePythonSkips": 15,
+    "logSha256": "d2f134810f75e2a3e368a00577546544d54260d9e0215bdb4633d3ac0a623e3a"
+  }
+}
