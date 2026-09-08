@@ -4,7 +4,7 @@ import shutil, subprocess, tempfile, unittest
 from compiler_support import compiler_target_args
 ROOT=Path(__file__).resolve().parents[1]
 class NativeProbeValidationTests(unittest.TestCase):
- def test_guards_and_configstring_validation(self):
+ def test_guards_configstrings_and_snapshot_validation(self):
   compiler=shutil.which('clang++') or shutil.which('g++')
   if not compiler:self.skipTest('C++ compiler required')
   s=(ROOT/'tests/fixtures/native_cgame_abi_probe.c').read_text()
@@ -26,6 +26,16 @@ int main(){
  put(state+4092,1);state[4099]='x';assert(!Probe_GameStateValid(state));
  state[4099]=0;state[4096]='x';assert(!Probe_GameStateValid(state));
  std::memset(state,0xa5,20100);state[0]=0;assert(!Probe_GameStateValid(state));
+ unsigned char snap[0x16488]={};put(snap+8,123);
+ assert(Probe_SnapshotValid(snap,123));assert(!Probe_SnapshotValid(snap,124));
+ put(snap+0x27c,385);assert(!Probe_SnapshotValid(snap,123));
+ put(snap+0x27c,1);put(snap+0x280,1023);assert(Probe_SnapshotValid(snap,123));
+ put(snap+0x280,1024);assert(!Probe_SnapshotValid(snap,123));put(snap+0x280,1);
+ snap[0x224]=1;assert(!Probe_SnapshotValid(snap,123));snap[0x224]=0;
+ snap[0x27b]=1;assert(!Probe_SnapshotValid(snap,123));snap[0x27b]=0;
+ snap[0x280+0xec]=1;assert(!Probe_SnapshotValid(snap,123));snap[0x280+0xec]=0;
+ put(snap+0x27c,384);assert(Probe_SnapshotValid(snap,123));
+ std::memset(snap,0xa5,sizeof(snap));snap[0]=0;assert(!Probe_SnapshotValid(snap,123));
 }
 '''
   with tempfile.TemporaryDirectory() as folder:

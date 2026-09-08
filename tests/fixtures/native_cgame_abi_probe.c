@@ -135,7 +135,8 @@ static int usercmdChecked;
 static int snapshotChecked;
 static unsigned char gameStateStorage[20100 + 16];
 #define gameState (gameStateStorage + 8)
-static unsigned char snapshot[1024 * 1024];
+static unsigned char snapshotStorage[0x16488 + 16];
+#define snapshot (snapshotStorage + 8)
 static probeVmCvar_t rangeCvar;
 
 static void Probe_Print( const char *text ) {
@@ -177,6 +178,18 @@ static int Probe_GameStateValid( const unsigned char *data ) {
   for ( end = offset; end < count && data[4096 + end]; ++end ) {}
   if ( end == count ) return 0;
  }
+ return 1;
+}
+
+/* Validate fnTech3's current containment policy, not the unknown retail tail meaning. */
+static int Probe_SnapshotValid( const unsigned char *data, unsigned int serverTime ) {
+ unsigned int count = Probe_U32( data + 0x27c ), i;
+ if ( Probe_U32( data + 8 ) != serverTime || count > 384 ) return 0;
+ for ( i = 0x224; i < 0x27c; ++i ) if ( data[i] ) return 0;
+ for ( i = 0; i < count; ++i ) {
+  if ( Probe_U32( data + 0x280 + i * 0xec ) >= 1024 ) return 0;
+ }
+ for ( i = 0x280 + count * 0xec; i < 0x16480; ++i ) if ( data[i] ) return 0;
  return 1;
 }
 
@@ -441,15 +454,19 @@ static void __cdecl Probe_DrawActiveFrame( int serverTime, int stereoFrame, int 
 
 	if ( !snapshotChecked && cgameImports &&
 		cgameImports[CG_QL_IMPORT_GETCURRENTSNAPSHOTNUMBER] && cgameImports[CG_QL_IMPORT_GETSNAPSHOT] ) {
-		snapshot[0] = 0xa5;
-		snapshot[1] = 0xa5;
-		snapshot[2] = 0xa5;
-		snapshot[3] = 0xa5;
+        int index;
+        int rejectionClean;
+        for ( index = 0; index < (int)sizeof( snapshotStorage ); ++index ) snapshotStorage[index] = 0xa5;
+        rejectionClean = !((cgameGetSnapshot_t)cgameImports[CG_QL_IMPORT_GETSNAPSHOT])( -1, snapshot );
+        for ( index = 0; index < (int)sizeof( snapshotStorage ); ++index ) {
+            if ( snapshotStorage[index] != 0xa5 ) rejectionClean = 0;
+        }
 		((cgameGetCurrentSnapshotNumber_t)cgameImports[CG_QL_IMPORT_GETCURRENTSNAPSHOTNUMBER])(
 			&snapshotNumber, &snapshotServerTime );
 		if ( snapshotNumber > 0 &&
 			((cgameGetSnapshot_t)cgameImports[CG_QL_IMPORT_GETSNAPSHOT])( snapshotNumber, snapshot ) &&
-			(snapshot[0] != 0xa5 || snapshot[1] != 0xa5 || snapshot[2] != 0xa5 || snapshot[3] != 0xa5) ) {
+			rejectionClean && Probe_Guards( snapshotStorage, 0x16488 ) &&
+			Probe_SnapshotValid( snapshot, (unsigned int)snapshotServerTime ) ) {
 			snapshotChecked = 1;
 			Probe_Print( "FnQL cgame ABI probe: native snapshot imports ok\n" );
 		}

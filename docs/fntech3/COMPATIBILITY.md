@@ -225,7 +225,9 @@ to the evidence level named in the same cell.
    retail evidence and bounded handling.
    The [snapshot marshalling correction](2026-09-07-ql-snapshot-marshalling.md)
    now converts the frozen known prefix explicitly and tests zeroed unknown
-   bytes and destination guards; the tail's meaning remains unverified.
+   bytes and destination guards. The [guarded native snapshot probe](2026-09-08-native-snapshot-containment.md)
+   exercises exact output bounds, rejected-request preservation and zero-tail
+   containment through the running client; the tail's meaning remains unverified.
    [Snapshot history validation](2026-09-07-snapshot-history.md) also rejects
    malformed/stale module requests before writes. The subsequent
    [entity-history correction](2026-09-07-entity-history-wrap.md) covers parser
