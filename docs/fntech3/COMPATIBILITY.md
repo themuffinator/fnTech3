@@ -123,6 +123,9 @@ checkout, with 107 configured tests passing and two skips. Linux client
 runtime remains a separate gate. The [bundled-SDL build checkpoint](2026-09-08-linux-sdl.md)
 also builds the i686 client with embedded GLx and passes its configured suite
 (84 pass, one skip), without claiming SDL runtime validation.
+The subsequent [native Linux client probe](2026-09-08-linux-client-runtime.md)
+reaches Q3 pure admission but finds SDL texture corruption and an X11 shutdown
+signal fault masked by exit status zero. Linux client runtime remains open.
 
 The target is one shared, drop-in binary set. It must select `q3` or `ql` before
 compatibility-sensitive initialization and then use that profile's complete,
