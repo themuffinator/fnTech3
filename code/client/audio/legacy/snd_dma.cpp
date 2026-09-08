@@ -1454,16 +1454,20 @@ static void S_Update_( int msec ) {
 	// add raw data from streamed samples
 	S_Base_UpdateBackgroundTrack();
 
-	if ( s_debugTiming != nullptr && s_debugTiming->integer ) {
-		Com_Printf( "snd_timing ms=%d elapsed=%d work_ms=%d cursor=%d previous_end=%d start=%d end=%u raw_end=%d rate=%d\n",
-			thisTime, sane, Sys_Milliseconds() - thisTime, s_soundtime, previousPaintedEnd, s_paintedtime, endtime, s_rawend, dma.speed );
-	}
+	const bool traceTiming = s_debugTiming != nullptr && s_debugTiming->integer;
+	const int paintStarted = traceTiming ? Sys_Milliseconds() : 0;
+	const int paintStartFrame = s_paintedtime;
 	SNDDMA_BeginPainting();
 
 	S_PaintChannels( endtime );
 
 	SNDDMA_Submit();
 
+	if ( traceTiming ) {
+		Com_Printf( "snd_timing ms=%d elapsed=%d work_ms=%d paint_ms=%d cursor=%d previous_end=%d start=%d end=%u raw_end=%d rate=%d\n",
+			thisTime, sane, paintStarted - thisTime, Sys_Milliseconds() - paintStarted,
+			s_soundtime, previousPaintedEnd, paintStartFrame, endtime, s_rawend, dma.speed );
+	}
 	lastTime = thisTime;
 }
 

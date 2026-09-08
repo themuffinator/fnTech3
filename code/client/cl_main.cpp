@@ -4322,6 +4322,8 @@ CL_Frame
 ==================
 */
 void CL_Frame( int msec, int realMsec ) {
+	const bool traceFrameStages = com_speeds && com_speeds->integer >= 4;
+	const int frameStarted = traceFrameStages ? Sys_Milliseconds() : 0;
 	int gameMsec = msec;
 	int audioMsec = realMsec;
 	float oldViewYaw;
@@ -4524,7 +4526,9 @@ void CL_Frame( int msec, int realMsec ) {
 
 	// update the screen
 	cls.framecount++;
+	const int screenStarted = traceFrameStages ? Sys_Milliseconds() : 0;
 	SCR_UpdateScreen();
+	const int screenEnded = traceFrameStages ? Sys_Milliseconds() : 0;
 
 	if ( oldViewYaw != cl.viewangles[YAW] || oldViewPitch != cl.viewangles[PITCH] ) {
 		CL_SetRetailClientMessageViewangleDeltaFlag();
@@ -4532,11 +4536,17 @@ void CL_Frame( int msec, int realMsec ) {
 
 	// update audio
 	S_Update( audioMsec );
+	const int audioEnded = traceFrameStages ? Sys_Milliseconds() : 0;
 
 	// advance local effects for next frame
 	SCR_RunCinematic();
 
 	Con_RunConsole();
+	if ( traceFrameStages ) {
+		Com_Printf( "client_timing frame=%d pre_ms=%d screen_ms=%d audio_ms=%d tail_ms=%d\n",
+			cls.framecount, screenStarted - frameStarted, screenEnded - screenStarted,
+			audioEnded - screenEnded, Sys_Milliseconds() - audioEnded );
+	}
 }
 
 
