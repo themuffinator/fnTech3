@@ -35,6 +35,7 @@ extern "C" {
 
 // includes for the OGG codec
 #include <cerrno>
+#include <limits>
 #include <memory>
 #define OV_EXCLUDE_STATIC_CALLBACKS
 #include <vorbis/vorbisfile.h>
@@ -322,6 +323,15 @@ snd_stream_t *S_OGG_CodecOpenStream(const char *filename)
 
 	// get the number of sample-frames in the OGG
 	numSamples = ov_pcm_total(vf, 0);
+	const int maxDecodedBytes = ( std::numeric_limits<int>::max )();
+	if ( OGGInfo->rate <= 0 || OGGInfo->rate > maxDecodedBytes
+		|| OGGInfo->channels <= 0 || OGGInfo->channels > maxDecodedBytes / OGG_SAMPLEWIDTH
+		|| numSamples < 0
+		|| numSamples > maxDecodedBytes / ( OGGInfo->channels * OGG_SAMPLEWIDTH ) ) {
+		ov_clear(vf);
+		S_CodecUtilClose(&stream);
+		return nullptr;
+	}
 
 	// fill in the info-structure in the stream
 	stream->info.rate = OGGInfo->rate;
@@ -451,18 +461,9 @@ void *S_OGG_CodecLoad(const char *filename, snd_info_t *info)
 		return nullptr;
 	}
 	
-	// copy over the info
-	info->rate = stream->info.rate;
-	info->width = stream->info.width;
-	info->channels = stream->info.channels;
-	info->samples = stream->info.samples;
-	info->size = stream->info.size;
-	info->dataofs = stream->info.dataofs;
-	info->speakerMask = 0;
-
 	// allocate a buffer
 	// this buffer must be free-ed by the caller of this function
-	ScopedTempMemory bufferStorage = ScopedTempMemory::Allocate(info->size);
+	ScopedTempMemory bufferStorage = ScopedTempMemory::Allocate(stream->info.size);
 	byte *buffer = bufferStorage.as<byte>();
 	if (!buffer)
 	{
@@ -470,14 +471,15 @@ void *S_OGG_CodecLoad(const char *filename, snd_info_t *info)
 	}
 
 	// fill the buffer
-	bytesRead = S_OGG_CodecReadStream(stream.get(), info->size, buffer);
+	bytesRead = S_OGG_CodecReadStream(stream.get(), stream->info.size, buffer);
 	
-	// we don't even have read a single byte
-	if (bytesRead <= 0)
+	// Never publish a buffer whose advertised tail was not decoded.
+	if (bytesRead <= 0 || bytesRead != stream->info.size)
 	{
 		return nullptr;	
 	}
 
+	*info = stream->info;
 	return bufferStorage.release();
 }
 
