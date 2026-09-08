@@ -120,6 +120,9 @@ The [HTTP error and cURL cleanup checkpoint](2026-09-08-http-errors-and-curl-cle
 records 404/truncated-response rejection and fixes handle release before
 connection reset. Successful HTTP reconnect still passes in both profiles;
 error-probe shutdown remains incomplete and required forced termination.
+The [HTTP split-header correction](2026-09-08-http-split-headers.md) accepts
+arbitrary body callback boundaries in both download paths, rejects incomplete
+headers before rename, and passes delayed-header Q3/QL runtime probes.
 The [cURL multi-stack error correction](2026-09-08-curl-multi-errors.md) stops
 both HTTP polling paths after a transport-stack failure, with controlled
 Windows/Linux regressions and Q3/QL HTTP success non-regressions.

@@ -100,6 +100,12 @@ void CL_cURL_BeginDownload( const char *localName, const char *remoteURL );
 void CL_cURL_PerformDownload( void );
 void CL_cURL_Cleanup( void );
 
+// Internal transfer state, never part of a game module or wire contract.
+typedef struct httpPakHeader_t {
+	byte data[22];
+	size_t used;
+} httpPakHeader_t;
+
 typedef struct download_t {
 	char		URL[MAX_OSPATH];
 	char		Name[MAX_OSPATH];
@@ -110,6 +116,7 @@ typedef struct download_t {
 	CURL		*cURL;
 	CURLM		*cURLM;
 	fileHandle_t fHandle;
+	httpPakHeader_t pakHeader;
 	int			Size;
 	int			Count;
 	qboolean	headerCheck;

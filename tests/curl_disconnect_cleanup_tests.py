@@ -22,7 +22,7 @@ using CURLMcode=int;
 constexpr int CURLM_OK=0,CA_CONNECTED=3,CA_CINEMATIC=9;
 constexpr bool qtrue=true;
 struct {int state;}cls;
-struct Connection {void*downloadCURL;void*downloadCURLM;bool demoplaying;}clc;
+struct Connection {void*downloadCURL;void*downloadCURLM;bool demoplaying;struct {int used;}downloadPakHeader;}clc;
 int removed,easyFreed,multiFreed,liveEasy,liveMulti;
 int qcurl_multi_remove_handle(void*m,void*e){assert(m&&e);++removed;return 0;}
 void qcurl_easy_cleanup(void*e){assert(e);++easyFreed;--liveEasy;}

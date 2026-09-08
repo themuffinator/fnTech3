@@ -234,6 +234,7 @@ void CL_cURL_Shutdown( void )
 
 void CL_cURL_Cleanup()
 {
+	clc.downloadPakHeader.used = 0;
 	if(clc.downloadCURLM) {
 		CURLMcode result;
 
@@ -274,28 +275,44 @@ static int CL_cURL_CallbackProgress( void *dummy, double dltotal, double dlnow,
 }
 
 
-static size_t CL_cURL_CallbackWrite( void *buffer, size_t size, size_t nmemb, void *stream )
+static size_t HTTP_WritePak( const void *buffer, size_t bytes, fileHandle_t &file,
+	httpPakHeader_t &header, const char *tempName )
 {
-	const size_t bytes = size * nmemb;
-
-	if ( clc.download == FS_INVALID_HANDLE ) {
-		if ( !CL_ValidPakSignature( static_cast<const byte *>( buffer ), static_cast<int>( bytes ) ) ) {
-			Com_Error( ERR_DROP, "CL_cURL_CallbackWrite: invalid pak signature for %s", 
-				clc.downloadName );
-			return static_cast<size_t>( -1 );
+	if ( bytes == 0 ) {
+		return 0;
+	}
+	const byte *data = static_cast<const byte *>( buffer );
+	size_t buffered = 0;
+	if ( file == FS_INVALID_HANDLE ) {
+		// Body callbacks may contain a single byte. Retain only enough to
+		// apply the existing ZIP/PAK signature rules before opening a file.
+		buffered = std::min( bytes, sizeof( header.data ) - header.used );
+		memcpy( header.data + header.used, data, buffered );
+		header.used += buffered;
+		if ( !CL_ValidPakSignature( header.data, static_cast<int>( header.used ) ) ) {
+			if ( header.used < sizeof( header.data ) ) {
+				return bytes;
+			}
+			Com_Printf( S_COLOR_YELLOW "HTTP download: invalid pak signature for %s\n", tempName );
+			return 0;
 		}
-		clc.download = FS_SV_FOpenFileWrite( clc.downloadTempName );
-		if ( clc.download == FS_INVALID_HANDLE ) {
-			Com_Error( ERR_DROP, "CL_cURL_CallbackWrite: failed to open %s for writing", 
-				clc.downloadTempName );
-			return static_cast<size_t>( -1 );
+		file = FS_SV_FOpenFileWrite( tempName );
+		if ( file == FS_INVALID_HANDLE ||
+			FileWrite( file, header.data, header.used ) != static_cast<int>( header.used ) ) {
+			return 0;
 		}
 	}
+	const size_t remaining = bytes - buffered;
+	if ( remaining && FileWrite( file, data + buffered, remaining ) != static_cast<int>( remaining ) ) {
+		return 0;
+	}
+	return bytes;
+}
 
-	const int written = FileWrite( static_cast<fileHandle_t *>( stream )[0], buffer, bytes );
-	// A short return makes libcurl fail the transfer instead of accepting
-	// bytes that never reached the temporary archive.
-	return written > 0 ? static_cast<size_t>( written ) : 0;
+static size_t CL_cURL_CallbackWrite( void *buffer, size_t size, size_t nmemb, void *stream )
+{
+	return HTTP_WritePak( buffer, size * nmemb,
+		*static_cast<fileHandle_t *>( stream ), clc.downloadPakHeader, clc.downloadTempName );
 }
 
 
@@ -454,6 +471,11 @@ void CL_cURL_PerformDownload( void )
 	}
 	CL_cURL_CloseDownload();
 	if ( msg->msg == CURLMSG_DONE && msg->data.result == CURLE_OK ) {
+		if ( !CL_ValidPakSignature( clc.downloadPakHeader.data,
+			static_cast<int>( clc.downloadPakHeader.used ) ) ) {
+			Com_Error( ERR_DROP, "HTTP download: incomplete pak header for %s", clc.downloadName );
+			return;
+		}
 		FS_SV_Rename( clc.downloadTempName, clc.downloadName );
 		clc.downloadRestart = qtrue;
 	}
@@ -718,6 +740,7 @@ Com_DL_Cleanup
 */
 void Com_DL_Cleanup( download_t *dl )
 {
+	dl->pakHeader.used = 0;
 	if( dl->cURLM )
 	{
 		if ( dl->cURL )
@@ -852,29 +875,8 @@ Com_DL_CallbackWrite
 */
 static size_t Com_DL_CallbackWrite( void *ptr, size_t size, size_t nmemb, void *userdata )
 {
-	download_t *dl;
-	const size_t bytes = size * nmemb;
-
-	dl = static_cast<download_t *>( userdata );
-
-	if ( dl->fHandle == FS_INVALID_HANDLE )
-	{
-		if ( !CL_ValidPakSignature( static_cast<const byte *>( ptr ), static_cast<int>( bytes ) ) ) 
-		{
-			Com_Printf( S_COLOR_YELLOW "Com_DL_CallbackWrite(): invalid pak signature for %s.\n",
-				dl->Name );
-			return static_cast<size_t>( -1 );
-		}
-
-		dl->fHandle = FS_SV_FOpenFileWrite( dl->TempName );
-		if ( dl->fHandle == FS_INVALID_HANDLE ) 
-		{
-			return static_cast<size_t>( -1 );
-		}
-	}
-
-	const int written = FileWrite( dl->fHandle, ptr, bytes );
-	return written > 0 ? static_cast<size_t>( written ) : 0;
+	download_t *dl = static_cast<download_t *>( userdata );
+	return HTTP_WritePak( ptr, size * nmemb, dl->fHandle, dl->pakHeader, dl->TempName );
 }
 
 
@@ -1170,12 +1172,20 @@ qboolean Com_DL_Perform( download_t *dl )
 		return qtrue;
 	}
 
+	CURLcode transferResult = msg->data.result;
 	if ( dl->fHandle != FS_INVALID_HANDLE )
 	{
 		CloseFile( dl->fHandle );
 	}
 
-	if ( msg->msg == CURLMSG_DONE && msg->data.result == CURLE_OK )
+	if ( msg->msg == CURLMSG_DONE && transferResult == CURLE_OK &&
+		!CL_ValidPakSignature( dl->pakHeader.data, static_cast<int>( dl->pakHeader.used ) ) )
+	{
+		Com_Printf( S_COLOR_YELLOW "HTTP download: incomplete pak header for %s\n", dl->Name );
+		// Report through the normal per-transfer failure path, outside cURL.
+		transferResult = CURLE_WRITE_ERROR;
+	}
+	if ( msg->msg == CURLMSG_DONE && transferResult == CURLE_OK )
 	{
 		bool autoDownload = dl->mapAutoDownload != qfalse;
 
@@ -1219,7 +1229,7 @@ qboolean Com_DL_Perform( download_t *dl )
 		bool autoDownload = dl->mapAutoDownload != qfalse;
 		dl->func.easy_getinfo( msg->easy_handle, CURLINFO_RESPONSE_CODE, &code );
 		Com_Printf( S_COLOR_RED "Download Error: %s Code: %ld\n",
-			dl->func.easy_strerror( msg->data.result ), code );
+			dl->func.easy_strerror( transferResult ), code );
 		Q_strncpyz( name.data(), dl->TempName, static_cast<int>( name.size() ) );
 		Com_DL_Cleanup( dl );
 		FS_SV_HomeRemove( name.data() );

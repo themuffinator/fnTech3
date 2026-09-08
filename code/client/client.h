@@ -233,6 +233,7 @@ struct clientConnection_t {
 	char		downloadURL[MAX_OSPATH];
 	CURL		*downloadCURL;
 	CURLM		*downloadCURLM;
+	httpPakHeader_t downloadPakHeader;
 #endif /* USE_CLIENT_CURL */
 
 	// demo information
