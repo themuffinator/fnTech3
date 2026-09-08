@@ -263,6 +263,10 @@ to the evidence level named in the same cell.
    independently pins the 592-byte copy, snapshot-buffer separation and entity
    offsets/stride to the installed module. It confirms that the tail is copied,
    without establishing its producer values or downstream semantics.
+   The [retail producer and delta-reader checkpoint](2026-09-08-retail-snapshot-producer.md)
+   traces the full history copy and, in controlled CPU emulation, establishes
+   zero tail bytes from a null baseline and preservation of a supplied nonzero
+   tail across field updates. Other writers and tail semantics remain open.
    [Snapshot history validation](2026-09-07-snapshot-history.md) also rejects
    malformed/stale module requests before writes. The subsequent
    [entity-history correction](2026-09-07-entity-history-wrap.md) covers parser

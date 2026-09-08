@@ -1,0 +1,197 @@
+{
+  "engineCommit": "2d359619464d5419d256c2104976063aecb11aef",
+  "retailExecutable": {
+    "path": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live\\quakelive_steam.exe",
+    "sha256": "c926fe9f6c851e00b3b9332e88903ad01f28fdd60454873891c0158f5ded1299",
+    "bytes": 2107904,
+    "imageBase": "0x400000"
+  },
+  "staticChecks": [
+    {
+      "rva": "0xaf5a3",
+      "instructionClass": "imul",
+      "observedValue": 664
+    },
+    {
+      "rva": "0xaf5a9",
+      "instructionClass": "add",
+      "observedValue": 21440628
+    },
+    {
+      "rva": "0xaf5f7",
+      "instructionClass": "add",
+      "observedValue": 44
+    },
+    {
+      "rva": "0xaf5fa",
+      "instructionClass": "lea",
+      "observedValue": 60
+    },
+    {
+      "rva": "0xaf5fd",
+      "instructionClass": "mov",
+      "observedValue": 148
+    },
+    {
+      "rva": "0xaf60d",
+      "instructionClass": "cmp",
+      "observedValue": 384
+    },
+    {
+      "rva": "0xaf632",
+      "instructionClass": "mov",
+      "observedValue": 636
+    },
+    {
+      "rva": "0xaf63c",
+      "instructionClass": "add",
+      "observedValue": 640
+    },
+    {
+      "rva": "0xbd4dd",
+      "instructionClass": "call",
+      "observedValue": 5072576
+    },
+    {
+      "rva": "0xd66ed",
+      "instructionClass": "push",
+      "observedValue": 592
+    },
+    {
+      "rva": "0xd6706",
+      "instructionClass": "mov",
+      "observedValue": 148
+    },
+    {
+      "rva": "0xd679b",
+      "instructionClass": "mov",
+      "observedValue": 5514464
+    },
+    {
+      "rva": "0xd689e",
+      "instructionClass": "cmp",
+      "observedValue": 58
+    },
+    {
+      "rva": "0xd693b",
+      "instructionClass": "add",
+      "observedValue": 192
+    },
+    {
+      "rva": "0xd69de",
+      "instructionClass": "add",
+      "observedValue": 256
+    },
+    {
+      "rva": "0xd6a7e",
+      "instructionClass": "add",
+      "observedValue": 384
+    },
+    {
+      "rva": "0xd6b1e",
+      "instructionClass": "add",
+      "observedValue": 320
+    }
+  ],
+  "observations": {
+    "snapshotProducerRva": "0xaf570",
+    "snapshotRecordStride": 664,
+    "playerStateSourceOffset": 60,
+    "playerStateDestinationOffset": 44,
+    "playerStateBytes": 592,
+    "deltaReaderRva": "0xd66c0",
+    "deltaFieldTableRva": "0x1424d8",
+    "deltaFieldCount": 58,
+    "maximumScalarStoreEndExclusive": 482,
+    "arrayRangesEndExclusive": [
+      [
+        192,
+        256
+      ],
+      [
+        256,
+        320
+      ],
+      [
+        384,
+        448
+      ],
+      [
+        320,
+        384
+      ]
+    ],
+    "arrayElementBytes": 4,
+    "arrayElementsEach": 16
+  },
+  "emulation": {
+    "retailExecutableSha256": "c926fe9f6c851e00b3b9332e88903ad01f28fdd60454873891c0158f5ded1299",
+    "unicornVersion": "2.1.4",
+    "functionRva": "0xd66c0",
+    "hooks": {
+      "0xd4c70": "controlled bit-reader returns; not a real encoded network stream",
+      "0xc95e0": "zero-fill helper",
+      "0x125f8e": "stack-cookie checker"
+    },
+    "cases": [
+      {
+        "baseline": "null prior",
+        "changes": "none",
+        "readBitsCalls": 2,
+        "completeOutputMatchesFixture": true,
+        "tailWriteInstructionRvas": [
+          "0xd670b"
+        ],
+        "tailMatchesExpected": true,
+        "guardsIntact": true,
+        "tailSha256": "10eef285deef7a4b7c82b22aa53589b7833df29de3814649c772bbd5c832f365",
+        "outputSha256": "2b73f6b3cd6cd9f97ccbbedc2fa1904331b916b2ace865882f72ddd083c79b04"
+      },
+      {
+        "baseline": "null prior",
+        "changes": "all 58 scalars and all 64 array entries",
+        "readBitsCalls": 202,
+        "completeOutputMatchesFixture": true,
+        "tailWriteInstructionRvas": [
+          "0xd670b"
+        ],
+        "tailMatchesExpected": true,
+        "guardsIntact": true,
+        "tailSha256": "10eef285deef7a4b7c82b22aa53589b7833df29de3814649c772bbd5c832f365",
+        "outputSha256": "5e630a3aa720333109626b84864ef9391000484c187551e93ecf6399d3283cc1"
+      },
+      {
+        "baseline": "poisoned prior tail",
+        "changes": "none",
+        "readBitsCalls": 2,
+        "completeOutputMatchesFixture": true,
+        "tailWriteInstructionRvas": [
+          "0xd670b"
+        ],
+        "tailMatchesExpected": true,
+        "guardsIntact": true,
+        "tailSha256": "82e00bbabb8e646e0d0a21fdd8943f34c8c983a3fcfe79f50dca500ba2ad8294",
+        "outputSha256": "084973269b51859fe6155bcb1b230f05c5b25d363b3241a4015a158c89e1767b"
+      },
+      {
+        "baseline": "poisoned prior tail",
+        "changes": "all 58 scalars and all 64 array entries",
+        "readBitsCalls": 202,
+        "completeOutputMatchesFixture": true,
+        "tailWriteInstructionRvas": [
+          "0xd670b"
+        ],
+        "tailMatchesExpected": true,
+        "guardsIntact": true,
+        "tailSha256": "82e00bbabb8e646e0d0a21fdd8943f34c8c983a3fcfe79f50dca500ba2ad8294",
+        "outputSha256": "77e693fea9e694247a225de5ab4b82cbe1c2920aa7f4a813034b643d12dae841"
+      }
+    ]
+  },
+  "scope": "Pinned retail function bytes emulated in isolated CPU memory; bit-reader, zero-fill and stack-cookie helpers controlled. No full retail process, network stream, Steam service, input, or rendering exercised.",
+  "localScripts": {
+    "emulate-ql-delta-tail.py": "3657ae2492dc5ac327ab01006444d2b9e9a1e15f1321926c8f1014e52a25c8c8",
+    "read-ql-player-fields.py": "7cb93b0600bf8bdbad0c80efaa1899d3d5a463889e0ddeaaa2bbb977630beea4",
+    "read-ql-producer.py": "8ce3640d66c9b205d2a454b07350faab9efb6de1086b6cb1d230f0fdb5270ae2"
+  }
+}

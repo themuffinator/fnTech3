@@ -33,6 +33,9 @@ explicitly marshals the known prefix and zeroes the unresolved tail under its
 existing containment policy. That policy remains bounded compatibility evidence,
 not a claim that zeroes match all retail states. The next unresolved question is
 the retail producer's values and any indirect consumers of those copied bytes.
+The subsequent [producer/decoder checkpoint](2026-09-08-retail-snapshot-producer.md)
+establishes baseline inheritance for tested delta-reader paths; it does not
+resolve all writers or consumers.
 
 The [guarded runtime probe](2026-09-08-native-snapshot-containment.md) remains
 the separate evidence for fnTech3's output bounds and zero-tail behavior. This
