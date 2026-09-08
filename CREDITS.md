@@ -34,6 +34,11 @@ remain authoritative.
 
 ## Compatibility references and adapted work
 
+- The synthetic Q3 native cgame probe independently exercises the legacy ABI
+  using ordinal and layout facts from the GPL-2.0-or-later pinned
+  [FnQuake3 cgame header](https://github.com/themuffinator/FnQ3/blob/7d8c9629cdc7979f09697266470359101ffd9eda/code/cgame/cg_public.h).
+  It contains no reconstructed or incorporated retail game behavior.
+
 - Frozen renderer config layouts use the GPL-2.0-or-later
   [FnQuake3 renderer header](https://github.com/themuffinator/FnQ3/blob/7d8c9629cdc7979f09697266470359101ffd9eda/code/renderercommon/tr_types.h)
   and [FnQL retail config adapter](https://github.com/themuffinator/FnQL/blob/fce44fe714564621e6ceb79e3da7c53089646af2/code/client/cl_cgame.cpp).
