@@ -275,6 +275,11 @@ to the evidence level named in the same cell.
    Those retail-derived vectors also pass all eight starting bit offsets and
    reject every shorter framed byte prefix without modifying separate or
    aliased output state (392 combinations, Windows x86 and Linux i686).
+   The [retail field corpus](2026-09-08-retail-playerstate-field-corpus.md)
+   expands differential checks to 478 synthetic transitions in both directions,
+   including every scalar field and array slot, and retains 58 retail-generated
+   scalar boundary fixtures. Windows x86 and Linux i686 decode all retail
+   outputs correctly; full-process interoperability remains unproved.
    [Snapshot history validation](2026-09-07-snapshot-history.md) also rejects
    malformed/stale module requests before writes. The subsequent
    [entity-history correction](2026-09-07-entity-history-wrap.md) covers parser

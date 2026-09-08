@@ -1,0 +1,253 @@
+{
+  "engineCommit": "f74e5dfa2f737896e040d4c16694d8f3ed95cf14",
+  "profile": "ql",
+  "retailExecutableSha256": "c926fe9f6c851e00b3b9332e88903ad01f28fdd60454873891c0158f5ded1299",
+  "retailHuffmanStateSha256": "44baf2050819ebd94a2f7294b640c55405feb7f7e708e67c03cb523db82f5045",
+  "retailRvas": {
+    "playerStateWriter": "0xd5d50",
+    "playerStateReader": "0xd66c0",
+    "bitWriter": "0xd4af0",
+    "bitReader": "0xd4c70"
+  },
+  "seed": 20260908,
+  "scalarFields": 58,
+  "isolatedScalarCases": 222,
+  "isolatedArrayCases": 128,
+  "seededSequentialCases": 128,
+  "fnWriterRetailReader": {
+    "cases": 956,
+    "completePrefixBytesCompared": 504,
+    "tailBytesCompared": 88,
+    "bothZeroAndPoisonTails": true,
+    "allStatesMatch": true,
+    "allTailsPreserved": true,
+    "allGuardsIntact": true,
+    "allConsumedBitsMatch": true
+  },
+  "retailWriterFnReader": {
+    "cases": 478,
+    "windowsX86Passed": true,
+    "linuxI686Passed": true,
+    "allStatesMatchOriginalInputs": true,
+    "allRetailWriterGuardsIntact": true,
+    "byteIdenticalPayloads": 431
+  },
+  "differentPayloadCases": [
+    {
+      "case": 216,
+      "label": "rightmove=1"
+    },
+    {
+      "case": 217,
+      "label": "rightmove=255"
+    },
+    {
+      "case": 218,
+      "label": "rightmove=128"
+    },
+    {
+      "case": 219,
+      "label": "upmove=1"
+    },
+    {
+      "case": 220,
+      "label": "upmove=255"
+    },
+    {
+      "case": 221,
+      "label": "upmove=128"
+    },
+    {
+      "case": 350,
+      "label": "seeded-sequence-0"
+    },
+    {
+      "case": 351,
+      "label": "seeded-sequence-1"
+    },
+    {
+      "case": 358,
+      "label": "seeded-sequence-8"
+    },
+    {
+      "case": 360,
+      "label": "seeded-sequence-10"
+    },
+    {
+      "case": 363,
+      "label": "seeded-sequence-13"
+    },
+    {
+      "case": 366,
+      "label": "seeded-sequence-16"
+    },
+    {
+      "case": 369,
+      "label": "seeded-sequence-19"
+    },
+    {
+      "case": 371,
+      "label": "seeded-sequence-21"
+    },
+    {
+      "case": 372,
+      "label": "seeded-sequence-22"
+    },
+    {
+      "case": 373,
+      "label": "seeded-sequence-23"
+    },
+    {
+      "case": 375,
+      "label": "seeded-sequence-25"
+    },
+    {
+      "case": 378,
+      "label": "seeded-sequence-28"
+    },
+    {
+      "case": 381,
+      "label": "seeded-sequence-31"
+    },
+    {
+      "case": 383,
+      "label": "seeded-sequence-33"
+    },
+    {
+      "case": 384,
+      "label": "seeded-sequence-34"
+    },
+    {
+      "case": 390,
+      "label": "seeded-sequence-40"
+    },
+    {
+      "case": 392,
+      "label": "seeded-sequence-42"
+    },
+    {
+      "case": 395,
+      "label": "seeded-sequence-45"
+    },
+    {
+      "case": 396,
+      "label": "seeded-sequence-46"
+    },
+    {
+      "case": 401,
+      "label": "seeded-sequence-51"
+    },
+    {
+      "case": 402,
+      "label": "seeded-sequence-52"
+    },
+    {
+      "case": 405,
+      "label": "seeded-sequence-55"
+    },
+    {
+      "case": 411,
+      "label": "seeded-sequence-61"
+    },
+    {
+      "case": 414,
+      "label": "seeded-sequence-64"
+    },
+    {
+      "case": 420,
+      "label": "seeded-sequence-70"
+    },
+    {
+      "case": 426,
+      "label": "seeded-sequence-76"
+    },
+    {
+      "case": 427,
+      "label": "seeded-sequence-77"
+    },
+    {
+      "case": 428,
+      "label": "seeded-sequence-78"
+    },
+    {
+      "case": 429,
+      "label": "seeded-sequence-79"
+    },
+    {
+      "case": 434,
+      "label": "seeded-sequence-84"
+    },
+    {
+      "case": 436,
+      "label": "seeded-sequence-86"
+    },
+    {
+      "case": 438,
+      "label": "seeded-sequence-88"
+    },
+    {
+      "case": 444,
+      "label": "seeded-sequence-94"
+    },
+    {
+      "case": 450,
+      "label": "seeded-sequence-100"
+    },
+    {
+      "case": 456,
+      "label": "seeded-sequence-106"
+    },
+    {
+      "case": 457,
+      "label": "seeded-sequence-107"
+    },
+    {
+      "case": 459,
+      "label": "seeded-sequence-109"
+    },
+    {
+      "case": 464,
+      "label": "seeded-sequence-114"
+    },
+    {
+      "case": 466,
+      "label": "seeded-sequence-116"
+    },
+    {
+      "case": 472,
+      "label": "seeded-sequence-122"
+    },
+    {
+      "case": 475,
+      "label": "seeded-sequence-125"
+    }
+  ],
+  "corpusDigest": {
+    "sha256": "33dac658c2e51dad2053bd19b4fbdd0985c695052cb13a68011b19863e0e3e2c",
+    "encoding": "case IDs 0..477; kinds baseline,sent,expected,packet,bits,retail-packet; append ASCII filename, NUL, uint32 little-endian byte length, bytes"
+  },
+  "files": {
+    "code/qcommon/msg.cpp": "766a676688fdf5fbaae57becf81650cbf3e4fb4ba5170ffe13ed1d2e34596fcb",
+    "code/qcommon/huffman_static.c": "2767ba2b15100adedadddace9664ce8fd44ba72debd1f9878e05e4aff0ac92c9",
+    ".tmp/make-ql-field-corpus.py": "b303538a334230ef5a213462b6f861629c399d7837fbf25e347231a38f04287c",
+    ".tmp/ql-field-corpus.cpp": "2b3eb45dfeb3537b33c144ebf5e7896dc2601081372968650a2915fc3f3e95bb",
+    ".tmp/ql-field-corpus-reader.py": "26f438c883ae4d9cd03537395104a2e58334b56023607d95d6be782ffdab6330",
+    ".tmp/ql-field-corpus-writer.py": "fea9a008351e18beb030581be59bf9ab4c98151c251e4ea4b48cc6b3ecd71626",
+    ".tmp/ql-field-corpus/retail-reader-results.json": "202d6228396c466b0b13519590199824b01f5f6f17bae3535e384590a35dc706",
+    ".tmp/ql-field-corpus/retail-writer-results.json": "b31449374ed89e85254e16a1f00ae5121064fe37c2905645bbd91aab365918b2",
+    "tests/fixtures/ql_retail_player_fields.inc": "45aa16a1ccf3882404dfeaf765150cedd835c6abf035ab3b3af6336c13e0818a"
+  },
+  "validation": {
+    "messageCodecWindowsX86": "1 Meson test passed, 0 failed",
+    "messageCodecLinuxI686": "exit 0",
+    "fullSuiteRerun": false
+  },
+  "limitations": [
+    "selected retail functions under CPU emulation, not full retail processes or live interoperability",
+    "cached actual retail Huffman initialization state from the prior checkpoint",
+    "zero-fill and stack-cookie helpers controlled; real Huffman and bit IO executed",
+    "finite floats only; no NaN/Inf corpus claim",
+    "other snapshot tail writers and semantics remain open",
+    "no new unrelated engine defect established"
+  ]
+}

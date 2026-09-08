@@ -964,6 +964,48 @@ int TestPlayerStateRoundTrip() {
 	return 0;
 }
 
+int TestRetailPlayerFieldBoundaries() {
+	struct Fixture {
+		std::size_t offset;
+		std::size_t width;
+		std::uint32_t value;
+		int bits;
+		int bytes;
+		std::array<byte, 11> packet;
+	};
+	std::array<Fixture, 58> fixtures{{
+#include "fixtures/ql_retail_player_fields.inc"
+	}};
+	for ( auto &fixture : fixtures ) {
+		playerState_t baseline{}, expected{};
+		CHECK( fixture.offset + fixture.width <= sizeof( expected ) );
+		if ( fixture.width == 1 ) {
+			const byte value = static_cast<byte>( fixture.value );
+			std::memcpy( reinterpret_cast<byte *>( &expected ) + fixture.offset,
+				&value, sizeof( value ) );
+		} else {
+			CHECK( fixture.width == sizeof( fixture.value ) );
+			std::memcpy( reinterpret_cast<byte *>( &expected ) + fixture.offset,
+				&fixture.value, sizeof( fixture.value ) );
+		}
+		struct {
+			std::uint32_t before = 0x13579bdf;
+			playerState_t state{};
+			std::uint32_t after = 0x2468ace0;
+		} output;
+		msg_t reader{};
+		MSG_Init( &reader, fixture.packet.data(), static_cast<int>( fixture.packet.size() ) );
+		reader.cursize = fixture.bytes;
+		MSG_BeginReading( &reader );
+		CHECK( MSG_ReadDeltaPlayerstateForWireProfile( &reader, &baseline,
+			&output.state, NETCHAN_WIRE_QL_RETAIL ) );
+		CHECK( std::memcmp( &output.state, &expected, sizeof( expected ) ) == 0 );
+		CHECK( reader.bit == fixture.bits && reader.readcount == fixture.bytes );
+		CHECK( output.before == 0x13579bdf && output.after == 0x2468ace0 );
+	}
+	return 0;
+}
+
 int TestRetailMovementBytePayloads() {
 	// Synthetic states serialized by the pinned retail encoder under CPU
 	// emulation. See docs/fntech3/2026-09-08-retail-playerstate-wire.md.
@@ -1057,5 +1099,6 @@ int main() {
 	if ( const int result = TestEntityRoundTrip() ) return result;
 	if ( const int result = TestPlayerStateRoundTrip() ) return result;
 	if ( const int result = TestRetailMovementBytePayloads() ) return result;
+	if ( const int result = TestRetailPlayerFieldBoundaries() ) return result;
 	return 0;
 }
