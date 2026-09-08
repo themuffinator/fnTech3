@@ -1,0 +1,1899 @@
+{
+  "sourceFilesCompared": 1523,
+  "changedSourceFiles": [],
+  "changesSha256": {},
+  "elf": {
+    "fnql-audiozonesc": {
+      "sha256": "60b5ca063938d20338d33e4742a13189ac752749da6bf225a0ca102484c4525d",
+      "mode": "0o755",
+      "identity": "/home/root/fntech3-builds/focal-6da5108-IrE95o/work/runtime-media-e02a4b3/fnql-audiozonesc: ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2, BuildID[sha1]=d83c4f00f7ee81b5a90328218eedc784473e7ae6, for GNU/Linux 3.2.0, not stripped",
+      "ldd": "\tlinux-gate.so.1 (0xf7f91000)\n\tlibstdc++.so.6 => /lib/i386-linux-gnu/libstdc++.so.6 (0xf7d63000)\n\tlibm.so.6 => /lib/i386-linux-gnu/libm.so.6 (0xf7c5e000)\n\tlibgcc_s.so.1 => /lib/i386-linux-gnu/libgcc_s.so.1 (0xf7c3f000)\n\tlibc.so.6 => /lib/i386-linux-gnu/libc.so.6 (0xf7a50000)\n\t/lib/ld-linux.so.2 (0xf7f93000)\n"
+    },
+    "fnql_glx_x86.so": {
+      "sha256": "5d3d764370656ab90f6c1fb2e13fdf23440dc7ef1bc439236aa0f602a3739269",
+      "mode": "0o755",
+      "identity": "/home/root/fntech3-builds/focal-6da5108-IrE95o/work/runtime-media-e02a4b3/fnql_glx_x86.so: ELF 32-bit LSB shared object, Intel 80386, version 1 (SYSV), dynamically linked, BuildID[sha1]=9f00ef05e26b5ceba026bdcc50882ccabad28e8c, not stripped",
+      "ldd": "\tlinux-gate.so.1 (0xf7f95000)\n\tlibm.so.6 => /lib/i386-linux-gnu/libm.so.6 (0xf77d6000)\n\tlibgcc_s.so.1 => /lib/i386-linux-gnu/libgcc_s.so.1 (0xf77b7000)\n\tlibc.so.6 => /lib/i386-linux-gnu/libc.so.6 (0xf75c8000)\n\t/lib/ld-linux.so.2 (0xf7f97000)\n"
+    },
+    "fnql_rtx_x86.so": {
+      "sha256": "a069ab2731226c5b3e3d2c2c19a8afbed7751ac33471829b291b91b5b0e24ba6",
+      "mode": "0o755",
+      "identity": "/home/root/fntech3-builds/focal-6da5108-IrE95o/work/runtime-media-e02a4b3/fnql_rtx_x86.so: ELF 32-bit LSB shared object, Intel 80386, version 1 (SYSV), dynamically linked, BuildID[sha1]=76b4c13f8659dca3e55efcee7d99f9690a9cbf33, not stripped",
+      "ldd": "\tlinux-gate.so.1 (0xf7f33000)\n\tlibm.so.6 => /lib/i386-linux-gnu/libm.so.6 (0xf7831000)\n\tlibc.so.6 => /lib/i386-linux-gnu/libc.so.6 (0xf7642000)\n\t/lib/ld-linux.so.2 (0xf7f35000)\n"
+    },
+    "fnql_vk_x86.so": {
+      "sha256": "a42a75ecb0b3181e7abbf001e87d5c1cb8f6e531f24f923eb77595c54767d936",
+      "mode": "0o755",
+      "identity": "/home/root/fntech3-builds/focal-6da5108-IrE95o/work/runtime-media-e02a4b3/fnql_vk_x86.so: ELF 32-bit LSB shared object, Intel 80386, version 1 (SYSV), dynamically linked, BuildID[sha1]=468a45258fe430bb62de99bab90f779778aca089, not stripped",
+      "ldd": "\tlinux-gate.so.1 (0xf7f5c000)\n\tlibm.so.6 => /lib/i386-linux-gnu/libm.so.6 (0xf78ab000)\n\tlibc.so.6 => /lib/i386-linux-gnu/libc.so.6 (0xf76bc000)\n\t/lib/ld-linux.so.2 (0xf7f5e000)\n"
+    },
+    "fntech3": {
+      "sha256": "5ea4bc2fec38f5c0de3dfe5ea6b325b1991eaa4d676eba48b7d695c2c5a7d653",
+      "mode": "0o755",
+      "identity": "/home/root/fntech3-builds/focal-6da5108-IrE95o/work/runtime-media-e02a4b3/fntech3: ELF 32-bit LSB pie executable, Intel 80386, version 1 (GNU/Linux), dynamically linked, interpreter /lib/ld-linux.so.2, BuildID[sha1]=38181b7cf6ff60a7e2d559a1eadbb711813e6083, for GNU/Linux 3.2.0, not stripped",
+      "ldd": "\tlinux-gate.so.1 (0xf7f50000)\n\tlibdl.so.2 => /lib/i386-linux-gnu/libdl.so.2 (0xf6d6c000)\n\tlibjpeg.so.8 => /lib/i386-linux-gnu/libjpeg.so.8 (0xf6cdf000)\n\tlibvorbisfile.so.3 => /lib/i386-linux-gnu/libvorbisfile.so.3 (0xf6cd3000)\n\tlibX11.so.6 => /lib/i386-linux-gnu/libX11.so.6 (0xf6b84000)\n\tlibstdc++.so.6 => /lib/i386-linux-gnu/libstdc++.so.6 (0xf69a5000)\n\tlibm.so.6 => /lib/i386-linux-gnu/libm.so.6 (0xf68a0000)\n\tlibgcc_s.so.1 => /lib/i386-linux-gnu/libgcc_s.so.1 (0xf6881000)\n\tlibpthread.so.0 => /lib/i386-linux-gnu/libpthread.so.0 (0xf685e000)\n\tlibc.so.6 => /lib/i386-linux-gnu/libc.so.6 (0xf666f000)\n\t/lib/ld-linux.so.2 (0xf7f52000)\n\tlibvorbis.so.0 => /lib/i386-linux-gnu/libvorbis.so.0 (0xf6642000)\n\tlibogg.so.0 => /lib/i386-linux-gnu/libogg.so.0 (0xf6634000)\n\tlibxcb.so.1 => /lib/i386-linux-gnu/libxcb.so.1 (0xf6605000)\n\tlibXau.so.6 => /lib/i386-linux-gnu/libXau.so.6 (0xf65ff000)\n\tlibXdmcp.so.6 => /lib/i386-linux-gnu/libXdmcp.so.6 (0xf65f7000)\n\tlibbsd.so.0 => /lib/i386-linux-gnu/libbsd.so.0 (0xf65d8000)\n"
+    },
+    "fntech3.ded": {
+      "sha256": "144cb0e790e6bd627d704e95e313535d2b53916c7d325ec15c587ded1699a768",
+      "mode": "0o755",
+      "identity": "/home/root/fntech3-builds/focal-6da5108-IrE95o/work/runtime-media-e02a4b3/fntech3.ded: ELF 32-bit LSB pie executable, Intel 80386, version 1 (GNU/Linux), dynamically linked, interpreter /lib/ld-linux.so.2, BuildID[sha1]=8ca713728319e864cef5c4002e6ff547b89a9b79, for GNU/Linux 3.2.0, not stripped",
+      "ldd": "\tlinux-gate.so.1 (0xf7f66000)\n\tlibdl.so.2 => /lib/i386-linux-gnu/libdl.so.2 (0xf7865000)\n\tlibstdc++.so.6 => /lib/i386-linux-gnu/libstdc++.so.6 (0xf7686000)\n\tlibm.so.6 => /lib/i386-linux-gnu/libm.so.6 (0xf7581000)\n\tlibgcc_s.so.1 => /lib/i386-linux-gnu/libgcc_s.so.1 (0xf7562000)\n\tlibpthread.so.0 => /lib/i386-linux-gnu/libpthread.so.0 (0xf753f000)\n\tlibc.so.6 => /lib/i386-linux-gnu/libc.so.6 (0xf7350000)\n\t/lib/ld-linux.so.2 (0xf7f68000)\n"
+    }
+  },
+  "runtime": {
+    "q3": {
+      "utc": "2026-09-08T16:59:34.002923+00:00",
+      "sourceCommit": "e02a4b3",
+      "sourceChanges": [],
+      "platform": "Linux i686 under WSL2 and private Xvfb, software OpenGL",
+      "display": ":99",
+      "installation": "/retail/q3",
+      "basePakSha256": "7ce8b3910620cd50a09e4f1100f426e8c6180f68895d589f80e6bd95af54bcae",
+      "server": {
+        "command": [
+          "/work/runtime-media-e02a4b3/fntech3.ded",
+          "+set",
+          "com_gameProfile",
+          "q3",
+          "+set",
+          "fs_basepath",
+          "/retail/q3",
+          "+set",
+          "fs_homepath",
+          "/tmp/fntech3-linux-client-07vkkuz_/server",
+          "+set",
+          "fs_game",
+          "",
+          "+set",
+          "dedicated",
+          "1",
+          "+set",
+          "net_ip",
+          "127.0.0.1",
+          "+set",
+          "net_port",
+          "47628",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "com_steamIntegration",
+          "0",
+          "+set",
+          "fs_skipWorkshop",
+          "1",
+          "+set",
+          "cl_webuiEnable",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "developer",
+          "1",
+          "+exec",
+          "probe.cfg"
+        ],
+        "config": "set sv_pure 1\nset sv_autoRecordDemos 0\nset sv_maxclients 2\nset cl_allowDownload 0\nset cl_motd 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset cl_shownet 2\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nmap q3dm6\nwait 1000\nquit\n",
+        "sha256": "144cb0e790e6bd627d704e95e313535d2b53916c7d325ec15c587ded1699a768",
+        "exitCode": 0,
+        "terminated": false,
+        "screenshots": []
+      },
+      "client": {
+        "command": [
+          "/work/runtime-media-e02a4b3/fntech3",
+          "+set",
+          "com_gameProfile",
+          "q3",
+          "+set",
+          "fs_basepath",
+          "/retail/q3",
+          "+set",
+          "fs_homepath",
+          "/tmp/fntech3-linux-client-07vkkuz_/client",
+          "+set",
+          "fs_game",
+          "",
+          "+set",
+          "dedicated",
+          "0",
+          "+set",
+          "net_ip",
+          "127.0.0.1",
+          "+set",
+          "net_port",
+          "44488",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "com_steamIntegration",
+          "0",
+          "+set",
+          "fs_skipWorkshop",
+          "1",
+          "+set",
+          "cl_webuiEnable",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "developer",
+          "1",
+          "+exec",
+          "probe.cfg"
+        ],
+        "config": "set sv_pure 1\nset sv_autoRecordDemos 0\nset sv_maxclients 2\nset cl_allowDownload 0\nset cl_motd 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset cl_shownet 2\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nset activeAction \"wait 120; screenshotPNG linux-proof; wait 3; quit\"\nconnect 127.0.0.1:47628\n",
+        "sha256": "5ea4bc2fec38f5c0de3dfe5ea6b325b1991eaa4d676eba48b7d695c2c5a7d653",
+        "exitCode": 0,
+        "terminated": false,
+        "screenshots": [
+          {
+            "path": "/work/fntech3-e02a4b3/.tmp/focal-q3-runtime-media/linux-proof.png",
+            "sha256": "2a97427a1a3eabadf7036fe40b44f38cb309684e0373e5dda5fe1693890108d5"
+          }
+        ]
+      },
+      "elapsedSeconds": 50.779710562999995,
+      "logSha256": {
+        "server-stdout.log": "7e1a3416852d5a3eabd17d5e67d9c1b799058aa70c7cbd804ed49cf04d21d720",
+        "server-console.log": "3d4f28489224e35e12a2c0524cfb6d6830e2356313663ab166b0002c5d2a818b",
+        "client-console.log": "4c3307e3d8cb31a2770414931d3e3da3cd3625703092434540c10d60bdfe1e31",
+        "client-stdout.log": "a19f06cd4827e047102683b9f1298d7f0681be09bc086a970e21557c3a276575"
+      }
+    },
+    "ql": {
+      "command": [
+        "/work/runtime-media-e02a4b3/fntech3.ded",
+        "+set",
+        "com_gameProfile",
+        "ql",
+        "+set",
+        "fs_basepath",
+        "/retail/ql",
+        "+set",
+        "fs_homepath",
+        "/tmp/fntech3-ql-clean-gqo6c8bw",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+exec",
+        "probe.cfg"
+      ],
+      "config": "set sv_pure 1\nset sv_autoRecordDemos 0\nmap campgrounds ffa\nwait 80\nstatus\nquit\n",
+      "exitCode": 0,
+      "exeSha256": "144cb0e790e6bd627d704e95e313535d2b53916c7d325ec15c587ded1699a768",
+      "assetArchiveSha256": "0587e55a98516d9645d2dd7ad894822db4bc5190f53e11f82e7486876b753ce0",
+      "sourceChanges": [],
+      "logSha256": {
+        "console.log": "5710c92a72a819835bb8d39a95c9efb4c49c595046721afcc202d15459ca0a2a",
+        "stdout.log": "07bfed64a069b4320926cf09d38c31f600ad4d9ed0a383c2bea21f5c4ca1adda"
+      }
+    }
+  },
+  "runtimeFilesUnchanged": true,
+  "toolVersions": {
+    "gcc": "gcc (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0",
+    "python": "Python 3.11.9",
+    "meson": "1.9.1",
+    "glibc": "ldd (Ubuntu GLIBC 2.31-0ubuntu9.9) 2.31"
+  },
+  "packages": [
+    "adduser 3.118ubuntu2",
+    "apt 2.0.9",
+    "base-files 11ubuntu5.6",
+    "base-passwd 3.5.47",
+    "bash 5.0-6ubuntu1.2",
+    "binutils 2.34-6ubuntu1.11",
+    "binutils-common:amd64 2.34-6ubuntu1.11",
+    "binutils-x86-64-linux-gnu 2.34-6ubuntu1.11",
+    "bsdutils 1:2.34-0.1ubuntu9.3",
+    "bzip2 1.0.8-2",
+    "ca-certificates 20240203~20.04.1",
+    "coreutils 8.30-3ubuntu2",
+    "cpp 4:9.3.0-1ubuntu2",
+    "cpp-9 9.4.0-1ubuntu1~20.04.2",
+    "dash 0.5.10.2-6",
+    "debconf 1.5.73",
+    "debianutils 4.9.1",
+    "diffutils 1:3.7-3",
+    "dpkg 1.19.7ubuntu3.2",
+    "e2fsprogs 1.45.5-2ubuntu1.1",
+    "fdisk 2.34-0.1ubuntu9.3",
+    "findutils 4.7.0-1ubuntu1",
+    "g++ 4:9.3.0-1ubuntu2",
+    "g++-9 9.4.0-1ubuntu1~20.04.2",
+    "g++-9-multilib 9.4.0-1ubuntu1~20.04.2",
+    "g++-multilib 4:9.3.0-1ubuntu2",
+    "gcc 4:9.3.0-1ubuntu2",
+    "gcc-10-base:amd64 10.5.0-1ubuntu1~20.04",
+    "gcc-10-base:i386 10.5.0-1ubuntu1~20.04",
+    "gcc-9 9.4.0-1ubuntu1~20.04.2",
+    "gcc-9-base:amd64 9.4.0-1ubuntu1~20.04.2",
+    "gcc-9-multilib 9.4.0-1ubuntu1~20.04.2",
+    "gcc-multilib 4:9.3.0-1ubuntu2",
+    "git 1:2.25.1-1ubuntu3.14",
+    "git-man 1:2.25.1-1ubuntu3.14",
+    "glslang-tools 8.13.3559-4",
+    "gpgv 2.2.19-3ubuntu2.2",
+    "grep 3.4-1",
+    "gzip 1.10-0ubuntu4.1",
+    "hostname 3.23",
+    "init-system-helpers 1.57",
+    "lib32asan5 9.4.0-1ubuntu1~20.04.2",
+    "lib32atomic1 10.5.0-1ubuntu1~20.04",
+    "lib32gcc-9-dev 9.4.0-1ubuntu1~20.04.2",
+    "lib32gcc-s1 10.5.0-1ubuntu1~20.04",
+    "lib32gomp1 10.5.0-1ubuntu1~20.04",
+    "lib32itm1 10.5.0-1ubuntu1~20.04",
+    "lib32quadmath0 10.5.0-1ubuntu1~20.04",
+    "lib32stdc++-9-dev 9.4.0-1ubuntu1~20.04.2",
+    "lib32stdc++6 10.5.0-1ubuntu1~20.04",
+    "lib32ubsan1 10.5.0-1ubuntu1~20.04",
+    "libacl1:amd64 2.2.53-6",
+    "libapt-pkg6.0:amd64 2.0.9",
+    "libasan5:amd64 9.4.0-1ubuntu1~20.04.2",
+    "libasn1-8-heimdal:amd64 7.7.0+dfsg-1ubuntu1.4",
+    "libasn1-8-heimdal:i386 7.7.0+dfsg-1ubuntu1.4",
+    "libasound2:i386 1.2.2-2.1ubuntu2.5",
+    "libasound2-data 1.2.2-2.1ubuntu2.5",
+    "libasound2-dev:i386 1.2.2-2.1ubuntu2.5",
+    "libatomic1:amd64 10.5.0-1ubuntu1~20.04",
+    "libatomic1:i386 10.5.0-1ubuntu1~20.04",
+    "libattr1:amd64 1:2.4.48-5",
+    "libaudit-common 1:2.8.5-2ubuntu6",
+    "libaudit1:amd64 1:2.8.5-2ubuntu6",
+    "libbinutils:amd64 2.34-6ubuntu1.11",
+    "libblkid1:amd64 2.34-0.1ubuntu9.3",
+    "libbrotli1:amd64 1.0.7-6ubuntu0.1",
+    "libbrotli1:i386 1.0.7-6ubuntu0.1",
+    "libbsd0:amd64 0.10.0-1",
+    "libbsd0:i386 0.10.0-1",
+    "libbz2-1.0:amd64 1.0.8-2",
+    "libbz2-dev:amd64 1.0.8-2",
+    "libc-bin 2.31-0ubuntu9.9",
+    "libc-dev-bin 2.31-0ubuntu9.18",
+    "libc6:amd64 2.31-0ubuntu9.18",
+    "libc6:i386 2.31-0ubuntu9.18",
+    "libc6-dev:amd64 2.31-0ubuntu9.18",
+    "libc6-dev:i386 2.31-0ubuntu9.18",
+    "libc6-dev-i386 2.31-0ubuntu9.18",
+    "libc6-dev-x32 2.31-0ubuntu9.18",
+    "libc6-i386 2.31-0ubuntu9.18",
+    "libc6-x32 2.31-0ubuntu9.18",
+    "libcap-ng0:amd64 0.7.9-2.1build1",
+    "libcc1-0:amd64 10.5.0-1ubuntu1~20.04",
+    "libcom-err2:amd64 1.45.5-2ubuntu1.2",
+    "libcom-err2:i386 1.45.5-2ubuntu1.2",
+    "libcrypt-dev:amd64 1:4.4.10-10ubuntu4",
+    "libcrypt-dev:i386 1:4.4.10-10ubuntu4",
+    "libcrypt1:amd64 1:4.4.10-10ubuntu4",
+    "libcrypt1:i386 1:4.4.10-10ubuntu4",
+    "libctf-nobfd0:amd64 2.34-6ubuntu1.11",
+    "libctf0:amd64 2.34-6ubuntu1.11",
+    "libcurl3-gnutls:amd64 7.68.0-1ubuntu2.25",
+    "libcurl4:i386 7.68.0-1ubuntu2.25",
+    "libcurl4-openssl-dev:i386 7.68.0-1ubuntu2.25",
+    "libdb5.3:amd64 5.3.28+dfsg1-0.6ubuntu2",
+    "libdb5.3:i386 5.3.28+dfsg1-0.6ubuntu2",
+    "libdebconfclient0:amd64 0.251ubuntu1",
+    "libdpkg-perl 1.19.7ubuntu3.2",
+    "libdrm-amdgpu1:amd64 2.4.107-8ubuntu1~20.04.2",
+    "libdrm-amdgpu1:i386 2.4.107-8ubuntu1~20.04.2",
+    "libdrm-common 2.4.107-8ubuntu1~20.04.2",
+    "libdrm-intel1:amd64 2.4.107-8ubuntu1~20.04.2",
+    "libdrm-intel1:i386 2.4.107-8ubuntu1~20.04.2",
+    "libdrm-nouveau2:amd64 2.4.107-8ubuntu1~20.04.2",
+    "libdrm-nouveau2:i386 2.4.107-8ubuntu1~20.04.2",
+    "libdrm-radeon1:amd64 2.4.107-8ubuntu1~20.04.2",
+    "libdrm-radeon1:i386 2.4.107-8ubuntu1~20.04.2",
+    "libdrm2:amd64 2.4.107-8ubuntu1~20.04.2",
+    "libdrm2:i386 2.4.107-8ubuntu1~20.04.2",
+    "libedit2:amd64 3.1-20191231-1",
+    "libedit2:i386 3.1-20191231-1",
+    "libelf1:amd64 0.176-1.1ubuntu0.1",
+    "libelf1:i386 0.176-1.1ubuntu0.1",
+    "liberror-perl 0.17029-1",
+    "libexpat1:amd64 2.2.9-1ubuntu0.8",
+    "libexpat1:i386 2.2.9-1ubuntu0.8",
+    "libext2fs2:amd64 1.45.5-2ubuntu1.1",
+    "libfdisk1:amd64 2.34-0.1ubuntu9.3",
+    "libffi-dev:amd64 3.3-4",
+    "libffi7:amd64 3.3-4",
+    "libffi7:i386 3.3-4",
+    "libfontenc1:amd64 1:1.1.4-0ubuntu1",
+    "libfreetype6:amd64 2.10.1-2ubuntu0.4",
+    "libgcc-9-dev:amd64 9.4.0-1ubuntu1~20.04.2",
+    "libgcc-s1:amd64 10.5.0-1ubuntu1~20.04",
+    "libgcc-s1:i386 10.5.0-1ubuntu1~20.04",
+    "libgcrypt20:amd64 1.8.5-5ubuntu1.1",
+    "libgdbm-compat4:amd64 1.18.1-5",
+    "libgdbm6:amd64 1.18.1-5",
+    "libgl-dev:i386 1.3.2-1~ubuntu0.20.04.2",
+    "libgl1:amd64 1.3.2-1~ubuntu0.20.04.2",
+    "libgl1:i386 1.3.2-1~ubuntu0.20.04.2",
+    "libgl1-mesa-dri:amd64 21.2.6-0ubuntu0.1~20.04.2",
+    "libgl1-mesa-dri:i386 21.2.6-0ubuntu0.1~20.04.2",
+    "libglapi-mesa:amd64 21.2.6-0ubuntu0.1~20.04.2",
+    "libglapi-mesa:i386 21.2.6-0ubuntu0.1~20.04.2",
+    "libglib2.0-0:amd64 2.64.6-1~ubuntu20.04.9",
+    "libglvnd0:amd64 1.3.2-1~ubuntu0.20.04.2",
+    "libglvnd0:i386 1.3.2-1~ubuntu0.20.04.2",
+    "libglx-dev:i386 1.3.2-1~ubuntu0.20.04.2",
+    "libglx-mesa0:amd64 21.2.6-0ubuntu0.1~20.04.2",
+    "libglx-mesa0:i386 21.2.6-0ubuntu0.1~20.04.2",
+    "libglx0:amd64 1.3.2-1~ubuntu0.20.04.2",
+    "libglx0:i386 1.3.2-1~ubuntu0.20.04.2",
+    "libgmp10:amd64 2:6.2.0+dfsg-4ubuntu0.1",
+    "libgmp10:i386 2:6.2.0+dfsg-4ubuntu0.1",
+    "libgnutls30:amd64 3.6.13-2ubuntu1.12",
+    "libgnutls30:i386 3.6.13-2ubuntu1.12",
+    "libgomp1:amd64 10.5.0-1ubuntu1~20.04",
+    "libgpg-error0:amd64 1.37-1",
+    "libgssapi-krb5-2:amd64 1.17-6ubuntu4.11",
+    "libgssapi-krb5-2:i386 1.17-6ubuntu4.11",
+    "libgssapi3-heimdal:amd64 7.7.0+dfsg-1ubuntu1.4",
+    "libgssapi3-heimdal:i386 7.7.0+dfsg-1ubuntu1.4",
+    "libhcrypto4-heimdal:amd64 7.7.0+dfsg-1ubuntu1.4",
+    "libhcrypto4-heimdal:i386 7.7.0+dfsg-1ubuntu1.4",
+    "libheimbase1-heimdal:amd64 7.7.0+dfsg-1ubuntu1.4",
+    "libheimbase1-heimdal:i386 7.7.0+dfsg-1ubuntu1.4",
+    "libheimntlm0-heimdal:amd64 7.7.0+dfsg-1ubuntu1.4",
+    "libheimntlm0-heimdal:i386 7.7.0+dfsg-1ubuntu1.4",
+    "libhogweed5:amd64 3.5.1+really3.5.1-2ubuntu0.2",
+    "libhogweed5:i386 3.5.1+really3.5.1-2ubuntu0.2",
+    "libhx509-5-heimdal:amd64 7.7.0+dfsg-1ubuntu1.4",
+    "libhx509-5-heimdal:i386 7.7.0+dfsg-1ubuntu1.4",
+    "libice6:amd64 2:1.0.10-0ubuntu1",
+    "libidn2-0:amd64 2.2.0-2",
+    "libidn2-0:i386 2.2.0-2",
+    "libisl22:amd64 0.22.1-1",
+    "libitm1:amd64 10.5.0-1ubuntu1~20.04",
+    "libjpeg-dev:i386 8c-2ubuntu8",
+    "libjpeg-turbo8:i386 2.0.3-0ubuntu1.20.04.3",
+    "libjpeg-turbo8-dev:i386 2.0.3-0ubuntu1.20.04.3",
+    "libjpeg8:i386 8c-2ubuntu8",
+    "libjpeg8-dev:i386 8c-2ubuntu8",
+    "libk5crypto3:amd64 1.17-6ubuntu4.11",
+    "libk5crypto3:i386 1.17-6ubuntu4.11",
+    "libkeyutils1:amd64 1.6-6ubuntu1.1",
+    "libkeyutils1:i386 1.6-6ubuntu1.1",
+    "libkrb5-26-heimdal:amd64 7.7.0+dfsg-1ubuntu1.4",
+    "libkrb5-26-heimdal:i386 7.7.0+dfsg-1ubuntu1.4",
+    "libkrb5-3:amd64 1.17-6ubuntu4.11",
+    "libkrb5-3:i386 1.17-6ubuntu4.11",
+    "libkrb5support0:amd64 1.17-6ubuntu4.11",
+    "libkrb5support0:i386 1.17-6ubuntu4.11",
+    "libldap-2.4-2:amd64 2.4.49+dfsg-2ubuntu1.10",
+    "libldap-2.4-2:i386 2.4.49+dfsg-2ubuntu1.10",
+    "libldap-common 2.4.49+dfsg-2ubuntu1.10",
+    "libllvm12:amd64 1:12.0.0-3ubuntu1~20.04.5",
+    "libllvm12:i386 1:12.0.0-3ubuntu1~20.04.5",
+    "liblsan0:amd64 10.5.0-1ubuntu1~20.04",
+    "liblz4-1:amd64 1.9.2-2ubuntu0.20.04.1",
+    "liblzma-dev:amd64 5.2.4-1ubuntu1.1",
+    "liblzma5:amd64 5.2.4-1ubuntu1.1",
+    "libmount1:amd64 2.34-0.1ubuntu9.3",
+    "libmpc3:amd64 1.1.0-1",
+    "libmpdec2:amd64 2.4.2-3",
+    "libmpfr6:amd64 4.0.2-1",
+    "libncurses-dev:amd64 6.2-0ubuntu2.1",
+    "libncurses6:amd64 6.2-0ubuntu2.1",
+    "libncursesw6:amd64 6.2-0ubuntu2.1",
+    "libnettle7:amd64 3.5.1+really3.5.1-2ubuntu0.2",
+    "libnettle7:i386 3.5.1+really3.5.1-2ubuntu0.2",
+    "libnghttp2-14:amd64 1.40.0-1ubuntu0.3",
+    "libnghttp2-14:i386 1.40.0-1ubuntu0.3",
+    "libogg-dev:i386 1.3.4-0ubuntu1",
+    "libogg0:i386 1.3.4-0ubuntu1",
+    "libopenal-data 1:1.19.1-1",
+    "libopenal-dev:i386 1:1.19.1-1",
+    "libopenal1:i386 1:1.19.1-1",
+    "libp11-kit0:amd64 0.23.20-1ubuntu0.1",
+    "libp11-kit0:i386 0.23.20-1ubuntu0.1",
+    "libpam-modules:amd64 1.3.1-5ubuntu4.3",
+    "libpam-modules-bin 1.3.1-5ubuntu4.3",
+    "libpam-runtime 1.3.1-5ubuntu4.3",
+    "libpam0g:amd64 1.3.1-5ubuntu4.3",
+    "libpciaccess0:amd64 0.16-0ubuntu1",
+    "libpciaccess0:i386 0.16-0ubuntu1",
+    "libpcre2-8-0:amd64 10.34-7",
+    "libpcre3:amd64 2:8.39-12ubuntu0.1",
+    "libperl5.30:amd64 5.30.0-9ubuntu0.5",
+    "libpixman-1-0:amd64 0.38.4-0ubuntu2.1",
+    "libpng16-16:amd64 1.6.37-2",
+    "libprocps8:amd64 2:3.3.16-1ubuntu2.3",
+    "libpsl5:amd64 0.21.0-1ubuntu1",
+    "libpsl5:i386 0.21.0-1ubuntu1",
+    "libpthread-stubs0-dev:i386 0.4-1",
+    "libpython3-stdlib:amd64 3.8.2-0ubuntu2",
+    "libpython3.8-minimal:amd64 3.8.10-0ubuntu1~20.04.18",
+    "libpython3.8-stdlib:amd64 3.8.10-0ubuntu1~20.04.18",
+    "libquadmath0:amd64 10.5.0-1ubuntu1~20.04",
+    "libreadline-dev:amd64 8.0-4",
+    "libreadline8:amd64 8.0-4",
+    "libroken18-heimdal:amd64 7.7.0+dfsg-1ubuntu1.4",
+    "libroken18-heimdal:i386 7.7.0+dfsg-1ubuntu1.4",
+    "librtmp1:amd64 2.4+20151223.gitfa8646d.1-2build1",
+    "librtmp1:i386 2.4+20151223.gitfa8646d.1-2build1",
+    "libsasl2-2:amd64 2.1.27+dfsg-2ubuntu0.1",
+    "libsasl2-2:i386 2.1.27+dfsg-2ubuntu0.1",
+    "libsasl2-modules-db:amd64 2.1.27+dfsg-2ubuntu0.1",
+    "libsasl2-modules-db:i386 2.1.27+dfsg-2ubuntu0.1",
+    "libseccomp2:amd64 2.5.1-1ubuntu1~20.04.2",
+    "libselinux1:amd64 3.0-1build2",
+    "libsemanage-common 3.0-1build2",
+    "libsemanage1:amd64 3.0-1build2",
+    "libsensors-config 1:3.6.0-2ubuntu1.1",
+    "libsensors5:amd64 1:3.6.0-2ubuntu1.1",
+    "libsensors5:i386 1:3.6.0-2ubuntu1.1",
+    "libsepol1:amd64 3.0-1ubuntu0.1",
+    "libsm6:amd64 2:1.2.3-1",
+    "libsmartcols1:amd64 2.34-0.1ubuntu9.3",
+    "libsndio7.0:i386 1.5.0-3",
+    "libsqlite3-0:amd64 3.31.1-4ubuntu0.7",
+    "libsqlite3-0:i386 3.31.1-4ubuntu0.7",
+    "libsqlite3-dev:amd64 3.31.1-4ubuntu0.7",
+    "libss2:amd64 1.45.5-2ubuntu1.1",
+    "libssh-4:amd64 0.9.3-2ubuntu2.5",
+    "libssh-4:i386 0.9.3-2ubuntu2.5",
+    "libssl-dev:amd64 1.1.1f-1ubuntu2.24",
+    "libssl1.1:amd64 1.1.1f-1ubuntu2.24",
+    "libssl1.1:i386 1.1.1f-1ubuntu2.24",
+    "libstdc++-9-dev:amd64 9.4.0-1ubuntu1~20.04.2",
+    "libstdc++6:amd64 10.5.0-1ubuntu1~20.04",
+    "libstdc++6:i386 10.5.0-1ubuntu1~20.04",
+    "libsystemd0:amd64 245.4-4ubuntu3.17",
+    "libtasn1-6:amd64 4.16.0-2ubuntu0.1",
+    "libtasn1-6:i386 4.16.0-2ubuntu0.1",
+    "libtinfo6:amd64 6.2-0ubuntu2.1",
+    "libtinfo6:i386 6.2-0ubuntu2.1",
+    "libtsan0:amd64 10.5.0-1ubuntu1~20.04",
+    "libubsan1:amd64 10.5.0-1ubuntu1~20.04",
+    "libudev1:amd64 245.4-4ubuntu3.17",
+    "libunistring2:amd64 0.9.10-2",
+    "libunistring2:i386 0.9.10-2",
+    "libunwind8:amd64 1.2.1-9ubuntu0.1",
+    "libuuid1:amd64 2.34-0.1ubuntu9.3",
+    "libvorbis-dev:i386 1.3.6-2ubuntu1",
+    "libvorbis0a:i386 1.3.6-2ubuntu1",
+    "libvorbisenc2:i386 1.3.6-2ubuntu1",
+    "libvorbisfile3:i386 1.3.6-2ubuntu1",
+    "libvulkan1:amd64 1.2.131.2-1",
+    "libvulkan1:i386 1.2.131.2-1",
+    "libwind0-heimdal:amd64 7.7.0+dfsg-1ubuntu1.4",
+    "libwind0-heimdal:i386 7.7.0+dfsg-1ubuntu1.4",
+    "libx11-6:amd64 2:1.6.9-2ubuntu1.6",
+    "libx11-6:i386 2:1.6.9-2ubuntu1.6",
+    "libx11-data 2:1.6.9-2ubuntu1.6",
+    "libx11-dev:i386 2:1.6.9-2ubuntu1.6",
+    "libx11-xcb1:amd64 2:1.6.9-2ubuntu1.6",
+    "libx11-xcb1:i386 2:1.6.9-2ubuntu1.6",
+    "libx32asan5 9.4.0-1ubuntu1~20.04.2",
+    "libx32atomic1 10.5.0-1ubuntu1~20.04",
+    "libx32gcc-9-dev 9.4.0-1ubuntu1~20.04.2",
+    "libx32gcc-s1 10.5.0-1ubuntu1~20.04",
+    "libx32gomp1 10.5.0-1ubuntu1~20.04",
+    "libx32itm1 10.5.0-1ubuntu1~20.04",
+    "libx32quadmath0 10.5.0-1ubuntu1~20.04",
+    "libx32stdc++-9-dev 9.4.0-1ubuntu1~20.04.2",
+    "libx32stdc++6 10.5.0-1ubuntu1~20.04",
+    "libx32ubsan1 10.5.0-1ubuntu1~20.04",
+    "libxau-dev:i386 1:1.0.9-0ubuntu1",
+    "libxau6:amd64 1:1.0.9-0ubuntu1",
+    "libxau6:i386 1:1.0.9-0ubuntu1",
+    "libxaw7:amd64 2:1.0.13-1",
+    "libxcb-dri2-0:amd64 1.14-2",
+    "libxcb-dri2-0:i386 1.14-2",
+    "libxcb-dri3-0:amd64 1.14-2",
+    "libxcb-dri3-0:i386 1.14-2",
+    "libxcb-glx0:amd64 1.14-2",
+    "libxcb-glx0:i386 1.14-2",
+    "libxcb-present0:amd64 1.14-2",
+    "libxcb-present0:i386 1.14-2",
+    "libxcb-shm0:amd64 1.14-2",
+    "libxcb-shm0:i386 1.14-2",
+    "libxcb-sync1:amd64 1.14-2",
+    "libxcb-sync1:i386 1.14-2",
+    "libxcb-xfixes0:amd64 1.14-2",
+    "libxcb-xfixes0:i386 1.14-2",
+    "libxcb1:amd64 1.14-2",
+    "libxcb1:i386 1.14-2",
+    "libxcb1-dev:i386 1.14-2",
+    "libxdmcp-dev:i386 1:1.1.3-0ubuntu1",
+    "libxdmcp6:amd64 1:1.1.3-0ubuntu1",
+    "libxdmcp6:i386 1:1.1.3-0ubuntu1",
+    "libxext-dev:i386 2:1.3.4-0ubuntu1",
+    "libxext6:amd64 2:1.3.4-0ubuntu1",
+    "libxext6:i386 2:1.3.4-0ubuntu1",
+    "libxfixes3:amd64 1:5.0.3-2",
+    "libxfixes3:i386 1:5.0.3-2",
+    "libxfont2:amd64 1:2.0.3-1",
+    "libxkbfile1:amd64 1:1.1.0-1",
+    "libxmu6:amd64 2:1.1.3-0ubuntu1",
+    "libxmuu1:amd64 2:1.1.3-0ubuntu1",
+    "libxpm4:amd64 1:3.5.12-1ubuntu0.20.04.2",
+    "libxrandr-dev:i386 2:1.5.2-0ubuntu1",
+    "libxrandr2:i386 2:1.5.2-0ubuntu1",
+    "libxrender-dev:i386 1:0.9.10-1",
+    "libxrender1:i386 1:0.9.10-1",
+    "libxshmfence1:amd64 1.3-1",
+    "libxshmfence1:i386 1.3-1",
+    "libxt6:amd64 1:1.1.5-1",
+    "libxxf86dga-dev:i386 2:1.1.5-0ubuntu1",
+    "libxxf86dga1:i386 2:1.1.5-0ubuntu1",
+    "libxxf86vm-dev:i386 1:1.1.4-1build1",
+    "libxxf86vm1:amd64 1:1.1.4-1build1",
+    "libxxf86vm1:i386 1:1.1.4-1build1",
+    "libzstd1:amd64 1.4.4+dfsg-3ubuntu0.1",
+    "libzstd1:i386 1.4.4+dfsg-3ubuntu0.1",
+    "linux-libc-dev:amd64 5.4.0-216.236",
+    "linux-libc-dev:i386 5.4.0-216.236",
+    "login 1:4.8.1-1ubuntu5.20.04.2",
+    "logsave 1.45.5-2ubuntu1.1",
+    "lsb-base 11.1.0ubuntu2",
+    "make 4.2.1-1.2",
+    "mawk 1.3.4.20200120-2",
+    "mime-support 3.64ubuntu1",
+    "mount 2.34-0.1ubuntu9.3",
+    "ncurses-base 6.2-0ubuntu2",
+    "ncurses-bin 6.2-0ubuntu2",
+    "ninja-build 1.10.0-1build1",
+    "openssl 1.1.1f-1ubuntu2.24",
+    "passwd 1:4.8.1-1ubuntu5.20.04.2",
+    "perl 5.30.0-9ubuntu0.5",
+    "perl-base 5.30.0-9ubuntu0.5",
+    "perl-modules-5.30 5.30.0-9ubuntu0.5",
+    "pkg-config 0.29.1-0ubuntu4",
+    "procps 2:3.3.16-1ubuntu2.3",
+    "python-pip-whl 20.0.2-5ubuntu1.11",
+    "python3 3.8.2-0ubuntu2",
+    "python3-distutils 3.8.10-0ubuntu1~20.04",
+    "python3-lib2to3 3.8.10-0ubuntu1~20.04",
+    "python3-minimal 3.8.2-0ubuntu2",
+    "python3-pip 20.0.2-5ubuntu1.11",
+    "python3-pkg-resources 45.2.0-1ubuntu0.3",
+    "python3-setuptools 45.2.0-1ubuntu0.3",
+    "python3-wheel 0.34.2-1ubuntu0.1",
+    "python3.8 3.8.10-0ubuntu1~20.04.18",
+    "python3.8-minimal 3.8.10-0ubuntu1~20.04.18",
+    "readline-common 8.0-4",
+    "sed 4.7-1",
+    "sensible-utils 0.0.12+nmu1",
+    "spirv-tools 2020.1-2",
+    "sysvinit-utils 2.96-2.1ubuntu1",
+    "tar 1.30+dfsg-7ubuntu0.20.04.2",
+    "ubuntu-keyring 2020.02.11.4",
+    "util-linux 2.34-0.1ubuntu9.3",
+    "x11-common 1:7.7+19ubuntu14",
+    "x11-xkb-utils 7.7+5",
+    "x11proto-core-dev 2019.2-1ubuntu1",
+    "x11proto-dev 2019.2-1ubuntu1",
+    "x11proto-randr-dev 2019.2-1ubuntu1",
+    "x11proto-xext-dev 2019.2-1ubuntu1",
+    "x11proto-xf86dga-dev 2019.2-1ubuntu1",
+    "x11proto-xf86vidmode-dev 2019.2-1ubuntu1",
+    "xauth 1:1.1-0ubuntu1",
+    "xkb-data 2.29-2",
+    "xorg-sgml-doctools 1:1.11-1",
+    "xserver-common 2:1.20.13-1ubuntu1~20.04.20",
+    "xtrans-dev 1.4.0-1",
+    "xvfb 2:1.20.13-1ubuntu1~20.04.20",
+    "zlib1g:amd64 1:1.2.11.dfsg-2ubuntu1.5",
+    "zlib1g:i386 1:1.2.11.dfsg-2ubuntu1.5",
+    "zlib1g-dev:amd64 1:1.2.11.dfsg-2ubuntu1.5"
+  ],
+  "sourceCommit": "e02a4b3c9ba924b4b5ecfd7a9476268af1db285d",
+  "sourceArchiveSha256": "7d205509e16389c9b475a9f3246e63f0afe81e6d1c77ac92e157f166400b3a2c",
+  "package": {
+    "sourceCommit": "e02a4b3",
+    "archiveBytes": 7793676,
+    "archiveSha256": "1693ecab1049bb62cdee083b0ec80ea514fbdc080cde034d554f7343f35c79aa",
+    "repeatedArchiveIdentical": true,
+    "timestampMutation": 1000000000,
+    "skipped": [],
+    "files": {
+      "CREDITS.md": {
+        "bytes": 8203,
+        "sha256": "15501c3b3175777c60890daf1d4874b36306364d59b2d2e09041ee16efc7998b"
+      },
+      "docs/fnql/RTX_RENDERER.md": {
+        "bytes": 14109,
+        "sha256": "2e7887b237001990f00c251652df396f33cfc842c3cc1165bc576b19f08e45b8"
+      },
+      "docs/fnql/STEAM_PROVIDER_BINARY_NOTICE.txt": {
+        "bytes": 562,
+        "sha256": "cc3f724658456645fcf398353c7032b89a4092345d13c12e2a938f905261876d"
+      },
+      "docs/fnql/TECHNICAL.md": {
+        "bytes": 57713,
+        "sha256": "d5e5de602253a8b213ca90a5784d52ce240041c4b9dadaa959834ee5d5a48344"
+      },
+      "docs/fntech3/2026-09-06-merger-checkpoint.md": {
+        "bytes": 24600,
+        "sha256": "d09b35363d2ffa085b31ee05db6650ab6d461652d8e77446cd5a59fc8446be68"
+      },
+      "docs/fntech3/2026-09-06-rtx-round.md": {
+        "bytes": 11998,
+        "sha256": "819f4be2edcc265782f8b50f38064598d572a50a52ee90e3f5a5a4a69800c098"
+      },
+      "docs/fntech3/2026-09-06-webui-request-port.md": {
+        "bytes": 9189,
+        "sha256": "3e21fe5446f70ed4932bff65e73a64865e671221f72e37682bf0380cbc351ef7"
+      },
+      "docs/fntech3/2026-09-07-build-portability.md": {
+        "bytes": 5882,
+        "sha256": "2cc8a65491879ced17ce4986d99895d115a78decae09a24b071dd2b96d412911"
+      },
+      "docs/fntech3/2026-09-07-config-migration.md": {
+        "bytes": 3505,
+        "sha256": "55e27698105302d3d2df6cab9178fae6f7ee8ecc8325153a992232f13a692687"
+      },
+      "docs/fntech3/2026-09-07-console-profiles.md": {
+        "bytes": 2696,
+        "sha256": "04f0ce565563472ac3e168929fe4341a560dc780814a087b92910657c00b6e18"
+      },
+      "docs/fntech3/2026-09-07-demo-header-truncation.md": {
+        "bytes": 2121,
+        "sha256": "ab21e02872ca12f2566a32001e637ce5233c446bb7a74705506e64a4316d5fad"
+      },
+      "docs/fntech3/2026-09-07-demo-profile-isolation.md": {
+        "bytes": 4197,
+        "sha256": "8dc6513c13b979300e8684d3f9d37d42336236cfd88f168fa32fd58ac7d030fe"
+      },
+      "docs/fntech3/2026-09-07-engine-only-packaging.md": {
+        "bytes": 2365,
+        "sha256": "158ea393fc07ea0175b4ad68c8006d4bea3753766b0037bfba11675408e7e9c9"
+      },
+      "docs/fntech3/2026-09-07-entity-history-wrap.md": {
+        "bytes": 2126,
+        "sha256": "2789cfb80bb853231396d7db4a2b177818667d3d8d43e600106f770256088229"
+      },
+      "docs/fntech3/2026-09-07-freetype-download.md": {
+        "bytes": 2071,
+        "sha256": "bda7c8c3a6581ef42fa9dbad130a532a5eb473d8c7adab04cc8435e6d011063f"
+      },
+      "docs/fntech3/2026-09-07-q3-native-modules.md": {
+        "bytes": 4435,
+        "sha256": "d1a866eb570d8bf4056fc4208a0746c9bdffff9fffae6fa3d5a3a0640fd417b0"
+      },
+      "docs/fntech3/2026-09-07-q3-protocol71.md": {
+        "bytes": 2523,
+        "sha256": "ff5955ae24aa6a238e024ec5168cfe9c09be62b985a84ed39361b3f8ae322db4"
+      },
+      "docs/fntech3/2026-09-07-q3-reference-interop.md": {
+        "bytes": 4455,
+        "sha256": "642d7ccc5d4ea288f6f33e3eb17ad36a93f419a036948c691cccd7a803f51261"
+      },
+      "docs/fntech3/2026-09-07-q3-shipped-demos.md": {
+        "bytes": 4799,
+        "sha256": "8ba8325a86f1a520596854e489c5e7c5d394448fda5ac394e03030667978668c"
+      },
+      "docs/fntech3/2026-09-07-ql-reference-interop.md": {
+        "bytes": 2253,
+        "sha256": "576a9edea8d790fdb8df70517f56e6984cb170198b54ef9065a7150b9d8fcabc"
+      },
+      "docs/fntech3/2026-09-07-ql-snapshot-marshalling.md": {
+        "bytes": 2347,
+        "sha256": "cd4b47ce6a8cd31efa3d0c01e51b3fc185a3920229e5691ea44ce0a660742e5d"
+      },
+      "docs/fntech3/2026-09-07-ql-truncated-demo.md": {
+        "bytes": 1977,
+        "sha256": "4382d1ab7767b95a3130cc44cbd6ef4cf0e952f5de0bdd7e8ff65b65cfa33d39"
+      },
+      "docs/fntech3/2026-09-07-renderer-restart.md": {
+        "bytes": 5294,
+        "sha256": "bcf5b8f2ca794c1c3da9016b45ded39ff5fe1fb6697dcb6a13bc4dfcc7d64c95"
+      },
+      "docs/fntech3/2026-09-07-shader-light-rgb.md": {
+        "bytes": 2267,
+        "sha256": "ad9f9a9442f46ea6241b74b966a54e0da5ae83fccfdbff9869d728eaaf0a8185"
+      },
+      "docs/fntech3/2026-09-07-snapshot-history.md": {
+        "bytes": 2300,
+        "sha256": "cd624c6d16a10517ba4f86263e2134c809105794f3113cf22a401052ed84bbc2"
+      },
+      "docs/fntech3/2026-09-07-steam-discovery.md": {
+        "bytes": 7582,
+        "sha256": "b9128288959bf7724e5b18bc328121814885958f5dae1171a0116f6a09873ef4"
+      },
+      "docs/fntech3/2026-09-08-audio-restart.md": {
+        "bytes": 6298,
+        "sha256": "235e6da534d8dc3944d495c6576f1e0dc3258ac04f4dbeb4cfc84cc05034adf2"
+      },
+      "docs/fntech3/2026-09-08-bot-profile-defaults.json": {
+        "bytes": 28561,
+        "sha256": "0a86354e374070d976c631200a7ceb74a88188bac92a0824486e3af67956b10a"
+      },
+      "docs/fntech3/2026-09-08-bot-profile-defaults.md": {
+        "bytes": 3138,
+        "sha256": "6a214551e65b4fdf2c90a3b2f6b3d670b06ea5f74fef5235b85b97df103bc37f"
+      },
+      "docs/fntech3/2026-09-08-bot-trace-and-probe-corrections.json": {
+        "bytes": 10655,
+        "sha256": "ea709d41d4bf54a0ad8283ba4cac3a8df775c25d07ce9725640baaff314f44fd"
+      },
+      "docs/fntech3/2026-09-08-bot-trace-and-probe-corrections.md": {
+        "bytes": 4019,
+        "sha256": "ce443ca86b1b63f1cb7ee40c1c3cb8be7742cf1ee67dc45b973e3626e7ad83d9"
+      },
+      "docs/fntech3/2026-09-08-bot-usercmd-boundary.json": {
+        "bytes": 25143,
+        "sha256": "78ebc8226960f905bd28ce9e6af6dd8dabdac3fe9f48905da8e7ccd7c4f2dd13"
+      },
+      "docs/fntech3/2026-09-08-bot-usercmd-boundary.md": {
+        "bytes": 3440,
+        "sha256": "5259a2fd79b7bab2c5963631bec2ac584cacb526205374342b52fcb9717e866e"
+      },
+      "docs/fntech3/2026-09-08-clean-linux.md": {
+        "bytes": 2602,
+        "sha256": "fdd45f503a5857d43f105a0830fbf7b1c13a9daad4e1b912a3c0affafa78c1e3"
+      },
+      "docs/fntech3/2026-09-08-clean-windows-4383039.json": {
+        "bytes": 30478,
+        "sha256": "31d0b00f3d4ee8cb90f79c2ca53797cebda2b9af61aae3ba3f8d5c554fccc6a4"
+      },
+      "docs/fntech3/2026-09-08-clean-windows-4383039.md": {
+        "bytes": 3031,
+        "sha256": "5c5ae888ae5a6b95d9985965f2feb5ae2a9edf1f91a4cab2aa0a7c4da4c1fcd4"
+      },
+      "docs/fntech3/2026-09-08-clean-windows-retail-package.json": {
+        "bytes": 74475,
+        "sha256": "57e7b00e23957b76d053b08d399c0bf984df25c84ed0d96b682b97c2356eb024"
+      },
+      "docs/fntech3/2026-09-08-clean-windows-retail-package.md": {
+        "bytes": 4409,
+        "sha256": "2907f3b9edde07dcde401eecb5305d56971b14b33fdd4d4194b5882b31086ece"
+      },
+      "docs/fntech3/2026-09-08-client-fragment-recovery.json": {
+        "bytes": 76761,
+        "sha256": "fcca80ffa31a49c841a8ffb1c9052a95fe51f865b62811983801ee52c476743f"
+      },
+      "docs/fntech3/2026-09-08-client-fragment-recovery.md": {
+        "bytes": 3386,
+        "sha256": "82a36fa01e948ca6456409b6ecd8cb2f65c26f4faf0d95ab6aaf3b4c572c34fc"
+      },
+      "docs/fntech3/2026-09-08-client-screen-timing.json": {
+        "bytes": 17146,
+        "sha256": "050d23f2b8910de3d7c55a07930e36338c69a7ab5a5547247766d212661df222"
+      },
+      "docs/fntech3/2026-09-08-client-screen-timing.md": {
+        "bytes": 1912,
+        "sha256": "14ec99dd9c6297fc4f5130353a52d8032e9f30d0f5b49c3997af1baf2617fabe"
+      },
+      "docs/fntech3/2026-09-08-curl-multi-errors.json": {
+        "bytes": 23195,
+        "sha256": "33efe849df6824af89cb69d4650039bad36dca66860ed4bd5c2665510d7f89b1"
+      },
+      "docs/fntech3/2026-09-08-curl-multi-errors.md": {
+        "bytes": 3015,
+        "sha256": "6815c2b4c70e95ee4c901f640b046814408949af0cd72781ae071d66faa29be1"
+      },
+      "docs/fntech3/2026-09-08-current-linux-i686.json": {
+        "bytes": 22281,
+        "sha256": "6fa858843d1206ae65e2cf6d6d4836f24710f1f3ae26084451e19272bb25e8ed"
+      },
+      "docs/fntech3/2026-09-08-current-linux-i686.md": {
+        "bytes": 3884,
+        "sha256": "300033a668235b1e09f421807fb0913fde97f015e3ccb7a8a0b3729a11217793"
+      },
+      "docs/fntech3/2026-09-08-current-windows-package.json": {
+        "bytes": 62593,
+        "sha256": "fcc235a2780dd43b1639c87cdbd415c69c5f1b90926421746541a7e7356a172c"
+      },
+      "docs/fntech3/2026-09-08-current-windows-package.md": {
+        "bytes": 2841,
+        "sha256": "00e16a05ee24ba337645768631cdfac5966dfb4ca383b28763b3d3dd0c21faaf"
+      },
+      "docs/fntech3/2026-09-08-demo-completion-handoff.json": {
+        "bytes": 48788,
+        "sha256": "068d9adc1219afa3e06dcae5bd7a32e4e79c416fdb7a3e739bbf673902f0593d"
+      },
+      "docs/fntech3/2026-09-08-demo-completion-handoff.md": {
+        "bytes": 2628,
+        "sha256": "c25326444413f0a949bed281104239f0197321ef3a03843b8afedc91e991fd6b"
+      },
+      "docs/fntech3/2026-09-08-demo-invalid-length.json": {
+        "bytes": 19400,
+        "sha256": "896f41dffd17c3aebfc3631383f92f7598c5f5e2aa864f1b9d6244daf35a1ae7"
+      },
+      "docs/fntech3/2026-09-08-demo-invalid-length.md": {
+        "bytes": 2058,
+        "sha256": "4f385386f8ecd47cc536092a47ec9f0c039c9b5ca609b06081647a3e9ec369ea"
+      },
+      "docs/fntech3/2026-09-08-demo-pause-resume.json": {
+        "bytes": 12890,
+        "sha256": "acf4b094d1a2e4728a777ff13672bbbc596140996e2eba8c82a5c3c6e166902a"
+      },
+      "docs/fntech3/2026-09-08-demo-pause-resume.md": {
+        "bytes": 3714,
+        "sha256": "85ea511eb95a482e0a633903a4ddab5a8dafafe72a1cd89bf9d5894188b5c334"
+      },
+      "docs/fntech3/2026-09-08-download-begin-cleanup.json": {
+        "bytes": 32403,
+        "sha256": "3137432e39e48530e0634c17e278c7990fc87bc56c6214e3294002fe38f350d0"
+      },
+      "docs/fntech3/2026-09-08-download-begin-cleanup.md": {
+        "bytes": 2909,
+        "sha256": "296d6317d9856eb9eaf79f952c1dbaf466a58d6a517944542cac3d35a2426d28"
+      },
+      "docs/fntech3/2026-09-08-download-cancellation.json": {
+        "bytes": 22015,
+        "sha256": "999190b5cf5f295763e8d97cf997769f58a7aaa6577096e1c0cafd74c45f547c"
+      },
+      "docs/fntech3/2026-09-08-download-cancellation.md": {
+        "bytes": 2261,
+        "sha256": "3fe4674de1e0e0114724369af3b4714e646e836aabf58ebdf441c1183d1abaea"
+      },
+      "docs/fntech3/2026-09-08-download-chunk-bounds.md": {
+        "bytes": 2756,
+        "sha256": "f1126880ff1f5ccd633723397b8c9036b9a65acf4ad1d7ef5580bf54dd105e31"
+      },
+      "docs/fntech3/2026-09-08-download-failure-isolation.json": {
+        "bytes": 58170,
+        "sha256": "50795fd8238df536b59ee8d8b978c58c551b401dab758a63964f02c374b9e022"
+      },
+      "docs/fntech3/2026-09-08-download-failure-isolation.md": {
+        "bytes": 3816,
+        "sha256": "7c9c37d37048100adbf19332a24d4477fa9f696059d74a27188dd83d1349940e"
+      },
+      "docs/fntech3/2026-09-08-download-retry-and-zombie-reconnect.json": {
+        "bytes": 159967,
+        "sha256": "f4c2e8ff654bc33ccd5894219fb2925bfef890c980175b97aac1958e82d1880e"
+      },
+      "docs/fntech3/2026-09-08-download-retry-and-zombie-reconnect.md": {
+        "bytes": 4417,
+        "sha256": "322af5e3fb303a57c40aef1b0adc43f0bbe9c4d59342653a2511d55c692a9a6b"
+      },
+      "docs/fntech3/2026-09-08-download-total-size.json": {
+        "bytes": 26531,
+        "sha256": "802e662e0b88c3741718f1f00b17ec4a302c0b8f861d6f2b4052b5400ad26f43"
+      },
+      "docs/fntech3/2026-09-08-download-total-size.md": {
+        "bytes": 3171,
+        "sha256": "3c3bd91b419dd43c841c60632dcd01e06972fd5d1651e3853501b3d5106845cd"
+      },
+      "docs/fntech3/2026-09-08-download-write-errors.md": {
+        "bytes": 4443,
+        "sha256": "42f0dc155cc26979a386d6c36545f8c69c1716b2c54ee3d49f10669580a4ca39"
+      },
+      "docs/fntech3/2026-09-08-engine-audio-output.json": {
+        "bytes": 19456,
+        "sha256": "d4fd49897be4db7c59c54d04e7f9f06059a8e755598596192d7ed1ef31601386"
+      },
+      "docs/fntech3/2026-09-08-engine-audio-output.md": {
+        "bytes": 3340,
+        "sha256": "cc264f8d31dbc0cae8722106d3aeb74aa229f7ba86efc48e57a78de335407aaa"
+      },
+      "docs/fntech3/2026-09-08-engine-music-streaming.json": {
+        "bytes": 34327,
+        "sha256": "33444badcd9e8a71e270693c11fb44e2f55d8eff2ca6063d69c39f2925944aaa"
+      },
+      "docs/fntech3/2026-09-08-engine-music-streaming.md": {
+        "bytes": 3374,
+        "sha256": "1bfd537d0d5a0090313c2a4b44a22d6407b94b121b3f0058d99b2022eb44e58a"
+      },
+      "docs/fntech3/2026-09-08-file-allocation-bounds.json": {
+        "bytes": 31378,
+        "sha256": "2ebf7424efb96f06b84c7e3853231e79b3596d0047d7be69cdcc96a2250a9151"
+      },
+      "docs/fntech3/2026-09-08-file-allocation-bounds.md": {
+        "bytes": 2994,
+        "sha256": "788868a1d6b22d96035958958f276b8c0a3e1e388bb7866715346454075a14ea"
+      },
+      "docs/fntech3/2026-09-08-filesystem-recovery-config.md": {
+        "bytes": 2676,
+        "sha256": "a919678176d397445ca7d08fac2bb08674df15d15998317dcd0943c479c388d0"
+      },
+      "docs/fntech3/2026-09-08-gamestate-boundary.json": {
+        "bytes": 17645,
+        "sha256": "375498149214a7b31b41f558229b445e44aa62430bdb5d213c5cdae1acf89861"
+      },
+      "docs/fntech3/2026-09-08-gamestate-boundary.md": {
+        "bytes": 2790,
+        "sha256": "ce59d87cebc747761ac72e8307cfd888c5f2182e804a460cb38f14e2a2beec00"
+      },
+      "docs/fntech3/2026-09-08-glconfig-boundary.json": {
+        "bytes": 16984,
+        "sha256": "64b4d29fa7907f78572e0539f0f31211a0b642384bb33bbfd25aa25792507c4e"
+      },
+      "docs/fntech3/2026-09-08-glconfig-boundary.md": {
+        "bytes": 2831,
+        "sha256": "07ead4b44dc209d4c0e99a0961abf5b462d2f2b2f2b9476211a6a95c25e4e1e1"
+      },
+      "docs/fntech3/2026-09-08-glibc-baseline-build.json": {
+        "bytes": 75233,
+        "sha256": "bbc70fccc42e4a315df6f4757477b735910f2e87da7c4adf7b662b829617b46b"
+      },
+      "docs/fntech3/2026-09-08-glibc-baseline-build.md": {
+        "bytes": 4508,
+        "sha256": "0c10bc798c5b0a6a1e81f979b98f9b56e16fa282b799d0381b36bbfdc6a9255a"
+      },
+      "docs/fntech3/2026-09-08-http-errors-and-curl-cleanup.json": {
+        "bytes": 99536,
+        "sha256": "5c5e0cdd5b3c81ff281a42af7a9c8772169bc7720a327b2e8f864daec827a0e3"
+      },
+      "docs/fntech3/2026-09-08-http-errors-and-curl-cleanup.md": {
+        "bytes": 4701,
+        "sha256": "7b4075412ae6d8adc048d85e40655ec18e599c9de8fcb0e0a85fb2b9263eded7"
+      },
+      "docs/fntech3/2026-09-08-http-interruption.md": {
+        "bytes": 1968,
+        "sha256": "1541e10899380d8f5938d6a57044cd965b73bdc6adc1cc71c5bc941087c7d676"
+      },
+      "docs/fntech3/2026-09-08-http-split-headers.json": {
+        "bytes": 57110,
+        "sha256": "9047e1b3e9d1c209bc1a2c69484ea4f2c45648ec9e39949ab58000b75c816359"
+      },
+      "docs/fntech3/2026-09-08-http-split-headers.md": {
+        "bytes": 4067,
+        "sha256": "2d0cec8af60d0f9c0d0870a584177009569bd7e29a18bd88cf5c855d838076a0"
+      },
+      "docs/fntech3/2026-09-08-legacy-timing-trace.json": {
+        "bytes": 31493,
+        "sha256": "c9490705be2fb92352b9b235d481e4f252a760544a6a9bdb00889ca6283594ea"
+      },
+      "docs/fntech3/2026-09-08-legacy-timing-trace.md": {
+        "bytes": 3143,
+        "sha256": "20395408a42a76f4b13e9c38c35a6b94f3d1dd8dea81b0e3beb418f9e7a1794d"
+      },
+      "docs/fntech3/2026-09-08-linux-audio-build-refresh.json": {
+        "bytes": 79683,
+        "sha256": "9fa6bc689a29885b3c30a17aebf32cd3692a6c93eedf478382903b7ead875a25"
+      },
+      "docs/fntech3/2026-09-08-linux-audio-build-refresh.md": {
+        "bytes": 2404,
+        "sha256": "c13dd4cf012aa335374ae82042408ef434b0ea443590318b0d747bd97ba20e92"
+      },
+      "docs/fntech3/2026-09-08-linux-client-runtime.md": {
+        "bytes": 2515,
+        "sha256": "04c28475f71c8bddb01ee1c59d0aa45e0a54003e1ddb2a5e735b718821aed630"
+      },
+      "docs/fntech3/2026-09-08-linux-filesystem-package.json": {
+        "bytes": 119409,
+        "sha256": "eabd6a6ae42f0f5ff25f239616defc0586ca23c6b37390e579d6e6e361685415"
+      },
+      "docs/fntech3/2026-09-08-linux-filesystem-package.md": {
+        "bytes": 3224,
+        "sha256": "8b0534b56b11793c27077a473320c2bf605d73f5f04c1cb242bf7817d20d9765"
+      },
+      "docs/fntech3/2026-09-08-linux-http-runtime.json": {
+        "bytes": 6159,
+        "sha256": "a1a779ad4ed1fb8ddc4a7e0fdf39165901e8b50351fad444041030b565a17160"
+      },
+      "docs/fntech3/2026-09-08-linux-http-runtime.md": {
+        "bytes": 2160,
+        "sha256": "0fb230145f55fc6e12e60fd35b9781596c40bad9c31bb50b3468bcf688a7e4fa"
+      },
+      "docs/fntech3/2026-09-08-linux-post-codec.json": {
+        "bytes": 67307,
+        "sha256": "f4ca53b820157a15706d92bc674d6e2cca73a63e46aa8d4b4883bbffa2dfde6e"
+      },
+      "docs/fntech3/2026-09-08-linux-post-codec.md": {
+        "bytes": 2362,
+        "sha256": "69f4b9c77ebea634a445ec94400c1784adec922ecaae47a4953f67940f112c2f"
+      },
+      "docs/fntech3/2026-09-08-linux-renderers.md": {
+        "bytes": 2011,
+        "sha256": "16948ab4645c3e9b5edf0417c44c76c61467b74bd9b3427d99e1ef23b0be26f8"
+      },
+      "docs/fntech3/2026-09-08-linux-rtx.md": {
+        "bytes": 2935,
+        "sha256": "d8dc3deffd4dfe5c5327cab5579f360e3bba49c26b62fc75e7e2a9cf4516deb6"
+      },
+      "docs/fntech3/2026-09-08-linux-sdl.md": {
+        "bytes": 1948,
+        "sha256": "08e34c90693381e91ab75088bf88c779bdb81994d7f9e8684f669890252f54e9"
+      },
+      "docs/fntech3/2026-09-08-manual-http-downloads.json": {
+        "bytes": 55376,
+        "sha256": "6b31e42635c84f79af351c0f11084e1e5a1411d73147273e4dd2cc5f81e4def2"
+      },
+      "docs/fntech3/2026-09-08-manual-http-downloads.md": {
+        "bytes": 3075,
+        "sha256": "923ec8f8fc443a633ab84d43bb59cd4c782bbac7429db5343f8215fc6055b01f"
+      },
+      "docs/fntech3/2026-09-08-native-guarded-imports.json": {
+        "bytes": 8367,
+        "sha256": "acd3e60b39b660543d8e0262abaf78c2003f6159d13117e8172d086979ecd51b"
+      },
+      "docs/fntech3/2026-09-08-native-guarded-imports.md": {
+        "bytes": 2769,
+        "sha256": "7c7acd3098e864f67df35f16ed76b9f3009fe921d75a75767cb8c63ac59b14f8"
+      },
+      "docs/fntech3/2026-09-08-native-runner.json": {
+        "bytes": 3537,
+        "sha256": "a36106da6e33072841440d68ed799d05960ba8ef783110a83eda94fceab101e4"
+      },
+      "docs/fntech3/2026-09-08-native-runner.md": {
+        "bytes": 2786,
+        "sha256": "1330b2a334aa0006afd66cae9f9d4ccb4cf2e1c469c4aae92131b695bf1cbf55"
+      },
+      "docs/fntech3/2026-09-08-native-snapshot-containment.json": {
+        "bytes": 3762,
+        "sha256": "2ee326840522654e60fb6ed319d3e433703b14b42efe05ba836533ecf48c27ca"
+      },
+      "docs/fntech3/2026-09-08-native-snapshot-containment.md": {
+        "bytes": 2331,
+        "sha256": "4e2d8276a205328b6119395566d13723b2c49436b04da804b303b60d22f18d30"
+      },
+      "docs/fntech3/2026-09-08-native-wav-short-reads.json": {
+        "bytes": 2790,
+        "sha256": "61860c0483e8b95b1cfc8ffd7d966d01ad137b88ae31dd725efd716ecc933849"
+      },
+      "docs/fntech3/2026-09-08-native-wav-short-reads.md": {
+        "bytes": 2276,
+        "sha256": "6d622890e38404d77920a4f8410dd858b1f686bcdb61feb404529a83dccbc2d5"
+      },
+      "docs/fntech3/2026-09-08-ogg-callback-bounds.json": {
+        "bytes": 8639,
+        "sha256": "75c0be8389defb9a61ae13788c6a85577ca4e5e2a040ec5668421491339305d3"
+      },
+      "docs/fntech3/2026-09-08-ogg-callback-bounds.md": {
+        "bytes": 2853,
+        "sha256": "64197401b6f4af557bce550de06da09f16a8143f7c89cd5f9dde6dfd9223e68f"
+      },
+      "docs/fntech3/2026-09-08-ogg-payload-bounds.json": {
+        "bytes": 7501,
+        "sha256": "181bdf679eb680aad04a96fec0c657ab921d045fa4b232334e8df71b5ff5dfaa"
+      },
+      "docs/fntech3/2026-09-08-ogg-payload-bounds.md": {
+        "bytes": 2893,
+        "sha256": "b6b89435fdfff0a1c34ce310ac6e2872bb4bfa0a7f5dd85f4e51280d02b0f331"
+      },
+      "docs/fntech3/2026-09-08-packaged-evidence-documents.json": {
+        "bytes": 10812,
+        "sha256": "cd103926f2b54c4c641901d7dd68fba7b6c52786ef421d950d97cf8aaf84067a"
+      },
+      "docs/fntech3/2026-09-08-packaged-evidence-documents.md": {
+        "bytes": 2851,
+        "sha256": "f9c95f0e6b95814810345b3052ac4b7fc67886ed32db20751d2e0048c65a1b80"
+      },
+      "docs/fntech3/2026-09-08-packaged-profiles.md": {
+        "bytes": 2364,
+        "sha256": "7e9922a10be9f44fe383d4b3869056ce04c823792329fc4932ef4352019c440d"
+      },
+      "docs/fntech3/2026-09-08-pak-download-policy.md": {
+        "bytes": 3399,
+        "sha256": "2672bd5cc4da1fc3e34a49a45ad0dfb8fd53bcfb120ce47b223ef459fea558d3"
+      },
+      "docs/fntech3/2026-09-08-pak-identity.json": {
+        "bytes": 21013,
+        "sha256": "719c0a1489c65ee0fda2a3e2630a9d521c31fee4248db670eca1eb8479da21e9"
+      },
+      "docs/fntech3/2026-09-08-pak-identity.md": {
+        "bytes": 4110,
+        "sha256": "b7acad493458341191c81bce1da0014d16db0d9c788dac9c6d1442b5da33fba1"
+      },
+      "docs/fntech3/2026-09-08-paused-command-history.json": {
+        "bytes": 17019,
+        "sha256": "4fd253907bb0be5000902860b95aea3b73700ba83891bffda74332deb2bbdac5"
+      },
+      "docs/fntech3/2026-09-08-paused-command-history.md": {
+        "bytes": 4103,
+        "sha256": "bd73692732bd83dd2df5d3c9819ab0d5d372275e5727d730b20e3c1ed96210f5"
+      },
+      "docs/fntech3/2026-09-08-persistent-stream-resampling.json": {
+        "bytes": 50052,
+        "sha256": "decd85c6f27ac450f5156bd864c92ae8da70ee176119ba52744c71117057d41f"
+      },
+      "docs/fntech3/2026-09-08-persistent-stream-resampling.md": {
+        "bytes": 4113,
+        "sha256": "3524d60d6cbdfe4336a09d293d8e58c00df8ea6d6568670c1c6ef9a6394b3e9a"
+      },
+      "docs/fntech3/2026-09-08-pinned-q3-interop.json": {
+        "bytes": 25670,
+        "sha256": "fc4c2ddbd516618735db1f78a76e30b89a7fe2b5d353f7afe629c285b3661a5c"
+      },
+      "docs/fntech3/2026-09-08-pinned-q3-interop.md": {
+        "bytes": 2915,
+        "sha256": "f9034326b412e03a6212d68cbfe6c6246c2253e0b45019a77e125049acd244c3"
+      },
+      "docs/fntech3/2026-09-08-post-codec-runtime.json": {
+        "bytes": 20729,
+        "sha256": "af269f0d65c1ee71acc312f4912e487e9b7e859ad9c5164de67005131f7b32be"
+      },
+      "docs/fntech3/2026-09-08-post-codec-runtime.md": {
+        "bytes": 2875,
+        "sha256": "7be42908c784a68154f0c9daedf95e590be1e627b8c5841e6d1de9dcb1a35dee"
+      },
+      "docs/fntech3/2026-09-08-profile-path-conversion.md": {
+        "bytes": 1623,
+        "sha256": "f932022424fd137b8b57a3557b73ba1456f24d03df61f56fd811be2f7e3e84db"
+      },
+      "docs/fntech3/2026-09-08-q3-fragment-recovery.json": {
+        "bytes": 25977,
+        "sha256": "f175ecf70e16e0abf6307f388ea9f715f25652174011c8275ae0dff8e0f5b3e7"
+      },
+      "docs/fntech3/2026-09-08-q3-fragment-recovery.md": {
+        "bytes": 3380,
+        "sha256": "8cc81df06ad1493b0b56d2ff7138f5e05c8ddced87129c7ddc6d10e8be44c17c"
+      },
+      "docs/fntech3/2026-09-08-q3-impaired-interop.json": {
+        "bytes": 25005,
+        "sha256": "3c829e183f7b24075876f5399a898e800a9bdba29dfa06b8a3f7e06e6e7825cd"
+      },
+      "docs/fntech3/2026-09-08-q3-impaired-interop.md": {
+        "bytes": 3218,
+        "sha256": "c6385fa194658575b18468fce09afa171d7e77d13b936050d8b7aebe4b01edac"
+      },
+      "docs/fntech3/2026-09-08-q3-native-cgame.json": {
+        "bytes": 2745,
+        "sha256": "f281e423b14f60cfe22feb39311d43112db732cbda3d29a20b6febffead41000"
+      },
+      "docs/fntech3/2026-09-08-q3-native-cgame.md": {
+        "bytes": 2670,
+        "sha256": "b7fead267dae85a0128a3d12c7bd5435b51ab6bbbbdc4812776e0cc991c59ef5"
+      },
+      "docs/fntech3/2026-09-08-q3-native-qagame.json": {
+        "bytes": 12721,
+        "sha256": "ba3c929890060173fe4ea384a9c3dac68f573dff6c544d39e510e9296f931b6f"
+      },
+      "docs/fntech3/2026-09-08-q3-native-qagame.md": {
+        "bytes": 4078,
+        "sha256": "089c513bbbc1c8f3d9a0c97ad124936a5288b40a92f9a11b433c5268bd2c04c7"
+      },
+      "docs/fntech3/2026-09-08-q3-native-snapshot-roundtrip.json": {
+        "bytes": 6026,
+        "sha256": "261484f48e44d6cb7563ca63dc03c924cfe434f043f1e9a72862ddf17dec9601"
+      },
+      "docs/fntech3/2026-09-08-q3-native-snapshot-roundtrip.md": {
+        "bytes": 4099,
+        "sha256": "fa702539fe695234dc4c2cb114a727e186ad5cbc3c944db7d7419514ba7b929e"
+      },
+      "docs/fntech3/2026-09-08-q3-native-ui.json": {
+        "bytes": 3377,
+        "sha256": "83709e4e86979a81ad5a3cb4007f2a1689d525a67eb86faf542b8e92eb776115"
+      },
+      "docs/fntech3/2026-09-08-q3-native-ui.md": {
+        "bytes": 2082,
+        "sha256": "fe171a8dc3274fef337355607f270a5a2810b17924a6f99f51f138f6b7a23fb1"
+      },
+      "docs/fntech3/2026-09-08-q3-retail-interop.json": {
+        "bytes": 23569,
+        "sha256": "73324505dac24fec22f6c7daf603f20dc0d948d52c3d5b7fd78990cd7c87b3f9"
+      },
+      "docs/fntech3/2026-09-08-q3-retail-interop.md": {
+        "bytes": 3347,
+        "sha256": "96f1da5abf9eb65b5eafbb34292d4dbe97688ba05e6997faa2f79de2df182361"
+      },
+      "docs/fntech3/2026-09-08-ql-active-demo.json": {
+        "bytes": 13365,
+        "sha256": "cad346a7e7719ae0351e9f8681af86e53c9e7f49792ca329a6a3a998f9b883a8"
+      },
+      "docs/fntech3/2026-09-08-ql-active-demo.md": {
+        "bytes": 3337,
+        "sha256": "fc056d294385863827612800053ed23139927495ddd11239dad95b3390fc81a2"
+      },
+      "docs/fntech3/2026-09-08-ql-active-match.json": {
+        "bytes": 28691,
+        "sha256": "8c9bb063abcf85b7d54ba9d6a2946158002d1a07e964425791d0a1442b133a6f"
+      },
+      "docs/fntech3/2026-09-08-ql-active-match.md": {
+        "bytes": 4279,
+        "sha256": "d04a84048dc54fa0c5bbe317dea774b7b3d3cd11ecd29585a6a8ec6a43734252"
+      },
+      "docs/fntech3/2026-09-08-ql-dedicated-retail-interop.json": {
+        "bytes": 12002,
+        "sha256": "bf54bdd18db2bbe3b4dcdeefff405e7bccf564261eceebdb38d4c85a4c1d820a"
+      },
+      "docs/fntech3/2026-09-08-ql-dedicated-retail-interop.md": {
+        "bytes": 5159,
+        "sha256": "68b1c734c43139b40d6733ddd134b99c00ea96d211aecac3e4a581f15f3635e9"
+      },
+      "docs/fntech3/2026-09-08-ql-downloads.md": {
+        "bytes": 2730,
+        "sha256": "1dd86712e0dd1b2742899d0d4cac663147b83e77864bc8a36e702c3d5d3c391f"
+      },
+      "docs/fntech3/2026-09-08-ql-impaired-interop.json": {
+        "bytes": 43236,
+        "sha256": "6d58abc1b40f3258b5a2ccc4621c867ae8194ceaa0036cecf1ea3f12a980f7ea"
+      },
+      "docs/fntech3/2026-09-08-ql-impaired-interop.md": {
+        "bytes": 3409,
+        "sha256": "213639dcdeef4c7e040dd4fe871cf42293789aae5761c2640f81b1483935f2f1"
+      },
+      "docs/fntech3/2026-09-08-ql-retail-auth-interop.json": {
+        "bytes": 30320,
+        "sha256": "5fdce67003b86caf72922d7acd56a19826883137c13167cc23bd4b3373196c71"
+      },
+      "docs/fntech3/2026-09-08-ql-retail-auth-interop.md": {
+        "bytes": 4301,
+        "sha256": "88c06ae68aecfd93a3e6e2737c36782373ff05b4a5a9dbc59647fd0332eeea14"
+      },
+      "docs/fntech3/2026-09-08-ql-retail-demo-interop.json": {
+        "bytes": 21057,
+        "sha256": "03c5aff215224112038c2d20a654d354953b6ffa048b54d4ffc302d9d88a5bce"
+      },
+      "docs/fntech3/2026-09-08-ql-retail-demo-interop.md": {
+        "bytes": 4017,
+        "sha256": "79c93f0ed7f9be17a4411e273e08c2ccd1822090c8cc3e166d63d7c627067958"
+      },
+      "docs/fntech3/2026-09-08-ql-usercmd-boundary.json": {
+        "bytes": 20680,
+        "sha256": "f37ca56e9dabd11c8bb47365162dc45975ccba7b93cf57f0181b735d9442c435"
+      },
+      "docs/fntech3/2026-09-08-ql-usercmd-boundary.md": {
+        "bytes": 2545,
+        "sha256": "290e81960d2f494b45cfb379c047b598247224a66e31b3b206e03711bd7ede87"
+      },
+      "docs/fntech3/2026-09-08-regression-checkpoint.md": {
+        "bytes": 1548,
+        "sha256": "a255f83eca3292ea508a8557f7ff81b2b75cc3ba224dd6b08a0a2155ab650a6c"
+      },
+      "docs/fntech3/2026-09-08-reliable-ack-error-unwind.json": {
+        "bytes": 1945,
+        "sha256": "6f846711223fd7080ecf0f1f8cd6e2049c348a896d0c855d938da2256c37acaa"
+      },
+      "docs/fntech3/2026-09-08-reliable-ack-error-unwind.md": {
+        "bytes": 3065,
+        "sha256": "89b5714334d654c2ef9253471af7691c48616f13e850f18de9a1c87e3462c02b"
+      },
+      "docs/fntech3/2026-09-08-rename-fallback.md": {
+        "bytes": 2703,
+        "sha256": "612acec240634d3974b665887da8be43beb6de6609a1e8864c3bb47955523ee6"
+      },
+      "docs/fntech3/2026-09-08-renderer-stall-localization.json": {
+        "bytes": 101021,
+        "sha256": "af6b092a539104674acba68c5acbc442d26136e024158a475628fbab5f854dcc"
+      },
+      "docs/fntech3/2026-09-08-renderer-stall-localization.md": {
+        "bytes": 3594,
+        "sha256": "5a7ec711019382a60cf545f743bd996014721af46f8048390706108c4dbb36f8"
+      },
+      "docs/fntech3/2026-09-08-renderer-switch.md": {
+        "bytes": 2575,
+        "sha256": "924d37bf5e00fbae378453d6bca1e4192f3f6a84445c91999416e83cf068bbaa"
+      },
+      "docs/fntech3/2026-09-08-retail-bot-runtime.json": {
+        "bytes": 19483,
+        "sha256": "b470db6d58f5ec62a0a00b7cc8c4d011ec157ea6d11ec6ef42e2b2334e8b0908"
+      },
+      "docs/fntech3/2026-09-08-retail-bot-runtime.md": {
+        "bytes": 4249,
+        "sha256": "cd215b9e930cfcaf9c6462c87cd27b332bca0d61f546a96658c0906e2404d9ac"
+      },
+      "docs/fntech3/2026-09-08-retail-demo-controls.json": {
+        "bytes": 28060,
+        "sha256": "edfb90970f07153bcef970006c2c407edbaf64aceeac0d3445b16b30669c490c"
+      },
+      "docs/fntech3/2026-09-08-retail-demo-controls.md": {
+        "bytes": 5666,
+        "sha256": "ffcbcb7871dcd1066f52a3dfb9206234fdd8bdd08d289a8a499ea110cf703be6"
+      },
+      "docs/fntech3/2026-09-08-retail-entity-wire.json": {
+        "bytes": 7730,
+        "sha256": "82365d32037a60acae0a803c7e14c54e6561f2ee2b977e9aa23be6c1b10572a0"
+      },
+      "docs/fntech3/2026-09-08-retail-entity-wire.md": {
+        "bytes": 4517,
+        "sha256": "2de0306ffa4479499ceaa90a81fea76ebbaa9ecf89d2e1e1458540927835dfb8"
+      },
+      "docs/fntech3/2026-09-08-retail-map-changes.json": {
+        "bytes": 43373,
+        "sha256": "fb1e8e3c80742cc95d9a7128123b629a5e4373c14c7e2b0c04ea76c5e0e1c485"
+      },
+      "docs/fntech3/2026-09-08-retail-map-changes.md": {
+        "bytes": 4458,
+        "sha256": "3b24def288af98bb23690d91443f88157c05fb98ae47c82687194942c616deb4"
+      },
+      "docs/fntech3/2026-09-08-retail-playerstate-field-corpus.json": {
+        "bytes": 6385,
+        "sha256": "e54182dd565868ab3d46bc3b9ca1b508166d8783e94d42b4fc5b9130cd423c9c"
+      },
+      "docs/fntech3/2026-09-08-retail-playerstate-field-corpus.md": {
+        "bytes": 4841,
+        "sha256": "b1b76abb58b1ea88737c33ba41dbb56ef4db2d76f3eb2c799d1ad1bee467e9aa"
+      },
+      "docs/fntech3/2026-09-08-retail-playerstate-wire.json": {
+        "bytes": 11560,
+        "sha256": "2d28724f6fda4bdeeb4d05759f08884be73be712ed8a1c8358c94aa009ffbd5e"
+      },
+      "docs/fntech3/2026-09-08-retail-playerstate-wire.md": {
+        "bytes": 5296,
+        "sha256": "35fdc0f7e32d87b87c4bff574d842b5d10830f25f8991fc82b19fee0a29f2aab"
+      },
+      "docs/fntech3/2026-09-08-retail-ql-map-restart.json": {
+        "bytes": 15159,
+        "sha256": "3ab9738e0224c56581792ac8ca96c85e715a9fb622bff4f2aa3431290a8508a5"
+      },
+      "docs/fntech3/2026-09-08-retail-ql-map-restart.md": {
+        "bytes": 3848,
+        "sha256": "4663e15c6eea3a1835af37f95df63208a7c65d434b72f099ea36699f8be57539"
+      },
+      "docs/fntech3/2026-09-08-retail-snapshot-layout.json": {
+        "bytes": 3217,
+        "sha256": "fc897cbbc7a77eee7b0504ac2e202bebf22150a9567404d7cc6b731cfd8f990b"
+      },
+      "docs/fntech3/2026-09-08-retail-snapshot-layout.md": {
+        "bytes": 3065,
+        "sha256": "22045c72afb53a818e183e8d9b8c57c140b0c83bdcb253f61a69c77bbf5fcf27"
+      },
+      "docs/fntech3/2026-09-08-retail-snapshot-producer.json": {
+        "bytes": 5705,
+        "sha256": "cee1e05b6474e5c6d8b5f16c5a0a49d845b7c2ffecb037f91bd644f4efb9cc85"
+      },
+      "docs/fntech3/2026-09-08-retail-snapshot-producer.md": {
+        "bytes": 3964,
+        "sha256": "66ff7b5770c8ec5ba8fa5cedab2870744ee787eb9e531b172c47748999862e22"
+      },
+      "docs/fntech3/2026-09-08-retail-snapshot-tail-live.json": {
+        "bytes": 7087,
+        "sha256": "1b7ef7a596a07b7aafa9ba25c4bb586f1d14c65e8835785d3e23e70f42ec39d1"
+      },
+      "docs/fntech3/2026-09-08-retail-snapshot-tail-live.md": {
+        "bytes": 2613,
+        "sha256": "ba46d6e7bcbee5ffeac5554246082265276dbcc3f2a3f7996bcfba67dfa34fa7"
+      },
+      "docs/fntech3/2026-09-08-retail-transition-series.json": {
+        "bytes": 62481,
+        "sha256": "5556a8bad168962e0fee87c63bef7b0bde4b073868e1a9d1776dc19dc06d4733"
+      },
+      "docs/fntech3/2026-09-08-retail-transition-series.md": {
+        "bytes": 3936,
+        "sha256": "5aa2e4cfb311ba6584c9e8c46862b0b128e3e7ae1cf1d497bfa49ffda0661fc8"
+      },
+      "docs/fntech3/2026-09-08-retail-usercmd-key-mask.json": {
+        "bytes": 4224,
+        "sha256": "ca8b6eec2a2c70a932cea09a945bc8ece4c8ddd7dece93975e0f519fa8f6ef40"
+      },
+      "docs/fntech3/2026-09-08-retail-usercmd-key-mask.md": {
+        "bytes": 4068,
+        "sha256": "8eb59d65a2d72775646692e0f43cb6099ed585b16fe008b1fce68bf0f0fb9cfc"
+      },
+      "docs/fntech3/2026-09-08-retail-usercmd-wire.json": {
+        "bytes": 13975,
+        "sha256": "ed787fb20066b09e33f9f5029d50e98242563eb15cbe56b83ffa50a0c5b6ec97"
+      },
+      "docs/fntech3/2026-09-08-retail-usercmd-wire.md": {
+        "bytes": 4874,
+        "sha256": "42ce1398ed6c8b56a69e26ae55db8d1c2ffbbed4a6c5b69699ed1ff8a77414c1"
+      },
+      "docs/fntech3/2026-09-08-sdl-console-context.md": {
+        "bytes": 3245,
+        "sha256": "7417bcdac3375fb996437ba64fe903b3a8b8bf7309693dda99332ffe71d641c5"
+      },
+      "docs/fntech3/2026-09-08-sdl-legacy-output.json": {
+        "bytes": 49452,
+        "sha256": "51d46bd0f41f28e19231688a572813ec35cd8802e47f0a213c03e0741e1f9e81"
+      },
+      "docs/fntech3/2026-09-08-sdl-legacy-output.md": {
+        "bytes": 3060,
+        "sha256": "5c20c67d14dfd2ce6c73cff0df73df319a49d7f3a03594c3cb98c0f15ed3fa24"
+      },
+      "docs/fntech3/2026-09-08-second-fragment-recovery.json": {
+        "bytes": 49781,
+        "sha256": "519e4e7616842348ebaf35f6dfd414d81802a4558f2d60d0be61a045fb4e7350"
+      },
+      "docs/fntech3/2026-09-08-second-fragment-recovery.md": {
+        "bytes": 3328,
+        "sha256": "5ff7cf3ca88c88d14afca309d2cb0944ddae4744f9cd43b244aba5d27c4e4947"
+      },
+      "docs/fntech3/2026-09-08-server-download-read-failure.json": {
+        "bytes": 100563,
+        "sha256": "0662726d011d2dc16d0d663147ed1dc26e36dc72bc237edbb8f64fbde953a6dc"
+      },
+      "docs/fntech3/2026-09-08-server-download-read-failure.md": {
+        "bytes": 4519,
+        "sha256": "ebb20a106307f21283320472475ea024e799c6115bcfb34d3df8b5ebee8828b6"
+      },
+      "docs/fntech3/2026-09-08-shipped-demo-pacing.json": {
+        "bytes": 3515,
+        "sha256": "3fa9feadd1fdfa73ffc9bfda4cf5d9aab86d2a2537a5d949c42f0078b43f16b8"
+      },
+      "docs/fntech3/2026-09-08-shipped-demo-pacing.md": {
+        "bytes": 2098,
+        "sha256": "731285d0f8b2b202b1d1d7bfc618b276ba8bdf3534122352897b2f22e76b89e4"
+      },
+      "docs/fntech3/2026-09-08-speaker-buffer-bounds.json": {
+        "bytes": 7464,
+        "sha256": "fce64c9bb57c0d2a22b5cf0a3595f28a63264d23d273e777d423710e43d285ec"
+      },
+      "docs/fntech3/2026-09-08-speaker-buffer-bounds.md": {
+        "bytes": 2350,
+        "sha256": "4f94878f74a4d1a097c78ff1123c3598bc6c1ef93457df5e8a1cd0749b30d514"
+      },
+      "docs/fntech3/2026-09-08-startup-command-bounds.json": {
+        "bytes": 2350,
+        "sha256": "d050b27d2aa3c261a8bf07578f38507480074cb02da4bd73f0fa3c9e6d4a4ae7"
+      },
+      "docs/fntech3/2026-09-08-startup-command-bounds.md": {
+        "bytes": 1849,
+        "sha256": "720d93fcec6ee3274e2f8ff036f790f23354cec45e74fce4918796c437f8a059"
+      },
+      "docs/fntech3/2026-09-08-stream-resampling-gap.json": {
+        "bytes": 16395,
+        "sha256": "dd7fafee7ac8c2f93dfb307d23402565d23c0572c2c54b0446102f37d8636a2a"
+      },
+      "docs/fntech3/2026-09-08-stream-resampling-gap.md": {
+        "bytes": 3049,
+        "sha256": "ca326ed35dc24372ce29f495b8dcd4d2e212d2f53c386767bff7839e15ccd2b1"
+      },
+      "docs/fntech3/2026-09-08-terminal-fragment-recovery.json": {
+        "bytes": 49071,
+        "sha256": "f9ec904ca16ab7d2e8d84c8ecafb5b338a6c0e1bcedaf7adea96128f35f2c6e4"
+      },
+      "docs/fntech3/2026-09-08-terminal-fragment-recovery.md": {
+        "bytes": 2944,
+        "sha256": "09efe5979239905979b27624c2e7f39f219b356750d47e774c790b77d50b4a82"
+      },
+      "docs/fntech3/2026-09-08-udp-pak-download.json": {
+        "bytes": 177298,
+        "sha256": "db23dfe49c8a078076b2980636e72488288d80f0ecda24049b20ae944b7b5558"
+      },
+      "docs/fntech3/2026-09-08-udp-pak-download.md": {
+        "bytes": 3910,
+        "sha256": "572eb23184f1aacb30fc0955f8f624b8f895b1878c2a876ec4f8afc1de5a04ce"
+      },
+      "docs/fntech3/2026-09-08-unix-fatal-exit.md": {
+        "bytes": 2094,
+        "sha256": "5db50fe05525cfe3149fbf069bee41cb4c378ed9a899d0b11602fa05a8073bfc"
+      },
+      "docs/fntech3/2026-09-08-vorbis-speaker-order.json": {
+        "bytes": 42400,
+        "sha256": "992c63e29ee752c32c3ac0e0d6336110743f0ce69d053c2be8a89fa8b05fb733"
+      },
+      "docs/fntech3/2026-09-08-vorbis-speaker-order.md": {
+        "bytes": 3441,
+        "sha256": "d95311ed2ce0d342685620f977cb27d020537337fac910ecabd1c6508fad6850"
+      },
+      "docs/fntech3/2026-09-08-vulkan-descriptor-restart.md": {
+        "bytes": 3118,
+        "sha256": "d1dea00831b1d9ee64b69e1c753ad1a6841f503714e5dab9d233dfd99f481881"
+      },
+      "docs/fntech3/2026-09-08-wav-container-bounds.json": {
+        "bytes": 3796,
+        "sha256": "90b13bb0e3858ec47cb73d3de8e9aeb4fbe90a850372ff12877aab7686f88a85"
+      },
+      "docs/fntech3/2026-09-08-wav-container-bounds.md": {
+        "bytes": 3586,
+        "sha256": "41d3d246d9ec1bfe96ee480b13b4760a60eaaf90a3fa4a7b3fc76c07240e5288"
+      },
+      "docs/fntech3/2026-09-08-wav-extensible-identity.json": {
+        "bytes": 5022,
+        "sha256": "7deefbc1db63c7f7a845b95ff194ebf850fb248017a79938f3700e2d628c93d5"
+      },
+      "docs/fntech3/2026-09-08-wav-extensible-identity.md": {
+        "bytes": 2717,
+        "sha256": "0b44cecf67c7055c18dfa7857c6fdaddc4adf350e9811dd2faafa4e8d49de886"
+      },
+      "docs/fntech3/2026-09-08-wav-extensible-precision.json": {
+        "bytes": 9771,
+        "sha256": "2f3ac23f860ee0781e8c5efa176bda516db0238834ff45ca20ae8ae1176939db"
+      },
+      "docs/fntech3/2026-09-08-wav-extensible-precision.md": {
+        "bytes": 2351,
+        "sha256": "27627d84acafc5560bea61297058a60fc61114dd79d7b8e212b491bd9f2148ea"
+      },
+      "docs/fntech3/2026-09-08-wav-multichannel-endian.json": {
+        "bytes": 1930,
+        "sha256": "5e274811f753c6b94c44ddce454d91b515e0b1e2e14cb621352b912d9190233c"
+      },
+      "docs/fntech3/2026-09-08-wav-multichannel-endian.md": {
+        "bytes": 1966,
+        "sha256": "c57df97b33bb41dff427d5c7eda4b20df661941263d32b10934d4fbd52b2396a"
+      },
+      "docs/fntech3/2026-09-08-wav-payload-integrity.json": {
+        "bytes": 3289,
+        "sha256": "c3b4016d2b7d3d95d69f7adec92ba00135ee629135211f14cece5b5926cca5ff"
+      },
+      "docs/fntech3/2026-09-08-wav-payload-integrity.md": {
+        "bytes": 3284,
+        "sha256": "0d514aeaf9ec3c67be4ae99e6f881863d9927ed423f60179538fbb882ff7b205"
+      },
+      "docs/fntech3/2026-09-08-wav-pcm8-stereo.json": {
+        "bytes": 29359,
+        "sha256": "2fab40ade55f7a72ccb2a74c2b81201fca287e64e63cfe058d0738aa39e40e9e"
+      },
+      "docs/fntech3/2026-09-08-wav-pcm8-stereo.md": {
+        "bytes": 3289,
+        "sha256": "7d45dce102c89c5c0e449d5762c4eef112ed58e63b5d76111117ff7c225a7561"
+      },
+      "docs/fntech3/2026-09-08-wav-short-read-alignment.json": {
+        "bytes": 2433,
+        "sha256": "37a6c7fb4a29ce6d4b16eacbe7aa5f1299795a7556b2ead15cc708f9c1001da9"
+      },
+      "docs/fntech3/2026-09-08-wav-short-read-alignment.md": {
+        "bytes": 2115,
+        "sha256": "86283ea8d891e59ce5124c55383248b828b1b47c93e85e3d70bf87eab9123027"
+      },
+      "docs/fntech3/2026-09-08-wav-speaker-mask-gap.json": {
+        "bytes": 14463,
+        "sha256": "3306c873a86b7a2699c9b4ff093a011bf43ed1019b02859dd5f521d7b39bf34c"
+      },
+      "docs/fntech3/2026-09-08-wav-speaker-mask-gap.md": {
+        "bytes": 2713,
+        "sha256": "4eee6da4d1c14b13e66a847d98fa188f3a83e976113bcb3e9ca4824feead31f6"
+      },
+      "docs/fntech3/2026-09-08-wav-speaker-routing.json": {
+        "bytes": 47007,
+        "sha256": "0fa4be27fa4b490cef81c2c4f9eb1b9d029a375c607389eebae72d4646994699"
+      },
+      "docs/fntech3/2026-09-08-wav-speaker-routing.md": {
+        "bytes": 4256,
+        "sha256": "73129982cdab4473c5fad11be01201f916e51511927d841d68482aac11605c92"
+      },
+      "docs/fntech3/2026-09-08-whole-file-pak-integrity.json": {
+        "bytes": 34535,
+        "sha256": "7ca5709e487be087f3b3f29108c96a7be104bd8b9a15b2a2af3f514e724f08e3"
+      },
+      "docs/fntech3/2026-09-08-whole-file-pak-integrity.md": {
+        "bytes": 3394,
+        "sha256": "2ab14a1eedd26fc005fbe3db83c12669f1a14f79632dfb6a10833c7c5ef7abee"
+      },
+      "docs/fntech3/2026-09-08-windows-dedicated-fatal.json": {
+        "bytes": 15542,
+        "sha256": "16d89a125192784df96b7f2513e32f753a302be29cba632cec0b07d4503219fc"
+      },
+      "docs/fntech3/2026-09-08-windows-dedicated-fatal.md": {
+        "bytes": 2796,
+        "sha256": "7a50291a21c97c008e2c15fa2d84bb3fc02479272ae2b30e2f03260e72e326e2"
+      },
+      "docs/fntech3/2026-09-08-windows-package-runtime.json": {
+        "bytes": 24305,
+        "sha256": "fd98851539c1add0d0324be9b7db1cb3921e32e8e591b81508a251e5cc8357e9"
+      },
+      "docs/fntech3/2026-09-08-windows-package-runtime.md": {
+        "bytes": 3467,
+        "sha256": "98f6bcd1d62ba1ba2e5522de4c9fa1cf7d35e5ec2a9de0b78f6fb806e25c434d"
+      },
+      "docs/fntech3/2026-09-08-world-link-restart.json": {
+        "bytes": 27490,
+        "sha256": "2b879328626adc12b9b36c2d17af2beeb89b11bccba5289ec3495ba13b6cb8a3"
+      },
+      "docs/fntech3/2026-09-08-world-link-restart.md": {
+        "bytes": 2791,
+        "sha256": "211ef77bdc309255c2c864605d7f553ec7bb65068feba1340c6a94440cab90e9"
+      },
+      "docs/fntech3/2026-09-08-x11-extension-lifetime.md": {
+        "bytes": 2898,
+        "sha256": "02d950ebebea63749cd1ab83f98db9394efd05e593e1f82ebfbd2d650e060cee"
+      },
+      "docs/fntech3/COMPATIBILITY.md": {
+        "bytes": 54194,
+        "sha256": "ce95190330199a7c3fd328191f0f34cbbf047bf46962285bc632359a98446d14"
+      },
+      "docs/fntech3/evidence/2026-09-07-active-demo-rejection.json": {
+        "bytes": 20701,
+        "sha256": "14f16d96c3ba2ba6ae06333aa815843fc53b7d3fddcaac309abb6798ba88c14d"
+      },
+      "docs/fntech3/evidence/2026-09-07-config-migration.json": {
+        "bytes": 15283,
+        "sha256": "af23b14ec2275f641762bafb1c364dd1a822f554aa001cbc7fc951f6e1f33ac9"
+      },
+      "docs/fntech3/evidence/2026-09-07-console-profiles.json": {
+        "bytes": 15997,
+        "sha256": "68a0d645ff3b2db2311994e875255a3a53d4e08ab6c4f5d1b1db7ba0c8c9e496"
+      },
+      "docs/fntech3/evidence/2026-09-07-dedicated-config-migration.json": {
+        "bytes": 4953,
+        "sha256": "ad8d19e6baf38411d851bf9cb7cdd1e9ad15da28beeeebf40912708124dcf298"
+      },
+      "docs/fntech3/evidence/2026-09-07-demo-header-truncation.json": {
+        "bytes": 20099,
+        "sha256": "06299cdb311c461f7fd3b5192d6553ca36632649f9af1f86cd4005547418f0b6"
+      },
+      "docs/fntech3/evidence/2026-09-07-demo-profile-isolation.json": {
+        "bytes": 16766,
+        "sha256": "8280d69fac02cd0dc15156c4dbcdc6096b307cb15ed722e98aec23c424465f4d"
+      },
+      "docs/fntech3/evidence/2026-09-07-entity-history-wrap.json": {
+        "bytes": 11609,
+        "sha256": "abcea2f6df7922cde6efb1f0af409b59768e5dffde0e7beed9691dd4f184774b"
+      },
+      "docs/fntech3/evidence/2026-09-07-native-map-restart.json": {
+        "bytes": 19616,
+        "sha256": "7e3472eee92024074ebc13ad0ed69b8495b873cd56c21d0ad3aac1e36ade1dfb"
+      },
+      "docs/fntech3/evidence/2026-09-07-q3-bevel-reference.json": {
+        "bytes": 2798,
+        "sha256": "5f9cd4a093221ced51fe6cfd1de93d565061fae7ba9ae2241d638ffc97200743"
+      },
+      "docs/fntech3/evidence/2026-09-07-q3-native-modules.json": {
+        "bytes": 83107,
+        "sha256": "521b615ac24a4774227008120c553373af21569afc215d8e1d8c6e5d19fc3ac5"
+      },
+      "docs/fntech3/evidence/2026-09-07-q3-protocol71.json": {
+        "bytes": 26945,
+        "sha256": "8857f940ab462ec77585ba8acafecc620e5adc89484bfb6e1abd7f514ff55210"
+      },
+      "docs/fntech3/evidence/2026-09-07-q3-reference.json": {
+        "bytes": 20660,
+        "sha256": "3edad9de5392adf5e956df6b0511ea262f3cd8f9ea3ca0b77b5b88dd9696a552"
+      },
+      "docs/fntech3/evidence/2026-09-07-q3-shipped-demos.json": {
+        "bytes": 12310,
+        "sha256": "af0cdb5e008110ba338358e14282eb7c4a7def31c3bf4e26b6f2b50994eeef92"
+      },
+      "docs/fntech3/evidence/2026-09-07-q3-stock-demo-isolation.json": {
+        "bytes": 14363,
+        "sha256": "fdb279644275e72eb0daafbd6bdce8c4b51d516bbadbcb3248d7b7d30da496c4"
+      },
+      "docs/fntech3/evidence/2026-09-07-ql-reference-interop.json": {
+        "bytes": 16703,
+        "sha256": "67ea2ae81298a7c3e82cc1862c9908b22baaf49db643ec213e89e83cb6e26e03"
+      },
+      "docs/fntech3/evidence/2026-09-07-ql-snapshot-marshalling.json": {
+        "bytes": 15927,
+        "sha256": "5cd9f1a827d5fa6a1bb7e3e53fa815a8405504bcf4ea705472e5a31010ac8003"
+      },
+      "docs/fntech3/evidence/2026-09-07-ql-truncated-demo.json": {
+        "bytes": 3033,
+        "sha256": "0476bb8e7c5ea6a1f7bf6d3bd5c7f1ac68fc92b5ead93fcb03137e3dabcdcc6f"
+      },
+      "docs/fntech3/evidence/2026-09-07-renderer-cycle.json": {
+        "bytes": 25455,
+        "sha256": "e93204cac80be0017095f3757d9ef81fd35adda17e627557e9c76a75091380c1"
+      },
+      "docs/fntech3/evidence/2026-09-07-renderer-restart.json": {
+        "bytes": 62888,
+        "sha256": "a7e2f4df2816e48ecab27869d8c1ba70ccc3cbf21d8e390fd2c20e0c8c3a602f"
+      },
+      "docs/fntech3/evidence/2026-09-07-shader-light-rgb.json": {
+        "bytes": 20429,
+        "sha256": "5dc223ce6826f39de7e86ff6e85f963dc6ffe0adb7a9a0b4114bbc4fba7de871"
+      },
+      "docs/fntech3/evidence/2026-09-07-snapshot-history.json": {
+        "bytes": 15928,
+        "sha256": "881b69886b3fbb362a3c1c46f3f661569269855ec9603f1c5f0380860b8251c7"
+      },
+      "docs/fntech3/evidence/2026-09-08-audio-device-fallback.json": {
+        "bytes": 20136,
+        "sha256": "e80bff80df22b3a4fc0ce6c9dfb772af890c5696250e2fc3ef43d858ff189a18"
+      },
+      "docs/fntech3/evidence/2026-09-08-audio-live-reopen.json": {
+        "bytes": 22260,
+        "sha256": "47e9da8a47e80c287417de91b572b956811bf97132d1c0543f1cfe8e03d6b449"
+      },
+      "docs/fntech3/evidence/2026-09-08-audio-restart.json": {
+        "bytes": 42205,
+        "sha256": "9bb2fdff96cc81dea629f9b44794b8836bc8a05c4bdba49620dc1bfc324baba1"
+      },
+      "docs/fntech3/evidence/2026-09-08-clean-linux.json": {
+        "bytes": 6893,
+        "sha256": "476933ba1a96fcffef73b2d152ecf212d339e812e64b291c47410df667eb15ab"
+      },
+      "docs/fntech3/evidence/2026-09-08-download-chunk-bounds.json": {
+        "bytes": 19547,
+        "sha256": "58b1c4ad6d31f743dba7df9682820556397f0cc0370b27d53d56372898c0b528"
+      },
+      "docs/fntech3/evidence/2026-09-08-download-write-errors.json": {
+        "bytes": 31198,
+        "sha256": "5a5fe818d3f2a1a764bee4cee5607664592f55017c71d96d8bee85496b844844"
+      },
+      "docs/fntech3/evidence/2026-09-08-http-interruption.json": {
+        "bytes": 23855,
+        "sha256": "485845a67d63e2efa8c3ced450ad13d646f0a374d6647f33ede41bc311ddf6c8"
+      },
+      "docs/fntech3/evidence/2026-09-08-http-reconnect.json": {
+        "bytes": 10986,
+        "sha256": "f699e6a9cd9365aedec2e87b49ed5d7413ec11d9cadecf75b015c7820afe24e1"
+      },
+      "docs/fntech3/evidence/2026-09-08-linux-client-runtime.json": {
+        "bytes": 18717,
+        "sha256": "ad658b22ec1190883fba73315c0be1688323fbdf1c5f2386e12b53df90f32aed"
+      },
+      "docs/fntech3/evidence/2026-09-08-linux-renderers.json": {
+        "bytes": 2617,
+        "sha256": "7af6ea65da72cd053d0836f124287a0c92cb306d0ad7ae6dece34b71980c4c9c"
+      },
+      "docs/fntech3/evidence/2026-09-08-linux-rtx.json": {
+        "bytes": 28061,
+        "sha256": "1c0b6c206ff59a2d40b0cadffd89170e8ad8b1406a69cc33a76dd017bb85850b"
+      },
+      "docs/fntech3/evidence/2026-09-08-linux-sdl.json": {
+        "bytes": 1937,
+        "sha256": "792f713aab3e86d71e1c36935d788ca5b7fb0ec104c47e341d860a8df01afb4f"
+      },
+      "docs/fntech3/evidence/2026-09-08-openal-soft.json": {
+        "bytes": 24167,
+        "sha256": "45bb017242b3a81a780029d2664cc96196797541d20cf6e3df8a205d89dfc349"
+      },
+      "docs/fntech3/evidence/2026-09-08-packaged-profiles.json": {
+        "bytes": 20339,
+        "sha256": "2bbca4b8d65e65f7ea177515ae55d19ee11c78640a9224535289c871cbf21186"
+      },
+      "docs/fntech3/evidence/2026-09-08-pak-download-policy.json": {
+        "bytes": 20688,
+        "sha256": "d6e325fd8ad9df9372640bcfec6d08b35c9add037dfcf994bf3d5375f261256c"
+      },
+      "docs/fntech3/evidence/2026-09-08-profile-path-conversion.json": {
+        "bytes": 4582,
+        "sha256": "ca085b75f1d8062bbf022a289473824db694e6b9e151d6192f4eb7d23670efb4"
+      },
+      "docs/fntech3/evidence/2026-09-08-ql-downloads.json": {
+        "bytes": 19668,
+        "sha256": "b5413ac7dc14d783c6869d4d05d87c2d4b1cba509b93e01d7363894b8000d0a4"
+      },
+      "docs/fntech3/evidence/2026-09-08-regression-checkpoint.json": {
+        "bytes": 1484,
+        "sha256": "6b4f89b2a4fa48300b0575e0f81c5f645d37b368f5b1a0e95d0ca6c2b5300780"
+      },
+      "docs/fntech3/evidence/2026-09-08-rename-fallback.json": {
+        "bytes": 22680,
+        "sha256": "b16dce82417c71286ee2c1598d25882b3adda0923146cb3b3e7d9a8230b6aa7c"
+      },
+      "docs/fntech3/evidence/2026-09-08-renderer-switch-stress.json": {
+        "bytes": 26669,
+        "sha256": "ff65a20c127e0f34215c5b88d5daceec2c35cadbd469915c11fe7019b6309f00"
+      },
+      "docs/fntech3/evidence/2026-09-08-renderer-switch.json": {
+        "bytes": 30481,
+        "sha256": "1c8750d7a7c4a9a1dcdd5cb2f1a9389385d3ffb5c9a8b8afeea608471c8321ad"
+      },
+      "docs/fntech3/evidence/2026-09-08-sdl-console-context.json": {
+        "bytes": 23400,
+        "sha256": "3fd9a1d0813153cf16b6ad74d209e77159420b7ffac137a013b84c2162dc1f12"
+      },
+      "docs/fntech3/evidence/2026-09-08-unix-fatal-exit.json": {
+        "bytes": 5599,
+        "sha256": "78b9f7a0f8528a5df64970695ecb0b77919bf38de98a234215f04cae7ffb6912"
+      },
+      "docs/fntech3/evidence/2026-09-08-vulkan-descriptor-restart.json": {
+        "bytes": 32426,
+        "sha256": "753715359fa7d91ccf8fb26555b33664c51cee34d2aa7c0fda5a2973c58a76f4"
+      },
+      "docs/fntech3/evidence/2026-09-08-x11-extension-lifetime.json": {
+        "bytes": 7011,
+        "sha256": "4309ad5c287a7e6f19ae7a76437738da0fb54234f1cebb9266d7851e1a11282d"
+      },
+      "docs/fntech3/RTX_Q2RTX_PARITY.md": {
+        "bytes": 16206,
+        "sha256": "e0327404d1b284cee3636997c26aab100f77ad12aea262ca65afdb076acace15"
+      },
+      "docs/GLX.md": {
+        "bytes": 3149,
+        "sha256": "488d767ed16988fb3b38d9e64dd464c07b0d52182fecf8d564f436e784458b4f"
+      },
+      "docs/RTX.md": {
+        "bytes": 6321,
+        "sha256": "ae142d9ae09cce48c5d4c23501983c12af6b6be666873bfd9c397749931eab35"
+      },
+      "fnql-audiozonesc": {
+        "bytes": 289644,
+        "sha256": "60b5ca063938d20338d33e4742a13189ac752749da6bf225a0ca102484c4525d"
+      },
+      "FnQL-pkg.fnz": {
+        "bytes": 1877789,
+        "sha256": "1d1ff86488c3134a936486790c24954bef87abd22177e1ca8b5542cc2f06115a"
+      },
+      "fnql-web.pak": {
+        "bytes": 59253,
+        "sha256": "6c210165880fff668900fd3e4e3c90137623043e1b5315f24b693f367f756382"
+      },
+      "fnql_glx_x86.so": {
+        "bytes": 2328668,
+        "sha256": "5d3d764370656ab90f6c1fb2e13fdf23440dc7ef1bc439236aa0f602a3739269"
+      },
+      "fnql_rtx_x86.so": {
+        "bytes": 2546636,
+        "sha256": "a069ab2731226c5b3e3d2c2c19a8afbed7751ac33471829b291b91b5b0e24ba6"
+      },
+      "fnql_vk_x86.so": {
+        "bytes": 2237948,
+        "sha256": "a42a75ecb0b3181e7abbf001e87d5c1cb8f6e531f24f923eb77595c54767d936"
+      },
+      "fntech3": {
+        "bytes": 3063964,
+        "sha256": "5ea4bc2fec38f5c0de3dfe5ea6b325b1991eaa4d676eba48b7d695c2c5a7d653"
+      },
+      "fntech3.ded": {
+        "bytes": 1694320,
+        "sha256": "144cb0e790e6bd627d704e95e313535d2b53916c7d325ec15c587ded1699a768"
+      },
+      "LICENSE": {
+        "bytes": 15429,
+        "sha256": "f675a8c8e587f65b3bbf7f6a85a113eda45fdbc6005dc317af21bf8de7d3c204"
+      },
+      "README.html": {
+        "bytes": 17973,
+        "sha256": "020881089f77487634244ac46ebb55d92b423bf1cdd4c324750dd424ea8f568d"
+      },
+      "THIRD_PARTY_NOTICES.md": {
+        "bytes": 2073,
+        "sha256": "a0a7209b9a6d82af5d36e2524c4b3e8b962699e55916a77a9cbd6869c36ebed5"
+      }
+    }
+  },
+  "glibcCheck": {
+    "exitCode": 0,
+    "stdout": "Checked 6 ELF file(s); highest requirement is GLIBC_2.29, within GLIBC_2.31.\n",
+    "stderr": ""
+  },
+  "testSummary": {
+    "sha256": "707a07dda7234568a82e2727d083f546df3f74ff31d597adfebb27c856f8d9e3",
+    "summary": [
+      "Ran 89 tests in 1.739s",
+      "Ran 1299 tests in 27.468s",
+      "OK (skipped=21)"
+    ]
+  },
+  "suite": {
+    "passed": 108,
+    "failed": 0,
+    "skipped": 1
+  },
+  "logs": {
+    "focal-media-build-test.log": "bb07691a785b49dc9ddf0b5534af757efc02e97a5b5857bc0b87f08d07deb843",
+    "focal-media-install.log": "cc011f18a78131da9b828b4f76dc430632861a98928d30aa22a4b2afe1ae3cd4",
+    "focal-media-package.log": "dc2d21a7ca14c3569d7a330eaa79406ea2e2bbac3e62266ec6e686a6ddaeaa36",
+    "focal-media-runtime.log": "92aa63962e679413e5300c1a7f40b62015858ff1bc159cc32a9e3e2ed329eb36",
+    "focal-media-evidence.log": "3d80f63880456c462d07ce1acd28866e7ea83b2aaf07327389704f8b13a90891"
+  },
+  "buildScript": "set -eu\nrootfs=$(cat /mnt/e/Repositories/fnTech3/.tmp/focal-root-path.txt)\nmount --bind /dev \"$rootfs/dev\"\nmount -t proc proc \"$rootfs/proc\"\nchroot \"$rootfs\" /usr/bin/env PATH=/opt/python311/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /bin/bash -c '\nset -eu\ncd /work/fntech3-e02a4b3\nmeson setup .tmp/build --cross-file misc/meson/linux-x86.ini --buildtype=release -Dbuild-client=true -Dbuild-server=true -Dsdl=disabled -Dcurl=enabled -Dcurl-dlopen=true -Dogg-vorbis=true -Drenderer-dlopen=true -Drenderers=glx,vk,rtx -Daudio-tests=true -Dglx-tests=true\nmeson compile -C .tmp/build -j 8\nmeson test -C .tmp/build --no-rebuild --print-errorlogs\n'\n",
+  "runtimeScript": "set -eu\nrootfs=$(cat /mnt/e/Repositories/fnTech3/.tmp/focal-root-path.txt)\nmount --bind /dev \"$rootfs/dev\"\nmount -t proc proc \"$rootfs/proc\"\nmkdir -p \"$rootfs/retail/q3\" \"$rootfs/retail/ql\"\nmount --bind '/mnt/c/Program Files (x86)/Steam/steamapps/common/Quake 3 Arena' \"$rootfs/retail/q3\"\nmount -o remount,bind,ro \"$rootfs/retail/q3\"\nmount --bind '/mnt/c/Program Files (x86)/Steam/steamapps/common/Quake Live' \"$rootfs/retail/ql\"\nmount -o remount,bind,ro \"$rootfs/retail/ql\"\nchroot \"$rootfs\" /usr/bin/env LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a -s '-screen 0 640x480x24 -nolisten tcp' /opt/python311/bin/python3 /work/probe-q3-media.py\nchroot \"$rootfs\" /opt/python311/bin/python3 /work/probe-ql-media.py\n",
+  "visualInspection": "Engine screenshot shows q3dm6 world, weapon, crosshair and HUD; no OS screenshot used."
+}

@@ -328,7 +328,11 @@ to the evidence level named in the same cell.
    [fresh Windows package](2026-09-08-clean-windows-retail-package.md) now passes
    a clean build/full suite, deterministic archiving, both-profile retail map
    changes and unchanged extraction checks. This does not close independent
-   compiler reproducibility or the complete multi-platform release workflow.
+   compiler reproducibility or the complete multi-platform release workflow. The
+   [clean Linux media refresh](2026-09-08-linux-media-build-refresh.md) builds the
+   later WAV/Ogg corrections in Ubuntu 20.04, passes the full configured suite
+   and glibc ceiling, and repeats deterministic packaging plus Q3 pure-client
+   and QL API 10 dedicated smoke checks.
    The [engine-only correction](2026-09-07-engine-only-packaging.md) removes
    inherited closed-source provider staging. Subsequent clean CI now validates
    that packaging path; see the [regression checkpoint](2026-09-08-regression-checkpoint.md).
