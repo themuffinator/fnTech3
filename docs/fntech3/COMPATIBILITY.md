@@ -104,6 +104,9 @@ both HTTP callbacks, with controlled failure regressions.
 Its Q3 HTTP follow-up also verifies automatic disconnect/reconnect, pure
 admission and gameplay after removing pending test-script actions that delayed
 the queued reconnect command.
+The [QL download checkpoint](2026-09-08-ql-downloads.md) extends UDP and automatic
+HTTP reconnect evidence to QL with matching add-on hashes and native pure
+admission. It also records a newly observed hosted CI billing/spending block.
 
 The target is one shared, drop-in binary set. It must select `q3` or `ql` before
 compatibility-sensitive initialization and then use that profile's complete,
@@ -212,6 +215,11 @@ to the evidence level named in the same cell.
    of a network failure or success.
 
 ## Open live gates
+
+Hosted CI currently cannot start new jobs because GitHub reports an account
+payment or spending-limit issue; see the [QL checkpoint](2026-09-08-ql-downloads.md).
+This is an external release-gate blocker, not a reported build/test regression.
+Local compatibility work can continue while the account owner resolves it.
 
 ### Quake III Arena
 
