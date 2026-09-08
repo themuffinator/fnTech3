@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import os
+import hashlib
+import json
 import re
 import shutil
 import subprocess
@@ -8,6 +10,7 @@ import tempfile
 import time
 import unittest
 from pathlib import Path
+from windows_private_process import WindowsPrivateProcess
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -87,9 +90,10 @@ class NativeCGameAbiProbeRuntimeTests(unittest.TestCase):
                 f"retail Quake Live not found at {cls.retail_root}; set {RETAIL_PATH_ENV} "
                 "to enable this probe"
             )
-        if not (cls.retail_root / RETAIL_CGAME_RELATIVE_PATH).is_file():
+        if not ((cls.retail_root / RETAIL_CGAME_RELATIVE_PATH).is_file()
+                or (cls.retail_root / "baseq3/bin.pk3").is_file()):
             raise AssertionError(
-                "retail install is missing baseq3/cgamex86.dll; verify the Steam installation"
+                "retail install is missing native modules (baseq3/cgamex86.dll or bin.pk3); verify the Steam installation"
             )
         if not FIXTURE_SOURCE.is_file():
             raise AssertionError(f"synthetic native cgame fixture is missing: {FIXTURE_SOURCE}")
@@ -141,44 +145,23 @@ class NativeCGameAbiProbeRuntimeTests(unittest.TestCase):
             home_game_dir.mkdir(parents=True)
             shutil.copy2(fixture, home_game_dir / PROBE_DLL_NAME)
             logfile = homepath / LOG_RELATIVE_PATH
-            command = [
-                str(self.executable),
-                "+set",
-                "fs_basepath",
-                str(self.retail_root),
-                "+set",
-                "fs_homepath",
-                str(homepath),
-                "+set",
-                "r_fullscreen",
-                "0",
-                "+set",
-                "r_mode",
-                "-1",
-                "+set",
-                "logfile",
-                "2",
-                "+set",
-                "cl_allowDownload",
-                "0",
-                "+set",
-                "fnql_cgame_probe_float",
-                "13.5",
-                "+devmap",
-                "campgrounds",
-                "ffa",
-                "+wait",
-                "10",
-                "+fnql_cgame_probe_command",
-            ]
-            process = subprocess.Popen(
-                command,
-                cwd=self.executable.parent,
-                stdin=subprocess.DEVNULL,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                creationflags=subprocess.CREATE_NO_WINDOW,
-            )
+            values = {
+                "com_gameProfile": "ql", "fs_basepath": str(self.retail_root),
+                "fs_homepath": str(homepath), "r_fullscreen": "0",
+                "r_windowedMode": "-1", "r_windowedWidth": "640", "r_windowedHeight": "480",
+                "in_mouse": "0", "in_joystick": "0", "in_nograb": "1",
+                "s_initsound": "0", "com_steamIntegration": "0", "fs_skipWorkshop": "1",
+                "cl_webuiEnable": "0", "cl_renderer": "glx", "logfile": "2",
+                "net_ip": "127.0.0.1", "net_port": "0", "sv_pure": "0",
+                "sv_autoRecordDemos": "0", "cl_allowDownload": "0", "cl_motd": "0",
+                "fnql_cgame_probe_float": "13.5",
+                "com_maxfpsUnfocused": "60", "com_maxfpsMinimized": "60",
+                "activeAction": "wait 80; fnql_cgame_probe_command; wait 3; quit",
+            }
+            command = [str(self.executable)]
+            for name, value in values.items(): command.extend(["+set", name, value])
+            command.extend(["+devmap", "campgrounds", "ffa"])
+            process = WindowsPrivateProcess(command, self.executable.parent, temporary_root / "stdout.log")
 
             log_text = ""
             try:
@@ -205,6 +188,7 @@ class NativeCGameAbiProbeRuntimeTests(unittest.TestCase):
                             and "FnQL cgame ABI probe: native draw dispatch ok" in log_text
                             and "FnQL cgame ABI probe: native console command dispatch ok" in log_text
                         ):
+                            self.assertEqual(process.wait(timeout=10), 0, "probe did not exit normally")
                             break
 
                     exit_code = process.poll()
@@ -221,13 +205,26 @@ class NativeCGameAbiProbeRuntimeTests(unittest.TestCase):
                         f"log tail:\n{log_text[-4000:]}"
                     )
             finally:
-                if process.poll() is None:
-                    process.terminate()
-                    try:
-                        process.wait(timeout=5)
-                    except subprocess.TimeoutExpired:
-                        process.kill()
-                        process.wait(timeout=5)
+                forced_stop = process.poll() is None
+                exit_code = process.poll()
+                process.close()
+                evidence_value = os.environ.get("FNQL_CGAME_PROBE_OUTPUT", "").strip()
+                if evidence_value:
+                    evidence = Path(evidence_value)
+                    evidence.mkdir(parents=True, exist_ok=False)
+                    if logfile.is_file(): shutil.copyfile(logfile, evidence / "console.log")
+                    shutil.copyfile(temporary_root / "stdout.log", evidence / "stdout.log")
+                    record = {
+                        "command": command, "desktop": process.name, "desktopSwitched": False,
+                        "exitCode": exit_code, "forcedStop": forced_stop,
+                        "executableSha256": hashlib.sha256(self.executable.read_bytes()).hexdigest(),
+                        "fixtureSha256": hashlib.sha256(fixture.read_bytes()).hexdigest(),
+                        "fixtureSourceSha256": hashlib.sha256(FIXTURE_SOURCE.read_bytes()).hexdigest(),
+                        "commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
+                        "worktreeDirty": bool(subprocess.check_output(["git", "status", "--porcelain"], cwd=ROOT)),
+                        "scope": "Synthetic QL cgame with legitimate local assets; pure disabled",
+                    }
+                    (evidence / "manifest.json").write_text(json.dumps(record, indent=2) + "\n")
 
             self.assertNotIn("FnQL cgame ABI probe: native float import failed", log_text)
             self.assertNotIn("FnQL cgame ABI probe: native cvar range imports failed", log_text)
