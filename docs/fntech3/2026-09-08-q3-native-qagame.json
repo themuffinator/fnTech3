@@ -1,0 +1,346 @@
+{
+  "runs": [
+    {
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.ded.exe",
+        "+set",
+        "com_gameProfile",
+        "q3",
+        "+set",
+        "fs_basepath",
+        "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-retail-interop-twn4g9dy\\assets",
+        "+set",
+        "fs_homepath",
+        "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-qagame-byb21nuo\\valid",
+        "+set",
+        "fs_game",
+        "",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "vm_game",
+        "0",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "fntech3_probe_bad_stride",
+        "0",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+exec",
+        "probe.cfg"
+      ],
+      "config": "set sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nmap q3dm6\nwait 6\nmap_restart 0\nwait 6\nfntech3_q3_qagame_probe\nquit\n",
+      "exitCode": 0,
+      "error": null,
+      "forcedStop": false,
+      "privateDesktop": "fntech3_probe_995b277ffec7480096756e9362efbe68",
+      "desktopSwitched": false,
+      "engineSha256": "7b2e71f5c86378daca44b3e5659aca3ab44fc64fefe002562210344c3919db06",
+      "fixtureSha256": "df682e67efe94c2d61ba7303168d3b6081c755dca2870923b76c2e0db014770e",
+      "fixtureSourceSha256": "949866b6fb5529d96a8c18ba0f6139c3b3e462c5cd4b069314d3bd08e4bfc6f3",
+      "commit": "10556e39c4aa2937b998f4bce2cc15552e4ff1da",
+      "worktreeDirty": true,
+      "markers": [
+        "Q3 qagame native probe: binding ok",
+        "Q3 qagame native probe: entity token ok",
+        "Q3 qagame native probe: configstring ok",
+        "Q3 qagame native probe: usercmd ok",
+        "Q3 qagame native probe: init ok",
+        "Q3 qagame native probe: link ok",
+        "Q3 qagame native probe: area ok",
+        "Q3 qagame native probe: trace ok",
+        "Q3 qagame native probe: contents ok",
+        "Q3 qagame native probe: unlink ok",
+        "Q3 qagame native probe: frame ok",
+        "Q3 qagame native probe: shutdown ok",
+        "Q3 qagame native probe: binding ok",
+        "Q3 qagame native probe: entity token ok",
+        "Q3 qagame native probe: configstring ok",
+        "Q3 qagame native probe: usercmd ok",
+        "Q3 qagame native probe: init ok",
+        "Q3 qagame native probe: link ok",
+        "Q3 qagame native probe: area ok",
+        "Q3 qagame native probe: trace ok",
+        "Q3 qagame native probe: contents ok",
+        "Q3 qagame native probe: unlink ok",
+        "Q3 qagame native probe: frame ok",
+        "Q3 qagame native probe: command ok",
+        "Q3 qagame native probe: shutdown ok"
+      ],
+      "utc": "2026-09-08T03:50:05.800799+00:00",
+      "architecture": "Windows x86",
+      "fixtureBuildCommand": "call \"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\Tools\\VsDevCmd.bat\" -arch=x86 -host_arch=x64 >nul && cl /nologo /TC /LD /O2 /Fo:\"C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-qagame-byb21nuo\\probe.obj\" /Fe:\"C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-qagame-byb21nuo\\qagamex86.dll\" \"E:\\Repositories\\fnTech3\\tests\\fixtures\\q3_native_qagame_probe.c\"",
+      "assets": [
+        {
+          "name": "pak0.pk3",
+          "bytes": 479493658,
+          "sha256": "7ce8b3910620cd50a09e4f1100f426e8c6180f68895d589f80e6bd95af54bcae"
+        },
+        {
+          "name": "pak1.pk3",
+          "bytes": 374405,
+          "sha256": "d4ffd60b4b414c3419499e321b6f5c2e933cf082df85823ad2d6ae2f803e1682"
+        },
+        {
+          "name": "pak2.pk3",
+          "bytes": 7511182,
+          "sha256": "ccae938a2f13a03b24902d675181d516a431699701ed88023a307f34b5bcd58c"
+        },
+        {
+          "name": "pak3.pk3",
+          "bytes": 276305,
+          "sha256": "d03c0a0e06b99f9ecca2be7389f57faed406e85f7c09b9c56afdfa53ba25e312"
+        },
+        {
+          "name": "pak4.pk3",
+          "bytes": 9600350,
+          "sha256": "af5f6d5c82fe4440ae0bb660f0648d1fa1731a9e8305a9eb652aa243428697f1"
+        },
+        {
+          "name": "pak5.pk3",
+          "bytes": 191872,
+          "sha256": "69f87070ca7719e252a3ba97e6483f6663939c987ede550d1268d4d9a07b45bc"
+        },
+        {
+          "name": "pak6.pk3",
+          "bytes": 7346884,
+          "sha256": "bb4f0ae2bf603b050fb665436d3178ce7c1c20360e67bacf7c14d93daff38daf"
+        },
+        {
+          "name": "pak7.pk3",
+          "bytes": 320873,
+          "sha256": "de6283ce23e3486a2622c5dbf73d3721a59f24debd380e90f43a97d952fea283"
+        },
+        {
+          "name": "pak8.pk3",
+          "bytes": 454478,
+          "sha256": "812c9e97f231e89cefede3848c6110b7bd34245093af6f22c2cacde3e6b15663"
+        }
+      ],
+      "consoleLogSha256": "b32513d2d88eb746c0e89b525225a0662af5904f08fa32cbe43482134a22738c",
+      "stdoutLogSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "diagnostics": [
+        "VM_LoadDll(qagame) found legacy vmMain at 7AE71850",
+        "VM_LoadDll(qagame) found legacy vmMain at 7AEA1850"
+      ],
+      "case": "valid"
+    },
+    {
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.ded.exe",
+        "+set",
+        "com_gameProfile",
+        "q3",
+        "+set",
+        "fs_basepath",
+        "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-retail-interop-twn4g9dy\\assets",
+        "+set",
+        "fs_homepath",
+        "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-qagame-byb21nuo\\bad-stride",
+        "+set",
+        "fs_game",
+        "",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "vm_game",
+        "0",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "fntech3_probe_bad_stride",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+exec",
+        "probe.cfg"
+      ],
+      "config": "set sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nmap q3dm6\nwait 6\nmap_restart 0\nwait 6\nfntech3_q3_qagame_probe\nquit\n",
+      "exitCode": 0,
+      "error": null,
+      "forcedStop": false,
+      "privateDesktop": "fntech3_probe_3e0382fdcf9a44388d633358ecf4e4be",
+      "desktopSwitched": false,
+      "engineSha256": "7b2e71f5c86378daca44b3e5659aca3ab44fc64fefe002562210344c3919db06",
+      "fixtureSha256": "df682e67efe94c2d61ba7303168d3b6081c755dca2870923b76c2e0db014770e",
+      "fixtureSourceSha256": "949866b6fb5529d96a8c18ba0f6139c3b3e462c5cd4b069314d3bd08e4bfc6f3",
+      "commit": "10556e39c4aa2937b998f4bce2cc15552e4ff1da",
+      "worktreeDirty": true,
+      "markers": [
+        "Q3 qagame native probe: shutdown ok",
+        "Q3 qagame native probe: binding ok",
+        "Q3 qagame native probe: entity token ok",
+        "Q3 qagame native probe: configstring ok",
+        "Q3 qagame native probe: usercmd ok",
+        "Q3 qagame native probe: init ok",
+        "Q3 qagame native probe: link ok",
+        "Q3 qagame native probe: area ok",
+        "Q3 qagame native probe: trace ok",
+        "Q3 qagame native probe: contents ok",
+        "Q3 qagame native probe: unlink ok",
+        "Q3 qagame native probe: frame ok",
+        "Q3 qagame native probe: shutdown ok",
+        "Q3 qagame native probe: binding ok",
+        "Q3 qagame native probe: entity token ok",
+        "Q3 qagame native probe: configstring ok",
+        "Q3 qagame native probe: usercmd ok",
+        "Q3 qagame native probe: init ok",
+        "Q3 qagame native probe: link ok",
+        "Q3 qagame native probe: area ok",
+        "Q3 qagame native probe: trace ok",
+        "Q3 qagame native probe: contents ok",
+        "Q3 qagame native probe: unlink ok",
+        "Q3 qagame native probe: frame ok",
+        "Q3 qagame native probe: command ok",
+        "Q3 qagame native probe: shutdown ok"
+      ],
+      "utc": "2026-09-08T03:50:06.965758+00:00",
+      "architecture": "Windows x86",
+      "fixtureBuildCommand": "call \"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\Tools\\VsDevCmd.bat\" -arch=x86 -host_arch=x64 >nul && cl /nologo /TC /LD /O2 /Fo:\"C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-qagame-byb21nuo\\probe.obj\" /Fe:\"C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-qagame-byb21nuo\\qagamex86.dll\" \"E:\\Repositories\\fnTech3\\tests\\fixtures\\q3_native_qagame_probe.c\"",
+      "assets": [
+        {
+          "name": "pak0.pk3",
+          "bytes": 479493658,
+          "sha256": "7ce8b3910620cd50a09e4f1100f426e8c6180f68895d589f80e6bd95af54bcae"
+        },
+        {
+          "name": "pak1.pk3",
+          "bytes": 374405,
+          "sha256": "d4ffd60b4b414c3419499e321b6f5c2e933cf082df85823ad2d6ae2f803e1682"
+        },
+        {
+          "name": "pak2.pk3",
+          "bytes": 7511182,
+          "sha256": "ccae938a2f13a03b24902d675181d516a431699701ed88023a307f34b5bcd58c"
+        },
+        {
+          "name": "pak3.pk3",
+          "bytes": 276305,
+          "sha256": "d03c0a0e06b99f9ecca2be7389f57faed406e85f7c09b9c56afdfa53ba25e312"
+        },
+        {
+          "name": "pak4.pk3",
+          "bytes": 9600350,
+          "sha256": "af5f6d5c82fe4440ae0bb660f0648d1fa1731a9e8305a9eb652aa243428697f1"
+        },
+        {
+          "name": "pak5.pk3",
+          "bytes": 191872,
+          "sha256": "69f87070ca7719e252a3ba97e6483f6663939c987ede550d1268d4d9a07b45bc"
+        },
+        {
+          "name": "pak6.pk3",
+          "bytes": 7346884,
+          "sha256": "bb4f0ae2bf603b050fb665436d3178ce7c1c20360e67bacf7c14d93daff38daf"
+        },
+        {
+          "name": "pak7.pk3",
+          "bytes": 320873,
+          "sha256": "de6283ce23e3486a2622c5dbf73d3721a59f24debd380e90f43a97d952fea283"
+        },
+        {
+          "name": "pak8.pk3",
+          "bytes": 454478,
+          "sha256": "812c9e97f231e89cefede3848c6110b7bd34245093af6f22c2cacde3e6b15663"
+        }
+      ],
+      "consoleLogSha256": "c06ca29a0b31a11bf48023fb543765957f5bb02ce66f2fa67500b780ec128d58",
+      "stdoutLogSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "diagnostics": [
+        "VM_LoadDll(qagame) found legacy vmMain at 7AED1850",
+        "ERROR: SV_LocateGameData: invalid Quake III Arena game-data binding: entity stride too small",
+        "----- Server Shutdown (Server crashed: SV_LocateGameData: invalid Quake III Arena game-data binding: entity stride too small) -----",
+        "forcefully unloading qagame vm",
+        "VM_LoadDll(qagame) found legacy vmMain at 7AF01850",
+        "VM_LoadDll(qagame) found legacy vmMain at 7AF31850"
+      ],
+      "case": "bad-stride"
+    }
+  ],
+  "scope": "Synthetic Windows x86 Q3 legacy qagame; module-owned entity/collision/usercmd/config contracts, restart and invalid-binding recovery; no live player-state or retail native game equivalence claim",
+  "tests": {
+    "windowsMeson": {
+      "passed": 110,
+      "failed": 0,
+      "skipped": 1
+    },
+    "pythonAggregate": {
+      "tests": 1273,
+      "skipped": 5
+    },
+    "nativeOptIns": [
+      "FNTECH3_Q3_QAGAME_RUNTIME_EXE",
+      "FNTECH3_Q3_CGAME_RUNTIME_EXE",
+      "FNQL_CGAME_RUNTIME_EXE"
+    ],
+    "windowsTestLogSha256": "6272e50d106798b0ea45a64bc0b85be5b4257d19188880e6122f5af5958ae0f1",
+    "linuxImportCheck": "Explicit Windows-only skip; no Linux qagame runtime claim"
+  }
+}
