@@ -34,6 +34,11 @@ remain authoritative.
 
 ## Compatibility references and adapted work
 
+- The [PKWARE ZIP specification](https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT),
+  version 6.3.10, supplies central-directory layout information for the independently
+  authored early pak identity probe. No external implementation or specification
+  text was incorporated; identity constants come from local retail metadata observations.
+
 - The WebUI request notifications, bounded bulk request transport, avatar retry
   queue, and associated tests/probe are adapted from the GPL-2.0-or-later
   [FnQL WebUI work](https://github.com/themuffinator/FnQL). These were reviewed

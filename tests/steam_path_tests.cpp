@@ -146,16 +146,17 @@ int main(int argc, char **argv) {
     assert(slash[0] && !slash[1]);
     const auto q3str = q3path.string(), qlstr = qlpath.string();
     comGameDetectionInputs_t input = {"auto", nullptr, nullptr, q3str.c_str(), qlstr.c_str()};
-    assert(Com_DetectGameProfile(&input).status == COM_GAME_DETECTION_AMBIGUOUS);
+    // Discovery locates candidates; placeholder archives cannot establish identity.
+    assert(Com_DetectGameProfile(&input).status == COM_GAME_DETECTION_UNRECOGNIZED_PAK);
     input.basePath = q3str.c_str();
-    assert(Com_DetectGameProfile(&input).profile == q3);
+    assert(Com_DetectGameProfile(&input).status == COM_GAME_DETECTION_UNRECOGNIZED_PAK);
     input.basePath = nullptr;
     input.qlSteamPath = nullptr;
-    assert(Com_DetectGameProfile(&input).profile == q3);
+    assert(Com_DetectGameProfile(&input).status == COM_GAME_DETECTION_UNRECOGNIZED_PAK);
     input.q3SteamPath = nullptr;
     input.qlSteamPath = qlstr.c_str();
 #ifndef FNTECH3_Q3_ONLY
-    assert(Com_DetectGameProfile(&input).profile == ql);
+    assert(Com_DetectGameProfile(&input).status == COM_GAME_DETECTION_UNRECOGNIZED_PAK);
 #endif
     assert(!Com_GameProfile()); // Discovery never activates a profile or services.
     return 0;

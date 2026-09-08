@@ -69,6 +69,19 @@ int main()
 	assert( result.status == COM_GAME_DETECTION_AMBIGUOUS );
 	assert( result.profile == nullptr );
 
+	// An occupied but unrecognized candidate must not silently select a
+	// different game from a lower-priority installation.
+	result = Detect( "auto", COM_GAME_MARKER_UNRECOGNIZED_PAK,
+		COM_GAME_MARKER_QUAKELIVE, COM_GAME_MARKER_QUAKE3 );
+	assert( result.status == COM_GAME_DETECTION_UNRECOGNIZED_PAK && !result.profile );
+	assert( result.evidence == COM_GAME_EVIDENCE_BASE_PATH );
+	result = Detect( "auto", 0, COM_GAME_MARKER_UNRECOGNIZED_PAK, COM_GAME_MARKER_QUAKE3 );
+	assert( result.status == COM_GAME_DETECTION_UNRECOGNIZED_PAK && !result.profile );
+	assert( result.evidence == COM_GAME_EVIDENCE_APP_PATH );
+	result = Detect( "auto", 0, 0, COM_GAME_MARKER_UNRECOGNIZED_PAK | COM_GAME_MARKER_QUAKE3 );
+	assert( result.status == COM_GAME_DETECTION_UNRECOGNIZED_PAK && !result.profile );
+	assert( result.evidence == COM_GAME_EVIDENCE_STEAM_PATH );
+
 	result = Detect( "auto", COM_GAME_MARKER_NONE,
 		COM_GAME_MARKER_NONE, COM_GAME_MARKER_NONE );
 	assert( result.status == COM_GAME_DETECTION_NOT_FOUND );

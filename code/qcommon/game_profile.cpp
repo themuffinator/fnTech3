@@ -12,7 +12,10 @@ General Public License, version 2 or (at your option) any later version.
 #include <cctype>
 #include <cstring>
 #include <filesystem>
+#include <fstream>
+#include <cstdint>
 #include <system_error>
+#include <vector>
 
 namespace {
 
@@ -121,6 +124,9 @@ comGameDetectionResult_t Result( comGameDetectionStatus_t status,
 comGameDetectionResult_t DetectCandidate( unsigned markers,
 	comGameDetectionEvidence_t evidence )
 {
+	if ( markers & COM_GAME_MARKER_UNRECOGNIZED_PAK ) {
+		return Result( COM_GAME_DETECTION_UNRECOGNIZED_PAK, evidence, nullptr );
+	}
 	const unsigned knownMarkers = markers
 		& ( COM_GAME_MARKER_QUAKE3 | COM_GAME_MARKER_QUAKELIVE );
 
@@ -142,6 +148,91 @@ bool IsRegularFile( const std::filesystem::path &path )
 	std::error_code error;
 	const bool regular = std::filesystem::is_regular_file( path, error );
 	return regular && !error;
+}
+
+unsigned LE16( const unsigned char *p )
+{
+	return p[0] | (unsigned( p[1] ) << 8);
+}
+
+std::uint32_t LE32( const unsigned char *p )
+{
+	return LE16( p ) | (std::uint32_t( LE16( p + 2 ) ) << 16);
+}
+
+// This is an early identity hint, not authentication or a ZIP payload validator.
+// Layout: PKWARE APPNOTE 6.3.10, sections 4.3.12 and 4.3.16.
+// Retail metadata observations: docs/fntech3/2026-09-08-pak-identity.md.
+bool RecognizedPak( const std::filesystem::path &path, unsigned expected )
+{
+	std::ifstream file( path, std::ios::binary | std::ios::ate );
+	const auto end = file.tellg();
+	if ( !file || end < 22 || end > std::streamoff( UINT32_MAX ) ) {
+		return false;
+	}
+	const auto size = static_cast<std::uint32_t>( end );
+	const auto tailSize = size < 65557u ? size : 65557u;
+	std::vector<unsigned char> tail( tailSize );
+	file.seekg( size - tailSize );
+	if ( !file.read( reinterpret_cast<char *>( tail.data() ), tailSize ) ) {
+		return false;
+	}
+	std::size_t eocd = tailSize;
+	for ( std::size_t pos = tailSize - 22; ; --pos ) {
+		if ( LE32( &tail[pos] ) == 0x06054b50u
+			&& pos + 22u + LE16( &tail[pos + 20] ) == tailSize ) {
+			eocd = pos;
+			break;
+		}
+		if ( pos == 0 ) break;
+	}
+	if ( eocd == tailSize ) return false;
+	const auto *e = &tail[eocd];
+	const unsigned count = LE16( e + 10 );
+	const std::uint32_t bytes = LE32( e + 12 ), offset = LE32( e + 16 );
+	// Bound startup work. Split archives, ZIP64 and unknown layouts require an
+	// explicit profile; the full filesystem remains responsible for loading.
+	if ( LE16( e + 4 ) || LE16( e + 6 ) || LE16( e + 8 ) != count
+		|| count == 0 || count == 65535 || bytes > 8u * 1024u * 1024u
+		|| std::uint64_t( offset ) + bytes != size - tailSize + eocd ) {
+		return false;
+	}
+	std::vector<unsigned char> directory( bytes );
+	file.seekg( offset );
+	if ( !file.read( reinterpret_cast<char *>( directory.data() ), bytes ) ) return false;
+	unsigned defaultSeen = 0, q3MapSeen = 0, qlMapSeen = 0;
+	bool defaultMatches = false, mapMatches = false;
+	std::size_t pos = 0;
+	for ( unsigned i = 0; i < count; ++i ) {
+		if ( bytes - pos < 46 ) return false;
+		const auto *h = directory.data() + pos;
+		const unsigned nameLength = LE16( h + 28 );
+		const std::size_t recordSize = 46u + nameLength + LE16( h + 30 ) + LE16( h + 32 );
+		if ( LE32( h ) != 0x02014b50u || recordSize > bytes - pos
+			|| !nameLength || LE16( h + 34 ) || ( LE16( h + 8 ) & 1u )
+			|| ( LE16( h + 10 ) != 0 && LE16( h + 10 ) != 8 )
+			|| std::uint64_t( LE32( h + 42 ) ) + 30u + LE32( h + 20 ) > offset ) {
+			return false;
+		}
+		const std::string name( reinterpret_cast<const char *>( h + 46 ), nameLength );
+		const auto length = LE32( h + 24 ), crc = LE32( h + 16 );
+		if ( name == "default.cfg" ) {
+			++defaultSeen;
+			defaultMatches = expected == COM_GAME_MARKER_QUAKE3
+				? length == 1737 && crc == 0x9a18b2fdu
+				: length == 1580 && crc == 0xc6c9f233u;
+		} else if ( name == "maps/q3dm6.bsp" ) {
+			++q3MapSeen;
+			if ( expected == COM_GAME_MARKER_QUAKE3 ) mapMatches = length == 4408212 && crc == 0x9fef9a4bu;
+		} else if ( name == "maps/campgrounds.bsp" ) {
+			++qlMapSeen;
+			if ( expected == COM_GAME_MARKER_QUAKELIVE ) mapMatches = length == 2924532 && crc == 0x0ddc0f1du;
+		}
+		pos += recordSize;
+	}
+	return pos == bytes && defaultSeen == 1 && defaultMatches && mapMatches
+		&& ( expected == COM_GAME_MARKER_QUAKE3 ? q3MapSeen == 1 && qlMapSeen == 0
+			: qlMapSeen == 1 && q3MapSeen == 0 );
 }
 
 } // namespace
@@ -216,10 +307,12 @@ unsigned Com_ProbeGameProfileMarkers( const char *rootPath )
 		return markers;
 	}
 	if ( IsRegularFile( basePath / quake3Profile.basePakName ) ) {
-		markers |= COM_GAME_MARKER_QUAKE3;
+		markers |= RecognizedPak( basePath / quake3Profile.basePakName, COM_GAME_MARKER_QUAKE3 )
+			? COM_GAME_MARKER_QUAKE3 : COM_GAME_MARKER_UNRECOGNIZED_PAK;
 	}
 	if ( IsRegularFile( basePath / quakeLiveProfile.basePakName ) ) {
-		markers |= COM_GAME_MARKER_QUAKELIVE;
+		markers |= RecognizedPak( basePath / quakeLiveProfile.basePakName, COM_GAME_MARKER_QUAKELIVE )
+			? COM_GAME_MARKER_QUAKELIVE : COM_GAME_MARKER_UNRECOGNIZED_PAK;
 	}
 
 	return markers;
@@ -324,6 +417,8 @@ const char *Com_GameDetectionStatusName( comGameDetectionStatus_t status )
 			return "unknown profile";
 		case COM_GAME_DETECTION_UNSUPPORTED_BUILD:
 			return "Quake Live is unavailable in this Q3-only build; use the shared Win32 fnTech3 binary";
+		case COM_GAME_DETECTION_UNRECOGNIZED_PAK:
+			return "unrecognized base pak identity; verify the installation or select its profile explicitly";
 		default:
 			return "invalid status";
 	}
