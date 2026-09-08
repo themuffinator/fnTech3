@@ -10,11 +10,51 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class WavPayloadTests(unittest.TestCase):
+    def test_pcm16_endian_conversion_covers_every_channel(self):
+        compiler = shutil.which('clang++') or shutil.which('g++')
+        if not compiler:
+            self.skipTest('C++ compiler unavailable')
+        source = (ROOT / 'code/client/audio/codecs/snd_codec_wav.cpp').read_text()
+        swap = source[source.index('void S_ByteSwapRawSamples'):source.index('short ConvertWavSampleToPCM16')]
+        harness = r'''#include <array>
+#include <cassert>
+#include <cstring>
+using byte=unsigned char;
+bool bigEndian=false;
+short LittleShort(short value){
+ if(!bigEndian)return value;
+ unsigned short bits;std::memcpy(&bits,&value,2);
+ bits=static_cast<unsigned short>((bits>>8)|(bits<<8));
+ std::memcpy(&value,&bits,2);return value;
+}
+''' + swap + r'''
+int main(){
+ for(bool endian:{false,true})for(int channels:{1,2,3,4,6,8})for(int frames:{0,1,7}){
+  bigEndian=endian;
+  std::array<short,58> values;values.fill(0x1234);
+  S_ByteSwapRawSamples(frames,2,channels,reinterpret_cast<byte*>(values.data()+1));
+  for(int i=0;i<58;++i)assert(values[i]==((i>0&&i<=frames*channels&&endian)?0x3412:0x1234));
+  values.fill(0x1234);
+  S_ByteSwapRawSamples(frames,1,channels,reinterpret_cast<byte*>(values.data()+1));
+  for(auto value:values)assert(value==0x1234);
+ }
+}
+'''
+        with tempfile.TemporaryDirectory() as directory:
+            cpp=Path(directory)/'endian.cpp'
+            exe=Path(directory)/'endian.exe'
+            cpp.write_text(harness)
+            result=subprocess.run([compiler,*compiler_target_args(compiler),'-std=c++17',str(cpp),'-o',str(exe)],capture_output=True,text=True)
+            self.assertEqual(result.returncode,0,result.stdout+result.stderr)
+            result=subprocess.run([str(exe)],capture_output=True,text=True)
+            self.assertEqual(result.returncode,0,result.stdout+result.stderr)
+
     def test_load_and_stream_report_only_available_payload(self):
         compiler = shutil.which('clang++') or shutil.which('g++')
         if not compiler:
             self.skipTest('C++ compiler unavailable')
         source = (ROOT / 'code/client/audio/codecs/snd_codec_wav.cpp').read_text()
+        swap = source[source.index('void S_ByteSwapRawSamples'):source.index('short ConvertWavSampleToPCM16')]
         conversion = source[source.index('short ConvertWavSampleToPCM16'):source.index('/*\n=================\nS_ReadRIFFHeader')]
         load = source[source.index('extern "C" void *S_WAV_CodecLoad'):source.index('/*\n=================\nS_WAV_CodecOpenStream')]
         stream = source[source.index('extern "C" int S_WAV_CodecReadStream'):]
@@ -63,13 +103,19 @@ struct ScopedTempMemory {
 };
 bool S_ReadRIFFHeader(int,int,snd_info_t*i,WavSourceFormat*s){*i=description;*s=selected;return true;}
 void Com_Printf(const char*,...){ }
-void S_ByteSwapRawSamples(int samples,int width,int channels,byte*){assert(samples>=0&&width>0&&channels>0);}
-''' + conversion + load + stream + r'''
+bool bigEndian=false;
+short LittleShort(short value){
+ if(!bigEndian)return value;
+ unsigned short bits;std::memcpy(&bits,&value,2);
+ bits=static_cast<unsigned short>((bits>>8)|(bits<<8));
+ std::memcpy(&value,&bits,2);return value;
+}
+''' + swap + conversion + load + stream + r'''
 void reset(){cursor=0;readCalls=0;readLimit=INT_MAX;assert(allocations==0&&openHandles==0);}
 int main(){
  WavSourceFormat pcm8{kWavFormatPCM,1,true};
  for(int value=0;value<256;++value){byte b=static_cast<byte>(value);assert(ConvertWavSampleToPCM16(&b,pcm8)==(value-128)*256);}
- for(int width:{1,2,3,4})for(int channels:{1,2}){
+ for(int width:{1,2,3,4})for(int channels:{1,2,3,6,8}){
   selected={width==4?kWavFormatIEEEFloat:kWavFormatPCM,width,width>2||(width==1&&channels>1)};
   description={44100,selected.needsConversion?2:width,channels,8,8*channels*(selected.needsConversion?2:width),0};
   std::vector<byte> full(8*channels*width,0);
@@ -112,6 +158,23 @@ int main(){
   assert(readCalls==0&&s.pos==0);
   readLimit=-1;assert(S_WAV_CodecReadStream(&s,description.size,b.data())==0&&s.pos==0);
   assert(std::all_of(b.begin(),b.end(),[](byte v){return v==0xa5;}));
+ }
+ // An even byte request need not end at an interleaved frame boundary.
+ bigEndian=true;
+ for(int channels:{2,3,6,8}){
+  selected={kWavFormatPCM,2,false};
+  description={44100,2,channels,8,16*channels,0};
+  payload.assign(description.size,0);
+  for(int i=0;i<description.size;i+=2){payload[i]=0x12;payload[i+1]=0x34;}
+  reset();snd_info_t info;
+  auto*loaded=static_cast<byte*>(S_WAV_CodecLoad("endian.wav",&info));assert(loaded);
+  for(int i=0;i<info.size;i+=2)assert(loaded[i]==0x34&&loaded[i+1]==0x12);
+  std::free(loaded);reset();snd_stream_t s;s.info=description;
+  std::array<byte,128> out;out.fill(0xa5);
+  const int request=2*(channels+1);
+  assert(S_WAV_CodecReadStream(&s,request,out.data())==request);
+  for(int i=0;i<request;i+=2)assert(out[i]==0x34&&out[i+1]==0x12);
+  for(int i=request;i<128;++i)assert(out[i]==0xa5);
  }
 }
 '''

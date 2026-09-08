@@ -1,0 +1,46 @@
+{
+  "baseCommit": "1ad06fd1dd14ab082d3b859c268d1357047092f7",
+  "profiles": [
+    "q3",
+    "ql"
+  ],
+  "sourceSha256": {
+    "code\\client\\audio\\codecs\\snd_codec_wav.cpp": "c4698738cad6544643d00671b86d75e62f3d4ab2e0b60823286c5d77a4640932",
+    "tests\\wav_payload_tests.py": "cd5ceed8614665966a4117369e9f5860ed1166c89186649965fa695f927598bd"
+  },
+  "before": {
+    "originalHelper": "New simulated-endian multichannel test fails.",
+    "streamMutant": "Restoring only the frame-rounded stream count fails the executable load/stream regression."
+  },
+  "windows": {
+    "build": "MSVC x86 release incremental succeeded",
+    "passed": 110,
+    "failed": 0,
+    "skipped": 1,
+    "pythonTests": 1301,
+    "pythonSkips": 5
+  },
+  "linux": {
+    "tests": 3,
+    "failed": 0,
+    "instrumentation": [
+      "AddressSanitizer",
+      "UndefinedBehaviorSanitizer"
+    ]
+  },
+  "logs": {
+    ".tmp\\wav-endian-before.log": "4129bfa82fbf2c0bae8646f0c3f541b935850c1200fa92104f8eb2ad85dc7583",
+    ".tmp\\wav-endian-mutant.log": "31612475ca63c29460574c9d966bebaf1f314aa222f6453c47c76e5ac95971c7",
+    ".tmp\\wav-endian-build.log": "8e98414489b76de29b189297409556589bfef803c168d5a05584ff28ce71f26a",
+    ".tmp\\wav-endian-suite.log": "185875e7bd86ec01fca21e1be53ae66a0202be00dd03bd94da109543163e122d",
+    ".tmp\\wav-endian-sanitizers.log": "35aeccfb16f5a9e21b6a5ecacfe5cef6c082fb9f08616372f1d448d89552980e",
+    ".tmp\\meson-msvc-x86-release\\meson-logs\\testlog.txt": "9b899b446b491ecfd79392ff77bb82681f8b4ea1337e963927ca09843f00fcd5"
+  },
+  "limits": [
+    "Simulated endian conversion only; no big-endian engine build or hardware runtime.",
+    "Odd-byte short reads splitting an individual PCM16 sample are outside reconstruction proof.",
+    "Extensible valid-bit and channel-mask semantics remain open."
+  ],
+  "externalImplementationAdded": false,
+  "unrelatedIssuesDiscovered": []
+}

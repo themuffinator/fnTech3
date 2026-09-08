@@ -146,9 +146,8 @@ void S_ByteSwapRawSamples( int samples, int width, int s_channels, byte *data ) 
 		return;
 	}
 
-	if ( s_channels == 2 ) {
-		samples <<= 1;
-	}
+	// Header validation bounds the decoded byte count, including all channels.
+	samples *= s_channels;
 
 	auto *sampleData = reinterpret_cast<short *>( data );
 	for ( int i = 0; i < samples; i++ ) {
@@ -415,8 +414,9 @@ extern "C" int S_WAV_CodecReadStream( snd_stream_t *stream, int bytes, void *buf
 			return 0;
 		}
 		stream->pos += bytesRead;
-		const int samples = ( bytesRead / stream->info.width ) / stream->info.channels;
-		S_ByteSwapRawSamples( samples, stream->info.width, stream->info.channels, static_cast<byte *>( buffer ) );
+		// Swap every complete scalar sample, including an incomplete final frame.
+		const int samples = bytesRead / stream->info.width;
+		S_ByteSwapRawSamples( samples, stream->info.width, 1, static_cast<byte *>( buffer ) );
 		return bytesRead;
 	}
 
