@@ -113,6 +113,10 @@ download successfully in a new process reusing the same isolated home.
 The [rename fallback correction](2026-09-08-rename-fallback.md) preserves source
 files when fallback copying fails, including download finalization, with
 Windows/Linux executable failure regressions.
+The [clean local Linux checkpoint](2026-09-08-clean-linux.md) builds the i686
+dedicated configuration at `b5776c9`, passes its configured suite (84 pass,
+one skip), and runs both profiles' native Steam-discovery/map-startup probes.
+It does not replace the hosted client/renderer release matrix.
 
 The target is one shared, drop-in binary set. It must select `q3` or `ql` before
 compatibility-sensitive initialization and then use that profile's complete,
