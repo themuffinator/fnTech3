@@ -47,3 +47,6 @@ but must be addressed before calling the packaged documentation complete.
 Existing QL temporary-hunk and image/font warnings remain unresolved. Broader
 platform packaging, public-release proof policy, all-renderer runtime coverage
 and independent retail interoperability remain open.
+
+The subsequent [evidence-document packaging correction](2026-09-08-packaged-evidence-documents.md)
+addresses the missing fnTech3 evidence files and adds stage/archive link checks.

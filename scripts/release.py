@@ -7,6 +7,7 @@ import io
 import json
 import os
 import plistlib
+import posixpath
 import re
 import shutil
 import stat
@@ -16,6 +17,7 @@ import tarfile
 import zipfile
 from pathlib import Path
 from typing import NamedTuple
+from urllib.parse import unquote, urlsplit
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -500,6 +502,37 @@ def copy_docs(stage_root: Path) -> None:
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, destination)
 
+    # Ship the ledger's text evidence, never local probes or game inputs.
+    evidence_root = ROOT / "docs" / "fntech3"
+    for source in sorted(evidence_root.rglob("*")):
+        if source.suffix.lower() not in {".md", ".json"}:
+            continue
+        if source.is_symlink() or not source.resolve().is_relative_to(evidence_root.resolve()):
+            raise ValueError(f"Evidence document escapes its source tree: {source}")
+        if source.is_file():
+            destination = stage_root / "docs" / "fntech3" / source.relative_to(evidence_root)
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, destination)
+
+
+def validate_evidence_document_links(files: dict[str, bytes]) -> None:
+    """Check repository inline links within the packaged fnTech3 evidence tree.
+
+    References to source code, external sites and ignored local probes are not
+    package dependencies. This is not a general Markdown/anchor validator.
+    """
+    prefix = "docs/fntech3/"
+    for name, data in files.items():
+        if not name.startswith(prefix) or not name.endswith(".md"):
+            continue
+        for target in re.findall(r"\]\(([^)]+)\)", data.decode("utf-8")):
+            link = urlsplit(target)
+            if link.scheme or link.netloc or not link.path:
+                continue
+            resolved = posixpath.normpath(posixpath.join(posixpath.dirname(name), unquote(link.path)))
+            if resolved.startswith(prefix) and resolved.endswith((".md", ".json")) and resolved not in files:
+                raise ValueError(f"Missing packaged evidence document: {name} -> {target}")
+
 
 def build_root_archive(stage_root: Path) -> Path:
     archive_path = stage_root / ROOT_ARCHIVE_NAME
@@ -981,6 +1014,7 @@ def validate_release_archive_contents(
             ),
         )
         validate_windows_runtime_dependencies(member.data, name=member.name)
+    validate_evidence_document_links({member.name: member.data for member in members})
     archived_name_set = set(archived_names)
     missing_release_entries = [
         name
@@ -1044,6 +1078,11 @@ def validate_stage_tree(stage_root: Path, *, artifact_name: str | None = None) -
             ),
         )
         validate_windows_runtime_dependencies(member_data, name=relative_name)
+    validate_evidence_document_links({
+        name: (stage_root / name).read_bytes()
+        if name.startswith("docs/fntech3/") and name.endswith(".md") else b""
+        for name in staged_names
+    })
     validate_engine_only_distribution_files(staged_names, name=stage_root.name)
 
 

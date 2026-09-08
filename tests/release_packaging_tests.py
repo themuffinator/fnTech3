@@ -220,6 +220,30 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertIn("__pycache__", skipped)
         self.assertIn("FnQL.dSYM", skipped)
 
+    def test_packaged_evidence_links_and_missing_target(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            stage = Path(temporary)
+            release.copy_docs(stage)
+            files = {p.relative_to(stage).as_posix(): p.read_bytes()
+                     for p in stage.rglob("*") if p.is_file()}
+            release.validate_evidence_document_links(files)
+            target = "docs/fntech3/2026-09-08-http-errors-and-curl-cleanup.md"
+            self.assertIn(target, files)
+            del files[target]
+            with self.assertRaisesRegex(ValueError, "Missing packaged evidence document"):
+                release.validate_evidence_document_links(files)
+            self.assertFalse(any(name.startswith(".tmp/") for name in files))
+
+    def test_evidence_link_fragments_and_external_references(self) -> None:
+        files = {"docs/fntech3/ledger.md":
+                 b"[local](evidence/probe.json#result) [site](https://example.com/a.md) "
+                 b"[private](../../.tmp/probe.json) [anchor](#section)",
+                 "docs/fntech3/evidence/probe.json": b"{}"}
+        release.validate_evidence_document_links(files)
+        del files["docs/fntech3/evidence/probe.json"]
+        with self.assertRaisesRegex(ValueError, "Missing packaged evidence document"):
+            release.validate_evidence_document_links(files)
+
     def test_packaged_docs_are_minimal_player_archive_docs(self) -> None:
         destinations = {destination.as_posix() for _source, destination in release.DEFAULT_DOCS}
 
