@@ -1097,6 +1097,8 @@ This will be called twice if rendering in stereo mode
 ==================
 */
 static void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
+	const bool traceField = com_speeds && com_speeds->integer >= 4;
+	const int fieldStarted = traceField ? Sys_Milliseconds() : 0;
 	bool uiFullscreen;
 	bool uiVisible;
 	bool browserOverlayRequested;
@@ -1109,6 +1111,7 @@ static void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 	float menuBlurStrength;
 
 	re.BeginFrame( stereoFrame );
+	const int beginEnded = traceField ? Sys_Milliseconds() : 0;
 
 	uiFullscreen = uivm && VM_Call( uivm, 0, UI_IS_FULLSCREEN );
 	uiMenuVisible = CL_UIMenusAreVisible();
@@ -1223,9 +1226,11 @@ static void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 	}
 
 	// the menu draws next
+	const int sceneEnded = traceField ? Sys_Milliseconds() : 0;
 	if ( uiVisible && !browserSuppressUiRefresh ) {
 		VM_Call( uivm, 1, UI_REFRESH, cls.realtime );
 	}
+	const int menuEnded = traceField ? Sys_Milliseconds() : 0;
 
 	// Native connection and level-loading screens retain exclusive ownership of
 	// the frame even if a late browser callback leaves its overlay state armed.
@@ -1246,6 +1251,11 @@ static void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 	}
 
 	SCR_DrawFontAtlasDebug();
+	if ( traceField ) {
+		Com_Printf( "field_timing frame=%d begin_ms=%d scene_ms=%d menu_ms=%d overlay_ms=%d\n",
+			cls.framecount, beginEnded - fieldStarted, sceneEnded - beginEnded,
+			menuEnded - sceneEnded, Sys_Milliseconds() - menuEnded );
+	}
 }
 
 
@@ -1286,6 +1296,8 @@ void SCR_UpdateScreen( void ) {
 	// that case.
 	if ( uivm )
 	{
+		const bool traceScreen = com_speeds && com_speeds->integer >= 4;
+		const int drawStarted = traceScreen ? Sys_Milliseconds() : 0;
 		// XXX
 		int in_anaglyphMode = Cvar_VariableIntegerValue("r_anaglyphMode");
 		// if running in stereo, we need to draw the frame twice
@@ -1296,10 +1308,15 @@ void SCR_UpdateScreen( void ) {
 			SCR_DrawScreenField( STEREO_CENTER );
 		}
 
+		const int drawEnded = traceScreen ? Sys_Milliseconds() : 0;
 		if ( com_speeds->integer ) {
 			re.EndFrame( &time_frontend, &time_backend );
 		} else {
 			re.EndFrame( nullptr, nullptr );
+		}
+		if ( traceScreen ) {
+			Com_Printf( "screen_timing frame=%d draw_ms=%d end_ms=%d\n",
+				cls.framecount, drawEnded - drawStarted, Sys_Milliseconds() - drawEnded );
 		}
 	}
 

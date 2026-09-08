@@ -1,0 +1,3456 @@
+{
+  "baseCommit": "c797aacf4c650425b39ef9894d726f292e3af30d",
+  "finalSource": {
+    "code/client/cl_scrn.cpp": "f02ff189d8b87fa39d4e234fb275e288807f9df790b2c7ac852e75cc03a8a0de"
+  },
+  "experiments": [
+    {
+      "name": "screen-stages",
+      "runtime": {
+        "FnQL-pkg.fnz": "1d1ff86488c3134a936486790c24954bef87abd22177e1ca8b5542cc2f06115a",
+        "fnql-web.pak": "6c210165880fff668900fd3e4e3c90137623043e1b5315f24b693f367f756382",
+        "fnql_glx_x86.dll": "06b1dd111cd2e0b50bf48a66c747d39900c7bae977680e5b6e65f7e82e9e960b",
+        "fntech3.exe": "2ee380ce6b38440cc16e7060a8aa1519d828898df360c9953c673e3f9c630336",
+        "SDL3.dll": "feffb863a376f756a3a9ed93660238145d82b03b2475a49518fafbbf128f0938",
+        "soft_oal.dll": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+      },
+      "runs": [
+        {
+          "profile": "q3",
+          "encoding": "front-center",
+          "command": [
+            "E:\\Repositories\\fnTech3\\.tmp\\audio-legacy-screen-stages-c797aac\\runtime\\fntech3.exe",
+            "+set",
+            "com_gameProfile",
+            "q3",
+            "+set",
+            "fs_basepath",
+            "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\audio-legacy-screen-stages-c797aac\\q3-front-center\\home",
+            "+set",
+            "fs_cdpath",
+            "",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "1",
+            "+set",
+            "s_backend",
+            "legacy",
+            "+set",
+            "com_speeds",
+            "4",
+            "+set",
+            "r_swapInterval",
+            "0",
+            "+set",
+            "s_debugTiming",
+            "1",
+            "+set",
+            "developer",
+            "1",
+            "+set",
+            "s_sdlCapture",
+            "0",
+            "+set",
+            "s_khz",
+            "48",
+            "+set",
+            "s_sdlBits",
+            "16",
+            "+set",
+            "s_sdlChannels",
+            "2",
+            "+set",
+            "s_volume",
+            "1",
+            "+set",
+            "s_musicVolume",
+            "0",
+            "+set",
+            "s_voiceVolume",
+            "0",
+            "+set",
+            "s_muteWhenUnfocused",
+            "0",
+            "+set",
+            "s_muteWhenMinimized",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "com_maxfps",
+            "60",
+            "+set",
+            "com_maxfpsUnfocused",
+            "60",
+            "+set",
+            "com_maxfpsMinimized",
+            "60",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "stopmusic\nwait 120\ns_info\nset s_musicVolume 1\nmusic music/intro.wav music/loop.wav\nwait 240\nstopmusic\nwait 120\necho AUDIO_STREAM_COMPLETE\nquit\n",
+          "exitCode": 0,
+          "forced": false,
+          "elapsedSeconds": 14.172,
+          "outputExists": true,
+          "outputBytes": 2326528,
+          "outputSha256": "a792d9da0d49ace58a96e763bd84fdac9d244194369e006ba85959c5359ec799",
+          "consoleSha256": "c9c111195f9bc06b52191e11048efbaa47378f15e98edef9d25b6370639fa496",
+          "timing": {
+            "client_timing": {
+              "rows": 480,
+              "maximumMilliseconds": {
+                "pre_ms": 3,
+                "screen_ms": 458,
+                "audio_ms": 4,
+                "tail_ms": 0
+              },
+              "slowRows": [
+                {
+                  "frame": 110,
+                  "pre_ms": 0,
+                  "screen_ms": 450,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 150,
+                  "pre_ms": 0,
+                  "screen_ms": 458,
+                  "audio_ms": 4,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 189,
+                  "pre_ms": 0,
+                  "screen_ms": 427,
+                  "audio_ms": 3,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 197,
+                  "pre_ms": 0,
+                  "screen_ms": 442,
+                  "audio_ms": 1,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 235,
+                  "pre_ms": 0,
+                  "screen_ms": 449,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 273,
+                  "pre_ms": 0,
+                  "screen_ms": 447,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 311,
+                  "pre_ms": 0,
+                  "screen_ms": 444,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 350,
+                  "pre_ms": 0,
+                  "screen_ms": 446,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 389,
+                  "pre_ms": 0,
+                  "screen_ms": 444,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 474,
+                  "pre_ms": 0,
+                  "screen_ms": 437,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                }
+              ]
+            },
+            "screen_timing": {
+              "rows": 480,
+              "maximumMilliseconds": {
+                "draw_ms": 457,
+                "end_ms": 99
+              },
+              "slowRows": [
+                {
+                  "frame": 110,
+                  "draw_ms": 450,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 150,
+                  "draw_ms": 457,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 189,
+                  "draw_ms": 426,
+                  "end_ms": 1
+                },
+                {
+                  "frame": 197,
+                  "draw_ms": 442,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 235,
+                  "draw_ms": 448,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 273,
+                  "draw_ms": 446,
+                  "end_ms": 1
+                },
+                {
+                  "frame": 311,
+                  "draw_ms": 443,
+                  "end_ms": 1
+                },
+                {
+                  "frame": 350,
+                  "draw_ms": 445,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 389,
+                  "draw_ms": 444,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 474,
+                  "draw_ms": 437,
+                  "end_ms": 0
+                }
+              ]
+            }
+          },
+          "silenceIntervalsAfterFirstSecond": [
+            {
+              "startSeconds": 3.279333333333333,
+              "durationSeconds": 0.056
+            },
+            {
+              "startSeconds": 3.498666666666667,
+              "durationSeconds": 0.09266666666666666
+            },
+            {
+              "startSeconds": 4.565333333333333,
+              "durationSeconds": 0.049833333333333334
+            },
+            {
+              "startSeconds": 4.906666666666666,
+              "durationSeconds": 0.22066666666666668
+            },
+            {
+              "startSeconds": 6.101333333333334,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 7.168,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 8.192,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 9.216,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 9.436666666666667,
+              "durationSeconds": 0.6266666666666667
+            }
+          ],
+          "stageUnchanged": true
+        },
+        {
+          "profile": "ql",
+          "encoding": "front-center",
+          "command": [
+            "E:\\Repositories\\fnTech3\\.tmp\\audio-legacy-screen-stages-c797aac\\runtime\\fntech3.exe",
+            "+set",
+            "com_gameProfile",
+            "ql",
+            "+set",
+            "fs_basepath",
+            "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\audio-legacy-screen-stages-c797aac\\ql-front-center\\home",
+            "+set",
+            "fs_cdpath",
+            "",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "1",
+            "+set",
+            "s_backend",
+            "legacy",
+            "+set",
+            "com_speeds",
+            "4",
+            "+set",
+            "r_swapInterval",
+            "0",
+            "+set",
+            "s_debugTiming",
+            "1",
+            "+set",
+            "developer",
+            "1",
+            "+set",
+            "s_sdlCapture",
+            "0",
+            "+set",
+            "s_khz",
+            "48",
+            "+set",
+            "s_sdlBits",
+            "16",
+            "+set",
+            "s_sdlChannels",
+            "2",
+            "+set",
+            "s_volume",
+            "1",
+            "+set",
+            "s_musicVolume",
+            "0",
+            "+set",
+            "s_voiceVolume",
+            "0",
+            "+set",
+            "s_muteWhenUnfocused",
+            "0",
+            "+set",
+            "s_muteWhenMinimized",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "com_maxfps",
+            "60",
+            "+set",
+            "com_maxfpsUnfocused",
+            "60",
+            "+set",
+            "com_maxfpsMinimized",
+            "60",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "stopmusic\nwait 120\ns_info\nset s_musicVolume 1\nmusic music/intro.wav music/loop.wav\nwait 240\nstopmusic\nwait 120\necho AUDIO_STREAM_COMPLETE\nquit\n",
+          "exitCode": 0,
+          "forced": false,
+          "elapsedSeconds": 16.281,
+          "outputExists": true,
+          "outputBytes": 2924544,
+          "outputSha256": "5ad2e56cf92954ea39b35529127ac89c4132565e254666f6d6ae3bcf429a5ce6",
+          "consoleSha256": "076bae7702b165b59a5783a05ff584b49a0673f4f7a0593444184955c97fa293",
+          "timing": {
+            "client_timing": {
+              "rows": 480,
+              "maximumMilliseconds": {
+                "pre_ms": 10,
+                "screen_ms": 477,
+                "audio_ms": 5,
+                "tail_ms": 0
+              },
+              "slowRows": [
+                {
+                  "frame": 33,
+                  "pre_ms": 0,
+                  "screen_ms": 467,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 72,
+                  "pre_ms": 0,
+                  "screen_ms": 446,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 81,
+                  "pre_ms": 0,
+                  "screen_ms": 446,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 120,
+                  "pre_ms": 0,
+                  "screen_ms": 460,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 159,
+                  "pre_ms": 0,
+                  "screen_ms": 446,
+                  "audio_ms": 5,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 198,
+                  "pre_ms": 0,
+                  "screen_ms": 462,
+                  "audio_ms": 1,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 238,
+                  "pre_ms": 0,
+                  "screen_ms": 451,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 277,
+                  "pre_ms": 0,
+                  "screen_ms": 445,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 286,
+                  "pre_ms": 0,
+                  "screen_ms": 460,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 325,
+                  "pre_ms": 0,
+                  "screen_ms": 440,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 334,
+                  "pre_ms": 0,
+                  "screen_ms": 461,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 338,
+                  "pre_ms": 0,
+                  "screen_ms": 477,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 377,
+                  "pre_ms": 0,
+                  "screen_ms": 456,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 416,
+                  "pre_ms": 0,
+                  "screen_ms": 446,
+                  "audio_ms": 1,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 425,
+                  "pre_ms": 0,
+                  "screen_ms": 446,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 432,
+                  "pre_ms": 0,
+                  "screen_ms": 402,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 471,
+                  "pre_ms": 0,
+                  "screen_ms": 444,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                }
+              ]
+            },
+            "screen_timing": {
+              "rows": 480,
+              "maximumMilliseconds": {
+                "draw_ms": 476,
+                "end_ms": 93
+              },
+              "slowRows": [
+                {
+                  "frame": 33,
+                  "draw_ms": 467,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 72,
+                  "draw_ms": 446,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 81,
+                  "draw_ms": 445,
+                  "end_ms": 1
+                },
+                {
+                  "frame": 120,
+                  "draw_ms": 460,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 159,
+                  "draw_ms": 446,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 198,
+                  "draw_ms": 462,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 238,
+                  "draw_ms": 450,
+                  "end_ms": 1
+                },
+                {
+                  "frame": 277,
+                  "draw_ms": 444,
+                  "end_ms": 1
+                },
+                {
+                  "frame": 286,
+                  "draw_ms": 459,
+                  "end_ms": 1
+                },
+                {
+                  "frame": 325,
+                  "draw_ms": 439,
+                  "end_ms": 1
+                },
+                {
+                  "frame": 334,
+                  "draw_ms": 460,
+                  "end_ms": 1
+                },
+                {
+                  "frame": 338,
+                  "draw_ms": 476,
+                  "end_ms": 1
+                },
+                {
+                  "frame": 377,
+                  "draw_ms": 455,
+                  "end_ms": 1
+                },
+                {
+                  "frame": 416,
+                  "draw_ms": 446,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 425,
+                  "draw_ms": 446,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 432,
+                  "draw_ms": 399,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 471,
+                  "draw_ms": 444,
+                  "end_ms": 0
+                }
+              ]
+            }
+          },
+          "silenceIntervalsAfterFirstSecond": [
+            {
+              "startSeconds": 4.992,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 6.058666666666666,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 7.125333333333334,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 8.192,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 8.533333333333333,
+              "durationSeconds": 0.2633333333333333
+            },
+            {
+              "startSeconds": 9.770666666666667,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 10.148666666666667,
+              "durationSeconds": 0.2693333333333333
+            },
+            {
+              "startSeconds": 10.709333333333333,
+              "durationSeconds": 0.22066666666666668
+            },
+            {
+              "startSeconds": 11.314,
+              "durationSeconds": 0.41333333333333333
+            }
+          ],
+          "stageUnchanged": true
+        }
+      ]
+    },
+    {
+      "name": "field-stages",
+      "runtime": {
+        "FnQL-pkg.fnz": "1d1ff86488c3134a936486790c24954bef87abd22177e1ca8b5542cc2f06115a",
+        "fnql-web.pak": "6c210165880fff668900fd3e4e3c90137623043e1b5315f24b693f367f756382",
+        "fnql_glx_x86.dll": "06b1dd111cd2e0b50bf48a66c747d39900c7bae977680e5b6e65f7e82e9e960b",
+        "fntech3.exe": "32a98293643c9a147abae2ced84c18c4a81ee723127c30dc30a2aaa41aadab1a",
+        "SDL3.dll": "feffb863a376f756a3a9ed93660238145d82b03b2475a49518fafbbf128f0938",
+        "soft_oal.dll": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+      },
+      "runs": [
+        {
+          "profile": "q3",
+          "encoding": "front-center",
+          "command": [
+            "E:\\Repositories\\fnTech3\\.tmp\\audio-legacy-field-stages-c797aac\\runtime\\fntech3.exe",
+            "+set",
+            "com_gameProfile",
+            "q3",
+            "+set",
+            "fs_basepath",
+            "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\audio-legacy-field-stages-c797aac\\q3-front-center\\home",
+            "+set",
+            "fs_cdpath",
+            "",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "1",
+            "+set",
+            "s_backend",
+            "legacy",
+            "+set",
+            "com_speeds",
+            "4",
+            "+set",
+            "r_swapInterval",
+            "0",
+            "+set",
+            "s_debugTiming",
+            "1",
+            "+set",
+            "developer",
+            "1",
+            "+set",
+            "s_sdlCapture",
+            "0",
+            "+set",
+            "s_khz",
+            "48",
+            "+set",
+            "s_sdlBits",
+            "16",
+            "+set",
+            "s_sdlChannels",
+            "2",
+            "+set",
+            "s_volume",
+            "1",
+            "+set",
+            "s_musicVolume",
+            "0",
+            "+set",
+            "s_voiceVolume",
+            "0",
+            "+set",
+            "s_muteWhenUnfocused",
+            "0",
+            "+set",
+            "s_muteWhenMinimized",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "com_maxfps",
+            "60",
+            "+set",
+            "com_maxfpsUnfocused",
+            "60",
+            "+set",
+            "com_maxfpsMinimized",
+            "60",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "stopmusic\nwait 120\ns_info\nset s_musicVolume 1\nmusic music/intro.wav music/loop.wav\nwait 240\nstopmusic\nwait 120\necho AUDIO_STREAM_COMPLETE\nquit\n",
+          "exitCode": 0,
+          "forced": false,
+          "elapsedSeconds": 16.375,
+          "outputExists": true,
+          "outputBytes": 2498560,
+          "outputSha256": "0d5163f178585927ca3c0b607962cb82516b9c836f00688b62f16833bd631cd0",
+          "consoleSha256": "781986a96bf49ba61111d55212cdd7715bbd4c594e874d7bce1615940f5c7e5b",
+          "timing": {
+            "client_timing": {
+              "rows": 480,
+              "maximumMilliseconds": {
+                "pre_ms": 2,
+                "screen_ms": 460,
+                "audio_ms": 15,
+                "tail_ms": 1
+              },
+              "slowRows": [
+                {
+                  "frame": 40,
+                  "pre_ms": 0,
+                  "screen_ms": 451,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 79,
+                  "pre_ms": 0,
+                  "screen_ms": 460,
+                  "audio_ms": 1,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 118,
+                  "pre_ms": 0,
+                  "screen_ms": 456,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 193,
+                  "pre_ms": 0,
+                  "screen_ms": 455,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 232,
+                  "pre_ms": 0,
+                  "screen_ms": 446,
+                  "audio_ms": 1,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 271,
+                  "pre_ms": 0,
+                  "screen_ms": 446,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 310,
+                  "pre_ms": 0,
+                  "screen_ms": 444,
+                  "audio_ms": 1,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 317,
+                  "pre_ms": 0,
+                  "screen_ms": 413,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 356,
+                  "pre_ms": 0,
+                  "screen_ms": 443,
+                  "audio_ms": 1,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 395,
+                  "pre_ms": 0,
+                  "screen_ms": 444,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 433,
+                  "pre_ms": 0,
+                  "screen_ms": 448,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 472,
+                  "pre_ms": 0,
+                  "screen_ms": 451,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                }
+              ]
+            },
+            "screen_timing": {
+              "rows": 480,
+              "maximumMilliseconds": {
+                "draw_ms": 460,
+                "end_ms": 96
+              },
+              "slowRows": [
+                {
+                  "frame": 40,
+                  "draw_ms": 451,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 79,
+                  "draw_ms": 460,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 118,
+                  "draw_ms": 455,
+                  "end_ms": 1
+                },
+                {
+                  "frame": 193,
+                  "draw_ms": 455,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 232,
+                  "draw_ms": 446,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 271,
+                  "draw_ms": 445,
+                  "end_ms": 1
+                },
+                {
+                  "frame": 310,
+                  "draw_ms": 443,
+                  "end_ms": 1
+                },
+                {
+                  "frame": 317,
+                  "draw_ms": 412,
+                  "end_ms": 1
+                },
+                {
+                  "frame": 356,
+                  "draw_ms": 443,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 395,
+                  "draw_ms": 444,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 433,
+                  "draw_ms": 448,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 472,
+                  "draw_ms": 450,
+                  "end_ms": 1
+                }
+              ]
+            },
+            "field_timing": {
+              "rows": 480,
+              "maximumMilliseconds": {
+                "begin_ms": 460,
+                "scene_ms": 0,
+                "menu_ms": 0,
+                "overlay_ms": 0
+              },
+              "slowRows": [
+                {
+                  "frame": 40,
+                  "begin_ms": 451,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 79,
+                  "begin_ms": 460,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 118,
+                  "begin_ms": 455,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 193,
+                  "begin_ms": 455,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 232,
+                  "begin_ms": 446,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 271,
+                  "begin_ms": 445,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 310,
+                  "begin_ms": 443,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 317,
+                  "begin_ms": 412,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 356,
+                  "begin_ms": 443,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 395,
+                  "begin_ms": 444,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 433,
+                  "begin_ms": 448,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 472,
+                  "begin_ms": 450,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                }
+              ]
+            }
+          },
+          "silenceIntervalsAfterFirstSecond": [
+            {
+              "startSeconds": 5.034666666666666,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 6.101333333333334,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 7.125333333333334,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 8.192,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 8.533333333333333,
+              "durationSeconds": 0.22066666666666668
+            },
+            {
+              "startSeconds": 9.770666666666667,
+              "durationSeconds": 0.05
+            }
+          ],
+          "stageUnchanged": true
+        },
+        {
+          "profile": "ql",
+          "encoding": "front-center",
+          "command": [
+            "E:\\Repositories\\fnTech3\\.tmp\\audio-legacy-field-stages-c797aac\\runtime\\fntech3.exe",
+            "+set",
+            "com_gameProfile",
+            "ql",
+            "+set",
+            "fs_basepath",
+            "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\audio-legacy-field-stages-c797aac\\ql-front-center\\home",
+            "+set",
+            "fs_cdpath",
+            "",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "1",
+            "+set",
+            "s_backend",
+            "legacy",
+            "+set",
+            "com_speeds",
+            "4",
+            "+set",
+            "r_swapInterval",
+            "0",
+            "+set",
+            "s_debugTiming",
+            "1",
+            "+set",
+            "developer",
+            "1",
+            "+set",
+            "s_sdlCapture",
+            "0",
+            "+set",
+            "s_khz",
+            "48",
+            "+set",
+            "s_sdlBits",
+            "16",
+            "+set",
+            "s_sdlChannels",
+            "2",
+            "+set",
+            "s_volume",
+            "1",
+            "+set",
+            "s_musicVolume",
+            "0",
+            "+set",
+            "s_voiceVolume",
+            "0",
+            "+set",
+            "s_muteWhenUnfocused",
+            "0",
+            "+set",
+            "s_muteWhenMinimized",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "com_maxfps",
+            "60",
+            "+set",
+            "com_maxfpsUnfocused",
+            "60",
+            "+set",
+            "com_maxfpsMinimized",
+            "60",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "stopmusic\nwait 120\ns_info\nset s_musicVolume 1\nmusic music/intro.wav music/loop.wav\nwait 240\nstopmusic\nwait 120\necho AUDIO_STREAM_COMPLETE\nquit\n",
+          "exitCode": 0,
+          "forced": false,
+          "elapsedSeconds": 16.781,
+          "outputExists": true,
+          "outputBytes": 2826240,
+          "outputSha256": "4a690b95e671707379b8eaa901172239bb2237f5c4250f8c42bbf29d36f78f94",
+          "consoleSha256": "48ad2eb1d731c9715c07033956f37c89b7fffb3215a75b3f765e5fdec8b9ff39",
+          "timing": {
+            "client_timing": {
+              "rows": 480,
+              "maximumMilliseconds": {
+                "pre_ms": 14,
+                "screen_ms": 460,
+                "audio_ms": 4,
+                "tail_ms": 0
+              },
+              "slowRows": [
+                {
+                  "frame": 30,
+                  "pre_ms": 0,
+                  "screen_ms": 441,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 69,
+                  "pre_ms": 0,
+                  "screen_ms": 460,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 108,
+                  "pre_ms": 0,
+                  "screen_ms": 444,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 147,
+                  "pre_ms": 0,
+                  "screen_ms": 460,
+                  "audio_ms": 4,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 187,
+                  "pre_ms": 0,
+                  "screen_ms": 437,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 226,
+                  "pre_ms": 0,
+                  "screen_ms": 439,
+                  "audio_ms": 1,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 265,
+                  "pre_ms": 0,
+                  "screen_ms": 445,
+                  "audio_ms": 1,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 304,
+                  "pre_ms": 0,
+                  "screen_ms": 443,
+                  "audio_ms": 1,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 313,
+                  "pre_ms": 0,
+                  "screen_ms": 441,
+                  "audio_ms": 1,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 320,
+                  "pre_ms": 0,
+                  "screen_ms": 410,
+                  "audio_ms": 1,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 333,
+                  "pre_ms": 0,
+                  "screen_ms": 455,
+                  "audio_ms": 1,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 372,
+                  "pre_ms": 0,
+                  "screen_ms": 458,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 411,
+                  "pre_ms": 0,
+                  "screen_ms": 441,
+                  "audio_ms": 1,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 450,
+                  "pre_ms": 0,
+                  "screen_ms": 442,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 459,
+                  "pre_ms": 0,
+                  "screen_ms": 442,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 466,
+                  "pre_ms": 0,
+                  "screen_ms": 413,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                }
+              ]
+            },
+            "screen_timing": {
+              "rows": 480,
+              "maximumMilliseconds": {
+                "draw_ms": 459,
+                "end_ms": 91
+              },
+              "slowRows": [
+                {
+                  "frame": 30,
+                  "draw_ms": 440,
+                  "end_ms": 1
+                },
+                {
+                  "frame": 69,
+                  "draw_ms": 459,
+                  "end_ms": 1
+                },
+                {
+                  "frame": 108,
+                  "draw_ms": 443,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 147,
+                  "draw_ms": 459,
+                  "end_ms": 1
+                },
+                {
+                  "frame": 187,
+                  "draw_ms": 437,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 226,
+                  "draw_ms": 439,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 265,
+                  "draw_ms": 445,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 304,
+                  "draw_ms": 443,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 313,
+                  "draw_ms": 441,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 320,
+                  "draw_ms": 410,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 333,
+                  "draw_ms": 455,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 372,
+                  "draw_ms": 457,
+                  "end_ms": 1
+                },
+                {
+                  "frame": 411,
+                  "draw_ms": 441,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 450,
+                  "draw_ms": 442,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 459,
+                  "draw_ms": 442,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 466,
+                  "draw_ms": 412,
+                  "end_ms": 1
+                }
+              ]
+            },
+            "field_timing": {
+              "rows": 480,
+              "maximumMilliseconds": {
+                "begin_ms": 459,
+                "scene_ms": 0,
+                "menu_ms": 1,
+                "overlay_ms": 0
+              },
+              "slowRows": [
+                {
+                  "frame": 30,
+                  "begin_ms": 440,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 69,
+                  "begin_ms": 459,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 108,
+                  "begin_ms": 443,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 147,
+                  "begin_ms": 459,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 187,
+                  "begin_ms": 437,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 226,
+                  "begin_ms": 439,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 265,
+                  "begin_ms": 445,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 304,
+                  "begin_ms": 443,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 313,
+                  "begin_ms": 441,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 320,
+                  "begin_ms": 410,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 333,
+                  "begin_ms": 455,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 372,
+                  "begin_ms": 457,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 411,
+                  "begin_ms": 441,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 450,
+                  "begin_ms": 442,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 459,
+                  "begin_ms": 442,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 466,
+                  "begin_ms": 412,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                }
+              ]
+            }
+          },
+          "silenceIntervalsAfterFirstSecond": [
+            {
+              "startSeconds": 4.132666666666666,
+              "durationSeconds": 0.14133333333333334
+            },
+            {
+              "startSeconds": 4.394666666666667,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 5.418666666666667,
+              "durationSeconds": 0.04533333333333334
+            },
+            {
+              "startSeconds": 6.485333333333333,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 7.509333333333333,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 8.576,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 8.917333333333334,
+              "durationSeconds": 0.2633333333333333
+            },
+            {
+              "startSeconds": 9.472,
+              "durationSeconds": 0.22066666666666668
+            },
+            {
+              "startSeconds": 10.063333333333333,
+              "durationSeconds": 0.2693333333333333
+            },
+            {
+              "startSeconds": 10.759333333333334,
+              "durationSeconds": 0.37066666666666664
+            }
+          ],
+          "stageUnchanged": true
+        }
+      ]
+    },
+    {
+      "name": "gl-error-real",
+      "runtime": {
+        "FnQL-pkg.fnz": "1d1ff86488c3134a936486790c24954bef87abd22177e1ca8b5542cc2f06115a",
+        "fnql-web.pak": "6c210165880fff668900fd3e4e3c90137623043e1b5315f24b693f367f756382",
+        "fnql_glx_x86.dll": "cd2e1b2649ca362205bc5a4a75dab190a738be09ef425bf8a731ff0fe408b584",
+        "fntech3.exe": "32a98293643c9a147abae2ced84c18c4a81ee723127c30dc30a2aaa41aadab1a",
+        "SDL3.dll": "feffb863a376f756a3a9ed93660238145d82b03b2475a49518fafbbf128f0938",
+        "soft_oal.dll": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+      },
+      "runs": [
+        {
+          "profile": "q3",
+          "encoding": "front-center",
+          "command": [
+            "E:\\Repositories\\fnTech3\\.tmp\\audio-legacy-gl-error-real-c797aac\\runtime\\fntech3.exe",
+            "+set",
+            "com_gameProfile",
+            "q3",
+            "+set",
+            "fs_basepath",
+            "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\audio-legacy-gl-error-real-c797aac\\q3-front-center\\home",
+            "+set",
+            "fs_cdpath",
+            "",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "1",
+            "+set",
+            "s_backend",
+            "legacy",
+            "+set",
+            "com_speeds",
+            "4",
+            "+set",
+            "r_swapInterval",
+            "0",
+            "+set",
+            "s_debugTiming",
+            "1",
+            "+set",
+            "developer",
+            "1",
+            "+set",
+            "s_sdlCapture",
+            "0",
+            "+set",
+            "s_khz",
+            "48",
+            "+set",
+            "s_sdlBits",
+            "16",
+            "+set",
+            "s_sdlChannels",
+            "2",
+            "+set",
+            "s_volume",
+            "1",
+            "+set",
+            "s_musicVolume",
+            "0",
+            "+set",
+            "s_voiceVolume",
+            "0",
+            "+set",
+            "s_muteWhenUnfocused",
+            "0",
+            "+set",
+            "s_muteWhenMinimized",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "com_maxfps",
+            "60",
+            "+set",
+            "com_maxfpsUnfocused",
+            "60",
+            "+set",
+            "com_maxfpsMinimized",
+            "60",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "stopmusic\nwait 120\ns_info\nset s_musicVolume 1\nmusic music/intro.wav music/loop.wav\nwait 240\nstopmusic\nwait 120\necho AUDIO_STREAM_COMPLETE\nquit\n",
+          "exitCode": 0,
+          "forced": false,
+          "elapsedSeconds": 14.969,
+          "outputExists": true,
+          "outputBytes": 2490368,
+          "outputSha256": "8ef10202ede0b627db62c344c21852092999849d5f3eec3508639d3b007e1dc6",
+          "consoleSha256": "9cad85e87e0ddd1b6cccf315142dc88086e9c65c87e90a0ef18b401857afbcb1",
+          "timing": {
+            "client_timing": {
+              "rows": 480,
+              "maximumMilliseconds": {
+                "pre_ms": 3,
+                "screen_ms": 463,
+                "audio_ms": 4,
+                "tail_ms": 0
+              },
+              "slowRows": [
+                {
+                  "frame": 32,
+                  "pre_ms": 0,
+                  "screen_ms": 424,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 40,
+                  "pre_ms": 0,
+                  "screen_ms": 445,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 78,
+                  "pre_ms": 0,
+                  "screen_ms": 462,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 195,
+                  "pre_ms": 0,
+                  "screen_ms": 447,
+                  "audio_ms": 1,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 234,
+                  "pre_ms": 0,
+                  "screen_ms": 442,
+                  "audio_ms": 1,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 273,
+                  "pre_ms": 0,
+                  "screen_ms": 446,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 312,
+                  "pre_ms": 0,
+                  "screen_ms": 443,
+                  "audio_ms": 1,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 351,
+                  "pre_ms": 0,
+                  "screen_ms": 447,
+                  "audio_ms": 1,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 390,
+                  "pre_ms": 0,
+                  "screen_ms": 445,
+                  "audio_ms": 1,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 429,
+                  "pre_ms": 0,
+                  "screen_ms": 463,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 468,
+                  "pre_ms": 0,
+                  "screen_ms": 440,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 475,
+                  "pre_ms": 0,
+                  "screen_ms": 425,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                }
+              ]
+            },
+            "screen_timing": {
+              "rows": 480,
+              "maximumMilliseconds": {
+                "draw_ms": 462,
+                "end_ms": 98
+              },
+              "slowRows": [
+                {
+                  "frame": 32,
+                  "draw_ms": 424,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 40,
+                  "draw_ms": 444,
+                  "end_ms": 1
+                },
+                {
+                  "frame": 78,
+                  "draw_ms": 462,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 195,
+                  "draw_ms": 447,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 234,
+                  "draw_ms": 442,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 273,
+                  "draw_ms": 445,
+                  "end_ms": 1
+                },
+                {
+                  "frame": 312,
+                  "draw_ms": 443,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 351,
+                  "draw_ms": 447,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 390,
+                  "draw_ms": 445,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 429,
+                  "draw_ms": 462,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 468,
+                  "draw_ms": 439,
+                  "end_ms": 1
+                },
+                {
+                  "frame": 475,
+                  "draw_ms": 425,
+                  "end_ms": 0
+                }
+              ]
+            },
+            "field_timing": {
+              "rows": 480,
+              "maximumMilliseconds": {
+                "begin_ms": 462,
+                "scene_ms": 0,
+                "menu_ms": 1,
+                "overlay_ms": 0
+              },
+              "slowRows": [
+                {
+                  "frame": 32,
+                  "begin_ms": 424,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 40,
+                  "begin_ms": 444,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 78,
+                  "begin_ms": 462,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 195,
+                  "begin_ms": 447,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 234,
+                  "begin_ms": 442,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 273,
+                  "begin_ms": 445,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 312,
+                  "begin_ms": 443,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 351,
+                  "begin_ms": 447,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 390,
+                  "begin_ms": 445,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 429,
+                  "begin_ms": 462,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 468,
+                  "begin_ms": 439,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 475,
+                  "begin_ms": 425,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                }
+              ]
+            },
+            "gl_error_timing": {
+              "rows": 507,
+              "maximumMilliseconds": {
+                "query_ms": 461
+              },
+              "slowRows": [
+                {
+                  "query_ms": 423
+                },
+                {
+                  "query_ms": 445
+                },
+                {
+                  "query_ms": 461
+                },
+                {
+                  "query_ms": 447
+                },
+                {
+                  "query_ms": 442
+                },
+                {
+                  "query_ms": 445
+                },
+                {
+                  "query_ms": 443
+                },
+                {
+                  "query_ms": 447
+                },
+                {
+                  "query_ms": 444
+                },
+                {
+                  "query_ms": 461
+                },
+                {
+                  "query_ms": 439
+                },
+                {
+                  "query_ms": 425
+                }
+              ]
+            }
+          },
+          "silenceIntervalsAfterFirstSecond": [
+            {
+              "startSeconds": 1.1429375,
+              "durationSeconds": 2.3630625
+            },
+            {
+              "startSeconds": 5.077333333333334,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 6.101333333333334,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 7.168,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 8.192,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 9.216,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 9.436666666666667,
+              "durationSeconds": 0.6266666666666667
+            }
+          ],
+          "stageUnchanged": true
+        },
+        {
+          "profile": "ql",
+          "encoding": "front-center",
+          "command": [
+            "E:\\Repositories\\fnTech3\\.tmp\\audio-legacy-gl-error-real-c797aac\\runtime\\fntech3.exe",
+            "+set",
+            "com_gameProfile",
+            "ql",
+            "+set",
+            "fs_basepath",
+            "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\audio-legacy-gl-error-real-c797aac\\ql-front-center\\home",
+            "+set",
+            "fs_cdpath",
+            "",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "1",
+            "+set",
+            "s_backend",
+            "legacy",
+            "+set",
+            "com_speeds",
+            "4",
+            "+set",
+            "r_swapInterval",
+            "0",
+            "+set",
+            "s_debugTiming",
+            "1",
+            "+set",
+            "developer",
+            "1",
+            "+set",
+            "s_sdlCapture",
+            "0",
+            "+set",
+            "s_khz",
+            "48",
+            "+set",
+            "s_sdlBits",
+            "16",
+            "+set",
+            "s_sdlChannels",
+            "2",
+            "+set",
+            "s_volume",
+            "1",
+            "+set",
+            "s_musicVolume",
+            "0",
+            "+set",
+            "s_voiceVolume",
+            "0",
+            "+set",
+            "s_muteWhenUnfocused",
+            "0",
+            "+set",
+            "s_muteWhenMinimized",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "com_maxfps",
+            "60",
+            "+set",
+            "com_maxfpsUnfocused",
+            "60",
+            "+set",
+            "com_maxfpsMinimized",
+            "60",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "stopmusic\nwait 120\ns_info\nset s_musicVolume 1\nmusic music/intro.wav music/loop.wav\nwait 240\nstopmusic\nwait 120\necho AUDIO_STREAM_COMPLETE\nquit\n",
+          "exitCode": 0,
+          "forced": false,
+          "elapsedSeconds": 15.078,
+          "outputExists": true,
+          "outputBytes": 2465792,
+          "outputSha256": "3f482340a5fbabf263001cf828999c47188c7ce8f029c01e765a223d910e76f4",
+          "consoleSha256": "191013032f94f1362389041583a3923ad6d5756fd051f3f4783476c7a79d6d2a",
+          "timing": {
+            "client_timing": {
+              "rows": 480,
+              "maximumMilliseconds": {
+                "pre_ms": 10,
+                "screen_ms": 460,
+                "audio_ms": 6,
+                "tail_ms": 0
+              },
+              "slowRows": [
+                {
+                  "frame": 32,
+                  "pre_ms": 0,
+                  "screen_ms": 448,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 71,
+                  "pre_ms": 0,
+                  "screen_ms": 448,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 110,
+                  "pre_ms": 0,
+                  "screen_ms": 460,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 149,
+                  "pre_ms": 0,
+                  "screen_ms": 444,
+                  "audio_ms": 6,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 187,
+                  "pre_ms": 0,
+                  "screen_ms": 450,
+                  "audio_ms": 4,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 322,
+                  "pre_ms": 0,
+                  "screen_ms": 443,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 361,
+                  "pre_ms": 0,
+                  "screen_ms": 430,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 370,
+                  "pre_ms": 0,
+                  "screen_ms": 458,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 417,
+                  "pre_ms": 0,
+                  "screen_ms": 443,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 424,
+                  "pre_ms": 0,
+                  "screen_ms": 409,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 463,
+                  "pre_ms": 0,
+                  "screen_ms": 442,
+                  "audio_ms": 1,
+                  "tail_ms": 0
+                }
+              ]
+            },
+            "screen_timing": {
+              "rows": 480,
+              "maximumMilliseconds": {
+                "draw_ms": 459,
+                "end_ms": 91
+              },
+              "slowRows": [
+                {
+                  "frame": 32,
+                  "draw_ms": 448,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 71,
+                  "draw_ms": 448,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 110,
+                  "draw_ms": 459,
+                  "end_ms": 1
+                },
+                {
+                  "frame": 149,
+                  "draw_ms": 444,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 187,
+                  "draw_ms": 448,
+                  "end_ms": 1
+                },
+                {
+                  "frame": 322,
+                  "draw_ms": 443,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 361,
+                  "draw_ms": 430,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 370,
+                  "draw_ms": 458,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 417,
+                  "draw_ms": 442,
+                  "end_ms": 1
+                },
+                {
+                  "frame": 424,
+                  "draw_ms": 409,
+                  "end_ms": 0
+                },
+                {
+                  "frame": 463,
+                  "draw_ms": 442,
+                  "end_ms": 0
+                }
+              ]
+            },
+            "field_timing": {
+              "rows": 480,
+              "maximumMilliseconds": {
+                "begin_ms": 459,
+                "scene_ms": 0,
+                "menu_ms": 1,
+                "overlay_ms": 0
+              },
+              "slowRows": [
+                {
+                  "frame": 32,
+                  "begin_ms": 448,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 71,
+                  "begin_ms": 448,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 110,
+                  "begin_ms": 459,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 149,
+                  "begin_ms": 444,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 187,
+                  "begin_ms": 447,
+                  "scene_ms": 0,
+                  "menu_ms": 1,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 322,
+                  "begin_ms": 443,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 361,
+                  "begin_ms": 430,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 370,
+                  "begin_ms": 458,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 417,
+                  "begin_ms": 442,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 424,
+                  "begin_ms": 409,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                },
+                {
+                  "frame": 463,
+                  "begin_ms": 442,
+                  "scene_ms": 0,
+                  "menu_ms": 0,
+                  "overlay_ms": 0
+                }
+              ]
+            },
+            "gl_error_timing": {
+              "rows": 600,
+              "maximumMilliseconds": {
+                "query_ms": 459
+              },
+              "slowRows": [
+                {
+                  "query_ms": 448
+                },
+                {
+                  "query_ms": 447
+                },
+                {
+                  "query_ms": 459
+                },
+                {
+                  "query_ms": 444
+                },
+                {
+                  "query_ms": 447
+                },
+                {
+                  "query_ms": 442
+                },
+                {
+                  "query_ms": 430
+                },
+                {
+                  "query_ms": 458
+                },
+                {
+                  "query_ms": 442
+                },
+                {
+                  "query_ms": 409
+                },
+                {
+                  "query_ms": 442
+                }
+              ]
+            }
+          },
+          "silenceIntervalsAfterFirstSecond": [
+            {
+              "startSeconds": 4.3886666666666665,
+              "durationSeconds": 0.056
+            },
+            {
+              "startSeconds": 4.608,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 5.632,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 8.234666666666667,
+              "durationSeconds": 0.05
+            }
+          ],
+          "stageUnchanged": true
+        }
+      ]
+    },
+    {
+      "name": "gl-ignore",
+      "runtime": {
+        "FnQL-pkg.fnz": "1d1ff86488c3134a936486790c24954bef87abd22177e1ca8b5542cc2f06115a",
+        "fnql-web.pak": "6c210165880fff668900fd3e4e3c90137623043e1b5315f24b693f367f756382",
+        "fnql_glx_x86.dll": "251a9180028c6f1c41813bf99d0c2d45d1203fc2ab388d65c75d692cc8d7518a",
+        "fntech3.exe": "32a98293643c9a147abae2ced84c18c4a81ee723127c30dc30a2aaa41aadab1a",
+        "SDL3.dll": "feffb863a376f756a3a9ed93660238145d82b03b2475a49518fafbbf128f0938",
+        "soft_oal.dll": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+      },
+      "runs": [
+        {
+          "profile": "q3",
+          "encoding": "front-center",
+          "command": [
+            "E:\\Repositories\\fnTech3\\.tmp\\audio-legacy-gl-ignore-c797aac\\runtime\\fntech3.exe",
+            "+set",
+            "com_gameProfile",
+            "q3",
+            "+set",
+            "fs_basepath",
+            "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\audio-legacy-gl-ignore-c797aac\\q3-front-center\\home",
+            "+set",
+            "fs_cdpath",
+            "",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "1",
+            "+set",
+            "s_backend",
+            "legacy",
+            "+set",
+            "com_speeds",
+            "4",
+            "+set",
+            "r_swapInterval",
+            "0",
+            "+set",
+            "s_debugTiming",
+            "1",
+            "+set",
+            "developer",
+            "1",
+            "+set",
+            "s_sdlCapture",
+            "0",
+            "+set",
+            "s_khz",
+            "48",
+            "+set",
+            "s_sdlBits",
+            "16",
+            "+set",
+            "s_sdlChannels",
+            "2",
+            "+set",
+            "s_volume",
+            "1",
+            "+set",
+            "s_musicVolume",
+            "0",
+            "+set",
+            "s_voiceVolume",
+            "0",
+            "+set",
+            "s_muteWhenUnfocused",
+            "0",
+            "+set",
+            "s_muteWhenMinimized",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "com_maxfps",
+            "60",
+            "+set",
+            "com_maxfpsUnfocused",
+            "60",
+            "+set",
+            "com_maxfpsMinimized",
+            "60",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "stopmusic\nwait 120\ns_info\nset s_musicVolume 1\nmusic music/intro.wav music/loop.wav\nwait 240\nstopmusic\nwait 120\necho AUDIO_STREAM_COMPLETE\nquit\n",
+          "exitCode": 0,
+          "forced": false,
+          "elapsedSeconds": 15.0,
+          "outputExists": true,
+          "outputBytes": 2318336,
+          "outputSha256": "dd15e2d40d2773b1f33b0b5c12f9544c56b6496ae6dab130e18ab23787cb6db2",
+          "consoleSha256": "7b85d9bfe56b41747566aa9bc7480cc8cdc1b3519f0b64ac64c2b841cd38075b",
+          "timing": {
+            "client_timing": {
+              "rows": 480,
+              "maximumMilliseconds": {
+                "pre_ms": 2,
+                "screen_ms": 457,
+                "audio_ms": 11,
+                "tail_ms": 1
+              },
+              "slowRows": [
+                {
+                  "frame": 1,
+                  "pre_ms": 2,
+                  "screen_ms": 112,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 38,
+                  "pre_ms": 0,
+                  "screen_ms": 421,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 77,
+                  "pre_ms": 0,
+                  "screen_ms": 444,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 116,
+                  "pre_ms": 0,
+                  "screen_ms": 444,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 266,
+                  "pre_ms": 0,
+                  "screen_ms": 444,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 305,
+                  "pre_ms": 0,
+                  "screen_ms": 457,
+                  "audio_ms": 1,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 344,
+                  "pre_ms": 0,
+                  "screen_ms": 441,
+                  "audio_ms": 1,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 383,
+                  "pre_ms": 0,
+                  "screen_ms": 448,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 423,
+                  "pre_ms": 0,
+                  "screen_ms": 421,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 431,
+                  "pre_ms": 0,
+                  "screen_ms": 405,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 471,
+                  "pre_ms": 0,
+                  "screen_ms": 435,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                }
+              ]
+            },
+            "screen_timing": {
+              "rows": 480,
+              "maximumMilliseconds": {
+                "draw_ms": 1,
+                "end_ms": 457
+              },
+              "slowRows": [
+                {
+                  "frame": 1,
+                  "draw_ms": 1,
+                  "end_ms": 111
+                },
+                {
+                  "frame": 38,
+                  "draw_ms": 0,
+                  "end_ms": 421
+                },
+                {
+                  "frame": 77,
+                  "draw_ms": 0,
+                  "end_ms": 444
+                },
+                {
+                  "frame": 116,
+                  "draw_ms": 0,
+                  "end_ms": 444
+                },
+                {
+                  "frame": 266,
+                  "draw_ms": 0,
+                  "end_ms": 444
+                },
+                {
+                  "frame": 305,
+                  "draw_ms": 0,
+                  "end_ms": 457
+                },
+                {
+                  "frame": 344,
+                  "draw_ms": 0,
+                  "end_ms": 441
+                },
+                {
+                  "frame": 383,
+                  "draw_ms": 0,
+                  "end_ms": 448
+                },
+                {
+                  "frame": 423,
+                  "draw_ms": 0,
+                  "end_ms": 421
+                },
+                {
+                  "frame": 431,
+                  "draw_ms": 0,
+                  "end_ms": 405
+                },
+                {
+                  "frame": 471,
+                  "draw_ms": 0,
+                  "end_ms": 435
+                }
+              ]
+            },
+            "field_timing": {
+              "rows": 480,
+              "maximumMilliseconds": {
+                "begin_ms": 0,
+                "scene_ms": 0,
+                "menu_ms": 1,
+                "overlay_ms": 0
+              },
+              "slowRows": []
+            }
+          },
+          "silenceIntervalsAfterFirstSecond": [
+            {
+              "startSeconds": 1.1429375,
+              "durationSeconds": 2.3203958333333334
+            },
+            {
+              "startSeconds": 6.1866666666666665,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 7.253333333333333,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 8.277333333333333,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 8.583333333333334,
+              "durationSeconds": 0.5413333333333333
+            }
+          ],
+          "stageUnchanged": true
+        },
+        {
+          "profile": "ql",
+          "encoding": "front-center",
+          "command": [
+            "E:\\Repositories\\fnTech3\\.tmp\\audio-legacy-gl-ignore-c797aac\\runtime\\fntech3.exe",
+            "+set",
+            "com_gameProfile",
+            "ql",
+            "+set",
+            "fs_basepath",
+            "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\audio-legacy-gl-ignore-c797aac\\ql-front-center\\home",
+            "+set",
+            "fs_cdpath",
+            "",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "1",
+            "+set",
+            "s_backend",
+            "legacy",
+            "+set",
+            "com_speeds",
+            "4",
+            "+set",
+            "r_swapInterval",
+            "0",
+            "+set",
+            "s_debugTiming",
+            "1",
+            "+set",
+            "developer",
+            "1",
+            "+set",
+            "s_sdlCapture",
+            "0",
+            "+set",
+            "s_khz",
+            "48",
+            "+set",
+            "s_sdlBits",
+            "16",
+            "+set",
+            "s_sdlChannels",
+            "2",
+            "+set",
+            "s_volume",
+            "1",
+            "+set",
+            "s_musicVolume",
+            "0",
+            "+set",
+            "s_voiceVolume",
+            "0",
+            "+set",
+            "s_muteWhenUnfocused",
+            "0",
+            "+set",
+            "s_muteWhenMinimized",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "com_maxfps",
+            "60",
+            "+set",
+            "com_maxfpsUnfocused",
+            "60",
+            "+set",
+            "com_maxfpsMinimized",
+            "60",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "stopmusic\nwait 120\ns_info\nset s_musicVolume 1\nmusic music/intro.wav music/loop.wav\nwait 240\nstopmusic\nwait 120\necho AUDIO_STREAM_COMPLETE\nquit\n",
+          "exitCode": 0,
+          "forced": false,
+          "elapsedSeconds": 15.593,
+          "outputExists": true,
+          "outputBytes": 2596864,
+          "outputSha256": "15f89757808a50b2b002825945713406382e910f1a60cb4fab7cb6fc65d71b94",
+          "consoleSha256": "42bd94bcaa5f50cd664b21795071cf2b357cb3784a813972230f40c69a05e40d",
+          "timing": {
+            "client_timing": {
+              "rows": 480,
+              "maximumMilliseconds": {
+                "pre_ms": 10,
+                "screen_ms": 461,
+                "audio_ms": 6,
+                "tail_ms": 1
+              },
+              "slowRows": [
+                {
+                  "frame": 62,
+                  "pre_ms": 0,
+                  "screen_ms": 445,
+                  "audio_ms": 1,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 71,
+                  "pre_ms": 0,
+                  "screen_ms": 443,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 110,
+                  "pre_ms": 0,
+                  "screen_ms": 442,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 149,
+                  "pre_ms": 0,
+                  "screen_ms": 459,
+                  "audio_ms": 6,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 189,
+                  "pre_ms": 0,
+                  "screen_ms": 440,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 228,
+                  "pre_ms": 0,
+                  "screen_ms": 461,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 267,
+                  "pre_ms": 0,
+                  "screen_ms": 460,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 306,
+                  "pre_ms": 0,
+                  "screen_ms": 431,
+                  "audio_ms": 1,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 314,
+                  "pre_ms": 0,
+                  "screen_ms": 411,
+                  "audio_ms": 1,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 353,
+                  "pre_ms": 0,
+                  "screen_ms": 444,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 392,
+                  "pre_ms": 0,
+                  "screen_ms": 458,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 431,
+                  "pre_ms": 0,
+                  "screen_ms": 446,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                },
+                {
+                  "frame": 470,
+                  "pre_ms": 0,
+                  "screen_ms": 457,
+                  "audio_ms": 0,
+                  "tail_ms": 0
+                }
+              ]
+            },
+            "screen_timing": {
+              "rows": 480,
+              "maximumMilliseconds": {
+                "draw_ms": 2,
+                "end_ms": 461
+              },
+              "slowRows": [
+                {
+                  "frame": 62,
+                  "draw_ms": 0,
+                  "end_ms": 445
+                },
+                {
+                  "frame": 71,
+                  "draw_ms": 0,
+                  "end_ms": 443
+                },
+                {
+                  "frame": 110,
+                  "draw_ms": 0,
+                  "end_ms": 442
+                },
+                {
+                  "frame": 149,
+                  "draw_ms": 0,
+                  "end_ms": 459
+                },
+                {
+                  "frame": 189,
+                  "draw_ms": 0,
+                  "end_ms": 440
+                },
+                {
+                  "frame": 228,
+                  "draw_ms": 0,
+                  "end_ms": 461
+                },
+                {
+                  "frame": 267,
+                  "draw_ms": 0,
+                  "end_ms": 460
+                },
+                {
+                  "frame": 306,
+                  "draw_ms": 0,
+                  "end_ms": 431
+                },
+                {
+                  "frame": 314,
+                  "draw_ms": 0,
+                  "end_ms": 411
+                },
+                {
+                  "frame": 353,
+                  "draw_ms": 0,
+                  "end_ms": 444
+                },
+                {
+                  "frame": 392,
+                  "draw_ms": 0,
+                  "end_ms": 458
+                },
+                {
+                  "frame": 431,
+                  "draw_ms": 0,
+                  "end_ms": 446
+                },
+                {
+                  "frame": 470,
+                  "draw_ms": 0,
+                  "end_ms": 457
+                }
+              ]
+            },
+            "field_timing": {
+              "rows": 480,
+              "maximumMilliseconds": {
+                "begin_ms": 0,
+                "scene_ms": 1,
+                "menu_ms": 1,
+                "overlay_ms": 1
+              },
+              "slowRows": []
+            }
+          },
+          "silenceIntervalsAfterFirstSecond": [
+            {
+              "startSeconds": 4.175333333333334,
+              "durationSeconds": 0.056
+            },
+            {
+              "startSeconds": 4.394666666666667,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 5.461333333333333,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 6.528,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 7.594666666666667,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 8.618666666666666,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 8.96,
+              "durationSeconds": 0.22066666666666668
+            },
+            {
+              "startSeconds": 10.197333333333333,
+              "durationSeconds": 0.05
+            },
+            {
+              "startSeconds": 10.375333333333334,
+              "durationSeconds": 0.6266666666666667
+            }
+          ],
+          "stageUnchanged": true
+        }
+      ]
+    },
+    {
+      "name": "front-buffer-valid",
+      "runtime": {
+        "FnQL-pkg.fnz": "1d1ff86488c3134a936486790c24954bef87abd22177e1ca8b5542cc2f06115a",
+        "fnql-web.pak": "6c210165880fff668900fd3e4e3c90137623043e1b5315f24b693f367f756382",
+        "fnql_glx_x86.dll": "14167d02e20f6cd32ce31b4c06956878b849d35c60c4d4365abd6ca01f2e0f56",
+        "fntech3.exe": "32a98293643c9a147abae2ced84c18c4a81ee723127c30dc30a2aaa41aadab1a",
+        "SDL3.dll": "feffb863a376f756a3a9ed93660238145d82b03b2475a49518fafbbf128f0938",
+        "soft_oal.dll": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+      },
+      "runs": [
+        {
+          "profile": "q3",
+          "encoding": "front-center",
+          "command": [
+            "E:\\Repositories\\fnTech3\\.tmp\\audio-legacy-front-buffer-valid-c797aac\\runtime\\fntech3.exe",
+            "+set",
+            "com_gameProfile",
+            "q3",
+            "+set",
+            "fs_basepath",
+            "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\audio-legacy-front-buffer-valid-c797aac\\q3-front-center\\home",
+            "+set",
+            "fs_cdpath",
+            "",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "1",
+            "+set",
+            "s_backend",
+            "legacy",
+            "+set",
+            "com_speeds",
+            "4",
+            "+set",
+            "r_drawBuffer",
+            "GL_FRONT",
+            "+set",
+            "s_debugTiming",
+            "1",
+            "+set",
+            "developer",
+            "1",
+            "+set",
+            "s_sdlCapture",
+            "0",
+            "+set",
+            "s_khz",
+            "48",
+            "+set",
+            "s_sdlBits",
+            "16",
+            "+set",
+            "s_sdlChannels",
+            "2",
+            "+set",
+            "s_volume",
+            "1",
+            "+set",
+            "s_musicVolume",
+            "0",
+            "+set",
+            "s_voiceVolume",
+            "0",
+            "+set",
+            "s_muteWhenUnfocused",
+            "0",
+            "+set",
+            "s_muteWhenMinimized",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "com_maxfps",
+            "60",
+            "+set",
+            "com_maxfpsUnfocused",
+            "60",
+            "+set",
+            "com_maxfpsMinimized",
+            "60",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "stopmusic\nwait 120\ns_info\nset s_musicVolume 1\nmusic music/intro.wav music/loop.wav\nwait 240\nstopmusic\nwait 120\necho AUDIO_STREAM_COMPLETE\nquit\n",
+          "exitCode": 0,
+          "forced": false,
+          "elapsedSeconds": 10.656,
+          "outputExists": true,
+          "outputBytes": 1515520,
+          "outputSha256": "3ccf5107955a06ceedecb03fe58bfe53c47ccab49b6baeb887aeaed5463f1bcb",
+          "consoleSha256": "89b3d75b45676cfea35ff44fa63ce2700da731f9b5517838ed601c6a7ca9aeb6",
+          "timing": {
+            "client_timing": {
+              "rows": 480,
+              "maximumMilliseconds": {
+                "pre_ms": 2,
+                "screen_ms": 6,
+                "audio_ms": 12,
+                "tail_ms": 1
+              },
+              "slowRows": []
+            },
+            "screen_timing": {
+              "rows": 480,
+              "maximumMilliseconds": {
+                "draw_ms": 1,
+                "end_ms": 6
+              },
+              "slowRows": []
+            },
+            "field_timing": {
+              "rows": 480,
+              "maximumMilliseconds": {
+                "begin_ms": 1,
+                "scene_ms": 0,
+                "menu_ms": 1,
+                "overlay_ms": 0
+              },
+              "slowRows": []
+            }
+          },
+          "silenceIntervalsAfterFirstSecond": [],
+          "stageUnchanged": true
+        },
+        {
+          "profile": "ql",
+          "encoding": "front-center",
+          "command": [
+            "E:\\Repositories\\fnTech3\\.tmp\\audio-legacy-front-buffer-valid-c797aac\\runtime\\fntech3.exe",
+            "+set",
+            "com_gameProfile",
+            "ql",
+            "+set",
+            "fs_basepath",
+            "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\audio-legacy-front-buffer-valid-c797aac\\ql-front-center\\home",
+            "+set",
+            "fs_cdpath",
+            "",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "1",
+            "+set",
+            "s_backend",
+            "legacy",
+            "+set",
+            "com_speeds",
+            "4",
+            "+set",
+            "r_drawBuffer",
+            "GL_FRONT",
+            "+set",
+            "s_debugTiming",
+            "1",
+            "+set",
+            "developer",
+            "1",
+            "+set",
+            "s_sdlCapture",
+            "0",
+            "+set",
+            "s_khz",
+            "48",
+            "+set",
+            "s_sdlBits",
+            "16",
+            "+set",
+            "s_sdlChannels",
+            "2",
+            "+set",
+            "s_volume",
+            "1",
+            "+set",
+            "s_musicVolume",
+            "0",
+            "+set",
+            "s_voiceVolume",
+            "0",
+            "+set",
+            "s_muteWhenUnfocused",
+            "0",
+            "+set",
+            "s_muteWhenMinimized",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "com_maxfps",
+            "60",
+            "+set",
+            "com_maxfpsUnfocused",
+            "60",
+            "+set",
+            "com_maxfpsMinimized",
+            "60",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "stopmusic\nwait 120\ns_info\nset s_musicVolume 1\nmusic music/intro.wav music/loop.wav\nwait 240\nstopmusic\nwait 120\necho AUDIO_STREAM_COMPLETE\nquit\n",
+          "exitCode": 0,
+          "forced": false,
+          "elapsedSeconds": 10.343,
+          "outputExists": true,
+          "outputBytes": 1523712,
+          "outputSha256": "7f8c31573a13e453066ffd4b663f3b00b3ee3cfab14cb52ed976f73ee3cbc00c",
+          "consoleSha256": "e25a615c72757eb513e9f5f0678819ffbb9d0ff1b3eaca2d3809e6771ed5960c",
+          "timing": {
+            "client_timing": {
+              "rows": 480,
+              "maximumMilliseconds": {
+                "pre_ms": 10,
+                "screen_ms": 14,
+                "audio_ms": 18,
+                "tail_ms": 1
+              },
+              "slowRows": []
+            },
+            "screen_timing": {
+              "rows": 480,
+              "maximumMilliseconds": {
+                "draw_ms": 14,
+                "end_ms": 4
+              },
+              "slowRows": []
+            },
+            "field_timing": {
+              "rows": 480,
+              "maximumMilliseconds": {
+                "begin_ms": 14,
+                "scene_ms": 0,
+                "menu_ms": 1,
+                "overlay_ms": 0
+              },
+              "slowRows": []
+            }
+          },
+          "silenceIntervalsAfterFirstSecond": [],
+          "stageUnchanged": true
+        }
+      ]
+    }
+  ],
+  "temporaryChanges": {
+    "gl-error-real": "GL_CheckErrors measured qglGetError with ri.Microseconds before and after; printed query_ms after querying. Removed after experiment.",
+    "gl-ignore": "Moved the existing r_ignoreGLErrors early return ahead of qglGetError. Reverted after stalls moved to EndFrame.",
+    "front-buffer-valid": "Original renderer behavior, r_drawBuffer GL_FRONT; redundant r_swapInterval argument removed to keep startup exec within command limit."
+  },
+  "excludedExperiments": {
+    "gl-error": "Used ri.Milliseconds, which returns game-frame time. Cannot measure intra-frame wall time.",
+    "front-buffer": "Added a 33rd startup command; exec probe.cfg was dropped. Q3 exceeded 45-second deadline and was terminated; no QL run. Not a music comparison."
+  },
+  "validation": {
+    "sdlSuiteLogSha256": "fef6a1f40de3e2096b8d347ec68cb1c16eca0da135e3ac27b2f5ee80c1a28bdc",
+    "nativeBuildLogSha256": "9b81c36555ee42e7b9649af14c0addebe87df6ae9ee85dd306b35e35d845ee10"
+  },
+  "frontBufferAudioAnalysis": [
+    {
+      "profile": "q3",
+      "mask": 1807,
+      "encoding": "front-center",
+      "measuredWindows": 33,
+      "maxLeftRms": 0.12508008370066734,
+      "medianRightRms": 0.12498974007279816,
+      "rightFrequencies": [
+        997,
+        2111
+      ],
+      "finalSecondPeak": 0,
+      "logSha256": "89b3d75b45676cfea35ff44fa63ce2700da731f9b5517838ed601c6a7ca9aeb6",
+      "inputs": {
+        "intro.wav": "60b8dc5a24c98a775d79fd26a9fde0a7b4ff603e760b0594e3e2bf88b2f173c1",
+        "loop.wav": "b5f6f4603aee1c5a068d882596e363b7a5f3346e38367bfd644ff22a90b071dd"
+      },
+      "windowsSha256": "73b3277882092b41fefc959ba1135f0c1281460140c60358d97f51722bc068d8"
+    },
+    {
+      "profile": "ql",
+      "mask": 1807,
+      "encoding": "front-center",
+      "measuredWindows": 38,
+      "maxLeftRms": 0.12507380449356162,
+      "medianRightRms": 0.12498416635586565,
+      "rightFrequencies": [
+        997,
+        2111
+      ],
+      "finalSecondPeak": 0,
+      "logSha256": "e25a615c72757eb513e9f5f0678819ffbb9d0ff1b3eaca2d3809e6771ed5960c",
+      "inputs": {
+        "intro.wav": "60b8dc5a24c98a775d79fd26a9fde0a7b4ff603e760b0594e3e2bf88b2f173c1",
+        "loop.wav": "b5f6f4603aee1c5a068d882596e363b7a5f3346e38367bfd644ff22a90b071dd"
+      },
+      "windowsSha256": "fabeb9fc9bc764c5c1675eedfce5be22d0341a6159212f9d425fcf29c7de63fe"
+    }
+  ]
+}
