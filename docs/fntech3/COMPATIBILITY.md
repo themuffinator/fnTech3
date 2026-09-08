@@ -133,6 +133,10 @@ The [X11 callback lifetime correction](2026-09-08-x11-extension-lifetime.md)
 then identifies premature DGA library unloading and fixes the reproduced
 shutdown fault: native i686 Q3 pure admission, snapshots and normal client/server
 exit pass. SDL texture corruption and broader Linux runtime gates remain open.
+The [SDL console context correction](2026-09-08-sdl-console-context.md) then
+resolves the reproduced SDL texture corruption by restoring the game's GL
+context after console work. Q3 runtime and a scripted renderer restart pass;
+full visual parity and broader platform/profile runtime gates remain open.
 
 The target is one shared, drop-in binary set. It must select `q3` or `ql` before
 compatibility-sensitive initialization and then use that profile's complete,

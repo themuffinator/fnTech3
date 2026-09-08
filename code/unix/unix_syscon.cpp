@@ -6,6 +6,36 @@
 
 #include "../sdl/sdl_icon.h"
 
+// SDL's accelerated console renderer makes its own context current. Console
+// output can run in the middle of engine texture uploads or frame rendering.
+class SysCon_CurrentGLContext {
+public:
+	explicit SysCon_CurrentGLContext( SDL_Window *destroyingWindow = nullptr )
+		: window_( SDL_GL_GetCurrentWindow() ), context_( SDL_GL_GetCurrentContext() )
+	{
+		if ( destroyingWindow && window_ == destroyingWindow ) {
+			window_ = nullptr;
+			context_ = nullptr;
+		}
+	}
+
+	~SysCon_CurrentGLContext()
+	{
+		if ( SDL_GL_GetCurrentContext() != context_ || SDL_GL_GetCurrentWindow() != window_ ) {
+			if ( !SDL_GL_MakeCurrent( window_, context_ ) ) {
+				Sys_Error( "Could not restore OpenGL context after console rendering: %s", SDL_GetError() );
+			}
+		}
+	}
+
+	SysCon_CurrentGLContext( const SysCon_CurrentGLContext& ) = delete;
+	SysCon_CurrentGLContext& operator=( const SysCon_CurrentGLContext& ) = delete;
+
+private:
+	SDL_Window *window_;
+	SDL_GLContext context_;
+};
+
 #define SYSCON_DEFAULT_WIDTH    1024
 #define SYSCON_DEFAULT_HEIGHT   720
 #define SYSCON_MIN_WIDTH        720
@@ -617,6 +647,7 @@ static void SysCon_RenderInput( const sysconLayout_t *layout )
 
 static void SysCon_Render( void )
 {
+	SysCon_CurrentGLContext currentContext;
 	sysconLayout_t layout;
 	SDL_FRect accentRect;
 	int windowWidth;
@@ -886,6 +917,7 @@ static SDL_WindowID SysCon_EventWindowID( const SDL_Event *event )
 
 static qboolean SysCon_EnsureCreated( void )
 {
+	SysCon_CurrentGLContext currentContext;
 	SDL_WindowFlags flags;
 	int startVideo;
 
@@ -979,6 +1011,7 @@ void Sys_CreateConsole( const char *title, int xPos, int yPos, qboolean useXYpos
 
 void Sys_DestroyConsole( void )
 {
+	SysCon_CurrentGLContext currentContext( s_syscon.window );
 	if ( s_syscon.window ) {
 		SDL_StopTextInput( s_syscon.window );
 	}
