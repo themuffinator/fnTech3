@@ -104,6 +104,11 @@ void SV_Netchan_FreeQueue(client_t *client)
 	
 	client->netchan_start_queue = nullptr;
 	client->netchan_end_queue = &client->netchan_start_queue;
+	// SV_FreeClient also retires any message already being fragmented. Zombie
+	// slots still enter the queued-message pump until they become free.
+	client->netchan.unsentFragments = qfalse;
+	client->netchan.unsentFragmentStart = 0;
+	client->netchan.unsentLength = 0;
 }
 
 /*

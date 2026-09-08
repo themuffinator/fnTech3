@@ -1721,8 +1721,11 @@ void SV_DirectConnect( const netadr_t *from ) {
 		if ( client.state == CS_FREE ) {
 			continue;
 		}
-		if ( NET_CompareAdr( from, &client.netchan.remoteAddress ) && client.netchan.qport == qport ) {
-			// both qport and netport should match for a reconnecting client
+		if ( NET_CompareAdr( from, &client.netchan.remoteAddress ) &&
+			( client.netchan.qport == qport || client.state == CS_ZOMBIE ) ) {
+			// A new process may change qport while reusing the same UDP endpoint.
+			// Retire its old zombie slot so disconnect traffic cannot reach the
+			// replacement connection. Live slots still require a matching qport.
 			Com_Printf( "%s:reconnect\n", NET_AdrToString( from ) );
 			newcl = &client;
 
