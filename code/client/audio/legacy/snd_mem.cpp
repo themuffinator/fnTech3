@@ -260,12 +260,12 @@ extern "C" qboolean S_LoadSound( sfx_t *sfx ) {
 	}
 
 	const bool route = fntech3::audio::NeedsSpeakerDownmix( info.speakerMask, info.channels, false );
-	auto routed = route ? fntech3::audio::DownmixSpeakers( data + info.dataofs, info.samples,
+	auto routed = route ? fntech3::audio::DownmixSpeakerBuffer( data, info.size, info.dataofs, info.samples,
 		info.width, info.channels, info.speakerMask ) : std::vector<short>{};
 	if ( route ) {
 		if ( routed.empty() ) return qfalse;
 		data = reinterpret_cast<byte *>( routed.data() );
-		info.channels = 2; info.width = 2; info.size = info.samples * 4; info.dataofs = 0;
+		info.channels = 2; info.width = 2; info.size = static_cast<int>( routed.size() * sizeof( short ) ); info.dataofs = 0;
 	}
 
 	if ( info.width == 1 ) {

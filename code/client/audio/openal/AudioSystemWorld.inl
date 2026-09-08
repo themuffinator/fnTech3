@@ -503,9 +503,9 @@ bool SoundSample::EnsureLoaded( OpenALDevice &device, bool allowToneFallback ) {
 	}
 
 	const bool route = fntech3::audio::NeedsSpeakerDownmix( info.speakerMask, info.channels );
-	const auto routed = route ? fntech3::audio::DownmixSpeakers( static_cast<const byte *>( data.get() ) + info.dataofs,
+	const auto routed = route ? fntech3::audio::DownmixSpeakerBuffer( static_cast<const byte *>( data.get() ), info.size, info.dataofs,
 		info.samples, info.width, info.channels, info.speakerMask ) : std::vector<short>{};
-	if ( route ) { info.channels = 2; info.width = 2; info.size = info.samples * 4; info.dataofs = 0; }
+	if ( route ) { info.channels = 2; info.width = 2; info.size = static_cast<int>( routed.size() * sizeof( short ) ); info.dataofs = 0; }
 	const AudioSampleFormat sourceFormat = info.speakerMask ? AudioSampleFormat{ AudioSampleEncoding::PCM, info.channels } :
 		DetectAudioSampleFormatFromName( name_, info.channels );
 	if ( AudioSampleFormatIsEncodedSoundField( sourceFormat ) && !AudioSampleFormatCanBeRepresented( sourceFormat ) ) {

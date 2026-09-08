@@ -64,4 +64,14 @@ inline std::vector<short> DownmixSpeakers(const unsigned char *data,int frames,i
  }
  return out;
 }
+// Validate codec-owned buffer metadata before offsetting its pointer. This is
+// also used when loading sounds, where routing bypasses the ordinary converter.
+inline std::vector<short> DownmixSpeakerBuffer(const unsigned char *data,int bytes,int offset,
+ int frames,int width,int channels,unsigned mask) {
+ if(!data || bytes<0 || offset<0 || offset>bytes || frames<=0 || channels<=0 ||
+    (width!=1 && width!=2))return {};
+ const auto available=static_cast<std::size_t>(bytes-offset);
+ if(static_cast<std::size_t>(frames)>available/width/static_cast<std::size_t>(channels))return {};
+ return DownmixSpeakers(data+offset,frames,width,channels,mask);
+}
 } // namespace fntech3::audio

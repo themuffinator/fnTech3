@@ -29,6 +29,13 @@ int main(){
  }
  assert(NeedsSpeakerDownmix(5,2));
  short frame[]{0,10000};auto bytes=reinterpret_cast<const unsigned char*>(frame);
+ assert(DownmixSpeakerBuffer(bytes,4,0,1,2,2,5)==DownmixSpeakers(bytes,1,2,2,5));
+ assert(DownmixSpeakerBuffer(bytes,4,2,1,2,1,4)==DownmixSpeakers(bytes+2,1,2,1,4));
+ for(int length:{-1,0,1,2,3})assert(DownmixSpeakerBuffer(bytes,length,0,1,2,2,5).empty());
+ for(int offset:{-1,1,4,INT_MAX})assert(DownmixSpeakerBuffer(bytes,4,offset,1,2,2,5).empty());
+ assert(DownmixSpeakerBuffer(bytes,4,0,INT_MAX,2,2,5).empty());
+ assert(DownmixSpeakerBuffer(bytes,4,0,1,2,INT_MAX,5).empty());
+ assert(DownmixSpeakerBuffer(nullptr,4,0,1,2,2,5).empty());
  assert((DownmixSpeakers(bytes,1,2,2,3)==std::vector<short>{0,10000}));
  auto center=DownmixSpeakers(bytes,1,2,2,5);assert(center[0]==center[1]&&std::abs(center[0]-7071)<=1);
  // Missing mask bits leave channels unassigned; excess high bits are ignored.
@@ -68,6 +75,38 @@ int main(){
 '''
         with tempfile.TemporaryDirectory() as directory:
             cpp=Path(directory)/'speaker.cpp';exe=Path(directory)/'speaker.exe';cpp.write_text(code)
+            result=subprocess.run([cc,*compiler_target_args(cc),'-std=c++17','-I',str(ROOT),str(cpp),'-o',str(exe)],capture_output=True,text=True)
+            self.assertEqual(result.returncode,0,result.stdout+result.stderr)
+            result=subprocess.run([str(exe)],capture_output=True,text=True)
+            self.assertEqual(result.returncode,0,result.stdout+result.stderr)
+    def test_loaded_sound_routing_metadata_is_bounded(self):
+        cc=shutil.which('clang++') or shutil.which('g++')
+        if not cc:self.skipTest('C++ compiler unavailable')
+        source=(ROOT/'code/client/audio/openal/AudioSystemWorld.inl').read_text()
+        fragment=source[source.index('\tconst bool route ='):source.index('\tconst AudioSampleFormat sourceFormat =',source.index('\tconst bool route ='))]
+        code=r'''#include "code/client/audio/shared/AudioSpeakerLayout.h"
+#include <cassert>
+#include <climits>
+using byte=unsigned char;
+struct Info {int size,dataofs,samples,width,channels;unsigned speakerMask;};
+struct Buffer {unsigned char bytes[8]{};const void*get()const{return bytes;}};
+void probe(Info info,bool valid){Buffer data;
+''' + fragment + r'''
+ assert(!routed.empty()==valid);
+ assert(info.size==(valid?4:0));
+}
+int main(){
+ probe({4,0,1,2,2,5},true);
+ probe({8,4,1,2,2,5},true);
+ probe({INT_MAX,0,INT_MAX,1,1,1},false);
+ probe({3,0,1,2,2,5},false);
+ probe({4,-1,1,2,2,5},false);
+ probe({4,INT_MAX,1,2,2,5},false);
+ probe({4,0,1,3,2,5},false);
+}
+'''
+        with tempfile.TemporaryDirectory() as directory:
+            cpp=Path(directory)/'loaded.cpp';exe=Path(directory)/'loaded.exe';cpp.write_text(code)
             result=subprocess.run([cc,*compiler_target_args(cc),'-std=c++17','-I',str(ROOT),str(cpp),'-o',str(exe)],capture_output=True,text=True)
             self.assertEqual(result.returncode,0,result.stdout+result.stderr)
             result=subprocess.run([str(exe)],capture_output=True,text=True)
