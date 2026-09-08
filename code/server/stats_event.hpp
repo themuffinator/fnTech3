@@ -224,15 +224,15 @@ inline bool ParseNumber( std::string_view value, double &target ) noexcept {
 
 	double parsed = static_cast<double>( significand );
 	for ( int digit = 1; digit < significantDigits; ++digit ) {
-		parsed *= 0.1;
+		parsed /= 10.0;
 	}
 
 	unsigned power = static_cast<unsigned>( normalizedExponent < 0
 		? -normalizedExponent : normalizedExponent );
-	double factor = normalizedExponent < 0 ? 0.1 : 10.0;
+	double factor = 10.0;
 	while ( power != 0 ) {
 		if ( power & 1U ) {
-			parsed *= factor;
+			parsed = normalizedExponent < 0 ? parsed / factor : parsed * factor;
 		}
 		power >>= 1U;
 		if ( power != 0 ) {
@@ -240,10 +240,13 @@ inline bool ParseNumber( std::string_view value, double &target ) noexcept {
 		}
 	}
 
-	if ( !std::isfinite( parsed ) || parsed == 0.0 ) {
+	// Round to the promised double encoding even on x87 builds that retain
+	// wider intermediate values. Validate the value the caller will receive.
+	volatile double rounded = negative ? -parsed : parsed;
+	if ( !std::isfinite( rounded ) || rounded == 0.0 ) {
 		return false;
 	}
-	target = negative ? -parsed : parsed;
+	target = rounded;
 	return true;
 }
 

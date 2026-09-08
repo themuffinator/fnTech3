@@ -20,7 +20,8 @@ ROOT = Path(__file__).resolve().parents[1]
 HARNESS = r'''
 #include <array>
 #include <cstdlib>
-#include <ranges>
+#include <vector>
+#include <numeric>
 #include "netchan_profile.h"
 #include "netchan_safety.hpp"
 
@@ -60,7 +61,11 @@ struct client_t {
 };
 struct { int checksumFeed = 1234; int pure = 0; } sv;
 
-auto SV_Indices(int count) { return std::views::iota(0, count); }
+auto SV_Indices(int count) {
+    std::vector<int> indices(count);
+    std::iota(indices.begin(), indices.end(), 0);
+    return indices;
+}
 int MSG_ReadByte(msg_t *msg) { return msg->count; }
 int MSG_HashKeyForWireProfile(netchanWireProfile_t, const char *, int) { return 0; }
 bool MSG_ReadDeltaUsercmdKeyForWireProfile(msg_t *msg, int,
@@ -151,10 +156,10 @@ class ServerUserMoveTests(unittest.TestCase):
             harness.write_text(HARNESS.replace("@SV_USER_MOVE@", body), encoding="utf-8")
             include = str(ROOT / "code/qcommon")
             if Path(compiler).stem.lower() == "cl":
-                command = [compiler, *compiler_target_args(compiler), "/nologo", "/std:c++20", "/EHsc", "/W4", "/WX",
+                command = [compiler, *compiler_target_args(compiler), "/nologo", "/std:c++17", "/EHsc", "/W4", "/WX",
                            "/I" + include, str(harness), "/Fe:" + str(executable)]
             else:
-                command = [compiler, *compiler_target_args(compiler), "-std=c++20", "-Wall", "-Wextra", "-Werror",
+                command = [compiler, *compiler_target_args(compiler), "-std=c++17", "-Wall", "-Wextra", "-Werror",
                            "-I" + include, str(harness), "-o", str(executable)]
             built = subprocess.run(command, cwd=folder, capture_output=True, text=True, timeout=60)
             self.assertEqual(built.returncode, 0, built.stdout + built.stderr)

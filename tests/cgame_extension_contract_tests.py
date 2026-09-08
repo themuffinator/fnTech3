@@ -171,10 +171,10 @@ class CgameExtensionContractTests(unittest.TestCase):
             cpp.write_text(fixture, encoding="utf-8")
             include = str(ROOT / "code/compat")
             if Path(compiler).stem.lower() == "cl":
-                command = [compiler, "/nologo", "/std:c++20", "/EHsc", "/W4", "/WX",
+                command = [compiler, "/nologo", "/std:c++17", "/EHsc", "/W4", "/WX",
                            "/I" + include, str(cpp), "/Fe:" + str(executable)]
             else:
-                command = [compiler, "-std=c++20", "-Wall", "-Wextra", "-Werror",
+                command = [compiler, "-std=c++17", "-Wall", "-Wextra", "-Werror",
                            "-I" + include, str(cpp), "-o", str(executable)]
                 if os.name == "nt" and "clang" in Path(compiler).name:
                     command.append("--target=i686-pc-windows-msvc")

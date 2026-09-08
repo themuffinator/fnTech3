@@ -42,3 +42,7 @@ remain ignored. QL Linux client playback is not claimed because the installed
 archive lacks Linux cgame/UI modules. Vulkan/RTX compilation is not current
 hardware-runtime evidence. Existing compiler and image/font diagnostics remain
 outside this checkpoint. No engine source or external implementation was added.
+
+The [Ubuntu 20.04 follow-up](2026-09-08-glibc-baseline-build.md) builds new binaries
+that pass the configured baseline and run in the older userspace. It does not
+change the GLIBC_2.38 requirement of the artifacts recorded above.

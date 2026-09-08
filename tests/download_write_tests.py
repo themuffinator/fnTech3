@@ -33,7 +33,7 @@ std::vector<byte> stored;
 int FS_SV_FOpenFileWrite(const char*){++opens;return openFail?0:3;}
 int FileWrite(int handle,const void*p,size_t n){assert(handle==3);++writes;if(writes==failAt)return int(n)-shortBy;auto b=static_cast<const byte*>(p);stored.insert(stored.end(),b,b+n);return int(n);}
 void Com_Printf(const char*,...){}
-void reset(){clc={};opens=writes=failAt=0;shortBy=1;openFail=false;stored.clear();}
+void reset(){clc=Connection{};opens=writes=failAt=0;shortBy=1;openFail=false;stored.clear();}
 '''+signature+'\n'+'\n'.join(functions)+r'''
 int main(){
  for(bool general:{false,true}){
@@ -61,10 +61,10 @@ int main(){
   reset();download_t dl;openFail=true;
   assert((general?Com_DL_CallbackWrite(data.data(),1,64,&dl):CL_cURL_CallbackWrite(data.data(),1,64,&clc.download))==0);
   assert(opens==1&&!writes);
-  reset();dl={};data[0]='X';
+  reset();dl=download_t{};data[0]='X';
   assert((general?Com_DL_CallbackWrite(data.data(),1,64,&dl):CL_cURL_CallbackWrite(data.data(),1,64,&clc.download))==0);
   assert(!opens&&!writes);
-  reset();dl={};
+  reset();dl=download_t{};
   assert((general?Com_DL_CallbackWrite(nullptr,1,0,&dl):CL_cURL_CallbackWrite(nullptr,1,0,&clc.download))==0);
   assert(!opens&&!writes);
  }

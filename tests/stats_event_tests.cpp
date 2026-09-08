@@ -52,6 +52,10 @@ int main() {
 		assert( numbers.Number( "text", 99.0 ) == 99.0 );
 	}
 	{
+		for ( const auto text : { "12.5", "125e-1", "1.25e1", "0.125e2" } ) {
+			double exact = 0.0;
+			assert( detail::ParseNumber( text, exact ) && exact == 12.5 );
+		}
 		double parsed = 0.0;
 		assert( !detail::ParseNumber( "01", parsed ) );
 		assert( !detail::ParseNumber( "1.", parsed ) );
