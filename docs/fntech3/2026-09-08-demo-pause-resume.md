@@ -54,3 +54,9 @@ This documentation update passed release-document staging and link checks.
 Unrelated optional asset/audio diagnostics remain; no audio functionality is
 claimed. The newly observed Q3 connection warning is recorded as an open issue,
 not a passed part of the pause gate.
+
+## Follow-up correction
+
+The [command-history checkpoint](2026-09-08-paused-command-history.md) fixes
+the Q3 connection-warning condition while preserving input sampling and both
+profiles' resumption. Lagometer updates and broader pause/seek coverage remain open.

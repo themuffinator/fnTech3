@@ -10,6 +10,67 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class DemoReaderTests(unittest.TestCase):
+
+    def test_paused_demo_preserves_command_history_and_samples_input(self):
+        compiler = shutil.which('clang++') or shutil.which('g++')
+        if not compiler:
+            self.skipTest('C++ compiler unavailable')
+        source = (ROOT / 'code/client/cl_input.cpp').read_text(encoding='utf-8')
+        start = source.index('static void CL_CreateNewCommands( void ) {')
+        function = source[start:source.index('\n}', start)+2]
+        harness = r"""
+#include <cassert>
+#include <climits>
+#include "code/qcommon/netchan_safety.hpp"
+constexpr int CA_PRIMED=1, CMD_MASK=63;
+struct Cmd { int serverTime=0; int sample=0; };
+struct { int state=CA_PRIMED; } cls;
+struct { bool demoplaying=false; } clc;
+struct { int cmdNumber=0, serverTime=100; Cmd cmds[64]{}; } cl;
+struct Cvar { int integer=0; float value=1; } freeze, scale;
+Cvar *cl_freezeDemo=&freeze, *com_timescale=&scale;
+unsigned frame_msec=0, old_com_frameTime=0, com_frameTime=0;
+int samples=0, suspends=0;
+void CL_SuspendUsercmdInputSampling() { ++suspends; }
+Cmd CL_CreateCmd() { return {cl.serverTime,++samples}; }
+""" + function + r"""
+int main() {
+ // Populate history, then freeze with the snapshot between old and new commands.
+ for (int i=0;i<80;++i) {
+  cl.serverTime=100+i; com_frameTime+=16; CL_CreateNewCommands();
+ }
+ const int number=cl.cmdNumber;
+ const int oldest=(number-63)&CMD_MASK;
+ const Cmd old=cl.cmds[oldest];
+ clc.demoplaying=true; freeze.integer=1;
+ for (int i=0;i<200;++i) { com_frameTime+=16; CL_CreateNewCommands(); }
+ assert(cl.cmdNumber==number && cl.cmds[oldest].serverTime==old.serverTime);
+ assert(samples==280 && cl.cmds[number&CMD_MASK].sample==samples);
+ assert(frame_msec==16 && old_com_frameTime==com_frameTime);
+ // This is the stock Q3 lost-command condition: the retained oldest command
+ // must not move beyond the frozen snapshot's acknowledged command time.
+ const int snapshotCommandTime=cl.serverTime-10;
+ assert(cl.cmds[oldest].serverTime<=snapshotCommandTime);
+ freeze.integer=0; scale.value=0;
+ CL_CreateNewCommands(); assert(cl.cmdNumber==number && samples==281);
+ scale.value=1; CL_CreateNewCommands(); assert(cl.cmdNumber==number+1);
+ // Pause controls do not freeze command history during live play.
+ clc.demoplaying=false; freeze.integer=1; scale.value=0;
+ CL_CreateNewCommands(); assert(cl.cmdNumber==number+2);
+ cl_freezeDemo=nullptr; clc.demoplaying=true; scale.value=1;
+ cl.cmdNumber=INT_MAX; CL_CreateNewCommands(); assert(cl.cmdNumber==INT_MIN);
+ cls.state=0; const int before=samples;
+ CL_CreateNewCommands(); assert(samples==before && suspends==1);
+}
+"""
+        with tempfile.TemporaryDirectory() as tmp:
+            cpp, exe = Path(tmp)/'paused_cmd.cpp', Path(tmp)/'paused_cmd.exe'
+            cpp.write_text(harness, encoding='utf-8')
+            subprocess.run([compiler, *compiler_target_args(compiler), '-std=c++17',
+                            '-I', str(ROOT), str(cpp), '-o', str(exe)], check=True,
+                           capture_output=True, text=True)
+            subprocess.run([str(exe)], check=True, capture_output=True, text=True)
+
     def test_completion_defers_quit_to_chained_playback(self):
         compiler = shutil.which('clang++') or shutil.which('g++')
         if not compiler:

@@ -1300,8 +1300,15 @@ static void CL_CreateNewCommands( void ) {
 	old_com_frameTime = static_cast<unsigned>( com_frameTime );
 
 
-	// generate a command for this frame
-	cl.cmdNumber = fnql::net::NextCounter( cl.cmdNumber );
+	// A paused demo has no new simulation command to acknowledge. Keep its
+	// history instead of replacing the ring with duplicates that make stock
+	// Q3 cgame report a lost connection. Still sample the current input so
+	// demo UI controls and the first resumed frame do not retain stale input.
+	const bool pausedDemo = clc.demoplaying &&
+		( ( cl_freezeDemo && cl_freezeDemo->integer ) || com_timescale->value == 0.0f );
+	if ( !pausedDemo ) {
+		cl.cmdNumber = fnql::net::NextCounter( cl.cmdNumber );
+	}
 	cmdNum = cl.cmdNumber & CMD_MASK;
 	cl.cmds[cmdNum] = CL_CreateCmd();
 }

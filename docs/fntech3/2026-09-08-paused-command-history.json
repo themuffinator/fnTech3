@@ -1,0 +1,500 @@
+{
+  "date": "2026-09-08",
+  "baseCommit": "c616e36e3b93fcec691a40acdcf9ffdf967202a3",
+  "changedFiles": {
+    "code/client/cl_input.cpp": "570faccf75229ff717a66a8cd77a2f52e80b38fc3cdf1b4de8244002d8599683",
+    "tests/demo_reader_tests.py": "7a1d0949c9f4770af97e138cb60a000172821a5194a1c933c6072a68c588a691"
+  },
+  "tests": {
+    "windowsMeson": {
+      "pass": 110,
+      "fail": 0,
+      "skip": 1
+    },
+    "pythonAggregate": {
+      "tests": 1296,
+      "skips": 5,
+      "seconds": 160.452
+    },
+    "focusedWindowsLinux": "3 tests passed each",
+    "oldImplementationMutation": "New paused-history executable assertion fails against pre-fix function",
+    "suiteLogSha256": "412ed44fadc7898105945ccbb4dbb097cf4fecb4401366b15085c1e2ade5fa0b"
+  },
+  "comparison": [
+    {
+      "control": "fixed",
+      "profile": "q3",
+      "frozenDifferentPixels": 299,
+      "resumedDifferentPixels": 126223,
+      "differenceBoundsInclusive": [
+        1185,
+        896,
+        1273,
+        905
+      ]
+    },
+    {
+      "control": "fixed",
+      "profile": "ql",
+      "frozenDifferentPixels": 0,
+      "resumedDifferentPixels": 14852,
+      "differenceBoundsInclusive": null
+    },
+    {
+      "control": "timescale",
+      "profile": "q3",
+      "frozenDifferentPixels": 298,
+      "resumedDifferentPixels": 126194,
+      "differenceBoundsInclusive": [
+        1185,
+        896,
+        1273,
+        905
+      ]
+    },
+    {
+      "control": "timescale",
+      "profile": "ql",
+      "frozenDifferentPixels": 11348,
+      "resumedDifferentPixels": 13291,
+      "differenceBoundsInclusive": [
+        295,
+        201,
+        523,
+        479
+      ]
+    }
+  ],
+  "runs": [
+    {
+      "sourceCommit": "c616e36e3b93fcec691a40acdcf9ffdf967202a3",
+      "demoSha256": "6f9fc121357debb9755269ff053137bf02501b49901e4e80a8d64e74dd152471",
+      "demoBytes": 3921,
+      "demoMessages": 46,
+      "validTerminator": true,
+      "clientSha256": "c323a3d89e25ea526f4f61c6cc239f05aa4414f15531cb8e4858bfa80bf1f193",
+      "results": [
+        {
+          "mode": "freeze",
+          "command": [
+            "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.exe",
+            "+set",
+            "com_gameProfile",
+            "q3",
+            "+set",
+            "fs_basepath",
+            "C:/Program Files (x86)/Steam/steamapps/common/Quake 3 Arena",
+            "+set",
+            "fs_homepath",
+            "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-retail-demo-mhk38z9_",
+            "+set",
+            "fs_game",
+            "",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "set cl_allowDownload 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset timedemo 0\nset cl_quitOnDemoCompleted 1\nset nextdemo \"echo RETAIL_DEMO_COMPLETE\"\nset activeAction \"wait 30; set cl_freezeDemo 1; wait 5; screenshotPNG frozen-a; wait 90; screenshotPNG frozen-b; wait 3; set cl_freezeDemo 0; wait 30; screenshotPNG resumed\"\ndemo retail-proof\n",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "elapsedSeconds": 9.828,
+          "completionMarker": true,
+          "truncationWarnings": 0,
+          "screenshots": [
+            {
+              "name": "freeze-frozen-a.png",
+              "sha256": "1f9f57f1053854d34b3d1af27a8b452f74dc01a7419da751d06b9e64aa558699"
+            },
+            {
+              "name": "freeze-frozen-b.png",
+              "sha256": "06db6103a17f76fd96f80fb77cdb75477f61e18a6a6e274dd90d8b789a07b7cb"
+            },
+            {
+              "name": "freeze-resumed.png",
+              "sha256": "d8ed97fe61281b9a8b7b32543bba966ad4e753a65cef1c650a19b83d706913fb"
+            }
+          ]
+        }
+      ],
+      "profile": "q3",
+      "control": "fixed",
+      "logHashes": {
+        "freeze-console.log": "3d36d57e4fc71f266680f18450d7ab5e7ee52977ed071a0f880d6f3af09a0463",
+        "freeze-stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "sourceCommit": "c616e36e3b93fcec691a40acdcf9ffdf967202a3",
+      "demoSha256": "4a051b4148207bc6fb16febc0af42daec47c3cfdd937bf8dc2e7242fd5a4e9af",
+      "demoBytes": 8846,
+      "demoMessages": 183,
+      "validTerminator": true,
+      "clientSha256": "c323a3d89e25ea526f4f61c6cc239f05aa4414f15531cb8e4858bfa80bf1f193",
+      "results": [
+        {
+          "mode": "freeze",
+          "command": [
+            "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.exe",
+            "+set",
+            "com_gameProfile",
+            "ql",
+            "+set",
+            "fs_basepath",
+            "C:/Program Files (x86)/Steam/steamapps/common/Quake Live",
+            "+set",
+            "fs_homepath",
+            "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-retail-demo-9jdllyo_",
+            "+set",
+            "fs_game",
+            "",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "set cl_allowDownload 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset timedemo 0\nset cl_quitOnDemoCompleted 1\nset nextdemo \"echo RETAIL_DEMO_COMPLETE\"\nset activeAction \"wait 30; set cl_freezeDemo 1; wait 5; screenshotPNG frozen-a; wait 90; screenshotPNG frozen-b; wait 3; set cl_freezeDemo 0; wait 30; screenshotPNG resumed\"\ndemo retail-proof\n",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "elapsedSeconds": 10.453,
+          "completionMarker": true,
+          "truncationWarnings": 0,
+          "screenshots": [
+            {
+              "name": "freeze-frozen-a.png",
+              "sha256": "59bf9dadcc893631d1f25936a1165d464bf7f02745ed22daec00cd9fb4171d9a"
+            },
+            {
+              "name": "freeze-frozen-b.png",
+              "sha256": "59bf9dadcc893631d1f25936a1165d464bf7f02745ed22daec00cd9fb4171d9a"
+            },
+            {
+              "name": "freeze-resumed.png",
+              "sha256": "5ba7959eab0ed78a520caabe595b408ec5d896756d9bdf7adce434323757cd17"
+            }
+          ]
+        }
+      ],
+      "profile": "ql",
+      "control": "fixed",
+      "logHashes": {
+        "freeze-console.log": "32271a759bd66a53af1441073675754c4455ab1aaa9ffb42de34a2519d172e55",
+        "freeze-stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "sourceCommit": "c616e36e3b93fcec691a40acdcf9ffdf967202a3",
+      "demoSha256": "6f9fc121357debb9755269ff053137bf02501b49901e4e80a8d64e74dd152471",
+      "demoBytes": 3921,
+      "demoMessages": 46,
+      "validTerminator": true,
+      "clientSha256": "c323a3d89e25ea526f4f61c6cc239f05aa4414f15531cb8e4858bfa80bf1f193",
+      "results": [
+        {
+          "mode": "freeze",
+          "command": [
+            "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.exe",
+            "+set",
+            "com_gameProfile",
+            "q3",
+            "+set",
+            "fs_basepath",
+            "C:/Program Files (x86)/Steam/steamapps/common/Quake 3 Arena",
+            "+set",
+            "fs_homepath",
+            "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-retail-demo-5cvll3mo",
+            "+set",
+            "fs_game",
+            "",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "set cl_allowDownload 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset timedemo 0\nset cl_quitOnDemoCompleted 1\nset nextdemo \"echo RETAIL_DEMO_COMPLETE\"\nset activeAction \"wait 30; set timescale 0; wait 5; screenshotPNG frozen-a; wait 90; screenshotPNG frozen-b; wait 3; set timescale 1; wait 30; screenshotPNG resumed\"\ndemo retail-proof\n",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "elapsedSeconds": 7.157,
+          "completionMarker": true,
+          "truncationWarnings": 0,
+          "screenshots": [
+            {
+              "name": "freeze-frozen-a.png",
+              "sha256": "24571f277ed47021afe20832433fdd5682ab17713e6496abff0dd0314c726577"
+            },
+            {
+              "name": "freeze-frozen-b.png",
+              "sha256": "4078c1218d4aa972ac6b38afedc63f5d154080df3dccf934b6bb12ec5837e04d"
+            },
+            {
+              "name": "freeze-resumed.png",
+              "sha256": "b0be894aa271abef5f5c5ea1da3c30a99233444642a0ee93904d88809a4a1c6e"
+            }
+          ]
+        }
+      ],
+      "profile": "q3",
+      "control": "timescale",
+      "logHashes": {
+        "freeze-console.log": "66e03a362818f559e1cb80585d928ddb083af9bc52d9bd6c0eef880b9bd6d4a2",
+        "freeze-stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "sourceCommit": "c616e36e3b93fcec691a40acdcf9ffdf967202a3",
+      "demoSha256": "4a051b4148207bc6fb16febc0af42daec47c3cfdd937bf8dc2e7242fd5a4e9af",
+      "demoBytes": 8846,
+      "demoMessages": 183,
+      "validTerminator": true,
+      "clientSha256": "c323a3d89e25ea526f4f61c6cc239f05aa4414f15531cb8e4858bfa80bf1f193",
+      "results": [
+        {
+          "mode": "freeze",
+          "command": [
+            "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.exe",
+            "+set",
+            "com_gameProfile",
+            "ql",
+            "+set",
+            "fs_basepath",
+            "C:/Program Files (x86)/Steam/steamapps/common/Quake Live",
+            "+set",
+            "fs_homepath",
+            "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-retail-demo-jjsejowd",
+            "+set",
+            "fs_game",
+            "",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "set cl_allowDownload 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset timedemo 0\nset cl_quitOnDemoCompleted 1\nset nextdemo \"echo RETAIL_DEMO_COMPLETE\"\nset activeAction \"wait 30; set timescale 0; wait 5; screenshotPNG frozen-a; wait 90; screenshotPNG frozen-b; wait 3; set timescale 1; wait 30; screenshotPNG resumed\"\ndemo retail-proof\n",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "elapsedSeconds": 9.937,
+          "completionMarker": true,
+          "truncationWarnings": 0,
+          "screenshots": [
+            {
+              "name": "freeze-frozen-a.png",
+              "sha256": "c56c627bf32d8ec8521b0eff62eaea5d71495bbbddfa40937a98185779b7e360"
+            },
+            {
+              "name": "freeze-frozen-b.png",
+              "sha256": "ef999629b6555f25024c876007329c5bfbcaba9ea07d7251a5aabd49d19f49de"
+            },
+            {
+              "name": "freeze-resumed.png",
+              "sha256": "574a1f476a5b59fee3cbdc2367121edc1db55e2dde30525c8a06d0f78ce2fa72"
+            }
+          ]
+        }
+      ],
+      "profile": "ql",
+      "control": "timescale",
+      "logHashes": {
+        "freeze-console.log": "0ebf98d5d165efa5a400deae6a147fa07bd76ce8a8252667cdc6fabe91785c64",
+        "freeze-stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "olderPackagedTimescaleComparison": {
+    "sourceCommit": "c616e36e3b93fcec691a40acdcf9ffdf967202a3",
+    "demoSha256": "4a051b4148207bc6fb16febc0af42daec47c3cfdd937bf8dc2e7242fd5a4e9af",
+    "demoBytes": 8846,
+    "demoMessages": 183,
+    "validTerminator": true,
+    "clientSha256": "52546e9f68c3aaf7909181993d9177087ca2b4f59f496a60c90208c35e7f2f21",
+    "results": [
+      {
+        "mode": "freeze",
+        "command": [
+          "E:\\Repositories\\fnTech3\\.tmp\\package-51368e7\\runtime\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "ql",
+          "+set",
+          "fs_basepath",
+          "C:/Program Files (x86)/Steam/steamapps/common/Quake Live",
+          "+set",
+          "fs_homepath",
+          "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-retail-demo-19684zjy",
+          "+set",
+          "fs_game",
+          "",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "com_steamIntegration",
+          "0",
+          "+set",
+          "fs_skipWorkshop",
+          "1",
+          "+set",
+          "cl_webuiEnable",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+exec",
+          "probe.cfg"
+        ],
+        "config": "set cl_allowDownload 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset timedemo 0\nset cl_quitOnDemoCompleted 1\nset nextdemo \"echo RETAIL_DEMO_COMPLETE\"\nset activeAction \"wait 30; set timescale 0; wait 5; screenshotPNG frozen-a; wait 90; screenshotPNG frozen-b; wait 3; set timescale 1; wait 30; screenshotPNG resumed\"\ndemo retail-proof\n",
+        "exitCode": 0,
+        "forcedTermination": false,
+        "elapsedSeconds": 11.5,
+        "completionMarker": true,
+        "truncationWarnings": 0,
+        "screenshots": [
+          {
+            "name": "freeze-frozen-a.png",
+            "sha256": "7bee783051d9c36c92a376d47b0e43af8aafa1d067c7107817a5fdcacf26a325"
+          },
+          {
+            "name": "freeze-frozen-b.png",
+            "sha256": "14481aa767c7cc066f336e42f1bc34f8972bcd3c4ea558d7c017044a5b0df385"
+          },
+          {
+            "name": "freeze-resumed.png",
+            "sha256": "d30158a59beb065c40c9e96a9e77349dfa21b0b1cc6d38271f41b02aa0cc708d"
+          }
+        ]
+      }
+    ],
+    "differentPausedPixels": 11662
+  },
+  "q3SourceObservation": {
+    "localReference": "E:/_SOURCE/_CODE/Quake-III-Arena-master/code/cgame/cg_draw.c",
+    "sha256": "6ac7267402f16d77a403aed8bb987830a5567e4ca65909c52decce14955612ef",
+    "use": "Observed CG_DrawDisconnect condition only; no implementation incorporated."
+  }
+}
