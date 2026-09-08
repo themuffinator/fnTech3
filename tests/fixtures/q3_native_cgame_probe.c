@@ -22,6 +22,14 @@ static intptr_t(__cdecl *call)(intptr_t, ...);
 static unsigned char gl[0x2c44 + 16], gs[20100 + 16], cmd[24 + 16],
     snap[0xd20c + 16];
 static int commandOK, snapshotOK, drew;
+#ifdef FNTECH3_NATIVE_PAIR
+static int initialStateOK, deltaStateOK;
+static float f32(const unsigned char *p) {
+  float v;
+  memcpy(&v, p, 4);
+  return v;
+}
+#endif
 static unsigned int u32(const unsigned char *p) {
   return p[0] | ((unsigned int)p[1] << 8) | ((unsigned int)p[2] << 16) |
          ((unsigned int)p[3] << 24);
@@ -87,6 +95,51 @@ __declspec(dllexport) intptr_t __cdecl vmMain(int operation, ...) {
     }
   }
   if (operation == 3) {
+#ifdef FNTECH3_NATIVE_PAIR
+    if (!deltaStateOK) {
+      int number = 0, time = 0, i, found = 0, valid;
+      unsigned int count, health;
+      unsigned char *ps = snap + 8 + 44;
+      call(GETSNAPNUMBER, &number, &time);
+      memset(snap, 0xa5, sizeof(snap));
+      if (number > 0 && call(GETSNAP, number, snap + 8)) {
+        count = u32(snap + 8 + 512);
+        health = u32(ps + 184);
+        valid = guards(snap, 0xd20c) && count <= 256 &&
+                u32(snap + 16) == (unsigned int)time && u32(ps + 140) == 0 &&
+                u32(ps + 144) == 7 && u32(ps + 184 + 15 * 4) == 321 &&
+                u32(ps + 248 + 15 * 4) == 1234 && u32(ps + 376 + 7 * 4) == 47 &&
+                f32(ps + 20) == 123.25f && f32(ps + 24) == -64.5f &&
+                f32(ps + 28) == 32.0f;
+        if (valid)
+          for (i = 0; i < (int)count; i++) {
+            unsigned char *e = snap + 8 + 516 + i * 208;
+            if (u32(e) == 17) {
+              found = 1;
+              valid = u32(e + 4) == 2 && u32(e + 192) == 7 &&
+                      u32(e + 204) == 91 &&
+                      u32(e + 84) == (health == 113 ? 4242u : 5678u) &&
+                      f32(e + 24) == 123.25f && f32(e + 28) == -64.5f &&
+                      f32(e + 32) == 32.0f && f32(e + 92) == 123.25f &&
+                      f32(e + 96) == -64.5f && f32(e + 100) == 32.0f;
+              break;
+            }
+          }
+        if (health == 113 && !initialStateOK) {
+          initialStateOK = 1;
+          result("Q3 native probe: live initial snapshot ok\n",
+                 "Q3 native probe: live initial snapshot FAILED\n",
+                 valid && found);
+        }
+        if (health == 127) {
+          deltaStateOK = 1;
+          result("Q3 native probe: live delta snapshot ok\n",
+                 "Q3 native probe: live delta snapshot FAILED\n",
+                 valid && found && initialStateOK && u32(ps) > 0);
+        }
+      }
+    }
+#endif
     if (!drew) {
       call(PRINT, "Q3 native probe: frame ok\n");
       drew = 1;

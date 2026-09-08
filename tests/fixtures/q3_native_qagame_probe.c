@@ -3,6 +3,7 @@
  * 7d8c9629cdc7979f09697266470359101ffd9eda. Independently authored;
  * no retail game behavior or implementation text is incorporated.
  */
+#include <stdarg.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -41,6 +42,7 @@ static Entity entities[COUNT];
 static Player players[COUNT];
 static intptr_t(__cdecl *call)(intptr_t, ...);
 static int frames;
+static int liveClient = -1, liveFrames, liveCommand;
 
 static int u32(const unsigned char *p) {
   int v;
@@ -78,6 +80,8 @@ static void init(void) {
   unsigned char token[128 + 16], config[64 + 16], command[24 + 16];
   int i;
   frames = 0;
+  liveClient = -1;
+  liveFrames = liveCommand = 0;
   memset(entities, 0xa5, sizeof(entities));
   memset(players, 0xa5, sizeof(players));
   for (i = 0; i < COUNT; i++) {
@@ -143,11 +147,59 @@ static void collision(void) {
   result("unlink",
          all_guards() && u32(e + 416) == 0 && n == 0 && guards(list, 32));
 }
+static void live_state(int client, int second) {
+  unsigned char *ps = players[client].bytes + GUARD;
+  unsigned char *e = entities[17].bytes + GUARD;
+  float origin[3] = {123.25f, -64.5f, 32.0f};
+  int i;
+  puti(ps + 140, client);
+  puti(ps + 144, 7);
+  puti(ps + 184, second ? 127 : 113);
+  puti(ps + 184 + 15 * 4, 321);
+  puti(ps + 248 + 15 * 4, 1234);
+  puti(ps + 376 + 7 * 4, 47);
+  puti(e + 4, 2);
+  puti(e + 84, second ? 5678 : 4242);
+  puti(e + 192, 7);
+  puti(e + 204, 91);
+  puti(e + 424,
+       0x20); /* SVF_BROADCAST: remove PVS visibility from this ABI test. */
+  for (i = 0; i < 3; i++) {
+    putf(ps + 20 + 4 * i, origin[i]);
+    putf(e + 24 + 4 * i, origin[i]);
+    putf(e + 92 + 4 * i, origin[i]);
+    putf(e + 488 + 4 * i, origin[i]);
+    putf(e + 436 + 4 * i, -8);
+    putf(e + 448 + 4 * i, 8);
+  }
+  call(LINK, e);
+  result(second ? "live delta state" : "live initial state", all_guards());
+}
 __declspec(dllexport) void __cdecl dllEntry(
     intptr_t(__cdecl *syscallptr)(intptr_t, ...)) {
   call = syscallptr;
 }
 __declspec(dllexport) intptr_t __cdecl vmMain(int operation, ...) {
+  if (operation == 3 && call(CVAR_INTEGER, "fntech3_probe_live")) {
+    va_list args;
+    va_start(args, operation);
+    liveClient = (int)va_arg(args, intptr_t);
+    va_end(args);
+    if (liveClient >= 0 && liveClient < COUNT)
+      live_state(liveClient, 0);
+    else
+      result("client index", 0);
+  }
+  if (operation == 7 && liveClient >= 0 && liveClient < COUNT) {
+    unsigned char command[24 + 16];
+    memset(command, 0xa5, sizeof(command));
+    call(GET_USERCMD, liveClient, command + GUARD);
+    puti(players[liveClient].bytes + GUARD, u32(command + GUARD));
+    if (!liveCommand && command[GUARD + 20] == 7 && u32(command + GUARD) > 0) {
+      liveCommand = 1;
+      result("live usercmd", guards(command, 24) && all_guards());
+    }
+  }
   if (operation == 0)
     init();
   if (operation == 1) {
@@ -161,6 +213,9 @@ __declspec(dllexport) intptr_t __cdecl vmMain(int operation, ...) {
     collision();
     result("frame", 1);
   }
+  if (operation == 8 && liveClient >= 0 && liveClient < COUNT &&
+      ++liveFrames == 30)
+    live_state(liveClient, 1);
   if (operation == 9) {
     char arg[64] = {0};
     call(ARGV, 0, arg, sizeof(arg));
