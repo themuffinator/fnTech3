@@ -145,6 +145,10 @@ The [renderer-switch checkpoint](2026-09-08-renderer-switch.md) adds four-step
 GLx/Vulkan transition sequences on Linux Q3 and Windows Q3/QL, including Windows
 same-renderer fast restarts. All three probes render and exit normally; changed
 modules still take a full unload, so cross-module window retention is not claimed.
+The [Linux RTX checkpoint](2026-09-08-linux-rtx.md) adds i686 Q3 raster and
+software native-RT dispatch/restart evidence. Native RT output remains noisy,
+Khronos validation layers were unavailable, and this does not close the shared
+Windows x86 Q3/QL native-RT gate.
 
 The target is one shared, drop-in binary set. It must select `q3` or `ql` before
 compatibility-sensitive initialization and then use that profile's complete,

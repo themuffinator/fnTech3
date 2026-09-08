@@ -1,0 +1,776 @@
+{
+  "commit": "65c7742",
+  "kind": "Runtime evidence only; no engine changes or automated suite rerun.",
+  "artifacts": [
+    {
+      "name": "fntech3",
+      "format": "ELF32 Intel 80386",
+      "sha256": "8a8fe0a28abffeb5bfe2b6b6d0aa46e6045c8a0b3c124512a214686e4a51e239"
+    },
+    {
+      "name": "fnql_rtx_x86.so",
+      "format": "ELF32 Intel 80386",
+      "sha256": "9a3b6ed7455ca5bd132eca11523bb1f6592a473b6ea3069e6231ba3e462c225e"
+    }
+  ],
+  "probes": [
+    {
+      "label": "linux-q3-x11-rtx-raster",
+      "manifest": {
+        "utc": "2026-09-08T01:57:45.341392+00:00",
+        "sourceCommit": "b5776c9492e95878954b436ed47a48aadb9508e9",
+        "sourceChanges": [
+          "code/unix/linux_signals.cpp",
+          "code/unix/unix_main.cpp",
+          "code/unix/linux_glimp.cpp",
+          "code/unix/x11_dga.cpp",
+          "code/unix/x11_randr.cpp",
+          "code/unix/x11_vidmode.cpp",
+          "code/unix/unix_syscon.cpp",
+          "code/renderervk/vk.c"
+        ],
+        "platform": "Linux i686 WSL2, private Xvfb, Mesa lavapipe software Vulkan",
+        "display": ":99",
+        "installation": "/mnt/c/Program Files (x86)/Steam/steamapps/common/Quake 3 Arena",
+        "basePakSha256": "7ce8b3910620cd50a09e4f1100f426e8c6180f68895d589f80e6bd95af54bcae",
+        "server": {
+          "command": [
+            "/mnt/e/Repositories/fnTech3/.tmp/clean-linux-b5776c9/.tmp/build-linux-i686/fntech3.ded",
+            "+set",
+            "com_gameProfile",
+            "q3",
+            "+set",
+            "fs_basepath",
+            "/mnt/c/Program Files (x86)/Steam/steamapps/common/Quake 3 Arena",
+            "+set",
+            "fs_homepath",
+            "/tmp/fntech3-linux-client-8esp_sd7/server",
+            "+set",
+            "fs_game",
+            "",
+            "+set",
+            "dedicated",
+            "1",
+            "+set",
+            "net_ip",
+            "127.0.0.1",
+            "+set",
+            "net_port",
+            "38021",
+            "+set",
+            "cl_renderer",
+            "rtx",
+            "+set",
+            "rtx_rt_mode",
+            "0",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "developer",
+            "1",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "set sv_pure 1\nset sv_autoRecordDemos 0\nset sv_maxclients 2\nset cl_allowDownload 0\nset cl_motd 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset cl_shownet 2\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nmap q3dm6\nwait 1000\nquit\n",
+          "sha256": "06ce3692030c9412f36e68e2dd62fdda9a0c5fb08b908ac6c0b5c403297cc82c",
+          "exitCode": 0,
+          "terminated": false,
+          "screenshots": []
+        },
+        "client": {
+          "command": [
+            "/mnt/e/Repositories/fnTech3/.tmp/clean-linux-b5776c9/.tmp/build-linux-renderers/fntech3",
+            "+set",
+            "com_gameProfile",
+            "q3",
+            "+set",
+            "fs_basepath",
+            "/mnt/c/Program Files (x86)/Steam/steamapps/common/Quake 3 Arena",
+            "+set",
+            "fs_homepath",
+            "/tmp/fntech3-linux-client-8esp_sd7/client",
+            "+set",
+            "fs_game",
+            "",
+            "+set",
+            "dedicated",
+            "0",
+            "+set",
+            "net_ip",
+            "127.0.0.1",
+            "+set",
+            "net_port",
+            "36937",
+            "+set",
+            "cl_renderer",
+            "rtx",
+            "+set",
+            "rtx_rt_mode",
+            "0",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "developer",
+            "1",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "set sv_pure 1\nset sv_autoRecordDemos 0\nset sv_maxclients 2\nset cl_allowDownload 0\nset cl_motd 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset cl_shownet 2\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nset activeAction \"wait 40; screenshotPNG linux-proof-before; wait 3; vid_restart; wait 120; screenshotPNG linux-proof; wait 3; quit\"\nconnect 127.0.0.1:38021\n",
+          "sha256": "8a8fe0a28abffeb5bfe2b6b6d0aa46e6045c8a0b3c124512a214686e4a51e239",
+          "exitCode": 0,
+          "terminated": false,
+          "screenshots": [
+            {
+              "path": "/mnt/e/Repositories/fnTech3/.tmp/linux-q3-x11-rtx-raster/linux-proof-before.png",
+              "sha256": "4de9d9543b84543cea1f4efcfba846bc6fd45b7d0395935b1cd079145f0f7e9a"
+            },
+            {
+              "path": "/mnt/e/Repositories/fnTech3/.tmp/linux-q3-x11-rtx-raster/linux-proof.png",
+              "sha256": "b96fc5b3742b1907550c3ea81138c130ba2323a79a1ffb722e3505d608ce0447"
+            }
+          ]
+        },
+        "elapsedSeconds": 51.031931269,
+        "modifiedSourceHashes": [
+          {
+            "path": "code/unix/linux_signals.cpp",
+            "sha256": "4d51f0d84d49a3388a154daf29e491ecd2ee1bcb80f004dac63f6ac9ad80457e"
+          },
+          {
+            "path": "code/unix/unix_main.cpp",
+            "sha256": "72873ba7b96363a2e289851f70ce0194617443b8d45c9672234ed49fa8625f03"
+          },
+          {
+            "path": "code/unix/linux_glimp.cpp",
+            "sha256": "fdef2fb3ba033124feb8b0ed68b436945528da8b63ee84edc56d2c242b368d3e"
+          },
+          {
+            "path": "code/unix/x11_dga.cpp",
+            "sha256": "6bac150b959b051f758a00c5a155d80aae7668c37c524b051b8d87a41fb7d993"
+          },
+          {
+            "path": "code/unix/x11_randr.cpp",
+            "sha256": "0d20331962bcc425bc291e85733aca7318ebede87774919233cbeb69e0d80da5"
+          },
+          {
+            "path": "code/unix/x11_vidmode.cpp",
+            "sha256": "081b99fdb46d618ae061379f30a1f529367a201288cec070de64b3b9726bfc96"
+          },
+          {
+            "path": "code/unix/unix_syscon.cpp",
+            "sha256": "cd529d52baee0956e57b02454c509d58f2f940c2a9a9e10d180410030d95c7fc"
+          },
+          {
+            "path": "code/renderervk/vk.c",
+            "sha256": "897fa00ada338c9bd70557bb94f09e5514c56745dfab9a88afdbf0ad97ae4eac"
+          }
+        ],
+        "environment": {
+          "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/lvp_icd.json",
+          "LIBGL_ALWAYS_SOFTWARE": "1"
+        },
+        "effectiveScreenshotDimensions": [
+          1280,
+          960
+        ],
+        "executionMarkers": [
+          "RTX capability gate: requested=disabled (0), active=disabled (0), require=0",
+          "MODE: 12, 1280 x 960 windowed hz:N/A",
+          "RE_Shutdown( 0 )",
+          "RE_Shutdown( 2 )",
+          "RTX capability gate: requested=disabled (0), active=disabled (0), require=0",
+          "MODE: 12, 1280 x 960 windowed hz:N/A",
+          "RE_Shutdown( 3 )"
+        ],
+        "logs": [
+          {
+            "name": "client-console.log",
+            "sha256": "733d8a292c9a320279289579bc4d7637dce119347e51281f6fe2513548745de6"
+          },
+          {
+            "name": "server-console.log",
+            "sha256": "e9161f4d5c60e2470bbf64ad7243b2f4b2efac1a2276e2c9a811f2c9ef175f23"
+          }
+        ],
+        "verified": {
+          "pureAdmission": true,
+          "snapshots": true,
+          "normalClientAndServerExit": true,
+          "forcedTermination": false,
+          "requestedRTMode": 0,
+          "nativeRTDispatch": false,
+          "visualObservation": "Readable world/HUD. Native RT images show visible noise; no visual-quality/parity pass."
+        }
+      }
+    },
+    {
+      "label": "linux-q3-x11-rtx-native",
+      "manifest": {
+        "utc": "2026-09-08T01:58:41.207462+00:00",
+        "sourceCommit": "b5776c9492e95878954b436ed47a48aadb9508e9",
+        "sourceChanges": [
+          "code/unix/linux_signals.cpp",
+          "code/unix/unix_main.cpp",
+          "code/unix/linux_glimp.cpp",
+          "code/unix/x11_dga.cpp",
+          "code/unix/x11_randr.cpp",
+          "code/unix/x11_vidmode.cpp",
+          "code/unix/unix_syscon.cpp",
+          "code/renderervk/vk.c"
+        ],
+        "platform": "Linux i686 WSL2, private Xvfb, Mesa lavapipe software Vulkan",
+        "display": ":99",
+        "installation": "/mnt/c/Program Files (x86)/Steam/steamapps/common/Quake 3 Arena",
+        "basePakSha256": "7ce8b3910620cd50a09e4f1100f426e8c6180f68895d589f80e6bd95af54bcae",
+        "server": {
+          "command": [
+            "/mnt/e/Repositories/fnTech3/.tmp/clean-linux-b5776c9/.tmp/build-linux-i686/fntech3.ded",
+            "+set",
+            "com_gameProfile",
+            "q3",
+            "+set",
+            "fs_basepath",
+            "/mnt/c/Program Files (x86)/Steam/steamapps/common/Quake 3 Arena",
+            "+set",
+            "fs_homepath",
+            "/tmp/fntech3-linux-client-begdvzxz/server",
+            "+set",
+            "fs_game",
+            "",
+            "+set",
+            "dedicated",
+            "1",
+            "+set",
+            "net_ip",
+            "127.0.0.1",
+            "+set",
+            "net_port",
+            "44799",
+            "+set",
+            "cl_renderer",
+            "rtx",
+            "+set",
+            "rtx_rt_mode",
+            "2",
+            "+set",
+            "rtx_rt_require",
+            "1",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "developer",
+            "1",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "set r_windowedMode -1\nset r_windowedWidth 320\nset r_windowedHeight 240\nset r_customwidth 320\nset r_customheight 240\nset sv_pure 1\nset sv_autoRecordDemos 0\nset sv_maxclients 2\nset cl_allowDownload 0\nset cl_motd 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset cl_shownet 2\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nmap q3dm6\nwait 1000\nquit\n",
+          "sha256": "06ce3692030c9412f36e68e2dd62fdda9a0c5fb08b908ac6c0b5c403297cc82c",
+          "exitCode": 0,
+          "terminated": false,
+          "screenshots": []
+        },
+        "client": {
+          "command": [
+            "/mnt/e/Repositories/fnTech3/.tmp/clean-linux-b5776c9/.tmp/build-linux-renderers/fntech3",
+            "+set",
+            "com_gameProfile",
+            "q3",
+            "+set",
+            "fs_basepath",
+            "/mnt/c/Program Files (x86)/Steam/steamapps/common/Quake 3 Arena",
+            "+set",
+            "fs_homepath",
+            "/tmp/fntech3-linux-client-begdvzxz/client",
+            "+set",
+            "fs_game",
+            "",
+            "+set",
+            "dedicated",
+            "0",
+            "+set",
+            "net_ip",
+            "127.0.0.1",
+            "+set",
+            "net_port",
+            "36372",
+            "+set",
+            "cl_renderer",
+            "rtx",
+            "+set",
+            "rtx_rt_mode",
+            "2",
+            "+set",
+            "rtx_rt_require",
+            "1",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "developer",
+            "1",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "set r_windowedMode -1\nset r_windowedWidth 320\nset r_windowedHeight 240\nset r_customwidth 320\nset r_customheight 240\nset sv_pure 1\nset sv_autoRecordDemos 0\nset sv_maxclients 2\nset cl_allowDownload 0\nset cl_motd 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset cl_shownet 2\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nset activeAction \"wait 3; screenshotPNG linux-proof; wait 3; quit\"\nconnect 127.0.0.1:44799\n",
+          "sha256": "8a8fe0a28abffeb5bfe2b6b6d0aa46e6045c8a0b3c124512a214686e4a51e239",
+          "exitCode": 0,
+          "terminated": false,
+          "screenshots": [
+            {
+              "path": "/mnt/e/Repositories/fnTech3/.tmp/linux-q3-x11-rtx-native/linux-proof.png",
+              "sha256": "5f45c44f9764cd8decafd8adf69ad2ae3a9bb76f9b9d93cc64f5d048db31240a"
+            }
+          ]
+        },
+        "elapsedSeconds": 50.58591419999999,
+        "modifiedSourceHashes": [
+          {
+            "path": "code/unix/linux_signals.cpp",
+            "sha256": "4d51f0d84d49a3388a154daf29e491ecd2ee1bcb80f004dac63f6ac9ad80457e"
+          },
+          {
+            "path": "code/unix/unix_main.cpp",
+            "sha256": "72873ba7b96363a2e289851f70ce0194617443b8d45c9672234ed49fa8625f03"
+          },
+          {
+            "path": "code/unix/linux_glimp.cpp",
+            "sha256": "fdef2fb3ba033124feb8b0ed68b436945528da8b63ee84edc56d2c242b368d3e"
+          },
+          {
+            "path": "code/unix/x11_dga.cpp",
+            "sha256": "6bac150b959b051f758a00c5a155d80aae7668c37c524b051b8d87a41fb7d993"
+          },
+          {
+            "path": "code/unix/x11_randr.cpp",
+            "sha256": "0d20331962bcc425bc291e85733aca7318ebede87774919233cbeb69e0d80da5"
+          },
+          {
+            "path": "code/unix/x11_vidmode.cpp",
+            "sha256": "081b99fdb46d618ae061379f30a1f529367a201288cec070de64b3b9726bfc96"
+          },
+          {
+            "path": "code/unix/unix_syscon.cpp",
+            "sha256": "cd529d52baee0956e57b02454c509d58f2f940c2a9a9e10d180410030d95c7fc"
+          },
+          {
+            "path": "code/renderervk/vk.c",
+            "sha256": "897fa00ada338c9bd70557bb94f09e5514c56745dfab9a88afdbf0ad97ae4eac"
+          }
+        ],
+        "environment": {
+          "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/lvp_icd.json",
+          "LIBGL_ALWAYS_SOFTWARE": "1"
+        },
+        "effectiveScreenshotDimensions": [
+          1280,
+          960
+        ],
+        "executionMarkers": [
+          "RTX capability gate: requested=ray_tracing_pipeline (2), active=ray_tracing_pipeline (2), require=1",
+          "MODE: 12, 1280 x 960 windowed hz:N/A",
+          "RE_Shutdown( 0 )",
+          "RTX RT primary dispatch validation: vkCmdTraceRaysKHR output copied to scene color; shading=native_rt; raster_role=depth_fallback_overlay",
+          "RE_Shutdown( 3 )"
+        ],
+        "logs": [
+          {
+            "name": "client-console.log",
+            "sha256": "917bbeafee5e3ad12338683c610d19a78b5ffd2c4e40a300823dc8951c4ca0fc"
+          },
+          {
+            "name": "server-console.log",
+            "sha256": "5c47a9a235dadf1045384f9e2fe202214489814d22c562307d5b94a450470497"
+          }
+        ],
+        "verified": {
+          "pureAdmission": true,
+          "snapshots": true,
+          "normalClientAndServerExit": true,
+          "forcedTermination": false,
+          "requestedRTMode": 2,
+          "nativeRTDispatch": true,
+          "visualObservation": "Readable world/HUD. Native RT images show visible noise; no visual-quality/parity pass."
+        },
+        "sizingLimitation": "320x240 settings in exec config arrived after initial renderer creation; actual image is 1280x960."
+      }
+    },
+    {
+      "label": "linux-q3-x11-rtx-native-restart",
+      "manifest": {
+        "utc": "2026-09-08T02:00:43.173137+00:00",
+        "sourceCommit": "b5776c9492e95878954b436ed47a48aadb9508e9",
+        "sourceChanges": [
+          "code/unix/linux_signals.cpp",
+          "code/unix/unix_main.cpp",
+          "code/unix/linux_glimp.cpp",
+          "code/unix/x11_dga.cpp",
+          "code/unix/x11_randr.cpp",
+          "code/unix/x11_vidmode.cpp",
+          "code/unix/unix_syscon.cpp",
+          "code/renderervk/vk.c"
+        ],
+        "platform": "Linux i686 WSL2, private Xvfb, Mesa lavapipe software Vulkan",
+        "display": ":99",
+        "installation": "/mnt/c/Program Files (x86)/Steam/steamapps/common/Quake 3 Arena",
+        "basePakSha256": "7ce8b3910620cd50a09e4f1100f426e8c6180f68895d589f80e6bd95af54bcae",
+        "server": {
+          "command": [
+            "/mnt/e/Repositories/fnTech3/.tmp/clean-linux-b5776c9/.tmp/build-linux-i686/fntech3.ded",
+            "+set",
+            "com_gameProfile",
+            "q3",
+            "+set",
+            "fs_basepath",
+            "/mnt/c/Program Files (x86)/Steam/steamapps/common/Quake 3 Arena",
+            "+set",
+            "fs_homepath",
+            "/tmp/fntech3-linux-client-ofxflb2r/server",
+            "+set",
+            "fs_game",
+            "",
+            "+set",
+            "dedicated",
+            "1",
+            "+set",
+            "net_ip",
+            "127.0.0.1",
+            "+set",
+            "net_port",
+            "56223",
+            "+set",
+            "cl_renderer",
+            "rtx",
+            "+set",
+            "rtx_rt_mode",
+            "2",
+            "+set",
+            "rtx_rt_require",
+            "1",
+            "+set",
+            "r_windowedMode",
+            "0",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "developer",
+            "1",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "set r_windowedMode 0\nset r_windowedWidth 320\nset r_windowedHeight 240\nset r_customwidth 320\nset r_customheight 240\nset sv_pure 1\nset sv_autoRecordDemos 0\nset sv_maxclients 2\nset cl_allowDownload 0\nset cl_motd 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset cl_shownet 2\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nmap q3dm6\nwait 1000\nquit\n",
+          "sha256": "06ce3692030c9412f36e68e2dd62fdda9a0c5fb08b908ac6c0b5c403297cc82c",
+          "exitCode": 0,
+          "terminated": false,
+          "screenshots": []
+        },
+        "client": {
+          "command": [
+            "/mnt/e/Repositories/fnTech3/.tmp/clean-linux-b5776c9/.tmp/build-linux-renderers/fntech3",
+            "+set",
+            "com_gameProfile",
+            "q3",
+            "+set",
+            "fs_basepath",
+            "/mnt/c/Program Files (x86)/Steam/steamapps/common/Quake 3 Arena",
+            "+set",
+            "fs_homepath",
+            "/tmp/fntech3-linux-client-ofxflb2r/client",
+            "+set",
+            "fs_game",
+            "",
+            "+set",
+            "dedicated",
+            "0",
+            "+set",
+            "net_ip",
+            "127.0.0.1",
+            "+set",
+            "net_port",
+            "59162",
+            "+set",
+            "cl_renderer",
+            "rtx",
+            "+set",
+            "rtx_rt_mode",
+            "2",
+            "+set",
+            "rtx_rt_require",
+            "1",
+            "+set",
+            "r_windowedMode",
+            "0",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "developer",
+            "1",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "set r_windowedMode 0\nset r_windowedWidth 320\nset r_windowedHeight 240\nset r_customwidth 320\nset r_customheight 240\nset sv_pure 1\nset sv_autoRecordDemos 0\nset sv_maxclients 2\nset cl_allowDownload 0\nset cl_motd 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset cl_shownet 2\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nset activeAction \"wait 40; screenshotPNG linux-proof-before; wait 3; renderer_switch rtx fast; wait 40; screenshotPNG linux-proof; wait 3; quit\"\nconnect 127.0.0.1:56223\n",
+          "sha256": "8a8fe0a28abffeb5bfe2b6b6d0aa46e6045c8a0b3c124512a214686e4a51e239",
+          "exitCode": 0,
+          "terminated": false,
+          "screenshots": [
+            {
+              "path": "/mnt/e/Repositories/fnTech3/.tmp/linux-q3-x11-rtx-native-restart/linux-proof-before.png",
+              "sha256": "7a723652758f7c259b9d5b99c2be177698f335201cdc39de0cea6b58d3057538"
+            },
+            {
+              "path": "/mnt/e/Repositories/fnTech3/.tmp/linux-q3-x11-rtx-native-restart/linux-proof.png",
+              "sha256": "8a1fe8ec29a5206df4ff118ade076edb60cf9a0728e389fcb2aa935f3d2c00fb"
+            }
+          ]
+        },
+        "elapsedSeconds": 51.248900507,
+        "modifiedSourceHashes": [
+          {
+            "path": "code/unix/linux_signals.cpp",
+            "sha256": "4d51f0d84d49a3388a154daf29e491ecd2ee1bcb80f004dac63f6ac9ad80457e"
+          },
+          {
+            "path": "code/unix/unix_main.cpp",
+            "sha256": "72873ba7b96363a2e289851f70ce0194617443b8d45c9672234ed49fa8625f03"
+          },
+          {
+            "path": "code/unix/linux_glimp.cpp",
+            "sha256": "fdef2fb3ba033124feb8b0ed68b436945528da8b63ee84edc56d2c242b368d3e"
+          },
+          {
+            "path": "code/unix/x11_dga.cpp",
+            "sha256": "6bac150b959b051f758a00c5a155d80aae7668c37c524b051b8d87a41fb7d993"
+          },
+          {
+            "path": "code/unix/x11_randr.cpp",
+            "sha256": "0d20331962bcc425bc291e85733aca7318ebede87774919233cbeb69e0d80da5"
+          },
+          {
+            "path": "code/unix/x11_vidmode.cpp",
+            "sha256": "081b99fdb46d618ae061379f30a1f529367a201288cec070de64b3b9726bfc96"
+          },
+          {
+            "path": "code/unix/unix_syscon.cpp",
+            "sha256": "cd529d52baee0956e57b02454c509d58f2f940c2a9a9e10d180410030d95c7fc"
+          },
+          {
+            "path": "code/renderervk/vk.c",
+            "sha256": "897fa00ada338c9bd70557bb94f09e5514c56745dfab9a88afdbf0ad97ae4eac"
+          }
+        ],
+        "environment": {
+          "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/lvp_icd.json",
+          "LIBGL_ALWAYS_SOFTWARE": "1"
+        },
+        "effectiveScreenshotDimensions": [
+          320,
+          240
+        ],
+        "executionMarkers": [
+          "RTX capability gate: requested=ray_tracing_pipeline (2), active=ray_tracing_pipeline (2), require=1",
+          "MODE: 0, 320 x 240 windowed hz:N/A",
+          "RE_Shutdown( 0 )",
+          "RTX RT primary dispatch validation: vkCmdTraceRaysKHR output copied to scene color; shading=native_rt; raster_role=depth_fallback_overlay",
+          "renderer_switch: rtx is already active, restarting renderer.",
+          "RE_Shutdown( 1 )",
+          "RTX capability gate: requested=ray_tracing_pipeline (2), active=ray_tracing_pipeline (2), require=1",
+          "MODE: 0, 320 x 240 windowed hz:N/A",
+          "RTX RT primary dispatch validation: vkCmdTraceRaysKHR output copied to scene color; shading=native_rt; raster_role=depth_fallback_overlay",
+          "RE_Shutdown( 3 )"
+        ],
+        "logs": [
+          {
+            "name": "client-console.log",
+            "sha256": "2037458140711167809a87e3d9dfbd5b306886c8773c8756db988db3968a513a"
+          },
+          {
+            "name": "server-console.log",
+            "sha256": "996aa22b57d5d07a1465963b1fef3654ed069ce5ea675b796b501212017674c6"
+          }
+        ],
+        "verified": {
+          "pureAdmission": true,
+          "snapshots": true,
+          "normalClientAndServerExit": true,
+          "forcedTermination": false,
+          "requestedRTMode": 2,
+          "nativeRTDispatch": true,
+          "visualObservation": "Readable world/HUD. Native RT images show visible noise; no visual-quality/parity pass."
+        }
+      }
+    }
+  ],
+  "validationLayer": {
+    "status": "Unavailable for this i686 probe",
+    "installationAttempt": "apt-get install -y vulkan-validationlayers:i386",
+    "outcome": "Unable to locate package; configured package candidate exists only for amd64.",
+    "logSha256": "8e73368de50963c93cca3d3f0f393b228c2bd1e1d69dd0d887b0e947dd7897d1",
+    "claim": "Engine dispatch markers contain the word validation but do not establish Khronos validation-layer cleanliness."
+  }
+}
