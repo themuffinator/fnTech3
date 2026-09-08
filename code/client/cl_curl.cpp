@@ -1021,7 +1021,8 @@ qboolean Com_DL_Begin( download_t *dl, const char *localName, const char *remote
 
 		if ( !Q_replace( "%1", escapedName.get(), dl->URL, sizeof( dl->URL ) ) )
 		{
-			if ( dl->URL[strlen(dl->URL)] != '/' )
+			const size_t urlLength = strlen( dl->URL );
+			if ( urlLength == 0 || dl->URL[urlLength - 1] != '/' )
 				Q_strcat( dl->URL, sizeof( dl->URL ), "/" );
 			Q_strcat( dl->URL, sizeof( dl->URL ), escapedName.get() );
 			dl->headerCheck = qfalse;
