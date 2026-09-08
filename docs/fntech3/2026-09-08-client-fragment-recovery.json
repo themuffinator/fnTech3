@@ -1,0 +1,1490 @@
+{
+  "scope": "Bounded reliable client command delivery after first client-fragment loss; not complete live-network compatibility.",
+  "engineSourceChanged": false,
+  "relaySourceSha256": "4f7a2501933041c716a964162f9d825cae3f942a3505103ba980181f7235a7f4",
+  "validation": "6 real-socket relay tests pass on Windows and WSL Ubuntu.",
+  "runs": {
+    "q3-fnclient-refserver": {
+      "mode": "fnclient-refserver",
+      "utc": "2026-09-08T05:09:21.472814+00:00",
+      "commit": "701bda728aebeb886d1d574bec6b5a8e622b2779",
+      "worktreeDirty": true,
+      "referenceSourceRevision": "7d8c9629cdc7979f09697266470359101ffd9eda",
+      "fixture": {
+        "fixture": "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-retail-interop-twn4g9dy",
+        "installation": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+        "retailExecutableSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+        "paks": [
+          {
+            "name": "pak0.pk3",
+            "bytes": 479493658,
+            "sha256": "7ce8b3910620cd50a09e4f1100f426e8c6180f68895d589f80e6bd95af54bcae"
+          },
+          {
+            "name": "pak1.pk3",
+            "bytes": 374405,
+            "sha256": "d4ffd60b4b414c3419499e321b6f5c2e933cf082df85823ad2d6ae2f803e1682"
+          },
+          {
+            "name": "pak2.pk3",
+            "bytes": 7511182,
+            "sha256": "ccae938a2f13a03b24902d675181d516a431699701ed88023a307f34b5bcd58c"
+          },
+          {
+            "name": "pak3.pk3",
+            "bytes": 276305,
+            "sha256": "d03c0a0e06b99f9ecca2be7389f57faed406e85f7c09b9c56afdfa53ba25e312"
+          },
+          {
+            "name": "pak4.pk3",
+            "bytes": 9600350,
+            "sha256": "af5f6d5c82fe4440ae0bb660f0648d1fa1731a9e8305a9eb652aa243428697f1"
+          },
+          {
+            "name": "pak5.pk3",
+            "bytes": 191872,
+            "sha256": "69f87070ca7719e252a3ba97e6483f6663939c987ede550d1268d4d9a07b45bc"
+          },
+          {
+            "name": "pak6.pk3",
+            "bytes": 7346884,
+            "sha256": "bb4f0ae2bf603b050fb665436d3178ce7c1c20360e67bacf7c14d93daff38daf"
+          },
+          {
+            "name": "pak7.pk3",
+            "bytes": 320873,
+            "sha256": "de6283ce23e3486a2622c5dbf73d3721a59f24debd380e90f43a97d952fea283"
+          },
+          {
+            "name": "pak8.pk3",
+            "bytes": 454478,
+            "sha256": "812c9e97f231e89cefede3848c6110b7bd34245093af6f22c2cacde3e6b15663"
+          }
+        ],
+        "isolation": "Copied executable and pak0..8 only; no installation config, credentials, mods, or writable install path used"
+      },
+      "privateDesktop": "fntech3_probe_97444b3687ee4a1babdaebbc1c4e40c5",
+      "desktopSwitched": false,
+      "queries": [
+        "\u00ff\u00ff\u00ff\u00ffinfoResponse\n\\challenge\\referenceprobe\\protocol\\68\\hostname\\fntech3-reference-probe\\mapname\\q3dm6\\clients\\0\\g_humanplayers\\0\\sv_maxclients\\8\\gametype\\0\\playingDemo\\0\\pure\\1\\g_needpass\\0"
+      ],
+      "mergedArtifacts": [
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.exe",
+          "sha256": "3412c79dffe4a16834ee57c675c17d7ce43c6f0d16edde61faec6e844adb1561"
+        },
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.ded.exe",
+          "sha256": "37fbdb32334b3d54391cd6f93a94229a0fc412d141a8b950920c1c141bf502ce"
+        },
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fnql_glx_x86.dll",
+          "sha256": "f9360d552c1f83584df6a40221e24e9f531d418c7a41fb5613c660dcea98ac64"
+        },
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\FnQL-pkg.fnz",
+          "sha256": "1d1ff86488c3134a936486790c24954bef87abd22177e1ca8b5542cc2f06115a"
+        },
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fnql-web.pak",
+          "sha256": "6c210165880fff668900fd3e4e3c90137623043e1b5315f24b693f367f756382"
+        }
+      ],
+      "referenceArtifacts": [
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\fnq3-reference-7d8c9629\\.tmp\\build-msvc-x64\\fnquake3.x64.exe",
+          "sha256": "e80839729e965adf0d223e58edf5322efeedf0a527d3914e2b20002018b21117"
+        },
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\fnq3-reference-7d8c9629\\.tmp\\build-msvc-x64\\fnquake3.ded.x64.exe",
+          "sha256": "ac9b61e0ecdfc273aa870465d707b3f517d1601a3d4d09621818ba43db3f107a"
+        },
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\fnq3-reference-7d8c9629\\.tmp\\build-msvc-x64\\fnquake3_glx_x86_64.dll",
+          "sha256": "847f415ac28d4fc53fb9b6c41b01e01fbedc872953273a2d665f3419fe479b3e"
+        },
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\fnq3-reference-7d8c9629\\.tmp\\build-msvc-x64\\FnQuake3-pkg.fnz",
+          "sha256": "7310fa0658f58d4b5da7d3b4ffb886ddcab22995367b49eb71ebaf3e8ba5c582"
+        }
+      ],
+      "server": {
+        "exe": "E:\\Repositories\\fnTech3\\.tmp\\fnq3-reference-7d8c9629\\.tmp\\build-msvc-x64\\fnquake3.ded.x64.exe",
+        "sha256": "ac9b61e0ecdfc273aa870465d707b3f517d1601a3d4d09621818ba43db3f107a",
+        "command": [
+          "E:\\Repositories\\fnTech3\\.tmp\\fnq3-reference-7d8c9629\\.tmp\\build-msvc-x64\\fnquake3.ded.x64.exe",
+          "+set",
+          "fs_basepath",
+          "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-retail-interop-twn4g9dy\\assets",
+          "+set",
+          "fs_homepath",
+          "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-i7sa04eh\\server",
+          "+set",
+          "fs_game",
+          "",
+          "+set",
+          "fs_cdpath",
+          "",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "developer",
+          "1",
+          "+set",
+          "net_ip",
+          "127.0.0.1",
+          "+set",
+          "net_port",
+          "55432",
+          "+set",
+          "dedicated",
+          "1",
+          "+set",
+          "protocol",
+          "68",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "r_windowedMode",
+          "-1",
+          "+set",
+          "r_windowedWidth",
+          "640",
+          "+set",
+          "r_windowedHeight",
+          "480",
+          "+exec",
+          "interop.cfg"
+        ],
+        "home": "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-i7sa04eh\\server",
+        "exitCode": 0,
+        "terminated": false,
+        "screenshots": [],
+        "logSha256": "d9c4214ccbcf466ba71ebda9b85b11bc468c448e49bd79f63d1b3e1420042660",
+        "config": "set sv_pure 1\nset sv_autoRecordDemos 0\nset sv_hostname \"fntech3-reference-probe\"\nset sv_maxclients 2\nset sv_fps 20\nset cl_motd 0\nset cl_allowDownload 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset name \"fntech3_reference_probe\"\nset cl_shownet 2\nversion\nset sv_floodProtect 0\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nmap q3dm6\nwait 700\nquit\n",
+        "decisiveLines": [
+          "^5fntech3_reference_probe acknowledged gamestate",
+          "Going from CS_PRIMED to CS_ACTIVE for fntech3_reference_probe",
+          "Going from CS_ACTIVE to CS_ZOMBIE for fntech3_reference_probe"
+        ]
+      },
+      "client": {
+        "exe": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.exe",
+        "sha256": "3412c79dffe4a16834ee57c675c17d7ce43c6f0d16edde61faec6e844adb1561",
+        "command": [
+          "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.exe",
+          "+set",
+          "fs_basepath",
+          "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-retail-interop-twn4g9dy\\assets",
+          "+set",
+          "fs_homepath",
+          "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-i7sa04eh\\client",
+          "+set",
+          "fs_game",
+          "",
+          "+set",
+          "fs_cdpath",
+          "",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "developer",
+          "1",
+          "+set",
+          "net_ip",
+          "127.0.0.1",
+          "+set",
+          "net_port",
+          "55433",
+          "+set",
+          "dedicated",
+          "0",
+          "+set",
+          "protocol",
+          "68",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "r_windowedMode",
+          "-1",
+          "+set",
+          "r_windowedWidth",
+          "640",
+          "+set",
+          "r_windowedHeight",
+          "480",
+          "+set",
+          "com_gameProfile",
+          "q3",
+          "+set",
+          "com_steamIntegration",
+          "0",
+          "+set",
+          "fs_skipWorkshop",
+          "1",
+          "+set",
+          "cl_webuiEnable",
+          "0",
+          "+exec",
+          "interop.cfg"
+        ],
+        "home": "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-i7sa04eh\\client",
+        "exitCode": 0,
+        "terminated": false,
+        "screenshots": [
+          {
+            "path": "E:\\Repositories\\fnTech3\\.tmp\\q3-client-fragment-fnclient-refserver-current\\client-interop-proof.png",
+            "sha256": "42616e0ebb2cf4c3023eaa4cd731e7637bc4cbdfee26f5e33dc8b7d0f4be3206"
+          }
+        ],
+        "logSha256": "29e4bfc7c7f874ac8c17854a310b9fb5e0760b4d2418ee8c6f2df60037c3e158",
+        "config": "set sv_pure 1\nset sv_autoRecordDemos 0\nset sv_hostname \"fntech3-reference-probe\"\nset sv_maxclients 2\nset sv_fps 20\nset cl_motd 0\nset cl_allowDownload 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset name \"fntech3_reference_probe\"\nset cl_shownet 2\nversion\nset sv_floodProtect 0\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nconnect 127.0.0.1:55434\nwait 180\ncmd fntech3_fragment_probe_0 p2mwimODwqalEhGnAB3M4mo9WATArzfcUA5Ve1rFl11Gqdfh52m1xsYWxpfwW5H8vW1vwbhmk7ortUcDuH8DtMEOS94xKNJWGNLAmiucBWlc0FnhOwN1BVqzhOQKKVStiY18XCGincibtB2Irg2KWMLP3bYJnxgIa1diCLx7ARCQyBlcwpdnK2wLi28f65zmFl8KJvxnrlfSD9VpAh7t72ReEgVOilIi4hnztcurLQMdc1MbPzu3u5bsvcg0AjWIeNTPHxkqdMZIXDzlo2jKkPSceN43qOhcwOnyqZ1SlJbelFbUU2wE3FIKR8oTphu6PAtmKDBW49r3LooWPUEMTDMfkGrokoLPbbDjHu9ejiTM0OpiK8mo5JdhDNHDglj6DhBiNF9ySLeJVw9bH7EIeDfDykCaDbkpCzqoKWTjlm4wXeopfnHHVDdI8S7vKJPa38ssrYxgzSmcLP8xBc8VMvSHzeuf2CQewbtzEnyIe4xk1CEWfbL1PfPWKVUX4WgcBlVt044ZLv2SKGzX01jNOHRUmOWw9ZsXOxtXNYOVGT6uIN4hWCv3gri4so3wkh8d8L0U8lxkpScPIYxH8jCUxHLAkKd7aL0mSfKtdwJbO78Pe9pecf10gjK2mUqhD9qrDkCerHaeLQQoC3lUKugBSLoi1eJrIkS1qxSwTIhmNkxQKX5axaE6HGzLcjOpWDQYNNJktth2XAghSusBi9pflAMKQGKp4xulvKWTPNSJLmEG4fe1g3e1q8Byh4ZourxDcNe6xL9YxzQi5hZmNWCtlNLX0V0I30TJZSCzSqBNyGfnpBAXhTz0cqZYMW2xsZLZsc6dBWbU3oK9kR4V1pa958hn7lWhLdg1Rvpdz29jN2oMpIRw\ncmd fntech3_fragment_probe_1 A4m7zuT9ek8RWx07LMXTV8ItmzJXdJEKSyq4ilGyMQAZr9f1QhsHwHlK8S7HpkutsuoNbREwYaOvhD7n6LSVoqQ3XYuP0RUbMfggdLTehZM7AN7RNRHcKNyECZzqDLIoni07tRk3H0sH23JWZDSMU56Mc7uFZZqHP9pmHTjx4ZBTDlgUBJ4Fxv1C4vlViwsxSFrvYJ86Lw9zghKO5PQK1JANi2AY64YpDR7iCEyTf77A6wZIBo83Pv3hy1r3JFsN4OukzM8upVEsSUHswkstYOc69VOqDBat6m3fVwx1dxp0IMlhcSLwFPpMEIdC3JNvnLc7m661U8DFwwQRnr9ZH5MvWwTIzqR1DLedEzRZu8ejUl1e3iIuEZUfA4Ezz1DHU2mLqt8UYHXxnirsYKKN2zhqXp8lYW0tWdZ76ErVTvRylCq78BRCOLS8HQkGYBfleqVN9Q5Bwi9v6rIcG2B4kB9NPMKQfZpxGLnDu53nvxhKnjN2Vgau5SEaN1sLB98SEOjFLANwgQvF40vpDptqEuSWd8tgkWtzKJwTpHFLV1Y9zDwTZWx8HyAQbPc0Hixw3WG055PHWB7wLXQq4srhWMUL8FxNhWtE1lI3soUlxuEIGCvHvqE9qriYt4ylMcvNWc1mnwW8euvoGCkEL595rqHxz5NXVIubZ7zQlq8h1xJ23HGiISpDOmcs3cjE4diSL1VnrhVwCuPsU7BIVafRfY1E2tT3SRUoMlULgHGBB4ckYanymX58WFIzn4m6y0vtNKvdYRyCwB9aIvgj7z2fPZNi6suDX42oWMGkbEfG39pklMljNKzlDHHZRnPyvJnV1CJR3s78VH3dj2w8MLkHqBJDej7kBZiMn0dGgdSdXOVU4JDo\ncmd fntech3_fragment_probe_2 EeT5yuyvKmr7mWUKSmrU5lLScYyk19xDfKeg2glSfsRtfNXBaKb9VdqHbsGI03YdUbfa9UDp9T7hhXgUFAOzD6nP5LBVXM6ePsdKWYuqqfV6uIIGCr0AVWhjV0nkF8taEfIryb1DG3BnNokPJhvReM6x9JrdMFIoVbttD2lxuvPOXWkRKO1ARDeZMqYFkO4BW8AoVHi7NfHLWzSLzxizvbTKBiMcZrcHj5wXtCUNqfhIGfebebuXULdbJ68g7ROezX4gnTO56apLk057tTIBCDx8xwHSpjuLiLFwYO8tIVtXi6pc13bCIjUH95TE9O4LDOaX6RLi4lwbORVGTwcl3rW2JM0KGfWItl4O8fhnZsa40Yr0qYpLdpdH4dKQZtUsLwzBXIiMzr4PuGNxEdwrqVc4kmcODFWMaLmFzNP4EvTLo7P8dp2tZKVOHWW6JpCZKrnNGahAmk9XYRg5BQSvGgTzfWruLX0FUcbQFLXJ4kXQukQyTuCajrFLuuzmyFvBIdo7Iv6flMpxNvrSTuF8v4poHVLDM6KI1lC69GgEP6zrwsdGrYPTe6HfBb6Oj5A9C4SyXA0lU4vmPDTy2BQAsuUnfugjGbZyufky5clRpazobOJcYmuZ8f8WPfZEQRleXU2ef2dkhwWpsCd1ycHzRSys9ZsfXBuZz7wKsa3tGnI8UADfjLjYjxdG3SiWPiwQVK3B6iKzeSLmPM2mq1WiQxeJ584tukvcNLYg6PY2R5BO0oe7pJXazBjyDHzuGBQ4pQvzfnWSjfA10N767xhnyBbp8e1l98wucijbhSO7i1ErogXJAOnplY7oCx9XaAuNez5H2WVWAxLzVMMzeYnNeU4gicudo7FyxU2ZhPg12dWGhbu5\ncmd fntech3_fragment_probe_3 zGJzTb1HcPiOLlDLXIbiu1W578p2Bi8E1GOfjAzacbYTbft85KH23AWkYVdivaqrVypkhBGOO6d6JoIG5NGzz4nn6aviPz2kZyhZ7nA7qQQllZv7e8Nr6zBWo5u957Q1fTORfTcYmJHHOI1OMNNdB9pwpLYdLpmUx5TycgwZwETJr11kqWynRr73IF3FLWD77p3ie1zSDfodSfakwoctWvPjLlguM2NSElt5RWdzyWMgFXeXU01U1ElPKV6VaKI1lRdl7QyI7jTwC09gVLhWiIYRdClaGXYu0zkrhlpb5XLLWxXwpY1Z6yRe7cc4GDo7s1IBbsu8aJoUvSpftQEFVmpHqtusC63eCg08a6Wsnzy0oSqV1jc8R0XoQITTDQRMrDYFm5KOHnE1X49GTHoG1IM1BzAd28a8lVwN5omPQ1tKN2Mp9zEZ48wTR3mOnzf8bkWTSTikZXKSVeiRGo1ylF4unZbbds0FZz2pI160HmtvYsEvDkJEsy9Tr6tgNvoYrkLJvgBT6UQRrndzA8fNQKEDiKyJDMEwzn20CU7U8oD3AML5UsX8JJ79eaa8bT1rLlCpmfh1PKSA8H4lTspikZoeqLo1uZdA2w3dLZAd21VIaS6LOxAc0Cs7uGhITzZOhEjt6NWjczbDXQgIwkowiUc4kcWdkuSd9GOXtVhEpkXDIr15Q8meOkWsdtofZLonfjLDWUDE7mGL18SzbhmgQXBZLNz3Z5f6jqE0E1fvxsReO2flHD39DIeTTDNBhF9lcUqzJjBKULfZMIprT4fLAtbWyaqQXojQaNQjvXBd8UbGuAQVDdiRX5zLBXpnlxioOwpRQPEKv165OUr82wEecaif4rOifUDD1PXq3Hq54ZOcXtTB\ncmd fntech3_fragment_probe_4 TxLiX1JeZWkcEz437Vi6W9lzAxnBfLBjUaejSMLGbNGL9uHjUGqBq4437QIcIAPylnX0OM26abXX1CklJPOAQmMZPdiP4RRcBs4xy9hkh65dr8G2DqveqbcKmbgfckGWeBr8RGbYYyvzBZrsbX1KnrMTwoDkSsPllZjGXnjEDcRecSnJobv0U8iHIhnE7AK8Q8wVX7mNrZZR0itBlwYIWlqQVRcm8M6CLK1Hbg8GHB3y1dLPgiEHkyg6ohaVBcJj8NVU6x33BqY6yp9qZBvjHKRKAiiuz5vp6Sj4Ss04npWSbuvwtdGnwWTrUPD4hsCeIGVL2L8WQManN7COmM5V6EQyknQfMszznNpcYsiEQNJlDiKnV9AibN3Qhmo9CeaDtgd41Lo5Vdh7Icvkm1fDRFjZD1rWeyE7GdmVpyIygqRoZdyBdHH2Im1nrXFdTcADHtjdRRN8R8Bx7BnF11vGDZHQy2PsPuDz1REDcOQYa6I0hPIqFv6A8Q7rgz2gKV44KeS6mfcQ7uSj9GqcHkwRGk1rMj3T2aj8SbszoBHrWDqFjSZcWQIX8YeCP7HRTURTXSaGSsiiwSyscvhyOl6uI0mqoIKQjWwYoV61QLP19AjEAl3ooDLG4QnyCwCdmhBE4DaumNmQj2NqfyJqYc3ZI5fILxkMvS92jKGL7Gqx05jarnM5qpM7wkB5shPcvr4Zgmj6f5yD9wXXZ1zQCmHEyrppCMFcI8Vrqx8ETBKJEJxBnJDhkWrjOoIYn6XtyLaS8HVQk7HPm2j4AWEJPbXDoLW7dTurZIgbeObKa7g80Dka0wssUw7YEJ9glL1znkxVQ5B4QRiAmoUoyF12msKyrDUOhnqI5m0YmzQ3lwEXSKP18ng9\ncmd fntech3_fragment_probe_5 479ZFDby3sILwEblV5Y2mhIGV9ClCnZKgXRzomlOCpyQ1NvPtsGdnMuhHp0BG5xUDS8jTdr9hsPETyFgkiHIrej2MsmbeBtMQUIIENbw7GPufDl6sZ7OdbgpmPPADDflNuYefUmsedjT9mI47fNFH9MWn4m6L4grZz6Ysn6M7RjVosPxFzYUGCMW8KgzlhlzEM0CxHVT52OH46C3utGHCxvgmiAG3NaW0sZbaTweh5IPj7eLDb0md1QqGuf3StLiJA2ZPYexsTrMAPFaIIww8VtDZtLhJwSRNAnajsiPwEr3f0CtDm3UYJCewZYj8MNeotiTHH1vckPL1ocRb2Ad5oRDNwjQk4d4PXsGkzDADmf0p2oC77DZRoVB9mvJgSXWOVCveTUEytfBwyk1LRQ0i5vPb4xnzwWrcFtWdM6QelUEkOBy5u6coVWUUyuQiZmjnaFJwQQEMfiJ1UiI0amSx9O5VCeDWfZZQAfGtNrXTGEvrpDjNcQyglnW44cdvecZ9vR01Xc5Kc4Hmsaqdj2yk2F1y8znu0Lg49Brym3Mb3ExMrO3FrHrKxC9sYmm9IGIFhvxzrQchA05htP1R57bgBYJGXjjydGyjuqdaTCCOfFHrvW91af8jAKlGBoFIOSb1NrKkNeX2aZCGG0HdtibtLARMNl4RSbgQB6RQ0VgbtTDt65nArRRAMUx4Bg2wyOuI1v2JR0lz0y6EMhrbZaJ1VSkmXSOgnJyjquNiOby2e3sUYiez08WF3GiVMwKNZxqkCVLu7ajdftflbAa0wO8r0FIGh7IFEwDvKUsPysNER3VsmVnWK1sJoCAgrPFH8fAld8VzgRcjMqTgjTihYHnr9IaiVxJ89unbdNMUxWah6cXsEhY\nwait 420\nscreenshotPNG interop-proof\nwait 3\nquit\n",
+        "decisiveLines": [
+          "CL packet 127.0.0.1:55434: challengeResponse 1209647936 -287442035 71",
+          "^5challengeResponse: 1209647936",
+          "CL packet 127.0.0.1:55434: connectResponse 1209647936 71",
+          "  5:svc_gamestate",
+          "^5Connected to a pure server."
+        ]
+      },
+      "serverReady": true,
+      "privateWindowDiagnostics": [],
+      "impairment": {
+        "settings": {
+          "drop_every": 0,
+          "delay_every": 0,
+          "duplicate_every": 0,
+          "delay_seconds": 0.075,
+          "drop_first_fragment": true,
+          "drop_fragment_number": null,
+          "sequence_checksum": true,
+          "drop_terminal_fragment": false,
+          "fragment_drop_direction": "to_server"
+        },
+        "stats": {
+          "to_server": {
+            "received": 621,
+            "connectionless": 2,
+            "sequenced": 619,
+            "fragments": 15,
+            "dropped": 1,
+            "delayed": 0,
+            "duplicated": 0,
+            "forwarded": 620,
+            "overtakes": 0,
+            "reorderedForwards": 0,
+            "maxDatagramBytes": 1314
+          },
+          "to_client": {
+            "received": 238,
+            "connectionless": 2,
+            "sequenced": 236,
+            "fragments": 3,
+            "dropped": 0,
+            "delayed": 0,
+            "duplicated": 0,
+            "forwarded": 238,
+            "overtakes": 0,
+            "reorderedForwards": 0,
+            "maxDatagramBytes": 1312
+          }
+        },
+        "targetedFragmentDrops": {
+          "to_server": [
+            {
+              "fragmentOrdinal": 1,
+              "sequence": 180,
+              "fragmentStart": 0,
+              "fragmentLength": 1300,
+              "datagramBytes": 1314
+            }
+          ],
+          "to_client": []
+        },
+        "receivedStreamSha256": {
+          "to_server": "b7f5012eed00906708349225d34454d54a14fe74006651fe2445c6f744cc1e37",
+          "to_client": "2036a3d25f2fd9970150b62d554cf70a8c859ceafdb67e72a610a7da1b484649"
+        },
+        "pendingAtStop": 0,
+        "error": null
+      },
+      "elapsedSeconds": 35.266,
+      "negotiatedProtocol": 71,
+      "probeSourceSha256": "ce98dc9dd56d3a0412f138f561ea5fd41515a0e3f4ab417a3ec67e6031413d57",
+      "reliableCommands": [
+        {
+          "sequence": 3,
+          "name": "fntech3_fragment_probe_0",
+          "bytes": 905,
+          "sha256": "9bcf75dec6b0f7992b9b7b7d6b77c8be2113e1aa4c8d95b7e97e82c55c8b7236"
+        },
+        {
+          "sequence": 4,
+          "name": "fntech3_fragment_probe_1",
+          "bytes": 905,
+          "sha256": "34e5136f2908cf81eaa3cc5e2d82fe243361af4390663172c1daa39f4076aca4"
+        },
+        {
+          "sequence": 5,
+          "name": "fntech3_fragment_probe_2",
+          "bytes": 905,
+          "sha256": "4673108bcd02b5e827c931749c60ebc77c905530cb95c160e86f6f5728402886"
+        },
+        {
+          "sequence": 6,
+          "name": "fntech3_fragment_probe_3",
+          "bytes": 905,
+          "sha256": "af572dc196a5532f5355f35d9ad52f8a88c81c49f9480cd018b248099cfd487b"
+        },
+        {
+          "sequence": 7,
+          "name": "fntech3_fragment_probe_4",
+          "bytes": 905,
+          "sha256": "6ebf5ad1d4aa99c60dacb17175ca12e8dccc885d32512e8c864734b674dd8a10"
+        },
+        {
+          "sequence": 8,
+          "name": "fntech3_fragment_probe_5",
+          "bytes": 905,
+          "sha256": "da05f55b69116adc3635c4360105dd034848f2ec4336eabfd2a8a2d129bf782e"
+        }
+      ],
+      "commandDelivery": "All six complete command strings match the generated configuration in order, exactly once in the server reliable-dispatch log.",
+      "visualObservation": "Engine screenshot inspected: Q3 world/weapon/HUD"
+    },
+    "q3-refclient-fnserver": {
+      "mode": "refclient-fnserver",
+      "utc": "2026-09-08T05:09:32.166627+00:00",
+      "commit": "701bda728aebeb886d1d574bec6b5a8e622b2779",
+      "worktreeDirty": true,
+      "referenceSourceRevision": "7d8c9629cdc7979f09697266470359101ffd9eda",
+      "fixture": {
+        "fixture": "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-retail-interop-twn4g9dy",
+        "installation": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+        "retailExecutableSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+        "paks": [
+          {
+            "name": "pak0.pk3",
+            "bytes": 479493658,
+            "sha256": "7ce8b3910620cd50a09e4f1100f426e8c6180f68895d589f80e6bd95af54bcae"
+          },
+          {
+            "name": "pak1.pk3",
+            "bytes": 374405,
+            "sha256": "d4ffd60b4b414c3419499e321b6f5c2e933cf082df85823ad2d6ae2f803e1682"
+          },
+          {
+            "name": "pak2.pk3",
+            "bytes": 7511182,
+            "sha256": "ccae938a2f13a03b24902d675181d516a431699701ed88023a307f34b5bcd58c"
+          },
+          {
+            "name": "pak3.pk3",
+            "bytes": 276305,
+            "sha256": "d03c0a0e06b99f9ecca2be7389f57faed406e85f7c09b9c56afdfa53ba25e312"
+          },
+          {
+            "name": "pak4.pk3",
+            "bytes": 9600350,
+            "sha256": "af5f6d5c82fe4440ae0bb660f0648d1fa1731a9e8305a9eb652aa243428697f1"
+          },
+          {
+            "name": "pak5.pk3",
+            "bytes": 191872,
+            "sha256": "69f87070ca7719e252a3ba97e6483f6663939c987ede550d1268d4d9a07b45bc"
+          },
+          {
+            "name": "pak6.pk3",
+            "bytes": 7346884,
+            "sha256": "bb4f0ae2bf603b050fb665436d3178ce7c1c20360e67bacf7c14d93daff38daf"
+          },
+          {
+            "name": "pak7.pk3",
+            "bytes": 320873,
+            "sha256": "de6283ce23e3486a2622c5dbf73d3721a59f24debd380e90f43a97d952fea283"
+          },
+          {
+            "name": "pak8.pk3",
+            "bytes": 454478,
+            "sha256": "812c9e97f231e89cefede3848c6110b7bd34245093af6f22c2cacde3e6b15663"
+          }
+        ],
+        "isolation": "Copied executable and pak0..8 only; no installation config, credentials, mods, or writable install path used"
+      },
+      "privateDesktop": "fntech3_probe_f64d1b993b5b41f9b409720576b86d57",
+      "desktopSwitched": false,
+      "queries": [
+        "\u00ff\u00ff\u00ff\u00ffinfoResponse\n\\challenge\\referenceprobe\\protocol\\68\\hostname\\fntech3-reference-probe\\mapname\\q3dm6\\clients\\0\\g_humanplayers\\0\\sv_maxclients\\8\\gametype\\0\\pure\\1\\g_needpass\\0"
+      ],
+      "mergedArtifacts": [
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.exe",
+          "sha256": "3412c79dffe4a16834ee57c675c17d7ce43c6f0d16edde61faec6e844adb1561"
+        },
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.ded.exe",
+          "sha256": "37fbdb32334b3d54391cd6f93a94229a0fc412d141a8b950920c1c141bf502ce"
+        },
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fnql_glx_x86.dll",
+          "sha256": "f9360d552c1f83584df6a40221e24e9f531d418c7a41fb5613c660dcea98ac64"
+        },
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\FnQL-pkg.fnz",
+          "sha256": "1d1ff86488c3134a936486790c24954bef87abd22177e1ca8b5542cc2f06115a"
+        },
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fnql-web.pak",
+          "sha256": "6c210165880fff668900fd3e4e3c90137623043e1b5315f24b693f367f756382"
+        }
+      ],
+      "referenceArtifacts": [
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\fnq3-reference-7d8c9629\\.tmp\\build-msvc-x64\\fnquake3.x64.exe",
+          "sha256": "e80839729e965adf0d223e58edf5322efeedf0a527d3914e2b20002018b21117"
+        },
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\fnq3-reference-7d8c9629\\.tmp\\build-msvc-x64\\fnquake3.ded.x64.exe",
+          "sha256": "ac9b61e0ecdfc273aa870465d707b3f517d1601a3d4d09621818ba43db3f107a"
+        },
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\fnq3-reference-7d8c9629\\.tmp\\build-msvc-x64\\fnquake3_glx_x86_64.dll",
+          "sha256": "847f415ac28d4fc53fb9b6c41b01e01fbedc872953273a2d665f3419fe479b3e"
+        },
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\fnq3-reference-7d8c9629\\.tmp\\build-msvc-x64\\FnQuake3-pkg.fnz",
+          "sha256": "7310fa0658f58d4b5da7d3b4ffb886ddcab22995367b49eb71ebaf3e8ba5c582"
+        }
+      ],
+      "server": {
+        "exe": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.ded.exe",
+        "sha256": "37fbdb32334b3d54391cd6f93a94229a0fc412d141a8b950920c1c141bf502ce",
+        "command": [
+          "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.ded.exe",
+          "+set",
+          "fs_basepath",
+          "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-retail-interop-twn4g9dy\\assets",
+          "+set",
+          "fs_homepath",
+          "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-wnximn2_\\server",
+          "+set",
+          "fs_game",
+          "",
+          "+set",
+          "fs_cdpath",
+          "",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "developer",
+          "1",
+          "+set",
+          "net_ip",
+          "127.0.0.1",
+          "+set",
+          "net_port",
+          "55058",
+          "+set",
+          "dedicated",
+          "1",
+          "+set",
+          "protocol",
+          "68",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "r_windowedMode",
+          "-1",
+          "+set",
+          "r_windowedWidth",
+          "640",
+          "+set",
+          "r_windowedHeight",
+          "480",
+          "+set",
+          "com_gameProfile",
+          "q3",
+          "+set",
+          "com_steamIntegration",
+          "0",
+          "+set",
+          "fs_skipWorkshop",
+          "1",
+          "+set",
+          "cl_webuiEnable",
+          "0",
+          "+exec",
+          "interop.cfg"
+        ],
+        "home": "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-wnximn2_\\server",
+        "exitCode": 0,
+        "terminated": false,
+        "screenshots": [],
+        "logSha256": "93873ad6bb20f4556af52618b011366dc8c735495ab5d999a8dbd6249ef3758d",
+        "config": "set sv_pure 1\nset sv_autoRecordDemos 0\nset sv_hostname \"fntech3-reference-probe\"\nset sv_maxclients 2\nset sv_fps 20\nset cl_motd 0\nset cl_allowDownload 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset name \"fntech3_reference_probe\"\nset cl_shownet 2\nversion\nset sv_floodProtect 0\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nmap q3dm6\nwait 700\nquit\n",
+        "decisiveLines": [
+          "^5fntech3_reference_probe acknowledged gamestate",
+          "Going from CS_PRIMED to CS_ACTIVE for fntech3_reference_probe",
+          "Going from CS_ACTIVE to CS_ZOMBIE for fntech3_reference_probe"
+        ]
+      },
+      "client": {
+        "exe": "E:\\Repositories\\fnTech3\\.tmp\\fnq3-reference-7d8c9629\\.tmp\\build-msvc-x64\\fnquake3.x64.exe",
+        "sha256": "e80839729e965adf0d223e58edf5322efeedf0a527d3914e2b20002018b21117",
+        "command": [
+          "E:\\Repositories\\fnTech3\\.tmp\\fnq3-reference-7d8c9629\\.tmp\\build-msvc-x64\\fnquake3.x64.exe",
+          "+set",
+          "fs_basepath",
+          "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-retail-interop-twn4g9dy\\assets",
+          "+set",
+          "fs_homepath",
+          "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-wnximn2_\\client",
+          "+set",
+          "fs_game",
+          "",
+          "+set",
+          "fs_cdpath",
+          "",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "developer",
+          "1",
+          "+set",
+          "net_ip",
+          "127.0.0.1",
+          "+set",
+          "net_port",
+          "55059",
+          "+set",
+          "dedicated",
+          "0",
+          "+set",
+          "protocol",
+          "68",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "r_windowedMode",
+          "-1",
+          "+set",
+          "r_windowedWidth",
+          "640",
+          "+set",
+          "r_windowedHeight",
+          "480",
+          "+exec",
+          "interop.cfg"
+        ],
+        "home": "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-wnximn2_\\client",
+        "exitCode": 0,
+        "terminated": false,
+        "screenshots": [
+          {
+            "path": "E:\\Repositories\\fnTech3\\.tmp\\q3-client-fragment-refclient-fnserver-current\\client-interop-proof.png",
+            "sha256": "1677a0492e207ce90ca8eaa99d7b7427720e3ebef289ef3c87a6b9e1d84b74b6"
+          }
+        ],
+        "logSha256": "2b2b96c79d2f69adf1c2835f0e7c2943360fe401f5de59a1b33d0f4a50953dea",
+        "config": "set sv_pure 1\nset sv_autoRecordDemos 0\nset sv_hostname \"fntech3-reference-probe\"\nset sv_maxclients 2\nset sv_fps 20\nset cl_motd 0\nset cl_allowDownload 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset name \"fntech3_reference_probe\"\nset cl_shownet 2\nversion\nset sv_floodProtect 0\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nconnect 127.0.0.1:55060\nwait 180\ncmd fntech3_fragment_probe_0 p2mwimODwqalEhGnAB3M4mo9WATArzfcUA5Ve1rFl11Gqdfh52m1xsYWxpfwW5H8vW1vwbhmk7ortUcDuH8DtMEOS94xKNJWGNLAmiucBWlc0FnhOwN1BVqzhOQKKVStiY18XCGincibtB2Irg2KWMLP3bYJnxgIa1diCLx7ARCQyBlcwpdnK2wLi28f65zmFl8KJvxnrlfSD9VpAh7t72ReEgVOilIi4hnztcurLQMdc1MbPzu3u5bsvcg0AjWIeNTPHxkqdMZIXDzlo2jKkPSceN43qOhcwOnyqZ1SlJbelFbUU2wE3FIKR8oTphu6PAtmKDBW49r3LooWPUEMTDMfkGrokoLPbbDjHu9ejiTM0OpiK8mo5JdhDNHDglj6DhBiNF9ySLeJVw9bH7EIeDfDykCaDbkpCzqoKWTjlm4wXeopfnHHVDdI8S7vKJPa38ssrYxgzSmcLP8xBc8VMvSHzeuf2CQewbtzEnyIe4xk1CEWfbL1PfPWKVUX4WgcBlVt044ZLv2SKGzX01jNOHRUmOWw9ZsXOxtXNYOVGT6uIN4hWCv3gri4so3wkh8d8L0U8lxkpScPIYxH8jCUxHLAkKd7aL0mSfKtdwJbO78Pe9pecf10gjK2mUqhD9qrDkCerHaeLQQoC3lUKugBSLoi1eJrIkS1qxSwTIhmNkxQKX5axaE6HGzLcjOpWDQYNNJktth2XAghSusBi9pflAMKQGKp4xulvKWTPNSJLmEG4fe1g3e1q8Byh4ZourxDcNe6xL9YxzQi5hZmNWCtlNLX0V0I30TJZSCzSqBNyGfnpBAXhTz0cqZYMW2xsZLZsc6dBWbU3oK9kR4V1pa958hn7lWhLdg1Rvpdz29jN2oMpIRw\ncmd fntech3_fragment_probe_1 A4m7zuT9ek8RWx07LMXTV8ItmzJXdJEKSyq4ilGyMQAZr9f1QhsHwHlK8S7HpkutsuoNbREwYaOvhD7n6LSVoqQ3XYuP0RUbMfggdLTehZM7AN7RNRHcKNyECZzqDLIoni07tRk3H0sH23JWZDSMU56Mc7uFZZqHP9pmHTjx4ZBTDlgUBJ4Fxv1C4vlViwsxSFrvYJ86Lw9zghKO5PQK1JANi2AY64YpDR7iCEyTf77A6wZIBo83Pv3hy1r3JFsN4OukzM8upVEsSUHswkstYOc69VOqDBat6m3fVwx1dxp0IMlhcSLwFPpMEIdC3JNvnLc7m661U8DFwwQRnr9ZH5MvWwTIzqR1DLedEzRZu8ejUl1e3iIuEZUfA4Ezz1DHU2mLqt8UYHXxnirsYKKN2zhqXp8lYW0tWdZ76ErVTvRylCq78BRCOLS8HQkGYBfleqVN9Q5Bwi9v6rIcG2B4kB9NPMKQfZpxGLnDu53nvxhKnjN2Vgau5SEaN1sLB98SEOjFLANwgQvF40vpDptqEuSWd8tgkWtzKJwTpHFLV1Y9zDwTZWx8HyAQbPc0Hixw3WG055PHWB7wLXQq4srhWMUL8FxNhWtE1lI3soUlxuEIGCvHvqE9qriYt4ylMcvNWc1mnwW8euvoGCkEL595rqHxz5NXVIubZ7zQlq8h1xJ23HGiISpDOmcs3cjE4diSL1VnrhVwCuPsU7BIVafRfY1E2tT3SRUoMlULgHGBB4ckYanymX58WFIzn4m6y0vtNKvdYRyCwB9aIvgj7z2fPZNi6suDX42oWMGkbEfG39pklMljNKzlDHHZRnPyvJnV1CJR3s78VH3dj2w8MLkHqBJDej7kBZiMn0dGgdSdXOVU4JDo\ncmd fntech3_fragment_probe_2 EeT5yuyvKmr7mWUKSmrU5lLScYyk19xDfKeg2glSfsRtfNXBaKb9VdqHbsGI03YdUbfa9UDp9T7hhXgUFAOzD6nP5LBVXM6ePsdKWYuqqfV6uIIGCr0AVWhjV0nkF8taEfIryb1DG3BnNokPJhvReM6x9JrdMFIoVbttD2lxuvPOXWkRKO1ARDeZMqYFkO4BW8AoVHi7NfHLWzSLzxizvbTKBiMcZrcHj5wXtCUNqfhIGfebebuXULdbJ68g7ROezX4gnTO56apLk057tTIBCDx8xwHSpjuLiLFwYO8tIVtXi6pc13bCIjUH95TE9O4LDOaX6RLi4lwbORVGTwcl3rW2JM0KGfWItl4O8fhnZsa40Yr0qYpLdpdH4dKQZtUsLwzBXIiMzr4PuGNxEdwrqVc4kmcODFWMaLmFzNP4EvTLo7P8dp2tZKVOHWW6JpCZKrnNGahAmk9XYRg5BQSvGgTzfWruLX0FUcbQFLXJ4kXQukQyTuCajrFLuuzmyFvBIdo7Iv6flMpxNvrSTuF8v4poHVLDM6KI1lC69GgEP6zrwsdGrYPTe6HfBb6Oj5A9C4SyXA0lU4vmPDTy2BQAsuUnfugjGbZyufky5clRpazobOJcYmuZ8f8WPfZEQRleXU2ef2dkhwWpsCd1ycHzRSys9ZsfXBuZz7wKsa3tGnI8UADfjLjYjxdG3SiWPiwQVK3B6iKzeSLmPM2mq1WiQxeJ584tukvcNLYg6PY2R5BO0oe7pJXazBjyDHzuGBQ4pQvzfnWSjfA10N767xhnyBbp8e1l98wucijbhSO7i1ErogXJAOnplY7oCx9XaAuNez5H2WVWAxLzVMMzeYnNeU4gicudo7FyxU2ZhPg12dWGhbu5\ncmd fntech3_fragment_probe_3 zGJzTb1HcPiOLlDLXIbiu1W578p2Bi8E1GOfjAzacbYTbft85KH23AWkYVdivaqrVypkhBGOO6d6JoIG5NGzz4nn6aviPz2kZyhZ7nA7qQQllZv7e8Nr6zBWo5u957Q1fTORfTcYmJHHOI1OMNNdB9pwpLYdLpmUx5TycgwZwETJr11kqWynRr73IF3FLWD77p3ie1zSDfodSfakwoctWvPjLlguM2NSElt5RWdzyWMgFXeXU01U1ElPKV6VaKI1lRdl7QyI7jTwC09gVLhWiIYRdClaGXYu0zkrhlpb5XLLWxXwpY1Z6yRe7cc4GDo7s1IBbsu8aJoUvSpftQEFVmpHqtusC63eCg08a6Wsnzy0oSqV1jc8R0XoQITTDQRMrDYFm5KOHnE1X49GTHoG1IM1BzAd28a8lVwN5omPQ1tKN2Mp9zEZ48wTR3mOnzf8bkWTSTikZXKSVeiRGo1ylF4unZbbds0FZz2pI160HmtvYsEvDkJEsy9Tr6tgNvoYrkLJvgBT6UQRrndzA8fNQKEDiKyJDMEwzn20CU7U8oD3AML5UsX8JJ79eaa8bT1rLlCpmfh1PKSA8H4lTspikZoeqLo1uZdA2w3dLZAd21VIaS6LOxAc0Cs7uGhITzZOhEjt6NWjczbDXQgIwkowiUc4kcWdkuSd9GOXtVhEpkXDIr15Q8meOkWsdtofZLonfjLDWUDE7mGL18SzbhmgQXBZLNz3Z5f6jqE0E1fvxsReO2flHD39DIeTTDNBhF9lcUqzJjBKULfZMIprT4fLAtbWyaqQXojQaNQjvXBd8UbGuAQVDdiRX5zLBXpnlxioOwpRQPEKv165OUr82wEecaif4rOifUDD1PXq3Hq54ZOcXtTB\ncmd fntech3_fragment_probe_4 TxLiX1JeZWkcEz437Vi6W9lzAxnBfLBjUaejSMLGbNGL9uHjUGqBq4437QIcIAPylnX0OM26abXX1CklJPOAQmMZPdiP4RRcBs4xy9hkh65dr8G2DqveqbcKmbgfckGWeBr8RGbYYyvzBZrsbX1KnrMTwoDkSsPllZjGXnjEDcRecSnJobv0U8iHIhnE7AK8Q8wVX7mNrZZR0itBlwYIWlqQVRcm8M6CLK1Hbg8GHB3y1dLPgiEHkyg6ohaVBcJj8NVU6x33BqY6yp9qZBvjHKRKAiiuz5vp6Sj4Ss04npWSbuvwtdGnwWTrUPD4hsCeIGVL2L8WQManN7COmM5V6EQyknQfMszznNpcYsiEQNJlDiKnV9AibN3Qhmo9CeaDtgd41Lo5Vdh7Icvkm1fDRFjZD1rWeyE7GdmVpyIygqRoZdyBdHH2Im1nrXFdTcADHtjdRRN8R8Bx7BnF11vGDZHQy2PsPuDz1REDcOQYa6I0hPIqFv6A8Q7rgz2gKV44KeS6mfcQ7uSj9GqcHkwRGk1rMj3T2aj8SbszoBHrWDqFjSZcWQIX8YeCP7HRTURTXSaGSsiiwSyscvhyOl6uI0mqoIKQjWwYoV61QLP19AjEAl3ooDLG4QnyCwCdmhBE4DaumNmQj2NqfyJqYc3ZI5fILxkMvS92jKGL7Gqx05jarnM5qpM7wkB5shPcvr4Zgmj6f5yD9wXXZ1zQCmHEyrppCMFcI8Vrqx8ETBKJEJxBnJDhkWrjOoIYn6XtyLaS8HVQk7HPm2j4AWEJPbXDoLW7dTurZIgbeObKa7g80Dka0wssUw7YEJ9glL1znkxVQ5B4QRiAmoUoyF12msKyrDUOhnqI5m0YmzQ3lwEXSKP18ng9\ncmd fntech3_fragment_probe_5 479ZFDby3sILwEblV5Y2mhIGV9ClCnZKgXRzomlOCpyQ1NvPtsGdnMuhHp0BG5xUDS8jTdr9hsPETyFgkiHIrej2MsmbeBtMQUIIENbw7GPufDl6sZ7OdbgpmPPADDflNuYefUmsedjT9mI47fNFH9MWn4m6L4grZz6Ysn6M7RjVosPxFzYUGCMW8KgzlhlzEM0CxHVT52OH46C3utGHCxvgmiAG3NaW0sZbaTweh5IPj7eLDb0md1QqGuf3StLiJA2ZPYexsTrMAPFaIIww8VtDZtLhJwSRNAnajsiPwEr3f0CtDm3UYJCewZYj8MNeotiTHH1vckPL1ocRb2Ad5oRDNwjQk4d4PXsGkzDADmf0p2oC77DZRoVB9mvJgSXWOVCveTUEytfBwyk1LRQ0i5vPb4xnzwWrcFtWdM6QelUEkOBy5u6coVWUUyuQiZmjnaFJwQQEMfiJ1UiI0amSx9O5VCeDWfZZQAfGtNrXTGEvrpDjNcQyglnW44cdvecZ9vR01Xc5Kc4Hmsaqdj2yk2F1y8znu0Lg49Brym3Mb3ExMrO3FrHrKxC9sYmm9IGIFhvxzrQchA05htP1R57bgBYJGXjjydGyjuqdaTCCOfFHrvW91af8jAKlGBoFIOSb1NrKkNeX2aZCGG0HdtibtLARMNl4RSbgQB6RQ0VgbtTDt65nArRRAMUx4Bg2wyOuI1v2JR0lz0y6EMhrbZaJ1VSkmXSOgnJyjquNiOby2e3sUYiez08WF3GiVMwKNZxqkCVLu7ajdftflbAa0wO8r0FIGh7IFEwDvKUsPysNER3VsmVnWK1sJoCAgrPFH8fAld8VzgRcjMqTgjTihYHnr9IaiVxJ89unbdNMUxWah6cXsEhY\nwait 420\nscreenshotPNG interop-proof\nwait 3\nquit\n",
+        "decisiveLines": [
+          "CL packet 127.0.0.1:55060: challengeResponse 774685820 588475830 68 FnQL",
+          "^5challengeResponse: 774685820",
+          "CL packet 127.0.0.1:55060: connectResponse 774685820",
+          "  5:svc_gamestate",
+          "^5Connected to a pure server."
+        ]
+      },
+      "serverReady": true,
+      "privateWindowDiagnostics": [],
+      "impairment": {
+        "settings": {
+          "drop_every": 0,
+          "delay_every": 0,
+          "duplicate_every": 0,
+          "delay_seconds": 0.075,
+          "drop_first_fragment": true,
+          "drop_fragment_number": null,
+          "sequence_checksum": false,
+          "drop_terminal_fragment": false,
+          "fragment_drop_direction": "to_server"
+        },
+        "stats": {
+          "to_server": {
+            "received": 617,
+            "connectionless": 2,
+            "sequenced": 615,
+            "fragments": 10,
+            "dropped": 1,
+            "delayed": 0,
+            "duplicated": 0,
+            "forwarded": 616,
+            "overtakes": 0,
+            "reorderedForwards": 0,
+            "maxDatagramBytes": 1310
+          },
+          "to_client": {
+            "received": 234,
+            "connectionless": 2,
+            "sequenced": 232,
+            "fragments": 3,
+            "dropped": 0,
+            "delayed": 0,
+            "duplicated": 0,
+            "forwarded": 234,
+            "overtakes": 0,
+            "reorderedForwards": 0,
+            "maxDatagramBytes": 1308
+          }
+        },
+        "targetedFragmentDrops": {
+          "to_server": [
+            {
+              "fragmentOrdinal": 1,
+              "sequence": 180,
+              "fragmentStart": 0,
+              "fragmentLength": 1300,
+              "datagramBytes": 1310
+            }
+          ],
+          "to_client": []
+        },
+        "receivedStreamSha256": {
+          "to_server": "6f492bf89b32e17b98b271e75bd8638cf7f457071a0a0c19adc04958af6c43a9",
+          "to_client": "a3260ac05d1d078ade515b4dab583953acde12b0d825e22458e40000e40b64af"
+        },
+        "pendingAtStop": 0,
+        "error": null
+      },
+      "elapsedSeconds": 35.281,
+      "negotiatedProtocol": 68,
+      "probeSourceSha256": "ce98dc9dd56d3a0412f138f561ea5fd41515a0e3f4ab417a3ec67e6031413d57",
+      "reliableCommands": [
+        {
+          "sequence": 3,
+          "name": "fntech3_fragment_probe_0",
+          "bytes": 905,
+          "sha256": "9bcf75dec6b0f7992b9b7b7d6b77c8be2113e1aa4c8d95b7e97e82c55c8b7236"
+        },
+        {
+          "sequence": 4,
+          "name": "fntech3_fragment_probe_1",
+          "bytes": 905,
+          "sha256": "34e5136f2908cf81eaa3cc5e2d82fe243361af4390663172c1daa39f4076aca4"
+        },
+        {
+          "sequence": 5,
+          "name": "fntech3_fragment_probe_2",
+          "bytes": 905,
+          "sha256": "4673108bcd02b5e827c931749c60ebc77c905530cb95c160e86f6f5728402886"
+        },
+        {
+          "sequence": 6,
+          "name": "fntech3_fragment_probe_3",
+          "bytes": 905,
+          "sha256": "af572dc196a5532f5355f35d9ad52f8a88c81c49f9480cd018b248099cfd487b"
+        },
+        {
+          "sequence": 7,
+          "name": "fntech3_fragment_probe_4",
+          "bytes": 905,
+          "sha256": "6ebf5ad1d4aa99c60dacb17175ca12e8dccc885d32512e8c864734b674dd8a10"
+        },
+        {
+          "sequence": 8,
+          "name": "fntech3_fragment_probe_5",
+          "bytes": 905,
+          "sha256": "da05f55b69116adc3635c4360105dd034848f2ec4336eabfd2a8a2d129bf782e"
+        }
+      ],
+      "commandDelivery": "All six complete command strings match the generated configuration in order, exactly once in the server reliable-dispatch log.",
+      "visualObservation": "Engine screenshot inspected: Q3 world/weapon/HUD"
+    },
+    "ql-fnclient-refserver": {
+      "mode": "fnclient-refserver",
+      "utc": "2026-09-08T05:09:53.300701+00:00",
+      "commit": "701bda728aebeb886d1d574bec6b5a8e622b2779",
+      "worktreeDirty": true,
+      "referenceSourceRevision": "not established for the existing binary; not asserted to be the pinned baseline",
+      "fixture": {
+        "installation": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live",
+        "profile": "ql"
+      },
+      "privateDesktop": "fntech3_probe_027d7e628a69400bb2fbb38b78572679",
+      "desktopSwitched": false,
+      "queries": [
+        "\u00ff\u00ff\u00ff\u00ffinfoResponse\n\\challenge\\referenceprobe\\protocol\\91\\hostname\\fntech3-reference-probe\\mapname\\campgrounds\\clients\\0\\g_humanplayers\\0\\sv_maxclients\\16\\gametype\\0\\pure\\1\\g_needpass\\0"
+      ],
+      "mergedArtifacts": [
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.exe",
+          "sha256": "3412c79dffe4a16834ee57c675c17d7ce43c6f0d16edde61faec6e844adb1561"
+        },
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.ded.exe",
+          "sha256": "37fbdb32334b3d54391cd6f93a94229a0fc412d141a8b950920c1c141bf502ce"
+        },
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fnql_glx_x86.dll",
+          "sha256": "f9360d552c1f83584df6a40221e24e9f531d418c7a41fb5613c660dcea98ac64"
+        },
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\FnQL-pkg.fnz",
+          "sha256": "1d1ff86488c3134a936486790c24954bef87abd22177e1ca8b5542cc2f06115a"
+        },
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fnql-web.pak",
+          "sha256": "6c210165880fff668900fd3e4e3c90137623043e1b5315f24b693f367f756382"
+        }
+      ],
+      "referenceArtifacts": [
+        {
+          "path": "E:\\Repositories\\FnQL\\meson\\build-win32\\fnql.exe",
+          "sha256": "8302fc8853091768c82268b5593b7193f2d3774482ebe63b821d946f9ffce14c"
+        },
+        {
+          "path": "E:\\Repositories\\FnQL\\meson\\build-win32\\fnql.ded.exe",
+          "sha256": "c215166492e316cf80e05d5bbd58f2ce0efa2d0f7ed920cb69ce62a20305a6d1"
+        },
+        {
+          "path": "E:\\Repositories\\FnQL\\meson\\build-win32\\fnql_glx_x86.dll",
+          "sha256": "a7ff11c3894a333d198fdde35f43c3a305e36b5889014d1294075348a6a64073"
+        },
+        {
+          "path": "E:\\Repositories\\FnQL\\meson\\build-win32\\FnQL-pkg.fnz",
+          "sha256": "fd5918f9be0dae26758d85c298e02b8ce85c00361b2d4327ac2eb878c8f93c2a"
+        }
+      ],
+      "server": {
+        "exe": "E:\\Repositories\\FnQL\\meson\\build-win32\\fnql.ded.exe",
+        "sha256": "c215166492e316cf80e05d5bbd58f2ce0efa2d0f7ed920cb69ce62a20305a6d1",
+        "command": [
+          "E:\\Repositories\\FnQL\\meson\\build-win32\\fnql.ded.exe",
+          "+set",
+          "fs_basepath",
+          "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live",
+          "+set",
+          "fs_homepath",
+          "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-u76838gw\\server",
+          "+set",
+          "fs_game",
+          "",
+          "+set",
+          "fs_cdpath",
+          "",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "developer",
+          "1",
+          "+set",
+          "net_ip",
+          "127.0.0.1",
+          "+set",
+          "net_port",
+          "52737",
+          "+set",
+          "dedicated",
+          "1",
+          "+set",
+          "protocol",
+          "91",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "r_windowedMode",
+          "-1",
+          "+set",
+          "r_windowedWidth",
+          "640",
+          "+set",
+          "r_windowedHeight",
+          "480",
+          "+set",
+          "com_gameProfile",
+          "ql",
+          "+set",
+          "com_steamIntegration",
+          "0",
+          "+set",
+          "fs_skipWorkshop",
+          "1",
+          "+set",
+          "cl_webuiEnable",
+          "0",
+          "+exec",
+          "interop.cfg"
+        ],
+        "home": "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-u76838gw\\server",
+        "exitCode": 0,
+        "terminated": false,
+        "screenshots": [],
+        "logSha256": "418f39cbfb2e394a1d0b32840d63bbb51a22ead52b15f222b5035b5a31aa0043",
+        "config": "set sv_pure 1\nset sv_autoRecordDemos 0\nset sv_hostname \"fntech3-reference-probe\"\nset sv_maxclients 2\nset sv_fps 20\nset cl_motd 0\nset cl_allowDownload 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset name \"fntech3_reference_probe\"\nset cl_shownet 2\nversion\nset sv_floodProtect 0\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nmap campgrounds ffa\nwait 1400\nquit\n",
+        "decisiveLines": [
+          "^5fntech3_reference_probe acknowledged gamestate",
+          "Going from CS_PRIMED to CS_ACTIVE for fntech3_reference_probe",
+          "Going from CS_ACTIVE to CS_ZOMBIE for fntech3_reference_probe"
+        ]
+      },
+      "client": {
+        "exe": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.exe",
+        "sha256": "3412c79dffe4a16834ee57c675c17d7ce43c6f0d16edde61faec6e844adb1561",
+        "command": [
+          "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.exe",
+          "+set",
+          "fs_basepath",
+          "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live",
+          "+set",
+          "fs_homepath",
+          "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-u76838gw\\client",
+          "+set",
+          "fs_game",
+          "",
+          "+set",
+          "fs_cdpath",
+          "",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "developer",
+          "1",
+          "+set",
+          "net_ip",
+          "127.0.0.1",
+          "+set",
+          "net_port",
+          "52738",
+          "+set",
+          "dedicated",
+          "0",
+          "+set",
+          "protocol",
+          "91",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "r_windowedMode",
+          "-1",
+          "+set",
+          "r_windowedWidth",
+          "640",
+          "+set",
+          "r_windowedHeight",
+          "480",
+          "+set",
+          "com_gameProfile",
+          "ql",
+          "+set",
+          "com_steamIntegration",
+          "0",
+          "+set",
+          "fs_skipWorkshop",
+          "1",
+          "+set",
+          "cl_webuiEnable",
+          "0",
+          "+exec",
+          "interop.cfg"
+        ],
+        "home": "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-u76838gw\\client",
+        "exitCode": 0,
+        "terminated": false,
+        "screenshots": [
+          {
+            "path": "E:\\Repositories\\fnTech3\\.tmp\\ql-client-fragment-fnclient-refserver-current\\client-interop-proof.png",
+            "sha256": "73b5d1783119b648e7e9c6a05aaecc4d419f3ad8aea53be9edf7a94c12cb77f6"
+          }
+        ],
+        "logSha256": "f5a898066120557442ca9b83febd84cf35ef1133daba62d77776b7c78e62b264",
+        "config": "set sv_pure 1\nset sv_autoRecordDemos 0\nset sv_hostname \"fntech3-reference-probe\"\nset sv_maxclients 2\nset sv_fps 20\nset cl_motd 0\nset cl_allowDownload 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset name \"fntech3_reference_probe\"\nset cl_shownet 2\nversion\nset sv_floodProtect 0\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nconnect 127.0.0.1:52739\nwait 180\ncmd fntech3_fragment_probe_0 p2mwimODwqalEhGnAB3M4mo9WATArzfcUA5Ve1rFl11Gqdfh52m1xsYWxpfwW5H8vW1vwbhmk7ortUcDuH8DtMEOS94xKNJWGNLAmiucBWlc0FnhOwN1BVqzhOQKKVStiY18XCGincibtB2Irg2KWMLP3bYJnxgIa1diCLx7ARCQyBlcwpdnK2wLi28f65zmFl8KJvxnrlfSD9VpAh7t72ReEgVOilIi4hnztcurLQMdc1MbPzu3u5bsvcg0AjWIeNTPHxkqdMZIXDzlo2jKkPSceN43qOhcwOnyqZ1SlJbelFbUU2wE3FIKR8oTphu6PAtmKDBW49r3LooWPUEMTDMfkGrokoLPbbDjHu9ejiTM0OpiK8mo5JdhDNHDglj6DhBiNF9ySLeJVw9bH7EIeDfDykCaDbkpCzqoKWTjlm4wXeopfnHHVDdI8S7vKJPa38ssrYxgzSmcLP8xBc8VMvSHzeuf2CQewbtzEnyIe4xk1CEWfbL1PfPWKVUX4WgcBlVt044ZLv2SKGzX01jNOHRUmOWw9ZsXOxtXNYOVGT6uIN4hWCv3gri4so3wkh8d8L0U8lxkpScPIYxH8jCUxHLAkKd7aL0mSfKtdwJbO78Pe9pecf10gjK2mUqhD9qrDkCerHaeLQQoC3lUKugBSLoi1eJrIkS1qxSwTIhmNkxQKX5axaE6HGzLcjOpWDQYNNJktth2XAghSusBi9pflAMKQGKp4xulvKWTPNSJLmEG4fe1g3e1q8Byh4ZourxDcNe6xL9YxzQi5hZmNWCtlNLX0V0I30TJZSCzSqBNyGfnpBAXhTz0cqZYMW2xsZLZsc6dBWbU3oK9kR4V1pa958hn7lWhLdg1Rvpdz29jN2oMpIRw\ncmd fntech3_fragment_probe_1 A4m7zuT9ek8RWx07LMXTV8ItmzJXdJEKSyq4ilGyMQAZr9f1QhsHwHlK8S7HpkutsuoNbREwYaOvhD7n6LSVoqQ3XYuP0RUbMfggdLTehZM7AN7RNRHcKNyECZzqDLIoni07tRk3H0sH23JWZDSMU56Mc7uFZZqHP9pmHTjx4ZBTDlgUBJ4Fxv1C4vlViwsxSFrvYJ86Lw9zghKO5PQK1JANi2AY64YpDR7iCEyTf77A6wZIBo83Pv3hy1r3JFsN4OukzM8upVEsSUHswkstYOc69VOqDBat6m3fVwx1dxp0IMlhcSLwFPpMEIdC3JNvnLc7m661U8DFwwQRnr9ZH5MvWwTIzqR1DLedEzRZu8ejUl1e3iIuEZUfA4Ezz1DHU2mLqt8UYHXxnirsYKKN2zhqXp8lYW0tWdZ76ErVTvRylCq78BRCOLS8HQkGYBfleqVN9Q5Bwi9v6rIcG2B4kB9NPMKQfZpxGLnDu53nvxhKnjN2Vgau5SEaN1sLB98SEOjFLANwgQvF40vpDptqEuSWd8tgkWtzKJwTpHFLV1Y9zDwTZWx8HyAQbPc0Hixw3WG055PHWB7wLXQq4srhWMUL8FxNhWtE1lI3soUlxuEIGCvHvqE9qriYt4ylMcvNWc1mnwW8euvoGCkEL595rqHxz5NXVIubZ7zQlq8h1xJ23HGiISpDOmcs3cjE4diSL1VnrhVwCuPsU7BIVafRfY1E2tT3SRUoMlULgHGBB4ckYanymX58WFIzn4m6y0vtNKvdYRyCwB9aIvgj7z2fPZNi6suDX42oWMGkbEfG39pklMljNKzlDHHZRnPyvJnV1CJR3s78VH3dj2w8MLkHqBJDej7kBZiMn0dGgdSdXOVU4JDo\ncmd fntech3_fragment_probe_2 EeT5yuyvKmr7mWUKSmrU5lLScYyk19xDfKeg2glSfsRtfNXBaKb9VdqHbsGI03YdUbfa9UDp9T7hhXgUFAOzD6nP5LBVXM6ePsdKWYuqqfV6uIIGCr0AVWhjV0nkF8taEfIryb1DG3BnNokPJhvReM6x9JrdMFIoVbttD2lxuvPOXWkRKO1ARDeZMqYFkO4BW8AoVHi7NfHLWzSLzxizvbTKBiMcZrcHj5wXtCUNqfhIGfebebuXULdbJ68g7ROezX4gnTO56apLk057tTIBCDx8xwHSpjuLiLFwYO8tIVtXi6pc13bCIjUH95TE9O4LDOaX6RLi4lwbORVGTwcl3rW2JM0KGfWItl4O8fhnZsa40Yr0qYpLdpdH4dKQZtUsLwzBXIiMzr4PuGNxEdwrqVc4kmcODFWMaLmFzNP4EvTLo7P8dp2tZKVOHWW6JpCZKrnNGahAmk9XYRg5BQSvGgTzfWruLX0FUcbQFLXJ4kXQukQyTuCajrFLuuzmyFvBIdo7Iv6flMpxNvrSTuF8v4poHVLDM6KI1lC69GgEP6zrwsdGrYPTe6HfBb6Oj5A9C4SyXA0lU4vmPDTy2BQAsuUnfugjGbZyufky5clRpazobOJcYmuZ8f8WPfZEQRleXU2ef2dkhwWpsCd1ycHzRSys9ZsfXBuZz7wKsa3tGnI8UADfjLjYjxdG3SiWPiwQVK3B6iKzeSLmPM2mq1WiQxeJ584tukvcNLYg6PY2R5BO0oe7pJXazBjyDHzuGBQ4pQvzfnWSjfA10N767xhnyBbp8e1l98wucijbhSO7i1ErogXJAOnplY7oCx9XaAuNez5H2WVWAxLzVMMzeYnNeU4gicudo7FyxU2ZhPg12dWGhbu5\ncmd fntech3_fragment_probe_3 zGJzTb1HcPiOLlDLXIbiu1W578p2Bi8E1GOfjAzacbYTbft85KH23AWkYVdivaqrVypkhBGOO6d6JoIG5NGzz4nn6aviPz2kZyhZ7nA7qQQllZv7e8Nr6zBWo5u957Q1fTORfTcYmJHHOI1OMNNdB9pwpLYdLpmUx5TycgwZwETJr11kqWynRr73IF3FLWD77p3ie1zSDfodSfakwoctWvPjLlguM2NSElt5RWdzyWMgFXeXU01U1ElPKV6VaKI1lRdl7QyI7jTwC09gVLhWiIYRdClaGXYu0zkrhlpb5XLLWxXwpY1Z6yRe7cc4GDo7s1IBbsu8aJoUvSpftQEFVmpHqtusC63eCg08a6Wsnzy0oSqV1jc8R0XoQITTDQRMrDYFm5KOHnE1X49GTHoG1IM1BzAd28a8lVwN5omPQ1tKN2Mp9zEZ48wTR3mOnzf8bkWTSTikZXKSVeiRGo1ylF4unZbbds0FZz2pI160HmtvYsEvDkJEsy9Tr6tgNvoYrkLJvgBT6UQRrndzA8fNQKEDiKyJDMEwzn20CU7U8oD3AML5UsX8JJ79eaa8bT1rLlCpmfh1PKSA8H4lTspikZoeqLo1uZdA2w3dLZAd21VIaS6LOxAc0Cs7uGhITzZOhEjt6NWjczbDXQgIwkowiUc4kcWdkuSd9GOXtVhEpkXDIr15Q8meOkWsdtofZLonfjLDWUDE7mGL18SzbhmgQXBZLNz3Z5f6jqE0E1fvxsReO2flHD39DIeTTDNBhF9lcUqzJjBKULfZMIprT4fLAtbWyaqQXojQaNQjvXBd8UbGuAQVDdiRX5zLBXpnlxioOwpRQPEKv165OUr82wEecaif4rOifUDD1PXq3Hq54ZOcXtTB\ncmd fntech3_fragment_probe_4 TxLiX1JeZWkcEz437Vi6W9lzAxnBfLBjUaejSMLGbNGL9uHjUGqBq4437QIcIAPylnX0OM26abXX1CklJPOAQmMZPdiP4RRcBs4xy9hkh65dr8G2DqveqbcKmbgfckGWeBr8RGbYYyvzBZrsbX1KnrMTwoDkSsPllZjGXnjEDcRecSnJobv0U8iHIhnE7AK8Q8wVX7mNrZZR0itBlwYIWlqQVRcm8M6CLK1Hbg8GHB3y1dLPgiEHkyg6ohaVBcJj8NVU6x33BqY6yp9qZBvjHKRKAiiuz5vp6Sj4Ss04npWSbuvwtdGnwWTrUPD4hsCeIGVL2L8WQManN7COmM5V6EQyknQfMszznNpcYsiEQNJlDiKnV9AibN3Qhmo9CeaDtgd41Lo5Vdh7Icvkm1fDRFjZD1rWeyE7GdmVpyIygqRoZdyBdHH2Im1nrXFdTcADHtjdRRN8R8Bx7BnF11vGDZHQy2PsPuDz1REDcOQYa6I0hPIqFv6A8Q7rgz2gKV44KeS6mfcQ7uSj9GqcHkwRGk1rMj3T2aj8SbszoBHrWDqFjSZcWQIX8YeCP7HRTURTXSaGSsiiwSyscvhyOl6uI0mqoIKQjWwYoV61QLP19AjEAl3ooDLG4QnyCwCdmhBE4DaumNmQj2NqfyJqYc3ZI5fILxkMvS92jKGL7Gqx05jarnM5qpM7wkB5shPcvr4Zgmj6f5yD9wXXZ1zQCmHEyrppCMFcI8Vrqx8ETBKJEJxBnJDhkWrjOoIYn6XtyLaS8HVQk7HPm2j4AWEJPbXDoLW7dTurZIgbeObKa7g80Dka0wssUw7YEJ9glL1znkxVQ5B4QRiAmoUoyF12msKyrDUOhnqI5m0YmzQ3lwEXSKP18ng9\ncmd fntech3_fragment_probe_5 479ZFDby3sILwEblV5Y2mhIGV9ClCnZKgXRzomlOCpyQ1NvPtsGdnMuhHp0BG5xUDS8jTdr9hsPETyFgkiHIrej2MsmbeBtMQUIIENbw7GPufDl6sZ7OdbgpmPPADDflNuYefUmsedjT9mI47fNFH9MWn4m6L4grZz6Ysn6M7RjVosPxFzYUGCMW8KgzlhlzEM0CxHVT52OH46C3utGHCxvgmiAG3NaW0sZbaTweh5IPj7eLDb0md1QqGuf3StLiJA2ZPYexsTrMAPFaIIww8VtDZtLhJwSRNAnajsiPwEr3f0CtDm3UYJCewZYj8MNeotiTHH1vckPL1ocRb2Ad5oRDNwjQk4d4PXsGkzDADmf0p2oC77DZRoVB9mvJgSXWOVCveTUEytfBwyk1LRQ0i5vPb4xnzwWrcFtWdM6QelUEkOBy5u6coVWUUyuQiZmjnaFJwQQEMfiJ1UiI0amSx9O5VCeDWfZZQAfGtNrXTGEvrpDjNcQyglnW44cdvecZ9vR01Xc5Kc4Hmsaqdj2yk2F1y8znu0Lg49Brym3Mb3ExMrO3FrHrKxC9sYmm9IGIFhvxzrQchA05htP1R57bgBYJGXjjydGyjuqdaTCCOfFHrvW91af8jAKlGBoFIOSb1NrKkNeX2aZCGG0HdtibtLARMNl4RSbgQB6RQ0VgbtTDt65nArRRAMUx4Bg2wyOuI1v2JR0lz0y6EMhrbZaJ1VSkmXSOgnJyjquNiOby2e3sUYiez08WF3GiVMwKNZxqkCVLu7ajdftflbAa0wO8r0FIGh7IFEwDvKUsPysNER3VsmVnWK1sJoCAgrPFH8fAld8VzgRcjMqTgjTihYHnr9IaiVxJ89unbdNMUxWah6cXsEhY\nwait 420\nscreenshotPNG interop-proof\nwait 3\nquit\n",
+        "decisiveLines": [
+          "CL packet 127.0.0.1:52739: challengeResponse 480161211",
+          "^5challengeResponse: 480161211",
+          "CL packet 127.0.0.1:52739: connectResponse 480161211 91",
+          "  5:svc_gamestate",
+          "^5Connected to a pure server."
+        ]
+      },
+      "serverReady": true,
+      "privateWindowDiagnostics": [],
+      "relay": {
+        "settings": {
+          "drop_every": 0,
+          "delay_every": 0,
+          "duplicate_every": 0,
+          "delay_seconds": 0.075,
+          "drop_first_fragment": true,
+          "drop_fragment_number": null,
+          "sequence_checksum": false,
+          "drop_terminal_fragment": false,
+          "fragment_drop_direction": "to_server"
+        },
+        "stats": {
+          "to_server": {
+            "received": 621,
+            "connectionless": 2,
+            "sequenced": 619,
+            "fragments": 15,
+            "dropped": 1,
+            "delayed": 0,
+            "duplicated": 0,
+            "forwarded": 620,
+            "overtakes": 0,
+            "reorderedForwards": 0,
+            "maxDatagramBytes": 1310
+          },
+          "to_client": {
+            "received": 488,
+            "connectionless": 2,
+            "sequenced": 486,
+            "fragments": 4,
+            "dropped": 0,
+            "delayed": 0,
+            "duplicated": 0,
+            "forwarded": 488,
+            "overtakes": 0,
+            "reorderedForwards": 0,
+            "maxDatagramBytes": 1308
+          }
+        },
+        "targetedFragmentDrops": {
+          "to_server": [
+            {
+              "fragmentOrdinal": 1,
+              "sequence": 180,
+              "fragmentStart": 0,
+              "fragmentLength": 1300,
+              "datagramBytes": 1310
+            }
+          ],
+          "to_client": []
+        },
+        "receivedStreamSha256": {
+          "to_server": "71d46bf513ecd582c4bd58f30ed9ba30ccbd804db6ef4d42007000d9284568a2",
+          "to_client": "7f06da92c9a1df76d370fc8199983acb370a54a2d44cea8632b5ab10cf63e13c"
+        },
+        "pendingAtStop": 0,
+        "error": null
+      },
+      "elapsedSeconds": 35.422,
+      "negotiatedProtocol": 91,
+      "probeSourceSha256": "e6a8e490df40c5c46e7ff2bdeebb1cbe17553dad0b379c5be0e3789691450da4",
+      "reliableCommands": [
+        {
+          "sequence": 3,
+          "name": "fntech3_fragment_probe_0",
+          "bytes": 905,
+          "sha256": "9bcf75dec6b0f7992b9b7b7d6b77c8be2113e1aa4c8d95b7e97e82c55c8b7236"
+        },
+        {
+          "sequence": 4,
+          "name": "fntech3_fragment_probe_1",
+          "bytes": 905,
+          "sha256": "34e5136f2908cf81eaa3cc5e2d82fe243361af4390663172c1daa39f4076aca4"
+        },
+        {
+          "sequence": 5,
+          "name": "fntech3_fragment_probe_2",
+          "bytes": 905,
+          "sha256": "4673108bcd02b5e827c931749c60ebc77c905530cb95c160e86f6f5728402886"
+        },
+        {
+          "sequence": 6,
+          "name": "fntech3_fragment_probe_3",
+          "bytes": 905,
+          "sha256": "af572dc196a5532f5355f35d9ad52f8a88c81c49f9480cd018b248099cfd487b"
+        },
+        {
+          "sequence": 7,
+          "name": "fntech3_fragment_probe_4",
+          "bytes": 905,
+          "sha256": "6ebf5ad1d4aa99c60dacb17175ca12e8dccc885d32512e8c864734b674dd8a10"
+        },
+        {
+          "sequence": 8,
+          "name": "fntech3_fragment_probe_5",
+          "bytes": 905,
+          "sha256": "da05f55b69116adc3635c4360105dd034848f2ec4336eabfd2a8a2d129bf782e"
+        }
+      ],
+      "commandDelivery": "All six complete command strings match the generated configuration in order, exactly once in the server reliable-dispatch log.",
+      "visualObservation": "Engine screenshot inspected: QL join UI/world; no team entry"
+    },
+    "ql-refclient-fnserver": {
+      "mode": "refclient-fnserver",
+      "utc": "2026-09-08T05:10:04.162280+00:00",
+      "commit": "701bda728aebeb886d1d574bec6b5a8e622b2779",
+      "worktreeDirty": true,
+      "referenceSourceRevision": "not established for the existing binary; not asserted to be the pinned baseline",
+      "fixture": {
+        "installation": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live",
+        "profile": "ql"
+      },
+      "privateDesktop": "fntech3_probe_141dd809a30842c8bec6c3a4a5da6dca",
+      "desktopSwitched": false,
+      "queries": [
+        "\u00ff\u00ff\u00ff\u00ffinfoResponse\n\\challenge\\referenceprobe\\protocol\\91\\hostname\\fntech3-reference-probe\\mapname\\campgrounds\\clients\\0\\g_humanplayers\\0\\sv_maxclients\\16\\gametype\\0\\pure\\1\\g_needpass\\0"
+      ],
+      "mergedArtifacts": [
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.exe",
+          "sha256": "3412c79dffe4a16834ee57c675c17d7ce43c6f0d16edde61faec6e844adb1561"
+        },
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.ded.exe",
+          "sha256": "37fbdb32334b3d54391cd6f93a94229a0fc412d141a8b950920c1c141bf502ce"
+        },
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fnql_glx_x86.dll",
+          "sha256": "f9360d552c1f83584df6a40221e24e9f531d418c7a41fb5613c660dcea98ac64"
+        },
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\FnQL-pkg.fnz",
+          "sha256": "1d1ff86488c3134a936486790c24954bef87abd22177e1ca8b5542cc2f06115a"
+        },
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fnql-web.pak",
+          "sha256": "6c210165880fff668900fd3e4e3c90137623043e1b5315f24b693f367f756382"
+        }
+      ],
+      "referenceArtifacts": [
+        {
+          "path": "E:\\Repositories\\FnQL\\meson\\build-win32\\fnql.exe",
+          "sha256": "8302fc8853091768c82268b5593b7193f2d3774482ebe63b821d946f9ffce14c"
+        },
+        {
+          "path": "E:\\Repositories\\FnQL\\meson\\build-win32\\fnql.ded.exe",
+          "sha256": "c215166492e316cf80e05d5bbd58f2ce0efa2d0f7ed920cb69ce62a20305a6d1"
+        },
+        {
+          "path": "E:\\Repositories\\FnQL\\meson\\build-win32\\fnql_glx_x86.dll",
+          "sha256": "a7ff11c3894a333d198fdde35f43c3a305e36b5889014d1294075348a6a64073"
+        },
+        {
+          "path": "E:\\Repositories\\FnQL\\meson\\build-win32\\FnQL-pkg.fnz",
+          "sha256": "fd5918f9be0dae26758d85c298e02b8ce85c00361b2d4327ac2eb878c8f93c2a"
+        }
+      ],
+      "server": {
+        "exe": "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.ded.exe",
+        "sha256": "37fbdb32334b3d54391cd6f93a94229a0fc412d141a8b950920c1c141bf502ce",
+        "command": [
+          "E:\\Repositories\\fnTech3\\.tmp\\meson-msvc-x86-release\\fntech3.ded.exe",
+          "+set",
+          "fs_basepath",
+          "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live",
+          "+set",
+          "fs_homepath",
+          "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-t9e4vdvu\\server",
+          "+set",
+          "fs_game",
+          "",
+          "+set",
+          "fs_cdpath",
+          "",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "developer",
+          "1",
+          "+set",
+          "net_ip",
+          "127.0.0.1",
+          "+set",
+          "net_port",
+          "53625",
+          "+set",
+          "dedicated",
+          "1",
+          "+set",
+          "protocol",
+          "91",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "r_windowedMode",
+          "-1",
+          "+set",
+          "r_windowedWidth",
+          "640",
+          "+set",
+          "r_windowedHeight",
+          "480",
+          "+set",
+          "com_gameProfile",
+          "ql",
+          "+set",
+          "com_steamIntegration",
+          "0",
+          "+set",
+          "fs_skipWorkshop",
+          "1",
+          "+set",
+          "cl_webuiEnable",
+          "0",
+          "+exec",
+          "interop.cfg"
+        ],
+        "home": "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-t9e4vdvu\\server",
+        "exitCode": 0,
+        "terminated": false,
+        "screenshots": [],
+        "logSha256": "f82b8f634cb1ed7c6e890d972e3fefe64cd86ce4e22d19af5950235213f495da",
+        "config": "set sv_pure 1\nset sv_autoRecordDemos 0\nset sv_hostname \"fntech3-reference-probe\"\nset sv_maxclients 2\nset sv_fps 20\nset cl_motd 0\nset cl_allowDownload 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset name \"fntech3_reference_probe\"\nset cl_shownet 2\nversion\nset sv_floodProtect 0\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nmap campgrounds ffa\nwait 1400\nquit\n",
+        "decisiveLines": [
+          "^5fntech3_reference_probe acknowledged gamestate",
+          "Going from CS_PRIMED to CS_ACTIVE for fntech3_reference_probe",
+          "Going from CS_ACTIVE to CS_ZOMBIE for fntech3_reference_probe"
+        ]
+      },
+      "client": {
+        "exe": "E:\\Repositories\\FnQL\\meson\\build-win32\\fnql.exe",
+        "sha256": "8302fc8853091768c82268b5593b7193f2d3774482ebe63b821d946f9ffce14c",
+        "command": [
+          "E:\\Repositories\\FnQL\\meson\\build-win32\\fnql.exe",
+          "+set",
+          "fs_basepath",
+          "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live",
+          "+set",
+          "fs_homepath",
+          "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-t9e4vdvu\\client",
+          "+set",
+          "fs_game",
+          "",
+          "+set",
+          "fs_cdpath",
+          "",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "developer",
+          "1",
+          "+set",
+          "net_ip",
+          "127.0.0.1",
+          "+set",
+          "net_port",
+          "53626",
+          "+set",
+          "dedicated",
+          "0",
+          "+set",
+          "protocol",
+          "91",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "r_windowedMode",
+          "-1",
+          "+set",
+          "r_windowedWidth",
+          "640",
+          "+set",
+          "r_windowedHeight",
+          "480",
+          "+set",
+          "com_gameProfile",
+          "ql",
+          "+set",
+          "com_steamIntegration",
+          "0",
+          "+set",
+          "fs_skipWorkshop",
+          "1",
+          "+set",
+          "cl_webuiEnable",
+          "0",
+          "+exec",
+          "interop.cfg"
+        ],
+        "home": "C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-q3-reference-t9e4vdvu\\client",
+        "exitCode": 0,
+        "terminated": false,
+        "screenshots": [
+          {
+            "path": "E:\\Repositories\\fnTech3\\.tmp\\ql-client-fragment-refclient-fnserver-current\\client-interop-proof.png",
+            "sha256": "f11cb060163d048638a18083732e0e13cef63ca73292b1189261952ca5b1a0ac"
+          }
+        ],
+        "logSha256": "acc63704a6fda6e8d32afeddb07bc9949187f2692bbf97ec5dec8777a3b03822",
+        "config": "set sv_pure 1\nset sv_autoRecordDemos 0\nset sv_hostname \"fntech3-reference-probe\"\nset sv_maxclients 2\nset sv_fps 20\nset cl_motd 0\nset cl_allowDownload 0\nset com_maxfps 60\nset com_maxfpsUnfocused 60\nset com_maxfpsMinimized 60\nset name \"fntech3_reference_probe\"\nset cl_shownet 2\nversion\nset sv_floodProtect 0\nset sv_master1 \"\"\nset sv_master2 \"\"\nset sv_master3 \"\"\nset sv_master4 \"\"\nset sv_master5 \"\"\nconnect 127.0.0.1:53627\nwait 180\ncmd fntech3_fragment_probe_0 p2mwimODwqalEhGnAB3M4mo9WATArzfcUA5Ve1rFl11Gqdfh52m1xsYWxpfwW5H8vW1vwbhmk7ortUcDuH8DtMEOS94xKNJWGNLAmiucBWlc0FnhOwN1BVqzhOQKKVStiY18XCGincibtB2Irg2KWMLP3bYJnxgIa1diCLx7ARCQyBlcwpdnK2wLi28f65zmFl8KJvxnrlfSD9VpAh7t72ReEgVOilIi4hnztcurLQMdc1MbPzu3u5bsvcg0AjWIeNTPHxkqdMZIXDzlo2jKkPSceN43qOhcwOnyqZ1SlJbelFbUU2wE3FIKR8oTphu6PAtmKDBW49r3LooWPUEMTDMfkGrokoLPbbDjHu9ejiTM0OpiK8mo5JdhDNHDglj6DhBiNF9ySLeJVw9bH7EIeDfDykCaDbkpCzqoKWTjlm4wXeopfnHHVDdI8S7vKJPa38ssrYxgzSmcLP8xBc8VMvSHzeuf2CQewbtzEnyIe4xk1CEWfbL1PfPWKVUX4WgcBlVt044ZLv2SKGzX01jNOHRUmOWw9ZsXOxtXNYOVGT6uIN4hWCv3gri4so3wkh8d8L0U8lxkpScPIYxH8jCUxHLAkKd7aL0mSfKtdwJbO78Pe9pecf10gjK2mUqhD9qrDkCerHaeLQQoC3lUKugBSLoi1eJrIkS1qxSwTIhmNkxQKX5axaE6HGzLcjOpWDQYNNJktth2XAghSusBi9pflAMKQGKp4xulvKWTPNSJLmEG4fe1g3e1q8Byh4ZourxDcNe6xL9YxzQi5hZmNWCtlNLX0V0I30TJZSCzSqBNyGfnpBAXhTz0cqZYMW2xsZLZsc6dBWbU3oK9kR4V1pa958hn7lWhLdg1Rvpdz29jN2oMpIRw\ncmd fntech3_fragment_probe_1 A4m7zuT9ek8RWx07LMXTV8ItmzJXdJEKSyq4ilGyMQAZr9f1QhsHwHlK8S7HpkutsuoNbREwYaOvhD7n6LSVoqQ3XYuP0RUbMfggdLTehZM7AN7RNRHcKNyECZzqDLIoni07tRk3H0sH23JWZDSMU56Mc7uFZZqHP9pmHTjx4ZBTDlgUBJ4Fxv1C4vlViwsxSFrvYJ86Lw9zghKO5PQK1JANi2AY64YpDR7iCEyTf77A6wZIBo83Pv3hy1r3JFsN4OukzM8upVEsSUHswkstYOc69VOqDBat6m3fVwx1dxp0IMlhcSLwFPpMEIdC3JNvnLc7m661U8DFwwQRnr9ZH5MvWwTIzqR1DLedEzRZu8ejUl1e3iIuEZUfA4Ezz1DHU2mLqt8UYHXxnirsYKKN2zhqXp8lYW0tWdZ76ErVTvRylCq78BRCOLS8HQkGYBfleqVN9Q5Bwi9v6rIcG2B4kB9NPMKQfZpxGLnDu53nvxhKnjN2Vgau5SEaN1sLB98SEOjFLANwgQvF40vpDptqEuSWd8tgkWtzKJwTpHFLV1Y9zDwTZWx8HyAQbPc0Hixw3WG055PHWB7wLXQq4srhWMUL8FxNhWtE1lI3soUlxuEIGCvHvqE9qriYt4ylMcvNWc1mnwW8euvoGCkEL595rqHxz5NXVIubZ7zQlq8h1xJ23HGiISpDOmcs3cjE4diSL1VnrhVwCuPsU7BIVafRfY1E2tT3SRUoMlULgHGBB4ckYanymX58WFIzn4m6y0vtNKvdYRyCwB9aIvgj7z2fPZNi6suDX42oWMGkbEfG39pklMljNKzlDHHZRnPyvJnV1CJR3s78VH3dj2w8MLkHqBJDej7kBZiMn0dGgdSdXOVU4JDo\ncmd fntech3_fragment_probe_2 EeT5yuyvKmr7mWUKSmrU5lLScYyk19xDfKeg2glSfsRtfNXBaKb9VdqHbsGI03YdUbfa9UDp9T7hhXgUFAOzD6nP5LBVXM6ePsdKWYuqqfV6uIIGCr0AVWhjV0nkF8taEfIryb1DG3BnNokPJhvReM6x9JrdMFIoVbttD2lxuvPOXWkRKO1ARDeZMqYFkO4BW8AoVHi7NfHLWzSLzxizvbTKBiMcZrcHj5wXtCUNqfhIGfebebuXULdbJ68g7ROezX4gnTO56apLk057tTIBCDx8xwHSpjuLiLFwYO8tIVtXi6pc13bCIjUH95TE9O4LDOaX6RLi4lwbORVGTwcl3rW2JM0KGfWItl4O8fhnZsa40Yr0qYpLdpdH4dKQZtUsLwzBXIiMzr4PuGNxEdwrqVc4kmcODFWMaLmFzNP4EvTLo7P8dp2tZKVOHWW6JpCZKrnNGahAmk9XYRg5BQSvGgTzfWruLX0FUcbQFLXJ4kXQukQyTuCajrFLuuzmyFvBIdo7Iv6flMpxNvrSTuF8v4poHVLDM6KI1lC69GgEP6zrwsdGrYPTe6HfBb6Oj5A9C4SyXA0lU4vmPDTy2BQAsuUnfugjGbZyufky5clRpazobOJcYmuZ8f8WPfZEQRleXU2ef2dkhwWpsCd1ycHzRSys9ZsfXBuZz7wKsa3tGnI8UADfjLjYjxdG3SiWPiwQVK3B6iKzeSLmPM2mq1WiQxeJ584tukvcNLYg6PY2R5BO0oe7pJXazBjyDHzuGBQ4pQvzfnWSjfA10N767xhnyBbp8e1l98wucijbhSO7i1ErogXJAOnplY7oCx9XaAuNez5H2WVWAxLzVMMzeYnNeU4gicudo7FyxU2ZhPg12dWGhbu5\ncmd fntech3_fragment_probe_3 zGJzTb1HcPiOLlDLXIbiu1W578p2Bi8E1GOfjAzacbYTbft85KH23AWkYVdivaqrVypkhBGOO6d6JoIG5NGzz4nn6aviPz2kZyhZ7nA7qQQllZv7e8Nr6zBWo5u957Q1fTORfTcYmJHHOI1OMNNdB9pwpLYdLpmUx5TycgwZwETJr11kqWynRr73IF3FLWD77p3ie1zSDfodSfakwoctWvPjLlguM2NSElt5RWdzyWMgFXeXU01U1ElPKV6VaKI1lRdl7QyI7jTwC09gVLhWiIYRdClaGXYu0zkrhlpb5XLLWxXwpY1Z6yRe7cc4GDo7s1IBbsu8aJoUvSpftQEFVmpHqtusC63eCg08a6Wsnzy0oSqV1jc8R0XoQITTDQRMrDYFm5KOHnE1X49GTHoG1IM1BzAd28a8lVwN5omPQ1tKN2Mp9zEZ48wTR3mOnzf8bkWTSTikZXKSVeiRGo1ylF4unZbbds0FZz2pI160HmtvYsEvDkJEsy9Tr6tgNvoYrkLJvgBT6UQRrndzA8fNQKEDiKyJDMEwzn20CU7U8oD3AML5UsX8JJ79eaa8bT1rLlCpmfh1PKSA8H4lTspikZoeqLo1uZdA2w3dLZAd21VIaS6LOxAc0Cs7uGhITzZOhEjt6NWjczbDXQgIwkowiUc4kcWdkuSd9GOXtVhEpkXDIr15Q8meOkWsdtofZLonfjLDWUDE7mGL18SzbhmgQXBZLNz3Z5f6jqE0E1fvxsReO2flHD39DIeTTDNBhF9lcUqzJjBKULfZMIprT4fLAtbWyaqQXojQaNQjvXBd8UbGuAQVDdiRX5zLBXpnlxioOwpRQPEKv165OUr82wEecaif4rOifUDD1PXq3Hq54ZOcXtTB\ncmd fntech3_fragment_probe_4 TxLiX1JeZWkcEz437Vi6W9lzAxnBfLBjUaejSMLGbNGL9uHjUGqBq4437QIcIAPylnX0OM26abXX1CklJPOAQmMZPdiP4RRcBs4xy9hkh65dr8G2DqveqbcKmbgfckGWeBr8RGbYYyvzBZrsbX1KnrMTwoDkSsPllZjGXnjEDcRecSnJobv0U8iHIhnE7AK8Q8wVX7mNrZZR0itBlwYIWlqQVRcm8M6CLK1Hbg8GHB3y1dLPgiEHkyg6ohaVBcJj8NVU6x33BqY6yp9qZBvjHKRKAiiuz5vp6Sj4Ss04npWSbuvwtdGnwWTrUPD4hsCeIGVL2L8WQManN7COmM5V6EQyknQfMszznNpcYsiEQNJlDiKnV9AibN3Qhmo9CeaDtgd41Lo5Vdh7Icvkm1fDRFjZD1rWeyE7GdmVpyIygqRoZdyBdHH2Im1nrXFdTcADHtjdRRN8R8Bx7BnF11vGDZHQy2PsPuDz1REDcOQYa6I0hPIqFv6A8Q7rgz2gKV44KeS6mfcQ7uSj9GqcHkwRGk1rMj3T2aj8SbszoBHrWDqFjSZcWQIX8YeCP7HRTURTXSaGSsiiwSyscvhyOl6uI0mqoIKQjWwYoV61QLP19AjEAl3ooDLG4QnyCwCdmhBE4DaumNmQj2NqfyJqYc3ZI5fILxkMvS92jKGL7Gqx05jarnM5qpM7wkB5shPcvr4Zgmj6f5yD9wXXZ1zQCmHEyrppCMFcI8Vrqx8ETBKJEJxBnJDhkWrjOoIYn6XtyLaS8HVQk7HPm2j4AWEJPbXDoLW7dTurZIgbeObKa7g80Dka0wssUw7YEJ9glL1znkxVQ5B4QRiAmoUoyF12msKyrDUOhnqI5m0YmzQ3lwEXSKP18ng9\ncmd fntech3_fragment_probe_5 479ZFDby3sILwEblV5Y2mhIGV9ClCnZKgXRzomlOCpyQ1NvPtsGdnMuhHp0BG5xUDS8jTdr9hsPETyFgkiHIrej2MsmbeBtMQUIIENbw7GPufDl6sZ7OdbgpmPPADDflNuYefUmsedjT9mI47fNFH9MWn4m6L4grZz6Ysn6M7RjVosPxFzYUGCMW8KgzlhlzEM0CxHVT52OH46C3utGHCxvgmiAG3NaW0sZbaTweh5IPj7eLDb0md1QqGuf3StLiJA2ZPYexsTrMAPFaIIww8VtDZtLhJwSRNAnajsiPwEr3f0CtDm3UYJCewZYj8MNeotiTHH1vckPL1ocRb2Ad5oRDNwjQk4d4PXsGkzDADmf0p2oC77DZRoVB9mvJgSXWOVCveTUEytfBwyk1LRQ0i5vPb4xnzwWrcFtWdM6QelUEkOBy5u6coVWUUyuQiZmjnaFJwQQEMfiJ1UiI0amSx9O5VCeDWfZZQAfGtNrXTGEvrpDjNcQyglnW44cdvecZ9vR01Xc5Kc4Hmsaqdj2yk2F1y8znu0Lg49Brym3Mb3ExMrO3FrHrKxC9sYmm9IGIFhvxzrQchA05htP1R57bgBYJGXjjydGyjuqdaTCCOfFHrvW91af8jAKlGBoFIOSb1NrKkNeX2aZCGG0HdtibtLARMNl4RSbgQB6RQ0VgbtTDt65nArRRAMUx4Bg2wyOuI1v2JR0lz0y6EMhrbZaJ1VSkmXSOgnJyjquNiOby2e3sUYiez08WF3GiVMwKNZxqkCVLu7ajdftflbAa0wO8r0FIGh7IFEwDvKUsPysNER3VsmVnWK1sJoCAgrPFH8fAld8VzgRcjMqTgjTihYHnr9IaiVxJ89unbdNMUxWah6cXsEhY\nwait 420\nscreenshotPNG interop-proof\nwait 3\nquit\n",
+        "decisiveLines": [
+          "CL packet 127.0.0.1:53627: challengeResponse 493950837",
+          "^5challengeResponse: 493950837",
+          "CL packet 127.0.0.1:53627: connectResponse 493950837 91",
+          "  5:svc_gamestate",
+          "^5Connected to a pure server."
+        ]
+      },
+      "serverReady": true,
+      "privateWindowDiagnostics": [],
+      "relay": {
+        "settings": {
+          "drop_every": 0,
+          "delay_every": 0,
+          "duplicate_every": 0,
+          "delay_seconds": 0.075,
+          "drop_first_fragment": true,
+          "drop_fragment_number": null,
+          "sequence_checksum": false,
+          "drop_terminal_fragment": false,
+          "fragment_drop_direction": "to_server"
+        },
+        "stats": {
+          "to_server": {
+            "received": 617,
+            "connectionless": 2,
+            "sequenced": 615,
+            "fragments": 10,
+            "dropped": 1,
+            "delayed": 0,
+            "duplicated": 0,
+            "forwarded": 616,
+            "overtakes": 0,
+            "reorderedForwards": 0,
+            "maxDatagramBytes": 1310
+          },
+          "to_client": {
+            "received": 487,
+            "connectionless": 2,
+            "sequenced": 485,
+            "fragments": 4,
+            "dropped": 0,
+            "delayed": 0,
+            "duplicated": 0,
+            "forwarded": 487,
+            "overtakes": 0,
+            "reorderedForwards": 0,
+            "maxDatagramBytes": 1308
+          }
+        },
+        "targetedFragmentDrops": {
+          "to_server": [
+            {
+              "fragmentOrdinal": 1,
+              "sequence": 180,
+              "fragmentStart": 0,
+              "fragmentLength": 1300,
+              "datagramBytes": 1310
+            }
+          ],
+          "to_client": []
+        },
+        "receivedStreamSha256": {
+          "to_server": "4178497a849fec06ba048717596455dc46adf41f65b85a910e0e48d2aa78862d",
+          "to_client": "1107032c6ed8b25fd5e64fc559a2e4aca29371ccc90bca4ce8e39ce950b1caf8"
+        },
+        "pendingAtStop": 0,
+        "error": null
+      },
+      "elapsedSeconds": 35.437,
+      "negotiatedProtocol": 91,
+      "probeSourceSha256": "e6a8e490df40c5c46e7ff2bdeebb1cbe17553dad0b379c5be0e3789691450da4",
+      "reliableCommands": [
+        {
+          "sequence": 3,
+          "name": "fntech3_fragment_probe_0",
+          "bytes": 905,
+          "sha256": "9bcf75dec6b0f7992b9b7b7d6b77c8be2113e1aa4c8d95b7e97e82c55c8b7236"
+        },
+        {
+          "sequence": 4,
+          "name": "fntech3_fragment_probe_1",
+          "bytes": 905,
+          "sha256": "34e5136f2908cf81eaa3cc5e2d82fe243361af4390663172c1daa39f4076aca4"
+        },
+        {
+          "sequence": 5,
+          "name": "fntech3_fragment_probe_2",
+          "bytes": 905,
+          "sha256": "4673108bcd02b5e827c931749c60ebc77c905530cb95c160e86f6f5728402886"
+        },
+        {
+          "sequence": 6,
+          "name": "fntech3_fragment_probe_3",
+          "bytes": 905,
+          "sha256": "af572dc196a5532f5355f35d9ad52f8a88c81c49f9480cd018b248099cfd487b"
+        },
+        {
+          "sequence": 7,
+          "name": "fntech3_fragment_probe_4",
+          "bytes": 905,
+          "sha256": "6ebf5ad1d4aa99c60dacb17175ca12e8dccc885d32512e8c864734b674dd8a10"
+        },
+        {
+          "sequence": 8,
+          "name": "fntech3_fragment_probe_5",
+          "bytes": 905,
+          "sha256": "da05f55b69116adc3635c4360105dd034848f2ec4336eabfd2a8a2d129bf782e"
+        }
+      ],
+      "commandDelivery": "All six complete command strings match the generated configuration in order, exactly once in the server reliable-dispatch log.",
+      "visualObservation": "Engine screenshot inspected: QL join UI/world; no team entry"
+    }
+  },
+  "qlAssetSha256": {
+    "bin.pk3": "0587e55a98516d9645d2dd7ad894822db4bc5190f53e11f82e7486876b753ce0",
+    "pak00.pk3": "7d5fd8d4786f9e140804b7279ce2589c8a7babdcf2886763a63a992ad9ef634b"
+  }
+}

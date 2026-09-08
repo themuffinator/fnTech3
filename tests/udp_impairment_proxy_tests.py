@@ -131,6 +131,27 @@ class UdpImpairmentProxyTests(unittest.TestCase):
                         self.assertEqual(drop['fragmentLength'], len(tail))
                         self.assertEqual(drop['fragmentStart'], 1300)
 
+    def test_client_only_fragment_fault_preserves_server_fragments(self):
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as server, socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as client:
+            server.bind(('127.0.0.1', 0)); server.settimeout(1); client.bind(('127.0.0.1', 0)); client.settimeout(1)
+            relay = UdpImpairmentProxy(server.getsockname()[1], drop_every=0, delay_every=0, duplicate_every=0, drop_first_fragment=True, fragment_drop_direction='to_server')
+            try:
+                client.sendto(b'\xff' * 4 + b'connect', ('127.0.0.1', relay.port))
+                _, peer = server.recvfrom(100)
+                server_fragment = struct.pack('<IHH', 0x80000001, 0, 4) + b'test'
+                server.sendto(server_fragment, peer)
+                self.assertEqual(client.recvfrom(100)[0], server_fragment)
+                client_fragment = server_fragment[:4] + struct.pack('<H', 1234) + server_fragment[4:]
+                client.sendto(client_fragment, ('127.0.0.1', relay.port))
+                client.sendto(client_fragment, ('127.0.0.1', relay.port))
+                self.assertEqual(server.recvfrom(100)[0], client_fragment)
+            finally:
+                record = relay.close()
+            self.assertIsNone(record['error'])
+            self.assertEqual(record['stats']['to_server']['dropped'], 1)
+            self.assertEqual(record['stats']['to_client']['dropped'], 0)
+            self.assertEqual(record['targetedFragmentDrops']['to_client'], [])
+
     def test_loss_delay_duplication_and_connectionless_preservation(self):
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as server, socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as client:
             server.bind(('127.0.0.1', 0))

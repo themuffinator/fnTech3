@@ -7,15 +7,17 @@ import hashlib, heapq, select, socket, struct, threading, time
 
 class UdpImpairmentProxy:
 
-    def __init__(self, server_port, drop_every=17, delay_every=19, duplicate_every=23, delay_seconds=0.075, drop_first_fragment=False, drop_fragment_number=None, sequence_checksum=False, drop_terminal_fragment=False):
+    def __init__(self, server_port, drop_every=17, delay_every=19, duplicate_every=23, delay_seconds=0.075, drop_first_fragment=False, drop_fragment_number=None, sequence_checksum=False, drop_terminal_fragment=False, fragment_drop_direction=None):
         if not 0 < server_port < 65536 or min(drop_every, delay_every, duplicate_every) < 0 or (not 0 <= delay_seconds <= 1):
             raise ValueError('invalid loopback impairment settings')
         if drop_fragment_number is not None and (not isinstance(drop_fragment_number, int) or drop_fragment_number < 1 or drop_first_fragment):
             raise ValueError('select one positive fragment ordinal or the first-fragment alias')
         if drop_terminal_fragment and (drop_first_fragment or drop_fragment_number is not None):
             raise ValueError('terminal fragment selection cannot be combined with an ordinal')
+        if fragment_drop_direction not in (None, 'to_server', 'to_client'):
+            raise ValueError('invalid fragment drop direction')
         self.server = ('127.0.0.1', server_port)
-        self.settings = dict(drop_every=drop_every, delay_every=delay_every, duplicate_every=duplicate_every, delay_seconds=delay_seconds, drop_first_fragment=drop_first_fragment, drop_fragment_number=drop_fragment_number, sequence_checksum=sequence_checksum, drop_terminal_fragment=drop_terminal_fragment)
+        self.settings = dict(drop_every=drop_every, delay_every=delay_every, duplicate_every=duplicate_every, delay_seconds=delay_seconds, drop_first_fragment=drop_first_fragment, drop_fragment_number=drop_fragment_number, sequence_checksum=sequence_checksum, drop_terminal_fragment=drop_terminal_fragment, fragment_drop_direction=fragment_drop_direction)
         self.front = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.back = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         try:
@@ -84,7 +86,8 @@ class UdpImpairmentProxy:
             terminal = (fragment_length is not None and fragment_length < 1300
                         and len(data) == fragment_at + 4 + fragment_length)
             selected = target == stat['fragments'] or (self.settings['drop_terminal_fragment'] and terminal)
-            if selected and not self.fragment_drops[direction]:
+            direction_selected = self.settings['fragment_drop_direction'] in (None, direction)
+            if selected and direction_selected and not self.fragment_drops[direction]:
                 self.fragment_drops[direction].append({
                     'fragmentOrdinal': stat['fragments'],
                     'sequence': sequence & 0x7fffffff,
