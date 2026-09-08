@@ -993,6 +993,47 @@ int TestRetailMovementBytePayloads() {
 		CHECK( reader.bit == ( i == 0 ? 78 : 86 ) );
 		CHECK( reader.readcount == reader.cursize );
 		CHECK( output.before == 0x13579bdf && output.after == 0x2468ace0 );
+
+		// Snapshot fields need not begin at a byte boundary. Relocate the
+		// observed compressed bits without using our encoder as an oracle.
+		const int payloadBits = reader.bit;
+		for ( int offset = 0; offset < 8; ++offset ) {
+			std::array<byte, 16> shifted{};
+			for ( int bit = 0; bit < payloadBits; ++bit ) {
+				shifted[( bit + offset ) / 8] |= static_cast<byte>(
+					( ( packets[i][bit / 8] >> ( bit % 8 ) ) & 1 )
+					<< ( ( bit + offset ) % 8 ) );
+			}
+			// Compressed messages retain a trailing byte when the final bit
+			// lands exactly on a byte boundary (MSG_WriteBits cursize rule).
+			const int completeBytes = ( offset + payloadBits ) / 8 + 1;
+			for ( int length = 0; length <= completeBytes; ++length ) {
+				for ( const bool inPlace : { false, true } ) {
+					output.state = baseline;
+					// Use a distinct destination to detect even a premature
+					// baseline copy when decoding fails.
+					if ( !inPlace ) output.state.commandTime = 0x12345678;
+					const playerState_t untouched = output.state;
+					MSG_Init( &reader, shifted.data(), static_cast<int>( shifted.size() ) );
+					reader.cursize = length;
+					MSG_BeginReading( &reader );
+					reader.bit = offset;
+					reader.readcount = offset ? 1 : 0;
+					const bool complete = length == completeBytes;
+					CHECK( !!MSG_ReadDeltaPlayerstateForWireProfile( &reader,
+						inPlace ? &output.state : &baseline, &output.state,
+						NETCHAN_WIRE_QL_RETAIL ) == complete );
+					CHECK( std::memcmp( &output.state,
+						complete ? &expected : &untouched, sizeof( expected ) ) == 0 );
+					CHECK( output.before == 0x13579bdf && output.after == 0x2468ace0 );
+					if ( complete ) {
+						CHECK( reader.bit == offset + payloadBits );
+					} else {
+						CHECK( reader.readcount > reader.cursize );
+					}
+				}
+			}
+		}
 	}
 	return 0;
 }

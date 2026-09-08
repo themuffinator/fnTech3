@@ -43,6 +43,33 @@ GCC i686, including its existing Q3 checks. No engine implementation changes
 were necessary, and no full engine-suite rerun is claimed for this fixture-only
 addition.
 
+### Alignment and truncated-input follow-up
+
+At source baseline `2cc39cd`, the regression now relocates each observed
+payload's compressed bits to every starting offset from zero through seven,
+without using fnTech3's encoder to produce the expected bytes. For each offset,
+it tests every shorter byte prefix and the complete framed payload, both with
+a separate destination and with baseline/destination aliasing. A distinct
+destination sentinel detects premature baseline copying on a rejected input.
+All failures must preserve the entire destination and its adjacent guards;
+successful reads must match the full expected state and exact final bit offset.
+
+The 392 combinations comprise 32 complete reads and 360 rejected prefixes.
+Bytes beyond `cursize` remain physically present in the backing buffer, so the
+prefix cases also check that available storage does not override the declared
+message length. Compressed framing uses `(finalBit / 8) + 1` bytes, including
+the trailing byte at an exact byte boundary, as required by the existing
+`MSG_WriteBits`/reader cursor convention. An initial harness using a rounded-up
+bit count failed at that boundary; correcting its framing made both runs pass.
+This was a test-construction error, not an observed engine defect.
+
+Validation: `cmd /c .tmp\test-retail-wire.cmd` rebuilt and passed the complete
+Windows MSVC x86 message-codec test (one Meson test, zero failures); `wsl bash
+/mnt/e/Repositories/fnTech3/.tmp/test-retail-wire-linux.sh` rebuilt and ran the
+same executable successfully with GCC i686. Existing Q3 cases ran in both.
+This follow-up exercises fnTech3's decoder only; it adds no claim about retail
+malformed-input handling or live peer interoperability.
+
 ## Scope
 
 These are bidirectional **payload** checks against selected retail functions,

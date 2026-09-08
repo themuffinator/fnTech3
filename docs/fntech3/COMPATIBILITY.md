@@ -272,6 +272,9 @@ to the evidence level named in the same cell.
    six states in both encoding directions, and pins two accepted retail
    movement-byte variants in Windows/Linux codec regressions. It is not live
    peer interoperability or exhaustive packet coverage.
+   Those retail-derived vectors also pass all eight starting bit offsets and
+   reject every shorter framed byte prefix without modifying separate or
+   aliased output state (392 combinations, Windows x86 and Linux i686).
    [Snapshot history validation](2026-09-07-snapshot-history.md) also rejects
    malformed/stale module requests before writes. The subsequent
    [entity-history correction](2026-09-07-entity-history-wrap.md) covers parser
