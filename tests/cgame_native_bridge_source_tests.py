@@ -474,7 +474,7 @@ class CGameNativeBridgeSourceTests(unittest.TestCase):
         self.assertIn("MSG_WriteDeltaKey( msg, key, from->weaponPrimary,", msg_c)
         self.assertIn("MSG_WriteDeltaKey( msg, key, from->fov, to->fov, 8 );", msg_c)
         self.assertIn("to->weaponPrimary = MSG_ReadDeltaKey( msg, key,", msg_c)
-        self.assertIn("to->fov = MSG_ReadDeltaKey( msg, key, from->fov, 8 );", msg_c)
+        self.assertIn("to->fov = MSG_ReadDeltaKey( msg, key, from->fov, 8, quakeLive );", msg_c)
         self.assertIn("to->weaponPrimary = from->weaponPrimary;", msg_c)
         self.assertIn("to->fov = from->fov;", msg_c)
         self.assertIn("to->weaponPrimary = 0;", msg_c)

@@ -839,9 +839,15 @@ static void MSG_WriteDeltaKey( msg_t *msg, int key, int oldV, int newV, int bits
 }
 
 
-static int MSG_ReadDeltaKey( msg_t *msg, int key, int oldV, int bits ) {
+static int MSG_ReadDeltaKey( msg_t *msg, int key, int oldV, int bits,
+	bool quakeLive ) {
 	if ( MSG_ReadBits( msg, 1 ) ) {
-		return MSG_ReadBits( msg, bits ) ^ (key & kbitmask[ bits - 1 ]);
+		// Retail QL includes one extra key bit. Byte destinations discard it;
+		// angle/button words retain bit 16 through SV_GetUsercmd.
+		// See docs/fntech3/2026-09-08-retail-usercmd-key-mask.md.
+		std::uint32_t keyMask = kbitmask[ bits - 1 ];
+		if ( quakeLive && bits < 32 ) keyMask = ( keyMask << 1 ) | 1u;
+		return MSG_ReadBits( msg, bits ) ^ (key & keyMask);
 	}
 	return oldV;
 }
@@ -939,26 +945,26 @@ qboolean MSG_ReadDeltaUsercmdKeyForWireProfile( msg_t *msg, int key,
 	}
 	if ( MSG_ReadBits( msg, 1 ) ) {
 		key ^= to->serverTime;
-		to->angles[0] = MSG_ReadDeltaKey( msg, key, from->angles[0], 16);
-		to->angles[1] = MSG_ReadDeltaKey( msg, key, from->angles[1], 16);
-		to->angles[2] = MSG_ReadDeltaKey( msg, key, from->angles[2], 16);
-		to->forwardmove = MSG_ReadDeltaKey( msg, key, from->forwardmove, 8);
+		to->angles[0] = MSG_ReadDeltaKey( msg, key, from->angles[0], 16, quakeLive );
+		to->angles[1] = MSG_ReadDeltaKey( msg, key, from->angles[1], 16, quakeLive );
+		to->angles[2] = MSG_ReadDeltaKey( msg, key, from->angles[2], 16, quakeLive );
+		to->forwardmove = MSG_ReadDeltaKey( msg, key, from->forwardmove, 8, quakeLive );
 		// Retail QL preserves the full signed byte, including -128. Q3
 		// retains its legacy clamp. See docs/fntech3/2026-09-08-retail-usercmd-wire.md.
 		if( !quakeLive && to->forwardmove == -128 )
 			to->forwardmove = -127;
-		to->rightmove = MSG_ReadDeltaKey( msg, key, from->rightmove, 8);
+		to->rightmove = MSG_ReadDeltaKey( msg, key, from->rightmove, 8, quakeLive );
 		if( !quakeLive && to->rightmove == -128 )
 			to->rightmove = -127;
-		to->upmove = MSG_ReadDeltaKey( msg, key, from->upmove, 8);
+		to->upmove = MSG_ReadDeltaKey( msg, key, from->upmove, 8, quakeLive );
 		if( !quakeLive && to->upmove == -128 )
 			to->upmove = -127;
-		to->buttons = MSG_ReadDeltaKey( msg, key, from->buttons, 16);
-		to->weapon = MSG_ReadDeltaKey( msg, key, from->weapon, 8);
+		to->buttons = MSG_ReadDeltaKey( msg, key, from->buttons, 16, quakeLive );
+		to->weapon = MSG_ReadDeltaKey( msg, key, from->weapon, 8, quakeLive );
 		if ( quakeLive ) {
 			to->weaponPrimary = MSG_ReadDeltaKey( msg, key,
-				from->weaponPrimary, 8 );
-			to->fov = MSG_ReadDeltaKey( msg, key, from->fov, 8 );
+				from->weaponPrimary, 8, quakeLive );
+			to->fov = MSG_ReadDeltaKey( msg, key, from->fov, 8, quakeLive );
 		}
 	} else {
 		to->angles[0] = from->angles[0];

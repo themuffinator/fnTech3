@@ -1,0 +1,119 @@
+{
+  "engineBaseline": "d443df784e1a2f745424d4010959ff5f2c8f4c48",
+  "retailExecutableSha256": "c926fe9f6c851e00b3b9332e88903ad01f28fdd60454873891c0158f5ded1299",
+  "retailHuffmanStateSha256": "44baf2050819ebd94a2f7294b640c55405feb7f7e708e67c03cb523db82f5045",
+  "rvas": {
+    "userMove": "0xe0320",
+    "readUsercmd": "0xd54a0",
+    "lastUsercmdCopy": "0xe056a",
+    "clientThinkCall": "0xe0591",
+    "getUsercmd": "0xe1630",
+    "getUsercmdCopy": "0xe1671"
+  },
+  "deliveryProbe": [
+    {
+      "key": 0,
+      "packetBytes": 15,
+      "writtenBits": 117,
+      "readBits": 117,
+      "deliveredWords": [
+        65535,
+        65535,
+        65535,
+        65535
+      ],
+      "getUsercmdMatchesLastCommand": true,
+      "guardsIntact": true,
+      "callback": {
+        "clientNumber": 0,
+        "stateHex": "01000000ffff0000ffff0000ffff0000ffff00000702678080800000"
+      }
+    },
+    {
+      "key": 65536,
+      "packetBytes": 15,
+      "writtenBits": 117,
+      "readBits": 117,
+      "deliveredWords": [
+        131071,
+        131071,
+        131071,
+        131071
+      ],
+      "getUsercmdMatchesLastCommand": true,
+      "guardsIntact": true,
+      "callback": {
+        "clientNumber": 0,
+        "stateHex": "01000000ffff0100ffff0100ffff0100ffff01000702678080800000"
+      }
+    },
+    {
+      "key": 4294967295,
+      "packetBytes": 13,
+      "writtenBits": 101,
+      "readBits": 101,
+      "deliveredWords": [
+        131071,
+        131071,
+        131071,
+        131071
+      ],
+      "getUsercmdMatchesLastCommand": true,
+      "guardsIntact": true,
+      "callback": {
+        "clientNumber": 0,
+        "stateHex": "01000000ffff0100ffff0100ffff0100ffff01000702678080800000"
+      }
+    }
+  ],
+  "controlledHelpers": [
+    "28-byte zero-fill",
+    "stack-cookie helper",
+    "game ClientThink callback records state and returns"
+  ],
+  "gameModuleExecuted": false,
+  "validation": {
+    "oldMaskRegression": "failed as expected",
+    "retailDecodeWindowsX86": "24 cases passed",
+    "windowsBuild": "exit 0",
+    "windowsFullSuite": {
+      "initial": {
+        "passed": 108,
+        "failed": 2,
+        "skipped": 1,
+        "reason": "one stale FOV source assertion appeared in both its standalone target and the Python group"
+      },
+      "affectedTargetsRetry": [
+        "Ran 1292 tests in 184.690s",
+        "OK (skipped=5)",
+        "Ok:                2",
+        "Fail:              0"
+      ],
+      "combined": {
+        "passed": 110,
+        "failed": 0,
+        "skipped": 1
+      }
+    },
+    "retailDecodeLinuxI686": "24 cases passed",
+    "linuxCodec": "exit 0"
+  },
+  "files": {
+    ".tmp/emulate-retail-usercmd-delivery.py": "6d0f5878d7596394186df30ddeb611c9d2be6cf0f80ab377904cb83e31cbb55c",
+    ".tmp/ql-usercmd-delivery.json": "ff822425433be8bee6847c409df94d1fada94b53a483ec307197e7c7a110132a",
+    ".tmp/ql-usercmd-mask-corpus.cpp": "37ad94e4821913038e6e8a37bbf4d72e6837eff51601daf440efa201e9988f29",
+    ".tmp/ql-key-mask-before.log": "82eedcf00e3e821c4e7130cb995d29fe4b3de36f9a5435606e539a8b8650849b",
+    "code/qcommon/msg.cpp": "7b6a13168e78a05d7fb0dc1a8373a60854b6d7e056fb873b63ffea68337787d1",
+    "tests/message_codec_tests.cpp": "ef529b1715c67b071c763a0628c58e5c0f445661629c596b2706cc74d2b1d63d",
+    ".tmp/ql-key-mask-suite.log": "91a0b9b94010d780edd6a258ae4cd959a519a3ee0698184f3d24ada8b0537e5a",
+    ".tmp/ql-key-mask-source-retry.log": "261ce275939c4adf6c4031253d9d498d9c96ab744b4357d4d82343fd67757c1c",
+    "tests/cgame_native_bridge_source_tests.py": "8188584d69b90f40d07cb5d70b5c376a8e4c25a94df5d1537f3c0cec75bc42ac",
+    ".tmp/meson-msvc-x86-release/fntech3.exe": "0f4d68fddbfcb2f12861a6edd3d29c3636c61ad7d88d1c208e1e9f3f1eb047f9",
+    ".tmp/meson-msvc-x86-release/fntech3.ded.exe": "7754df6ae7b3266074ea897094130afec4037922f9a2e7466e9a57d38da8871d"
+  },
+  "limitations": [
+    "controlled retail UserMove branch with an active synthetic client; no full process or real game-module execution",
+    "GetUsercmd boundary checked, not downstream game interpretation",
+    "not live peer interoperability or exhaustive keys/timestamps"
+  ]
+}

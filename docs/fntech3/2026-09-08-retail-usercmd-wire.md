@@ -61,6 +61,10 @@ also checked against the pinned FnQuake3 commit, not its dirty worktree.
 
 ## Open key-mask discrepancy
 
+This was open at this checkpoint. The subsequent
+[delivery and key-mask correction](2026-09-08-retail-usercmd-key-mask.md)
+resolves the observed decoder difference after tracing it to module output.
+
 With key `0xffffffff`, target timestamp 1 and changed angle/button values
 `0xffff`, the retail reader produces `0x1ffff` in all four four-byte fields.
 fnTech3 produces `0xffff`. The observed retail reader uses mask constants

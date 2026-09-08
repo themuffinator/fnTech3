@@ -287,9 +287,11 @@ to the evidence level named in the same cell.
    regressions, without claiming a live snapshot exchange.
    The [retail keyed-command checkpoint](2026-09-08-retail-usercmd-wire.md)
    corrects QL movement-byte preservation while retaining Q3's clamp. All 24
-   writer payloads match retail; a separate retail 17-bit key-mask effect in
-   changed 16-bit angle/button fields remains unresolved and prevents a claim
-   of complete keyed-command decoder parity.
+   writer payloads match retail. The subsequent
+   [key-mask checkpoint](2026-09-08-retail-usercmd-key-mask.md) traces the extra
+   key bit through retail batch acceptance and GetUsercmd, and matches that
+   QL behavior without changing Q3. Its controlled branch and finite corpus
+   do not establish complete live command interoperability.
    [Snapshot history validation](2026-09-07-snapshot-history.md) also rejects
    malformed/stale module requests before writes. The subsequent
    [entity-history correction](2026-09-07-entity-history-wrap.md) covers parser

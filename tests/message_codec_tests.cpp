@@ -964,6 +964,62 @@ int TestPlayerStateRoundTrip() {
 	return 0;
 }
 
+int TestUserCommandProfileKeyMask() {
+	for ( const auto profile : { NETCHAN_WIRE_LEGACY_Q3,
+		NETCHAN_WIRE_IOQ3, NETCHAN_WIRE_QL_RETAIL } ) {
+		for ( const int key : { 0, 0x10000 } ) {
+			for ( const int time : { 1, 0x10000 } ) {
+				for ( const bool inherited : { false, true } ) {
+					usercmd_t baseline{};
+					if ( inherited ) {
+						baseline.angles[0] = baseline.angles[1] =
+							baseline.angles[2] = baseline.buttons = 0x1ffff;
+					}
+					usercmd_t sent = baseline;
+					sent.serverTime = time;
+					sent.weapon = 7;
+					if ( !inherited ) {
+						sent.angles[0] = sent.angles[1] = sent.angles[2] = sent.buttons = 0xffff;
+					}
+					std::array<byte, 128> packet{};
+					msg_t message{};
+					MSG_Init( &message, packet.data(), static_cast<int>( packet.size() ) );
+					CHECK( MSG_WriteDeltaUsercmdKeyForWireProfile( &message, key,
+						&baseline, &sent, profile ) );
+					MSG_BeginReading( &message );
+					usercmd_t received{}, expected = sent;
+					if ( profile == NETCHAN_WIRE_QL_RETAIL && !inherited ) {
+						const int extraKeyBit = ( key ^ time ) & 0x10000;
+						for ( auto &angle : expected.angles ) angle ^= extraKeyBit;
+						expected.buttons ^= extraKeyBit;
+					}
+					CHECK( MSG_ReadDeltaUsercmdKeyForWireProfile( &message, key,
+						&baseline, &received, profile ) );
+					CHECK( std::memcmp( &received, &expected, sizeof( expected ) ) == 0 );
+				}
+			}
+		}
+	}
+	// Synthetic command encoded by retail with key -1 and serverTime 1.
+	// Retail delivers the extra key bit in all changed angle/button words.
+	std::array<byte, 8> packet{{ 0xf7, 0xdb, 0xdb, 0x5b, 0xdc, 0xde, 0xf7, 0x0d }};
+	usercmd_t baseline{}, expected{}, received{};
+	baseline.forwardmove = baseline.rightmove = baseline.upmove = -128;
+	expected = baseline;
+	expected.serverTime = 1;
+	expected.angles[0] = expected.angles[1] = expected.angles[2] = expected.buttons = 0x1ffff;
+	expected.weapon = expected.weaponPrimary = expected.fov = 255;
+	msg_t reader{};
+	MSG_Init( &reader, packet.data(), static_cast<int>( packet.size() ) );
+	reader.cursize = static_cast<int>( packet.size() );
+	MSG_BeginReading( &reader );
+	CHECK( MSG_ReadDeltaUsercmdKeyForWireProfile( &reader, -1,
+		&baseline, &received, NETCHAN_WIRE_QL_RETAIL ) );
+	CHECK( std::memcmp( &received, &expected, sizeof( expected ) ) == 0 );
+	CHECK( reader.bit == 60 && reader.readcount == 8 );
+	return 0;
+}
+
 int TestUserCommandMovementMinimum() {
 	for ( const auto profile : { NETCHAN_WIRE_LEGACY_Q3,
 		NETCHAN_WIRE_IOQ3, NETCHAN_WIRE_QL_RETAIL } ) {
@@ -1182,5 +1238,6 @@ int main() {
 	if ( const int result = TestRetailPlayerFieldBoundaries() ) return result;
 	if ( const int result = TestRetailEntityFieldBoundaries() ) return result;
 	if ( const int result = TestUserCommandMovementMinimum() ) return result;
+	if ( const int result = TestUserCommandProfileKeyMask() ) return result;
 	return 0;
 }
