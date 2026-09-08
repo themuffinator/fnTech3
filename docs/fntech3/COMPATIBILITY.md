@@ -259,6 +259,10 @@ to the evidence level named in the same cell.
    bytes and destination guards. The [guarded native snapshot probe](2026-09-08-native-snapshot-containment.md)
    exercises exact output bounds, rejected-request preservation and zero-tail
    containment through the running client; the tail's meaning remains unverified.
+   The [retail consumer layout inspection](2026-09-08-retail-snapshot-layout.md)
+   independently pins the 592-byte copy, snapshot-buffer separation and entity
+   offsets/stride to the installed module. It confirms that the tail is copied,
+   without establishing its producer values or downstream semantics.
    [Snapshot history validation](2026-09-07-snapshot-history.md) also rejects
    malformed/stale module requests before writes. The subsequent
    [entity-history correction](2026-09-07-entity-history-wrap.md) covers parser

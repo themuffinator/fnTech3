@@ -1,0 +1,115 @@
+{
+  "module": {
+    "installation": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live",
+    "looseAndArchiveBytesEqual": true,
+    "archiveMember": "baseq3/bin.pk3!cgamex86.dll",
+    "sha256": "310542161ae03cc09a2edf7c5933a3cb5e2f13d791f59d5a33a62721bbf39953",
+    "bytes": 561152,
+    "imageBase": "0x10000000",
+    "machine": "0x14c"
+  },
+  "tools": {
+    "capstone": "5.0.6",
+    "pefile": "2024.8.26"
+  },
+  "method": "Read-only static inspection at independently traced instruction boundaries; no module execution, injection or binary patching",
+  "observations": {
+    "importTablePointerRva": "0x74cccc",
+    "snapshotImportOrdinal": 87,
+    "snapshotBufferRvas": [
+      "0xa6f8cc",
+      "0xa85d54"
+    ],
+    "bufferSeparation": 91272,
+    "currentSnapshotPointerRva": "0xa6f8c4",
+    "playerStateOffset": 44,
+    "playerStateCopyDwords": 148,
+    "playerStateCopyBytes": 592,
+    "workingPlayerStateRva": "0xa9c210",
+    "entityCountOffset": 636,
+    "entityArrayOffset": 640,
+    "entityStride": 236
+  },
+  "checks": [
+    {
+      "rva": "0x20a82",
+      "instructionClass": "mov"
+    },
+    {
+      "rva": "0x4c43f",
+      "instructionClass": "mov"
+    },
+    {
+      "rva": "0x4c444",
+      "instructionClass": "mov"
+    },
+    {
+      "rva": "0x4c44a",
+      "instructionClass": "call"
+    },
+    {
+      "rva": "0x4c431",
+      "instructionClass": "mov"
+    },
+    {
+      "rva": "0x4c42a",
+      "instructionClass": "mov"
+    },
+    {
+      "rva": "0x4c43d",
+      "instructionClass": "push"
+    },
+    {
+      "rva": "0x44710",
+      "instructionClass": "mov"
+    },
+    {
+      "rva": "0x44716",
+      "instructionClass": "add"
+    },
+    {
+      "rva": "0x44719",
+      "instructionClass": "mov"
+    },
+    {
+      "rva": "0x4471e",
+      "instructionClass": "mov"
+    },
+    {
+      "rva": "0x44729",
+      "instructionClass": "rep movsd"
+    },
+    {
+      "rva": "0x18e05",
+      "instructionClass": "mov"
+    },
+    {
+      "rva": "0x18e0f",
+      "instructionClass": "cmp"
+    },
+    {
+      "rva": "0x18e20",
+      "instructionClass": "mov"
+    },
+    {
+      "rva": "0x18e3d",
+      "instructionClass": "add"
+    }
+  ],
+  "inferences": {
+    "knownPrefixBytes": 504,
+    "unmodelledTailBytes": 88,
+    "scope": "The full envelope is copied. This does not establish tail field semantics, downstream indirect reads, retail producer values, or safe replacement with a smaller layout."
+  },
+  "limitations": [
+    "Linear whole-section scans were used only to locate candidates; unrelated stack/member displacements were excluded from these selected observations.",
+    "No direct absolute accesses to the working tail were found in an exploratory scan; that negative scan is not proof of non-use.",
+    "QLSRP trimmed snapshot metadata was not used as authority.",
+    "No proprietary code or binary is included in this record."
+  ],
+  "engineCommit": "d8cd90183ef408b88d3e5a9fb721b791ea9a5729",
+  "localVerificationScript": {
+    "path": ".tmp/verify-ql-snapshot-contract.py",
+    "sha256": "773a7a3814ada6ead7f4f137ddc75fc65472c69bb9652535e082048cc48c83d1"
+  }
+}

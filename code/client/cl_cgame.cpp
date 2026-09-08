@@ -1320,6 +1320,8 @@ static qboolean CL_GetQ3Snapshot( int snapshotNumber,
 
 namespace {
 
+// Retail consumer copy/stride provenance (module hash and instruction RVAs):
+// docs/fntech3/2026-09-08-retail-snapshot-layout.md. Tail semantics remain unknown.
 constexpr int kRetailPlayerStateBytes = 0x250;
 constexpr int kRetailSnapshotEntityCount = 0x180;
 
