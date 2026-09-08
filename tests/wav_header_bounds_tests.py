@@ -57,13 +57,13 @@ void append(Bytes&b,const Bytes&v){b.insert(b.end(),v.begin(),v.end());}
 Bytes fmt(int format=1,int channels=1,int bits=16){Bytes b;u16(b,format);u16(b,channels);u32(b,22050);u32(b,22050*channels*(bits/8));u16(b,channels*(bits/8));u16(b,bits);return b;}
 Bytes riff(Bytes body){Bytes b;tag(b,"RIFF");u32(b,body.size()+4);tag(b,"WAVE");append(b,body);return b;}
 Bytes body(Bytes format,Bytes samples=Bytes(16,0)){auto b=chunk("fmt ",format);append(b,chunk("data",samples));return b;}
-bool parse(Bytes bytes,bool expected,int mode=0,int fail=-1,int length=-1){
+bool parse(Bytes bytes,bool expected,int mode=0,int fail=-1,int length=-1,int expectedWidth=0){
  input=bytes;pos=reads=seeks=0;seekMode=mode;failRead=fail;
  snd_info_t info{1,2,3,4,5,6},before=info;WavSourceFormat source{7,8,true};
  bool ok=S_ReadRIFFHeader(1,length==-1?static_cast<int>(input.size()):length,&info,&source);
  assert(ok==expected);
  if(!ok){assert(std::memcmp(&info,&before,sizeof(info))==0);assert(source.format==7&&source.width==8&&source.needsConversion);}
- else{assert(info.rate==22050&&info.channels>0&&info.width>0&&info.size>=0&&info.dataofs==0);}
+ else{if(expectedWidth)assert(info.width==expectedWidth);assert(info.rate==22050&&info.channels>0&&info.width>0&&info.size>=0&&info.dataofs==0);}
  return ok;
 }
 int main(){
@@ -81,6 +81,12 @@ int main(){
  for(int n=0;n<16;++n)parse(riff(body(Bytes(n))),false);
  for(int width:{8,16,24})for(int channels:{1,2})parse(riff(body(fmt(1,channels,width))),true);
  parse(riff(body(fmt(3,2,32))),true);
+ parse(riff(body(fmt(1,2,8))),true,0,-1,-1,2);
+ parse(riff(body(fmt(1,1,8))),true,0,-1,-1,1);
+ // A physically reported large PCM8 payload must not overflow decoded size.
+ auto huge=riff(body(fmt(1,2,8),{}));set32(huge,4,0x40000024u);set32(huge,40,0x40000000u);
+ parse(huge,false,0,-1,0x4000002c);
+
  for(auto f:{fmt(1,0),fmt(1,32768),fmt(1,1,32),fmt(3,1,16),fmt(2)})parse(riff(body(f)),false);
  for(unsigned rate:{0u,0x80000000u,0xffffffffu}){auto f=fmt();set32(f,4,rate);parse(riff(body(f)),false);}
  auto extended=fmt(0xfffe);u16(extended,22);u16(extended,16);u32(extended,0);u16(extended,1);append(extended,{0,0,0,0,0x10,0,0x80,0,0,0xaa,0,0x38,0x9b,0x71});

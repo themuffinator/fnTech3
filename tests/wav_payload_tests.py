@@ -67,9 +67,11 @@ void S_ByteSwapRawSamples(int samples,int width,int channels,byte*){assert(sampl
 ''' + conversion + load + stream + r'''
 void reset(){cursor=0;readCalls=0;readLimit=INT_MAX;assert(allocations==0&&openHandles==0);}
 int main(){
+ WavSourceFormat pcm8{kWavFormatPCM,1,true};
+ for(int value=0;value<256;++value){byte b=static_cast<byte>(value);assert(ConvertWavSampleToPCM16(&b,pcm8)==(value-128)*256);}
  for(int width:{1,2,3,4})for(int channels:{1,2}){
-  selected={width==4?kWavFormatIEEEFloat:kWavFormatPCM,width,width>2};
-  description={44100,width>2?2:width,channels,8,8*channels*(width>2?2:width),0};
+  selected={width==4?kWavFormatIEEEFloat:kWavFormatPCM,width,width>2||(width==1&&channels>1)};
+  description={44100,selected.needsConversion?2:width,channels,8,8*channels*(selected.needsConversion?2:width),0};
   std::vector<byte> full(8*channels*width,0);
   for(std::size_t i=0;i<full.size();i+=width){
    if(width==4){float f=.5f;std::memcpy(full.data()+i,&f,4);}
@@ -79,8 +81,8 @@ int main(){
   auto*loaded=static_cast<byte*>(S_WAV_CodecLoad("fixture.wav",&info));assert(loaded);
   std::vector<byte> expected(loaded,loaded+info.size);std::free(loaded);
   assert(cursor==full.size()&&allocations==0&&openHandles==0);
-  if(width<=2)assert(expected==full);
-  else for(int i=0;i<info.size;i+=2){short v;std::memcpy(&v,expected.data()+i,2);assert(v==(width==3?16384:16383));}
+  if(!selected.needsConversion)assert(expected==full);
+  else for(int i=0;i<info.size;i+=2){short v;std::memcpy(&v,expected.data()+i,2);assert(v==(width==1?-16384:(width==3?16384:16383)));}
   // Every truncation must reject a whole load without leaking either buffer.
   for(std::size_t n=0;n<full.size();++n){
    payload.assign(full.begin(),full.begin()+n);reset();
@@ -90,7 +92,7 @@ int main(){
   payload=full;reset();readLimit=-1;
   assert(S_WAV_CodecLoad("error.wav",&info)==nullptr);assert(allocations==0&&openHandles==0);
   WavStreamState state{selected.format,width};
-  auto makeStream=[&](){snd_stream_t s;s.info=description;s.ptr=width>2?&state:nullptr;return s;};
+  auto makeStream=[&](){snd_stream_t s;s.info=description;s.ptr=selected.needsConversion?&state:nullptr;return s;};
   // Valid repeated reads reconstruct exactly the whole-load output.
   payload=full;reset();auto s=makeStream();std::vector<byte> actual;
   while(s.pos<s.info.size){std::array<byte,16>b{};int n=S_WAV_CodecReadStream(&s,4,b.data());assert(n>0&&n<=4);actual.insert(actual.end(),b.begin(),b.begin()+n);}
@@ -99,7 +101,7 @@ int main(){
   for(std::size_t n=0;n<full.size();++n){
    payload.assign(full.begin(),full.begin()+n);reset();s=makeStream();std::array<byte,128>b;b.fill(0xa5);
    int got=S_WAV_CodecReadStream(&s,description.size,b.data());
-   int want=width<=2?static_cast<int>(n):static_cast<int>(n/width)*2;
+   int want=!selected.needsConversion?static_cast<int>(n):static_cast<int>(n/width)*2;
    assert(got==want&&s.pos==want);
    assert(std::equal(b.begin(),b.begin()+got,expected.begin()));
    assert(std::all_of(b.begin()+got,b.end(),[](byte v){return v==0xa5;}));

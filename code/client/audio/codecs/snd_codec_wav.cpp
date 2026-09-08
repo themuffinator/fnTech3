@@ -41,7 +41,8 @@ using fnql::ScopedZoneMemory;
 namespace {
 
 // The rest of the sound pipeline only consumes 8/16-bit integer PCM, so
-// 24-bit integer and 32-bit float sources are converted to 16-bit here.
+// 24-bit integer, 32-bit float and multichannel unsigned PCM8 sources
+// are converted to 16-bit here.
 constexpr int kWavFormatPCM = 0x0001;
 constexpr int kWavFormatIEEEFloat = 0x0003;
 constexpr int kWavFormatExtensible = 0xFFFE;
@@ -156,6 +157,9 @@ void S_ByteSwapRawSamples( int samples, int width, int s_channels, byte *data ) 
 }
 
 short ConvertWavSampleToPCM16( const byte *src, const WavSourceFormat &source ) {
+	if ( source.format == kWavFormatPCM && source.width == 1 ) {
+		return static_cast<short>( ( static_cast<int>( src[0] ) - 128 ) * 256 );
+	}
 	if ( source.format == kWavFormatIEEEFloat ) {
 		unsigned int bits = static_cast<unsigned int>( src[0] ) |
 			( static_cast<unsigned int>( src[1] ) << 8 ) |
@@ -255,13 +259,19 @@ qboolean S_ReadRIFFHeader( fileHandle_t file, int fileLength, snd_info_t *info, 
 	WavSourceFormat parsedSource;
 	parsedSource.format = format;
 	parsedSource.width = bits / 8;
-	parsedSource.needsConversion = ( format == kWavFormatIEEEFloat || bits == 24 );
+	// RawSamples retains its legacy signed PCM8 stereo contract. WAV PCM8
+	// is unsigned for every channel count, so normalize multichannel WAVs
+	// here instead of changing the game-module/raw boundary.
+	parsedSource.needsConversion = ( format == kWavFormatIEEEFloat || bits == 24 || ( bits == 8 && channels > 1 ) );
 	snd_info_t parsed{};
 	parsed.channels = channels;
 	parsed.rate = static_cast<int>( rate );
 	parsed.samples = dataSize / ( parsedSource.width * channels );
 	parsed.width = parsedSource.needsConversion ? 2 : parsedSource.width;
-	// Decoding never expands a source sample, so this product is <= dataSize.
+	// PCM8 normalization expands samples; check before multiplying signed sizes.
+	if ( parsed.samples > 0x7fffffff / ( parsed.width * channels ) ) {
+		return qfalse;
+	}
 	parsed.size = parsed.samples * parsed.width * channels;
 	*info = parsed;
 	*source = parsedSource;
@@ -410,7 +420,7 @@ extern "C" int S_WAV_CodecReadStream( snd_stream_t *stream, int bytes, void *buf
 		return bytesRead;
 	}
 
-	// Decode 24-bit or float source samples to 16-bit through a bounded
+	// Decode converted source samples to 16-bit through a bounded
 	// scratch buffer; stream->pos tracks decoded bytes.
 	WavSourceFormat source;
 	source.format = state->format;
