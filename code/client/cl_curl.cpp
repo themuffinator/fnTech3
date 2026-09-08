@@ -440,6 +440,14 @@ void CL_cURL_PerformDownload( void )
 	}
 	if(res == CURLM_CALL_MULTI_PERFORM)
 		return;
+	if ( res != CURLM_OK ) {
+		// A failed multi stack cannot be continued or treated as pending.
+		CL_cURL_CloseDownload();
+		CL_cURL_Cleanup();
+		Com_Error( ERR_DROP, "Download transport error: %s",
+			qcurl_multi_strerror( res ) );
+		return;
+	}
 	msg = qcurl_multi_info_read(clc.downloadCURLM, &c);
 	if(msg == nullptr) {
 		return;
@@ -1140,6 +1148,20 @@ qboolean Com_DL_Perform( download_t *dl )
 	if( res == CURLM_CALL_MULTI_PERFORM )
 	{
 		return qtrue;
+	}
+	if ( res != CURLM_OK )
+	{
+		const bool autoDownload = dl->mapAutoDownload != qfalse;
+		Com_Printf( S_COLOR_RED "Download transport error: %s\n",
+			dl->func.multi_strerror( res ) );
+		Q_strncpyz( name.data(), dl->TempName, static_cast<int>( name.size() ) );
+		Com_DL_Cleanup( dl );
+		FS_SV_HomeRemove( name.data() );
+		if ( autoDownload && cls.state == CA_CONNECTED )
+		{
+			Com_Error( ERR_DROP, "%s\n", "download transport error" );
+		}
+		return qfalse;
 	}
 
 	msg = dl->func.multi_info_read( dl->cURLM, &c );
