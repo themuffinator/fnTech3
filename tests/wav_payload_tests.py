@@ -151,6 +151,19 @@ int main(){
   payload=full;reset();auto s=makeStream();std::vector<byte> actual;
   while(s.pos<s.info.size){std::array<byte,16>b{};int n=S_WAV_CodecReadStream(&s,4,b.data());assert(n>0&&n<=4);actual.insert(actual.end(),b.begin(),b.begin()+n);}
   assert(actual==expected);assert(S_WAV_CodecReadStream(&s,4,actual.data())==0);
+  // Positive short reads may split a 24-bit or float scalar at any byte.
+  // They must not discard that prefix or shift the following samples.
+  if(selected.needsConversion)for(int limit=1;limit<=9;++limit)for(int request:{2,6,38,128}){
+   payload=full;reset();readLimit=limit;s=makeStream();actual.clear();
+   while(s.pos<s.info.size){
+    std::array<byte,128> part;part.fill(0xa5);
+    int got=S_WAV_CodecReadStream(&s,request,part.data());
+    assert(got>0&&got<=request&&got%2==0);
+    actual.insert(actual.end(),part.begin(),part.begin()+got);
+    assert(std::all_of(part.begin()+got,part.end(),[](byte v){return v==0xa5;}));
+   }
+   assert(actual==expected&&cursor==full.size());
+  }
   // Truncation can return complete available source samples, never invented data.
   for(std::size_t n=0;n<full.size();++n){
    payload.assign(full.begin(),full.begin()+n);reset();s=makeStream();std::array<byte,128>b;b.fill(0xa5);

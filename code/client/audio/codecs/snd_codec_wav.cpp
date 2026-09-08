@@ -445,7 +445,17 @@ extern "C" int S_WAV_CodecReadStream( snd_stream_t *stream, int bytes, void *buf
 		const int samplesThisPass = ( std::min )( requestedSamples - decodedSamples,
 			static_cast<int>( sourceChunk.size() ) / source.width );
 		const int sourceBytes = samplesThisPass * source.width;
-		const int bytesRead = FileRead( stream->file, sourceChunk.data(), sourceBytes );
+		int bytesRead = 0;
+		// A positive short read need not end at a source-sample boundary.
+		// Accumulate it before converting so subsequent reads stay aligned.
+		while ( bytesRead < sourceBytes ) {
+			const int count = FileRead( stream->file, sourceChunk.data() + bytesRead,
+				sourceBytes - bytesRead );
+			if ( count <= 0 ) {
+				break;
+			}
+			bytesRead += count;
+		}
 		const int samplesRead = bytesRead / source.width;
 		if ( samplesRead <= 0 ) {
 			break;

@@ -1,0 +1,56 @@
+{
+  "baseCommit": "a63e0e9d2fb4735bc039920d664287e416f0f5fa",
+  "source": {
+    "code/client/audio/codecs/snd_codec_wav.cpp": "1f9ae2898ebf3eedd905165c63e493c59f31becd9ed173e0009ebe57831eee7c",
+    "tests/wav_payload_tests.py": "4888b31679f0931d7fdd6e3703b9249d60cab6e7bd81543ef1233c5faf2bcf15"
+  },
+  "commands": [
+    "python tests/wav_payload_tests.py",
+    "wsl -d Ubuntu -- bash -c \"cd /mnt/e/Repositories/fnTech3 && python3 .tmp/test-speaker-sanitizers.py\"",
+    ".tmp/build-steam-profile-final.cmd",
+    ".tmp/test-ql-usercmd-full.cmd",
+    ".tmp/build-sdl-timing.cmd",
+    "python .tmp/probe-retail-wav-short-read.py"
+  ],
+  "logs": {
+    "wav-short-read-before.log": "eda4aa38cd34b04db0c00b1683e5871529e69d5ba9200cf3c24b662d9cfbf224",
+    "wav-short-read-after.log": "5feeec46e8931f78bb08962dca830709d8317da51edc543a79290092f9fb52d6",
+    "wav-short-read-build.log": "8e98414489b76de29b189297409556589bfef803c168d5a05584ff28ce71f26a",
+    "wav-short-read-sdl-build.log": "9e5db41e34a0e12aef3643c8962ba914213db1d4636eabb2f7844a731089b53e",
+    "wav-short-read-suite.log": "6dca6ecf2bec459ab2d6ea3047e040b7c7ab73eea71aec0f0ac1e2a213cd0a7f",
+    "wav-short-read-sanitizers.log": "de0b087839ba731d1e6475e8bdcc894c72bb580318ca640ce601e8ca2b188619",
+    "wav-short-read-corpus.log": "58fd6f85ecd8020acbb947b379a02c595980be522dd5b6f1b665152e040c7d72"
+  },
+  "corpus": {
+    "q3": {
+      "files": 631,
+      "sourceBytesWithEnvelopes": 267961507,
+      "decodedBytesWithEnvelopes": 267929521,
+      "decodedCorpusSha256": "6fcd08cf4642ada9d94de89f832d5297c3adb9984e14bd163acac129b6b9c2a1",
+      "inputInventorySha256": "2b8b410011400fc5283282fdf4a9af18874fac46d1067b7741bd223b321a7d39",
+      "allDecodedBytesMatchPythonWave": true
+    },
+    "ql": {
+      "files": 538,
+      "sourceBytesWithEnvelopes": 66280980,
+      "decodedBytesWithEnvelopes": 66143282,
+      "decodedCorpusSha256": "c526ceb5152dfcc1c0747199e50cf0bd72361d47cbd02e77553665ddec93565c",
+      "inputInventorySha256": "b53df6294bcf937421bc34ed9aac09f927a805061d4bb833557389246847365b",
+      "allDecodedBytesMatchPythonWave": true
+    }
+  },
+  "suite": {
+    "passed": 110,
+    "failed": 0,
+    "skipped": 1,
+    "pythonSummary": "Ran 1304 tests in 199.212s"
+  },
+  "sanitizers": {
+    "tests": 5,
+    "failed": 0,
+    "tools": [
+      "AddressSanitizer",
+      "UndefinedBehaviorSanitizer"
+    ]
+  }
+}
