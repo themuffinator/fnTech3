@@ -116,6 +116,10 @@ the queued reconnect command.
 The [QL download checkpoint](2026-09-08-ql-downloads.md) extends UDP and automatic
 HTTP reconnect evidence to QL with matching add-on hashes and native pure
 admission. It also records a newly observed hosted CI billing/spending block.
+The [HTTP error and cURL cleanup checkpoint](2026-09-08-http-errors-and-curl-cleanup.md)
+records 404/truncated-response rejection and fixes handle release before
+connection reset. Successful HTTP reconnect still passes in both profiles;
+error-probe shutdown remains incomplete and required forced termination.
 The [HTTP interruption checkpoint](2026-09-08-http-interruption.md) verifies
 that short responses leave no installed add-on and that both profiles can
 download successfully in a new process reusing the same isolated home.

@@ -2104,6 +2104,12 @@ qboolean CL_Disconnect( qboolean showMainMenu ) {
 		CL_WritePacket( 2 );
 	}
 
+#ifdef USE_CURL
+	// Release transfer handles while clc still owns them. The later memory
+	// flush cannot recover these pointers once connection state is wiped.
+	CL_cURL_Cleanup();
+#endif
+
 	CL_ClearState();
 
 	// Wipe in place; avoid manufacturing a sizeable aggregate temporary on the
