@@ -47,7 +47,27 @@ The first HTTP probe completed its transfer but the screenshot remained at
 "Awaiting gamestate" after the server-observed disconnect; it is not counted
 as a gameplay pass. The follow-up uses `sv_allowDownload 9`, the supported
 HTTP no-disconnect flag, to separate transfer behavior from reconnect timing.
-Automatic HTTP reconnect with a pending startup script remains unverified.
+The subsequent automatic-reconnect probe below resolves this observation.
+
+## Automatic HTTP reconnect follow-up
+
+At `3aeba05`, the same shared x86 binaries passed Q3's normal HTTP
+disconnect/reconnect path with `sv_allowDownload 1` and `cl_allowDownload 5`
+(HTTP enabled, UDP fallback disabled). The server observed two connections,
+with the second reaching active state after pure admission. The downloaded
+archive hash matched the temporary server fixture, snapshots continued, the
+engine screenshot showed world/HUD gameplay and both processes exited normally.
+Exact configurations, hashes and excerpts are in the
+[reconnect record](evidence/2026-09-08-http-reconnect.json).
+
+The earlier script had queued a long wait, screenshot and quit immediately
+after connecting. `CL_Reconnect_f` appends its connect command to that same
+buffer, behind those pending actions. The corrected probe leaves the buffer
+free after connecting and uses the existing `activeAction` cvar to schedule
+the screenshot and quit after the first gameplay frame. This is a probe
+correction, not an engine behavior change. It validates local Q3 automatic
+HTTP reconnect; QL HTTP reconnect and remote network-fault cases remain open.
+No new unrelated engine issue was found.
 
 Physical storage faults, buffered flush failures, interrupted-transfer
 recovery and remote retail-peer coverage remain open. Existing unrelated

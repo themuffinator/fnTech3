@@ -101,6 +101,9 @@ cover both profiles without claiming remote fault-injection closure.
 The [download write correction](2026-09-08-download-write-errors.md) prevents
 UDP acknowledgement after a failed write and propagates short writes through
 both HTTP callbacks, with controlled failure regressions.
+Its Q3 HTTP follow-up also verifies automatic disconnect/reconnect, pure
+admission and gameplay after removing pending test-script actions that delayed
+the queued reconnect command.
 
 The target is one shared, drop-in binary set. It must select `q3` or `ql` before
 compatibility-sensitive initialization and then use that profile's complete,
