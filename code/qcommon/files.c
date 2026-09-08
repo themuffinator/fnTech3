@@ -3058,6 +3058,15 @@ Read compatibility-safe source-port assets from a fixed archive next to the exec
 Restricted to explicitly owned renderer, audio-zone, global-fog, and sound-shader sidecars so it doesn't widen the general data search path.
 =================
 */
+// Whole-file validation is explicit: the inherited unzip reader does not
+// accumulate or check CRCs during streaming reads/close.
+static qboolean FS_ZipPayloadMatches( unzFile archive, const byte *data, int length ) {
+	unz_file_info info;
+	return length >= 0 && unzGetCurrentFileInfo( archive, &info, NULL, 0, NULL, 0, NULL, 0 ) == UNZ_OK
+		&& info.uncompressed_size == (unsigned long) length
+		&& info.crc == crc32_buffer( data, (unsigned int) length );
+}
+
 static int FS_ReadFileFromRootArchive( const char *qpath, void **buffer )
 {
 	const char *archivePath;
@@ -3195,6 +3204,9 @@ static int FS_ReadFileFromRootArchive( const char *qpath, void **buffer )
 		total += err;
 	}
 
+	if ( total == len && !FS_ZipPayloadMatches( archive, buf, len ) ) {
+		total = -1;
+	}
 	err = unzCloseCurrentFile( archive );
 	unzClose( archive );
 
@@ -3322,14 +3334,30 @@ int FS_ReadFile( const char *qpath, void **buffer ) {
 	buf = Hunk_AllocateTempMemory( len + 1 );
 	*buffer = buf;
 
-	FS_Read( buf, len, h );
+	// Validate the complete payload before publishing it or updating load counts.
+	{
+		const int bytesRead = FS_Read( buf, len, h );
+		const qboolean payloadValid = bytesRead == len &&
+			( !fsh[h].zipFile || FS_ZipPayloadMatches( fsh[h].handleFiles.file.z, buf, len ) );
+		FS_FCloseFile( h );
+		if ( !payloadValid ) {
+			Hunk_FreeTempMemory( buf );
+			*buffer = NULL;
+			Com_Printf( S_COLOR_YELLOW "FS_ReadFile: incomplete or corrupt file %s\n", qpath );
+			if ( isConfig ) {
+				len = 0;
+				FS_Write( &len, sizeof( len ), com_journalDataFile );
+				FS_Flush( com_journalDataFile );
+			}
+			return -1;
+		}
+	}
 
 	fs_loadCount++;
 	fs_loadStack++;
 
 	// guarantee that it will have a trailing 0 for string operations
 	buf[ len ] = '\0';
-	FS_FCloseFile( h );
 
 	// if we are journaling and it is a config file, write it to the journal file
 	if ( isConfig ) {
