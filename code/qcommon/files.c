@@ -746,7 +746,7 @@ FS_CopyFile
 Copy a fully specified file from one place to another
 =================
 */
-static void FS_CopyFile( const char *fromOSPath, const char *toOSPath ) {
+static qboolean FS_CopyFile( const char *fromOSPath, const char *toOSPath ) {
 	FILE	*f;
 	size_t	len;
 	byte	*buf;
@@ -763,19 +763,19 @@ static void FS_CopyFile( const char *fromOSPath, const char *toOSPath ) {
 
 	if (strstr(fromPath, "journal.dat") || strstr(fromPath, "journaldata.dat")) {
 		Com_Printf( "Ignoring journal files\n");
-		return;
+		return qfalse;
 	}
 
 	f = Sys_FOpen( fromPath, "rb" );
 	if ( !f ) {
-		return;
+		return qfalse;
 	}
 
 	len = FS_FileLength( f );
 
 	// we are using direct malloc instead of Z_Malloc here, so it
 	// probably won't work on a mac... It's only for developers anyway...
-	buf = malloc( len );
+	buf = malloc( len ? len : 1 );
 	if ( !buf ) {
 		fclose( f );
 		Com_Error( ERR_FATAL, "Memory alloc error in FS_Copyfiles()\n" );
@@ -792,12 +792,12 @@ static void FS_CopyFile( const char *fromOSPath, const char *toOSPath ) {
 	if ( !f ) {
 		if ( FS_CreatePath( toPath ) ) {
 			free( buf );
-			return;
+			return qfalse;
 		}
 		f = Sys_FOpen( toPath, "wb" );
 		if ( !f ) {
 			free( buf );
-			return;
+			return qfalse;
 		}
 	}
 
@@ -806,8 +806,9 @@ static void FS_CopyFile( const char *fromOSPath, const char *toOSPath ) {
 		fclose( f );
 		Com_Error( ERR_FATAL, "Short write in FS_Copyfiles()\n" );
 	}
-	fclose( f );
+	const int closeResult = fclose( f );
 	free( buf );
+	return closeResult == 0 ? qtrue : qfalse;
 }
 
 
@@ -1542,7 +1543,10 @@ void FS_SV_Rename( const char *from, const char *to ) {
 
 	if ( !Sys_ReplaceFile( from_ospath, to_ospath ) ) {
 		// Failed, try copying it and deleting the original
-		FS_CopyFile( from_ospath, to_ospath );
+		if ( !FS_CopyFile( from_ospath, to_ospath ) ) {
+			Com_Error( ERR_DROP, "Failed to copy %s to %s; source retained", from_ospath, to_ospath );
+			return;
+		}
 		FS_Remove( from_ospath );
 	}
 }
@@ -1589,7 +1593,10 @@ void FS_Rename( const char *from, const char *to ) {
 
 	if ( !Sys_ReplaceFile( from_ospath, to_ospath ) ) {
 		// Failed, try copying it and deleting the original
-		FS_CopyFile( from_ospath, to_ospath );
+		if ( !FS_CopyFile( from_ospath, to_ospath ) ) {
+			Com_Error( ERR_DROP, "Failed to copy %s to %s; source retained", from_ospath, to_ospath );
+			return;
+		}
 		FS_Remove( from_ospath );
 	}
 }

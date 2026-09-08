@@ -110,6 +110,9 @@ admission. It also records a newly observed hosted CI billing/spending block.
 The [HTTP interruption checkpoint](2026-09-08-http-interruption.md) verifies
 that short responses leave no installed add-on and that both profiles can
 download successfully in a new process reusing the same isolated home.
+The [rename fallback correction](2026-09-08-rename-fallback.md) preserves source
+files when fallback copying fails, including download finalization, with
+Windows/Linux executable failure regressions.
 
 The target is one shared, drop-in binary set. It must select `q3` or `ql` before
 compatibility-sensitive initialization and then use that profile's complete,
