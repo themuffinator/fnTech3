@@ -269,6 +269,9 @@ to the evidence level named in the same cell.
    traces the full history copy and, in controlled CPU emulation, establishes
    zero tail bytes from a null baseline and preservation of a supplied nonzero
    tail across field updates. Other writers and tail semantics remain open.
+   [Live retail tail sampling](2026-09-08-retail-snapshot-tail-live.md) observes
+   490 valid records across all 32 slots with zero tails during a connected
+   map-change session. Finite sampling does not resolve those remaining gaps.
    The [compressed player-state payload checkpoint](2026-09-08-retail-playerstate-wire.md)
    runs retail Huffman initialization and real bit IO in CPU emulation, checks
    six states in both encoding directions, and pins two accepted retail
