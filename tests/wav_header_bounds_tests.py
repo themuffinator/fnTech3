@@ -91,6 +91,15 @@ int main(){
  for(unsigned rate:{0u,0x80000000u,0xffffffffu}){auto f=fmt();set32(f,4,rate);parse(riff(body(f)),false);}
  auto extended=fmt(0xfffe);u16(extended,22);u16(extended,16);u32(extended,0);u16(extended,1);append(extended,{0,0,0,0,0x10,0,0x80,0,0,0xaa,0,0x38,0x9b,0x71});
  parse(riff(body(extended)),true);
+ // Valid precision may be smaller than the byte-aligned container, never larger.
+ for(int bits:{8,16,24,32}){
+  auto f=extended;f[14]=bits;f[24]=bits==32?3:1;
+  for(int precision:{0,1,bits-1,bits}){f[18]=precision;f[19]=0;parse(riff(body(f)),true);}
+  for(unsigned precision:{static_cast<unsigned>(bits+1),255u,256u,65535u}){
+   f[18]=precision&255;f[19]=(precision>>8)&255;parse(riff(body(f)),false);
+  }
+ }
+
  for(int i=26;i<40;++i){auto f=extended;f[i]^=1;parse(riff(body(f)),false);}
  for(unsigned count:{0u,1u,21u,23u,65535u}){auto f=extended;f[16]=count&255;f[17]=(count>>8)&255;parse(riff(body(f)),false);}
  auto longer=extended;longer[16]=24;append(longer,{0,0});parse(riff(body(longer)),true);

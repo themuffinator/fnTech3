@@ -238,6 +238,12 @@ qboolean S_ReadRIFFHeader( fileHandle_t file, int fileLength, snd_info_t *info, 
 		if ( std::memcmp( fmt.data() + 26, waveGuidSuffix.data(), waveGuidSuffix.size() ) != 0 ) {
 			return qfalse;
 		}
+		// WAVEFORMATEXTENSIBLE precision cannot exceed its sample container
+		// (Microsoft ksmedia.h contract). Reduced PCM precision is left-aligned,
+		// so the existing container-based conversion retains the correct scale.
+		if ( WavLittleShort( fmt.data() + 18 ) > bits ) {
+			return qfalse;
+		}
 		format = WavLittleShort( fmt.data() + 24 );
 		consumed = 40;
 	}

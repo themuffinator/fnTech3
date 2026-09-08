@@ -113,6 +113,14 @@ short LittleShort(short value){
 ''' + swap + conversion + load + stream + r'''
 void reset(){cursor=0;readCalls=0;readLimit=INT_MAX;assert(allocations==0&&openHandles==0);}
 int main(){
+ // 20-bit PCM in a 24-bit container is left-aligned, with four zero low bits.
+ WavSourceFormat pcm20{kWavFormatPCM,3,true};
+ for(int value:{-524288,-262144,-1,0,1,262144,524287}){
+  const unsigned packed=static_cast<unsigned>(value*16);
+  byte bytes[]{static_cast<byte>(packed),static_cast<byte>(packed>>8),static_cast<byte>(packed>>16)};
+  const int expected=value>=0?value/16:-((-value+15)/16);
+  assert(ConvertWavSampleToPCM16(bytes,pcm20)==expected);
+ }
  WavSourceFormat pcm8{kWavFormatPCM,1,true};
  for(int value=0;value<256;++value){byte b=static_cast<byte>(value);assert(ConvertWavSampleToPCM16(&b,pcm8)==(value-128)*256);}
  for(int width:{1,2,3,4})for(int channels:{1,2,3,6,8}){
