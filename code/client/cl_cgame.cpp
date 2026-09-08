@@ -1492,7 +1492,12 @@ static qboolean CL_GetServerCommand( int serverCommandNumber ) {
 	int argc, index;
 
 	// if we have irretrievably lost a reliable command, drop the connection
-	if ( clc.serverCommandSequence - serverCommandNumber >= MAX_RELIABLE_COMMANDS ) {
+	std::uint32_t commandAge = 0;
+	if ( !fnql::net::PendingCounterCount( clc.serverCommandSequence, serverCommandNumber, commandAge ) ) {
+		Com_Error( ERR_DROP, "CL_GetServerCommand: requested a command not received" );
+		return qfalse;
+	}
+	if ( commandAge >= MAX_RELIABLE_COMMANDS ) {
 		// when a demo record was started after the client got a whole bunch of
 		// reliable commands then the client never got those first reliable commands
 		if ( clc.demoplaying ) {
@@ -1500,11 +1505,6 @@ static qboolean CL_GetServerCommand( int serverCommandNumber ) {
 			return qfalse;
 		}
 		Com_Error( ERR_DROP, "CL_GetServerCommand: a reliable command was cycled out" );
-		return qfalse;
-	}
-
-	if ( clc.serverCommandSequence - serverCommandNumber < 0 ) {
-		Com_Error( ERR_DROP, "CL_GetServerCommand: requested a command not received" );
 		return qfalse;
 	}
 

@@ -365,6 +365,10 @@ rejects truncated commands before history/hash publication and removes signed
 overflow from duplicate detection. Both-profile executable boundary tests, Linux
 sanitizers and short retail-server map changes pass; malformed live packets and
 sustained counter-wrap interoperability remain open.
+The [reliable-history follow-up](2026-09-08-reliable-history-wrap.md) bounds demo
+command emission and module history lookup across signed counter wrap, with
+executable boundary tests, Linux sanitizers and both-profile re-record/replay
+controls. Live counter-wrap interoperability remains unverified.
 
 ## Open live gates
 

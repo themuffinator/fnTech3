@@ -631,16 +631,13 @@ CL_WriteServerCommands
 ====================
 */
 static void CL_WriteServerCommands( msg_t *msg ) {
-	int i;
+	if ( fnql::net::IsNewerCounter( clc.serverCommandSequence, clc.demoCommandSequence ) ) {
+		const std::uint32_t count = std::min(
+			fnql::net::CounterDistance( clc.serverCommandSequence, clc.demoCommandSequence ),
+			static_cast<std::uint32_t>( MAX_RELIABLE_COMMANDS ) );
 
-	if ( clc.serverCommandSequence - clc.demoCommandSequence > 0 ) {
-
-		// do not write more than MAX_RELIABLE_COMMANDS
-		if ( clc.serverCommandSequence - clc.demoCommandSequence > MAX_RELIABLE_COMMANDS ) {
-			clc.demoCommandSequence = clc.serverCommandSequence - MAX_RELIABLE_COMMANDS;
-		}
-
-		for ( i = clc.demoCommandSequence + 1 ; i <= clc.serverCommandSequence; i++ ) {
+		for ( std::uint32_t offset = count; offset != 0; --offset ) {
+			const int i = fnql::net::CounterSubtract( clc.serverCommandSequence, offset - 1 );
 			MSG_WriteByte( msg, svc_serverCommand );
 			MSG_WriteLong( msg, i );
 			MSG_WriteStringForWireProfile( msg,
