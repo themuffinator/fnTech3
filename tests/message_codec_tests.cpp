@@ -964,6 +964,43 @@ int TestPlayerStateRoundTrip() {
 	return 0;
 }
 
+int TestRetailEntityFieldBoundaries() {
+	struct Fixture {
+		std::size_t offset;
+		std::uint32_t value;
+		int bits;
+		int bytes;
+		std::array<byte, 13> packet;
+	};
+	std::array<Fixture, 58> fixtures{{
+#include "fixtures/ql_retail_entity_fields.inc"
+	}};
+	for ( auto &fixture : fixtures ) {
+		entityState_t baseline{}, expected{};
+		baseline.number = expected.number = 17;
+		CHECK( fixture.offset + sizeof( fixture.value ) <= sizeof( expected ) );
+		std::memcpy( reinterpret_cast<byte *>( &expected ) + fixture.offset,
+			&fixture.value, sizeof( fixture.value ) );
+		struct {
+			std::uint32_t before = 0x13579bdf;
+			entityState_t state{};
+			std::uint32_t after = 0x2468ace0;
+		} output;
+		msg_t reader{};
+		MSG_Init( &reader, fixture.packet.data(), static_cast<int>( fixture.packet.size() ) );
+		reader.cursize = fixture.bytes;
+		MSG_BeginReading( &reader );
+		const int number = MSG_ReadEntitynum( &reader );
+		CHECK( number == expected.number );
+		CHECK( MSG_ReadDeltaEntityForWireProfile( &reader, &baseline,
+			&output.state, number, NETCHAN_WIRE_QL_RETAIL ) );
+		CHECK( std::memcmp( &output.state, &expected, sizeof( expected ) ) == 0 );
+		CHECK( reader.bit == fixture.bits && reader.readcount == fixture.bytes );
+		CHECK( output.before == 0x13579bdf && output.after == 0x2468ace0 );
+	}
+	return 0;
+}
+
 int TestRetailPlayerFieldBoundaries() {
 	struct Fixture {
 		std::size_t offset;
@@ -1100,5 +1137,6 @@ int main() {
 	if ( const int result = TestPlayerStateRoundTrip() ) return result;
 	if ( const int result = TestRetailMovementBytePayloads() ) return result;
 	if ( const int result = TestRetailPlayerFieldBoundaries() ) return result;
+	if ( const int result = TestRetailEntityFieldBoundaries() ) return result;
 	return 0;
 }

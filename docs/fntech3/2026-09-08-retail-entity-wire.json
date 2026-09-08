@@ -1,0 +1,356 @@
+{
+  "engineCommit": "a8ac4f410823d51cb914fb62ddbcbe2682a5fbb5",
+  "profile": "ql",
+  "retailExecutableSha256": "c926fe9f6c851e00b3b9332e88903ad01f28fdd60454873891c0158f5ded1299",
+  "retailHuffmanStateSha256": "44baf2050819ebd94a2f7294b640c55405feb7f7e708e67c03cb523db82f5045",
+  "retailRvas": {
+    "entityWriter": "0xd5780",
+    "entityReader": "0xd5ac0",
+    "fieldTable": "0x142220",
+    "bitWriter": "0xd4af0",
+    "bitReader": "0xd4c70"
+  },
+  "layout": {
+    "entityBytes": 236,
+    "fieldDescriptors": 58,
+    "fieldDescriptorBytes": 12,
+    "scalarOffsets": "all four-byte offsets from 4 through 232",
+    "entityNumberBits": 10,
+    "removedEntityNumber": 1023
+  },
+  "corpus": {
+    "seed": 20260908,
+    "isolatedScalarCases": 270,
+    "seededSequentialCases": 128,
+    "forcedUnchanged": 1,
+    "unforcedUnchanged": 1,
+    "removal": 1,
+    "bothStatesNull": 1,
+    "total": 402
+  },
+  "results": {
+    "byteIdenticalWriterCases": 402,
+    "retailDecodedPayloads": 400,
+    "noPayloadCases": 2,
+    "allStatesMatch": true,
+    "allConsumedBitsMatch": true,
+    "allGuardsIntact": true,
+    "fnDecodeRetailWindowsX86": "402 cases passed",
+    "fnDecodeRetailLinuxI686": "402 cases passed",
+    "codecRegressionWindowsX86": "1 Meson test passed, 0 failed",
+    "codecRegressionLinuxI686": "exit 0"
+  },
+  "corpusDigest": {
+    "sha256": "33e40224c28204b14ea9f8bbdc4e1af6c44cbd4216f9c203f1d741ce47d77fb1",
+    "encoding": "case IDs 0..401; kinds baseline,sent,mode,packet,bits,retail-packet; append ASCII filename, NUL, uint32 little-endian length, bytes"
+  },
+  "fields": [
+    {
+      "name": "pos.trTime",
+      "offset": 16,
+      "bits": 32
+    },
+    {
+      "name": "pos.trBase[0]",
+      "offset": 24,
+      "bits": 0
+    },
+    {
+      "name": "pos.trBase[1]",
+      "offset": 28,
+      "bits": 0
+    },
+    {
+      "name": "pos.trDelta[0]",
+      "offset": 36,
+      "bits": 0
+    },
+    {
+      "name": "pos.trDelta[1]",
+      "offset": 40,
+      "bits": 0
+    },
+    {
+      "name": "pos.trBase[2]",
+      "offset": 32,
+      "bits": 0
+    },
+    {
+      "name": "apos.trBase[1]",
+      "offset": 68,
+      "bits": 0
+    },
+    {
+      "name": "pos.trDelta[2]",
+      "offset": 44,
+      "bits": 0
+    },
+    {
+      "name": "apos.trBase[0]",
+      "offset": 64,
+      "bits": 0
+    },
+    {
+      "name": "pos.gravity",
+      "offset": 48,
+      "bits": 32
+    },
+    {
+      "name": "event",
+      "offset": 188,
+      "bits": 10
+    },
+    {
+      "name": "angles2[1]",
+      "offset": 140,
+      "bits": 0
+    },
+    {
+      "name": "eType",
+      "offset": 4,
+      "bits": 8
+    },
+    {
+      "name": "torsoAnim",
+      "offset": 220,
+      "bits": 8
+    },
+    {
+      "name": "eventParm",
+      "offset": 192,
+      "bits": 8
+    },
+    {
+      "name": "legsAnim",
+      "offset": 216,
+      "bits": 8
+    },
+    {
+      "name": "groundEntityNum",
+      "offset": 156,
+      "bits": 10
+    },
+    {
+      "name": "pos.trType",
+      "offset": 12,
+      "bits": 8
+    },
+    {
+      "name": "eFlags",
+      "offset": 8,
+      "bits": 19
+    },
+    {
+      "name": "otherEntityNum",
+      "offset": 148,
+      "bits": 10
+    },
+    {
+      "name": "weapon",
+      "offset": 208,
+      "bits": 8
+    },
+    {
+      "name": "clientNum",
+      "offset": 176,
+      "bits": 8
+    },
+    {
+      "name": "angles[1]",
+      "offset": 128,
+      "bits": 0
+    },
+    {
+      "name": "pos.trDuration",
+      "offset": 20,
+      "bits": 32
+    },
+    {
+      "name": "apos.trType",
+      "offset": 52,
+      "bits": 8
+    },
+    {
+      "name": "origin[0]",
+      "offset": 100,
+      "bits": 0
+    },
+    {
+      "name": "origin[1]",
+      "offset": 104,
+      "bits": 0
+    },
+    {
+      "name": "origin[2]",
+      "offset": 108,
+      "bits": 0
+    },
+    {
+      "name": "solid",
+      "offset": 184,
+      "bits": 24
+    },
+    {
+      "name": "powerups",
+      "offset": 196,
+      "bits": 16
+    },
+    {
+      "name": "modelindex",
+      "offset": 168,
+      "bits": 8
+    },
+    {
+      "name": "otherEntityNum2",
+      "offset": 152,
+      "bits": 10
+    },
+    {
+      "name": "loopSound",
+      "offset": 164,
+      "bits": 8
+    },
+    {
+      "name": "generic1",
+      "offset": 224,
+      "bits": 8
+    },
+    {
+      "name": "origin2[2]",
+      "offset": 120,
+      "bits": 0
+    },
+    {
+      "name": "origin2[0]",
+      "offset": 112,
+      "bits": 0
+    },
+    {
+      "name": "origin2[1]",
+      "offset": 116,
+      "bits": 0
+    },
+    {
+      "name": "modelindex2",
+      "offset": 172,
+      "bits": 8
+    },
+    {
+      "name": "angles[0]",
+      "offset": 124,
+      "bits": 0
+    },
+    {
+      "name": "time",
+      "offset": 92,
+      "bits": 32
+    },
+    {
+      "name": "apos.trTime",
+      "offset": 56,
+      "bits": 32
+    },
+    {
+      "name": "apos.trDuration",
+      "offset": 60,
+      "bits": 32
+    },
+    {
+      "name": "apos.trBase[2]",
+      "offset": 72,
+      "bits": 0
+    },
+    {
+      "name": "apos.trDelta[0]",
+      "offset": 76,
+      "bits": 0
+    },
+    {
+      "name": "apos.trDelta[1]",
+      "offset": 80,
+      "bits": 0
+    },
+    {
+      "name": "apos.trDelta[2]",
+      "offset": 84,
+      "bits": 0
+    },
+    {
+      "name": "apos.gravity",
+      "offset": 88,
+      "bits": 32
+    },
+    {
+      "name": "time2",
+      "offset": 96,
+      "bits": 32
+    },
+    {
+      "name": "angles[2]",
+      "offset": 132,
+      "bits": 0
+    },
+    {
+      "name": "angles2[0]",
+      "offset": 136,
+      "bits": 0
+    },
+    {
+      "name": "angles2[2]",
+      "offset": 144,
+      "bits": 0
+    },
+    {
+      "name": "constantLight",
+      "offset": 160,
+      "bits": 32
+    },
+    {
+      "name": "frame",
+      "offset": 180,
+      "bits": 16
+    },
+    {
+      "name": "jumpTime",
+      "offset": 228,
+      "bits": 32
+    },
+    {
+      "name": "doubleJumped",
+      "offset": 232,
+      "bits": 1
+    },
+    {
+      "name": "health",
+      "offset": 200,
+      "bits": 16
+    },
+    {
+      "name": "armor",
+      "offset": 204,
+      "bits": 16
+    },
+    {
+      "name": "location",
+      "offset": 212,
+      "bits": 8
+    }
+  ],
+  "files": {
+    "code/qcommon/msg.cpp": "766a676688fdf5fbaae57becf81650cbf3e4fb4ba5170ffe13ed1d2e34596fcb",
+    "code/qcommon/huffman_static.c": "2767ba2b15100adedadddace9664ce8fd44ba72debd1f9878e05e4aff0ac92c9",
+    ".tmp/make-ql-entity-corpus.py": "4340ae4d9dfbd9813cfd162369a323602a2befbd24fedf9c29bca0a5ad014316",
+    ".tmp/ql-entity-corpus.cpp": "0fff0ed8bafd8a6dff227802a13126c575c54133b046fa5626f28bb61137868b",
+    ".tmp/emulate-ql-entity-corpus.py": "dcf49c5f86d66e00a50cca03c40ef92a7a53c57ace392a21e043346d6c99236e",
+    ".tmp/ql-entity-corpus/results.json": "17b75cd4fe60f63f6a30224756cd9a00434365b0f99565459a12a9f7e6af5d4c",
+    "tests/fixtures/ql_retail_entity_fields.inc": "377c0426ce8c79b9acda66850fdf540688f80db254b0db847db0310f19eb220d"
+  },
+  "limitations": [
+    "selected functions under Unicorn 2.1.4 CPU emulation, not full retail processes or live interoperability",
+    "cached real retail Huffman state from prior initialization probe",
+    "only zero-fill helper hooked for 236-byte removal state; actual bit IO and entity functions execute",
+    "finite scalar boundary corpus is not exhaustive bit-pattern coverage",
+    "no engine implementation changes or full-suite rerun",
+    "no new unrelated defect established"
+  ]
+}

@@ -280,6 +280,11 @@ to the evidence level named in the same cell.
    including every scalar field and array slot, and retains 58 retail-generated
    scalar boundary fixtures. Windows x86 and Linux i686 decode all retail
    outputs correctly; full-process interoperability remains unproved.
+   The [retail entity-wire checkpoint](2026-09-08-retail-entity-wire.md)
+   similarly checks 402 entity writer cases (all byte-identical), 400 decoded
+   payloads, and two intentional no-output cases. It pins 58 observed field
+   descriptors and adds retail-generated fixtures passing Windows/Linux codec
+   regressions, without claiming a live snapshot exchange.
    [Snapshot history validation](2026-09-07-snapshot-history.md) also rejects
    malformed/stale module requests before writes. The subsequent
    [entity-history correction](2026-09-07-entity-history-wrap.md) covers parser
