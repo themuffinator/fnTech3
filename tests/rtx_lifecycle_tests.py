@@ -251,11 +251,19 @@ int main(void) {
 ''')
 
     def test_descriptor_pool_recreation_never_writes_retained_freed_handles(self):
-        source = VK_SOURCE.read_text(encoding="utf-8")
-        production = "\n".join(function(source, signature) for signature in (
-            "static void vk_update_shadow_attachment_descriptor(",
-            "static void vk_update_attachment_descriptors( void )",
-            "void vk_init_descriptors( void )"))
+        self.check_descriptor_recreation("rendererrtx")
+
+    def test_vk_descriptor_pool_recreation_never_writes_retained_freed_handles(self):
+        self.check_descriptor_recreation("renderervk")
+
+    def check_descriptor_recreation(self, renderer):
+        source = (ROOT / "code" / renderer / "vk.c").read_text(encoding="utf-8")
+        signatures = (["static void vk_update_shadow_attachment_descriptor("]
+                      if renderer == "rendererrtx" else [])
+        signatures += [("static " if renderer == "rendererrtx" else "") +
+                       "void vk_update_attachment_descriptors( void )",
+                       "void vk_init_descriptors( void )"]
+        production = "\n".join(function(source, signature) for signature in signatures)
         self.run_c(r'''
 #define NUM_COMMAND_BUFFERS 3
 #define VK_NUM_MENU_BLUR_IMAGES 4
@@ -269,12 +277,13 @@ static struct { int integer; } bloom;
 #define r_bloom (&bloom)
 static struct {
     VkDevice device; VkDescriptorPool descriptor_pool; int blitFilter;
+    VkDescriptorSetLayout set_layout_storage, set_layout_uniform, set_layout_sampler;
     struct { VkDescriptorSet descriptor; VkBuffer buffer; } storage;
     struct { VkDescriptorSet uniform_descriptor; VkBuffer vertex_buffer; } tess[NUM_COMMAND_BUFFERS];
     VkImageView color_image_view, motion_blur_image_view, underwater_image_view,
-        depth_sample_image_view, dlight_shadow_image_view, spot_shadow_image_view, csm_shadow_image_view;
+        depth_sample_image_view, depth_fade_image_view, dlight_shadow_image_view, spot_shadow_image_view, csm_shadow_image_view;
     VkDescriptorSet color_descriptor, motion_blur_descriptor, underwater_descriptor,
-        depth_sample_descriptor, dlight_shadow_descriptor, spot_shadow_descriptor, csm_shadow_descriptor;
+        depth_sample_descriptor, depth_fade_descriptor, dlight_shadow_descriptor, spot_shadow_descriptor, csm_shadow_descriptor;
     VkImageView bloom_image_view[3], menu_blur_image_view[VK_NUM_MENU_BLUR_IMAGES];
     VkDescriptorSet bloom_image_descriptor[3], menu_blur_descriptor[VK_NUM_MENU_BLUR_IMAGES];
     struct { VkImageView color_image_view; VkDescriptorSet color_descriptor; } screenMap;
@@ -314,6 +323,9 @@ static void qvkUpdateDescriptorSets(VkDevice device, uint32_t writeCount,
         }
     }
 }
+static void vk_update_descriptor_sets(uint32_t count, const VkWriteDescriptorSet *writes) {
+    qvkUpdateDescriptorSets(vk.device, count, writes, 0, NULL);
+}
 static void vk_update_uniform_descriptor(VkDescriptorSet set, VkBuffer buffer) {
     (void)buffer; validate_write(set);
 }
@@ -338,6 +350,7 @@ static void configure(int withColor, int withBloom, int shadowMask) {
         // Leave alternating optional pyramid images absent to exercise guards.
         for (unsigned i = 0; i < VK_NUM_MENU_BLUR_IMAGES; i += 2) vk.menu_blur_image_view[i] = 30 + i;
     }
+    if (shadowMask & 8) vk.depth_fade_image_view = 43;
     if (shadowMask & 1) vk.dlight_shadow_image_view = 40;
     if (shadowMask & 2) vk.spot_shadow_image_view = 41;
     if (shadowMask & 4) vk.csm_shadow_image_view = 42;
@@ -345,7 +358,7 @@ static void configure(int withColor, int withBloom, int shadowMask) {
 int main(void) {
     for (int withColor = 0; withColor <= 1; ++withColor) {
         for (int withBloom = 0; withBloom <= withColor; ++withBloom) {
-            for (int shadows = 0; shadows < 8; ++shadows) {
+            for (int shadows = 0; shadows < 16; ++shadows) {
                 configure(withColor, withBloom, shadows);
                 reset_pool(); vk_init_descriptors();
                 assert(allocationCount == updateCount);

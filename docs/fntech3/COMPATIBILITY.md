@@ -137,6 +137,10 @@ The [SDL console context correction](2026-09-08-sdl-console-context.md) then
 resolves the reproduced SDL texture corruption by restoring the game's GL
 context after console work. Q3 runtime and a scripted renderer restart pass;
 full visual parity and broader platform/profile runtime gates remain open.
+The [Vulkan descriptor correction](2026-09-08-vulkan-descriptor-restart.md)
+fixes a native Linux crash during the pure-join resource rebuild by reallocating
+all attachment descriptor sets before updating them. Linux Q3 rendering and a
+renderer restart gain runtime evidence without closing broader parity gates.
 
 The target is one shared, drop-in binary set. It must select `q3` or `ql` before
 compatibility-sensitive initialization and then use that profile's complete,

@@ -4495,7 +4495,6 @@ void vk_init_descriptors( void )
 				VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_EXT );
 		}
 
-		vk_update_attachment_descriptors();
 	}
 
 	if ( vk.depth_fade_image_view )
@@ -4509,7 +4508,6 @@ void vk_init_descriptors( void )
 		VK_CHECK( qvkAllocateDescriptorSets( vk.device, &alloc, &vk.depth_fade_descriptor ) );
 		SET_OBJECT_NAME( vk.depth_fade_descriptor, "depth fade descriptor", VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_EXT );
 
-		vk_update_attachment_descriptors();
 	}
 
 	if ( vk.dlight_shadow_image_view )
@@ -4523,7 +4521,6 @@ void vk_init_descriptors( void )
 		VK_CHECK( qvkAllocateDescriptorSets( vk.device, &alloc, &vk.dlight_shadow_descriptor ) );
 		SET_OBJECT_NAME( vk.dlight_shadow_descriptor, "dlight shadow atlas descriptor", VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_EXT );
 
-		vk_update_attachment_descriptors();
 	}
 
 	if ( vk.spot_shadow_image_view )
@@ -4537,7 +4534,6 @@ void vk_init_descriptors( void )
 		VK_CHECK( qvkAllocateDescriptorSets( vk.device, &alloc, &vk.spot_shadow_descriptor ) );
 		SET_OBJECT_NAME( vk.spot_shadow_descriptor, "spot shadow atlas descriptor", VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_EXT );
 
-		vk_update_attachment_descriptors();
 	}
 
 	if ( vk.csm_shadow_image_view )
@@ -4551,8 +4547,11 @@ void vk_init_descriptors( void )
 		VK_CHECK( qvkAllocateDescriptorSets( vk.device, &alloc, &vk.csm_shadow_descriptor ) );
 		SET_OBJECT_NAME( vk.csm_shadow_descriptor, "csm shadow atlas descriptor", VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_EXT );
 
-		vk_update_attachment_descriptors();
 	}
+
+	// Pool reset frees every retained set. Reallocate all attachment sets
+	// before publishing any writes, including depth fade and shadow sets.
+	vk_update_attachment_descriptors();
 }
 
 
