@@ -1,0 +1,567 @@
+{
+  "engineBaseline": "13d636caa330d73d2f87753397b2cf5e53561b2c",
+  "retailExecutableSha256": "c926fe9f6c851e00b3b9332e88903ad01f28fdd60454873891c0158f5ded1299",
+  "retailRvas": {
+    "writer": "0xd51a0",
+    "reader": "0xd54a0",
+    "readerCaller": "0xe0411",
+    "mask16": "0x168738",
+    "mask8": "0x168718"
+  },
+  "retailMaskConstants": {
+    "read16": "0x1ffff",
+    "read8": "0x1ff"
+  },
+  "retailHuffmanStateSha256": "44baf2050819ebd94a2f7294b640c55405feb7f7e708e67c03cb523db82f5045",
+  "unicornVersion": "2.1.4",
+  "helperHooks": [],
+  "cases": [
+    {
+      "case": 0,
+      "key": 0,
+      "variant": 0
+    },
+    {
+      "case": 1,
+      "key": 0,
+      "variant": 1
+    },
+    {
+      "case": 2,
+      "key": 0,
+      "variant": 2
+    },
+    {
+      "case": 3,
+      "key": 0,
+      "variant": 3
+    },
+    {
+      "case": 4,
+      "key": 0,
+      "variant": 4
+    },
+    {
+      "case": 5,
+      "key": 0,
+      "variant": 5
+    },
+    {
+      "case": 6,
+      "key": 0,
+      "variant": 6
+    },
+    {
+      "case": 7,
+      "key": 0,
+      "variant": 7
+    },
+    {
+      "case": 8,
+      "key": 305419896,
+      "variant": 0
+    },
+    {
+      "case": 9,
+      "key": 305419896,
+      "variant": 1
+    },
+    {
+      "case": 10,
+      "key": 305419896,
+      "variant": 2
+    },
+    {
+      "case": 11,
+      "key": 305419896,
+      "variant": 3
+    },
+    {
+      "case": 12,
+      "key": 305419896,
+      "variant": 4
+    },
+    {
+      "case": 13,
+      "key": 305419896,
+      "variant": 5
+    },
+    {
+      "case": 14,
+      "key": 305419896,
+      "variant": 6
+    },
+    {
+      "case": 15,
+      "key": 305419896,
+      "variant": 7
+    },
+    {
+      "case": 16,
+      "key": 4294967295,
+      "variant": 0
+    },
+    {
+      "case": 17,
+      "key": 4294967295,
+      "variant": 1
+    },
+    {
+      "case": 18,
+      "key": 4294967295,
+      "variant": 2
+    },
+    {
+      "case": 19,
+      "key": 4294967295,
+      "variant": 3
+    },
+    {
+      "case": 20,
+      "key": 4294967295,
+      "variant": 4
+    },
+    {
+      "case": 21,
+      "key": 4294967295,
+      "variant": 5
+    },
+    {
+      "case": 22,
+      "key": 4294967295,
+      "variant": 6
+    },
+    {
+      "case": 23,
+      "key": 4294967295,
+      "variant": 7
+    }
+  ],
+  "retailResults": [
+    {
+      "case": 0,
+      "key": 0,
+      "variant": 0,
+      "retailBytes": 3,
+      "retailBits": 20,
+      "payloadIdentical": true,
+      "writerGuardsIntact": true,
+      "retailReadBits": 20,
+      "retailReadCount": 3,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "readerGuardsIntact": true
+    },
+    {
+      "case": 1,
+      "key": 0,
+      "variant": 1,
+      "retailBytes": 3,
+      "retailBits": 20,
+      "payloadIdentical": true,
+      "writerGuardsIntact": true,
+      "retailReadBits": 20,
+      "retailReadCount": 3,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "readerGuardsIntact": true
+    },
+    {
+      "case": 2,
+      "key": 0,
+      "variant": 2,
+      "retailBytes": 3,
+      "retailBits": 20,
+      "payloadIdentical": true,
+      "writerGuardsIntact": true,
+      "retailReadBits": 20,
+      "retailReadCount": 3,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "readerGuardsIntact": true
+    },
+    {
+      "case": 3,
+      "key": 0,
+      "variant": 3,
+      "retailBytes": 5,
+      "retailBits": 32,
+      "payloadIdentical": true,
+      "writerGuardsIntact": true,
+      "retailReadBits": 32,
+      "retailReadCount": 5,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "readerGuardsIntact": true
+    },
+    {
+      "case": 4,
+      "key": 0,
+      "variant": 4,
+      "retailBytes": 1,
+      "retailBits": 7,
+      "payloadIdentical": true,
+      "writerGuardsIntact": true,
+      "retailReadBits": 7,
+      "retailReadCount": 1,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "readerGuardsIntact": true
+    },
+    {
+      "case": 5,
+      "key": 0,
+      "variant": 5,
+      "retailBytes": 12,
+      "retailBits": 90,
+      "payloadIdentical": true,
+      "writerGuardsIntact": true,
+      "retailReadBits": 90,
+      "retailReadCount": 12,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "readerGuardsIntact": true
+    },
+    {
+      "case": 6,
+      "key": 0,
+      "variant": 6,
+      "retailBytes": 4,
+      "retailBits": 31,
+      "payloadIdentical": true,
+      "writerGuardsIntact": true,
+      "retailReadBits": 31,
+      "retailReadCount": 4,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "readerGuardsIntact": true
+    },
+    {
+      "case": 7,
+      "key": 0,
+      "variant": 7,
+      "retailBytes": 9,
+      "retailBits": 71,
+      "payloadIdentical": true,
+      "writerGuardsIntact": true,
+      "retailReadBits": 71,
+      "retailReadCount": 9,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "readerGuardsIntact": true
+    },
+    {
+      "case": 8,
+      "key": 305419896,
+      "variant": 0,
+      "retailBytes": 4,
+      "retailBits": 24,
+      "payloadIdentical": true,
+      "writerGuardsIntact": true,
+      "retailReadBits": 24,
+      "retailReadCount": 4,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "readerGuardsIntact": true
+    },
+    {
+      "case": 9,
+      "key": 305419896,
+      "variant": 1,
+      "retailBytes": 4,
+      "retailBits": 24,
+      "payloadIdentical": true,
+      "writerGuardsIntact": true,
+      "retailReadBits": 24,
+      "retailReadCount": 4,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "readerGuardsIntact": true
+    },
+    {
+      "case": 10,
+      "key": 305419896,
+      "variant": 2,
+      "retailBytes": 4,
+      "retailBits": 24,
+      "payloadIdentical": true,
+      "writerGuardsIntact": true,
+      "retailReadBits": 24,
+      "retailReadCount": 4,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "readerGuardsIntact": true
+    },
+    {
+      "case": 11,
+      "key": 305419896,
+      "variant": 3,
+      "retailBytes": 6,
+      "retailBits": 44,
+      "payloadIdentical": true,
+      "writerGuardsIntact": true,
+      "retailReadBits": 44,
+      "retailReadCount": 6,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "readerGuardsIntact": true
+    },
+    {
+      "case": 12,
+      "key": 305419896,
+      "variant": 4,
+      "retailBytes": 1,
+      "retailBits": 7,
+      "payloadIdentical": true,
+      "writerGuardsIntact": true,
+      "retailReadBits": 7,
+      "retailReadCount": 1,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "readerGuardsIntact": true
+    },
+    {
+      "case": 13,
+      "key": 305419896,
+      "variant": 5,
+      "retailBytes": 15,
+      "retailBits": 113,
+      "payloadIdentical": true,
+      "writerGuardsIntact": true,
+      "retailReadBits": 113,
+      "retailReadCount": 15,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "readerGuardsIntact": true
+    },
+    {
+      "case": 14,
+      "key": 305419896,
+      "variant": 6,
+      "retailBytes": 5,
+      "retailBits": 33,
+      "payloadIdentical": true,
+      "writerGuardsIntact": true,
+      "retailReadBits": 33,
+      "retailReadCount": 5,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "readerGuardsIntact": true
+    },
+    {
+      "case": 15,
+      "key": 305419896,
+      "variant": 7,
+      "retailBytes": 10,
+      "retailBits": 74,
+      "payloadIdentical": true,
+      "writerGuardsIntact": true,
+      "retailReadBits": 74,
+      "retailReadCount": 10,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "readerGuardsIntact": true
+    },
+    {
+      "case": 16,
+      "key": 4294967295,
+      "variant": 0,
+      "retailBytes": 3,
+      "retailBits": 21,
+      "payloadIdentical": true,
+      "writerGuardsIntact": true,
+      "retailReadBits": 21,
+      "retailReadCount": 3,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "readerGuardsIntact": true
+    },
+    {
+      "case": 17,
+      "key": 4294967295,
+      "variant": 1,
+      "retailBytes": 3,
+      "retailBits": 21,
+      "payloadIdentical": true,
+      "writerGuardsIntact": true,
+      "retailReadBits": 21,
+      "retailReadCount": 3,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "readerGuardsIntact": true
+    },
+    {
+      "case": 18,
+      "key": 4294967295,
+      "variant": 2,
+      "retailBytes": 3,
+      "retailBits": 21,
+      "payloadIdentical": true,
+      "writerGuardsIntact": true,
+      "retailReadBits": 21,
+      "retailReadCount": 3,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "readerGuardsIntact": true
+    },
+    {
+      "case": 19,
+      "key": 4294967295,
+      "variant": 3,
+      "retailBytes": 5,
+      "retailBits": 35,
+      "payloadIdentical": true,
+      "writerGuardsIntact": true,
+      "retailReadBits": 35,
+      "retailReadCount": 5,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "readerGuardsIntact": true
+    },
+    {
+      "case": 20,
+      "key": 4294967295,
+      "variant": 4,
+      "retailBytes": 1,
+      "retailBits": 7,
+      "payloadIdentical": true,
+      "writerGuardsIntact": true,
+      "retailReadBits": 7,
+      "retailReadCount": 1,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "readerGuardsIntact": true
+    },
+    {
+      "case": 21,
+      "key": 4294967295,
+      "variant": 5,
+      "retailBytes": 8,
+      "retailBits": 60,
+      "payloadIdentical": true,
+      "writerGuardsIntact": true,
+      "retailReadBits": 60,
+      "retailReadCount": 8,
+      "outputMatches": false,
+      "mismatchOffsets": [
+        6,
+        10,
+        14,
+        18
+      ],
+      "readerGuardsIntact": true
+    },
+    {
+      "case": 22,
+      "key": 4294967295,
+      "variant": 6,
+      "retailBytes": 4,
+      "retailBits": 30,
+      "payloadIdentical": true,
+      "writerGuardsIntact": true,
+      "retailReadBits": 30,
+      "retailReadCount": 4,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "readerGuardsIntact": true
+    },
+    {
+      "case": 23,
+      "key": 4294967295,
+      "variant": 7,
+      "retailBytes": 10,
+      "retailBits": 77,
+      "payloadIdentical": true,
+      "writerGuardsIntact": true,
+      "retailReadBits": 77,
+      "retailReadCount": 10,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "readerGuardsIntact": true
+    }
+  ],
+  "movementFix": {
+    "beforeMismatchCases": [
+      0,
+      1,
+      2,
+      3,
+      5,
+      8,
+      9,
+      10,
+      11,
+      13,
+      16,
+      17,
+      18,
+      19,
+      21
+    ],
+    "afterWindowsFnDecodeMatchesInputs": 24,
+    "afterLinuxFnDecodeMatchesInputs": 24,
+    "q3ClampRetained": true,
+    "retailFixtureHex": "8ddfef0700",
+    "fixtureConsumedBits": 32
+  },
+  "openMaskDifference": {
+    "case": 21,
+    "key": "0xffffffff",
+    "serverTime": 1,
+    "inputAnglesAndButtons": "0xffff",
+    "retailAnglesAndButtons": "0x1ffff",
+    "fnAnglesAndButtons": "0xffff",
+    "status": "unresolved; movement fix does not change key mask"
+  },
+  "validation": {
+    "windowsBuild": "exit 0",
+    "linuxCodec": "exit 0",
+    "linuxCorpus": "24 cases passed",
+    "initialWindowsFullSuite": {
+      "passed": 109,
+      "failed": 1,
+      "skipped": 1,
+      "sourceRegressionTests": 1292,
+      "sourceRegressionSkips": 5,
+      "failure": "five packaging checks rejected the report link before its companion JSON had been written"
+    },
+    "sourceRegressionRetry": {
+      "mesonPassed": 1,
+      "mesonFailed": 0,
+      "summary": [
+        "Ran 1292 tests in 214.211s",
+        "OK (skipped=5)"
+      ]
+    },
+    "combinedWindowsSuite": {
+      "passed": 110,
+      "failed": 0,
+      "skipped": 1,
+      "scope": "initial complete run plus complete Python source-regression rerun after finishing the evidence pair; no engine changes between runs"
+    }
+  },
+  "files": {
+    "code/qcommon/msg.cpp": "26b40880c4b6af476c5409254c94fea8095224460b8f104b2cec536f31a70933",
+    "tests/message_codec_tests.cpp": "6206f6c449603ce436732af68ebebbe71e72cc0a6785d27487f01bf9909bcf0d",
+    ".tmp/make-ql-usercmd-corpus.py": "8c94c0effe93a0a2250429cadc23e94a0b65a478a5dfe2f47dfc12f1bb34b333",
+    ".tmp/ql-usercmd-corpus.cpp": "de6855c67790134775b6977237f95b21ebd70041803d9da1d852e7f10bfbb9b6",
+    ".tmp/emulate-ql-usercmd-corpus.py": "250c99a4da3184abf50f57ed6919edc27fd75014663f0456178f5a1e386da667",
+    ".tmp/ql-usercmd-suite.log": "b16699d7f52e59ef29f147138da4dee5a8eb96b3ef20dc3a8060c1985f378af9",
+    ".tmp/meson-msvc-x86-release/fntech3.exe": "6bb6b252473c98ab195e5fc1bae30de66299420302f8b4fa2ad5d7fa46530a80",
+    ".tmp/meson-msvc-x86-release/fntech3.ded.exe": "d2f1aba3e2aa7240541667caa886b2fc23d72f608b38755ce79bf880c1b21590",
+    ".tmp/ql-usercmd-source-retry.log": "b296c93ab07bf8168ba7df74bff517f39729a5cd1f216589dbde6c045ee400a1"
+  },
+  "limitations": [
+    "selected retail codec functions, not live command batches or peer interoperability",
+    "one unrelated-to-movement key-mask discrepancy remains open",
+    "padding initialized to zero; semantic bytes 0..25 checked with output guards",
+    "no backward timestamp or exhaustive key corpus",
+    "no unrelated engine defect established"
+  ],
+  "q3ClampSource": {
+    "repository": "FnQuake3",
+    "commit": "7d8c9629cdc7979f09697266470359101ffd9eda",
+    "path": "code/qcommon/msg.c",
+    "textSha256": "2ed95d481c85b691702fbe6d8e14dd746d1ee4a516ebb393551e61d0f8de497f"
+  }
+}

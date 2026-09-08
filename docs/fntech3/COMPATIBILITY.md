@@ -285,6 +285,11 @@ to the evidence level named in the same cell.
    payloads, and two intentional no-output cases. It pins 58 observed field
    descriptors and adds retail-generated fixtures passing Windows/Linux codec
    regressions, without claiming a live snapshot exchange.
+   The [retail keyed-command checkpoint](2026-09-08-retail-usercmd-wire.md)
+   corrects QL movement-byte preservation while retaining Q3's clamp. All 24
+   writer payloads match retail; a separate retail 17-bit key-mask effect in
+   changed 16-bit angle/button fields remains unresolved and prevents a claim
+   of complete keyed-command decoder parity.
    [Snapshot history validation](2026-09-07-snapshot-history.md) also rejects
    malformed/stale module requests before writes. The subsequent
    [entity-history correction](2026-09-07-entity-history-wrap.md) covers parser

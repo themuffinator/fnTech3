@@ -964,6 +964,49 @@ int TestPlayerStateRoundTrip() {
 	return 0;
 }
 
+int TestUserCommandMovementMinimum() {
+	for ( const auto profile : { NETCHAN_WIRE_LEGACY_Q3,
+		NETCHAN_WIRE_IOQ3, NETCHAN_WIRE_QL_RETAIL } ) {
+		for ( const bool inherited : { false, true } ) {
+			usercmd_t baseline{};
+			if ( inherited ) {
+				baseline.forwardmove = baseline.rightmove = baseline.upmove = -128;
+			}
+			usercmd_t sent = baseline;
+			sent.forwardmove = sent.rightmove = sent.upmove = -128;
+			sent.weapon = 7; // Enter changed-command decoding even for inherited bytes.
+			std::array<byte, 128> packet{};
+			msg_t message{};
+			MSG_Init( &message, packet.data(), static_cast<int>( packet.size() ) );
+			CHECK( MSG_WriteDeltaUsercmdKeyForWireProfile( &message, 0,
+				&baseline, &sent, profile ) );
+			MSG_BeginReading( &message );
+			usercmd_t received{};
+			CHECK( MSG_ReadDeltaUsercmdKeyForWireProfile( &message, 0,
+				&baseline, &received, profile ) );
+			usercmd_t expected = sent;
+			if ( profile != NETCHAN_WIRE_QL_RETAIL ) {
+				expected.forwardmove = expected.rightmove = expected.upmove = -127;
+			}
+			CHECK( std::memcmp( &received, &expected, sizeof( expected ) ) == 0 );
+		}
+	}
+	// Key zero, zero baseline: observed retail packet changes all three
+	// movement bytes to -128. No engine encoder constructs this oracle.
+	std::array<byte, 5> retailPacket{{ 0x8d, 0xdf, 0xef, 0x07, 0x00 }};
+	msg_t reader{};
+	MSG_Init( &reader, retailPacket.data(), static_cast<int>( retailPacket.size() ) );
+	reader.cursize = static_cast<int>( retailPacket.size() );
+	MSG_BeginReading( &reader );
+	usercmd_t baseline{}, expected{}, received{};
+	expected.forwardmove = expected.rightmove = expected.upmove = -128;
+	CHECK( MSG_ReadDeltaUsercmdKeyForWireProfile( &reader, 0,
+		&baseline, &received, NETCHAN_WIRE_QL_RETAIL ) );
+	CHECK( std::memcmp( &received, &expected, sizeof( expected ) ) == 0 );
+	CHECK( reader.bit == 32 && reader.readcount == 5 );
+	return 0;
+}
+
 int TestRetailEntityFieldBoundaries() {
 	struct Fixture {
 		std::size_t offset;
@@ -1138,5 +1181,6 @@ int main() {
 	if ( const int result = TestRetailMovementBytePayloads() ) return result;
 	if ( const int result = TestRetailPlayerFieldBoundaries() ) return result;
 	if ( const int result = TestRetailEntityFieldBoundaries() ) return result;
+	if ( const int result = TestUserCommandMovementMinimum() ) return result;
 	return 0;
 }

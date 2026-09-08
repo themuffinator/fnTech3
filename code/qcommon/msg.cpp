@@ -943,13 +943,15 @@ qboolean MSG_ReadDeltaUsercmdKeyForWireProfile( msg_t *msg, int key,
 		to->angles[1] = MSG_ReadDeltaKey( msg, key, from->angles[1], 16);
 		to->angles[2] = MSG_ReadDeltaKey( msg, key, from->angles[2], 16);
 		to->forwardmove = MSG_ReadDeltaKey( msg, key, from->forwardmove, 8);
-		if( to->forwardmove == -128 )
+		// Retail QL preserves the full signed byte, including -128. Q3
+		// retains its legacy clamp. See docs/fntech3/2026-09-08-retail-usercmd-wire.md.
+		if( !quakeLive && to->forwardmove == -128 )
 			to->forwardmove = -127;
 		to->rightmove = MSG_ReadDeltaKey( msg, key, from->rightmove, 8);
-		if( to->rightmove == -128 )
+		if( !quakeLive && to->rightmove == -128 )
 			to->rightmove = -127;
 		to->upmove = MSG_ReadDeltaKey( msg, key, from->upmove, 8);
-		if( to->upmove == -128 )
+		if( !quakeLive && to->upmove == -128 )
 			to->upmove = -127;
 		to->buttons = MSG_ReadDeltaKey( msg, key, from->buttons, 16);
 		to->weapon = MSG_ReadDeltaKey( msg, key, from->weapon, 8);
