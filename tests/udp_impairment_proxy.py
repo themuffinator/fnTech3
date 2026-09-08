@@ -7,11 +7,13 @@ import hashlib, heapq, select, socket, struct, threading, time
 
 class UdpImpairmentProxy:
 
-    def __init__(self, server_port, drop_every=17, delay_every=19, duplicate_every=23, delay_seconds=0.075, drop_first_fragment=False):
+    def __init__(self, server_port, drop_every=17, delay_every=19, duplicate_every=23, delay_seconds=0.075, drop_first_fragment=False, drop_fragment_number=None, sequence_checksum=False):
         if not 0 < server_port < 65536 or min(drop_every, delay_every, duplicate_every) < 0 or (not 0 <= delay_seconds <= 1):
             raise ValueError('invalid loopback impairment settings')
+        if drop_fragment_number is not None and (not isinstance(drop_fragment_number, int) or drop_fragment_number < 1 or drop_first_fragment):
+            raise ValueError('select one positive fragment ordinal or the first-fragment alias')
         self.server = ('127.0.0.1', server_port)
-        self.settings = dict(drop_every=drop_every, delay_every=delay_every, duplicate_every=duplicate_every, delay_seconds=delay_seconds, drop_first_fragment=drop_first_fragment)
+        self.settings = dict(drop_every=drop_every, delay_every=delay_every, duplicate_every=duplicate_every, delay_seconds=delay_seconds, drop_first_fragment=drop_first_fragment, drop_fragment_number=drop_fragment_number, sequence_checksum=sequence_checksum)
         self.front = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.back = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         try:
@@ -45,7 +47,7 @@ class UdpImpairmentProxy:
         if len(data) >= 4 and data[:4] != b'\xff' * 4:
             raw = struct.unpack_from('<I', data)[0]
             offset = 0
-            fragment_at = 6 if direction == 'to_server' else 4
+            fragment_at = (6 if direction == 'to_server' else 4) + (4 if self.settings['sequence_checksum'] else 0)
             if raw & 2147483648 and len(data) >= fragment_at + 2:
                 offset = struct.unpack_from('<H', data, fragment_at)[0]
             sequence = (raw & 2147483647, offset)
@@ -72,9 +74,11 @@ class UdpImpairmentProxy:
         sequence = struct.unpack_from('<I', data)[0]
         if sequence & 2147483648:
             stat['fragments'] += 1
-            if self.settings['drop_first_fragment'] and not self.fragment_drops[direction]:
-                fragment_at = 6 if direction == 'to_server' else 4
+            target = 1 if self.settings['drop_first_fragment'] else self.settings['drop_fragment_number']
+            if target == stat['fragments'] and not self.fragment_drops[direction]:
+                fragment_at = (6 if direction == 'to_server' else 4) + (4 if self.settings['sequence_checksum'] else 0)
                 self.fragment_drops[direction].append({
+                    'fragmentOrdinal': stat['fragments'],
                     'sequence': sequence & 0x7fffffff,
                     'fragmentStart': struct.unpack_from('<H', data, fragment_at)[0] if len(data) >= fragment_at + 2 else None,
                     'datagramBytes': len(data),

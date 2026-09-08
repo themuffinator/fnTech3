@@ -1,6 +1,10 @@
 # Q3 pinned-peer interoperability under UDP impairment
 
-Both protocol-68 directions reached pure admission, CS_ACTIVE and ClientBegin
+Protocol correction: the fnTech3 client / pinned FnQuake3 server selects 71;
+the reverse direction selects 68. Earlier claims that both used 68 were
+incorrect. See the [handshake audit](2026-09-08-second-fragment-recovery.md).
+
+Both Q3-profile directions reached pure admission, CS_ACTIVE and ClientBegin
 under controlled IPv4 loopback packet loss, delay and duplication. The peers
 are the unchanged Windows x86 fnTech3 binaries and the clean Windows x64
 FnQuake3 build described in the [pinned-peer checkpoint](2026-09-08-pinned-q3-interop.md).
@@ -39,7 +43,7 @@ aggregate runs 1,271 tests with five skips. Final formatting and the added
 reordering assertion were followed by focused tests on both platforms.
 
 This strengthens the Q3 reference gate only. Shared lineage, retail startup,
-remote/WAN behavior, targeted fragment/reliable/download faults, protocol 71,
+remote/WAN behavior, targeted fragment/reliable/download faults, broader protocol 71 coverage,
 QL peer interoperability and long sessions remain open. Existing resource/cvar
 warnings recur; the reference client also logged an IPv6 bind warning, while
 the tested IPv4 connection succeeded. No new engine defect was observed.

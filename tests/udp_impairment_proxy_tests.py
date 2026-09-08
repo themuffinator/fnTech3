@@ -39,6 +39,62 @@ class UdpImpairmentProxyTests(unittest.TestCase):
                 self.assertEqual(drops[0]['sequence'], 1)
                 self.assertEqual(drops[0]['fragmentStart'], 0)
 
+    def test_second_fragment_drop_preserves_first_and_retransmission(self):
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as server, socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as client:
+            server.bind(('127.0.0.1', 0)); server.settimeout(1); client.bind(('127.0.0.1', 0)); client.settimeout(1)
+            relay = UdpImpairmentProxy(server.getsockname()[1], drop_every=0, delay_every=0, duplicate_every=0, drop_fragment_number=2)
+            try:
+                client.sendto(b'\xff' * 4 + b'connect', ('127.0.0.1', relay.port))
+                _, peer = server.recvfrom(100)
+                for direction, sender, destination, receiver in (
+                    ('to_server', client, ('127.0.0.1', relay.port), server),
+                    ('to_client', server, peer, client),
+                ):
+                    qport = struct.pack('<H', 1234) if direction == 'to_server' else b''
+                    first = struct.pack('<I', 0x80000001) + qport + struct.pack('<HH', 0, 4) + b'abcd'
+                    second = struct.pack('<I', 0x80000001) + qport + struct.pack('<HH', 4, 4) + b'efgh'
+                    sender.sendto(first, destination)
+                    self.assertEqual(receiver.recvfrom(100)[0], first)
+                    sender.sendto(second, destination)
+                    sender.sendto(second, destination)
+                    self.assertEqual(receiver.recvfrom(100)[0], second)
+            finally:
+                record = relay.close()
+            self.assertIsNone(record['error'])
+            for direction in ('to_server', 'to_client'):
+                self.assertEqual(record['stats'][direction]['fragments'], 3)
+                self.assertEqual(record['stats'][direction]['dropped'], 1)
+                self.assertEqual(record['targetedFragmentDrops'][direction][0]['fragmentStart'], 4)
+                self.assertEqual(record['targetedFragmentDrops'][direction][0]['fragmentOrdinal'], 2)
+
+    def test_checksummed_second_fragment_metadata(self):
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as server, socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as client:
+            server.bind(('127.0.0.1', 0)); server.settimeout(1); client.bind(('127.0.0.1', 0)); client.settimeout(1)
+            relay = UdpImpairmentProxy(server.getsockname()[1], drop_every=0, delay_every=0, duplicate_every=0, drop_fragment_number=2, sequence_checksum=True)
+            try:
+                client.sendto(b'\xff' * 4 + b'connect', ('127.0.0.1', relay.port))
+                _, peer = server.recvfrom(100)
+                for direction, sender, destination, receiver in (
+                    ('to_server', client, ('127.0.0.1', relay.port), server),
+                    ('to_client', server, peer, client),
+                ):
+                    qport = (struct.pack('<H', 1234) if direction == 'to_server' else b'') + struct.pack('<I', 0x12345678)
+                    first = struct.pack('<I', 0x80000001) + qport + struct.pack('<HH', 0, 4) + b'abcd'
+                    second = struct.pack('<I', 0x80000001) + qport + struct.pack('<HH', 4, 4) + b'efgh'
+                    sender.sendto(first, destination)
+                    self.assertEqual(receiver.recvfrom(100)[0], first)
+                    sender.sendto(second, destination)
+                    sender.sendto(second, destination)
+                    self.assertEqual(receiver.recvfrom(100)[0], second)
+            finally:
+                record = relay.close()
+            self.assertIsNone(record['error'])
+            for direction in ('to_server', 'to_client'):
+                self.assertEqual(record['stats'][direction]['fragments'], 3)
+                self.assertEqual(record['stats'][direction]['dropped'], 1)
+                self.assertEqual(record['targetedFragmentDrops'][direction][0]['fragmentStart'], 4)
+                self.assertEqual(record['targetedFragmentDrops'][direction][0]['fragmentOrdinal'], 2)
+
     def test_loss_delay_duplication_and_connectionless_preservation(self):
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as server, socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as client:
             server.bind(('127.0.0.1', 0))

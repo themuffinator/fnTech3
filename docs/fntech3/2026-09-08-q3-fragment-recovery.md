@@ -1,6 +1,10 @@
 # Q3 initial gamestate fragment-loss recovery
 
-Both protocol-68 peer configurations recover when the first server-to-client
+Protocol correction: the fnTech3 client / pinned FnQuake3 server selects 71;
+the reverse direction selects 68. Earlier claims that both used 68 were
+incorrect. See the [handshake audit](2026-09-08-second-fragment-recovery.md).
+
+Both Q3-profile peer configurations recover when the first server-to-client
 gamestate fragment is deliberately dropped. The unchanged shared Windows x86
 fnTech3 binaries were tested against the clean Windows x64 FnQuake3 build at
 `7d8c9629cdc7979f09697266470359101ffd9eda`; see the
@@ -45,7 +49,7 @@ of Git. Engine source and binaries were unchanged for this checkpoint.
 
 This adds a targeted fault case to the broader
 [impairment checkpoint](2026-09-08-q3-impaired-interop.md). Middle/terminal-fragment
-loss, sustained reliable traffic, downloads, protocol 71/91, remote/WAN behavior
+loss, sustained reliable traffic, downloads, broader protocol 71/91 coverage, remote/WAN behavior
 and retail peer interoperability remain open. Shared reference lineage remains
 a limitation. Existing optional-resource and reference cvar warnings recur;
 no new engine defect was observed.
