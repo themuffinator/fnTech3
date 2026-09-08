@@ -84,7 +84,7 @@ class Q3NativeQagameRuntimeTests(unittest.TestCase):
                     if bad:
                         self.assertIn('invalid Quake III Arena game-data binding', log+stdout)
                         self.assertLess(log.index('entity stride too small'), log.index('Q3 qagame native probe: init ok'))
-                    for marker in ('binding','entity token','configstring','usercmd','init','link','area','trace','contents','unlink','frame','shutdown'):
+                    for marker in ('binding','entity token','configstring','usercmd','bot usercmd','init','link','area','trace','contents','unlink','frame','shutdown'):
                         self.assertGreaterEqual(log.count('Q3 qagame native probe: '+marker+' ok'), 2, log[-6000:])
                     self.assertIn('Q3 qagame native probe: command ok', log)
                     self.assertFalse(any('FAILED' in line for line in log.splitlines() if 'Q3 qagame native probe:' in line), log[-6000:])

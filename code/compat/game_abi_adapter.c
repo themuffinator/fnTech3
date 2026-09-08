@@ -117,6 +117,24 @@ void FnTech3_QLUsercmdFromInternal( fntech3_ql_usercmd_t *destination,
 	destination->upmove = source->upmove;
 }
 
+void FnTech3_InternalUsercmdFromQL( usercmd_t *destination,
+	const fntech3_ql_usercmd_t *source ) {
+	if ( !destination || !source ) {
+		return;
+	}
+
+	memset( destination, 0, sizeof( *destination ) );
+	destination->serverTime = source->serverTime;
+	FnTech3_CopyInternalIntArray( destination->angles, source->angles, 3 );
+	destination->buttons = source->buttons;
+	destination->weapon = source->weapon;
+	destination->weaponPrimary = source->weaponPrimary;
+	destination->fov = source->fov;
+	destination->forwardmove = source->forwardmove;
+	destination->rightmove = source->rightmove;
+	destination->upmove = source->upmove;
+}
+
 void FnTech3_Q3UsercmdFromInternal( fntech3_q3_usercmd_t *destination,
 	const usercmd_t *source ) {
 	if ( !destination || !source ) {

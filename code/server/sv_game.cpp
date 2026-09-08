@@ -978,7 +978,22 @@ static intptr_t SV_GameSystemCalls( intptr_t *args ) {
 			const int clientNum = args[1];
 			if ( SV_IsClientIndex( clientNum ) )
 			{
-				SV_ClientThink( &SV_ClientForIndex( clientNum ), VMA(2) );
+				usercmd_t command{};
+				if ( gvm->dllExports ) {
+					VM_CHECKBOUNDS( gvm, args[2], sizeof( fntech3_ql_usercmd_t ) );
+				} else {
+					VM_CHECKBOUNDS( gvm, args[2], sizeof( fntech3_q3_usercmd_t ) );
+				}
+				if ( !VMA(2) ) {
+					Com_Error( ERR_DROP, "BOTLIB_USER_COMMAND: null command" );
+					return 0;
+				}
+				if ( gvm->dllExports ) {
+					FnTech3_InternalUsercmdFromQL( &command, VMA(2) );
+				} else {
+					FnTech3_InternalUsercmdFromQ3( &command, VMA(2) );
+				}
+				SV_ClientThink( &SV_ClientForIndex( clientNum ), &command );
 			}
 		}
 		return 0;
@@ -1547,7 +1562,7 @@ QL_IMPORT2( QL_G_trap_BotLibUpdateEntity, BOTLIB_UPDATENTITY, int, void * )
 QL_IMPORT4( QL_G_trap_BotLibTest, BOTLIB_TEST, int, char *, vec3_t, vec3_t )
 QL_IMPORT2( QL_G_trap_BotGetSnapshotEntity, BOTLIB_GET_SNAPSHOT_ENTITY, int, int )
 QL_IMPORT3( QL_G_trap_BotGetServerCommand, BOTLIB_GET_CONSOLE_MESSAGE, int, char *, int )
-QL_IMPORT2( QL_G_trap_BotUserCommand, BOTLIB_USER_COMMAND, int, usercmd_t * )
+QL_IMPORT2( QL_G_trap_BotUserCommand, BOTLIB_USER_COMMAND, int, fntech3_ql_usercmd_t * )
 
 QL_IMPORT4( QL_G_trap_AAS_BBoxAreas, BOTLIB_AAS_BBOX_AREAS, vec3_t, vec3_t, int *, int )
 QL_IMPORT2( QL_G_trap_AAS_AreaInfo, BOTLIB_AAS_AREA_INFO, int, void * )

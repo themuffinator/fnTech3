@@ -31,6 +31,8 @@ void FnTech3_QLGameStateFromInternal( fntech3_ql_gameState_t *destination,
 
 void FnTech3_QLUsercmdFromInternal( fntech3_ql_usercmd_t *destination,
 	const usercmd_t *source );
+void FnTech3_InternalUsercmdFromQL( usercmd_t *destination,
+	const fntech3_ql_usercmd_t *source );
 
 void FnTech3_Q3UsercmdFromInternal( fntech3_q3_usercmd_t *destination,
 	const usercmd_t *source );

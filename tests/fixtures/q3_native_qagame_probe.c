@@ -21,7 +21,8 @@ enum {
   UNLINK = 31,
   ENTITIES_IN_BOX = 32,
   GET_USERCMD = 36,
-  GET_TOKEN = 37
+  GET_TOKEN = 37,
+  BOT_USER_COMMAND = 211
 };
 enum {
   ENTITY_BYTES = 516,
@@ -115,6 +116,25 @@ static void init(void) {
     if (command[GUARD + i])
       break;
   result("usercmd", guards(command, 24) && i == 24);
+  {
+    unsigned char sent[24 + 16], received[24 + 16];
+    memset(sent, 0xa5, sizeof(sent));
+    memset(sent + GUARD, 0, 24);
+    puti(sent + GUARD, 12345);
+    puti(sent + GUARD + 4, -1234);
+    puti(sent + GUARD + 8, 2345);
+    puti(sent + GUARD + 12, -3456);
+    puti(sent + GUARD + 16, 0x81);
+    sent[GUARD + 20] = 7;
+    sent[GUARD + 21] = (unsigned char)-40;
+    sent[GUARD + 22] = 50;
+    sent[GUARD + 23] = (unsigned char)-60;
+    call(BOT_USER_COMMAND, 1, sent + GUARD);
+    memset(received, 0xa5, sizeof(received));
+    call(GET_USERCMD, 1, received + GUARD);
+    result("bot usercmd", guards(sent, 24) && guards(received, 24) &&
+                              !memcmp(sent + GUARD, received + GUARD, 24));
+  }
   result("init", 1);
 }
 static void collision(void) {

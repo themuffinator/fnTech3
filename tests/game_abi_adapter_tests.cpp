@@ -101,6 +101,23 @@ static int TestQLUsercmdTranslation() {
 	CHECK( guarded.cmd.forwardmove == -128 && guarded.cmd.rightmove == 127 && guarded.cmd.upmove == -1 );
 	const auto *bytes = reinterpret_cast<const unsigned char *>( &guarded.cmd );
 	CHECK( bytes[26] == 0 && bytes[27] == 0 );
+	// Incoming native padding must never become engine state.
+	auto input = guarded.cmd;
+	reinterpret_cast<unsigned char *>( &input )[26] = 0xa5;
+	reinterpret_cast<unsigned char *>( &input )[27] = 0xa5;
+	struct { unsigned before; usercmd_t cmd; unsigned after; } incoming;
+	std::memset( &incoming, 0xcc, sizeof( incoming ) );
+	FnTech3_InternalUsercmdFromQL( &incoming.cmd, &input );
+	CHECK( incoming.before == 0xccccccccu && incoming.after == 0xccccccccu );
+	fntech3_ql_usercmd_t roundTrip;
+	FnTech3_QLUsercmdFromInternal( &roundTrip, &incoming.cmd );
+	CHECK( std::memcmp( &roundTrip, &guarded.cmd, sizeof( roundTrip ) ) == 0 );
+	CHECK( reinterpret_cast<unsigned char *>( &incoming.cmd )[26] == 0 );
+	CHECK( reinterpret_cast<unsigned char *>( &incoming.cmd )[27] == 0 );
+	const auto savedIncoming = incoming;
+	FnTech3_InternalUsercmdFromQL( &incoming.cmd, nullptr );
+	FnTech3_InternalUsercmdFromQL( nullptr, &input );
+	CHECK( std::memcmp( &incoming, &savedIncoming, sizeof( incoming ) ) == 0 );
 	const auto previous = guarded;
 	FnTech3_QLUsercmdFromInternal( &guarded.cmd, nullptr );
 	CHECK( std::memcmp( &guarded, &previous, sizeof( guarded ) ) == 0 );
