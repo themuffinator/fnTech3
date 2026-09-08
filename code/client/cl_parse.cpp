@@ -50,12 +50,12 @@ static constexpr std::array svc_strings = {
 	"svc_voipOpus",  // ioq3 extension
 };
 
-static void CL_ValidateReliableAcknowledge( void ) {
+static void CL_ValidateReliableAcknowledge( int acknowledge ) {
 	std::uint32_t pending = 0;
 	if ( !fnql::net::PendingCounterCount( clc.reliableSequence,
-		clc.reliableAcknowledge, pending ) ) {
+		acknowledge, pending ) ) {
 		if ( clc.demoplaying ) {
-			clc.reliableSequence = clc.reliableAcknowledge;
+			clc.reliableSequence = acknowledge;
 		} else {
 			Com_Error( ERR_DROP, "%s: incorrect reliable sequence acknowledge number", __func__ );
 		}
@@ -63,8 +63,11 @@ static void CL_ValidateReliableAcknowledge( void ) {
 		if ( !clc.demoplaying ) {
 			Com_Printf( S_COLOR_YELLOW "WARNING: dropping %u commands from server\n", pending );
 		}
-		clc.reliableAcknowledge = clc.reliableSequence;
+		acknowledge = clc.reliableSequence;
 	}
+	// Error cleanup may queue a disconnect. Keep its reliable window valid
+	// until the incoming acknowledgement has passed validation.
+	clc.reliableAcknowledge = acknowledge;
 }
 
 static void SHOWNET( msg_t *msg, const char *s ) {
@@ -1362,8 +1365,7 @@ void CL_ParseServerMessage( msg_t *msg ) {
 	}
 
 	if ( !CL_IsLegacyDemoMessage() || CL_LegacyDemoProtocol() >= 46 ) {
-		clc.reliableAcknowledge = MSG_ReadLong( msg );
-		CL_ValidateReliableAcknowledge();
+		CL_ValidateReliableAcknowledge( MSG_ReadLong( msg ) );
 	}
 
 	// parse the message

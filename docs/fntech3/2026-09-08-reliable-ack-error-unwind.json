@@ -1,0 +1,25 @@
+{
+  "baseCommit": "38a25203170d78686ad94069dca6bb2e4b20617c",
+  "worktreeDirty": true,
+  "scope": "Transactional reliable acknowledgement validation and executable cleanup-window regression; not complete Com_Error runtime coverage.",
+  "sourceSha256": {
+    "code/client/cl_parse.cpp": "2a5442a7cb63f3801fca542bb788ce9bb54794ba948880af1ca48d30e65a30d7",
+    "tests/reliable_ack_transaction_tests.py": "631071d380fc2b1057a76990bf67047055f392d120963ee4d8fe2bc214a02567"
+  },
+  "clientSha256": "1cff5eaec243814804ce7cb846ce4fc74d8b038e5bb5df7b770b4b2c3564b2c5",
+  "beforeRegression": "F\n======================================================================\nFAIL: test_invalid_ack_preserves_cleanup_window_and_demo_policy (__main__.ReliableAckTransactionTests.test_invalid_ack_preserves_cleanup_window_and_demo_policy)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"E:\\Repositories\\fnTech3\\.tmp\\reliable_ack_before_tests.py\", line 73, in test_invalid_ack_preserves_cleanup_window_and_demo_policy\n    self.assertEqual(result.returncode,0,result.stdout+result.stderr)\nAssertionError: 3221226505 != 0 : Assertion failed: errors==1, file C:\\Users\\djdac\\AppData\\Local\\Temp\\fntech3-reliable-ack-4tmwr0ey\\probe.cpp, line 85\n\n\n----------------------------------------------------------------------\nRan 1 test in 2.208s\n\nFAILED (failures=1)\n",
+  "afterRegression": {
+    "windows": "1 passed",
+    "wslUbuntu": "1 passed"
+  },
+  "windowsBuildLogSha256": "23a17d851988e92c97f0d544e0660da4c0c91acfe173e9899a1e1d338b644109",
+  "priorRuntimeEvidence": "2026-09-08-download-retry-and-zombie-reconnect.json",
+  "fullWindowsSuite": {
+    "passed": 110,
+    "failed": 0,
+    "skipped": 1,
+    "pythonAggregateTests": 1284,
+    "pythonAggregateSkipped": 5,
+    "logSha256": "588a18a2221b3b60bd335081d8dd466334f655e33100fec905b99ee874139c6a"
+  }
+}

@@ -59,3 +59,7 @@ independent retail/service interoperability remain open. Existing optional
 resource/default/service warnings remain. Recursive-error shutdown in the failed
 QL attempts remains a separate diagnostic/lifecycle issue; no general fix for
 that path is claimed here.
+
+The later [acknowledgement-unwind checkpoint](2026-09-08-reliable-ack-error-unwind.md)
+fixes the invalid reliable-window state that triggered the secondary cleanup
+error, with executable regression evidence. Broader shutdown coverage remains open.
