@@ -58,3 +58,15 @@ Error-path automated shutdown, retained partial-file disposal, arbitrary storage
 faults and independent retail interoperability remain open. Existing QL hunk
 warnings and missing image/font diagnostics remain unresolved; no unrelated
 engine correction is claimed.
+
+## Command-buffer diagnosis follow-up
+
+Source inspection at `4383039` identifies the missing shutdown script's direct
+cause: Com_Error calls Cbuf_Init before its recoverable-error branches, and
+Cbuf_Init sets the command buffer size to zero. The queued screenshot/quit is
+therefore discarded by the established error policy. A normal recoverable client
+error returns to the UI and does not promise process exit. The attempted base-game
+config workaround did not establish a replacement command source. The forced
+termination outcomes above remain recorded as observed; they are not evidence
+of a hung error loop or failed cURL cleanup, nor do they prove normal shutdown.
+No production policy change is warranted merely to retain a test's queued quit.
