@@ -32,6 +32,9 @@ returns controlled values; the zero-fill and stack-cookie helper calls are
 stubbed. No retail bytes are embedded in committed source or artifacts.
 This is execution of a selected function under controlled dependencies, not a
 full retail process or an encoded network-stream test.
+The subsequent [compressed-payload checkpoint](2026-09-08-retail-playerstate-wire.md)
+removes the bit-reader substitution for six bidirectional payload cases while
+retaining the limits of function-level emulation.
 
 Four cases cover a null baseline and a prior state containing a distinct
 nonzero tail, each with either no changes or all 58 scalar fields and all 64

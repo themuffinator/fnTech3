@@ -1,0 +1,305 @@
+{
+  "engineCommit": "51a6c3790019bf784dc64e369b17bd99661aaf90",
+  "productionSourceHashes": {
+    "code/qcommon/msg.cpp": "766a676688fdf5fbaae57becf81650cbf3e4fb4ba5170ffe13ed1d2e34596fcb",
+    "code/qcommon/huffman_static.c": "2767ba2b15100adedadddace9664ce8fd44ba72debd1f9878e05e4aff0ac92c9"
+  },
+  "retailExecutableSha256": "c926fe9f6c851e00b3b9332e88903ad01f28fdd60454873891c0158f5ded1299",
+  "unicornVersion": "2.1.4",
+  "retailRvas": {
+    "huffmanInitializer": "0xd6bb0",
+    "playerStateWriter": "0xd5d50",
+    "playerStateReader": "0xd66c0",
+    "bitWriter": "0xd4af0",
+    "bitReader": "0xd4c70"
+  },
+  "huffmanInitialization": {
+    "entryRva": "0xd6bb0",
+    "stateAddress": "0x123c5f8",
+    "stateBytes": 57400,
+    "sha256": "44baf2050819ebd94a2f7294b640c55405feb7f7e708e67c03cb523db82f5045",
+    "elapsedSeconds": 15.48499999998603,
+    "root": "0x1243a70",
+    "hook": "zero-fill helper only; retail initialization and update functions executed"
+  },
+  "retailReaderResults": [
+    {
+      "case": 0,
+      "poisonTail": false,
+      "packetBytes": 1,
+      "packetSha256": "dbc1b4c900ffe48d575b5da5c638040125f65db0fe3e24494b76ea986457d986",
+      "retailReadCount": 1,
+      "retailReadBits": 3,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "guardsIntact": true,
+      "tailPreserved": true
+    },
+    {
+      "case": 0,
+      "poisonTail": true,
+      "packetBytes": 1,
+      "packetSha256": "dbc1b4c900ffe48d575b5da5c638040125f65db0fe3e24494b76ea986457d986",
+      "retailReadCount": 1,
+      "retailReadBits": 3,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "guardsIntact": true,
+      "tailPreserved": true
+    },
+    {
+      "case": 1,
+      "poisonTail": false,
+      "packetBytes": 163,
+      "packetSha256": "8868c1c8a9af2a62c8eab4e8c37f716bbe4ff6a85c909682256697941266554a",
+      "retailReadCount": 163,
+      "retailReadBits": 1301,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "guardsIntact": true,
+      "tailPreserved": true
+    },
+    {
+      "case": 1,
+      "poisonTail": true,
+      "packetBytes": 163,
+      "packetSha256": "8868c1c8a9af2a62c8eab4e8c37f716bbe4ff6a85c909682256697941266554a",
+      "retailReadCount": 163,
+      "retailReadBits": 1301,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "guardsIntact": true,
+      "tailPreserved": true
+    },
+    {
+      "case": 2,
+      "poisonTail": false,
+      "packetBytes": 24,
+      "packetSha256": "ac255d425acbb34edf8fbde7738e789acb120d96665fb54248c1b1ddef92b83b",
+      "retailReadCount": 24,
+      "retailReadBits": 189,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "guardsIntact": true,
+      "tailPreserved": true
+    },
+    {
+      "case": 2,
+      "poisonTail": true,
+      "packetBytes": 24,
+      "packetSha256": "ac255d425acbb34edf8fbde7738e789acb120d96665fb54248c1b1ddef92b83b",
+      "retailReadCount": 24,
+      "retailReadBits": 189,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "guardsIntact": true,
+      "tailPreserved": true
+    },
+    {
+      "case": 3,
+      "poisonTail": false,
+      "packetBytes": 62,
+      "packetSha256": "fcc218c9644ac298491808d13c19b156a4395a79208a439363825c0d0bd41db5",
+      "retailReadCount": 62,
+      "retailReadBits": 495,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "guardsIntact": true,
+      "tailPreserved": true
+    },
+    {
+      "case": 3,
+      "poisonTail": true,
+      "packetBytes": 62,
+      "packetSha256": "fcc218c9644ac298491808d13c19b156a4395a79208a439363825c0d0bd41db5",
+      "retailReadCount": 62,
+      "retailReadBits": 495,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "guardsIntact": true,
+      "tailPreserved": true
+    },
+    {
+      "case": 4,
+      "poisonTail": false,
+      "packetBytes": 10,
+      "packetSha256": "818c99805170813447158942bd1cf2b16b1e3a55e7e19911563b149831ede769",
+      "retailReadCount": 10,
+      "retailReadBits": 76,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "guardsIntact": true,
+      "tailPreserved": true
+    },
+    {
+      "case": 4,
+      "poisonTail": true,
+      "packetBytes": 10,
+      "packetSha256": "818c99805170813447158942bd1cf2b16b1e3a55e7e19911563b149831ede769",
+      "retailReadCount": 10,
+      "retailReadBits": 76,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "guardsIntact": true,
+      "tailPreserved": true
+    },
+    {
+      "case": 5,
+      "poisonTail": false,
+      "packetBytes": 10,
+      "packetSha256": "48e4bd269a8b6f178d155f6ee4528d68251381c843b538646ccde1d03544e76e",
+      "retailReadCount": 10,
+      "retailReadBits": 75,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "guardsIntact": true,
+      "tailPreserved": true
+    },
+    {
+      "case": 5,
+      "poisonTail": true,
+      "packetBytes": 10,
+      "packetSha256": "48e4bd269a8b6f178d155f6ee4528d68251381c843b538646ccde1d03544e76e",
+      "retailReadCount": 10,
+      "retailReadBits": 75,
+      "outputMatches": true,
+      "mismatchOffsets": [],
+      "guardsIntact": true,
+      "tailPreserved": true
+    }
+  ],
+  "retailWriterResults": [
+    {
+      "case": 0,
+      "bytes": 1,
+      "bits": 3,
+      "matchesFnTech3Bytes": true,
+      "sha256": "dbc1b4c900ffe48d575b5da5c638040125f65db0fe3e24494b76ea986457d986",
+      "guardsIntact": true
+    },
+    {
+      "case": 1,
+      "bytes": 163,
+      "bits": 1301,
+      "matchesFnTech3Bytes": true,
+      "sha256": "8868c1c8a9af2a62c8eab4e8c37f716bbe4ff6a85c909682256697941266554a",
+      "guardsIntact": true
+    },
+    {
+      "case": 2,
+      "bytes": 24,
+      "bits": 189,
+      "matchesFnTech3Bytes": true,
+      "sha256": "ac255d425acbb34edf8fbde7738e789acb120d96665fb54248c1b1ddef92b83b",
+      "guardsIntact": true
+    },
+    {
+      "case": 3,
+      "bytes": 62,
+      "bits": 495,
+      "matchesFnTech3Bytes": true,
+      "sha256": "fcc218c9644ac298491808d13c19b156a4395a79208a439363825c0d0bd41db5",
+      "guardsIntact": true
+    },
+    {
+      "case": 4,
+      "bytes": 10,
+      "bits": 78,
+      "matchesFnTech3Bytes": false,
+      "sha256": "c4b73a130dde33f078b5492c7096b1fdfe532034ab518c2ef703cbfc5d36e815",
+      "guardsIntact": true
+    },
+    {
+      "case": 5,
+      "bytes": 11,
+      "bits": 86,
+      "matchesFnTech3Bytes": false,
+      "sha256": "068f2cdc14901e49bdb9fdffd3b197359a241acc98ce7972f27608866a094c45",
+      "guardsIntact": true
+    }
+  ],
+  "fnTech3Reader": {
+    "command": ".tmp/generate-ql-wire.exe verify-retail",
+    "exitCode": 0,
+    "allSixCompleteOutputsMatch": true
+  },
+  "cases": [
+    "zero baseline, no changes",
+    "mixed signed integers, integral/fractional floats, QL fields and four arrays",
+    "incremental update, large fractional float, movement boundaries and clearing array entries",
+    "reset populated state to zero",
+    "rightmove-only change to 99",
+    "upmove-only change to -127 after rightmove=99"
+  ],
+  "regression": {
+    "file": "tests/message_codec_tests.cpp",
+    "function": "TestRetailMovementBytePayloads",
+    "WindowsMSVCx86": "message codec executable passed through Meson",
+    "LinuxGCCi686": "same complete message codec executable passed"
+  },
+  "helperBuild": {
+    "architecture": "i686 Windows",
+    "machine": "0x14c",
+    "sha256": "d60762d1e017b3cbe20489598185bc1b1aa9fb3a4623675046e3f7df950f50f8",
+    "initialAttempt": "Host-default x64 compile rejected by intentional shared-engine architecture guard; explicit i686 compile passed"
+  },
+  "localArtifacts": {
+    "generate-ql-wire.cpp": "a85bc3f92bca0b616c6a2cbd848168e858cdedfb59f0a8ffa1c34d042600437c",
+    "generate-ql-wire.cmd": "422aeb11bf5b1492759c7f4ce2f8699d2cb574458e492c89b69f6c310ac3d63b",
+    "init-retail-huffman.py": "2c49abef090fac1449f68b50baf20279459ed6f847e7352f0cf630f487e8f49d",
+    "emulate-retail-real-wire.py": "8797c5759f5adabb68b4b7ca1a89f1a1d990dd604f87043a467e1abf44a9b4fa",
+    "emulate-retail-writer.py": "bdff7ae52661e5affb103f1f45672a4a173d09323e89beb18c4c1fee5c9af81e",
+    "test-retail-wire-windows.log": "fd916cf1df74473e8a11d5636b089742a9af779bd6ed4f055ff1ab6ab1a9a71e",
+    "test-retail-wire-linux.log": "dbaf5f44a86e81052dafce09d6b367da5fd6a880270465aeeca56f3f290e57ea"
+  },
+  "packets": [
+    {
+      "case": 0,
+      "fnTech3Hex": "02",
+      "retailHex": "02",
+      "baselineSha256": "696bda342649ec9268da57b6a279df6f24b0e857d5e6d0605fd25af95adc3cee",
+      "expectedSha256": "696bda342649ec9268da57b6a279df6f24b0e857d5e6d0605fd25af95adc3cee"
+    },
+    {
+      "case": 1,
+      "fnTech3Hex": "99bf87435c7b422b6f609f14b80038de147c0000f0440230e7d3a997e63a49f622d1644c9205727c9245b277325812e9fc5232328f93c7ac8726c94bc62520c34ac9c64c8b1a3922190cd934d9088983cc8f044cf6c92f925aa216f4cd221d50ca2cc09177831dd7ceeeeb778f3bf79d2429066cc739dcae70b60d74be3dbbda32e9b66fcbb717c4b78581b6bd9a6c2fc5dcae1b6b7b0de0ed5ad76f3bafb00554d416",
+      "retailHex": "99bf87435c7b422b6f609f14b80038de147c0000f0440230e7d3a997e63a49f622d1644c9205727c9245b277325812e9fc5232328f93c7ac8726c94bc62520c34ac9c64c8b1a3922190cd934d9088983cc8f044cf6c92f925aa216f4cd221d50ca2cc09177831dd7ceeeeb778f3bf79d2429066cc739dcae70b60d74be3dbbda32e9b66fcbb717c4b78581b6bd9a6c2fc5dcae1b6b7b0de0ed5ad76f3bafb00554d416",
+      "baselineSha256": "696bda342649ec9268da57b6a279df6f24b0e857d5e6d0605fd25af95adc3cee",
+      "expectedSha256": "8ea3dd89ded0f4197e83b6e83456d2b615022872be560e7a0093d16f53004c33"
+    },
+    {
+      "case": 2,
+      "fnTech3Hex": "995f0a8718f8003f3faf070700000000002cfffaa7d24f15",
+      "retailHex": "995f0a8718f8003f3faf070700000000002cfffaa7d24f15",
+      "baselineSha256": "8ea3dd89ded0f4197e83b6e83456d2b615022872be560e7a0093d16f53004c33",
+      "expectedSha256": "d6077df6ac8b6ca164a398f3998a52668dd23474c586cea4984bba4578a06c51"
+    },
+    {
+      "case": 3,
+      "fnTech3Hex": "f1aa0a7ca006bec00750050000410168dbcba4aaaaaaaaaaaaaa264955555555555555d52f52555555555555559365555555555555555555555555555555",
+      "retailHex": "f1aa0a7ca006bec00750050000410168dbcba4aaaaaaaaaaaaaa264955555555555555d52f52555555555555559365555555555555555555555555555555",
+      "baselineSha256": "d6077df6ac8b6ca164a398f3998a52668dd23474c586cea4984bba4578a06c51",
+      "expectedSha256": "696bda342649ec9268da57b6a279df6f24b0e857d5e6d0605fd25af95adc3cee"
+    },
+    {
+      "case": 4,
+      "fnTech3Hex": "f1000000000000003e06",
+      "retailHex": "f100000000000000fd18",
+      "baselineSha256": "696bda342649ec9268da57b6a279df6f24b0e857d5e6d0605fd25af95adc3cee",
+      "expectedSha256": "de150fa8b01bcf7b8db8ae16daa7708ed7edb58be37aba5b80e48396fd30f8f5"
+    },
+    {
+      "case": 5,
+      "fnTech3Hex": "99010000000000004c01",
+      "retailHex": "9901000000000000fd780a",
+      "baselineSha256": "de150fa8b01bcf7b8db8ae16daa7708ed7edb58be37aba5b80e48396fd30f8f5",
+      "expectedSha256": "125be70321b01c788135e78530589bf01f2bbbf8db6c80c20ca6b930b5792446"
+    }
+  ],
+  "limits": [
+    "Function-level CPU emulation, not live process/packet-peer interoperability.",
+    "Retail Huffman initialization, bit IO and delta functions execute; zero-fill and stack-cookie helper calls are controlled.",
+    "No malformed-packet or exhaustive bit-pattern claim.",
+    "No engine implementation change; full suite not repeated for the fixture addition."
+  ]
+}

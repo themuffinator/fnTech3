@@ -267,6 +267,11 @@ to the evidence level named in the same cell.
    traces the full history copy and, in controlled CPU emulation, establishes
    zero tail bytes from a null baseline and preservation of a supplied nonzero
    tail across field updates. Other writers and tail semantics remain open.
+   The [compressed player-state payload checkpoint](2026-09-08-retail-playerstate-wire.md)
+   runs retail Huffman initialization and real bit IO in CPU emulation, checks
+   six states in both encoding directions, and pins two accepted retail
+   movement-byte variants in Windows/Linux codec regressions. It is not live
+   peer interoperability or exhaustive packet coverage.
    [Snapshot history validation](2026-09-07-snapshot-history.md) also rejects
    malformed/stale module requests before writes. The subsequent
    [entity-history correction](2026-09-07-entity-history-wrap.md) covers parser

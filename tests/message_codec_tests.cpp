@@ -964,6 +964,39 @@ int TestPlayerStateRoundTrip() {
 	return 0;
 }
 
+int TestRetailMovementBytePayloads() {
+	// Synthetic states serialized by the pinned retail encoder under CPU
+	// emulation. See docs/fntech3/2026-09-08-retail-playerstate-wire.md.
+	// Retail's wider comparisons can mark adjacent movement bytes changed.
+	std::array<std::array<byte, 11>, 2> packets{{
+		{{ 0xf1, 0, 0, 0, 0, 0, 0, 0, 0xfd, 0x18, 0 }},
+		{{ 0x99, 0x01, 0, 0, 0, 0, 0, 0, 0xfd, 0x78, 0x0a }}
+	}};
+	for ( int i = 0; i < 2; ++i ) {
+		playerState_t baseline{};
+		if ( i == 1 ) baseline.rightmove = 99;
+		playerState_t expected = baseline;
+		expected.rightmove = 99;
+		if ( i == 1 ) expected.upmove = -127;
+		struct {
+			std::uint32_t before = 0x13579bdf;
+			playerState_t state{};
+			std::uint32_t after = 0x2468ace0;
+		} output;
+		msg_t reader{};
+		MSG_Init( &reader, packets[i].data(), static_cast<int>( packets[i].size() ) );
+		reader.cursize = i == 0 ? 10 : 11;
+		MSG_BeginReading( &reader );
+		CHECK( MSG_ReadDeltaPlayerstateForWireProfile( &reader, &baseline,
+			&output.state, NETCHAN_WIRE_QL_RETAIL ) );
+		CHECK( std::memcmp( &output.state, &expected, sizeof( expected ) ) == 0 );
+		CHECK( reader.bit == ( i == 0 ? 78 : 86 ) );
+		CHECK( reader.readcount == reader.cursize );
+		CHECK( output.before == 0x13579bdf && output.after == 0x2468ace0 );
+	}
+	return 0;
+}
+
 } // namespace
 
 int main() {
@@ -982,5 +1015,6 @@ int main() {
 	if ( const int result = TestUserCommandClockWrap() ) return result;
 	if ( const int result = TestEntityRoundTrip() ) return result;
 	if ( const int result = TestPlayerStateRoundTrip() ) return result;
+	if ( const int result = TestRetailMovementBytePayloads() ) return result;
 	return 0;
 }
