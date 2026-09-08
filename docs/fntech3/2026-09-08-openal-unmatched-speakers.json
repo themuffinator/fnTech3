@@ -1,0 +1,811 @@
+{
+  "sourceBase": "5246ca5",
+  "productionChanges": {
+    "code/client/audio/openal/AudioSystemOpenAL.inl": "05ae23b1b4167e2b0ebe57ef6b03acd7c53622eb8543f3f685aa3c523ba92734",
+    "tests/audio_direct_channel_fallback_tests.py": "ed551749d091d793be812c72629342c884e01ea23125a21e50d91af463aa5ced"
+  },
+  "referenceFacts": [
+    "https://openal-soft.org/openal-extensions/SOFT_direct_channels.txt",
+    "https://openal-soft.org/openal-extensions/SOFT_direct_channels_remix.txt"
+  ],
+  "linux": {
+    "library": "OpenAL Soft 1.19.1 (Ubuntu 20.04 i386 1:1.19.1-1)",
+    "baseline": {
+      "sourceCommit": "e02a4b3",
+      "executableSha256": "5ea4bc2fec38f5c0de3dfe5ea6b325b1991eaa4d676eba48b7d695c2c5a7d653",
+      "openalSha256": "7bd9a75dcfe64f7a05f07d8fb0dab0cbc64fca46e26ce872c15bd6cb9af1c105",
+      "runs": [
+        {
+          "channels": 3,
+          "profile": "q3",
+          "command": [
+            "/work/runtime-media-e02a4b3/fntech3",
+            "+set",
+            "com_gameProfile",
+            "q3",
+            "+set",
+            "fs_basepath",
+            "/retail/q3",
+            "+set",
+            "fs_homepath",
+            "/work/media-audio/runtime/3/home",
+            "+set",
+            "fs_cdpath",
+            "",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "r_drawBuffer",
+            "GL_FRONT",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "1",
+            "+set",
+            "s_backend",
+            "openal",
+            "+set",
+            "s_volume",
+            "1",
+            "+set",
+            "s_musicVolume",
+            "0",
+            "+set",
+            "s_voiceVolume",
+            "0",
+            "+set",
+            "s_muteWhenUnfocused",
+            "0",
+            "+set",
+            "s_muteWhenMinimized",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "com_maxfps",
+            "60",
+            "+set",
+            "com_maxfpsUnfocused",
+            "60",
+            "+set",
+            "com_maxfpsMinimized",
+            "60",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "stopmusic\nwait 120\ns_info\nplay sound/probe.ogg\nwait 120\nset s_musicVolume 1\nmusic music/intro.ogg music/loop.ogg\nwait 240\nstopmusic\nwait 120\necho AUDIO_STREAM_COMPLETE\nquit\n",
+          "exitCode": 0,
+          "elapsedSeconds": 10.966087311,
+          "fixtureSha256": "c0ed2cf8ec00a7c719889919080ac4cd7eb75a411df10ab021ad0501b1946045",
+          "consoleSha256": "ad067da49991477a029bb2f8ab43e871f73ddc451f8c0a591f194464ce19a363",
+          "openalLogSha256": "ac58bd08a40d18c32f064a06bc289bd3052b9da7464fc9a8892cae7554e419f9",
+          "outputSha256": "bef10582f52a4f34218ed21924b3f97686aeea2ff2bcd15139955482c7715cff",
+          "outputBytes": 1884228
+        },
+        {
+          "channels": 6,
+          "profile": "q3",
+          "command": [
+            "/work/runtime-media-e02a4b3/fntech3",
+            "+set",
+            "com_gameProfile",
+            "q3",
+            "+set",
+            "fs_basepath",
+            "/retail/q3",
+            "+set",
+            "fs_homepath",
+            "/work/media-audio/runtime/6/home",
+            "+set",
+            "fs_cdpath",
+            "",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "r_drawBuffer",
+            "GL_FRONT",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "1",
+            "+set",
+            "s_backend",
+            "openal",
+            "+set",
+            "s_volume",
+            "1",
+            "+set",
+            "s_musicVolume",
+            "0",
+            "+set",
+            "s_voiceVolume",
+            "0",
+            "+set",
+            "s_muteWhenUnfocused",
+            "0",
+            "+set",
+            "s_muteWhenMinimized",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "com_maxfps",
+            "60",
+            "+set",
+            "com_maxfpsUnfocused",
+            "60",
+            "+set",
+            "com_maxfpsMinimized",
+            "60",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "stopmusic\nwait 120\ns_info\nplay sound/probe.ogg\nwait 120\nset s_musicVolume 1\nmusic music/intro.ogg music/loop.ogg\nwait 240\nstopmusic\nwait 120\necho AUDIO_STREAM_COMPLETE\nquit\n",
+          "exitCode": 0,
+          "elapsedSeconds": 10.616669724,
+          "fixtureSha256": "e18a5ea1ed0d29f53bc6b345e62a3db23073bebbe16c4be86b94481ecc07c867",
+          "consoleSha256": "383825fb8577ea18d2e6dc06c3cc0e54be7d6627b743cbe439c5282f21d3df38",
+          "openalLogSha256": "c4711b3470d8b15a957492e720822bb1c13a2ea33885c1923d8d386dcda335d2",
+          "outputSha256": "f4a47007a7bd700b7cb7c3ecef102d0a9088f720e3f30052a29e6aec47ccb291",
+          "outputBytes": 1871940
+        }
+      ]
+    },
+    "baselineAnalysis": [
+      {
+        "channels": 3,
+        "frames": 471040,
+        "windows": [
+          {
+            "phase": "loaded",
+            "rms": [
+              0.12600328664650617,
+              0.12600328664650617
+            ],
+            "peakHz": [
+              997,
+              997
+            ],
+            "centerTonePresent": true
+          },
+          {
+            "phase": "music",
+            "rms": [
+              0.12606587225523055,
+              0.12606587225523055
+            ],
+            "peakHz": [
+              997,
+              997
+            ],
+            "centerTonePresent": true
+          }
+        ],
+        "lastSecondPeak": 0.0
+      },
+      {
+        "channels": 6,
+        "frames": 467968,
+        "windows": [
+          {
+            "phase": "loaded",
+            "rms": [
+              0.0,
+              0.0
+            ],
+            "peakHz": [
+              0,
+              0
+            ],
+            "centerTonePresent": false
+          },
+          {
+            "phase": "music",
+            "rms": [
+              0.0,
+              0.0
+            ],
+            "peakHz": [
+              0,
+              0
+            ],
+            "centerTonePresent": false
+          }
+        ],
+        "lastSecondPeak": 0.0
+      }
+    ],
+    "corrected": {
+      "sourceCommit": "5246ca5 with direct-channel fallback correction",
+      "executableSha256": "1fe75160992eee013d3b74d1bff54f922283e01d524b6318dcbe88fbc056b617",
+      "openalSha256": "7bd9a75dcfe64f7a05f07d8fb0dab0cbc64fca46e26ce872c15bd6cb9af1c105",
+      "runs": [
+        {
+          "channels": 3,
+          "profile": "q3",
+          "command": [
+            "/work/runtime-direct-channel/fntech3",
+            "+set",
+            "com_gameProfile",
+            "q3",
+            "+set",
+            "fs_basepath",
+            "/retail/q3",
+            "+set",
+            "fs_homepath",
+            "/work/media-audio-fixed/runtime/3/home",
+            "+set",
+            "fs_cdpath",
+            "",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "r_drawBuffer",
+            "GL_FRONT",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "1",
+            "+set",
+            "s_backend",
+            "openal",
+            "+set",
+            "s_volume",
+            "1",
+            "+set",
+            "s_musicVolume",
+            "0",
+            "+set",
+            "s_voiceVolume",
+            "0",
+            "+set",
+            "s_muteWhenUnfocused",
+            "0",
+            "+set",
+            "s_muteWhenMinimized",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "com_maxfps",
+            "60",
+            "+set",
+            "com_maxfpsUnfocused",
+            "60",
+            "+set",
+            "com_maxfpsMinimized",
+            "60",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "stopmusic\nwait 120\ns_info\nplay sound/probe.ogg\nwait 120\nset s_musicVolume 1\nmusic music/intro.ogg music/loop.ogg\nwait 240\nstopmusic\nwait 120\necho AUDIO_STREAM_COMPLETE\nquit\n",
+          "exitCode": 0,
+          "elapsedSeconds": 10.965595703000002,
+          "fixtureSha256": "c0ed2cf8ec00a7c719889919080ac4cd7eb75a411df10ab021ad0501b1946045",
+          "consoleSha256": "dbbfedde9033211c5af0b6aa40120cda573bdf813d883e4c38ef2f1bc3a4ecf3",
+          "openalLogSha256": "dbd8f658ad866e32f064e4f91f55c04a35bbe8d27d13a27519898553e8a960ef",
+          "outputSha256": "5c9cafe97f7968abded1886332e9af1f5bc38df87fcbc3f0437c9dc598eb6207",
+          "outputBytes": 1884228
+        },
+        {
+          "channels": 6,
+          "profile": "q3",
+          "command": [
+            "/work/runtime-direct-channel/fntech3",
+            "+set",
+            "com_gameProfile",
+            "q3",
+            "+set",
+            "fs_basepath",
+            "/retail/q3",
+            "+set",
+            "fs_homepath",
+            "/work/media-audio-fixed/runtime/6/home",
+            "+set",
+            "fs_cdpath",
+            "",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "r_drawBuffer",
+            "GL_FRONT",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "1",
+            "+set",
+            "s_backend",
+            "openal",
+            "+set",
+            "s_volume",
+            "1",
+            "+set",
+            "s_musicVolume",
+            "0",
+            "+set",
+            "s_voiceVolume",
+            "0",
+            "+set",
+            "s_muteWhenUnfocused",
+            "0",
+            "+set",
+            "s_muteWhenMinimized",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "com_maxfps",
+            "60",
+            "+set",
+            "com_maxfpsUnfocused",
+            "60",
+            "+set",
+            "com_maxfpsMinimized",
+            "60",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "stopmusic\nwait 120\ns_info\nplay sound/probe.ogg\nwait 120\nset s_musicVolume 1\nmusic music/intro.ogg music/loop.ogg\nwait 240\nstopmusic\nwait 120\necho AUDIO_STREAM_COMPLETE\nquit\n",
+          "exitCode": 0,
+          "elapsedSeconds": 10.788402995000002,
+          "fixtureSha256": "e18a5ea1ed0d29f53bc6b345e62a3db23073bebbe16c4be86b94481ecc07c867",
+          "consoleSha256": "d413286350546ae7d534a1a3491fe58e414eef94be602bf5756944ff497716c6",
+          "openalLogSha256": "e871190e79bdf2bd60a8d98a76efde92b843e8b28ec1d2be55b743ad624cdd48",
+          "outputSha256": "b56388789ea6e11855b68763c84951726e843277ae2b5668a2e23a07cfcc7a94",
+          "outputBytes": 1876036
+        }
+      ]
+    },
+    "correctedAnalysis": [
+      {
+        "channels": 3,
+        "frames": 471040,
+        "windows": [
+          {
+            "phase": "loaded",
+            "rms": [
+              0.12600328664650617,
+              0.12600328664650617
+            ],
+            "peakHz": [
+              997,
+              997
+            ],
+            "centerTonePresent": true
+          },
+          {
+            "phase": "music",
+            "rms": [
+              0.12606587225523055,
+              0.12606587225523055
+            ],
+            "peakHz": [
+              997,
+              997
+            ],
+            "centerTonePresent": true
+          }
+        ],
+        "lastSecondPeak": 0.0
+      },
+      {
+        "channels": 6,
+        "frames": 468992,
+        "windows": [
+          {
+            "phase": "loaded",
+            "rms": [
+              0.10617673599195318,
+              0.10617673599195318
+            ],
+            "peakHz": [
+              997,
+              997
+            ],
+            "centerTonePresent": true
+          },
+          {
+            "phase": "music",
+            "rms": [
+              0.10620947218445267,
+              0.10620947218445267
+            ],
+            "peakHz": [
+              997,
+              997
+            ],
+            "centerTonePresent": true
+          }
+        ],
+        "lastSecondPeak": 0.0
+      }
+    ],
+    "stageFilesVerifiedUnchanged": 300,
+    "candidateStage": true,
+    "directLibraryControl": {
+      "exitCode": 0,
+      "uploadError": 0,
+      "playError": 0,
+      "stereoPeak": [
+        4880,
+        4880
+      ],
+      "outputSha256": "b8ee4a124455ffdadb5cb8832066edc6a10ab3c76d3a68d12531daf6c1221b52"
+    }
+  },
+  "windows": {
+    "library": "OpenAL Soft 1.25.2",
+    "runtime": {
+      "commit": "5246ca5eb691c7fbd775f394585a046e01651dd4",
+      "runtime": {
+        "FnQL-pkg.fnz": "1d1ff86488c3134a936486790c24954bef87abd22177e1ca8b5542cc2f06115a",
+        "fnql-web.pak": "6c210165880fff668900fd3e4e3c90137623043e1b5315f24b693f367f756382",
+        "fnql_glx_x86.dll": "20af973d5efc44991c581d573e2390bd952a57d2b8d03414a4c1b3cc9f2413e4",
+        "fntech3.exe": "ebe6271a9565f031149e09ca0eec9c2316b59b7e0db2089e7a47bc0da8119669",
+        "soft_oal.dll": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+      },
+      "runs": [
+        {
+          "profile": "q3",
+          "encoding": "six-center",
+          "command": [
+            "E:\\Repositories\\fnTech3\\.tmp\\audio-direct-channel-windows-5246ca5\\runtime\\fntech3.exe",
+            "+set",
+            "com_gameProfile",
+            "q3",
+            "+set",
+            "fs_basepath",
+            "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\audio-direct-channel-windows-5246ca5\\q3-six-center\\home",
+            "+set",
+            "fs_cdpath",
+            "",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "1",
+            "+set",
+            "s_backend",
+            "openal",
+            "+set",
+            "r_drawBuffer",
+            "GL_FRONT",
+            "+set",
+            "s_volume",
+            "1",
+            "+set",
+            "s_musicVolume",
+            "0",
+            "+set",
+            "s_voiceVolume",
+            "0",
+            "+set",
+            "s_muteWhenUnfocused",
+            "0",
+            "+set",
+            "s_muteWhenMinimized",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "com_maxfps",
+            "60",
+            "+set",
+            "com_maxfpsUnfocused",
+            "60",
+            "+set",
+            "com_maxfpsMinimized",
+            "60",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "stopmusic\nwait 120\ns_info\nplay sound/probe.ogg\nwait 120\nset s_musicVolume 1\nmusic music/intro.ogg music/loop.ogg\nwait 240\nstopmusic\nwait 120\necho AUDIO_STREAM_COMPLETE\nquit\n",
+          "exitCode": 0,
+          "forced": false,
+          "elapsedSeconds": 11.593,
+          "fixtureSha256": "e18a5ea1ed0d29f53bc6b345e62a3db23073bebbe16c4be86b94481ecc07c867",
+          "outputExists": true,
+          "outputBytes": 1898564,
+          "outputSha256": "52db3d9200cf52f023e69ad38fb1f1aeae66437664cda7b8486927003a113613"
+        },
+        {
+          "profile": "ql",
+          "encoding": "six-center",
+          "command": [
+            "E:\\Repositories\\fnTech3\\.tmp\\audio-direct-channel-windows-5246ca5\\runtime\\fntech3.exe",
+            "+set",
+            "com_gameProfile",
+            "ql",
+            "+set",
+            "fs_basepath",
+            "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\audio-direct-channel-windows-5246ca5\\ql-six-center\\home",
+            "+set",
+            "fs_cdpath",
+            "",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "3",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "s_initsound",
+            "1",
+            "+set",
+            "s_backend",
+            "openal",
+            "+set",
+            "r_drawBuffer",
+            "GL_FRONT",
+            "+set",
+            "s_volume",
+            "1",
+            "+set",
+            "s_musicVolume",
+            "0",
+            "+set",
+            "s_voiceVolume",
+            "0",
+            "+set",
+            "s_muteWhenUnfocused",
+            "0",
+            "+set",
+            "s_muteWhenMinimized",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "com_maxfps",
+            "60",
+            "+set",
+            "com_maxfpsUnfocused",
+            "60",
+            "+set",
+            "com_maxfpsMinimized",
+            "60",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "stopmusic\nwait 120\ns_info\nplay sound/probe.ogg\nwait 120\nset s_musicVolume 1\nmusic music/intro.ogg music/loop.ogg\nwait 240\nstopmusic\nwait 120\necho AUDIO_STREAM_COMPLETE\nquit\n",
+          "exitCode": 0,
+          "forced": false,
+          "elapsedSeconds": 11.61,
+          "fixtureSha256": "e18a5ea1ed0d29f53bc6b345e62a3db23073bebbe16c4be86b94481ecc07c867",
+          "outputExists": true,
+          "outputBytes": 1919044,
+          "outputSha256": "fc382c6aa2b59e2a2d9845ef8149beddf6d6c05200ad6ea229aff5843e7fb116"
+        }
+      ]
+    },
+    "analysis": [
+      {
+        "profile": "q3",
+        "windows": [
+          {
+            "phase": "loaded",
+            "rms": [
+              0.1261310968547672,
+              0.1261310968547672
+            ],
+            "peakHz": [
+              997,
+              997
+            ]
+          },
+          {
+            "phase": "music",
+            "rms": [
+              0.12608057054294936,
+              0.12608057054294936
+            ],
+            "peakHz": [
+              997,
+              997
+            ]
+          }
+        ],
+        "lastSecondPeak": 0.0,
+        "consoleSha256": "7ce14576cb1e19b97bc5774379efcb33bb4213599f4045a775e2858ba799c845"
+      },
+      {
+        "profile": "ql",
+        "windows": [
+          {
+            "phase": "loaded",
+            "rms": [
+              0.12610818297348322,
+              0.12610818297348322
+            ],
+            "peakHz": [
+              997,
+              997
+            ]
+          },
+          {
+            "phase": "music",
+            "rms": [
+              0.12608056885215863,
+              0.12608056885215863
+            ],
+            "peakHz": [
+              997,
+              997
+            ]
+          }
+        ],
+        "lastSecondPeak": 0.0,
+        "consoleSha256": "8ad661c88816004fb2606ebf53e5cb4e6e3566f0e0561f1bd5d8bfe685f52404"
+      }
+    ]
+  },
+  "tests": {
+    "windows": {
+      "passed": 110,
+      "failed": 0,
+      "skipped": 1,
+      "pythonTests": 1307,
+      "pythonSkipped": 5
+    },
+    "linux": {
+      "passed": 108,
+      "failed": 0,
+      "skipped": 1,
+      "pythonTests": 1300,
+      "pythonSkipped": 21
+    },
+    "windowsBuilds": [
+      "native x86",
+      "SDL x86"
+    ],
+    "logs": {
+      "direct-channel-before.log": "1bfc0e96acc22f5084471b18f551761f3c9dfa3a980062359ba408f7919d8850",
+      "direct-channel-after.log": "da030d71b469066dfa5eefe7434015c7285f1e6626e923d480408878421e50a0",
+      "direct-channel-build.log": "978d17827b5fe14c291761181379f3adf4c849fffb8b3a87c88b5b89504ed4c2",
+      "direct-channel-sdl-build.log": "3431eb3df4bdb290eaf46c9998a497ccdb6d69a6ecc8da72d49af7baf3157852",
+      "direct-channel-suite.log": "5453a63319938b94cb73f4e024830f999e63d42e958cb8ae2eafd19032ab859c",
+      "focal-direct-build-test.log": "d10ffa910243abeb665a18dfc2bc596a4dcaedcfb8dd53b3471242042a9fbb04"
+    }
+  },
+  "limits": [
+    "Linux Q3 runtime only; retail Linux QL client modules unavailable",
+    "File output only; hardware surround and device lifecycle remain open",
+    "Diagnostic front-buffer control; normal presentation continuity remains open",
+    "Older-library normal mixing can change virtualization and gain; no gain parity claim"
+  ]
+}

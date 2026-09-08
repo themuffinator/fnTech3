@@ -1767,9 +1767,11 @@ void OpenALDevice::SetSourceDirectChannels( ALuint source, bool directChannels )
 	}
 
 	ALint mode = AL_FALSE;
-	if ( directChannels ) {
-		mode = capabilities_.directChannelsRemix ? AL_REMIX_UNMATCHED_SOFT : AL_TRUE;
+	if ( directChannels && capabilities_.directChannelsRemix ) {
+		mode = AL_REMIX_UNMATCHED_SOFT;
 	}
+	// AL_TRUE drops speakers missing from the output layout. Keep normal
+	// mixing on older implementations so center/surround content stays audible.
 	loader_.alSourcei( source, AL_DIRECT_CHANNELS_SOFT, mode );
 	loader_.alGetError();
 }

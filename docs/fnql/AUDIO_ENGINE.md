@@ -220,10 +220,11 @@ Direct-path content stays direct by default:
 - authored surround samples
 - explicitly tagged UHJ or B-Format assets
 
-When `AL_SOFT_direct_channels` is available, stereo/surround samples and streams
-request direct channel routing so authored speaker channels are not image-shifted
-by HRTF. When `AL_SOFT_direct_channels_remix` is also available, unmatched
-speaker channels can be folded into narrower output layouts. Two-channel world
+When both `AL_SOFT_direct_channels` and `AL_SOFT_direct_channels_remix` are
+available, stereo/surround samples and streams request direct routing with
+unmatched speakers remixed into narrower output layouts. Older implementations
+retain normal mixing to preserve those speakers, with potentially different
+virtualization and gain. Two-channel world
 samples only enter positional routing through the opt-in
 `s_alSpatializeStereo` compatibility switch and only on runtimes with
 `AL_SOFT_source_spatialize`.
