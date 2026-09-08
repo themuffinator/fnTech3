@@ -137,6 +137,7 @@ cvar_t		*s_show;
 static cvar_t *s_mixahead;
 static cvar_t *s_mixOffset;
 static cvar_t *s_mixPreStep;
+static cvar_t *s_debugTiming;
 #if defined(__linux__) && !defined(USE_SDL)
 extern "C" {
 cvar_t		*s_device;
@@ -1412,6 +1413,7 @@ static void S_Update_( int msec ) {
 
 	thisTime = Sys_Milliseconds();
 
+	const int previousPaintedEnd = s_paintedtime;
 	// Updates s_soundtime
 	S_GetSoundtime();
 
@@ -1452,6 +1454,10 @@ static void S_Update_( int msec ) {
 	// add raw data from streamed samples
 	S_Base_UpdateBackgroundTrack();
 
+	if ( s_debugTiming != nullptr && s_debugTiming->integer ) {
+		Com_Printf( "snd_timing ms=%d elapsed=%d work_ms=%d cursor=%d previous_end=%d start=%d end=%u raw_end=%d rate=%d\n",
+			thisTime, sane, Sys_Milliseconds() - thisTime, s_soundtime, previousPaintedEnd, s_paintedtime, endtime, s_rawend, dma.speed );
+	}
 	SNDDMA_BeginPainting();
 
 	S_PaintChannels( endtime );
@@ -1723,6 +1729,8 @@ extern "C" qboolean S_Base_Init( soundInterface_t *si ) {
 			break;
 	}
 
+	s_debugTiming = Cvar_Get( "s_debugTiming", "0", CVAR_TEMP | CVAR_DEVELOPER );
+	Cvar_SetDescription( s_debugTiming, "Log legacy playback cursor, painted ranges and queued raw audio for timing diagnostics." );
 	s_mixahead = Cvar_Get( "s_mixAhead", "0.2", CVAR_ARCHIVE_ND );
 	Cvar_CheckRange( s_mixahead, "0.001", "0.5", CV_FLOAT );
 	Cvar_SetDescription( s_mixahead, "Amount of time to pre-mix sound data to avoid potential skips/stuttering in case of unstable framerate. Higher values add more CPU usage." );
