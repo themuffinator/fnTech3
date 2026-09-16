@@ -47,7 +47,7 @@ class PlatformPortSafetyTests(unittest.TestCase):
             unix_platform,
         )
         self.assertIn(
-            'Com_sprintf( filename, sizeof( filename ), "%s" ARCH_STRING DLL_EXT, name );',
+            'name, ARCH_STRING, DLL_EXT, candidate, filename, sizeof( filename ), &installationRoot )',
             vm,
         )
         self.assertIn("qagamei386.so", build_guide)
@@ -72,20 +72,16 @@ class PlatformPortSafetyTests(unittest.TestCase):
 
     def test_retail_linux_x64_module_alias_is_dedicated_only(self) -> None:
         vm = read("code/qcommon/vm.c")
-
-        standard_name = vm.index(
-            'Com_sprintf( filename, sizeof( filename ), "%s" ARCH_STRING DLL_EXT, name );'
-        )
-        retail_alias = vm.index(
-            'Com_sprintf( filename, sizeof( filename ), "%sx64%s", name, DLL_EXT );'
-        )
-        self.assertLess(standard_name, retail_alias)
-        alias_guard = vm.rfind("#if defined( __linux__ ) && idx64", standard_name, retail_alias)
-        self.assertGreater(alias_guard, standard_name)
-        alias_block = vm[alias_guard : vm.index("#endif", retail_alias)]
-        self.assertIn('index == VM_GAME && !Q_stricmp( name, "qagame" )', alias_block)
-        self.assertNotIn("VM_CGAME", alias_block)
-        self.assertNotIn("VM_UI", alias_block)
+        manager = read("code/qcommon/game_profile.cpp")
+        self.assertIn("Com_GameManagerNativeModuleCandidate( Com_GameProfile()", vm)
+        alias = manager[manager.index("// Preserve the existing Linux game-only x64 alias"):
+                        manager.index("name += arch;")]
+        self.assertIn('std::strcmp( extension, ".so" )', alias)
+        self.assertIn('std::strcmp( arch, "x86_64" )', alias)
+        self.assertIn('std::strcmp( module, "qagame" )', alias)
+        self.assertIn('arch = "x64";', alias)
+        self.assertNotIn('"cgame"', alias)
+        self.assertNotIn('"ui"', alias)
 
     def test_linux_steam_discovery_covers_xdg_snap_and_flatpak(self) -> None:
         unix = read("code/unix/unix_shared.cpp")

@@ -29,6 +29,7 @@ class ReliableAckTransactionTests(unittest.TestCase):
 #include <limits>
 #include <initializer_list>
 constexpr int MAX_RELIABLE_COMMANDS=64,NA_BAD=0,ERR_DROP=1;
+int CL_ReliableCommandLimit(){return MAX_RELIABLE_COMMANDS;}
 using qboolean=bool;
 #define S_COLOR_YELLOW ""
 struct {int reliableSequence,reliableAcknowledge;bool demoplaying;struct{int type;} serverAddress;char reliableCommands[64][1024];} clc;

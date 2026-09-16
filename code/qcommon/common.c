@@ -23,7 +23,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "q_shared.h"
 #include "qcommon.h"
+#include "../compat/game_abi_adapter.h"
 #include "../platform/fnql_steam.h"
+#include "../platform/process_relaunch.h"
 #include <setjmp.h>
 #ifndef _WIN32
 #include <netinet/in.h>
@@ -311,6 +313,10 @@ void NORETURN FORMAT_PRINTF(2, 3) QDECL Com_Error( errorParm_t code, const char 
 	static qboolean	calledSysError = qfalse;
 	int			currentTime;
 
+	// A recoverable error or shutdown failure must not leave a later quit
+	// armed to launch a different mode.
+	Sys_CancelRelaunch();
+
 #if defined(_WIN32) && defined(_DEBUG)
 	if ( code != ERR_DISCONNECT && code != ERR_NEED_CD ) {
 		if ( !com_noErrorInterrupt->integer ) {
@@ -446,7 +452,7 @@ do the appropriate things.
 =============
 */
 void Com_Quit_f( void ) {
-	const char *p = Cmd_ArgsFrom( 1 );
+	const char *p = Sys_HasPendingRelaunch() ? "Switching game mode" : Cmd_ArgsFrom( 1 );
 	// don't try to shutdown if we are in a recursive error
 	if ( !com_errorEntered ) {
 		// Some VMs might execute "quit" command directly,
@@ -461,6 +467,10 @@ void Com_Quit_f( void ) {
 		VM_Forced_Unload_Done();
 		Com_Shutdown();
 		FS_Shutdown( qtrue );
+		// A new process must not race the old process for its listening port.
+		if ( Sys_HasPendingRelaunch() ) NET_Shutdown();
+	} else {
+		Sys_CancelRelaunch();
 	}
 	Sys_Quit();
 }
@@ -938,6 +948,19 @@ int Com_RealTime(qtime_t *qtime) {
 		qtime->tm_isdst = tms->tm_isdst;
 	}
 	return t;
+}
+
+int Com_RealTimeRTCW( void *destination ) {
+	qtime_t internal = { 0 };
+	int result;
+	// Com_RealTime leaves its output untouched if localtime fails. A valid
+	// conversion always supplies month 0..11; never read an output-only buffer.
+	internal.tm_mon = -1;
+	result = Com_RealTime( destination ? &internal : NULL );
+	if ( destination && internal.tm_mon >= 0 ) {
+		FnTech3_RTCWTimeFromInternal( (fntech3_rtcw_qtime_t *)destination, &internal );
+	}
+	return result;
 }
 
 
@@ -2959,10 +2982,10 @@ int Com_EventLoop( void ) {
 	sysEvent_t	ev;
 
 #ifndef DEDICATED
-	byte		bufData[ MAX_MSGLEN_BUF ];
+	byte		bufData[ MAX_GAME_MSGLEN_BUF ];
 	msg_t		buf;
 
-	MSG_Init( &buf, bufData, MAX_MSGLEN );
+	MSG_Init( &buf, bufData, sizeof( bufData ) );
 #endif // !DEDICATED
 
 	while ( 1 ) {
@@ -3137,12 +3160,15 @@ static void Com_ExecuteCfg( void )
 	Cbuf_ExecuteText(EXEC_NOW, "exec default.cfg\n");
 	Cbuf_Execute(); // Always execute after exec to prevent text buffer overflowing
 
-	if ( Com_GameIsQuake3() ) {
-		// Preserve Q3's config order and safe-mode contract. QL profile-root
-		// files must not supply settings to Q3, even in a mixed writable home.
-		if ( !Com_SafeMode() ) {
-			Cbuf_ExecuteText( EXEC_NOW, "exec " Q3CONFIG_CFG "\n" );
+	if ( !Com_GameIsQuakeLive() ) {
+		const qboolean safeMode = Com_SafeMode();
+		// Each local-config profile owns its filename. Q3 skips autoexec in
+		// safe mode; RTCW's published startup sequence still executes it.
+		if ( !safeMode ) {
+			Cbuf_ExecuteText( EXEC_NOW, va( "exec %s\n", Com_GameConfigFile() ) );
 			Cbuf_Execute();
+		}
+		if ( !safeMode || Com_GameIsRTCW() ) {
 			Cbuf_ExecuteText( EXEC_NOW, "exec autoexec.cfg\n" );
 			Cbuf_Execute();
 		}
@@ -3931,15 +3957,82 @@ static void Com_SetAffinityMask( const char *str )
 
 /*
 =================
-Com_InitGameProfile
+Com_GameList_f
 
-Select the compatibility contract before protocol, filesystem, VM, renderer,
-or platform-service initialization.  Once selected, a process cannot switch
-profiles: ABI-visible structures and wire codecs must never be mixed.
+List registered titles, their mode profiles and actual startup availability.
 =================
 */
+static void Com_GameList_f( void ) {
+	for ( unsigned t = 0; t < Com_GameManagerTitleCount(); ++t ) {
+		const comGameTitle_t *title = Com_GameManagerTitleAt( t );
+		Com_Printf( "%s\n", title->displayName );
+		for ( unsigned i = 0; i < Com_GameManagerTitleProfileCount( title->id ); ++i ) {
+			const comGameProfile_t *profile = Com_GameManagerTitleProfileAt( title->id, i );
+			const char *status = Com_GameManagerCanActivate( profile ) ? "startup enabled"
+				: profile->runtimeBlocker ? profile->runtimeBlocker : "unavailable in this build";
+			Com_Printf( " %c %-12s protocol %d: %s\n",
+				profile == Com_GameProfile() ? '*' : ' ', profile->key,
+				profile->preferredProtocol, status );
+		}
+	}
+	Com_Printf( "Select a profile at startup with +set com_gameProfile <key>.\n" );
+}
+
+/* Select the immutable contract before protocol, filesystem, VM, renderer or
+ * platform-service initialization. Live ABIs and wire codecs must not mix. */
+#ifndef DEDICATED
+static void Com_GameMode_f( void ) {
+	const comGameProfile_t *current = Com_GameProfile();
+	const comGameProfile_t *target = NULL;
+	comGameModeLaunchStatus_t status;
+	const char *basePath;
+	char command[COM_GAME_MODE_LAUNCH_BYTES];
+	char error[256];
+
+	if ( !com_fullyInitialized || com_errorEntered || !com_dedicated || com_dedicated->integer ) {
+		Com_Printf( "Game mode switching requires an initialized game client.\n" );
+		return;
+	}
+	if ( !Q_stricmp( Cmd_Argv( 0 ), "gameMode" ) && Cmd_Argc() == 2 ) {
+		target = Com_GameManagerFindProfile( Cmd_Argv( 1 ) );
+	} else if ( current && current->titleId == COM_GAME_TITLE_RTCW && Cmd_Argc() == 1 ) {
+		if ( !Q_stricmp( Cmd_Argv( 0 ), "startSingleplayer" ) ) target = Com_GameProfileById( COM_GAME_RTCW_SP );
+		if ( !Q_stricmp( Cmd_Argv( 0 ), "startMultiplayer" ) ) target = Com_GameProfileById( COM_GAME_RTCW_MP );
+	}
+	if ( !target ) {
+		Com_Printf( "Usage: gameMode <profile from gameList>\n" );
+		return;
+	}
+	basePath = Cvar_VariableString( "fs_basepath" );
+	status = Com_GameManagerFormatModeLaunch( current, target, basePath,
+		Cvar_VariableString( "fs_homepath" ), Cvar_VariableIntegerValue( "r_fullscreen" ) != 0,
+		command, sizeof( command ) );
+	if ( status != COM_GAME_MODE_LAUNCH_READY ) {
+		Com_Printf( "Game mode: %s.\n", Com_GameManagerModeLaunchStatusMessage( status ) );
+		return;
+	}
+	if ( !Com_GameManagerCanActivate( target ) ) {
+		Com_Printf( "Cannot start %s: %s.\n", target->displayName,
+			target->runtimeBlocker ? target->runtimeBlocker : "unavailable in this build" );
+		return;
+	}
+	if ( !Com_GameManagerInstallationMatches( target, Com_ProbeGameProfileMarkers( basePath ) ) ) {
+		Com_Printf( "Cannot start %s: this installation does not contain its game data. Check fs_basepath.\n",
+			target->displayName );
+		return;
+	}
+	if ( !Sys_PrepareRelaunch( command, error, sizeof( error ) ) ) {
+		Com_Printf( "Cannot switch game mode: %s.\n", error );
+		return;
+	}
+	Com_Printf( "Switching to %s using the same engine executable.\n", target->displayName );
+	Com_WriteConfiguration();
+	Com_Quit_f();
+}
+#endif
+
 static void Com_InitGameProfile( void ) {
-	comGameDetectionInputs_t inputs;
+	comGameDetectionInputs_t inputs = { 0 };
 	comGameDetectionResult_t detection;
 	const char *basePath;
 
@@ -3951,15 +4044,17 @@ static void Com_InitGameProfile( void ) {
 	inputs.requestedProfile = com_gameProfile->string;
 	inputs.basePath = ( basePath && basePath[0] ) ? basePath : NULL;
 	inputs.appPath = Sys_DefaultBasePath();
-	inputs.q3SteamPath = Sys_SteamPath( COM_GAME_QUAKE3 );
-	inputs.qlSteamPath = Sys_SteamPath( COM_GAME_QUAKELIVE );
+	for ( unsigned i = 0; i < Com_GameManagerProfileCount(); ++i ) {
+		const comGameProfile_t *profile = Com_GameManagerProfileAt( i );
+		inputs.steamPaths[profile->id] = Sys_SteamPath( profile->id );
+	}
 	detection = Com_DetectGameProfile( &inputs );
 
 	if ( detection.status != COM_GAME_DETECTION_OK || !detection.profile ) {
 		Com_Error( ERR_FATAL,
 			"fnTech3 game profile detection failed (%s, evidence: %s). "
-			"Place the binaries in a Quake III Arena or Quake Live installation, "
-			"set fs_basepath, or use +set com_gameProfile quake3|quakelive.",
+			"Set fs_basepath to the game's installation and select "
+			"+set com_gameProfile quake3|quakelive|rtcw-sp|rtcw-mp.",
 			Com_GameDetectionStatusName( detection.status ),
 			Com_GameDetectionEvidenceName( detection.evidence ) );
 	}
@@ -3972,11 +4067,23 @@ static void Com_InitGameProfile( void ) {
 	com_gameProfile->flags &= ~CVAR_USER_CREATED;
 	com_gameProfile->flags |= CVAR_INIT | CVAR_PROTECTED | CVAR_ROM;
 	Cvar_SetDescription( com_gameProfile,
-		"Immutable compatibility profile selected at startup. Use auto, quake3, or quakelive on the command line." );
+		"Immutable compatibility profile selected at startup. Use auto, quake3, quakelive, rtcw-sp, or rtcw-mp on the command line." );
 
 	Com_Printf( "Game profile: %s (%s, detected from %s)\n",
 		detection.profile->displayName, detection.profile->key,
 		Com_GameDetectionEvidenceName( detection.evidence ) );
+	if ( detection.profile->runtimeBlocker ) {
+		Com_Printf( "EXPERIMENTAL RTCW DEVELOPMENT BUILD: %s. Compatibility gates remain open.\n",
+			detection.profile->runtimeBlocker );
+	}
+	Cmd_AddCommand( "gameList", Com_GameList_f );
+#ifndef DEDICATED
+	Cmd_AddCommand( "gameMode", Com_GameMode_f );
+	if ( Com_GameIsRTCW() ) {
+		Cmd_AddCommand( "startSingleplayer", Com_GameMode_f );
+		Cmd_AddCommand( "startMultiplayer", Com_GameMode_f );
+	}
+#endif
 }
 
 
@@ -4416,10 +4523,10 @@ void Com_WriteConfiguration( void ) {
 			return;
 		}
 	} else {
-		Com_WriteConfigToFile( Q3CONFIG_CFG );
+		Com_WriteConfigToFile( Com_GameConfigFile() );
 	}
 #else
-	Com_WriteConfigToFile( Q3CONFIG_CFG );
+	Com_WriteConfigToFile( Com_GameConfigFile() );
 #endif
 	cvar_modifiedFlags &= ~( CVAR_ARCHIVE | CVAR_CLOUD );
 

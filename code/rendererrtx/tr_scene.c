@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "tr_local.h"
 #include "../renderercommon/tr_q3_fov.h"
 #include "../renderercommon/tr_muzzle_flash_light.h"
+#include "../renderercommon/tr_rtcw_fog_scene.h"
 
 static int			r_firstSceneDrawSurf;
 #ifdef USE_PMLIGHT
@@ -277,7 +278,7 @@ void RE_AddPolyToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts
 	const fog_t		*fog;
 	vec3_t		bounds[2];
 
-	if ( !tr.registered ) {
+	if ( !tr.registered || !verts || numVerts <= 0 || numPolys <= 0 ) {
 		return;
 	}
 #if 0
@@ -287,7 +288,7 @@ void RE_AddPolyToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts
 	}
 #endif
 	for ( j = 0; j < numPolys; j++ ) {
-		if ( r_numpolyverts + numVerts > max_polyverts || r_numpolys >= max_polys ) {
+		if ( r_numpolyverts > max_polyverts || numVerts > max_polyverts - r_numpolyverts || r_numpolys >= max_polys ) {
       /*
       NOTE TTimo this was initially a PRINT_WARNING
       but it happens a lot with high fighting scenes and particles
@@ -521,7 +522,7 @@ static void RE_AddDynamicLightToSceneWithShadowEligibility( const vec3_t org,
 #endif
 #ifdef USE_PMLIGHT
 #ifdef USE_LEGACY_DLIGHTS
-	if ( r_dlightMode->integer )
+	if ( R_GetDlightMode() )
 #endif
 	{
 		r *= r_dlightIntensity->value;
@@ -536,6 +537,8 @@ static void RE_AddDynamicLightToSceneWithShadowEligibility( const vec3_t org,
 	R_ApplyDlightColorControls( &r, &g, &b );
 
 	dl = &backEndData->dlights[r_numdlights++];
+	dl->rtcwShader = NULL;
+	dl->rtcwOverdraw = 0;
 	VectorCopy( org, dl->origin );
 	dl->radius = intensity;
 	dl->color[0] = r;
@@ -591,7 +594,7 @@ void RE_AddLinearLightToScene( const vec3_t start, const vec3_t end, float inten
 	}
 #ifdef USE_PMLIGHT
 #ifdef USE_LEGACY_DLIGHTS
-	if ( r_dlightMode->integer )
+	if ( R_GetDlightMode() )
 #endif
 	{
 		r *= r_dlightIntensity->value;
@@ -604,6 +607,8 @@ void RE_AddLinearLightToScene( const vec3_t start, const vec3_t end, float inten
 	R_ApplyDlightColorControls( &r, &g, &b );
 
 	dl = &backEndData->dlights[ r_numdlights++ ];
+	dl->rtcwShader = NULL;
+	dl->rtcwOverdraw = 0;
 	VectorCopy( start, dl->origin );
 	VectorCopy( end, dl->origin2 );
 	dl->radius = intensity;
@@ -1237,6 +1242,8 @@ RE_AddLightToScene
 
 =====================
 */
+#include "../renderercommon/tr_rtcw_light_scene.h"
+
 void RE_AddLightToScene( const vec3_t org, float intensity, float r, float g, float b ) {
 	vec3_t adjustedOrigin;
 	qboolean muzzleFlash = R_PrepareMuzzleFlashLight( org, adjustedOrigin );
@@ -1323,6 +1330,8 @@ void RE_RenderScene( const refdef_t *fd ) {
 
 	tr.refdef.time = fd->time;
 	tr.refdef.rdflags = fd->rdflags;
+	tr.refdef.rtcw = fd->rtcw;
+	R_CopyRTCWFogToScene( fd );
 
 	// copy the areamask data over and note if it has changed, which
 	// will force a reset of the visible leafs even if the view hasn't moved
@@ -1344,8 +1353,10 @@ void RE_RenderScene( const refdef_t *fd ) {
 		}
 	}
 
-	R_AddStaticMapLightsToScene( fd );
-	R_AddSurfaceLightProxiesToScene( fd );
+	if ( !R_UsesRTCWLighting() ) {
+		R_AddStaticMapLightsToScene( fd );
+		R_AddSurfaceLightProxiesToScene( fd );
+	}
 	R_SelectSurfaceLightProxiesForRt( fd );
 
 	// derived info
@@ -1373,7 +1384,7 @@ void RE_RenderScene( const refdef_t *fd ) {
 
 	// turn off dynamic lighting globally by clearing all the
 	// dlights if it needs to be disabled
-	if ( r_dynamiclight->integer == 0 || glConfig.hardwareType == GLHW_PERMEDIA2 ) {
+	if ( ( !R_UsesRTCWLighting() && r_dynamiclight->integer == 0 ) || glConfig.hardwareType == GLHW_PERMEDIA2 ) {
 		tr.refdef.num_dlights = 0;
 	}
 

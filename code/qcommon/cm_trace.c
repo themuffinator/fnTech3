@@ -1293,19 +1293,19 @@ static void CM_Trace( trace_t *results, const vec3_t start, const vec3_t end, co
 	if (start[0] == end[0] && start[1] == end[1] && start[2] == end[2]) {
 		if ( model ) {
 #ifdef ALWAYS_BBOX_VS_BBOX // FIXME - compile time flag?
-			if ( model == BOX_MODEL_HANDLE || model == CAPSULE_MODEL_HANDLE) {
+			if ( CM_IsTemporaryModelHandle( model ) ) {
 				tw.sphere.use = qfalse;
 				CM_TestInLeaf( &tw, &cmod->leaf );
 			}
 			else
 #elif defined(ALWAYS_CAPSULE_VS_CAPSULE)
-			if ( model == BOX_MODEL_HANDLE || model == CAPSULE_MODEL_HANDLE) {
+			if ( CM_IsTemporaryModelHandle( model ) ) {
 				planeSource = CM_TRACE_PLANE_ANALYTIC;
 				CM_TestCapsuleInCapsule( &tw, model );
 			}
 			else
 #endif
-			if ( model == CAPSULE_MODEL_HANDLE ) {
+			if ( model == CM_TemporaryModelHandle( qtrue ) ) {
 				if ( tw.sphere.use ) {
 					planeSource = CM_TRACE_PLANE_ANALYTIC;
 					CM_TestCapsuleInCapsule( &tw, model );
@@ -1339,19 +1339,19 @@ static void CM_Trace( trace_t *results, const vec3_t start, const vec3_t end, co
 		//
 		if ( model ) {
 #ifdef ALWAYS_BBOX_VS_BBOX
-			if ( model == BOX_MODEL_HANDLE || model == CAPSULE_MODEL_HANDLE) {
+			if ( CM_IsTemporaryModelHandle( model ) ) {
 				tw.sphere.use = qfalse;
 				CM_TraceThroughLeaf( &tw, &cmod->leaf );
 			}
 			else
 #elif defined(ALWAYS_CAPSULE_VS_CAPSULE)
-			if ( model == BOX_MODEL_HANDLE || model == CAPSULE_MODEL_HANDLE) {
+			if ( CM_IsTemporaryModelHandle( model ) ) {
 				planeSource = CM_TRACE_PLANE_ANALYTIC;
 				CM_TraceCapsuleThroughCapsule( &tw, model );
 			}
 			else
 #endif
-			if ( model == CAPSULE_MODEL_HANDLE ) {
+			if ( model == CM_TemporaryModelHandle( qtrue ) ) {
 				if ( tw.sphere.use ) {
 					planeSource = CM_TRACE_PLANE_ANALYTIC;
 					CM_TraceCapsuleThroughCapsule( &tw, model );
@@ -1446,7 +1446,7 @@ void CM_TransformedBoxTrace( trace_t *results, const vec3_t start, const vec3_t 
 	VectorSubtract( end_l, origin, end_l );
 
 	// rotate start and end into the models frame of reference
-	if ( model != BOX_MODEL_HANDLE &&
+	if ( model != CM_TemporaryModelHandle( qfalse ) &&
 		(angles[0] || angles[1] || angles[2]) ) {
 		rotated = qtrue;
 	} else {

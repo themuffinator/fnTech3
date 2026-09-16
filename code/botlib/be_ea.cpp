@@ -37,11 +37,31 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "botlib.h"
 #include "be_interface.h"
 #include "be_ea.h"
+#include "../qcommon/game_profile.h"
+#include <cstring>
 
 static constexpr int MAX_USERMOVE = 400;
 [[maybe_unused]] static constexpr int MAX_COMMANDARGUMENTS = 10;
 
 static bot_input_t *botinputs;
+static unsigned rtcwActionExtras[MAX_GAME_CLIENTS];
+
+bool EA_ClientInputAvailable(int client) {
+	return botinputs && client >= 0 && client < botlibglobals.maxclients;
+}
+
+unsigned EA_RTCWExtraInputFlags(int client) {
+	return rtcwActionExtras[client];
+}
+
+void EA_RestoreRTCWInput(int client, const bot_input_t *input, unsigned extraFlags) {
+	if (input) {
+		botinputs[client] = *input;
+		rtcwActionExtras[client] = extraFlags;
+	} else {
+		EA_ResetInput(client);
+	}
+}
 
 //===========================================================================
 //
@@ -219,7 +239,7 @@ void EA_Jump(int client)
 
 	bi = &botinputs[client];
 
-	if (bi->actionflags & ACTION_JUMPEDLASTFRAME)
+	if (bi->actionflags & (Com_GameIsRTCW() ? ACTION_MOVELEFT : ACTION_JUMPEDLASTFRAME))
 	{
 		bi->actionflags &= ~ACTION_JUMP;
 	} //end if
@@ -240,7 +260,7 @@ void EA_DelayedJump(int client)
 
 	bi = &botinputs[client];
 
-	if (bi->actionflags & ACTION_JUMPEDLASTFRAME)
+	if (bi->actionflags & (Com_GameIsRTCW() ? ACTION_MOVELEFT : ACTION_JUMPEDLASTFRAME))
 	{
 		bi->actionflags &= ~ACTION_DELAYEDJUMP;
 	} //end if
@@ -303,7 +323,7 @@ void EA_MoveUp(int client)
 
 	bi = &botinputs[client];
 
-	bi->actionflags |= ACTION_MOVEUP;
+	bi->actionflags |= Com_GameIsRTCW() ? ACTION_JUMP : ACTION_MOVEUP;
 } //end of the function EA_MoveUp
 //===========================================================================
 //
@@ -317,7 +337,7 @@ void EA_MoveDown(int client)
 
 	bi = &botinputs[client];
 
-	bi->actionflags |= ACTION_MOVEDOWN;
+	bi->actionflags |= Com_GameIsRTCW() ? ACTION_CROUCH : ACTION_MOVEDOWN;
 } //end of the function EA_MoveDown
 //===========================================================================
 //
@@ -448,7 +468,12 @@ void EA_ResetInput(int client)
 	bi->speed = 0;
 	jumped = bi->actionflags & ACTION_JUMP;
 	bi->actionflags = 0;
-	if (jumped) bi->actionflags |= ACTION_JUMPEDLASTFRAME;
+	if (Com_GameIsRTCW()) {
+		// RTCW's previous-jump marker aliases MOVELEFT (external bit 128).
+		// Keep that observable rule within RTCW; Quake has a separate bit.
+		if (jumped) bi->actionflags |= ACTION_MOVELEFT;
+		rtcwActionExtras[client] = 0;
+	} else if (jumped) bi->actionflags |= ACTION_JUMPEDLASTFRAME;
 } //end of the function EA_ResetInput
 //===========================================================================
 //
@@ -460,6 +485,7 @@ int EA_Setup(void)
 {
 	//initialize the bot inputs
 	botinputs = botlib::ClearedHunkAlloc<bot_input_t>(botlibglobals.maxclients);
+	std::memset(rtcwActionExtras, 0, sizeof(rtcwActionExtras));
 	return BLERR_NOERROR;
 } //end of the function EA_Setup
 //===========================================================================
@@ -470,6 +496,7 @@ int EA_Setup(void)
 //===========================================================================
 void EA_Shutdown(void)
 {
-	FreeMemory(botinputs);
+	if (botinputs) FreeMemory(botinputs);
 	botinputs = nullptr;
+	std::memset(rtcwActionExtras, 0, sizeof(rtcwActionExtras));
 } //end of the function EA_Shutdown

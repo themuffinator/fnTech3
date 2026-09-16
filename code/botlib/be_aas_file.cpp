@@ -30,6 +30,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *****************************************************************************/
 
 #include "../qcommon/q_shared.h"
+#include "../qcommon/game_profile.h"
 #include "l_memory.h"
 #include "l_script.h"
 #include "l_precomp.h"
@@ -182,6 +183,13 @@ static void AAS_SwapAASData(void)
 //===========================================================================
 void AAS_DumpAASData(void)
 {
+	if (aasworld.rtcwLoadFile) botimport.FS_FCloseFile(aasworld.rtcwLoadFile);
+	aasworld.rtcwLoadFile = 0;
+	if (aasworld.rtcwLoadBytes) FreeMemory(aasworld.rtcwLoadBytes);
+	aasworld.rtcwLoadBytes = nullptr;
+	if (aasworld.rtcwGroundSteepness) FreeMemory(aasworld.rtcwGroundSteepness);
+	aasworld.rtcwGroundSteepness = nullptr;
+	std::memset(aasworld.rtcwNavigationCrc, 0, sizeof(aasworld.rtcwNavigationCrc));
 	aasworld.numbboxes = 0;
 	if (aasworld.bboxes) FreeMemory(aasworld.bboxes);
 	aasworld.bboxes = nullptr;
@@ -346,8 +354,11 @@ static void AAS_DData(byte *data, int size)
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
+#include "rtcw_aas_loader.hpp"
+
 int AAS_LoadAASFile(const char *filename)
 {
+	if (Com_GameIsRTCW()) return AAS_LoadRTCWAASFile(filename);
 	fileHandle_t fp;
 	aas_header_t header;
 	int offset, length, lastoffset;
@@ -537,6 +548,10 @@ static int AAS_WriteAASLumpArray(fileHandle_t fp, aas_header_t *h, int lumpnum, 
 //===========================================================================
 qboolean AAS_WriteAASFile(const char *filename)
 {
+	if (Com_GameIsRTCW()) {
+		botimport.Print(PRT_ERROR, "Writing RTCW AAS8 files is not implemented\n");
+		return qfalse;
+	}
 	aas_header_t header = {};
 	fileHandle_t fp;
 

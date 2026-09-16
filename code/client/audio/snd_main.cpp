@@ -30,6 +30,7 @@ extern "C" {
 }
 
 #include "../client_cpp.h"
+#include "snd_rtcw.h"
 
 #include <cstdlib>
 
@@ -61,7 +62,19 @@ cvar_t *s_alSpatializeStereo;
 
 namespace {
 static soundInterface_t si;
+fntech3::audio::rtcw::Music rtcwMusic;
+fntech3::audio::rtcw::MasterFade rtcwMasterFade;
+struct DisabledRTCWMusicOutput {
+	bool Ready() const { return false; }
+	void Close( bool ) {}
+	int Open( const char * ) { return 0; }
+	std::int64_t Clock() const { return 0; }
+	void CurrentMusic( const char *name ) { Cvar_Set( "s_currentMusic", name ); }
+};
 }
+
+fntech3::audio::rtcw::Music &S_RTCWMusic() { return rtcwMusic; }
+fntech3::audio::rtcw::MasterFade &S_RTCWMasterFade() { return rtcwMasterFade; }
 
 /*
 =================
@@ -73,15 +86,22 @@ static bool S_ValidSoundInterface( const soundInterface_t *s )
 	if( !s->Shutdown ) return false;
 	if( !s->StartSound ) return false;
 	if( !s->StartLocalSound ) return false;
+	if( !s->StartRTCWSound ) return false;
+	if( !s->StartRTCWLocalSound ) return false;
 	if( !s->StartBackgroundTrack ) return false;
+	if( !s->StartRTCWBackgroundTrack ) return false;
+	if( !s->FadeRTCWBackgroundTrack ) return false;
+	if( !s->FadeRTCWAllSounds ) return false;
 	if( !s->StopBackgroundTrack ) return false;
 	if( !s->UpdateBackgroundTrack ) return false;
 	if( !s->RawSamples ) return false;
 	if( !s->AddVoiceSamples ) return false;
 	if( !s->StopAllSounds ) return false;
+	if( !s->ClearRTCWSounds ) return false;
 	if( !s->ClearLoopingSoundsFrame ) return false;
 	if( !s->ClearLoopingSounds ) return false;
 	if( !s->AddLoopingSound ) return false;
+	if( !s->AddRTCWLoopingSound ) return false;
 	if( !s->AddRealLoopingSound ) return false;
 	if( !s->StopLoopingSound ) return false;
 	if( !s->Respatialize ) return false;
@@ -105,6 +125,7 @@ S_StartSound
 */
 extern "C" void S_StartSound( vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx )
 {
+	if ( Com_GameIsRTCW() ) { S_StartRTCWSound(origin, entnum, entchannel, sfx, 0); return; }
 	S_StartSoundVolume( origin, entnum, entchannel, sfx, 1.0f );
 }
 
@@ -129,7 +150,18 @@ S_StartLocalSound
 */
 extern "C" void S_StartLocalSound( sfxHandle_t sfx, int channelNum )
 {
+	if ( Com_GameIsRTCW() ) { S_StartRTCWLocalSound(sfx, channelNum); return; }
 	S_StartLocalSoundVolume( sfx, channelNum, 1.0f );
+}
+
+extern "C" void S_StartRTCWSound( const vec3_t origin, int entity, int channel, sfxHandle_t handle, int flags ) {
+	if ( !Com_GameIsRTCW() ) Com_Error(ERR_DROP, "RTCW sound requested for another game profile");
+	if ( si.StartRTCWSound ) si.StartRTCWSound(origin, entity, channel, handle, flags);
+}
+
+extern "C" void S_StartRTCWLocalSound( sfxHandle_t handle, int channel ) {
+	if ( !Com_GameIsRTCW() ) Com_Error(ERR_DROP, "RTCW local sound requested for another game profile");
+	if ( si.StartRTCWLocalSound ) si.StartRTCWLocalSound(handle, channel);
 }
 
 
@@ -153,9 +185,36 @@ S_StartBackgroundTrack
 */
 extern "C" void S_StartBackgroundTrack( const char *intro, const char *loop )
 {
+	if ( Com_GameIsRTCWSP() ) {
+		S_StartRTCWBackgroundTrack( intro, loop, 0 );
+		return;
+	}
 	if( si.StartBackgroundTrack ) {
 		si.StartBackgroundTrack( intro, loop );
 	}
+}
+
+extern "C" void S_StartRTCWBackgroundTrack( const char *intro, const char *loop, int fadeTime ) {
+	if ( !Com_GameIsRTCWSP() ) Com_Error( ERR_DROP, "SP music requested for another game profile" );
+	if ( si.StartRTCWBackgroundTrack ) si.StartRTCWBackgroundTrack( intro, loop, fadeTime );
+	else {
+		DisabledRTCWMusicOutput output;
+		rtcwMusic.Start( output, intro, loop, fadeTime );
+	}
+}
+
+extern "C" void S_FadeRTCWStreamingSound( float volume, int time, int stream ) {
+	if ( !Com_GameIsRTCWSP() || !fntech3::audio::rtcw::ValidFadeVolume( volume ) )
+		Com_Error( ERR_DROP, "Invalid RTCW streaming fade" );
+	// Music is stream zero. Entity streaming imports remain gated, so there
+	// are no allocated non-music streams to fade yet.
+	if ( stream == 0 && si.FadeRTCWBackgroundTrack ) si.FadeRTCWBackgroundTrack( volume, time );
+}
+
+extern "C" void S_FadeRTCWAllSounds( float volume, int time ) {
+	if ( !Com_GameIsRTCWSP() || !fntech3::audio::rtcw::ValidFadeVolume( volume ) )
+		Com_Error( ERR_DROP, "Invalid RTCW master fade" );
+	if ( si.FadeRTCWAllSounds ) si.FadeRTCWAllSounds( volume, time );
 }
 
 
@@ -263,6 +322,19 @@ extern "C" void S_AddRealLoopingSound( int entityNum, const vec3_t origin,
 	if( si.AddRealLoopingSound ) {
 		si.AddRealLoopingSound( entityNum, origin, velocity, sfx );
 	}
+}
+
+extern "C" void S_AddRTCWLoopingSound( const vec3_t origin, const vec3_t velocity,
+	int range, sfxHandle_t sfx, int volume ) {
+	if ( !Com_GameIsRTCW() || range < 0 )
+		Com_Error( ERR_DROP, "Invalid RTCW looping sound contract" );
+	if ( si.AddRTCWLoopingSound ) si.AddRTCWLoopingSound( origin, velocity, range, sfx, volume );
+}
+
+extern "C" void S_ClearRTCWLoopingSounds( int mode ) {
+	if ( !Com_GameIsRTCWSP() ) Com_Error( ERR_DROP, "RTCW sound reset requires the SP profile" );
+	S_ClearLoopingSoundsFrame();
+	if ( si.ClearRTCWSounds && (mode == 1 || mode == 2) ) si.ClearRTCWSounds(mode == 2 ? qtrue : qfalse);
 }
 
 
@@ -607,6 +679,8 @@ extern "C" void S_Init( void )
 		return;
 	}
 	si = {};
+	rtcwMusic = {};
+	rtcwMasterFade = {};
 
 	s_volume = Cvar_Get( "s_volume", "0.8", CVAR_ARCHIVE );
 	Cvar_CheckRange( s_volume, "0", "2", CV_FLOAT );
@@ -759,6 +833,8 @@ extern "C" void S_Shutdown( void )
 
 	si = {};
 	Cvar_Set( "s_backendActive", "none" );
+	rtcwMusic = {};
+	rtcwMasterFade = {};
 
 	Cmd_RemoveCommand( "play" );
 	Cmd_RemoveCommand( "music");

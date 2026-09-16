@@ -17,6 +17,7 @@ General Public License, version 2 or (at your option) any later version.
 #include <cstring>
 #include <iostream>
 #include <limits>
+#include <type_traits>
 #include <vector>
 
 using fntech3::server::GameDataBindError;
@@ -574,6 +575,124 @@ void TestQvmOffsetsAndArrayBounds()
 		"QVM binding validation does not modify module memory" );
 }
 
+template<class Shared, class Player>
+void TestRTCWRecords( comGameId_t profile, std::int32_t maxClients )
+{
+	Storage storage( sizeof( Shared ) + 20, sizeof( Player ) + 32 );
+	ServerGameDataView view;
+	Expect( view.BindNative( profile, storage.Binding() ) == GameDataBindError::None,
+		"bind RTCW entity and player records with private tails" );
+	Shared external{};
+	external.s.number = 7;
+	external.s.pos.trType = 7;
+	external.s.pos.trBase[1] = 25;
+	external.s.events[3] = 29;
+	external.s.eventParms[3] = 153;
+	external.s.animMovetype = 13;
+	external.r.s.number = 912;
+	external.r.eventTime = 4567;
+	if constexpr ( std::is_same_v<Shared, fntech3_rtcw_mp_sharedEntity_t> ) external.worldflags = 0x76543210;
+	std::memcpy( storage.EntityBase() + storage.entityStride, &external, sizeof( external ) );
+	GameEntityRef reference;
+	Expect( view.EntityRefAt( 1, reference ), "resolve RTCW entity reference" );
+	fntech3_rtcw_entityState_t state{};
+	Expect( view.ReadEntityState( reference, state ) &&
+		std::memcmp( &state, &external.s, sizeof( state ) ) == 0, "read complete RTCW entity state" );
+	state.effect3Time = 987654;
+	auto before = storage.entities;
+	Expect( view.WriteEntityState( reference, state ), "write RTCW entity state" );
+	ExpectOnlyRangeChanged( before, storage.entities, kGuardBytes + storage.entityStride,
+		sizeof( state ), "RTCW state writes preserve r and game-private data" );
+	CheckFieldAccessors( view, reference );
+	std::memcpy( &external, storage.EntityBase() + storage.entityStride, sizeof( external ) );
+	Expect( external.r.linked == 1 && external.r.linkcount == 2 && external.r.contents == 5,
+		"RTCW shared accessors use the linked flag at offset 576" );
+	Expect( external.r.s.number == 912 && external.r.eventTime == 4567,
+		"RTCW accessor writes preserve the embedded state and event time" );
+	if constexpr ( std::is_same_v<Shared, fntech3_rtcw_mp_sharedEntity_t> )
+		Expect( external.worldflags == 0x76543210, "MP worldflags are retained" );
+	Expect( RangeIsCanary( storage.entities, kGuardBytes + storage.entityStride + sizeof( Shared ),
+		kGuardBytes + 2 * storage.entityStride ), "RTCW entity private tail stays untouched" );
+
+	Player player{};
+	player.common.commandTime = 1234;
+	player.common.ammo[63] = 4321;
+	player.common.ammoclip[63] = 17;
+	player.common.events[3] = 199;
+	player.aiState = 3;
+	if constexpr ( std::is_same_v<Player, fntech3_rtcw_sp_playerState_t> ) player.footstepCount = 1.5f;
+	else player.identifyClient = 61;
+	std::memcpy( storage.ClientBase() + storage.clientStride, &player, sizeof( player ) );
+	Player copied{};
+	Expect( view.ReadPlayerState( 1, copied ) && std::memcmp( &copied, &player, sizeof( player ) ) == 0,
+		"read complete profile-specific RTCW player state" );
+	before = storage.clients;
+	Expect( view.SetPlayerPing( 1, 73 ), "write RTCW player ping" );
+	ExpectOnlyRangeChanged( before, storage.clients,
+		kGuardBytes + storage.clientStride + offsetof( Player, common.ping ), 4,
+		"ping write preserves all other RTCW player and private bytes" );
+	std::int32_t ping = 0;
+	Expect( view.GetPlayerPing( 1, ping ) && ping == 73, "read RTCW player ping" );
+	Expect( RangeIsCanary( storage.clients, kGuardBytes + storage.clientStride + sizeof( Player ),
+		kGuardBytes + 2 * storage.clientStride ), "RTCW client private tail stays untouched" );
+	using OtherPlayer = std::conditional_t<std::is_same_v<Player, fntech3_rtcw_sp_playerState_t>,
+		fntech3_rtcw_mp_playerState_t, fntech3_rtcw_sp_playerState_t>;
+	OtherPlayer wrongMode{};
+	wrongMode.common.commandTime = 919;
+	Expect( !view.ReadPlayerState( 1, wrongMode ) && wrongMode.common.commandTime == 919,
+		"SP and MP player read overloads reject the other mode without writing" );
+	entityState_t canonical{};
+	playerState_t canonicalPlayer{};
+	Expect( view.ReadEntityState( reference, canonical ) && canonical.rtcw.effect3Time == 987654 &&
+		canonical.rtcw.animMovetype == 13 && canonical.health == 0,
+		"RTCW entities use the complete canonical adapter" );
+	canonical.number = 929;
+	canonical.rtcw.events[3] = 241;
+	before = storage.entities;
+	Expect( view.WriteEntityState( reference, canonical ) && view.ReadEntityState( reference, state ) &&
+		state.number == 929 && state.events[3] == 241 && state.effect3Time == 987654,
+		"RTCW canonical writes preserve all event slots and extended fields" );
+	ExpectOnlyRangeChanged( before, storage.entities, kGuardBytes + storage.entityStride,
+		sizeof( state ), "canonical writes preserve shared and private RTCW data" );
+	before = storage.entities;
+	canonical.pos.trType = TR_QL_ACCEL;
+	Expect( !view.WriteEntityState( reference, canonical ) && storage.entities == before,
+		"RTCW write rejects a foreign trajectory without touching module state" );
+	Expect( view.ReadPlayerState( 1, canonicalPlayer ) && canonicalPlayer.commandTime == 1234 &&
+		canonicalPlayer.rtcw.ammo[47] == 4321 && canonicalPlayer.rtcw.ammoclip[63] == 17 &&
+		canonicalPlayer.rtcw.events[1] == 199 && canonicalPlayer.rtcw.aiState == 3,
+		"RTCW canonical player preserves high weapon slots and all four events" );
+	Expect( !view.ReadPlayerState( -1, copied ) && !view.ReadPlayerState( 2, copied ),
+		"RTCW player access checks both array bounds" );
+	ExpectGuardsIntact( storage, "RTCW state access preserves record-array guards" );
+	const auto unchangedEntities = storage.entities;
+	const auto unchangedClients = storage.clients;
+	view.Invalidate();
+	Expect( !view.ReadEntityState( reference, state ) && !view.WriteEntityState( reference, state ) &&
+		!view.ReadPlayerState( 0, copied ), "RTCW references expire on shutdown" );
+	Expect( storage.entities == unchangedEntities && storage.clients == unchangedClients,
+		"expired RTCW views do not touch module records" );
+
+	Storage full( sizeof( Shared ), sizeof( Player ), 1, maxClients );
+	Expect( view.BindNative( profile, full.Binding() ) == GameDataBindError::None,
+		"bind the mode's complete client capacity" );
+	Expect( view.ClientPointer( maxClients - 1 ) != nullptr && view.ClientPointer( maxClients ) == nullptr,
+		"last RTCW client index obeys the mode's limit" );
+	auto invalid = full.Binding();
+	invalid.clientCount = maxClients + 1;
+	Expect( view.BindNative( profile, invalid ) == GameDataBindError::InvalidClientCount,
+		"reject counts beyond the SP/MP maximum" );
+	invalid = full.Binding();
+	invalid.entityStride = sizeof( Shared ) - 4;
+	Expect( view.BindNative( profile, invalid ) == GameDataBindError::EntityStrideTooSmall,
+		"reject a short RTCW shared-entity prefix" );
+	invalid = full.Binding();
+	invalid.clientStride = sizeof( Player ) - 4;
+	Expect( view.BindNative( profile, invalid ) == GameDataBindError::ClientStrideTooSmall,
+		"reject a short RTCW player record" );
+	ExpectGuardsIntact( full, "invalid RTCW bindings preserve module memory" );
+}
+
 } // namespace
 
 int main()
@@ -596,6 +715,8 @@ int main()
 	TestPointerConversionsAndGenerations();
 	TestBindingValidation();
 	TestQvmOffsetsAndArrayBounds();
+	TestRTCWRecords<fntech3_rtcw_sp_sharedEntity_t, fntech3_rtcw_sp_playerState_t>( COM_GAME_RTCW_SP, 128 );
+	TestRTCWRecords<fntech3_rtcw_mp_sharedEntity_t, fntech3_rtcw_mp_playerState_t>( COM_GAME_RTCW_MP, 64 );
 
 	if ( failures != 0 ) {
 		std::cerr << failures << " server game-data checks failed\n";

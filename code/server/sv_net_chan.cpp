@@ -79,7 +79,7 @@ static void SV_Netchan_Decode( client_t *client, msg_t *msg ) {
 	msg->bit = sbit;
 	msg->readcount = srdc;
 
-	command = client->reliableCommands[ reliableAcknowledge & ( MAX_RELIABLE_COMMANDS - 1 ) ];
+	command = client->reliableCommands[ reliableAcknowledge & ( SV_ReliableCommandLimit( client ) - 1 ) ];
 	key = client->challenge ^ serverId ^ messageAcknowledge;
 	fnql::ApplyNetchanXor( msg->data, static_cast<std::size_t>( msg->cursize ),
 		static_cast<std::size_t>( msg->readcount + SV_DECODE_START ), key,

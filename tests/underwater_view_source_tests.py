@@ -158,7 +158,7 @@ class UnderwaterViewFeedTests(unittest.TestCase):
 
     def test_ref_api_version_was_bumped_for_the_new_export(self) -> None:
         public = read("code/renderercommon/tr_public.h")
-        self.assertIn("#define	REF_API_VERSION		14", public)
+        self.assertIn("#define	REF_API_VERSION		23", public)
 
     def test_client_samples_the_eye_and_skips_non_world_scenes(self) -> None:
         client = read("code/client/cl_cgame.cpp")

@@ -15,6 +15,13 @@ static_assert( Netchan_SelectWireProfile( 68, 1 ) == NETCHAN_WIRE_LEGACY_Q3 );
 static_assert( Netchan_SelectWireProfile( 68, 0 ) == NETCHAN_WIRE_LEGACY_Q3 );
 static_assert( Netchan_SelectWireProfile( 71, 0 ) == NETCHAN_WIRE_IOQ3 );
 static_assert( Netchan_SelectWireProfile( 71, 1 ) == NETCHAN_WIRE_LEGACY_Q3 );
+static_assert( Netchan_SelectWireProfile( 49, 0 ) == NETCHAN_WIRE_RTCW_SP );
+static_assert( Netchan_SelectWireProfile( 49, 1 ) == NETCHAN_WIRE_RTCW_SP );
+static_assert( Netchan_SelectWireProfile( 60, 0 ) == NETCHAN_WIRE_RTCW_MP );
+static_assert( Netchan_SelectWireProfile( 60, 1 ) == NETCHAN_WIRE_RTCW_MP );
+static_assert( Netchan_WireFeatures( NETCHAN_WIRE_RTCW_SP ) == NETCHAN_FEATURE_CLIENT_QPORT );
+static_assert( Netchan_WireFeatures( NETCHAN_WIRE_RTCW_MP ) ==
+	( NETCHAN_FEATURE_CLIENT_QPORT | NETCHAN_FEATURE_RELIABLE_XOR ) );
 static_assert( Netchan_SelectWireProfile( NETCHAN_QL_RETAIL_PROTOCOL_VERSION, 0 ) ==
 	NETCHAN_WIRE_QL_RETAIL );
 static_assert( Netchan_SelectWireProfile( NETCHAN_QL_RETAIL_PROTOCOL_VERSION, 1 ) ==
@@ -42,5 +49,13 @@ static_assert( Netchan_WireHasFeature( NETCHAN_WIRE_QL_RETAIL,
 	NETCHAN_FEATURE_RELIABLE_XOR ) );
 
 int main() {
+	static_assert( Netchan_MessageLimit( NETCHAN_WIRE_LEGACY_Q3 ) == 16384 );
+	static_assert( Netchan_MessageLimit( NETCHAN_WIRE_IOQ3 ) == 16384 );
+	static_assert( Netchan_MessageLimit( NETCHAN_WIRE_QL_RETAIL ) == 16384 );
+	static_assert( Netchan_MessageLimit( NETCHAN_WIRE_RTCW_SP ) == 32768 );
+	static_assert( Netchan_MessageLimit( NETCHAN_WIRE_RTCW_MP ) == 32768 );
+	static_assert( Netchan_ReliableCommandLimit( NETCHAN_WIRE_LEGACY_Q3 ) == 64 );
+	static_assert( Netchan_ReliableCommandLimit( NETCHAN_WIRE_RTCW_MP ) == 256 );
+	static_assert( Netchan_ReliableCommandLimit( static_cast<netchanWireProfile_t>( 99 ) ) == 0 );
 	return 0;
 }

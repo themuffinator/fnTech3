@@ -31,7 +31,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #ifdef AASINTERN
 
-extern aas_t aasworld;
+// Stable storage: selecting another world never moves its arrays or links.
+extern aas_t *aas_currentWorld;
+#define aasworld (*aas_currentWorld)
+
+// RTCW's two navigation graphs describe one shared set of physical entities.
+aas_t &AAS_EntityWorld();
 
 //AAS error message
 void QDECL AAS_Error(const char *fmt, ...) __attribute__ ((format (printf, 1, 2)));

@@ -1456,6 +1456,9 @@ static void RB_SurfaceSkip( void *surf ) {
 }
 
 
+#include "../renderercommon/tr_mdc_surface.h"
+#include "../renderercommon/tr_mds_surface.h"
+
 void (*rb_surfaceTable[SF_NUM_SURFACE_TYPES])( void *) = {
 	(void(*)(void*))RB_SurfaceBad,			// SF_BAD, 
 	(void(*)(void*))RB_SurfaceSkip,			// SF_SKIP, 
@@ -1467,5 +1470,7 @@ void (*rb_surfaceTable[SF_NUM_SURFACE_TYPES])( void *) = {
 	(void(*)(void*))RB_MDRSurfaceAnim,		// SF_MDR,
 	(void(*)(void*))RB_IQMSurfaceAnim,		// SF_IQM,
 	(void(*)(void*))RB_SurfaceFlare,		// SF_FLARE,
-	(void(*)(void*))RB_SurfaceEntity		// SF_ENTITY
+	(void(*)(void*))RB_SurfaceEntity,		// SF_ENTITY
+	(void(*)(void*))RB_SurfaceMDC,			// SF_MDC
+	(void(*)(void*))RB_SurfaceMDS			// SF_MDS
 };

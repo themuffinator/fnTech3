@@ -23,9 +23,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "server.h"
 #include "sv_collision_model.hpp"
+#include "server_world_bounds.hpp"
 
 #include <algorithm>
 #include <array>
+#include <limits>
 
 /*
 ================
@@ -244,11 +246,14 @@ void SV_LinkEntity( sharedEntity_t *gEnt ) {
 
 	ent = SV_SvEntityForGentity( gEnt );
 
-	if ( ent->worldSector ) {
-		SV_UnlinkEntity( gEnt );	// unlink from old position
-	}
 	if ( !SV_ReadGameEntity( gEnt, &entity ) ) {
 		Com_Error( ERR_DROP, "%s: bad gEnt", __func__ );
+		return;
+	}
+	if ( !SV_ValidWorldBounds( entity.r.mins, entity.r.maxs )
+		|| !SV_FiniteWorldVector( entity.r.currentOrigin )
+		|| !SV_FiniteWorldVector( entity.r.currentAngles ) ) {
+		Com_Error( ERR_DROP, "%s: invalid entity bounds", __func__ );
 		return;
 	}
 
@@ -257,11 +262,11 @@ void SV_LinkEntity( sharedEntity_t *gEnt ) {
 		entity.s.solid = SOLID_BMODEL;		// a solid_box will never create this value
 	} else if ( entity.r.contents & ( CONTENTS_SOLID | CONTENTS_BODY ) ) {
 		// assume that x/y are equal and symmetric
-		i = std::clamp( static_cast<int>( entity.r.maxs[0] ), 1, 255 );
+		i = static_cast<int>( std::clamp( entity.r.maxs[0], 1.0f, 255.0f ) );
 		// z is not symmetric
-		j = std::clamp( static_cast<int>( -entity.r.mins[2] ), 1, 255 );
+		j = static_cast<int>( std::clamp( -entity.r.mins[2], 1.0f, 255.0f ) );
 		// and z maxs can be negative...
-		k = std::clamp( static_cast<int>( entity.r.maxs[2] + 32 ), 1, 255 );
+		k = static_cast<int>( std::clamp( entity.r.maxs[2] + 32, 1.0f, 255.0f ) );
 
 		entity.s.solid = (k<<16) | (j<<8) | i;
 	} else {
@@ -296,6 +301,13 @@ void SV_LinkEntity( sharedEntity_t *gEnt ) {
 	entity.r.absmax[0] += 1;
 	entity.r.absmax[1] += 1;
 	entity.r.absmax[2] += 1;
+	if ( !SV_ValidWorldBounds( entity.r.absmin, entity.r.absmax ) ) {
+		Com_Error( ERR_DROP, "%s: entity bounds overflow", __func__ );
+		return;
+	}
+	// Validate the new position before removing the previous world linkage.
+	if ( ent->worldSector ) SV_UnlinkEntity( gEnt );
+	entity.r.linked = qfalse;
 
 	// link to PVS leafs
 	ent->numClusters = 0;
@@ -352,7 +364,8 @@ void SV_LinkEntity( sharedEntity_t *gEnt ) {
 		ent->lastCluster = CM_LeafCluster( lastLeaf );
 	}
 
-	entity.r.linkcount++;
+	entity.r.linkcount = entity.r.linkcount == ( std::numeric_limits<int>::max )()
+		? ( std::numeric_limits<int>::min )() : entity.r.linkcount + 1;
 
 	// find the first world sector node that the ent's box crosses
 	node = sv_worldSectors.data();

@@ -352,6 +352,10 @@ FILE *Sys_FOpen( const char *ospath, const char *mode )
 	return fopen( ospath, mode );
 }
 
+int Sys_Remove( const char *ospath ) {
+	return remove( ospath );
+}
+
 
 /*
 ==============
@@ -497,7 +501,7 @@ static qboolean Sys_TrySteamRootUnderHome( const comGameProfile_t *profile, cons
 
 const char *Sys_SteamPath( comGameId_t game )
 {
-	static char steamPaths[2][MAX_OSPATH];
+	static char steamPaths[COM_GAME_COUNT][MAX_OSPATH];
 	const comGameProfile_t *profile = Com_GameProfileById( game );
 	char *steamPath;
 	const char *home;
@@ -509,7 +513,7 @@ const char *Sys_SteamPath( comGameId_t game )
 	if ( !profile ) {
 		return "";
 	}
-	steamPath = steamPaths[game == COM_GAME_QUAKE3 ? 0 : 1];
+	steamPath = steamPaths[profile->id];
 
 	if ( steamPath[0] ) {
 		return steamPath;

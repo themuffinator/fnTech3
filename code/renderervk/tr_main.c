@@ -2288,7 +2288,7 @@ static void R_PlanDlightShadows( void )
 	Com_Memset( selected, 0, sizeof( selected ) );
 
 	if ( ( !correctnessMode && ( !r_dlightShadows || !r_dlightShadows->integer ) ) ||
-		!r_dlightMode || !r_dlightMode->integer ||
+		!r_dlightMode || !R_GetDlightMode() ||
 		( tr.refdef.rdflags & RDF_NOWORLDMODEL ) ) {
 		tr.pc.c_dlightShadowSkippedDisabled += tr.viewParms.num_dlights;
 		return;
@@ -2650,7 +2650,7 @@ static void R_SortDrawSurfs( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 
 #ifdef USE_PMLIGHT
 #ifdef USE_LEGACY_DLIGHTS
-	if ( r_dlightMode->integer ) 
+	if ( R_GetDlightMode() )
 #endif
 	{
 		dlight_t *dl;
@@ -2730,6 +2730,8 @@ static void R_AddEntitySurfaces( void ) {
 				R_AddDrawSurf( &entitySurface, tr.defaultShader, 0, 0 );
 			} else {
 				switch ( tr.currentModel->type ) {
+				case MOD_MDS:
+				case MOD_MDC:
 				case MOD_MESH:
 					R_AddMD3Surfaces( ent, NULL );
 					break;

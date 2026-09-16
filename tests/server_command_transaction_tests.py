@@ -26,6 +26,7 @@ class ServerCommandTransactionTests(unittest.TestCase):
 #include <cstdarg>
 #include <string>
 constexpr int MAX_STRING_CHARS=1024, MAX_RELIABLE_COMMANDS=64;
+int CL_ReliableCommandLimit(){return MAX_RELIABLE_COMMANDS;}
 constexpr int NETCHAN_WIRE_QL_RETAIL=1, ERR_DROP=1, EM_COMMAND=4;
 constexpr int CA_CONNECTED=1, CA_PRIMED=2, FS_INVALID_HANDLE=0;
 constexpr bool qfalse=false,qtrue=true;

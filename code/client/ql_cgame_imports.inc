@@ -458,7 +458,7 @@ static void QDECL QL_CG_trap_R_ClearScene( void ) {
 QL_CG_trap_R_AddRefEntityToScene
 ==============
 */
-static void QDECL QL_CG_trap_R_AddRefEntityToScene( const refEntity_t *entity ) {
+static void QDECL QL_CG_trap_R_AddRefEntityToScene( const fntech3_ql_refEntity_t *entity ) {
 	CG_Import_Syscall( CG_R_ADDREFENTITYTOSCENE, entity );
 }
 
@@ -512,8 +512,8 @@ static void QDECL QL_CG_trap_R_AddAdditiveLightToScene( const vec3_t org, float 
 QL_CG_trap_R_RenderScene
 ==============
 */
-static void QDECL QL_CG_trap_R_RenderScene( const refdef_t *fd ) {
-	refdef_t scaledRefdef;
+static void QDECL QL_CG_trap_R_RenderScene( const fntech3_ql_refdef_t *fd ) {
+	fntech3_ql_refdef_t scaledRefdef;
 
 	if ( !fd ) {
 		CG_Import_Syscall( CG_R_RENDERSCENE, fd );

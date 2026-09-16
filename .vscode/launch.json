@@ -4,21 +4,41 @@
 
 
     {
-      "name": "GLx (Steam / Retail QL / Win32)",
+      "name": "Q3 OpenGL (GLx / Win32)",
       "type": "cppvsdbg",
       "request": "launch",
       "program": "${workspaceFolder}\\meson\\build\\win32\\fntech3.exe",
-      "args": ["+set", "r_fullscreen", "0", "+set", "cl_renderer", "glx", "+set", "com_steamIntegration", "1", "+set", "cl_webuiEnable", "1"],
+      "args": ["+set", "com_gameProfile", "q3", "+set", "fs_basepath", "${input:q3InstallPath}", "+set", "fs_homepath", "${workspaceFolder}\\.tmp\\vscode\\q3", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "glx", "+set", "com_steamIntegration", "0"],
       "cwd": "${workspaceFolder}\\meson\\build\\win32",
       "stopAtEntry": false,
       "console": "internalConsole"
     },
     {
-      "name": "Vulkan (Steam / Retail QL / Win32)",
+      "name": "Q3 Vulkan (VK / Win32)",
       "type": "cppvsdbg",
       "request": "launch",
       "program": "${workspaceFolder}\\meson\\build\\win32\\fntech3.exe",
-      "args": ["+set", "r_fullscreen", "0", "+set", "cl_renderer", "vk", "+set", "com_steamIntegration", "1", "+set", "cl_webuiEnable", "1"],
+      "args": ["+set", "com_gameProfile", "q3", "+set", "fs_basepath", "${input:q3InstallPath}", "+set", "fs_homepath", "${workspaceFolder}\\.tmp\\vscode\\q3", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "vk", "+set", "com_steamIntegration", "0"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32",
+      "stopAtEntry": false,
+      "console": "internalConsole"
+    },
+    {
+      "name": "QL OpenGL (GLx / Steam / Retail / Win32)",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "ql", "+set", "fs_basepath", "${input:qlInstallPath}", "+set", "fs_homepath", "${workspaceFolder}\\.tmp\\vscode\\ql", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "glx", "+set", "com_steamIntegration", "1", "+set", "cl_webuiEnable", "1"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32",
+      "stopAtEntry": false,
+      "console": "internalConsole"
+    },
+    {
+      "name": "QL Vulkan (VK / Steam / Retail / Win32)",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "ql", "+set", "fs_basepath", "${input:qlInstallPath}", "+set", "fs_homepath", "${workspaceFolder}\\.tmp\\vscode\\ql", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "vk", "+set", "com_steamIntegration", "1", "+set", "cl_webuiEnable", "1"],
       "cwd": "${workspaceFolder}\\meson\\build\\win32",
       "stopAtEntry": false,
       "console": "internalConsole"
@@ -42,6 +62,20 @@
       "cwd": "${workspaceFolder}\\meson\\build\\win32",
       "stopAtEntry": false,
       "console": "internalConsole"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "q3InstallPath",
+      "type": "promptString",
+      "description": "Quake III Arena installation folder containing baseq3 (without quotes)",
+      "default": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena"
+    },
+    {
+      "id": "qlInstallPath",
+      "type": "promptString",
+      "description": "Quake Live installation folder containing baseq3 (without quotes)",
+      "default": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live"
     }
   ]
 }

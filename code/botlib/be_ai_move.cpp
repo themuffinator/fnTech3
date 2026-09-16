@@ -32,6 +32,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <algorithm>
 
 #include "../qcommon/q_shared.h"
+#include "../qcommon/game_profile.h"
 #include "l_memory.h"
 #include "l_libvar.h"
 #include "l_utils.h"
@@ -116,7 +117,7 @@ static libvar_t *cmd_grappleon;
 //type of model, func_plat or func_bobbing
 static int modeltypes[MAX_MODELS];
 
-static bot_movestate_t *botmovestates[MAX_CLIENTS+1];
+static bot_movestate_t *botmovestates[MAX_GAME_CLIENTS+1];
 
 //========================================================================
 //
@@ -128,7 +129,7 @@ int BotAllocMoveState(void)
 {
 	int i;
 
-	for (i = 1; i <= MAX_CLIENTS; i++)
+	for (i = 1; i <= Com_GameProfile()->maxClients; i++)
 	{
 		if (!botmovestates[i])
 		{
@@ -146,7 +147,7 @@ int BotAllocMoveState(void)
 //========================================================================
 void BotFreeMoveState(int handle)
 {
-	if (handle <= 0 || handle > MAX_CLIENTS)
+	if (handle <= 0 || handle > Com_GameProfile()->maxClients)
 	{
 		botimport.Print(PRT_FATAL, "move state handle %d out of range\n", handle);
 		return;
@@ -167,7 +168,7 @@ void BotFreeMoveState(int handle)
 //========================================================================
 static bot_movestate_t *BotMoveStateFromHandle(int handle)
 {
-	if (handle <= 0 || handle > MAX_CLIENTS)
+	if (handle <= 0 || handle > Com_GameProfile()->maxClients)
 	{
 		botimport.Print(PRT_FATAL, "move state handle %d out of range\n", handle);
 		return nullptr;
@@ -208,8 +209,10 @@ void BotInitMoveState(int handle, bot_initmove_t *initmove)
 	if (initmove->or_moveflags & MFL_WATERJUMP) ms->moveflags |= MFL_WATERJUMP;
 	ms->moveflags &= ~MFL_WALK;
 	if (initmove->or_moveflags & MFL_WALK) ms->moveflags |= MFL_WALK;
-	ms->moveflags &= ~MFL_GRAPPLEPULL;
-	if (initmove->or_moveflags & MFL_GRAPPLEPULL) ms->moveflags |= MFL_GRAPPLEPULL;
+	if (!Com_GameIsRTCW()) {
+		ms->moveflags &= ~MFL_GRAPPLEPULL;
+		if (initmove->or_moveflags & MFL_GRAPPLEPULL) ms->moveflags |= MFL_GRAPPLEPULL;
+	}
 } //end of the function BotInitMoveState
 //========================================================================
 //
@@ -3488,15 +3491,30 @@ void BotMoveToGoal(bot_moveresult_t *result, int movestate, bot_goal_t *goal, in
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
+static void BotClearAvoidReach(bot_movestate_t *ms)
+{
+	std::fill_n(ms->avoidreach, MAX_AVOIDREACH, 0);
+	std::fill_n(ms->avoidreachtimes, MAX_AVOIDREACH, 0.0f);
+	std::fill_n(ms->avoidreachtries, MAX_AVOIDREACH, 0);
+}
+
+void BotInitAvoidReach(int movestate)
+{
+	bot_movestate_t *ms = BotMoveStateFromHandle(movestate);
+	if (ms) BotClearAvoidReach(ms);
+}
+
 void BotResetAvoidReach(int movestate)
 {
 	bot_movestate_t *ms;
 
 	ms = BotMoveStateFromHandle(movestate);
 	if (!ms) return;
-	std::fill_n(ms->avoidreach, MAX_AVOIDREACH, 0);
-	std::fill_n(ms->avoidreachtimes, MAX_AVOIDREACH, 0.0f);
-	std::fill_n(ms->avoidreachtries, MAX_AVOIDREACH, 0);
+	BotClearAvoidReach(ms);
+	// RTCW reset abandons the previous route; initialization only clears avoidance.
+	if (Com_GameIsRTCW()) {
+		ms->lastareanum = ms->lastgoalareanum = ms->lastreachnum = 0;
+	}
 } //end of the function BotResetAvoidReach
 //===========================================================================
 //
@@ -3573,7 +3591,7 @@ void BotShutdownMoveAI(void)
 {
 	int i;
 
-	for (i = 1; i <= MAX_CLIENTS; i++)
+	for (i = 1; i <= Com_GameProfile()->maxClients; i++)
 	{
 		if (botmovestates[i])
 		{

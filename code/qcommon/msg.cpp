@@ -23,6 +23,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "qcommon.h"
 #include "netchan_safety.hpp"
 #include "protocol_contract.hpp"
+#include "../compat/rtcw_message_codec.hpp"
+#include "../compat/rtcw_state_adapter.hpp"
 
 #include <algorithm>
 #include <cstddef>
@@ -91,6 +93,136 @@ qboolean MSG_CommitDeltaRead( const msg_t *msg, State *destination,
 }
 
 } // namespace
+
+static int MSG_ReadBits( msg_t *msg, int bits );
+
+namespace {
+
+class RTCWMessageWriter {
+	msg_t *msg;
+public:
+	explicit RTCWMessageWriter( msg_t *message ) : msg( message ) {}
+	bool Good() const {
+		return MSG_ValidStorage( msg ) && !msg->oob && !msg->overflowed &&
+			msg->cursize >= 0 && msg->cursize <= msg->maxsize &&
+			msg->bit >= 0 && msg->bit <= msg->maxbits;
+	}
+	bool Fail() { MSG_SetOverflow( msg ); return false; }
+	void Write( std::uint32_t value, int bits ) {
+		if ( !Good() ) { Fail(); return; }
+		int word;
+		static_assert( sizeof( word ) == sizeof( value ) );
+		std::memcpy( &word, &value, sizeof( word ) );
+		MSG_WriteBits( msg, word, bits );
+	}
+};
+
+class RTCWMessageReader {
+	msg_t *msg;
+public:
+	explicit RTCWMessageReader( msg_t *message ) : msg( message ) {}
+	bool Good() const { return MSG_ReadSucceeded( msg ) && !msg->oob; }
+	bool Fail() { MSG_SetReadPastEnd( msg ); return false; }
+	std::uint32_t Read( int bits ) {
+		if ( !Good() ) { Fail(); return 0; }
+		return static_cast<std::uint32_t>( MSG_ReadBits( msg, bits ) );
+	}
+};
+
+bool MSG_IsRTCWWireProfile( netchanWireProfile_t profile ) {
+	return profile == NETCHAN_WIRE_RTCW_SP || profile == NETCHAN_WIRE_RTCW_MP;
+}
+
+template<class External, class Internal, class Write>
+qboolean MSG_WriteRTCWCanonical( msg_t *msg, const Internal *from, const Internal *to, Write write ) {
+	External baseline{}, sent{};
+	if ( ( from && !fntech3::rtcw::state::FromInternal( *from, baseline ) ) ||
+		( to && !fntech3::rtcw::state::FromInternal( *to, sent ) ) ) {
+		MSG_SetOverflow( msg );
+		return qfalse;
+	}
+	return write( from ? &baseline : nullptr, to ? &sent : nullptr );
+}
+
+template<class External, class Internal, class Read>
+qboolean MSG_ReadRTCWCanonical( msg_t *msg, const Internal *from, Internal *to, Read read ) {
+	External baseline{}, decoded{};
+	if ( !to || ( from && !fntech3::rtcw::state::FromInternal( *from, baseline ) ) ||
+		!read( from ? &baseline : nullptr, &decoded ) ||
+		!fntech3::rtcw::state::ToInternal( decoded, *to ) ) {
+		MSG_SetReadPastEnd( msg );
+		return qfalse;
+	}
+	return qtrue;
+}
+
+} // namespace
+
+qboolean MSG_WriteDeltaRTCWSPUsercmdKey( msg_t *msg, int key,
+	const fntech3_rtcw_sp_usercmd_t *from, const fntech3_rtcw_sp_usercmd_t *to ) {
+	RTCWMessageWriter io( msg );
+	return fntech3::rtcw::message::WriteCommand( io, key, from, to ) ? qtrue : qfalse;
+}
+
+qboolean MSG_ReadDeltaRTCWSPUsercmdKey( msg_t *msg, int key,
+	const fntech3_rtcw_sp_usercmd_t *from, fntech3_rtcw_sp_usercmd_t *to ) {
+	RTCWMessageReader io( msg );
+	return fntech3::rtcw::message::ReadCommand( io, key, from, to ) ? qtrue : qfalse;
+}
+
+qboolean MSG_WriteDeltaRTCWMPUsercmdKey( msg_t *msg, int key,
+	const fntech3_rtcw_mp_usercmd_t *from, const fntech3_rtcw_mp_usercmd_t *to ) {
+	RTCWMessageWriter io( msg );
+	return fntech3::rtcw::message::WriteCommand( io, key, from, to ) ? qtrue : qfalse;
+}
+
+qboolean MSG_ReadDeltaRTCWMPUsercmdKey( msg_t *msg, int key,
+	const fntech3_rtcw_mp_usercmd_t *from, fntech3_rtcw_mp_usercmd_t *to ) {
+	RTCWMessageReader io( msg );
+	return fntech3::rtcw::message::ReadCommand( io, key, from, to ) ? qtrue : qfalse;
+}
+
+qboolean MSG_WriteDeltaRTCWSPPlayerstate( msg_t *msg,
+	const fntech3_rtcw_sp_playerState_t *from, const fntech3_rtcw_sp_playerState_t *to ) {
+	RTCWMessageWriter io( msg );
+	return fntech3::rtcw::message::WritePlayer( io, from, to ) ? qtrue : qfalse;
+}
+
+qboolean MSG_ReadDeltaRTCWSPPlayerstate( msg_t *msg,
+	const fntech3_rtcw_sp_playerState_t *from, fntech3_rtcw_sp_playerState_t *to ) {
+	RTCWMessageReader io( msg );
+	return fntech3::rtcw::message::ReadPlayer( io, from, to ) ? qtrue : qfalse;
+}
+
+qboolean MSG_WriteDeltaRTCWMPPlayerstate( msg_t *msg,
+	const fntech3_rtcw_mp_playerState_t *from, const fntech3_rtcw_mp_playerState_t *to ) {
+	RTCWMessageWriter io( msg );
+	return fntech3::rtcw::message::WritePlayer( io, from, to ) ? qtrue : qfalse;
+}
+
+qboolean MSG_ReadDeltaRTCWMPPlayerstate( msg_t *msg,
+	const fntech3_rtcw_mp_playerState_t *from, fntech3_rtcw_mp_playerState_t *to ) {
+	RTCWMessageReader io( msg );
+	return fntech3::rtcw::message::ReadPlayer( io, from, to ) ? qtrue : qfalse;
+}
+
+qboolean MSG_WriteDeltaRTCWEntity( msg_t *msg, const fntech3_rtcw_entityState_t *from,
+	const fntech3_rtcw_entityState_t *to, qboolean force, comGameId_t profile ) {
+	if ( profile != COM_GAME_RTCW_SP && profile != COM_GAME_RTCW_MP ) return qfalse;
+	RTCWMessageWriter io( msg );
+	using namespace fntech3::rtcw::message;
+	return WriteEntity( io, profile == COM_GAME_RTCW_SP ? Mode::SinglePlayer : Mode::Multiplayer,
+		from, to, force != qfalse ) ? qtrue : qfalse;
+}
+
+qboolean MSG_ReadDeltaRTCWEntity( msg_t *msg, const fntech3_rtcw_entityState_t *from,
+	fntech3_rtcw_entityState_t *to, int number, comGameId_t profile ) {
+	if ( profile != COM_GAME_RTCW_SP && profile != COM_GAME_RTCW_MP ) return qfalse;
+	RTCWMessageReader io( msg );
+	using namespace fntech3::rtcw::message;
+	return ReadEntity( io, profile == COM_GAME_RTCW_SP ? Mode::SinglePlayer : Mode::Multiplayer,
+		from, to, number ) ? qtrue : qfalse;
+}
 
 /*
 ==============================================================================
@@ -545,9 +677,27 @@ static void MSG_WriteRetailString( msg_t *sb, const char *s,
 	MSG_WriteData( sb, s ? s : "", static_cast<int>( length + 1 ) );
 }
 
+static void MSG_WriteRTCWString( msg_t *msg, const char *text, std::size_t capacity ) {
+	const std::size_t length = text ? std::strlen( text ) : 0;
+	if ( length >= capacity ) {
+		Com_Printf( "MSG_WriteString: RTCW string exceeds capacity\n" );
+		MSG_WriteByte( msg, 0 );
+		return;
+	}
+	for ( std::size_t index = 0; index < length; ++index ) {
+		const auto value = static_cast<unsigned char>( text[index] );
+		MSG_WriteByte( msg, value > 127 ? '.' : value );
+	}
+	MSG_WriteByte( msg, 0 );
+}
+
 
 void MSG_WriteStringForWireProfile( msg_t *sb, const char *s,
 	netchanWireProfile_t profile ) {
+	if ( MSG_IsRTCWWireProfile( profile ) ) {
+		MSG_WriteRTCWString( sb, s, MAX_STRING_CHARS );
+		return;
+	}
 	if ( profile != NETCHAN_WIRE_QL_RETAIL ) {
 		MSG_WriteString( sb, s );
 		return;
@@ -559,6 +709,10 @@ void MSG_WriteStringForWireProfile( msg_t *sb, const char *s,
 
 void MSG_WriteBigStringForWireProfile( msg_t *sb, const char *s,
 	netchanWireProfile_t profile ) {
+	if ( MSG_IsRTCWWireProfile( profile ) ) {
+		MSG_WriteRTCWString( sb, s, BIG_INFO_STRING );
+		return;
+	}
 	if ( profile != NETCHAN_WIRE_QL_RETAIL ) {
 		MSG_WriteBigString( sb, s );
 		return;
@@ -700,7 +854,7 @@ const char *MSG_ReadBigStringForWireProfile( msg_t *msg,
 	netchanWireProfile_t profile ) {
 	static char string[BIG_INFO_STRING];
 	return MSG_ReadStringInto( msg, string, sizeof( string ),
-		profile == NETCHAN_WIRE_QL_RETAIL, true, false );
+		profile == NETCHAN_WIRE_QL_RETAIL || MSG_IsRTCWWireProfile( profile ), true, false );
 }
 
 
@@ -776,7 +930,7 @@ choice explicit at the wire-profile boundary.
 */
 int MSG_HashKeyForWireProfile( netchanWireProfile_t profile,
 	const char *string, int maxlen ) {
-	if ( profile != NETCHAN_WIRE_QL_RETAIL ) {
+	if ( profile != NETCHAN_WIRE_QL_RETAIL && !MSG_IsRTCWWireProfile( profile ) ) {
 		return MSG_HashKey( string, maxlen );
 	}
 	if ( !string || maxlen <= 0 ) {
@@ -869,6 +1023,15 @@ MSG_WriteDeltaUsercmdKeyForWireProfile
 qboolean MSG_WriteDeltaUsercmdKeyForWireProfile( msg_t *msg, int key,
 	const usercmd_t *from, const usercmd_t *to,
 	netchanWireProfile_t profile ) {
+	if ( MSG_IsRTCWWireProfile( profile ) ) {
+		const auto write = [&]( const auto *base, const auto *sent ) {
+			RTCWMessageWriter io( msg );
+			return fntech3::rtcw::message::WriteCommand( io, key, base, sent ) ? qtrue : qfalse;
+		};
+		return profile == NETCHAN_WIRE_RTCW_SP
+			? MSG_WriteRTCWCanonical<fntech3_rtcw_sp_usercmd_t>( msg, from, to, write )
+			: MSG_WriteRTCWCanonical<fntech3_rtcw_mp_usercmd_t>( msg, from, to, write );
+	}
 	const fnql::protocol::Contract *contract =
 		fnql::protocol::TryForWireProfile( profile );
 	if ( !contract ) {
@@ -925,6 +1088,15 @@ MSG_ReadDeltaUsercmdKeyForWireProfile
 */
 qboolean MSG_ReadDeltaUsercmdKeyForWireProfile( msg_t *msg, int key,
 	const usercmd_t *from, usercmd_t *to, netchanWireProfile_t profile ) {
+	if ( MSG_IsRTCWWireProfile( profile ) ) {
+		const auto read = [&]( const auto *base, auto *decoded ) {
+			RTCWMessageReader io( msg );
+			return fntech3::rtcw::message::ReadCommand( io, key, base, decoded );
+		};
+		return profile == NETCHAN_WIRE_RTCW_SP
+			? MSG_ReadRTCWCanonical<fntech3_rtcw_sp_usercmd_t>( msg, from, to, read )
+			: MSG_ReadRTCWCanonical<fntech3_rtcw_mp_usercmd_t>( msg, from, to, read );
+	}
 	const fnql::protocol::Contract *contract =
 		fnql::protocol::TryForWireProfile( profile );
 	if ( !contract ) {
@@ -1173,6 +1345,7 @@ static void MSG_EntityFieldsForLayout(
 }
 
 static void MSG_CanonicalizeQuake3EntityState( entityState_t *state ) {
+	state->rtcw = {};
 	state->pos.gravity = 0.0f;
 	state->apos.gravity = 0.0f;
 	state->health = 0;
@@ -1435,6 +1608,13 @@ identical, under the assumption that the in-order delta code will catch it.
 qboolean MSG_WriteDeltaEntityForWireProfile( msg_t *msg,
 	const entityState_t *from, const entityState_t *to, qboolean force,
 	netchanWireProfile_t profile ) {
+	if ( MSG_IsRTCWWireProfile( profile ) ) {
+		return MSG_WriteRTCWCanonical<fntech3_rtcw_entityState_t>( msg, from, to,
+			[&]( const auto *base, const auto *sent ) {
+				return MSG_WriteDeltaRTCWEntity( msg, base, sent, force,
+					profile == NETCHAN_WIRE_RTCW_SP ? COM_GAME_RTCW_SP : COM_GAME_RTCW_MP );
+			} );
+	}
 	int			i, lc;
 	int			numFields;
 	const netField_t *field;
@@ -1562,6 +1742,13 @@ Can go from either a baseline or a previous packet_entity
 qboolean MSG_ReadDeltaEntityForWireProfile( msg_t *msg,
 	const entityState_t *from, entityState_t *to, int number,
 	netchanWireProfile_t profile ) {
+	if ( MSG_IsRTCWWireProfile( profile ) ) {
+		return MSG_ReadRTCWCanonical<fntech3_rtcw_entityState_t>( msg, from, to,
+			[&]( const auto *base, auto *decoded ) {
+				return MSG_ReadDeltaRTCWEntity( msg, base, decoded, number,
+					profile == NETCHAN_WIRE_RTCW_SP ? COM_GAME_RTCW_SP : COM_GAME_RTCW_MP );
+			} );
+	}
 	int			i, lc;
 	int			numFields;
 	const netField_t *field;
@@ -1610,6 +1797,7 @@ qboolean MSG_ReadDeltaEntityForWireProfile( msg_t *msg,
 	if ( MSG_ReadBits( msg, 1 ) == 0 ) {
 		*to = *from;
 		to->number = number;
+		to->rtcw = {};
 		if ( quake3 ) {
 			MSG_CanonicalizeQuake3EntityState( to );
 		}
@@ -1628,6 +1816,7 @@ qboolean MSG_ReadDeltaEntityForWireProfile( msg_t *msg,
 
 	*to = *from;
 	to->number = number;
+	to->rtcw = {};
 
 #ifndef DEDICATED
 	// shownet 2/3 will interleave with other printed info, -1 will
@@ -1755,11 +1944,13 @@ void MSG_ReadDeltaEntityLegacy( msg_t *msg, const entityState_t *from, entitySta
 	if ( MSG_ReadBits( msg, 1 ) == 0 ) {
 		*to = *from;
 		to->number = number;
+		to->rtcw = {};
 		return;
 	}
 
 	*to = *from;
 	to->number = number;
+	to->rtcw = {};
 
 	MSG_GetLegacyEntityFields( protocol, &field, &numFields );
 
@@ -2197,6 +2388,15 @@ MSG_WriteDeltaPlayerstate
 qboolean MSG_WriteDeltaPlayerstateForWireProfile( msg_t *msg,
 	const playerState_t *from, const playerState_t *to,
 	netchanWireProfile_t profile ) {
+	if ( MSG_IsRTCWWireProfile( profile ) ) {
+		const auto write = [&]( const auto *base, const auto *sent ) {
+			RTCWMessageWriter io( msg );
+			return fntech3::rtcw::message::WritePlayer( io, base, sent ) ? qtrue : qfalse;
+		};
+		return profile == NETCHAN_WIRE_RTCW_SP
+			? MSG_WriteRTCWCanonical<fntech3_rtcw_sp_playerState_t>( msg, from, to, write )
+			: MSG_WriteRTCWCanonical<fntech3_rtcw_mp_playerState_t>( msg, from, to, write );
+	}
 	static const playerState_t dummy{};
 	int				i;
 	int				statsbits;
@@ -2360,6 +2560,15 @@ MSG_ReadDeltaPlayerstate
 qboolean MSG_ReadDeltaPlayerstateForWireProfile( msg_t *msg,
 	const playerState_t *from, playerState_t *to,
 	netchanWireProfile_t profile ) {
+	if ( MSG_IsRTCWWireProfile( profile ) ) {
+		const auto read = [&]( const auto *base, auto *decoded ) {
+			RTCWMessageReader io( msg );
+			return fntech3::rtcw::message::ReadPlayer( io, base, decoded );
+		};
+		return profile == NETCHAN_WIRE_RTCW_SP
+			? MSG_ReadRTCWCanonical<fntech3_rtcw_sp_playerState_t>( msg, from, to, read )
+			: MSG_ReadRTCWCanonical<fntech3_rtcw_mp_playerState_t>( msg, from, to, read );
+	}
 	int			i, lc;
 	int			bits;
 	const netField_t *field;
@@ -2386,6 +2595,7 @@ qboolean MSG_ReadDeltaPlayerstateForWireProfile( msg_t *msg,
 		Com_Memset( &dummy, 0, sizeof( dummy ) );
 	}
 	*to = *from;
+	to->rtcw = {};
 
 	if ( msg->bit == 0 ) {
 		startBit = msg->readcount * 8 - GENTITYNUM_BITS;
@@ -2547,6 +2757,7 @@ void MSG_ReadDeltaPlayerstateLegacy( msg_t *msg, const playerState_t *from, play
 		Com_Memset( &dummy, 0, sizeof( dummy ) );
 	}
 	*to = *from;
+	to->rtcw = {};
 
 	MSG_GetLegacyPlayerFields( protocol, &field, &numFields );
 

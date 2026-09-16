@@ -155,7 +155,8 @@ void Netchan_TransmitNextFragment( netchan_t *chan ) {
 	int			outgoingSequence;
 
 	if ( !chan || !chan->unsentFragments || chan->unsentFragmentStart < 0 ||
-		chan->unsentLength < 0 || chan->unsentLength > MAX_MSGLEN ||
+		Netchan_MessageLimit( chan->wireProfile ) <= 0 ||
+		chan->unsentLength < 0 || chan->unsentLength > Netchan_MessageLimit( chan->wireProfile ) ||
 		chan->unsentFragmentStart > chan->unsentLength ) {
 		Com_Error( ERR_DROP, "%s: invalid fragment state", __func__ );
 		return;
@@ -285,7 +286,8 @@ void Netchan_Transmit( netchan_t *chan, int length, const byte *data ) {
 	msg_t		send;
 	byte		send_buf[MAX_PACKETLEN+8];
 
-	if ( !fnql::net::IsValidPayload( data, length, MAX_MSGLEN ) ) {
+	if ( !chan || Netchan_MessageLimit( chan->wireProfile ) <= 0 ||
+		!fnql::net::IsValidPayload( data, length, Netchan_MessageLimit( chan->wireProfile ) ) ) {
 		Com_Error( ERR_DROP, "%s: length = %i", __func__, length );
 		return;
 	}
@@ -351,7 +353,8 @@ void Netchan_Enqueue( netchan_t *chan, int length, const byte *data ) {
 	byte		send_buf[MAX_PACKETLEN + 8];
 	msg_t		send;
 
-	if ( !fnql::net::IsValidPayload( data, length, MAX_MSGLEN ) ) {
+	if ( !chan || Netchan_MessageLimit( chan->wireProfile ) <= 0 ||
+		!fnql::net::IsValidPayload( data, length, Netchan_MessageLimit( chan->wireProfile ) ) ) {
 		Com_Error( ERR_DROP, "%s: length = %i", __func__, length );
 		return;
 	}
@@ -407,6 +410,10 @@ qboolean Netchan_Process( netchan_t *chan, msg_t *msg ) {
 		msg->cursize > msg->maxsize ) {
 		return qfalse;
 	}
+	const int messageLimit = Netchan_MessageLimit( chan->wireProfile );
+	if ( messageLimit <= 0 || messageLimit > static_cast<int>( sizeof( chan->fragmentBuffer ) ) ) {
+		return qfalse;
+	}
 
 	// XOR unscramble all data in the packet after the header
 //	Netchan_UnScramblePacket( msg );
@@ -453,6 +460,7 @@ qboolean Netchan_Process( netchan_t *chan, msg_t *msg ) {
 	} else {
 		fragmentStart = 0;		// stop warning message
 		fragmentLength = 0;
+		if ( msg->cursize - msg->readcount > messageLimit ) return qfalse;
 	}
 
 	if ( showpackets->integer ) {
@@ -526,7 +534,7 @@ qboolean Netchan_Process( netchan_t *chan, msg_t *msg ) {
 
 		// copy the fragment to the fragment buffer
 		if ( !fnql::net::FragmentFits( msg->readcount, msg->cursize,
-			chan->fragmentLength, sizeof( chan->fragmentBuffer ), fragmentLength ) ) {
+			chan->fragmentLength, static_cast<std::size_t>( messageLimit ), fragmentLength ) ) {
 			if ( showdrop->integer || showpackets->integer ) {
 				Com_Printf ("%s:illegal fragment length\n"
 				, NET_AdrToString( &chan->remoteAddress ) );
@@ -544,10 +552,10 @@ qboolean Netchan_Process( netchan_t *chan, msg_t *msg ) {
 			return qfalse;
 		}
 
-		if ( chan->fragmentLength > msg->maxsize ) {
-			Com_Printf( "%s:fragmentLength %i > msg->maxsize\n"
+		if ( chan->fragmentLength > msg->maxsize - 4 ) {
+			Com_Printf( "%s:fragmentLength %i plus sequence header exceeds msg->maxsize %i\n"
 				, NET_AdrToString( &chan->remoteAddress ),
-				chan->fragmentLength );
+				chan->fragmentLength, msg->maxsize );
 			return qfalse;
 		}
 

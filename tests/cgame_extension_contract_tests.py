@@ -45,7 +45,12 @@ static void Com_sprintf(char *value, int size, const char *format, ...) {
     va_end(args);
 }
 static void Com_Error(int, const char *, ...) { ++errors; }
-static void CL_AddEnemyHighlightRefEntity(void *, int) { lastCall = 1; }
+// This fixture isolates ordinal dispatch; render_record_adapter_tests executes
+// the real record reader, bounds checks and both shader-time variants.
+struct refEntity_t {};
+static void *cgvm;
+static refEntity_t CL_ModuleRefEntity(void *, intptr_t) { return {}; }
+static void CL_AddEnemyHighlightRefEntity(const refEntity_t *, int) { lastCall = 1; }
 static void CL_ForceFixedDlights() { lastCall = 2; }
 static void AddLinearLight(void *, void *, float, float, float, float) { lastCall = 3; }
 static struct { decltype(&AddLinearLight) AddLinearLightToScene = AddLinearLight; } re;
@@ -152,11 +157,13 @@ class CgameExtensionContractTests(unittest.TestCase):
         vm_arg_ptr = source[class_start:source.index("\n};", class_start) + 3]
         vma = re.search(r"(?m)^#define VMA\(x\).*$", source).group()
         calls = function_body(source, "CL_CgameSystemCalls")
-        # Compile the original function entry/switch expression and all of
-        # its extension and advertisement branches. Unrelated traps are
-        # excluded so this test needs no renderer, filesystem, or live VM.
-        dispatch = calls[:calls.index("\tcase CG_PRINT:")]
-        dispatch += calls[calls.index("\t// engine extensions"):]
+        # Exercise Q3/QL extension remapping and handlers. RTCW's separate
+        # state-transfer prefix is covered by rtcw_client_state_tests.py.
+        dispatch = ("static intptr_t CL_CgameSystemCalls(intptr_t *args) {\n"
+                    "intptr_t operation = CL_CGameTrapForProfile(args[0]);\n"
+                    + calls[calls.index("\tswitch( operation )"):calls.index("\tcase CG_PRINT:")])
+        dispatch += calls[calls.index("\tcase CG_R_ADDREFENTITYTOSCENE:"):calls.index("\tcase CG_R_ADDPOLYTOSCENE:")]
+        dispatch += calls[calls.index("\tcase CG_R_ADDLINEARLIGHTTOSCENE:"):]
         fixture = FIXTURE.replace("@IMPORT_ENUM@", get_value_macro + "\n" + imports)
         fixture = fixture.replace("@VM_ARG_PTR@", vm_arg_ptr).replace("@VMA_MACRO@", vma)
         fixture = fixture.replace("@TRAP_REMAP@", function_body(source, "CL_CGameTrapForProfile"))

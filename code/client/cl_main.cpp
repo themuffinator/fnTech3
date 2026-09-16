@@ -35,6 +35,8 @@ extern "C" {
 #include "../qcommon/netchan_safety.hpp"
 #include "../qcommon/steam_identity.hpp"
 #include "../platform/fnql_steam.h"
+#include "../compat/rtcw_translation.hpp"
+#include "../compat/rtcw_limbo_chat.hpp"
 
 #include <algorithm>
 #include <array>
@@ -43,6 +45,8 @@ extern "C" {
 #include <cstring>
 #include <limits.h>
 #include <system_error>
+#include <memory>
+#include <string>
 
 using fnql::CloseFile;
 using fnql::FileRead;
@@ -54,6 +58,98 @@ using fnql::ScopedFileHandle;
 using fnql::ScopedFilePosition;
 using fnql::ToQboolean;
 
+static fntech3::rtcw::translation::Catalog rtcwTranslations;
+
+void CL_RTCWLimboChat( vm_t *vm, intptr_t source ) {
+	if ( !Com_GameIsRTCWMP() ) Com_Error( ERR_DROP, "RTCW limbo chat outside MP" );
+	if ( !source ) return; // Original cgame treats a null submission as absent.
+	if ( !vm ) Com_Error( ERR_DROP, "RTCW limbo chat requires a module" );
+	fntech3::rtcw::limbo::Append( cl.rtcwLimboChat, [&]( std::size_t offset ) {
+		if ( static_cast<std::uintptr_t>( source ) >
+			(std::numeric_limits<std::uintptr_t>::max)() - offset - 1 )
+			Com_Error( ERR_DROP, "RTCW limbo chat address overflow" );
+		VM_CHECKBOUNDS( vm, source, offset + 1 );
+		const auto *text = static_cast<const char *>( VM_ExplicitArgPtr( vm, source ) );
+		if ( !text ) Com_Error( ERR_DROP, "Invalid RTCW limbo chat source" );
+		return text[offset];
+	} );
+}
+
+qboolean CL_RTCWGetLimboString( vm_t *vm, intptr_t index, intptr_t destination ) {
+	if ( !Com_GameIsRTCWMP() ) Com_Error( ERR_DROP, "RTCW limbo chat outside MP" );
+	if ( index < 0 || index >= FNTECH3_RTCW_LIMBO_LINES ) return qfalse;
+	if ( !vm || !destination || static_cast<std::uintptr_t>( destination ) >
+		(std::numeric_limits<std::uintptr_t>::max)() - FNTECH3_RTCW_LIMBO_WIDTH )
+		Com_Error( ERR_DROP, "Invalid RTCW limbo chat destination" );
+	VM_CHECKBOUNDS( vm, destination, FNTECH3_RTCW_LIMBO_WIDTH );
+	auto *buffer = static_cast<char *>( VM_ExplicitArgPtr( vm, destination ) );
+	if ( !buffer ) Com_Error( ERR_DROP, "Invalid RTCW limbo chat buffer" );
+	return fntech3::rtcw::limbo::Get( cl.rtcwLimboChat, index, buffer ) ? qtrue : qfalse;
+}
+
+static void CL_RTCWLoadTranslationFile( const char *filename ) {
+	ScopedFileHandle file;
+	const int bytes = OpenFileRead( filename, file );
+	if ( bytes <= 0 || !file ) return;
+	if ( static_cast<std::size_t>( bytes ) > fntech3::rtcw::translation::FileBytes ) {
+		Com_Printf( S_COLOR_YELLOW "RTCW translation file is too large: %s\n", filename );
+		return;
+	}
+	std::string text( static_cast<std::size_t>( bytes ), '\0' );
+	if ( FileRead( file.get(), text.data(), text.size() ) != bytes ) {
+		Com_Printf( S_COLOR_YELLOW "Incomplete RTCW translation file: %s\n", filename );
+		return;
+	}
+	const auto loaded = rtcwTranslations.Load( text );
+	if ( !loaded.accepted )
+		Com_Printf( S_COLOR_YELLOW "Invalid RTCW translation file %s near byte %u; file ignored\n",
+			filename, static_cast<unsigned>( loaded.offset ) );
+	else
+		Com_DPrintf( "Loaded %u RTCW translations from %s\n", static_cast<unsigned>( loaded.records ), filename );
+}
+
+void CL_RTCWReloadTranslations( void ) {
+	if ( !Com_GameIsRTCWMP() ) return;
+	Cvar_Get( "cl_language", "0", CVAR_ARCHIVE );
+	Cvar_Get( "cl_debugTranslation", "0", 0 );
+	rtcwTranslations.Clear();
+	CL_RTCWLoadTranslationFile( "scripts/translation.cfg" );
+	int count = 0;
+	std::unique_ptr<char *, decltype( &FS_FreeFileList )> files(
+		FS_ListFiles( "translations", ".cfg", &count ), FS_FreeFileList );
+	if ( !files || count < 0 || count > 2048 ) return;
+	for ( int i = 0; i < count; ++i ) {
+		const std::string filename = std::string( "translations/" ) + files.get()[i];
+		if ( filename.size() < MAX_QPATH ) CL_RTCWLoadTranslationFile( filename.c_str() );
+	}
+}
+
+void CL_RTCWTranslateString( vm_t *vm, intptr_t source, intptr_t destination ) {
+	using namespace fntech3::rtcw::translation;
+	if ( !Com_GameIsRTCWMP() || !vm || !destination )
+		Com_Error( ERR_DROP, "Invalid RTCW MP translation call" );
+	VM_CHECKBOUNDS( vm, destination, OutputBytes );
+	void *output = VM_ExplicitArgPtr( vm, destination );
+	if ( !output ) Com_Error( ERR_DROP, "Invalid RTCW translation output" );
+	std::string result = "(null)";
+	if ( source ) {
+		const char *input = static_cast<const char *>( VM_ExplicitArgPtr( vm, source ) );
+		if ( !input ) Com_Error( ERR_DROP, "Invalid RTCW translation input" );
+		std::size_t length = 0;
+		while ( length < OutputBytes ) {
+			VM_CHECKBOUNDS( vm, source, length + 1 );
+			if ( !input[length] ) break;
+			++length;
+		}
+		if ( length == OutputBytes ) Com_Error( ERR_DROP, "RTCW translation input is too long" );
+		result = rtcwTranslations.Translate( std::string_view( input, length ),
+			Cvar_VariableIntegerValue( "cl_language" ), Cvar_VariableIntegerValue( "cl_debugTranslation" ) );
+	}
+	if ( result.size() >= OutputBytes ) Com_Error( ERR_DROP, "RTCW translation output is too long" );
+	// The input may alias the output. No module bytes change until translation
+	// and all size checks are complete; the rest of its output buffer is untouched.
+	std::memcpy( output, result.c_str(), result.size() + 1 );
+}
 namespace {
 
 constexpr const char *LEGACY_DEMOEXT = "dm3";
@@ -356,7 +452,14 @@ static netchanWireProfile_t CL_DemoWireProfileForProtocol( int protocol )
 
 netchanWireProfile_t CL_ActiveWireProfile( void )
 {
-	return clc.demoplaying ? clc.demoWireProfile : clc.netchan.wireProfile;
+	if ( clc.demoplaying ) return clc.demoWireProfile;
+	// Before a connection exists, queued commands already belong to the
+	// selected game. A zeroed netchan must not impose Q3's window on RTCW.
+	if ( cls.state < CA_CONNECTED ) {
+		const comGameProfile_t *profile = Com_GameProfile();
+		if ( profile ) return Netchan_SelectWireProfile( profile->preferredProtocol, 0 );
+	}
+	return clc.netchan.wireProfile;
 }
 
 /*
@@ -518,8 +621,8 @@ void CL_AddReliableCommand( const char *cmd, qboolean isDisconnectCmd ) {
 
 	if ( !fnql::net::PendingCounterCount( clc.reliableSequence,
 		clc.reliableAcknowledge, unacknowledged ) ||
-		(isDisconnectCmd && unacknowledged > MAX_RELIABLE_COMMANDS) ||
-		(!isDisconnectCmd && unacknowledged >= MAX_RELIABLE_COMMANDS))
+		(isDisconnectCmd && unacknowledged > CL_ReliableCommandLimit()) ||
+		(!isDisconnectCmd && unacknowledged >= CL_ReliableCommandLimit()))
 	{
 		if( com_errorEntered )
 			return;
@@ -528,7 +631,7 @@ void CL_AddReliableCommand( const char *cmd, qboolean isDisconnectCmd ) {
 	}
 
 	clc.reliableSequence = fnql::net::NextCounter( clc.reliableSequence );
-	index = clc.reliableSequence & ( MAX_RELIABLE_COMMANDS - 1 );
+	index = clc.reliableSequence & ( CL_ReliableCommandLimit() - 1 );
 	Q_strncpyz( clc.reliableCommands[ index ], cmd, sizeof( clc.reliableCommands[ index ] ) );
 }
 
@@ -634,14 +737,14 @@ static void CL_WriteServerCommands( msg_t *msg ) {
 	if ( fnql::net::IsNewerCounter( clc.serverCommandSequence, clc.demoCommandSequence ) ) {
 		const std::uint32_t count = std::min(
 			fnql::net::CounterDistance( clc.serverCommandSequence, clc.demoCommandSequence ),
-			static_cast<std::uint32_t>( MAX_RELIABLE_COMMANDS ) );
+			static_cast<std::uint32_t>( CL_ReliableCommandLimit() ) );
 
 		for ( std::uint32_t offset = count; offset != 0; --offset ) {
 			const int i = fnql::net::CounterSubtract( clc.serverCommandSequence, offset - 1 );
 			MSG_WriteByte( msg, svc_serverCommand );
 			MSG_WriteLong( msg, i );
 			MSG_WriteStringForWireProfile( msg,
-				clc.serverCommands[ i & ( MAX_RELIABLE_COMMANDS - 1 ) ],
+				clc.serverCommands[ i & ( CL_ReliableCommandLimit() - 1 ) ],
 				CL_ActiveWireProfile() );
 		}
 	}
@@ -677,7 +780,7 @@ CL_WriteGamestate
 */
 static void CL_WriteGamestate( qboolean initial )
 {
-	std::array<byte, MAX_MSGLEN_BUF> bufData;
+	std::array<byte, MAX_GAME_MSGLEN_BUF> bufData;
 	char		*s;
 	msg_t		msg;
 	int			i;
@@ -686,7 +789,7 @@ static void CL_WriteGamestate( qboolean initial )
 	entityState_t	nullstate{};
 
 	// write out the gamestate message
-	MSG_Init( &msg, bufData.data(), MAX_MSGLEN );
+	MSG_Init( &msg, bufData.data(), Netchan_MessageLimit( CL_ActiveWireProfile() ) );
 	MSG_Bitstream( &msg );
 
 	// NOTE, MRE: all server->client messages now acknowledge
@@ -705,7 +808,7 @@ static void CL_WriteGamestate( qboolean initial )
 	MSG_WriteLong( &msg, clc.serverCommandSequence );
 
 	// configstrings
-	for ( i = 0 ; i < MAX_CONFIGSTRINGS ; i++ ) {
+	for ( i = 0 ; i < Com_GameConfigstringLimit() ; i++ ) {
 		if ( !cl.gameState.stringOffsets[i] ) {
 			continue;
 		}
@@ -835,7 +938,7 @@ static void CL_WriteSnapshot( void ) {
 	static entityState_t saved_ents[ MAX_SNAPSHOT_ENTITIES ];
 
 	clSnapshot_t *snap, *oldSnap;
-	std::array<byte, MAX_MSGLEN_BUF> bufData;
+	std::array<byte, MAX_GAME_MSGLEN_BUF> bufData;
 	msg_t	msg;
 	int		i, len;
 	int		savedEntities;
@@ -850,7 +953,7 @@ static void CL_WriteSnapshot( void ) {
 		oldSnap = &saved_snap;
 	}
 
-	MSG_Init( &msg, bufData.data(), MAX_MSGLEN );
+	MSG_Init( &msg, bufData.data(), Netchan_MessageLimit( CL_ActiveWireProfile() ) );
 	MSG_Bitstream( &msg );
 
 	// NOTE, MRE: all server->client messages now acknowledge
@@ -1095,7 +1198,7 @@ CL_ReadDemoMessage
 */
 void CL_ReadDemoMessage( void ) {
 	msg_t		buf;
-	std::array<byte, MAX_MSGLEN_BUF> bufData;
+	std::array<byte, MAX_GAME_MSGLEN_BUF> bufData;
 	fnql::demo::EnvelopeResult envelope;
 
 	if ( clc.demofile == FS_INVALID_HANDLE ) {
@@ -1103,7 +1206,7 @@ void CL_ReadDemoMessage( void ) {
 		return;
 	}
 
-	MSG_Init( &buf, bufData.data(), MAX_MSGLEN );
+	MSG_Init( &buf, bufData.data(), Netchan_MessageLimit( CL_ActiveWireProfile() ) );
 	envelope = fnql::demo::ReadEnvelope(
 		[]( std::uint8_t *destination, std::size_t bytes ) {
 			return FileRead( clc.demofile, destination, bytes );
@@ -1448,6 +1551,9 @@ static void CL_ShutdownVMs( void )
 {
 	CL_ShutdownCGame();
 	CL_ShutdownUI();
+	// Module shutdown does not necessarily release its menu movies. Their
+	// owned file handles must be gone before renderer/filesystem teardown.
+	CIN_CloseAllVideos();
 }
 
 
@@ -1681,7 +1787,7 @@ CL_GetConfigStringValue
 static const char *CL_GetConfigStringValue( int index ) {
 	int offset;
 
-	if ( index < 0 || index >= MAX_CONFIGSTRINGS ) {
+	if ( index < 0 || index >= Com_GameConfigstringLimit() ) {
 		return "";
 	}
 
@@ -2604,17 +2710,21 @@ static void CL_SendPureChecksums( void ) {
 	if ( !cl_connectedToPureServer || clc.demoplaying )
 		return;
 
-	// Q3's filesystem proof starts with cgame/UI QVM pak checksums. Retail
-	// QL instead identifies its single native-module pak before general refs.
-	if ( Com_GameIsQuake3() ) {
+	// Q3 and RTCW MP have distinct cgame/UI slots in the filesystem proof.
+	// Retail QL prefixes one native-module pak before its general references.
+	if ( Com_GameProfile()->pureProof == COM_PURE_PROOF_QVM ||
+		Com_GameProfile()->pureProof == COM_PURE_PROOF_RTCW_NATIVE ) {
 		len = Com_sprintf( cMsg.data(), static_cast<int>( cMsg.size() ),
 			"cp %d ", cl.serverId );
-	} else {
+	} else if ( Com_GameProfile()->pureProof == COM_PURE_PROOF_QL_NATIVE ) {
 		if ( !FS_FileIsInPAK( QL_NATIVE_CGAME_DLL, &binChecksum, nullptr ) ) {
 			Com_Error( ERR_FATAL, "CL_SendPureChecksums: no pak file for %s", QL_NATIVE_CGAME_DLL );
 		}
 		len = Com_sprintf( cMsg.data(), static_cast<int>( cMsg.size() ),
 			"cp %d %d ", cl.serverId, binChecksum );
+	} else {
+		Com_Error( ERR_DROP, "Pure-server verification is unavailable for %s", Com_GameProfile()->key );
+		return;
 	}
 
 	pChecksums = FS_ReferencedPakPureChecksums( static_cast<int>( cMsg.size() ) - len - 1 );
@@ -2928,7 +3038,7 @@ static void CL_Configstrings_f( void ) {
 		return;
 	}
 
-	for ( i = 0 ; i < MAX_CONFIGSTRINGS ; i++ ) {
+	for ( i = 0 ; i < Com_GameConfigstringLimit() ; i++ ) {
 		ofs = cl.gameState.stringOffsets[ i ];
 		if ( !ofs ) {
 			continue;
@@ -4999,6 +5109,8 @@ static void CL_InitRef( void ) {
 	rimp.VK_CreateSurface = VK_CreateSurface;
 #endif
 
+	rimp.GameBspFormat = Com_GameBspFormat;
+	rimp.gameId = Com_GameProfile()->id;
 	ret = GetRefAPI( REF_API_VERSION, &rimp );
 
 	Com_Printf( "-------------------------------\n");
@@ -5017,6 +5129,19 @@ static void CL_InitRef( void ) {
 //===========================================================================================
 
 
+static void CL_RegisterAppearanceCvars( void ) {
+	const auto &appearance = Com_GameProfile()->appearance;
+	const int flags = CVAR_USERINFO | (appearance.archiveDefaults ? CVAR_ARCHIVE : CVAR_ARCHIVE_ND);
+	Cvar_Get("model", appearance.bodyModel, flags);
+	Cvar_Get(appearance.headKey, appearance.headModel, flags);
+	if (appearance.teamModel) {
+		Cvar_Get("team_model", appearance.teamModel, flags);
+		Cvar_Get("team_headmodel", appearance.teamModel, flags);
+	}
+	Cvar_Get(appearance.colorKey, "4", CVAR_USERINFO | CVAR_ARCHIVE);
+	if (appearance.secondColor) Cvar_Get("color2", appearance.secondColor, CVAR_USERINFO | CVAR_ARCHIVE);
+}
+
 static void CL_SetModel_f( void ) {
 	const char *arg;
 	std::array<char, MAX_CVAR_VALUE_STRING> name;
@@ -5024,7 +5149,8 @@ static void CL_SetModel_f( void ) {
 	arg = Cmd_Argv( 1 );
 	if ( arg[0] ) {
 		Cvar_Set( "model", arg );
-		Cvar_Set( "headmodel", arg );
+		const auto &appearance = Com_GameProfile()->appearance;
+		if (appearance.modelSetsHead) Cvar_Set(appearance.headKey, arg);
 	} else {
 		Cvar_VariableStringBuffer( "model", name.data(), static_cast<int>( name.size() ) );
 		Com_Printf( "model is set to %s\n", name.data() );
@@ -5767,14 +5893,9 @@ void CL_Init( void ) {
 	}
 	Cvar_Get ("rate", "25000", CVAR_USERINFO | CVAR_ARCHIVE );
 	Cvar_Get ("snaps", "40", CVAR_USERINFO | CVAR_ARCHIVE );
-	Cvar_Get ("model", "sarge", CVAR_USERINFO | CVAR_ARCHIVE_ND );
-	Cvar_Get ("headmodel", "sarge", CVAR_USERINFO | CVAR_ARCHIVE_ND );
- 	Cvar_Get ("team_model", "sarge", CVAR_USERINFO | CVAR_ARCHIVE_ND );
-	Cvar_Get ("team_headmodel", "sarge", CVAR_USERINFO | CVAR_ARCHIVE_ND );
+	CL_RegisterAppearanceCvars();
 //	Cvar_Get ("g_redTeam", "Stroggs", CVAR_SERVERINFO | CVAR_ARCHIVE);
 //	Cvar_Get ("g_blueTeam", "Pagans", CVAR_SERVERINFO | CVAR_ARCHIVE);
-	Cvar_Get ("color1", "4", CVAR_USERINFO | CVAR_ARCHIVE );
-	Cvar_Get ("color2", "5", CVAR_USERINFO | CVAR_ARCHIVE );
 	Cvar_Get ("handicap", "100", CVAR_USERINFO | CVAR_ARCHIVE_ND );
 //	Cvar_Get ("teamtask", "0", CVAR_USERINFO );
 	Cvar_Get ("sex", "male", CVAR_USERINFO | CVAR_ARCHIVE_ND );

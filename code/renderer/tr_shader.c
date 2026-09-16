@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 #include "tr_local.h"
+#include "../renderercommon/tr_rtcw_shader_text.h"
+#include "../renderercommon/tr_rtcw_shader_material.h"
 #include <float.h>
 
 // tr_shader.c -- this file deals with the parsing and definition of shaders
@@ -34,6 +36,10 @@ static int s_extendedShader;
 static	shaderStage_t	stages[MAX_SHADER_STAGES];
 static	shader_t		shader;
 static	texModInfo_t	texMods[MAX_SHADER_STAGES][TR_MAX_TEXMODS+1]; // reserve one additional texmod for lightmap atlas correction
+
+static image_t *R_FindShaderImage( const char *name, imgFlags_t flags ) {
+	return R_FindImageFile( name, R_RTCWShaderImageFlags( name, flags, shader.rtcwCompression ) );
+}
 
 static void ParseDepthFade( const char **text );
 static void ProcessDepthFade( void );
@@ -716,7 +722,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 				if (shader.noLightScale)
 					flags |= IMGFLAG_NOLIGHTSCALE;
 
-				stage->bundle[0].image[0] = R_FindImageFile( token, flags );
+				stage->bundle[0].image[0] = R_FindShaderImage( token, flags );
 
 				if ( !stage->bundle[0].image[0] )
 				{
@@ -762,7 +768,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 			if (shader.noLightScale)
 				flags |= IMGFLAG_NOLIGHTSCALE;
 
-			stage->bundle[0].image[0] = R_FindImageFile( token, flags );
+			stage->bundle[0].image[0] = R_FindShaderImage( token, flags );
 			if ( !stage->bundle[0].image[0] )
 			{
 				ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
@@ -806,7 +812,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 					if (shader.noLightScale)
 						flags |= IMGFLAG_NOLIGHTSCALE;
 
-					stage->bundle[0].image[num] = R_FindImageFile( token, flags );
+					stage->bundle[0].image[num] = R_FindShaderImage( token, flags );
 					if ( !stage->bundle[0].image[num] )
 					{
 						ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
@@ -1433,7 +1439,7 @@ static void ParseSkyParms( const char **text ) {
 		for (i=0 ; i<6 ; i++) {
 			Com_sprintf( pathname, sizeof(pathname), "%s_%s.tga"
 				, token, suf[i] );
-			shader.sky.outerbox[i] = R_FindImageFile( pathname, imgFlags | IMGFLAG_CLAMPTOEDGE );
+			shader.sky.outerbox[i] = R_FindShaderImage( pathname, imgFlags | IMGFLAG_CLAMPTOEDGE );
 
 			if ( !shader.sky.outerbox[i] ) {
 				shader.sky.outerbox[i] = tr.defaultImage;
@@ -1463,7 +1469,7 @@ static void ParseSkyParms( const char **text ) {
 		for (i=0 ; i<6 ; i++) {
 			Com_sprintf( pathname, sizeof(pathname), "%s_%s.tga"
 				, token, suf[i] );
-			shader.sky.innerbox[i] = R_FindImageFile( pathname, imgFlags );
+			shader.sky.innerbox[i] = R_FindShaderImage( pathname, imgFlags );
 			if ( !shader.sky.innerbox[i] ) {
 				shader.sky.innerbox[i] = tr.defaultImage;
 			}
@@ -2156,6 +2162,9 @@ static qboolean ParseShader( const char **text )
 		// skip stuff that only q3map or the server needs
 		else if ( !Q_stricmp( token, "surfaceParm" ) ) {
 			ParseSurfaceParm( text );
+			continue;
+		}
+		else if ( R_RTCWShaderCompressionDirective( token, &shader.rtcwCompression ) ) {
 			continue;
 		}
 		// no mip maps
@@ -3420,14 +3429,15 @@ static shader_t *FinishShader( void ) {
 		glConfig.hardwareType == GLHW_PERMEDIA2;
 
 	// if we are in r_vertexLight mode, never use a lightmap texture
-	if ( stage > 1 && vertexLightMode && !shader.noVLcollapse ) {
+	if ( stage > 1 && vertexLightMode && !shader.noVLcollapse &&
+		( !shader.rtcwLightMaterial || ri.gameId != COM_GAME_RTCW_MP ) ) {
 		VertexLightingCollapse();
 		stage = 1;
 		hasLightmapStage = qfalse;
 	}
 
 	// whiteimage + "filter" texture == texture
-	if ( !vertexLightMode && stage > 1 && stages[0].bundle[0].image[0] == tr.whiteImage && stages[0].bundle[0].numImageAnimations <= 1 && stages[0].rgbGen == CGEN_IDENTITY && stages[0].alphaGen == AGEN_SKIP ) {
+	if ( !shader.rtcwLightMaterial && !vertexLightMode && stage > 1 && stages[0].bundle[0].image[0] == tr.whiteImage && stages[0].bundle[0].numImageAnimations <= 1 && stages[0].rgbGen == CGEN_IDENTITY && stages[0].alphaGen == AGEN_SKIP ) {
 		if ( stages[1].stateBits == ( GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ZERO ) ) {
 			stages[1].stateBits = stages[0].stateBits & ( GLS_DEPTHMASK_TRUE | GLS_DEPTHTEST_DISABLE | GLS_DEPTHFUNC_EQUAL );
 #ifdef USE_PMLIGHT
@@ -3440,7 +3450,7 @@ static shader_t *FinishShader( void ) {
 	}
 
 	// identity texture + "filter" whiteimage rgbGen == texture + rgbGen
-	if ( !vertexLightMode && stage > 1 ) {
+	if ( !shader.rtcwLightMaterial && !vertexLightMode && stage > 1 ) {
 		if ( stages[0].rgbGen == CGEN_IDENTITY && stages[0].alphaGen == AGEN_SKIP && stages[1].alphaGen == AGEN_SKIP ) {
 			if ( ( stages[1].stateBits & GLS_BLEND_BITS ) == ( GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ZERO ) ) {
 				if ( stages[1].bundle[0].image[0] == tr.whiteImage && !stages[1].bundle[0].dlight ) {
@@ -3455,6 +3465,13 @@ static shader_t *FinishShader( void ) {
 		}
 	}
 
+	/* RTCW asks for a diffuse-lit copy of a brush material. Apply this after
+	 * white/lightmap simplification and before multitexture/pipeline selection. */
+	if ( shader.rtcwModelDiffuse && stage > 0 ) {
+		stages[0].rgbGen = CGEN_LIGHTING_DIFFUSE;
+		shader.needsNormal = qtrue;
+	}
+
 	for ( i = 0; i < stage; i++ ) {
 		stages[i].tessFlags = TESS_ST0;
 	}
@@ -3466,7 +3483,7 @@ static shader_t *FinishShader( void ) {
 	//
 	// look for multitexture potential
 	//
-	if ( r_ext_multitexture->integer ) {
+	if ( !shader.rtcwLightMaterial && r_ext_multitexture->integer ) {
 		for ( i = 0; i < stage-1; i++ ) {
 			if ( CollapseMultitexture( &stages[i+0], &stages[i+1], stage-i ) ) {
 				stage--;
@@ -3619,7 +3636,7 @@ shader_t *R_FindShaderByName( const char *name ) {
 		// then a default shader is created with lightmapIndex == LIGHTMAP_NONE, so we
 		// have to check all default shaders otherwise for every call to R_FindShader
 		// with that same strippedName a new default shader is created.
-		if (Q_stricmp(sh->name, strippedName) == 0) {
+		if (!sh->rtcwModelDiffuse && !sh->rtcwLightMaterial && Q_stricmp(sh->name, strippedName) == 0) {
 			// match found
 			return sh;
 		}
@@ -3721,7 +3738,8 @@ most world construction surfaces.
 
 ===============
 */
-shader_t *R_FindShader( const char *name, int lightmapIndex, qboolean mipRawImage ) {
+static shader_t *R_FindShaderInternal( const char *name, int lightmapIndex,
+	qboolean mipRawImage, qboolean modelDiffuse, qboolean lightMaterial ) {
 	char		strippedName[MAX_QPATH];
 	unsigned long hash;
 	const char	*shaderText;
@@ -3754,13 +3772,16 @@ shader_t *R_FindShader( const char *name, int lightmapIndex, qboolean mipRawImag
 		// then a default shader is created with lightmapIndex == LIGHTMAP_NONE, so we
 		// have to check all default shaders otherwise for every call to R_FindShader
 		// with that same strippedName a new default shader is created.
-		if ( (sh->lightmapSearchIndex == lightmapIndex || sh->defaultShader) &&	!Q_stricmp(sh->name, strippedName)) {
+		if ( sh->rtcwModelDiffuse == modelDiffuse && sh->rtcwLightMaterial == lightMaterial &&
+			 (sh->lightmapSearchIndex == lightmapIndex || sh->defaultShader) && !Q_stricmp(sh->name, strippedName)) {
 			// match found
 			return sh;
 		}
 	}
 
 	InitShader( strippedName, lightmapIndex );
+	shader.rtcwModelDiffuse = modelDiffuse;
+	shader.rtcwLightMaterial = lightMaterial;
 
 	// FIXME: set these "need" values appropriately
 	//shader.needsNormal = qtrue;
@@ -3807,7 +3828,7 @@ shader_t *R_FindShader( const char *name, int lightmapIndex, qboolean mipRawImag
 			flags |= IMGFLAG_CLAMPTOEDGE;
 		}
 
-		image = R_FindImageFile( name, flags );
+		image = R_FindShaderImage( name, flags );
 		if ( !image ) {
 			ri.Printf( PRINT_DEVELOPER, "Shader image unavailable for: %s\n", name );
 			shader.defaultShader = qtrue;
@@ -3823,6 +3844,18 @@ shader_t *R_FindShader( const char *name, int lightmapIndex, qboolean mipRawImag
 	return FinishShader();
 }
 
+
+shader_t *R_FindShader( const char *name, int lightmapIndex, qboolean mipRawImage ) {
+	return R_FindShaderInternal( name, lightmapIndex, mipRawImage, qfalse, qfalse );
+}
+
+shader_t *R_FindRTCWLightShader( const char *name ) {
+	return R_FindShaderInternal( name, LIGHTMAP_2D, qtrue, qfalse, qtrue );
+}
+
+shader_t *R_FindModelShader( const char *name, qboolean mipRawImage ) {
+	return R_FindShaderInternal( name, LIGHTMAP_NONE, mipRawImage, qtrue, qfalse );
+}
 
 qhandle_t RE_RegisterShaderFromImage(const char *name, int lightmapIndex, image_t *image, qboolean mipRawImage) {
 	unsigned long hash;
@@ -3845,7 +3878,8 @@ qhandle_t RE_RegisterShaderFromImage(const char *name, int lightmapIndex, image_
 		// then a default shader is created with lightmapIndex == LIGHTMAP_NONE, so we
 		// have to check all default shaders otherwise for every call to R_FindShader
 		// with that same strippedName a new default shader is created.
-		if ( (sh->lightmapSearchIndex == lightmapIndex || sh->defaultShader) && !Q_stricmp(sh->name, name)) {
+		if ( !sh->rtcwModelDiffuse && !sh->rtcwLightMaterial &&
+			 (sh->lightmapSearchIndex == lightmapIndex || sh->defaultShader) && !Q_stricmp(sh->name, name)) {
 			// match found
 			return sh->index;
 		}
@@ -4089,6 +4123,11 @@ static int loadShaderBuffers( char **shaderFiles, const int numShaderFiles, char
 
 		if ( !buffers[i] )
 			ri.Error( ERR_DROP, "Couldn't load %s", filename );
+
+		if ( ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP ) {
+			sum += R_RTCWNormalizeShaderText( buffers[i], filename );
+			continue;
+		}
 
 		// comment some buggy shaders from pak0
 		if ( summand == 35910 && strcmp( shaderFiles[i], "sky.shader" ) == 0 )

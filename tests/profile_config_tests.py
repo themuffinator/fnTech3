@@ -28,9 +28,16 @@ class ProfileConfigTests(unittest.TestCase):
 #define CVAR_CLOUD 2
 #define Q3CONFIG_CFG "q3config.cfg"
 static int com_fullyInitialized, cvar_modifiedFlags, q3writes, qlwrites, keywrites;
-static int quakeLive, failQL, dedicated;
+static int quakeLive, failQL, dedicated, profile;
+static const char *Com_GameConfigFile(void) {
+#ifdef DEDICATED
+    return profile>=2 ? "wolfconfig_server.cfg" : "q3config_server.cfg";
+#else
+    return profile==2 ? "wolfconfig.cfg" : profile==3 ? "wolfconfig_mp.cfg" : "q3config.cfg";
+#endif
+}
 static void Com_WriteConfigToFile(const char *name) {
-    assert(!strcmp(name, "q3config.cfg")); ++q3writes;
+    assert(!strcmp(name, Com_GameConfigFile())); ++q3writes;
 }
 #ifndef DEDICATED
 static struct { int integer; } dedicatedCvar;
@@ -50,11 +57,12 @@ static void Com_WriteCDKey(const char *dir, const char *key) {
 #endif
 ''' + body + r'''
 int main(void) {
-    for (quakeLive=0; quakeLive<=1; ++quakeLive)
+    for (profile=0; profile<4; ++profile)
     for (dedicated=0; dedicated<=1; ++dedicated)
     for (failQL=0; failQL<=1; ++failQL)
     for (com_fullyInitialized=0; com_fullyInitialized<=1; ++com_fullyInitialized)
     for (int modified=0; modified<=1; ++modified) {
+        quakeLive=profile==0;
         q3writes=qlwrites=keywrites=0;
         cvar_modifiedFlags=8 | (modified ? CVAR_ARCHIVE | CVAR_CLOUD : 0);
         int qlPath=0;
@@ -175,12 +183,13 @@ int main(void) {
         fixture = r'''
 #include <assert.h>
 #include <string.h>
+#include <stdio.h>
 #define EXEC_NOW 0
 #define Q3CONFIG_CFG "q3config.cfg"
 #define QL_CONFIG_HARDWARE_FILE "qzconfig.cfg"
 #define QL_CONFIG_REPLICATE_FILE "repconfig.cfg"
 typedef int qboolean;
-static int quake3, safe, hardware, probes, count, executions, moduleResets;
+static int quake3, rtcw, profile, safe, hardware, probes, count, executions, moduleResets;
 static void Cvar_Set(const char *name, const char *value) {
     assert(!quake3 && !safe && !hardware);
     assert(executions == 2); // Only after the legacy config has executed.
@@ -194,7 +203,14 @@ static void Cvar_Set(const char *name, const char *value) {
     ++moduleResets;
 }
 static const char *commands[8];
-static int Com_GameIsQuake3(void) { return quake3; }
+static int Com_GameIsQuakeLive(void) { return !quake3 && !rtcw; }
+static int Com_GameIsRTCW(void) { return rtcw; }
+static const char *Com_GameConfigFile(void) {
+    return rtcw==1 ? "wolfconfig.cfg" : rtcw==2 ? "wolfconfig_mp.cfg" : "q3config.cfg";
+}
+static const char *va(const char *format, const char *name) {
+    static char text[128]; snprintf(text,sizeof(text),format,name); return text;
+}
 static int Com_SafeMode(void) { return safe; }
 static int FS_ProfileFileExists(const char *name) {
     assert(!quake3); assert(!strcmp(name, QL_CONFIG_HARDWARE_FILE));
@@ -206,25 +222,29 @@ static void Cbuf_ExecuteText(int mode, const char *command) {
 static void Cbuf_Execute(void) { ++executions; }
 ''' + body + r'''
 int main(void) {
-    for (quake3 = 0; quake3 <= 1; ++quake3)
+    for (profile = 0; profile < 4; ++profile)
     for (safe = 0; safe <= 1; ++safe)
     for (hardware = 0; hardware <= 1; ++hardware) {
+        quake3=profile==1; rtcw=profile>=2 ? profile-1 : 0;
         count = executions = probes = moduleResets = 0;
         Com_ExecuteCfg();
         assert(count == executions);
 #ifdef DEDICATED
-        assert(moduleResets == (!quake3 && !safe && !hardware ? 1 : 0));
+        assert(moduleResets == (!quake3 && !rtcw && !safe && !hardware ? 1 : 0));
 #else
-        assert(moduleResets == (!quake3 && !safe && !hardware ? 3 : 0));
+        assert(moduleResets == (!quake3 && !rtcw && !safe && !hardware ? 3 : 0));
 #endif
         assert(!strcmp(commands[0], "exec default.cfg\n"));
-        if (quake3) {
+        if (quake3 || rtcw) {
             assert(probes == 0);
-            assert(count == (safe ? 1 : 3));
+            assert(count == (safe ? (rtcw ? 2 : 1) : 3));
             if (!safe) {
-                assert(!strcmp(commands[1], "exec q3config.cfg\n"));
+                char expected[128];
+                snprintf(expected,sizeof(expected),"exec %s\n",Com_GameConfigFile());
+                assert(!strcmp(commands[1], expected));
                 assert(!strcmp(commands[2], "exec autoexec.cfg\n"));
             }
+            if(rtcw && safe) assert(!strcmp(commands[1], "exec autoexec.cfg\n"));
         } else {
             assert(probes == (safe ? 0 : 1));
             assert(count == (safe ? 3 : 4));

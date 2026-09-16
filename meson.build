@@ -61,6 +61,10 @@ if darwin
 endif
 cpu_family = host_machine.cpu_family()
 q3_only = get_option('q3-only')
+rtcw_development = get_option('rtcw-development')
+if rtcw_development and q3_only
+  error('RTCW developer probes require the shared x86 executable, not the Q3-only target.')
+endif
 fnql_x86_target_probe = '''
 #if !defined(_M_IX86) && !defined(__i386__)
 #error FnQL requires an x86 target
@@ -233,6 +237,7 @@ qcommon_src = [
 	'code/compat/game_abi_adapter.c',
 	'code/platform/fnql_steam.cpp',
 	'code/platform/fnql_workshop.cpp',
+	'code/platform/process_relaunch.cpp',
 	'code/qcommon/cm_load.c',
   'code/qcommon/cm_patch.c',
   'code/qcommon/cm_polylib.c',
@@ -452,6 +457,13 @@ copy_runtime_files = []
 thread_dep = dependency('threads')
 client_deps += thread_dep
 server_deps += thread_dep
+
+# The pak reader retains its filesystem contract but uses maintained DEFLATE.
+# Keep the fallback in the existing wrap instead of embedding another decoder.
+zlib_dep = dependency('zlib', required: true, fallback: 'zlib')
+client_deps += zlib_dep
+server_deps += zlib_dep
+renderer_deps += zlib_dep
 
 fontstash_dep = dependency('', required: false)
 if build_client
@@ -882,8 +894,14 @@ if build_client and not renderer_dlopen
   endif
 endif
 
+engine_cpp_args = common_cpp_args
+if rtcw_development
+  warning('RTCW developer build: incomplete SP/MP adapters are enabled for isolated probes. Release compatibility gates remain open.')
+  engine_cpp_args += ['-DFNTECH3_RTCW_DEVELOPMENT=1']
+endif
+
 client_c_args = common_c_args
-client_cpp_args = common_cpp_args
+client_cpp_args = engine_cpp_args
 if linux and build_client and not use_sdl
   client_cpp_args += ['-DUSE_JOYSTICK']
 endif
@@ -916,7 +934,7 @@ if build_server
     dependencies: server_deps,
     objects: botlib_objects,
     c_args: common_c_args + ['-DDEDICATED'],
-    cpp_args: common_cpp_args + ['-DDEDICATED'],
+    cpp_args: engine_cpp_args + ['-DDEDICATED'],
     link_args: link_args,
     win_subsystem: win32 ? 'windows' : 'console',
     install: true,
@@ -1235,12 +1253,21 @@ png_loader_tests = executable('fnql_png_loader_tests',
   [
     'tests/png_loader_tests.c',
     'code/renderercommon/tr_image_png.c',
-    'code/qcommon/puff.c',
   ],
+  dependencies: zlib_dep,
   include_directories: include_directories('code/qcommon', 'code/renderercommon'),
   c_args: common_c_args,
 )
 test('fnql_png_loader', png_loader_tests)
+
+unzip_tests = executable('fntech3_unzip_tests',
+  ['tests/unzip_tests.c', 'code/qcommon/unzip.c'],
+  dependencies: zlib_dep,
+  c_args: common_c_args,
+)
+test('fntech3_unzip', unzip_tests,
+  args: [join_paths(meson.current_build_dir(), 'unzip-test.pk3')],
+)
 
 netchan_safety_tests = executable('fnql_netchan_safety_tests',
   'tests/netchan_safety_tests.cpp',
@@ -1593,7 +1620,9 @@ test('fnql_python_source_regressions', python,
     '-p', '*_tests.py',
   ],
   workdir: meson.current_source_dir(),
-  timeout: 300,
+  # Discovery includes over 1,300 checks and compiles native fixtures. A clean
+  # Windows run now exceeds five minutes; retain a bounded ten-minute gate.
+  timeout: 600,
 )
 
 curl_summary = 'disabled'

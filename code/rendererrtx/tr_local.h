@@ -50,6 +50,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderercommon/tr_dlight_shadow.h"
 #include "../renderercommon/tr_ql_cvars.h"
 #include "../renderercommon/tr_global_fog.h"
+#include "../renderercommon/tr_rtcw_fog_view.h"
 #include "../renderercommon/tr_liquid.h"
 #include "../renderercommon/tr_underwater.h"
 #include "tr_common.h"
@@ -108,6 +109,8 @@ typedef uint32_t glIndex_t;
 #define SHADERNUM_MASK	(MAX_SHADERS-1)
 
 typedef struct dlight_s {
+	struct shader_s *rtcwShader;
+	int rtcwOverdraw;
 	vec3_t	origin;
 	vec3_t	origin2;
 	vec3_t	dir;		// origin2 - origin
@@ -498,6 +501,8 @@ typedef struct {
 typedef struct shader_s {
 	char		name[MAX_QPATH];		// game path, including extension
 	int			lightmapSearchIndex;	// for a shader to match, both name and lightmapIndex must match
+	qboolean rtcwLightMaterial;		// preserve authored projected-light passes
+	qboolean rtcwModelDiffuse;		// separately compiled RTCW brush-fragment material
 	int			lightmapIndex;			// for rendering
 
 	int			index;					// this shader == tr.shaders[index]
@@ -546,6 +551,7 @@ typedef struct shader_s {
 	unsigned	noPicMip:1;				// for images that must always be full resolution
 	unsigned	noLightScale:1;
 	unsigned	noVLcollapse:1;			// ignore vertexlight mode
+	int		rtcwCompression; // Material-local default (0), forbid (-1), allow (1).
 
 	fogPass_t	fogPass;				// draw a blended pass, possibly with depth test equals
 	depthFadeType_t dfType;				// soft intersection fade for translucent surfaces
@@ -646,6 +652,8 @@ typedef struct {
 
 	// text messages for deform text shaders
 	char		text[MAX_RENDER_STRINGS][MAX_RENDER_STRING_LENGTH];
+	rtcwRenderView_t rtcw;
+	fnRTCWFogFrame_t rtcwFog;
 
 	int			num_entities;
 	trRefEntity_t	*entities;
@@ -718,6 +726,10 @@ typedef struct image_s {
 // surfaces which accessed out of bounds memory past end of skin->surfaces hunk block.
 #define MAX_SKIN_SURFACES	256
 
+// Model-reference entries are internal storage, not a frozen module layout.
+#define MAX_SKIN_MODELS 256
+typedef struct { char type[MAX_QPATH], model[MAX_QPATH]; } skinModel_t;
+
 // skins allow models to be retextured without modifying the model file
 typedef struct {
 	char		name[MAX_QPATH];
@@ -728,6 +740,10 @@ typedef struct skin_s {
 	char		name[MAX_QPATH];		// game path, including extension
 	int			numSurfaces;
 	skinSurface_t	*surfaces;			// dynamically allocated array of surfaces
+	int numModels;
+	skinModel_t *models;
+	vec3_t scale;
+	qboolean registered;
 } skin_t;
 
 
@@ -939,6 +955,9 @@ typedef enum {
 	SF_IQM,
 	SF_FLARE,
 	SF_ENTITY,				// beams, rails, lightning, etc that can be determined by entity
+
+	SF_MDC,
+	SF_MDS,
 
 	SF_NUM_SURFACE_TYPES,
 	SF_MAX = 0x7fffffff			// ensures that sizeof( surfaceType_t ) == sizeof( int )
@@ -1680,8 +1699,13 @@ typedef enum {
 	MOD_BRUSH,
 	MOD_MESH,
 	MOD_MDR,
-	MOD_IQM
+	MOD_IQM,
+	MOD_MDC,
+	MOD_MDS
 } modtype_t;
+
+#include "../renderercommon/tr_mdc_model_types.h"
+#include "../renderercommon/tr_mds_model_types.h"
 
 typedef struct model_s {
 	char		name[MAX_QPATH];
@@ -1691,6 +1715,8 @@ typedef struct model_s {
 	int			dataSize;	// just for listing purposes
 	bmodel_t	*bmodel;		// only if type == MOD_BRUSH
 	md3Header_t	*md3[MD3_MAX_LODS];	// only if type == MOD_MESH
+	mdcModel_t	*mdc[MD3_MAX_LODS];	// only if type == MOD_MDC
+	mdsModel_t	*mds;	// only if type == MOD_MDS
 	void	*modelData;			// only if type == (MOD_MDR | MOD_IQM)
 
 	int			 numLods;
@@ -1702,6 +1728,7 @@ void		R_ModelInit (void);
 model_t		*R_GetModelByHandle( qhandle_t hModel );
 int			R_LerpTag( orientation_t *tag, qhandle_t handle, int startFrame, int endFrame, 
 					 float frac, const char *tagName );
+int R_LerpTagEntity( orientation_t *tag, const refEntity_t *entity, const char *name, int first );
 void		R_ModelBounds( qhandle_t handle, vec3_t mins, vec3_t maxs );
 
 void		R_Modellist_f (void);
@@ -1950,6 +1977,8 @@ typedef struct {
 	int						frameSceneNum;	// zeroed at RE_BeginFrame
 
 	qboolean				worldMapLoaded;
+	fnRTCWFogState_t		rtcwFog;
+	qboolean				rtcwSkyPortal;
 	world_t					*world;
 
 	const byte				*externalVisData;	// from RE_SetWorldVisData, shared with CM_Load
@@ -2498,6 +2527,8 @@ void		RE_LoadWorldMap( const char *mapname );
 void		RE_SetWorldVisData( const byte *vis );
 qhandle_t	RE_RegisterModel( const char *name );
 qhandle_t	RE_RegisterSkin( const char *name );
+qboolean RE_GetSkinModel( qhandle_t skin, const char *type, char *name );
+qhandle_t RE_GetShaderFromModel( qhandle_t model, int surface, int withLightmap );
 
 qboolean	RE_GetEntityToken( char *buffer, int size );
 
@@ -2531,6 +2562,7 @@ qboolean R_ImageAverageColor( const char *name, vec3_t color );
 // tr_shader.c
 //
 shader_t	*R_FindShader( const char *name, int lightmapIndex, qboolean mipRawImage );
+shader_t *R_FindModelShader( const char *name, qboolean mipRawImage );
 shader_t	*R_GetShaderByHandle( qhandle_t hShader );
 shader_t	*R_GetShaderByState( int index, long *cycleTime );
 shader_t	*R_FindShaderByName( const char *name );
@@ -2780,6 +2812,9 @@ void R_InitNextFrame( void );
 void RE_ClearScene( void );
 void RE_AddRefEntityToScene( const refEntity_t *ent, qboolean intShaderTime );
 void RE_AddPolyToScene( qhandle_t hShader , int numVerts, const polyVert_t *verts, int num );
+void RE_AddRTCWLightToScene( const vec3_t origin, float intensity, float r, float g, float b, int flags );
+void RE_SetRTCWFog( int command, int first, int second, float r, float g, float b, float density );
+shader_t *R_FindRTCWLightShader( const char *name );
 void RE_AddLightToScene( const vec3_t org, float intensity, float r, float g, float b );
 void RE_AddAdditiveLightToScene( const vec3_t org, float intensity, float r, float g, float b );
 void RE_AddLinearLightToScene( const vec3_t start, const vec3_t end, float intensity, float r, float g, float b );
@@ -2925,6 +2960,11 @@ typedef struct {
 	float	s2, t2;
 } stretchPicCommand_t;
 
+typedef struct {
+	stretchPicCommand_t base;
+	refDrawQuad_t quad;
+} drawQuadCommand_t;
+
 typedef struct drawSurfsCommand_s {
 	int		commandId;
 	trRefdef_t	refdef;
@@ -2963,7 +3003,8 @@ typedef enum {
 	RC_MENU_BLUR,
 	RC_COLORMASK,
 	RC_CLEARDEPTH,
-	RC_CLEARCOLOR
+	RC_CLEARCOLOR,
+	RC_DRAW_QUAD
 } renderCommand_t;
 
 
@@ -3005,6 +3046,7 @@ void RB_TakeLevelShot( void );
 void R_AddDrawSurfCmd( drawSurf_t *drawSurfs, int numDrawSurfs );
 
 void RE_SetColor( const float *rgba );
+void RE_DrawQuad( const refDrawQuad_t *quad );
 void RE_StretchPic ( float x, float y, float w, float h, 
 					  float s1, float t1, float s2, float t2, qhandle_t hShader );
 void RE_BeginFrame( stereoFrame_t stereoFrame );
@@ -3040,5 +3082,19 @@ extern void VBO_Flush( void );
 #endif
 
 int R_GetLightmapCoords( const int lightmapIndex, float *x, float *y );
+
+
+static ID_INLINE qboolean R_UsesRTCWLighting( void ) {
+	return ( ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP ) ? qtrue : qfalse;
+}
+
+static ID_INLINE int R_GetDlightMode( void ) {
+	/* RTCW's forced/projected/material lights are a coherent profile contract. */
+#ifdef USE_PMLIGHT
+	return R_UsesRTCWLighting() || !r_dlightMode ? 0 : r_dlightMode->integer;
+#else
+	return 0;
+#endif
+}
 
 #endif //TR_LOCAL_H

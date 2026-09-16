@@ -76,6 +76,8 @@ struct bsp_entdata_s
 };
 using bsp_entdata_t = bsp_entdata_s;
 
+struct aas_s;
+
 //entity
 struct aas_entity_s
 {
@@ -83,6 +85,8 @@ struct aas_entity_s
 	aas_entityinfo_t i;
 	//links into the AAS areas
 	aas_link_t *areas;
+	// The area-link heap belongs to a navigation world, not the shared table.
+	aas_s *areaWorld;
 	//links into the BSP leaves
 	bsp_link_t *leaves;
 };
@@ -189,6 +193,19 @@ struct aas_reachabilityareas_s
 };
 using aas_reachabilityareas_t = aas_reachabilityareas_s;
 
+struct aas_midrangearea_t
+{
+	int valid;
+	unsigned short starttime;
+	unsigned short goaltime;
+};
+
+struct aas_rtcw_visibility_t
+{
+	byte *data;
+	int bytes;
+};
+
 struct aas_s
 {
 	int loaded;									//true when an AAS file is loaded
@@ -228,6 +245,14 @@ struct aas_s
 	//convex area settings
 	int numareasettings;
 	aas_areasettings_t *areasettings;
+	// RTCW AAS8 adds one float to each disk area setting. Keep the external
+	// layout out of Quake's structures and retain the exact value separately.
+	float *rtcwGroundSteepness;
+	unsigned short rtcwNavigationCrc[3];
+	// Own in-progress file resources too: an engine error may bypass C++
+	// stack unwinding, so shutdown must be able to release a partial load.
+	fileHandle_t rtcwLoadFile;
+	byte *rtcwLoadBytes;
 	//reachablity list
 	int reachabilitysize;
 	aas_reachability_t *reachability;
@@ -249,6 +274,7 @@ struct aas_s
 	//enities linked in the areas
 	aas_link_t *linkheap;						//heap with link structures
 	int linkheapsize;							//size of the link heap
+	int numaaslinks;
 	aas_link_t *freelinks;						//first free link
 	aas_link_t **arealinkedentities;			//entities linked into areas
 	//entities
@@ -279,6 +305,18 @@ struct aas_s
 	//areas the reachabilities go through
 	int *reachabilityareaindex;
 	aas_reachabilityareas_t *reachabilityareas;
+	// Scratch and accounting belong to a map/world, including map transitions.
+	int routingcachesize, max_routingcachesize;
+	// RTCW visibility and waypoints are independent of Q3 routing structures.
+	aas_rtcw_visibility_t *rtcwVisibility;
+	byte *rtcwVisibilityData, *rtcwDecodedVisibility;
+	vec3_t *rtcwWaypoints;
+	int rtcwVisibilityArea;
+	qboolean rtcwRouteCacheLoaded;
+	unsigned short *hidetraveltimes;
+	aas_midrangearea_t *midrangeareas;
+	int *clusterareas;
+	int numclusterareas;
 };
 using aas_t = aas_s;
 

@@ -240,6 +240,8 @@ static void BeginPNG(pngFixture_t *fixture, uint32_t width, uint32_t height,
 static size_t MakeStoredZlib(byte *output, const byte *raw, uint16_t rawLength) {
 	uint16_t complement = (uint16_t)~rawLength;
 	size_t position = 0;
+	uint32_t a = 1, b = 0;
+	uint16_t i;
 
 	output[position++] = 0x78;
 	output[position++] = 0x01;
@@ -250,8 +252,11 @@ static size_t MakeStoredZlib(byte *output, const byte *raw, uint16_t rawLength) 
 	output[position++] = (byte)(complement >> 8);
 	memcpy(output + position, raw, rawLength);
 	position += rawLength;
-	/* The inherited loader does not validate Adler-32; framing is still required. */
-	memset(output + position, 0, 4);
+	for (i = 0; i < rawLength; ++i) {
+		a = (a + raw[i]) % 65521u;
+		b = (b + a) % 65521u;
+	}
+	PutBE32(output + position, (b << 16) | a);
 	return position + 4;
 }
 
@@ -418,6 +423,27 @@ static void TestOversizedScanlines(void) {
 	ExpectRejected(&fixture);
 }
 
+static void TestDamagedZlibStream(void) {
+	static const byte raw[] = { 0, 0x11, 0x22, 0x33, 0x44 };
+	byte zlib[64];
+	pngFixture_t fixture;
+	size_t length;
+	int fault;
+
+	for (fault = 0; fault < 4; ++fault) {
+		currentTest = "damaged or incomplete zlib stream";
+		length = MakeStoredZlib(zlib, raw, sizeof(raw));
+		if (fault == 0) zlib[length - 1] ^= 1; /* Adler-32 mismatch. */
+		if (fault == 1) zlib[0] = 0; /* Invalid zlib header. */
+		if (fault == 2) --length; /* Missing trailer byte. */
+		if (fault == 3) length = MakeStoredZlib(zlib, raw, sizeof(raw) - 1);
+		BeginPNG(&fixture, 1, 1, 8, 6, 0);
+		AppendChunk(&fixture, "IDAT", zlib, (uint32_t)length);
+		FinishPNG(&fixture);
+		ExpectRejected(&fixture);
+	}
+}
+
 int main(void) {
 	memset(&ri, 0, sizeof(ri));
 	ri.Printf = StubPrintf;
@@ -435,6 +461,7 @@ int main(void) {
 	TestShortZlibFraming();
 	TestInflateCannotExceedIHDRLayout();
 	TestOversizedScanlines();
+	TestDamagedZlibStream();
 
 	CHECK(fileStorage == NULL);
 	CHECK(ActiveAllocations() == 0);

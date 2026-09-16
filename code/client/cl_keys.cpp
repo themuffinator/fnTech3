@@ -25,6 +25,7 @@ extern "C" {
 
 #include "client_cpp.h"
 #include "input_compat.hpp"
+#include "../compat/rtcw_key_adapter.h"
 
 #include <algorithm>
 #include <array>
@@ -1187,4 +1188,60 @@ void Key_SetCatcher( int catcher )
 	}
 
 	keyCatchers = catcher;
+}
+
+qboolean CL_RTCWKeyIsDown( int key ) {
+	const int internal = FnTech3_RTCWKeyToInternal( key );
+	return internal < 0 ? qfalse : Key_IsDown( internal );
+}
+
+void CL_RTCWSetBinding( int key, const char *binding ) {
+	const int internal = FnTech3_RTCWKeyToInternal( key );
+	if ( internal >= 0 && binding ) Key_SetBinding( internal, binding );
+}
+
+void CL_RTCWKeyString( int key, char *buffer, int size, qboolean binding ) {
+	if ( size <= 0 ) return;
+	if ( !buffer ) {
+		Com_Error( ERR_DROP, "NULL RTCW key string buffer" );
+		return;
+	}
+	const int internal = FnTech3_RTCWKeyToInternal( key );
+	const char *value = binding ? Key_GetBinding( internal ) : Key_KeynumToString( internal );
+	Q_strncpyz( buffer, value ? value : "", size );
+}
+
+int CL_RTCWKeyForBinding( const char *binding ) {
+	if ( !binding ) return -1;
+	// Search in the module's order, excluding engine-only keys even when they
+	// hold the same binding as a later key that RTCW can represent.
+	for ( int key = 0; key <= FNTECH3_RTCW_K_AUX16; ++key ) {
+		const int internal = FnTech3_RTCWKeyToInternal( key );
+		const char *value = internal < 0 ? nullptr : Key_GetBinding( internal );
+		if ( value && !Q_stricmp( binding, value ) ) return key;
+	}
+	return -1;
+}
+
+int CL_RTCWGetKeyCatcher( void ) {
+	const int internal = Key_GetCatcher();
+	int external = 0;
+#define RTCW_CATCHER(name) if ( internal & name ) external |= FNTECH3_RTCW_##name;
+	RTCW_CATCHER(KEYCATCH_CONSOLE)
+	RTCW_CATCHER(KEYCATCH_UI)
+	RTCW_CATCHER(KEYCATCH_MESSAGE)
+	RTCW_CATCHER(KEYCATCH_CGAME)
+#undef RTCW_CATCHER
+	return external;
+}
+
+void CL_RTCWSetKeyCatcher( int catcher ) {
+	int internal = Key_GetCatcher() & KEYCATCH_BROWSER;
+#define RTCW_CATCHER(name) if ( catcher & FNTECH3_RTCW_##name ) internal |= name;
+	RTCW_CATCHER(KEYCATCH_CONSOLE)
+	RTCW_CATCHER(KEYCATCH_UI)
+	RTCW_CATCHER(KEYCATCH_MESSAGE)
+	RTCW_CATCHER(KEYCATCH_CGAME)
+#undef RTCW_CATCHER
+	Key_SetCatcher( internal );
 }

@@ -15,7 +15,7 @@ class OggPayloadBoundsTests(unittest.TestCase):
         if not compiler:
             self.skipTest('C++ compiler unavailable')
         source = (ROOT / 'code/client/audio/codecs/snd_codec_ogg.cpp').read_text()
-        functions = source[source.index('snd_stream_t *S_OGG_CodecOpenStream(const char *filename)'):source.rindex('#endif // USE_OGG_VORBIS')]
+        functions = source[source.index('static bool S_OGG_ReadInfo('):source.rindex('#endif // USE_OGG_VORBIS')]
         harness = r'''
 #include <cassert>
 #include <climits>
@@ -24,12 +24,20 @@ class OggPayloadBoundsTests(unittest.TestCase):
 #include <memory>
 #include <limits>
 #include <initializer_list>
+#include <utility>
 #include "code/client/audio/shared/AudioVorbisLayout.h"
+#include "code/client/audio/shared/AudioMemoryStream.h"
 using byte=unsigned char;using ogg_int64_t=long long;
 struct snd_info_t {int rate,width,channels,samples,size,dataofs;unsigned speakerMask;};
 struct snd_stream_t {snd_info_t info{};int pos=0,length=100;void*ptr=nullptr;};
 struct OggVorbis_File {int unused;};
 struct vorbis_info {long rate;int channels;};
+struct ov_callbacks {
+ size_t (*read)(void*,size_t,size_t,void*);
+ int (*seek)(void*,ogg_int64_t,int);
+ int (*close)(void*);
+ long (*tell)(void*);
+};
 constexpr int OGG_SAMPLEWIDTH=2,ogg_codec=1,S_OGG_Callbacks=1;
 int handles=0,zones=0,temps=0,clears=0,decodeBytes=16,openError=0;
 bool seekable=true,hasInfo=true;int links=1;ogg_int64_t frames=4;
@@ -38,13 +46,26 @@ bool channelFixture=false;int nextFrame=0;
 snd_stream_t*S_CodecUtilOpen(const char*,const int*){++handles;return new snd_stream_t;}
 void S_CodecUtilClose(snd_stream_t**s){delete *s;*s=nullptr;--handles;}
 struct ScopedZoneMemory {
- void*p=std::calloc(1,sizeof(OggVorbis_File));
- ScopedZoneMemory(){++zones;}~ScopedZoneMemory(){if(p){std::free(p);--zones;}}
+ void*p=nullptr;
+ ScopedZoneMemory()=default;
+ explicit ScopedZoneMemory(int n):p(std::calloc(1,n)){++zones;}
+ ~ScopedZoneMemory(){if(p){std::free(p);--zones;}}
  ScopedZoneMemory(const ScopedZoneMemory&)=delete;
+ ScopedZoneMemory&operator=(ScopedZoneMemory&&v){assert(!p);p=std::exchange(v.p,nullptr);return *this;}
  template<class T>T*as(){return static_cast<T*>(p);}
+ void*get(){return p;}
  void*release(){void*r=p;p=nullptr;return r;}
 };
-ScopedZoneMemory AllocateZoneMemory(int,const char*,const char*,int){return ScopedZoneMemory();}
+ScopedZoneMemory AllocateZoneMemory(int n,const char*,const char*,int){return ScopedZoneMemory(n);}
+namespace fnql {
+struct ScopedReadFile {
+ byte bytes[16]{};
+ static ScopedReadFile Read(const char*){return {};}
+ explicit operator bool()const{return true;}
+ int length()const{return sizeof(bytes);}
+ void*get(){return bytes;}
+};
+}
 void Z_Free(void*p){std::free(p);--zones;}
 struct ScopedTempMemory {
  void*p;
@@ -53,9 +74,17 @@ struct ScopedTempMemory {
  ScopedTempMemory(const ScopedTempMemory&)=delete;
  static ScopedTempMemory Allocate(int n){return ScopedTempMemory(n);}
  template<class T>T*as(){return static_cast<T*>(p);}
+ void*get(){return p;}
  void*release(){void*r=p;p=nullptr;--temps;return r;}
 };
 int ov_open_callbacks(snd_stream_t*,OggVorbis_File*,void*,int,int){return openError;}
+int ov_open_callbacks(void*source,OggVorbis_File*,void*,int,ov_callbacks cb){
+ char bytes[17];std::memset(bytes,0x5a,sizeof(bytes));
+ assert(cb.tell(source)==0 && cb.seek(source,-3,SEEK_END)==0);
+ assert(cb.read(bytes,1,16,source)==3 && bytes[3]==0x5a);
+ assert(cb.seek(source,0,SEEK_SET)==0 && cb.tell(source)==0);
+ return openError;
+}
 int ov_seekable(OggVorbis_File*){return seekable;}
 int ov_streams(OggVorbis_File*){return links;}
 vorbis_info*ov_info(OggVorbis_File*,int){return hasInfo?&metadata:nullptr;}
@@ -80,6 +109,7 @@ int main(){
  for(int failure=0;failure<4;++failure){
   openError=failure==0?-1:0;seekable=failure!=1;links=failure==2?2:1;hasInfo=failure!=3;
   assert(!S_OGG_CodecOpenStream("fixture.ogg"));clean();
+  snd_info_t info{};assert(!S_OGG_CodecLoad("fixture.ogg",&info));clean();
  }
  openError=0;seekable=true;links=1;hasInfo=true;
  for(int channels:{-1,0,2,INT_MAX})for(ogg_int64_t count:{-1LL,0LL,4LL,536870911LL,536870912LL,2147483648LL,9223372036854775807LL}){

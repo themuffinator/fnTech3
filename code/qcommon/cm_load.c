@@ -135,11 +135,11 @@ static void CMod_LoadSubmodels( const lump_t *l ) {
 	if ( count < 1 )
 		Com_Error( ERR_DROP, "%s: map with no models", __func__ );
 
+	/* Inline geometry must not alias the two reserved temporary hulls. */
+	if ( count > CM_ModelHandleLimit() - 2 )
+		Com_Error( ERR_DROP, "%s: inline models overlap reserved hull handles", __func__ );
 	cm.cmodels = Hunk_Alloc( count * sizeof( *cm.cmodels ), h_high );
 	cm.numSubModels = count;
-
-	if ( count > MAX_SUBMODELS )
-		Com_Error( ERR_DROP, "%s: MAX_SUBMODELS exceeded", __func__ );
 	
 	for ( i=0 ; i<count ; i++, in++)
 	{
@@ -672,6 +672,7 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 	int				i;
 	dheader_t		header;
 	lump_t			qlAdvertisementsLump;
+	comGameBspFormat_t bspFormat;
 	int				length;
 	bsp43_translation_t translated = { 0 };
 
@@ -720,6 +721,24 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 
 	if ( !buf ) {
 		Com_Error( ERR_DROP, "%s: couldn't load %s", __func__, name );
+	}
+	if ( length < (int)offsetof( dheader_t, lumps ) ) {
+		Com_Error( ERR_DROP, "%s: %s has truncated header", __func__, name );
+	}
+#ifndef BSPC
+	bspFormat = Com_GameBspFormat( (int32_t)QLBSP_ReadLE32( (byte *)buf + 4 ) );
+#else
+	/* The legacy standalone Q3 BSP compiler has no runtime game selection. */
+	switch ( (int32_t)QLBSP_ReadLE32( (byte *)buf + 4 ) ) {
+	case BSP_VERSION_IHV: bspFormat = COM_GAME_BSP_QUAKE3_IHV; break;
+	case BSP_VERSION: bspFormat = COM_GAME_BSP_QUAKE3; break;
+	case BSP_VERSION_QL: bspFormat = COM_GAME_BSP_QUAKELIVE; break;
+	default: bspFormat = COM_GAME_BSP_UNSUPPORTED; break;
+	}
+#endif
+	if ( bspFormat == COM_GAME_BSP_UNSUPPORTED ) {
+		Com_Error( ERR_DROP, "%s: %s has BSP version %i unsupported by the selected game",
+			__func__, name, (int32_t)QLBSP_ReadLE32( (byte *)buf + 4 ) );
 	}
 	if ( length >= (int)sizeof( dheader43_t ) ) {
 		const dheader43_t *rawHeader = (const dheader43_t *)buf;
@@ -780,7 +799,7 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 	CMod_CheckLeafBrushes();
 
 	// must run while buf is still mapped: both branches below release it
-	if ( header.version == BSP_VERSION_QL ) {
+	if ( bspFormat == COM_GAME_BSP_QUAKELIVE ) {
 		const qlBspLumpResult_t lumpResult =
 			QLBSP_ReadAdvertisementLump( buf, (size_t)length, &qlAdvertisementsLump );
 		if ( lumpResult == QL_BSP_LUMP_TRUNCATED_HEADER ) {
@@ -836,11 +855,11 @@ cmodel_t *CM_ClipHandleToModel( clipHandle_t handle ) {
 	if ( CM_IsTemporaryModelHandle( handle ) ) {
 		return &box_model;
 	}
-	if ( handle < MAX_SUBMODELS ) {
+	if ( handle < CM_ModelHandleLimit() ) {
 		Com_Error( ERR_DROP, "CM_ClipHandleToModel: bad handle %i < %i < %i", 
-			cm.numSubModels, handle, MAX_SUBMODELS );
+			cm.numSubModels, handle, CM_ModelHandleLimit() );
 	}
-	Com_Error( ERR_DROP, "CM_ClipHandleToModel: bad handle %i", handle + MAX_SUBMODELS );
+	Com_Error( ERR_DROP, "CM_ClipHandleToModel: bad handle %i", handle );
 
 	return NULL;
 }

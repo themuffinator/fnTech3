@@ -138,7 +138,11 @@ static char *Sys_ReadTextFile( const char *path )
 	char *buffer;
 	size_t bytesRead;
 
+#ifdef SYS_STEAM_OPEN_FILE
+	file = SYS_STEAM_OPEN_FILE( path, "rb" );
+#else
 	file = fopen( path, "rb" );
+#endif
 	if ( !file ) {
 		return NULL;
 	}

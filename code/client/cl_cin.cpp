@@ -246,7 +246,15 @@ void CIN_CloseAllVideos( void ) {
 		if (cinTable[i].fileName[0] != '\0' ) {
 			CIN_StopCinematic(i);
 		}
+		// Stop may return early before the first frame, at EOF, or after a
+		// connection-state change. Bulk teardown still owns these resources.
+		cinTable[i].iFile.reset();
+		cinTable[i].fileName[0] = '\0';
+		cinTable[i].buf = nullptr;
+		cinTable[i].status = FMV_IDLE;
+		cinTable[i].dirty = false;
 	}
+	currentHandle = cin.currentHandle = CL_handle = -1;
 }
 
 

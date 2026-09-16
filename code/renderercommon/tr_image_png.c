@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "../qcommon/q_shared.h"
 #include "../renderercommon/tr_public.h"
-#include "../qcommon/puff.h"
+#include <zlib.h>
 
 // we could limit the png size to a lower value here
 #ifndef INT_MAX
@@ -701,10 +701,8 @@ static uint32_t DecompressIDATs(struct BufferedFile *BF, uint8_t **Buffer,
 	uint32_t CopiedDataLength;
 	int IDATStartBytesLeft;
 	int BytesToRewind;
-	int32_t puffResult;
-	uint32_t puffDestLen;
-	uint8_t *puffSrc;
-	uint32_t puffSrcLen;
+	int inflateResult;
+	uLongf inflatedLength;
 
 	if(!(BF && Buffer && ExpectedDataLength && ExpectedDataLength <= INT_MAX))
 	{
@@ -813,13 +811,14 @@ static uint32_t DecompressIDATs(struct BufferedFile *BF, uint8_t **Buffer,
 		return((unsigned)-1);
 	}
 
-	puffDestLen = ExpectedDataLength;
-	puffSrc = CompressedData + PNG_ZlibHeader_Size;
-	puffSrcLen = CompressedDataLength - PNG_ZlibHeader_Size - PNG_ZlibCheckValue_Size;
-	puffResult = puff(DecompressedData, &puffDestLen, puffSrc, &puffSrcLen);
+	/* Decode once into the IHDR-bounded allocation. zlib also checks the stream
+	 * header and Adler-32 trailer; never publish partial or oversized pixels. */
+	inflatedLength = ExpectedDataLength;
+	inflateResult = uncompress(DecompressedData, &inflatedLength,
+		CompressedData, CompressedDataLength);
 	ri.Free(CompressedData);
 
-	if(puffResult != 0 || puffDestLen != ExpectedDataLength)
+	if(inflateResult != Z_OK || inflatedLength != ExpectedDataLength)
 	{
 		ri.Free(DecompressedData);
 		return((unsigned)-1);

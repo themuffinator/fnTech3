@@ -48,16 +48,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define ENABLE_ALTROUTING
 //#define ALTROUTE_DEBUG
 
-struct midrangearea_t
-{
-	int valid;
-	unsigned short starttime;
-	unsigned short goaltime;
-};
-
-static midrangearea_t *midrangeareas;
-static int *clusterareas;
-static int numclusterareas;
 
 //===========================================================================
 //
@@ -72,10 +62,10 @@ static void AAS_AltRoutingFloodCluster_r(int areanum)
 	aas_face_t *face;
 
 	//add the current area to the areas of the current cluster
-	clusterareas[numclusterareas] = areanum;
-	numclusterareas++;
+	aasworld.clusterareas[aasworld.numclusterareas] = areanum;
+	aasworld.numclusterareas++;
 	//remove the area from the mid range areas
-	midrangeareas[areanum].valid = qfalse;
+	aasworld.midrangeareas[areanum].valid = qfalse;
 	//flood to other areas through the faces of this area
 	area = &aasworld.areas[areanum];
 	for (i = 0; i < area->numfaces; i++)
@@ -87,7 +77,7 @@ static void AAS_AltRoutingFloodCluster_r(int areanum)
 		//if there is an area at the other side of this face
 		if (!otherareanum) continue;
 		//if the other area is not a midrange area
-		if (!midrangeareas[otherareanum].valid) continue;
+		if (!aasworld.midrangeareas[otherareanum].valid) continue;
 		//
 		AAS_AltRoutingFloodCluster_r(otherareanum);
 	} //end for
@@ -121,7 +111,7 @@ int AAS_AlternativeRouteGoals(vec3_t start, int startareanum, vec3_t goal, int g
 	//travel time towards the goal area
 	goaltraveltime = AAS_AreaTravelTimeToGoalArea(startareanum, start, goalareanum, travelflags);
 	//clear the midrange areas
-	std::fill_n(midrangeareas, aasworld.numareas, midrangearea_t{});
+	std::fill_n(aasworld.midrangeareas, aasworld.numareas, aas_midrangearea_t{});
 	numaltroutegoals = 0;
 	//
 	nummidrangeareas = 0;
@@ -152,48 +142,48 @@ int AAS_AlternativeRouteGoals(vec3_t start, int startareanum, vec3_t goal, int g
 		//if the travel time from the area to the goal is greater than the shortest goal travel time
 		if (goaltime > (float) 0.8 * goaltraveltime) continue;
 		//this is a mid range area
-		midrangeareas[i].valid = qtrue;
-		midrangeareas[i].starttime = starttime;
-		midrangeareas[i].goaltime = goaltime;
+		aasworld.midrangeareas[i].valid = qtrue;
+		aasworld.midrangeareas[i].starttime = starttime;
+		aasworld.midrangeareas[i].goaltime = goaltime;
 		Log_Write("%d midrange area %d", nummidrangeareas, i);
 		nummidrangeareas++;
 	} //end for
 	//
 	for (i = 1; i < aasworld.numareas; i++)
 	{
-		if (!midrangeareas[i].valid) continue;
+		if (!aasworld.midrangeareas[i].valid) continue;
 		//get the areas in one cluster
-		numclusterareas = 0;
+		aasworld.numclusterareas = 0;
 		AAS_AltRoutingFloodCluster_r(i);
 		//now we've got a cluster with areas through which an alternative route could go
 		//get the 'center' of the cluster
 		VectorClear(mid);
-		for (j = 0; j < numclusterareas; j++)
+		for (j = 0; j < aasworld.numclusterareas; j++)
 		{
-			VectorAdd(mid, aasworld.areas[clusterareas[j]].center, mid);
+			VectorAdd(mid, aasworld.areas[aasworld.clusterareas[j]].center, mid);
 		} //end for
-		VectorScale(mid, 1.0 / numclusterareas, mid);
+		VectorScale(mid, 1.0 / aasworld.numclusterareas, mid);
 		//get the area closest to the center of the cluster
 		bestdist = 999999;
 		bestareanum = 0;
-		for (j = 0; j < numclusterareas; j++)
+		for (j = 0; j < aasworld.numclusterareas; j++)
 		{
-			VectorSubtract(mid, aasworld.areas[clusterareas[j]].center, dir);
+			VectorSubtract(mid, aasworld.areas[aasworld.clusterareas[j]].center, dir);
 			dist = VectorLength(dir);
 			if (dist < bestdist)
 			{
 				bestdist = dist;
-				bestareanum = clusterareas[j];
+				bestareanum = aasworld.clusterareas[j];
 			} //end if
 		} //end for
 		//now we've got an area for an alternative route
 		//FIXME: add alternative goal origin
 		VectorCopy(aasworld.areas[bestareanum].center, altroutegoals[numaltroutegoals].origin);
 		altroutegoals[numaltroutegoals].areanum = bestareanum;
-		altroutegoals[numaltroutegoals].starttraveltime = midrangeareas[bestareanum].starttime;
-		altroutegoals[numaltroutegoals].goaltraveltime = midrangeareas[bestareanum].goaltime;
+		altroutegoals[numaltroutegoals].starttraveltime = aasworld.midrangeareas[bestareanum].starttime;
+		altroutegoals[numaltroutegoals].goaltraveltime = aasworld.midrangeareas[bestareanum].goaltime;
 		altroutegoals[numaltroutegoals].extratraveltime =
-					(midrangeareas[bestareanum].starttime + midrangeareas[bestareanum].goaltime) -
+					(aasworld.midrangeareas[bestareanum].starttime + aasworld.midrangeareas[bestareanum].goaltime) -
 								goaltraveltime;
 		numaltroutegoals++;
 		//
@@ -218,10 +208,12 @@ int AAS_AlternativeRouteGoals(vec3_t start, int startareanum, vec3_t goal, int g
 void AAS_InitAlternativeRouting(void)
 {
 #ifdef ENABLE_ALTROUTING
-	if (midrangeareas) FreeMemory(midrangeareas);
-	midrangeareas = botlib::Alloc<midrangearea_t>(aasworld.numareas);
-	if (clusterareas) FreeMemory(clusterareas);
-	clusterareas = botlib::Alloc<int>(aasworld.numareas);
+	if (aasworld.midrangeareas) FreeMemory(aasworld.midrangeareas);
+	aasworld.midrangeareas = nullptr;
+	aasworld.midrangeareas = botlib::Alloc<aas_midrangearea_t>(aasworld.numareas);
+	if (aasworld.clusterareas) FreeMemory(aasworld.clusterareas);
+	aasworld.clusterareas = nullptr;
+	aasworld.clusterareas = botlib::Alloc<int>(aasworld.numareas);
 #endif
 } //end of the function AAS_InitAlternativeRouting
 //===========================================================================
@@ -233,10 +225,10 @@ void AAS_InitAlternativeRouting(void)
 void AAS_ShutdownAlternativeRouting(void)
 {
 #ifdef ENABLE_ALTROUTING
-	if (midrangeareas) FreeMemory(midrangeareas);
-	midrangeareas = nullptr;
-	if (clusterareas) FreeMemory(clusterareas);
-	clusterareas = nullptr;
-	numclusterareas = 0;
+	if (aasworld.midrangeareas) FreeMemory(aasworld.midrangeareas);
+	aasworld.midrangeareas = nullptr;
+	if (aasworld.clusterareas) FreeMemory(aasworld.clusterareas);
+	aasworld.clusterareas = nullptr;
+	aasworld.numclusterareas = 0;
 #endif
 } //end of the function AAS_ShutdownAlternativeRouting

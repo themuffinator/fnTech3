@@ -44,34 +44,26 @@ libvar_t *libvarlist = nullptr;
 //===========================================================================
 static float LibVarStringValue( const char *string )
 {
-	int dotfound = 0;
+	bool fraction = false;
+	float divisor = 10.0f;
 	float value = 0;
-
-	while(*string)
-	{
-		if (*string < '0' || *string > '9')
-		{
-			if (dotfound || *string != '.')
-			{
-				return 0;
-			} //end if
-			else
-			{
-				dotfound = 10;
-				string++;
-			} //end if
-		} //end if
-		if (dotfound)
-		{
-			value = value + (float) (*string - '0') / (float) dotfound;
-			dotfound *= 10;
-		} //end if
-		else
-		{
-			value = value * 10.0 + (float) (*string - '0');
-		} //end else
-		string++;
-	} //end while
+	// Preserve ordinary unsigned decimal arithmetic. A trailing dot must not
+	// read past NUL; long fractions must not overflow an integer divisor.
+	for ( ; *string; ++string ) {
+		if ( *string == '.' && !fraction ) { fraction = true; continue; }
+		if ( *string < '0' || *string > '9' ) return 0;
+		if ( fraction ) {
+			if ( divisor ) {
+				value += static_cast<float>( *string - '0' ) / divisor;
+				divisor = divisor < 1.0e37f ? divisor * 10.0f : 0.0f;
+			}
+		} else {
+			value = value * 10.0 + static_cast<float>( *string - '0' );
+		}
+		uint32_t bits;
+		memcpy( &bits, &value, sizeof( bits ) );
+		if ( ( bits & 0x7f800000u ) == 0x7f800000u ) return 0;
+	}
 	return value;
 } //end of the function LibVarStringValue
 //===========================================================================
@@ -86,10 +78,10 @@ libvar_t *LibVarAlloc( const char *var_name )
 
 	v = botlib::Alloc<libvar_t>();
 	*v = {};
-	v->name = botlib::CopyString(var_name);
-	//add the variable in the list
+	// Publish ownership before another allocation can abort initialization.
 	v->next = libvarlist;
 	libvarlist = v;
+	v->name = botlib::CopyString(var_name);
 	return v;
 } //end of the function LibVarAlloc
 //===========================================================================
@@ -102,7 +94,8 @@ void LibVarDeAlloc( libvar_t *v )
 {
 	if ( v->string )
 		FreeMemory( v->string );
-	FreeMemory( v->name );
+	if ( v->name )
+		FreeMemory( v->name );
 	FreeMemory( v );
 } //end of the function LibVarDeAlloc
 //===========================================================================
@@ -241,16 +234,14 @@ void LibVarSet( const char *var_name, const char *value )
 	libvar_t *v;
 
 	v = LibVarGet(var_name);
-	if ( v )
-	{
-		FreeMemory( v->string );
-	} //end if
-	else
+	if ( !v )
 	{
 		v = LibVarAlloc( var_name );
 	} //end else
-	//variable string
-	v->string = botlib::CopyString(value);
+	// Keep the previous value owned if copying fails, including aliased input.
+	char *replacement = botlib::CopyString(value);
+	if ( v->string ) FreeMemory( v->string );
+	v->string = replacement;
 	//the value
 	v->value = LibVarStringValue( v->string );
 	//variable is modified

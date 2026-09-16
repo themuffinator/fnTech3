@@ -25,11 +25,13 @@ enum {ERR_DROP=1,ERR_FATAL=2};
 struct Cvar {char string[MAX_OSPATH];} base,game;
 auto fs_basepath=&base;auto fs_gamedirvar=&game;
 int fs_checksumFeed,starts,stops,clears,refreshes;
-bool q3,safe,hardware,alwaysFail;
+bool q3,safe,hardware,alwaysFail;int rtcw;
 std::vector<std::string> commands;
 int Q_stricmp(const char*a,const char*b){return strcmp(a,b);}
 void Q_strncpyz(char*d,const char*s,int n){snprintf(d,n,"%s",s);}
-bool Com_GameIsQuake3(){return q3;}
+bool Com_GameIsQuakeLive(){return !q3 && !rtcw;}
+const char *Com_GameConfigFile(){return rtcw==1?"wolfconfig.cfg":rtcw==2?"wolfconfig_mp.cfg":"q3config.cfg";}
+const char *va(const char *format,const char *name){static char text[128];snprintf(text,sizeof(text),format,name);return text;}
 bool Com_SafeMode(){return safe;}
 bool FS_ProfileFileExists(const char*n){assert(!q3&&!strcmp(n,QL_CONFIG_HARDWARE_FILE));return hardware;}
 void Cbuf_AddText(const char*s){commands.emplace_back(s);}
@@ -47,7 +49,7 @@ void Cvar_Set(const char*n,const char*v){
 void SV_FactoryRefreshMountedContent(){++refreshes;}
 '''+function+r'''
 int main(int argc,char**argv){
- assert(argc==6);q3=argv[1][0]=='1';safe=argv[2][0]=='1';hardware=argv[3][0]=='1';
+ assert(argc==6);q3=argv[1][0]=='1';rtcw=argv[1][0]>='2'?argv[1][0]-'1':0;safe=argv[2][0]=='1';hardware=argv[3][0]=='1';
  const int scenario=argv[4][0]-'0';bool baseGame=argv[5][0]=='1';
  Q_strncpyz(base.string,scenario==0?"bad":"valid",MAX_OSPATH);
  Q_strncpyz(game.string,baseGame?"":"savedmod",MAX_OSPATH);
@@ -63,7 +65,7 @@ int main(int argc,char**argv){
  assert(starts==3&&stops==3&&clears==1&&fs_checksumFeed==99);
  std::vector<std::string> expected;
  if(!alwaysFail&&!baseGame){
-  if(q3){if(!safe)expected.emplace_back("exec q3config.cfg\n");}
+  if(q3 || rtcw){if(!safe)expected.emplace_back(std::string("exec ")+Com_GameConfigFile()+"\n");}
   else{
    if(!safe)expected.emplace_back(hardware?"execq qzconfig.cfg\n":"execq q3config.cfg\n");
 #ifndef DEDICATED
@@ -75,11 +77,12 @@ int main(int argc,char**argv){
  if(!alwaysFail){commands.clear();FS_Restart(100);assert(commands.empty()&&refreshes==3&&clears==1);}
 }
 '''
-        with tempfile.TemporaryDirectory() as d:
+        scratch=ROOT/'.tmp';scratch.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix='filesystem-recovery-',dir=scratch) as d:
             cpp=Path(d)/'test.cpp';exe=Path(d)/'test.exe';cpp.write_text(harness)
             for dedicated in (False,True):
                 subprocess.run([cc,*compiler_target_args(cc),'-std=c++17',*(['-DDEDICATED'] if dedicated else []),str(cpp),'-o',str(exe)],check=True,capture_output=True,text=True)
-                for profile in (0,1):
+                for profile in (0,1,2,3):
                     for safe in (0,1):
                         for hardware in (0,1):
                             for scenario in (0,1,2):

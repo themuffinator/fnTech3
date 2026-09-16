@@ -36,12 +36,15 @@ and one exported function: Perform
 
 #include "vm_local.h"
 #include "vm_header_bounds.h"
+#include "../compat/rtcw_module_abi.h"
+#include "../compat/rtcw_game_abi.h"
 #include "../game/g_public.h"
 #include "../ui/ui_public.h"
 #include "../renderercommon/tr_types.h"
 #ifndef USE_DEDICATED
 #include "../cgame/cg_public.h"
 #include "../client/keycodes.h"
+#include "../compat/rtcw_key_adapter.h"
 #endif
 
 opcode_info_t ops[ OP_MAX ] =
@@ -348,6 +351,14 @@ static qboolean VM_ValidateNativeDllInterface( vm_t *vm ) {
 VM_CheckBounds
 ==============
 */
+void *VM_ExplicitArgPtr( const vm_t *vm, intptr_t intValue )
+{
+	if ( !vm || !intValue ) return NULL;
+	if ( vm->entryPoint || vm->dllExports ) return (void *)intValue;
+	if ( !vm->dataBase ) return NULL;
+	return vm->dataBase + ( intValue & vm->dataMask );
+}
+
 void VM_CheckBounds( const vm_t *vm, unsigned int address, unsigned int length )
 {
 	if ( vm && ( vm->entryPoint || vm->dllExports ) ) {
@@ -2014,14 +2025,15 @@ static unsigned VM_ModuleApiForDllEntryAbi( vmDllEntryAbi_t entryAbi ) {
 	return 0;
 }
 
-static void *VM_LoadDllFromPakCache( vmIndex_t index, const char *filename ) {
+static void *VM_LoadDllFromPakCache( vmIndex_t index, const char *filename,
+	qboolean installationRoot ) {
 	void	*buffer;
 	int		length;
 	char	cachePath[MAX_OSPATH * 3 + 1];
 	void	*libHandle;
 
 	buffer = NULL;
-	length = FS_ReadFile( filename, &buffer );
+	length = FS_ReadNativeModuleFile( filename, &buffer, installationRoot );
 	if ( length <= 0 || !buffer ) {
 		if ( buffer ) {
 			FS_FreeFile( buffer );
@@ -2061,6 +2073,14 @@ static void *VM_LoadPinnedDll( vmIndex_t index, const char *filename ) {
 	if ( Q_stricmp( pinned->filename, filename ) ) {
 		return NULL;
 	}
+#ifndef USE_DEDICATED
+	if ( Com_GameProfile()->pureProof == COM_PURE_PROOF_RTCW_NATIVE &&
+		( index == VM_UI || index == VM_CGAME ) &&
+		!FS_VerifyNativeModulePak( filename, pinned->bytes, pinned->length ) ) {
+		Com_Printf( "VM_LoadDll: pinned RTCW module does not match an allowed pak: %s\n", filename );
+		return NULL;
+	}
+#endif
 	if ( !VM_NativeCachePath( filename, cachePath, sizeof( cachePath ) ) ||
 		 !VM_WriteNativeCacheFile( cachePath, pinned->bytes, pinned->length ) ) {
 		return NULL;
@@ -2074,7 +2094,7 @@ static void *VM_LoadPinnedDll( vmIndex_t index, const char *filename ) {
 }
 
 static void *VM_OpenNativeModule( vmIndex_t index, const char *filename,
-	qboolean pinnedOnly ) {
+	qboolean pinnedOnly, qboolean installationRoot ) {
 	void *libHandle;
 
 	if ( pinnedOnly ) {
@@ -2083,8 +2103,8 @@ static void *VM_OpenNativeModule( vmIndex_t index, const char *filename,
 
 	// Materialize the virtual-filesystem selection first so the bytes executed
 	// now are exactly the bytes a later pure restart can pin.
-	libHandle = VM_LoadDllFromPakCache( index, filename );
-	if ( !libHandle ) {
+	libHandle = VM_LoadDllFromPakCache( index, filename, installationRoot );
+	if ( !libHandle && !installationRoot ) {
 		// Preserve development/system layouts whose library is visible to the OS
 		// loader but intentionally not readable as a virtual file.
 		libHandle = FS_LoadLibrary( filename );
@@ -2121,6 +2141,8 @@ static void * QDECL VM_LoadDll( vmIndex_t index, const char *name,
 	vmMainFunc_t moduleEntryPoint = NULL;
 	void *moduleExports = NULL;
 	int moduleApiVersion = 0;
+	unsigned candidate;
+	int installationRoot;
 
 	/* Publish callable pointers only after accepting the library. A failed
 	 * native attempt may fall back to QVM loading, where a stale vmMain would
@@ -2133,25 +2155,15 @@ static void * QDECL VM_LoadDll( vmIndex_t index, const char *name,
 		*dllApiVersion = 0;
 	}
 
-	Com_sprintf( filename, sizeof( filename ), "%s" ARCH_STRING DLL_EXT, name );
-	libHandle = VM_OpenNativeModule( index, filename, pinnedOnly );
-
-#if defined( __linux__ ) && idx64
-	/* Retail bin.pk3 names its 64-bit Linux dedicated module qagamex64.so,
-	 * while FnQL and its FnQ3 baseline use qagamex86_64.so.  Keep the modern
-	 * name authoritative for locally built modules and accept the retail name
-	 * only as the game-module fallback.  Retail ships no Linux cgame or UI
-	 * modules, so broad architecture aliases would advertise a client boundary
-	 * that does not exist. */
-	if ( !libHandle && index == VM_GAME && !Q_stricmp( name, "qagame" ) ) {
-		Com_sprintf( filename, sizeof( filename ), "%sx64%s", name, DLL_EXT );
-		libHandle = VM_OpenNativeModule( index, filename, pinnedOnly );
+	libHandle = NULL;
+	filename[0] = '\0';
+	for ( candidate = 0; Com_GameManagerNativeModuleCandidate( Com_GameProfile(),
+		name, ARCH_STRING, DLL_EXT, candidate, filename, sizeof( filename ), &installationRoot ); ++candidate ) {
+		libHandle = VM_OpenNativeModule( index, filename, pinnedOnly, installationRoot ? qtrue : qfalse );
 		if ( libHandle ) {
-			Com_Printf( "VM_LoadDll: using retail Linux x64 module name '%s'\n",
-				filename );
+			break;
 		}
 	}
-#endif
 
 	if ( !libHandle ) {
 		if ( pinnedOnly ) {
@@ -2924,6 +2936,138 @@ qboolean VM_CallCGameRegisterCvars( vm_t *vm ) {
 }
 #endif
 
+#ifndef USE_DEDICATED
+static int VM_RTCWMenu( comGameId_t profile, int menu ) {
+	if ( profile != COM_GAME_RTCW_SP && profile != COM_GAME_RTCW_MP ) return -1;
+	switch ( menu ) {
+#define RTCW_MENU(name) case name: return profile == COM_GAME_RTCW_SP \
+	? FNTECH3_RTCW_SP_##name : FNTECH3_RTCW_MP_##name;
+#define FNTECH3_RTCW_MENU(name, sp, mp) RTCW_MENU(UIMENU_##name)
+#include "../compat/rtcw_menus.def"
+#undef FNTECH3_RTCW_MENU
+#undef RTCW_MENU
+	default: return -1;
+	}
+}
+
+static int VM_RTCWMenuFromExternal( comGameId_t profile, intptr_t menu ) {
+	int internal;
+	if ( menu < 0 ) return -1;
+	for ( internal = UIMENU_NONE; internal < UIMENU_COUNT; ++internal ) {
+		if ( VM_RTCWMenu( profile, internal ) == menu ) return internal;
+	}
+	return -1;
+}
+#endif
+
+/* Translate semantic engine exports before calling a legacy RTCW module.
+ * An accepted export of -1 ignores a key without an original RTCW equivalent.
+ * RTCW-only exports must never alias a coincident Q3/QL export. */
+static qboolean VM_PrepareRTCWExport( comGameId_t profile, vmIndex_t index,
+	int callnum, int nargs, int32_t *args, int *externalCall ) {
+	int translated = -1, minimumArgs = -1;
+	if ( ( profile != COM_GAME_RTCW_SP && profile != COM_GAME_RTCW_MP ) ||
+		!args || !externalCall || nargs < 0 || nargs >= MAX_VMMAIN_CALL_ARGS ) return qfalse;
+#define RTCW_EXPORT(name, count) case name: \
+	translated = profile == COM_GAME_RTCW_SP ? FNTECH3_RTCW_SP_##name : FNTECH3_RTCW_MP_##name; \
+	minimumArgs = count; break;
+	switch ( index ) {
+	case VM_GAME:
+		switch ( callnum ) {
+		RTCW_EXPORT(GAME_INIT, 3)
+		RTCW_EXPORT(GAME_SHUTDOWN, 1)
+		RTCW_EXPORT(GAME_CLIENT_CONNECT, 3)
+		RTCW_EXPORT(GAME_CLIENT_BEGIN, 1)
+		RTCW_EXPORT(GAME_CLIENT_USERINFO_CHANGED, 1)
+		RTCW_EXPORT(GAME_CLIENT_DISCONNECT, 1)
+		RTCW_EXPORT(GAME_CLIENT_COMMAND, 1)
+		RTCW_EXPORT(GAME_CLIENT_THINK, 1)
+		RTCW_EXPORT(GAME_RUN_FRAME, 1)
+		RTCW_EXPORT(GAME_CONSOLE_COMMAND, 0)
+		RTCW_EXPORT(BOTAI_START_FRAME, 1)
+		RTCW_EXPORT(GAME_RETRIEVE_MOVESPEEDS_FROM_CLIENT, 2)
+		RTCW_EXPORT(GAME_GETMODELINFO, 3)
+		default: return qfalse;
+		}
+		break;
+#ifndef USE_DEDICATED
+	case VM_UI:
+		switch ( callnum ) {
+		RTCW_EXPORT(UI_GETAPIVERSION, 0)
+		RTCW_EXPORT(UI_INIT, 1)
+		RTCW_EXPORT(UI_SHUTDOWN, 0)
+		RTCW_EXPORT(UI_KEY_EVENT, 2)
+		RTCW_EXPORT(UI_MOUSE_EVENT, 2)
+		RTCW_EXPORT(UI_REFRESH, 1)
+		RTCW_EXPORT(UI_IS_FULLSCREEN, 0)
+		RTCW_EXPORT(UI_SET_ACTIVE_MENU, 1)
+		RTCW_EXPORT(UI_GET_ACTIVE_MENU, 0)
+		RTCW_EXPORT(UI_CONSOLE_COMMAND, 1)
+		RTCW_EXPORT(UI_DRAW_CONNECT_SCREEN, 1)
+		RTCW_EXPORT(UI_HASUNIQUECDKEY, 0)
+		default: return qfalse;
+		}
+		break;
+	case VM_CGAME:
+		switch ( callnum ) {
+		RTCW_EXPORT(CG_INIT, profile == COM_GAME_RTCW_SP ? 2 : 3)
+		RTCW_EXPORT(CG_SHUTDOWN, 0)
+		RTCW_EXPORT(CG_CONSOLE_COMMAND, 0)
+		RTCW_EXPORT(CG_DRAW_ACTIVE_FRAME, 3)
+		RTCW_EXPORT(CG_CROSSHAIR_PLAYER, 0)
+		RTCW_EXPORT(CG_LAST_ATTACKER, 0)
+		RTCW_EXPORT(CG_KEY_EVENT, 2)
+		RTCW_EXPORT(CG_MOUSE_EVENT, 2)
+		RTCW_EXPORT(CG_EVENT_HANDLING, 1)
+		RTCW_EXPORT(CG_GET_TAG, 3)
+		default: return qfalse;
+		}
+		break;
+#endif
+	default: return qfalse;
+	}
+#undef RTCW_EXPORT
+	if ( translated < 0 || minimumArgs < 0 || nargs < minimumArgs ) return qfalse;
+#ifndef USE_DEDICATED
+	if ( ( index == VM_UI && callnum == UI_KEY_EVENT ) ||
+		( index == VM_CGAME && callnum == CG_KEY_EVENT ) ) {
+		const int key = FnTech3_RTCWKeyEventFromInternal( args[0] );
+		if ( args[1] < 0 || args[1] > 1 ) return qfalse;
+		if ( key < 0 ) translated = -1;
+		else args[0] = key;
+	}
+	if ( index == VM_UI && callnum == UI_SET_ACTIVE_MENU ) {
+		const int menu = VM_RTCWMenu( profile, args[0] );
+		if ( menu < 0 ) return qfalse;
+		args[0] = menu;
+	}
+	if ( index == VM_CGAME && callnum == CG_EVENT_HANDLING ) {
+		switch ( args[0] ) {
+#define RTCW_EVENT(name) case name: args[0] = FNTECH3_RTCW_##name; break;
+		RTCW_EVENT(CGAME_EVENT_NONE)
+		RTCW_EVENT(CGAME_EVENT_TEAMMENU)
+		RTCW_EVENT(CGAME_EVENT_SCOREBOARD)
+		RTCW_EVENT(CGAME_EVENT_EDITHUD)
+#undef RTCW_EVENT
+		default: return qfalse;
+		}
+	}
+	if ( index == VM_CGAME && callnum == CG_DRAW_ACTIVE_FRAME ) {
+		if ( args[2] < 0 || args[2] > 1 ) return qfalse;
+		switch ( args[1] ) {
+#define RTCW_STEREO(name) case name: args[1] = FNTECH3_RTCW_##name; break;
+		RTCW_STEREO(STEREO_CENTER)
+		RTCW_STEREO(STEREO_LEFT)
+		RTCW_STEREO(STEREO_RIGHT)
+#undef RTCW_STEREO
+		default: return qfalse;
+		}
+	}
+#endif
+	*externalCall = translated;
+	return qtrue;
+}
+
 intptr_t QDECL VM_Call( vm_t *vm, int nargs, int callnum, ... )
 {
 	//vm_t	*oldVM;
@@ -2932,17 +3076,66 @@ intptr_t QDECL VM_Call( vm_t *vm, int nargs, int callnum, ... )
 
 	if ( !vm ) {
 		Com_Error( ERR_FATAL, "VM_Call with NULL vm" );
+		return 0;
 	}
 
 #ifdef DEBUG
 	if ( vm_debugLevel ) {
 	  Com_Printf( "VM_Call( %d )\n", callnum );
 	}
-
-	if ( nargs >= MAX_VMMAIN_CALL_ARGS ) {
-		Com_Error( ERR_DROP, "VM_Call: nargs >= MAX_VMMAIN_CALL_ARGS" );
+#endif
+	if ( nargs < 0 || nargs >= MAX_VMMAIN_CALL_ARGS ) {
+		Com_Error( ERR_DROP, "VM_Call: invalid argument count %d", nargs );
+		return 0;
+	}
+	if ( vm->index == VM_GAME &&
+		( callnum == GAME_RETRIEVE_MOVESPEEDS_FROM_CLIENT || callnum == GAME_GETMODELINFO ) && !Com_GameIsRTCW() ) {
+		Com_Error( ERR_DROP, "RTCW animation export requires an RTCW profile" );
+		return 0;
+	}
+#ifndef USE_DEDICATED
+	if ( vm->index == VM_CGAME && callnum == CG_GET_TAG && !Com_GameIsRTCW() ) {
+		Com_Error( ERR_DROP, "RTCW tag export requires an RTCW profile" );
+		return 0;
 	}
 #endif
+
+	if ( Com_GameIsRTCW() ) {
+		int32_t args[MAX_VMMAIN_CALL_ARGS - 1] = { 0 };
+		int externalCall;
+		va_list ap;
+		if ( !vm->entryPoint || vm->dllExports ) {
+			Com_Error( ERR_DROP, "RTCW requires a legacy native module: %s", vm->name );
+			return 0;
+		}
+		va_start( ap, callnum );
+		for ( i = 0; i < nargs; ++i ) args[i] = va_arg( ap, int32_t );
+		va_end( ap );
+		if ( !VM_PrepareRTCWExport( Com_GameProfile()->id, vm->index, callnum, nargs, args, &externalCall ) ) {
+			Com_Error( ERR_DROP, "Unsupported %s %s export %d with %d arguments",
+				Com_GameProfile()->key, vm->name, callnum, nargs );
+			return 0;
+		}
+		if ( externalCall < 0 ) return 0;
+		if ( vm->callLevel == 0 ) vm->syscallCount = 0;
+		++vm->callLevel;
+		r = vm->entryPoint( externalCall,
+			args[0], args[1], args[2], args[3], args[4],
+			args[5], args[6], args[7], args[8], args[9],
+			args[10], args[11], args[12], args[13], args[14] );
+		--vm->callLevel;
+#ifndef USE_DEDICATED
+		if ( vm->index == VM_UI && callnum == UI_GET_ACTIVE_MENU ) {
+			const int menu = VM_RTCWMenuFromExternal( Com_GameProfile()->id, r );
+			if ( menu < 0 ) {
+				Com_Error( ERR_DROP, "Invalid %s active menu %lld", Com_GameProfile()->key, (long long)r );
+				return 0;
+			}
+			return menu;
+		}
+#endif
+		return r;
+	}
 
 	// reset syscall counter for top-level calls to detect infinite loops
 	if ( vm->callLevel == 0 ) {

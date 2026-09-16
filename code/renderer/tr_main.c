@@ -2705,6 +2705,8 @@ static void R_AddEntitySurfaces( void ) {
 				R_AddDrawSurf( &entitySurface, tr.defaultShader, 0, 0 );
 			} else {
 				switch ( tr.currentModel->type ) {
+				case MOD_MDS:
+				case MOD_MDC:
 				case MOD_MESH:
 					R_AddMD3Surfaces( ent, NULL );
 					break;

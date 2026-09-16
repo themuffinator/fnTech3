@@ -63,9 +63,11 @@ SV_BotAllocateClient
 int SV_BotAllocateClient( void ) {
 	client_t	*cl = nullptr;
 	sharedEntity_t entity;
+	const auto &policy = Com_GameProfile()->bots;
 
 	// find a client slot
 	for ( client_t &candidate : SV_Clients() ) {
+		if ( SV_ClientIndex( &candidate ) < policy.firstClientSlot ) continue;
 		if ( candidate.state == CS_FREE ) {
 			cl = &candidate;
 			break;
@@ -78,21 +80,22 @@ int SV_BotAllocateClient( void ) {
 
 	const int i = SV_ClientIndex( cl );
 
-	cl->gentity = SV_GentityNum( i );
-	if ( !SV_ReadGameEntity( cl->gentity, &entity ) ) {
+	auto *gentity = SV_GentityNum( i );
+	if ( !SV_ReadGameEntity( gentity, &entity ) ) {
 		Com_Error( ERR_DROP, "%s: invalid bot gentity", __func__ );
 		return -1;
 	}
 	entity.s.number = i;
-	if ( !SV_WriteGameEntity( cl->gentity, &entity ) ) {
+	if ( !SV_WriteGameEntity( gentity, &entity ) ) {
 		Com_Error( ERR_DROP, "%s: bot gentity write failed", __func__ );
 		return -1;
 	}
+	cl->gentity = gentity;
 	cl->state = CS_ACTIVE;
 	cl->lastPacketTime = svs.time;
-	cl->snapshotMsec = 1000 / sv_fps->integer;
+	if ( policy.setSnapshotInterval ) cl->snapshotMsec = 1000 / sv_fps->integer;
 	cl->netchan.remoteAddress.type = NA_BOT;
-	cl->rate = 0;
+	cl->rate = policy.clientRate;
 	cl->platformSteamId[0] = '\0';
 
 	cl->tld[0] = '\0';
@@ -116,9 +119,6 @@ void SV_BotFreeClient( int clientNum ) {
 	}
 
 	cl = &SV_ClientForIndex( clientNum );
-	cl->state = CS_FREE;
-	cl->name[0] = '\0';
-	cl->platformSteamId[0] = '\0';
 	if ( cl->gentity ) {
 		if ( !SV_ReadGameEntity( cl->gentity, &entity ) ) {
 			Com_Error( ERR_DROP, "%s: invalid bot gentity", __func__ );
@@ -130,6 +130,9 @@ void SV_BotFreeClient( int clientNum ) {
 			return;
 		}
 	}
+	cl->state = CS_FREE;
+	cl->name[0] = '\0';
+	cl->platformSteamId[0] = '\0';
 }
 
 
@@ -537,7 +540,7 @@ SV_BotInitCvars
 */
 void SV_BotInitCvars(void) {
 
-	Cvar_Get("bot_enable", "1", 0);						//enable the bot
+	Cvar_Get("bot_enable", Com_GameProfile()->bots.enabled, 0);
 	Cvar_Get("bot_developer", "0", CVAR_CHEAT);			//bot developer mode
 	Cvar_Get("bot_debug", "0", CVAR_CHEAT);				//enable bot debugging
 	Cvar_Get("bot_maxdebugpolys", "2", 0);				//maximum number of debug polys
@@ -643,7 +646,7 @@ int SV_BotGetConsoleMessage( int client, char *buf, int size )
 		}
 
 		cl->reliableAcknowledge++;
-		index = cl->reliableAcknowledge & ( MAX_RELIABLE_COMMANDS - 1 );
+		index = cl->reliableAcknowledge & ( SV_ReliableCommandLimit( cl ) - 1 );
 
 		if ( !cl->reliableCommands[index][0] ) {
 			return qfalse;

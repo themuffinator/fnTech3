@@ -9,16 +9,22 @@ public:
 	void Shutdown();
 
 	void StartSound( const float *origin, int entnum, int entchannel, sfxHandle_t sfxHandle, float volume );
+	void StartRTCWSound( const float *origin, int entity, int channel, sfxHandle_t handle, int flags );
 	void StartLocalSound( sfxHandle_t sfxHandle, int channelNum, float volume );
 	void StartBackgroundTrack( const char *intro, const char *loop );
+	void StartRTCWBackgroundTrack( const char *intro, const char *loop, int fadeTime );
+	void FadeRTCWBackgroundTrack( float volume, int time );
+	void FadeRTCWAllSounds( float volume, int time );
 	void StopBackgroundTrack();
 	void UpdateBackgroundTrack();
 	void RawSamples( int samples, int rate, int width, int channels, const byte *data, float volume );
 	void AddVoiceSamples( int clientNum, int samples, int rate, const short *data );
 	void StopAllSounds();
+	void ClearRTCWSounds( qboolean clearMusic );
 	void ClearLoopingSoundsFrame();
 	void ClearLoopingSounds( qboolean killall );
 	void AddLoopingSound( int entityNum, const float *origin, const float *velocity, sfxHandle_t sfxHandle );
+	void AddRTCWLoopingSound( const float *origin, const float *velocity, int range, sfxHandle_t handle, int volume );
 	void AddRealLoopingSound( int entityNum, const float *origin, const float *velocity, sfxHandle_t sfxHandle );
 	void StopLoopingSound( int entityNum );
 	void Respatialize( int entityNum, const float *origin, float axis[3][3], int inwater );
@@ -38,6 +44,9 @@ public:
 	void DumpSpatialDebug() const;
 
 private:
+	struct RTCWMusicOutput;
+	fntech3::audio::rtcw::SampleTime RTCWClock();
+	void ClearRTCWMusic();
 	bool FlushStream( StreamPlayer &player );
 	bool QueueStreamChunk( StreamPlayer &player, int samples, int rate, int width, int channels, const byte *data, float volume, int outputChannels, bool logFallback );
 	int StreamOutputRate() const;
@@ -60,6 +69,7 @@ private:
 	std::string backgroundLoop_;
 	int backgroundStereoFallbackChannels_ = 0;
 	adr::DeviceRecoveryState deviceRecovery_;
+	fntech3::audio::rtcw::SampleClock rtcwClock_;
 	bool started_ = false;
 	bool hardMuted_ = true;
 };
@@ -285,19 +295,31 @@ bool AudioSystem::Init( soundInterface_t *si ) {
 	started_ = true;
 	hardMuted_ = true;
 	deviceRecovery_ = {};
+	rtcwClock_ = {};
+	if ( Com_GameIsRTCWSP() ) RTCWClock();
 
 	si->Shutdown = []() { AudioSystem::Get().Shutdown(); };
 	si->StartSound = []( const vec3_t origin, int entnum, int entchannel, sfxHandle_t sfxHandle, float volume ) { AudioSystem::Get().StartSound( origin, entnum, entchannel, sfxHandle, volume ); };
+	si->StartRTCWSound = []( const vec3_t origin, int entity, int channel, sfxHandle_t handle, int flags ) { AudioSystem::Get().StartRTCWSound(origin, entity, channel, handle, flags); };
+	si->StartRTCWLocalSound = []( sfxHandle_t handle, int channel ) {
+		auto &audio = AudioSystem::Get();
+		audio.StartRTCWSound(nullptr, audio.world_.ListenerNumber(), channel, handle, 0);
+	};
 	si->StartLocalSound = []( sfxHandle_t sfxHandle, int channelNum, float volume ) { AudioSystem::Get().StartLocalSound( sfxHandle, channelNum, volume ); };
 	si->StartBackgroundTrack = []( const char *intro, const char *loop ) { AudioSystem::Get().StartBackgroundTrack( intro, loop ); };
+	si->StartRTCWBackgroundTrack = []( const char *intro, const char *loop, int time ) { AudioSystem::Get().StartRTCWBackgroundTrack( intro, loop, time ); };
+	si->FadeRTCWBackgroundTrack = []( float volume, int time ) { AudioSystem::Get().FadeRTCWBackgroundTrack( volume, time ); };
+	si->FadeRTCWAllSounds = []( float volume, int time ) { AudioSystem::Get().FadeRTCWAllSounds( volume, time ); };
 	si->StopBackgroundTrack = []() { AudioSystem::Get().StopBackgroundTrack(); };
 	si->UpdateBackgroundTrack = []() { AudioSystem::Get().UpdateBackgroundTrack(); };
 	si->RawSamples = []( int samples, int rate, int width, int channels, const byte *data, float volume ) { AudioSystem::Get().RawSamples( samples, rate, width, channels, data, volume ); };
 	si->AddVoiceSamples = []( int clientNum, int samples, int rate, const short *data ) { AudioSystem::Get().AddVoiceSamples( clientNum, samples, rate, data ); };
 	si->StopAllSounds = []() { AudioSystem::Get().StopAllSounds(); };
+	si->ClearRTCWSounds = []( qboolean clearMusic ) { AudioSystem::Get().ClearRTCWSounds( clearMusic ); };
 	si->ClearLoopingSoundsFrame = []() { AudioSystem::Get().ClearLoopingSoundsFrame(); };
 	si->ClearLoopingSounds = []( qboolean killall ) { AudioSystem::Get().ClearLoopingSounds( killall ); };
 	si->AddLoopingSound = []( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfxHandle ) { AudioSystem::Get().AddLoopingSound( entityNum, origin, velocity, sfxHandle ); };
+	si->AddRTCWLoopingSound = []( const vec3_t origin, const vec3_t velocity, int range, sfxHandle_t handle, int volume ) { AudioSystem::Get().AddRTCWLoopingSound( origin, velocity, range, handle, volume ); };
 	si->AddRealLoopingSound = []( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfxHandle ) { AudioSystem::Get().AddRealLoopingSound( entityNum, origin, velocity, sfxHandle ); };
 	si->StopLoopingSound = []( int entityNum ) { AudioSystem::Get().StopLoopingSound( entityNum ); };
 	si->Respatialize = []( int entityNum, const vec3_t origin, vec3_t axis[3], int inwater ) { AudioSystem::Get().Respatialize( entityNum, origin, axis, inwater ); };
@@ -460,6 +482,19 @@ void AudioSystem::StartSound( const float *origin, int entnum, int entchannel, s
 	world_.StartSound( entnum, entchannel, sfxHandle, sample, origin, volume );
 }
 
+void AudioSystem::StartRTCWSound( const float *origin, int entity, int channel, sfxHandle_t handle, int flags ) {
+	if ( !started_ || hardMuted_ ) return;
+	if ( !origin && (entity < 0 || entity >= MAX_GENTITIES) )
+		Com_Error(ERR_DROP, "S_StartRTCWSound: bad entitynum %i", entity);
+	auto *sample = GetSample(handle);
+	if ( !sample ) {
+		Com_Printf(S_COLOR_YELLOW "S_StartRTCWSound: handle %i out of range\n", handle);
+		return;
+	}
+	if ( sample->EnsureLoaded(device_, handle == 0) )
+		world_.StartRTCWSound(entity, channel, handle, sample, origin, flags);
+}
+
 void AudioSystem::StartLocalSound( sfxHandle_t sfxHandle, int channelNum, float volume ) {
 	if ( !started_ || hardMuted_ ) {
 		return;
@@ -479,7 +514,60 @@ void AudioSystem::CloseBackgroundStream() {
 	backgroundStereoFallbackChannels_ = 0;
 }
 
+struct AudioSystem::RTCWMusicOutput {
+	AudioSystem &system;
+	bool Ready() const { return system.started_; }
+	void Close( bool clearBuffered ) {
+		system.CloseBackgroundStream();
+		if ( clearBuffered ) system.musicPlayer_.Clear();
+	}
+	int Open( const char *name ) {
+		system.backgroundStream_ = S_CodecOpenStream( name );
+		if ( !system.backgroundStream_ ) {
+			Com_Printf( S_COLOR_YELLOW "WARNING: couldn't open music file %s\n", name );
+			return 0;
+		}
+		return system.backgroundStream_->info.rate;
+	}
+	fntech3::audio::rtcw::SampleTime Clock() { return system.RTCWClock(); }
+	void CurrentMusic( const char *name ) { Cvar_Set( "s_currentMusic", name ); }
+};
+
+fntech3::audio::rtcw::SampleTime AudioSystem::RTCWClock() {
+	const bool deviceClock = device_.RefreshTimingDiagnostics();
+	const auto micros = deviceClock ? device_.Capabilities().deviceClockValue / 1000 : Sys_Microseconds();
+	return rtcwClock_.Advance( micros, deviceClock, StreamOutputRate() );
+}
+
+void AudioSystem::StartRTCWBackgroundTrack( const char *intro, const char *loop, int fadeTime ) {
+	RTCWMusicOutput output{ *this };
+	S_RTCWMusic().Start( output, intro, loop, fadeTime );
+	if ( fadeTime >= 0 && started_ ) {
+		const float volume = s_musicVolume != nullptr ? s_musicVolume->value : 1.0f;
+		musicPlayer_.Update( IsSoftMuted() ? 0.0f : volume *
+			ClampFloat( S_RTCWMusic().Gain( RTCWClock() ), 0.0f, 16.0f ) *
+			fntech3::audio::rtcw::PlaybackGain( S_RTCWMasterFade().current ), false );
+	}
+}
+
+void AudioSystem::FadeRTCWBackgroundTrack( float volume, int time ) {
+	S_RTCWMusic().Fade( volume, time, RTCWClock() );
+}
+
+void AudioSystem::FadeRTCWAllSounds( float volume, int time ) {
+	S_RTCWMasterFade().Set( volume, time, RTCWClock(), StreamOutputRate() );
+}
+
+void AudioSystem::ClearRTCWMusic() {
+	RTCWMusicOutput output{ *this };
+	S_RTCWMusic().Clear( output );
+}
+
 void AudioSystem::StartBackgroundTrack( const char *intro, const char *loop ) {
+	if ( Com_GameIsRTCWSP() ) {
+		StartRTCWBackgroundTrack( intro, loop, 0 );
+		return;
+	}
 	if ( !started_ ) {
 		return;
 	}
@@ -503,6 +591,10 @@ void AudioSystem::StartBackgroundTrack( const char *intro, const char *loop ) {
 }
 
 void AudioSystem::StopBackgroundTrack() {
+	if ( Com_GameIsRTCWSP() ) {
+		S_RTCWMusic().Stop();
+		return;
+	}
 	CloseBackgroundStream();
 	backgroundIntro_.clear();
 	backgroundLoop_.clear();
@@ -514,12 +606,22 @@ void AudioSystem::UpdateBackgroundTrack() {
 		return;
 	}
 	const float musicVolume = ( s_musicVolume != nullptr ) ? s_musicVolume->value : 1.0f;
-	if ( musicVolume > 0.0f ) {
+	if ( musicVolume > 0.0f || Com_GameIsRTCWSP() ) {
 		ServiceBackgroundTrack();
+	}
+	if ( Com_GameIsRTCWSP() ) {
+		// OpenAL applies the fade to the playing source, including buffered PCM.
+		// This avoids quantizing a short fade into whole decoded buffer chunks.
+		musicPlayer_.Update( IsSoftMuted() ? 0.0f : musicVolume *
+			ClampFloat( S_RTCWMusic().Gain( RTCWClock() ), 0.0f, 16.0f ) *
+			fntech3::audio::rtcw::PlaybackGain( S_RTCWMasterFade().current ) );
 	}
 }
 
 void AudioSystem::ServiceBackgroundTrack() {
+	RTCWMusicOutput rtcwOutput{ *this };
+	if ( Com_GameIsRTCWSP() && !S_RTCWMusic().BeginService( rtcwOutput,
+		s_musicVolume != nullptr ? s_musicVolume->value : 1.0f ) ) return;
 	if ( backgroundStream_ == nullptr ) {
 		return;
 	}
@@ -536,6 +638,11 @@ void AudioSystem::ServiceBackgroundTrack() {
 		if ( !readBytes ) { StopBackgroundTrack(); break; }
 		const int bytesRead = S_CodecReadStream( backgroundStream_, readBytes, raw.data() );
 		if ( bytesRead <= 0 ) {
+			if ( Com_GameIsRTCWSP() ) {
+				FlushStream( musicPlayer_ );
+				S_RTCWMusic().EndOfTrack( rtcwOutput );
+				break;
+			}
 			if ( !backgroundLoop_.empty() ) {
 				if ( emptyRestarts > 0 ) {
 					Com_Printf( S_COLOR_YELLOW "WARNING: music loop %s produced no audio\n", backgroundLoop_.c_str() );
@@ -615,7 +722,17 @@ void AudioSystem::StopAllSounds() {
 	world_.StopAllSounds();
 	rawPlayer_.Clear();
 	voicePlayer_.Clear();
-	StopBackgroundTrack();
+	if ( Com_GameIsRTCWSP() ) ClearRTCWMusic();
+	else StopBackgroundTrack();
+}
+
+void AudioSystem::ClearRTCWSounds( qboolean clearMusic ) {
+	if ( !started_ ) return;
+	world_.StopAllSounds();
+	rawPlayer_.Clear();
+	voicePlayer_.Clear();
+	if ( clearMusic ) ClearRTCWMusic();
+	else UpdateBackgroundTrack();
 }
 
 void AudioSystem::ClearLoopingSounds( qboolean killall ) {
@@ -652,6 +769,16 @@ void AudioSystem::DumpSpatialDebug() const {
 	}
 
 	world_.DumpSpatialDebug( device_, preferredEntity );
+}
+
+void AudioSystem::AddRTCWLoopingSound( const float *origin, const float *velocity,
+	int range, sfxHandle_t handle, int volume ) {
+	if ( !started_ || hardMuted_ || cls.state != CA_ACTIVE || !world_.AcceptsRTCWLoop( volume ) ) return;
+	SoundSample *sample = GetSample( handle );
+	if ( !sample ) Com_Error( ERR_DROP, "RTCW looping sound handle %d is invalid", handle );
+	if ( !sample->EnsureLoaded( device_, handle == 0 ) ) return;
+	world_.AddRTCWLoopingSound( origin, velocity, range, handle, volume, sample,
+		Com_GameIsRTCWSP() ? S_RTCWMasterFade().current : 1.0f );
 }
 
 void AudioSystem::AddLoopingSound( int entityNum, const float *origin, const float *velocity, sfxHandle_t sfxHandle ) {
@@ -709,11 +836,15 @@ void AudioSystem::Update( int msec ) {
 		return;
 	}
 	if ( !UpdateDeviceState( msec ) ) {
+		rtcwClock_.Pause();
 		return;
 	}
 
 	const qboolean softMuted = IsSoftMuted();
-	device_.SetMasterGain( ( s_volume != nullptr ) ? s_volume->value : 1.0f );
+	const float streamGain = Com_GameIsRTCWSP() ?
+		fntech3::audio::rtcw::PlaybackGain( S_RTCWMasterFade().Value( RTCWClock() ) ) : 1.0f;
+	// SP effects quantize the master fade independently of streamed audio.
+	device_.SetMasterGain( Com_GameIsRTCWSP() ? 1.0f : ( s_volume != nullptr ? s_volume->value : 1.0f ) );
 	device_.ApplyDopplerState();
 	const bool deferredUpdates = device_.BeginDeferredUpdates();
 	world_.Update( softMuted );
@@ -723,11 +854,11 @@ void AudioSystem::Update( int msec ) {
 	// RawSamples has no end-of-stream callback. Drain its small interpolation
 	// tail once the submitted buffers have played out; explicit clears discard it.
 	if ( rawPlayer_.Idle() ) FlushStream( rawPlayer_ );
-	rawPlayer_.Update( softMuted ? 0.0f : 1.0f );
+	rawPlayer_.Update( softMuted ? 0.0f : streamGain );
 	const float voiceVolume = ( s_voiceVolume != nullptr ) ? ClampFloat( s_voiceVolume->value, 0.0f, 2.0f ) : 1.0f;
-	voicePlayer_.Update( softMuted ? 0.0f : voiceVolume );
+	voicePlayer_.Update( softMuted ? 0.0f : voiceVolume * streamGain );
 	const float musicVolume = ( s_musicVolume != nullptr ) ? s_musicVolume->value : 1.0f;
-	musicPlayer_.Update( softMuted ? 0.0f : musicVolume );
+	if ( !Com_GameIsRTCWSP() ) musicPlayer_.Update( softMuted ? 0.0f : musicVolume );
 	UpdateBackgroundTrack();
 }
 
@@ -735,7 +866,8 @@ void AudioSystem::DisableSounds() {
 	world_.StopAllSounds();
 	rawPlayer_.Clear();
 	voicePlayer_.Clear();
-	StopBackgroundTrack();
+	if ( Com_GameIsRTCWSP() ) ClearRTCWMusic();
+	else StopBackgroundTrack();
 	hardMuted_ = true;
 }
 
@@ -830,9 +962,11 @@ void AudioSystem::SoundInfo() {
 	weaponSoundShaders_.EnsureLoaded();
 	Com_Printf( "%5d weapon sound shader rules\n", weaponSoundShaders_.Count() );
 	Com_Printf( "%5lu registered samples\n", static_cast<unsigned long>( samples_.size() ) );
-	Com_Printf( "Background track: %s\n", backgroundIntro_.empty() ? "none" : backgroundIntro_.c_str() );
-	if ( !backgroundLoop_.empty() && backgroundLoop_ != backgroundIntro_ ) {
-		Com_Printf( "Background loop: %s\n", backgroundLoop_.c_str() );
+	const auto &intro = Com_GameIsRTCWSP() ? S_RTCWMusic().Name() : backgroundIntro_;
+	const auto &loop = Com_GameIsRTCWSP() ? S_RTCWMusic().Loop() : backgroundLoop_;
+	Com_Printf( "Background track: %s\n", intro.empty() ? "none" : intro.c_str() );
+	if ( !loop.empty() && loop != intro ) {
+		Com_Printf( "Background loop: %s\n", loop.c_str() );
 	}
 	Com_Printf( "----------------------\n" );
 }

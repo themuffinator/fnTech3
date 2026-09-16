@@ -52,6 +52,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #define SVF_SELF_PORTAL2		0x00020000  // merge a second pvs at entity->r.s.origin2 into snapshots
 
+// Canonical engine flags. Frozen RTCW module bits are translated at the boundary.
+#define SVF_RTCW_VISDUMMY           0x00040000
+#define SVF_RTCW_CASTAI             0x00080000
+#define SVF_RTCW_NOFOOTSTEPS        0x00100000
+#define SVF_RTCW_VISDUMMY_MULTIPLE  0x00200000
+
 //===============================================================
 
 
@@ -674,6 +680,13 @@ typedef enum {
 
 	GAME_EXPORT_LAST
 } gameExport_t;
+
+// Engine semantic calls only; VM_Call translates these to the selected
+// profile's frozen vmMain ordinal. They are not Q3/QL module exports.
+typedef enum {
+	GAME_RETRIEVE_MOVESPEEDS_FROM_CLIENT = 0x10000, // ( int entity, char *text );
+	GAME_GETMODELINFO // SP: ( int client, char *modelName, opaque native modelInfo ** );
+} gameEngineExport_t;
 
 // Retail Quake Live native DLL slot order recovered from qagamex86.dll dllEntry().
 typedef enum {

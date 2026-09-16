@@ -2410,6 +2410,53 @@ void Cvar_UpdateLegacy( void *vmCvar, int privateFlag ) {
 }
 
 
+/* RTCW has the original 272-byte record, with flags passed separately. Copy
+ * through engine state so neither the QL flags word nor a partial update can
+ * escape into the module's string. An unsuccessful registration publishes
+ * nothing; update preserves all bytes when the engine declines an update. */
+static void Cvar_CopyInternalToRTCW( fntech3_rtcw_vmCvar_t *destination, const vmCvar_t *source ) {
+	destination->handle = source->handle;
+	destination->modificationCount = source->modificationCount;
+	destination->value = source->value;
+	destination->integer = source->integer;
+	Com_Memcpy( destination->string, source->string, sizeof( destination->string ) );
+}
+
+void Cvar_RegisterRTCW( void *vmCvar, const char *varName, const char *defaultValue, int flags, int privateFlag ) {
+	fntech3_rtcw_vmCvar_t *destination = (fntech3_rtcw_vmCvar_t *)vmCvar;
+	vmCvar_t internal = { 0 };
+	int translatedFlags;
+	if ( !Com_GameIsRTCW() ) {
+		Com_Error( ERR_DROP, "RTCW cvar registration requires an RTCW profile" );
+		return;
+	}
+	translatedFlags = (int)FnTech3_RTCWCvarFlagsToInternal( Com_GameProfile()->id, (uint32_t)flags );
+	internal.handle = -1;
+	Cvar_Register( destination ? &internal : NULL, varName, defaultValue, translatedFlags, privateFlag );
+	if ( destination && internal.handle >= 0 ) {
+		Cvar_CopyInternalToRTCW( destination, &internal );
+	}
+}
+
+void Cvar_UpdateRTCW( void *vmCvar, int privateFlag ) {
+	fntech3_rtcw_vmCvar_t *destination = (fntech3_rtcw_vmCvar_t *)vmCvar;
+	vmCvar_t internal = { 0 };
+	if ( !Com_GameIsRTCW() ) {
+		Com_Error( ERR_DROP, "RTCW cvar update requires an RTCW profile" );
+		return;
+	}
+	if ( !destination ) {
+		return;
+	}
+	internal.handle = destination->handle;
+	internal.modificationCount = destination->modificationCount;
+	internal.value = destination->value;
+	internal.integer = destination->integer;
+	Com_Memcpy( internal.string, destination->string, sizeof( internal.string ) );
+	Cvar_Update( &internal, privateFlag );
+	Cvar_CopyInternalToRTCW( destination, &internal );
+}
+
 /*
 ==================
 Cvar_CompleteCvarName

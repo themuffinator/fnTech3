@@ -1608,10 +1608,10 @@ class WebUiWiringTests(unittest.TestCase):
                 self.assertIn("out[s_worldData.numAdvertisements].occlusionQueryIds[0] = 0;", tr_bsp)
                 self.assertIn("out[s_worldData.numAdvertisements].sourceIndex = i;", tr_bsp)
                 self.assertIn("QLBSP_ReadAdvertisementLump( buffer.b", tr_bsp)
-                self.assertIn("if ( header->version == BSP_VERSION_QL )", tr_bsp)
+                self.assertIn("if ( bspFormat == COM_GAME_BSP_QUAKELIVE )", tr_bsp)
                 self.assertRegex(
                     tr_bsp,
-                    r"R_LoadSubmodels[^\n]*\n\tif \( header->version == BSP_VERSION_QL \) \{\n\t\tR_LoadAdvertisements",
+                    r"R_LoadSubmodels[^\n]*\n\tif \( bspFormat == COM_GAME_BSP_QUAKELIVE \) \{\n\t\tR_LoadAdvertisements",
                 )
                 self.assertIn("BSP_VERSION, BSP_VERSION_QL", tr_bsp)
 

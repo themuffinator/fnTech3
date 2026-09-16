@@ -1645,10 +1645,11 @@ void OpenALDevice::DestroyVoiceFilters( ALuint &directFilter, ALuint &sendFilter
 }
 
 void OpenALDevice::ApplyVoiceRouting( ALuint source, ALuint directFilter, ALuint sendFilter, float sourceGain, float directGain, const AudioFilterSettings &directTone, const AudioFilterSettings &sendTone, VoiceRouteCache &cache ) const {
-	sourceGain = ClampFloat( sourceGain, 0.0f, 2.0f );
+	const float sourceLimit = Com_GameIsRTCWSP() ? 2.0f * 255.0f / 127.0f : 2.0f;
+	sourceGain = ClampFloat( sourceGain, 0.0f, sourceLimit );
 	directGain = ClampFloat( directGain, 0.0f, 1.0f );
-	const float routedGain = ClampFloat( sourceGain * directGain, 0.0f, 2.0f );
-	const float maxGain = ClampFloat( ( std::max )( routedGain, 1.0f ), 1.0f, 2.0f );
+	const float routedGain = ClampFloat( sourceGain * directGain, 0.0f, sourceLimit );
+	const float maxGain = ClampFloat( ( std::max )( routedGain, 1.0f ), 1.0f, sourceLimit );
 
 	// Sources snapshot filter parameters when a filter is attached, so tone
 	// changes need a reconfigure and reattach. In the common steady state the

@@ -772,7 +772,10 @@ endif # !MINGW
 # Keep the target-selecting flags present even when callers set the customary
 # build variables on GNU Make's command line. The central q_platform.h guard is
 # the final compiler-level check if a wrapper ignores these arguments.
-override BASE_CFLAGS += $(FNQL_REQUIRED_ARCH_CFLAGS)
+ZLIB_CFLAGS ?= $(shell pkg-config --cflags zlib 2>/dev/null)
+ZLIB_LIBS ?= -lz
+override BASE_CFLAGS += $(FNQL_REQUIRED_ARCH_CFLAGS) $(ZLIB_CFLAGS)
+LDFLAGS += $(ZLIB_LIBS)
 override CFLAGS += $(FNQL_REQUIRED_ARCH_CFLAGS)
 override CXXFLAGS += $(FNQL_REQUIRED_ARCH_CFLAGS)
 override LDFLAGS += $(FNQL_REQUIRED_ARCH_LDFLAGS)
@@ -852,22 +855,29 @@ endef
 
 define DO_CXX
 $(echo_cmd) "CXX $<"
-$(Q)$(CXX) $(CXXFLAGS) -o $@ -c $<
+$(Q)$(CXX) $(CXXFLAGS) $(AUDIO_FP_CFLAGS) -o $@ -c $<
 endef
+
+# RTCW module fade values and PCM gain conversion require IEEE semantics.
+AUDIO_FP_CFLAGS = $(if $(filter snd_main.cpp snd_dma.cpp snd_mix.cpp AudioSystem.cpp,$(notdir $<)),-fno-fast-math)
 
 define DO_DED_CXX
 $(echo_cmd) "DED_CXX $<"
 $(Q)$(CXX) $(CXXFLAGS) -DDEDICATED -o $@ -c $<
 endef
 
+# RTCW module light parameters and projected vertices may be non-finite.
+# These boundary files require IEEE arithmetic even in legacy fast-math builds.
+RENDERER_FP_CFLAGS = $(if $(filter tr_scene.c tr_shade.c,$(notdir $<)),-fno-fast-math)
+
 define DO_REND_CC
 $(echo_cmd) "REND_CC $<"
-$(Q)$(CC) $(CFLAGS) $(RENDCFLAGS) -o $@ -c $<
+$(Q)$(CC) $(CFLAGS) $(RENDCFLAGS) $(RENDERER_FP_CFLAGS) -o $@ -c $<
 endef
 
 define DO_GLX_REND_CC
 $(echo_cmd) "GLX_REND_CC $<"
-$(Q)$(CC) $(CFLAGS) $(RENDCFLAGS) $(GLX_RENDCFLAGS) -o $@ -c $<
+$(Q)$(CC) $(CFLAGS) $(RENDCFLAGS) $(GLX_RENDCFLAGS) $(RENDERER_FP_CFLAGS) -o $@ -c $<
 endef
 
 define DO_GLX_REND_CXX
@@ -882,7 +892,7 @@ endef
 
 define DO_RENDV_CC
 $(echo_cmd) "RENDV_CC $<"
-$(Q)$(CC) $(CFLAGS) $(RENDCFLAGS) $(VK_RENDCFLAGS) -o $@ -c $<
+$(Q)$(CC) $(CFLAGS) $(RENDCFLAGS) $(VK_RENDCFLAGS) $(RENDERER_FP_CFLAGS) -o $@ -c $<
 endef
 
 GLX_RENDCFLAGS = -DRENDERER_GLX
@@ -904,7 +914,7 @@ endif
 
 define DO_RENDRTX_CC
 $(echo_cmd) "RENDRTX_CC $<"
-$(Q)$(CC) $(CFLAGS) $(RENDCFLAGS) $(RTX_RENDCFLAGS) -o $@ -c $<
+$(Q)$(CC) $(CFLAGS) $(RENDCFLAGS) $(RTX_RENDCFLAGS) $(RENDERER_FP_CFLAGS) -o $@ -c $<
 endef
 
 define DO_BOT_CXX
@@ -1236,6 +1246,7 @@ Q3OBJ = \
   \
 	$(B)/client/fnql_steam.o \
 	$(B)/client/fnql_workshop.o \
+	$(B)/client/process_relaunch.o \
 	\
   $(B)/client/cmd.o \
   $(B)/client/common.o \
@@ -1504,6 +1515,7 @@ Q3DOBJ = \
   $(B)/ded/cm_trace.o \
 	$(B)/ded/fnql_steam.o \
 	$(B)/ded/fnql_workshop.o \
+	$(B)/ded/process_relaunch.o \
   $(B)/ded/cmd.o \
   $(B)/ded/common.o \
 	$(B)/ded/game_abi_adapter.o \

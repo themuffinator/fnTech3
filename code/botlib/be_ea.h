@@ -61,6 +61,10 @@ void EA_View(int client, vec3_t viewangles);
 void EA_EndRegular(int client, float thinktime);
 void EA_GetInput(int client, float thinktime, bot_input_t *input);
 void EA_ResetInput(int client);
+// Internal services for the RTCW adapter; the Quake bot export ABI is unchanged.
+bool EA_ClientInputAvailable(int client);
+unsigned EA_RTCWExtraInputFlags(int client);
+void EA_RestoreRTCWInput(int client, const bot_input_t *input, unsigned extraFlags);
 //setup and shutdown routines
 int EA_Setup(void);
 void EA_Shutdown(void);

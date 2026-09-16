@@ -451,6 +451,12 @@ typedef enum {
 	CG_EXPORT_LAST,
 } cgameExport_t;
 
+// Engine-only semantic exports. VM_Call maps these to the selected RTCW
+// vmMain ordinal; they must never overlap the published Q3/QL export numbers.
+typedef enum {
+	CG_GET_TAG = 0x10000 // ( int client, char *tagName, RTCW orientation * );
+} cgameEngineExport_t;
+
 // Retail Quake Live native DLL slot order recovered from cgamex86.dll dllEntry().
 typedef enum {
 	CG_NATIVE_EXPORT_INIT,

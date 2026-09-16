@@ -27,22 +27,25 @@ def function_body(source: str, name: str) -> str:
 
 
 class LaunchAndTransitionSourceTests(unittest.TestCase):
-    def test_vscode_launches_force_steam_and_target_matching_binary(self) -> None:
+    def test_vscode_launches_keep_profile_services_and_target_matching_binary(self) -> None:
         launch = json.loads(read_source(".vscode/launch.json"))
 
         self.assertTrue(launch["configurations"])
         for configuration in launch["configurations"]:
             args = configuration["args"]
+            profile = args[args.index("com_gameProfile") + 1] if "com_gameProfile" in args else "auto"
+            self.assertIn(profile, ("auto", "q3", "quake3", "ql", "quakelive", "rtcw-sp", "rtcw-mp"))
+            local_services = profile in ("q3", "quake3", "rtcw-sp", "rtcw-mp")
             steam_index = args.index("com_steamIntegration")
-            self.assertEqual(args[steam_index + 1], "1", configuration["name"])
+            self.assertEqual(args[steam_index + 1], "0" if local_services else "1", configuration["name"])
             # Launching must not implicitly rebuild the engine. These profiles
             # intentionally target the selected, already-built x86 binary;
             # the separate build tasks below provide explicit Steam staging.
             self.assertNotIn("preLaunchTask", configuration, configuration["name"])
             self.assertNotIn("disabled", configuration["name"].lower())
-            self.assertIn("Retail QL / Win32", configuration["name"])
+            self.assertIn("Win32", configuration["name"])
 
-            if "Retail QL / Win32" in configuration["name"]:
+            if "Win32" in configuration["name"]:
                 expected_build_dir = (
                     "meson\\build\\win32-rtx\\"
                     if configuration["name"].startswith("RTX ")
@@ -50,7 +53,7 @@ class LaunchAndTransitionSourceTests(unittest.TestCase):
                 )
                 self.assertIn(expected_build_dir, configuration["program"])
                 self.assertNotIn("win32-debug", configuration["program"])
-                if "Dedicated" not in configuration["name"]:
+                if not local_services and "Dedicated" not in configuration["name"]:
                     webui_index = args.index("cl_webuiEnable")
                     self.assertEqual(args[webui_index + 1], "1", configuration["name"])
 
@@ -283,9 +286,10 @@ class LaunchAndTransitionSourceTests(unittest.TestCase):
         mute_update = cgame[mute_start:mute_end]
 
         self.assertIn(
-            "index >= CS_PLAYERS && index < CS_PLAYERS + MAX_CLIENTS",
+            "index >= Com_GamePlayerConfigstringBase() &&",
             config_update,
         )
+        self.assertIn("index < Com_GamePlayerConfigstringBase() + Com_GameClientLimit()", config_update)
         self.assertIn("CL_WebHost_InvalidateFriendSnapshot();", config_update)
         self.assertEqual(
             mute_update.count("CL_WebHost_InvalidateFriendSnapshot();"),

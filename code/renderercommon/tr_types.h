@@ -61,6 +61,16 @@ typedef struct {
 	color4ub_t	modulate;
 } polyVert_t;
 
+// Canonical 2D geometry. A colorMask bit chooses an explicit corner color;
+// other corners use the renderer's current 2D color when the command executes.
+// This record is private to the engine/renderer API, never a module ABI.
+typedef struct {
+	vec2_t xy[4], st[4];
+	color4ub_t colors[4];
+	unsigned int colorMask;
+	qhandle_t shader;
+} refDrawQuad_t;
+
 typedef struct poly_s {
 	qhandle_t			hShader;
 	int					numVerts;
@@ -76,9 +86,24 @@ typedef enum {
 	RT_RAIL_RINGS,
 	RT_LIGHTNING,
 	RT_PORTALSURFACE,		// doesn't draw anything, just info for portals
+	RT_SPLASH,
+	RT_RAIL_CORE_TAPER,
 
 	RT_MAX_REF_ENTITY_TYPE
 } refEntityType_t;
+
+// Engine-owned RTCW animation/effect state. Module records are frozen in
+// compat/ and translated before crossing the renderer API.
+typedef struct {
+	vec3_t torsoAxis[3];
+	int torsoFrame, oldTorsoFrame;
+	float torsoBacklerp;
+	vec3_t scale, fireRiseDir;
+	int fadeStartTime, fadeEndTime;
+	float hilightIntensity;
+	int reFlags, entityNum;
+	qboolean highlight, blink;
+} rtcwRenderEntity_t;
 
 typedef struct {
 	refEntityType_t	reType;
@@ -115,11 +140,27 @@ typedef struct {
 	// extra sprite information
 	float		radius;
 	float		rotation;
+	rtcwRenderEntity_t rtcw;
 } refEntity_t;
 
 
 #define	MAX_RENDER_STRINGS			8
 #define	MAX_RENDER_STRING_LENGTH	32
+
+typedef struct {
+	int mode, hint, startTime, finishTime;
+	vec4_t color;
+	float start, end;
+	qboolean useEndForClip;
+	float density;
+	qboolean registered, drawsky, clearscreen;
+	int dirty;
+} rtcwRenderFog_t;
+
+typedef struct {
+	qboolean skyboxPortal, drawSkybox, underwater, drawingSky, snooperView;
+	rtcwRenderFog_t fog;
+} rtcwRenderView_t;
 
 typedef struct {
 	int			x, y, width, height;
@@ -137,6 +178,7 @@ typedef struct {
 
 	// text messages for deform text shaders
 	char		text[MAX_RENDER_STRINGS][MAX_RENDER_STRING_LENGTH];
+	rtcwRenderView_t rtcw;
 } refdef_t;
 
 /*

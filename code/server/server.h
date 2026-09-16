@@ -75,9 +75,10 @@ typedef struct {
 	int				serverId;			// changes each server start
 	int				restartedServerId;	// changes each map restart
 	int				checksumFeed;		// the feed key that we use to compute the pure checksum strings
+	int				checksumFeedServerId; // RTCW MP retains this across fast map restarts
 	int				snapshotCounter;	// incremented for each snapshot built
 	int				timeResidual;		// <= 1000 / sv_frame->value
-	char			*configstrings[MAX_CONFIGSTRINGS];
+	char			*configstrings[MAX_GAME_CONFIGSTRINGS];
 	svEntity_t		svEntities[MAX_GENTITIES];
 
 	const char		*entityParsePoint;	// used during game VM init
@@ -126,7 +127,7 @@ typedef enum {
 
 typedef struct netchan_buffer_s {
 	msg_t           msg;
-	byte            msgBuffer[MAX_MSGLEN];
+	byte            msgBuffer[MAX_GAME_MSGLEN];
 	char		clientCommandString[MAX_STRING_CHARS];	// valid command string for SV_Netchan_Encode
 	struct netchan_buffer_s *next;
 } netchan_buffer_t;
@@ -166,7 +167,7 @@ typedef struct client_s {
 	clientState_t	state;
 	char			userinfo[MAX_INFO_STRING];		// name, etc
 
-	char			reliableCommands[MAX_RELIABLE_COMMANDS][MAX_STRING_CHARS];
+	char			reliableCommands[MAX_GAME_RELIABLE_COMMANDS][MAX_STRING_CHARS];
 	int				reliableSequence;		// last added reliable message, not necessarily sent or acknowledged yet
 	int				reliableAcknowledge;	// last acknowledged reliable message
 	int				messageAcknowledge;
@@ -225,7 +226,7 @@ typedef struct client_s {
 	netchan_buffer_t **netchan_end_queue;
 
 	int				oldServerTime;
-	qboolean		csUpdated[MAX_CONFIGSTRINGS];
+	qboolean		csUpdated[MAX_GAME_CONFIGSTRINGS];
 	qboolean		compat;
 
 	// flood protection
@@ -247,6 +248,10 @@ typedef struct client_s {
 	int				demoRecordServerId;
 
 } client_t;
+
+static inline int SV_ReliableCommandLimit( const client_t *client ) {
+	return Netchan_ReliableCommandLimit( client->netchan.wireProfile );
+}
 
 //=============================================================================
 
@@ -417,6 +422,7 @@ void SV_SetConfigstring( int index, const char *val );
 void SV_GetConfigstring( int index, char *buffer, int bufferSize );
 void SV_UpdateConfigstrings( client_t *client );
 void SV_UpdateQLCvarConfigstrings( qboolean force );
+void SV_UpdateRTCWCvarConfigstrings( qboolean force );
 
 void SV_SetUserinfo( int index, const char *val );
 void SV_GetUserinfo( int index, char *buffer, int bufferSize );
@@ -501,6 +507,7 @@ int SV_RemainingGameState( void );
 int	SV_NumForGentity( sharedEntity_t *ent );
 sharedEntity_t *SV_GentityNum( int num );
 qboolean	SV_ReadGameEntity( const void *entity, sharedEntity_t *destination );
+qboolean	SV_ClientIsRTCWCastAI( const client_t *client );
 qboolean	SV_WriteGameEntity( void *entity, const sharedEntity_t *source );
 qboolean	SV_ReadGameEntityByNum( int num, sharedEntity_t *destination );
 qboolean	SV_WriteGameEntityByNum( int num, const sharedEntity_t *source );

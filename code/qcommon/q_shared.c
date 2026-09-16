@@ -248,7 +248,7 @@ crc32_buffer
 ==================
 */
 unsigned int crc32_buffer( const byte *buf, unsigned int len ) {
-	static unsigned int crc32_table[256];
+	static unsigned int crc32_table[8][256];
 	static qboolean crc32_inited = qfalse;
 
 	unsigned int crc = 0xFFFFFFFFUL;
@@ -256,21 +256,43 @@ unsigned int crc32_buffer( const byte *buf, unsigned int len ) {
 	if ( !crc32_inited )
 	{
 		unsigned int c;
-		int i, j;
+		int i, j, slice;
 
 		for (i = 0; i < 256; i++)
 		{
 			c = i;
 			for ( j = 0; j < 8; j++ )
 				c = (c & 1) ? (c >> 1) ^ 0xEDB88320UL : c >> 1;
-			crc32_table[i] = c;
+			crc32_table[0][i] = c;
+		}
+		// Each additional table advances a remainder by one more zero byte.
+		for ( slice = 1; slice < 8; slice++ ) {
+			for ( i = 0; i < 256; i++ ) {
+				c = crc32_table[slice - 1][i];
+				crc32_table[slice][i] = ( c >> 8 ) ^ crc32_table[0][c & 0xFF];
+			}
 		}
 		crc32_inited = qtrue;
 	}
 
+	// Process eight bytes independently instead of serializing every byte on
+	// the previous lookup. Explicit byte assembly supports unaligned buffers
+	// and both host byte orders, without reading beyond the supplied length.
+	while ( len >= 8 ) {
+		const unsigned int low = crc ^ (unsigned int)buf[0] ^
+			( (unsigned int)buf[1] << 8 ) ^ ( (unsigned int)buf[2] << 16 ) ^
+			( (unsigned int)buf[3] << 24 );
+		crc = crc32_table[7][low & 0xFF] ^ crc32_table[6][( low >> 8 ) & 0xFF] ^
+			crc32_table[5][( low >> 16 ) & 0xFF] ^ crc32_table[4][low >> 24] ^
+			crc32_table[3][buf[4]] ^ crc32_table[2][buf[5]] ^
+			crc32_table[1][buf[6]] ^ crc32_table[0][buf[7]];
+		buf += 8;
+		len -= 8;
+	}
+
 	while ( len-- )
 	{
-		crc = crc32_table[(crc ^ *buf++) & 0xFF] ^ (crc >> 8);
+		crc = crc32_table[0][(crc ^ *buf++) & 0xFF] ^ (crc >> 8);
 	}
 
 	return crc ^ 0xFFFFFFFFUL;

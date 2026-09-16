@@ -29,10 +29,13 @@ extern "C" {
 #include "client_cpp.h"
 #include "ql_font_bridge.hpp"
 #include "../compat/game_abi_adapter.h"
+#include "../compat/rtcw_module_abi.h"
+#include "../compat/rtcw_client_adapter.hpp"
 
 #include <algorithm>
 #include <array>
 #include <initializer_list>
+#include <memory>
 
 #if defined( _WIN32 )
 #ifndef WIN32_LEAN_AND_MEAN
@@ -124,35 +127,62 @@ static void GetClientState( uiClientState_t *state ) {
 	state->clientNum = cl.snap.ps.clientNum;
 }
 
+static void GetRTCWClientState( fntech3_rtcw_uiClientState_t *destination ) {
+	uiClientState_t internal{};
+	GetClientState( &internal );
+	if ( !destination || !fntech3::rtcw::client::FromInternal( internal, *destination ) ) {
+		Com_Error( ERR_DROP, "Invalid RTCW UI client state transfer" );
+	}
+}
+
 
 /*
 ====================
 LAN_LoadCachedServers
 ====================
 */
-static void LAN_LoadCachedServers( void ) {
-	int size, file_size;
+static bool LAN_CacheRecordValid( const serverInfo_t &server ) {
+	// Validate disk enum representations before C++ reads them as enum values.
+	int addressType, visible;
+	static_assert( sizeof( addressType ) == sizeof( server.adr.type ) );
+	static_assert( sizeof( visible ) == sizeof( server.visible ) );
+	std::memcpy( &addressType, &server.adr.type, sizeof( addressType ) );
+	std::memcpy( &visible, &server.visible, sizeof( visible ) );
+	return addressType >= NA_BAD && addressType <= NA_UNSPEC
+		&& ( visible == 0 || visible == 1 )
+		&& std::memchr( server.hostName, 0, sizeof( server.hostName ) )
+		&& std::memchr( server.mapName, 0, sizeof( server.mapName ) )
+		&& std::memchr( server.game, 0, sizeof( server.game ) );
+}
 
+static void LAN_LoadCachedServers( void ) {
+	const char *filename = Com_GameManagerServerCacheFile( Com_GameProfile() );
+	if ( !filename ) return;
 	cls.numglobalservers = cls.numfavoriteservers = 0;
 	cls.numGlobalServerAddresses = 0;
 
+	// Preserve the existing Q3/QL disk layout, but never publish partial reads.
+	constexpr int payloadBytes = sizeof( cls.globalServers ) + sizeof( cls.favoriteServers );
 	ScopedFileHandle file;
-	file_size = OpenHomeFileRead( "servercache.dat", file );
-	if ( file_size < static_cast<int>( 3 * sizeof( int ) ) ) {
-		return;
-	}
-
-	FileReadObject( file.get(), cls.numglobalservers );
-	FileReadObject( file.get(), cls.numfavoriteservers );
-	FileReadObject( file.get(), size );
-
-	if ( size == sizeof(cls.globalServers) + sizeof(cls.favoriteServers) ) {
-		FileReadObject( file.get(), cls.globalServers );
-		FileReadObject( file.get(), cls.favoriteServers );
-	} else {
-		cls.numglobalservers = cls.numfavoriteservers = 0;
-		cls.numGlobalServerAddresses = 0;
-	}
+	if ( OpenHomeFileRead( filename, file ) != 3 * sizeof( int ) + payloadBytes || !file ) return;
+	int header[3];
+	if ( FileReadObject( file.get(), header ) != sizeof( header )
+		|| header[0] < 0 || header[0] > MAX_GLOBAL_SERVERS
+		|| header[1] < 0 || header[1] > MAX_OTHER_SERVERS
+		|| header[2] != payloadBytes ) return;
+	struct Cache {
+		serverInfo_t global[MAX_GLOBAL_SERVERS];
+		serverInfo_t favorites[MAX_OTHER_SERVERS];
+	};
+	auto staged = std::make_unique<Cache>();
+	if ( FileReadObject( file.get(), staged->global ) != sizeof( staged->global )
+		|| FileReadObject( file.get(), staged->favorites ) != sizeof( staged->favorites )
+		|| !std::all_of( std::begin( staged->global ), std::end( staged->global ), LAN_CacheRecordValid )
+		|| !std::all_of( std::begin( staged->favorites ), std::end( staged->favorites ), LAN_CacheRecordValid ) ) return;
+	std::copy( std::begin( staged->global ), std::end( staged->global ), cls.globalServers );
+	std::copy( std::begin( staged->favorites ), std::end( staged->favorites ), cls.favoriteServers );
+	cls.numglobalservers = header[0];
+	cls.numfavoriteservers = header[1];
 }
 
 
@@ -162,18 +192,23 @@ LAN_SaveServersToCache
 ====================
 */
 static void LAN_SaveServersToCache( void ) {
-	int size;
-
-	ScopedFileHandle file( FS_FOpenFileWrite( "servercache.dat" ) );
+	const char *filename = Com_GameManagerServerCacheFile( Com_GameProfile() );
+	if ( !filename ) return;
+	// A global query uses -1 while waiting; it has no current list to cache.
+	const int globals = cls.numglobalservers == -1 ? 0 : cls.numglobalservers;
+	if ( globals < 0 || globals > MAX_GLOBAL_SERVERS
+		|| cls.numfavoriteservers < 0 || cls.numfavoriteservers > MAX_OTHER_SERVERS
+		|| !std::all_of( std::begin( cls.globalServers ), std::end( cls.globalServers ), LAN_CacheRecordValid )
+		|| !std::all_of( std::begin( cls.favoriteServers ), std::end( cls.favoriteServers ), LAN_CacheRecordValid ) ) return;
+	ScopedFileHandle file( FS_FOpenFileWrite( filename ) );
 	if ( !file )
 		return;
-
-	FileWriteObject( file.get(), cls.numglobalservers );
-	FileWriteObject( file.get(), cls.numfavoriteservers );
-	size = sizeof(cls.globalServers) + sizeof(cls.favoriteServers);
-	FileWriteObject( file.get(), size );
-	FileWriteObject( file.get(), cls.globalServers );
-	FileWriteObject( file.get(), cls.favoriteServers );
+	const int header[] = { globals, cls.numfavoriteservers,
+		sizeof( cls.globalServers ) + sizeof( cls.favoriteServers ) };
+	if ( FileWriteObject( file.get(), header ) != sizeof( header )
+		|| FileWriteObject( file.get(), cls.globalServers ) != sizeof( cls.globalServers )
+		|| FileWriteObject( file.get(), cls.favoriteServers ) != sizeof( cls.favoriteServers ) )
+		Com_Printf( S_COLOR_YELLOW "Unable to write complete server cache %s\n", filename );
 }
 
 
@@ -582,7 +617,7 @@ static int GetConfigString(int index, char *buf, int size)
 {
 	int		offset;
 
-	if (index < 0 || index >= MAX_CONFIGSTRINGS)
+	if (index < 0 || index >= Com_GameConfigstringLimit())
 		return qfalse;
 
 	offset = cl.gameState.stringOffsets[index];
@@ -596,6 +631,47 @@ static int GetConfigString(int index, char *buf, int size)
 	Q_strncpyz( buf, cl.gameState.stringData+offset, size);
 
 	return qtrue;
+}
+
+void CL_RTCWPopup( const char *name, qboolean close ) {
+	static const struct { const char *name; int menu; int mode; } popups[] = {
+		{ "UIMENU_WM_PICKTEAM", UIMENU_WM_PICKTEAM, 0 },
+		{ "UIMENU_WM_PICKPLAYER", UIMENU_WM_PICKPLAYER, 0 },
+		{ "UIMENU_WM_QUICKMESSAGE", UIMENU_WM_QUICKMESSAGE, 0 },
+		{ "UIMENU_WM_QUICKMESSAGEALT", UIMENU_WM_QUICKMESSAGEALT, 2 },
+		{ "UIMENU_WM_LIMBO", UIMENU_WM_LIMBO, 0 },
+		{ "UIMENU_WM_AUTOUPDATE", UIMENU_WM_AUTOUPDATE, 2 },
+		{ "hbook1", UIMENU_BOOK1, 0 },
+		{ "hbook2", UIMENU_BOOK2, 0 },
+		{ "hbook3", UIMENU_BOOK3, 0 },
+		{ "pregame", UIMENU_PREGAME, 1 }
+	};
+	int index, menu = UIMENU_CLIPBOARD;
+	const int mode = Com_GameIsRTCWSP() ? 1 : 2;
+	if ( !Com_GameIsRTCW() || !uivm ) return;
+	if ( close ) {
+		int dismissals = 0;
+		if ( mode == 1 ) dismissals = 1;
+		else if ( name && !Q_stricmp( name, "UIMENU_WM_LIMBO" ) &&
+			VM_Call( uivm, 0, UI_GET_ACTIVE_MENU ) == UIMENU_WM_LIMBO ) dismissals = 2;
+		// These are module UI dismissals, matching each mode's menu stack.
+		while ( dismissals-- > 0 ) VM_Call( uivm, 2, UI_KEY_EVENT, K_ESCAPE, qtrue );
+		return;
+	}
+	// SP permits mission briefing before active play and during demo playback.
+	if ( mode == 1 && name && !Q_stricmp( name, "briefing" ) ) {
+		VM_Call( uivm, 1, UI_SET_ACTIVE_MENU, UIMENU_BRIEFING );
+		return;
+	}
+	if ( cls.state != CA_ACTIVE || clc.demoplaying ) return;
+	for ( index = 0; index < (int)( sizeof( popups ) / sizeof( popups[0] ) ); ++index ) {
+		if ( ( !popups[index].mode || popups[index].mode == mode ) && name &&
+			!Q_stricmp( name, popups[index].name ) ) {
+			menu = popups[index].menu;
+			break;
+		}
+	}
+	VM_Call( uivm, 1, UI_SET_ACTIVE_MENU, menu );
 }
 
 
@@ -703,6 +779,12 @@ private:
 #undef VMA
 #define VMA(x) VmArgPtr( VM_ArgPtr( args[x] ) )
 
+#include "client_render_compat.hpp"
+#include "client_rtcw_render_compat.hpp"
+#include "client_rtcw_audio_compat.hpp"
+#include "client_rtcw_cinematic_compat.hpp"
+#include "client_rtcw_sound_name.hpp"
+
 
 static qboolean UI_GetValue( char* value, int valueSize, const char* key ) {
 
@@ -802,8 +884,161 @@ CL_UISystemCalls
 The ui module is making a system call
 ====================
 */
+static intptr_t CL_RTCWUISharedCall( fntech3::rtcw::module::Call call ) {
+	using fntech3::rtcw::module::Call;
+	switch ( call ) {
+#define RTCW_SHARED_CALL(name) case Call::name: return name;
+	RTCW_SHARED_CALL(UI_ERROR)
+	RTCW_SHARED_CALL(UI_PRINT)
+	RTCW_SHARED_CALL(UI_MILLISECONDS)
+	RTCW_SHARED_CALL(UI_CVAR_SET)
+	RTCW_SHARED_CALL(UI_CVAR_VARIABLEVALUE)
+	RTCW_SHARED_CALL(UI_CVAR_VARIABLESTRINGBUFFER)
+	RTCW_SHARED_CALL(UI_CVAR_SETVALUE)
+	RTCW_SHARED_CALL(UI_CVAR_RESET)
+	RTCW_SHARED_CALL(UI_ARGC)
+	RTCW_SHARED_CALL(UI_ARGV)
+	RTCW_SHARED_CALL(UI_CMD_EXECUTETEXT)
+	RTCW_SHARED_CALL(UI_FS_FOPENFILE)
+	RTCW_SHARED_CALL(UI_FS_READ)
+	RTCW_SHARED_CALL(UI_FS_WRITE)
+	RTCW_SHARED_CALL(UI_FS_FCLOSEFILE)
+	RTCW_SHARED_CALL(UI_FS_SEEK)
+	RTCW_SHARED_CALL(UI_FS_GETFILELIST)
+	RTCW_SHARED_CALL(UI_UPDATESCREEN)
+	RTCW_SHARED_CALL(UI_GETCONFIGSTRING)
+	RTCW_SHARED_CALL(UI_MEMORY_REMAINING)
+	RTCW_SHARED_CALL(UI_LAN_LOADCACHEDSERVERS)
+	RTCW_SHARED_CALL(UI_LAN_SAVECACHEDSERVERS)
+	RTCW_SHARED_CALL(UI_S_STOPBACKGROUNDTRACK)
+	RTCW_SHARED_CALL(UI_FLOOR)
+	RTCW_SHARED_CALL(UI_CEIL)
+	RTCW_SHARED_CALL(UI_PC_ADD_GLOBAL_DEFINE)
+	RTCW_SHARED_CALL(UI_PC_LOAD_SOURCE)
+	RTCW_SHARED_CALL(UI_PC_FREE_SOURCE)
+	RTCW_SHARED_CALL(UI_KEY_GETOVERSTRIKEMODE)
+	RTCW_SHARED_CALL(UI_KEY_CLEARSTATES)
+#undef RTCW_SHARED_CALL
+	case Call::UI_MEMSET: return TRAP_MEMSET;
+	case Call::UI_MEMCPY: return TRAP_MEMCPY;
+	case Call::UI_STRNCPY: return TRAP_STRNCPY;
+	case Call::UI_SIN: return TRAP_SIN;
+	case Call::UI_COS: return TRAP_COS;
+	case Call::UI_ATAN2: return TRAP_ATAN2;
+	case Call::UI_SQRT: return TRAP_SQRT;
+	case Call::UI_S_STARTBACKGROUNDTRACK:
+		// SP's additional fade/queue argument uses the explicit audio boundary.
+		return Com_GameIsRTCWMP() ? UI_S_STARTBACKGROUNDTRACK : -1;
+	default: return -1;
+	}
+}
+
 static intptr_t CL_UISystemCalls( intptr_t *args ) {
-	switch( args[0] ) {
+	intptr_t operation = args[0];
+	if ( Com_GameIsRTCW() ) {
+		using namespace fntech3::rtcw::module;
+		const auto call = Lookup( Com_GameProfile()->id, Module::UI, Direction::IMPORT, args[0] );
+		intptr_t rendererResult;
+		if ( CL_RTCWRenderCall( uivm, call, args, rendererResult ) ) return rendererResult;
+		if ( CL_RTCWAudioCall( uivm, call, args ) ) return 0;
+		if ( CL_RTCWCinematicCall( uivm, call, args, rendererResult ) ) return rendererResult;
+		switch ( call ) {
+		case Call::UI_CHECKAUTOUPDATE: {
+			static bool reported = false;
+			if ( !reported ) {
+				Com_Printf( "RTCW automatic updates are unavailable in fnTech3.\n" );
+				reported = true;
+			}
+			// This void import does not establish an update result, set service
+			// success/availability flags, or contact a legacy update server.
+			return 0;
+		}
+		case Call::UI_GET_AUTOUPDATE:
+			Com_Printf( "RTCW update installation is unavailable in fnTech3; use the fnTech3 distribution to update the engine.\n" );
+			return 0;
+		case Call::UI_CL_TRANSLATE_STRING:
+			CL_RTCWTranslateString( uivm, args[1], args[2] );
+			return 0;
+		case Call::UI_CL_GETLIMBOSTRING:
+			return CL_RTCWGetLimboString( uivm, args[1], args[2] );
+		case Call::UI_S_REGISTERSOUND:
+			// Both original RTCW UIs pass only the name; there is no second
+			// compression argument as there is in the Q3/QL import contract.
+			return CL_RegisterRTCWSound( uivm, args[1] );
+		case Call::UI_S_STARTLOCALSOUND:
+			if ( args[1] < INT_MIN || args[1] > INT_MAX || args[2] < INT_MIN || args[2] > INT_MAX )
+				Com_Error( ERR_DROP, "Invalid RTCW UI local sound arguments" );
+			S_StartLocalSound( static_cast<int>( args[1] ), static_cast<int>( args[2] ) );
+			return 0;
+		case Call::UI_KEY_ISDOWN:
+			return CL_RTCWKeyIsDown( args[1] );
+		case Call::UI_KEY_GETCATCHER:
+			return CL_RTCWGetKeyCatcher();
+		case Call::UI_KEY_SETCATCHER:
+			CL_RTCWSetKeyCatcher( args[1] );
+			return 0;
+		case Call::UI_KEY_SETBINDING:
+			CL_RTCWSetBinding( args[1], VMA(2) );
+			return 0;
+		case Call::UI_KEY_KEYNUMTOSTRINGBUF:
+		case Call::UI_KEY_GETBINDINGBUF:
+			VM_CHECKBOUNDS( uivm, args[2], args[3] );
+			CL_RTCWKeyString( args[1], VMA(2), args[3], call == Call::UI_KEY_GETBINDINGBUF ? qtrue : qfalse );
+			return 0;
+		case Call::UI_KEY_SETOVERSTRIKEMODE:
+			Key_SetOverstrikeMode( args[1] ? qtrue : qfalse );
+			return 0;
+		case Call::UI_REAL_TIME:
+			VM_CHECKBOUNDS( uivm, args[1], sizeof( fntech3_rtcw_qtime_t ) );
+			return Com_RealTimeRTCW( VMA(1) );
+		case Call::UI_GETCLIENTSTATE:
+			VM_CHECKBOUNDS( uivm, args[1], sizeof( fntech3_rtcw_uiClientState_t ) );
+			GetRTCWClientState( VMA(1) );
+			return 0;
+		case Call::UI_GETGLCONFIG:
+			VM_CHECKBOUNDS( uivm, args[1], sizeof( fntech3_rtcw_glconfig_t ) );
+			CL_CopyRTCWGlconfig( VMA(1), re.GetConfig() );
+			return 0;
+		case Call::UI_PC_READ_TOKEN:
+			VM_CHECKBOUNDS( uivm, args[2], sizeof( fntech3_rtcw_pc_token_t ) );
+			return CL_RTCWReadToken( args[1], VMA(2) );
+		case Call::UI_PC_SOURCE_FILE_AND_LINE:
+			VM_CHECKBOUNDS( uivm, args[2], FNTECH3_RTCW_SOURCE_FILENAME_CHARS );
+			VM_CHECKBOUNDS( uivm, args[3], sizeof( int32_t ) );
+			return CL_RTCWSourceFileAndLine( args[1], VMA(2), VMA(3) );
+		case Call::UI_R_REGISTERFONT:
+			VM_CHECKBOUNDS( uivm, args[3], sizeof( fntech3_rtcw_fontInfo_t ) );
+			CL_RTCWRegisterFont( VMA(1), args[2], VMA(3) );
+			return 0;
+		case Call::UI_CVAR_REGISTER:
+			VM_CHECKBOUNDS( uivm, args[1], sizeof( fntech3_rtcw_vmCvar_t ) );
+			Cvar_RegisterRTCW( VMA(1), VMA(2), VMA(3), args[4], uivm->privateFlag );
+			return 0;
+		case Call::UI_CVAR_UPDATE:
+			VM_CHECKBOUNDS( uivm, args[1], sizeof( fntech3_rtcw_vmCvar_t ) );
+			Cvar_UpdateRTCW( VMA(1), uivm->privateFlag );
+			return 0;
+		case Call::UI_CVAR_CREATE:
+			Cvar_RegisterRTCW( nullptr, VMA(1), VMA(2), args[3], uivm->privateFlag );
+			return 0;
+		case Call::UI_CVAR_INFOSTRINGBUFFER:
+			VM_CHECKBOUNDS( uivm, args[2], args[3] );
+			Cvar_InfoStringBuffer( FnTech3_RTCWCvarFlagsToInternal( Com_GameProfile()->id,
+				static_cast<uint32_t>( args[1] ) ), VMA(2), args[3] );
+			return 0;
+		default:
+			operation = CL_RTCWUISharedCall( call );
+			if ( operation < 0 ) {
+				const auto *descriptor = Describe( call );
+				Com_Error( ERR_DROP, "Unsupported %s UI import %ld (%s)",
+					Com_GameProfile()->key, static_cast<long>( args[0] ),
+					descriptor ? descriptor->name : "unknown ordinal" );
+				return 0;
+			}
+			break;
+		}
+	}
+	switch( operation ) {
 	case UI_ERROR:
 		Com_Error( ERR_DROP, "%s", VMA(1).String() );
 		return 0;
@@ -929,8 +1164,11 @@ static intptr_t CL_UISystemCalls( intptr_t *args ) {
 		return 0;
 
 	case UI_R_ADDREFENTITYTOSCENE:
-		re.AddRefEntityToScene( VMA(1), qfalse );
+	case UI_R_ADDREFENTITYTOSCENE2: {
+		const refEntity_t entity = CL_ModuleRefEntity( uivm, args[1] );
+		re.AddRefEntityToScene( &entity, operation == UI_R_ADDREFENTITYTOSCENE2 ? qtrue : qfalse );
 		return 0;
+	}
 
 	case UI_R_ADDPOLYTOSCENE:
 		re.AddPolyToScene( args[1], args[2], VMA(3), 1 );
@@ -941,8 +1179,7 @@ static intptr_t CL_UISystemCalls( intptr_t *args ) {
 		return 0;
 
 	case UI_R_RENDERSCENE: {
-		const refdef_t *vmRefdef = VMA(1);
-		refdef_t refdef = *vmRefdef;
+		refdef_t refdef = CL_ModuleRefdef( uivm, args[1] );
 		if ( Com_GameIsQuake3() ) {
 			refdef.rdflags |= RDF_NOFOVCORRECTION;
 		}
@@ -1229,11 +1466,6 @@ static intptr_t CL_UISystemCalls( intptr_t *args ) {
 		return Com_CDKeyValidate(VMA(1), VMA(2));
 
 	// engine extensions
-	case UI_R_ADDREFENTITYTOSCENE2:
-		re.AddRefEntityToScene( VMA(1), qtrue );
-		return 0;
-
-	// engine extensions
 	case UI_R_ADDLINEARLIGHTTOSCENE:
 		re.AddLinearLightToScene( VMA(1), VMA(2), VMF(3), VMF(4), VMF(5), VMF(6) );
 		return 0;
@@ -1434,7 +1666,7 @@ static void QDECL QL_UI_trap_R_ClearScene( void ) {
 	UI_Import_Call( UI_R_CLEARSCENE, {} );
 }
 
-static void QDECL QL_UI_trap_R_AddRefEntityToScene( const refEntity_t *refent ) {
+static void QDECL QL_UI_trap_R_AddRefEntityToScene( const fntech3_ql_refEntity_t *refent ) {
 	UI_Import_Call( UI_R_ADDREFENTITYTOSCENE, { UI_Import_Ptr( refent ) } );
 }
 
@@ -1449,8 +1681,8 @@ static void QDECL QL_UI_trap_R_AddLightToScene( const vec3_t org, float intensit
 	} );
 }
 
-static void QDECL QL_UI_trap_R_RenderScene( const refdef_t *refdef ) {
-	refdef_t scaledRefdef;
+static void QDECL QL_UI_trap_R_RenderScene( const fntech3_ql_refdef_t *refdef ) {
+	fntech3_ql_refdef_t scaledRefdef;
 
 	if ( !refdef ) {
 		UI_Import_Call( UI_R_RENDERSCENE, { UI_Import_Ptr( refdef ) } );
@@ -2018,6 +2250,9 @@ CL_InitUI
 #define UI_OLD_API_VERSION	4
 
 static bool CL_UIApiVersionSupported( int version, bool structured ) {
+	if ( Com_GameIsRTCW() ) {
+		return !structured && version == FNTECH3_RTCW_UI_API_VERSION;
+	}
 	if ( Com_GameIsQuake3() ) {
 		return !structured && ( version == UI_OLD_API_VERSION
 			|| version == UI_Q3_API_VERSION );
@@ -2032,6 +2267,11 @@ static bool CL_UIApiVersionSupported( int version, bool structured ) {
 }
 
 static const char *CL_UIModuleLoadFailureMessage( void ) {
+	if ( Com_GameIsRTCW() ) {
+		return "VM_Create on RTCW UI failed; verify the UI module matches the "
+			"selected SP/MP mode and fnTech3 architecture in the main/mod directory "
+			"or the SP installation root";
+	}
 	if ( Com_GameIsQuake3() ) {
 		return "VM_Create on UI failed for Quake III Arena; verify the selected "
 			"baseq3/mod contains vm/ui.qvm or a compatible native UI module";
@@ -2043,6 +2283,7 @@ static const char *CL_UIModuleLoadFailureMessage( void ) {
 void CL_InitUI( void ) {
 	int		v;
 	vmInterpret_t		interpret;
+	CL_RTCWReloadTranslations();
 
 	// disallow vl.collapse for UI elements
 	re.VertexLighting( qfalse );
@@ -2083,7 +2324,7 @@ void CL_InitUI( void ) {
 	// sanity check
 	v = VM_Call( uivm, 0, UI_GETAPIVERSION );
 	if ( !CL_UIApiVersionSupported( v, uivm->dllExports != nullptr ) ) {
-		const char *expected = Com_GameIsQuake3() ? "4 or 6"
+		const char *expected = Com_GameIsRTCW() ? "4" : Com_GameIsQuake3() ? "4 or 6"
 			: uivm->dllExports ? "8" : "4, 6, 7 or 8";
 		// Free uivm now, so UI_SHUTDOWN doesn't get called later.
 		VM_Free( uivm );

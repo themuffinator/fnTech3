@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "server.h"
+#include "../compat/rtcw_game_abi.h"
 
 #include <array>
 #include <cstring>
@@ -50,6 +51,14 @@ Creates and sends the server command necessary to update the CS index for the
 given client
 ===============
 */
+static bool SV_SkipCastConfigstrings( const client_t *client ) {
+	// SP cast never consume these updates. MP applies the same rule only
+	// to its single-player game type; its other modes retain normal delivery.
+	return ( Com_GameIsRTCWSP() || ( Com_GameIsRTCWMP()
+		&& sv_gametype->integer == GT_SINGLE_PLAYER ) )
+		&& SV_ClientIsRTCWCastAI( client );
+}
+
 static void SV_SendConfigstring(client_t *client, int index)
 {
 	int maxChunkSize = MAX_STRING_CHARS - 24;
@@ -99,7 +108,11 @@ Configstring indexes that have changed while the client was in CS_PRIMED
 */
 void SV_UpdateConfigstrings(client_t *client)
 {
-	for( int index : SV_Indices( MAX_CONFIGSTRINGS ) ) {
+	if ( SV_SkipCastConfigstrings( client ) ) {
+		for ( auto &updated : client->csUpdated ) updated = qfalse;
+		return;
+	}
+	for( int index : SV_Indices( Com_GameConfigstringLimit() ) ) {
 		// if the CS hasn't changed since we went to CS_PRIMED, ignore
 		if(!client->csUpdated[index])
 			continue;
@@ -128,7 +141,7 @@ SV_SetConfigstring
 ===============
 */
 void SV_SetConfigstring (int index, const char *val) {
-	if ( index < 0 || index >= MAX_CONFIGSTRINGS ) {
+	if ( index < 0 || index >= Com_GameConfigstringLimit() ) {
 		Com_Error (ERR_DROP, "SV_SetConfigstring: bad index %i", index);
 	}
 
@@ -151,6 +164,9 @@ void SV_SetConfigstring (int index, const char *val) {
 
 		// send the data to all relevant clients
 		for ( client_t &client : SV_Clients() ) {
+			if ( client.state >= CS_PRIMED && SV_SkipCastConfigstrings( &client ) ) {
+				continue;
+			}
 			if ( client.state < CS_ACTIVE ) {
 				if ( client.state == CS_PRIMED || client.state == CS_CONNECTED ) {
 					// track CS_CONNECTED clients as well to optimize gamestate acknowledge after downloading/retransmission
@@ -208,6 +224,19 @@ void SV_UpdateQLCvarConfigstrings( qboolean force ) {
 	}
 }
 
+void SV_UpdateRTCWCvarConfigstrings( qboolean force ) {
+	if ( !Com_GameIsRTCWMP() || ( !force && !( cvar_modifiedFlags & CVAR_RTCW_WOLFINFO ) ) ) {
+		return;
+	}
+	qboolean truncated = qfalse;
+	const char *info = Cvar_InfoString( CVAR_RTCW_WOLFINFO, &truncated );
+	SV_SetConfigstring( FNTECH3_RTCW_MP_CS_WOLFINFO, info );
+	cvar_modifiedFlags &= ~CVAR_RTCW_WOLFINFO;
+	if ( truncated ) {
+		Com_Printf( S_COLOR_YELLOW "WARNING: truncated RTCW MP WOLFINFO configstring\n" );
+	}
+}
+
 
 /*
 ===============
@@ -218,7 +247,7 @@ void SV_GetConfigstring( int index, char *buffer, int bufferSize ) {
 	if ( bufferSize < 1 ) {
 		Com_Error( ERR_DROP, "SV_GetConfigstring: bufferSize == %i", bufferSize );
 	}
-	if ( index < 0 || index >= MAX_CONFIGSTRINGS ) {
+	if ( index < 0 || index >= Com_GameConfigstringLimit() ) {
 		Com_Error (ERR_DROP, "SV_GetConfigstring: bad index %i", index);
 	}
 	if ( !sv.configstrings[index] ) {
@@ -312,7 +341,7 @@ SV_BoundMaxClients
 */
 static int SV_BoundMaxClients( int minimum ) {
 	// get the current maxclients value
-	Cvar_Get( "sv_maxclients", "8", 0 );
+	Cvar_Get( "sv_maxclients", Com_GameProfile()->server.clients, 0 );
 
 	if ( sv_maxclients->integer < minimum ) {
 		Cvar_SetIntegerValue( "sv_maxclients", minimum );
@@ -458,7 +487,7 @@ SV_ClearServer
 ================
 */
 static void SV_ClearServer( void ) {
-	for ( int index : SV_Indices( MAX_CONFIGSTRINGS ) ) {
+	for ( int index : SV_Indices( Com_GameConfigstringLimit() ) ) {
 		SV_ZFree( sv.configstrings[index] );
 	}
 
@@ -479,10 +508,45 @@ clients along with it.
 This is NOT called for map_restart
 ================
 */
+static void SV_PrepareRTCWCampaign( void ) {
+	if ( !Com_GameIsRTCWSP() ) return;
+	const auto *profile = Com_GameProfile();
+	Cvar_Get( "g_gameskill", "2", CVAR_SERVERINFO | CVAR_LATCH | CVAR_ARCHIVE );
+	const auto *gameType = Cvar_Get( "g_gametype", profile->server.gameType,
+		CVAR_SERVERINFO | CVAR_LATCH | CVAR_ARCHIVE );
+	const auto *bots = Cvar_Get( "bot_enable", "1", CVAR_LATCH );
+	if ( gameType->integer != GT_SINGLE_PLAYER ) return;
+	// Original SP applies the pending map-command value, then allocates 64 AI
+	// slots unless all 128 were explicitly requested. This precedes teardown.
+	if ( sv_maxclients->latchedString ) Cvar_Get( "sv_maxclients", profile->server.clients, 0 );
+	if ( sv_maxclients->integer < profile->maxClients )
+		Cvar_Set( "sv_maxclients", profile->server.campaignClients );
+	if ( !bots->integer ) Cvar_Set( "bot_enable", "1" );
+}
+
+static void SV_ReferenceNativeModulePaks( void ) {
+	if ( Com_GameIsQuakeLive() ) {
+		FS_TouchFileInPak( QL_NATIVE_CGAME_DLL );
+	} else if ( Com_GameProfile()->pureProof == COM_PURE_PROOF_RTCW_NATIVE ) {
+		char name[MAX_QPATH];
+		for ( unsigned slot = 0; slot < 2; ++slot ) {
+			if ( Com_GameManagerPureModuleFilename( Com_GameProfile(), slot, ARCH_STRING,
+				DLL_EXT, name, sizeof( name ) ) ) FS_TouchFileInPak( name );
+		}
+	}
+}
+
+static cvar_t *SV_RegisterPureMode() {
+	const auto &policy = Com_GameProfile()->server;
+	return Cvar_Get("sv_pure", policy.pure, CVAR_SYSTEMINFO | (policy.pureLatched ? CVAR_LATCH : 0));
+}
+
 void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	int			checksum;
 	bool		isBot;
 	const char	*p;
+
+	SV_PrepareRTCWCampaign();
 
 	// shut down the existing game if it is running
 	SV_ShutdownGameProgs();
@@ -574,7 +638,7 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	// wipe the entire per-level structure
 	SV_ClearServer();
 	sv.maxclients = preservedMaxClients;
-	for ( int index : SV_Indices( MAX_CONFIGSTRINGS ) ) {
+	for ( int index : SV_Indices( Com_GameConfigstringLimit() ) ) {
 		sv.configstrings[index] = CopyString("");
 	}
 
@@ -584,7 +648,7 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 #endif
 
 	// get latched value
-	sv_pure = Cvar_Get( "sv_pure", "1", CVAR_SYSTEMINFO | CVAR_LATCH );
+	sv_pure = SV_RegisterPureMode();
 
 	// VMs can change latched cvars instantly which could cause side-effects in SV_UserMove()
 	sv.pure = sv_pure->integer;
@@ -605,6 +669,7 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	// serverid should be different each time
 	sv.serverId = com_frameTime;
 	sv.restartedServerId = sv.serverId;
+	sv.checksumFeedServerId = sv.serverId;
 	Cvar_SetIntegerValue( "sv_serverid", sv.serverId );
 
 	// clear physics interaction links
@@ -686,20 +751,15 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	SV_BotFrame( sv.time );
 	svs.time += 100;
 
-	// Retail QL pure validation keys off the native cgame binary pak. Quake III
-	// has no equivalent implicit reference and must retain its original pak set.
-	if ( Com_GameIsQuakeLive() ) {
-		FS_TouchFileInPak( QL_NATIVE_CGAME_DLL );
-	}
+	// Publish the selected profile's native module paks for download/proof.
+	// Q3 retains its original implicit-reference behavior.
+	SV_ReferenceNativeModulePaks();
 
 	// the server sends these to the clients so they can figure
 	// out which pk3s should be auto-downloaded
 	p = FS_ReferencedPakNames();
 	if ( FS_ExcludeReference() ) {
-		// \fs_excludeReference may mask the current QL native cgame binary.
-		if ( Com_GameIsQuakeLive() ) {
-			FS_TouchFileInPak( QL_NATIVE_CGAME_DLL );
-		}
+		SV_ReferenceNativeModulePaks();
 		// rebuild referenced paks list
 		p = FS_ReferencedPakNames();
 	}
@@ -754,6 +814,7 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 
 	SV_SetConfigstring( CS_SERVERINFO, Cvar_InfoString( CVAR_SERVERINFO, nullptr ) );
 	cvar_modifiedFlags &= ~CVAR_SERVERINFO;
+	SV_UpdateRTCWCvarConfigstrings( qtrue );
 
 	if ( Com_GameIsQuakeLive() ) {
 		// Retail native cgame prediction consumes these engine-owned cvar groups.
@@ -812,9 +873,11 @@ void SV_Init( void )
 		// before registering the gameplay-facing server cvars below.
 		SV_FactoryInit();
 	}
-	Cvar_Get ("fraglimit", quakeLive ? "50" : "20", CVAR_SERVERINFO);
+	const auto &serverPolicy = Com_GameProfile()->server;
+	Cvar_Get ("fraglimit", serverPolicy.fragLimit, serverPolicy.fragLimitInServerInfo ? CVAR_SERVERINFO : 0);
 	Cvar_Get ("timelimit", "0", CVAR_SERVERINFO);
-	sv_gametype = Cvar_Get ("g_gametype", "0", CVAR_SERVERINFO | CVAR_LATCH );
+	sv_gametype = Cvar_Get ("g_gametype", serverPolicy.gameType, CVAR_SERVERINFO | CVAR_LATCH );
+	if ( serverPolicy.mapSkill ) Cvar_Get( "g_gameskill", serverPolicy.mapSkill, CVAR_SERVERINFO | CVAR_LATCH );
 	Cvar_SetDescription( sv_gametype, "Set the gametype to mod." );
 	if ( quakeLive ) {
 		sv_ammoPack = Cvar_Get( "g_ammoPack", "1", CVAR_LATCH );
@@ -833,7 +896,7 @@ void SV_Init( void )
 			"Read-only: 1 while the server is replaying a demo, 0 otherwise." );
 	}
 	sv_privateClients = Cvar_Get( "sv_privateClients", "0", CVAR_SERVERINFO );
-	Cvar_CheckRange( sv_privateClients, "0", va( "%i", MAX_CLIENTS-1 ), CV_INTEGER );
+	Cvar_CheckRange( sv_privateClients, "0", va( "%i", Com_GameClientLimit()-1 ), CV_INTEGER );
 	Cvar_SetDescription( sv_privateClients, "The number of spots, out of sv_maxclients, reserved for players with the server password (sv_privatePassword)." );
 	sv_hostname = Cvar_Get ("sv_hostname", "noname", CVAR_SERVERINFO | CVAR_ARCHIVE );
 	Cvar_SetDescription( sv_hostname, "Sets the name of the server." );
@@ -844,8 +907,8 @@ void SV_Init( void )
 	} else {
 		sv_tags = nullptr;
 	}
-	sv_maxclients = Cvar_Get ("sv_maxclients", "8", CVAR_SERVERINFO | CVAR_LATCH);
-	Cvar_CheckRange( sv_maxclients, "1", XSTRING(MAX_CLIENTS), CV_INTEGER );
+	sv_maxclients = Cvar_Get ("sv_maxclients", serverPolicy.clients, CVAR_SERVERINFO | CVAR_LATCH);
+	Cvar_CheckRange( sv_maxclients, "1", va( "%i", Com_GameClientLimit() ), CV_INTEGER );
 	Cvar_SetDescription( sv_maxclients, "Maximum number of people allowed to join the server." );
 
 	sv_maxclientsPerIP = Cvar_Get( "sv_maxclientsPerIP", "3", CVAR_ARCHIVE );
@@ -927,7 +990,7 @@ void SV_Init( void )
 	// systeminfo
 	sv_cheats = Cvar_Get( "sv_cheats", "1", CVAR_SYSTEMINFO | CVAR_ROM );
 	sv_serverid = Cvar_Get( "sv_serverid", "0", CVAR_SYSTEMINFO | CVAR_ROM );
-	sv_pure = Cvar_Get( "sv_pure", "1", CVAR_SYSTEMINFO | CVAR_LATCH );
+	sv_pure = SV_RegisterPureMode();
 	Cvar_SetDescription( sv_pure, "Requires clients to only get data from pack archives the server is using." );
 	Cvar_Get( "sv_paks", "", CVAR_SYSTEMINFO | CVAR_ROM );
 	Cvar_Get( "sv_pakNames", "", CVAR_SYSTEMINFO | CVAR_ROM );

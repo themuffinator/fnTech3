@@ -1502,6 +1502,8 @@ static const void *RB_StretchPic( const void *data ) {
 	return (const void *)(cmd + 1);
 }
 
+#include "../renderercommon/tr_draw_quad_backend.h"
+
 
 #ifdef USE_PMLIGHT
 static qboolean RB_DlightShadowsNeeded( void )
@@ -4647,6 +4649,9 @@ void RB_ExecuteRenderCommands( const void *data ) {
 		switch ( *(const int *)data ) {
 		case RC_SET_COLOR:
 			data = RB_SetColor( data );
+			break;
+		case RC_DRAW_QUAD:
+			data = RB_DrawQuad( data );
 			break;
 		case RC_STRETCH_PIC:
 			data = RB_StretchPic( data );

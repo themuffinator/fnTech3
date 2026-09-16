@@ -972,6 +972,7 @@ default values.
 #define CVAR_PRIVATE		0x00800000	// secret engine cvar; never expose to modules
 #define CVAR_DEVELOPER		0x01000000	// can be set only in developer mode
 #define CVAR_NOTABCOMPLETE	0x02000000	// omit from console completion
+#define CVAR_RTCW_WOLFINFO	0x04000000	// RTCW MP settings published in CS_WOLFINFO
 
 #define CVAR_ARCHIVE_ND		(CVAR_ARCHIVE | CVAR_NODEFAULT)
 
@@ -1151,6 +1152,9 @@ typedef enum {
 // per-level limits
 //
 #define	MAX_CLIENTS			64		// absolute limit
+// Engine storage accommodates RTCW SP. Runtime limits belong to the profile;
+// keep legacy constants fixed for shared Q3/QL game code and external ABIs.
+#define MAX_GAME_CLIENTS 128
 #define MAX_LOCATIONS		64
 
 #define	GENTITYNUM_BITS		10		// don't need to send any more
@@ -1169,6 +1173,7 @@ typedef enum {
 
 
 #define	MAX_CONFIGSTRINGS	1024
+#define MAX_GAME_CONFIGSTRINGS 2048
 
 // Engine-owned configstrings. Retail Quake Live publishes native-module cvar
 // groups through the high slots below; qagame does not build those payloads.
@@ -1183,7 +1188,7 @@ typedef enum {
 
 #define	MAX_GAMESTATE_CHARS	16000
 typedef struct {
-	int			stringOffsets[MAX_CONFIGSTRINGS];
+	int			stringOffsets[MAX_GAME_CONFIGSTRINGS];
 	char		stringData[MAX_GAMESTATE_CHARS];
 	int			dataCount;
 } gameState_t;
@@ -1210,6 +1215,8 @@ typedef struct {
 // playerState_t is a full superset of entityState_t as it is used by players,
 // so if a playerState_t is transmitted, the entityState_t can be fully derived
 // from it.
+#include "rtcw_state.h"
+
 typedef struct playerState_s {
 	int			commandTime;	// cmd->serverTime of last executed command
 	int			pm_type;
@@ -1295,6 +1302,7 @@ typedef struct playerState_s {
 	// source-only local sidecars appended after the retail replicated prefix
 	int			externalEventTime;
 	int			armorTier;		// retail Quake Live tiered armor state: 0=green, 1=yellow, 2=red
+	rtcwPlayerStateExtension_t rtcw;
 } playerState_t;
 
 
@@ -1336,6 +1344,8 @@ typedef struct usercmd_s {
 	byte			weaponPrimary;
 	byte			fov;
 	signed char	forwardmove, rightmove, upmove;
+	unsigned short reserved;	// retain the existing 28-byte canonical prefix
+	rtcwUsercmdExtension_t rtcw;
 } usercmd_t;
 
 //===================================================================
@@ -1350,7 +1360,13 @@ typedef enum {
 	TR_LINEAR_STOP,
 	TR_SINE,					// value = base + sin( time / duration ) * delta
 	TR_GRAVITY,
-	TR_QL_ACCEL					// Quake Live extension: type 6 reads the trajectory gravity scalar
+	TR_QL_ACCEL,					// Quake Live extension: type 6 reads the trajectory gravity scalar
+	// Canonical meanings have separate values from the RTCW external enum.
+	TR_RTCW_LINEAR_STOP_BACK,
+	TR_RTCW_GRAVITY_LOW,
+	TR_RTCW_GRAVITY_FLOAT,
+	TR_RTCW_ACCELERATE,
+	TR_RTCW_DECELERATE
 } trType_t;
 
 typedef struct {
@@ -1416,6 +1432,7 @@ typedef struct entityState_s {
 	int		generic1;
 	int		jumpTime;
 	int		doubleJumped;
+	rtcwEntityStateExtension_t rtcw;
 } entityState_t;
 
 typedef enum {

@@ -3222,6 +3222,10 @@ int PC_ReadTokenHandle(int handle, pc_token_t *pc_token)
 //============================================================================
 int PC_SourceFileAndLine(int handle, char *filename, int *line)
 {
+#ifdef BOTLIB
+	// CL_RTCWSourceFileAndLine stages this legacy output in a full-size buffer.
+	static_assert(sizeof(source_t::filename) == MAX_STRING_CHARS);
+#endif
 	if (handle < 1 || handle >= MAX_SOURCEFILES)
 		return qfalse;
 	if (!sourceFiles[handle])

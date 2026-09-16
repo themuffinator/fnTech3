@@ -166,6 +166,12 @@ void StreamPlayer::Update( float gain, bool allowStart ) {
 		return;
 	}
 
+	if ( Com_GameIsRTCWSP() ) {
+		// A volume of 2 and two independent fades of 16 can amplify streams.
+		// OpenAL's default maximum of 1 would silently discard that contract.
+		gain = std::isfinite(gain) ? ClampFloat(gain, 0.0f, 512.0f) : 0.0f;
+		device_->AL().alSourcef( source_, AL_MAX_GAIN, (std::max)(1.0f, gain) );
+	}
 	device_->AL().alSourcef( source_, AL_GAIN, gain );
 	ReclaimProcessedBuffers();
 

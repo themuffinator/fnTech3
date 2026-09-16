@@ -133,13 +133,16 @@ int main() {
         function = source[start:source.index('\n}', start)+2]
         harness = r'''
 #include "demo_stream.hpp"
+#include "../qcommon/netchan_profile.h"
 #include <algorithm>
 #include <cassert>
 #include <cstring>
 #include <string>
 #include <vector>
 using byte = unsigned char;
-constexpr int MAX_MSGLEN=16, MAX_MSGLEN_BUF=32, FS_INVALID_HANDLE=0;
+constexpr int MAX_GAME_MSGLEN_BUF=32776, FS_INVALID_HANDLE=0;
+netchanWireProfile_t wireProfile=NETCHAN_WIRE_LEGACY_Q3;
+netchanWireProfile_t CL_ActiveWireProfile(){return wireProfile;}
 constexpr int ERR_DROP=1, EM_GAMESTATE=1, EM_SNAPSHOT=2, EM_COMMAND=4;
 constexpr bool qfalse=false;
 struct { int demofile=1, serverMessageSequence=42, lastPacketTime=43;
@@ -179,6 +182,9 @@ std::vector<byte> header(int length) {
 }
 int main() {
  // A clean boundary EOF stays tolerated, including historical no-trailer files.
+ for(auto profile:{NETCHAN_WIRE_LEGACY_Q3,NETCHAN_WIRE_RTCW_MP}) {
+ wireProfile=profile;
+ const int limit=Netchan_MessageLimit(profile);
  reset({}); CL_ReadDemoMessage();
  assert(completed==1 && dropped==0 && output.empty()); untouched();
  for(int size=1;size<8;++size) {
@@ -189,7 +195,7 @@ int main() {
  // Keep the legacy length-only sentinel, independently of its sequence word.
  reset(header(-1)); CL_ReadDemoMessage();
  assert(completed==1 && dropped==0 && output.empty()); untouched();
- for(int length : {-2, -2147483647-1, 17, 2147483647}) {
+ for(int length : {-2, -2147483647-1, limit+1, 2147483647}) {
   reset(header(length)); CL_ReadDemoMessage();
   assert(dropped==1 && completed==0 && cursor==8); untouched();
  }
@@ -199,7 +205,7 @@ int main() {
   assert(completed==1 && dropped==0 && output=="Demo file was truncated.\n");
   untouched();
  }
- for(int size : {0, 4, MAX_MSGLEN}) {
+ for(int size : {0, 4, limit}) {
   auto bytes=header(size); bytes.resize(8+size,0xab);
   reset(bytes); CL_ReadDemoMessage();
   assert(parsed==1 && completed==0 && dropped==0 && output.empty());
@@ -208,6 +214,7 @@ int main() {
  }
  reset({}); clc.demofile=FS_INVALID_HANDLE; CL_ReadDemoMessage();
  assert(completed==1 && cursor==0 && output.empty()); untouched();
+ }
 }
 '''
         with tempfile.TemporaryDirectory() as tmp:

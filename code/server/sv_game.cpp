@@ -27,6 +27,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "../botlib/botlib.h"
 #include "../compat/game_abi_adapter.h"
+#include "../compat/rtcw_module_abi.h"
+#include "../compat/rtcw_state_adapter.hpp"
 #define JSON_IMPLEMENTATION
 #include "../qcommon/json.h"
 #undef JSON_IMPLEMENTATION
@@ -49,6 +51,46 @@ namespace {
 
 std::string serverEntityOverride;
 fntech3::server::ServerGameDataView serverGameData;
+
+struct ServerFlagMapping { uint32_t external, internal; };
+constexpr ServerFlagMapping rtcwServerFlags[] = {
+	{ FNTECH3_RTCW_SVF_NOCLIENT, SVF_NOCLIENT },
+	{ FNTECH3_RTCW_SVF_VISDUMMY, SVF_RTCW_VISDUMMY },
+	{ FNTECH3_RTCW_SVF_BOT, SVF_BOT },
+	{ FNTECH3_RTCW_SVF_CASTAI, SVF_RTCW_CASTAI },
+	{ FNTECH3_RTCW_SVF_BROADCAST, SVF_BROADCAST },
+	{ FNTECH3_RTCW_SVF_PORTAL, SVF_PORTAL },
+	{ FNTECH3_RTCW_SVF_USE_CURRENT_ORIGIN, SVF_USE_CURRENT_ORIGIN },
+	{ FNTECH3_RTCW_SVF_NOFOOTSTEPS, SVF_RTCW_NOFOOTSTEPS },
+	{ FNTECH3_RTCW_SVF_CAPSULE, SVF_CAPSULE },
+	{ FNTECH3_RTCW_SVF_VISDUMMY_MULTIPLE, SVF_RTCW_VISDUMMY_MULTIPLE },
+	{ FNTECH3_RTCW_SVF_SINGLECLIENT, SVF_SINGLECLIENT },
+	{ FNTECH3_RTCW_SVF_NOSERVERINFO, SVF_NOSERVERINFO },
+	{ FNTECH3_RTCW_SVF_NOTSINGLECLIENT, SVF_NOTSINGLECLIENT }
+};
+
+int ServerFlagsToInternal( comGameId_t profile, int flags ) {
+	if ( profile != COM_GAME_RTCW_SP && profile != COM_GAME_RTCW_MP ) return flags;
+	uint32_t result = 0;
+	for ( const auto &bit : rtcwServerFlags ) {
+		if ( static_cast<uint32_t>( flags ) & bit.external ) result |= bit.internal;
+	}
+	return static_cast<int>( result );
+}
+
+int ServerFlagsFromInternal( comGameId_t profile, int flags, int previous ) {
+	if ( profile != COM_GAME_RTCW_SP && profile != COM_GAME_RTCW_MP ) return flags;
+	// Engine updates must preserve module-owned bits the engine does not know.
+	uint32_t result = static_cast<uint32_t>( previous );
+	for ( const auto &bit : rtcwServerFlags ) {
+		result &= ~bit.external;
+		if ( static_cast<uint32_t>( flags ) & bit.internal ) result |= bit.external;
+	}
+	int output;
+	static_assert( sizeof( output ) == sizeof( result ) );
+	std::memcpy( &output, &result, sizeof( output ) );
+	return output;
+}
 
 void InvalidateServerGameData()
 {
@@ -172,7 +214,8 @@ qboolean SV_ReadGameEntity( const void *entity,
 		&& serverGameData.GetLinked( reference, value )
 		&& ( destination->r.linked = SV_QBool( value != 0 ), true )
 		&& serverGameData.GetLinkcount( reference, destination->r.linkcount )
-		&& serverGameData.GetSvFlags( reference, destination->r.svFlags )
+		&& serverGameData.GetSvFlags( reference, value )
+		&& ( destination->r.svFlags = ServerFlagsToInternal( serverGameData.Profile(), value ), true )
 		&& serverGameData.GetSingleClient( reference, destination->r.singleClient )
 		&& serverGameData.GetBmodel( reference, value )
 		&& ( destination->r.bmodel = SV_QBool( value != 0 ), true )
@@ -191,17 +234,31 @@ qboolean SV_ReadGameEntity( const void *entity,
 }
 
 
+qboolean SV_ClientIsRTCWCastAI( const client_t *client ) {
+	if ( !Com_GameIsRTCW() || !client->gentity ) return qfalse;
+	sharedEntity_t entity;
+	if ( !SV_ReadGameEntity( client->gentity, &entity ) ) {
+		Com_Error( ERR_DROP, "%s: invalid client gentity", __func__ );
+		return qfalse;
+	}
+	return SV_QBool( ( entity.r.svFlags & SVF_RTCW_CASTAI ) != 0 );
+}
+
+
 qboolean SV_WriteGameEntity( void *entity,
 	const sharedEntity_t *source ) {
 	fntech3::server::GameEntityRef reference;
 	if ( !source || !serverGameData.EntityRefForPointer( entity, reference ) ) {
 		return qfalse;
 	}
+	int previousFlags;
+	if ( !serverGameData.GetSvFlags( reference, previousFlags ) ) return qfalse;
 
 	return serverGameData.WriteEntityState( reference, source->s )
 		&& serverGameData.SetLinked( reference, source->r.linked )
 		&& serverGameData.SetLinkcount( reference, source->r.linkcount )
-		&& serverGameData.SetSvFlags( reference, source->r.svFlags )
+		&& serverGameData.SetSvFlags( reference, ServerFlagsFromInternal(
+			serverGameData.Profile(), source->r.svFlags, previousFlags ) )
 		&& serverGameData.SetSingleClient( reference, source->r.singleClient )
 		&& serverGameData.SetBmodel( reference, source->r.bmodel )
 		&& serverGameData.SetMins( reference, source->r.mins )
@@ -363,7 +420,8 @@ qboolean SV_inPVS( const vec3_t p1, const vec3_t p2 )
 	leafnum = CM_PointLeafnum (p2);
 	cluster = CM_LeafCluster (leafnum);
 	area2 = CM_LeafArea (leafnum);
-	if ( mask && (!(mask[cluster>>3] & (1<<(cluster&7)) ) ) )
+	if ( mask && ( cluster < 0 || cluster >= CM_NumClusters()
+		|| !(mask[cluster>>3] & (1<<(cluster&7))) ) )
 		return qfalse;
 	if (!CM_AreasConnected (area1, area2))
 		return qfalse;		// a door blocks sight
@@ -391,7 +449,8 @@ static bool SV_inPVSIgnorePortals( const vec3_t p1, const vec3_t p2 )
 	leafnum = CM_PointLeafnum (p2);
 	cluster = CM_LeafCluster (leafnum);
 
-	if ( mask && (!(mask[cluster>>3] & (1<<(cluster&7)) ) ) )
+	if ( mask && ( cluster < 0 || cluster >= CM_NumClusters()
+		|| !(mask[cluster>>3] & (1<<(cluster&7))) ) )
 		return false;
 
 	return true;
@@ -470,7 +529,7 @@ static void SV_LocateGameData( intptr_t entityAddress, int numGEntities, int siz
 	binding.entityCount = numGEntities;
 	binding.entityStride = sizeofGEntity_t > 0
 		? static_cast<std::size_t>( sizeofGEntity_t ) : 0;
-	binding.clientCount = MAX_CLIENTS;
+	binding.clientCount = Com_GameClientLimit();
 	binding.clientStride = sizeofGameClient > 0
 		? static_cast<std::size_t>( sizeofGameClient ) : 0;
 
@@ -506,7 +565,7 @@ static void SV_LocateGameData( intptr_t entityAddress, int numGEntities, int siz
 		};
 		binding.entitySpanBytes = claimedSpan( numGEntities,
 			sizeofGEntity_t );
-		binding.clientSpanBytes = claimedSpan( MAX_CLIENTS,
+		binding.clientSpanBytes = claimedSpan( binding.clientCount,
 			sizeofGameClient );
 	}
 
@@ -556,6 +615,15 @@ static void SV_GetQLUsercmd( int clientNum,
 
 	SV_GetUsercmd( clientNum, &internal );
 	FnTech3_QLUsercmdFromInternal( destination, &internal );
+}
+
+template<typename ExternalCommand>
+static void SV_GetRTCWUsercmd( int clientNum, ExternalCommand *destination ) {
+	usercmd_t internal{};
+	SV_GetUsercmd( clientNum, &internal );
+	if ( !destination || !fntech3::rtcw::state::FromInternal( internal, *destination ) ) {
+		Com_Error( ERR_DROP, "Invalid RTCW usercmd module transfer" );
+	}
 }
 
 
@@ -718,6 +786,86 @@ SV_GameSystemCalls
 The module is making a system call
 ====================
 */
+static void SV_RTCWTrace( fntech3_rtcw_trace_t *destination,
+	const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end,
+	int passEntityNum, int contentmask, qboolean capsule ) {
+	if ( !destination || !start || !end ) {
+		Com_Error( ERR_DROP, "Invalid RTCW game trace arguments" );
+	}
+	trace_t result{};
+	SV_Trace( &result, start, mins, maxs, end, passEntityNum, contentmask, capsule );
+	if ( !fntech3::rtcw::state::FromInternal( result, *destination ) ) {
+		Com_Error( ERR_DROP, "Invalid RTCW game trace result" );
+	}
+}
+
+#include "server_rtcw_world.hpp"
+#include "server_rtcw_botlib.hpp"
+
+// Original RTCW asks the local cgame for its current skeletal pose. Keep the
+// server record separate from both the engine orientation and cgame's copy.
+static intptr_t SV_RTCWGetTag(const vm_t *source, intptr_t client, intptr_t name, intptr_t output) {
+	if (!Com_GameIsRTCW()) Com_Error(ERR_DROP, "RTCW tag lookup requires an RTCW profile");
+#if defined(DEDICATED) || defined(USE_DEDICATED)
+	return qfalse;
+#else
+	if (com_dedicated->integer) return qfalse;
+	const int number = SV_RTCWInteger(client);
+	if (!source || source->index != VM_GAME || number < 0 || number >= Com_GameProfile()->maxClients)
+		Com_Error(ERR_DROP, "Invalid RTCW tag client");
+	const auto tagName = SV_RTCWString<64>(source, name);
+	void *destination = SV_RTCWPointer(source, output, sizeof(fntech3_rtcw_orientation_t));
+	fntech3_rtcw_orientation_t external;
+	std::memcpy(&external, destination, sizeof(external));
+	orientation_t internal;
+	std::memcpy(internal.origin, external.origin, sizeof(external.origin));
+	std::memcpy(internal.axis, external.axis, sizeof(external.axis));
+	const intptr_t result = CL_RTCWGetTag(number, tagName.data(), &internal);
+	if (result && (!SV_FiniteWorldVector(internal.origin) ||
+		!SV_FiniteWorldVector(internal.axis[0]) || !SV_FiniteWorldVector(internal.axis[1]) ||
+		!SV_FiniteWorldVector(internal.axis[2])))
+		Com_Error(ERR_DROP, "Invalid RTCW tag orientation");
+	std::memcpy(external.origin, internal.origin, sizeof(external.origin));
+	std::memcpy(external.axis, internal.axis, sizeof(external.axis));
+	std::memcpy(destination, &external, sizeof(external));
+	return result;
+#endif
+}
+
+static intptr_t SV_RTCWGameSharedCall( fntech3::rtcw::module::Call call ) {
+	using fntech3::rtcw::module::Call;
+	switch ( call ) {
+#define RTCW_SHARED_CALL(name) case Call::name: return name;
+	RTCW_SHARED_CALL(G_PRINT)
+	RTCW_SHARED_CALL(G_ERROR)
+	RTCW_SHARED_CALL(G_MILLISECONDS)
+	RTCW_SHARED_CALL(G_CVAR_SET)
+	RTCW_SHARED_CALL(G_CVAR_VARIABLE_INTEGER_VALUE)
+	RTCW_SHARED_CALL(G_CVAR_VARIABLE_STRING_BUFFER)
+	RTCW_SHARED_CALL(G_ARGC)
+	RTCW_SHARED_CALL(G_ARGV)
+	RTCW_SHARED_CALL(G_SEND_CONSOLE_COMMAND)
+	RTCW_SHARED_CALL(G_FS_FOPEN_FILE)
+	RTCW_SHARED_CALL(G_FS_READ)
+	RTCW_SHARED_CALL(G_FS_WRITE)
+	RTCW_SHARED_CALL(G_FS_FCLOSE_FILE)
+	RTCW_SHARED_CALL(G_FS_GETFILELIST)
+	RTCW_SHARED_CALL(G_LOCATE_GAME_DATA)
+	RTCW_SHARED_CALL(G_DROP_CLIENT)
+	RTCW_SHARED_CALL(G_SEND_SERVER_COMMAND)
+	RTCW_SHARED_CALL(G_SET_CONFIGSTRING)
+	RTCW_SHARED_CALL(G_GET_CONFIGSTRING)
+	RTCW_SHARED_CALL(G_SET_USERINFO)
+	RTCW_SHARED_CALL(G_GET_USERINFO)
+	RTCW_SHARED_CALL(G_GET_SERVERINFO)
+	RTCW_SHARED_CALL(G_GET_ENTITY_TOKEN)
+	RTCW_SHARED_CALL(G_POINT_CONTENTS)
+	RTCW_SHARED_CALL(G_SNAPVECTOR)
+#undef RTCW_SHARED_CALL
+	default: return -1;
+	}
+}
+
 static intptr_t SV_GameSystemCalls( intptr_t *args ) {
 
 	// detect infinite loops in QVM code by counting syscalls per VM_Call invocation
@@ -733,7 +881,58 @@ static intptr_t SV_GameSystemCalls( intptr_t *args ) {
 		return VmArgPtr( VM_ArgPtr( args[index] ) );
 	};
 
-	switch( args[0] ) {
+	intptr_t operation = args[0];
+	if ( Com_GameIsRTCW() ) {
+		using namespace fntech3::rtcw::module;
+		const auto call = Lookup( Com_GameProfile()->id, Module::GAME, Direction::IMPORT, args[0] );
+		intptr_t worldResult = 0;
+		if ( SV_RTCWWorldCall( gvm, call, args, worldResult ) ) return worldResult;
+		if ( SV_RTCWBotLibCall( gvm, call, args, worldResult ) ) return worldResult;
+		switch ( call ) {
+		case Call::G_GETTAG:
+			return SV_RTCWGetTag(gvm, args[1], args[2], args[3]);
+		case Call::G_TRACE:
+		case Call::G_TRACECAPSULE:
+			VM_CHECKBOUNDS( gvm, args[1], sizeof( fntech3_rtcw_trace_t ) );
+			for ( int index = 2; index <= 5; ++index ) {
+				if ( args[index] ) VM_CHECKBOUNDS( gvm, args[index], sizeof( vec3_t ) );
+			}
+			SV_RTCWTrace( VMA(1), VMA(2), VMA(3), VMA(4), VMA(5), args[6], args[7],
+				call == Call::G_TRACECAPSULE ? qtrue : qfalse );
+			return 0;
+		case Call::G_REAL_TIME:
+			VM_CHECKBOUNDS( gvm, args[1], sizeof( fntech3_rtcw_qtime_t ) );
+			return Com_RealTimeRTCW( VMA(1) );
+		case Call::G_CVAR_REGISTER:
+			VM_CHECKBOUNDS( gvm, args[1], sizeof( fntech3_rtcw_vmCvar_t ) );
+			Cvar_RegisterRTCW( VMA(1), VMA(2), VMA(3), args[4], gvm->privateFlag );
+			return 0;
+		case Call::G_CVAR_UPDATE:
+			VM_CHECKBOUNDS( gvm, args[1], sizeof( fntech3_rtcw_vmCvar_t ) );
+			Cvar_UpdateRTCW( VMA(1), gvm->privateFlag );
+			return 0;
+		case Call::G_GET_USERCMD:
+			if ( Com_GameIsRTCWSP() ) {
+				VM_CHECKBOUNDS( gvm, args[2], sizeof( fntech3_rtcw_sp_usercmd_t ) );
+				SV_GetRTCWUsercmd<fntech3_rtcw_sp_usercmd_t>( args[1], VMA(2) );
+			} else {
+				VM_CHECKBOUNDS( gvm, args[2], sizeof( fntech3_rtcw_mp_usercmd_t ) );
+				SV_GetRTCWUsercmd<fntech3_rtcw_mp_usercmd_t>( args[1], VMA(2) );
+			}
+			return 0;
+		default:
+			operation = SV_RTCWGameSharedCall( call );
+			if ( operation < 0 ) {
+				const auto *descriptor = Describe( call );
+				Com_Error( ERR_DROP, "Unsupported %s game import %ld (%s)",
+					Com_GameProfile()->key, static_cast<long>( args[0] ),
+					descriptor ? descriptor->name : "unknown ordinal" );
+				return 0;
+			}
+			break;
+		}
+	}
+	switch( operation ) {
 	case G_PRINT:
 		Com_Printf( "%s", static_cast<const char *>( VMA(1) ) );
 		return 0;
@@ -1787,7 +1986,7 @@ static void SV_GameResendConfigstring( int index ) {
 	int len;
 	const int maxChunkSize = MAX_STRING_CHARS - 24;
 
-	if ( index < 0 || index >= MAX_CONFIGSTRINGS ) {
+	if ( index < 0 || index >= Com_GameConfigstringLimit() ) {
 		Com_Error( ERR_DROP, "SV_GameResendConfigstring: bad index %i\n", index );
 	}
 
@@ -2805,7 +3004,7 @@ void SV_RegisterGameCvars( void ) {
 		return;
 	}
 
-	var = Cvar_Get( "bot_enable", "1", 0 );
+	var = Cvar_Get( "bot_enable", Com_GameProfile()->bots.enabled, 0 );
 	if ( var ) {
 		bot_enable = var->integer;
 	} else {
@@ -2837,7 +3036,7 @@ void SV_InitGameProgs( void ) {
 	//FIXME these are temp while I make bots run in vm
 	extern int	bot_enable;
 
-	var = Cvar_Get( "bot_enable", "1", CVAR_LATCH );
+	var = Cvar_Get( "bot_enable", Com_GameProfile()->bots.enabled, CVAR_LATCH );
 	if ( var ) {
 		bot_enable = var->integer;
 	}
@@ -2873,4 +3072,42 @@ qboolean SV_GameCommand( void ) {
 	}
 
 	return SV_QBool( VM_Call( gvm, 0, GAME_CONSOLE_COMMAND ) != 0 );
+}
+
+// Original SP/MP cgame sends at most a 10,000-byte animation text buffer.
+// The game owns parsing and applying the speeds; its synchronous callback
+// receives an isolated copy, never an offset or a pointer into another VM.
+void SV_RTCWSendMoveSpeeds( const vm_t *source, intptr_t entity, intptr_t text ) {
+	if ( !Com_GameIsRTCW() ) Com_Error( ERR_DROP, "RTCW animation handoff requires an RTCW profile" );
+	if ( !gvm ) return; // A remote client has no local game to update.
+	if ( gvm->index != VM_GAME || !gvm->entryPoint || gvm->dllExports || sizeof( void * ) != sizeof( int32_t ) )
+		Com_Error( ERR_DROP, "RTCW animation handoff requires a legacy x86 game module" );
+	const int number = SV_RTCWInteger( entity );
+	auto copy = SV_RTCWString<10000>( source, text );
+	VM_Call( gvm, 2, GAME_RETRIEVE_MOVESPEEDS_FROM_CLIENT,
+		number, static_cast<int32_t>( reinterpret_cast<intptr_t>( copy.data() ) ) );
+}
+
+// SP's game and cgame share a game-owned animation record, including nested
+// pointers. Keep it opaque: only matching legacy native modules can exchange
+// this pointer. Its lifetime remains that of the local game module/map.
+intptr_t SV_RTCWGetModelInfo( const vm_t *source, intptr_t client, intptr_t name, intptr_t output ) {
+	if ( Com_GameProfile()->id != COM_GAME_RTCW_SP )
+		Com_Error( ERR_DROP, "RTCW model information requires the SP profile" );
+	if ( !gvm ) return qfalse;
+	if ( !source || source->index != VM_CGAME || !source->entryPoint || source->dllExports ||
+		gvm->index != VM_GAME || !gvm->entryPoint || gvm->dllExports || sizeof( void * ) != sizeof( int32_t ) )
+		Com_Error( ERR_DROP, "RTCW model information requires legacy x86 game and cgame modules" );
+	const int number = SV_RTCWInteger( client );
+	if ( number < 0 || number >= FNTECH3_RTCW_SP_MAX_CLIENTS )
+		Com_Error( ERR_DROP, "Invalid RTCW animation client" );
+	auto modelName = SV_RTCWString<64>( source, name ); // Original MAX_QPATH.
+	void *destination = SV_RTCWPointer( source, output, sizeof( void * ) );
+	void *modelInfo;
+	std::memcpy( &modelInfo, destination, sizeof( modelInfo ) );
+	const intptr_t result = VM_Call( gvm, 3, GAME_GETMODELINFO, number,
+		static_cast<int32_t>( reinterpret_cast<intptr_t>( modelName.data() ) ),
+		static_cast<int32_t>( reinterpret_cast<intptr_t>( &modelInfo ) ) );
+	std::memcpy( destination, &modelInfo, sizeof( modelInfo ) );
+	return result;
 }

@@ -47,6 +47,31 @@ uint32_t FnTech3_Q3CvarFlagsToInternal( uint32_t q3Flags ) {
 
 #undef FNTECH3_MAP_Q3_CVAR_BIT
 
+uint32_t FnTech3_RTCWCvarFlagsToInternal( comGameId_t profile, uint32_t flags ) {
+	uint32_t translated = 0;
+	if ( profile != COM_GAME_RTCW_SP && profile != COM_GAME_RTCW_MP ) {
+		return 0;
+	}
+#define RTCW_CVAR_FLAG(name) \
+	if ( flags & FNTECH3_RTCW_CVAR_##name ) translated |= CVAR_##name;
+	RTCW_CVAR_FLAG(ARCHIVE)
+	RTCW_CVAR_FLAG(USERINFO)
+	RTCW_CVAR_FLAG(SERVERINFO)
+	RTCW_CVAR_FLAG(SYSTEMINFO)
+	RTCW_CVAR_FLAG(INIT)
+	RTCW_CVAR_FLAG(LATCH)
+	RTCW_CVAR_FLAG(ROM)
+	RTCW_CVAR_FLAG(USER_CREATED)
+	RTCW_CVAR_FLAG(TEMP)
+	RTCW_CVAR_FLAG(CHEAT)
+	RTCW_CVAR_FLAG(NORESTART)
+#undef RTCW_CVAR_FLAG
+	if ( profile == COM_GAME_RTCW_MP && ( flags & FNTECH3_RTCW_MP_CVAR_WOLFINFO ) ) {
+		translated |= CVAR_RTCW_WOLFINFO;
+	}
+	return translated;
+}
+
 static void FnTech3_CopyFloat3( float destination[3], const float source[3] ) {
 	destination[0] = source[0];
 	destination[1] = source[1];
@@ -71,9 +96,10 @@ static void FnTech3_CopyInternalIntArray( int *destination,
 	}
 }
 
-/* Refuse capacity changes until their profile semantics have been audited. */
+/* Legacy module capacities stay fixed even when engine storage grows. */
 typedef char q3GameStateCapacityCheck[
 	(MAX_CONFIGSTRINGS == FNTECH3_Q3_MAX_CONFIGSTRINGS &&
+	 MAX_GAME_CONFIGSTRINGS >= FNTECH3_Q3_MAX_CONFIGSTRINGS &&
 	 MAX_GAMESTATE_CHARS == FNTECH3_Q3_MAX_GAMESTATE_CHARS) ? 1 : -1];
 
 void FnTech3_Q3GameStateFromInternal( fntech3_q3_gameState_t *destination,
@@ -85,9 +111,10 @@ void FnTech3_Q3GameStateFromInternal( fntech3_q3_gameState_t *destination,
 	destination->dataCount = source->dataCount;
 }
 
-/* Refuse capacity changes until their profile semantics have been audited. */
+/* Legacy module capacities stay fixed even when engine storage grows. */
 typedef char qlGameStateCapacityCheck[
 	(MAX_CONFIGSTRINGS == FNTECH3_QL_MAX_CONFIGSTRINGS &&
+	 MAX_GAME_CONFIGSTRINGS >= FNTECH3_QL_MAX_CONFIGSTRINGS &&
 	 MAX_GAMESTATE_CHARS == FNTECH3_QL_MAX_GAMESTATE_CHARS) ? 1 : -1];
 
 void FnTech3_QLGameStateFromInternal( fntech3_ql_gameState_t *destination,
@@ -133,6 +160,19 @@ void FnTech3_InternalUsercmdFromQL( usercmd_t *destination,
 	destination->forwardmove = source->forwardmove;
 	destination->rightmove = source->rightmove;
 	destination->upmove = source->upmove;
+}
+
+void FnTech3_RTCWTimeFromInternal( fntech3_rtcw_qtime_t *destination, const qtime_t *source ) {
+	if ( !destination || !source ) return;
+	destination->tm_sec = source->tm_sec;
+	destination->tm_min = source->tm_min;
+	destination->tm_hour = source->tm_hour;
+	destination->tm_mday = source->tm_mday;
+	destination->tm_mon = source->tm_mon;
+	destination->tm_year = source->tm_year;
+	destination->tm_wday = source->tm_wday;
+	destination->tm_yday = source->tm_yday;
+	destination->tm_isdst = source->tm_isdst;
 }
 
 void FnTech3_Q3UsercmdFromInternal( fntech3_q3_usercmd_t *destination,

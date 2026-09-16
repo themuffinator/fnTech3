@@ -6,6 +6,10 @@
 #include <cstdlib>
 #include <iostream>
 
+static comGameProfile_t selectedProfile{};
+static const comGameProfile_t *activeProfile;
+const comGameProfile_t *Com_GameProfile( void ) { return activeProfile; }
+
 namespace {
 
 int failures;
@@ -25,6 +29,12 @@ void TestReservedHandleContract()
 	static_assert( CAPSULE_MODEL_HANDLE == 254 );
 	static_assert( BOX_MODEL_HANDLE == 255 );
 
+	CHECK( CM_ModelHandleLimit() == 0 );
+	CHECK( CM_TemporaryModelHandle( qfalse ) == -1 );
+	CHECK( CM_TemporaryModelHandle( qtrue ) == -1 );
+	CHECK( !CM_IsTemporaryModelHandle( -1 ) );
+	activeProfile = &selectedProfile;
+	selectedProfile.collisionModelHandleCount = 256;
 	CHECK( CM_TemporaryModelHandle( qfalse ) == BOX_MODEL_HANDLE );
 	CHECK( CM_TemporaryModelHandle( qtrue ) == CAPSULE_MODEL_HANDLE );
 	CHECK( CM_IsTemporaryModelHandle( BOX_MODEL_HANDLE ) == qtrue );
@@ -35,6 +45,13 @@ void TestReservedHandleContract()
 	CHECK( CM_IsTemporaryModelHandle( CAPSULE_MODEL_HANDLE - 1 ) == qfalse );
 	CHECK( CM_IsTemporaryModelHandle( MAX_SUBMODELS ) == qfalse );
 	CHECK( CM_IsTemporaryModelHandle( -1 ) == qfalse );
+	selectedProfile.collisionModelHandleCount = 512;
+	CHECK( CM_ModelHandleLimit() == 512 );
+	CHECK( CM_TemporaryModelHandle( qfalse ) == 511 );
+	CHECK( CM_TemporaryModelHandle( qtrue ) == 510 );
+	CHECK( CM_IsTemporaryModelHandle( 510 ) && CM_IsTemporaryModelHandle( 511 ) );
+	CHECK( !CM_IsTemporaryModelHandle( 254 ) && !CM_IsTemporaryModelHandle( 255 ) );
+	CHECK( !CM_IsTemporaryModelHandle( 509 ) && !CM_IsTemporaryModelHandle( 512 ) );
 }
 
 void TestRetailEntityShapeSelection()

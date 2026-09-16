@@ -12,6 +12,7 @@ General Public License, version 2 or (at your option) any later version.
 
 #include "../qcommon/game_profile.h"
 #include "../qcommon/q_shared.h"
+#include "../compat/rtcw_game_abi.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -105,6 +106,13 @@ public:
 		entityState_t &destination ) const;
 	bool WriteEntityState( const GameEntityRef &reference,
 		const entityState_t &source );
+	/* Frozen RTCW transfers retain all fields needed by its message codecs.
+	 * Profile mismatches fail without publishing bytes. Canonical Q3/QL
+	 * overloads cannot silently interpret a bound RTCW record as QL. */
+	bool ReadEntityState( const GameEntityRef &reference,
+		fntech3_rtcw_entityState_t &destination ) const;
+	bool WriteEntityState( const GameEntityRef &reference,
+		const fntech3_rtcw_entityState_t &source );
 	bool GetNumber( const GameEntityRef &reference,
 		std::int32_t &destination ) const;
 	bool SetNumber( const GameEntityRef &reference, std::int32_t value );
@@ -154,6 +162,10 @@ public:
 
 	bool ReadPlayerState( std::int32_t clientIndex,
 		playerState_t &destination ) const;
+	bool ReadPlayerState( std::int32_t clientIndex,
+		fntech3_rtcw_sp_playerState_t &destination ) const;
+	bool ReadPlayerState( std::int32_t clientIndex,
+		fntech3_rtcw_mp_playerState_t &destination ) const;
 	bool GetPlayerPing( std::int32_t clientIndex,
 		std::int32_t &destination ) const;
 	bool SetPlayerPing( std::int32_t clientIndex, std::int32_t value );

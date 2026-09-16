@@ -29,6 +29,7 @@ extern "C" {
 #include "client_cpp.h"
 
 #include <array>
+#include "DecodedImageCache.h"
 
 using fnql::ScopedTempMemory;
 
@@ -80,6 +81,14 @@ static void CL_JPGOutputMessage(j_common_ptr cinfo)
 }
 
 
+static fntech3::DecodedImageCache cl_jpegCache(192u * 1024u * 1024u);
+
+static void CL_JpegCacheInfo_f(void) {
+	Com_Printf("JPEG cache: %.1f MiB, %u hits, %u misses\n",
+		cl_jpegCache.Bytes() / (1024.0 * 1024.0),
+		static_cast<unsigned>(cl_jpegCache.Hits()), static_cast<unsigned>(cl_jpegCache.Misses()));
+}
+
 void CL_LoadJPG( const char *filename, unsigned char **pic, int *width, int *height )
 {
 	/* This struct contains the JPEG decompression parameters and pointers to
@@ -111,6 +120,14 @@ void CL_LoadJPG( const char *filename, unsigned char **pic, int *width, int *hei
 		void *v;
 	} fbuffer;
 	byte  *buf;
+	static cvar_t *cacheMegs;
+	if (!cacheMegs) {
+		cacheMegs = Cvar_Get("cl_jpegCacheMegs", "192", CVAR_ARCHIVE);
+		Cvar_CheckRange(cacheMegs, "0", "256", CV_INTEGER);
+		Cvar_SetDescription(cacheMegs, "Memory limit for decoded JPEG reuse between maps. 0 disables the cache.");
+		Cmd_AddCommand("jpegcacheinfo", CL_JpegCacheInfo_f);
+	}
+	cl_jpegCache.SetCapacity(static_cast<size_t>(cacheMegs->integer) * 1024u * 1024u);
 
 	/* In this example we want to open the input file before doing anything else,
 	 * so that the setjmp() error recovery below can assume the file is open.
@@ -120,6 +137,15 @@ void CL_LoadJPG( const char *filename, unsigned char **pic, int *width, int *hei
 
 	len = FS_ReadFile( const_cast<char *>( filename ), &fbuffer.v );
 	if ( !fbuffer.b || len < 0 ) {
+		return;
+	}
+	const auto *cached = cl_jpegCache.Find(filename, fbuffer.b, static_cast<size_t>(len));
+	if (cached) {
+		*pic = static_cast<byte *>(Z_Malloc(static_cast<int>(cached->pixels.size())));
+		Com_Memcpy(*pic, cached->pixels.data(), cached->pixels.size());
+		*width = cached->width;
+		*height = cached->height;
+		FS_FreeFile(fbuffer.v);
 		return;
 	}
 
@@ -179,7 +205,11 @@ void CL_LoadJPG( const char *filename, unsigned char **pic, int *width, int *hei
    * Make sure it always converts images to RGB color space. This will
    * automatically convert 8-bit greyscale images to RGB as well.
    */
+#ifdef JCS_ALPHA_EXTENSIONS
+  cinfo.out_color_space = JCS_EXT_RGBA;
+#else
   cinfo.out_color_space = JCS_RGB;
+#endif
 
   /* Step 5: Start decompressor */
 
@@ -200,7 +230,8 @@ void CL_LoadJPG( const char *filename, unsigned char **pic, int *width, int *hei
 
   if(!cinfo.output_width || !cinfo.output_height
       || ((pixelcount * 4) / cinfo.output_width) / 4 != cinfo.output_height
-      || pixelcount > 0x1FFFFFFF || cinfo.output_components != 3
+      || pixelcount > 0x1FFFFFFF
+      || (cinfo.output_components != 3 && cinfo.output_components != 4)
     )
   {
     // Free the memory to make sure we don't leak memory
@@ -242,7 +273,9 @@ void CL_LoadJPG( const char *filename, unsigned char **pic, int *width, int *hei
   
   buf = out;
 
-  // Expand from RGB to RGBA
+  // libjpeg-turbo writes opaque RGBA directly, avoiding a second pixel pass.
+  // Keep the RGB path for system libjpeg without the alpha extensions.
+  if (cinfo.output_components == 3) {
   sindex = pixelcount * cinfo.output_components;
   dindex = memcount;
 
@@ -253,6 +286,7 @@ void CL_LoadJPG( const char *filename, unsigned char **pic, int *width, int *hei
     buf[--dindex] = buf[--sindex];
     buf[--dindex] = buf[--sindex];
   } while(sindex);
+  }
 
   *pic = out;
 
@@ -273,6 +307,7 @@ void CL_LoadJPG( const char *filename, unsigned char **pic, int *width, int *hei
    * so as to simplify the setjmp error logic above.  (Actually, I don't
    * think that jpeg_destroy can do an error exit, but why assume anything...)
    */
+  cl_jpegCache.Store(filename, fbuffer.b, static_cast<size_t>(len), out, *width, *height);
   FS_FreeFile( fbuffer.v );
 
   /* At this point you may want to check to see whether any corrupt-data

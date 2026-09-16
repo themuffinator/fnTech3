@@ -2866,8 +2866,8 @@ static void R_Register( void )
 #endif
 	ri.Cvar_CheckRange( r_dlightMode, "0", "2", CV_INTEGER );
 	ri.Cvar_SetDescription( r_dlightMode, "Dynamic light mode:\n 0: VQ3 'fake' dynamic lights\n 1: High-quality per-pixel dynamic lights, slightly faster than VQ3's on modern hardware\n 2: Same as 1 but applies to entity models too" );
-	r_dlightScale = ri.Cvar_Get( "r_dlightScale", "0.5", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( r_dlightScale, "0.1", "1", CV_FLOAT );
+	r_dlightScale = ri.Cvar_Get( "r_dlightScale", ri.gameId == COM_GAME_RTCW_SP ? "1.0" : "0.5", CVAR_ARCHIVE_ND );
+	if ( ri.gameId != COM_GAME_RTCW_SP ) ri.Cvar_CheckRange( r_dlightScale, "0.1", "1", CV_FLOAT );
 	ri.Cvar_SetDescription( r_dlightScale, "Scales dynamic light radius." );
 	r_dlightSpecPower = ri.Cvar_Get( "r_dlightSpecPower", "10", CVAR_ARCHIVE_ND );
 	ri.Cvar_CheckRange( r_dlightSpecPower, "1", "32", CV_FLOAT );
@@ -3702,15 +3702,26 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 
 	static refexport_t	re;
 
-	ri = *rimp;
-
-	Com_Memset( &re, 0, sizeof( re ) );
-
-	if ( apiVersion != REF_API_VERSION ) {
-		ri.Printf(PRINT_ALL, "Mismatched REF_API_VERSION: expected %i, got %i\n",
-			REF_API_VERSION, apiVersion );
+	/* Validate before copying: older engines supply a shorter import table. */
+	if ( !rimp ) {
 		return NULL;
 	}
+	if ( apiVersion != REF_API_VERSION ) {
+		if ( rimp->Printf ) {
+			rimp->Printf( PRINT_ALL, "Mismatched REF_API_VERSION: expected %i, got %i\n",
+				REF_API_VERSION, apiVersion );
+		}
+		return NULL;
+	}
+	if ( !rimp->GameBspFormat ) {
+		if ( rimp->Printf ) {
+			rimp->Printf( PRINT_ALL, "Renderer requires the engine's game BSP contract\n" );
+		}
+		return NULL;
+	}
+
+	ri = *rimp;
+	Com_Memset( &re, 0, sizeof( re ) );
 
 	// the RE_ functions are Renderer Entry points
 
@@ -3719,6 +3730,8 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 	re.BeginRegistration = RE_BeginRegistration;
 	re.RegisterModel = RE_RegisterModel;
 	re.RegisterSkin = RE_RegisterSkin;
+	re.GetSkinModel = RE_GetSkinModel;
+	re.GetShaderFromModel = RE_GetShaderFromModel;
 	re.RegisterShader = RE_RegisterShader;
 	re.RegisterShaderNoMip = RE_RegisterShaderNoMip;
 	re.LoadWorld = RE_LoadWorldMap;
@@ -3730,6 +3743,7 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 
 	re.MarkFragments = R_MarkFragments;
 	re.LerpTag = R_LerpTag;
+	re.LerpTagEntity = R_LerpTagEntity;
 	re.ModelBounds = R_ModelBounds;
 
 	re.ClearScene = RE_ClearScene;
@@ -3737,6 +3751,8 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 	re.AddPolyToScene = RE_AddPolyToScene;
 	re.LightForPoint = R_LightForPoint;
 	re.AddLightToScene = RE_AddLightToScene;
+	re.AddRTCWLightToScene = RE_AddRTCWLightToScene;
+	re.SetRTCWFog = RE_SetRTCWFog;
 	re.AddAdditiveLightToScene = RE_AddAdditiveLightToScene;
 	re.AddLinearLightToScene = RE_AddLinearLightToScene;
 	re.AddLiquidInteractionToScene = RE_AddLiquidInteractionToScene;
@@ -3747,6 +3763,7 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 
 	re.SetColor = RE_SetColor;
 	re.DrawStretchPic = RE_StretchPic;
+	re.DrawQuad = RE_DrawQuad;
 	re.DrawStretchRaw = RE_StretchRaw;
 	re.UploadCinematic = RE_UploadCinematic;
 	re.DrawWebUISurface = RE_DrawWebUISurface;

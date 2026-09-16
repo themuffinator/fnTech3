@@ -204,7 +204,12 @@ static void SV_Map_f( void ) {
 	}
 
 	// force latched values to get set
-	Cvar_Get ("g_gametype", "0", CVAR_SERVERINFO | CVAR_USERINFO | CVAR_LATCH );
+	const auto &serverPolicy = Com_GameProfile()->server;
+	Cvar_Get ("g_gametype", serverPolicy.gameType, CVAR_SERVERINFO | CVAR_USERINFO | CVAR_LATCH );
+	if ( serverPolicy.mapSkill ) {
+		Cvar_Get( "g_gameskill", serverPolicy.mapSkill, CVAR_SERVERINFO | CVAR_LATCH );
+	}
+	if ( Com_GameIsRTCWSP() ) Cvar_Get( "g_episode", "0", CVAR_SERVERINFO | CVAR_LATCH );
 	if ( quakeLive ) {
 		(void)Cvar_Get( "g_ammoPack", "0", CVAR_LATCH );
 	}
@@ -219,7 +224,7 @@ static void SV_Map_f( void ) {
 		Cvar_SetIntegerValue( "g_gametype", GT_SINGLE_PLAYER );
 		Cvar_Set( "g_doWarmup", "0" );
 		// may not set sv_maxclients directly, always set latched
-		Cvar_SetLatched( "sv_maxclients", "8" );
+		Cvar_SetLatched( "sv_maxclients", serverPolicy.singlePlayerCommandClients );
 		cmd += 2;
 		if (!Q_stricmp( cmd, "devmap" ) ) {
 			cheat = true;
@@ -1275,12 +1280,12 @@ static void SV_Status_f( void ) {
 	int max_namelength;
 	int max_addrlength;
 	unsigned long long steamIdValue;
-	std::array<char, MAX_CLIENTS * MAX_NAME_LENGTH> names{};
-	std::array<char, MAX_CLIENTS * 48> addrs{};
-	std::array<const char *, MAX_CLIENTS> np{};
-	std::array<const char *, MAX_CLIENTS> ap{};
-	std::array<int, MAX_CLIENTS> nl{};
-	std::array<int, MAX_CLIENTS> al{};
+	std::array<char, MAX_GAME_CLIENTS * MAX_NAME_LENGTH> names{};
+	std::array<char, MAX_GAME_CLIENTS * 48> addrs{};
+	std::array<const char *, MAX_GAME_CLIENTS> np{};
+	std::array<const char *, MAX_GAME_CLIENTS> ap{};
+	std::array<int, MAX_GAME_CLIENTS> nl{};
+	std::array<int, MAX_GAME_CLIENTS> al{};
 	char *nc;
 	char *ac;
 
@@ -1321,6 +1326,11 @@ static void SV_Status_f( void ) {
 	}
 
 	Com_Printf( "map: %s\n", sv_mapname->string );
+	if ( Cmd_Argc() > 1 && !Q_stricmp( Cmd_Argv( 1 ), "debug" ) ) {
+		Com_Printf( "runtime: profile=%s serverTime=%d hostTime=%d residual=%d clients=%d entities=%d\n",
+			Com_GameProfile()->key, sv.time, svs.time, sv.timeResidual,
+			sv.maxclients, sv.num_entities );
+	}
 
 #if 0
 	Com_Printf( "cl score ping name                        address                     rate\n" );

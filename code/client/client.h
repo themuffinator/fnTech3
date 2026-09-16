@@ -129,6 +129,9 @@ struct clientActive_t {
 	int			cgameUserCmdPrimary;
 	int			cgameUserCmdFov;
 	float		cgameSensitivity;
+	rtcwUsercmdExtension_t cgameRTCWCommand;	// mode-specific values supplied by RTCW cgame
+	vec3_t		cgameRTCWLerpOrigin;	// MP's interpolated viewpoint; cleared with the map state
+	rtcwLimboChat_t rtcwLimboChat;
 
 	// cmds[cmdNumber] is the predicted command, [cmdNumber-1] is the last
 	// properly generated command
@@ -196,7 +199,7 @@ struct clientConnection_t {
 	// these are our reliable messages that go to the server
 	int			reliableSequence;
 	int			reliableAcknowledge;		// the last one the server has executed
-	char		reliableCommands[MAX_RELIABLE_COMMANDS][MAX_STRING_CHARS];
+	char		reliableCommands[MAX_GAME_RELIABLE_COMMANDS][MAX_STRING_CHARS];
 
 	// server message (unreliable) and command (reliable) sequence
 	// numbers are NOT cleared at level changes, but continue to
@@ -209,9 +212,9 @@ struct clientConnection_t {
 	// reliable messages received from server
 	int			serverCommandSequence;
 	int			lastExecutedServerCommand;		// last server command grabbed or executed with CL_GetServerCommand
-	char		serverCommands[MAX_RELIABLE_COMMANDS][MAX_STRING_CHARS];
-	int			serverCommandHashes[MAX_RELIABLE_COMMANDS]; // protocol hash of the unmodified wire command
-	qboolean	serverCommandsIgnore[MAX_RELIABLE_COMMANDS];
+	char		serverCommands[MAX_GAME_RELIABLE_COMMANDS][MAX_STRING_CHARS];
+	int			serverCommandHashes[MAX_GAME_RELIABLE_COMMANDS]; // protocol hash of the unmodified wire command
+	qboolean	serverCommandsIgnore[MAX_GAME_RELIABLE_COMMANDS];
 
 	// file transfer from server
 	fileHandle_t download;
@@ -507,6 +510,9 @@ void CL_Disconnect_f( void );
 void CL_ReadDemoMessage( void );
 void CL_StopRecord_f( void );
 netchanWireProfile_t CL_ActiveWireProfile( void );
+static inline int CL_ReliableCommandLimit( void ) {
+	return Netchan_ReliableCommandLimit( CL_ActiveWireProfile() );
+}
 
 void CL_InitDownloads( void );
 void CL_NextDownload( void );
@@ -654,6 +660,22 @@ void	SCR_DrawSmallStringExt( int x, int y, const char *string, const float *setC
 void	SCR_DrawSmallChar( int x, int y, int ch );
 void	SCR_DrawSmallString( int x, int y, const char *s, int len );
 void CL_CopyQ3Glconfig( void *destination, const glconfig_t *source );
+void CL_CopyRTCWGlconfig( void *destination, const glconfig_t *source );
+int CL_RTCWReadToken( int handle, void *destination );
+// RTCW MP translation output is module-owned (32,000 bytes).
+void CL_RTCWReloadTranslations( void );
+void CL_RTCWTranslateString( vm_t *vm, intptr_t source, intptr_t destination );
+void CL_RTCWLimboChat( vm_t *vm, intptr_t source );
+qboolean CL_RTCWGetLimboString( vm_t *vm, intptr_t index, intptr_t destination );
+int CL_RTCWSourceFileAndLine( int handle, char *filename, int *line );
+void CL_RTCWRegisterFont( const char *name, int pointSize, void *destination );
+qboolean CL_RTCWKeyIsDown( int key );
+void CL_RTCWSetBinding( int key, const char *binding );
+void CL_RTCWKeyString( int key, char *buffer, int size, qboolean binding );
+int CL_RTCWKeyForBinding( const char *binding );
+int CL_RTCWGetKeyCatcher( void );
+void CL_RTCWSetKeyCatcher( int catcher );
+void CL_RTCWPopup( const char *name, qboolean close );
 void	CL_CopyRetailGlconfig( void *glconfig );
 
 typedef struct {

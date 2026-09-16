@@ -1138,7 +1138,7 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs, rbDr
 				// set up the dynamic lighting if needed
 #ifdef USE_LEGACY_DLIGHTS
 #ifdef USE_PMLIGHT
-				if ( !r_dlightMode->integer )
+				if ( !R_GetDlightMode() )
 #endif
 				if ( backEnd.currentEntity->needDlights ) {
 					R_TransformDlights( backEnd.refdef.num_dlights, backEnd.refdef.dlights, &backEnd.or );
@@ -1157,7 +1157,7 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs, rbDr
 				backEnd.or = backEnd.viewParms.world;
 #ifdef USE_LEGACY_DLIGHTS
 #ifdef USE_PMLIGHT
-				if ( !r_dlightMode->integer )
+				if ( !R_GetDlightMode() )
 #endif
 				R_TransformDlights( backEnd.refdef.num_dlights, backEnd.refdef.dlights, &backEnd.or );
 #endif // USE_LEGACY_DLIGHTS
@@ -1689,6 +1689,8 @@ static const void *RB_StretchPic( const void *data ) {
 
 	return (const void *)(cmd + 1);
 }
+
+#include "../renderercommon/tr_draw_quad_backend.h"
 
 
 #ifdef USE_PMLIGHT
@@ -4543,6 +4545,9 @@ void RB_ExecuteRenderCommands( const void *data ) {
 		switch ( *(const int *)data ) {
 		case RC_SET_COLOR:
 			data = RB_SetColor( data );
+			break;
+		case RC_DRAW_QUAD:
+			data = RB_DrawQuad( data );
 			break;
 		case RC_STRETCH_PIC:
 			data = RB_StretchPic( data );

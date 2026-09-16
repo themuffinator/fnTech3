@@ -33,11 +33,11 @@ extern "C" {
 
 #include "../../client_cpp.h"
 #include "../shared/AudioVorbisLayout.h"
+#include "../shared/AudioMemoryStream.h"
 
 // includes for the OGG codec
 #include <cerrno>
 #include <limits>
-#include <memory>
 #define OV_EXCLUDE_STATIC_CALLBACKS
 #include <vorbis/vorbisfile.h>
 
@@ -51,15 +51,6 @@ using fnql::ScopedZoneMemory;
 namespace {
 
 constexpr int OGG_SAMPLEWIDTH = 2;
-
-struct OggStreamDeleter {
-	void operator()( snd_stream_t *stream ) const
-	{
-		if ( stream ) {
-			S_OGG_CodecCloseStream( stream );
-		}
-	}
-};
 
 } // namespace
 
@@ -183,6 +174,51 @@ const ov_callbacks S_OGG_Callbacks =
 	&S_OGG_Callback_tell
 };
 
+// Both streaming and complete loads enforce the same Vorbis contract.
+static bool S_OGG_ReadInfo(const char *filename, OggVorbis_File *vf, snd_info_t *info)
+{
+	// the stream must be seekable
+	if (!ov_seekable(vf))
+	{
+		return false;
+	}
+
+	// we only support OGGs with one substream
+	if (ov_streams(vf) != 1)
+	{
+		return false;
+	}
+
+	// get the info about channels and rate
+	vorbis_info *OGGInfo = ov_info(vf, 0);
+	if (!OGGInfo)
+	{
+		return false;
+	}
+
+	// get the number of sample-frames in the OGG
+	ogg_int64_t numSamples = ov_pcm_total(vf, 0);
+	const int maxDecodedBytes = ( std::numeric_limits<int>::max )();
+	if ( OGGInfo->rate <= 0 || OGGInfo->rate > maxDecodedBytes
+		|| OGGInfo->channels <= 0 || OGGInfo->channels > maxDecodedBytes / OGG_SAMPLEWIDTH
+		|| numSamples < 0
+		|| numSamples > maxDecodedBytes / ( OGGInfo->channels * OGG_SAMPLEWIDTH ) ) {
+		return false;
+	}
+
+	// fill in the info-structure in the stream
+	info->rate = OGGInfo->rate;
+	info->width = OGG_SAMPLEWIDTH;
+	info->channels = OGGInfo->channels;
+	info->samples = numSamples;
+	info->size = info->samples * info->channels * info->width;
+	info->dataofs = 0;
+	info->speakerMask = fntech3::audio::VorbisHasEncodedFieldTag( filename, info->channels ) ? 0 :
+		fntech3::audio::VorbisSpeakerMask( info->channels );
+
+	return true;
+}
+
 /*
 =================
 S_OGG_CodecOpenStream
@@ -194,10 +230,6 @@ snd_stream_t *S_OGG_CodecOpenStream(const char *filename)
 
 	// OGG codec control structure
 	OggVorbis_File *vf;
-
-	// some variables used to get informations about the OGG 
-	vorbis_info *OGGInfo;
-	ogg_int64_t numSamples;
 
 	// check if input is valid
 	if (!filename)
@@ -230,58 +262,11 @@ snd_stream_t *S_OGG_CodecOpenStream(const char *filename)
 		return nullptr;
 	}
 
-	// the stream must be seekable
-	if (!ov_seekable(vf))
-	{
-		ov_clear(vf);
-
-		S_CodecUtilClose(&stream);
-
-		return nullptr;  
-	}
- 
-	// we only support OGGs with one substream
-	if (ov_streams(vf) != 1)
-	{
-		ov_clear(vf);
-
-		S_CodecUtilClose(&stream);
-
-		return nullptr;  
-	}
-
-	// get the info about channels and rate
-	OGGInfo = ov_info(vf, 0);
-	if (!OGGInfo)
-	{
-		ov_clear(vf);
-
-		S_CodecUtilClose(&stream);
-
-		return nullptr;  
-	}
-
-	// get the number of sample-frames in the OGG
-	numSamples = ov_pcm_total(vf, 0);
-	const int maxDecodedBytes = ( std::numeric_limits<int>::max )();
-	if ( OGGInfo->rate <= 0 || OGGInfo->rate > maxDecodedBytes
-		|| OGGInfo->channels <= 0 || OGGInfo->channels > maxDecodedBytes / OGG_SAMPLEWIDTH
-		|| numSamples < 0
-		|| numSamples > maxDecodedBytes / ( OGGInfo->channels * OGG_SAMPLEWIDTH ) ) {
+	if (!S_OGG_ReadInfo(filename, vf, &stream->info)) {
 		ov_clear(vf);
 		S_CodecUtilClose(&stream);
 		return nullptr;
 	}
-
-	// fill in the info-structure in the stream
-	stream->info.rate = OGGInfo->rate;
-	stream->info.width = OGG_SAMPLEWIDTH;
-	stream->info.channels = OGGInfo->channels;
-	stream->info.samples = numSamples;
-	stream->info.size = stream->info.samples * stream->info.channels * stream->info.width;
-	stream->info.dataofs = 0;
-	stream->info.speakerMask = fntech3::audio::VorbisHasEncodedFieldTag( filename, stream->info.channels ) ? 0 :
-		fntech3::audio::VorbisSpeakerMask( stream->info.channels );
 
 	// The callbacks retain the actual compressed-file position established
 	// by ov_open_callbacks; do not reset it without seeking the file.
@@ -390,41 +375,51 @@ where we read the whole stream at once.
 */
 void *S_OGG_CodecLoad(const char *filename, snd_info_t *info)
 {
-	int bytesRead;
-	
-	// check if input is valid
-	if (!(filename && info))
-	{
-		return nullptr;
-	}
-	
-	// open the file as a stream
-	std::unique_ptr<snd_stream_t, OggStreamDeleter> stream( S_OGG_CodecOpenStream(filename) );
-	if (!stream)
-	{
-		return nullptr;
-	}
-	
-	// allocate a buffer
-	// this buffer must be free-ed by the caller of this function
-	ScopedTempMemory bufferStorage = ScopedTempMemory::Allocate(stream->info.size);
-	byte *buffer = bufferStorage.as<byte>();
-	if (!buffer)
-	{
-		return nullptr;	
-	}
+	if (!filename || !info) return nullptr;
 
-	// fill the buffer
-	bytesRead = S_OGG_CodecReadStream(stream.get(), stream->info.size, buffer);
-	
+	// Full effects are decoded immediately. Read and validate their pak payload
+	// once, then let Vorbis seek in memory instead of repeatedly inflating the
+	// ZIP prefix. Music keeps the incremental streaming callbacks above.
+	ScopedZoneMemory compressed;
+	int length;
+	{
+		auto file = fnql::ScopedReadFile::Read(filename);
+		if (!file) return nullptr;
+		length = file.length();
+		compressed = AllocateZoneMemory(length, "compressed sound", __FILE__, __LINE__);
+		if (!compressed.get()) return nullptr;
+		std::memcpy(compressed.get(), file.get(), length);
+	} // Release the file's temporary hunk before allocating decoded samples.
+
+	using fntech3::audio::AudioMemoryStream;
+	AudioMemoryStream memory{compressed.as<byte>(), length};
+	const ov_callbacks callbacks = {
+		[](void *ptr, size_t size, size_t count, void *source) -> size_t {
+			return static_cast<AudioMemoryStream *>(source)->Read(ptr, size, count);
+		},
+		[](void *source, ogg_int64_t offset, int origin) -> int {
+			return static_cast<AudioMemoryStream *>(source)->Seek(offset, origin);
+		},
+		nullptr,
+		[](void *source) -> long { return static_cast<AudioMemoryStream *>(source)->position; }
+	};
+	OggVorbis_File vf{};
+	if (ov_open_callbacks(&memory, &vf, nullptr, 0, callbacks) != 0) return nullptr;
+	struct CloseVorbis {
+		OggVorbis_File *file;
+		~CloseVorbis() { ov_clear(file); }
+	} close{&vf};
+	snd_stream_t stream{};
+	stream.ptr = &vf;
+	if (!S_OGG_ReadInfo(filename, &vf, &stream.info)) return nullptr;
+
+	ScopedTempMemory buffer = ScopedTempMemory::Allocate(stream.info.size);
+	if (!buffer.get()) return nullptr;
+	const int bytesRead = S_OGG_CodecReadStream(&stream, stream.info.size, buffer.get());
 	// Never publish a buffer whose advertised tail was not decoded.
-	if (bytesRead <= 0 || bytesRead != stream->info.size)
-	{
-		return nullptr;	
-	}
-
-	*info = stream->info;
-	return bufferStorage.release();
+	if (bytesRead <= 0 || bytesRead != stream.info.size) return nullptr;
+	*info = stream.info;
+	return buffer.release();
 }
 
 #endif // USE_OGG_VORBIS

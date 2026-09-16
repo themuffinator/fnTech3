@@ -5709,7 +5709,7 @@ static qboolean CL_Steam_GetCurrentServerP2PIdentity( uint64_t *steamId ) {
 	if ( steamId ) *steamId = 0;
 	if ( !steamId || cls.state != CA_ACTIVE
 		|| serverIdentityConfigstring < 0
-		|| serverIdentityConfigstring >= MAX_CONFIGSTRINGS ) return qfalse;
+		|| serverIdentityConfigstring >= Com_GameConfigstringLimit() ) return qfalse;
 	const int offset = cl.gameState.stringOffsets[serverIdentityConfigstring];
 	if ( offset < 0 || offset >= MAX_GAMESTATE_CHARS ) return qfalse;
 	return CL_Steam_ParseIdentity( cl.gameState.stringData + offset, steamId );

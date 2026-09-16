@@ -58,6 +58,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "../qcommon/q_shared.h"
 #include "../qcommon/qcommon.h"
+#include "../platform/process_relaunch.h"
 #include "../renderercommon/tr_public.h"
 
 #include "unix_syscon.h"
@@ -301,6 +302,14 @@ void NORETURN Sys_Quit( void )
 #ifndef DEDICATED
 	CL_Shutdown( "", qtrue );
 #endif
+	if ( Sys_HasPendingRelaunch() ) {
+		char error[256];
+		Sys_ConsoleInputShutdown();
+		if ( !Sys_LaunchRelaunch( error, sizeof( error ) ) ) {
+			fprintf( stderr, "%s. Restart this executable with the desired game profile.\n", error );
+			Sys_Exit( 1 );
+		}
+	}
 
 	Sys_Exit( 0 );
 }
@@ -317,6 +326,8 @@ void NORETURN FORMAT_PRINTF(1, 2) QDECL Sys_Error( const char *format, ... )
 {
 	va_list argptr;
 	char text[1024];
+
+	Sys_CancelRelaunch();
 
 	// change stdin to non blocking
 	// NOTE TTimo not sure how well that goes with tty console mode

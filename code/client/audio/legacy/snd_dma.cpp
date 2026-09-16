@@ -39,6 +39,8 @@ extern "C" {
 #include "../shared/AudioSpeakerLayout.h"
 #include "../shared/AudioInitPolicy.h"
 #include "../shared/AudioVoiceQueue.h"
+#include "../shared/AudioMix.h"
+#include "../snd_rtcw.h"
 
 #include <algorithm>
 #include <array>
@@ -53,6 +55,10 @@ static void S_Base_StopBackgroundTrack( void );
 static void S_memoryLoad( sfx_t *sfx );
 
 namespace {
+
+static fntech3::audio::rtcw::OneShots rtcwOneShots;
+static std::array<vec3_t, MAX_GENTITIES> rtcwEntityPositions;
+static_assert(MAX_CHANNELS == fntech3::audio::rtcw::OneShots::Capacity);
 
 static snd_stream_t *s_backgroundStream = nullptr;
 static std::array<char, MAX_QPATH> s_backgroundLoop;
@@ -145,6 +151,7 @@ cvar_t		*s_device;
 #endif
 
 static std::array<loopSound_t, MAX_GENTITIES> loopSounds;
+static fntech3::audio::rtcw::LoopFrame rtcwLoops;
 static	channel_t	*freelist = nullptr;
 
 static sfx_t *S_KnownSfxAt( sfxHandle_t handle )
@@ -162,7 +169,43 @@ int			s_rawend;
 portable_samplepair_t	s_rawsamples[MAX_RAW_SAMPLES];
 }
 
+// SP reset mode 1 discards effect/raw streams while retaining queued music.
+// A separate ring also prevents a cinematic producer from overwriting music.
+static int s_rtcwMusicRawEnd;
+static std::array<portable_samplepair_t, MAX_RAW_SAMPLES> s_rtcwMusicRawSamples;
+
+extern "C" void S_PaintRTCWMusic( int first, int end, portable_samplepair_t *paint ) {
+	const int available = static_cast<int32_t>(static_cast<uint32_t>(s_rtcwMusicRawEnd) - static_cast<uint32_t>(first));
+	const int requested = static_cast<int32_t>(static_cast<uint32_t>(end) - static_cast<uint32_t>(first));
+	if (!paint || available <= 0 || available > MAX_RAW_SAMPLES || requested <= 0) return;
+	const int count = (std::min)(available, requested);
+	for (int i = 0; i < count; ++i) {
+		const auto &sample = s_rtcwMusicRawSamples[(static_cast<uint32_t>(first) + i) & (MAX_RAW_SAMPLES - 1)];
+		paint[i].left = fntech3::audio::AddMixSample(paint[i].left, sample.left);
+		paint[i].right = fntech3::audio::AddMixSample(paint[i].right, sample.right);
+	}
+}
+
 namespace {
+
+struct RTCWMusicOutput {
+	bool Ready() const { return s_soundStarted; }
+	void Close( bool clearBuffered ) {
+		if ( s_backgroundStream ) S_CodecCloseStream( s_backgroundStream );
+		s_backgroundStream = nullptr;
+		if ( clearBuffered ) s_rtcwMusicRawEnd = 0;
+	}
+	int Open( const char *name ) {
+		s_backgroundStream = S_CodecOpenStream( name );
+		if ( !s_backgroundStream ) {
+			Com_Printf( S_COLOR_YELLOW "WARNING: couldn't open music file %s\n", name );
+			return 0;
+		}
+		return s_backgroundStream->info.rate;
+	}
+	std::int64_t Clock() const { return s_soundtime; }
+	void CurrentMusic( const char *name ) { Cvar_Set( "s_currentMusic", name ); }
+};
 
 struct LegacyVoiceLane {
 	fnql_audio_voice::LaneActivity activity;
@@ -294,7 +337,7 @@ static void S_Base_SoundInfo( void ) {
 			Com_Printf( "Using %s subsystem\n", dma.driver );
 		}
 		if ( s_backgroundStream ) {
-			Com_Printf("Background file: %s\n", s_backgroundLoop.data() );
+			Com_Printf("Background file: %s\n", Com_GameIsRTCWSP() ? S_RTCWMusic().Name().c_str() : s_backgroundLoop.data() );
 		} else {
 			Com_Printf("No background file.\n" );
 		}
@@ -339,6 +382,10 @@ static void S_Base_SoundList( void ) {
 
 static void S_ChannelFree( channel_t *v ) {
 	v->thesfx = nullptr;
+	if ( Com_GameIsRTCW() ) {
+		rtcwOneShots.Release(static_cast<int>(v - s_channels));
+		return;
+	}
 	SetChannelFreeLink( v, freelist );
 	freelist = v;
 }
@@ -358,6 +405,7 @@ static channel_t* S_ChannelMalloc( int allocTime ) {
 
 static void S_ChannelSetup( void ) {
 	channel_t *p, *q;
+	rtcwOneShots.Reset();
 
 	// clear all the sounds
 	std::fill_n( s_channels, MAX_CHANNELS, channel_t{} );
@@ -639,6 +687,49 @@ if origin is NULL, the sound will be dynamically sourced from the entity
 Entchannel 0 will never override a playing sound
 ====================
 */
+static void S_SpatializeRTCWOneShot( channel_t &voice ) {
+	if ( voice.entnum == listener_number ) {
+		voice.leftvol = voice.rightvol = voice.master_vol;
+		return;
+	}
+	const auto gains = fntech3::audio::rtcw::SpatializeOrigin(
+		voice.fixed_origin ? voice.origin : rtcwEntityPositions[voice.entnum],
+		1250.0f, voice.master_vol, listener_origin, listener_axis.data(), dma.channels == 1);
+	voice.leftvol = gains.left; voice.rightvol = gains.right;
+}
+
+static void S_Base_StartRTCWSound( const vec3_t origin, int entity, int channel, sfxHandle_t handle, int flags ) {
+	if ( !s_soundStarted || s_soundMuted ) return;
+	if ( !origin && (entity < 0 || entity >= MAX_GENTITIES) )
+		Com_Error(ERR_DROP, "S_StartRTCWSound: bad entitynum %i", entity);
+	if ( handle < 0 || handle >= s_numSfx ) {
+		Com_Printf(S_COLOR_YELLOW "S_StartRTCWSound: handle %i out of range\n", handle);
+		return;
+	}
+	auto *sample = S_KnownSfxAt(handle);
+	if ( !sample->inMemory ) S_memoryLoad(sample);
+	const int now = Sys_Milliseconds();
+	sample->lastTimeUsed = now;
+	const int slot = rtcwOneShots.Start(Com_GameIsRTCWSP(), 128, listener_number, now,
+		{entity, channel, handle, flags}, [](int index) { s_channels[index].thesfx = nullptr; });
+	if ( slot < 0 ) return;
+	auto &voice = s_channels[slot];
+	voice = {};
+	voice.allocTime = rtcwOneShots[slot].allocated;
+	voice.entnum = entity;
+	voice.entchannel = channel;
+	voice.thesfx = sample;
+	voice.master_vol = kMasterVolume;
+	voice.fixed_origin = origin ? qtrue : qfalse;
+	if ( origin ) VectorCopy(origin, voice.origin);
+	S_SpatializeRTCWOneShot(voice);
+	voice.startSample = START_SAMPLE_IMMEDIATE;
+}
+
+static void S_Base_StartRTCWLocalSound( sfxHandle_t handle, int channel ) {
+	S_Base_StartRTCWSound(nullptr, listener_number, channel, handle, 0);
+}
+
 static void S_Base_StartSound( const vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfxHandle, float volume ) {
 	channel_t	*ch;
 	sfx_t		*sfx;
@@ -820,12 +911,14 @@ static void S_Base_ClearSoundBuffer( void ) {
 
 	// stop looping sounds
 	loopSounds.fill( loopSound_t{} );
+	rtcwLoops.Clear();
 	std::fill_n( loop_channels, MAX_CHANNELS, channel_t{} );
 	numLoopChannels = 0;
 
 	S_ChannelSetup();
 
 	s_rawend = 0;
+	s_rtcwMusicRawEnd = 0;
 	ResetVoiceLanes();
 
 	if (dma.samplebits == 8)
@@ -853,9 +946,28 @@ static void S_Base_StopAllSounds( void ) {
 	}
 
 	// stop the background music
-	S_Base_StopBackgroundTrack();
+	if ( Com_GameIsRTCWSP() ) {
+		RTCWMusicOutput output;
+		S_RTCWMusic().Clear( output );
+	} else S_Base_StopBackgroundTrack();
 
 	S_Base_ClearSoundBuffer();
+}
+
+static void S_Base_ClearRTCWSounds( qboolean clearMusic ) {
+	if (!s_soundStarted) return;
+	if (clearMusic) {
+		S_Base_StopAllSounds();
+		return;
+	}
+	loopSounds.fill(loopSound_t{});
+	rtcwLoops.Clear();
+	std::fill_n(loop_channels, MAX_CHANNELS, channel_t{});
+	numLoopChannels = 0;
+	S_ChannelSetup();
+	s_rawend = 0;
+	ResetVoiceLanes();
+	S_Base_UpdateBackgroundTrack();
 }
 
 
@@ -880,6 +992,7 @@ S_ClearLoopingSoundsFrame
 ==================
 */
 static void S_Base_ClearLoopingSoundsFrame( void ) {
+	rtcwLoops.Clear();
 	for ( loopSound_t &loop : loopSounds ) {
 		loop.active = qfalse;
 	}
@@ -894,6 +1007,7 @@ S_ClearLoopingSounds
 */
 static void S_Base_ClearLoopingSounds( qboolean killall ) {
 	int i;
+	rtcwLoops.Clear();
 	for ( i = 0 ; i < MAX_GENTITIES ; i++) {
 		if (killall || loopSounds[i].kill == qtrue || (loopSounds[i].sfx && loopSounds[i].sfx->soundLength == 0)) {
 			S_Base_StopLoopingSound(i);
@@ -911,6 +1025,18 @@ Called during entity generation for a frame
 Include velocity in case I get around to doing doppler...
 ==================
 */
+static void S_Base_AddRTCWLoopingSound( const vec3_t origin, const vec3_t velocity,
+	int range, sfxHandle_t handle, int volume ) {
+	if ( !s_soundStarted || s_soundMuted || cls.state != CA_ACTIVE || !rtcwLoops.Accepts( volume ) ) return;
+	if ( handle < 0 || handle >= s_numSfx )
+		Com_Error( ERR_DROP, "RTCW looping sound handle %d is invalid", handle );
+	sfx_t *sample = S_KnownSfxAt( handle );
+	if ( !sample->inMemory ) S_memoryLoad( sample );
+	if ( !sample->soundLength ) Com_Error( ERR_DROP, "RTCW looping sound has no samples" );
+	rtcwLoops.Append( origin, velocity, range, handle, volume,
+		Com_GameIsRTCWSP() ? S_RTCWMasterFade().current : 1.0f );
+}
+
 static void S_Base_AddLoopingSound( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfxHandle ) {
 	sfx_t *sfx;
 
@@ -1014,7 +1140,29 @@ All sounds are on the same cycle, so any duplicates can just
 sum up the channel multipliers.
 ==================
 */
+static void S_AddRTCWLoopSounds( void ) {
+	numLoopChannels = 0;
+	for ( std::size_t i = 0; i < rtcwLoops.Size() && numLoopChannels < MAX_CHANNELS; ++i ) {
+		const auto &loop = rtcwLoops[i];
+		const auto gains = fntech3::audio::rtcw::SpatializeLoop( loop,
+			listener_origin, listener_axis.data(), dma.channels == 1 );
+		sfx_t *sample = S_KnownSfxAt( loop.handle );
+		sample->lastTimeUsed = s_soundtime;
+		if ( !gains.left && !gains.right ) continue;
+		channel_t &channel = loop_channels[numLoopChannels++];
+		channel = channel_t{};
+		channel.master_vol = kMasterVolume;
+		channel.leftvol = gains.left;
+		channel.rightvol = gains.right;
+		channel.thesfx = sample;
+	}
+}
+
 static void S_AddLoopSounds( void ) {
+	if ( Com_GameIsRTCW() ) {
+		S_AddRTCWLoopSounds();
+		return;
+	}
 	int			i, j, startTime;
 	int			left_total, right_total, left, right;
 	channel_t	*ch;
@@ -1101,102 +1249,43 @@ S_RawSamples
 Music streaming
 ============
 */
+static void S_Base_RawSamplesToBuffer( int &rawEnd, portable_samplepair_t *buffer, int samples, int rate, int width, int n_channels, const byte *data, float volume ) {
+	if (!s_soundStarted || s_soundMuted || !buffer || !data || samples <= 0 ||
+		rate <= 0 || rate > 192000 || dma.speed <= 0 ||
+		(width != 1 && width != 2) || (n_channels != 1 && n_channels != 2) || !std::isfinite(volume)) return;
+
+	int queued = static_cast<int32_t>(static_cast<uint32_t>(rawEnd) - static_cast<uint32_t>(s_soundtime));
+	if (queued < 0 || queued > MAX_RAW_SAMPLES) {
+		rawEnd = s_soundtime;
+		queued = 0;
+	}
+	// Music may combine s_musicVolume 2 with a stream fade of 16.
+	const int intVolume = static_cast<int>(256 * std::clamp(volume, -32.0f, 32.0f));
+	const float scale = static_cast<float>(rate) / dma.speed;
+	for (int i = 0; i < MAX_RAW_SAMPLES - queued; ++i) {
+		const float position = i * scale;
+		if (static_cast<double>(position) >= samples) break;
+		const auto src = static_cast<std::size_t>(position) * n_channels;
+		const auto sample = [&](int channel) {
+			const auto index = src + (n_channels == 2 ? channel : 0);
+			if (width == 2) {
+				short value;
+				std::memcpy(&value, data + index * 2, sizeof(value));
+				return static_cast<int>(value) * intVolume;
+			}
+			// Preserve the inherited raw API's signed stereo / unsigned mono PCM8 contract.
+			const int value = n_channels == 2 ? static_cast<signed char>(data[index]) : data[index] - 128;
+			return value * intVolume * 256;
+		};
+		auto &out = buffer[static_cast<uint32_t>(rawEnd) & (MAX_RAW_SAMPLES - 1)];
+		out.left = sample(0);
+		out.right = sample(1);
+		rawEnd = static_cast<int32_t>(static_cast<uint32_t>(rawEnd) + 1u);
+	}
+}
+
 static void S_Base_RawSamples( int samples, int rate, int width, int n_channels, const byte *data, float volume ) {
-	int		i;
-	int		src, dst;
-	float	scale;
-	int		intVolume;
-
-	if ( !s_soundStarted || s_soundMuted ) {
-		return;
-	}
-
-	intVolume = static_cast<int>( 256 * volume );
-
-	if ( s_rawend - s_soundtime < 0 ) {
-		Com_DPrintf( "S_RawSamples: resetting minimum: %i < %i\n", s_rawend, s_soundtime );
-		s_rawend = s_soundtime;
-	}
-
-	scale = static_cast<float>( rate ) / dma.speed;
-
-	//Com_Printf ("%i < %i < %i\n", s_soundtime, s_paintedtime, s_rawend);
-	if (n_channels == 2 && width == 2)
-	{
-		const auto *sampleData = reinterpret_cast<const short *>( data );
-		if (scale == 1.0)
-		{	// optimized case
-			for (i=0 ; i<samples ; i++)
-			{
-				dst = s_rawend&(MAX_RAW_SAMPLES-1);
-				s_rawend++;
-				s_rawsamples[dst].left = sampleData[i*2] * intVolume;
-				s_rawsamples[dst].right = sampleData[i*2+1] * intVolume;
-			}
-		}
-		else
-		{
-			for (i=0 ; ; i++)
-			{
-				src = static_cast<int>( i * scale );
-				if (src >= samples)
-					break;
-				dst = s_rawend&(MAX_RAW_SAMPLES-1);
-				s_rawend++;
-				s_rawsamples[dst].left = sampleData[src*2] * intVolume;
-				s_rawsamples[dst].right = sampleData[src*2+1] * intVolume;
-			}
-		}
-	}
-	else if (n_channels == 1 && width == 2)
-	{
-		const auto *sampleData = reinterpret_cast<const short *>( data );
-		for (i=0 ; ; i++)
-		{
-			src = static_cast<int>( i * scale );
-			if (src >= samples)
-				break;
-			dst = s_rawend&(MAX_RAW_SAMPLES-1);
-			s_rawend++;
-			s_rawsamples[dst].left = sampleData[src] * intVolume;
-			s_rawsamples[dst].right = sampleData[src] * intVolume;
-		}
-	}
-	else if (n_channels == 2 && width == 1)
-	{
-		const auto *sampleData = reinterpret_cast<const char *>( data );
-		intVolume *= 256;
-
-		for (i=0 ; ; i++)
-		{
-			src = static_cast<int>( i * scale );
-			if (src >= samples)
-				break;
-			dst = s_rawend&(MAX_RAW_SAMPLES-1);
-			s_rawend++;
-			s_rawsamples[dst].left = sampleData[src*2] * intVolume;
-			s_rawsamples[dst].right = sampleData[src*2+1] * intVolume;
-		}
-	}
-	else if (n_channels == 1 && width == 1)
-	{
-		intVolume *= 256;
-
-		for (i=0 ; ; i++)
-		{
-			src = static_cast<int>( i * scale );
-			if (src >= samples)
-				break;
-			dst = s_rawend&(MAX_RAW_SAMPLES-1);
-			s_rawend++;
-			s_rawsamples[dst].left = ( data[src] - 128 ) * intVolume;
-			s_rawsamples[dst].right = ( data[src] - 128 ) * intVolume;
-		}
-	}
-
-	if ( s_rawend - s_soundtime > MAX_RAW_SAMPLES ) {
-		Com_DPrintf( "S_RawSamples: overflowed %i > %i\n", s_rawend, s_soundtime );
-	}
+	S_Base_RawSamplesToBuffer(s_rawend, s_rawsamples, samples, rate, width, n_channels, data, volume);
 }
 
 //=============================================================================
@@ -1212,7 +1301,8 @@ static void S_Base_UpdateEntityPosition( int entityNum, const vec3_t origin ) {
 	if ( entityNum < 0 || entityNum >= MAX_GENTITIES ) {
 		Com_Error( ERR_DROP, "S_UpdateEntityPosition: bad entitynum %i", entityNum );
 	}
-	VectorCopy( origin, loopSounds[entityNum].origin );
+	if ( Com_GameIsRTCW() ) VectorCopy(origin, rtcwEntityPositions[entityNum]);
+	else VectorCopy( origin, loopSounds[entityNum].origin );
 }
 
 
@@ -1244,6 +1334,7 @@ static void S_Base_Respatialize( int entityNum, const vec3_t head, vec3_t axis[3
 		if ( !ch->thesfx ) {
 			continue;
 		}
+		if ( Com_GameIsRTCW() ) { S_SpatializeRTCWOneShot(*ch); continue; }
 		// anything coming from the view entity will always be full volume
 		if (ch->entnum == listener_number) {
 			ch->leftvol = ch->master_vol;
@@ -1341,6 +1432,9 @@ static void S_Base_Update( int msec ) {
 	}
 
 	// mix some sound
+	if ( Com_GameIsRTCW() ) {
+		for ( auto &voice : s_channels ) if ( voice.thesfx ) S_SpatializeRTCWOneShot(voice);
+	}
 	S_Update_( msec );
 }
 
@@ -1486,6 +1580,10 @@ S_StopBackgroundTrack
 ======================
 */
 static void S_Base_StopBackgroundTrack( void ) {
+	if ( Com_GameIsRTCWSP() ) {
+		S_RTCWMusic().Stop();
+		return;
+	}
 	if(!s_backgroundStream)
 		return;
 	S_CodecCloseStream(s_backgroundStream);
@@ -1526,7 +1624,29 @@ static void S_OpenBackgroundStream( const char *filename ) {
 S_StartBackgroundTrack
 ======================
 */
+static void S_Base_StartRTCWBackgroundTrack( const char *intro, const char *loop, int fadeTime ) {
+	RTCWMusicOutput output;
+	S_RTCWMusic().Start( output, intro, loop, fadeTime );
+}
+
+static void S_Base_FadeRTCWBackgroundTrack( float volume, int time ) {
+	S_RTCWMusic().Fade( volume, time, s_soundtime );
+}
+
+static void S_Base_FadeRTCWAllSounds( float volume, int time ) {
+	S_RTCWMasterFade().Set( volume, time, s_soundtime, dma.speed );
+}
+
+extern "C" float S_Base_RTCWMasterGain( void ) {
+	return Com_GameIsRTCWSP() ?
+		std::clamp( S_RTCWMasterFade().Value( s_soundtime ), 0.0f, 16.0f ) : 1.0f;
+}
+
 static void S_Base_StartBackgroundTrack( const char *intro, const char *loop ){
+	if ( Com_GameIsRTCWSP() ) {
+		S_Base_StartRTCWBackgroundTrack( intro, loop, 0 );
+		return;
+	}
 	if ( !intro ) {
 		intro = "";
 	}
@@ -1553,11 +1673,15 @@ S_Base_UpdateBackgroundTrack
 ======================
 */
 static void S_Base_UpdateBackgroundTrack( void ) {
+	if (!s_soundStarted || s_soundMuted) return;
 	int		bufferSamples;
 	int		fileSamples;
 	std::array<byte, 30000> raw;		// just enough to fit in a mac stack frame
 	int		fileBytes;
 	int		r;
+	RTCWMusicOutput rtcwOutput;
+	int &rawEnd = Com_GameIsRTCWSP() ? s_rtcwMusicRawEnd : s_rawend;
+	if ( Com_GameIsRTCWSP() && !S_RTCWMusic().BeginService( rtcwOutput, s_musicVolume->value ) ) return;
 
 	if ( !s_backgroundStream ) {
 		return;
@@ -1569,12 +1693,12 @@ static void S_Base_UpdateBackgroundTrack( void ) {
 	}
 
 	// see how many samples should be copied into the raw buffer
-	if ( s_rawend - s_soundtime < 0 ) {
-		s_rawend = s_soundtime;
+	if ( static_cast<int32_t>(static_cast<uint32_t>(rawEnd) - static_cast<uint32_t>(s_soundtime)) < 0 ) {
+		rawEnd = s_soundtime;
 	}
 
-	while ( s_rawend - s_soundtime < MAX_RAW_SAMPLES ) {
-		bufferSamples = MAX_RAW_SAMPLES - (s_rawend - s_soundtime);
+	while ( static_cast<int32_t>(static_cast<uint32_t>(rawEnd) - static_cast<uint32_t>(s_soundtime)) < MAX_RAW_SAMPLES ) {
+		bufferSamples = MAX_RAW_SAMPLES - (static_cast<int32_t>(static_cast<uint32_t>(rawEnd) - static_cast<uint32_t>(s_soundtime)));
 
 		// decide how much data needs to be read from the file
 		fileSamples = bufferSamples * s_backgroundStream->info.rate / dma.speed;
@@ -1608,12 +1732,17 @@ static void S_Base_UpdateBackgroundTrack( void ) {
 			const auto routed = route ? fntech3::audio::DownmixSpeakers( raw.data(), fileSamples,
 				info.width, info.channels, info.speakerMask ) : std::vector<short>{};
 			if ( route && routed.empty() ) { S_Base_StopBackgroundTrack(); return; }
-			S_Base_RawSamples( fileSamples, info.rate, route ? 2 : info.width, route ? 2 : info.channels,
-				route ? reinterpret_cast<const byte *>( routed.data() ) : raw.data(), s_musicVolume->value );
+			S_Base_RawSamplesToBuffer( rawEnd, Com_GameIsRTCWSP() ? s_rtcwMusicRawSamples.data() : s_rawsamples, fileSamples, info.rate, route ? 2 : info.width, route ? 2 : info.channels,
+				route ? reinterpret_cast<const byte *>( routed.data() ) : raw.data(), s_musicVolume->value *
+				( Com_GameIsRTCWSP() ? std::clamp( S_RTCWMusic().Gain( s_soundtime ), 0.0f, 16.0f ) : 1.0f ) );
 		}
 		else
 		{
 			// loop
+			if ( Com_GameIsRTCWSP() ) {
+				S_RTCWMusic().EndOfTrack( rtcwOutput );
+				return;
+			}
 			if ( s_backgroundLoop[0] != '\0' )
 			{
 				S_OpenBackgroundStream( s_backgroundLoop.data() );
@@ -1778,6 +1907,7 @@ extern "C" qboolean S_Base_Init( soundInterface_t *si ) {
 
 		s_soundStarted = true;
 		s_soundMuted = true;
+		for ( auto &origin : rtcwEntityPositions ) VectorClear(origin);
 //		s_numSfx = 0;
 
 		sfxHash.fill( nullptr );
@@ -1808,15 +1938,22 @@ extern "C" qboolean S_Base_Init( soundInterface_t *si ) {
 	si->Shutdown = S_Base_Shutdown;
 	si->StartSound = S_Base_StartSound;
 	si->StartLocalSound = S_Base_StartLocalSound;
+	si->StartRTCWSound = S_Base_StartRTCWSound;
+	si->StartRTCWLocalSound = S_Base_StartRTCWLocalSound;
 	si->StartBackgroundTrack = S_Base_StartBackgroundTrack;
+	si->StartRTCWBackgroundTrack = S_Base_StartRTCWBackgroundTrack;
+	si->FadeRTCWBackgroundTrack = S_Base_FadeRTCWBackgroundTrack;
+	si->FadeRTCWAllSounds = S_Base_FadeRTCWAllSounds;
 	si->StopBackgroundTrack = S_Base_StopBackgroundTrack;
 	si->UpdateBackgroundTrack = S_Base_UpdateBackgroundTrack;
 	si->RawSamples = S_Base_RawSamples;
 	si->AddVoiceSamples = S_Base_AddVoiceSamples;
 	si->StopAllSounds = S_Base_StopAllSounds;
+	si->ClearRTCWSounds = S_Base_ClearRTCWSounds;
 	si->ClearLoopingSoundsFrame = S_Base_ClearLoopingSoundsFrame;
 	si->ClearLoopingSounds = S_Base_ClearLoopingSounds;
 	si->AddLoopingSound = S_Base_AddLoopingSound;
+	si->AddRTCWLoopingSound = S_Base_AddRTCWLoopingSound;
 	si->AddRealLoopingSound = S_Base_AddRealLoopingSound;
 	si->StopLoopingSound = S_Base_StopLoopingSound;
 	si->Respatialize = S_Base_Respatialize;

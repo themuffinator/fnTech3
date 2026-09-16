@@ -22,6 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_models.c -- model loading and caching
 
 #include "tr_local.h"
+#include "../renderercommon/tr_mdc_model.h"
+#include "../renderercommon/tr_mds_model.h"
+#include "../renderercommon/tr_mesh_tags.h"
 
 #define	LL(x) x=LittleLong(x)
 
@@ -206,7 +209,9 @@ static modelExtToLoaderMap_t modelLoaders[ ] =
 {
 	{ "iqm", R_RegisterIQM },
 	{ "mdr", R_RegisterMDR },
-	{ "md3", R_RegisterMD3 }
+	{ "md3", R_RegisterMD3 },
+	{ "mdc", R_RegisterMDC },
+	{ "mds", R_RegisterMDS }
 };
 
 static int numModelLoaders = ARRAY_LEN(modelLoaders);
@@ -990,6 +995,8 @@ R_ModelInit
 void R_ModelInit( void ) {
 	model_t		*mod;
 
+	FnMdc_InitNormals( &r_mdcNormals );
+
 	// leave a space for NULL model
 	tr.numModels = 0;
 
@@ -1014,7 +1021,8 @@ void R_Modellist_f( void ) {
 		mod = tr.models[i];
 		lods = 1;
 		for ( j = 1 ; j < MD3_MAX_LODS ; j++ ) {
-			if ( mod->md3[j] && mod->md3[j] != mod->md3[j-1] ) {
+			if ( ( mod->md3[j] && mod->md3[j] != mod->md3[j-1] ) ||
+				( mod->mdc[j] && mod->mdc[j] != mod->mdc[j-1] ) ) {
 				lods++;
 			}
 		}
@@ -1116,7 +1124,24 @@ int R_LerpTag( orientation_t *tag, qhandle_t handle, int startFrame, int endFram
 	model = R_GetModelByHandle( handle );
 	if ( !model->md3[0] )
 	{
-		if(model->type == MOD_MDR)
+		if ( model->type == MOD_MDS ) {
+			refEntity_t entity;
+			orientation_t result;
+			int found;
+			memset( &entity, 0, sizeof( entity ) );
+			entity.frame = endFrame < 0 ? 0 : endFrame >= (int)model->mds->view.numFrames ? (int)model->mds->view.numFrames - 1 : endFrame;
+			entity.oldframe = startFrame < 0 ? 0 : startFrame >= (int)model->mds->view.numFrames ? (int)model->mds->view.numFrames - 1 : startFrame;
+			entity.backlerp = 1.0f - frac;
+			memset( &result, 0, sizeof( result ) );
+			found = R_MdsTag( model->mds, &entity, COM_GAME_QUAKE3, tagName, 0, &result );
+			memcpy( tag, &result, sizeof( result ) );
+			return found >= 0;
+		}
+		else if ( model->type == MOD_MDC ) {
+			start = R_GetMDCTag( model->mdc[0], startFrame, tagName, &start_space );
+			end = R_GetMDCTag( model->mdc[0], endFrame, tagName, &end_space );
+		}
+		else if(model->type == MOD_MDR)
 		{
 			start = R_GetAnimTag((mdrHeader_t *) model->modelData, startFrame, tagName, &start_space);
 			end = R_GetAnimTag((mdrHeader_t *) model->modelData, endFrame, tagName, &end_space);
@@ -1171,6 +1196,14 @@ void R_ModelBounds( qhandle_t handle, vec3_t mins, vec3_t maxs ) {
 		VectorCopy( model->bmodel->bounds[0], mins );
 		VectorCopy( model->bmodel->bounds[1], maxs );
 		
+		return;
+	} else if ( model->type == MOD_MDS ) {
+		VectorCopy( model->mds->frames[0].bounds[0], mins );
+		VectorCopy( model->mds->frames[0].bounds[1], maxs );
+		return;
+	} else if ( model->type == MOD_MDC ) {
+		VectorCopy( model->mdc[0]->frames[0].bounds[0], mins );
+		VectorCopy( model->mdc[0]->frames[0].bounds[1], maxs );
 		return;
 	} else if (model->type == MOD_MESH) {
 		md3Header_t	*header;

@@ -1792,121 +1792,8 @@ static char *CommaParse( const char **data_p ) {
 RE_RegisterSkin
 ===============
 */
-qhandle_t RE_RegisterSkin( const char *name ) {
-	skinSurface_t parseSurfaces[MAX_SKIN_SURFACES];
-	qhandle_t	hSkin;
-	skin_t		*skin;
-	skinSurface_t	*surf;
-	union {
-		char *c;
-		void *v;
-	} text;
-	const char	*text_p;
-	const char	*token;
-	char		surfName[MAX_QPATH];
-	int			totalSurfaces;
-
-	if ( !name || !name[0] ) {
-		ri.Printf( PRINT_DEVELOPER, "Empty name passed to RE_RegisterSkin\n" );
-		return 0;
-	}
-
-	if ( strlen( name ) >= MAX_QPATH ) {
-		ri.Printf( PRINT_DEVELOPER, "Skin name exceeds MAX_QPATH\n" );
-		return 0;
-	}
-
-
-	// see if the skin is already loaded
-	for ( hSkin = 1; hSkin < tr.numSkins ; hSkin++ ) {
-		skin = tr.skins[hSkin];
-		if ( !Q_stricmp( skin->name, name ) ) {
-			if( skin->numSurfaces == 0 ) {
-				return 0;		// default skin
-			}
-			return hSkin;
-		}
-	}
-
-	// allocate a new skin
-	if ( tr.numSkins == MAX_SKINS ) {
-		ri.Printf( PRINT_WARNING, "WARNING: RE_RegisterSkin( '%s' ) MAX_SKINS hit\n", name );
-		return 0;
-	}
-	tr.numSkins++;
-	skin = ri.Hunk_Alloc( sizeof( skin_t ), h_low );
-	tr.skins[hSkin] = skin;
-	Q_strncpyz( skin->name, name, sizeof( skin->name ) );
-	skin->numSurfaces = 0;
-
-	//R_IssuePendingRenderCommands();
-
-	// If not a .skin file, load as a single shader
-	if ( strcmp( name + strlen( name ) - 5, ".skin" ) ) {
-		skin->numSurfaces = 1;
-		skin->surfaces = ri.Hunk_Alloc( sizeof( skinSurface_t ), h_low );
-		skin->surfaces[0].shader = R_FindShader( name, LIGHTMAP_NONE, qtrue );
-		return hSkin;
-	}
-
-	// load and parse the skin file
-	ri.FS_ReadFile( name, &text.v );
-	if ( !text.c ) {
-		return 0;
-	}
-
-	totalSurfaces = 0;
-	text_p = text.c;
-	while ( text_p && *text_p ) {
-		// get surface name
-		token = CommaParse( &text_p );
-		Q_strncpyz( surfName, token, sizeof( surfName ) );
-
-		if ( !token[0] ) {
-			break;
-		}
-		// lowercase the surface name so skin compares are faster
-		Q_strlwr( surfName );
-
-		if ( *text_p == ',' ) {
-			text_p++;
-		}
-
-		if ( strstr( token, "tag_" ) ) {
-			continue;
-		}
-
-		// parse the shader name
-		token = CommaParse( &text_p );
-
-		if ( skin->numSurfaces < MAX_SKIN_SURFACES ) {
-			surf = &parseSurfaces[skin->numSurfaces];
-			Q_strncpyz( surf->name, surfName, sizeof( surf->name ) );
-			surf->shader = R_FindShader( token, LIGHTMAP_NONE, qtrue );
-			skin->numSurfaces++;
-		}
-
-		totalSurfaces++;
-	}
-
-	ri.FS_FreeFile( text.v );
-
-	if ( totalSurfaces > MAX_SKIN_SURFACES ) {
-		ri.Printf( PRINT_WARNING, "WARNING: Ignoring excess surfaces (found %d, max is %d) in skin '%s'!\n",
-					totalSurfaces, MAX_SKIN_SURFACES, name );
-	}
-
-	// never let a skin have 0 shaders
-	if ( skin->numSurfaces == 0 ) {
-		return 0;		// use default skin
-	}
-
-	// copy surfaces to skin
-	skin->surfaces = ri.Hunk_Alloc( skin->numSurfaces * sizeof( skinSurface_t ), h_low );
-	memcpy( skin->surfaces, parseSurfaces, skin->numSurfaces * sizeof( skinSurface_t ) );
-
-	return hSkin;
-}
+#include "../renderercommon/tr_skin.h"
+#include "../renderercommon/tr_model_shader.h"
 
 
 /*
@@ -1925,6 +1812,7 @@ void	R_InitSkins( void ) {
 	skin->numSurfaces = 1;
 	skin->surfaces = ri.Hunk_Alloc( sizeof( skinSurface_t ), h_low );
 	skin->surfaces[0].shader = tr.defaultShader;
+	skin->registered = qtrue;
 }
 
 
@@ -1934,7 +1822,7 @@ R_GetSkinByHandle
 ===============
 */
 skin_t	*R_GetSkinByHandle( qhandle_t hSkin ) {
-	if ( hSkin < 1 || hSkin >= tr.numSkins ) {
+	if ( hSkin < 1 || hSkin >= tr.numSkins || !tr.skins[hSkin] || !tr.skins[hSkin]->registered ) {
 		return tr.skins[0];
 	}
 	return tr.skins[ hSkin ];

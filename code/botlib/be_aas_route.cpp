@@ -32,6 +32,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <algorithm>
 
 #include "../qcommon/q_shared.h"
+#include "../qcommon/game_profile.h"
+#include "../compat/rtcw_routing.hpp"
 #include "l_utils.h"
 #include "l_memory.h"
 #include "l_log.h"
@@ -83,8 +85,6 @@ int numareacacheupdates;
 int numportalcacheupdates;
 #endif //ROUTING_DEBUG
 
-int routingcachesize;
-int max_routingcachesize;
 
 //===========================================================================
 //
@@ -97,7 +97,7 @@ void AAS_RoutingInfo(void)
 {
 	botimport.Print(PRT_MESSAGE, "%d area cache updates\n", numareacacheupdates);
 	botimport.Print(PRT_MESSAGE, "%d portal cache updates\n", numportalcacheupdates);
-	botimport.Print(PRT_MESSAGE, "%d bytes routing cache\n", routingcachesize);
+	botimport.Print(PRT_MESSAGE, "%d bytes routing cache\n", aasworld.routingcachesize);
 } //end of the function AAS_RoutingInfo
 #endif //ROUTING_DEBUG
 //===========================================================================
@@ -170,6 +170,7 @@ static void AAS_InitTravelFlagFromType(void)
 //===========================================================================
 static ID_INLINE int AAS_TravelFlagForType_inline(unsigned int traveltype)
 {
+	if (Com_GameIsRTCW()) return fntech3::rtcw::routing::TravelFlag(traveltype);
 	int tfl;
 
 	tfl = 0;
@@ -238,7 +239,7 @@ static void AAS_LinkCache(aas_routingcache_t *cache)
 void AAS_FreeRoutingCache(aas_routingcache_t *cache)
 {
 	AAS_UnlinkCache(cache);
-	routingcachesize -= cache->size;
+	aasworld.routingcachesize -= cache->size;
 	FreeMemory(cache);
 } //end of the function AAS_FreeRoutingCache
 //===========================================================================
@@ -277,6 +278,9 @@ static void AAS_RemoveRoutingCacheUsingArea( int areanum )
 	int i, clusternum;
 	aas_routingcache_t *cache, *nextcache;
 
+	// Area blocking may precede routing initialization or follow partial setup.
+	if ( !aasworld.clusterareacache && !aasworld.portalcache ) return;
+
 	clusternum = aasworld.areasettings[areanum].cluster;
 	if (clusternum > 0)
 	{
@@ -290,6 +294,7 @@ static void AAS_RemoveRoutingCacheUsingArea( int areanum )
 		AAS_RemoveRoutingCacheInCluster( aasworld.portals[-clusternum].backcluster );
 	} //end else
 	// remove all portal cache
+	if ( !aasworld.portalcache ) return;
 	for (i = 0; i < aasworld.numareas; i++)
 	{
 		//refresh portal cache
@@ -353,6 +358,7 @@ static ID_INLINE float AAS_RoutingTime(void)
 //===========================================================================
 static int AAS_GetAreaContentsTravelFlags(int areanum)
 {
+	if (Com_GameIsRTCW()) return fntech3::rtcw::routing::ContentsFlags(aasworld.areasettings[areanum].contents);
 	int contents, tfl;
 
 	contents = aasworld.areasettings[areanum].contents;
@@ -475,6 +481,16 @@ static void AAS_CreateReversedReachability(void)
 //===========================================================================
 unsigned short int AAS_AreaTravelTime(int areanum, vec3_t start, vec3_t end)
 {
+	if (Com_GameIsRTCW()) {
+		std::uint16_t cost = 0;
+		if (areanum <= 0 || areanum >= aasworld.numareas || !aasworld.rtcwGroundSteepness
+			|| !fntech3::rtcw::routing::AreaTravelTime(start, end, aasworld.rtcwGroundSteepness[areanum],
+				AAS_AreaCrouch(areanum) != 0, AAS_AreaSwim(areanum) != 0, Com_GameIsRTCWSP() != 0, cost)) {
+			botimport.Print(PRT_ERROR, "Invalid RTCW area travel cost\n");
+			return 0;
+		}
+		return cost;
+	}
 	int intdist;
 	float dist;
 	vec3_t dir;
@@ -702,6 +718,39 @@ static int AAS_FreeOldestCache(void)
 	int clusterareanum;
 	aas_routingcache_t *cache;
 
+	if (Com_GameIsRTCW()) {
+		// RTCW expires one ordinary area cache and one portal cache per pass.
+		// Equal access times are resolved by table order, not LRU link order.
+		bool freed = false;
+		for (int kind : {CACHETYPE_AREA, CACHETYPE_PORTAL}) {
+			aas_routingcache_t *oldest = nullptr;
+			float oldestTime = 999999999.0f;
+			const auto consider = [&](aas_routingcache_t *head) {
+				for (auto *entry = head; entry; entry = entry->next) {
+					if (kind == CACHETYPE_AREA && aasworld.areasettings[entry->areanum].cluster < 0) continue;
+					if (entry->time < oldestTime) { oldest = entry; oldestTime = entry->time; }
+				}
+			};
+			if (kind == CACHETYPE_AREA) {
+				for (int c = 0; c < aasworld.numclusters; ++c)
+					for (int a = 0; a < aasworld.clusters[c].numareas; ++a)
+						consider(aasworld.clusterareacache[c][a]);
+			} else {
+				for (int a = 0; a < aasworld.numareas; ++a) consider(aasworld.portalcache[a]);
+			}
+			if (!oldest) continue;
+			auto &head = kind == CACHETYPE_AREA
+				? aasworld.clusterareacache[oldest->cluster][AAS_ClusterAreaNum(oldest->cluster, oldest->areanum)]
+				: aasworld.portalcache[oldest->areanum];
+			if (oldest->prev) oldest->prev->next = oldest->next;
+			else head = oldest->next;
+			if (oldest->next) oldest->next->prev = oldest->prev;
+			AAS_FreeRoutingCache(oldest);
+			freed = true;
+		}
+		return freed;
+	}
+
 	for (cache = aasworld.oldestcache; cache; cache = cache->time_next) {
 		// never free area cache leading towards a portal
 		if (cache->type == CACHETYPE_AREA && aasworld.areasettings[cache->areanum].cluster < 0) {
@@ -746,9 +795,8 @@ static aas_routingcache_t *AAS_AllocRoutingCache(int numtraveltimes)
 						+ numtraveltimes * sizeof(unsigned short int)
 						+ numtraveltimes * sizeof(unsigned char);
 	//
-	routingcachesize += size;
-	//
 	cache = botlib::ClearedAllocBytes<aas_routingcache_t>(size);
+	aasworld.routingcachesize += size;
 	cache->reachabilities = reinterpret_cast<unsigned char *>(cache) + sizeof(aas_routingcache_t)
 								+ numtraveltimes * sizeof(unsigned short int);
 	cache->size = size;
@@ -937,6 +985,10 @@ static constexpr int RCVERSION = 2;
 
 void AAS_WriteRouteCache(void)
 {
+	if (Com_GameIsRTCW()) {
+		botimport.Print(PRT_ERROR, "Writing RTCW routing caches is not implemented\n");
+		return;
+	}
 	int i, j, numportalcache, numareacache, totalsize;
 	aas_routingcache_t *cache;
 	aas_cluster_t *cluster;
@@ -1051,8 +1103,11 @@ static aas_routingcache_t *AAS_ReadCache(fileHandle_t fp)
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
+#include "rtcw_routecache_loader.hpp"
+
 static int AAS_ReadRouteCache(void)
 {
+	if (Com_GameIsRTCW()) return AAS_ReadRTCWRouteCache();
 	int i, clusterareanum;//, size;
 	fileHandle_t fp;
 	char filename[MAX_QPATH];
@@ -1200,8 +1255,14 @@ static void AAS_InitReachabilityAreas(void)
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
+#include "rtcw_routing_init.hpp"
+
 void AAS_InitRouting(void)
 {
+	if (Com_GameIsRTCW()) {
+		if (!AAS_InitRTCWRouting()) botimport.Print(PRT_EXIT, "RTCW routing initialization failed\n");
+		return;
+	}
 	AAS_InitTravelFlagFromType();
 	//
 	AAS_InitAreaContentsTravelFlags();
@@ -1225,8 +1286,8 @@ void AAS_InitRouting(void)
 	numportalcacheupdates = 0;
 #endif //ROUTING_DEBUG
 	//
-	routingcachesize = 0;
-	max_routingcachesize = 1024 * (int) LibVarValue("max_routingcache", "12288");
+	aasworld.routingcachesize = 0;
+	aasworld.max_routingcachesize = 1024 * (int) LibVarValue("max_routingcache", "12288");
 	// read any routing cache if available
 	AAS_ReadRouteCache();
 } //end of the function AAS_InitRouting
@@ -1238,6 +1299,18 @@ void AAS_InitRouting(void)
 //===========================================================================
 void AAS_FreeRoutingCaches(void)
 {
+	if (aasworld.rtcwVisibility) FreeMemory(aasworld.rtcwVisibility);
+	aasworld.rtcwVisibility = nullptr;
+	if (aasworld.rtcwVisibilityData) FreeMemory(aasworld.rtcwVisibilityData);
+	aasworld.rtcwVisibilityData = nullptr;
+	if (aasworld.rtcwDecodedVisibility) FreeMemory(aasworld.rtcwDecodedVisibility);
+	aasworld.rtcwDecodedVisibility = nullptr;
+	if (aasworld.rtcwWaypoints) FreeMemory(aasworld.rtcwWaypoints);
+	aasworld.rtcwWaypoints = nullptr;
+	aasworld.rtcwVisibilityArea = -1;
+	aasworld.rtcwRouteCacheLoaded = qfalse;
+	if (aasworld.hidetraveltimes) FreeMemory(aasworld.hidetraveltimes);
+	aasworld.hidetraveltimes = nullptr;
 	// free all the existing cluster area cache
 	AAS_FreeAllClusterAreaCache();
 	// free all the existing portal cache
@@ -1275,6 +1348,7 @@ void AAS_FreeRoutingCaches(void)
 //===========================================================================
 static void AAS_UpdateAreaRoutingCache(aas_routingcache_t *areacache)
 {
+	const bool rtcw = Com_GameIsRTCW() != 0;
 	int i, nextareanum, cluster, badtravelflags, clusterareanum, linknum;
 	int numreachabilityareas;
 	unsigned short int t;
@@ -1290,18 +1364,23 @@ static void AAS_UpdateAreaRoutingCache(aas_routingcache_t *areacache)
 	//number of reachability areas within this cluster
 	numreachabilityareas = aasworld.clusters[areacache->cluster].numreachabilityareas;
 	//
-	aasworld.frameroutingupdates++;
+	if (!rtcw) aasworld.frameroutingupdates++;
 	//clear the routing update fields
 	//
 	badtravelflags = ~areacache->travelflags;
 	//
 	clusterareanum = AAS_ClusterAreaNum(areacache->cluster, areacache->areanum);
 	if (clusterareanum >= numreachabilityareas) return;
+	// RTCW starts at its goal area's first outgoing cost row. A missing row
+	// cannot supply that contract; leave the new cache unreachable.
+	if (rtcw && (!aasworld.areasettings[areacache->areanum].numreachableareas
+		|| !aasworld.areatraveltimes || !aasworld.areatraveltimes[areacache->areanum]
+		|| !aasworld.areatraveltimes[areacache->areanum][0])) return;
 	//
 	curupdate = &aasworld.areaupdate[clusterareanum];
 	curupdate->areanum = areacache->areanum;
 	//VectorCopy(areacache->origin, curupdate->start);
-	curupdate->areatraveltimes = startareatraveltimes;
+	curupdate->areatraveltimes = rtcw ? aasworld.areatraveltimes[areacache->areanum][0] : startareatraveltimes;
 	curupdate->tmptraveltime = areacache->starttraveltime;
 	//
 	areacache->traveltimes[clusterareanum] = areacache->starttraveltime;
@@ -1348,6 +1427,7 @@ static void AAS_UpdateAreaRoutingCache(aas_routingcache_t *areacache)
 						//AAS_AreaTravelTime(curupdate->areanum, curupdate->start, reach->end) +
 						curupdate->areatraveltimes[i] +
 							reach->traveltime;
+			if (rtcw && aasworld.frameroutingupdates < INT_MAX) ++aasworld.frameroutingupdates;
 			//
 			if (!areacache->traveltimes[clusterareanum] ||
 					areacache->traveltimes[clusterareanum] > t)
@@ -1382,7 +1462,7 @@ static void AAS_UpdateAreaRoutingCache(aas_routingcache_t *areacache)
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
-static aas_routingcache_t *AAS_GetAreaRoutingCache(int clusternum, int areanum, int travelflags)
+static aas_routingcache_t *AAS_GetAreaRoutingCache(int clusternum, int areanum, int travelflags, bool forceUpdate = false)
 {
 	int clusterareanum;
 	aas_routingcache_t *cache, *clustercache;
@@ -1400,6 +1480,9 @@ static aas_routingcache_t *AAS_GetAreaRoutingCache(int clusternum, int areanum, 
 	//if there was no cache
 	if (!cache)
 	{
+		// Published RTCW defers new ordinary area caches after 100 eligible
+		// link updates. Portal construction can finish its dependent caches.
+		if (Com_GameIsRTCW() && !forceUpdate && aasworld.frameroutingupdates > 100) return nullptr;
 		cache = AAS_AllocRoutingCache(aasworld.clusters[clusternum].numreachabilityareas);
 		cache->cluster = clusternum;
 		cache->areanum = areanum;
@@ -1471,7 +1554,7 @@ static void AAS_UpdatePortalRoutingCache(aas_routingcache_t *portalcache)
 		cluster = &aasworld.clusters[curupdate->cluster];
 		//
 		cache = AAS_GetAreaRoutingCache(curupdate->cluster,
-								curupdate->areanum, portalcache->travelflags);
+								curupdate->areanum, portalcache->travelflags, true);
 		//take all portals of the cluster
 		for (i = 0; i < cluster->numportals; i++)
 		{
@@ -1491,6 +1574,7 @@ static void AAS_UpdatePortalRoutingCache(aas_routingcache_t *portalcache)
 					portalcache->traveltimes[portalnum] > t)
 			{
 				portalcache->traveltimes[portalnum] = t;
+				if (Com_GameIsRTCW()) portalcache->reachabilities[portalnum] = cache->reachabilities[clusterareanum];
 				nextupdate = &aasworld.portalupdate[portalnum];
 				if (portal->frontcluster == curupdate->cluster)
 				{
@@ -1601,13 +1685,17 @@ static int AAS_AreaRouteToGoalArea(int areanum, vec3_t origin, int goalareanum, 
 		} //end if
 		return qfalse;
 	} //end if
-	if (!aasworld.areasettings[areanum].numreachableareas || !aasworld.areasettings[goalareanum].numreachableareas)
+	if (!Com_GameIsRTCW() && (!aasworld.areasettings[areanum].numreachableareas || !aasworld.areasettings[goalareanum].numreachableareas))
 	{
 		return qfalse;
 	} //end if
+	// Cluster zero denotes geometry outside the routing graph. Do not index
+	// an empty cluster cache when a module supplies one of those area numbers.
+	if (Com_GameIsRTCW() && (!aasworld.areasettings[areanum].cluster
+		|| !aasworld.areasettings[goalareanum].cluster)) return qfalse;
 
 	// make sure the routing cache doesn't grow to large
-	while ( routingcachesize > max_routingcachesize ) {
+	while ( aasworld.routingcachesize > aasworld.max_routingcachesize ) {
 		if ( !AAS_FreeOldestCache() ) {
 			break;
 		}
@@ -1618,6 +1706,10 @@ static int AAS_AreaRouteToGoalArea(int areanum, vec3_t origin, int goalareanum, 
 	{
 		travelflags |= TFL_DONOTENTER;
 	} //end if
+	if (Com_GameIsRTCW() && ((aasworld.areasettings[areanum].contents
+		| aasworld.areasettings[goalareanum].contents) & 1024)) {
+		travelflags |= fntech3::rtcw::routing::DoNotEnterLarge;
+	}
 	//NOTE: the number of routing updates is limited per frame
 	/*
 	if (aasworld.frameroutingupdates > MAX_FRAMEROUTINGUPDATES)
@@ -1657,6 +1749,7 @@ static int AAS_AreaRouteToGoalArea(int areanum, vec3_t origin, int goalareanum, 
 	{
 		//
 		areacache = AAS_GetAreaRoutingCache(clusternum, goalareanum, travelflags);
+		if (!areacache) return qfalse;
 		//the number of the area in the cluster
 		clusterareanum = AAS_ClusterAreaNum(clusternum, areanum);
 		//the cluster the area is in
@@ -1704,6 +1797,7 @@ static int AAS_AreaRouteToGoalArea(int areanum, vec3_t origin, int goalareanum, 
 	bestreachnum = -1;
 	//the cluster the area is in
 	cluster = &aasworld.clusters[clusternum];
+	if (Com_GameIsRTCW() && AAS_ClusterAreaNum(clusternum, areanum) >= cluster->numreachabilityareas) return qfalse;
 	//find the portal of the area cluster leading towards the goal area
 	for (i = 0; i < cluster->numportals; i++)
 	{
@@ -1712,8 +1806,10 @@ static int AAS_AreaRouteToGoalArea(int areanum, vec3_t origin, int goalareanum, 
 		if (!portalcache->traveltimes[portalnum]) continue;
 		//
 		portal = &aasworld.portals[portalnum];
+		if (Com_GameIsRTCW() && (aasworld.areasettings[portal->areanum].areaflags & AREA_DISABLED)) continue;
 		//get the cache of the portal area
 		areacache = AAS_GetAreaRoutingCache(clusternum, portal->areanum, travelflags);
+		if (!areacache) return qfalse;
 		//current area inside the current cluster
 		clusterareanum = AAS_ClusterAreaNum(clusternum, areanum);
 		//if the area is NOT a reachability area
@@ -1730,6 +1826,11 @@ static int AAS_AreaRouteToGoalArea(int areanum, vec3_t origin, int goalareanum, 
 		//		into the portal area
 		t += aasworld.portalmaxtraveltimes[portalnum];
 		//
+		// RTCW also needs the first reachability when origin is omitted.
+		if (Com_GameIsRTCW()) {
+			*reachnum = aasworld.areasettings[areanum].firstreachablearea
+				+ areacache->reachabilities[clusterareanum];
+		}
 		if (origin)
 		{
 			*reachnum = aasworld.areasettings[areanum].firstreachablearea +
@@ -2078,7 +2179,6 @@ int AAS_NearestHideArea(int srcnum, vec3_t origin, int areanum, int enemynum, ve
 {
 	int i, j, nextareanum, badtravelflags, numreach, bestarea;
 	unsigned short int t, besttraveltime;
-	static unsigned short int *hidetraveltimes;
 	aas_routingupdate_t *updateliststart, *updatelistend, *curupdate, *nextupdate;
 	aas_reachability_t *reach;
 	float dist1, dist2;
@@ -2086,13 +2186,13 @@ int AAS_NearestHideArea(int srcnum, vec3_t origin, int areanum, int enemynum, ve
 	qboolean startVisible;
 
 	//
-	if (!hidetraveltimes)
+	if (!aasworld.hidetraveltimes)
 	{
-		hidetraveltimes = botlib::ClearedAlloc<unsigned short int>(aasworld.numareas);
+		aasworld.hidetraveltimes = botlib::ClearedAlloc<unsigned short int>(aasworld.numareas);
 	} //end if
 	else
 	{
-		std::fill_n(hidetraveltimes, aasworld.numareas, static_cast<unsigned short int>(0));
+		std::fill_n(aasworld.hidetraveltimes, aasworld.numareas, static_cast<unsigned short int>(0));
 	} //end else
 	besttraveltime = 0;
 	bestarea = 0;
@@ -2173,8 +2273,8 @@ int AAS_NearestHideArea(int srcnum, vec3_t origin, int areanum, int enemynum, ve
 			//
 			if (besttraveltime && t >= besttraveltime) continue;
 			//
-			if (!hidetraveltimes[nextareanum] ||
-					hidetraveltimes[nextareanum] > t)
+			if (!aasworld.hidetraveltimes[nextareanum] ||
+					aasworld.hidetraveltimes[nextareanum] > t)
 			{
 				//if the nextarea is not visible from the enemy area
 				if (!AAS_AreaVisible(enemyareanum, nextareanum))
@@ -2182,7 +2282,7 @@ int AAS_NearestHideArea(int srcnum, vec3_t origin, int areanum, int enemynum, ve
 					besttraveltime = t;
 					bestarea = nextareanum;
 				} //end if
-				hidetraveltimes[nextareanum] = t;
+				aasworld.hidetraveltimes[nextareanum] = t;
 				nextupdate = &aasworld.areaupdate[nextareanum];
 				nextupdate->areanum = nextareanum;
 				nextupdate->tmptraveltime = t;

@@ -35,6 +35,8 @@ extern "C" {
 #include "../client/client.h"
 #endif
 #include "win_raii.h"
+#include "win_utf8.h"
+#include "../platform/process_relaunch.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
@@ -48,6 +50,7 @@ extern "C" {
 #define MEM_THRESHOLD (96*1024*1024)
 
 WinVars_t	g_wv;
+static int sys_exitCode;
 
 #ifndef DEDICATED
 
@@ -99,6 +102,9 @@ Show the early console as an error dialog
 void NORETURN FORMAT_PRINTF(1, 2) QDECL Sys_Error( const char *error, ... ) {
 	va_list	argptr;
 	char	text[4096];
+
+	Sys_CancelRelaunch();
+	sys_exitCode = 1;
 
 	va_start( argptr, error );
 	Q_vsnprintf( text, sizeof( text ), error, argptr );
@@ -193,9 +199,16 @@ void NORETURN Sys_Quit( void ) {
 
 	SetUnhandledExceptionFilter( NULL );
 
+	if ( Sys_HasPendingRelaunch() ) {
+		char error[256];
+		if ( !Sys_LaunchRelaunch( error, sizeof( error ) ) ) {
+			Sys_Error( "%s. Restart this executable with the desired game profile.", error );
+		}
+	}
+
 	Sys_DestroyConsole();
 
-	exit( 0 );
+	exit( sys_exitCode );
 }
 
 
@@ -244,7 +257,9 @@ Sys_Mkdir
 */
 qboolean Sys_Mkdir( const char *path )
 {
-	if ( _mkdir( path ) == 0 ) {
+	const fntech3::win::Path widePath( path );
+	if ( !widePath ) return qfalse;
+	if ( _wmkdir( widePath.c_str() ) == 0 ) {
 		return qtrue;
 	} else {
 		if ( errno == EEXIST ) {
@@ -264,6 +279,7 @@ Sys_FOpen
 FILE *Sys_FOpen( const char *ospath, const char *mode )
 {
 	size_t length;
+	if ( !ospath || !mode ) { errno = EINVAL; return NULL; }
 
 	// Windows API ignores all trailing spaces and periods which can get around Quake 3 file system restrictions.
 	length = strlen( ospath );
@@ -271,7 +287,15 @@ FILE *Sys_FOpen( const char *ospath, const char *mode )
 		return NULL;
 	}
 
-	return fopen( ospath, mode );
+	const fntech3::win::Path path( ospath );
+	wchar_t wideMode[32];
+	if ( !path || !fntech3::win::ToWide( mode, wideMode ) ) return NULL;
+	return _wfopen( path.c_str(), wideMode );
+}
+
+int Sys_Remove( const char *ospath ) {
+	const fntech3::win::Path path( ospath );
+	return path ? _wremove( path.c_str() ) : -1;
 }
 
 
@@ -285,7 +309,9 @@ shutdown after the replacement succeeds.
 ==============
 */
 qboolean Sys_ReplaceFile( const char *from, const char *to ) {
-	return MoveFileExA( from, to,
+	const fntech3::win::Path source( from ), destination( to );
+	if ( !source || !destination ) return qfalse;
+	return MoveFileExW( source.c_str(), destination.c_str(),
 		MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH ) ? qtrue : qfalse;
 }
 
@@ -297,11 +323,13 @@ Sys_ResetReadOnlyAttribute
 */
 qboolean Sys_ResetReadOnlyAttribute( const char *ospath ) {
 	DWORD dwAttr;
+	const fntech3::win::Path path( ospath );
+	if ( !path ) return qfalse;
 
-	dwAttr = GetFileAttributesA( ospath );
-	if ( dwAttr & FILE_ATTRIBUTE_READONLY ) {
+	dwAttr = GetFileAttributesW( path.c_str() );
+	if ( dwAttr != INVALID_FILE_ATTRIBUTES && ( dwAttr & FILE_ATTRIBUTE_READONLY ) ) {
 		dwAttr &= ~FILE_ATTRIBUTE_READONLY;
-		if ( SetFileAttributesA( ospath, dwAttr ) ) {
+		if ( SetFileAttributesW( path.c_str(), dwAttr ) ) {
 			return qtrue;
 		} else {
 			return qfalse;
@@ -320,24 +348,21 @@ Sys_Pwd
 const char *Sys_Pwd( void )
 {
 	static char pwd[ MAX_OSPATH ];
-	TCHAR	buffer[ MAX_OSPATH ];
+	wchar_t buffer[1024];
 	char *s;
 
 	if ( pwd[0] )
 		return pwd;
 
-	GetModuleFileName( NULL, buffer, ARRAY_LEN( buffer ) );
-	buffer[ ARRAY_LEN( buffer ) - 1 ] = '\0';
-
-	Q_strncpyz( pwd, WtoA( buffer ), sizeof( pwd ) );
+	const DWORD count = GetModuleFileNameW( NULL, buffer, ARRAY_LEN( buffer ) );
+	if ( !count || count >= ARRAY_LEN( buffer ) || !fntech3::win::ToUtf8( buffer, pwd ) ) return "";
 
 	s = strrchr( pwd, PATH_SEP );
 	if ( s ) 
 		*s = '\0';
 	else // bogus case?
 	{
-		_getcwd( pwd, sizeof( pwd ) - 1 );
-		pwd[ sizeof( pwd ) - 1 ] = '\0';
+		if ( !_wgetcwd( buffer, ARRAY_LEN( buffer ) ) || !fntech3::win::ToUtf8( buffer, pwd ) ) return "";
 	}
 
 	return pwd;
@@ -373,7 +398,8 @@ static int Sys_ListExtFiles( const char *directory, const char *subdir, const ch
 	char		search[MAX_OSPATH*2+MAX_QPATH+1];
 	char		filename[MAX_OSPATH * 2];
 	int			nfiles;
-	struct _finddata_t findinfo;
+	struct _wfinddata64_t findinfo;
+	char foundName[MAX_OSPATH * 2];
 	intptr_t	findhandle;
 	int			flag;
 	int			extLen;
@@ -404,16 +430,18 @@ static int Sys_ListExtFiles( const char *directory, const char *subdir, const ch
 
 	if ( subdirs > 0 ) {
 		// handle recursion
-		findhandle = _findfirst( search, &findinfo );
+		const fntech3::win::Path wideSearch( search );
+		findhandle = wideSearch ? _wfindfirst64( wideSearch.c_str(), &findinfo ) : -1;
 		if ( findhandle != -1 ) {
 			do {
+				if ( !fntech3::win::ToUtf8( findinfo.name, foundName ) ) continue;
 				if ( findinfo.attrib & _A_SUBDIR ) {
-					if ( !Q_streq( findinfo.name, "." ) && !Q_streq( findinfo.name, ".." ) ) {
+					if ( !Q_streq( foundName, "." ) && !Q_streq( foundName, ".." ) ) {
 						char subdir2[MAX_OSPATH * 2 + MAX_QPATH + 1];
 						if ( *subdir != '\0' ) {
-							Com_sprintf( subdir2, sizeof( subdir2 ), "%s\\%s", subdir, findinfo.name );
+							Com_sprintf( subdir2, sizeof( subdir2 ), "%s\\%s", subdir, foundName );
 						} else {
-							Q_strncpyz( subdir2, findinfo.name, sizeof( subdir2 ) );
+							Q_strncpyz( subdir2, foundName, sizeof( subdir2 ) );
 						}
 						if ( nfiles >= maxfiles ) {
 							break;
@@ -421,24 +449,26 @@ static int Sys_ListExtFiles( const char *directory, const char *subdir, const ch
 						nfiles += Sys_ListExtFiles( directory, subdir2, extension, filter, list + nfiles, maxfiles - nfiles, subdirs - 1);
 					}
 				}
-			} while ( _findnext( findhandle, &findinfo ) == 0 );
+			} while ( _wfindnext64( findhandle, &findinfo ) == 0 );
+			_findclose( findhandle );
 		}
-		_findclose( findhandle );
 	}
 
 	Q_strcat( search, sizeof( search ), extension );
 
-	findhandle = _findfirst( search, &findinfo );
+	const fntech3::win::Path wideSearch( search );
+	findhandle = wideSearch ? _wfindfirst64( wideSearch.c_str(), &findinfo ) : -1;
 	if ( findhandle == -1 ) {
 		return nfiles;
 	}
 
 	do {
+		if ( !fntech3::win::ToUtf8( findinfo.name, foundName ) ) continue;
 		if ( flag ^ ( findinfo.attrib & _A_SUBDIR ) ) {
 			if ( *subdir != '\0' ) {
-				Com_sprintf( filename, sizeof( filename ), "%s\\%s", subdir, findinfo.name );
+				Com_sprintf( filename, sizeof( filename ), "%s\\%s", subdir, foundName );
 			} else {
-				Q_strncpyz( filename, findinfo.name, sizeof( filename ) );
+				Q_strncpyz( filename, foundName, sizeof( filename ) );
 			}
 			if ( filter != NULL && *filter != '\0' ) {
 				if ( !Com_FilterPath( filter, filename ) ) {
@@ -446,14 +476,14 @@ static int Sys_ListExtFiles( const char *directory, const char *subdir, const ch
 				}
 			} else if ( *extension != '\0' ) {
 				if ( hasPatterns ) {
-					x = strrchr( findinfo.name, '.' );
+					x = strrchr( foundName, '.' );
 					if ( x == NULL || !Com_FilterExt( extension, x + 1 ) ) {
 						continue;
 					}
 				} else {
 					// check for exact extension
-					const int length = strlen( findinfo.name );
-					if ( length < extLen || Q_stricmp( findinfo.name + length - extLen, extension ) ) {
+					const int length = strlen( foundName );
+					if ( length < extLen || Q_stricmp( foundName + length - extLen, extension ) ) {
 						continue;
 					}
 				}
@@ -463,7 +493,7 @@ static int Sys_ListExtFiles( const char *directory, const char *subdir, const ch
 			}
 			list[ nfiles++ ] = FS_CopyString( filename );
 		}
-	} while ( _findnext( findhandle, &findinfo ) == 0 );
+	} while ( _wfindnext64( findhandle, &findinfo ) == 0 );
 
 	_findclose( findhandle );
 
@@ -538,8 +568,9 @@ Sys_GetFileStats
 */
 qboolean Sys_GetFileStats( const char *filename, fileOffset_t *size, fileTime_t *mtime, fileTime_t *ctime ) {
 	struct _stat s;
+	const fntech3::win::Path path( filename );
 
-	if ( _stat( filename, &s ) == 0 ) {
+	if ( path && _wstat( path.c_str(), &s ) == 0 ) {
 		*size = (fileOffset_t)s.st_size;
 		*mtime = (fileTime_t)s.st_mtime;
 		*ctime = (fileTime_t)s.st_ctime;
@@ -581,7 +612,8 @@ void *Sys_LoadLibrary( const char *name )
 		Com_Error( ERR_FATAL, "Sys_LoadLibrary: Unable to load library with '%s' extension", ext );
 	}
 
-	return reinterpret_cast<void *>( LoadLibrary( AtoW( name ) ) );
+	const fntech3::win::Path path( name );
+	return path ? reinterpret_cast<void *>( LoadLibraryW( path.c_str() ) ) : NULL;
 }
 
 
@@ -864,6 +896,7 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 	qboolean useXYpos;
 	HANDLE hProcess;
 	DWORD dwPriority;
+	int commandLineValid;
 
 	// should never get a previous instance in Win32
 	if ( hPrevInstance ) {
@@ -880,12 +913,16 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 	//SetDPIAwareness();
 
 	g_wv.hInstance = hInstance;
-	Q_strncpyz( sys_cmdline, lpCmdLine, sizeof( sys_cmdline ) );
+	(void)lpCmdLine;
+	commandLineValid = Sys_DecodeStartupCommandLine( GetCommandLineW(), sys_cmdline, sizeof( sys_cmdline ) );
 
 	useXYpos = Com_EarlyParseCmdLine( sys_cmdline, con_title, sizeof( con_title ), &xpos, &ypos );
 
 	// done before Com/Sys_Init since we need this for error output
 	Sys_CreateConsole( con_title, xpos, ypos, useXYpos );
+	if ( !commandLineValid ) {
+		Sys_Error( "The startup command must be valid Unicode and fit in %u UTF-8 bytes. Move other settings into a config file loaded with +exec.", (unsigned)sizeof( sys_cmdline ) - 1 );
+	}
 
 	// no abort/retry/fail errors
 	SetErrorMode( SEM_FAILCRITICALERRORS );

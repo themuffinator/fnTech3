@@ -55,6 +55,7 @@ enum {
 	FNTECH3_QL_ENTITYNUM_MAX_NORMAL = FNTECH3_QL_MAX_GENTITIES - 2,
 	FNTECH3_QL_SOLID_BMODEL = 0x00ffffff,
 	FNTECH3_QL_MOVE_RUN = 120,
+	FNTECH3_QL_MAX_MAP_AREA_BYTES = 32,
 
 	/* The reconstructed, source-known player-state bytes below are 0x1f8. */
 	FNTECH3_QL_PLAYERSTATE_KNOWN_BYTES = 0x1f8,
@@ -305,5 +306,32 @@ typedef struct fntech3_ql_sharedEntity_s {
 	fntech3_ql_entityState_t s;
 	fntech3_ql_entityShared_t r;
 } fntech3_ql_sharedEntity_t;
+
+/* Renderer records from renderercommon/tr_types.h at the pinned FnQL commit.
+ * Keep a distinct QL boundary type even where the Q3 field layout agrees.
+ * shaderTimeBits is copied without converting its scalar representation. */
+typedef struct {
+	int32_t reType, renderfx, hModel;
+	float lightingOrigin[3], shadowPlane, axis[3][3];
+	int32_t nonNormalizedAxes;
+	float origin[3];
+	int32_t frame;
+	float oldorigin[3];
+	int32_t oldframe;
+	float backlerp;
+	int32_t skinNum, customSkin, customShader;
+	uint8_t shaderRGBA[4];
+	float shaderTexCoord[2];
+	uint32_t shaderTimeBits;
+	float radius, rotation;
+} fntech3_ql_refEntity_t;
+
+typedef struct {
+	int32_t x, y, width, height;
+	float fov_x, fov_y, vieworg[3], viewaxis[3][3];
+	int32_t time, rdflags;
+	uint8_t areamask[FNTECH3_QL_MAX_MAP_AREA_BYTES];
+	char text[8][32];
+} fntech3_ql_refdef_t;
 
 #endif /* FNTECH3_COMPAT_QL_GAME_ABI_H */

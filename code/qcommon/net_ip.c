@@ -1818,13 +1818,13 @@ Called from NET_Sleep which uses select() to determine which sockets have seen a
 */
 static void NET_Event( const fd_set *fdr )
 {
-	byte bufData[ MAX_MSGLEN_BUF ];
+	byte bufData[ MAX_GAME_MSGLEN_BUF ];
 	netadr_t from;
 	msg_t netmsg;
 	
 	while( 1 )
 	{
-		MSG_Init( &netmsg, bufData, MAX_MSGLEN );
+		MSG_Init( &netmsg, bufData, sizeof( bufData ) );
 
 		if ( NET_GetPacket( &from, &netmsg, fdr ) )
 		{

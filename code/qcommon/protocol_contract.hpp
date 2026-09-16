@@ -30,7 +30,9 @@ inline constexpr std::string_view FnqlHandshakeMarker = "FnQL";
 enum class Family : std::uint8_t {
 	LegacyQuake3,
 	Ioquake3,
-	QuakeLive
+	QuakeLive,
+	RtcwSinglePlayer,
+	RtcwMultiplayer
 };
 
 /*
@@ -41,7 +43,9 @@ enum class Family : std::uint8_t {
  */
 enum class GameMessageLayout : std::uint8_t {
 	Quake3,
-	QuakeLive
+	QuakeLive,
+	RtcwSinglePlayer,
+	RtcwMultiplayer
 };
 
 enum class Capability : std::uint32_t {
@@ -132,14 +136,23 @@ inline constexpr InfoKeys QuakeInfoKeys{
 };
 
 inline constexpr Limits ModernizedQ3Limits{
-	1'400u, 16'384u, 48u, 1'024u, 64u, 32u
+	1'400u, Netchan_MessageLimit( NETCHAN_WIRE_LEGACY_Q3 ), 48u, 1'024u,
+	Netchan_ReliableCommandLimit( NETCHAN_WIRE_LEGACY_Q3 ), 32u
 };
 
 // QLSRP and the retail-facing download path identify an eight-block window
 // of 2048-byte chunks. Storage may be larger, but the QL sender contract must
 // retain these runtime limits.
 inline constexpr Limits QuakeLiveLimits{
-	1'400u, 16'384u, 8u, 2'048u, 64u, 32u
+	1'400u, Netchan_MessageLimit( NETCHAN_WIRE_QL_RETAIL ), 8u, 2'048u,
+	Netchan_ReliableCommandLimit( NETCHAN_WIRE_QL_RETAIL ), 32u
+};
+
+// Original SP/MP qcommon.h and net_chan.c. These are wire limits;
+// engine storage is independently sized to accommodate every active profile.
+inline constexpr Limits RtcwLimits{
+	1'400u, Netchan_MessageLimit( NETCHAN_WIRE_RTCW_SP ), 8u, 2'048u,
+	Netchan_ReliableCommandLimit( NETCHAN_WIRE_RTCW_SP ), 32u
 };
 
 inline constexpr Contract LegacyQuake3{
@@ -170,8 +183,27 @@ inline constexpr Contract QuakeLive{
 	QuakeCommands, QuakeInfoKeys, QuakeLiveLimits
 };
 
+inline constexpr Contract RtcwSinglePlayer{
+	Family::RtcwSinglePlayer, NETCHAN_RTCW_SP_PROTOCOL_VERSION,
+	NETCHAN_RTCW_SP_PROTOCOL_VERSION, NETCHAN_WIRE_RTCW_SP,
+	GameMessageLayout::RtcwSinglePlayer,
+	Bit( Capability::ClientQport ),
+	QuakeCommands, QuakeInfoKeys, RtcwLimits
+};
+
+inline constexpr Contract RtcwMultiplayer{
+	Family::RtcwMultiplayer, NETCHAN_RTCW_MP_PROTOCOL_VERSION,
+	NETCHAN_RTCW_MP_PROTOCOL_VERSION, NETCHAN_WIRE_RTCW_MP,
+	GameMessageLayout::RtcwMultiplayer,
+	Bit( Capability::ClientQport ) | Bit( Capability::ReliableXor ) |
+		Bit( Capability::CompressedConnect ),
+	QuakeCommands, QuakeInfoKeys, RtcwLimits
+};
+
 [[nodiscard]] constexpr const Contract *Find( int protocol,
 	bool legacyCompatibility = false ) noexcept {
+	if ( protocol == RtcwSinglePlayer.protocol ) return &RtcwSinglePlayer;
+	if ( protocol == RtcwMultiplayer.protocol ) return &RtcwMultiplayer;
 	if ( protocol == QuakeLive.protocol ) {
 		return &QuakeLive;
 	}
@@ -190,6 +222,10 @@ inline constexpr Contract QuakeLive{
 [[nodiscard]] constexpr const Contract *TryForWireProfile(
 	netchanWireProfile_t profile ) noexcept {
 	switch ( profile ) {
+	case NETCHAN_WIRE_RTCW_SP:
+		return &RtcwSinglePlayer;
+	case NETCHAN_WIRE_RTCW_MP:
+		return &RtcwMultiplayer;
 	case NETCHAN_WIRE_QL_RETAIL:
 		return &QuakeLive;
 	case NETCHAN_WIRE_IOQ3:

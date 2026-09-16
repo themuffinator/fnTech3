@@ -289,7 +289,7 @@ void R_MDRAddAnimSurfaces( trRefEntity_t *ent,
 	}
 
 #ifdef USE_PMLIGHT
-	if ( !casterContext && r_dlightMode->integer >= 2 && !personalModel ) {
+	if ( !casterContext && R_GetDlightMode() >= 2 && !personalModel ) {
 		R_MDRModelBounds( header, ent, bounds[0], bounds[1] );
 		R_TransformDlights( tr.viewParms.num_dlights,
 			tr.viewParms.dlights, &tr.or );

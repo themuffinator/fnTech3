@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <sys/types.h>
 #include "cm_public.h"
-#include "game_profile.h"
+#include "game_manager.h"
 #include "netchan_profile.h"
 
 //Ignore __attribute__ on non-gcc/clang platforms
@@ -164,6 +164,31 @@ void MSG_ReadDeltaPlayerstateLegacy( msg_t *msg, const playerState_t *from, play
 
 void MSG_ReportChangeVectors_f( void );
 
+#include "../compat/rtcw_game_abi.h"
+
+// RTCW message bodies have explicit frozen boundaries. False means overflow,
+// invalid input or truncation; failed reads leave the destination unchanged.
+qboolean MSG_WriteDeltaRTCWSPUsercmdKey( msg_t *msg, int key,
+	const fntech3_rtcw_sp_usercmd_t *from, const fntech3_rtcw_sp_usercmd_t *to );
+qboolean MSG_ReadDeltaRTCWSPUsercmdKey( msg_t *msg, int key,
+	const fntech3_rtcw_sp_usercmd_t *from, fntech3_rtcw_sp_usercmd_t *to );
+qboolean MSG_WriteDeltaRTCWMPUsercmdKey( msg_t *msg, int key,
+	const fntech3_rtcw_mp_usercmd_t *from, const fntech3_rtcw_mp_usercmd_t *to );
+qboolean MSG_ReadDeltaRTCWMPUsercmdKey( msg_t *msg, int key,
+	const fntech3_rtcw_mp_usercmd_t *from, fntech3_rtcw_mp_usercmd_t *to );
+qboolean MSG_WriteDeltaRTCWSPPlayerstate( msg_t *msg,
+	const fntech3_rtcw_sp_playerState_t *from, const fntech3_rtcw_sp_playerState_t *to );
+qboolean MSG_ReadDeltaRTCWSPPlayerstate( msg_t *msg,
+	const fntech3_rtcw_sp_playerState_t *from, fntech3_rtcw_sp_playerState_t *to );
+qboolean MSG_WriteDeltaRTCWMPPlayerstate( msg_t *msg,
+	const fntech3_rtcw_mp_playerState_t *from, const fntech3_rtcw_mp_playerState_t *to );
+qboolean MSG_ReadDeltaRTCWMPPlayerstate( msg_t *msg,
+	const fntech3_rtcw_mp_playerState_t *from, fntech3_rtcw_mp_playerState_t *to );
+qboolean MSG_WriteDeltaRTCWEntity( msg_t *msg, const fntech3_rtcw_entityState_t *from,
+	const fntech3_rtcw_entityState_t *to, qboolean force, comGameId_t profile );
+qboolean MSG_ReadDeltaRTCWEntity( msg_t *msg, const fntech3_rtcw_entityState_t *from,
+	fntech3_rtcw_entityState_t *to, int number, comGameId_t profile );
+
 //============================================================================
 
 /*
@@ -196,6 +221,7 @@ NET
 #define	PORT_ANY			-1
 
 #define	MAX_RELIABLE_COMMANDS	64			// max string commands buffered for restransmit
+#define MAX_GAME_RELIABLE_COMMANDS 256 // storage; wire limits are profile-specific
 
 typedef enum {
 	NA_BAD = 0,					// an address lookup failed
@@ -263,6 +289,8 @@ qboolean	NET_Sleep( int timeout );
 								// be fragmented into multiple packets
 
 #define	MAX_MSGLEN_BUF	(MAX_MSGLEN+8)	// real buffer size that we need to allocate
+#define MAX_GAME_MSGLEN 32768
+#define MAX_GAME_MSGLEN_BUF (MAX_GAME_MSGLEN + 8)
 										// to safely handle overflows
 
 // Storage maxima across retained ioq3/FnQ3 and retail QL profiles. Runtime
@@ -292,14 +320,14 @@ typedef struct {
 	// incoming fragment assembly buffer
 	int			fragmentSequence;
 	int			fragmentLength;	
-	byte		fragmentBuffer[MAX_MSGLEN];
+	byte		fragmentBuffer[MAX_GAME_MSGLEN];
 
 	// outgoing fragment buffer
 	// we need to space out the sending of large fragmented messages
 	qboolean	unsentFragments;
 	int			unsentFragmentStart;
 	int			unsentLength;
-	byte		unsentBuffer[MAX_MSGLEN];
+	byte		unsentBuffer[MAX_GAME_MSGLEN];
 
 	int			challenge;
 	int			lastSentTime;
@@ -487,6 +515,9 @@ void	VM_CheckBounds2( const vm_t *vm, unsigned int addr1, unsigned int addr2, un
 #endif
 
 void	*GVM_ArgPtr( intptr_t intValue );
+/* Resolve against the caller's VM, including from shared client helpers.
+ * Bounds checks remain the responsibility of the import boundary. */
+void	*VM_ExplicitArgPtr( const vm_t *vm, intptr_t intValue );
 
 #define	VMA(x) VM_ArgPtr(args[x])
 static ID_INLINE float _vmf(intptr_t x)
@@ -652,6 +683,8 @@ cvar_t *Cvar_RegisterBounded( vmCvar_t *vmCvar, const char *varName, const char 
 
 void	Cvar_Update( vmCvar_t *vmCvar, int privateFlag );
 void	Cvar_UpdateLegacy( void *vmCvar, int privateFlag );
+void	Cvar_RegisterRTCW( void *vmCvar, const char *varName, const char *defaultValue, int flags, int privateFlag );
+void	Cvar_UpdateRTCW( void *vmCvar, int privateFlag );
 // updates an interpreted modules' version of a cvar
 
 void 	Cvar_Set( const char *var_name, const char *value );
@@ -893,6 +926,8 @@ void	FS_FCloseFile( fileHandle_t f );
 
 int		FS_ReadFile( const char *qpath, void **buffer );
 int		FS_ReadProfileFile( const char *qpath, void **buffer );
+int		FS_ReadNativeModuleFile( const char *filename, void **buffer, qboolean installationRoot );
+qboolean FS_VerifyNativeModulePak( const char *filename, const void *bytes, int length );
 // returns the length of the file
 // a null buffer will just return the file length without loading
 // as a quick check for existence. -1 length == not present
@@ -1100,6 +1135,7 @@ qboolean	Com_FilterExt( const char *filter, const char *name );
 qboolean	Com_HasPatterns( const char *str );
 int			Com_FilterPath( const char *filter, const char *name );
 int			Com_RealTime(qtime_t *qtime);
+int			Com_RealTimeRTCW( void *destination );
 qboolean	Com_SafeMode( void );
 void		Com_RunAndTimeServerPacket( const netadr_t *evFrom, msg_t *buf );
 
@@ -1276,6 +1312,7 @@ void CL_Shutdown( const char *finalmsg, qboolean quit );
 void CL_Frame( int msec, int realMsec );
 void CL_WebHost_Frame( void );
 qboolean CL_GameCommand( void );
+intptr_t CL_RTCWGetTag( int client, const char *name, orientation_t *orientation );
 void CL_KeyEvent (int key, qboolean down, unsigned time);
 void CL_ResetInputState( void );
 void CL_ResetMouseInputState( unsigned int auxiliaryKeyMask );
@@ -1361,6 +1398,8 @@ void SV_TrackCvarChanges( void );
 void SV_PacketEvent( const netadr_t *from, msg_t *msg );
 int SV_FrameMsec( void );
 qboolean SV_GameCommand( void );
+void SV_RTCWSendMoveSpeeds( const vm_t *source, intptr_t entity, intptr_t text );
+intptr_t SV_RTCWGetModelInfo( const vm_t *source, intptr_t client, intptr_t name, intptr_t output );
 int SV_SendQueuedPackets( void );
 
 void SV_AddDedicatedCommands( void );
@@ -1472,6 +1511,7 @@ void		Sys_ShowIP(void);
 
 qboolean	Sys_Mkdir( const char *path );
 FILE	*Sys_FOpen( const char *ospath, const char *mode );
+int		Sys_Remove( const char *ospath );
 qboolean Sys_ReplaceFile( const char *from, const char *to );
 qboolean Sys_ResetReadOnlyAttribute( const char *ospath );
 

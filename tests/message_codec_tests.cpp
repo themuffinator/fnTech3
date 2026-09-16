@@ -12,6 +12,8 @@ extern "C" {
 
 #define CHECK( expression ) do { if ( !( expression ) ) return __LINE__; } while ( false )
 
+#include "rtcw_message_codec_tests.hpp"
+
 extern "C" int Test_CatchMessageDrop( void (*callback)( void * ), void *context );
 extern "C" void Test_RaiseExpectedMessageDrop( void );
 
@@ -1219,6 +1221,7 @@ int TestRetailMovementBytePayloads() {
 } // namespace
 
 int main() {
+	if ( const int result = TestRTCWMessageCodecs() ) return result;
 	if ( const int result = TestBounds() ) return result;
 	if ( const int result = TestWireProfileUserCommandHash() ) return result;
 	if ( const int result = TestWireProfileCommandStrings() ) return result;

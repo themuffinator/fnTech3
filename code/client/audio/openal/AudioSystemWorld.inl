@@ -358,6 +358,7 @@ public:
 	const char *FormatName() const { return AudioSampleFormatName( format_ ); }
 	bool EncodedSoundField() const { return AudioSampleFormatIsEncodedSoundField( format_ ); }
 	int Rate() const { return rate_; }
+	int Frames() const { return frames_; }
 	int DurationMs() const { return durationMs_; }
 	const SoundShaderSettings &Shader() const { return shader_; }
 
@@ -375,6 +376,7 @@ private:
 	AudioSampleFormat format_;
 	int channels_ = 0;
 	int rate_ = 0;
+	int frames_ = 0;
 	int durationMs_ = 0;
 	SoundShaderSettings shader_;
 };
@@ -454,6 +456,7 @@ bool SoundSample::UploadPCM( OpenALDevice &device, const std::vector<short> &pcm
 	channels_ = format.channels;
 	rate_ = rate;
 	const size_t frames = pcm.size() / static_cast<size_t>( format.channels );
+	frames_ = static_cast<int>( frames ); // The accepted ALsizei byte count bounds this.
 	const int64_t durationMs = static_cast<int64_t>( frames ) * 1000 / rate;
 	durationMs_ = durationMs > std::numeric_limits<int>::max() ? std::numeric_limits<int>::max() : static_cast<int>( durationMs );
 	return true;
@@ -567,6 +570,7 @@ void SoundSample::Unload( OpenALDevice &device ) {
 	format_ = AudioSampleFormat();
 	channels_ = 0;
 	rate_ = 0;
+	frames_ = 0;
 	durationMs_ = 0;
 }
 
@@ -596,6 +600,9 @@ public:
 	Vec3f velocity;
 	VoiceRouteCache routeCache;
 	float volumeScale = 1.0f;
+	bool rtcwLoop = false;
+	bool rtcwOneShot = false;
+	fntech3::audio::rtcw::Loop rtcwLoopData;
 	bool liquidBoundary = false;
 	float occlusion = 0.0f;
 	float occlusionTarget = 0.0f;
@@ -645,6 +652,9 @@ public:
 		origin = Vec3f();
 		velocity = Vec3f();
 		volumeScale = 1.0f;
+		rtcwLoop = false;
+		rtcwOneShot = false;
+		rtcwLoopData = {};
 		liquidBoundary = false;
 		occlusion = 0.0f;
 		occlusionTarget = 0.0f;
@@ -919,7 +929,10 @@ public:
 	void ClearLoopingSounds( qboolean killall );
 	void StopLoopingSound( int entityNum );
 	void AddLoopingSound( int entityNum, const float *origin, const float *velocity, sfxHandle_t handle, SoundSample *sample, qboolean realLoop );
+	bool AcceptsRTCWLoop( int volume ) const { return rtcwLoops_.Accepts( volume ); }
+	void AddRTCWLoopingSound( const float *origin, const float *velocity, int range, sfxHandle_t handle, int volume, SoundSample *sample, float master );
 	void StartSound( int entityNum, int entchannel, sfxHandle_t handle, SoundSample *sample, const float *origin, float volume );
+	void StartRTCWSound( int entity, int channel, sfxHandle_t handle, SoundSample *sample, const float *origin, int flags );
 	void UpdateEntityPosition( int entityNum, const float *origin );
 	void Respatialize( int entityNum, const float *origin, float axis[3][3] );
 	void Update( qboolean softMuted );
@@ -931,6 +944,8 @@ public:
 
 private:
 	void ApplyVoice( SoundVoice &voice, qboolean softMuted );
+	void PlayOneShot( SoundVoice *voice, int entityNum, int entchannel, sfxHandle_t handle,
+		SoundSample *sample, const float *origin, float volume, int startTime );
 	void CleanupFinishedVoices();
 	bool RefreshAudioZonesForCurrentMap();
 	EnvironmentState EvaluateCurrentListenerEnvironment() const;
@@ -946,6 +961,8 @@ private:
 	OpenALDevice *device_ = nullptr;
 	std::array<SoundVoice, kMaxVoices> oneShots_;
 	std::array<SoundVoice, MAX_GENTITIES> loopVoices_;
+	fntech3::audio::rtcw::LoopFrame rtcwLoops_;
+	fntech3::audio::rtcw::OneShots rtcwOneShots_;
 	std::array<Vec3f, MAX_GENTITIES> entityOrigins_;
 	int listenerNumber_ = 0;
 	Vec3f listenerOrigin_;
@@ -969,6 +986,8 @@ private:
 };
 
 void Q3SoundWorld::Reset( OpenALDevice *device ) {
+	rtcwLoops_.Clear();
+	rtcwOneShots_.Reset();
 	device_ = device;
 	listenerNumber_ = 0;
 	listenerOrigin_ = Vec3f();
@@ -1006,6 +1025,8 @@ void Q3SoundWorld::Reset( OpenALDevice *device ) {
 }
 
 void Q3SoundWorld::StopAllSounds() {
+	rtcwLoops_.Clear();
+	rtcwOneShots_.Reset();
 	loopFrameClearPending_ = false;
 	for ( SoundVoice &voice : oneShots_ ) {
 		voice.Release( *device_ );
@@ -1021,6 +1042,7 @@ void Q3SoundWorld::ClearSoundBuffer() {
 }
 
 void Q3SoundWorld::ClearLoopingSoundsFrame() {
+	rtcwLoops_.Clear();
 	loopFrameClearPending_ = true;
 	for ( SoundVoice &voice : loopVoices_ ) {
 		if ( voice.active ) {
@@ -1030,6 +1052,7 @@ void Q3SoundWorld::ClearLoopingSoundsFrame() {
 }
 
 void Q3SoundWorld::ClearLoopingSounds( qboolean killall ) {
+	rtcwLoops_.Clear();
 	for ( SoundVoice &voice : loopVoices_ ) {
 		if ( !voice.active ) {
 			continue;
@@ -1086,6 +1109,19 @@ void Q3SoundWorld::AddLoopingSound( int entityNum, const float *origin, const fl
 	voice.origin.Set( origin );
 	voice.velocity.Set( velocity );
 	voice.doppler = ( s_doppler != nullptr && s_doppler->integer != 0 && VectorLengthSquared( voice.velocity.Data() ) > 0.0f );
+}
+
+void Q3SoundWorld::AddRTCWLoopingSound( const float *origin, const float *velocity,
+	int range, sfxHandle_t handle, int volume, SoundSample *sample, float master ) {
+	if ( !sample ) return;
+	const int slot = rtcwLoops_.Append( origin, velocity, range, handle, volume, master );
+	if ( slot < 0 ) return;
+	AddLoopingSound( slot, origin, velocity, handle, sample, qfalse );
+	SoundVoice &voice = loopVoices_[slot];
+	voice.rtcwLoop = true;
+	voice.rtcwLoopData = rtcwLoops_[slot];
+	voice.entnum = ENTITYNUM_NONE; // Submission order is not a sound entity index.
+	voice.doppler = false; // Original SP/MP explicitly disable loop Doppler.
 }
 
 SoundVoice *Q3SoundWorld::FindFreeOneShot() {
@@ -1225,6 +1261,32 @@ void Q3SoundWorld::StartSound( int entityNum, int entchannel, sfxHandle_t handle
 		device_->CreateVoiceFilters( voice->directFilter, voice->sendFilter );
 	}
 
+	PlayOneShot(voice, entityNum, entchannel, handle, sample, origin, volume, startTime);
+}
+
+void Q3SoundWorld::StartRTCWSound( int entity, int channel, sfxHandle_t handle,
+	SoundSample *sample, const float *origin, int flags ) {
+	static_assert(kMaxVoices == fntech3::audio::rtcw::OneShots::Capacity);
+	if ( !sample ) return;
+	const int slot = rtcwOneShots_.Start(Com_GameIsRTCWSP(), 128, listenerNumber_, Sys_Milliseconds(),
+		{entity, channel, handle, flags}, [&](int index) { oneShots_[index].Release(*device_); });
+	if ( slot < 0 ) return;
+	auto &voice = oneShots_[slot];
+	if ( !voice.source ) {
+		voice.source = device_->AcquireVoiceSource();
+		if ( !voice.source ) {
+			rtcwOneShots_.Release(slot);
+			voice.Release(*device_);
+			return;
+		}
+		device_->CreateVoiceFilters(voice.directFilter, voice.sendFilter);
+	}
+	voice.rtcwOneShot = true;
+	PlayOneShot(&voice, entity, channel, handle, sample, origin, 1.0f, rtcwOneShots_[slot].allocated);
+}
+
+void Q3SoundWorld::PlayOneShot( SoundVoice *voice, int entityNum, int entchannel, sfxHandle_t handle,
+	SoundSample *sample, const float *origin, float volume, int startTime ) {
 	voice->kind = VoiceKind::OneShot;
 	voice->active = qtrue;
 	voice->sample = sample;
@@ -1421,8 +1483,9 @@ void Q3SoundWorld::ApplyVoice( SoundVoice &voice, qboolean softMuted ) {
 
 	const float *voiceOrigin = voice.fixedOrigin ? voice.origin.Data() : entityOrigins_[voice.entnum].Data();
 	const float *sourceVelocity = voice.velocity.Data();
-	const bool listenerAttached = ( voice.entnum == listenerNumber_ );
-	const bool localOnly = IsLocalOnlyChannel( voice.entchannel );
+	const bool listenerAttached = !voice.rtcwLoop && ( voice.entnum == listenerNumber_ );
+	const bool rtcwSpatial = voice.rtcwLoop || voice.rtcwOneShot;
+	const bool localOnly = !rtcwSpatial && IsLocalOnlyChannel( voice.entchannel );
 	const bool stereoSample = ( voice.sample->Channels() > 1 );
 	const bool twoChannelSample = ( voice.sample->Channels() == 2 );
 	const bool encodedSoundField = voice.sample->EncodedSoundField();
@@ -1430,21 +1493,33 @@ void Q3SoundWorld::ApplyVoice( SoundVoice &voice, qboolean softMuted ) {
 	const bool spatializedStereoWorldSource = ( twoChannelSample && !encodedSoundField && stereoSpatializeRequested && device_->Capabilities().sourceSpatialize &&
 		!listenerAttached && !localOnly );
 	const bool monoWorldSource = ( voice.sample->Channels() == 1 && !listenerAttached && !localOnly );
-	const bool positionalSource = monoWorldSource || spatializedStereoWorldSource;
+	const bool positionalSource = !rtcwSpatial && ( monoWorldSource || spatializedStereoWorldSource );
 	const bool pvsCulled = positionalSource && s_pvs != nullptr && s_pvs->integer &&
 		!S_OriginInPVS( listenerOrigin_.Data(), voiceOrigin );
 	const bool directStereoSource = stereoSample && !encodedSoundField && !spatializedStereoWorldSource;
 	const bool useOpenALDistance = positionalSource && device_->UsesOpenALDistanceAttenuation();
 	const SoundShaderSettings &shader = voice.sample->Shader();
-	const float gainScale = shader.enabled ? shader.gainScale : kDefaultSoundShaderScale;
+	const float gainScale = shader.enabled && !rtcwSpatial ? shader.gainScale : kDefaultSoundShaderScale;
 	const float referenceScale = shader.enabled ? shader.referenceScale : kDefaultSoundShaderScale;
 	const float rangeScale = shader.enabled ? shader.rangeScale : kDefaultSoundShaderScale;
 	const float wetScale = shader.enabled ? shader.wetScale : kDefaultSoundShaderScale;
-	const float pitchScale = shader.enabled ? shader.pitchScale : kDefaultSoundShaderScale;
+	const float pitchScale = shader.enabled && !rtcwSpatial ? shader.pitchScale : kDefaultSoundShaderScale;
 	SpatialParams spatial;
-	if ( listenerAttached || localOnly ) {
+	if ( voice.rtcwLoop ) {
+		const auto gains = fntech3::audio::rtcw::SpatializeLoop( voice.rtcwLoopData,
+			listenerOrigin_.Data(), listenerAxis_ );
+		spatial.gain = static_cast<float>( (std::max)( gains.left, gains.right ) ) / 127.0f;
+		const int sum = gains.left + gains.right;
+		spatial.pan = sum ? static_cast<float>( gains.right - gains.left ) / sum : 0.0f;
+	} else if ( listenerAttached || localOnly ) {
 		spatial.gain = 1.0f;
 		spatial.pan = 0.0f;
+	} else if ( voice.rtcwOneShot ) {
+		const auto gains = fntech3::audio::rtcw::SpatializeOrigin(voiceOrigin, 1250.0f, 127,
+			listenerOrigin_.Data(), listenerAxis_);
+		spatial.gain = static_cast<float>((std::max)(gains.left, gains.right)) / 127.0f;
+		const int sum = gains.left + gains.right;
+		spatial.pan = sum ? static_cast<float>(gains.right - gains.left) / sum : 0.0f;
 	} else {
 		spatial = ComputeSpatialParams( voiceOrigin, listenerOrigin_.Data(), listenerAxis_, 127, referenceScale, rangeScale );
 	}
@@ -1463,7 +1538,7 @@ void Q3SoundWorld::ApplyVoice( SoundVoice &voice, qboolean softMuted ) {
 		spatial.pan = 0.0f;
 	}
 
-	if ( !localOnly ) {
+	if ( !localOnly && !rtcwSpatial ) {
 		const float distance = listenerAttached ? 0.0f : DistanceBetweenPoints( voiceOrigin, listenerOrigin_.Data() );
 		if ( listenerAttached || pvsCulled ) {
 			ResetVoiceOcclusion( voice, 0.0f, now );
@@ -1488,10 +1563,16 @@ void Q3SoundWorld::ApplyVoice( SoundVoice &voice, qboolean softMuted ) {
 		gain = 0.0f;
 		wetGain = 0.0f;
 	}
-	gain = ClampFloat( gain * gainScale * horizonGain * voice.volumeScale, 0.0f, 2.0f );
+	gain = ClampFloat( gain * gainScale * horizonGain * voice.volumeScale, 0.0f,
+		voice.rtcwLoop && Com_GameIsRTCWSP() ? 255.0f / 127.0f : 2.0f );
+	// Apply SP's quantized effects fade to the source, including its wet send.
+	// Music and raw audio have independent volume and master-fade stages.
+	if ( Com_GameIsRTCWSP() ) gain *= fntech3::audio::rtcw::EffectsMixVolume(
+		s_volume != nullptr ? s_volume->value : 1.0f, S_RTCWMasterFade().current ) / 256.0f;
 	pitch = ClampFloat( pitch * pitchScale, 0.5f, 2.0f );
 
-	const VoiceToneSettings toneSettings = BuildVoiceToneSettings( voice, environment_, listenerAttached, localOnly, stereoSample, positionalSource, occlusion, directToneHF, wetGain, wetGainHF );
+	const VoiceToneSettings toneSettings = rtcwSpatial ? VoiceToneSettings{} :
+		BuildVoiceToneSettings( voice, environment_, listenerAttached, localOnly, stereoSample, positionalSource, occlusion, directToneHF, wetGain, wetGainHF );
 
 	voice.debugGain = gain;
 	voice.debugPan = spatial.pan;
@@ -1857,6 +1938,7 @@ void Q3SoundWorld::CleanupFinishedVoices() {
 		device_->AL().alGetError();
 		device_->AL().alGetSourcei( voice.source, AL_SOURCE_STATE, &state );
 		if ( device_->AL().alGetError() != AL_NO_ERROR || ( state != AL_PLAYING && state != AL_PAUSED ) ) {
+			if ( voice.rtcwOneShot ) rtcwOneShots_.Release(static_cast<int>(&voice - oneShots_.data()));
 			voice.Release( *device_ );
 		}
 	}
@@ -1865,6 +1947,11 @@ void Q3SoundWorld::CleanupFinishedVoices() {
 void Q3SoundWorld::Update( qboolean softMuted ) {
 	CleanupFinishedVoices();
 	RefreshEnvironment();
+	std::int64_t loopMicroseconds = 0;
+	if ( Com_GameIsRTCW() ) {
+		const bool deviceClock = device_->RefreshTimingDiagnostics();
+		loopMicroseconds = deviceClock ? device_->Capabilities().deviceClockValue / 1000 : Sys_Microseconds();
+	}
 
 	for ( SoundVoice &voice : oneShots_ ) {
 		if ( voice.active ) {
@@ -1886,7 +1973,15 @@ void Q3SoundWorld::Update( qboolean softMuted ) {
 		// logical state stays, but the OpenAL source and filters go back to
 		// the pool so audible sounds never starve. They resume seamlessly
 		// when the listener comes back into range.
-		if ( voice.sample != nullptr && voice.entnum != listenerNumber_ ) {
+		if ( voice.rtcwLoop ) {
+			const auto gains = fntech3::audio::rtcw::SpatializeLoop( voice.rtcwLoopData,
+				listenerOrigin_.Data(), listenerAxis_ );
+			if ( !gains.left && !gains.right ) {
+				voice.ReleaseSource( *device_ );
+				voice.refreshedThisFrame = qfalse;
+				continue;
+			}
+		} else if ( voice.sample != nullptr && voice.entnum != listenerNumber_ ) {
 			const float *voiceOrigin = voice.fixedOrigin ? voice.origin.Data() : entityOrigins_[voice.entnum].Data();
 			const SoundShaderSettings &shader = voice.sample->Shader();
 			const float rangeScale = shader.enabled ? shader.rangeScale : kDefaultSoundShaderScale;
@@ -1907,6 +2002,11 @@ void Q3SoundWorld::Update( qboolean softMuted ) {
 			device_->CreateVoiceFilters( voice.directFilter, voice.sendFilter );
 			device_->AL().alSourcei( voice.source, AL_BUFFER, voice.sample->Buffer() );
 			device_->AL().alSourcei( voice.source, AL_LOOPING, AL_TRUE );
+			if ( voice.rtcwLoop ) {
+				device_->AL().alSourcei( voice.source, AL_SAMPLE_OFFSET,
+					fntech3::audio::rtcw::LoopSampleOffset( loopMicroseconds,
+						voice.sample->Rate(), voice.sample->Frames() ) );
+			}
 		}
 		ApplyVoice( voice, softMuted );
 		voice.refreshedThisFrame = voice.killWhenUnrefreshed ? qfalse : qtrue;

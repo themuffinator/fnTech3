@@ -1151,7 +1151,7 @@ void R_AddIQMSurfaces( trRefEntity_t *ent,
 
 #ifdef USE_PMLIGHT
 	numDlights = 0;
-	if ( !shadowCtx && r_dlightMode->integer >= 2 && !personalModel ) {
+	if ( !shadowCtx && R_GetDlightMode() >= 2 && !personalModel ) {
 		haveDlightBounds = R_IQMModelBounds( data, ent, bounds[0], bounds[1] );
 		R_TransformDlights( tr.viewParms.num_dlights, tr.viewParms.dlights, &tr.or );
 		for ( n = 0; n < tr.viewParms.num_dlights; n++ ) {

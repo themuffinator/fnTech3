@@ -12,6 +12,7 @@ General Public License, version 2 or (at your option) any later version.
 #include "../compat/game_abi_adapter.h"
 #include "../compat/q3_game_abi.h"
 #include "../compat/ql_game_abi.h"
+#include "../compat/rtcw_state_adapter.hpp"
 
 #include <cstring>
 #include <limits>
@@ -38,6 +39,7 @@ struct ServerGameDataView::Layout {
 	std::size_t ownerNumOffset;
 	std::size_t sharedStateOrigin2Offset;
 	std::size_t playerPingOffset;
+	std::int32_t maxClients;
 };
 
 namespace {
@@ -279,7 +281,8 @@ const ServerGameDataView::Layout *ServerGameDataView::FindLayout(
 		SHARED_OFFSET( fntech3_q3, currentAngles ),
 		SHARED_OFFSET( fntech3_q3, ownerNum ),
 		SHARED_STATE_OFFSET( fntech3_q3, origin2 ),
-		offsetof( fntech3_q3_playerState_t, ping )
+		offsetof( fntech3_q3_playerState_t, ping ),
+		FNTECH3_Q3_MAX_CLIENTS
 	};
 	static const Layout qlLayout = {
 		COM_GAME_QUAKELIVE,
@@ -300,16 +303,41 @@ const ServerGameDataView::Layout *ServerGameDataView::FindLayout(
 		SHARED_OFFSET( fntech3_ql, currentAngles ),
 		SHARED_OFFSET( fntech3_ql, ownerNum ),
 		SHARED_STATE_OFFSET( fntech3_ql, origin2 ),
-		offsetof( fntech3_ql_playerState_t, ping )
+		offsetof( fntech3_ql_playerState_t, ping ),
+		FNTECH3_Q3_MAX_CLIENTS
 	};
 #undef SHARED_STATE_OFFSET
 #undef SHARED_OFFSET
+
+	// SP and MP agree on r's field offsets, including its second entityState;
+	// their total prefixes and player-state tails remain distinct contracts.
+	constexpr auto rtcwLayout = []( comGameId_t game, std::size_t entityBytes,
+		std::size_t playerBytes, std::int32_t maxClients ) {
+#define RTCW_R(member) offsetof( fntech3_rtcw_sp_sharedEntity_t, r.member )
+		return Layout{ game, entityBytes, sizeof( fntech3_rtcw_entityState_t ), playerBytes,
+			RTCW_R(linked), RTCW_R(linkcount), RTCW_R(svFlags), RTCW_R(singleClient),
+			RTCW_R(bmodel), RTCW_R(mins), RTCW_R(maxs), RTCW_R(contents),
+			RTCW_R(absmin), RTCW_R(absmax), RTCW_R(currentOrigin), RTCW_R(currentAngles),
+			RTCW_R(ownerNum), RTCW_R(s.origin2),
+			offsetof( fntech3_rtcw_playerStatePrefix_t, ping ), maxClients };
+#undef RTCW_R
+	};
+	static const Layout spLayout = rtcwLayout( COM_GAME_RTCW_SP,
+		sizeof( fntech3_rtcw_sp_sharedEntity_t ), sizeof( fntech3_rtcw_sp_playerState_t ),
+		FNTECH3_RTCW_SP_MAX_CLIENTS );
+	static const Layout mpLayout = rtcwLayout( COM_GAME_RTCW_MP,
+		sizeof( fntech3_rtcw_mp_sharedEntity_t ), sizeof( fntech3_rtcw_mp_playerState_t ),
+		FNTECH3_RTCW_MP_MAX_CLIENTS );
 
 	switch ( profile ) {
 	case COM_GAME_QUAKE3:
 		return &q3Layout;
 	case COM_GAME_QUAKELIVE:
 		return &qlLayout;
+	case COM_GAME_RTCW_SP:
+		return &spLayout;
+	case COM_GAME_RTCW_MP:
+		return &mpLayout;
 	default:
 		return nullptr;
 	}
@@ -379,7 +407,7 @@ GameDataBindError ServerGameDataView::BindNative( comGameId_t profile,
 	}
 
 	if ( binding.clientCount <= 0
-		|| binding.clientCount > FNTECH3_Q3_MAX_CLIENTS ) {
+		|| binding.clientCount > candidateLayout->maxClients ) {
 		return GameDataBindError::InvalidClientCount;
 	}
 	if ( !binding.clientBase ) {
@@ -617,6 +645,11 @@ bool ServerGameDataView::ReadEntityState( const GameEntityRef &reference,
 		FnTech3_InternalEntityStateFromQ3( &destination, &external );
 		return true;
 	}
+	if ( layout_->profile == COM_GAME_RTCW_SP || layout_->profile == COM_GAME_RTCW_MP ) {
+		fntech3_rtcw_entityState_t external{};
+		return ReadEntityState( reference, external ) && rtcw::state::ToInternal( external, destination );
+	}
+	if ( layout_->profile != COM_GAME_QUAKELIVE ) return false;
 	fntech3_ql_entityState_t external{};
 	if ( !ReadEntityBytes( reference, 0, &external, sizeof( external ) ) ) {
 		return false;
@@ -636,9 +669,28 @@ bool ServerGameDataView::WriteEntityState( const GameEntityRef &reference,
 		FnTech3_Q3EntityStateFromInternal( &external, &source );
 		return WriteEntityBytes( reference, 0, &external, sizeof( external ) );
 	}
+	if ( layout_->profile == COM_GAME_RTCW_SP || layout_->profile == COM_GAME_RTCW_MP ) {
+		fntech3_rtcw_entityState_t external{};
+		return rtcw::state::FromInternal( source, external ) && WriteEntityState( reference, external );
+	}
+	if ( layout_->profile != COM_GAME_QUAKELIVE ) return false;
 	fntech3_ql_entityState_t external{};
 	QlEntityStateFromInternal( external, source );
 	return WriteEntityBytes( reference, 0, &external, sizeof( external ) );
+}
+
+bool ServerGameDataView::ReadEntityState( const GameEntityRef &reference,
+	fntech3_rtcw_entityState_t &destination ) const
+{
+	return layout_ && ( layout_->profile == COM_GAME_RTCW_SP || layout_->profile == COM_GAME_RTCW_MP ) &&
+		ReadEntityBytes( reference, 0, &destination, sizeof( destination ) );
+}
+
+bool ServerGameDataView::WriteEntityState( const GameEntityRef &reference,
+	const fntech3_rtcw_entityState_t &source )
+{
+	return layout_ && ( layout_->profile == COM_GAME_RTCW_SP || layout_->profile == COM_GAME_RTCW_MP ) &&
+		WriteEntityBytes( reference, 0, &source, sizeof( source ) );
 }
 
 #define DEFINE_SCALAR_ACCESSORS( Name, layoutMember ) \
@@ -715,12 +767,35 @@ bool ServerGameDataView::ReadPlayerState( std::int32_t clientIndex,
 		FnTech3_InternalPlayerStateFromQ3( &destination, &external );
 		return true;
 	}
+	if ( layout_->profile == COM_GAME_RTCW_SP ) {
+		fntech3_rtcw_sp_playerState_t external{};
+		return ReadPlayerState( clientIndex, external ) && rtcw::state::ToInternal( external, destination );
+	}
+	if ( layout_->profile == COM_GAME_RTCW_MP ) {
+		fntech3_rtcw_mp_playerState_t external{};
+		return ReadPlayerState( clientIndex, external ) && rtcw::state::ToInternal( external, destination );
+	}
+	if ( layout_->profile != COM_GAME_QUAKELIVE ) return false;
 	fntech3_ql_playerState_t external{};
 	if ( !ReadClientBytes( clientIndex, 0, &external, sizeof( external ) ) ) {
 		return false;
 	}
 	InternalPlayerStateFromQl( destination, external );
 	return true;
+}
+
+bool ServerGameDataView::ReadPlayerState( std::int32_t clientIndex,
+	fntech3_rtcw_sp_playerState_t &destination ) const
+{
+	return layout_ && layout_->profile == COM_GAME_RTCW_SP &&
+		ReadClientBytes( clientIndex, 0, &destination, sizeof( destination ) );
+}
+
+bool ServerGameDataView::ReadPlayerState( std::int32_t clientIndex,
+	fntech3_rtcw_mp_playerState_t &destination ) const
+{
+	return layout_ && layout_->profile == COM_GAME_RTCW_MP &&
+		ReadClientBytes( clientIndex, 0, &destination, sizeof( destination ) );
 }
 
 bool ServerGameDataView::GetPlayerPing( std::int32_t clientIndex,

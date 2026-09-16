@@ -356,11 +356,11 @@ class UiNativeBridgeSourceTests(unittest.TestCase):
         vm_c = read_repo_file("code/qcommon/vm.c")
 
         self.assertIn("static void *VM_LoadDllFromPakCache( vmIndex_t index", vm_c)
-        self.assertIn("length = FS_ReadFile( filename, &buffer );", vm_c)
+        self.assertIn("length = FS_ReadNativeModuleFile( filename, &buffer, installationRoot );", vm_c)
         self.assertIn('"native/%s/%s"', vm_c)
         self.assertIn('FS_BuildOSPath( basePath, ".tmp", cacheName )', vm_c)
         self.assertIn("libHandle = Sys_LoadLibrary( cachePath );", vm_c)
-        self.assertIn("libHandle = VM_LoadDllFromPakCache( index, filename );", vm_c)
+        self.assertIn("libHandle = VM_LoadDllFromPakCache( index, filename, installationRoot );", vm_c)
         self.assertIn("VM_PinNativeModule( index, filename, buffer, length );", vm_c)
 
     def test_pure_restarts_only_reload_previously_pinned_native_bytes(self) -> None:

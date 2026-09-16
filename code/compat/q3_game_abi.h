@@ -298,4 +298,31 @@ typedef struct fntech3_q3_snapshot_s {
 	int32_t serverCommandSequence;
 } fntech3_q3_snapshot_t;
 
+/* Renderer records from renderercommon/tr_types.h at the pinned FnQuake3
+ * commit. shaderTimeBits preserves either the normal float-seconds encoding
+ * or the integer encoding selected by the AddRefEntityToScene2 extension. */
+typedef struct {
+	int32_t reType, renderfx, hModel;
+	float lightingOrigin[3], shadowPlane, axis[3][3];
+	int32_t nonNormalizedAxes;
+	float origin[3];
+	int32_t frame;
+	float oldorigin[3];
+	int32_t oldframe;
+	float backlerp;
+	int32_t skinNum, customSkin, customShader;
+	uint8_t shaderRGBA[4];
+	float shaderTexCoord[2];
+	uint32_t shaderTimeBits;
+	float radius, rotation;
+} fntech3_q3_refEntity_t;
+
+typedef struct {
+	int32_t x, y, width, height;
+	float fov_x, fov_y, vieworg[3], viewaxis[3][3];
+	int32_t time, rdflags;
+	uint8_t areamask[FNTECH3_Q3_MAX_MAP_AREA_BYTES];
+	char text[8][32];
+} fntech3_q3_refdef_t;
+
 #endif /* FNTECH3_COMPAT_Q3_GAME_ABI_H */

@@ -120,6 +120,8 @@ void BotMoveToGoal(bot_moveresult_t *result, int movestate, bot_goal_t *goal, in
 int BotMoveInDirection(int movestate, vec3_t dir, float speed, int type);
 //reset avoid reachability
 void BotResetAvoidReach(int movestate);
+//initialize avoidance without abandoning the current route (RTCW)
+void BotInitAvoidReach(int movestate);
 //resets the last avoid reachability
 void BotResetLastAvoidReach(int movestate);
 //returns a reachability area if the origin is in one

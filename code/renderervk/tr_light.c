@@ -325,11 +325,17 @@ void R_SetupEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent ) {
 	}
 
 	// bonus items and view weapons have a fixed minimum add
-	if ( 1 /* ent->e.renderfx & RF_MINLIGHT */ ) {
+	if ( R_UsesRTCWLighting() && ent->e.rtcw.hilightIntensity != 0.0f ) {
+		for ( i = 0; i < 3; ++i ) ent->ambientLight[i] += tr.identityLight * 128 * ent->e.rtcw.hilightIntensity;
+	} else if ( !R_UsesRTCWLighting() || ( ent->e.renderfx & RF_MINLIGHT ) ) {
 		// give everything a minimum light add
 		ent->ambientLight[0] += tr.identityLight * 32;
 		ent->ambientLight[1] += tr.identityLight * 32;
 		ent->ambientLight[2] += tr.identityLight * 32;
+	}
+
+	if ( R_UsesRTCWLighting() && refdef->rtcw.snooperView && ent->e.rtcw.entityNum < 64 ) {
+		VectorSet( ent->ambientLight, 245, 245, 245 );
 	}
 
 	//
@@ -338,7 +344,7 @@ void R_SetupEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent ) {
 	d = VectorLength( ent->directedLight );
 	VectorScale( ent->lightDir, d, lightDir );
 #ifdef USE_PMLIGHT
-	if ( r_dlightMode->integer == 2 ) {
+	if ( R_GetDlightMode() == 2 ) {
 		// only direct lights
 		// but we need to deal with shadow light direction
 		VectorCopy( lightDir, shadowLightDir );
@@ -357,11 +363,12 @@ void R_SetupEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent ) {
 				VectorMA( shadowLightDir, d, dir, shadowLightDir );
 			}
 		} // if ( r_shadows->integer == 2 )
-	}  // if ( r_dlightMode->integer == 2 )
+	}  // if ( R_GetDlightMode() == 2 )
 	else
 #endif
 	for ( i = 0 ; i < refdef->num_dlights ; i++ ) {
 		dl = &refdef->dlights[i];
+		if ( dl->rtcwShader ) continue;
 		VectorSubtract( dl->origin, lightOrigin, dir );
 		d = VectorNormalize( dir );
 
@@ -399,7 +406,7 @@ void R_SetupEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent ) {
 	ent->lightDir[2] = DotProduct( lightDir, ent->e.axis[2] );
 
 #ifdef USE_PMLIGHT
-	if ( r_shadows->integer == 2 && r_dlightMode->integer == 2 ) {
+	if ( r_shadows->integer == 2 && R_GetDlightMode() == 2 ) {
 		VectorNormalize( shadowLightDir );
 		ent->shadowLightDir[0] = DotProduct( shadowLightDir, ent->e.axis[0] );
 		ent->shadowLightDir[1] = DotProduct( shadowLightDir, ent->e.axis[1] );

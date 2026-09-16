@@ -33,17 +33,22 @@ PRELUDE = r'''
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include "code/qcommon/game_profile.h"
 typedef int qboolean;
 enum {qfalse, qtrue, ERR_FATAL, ERR_DROP, CS_ZOMBIE, CS_ACTIVE};
 #define MAX_STRING_CHARS 1024
+#define MAX_QPATH 64
+#define ARCH_STRING "x86"
+#define DLL_EXT ".dll"
 #define S_COLOR_YELLOW ""
 #define QL_NATIVE_CGAME_DLL "cgamex86.dll"
 #define Com_sprintf snprintf
-static bool q3, missingUi;
+static bool q3, mp, unavailable, missingUi;
+static int uiChecksum = 22;
 static bool cl_connectedToPureServer = true;
 static struct { int serverId; } cl = {17};
 static struct { bool demoplaying; } clc;
-static struct { int pure, serverId, checksumFeed; } sv = {1,17,7};
+static struct { int pure, serverId, checksumFeed, checksumFeedServerId; } sv = {1,17,7,17};
 static struct { int time; } svs = {10000};
 struct client_t { int gotCP, pureAuthentic, lastSnapshotTime, state; const char *name; };
 struct pack_t { int referenced, pure_checksum; };
@@ -55,7 +60,21 @@ static int fs_checksumFeed = 7;
 static int drops, snapshots, binaryLookups, reliableCommands;
 static std::string sent;
 static std::vector<std::string> arguments;
-static int Com_GameIsQuake3() { return q3; }
+int Com_GameIsQuake3() { return q3; }
+const comGameProfile_t *Com_GameProfile() {
+    static comGameProfile_t profile{};
+    profile.pureProof = unavailable ? COM_PURE_PROOF_UNAVAILABLE : q3 ? COM_PURE_PROOF_QVM :
+        mp ? COM_PURE_PROOF_RTCW_NATIVE : COM_PURE_PROOF_QL_NATIVE;
+    profile.key = "fixture";
+    return &profile;
+}
+static int Com_GameManagerPureModuleFilename(const comGameProfile_t *, unsigned slot,
+    const char *, const char *, char *destination, unsigned capacity) {
+    assert(mp && slot < 2);
+    const char *name = slot ? "ui_mp_x86.dll" : "cgame_mp_x86.dll";
+    const auto length = std::strlen(name);
+    assert(length < capacity); std::memcpy(destination, name, length + 1); return 1;
+}
 static void Com_Printf(const char *, ...) {}
 static void Com_DPrintf(const char *, ...) {}
 [[noreturn]] static void Com_Error(int, const char *, ...) { throw std::runtime_error("engine error"); }
@@ -71,12 +90,16 @@ static const char *va(const char *format, ...) {
     return text;
 }
 static bool FS_FileIsInPAK(const char *name,int *checksum,void *) {
+    if (mp) {
+        if (!std::strcmp(name,"cgame_mp_x86.dll")) { *checksum = 11; return true; }
+        assert(!std::strcmp(name,"ui_mp_x86.dll")); *checksum = uiChecksum; return !missingUi;
+    }
     if (!std::strcmp(name,QL_NATIVE_CGAME_DLL)) {
         assert(!q3); ++binaryLookups; *checksum = 99; return true;
     }
     assert(q3);
     if (!std::strcmp(name,"vm/cgame.qvm")) { *checksum = 11; return true; }
-    assert(!std::strcmp(name,"vm/ui.qvm")); *checksum = 22; return !missingUi;
+    assert(!std::strcmp(name,"vm/ui.qvm")); *checksum = uiChecksum; return !missingUi;
 }
 static void CL_AddReliableCommand(const char *command,qboolean) { sent = command; ++reliableCommands; }
 static int Cmd_Argc() { return static_cast<int>(arguments.size()); }
@@ -158,6 +181,31 @@ int main() {
     Reject("cp 17 99 @ 55 49");
     assert(!Verify("cp 16 99 @ 11 22 99 122").gotCP && !drops);
     assert(std::string(FS_ReferencedPakPureChecksums(1023)) == "@ 11 22 99 122 ");
+    const int qlLookups = binaryLookups;
+    mp = true;
+    CL_SendPureChecksums();
+    assert(sent == "cp 17 11 22 @ 11 22 99 122 " && binaryLookups == qlLookups);
+    assert(Verify(sent).pureAuthentic && !drops);
+    Reject("cp 17 99 @ 11 22 99 122");
+    Reject("cp 17 11 23 @ 11 22 99 122");
+    Reject("cp 17 11 22 @ 11 11 5");
+    Reject("cp 17 11 22 @ 55 49");
+    missingUi = true; Reject(sent); missingUi = false;
+    sv.serverId = 20;
+    assert(!Verify("cp 16 11 22 @ 7").gotCP && !drops);
+    assert(Verify("cp 17 11 22 @ 7").pureAuthentic); // Feed survives a fast restart.
+    assert(Verify("cp 18 11 22 @ 7").pureAuthentic);
+    assert(Verify("cp 21 11 22 @ 7").pureAuthentic); // Original MP uses a lower bound.
+    sv.serverId = 17;
+    packs[0].referenced |= FS_UI_REF; packs[1].referenced = 0; uiChecksum = 11;
+    CL_SendPureChecksums();
+    assert(sent == "cp 17 11 11 @ 11 99 109 " && Verify(sent).pureAuthentic);
+    packs[0].referenced &= ~FS_UI_REF; packs[1].referenced = FS_UI_REF | FS_GENERAL_REF; uiChecksum = 22;
+    unavailable = true;
+    const auto prior = sent;
+    try { CL_SendPureChecksums(); assert(false); } catch(const std::runtime_error &) {}
+    assert(sent == prior && !FS_ReferencedPakPureChecksums(1023)[0]);
+    unavailable = mp = false;
     clc.demoplaying = true;
     int commands = reliableCommands;
     CL_SendPureChecksums();
@@ -209,6 +257,7 @@ class PureProfileContractTests(unittest.TestCase):
             executable = path / ("pure.exe" if os.name == "nt" else "pure")
             fixture.write_text(constants + "\n" + PRELUDE + extracted + CHECKS, encoding="utf-8")
             build = subprocess.run([compiler, *compiler_target_args(compiler), "-std=c++17", "-Wall", "-Wextra", "-Werror",
+                "-I", str(ROOT),
                 str(fixture), "-o", str(executable)], text=True, capture_output=True, timeout=60)
             self.assertEqual(build.returncode, 0, build.stdout + build.stderr)
             result = subprocess.run([str(executable)], text=True, capture_output=True, timeout=15)

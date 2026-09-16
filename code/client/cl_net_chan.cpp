@@ -60,7 +60,7 @@ private:
 	qboolean oob_;
 };
 
-constexpr int kReliableCommandMask = MAX_RELIABLE_COMMANDS - 1;
+int CL_ReliableCommandMask() { return CL_ReliableCommandLimit() - 1; }
 
 byte CL_NetchanSequenceKey( const msg_t *msg ) {
 	const int sequence = ReadUnaligned<int>( msg->data );
@@ -97,7 +97,7 @@ void CL_Netchan_Encode( msg_t *msg ) {
 	reliableAcknowledge = MSG_ReadLong(msg);
 	savedReadState.Restore();
 
-	command = clc.serverCommands[ reliableAcknowledge & kReliableCommandMask ];
+	command = clc.serverCommands[ reliableAcknowledge & CL_ReliableCommandMask() ];
 	key = static_cast<byte>( clc.challenge ^ serverId ^ messageAcknowledge );
 	fnql::ApplyNetchanXor( msg->data, static_cast<std::size_t>( msg->cursize ),
 		CL_ENCODE_START, key,
@@ -125,7 +125,7 @@ void CL_Netchan_Decode( msg_t *msg ) {
 	reliableAcknowledge = MSG_ReadLong( msg );
 	savedReadState.Restore();
 
-	command = clc.reliableCommands[ reliableAcknowledge & kReliableCommandMask ];
+	command = clc.reliableCommands[ reliableAcknowledge & CL_ReliableCommandMask() ];
 	// xor the client challenge with the netchan sequence number (need something that changes every message)
 	key = CL_NetchanSequenceKey( msg );
 	fnql::ApplyNetchanXor( msg->data, static_cast<std::size_t>( msg->cursize ),

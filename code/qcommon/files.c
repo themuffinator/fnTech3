@@ -895,7 +895,7 @@ static void FS_Remove( const char *osPath )
 
 	FS_CheckFilenameIsNotAllowed( osPath, __func__, qtrue );
 
-	remove( osPath );
+	Sys_Remove( osPath );
 }
 
 
@@ -912,7 +912,7 @@ void FS_HomeRemove( const char *osPath )
 
 	FS_CheckFilenameIsNotAllowed( osPath, __func__, qfalse );
 
-	remove( FS_BuildOSPath( fs_homepath->string,
+	Sys_Remove( FS_BuildOSPath( fs_homepath->string,
 			fs_gamedir, osPath ) );
 }
 
@@ -925,7 +925,7 @@ void FS_SV_HomeRemove( const char *osPath )
 	}
 
 	FS_CheckFilenameIsNotAllowed( osPath, __func__, qtrue );
-	remove( FS_BuildOSPath( fs_homepath->string, osPath, NULL ) );
+	Sys_Remove( FS_BuildOSPath( fs_homepath->string, osPath, NULL ) );
 }
 
 
@@ -2108,6 +2108,22 @@ void FS_RestorePure( void )
 }
 
 
+static int FS_ModuleReferenceFlag( const char *filename ) {
+	if ( Com_GameProfile()->pureProof == COM_PURE_PROOF_RTCW_NATIVE ) {
+		unsigned slot;
+		char name[MAX_QPATH];
+		for ( slot = 0; slot < 2; ++slot ) {
+			if ( Com_GameManagerPureModuleFilename( Com_GameProfile(), slot, ARCH_STRING,
+				DLL_EXT, name, sizeof( name ) ) && !FS_FilenameCompare( name, filename ) )
+				return slot ? FS_UI_REF : FS_CGAME_REF;
+		}
+		return 0;
+	}
+	if ( !strcmp( filename, "vm/cgame.qvm" ) ) return FS_CGAME_REF;
+	if ( !strcmp( filename, "vm/ui.qvm" ) ) return FS_UI_REF;
+	return 0;
+}
+
 static int FS_OpenFileInPak( fileHandle_t *file, pack_t *pak, fileInPack_t *pakFile, qboolean uniqueFILE ) {
 	fileHandleData_t *f;
 	unz_s *zfi;
@@ -2121,12 +2137,7 @@ static int FS_OpenFileInPak( fileHandle_t *file, pack_t *pak, fileInPack_t *pakF
 	if ( !( pak->referenced & FS_GENERAL_REF ) && FS_GeneralRef( pakFile->name ) ) {
 		pak->referenced |= FS_GENERAL_REF;
 	}
-	if ( !( pak->referenced & FS_CGAME_REF ) && !strcmp( pakFile->name, "vm/cgame.qvm" ) ) {
-		pak->referenced |= FS_CGAME_REF;
-	}
-	if ( !( pak->referenced & FS_UI_REF ) && !strcmp( pakFile->name, "vm/ui.qvm" ) ) {
-		pak->referenced |= FS_UI_REF;
-	}
+	pak->referenced |= FS_ModuleReferenceFlag( pakFile->name );
 
 	if ( pak->format == PACK_FORMAT_PAK ) {
 		temp = Sys_FOpen( pak->pakFilename, "rb" );
@@ -2418,12 +2429,7 @@ void FS_TouchFileInPak( const char *filename ) {
 					if ( !( pak->referenced & FS_GENERAL_REF ) && FS_GeneralRef( filename ) ) {
 						pak->referenced |= FS_GENERAL_REF;
 					}
-					if ( !( pak->referenced & FS_CGAME_REF ) && !strcmp( filename, "vm/cgame.qvm" ) ) {
-						pak->referenced |= FS_CGAME_REF;
-					}
-					if ( !( pak->referenced & FS_UI_REF ) && !strcmp( filename, "vm/ui.qvm" ) ) {
-						pak->referenced |= FS_UI_REF;
-					}
+					pak->referenced |= FS_ModuleReferenceFlag( filename );
 					return;
 				}
 				pakFile = pakFile->next;
@@ -2675,8 +2681,15 @@ int FS_Seek( fileHandle_t f, long offset, fsOrigin_t origin ) {
 				if ( remainder == currentPosition ) {
 					return offset;
 				}
-				unzSetCurrentFileInfoPosition( fsh[f].handleFiles.file.z, fsh[f].zipFilePos );
-				unzOpenCurrentFile( fsh[f].handleFiles.file.z );
+				if ( remainder > currentPosition ) {
+					// Absolute forward seeks can continue the current inflate stream.
+					// Restarting it here repeatedly decompresses the same prefix when
+					// codecs probe headers and seek within a packed sound.
+					remainder -= currentPosition;
+				} else {
+					unzSetCurrentFileInfoPosition( fsh[f].handleFiles.file.z, fsh[f].zipFilePos );
+					unzOpenCurrentFile( fsh[f].handleFiles.file.z );
+				}
 				//fallthrough
 
 			case FS_SEEK_END:
@@ -3425,6 +3438,89 @@ int FS_ReadProfileFile( const char *qpath, void **buffer ) {
 	return length;
 }
 
+/* Native modules retain normal mod/pak precedence. Retail SP's installation
+ * root is a last-resort, read-only module location, never an asset searchpath.
+ * Feed these bytes through VM's cache/pinning so pure restarts reuse the same
+ * image even if the original installation changes after module startup.
+ */
+int FS_ReadNativeModuleFile( const char *filename, void **buffer, qboolean installationRoot ) {
+	char path[MAX_OSPATH * 3 + 1];
+	FILE *file;
+	byte *data;
+	long length;
+	qboolean complete;
+
+	if ( buffer ) *buffer = NULL;
+	if ( !filename || !filename[0] ) return -1;
+	if ( !installationRoot ) return FS_ReadFile( filename, buffer );
+	if ( !fs_basepath || !Com_GameManagerResolveRootModule( Com_GameProfile(),
+		fs_basepath->string, filename, ARCH_STRING, DLL_EXT, path, sizeof( path ) ) ) return -1;
+	file = Sys_FOpen( path, "rb" );
+	if ( !file ) return -1;
+	if ( fseek( file, 0, SEEK_END ) || ( length = ftell( file ) ) <= 0
+		|| length >= INT_MAX || fseek( file, 0, SEEK_SET ) ) {
+		fclose( file );
+		return -1;
+	}
+	if ( !buffer ) {
+		fclose( file );
+		return (int)length;
+	}
+	data = Hunk_AllocateTempMemory( (int)length + 1 );
+	complete = fread( data, 1, (size_t)length, file ) == (size_t)length
+		&& fgetc( file ) == EOF && !ferror( file );
+	if ( fclose( file ) == EOF ) complete = qfalse;
+	if ( !complete ) {
+		Hunk_FreeTempMemory( data );
+		return -1;
+	}
+	data[length] = '\0';
+	*buffer = data;
+	++fs_loadCount;
+	++fs_loadStack;
+	return (int)length;
+}
+
+/* Bind RTCW MP's proof slots to the bytes actually pinned for execution.
+ * Read only the selected allowed pak, never a loose DLL or a lower-priority
+ * replacement. Successful reads restore references cleared by a restart. */
+qboolean FS_VerifyNativeModulePak( const char *filename, const void *bytes, int length ) {
+	const searchpath_t *search;
+	long fullHash;
+	if ( !filename || !bytes || length <= 0 ||
+		(size_t)length > UINTPTR_MAX - (uintptr_t)bytes ||
+		Com_GameProfile()->pureProof != COM_PURE_PROOF_RTCW_NATIVE ||
+		!FS_ModuleReferenceFlag( filename ) ) return qfalse;
+	fullHash = FS_HashFileName( filename, 0U );
+	for ( search = fs_searchpaths; search; search = search->next ) {
+		pack_t *pak = search->pack;
+		fileInPack_t *entry;
+		if ( !pak || pak->exclude || !FS_PakIsPure( pak ) ) continue;
+		for ( entry = pak->hashTable[fullHash & ( pak->hashSize - 1 )]; entry; entry = entry->next ) {
+			fileHandle_t file = FS_INVALID_HANDLE;
+			int previousReferences, position = 0;
+			qboolean matches;
+			byte block[4096];
+			if ( FS_FilenameCompare( filename, entry->name ) ) continue;
+			if ( entry->size != (unsigned long)length ) return qfalse;
+			previousReferences = pak->referenced;
+			matches = FS_OpenFileInPak( &file, pak, entry, qtrue ) == length && file != FS_INVALID_HANDLE;
+			while ( matches && position < length ) {
+				const int count = length - position < (int)sizeof( block ) ? length - position : (int)sizeof( block );
+				matches = FS_Read( block, count, file ) == count &&
+					!memcmp( block, (const byte *)bytes + position, count );
+				position += count;
+			}
+			if ( matches && fsh[file].zipFile )
+				matches = FS_ZipPayloadMatches( fsh[file].handleFiles.file.z, (const byte *)bytes, length );
+			if ( file != FS_INVALID_HANDLE ) FS_FCloseFile( file );
+			if ( !matches ) pak->referenced = previousReferences;
+			return matches;
+		}
+	}
+	return qfalse;
+}
+
 
 /*
 =============
@@ -3506,13 +3602,7 @@ Check if file should NOT be added to hash search table
 */
 static qboolean FS_BannedPakFile( const char *filename )
 {
-	if ( !Q_stricmp( filename, "autoexec.cfg" ) ||
-		!Q_stricmp( filename, Q3CONFIG_CFG ) ||
-		!Q_stricmp( filename, QL_CONFIG_HARDWARE_FILE ) ||
-		!Q_stricmp( filename, QL_CONFIG_REPLICATE_FILE ) )
-		return qtrue;
-	else
-		return qfalse;
+	return Com_GameManagerIsConfigFile( filename ) ? qtrue : qfalse;
 }
 
 
@@ -3628,7 +3718,7 @@ static char *FS_CreateQuakeLiveDecryptedZipFile( const char *zipfile )
 		if ( fwrite( buffer, 1, readLen, out ) != readLen ) {
 			fclose( out );
 			fclose( in );
-			remove( outPath );
+			Sys_Remove( outPath );
 			Z_Free( outPath );
 			return NULL;
 		}
@@ -3640,7 +3730,7 @@ static char *FS_CreateQuakeLiveDecryptedZipFile( const char *zipfile )
 
 	if ( ferror( in ) ) {
 		fclose( in );
-		remove( outPath );
+		Sys_Remove( outPath );
 		Z_Free( outPath );
 		return NULL;
 	}
@@ -4353,7 +4443,7 @@ static pack_t *FS_LoadZipFile( const char *zipfile )
 	}
 	if ( uf == NULL ) {
 		if ( readFilename != NULL ) {
-			remove( readFilename );
+			Sys_Remove( readFilename );
 			Z_Free( readFilename );
 		}
 		return NULL;
@@ -4365,7 +4455,7 @@ static pack_t *FS_LoadZipFile( const char *zipfile )
 			unzClose( uf );
 		}
 		if ( readFilename != NULL ) {
-			remove( readFilename );
+			Sys_Remove( readFilename );
 			Z_Free( readFilename );
 		}
 		return NULL;
@@ -4394,7 +4484,7 @@ static pack_t *FS_LoadZipFile( const char *zipfile )
 	if ( filecount == 0 ) {
 		unzClose( uf );
 		if ( readFilename != NULL ) {
-			remove( readFilename );
+			Sys_Remove( readFilename );
 			Z_Free( readFilename );
 		}
 		return NULL;
@@ -4712,7 +4802,7 @@ static void FS_FreePak( pack_t *pak )
 
 	if ( pak->readFilename && pak->readFilename != pak->pakFilename )
 	{
-		remove( pak->readFilename );
+		Sys_Remove( pak->readFilename );
 		Z_Free( pak->readFilename );
 		pak->readFilename = NULL;
 	}
@@ -5717,6 +5807,22 @@ Adds a regular game directory or a provider-neutral read-only Workshop root to
 the head of the path, then loads its archive headers.
 ===========================
 */
+static int FS_ProfilePakCompare( const void *left, const void *right )
+{
+	return Com_GameManagerComparePaks( Com_GameProfile(),
+		*(const char *const *)left, *(const char *const *)right );
+}
+
+static void FS_SortProfilePaks( char **names, int count )
+{
+	if ( count < 2 ) return;
+	if ( Com_GameProfile()->pakOverridePrefix ) {
+		qsort( names, count, sizeof( *names ), FS_ProfilePakCompare );
+	} else {
+		FS_SortFileList( names, count - 1 );
+	}
+}
+
 static void FS_AddGameDirectoryInternal(
 	const char *path,
 	const char *dir,
@@ -5794,8 +5900,7 @@ static void FS_AddGameDirectoryInternal(
 	// Get package files
 	pakfiles = Sys_ListFiles( curpath, NULL, NULL, &numfiles, 0 );
 
-	if ( numfiles >= 2 )
-		FS_SortFileList( pakfiles, numfiles - 1 );
+	FS_SortProfilePaks( pakfiles, numfiles );
 
 	pakfilesi = 0;
 	pakdirsi = 0;
@@ -5806,9 +5911,7 @@ static void FS_AddGameDirectoryInternal(
 	} else {
 		// Get top level directories (we'll filter them later since the Sys_ListFiles filtering is terrible)
 		pakdirs = Sys_ListFiles( curpath, "/", NULL, &numdirs, 0 );
-		if ( numdirs >= 2 ) {
-			FS_SortFileList( pakdirs, numdirs - 1 );
-		}
+		FS_SortProfilePaks( pakdirs, numdirs );
 	}
 
 	while (( pakfilesi < numfiles) || (pakdirsi < numdirs) ) 
@@ -5824,10 +5927,16 @@ static void FS_AddGameDirectoryInternal(
 		}
 		else {
 			// Could be either, compare to see which name comes first
-			pakwhich = (FS_PathCmp( pakfiles[pakfilesi], pakdirs[pakdirsi] ) < 0);
+			pakwhich = ( ( Com_GameProfile()->pakOverridePrefix
+				? Com_GameManagerComparePaks( Com_GameProfile(), pakfiles[pakfilesi], pakdirs[pakdirsi] )
+				: FS_PathCmp( pakfiles[pakfilesi], pakdirs[pakdirsi] ) ) < 0 );
 		}
 
 		if ( pakwhich ) {
+			if ( !Com_GameManagerAllowsPak( Com_GameProfile(), pakfiles[pakfilesi] ) ) {
+				++pakfilesi;
+				continue;
+			}
 
 			len = strlen( pakfiles[pakfilesi] );
 			if ( !FS_IsExt( pakfiles[pakfilesi], ".pk3", len ) && !FS_IsExt( pakfiles[pakfilesi], ".pak", len ) ) {
@@ -5877,6 +5986,10 @@ static void FS_AddGameDirectoryInternal(
 			const char *directoryGame;
 			qboolean directoryRawPath;
 			char workshopPakDir[MAX_WORKSHOP_OSPATH];
+			if ( !Com_GameManagerAllowsPak( Com_GameProfile(), pakdirs[pakdirsi] ) ) {
+				++pakdirsi;
+				continue;
+			}
 
 			len = strlen(pakdirs[pakdirsi]);
 
@@ -6453,7 +6566,6 @@ static void FS_Startup( void ) {
 	const char *homePath;
 	const char *steamPath;
 	const char *defaultBasePath;
-	unsigned profileMarker;
 	qboolean scanWorkshopArchives;
 	int i, start, end;
 
@@ -6465,14 +6577,14 @@ static void FS_Startup( void ) {
 	Cvar_SetDescription( fs_copyfiles, "Whether or not to copy files when loading them into the game. Every file found in the cdpath will be copied over." );
 	steamPath = Sys_SteamPath( Com_GameProfile()->id );
 	defaultBasePath = Sys_DefaultBasePath();
-	profileMarker = Com_GameIsQuake3() ? COM_GAME_MARKER_QUAKE3 : COM_GAME_MARKER_QUAKELIVE;
 	/* Match detection priority: a local installation wins over Steam discovery. */
-	if ( Com_ProbeGameProfileMarkers( defaultBasePath ) != profileMarker && steamPath && steamPath[0] ) {
+	if ( !Com_GameManagerInstallationMatches( Com_GameProfile(),
+		Com_ProbeGameProfileMarkers( defaultBasePath ) ) && steamPath && steamPath[0] ) {
 		defaultBasePath = steamPath;
 	}
 	fs_basepath = Cvar_Get( "fs_basepath", defaultBasePath, CVAR_INIT | CVAR_PROTECTED | CVAR_PRIVATE );
 	Cvar_SetDescription( fs_basepath, "Write-protected path to the selected game's installation folder." );
-	fs_basegame = Cvar_Get( "fs_basegame", BASEGAME, CVAR_INIT | CVAR_PROTECTED );
+	fs_basegame = Cvar_Get( "fs_basegame", Com_GameProfile()->baseGame, CVAR_INIT | CVAR_PROTECTED );
 	Cvar_SetDescription( fs_basegame, "Write-protected CVAR specifying the path to the base game(s) folder(s), separated by '/'." );
 	/* Preserve Q3 search paths: discovery supplies its default basepath but does
 	 * not mount a second installation over an explicitly chosen Q3 tree. */
@@ -7015,10 +7127,14 @@ const char *FS_ReferencedPakPureChecksums( int maxlen ) {
 	max = info + maxlen;
 	s = info;
 	*s = '\0';
+	if ( Com_GameProfile()->pureProof == COM_PURE_PROOF_UNAVAILABLE ) {
+		Com_Printf( S_COLOR_YELLOW "Pure-server verification is unavailable for %s\n", Com_GameProfile()->key );
+		return info;
+	}
 
 	checksum = fs_checksumFeed;
 	numPaks = 0;
-	for ( nFlags = Com_GameIsQuake3() ? FS_CGAME_REF : FS_GENERAL_REF;
+	for ( nFlags = Com_GameProfile()->pureProof == COM_PURE_PROOF_QL_NATIVE ? FS_GENERAL_REF : FS_CGAME_REF;
 		nFlags; nFlags = nFlags >> 1 ) {
 		if ( nFlags & FS_GENERAL_REF ) {
 			// add a delimiter between must haves and general refs
@@ -7371,10 +7487,10 @@ void FS_Restart( int checksumFeed ) {
 	}
 
 	if ( Q_stricmp(fs_gamedirvar->string, lastValidGame) && execConfig ) {
-		if ( Com_GameIsQuake3() ) {
-			// Q3 reloads the selected mod's config, never QL profile-root files.
+		if ( !Com_GameIsQuakeLive() ) {
+			// Local-config profiles reload their selected mod's own config.
 			if ( !Com_SafeMode() ) {
-				Cbuf_AddText( "exec " Q3CONFIG_CFG "\n" );
+				Cbuf_AddText( va( "exec %s\n", Com_GameConfigFile() ) );
 			}
 		} else {
 			// QL reapplies profile-global settings after a mod transition.

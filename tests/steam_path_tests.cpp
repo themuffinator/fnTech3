@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 fnTech3 contributors. GPL-2.0-or-later. */
-#include "../code/qcommon/game_profile.h"
+#include "../code/qcommon/game_manager.h"
 #include <cassert>
 #include <cctype>
 #include <chrono>
@@ -87,6 +87,13 @@ int main(int argc, char **argv) {
     Install(library, ql, "custom ql");
     const auto q3path = library / "steamapps/common/custom q3";
     const auto qlpath = library / "steamapps/common/custom ql";
+    const auto *sp = Com_GameProfileById(COM_GAME_RTCW_SP);
+    const auto *mp = Com_GameProfileById(COM_GAME_RTCW_MP);
+    Install(library, sp, "custom rtcw");
+    Install(library, mp, "custom rtcw");
+    const auto rtcwpath = library / "steamapps/common/custom rtcw";
+    assert(Discover(sp, library) == rtcwpath.generic_string());
+    assert(Discover(mp, library) == rtcwpath.generic_string());
     assert(Discover(q3, library) == q3path.generic_string());
     assert(Discover(ql, library) == qlpath.generic_string());
     assert(Discover(q3, root / "missing").empty());
@@ -100,6 +107,8 @@ int main(int argc, char **argv) {
         Write(folders, data);
         assert(Discover(q3, primary) == q3path.generic_string());
         assert(Discover(ql, primary) == qlpath.generic_string());
+        assert(Discover(sp, primary) == rtcwpath.generic_string());
+        assert(Discover(mp, primary) == rtcwpath.generic_string());
     }
     for (const auto &data : std::initializer_list<std::string>{
         "\"libraryfolders\" { \"0\" { \"path\" \"" + library.generic_string() + "\" }",
@@ -110,7 +119,7 @@ int main(int argc, char **argv) {
         assert(Discover(q3, primary).empty());
         assert(Discover(ql, primary).empty());
     }
-    for (const auto *profile : {q3, ql}) {
+    for (const auto *profile : {q3, ql, sp, mp}) {
         const fs::path invalid = root / profile->key;
         const fs::path manifest = invalid / "steamapps" / ("appmanifest_" + std::string(profile->steamAppId) + ".acf");
         char dir[MAX_OSPATH];
@@ -134,7 +143,7 @@ int main(int argc, char **argv) {
         const fs::path fallback = invalid / "steamapps/common" / profile->steamInstallName;
         Write(fallback / "baseq3/default.cfg", "not game identity");
         assert(Discover(profile, invalid).empty());
-        Write(fallback / "baseq3" / profile->basePakName, "synthetic");
+        Write(fallback / profile->baseGame / profile->basePakName, "synthetic");
         assert(Discover(profile, invalid) == fallback.generic_string());
     }
     char small[8] = "stale";
@@ -145,16 +154,19 @@ int main(int argc, char **argv) {
     Sys_NormalizeSteamPath(slash);
     assert(slash[0] && !slash[1]);
     const auto q3str = q3path.string(), qlstr = qlpath.string();
-    comGameDetectionInputs_t input = {"auto", nullptr, nullptr, q3str.c_str(), qlstr.c_str()};
+    comGameDetectionInputs_t input = {};
+    input.requestedProfile = "auto";
+    input.steamPaths[COM_GAME_QUAKE3] = q3str.c_str();
+    input.steamPaths[COM_GAME_QUAKELIVE] = qlstr.c_str();
     // Discovery locates candidates; placeholder archives cannot establish identity.
     assert(Com_DetectGameProfile(&input).status == COM_GAME_DETECTION_UNRECOGNIZED_PAK);
     input.basePath = q3str.c_str();
     assert(Com_DetectGameProfile(&input).status == COM_GAME_DETECTION_UNRECOGNIZED_PAK);
     input.basePath = nullptr;
-    input.qlSteamPath = nullptr;
+    input.steamPaths[COM_GAME_QUAKELIVE] = nullptr;
     assert(Com_DetectGameProfile(&input).status == COM_GAME_DETECTION_UNRECOGNIZED_PAK);
-    input.q3SteamPath = nullptr;
-    input.qlSteamPath = qlstr.c_str();
+    input.steamPaths[COM_GAME_QUAKE3] = nullptr;
+    input.steamPaths[COM_GAME_QUAKELIVE] = qlstr.c_str();
 #ifndef FNTECH3_Q3_ONLY
     assert(Com_DetectGameProfile(&input).status == COM_GAME_DETECTION_UNRECOGNIZED_PAK);
 #endif

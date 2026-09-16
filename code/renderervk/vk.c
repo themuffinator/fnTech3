@@ -5066,7 +5066,7 @@ static void vk_alloc_persistent_pipelines( void )
 					def.state_bits = dlight_state;
 #ifdef USE_LEGACY_DLIGHTS
 #ifdef USE_PMLIGHT
-					vk.dlight_pipelines[ i ][ j ][ k ] = vk_find_pipeline_ext( 0, &def, r_dlightMode->integer == 0 ? qtrue : qfalse );
+					vk.dlight_pipelines[ i ][ j ][ k ] = vk_find_pipeline_ext( 0, &def, R_GetDlightMode() == 0 ? qtrue : qfalse );
 #else
 					vk.dlight_pipelines[ i ][ j ][ k ] = vk_find_pipeline_ext( 0, &def, qtrue );
 #endif
@@ -5079,7 +5079,7 @@ static void vk_alloc_persistent_pipelines( void )
 		def.state_bits = GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE | GLS_DEPTHFUNC_EQUAL;
 		def.depth_fade = ( ( ( ( r_dlightShadows && r_dlightShadows->integer ) ||
 				( r_shadowCorrectness && r_shadowCorrectness->integer ) ) &&
-				r_dlightMode && r_dlightMode->integer &&
+				r_dlightMode && R_GetDlightMode() &&
 				vk_dlight_shadow_atlas_available() ) ||
 			( !( r_shadowCorrectness && r_shadowCorrectness->integer ) &&
 				r_spotShadows && r_spotShadows->integer &&
@@ -6059,7 +6059,7 @@ static qboolean vk_dlight_shadow_atlas_layout( dlightShadowAtlasLayout_t *layout
 
 	if ( ( !correctnessMode && ( !r_dlightShadows || !r_dlightShadows->integer ||
 		!r_dlightShadowMaxLights || r_dlightShadowMaxLights->integer <= 0 ) ) ||
-		!r_dlightMode || !r_dlightMode->integer ||
+		!r_dlightMode || !R_GetDlightMode() ||
 		!vk_depth_format_sampled_supported() ) {
 		return qfalse;
 	}

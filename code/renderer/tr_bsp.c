@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_map.c
 
 #include "tr_local.h"
+#include "../renderercommon/tr_patch_bounds.h"
 #include "../qcommon/bsp_v43.h"
 #include "../qcommon/ql_bsp.h"
 
@@ -38,7 +39,7 @@ void RE_LoadWorldMap( const char *name );
 static	world_t		s_worldData;
 static	byte		*fileBase;
 
-static int	c_gridVerts;
+static int c_gridVerts;
 
 //===============================================================================
 
@@ -2341,6 +2342,7 @@ static void R_FixSharedVertexLodError_r( int start, srfGridMesh_t *grid1 ) {
 		if ( grid1->lodOrigin[0] != grid2->lodOrigin[0] ) continue;
 		if ( grid1->lodOrigin[1] != grid2->lodOrigin[1] ) continue;
 		if ( grid1->lodOrigin[2] != grid2->lodOrigin[2] ) continue;
+		if ( !R_PatchBoundsOverlap( grid1->meshBounds, grid2->meshBounds ) ) continue;
 		//
 		touch = qfalse;
 		for (n = 0; n < 2; n++) {
@@ -2896,6 +2898,7 @@ static int R_TryStitchingPatch( int grid1num ) {
 		if ( grid1->lodOrigin[0] != grid2->lodOrigin[0] ) continue;
 		if ( grid1->lodOrigin[1] != grid2->lodOrigin[1] ) continue;
 		if ( grid1->lodOrigin[2] != grid2->lodOrigin[2] ) continue;
+		if ( !R_PatchBoundsOverlap( grid1->meshBounds, grid2->meshBounds ) ) continue;
 		//
 		while (R_StitchPatches(grid1num, j))
 		{
@@ -3708,6 +3711,7 @@ void RE_LoadWorldMap( const char *name ) {
 	} buffer;
 	byte		*startMarker;
 	lump_t		qlAdvertisementsLump = { 0, 0 };
+	comGameBspFormat_t bspFormat;
 
 	if ( tr.worldMapLoaded ) {
 		ri.Error( ERR_DROP, "ERROR: attempted to redundantly load world map" );
@@ -3725,8 +3729,16 @@ void RE_LoadWorldMap( const char *name ) {
 	if ( !buffer.b ) {
 		ri.Error( ERR_DROP, "%s: couldn't load %s", __func__, name );
 	}
-	if ( size < sizeof( dheader_t ) ) {
+	if ( size < (int)sizeof( dheader_t ) ) {
 		ri.Error( ERR_DROP, "%s: %s has truncated header", __func__, name );
+	}
+	if ( !ri.GameBspFormat ) {
+		ri.Error( ERR_DROP, "%s: game BSP contract unavailable", __func__ );
+	}
+	bspFormat = ri.GameBspFormat( (int32_t)QLBSP_ReadLE32( buffer.b + 4 ) );
+	if ( bspFormat == COM_GAME_BSP_UNSUPPORTED ) {
+		ri.Error( ERR_DROP, "%s: %s has BSP version %i unsupported by the selected game",
+			__func__, name, (int32_t)QLBSP_ReadLE32( buffer.b + 4 ) );
 	}
 	if ( size >= (int)sizeof( dheader43_t ) ) {
 		const dheader43_t *rawHeader = (const dheader43_t *)buffer.b;
@@ -3783,7 +3795,7 @@ void RE_LoadWorldMap( const char *name ) {
 		ri.Error( ERR_DROP, "%s: %s has wrong file identifier", __func__, name );
 	}
 
-	if ( header->version == BSP_VERSION_QL ) {
+	if ( bspFormat == COM_GAME_BSP_QUAKELIVE ) {
 		const qlBspLumpResult_t lumpResult =
 			QLBSP_ReadAdvertisementLump( buffer.b, (size_t)size, &qlAdvertisementsLump );
 		if ( lumpResult == QL_BSP_LUMP_TRUNCATED_HEADER ) {
@@ -3804,7 +3816,7 @@ void RE_LoadWorldMap( const char *name ) {
 	R_LoadMarksurfaces( &header->lumps[LUMP_LEAFSURFACES] );
 	R_LoadNodesAndLeafs( &header->lumps[LUMP_NODES], &header->lumps[LUMP_LEAFS] );
 	R_LoadSubmodels( &header->lumps[LUMP_MODELS] );
-	if ( header->version == BSP_VERSION_QL ) {
+	if ( bspFormat == COM_GAME_BSP_QUAKELIVE ) {
 		R_LoadAdvertisements( &qlAdvertisementsLump );
 	}
 	R_LoadVisibility( &header->lumps[LUMP_VISIBILITY] );

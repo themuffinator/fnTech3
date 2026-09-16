@@ -40,7 +40,7 @@ namespace {
 
 constexpr std::size_t PendingRetailAuthCapacity = 256;
 fnql::server::auth::AuthCache<PendingRetailAuthCapacity> pendingRetailAuth;
-std::array<fnql::server::stats::Session, MAX_CLIENTS> clientStatsSessions;
+std::array<fnql::server::stats::Session, MAX_GAME_CLIENTS> clientStatsSessions;
 fnql::server::stats::ReportAccumulator statsReports;
 
 fnql::server::auth::AddressKey SV_AuthAddressKey( const netadr_t *address ) {
@@ -484,7 +484,7 @@ static void SV_SetTLD( char *str, const netadr_t *from, bool isLAN )
 }
 
 
-static std::array<int, MAX_CLIENTS> seqs{};
+static std::array<int, MAX_GAME_CLIENTS> seqs{};
 
 static void SV_SaveSequences( void ) {
 	for ( SV_ClientSlot slot : SV_ClientSlots() ) {
@@ -500,7 +500,7 @@ static void SV_InjectLocation( const char *tld, const char *country ) {
 	for ( SV_ClientSlot slot : SV_ClientSlots() ) {
 		if ( seqs[slot.index] != slot.client.reliableSequence ) {
 			for ( n = seqs[slot.index]; n != slot.client.reliableSequence + 1; n++ ) {
-				cmd = slot.client.reliableCommands[n & (MAX_RELIABLE_COMMANDS-1)];
+				cmd = slot.client.reliableCommands[n & (SV_ReliableCommandLimit( &slot.client )-1)];
 				str = strstr( cmd, "connected\n\"" );
 				if ( str && str[11] == '\0' && str < cmd + 512 ) {
 					const int remaining = MAX_STRING_CHARS - static_cast<int>( str - cmd );
@@ -657,13 +657,13 @@ static void SV_WriteDemoFileMessage( client_t *client, const msg_t *msg, int seq
 	int len;
 	int swlen;
 	msg_t demoMsg;
-	std::array<byte, MAX_MSGLEN_BUF> demoBuffer{};
+	std::array<byte, MAX_GAME_MSGLEN_BUF> demoBuffer{};
 
 	if ( client->demoRecordFile == FS_INVALID_HANDLE ) {
 		return;
 	}
 
-	MSG_Copy( &demoMsg, demoBuffer.data(), SV_ArraySize(demoBuffer), msg );
+	MSG_Copy( &demoMsg, demoBuffer.data(), Netchan_MessageLimit( client->netchan.wireProfile ) + 8, msg );
 	MSG_WriteByte( &demoMsg, svc_EOF );
 
 	swlen = LittleLong( sequence );
@@ -742,13 +742,13 @@ static void SV_WriteDemoGamestate( client_t *client )
 {
 	entityState_t nullstate{};
 	msg_t msg;
-	std::array<byte, MAX_MSGLEN_BUF> msgBuffer{};
+	std::array<byte, MAX_GAME_MSGLEN_BUF> msgBuffer{};
 
 	if ( client->demoRecordFile == FS_INVALID_HANDLE ) {
 		return;
 	}
 
-	MSG_Init( &msg, msgBuffer.data(), MAX_MSGLEN );
+	MSG_Init( &msg, msgBuffer.data(), Netchan_MessageLimit( client->netchan.wireProfile ) );
 
 	MSG_WriteLong( &msg, client->lastClientCommand );
 	SV_UpdateServerCommandsToClient( client, &msg );
@@ -756,7 +756,7 @@ static void SV_WriteDemoGamestate( client_t *client )
 	MSG_WriteByte( &msg, svc_gamestate );
 	MSG_WriteLong( &msg, client->reliableSequence );
 
-	for ( int index : SV_Indices( MAX_CONFIGSTRINGS ) ) {
+	for ( int index : SV_Indices( Com_GameConfigstringLimit() ) ) {
 		if ( *sv.configstrings[ index ] != '\0' ) {
 			SV_WritePureAwareConfigstring(
 				msg, index, client->netchan.wireProfile );
@@ -1176,7 +1176,7 @@ static void SV_UnlockEventAchievement( int clientNum,
 
 static void SV_FlushClientStats( int clientNum ) {
 	if ( !Com_GameIsQuakeLive() || clientNum < 0
-		|| clientNum >= MAX_CLIENTS || !svs.clients ) {
+		|| clientNum >= Com_GameClientLimit() || !svs.clients ) {
 		return;
 	}
 	client_t &client = svs.clients[clientNum];
@@ -1986,7 +1986,7 @@ void SV_FreeClient(client_t *client)
 {
 	if ( client && svs.clients ) {
 		const int clientNum = SV_ClientIndex( client );
-		if ( clientNum >= 0 && clientNum < MAX_CLIENTS ) {
+		if ( clientNum >= 0 && clientNum < Com_GameClientLimit() ) {
 			SV_FlushClientStats( clientNum );
 			clientStatsSessions[clientNum].Reset();
 		}
@@ -2029,7 +2029,7 @@ void SV_DropClient( client_t *drop, const char *reason ) {
 	SV_FreeClient( drop );
 
 	// tell everyone why they got dropped
-	if ( reason ) {
+	if ( reason && !( Com_GameIsRTCWSP() && SV_ClientIsRTCWCastAI( drop ) ) ) {
 		SV_SendServerCommand( nullptr, "print \"%s" S_COLOR_WHITE " %s\n\"", name.data(), reason );
 	}
 
@@ -2038,7 +2038,8 @@ void SV_DropClient( client_t *drop, const char *reason ) {
 	VM_Call( gvm, 1, GAME_CLIENT_DISCONNECT, SV_ClientIndex( drop ) );
 
 	// add the disconnect command
-	if ( reason ) {
+	// The game callback can change the entity or its cast flag.
+	if ( reason && !( Com_GameIsRTCWSP() && SV_ClientIsRTCWCastAI( drop ) ) ) {
 		SV_SendServerCommand( drop, "disconnect \"%s\"", reason );
 	}
 
@@ -2095,7 +2096,7 @@ int SV_RemainingGameState( void )
 	int			len;
 	entityState_t nullstate{};
 	msg_t		msg;
-	std::array<byte, MAX_MSGLEN_BUF> msgBuffer{};
+	std::array<byte, MAX_GAME_MSGLEN_BUF> msgBuffer{};
 
 	MSG_Init( &msg, msgBuffer.data(), MAX_MSGLEN );
 
@@ -2110,7 +2111,7 @@ int SV_RemainingGameState( void )
 	MSG_WriteLong( &msg, 7 ); // client->reliableSequence
 
 	// write the configstrings
-	for ( int index : SV_Indices( MAX_CONFIGSTRINGS ) ) {
+	for ( int index : SV_Indices( Com_GameConfigstringLimit() ) ) {
 		if ( index == CS_SERVERINFO ) {
 			SV_WriteConfigstringMessage( msg, index,
 				Cvar_InfoString( CVAR_SERVERINFO, nullptr ), NETCHAN_WIRE_QL_RETAIL );
@@ -2169,7 +2170,7 @@ the wrong gamestate.
 static void SV_SendClientGameState( client_t *client ) {
 	entityState_t nullstate{};
 	msg_t		msg;
-	std::array<byte, MAX_MSGLEN_BUF> msgBuffer{};
+	std::array<byte, MAX_GAME_MSGLEN_BUF> msgBuffer{};
 	bool		csUpdated;
 
 	Com_DPrintf( "SV_SendClientGameState() for %s\n", client->name );
@@ -2200,7 +2201,7 @@ static void SV_SendClientGameState( client_t *client ) {
 	client->lastUsercmd.serverTime =
 		fnql::net::CounterSubtract( sv.time, 1u );
 
-	MSG_Init( &msg, msgBuffer.data(), MAX_MSGLEN );
+	MSG_Init( &msg, msgBuffer.data(), Netchan_MessageLimit( client->netchan.wireProfile ) );
 
 	// NOTE, MRE: all server->client messages now acknowledge
 	// let the client know which reliable clientCommands we have received
@@ -2218,7 +2219,7 @@ static void SV_SendClientGameState( client_t *client ) {
 
 	// write the configstrings
 	csUpdated = false;
-	for ( int index : SV_Indices( MAX_CONFIGSTRINGS ) ) {
+	for ( int index : SV_Indices( Com_GameConfigstringLimit() ) ) {
 		if ( *sv.configstrings[ index ] != '\0' ) {
 			SV_WritePureAwareConfigstring(
 				msg, index, client->netchan.wireProfile );
@@ -2872,8 +2873,16 @@ static void SV_VerifyPaks_f( client_t *cl ) {
 			if ( !FS_FileIsInPAK( "vm/ui.qvm", &nUiChkSum, nullptr ) ) {
 				bGood = false;
 			}
-		} else {
+		} else if ( Com_GameProfile()->pureProof == COM_PURE_PROOF_QL_NATIVE ) {
 			bGood = FS_FileIsInPAK( QL_NATIVE_CGAME_DLL, &nBinChkSum, nullptr );
+		} else if ( Com_GameProfile()->pureProof == COM_PURE_PROOF_RTCW_NATIVE ) {
+			char name[MAX_QPATH];
+			bGood = Com_GameManagerPureModuleFilename( Com_GameProfile(), 0, ARCH_STRING,
+				DLL_EXT, name, sizeof( name ) ) && FS_FileIsInPAK( name, &nBinChkSum, nullptr );
+			if ( !Com_GameManagerPureModuleFilename( Com_GameProfile(), 1, ARCH_STRING,
+				DLL_EXT, name, sizeof( name ) ) || !FS_FileIsInPAK( name, &nUiChkSum, nullptr ) ) bGood = false;
+		} else {
+			bGood = false;
 		}
 
 		nClientPaks = Cmd_Argc();
@@ -2892,7 +2901,9 @@ static void SV_VerifyPaks_f( client_t *cl ) {
 		else
 		{
 			// we may get incoming cp sequences from a previous serverId, which we need to ignore
-			if ( incomingServerId != sv.serverId /* || !cl->gamestateAcked */ ) {
+			const bool stale = Com_GameProfile()->pureProof == COM_PURE_PROOF_RTCW_NATIVE
+				? incomingServerId < sv.checksumFeedServerId : incomingServerId != sv.serverId;
+			if ( stale ) {
 				Com_DPrintf( "ignoring outdated cp command from client %s\n", cl->name );
 				return;
 			}
@@ -2901,7 +2912,7 @@ static void SV_VerifyPaks_f( client_t *cl ) {
 		// we basically use this while loop to avoid using 'goto' :)
 		while (bGood) {
 
-			// Q3: cp serverId cgame ui @ refs... mixedChecksum (zero refs allowed).
+			// Q3/RTCW MP: cp serverId cgame ui @ refs... mixedChecksum (zero refs allowed).
 			// QL: cp serverId bin @ firstref refs... mixedChecksum.
 			if (nClientPaks < 6) {
 				bGood = false;
@@ -2914,7 +2925,7 @@ static void SV_VerifyPaks_f( client_t *cl ) {
 				bGood = false;
 				break;
 			}
-			if ( Com_GameIsQuake3() ) {
+			if ( Com_GameIsQuake3() || Com_GameProfile()->pureProof == COM_PURE_PROOF_RTCW_NATIVE ) {
 				if ( !SV_ParsePureChecksum( Cmd_Argv(nCurArg++), moduleChecksum )
 					|| moduleChecksum != nUiChkSum ) {
 					bGood = false;
@@ -3424,7 +3435,7 @@ static void SV_UserMove( client_t *cl, msg_t *msg, bool delta ) {
 	// also use the last acknowledged server command in the key
 	key ^= MSG_HashKeyForWireProfile( cl->netchan.wireProfile,
 		cl->reliableCommands[
-			cl->reliableAcknowledge & ( MAX_RELIABLE_COMMANDS - 1 ) ], 32 );
+			cl->reliableAcknowledge & ( SV_ReliableCommandLimit( cl ) - 1 ) ], 32 );
 
 	oldcmd = &nullcmd;
 	for ( int i : SV_Indices( cmdCount ) ) {
@@ -3572,7 +3583,7 @@ void SV_ExecuteClientMessage( client_t *cl, msg_t *msg ) {
 	// NOTE: when the client message is fux0red the acknowledgement numbers
 	// can be out of range, this could cause the server to send thousands of server
 	// commands which the server thinks are not yet acknowledged in SV_UpdateServerCommandsToClient
-	if ( pendingReliable > MAX_RELIABLE_COMMANDS ) {
+	if ( pendingReliable > SV_ReliableCommandLimit( cl ) ) {
 		// usually only hackers create messages like this
 		// it is more annoying for them to let them hanging
 #ifdef _DEBUG

@@ -22,6 +22,7 @@ class ReliableHistoryWrapTests(unittest.TestCase):
         checks = source[start:source.index('\n\tindex = serverCommandNumber', start)]
         code = r'''
 #include "netchan_safety.hpp"
+#include "netchan_profile.h"
 #include <algorithm>
 #include <cassert>
 #include <climits>
@@ -29,24 +30,26 @@ class ReliableHistoryWrapTests(unittest.TestCase):
 #include <vector>
 constexpr int MAX_RELIABLE_COMMANDS=64,svc_serverCommand=5,ERR_DROP=1;
 constexpr bool qfalse=false;
-struct {int serverCommandSequence=0,demoCommandSequence=0;bool demoplaying=false;char serverCommands[64][16]{};}clc;
+struct {int serverCommandSequence=0,demoCommandSequence=0;bool demoplaying=false;char serverCommands[256][16]{};}clc;
 struct msg_t{};
 int profile=0,clears=0,errors=0,bytes=0,strings=0;
 std::vector<int> sequences;
 int CL_ActiveWireProfile(){return profile;}
+int CL_ReliableCommandLimit(){return Netchan_ReliableCommandLimit(static_cast<netchanWireProfile_t>(profile));}
 void MSG_WriteByte(msg_t*,int value){assert(value==svc_serverCommand);++bytes;}
-void MSG_WriteLong(msg_t*,int value){sequences.push_back(value);assert(sequences.size()<=64);}
-void MSG_WriteStringForWireProfile(msg_t*,const char*s,int p){assert(p==profile);assert(s==clc.serverCommands[sequences.back()&63]);++strings;}
+void MSG_WriteLong(msg_t*,int value){sequences.push_back(value);assert(sequences.size()<=static_cast<unsigned>(CL_ReliableCommandLimit()));}
+void MSG_WriteStringForWireProfile(msg_t*,const char*s,int p){assert(p==profile);assert(s==clc.serverCommands[sequences.back()&(CL_ReliableCommandLimit()-1)]);++strings;}
 void Cmd_Clear(){++clears;}
 void Com_Error(int,const char*){++errors;}
 ''' + writer + '\nbool get(int serverCommandNumber){\n' + checks + '\nreturn true;\n}\n' + r'''
 int main(){
- for(profile=0;profile<2;++profile){
+ for(profile=0;profile<5;++profile){
+  const unsigned limit=static_cast<unsigned>(CL_ReliableCommandLimit());
   for(int current:{INT_MIN+1,INT_MAX,0,10,INT_MIN}){
-   for(unsigned pending:{0u,1u,3u,63u,64u,65u,100u}){
+   for(unsigned pending:{0u,1u,3u,63u,64u,65u,100u,255u,256u,257u,300u}){
     clc.serverCommandSequence=current;clc.demoCommandSequence=fnql::net::CounterSubtract(current,pending);
     sequences.clear();bytes=strings=0;msg_t msg;CL_WriteServerCommands(&msg);
-    unsigned count=std::min(pending,64u);assert(sequences.size()==count);
+    unsigned count=std::min(pending,limit);assert(sequences.size()==count);
     assert(bytes==int(count)&&strings==int(count)&&clc.demoCommandSequence==current);
     for(unsigned i=0;i<count;++i)assert(sequences[i]==fnql::net::CounterSubtract(current,count-1-i));
    }
@@ -56,12 +59,12 @@ int main(){
    }
    for(bool demo:{false,true}){
     clc.demoplaying=demo;
-    for(unsigned age:{0u,1u,63u,64u,65u,0x7fffffffu,0x80000000u,0xffffffffu}){
+    for(unsigned age:{0u,1u,63u,64u,65u,255u,256u,257u,0x7fffffffu,0x80000000u,0xffffffffu}){
      clears=errors=0;bool accepted=get(fnql::net::CounterSubtract(current,age));
-     assert(accepted==(age<64));
-     bool tooOld=age>=64&&age<0x80000000u;
+     assert(accepted==(age<limit));
+     bool tooOld=age>=limit&&age<0x80000000u;
      assert(clears==int(tooOld&&demo));
-     assert(errors==int(age>=64&&!(tooOld&&demo)));
+     assert(errors==int(age>=limit&&!(tooOld&&demo)));
     }
    }
   }

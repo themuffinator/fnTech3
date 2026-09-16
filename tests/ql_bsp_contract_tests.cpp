@@ -9,6 +9,18 @@
 #include <iostream>
 #include <vector>
 
+/* The ordinary disk records are shared by Q3, QL and RTCW. Compare every
+ * field with the independently pinned RTCW source facts as well as sizes. */
+#define FNTECH3_RTCW_BSP_RECORD(type, bytes, alignment) \
+	static_assert( sizeof(type) == bytes && alignof(type) == alignment, #type " layout" );
+#define FNTECH3_RTCW_BSP_FIELD(type, field, offset, bytes) \
+	static_assert( offsetof(type, field) == offset && sizeof(((type *)0)->field) == bytes, #type "." #field " layout" );
+#define FNTECH3_RTCW_BSP_CONSTANT(name, value) static_assert( name == value, #name " encoding" );
+#include "../code/compat/rtcw_bsp_layout.def"
+#undef FNTECH3_RTCW_BSP_RECORD
+#undef FNTECH3_RTCW_BSP_FIELD
+#undef FNTECH3_RTCW_BSP_CONSTANT
+
 namespace {
 
 #define CHECK( condition ) do { \

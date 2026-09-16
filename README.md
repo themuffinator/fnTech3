@@ -27,6 +27,11 @@ build, unit, fixture, live, and interoperability evidence in the
 [compatibility ledger](docs/fntech3/COMPATIBILITY.md). A successful build or an
 inherited FnQL feature does not close a fnTech3 runtime gate.
 
+The game manager also groups Return to Castle Wolfenstein's `rtcw-sp` and
+`rtcw-mp` modes under one title and the same executable. Their runtime adapters
+are still under development; see the [RTCW contract and evidence
+record](docs/fntech3/2026-09-14-rtcw-contracts.md) before attempting to launch them.
+
 fnTech3 is engine-only. Supply a legitimate Quake III Arena or
 [Quake Live installation](https://store.steampowered.com/app/282440/Quake_Live/)
 for the selected profile. Retail modules, assets, and proprietary runtimes stay

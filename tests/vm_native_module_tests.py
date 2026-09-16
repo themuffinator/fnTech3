@@ -26,10 +26,10 @@ PRELUDE = r'''
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include "code/qcommon/game_profile.h"
+#include "code/qcommon/game_manager.h"
 #define QDECL
 #define ARCH_STRING "test"
-#define DLL_EXT ".fixture"
+#define DLL_EXT ".so"
 #define MAX_QPATH 64
 #define idx64 0
 #define Com_sprintf snprintf
@@ -49,10 +49,22 @@ static comGameProfile_t profile;
 static int library, exports, imports;
 static int absent, missingEntry, hasMain, publishes;
 static int legacyCalls, structuredCalls, unloads;
+static int opens, selectedCandidate, pinnedExpected;
+static const char *candidates[] = { "qagametest.so", NULL, NULL, NULL, NULL };
 static vmMainFunc_t *observedMain;
 static void **observedExports;
 static int *observedApi;
 const comGameProfile_t *Com_GameProfile(void) { return &profile; }
+int Com_GameManagerNativeModuleCandidate(const comGameProfile_t *p, const char *module,
+    const char *arch, const char *ext, unsigned candidate, char *out, unsigned size, int *root) {
+    assert(p == &profile && !strcmp(module, "qagame"));
+    assert(!strcmp(arch, ARCH_STRING) && !strcmp(ext, DLL_EXT));
+    if (candidate >= 5 || !candidates[candidate]) return 0;
+    assert(strlen(candidates[candidate]) < size);
+    memcpy(out, candidates[candidate], strlen(candidates[candidate]) + 1);
+    *root = candidate >= 2;
+    return 1;
+}
 int Com_GameProfileAllowsModuleApi(const comGameProfile_t *p, unsigned api) {
     return p && api && (p->allowedModuleApis & api) == api;
 }
@@ -77,9 +89,13 @@ static void Structured(void **out, void *in, int *api) {
     *api = 10;
     CheckUnpublished();
 }
-static void *VM_OpenNativeModule(vmIndex_t index, const char *name, qboolean pinned) {
-    (void)index; (void)name; (void)pinned;
-    return absent ? NULL : &library;
+static void *VM_OpenNativeModule(vmIndex_t index, const char *name, qboolean pinned, qboolean root) {
+    int candidate;
+    assert(index == 0 && pinned == pinnedExpected);
+    assert(opens < 5 && candidates[opens] && !strcmp(name, candidates[opens]));
+    assert(root == (opens >= 2));
+    candidate = opens++;
+    return absent || candidate != selectedCandidate ? NULL : &library;
 }
 static void Sys_UnloadLibrary(void *handle) {
     assert(handle == &library);
@@ -118,10 +134,11 @@ static void Scenario(unsigned allowed, int expectSuccess, int expectLegacy,
     void *handle;
     observedMain = &main; observedExports = &table; observedApi = &api;
     legacyCalls = structuredCalls = unloads = 0;
+    opens = 0;
     profile.allowedModuleApis = allowed;
     profile.displayName = "test";
     handle = VM_LoadDll(0, "qagame", &main, Syscall, &table,
-        provideImports ? &imports : NULL, &api, qfalse);
+        provideImports ? &imports : NULL, &api, pinnedExpected);
     assert((handle != NULL) == expectSuccess);
     assert(legacyCalls == expectLegacy);
     assert(structuredCalls == expectStructured);
@@ -152,6 +169,27 @@ int main(void) {
     Scenario(ql, 1, 0, 1, 0, 1);
     publishes = 0;
     Scenario(ql, 0, 0, 1, 1, 1); /* Partial initialization clears API too. */
+    hasMain = 1;
+    candidates[0] = "qagame_sp_x86.dll"; candidates[1] = "qagamex86.dll";
+    candidates[2] = candidates[0]; candidates[3] = candidates[1];
+    selectedCandidate = 1;
+    Scenario(COM_MODULE_API_LEGACY_NATIVE, 1, 1, 0, 0, 1);
+    assert(opens == 2); /* Both ordinary and pinned loading follow manager order. */
+    pinnedExpected = 1;
+    Scenario(COM_MODULE_API_LEGACY_NATIVE, 1, 1, 0, 0, 1);
+    assert(opens == 2);
+    selectedCandidate = 0;
+    Scenario(COM_MODULE_API_LEGACY_NATIVE, 1, 1, 0, 0, 1);
+    assert(opens == 1);
+    selectedCandidate = 2;
+    Scenario(COM_MODULE_API_LEGACY_NATIVE, 1, 1, 0, 0, 1);
+    assert(opens == 3); /* Both mod spellings precede the installation root. */
+    selectedCandidate = 0;
+    candidates[0] = "qagame_mp_x86.dll"; candidates[1] = NULL;
+    Scenario(COM_MODULE_API_LEGACY_NATIVE, 1, 1, 0, 0, 1);
+    candidates[0] = NULL;
+    Scenario(COM_MODULE_API_LEGACY_NATIVE, 0, 0, 0, 0, 1);
+    assert(opens == 0); /* Missing profile candidate cannot reach the OS loader. */
     return 0;
 }
 '''

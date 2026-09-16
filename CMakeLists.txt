@@ -50,6 +50,7 @@ ELSE()
 ENDIF()
 
 find_package(Threads REQUIRED)
+find_package(ZLIB REQUIRED)
 
 SET(CMAKE_CXX_STANDARD 17)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -137,7 +138,8 @@ AUX_SOURCE_DIRECTORY(code/qcommon QCOMMON_SRCS)
 list(APPEND QCOMMON_SRCS
 	code/compat/game_abi_adapter.c
 	code/platform/fnql_steam.cpp
-	code/platform/fnql_workshop.cpp)
+	code/platform/fnql_workshop.cpp
+	code/platform/process_relaunch.cpp)
 # exclude platform-dependent QVM bytecode compilers
 list(FILTER QCOMMON_SRCS EXCLUDE REGEX ".*vm_(aarch64|armv7l|powerpc|x86)\\.c$")
 # The target probe above makes these ABI-sensitive names and sources fixed.
@@ -173,12 +175,12 @@ SET(SERVER_SRCS
 
 # universal binary
 ADD_LIBRARY(qcommon OBJECT ${QCOMMON_SRCS} ${SERVER_SRCS} ${PLATFORM_ASM_SRCS})
-TARGET_LINK_LIBRARIES(qcommon PRIVATE Threads::Threads)
+TARGET_LINK_LIBRARIES(qcommon PRIVATE Threads::Threads ZLIB::ZLIB)
 
 # dedicated server
 ADD_LIBRARY(qcommon_ded OBJECT ${QCOMMON_SRCS} ${SERVER_SRCS} ${PLATFORM_ASM_SRCS})
 TARGET_COMPILE_DEFINITIONS(qcommon_ded PUBLIC DEDICATED)
-TARGET_LINK_LIBRARIES(qcommon_ded PRIVATE Threads::Threads)
+TARGET_LINK_LIBRARIES(qcommon_ded PRIVATE Threads::Threads ZLIB::ZLIB)
 
 IF(NO_VM_COMPILED)
 	TARGET_COMPILE_DEFINITIONS(qcommon PRIVATE NO_VM_COMPILED)
@@ -316,6 +318,7 @@ ELSE()
 ENDIF()
 
 target_compile_features(client PRIVATE cxx_std_17)
+target_link_libraries(client PRIVATE ZLIB::ZLIB)
 IF(FNQL_CLIENT_COMPILE_DEFINITIONS)
 	target_compile_definitions(client PRIVATE ${FNQL_CLIENT_COMPILE_DEFINITIONS})
 ENDIF()
@@ -476,12 +479,16 @@ add_test(NAME fnql_filesystem_write_bounds COMMAND fnql_filesystem_write_bounds_
 
 ADD_EXECUTABLE(fnql_png_loader_tests
 	tests/png_loader_tests.c
-	code/renderercommon/tr_image_png.c
-	code/qcommon/puff.c)
+	code/renderercommon/tr_image_png.c)
+target_link_libraries(fnql_png_loader_tests PRIVATE ZLIB::ZLIB)
 target_include_directories(fnql_png_loader_tests PRIVATE
 	code/qcommon
 	code/renderercommon)
 add_test(NAME fnql_png_loader COMMAND fnql_png_loader_tests)
+
+ADD_EXECUTABLE(fntech3_unzip_tests tests/unzip_tests.c code/qcommon/unzip.c)
+target_link_libraries(fntech3_unzip_tests PRIVATE ZLIB::ZLIB)
+add_test(NAME fntech3_unzip COMMAND fntech3_unzip_tests "${CMAKE_CURRENT_BINARY_DIR}/unzip-test.pk3")
 
 ADD_EXECUTABLE(fnql_window_placement_tests tests/window_placement_tests.cpp)
 target_compile_features(fnql_window_placement_tests PRIVATE cxx_std_17)
@@ -727,6 +734,17 @@ ELSE()
 	ENDIF()
 ENDIF()
 
+FOREACH(FNQL_RENDERER_KIND glx vk rtx)
+	IF(USE_RENDERER_DLOPEN)
+		SET(FNQL_RENDERER_TARGET ${RENDERER_PREFIX}_${FNQL_RENDERER_KIND}${RENDEXT})
+	ELSE()
+		SET(FNQL_RENDERER_TARGET ${RENDERER_PREFIX}_${FNQL_RENDERER_KIND})
+	ENDIF()
+	IF(TARGET ${FNQL_RENDERER_TARGET})
+		TARGET_LINK_LIBRARIES(${FNQL_RENDERER_TARGET} PRIVATE ZLIB::ZLIB)
+	ENDIF()
+ENDFOREACH()
+
 # common function, window system
 IF(UNIX)
 	SET (Q3_SRCS
@@ -845,7 +863,7 @@ ENDIF()
 # client executable
 
 ADD_EXECUTABLE(${CNAME}${BINEXT} ${CLIENT_EXE_TYPE} ${Q3_SRCS})
-TARGET_LINK_LIBRARIES(${CNAME}${BINEXT} qcommon botlib client q3ui Threads::Threads ${FNQL_CLIENT_LINK_LIBS})
+TARGET_LINK_LIBRARIES(${CNAME}${BINEXT} qcommon botlib client q3ui Threads::Threads ZLIB::ZLIB ${FNQL_CLIENT_LINK_LIBS})
 set_property(TARGET ${CNAME}${BINEXT} PROPERTY LINKER_LANGUAGE CXX)
 IF(APPLE)
 	SET_TARGET_PROPERTIES(${CNAME}${BINEXT} PROPERTIES
@@ -878,7 +896,7 @@ ENDIF()
 # dedicated server executable
 
 ADD_EXECUTABLE(${DNAME}${BINEXT} ${SERVER_EXE_TYPE} ${Q3_SRCS})
-TARGET_LINK_LIBRARIES(${DNAME}${BINEXT} qcommon_ded botlib Threads::Threads)
+TARGET_LINK_LIBRARIES(${DNAME}${BINEXT} qcommon_ded botlib Threads::Threads ZLIB::ZLIB)
 set_property(TARGET ${DNAME}${BINEXT} PROPERTY LINKER_LANGUAGE CXX)
 #TARGET_LINK_OPTIONS(${DNAME} PRIVATE -fno-pie) # v3.13+
 

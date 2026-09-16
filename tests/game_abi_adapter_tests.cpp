@@ -13,13 +13,14 @@ extern "C" {
 
 #include <cstdint>
 #include <cstring>
+#include "rtcw_state_adapter_tests.hpp"
 
 #define CHECK( expression ) do { if ( !( expression ) ) return __LINE__; } while ( false )
 
 template<typename External>
 static int TestGameStateTranslation( void (*convert)( External *, const gameState_t * ) ) {
 	gameState_t source{};
-	for ( int i = 0; i < MAX_CONFIGSTRINGS; ++i ) source.stringOffsets[i] = (i * 13) % MAX_GAMESTATE_CHARS;
+	for ( int i = 0; i < MAX_GAME_CONFIGSTRINGS; ++i ) source.stringOffsets[i] = (i * 13) % MAX_GAMESTATE_CHARS;
 	for ( int i = 0; i < MAX_GAMESTATE_CHARS; ++i ) source.stringData[i] = static_cast<char>( i % 127 );
 	source.dataCount = MAX_GAMESTATE_CHARS;
 	struct { unsigned before; External state; unsigned after; } guarded;
@@ -75,6 +76,7 @@ static int TestUsercmdTranslation() {
 	CHECK( internal.weaponPrimary == 0 );
 	CHECK( internal.fov == 0 );
 	CHECK( internal.forwardmove == q3.forwardmove );
+	CHECK( rtcwStateTests::IsZero( internal.rtcw ) );
 
 	fntech3_q3_usercmd_t roundTrip{};
 	FnTech3_Q3UsercmdFromInternal( &roundTrip, &internal );
@@ -114,6 +116,7 @@ static int TestQLUsercmdTranslation() {
 	CHECK( std::memcmp( &roundTrip, &guarded.cmd, sizeof( roundTrip ) ) == 0 );
 	CHECK( reinterpret_cast<unsigned char *>( &incoming.cmd )[26] == 0 );
 	CHECK( reinterpret_cast<unsigned char *>( &incoming.cmd )[27] == 0 );
+	CHECK( rtcwStateTests::IsZero( incoming.cmd.rtcw ) );
 	const auto savedIncoming = incoming;
 	FnTech3_InternalUsercmdFromQL( &incoming.cmd, nullptr );
 	FnTech3_InternalUsercmdFromQL( nullptr, &input );
@@ -148,6 +151,7 @@ static int TestEntityTranslation() {
 	CHECK( internal.location == 0 );
 	CHECK( internal.jumpTime == 0 );
 	CHECK( internal.doubleJumped == 0 );
+	CHECK( rtcwStateTests::IsZero( internal.rtcw ) );
 
 	fntech3_q3_entityState_t roundTrip{};
 	FnTech3_Q3EntityStateFromInternal( &roundTrip, &internal );
@@ -184,6 +188,7 @@ static int TestPlayerTranslation() {
 	CHECK( internal.rightmove == 0 );
 	CHECK( internal.upmove == 0 );
 	CHECK( internal.armorTier == 0 );
+	CHECK( rtcwStateTests::IsZero( internal.rtcw ) );
 
 	fntech3_q3_playerState_t roundTrip{};
 	FnTech3_Q3PlayerStateFromInternal( &roundTrip, &internal );
@@ -219,9 +224,9 @@ static int TestQLSnapshotTranslation() {
 	} guarded;
 	std::memset( &guarded, 0xa5, sizeof( guarded ) );
 	FnTech3_QLSnapshotPlayerStateFromInternal( guarded.envelope, &player );
-	static_assert( sizeof( player ) == sizeof( fntech3_ql_playerState_t ) );
-	CHECK( std::memcmp( guarded.envelope, &player, sizeof( player ) ) == 0 );
-	for ( std::size_t i = sizeof( player ); i < sizeof( guarded.envelope ); ++i )
+	static_assert( offsetof( playerState_t, rtcw ) == sizeof( fntech3_ql_playerState_t ) );
+	CHECK( std::memcmp( guarded.envelope, &player, sizeof( fntech3_ql_playerState_t ) ) == 0 );
+	for ( std::size_t i = sizeof( fntech3_ql_playerState_t ); i < sizeof( guarded.envelope ); ++i )
 		CHECK( guarded.envelope[i] == 0 );
 	for ( unsigned char byte : guarded.before ) CHECK( byte == 0xa5 );
 	for ( unsigned char byte : guarded.after ) CHECK( byte == 0xa5 );
@@ -237,13 +242,14 @@ static int TestQLSnapshotTranslation() {
 	} output;
 	std::memset( &output, 0xa5, sizeof( output ) );
 	FnTech3_QLEntityStateFromInternal( &output.value, &entity );
-	static_assert( sizeof( entity ) == sizeof( output.value ) );
-	CHECK( std::memcmp( &output.value, &entity, sizeof( entity ) ) == 0 );
+	static_assert( offsetof( entityState_t, rtcw ) == sizeof( output.value ) );
+	CHECK( std::memcmp( &output.value, &entity, sizeof( output.value ) ) == 0 );
 	CHECK( output.before == 0xa5a5a5a5u && output.after == 0xa5a5a5a5u );
 	return 0;
 }
 
 int main() {
+	if ( const int result = rtcwStateTests::Run() ) return result;
 	if ( const int result = TestQLSnapshotTranslation() ) return result;
 	if ( const int result = TestGameStateTranslation( FnTech3_Q3GameStateFromInternal ) ) return result;
 	if ( const int result = TestGameStateTranslation( FnTech3_QLGameStateFromInternal ) ) return result;

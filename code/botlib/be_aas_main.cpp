@@ -30,6 +30,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *****************************************************************************/
 
 #include "../qcommon/q_shared.h"
+#include "../qcommon/game_profile.h"
+#include "rtcw_navigation.h"
 #include "l_memory.h"
 #include "l_libvar.h"
 #include "l_utils.h"
@@ -44,7 +46,41 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "be_interface.h"
 #include "be_aas_def.h"
 
-aas_t aasworld;
+static aas_t aasWorlds[2];
+aas_t *aas_currentWorld = &aasWorlds[0];
+
+aas_t &AAS_EntityWorld()
+{
+	return Com_GameIsRTCW() ? aasWorlds[0] : aasworld;
+}
+
+bool AAS_SetCurrentWorld( int index )
+{
+	if ( index < 0 || index >= Com_GameProfile()->bots.navigationWorlds
+		|| index >= static_cast<int>( ARRAY_LEN( aasWorlds ) ) ) return false;
+	aas_currentWorld = &aasWorlds[index];
+	return true;
+}
+
+void AAS_SetBlockingEntity( const float *mins, const float *maxs, int blocking )
+{
+	const bool samePoint = mins[0] == maxs[0] && mins[1] == maxs[1] && mins[2] == maxs[2];
+	// Original SP uses a signed reset sentinel; original MP uses false.
+	const bool reset = samePoint && ( Com_GameIsRTCWSP() ? blocking < 0 : blocking == 0 );
+	for ( int world = 0; AAS_SetCurrentWorld( world ); ++world ) {
+		if ( !aasworld.loaded ) continue;
+		if ( reset ) {
+			for ( int area = 1; area < aasworld.numareas; ++area ) AAS_EnableRoutingArea( area, 1 );
+		} else {
+			vec3_t lower, upper;
+			VectorCopy( mins, lower );
+			VectorCopy( maxs, upper );
+			int areas[128];
+			const int count = AAS_BBoxAreas( lower, upper, areas, ARRAY_LEN( areas ) );
+			for ( int i = 0; i < count; ++i ) AAS_EnableRoutingArea( areas[i], !blocking );
+		}
+	}
+}
 
 libvar_t *saveroutingcache;
 
@@ -113,6 +149,14 @@ void AAS_ContinueInit(float time)
 	if (!aasworld.loaded) return;
 	//if AAS is already initialized
 	if (aasworld.initialized) return;
+	if (Com_GameIsRTCW()) {
+		if (!AAS_InitRTCWRouting()) {
+			botimport.Print(PRT_EXIT, "RTCW routing initialization failed for %s\n", aasworld.mapname);
+			return;
+		}
+		AAS_SetInitialized();
+		return;
+	}
 	//calculate reachability, if not finished return
 	if (AAS_ContinueInitReachability(time)) return;
 	//initialize clustering for the new map
@@ -147,6 +191,17 @@ void AAS_ContinueInit(float time)
 //===========================================================================
 int AAS_StartFrame(float time)
 {
+	if (Com_GameIsRTCW()) {
+		for (int world = 0; AAS_SetCurrentWorld(world); ++world) {
+			aasworld.time = time;
+			AAS_InvalidateEntities();
+			AAS_ContinueInit(time);
+			aasworld.frameroutingupdates = 0;
+		}
+		// Original RTCW leaves world one selected and advances only its counter.
+		if (aasworld.numframes < INT_MAX) ++aasworld.numframes;
+		return BLERR_NOERROR;
+	}
 	aasworld.time = time;
 	//unlink all entities that were not updated last frame
 	AAS_UnlinkInvalidEntities();
@@ -241,6 +296,67 @@ static int AAS_LoadFiles(const char *mapname)
 	Q_strncpyz( aasworld.filename, aasfile, sizeof( aasworld.filename ) );
 	return BLERR_NOERROR;
 } //end of the function AAS_LoadFiles
+
+static bool AAS_ValidRTCWMapName(const char *name)
+{
+	// maps/ + name + _bN.aas + terminator must fit each world's filename.
+	if (!name || !*name || strlen(name) + 13 > sizeof(aasworld.filename)) return false;
+	const char *component = name;
+	for (const char *p = name; ; ++p) {
+		if (*p == '\\' || *p == ':' || (*p && static_cast<unsigned char>(*p) < 32)) return false;
+		if (*p && *p != '/') continue;
+		const auto length = p - component;
+		if (!length || (length == 1 && *component == '.')
+			|| (length == 2 && component[0] == '.' && component[1] == '.')) return false;
+		if (!*p) return true;
+		component = p + 1;
+	}
+}
+
+static int AAS_LoadRTCWMap(const char *mapname)
+{
+	if (!AAS_ValidRTCWMapName(mapname)) {
+		botimport.Print(PRT_ERROR, "Invalid RTCW navigation map name\n");
+		return BLERR_CANNOTOPENAASFILE;
+	}
+	// One physical BSP and one entity table serve both navigation hulls.
+	// Retire every old world before exposing any part of the new map.
+	AAS_SetCurrentWorld(0);
+	AAS_ResetEntityLinks();
+	for (int world = 0; AAS_SetCurrentWorld(world); ++world) {
+		AAS_FreeRoutingCaches();
+		AAS_ShutdownAlternativeRouting();
+		AAS_FreeAASLinkedEntities();
+		AAS_FreeAASLinkHeap();
+		AAS_DumpAASData();
+		aasworld.filename[0] = aasworld.mapname[0] = '\0';
+		aasworld.numreachabilityareas = 0;
+	}
+	const int bspError = AAS_LoadBSPFile();
+	if (bspError != BLERR_NOERROR) return bspError;
+	bool loaded = false;
+	int error = BLERR_CANNOTOPENAASFILE;
+	for (int world = 0; AAS_SetCurrentWorld(world); ++world) {
+		char file[MAX_PATH];
+		Com_sprintf(aasworld.mapname, sizeof(aasworld.mapname), "%s_b%d", mapname, world);
+		Com_sprintf(file, sizeof(file), "maps/%s.aas", aasworld.mapname);
+		const int result = AAS_LoadAASFile(file);
+		if (result != BLERR_NOERROR) { error = result; continue; }
+		Q_strncpyz(aasworld.filename, file, sizeof(aasworld.filename));
+		AAS_InitSettings();
+		AAS_InitAASLinkHeap();
+		AAS_InitAASLinkedEntities();
+		AAS_InitAlternativeRouting();
+		// These files already contain RTCW reachabilities. Quake's generator
+		// must not replace them with routes using another game's movement rules.
+		aasworld.numreachabilityareas = aasworld.numareas + 2;
+		loaded = true;
+		botimport.Print(PRT_MESSAGE, "loaded %s (AAS8, %d areas, %d reachabilities)\n",
+			file, aasworld.numareas, aasworld.reachabilitysize);
+	}
+	// Original SP/MP accept either hull and leave the final world selected.
+	return loaded ? BLERR_NOERROR : error;
+}
 //===========================================================================
 // called every time a map changes
 //
@@ -257,6 +373,7 @@ int AAS_LoadMap(const char *mapname)
 	{
 		return 0;
 	} //end if
+	if (Com_GameIsRTCW()) return AAS_LoadRTCWMap(mapname);
 	//
 	aasworld.initialized = qfalse;
 	//NOTE: free the routing caches before loading a new map because
@@ -292,12 +409,14 @@ int AAS_LoadMap(const char *mapname)
 //===========================================================================
 int AAS_Setup(void)
 {
+	AAS_SetCurrentWorld( 0 );
 	aasworld.maxclients = (int) LibVarValue("maxclients", "128");
 	aasworld.maxentities = (int) LibVarValue("maxentities", "1024");
 	// as soon as it's set to 1 the routing cache will be saved
 	saveroutingcache = LibVar("saveroutingcache", "0");
 	//allocate memory for the entities
 	if (aasworld.entities) FreeMemory(aasworld.entities);
+	aasworld.entities = nullptr;
 	aasworld.entities = botlib::ClearedHunkAlloc<aas_entity_t>(aasworld.maxentities);
 	//invalidate all the entities
 	AAS_InvalidateEntities();
@@ -313,11 +432,9 @@ int AAS_Setup(void)
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-void AAS_Shutdown(void)
+static void AAS_ShutdownWorld(void)
 {
 	AAS_ShutdownAlternativeRouting();
-	//
-	AAS_DumpBSPData();
 	//free routing caches
 	AAS_FreeRoutingCaches();
 	//free aas link heap
@@ -335,5 +452,14 @@ void AAS_Shutdown(void)
 	//NOTE: as soon as a new .bsp file is loaded the .bsp file memory is
 	// freed and reallocated, so there's no need to free that memory here
 	//print shutdown
-	botimport.Print(PRT_MESSAGE, "AAS shutdown.\n");
 } //end of the function AAS_Shutdown
+
+void AAS_Shutdown(void)
+{
+	// BSP entities describe the one physical map shared by navigation worlds.
+	AAS_DumpBSPData();
+	for ( int world = 0; AAS_SetCurrentWorld( world ); ++world ) AAS_ShutdownWorld();
+	AAS_SetCurrentWorld( 0 );
+	saveroutingcache = nullptr;
+	botimport.Print(PRT_MESSAGE, "AAS shutdown.\n");
+}

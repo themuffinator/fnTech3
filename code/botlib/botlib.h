@@ -29,6 +29,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  *****************************************************************************/
 
+#pragma once
+
 #define	BOTLIB_API_VERSION		2
 
 #ifdef __cplusplus
@@ -116,6 +118,7 @@ using weaponinfo_t = weaponinfo_s;
 #define ACTION_PATROL			0x02000000
 #define ACTION_FOLLOWME			0x08000000
 #define ACTION_JUMPEDLASTFRAME		0x10000000
+#define ACTION_RTCW_RELOAD		0x20000000 // engine-internal; translated at the RTCW boundary
 
 //the bot input, will be converted to a usercmd_t
 struct bot_input_s

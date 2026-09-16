@@ -193,7 +193,7 @@ static int SV_ReplacePendingServerCommands( client_t *client, const char *cmd ) 
 	int i, index, csnum1, csnum2;
 
 	for ( i = client->reliableSent+1; i <= client->reliableSequence; i++ ) {
-		index = i & ( MAX_RELIABLE_COMMANDS - 1 );
+		index = i & ( SV_ReliableCommandLimit( client ) - 1 );
 		//
 		if ( !Q_strncmp(cmd, client->reliableCommands[ index ], strlen("cs")) ) {
 			sscanf(cmd, "cs %i", &csnum1);
@@ -244,14 +244,14 @@ void SV_AddServerCommand( client_t *client, const char *cmd ) {
 	// we must drop the connection
 	if ( !fnql::net::PendingCounterCount( client->reliableSequence,
 		client->reliableAcknowledge, pendingCount ) ||
-		pendingCount >= MAX_RELIABLE_COMMANDS + 1u ) {
+		pendingCount >= SV_ReliableCommandLimit( client ) + 1u ) {
 		Com_Printf( "===== pending server commands =====\n" );
 		const int printableCount = static_cast<int>( std::min<std::uint32_t>(
-			pendingCount, MAX_RELIABLE_COMMANDS ) );
+			pendingCount, SV_ReliableCommandLimit( client ) ) );
 		for ( int i : SV_Indices( printableCount ) ) {
 			const int idx = fnql::net::CounterAdd( client->reliableAcknowledge,
 				static_cast<std::uint32_t>( i + 1 ) );
-			Com_Printf( "cmd %5d: %s\n", i, client->reliableCommands[ idx & ( MAX_RELIABLE_COMMANDS - 1 ) ] );
+			Com_Printf( "cmd %5d: %s\n", i, client->reliableCommands[ idx & ( SV_ReliableCommandLimit( client ) - 1 ) ] );
 		}
 		Com_Printf( "cmd %5u: %s\n", pendingCount, cmd );
 		// SV_DropClient() broadcasts a "print" reason to every client, which
@@ -265,7 +265,7 @@ void SV_AddServerCommand( client_t *client, const char *cmd ) {
 		SV_DropClient( client, "Server command overflow" );
 		return;
 	}
-	index = client->reliableSequence & ( MAX_RELIABLE_COMMANDS - 1 );
+	index = client->reliableSequence & ( SV_ReliableCommandLimit( client ) - 1 );
 	char *stored = client->reliableCommands[ index ];
 	const std::size_t capacity = SV_ArraySize( client->reliableCommands[ index ] );
 	if ( client->netchan.wireProfile == NETCHAN_WIRE_QL_RETAIL ) {
@@ -316,6 +316,11 @@ void QDECL SV_SendServerCommand( client_t *cl, const char *fmt, ... ) {
 
 	// send the data to all relevant clients
 	for ( client_t &client : SV_Clients() ) {
+		// RTCW cast AI do not consume the broadcast command stream. Ordinary
+		// bots still receive it, and explicitly addressed commands stay intact.
+		if ( client.state >= CS_PRIMED && SV_ClientIsRTCWCastAI( &client ) ) {
+			continue;
+		}
 		if ( len <= 1022 || client.longstr ) {
 			SV_AddServerCommand( &client, message.data() );
 		}
@@ -1273,11 +1278,21 @@ static void SV_CheckTimeouts( void ) {
 			client.state = CS_FREE;	// can now be reused
 			continue;
 		}
+		// Campaign actors have no packet source. Keep clock correction and
+		// zombie reclamation above this exemption.
+		if ( Com_GameIsRTCWSP() && SV_ClientIsRTCWCastAI( &client ) ) {
+			continue;
+		}
 		if ( client.justConnected && svs.time - client.lastPacketTime > 4000 ) {
 			// for real client 4 seconds is more than enough to respond
 			SVC_RateDropAddress( &client.netchan.remoteAddress, 10, 1000 ); // enforce burst with progressive multiplier
 			SV_DropClient( &client, nullptr ); // drop silently
 			client.state = CS_FREE;
+			continue;
+		}
+		// SP starts normal packet timeout accounting once its entity exists.
+		// The admission deadline above still reclaims abandoned connections.
+		if ( Com_GameIsRTCWSP() && !client.gentity ) {
 			continue;
 		}
 		if ( client.state >= CS_CONNECTED && client.lastPacketTime - droppoint < 0 ) {
@@ -1560,6 +1575,7 @@ void SV_Frame( int msec, int realMsec ) {
 		cvar_modifiedFlags &= ~CVAR_SYSTEMINFO;
 	}
 	SV_UpdateQLCvarConfigstrings( qfalse );
+	SV_UpdateRTCWCvarConfigstrings( qfalse );
 
 	if ( com_speeds->integer ) {
 		startTime = Sys_Milliseconds();

@@ -46,6 +46,8 @@ qboolean R_DlightShadowFrontendCasterAllowed( const shader_t *shader,
 	switch ( *surface ) {
 		case SF_FACE:
 		case SF_TRIANGLES:
+		case SF_MDS:
+		case SF_MDC:
 		case SF_MD3:
 		case SF_MDR:
 		case SF_IQM:
@@ -373,6 +375,8 @@ static qboolean R_CollectDlightShadowEntityCasters(
 			continue;
 		}
 		switch ( model->type ) {
+			case MOD_MDS:
+			case MOD_MDC:
 			case MOD_MESH:
 			case MOD_MDR:
 			case MOD_IQM:
@@ -391,6 +395,8 @@ static qboolean R_CollectDlightShadowEntityCasters(
 		R_RotateForEntity( ent, &tr.viewParms, &tr.or );
 
 		switch ( model->type ) {
+			case MOD_MDS:
+			case MOD_MDC:
 			case MOD_MESH:
 				R_AddMD3Surfaces( ent, context );
 				break;

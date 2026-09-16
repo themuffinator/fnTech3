@@ -14,6 +14,7 @@ version.
 
 #include "../code/compat/q3_game_abi.h"
 #include "../code/compat/ql_game_abi.h"
+#include "../code/compat/rtcw_game_abi.h"
 
 #include <climits>
 #include <cstddef>
@@ -543,6 +544,92 @@ static_assert( offsetof( fntech3_ql_sharedEntity_t, r )
 	+ offsetof( fntech3_ql_entityShared_t, s )
 	+ offsetof( fntech3_ql_entityState_t, origin2 ) == 348,
 	"fntech3_ql_sharedEntity_t.r.s.origin2 offset changed" );
+
+// RTCW reference headers were independently compiled for Windows x86 and x64;
+// these are external layouts, not inferred offsets in the Q3/QL internal state.
+ABI_ASSERT_POD( fntech3_rtcw_vmCvar_t );
+ABI_ASSERT_SIZE( fntech3_rtcw_vmCvar_t, 272 );
+ABI_ASSERT_ALIGN( fntech3_rtcw_vmCvar_t, 4 );
+ABI_ASSERT_OFFSET( fntech3_rtcw_vmCvar_t, handle, 0 );
+ABI_ASSERT_OFFSET( fntech3_rtcw_vmCvar_t, modificationCount, 4 );
+ABI_ASSERT_OFFSET( fntech3_rtcw_vmCvar_t, value, 8 );
+ABI_ASSERT_OFFSET( fntech3_rtcw_vmCvar_t, integer, 12 );
+ABI_ASSERT_OFFSET( fntech3_rtcw_vmCvar_t, string, 16 );
+ABI_ASSERT_SIZE( fntech3_rtcw_uiClientState_t, 3084 );
+ABI_ASSERT_SIZE( fntech3_rtcw_glconfig_t, 7268 );
+ABI_ASSERT_OFFSET( fntech3_rtcw_glconfig_t, extensions_string, 3072 );
+ABI_ASSERT_OFFSET( fntech3_rtcw_glconfig_t, maxTextureSize, 7168 );
+ABI_ASSERT_OFFSET( fntech3_rtcw_glconfig_t, vidWidth, 7236 );
+ABI_ASSERT_SIZE( fntech3_rtcw_pc_token_t, 1040 );
+ABI_ASSERT_SIZE( fntech3_rtcw_qtime_t, 36 );
+ABI_ASSERT_SIZE( fntech3_rtcw_glyphInfo_t, 80 );
+ABI_ASSERT_SIZE( fntech3_rtcw_fontInfo_t, 20548 );
+ABI_ASSERT_OFFSET( fntech3_rtcw_fontInfo_t, name, 20484 );
+ABI_ASSERT_SIZE( fntech3_rtcw_trajectory_t, 36 );
+ABI_ASSERT_SIZE( fntech3_rtcw_plane_t, 20 );
+ABI_ASSERT_SIZE( fntech3_rtcw_trace_t, 56 );
+ABI_ASSERT_SIZE( fntech3_rtcw_gameState_t, 24196 );
+ABI_ASSERT_SIZE( fntech3_rtcw_usercmdPrefix_t, 24 );
+ABI_ASSERT_SIZE( fntech3_rtcw_sp_usercmd_t, 28 );
+ABI_ASSERT_SIZE( fntech3_rtcw_mp_usercmd_t, 28 );
+ABI_ASSERT_OFFSET( fntech3_rtcw_sp_usercmd_t, cld, 24 );
+ABI_ASSERT_OFFSET( fntech3_rtcw_mp_usercmd_t, mpSetup, 24 );
+ABI_ASSERT_OFFSET( fntech3_rtcw_mp_usercmd_t, identClient, 25 );
+ABI_ASSERT_SIZE( fntech3_rtcw_entityState_t, 288 );
+ABI_ASSERT_OFFSET( fntech3_rtcw_entityState_t, pos, 12 );
+ABI_ASSERT_OFFSET( fntech3_rtcw_entityState_t, apos, 48 );
+ABI_ASSERT_SIZE( fntech3_rtcw_playerStatePrefix_t, 1456 );
+ABI_ASSERT_OFFSET( fntech3_rtcw_playerStatePrefix_t, ammo, 400 );
+ABI_ASSERT_OFFSET( fntech3_rtcw_playerStatePrefix_t, ammoclip, 656 );
+ABI_ASSERT_OFFSET( fntech3_rtcw_playerStatePrefix_t, weapons, 980 );
+ABI_ASSERT_OFFSET( fntech3_rtcw_playerStatePrefix_t, ping, 1132 );
+ABI_ASSERT_SIZE( fntech3_rtcw_sp_playerState_t, 1472 );
+ABI_ASSERT_SIZE( fntech3_rtcw_mp_playerState_t, 1464 );
+ABI_ASSERT_OFFSET( fntech3_rtcw_sp_playerState_t, aiState, 1464 );
+ABI_ASSERT_OFFSET( fntech3_rtcw_mp_playerState_t, aiState, 1456 );
+ABI_ASSERT_SIZE( fntech3_rtcw_entitySharedPrefix_t, 392 );
+ABI_ASSERT_SIZE( fntech3_rtcw_sp_sharedEntity_t, 680 );
+ABI_ASSERT_SIZE( fntech3_rtcw_mp_sharedEntity_t, 684 );
+ABI_ASSERT_OFFSET( fntech3_rtcw_sp_sharedEntity_t, r, 288 );
+ABI_ASSERT_OFFSET( fntech3_rtcw_mp_sharedEntity_t, worldflags, 680 );
+static_assert( offsetof( fntech3_rtcw_sp_sharedEntity_t, r )
+	+ offsetof( fntech3_rtcw_entitySharedPrefix_t, linked ) == 576 );
+ABI_ASSERT_SIZE( fntech3_rtcw_sp_snapshot_t, 75256 );
+ABI_ASSERT_SIZE( fntech3_rtcw_mp_snapshot_t, 75248 );
+ABI_ASSERT_OFFSET( fntech3_rtcw_sp_snapshot_t, ps, 44 );
+ABI_ASSERT_OFFSET( fntech3_rtcw_mp_snapshot_t, ps, 44 );
+ABI_ASSERT_SIZE( fntech3_rtcw_refEntityPrefix_t, 124 );
+ABI_ASSERT_SIZE( fntech3_rtcw_refEntitySuffix_t, 96 );
+ABI_ASSERT_SIZE( fntech3_rtcw_sp_refEntity_t, 232 );
+ABI_ASSERT_SIZE( fntech3_rtcw_mp_refEntity_t, 220 );
+ABI_ASSERT_OFFSET( fntech3_rtcw_sp_refEntity_t, scale, 124 );
+ABI_ASSERT_OFFSET( fntech3_rtcw_sp_refEntity_t, appearance, 136 );
+ABI_ASSERT_OFFSET( fntech3_rtcw_mp_refEntity_t, appearance, 124 );
+ABI_ASSERT_SIZE( fntech3_rtcw_fog_t, 60 );
+ABI_ASSERT_SIZE( fntech3_rtcw_refdefPrefix_t, 368 );
+ABI_ASSERT_SIZE( fntech3_rtcw_sp_refdef_t, 432 );
+ABI_ASSERT_SIZE( fntech3_rtcw_mp_refdef_t, 428 );
+#define RTCW_POD(type) ABI_ASSERT_POD(type); ABI_ASSERT_ALIGN(type, 4)
+RTCW_POD( fntech3_rtcw_uiClientState_t );
+RTCW_POD( fntech3_rtcw_glconfig_t );
+RTCW_POD( fntech3_rtcw_pc_token_t );
+RTCW_POD( fntech3_rtcw_qtime_t );
+RTCW_POD( fntech3_rtcw_glyphInfo_t );
+RTCW_POD( fntech3_rtcw_fontInfo_t );
+RTCW_POD( fntech3_rtcw_sp_usercmd_t );
+RTCW_POD( fntech3_rtcw_mp_usercmd_t );
+RTCW_POD( fntech3_rtcw_sp_playerState_t );
+RTCW_POD( fntech3_rtcw_mp_playerState_t );
+RTCW_POD( fntech3_rtcw_entityState_t );
+RTCW_POD( fntech3_rtcw_sp_sharedEntity_t );
+RTCW_POD( fntech3_rtcw_mp_sharedEntity_t );
+RTCW_POD( fntech3_rtcw_sp_snapshot_t );
+RTCW_POD( fntech3_rtcw_mp_snapshot_t );
+RTCW_POD( fntech3_rtcw_sp_refEntity_t );
+RTCW_POD( fntech3_rtcw_mp_refEntity_t );
+RTCW_POD( fntech3_rtcw_sp_refdef_t );
+RTCW_POD( fntech3_rtcw_mp_refdef_t );
+#undef RTCW_POD
 
 #undef ABI_ASSERT_OFFSET
 #undef ABI_ASSERT_ALIGN

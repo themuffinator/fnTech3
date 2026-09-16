@@ -29,6 +29,9 @@ extern "C" {
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <limits>
+#include "../shared/RTCWMix.h"
+#include "../shared/AudioMix.h"
 
 namespace {
 
@@ -467,12 +470,12 @@ static void S_PaintChannelFrom16_scalar( channel_t *ch, const sfx_t *sc, int cou
 		samples = chunk->sndChunk;
 		for ( i=0 ; i<count ; i++ ) {
 			data  = samples[sampleOffset++];
-			samp[i].left += (data * leftvol)>>8;
+			samp[i].left = fntech3::audio::MixPCM16(samp[i].left, data, leftvol);
 
 			if ( sc->soundChannels == 2 ) {
 				data = samples[sampleOffset++];
 			}
-			samp[i].right += (data * rightvol)>>8;
+			samp[i].right = fntech3::audio::MixPCM16(samp[i].right, data, rightvol);
 
 			if (sampleOffset == SND_CHUNK_SIZE) {
 				chunk = chunk->next;
@@ -514,8 +517,8 @@ static void S_PaintChannelFrom16_scalar( channel_t *ch, const sfx_t *sc, int cou
 				}
 			}
 			fdiv = 256 * (boff-aoff) / sc->soundChannels;
-			samp[i].left += (fdata[0] * fleftvol)/fdiv;
-			samp[i].right += (fdata[1] * frightvol)/fdiv;
+			samp[i].left = fntech3::audio::AddFractionalMixSample(samp[i].left, (fdata[0] * fleftvol)/fdiv);
+			samp[i].right = fntech3::audio::AddFractionalMixSample(samp[i].right, (fdata[1] * frightvol)/fdiv);
 		}
 	}
 }
@@ -557,8 +560,8 @@ static void S_PaintChannelFromWavelet( channel_t *ch, sfx_t *sc, int count, int 
 
 	for ( i=0 ; i<count ; i++ ) {
 		data  = samples[sampleOffset++];
-		samp[i].left += (data * leftvol)>>8;
-		samp[i].right += (data * rightvol)>>8;
+		samp[i].left = fntech3::audio::MixPCM16(samp[i].left, data, leftvol);
+		samp[i].right = fntech3::audio::MixPCM16(samp[i].right, data, rightvol);
 
 		if (sampleOffset == SND_CHUNK_SIZE*2) {
 			chunk = chunk->next;
@@ -605,8 +608,8 @@ static void S_PaintChannelFromADPCM( channel_t *ch, sfx_t *sc, int count, int sa
 
 	for ( i=0 ; i<count ; i++ ) {
 		data  = samples[sampleOffset++];
-		samp[i].left += (data * leftvol)>>8;
-		samp[i].right += (data * rightvol)>>8;
+		samp[i].left = fntech3::audio::MixPCM16(samp[i].left, data, leftvol);
+		samp[i].right = fntech3::audio::MixPCM16(samp[i].right, data, rightvol);
 
 		if (sampleOffset == SND_CHUNK_SIZE*4) {
 			chunk = chunk->next;
@@ -644,8 +647,8 @@ static void S_PaintChannelFromMuLaw( channel_t *ch, sfx_t *sc, int count, int sa
 		samples = reinterpret_cast<byte *>( chunk->sndChunk ) + sampleOffset;
 		for ( i=0 ; i<count ; i++ ) {
 			data  = mulawToShort[*samples];
-			samp[i].left += (data * leftvol)>>8;
-			samp[i].right += (data * rightvol)>>8;
+			samp[i].left = fntech3::audio::MixPCM16(samp[i].left, data, leftvol);
+			samp[i].right = fntech3::audio::MixPCM16(samp[i].right, data, rightvol);
 			samples++;
 			if ( chunk != nullptr && samples == reinterpret_cast<byte *>( chunk->sndChunk ) + ( SND_CHUNK_SIZE * 2 ) ) {
 				chunk = chunk->next;
@@ -658,8 +661,8 @@ static void S_PaintChannelFromMuLaw( channel_t *ch, sfx_t *sc, int count, int sa
 		for ( i=0 ; i<count ; i++ ) {
 			data  = mulawToShort[samples[static_cast<int>( ooff )]];
 			ooff = ooff + ch->dopplerScale;
-			samp[i].left += (data * leftvol)>>8;
-			samp[i].right += (data * rightvol)>>8;
+			samp[i].left = fntech3::audio::MixPCM16(samp[i].left, data, leftvol);
+			samp[i].right = fntech3::audio::MixPCM16(samp[i].right, data, rightvol);
 			if (ooff >= SND_CHUNK_SIZE*2) {
 				chunk = chunk->next;
 				if (!chunk) {
@@ -688,7 +691,9 @@ extern "C" void S_PaintChannels( int endtime ) {
 	int		sampleOffset;
 	byte	*buffer;
 
-	snd_vol = s_volume->value * 255;
+	const bool rtcwSP = Com_GameIsRTCWSP() != 0;
+	const float masterGain = rtcwSP ? S_Base_RTCWMasterGain() : 1.0f;
+	snd_vol = rtcwSP ? fntech3::audio::rtcw::EffectsMixVolume( s_volume->value, masterGain ) : s_volume->value * 255;
 
 	if ( (!gw_active && !gw_minimized && s_muteWhenUnfocused->integer) || (gw_minimized && s_muteWhenMinimized->integer) ) {
 		buffer = dma_buffer2;
@@ -728,6 +733,13 @@ extern "C" void S_PaintChannels( int endtime ) {
 			}
 		}
 		S_PaintVoiceSamples( s_paintedtime, end, paintbuffer.data() );
+		if ( rtcwSP ) {
+			S_PaintRTCWMusic( s_paintedtime, end, paintbuffer.data() );
+			for ( int sample = 0; sample < end - s_paintedtime; ++sample ) {
+				paintbuffer[sample].left = fntech3::audio::rtcw::ScaleStreamSample( paintbuffer[sample].left, masterGain );
+				paintbuffer[sample].right = fntech3::audio::rtcw::ScaleStreamSample( paintbuffer[sample].right, masterGain );
+			}
+		}
 
 		// paint in the channels.
 		ch = s_channels;

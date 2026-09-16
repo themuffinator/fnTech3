@@ -31,6 +31,9 @@ extern "C" {
 #include "client_cvar_compat.hpp"
 #include "ql_font_bridge.hpp"
 #include "../compat/game_abi_adapter.h"
+#include "../compat/rtcw_module_abi.h"
+#include "../compat/rtcw_state_adapter.hpp"
+#include "../compat/rtcw_client_adapter.hpp"
 #include "../qcommon/netchan_safety.hpp"
 
 #include <algorithm>
@@ -55,6 +58,36 @@ static const char *SkipPath( const char *path )
 } // namespace
 
 extern botlib_export_t	*botlib_export;
+
+// A synchronous server-to-cgame callback, not a renderer lookup: the cgame
+// chooses the current entity pose and transforms its tag into world space.
+intptr_t CL_RTCWGetTag(int client, const char *name, orientation_t *orientation) {
+	if (!Com_GameIsRTCW()) Com_Error(ERR_DROP, "RTCW tag lookup requires an RTCW profile");
+	if (!cgvm) return qfalse;
+	if (cgvm->index != VM_CGAME || !cgvm->entryPoint || cgvm->dllExports ||
+		sizeof(void *) != sizeof(int32_t))
+		Com_Error(ERR_DROP, "RTCW tag lookup requires a legacy x86 cgame module");
+	if (client < 0 || client >= Com_GameProfile()->maxClients || !name || !orientation)
+		Com_Error(ERR_DROP, "Invalid RTCW tag request");
+	std::array<char, 64> tagName{};
+	std::size_t length = 0;
+	while (length < tagName.size() && name[length]) {
+		tagName[length] = name[length];
+		++length;
+	}
+	if (length == tagName.size()) Com_Error(ERR_DROP, "Unterminated RTCW tag name");
+	fntech3_rtcw_orientation_t external;
+	std::memcpy(external.origin, orientation->origin, sizeof(external.origin));
+	std::memcpy(external.axis, orientation->axis, sizeof(external.axis));
+	const intptr_t result = VM_Call(cgvm, 3, CG_GET_TAG, client,
+		static_cast<int32_t>(reinterpret_cast<intptr_t>(tagName.data())),
+		static_cast<int32_t>(reinterpret_cast<intptr_t>(&external)));
+	// A false callback may still have written a partial result. Preserve the
+	// original output semantics while never sharing a caller-owned pointer.
+	std::memcpy(orientation->origin, external.origin, sizeof(external.origin));
+	std::memcpy(orientation->axis, external.axis, sizeof(external.axis));
+	return result;
+}
 
 constexpr int kEnemyHighlightMaxModels = 1024;
 constexpr int kEnemyHighlightMaxSkins = 1024;
@@ -625,6 +658,65 @@ static void CL_GetGlconfig( fntech3_q3_glconfig_t *glconfig ) {
 	CL_CopyQ3Glconfig( glconfig, &cls.glconfig );
 }
 
+void CL_CopyRTCWGlconfig( void *destination, const glconfig_t *source ) {
+	auto *output = static_cast<fntech3_rtcw_glconfig_t *>( destination );
+	if ( !output || !source || !fntech3::rtcw::client::FromInternal( *source, *output ) ) {
+		Com_Error( ERR_DROP, "Invalid RTCW renderer configuration transfer" );
+	}
+}
+
+int CL_RTCWReadToken( int handle, void *destination ) {
+	auto *output = static_cast<fntech3_rtcw_pc_token_t *>( destination );
+	if ( !output ) {
+		Com_Error( ERR_DROP, "Null RTCW parser token destination" );
+		return 0;
+	}
+	pc_token_t token{};
+	const int result = botlib_export->PC_ReadTokenHandle( handle, &token );
+	if ( result && !fntech3::rtcw::client::FromInternal( token, *output ) ) {
+		Com_Error( ERR_DROP, "Invalid RTCW parser token transfer" );
+		return 0;
+	}
+	return result;
+}
+
+void CL_RTCWRegisterFont( const char *name, int pointSize, void *destination ) {
+	auto *output = static_cast<fntech3_rtcw_fontInfo_t *>( destination );
+	if ( !output ) {
+		Com_Error( ERR_DROP, "Null RTCW font destination" );
+		return;
+	}
+	fontInfo_t font{};
+	re.RegisterFont( name, pointSize, &font );
+	if ( !fntech3::rtcw::client::FromInternal( font, *output ) ) {
+		Com_Error( ERR_DROP, "Invalid RTCW font transfer" );
+	}
+}
+
+int CL_RTCWSourceFileAndLine( int handle, char *filename, int *line ) {
+	if ( !filename || !line ) {
+		Com_Error( ERR_DROP, "NULL RTCW parser location output" );
+		return 0;
+	}
+	// The botlib source filename can occupy MAX_STRING_CHARS, while the
+	// original UI's diagnostic callers reserve only 128 bytes. The backend
+	// capacity is pinned alongside PC_SourceFileAndLine in l_precomp.cpp.
+	char sourceName[MAX_STRING_CHARS] = {};
+	int sourceLine = 0;
+	const int result = botlib_export->PC_SourceFileAndLine( handle, sourceName, &sourceLine );
+	if ( !result ) return 0;
+	const char *end = static_cast<const char *>( std::memchr( sourceName, '\0', sizeof( sourceName ) ) );
+	if ( !end ) {
+		Com_Error( ERR_DROP, "Unterminated RTCW parser source filename" );
+		return 0;
+	}
+	const size_t count = std::min<size_t>( end - sourceName, FNTECH3_RTCW_SOURCE_FILENAME_CHARS - 1 );
+	std::memcpy( filename, sourceName, count );
+	filename[count] = '\0';
+	*line = sourceLine;
+	return result;
+}
+
 
 typedef fntech3_ql_glconfig_t qlRetailGlconfig_t;
 
@@ -709,7 +801,7 @@ static int CL_ScaleRetailPixel( int value, float scale ) {
 }
 
 
-static void CL_ScaleRetailRefdef( refdef_t *refdef ) {
+static void CL_ScaleRetailRefdef( fntech3_ql_refdef_t *refdef ) {
 	const retailFramebufferScale_t scale = CL_GetRetailFramebufferScale();
 
 	if ( !refdef ) {
@@ -1192,6 +1284,14 @@ static qboolean CL_GetQLUserCmd( int cmdNumber,
 	return qtrue;
 }
 
+template<typename ExternalCommand>
+static qboolean CL_GetRTCWUserCmd( int number, ExternalCommand *destination ) {
+	if ( !destination ) return qfalse;
+	usercmd_t source;
+	if ( !CL_GetUserCmd( number, &source ) ) return qfalse;
+	return fntech3::rtcw::state::FromInternal( source, *destination ) ? qtrue : qfalse;
+}
+
 
 /*
 ====================
@@ -1317,6 +1417,30 @@ static qboolean CL_GetQ3Snapshot( int snapshotNumber,
 	return qtrue;
 }
 
+template<typename ExternalSnapshot>
+static qboolean CL_GetRTCWSnapshot( int number, ExternalSnapshot *destination ) {
+	if ( !destination ) return qfalse;
+	const clSnapshot_t *source = CL_FindSnapshot( number );
+	if ( !source ) return qfalse;
+	ExternalSnapshot result{};
+	result.snapFlags = source->snapFlags;
+	result.ping = source->ping;
+	result.serverTime = source->serverTime;
+	static_assert( sizeof( result.areamask ) == sizeof( source->areamask ) );
+	std::memcpy( result.areamask, source->areamask, sizeof( result.areamask ) );
+	if ( !fntech3::rtcw::state::FromInternal( source->ps, result.ps ) ) return qfalse;
+	result.numEntities = std::min( source->numEntities, (int)FNTECH3_RTCW_MAX_ENTITIES_IN_SNAPSHOT );
+	for ( int i = 0; i < result.numEntities; ++i ) {
+		const auto index = ( static_cast<uint32_t>( source->parseEntitiesNum ) + i ) & ( MAX_PARSE_ENTITIES - 1 );
+		if ( !fntech3::rtcw::state::FromInternal( cl.parseEntities[index], result.entities[i] ) ) return qfalse;
+	}
+	// Retail does not fill numServerCommands; publish deterministic zero there.
+	// serverCommandSequence is the authoritative reliable-command boundary.
+	result.serverCommandSequence = source->serverCommandNum;
+	*destination = result;
+	return qtrue;
+}
+
 
 namespace {
 
@@ -1400,6 +1524,22 @@ static void CL_SetUserCmdValue( int userCmdValue, int userCmdPrimary, float sens
 	cl.cgameSensitivity = sensitivityScale;
 }
 
+static void CL_SetRTCWUserCmdValue( int weapon, int holdable, float sensitivity,
+	int modeValue, int identClient ) {
+	cl.cgameUserCmdValue = weapon;
+	cl.cgameUserCmdPrimary = 0;
+	cl.cgameUserCmdFov = 0;
+	cl.cgameSensitivity = sensitivity;
+	cl.cgameRTCWCommand = {};
+	cl.cgameRTCWCommand.holdable = static_cast<unsigned char>( holdable );
+	if ( Com_GameIsRTCWSP() ) {
+		cl.cgameRTCWCommand.cld = static_cast<unsigned short>( modeValue );
+	} else {
+		cl.cgameRTCWCommand.mpSetup = static_cast<unsigned char>( modeValue );
+		cl.cgameRTCWCommand.identClient = static_cast<unsigned char>( identClient );
+	}
+}
+
 
 /*
 =====================
@@ -1424,7 +1564,7 @@ static void CL_ConfigstringModified( void ) {
 	int			len;
 
 	index = std::atoi( Cmd_Argv(1) );
-	if ( static_cast<unsigned>( index ) >= MAX_CONFIGSTRINGS ) {
+	if ( static_cast<unsigned>( index ) >= Com_GameConfigstringLimit() ) {
 		Com_Error( ERR_DROP, "%s: bad configstring index %i", __func__, index );
 	}
 	// get everything after "cs <num>"
@@ -1443,7 +1583,7 @@ static void CL_ConfigstringModified( void ) {
 	// leave the first 0 for uninitialized strings
 	cl.gameState.dataCount = 1;
 
-	for ( i = 0; i < MAX_CONFIGSTRINGS; i++ ) {
+	for ( i = 0; i < Com_GameConfigstringLimit(); i++ ) {
 		if ( i == index ) {
 			dup = s;
 		} else {
@@ -1469,7 +1609,8 @@ static void CL_ConfigstringModified( void ) {
 		// parse serverId and other cvars
 		CL_SystemInfoChanged( qfalse );
 	}
-	if ( index >= CS_PLAYERS && index < CS_PLAYERS + MAX_CLIENTS ) {
+	if ( index >= Com_GamePlayerConfigstringBase() &&
+		index < Com_GamePlayerConfigstringBase() + Com_GameClientLimit() ) {
 		// The Steam-less WebUI friend projection is derived from replicated
 		// client identities. Refresh it only when one of those identities
 		// actually changes.
@@ -1497,7 +1638,7 @@ static qboolean CL_GetServerCommand( int serverCommandNumber ) {
 		Com_Error( ERR_DROP, "CL_GetServerCommand: requested a command not received" );
 		return qfalse;
 	}
-	if ( commandAge >= MAX_RELIABLE_COMMANDS ) {
+	if ( commandAge >= CL_ReliableCommandLimit() ) {
 		// when a demo record was started after the client got a whole bunch of
 		// reliable commands then the client never got those first reliable commands
 		if ( clc.demoplaying ) {
@@ -1508,7 +1649,7 @@ static qboolean CL_GetServerCommand( int serverCommandNumber ) {
 		return qfalse;
 	}
 
-	index = serverCommandNumber & ( MAX_RELIABLE_COMMANDS - 1 );
+	index = serverCommandNumber & ( CL_ReliableCommandLimit() - 1 );
 	s = clc.serverCommands[ index ];
 	clc.lastExecutedServerCommand = serverCommandNumber;
 
@@ -1707,6 +1848,12 @@ private:
 #undef VMA
 #define VMA(x) VmArgPtr( VM_ArgPtr( args[x] ) )
 
+#include "client_render_compat.hpp"
+#include "client_rtcw_render_compat.hpp"
+#include "client_rtcw_audio_compat.hpp"
+#include "client_rtcw_cinematic_compat.hpp"
+#include "client_rtcw_sound_name.hpp"
+
 static intptr_t CL_CGameTrapForProfile( intptr_t trap ) {
 	if ( !Com_GameIsQuake3() ) {
 		return trap;
@@ -1788,8 +1935,226 @@ CL_CgameSystemCalls
 The cgame module is making a system call
 ====================
 */
+/* Only calls with matching argument contracts enter shared handlers. State
+ * records are marshalled below; other subsystems need dedicated RTCW adapters.
+ */
+static void CL_RTCWCMTrace( fntech3_rtcw_trace_t *destination,
+	const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
+	clipHandle_t model, int brushmask, const vec3_t origin, const vec3_t angles,
+	qboolean capsule, qboolean transformed ) {
+	if ( !destination || !start || !end || ( transformed && ( !origin || !angles ) ) ) {
+		Com_Error( ERR_DROP, "Invalid RTCW collision trace arguments" );
+	}
+	trace_t result{};
+	if ( transformed ) {
+		CM_TransformedBoxTrace( &result, start, end, mins, maxs, model, brushmask,
+			origin, angles, capsule );
+	} else {
+		CM_BoxTrace( &result, start, end, mins, maxs, model, brushmask, capsule );
+	}
+	if ( !fntech3::rtcw::state::FromInternal( result, *destination ) ) {
+		Com_Error( ERR_DROP, "Invalid RTCW collision trace result" );
+	}
+}
+
+static intptr_t CL_RTCWCgameSharedCall( fntech3::rtcw::module::Call call ) {
+	using fntech3::rtcw::module::Call;
+	switch ( call ) {
+#define RTCW_SHARED_CALL(name) case Call::name: return name;
+	RTCW_SHARED_CALL(CG_PRINT)
+	RTCW_SHARED_CALL(CG_ERROR)
+	RTCW_SHARED_CALL(CG_MILLISECONDS)
+	RTCW_SHARED_CALL(CG_CVAR_SET)
+	RTCW_SHARED_CALL(CG_CVAR_VARIABLESTRINGBUFFER)
+	RTCW_SHARED_CALL(CG_ARGC)
+	RTCW_SHARED_CALL(CG_ARGV)
+	RTCW_SHARED_CALL(CG_ARGS)
+	RTCW_SHARED_CALL(CG_FS_FOPENFILE)
+	RTCW_SHARED_CALL(CG_FS_READ)
+	RTCW_SHARED_CALL(CG_FS_WRITE)
+	RTCW_SHARED_CALL(CG_FS_FCLOSEFILE)
+	RTCW_SHARED_CALL(CG_SENDCONSOLECOMMAND)
+	RTCW_SHARED_CALL(CG_ADDCOMMAND)
+	RTCW_SHARED_CALL(CG_REMOVECOMMAND)
+	RTCW_SHARED_CALL(CG_SENDCLIENTCOMMAND)
+	RTCW_SHARED_CALL(CG_UPDATESCREEN)
+	RTCW_SHARED_CALL(CG_CM_LOADMAP)
+	RTCW_SHARED_CALL(CG_CM_NUMINLINEMODELS)
+	RTCW_SHARED_CALL(CG_CM_INLINEMODEL)
+	RTCW_SHARED_CALL(CG_CM_TEMPBOXMODEL)
+	RTCW_SHARED_CALL(CG_CM_TEMPCAPSULEMODEL)
+	RTCW_SHARED_CALL(CG_CM_POINTCONTENTS)
+	RTCW_SHARED_CALL(CG_CM_TRANSFORMEDPOINTCONTENTS)
+	RTCW_SHARED_CALL(CG_GETCURRENTSNAPSHOTNUMBER)
+	RTCW_SHARED_CALL(CG_GETSERVERCOMMAND)
+	RTCW_SHARED_CALL(CG_GETCURRENTCMDNUMBER)
+	RTCW_SHARED_CALL(CG_MEMORY_REMAINING)
+	RTCW_SHARED_CALL(CG_SNAPVECTOR)
+	RTCW_SHARED_CALL(CG_FLOOR)
+	RTCW_SHARED_CALL(CG_CEIL)
+	RTCW_SHARED_CALL(CG_ACOS)
+	RTCW_SHARED_CALL(CG_PC_ADD_GLOBAL_DEFINE)
+	RTCW_SHARED_CALL(CG_PC_LOAD_SOURCE)
+	RTCW_SHARED_CALL(CG_PC_FREE_SOURCE)
+#undef RTCW_SHARED_CALL
+	case Call::CG_MEMSET: return TRAP_MEMSET;
+	case Call::CG_MEMCPY: return TRAP_MEMCPY;
+	case Call::CG_STRNCPY: return TRAP_STRNCPY;
+	case Call::CG_SIN: return TRAP_SIN;
+	case Call::CG_COS: return TRAP_COS;
+	case Call::CG_ATAN2: return TRAP_ATAN2;
+	case Call::CG_SQRT: return TRAP_SQRT;
+	default: return -1;
+	}
+}
+
 static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
-	switch( CL_CGameTrapForProfile( args[0] ) ) {
+	intptr_t operation = CL_CGameTrapForProfile( args[0] );
+	if ( Com_GameIsRTCW() ) {
+		using namespace fntech3::rtcw::module;
+		const auto call = Lookup( Com_GameProfile()->id, Module::CGAME, Direction::IMPORT, args[0] );
+		intptr_t rendererResult;
+		if ( CL_RTCWRenderCall( cgvm, call, args, rendererResult ) ) return rendererResult;
+		if ( CL_RTCWAudioCall( cgvm, call, args ) ) return 0;
+		if ( CL_RTCWCinematicCall( cgvm, call, args, rendererResult ) ) return rendererResult;
+		switch ( call ) {
+		case Call::CG_S_REGISTERSOUND:
+			// RTCW's cgame supplies only the name, like its UI. Never read a
+			// nonexistent Quake compression argument from the module's array.
+			return CL_RegisterRTCWSound( cgvm, args[1] );
+		case Call::CG_TRANSLATE_STRING:
+			CL_RTCWTranslateString( cgvm, args[1], args[2] );
+			return 0;
+		case Call::CG_LIMBOCHAT:
+			CL_RTCWLimboChat( cgvm, args[1] );
+			return 0;
+		case Call::CG_CM_BOXTRACE:
+		case Call::CG_CM_CAPSULETRACE:
+		case Call::CG_CM_TRANSFORMEDBOXTRACE:
+		case Call::CG_CM_TRANSFORMEDCAPSULETRACE: {
+			const qboolean transformed = call == Call::CG_CM_TRANSFORMEDBOXTRACE ||
+				call == Call::CG_CM_TRANSFORMEDCAPSULETRACE ? qtrue : qfalse;
+			const qboolean capsule = call == Call::CG_CM_CAPSULETRACE ||
+				call == Call::CG_CM_TRANSFORMEDCAPSULETRACE ? qtrue : qfalse;
+			VM_CHECKBOUNDS( cgvm, args[1], sizeof( fntech3_rtcw_trace_t ) );
+			const float *origin = nullptr, *angles = nullptr;
+			for ( int index = 2; index <= 5; ++index ) {
+				if ( args[index] ) VM_CHECKBOUNDS( cgvm, args[index], sizeof( vec3_t ) );
+			}
+			if ( transformed ) {
+				VM_CHECKBOUNDS( cgvm, args[8], sizeof( vec3_t ) );
+				VM_CHECKBOUNDS( cgvm, args[9], sizeof( vec3_t ) );
+				origin = VMA(8); angles = VMA(9);
+			}
+			CL_RTCWCMTrace( VMA(1), VMA(2), VMA(3), VMA(4), VMA(5), args[6], args[7],
+				origin, angles, capsule, transformed );
+			return 0;
+		}
+		case Call::CG_INGAME_POPUP:
+			CL_RTCWPopup( VMA(1), qfalse );
+			return 0;
+		case Call::CG_SENDMOVESPEEDSTOGAME:
+			SV_RTCWSendMoveSpeeds( cgvm, args[1], args[2] );
+			return 0;
+		case Call::CG_GETMODELINFO:
+			return SV_RTCWGetModelInfo( cgvm, args[1], args[2], args[3] );
+		case Call::CG_INGAME_CLOSEPOPUP:
+			CL_RTCWPopup( VMA(1), qtrue );
+			return 0;
+		case Call::CG_KEY_ISDOWN:
+			return CL_RTCWKeyIsDown( args[1] );
+		case Call::CG_KEY_GETCATCHER:
+			return CL_RTCWGetKeyCatcher();
+		case Call::CG_KEY_SETCATCHER:
+			CL_RTCWSetKeyCatcher( args[1] );
+			return 0;
+		case Call::CG_KEY_GETKEY:
+			return CL_RTCWKeyForBinding( VMA(1) );
+		case Call::CG_KEY_SETBINDING:
+			CL_RTCWSetBinding( args[1], VMA(2) );
+			return 0;
+		case Call::CG_KEY_KEYNUMTOSTRINGBUF:
+		case Call::CG_KEY_GETBINDINGBUF:
+			VM_CHECKBOUNDS( cgvm, args[2], args[3] );
+			CL_RTCWKeyString( args[1], VMA(2), args[3], call == Call::CG_KEY_GETBINDINGBUF ? qtrue : qfalse );
+			return 0;
+		case Call::CG_REAL_TIME:
+			VM_CHECKBOUNDS( cgvm, args[1], sizeof( fntech3_rtcw_qtime_t ) );
+			return Com_RealTimeRTCW( VMA(1) );
+		case Call::CG_GETGLCONFIG:
+			VM_CHECKBOUNDS( cgvm, args[1], sizeof( fntech3_rtcw_glconfig_t ) );
+			CL_CopyRTCWGlconfig( VMA(1), &cls.glconfig );
+			return 0;
+		case Call::CG_PC_READ_TOKEN:
+			VM_CHECKBOUNDS( cgvm, args[2], sizeof( fntech3_rtcw_pc_token_t ) );
+			return CL_RTCWReadToken( args[1], VMA(2) );
+		case Call::CG_PC_SOURCE_FILE_AND_LINE:
+			VM_CHECKBOUNDS( cgvm, args[2], FNTECH3_RTCW_SOURCE_FILENAME_CHARS );
+			VM_CHECKBOUNDS( cgvm, args[3], sizeof( int32_t ) );
+			return CL_RTCWSourceFileAndLine( args[1], VMA(2), VMA(3) );
+		case Call::CG_R_REGISTERFONT:
+			VM_CHECKBOUNDS( cgvm, args[3], sizeof( fntech3_rtcw_fontInfo_t ) );
+			CL_RTCWRegisterFont( VMA(1), args[2], VMA(3) );
+			return 0;
+		case Call::CG_CVAR_REGISTER:
+			VM_CHECKBOUNDS( cgvm, args[1], sizeof( fntech3_rtcw_vmCvar_t ) );
+			Cvar_RegisterRTCW( VMA(1), VMA(2), VMA(3), args[4], cgvm->privateFlag );
+			return 0;
+		case Call::CG_CVAR_UPDATE:
+			VM_CHECKBOUNDS( cgvm, args[1], sizeof( fntech3_rtcw_vmCvar_t ) );
+			Cvar_UpdateRTCW( VMA(1), cgvm->privateFlag );
+			return 0;
+		case Call::CG_SETUSERCMDVALUE:
+			CL_SetRTCWUserCmdValue( args[1], args[2], VMF(3), args[4],
+				Com_GameIsRTCWSP() ? 0 : args[5] );
+			return 0;
+		case Call::CG_SETCLIENTLERPORIGIN: {
+			// MP passes three float words, not a VM pointer. Validate integer
+			// encodings before committing all three coordinates together.
+			std::uint32_t bits[3];
+			for ( int i = 0; i < 3; ++i ) {
+				bits[i] = static_cast<std::uint32_t>( args[i + 1] );
+				if ( ( bits[i] & 0x7f800000u ) == 0x7f800000u )
+					Com_Error( ERR_DROP, "Invalid RTCW interpolated client origin" );
+			}
+			std::memcpy( cl.cgameRTCWLerpOrigin, bits, sizeof( bits ) );
+			return 0;
+		}
+		case Call::CG_GETGAMESTATE: {
+			VM_CHECKBOUNDS( cgvm, args[1], sizeof( fntech3_rtcw_gameState_t ) );
+			fntech3_rtcw_gameState_t *destination = VMA(1);
+			if ( !destination || !fntech3::rtcw::state::FromInternal( cl.gameState, *destination ) ) {
+				Com_Error( ERR_DROP, "Invalid RTCW gamestate module transfer" );
+			}
+			return 0;
+		}
+		case Call::CG_GETSNAPSHOT:
+			if ( Com_GameIsRTCWSP() ) {
+				VM_CHECKBOUNDS( cgvm, args[2], sizeof( fntech3_rtcw_sp_snapshot_t ) );
+				return CL_GetRTCWSnapshot<fntech3_rtcw_sp_snapshot_t>( args[1], VMA(2) );
+			}
+			VM_CHECKBOUNDS( cgvm, args[2], sizeof( fntech3_rtcw_mp_snapshot_t ) );
+			return CL_GetRTCWSnapshot<fntech3_rtcw_mp_snapshot_t>( args[1], VMA(2) );
+		case Call::CG_GETUSERCMD:
+			if ( Com_GameIsRTCWSP() ) {
+				VM_CHECKBOUNDS( cgvm, args[2], sizeof( fntech3_rtcw_sp_usercmd_t ) );
+				return CL_GetRTCWUserCmd<fntech3_rtcw_sp_usercmd_t>( args[1], VMA(2) );
+			}
+			VM_CHECKBOUNDS( cgvm, args[2], sizeof( fntech3_rtcw_mp_usercmd_t ) );
+			return CL_GetRTCWUserCmd<fntech3_rtcw_mp_usercmd_t>( args[1], VMA(2) );
+		default:
+			operation = CL_RTCWCgameSharedCall( call );
+			if ( operation < 0 ) {
+				const auto *descriptor = Describe( call );
+				Com_Error( ERR_DROP, "Unsupported %s cgame import %ld (%s)",
+					Com_GameProfile()->key, static_cast<long>( args[0] ),
+					descriptor ? descriptor->name : "unknown ordinal" );
+				return 0;
+			}
+			break;
+		}
+	}
+	switch( operation ) {
 	case CG_PRINT:
 		Com_Printf( "%s", VMA(1).String() );
 		return 0;
@@ -1962,8 +2327,11 @@ static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		re.ClearScene();
 		return 0;
 	case CG_R_ADDREFENTITYTOSCENE:
-		CL_AddEnemyHighlightRefEntity( VMA(1), qfalse );
+	case CG_R_ADDREFENTITYTOSCENE2: {
+		const refEntity_t entity = CL_ModuleRefEntity( cgvm, args[1] );
+		CL_AddEnemyHighlightRefEntity( &entity, operation == CG_R_ADDREFENTITYTOSCENE2 ? qtrue : qfalse );
 		return 0;
+	}
 	case CG_R_ADDPOLYTOSCENE:
 		re.AddPolyToScene( args[1], args[2], VMA(3), 1 );
 		return 0;
@@ -1979,7 +2347,8 @@ static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		re.AddAdditiveLightToScene( VMA(1), VMF(2), VMF(3), VMF(4), VMF(5) );
 		return 0;
 	case CG_R_RENDERSCENE: {
-		const refdef_t *refdef = VMA(1);
+		const refdef_t moduleRefdef = CL_ModuleRefdef( cgvm, args[1] );
+		const refdef_t *refdef = &moduleRefdef;
 		refdef_t adjustedRefdef;
 
 		/* Cgame uses separate RDF_NOWORLDMODEL scenes for 3D HUD models.  A
@@ -2194,11 +2563,6 @@ static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 
 	case CG_R_INPVS:
 		return re.inPVS( VMA(1), VMA(2) );
-
-	// engine extensions
-	case CG_R_ADDREFENTITYTOSCENE2:
-		CL_AddEnemyHighlightRefEntity( VMA(1), qtrue );
-		return 0;
 
 	case CG_R_ADDLINEARLIGHTTOSCENE:
 		re.AddLinearLightToScene( VMA(1), VMA(2), VMF(3), VMF(4), VMF(5), VMF(6) );
@@ -2937,6 +3301,9 @@ CL_InitCGame
 Should only be called by CL_StartHunkUsers
 ====================
 */
+static int cl_cgameLoadFinished;
+static int cl_cgameLoadDuration;
+
 void CL_InitCGame( void ) {
 	const char			*info;
 	const char			*mapname;
@@ -2989,14 +3356,6 @@ void CL_InitCGame( void ) {
 	if ( !clc.demoplaying && !cl_connectedToCheatServer )
 		Cvar_SetCheatState();
 
-	// we will send a usercmd this frame, which
-	// will cause the server to send us the first snapshot
-	cls.state = CA_PRIMED;
-
-	t2 = Sys_Milliseconds();
-
-	Com_Printf( "CL_InitCGame: %5.2f seconds\n", (t2-t1)/1000.0 );
-
 	// have the renderer touch all its images, so they are present
 	// on the card even if the driver does deferred loading
 	re.EndRegistration();
@@ -3005,6 +3364,15 @@ void CL_InitCGame( void ) {
 	if (!Sys_LowPhysicalMemory()) {
 		Com_TouchMemory();
 	}
+
+	// Asset registration includes deferred renderer work and page-in. Stay
+	// CA_LOADING until it is finished so "awaiting snapshot" describes only
+	// the network handoff, and include these costs in the reported load time.
+	t2 = Sys_Milliseconds();
+	cl_cgameLoadFinished = t2;
+	cl_cgameLoadDuration = t2 - t1;
+	Com_Printf( "CL_InitCGame: %5.2f seconds\n", cl_cgameLoadDuration / 1000.0 );
+	cls.state = CA_PRIMED;
 
 	// clear anything that got printed
 	Con_ClearNotify ();
@@ -3133,6 +3501,8 @@ static void CL_FirstSnapshot( void ) {
 		return;
 	}
 	cls.state = CA_ACTIVE;
+	Com_Printf( "CL_FirstSnapshot: %s, cgame %d ms, snapshot wait %d ms\n",
+		cl.mapname, cl_cgameLoadDuration, Sys_Milliseconds() - cl_cgameLoadFinished );
 
 	// clear old game so we will not switch back to old mod on disconnect
 	CL_ResetOldGame();

@@ -237,7 +237,8 @@ class SharedImageLoaderTests(unittest.TestCase):
         decompress = body(source, "static uint32_t DecompressIDATs", "the Paeth predictor")
         self.assertIn("uint32_t ExpectedDataLength", decompress)
         self.assertIn("DecompressedData = ri.Malloc((int)ExpectedDataLength);", decompress)
-        self.assertIn("puffDestLen != ExpectedDataLength", decompress)
+        self.assertIn("inflatedLength != ExpectedDataLength", decompress)
+        self.assertIn("inflateResult != Z_OK", decompress)
         self.assertNotIn("puff(NULL", decompress)
         self.assertIn("ChunkHeaderLength > 256 * 3", source)
 

@@ -32,7 +32,10 @@ static vm_t structured{&legacy};
 static vm_t *uivm;
 static int catcher, vmCalls, vmResult, translationCalls, observedFlags;
 static bool q3;
+static bool rtcw;
+enum { FNTECH3_RTCW_UI_API_VERSION = 4 };
 static bool Com_GameIsQuake3() { return q3; }
+static bool Com_GameIsRTCW() { return rtcw; }
 static int Key_GetCatcher() { return catcher; }
 static int VM_Call(vm_t *vm, int count, int ordinal) {
     assert(vm == &structured && count == 0 && ordinal == UI_MENUS_ANY_VISIBLE);
@@ -86,6 +89,16 @@ int main() {
     }
     assert(std::strstr(CL_UIModuleLoadFailureMessage(), "Quake Live"));
     assert(std::strstr(CL_UIModuleLoadFailureMessage(), "fnTech3"));
+
+    rtcw = true;
+    for (int version = -1; version <= 10; ++version) {
+        assert(CL_UIApiVersionSupported(version, false) == (version == 4));
+        assert(!CL_UIApiVersionSupported(version, true));
+    }
+    assert(std::strstr(CL_UIModuleLoadFailureMessage(), "RTCW"));
+    assert(std::strstr(CL_UIModuleLoadFailureMessage(), "SP/MP"));
+    assert(!std::strstr(CL_UIModuleLoadFailureMessage(), "Quake Live"));
+    rtcw = false;
 
     char buffer[4]{};
     intptr_t args[] = {0, 0x2000, reinterpret_cast<intptr_t>(buffer), sizeof(buffer)};

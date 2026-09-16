@@ -32,6 +32,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <algorithm>
 
 #include "../qcommon/q_shared.h"
+#include "../qcommon/game_profile.h"
 #include "l_utils.h"
 #include "l_libvar.h"
 #include "l_memory.h"
@@ -176,7 +177,7 @@ struct bot_goalstate_t
 	float avoidgoaltimes[MAX_AVOIDGOALS];		//times to avoid the goals
 };
 
-static bot_goalstate_t *botgoalstates[MAX_CLIENTS + 1]; // FIXME: init?
+static bot_goalstate_t *botgoalstates[MAX_GAME_CLIENTS + 1];
 //item configuration
 static itemconfig_t *itemconfig = nullptr;
 //level items
@@ -201,7 +202,7 @@ static libvar_t *droppedweight = nullptr;
 //========================================================================
 bot_goalstate_t *BotGoalStateFromHandle(int handle)
 {
-	if (handle <= 0 || handle > MAX_CLIENTS)
+	if (handle <= 0 || handle > Com_GameProfile()->maxClients)
 	{
 		botimport.Print(PRT_FATAL, "goal state handle %d out of range\n", handle);
 		return nullptr;
@@ -1731,7 +1732,9 @@ void BotFreeItemWeights(int goalstate)
 	gs = BotGoalStateFromHandle(goalstate);
 	if (!gs) return;
 	if (gs->itemweightconfig) FreeWeightConfig(gs->itemweightconfig);
+	gs->itemweightconfig = nullptr;
 	if (gs->itemweightindex) FreeMemory(gs->itemweightindex);
+	gs->itemweightindex = nullptr;
 } //end of the function BotFreeItemWeights
 //===========================================================================
 //
@@ -1743,7 +1746,7 @@ int BotAllocGoalState(int client)
 {
 	int i;
 
-	for (i = 1; i <= MAX_CLIENTS; i++)
+	for (i = 1; i <= Com_GameProfile()->maxClients; i++)
 	{
 		if (!botgoalstates[i])
 		{
@@ -1762,7 +1765,7 @@ int BotAllocGoalState(int client)
 //========================================================================
 void BotFreeGoalState(int handle)
 {
-	if (handle <= 0 || handle > MAX_CLIENTS)
+	if (handle <= 0 || handle > Com_GameProfile()->maxClients)
 	{
 		botimport.Print(PRT_FATAL, "goal state handle %d out of range\n", handle);
 		return;
@@ -1822,7 +1825,7 @@ void BotShutdownGoalAI(void)
 
 	BotFreeInfoEntities();
 
-	for (i = 1; i <= MAX_CLIENTS; i++)
+	for (i = 1; i <= Com_GameProfile()->maxClients; i++)
 	{
 		if (botgoalstates[i])
 		{

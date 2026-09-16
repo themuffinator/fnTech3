@@ -838,7 +838,10 @@ class CGameNativeBridgeSourceTests(unittest.TestCase):
         self.assertIn("world_.StartSound( entnum, entchannel, sfxHandle, sample, origin, volume );", openal_backend)
         self.assertIn("float volumeScale = 1.0f;", openal_world)
         self.assertIn("voice->volumeScale = ClampFloat( volume, 0.0f, 2.0f );", openal_world)
-        self.assertIn("gain = ClampFloat( gain * gainScale * horizonGain * voice.volumeScale, 0.0f, 2.0f );", openal_world)
+        self.assertIn("gain = ClampFloat( gain * gainScale * horizonGain * voice.volumeScale, 0.0f,", openal_world)
+        # Executable gain/routing coverage lives in rtcw_music_tests; preserve
+        # the Q3/QL bound while allowing SP's amplified loop-channel contract.
+        self.assertIn("voice.rtcwLoop && Com_GameIsRTCWSP() ? 255.0f / 127.0f : 2.0f );", openal_world)
         self.assertIn("S_StartSoundVolume( origin, entityNum, entchannel, sfx, volume );", cl_cgame)
         self.assertIn("S_StartLocalSoundVolume( sfx, channelNum, volume );", cl_cgame)
 

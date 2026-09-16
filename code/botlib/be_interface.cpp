@@ -30,6 +30,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *****************************************************************************/
 
 #include "../qcommon/q_shared.h"
+#include "../qcommon/game_profile.h"
 #include "l_memory.h"
 #include "l_log.h"
 #include "l_libvar.h"
@@ -62,6 +63,25 @@ int botDeveloper;
 //qtrue if the library is setup
 int botlibsetup = qfalse;
 
+enum class BotLibPhase { Inactive, Initializing, Ready, Stopping };
+static BotLibPhase botlibPhase = BotLibPhase::Inactive;
+static unsigned botlibStarted;
+static constexpr unsigned BOTLIB_STAGE_AAS = 1u << 8;
+static constexpr unsigned BOTLIB_STAGE_ACTIONS = 1u << 9;
+static int Export_BotLibShutdown();
+
+static bool BotLibStorageCount( const char *name, const char *fallback, int maximum, int &result ) {
+	const float value = LibVarValue( name, fallback );
+	uint32_t bits;
+	memcpy( &bits, &value, sizeof( bits ) );
+	if ( ( bits & 0x7f800000u ) == 0x7f800000u || value < 1.0f || value >= maximum + 1.0f ) {
+		botimport.Print( PRT_ERROR, "Invalid bot library %s: expected a count from 1 to %d\n", name, maximum );
+		return false;
+	}
+	result = static_cast<int>( value );
+	return true;
+}
+
 static constexpr float RETAIL_BOT_DEBUG_AREA_REFRESH = 0.1f;
 static constexpr int RETAIL_BOT_DEBUG_AREA_RADIUS = 512;
 
@@ -89,9 +109,9 @@ int Sys_MilliSeconds(void)
 //===========================================================================
 static qboolean ValidEntityNumber(int num, const char *str)
 {
-	if ( num < 0 || num > botlibglobals.maxentities )
+	if ( num < 0 || num >= botlibglobals.maxentities )
 	{
-		botimport.Print(PRT_ERROR, "%s: invalid entity number %d, [0, %d]\n",
+		botimport.Print(PRT_ERROR, "%s: invalid entity number %d, [0, %d)\n",
 										str, num, botlibglobals.maxentities);
 		return qfalse;
 	} //end if
@@ -121,39 +141,50 @@ static qboolean BotLibSetup(const char *str)
 //===========================================================================
 static int Export_BotLibSetup( void )
 {
-	int		errnum;
-	
-	botDeveloper = LibVarGetValue( "bot_developer" );
+	if ( botlibPhase == BotLibPhase::Ready ) return BLERR_NOERROR;
+	if ( botlibPhase != BotLibPhase::Inactive ) return BLERR_LIBRARYNOTSETUP;
+	botlibPhase = BotLibPhase::Initializing;
+	botlibStarted = 0;
 	botlibglobals = {};
+	botlibsetup = qfalse;
+	botDeveloper = LibVarGetValue( "bot_developer" ) >= 1.0f;
 
-	// initialize byte swapping (litte endian etc.)
-	// Swap_Init();
-
-	if ( botDeveloper )
+	if ( botDeveloper || Com_GameIsRTCW() )
 	{
 		Log_Open( "botlib.log" );
 	}
 
 	botimport.Print( PRT_MESSAGE, "------- BotLib Initialization -------\n" );
 
-	botlibglobals.maxclients = (int) LibVarValue( "maxclients", "64" );
-	botlibglobals.maxentities = (int) LibVarValue( "maxentities", "1024" );
-
-	errnum = AAS_Setup();			//be_aas_main.c
-	if (errnum != BLERR_NOERROR) return errnum;
-	errnum = EA_Setup();			//be_ea.c
-	if (errnum != BLERR_NOERROR) return errnum;
-	errnum = BotSetupWeaponAI();	//be_ai_weap.c
-	if (errnum != BLERR_NOERROR)return errnum;
-	errnum = BotSetupGoalAI();		//be_ai_goal.c
-	if (errnum != BLERR_NOERROR) return errnum;
-	errnum = BotSetupChatAI();		//be_ai_chat.c
-	if (errnum != BLERR_NOERROR) return errnum;
-	errnum = BotSetupMoveAI();		//be_ai_move.c
-	if (errnum != BLERR_NOERROR) return errnum;
+	const auto &policy = Com_GameProfile()->bots;
+	if ( !BotLibStorageCount( "maxclients", policy.clients, MAX_GAME_CLIENTS, botlibglobals.maxclients )
+		|| !BotLibStorageCount( "maxentities", policy.entities, policy.maxEntities, botlibglobals.maxentities ) ) {
+		Export_BotLibShutdown();
+		return BLERR_LIBRARYNOTSETUP;
+	}
+	// Record attempts before calling out: failures and engine errors must be
+	// able to unwind partially allocated subsystems during initialization.
+	struct Stage { unsigned flag; int (*initialize)(); };
+	const Stage stages[] = {
+		{ BOTLIB_STAGE_AAS, AAS_Setup }, { BOTLIB_STAGE_ACTIONS, EA_Setup },
+		{ COM_BOT_AI_WEAPONS, BotSetupWeaponAI }, { COM_BOT_AI_GOALS, BotSetupGoalAI },
+		{ COM_BOT_AI_CHAT, BotSetupChatAI }, { COM_BOT_AI_MOVEMENT, BotSetupMoveAI }
+	};
+	const unsigned enabled = policy.aiSystems | BOTLIB_STAGE_AAS | BOTLIB_STAGE_ACTIONS;
+	for ( const auto &stage : stages ) {
+		if ( !( enabled & stage.flag ) ) continue;
+		botlibStarted |= stage.flag;
+		const int error = stage.initialize();
+		if ( error != BLERR_NOERROR ) {
+			Export_BotLibShutdown();
+			return error;
+		}
+		if ( botlibPhase != BotLibPhase::Initializing ) return BLERR_LIBRARYNOTSETUP;
+	}
 
 	botlibsetup = qtrue;
 	botlibglobals.botlibsetup = qtrue;
+	botlibPhase = BotLibPhase::Ready;
 
 	return BLERR_NOERROR;
 } //end of the function Export_BotLibSetup
@@ -165,22 +196,27 @@ static int Export_BotLibSetup( void )
 //===========================================================================
 static int Export_BotLibShutdown(void)
 {
-	if ( !botlibglobals.botlibsetup )
-		return BLERR_LIBRARYNOTSETUP;
+	if ( botlibPhase == BotLibPhase::Stopping ) return BLERR_NOERROR;
+	if ( botlibPhase == BotLibPhase::Inactive ) return BLERR_LIBRARYNOTSETUP;
+	botlibPhase = BotLibPhase::Stopping;
+	botlibsetup = qfalse;
+	botlibglobals.botlibsetup = qfalse;
 #ifndef DEMO
 	//DumpFileCRCs();
 #endif //DEMO
 	//
-	BotShutdownChatAI();		//be_ai_chat.c
-	BotShutdownMoveAI();		//be_ai_move.c
-	BotShutdownGoalAI();		//be_ai_goal.c
-	BotShutdownWeaponAI();		//be_ai_weap.c
+	// State handles may also have been allocated through individual AI imports.
+	// These shutdown functions accept empty/partial state independently of setup.
+	BotShutdownChatAI();
+	BotShutdownMoveAI();
+	BotShutdownGoalAI();
+	BotShutdownWeaponAI();
 	BotShutdownWeights();		//be_ai_weight.c
 	BotShutdownCharacters();	//be_ai_char.c
 	//shut down AAS
-	AAS_Shutdown();
+	if ( botlibStarted & BOTLIB_STAGE_AAS ) AAS_Shutdown();
 	//shut down bot elementary actions
-	EA_Shutdown();
+	if ( botlibStarted & BOTLIB_STAGE_ACTIONS ) EA_Shutdown();
 	//free all libvars
 	LibVarDeAllocAll();
 	//remove all global defines from the pre compiler
@@ -194,10 +230,12 @@ static int Export_BotLibShutdown(void)
 	//shut down library log file
 	Log_Shutdown();
 	//
-	botlibsetup = qfalse;
-	botlibglobals.botlibsetup = qfalse;
+	botlibglobals = {};
+	botlibStarted = 0;
+	botDeveloper = 0;
 	// print any files still open
 	PC_CheckOpenSourceHandles();
+	botlibPhase = BotLibPhase::Inactive;
 	//
 	return BLERR_NOERROR;
 } //end of the function Export_BotLibShutdown
@@ -257,7 +295,7 @@ static int Export_BotLibLoadMap(const char *mapname)
 	errnum = AAS_LoadMap(mapname);
 	if (errnum != BLERR_NOERROR) return errnum;
 	//initialize the items in the level
-	BotInitLevelItems();		//be_ai_goal.h
+	if ( Com_GameProfile()->bots.aiSystems & COM_BOT_AI_GOALS ) BotInitLevelItems();
 	BotSetBrushModelTypes();	//be_ai_move.h
 	//
 	botimport.Print(PRT_MESSAGE, "-------------------------------------\n");

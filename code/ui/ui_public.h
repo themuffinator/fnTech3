@@ -281,8 +281,29 @@ typedef enum {
 	UIMENU_NEED_CD,
 	UIMENU_BAD_CD_KEY,
 	UIMENU_TEAM,
-	UIMENU_POSTGAME
+	UIMENU_POSTGAME,
+	// Engine menu vocabulary; legacy Q3/QL values above stay unchanged.
+	UIMENU_ENDGAME,
+	UIMENU_PREGAME,
+	UIMENU_NOTEBOOK,
+	UIMENU_CLIPBOARD,
+	UIMENU_HELP,
+	UIMENU_BOOK1,
+	UIMENU_BOOK2,
+	UIMENU_BOOK3,
+	UIMENU_WM_PICKTEAM,
+	UIMENU_WM_PICKPLAYER,
+	UIMENU_WM_QUICKMESSAGE,
+	UIMENU_WM_QUICKMESSAGEALT,
+	UIMENU_WM_LIMBO,
+	UIMENU_WM_AUTOUPDATE,
+	UIMENU_BRIEFING,
+	UIMENU_COUNT
 } uiMenuCommand_t;
+
+// Engine-only request, translated at the RTCW boundary. Do not insert it in
+// the legacy/structured export lists: RTCW's real export number is 8.
+enum { UI_GET_ACTIVE_MENU = 0x10000 };
 
 #define SORT_HOST			0
 #define SORT_MAP			1

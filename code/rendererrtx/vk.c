@@ -5619,6 +5619,9 @@ static qboolean vk_rt_append_md3_entity_geometry( rtxRtCpuGeometry_t *geometry, 
 	return qtrue;
 }
 
+#include "../renderercommon/tr_mdc_ray_geometry.h"
+#include "../renderercommon/tr_mds_ray_geometry.h"
+
 static void vk_rt_iqm_matrix34_multiply( const float *a, const float *b, float *out )
 {
 	out[ 0] = a[0] * b[0] + a[1] * b[4] + a[ 2] * b[ 8];
@@ -6034,6 +6037,16 @@ static qboolean vk_rt_append_dynamic_model_entity_geometry( rtxRtCpuGeometry_t *
 	}
 
 	switch ( model->type ) {
+	case MOD_MDS:
+		if ( !vk_rt_append_mds_entity_geometry( geometry, ent ) ) return qfalse;
+		counted = qtrue;
+		break;
+	case MOD_MDC:
+		if ( !vk_rt_append_mdc_entity_geometry( geometry, ent ) ) {
+			return qfalse;
+		}
+		counted = qtrue;
+		break;
 	case MOD_MESH:
 		if ( !vk_rt_append_md3_entity_geometry( geometry, ent ) ) {
 			return qfalse;
@@ -13995,7 +14008,7 @@ static void vk_alloc_persistent_pipelines( void )
 					def.state_bits = dlight_state;
 #ifdef USE_LEGACY_DLIGHTS
 #ifdef USE_PMLIGHT
-					vk.dlight_pipelines[ i ][ j ][ k ] = vk_find_pipeline_ext( 0, &def, r_dlightMode->integer == 0 ? qtrue : qfalse );
+					vk.dlight_pipelines[ i ][ j ][ k ] = vk_find_pipeline_ext( 0, &def, R_GetDlightMode() == 0 ? qtrue : qfalse );
 #else
 					vk.dlight_pipelines[ i ][ j ][ k ] = vk_find_pipeline_ext( 0, &def, qtrue );
 #endif
@@ -14009,7 +14022,7 @@ static void vk_alloc_persistent_pipelines( void )
 		def.depth_fade =
 			( ( ( ( r_dlightShadows && r_dlightShadows->integer ) ||
 					( r_shadowCorrectness && r_shadowCorrectness->integer ) ) &&
-				r_dlightMode && r_dlightMode->integer &&
+				r_dlightMode && R_GetDlightMode() &&
 				vk_dlight_shadow_atlas_available() ) ||
 			  ( !( r_shadowCorrectness && r_shadowCorrectness->integer ) &&
 				r_spotShadows && r_spotShadows->integer &&
@@ -14895,7 +14908,7 @@ static qboolean vk_dlight_shadow_atlas_layout( dlightShadowAtlasLayout_t *layout
 	if ( ( !correctnessMode &&
 		( !r_dlightShadows || !r_dlightShadows->integer ||
 		  !r_dlightShadowMaxLights || r_dlightShadowMaxLights->integer <= 0 ) ) ||
-		!r_dlightMode || !r_dlightMode->integer ||
+		!r_dlightMode || !R_GetDlightMode() ||
 		!vk_depth_format_sampled_supported() ) {
 		return qfalse;
 	}

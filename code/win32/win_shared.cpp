@@ -30,6 +30,7 @@ extern "C" {
 }
 #endif
 #include "win_raii.h"
+#include "win_utf8.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -113,9 +114,9 @@ Sys_DefaultHomePath
 const char *Sys_DefaultHomePath( void ) 
 {
 #ifdef USE_PROFILES
-	char szPath[MAX_PATH];
+	wchar_t szPath[MAX_PATH];
 	static char path[MAX_OSPATH];
-	using SHGetFolderPathAProc = HRESULT ( WINAPI * )( HWND, int, HANDLE, DWORD, LPSTR );
+	using SHGetFolderPathWProc = HRESULT ( WINAPI * )( HWND, int, HANDLE, DWORD, LPWSTR );
 	fnql::win::ScopedLibrary shfolder( LoadLibraryA( "shfolder.dll" ) );
 	
 	if ( !shfolder ) {
@@ -123,7 +124,7 @@ const char *Sys_DefaultHomePath( void )
 		return NULL;
 	}
 
-	const auto qSHGetFolderPath = reinterpret_cast<SHGetFolderPathAProc>( GetProcAddress( shfolder.get(), "SHGetFolderPathA" ) );
+	const auto qSHGetFolderPath = reinterpret_cast<SHGetFolderPathWProc>( GetProcAddress( shfolder.get(), "SHGetFolderPathW" ) );
 	if ( qSHGetFolderPath == nullptr )
 	{
 		Com_Printf("Unable to find SHGetFolderPath in SHFolder.dll\n");
@@ -136,9 +137,12 @@ const char *Sys_DefaultHomePath( void )
 		Com_Printf("Unable to detect CSIDL_APPDATA\n");
 		return NULL;
 	}
-	Q_strncpyz( path, szPath, sizeof(path) );
+	if ( !fntech3::win::ToUtf8( szPath, path ) ) return NULL;
+	if ( strlen( path ) + strlen( "\\Quake3" ) >= sizeof( path ) ) return NULL;
 	Q_strcat( path, sizeof(path), "\\Quake3" );
-	if( !CreateDirectoryA( path, NULL ) )
+	const fntech3::win::Path widePath( path );
+	if ( !widePath ) return NULL;
+	if( !CreateDirectoryW( widePath.c_str(), NULL ) )
 	{
 		if( GetLastError() != ERROR_ALREADY_EXISTS )
 		{
@@ -166,14 +170,18 @@ static qboolean Sys_RegularFileExists( const char *path )
 		return qfalse;
 	}
 
-	attributes = GetFileAttributesA( path );
+	const fntech3::win::Path widePath( path );
+	if ( !widePath ) return qfalse;
+	attributes = GetFileAttributesW( widePath.c_str() );
 	return ( attributes != INVALID_FILE_ATTRIBUTES && !( attributes & FILE_ATTRIBUTE_DIRECTORY ) ) ? qtrue : qfalse;
 }
 
 
 #define SYS_STEAM_PATH_SEPARATOR_CHAR '\\'
 #define SYS_STEAM_PATH_ALTERNATE_SEPARATOR_CHAR '/'
+#define SYS_STEAM_OPEN_FILE Sys_FOpen
 #include "../qcommon/steam_path_shared.h"
+#undef SYS_STEAM_OPEN_FILE
 #undef SYS_STEAM_PATH_SEPARATOR_CHAR
 #undef SYS_STEAM_PATH_ALTERNATE_SEPARATOR_CHAR
 
@@ -183,14 +191,16 @@ static qboolean Sys_QueryRegistryString( HKEY root, const char *keyPath, REGSAM 
 	fnql::win::ScopedRegistryKey key;
 	DWORD type;
 	DWORD dataSize;
-	char buffer[MAX_OSPATH];
+	wchar_t buffer[MAX_OSPATH] = {};
+	const fntech3::win::Path wideKey( keyPath ), wideValue( valueName );
+	if ( !wideKey || !wideValue || !out || outSize <= 0 ) return qfalse;
 
-	if ( RegOpenKeyExA( root, keyPath, 0, KEY_QUERY_VALUE | viewFlags, key.receive() ) != ERROR_SUCCESS ) {
+	if ( RegOpenKeyExW( root, wideKey.c_str(), 0, KEY_QUERY_VALUE | viewFlags, key.receive() ) != ERROR_SUCCESS ) {
 		return qfalse;
 	}
 
 	dataSize = sizeof( buffer );
-	if ( RegQueryValueExA( key.get(), valueName, NULL, &type, (LPBYTE)buffer, &dataSize ) != ERROR_SUCCESS ) {
+	if ( RegQueryValueExW( key.get(), wideValue.c_str(), NULL, &type, (LPBYTE)buffer, &dataSize ) != ERROR_SUCCESS ) {
 		return qfalse;
 	}
 
@@ -198,18 +208,20 @@ static qboolean Sys_QueryRegistryString( HKEY root, const char *keyPath, REGSAM 
 		return qfalse;
 	}
 
-	buffer[sizeof( buffer ) - 1] = '\0';
+	if ( dataSize % sizeof( wchar_t ) || dataSize > sizeof( buffer ) ) return qfalse;
+	if ( dataSize == sizeof( buffer ) && buffer[ARRAY_LEN( buffer ) - 1] ) return qfalse;
 	if ( type == REG_EXPAND_SZ ) {
-		char expanded[MAX_OSPATH];
+		wchar_t expanded[MAX_OSPATH];
 		DWORD expandedSize;
 
-		expandedSize = ExpandEnvironmentStringsA( buffer, expanded, sizeof( expanded ) );
-		if ( expandedSize > 0 && expandedSize < sizeof( expanded ) ) {
-			Q_strncpyz( buffer, expanded, sizeof( buffer ) );
-		}
+		expandedSize = ExpandEnvironmentStringsW( buffer, expanded, ARRAY_LEN( expanded ) );
+		if ( !expandedSize || expandedSize > ARRAY_LEN( expanded ) ) return qfalse;
+		memcpy( buffer, expanded, expandedSize * sizeof( wchar_t ) );
 	}
 
-	Q_strncpyz( out, buffer, outSize );
+	char utf8[MAX_OSPATH];
+	if ( !fntech3::win::ToUtf8( buffer, utf8 ) || strlen( utf8 ) >= (size_t)outSize ) return qfalse;
+	Q_strncpyz( out, utf8, outSize );
 	Sys_NormalizeSteamPath( out );
 	return out[0] ? qtrue : qfalse;
 }
@@ -264,21 +276,15 @@ static qboolean Sys_FindSteamRootFromRegistry( char *out, int outSize )
 
 static qboolean Sys_FindSteamRootFromKnownPaths( const comGameProfile_t *profile, char *out, int outSize )
 {
-	const char *programFilesX86;
-	const char *programFiles;
+	const wchar_t *variables[] = { L"ProgramFiles(x86)", L"ProgramFiles" };
 	char candidate[MAX_OSPATH];
 
-	programFilesX86 = getenv( "ProgramFiles(x86)" );
-	if ( programFilesX86 && programFilesX86[0] ) {
-		Sys_SteamJoinPath( candidate, sizeof( candidate ), programFilesX86, "Steam" );
-		if ( Sys_SteamAppPathFromRoot( profile, candidate, out, outSize ) ) {
-			return qtrue;
-		}
-	}
-
-	programFiles = getenv( "ProgramFiles" );
-	if ( programFiles && programFiles[0] ) {
-		Sys_SteamJoinPath( candidate, sizeof( candidate ), programFiles, "Steam" );
+	for ( const wchar_t *variable : variables ) {
+		wchar_t widePath[MAX_OSPATH];
+		char path[MAX_OSPATH];
+		const DWORD count = GetEnvironmentVariableW( variable, widePath, ARRAY_LEN( widePath ) );
+		if ( !count || count >= ARRAY_LEN( widePath ) || !fntech3::win::ToUtf8( widePath, path ) ) continue;
+		Sys_SteamJoinPath( candidate, sizeof( candidate ), path, "Steam" );
 		if ( Sys_SteamAppPathFromRoot( profile, candidate, out, outSize ) ) {
 			return qtrue;
 		}
@@ -290,7 +296,7 @@ static qboolean Sys_FindSteamRootFromKnownPaths( const comGameProfile_t *profile
 
 const char *Sys_SteamPath( comGameId_t game )
 {
-	static char steamPaths[2][MAX_OSPATH];
+	static char steamPaths[COM_GAME_COUNT][MAX_OSPATH];
 	const comGameProfile_t *profile = Com_GameProfileById( game );
 	char *steamPath;
 	char steamRoot[MAX_OSPATH];
@@ -298,7 +304,7 @@ const char *Sys_SteamPath( comGameId_t game )
 	if ( !profile ) {
 		return "";
 	}
-	steamPath = steamPaths[game == COM_GAME_QUAKE3 ? 0 : 1];
+	steamPath = steamPaths[profile->id];
 
 	if ( steamPath[0] ) {
 		return steamPath;

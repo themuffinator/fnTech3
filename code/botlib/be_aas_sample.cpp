@@ -61,7 +61,6 @@ struct aas_tracestack_t
 	int nodenum;		//node found after splitting with planenum
 };
 
-static int numaaslinks;
 
 //===========================================================================
 //
@@ -103,26 +102,29 @@ void AAS_InitAASLinkHeap(void)
 #ifdef BSPC
 		max_aaslinks = 6144;
 #else
-		max_aaslinks = (int) LibVarValue("max_aaslinks", "6144");
+		const float requested = LibVarValue("max_aaslinks", "6144");
+		// Decode only positive IEEE-754 values in [1, 2^20]. Integer checks
+		// and shifts avoid a speculative float-to-int conversion under
+		// fast-math, which can otherwise evaluate an invalid NaN conversion.
+		uint32_t bits;
+		static_assert(sizeof(bits) == sizeof(requested));
+		memcpy(&bits, &requested, sizeof(bits));
+		max_aaslinks = bits >= 0x3f800000u && bits <= 0x49800000u
+			? static_cast<int>(((bits & 0x007fffffu) | 0x00800000u) >> (150 - (bits >> 23))) : 6144;
 #endif
-		if (max_aaslinks < 0) max_aaslinks = 0;
-		aasworld.linkheapsize = max_aaslinks;
 		aasworld.linkheap = botlib::HunkAlloc<aas_link_t>(max_aaslinks);
+		aasworld.linkheapsize = max_aaslinks;
 	} //end if
 	//link the links on the heap
-	aasworld.linkheap[0].prev_ent = nullptr;
-	aasworld.linkheap[0].next_ent = &aasworld.linkheap[1];
-	for (i = 1; i < max_aaslinks-1; i++)
+	for (i = 0; i < max_aaslinks; i++)
 	{
-		aasworld.linkheap[i].prev_ent = &aasworld.linkheap[i - 1];
-		aasworld.linkheap[i].next_ent = &aasworld.linkheap[i + 1];
+		aasworld.linkheap[i].prev_ent = i ? &aasworld.linkheap[i - 1] : nullptr;
+		aasworld.linkheap[i].next_ent = i + 1 < max_aaslinks ? &aasworld.linkheap[i + 1] : nullptr;
 	} //end for
-	aasworld.linkheap[max_aaslinks-1].prev_ent = &aasworld.linkheap[max_aaslinks-2];
-	aasworld.linkheap[max_aaslinks-1].next_ent = nullptr;
 	//pointer to the first free link
 	aasworld.freelinks = &aasworld.linkheap[0];
 	//
-	numaaslinks = max_aaslinks;
+	aasworld.numaaslinks = max_aaslinks;
 } //end of the function AAS_InitAASLinkHeap
 //===========================================================================
 //
@@ -135,6 +137,8 @@ void AAS_FreeAASLinkHeap(void)
 	if (aasworld.linkheap) FreeMemory(aasworld.linkheap);
 	aasworld.linkheap = nullptr;
 	aasworld.linkheapsize = 0;
+	aasworld.freelinks = nullptr;
+	aasworld.numaaslinks = 0;
 } //end of the function AAS_FreeAASLinkHeap
 //===========================================================================
 //
@@ -159,7 +163,7 @@ aas_link_t *AAS_AllocAASLink(void)
 	} //end if
 	if (aasworld.freelinks) aasworld.freelinks = aasworld.freelinks->next_ent;
 	if (aasworld.freelinks) aasworld.freelinks->prev_ent = nullptr;
-	numaaslinks--;
+	aasworld.numaaslinks--;
 	return link;
 } //end of the function AAS_AllocAASLink
 //===========================================================================
@@ -176,7 +180,7 @@ static void AAS_DeAllocAASLink(aas_link_t *link)
 	link->prev_area = nullptr;
 	link->next_area = nullptr;
 	aasworld.freelinks = link;
-	numaaslinks++;
+	aasworld.numaaslinks++;
 } //end of the function AAS_DeAllocAASLink
 //===========================================================================
 //
@@ -188,6 +192,7 @@ void AAS_InitAASLinkedEntities(void)
 {
 	if (!aasworld.loaded) return;
 	if (aasworld.arealinkedentities) FreeMemory(aasworld.arealinkedentities);
+	aasworld.arealinkedentities = nullptr;
 	aasworld.arealinkedentities = botlib::ClearedHunkAlloc<aas_link_t *>(aasworld.numareas);
 } //end of the function AAS_InitAASLinkedEntities
 //===========================================================================
@@ -711,6 +716,7 @@ int AAS_TraceAreas(vec3_t start, vec3_t end, int *areas, vec3_t *points, int max
 	aas_plane_t *plane;
 
 	numareas = 0;
+	if (maxareas <= 0) return numareas;
 	areas[0] = 0;
 	if (!aasworld.loaded) return numareas;
 
@@ -725,14 +731,14 @@ int AAS_TraceAreas(vec3_t start, vec3_t end, int *areas, vec3_t *points, int max
 
 	while (1)
 	{
-		//pop up the stack
-		tstack_p--;
 		//if the trace stack is empty (ended up with a piece of the
 		//line to be traced in an area)
-		if (tstack_p < tracestack)
+		if (tstack_p == tracestack)
 		{
 			return numareas;
 		} //end if
+		// Pop only after checking, without forming a pointer before the array.
+		tstack_p--;
 		//number of the current node to test the line against
 		nodenum = tstack_p->nodenum;
 		//if it is an area

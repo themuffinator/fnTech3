@@ -15,23 +15,36 @@ version.
 #define FNQL_QCOMMON_CM_MODEL_HANDLES_H
 
 #include "q_shared.h"
+#include "game_profile.h"
 
 /*
- * Quake Live reserves the final two values in the 8-bit inline-model range
- * for the shared temporary hull.  The handle selects box/capsule trace math;
- * both handles intentionally resolve to the same bounds-owning cmodel_t.
+ * Q3/QL reserve 254/255 for the temporary capsule/box. RTCW reserves 510/511
+ * in its larger inline-model range. The immutable catalog selects the range;
+ * both handles resolve to the same bounds-owning cmodel_t. Keep the legacy
+ * constants for the standalone Q3 BSP tool and source-contract fixtures.
  */
 #define MAX_SUBMODELS            256
 #define CAPSULE_MODEL_HANDLE     ( MAX_SUBMODELS - 2 )
 #define BOX_MODEL_HANDLE         ( MAX_SUBMODELS - 1 )
 
-static ID_INLINE qboolean CM_IsTemporaryModelHandle( clipHandle_t handle ) {
-	return handle == BOX_MODEL_HANDLE || handle == CAPSULE_MODEL_HANDLE
-		? qtrue : qfalse;
+static ID_INLINE int CM_ModelHandleLimit( void ) {
+#ifdef BSPC
+	return MAX_SUBMODELS;
+#else
+	const comGameProfile_t *profile = Com_GameProfile();
+	return profile ? profile->collisionModelHandleCount : 0;
+#endif
 }
 
 static ID_INLINE clipHandle_t CM_TemporaryModelHandle( qboolean capsule ) {
-	return capsule != qfalse ? CAPSULE_MODEL_HANDLE : BOX_MODEL_HANDLE;
+	const int count = CM_ModelHandleLimit();
+	return count >= 2 ? count - ( capsule != qfalse ? 2 : 1 ) : -1;
+}
+
+static ID_INLINE qboolean CM_IsTemporaryModelHandle( clipHandle_t handle ) {
+	const int count = CM_ModelHandleLimit();
+	return count >= 2 && ( handle == count - 1 || handle == count - 2 )
+		? qtrue : qfalse;
 }
 
 #endif

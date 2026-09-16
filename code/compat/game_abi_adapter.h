@@ -13,6 +13,8 @@ General Public License, version 2 or (at your option) any later version.
 #include "../qcommon/q_shared.h"
 #include "q3_game_abi.h"
 #include "ql_game_abi.h"
+#include "rtcw_game_abi.h"
+#include "../qcommon/game_profile.h"
 
 #include <stdint.h>
 
@@ -23,6 +25,9 @@ extern "C" {
 /* Translate every source-known Q3 public cvar bit by meaning, never by its
  * colliding numeric value. Unknown bits are deliberately discarded. */
 uint32_t FnTech3_Q3CvarFlagsToInternal( uint32_t q3Flags );
+/* Original SP/MP module flags; unknown bits/profiles are not engine flags. */
+uint32_t FnTech3_RTCWCvarFlagsToInternal( comGameId_t profile, uint32_t flags );
+void FnTech3_RTCWTimeFromInternal( fntech3_rtcw_qtime_t *destination, const qtime_t *source );
 
 void FnTech3_Q3GameStateFromInternal( fntech3_q3_gameState_t *destination,
 	const gameState_t *source );

@@ -109,7 +109,7 @@ clipHandle_t CM_TempBoxModel( const vec3_t mins, const vec3_t maxs, int capsule 
 {
 	VectorCopy( mins, stubModel.mins );
 	VectorCopy( maxs, stubModel.maxs );
-	return capsule ? CAPSULE_MODEL_HANDLE : BOX_MODEL_HANDLE;
+	return CM_TemporaryModelHandle( capsule ? qtrue : qfalse );
 }
 
 void CM_BoxLeafnums_r( leafList_t *ll, int nodenum )
@@ -162,7 +162,7 @@ static const vec3_t playerMaxs = { 15.0f, 15.0f, 32.0f };
 static void CapsuleSweep( trace_t *trace, const vec3_t start, const vec3_t end )
 {
 	CM_BoxTrace( trace, start, end, playerMins, playerMaxs,
-		CAPSULE_MODEL_HANDLE, PLAYER_CLIP_MASK, qtrue );
+		CM_TemporaryModelHandle( qtrue ), PLAYER_CLIP_MASK, qtrue );
 }
 
 static float SweepFraction( float sx, float sy, float sz, float ex, float ey, float ez )
@@ -361,6 +361,7 @@ int main( void )
 {
 	cm.numNodes = 1;
 	stubGameProfile.id = COM_GAME_QUAKELIVE;
+	stubGameProfile.collisionModelHandleCount = 256;
 	cm_noCurves = Cvar_Get( "cm_noCurves", "0", 0 );
 	cm_playerCurveClip = Cvar_Get( "cm_playerCurveClip", "1", 0 );
 	VectorCopy( playerMins, stubModel.mins );
@@ -372,6 +373,21 @@ int main( void )
 	TestContactContentsStayRetailShaped();
 	TestOverlapReportsStartSolid();
 	TestPlaneContractHoldsAcrossTheWorld();
+	{
+		const comGameId_t games[] = { COM_GAME_RTCW_SP, COM_GAME_RTCW_MP };
+		unsigned i;
+		for ( i = 0; i < sizeof( games ) / sizeof( games[0] ); ++i ) {
+			stubGameProfile.id = games[i];
+			stubGameProfile.collisionModelHandleCount = 512;
+			CHECK( CM_TemporaryModelHandle( qfalse ) == 511 );
+			CHECK( CM_TemporaryModelHandle( qtrue ) == 510 );
+			CHECK( NearlyEqual( SweepFraction( 80, 0, 0, 20, 0, 0 ), 0.816667f ) );
+			TestCapContactsFaceTheSweep();
+			TestContactContentsStayRetailShaped();
+			TestOverlapReportsStartSolid();
+			TestPlaneContractHoldsAcrossTheWorld();
+		}
+	}
 
 	return failures == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }

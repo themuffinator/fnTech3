@@ -60,6 +60,7 @@ struct client_t {
     int gamestates = 0;
 };
 struct { int checksumFeed = 1234; int pure = 0; } sv;
+int SV_ReliableCommandLimit(const client_t *client) { return Netchan_ReliableCommandLimit(client->netchan.wireProfile); }
 
 auto SV_Indices(int count) {
     std::vector<int> indices(count);

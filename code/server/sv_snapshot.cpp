@@ -258,7 +258,7 @@ void SV_UpdateServerCommandsToClient( client_t *client, msg_t *msg ) {
 	// write any unacknowledged serverCommands
 	std::uint32_t pending = 0;
 	if ( !fnql::net::PendingCounterCount( client->reliableSequence,
-		client->reliableAcknowledge, pending ) || pending > MAX_RELIABLE_COMMANDS ) {
+		client->reliableAcknowledge, pending ) || pending > SV_ReliableCommandLimit( client ) ) {
 		Com_Error( ERR_DROP, "SV_UpdateServerCommandsToClient: invalid reliable window" );
 		return;
 	}
@@ -270,7 +270,7 @@ void SV_UpdateServerCommandsToClient( client_t *client, msg_t *msg ) {
 		MSG_WriteByte( msg, svc_serverCommand );
 		MSG_WriteLong( msg, index );
 		MSG_WriteStringForWireProfile( msg,
-			client->reliableCommands[ index & ( MAX_RELIABLE_COMMANDS - 1 ) ],
+			client->reliableCommands[ index & ( SV_ReliableCommandLimit( client ) - 1 ) ],
 			client->netchan.wireProfile );
 	}
 }
@@ -380,7 +380,7 @@ static bool SV_GameForcesSnapshotEntity( int viewerClientNum, int entityNum ) {
 		return false;
 	}
 
-	if ( entityNum >= 0 && entityNum < MAX_CLIENTS ) {
+	if ( entityNum >= 0 && entityNum < Com_GameClientLimit() ) {
 		return VM_Call( gvm, 2, GAME_CAN_CLIENT_SEE_CLIENT, viewerClientNum, entityNum ) != 0;
 	}
 
@@ -946,7 +946,12 @@ Also called by SV_FinalMessage
 =======================
 */
 void SV_SendClientSnapshot( client_t *client ) {
-	std::array<byte, MAX_MSGLEN_BUF> msg_buf{};
+	// Campaign cast AI use game-side perception, without a bot snapshot.
+	if ( Com_GameIsRTCWSP() && SV_ClientIsRTCWCastAI( client ) ) {
+		return;
+	}
+
+	std::array<byte, MAX_GAME_MSGLEN_BUF> msg_buf{};
 	msg_t		msg;
 
 	// build the snapshot
@@ -958,7 +963,7 @@ void SV_SendClientSnapshot( client_t *client ) {
 		return;
 	}
 
-	MSG_Init( &msg, msg_buf.data(), MAX_MSGLEN );
+	MSG_Init( &msg, msg_buf.data(), Netchan_MessageLimit( client->netchan.wireProfile ) );
 	msg.allowoverflow = qtrue;
 
 	// NOTE, MRE: all server->client messages now acknowledge

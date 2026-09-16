@@ -23,9 +23,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define __TR_PUBLIC_H
 
 #include "tr_types.h"
+#include "../qcommon/game_profile.h"
 #include "vulkan/vulkan.h"
 
-#define	REF_API_VERSION		14
+#define	REF_API_VERSION		23
 
 //
 // these are the functions exported by the refresh module
@@ -148,6 +149,15 @@ typedef struct {
 	// so existing FnQ3 renderer exports retain their offsets.
 	void	(*TransformModelToClip)( const vec3_t point, vec4_t eye, vec4_t clip );
 	void	(*TransformClipToWindow)( const vec4_t clip, vec4_t normalized, vec4_t window );
+	void	(*DrawQuad)( const refDrawQuad_t *quad );
+	// RTCW enumerates named attachments using an entity and an inclusive start
+	// index. A successful index of zero must not become a boolean failure.
+	int		(*LerpTagEntity)( orientation_t *tag, const refEntity_t *entity,
+		const char *name, int first );
+	qboolean (*GetSkinModel)( qhandle_t skin, const char *type, char *name );
+	qhandle_t (*GetShaderFromModel)( qhandle_t model, int surface, int withLightmap );
+	void (*AddRTCWLightToScene)( const vec3_t origin, float intensity, float r, float g, float b, int flags );
+	void (*SetRTCWFog)( int command, int first, int second, float r, float g, float b, float density );
 
 
 } refexport_t;
@@ -267,6 +277,11 @@ typedef struct refimport_s {
 	void	(*VKimp_Shutdown)( qboolean unloadDLL );
 	void*	(*VK_GetInstanceProcAddr)( VkInstance instance, const char *name );
 	qboolean (*VK_CreateSurface)( VkInstance instance, VkSurfaceKHR *pSurface );
+
+	// The engine's immutable game selection owns ambiguous asset versions.
+	comGameBspFormat_t (*GameBspFormat)( int version );
+	// Snapshot of the immutable selection, supplied before renderer startup.
+	comGameId_t gameId;
 
 } refimport_t;
 

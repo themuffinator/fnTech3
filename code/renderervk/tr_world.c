@@ -381,7 +381,7 @@ static void R_AddWorldSurface( msurface_t *surf, int dlightBits ) {
 
 #ifdef USE_PMLIGHT
 #ifdef USE_LEGACY_DLIGHTS
-	if ( r_dlightMode->integer ) 
+	if ( R_GetDlightMode() )
 #endif
 	{
 		surf->vcVisible = tr.viewCount;
@@ -559,7 +559,7 @@ void R_AddBrushModelSurfaces( trRefEntity_t *ent,
 
 #ifdef USE_PMLIGHT
 #ifdef USE_LEGACY_DLIGHTS
-	if ( r_dlightMode->integer ) 
+	if ( R_GetDlightMode() )
 #endif
 	{
 		dlight_t *dl;
@@ -886,7 +886,7 @@ static void R_RecursiveWorldNode( mnode_t *node, unsigned int planeBits, unsigne
 		newDlights[1] = 0;
 #ifdef USE_LEGACY_DLIGHTS
 #ifdef USE_PMLIGHT
-		if ( !r_dlightMode->integer )
+		if ( !R_GetDlightMode() )
 #endif
 		if ( dlightBits ) {
 			int	i;
@@ -1222,7 +1222,7 @@ void R_AddWorldSurfaces( void ) {
 
 #ifdef USE_PMLIGHT
 #ifdef USE_LEGACY_DLIGHTS
-	if ( !r_dlightMode->integer )
+	if ( !R_GetDlightMode() )
 		return;
 #endif // USE_LEGACY_DLIGHTS
 

@@ -517,6 +517,8 @@ static void DrawMultitextured( const shaderCommands_t *input, int stage ) {
 
 
 #ifdef USE_LEGACY_DLIGHTS
+#include "../renderercommon/tr_rtcw_light_backend.h"
+
 /*
 ===================
 ProjectDlightTexture
@@ -548,6 +550,14 @@ static void ProjectDlightTexture( void ) {
 	float	modulate = 0.0f;
 	const dlight_t *dl;
 
+	if ( R_UsesRTCWLighting() ) {
+#ifdef USE_VULKAN
+		return RB_RTCWProjectLights();
+#else
+		RB_RTCWProjectLights();
+		return;
+#endif
+	}
 	if ( !backEnd.refdef.num_dlights ) {
 #ifdef USE_VULKAN
 		return rebindIndex;
@@ -1435,7 +1445,7 @@ static qboolean VK_DlightShadowParams( const dlight_t *dl,
 		atlasFaceSize <= 0 || atlasBaseFace < 0 ||
 		( ( !r_dlightShadows || !r_dlightShadows->integer ) &&
 			( !r_shadowCorrectness || !r_shadowCorrectness->integer ) ) ||
-		!r_dlightMode || !r_dlightMode->integer ||
+		!r_dlightMode || !R_GetDlightMode() ||
 		( tr.shadowManager.planned ?
 			!tr.shadowManager.pointAtlasPublication.published : !vk_dlight_shadow_atlas_ready() ) ||
 		vk.renderPassIndex != RENDER_PASS_MAIN ||
@@ -2018,7 +2028,7 @@ void RB_StageIteratorGeneric( void )
 	// now do any dynamic lighting needed
 #ifdef USE_LEGACY_DLIGHTS
 #ifdef USE_PMLIGHT
-	if ( r_dlightMode->integer == 0 )
+	if ( R_GetDlightMode() == 0 )
 #endif
 	if ( tess.dlightBits && tess.shader->sort <= SS_OPAQUE && !(tess.shader->surfaceFlags & (SURF_NODLIGHT | SURF_SKY) ) ) {
 		if ( !fogCollapse ) {

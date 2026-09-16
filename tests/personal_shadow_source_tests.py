@@ -1,4 +1,5 @@
 import unittest
+import re
 from pathlib import Path
 
 
@@ -36,6 +37,7 @@ class PersonalShadowSourceTests(unittest.TestCase):
                 path = f"{renderer}/{filename}"
                 with self.subTest(path=path):
                     source = read_text(path)
+                    surface = "surface.data" if filename == "tr_mesh.c" else "(void *)surface"
 
                     self.assertRegex(source, r"qboolean\s+personalShadowCaster;")
                     self.assertIn(
@@ -43,13 +45,12 @@ class PersonalShadowSourceTests(unittest.TestCase):
                         source,
                     )
                     self.assertIn(
-                        "R_AddDrawSurfFlags( (void *)surface, shader, fogNum, 0, DSF_SHADOW_CASTER_ONLY );",
+                        f"R_AddDrawSurfFlags( {surface}, shader, fogNum, 0, DSF_SHADOW_CASTER_ONLY );",
                         source,
                     )
                     self.assertRegex(
                         source,
-                        r"R_AddLitSurf(?:Flags)?\(\s*\(void \*\)surface,\s*"
-                        r"shader,\s*fogNum",
+                        r"R_AddLitSurf(?:Flags)?\(\s*" + re.escape(surface) + r",\s*shader,\s*fogNum",
                     )
                     self.assertNotIn("LSF_SHADOW_CASTER_ONLY", source)
                     self.assertIn("numDlights = 0;", source)

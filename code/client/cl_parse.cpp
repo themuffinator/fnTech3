@@ -59,7 +59,7 @@ static void CL_ValidateReliableAcknowledge( int acknowledge ) {
 		} else {
 			Com_Error( ERR_DROP, "%s: incorrect reliable sequence acknowledge number", __func__ );
 		}
-	} else if ( pending > MAX_RELIABLE_COMMANDS ) {
+	} else if ( pending > CL_ReliableCommandLimit() ) {
 		if ( !clc.demoplaying ) {
 			Com_Printf( S_COLOR_YELLOW "WARNING: dropping %u commands from server\n", pending );
 		}
@@ -983,7 +983,7 @@ static void CL_ParseGamestate( msg_t *msg ) {
 	CL_ClearState();
 
 	// all configstring updates received before new gamestate must be discarded
-	for ( i = 0; i < MAX_RELIABLE_COMMANDS; i++ ) {
+	for ( i = 0; i < MAX_GAME_RELIABLE_COMMANDS; i++ ) {
 		s = clc.serverCommands[ i ];
 		if ( !strncmp( s, "cs ", 3 ) || !strncmp( s, "bcs0 ", 5 ) || !strncmp( s, "bcs1 ", 5 ) || !strncmp( s, "bcs2 ", 5 ) ) {
 			clc.serverCommandsIgnore[ i ] = qtrue;
@@ -1011,8 +1011,8 @@ static void CL_ParseGamestate( msg_t *msg ) {
 			int		rawIndex;
 
 			rawIndex = MSG_ReadShort( msg );
-			if ( rawIndex < 0 || rawIndex >= MAX_CONFIGSTRINGS ) {
-				Com_Error( ERR_DROP, "%s: configstring > MAX_CONFIGSTRINGS", __func__ );
+			if ( rawIndex < 0 || rawIndex >= Com_GameConfigstringLimit() ) {
+				Com_Error( ERR_DROP, "%s: configstring exceeds profile limit", __func__ );
 			}
 
 			s = MSG_ReadBigStringForWireProfile(
@@ -1323,7 +1323,7 @@ static void CL_ParseCommandString( msg_t *msg ) {
 	}
 	clc.serverCommandSequence = seq;
 
-	index = seq & (MAX_RELIABLE_COMMANDS-1);
+	index = seq & (CL_ReliableCommandLimit()-1);
 	clc.serverCommandHashes[ index ] = wireHash;
 	if ( keepCommand ) {
 		Q_strncpyz( clc.serverCommands[ index ], storedCommand, sizeof( clc.serverCommands[ index ] ) );

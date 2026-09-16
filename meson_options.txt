@@ -3,6 +3,11 @@ option('q3-only',
   value: false,
   description: 'Experimental Windows x86_64 Q3-only diagnostic build; rejects Quake Live and uses separate output names')
 
+option('rtcw-development',
+  type: 'boolean',
+  value: false,
+  description: 'Enable incomplete RTCW SP/MP profiles for isolated developer probes; not a compatibility claim')
+
 option('build-client',
   type: 'boolean',
   value: true,

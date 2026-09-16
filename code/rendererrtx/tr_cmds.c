@@ -723,6 +723,8 @@ void RE_StretchPic( float x, float y, float w, float h,
 	cmd->t2 = t2;
 }
 
+#include "../renderercommon/tr_draw_quad_cmd.h"
+
 #define MODE_RED_CYAN	1
 #define MODE_RED_BLUE	2
 #define MODE_RED_GREEN	3

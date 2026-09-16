@@ -7,8 +7,12 @@ ROOT=Path(__file__).resolve().parents[1]
 
 def metadata_pak(profile, comment=b''):
     # Synthetic directory metadata only: deliberately no retail payloads.
-    entries=([('default.cfg',1737,0x9a18b2fd),('maps/q3dm6.bsp',4408212,0x9fef9a4b)]
-             if profile=='q3' else [('default.cfg',1580,0xc6c9f233),('maps/campgrounds.bsp',2924532,0x0ddc0f1d)])
+    entries={
+        'q3': [('default.cfg',1737,0x9a18b2fd),('maps/q3dm6.bsp',4408212,0x9fef9a4b)],
+        'ql': [('default.cfg',1580,0xc6c9f233),('maps/campgrounds.bsp',2924532,0x0ddc0f1d)],
+        'rtcw-sp': [('default.cfg',2237,0x844222c3),('maps/escape1.bsp',12366352,0x5f08b87c)],
+        'rtcw-mp': [('default.cfg',1372,0x91dfaca0),('maps/mp_beach.bsp',7343512,0x77533d56)],
+    }[profile]
     local=bytearray();directory=bytearray()
     for name,length,crc in entries:
         name=name.encode();offset=len(local)
@@ -48,7 +52,8 @@ int main(int argc,char **argv) {
  assert(Com_ProbeGameProfileMarkers(huge.c_str())==0);
 }
 '''
-        with tempfile.TemporaryDirectory() as folder:
+        scratch=ROOT/'.tmp';scratch.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix='profile-markers-',dir=scratch) as folder:
             cpp=Path(folder)/'probe.cpp';exe=Path(folder)/'probe.exe';fixture=Path(folder)/'fixture'
             base=fixture/'baseq3';base.mkdir(parents=True)
             cpp.write_text(harness)
@@ -83,6 +88,18 @@ int main(int argc,char **argv) {
                 q3.write_bytes(malformed);check(4)
             unicode=fixture/'caf\u00e9';(unicode/'baseq3').mkdir(parents=True)
             (unicode/'baseq3/pak0.pk3').write_bytes(metadata_pak('q3'));check(1,True)
+            q3.unlink()
+            main=fixture/'main';main.mkdir()
+            sp=main/'pak0.pk3';mp=main/'mp_pak0.pk3'
+            sp.write_bytes(metadata_pak('rtcw-sp'));check(8)
+            mp.write_bytes(metadata_pak('rtcw-mp'));check(24)
+            q3.write_bytes(metadata_pak('q3'));check(25);q3.unlink()
+            sp.unlink();check(16)
+            for payload in (b'',b'PK\x03\x04',metadata_pak('rtcw-mp')[:-1],metadata_pak('rtcw-sp')):
+                mp.write_bytes(payload);check(4)
+            mp.unlink()
+            sp.write_bytes(metadata_pak('rtcw-mp'));check(4)
+            sp.write_bytes(metadata_pak('rtcw-sp',b'comment'));check(8)
 
 
 if __name__=='__main__':unittest.main()

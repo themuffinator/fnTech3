@@ -24,6 +24,14 @@ not the decoder executable.
 
 ## General engine lineage
 
+The pak and PNG readers use [zlib](https://zlib.net/) by Jean-loup Gailly and Mark
+Adler through the existing `subprojects/zlib.wrap` fallback or a system package.
+Its permissive zlib license (verified in the pinned 1.3.2 `zlib.h`) is compatible
+with this repository's GPL license. The original license remains in the
+dependency. The 2026-09-14 loading update removes the embedded zlib 1.1.3
+decoder from `unzip.c`; its adapted Gilles Vollant minizip frontend and
+attribution remain. No replacement third-party implementation is vendored.
+
 The 2026-09-06 WebUI request and avatar retry update incorporates reviewed
 implementation, tests, and an optional retail probe from
 [FnQL](https://github.com/themuffinator/FnQL), copyright 2026 FnQL contributors,

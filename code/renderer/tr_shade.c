@@ -1139,6 +1139,9 @@ static qboolean GLX_ProjectDlightScissorRect( const glIndex_t *indexes,
 }
 #endif
 
+#define FNTECH3_RTCW_LIGHT_FLOAT_COLORS
+#include "../renderercommon/tr_rtcw_light_backend.h"
+
 /*
 ===================
 ProjectDlightTexture
@@ -1176,6 +1179,14 @@ static void ProjectDlightTexture( void ) {
 	qboolean glxScissorEnabled = qfalse;
 #endif
 
+	if ( R_UsesRTCWLighting() ) {
+#ifdef USE_VULKAN
+		return RB_RTCWProjectLights();
+#else
+		RB_RTCWProjectLights();
+		return;
+#endif
+	}
 	if ( !backEnd.refdef.num_dlights ) {
 		return;
 	}

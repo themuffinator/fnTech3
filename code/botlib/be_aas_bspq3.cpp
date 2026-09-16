@@ -31,6 +31,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "../qcommon/q_shared.h"
 #include "../qcommon/qcommon.h"
+#include "../compat/rtcw_bsp_query.hpp"
 #include "l_memory.h"
 #include "l_script.h"
 #include "l_precomp.h"
@@ -262,6 +263,7 @@ int AAS_BoxEntities(vec3_t absmins, vec3_t absmaxs, int *list, int maxcount)
 //===========================================================================
 int AAS_NextBSPEntity(int ent)
 {
+	if (ent < 0 || ent >= bspworld.numentities) return 0;
 	ent++;
 	if (ent >= 1 && ent < bspworld.numentities) return ent;
 	return 0;
@@ -291,13 +293,18 @@ int AAS_ValueForBSPEpairKey(int ent, const char *key, char *value, int size)
 {
 	bsp_epair_t *epair;
 
+	if (!value || size <= 0) return qfalse;
 	value[0] = '\0';
-	if (!AAS_BSPEntityInRange(ent)) return qfalse;
+	if (!key || !AAS_BSPEntityInRange(ent)) return qfalse;
 	for (epair = bspworld.entities[ent].epairs; epair; epair = epair->next)
 	{
 		if (!strcmp(epair->key, key))
 		{
 			Q_strncpyz( value, epair->value, size );
+			if (Com_GameIsRTCW()) {
+				const size_t written = strlen(value) + 1;
+				memset(value + written, 0, static_cast<size_t>(size) - written);
+			}
 			return qtrue;
 		} //end if
 	} //end for
@@ -315,6 +322,11 @@ int AAS_VectorForBSPEpairKey(int ent, const char *key, vec3_t v)
 
 	VectorClear(v);
 	if (!AAS_ValueForBSPEpairKey(ent, key, buf, sizeof( buf ) )) return qfalse;
+	if (Com_GameIsRTCW()) {
+		if (fntech3::rtcw::bsp::Vector(buf, v)) return qtrue;
+		botimport.Print(PRT_ERROR, "Invalid RTCW BSP vector property\n");
+		return qfalse;
+	}
 	//scanf into doubles, then assign, so it is vec_t size independent
 	Com_Split( buf, s, 3, ' ' );
 	v[0] = Q_atof( s[0] );
@@ -334,6 +346,11 @@ int AAS_FloatForBSPEpairKey(int ent, const char *key, float *value)
 	
 	*value = 0;
 	if (!AAS_ValueForBSPEpairKey(ent, key, buf, sizeof( buf ))) return qfalse;
+	if (Com_GameIsRTCW()) {
+		if (fntech3::rtcw::bsp::Scalar(buf, *value)) return qtrue;
+		botimport.Print(PRT_ERROR, "Invalid RTCW BSP float property\n");
+		return qfalse;
+	}
 	*value = atof(buf);
 	return qtrue;
 } //end of the function AAS_FloatForBSPEpairKey
@@ -349,6 +366,11 @@ int AAS_IntForBSPEpairKey(int ent, const char *key, int *value)
 	
 	*value = 0;
 	if (!AAS_ValueForBSPEpairKey(ent, key, buf, sizeof( buf ))) return qfalse;
+	if (Com_GameIsRTCW()) {
+		if (fntech3::rtcw::bsp::Integer(buf, *value)) return qtrue;
+		botimport.Print(PRT_ERROR, "Invalid RTCW BSP integer property\n");
+		return qfalse;
+	}
 	*value = atoi(buf);
 	return qtrue;
 } //end of the function AAS_IntForBSPEpairKey

@@ -78,7 +78,8 @@ class QAGameNativeBridgeSourceTests(unittest.TestCase):
         g_public = read_repo_file("code/game/g_public.h")
         sv_game = read_repo_file("code/server/sv_game.cpp")
         vm_c = read_repo_file("code/qcommon/vm.c")
-        game_dispatch_start = vm_c.index("if ( vm->index == VM_GAME )")
+        native_dispatch_start = vm_c.index("static intptr_t VM_CallNativeExports(")
+        game_dispatch_start = vm_c.index("if ( vm->index == VM_GAME )", native_dispatch_start)
         game_dispatch = vm_c[game_dispatch_start : vm_c.index("#ifndef USE_DEDICATED", game_dispatch_start)]
 
         self.assertIn("VM_CreateNative( VM_GAME, SV_GameSystemCalls, SV_DllSyscall, interpret,", sv_game)

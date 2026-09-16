@@ -1187,6 +1187,12 @@ static void CL_FinishMove( usercmd_t *cmd ) {
 	cmd->weapon = cl.cgameUserCmdValue;
 	cmd->weaponPrimary = cl.cgameUserCmdPrimary;
 	cmd->fov = cl.cgameUserCmdFov;
+	if ( Com_GameIsRTCW() ) {
+		cmd->rtcw.holdable = cl.cgameRTCWCommand.holdable;
+		cmd->rtcw.cld = cl.cgameRTCWCommand.cld;
+		cmd->rtcw.mpSetup = cl.cgameRTCWCommand.mpSetup;
+		cmd->rtcw.identClient = cl.cgameRTCWCommand.identClient;
+	}
 
 	// send the current server time so the amount of movement
 	// can be determined without allowing cheating
@@ -1431,7 +1437,7 @@ During normal gameplay, a client packet will contain something like:
 */
 void CL_WritePacket( int repeat ) {
 	msg_t		buf;
-	std::array<byte, MAX_MSGLEN_BUF> data;
+	std::array<byte, MAX_GAME_MSGLEN_BUF> data;
 	int			i, j, n;
 	usercmd_t	*cmd, *oldcmd;
 	usercmd_t	nullcmd{};
@@ -1446,7 +1452,7 @@ void CL_WritePacket( int repeat ) {
 
 	oldcmd = &nullcmd;
 
-	MSG_Init( &buf, data.data(), MAX_MSGLEN );
+	MSG_Init( &buf, data.data(), Netchan_MessageLimit( CL_ActiveWireProfile() ) );
 
 	MSG_Bitstream( &buf );
 	// write the current serverId so the server
@@ -1468,7 +1474,7 @@ void CL_WritePacket( int repeat ) {
 	std::uint32_t pendingReliable = 0;
 	if ( !fnql::net::PendingCounterCount( clc.reliableSequence,
 		clc.reliableAcknowledge, pendingReliable ) ||
-		pendingReliable > MAX_RELIABLE_COMMANDS ) {
+		pendingReliable > CL_ReliableCommandLimit() ) {
 		Com_Error( ERR_DROP, "CL_WritePacket: invalid reliable acknowledgement window" );
 		return;
 	}
@@ -1479,7 +1485,7 @@ void CL_WritePacket( int repeat ) {
 		MSG_WriteByte( &buf, clc_clientCommand );
 		MSG_WriteLong( &buf, index );
 		MSG_WriteStringForWireProfile( &buf,
-			clc.reliableCommands[ index & ( MAX_RELIABLE_COMMANDS - 1 ) ],
+			clc.reliableCommands[ index & ( CL_ReliableCommandLimit() - 1 ) ],
 			clc.netchan.wireProfile );
 	}
 
@@ -1521,7 +1527,7 @@ void CL_WritePacket( int repeat ) {
 		key ^= clc.serverMessageSequence;
 		// also use the last acknowledged server command in the key
 		key ^= clc.serverCommandHashes[
-			clc.serverCommandSequence & ( MAX_RELIABLE_COMMANDS - 1 ) ];
+			clc.serverCommandSequence & ( CL_ReliableCommandLimit() - 1 ) ];
 
 		// write all the commands, including the predicted command
 		const int firstCommand = fnql::net::CounterSubtract(

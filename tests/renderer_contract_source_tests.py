@@ -43,8 +43,12 @@ class RendererContractSourceTests(unittest.TestCase):
                     source[mode_assignment:collapse_guard],
                 )
                 self.assertIn(
-                    "if ( stage > 1 && vertexLightMode && !shader.noVLcollapse )",
+                    "if ( stage > 1 && vertexLightMode && !shader.noVLcollapse &&",
                     source[finish:white_simplification],
+                )
+                self.assertIn(
+                    "( !shader.rtcwLightMaterial || ri.gameId != COM_GAME_RTCW_MP )",
+                    source[collapse_guard:collapse],
                 )
 
                 self.assertIn(
