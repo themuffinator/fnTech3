@@ -24,6 +24,29 @@ not the decoder executable.
 
 ## General engine lineage
 
+`code/client/cl_hud.cpp` adapts the GPL-2.0-or-later
+[FnQuake3 HUD implementation](https://github.com/themuffinator/FnQ3/blob/7d8c9629cdc7979f09697266470359101ffd9eda/code/client/cl_hud.cpp).
+The source matches the pinned merger revision; this is an implementation
+import, distinct from reference-only observations. Its project GPLv2 license
+and GPL-2.0-or-later engine lineage are compatible with fnTech3. The source
+file had no individual copyright header; the adaptation records its project
+provenance and license, retaining the original HUD rule and dump behavior.
+
+The RTCW HUD JSON presets are original fnTech3 data authored from stock layout
+and shader-name observations, including legitimate retail draw metadata and
+the published [RTCW SP](https://github.com/id-Software/RTCW-SP) and
+[RTCW MP](https://github.com/id-Software/RTCW-MP) cgame contracts. Those GPLv3
+source references were inspected only for behavior; no implementation text
+or proprietary menu assets are incorporated.
+
+The Q3 assets under `pkg/games/quake3/` are incorporated from the
+[FnQuake3 package tree](https://github.com/themuffinator/FnQ3/tree/7d8c9629cdc7979f09697266470359101ffd9eda/pkg),
+whose GPL-2.0-or-later engine lineage and GPLv2 `LICENSE` are compatible with
+this repository. Original authored data and provenance comments are preserved.
+The [package import record](docs/fntech3/2026-09-17-fnq3-package-assets.json)
+pins all 92 files and the two filename mappings; these are engine-owned
+sidecars/presets, not retail game assets.
+
 The pak and PNG readers use [zlib](https://zlib.net/) by Jean-loup Gailly and Mark
 Adler through the existing `subprojects/zlib.wrap` fallback or a system package.
 Its permissive zlib license (verified in the pinned 1.3.2 `zlib.h`) is compatible

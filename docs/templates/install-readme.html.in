@@ -264,20 +264,20 @@
     <section class="hero">
       <div class="eyebrow">${project_name_short} distribution notes</div>
       <h1>${project_name_short}</h1>
-      <p class="tagline">One engine, Quake III Arena and Quake Live profiles</p>
+      <p class="tagline">Unified source port for id Tech 3</p>
       <p class="subtitle">
-        <strong>${project_name_short}</strong> combines FnQuake3 modernization and the FnQL compatibility baseline in one engine with <em>Quake III Arena</em> and <em>Quake Live</em> profiles.
+        <strong>${project_name_short}</strong> targets one engine distribution for <em>Quake III Arena</em>, <em>Quake Live</em>, and <em>Return to Castle Wolfenstein</em> single player and multiplayer, building on FnQuake3 modernization and the FnQL compatibility baseline.
       </p>
       <div class="buttons">
         <a class="button button-primary" href="docs/fntech3/COMPATIBILITY.md">Compatibility status</a>
         <a class="button button-secondary" href="#getting-started">Getting started</a>
         <a class="button button-secondary" href="#documentation">Documentation</a>
-        <a class="button button-secondary" href="https://github.com/themuffinator/FnQL/blob/main/BUILD.md">Build guide</a>
+        <a class="button button-secondary" href="https://github.com/themuffinator/fnTech3/blob/main/BUILD.md">Build guide</a>
         <a class="button button-secondary" href="LICENSE">License</a>
       </div>
       <div class="stats">
         <article class="card">
-          <strong>Compatibility target</strong>
+          <strong>Compatibility targets</strong>
           <p>${compatibility_target}</p>
         </article>
         <article class="card">
@@ -298,21 +298,40 @@
     <section class="section" id="introduction">
       <div class="section-header">
         <h2>1. Introduction</h2>
-        <p class="lead"><strong>${project_name_short}</strong> selects one immutable Q3 or QL profile before compatibility-sensitive startup. Both profiles use the same client and dedicated-server binaries.</p>
+        <p class="lead"><strong>${project_name_short}</strong> selects one immutable profile before compatibility-sensitive startup. The unified goal is shared client, dedicated-server, and renderer binaries that preserve each game's module, asset, network, demo, and gameplay contracts.</p>
       </div>
-      <p class="lead"><strong>Full compatibility is not yet established for either profile.</strong> Build and unit results do not replace runtime and retail-interoperability evidence. The <a href="docs/fntech3/COMPATIBILITY.md">compatibility ledger</a> records open gates and observed results.</p>
+      <div class="feature-grid">
+        <article class="feature-group">
+          <h3>Quake III Arena</h3>
+          <p><code>q3</code> (canonical <code>quake3</code>): enabled; compatibility validation remains in progress.</p>
+        </article>
+        <article class="feature-group">
+          <h3>Quake Live</h3>
+          <p><code>ql</code> (canonical <code>quakelive</code>): enabled; retail client modules require Windows x86; compatibility validation remains in progress.</p>
+        </article>
+        <article class="feature-group">
+          <h3>RTCW single player</h3>
+          <p><code>rtcw-sp</code>: experimental; requires <code>-Drtcw-development=true</code>; gated in default builds. Campaign and savegame gates remain open.</p>
+        </article>
+        <article class="feature-group">
+          <h3>RTCW multiplayer</h3>
+          <p><code>rtcw-mp</code>: experimental; uses the same executable and development option as SP; gated in default builds. Multiplayer interoperability remains open.</p>
+        </article>
+      </div>
+      <p class="lead">These three games and four profiles define the current project scope. <strong>Full compatibility is not yet established for any profile.</strong> Build and unit results do not replace runtime and retail-interoperability evidence. The <a href="docs/fntech3/COMPATIBILITY.md">compatibility ledger</a> records open gates and observed results.</p>
+      <p class="lead">RTCW SP and MP are modes of one title. Switching modes relaunches the same executable with a new profile. Development builds have menu, map, and save/load evidence, with remaining limits recorded in the <a href="docs/fntech3/COMPATIBILITY.md#rtcw-gate-matrix">RTCW gate matrix</a>.</p>
       <p class="footer">Supply your own legitimate installation. Retail modules, assets, and proprietary runtimes remain there. Release packages exclude the optional proprietary Steam provider and Valve Steam runtimes. Steam services require a separately supplied compatible provider; unavailable services are reported honestly.</p>
     </section>
 
     <section class="section" id="features">
       <div class="section-header">
         <h2>2. Features</h2>
-        <p class="lead">Capabilities inherited from the engine baselines are being validated across both profiles.</p>
+        <p class="lead">Capabilities inherited from the engine baselines and ongoing compatibility work require validation for each applicable profile. QL-specific WebUI, Steam, and Workshop services remain part of the QL profile.</p>
       </div>
       <div class="feature-grid">
         <article class="feature-group">
-          <h3>Q3/QL compatibility work</h3>
-          <p>Separate installation, module ABI, protocol, demo, filesystem, asset, and optional-service contracts. Retail QL behavior remains evidence while Q3 boundaries are integrated and tested.</p>
+          <h3>Unified game compatibility</h3>
+          <p>Profile-owned installation, module ABI, protocol, demo, filesystem, asset, and optional-service contracts for Q3, QL, and RTCW SP/MP, including RTCW campaign and savegame boundaries.</p>
         </article>
         <article class="feature-group">
           <h3>Fast, modern hardware rendering</h3>
@@ -362,7 +381,7 @@
         <h2>3. Getting Started</h2>
         <p class="lead">Build the shared Windows x86 client or Linux i686 dedicated server and supply the legitimate installation for your chosen profile.</p>
       </div>
-      <p>Keep <code>FnQL-pkg.fnz</code>, <code>fnql-web.pak</code>, <code>fnql_&lt;renderer&gt;_x86</code> modules, and required redistributable libraries beside <code>${executable_basename}.exe</code> and <code>${executable_basename}.ded.exe</code>. The sidecar names preserve existing loader contracts.</p>
+      <p>Keep <code>fntech3-pkg.fnz</code>, <code>fnql-web.pak</code>, <code>fnql_&lt;renderer&gt;_x86</code> modules, and required redistributable libraries beside <code>${executable_basename}.exe</code> and <code>${executable_basename}.ded.exe</code>. The engine package separates games and mods under <code>games/&lt;profile&gt;/&lt;gamedir&gt;/</code>. Upgrade it with the executable; the old <code>FnQL-pkg.fnz</code> layout is no longer read.</p>
       <div class="feature-grid">
         <article class="feature-group">
           <h3>Windows client profile selection</h3>
@@ -372,8 +391,12 @@
           <h3>Native Linux dedicated server</h3>
           <p>Run <code>./${executable_basename}.ded</code> with the same explicit profile and isolated home-path options. The QL server loads retail <code>qagamei386.so</code>; native Linux clients cannot load Win32-only QL client/UI modules.</p>
         </article>
+        <article class="feature-group">
+          <h3>Experimental RTCW profiles</h3>
+          <p>First enable <code>-Drtcw-development=true</code> as described in the <a href="https://github.com/themuffinator/fnTech3/blob/main/BUILD.md#rtcw-development-profiles">build guide</a>. Use the same Windows x86 client with <code>+set com_gameProfile rtcw-sp</code> or <code>+set com_gameProfile rtcw-mp</code>, the legitimate RTCW installation, a separate writable home, and <code>+set r_fullscreen 0</code>. Default builds reject these incomplete profiles.</p>
+        </article>
       </div>
-      <p class="footer">Automatic selection needs unambiguous installation evidence. The selected profile is immutable. Startup, module loading, demos, play, and retail interoperability must pass the profile-specific gates before release compatibility is claimed.</p>
+      <p class="footer">Automatic selection needs unambiguous installation evidence; an RTCW installation containing both modes requires an explicit SP or MP choice. The selected profile is immutable. Startup, module loading, demos, play, and retail interoperability must pass the profile-specific gates before release compatibility is claimed.</p>
     </section>
 
     <section class="section" id="documentation">
@@ -385,26 +408,27 @@
         <article class="doc-column">
           <h3>Player guides</h3>
           <ul>
-            <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/DISPLAY.md">Display Guide</a> for renderers, display modes, HDR, scaling, anti-aliasing, bloom, lighting, shadows, fog, liquids, lens flares, and motion blur.</li>
-            <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/RTX.md">RTX Renderer Guide</a> for requirements, renderer selection, fallback behavior, safe settings, and troubleshooting.</li>
-            <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/VISUALS.md">Visuals Guide</a> for player highlighting, colours, cel shading, and outlines.</li>
-            <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/ASPECT_CORRECTION.md">Aspect Handling Guide</a> for the retail WebUI, menus, and cinematics.</li>
-            <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/AUDIO.md">Audio Guide</a> for devices, HRTF, spatial effects, fallback behavior, and troubleshooting.</li>
-            <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/CONSOLE.md">Console Guide</a> for layout, scaling, completion, clipboard use, and mouse interaction.</li>
-            <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/SCREENSHOTS.md">Screenshot Guide</a> for formats, filenames, metadata, levelshots, watermarks, and cubemaps.</li>
+            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/DISPLAY.md">Display Guide</a> for renderers, display modes, HDR, scaling, anti-aliasing, bloom, lighting, shadows, fog, liquids, lens flares, and motion blur.</li>
+            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/RTX.md">RTX Renderer Guide</a> for requirements, renderer selection, fallback behavior, safe settings, and troubleshooting.</li>
+            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/VISUALS.md">Visuals Guide</a> for player highlighting, colours, cel shading, and outlines.</li>
+            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/ASPECT_CORRECTION.md">Aspect Handling Guide</a> for the retail WebUI, menus, and cinematics.</li>
+            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/AUDIO.md">Audio Guide</a> for devices, HRTF, spatial effects, fallback behavior, and troubleshooting.</li>
+            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/CONSOLE.md">Console Guide</a> for layout, scaling, completion, clipboard use, and mouse interaction.</li>
+            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/SCREENSHOTS.md">Screenshot Guide</a> for formats, filenames, metadata, levelshots, watermarks, and cubemaps.</li>
             <li><a href="https://github.com/themuffinator/FnQL/releases">FnQL baseline release history</a> for historical changelogs and downloads; these are not fnTech3 releases.</li>
           </ul>
         </article>
         <article class="doc-column">
           <h3>Technical and build docs</h3>
           <ul>
-            <li><a href="https://github.com/themuffinator/FnQL/blob/main/BUILD.md">Build Guide</a> for compiling fnTech3 locally.</li>
-            <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/GLX.md">GLx Renderer Guide</a> for the default OpenGL-lineage renderer, diagnostics, and troubleshooting.</li>
-            <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/fnql/INPUT_COMPATIBILITY.md">Input Compatibility Notes</a> for retail mouse math, text input, controllers, and legacy profiles.</li>
-            <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/fnql/WEBUI_BACKEND.md">WebUI Backend Notes</a> for retail resources, platform boundaries, overlay order, and fallbacks.</li>
-            <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/fnql/STEAM_PROVIDER.md">Steam Provider Notes</a> for the open loader ABI, provider distribution, and runtime policy.</li>
-            <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/fnql/RTX_RENDERER.md">RTX Renderer Contract</a> for the Quake Live ABI boundary, conservative defaults, and runtime validation.</li>
-            <li><a href="https://github.com/themuffinator/FnQL/blob/main/docs/fnql/TECHNICAL.md">Technical Notes</a> for repository structure, release flow, compatibility workflow, and maintainer conventions.</li>
+            <li><a href="docs/fntech3/COMPATIBILITY.md">Compatibility ledger</a> for all four profiles, observed evidence, open gates, and unified release sign-off.</li>
+            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/BUILD.md">Build Guide</a> for compiling fnTech3 locally and enabling experimental RTCW profiles.</li>
+            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/GLX.md">GLx Renderer Guide</a> for the default OpenGL-lineage renderer, diagnostics, and troubleshooting.</li>
+            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/fnql/INPUT_COMPATIBILITY.md">Input Compatibility Notes</a> for retail mouse math, text input, controllers, and legacy profiles.</li>
+            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/fnql/WEBUI_BACKEND.md">WebUI Backend Notes</a> for retail resources, platform boundaries, overlay order, and fallbacks.</li>
+            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/fnql/STEAM_PROVIDER.md">Steam Provider Notes</a> for the open loader ABI, provider distribution, and runtime policy.</li>
+            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/fnql/RTX_RENDERER.md">RTX Renderer Contract</a> for the Quake Live ABI boundary, conservative defaults, and runtime validation.</li>
+            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/fnql/TECHNICAL.md">FnQL baseline technical notes</a> for inherited subsystem history and QL reference contracts; current scope and release requirements are defined by the fnTech3 ledger.</li>
           </ul>
         </article>
       </div>

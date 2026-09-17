@@ -1,0 +1,7 @@
+// Cool-grey depth haze for Arena Gate.
+color 0.55 0.59 0.61
+mode exp
+density 0.00085
+start 144
+opacity 0.30
+sky 1

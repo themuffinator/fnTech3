@@ -2,11 +2,17 @@
 
 ## Mission
 
-fnTech3 is one modern id Tech 3 engine distribution whose shared client and
-dedicated-server binaries select the installed game at startup. Quake III Arena
-(`q3`) and Quake Live (`ql`) are the first supported profiles. The project is
-not complete until both profiles pass their profile-specific module ABI,
-network, demo, filesystem, asset, renderer, and live-interoperability gates in
+fnTech3 is a unified source port for id Tech 3 games: one engine distribution
+whose shared client and dedicated-server binaries select the installed game at
+startup. The current game scope is Quake III Arena (`q3`), Quake Live (`ql`), and
+Return to Castle Wolfenstein single player (`rtcw-sp`) and multiplayer (`rtcw-mp`).
+RTCW is one title with two mode profiles using the same executable.
+
+Q3 and QL are enabled; RTCW remains experimental and gated in default builds,
+with `-Drtcw-development=true` enabling isolated development probes. The unified
+goal is not complete until all four profiles pass their applicable module ABI,
+network, demo, filesystem, asset, renderer, audio/input, gameplay, and
+live-interoperability gates, including RTCW SP campaign/savegame behavior, in
 [`docs/fntech3/COMPATIBILITY.md`](docs/fntech3/COMPATIBILITY.md).
 
 Do not describe fnTech3 as fully compatible while any required gate remains
@@ -25,26 +31,31 @@ evidence.
 3. A profile owns a coherent contract set: executable identity, search paths,
    pak rules, pure checks, config names, module APIs and layouts, protocols,
    demos, asset formats, renderer contracts, Steam behavior, and optional
-   services. Never assemble an accidental Q3/QL hybrid from independent cvars.
-4. Keep engine-internal types separate from external contracts. Freeze exact Q3
-   and QL wire/module POD layouts and marshal at the boundary; do not expose one
-   profile's expanded structures to another profile's QVMs, native modules, or
-   packets.
+   services, plus mode-specific campaign, savegame, and AI behavior where
+   applicable. Never mix contracts from different profiles through independent
+   cvars. A mode switch relaunches the same executable with a new profile.
+4. Keep engine-internal types separate from external contracts. Freeze exact Q3,
+   QL, RTCW SP, and RTCW MP wire/module POD layouts and marshal at the boundary;
+   do not expose one profile's expanded structures to another profile's QVMs,
+   native modules, or packets.
 5. Preserve exact trap/import/export ordinals, structure sizes and offsets,
    scalar encodings, delta-field order, protocol negotiation, and pak/pure
    semantics for the selected profile.
 6. Q3 evidence is authoritative for the Q3 profile. Legitimate retail QL
    observations are authoritative for the QL profile; QLSRP may support an
    independently written implementation but does not outrank retail behavior.
+   RTCW SP and MP use their respective original contracts and legitimate retail
+   observations; keep original-engine and iortcw comparison evidence distinct.
 7. Preserve working renderer, audio, platform, packaging, tooling, performance,
    and diagnostics unless profile evidence requires a narrowly scoped change.
 8. fnTech3 is engine-only. Do not reconstruct or redistribute retail game
    modules, proprietary runtimes, credentials, or game assets. Compatibility is
    exercised with user-supplied legitimate installations.
-9. Retail QL client modules impose an x86 boundary. A release cannot claim the
-   shared Q3/QL client contract unless the same Windows x86 engine binaries have
-   passed both profiles; extra architecture-specific builds may make narrower,
-   explicitly documented claims.
+9. Retail QL client modules impose an x86 boundary. The shared client proof
+   target is Windows x86. A release cannot claim the complete unified client
+   contract unless the same engine binaries pass Q3, QL, RTCW SP, and RTCW MP.
+   Partial-profile and extra architecture-specific builds may make narrower,
+   explicitly documented claims; they do not complete the unified goal.
 10. Optional online services must fail honestly. Never synthesize Steam
     authentication, subscription, Workshop, statistics, or service success.
 
@@ -55,15 +66,17 @@ evidence.
   observation.
 - Validate malformed input, bounds, partial initialization, shutdown, path
   containment, and fallback behavior alongside the happy path.
-- Compare every compatibility change against both profiles where the subsystem
-  is shared. A QL correction is not allowed to silently alter Q3 behavior, and
-  vice versa.
+- Compare every compatibility change against all affected profiles where the
+  subsystem is shared. A correction for Q3, QL, RTCW SP, or RTCW MP must not
+  silently alter another profile's behavior. Existing Q3/QL evidence does not
+  establish either RTCW mode's compatibility.
 - Use the evidence levels and gate ledger in
   [`docs/fntech3/COMPATIBILITY.md`](docs/fntech3/COMPATIBILITY.md). Update it when
   a gate gains evidence or a new blocker is found.
 - Full-compatibility evidence requires profile-appropriate clean builds, the
   complete automated suite, legitimate module/asset probes, demo playback,
-  and bidirectional client/server interoperability. Record executable identity,
+  and bidirectional client/server interoperability where applicable, plus RTCW
+  SP campaign/save/load and RTCW MP gameplay evidence. Record executable identity,
   commit, platform, profile, command line, fixture/installation identity, and
   outcome without committing proprietary inputs or credentials.
 - Changes must remain robust and portable across supported Windows, Linux, and

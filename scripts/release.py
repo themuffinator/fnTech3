@@ -36,6 +36,7 @@ from glx_promotion import (
     promotion_report,
 )
 from root_archive import (
+    DEFAULT_ROOT_ARCHIVE_REQUIRED_ASSETS,
     ROOT_ARCHIVE_NAME,
     archive_member_name,
     path_is_relative_to,
@@ -48,6 +49,8 @@ from windows_pe import validate_windows_runtime_dependencies
 
 
 DEFAULT_DOCS = [
+    (ROOT / "CHANGELOG.md", Path("CHANGELOG.md")),
+    (ROOT / "docs" / "fntech3" / "RELEASING.md", Path("docs") / "fntech3" / "RELEASING.md"),
     (ROOT / "LICENSE", Path("LICENSE")),
     (ROOT / "CREDITS.md", Path("CREDITS.md")),
     (ROOT / "THIRD_PARTY_NOTICES.md", Path("THIRD_PARTY_NOTICES.md")),
@@ -259,7 +262,7 @@ def non_negative_int(value: str) -> int:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Package fnTech3 manual or tagged release artifacts")
-    parser.add_argument("--channel", choices=("manual", "release"), required=True)
+    parser.add_argument("--channel", choices=("manual", "candidate", "release"), required=True)
     parser.add_argument("--artifact-root", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, default=ROOT / ".install")
     parser.add_argument("--temp-dir", type=Path, default=ROOT / ".tmp" / "release")
@@ -536,7 +539,7 @@ def validate_evidence_document_links(files: dict[str, bytes]) -> None:
 
 def build_root_archive(stage_root: Path) -> Path:
     archive_path = stage_root / ROOT_ARCHIVE_NAME
-    write_root_archive(archive_path)
+    write_root_archive(archive_path, required_assets=DEFAULT_ROOT_ARCHIVE_REQUIRED_ASSETS)
     validate_root_archive(archive_path)
     return archive_path
 
@@ -1202,6 +1205,12 @@ def resolve_glx_runtime_proof(
                 "--glx-proof-root is required for this release; public and tagged "
                 "releases need reviewed non-dry-run GLx runtime proof."
             )
+        if args.channel == "candidate":
+            return {
+                "required": False,
+                "status": "not-established",
+                "reason": "Development prerelease; runtime compatibility gates remain open. See docs/fntech3/COMPATIBILITY.md.",
+            }
         return {
             "required": False,
             "status": "not-required",
@@ -1339,6 +1348,7 @@ def build_archives(args: argparse.Namespace) -> dict[str, object]:
         commit=args.commit,
         ref_name=args.ref_name,
     )
+    source_commit = resolve_proof_source_commit(args.commit)
     proof_source_commit = (
         resolve_proof_source_commit(args.commit)
         if args.glx_proof_root is not None
@@ -1426,6 +1436,11 @@ def build_archives(args: argparse.Namespace) -> dict[str, object]:
         "release_title": meta["release_title"],
         "build_date": meta["build_date"],
         "commit": meta["commit"],
+        "source_commit": source_commit,
+        "prerelease": args.channel == "candidate",
+        "compatibility_ledger": "docs/fntech3/COMPATIBILITY.md",
+        "build_run_id": os.environ.get("GITHUB_RUN_ID", ""),
+        "build_run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
         "glx_proof_corpus": release_corpus_manifest(),
         "glx_release_evidence_docs": GLX_RELEASE_EVIDENCE_DOCS,
         "glx_runtime_proof": glx_runtime_proof,
@@ -1440,6 +1455,7 @@ def build_archives(args: argparse.Namespace) -> dict[str, object]:
         newline="\n",
     )
     checksum_lines = [f"{archive['sha256']}  {Path(archive['path']).name}" for archive in archives]
+    checksum_lines.append(f"{sha256sum(output_dir / 'release-manifest.json')}  release-manifest.json")
     (output_dir / "SHA256SUMS.txt").write_text(
         "\n".join(checksum_lines) + ("\n" if checksum_lines else ""),
         encoding="utf-8",

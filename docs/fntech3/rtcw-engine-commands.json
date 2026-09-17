@@ -1,0 +1,4310 @@
+{
+  "version": 1,
+  "scope": "Original engine console registrations, including platform/build conditionals; excludes null module-completion entries. Registration coverage is not runtime compatibility. Reference implementation text is not incorporated.",
+  "reference_urls": {
+    "rtcw-sp": "https://github.com/id-Software/RTCW-SP",
+    "rtcw-mp": "https://github.com/id-Software/RTCW-MP"
+  },
+  "reference_files": {
+    "rtcw-sp": {
+      "client/cl_console.c": "6b5532f1882c288457ea7c0daf53a301f93db7a6945b1aec78db23bfe8f0da30",
+      "client/cl_input.c": "bd8b92300f110df3f1e6f0fd78dd0580a9a6ad4b8a698045dec8ca5a94760836",
+      "client/cl_keys.c": "4a61c0034e0b82e08ee4d68706eeeba3e5cd6710dbf5035b6db2e82e57e3a2ee",
+      "client/cl_main.c": "504257aa5356b1ac753999a5a6b929d66bad190e8222a1c5782e9f84073ee9f4",
+      "client/snd_dma.c": "fc383f27d132f3c24da67a1c4577678eb216f5a33418bd3f707f71df5af5a11a",
+      "qcommon/cmd.c": "766c31106bf8d5215701245f8df97896e1db9e615a8370896ea831b0c5eff044",
+      "qcommon/common.c": "552a0b0dd29d2a1b56fb2b060cb10b5f898084bb166a3ffefb6c0617cb1c9dc8",
+      "qcommon/cvar.c": "c2aa8eba1e37a927f9f5a3cb80632cb3892d234a004a010dc1ec13d6ca1f9b91",
+      "qcommon/files.c": "4ecfde4777603ffa9321065c04f01e98c21ef1aa4e3fb7076348595948bf7866",
+      "qcommon/vm.c": "b78371f67ea56f3aa8e5e832d9d7a03ef5955660fcce402eb336c286242a41a8",
+      "renderer/tr_init.c": "abe8245208a85697adb6804b2fdc62d31dc3071f57a5f8a7da44763f1adf31c9",
+      "server/sv_ccmds.c": "a9646cb8be8819c024e75d8b2447a0aad5b36d2671d5ab33d490475b33d9236d",
+      "unix/unix_main.c": "612bf4f0bbe43d599992db5bc3d5ca7c828e0dfbf39c306a2c6014f08dd54f56",
+      "win32/win_input.c": "9e3b8ec8bbc3519f4d22a8a9bedc536ff9533d4c49435bf2c82b590288a392c4",
+      "win32/win_main.c": "b63b34273ebdddd0b5b570f1d371755700ffafd4568eb102740cbfb008b51aee"
+    },
+    "rtcw-mp": {
+      "client/cl_console.c": "8f0e9394cf97c52792d85bee858daebaa2330ad63494ce96e86e247f0ed6c751",
+      "client/cl_input.c": "1ad5d6aafe260607f6f0a22e0cda24e1aab3f0b17cf4da413fe17fdeebc12413",
+      "client/cl_keys.c": "e6ffd9c75553f86454cbdba316c03edebab37fe3b4bece9122932afe130b3d04",
+      "client/cl_main.c": "1c0efab0f1924ce086e7140254a07aaf0e638be6e6879cc2c05320a6bbe75835",
+      "client/snd_dma.c": "f475f4466f92be3e75afb9ce396069a5ecff0813c1e3614d8fabbd06ca566e06",
+      "qcommon/cmd.c": "4dd9351ee41e54fbfadb3abc5b6a842ab9a2fb95d659981c7b6c72dbfbcb37a2",
+      "qcommon/common.c": "07dd329dc7c0a44371f5989a55496066943bedc9bc57051b8504a8a2db2e1c05",
+      "qcommon/cvar.c": "df05203c2eb5e4dcbce9e70db7d1134a56156acf5310687ae751e537b3737503",
+      "qcommon/files.c": "1af728131161df66d735a31a16176528ed59e32bf2738c2cb653b2cafe4a07a9",
+      "qcommon/vm.c": "6984ad2d5da7a091069b79b7ffa2ad4328a8f497a6e7b2a17ed34d29bb265f22",
+      "renderer/tr_init.c": "00ccd44228dc387150ed9f09160fd9ccb0c7a1e6b41ce05d424712f140708565",
+      "server/sv_ccmds.c": "a3ca71be071f0ff3f01e78c157b0e26c5ec08c1f9041150fba950ead1026b79d",
+      "unix/unix_main.c": "d6eec7a5985ba4ac4f29acff9760b5b444abe6dc2966c59c0084a35e52ac719b",
+      "win32/win_input.c": "7c902d33b01389e9afc2afb983cf9aebf8f37b81b5ae13afcb895804a2ff5028",
+      "win32/win_main.c": "45cd6b59542f7c404b636ab5441bb728c7a343ea798c394bbf3278bbe48e213e"
+    }
+  },
+  "commands": [
+    {
+      "name": "+activate",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 987,
+            "handler": "IN_ActivateDown"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1012,
+            "handler": "IN_ActivateDown"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "+attack",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 962,
+            "handler": "IN_Button0Down"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 987,
+            "handler": "IN_Button0Down"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "+attack2",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1001,
+            "handler": "IN_Wbutton0Down"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1026,
+            "handler": "IN_Wbutton0Down"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "+back",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 947,
+            "handler": "IN_BackDown"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 972,
+            "handler": "IN_BackDown"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "+button1",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 967,
+            "handler": "IN_Button1Down"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 992,
+            "handler": "IN_Button1Down"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "+button4",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 978,
+            "handler": "IN_Button4Down"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1003,
+            "handler": "IN_Button4Down"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "+dropweapon",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1039,
+            "handler": "IN_MP_DropWeaponDown"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "+forward",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 945,
+            "handler": "IN_ForwardDown"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 970,
+            "handler": "IN_ForwardDown"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "+kick",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 992,
+            "handler": "IN_KickDown"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1017,
+            "handler": "IN_KickDown"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "+leanleft",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1009,
+            "handler": "IN_LeanLeftDown"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1034,
+            "handler": "IN_LeanLeftDown"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "+leanright",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1011,
+            "handler": "IN_LeanRightDown"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1036,
+            "handler": "IN_LeanRightDown"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "+left",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 941,
+            "handler": "IN_LeftDown"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 966,
+            "handler": "IN_LeftDown"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "+lookdown",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 951,
+            "handler": "IN_LookdownDown"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 976,
+            "handler": "IN_LookdownDown"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "+lookup",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 949,
+            "handler": "IN_LookupDown"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 974,
+            "handler": "IN_LookupDown"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "+mlook",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1019,
+            "handler": "IN_MLookDown"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1047,
+            "handler": "IN_MLookDown"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "+movedown",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 939,
+            "handler": "IN_DownDown"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 964,
+            "handler": "IN_DownDown"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "+moveleft",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 955,
+            "handler": "IN_MoveleftDown"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 980,
+            "handler": "IN_MoveleftDown"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "+moveright",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 957,
+            "handler": "IN_MoverightDown"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 982,
+            "handler": "IN_MoverightDown"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "+moveup",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 937,
+            "handler": "IN_UpDown"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 962,
+            "handler": "IN_UpDown"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "+quickgren",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1005,
+            "handler": "IN_QuickGrenDown"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1030,
+            "handler": "IN_QuickGrenDown"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "+reload",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1007,
+            "handler": "IN_ReloadDown"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1032,
+            "handler": "IN_ReloadDown"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "+right",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 943,
+            "handler": "IN_RightDown"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 968,
+            "handler": "IN_RightDown"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "+salute",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 973,
+            "handler": "IN_Button3Down"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 998,
+            "handler": "IN_Button3Down"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "+speed",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 959,
+            "handler": "IN_SpeedDown"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 984,
+            "handler": "IN_SpeedDown"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "+sprint",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 996,
+            "handler": "IN_SprintDown"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1021,
+            "handler": "IN_SprintDown"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "+strafe",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 953,
+            "handler": "IN_StrafeDown"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 978,
+            "handler": "IN_StrafeDown"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "+useitem",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 970,
+            "handler": "IN_UseItemDown"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 995,
+            "handler": "IN_UseItemDown"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "+wbutton6",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1013,
+            "handler": "IN_Wbutton6Down"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "+wbutton7",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1015,
+            "handler": "IN_Wbutton7Down"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1042,
+            "handler": "IN_Wbutton7Down"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "+zoom",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1003,
+            "handler": "IN_ZoomDown"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1028,
+            "handler": "IN_ZoomDown"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "-activate",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 988,
+            "handler": "IN_ActivateUp"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1013,
+            "handler": "IN_ActivateUp"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "-attack",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 963,
+            "handler": "IN_Button0Up"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 988,
+            "handler": "IN_Button0Up"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "-attack2",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1002,
+            "handler": "IN_Wbutton0Up"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1027,
+            "handler": "IN_Wbutton0Up"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "-back",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 948,
+            "handler": "IN_BackUp"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 973,
+            "handler": "IN_BackUp"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "-button1",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 968,
+            "handler": "IN_Button1Up"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 993,
+            "handler": "IN_Button1Up"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "-button4",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 979,
+            "handler": "IN_Button4Up"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1004,
+            "handler": "IN_Button4Up"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "-dropweapon",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1040,
+            "handler": "IN_MP_DropWeaponUp"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "-forward",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 946,
+            "handler": "IN_ForwardUp"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 971,
+            "handler": "IN_ForwardUp"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "-kick",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 993,
+            "handler": "IN_KickUp"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1018,
+            "handler": "IN_KickUp"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "-leanleft",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1010,
+            "handler": "IN_LeanLeftUp"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1035,
+            "handler": "IN_LeanLeftUp"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "-leanright",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1012,
+            "handler": "IN_LeanRightUp"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1037,
+            "handler": "IN_LeanRightUp"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "-left",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 942,
+            "handler": "IN_LeftUp"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 967,
+            "handler": "IN_LeftUp"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "-lookdown",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 952,
+            "handler": "IN_LookdownUp"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 977,
+            "handler": "IN_LookdownUp"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "-lookup",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 950,
+            "handler": "IN_LookupUp"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 975,
+            "handler": "IN_LookupUp"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "-mlook",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1020,
+            "handler": "IN_MLookUp"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1048,
+            "handler": "IN_MLookUp"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "-movedown",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 940,
+            "handler": "IN_DownUp"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 965,
+            "handler": "IN_DownUp"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "-moveleft",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 956,
+            "handler": "IN_MoveleftUp"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 981,
+            "handler": "IN_MoveleftUp"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "-moveright",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 958,
+            "handler": "IN_MoverightUp"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 983,
+            "handler": "IN_MoverightUp"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "-moveup",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 938,
+            "handler": "IN_UpUp"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 963,
+            "handler": "IN_UpUp"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "-quickgren",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1006,
+            "handler": "IN_QuickGrenUp"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1031,
+            "handler": "IN_QuickGrenUp"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "-reload",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1008,
+            "handler": "IN_ReloadUp"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1033,
+            "handler": "IN_ReloadUp"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "-right",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 944,
+            "handler": "IN_RightUp"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 969,
+            "handler": "IN_RightUp"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "-salute",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 974,
+            "handler": "IN_Button3Up"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 999,
+            "handler": "IN_Button3Up"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "-speed",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 960,
+            "handler": "IN_SpeedUp"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 985,
+            "handler": "IN_SpeedUp"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "-sprint",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 997,
+            "handler": "IN_SprintUp"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1022,
+            "handler": "IN_SprintUp"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "-strafe",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 954,
+            "handler": "IN_StrafeUp"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 979,
+            "handler": "IN_StrafeUp"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "-useitem",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 971,
+            "handler": "IN_UseItemUp"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 996,
+            "handler": "IN_UseItemUp"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "-wbutton6",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1014,
+            "handler": "IN_Wbutton6Up"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "-wbutton7",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1016,
+            "handler": "IN_Wbutton7Up"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1043,
+            "handler": "IN_Wbutton7Up"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "-zoom",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1004,
+            "handler": "IN_ZoomUp"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1029,
+            "handler": "IN_ZoomUp"
+          }
+        ]
+      },
+      "note": "Engine input command; RTCW-only additions use profile-scoped registration and the existing input lifetime machinery."
+    },
+    {
+      "name": "banclient",
+      "disposition": "engine",
+      "owners": [
+        "server/sv_ccmds.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 923,
+            "handler": "SV_BanNum_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 924,
+            "handler": "SV_BanNum_f"
+          }
+        ]
+      },
+      "note": "Conditional USE_BANS/non-standalone legacy account-ban command. Registration does not establish any external authorization service."
+    },
+    {
+      "name": "banuser",
+      "disposition": "engine",
+      "owners": [
+        "server/sv_ccmds.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 922,
+            "handler": "SV_Ban_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 923,
+            "handler": "SV_Ban_f"
+          }
+        ]
+      },
+      "note": "Conditional USE_BANS/non-standalone legacy account-ban command. Registration does not establish any external authorization service."
+    },
+    {
+      "name": "bind",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/keys.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_keys.c",
+            "line": 1626,
+            "handler": "Key_Bind_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_keys.c",
+            "line": 1628,
+            "handler": "Key_Bind_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "bindlist",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/keys.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_keys.c",
+            "line": 1629,
+            "handler": "Key_Bindlist_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_keys.c",
+            "line": 1631,
+            "handler": "Key_Bindlist_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "buynow",
+      "disposition": "retired-integration",
+      "owners": [],
+      "original": {
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2979,
+            "handler": "CL_buyNow_f"
+          }
+        ]
+      },
+      "note": "Legacy retail/demo purchase URL launcher; not implemented."
+    },
+    {
+      "name": "cache_endgather",
+      "disposition": "optional-tooling",
+      "owners": [],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2593,
+            "handler": "CL_Cache_EndGather_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2964,
+            "handler": "CL_Cache_EndGather_f"
+          }
+        ]
+      },
+      "note": "Legacy cache-list export; current engine does not write the old gatherer outputs."
+    },
+    {
+      "name": "cache_mapchange",
+      "disposition": "optional-tooling",
+      "owners": [],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2592,
+            "handler": "CL_Cache_MapChange_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2963,
+            "handler": "CL_Cache_MapChange_f"
+          }
+        ]
+      },
+      "note": "Legacy cache-list authoring marker; no runtime dependency in current loader."
+    },
+    {
+      "name": "cache_setindex",
+      "disposition": "optional-tooling",
+      "owners": [],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2591,
+            "handler": "CL_Cache_SetIndex_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2962,
+            "handler": "CL_Cache_SetIndex_f"
+          }
+        ]
+      },
+      "note": "Legacy cache-list authoring index; no runtime dependency in current loader."
+    },
+    {
+      "name": "cache_startgather",
+      "disposition": "optional-tooling",
+      "owners": [],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2589,
+            "handler": "CL_Cache_StartGather_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2960,
+            "handler": "CL_Cache_StartGather_f"
+          }
+        ]
+      },
+      "note": "Legacy cache-list authoring; current asset loading does not use the gatherer."
+    },
+    {
+      "name": "cache_usedfile",
+      "disposition": "optional-tooling",
+      "owners": [],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2590,
+            "handler": "CL_Cache_UsedFile_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2961,
+            "handler": "CL_Cache_UsedFile_f"
+          }
+        ]
+      },
+      "note": "Legacy cache-list authoring event; no retail module console dependency found."
+    },
+    {
+      "name": "centerview",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 935,
+            "handler": "IN_CenterView"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 960,
+            "handler": "IN_CenterView"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "changevectors",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/common.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "qcommon/common.c",
+            "line": 2071,
+            "handler": "MSG_ReportChangeVectors_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "qcommon/common.c",
+            "line": 2529,
+            "handler": "MSG_ReportChangeVectors_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "cinematic",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2574,
+            "handler": "CL_PlayCinematic_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2945,
+            "handler": "CL_PlayCinematic_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "cld",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2600,
+            "handler": "CL_ClientDamageCommand"
+          }
+        ]
+      },
+      "note": "Original SP deliberately consumes this console command without action; actual damage uses usercmd cld or explicit client commands."
+    },
+    {
+      "name": "clear",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_console.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_console.c",
+            "line": 388,
+            "handler": "Con_Clear_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_console.c",
+            "line": 378,
+            "handler": "Con_Clear_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "clientinfo",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2568,
+            "handler": "CL_Clientinfo_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2938,
+            "handler": "CL_Clientinfo_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "clientkick",
+      "disposition": "engine",
+      "owners": [
+        "server/sv_ccmds.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 924,
+            "handler": "SV_KickNum_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 925,
+            "handler": "SV_KickNum_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "cmd",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2566,
+            "handler": "CL_ForwardToServer_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2936,
+            "handler": "CL_ForwardToServer_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "cmdlist",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/cmd.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "qcommon/cmd.c",
+            "line": 692,
+            "handler": "Cmd_List_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "qcommon/cmd.c",
+            "line": 707,
+            "handler": "Cmd_List_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "condump",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_console.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_console.c",
+            "line": 389,
+            "handler": "Con_Dump_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_console.c",
+            "line": 379,
+            "handler": "Con_Dump_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "configstrings",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2567,
+            "handler": "CL_Configstrings_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2937,
+            "handler": "CL_Configstrings_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "connect",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2576,
+            "handler": "CL_Connect_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2947,
+            "handler": "CL_Connect_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "crash",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/common.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "qcommon/common.c",
+            "line": 2067,
+            "handler": "Com_Crash_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "qcommon/common.c",
+            "line": 2525,
+            "handler": "Com_Crash_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "cropimages",
+      "disposition": "optional-tooling",
+      "owners": [],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "renderer/tr_init.c",
+            "line": 1155,
+            "handler": "R_CropImages_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "renderer/tr_init.c",
+            "line": 1117,
+            "handler": "R_CropImages_f"
+          }
+        ]
+      },
+      "note": "Offline renderer image-cropping authoring utility; not an asset-decoding requirement."
+    },
+    {
+      "name": "cvar_restart",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/cvar.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "qcommon/cvar.c",
+            "line": 907,
+            "handler": "Cvar_Restart_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "qcommon/cvar.c",
+            "line": 949,
+            "handler": "Cvar_Restart_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "cvarlist",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/cvar.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "qcommon/cvar.c",
+            "line": 906,
+            "handler": "Cvar_List_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "qcommon/cvar.c",
+            "line": 948,
+            "handler": "Cvar_List_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "demo",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2573,
+            "handler": "CL_PlayDemo_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2944,
+            "handler": "CL_PlayDemo_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "devmap",
+      "disposition": "engine",
+      "owners": [
+        "server/sv_ccmds.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 934,
+            "handler": "SV_Map_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 935,
+            "handler": "SV_Map_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "dir",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/files.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "qcommon/files.c",
+            "line": 2957,
+            "handler": "FS_Dir_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "qcommon/files.c",
+            "line": 3043,
+            "handler": "FS_Dir_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "disconnect",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2571,
+            "handler": "CL_Disconnect_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2942,
+            "handler": "CL_Disconnect_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "dumpuser",
+      "disposition": "engine",
+      "owners": [
+        "server/sv_ccmds.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 928,
+            "handler": "SV_DumpUser_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 929,
+            "handler": "SV_DumpUser_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "echo",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/cmd.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "qcommon/cmd.c",
+            "line": 695,
+            "handler": "Cmd_Echo_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "qcommon/cmd.c",
+            "line": 710,
+            "handler": "Cmd_Echo_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "error",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/common.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "qcommon/common.c",
+            "line": 2066,
+            "handler": "Com_Error_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "qcommon/common.c",
+            "line": 2524,
+            "handler": "Com_Error_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "exec",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/cmd.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "qcommon/cmd.c",
+            "line": 693,
+            "handler": "Cmd_Exec_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "qcommon/cmd.c",
+            "line": 708,
+            "handler": "Cmd_Exec_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "fdir",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/files.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "qcommon/files.c",
+            "line": 2958,
+            "handler": "FS_NewDir_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "qcommon/files.c",
+            "line": 3044,
+            "handler": "FS_NewDir_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "freeze",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/common.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "qcommon/common.c",
+            "line": 2068,
+            "handler": "Com_Freeze_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "qcommon/common.c",
+            "line": 2526,
+            "handler": "Com_Freeze_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "fs_openedlist",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2585,
+            "handler": "CL_OpenedPK3List_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2956,
+            "handler": "CL_OpenedPK3List_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "fs_referencedlist",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2586,
+            "handler": "CL_ReferencedPK3List_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2957,
+            "handler": "CL_ReferencedPK3List_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "gamecompletestatus",
+      "disposition": "unavailable-service",
+      "owners": [
+        "server/sv_ccmds.cpp"
+      ],
+      "original": {
+        "rtcw-mp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 933,
+            "handler": "SV_GameCompleteStatus_f"
+          }
+        ]
+      },
+      "note": "MP match-end command reports that master match reporting is unavailable; sends no report and claims no service success."
+    },
+    {
+      "name": "gfxinfo",
+      "disposition": "engine",
+      "owners": [
+        "renderer/tr_init.c",
+        "rendererrtx/tr_init.c",
+        "renderervk/tr_init.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "renderer/tr_init.c",
+            "line": 1151,
+            "handler": "GfxInfo_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "renderer/tr_init.c",
+            "line": 1111,
+            "handler": "GfxInfo_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "globalservers",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2579,
+            "handler": "CL_GlobalServers_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2950,
+            "handler": "CL_GlobalServers_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "heartbeat",
+      "disposition": "engine",
+      "owners": [
+        "server/sv_ccmds.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 920,
+            "handler": "SV_Heartbeat_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 921,
+            "handler": "SV_Heartbeat_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "help",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp"
+      ],
+      "original": {
+        "rtcw-mp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1051,
+            "handler": "IN_Help"
+          }
+        ]
+      },
+      "note": "RTCW runtime handler; executable command tests cover dispatch, guards or profile ownership."
+    },
+    {
+      "name": "hunklog",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/common.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "qcommon/common.c",
+            "line": 1103,
+            "handler": "Hunk_Log"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "qcommon/common.c",
+            "line": 1559,
+            "handler": "Hunk_Log"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "hunksmalllog",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/common.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "qcommon/common.c",
+            "line": 1104,
+            "handler": "Hunk_SmallLog"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "qcommon/common.c",
+            "line": 1560,
+            "handler": "Hunk_SmallLog"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "imagelist",
+      "disposition": "engine",
+      "owners": [
+        "renderer/tr_init.c",
+        "rendererrtx/tr_init.c",
+        "renderervk/tr_init.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "renderer/tr_init.c",
+            "line": 1144,
+            "handler": "R_ImageList_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "renderer/tr_init.c",
+            "line": 1104,
+            "handler": "R_ImageList_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "in_restart",
+      "disposition": "engine",
+      "owners": [
+        "sdl/sdl_input.cpp",
+        "unix/linux_glimp.cpp",
+        "win32/win_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "win32/win_main.c",
+            "line": 1165,
+            "handler": "Sys_In_Restart_f"
+          },
+          {
+            "file": "unix/unix_main.c",
+            "line": 295,
+            "handler": "Sys_In_Restart_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "win32/win_main.c",
+            "line": 1121,
+            "handler": "Sys_In_Restart_f"
+          },
+          {
+            "file": "unix/unix_main.c",
+            "line": 297,
+            "handler": "Sys_In_Restart_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "kick",
+      "disposition": "engine",
+      "owners": [
+        "server/sv_ccmds.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 921,
+            "handler": "SV_Kick_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 922,
+            "handler": "SV_Kick_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "killserver",
+      "disposition": "engine",
+      "owners": [
+        "server/sv_ccmds.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 938,
+            "handler": "SV_KillServer_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 940,
+            "handler": "SV_KillServer_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "loadgame",
+      "disposition": "engine",
+      "owners": [
+        "server/sv_ccmds.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 937,
+            "handler": "SV_LoadGame_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 939,
+            "handler": "SV_LoadGame_f"
+          }
+        ]
+      },
+      "note": "SP campaign command only in fnTech3. The original MP source also carries an inherited SP save loader; this does not establish an MP savegame contract."
+    },
+    {
+      "name": "loadtranslations",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp"
+      ],
+      "original": {
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2972,
+            "handler": "CL_LoadTranslations_f"
+          }
+        ]
+      },
+      "note": "RTCW runtime handler; executable command tests cover dispatch, guards or profile ownership."
+    },
+    {
+      "name": "localservers",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2578,
+            "handler": "CL_LocalServers_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2949,
+            "handler": "CL_LocalServers_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "map",
+      "disposition": "engine",
+      "owners": [
+        "server/sv_ccmds.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 933,
+            "handler": "SV_Map_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 932,
+            "handler": "SV_Map_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "map_restart",
+      "disposition": "engine",
+      "owners": [
+        "server/sv_ccmds.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2610,
+            "handler": "CL_MapRestart_f"
+          },
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 929,
+            "handler": "SV_MapRestart_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 930,
+            "handler": "SV_MapRestart_f"
+          }
+        ]
+      },
+      "note": "Existing profile-aware server restart/save handling; covered by separate campaign/match-state tests."
+    },
+    {
+      "name": "meminfo",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/common.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "qcommon/common.c",
+            "line": 1101,
+            "handler": "Com_Meminfo_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "qcommon/common.c",
+            "line": 1554,
+            "handler": "Com_Meminfo_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "messagemode",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_console.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_console.c",
+            "line": 382,
+            "handler": "Con_MessageMode_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_console.c",
+            "line": 372,
+            "handler": "Con_MessageMode_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "messagemode2",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_console.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_console.c",
+            "line": 383,
+            "handler": "Con_MessageMode2_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_console.c",
+            "line": 373,
+            "handler": "Con_MessageMode2_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "messagemode3",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_console.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_console.c",
+            "line": 384,
+            "handler": "Con_MessageMode3_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_console.c",
+            "line": 374,
+            "handler": "Con_MessageMode3_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "messagemode4",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_console.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_console.c",
+            "line": 385,
+            "handler": "Con_MessageMode4_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_console.c",
+            "line": 375,
+            "handler": "Con_MessageMode4_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "midiinfo",
+      "disposition": "engine",
+      "owners": [
+        "win32/win_input.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "win32/win_input.c",
+            "line": 427,
+            "handler": "MidiInfo_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "win32/win_input.c",
+            "line": 436,
+            "handler": "MidiInfo_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "modelist",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "renderer/tr_init.c",
+            "line": 1148,
+            "handler": "R_ModeList_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "renderer/tr_init.c",
+            "line": 1108,
+            "handler": "R_ModeList_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "modellist",
+      "disposition": "engine",
+      "owners": [
+        "renderer/tr_init.c",
+        "rendererrtx/tr_init.c",
+        "renderervk/tr_init.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "renderer/tr_init.c",
+            "line": 1147,
+            "handler": "R_Modellist_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "renderer/tr_init.c",
+            "line": 1107,
+            "handler": "R_Modellist_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "music",
+      "disposition": "engine",
+      "owners": [
+        "client/audio/snd_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/snd_dma.c",
+            "line": 195,
+            "handler": "S_Music_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/snd_dma.c",
+            "line": 223,
+            "handler": "S_Music_f"
+          }
+        ]
+      },
+      "note": "RTCW runtime handler; executable command tests cover dispatch, guards or profile ownership."
+    },
+    {
+      "name": "net_restart",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/net_ip.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "win32/win_main.c",
+            "line": 1166,
+            "handler": "Sys_Net_Restart_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "win32/win_main.c",
+            "line": 1122,
+            "handler": "Sys_Net_Restart_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "notebook",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_input.c",
+            "line": 1022,
+            "handler": "IN_Notebook"
+          }
+        ]
+      },
+      "note": "RTCW runtime handler; executable command tests cover dispatch, guards or profile ownership."
+    },
+    {
+      "name": "path",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/files.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "qcommon/files.c",
+            "line": 2956,
+            "handler": "FS_Path_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "qcommon/files.c",
+            "line": 3042,
+            "handler": "FS_Path_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "ping",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2582,
+            "handler": "CL_Ping_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2953,
+            "handler": "CL_Ping_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "play",
+      "disposition": "engine",
+      "owners": [
+        "client/audio/snd_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/snd_dma.c",
+            "line": 194,
+            "handler": "S_Play_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/snd_dma.c",
+            "line": 222,
+            "handler": "S_Play_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "queuemusic",
+      "disposition": "engine",
+      "owners": [
+        "client/audio/snd_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/snd_dma.c",
+            "line": 196,
+            "handler": "S_QueueMusic_f"
+          }
+        ]
+      },
+      "note": "RTCW runtime handler; executable command tests cover dispatch, guards or profile ownership."
+    },
+    {
+      "name": "quit",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/common.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "qcommon/common.c",
+            "line": 2070,
+            "handler": "Com_Quit_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "qcommon/common.c",
+            "line": 2528,
+            "handler": "Com_Quit_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "rcon",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2580,
+            "handler": "CL_Rcon_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2951,
+            "handler": "CL_Rcon_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "reconnect",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2577,
+            "handler": "CL_Reconnect_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2948,
+            "handler": "CL_Reconnect_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "record",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2572,
+            "handler": "CL_Record_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2943,
+            "handler": "CL_Record_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "reset",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/cvar.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "qcommon/cvar.c",
+            "line": 905,
+            "handler": "Cvar_Reset_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "qcommon/cvar.c",
+            "line": 947,
+            "handler": "Cvar_Reset_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "s_info",
+      "disposition": "engine",
+      "owners": [
+        "client/audio/snd_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/snd_dma.c",
+            "line": 199,
+            "handler": "S_SoundInfo_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/snd_dma.c",
+            "line": 226,
+            "handler": "S_SoundInfo_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "s_list",
+      "disposition": "engine",
+      "owners": [
+        "client/audio/snd_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/snd_dma.c",
+            "line": 198,
+            "handler": "S_SoundList_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/snd_dma.c",
+            "line": 225,
+            "handler": "S_SoundList_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "s_stop",
+      "disposition": "engine",
+      "owners": [
+        "client/audio/snd_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/snd_dma.c",
+            "line": 200,
+            "handler": "S_StopAllSounds"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/snd_dma.c",
+            "line": 227,
+            "handler": "S_StopAllSounds"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "savenewtranslations",
+      "disposition": "optional-tooling",
+      "owners": [],
+      "original": {
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2971,
+            "handler": "CL_SaveNewTranslations_f"
+          }
+        ]
+      },
+      "note": "Optional missing-translation authoring export; runtime dictionary loading is implemented."
+    },
+    {
+      "name": "savetranslations",
+      "disposition": "optional-tooling",
+      "owners": [],
+      "original": {
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2970,
+            "handler": "CL_SaveTranslations_f"
+          }
+        ]
+      },
+      "note": "Optional translation-authoring export; runtime dictionary loading is implemented."
+    },
+    {
+      "name": "say",
+      "disposition": "engine",
+      "owners": [
+        "server/sv_ccmds.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 940,
+            "handler": "SV_ConSay_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 942,
+            "handler": "SV_ConSay_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "screenshot",
+      "disposition": "engine",
+      "owners": [
+        "renderer/tr_init.c",
+        "rendererrtx/tr_init.c",
+        "renderervk/tr_init.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "renderer/tr_init.c",
+            "line": 1149,
+            "handler": "R_ScreenShot_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "renderer/tr_init.c",
+            "line": 1109,
+            "handler": "R_ScreenShot_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "screenshotjpeg",
+      "disposition": "engine",
+      "owners": [
+        "renderer/tr_init.c",
+        "rendererrtx/tr_init.c",
+        "renderervk/tr_init.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "renderer/tr_init.c",
+            "line": 1150,
+            "handler": "R_ScreenShotJPEG_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "renderer/tr_init.c",
+            "line": 1110,
+            "handler": "R_ScreenShotJPEG_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "sectorlist",
+      "disposition": "engine",
+      "owners": [
+        "server/sv_ccmds.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 930,
+            "handler": "SV_SectorList_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 931,
+            "handler": "SV_SectorList_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "serverinfo",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp",
+        "server/sv_ccmds.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 926,
+            "handler": "SV_Serverinfo_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 927,
+            "handler": "SV_Serverinfo_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "serverstatus",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2583,
+            "handler": "CL_ServerStatus_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2954,
+            "handler": "CL_ServerStatus_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "set",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/cvar.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "qcommon/cvar.c",
+            "line": 901,
+            "handler": "Cvar_Set_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "qcommon/cvar.c",
+            "line": 943,
+            "handler": "Cvar_Set_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "seta",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/cvar.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "qcommon/cvar.c",
+            "line": 904,
+            "handler": "Cvar_SetA_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "qcommon/cvar.c",
+            "line": 946,
+            "handler": "Cvar_SetA_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "setenv",
+      "disposition": "retired-integration",
+      "owners": [],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2581,
+            "handler": "CL_Setenv_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2952,
+            "handler": "CL_Setenv_f"
+          }
+        ]
+      },
+      "note": "Legacy process-environment console interface; not required by retail menus, game modules or configs inspected."
+    },
+    {
+      "name": "setrecommended",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2612,
+            "handler": "CL_SetRecommended_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2982,
+            "handler": "CL_SetRecommended_f"
+          }
+        ]
+      },
+      "note": "Retail video-quality configs and restart convention, with the high CPU tier for supported modern platforms."
+    },
+    {
+      "name": "sets",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/cvar.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "qcommon/cvar.c",
+            "line": 902,
+            "handler": "Cvar_SetS_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "qcommon/cvar.c",
+            "line": 944,
+            "handler": "Cvar_SetS_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "setu",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/cvar.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "qcommon/cvar.c",
+            "line": 903,
+            "handler": "Cvar_SetU_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "qcommon/cvar.c",
+            "line": 945,
+            "handler": "Cvar_SetU_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "shaderlist",
+      "disposition": "engine",
+      "owners": [
+        "renderer/tr_init.c",
+        "rendererrtx/tr_init.c",
+        "renderervk/tr_init.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "renderer/tr_init.c",
+            "line": 1145,
+            "handler": "R_ShaderList_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "renderer/tr_init.c",
+            "line": 1105,
+            "handler": "R_ShaderList_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "shellexecute",
+      "disposition": "retired-integration",
+      "owners": [],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2606,
+            "handler": "CL_ShellExecute_URL_f"
+          }
+        ]
+      },
+      "note": "Legacy retail external-URL launcher; not part of local gameplay or unified mode switching."
+    },
+    {
+      "name": "showip",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2584,
+            "handler": "CL_ShowIP_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2955,
+            "handler": "CL_ShowIP_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "singleplaylink",
+      "disposition": "retired-integration",
+      "owners": [],
+      "original": {
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2980,
+            "handler": "CL_singlePlayLink_f"
+          }
+        ]
+      },
+      "note": "Legacy purchase/retail launcher; startSingleplayer uses the unified profile relaunch controller."
+    },
+    {
+      "name": "skinlist",
+      "disposition": "engine",
+      "owners": [
+        "renderer/tr_init.c",
+        "rendererrtx/tr_init.c",
+        "renderervk/tr_init.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "renderer/tr_init.c",
+            "line": 1146,
+            "handler": "R_SkinList_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "renderer/tr_init.c",
+            "line": 1106,
+            "handler": "R_SkinList_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "snd_restart",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2569,
+            "handler": "CL_Snd_Restart_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2939,
+            "handler": "CL_Snd_Restart_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "spdevmap",
+      "disposition": "engine",
+      "owners": [
+        "server/sv_ccmds.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 935,
+            "handler": "SV_Map_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 937,
+            "handler": "SV_Map_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "spmap",
+      "disposition": "engine",
+      "owners": [
+        "server/sv_ccmds.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 931,
+            "handler": "SV_Map_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 936,
+            "handler": "SV_Map_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "startlimbomode",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_console.c",
+            "line": 386,
+            "handler": "Con_StartLimboMode_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_console.c",
+            "line": 376,
+            "handler": "Con_StartLimboMode_f"
+          }
+        ]
+      },
+      "note": "RTCW runtime handler; executable command tests cover dispatch, guards or profile ownership."
+    },
+    {
+      "name": "startmultiplayer",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/common.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2602,
+            "handler": "CL_startMultiplayer_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "startsingleplayer",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/common.c"
+      ],
+      "original": {
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2978,
+            "handler": "CL_startSingleplayer_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "status",
+      "disposition": "engine",
+      "owners": [
+        "server/sv_ccmds.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 925,
+            "handler": "SV_Status_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 926,
+            "handler": "SV_Status_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "stoplimbomode",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_console.c",
+            "line": 387,
+            "handler": "Con_StopLimboMode_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_console.c",
+            "line": 377,
+            "handler": "Con_StopLimboMode_f"
+          }
+        ]
+      },
+      "note": "RTCW runtime handler; executable command tests cover dispatch, guards or profile ownership."
+    },
+    {
+      "name": "stoprecord",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2575,
+            "handler": "CL_StopRecord_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2946,
+            "handler": "CL_StopRecord_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "streamingsound",
+      "disposition": "engine",
+      "owners": [
+        "client/audio/snd_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/snd_dma.c",
+            "line": 197,
+            "handler": "S_StreamingSound_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/snd_dma.c",
+            "line": 224,
+            "handler": "S_StreamingSound_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "systeminfo",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp",
+        "server/sv_ccmds.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 927,
+            "handler": "SV_Systeminfo_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "server/sv_ccmds.c",
+            "line": 928,
+            "handler": "SV_Systeminfo_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "taginfo",
+      "disposition": "optional-tooling",
+      "owners": [],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "renderer/tr_init.c",
+            "line": 1152,
+            "handler": "R_TagInfo_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "renderer/tr_init.c",
+            "line": 1112,
+            "handler": "R_TagInfo_f"
+          }
+        ]
+      },
+      "note": "Renderer tag statistics diagnostic; tag loading and interpolation have separate tests."
+    },
+    {
+      "name": "toggle",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/cvar.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "qcommon/cvar.c",
+            "line": 900,
+            "handler": "Cvar_Toggle_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "qcommon/cvar.c",
+            "line": 942,
+            "handler": "Cvar_Toggle_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "toggleconsole",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_console.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_console.c",
+            "line": 381,
+            "handler": "Con_ToggleConsole_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_console.c",
+            "line": 371,
+            "handler": "Con_ToggleConsole_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "touchfile",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/files.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "qcommon/files.c",
+            "line": 2959,
+            "handler": "FS_TouchFile_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "qcommon/files.c",
+            "line": 3045,
+            "handler": "FS_TouchFile_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "ui_restart",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp"
+      ],
+      "original": {
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2941,
+            "handler": "CL_UI_Restart_f"
+          }
+        ]
+      },
+      "note": "RTCW runtime handler; executable command tests cover dispatch, guards or profile ownership."
+    },
+    {
+      "name": "unbind",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/keys.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_keys.c",
+            "line": 1627,
+            "handler": "Key_Unbind_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_keys.c",
+            "line": 1629,
+            "handler": "Key_Unbind_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "unbindall",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/keys.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_keys.c",
+            "line": 1628,
+            "handler": "Key_Unbindall_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_keys.c",
+            "line": 1630,
+            "handler": "Key_Unbindall_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "updatehunkusage",
+      "disposition": "optional-tooling",
+      "owners": [],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2595,
+            "handler": "CL_UpdateLevelHunkUsage"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2966,
+            "handler": "CL_UpdateLevelHunkUsage"
+          }
+        ]
+      },
+      "note": "Legacy hunkusage.dat loading-progress estimate writer; current loader uses its own progress/timing."
+    },
+    {
+      "name": "updatescreen",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2596,
+            "handler": "SCR_UpdateScreen"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2967,
+            "handler": "SCR_UpdateScreen"
+          }
+        ]
+      },
+      "note": "RTCW runtime handler; executable command tests cover dispatch, guards or profile ownership."
+    },
+    {
+      "name": "vid_restart",
+      "disposition": "engine",
+      "owners": [
+        "client/cl_main.cpp"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2570,
+            "handler": "CL_Vid_Restart_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "client/cl_main.c",
+            "line": 2940,
+            "handler": "CL_Vid_Restart_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "vminfo",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/vm.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "qcommon/vm.c",
+            "line": 79,
+            "handler": "VM_VmInfo_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "qcommon/vm.c",
+            "line": 79,
+            "handler": "VM_VmInfo_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "vmprofile",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/vm.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "qcommon/vm.c",
+            "line": 78,
+            "handler": "VM_VmProfile_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "qcommon/vm.c",
+            "line": 78,
+            "handler": "VM_VmProfile_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "vstr",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/cmd.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "qcommon/cmd.c",
+            "line": 694,
+            "handler": "Cmd_Vstr_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "qcommon/cmd.c",
+            "line": 709,
+            "handler": "Cmd_Vstr_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "wait",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/cmd.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "qcommon/cmd.c",
+            "line": 696,
+            "handler": "Cmd_Wait_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "qcommon/cmd.c",
+            "line": 711,
+            "handler": "Cmd_Wait_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "writeconfig",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/common.c"
+      ],
+      "original": {
+        "rtcw-sp": [
+          {
+            "file": "qcommon/common.c",
+            "line": 2072,
+            "handler": "Com_WriteConfig_f"
+          }
+        ],
+        "rtcw-mp": [
+          {
+            "file": "qcommon/common.c",
+            "line": 2530,
+            "handler": "Com_WriteConfig_f"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    },
+    {
+      "name": "zonelog",
+      "disposition": "engine",
+      "owners": [
+        "qcommon/common.c"
+      ],
+      "original": {
+        "rtcw-mp": [
+          {
+            "file": "qcommon/common.c",
+            "line": 1556,
+            "handler": "Z_LogHeap"
+          }
+        ]
+      },
+      "note": "Existing shared engine registration; conditional platform/build/backend availability and runtime parity require their own gates."
+    }
+  ]
+}

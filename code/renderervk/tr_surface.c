@@ -786,6 +786,9 @@ static void VectorArrayNormalize(vec4_t *normals, unsigned int count)
 */
 static void LerpMeshVertexes_scalar(md3Surface_t *surf, float backlerp)
 {
+	/* RTCW MD3 and MDC base frames share the same packed-normal encoding. */
+	const float *normalTable = ( ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP )
+		? r_mdcNormals.sine : tr.sinTable;
 	short	*oldXyz, *newXyz, *oldNormals, *newNormals;
 	float	*outXyz, *outNormal;
 	float	oldXyzScale, newXyzScale;
@@ -828,9 +831,9 @@ static void LerpMeshVertexes_scalar(md3Surface_t *surf, float backlerp)
 			// decode Y as sin( lat ) * sin( long )
 			// decode Z as cos( long )
 
-			outNormal[0] = tr.sinTable[(lat+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK] * tr.sinTable[lng];
-			outNormal[1] = tr.sinTable[lat] * tr.sinTable[lng];
-			outNormal[2] = tr.sinTable[(lng+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK];
+			outNormal[0] = normalTable[(lat+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK] * normalTable[lng];
+			outNormal[1] = normalTable[lat] * normalTable[lng];
+			outNormal[2] = normalTable[(lng+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK];
 		}
 	} else {
 		//
@@ -859,18 +862,18 @@ static void LerpMeshVertexes_scalar(md3Surface_t *surf, float backlerp)
 			lng = ( newNormals[0] & 0xff );
 			lat *= 4;
 			lng *= 4;
-			uncompressedNewNormal[0] = tr.sinTable[(lat+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK] * tr.sinTable[lng];
-			uncompressedNewNormal[1] = tr.sinTable[lat] * tr.sinTable[lng];
-			uncompressedNewNormal[2] = tr.sinTable[(lng+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK];
+			uncompressedNewNormal[0] = normalTable[(lat+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK] * normalTable[lng];
+			uncompressedNewNormal[1] = normalTable[lat] * normalTable[lng];
+			uncompressedNewNormal[2] = normalTable[(lng+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK];
 
 			lat = ( oldNormals[0] >> 8 ) & 0xff;
 			lng = ( oldNormals[0] & 0xff );
 			lat *= 4;
 			lng *= 4;
 
-			uncompressedOldNormal[0] = tr.sinTable[(lat+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK] * tr.sinTable[lng];
-			uncompressedOldNormal[1] = tr.sinTable[lat] * tr.sinTable[lng];
-			uncompressedOldNormal[2] = tr.sinTable[(lng+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK];
+			uncompressedOldNormal[0] = normalTable[(lat+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK] * normalTable[lng];
+			uncompressedOldNormal[1] = normalTable[lat] * normalTable[lng];
+			uncompressedOldNormal[2] = normalTable[(lng+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK];
 
 			outNormal[0] = uncompressedOldNormal[0] * oldNormalScale + uncompressedNewNormal[0] * newNormalScale;
 			outNormal[1] = uncompressedOldNormal[1] * oldNormalScale + uncompressedNewNormal[1] * newNormalScale;

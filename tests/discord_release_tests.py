@@ -148,7 +148,7 @@ class DiscordReleasePayloadTests(unittest.TestCase):
             "https://github.com/themuffinator/FnQL/releases/tag/0.1.0.58-20260728-f35445c9",
         )
         self.assertEqual(embed["timestamp"], "2026-07-28T00:00:00Z")
-        self.assertEqual(embed["footer"], {"text": "fnTech3 | Target: Quake III Arena and Quake Live"})
+        self.assertEqual(embed["footer"], {"text": "fnTech3 | Target: Quake III Arena, Quake Live, and Return to Castle Wolfenstein (SP/MP)"})
 
     def test_payload_fields_report_version_state_and_ordered_downloads(self) -> None:
         fields = sample_payload()["embeds"][0]["fields"]  # type: ignore[index]
@@ -427,25 +427,13 @@ class DiscordReleaseCommandTests(unittest.TestCase):
 
 
 class DiscordReleaseWorkflowTests(unittest.TestCase):
-    def test_release_workflow_announces_as_the_final_publish_stage(self) -> None:
+    def test_draft_release_workflow_does_not_announce_before_publication(self) -> None:
         workflow = (ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
-        publish_job = workflow.split("  publish:", 1)[1]
-
-        self.assertIn("HAS_DISCORD_WEBHOOK: ${{ secrets.DISCORD_RELEASE_WEBHOOK != '' }}", publish_job)
-        self.assertIn("id: create_release", publish_job)
-        self.assertIn("- name: Announce release on Discord", publish_job)
-        self.assertIn("FNQL_DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_RELEASE_WEBHOOK }}", publish_job)
-        self.assertIn("python scripts/discord_release.py", publish_job)
-        self.assertIn("--require-webhook", publish_job)
-        self.assertIn("steps.create_release.outcome == 'success'", publish_job)
-        self.assertNotIn(
-            "https://discord.com/api/webhooks/",
-            workflow,
-            "the release webhook must stay in repository secrets",
-        )
-
-        steps = [line for line in publish_job.splitlines() if line.startswith("      - name: ")]
-        self.assertEqual(steps[-1], "      - name: Announce release on Discord")
+        # Draft creation must not send public announcements before manual review.
+        self.assertIn("Create or repair draft prerelease", workflow)
+        self.assertNotIn("scripts/discord_release.py", workflow)
+        self.assertNotIn("DISCORD_RELEASE_WEBHOOK", workflow)
+        self.assertNotIn("https://discord.com/api/webhooks/", workflow)
 
 
 if __name__ == "__main__":

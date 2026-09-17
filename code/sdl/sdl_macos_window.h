@@ -27,6 +27,9 @@ extern "C" {
 bool FNQL_MacGetWindowBordersSize( SDL_Window *window, int *top, int *left,
 	int *bottom, int *right );
 
+// The caller resolves an installed .app within the selected game root.
+bool FNTECH3_MacSetGameIcon( const char *bundlePath );
+
 #ifdef __cplusplus
 }
 #endif

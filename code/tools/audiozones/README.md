@@ -5,7 +5,7 @@ environment system. The game ignores missing or invalid sidecars and keeps the
 generic trace-based OpenAL environment heuristics.
 
 Sidecars can be written by hand as `maps/<map>.audiozones`, or generated from an
-existing Quake III `maps/<map>.bsp`. Generated zones are intended as a solid
+existing Quake III, Quake Live, or RTCW `maps/<map>.bsp`. Generated zones are intended as a solid
 first pass: they are derived from BSP leaves, clusters, areas, surfaces, brushes,
 shader contents, and surface flags, then can be merged with small manual
 overrides for places that need art-directed tuning.
@@ -64,6 +64,29 @@ cmake --build .tmp/cmake-check --target fnql-audiozonesc --config Release
 .tmp/cmake-check/fnql-audiozonesc.exe --dump baseq3/maps/q3dm17.azb
 .tmp/cmake-check/fnql-audiozonesc.exe --audit --samples 32768 baseq3/maps/q3dm17.azb
 ```
+
+For RTCW, pass `--profile rtcw-sp` or `--profile rtcw-mp` with `--from-bsp`.
+RTCW and QL both use BSP 47, but their material flags differ: `0x40` denotes
+ceramic in RTCW and flesh in Q3/QL. RTCW wood, grass, gravel, snow, and carpet
+contribute soft-material votes; ceramic, glass, roof, and rubble contribute
+stone-material votes. These acoustic groupings are heuristics. Omitting the
+profile preserves the existing Q3/QL interpretation; explicit `quake3` and
+`quakelive` profiles also validate the BSP version.
+
+Generate every official RTCW SP/MP map, including cinematics and official MP
+map packs, from a legitimate installation:
+
+```powershell
+python scripts/generate_stock_rtcw_audio_zones.py "E:/SteamLibrary/steamapps/common/Return to Castle Wolfenstein" --tool .tmp/cmake-check/fnql-audiozonesc.exe
+```
+
+The wrapper selects official packages, applies later SP patches, checks the
+complete inventory, and audits every result before publishing to
+`pkg/games/{rtcw-sp,rtcw-mp}/main/maps/`. Reports live under
+`.tmp/rtcw-audio-zones/`; extracted BSPs are temporary and removed afterward.
+`--strict` rejects audit warnings as well as structural failures. Generated
+sidecars still need listening checks; the [stock RTCW evidence](../../../docs/fntech3/2026-09-17-rtcw-audio-zones.md)
+records the current coverage warnings.
 
 Supported environment names are `small-room`, `room`, `stone-room`, `hallway`,
 `hall`, `outdoors`, and `underwater`. Supported material names are `unknown`,
@@ -206,13 +229,14 @@ on unusually fragmented legacy maps. The default reports are
 
 ## Standard Q3A sidecars
 
-FnQL ships generated `.azb` sidecars for the standard Quake III Arena
-`baseq3` arena maps. The tracked package source sidecars live under
-`pkg/baseq3/maps/`, and release/install builds pack them into
-`FnQL-pkg.fnz` under `baseq3/maps/` archive paths. The same package source
-tree also carries other data-only OpenAL tuning files, such as the standard
-weapon sound shader under `pkg/baseq3/sound/`.
-Regenerate the sidecars from a local retail `baseq3` install with:
+The Q3 generator writes `.azb` sidecars for standard Quake III Arena
+`baseq3` arena maps to `pkg/games/quake3/baseq3/maps/`. The 35 tracked Q3
+audio-zone sidecars come from the reviewed FnQuake3 package; the separate
+149-map Quake Live set lives under `pkg/games/quakelive/baseq3/maps/`.
+Release/install builds preserve these `games/<profile>/<gamedir>/` paths in
+`fntech3-pkg.fnz`. Both Quake profiles ship their own standard weapon sound
+shader under the same namespace. Generate Q3 sidecars from a local retail
+`baseq3` install with:
 
 ```powershell
 python scripts/generate_standard_audio_zones.py `
@@ -222,6 +246,6 @@ python scripts/generate_standard_audio_zones.py `
 
 The helper reads only official `pak0.pk3` through `pak8.pk3` style archives,
 derives the map set from shipped arena metadata, extracts BSPs into `.tmp/`,
-and writes the compiled sidecars back to `pkg/baseq3/maps/`. Its default
+and writes the compiled sidecars back to `pkg/games/quakelive/baseq3/maps/`. Its default
 `--max-zones 512` keeps generated lookup cost bounded while preserving detailed
 coverage for maps that stay below the cap.

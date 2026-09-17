@@ -1,0 +1,7 @@
+// Low-saturation atmospheric depth for Camping Grounds (pro).
+color 0.58 0.60 0.60
+mode exp
+density 0.00080
+start 144
+opacity 0.30
+sky 1

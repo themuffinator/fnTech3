@@ -13,7 +13,7 @@ import generate_stock_ql_sidecars
 from stock_ql_maps import STOCK_QL_MAPS
 
 
-MAPS_ROOT = ROOT / "pkg" / "baseq3" / "maps"
+MAPS_ROOT = ROOT / "pkg" / "games" / "quakelive" / "baseq3" / "maps"
 
 # The highest density the generator can reach for any map, overrides included.
 # Deriving it keeps the bound honest: a hand edit above anything the generator
@@ -208,8 +208,8 @@ class StockQuakeLiveSidecarTests(unittest.TestCase):
 
     def test_sidecar_git_attributes_are_release_host_stable(self) -> None:
         attributes = (ROOT / ".gitattributes").read_text(encoding="utf-8")
-        self.assertIn("pkg/baseq3/maps/*.azb binary", attributes)
-        self.assertIn("pkg/baseq3/maps/*.fog text eol=lf", attributes)
+        self.assertIn("pkg/games/*/*/maps/*.azb binary", attributes)
+        self.assertIn("pkg/games/*/*/maps/*.fog text eol=lf", attributes)
 
 
 if __name__ == "__main__":

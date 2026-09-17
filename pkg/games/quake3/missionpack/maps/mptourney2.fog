@@ -1,0 +1,7 @@
+// Neutral arena haze for Dueling Keeps.
+color 0.57 0.59 0.58
+mode exp
+density 0.00095
+start 128
+opacity 0.32
+sky 1

@@ -1,0 +1,7 @@
+// Balanced neutral haze for Camping Grounds.
+color 0.59 0.60 0.59
+mode exp
+density 0.00085
+start 144
+opacity 0.30
+sky 1

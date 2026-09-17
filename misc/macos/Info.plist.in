@@ -9,7 +9,7 @@
   <key>CFBundleExecutable</key>
   <string>@MACOSX_BUNDLE_EXECUTABLE_NAME@</string>
   <key>CFBundleIconFile</key>
-  <string>fnql.icns</string>
+  <string>fntech3.icns</string>
   <key>CFBundleIdentifier</key>
   <string>@MACOSX_BUNDLE_GUI_IDENTIFIER@</string>
   <key>CFBundleInfoDictionaryVersion</key>

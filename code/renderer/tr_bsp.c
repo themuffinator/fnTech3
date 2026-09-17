@@ -59,7 +59,7 @@ static void R_LoadGlobalFogForWorld( void )
 	}
 
 	/* Use the normal FS_ReadFile contract: an engine-owned maps/<map>.fog entry in
-	 * FnQL-pkg.fnz has deterministic source-port precedence, then the ordinary
+	 * fntech3-pkg.fnz has deterministic source-port precedence, then the ordinary
 	 * active-game/pack/loose search order provides the fallback. */
 	Com_sprintf( filename, sizeof( filename ), "maps/%s.fog", s_worldData.baseName );
 	size = ri.FS_ReadFile( filename, NULL );

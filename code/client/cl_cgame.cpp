@@ -1775,6 +1775,7 @@ void CL_ShutdownCGame( void ) {
 	CL_ClearEnemyHighlightState();
 	CL_ClearLiquidInteractionState();
 	CL_ClearRTCWCameras();
+	CL_HudResetCGame();
 
 	if ( !cgvm ) {
 		return;
@@ -2322,10 +2323,16 @@ static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		CL_RecordEnemyHighlightSkin( skin, VMA(1) );
 		return skin;
 	}
-	case CG_R_REGISTERSHADER:
-		return re.RegisterShader( VMA(1) );
-	case CG_R_REGISTERSHADERNOMIP:
-		return re.RegisterShaderNoMip( VMA(1) );
+	case CG_R_REGISTERSHADER: {
+		const qhandle_t shader = re.RegisterShader( VMA(1) );
+		CL_HudRegisterShaderName( shader, VMA(1) );
+		return shader;
+	}
+	case CG_R_REGISTERSHADERNOMIP: {
+		const qhandle_t shader = re.RegisterShaderNoMip( VMA(1) );
+		CL_HudRegisterShaderName( shader, VMA(1) );
+		return shader;
+	}
 	case CG_R_REGISTERFONT:
 		re.RegisterFont( VMA(1), args[2], VMA(3));
 		return 0;
@@ -2354,7 +2361,8 @@ static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		re.AddAdditiveLightToScene( VMA(1), VMF(2), VMF(3), VMF(4), VMF(5) );
 		return 0;
 	case CG_R_RENDERSCENE: {
-		const refdef_t moduleRefdef = CL_ModuleRefdef( cgvm, args[1] );
+		refdef_t moduleRefdef = CL_ModuleRefdef( cgvm, args[1] );
+		CL_HudAdjustRefdef( &moduleRefdef );
 		const refdef_t *refdef = &moduleRefdef;
 		refdef_t adjustedRefdef;
 
@@ -2397,7 +2405,7 @@ static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 
 			SCR_AdjustRetailCGameLoadingBackdropUV( x, y, w, h,
 				&s0, &t0, &s1, &t1 );
-			re.DrawStretchPic( x, y, w, h, s0, t0, s1, t1, args[9] );
+			CL_HudDrawStretchPic( x, y, w, h, s0, t0, s1, t1, args[9] );
 		}
 		return 0;
 	}
@@ -3320,6 +3328,7 @@ void CL_InitCGame( void ) {
 	Cbuf_NestedReset();
 	CL_ClearEnemyHighlightState();
 	CL_ClearLiquidInteractionState();
+	CL_HudResetCGame();
 
 	t1 = Sys_Milliseconds();
 
@@ -3418,7 +3427,9 @@ CL_CGameRendering
 =====================
 */
 void CL_CGameRendering( stereoFrame_t stereo ) {
+	CL_HudBeginFrame();
 	VM_Call( cgvm, 3, CG_DRAW_ACTIVE_FRAME, cl.serverTime, stereo, clc.demoplaying );
+	CL_HudEndFrame();
 #ifdef DEBUG
 	VM_Debug( 0 );
 #endif

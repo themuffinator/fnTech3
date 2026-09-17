@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "name": "crosshair",
+      "match": { "shader": "gfx/2d/crosshair*" },
+      "mode": "uniform",
+      "align": { "x": "center", "y": "center" }
+    },
+    {
+      "name": "compass_and_markers",
+      "match": { "region": { "x": 280, "y": 412, "w": 80, "h": 68 } },
+      "mode": "uniform",
+      "align": { "x": "center", "y": "bottom" }
+    },
+    {
+      "name": "team_overlay_and_upper_right_status",
+      "match": { "region": { "x": 320, "y": 0, "w": 320, "h": 80 } },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "top" }
+    },
+    {
+      "name": "round_timer",
+      "match": { "shader": "gfx/2d/hudchars", "region": { "x": 0, "y": 40, "w": 64, "h": 26 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "top" }
+    },
+    {
+      "name": "objective_flags_and_stopwatch",
+      "match": { "region": { "x": 0, "y": 66, "w": 36, "h": 240 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "top" }
+    },
+    {
+      "name": "stamina_bar",
+      "match": { "shader": "white", "region": { "x": 0, "y": 388, "w": 24, "h": 92 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "bottom" }
+    },
+    {
+      "name": "stamina_frame",
+      "match": { "shader": "ui_mp/assets/hudsprint.tga" },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "bottom" }
+    },
+    {
+      "name": "class_charge_bar",
+      "match": { "shader": "white", "region": { "x": 616, "y": 388, "w": 24, "h": 92 } },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "bottom" }
+    },
+    {
+      "name": "class_charge_frame",
+      "match": { "shader": "ui_mp/assets/hudtrim.tga" },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "bottom" }
+    },
+    {
+      "name": "health_and_lives",
+      "match": { "shader": "gfx/2d/numbers/*", "region": { "x": 24, "y": 430, "w": 200, "h": 50 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "bottom" }
+    },
+    {
+      "name": "axis_lives_icon",
+      "match": { "shader": "AxisHelmet", "region": { "x": 110, "y": 430, "w": 90, "h": 50 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "bottom" }
+    },
+    {
+      "name": "allied_lives_icon",
+      "match": { "shader": "AlliedHelmet", "region": { "x": 110, "y": 430, "w": 90, "h": 50 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "bottom" }
+    },
+    {
+      "name": "spawn_protection",
+      "match": { "shader": "sprites/shield", "region": { "x": 24, "y": 392, "w": 64, "h": 48 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "bottom" }
+    },
+    {
+      "name": "ammo",
+      "match": { "shader": "gfx/2d/numbers/*", "region": { "x": 480, "y": 430, "w": 136, "h": 50 } },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "bottom" }
+    },
+    {
+      "name": "weapon_icon",
+      "match": { "shader": "icons/*", "region": { "x": 480, "y": 394, "w": 136, "h": 50 } },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "bottom" }
+    },
+    {
+      "name": "weapon_heat",
+      "match": { "shader": "white", "region": { "x": 520, "y": 392, "w": 96, "h": 52 } },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "bottom" }
+    },
+    {
+      "name": "lagometer_background",
+      "match": { "shader": "lagometer", "region": { "x": 584, "y": 338, "w": 56, "h": 52 } },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "bottom" }
+    },
+    {
+      "name": "lagometer_samples",
+      "match": { "shader": "white", "region": { "x": 584, "y": 338, "w": 56, "h": 52 } },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "bottom" }
+    },
+    {
+      "name": "weapon_stability",
+      "match": { "shader": "white", "region": { "x": 48, "y": 200, "w": 20, "h": 80 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "center" }
+    }
+  ]
+}

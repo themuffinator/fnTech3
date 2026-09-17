@@ -15,12 +15,19 @@ deferred host operations, acceleration structures, ray queries, and ray-tracing
 pipelines. fnTech3 also validates the required feature bits, limits, formats,
 descriptor capacity, and entry points before enabling the path.
 
-Driver capabilities can differ between x86 and x64. The shared Q3/QL client
-remains x86; an explicit Q3-only Windows x64 diagnostic build is documented in
-[BUILD.md](../BUILD.md). It cannot run QL. The latest
+Driver capabilities can differ between x86 and x64. The shared client for Q3,
+QL, and experimental RTCW SP/MP remains x86; an explicit Q3-only Windows x64
+diagnostic build is documented in [BUILD.md](../BUILD.md). That diagnostic does
+not establish the shared game contract. The Q3/QL
 [runtime evidence](fntech3/2026-09-06-rtx-round.md) and
 [Q2RTX feature comparison](fntech3/RTX_Q2RTX_PARITY.md) record the verified scope
 and remaining gaps.
+
+RTCW remains behind the development build option. Its
+[fog and resize checkpoint](fntech3/2026-09-17-rtcw-vulkan-fog-resize.md) records
+RTX raster observations; native RTCW ray-tracing runtime validation remains
+open. Check the [compatibility ledger](fntech3/COMPATIBILITY.md#rtcw-gate-matrix)
+for the current profile-specific limits.
 
 The `vkinfo` command reports the selected device and capability result. Use
 `rtx_caps_report 1` for a compact RTX capability summary or `rtx_caps_report 2`

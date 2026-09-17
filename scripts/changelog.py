@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_CHANGELOG = ROOT / "docs" / "fnql" / "CHANGELOG.md"
+DEFAULT_CHANGELOG = ROOT / "CHANGELOG.md"
 
 
 SECTION_RE = re.compile(r"^##\s+\[(?P<label>[^\]]+)\](?:\s+-\s+(?P<date>\d{4}-\d{2}-\d{2}))?\s*$")
@@ -142,7 +142,7 @@ CATEGORY_KEYWORDS = [
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="FnQL changelog helper")
+    parser = argparse.ArgumentParser(description="fnTech3 changelog helper")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     section = subparsers.add_parser("section")

@@ -1,4 +1,6 @@
 #version 450
+#extension GL_GOOGLE_include_directive : require
+#include "../../renderercommon/rtcw_fog.glsl"
 
 #ifdef USE_TX2
 #define USE_TX1
@@ -34,7 +36,11 @@ layout(set = 0, binding = 0) uniform UBO {
 	vec4 depthFadeInfo;			// fragment: zfar/znear, zfar, invDist, bias
 	vec4 depthFadeScale;		// fragment
 	vec4 depthFadeBias;			// fragment
+	layout(offset = 368) vec4 rtcwFogColor;
+	vec4 rtcwFogParams;
 };
+
+layout(location = 7) in float rtcwFogDistance;
 
 layout(set = 1, binding = 0) uniform sampler2D texture0;
 #ifdef USE_TX1
@@ -560,6 +566,10 @@ void main() {
 		base = ApplyDepthFade(base);
 	}
 #endif
+	if (rtcwFogColor.w != 0.0) {
+		base.rgb = mix(rtcwFogColor.rgb, base.rgb,
+			rtcwFogVisibility(rtcwFogColor, rtcwFogParams, rtcwFogDistance));
+	}
 	out_color = base;
 #endif
 }

@@ -785,10 +785,10 @@ IF(UNIX)
 
 	IF(APPLE)
 		SET(CLIENT_EXE_TYPE MACOSX_BUNDLE)
-		list(APPEND Q3_SRCS code/unix/fnql.icns)
-		set_source_files_properties(code/unix/fnql.icns PROPERTIES
+		list(APPEND Q3_SRCS assets/icons/fntech3.icns)
+		set_source_files_properties(assets/icons/fntech3.icns PROPERTIES
 			MACOSX_PACKAGE_LOCATION Resources)
-		SET(MACOSX_BUNDLE_ICON_FILE fnql.icns)
+		SET(MACOSX_BUNDLE_ICON_FILE fntech3.icns)
 	ENDIF()
 ELSEIF(WIN32)
 	SET(CLIENT_EXE_TYPE WIN32)

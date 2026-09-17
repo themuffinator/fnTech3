@@ -1769,6 +1769,12 @@ static void SV_SetMapCompletionForCommands( const std::array<operatorCommand_t, 
 SV_AddOperatorCommands
 ==================
 */
+static void SV_RTCWGameCompleteStatus_f( void ) {
+	// Retail MP emits this at match completion. Legacy master reporting is
+	// not integrated; consuming the command must not imply service success.
+	Com_Printf( "RTCW match-completion reporting is unavailable; no report sent.\n" );
+}
+
 void SV_AddOperatorCommands( void ) {
 	static bool	initialized;
 
@@ -1833,6 +1839,7 @@ void SV_AddOperatorCommands( void ) {
 
 	SV_AddCommandSet( commands );
 	if ( Com_GameIsRTCWSP() ) Cmd_AddCommand("loadgame", SV_LoadGame_f);
+	if ( Com_GameIsRTCWMP() ) Cmd_AddCommand("gameCompleteStatus", SV_RTCWGameCompleteStatus_f);
 	if ( Com_GameProfile()->supportsWorkshop ) {
 		SV_AddCommandSet( workshopCommands );
 	}

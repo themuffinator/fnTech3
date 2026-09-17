@@ -53,6 +53,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../client/client.h"
 #include "../client/input_compat.hpp"
 #include "../platform/window_placement.hpp"
+#include "../platform/application_icon_data.h"
 #include "linux_local.h"
 #include "unix_glw.h"
 
@@ -768,7 +769,8 @@ static PointerOwner IN_AbsolutePointerOwnerKind( void )
 
 	inputs.catcher = Key_GetCatcher();
 	inputs.consoleMask = KEYCATCH_CONSOLE;
-	inputs.menuMask = kPointerMenuMask;
+	// Q3/RTCW modules share gameplay's relative pointer presentation.
+	inputs.menuMask = Com_GameIsQuakeLive() ? kPointerMenuMask : KEYCATCH_BROWSER;
 	inputs.consoleUsesAbsolutePointer = IN_ConsoleUsesAbsolutePointer() ? true : false;
 
 	return fnql::input::ResolvePointerOwner( inputs );
@@ -3153,6 +3155,24 @@ rserr_t GLW_SetMode( int mode, const char *modeFS, qboolean fullscreen, qboolean
 	}
 
 	XStoreName( dpy, win, cl_title );
+	XClassHint applicationClass;
+	applicationClass.res_name = const_cast<char *>( "fntech3" );
+	applicationClass.res_class = const_cast<char *>( "fntech3" );
+	XSetClassHint( dpy, win, &applicationClass );
+
+	// EWMH uses 32-bit ARGB values stored in native unsigned longs by Xlib.
+	// The SDL backend can also inherit installation PNGs; this minimal native
+	// X11 backend always publishes the built-in engine icon.
+	unsigned long iconPixels[2 + FNTECH3_ICON_SIZE * FNTECH3_ICON_SIZE];
+	iconPixels[0] = iconPixels[1] = FNTECH3_ICON_SIZE;
+	for ( unsigned i = 0; i < FNTECH3_ICON_SIZE * FNTECH3_ICON_SIZE; ++i ) {
+		const unsigned char *rgba = FNTECH3_ICON_RGBA + i * 4;
+		iconPixels[i + 2] = (unsigned long)rgba[3] << 24 |
+			(unsigned long)rgba[0] << 16 | (unsigned long)rgba[1] << 8 | rgba[2];
+	}
+	XChangeProperty( dpy, win, XInternAtom( dpy, "_NET_WM_ICON", False ),
+		XA_CARDINAL, 32, PropModeReplace, (unsigned char *)iconPixels,
+		2 + FNTECH3_ICON_SIZE * FNTECH3_ICON_SIZE );
 
 	// Keep the native fallback consistent with SDL: the window manager owns
 	// interactive sizing and the client refreshes its renderer after it settles.

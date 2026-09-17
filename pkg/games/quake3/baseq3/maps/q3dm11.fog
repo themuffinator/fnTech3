@@ -1,0 +1,7 @@
+// Cool station haze.
+color 0.53 0.57 0.60
+mode exp
+density 0.00085
+start 144
+opacity 0.30
+sky 1

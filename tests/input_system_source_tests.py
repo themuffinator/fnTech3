@@ -682,19 +682,17 @@ class ClientInputStateTests(unittest.TestCase):
         self.assertNotIn("Field_KeyDownEvent", paste)
         self.assertNotIn("CTRL(", paste)
 
-    def test_relative_mouse_events_never_become_overlay_positions(self) -> None:
+    def test_relative_mouse_events_only_reach_relative_module_contracts(self) -> None:
         client = read_text("code/client/cl_input.cpp")
         mouse = function_body(client, "CL_MouseEvent")
-        overlay_guard = (
-            "KEYCATCH_BROWSER | KEYCATCH_UI | KEYCATCH_CGAME"
+        assert_order(
+            self, mouse,
+            "KEYCATCH_BROWSER", "return;",
+            "KEYCATCH_UI", "uivm && !Com_GameIsQuakeLive()",
+            "UI_MOUSE_EVENT, dx, dy",
+            "KEYCATCH_CGAME", "cgvm && !Com_GameIsQuakeLive()",
+            "CG_MOUSE_EVENT, dx, dy", "cl.mouseDx[cl.mouseIndex]",
         )
-
-        self.assertIn(overlay_guard, mouse)
-        self.assertLess(
-            mouse.index(overlay_guard),
-            mouse.index("cl.mouseDx[cl.mouseIndex]"),
-        )
-        self.assertIn("return;", mouse[mouse.index(overlay_guard) :])
 
     def test_all_input_sources_bound_float_conversions_and_view_deltas(
         self,

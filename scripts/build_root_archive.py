@@ -7,7 +7,10 @@ from typing import Sequence
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from root_archive import PKG_ROOT, ROOT_ARCHIVE_NAME, validate_root_archive, write_root_archive
+from root_archive import (
+    DEFAULT_ROOT_ARCHIVE_REQUIRED_ASSETS, PKG_ROOT, ROOT_ARCHIVE_NAME,
+    write_root_archive,
+)
 
 
 def parse_args(argv: Sequence[str]) -> argparse.Namespace:
@@ -24,7 +27,7 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
         "--package-root",
         type=Path,
         default=PKG_ROOT,
-        help="Directory tree to pack into the archive. Defaults to repo pkg/.",
+        help="Source tree with games/<profile>/<gamedir>/ assets. Defaults to repo pkg/.",
     )
     return parser.parse_args(argv)
 
@@ -35,8 +38,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     package_root = args.package_root.expanduser()
 
     try:
-        write_root_archive(archive_path, package_root=package_root)
-        validate_root_archive(archive_path)
+        write_root_archive(archive_path, package_root=package_root,
+                           required_assets=DEFAULT_ROOT_ARCHIVE_REQUIRED_ASSETS)
     except (OSError, ValueError) as exc:
         print(f"build_root_archive.py: {exc}", file=sys.stderr)
         return 1

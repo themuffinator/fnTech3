@@ -76,18 +76,18 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(
             f"{archive_kind} layout ok: "
             f"{len(DEFAULT_AUDIO_ZONE_ASSETS)} audio-zone sidecars under "
-            f"{ROOT_ARCHIVE_NAME}/baseq3/maps, "
+            f"{ROOT_ARCHIVE_NAME}/games/<profile>/<gamedir>/maps, "
             f"{len(DEFAULT_GLOBAL_FOG_ASSETS)} fog sidecars, and "
             f"{len(DEFAULT_WEAPON_SOUND_SHADER_ASSETS)} sound shaders under "
-            f"{ROOT_ARCHIVE_NAME}/<game>/sound"
+            f"{ROOT_ARCHIVE_NAME}/games/<profile>/<gamedir>/sound"
         )
     else:
         print(
             "release layout ok: "
             f"{ROOT_ARCHIVE_NAME} contains {len(DEFAULT_AUDIO_ZONE_ASSETS)} "
-            "audio-zone sidecars under baseq3/maps, "
+            "audio-zone sidecars under games/<profile>/<gamedir>/maps, "
             f"{len(DEFAULT_GLOBAL_FOG_ASSETS)} fog sidecars, and "
-            f"{len(DEFAULT_WEAPON_SOUND_SHADER_ASSETS)} sound shaders under <game>/sound"
+            f"{len(DEFAULT_WEAPON_SOUND_SHADER_ASSETS)} sound shaders under games/<profile>/<gamedir>/sound"
         )
     return 0
 

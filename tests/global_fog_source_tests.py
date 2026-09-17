@@ -95,7 +95,7 @@ class GlobalFogSourceTests(unittest.TestCase):
         )
 
         shipped_fog = {
-            path.stem for path in (ROOT / "pkg" / "baseq3" / "maps").glob("*.fog")
+            path.stem for path in (ROOT / "pkg" / "games" / "quakelive" / "baseq3" / "maps").glob("*.fog")
             if path.is_file()
         }
         self.assertEqual(shipped_fog, set(STOCK_QL_MAPS))
@@ -199,7 +199,7 @@ class GlobalFogSourceTests(unittest.TestCase):
             "visual-only",
             "r_globalFog",
             "r_globalFogStrength",
-            "FnQL-pkg.fnz",
+            "fntech3-pkg.fnz",
             "16 KiB",
         ):
             self.assertIn(expected, fog)

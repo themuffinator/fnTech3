@@ -552,6 +552,15 @@ static void RB_BeginDrawingView( void ) {
 	if ( R_ViewPassClearsDepth( &backEnd.viewParms ) ) {
 		vk_clear_depth( R_ViewPassClearsStencil( &backEnd.viewParms ) );
 	}
+	if ( backEnd.refdef.rtcwFog.fogEnabled &&
+		( backEnd.refdef.rtcwFog.fog.clearscreen || r_fastsky->integer ) ) {
+		vec4_t color;
+		int channel;
+		for ( channel = 0; channel < 3; ++channel )
+			color[channel] = Com_Clamp( 0, 1, backEnd.refdef.rtcwFog.fog.color[channel] );
+		color[3] = 1;
+		vk_clear_color( color );
+	}
 #else
 	if ( R_ViewPassClearsDepth( &backEnd.viewParms ) ) {
 		clearBits |= GL_DEPTH_BUFFER_BIT;
@@ -1812,6 +1821,8 @@ static qboolean RB_DlightShadowCasterAllowed( const shader_t *shader, const surf
 	switch ( *surface ) {
 		case SF_FACE:
 		case SF_TRIANGLES:
+		case SF_MDS:
+		case SF_MDC:
 		case SF_MD3:
 		case SF_MDR:
 		case SF_IQM:
@@ -2154,6 +2165,8 @@ static qboolean RB_DlightShadowEntityCasterAllowed( int entityNum )
 
 	switch ( model->type ) {
 		case MOD_BRUSH:
+		case MOD_MDS:
+		case MOD_MDC:
 		case MOD_MESH:
 		case MOD_MDR:
 		case MOD_IQM:

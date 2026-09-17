@@ -41,12 +41,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "win_local.h"
 #include "glw_win.h"
 #include "win_raii.h"
+#include "win_game_icon.h"
 
 #define FNQL_WIDE_LITERAL_INNER( value ) L##value
 #define FNQL_WIDE_LITERAL( value ) FNQL_WIDE_LITERAL_INNER( value )
 
 static constexpr const wchar_t *kFnqlWindowClassName =
-	FNQL_WIDE_LITERAL( CLIENT_WINDOW_TITLE );
+	FNQL_WIDE_LITERAL( FNTECH3_PROJECT_NAME );
 
 #ifdef USE_OPENGL_API
 #include "../renderer/qgl.h"
@@ -62,7 +63,7 @@ static const wchar_t *GLW_WideWindowTitle( void )
 			title, ARRAY_LEN( title ) ) <= 0 &&
 		MultiByteToWideChar( CP_ACP, 0, cl_title, -1,
 			title, ARRAY_LEN( title ) ) <= 0 ) {
-		lstrcpynW( title, kFnqlWindowClassName, ARRAY_LEN( title ) );
+		lstrcpynW( title, FNQL_WIDE_LITERAL( CLIENT_WINDOW_TITLE ), ARRAY_LEN( title ) );
 	}
 	return title;
 }
@@ -1022,6 +1023,12 @@ static qboolean GLW_CreateWindow( int width, int height, int colorbits, qboolean
 
 		Com_Printf( "...window already present, updated styles@%d,%d (%dx%d)\n", x, y, w, h );
 	}
+
+	// Refresh also when vid_restart reuses the native window.
+	static fntech3::icon::WindowIcons gameIcons;
+	gameIcons.Apply( g_wv.hWnd, Cvar_VariableString( "fs_basepath" ),
+		Com_GameProfile() ? Com_GameProfile()->id : COM_GAME_AUTO,
+		Cvar_Get( "cl_gameIcon", "1", CVAR_ARCHIVE )->integer != 0 );
 
 	if ( colorbits == 0 )
 		colorbits = dm_desktop.dmBitsPerPel;

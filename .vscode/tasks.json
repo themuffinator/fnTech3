@@ -5,6 +5,99 @@
   },
   "tasks": [
     {
+      "label": "meson: setup all games",
+      "type": "process",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\.vscode\\build-release.ps1",
+        "-Configuration",
+        "RelWithDebInfo",
+        "-Platform",
+        "Win32",
+        "-BuildDir",
+        "meson\\build\\win32-dev",
+        "-Target",
+        "both",
+        "-Renderers",
+        "glx,vk,rtx",
+        "-RTCWDevelopment",
+        "-Archive",
+        "-SetupOnly"
+      ],
+      "problemMatcher": [
+        "$gcc",
+        "$msCompile"
+      ],
+      "detail": "Windows x86 development build for Q3, QL, RTCW SP/MP and GLx/Vulkan/RTX. RTCW adapters remain experimental."
+    },
+    {
+      "label": "meson: build all games",
+      "type": "process",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\.vscode\\build-release.ps1",
+        "-Configuration",
+        "RelWithDebInfo",
+        "-Platform",
+        "Win32",
+        "-BuildDir",
+        "meson\\build\\win32-dev",
+        "-Target",
+        "both",
+        "-Renderers",
+        "glx,vk,rtx",
+        "-RTCWDevelopment",
+        "-Archive"
+      ],
+      "problemMatcher": [
+        "$gcc",
+        "$msCompile"
+      ],
+      "detail": "Windows x86 development build for Q3, QL, RTCW SP/MP and GLx/Vulkan/RTX. RTCW adapters remain experimental.",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "meson: build all games (Steam)",
+      "type": "process",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\.vscode\\build-release.ps1",
+        "-Configuration",
+        "RelWithDebInfo",
+        "-Platform",
+        "Win32",
+        "-BuildDir",
+        "meson\\build\\win32-dev",
+        "-Target",
+        "both",
+        "-Renderers",
+        "glx,vk,rtx",
+        "-RTCWDevelopment",
+        "-Archive",
+        "-WithSteam"
+      ],
+      "problemMatcher": [
+        "$gcc",
+        "$msCompile"
+      ],
+      "detail": "Windows x86 development build for Q3, QL, RTCW SP/MP and GLx/Vulkan/RTX. RTCW adapters remain experimental."
+    },
+    {
       "label": "meson: setup",
       "type": "shell",
       "command": "powershell",
@@ -49,7 +142,7 @@
       ],
       "group": {
         "kind": "build",
-        "isDefault": true
+        "isDefault": false
       }
     },
     {

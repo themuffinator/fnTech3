@@ -4,6 +4,14 @@
 
 #include <stdint.h>
 
+/* SP/MP usercmd button encodings (original game/q_shared.h). */
+enum {
+	FNTECH3_RTCW_BUTTON_ACTIVATE = 64,
+	FNTECH3_RTCW_BUTTON_ANY = 128,
+	FNTECH3_RTCW_WBUTTON_LEANLEFT = 16,
+	FNTECH3_RTCW_WBUTTON_LEANRIGHT = 32
+};
+
 enum {
 #define FNTECH3_RTCW_KEY(name, value) FNTECH3_RTCW_##name = value,
 #include "rtcw_keycodes.def"

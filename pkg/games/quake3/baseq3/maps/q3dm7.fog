@@ -1,0 +1,7 @@
+// Subtle temple haze.
+color 0.61 0.60 0.57
+mode exp
+density 0.00090
+start 128
+opacity 0.31
+sky 1

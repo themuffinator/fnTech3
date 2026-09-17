@@ -2,6 +2,11 @@
 #ifndef FNTECH3_RTCW_SHADER_MATERIAL_H
 #define FNTECH3_RTCW_SHADER_MATERIAL_H
 
+/* Original RTCW SP/MP tr_local.h allows sixteen frames in ordinary shaders.
+ * The shared bundle also has room for the existing 24-frame shaderx extension.
+ */
+#define MAX_IMAGE_ANIMATIONS_RTCW 16
+
 /* Compression directives belong to the material being parsed. Do not let a
  * previous material's opt-out affect later registrations or another profile.
  */

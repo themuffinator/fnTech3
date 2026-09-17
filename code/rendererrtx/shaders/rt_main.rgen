@@ -1,4 +1,6 @@
 #version 460
+#extension GL_GOOGLE_include_directive : require
+#include "../../renderercommon/rtcw_fog.glsl"
 #extension GL_EXT_ray_tracing : require
 
 layout(set = 0, binding = 0) uniform accelerationStructureEXT u_tlas;
@@ -19,10 +21,14 @@ layout(set = 0, binding = 11, std430) readonly buffer RtTemporalParamsBuffer {
 	vec4 legacyColorParams;
 	vec4 readabilityParams;
 	uvec4 modes;
+	vec4 rtcwFogColor;
+	vec4 rtcwFogParams;
+	vec4 rtcwFogControl;
 } u_temporal;
 
 const uint RTX_RT_PAYLOAD_FLAG_HIT = 1u << 0;
 const uint RTX_RT_PAYLOAD_FLAG_DYNAMIC = 1u << 1;
+const uint RTX_RT_PAYLOAD_FLAG_RTCW_NOFOG = 1u << 3;
 const uint RTX_RT_PAYLOAD_FLAG_REACTIVE = 1u << 2;
 const uint RTX_RT_TEMPORAL_FLAG_HISTORY_VALID = 1u << 0;
 const uint RTX_RT_TEMPORAL_FLAG_RESET = 1u << 1;
@@ -157,6 +163,12 @@ RtRadiancePayload trace_surface(vec3 origin, vec3 direction, uint pathDepth)
 	payloadRadiance.nextDirection = vec3(0.0);
 	payloadRadiance.nextWeight = vec3(0.0);
 	payloadRadiance.pathDepth = pathDepth;
+	// Raster zFar is an eye-space plane, not a sphere around the camera.
+	float rayLimit = 100000.0;
+	if (pathDepth == 0u && u_temporal.rtcwFogControl.x != 0.0) {
+		rayLimit = min(rayLimit, u_temporal.rtcwFogControl.y /
+			max(dot(direction, pc.cameraForwardTanHalfFovY.xyz), 0.00001));
+	}
 
 	traceRayEXT(
 		u_tlas,
@@ -168,7 +180,7 @@ RtRadiancePayload trace_surface(vec3 origin, vec3 direction, uint pathDepth)
 		origin,
 		0.001,
 		direction,
-		100000.0,
+		rayLimit,
 		0);
 	return payloadRadiance;
 }
@@ -443,6 +455,17 @@ void main()
 
 	exposure = clamp(u_temporal.dynamicMotionAndExposure.w, u_temporal.exposureParams.x, u_temporal.exposureParams.y);
 	rasterReference = texture(u_sceneColor, uv).rgb;
+	float fogVisibility = 1.0;
+	bool rtcwPrimaryFog = u_temporal.rtcwFogColor.w != 0.0 &&
+		(center.flags & RTX_RT_PAYLOAD_FLAG_HIT) != 0u &&
+		(center.flags & RTX_RT_PAYLOAD_FLAG_RTCW_NOFOG) == 0u;
+	if (rtcwPrimaryFog) {
+		fogVisibility = rtcwFogVisibility(u_temporal.rtcwFogColor, u_temporal.rtcwFogParams, center.hitT);
+		// The raster reference is already fogged. Recover its visible part
+		// before RT lighting, then apply fog once to the combined result.
+		rasterReference = max((rasterReference - u_temporal.rtcwFogColor.rgb * (1.0 - fogVisibility)) /
+			max(fogVisibility, 0.00001), vec3(0.0));
+	}
 
 	finalColor = accumulatedColor;
 	if (!debugRaster && pc.debugMode != 9u && pc.debugMode != 10u) {
@@ -477,6 +500,16 @@ void main()
 				center.shadowLoss,
 				(center.flags & RTX_RT_PAYLOAD_FLAG_HIT) != 0u);
 			finalColor = apply_readability(finalColor);
+		}
+	}
+
+	if (pc.debugMode == 0u) {
+		if (rtcwPrimaryFog) {
+			finalColor = mix(u_temporal.rtcwFogColor.rgb, finalColor, fogVisibility);
+		} else if (u_temporal.rtcwFogControl.x != 0.0 &&
+			(center.flags & RTX_RT_PAYLOAD_FLAG_HIT) == 0u) {
+			// Authored sky passes own sky fog and drawSky suppression.
+			finalColor = rasterReference;
 		}
 	}
 

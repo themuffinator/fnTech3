@@ -1,0 +1,1663 @@
+{
+  "date": "2026-09-17T16:22:53.999471+00:00",
+  "commit": "0b6af9ba7a17d73bf27c5c016c00772a1a93899a",
+  "worktreeDirty": true,
+  "scope": "Bounded cinematic decoding, installed movie corpus, same-process recovery; full compatibility remains open",
+  "sourceFiles": [
+    {
+      "path": "code/client/cl_cin.cpp",
+      "sha256": "5933bcf26a833143582c3793b3229ca37f2642895cd57c575791d0cf9cdf3273"
+    },
+    {
+      "path": "tests/roq_bounds_tests.py",
+      "sha256": "7c0c76b91b6ebb2da90c1bcd5ab0f3f92fe94e228ed9753ee3a54d6d713300a2"
+    },
+    {
+      "path": "tests/rtcw_cinematic_presentation_tests.py",
+      "sha256": "108a880de0f1c00ef30464716053531a5fdf3d5a4e6029152f717edb9bbe3bee"
+    },
+    {
+      "path": "tests/cinematic_shutdown_tests.py",
+      "sha256": "a92e59c346b9789bc55e1416fe01c6ff36549530e685a942c59a462002ec5e49"
+    },
+    {
+      "path": "tests/untrusted_asset_bounds_tests.py",
+      "sha256": "ebdc0f0eaaac807b1e67a93e42002b8f005cd77040a2214a77fbb1c68c288cb3"
+    }
+  ],
+  "sourceReferences": [
+    {
+      "path": "E:\\_SOURCE\\_CODE\\RTCW-SP-master\\src\\client\\cl_cin.c",
+      "sha256": "4745f79588e64485c124da7201510efad768b5e8676f7bc55146603484987aa1",
+      "url": "https://github.com/id-Software/RTCW-SP/blob/master/src/client/cl_cin.c",
+      "license": "GPL-3.0-or-later; behavioral observation only, no implementation text incorporated",
+      "observation": "ROQ_QUAD_JPEG is a no-op"
+    },
+    {
+      "path": "E:\\_SOURCE\\_CODE\\RTCW-MP-master\\src\\client\\cl_cin.c",
+      "sha256": "713785df7e85756ff4a68e763b80893134267dd0fbd75152480aef823b914eb4",
+      "url": "https://github.com/id-Software/RTCW-MP/blob/master/src/client/cl_cin.c",
+      "license": "GPL-3.0-or-later; behavioral observation only, no implementation text incorporated",
+      "observation": "ROQ_QUAD_JPEG is a no-op"
+    }
+  ],
+  "codebookReference": {
+    "url": "https://github.com/FFmpeg/FFmpeg/blob/master/libavcodec/roqvideodec.c",
+    "license": "LGPL-2.1-or-later; corroborating observation, no implementation text incorporated",
+    "observation": "Zero large-entry count uses payload length to distinguish absent and 256-entry updates"
+  },
+  "build": {
+    "platform": "Windows x86",
+    "preset": "meson/build/win32-dev",
+    "configuration": "debugoptimized, strict-warnings=true, rtcw-development=true",
+    "command": "powershell -File .vscode/build-release.ps1 -Configuration RelWithDebInfo -BuildDir meson/build/win32-dev -RTCWDevelopment -RunTests",
+    "executable": "meson/build/win32-dev/fntech3.exe",
+    "executableSha256": "573c45da5b2f72ebe20b290febc20a436f9c3fdecccfb8251caf2dd6309a1736",
+    "log": ".tmp/roq-bounds/build-final.log"
+  },
+  "focusedTests": [
+    {
+      "platform": "Windows x86",
+      "tests": 50,
+      "failed": 0,
+      "log": ".tmp/roq-bounds/focused-x86.log"
+    },
+    {
+      "platform": "Linux i686 (WSL Ubuntu)",
+      "tests": 7,
+      "failed": 0,
+      "log": ".tmp/roq-bounds/focused-linux.log",
+      "sanitizerScope": "roq_bounds_tests: AddressSanitizer and UndefinedBehaviorSanitizer, no recovery"
+    }
+  ],
+  "fullSuite": {
+    "status": "finished",
+    "log": ".tmp/roq-bounds/full-final.log",
+    "passed": 112,
+    "failed": 0,
+    "skipped": 2,
+    "pythonTests": 1541,
+    "pythonSkipped": 62
+  },
+  "priorFullSuite": {
+    "passed": 111,
+    "failed": 1,
+    "skipped": 2,
+    "pythonTests": 1540,
+    "pythonSkipped": 62,
+    "error": "Linker exit 1104 in profile_restart_config_tests; isolated x86 rerun passed",
+    "log": ".tmp/roq-bounds/full-build-tests.log"
+  },
+  "corpus": {
+    "uniqueMovies": 27,
+    "memberProfileOccurrences": 30,
+    "decodedFrames": 17391,
+    "matchingPriorFrameHashes": 17375,
+    "hashAlgorithm": "FNV-1a 64-bit over decoded RGBA; input identities use SHA-256",
+    "recoveredTerminalFrames": 16,
+    "eliminatedStaleFrames": 28,
+    "everyDecodedFrameCountMatchesFile": true,
+    "allPassed": true,
+    "qlScope": "No RoQ members in inspected QL baseq3 PK3 archives; synthetic running-client recovery only",
+    "compileCommands": [
+      [
+        "C:\\Program Files\\LLVM\\bin\\clang++.EXE",
+        "--target=i686-pc-windows-msvc",
+        "-std=c++17",
+        "-O2",
+        "-I",
+        "E:\\Repositories\\fnTech3",
+        "E:\\Repositories\\fnTech3\\.tmp\\roq-bounds\\baseline-decoder.cpp",
+        "-o",
+        "E:\\Repositories\\fnTech3\\.tmp\\roq-bounds\\baseline-decoder.exe"
+      ],
+      [
+        "C:\\Program Files\\LLVM\\bin\\clang++.EXE",
+        "--target=i686-pc-windows-msvc",
+        "-std=c++17",
+        "-O2",
+        "-I",
+        "E:\\Repositories\\fnTech3",
+        "E:\\Repositories\\fnTech3\\.tmp\\roq-bounds\\current-decoder.cpp",
+        "-o",
+        "E:\\Repositories\\fnTech3\\.tmp\\roq-bounds\\current-decoder.exe"
+      ]
+    ],
+    "records": [
+      {
+        "profile": "q3",
+        "archive": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena\\baseq3\\pak0.pk3",
+        "member": "video/demoEnd.RoQ",
+        "bytes": 3373893,
+        "sha256": "d2d847771f12c8b06cf18a3f071c173ddf337e12cf59d91fdd2743ad5a1d2d7c",
+        "wireFrames": 326,
+        "baselineExit": 0,
+        "currentExit": 0,
+        "baselineFrames": 325,
+        "currentFrames": 326,
+        "sharedFramesIdentical": true,
+        "comparedFrames": 325,
+        "diagnostics": "",
+        "baselineEnd": [
+          "END 2 0 325 3373893 512 256"
+        ],
+        "currentEnd": [
+          "END 2 0 326 3373893 512 256"
+        ]
+      },
+      {
+        "profile": "q3",
+        "archive": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena\\baseq3\\pak0.pk3",
+        "member": "video/end.RoQ",
+        "bytes": 23392627,
+        "sha256": "590ac2de1e493f368f6a0320beab8f5c27bf9b939ae1a6a36877182038d8b173",
+        "wireFrames": 1922,
+        "baselineExit": 4,
+        "currentExit": 0,
+        "baselineFrames": 1922,
+        "currentFrames": 1922,
+        "sharedFramesIdentical": true,
+        "comparedFrames": 1922,
+        "diagnostics": "",
+        "baselineEnd": [
+          "END 2 1 1922 23392627 512 256"
+        ],
+        "currentEnd": [
+          "END 2 0 1922 23392627 512 256"
+        ]
+      },
+      {
+        "profile": "q3",
+        "archive": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena\\baseq3\\pak0.pk3",
+        "member": "video/idlogo.RoQ",
+        "bytes": 2895296,
+        "sha256": "1f358ad1dcfc0ba67a37cbc66631e8507f861da3faf05cb7da5d0521e141c87b",
+        "wireFrames": 210,
+        "baselineExit": 0,
+        "currentExit": 0,
+        "baselineFrames": 238,
+        "currentFrames": 210,
+        "sharedFramesIdentical": true,
+        "comparedFrames": 210,
+        "diagnostics": "",
+        "baselineEnd": [
+          "END 2 0 238 2895296 512 256"
+        ],
+        "currentEnd": [
+          "END 2 0 210 2895296 512 256"
+        ]
+      },
+      {
+        "profile": "q3",
+        "archive": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena\\baseq3\\pak0.pk3",
+        "member": "video/intro.RoQ",
+        "bytes": 49180272,
+        "sha256": "27f0c64acea6c058c4d68698155b786d5221031eb2ce695020aceb92d768c52e",
+        "wireFrames": 2695,
+        "baselineExit": 0,
+        "currentExit": 0,
+        "baselineFrames": 2695,
+        "currentFrames": 2695,
+        "sharedFramesIdentical": true,
+        "comparedFrames": 2695,
+        "diagnostics": "",
+        "baselineEnd": [
+          "END 2 0 2695 49180272 512 256"
+        ],
+        "currentEnd": [
+          "END 2 0 2695 49180272 512 256"
+        ]
+      },
+      {
+        "profile": "q3",
+        "archive": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena\\baseq3\\pak0.pk3",
+        "member": "video/tier1.RoQ",
+        "bytes": 6272334,
+        "sha256": "591ef1b2703b5c9821dd7af971c754ac93d9dd773f758721ed35555f6feafad8",
+        "wireFrames": 366,
+        "baselineExit": 0,
+        "currentExit": 0,
+        "baselineFrames": 366,
+        "currentFrames": 366,
+        "sharedFramesIdentical": true,
+        "comparedFrames": 366,
+        "diagnostics": "",
+        "baselineEnd": [
+          "END 2 0 366 6272334 512 256"
+        ],
+        "currentEnd": [
+          "END 2 0 366 6272334 512 256"
+        ]
+      },
+      {
+        "profile": "q3",
+        "archive": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena\\baseq3\\pak0.pk3",
+        "member": "video/tier2.RoQ",
+        "bytes": 6269606,
+        "sha256": "0c828ba179046c3b52532b0414b9f2ce8b75b9711b72099598dfab31ad7ecec4",
+        "wireFrames": 366,
+        "baselineExit": 0,
+        "currentExit": 0,
+        "baselineFrames": 366,
+        "currentFrames": 366,
+        "sharedFramesIdentical": true,
+        "comparedFrames": 366,
+        "diagnostics": "",
+        "baselineEnd": [
+          "END 2 0 366 6269606 512 256"
+        ],
+        "currentEnd": [
+          "END 2 0 366 6269606 512 256"
+        ]
+      },
+      {
+        "profile": "q3",
+        "archive": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena\\baseq3\\pak0.pk3",
+        "member": "video/tier3.RoQ",
+        "bytes": 6292974,
+        "sha256": "95435bb955f769b02a8416eaa43ebb71bd436f7359443dfa3dc6cb74dd235034",
+        "wireFrames": 366,
+        "baselineExit": 0,
+        "currentExit": 0,
+        "baselineFrames": 366,
+        "currentFrames": 366,
+        "sharedFramesIdentical": true,
+        "comparedFrames": 366,
+        "diagnostics": "",
+        "baselineEnd": [
+          "END 2 0 366 6292974 512 256"
+        ],
+        "currentEnd": [
+          "END 2 0 366 6292974 512 256"
+        ]
+      },
+      {
+        "profile": "q3",
+        "archive": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena\\baseq3\\pak0.pk3",
+        "member": "video/tier4.RoQ",
+        "bytes": 6262954,
+        "sha256": "168755bb75e888d9ed21e2a0b152af898cd2348ecf198de28d4c750223143364",
+        "wireFrames": 366,
+        "baselineExit": 0,
+        "currentExit": 0,
+        "baselineFrames": 366,
+        "currentFrames": 366,
+        "sharedFramesIdentical": true,
+        "comparedFrames": 366,
+        "diagnostics": "",
+        "baselineEnd": [
+          "END 2 0 366 6262954 512 256"
+        ],
+        "currentEnd": [
+          "END 2 0 366 6262954 512 256"
+        ]
+      },
+      {
+        "profile": "q3",
+        "archive": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena\\baseq3\\pak0.pk3",
+        "member": "video/tier5.RoQ",
+        "bytes": 6221319,
+        "sha256": "6fcfd5e1297778f2794c81fcda355c53eb5d92eea9ce4258775af9b069a7a5a1",
+        "wireFrames": 366,
+        "baselineExit": 4,
+        "currentExit": 0,
+        "baselineFrames": 366,
+        "currentFrames": 366,
+        "sharedFramesIdentical": true,
+        "comparedFrames": 366,
+        "diagnostics": "",
+        "baselineEnd": [
+          "END 2 1 366 6221319 512 256"
+        ],
+        "currentEnd": [
+          "END 2 0 366 6221319 512 256"
+        ]
+      },
+      {
+        "profile": "q3",
+        "archive": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena\\baseq3\\pak0.pk3",
+        "member": "video/tier6.RoQ",
+        "bytes": 6292164,
+        "sha256": "f6958aa75596846996f755d162280618c435d2c608496ef9110f518c6da7d2c0",
+        "wireFrames": 366,
+        "baselineExit": 0,
+        "currentExit": 0,
+        "baselineFrames": 366,
+        "currentFrames": 366,
+        "sharedFramesIdentical": true,
+        "comparedFrames": 366,
+        "diagnostics": "",
+        "baselineEnd": [
+          "END 2 0 366 6292164 512 256"
+        ],
+        "currentEnd": [
+          "END 2 0 366 6292164 512 256"
+        ]
+      },
+      {
+        "profile": "q3",
+        "archive": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena\\baseq3\\pak0.pk3",
+        "member": "video/tier7.RoQ",
+        "bytes": 6174848,
+        "sha256": "817b6875ca66dcc9e87b946c5895c1f38ca8c1d8f3222940ec76c5166eee9913",
+        "wireFrames": 366,
+        "baselineExit": 0,
+        "currentExit": 0,
+        "baselineFrames": 366,
+        "currentFrames": 366,
+        "sharedFramesIdentical": true,
+        "comparedFrames": 366,
+        "diagnostics": "",
+        "baselineEnd": [
+          "END 2 0 366 6174848 512 256"
+        ],
+        "currentEnd": [
+          "END 2 0 366 6174848 512 256"
+        ]
+      },
+      {
+        "profile": "rtcw-sp",
+        "archive": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\main\\pak0.pk3",
+        "member": "video/menu.roq",
+        "bytes": 4919482,
+        "sha256": "32a465188546f71d13402316947dc98f3722495ee45c2c7ef364b5442e940d1e",
+        "wireFrames": 353,
+        "baselineExit": 0,
+        "currentExit": 0,
+        "baselineFrames": 352,
+        "currentFrames": 353,
+        "sharedFramesIdentical": true,
+        "comparedFrames": 352,
+        "diagnostics": "",
+        "baselineEnd": [
+          "END 2 0 352 4919482 256 256"
+        ],
+        "currentEnd": [
+          "END 2 0 353 4919482 256 256"
+        ]
+      },
+      {
+        "profile": "rtcw-sp",
+        "archive": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\main\\pak0.pk3",
+        "member": "video/menu2.roq",
+        "bytes": 7628035,
+        "sha256": "20bb318bd190d82c74beb674f90dc3d32a54a10283ed9ea584a3696d352f624b",
+        "wireFrames": 534,
+        "baselineExit": 0,
+        "currentExit": 0,
+        "baselineFrames": 533,
+        "currentFrames": 534,
+        "sharedFramesIdentical": true,
+        "comparedFrames": 533,
+        "diagnostics": "",
+        "baselineEnd": [
+          "END 2 0 533 7628035 256 256"
+        ],
+        "currentEnd": [
+          "END 2 0 534 7628035 256 256"
+        ]
+      },
+      {
+        "profile": "rtcw-sp",
+        "archive": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\main\\sp_pak1.pk3",
+        "member": "video/wolfintro.RoQ",
+        "bytes": 55625495,
+        "sha256": "88b31c00ea85d56c73b22eb37007ea2fb0c45abe48bd4a17335720ac981be075",
+        "wireFrames": 4142,
+        "baselineExit": 0,
+        "currentExit": 0,
+        "baselineFrames": 4142,
+        "currentFrames": 4142,
+        "sharedFramesIdentical": true,
+        "comparedFrames": 4142,
+        "diagnostics": "",
+        "baselineEnd": [
+          "END 2 0 4142 55625495 512 256"
+        ],
+        "currentEnd": [
+          "END 2 0 4142 55625495 512 256"
+        ]
+      },
+      {
+        "profile": "rtcw-mp",
+        "archive": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\main\\mp_pak0.pk3",
+        "member": "video/capturemaps.roq",
+        "bytes": 1570183,
+        "sha256": "9ea1ec8deebc1c5b82baae4a09841a9d1d164af02a0a5cfc40f69c66e3d6f314",
+        "wireFrames": 180,
+        "baselineExit": 0,
+        "currentExit": 0,
+        "baselineFrames": 179,
+        "currentFrames": 180,
+        "sharedFramesIdentical": true,
+        "comparedFrames": 179,
+        "diagnostics": "",
+        "baselineEnd": [
+          "END 2 0 179 1570183 256 256"
+        ],
+        "currentEnd": [
+          "END 2 0 180 1570183 256 256"
+        ]
+      },
+      {
+        "profile": "rtcw-mp",
+        "archive": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\main\\mp_pak0.pk3",
+        "member": "video/mp_assault.roq",
+        "bytes": 1649693,
+        "sha256": "53f15f52489303593c5137ebb2299ca62055b8715987e1d970a8af99a228b802",
+        "wireFrames": 366,
+        "baselineExit": 0,
+        "currentExit": 0,
+        "baselineFrames": 365,
+        "currentFrames": 366,
+        "sharedFramesIdentical": true,
+        "comparedFrames": 365,
+        "diagnostics": "",
+        "baselineEnd": [
+          "END 2 0 365 1649693 128 128"
+        ],
+        "currentEnd": [
+          "END 2 0 366 1649693 128 128"
+        ]
+      },
+      {
+        "profile": "rtcw-mp",
+        "archive": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\main\\mp_pak0.pk3",
+        "member": "video/mp_base.roq",
+        "bytes": 1634958,
+        "sha256": "121caf35a63bae07d7c3a3f2b349bf403d6930fe4131aaa08771427b9023f9b4",
+        "wireFrames": 366,
+        "baselineExit": 0,
+        "currentExit": 0,
+        "baselineFrames": 365,
+        "currentFrames": 366,
+        "sharedFramesIdentical": true,
+        "comparedFrames": 365,
+        "diagnostics": "",
+        "baselineEnd": [
+          "END 2 0 365 1634958 128 128"
+        ],
+        "currentEnd": [
+          "END 2 0 366 1634958 128 128"
+        ]
+      },
+      {
+        "profile": "rtcw-mp",
+        "archive": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\main\\mp_pak0.pk3",
+        "member": "video/mp_beach.roq",
+        "bytes": 1597910,
+        "sha256": "7b1602ff4b41043b5aba6e042772eaea82b599bb1276633c2d4509b81ad43e43",
+        "wireFrames": 366,
+        "baselineExit": 0,
+        "currentExit": 0,
+        "baselineFrames": 365,
+        "currentFrames": 366,
+        "sharedFramesIdentical": true,
+        "comparedFrames": 365,
+        "diagnostics": "",
+        "baselineEnd": [
+          "END 2 0 365 1597910 128 128"
+        ],
+        "currentEnd": [
+          "END 2 0 366 1597910 128 128"
+        ]
+      },
+      {
+        "profile": "rtcw-mp",
+        "archive": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\main\\mp_pak0.pk3",
+        "member": "video/mp_castle.roq",
+        "bytes": 1641622,
+        "sha256": "feeb6f63360e1d014eb5a54c71b996bf5ef214f96bf3d5dc0901afdbeef4a1a6",
+        "wireFrames": 366,
+        "baselineExit": 0,
+        "currentExit": 0,
+        "baselineFrames": 365,
+        "currentFrames": 366,
+        "sharedFramesIdentical": true,
+        "comparedFrames": 365,
+        "diagnostics": "",
+        "baselineEnd": [
+          "END 2 0 365 1641622 128 128"
+        ],
+        "currentEnd": [
+          "END 2 0 366 1641622 128 128"
+        ]
+      },
+      {
+        "profile": "rtcw-mp",
+        "archive": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\main\\mp_pak0.pk3",
+        "member": "video/mp_depot.roq",
+        "bytes": 1615566,
+        "sha256": "e1f445bf4b21925831f738d622eca45d4dff3032689357042aac17529bf055aa",
+        "wireFrames": 366,
+        "baselineExit": 0,
+        "currentExit": 0,
+        "baselineFrames": 365,
+        "currentFrames": 366,
+        "sharedFramesIdentical": true,
+        "comparedFrames": 365,
+        "diagnostics": "",
+        "baselineEnd": [
+          "END 2 0 365 1615566 128 128"
+        ],
+        "currentEnd": [
+          "END 2 0 366 1615566 128 128"
+        ]
+      },
+      {
+        "profile": "rtcw-mp",
+        "archive": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\main\\mp_pak0.pk3",
+        "member": "video/mp_destruction.roq",
+        "bytes": 1570183,
+        "sha256": "9ea1ec8deebc1c5b82baae4a09841a9d1d164af02a0a5cfc40f69c66e3d6f314",
+        "wireFrames": 180,
+        "baselineExit": 0,
+        "currentExit": 0,
+        "baselineFrames": 179,
+        "currentFrames": 180,
+        "sharedFramesIdentical": true,
+        "comparedFrames": 179,
+        "diagnostics": "",
+        "baselineEnd": [
+          "END 2 0 179 1570183 256 256"
+        ],
+        "currentEnd": [
+          "END 2 0 180 1570183 256 256"
+        ]
+      },
+      {
+        "profile": "rtcw-mp",
+        "archive": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\main\\mp_pak0.pk3",
+        "member": "video/mp_sub.roq",
+        "bytes": 1635864,
+        "sha256": "4770ae83c0a7c17d2a3fadb3315b8366c91e7cb7c65bb7f15080ab0f82990f2b",
+        "wireFrames": 366,
+        "baselineExit": 0,
+        "currentExit": 0,
+        "baselineFrames": 365,
+        "currentFrames": 366,
+        "sharedFramesIdentical": true,
+        "comparedFrames": 365,
+        "diagnostics": "",
+        "baselineEnd": [
+          "END 2 0 365 1635864 128 128"
+        ],
+        "currentEnd": [
+          "END 2 0 366 1635864 128 128"
+        ]
+      },
+      {
+        "profile": "rtcw-mp",
+        "archive": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\main\\mp_pak0.pk3",
+        "member": "video/mp_village.roq",
+        "bytes": 1679495,
+        "sha256": "2aa929e436313ccbe4301f053902d8384a04737f6e806c475a92a6cbef9cecc3",
+        "wireFrames": 366,
+        "baselineExit": 0,
+        "currentExit": 0,
+        "baselineFrames": 365,
+        "currentFrames": 366,
+        "sharedFramesIdentical": true,
+        "comparedFrames": 365,
+        "diagnostics": "",
+        "baselineEnd": [
+          "END 2 0 365 1679495 128 128"
+        ],
+        "currentEnd": [
+          "END 2 0 366 1679495 128 128"
+        ]
+      },
+      {
+        "profile": "rtcw-mp",
+        "archive": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\main\\mp_pakmaps2.pk3",
+        "member": "video/mp_keep.roq",
+        "bytes": 1771766,
+        "sha256": "7352a4ca5b13ffb1caa5cbfaf84575d5f4c24c478a05db5608e2149b223f4ae0",
+        "wireFrames": 396,
+        "baselineExit": 0,
+        "currentExit": 0,
+        "baselineFrames": 395,
+        "currentFrames": 396,
+        "sharedFramesIdentical": true,
+        "comparedFrames": 395,
+        "diagnostics": "",
+        "baselineEnd": [
+          "END 2 0 395 1771766 128 128"
+        ],
+        "currentEnd": [
+          "END 2 0 396 1771766 128 128"
+        ]
+      },
+      {
+        "profile": "rtcw-mp",
+        "archive": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\main\\mp_pakmaps3.pk3",
+        "member": "video/mp_chateau.roq",
+        "bytes": 2020070,
+        "sha256": "cab6d9741e46b8c42193f173e4c0d20a8609f3a8170173d0cab36c679233f364",
+        "wireFrames": 456,
+        "baselineExit": 0,
+        "currentExit": 0,
+        "baselineFrames": 455,
+        "currentFrames": 456,
+        "sharedFramesIdentical": true,
+        "comparedFrames": 455,
+        "diagnostics": "",
+        "baselineEnd": [
+          "END 2 0 455 2020070 128 128"
+        ],
+        "currentEnd": [
+          "END 2 0 456 2020070 128 128"
+        ]
+      },
+      {
+        "profile": "rtcw-mp",
+        "archive": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\main\\mp_pakmaps4.pk3",
+        "member": "video/mp_tram.roq",
+        "bytes": 1594342,
+        "sha256": "f715eade94e40a831fb8f8062d97995e797c73a363f0d9750a1ed726c102067a",
+        "wireFrames": 351,
+        "baselineExit": 0,
+        "currentExit": 0,
+        "baselineFrames": 350,
+        "currentFrames": 351,
+        "sharedFramesIdentical": true,
+        "comparedFrames": 350,
+        "diagnostics": "",
+        "baselineEnd": [
+          "END 2 0 350 1594342 128 128"
+        ],
+        "currentEnd": [
+          "END 2 0 351 1594342 128 128"
+        ]
+      },
+      {
+        "profile": "rtcw-mp",
+        "archive": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\main\\mp_pakmaps5.pk3",
+        "member": "video/mp_dam.roq",
+        "bytes": 1637456,
+        "sha256": "6c235c396b27f6fe09c3dca8b0a9bcd072b38dbe467e013f00c250484d835a60",
+        "wireFrames": 376,
+        "baselineExit": 0,
+        "currentExit": 0,
+        "baselineFrames": 375,
+        "currentFrames": 376,
+        "sharedFramesIdentical": true,
+        "comparedFrames": 375,
+        "diagnostics": "",
+        "baselineEnd": [
+          "END 2 0 375 1637456 128 128"
+        ],
+        "currentEnd": [
+          "END 2 0 376 1637456 128 128"
+        ]
+      },
+      {
+        "profile": "rtcw-mp",
+        "archive": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\main\\mp_pakmaps6.pk3",
+        "member": "video/mp_rocket.roq",
+        "bytes": 1397604,
+        "sha256": "4bb0f066ab8cf3470b279579581f850ab806472cf2b35ca246af9cd4389193f3",
+        "wireFrames": 326,
+        "baselineExit": 0,
+        "currentExit": 0,
+        "baselineFrames": 325,
+        "currentFrames": 326,
+        "sharedFramesIdentical": true,
+        "comparedFrames": 325,
+        "diagnostics": "",
+        "baselineEnd": [
+          "END 2 0 325 1397604 128 128"
+        ],
+        "currentEnd": [
+          "END 2 0 326 1397604 128 128"
+        ]
+      },
+      {
+        "profile": "rtcw-mp",
+        "archive": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\main\\pak0.pk3",
+        "member": "video/menu.roq",
+        "bytes": 4919482,
+        "sha256": "32a465188546f71d13402316947dc98f3722495ee45c2c7ef364b5442e940d1e",
+        "wireFrames": 353,
+        "baselineExit": 0,
+        "currentExit": 0,
+        "baselineFrames": 352,
+        "currentFrames": 353,
+        "sharedFramesIdentical": true,
+        "comparedFrames": 352,
+        "diagnostics": "",
+        "baselineEnd": [
+          "END 2 0 352 4919482 256 256"
+        ],
+        "currentEnd": [
+          "END 2 0 353 4919482 256 256"
+        ]
+      },
+      {
+        "profile": "rtcw-mp",
+        "archive": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\main\\pak0.pk3",
+        "member": "video/menu2.roq",
+        "bytes": 7628035,
+        "sha256": "20bb318bd190d82c74beb674f90dc3d32a54a10283ed9ea584a3696d352f624b",
+        "wireFrames": 534,
+        "baselineExit": 0,
+        "currentExit": 0,
+        "baselineFrames": 533,
+        "currentFrames": 534,
+        "sharedFramesIdentical": true,
+        "comparedFrames": 533,
+        "diagnostics": "",
+        "baselineEnd": [
+          "END 2 0 533 7628035 256 256"
+        ],
+        "currentEnd": [
+          "END 2 0 534 7628035 256 256"
+        ]
+      }
+    ]
+  },
+  "runtime": [
+    {
+      "profile": "q3",
+      "renderer": "glx",
+      "stockMovie": null,
+      "utc": "2026-09-17T16:11:16.097640+00:00",
+      "command": [
+        "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "q3",
+        "+set",
+        "fs_basepath",
+        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\roq-bounds\\runtime-final\\q3-glx-recovery\\home-nomhavw5",
+        "+set",
+        "fs_game",
+        "",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "640",
+        "+set",
+        "r_windowedHeight",
+        "480",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "cl_renderer",
+        "glx",
+        "+set",
+        "logfile",
+        "4",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "net_ip6",
+        "::1",
+        "+set",
+        "net_port6",
+        "0",
+        "+set",
+        "rtx_rt_mode",
+        "0",
+        "+set",
+        "rtx_rt_require",
+        "0",
+        "+exec",
+        "roq-probe.cfg"
+      ],
+      "executableSha256": "573c45da5b2f72ebe20b290febc20a436f9c3fdecccfb8251caf2dd6309a1736",
+      "rendererSha256": "a3895cca7cc857e94e9f033440ef23018ca6921165d0ee237000f7261eb81507",
+      "commit": "0b6af9ba7a17d73bf27c5c016c00772a1a93899a",
+      "worktreeDirty": true,
+      "inputEvents": 0,
+      "desktopSwitched": false,
+      "captures": [
+        {
+          "path": ".tmp/roq-bounds/runtime-final/q3-glx-recovery/roq-probe-result.png",
+          "sha256": "0d86a5e5e554d59ba70afdeaae31baf4e1695c0d23c28ab1137c3dbdcd6f404d",
+          "size": [
+            640,
+            480
+          ]
+        }
+      ],
+      "exitCode": 0,
+      "forcedStop": false,
+      "recovered": [
+        "short-header",
+        "bad-size",
+        "short-info",
+        "bad-dimensions",
+        "short-codebook",
+        "short-vq",
+        "bad-motion",
+        "odd-stereo",
+        "short-packet"
+      ],
+      "rejections": [
+        "^5play(roq-probe-short-header.roq), missing or truncated RoQ file header",
+        "^5trFMV::play(), invalid RoQ ID or frame size",
+        "Invalid RoQ movie video/roq-probe-short-info.roq: truncated quad information",
+        "Invalid RoQ movie video/roq-probe-bad-dimensions.roq: unsupported quad dimensions",
+        "Invalid RoQ movie video/roq-probe-short-codebook.roq: truncated codebook",
+        "Invalid RoQ movie video/roq-probe-short-vq.roq: invalid VQ payload or motion range",
+        "Invalid RoQ movie video/roq-probe-bad-motion.roq: invalid VQ payload or motion range",
+        "Invalid RoQ movie video/roq-probe-odd-stereo.roq: incomplete stereo sample",
+        "Invalid RoQ movie video/roq-probe-short-packet.roq: truncated packet payload"
+      ],
+      "done": true,
+      "windowed": true,
+      "engineErrors": [],
+      "warnings": [
+        "VM_LoadDLL 'cgamex86.dll' failed",
+        "Failed to load dll, looking for qvm.",
+        "VM_LoadDLL 'uix86.dll' failed",
+        "Failed to load dll, looking for qvm."
+      ],
+      "homeRemoved": true,
+      "installationUnchanged": true,
+      "passed": true,
+      "visualInspection": "Uniform green synthetic recovery frame"
+    },
+    {
+      "profile": "ql",
+      "renderer": "glx",
+      "stockMovie": null,
+      "utc": "2026-09-17T16:11:20.141895+00:00",
+      "command": [
+        "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "ql",
+        "+set",
+        "fs_basepath",
+        "E:\\SteamLibrary\\steamapps\\common\\Quake Live",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\roq-bounds\\runtime-final\\ql-glx-recovery\\home-7h8h8959",
+        "+set",
+        "fs_game",
+        "",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "640",
+        "+set",
+        "r_windowedHeight",
+        "480",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "cl_renderer",
+        "glx",
+        "+set",
+        "logfile",
+        "4",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "net_ip6",
+        "::1",
+        "+set",
+        "net_port6",
+        "0",
+        "+set",
+        "rtx_rt_mode",
+        "0",
+        "+set",
+        "rtx_rt_require",
+        "0",
+        "+exec",
+        "roq-probe.cfg"
+      ],
+      "executableSha256": "573c45da5b2f72ebe20b290febc20a436f9c3fdecccfb8251caf2dd6309a1736",
+      "rendererSha256": "a3895cca7cc857e94e9f033440ef23018ca6921165d0ee237000f7261eb81507",
+      "commit": "0b6af9ba7a17d73bf27c5c016c00772a1a93899a",
+      "worktreeDirty": true,
+      "inputEvents": 0,
+      "desktopSwitched": false,
+      "captures": [
+        {
+          "path": ".tmp/roq-bounds/runtime-final/ql-glx-recovery/roq-probe-result.png",
+          "sha256": "0d86a5e5e554d59ba70afdeaae31baf4e1695c0d23c28ab1137c3dbdcd6f404d",
+          "size": [
+            640,
+            480
+          ]
+        }
+      ],
+      "exitCode": 0,
+      "forcedStop": false,
+      "recovered": [
+        "short-header",
+        "bad-size",
+        "short-info",
+        "bad-dimensions",
+        "short-codebook",
+        "short-vq",
+        "bad-motion",
+        "odd-stereo",
+        "short-packet"
+      ],
+      "rejections": [
+        "^5play(roq-probe-short-header.roq), missing or truncated RoQ file header",
+        "^5trFMV::play(), invalid RoQ ID or frame size",
+        "Invalid RoQ movie video/roq-probe-short-info.roq: truncated quad information",
+        "Invalid RoQ movie video/roq-probe-bad-dimensions.roq: unsupported quad dimensions",
+        "Invalid RoQ movie video/roq-probe-short-codebook.roq: truncated codebook",
+        "Invalid RoQ movie video/roq-probe-short-vq.roq: invalid VQ payload or motion range",
+        "Invalid RoQ movie video/roq-probe-bad-motion.roq: invalid VQ payload or motion range",
+        "Invalid RoQ movie video/roq-probe-odd-stereo.roq: incomplete stereo sample",
+        "Invalid RoQ movie video/roq-probe-short-packet.roq: truncated packet payload"
+      ],
+      "done": true,
+      "windowed": true,
+      "engineErrors": [],
+      "warnings": [
+        "^5Warning: cvar \"g_ammoPack\" given initial values: \"1\" and \"0\"",
+        "^5Warning: cvar \"ui_resourceBridgeSteamDataSourceSubset\" given initial values: \"small medium and large avatars\" and \"avatar-only SteamDataSource\"",
+        "^5Warning: cvar \"ui_resourceBridgeSteamDataSourceFallbackOwner\" given initial values: \"Awesomium Steam DataSource and renderer shader registry\" and \"QLResourceInterceptor launcher/web fallback\""
+      ],
+      "homeRemoved": true,
+      "installationUnchanged": true,
+      "passed": true,
+      "visualInspection": "Uniform green synthetic recovery frame"
+    },
+    {
+      "profile": "rtcw-sp",
+      "renderer": "glx",
+      "stockMovie": null,
+      "utc": "2026-09-17T16:11:22.588688+00:00",
+      "command": [
+        "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "rtcw-sp",
+        "+set",
+        "fs_basepath",
+        "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\roq-bounds\\runtime-final\\rtcw-sp-glx-recovery\\home-vae61g5v",
+        "+set",
+        "fs_game",
+        "",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "640",
+        "+set",
+        "r_windowedHeight",
+        "480",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "cl_renderer",
+        "glx",
+        "+set",
+        "logfile",
+        "4",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "net_ip6",
+        "::1",
+        "+set",
+        "net_port6",
+        "0",
+        "+set",
+        "rtx_rt_mode",
+        "0",
+        "+set",
+        "rtx_rt_require",
+        "0",
+        "+exec",
+        "roq-probe.cfg"
+      ],
+      "executableSha256": "573c45da5b2f72ebe20b290febc20a436f9c3fdecccfb8251caf2dd6309a1736",
+      "rendererSha256": "a3895cca7cc857e94e9f033440ef23018ca6921165d0ee237000f7261eb81507",
+      "commit": "0b6af9ba7a17d73bf27c5c016c00772a1a93899a",
+      "worktreeDirty": true,
+      "inputEvents": 0,
+      "desktopSwitched": false,
+      "captures": [
+        {
+          "path": ".tmp/roq-bounds/runtime-final/rtcw-sp-glx-recovery/roq-probe-result.png",
+          "sha256": "0d86a5e5e554d59ba70afdeaae31baf4e1695c0d23c28ab1137c3dbdcd6f404d",
+          "size": [
+            640,
+            480
+          ]
+        }
+      ],
+      "exitCode": 0,
+      "forcedStop": false,
+      "recovered": [
+        "short-header",
+        "bad-size",
+        "short-info",
+        "bad-dimensions",
+        "short-codebook",
+        "short-vq",
+        "bad-motion",
+        "odd-stereo",
+        "short-packet"
+      ],
+      "rejections": [
+        "^5play(roq-probe-short-header.roq), missing or truncated RoQ file header",
+        "^5trFMV::play(), invalid RoQ ID or frame size",
+        "Invalid RoQ movie video/roq-probe-short-info.roq: truncated quad information",
+        "Invalid RoQ movie video/roq-probe-bad-dimensions.roq: unsupported quad dimensions",
+        "Invalid RoQ movie video/roq-probe-short-codebook.roq: truncated codebook",
+        "Invalid RoQ movie video/roq-probe-short-vq.roq: invalid VQ payload or motion range",
+        "Invalid RoQ movie video/roq-probe-bad-motion.roq: invalid VQ payload or motion range",
+        "Invalid RoQ movie video/roq-probe-odd-stereo.roq: incomplete stereo sample",
+        "Invalid RoQ movie video/roq-probe-short-packet.roq: truncated packet payload"
+      ],
+      "done": true,
+      "windowed": true,
+      "engineErrors": [],
+      "warnings": [],
+      "homeRemoved": true,
+      "installationUnchanged": true,
+      "passed": true,
+      "visualInspection": "Uniform green synthetic recovery frame"
+    },
+    {
+      "profile": "rtcw-mp",
+      "renderer": "glx",
+      "stockMovie": null,
+      "utc": "2026-09-17T16:11:24.968523+00:00",
+      "command": [
+        "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "rtcw-mp",
+        "+set",
+        "fs_basepath",
+        "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\roq-bounds\\runtime-final\\rtcw-mp-glx-recovery\\home-4_1731z4",
+        "+set",
+        "fs_game",
+        "",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "640",
+        "+set",
+        "r_windowedHeight",
+        "480",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "cl_renderer",
+        "glx",
+        "+set",
+        "logfile",
+        "4",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "net_ip6",
+        "::1",
+        "+set",
+        "net_port6",
+        "0",
+        "+set",
+        "rtx_rt_mode",
+        "0",
+        "+set",
+        "rtx_rt_require",
+        "0",
+        "+exec",
+        "roq-probe.cfg"
+      ],
+      "executableSha256": "573c45da5b2f72ebe20b290febc20a436f9c3fdecccfb8251caf2dd6309a1736",
+      "rendererSha256": "a3895cca7cc857e94e9f033440ef23018ca6921165d0ee237000f7261eb81507",
+      "commit": "0b6af9ba7a17d73bf27c5c016c00772a1a93899a",
+      "worktreeDirty": true,
+      "inputEvents": 0,
+      "desktopSwitched": false,
+      "captures": [
+        {
+          "path": ".tmp/roq-bounds/runtime-final/rtcw-mp-glx-recovery/roq-probe-result.png",
+          "sha256": "0d86a5e5e554d59ba70afdeaae31baf4e1695c0d23c28ab1137c3dbdcd6f404d",
+          "size": [
+            640,
+            480
+          ]
+        }
+      ],
+      "exitCode": 0,
+      "forcedStop": false,
+      "recovered": [
+        "short-header",
+        "bad-size",
+        "short-info",
+        "bad-dimensions",
+        "short-codebook",
+        "short-vq",
+        "bad-motion",
+        "odd-stereo",
+        "short-packet"
+      ],
+      "rejections": [
+        "^5play(roq-probe-short-header.roq), missing or truncated RoQ file header",
+        "^5trFMV::play(), invalid RoQ ID or frame size",
+        "Invalid RoQ movie video/roq-probe-short-info.roq: truncated quad information",
+        "Invalid RoQ movie video/roq-probe-bad-dimensions.roq: unsupported quad dimensions",
+        "Invalid RoQ movie video/roq-probe-short-codebook.roq: truncated codebook",
+        "Invalid RoQ movie video/roq-probe-short-vq.roq: invalid VQ payload or motion range",
+        "Invalid RoQ movie video/roq-probe-bad-motion.roq: invalid VQ payload or motion range",
+        "Invalid RoQ movie video/roq-probe-odd-stereo.roq: incomplete stereo sample",
+        "Invalid RoQ movie video/roq-probe-short-packet.roq: truncated packet payload"
+      ],
+      "done": true,
+      "windowed": true,
+      "engineErrors": [],
+      "warnings": [
+        "^3WARNING: R_FindImageFile could not find 'gfx/colors/black.tga' in shader 'console'"
+      ],
+      "homeRemoved": true,
+      "installationUnchanged": true,
+      "passed": true,
+      "visualInspection": "Uniform green synthetic recovery frame"
+    },
+    {
+      "profile": "rtcw-sp",
+      "renderer": "glx",
+      "stockMovie": "wolfintro.RoQ",
+      "utc": "2026-09-17T16:13:39.616600+00:00",
+      "command": [
+        "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "rtcw-sp",
+        "+set",
+        "fs_basepath",
+        "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\roq-bounds\\runtime-film\\rtcw-sp-glx-installed\\home-0n2smy7n",
+        "+set",
+        "fs_game",
+        "",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "640",
+        "+set",
+        "r_windowedHeight",
+        "480",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "cl_renderer",
+        "glx",
+        "+set",
+        "logfile",
+        "4",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "net_ip6",
+        "::1",
+        "+set",
+        "net_port6",
+        "0",
+        "+set",
+        "rtx_rt_mode",
+        "0",
+        "+set",
+        "rtx_rt_require",
+        "0",
+        "+exec",
+        "roq-probe.cfg"
+      ],
+      "executableSha256": "573c45da5b2f72ebe20b290febc20a436f9c3fdecccfb8251caf2dd6309a1736",
+      "rendererSha256": "41ea45fd8565f99cfafa1c9d0de1388c4ea0302fdce55560582a4bc8ac39c41d",
+      "commit": "0b6af9ba7a17d73bf27c5c016c00772a1a93899a",
+      "worktreeDirty": true,
+      "inputEvents": 0,
+      "desktopSwitched": false,
+      "captures": [
+        {
+          "path": ".tmp/roq-bounds/runtime-film/rtcw-sp-glx-installed/roq-probe-result.png",
+          "sha256": "86276f71c0b3c97316901676bb6aea8d385503deb95726807af18cb64fee0e3b",
+          "size": [
+            640,
+            480
+          ]
+        }
+      ],
+      "exitCode": 0,
+      "forcedStop": false,
+      "recovered": [],
+      "rejections": [],
+      "done": true,
+      "windowed": true,
+      "engineErrors": [],
+      "warnings": [],
+      "homeRemoved": true,
+      "installationUnchanged": true,
+      "passed": true,
+      "visualInspection": "Letterboxed blue-grey opening film scene"
+    },
+    {
+      "profile": "rtcw-sp",
+      "renderer": "vk",
+      "stockMovie": "wolfintro.RoQ",
+      "utc": "2026-09-17T16:14:05.872564+00:00",
+      "command": [
+        "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "rtcw-sp",
+        "+set",
+        "fs_basepath",
+        "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\roq-bounds\\runtime-film\\rtcw-sp-vk-installed\\home-46h6icgc",
+        "+set",
+        "fs_game",
+        "",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "640",
+        "+set",
+        "r_windowedHeight",
+        "480",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "cl_renderer",
+        "vk",
+        "+set",
+        "logfile",
+        "4",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "net_ip6",
+        "::1",
+        "+set",
+        "net_port6",
+        "0",
+        "+set",
+        "rtx_rt_mode",
+        "0",
+        "+set",
+        "rtx_rt_require",
+        "0",
+        "+exec",
+        "roq-probe.cfg"
+      ],
+      "executableSha256": "573c45da5b2f72ebe20b290febc20a436f9c3fdecccfb8251caf2dd6309a1736",
+      "rendererSha256": "ee73509682acfadb7d912034c78583a32d6cfed0f68e61cdde1a6533a2fe08d2",
+      "commit": "0b6af9ba7a17d73bf27c5c016c00772a1a93899a",
+      "worktreeDirty": true,
+      "inputEvents": 0,
+      "desktopSwitched": false,
+      "captures": [
+        {
+          "path": ".tmp/roq-bounds/runtime-film/rtcw-sp-vk-installed/roq-probe-result.png",
+          "sha256": "d64ae0b8c6c36c44c950b90022eca7685af73f825825124eb6abfa602cdff99c",
+          "size": [
+            640,
+            480
+          ]
+        }
+      ],
+      "exitCode": 0,
+      "forcedStop": false,
+      "recovered": [],
+      "rejections": [],
+      "done": true,
+      "windowed": true,
+      "engineErrors": [],
+      "warnings": [],
+      "homeRemoved": true,
+      "installationUnchanged": true,
+      "passed": true,
+      "visualInspection": "Letterboxed blue-grey opening film scene"
+    },
+    {
+      "profile": "rtcw-sp",
+      "renderer": "rtx",
+      "stockMovie": "wolfintro.RoQ",
+      "utc": "2026-09-17T16:14:31.977448+00:00",
+      "command": [
+        "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "rtcw-sp",
+        "+set",
+        "fs_basepath",
+        "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\roq-bounds\\runtime-film\\rtcw-sp-rtx-installed\\home-yejnzeb6",
+        "+set",
+        "fs_game",
+        "",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "640",
+        "+set",
+        "r_windowedHeight",
+        "480",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "logfile",
+        "4",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "net_ip6",
+        "::1",
+        "+set",
+        "net_port6",
+        "0",
+        "+set",
+        "rtx_rt_mode",
+        "0",
+        "+set",
+        "rtx_rt_require",
+        "0",
+        "+exec",
+        "roq-probe.cfg"
+      ],
+      "executableSha256": "573c45da5b2f72ebe20b290febc20a436f9c3fdecccfb8251caf2dd6309a1736",
+      "rendererSha256": "396d992d8da57963df0cafaf20c1b744a23d80eda8d44765cab1ebf7d05c18f0",
+      "commit": "0b6af9ba7a17d73bf27c5c016c00772a1a93899a",
+      "worktreeDirty": true,
+      "inputEvents": 0,
+      "desktopSwitched": false,
+      "captures": [
+        {
+          "path": ".tmp/roq-bounds/runtime-film/rtcw-sp-rtx-installed/roq-probe-result.png",
+          "sha256": "5d2340b172c7a6b2cab4a9b0b8b2a6dd2a31ae53f6f8eb035bfa958574a954b3",
+          "size": [
+            640,
+            480
+          ]
+        }
+      ],
+      "exitCode": 0,
+      "forcedStop": false,
+      "recovered": [],
+      "rejections": [],
+      "done": true,
+      "windowed": true,
+      "engineErrors": [],
+      "warnings": [
+        "^5WARNING: models/mapobjects/bjui/bjui_b.MD3 not present, using models/mapobjects/bjui/bjui_b.mdc instead",
+        "^5WARNING: models/mapobjects/flag/flag_americanui.MD3 not present, using models/mapobjects/flag/flag_americanui.mdc instead",
+        "^5WARNING: models/mapobjects/flag/flag_naziui.MD3 not present, using models/mapobjects/flag/flag_naziui.mdc instead",
+        "^5WARNING: models/mapobjects/ui/icon_burn.MD3 not present, using models/mapobjects/ui/icon_burn.mdc instead"
+      ],
+      "homeRemoved": true,
+      "installationUnchanged": true,
+      "passed": true,
+      "visualInspection": "Letterboxed blue-grey opening film scene"
+    }
+  ],
+  "earlierExperiments": [
+    {
+      "path": ".tmp/roq-bounds/before.log",
+      "outcome": "Production short-read regression fails before the correction"
+    },
+    {
+      "path": ".tmp/roq-bounds/corpus-initial.json",
+      "outcome": "Overstrict codebook validation rejected valid small-only codebooks; corrected"
+    },
+    {
+      "path": ".tmp/roq-bounds/runtime/",
+      "outcome": "First-frame priming hang; q3 timeout, ql deliberately terminated before correction"
+    },
+    {
+      "path": ".tmp/roq-bounds/runtime-final.json",
+      "outcome": "Recovery passes; short installed-film screenshots are dark transitions and are superseded for visible-scene evidence"
+    }
+  ],
+  "limits": [
+    "Not a clean build or full compatibility sign-off",
+    "No audible/PCM, native-RT or original-engine timing/visual parity claim",
+    "Nested packets, complete malformed/fuzz coverage, broader formats and campaign transitions remain open"
+  ],
+  "unrelatedDiagnostics": [
+    "QL cvar/default-description conflicts",
+    "RTCW MP missing gfx/colors/black.tga console image",
+    "Successful RTX MD3-to-MDC model fallbacks",
+    "Initial full-suite linker 1104; isolated config-test rerun passed"
+  ]
+}

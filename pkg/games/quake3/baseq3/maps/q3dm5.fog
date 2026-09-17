@@ -1,0 +1,7 @@
+// Muted blue-grey haze for The Forgotten Place.
+color 0.54 0.58 0.59
+mode exp
+density 0.00090
+start 144
+opacity 0.31
+sky 1

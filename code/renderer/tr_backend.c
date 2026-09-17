@@ -1874,6 +1874,8 @@ static qboolean RB_DlightShadowCasterAllowed( const shader_t *shader, const surf
 	switch ( *surface ) {
 		case SF_FACE:
 		case SF_TRIANGLES:
+		case SF_MDS:
+		case SF_MDC:
 		case SF_MD3:
 		case SF_MDR:
 		case SF_IQM:
@@ -2216,6 +2218,8 @@ static qboolean RB_DlightShadowEntityCasterAllowed( int entityNum )
 
 	switch ( model->type ) {
 		case MOD_BRUSH:
+		case MOD_MDS:
+		case MOD_MDC:
 		case MOD_MESH:
 		case MOD_MDR:
 		case MOD_IQM:

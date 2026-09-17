@@ -3,14 +3,13 @@
 #define FNTECH3_TR_MDC_RAY_GEOMETRY_H
 
 /* Included by the RTX transport after its checked geometry/material helpers. */
+#include "tr_mesh_material.h"
+
 static const shader_t *vk_rt_resolve_mdc_shader( const trRefEntity_t *ent, const mdcMeshSurface_t *surface ) {
 	if ( ent->e.customShader ) return R_GetShaderByHandle( ent->e.customShader );
 	if ( ent->e.customSkin > 0 && ent->e.customSkin < tr.numSkins ) {
 		const skin_t *skin = R_GetSkinByHandle( ent->e.customSkin );
-		int i;
-		for ( i = 0; i < skin->numSurfaces; ++i )
-			if ( !strcmp( skin->surfaces[i].name, surface->name ) ) return skin->surfaces[i].shader;
-		return tr.defaultShader;
+		return R_MeshSkinShader( &ent->e, skin, surface->name );
 	}
 	if ( surface->view.numShaders ) {
 		const unsigned index = ent->e.skinNum < 0 ? 0 : (unsigned)ent->e.skinNum % surface->view.numShaders;
@@ -41,7 +40,7 @@ static qboolean vk_rt_append_mdc_entity_geometry( rtxRtCpuGeometry_t *geometry, 
 		const shader_t *shader = vk_rt_resolve_mdc_shader( ent, mesh );
 		uint32_t material, base, vertex, triangle, indexCount;
 		vec4_t tangent = { 1, 0, 0, 1 };
-		if ( !surface->numVerts || !surface->numTriangles ) continue;
+		if ( !surface->numVerts || !surface->numTriangles || R_MeshSurfaceHidden( &ent->e, mesh->name ) ) continue;
 		if ( !vk_rt_checked_u32_multiply( surface->numTriangles, 3, &indexCount ) ||
 			!vk_rt_cpu_geometry_find_or_add_material( geometry, shader, &material ) ||
 			!vk_rt_cpu_geometry_reserve( geometry, surface->numVerts, indexCount ) ) return qfalse;

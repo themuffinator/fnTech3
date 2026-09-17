@@ -1,0 +1,7 @@
+// Quiet neutral haze for House of Pain.
+color 0.59 0.60 0.59
+mode exp
+density 0.00100
+start 112
+opacity 0.34
+sky 1

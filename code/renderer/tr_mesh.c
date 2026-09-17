@@ -381,6 +381,7 @@ void R_AddMD3Surfaces( trRefEntity_t *ent,
 	if ( !casterContext && !personalModel && R_GetDlightMode() >= 2 ) {
 		for ( n = 0; n < tr.viewParms.num_dlights; n++ ) {
 			dl = &tr.viewParms.dlights[ n ];
+			if ( dl->rtcwShader ) continue; // Original material lights do not light models.
 			if ( R_DlightCullEntityBounds( dl, ent, bounds[0], bounds[1] ) ) {
 				continue;
 			}
@@ -404,7 +405,7 @@ void R_AddMD3Surfaces( trRefEntity_t *ent,
 	for ( i = 0 ; i < numSurfaces ; i++ ) {
 		R_MeshSurfaceDescribe( &surface );
 
-		if ( surface.mds && R_MdsSurfaceHidden( &ent->e, surface.mds ) ) {
+		if ( R_MeshSurfaceHidden( &ent->e, surface.name ) ) {
 			R_MeshNextSurface( &surface );
 			continue;
 		}
@@ -414,19 +415,10 @@ void R_AddMD3Surfaces( trRefEntity_t *ent,
 			shader = R_GetShaderByHandle( ent->e.customShader );
 		} else if ( ent->e.customSkin > 0 && ent->e.customSkin < tr.numSkins ) {
 			const skin_t *skin;
-			int		j;
 
 			skin = R_GetSkinByHandle( ent->e.customSkin );
 
-			// match the surface name to something in the skin file
-			shader = tr.defaultShader;
-			for ( j = 0 ; j < skin->numSurfaces ; j++ ) {
-				// the names have both been lowercased
-				if ( !strcmp( skin->surfaces[j].name, surface.name ) ) {
-					shader = skin->surfaces[j].shader;
-					break;
-				}
-			}
+			shader = R_MeshSkinShader( &ent->e, skin, surface.name );
 			if ( !casterContext && shader == tr.defaultShader ) {
 				ri.Printf( PRINT_DEVELOPER, "WARNING: no shader for surface %s in skin %s\n", surface.name, skin->name);
 			}

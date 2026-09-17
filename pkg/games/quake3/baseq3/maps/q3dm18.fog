@@ -1,0 +1,7 @@
+// Subtle pale-blue chamber haze.
+color 0.57 0.60 0.62
+mode exp
+density 0.00070
+start 208
+opacity 0.27
+sky 1

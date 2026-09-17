@@ -178,9 +178,8 @@ static std::array<unsigned short, 256 * 256 * 4> vq8;
 
 struct cinematics_t {
 	std::array<byte, DEFAULT_CIN_WIDTH * DEFAULT_CIN_HEIGHT * 4 * 2> linbuf;
-	// a legal ROQ chunk may be a full 65536 bytes and RoQInterrupt() always
-	// reads/inspects the following 8-byte chunk header alongside it, so the
-	// buffer carries that header's worth of slack
+	// A legal RoQ chunk may be a full 65536 bytes. Keep header slack for
+	// the initial file header; subsequent chunks are read without lookahead.
 	std::array<byte, 65536 + 8> file;
 	std::array<short, 256> sqrTable;
 
@@ -213,17 +212,16 @@ struct cin_cache {
 	unsigned int		roq_id;
 	long				screenDelta;
 
-	void ( *VQ0)(byte *status, void *qdata );
-	void ( *VQ1)(byte *status, void *qdata );
-	void ( *VQNormal)(byte *status, void *qdata );
-	void ( *VQBuffer)(byte *status, void *qdata );
+	void ( *VQ0)(byte **status, byte *qdata );
+	void ( *VQ1)(byte **status, byte *qdata );
+	void ( *VQNormal)(byte **status, byte *qdata );
+	void ( *VQBuffer)(byte **status, byte *qdata );
 
 	long				samplesPerPixel;				// defaults to 2
 	byte*				gray;
 	unsigned int		xsize, ysize, maxsize, minsize;
 
 	bool				half, smootheddouble;
-	long				inMemory;
 	long				normalBuffer0;
 	long				roq_flags;
 	long				roqF0;
@@ -744,7 +742,7 @@ static unsigned int yuv_to_rgb24( long y, long u, long v )
 *
 ******************************************************************************/
 
-static void decodeCodeBook( byte *input, unsigned short roq_flags )
+static void decodeCodeBook( byte *input, unsigned short roq_flags, unsigned payloadBytes )
 {
 	long	i, j, two, four;
 	unsigned short	*aptr, *bptr, *cptr, *dptr;
@@ -755,13 +753,11 @@ static void decodeCodeBook( byte *input, unsigned short roq_flags )
 		unsigned short *s;
 	} iaptr, ibptr, icptr, idptr;
 
-	if (!roq_flags) {
-		two = four = 256;
-	} else {
-		two  = roq_flags>>8;
-		if (!two) two = 256;
-		four = roq_flags&0xff;
-	}
+	two = (roq_flags >> 8) ? (roq_flags >> 8) : 256;
+	four = roq_flags & 0xff;
+	// A zero large-entry count means either no update or all 256 entries.
+	// Stock Q3/RTCW movies use both forms; the payload length disambiguates.
+	if ( !four && payloadBytes > static_cast<unsigned>( two * 6 ) ) four = 256;
 
 	four *= 2;
 
@@ -1176,8 +1172,8 @@ static void initRoQ( void )
 {
 	if (currentHandle < 0) return;
 
-	cinTable[currentHandle].VQNormal = reinterpret_cast<void (*)(byte *, void *)>( blitVQQuad32fs );
-	cinTable[currentHandle].VQBuffer = reinterpret_cast<void (*)(byte *, void *)>( blitVQQuad32fs );
+	cinTable[currentHandle].VQNormal = blitVQQuad32fs;
+	cinTable[currentHandle].VQBuffer = blitVQQuad32fs;
 	cinTable[currentHandle].samplesPerPixel = 4;
 	ROQ_GenYUVTables();
 	RllSetupTable();
@@ -1208,16 +1204,93 @@ static byte* RoQFetchInterlaced( byte *source ) {
 */
 
 
+static void RoQReject( const char *reason ) {
+	auto &movie = cinTable[currentHandle];
+	Com_Printf( "Invalid RoQ movie %s: %s\n", movie.fileName.data(), reason );
+	// Corruption must not restart a looping shader movie forever.
+	movie.looping = false;
+	movie.holdAtEnd = false;
+	movie.status = FMV_EOF;
+}
+
+static bool RoQReadChunkHeader( const byte *header ) {
+	auto &movie = cinTable[currentHandle];
+	const std::uint32_t size = static_cast<std::uint32_t>( header[2] ) |
+		(static_cast<std::uint32_t>( header[3] ) << 8) |
+		(static_cast<std::uint32_t>( header[4] ) << 16) |
+		(static_cast<std::uint32_t>( header[5] ) << 24);
+	const unsigned id = header[0] | (header[1] << 8);
+	if ( size > 65536 || id == 0 || id == 0x1084 ) return false;
+	movie.roq_id = id;
+	movie.RoQFrameSize = size;
+	movie.roq_flags = header[6] | (header[7] << 8);
+	movie.roqF0 = static_cast<signed char>( header[7] );
+	movie.roqF1 = static_cast<signed char>( header[6] );
+	return true;
+}
+
+// Validate the complete VQ instruction stream before the legacy blitter writes
+// either frame. The control word can be interleaved with index/motion bytes.
+static bool RoQValidateVQ( byte **status, const byte *data, size_t bytes ) {
+	const auto &movie = cinTable[currentHandle];
+	if ( movie.numQuads < 0 || movie.onQuad <= 0 || movie.screenDelta <= 0 ) return false;
+	size_t cursor = 0;
+	unsigned codes = 0, remaining = 0;
+	auto readCode = [&]( unsigned &code ) {
+		if ( !remaining ) {
+			if ( bytes - cursor < 2 ) return false;
+			codes = data[cursor] | (data[cursor + 1] << 8);
+			cursor += 2;
+			remaining = 8;
+		}
+		code = (codes >> 14) & 3;
+		codes <<= 2;
+		--remaining;
+		return true;
+	};
+	auto block = [&]( unsigned code, long index, int side ) {
+		const size_t count = code == 3 ? 4 : code == 0 ? 0 : 1;
+		if ( count > bytes - cursor ) return false;
+		if ( code == 1 ) {
+			const std::int64_t offset = status[index] - cin.linbuf.data();
+			const std::int64_t source = offset + cin.mcomp[data[cursor]];
+			const std::int64_t end = source + (side - 1) * movie.samplesPerLine + side * 4;
+			const std::int64_t previous = movie.normalBuffer0 > 0 ? movie.screenDelta : 0;
+			if ( source < previous || end > previous + movie.screenDelta ) return false;
+		}
+		cursor += count;
+		return true;
+	};
+	for ( long index = 0; index < movie.onQuad; ) {
+		unsigned code;
+		if ( !readCode( code ) || movie.onQuad - index < 5 ) return false;
+		if ( code == 3 ) {
+			++index;
+			for ( int child = 0; child < 4; ++child, ++index ) {
+				if ( !readCode( code ) || !block( code, index, 4 ) ) return false;
+			}
+		} else {
+			if ( !block( code, index, 8 ) ) return false;
+			index += 5;
+		}
+	}
+	return true;
+}
+
 static void RoQReset( void ) {
 	
 	if (currentHandle < 0) return;
 
 	cinTable[currentHandle].iFile.reset();
-	OpenFileRead( cinTable[currentHandle].fileName.data(), cinTable[currentHandle].iFile, qtrue );
-	FileRead( cinTable[currentHandle].iFile.get(), cin.file.data(), 16 );
+	cinTable[currentHandle].ROQSize = OpenFileRead(
+		cinTable[currentHandle].fileName.data(), cinTable[currentHandle].iFile, qtrue );
+	if ( cinTable[currentHandle].ROQSize < 16 ||
+		FileRead( cinTable[currentHandle].iFile.get(), cin.file.data(), 16 ) != 16 ) {
+		RoQReject( "truncated file header on restart" );
+		return;
+	}
 	if ( !RoQ_init() ) {
-		// do not re-enter playback with an unusable frame size
-		cinTable[currentHandle].status = FMV_EOF;
+		RoQReject( "invalid file header on restart" );
 		return;
 	}
 	cinTable[currentHandle].status = FMV_LOOPED;
@@ -1236,12 +1309,15 @@ static void RoQInterrupt()
 {
 	byte				*framedata;
 	std::array<short, 32768> sbuf;
-        int		ssize;
-        
-	if (currentHandle < 0) return;
+	int ssize;
 
-	FileRead( cinTable[currentHandle].iFile.get(), cin.file.data(), cinTable[currentHandle].RoQFrameSize + 8 );
-	if ( cinTable[currentHandle].RoQPlayed >= cinTable[currentHandle].ROQSize ) { 
+	if (currentHandle < 0) return;
+	auto &movie = cinTable[currentHandle];
+	if ( movie.roq_id == 0 ) {
+		if ( movie.numQuads <= 0 ) {
+			RoQReject( "movie contains no video frames" );
+			return;
+		}
 		if (!cinTable[currentHandle].holdAtEnd) {
 			if (cinTable[currentHandle].looping) {
 				RoQReset();
@@ -1254,23 +1330,48 @@ static void RoQInterrupt()
 		return; 
 	}
 
-	framedata = cin.file.data();
-//
-// new frame is ready
-//
-	for (;;) {
+	const unsigned payloadBytes = movie.RoQFrameSize;
+	if ( payloadBytes > 65536 || movie.RoQPlayed > movie.ROQSize ||
+		static_cast<long>( payloadBytes ) > movie.ROQSize - movie.RoQPlayed ||
+		FileRead( movie.iFile.get(), cin.file.data(), payloadBytes ) != static_cast<int>( payloadBytes ) ) {
+		RoQReject( "truncated chunk payload" );
+		return;
+	}
+	movie.RoQPlayed += payloadBytes;
+	const bool packed = movie.roq_id == ROQ_PACKET;
+	const unsigned chunks = packed ? static_cast<unsigned>( movie.roq_flags ) : 1;
+	if ( packed && (!chunks || chunks > payloadBytes / 8) ) {
+		RoQReject( "invalid packet chunk count" );
+		return;
+	}
+	size_t offset = 0;
+	for ( unsigned chunk = 0; chunk < chunks; ++chunk ) {
+		if ( packed ) {
+			if ( payloadBytes - offset < 8 || !RoQReadChunkHeader( cin.file.data() + offset ) ) {
+				RoQReject( "invalid packet header" );
+				return;
+			}
+			offset += 8;
+			if ( movie.RoQFrameSize > payloadBytes - offset ) {
+				RoQReject( "truncated packet payload" );
+				return;
+			}
+		}
+		framedata = cin.file.data() + offset;
 		switch(cinTable[currentHandle].roq_id)
 		{
 			case	ROQ_QUAD_VQ:
+				movie.normalBuffer0 = movie.t[movie.numQuads & 1];
+				RoQPrepMcomp( movie.roqF0, movie.roqF1 );
+				if ( !RoQValidateVQ( cin.qStatus[movie.numQuads & 1], framedata, movie.RoQFrameSize ) ) {
+					RoQReject( "invalid VQ payload or motion range" );
+					return;
+				}
 				if ((cinTable[currentHandle].numQuads&1)) {
-					cinTable[currentHandle].normalBuffer0 = cinTable[currentHandle].t[1];
-					RoQPrepMcomp( cinTable[currentHandle].roqF0, cinTable[currentHandle].roqF1 );
-					cinTable[currentHandle].VQ1( AsWritableBytes( cin.qStatus[1] ), framedata);
+					cinTable[currentHandle].VQ1( cin.qStatus[1], framedata );
 					cinTable[currentHandle].buf = 	cin.linbuf.data() + cinTable[currentHandle].screenDelta;
 				} else {
-					cinTable[currentHandle].normalBuffer0 = cinTable[currentHandle].t[0];
-					RoQPrepMcomp( cinTable[currentHandle].roqF0, cinTable[currentHandle].roqF1 );
-					cinTable[currentHandle].VQ0( AsWritableBytes( cin.qStatus[0] ), framedata );
+					cinTable[currentHandle].VQ0( cin.qStatus[0], framedata );
 					cinTable[currentHandle].buf = 	cin.linbuf.data();
 				}
 				if (cinTable[currentHandle].numQuads == 0) {		// first frame
@@ -1282,8 +1383,18 @@ static void RoQInterrupt()
 				cinTable[currentHandle].dirty = true;
 				break;
 			case	ROQ_CODEBOOK:
-				decodeCodeBook( framedata, static_cast<unsigned short>( cinTable[currentHandle].roq_flags ) );
+			{
+				unsigned smallEntries = static_cast<unsigned>( movie.roq_flags ) >> 8;
+				if ( !smallEntries ) smallEntries = 256;
+				unsigned largeEntries = movie.roq_flags & 255;
+				if ( !largeEntries && movie.RoQFrameSize > smallEntries * 6 ) largeEntries = 256;
+				if ( smallEntries * 6 + largeEntries * 4 > movie.RoQFrameSize ) {
+					RoQReject( "truncated codebook" );
+					return;
+				}
+				decodeCodeBook( framedata, static_cast<unsigned short>( movie.roq_flags ), movie.RoQFrameSize );
 				break;
+			}
 			case	ZA_SOUND_MONO:
 				if (!cinTable[currentHandle].silent) {
 					// two output shorts per input byte
@@ -1295,6 +1406,10 @@ static void RoQInterrupt()
 				}
 				break;
 			case	ZA_SOUND_STEREO:
+				if ( movie.RoQFrameSize & 1 ) {
+					RoQReject( "incomplete stereo sample" );
+					return;
+				}
 				if (!cinTable[currentHandle].silent) {
 					if (cinTable[currentHandle].numQuads == -1) {
 						S_Update( 333 );
@@ -1309,6 +1424,19 @@ static void RoQInterrupt()
 				}
 				break;
 			case	ROQ_QUAD_INFO:
+			{
+				if ( movie.RoQFrameSize < 8 ) {
+					RoQReject( "truncated quad information" );
+					return;
+				}
+				const unsigned width = framedata[0] | (framedata[1] << 8);
+				const unsigned height = framedata[2] | (framedata[3] << 8);
+				// setupQuad emits complete 16x16 groups into two fixed frames.
+				if ( !width || !height || width > DEFAULT_CIN_WIDTH || height > DEFAULT_CIN_HEIGHT ||
+					(width & 15) || (height & 15) ) {
+					RoQReject( "unsupported quad dimensions" );
+					return;
+				}
 				if (cinTable[currentHandle].numQuads == -1) {
 					readQuadInfo( framedata );
 					setupQuad( 0, 0 );
@@ -1316,79 +1444,40 @@ static void RoQInterrupt()
 				}
 				if (cinTable[currentHandle].numQuads != 1) cinTable[currentHandle].numQuads = 0;
 				break;
-			case	ROQ_PACKET:
-				cinTable[currentHandle].inMemory = cinTable[currentHandle].roq_flags;
-				cinTable[currentHandle].RoQFrameSize = 0;           // for header
-				break;
+			}
 			case	ROQ_QUAD_HANG:
-				cinTable[currentHandle].RoQFrameSize = 0;
+				if ( movie.RoQFrameSize ) {
+					RoQReject( "nonempty hang chunk" );
+					return;
+				}
 				break;
 			case	ROQ_QUAD_JPEG:
+				// Original Q3/RTCW engines skip this chunk without publishing a frame.
 				break;
 			default:
-				cinTable[currentHandle].status = FMV_EOF;
-				break;
-		}
-		//
-		// read in next frame data
-		//
-		if ( cinTable[currentHandle].RoQPlayed >= cinTable[currentHandle].ROQSize ) {
-			if (!cinTable[currentHandle].holdAtEnd) {
-				if (cinTable[currentHandle].looping) {
-					RoQReset();
-				} else {
-					cinTable[currentHandle].status = FMV_EOF;
-				}
-			} else {
-				cinTable[currentHandle].status = FMV_IDLE;
-			}
-			return;
-		}
-
-		// The ROQ_PACKET "in memory" walk below can advance framedata many times
-		// within a single call, so bound the step instead of forming a pointer
-		// past cin.file and reading the next chunk header through it.
-		{
-			const size_t frameOffset = static_cast<size_t>( framedata - cin.file.data() )
-				+ cinTable[currentHandle].RoQFrameSize;
-
-			if ( frameOffset + 8 > cin.file.size() ) {
-				Com_DPrintf("RoQInterrupt: chunk header past end of buffer\n");
-				cinTable[currentHandle].status = FMV_EOF;
-				if (cinTable[currentHandle].looping) {
-					RoQReset();
-				}
+				RoQReject( "unsupported chunk type" );
 				return;
-			}
-			framedata = cin.file.data() + frameOffset;
 		}
-		cinTable[currentHandle].roq_id		 = framedata[0] + framedata[1]*256;
-		cinTable[currentHandle].RoQFrameSize = framedata[2] + framedata[3]*256 + framedata[4]*65536;
-		cinTable[currentHandle].roq_flags	 = framedata[6] + framedata[7]*256;
-		cinTable[currentHandle].roqF0		 = static_cast<signed char>( framedata[7] );
-		cinTable[currentHandle].roqF1		 = static_cast<signed char>( framedata[6] );
-
-		if (cinTable[currentHandle].RoQFrameSize>65536||cinTable[currentHandle].roq_id==0x1084) {
-			Com_DPrintf("roq_size>65536||roq_id==0x1084\n");
-			cinTable[currentHandle].status = FMV_EOF;
-			if (cinTable[currentHandle].looping) {
-				RoQReset();
-			}
-			return;
-		}
-		if (cinTable[currentHandle].inMemory && (cinTable[currentHandle].status != FMV_EOF)) {
-			cinTable[currentHandle].inMemory--;
-			framedata += 8;
-			continue;
-		}
-		break;
+		offset += movie.RoQFrameSize;
 	}
-//
-// one more frame hits the dust
-//
-//	assert(cinTable[currentHandle].RoQFrameSize <= 65536);
-//	r = Sys_StreamedRead( cin.file, cinTable[currentHandle].RoQFrameSize+8, 1, cinTable[currentHandle].iFile );
-	cinTable[currentHandle].RoQPlayed	+= cinTable[currentHandle].RoQFrameSize+8;
+	if ( offset != payloadBytes ) {
+		RoQReject( "packet payload does not match its chunk count" );
+		return;
+	}
+	if ( movie.RoQPlayed == movie.ROQSize ) {
+		// Leave the final decoded frame visible until the next playback tick.
+		movie.roq_id = 0;
+		movie.RoQFrameSize = 0;
+		return;
+	}
+	std::array<byte, 8> header;
+	if ( movie.ROQSize - movie.RoQPlayed < 8 ||
+		FileRead( movie.iFile.get(), header.data(), header.size() ) != 8 ||
+		!RoQReadChunkHeader( header.data() ) ) {
+		RoQReject( "invalid or truncated chunk header" );
+		return;
+	}
+	movie.RoQPlayed += 8;
 }
 
 
@@ -1400,14 +1489,13 @@ static void RoQInterrupt()
 *
 ******************************************************************************/
 
-// Returns qfalse when the leading chunk header is unusable. Callers must not
-// start playback in that case: the 24-bit size field can reach 0xFFFFFF, and
-// RoQInterrupt() would hand it straight to FileRead() against cin.file.
+// Callers provide a complete 16-byte file/first-chunk header. Validate the full
+// 32-bit chunk length before it can reach the fixed input buffer.
 static qboolean RoQ_init( void )
 {
 	cinTable[currentHandle].startTime = cinTable[currentHandle].lastTime = CL_ScaledMilliseconds();
 
-	cinTable[currentHandle].RoQPlayed = 24;
+	cinTable[currentHandle].RoQPlayed = 16;
 
 /*	get frame rate */
 	cinTable[currentHandle].roqFPS	 = cin.file[ 6] + cin.file[ 7]*256;
@@ -1415,12 +1503,12 @@ static qboolean RoQ_init( void )
 	if (!cinTable[currentHandle].roqFPS) cinTable[currentHandle].roqFPS = 30;
 
 	cinTable[currentHandle].numQuads = -1;
-
-	cinTable[currentHandle].roq_id		= cin.file[ 8] + cin.file[ 9]*256;
-	cinTable[currentHandle].RoQFrameSize	= cin.file[10] + cin.file[11]*256 + cin.file[12]*65536;
-	cinTable[currentHandle].roq_flags	= cin.file[14] + cin.file[15]*256;
-
-	if (cinTable[currentHandle].RoQFrameSize > 65536 || !cinTable[currentHandle].RoQFrameSize) {
+	cinTable[currentHandle].onQuad = 0;
+	cinTable[currentHandle].screenDelta = 0;
+	// The shared quad pointers belong to the most recently decoded movie.
+	cin.oldxsize = cin.oldysize = 0;
+	if ( cin.file[0] != 0x84 || cin.file[1] != 0x10 ||
+		!RoQReadChunkHeader( cin.file.data() + 8 ) || !cinTable[currentHandle].RoQFrameSize ) {
 		cinTable[currentHandle].RoQFrameSize = 0;
 		return qfalse;
 	}
@@ -1438,19 +1526,13 @@ static qboolean RoQ_init( void )
 ******************************************************************************/
 
 static void RoQShutdown( void ) {
-	if (!cinTable[currentHandle].buf) {
-		return;
-	}
-
-	if ( cinTable[currentHandle].status == FMV_IDLE ) {
-		return;
-	}
+	if ( currentHandle < 0 ) return;
 	Com_DPrintf("finished cinematic\n");
 	cinTable[currentHandle].status = FMV_IDLE;
 
 	cinTable[currentHandle].iFile.reset();
 
-	if (cinTable[currentHandle].alterGameState) {
+	if (cinTable[currentHandle].alterGameState && cls.state == CA_CINEMATIC) {
 		cls.state = CA_DISCONNECTED;
 		// we can't just do a vstr nextmap, because
 		// if we are aborting the intro cinematic with
@@ -1460,6 +1542,8 @@ static void RoQShutdown( void ) {
 		CL_handle = -1;
 	}
 	cinTable[currentHandle].fileName[0] = '\0';
+	cinTable[currentHandle].buf = nullptr;
+	cinTable[currentHandle].dirty = false;
 	currentHandle = -1;
 }
 
@@ -1470,14 +1554,10 @@ CIN_StopCinematic
 */
 e_status CIN_StopCinematic( int handle ) {
 	
-	if (handle < 0 || handle>= MAX_VIDEO_HANDLES || cinTable[handle].status == FMV_EOF) return FMV_EOF;
+	if (handle < 0 || handle>= MAX_VIDEO_HANDLES) return FMV_EOF;
 	currentHandle = handle;
 
 	Com_DPrintf("trFMV::stop(), closing %s\n", cinTable[currentHandle].fileName.data());
-
-	if (!cinTable[currentHandle].buf) {
-		return FMV_EOF;
-	}
 
 	if (cinTable[currentHandle].alterGameState) {
 		if ( cls.state != CA_CINEMATIC ) {
@@ -1554,7 +1634,10 @@ e_status CIN_RunCinematic( int handle )
 	cinTable[currentHandle].tfps = CIN_FrameForTime( currentHandle, thisTime );
 
 	start = cinTable[currentHandle].startTime;
-	while(  (cinTable[currentHandle].tfps > cinTable[currentHandle].numQuads)
+	// Console startup waits synchronously for a first frame while cls.realtime
+	// is fixed. Consume setup/audio chunks even when the target time is zero.
+	while(  (cinTable[currentHandle].numQuads < 1 ||
+		cinTable[currentHandle].tfps > cinTable[currentHandle].numQuads)
 		&& (cinTable[currentHandle].status == FMV_PLAY) ) 
 	{
 		RoQInterrupt();
@@ -1632,12 +1715,15 @@ int CIN_PlayCinematic( const char *arg, int x, int y, int w, int h, int systemBi
 		cinTable[currentHandle].iFile,
 		qtrue );
 
-	if (cinTable[currentHandle].ROQSize<=0) {
-		Com_DPrintf("play(%s), ROQSize<=0\n", arg);
+	if (cinTable[currentHandle].ROQSize < 16) {
+		Com_DPrintf("play(%s), missing or truncated RoQ file header\n", arg);
 		cinTable[currentHandle].fileName[0] = '\0';
 		cinTable[currentHandle].iFile.reset();
+		cinTable[currentHandle].buf = nullptr;
+		cinTable[currentHandle].status = FMV_IDLE;
 		return -1;
 	}
+	cinTable[currentHandle].buf = nullptr;
 
 	CIN_SetExtents(currentHandle, x, y, w, h);
 	CIN_SetLooping(currentHandle, ToQboolean( (systemBits & CIN_loop) != 0 ) );
@@ -1663,7 +1749,11 @@ int CIN_PlayCinematic( const char *arg, int x, int y, int w, int h, int systemBi
 
 	initRoQ();
 					
-	FileRead( cinTable[currentHandle].iFile.get(), cin.file.data(), 16 );
+	if ( FileRead( cinTable[currentHandle].iFile.get(), cin.file.data(), 16 ) != 16 ) {
+		Com_DPrintf("trFMV::play(), truncated RoQ file header\n");
+		RoQShutdown();
+		return -1;
+	}
 
 	RoQID = static_cast<unsigned short>( cin.file[0] ) + static_cast<unsigned short>( cin.file[1] ) * 256;
 	if (RoQID == 0x1084 && RoQ_init())
@@ -1868,7 +1958,9 @@ void CL_PlayCinematic_f( void ) {
 	if (CL_handle >= 0) {
 		do {
 			SCR_RunCinematic();
-		} while (cinTable[currentHandle].buf == nullptr && cinTable[currentHandle].status == FMV_PLAY); // wait for first frame (load codebook and sound)
+		} while ( CL_handle >= 0 && CL_handle < MAX_VIDEO_HANDLES &&
+			cinTable[CL_handle].buf == nullptr && cinTable[CL_handle].status == FMV_PLAY );
+		// A malformed movie may close its handle before producing a first frame.
 	} else {
 		// An optional logo may be absent from an installed release. Continue
 		// the queued movie/map instead of abandoning the startup sequence.

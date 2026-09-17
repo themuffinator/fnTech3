@@ -153,7 +153,7 @@ class JoinMenuSourceTests(unittest.TestCase):
         self.assertIn("mode.recenterPointer &&", sdl_input)
         self.assertIn("static void IN_WindowMouse", win_input)
         self.assertIn("fnql::input::PointerOwner WIN_ResolvePointerOwner", win_input)
-        self.assertIn("inputs.menuMask = kPointerMenuMask;", win_input)
+        self.assertIn("inputs.menuMask = Com_GameIsQuakeLive() ? kPointerMenuMask : KEYCATCH_BROWSER;", win_input)
         self.assertIn(
             "kPointerMenuMask = KEYCATCH_UI | KEYCATCH_CGAME | KEYCATCH_BROWSER",
             win_input,

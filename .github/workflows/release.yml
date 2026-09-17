@@ -12,47 +12,67 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing reviewed release tag (for example v0.1.0). Creates or repairs a draft prerelease.
+        required: true
+        default: v0.1.0
+        type: string
+
+# Never cancel an upload in progress. Push validation cannot cancel a release.
+concurrency:
+  group: fntech3-${{ github.event_name }}-${{ inputs.tag || github.ref }}
+  cancel-in-progress: false
 
 jobs:
   prepare:
+    if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     outputs:
-      build_number: ${{ steps.meta.outputs.build_number }}
       build_date: ${{ steps.meta.outputs.build_date }}
-      base_version: ${{ steps.meta.outputs.base_version }}
-      version_string: ${{ steps.meta.outputs.version_string }}
+      version: ${{ steps.meta.outputs.version }}
+      release_tag: ${{ steps.meta.outputs.release_tag }}
       head_commit: ${{ steps.meta.outputs.head_commit }}
-      head_commit_short: ${{ steps.meta.outputs.head_commit_short }}
-      previous_release_commit: ${{ steps.meta.outputs.previous_release_commit }}
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: recursive
-
-      - name: Fetch tags
-        run: git fetch --force --tags origin
+          persist-credentials: false
 
       - name: Resolve release metadata
         id: meta
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
-          python scripts/manual_release.py github-output --build-date "$(date -u +%F)" >> "$GITHUB_OUTPUT"
+          mkdir -p .tmp/release-workflow
+          if [ "$EVENT_NAME" = workflow_dispatch ]; then
+            python scripts/release_workflow.py metadata --tag "$RELEASE_TAG" --github-output > .tmp/release-workflow/metadata
+            SOURCE_COMMIT=$(sed -n 's/^head_commit=//p' .tmp/release-workflow/metadata)
+            git merge-base --is-ancestor "$SOURCE_COMMIT" origin/main
+            cat .tmp/release-workflow/metadata >> "$GITHUB_OUTPUT"
+          else
+            python scripts/release_workflow.py metadata --github-output >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Summarize
         run: |
-          echo "Release build metadata resolved"
-          echo "Base version: ${{ steps.meta.outputs.base_version }}"
-          echo "Build version: ${{ steps.meta.outputs.version_string }}"
-          echo "Head commit: ${{ steps.meta.outputs.head_commit }}"
-          echo "Previous release commit: ${{ steps.meta.outputs.previous_release_commit }}"
+          echo 'Version: ${{ steps.meta.outputs.version }}' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Source commit: ${{ steps.meta.outputs.head_commit }}' >> "$GITHUB_STEP_SUMMARY"
 
   windows-msys32:
     needs: [prepare]
     name: Build Windows-MSYS2 x86
     runs-on: windows-latest
+    timeout-minutes: 60
     steps:
       - name: Checkout current repo
         uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare.outputs.head_commit }}
+          persist-credentials: false
 
       - uses: msys2/setup-msys2@v2
         with:
@@ -63,12 +83,6 @@ jobs:
             toolchain:p
             meson:p
             ninja:p
-
-      - name: Stamp release build version
-        shell: msys2 {0}
-        run: |
-          python scripts/manual_release.py stamp-version --build-number ${{ needs.prepare.outputs.build_number }}
-          python scripts/generate_docs.py
 
       - name: Build
         shell: msys2 {0}
@@ -103,7 +117,7 @@ jobs:
 
       - name: Verify release layout
         shell: msys2 {0}
-        run: python scripts/verify_release_layout.py bin/FnQL-pkg.fnz
+        run: python scripts/verify_release_layout.py bin/fntech3-pkg.fnz
 
       - uses: actions/upload-artifact@v7
         with:
@@ -116,17 +130,15 @@ jobs:
     needs: [prepare]
     name: Build Windows-MSVC x86
     runs-on: windows-2022
+    timeout-minutes: 60
     steps:
       - uses: microsoft/setup-msbuild@v3
 
       - uses: actions/checkout@v6
         with:
+          ref: ${{ needs.prepare.outputs.head_commit }}
           submodules: recursive
-
-      - name: Stamp release build version
-        run: |
-          python scripts/manual_release.py stamp-version --build-number ${{ needs.prepare.outputs.build_number }}
-          python scripts/generate_docs.py
+          persist-credentials: false
 
       - name: Install Meson
         run: python -m pip install meson ninja
@@ -153,7 +165,7 @@ jobs:
         run: python scripts/check_windows_runtime_deps.py --require-pe bin
 
       - name: Verify release layout
-        run: python scripts/verify_release_layout.py bin/FnQL-pkg.fnz
+        run: python scripts/verify_release_layout.py bin/fntech3-pkg.fnz
 
       - uses: actions/upload-artifact@v7
         with:
@@ -166,8 +178,12 @@ jobs:
     needs: [prepare]
     name: Release source validation
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare.outputs.head_commit }}
+          persist-credentials: false
 
       - uses: actions/setup-python@v6
         with:
@@ -176,6 +192,9 @@ jobs:
       - name: Install source regression runner
         run: python -m pip install pytest==8.4.1
 
+      - name: Validate version, changelog and generated docs
+        run: python scripts/release_workflow.py check
+
       - name: Run complete source regression suite
         run: python -m pytest
 
@@ -183,8 +202,12 @@ jobs:
     needs: [prepare]
     name: Run Linux i686 Meson regressions
     runs-on: ubuntu-24.04
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare.outputs.head_commit }}
+          persist-credentials: false
 
       - name: Install i686 Meson build dependencies
         run: |
@@ -234,6 +257,7 @@ jobs:
     needs: [prepare]
     name: Build Ubuntu x86
     runs-on: ubuntu-24.04
+    timeout-minutes: 60
     container:
       image: ubuntu:20.04
       env:
@@ -248,13 +272,12 @@ jobs:
 
       - uses: actions/checkout@v6
         with:
+          ref: ${{ needs.prepare.outputs.head_commit }}
           submodules: recursive
+          persist-credentials: false
 
       - name: Fetch pinned FontStash source
         run: meson subprojects download fontstash
-
-      - name: Stamp release build version
-        run: python3 scripts/manual_release.py stamp-version --build-number "${{ needs.prepare.outputs.build_number }}"
 
       - name: Build
         run: |
@@ -264,7 +287,7 @@ jobs:
         run: python3 scripts/check_elf_glibc.py --max-glibc "$FNQL_LINUX_GLIBC_MAX" --require-elf bin
 
       - name: Verify release layout
-        run: python3 scripts/verify_release_layout.py bin/FnQL-pkg.fnz
+        run: python3 scripts/verify_release_layout.py bin/fntech3-pkg.fnz
 
       - uses: actions/upload-artifact@v7
         with:
@@ -312,25 +335,19 @@ jobs:
       }}
     needs: [prepare, push-build-validation]
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
-      actions: read
       contents: write
-      models: read
-      pull-requests: read
     env:
-      HAS_COPILOT_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN != '' }}
-      HAS_DISCORD_WEBHOOK: ${{ secrets.DISCORD_RELEASE_WEBHOOK != '' }}
+      RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
+      SOURCE_COMMIT: ${{ needs.prepare.outputs.head_commit }}
+      RELEASE_DATE: ${{ needs.prepare.outputs.build_date }}
     steps:
       - uses: actions/checkout@v6
         with:
+          ref: ${{ needs.prepare.outputs.head_commit }}
           fetch-depth: 0
-          submodules: recursive
-
-      - name: Fetch tags
-        run: git fetch --force --tags origin
-
-      - name: Stamp release build version
-        run: python scripts/manual_release.py stamp-version --build-number "${{ needs.prepare.outputs.build_number }}"
+          persist-credentials: false
 
       - name: Download MinGW artifact
         uses: actions/download-artifact@v8
@@ -350,100 +367,33 @@ jobs:
           name: linux-x86
           path: artifacts/linux-x86
 
-      - name: Resolve release version metadata
+      - name: Package development prerelease
         run: |
-          python scripts/version.py github-env --channel manual --build-number "${{ needs.prepare.outputs.build_number }}" --build-date "${{ needs.prepare.outputs.build_date }}" --commit "${{ needs.prepare.outputs.head_commit }}" >> "$GITHUB_ENV"
+          python scripts/release.py --channel candidate --artifact-root artifacts \
+            --ref-name "$RELEASE_TAG" --build-date "$RELEASE_DATE" --commit "$SOURCE_COMMIT"
 
-      - name: Package release archives
+      - name: Render reviewed release notes
         run: |
-          python scripts/release.py --channel manual --artifact-root artifacts --build-number "${{ needs.prepare.outputs.build_number }}" --build-date "${{ needs.prepare.outputs.build_date }}" --commit "${{ needs.prepare.outputs.head_commit }}"
+          python scripts/release_workflow.py notes --tag "$RELEASE_TAG" --output .tmp/release-notes.md
 
-      - name: Build Copilot changelog cleanup
-        id: copilot_notes
-        if: ${{ env.HAS_COPILOT_TOKEN == 'true' && needs.prepare.outputs.previous_release_commit != '' }}
-        uses: github/copilot-release-notes@v1.0.1
+      - name: Retain release bundle for review
+        uses: actions/upload-artifact@v7
         with:
-          base-ref: ${{ needs.prepare.outputs.previous_release_commit }}
-          head-ref: ${{ needs.prepare.outputs.head_commit }}
-          instructions: .github/release-notes-instructions.md
-        env:
-          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+          name: release-${{ needs.prepare.outputs.release_tag }}
+          path: |
+            .install/packages/
+            .install/release-manifest.json
+            .install/SHA256SUMS.txt
+            .tmp/release-notes.md
+          if-no-files-found: error
+          retention-days: 30
+          include-hidden-files: true
 
-      - name: Save Copilot highlights
-        if: ${{ steps.copilot_notes.outputs.release-notes != '' }}
-        env:
-          COPILOT_RELEASE_NOTES: ${{ steps.copilot_notes.outputs.release-notes }}
-        run: |
-          mkdir -p .tmp
-          printf '%s\n' "$COPILOT_RELEASE_NOTES" > .tmp/copilot-release-notes.md
-
-      - name: Build release notes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          FROM_ARGS=()
-          if [ -n "${{ needs.prepare.outputs.previous_release_commit }}" ]; then
-            FROM_ARGS+=(--from-commit "${{ needs.prepare.outputs.previous_release_commit }}")
-          fi
-          HIGHLIGHTS_ARGS=()
-          if [ -s .tmp/copilot-release-notes.md ]; then
-            HIGHLIGHTS_ARGS+=(--highlights-file .tmp/copilot-release-notes.md)
-          fi
-          python scripts/manual_release.py release-notes \
-            --build-number "${{ needs.prepare.outputs.build_number }}" \
-            --build-date "${{ needs.prepare.outputs.build_date }}" \
-            --to-commit "${{ needs.prepare.outputs.head_commit }}" \
-            "${FROM_ARGS[@]}" \
-            "${HIGHLIGHTS_ARGS[@]}" \
-            --output .tmp/release-notes.md
-
-      - name: Create release
-        id: create_release
+      - name: Create or repair draft prerelease
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "${FNQL_RELEASE_TAG}" \
-            .install/packages/*.zip \
-            .install/packages/*.tar.gz \
-            .install/release-manifest.json \
-            .install/SHA256SUMS.txt \
-            --target "${{ needs.prepare.outputs.head_commit }}" \
-            --title "${FNQL_RELEASE_TITLE}" \
-            --notes-file .tmp/release-notes.md
-
-      - name: Clear pending changelog
-        if: ${{ github.ref_type == 'branch' }}
-        run: |
-          python scripts/changelog.py clear-unreleased
-          if git diff --quiet -- docs/fnql/CHANGELOG.md; then
-            echo "Pending changelog already clean."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/fnql/CHANGELOG.md
-          git commit -m "Reset pending changelog after release"
-          git push origin "HEAD:${GITHUB_REF_NAME}"
-
-      - name: Announce release on Discord
-        if: >-
-          ${{
-            always() &&
-            env.HAS_DISCORD_WEBHOOK == 'true' &&
-            steps.create_release.outcome == 'success'
-          }}
-        env:
-          FNQL_DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
-          FNQL_DISCORD_RELEASE_EMOJI: ${{ vars.FNQL_DISCORD_RELEASE_EMOJI || '<:quakelive:1390987057454776481>' }}
-          FNQL_DISCORD_RELEASE_MENTIONS: ${{ vars.FNQL_DISCORD_RELEASE_MENTIONS || '<@&1424165541572120647> <@&1390287267276525628>' }}
-          FNQL_DISCORD_FEEDBACK_CHANNEL: ${{ vars.FNQL_DISCORD_FEEDBACK_CHANNEL || '<#1528370439997362216>' }}
-        run: |
-          python scripts/discord_release.py \
-            --manifest .install/release-manifest.json \
-            --notes-file .tmp/release-notes.md \
-            --release-tag "${FNQL_RELEASE_TAG}" \
-            --release-title "${FNQL_RELEASE_TITLE}" \
-            --version "${FNQL_VERSION}" \
-            --build-date "${FNQL_BUILD_DATE}" \
-            --commit "${FNQL_COMMIT}" \
-            --require-webhook
+          python scripts/release_workflow.py draft --tag "$RELEASE_TAG" \
+            --manifest .install/release-manifest.json --notes .tmp/release-notes.md
+          echo "Draft $RELEASE_TAG is ready for manual review in the repository Releases page." >> "$GITHUB_STEP_SUMMARY"
+          echo 'Publication is a separate manual action. Retain the prerelease flag while compatibility gates remain open.' >> "$GITHUB_STEP_SUMMARY"

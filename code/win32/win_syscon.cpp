@@ -1076,6 +1076,14 @@ void Sys_CreateConsole( const char *title, int xPos, int yPos, qboolean useXYpos
 }
 
 
+void Sys_SetConsoleTitle( const char *title )
+{
+	if ( s_wcd.hWnd ) {
+		SetWindowText( s_wcd.hWnd, AtoW( title ) );
+	}
+}
+
+
 /*
 ** Sys_DestroyConsole
 */

@@ -108,17 +108,23 @@ inline bool CL_RTCWRenderCall( vm_t *vm, fntech3::rtcw::module::Call call,
 		re.LoadWorld( CL_RTCWRenderName( vm, args[1] ) );
 		break;
 	case Call::CG_R_REGISTERMODEL:
-	case Call::UI_R_REGISTERMODEL:
-		// RTCW weapon definitions use null for absent alternate models.
-		result = args[1] ? re.RegisterModel( CL_RTCWRenderName( vm, args[1] ) ) : 0;
+	case Call::UI_R_REGISTERMODEL: {
+		// Original RTCW silently returns handle 0 for null and empty model
+		// names. Absent models must not reach the shared renderer's diagnostic.
+		const char *name = args[1] ? CL_RTCWRenderName( vm, args[1] ) : nullptr;
+		result = name && name[0] ? re.RegisterModel( name ) : 0;
 		return true;
+	}
 	case Call::CG_R_REGISTERSKIN:
 	case Call::UI_R_REGISTERSKIN:
 		result = args[1] ? re.RegisterSkin( CL_RTCWRenderName( vm, args[1] ) ) : 0;
 		return true;
-	case Call::CG_R_REGISTERSHADER:
-		result = re.RegisterShader( CL_RTCWRenderName( vm, args[1] ) );
+	case Call::CG_R_REGISTERSHADER: {
+		const char *name = CL_RTCWRenderName( vm, args[1] );
+		result = re.RegisterShader( name );
+		CL_HudRegisterShaderName( static_cast<qhandle_t>( result ), name );
 		return true;
+	}
 	case Call::CG_R_GETSKINMODEL: {
 		if ( !args[3] ) Com_Error( ERR_DROP, "Null RTCW skin model output" );
 		VM_CHECKBOUNDS( vm, args[3], MAX_QPATH );
@@ -144,9 +150,12 @@ inline bool CL_RTCWRenderCall( vm_t *vm, fntech3::rtcw::module::Call call,
 			static_cast<int>( args[2] ), static_cast<int>( args[3] ) );
 		return true;
 	case Call::CG_R_REGISTERSHADERNOMIP:
-	case Call::UI_R_REGISTERSHADERNOMIP:
-		result = re.RegisterShaderNoMip( CL_RTCWRenderName( vm, args[1] ) );
+	case Call::UI_R_REGISTERSHADERNOMIP: {
+		const char *name = CL_RTCWRenderName( vm, args[1] );
+		result = re.RegisterShaderNoMip( name );
+		if ( call == Call::CG_R_REGISTERSHADERNOMIP ) CL_HudRegisterShaderName( static_cast<qhandle_t>( result ), name );
 		return true;
+	}
 	case Call::CG_R_CLEARSCENE:
 	case Call::UI_R_CLEARSCENE:
 		re.ClearScene();
@@ -179,7 +188,12 @@ inline bool CL_RTCWRenderCall( vm_t *vm, fntech3::rtcw::module::Call call,
 	}
 	case Call::CG_R_RENDERSCENE:
 	case Call::UI_R_RENDERSCENE: {
-		const refdef_t view = CL_ModuleRefdef( vm, args[1] );
+		refdef_t view = CL_ModuleRefdef( vm, args[1] );
+		if ( call == Call::CG_R_RENDERSCENE ) {
+			CL_HudAdjustRefdef( &view );
+		} else {
+			view.rdflags |= RDF_NOFOVCORRECTION;
+		}
 		re.RenderScene( &view );
 		break;
 	}
@@ -195,6 +209,8 @@ inline bool CL_RTCWRenderCall( vm_t *vm, fntech3::rtcw::module::Call call,
 		}
 		break;
 	case Call::CG_R_DRAWSTRETCHPIC:
+		CL_HudDrawStretchPic( VMF(1), VMF(2), VMF(3), VMF(4), VMF(5), VMF(6), VMF(7), VMF(8), args[9] );
+		break;
 	case Call::UI_R_DRAWSTRETCHPIC:
 		re.DrawStretchPic( VMF(1), VMF(2), VMF(3), VMF(4), VMF(5), VMF(6), VMF(7), VMF(8), args[9] );
 		break;
@@ -208,6 +224,11 @@ inline bool CL_RTCWRenderCall( vm_t *vm, fntech3::rtcw::module::Call call,
 		if ( !fntech3::rtcw::render::GradientQuad( VMF(1), VMF(2), VMF(3), VMF(4),
 			VMF(5), VMF(6), VMF(7), VMF(8), args[9], args[10] ? color : nullptr, args[11], quad ) )
 			Com_Error( ERR_DROP, "Invalid RTCW gradient picture" );
+		float x = VMF(1), y = VMF(2), w = VMF(3), h = VMF(4);
+		if ( !CL_HudAdjustPic( &x, &y, &w, &h, args[9] ) ) break;
+		if ( !fntech3::rtcw::render::GradientQuad( x, y, w, h,
+			VMF(5), VMF(6), VMF(7), VMF(8), args[9], args[10] ? color : nullptr, args[11], quad ) )
+			Com_Error( ERR_DROP, "Invalid corrected RTCW gradient picture" );
 		re.DrawQuad( &quad );
 		break;
 	}
@@ -217,6 +238,11 @@ inline bool CL_RTCWRenderCall( vm_t *vm, fntech3::rtcw::module::Call call,
 		if ( !fntech3::rtcw::render::RotatedQuad( VMF(1), VMF(2), VMF(3), VMF(4),
 			VMF(5), VMF(6), VMF(7), VMF(8), args[9], VMF(10), quad ) )
 			Com_Error( ERR_DROP, "Invalid RTCW rotated picture" );
+		float x = VMF(1), y = VMF(2), w = VMF(3), h = VMF(4);
+		if ( !CL_HudAdjustPic( &x, &y, &w, &h, args[9] ) ) break;
+		if ( !fntech3::rtcw::render::RotatedQuad( x, y, w, h,
+			VMF(5), VMF(6), VMF(7), VMF(8), args[9], VMF(10), quad ) )
+			Com_Error( ERR_DROP, "Invalid corrected RTCW rotated picture" );
 		re.DrawQuad( &quad );
 		break;
 	}

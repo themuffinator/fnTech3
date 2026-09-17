@@ -835,6 +835,10 @@ void RB_BeginSurface( shader_t *shader, int fogNum ) {
 	/* Existing CPU tessellation retains the per-stage RTCW fog contract.
 	 * The static ARB VBO programs do not carry scene-fog parameters yet. */
 	if ( RB_RTCWHasFog() ) tess.allowVBO = qfalse;
+	/* Authored RTCW light materials project their own UVs and vertex colors. */
+#ifdef USE_PMLIGHT
+	if ( tess.dlightPass && tess.light && tess.light->rtcwShader ) tess.allowVBO = qfalse;
+#endif
 
 #ifdef USE_PMLIGHT
 	if ( tess.fogNum != fogNum || tess.cullType != state->cullType ) {
@@ -2323,6 +2327,23 @@ void RB_StageIteratorGeneric( void )
 #ifdef USE_PMLIGHT
 	if ( tess.dlightPass )
 	{
+		if ( R_UsesRTCWLighting() && backEnd.refdef.rtcw.snooperView ) return;
+		if ( tess.light && tess.light->rtcwShader ) {
+			GL_ProgramDisable();
+#ifdef USE_VBO
+			VBO_UnBind();
+#endif
+			RB_DeformTessGeometry();
+			GL_Cull( tess.shader->cullType );
+			if ( tess.shader->polygonOffset ) {
+				qglEnable( GL_POLYGON_OFFSET_FILL );
+				qglPolygonOffset( r_offsetFactor->value, r_offsetUnits->value );
+			}
+			qglVertexPointer( 3, GL_FLOAT, sizeof( tess.xyz[0] ), tess.xyz );
+			RB_RTCWProjectLightsForLight( tess.light );
+			if ( tess.shader->polygonOffset ) qglDisable( GL_POLYGON_OFFSET_FILL );
+			return;
+		}
 #if defined( USE_VBO ) && defined( RENDERER_GLX )
 		if ( tess.vboIndex && RB_StageIteratorVBODlight() ) {
 			return;

@@ -132,6 +132,7 @@ struct clientActive_t {
 	rtcwUsercmdExtension_t cgameRTCWCommand;	// mode-specific values supplied by RTCW cgame
 	vec3_t		cgameRTCWLerpOrigin;	// MP's interpolated viewpoint; cleared with the map state
 	rtcwLimboChat_t rtcwLimboChat;
+	qboolean	rtcwLimboMode;	// engine chat routing; cleared with connection/map state
 	qboolean	rtcwCameraMode;	// SP primary-camera input policy; reset with map state
 
 	// cmds[cmdNumber] is the predicted command, [cmdNumber-1] is the last
@@ -637,6 +638,8 @@ void	SCR_Init( void );
 void	SCR_Done( void );
 void	SCR_UpdateScreen( void );
 qboolean CL_UIMenusAreVisible( void );
+int CL_UIMenuForRestart( void );
+void CL_RestoreUIMenu( int menu );
 
 void	SCR_DebugGraph( float value );
 
@@ -704,6 +707,20 @@ void CIN_DrawCinematicUI( int handle );
 void CIN_SetExtents (int handle, int x, int y, int w, int h);
 void CIN_UploadCinematic(int handle);
 void CIN_CloseAllVideos(void);
+
+//
+// cl_hud.cpp -- legacy cgame presentation; inert for Quake Live
+//
+void CL_HudInit( void );
+void CL_HudShutdown( void );
+void CL_HudResetCGame( void );
+void CL_HudBeginFrame( void );
+void CL_HudEndFrame( void );
+void CL_HudRegisterShaderName( qhandle_t shader, const char *name );
+void CL_HudAdjustRefdef( refdef_t *refdef );
+qboolean CL_HudAdjustPic( float *x, float *y, float *w, float *h, qhandle_t shader );
+void CL_HudDrawStretchPic( float x, float y, float w, float h,
+	float s1, float t1, float s2, float t2, qhandle_t shader );
 
 //
 // cl_cgame.cpp

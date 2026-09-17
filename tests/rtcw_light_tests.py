@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 COMMON = r'''
 #include "code/qcommon/q_shared.h"
+#include "code/qcommon/qfiles.h"
 #include "code/qcommon/game_profile.h"
 #include "code/renderercommon/tr_rtcw_light_math.h"
 #include <array>
@@ -40,13 +41,24 @@ struct dlight_t {
     vec3_t origin,color; float radius;
     shader_t *rtcwShader; int rtcwOverdraw;
     int sentinel;
+#ifdef USE_PMLIGHT
+    int shadowIndex,shadowAtlasBaseFace,shadowSpotSource,shadowSpotSourceIndex;
+    float shadowPriorityMultiplier,shadowProjectionFar;
+    qboolean shadowEligible;
+#endif
 };
 static struct { dlight_t dlights[64]; } data, *backEndData=&data;
-static struct { bool registered=true; } tr;
+static struct { bool registered=true; int frameCount=1; } tr;
 static int r_numdlights;
 enum { GLHW_GENERIC, GLHW_RIVA128, GLHW_PERMEDIA2 };
 static struct { int hardwareType; } glConfig;
 static cvar_t dynamic{}, radiusScale{}; static cvar_t *r_dynamiclight=&dynamic;
+#ifdef USE_PMLIGHT
+static cvar_t mode{}, intensity{};
+static cvar_t *r_dlightScale=&radiusScale, *r_dlightIntensity=&intensity;
+static int R_GetDlightMode() { return mode.integer; }
+static void R_ApplyDlightColorControls(float *,float *,float *) {}
+#endif
 static int registrations, lookups;
 static bool failLookup;
 static void Error(int,const char *,...) { throw 1; }
@@ -105,6 +117,50 @@ int main() {
     const auto saved=data; failLookup=true; Reject([&]{RE_AddRTCWLightToScene(origin,1000,1,1,1,10);}); failLookup=false;
     assert(!r_numdlights && !std::memcmp(&data,&saved,sizeof(data)));
     for(auto mode:{COM_GAME_QUAKE3,COM_GAME_QUAKELIVE}) { ri.gameId=mode; Reject([&]{RE_AddRTCWLightToScene(origin,1000,1,1,1,0);}); }
+#ifdef USE_PMLIGHT
+    dynamic.integer=1; intensity.value=2;
+    for(auto profile:{COM_GAME_RTCW_SP,COM_GAME_RTCW_MP}) for(int quality:{1,2})
+    for(float scale:{0.125f,1.f,2.f}) for(int flags:{0,1,2,10,11}) {
+        ri.gameId=profile; mode.integer=quality; radiusScale.value=scale; r_numdlights=0;
+        RE_AddRTCWLightToScene(origin,200,.25f,.5f,1,flags);
+        assert(r_numdlights==1);
+        const auto &light=data.dlights[0];
+        const bool material=flags==10 || flags==11;
+        assert(light.shadowEligible==!material);
+        assert(light.radius==(profile==COM_GAME_RTCW_SP || !material ? 200*scale : 200));
+        assert(light.color[0]==(material ? .25f : .5f*(flags+1)));
+        if(!material) assert(light.shadowProjectionFar>=light.radius && light.shadowIndex==-1);
+    }
+    ri.gameId=COM_GAME_RTCW_MP; radiusScale.value=1; intensity.value=1;
+    for(float bad:{0.f,-1.f,std::numeric_limits<float>::infinity(),std::numeric_limits<float>::quiet_NaN()}) {
+        r_numdlights=0; radiusScale.value=bad; const auto saved=data;
+        RE_AddRTCWLightToScene(origin,200,1,1,1,0);
+        assert(!r_numdlights && !std::memcmp(&data,&saved,sizeof(data)));
+    }
+    radiusScale.value=1;
+    // A complete flicker cycle crossing a projection band never shrinks the
+    // shadow range; the submitted illumination still changes on every frame.
+    std::memset(rtcwLightShadowHistory,0,sizeof(rtcwLightShadowHistory));
+    const float radii[]={125,130,120,150,91,216,100};
+    float far=0;
+    for(float radius:radii) {
+        ++tr.frameCount; r_numdlights=0; RE_AddRTCWLightToScene(origin,radius,1,.5f,.2f,0);
+        assert(data.dlights[0].radius==radius && data.dlights[0].shadowProjectionFar>=far);
+        far=data.dlights[0].shadowProjectionFar;
+    }
+    assert(far==256);
+    tr.frameCount+=121; r_numdlights=0; RE_AddRTCWLightToScene(origin,100,1,.5f,.2f,0);
+    assert(data.dlights[0].shadowProjectionFar==128);
+    // Independent origins, bounded eviction, and a restarted renderer's frame clock.
+    rtcwLightShadowHistory_t history[2]{};
+    const vec3_t other={2,2,3}, third={3,2,3};
+    assert(R_RTCWLightShadowProjection(history,2,origin,300,10)==512);
+    assert(R_RTCWLightShadowProjection(history,2,other,100,11)==128);
+    assert(R_RTCWLightShadowProjection(history,2,origin,90,12)==512);
+    assert(R_RTCWLightShadowProjection(history,2,third,100,13)==128);
+    assert(R_RTCWLightShadowProjection(history,2,origin,90,14)==512);
+    assert(R_RTCWLightShadowProjection(history,2,origin,90,1)==128);
+#endif
     // Projection boundaries, original platform byte conversion and malformed vertex isolation.
     const vec3_t zero={0,0,0};
     auto projected=RTCW_ProjectLightVertex(zero,1,color,zero);
@@ -168,6 +224,13 @@ static void R_DrawElements(int count,const glIndex_t *indexes) {
 // Fog enable/disable and GL/GLSL parameter transfer execute in rtcw_fog_gpu_tests.
 static void RB_RTCWFogToggle(qboolean) {}
 struct Vk_Pipeline_Def { unsigned state_bits; };
+struct vkUniform_t { vec4_t texFactors; qboolean fog; };
+static void VK_SetRTCWFogParams(vkUniform_t *data,const shaderStage_t *stage) {
+    assert(stage); data->fog=qtrue;
+}
+static uint32_t VK_PushUniform(const vkUniform_t *data) {
+    assert(data->texFactors[0]==1); return 0;
+}
 static struct { uint32_t dlight_pipelines[2][3][2]; } vk;
 static void vk_get_pipeline_def(uint32_t,Vk_Pipeline_Def *def) { def->state_bits=0; }
 static uint32_t vk_find_pipeline_ext(uint32_t,const Vk_Pipeline_Def *def,qboolean) { return def->state_bits; }
@@ -210,6 +273,10 @@ int main() {
     shader_t material{3,0,0,{&stages[0],&stages[1],&stages[2],nullptr}}; light.rtcwShader=&material;
     draws.clear(); assert(RB_RTCWProjectLights()); assert(draws.size()==3);
     for(int i=0;i<3;++i) assert(draws[i].texture==i+1 && draws[i].state==(stages[i].stateBits|GLS_DEPTHFUNC_EQUAL));
+    // Per-pixel traversal supplies a light directly, without a legacy mask.
+    draws.clear(); tess.dlightBits=0; dlight_t selected=light;
+    assert(RB_RTCWProjectLightsForLight(&selected) && draws.size()==3);
+    tess.dlightBits=1;
     draws.clear(); backEnd.refdef.rtcw.snooperView=true; assert(!RB_RTCWProjectLights() && draws.empty()); backEnd.refdef.rtcw.snooperView=false;
     // No pass can include a non-finite vertex or invalid index.
     tess.xyz[0][0]=std::numeric_limits<float>::infinity(); assert(!RB_RTCWProjectLights() && draws.empty());
@@ -274,7 +341,7 @@ int main() {
     for(int value:{-1,0,1,2,3}) for(bool hardware:{false,true}) {
         ri.gameId=profile; mode.integer=value; qglGenProgramsARB=hardware;
 #ifdef USE_PMLIGHT
-        const bool allowed=!R_UsesRTCWLighting()
+        const bool allowed=true
 #ifdef TEST_GLX
             && hardware
 #endif
@@ -292,6 +359,14 @@ int main() {
         entity={}; entity.e.axis[0][0]=entity.e.axis[1][1]=entity.e.axis[2][2]=1;
         R_SetupEntityLighting(&view,&entity);
         assert(entity.ambientLight[0]==(R_UsesRTCWLighting() ? 150 : 182));
+        if(R_UsesRTCWLighting()) {
+            // The snooper retains RTCW's model lighting while its world light passes are suppressed.
+            dlight_t light{}; light.radius=16; VectorSet(light.color,1,1,1);
+            view.rtcw.snooperView=true; view.num_dlights=1; view.dlights=&light;
+            entity={}; entity.e.axis[0][0]=entity.e.axis[1][1]=entity.e.axis[2][2]=1;
+            R_SetupEntityLighting(&view,&entity);
+            assert(entity.ambientLight[0]==245 && entity.directedLight[0]==166);
+        }
     }
 }
 '''
@@ -375,6 +450,61 @@ class RTCWLightTests(unittest.TestCase):
 
     def test_scene_parameters_and_projection(self):
         self.compile_run(SCENE)
+
+    def test_per_pixel_scene_and_flickering_shadow_projection(self):
+        self.compile_run(SCENE,('-DUSE_PMLIGHT',))
+
+    def test_rtcw_models_reach_each_shadow_backend(self):
+        prelude=COMMON+r'''
+enum surfaceType_t { SF_BAD, SF_FACE, SF_TRIANGLES, SF_MDS, SF_MDC, SF_MD3, SF_MDR, SF_IQM, SF_GRID };
+enum { SS_OPAQUE=3, GLS_ATEST_BITS=7 };
+struct shaderStage_t { unsigned stateBits; };
+struct shader_t { shader_t *remappedShader; int sort,isSky,polygonOffset,numDeforms,surfaceFlags,numUnfoggedPasses; shaderStage_t *stages[2]; };
+static cvar_t curves{}; static cvar_t *r_nocurves=&curves;
+enum { MOD_BAD, MOD_MESH, MOD_MDS, MOD_MDC, MOD_MDR, MOD_IQM, MOD_BRUSH, RT_MODEL,
+       REFENTITYNUM_WORLD=1023, RF_NOSHADOW=1, RF_FIRST_PERSON=2, RF_DEPTHHACK=4 };
+struct model_t { int type; } model;
+struct trRefEntity_t { struct { int reType,renderfx,hModel; } e; } entity;
+static struct { struct { int num_entities; trRefEntity_t *entities; } refdef; } backEnd;
+static const model_t *R_GetModelByHandle(int handle) { return handle==1 ? &model : nullptr; }
+'''
+        checks=r'''
+int main() {
+    shader_t shader{}; shader.sort=SS_OPAQUE;
+    for(auto type:{SF_MDS,SF_MDC,SF_MD3,SF_MDR,SF_IQM,SF_FACE,SF_TRIANGLES,SF_GRID}) {
+        assert(RB_DlightShadowCasterAllowed(&shader,&type));
+        shaderStage_t alpha{GLS_ATEST_BITS}; shader.stages[0]=&alpha; shader.numUnfoggedPasses=1;
+        assert(!RB_DlightShadowCasterAllowed(&shader,&type)); shader.numUnfoggedPasses=0;
+        shader.surfaceFlags=SURF_NODLIGHT; assert(!RB_DlightShadowCasterAllowed(&shader,&type)); shader.surfaceFlags=0;
+        shader.numDeforms=1; assert(!RB_DlightShadowCasterAllowed(&shader,&type)); shader.numDeforms=0;
+        shader.sort=SS_OPAQUE+1; assert(!RB_DlightShadowCasterAllowed(&shader,&type)); shader.sort=SS_OPAQUE;
+    }
+    surfaceType_t type=SF_MDS; shader_t hidden{}; hidden.sort=SS_OPAQUE+1;
+    shader.remappedShader=&hidden; assert(!RB_DlightShadowCasterAllowed(&shader,&type));
+    assert(!RB_DlightShadowCasterAllowed(nullptr,&type) && !RB_DlightShadowCasterAllowed(&shader,nullptr));
+    entity.e.reType=RT_MODEL; entity.e.hModel=1;
+    backEnd.refdef.num_entities=1; backEnd.refdef.entities=&entity;
+    for(int kind:{MOD_MDS,MOD_MDC,MOD_MESH,MOD_MDR,MOD_IQM,MOD_BRUSH}) {
+        model.type=kind; assert(RB_DlightShadowEntityCasterAllowed(0));
+        for(int flag:{RF_NOSHADOW,RF_FIRST_PERSON,RF_DEPTHHACK}) {
+            entity.e.renderfx=flag; assert(!RB_DlightShadowEntityCasterAllowed(0));
+        }
+        entity.e.renderfx=0;
+    }
+    assert(RB_DlightShadowEntityCasterAllowed(REFENTITYNUM_WORLD));
+    assert(!RB_DlightShadowEntityCasterAllowed(-1) && !RB_DlightShadowEntityCasterAllowed(1));
+    model.type=MOD_BAD; assert(!RB_DlightShadowEntityCasterAllowed(0));
+    entity.e.hModel=0; assert(!RB_DlightShadowEntityCasterAllowed(0));
+}
+'''
+        for renderer in ('renderer','renderervk','rendererrtx'):
+            source=(ROOT/'code'/renderer/'tr_backend.c').read_text()
+            body=''.join(function(source,name) for name in (
+                'static qboolean RB_ShadowShaderHasAlphaTest(',
+                'static const shader_t *RB_DlightShadowEffectiveShader(',
+                'static qboolean RB_DlightShadowCasterAllowed(',
+                'static qboolean RB_DlightShadowEntityCasterAllowed('))
+            with self.subTest(renderer=renderer): self.compile_run(prelude+body+checks)
 
     def test_legacy_build_keeps_light_boundaries_in_ieee_mode(self):
         makefile=(ROOT/'Makefile').read_text()

@@ -283,13 +283,24 @@ FnQL uses a small set of EFX filter presets for source classes rather than a ful
 
 ### Optional Audio Zone Sidecars
 
-FnQL can read optional compiled audio-zone sidecars named `maps/<mapname>.azb`. `FnQL-pkg.fnz` ships a geometry-derived sidecar for each of the 149 BSP maps actually present in the retail Quake Live Steam package. Sidecars can also contain maintainer-authored tuning data for map-specific reverb, tone, occlusion multiplier, and transition behavior. They are never required for normal gameplay: if a sidecar is missing, invalid, disabled, or does not contain the listener's current position, the OpenAL backend keeps using the generic trace-based environment heuristics described above. Menu-only optional/holiday Workshop entries whose BSPs are not installed, other Workshop maps, and custom maps use that fallback unless their own sidecar is supplied.
+The shared engine package includes generated audio zones for all 32 official
+RTCW SP maps and 15 official MP maps, isolated under the selected mode's
+`games/rtcw-sp/main/` or `games/rtcw-mp/main/` namespace. This includes SP
+cinematics and the ending, plus the official MP map packs. These are acoustic
+estimates with [documented audit warnings](fntech3/2026-09-17-rtcw-audio-zones.md),
+pending listening checks.
+
+The shared engine package also includes the 35 Quake III Arena audio-zone
+sidecars from FnQuake3 under `games/quake3/baseq3/maps/`. Q3/Team Arena sound
+tuning and Quake Live tuning remain in their own profile/mod namespaces.
+
+FnQL can read optional compiled audio-zone sidecars named `maps/<mapname>.azb`. `fntech3-pkg.fnz` ships a geometry-derived sidecar for each of the 149 BSP maps actually present in the retail Quake Live Steam package. Sidecars can also contain maintainer-authored tuning data for map-specific reverb, tone, occlusion multiplier, and transition behavior. They are never required for normal gameplay: if a sidecar is missing, invalid, disabled, or does not contain the listener's current position, the OpenAL backend keeps using the generic trace-based environment heuristics described above. Menu-only optional/holiday Workshop entries whose BSPs are not installed, other Workshop maps, and custom maps use that fallback unless their own sidecar is supplied.
 
 - `s_alAudioZones 1`: Enable `.azb` sidecars when present. This is the default.
 - `s_alAudioZones 0`: Ignore sidecars and use generic environment heuristics only.
 - `s_info`: Reports whether audio zones are disabled, missing, loaded, and which zone is currently active.
 - `s_alDebugOverlay 2` and `s_alDebugDump`: Include active zone name, material metadata, portal blend target when one is active, plus the zone-adjusted wet, low/high-frequency, occlusion, and transition values.
-- FnQL checks `FnQL-pkg.fnz` next to the executable before normal game data for sidecars, using game-dir-prefixed entries such as `baseq3/maps/campgrounds.azb` or `<gamedir>/maps/<mapname>.azb`.
+- fnTech3 checks `fntech3-pkg.fnz` next to the executable before normal game data for sidecars, using `games/<profile>/<gamedir>/maps/<mapname>.azb`. For example, `games/quakelive/baseq3/maps/campgrounds.azb` is available only to Quake Live. The active profile's mod directories precede its base directory.
 
 Sidecars are compiled with the repo tool target `fnql-audiozonesc`. Maintainers can write `maps/<mapname>.audiozones` by hand or generate a first-pass sidecar from an existing `.bsp`, then layer small overrides on top. Current sidecars can carry material metadata, portal hints, and optional per-portal blend tuning while older version 1 and version 2 sidecars remain readable. The compiler workflow and authoring syntax are documented in the maintainer notes and in `code/tools/audiozones/README.md`.
 
@@ -297,9 +308,9 @@ Generated zones are built by merging BSP leaves back into room-scale volumes alo
 
 ### Weapon Sound Shaders
 
-The OpenAL backend also reads a small FnQL sound shader file, `sound/fnql-weapon-sounds.sndshd`, from `FnQL-pkg.fnz`. The format intentionally follows the idTech4/Quake 4 declaration style: `sound <name> { minDistance ... maxDistance ... volumeDb ... shakes ... sample }`. The shipped `baseq3` shader covers the standard Quake III Arena weapon effects. Its tuning is imported exactly from FnQ3 (apart from FnQL declaration names), preserving the same attack, distance, pitch, shake, and reverb treatment without replacing the retail samples.
+The OpenAL backend also reads a small FnQL sound shader file, `sound/fnql-weapon-sounds.sndshd`, from `fntech3-pkg.fnz`. The format intentionally follows the idTech4/Quake 4 declaration style: `sound <name> { minDistance ... maxDistance ... volumeDb ... shakes ... sample }`. The shipped `baseq3` shader covers the standard Quake III Arena weapon effects. Its tuning is imported exactly from FnQ3 (apart from FnQL declaration names), preserving the same attack, distance, pitch, shake, and reverb treatment without replacing the retail samples.
 
-Like audio zones, the root package stores this with a game-dir prefix, for example `baseq3/sound/fnql-weapon-sounds.sndshd`. Mods can ship their own game-dir entry in the root package source tree when they need different tuning.
+Like audio zones, the package stores this under `games/<profile>/<gamedir>/sound/fnql-weapon-sounds.sndshd`. Quake III Arena and Quake Live have explicit copies of the standard tuning under `games/quake3/baseq3/` and `games/quakelive/baseq3/`. Mods can supply an entry in their profile's namespace when they need different tuning. See the [package layout](fntech3/PACKAGES.md).
 
 ### Doppler
 

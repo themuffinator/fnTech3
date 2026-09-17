@@ -1,0 +1,4052 @@
+{
+  "date": "2026-09-17",
+  "commit": "0b6af9ba7a17d73bf27c5c016c00772a1a93899a",
+  "workingTree": "dirty; includes this change and unrelated ongoing work",
+  "platform": "Windows x86",
+  "installation": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+  "tool": ".tmp/fnz-layout/build/fnql-audiozonesc.exe",
+  "toolSha256": "a501ff77377c44b4f5001b2ef03d974b1d7fdd8cb8c2a07b32e4cf2127b762b2",
+  "samplesPerMap": 32768,
+  "maxZonesPerMap": 512,
+  "strictAudit": false,
+  "summary": {
+    "auditFailed": 0,
+    "generateFailed": 0,
+    "generated": 0,
+    "overrides": 0,
+    "passed": 47,
+    "planned": 0,
+    "total": 47,
+    "warnings": 28
+  },
+  "generationCommand": "python scripts/generate_stock_rtcw_audio_zones.py \"E:/SteamLibrary/steamapps/common/Return to Castle Wolfenstein\" --tool .tmp/fnz-layout/build/fnql-audiozonesc.exe",
+  "sourceFiles": {
+    "code/tools/audiozones/audiozonesc.cpp": "22b3edd0ec4c4d35aaece00d20b518a7630048bef786a8095b85739d2e32f4e5",
+    "code/client/audio/shared/AudioZoneFormat.h": "d2ed8dd35fba7c25a5ef7f3c9387f0149ca1d3b66a181264872d48bba707354f",
+    "code/client/audio/shared/AudioZoneRuntime.h": "18b435a4885bd2d4881214589a02c87157ab18ce207a47ead647708e8760a495",
+    "scripts/generate_stock_rtcw_audio_zones.py": "c326b7fafef14892f0111c4ae50718404d8501e6e30fad8861632ef0e91627ba",
+    "scripts/stock_rtcw_maps.py": "69eb29b3f4a9303929bc698d9e24c213ac6ca018fae9d8843c042591cde969db"
+  },
+  "packages": {
+    "mp_pak0.pk3": {
+      "bytes": 63211149,
+      "sha256": "c0e090e7b4245313bea64b5fb20b24d69786e593716cfe6bf85ee9b4f3c794b3"
+    },
+    "mp_pakmaps0.pk3": {
+      "bytes": 3485134,
+      "sha256": "2e9cfdc505587dc7e7059e3188b9a1b4ceba75decfa7578c3b2a73dbb0d94a93"
+    },
+    "mp_pakmaps1.pk3": {
+      "bytes": 3765933,
+      "sha256": "a907dc0caf8ab4284dc8ba8de04a11ec8472a50f861998994c834ff1a4781d9a"
+    },
+    "mp_pakmaps2.pk3": {
+      "bytes": 7408542,
+      "sha256": "d2cc0a7a762ad5f1ec3523ff79798cd7d732ffe8f29e6ac7df66f74319e85eb6"
+    },
+    "mp_pakmaps3.pk3": {
+      "bytes": 10780146,
+      "sha256": "524ecd9053d4c8f8e27d4bc4c04504fc1a1f3a29dd8299c8b38909db3c51e6ac"
+    },
+    "mp_pakmaps4.pk3": {
+      "bytes": 24171802,
+      "sha256": "1357a12e57634dac59cbe70a5984af85a43e7db5aff930d05c8ee42dfcefded8"
+    },
+    "mp_pakmaps5.pk3": {
+      "bytes": 20024689,
+      "sha256": "85cc0e8358a26601211625a9600ca47c126e4a38cca0bac60d7465ffb5ccadfe"
+    },
+    "mp_pakmaps6.pk3": {
+      "bytes": 10080181,
+      "sha256": "fcdb3754ca4e9f60b3086c8461b26160dd8de7f5e94c04100a2eb6f9519abca2"
+    },
+    "pak0.pk3": {
+      "bytes": 315823656,
+      "sha256": "1dfcfc3187ba09fe32cd8a7921a09cd15dd789816186c89b11e5e0d954c55e6c"
+    },
+    "sp_pak4.pk3": {
+      "bytes": 15532040,
+      "sha256": "5532801005eaf2d74fe9098dc638abdb8284225c293cee3573ffa9b6c2edd8fc"
+    }
+  },
+  "maps": [
+    {
+      "map": "assault",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/assault.azb",
+      "pak": "pak0.pk3",
+      "entry": "maps/assault.bsp",
+      "bspBytes": 10897736,
+      "bspCrc32": "5dab8fb8",
+      "bspSha256": "c63de3dc48d1399d0531378c8c836d34dfa9c6c662e40b0cf0e01c76283be5c8",
+      "azbBytes": 51370,
+      "azbSha256": "ff0cd44a8a708ed7eaacd8e92632dff8c11ffcb350dd4fd74c588f4ec944b198",
+      "audit": {
+        "bytes": 51370,
+        "confidence": {
+          "anomaly": 0.198,
+          "grade": "fair",
+          "lookup": 0.145,
+          "material": 0.835,
+          "overall": 0.737,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 239,
+          "outdoor": 40,
+          "underwater": 0
+        },
+        "lookup": {
+          "avgBlend": 0.451,
+          "checksum": 258349477513711892,
+          "coverage": 0.898,
+          "hits": 29430,
+          "portalBlends": 6964,
+          "samples": 32768,
+          "specificHits": 4256
+        },
+        "materials": {
+          "metal": 58,
+          "neutral": 79,
+          "sky": 9,
+          "soft": 93
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 367
+        },
+        "portalCurves": {
+          "ease-in": 38,
+          "ease-out": 464,
+          "smooth": 192
+        },
+        "portalTuning": {
+          "distanceAvg": 307.37,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.465,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.175
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.788,
+          "opennessMax": 1.0,
+          "opennessMin": 0.062,
+          "self": 0,
+          "total": 694
+        },
+        "presets": {
+          "hall": 51,
+          "hallway": 29,
+          "outdoors": 40,
+          "room": 18,
+          "small-room": 91,
+          "stone-room": 10
+        },
+        "summedVolume": 1068719538176.0,
+        "version": 3,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "zones": 239
+      }
+    },
+    {
+      "map": "baseout",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/baseout.azb",
+      "pak": "pak0.pk3",
+      "entry": "maps/baseout.bsp",
+      "bspBytes": 9004688,
+      "bspCrc32": "e8fe3c8e",
+      "bspSha256": "20350ee2ae95e6dd6b3a230178e08d6dc9494652268636a607516b2db4cfa154",
+      "azbBytes": 93004,
+      "azbSha256": "95b7ed0e7cf96c938490e369db72be4ac7374994960ea68664c1db3a880b96f8",
+      "audit": {
+        "bytes": 93004,
+        "confidence": {
+          "anomaly": 0.002,
+          "grade": "excellent",
+          "lookup": 1.0,
+          "material": 0.99,
+          "overall": 0.997,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 367,
+          "outdoor": 49,
+          "underwater": 12
+        },
+        "lookup": {
+          "avgBlend": 0.489,
+          "checksum": 11538732101959925694,
+          "coverage": 0.358,
+          "hits": 11736,
+          "portalBlends": 8795,
+          "samples": 32768,
+          "specificHits": 11736
+        },
+        "materials": {
+          "liquid": 12,
+          "metal": 95,
+          "neutral": 7,
+          "sky": 10,
+          "soft": 42,
+          "stone": 201
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 438
+        },
+        "portalCurves": {
+          "ease-in": 70,
+          "ease-out": 998,
+          "smooth": 296
+        },
+        "portalTuning": {
+          "distanceAvg": 192.85,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.483,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.167
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.833,
+          "opennessMax": 1.0,
+          "opennessMin": 0.042,
+          "self": 0,
+          "total": 1364
+        },
+        "presets": {
+          "hall": 10,
+          "hallway": 37,
+          "outdoors": 39,
+          "room": 3,
+          "small-room": 223,
+          "stone-room": 43,
+          "underwater": 12
+        },
+        "summedVolume": 22393663488.0,
+        "version": 3,
+        "warnings": [],
+        "zones": 367
+      }
+    },
+    {
+      "map": "boss1",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/boss1.azb",
+      "pak": "pak0.pk3",
+      "entry": "maps/boss1.bsp",
+      "bspBytes": 4595244,
+      "bspCrc32": "c9a0d784",
+      "bspSha256": "6cb04d87212a5963e5f689d18912051acf42b6fc3ba44a561a28cfb2b27f0a2b",
+      "azbBytes": 70585,
+      "azbSha256": "d6407f8812e1ea0ea6fdb54a807806f43c4161d1feb6b6b67075241121efe8e6",
+      "audit": {
+        "bytes": 70585,
+        "confidence": {
+          "anomaly": 0.452,
+          "grade": "fair",
+          "lookup": 0.099,
+          "material": 0.632,
+          "overall": 0.664,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 310,
+          "outdoor": 16,
+          "underwater": 0
+        },
+        "lookup": {
+          "avgBlend": 0.488,
+          "checksum": 7978967967003274816,
+          "coverage": 0.781,
+          "hits": 25599,
+          "portalBlends": 5134,
+          "samples": 32768,
+          "specificHits": 2535
+        },
+        "materials": {
+          "metal": 1,
+          "neutral": 228,
+          "sky": 17,
+          "soft": 63,
+          "stone": 1
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 492
+        },
+        "portalCurves": {
+          "ease-in": 86,
+          "ease-out": 638,
+          "smooth": 252
+        },
+        "portalTuning": {
+          "distanceAvg": 140.579,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.46,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.169
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.776,
+          "opennessMax": 1.0,
+          "opennessMin": 0.048,
+          "self": 0,
+          "total": 976
+        },
+        "presets": {
+          "hall": 1,
+          "hallway": 29,
+          "outdoors": 12,
+          "room": 15,
+          "small-room": 252,
+          "stone-room": 1
+        },
+        "summedVolume": 12427298816.0,
+        "version": 3,
+        "warnings": [
+          "zones cover more than half of the sidecar bounds; generated volumes may have collapsed",
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "zones": 310
+      }
+    },
+    {
+      "map": "boss2",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/boss2.azb",
+      "pak": "pak0.pk3",
+      "entry": "maps/boss2.bsp",
+      "bspBytes": 5809656,
+      "bspCrc32": "a872b69d",
+      "bspSha256": "1ae4e451ef78656bf1f25f6f167b1c9ebe4e21e14ef737eb1ba7baf0974645bd",
+      "azbBytes": 43519,
+      "azbSha256": "890ca9db5fd0fc17704531e6038936384e427f37e02dc1e2a7c756535e334d4e",
+      "audit": {
+        "bytes": 43519,
+        "confidence": {
+          "anomaly": 0.116,
+          "grade": "good",
+          "lookup": 0.409,
+          "material": 0.979,
+          "overall": 0.846,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 166,
+          "outdoor": 3,
+          "underwater": 0
+        },
+        "lookup": {
+          "avgBlend": 0.462,
+          "checksum": 16745446728344647706,
+          "coverage": 0.536,
+          "hits": 17572,
+          "portalBlends": 6622,
+          "samples": 32768,
+          "specificHits": 7179
+        },
+        "materials": {
+          "metal": 78,
+          "neutral": 7,
+          "sky": 1,
+          "soft": 10,
+          "stone": 70
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 127
+        },
+        "portalCurves": {
+          "ease-in": 72,
+          "ease-out": 416,
+          "smooth": 164
+        },
+        "portalTuning": {
+          "distanceAvg": 176.921,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.456,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.167
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.765,
+          "opennessMax": 1.0,
+          "opennessMin": 0.042,
+          "self": 0,
+          "total": 652
+        },
+        "presets": {
+          "hall": 10,
+          "hallway": 31,
+          "outdoors": 3,
+          "room": 2,
+          "small-room": 104,
+          "stone-room": 16
+        },
+        "summedVolume": 42054631424.0,
+        "version": 3,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "zones": 166
+      }
+    },
+    {
+      "map": "castle",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/castle.azb",
+      "pak": "pak0.pk3",
+      "entry": "maps/castle.bsp",
+      "bspBytes": 9518220,
+      "bspCrc32": "18eb9f27",
+      "bspSha256": "d56ff823dd85377b500bbd09e21799f05c5554a4dff0b6e97634c7f1b3fb413a",
+      "azbBytes": 102083,
+      "azbSha256": "645ff534308b052748fe95cb881943ca49421683cd01413fd8812143ea9a481c",
+      "audit": {
+        "bytes": 102083,
+        "confidence": {
+          "anomaly": 0.059,
+          "grade": "excellent",
+          "lookup": 1.0,
+          "material": 0.736,
+          "overall": 0.921,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 450,
+          "outdoor": 111,
+          "underwater": 0
+        },
+        "lookup": {
+          "avgBlend": 0.497,
+          "checksum": 17515056051524500988,
+          "coverage": 0.323,
+          "hits": 10569,
+          "portalBlends": 9488,
+          "samples": 32768,
+          "specificHits": 10569
+        },
+        "materials": {
+          "metal": 2,
+          "neutral": 238,
+          "sky": 109,
+          "soft": 100,
+          "stone": 1
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 452
+        },
+        "portalCurves": {
+          "ease-in": 70,
+          "ease-out": 1090,
+          "smooth": 248
+        },
+        "portalTuning": {
+          "distanceAvg": 140.325,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.492,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.166
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.855,
+          "opennessMax": 1.0,
+          "opennessMin": 0.04,
+          "self": 0,
+          "total": 1408
+        },
+        "presets": {
+          "hall": 8,
+          "hallway": 21,
+          "outdoors": 28,
+          "room": 30,
+          "small-room": 363
+        },
+        "summedVolume": 5578837504.0,
+        "version": 3,
+        "warnings": [],
+        "zones": 450
+      }
+    },
+    {
+      "map": "chateau",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/chateau.azb",
+      "pak": "pak0.pk3",
+      "entry": "maps/chateau.bsp",
+      "bspBytes": 10187524,
+      "bspCrc32": "233cd05f",
+      "bspSha256": "e642d6d938272efd98b3d3bd5bb604fc6b115e97243747e1cbe5a806f5e52ea8",
+      "azbBytes": 52546,
+      "azbSha256": "ef070b187f6ffb977a7d36f651b2937b3de8956901efef0fcf193cc244359062",
+      "audit": {
+        "bytes": 52546,
+        "confidence": {
+          "anomaly": 0.004,
+          "grade": "excellent",
+          "lookup": 1.0,
+          "material": 0.981,
+          "overall": 0.994,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 260,
+          "outdoor": 5,
+          "underwater": 0
+        },
+        "lookup": {
+          "avgBlend": 0.457,
+          "checksum": 10417499090747133152,
+          "coverage": 0.389,
+          "hits": 12750,
+          "portalBlends": 8833,
+          "samples": 32768,
+          "specificHits": 12750
+        },
+        "materials": {
+          "metal": 2,
+          "neutral": 10,
+          "sky": 2,
+          "soft": 197,
+          "stone": 49
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 198
+        },
+        "portalCurves": {
+          "ease-in": 66,
+          "ease-out": 488,
+          "smooth": 120
+        },
+        "portalTuning": {
+          "distanceAvg": 177.157,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.475,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.181
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.813,
+          "opennessMax": 1.0,
+          "opennessMin": 0.077,
+          "self": 0,
+          "total": 674
+        },
+        "presets": {
+          "hall": 18,
+          "hallway": 33,
+          "outdoors": 5,
+          "room": 21,
+          "small-room": 177,
+          "stone-room": 6
+        },
+        "summedVolume": 8949872640.0,
+        "version": 3,
+        "warnings": [],
+        "zones": 260
+      }
+    },
+    {
+      "map": "church",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/church.azb",
+      "pak": "pak0.pk3",
+      "entry": "maps/church.bsp",
+      "bspBytes": 7057716,
+      "bspCrc32": "7c0efb13",
+      "bspSha256": "251bb21a84bb3ba607f1c42ab5c4fbad0305ac1010265f4465fda0f8d09c199b",
+      "azbBytes": 48837,
+      "azbSha256": "f0e2783af55186249fd534264a303dfe42d701ce29f69384afaaecba4d0da604",
+      "audit": {
+        "bytes": 48837,
+        "confidence": {
+          "anomaly": 0.087,
+          "grade": "good",
+          "lookup": 1.0,
+          "material": 0.612,
+          "overall": 0.884,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 237,
+          "outdoor": 0,
+          "underwater": 0
+        },
+        "lookup": {
+          "avgBlend": 0.475,
+          "checksum": 14131178674351689248,
+          "coverage": 0.349,
+          "hits": 11443,
+          "portalBlends": 5865,
+          "samples": 32768,
+          "specificHits": 11443
+        },
+        "materials": {
+          "metal": 30,
+          "neutral": 184,
+          "soft": 21,
+          "stone": 2
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 200
+        },
+        "portalCurves": {
+          "ease-in": 32,
+          "ease-out": 474,
+          "smooth": 128
+        },
+        "portalTuning": {
+          "distanceAvg": 147.345,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.489,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.175
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.848,
+          "opennessMax": 1.0,
+          "opennessMin": 0.062,
+          "self": 0,
+          "total": 634
+        },
+        "presets": {
+          "hall": 10,
+          "hallway": 15,
+          "room": 24,
+          "small-room": 170,
+          "stone-room": 18
+        },
+        "summedVolume": 5017627648.0,
+        "version": 3,
+        "warnings": [],
+        "zones": 237
+      }
+    },
+    {
+      "map": "crypt1",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/crypt1.azb",
+      "pak": "sp_pak4.pk3",
+      "entry": "maps/crypt1.bsp",
+      "bspBytes": 8867996,
+      "bspCrc32": "6f15e341",
+      "bspSha256": "5e59df4103a2ba7e2f146b197624b4199ec670660add9fa1849b347c7cd6a592",
+      "azbBytes": 120286,
+      "azbSha256": "aa237434f87a542ecc6aec5e8914b665263fdaa972dcd139f7e95c31ab6ca090",
+      "audit": {
+        "bytes": 120286,
+        "confidence": {
+          "anomaly": 0.076,
+          "grade": "good",
+          "lookup": 1.0,
+          "material": 0.66,
+          "overall": 0.898,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 512,
+          "outdoor": 6,
+          "underwater": 0
+        },
+        "lookup": {
+          "avgBlend": 0.49,
+          "checksum": 7560847290027494305,
+          "coverage": 0.094,
+          "hits": 3079,
+          "portalBlends": 2933,
+          "samples": 32768,
+          "specificHits": 3079
+        },
+        "materials": {
+          "metal": 10,
+          "neutral": 348,
+          "sky": 6,
+          "soft": 76,
+          "stone": 72
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 623
+        },
+        "portalCurves": {
+          "ease-in": 92,
+          "ease-out": 1270,
+          "smooth": 328
+        },
+        "portalTuning": {
+          "distanceAvg": 108.557,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.487,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.166
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.842,
+          "opennessMax": 1.0,
+          "opennessMin": 0.04,
+          "self": 0,
+          "total": 1690
+        },
+        "presets": {
+          "hallway": 36,
+          "room": 17,
+          "small-room": 453,
+          "stone-room": 6
+        },
+        "summedVolume": 1195781376.0,
+        "version": 3,
+        "warnings": [
+          "lookup coverage is low across the sampled sidecar bounds"
+        ],
+        "zones": 512
+      }
+    },
+    {
+      "map": "crypt2",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/crypt2.azb",
+      "pak": "pak0.pk3",
+      "entry": "maps/crypt2.bsp",
+      "bspBytes": 7412176,
+      "bspCrc32": "c6b1dc4a",
+      "bspSha256": "236753e3ad4a95d0a2ead0e504d244f73843d4ef668753ec0b17cdb2064d96c7",
+      "azbBytes": 63854,
+      "azbSha256": "0ecc7f83a49d0d716ab1b5896da09f34bd639858b0bf6eb4a072b876f8e1a7eb",
+      "audit": {
+        "bytes": 63854,
+        "confidence": {
+          "anomaly": 0.071,
+          "grade": "excellent",
+          "lookup": 1.0,
+          "material": 0.683,
+          "overall": 0.905,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 279,
+          "outdoor": 6,
+          "underwater": 0
+        },
+        "lookup": {
+          "avgBlend": 0.47,
+          "checksum": 10385045574773029092,
+          "coverage": 0.397,
+          "hits": 13009,
+          "portalBlends": 5799,
+          "samples": 32768,
+          "specificHits": 13009
+        },
+        "materials": {
+          "metal": 30,
+          "neutral": 177,
+          "sky": 6,
+          "soft": 21,
+          "stone": 45
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 323
+        },
+        "portalCurves": {
+          "ease-in": 28,
+          "ease-out": 694,
+          "smooth": 164
+        },
+        "portalTuning": {
+          "distanceAvg": 122.582,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.499,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.182
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.872,
+          "opennessMax": 1.0,
+          "opennessMin": 0.08,
+          "self": 0,
+          "total": 886
+        },
+        "presets": {
+          "hall": 7,
+          "hallway": 27,
+          "room": 12,
+          "small-room": 223,
+          "stone-room": 10
+        },
+        "summedVolume": 4830205440.0,
+        "version": 3,
+        "warnings": [],
+        "zones": 279
+      }
+    },
+    {
+      "map": "cutscene1",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/cutscene1.azb",
+      "pak": "pak0.pk3",
+      "entry": "maps/cutscene1.bsp",
+      "bspBytes": 3265760,
+      "bspCrc32": "67c3b495",
+      "bspSha256": "0e1c219e8e647e3a18e140a214d19bb5fc2109932b238fdb37717ede4e6da92e",
+      "azbBytes": 15671,
+      "azbSha256": "53f0972058c1f0490d0e3f28c3719fd6c03b11bf6e65b5952ac9df805df58f67",
+      "audit": {
+        "bytes": 15671,
+        "confidence": {
+          "anomaly": 0.177,
+          "grade": "good",
+          "lookup": 0.057,
+          "material": 1.0,
+          "overall": 0.764,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 94,
+          "outdoor": 15,
+          "underwater": 0
+        },
+        "lookup": {
+          "avgBlend": 0.431,
+          "checksum": 16058141925858119987,
+          "coverage": 0.296,
+          "hits": 9710,
+          "portalBlends": 2121,
+          "samples": 32768,
+          "specificHits": 554
+        },
+        "materials": {
+          "metal": 1,
+          "sky": 6,
+          "soft": 87
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 62
+        },
+        "portalCurves": {
+          "ease-in": 4,
+          "ease-out": 154,
+          "smooth": 12
+        },
+        "portalTuning": {
+          "distanceAvg": 150.851,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.525,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.207
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.937,
+          "opennessMax": 1.0,
+          "opennessMin": 0.143,
+          "self": 0,
+          "total": 170
+        },
+        "presets": {
+          "hallway": 7,
+          "outdoors": 13,
+          "room": 3,
+          "small-room": 71
+        },
+        "summedVolume": 11610357760.0,
+        "version": 3,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "zones": 94
+      }
+    },
+    {
+      "map": "cutscene11",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/cutscene11.azb",
+      "pak": "pak0.pk3",
+      "entry": "maps/cutscene11.bsp",
+      "bspBytes": 1368824,
+      "bspCrc32": "7510dc25",
+      "bspSha256": "a45faf59469ed46f28240f8bb74e37a430a4a6d0033fe43697e4960043615c01",
+      "azbBytes": 14007,
+      "azbSha256": "6b4269ada8d7f267bdbcc223521e6309fc4933aed772302da900a35361c36101",
+      "audit": {
+        "bytes": 14007,
+        "confidence": {
+          "anomaly": 0.135,
+          "grade": "good",
+          "lookup": 0.285,
+          "material": 0.994,
+          "overall": 0.82,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 85,
+          "outdoor": 5,
+          "underwater": 0
+        },
+        "lookup": {
+          "avgBlend": 0.484,
+          "checksum": 17396682500921845553,
+          "coverage": 0.327,
+          "hits": 10705,
+          "portalBlends": 6925,
+          "samples": 32768,
+          "specificHits": 3056
+        },
+        "materials": {
+          "metal": 1,
+          "neutral": 1,
+          "sky": 4,
+          "soft": 79
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 52
+        },
+        "portalCurves": {
+          "ease-in": 4,
+          "ease-out": 136,
+          "smooth": 10
+        },
+        "portalTuning": {
+          "distanceAvg": 131.577,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.524,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.207
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.936,
+          "opennessMax": 1.0,
+          "opennessMin": 0.143,
+          "self": 0,
+          "total": 150
+        },
+        "presets": {
+          "hall": 1,
+          "hallway": 7,
+          "outdoors": 5,
+          "room": 3,
+          "small-room": 69
+        },
+        "summedVolume": 697297664.0,
+        "version": 3,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "zones": 85
+      }
+    },
+    {
+      "map": "cutscene14",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/cutscene14.azb",
+      "pak": "pak0.pk3",
+      "entry": "maps/cutscene14.bsp",
+      "bspBytes": 1368832,
+      "bspCrc32": "b3de1057",
+      "bspSha256": "d25dd2789e89590775c8e791418acd13f41f6b9476869d3347f97daa4d8d154f",
+      "azbBytes": 14007,
+      "azbSha256": "6b4269ada8d7f267bdbcc223521e6309fc4933aed772302da900a35361c36101",
+      "audit": {
+        "bytes": 14007,
+        "confidence": {
+          "anomaly": 0.135,
+          "grade": "good",
+          "lookup": 0.285,
+          "material": 0.994,
+          "overall": 0.82,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 85,
+          "outdoor": 5,
+          "underwater": 0
+        },
+        "lookup": {
+          "avgBlend": 0.484,
+          "checksum": 17396682500921845553,
+          "coverage": 0.327,
+          "hits": 10705,
+          "portalBlends": 6925,
+          "samples": 32768,
+          "specificHits": 3056
+        },
+        "materials": {
+          "metal": 1,
+          "neutral": 1,
+          "sky": 4,
+          "soft": 79
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 52
+        },
+        "portalCurves": {
+          "ease-in": 4,
+          "ease-out": 136,
+          "smooth": 10
+        },
+        "portalTuning": {
+          "distanceAvg": 131.577,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.524,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.207
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.936,
+          "opennessMax": 1.0,
+          "opennessMin": 0.143,
+          "self": 0,
+          "total": 150
+        },
+        "presets": {
+          "hall": 1,
+          "hallway": 7,
+          "outdoors": 5,
+          "room": 3,
+          "small-room": 69
+        },
+        "summedVolume": 697297664.0,
+        "version": 3,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "zones": 85
+      }
+    },
+    {
+      "map": "cutscene19",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/cutscene19.azb",
+      "pak": "pak0.pk3",
+      "entry": "maps/cutscene19.bsp",
+      "bspBytes": 3549120,
+      "bspCrc32": "7bd6e26c",
+      "bspSha256": "27058f4876cc1760f3595a33f024c85ec1c556df7d49861f42fecaa4955edc86",
+      "azbBytes": 23730,
+      "azbSha256": "f3f7f689327035c56cb91d737fdb8d20fd3459de58fb23c001b5394f6341ecfa",
+      "audit": {
+        "bytes": 23730,
+        "confidence": {
+          "anomaly": 0.175,
+          "grade": "good",
+          "lookup": 0.14,
+          "material": 0.937,
+          "overall": 0.766,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 126,
+          "outdoor": 21,
+          "underwater": 0
+        },
+        "lookup": {
+          "avgBlend": 0.441,
+          "checksum": 5034329745742413425,
+          "coverage": 0.395,
+          "hits": 12942,
+          "portalBlends": 4751,
+          "samples": 32768,
+          "specificHits": 1816
+        },
+        "materials": {
+          "metal": 2,
+          "neutral": 16,
+          "sky": 13,
+          "soft": 94,
+          "stone": 1
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 97
+        },
+        "portalCurves": {
+          "ease-in": 6,
+          "ease-out": 240,
+          "smooth": 42
+        },
+        "portalTuning": {
+          "distanceAvg": 140.722,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.512,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.207
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.906,
+          "opennessMax": 1.0,
+          "opennessMin": 0.143,
+          "self": 0,
+          "total": 288
+        },
+        "presets": {
+          "hall": 1,
+          "hallway": 10,
+          "outdoors": 17,
+          "room": 4,
+          "small-room": 94
+        },
+        "summedVolume": 12710430720.0,
+        "version": 3,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "zones": 126
+      }
+    },
+    {
+      "map": "cutscene6",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/cutscene6.azb",
+      "pak": "pak0.pk3",
+      "entry": "maps/cutscene6.bsp",
+      "bspBytes": 1368828,
+      "bspCrc32": "e34b79f4",
+      "bspSha256": "db6f59e61a2e9010838c6ed784dbf71c13301300a72697716749af0f0361f4d1",
+      "azbBytes": 14007,
+      "azbSha256": "5b413159cc4b6edf42ee41db7011486e039c4da7ae1489a3b39ad658a1209c5b",
+      "audit": {
+        "bytes": 14007,
+        "confidence": {
+          "anomaly": 0.136,
+          "grade": "good",
+          "lookup": 0.282,
+          "material": 0.994,
+          "overall": 0.819,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 85,
+          "outdoor": 5,
+          "underwater": 0
+        },
+        "lookup": {
+          "avgBlend": 0.465,
+          "checksum": 4951508691005040329,
+          "coverage": 0.327,
+          "hits": 10705,
+          "portalBlends": 6778,
+          "samples": 32768,
+          "specificHits": 3020
+        },
+        "materials": {
+          "metal": 1,
+          "neutral": 1,
+          "sky": 4,
+          "soft": 79
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 52
+        },
+        "portalCurves": {
+          "ease-in": 4,
+          "ease-out": 136,
+          "smooth": 10
+        },
+        "portalTuning": {
+          "distanceAvg": 130.49,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.524,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.207
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.936,
+          "opennessMax": 1.0,
+          "opennessMin": 0.143,
+          "self": 0,
+          "total": 150
+        },
+        "presets": {
+          "hall": 1,
+          "hallway": 7,
+          "outdoors": 5,
+          "room": 3,
+          "small-room": 69
+        },
+        "summedVolume": 695469824.0,
+        "version": 3,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "zones": 85
+      }
+    },
+    {
+      "map": "cutscene9",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/cutscene9.azb",
+      "pak": "pak0.pk3",
+      "entry": "maps/cutscene9.bsp",
+      "bspBytes": 1368824,
+      "bspCrc32": "d73c66ac",
+      "bspSha256": "e068c8dccc4ac28c93d4ce4cef3cde28a98f949bf6b35251b55c9d5228e07c4c",
+      "azbBytes": 14007,
+      "azbSha256": "6b4269ada8d7f267bdbcc223521e6309fc4933aed772302da900a35361c36101",
+      "audit": {
+        "bytes": 14007,
+        "confidence": {
+          "anomaly": 0.135,
+          "grade": "good",
+          "lookup": 0.285,
+          "material": 0.994,
+          "overall": 0.82,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 85,
+          "outdoor": 5,
+          "underwater": 0
+        },
+        "lookup": {
+          "avgBlend": 0.484,
+          "checksum": 17396682500921845553,
+          "coverage": 0.327,
+          "hits": 10705,
+          "portalBlends": 6925,
+          "samples": 32768,
+          "specificHits": 3056
+        },
+        "materials": {
+          "metal": 1,
+          "neutral": 1,
+          "sky": 4,
+          "soft": 79
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 52
+        },
+        "portalCurves": {
+          "ease-in": 4,
+          "ease-out": 136,
+          "smooth": 10
+        },
+        "portalTuning": {
+          "distanceAvg": 131.577,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.524,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.207
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.936,
+          "opennessMax": 1.0,
+          "opennessMin": 0.143,
+          "self": 0,
+          "total": 150
+        },
+        "presets": {
+          "hall": 1,
+          "hallway": 7,
+          "outdoors": 5,
+          "room": 3,
+          "small-room": 69
+        },
+        "summedVolume": 697297664.0,
+        "version": 3,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "zones": 85
+      }
+    },
+    {
+      "map": "dam",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/dam.azb",
+      "pak": "sp_pak4.pk3",
+      "entry": "maps/dam.bsp",
+      "bspBytes": 11757832,
+      "bspCrc32": "09774f69",
+      "bspSha256": "e949eec71543d5986c89e5d8f19075d98c1897eda2e6014f343f60d42bfc4ff9",
+      "azbBytes": 55394,
+      "azbSha256": "e9723f42b5e901f42ff7c68d4204b6e14dd2371c58fd10b40e486118bcadcd07",
+      "audit": {
+        "bytes": 55394,
+        "confidence": {
+          "anomaly": 0.065,
+          "grade": "excellent",
+          "lookup": 0.721,
+          "material": 0.946,
+          "overall": 0.914,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 249,
+          "outdoor": 20,
+          "underwater": 8
+        },
+        "lookup": {
+          "avgBlend": 0.425,
+          "checksum": 15738289189285928121,
+          "coverage": 0.481,
+          "hits": 15777,
+          "portalBlends": 6397,
+          "samples": 32768,
+          "specificHits": 11370
+        },
+        "materials": {
+          "liquid": 8,
+          "metal": 88,
+          "neutral": 27,
+          "sky": 4,
+          "soft": 23,
+          "stone": 99
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 298
+        },
+        "portalCurves": {
+          "ease-in": 46,
+          "ease-out": 580,
+          "smooth": 130
+        },
+        "portalTuning": {
+          "distanceAvg": 243.863,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.49,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.166
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.85,
+          "opennessMax": 1.0,
+          "opennessMin": 0.041,
+          "self": 0,
+          "total": 756
+        },
+        "presets": {
+          "hall": 20,
+          "hallway": 34,
+          "outdoors": 19,
+          "room": 6,
+          "small-room": 128,
+          "stone-room": 34,
+          "underwater": 8
+        },
+        "summedVolume": 320125534208.0,
+        "version": 3,
+        "warnings": [],
+        "zones": 249
+      }
+    },
+    {
+      "map": "dark",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/dark.azb",
+      "pak": "pak0.pk3",
+      "entry": "maps/dark.bsp",
+      "bspBytes": 9905492,
+      "bspCrc32": "4b2700fb",
+      "bspSha256": "bcdda79729c191eb0923e7cd3c43435e86e55af0dff6c0dee52f23d7ab00ee72",
+      "azbBytes": 37500,
+      "azbSha256": "b8c1ea5a1e490bd21aa03adcfe90ef0ba6c877a367b588faabe82813be36b98f",
+      "audit": {
+        "bytes": 37500,
+        "confidence": {
+          "anomaly": 0.16,
+          "grade": "good",
+          "lookup": 0.323,
+          "material": 0.853,
+          "overall": 0.787,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 197,
+          "outdoor": 35,
+          "underwater": 0
+        },
+        "lookup": {
+          "avgBlend": 0.448,
+          "checksum": 13536487850651034246,
+          "coverage": 0.552,
+          "hits": 18093,
+          "portalBlends": 4145,
+          "samples": 32768,
+          "specificHits": 5846
+        },
+        "materials": {
+          "metal": 18,
+          "neutral": 58,
+          "sky": 17,
+          "soft": 79,
+          "stone": 25
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 303
+        },
+        "portalCurves": {
+          "ease-in": 32,
+          "ease-out": 346,
+          "smooth": 84
+        },
+        "portalTuning": {
+          "distanceAvg": 246.684,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.481,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.168
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.828,
+          "opennessMax": 1.0,
+          "opennessMin": 0.045,
+          "self": 0,
+          "total": 462
+        },
+        "presets": {
+          "hall": 10,
+          "hallway": 35,
+          "outdoors": 29,
+          "room": 18,
+          "small-room": 93,
+          "stone-room": 12
+        },
+        "summedVolume": 292468064256.0,
+        "version": 3,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "zones": 197
+      }
+    },
+    {
+      "map": "dig",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/dig.azb",
+      "pak": "pak0.pk3",
+      "entry": "maps/dig.bsp",
+      "bspBytes": 9971304,
+      "bspCrc32": "6fb3e79e",
+      "bspSha256": "d0b8cd77c217ee1abaa5d2c045d21a4e7668ca91f9d7a22c760436f7d86e1464",
+      "azbBytes": 74940,
+      "azbSha256": "120b9655f21e3fe1b6953bc30b42755b5a49caef0cabaafaf2b2951e8af2cd55",
+      "audit": {
+        "bytes": 74940,
+        "confidence": {
+          "anomaly": 0.096,
+          "grade": "good",
+          "lookup": 0.509,
+          "material": 0.981,
+          "overall": 0.872,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 394,
+          "outdoor": 5,
+          "underwater": 12
+        },
+        "lookup": {
+          "avgBlend": 0.511,
+          "checksum": 6279201794558519722,
+          "coverage": 0.393,
+          "hits": 12891,
+          "portalBlends": 3236,
+          "samples": 32768,
+          "specificHits": 6561
+        },
+        "materials": {
+          "liquid": 12,
+          "metal": 9,
+          "neutral": 15,
+          "sky": 2,
+          "soft": 28,
+          "stone": 328
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 550
+        },
+        "portalCurves": {
+          "ease-in": 74,
+          "ease-out": 710,
+          "smooth": 128
+        },
+        "portalTuning": {
+          "distanceAvg": 206.512,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.49,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.169
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.851,
+          "opennessMax": 1.0,
+          "opennessMin": 0.048,
+          "self": 0,
+          "total": 912
+        },
+        "presets": {
+          "hall": 27,
+          "hallway": 20,
+          "outdoors": 5,
+          "room": 9,
+          "small-room": 312,
+          "stone-room": 9,
+          "underwater": 12
+        },
+        "summedVolume": 58180280320.0,
+        "version": 3,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "zones": 394
+      }
+    },
+    {
+      "map": "end",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/end.azb",
+      "pak": "sp_pak4.pk3",
+      "entry": "maps/end.bsp",
+      "bspBytes": 4444252,
+      "bspCrc32": "ba03adb0",
+      "bspSha256": "f0d9088ed7f6901f38972824feafb40fd9757d1c3a8f33f0a7e3dd41515d18f4",
+      "azbBytes": 33948,
+      "azbSha256": "e02696a24c318b29dfc72895c8e782db7ce47e9bf5bddeafc2843fb2f4504e9f",
+      "audit": {
+        "bytes": 33948,
+        "confidence": {
+          "anomaly": 0.422,
+          "grade": "fair",
+          "lookup": 0.191,
+          "material": 0.687,
+          "overall": 0.704,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 139,
+          "outdoor": 9,
+          "underwater": 0
+        },
+        "lookup": {
+          "avgBlend": 0.456,
+          "checksum": 1306991221089452884,
+          "coverage": 0.66,
+          "hits": 21625,
+          "portalBlends": 8116,
+          "samples": 32768,
+          "specificHits": 4124
+        },
+        "materials": {
+          "neutral": 87,
+          "sky": 4,
+          "soft": 47,
+          "stone": 1
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 209
+        },
+        "portalCurves": {
+          "ease-in": 26,
+          "ease-out": 332,
+          "smooth": 134
+        },
+        "portalTuning": {
+          "distanceAvg": 171.846,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.472,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.167
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.805,
+          "opennessMax": 1.0,
+          "opennessMin": 0.042,
+          "self": 0,
+          "total": 492
+        },
+        "presets": {
+          "hall": 5,
+          "hallway": 17,
+          "outdoors": 9,
+          "room": 15,
+          "small-room": 93
+        },
+        "summedVolume": 43035979776.0,
+        "version": 3,
+        "warnings": [
+          "zones cover more than half of the sidecar bounds; generated volumes may have collapsed",
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "zones": 139
+      }
+    },
+    {
+      "map": "escape1",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/escape1.azb",
+      "pak": "pak0.pk3",
+      "entry": "maps/escape1.bsp",
+      "bspBytes": 12366352,
+      "bspCrc32": "5f08b87c",
+      "bspSha256": "85c901378af6415ecbf854863cc904b3c7b886f103459f00057ad0d2ea55b8c7",
+      "azbBytes": 86633,
+      "azbSha256": "019cb65fb93a7f4594a201cef947ef504290a1488faab7cdc10ed59a8129ad75",
+      "audit": {
+        "bytes": 86633,
+        "confidence": {
+          "anomaly": 0.083,
+          "grade": "good",
+          "lookup": 0.832,
+          "material": 0.773,
+          "overall": 0.89,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 397,
+          "outdoor": 31,
+          "underwater": 0
+        },
+        "lookup": {
+          "avgBlend": 0.482,
+          "checksum": 1039614256384633483,
+          "coverage": 0.58,
+          "hits": 19003,
+          "portalBlends": 16051,
+          "samples": 32768,
+          "specificHits": 15803
+        },
+        "materials": {
+          "metal": 47,
+          "neutral": 180,
+          "sky": 9,
+          "soft": 159,
+          "stone": 2
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 555
+        },
+        "portalCurves": {
+          "ease-in": 52,
+          "ease-out": 916,
+          "smooth": 200
+        },
+        "portalTuning": {
+          "distanceAvg": 188.816,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.494,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.171
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.861,
+          "opennessMax": 1.0,
+          "opennessMin": 0.053,
+          "self": 0,
+          "total": 1168
+        },
+        "presets": {
+          "hall": 20,
+          "hallway": 37,
+          "outdoors": 26,
+          "room": 24,
+          "small-room": 281,
+          "stone-room": 9
+        },
+        "summedVolume": 52160684032.0,
+        "version": 3,
+        "warnings": [],
+        "zones": 397
+      }
+    },
+    {
+      "map": "escape2",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/escape2.azb",
+      "pak": "pak0.pk3",
+      "entry": "maps/escape2.bsp",
+      "bspBytes": 8410180,
+      "bspCrc32": "345ccdad",
+      "bspSha256": "5cebfbae1608b3221b093b9249b140344e6df1a15825d1b143b3b61e8ff5e3f7",
+      "azbBytes": 74503,
+      "azbSha256": "749882c170fd8b6770e59c717a020fe422bfe826f863dd3ed69e2fd6d8e7b877",
+      "audit": {
+        "bytes": 74503,
+        "confidence": {
+          "anomaly": 0.083,
+          "grade": "good",
+          "lookup": 0.697,
+          "material": 0.883,
+          "overall": 0.889,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 326,
+          "outdoor": 76,
+          "underwater": 0
+        },
+        "lookup": {
+          "avgBlend": 0.499,
+          "checksum": 9046171087629911422,
+          "coverage": 0.361,
+          "hits": 11845,
+          "portalBlends": 7324,
+          "samples": 32768,
+          "specificHits": 8261
+        },
+        "materials": {
+          "metal": 53,
+          "neutral": 76,
+          "sky": 46,
+          "soft": 150,
+          "stone": 1
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 317
+        },
+        "portalCurves": {
+          "ease-in": 60,
+          "ease-out": 766,
+          "smooth": 210
+        },
+        "portalTuning": {
+          "distanceAvg": 191.578,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.481,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.169
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.826,
+          "opennessMax": 1.0,
+          "opennessMin": 0.048,
+          "self": 0,
+          "total": 1036
+        },
+        "presets": {
+          "hall": 16,
+          "hallway": 27,
+          "outdoors": 38,
+          "room": 23,
+          "small-room": 204,
+          "stone-room": 18
+        },
+        "summedVolume": 11181306880.0,
+        "version": 3,
+        "warnings": [],
+        "zones": 326
+      }
+    },
+    {
+      "map": "factory",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/factory.azb",
+      "pak": "pak0.pk3",
+      "entry": "maps/factory.bsp",
+      "bspBytes": 5572520,
+      "bspCrc32": "5a219a1d",
+      "bspSha256": "7b96ab0303d68d2a0c00d69ef67420f149af6128399b5ec1dd73898bc5e573ae",
+      "azbBytes": 63304,
+      "azbSha256": "a5ed3c045b115ff6cc51bcabd1aa43247246722f97e6a5b8c3d86dfad665a5a6",
+      "audit": {
+        "bytes": 63304,
+        "confidence": {
+          "anomaly": 0.026,
+          "grade": "excellent",
+          "lookup": 1.0,
+          "material": 0.882,
+          "overall": 0.965,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 255,
+          "outdoor": 32,
+          "underwater": 0
+        },
+        "lookup": {
+          "avgBlend": 0.51,
+          "checksum": 10546177820774222872,
+          "coverage": 0.318,
+          "hits": 10428,
+          "portalBlends": 7719,
+          "samples": 32768,
+          "specificHits": 10428
+        },
+        "materials": {
+          "metal": 68,
+          "neutral": 60,
+          "sky": 22,
+          "soft": 61,
+          "stone": 44
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 304
+        },
+        "portalCurves": {
+          "ease-in": 44,
+          "ease-out": 700,
+          "smooth": 178
+        },
+        "portalTuning": {
+          "distanceAvg": 173.568,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.489,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.17
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.847,
+          "opennessMax": 1.0,
+          "opennessMin": 0.049,
+          "self": 0,
+          "total": 922
+        },
+        "presets": {
+          "hall": 11,
+          "hallway": 36,
+          "outdoors": 24,
+          "room": 9,
+          "small-room": 159,
+          "stone-room": 16
+        },
+        "summedVolume": 3679982336.0,
+        "version": 3,
+        "warnings": [],
+        "zones": 255
+      }
+    },
+    {
+      "map": "forest",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/forest.azb",
+      "pak": "pak0.pk3",
+      "entry": "maps/forest.bsp",
+      "bspBytes": 6366504,
+      "bspCrc32": "89b8d4c5",
+      "bspSha256": "1737b93fbf0c2884eb4af4299a97ba1f2686c26368d6e8d9fa6c733da6235f49",
+      "azbBytes": 37640,
+      "azbSha256": "596601280d5f6e2fc30fdcbd5d395eaf819dd2e816e340d520b06a91e06e4dca",
+      "audit": {
+        "bytes": 37640,
+        "confidence": {
+          "anomaly": 0.133,
+          "grade": "good",
+          "lookup": 0.345,
+          "material": 0.954,
+          "overall": 0.822,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 173,
+          "outdoor": 21,
+          "underwater": 0
+        },
+        "lookup": {
+          "avgBlend": 0.457,
+          "checksum": 2842803134614076374,
+          "coverage": 0.653,
+          "hits": 21391,
+          "portalBlends": 4834,
+          "samples": 32768,
+          "specificHits": 7390
+        },
+        "materials": {
+          "metal": 9,
+          "neutral": 16,
+          "sky": 4,
+          "soft": 115,
+          "stone": 29
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 253
+        },
+        "portalCurves": {
+          "ease-in": 34,
+          "ease-out": 398,
+          "smooth": 80
+        },
+        "portalTuning": {
+          "distanceAvg": 252.589,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.488,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.171
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.845,
+          "opennessMax": 1.0,
+          "opennessMin": 0.053,
+          "self": 0,
+          "total": 512
+        },
+        "presets": {
+          "hall": 22,
+          "hallway": 26,
+          "outdoors": 21,
+          "room": 17,
+          "small-room": 84,
+          "stone-room": 3
+        },
+        "summedVolume": 367880306688.0,
+        "version": 3,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "zones": 173
+      }
+    },
+    {
+      "map": "norway",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/norway.azb",
+      "pak": "pak0.pk3",
+      "entry": "maps/norway.bsp",
+      "bspBytes": 10660404,
+      "bspCrc32": "9bb1114c",
+      "bspSha256": "413f9c9c91bff2350dea20fe7bf8ac23a3f55a755dcf2c120c5b63fd6a966dd6",
+      "azbBytes": 78560,
+      "azbSha256": "0397ff11d4c0d3b6d304d6dc26c3202a81cc2a9bee56bfca93c293d995edbba4",
+      "audit": {
+        "bytes": 78560,
+        "confidence": {
+          "anomaly": 0.134,
+          "grade": "good",
+          "lookup": 0.3,
+          "material": 0.989,
+          "overall": 0.822,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 373,
+          "outdoor": 20,
+          "underwater": 28
+        },
+        "lookup": {
+          "avgBlend": 0.428,
+          "checksum": 5667723200288117378,
+          "coverage": 0.862,
+          "hits": 28243,
+          "portalBlends": 10878,
+          "samples": 32768,
+          "specificHits": 8477
+        },
+        "materials": {
+          "liquid": 28,
+          "metal": 40,
+          "neutral": 8,
+          "sky": 4,
+          "soft": 161,
+          "stone": 132
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 536
+        },
+        "portalCurves": {
+          "ease-in": 58,
+          "ease-out": 756,
+          "smooth": 222
+        },
+        "portalTuning": {
+          "distanceAvg": 198.819,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.482,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.171
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.831,
+          "opennessMax": 1.0,
+          "opennessMin": 0.051,
+          "self": 0,
+          "total": 1036
+        },
+        "presets": {
+          "hall": 22,
+          "hallway": 61,
+          "outdoors": 20,
+          "room": 11,
+          "small-room": 205,
+          "stone-room": 26,
+          "underwater": 28
+        },
+        "summedVolume": 408023728128.0,
+        "version": 3,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "zones": 373
+      }
+    },
+    {
+      "map": "rocket",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/rocket.azb",
+      "pak": "pak0.pk3",
+      "entry": "maps/rocket.bsp",
+      "bspBytes": 9713856,
+      "bspCrc32": "e6ddfd39",
+      "bspSha256": "00cf710ecb993ab3a2e12d8d4e6d4be092fe640a401b1802a416d93501074c06",
+      "azbBytes": 101159,
+      "azbSha256": "001b0f01221e63357a6e7f9e761ecd131a4eb95f5aa6f41c4f973878bfce910e",
+      "audit": {
+        "bytes": 101159,
+        "confidence": {
+          "anomaly": 0.002,
+          "grade": "excellent",
+          "lookup": 1.0,
+          "material": 0.992,
+          "overall": 0.998,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 430,
+          "outdoor": 4,
+          "underwater": 0
+        },
+        "lookup": {
+          "avgBlend": 0.483,
+          "checksum": 16928210291322235152,
+          "coverage": 0.283,
+          "hits": 9270,
+          "portalBlends": 4734,
+          "samples": 32768,
+          "specificHits": 9270
+        },
+        "materials": {
+          "metal": 65,
+          "neutral": 7,
+          "soft": 184,
+          "stone": 174
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 504
+        },
+        "portalCurves": {
+          "ease-in": 100,
+          "ease-out": 1062,
+          "smooth": 264
+        },
+        "portalTuning": {
+          "distanceAvg": 155.02,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.481,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.167
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.828,
+          "opennessMax": 1.0,
+          "opennessMin": 0.042,
+          "self": 0,
+          "total": 1426
+        },
+        "presets": {
+          "hall": 24,
+          "hallway": 36,
+          "outdoors": 1,
+          "room": 12,
+          "small-room": 326,
+          "stone-room": 31
+        },
+        "summedVolume": 18289821696.0,
+        "version": 3,
+        "warnings": [],
+        "zones": 430
+      }
+    },
+    {
+      "map": "sfm",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/sfm.azb",
+      "pak": "pak0.pk3",
+      "entry": "maps/sfm.bsp",
+      "bspBytes": 7702340,
+      "bspCrc32": "f2483dbd",
+      "bspSha256": "8cbc34eb0487d5aed109c0238c579cfd5db4a7e5e5b95ce142582e6325d47bbb",
+      "azbBytes": 113324,
+      "azbSha256": "8c5e336ce30b0f30759b8c83702ca909be72a6fd012b04d0006ca8c664f48783",
+      "audit": {
+        "bytes": 113324,
+        "confidence": {
+          "anomaly": 0.038,
+          "grade": "excellent",
+          "lookup": 1.0,
+          "material": 0.831,
+          "overall": 0.949,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 512,
+          "outdoor": 143,
+          "underwater": 0
+        },
+        "lookup": {
+          "avgBlend": 0.514,
+          "checksum": 13335014648304656242,
+          "coverage": 0.358,
+          "hits": 11717,
+          "portalBlends": 10934,
+          "samples": 32768,
+          "specificHits": 11717
+        },
+        "materials": {
+          "metal": 34,
+          "neutral": 173,
+          "sky": 102,
+          "soft": 161,
+          "stone": 42
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 712
+        },
+        "portalCurves": {
+          "ease-in": 104,
+          "ease-out": 1082,
+          "smooth": 358
+        },
+        "portalTuning": {
+          "distanceAvg": 209.505,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.475,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.166
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.812,
+          "opennessMax": 1.0,
+          "opennessMin": 0.04,
+          "self": 0,
+          "total": 1544
+        },
+        "presets": {
+          "hall": 3,
+          "hallway": 66,
+          "outdoors": 91,
+          "room": 34,
+          "small-room": 307,
+          "stone-room": 11
+        },
+        "summedVolume": 13290727424.0,
+        "version": 3,
+        "warnings": [],
+        "zones": 512
+      }
+    },
+    {
+      "map": "swf",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/swf.azb",
+      "pak": "pak0.pk3",
+      "entry": "maps/swf.bsp",
+      "bspBytes": 12228376,
+      "bspCrc32": "c89e61dd",
+      "bspSha256": "91f3a55e6e6d985dd62c2b05c2287ca1ef698c0fb85e76978d5c40f45c373f1f",
+      "azbBytes": 124628,
+      "azbSha256": "2839d4e3615e4d968768d18efff28bb7e8d69fa53b25d6e642e2d46d57aa2952",
+      "audit": {
+        "bytes": 124628,
+        "confidence": {
+          "anomaly": 0.009,
+          "grade": "excellent",
+          "lookup": 1.0,
+          "material": 0.958,
+          "overall": 0.987,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 512,
+          "outdoor": 1,
+          "underwater": 51
+        },
+        "lookup": {
+          "avgBlend": 0.483,
+          "checksum": 12288600348001637361,
+          "coverage": 0.211,
+          "hits": 6910,
+          "portalBlends": 2156,
+          "samples": 32768,
+          "specificHits": 6910
+        },
+        "materials": {
+          "liquid": 51,
+          "metal": 258,
+          "neutral": 43,
+          "sky": 1,
+          "stone": 159
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 721
+        },
+        "portalCurves": {
+          "ease-in": 120,
+          "ease-out": 1242,
+          "smooth": 422
+        },
+        "portalTuning": {
+          "distanceAvg": 137.928,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.475,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.167
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.813,
+          "opennessMax": 1.0,
+          "opennessMin": 0.042,
+          "self": 0,
+          "total": 1784
+        },
+        "presets": {
+          "hall": 11,
+          "hallway": 38,
+          "room": 1,
+          "small-room": 361,
+          "stone-room": 50,
+          "underwater": 51
+        },
+        "summedVolume": 16328251392.0,
+        "version": 3,
+        "warnings": [],
+        "zones": 512
+      }
+    },
+    {
+      "map": "trainyard",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/trainyard.azb",
+      "pak": "pak0.pk3",
+      "entry": "maps/trainyard.bsp",
+      "bspBytes": 7573868,
+      "bspCrc32": "5c786bfc",
+      "bspSha256": "d4fa0675f771525754fe097b96c79e04322f2ee79c12352ea921ebf1fd3be0ba",
+      "azbBytes": 92207,
+      "azbSha256": "05febac1b7d6a79eb3f73931815f6f24d549cda99f0da51e327cd585015f1b2b",
+      "audit": {
+        "bytes": 92207,
+        "confidence": {
+          "anomaly": 0.014,
+          "grade": "excellent",
+          "lookup": 1.0,
+          "material": 0.938,
+          "overall": 0.982,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 373,
+          "outdoor": 28,
+          "underwater": 0
+        },
+        "lookup": {
+          "avgBlend": 0.485,
+          "checksum": 3214707037455955142,
+          "coverage": 0.285,
+          "hits": 9349,
+          "portalBlends": 7399,
+          "samples": 32768,
+          "specificHits": 9349
+        },
+        "materials": {
+          "metal": 109,
+          "neutral": 46,
+          "sky": 9,
+          "soft": 41,
+          "stone": 168
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 469
+        },
+        "portalCurves": {
+          "ease-in": 70,
+          "ease-out": 962,
+          "smooth": 306
+        },
+        "portalTuning": {
+          "distanceAvg": 189.419,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.481,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.176
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.827,
+          "opennessMax": 1.0,
+          "opennessMin": 0.065,
+          "self": 0,
+          "total": 1338
+        },
+        "presets": {
+          "hall": 17,
+          "hallway": 63,
+          "outdoors": 20,
+          "room": 6,
+          "small-room": 209,
+          "stone-room": 58
+        },
+        "summedVolume": 9862473728.0,
+        "version": 3,
+        "warnings": [],
+        "zones": 373
+      }
+    },
+    {
+      "map": "tram",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/tram.azb",
+      "pak": "pak0.pk3",
+      "entry": "maps/tram.bsp",
+      "bspBytes": 11993776,
+      "bspCrc32": "3a3401ec",
+      "bspSha256": "7e7bc89cf192591650bd53ac77634ba58161ed3b95a807ec06fc4ba6af12d21a",
+      "azbBytes": 33050,
+      "azbSha256": "30f5c0ea5e609d3bb96213320d0745321af33a04707852ee3fe21c3abed5ab1d",
+      "audit": {
+        "bytes": 33050,
+        "confidence": {
+          "anomaly": 0.136,
+          "grade": "good",
+          "lookup": 0.339,
+          "material": 0.948,
+          "overall": 0.819,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 165,
+          "outdoor": 14,
+          "underwater": 0
+        },
+        "lookup": {
+          "avgBlend": 0.475,
+          "checksum": 49977474848466100,
+          "coverage": 0.585,
+          "hits": 19170,
+          "portalBlends": 8131,
+          "samples": 32768,
+          "specificHits": 6493
+        },
+        "materials": {
+          "metal": 39,
+          "neutral": 17,
+          "sky": 8,
+          "soft": 50,
+          "stone": 51
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 190
+        },
+        "portalCurves": {
+          "ease-in": 18,
+          "ease-out": 326,
+          "smooth": 78
+        },
+        "portalTuning": {
+          "distanceAvg": 245.622,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.497,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.169
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.867,
+          "opennessMax": 1.0,
+          "opennessMin": 0.049,
+          "self": 0,
+          "total": 422
+        },
+        "presets": {
+          "hall": 11,
+          "hallway": 14,
+          "outdoors": 13,
+          "room": 12,
+          "small-room": 106,
+          "stone-room": 9
+        },
+        "summedVolume": 100228907008.0,
+        "version": 3,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "zones": 165
+      }
+    },
+    {
+      "map": "village1",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/village1.azb",
+      "pak": "pak0.pk3",
+      "entry": "maps/village1.bsp",
+      "bspBytes": 10793120,
+      "bspCrc32": "9d669fad",
+      "bspSha256": "88571678d97003fb03e4e3b68ec8f4561189ac4e259baa7e3fa146b2786cb0bf",
+      "azbBytes": 109500,
+      "azbSha256": "eebaff749ea729295678e7b32fd9dbffd367d2f1e0442668fa570e2e3b8e932d",
+      "audit": {
+        "bytes": 109500,
+        "confidence": {
+          "anomaly": 0.085,
+          "grade": "good",
+          "lookup": 0.614,
+          "material": 0.943,
+          "overall": 0.886,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 444,
+          "outdoor": 82,
+          "underwater": 9
+        },
+        "lookup": {
+          "avgBlend": 0.481,
+          "checksum": 10546430598186440632,
+          "coverage": 0.466,
+          "hits": 15265,
+          "portalBlends": 5588,
+          "samples": 32768,
+          "specificHits": 9377
+        },
+        "materials": {
+          "liquid": 9,
+          "metal": 10,
+          "neutral": 51,
+          "sky": 61,
+          "soft": 313
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 519
+        },
+        "portalCurves": {
+          "ease-in": 104,
+          "ease-out": 1146,
+          "smooth": 340
+        },
+        "portalTuning": {
+          "distanceAvg": 199.566,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.481,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.175
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.828,
+          "opennessMax": 1.0,
+          "opennessMin": 0.062,
+          "self": 0,
+          "total": 1590
+        },
+        "presets": {
+          "hall": 10,
+          "hallway": 68,
+          "outdoors": 59,
+          "room": 45,
+          "small-room": 252,
+          "stone-room": 1,
+          "underwater": 9
+        },
+        "summedVolume": 28663760896.0,
+        "version": 3,
+        "warnings": [],
+        "zones": 444
+      }
+    },
+    {
+      "map": "village2",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/village2.azb",
+      "pak": "pak0.pk3",
+      "entry": "maps/village2.bsp",
+      "bspBytes": 12151156,
+      "bspCrc32": "5e503c28",
+      "bspSha256": "d6fce3b479e305f4b564605929dc8102a4df81ebb0bb5882caa8c3b6bfeec489",
+      "azbBytes": 112086,
+      "azbSha256": "1b7520c315d808c475f5c47c838eeac0302eb52bac9ccb64066da550e49a9d06",
+      "audit": {
+        "bytes": 112086,
+        "confidence": {
+          "anomaly": 0.025,
+          "grade": "excellent",
+          "lookup": 1.0,
+          "material": 0.889,
+          "overall": 0.967,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 512,
+          "outdoor": 80,
+          "underwater": 7
+        },
+        "lookup": {
+          "avgBlend": 0.482,
+          "checksum": 18400994926841468937,
+          "coverage": 0.432,
+          "hits": 14156,
+          "portalBlends": 6857,
+          "samples": 32768,
+          "specificHits": 14156
+        },
+        "materials": {
+          "liquid": 7,
+          "metal": 27,
+          "neutral": 114,
+          "sky": 54,
+          "soft": 295,
+          "stone": 15
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 713
+        },
+        "portalCurves": {
+          "ease-in": 82,
+          "ease-out": 1094,
+          "smooth": 338
+        },
+        "portalTuning": {
+          "distanceAvg": 192.303,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.484,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.166
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.834,
+          "opennessMax": 1.0,
+          "opennessMin": 0.04,
+          "self": 0,
+          "total": 1514
+        },
+        "presets": {
+          "hall": 13,
+          "hallway": 28,
+          "outdoors": 67,
+          "room": 46,
+          "small-room": 343,
+          "stone-room": 8,
+          "underwater": 7
+        },
+        "summedVolume": 32113854464.0,
+        "version": 3,
+        "warnings": [],
+        "zones": 512
+      }
+    },
+    {
+      "map": "xlabs",
+      "profile": "rtcw-sp",
+      "output": "rtcw-sp/main/maps/xlabs.azb",
+      "pak": "pak0.pk3",
+      "entry": "maps/xlabs.bsp",
+      "bspBytes": 8240248,
+      "bspCrc32": "f3bf8464",
+      "bspSha256": "dff3e9626e22e2589fae0546695376e6909aeb6556b829d24a078c3d680acdd3",
+      "azbBytes": 104195,
+      "azbSha256": "394e2444b0a0ba795d457b3b9e0fa43422546b4eda497c13e4d7146be538f351",
+      "audit": {
+        "bytes": 104195,
+        "confidence": {
+          "anomaly": 0.026,
+          "grade": "excellent",
+          "lookup": 1.0,
+          "material": 0.886,
+          "overall": 0.966,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 450,
+          "outdoor": 1,
+          "underwater": 39
+        },
+        "lookup": {
+          "avgBlend": 0.5,
+          "checksum": 4969878352089534514,
+          "coverage": 0.272,
+          "hits": 8918,
+          "portalBlends": 4912,
+          "samples": 32768,
+          "specificHits": 8918
+        },
+        "materials": {
+          "liquid": 39,
+          "metal": 197,
+          "neutral": 103,
+          "sky": 1,
+          "soft": 1,
+          "stone": 109
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 413
+        },
+        "portalCurves": {
+          "ease-in": 80,
+          "ease-out": 1154,
+          "smooth": 216
+        },
+        "portalTuning": {
+          "distanceAvg": 141.243,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.498,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.166
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.871,
+          "opennessMax": 1.0,
+          "opennessMin": 0.041,
+          "self": 0,
+          "total": 1450
+        },
+        "presets": {
+          "hall": 9,
+          "hallway": 37,
+          "small-room": 329,
+          "stone-room": 36,
+          "underwater": 39
+        },
+        "summedVolume": 4240656896.0,
+        "version": 3,
+        "warnings": [],
+        "zones": 450
+      }
+    },
+    {
+      "map": "mp_assault",
+      "profile": "rtcw-mp",
+      "output": "rtcw-mp/main/maps/mp_assault.azb",
+      "pak": "mp_pak0.pk3",
+      "entry": "maps/mp_assault.bsp",
+      "bspBytes": 11102320,
+      "bspCrc32": "43a05b55",
+      "bspSha256": "10cfd3678af0e3f8318d4e8a4da2b3e90b3881221ba3a43aeae9949edb9459b2",
+      "azbBytes": 117088,
+      "azbSha256": "87fe20b874d93b7fa1fb96fb7a0d757078ee620a86553bcadfebdf7df5437501",
+      "audit": {
+        "bytes": 117088,
+        "confidence": {
+          "anomaly": 0.129,
+          "grade": "good",
+          "lookup": 0.394,
+          "material": 0.93,
+          "overall": 0.828,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 459,
+          "outdoor": 0,
+          "underwater": 0
+        },
+        "lookup": {
+          "avgBlend": 0.442,
+          "checksum": 9891732817859778109,
+          "coverage": 0.797,
+          "hits": 26114,
+          "portalBlends": 9090,
+          "samples": 32768,
+          "specificHits": 10287
+        },
+        "materials": {
+          "metal": 82,
+          "neutral": 64,
+          "sky": 5,
+          "soft": 150,
+          "stone": 158
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 730
+        },
+        "portalCurves": {
+          "ease-in": 82,
+          "ease-out": 1304,
+          "smooth": 354
+        },
+        "portalTuning": {
+          "distanceAvg": 258.698,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.487,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.167
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.841,
+          "opennessMax": 1.0,
+          "opennessMin": 0.042,
+          "self": 0,
+          "total": 1740
+        },
+        "presets": {
+          "hall": 105,
+          "hallway": 77,
+          "room": 31,
+          "small-room": 211,
+          "stone-room": 35
+        },
+        "summedVolume": 804335845376.0,
+        "version": 3,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "zones": 459
+      }
+    },
+    {
+      "map": "mp_base",
+      "profile": "rtcw-mp",
+      "output": "rtcw-mp/main/maps/mp_base.azb",
+      "pak": "mp_pak0.pk3",
+      "entry": "maps/mp_base.bsp",
+      "bspBytes": 8610932,
+      "bspCrc32": "8d2afa22",
+      "bspSha256": "9e91d5fea6dedd2b685865c198ae1be5d3e5ae9a28290dde6a04787fb4b7bf16",
+      "azbBytes": 99883,
+      "azbSha256": "1327237fc3e1ed30ff16bbff041bbfd42c44987113b0939c9fa41a8ea6c48faa",
+      "audit": {
+        "bytes": 99883,
+        "confidence": {
+          "anomaly": 0.004,
+          "grade": "excellent",
+          "lookup": 1.0,
+          "material": 0.983,
+          "overall": 0.995,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 402,
+          "outdoor": 34,
+          "underwater": 11
+        },
+        "lookup": {
+          "avgBlend": 0.489,
+          "checksum": 18404931575716115378,
+          "coverage": 0.401,
+          "hits": 13131,
+          "portalBlends": 8346,
+          "samples": 32768,
+          "specificHits": 13131
+        },
+        "materials": {
+          "liquid": 11,
+          "metal": 118,
+          "neutral": 14,
+          "sky": 6,
+          "soft": 54,
+          "stone": 199
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 468
+        },
+        "portalCurves": {
+          "ease-in": 96,
+          "ease-out": 1068,
+          "smooth": 288
+        },
+        "portalTuning": {
+          "distanceAvg": 207.955,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.484,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.166
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.835,
+          "opennessMax": 1.0,
+          "opennessMin": 0.04,
+          "self": 0,
+          "total": 1452
+        },
+        "presets": {
+          "hall": 13,
+          "hallway": 45,
+          "outdoors": 33,
+          "room": 9,
+          "small-room": 246,
+          "stone-room": 45,
+          "underwater": 11
+        },
+        "summedVolume": 28211277824.0,
+        "version": 3,
+        "warnings": [],
+        "zones": 402
+      }
+    },
+    {
+      "map": "mp_beach",
+      "profile": "rtcw-mp",
+      "output": "rtcw-mp/main/maps/mp_beach.azb",
+      "pak": "mp_pak0.pk3",
+      "entry": "maps/mp_beach.bsp",
+      "bspBytes": 7343512,
+      "bspCrc32": "77533d56",
+      "bspSha256": "253a3701665ba0589cb20373fa998278fa8f02ccae451ab754f9bd9a74c86c11",
+      "azbBytes": 55205,
+      "azbSha256": "8318e932ab83dad3d467b5a6214d3e6284fc347447b2acc57d89e633737ba800",
+      "audit": {
+        "bytes": 55205,
+        "confidence": {
+          "anomaly": 0.362,
+          "grade": "good",
+          "lookup": 0.152,
+          "material": 0.988,
+          "overall": 0.784,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 246,
+          "outdoor": 22,
+          "underwater": 2
+        },
+        "lookup": {
+          "avgBlend": 0.437,
+          "checksum": 3292181474470207024,
+          "coverage": 0.869,
+          "hits": 28469,
+          "portalBlends": 6793,
+          "samples": 32768,
+          "specificHits": 4332
+        },
+        "materials": {
+          "liquid": 2,
+          "metal": 43,
+          "neutral": 6,
+          "sky": 3,
+          "soft": 86,
+          "stone": 106
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 295
+        },
+        "portalCurves": {
+          "ease-in": 64,
+          "ease-out": 562,
+          "smooth": 136
+        },
+        "portalTuning": {
+          "distanceAvg": 227.842,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.48,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.176
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.826,
+          "opennessMax": 1.0,
+          "opennessMin": 0.064,
+          "self": 0,
+          "total": 762
+        },
+        "presets": {
+          "hall": 19,
+          "hallway": 51,
+          "outdoors": 22,
+          "room": 13,
+          "small-room": 117,
+          "stone-room": 22,
+          "underwater": 2
+        },
+        "summedVolume": 189015719936.0,
+        "version": 3,
+        "warnings": [
+          "zones cover more than half of the sidecar bounds; generated volumes may have collapsed",
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "zones": 246
+      }
+    },
+    {
+      "map": "mp_castle",
+      "profile": "rtcw-mp",
+      "output": "rtcw-mp/main/maps/mp_castle.azb",
+      "pak": "mp_pak0.pk3",
+      "entry": "maps/mp_castle.bsp",
+      "bspBytes": 10246100,
+      "bspCrc32": "b70d4c70",
+      "bspSha256": "085ecd1e8364aeba6e6e029cca7ef0e71ef4ea09a1561a4ac3583f095f959a01",
+      "azbBytes": 94016,
+      "azbSha256": "fa0bfd8a6c194101f0671acec33feedc4e7392986a941ac6c988741593aa1a48",
+      "audit": {
+        "bytes": 94016,
+        "confidence": {
+          "anomaly": 0.067,
+          "grade": "excellent",
+          "lookup": 1.0,
+          "material": 0.701,
+          "overall": 0.91,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 417,
+          "outdoor": 66,
+          "underwater": 1
+        },
+        "lookup": {
+          "avgBlend": 0.485,
+          "checksum": 14104571866436891862,
+          "coverage": 0.381,
+          "hits": 12490,
+          "portalBlends": 11270,
+          "samples": 32768,
+          "specificHits": 12490
+        },
+        "materials": {
+          "liquid": 1,
+          "metal": 1,
+          "neutral": 249,
+          "sky": 71,
+          "soft": 95
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 521
+        },
+        "portalCurves": {
+          "ease-in": 60,
+          "ease-out": 1004,
+          "smooth": 228
+        },
+        "portalTuning": {
+          "distanceAvg": 138.068,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.494,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.172
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.86,
+          "opennessMax": 1.0,
+          "opennessMin": 0.056,
+          "self": 0,
+          "total": 1292
+        },
+        "presets": {
+          "hall": 10,
+          "hallway": 17,
+          "outdoors": 28,
+          "room": 23,
+          "small-room": 338,
+          "underwater": 1
+        },
+        "summedVolume": 4986655232.0,
+        "version": 3,
+        "warnings": [],
+        "zones": 417
+      }
+    },
+    {
+      "map": "mp_chateau",
+      "profile": "rtcw-mp",
+      "output": "rtcw-mp/main/maps/mp_chateau.azb",
+      "pak": "mp_pakmaps3.pk3",
+      "entry": "maps/mp_chateau.bsp",
+      "bspBytes": 14693800,
+      "bspCrc32": "950b917e",
+      "bspSha256": "70a9ea43ee090aba8b6c2c5889d319c4dc800fe1ab3cfbc17c507214090097a2",
+      "azbBytes": 100333,
+      "azbSha256": "140f8c988a3563eec3663c3c2367890e401f54f254bf12279c87a39d0ce7f7ce",
+      "audit": {
+        "bytes": 100333,
+        "confidence": {
+          "anomaly": 0.122,
+          "grade": "good",
+          "lookup": 0.449,
+          "material": 0.918,
+          "overall": 0.838,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 512,
+          "outdoor": 27,
+          "underwater": 3
+        },
+        "lookup": {
+          "avgBlend": 0.451,
+          "checksum": 11175163142805914856,
+          "coverage": 0.642,
+          "hits": 21034,
+          "portalBlends": 9747,
+          "samples": 32768,
+          "specificHits": 9453
+        },
+        "materials": {
+          "liquid": 3,
+          "metal": 16,
+          "neutral": 84,
+          "sky": 17,
+          "soft": 311,
+          "stone": 81
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 751
+        },
+        "portalCurves": {
+          "ease-in": 80,
+          "ease-out": 920,
+          "smooth": 254
+        },
+        "portalTuning": {
+          "distanceAvg": 192.45,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.483,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.166
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.834,
+          "opennessMax": 1.0,
+          "opennessMin": 0.04,
+          "self": 0,
+          "total": 1254
+        },
+        "presets": {
+          "hall": 17,
+          "hallway": 64,
+          "outdoors": 21,
+          "room": 37,
+          "small-room": 359,
+          "stone-room": 11,
+          "underwater": 3
+        },
+        "summedVolume": 65471197184.0,
+        "version": 3,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "zones": 512
+      }
+    },
+    {
+      "map": "mp_dam",
+      "profile": "rtcw-mp",
+      "output": "rtcw-mp/main/maps/mp_dam.azb",
+      "pak": "mp_pakmaps5.pk3",
+      "entry": "maps/mp_dam.bsp",
+      "bspBytes": 12646612,
+      "bspCrc32": "1cd3045a",
+      "bspSha256": "9001294c70e0a0d81324a8cf92016b0e221d99c986c60fe482e2cf0816d3332e",
+      "azbBytes": 69849,
+      "azbSha256": "81a63a8400a9e38517f3091548e7f1adc71f4d631304d17bcc2d4316827d2b01",
+      "audit": {
+        "bytes": 69849,
+        "confidence": {
+          "anomaly": 0.058,
+          "grade": "excellent",
+          "lookup": 0.699,
+          "material": 0.993,
+          "overall": 0.923,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 290,
+          "outdoor": 17,
+          "underwater": 7
+        },
+        "lookup": {
+          "avgBlend": 0.431,
+          "checksum": 7942821436639242756,
+          "coverage": 0.454,
+          "hits": 14874,
+          "portalBlends": 5606,
+          "samples": 32768,
+          "specificHits": 10397
+        },
+        "materials": {
+          "liquid": 7,
+          "metal": 121,
+          "neutral": 4,
+          "sky": 1,
+          "soft": 26,
+          "stone": 131
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 291
+        },
+        "portalCurves": {
+          "ease-in": 62,
+          "ease-out": 754,
+          "smooth": 186
+        },
+        "portalTuning": {
+          "distanceAvg": 240.827,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.486,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.17
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.839,
+          "opennessMax": 1.0,
+          "opennessMin": 0.05,
+          "self": 0,
+          "total": 1002
+        },
+        "presets": {
+          "hall": 26,
+          "hallway": 53,
+          "outdoors": 17,
+          "room": 4,
+          "small-room": 137,
+          "stone-room": 46,
+          "underwater": 7
+        },
+        "summedVolume": 303441936384.0,
+        "version": 3,
+        "warnings": [],
+        "zones": 290
+      }
+    },
+    {
+      "map": "mp_depot",
+      "profile": "rtcw-mp",
+      "output": "rtcw-mp/main/maps/mp_depot.azb",
+      "pak": "mp_pak0.pk3",
+      "entry": "maps/mp_depot.bsp",
+      "bspBytes": 15883388,
+      "bspCrc32": "d829afe6",
+      "bspSha256": "7d6945244d8d73641f4c5a3b182e4aecac6fef108a63f89805dfda5ae332c8eb",
+      "azbBytes": 103828,
+      "azbSha256": "a9aa2b5eb4bd7cec914d89ad790b2c7f0daf4240f37ac30e771a0413ea95d403",
+      "audit": {
+        "bytes": 103828,
+        "confidence": {
+          "anomaly": 0.098,
+          "grade": "good",
+          "lookup": 0.525,
+          "material": 0.958,
+          "overall": 0.869,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 512,
+          "outdoor": 24,
+          "underwater": 0
+        },
+        "lookup": {
+          "avgBlend": 0.463,
+          "checksum": 15427247099096788481,
+          "coverage": 0.495,
+          "hits": 16232,
+          "portalBlends": 8981,
+          "samples": 32768,
+          "specificHits": 8525
+        },
+        "materials": {
+          "metal": 204,
+          "neutral": 43,
+          "sky": 7,
+          "soft": 110,
+          "stone": 148
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 866
+        },
+        "portalCurves": {
+          "ease-in": 122,
+          "ease-out": 900,
+          "smooth": 310
+        },
+        "portalTuning": {
+          "distanceAvg": 166.062,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.464,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.167
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.785,
+          "opennessMax": 1.0,
+          "opennessMin": 0.043,
+          "self": 0,
+          "total": 1332
+        },
+        "presets": {
+          "hall": 39,
+          "hallway": 87,
+          "outdoors": 17,
+          "room": 5,
+          "small-room": 336,
+          "stone-room": 28
+        },
+        "summedVolume": 53270675456.0,
+        "version": 3,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "zones": 512
+      }
+    },
+    {
+      "map": "mp_destruction",
+      "profile": "rtcw-mp",
+      "output": "rtcw-mp/main/maps/mp_destruction.azb",
+      "pak": "mp_pak0.pk3",
+      "entry": "maps/mp_destruction.bsp",
+      "bspBytes": 13036256,
+      "bspCrc32": "2b6587d9",
+      "bspSha256": "4f50982198f4f949e2a0c9375dfac49cdc473ea02827918a3975b45f89b4e417",
+      "azbBytes": 90724,
+      "azbSha256": "02c457cdd5620b3c469a77ec4b3a3382cfa9fb706cd5e88feed40cac6cfcef88",
+      "audit": {
+        "bytes": 90724,
+        "confidence": {
+          "anomaly": 0.049,
+          "grade": "excellent",
+          "lookup": 1.0,
+          "material": 0.782,
+          "overall": 0.935,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 512,
+          "outdoor": 0,
+          "underwater": 0
+        },
+        "lookup": {
+          "avgBlend": 0.47,
+          "checksum": 17872099841221719231,
+          "coverage": 0.614,
+          "hits": 20126,
+          "portalBlends": 12179,
+          "samples": 32768,
+          "specificHits": 20126
+        },
+        "materials": {
+          "metal": 23,
+          "neutral": 223,
+          "sky": 98,
+          "soft": 162,
+          "stone": 6
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 769
+        },
+        "portalCurves": {
+          "ease-in": 92,
+          "ease-out": 674,
+          "smooth": 280
+        },
+        "portalTuning": {
+          "distanceAvg": 221.531,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.461,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.167
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.777,
+          "opennessMax": 1.0,
+          "opennessMin": 0.042,
+          "self": 0,
+          "total": 1046
+        },
+        "presets": {
+          "hall": 29,
+          "hallway": 86,
+          "room": 60,
+          "small-room": 328,
+          "stone-room": 9
+        },
+        "summedVolume": 35404967936.0,
+        "version": 3,
+        "warnings": [],
+        "zones": 512
+      }
+    },
+    {
+      "map": "mp_ice",
+      "profile": "rtcw-mp",
+      "output": "rtcw-mp/main/maps/mp_ice.azb",
+      "pak": "mp_pakmaps1.pk3",
+      "entry": "maps/mp_ice.bsp",
+      "bspBytes": 11080176,
+      "bspCrc32": "7450736a",
+      "bspSha256": "3b4e2a7db175cd34347481b1aa0ac41fd31716f048e6778bd337777161f241c3",
+      "azbBytes": 103856,
+      "azbSha256": "0fc82a834463b8ab93169ce3a98134643f621096fc8e7f5264512208a2cc48eb",
+      "audit": {
+        "bytes": 103856,
+        "confidence": {
+          "anomaly": 0.164,
+          "grade": "good",
+          "lookup": 0.156,
+          "material": 0.975,
+          "overall": 0.781,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 471,
+          "outdoor": 43,
+          "underwater": 0
+        },
+        "lookup": {
+          "avgBlend": 0.46,
+          "checksum": 10095561301100246887,
+          "coverage": 0.915,
+          "hits": 29968,
+          "portalBlends": 4531,
+          "samples": 32768,
+          "specificHits": 4682
+        },
+        "materials": {
+          "metal": 93,
+          "neutral": 24,
+          "sky": 21,
+          "soft": 201,
+          "stone": 132
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 718
+        },
+        "portalCurves": {
+          "ease-in": 118,
+          "ease-out": 1048,
+          "smooth": 250
+        },
+        "portalTuning": {
+          "distanceAvg": 185.715,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.478,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.168
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.821,
+          "opennessMax": 1.0,
+          "opennessMin": 0.045,
+          "self": 0,
+          "total": 1416
+        },
+        "presets": {
+          "hall": 39,
+          "hallway": 75,
+          "outdoors": 43,
+          "room": 33,
+          "small-room": 262,
+          "stone-room": 19
+        },
+        "summedVolume": 569647693824.0,
+        "version": 3,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "zones": 471
+      }
+    },
+    {
+      "map": "mp_keep",
+      "profile": "rtcw-mp",
+      "output": "rtcw-mp/main/maps/mp_keep.azb",
+      "pak": "mp_pakmaps2.pk3",
+      "entry": "maps/mp_keep.bsp",
+      "bspBytes": 10095936,
+      "bspCrc32": "b48a7e77",
+      "bspSha256": "cf1933d8637ef1a77d29ef86fcf2960f5ac3e5e7dc464d1e972b4092562bf42f",
+      "azbBytes": 73170,
+      "azbSha256": "4cfade56202592547180371ba71f8c83b7fea0f03529e2aff4ce136d70b84446",
+      "audit": {
+        "bytes": 73170,
+        "confidence": {
+          "anomaly": 0.152,
+          "grade": "good",
+          "lookup": 0.405,
+          "material": 0.823,
+          "overall": 0.798,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 372,
+          "outdoor": 21,
+          "underwater": 2
+        },
+        "lookup": {
+          "avgBlend": 0.475,
+          "checksum": 1469392111152000559,
+          "coverage": 0.78,
+          "hits": 25574,
+          "portalBlends": 16591,
+          "samples": 32768,
+          "specificHits": 10347
+        },
+        "materials": {
+          "liquid": 2,
+          "metal": 14,
+          "neutral": 132,
+          "sky": 14,
+          "soft": 199,
+          "stone": 11
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 649
+        },
+        "portalCurves": {
+          "ease-in": 46,
+          "ease-out": 648,
+          "smooth": 222
+        },
+        "portalTuning": {
+          "distanceAvg": 192.335,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.477,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.168
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.818,
+          "opennessMax": 1.0,
+          "opennessMin": 0.046,
+          "self": 0,
+          "total": 916
+        },
+        "presets": {
+          "hall": 11,
+          "hallway": 24,
+          "outdoors": 20,
+          "room": 23,
+          "small-room": 291,
+          "stone-room": 1,
+          "underwater": 2
+        },
+        "summedVolume": 39091306496.0,
+        "version": 3,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "zones": 372
+      }
+    },
+    {
+      "map": "mp_rocket",
+      "profile": "rtcw-mp",
+      "output": "rtcw-mp/main/maps/mp_rocket.azb",
+      "pak": "mp_pakmaps6.pk3",
+      "entry": "maps/mp_rocket.bsp",
+      "bspBytes": 11175856,
+      "bspCrc32": "bd3ebb3e",
+      "bspSha256": "38f49633ee1cded2254a2a56ac589c5832d2dfd951f1cdd77cc4321cd01aa68c",
+      "azbBytes": 71352,
+      "azbSha256": "a0a85adfe2ee45429de57a54b4079ea474451939ca718d06c97ae5c6ced52c08",
+      "audit": {
+        "bytes": 71352,
+        "confidence": {
+          "anomaly": 0.076,
+          "grade": "good",
+          "lookup": 0.603,
+          "material": 0.993,
+          "overall": 0.899,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 285,
+          "outdoor": 6,
+          "underwater": 0
+        },
+        "lookup": {
+          "avgBlend": 0.472,
+          "checksum": 4769750164652205169,
+          "coverage": 0.405,
+          "hits": 13286,
+          "portalBlends": 5001,
+          "samples": 32768,
+          "specificHits": 8012
+        },
+        "materials": {
+          "metal": 78,
+          "neutral": 4,
+          "soft": 79,
+          "stone": 124
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 317
+        },
+        "portalCurves": {
+          "ease-in": 42,
+          "ease-out": 762,
+          "smooth": 240
+        },
+        "portalTuning": {
+          "distanceAvg": 200.893,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.486,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.171
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.839,
+          "opennessMax": 1.0,
+          "opennessMin": 0.052,
+          "self": 0,
+          "total": 1044
+        },
+        "presets": {
+          "hall": 25,
+          "hallway": 35,
+          "outdoors": 2,
+          "room": 11,
+          "small-room": 172,
+          "stone-room": 40
+        },
+        "summedVolume": 36915159040.0,
+        "version": 3,
+        "warnings": [],
+        "zones": 285
+      }
+    },
+    {
+      "map": "mp_sub",
+      "profile": "rtcw-mp",
+      "output": "rtcw-mp/main/maps/mp_sub.azb",
+      "pak": "mp_pak0.pk3",
+      "entry": "maps/mp_sub.bsp",
+      "bspBytes": 14013936,
+      "bspCrc32": "f2dece62",
+      "bspSha256": "df8b5176842f37dfc088096a8dc515d298ebbf6a0fcfb40d4f7290ac11a5b824",
+      "azbBytes": 93628,
+      "azbSha256": "eebc1c481d8821e7622befa4c0128d71d96fb9004027731f1a0569d1bd98dcc7",
+      "audit": {
+        "bytes": 93628,
+        "confidence": {
+          "anomaly": 0.006,
+          "grade": "excellent",
+          "lookup": 1.0,
+          "material": 0.974,
+          "overall": 0.992,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 436,
+          "outdoor": 0,
+          "underwater": 66
+        },
+        "lookup": {
+          "avgBlend": 0.455,
+          "checksum": 6300361961488929065,
+          "coverage": 0.356,
+          "hits": 11667,
+          "portalBlends": 5363,
+          "samples": 32768,
+          "specificHits": 11667
+        },
+        "materials": {
+          "liquid": 66,
+          "metal": 215,
+          "neutral": 23,
+          "sky": 3,
+          "soft": 6,
+          "stone": 123
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 477
+        },
+        "portalCurves": {
+          "ease-in": 78,
+          "ease-out": 956,
+          "smooth": 210
+        },
+        "portalTuning": {
+          "distanceAvg": 170.986,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.487,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.166
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.842,
+          "opennessMax": 1.0,
+          "opennessMin": 0.041,
+          "self": 0,
+          "total": 1244
+        },
+        "presets": {
+          "hall": 9,
+          "hallway": 42,
+          "room": 1,
+          "small-room": 231,
+          "stone-room": 87,
+          "underwater": 66
+        },
+        "summedVolume": 27869265920.0,
+        "version": 3,
+        "warnings": [],
+        "zones": 436
+      }
+    },
+    {
+      "map": "mp_tram",
+      "profile": "rtcw-mp",
+      "output": "rtcw-mp/main/maps/mp_tram.azb",
+      "pak": "mp_pakmaps4.pk3",
+      "entry": "maps/mp_tram.bsp",
+      "bspBytes": 16852656,
+      "bspCrc32": "e88817d2",
+      "bspSha256": "8237eb6a484a2bd811d01a4881b1b1706912313cd60942834620107d400b57e0",
+      "azbBytes": 105519,
+      "azbSha256": "3965d35310f484ebc8a5118284fa711f72b2e90522f4b3ea90be2a0ba5abd262",
+      "audit": {
+        "bytes": 105519,
+        "confidence": {
+          "anomaly": 0.192,
+          "grade": "fair",
+          "lookup": 0.176,
+          "material": 0.833,
+          "overall": 0.744,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 461,
+          "outdoor": 41,
+          "underwater": 0
+        },
+        "lookup": {
+          "avgBlend": 0.44,
+          "checksum": 14585137124290397165,
+          "coverage": 0.636,
+          "hits": 20838,
+          "portalBlends": 6912,
+          "samples": 32768,
+          "specificHits": 3666
+        },
+        "materials": {
+          "metal": 100,
+          "neutral": 154,
+          "sky": 19,
+          "soft": 188
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 769
+        },
+        "portalCurves": {
+          "ease-in": 112,
+          "ease-out": 1048,
+          "smooth": 318
+        },
+        "portalTuning": {
+          "distanceAvg": 251.331,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.472,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.166
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.806,
+          "opennessMax": 1.0,
+          "opennessMin": 0.04,
+          "self": 0,
+          "total": 1478
+        },
+        "presets": {
+          "hall": 79,
+          "hallway": 65,
+          "outdoors": 41,
+          "room": 42,
+          "small-room": 218,
+          "stone-room": 16
+        },
+        "summedVolume": 471284088832.0,
+        "version": 3,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "zones": 461
+      }
+    },
+    {
+      "map": "mp_trenchtoast",
+      "profile": "rtcw-mp",
+      "output": "rtcw-mp/main/maps/mp_trenchtoast.azb",
+      "pak": "mp_pakmaps0.pk3",
+      "entry": "maps/mp_trenchtoast.bsp",
+      "bspBytes": 8475256,
+      "bspCrc32": "91e2e352",
+      "bspSha256": "8651e22525f605be7ef84c46a5ba8eb4d0171f32e202ec534e1af7106aa01377",
+      "azbBytes": 68836,
+      "azbSha256": "6993ac78b9b976b54d32e5d5d52521038a635769ead3e6f3001842c69c9b03d7",
+      "audit": {
+        "bytes": 68836,
+        "confidence": {
+          "anomaly": 0.383,
+          "grade": "good",
+          "lookup": 0.049,
+          "material": 0.979,
+          "overall": 0.756,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 283,
+          "outdoor": 0,
+          "underwater": 0
+        },
+        "lookup": {
+          "avgBlend": 0.459,
+          "checksum": 2381433643930595790,
+          "coverage": 0.907,
+          "hits": 29720,
+          "portalBlends": 7877,
+          "samples": 32768,
+          "specificHits": 1460
+        },
+        "materials": {
+          "metal": 46,
+          "neutral": 12,
+          "sky": 9,
+          "soft": 107,
+          "stone": 109
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 438
+        },
+        "portalCurves": {
+          "ease-in": 52,
+          "ease-out": 762,
+          "smooth": 180
+        },
+        "portalTuning": {
+          "distanceAvg": 174.311,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.491,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.166
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.853,
+          "opennessMax": 1.0,
+          "opennessMin": 0.041,
+          "self": 0,
+          "total": 994
+        },
+        "presets": {
+          "hall": 18,
+          "hallway": 57,
+          "room": 23,
+          "small-room": 157,
+          "stone-room": 28
+        },
+        "summedVolume": 116123009024.0,
+        "version": 3,
+        "warnings": [
+          "zones cover more than half of the sidecar bounds; generated volumes may have collapsed",
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "zones": 283
+      }
+    },
+    {
+      "map": "mp_village",
+      "profile": "rtcw-mp",
+      "output": "rtcw-mp/main/maps/mp_village.azb",
+      "pak": "mp_pak0.pk3",
+      "entry": "maps/mp_village.bsp",
+      "bspBytes": 13153252,
+      "bspCrc32": "3378320b",
+      "bspSha256": "b6b14626b0c5e2d2be01fb6ed4590695403458893c08d8fd7be9baa7ec09a5d2",
+      "azbBytes": 117870,
+      "azbSha256": "7d3f14673202b2deb967dbbb48688af251ab82dc4f219891e0639da14e39d448",
+      "audit": {
+        "bytes": 117870,
+        "confidence": {
+          "anomaly": 0.078,
+          "grade": "good",
+          "lookup": 0.666,
+          "material": 0.934,
+          "overall": 0.896,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "flags": {
+          "generated": 512,
+          "outdoor": 86,
+          "underwater": 9
+        },
+        "lookup": {
+          "avgBlend": 0.502,
+          "checksum": 16912352822372556884,
+          "coverage": 0.439,
+          "hits": 14370,
+          "portalBlends": 10511,
+          "samples": 32768,
+          "specificHits": 9564
+        },
+        "materials": {
+          "liquid": 9,
+          "metal": 5,
+          "neutral": 68,
+          "sky": 62,
+          "soft": 368
+        },
+        "overlaps": {
+          "equalPriority": 0,
+          "total": 669
+        },
+        "portalCurves": {
+          "ease-in": 102,
+          "ease-out": 1166,
+          "smooth": 378
+        },
+        "portalTuning": {
+          "distanceAvg": 195.368,
+          "distanceMax": 512.0,
+          "distanceMin": 64.0,
+          "maxBlendAvg": 0.477,
+          "maxBlendMax": 0.55,
+          "maxBlendMin": 0.169
+        },
+        "portals": {
+          "maxPerZone": 16,
+          "oneWay": 0,
+          "opennessAvg": 0.817,
+          "opennessMax": 1.0,
+          "opennessMin": 0.048,
+          "self": 0,
+          "total": 1646
+        },
+        "presets": {
+          "hall": 15,
+          "hallway": 56,
+          "outdoors": 71,
+          "room": 41,
+          "small-room": 320,
+          "underwater": 9
+        },
+        "summedVolume": 18399285248.0,
+        "version": 3,
+        "warnings": [],
+        "zones": 512
+      }
+    }
+  ],
+  "totalSidecarBytes": 3439241,
+  "totalZones": 15451,
+  "mapsWithWarnings": 24,
+  "warnings": {
+    "most lookups resolve to map-scale zones instead of specific volumes": 23,
+    "zones cover more than half of the sidecar bounds; generated volumes may have collapsed": 4,
+    "lookup coverage is low across the sampled sidecar bounds": 1
+  },
+  "reproducibility": {
+    "runs": 2,
+    "byteIdenticalSidecars": 47
+  },
+  "archive": {
+    "path": ".tmp/rtcw-audio-zones/fntech3-pkg.fnz",
+    "entries": 439,
+    "bytes": 2847570,
+    "sha256": "063eed980ccbd88aa021f8422abae3a9bf85c64d57450b491dc51b0a66cc523a"
+  },
+  "validation": {
+    "pythonPassed": 74,
+    "pythonSkipped": 1,
+    "skipReason": "Windows symlink creation requires an unavailable privilege",
+    "mesonPassed": [
+      "fnql_audio_zones",
+      "fnql_audio_zone_authoring_audit",
+      "fnql_audio_zone_material_map"
+    ],
+    "mesonPackageInputs": "reconfiguration passed",
+    "liveListening": "not performed",
+    "temporaryRetailBspsRetained": 0
+  }
+}

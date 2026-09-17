@@ -2666,6 +2666,7 @@ qboolean R_CSMShadowAtlasLayout( int cascadeCount, int requestedCascadeSize, int
 #endif // USE_PMLIGHT
 
 void R_DrawElements( int numIndexes, const glIndex_t *indexes );
+void VK_SetRTCWFogParams( vkUniform_t *data, const shaderStage_t *stage );
 void R_ComputeColors( const int bundle, color4ub_t *dest, const shaderStage_t *pStage );
 void R_ComputeTexCoords( const int b, const textureBundle_t *bundle );
 
@@ -3040,9 +3041,8 @@ static ID_INLINE qboolean R_UsesRTCWLighting( void ) {
 }
 
 static ID_INLINE int R_GetDlightMode( void ) {
-	/* RTCW's forced/projected/material lights are a coherent profile contract. */
 #ifdef USE_PMLIGHT
-	return R_UsesRTCWLighting() || !r_dlightMode ? 0 : r_dlightMode->integer;
+	return r_dlightMode ? r_dlightMode->integer : 0;
 #else
 	return 0;
 #endif

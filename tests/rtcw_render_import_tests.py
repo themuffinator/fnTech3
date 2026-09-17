@@ -166,6 +166,18 @@ static struct {
     decltype(&::SetRTCWFog) SetRTCWFog;
 } re{AddRTCWCoronaToScene, MarkRTCWFragments, LoadWorld, RegisterModel, RegisterSkin, RegisterShader, RegisterShaderNoMip,
      ClearScene, AddEntity, Render, SetColor, Quad, ModelBounds, Remap, Polys, DrawQuad, LerpTagEntity, GetSkinModel, GetShaderFromModel, AddRTCWLight, GetEntityToken, SetRTCWFog};
+// HUD layout executes separately against the actual module in hud_aspect_tests.
+// These endpoints verify that the imports route cgame-only presentation work.
+static int hudShaders, hudViews, hudPictures;
+static bool correctHud;
+static void CL_HudRegisterShaderName(qhandle_t, const char *) { ++hudShaders; }
+static void CL_HudAdjustRefdef(refdef_t *view) { ++hudViews; if (correctHud) view->x += 100; }
+static qboolean CL_HudAdjustPic(float *x, float *, float *w, float *, qhandle_t) {
+    ++hudPictures; if (correctHud) { *x += 100; *w *= 0.75f; } return qtrue;
+}
+static void CL_HudDrawStretchPic(float x,float y,float w,float h,float s1,float t1,float s2,float t2,qhandle_t shader) {
+    CL_HudAdjustPic(&x,&y,&w,&h,shader); Quad(x,y,w,h,s1,t1,s2,t2,shader);
+}
 #include "code/client/client_rtcw_render_compat.hpp"
 '''
 
@@ -320,6 +332,22 @@ template<class E, class V> static void Mode(comGameId_t id) {
             else {const auto before=backendCalls;assert(Invoke(module,entry.first,{0})==0&&backendCalls==before);}
             failBackend = true; Reject([&] { Invoke(module, entry.first, {Ptr(resource)}); }, true); failBackend = false;
         }
+        {
+            const auto modelCall = call(Call::CG_R_REGISTERMODEL, Call::UI_R_REGISTERMODEL);
+            const char empty[] = ""; Allow(empty, sizeof(empty));
+            const int before = backendCalls;
+            // RTCW uses both null and empty names for absent models. A
+            // one-byte empty string is valid and must never reach a renderer.
+            for (int repeat = 0; repeat < 3; ++repeat) {
+                assert(Invoke(module, modelCall, {0}) == 0);
+                assert(Invoke(module, modelCall, {Ptr(empty)}) == 0);
+            }
+            assert(backendCalls == before);
+            Reject([&] { Invoke(module, modelCall, {Ptr(empty + 1)}); });
+            boundsCalls = 0; failBoundsAt = 1;
+            Reject([&] { Invoke(module, modelCall, {Ptr(empty)}); }); failBoundsAt = 0;
+            ranges.pop_back();
+        }
         if (cg) {
             assert(Invoke(module, Call::CG_R_REGISTERSHADER, {Ptr(resource)}) == 103 && lastOperation == 4);
             assert(Invoke(module, Call::CG_R_LOADWORLDMAP, {Ptr(resource)}) == 0 && lastOperation == 1);
@@ -408,10 +436,17 @@ template<class E, class V> static void Mode(comGameId_t id) {
         auto viewBytes = Unaligned(view);
         const auto sceneCall = call(Call::CG_R_RENDERSCENE, Call::UI_R_RENDERSCENE);
         assert(Invoke(module, sceneCall, {Ptr(viewBytes.get() + 1)}) == 0 && lastOperation == 8);
-        assert(submittedView.rdflags == 0 && submittedView.rtcw.skyboxPortal);
+        assert(submittedView.rdflags == (cg ? 0 : RDF_NOFOVCORRECTION) && submittedView.rtcw.skyboxPortal);
         assert(submittedView.x == 17 && submittedView.width == 640 && submittedView.height == 480);
         assert(submittedView.fov_x == 97 && submittedView.time == 12345 && submittedView.rtcw.fog.density == 0.25f);
         assert(!std::memcmp(viewBytes.get() + 1, &view, sizeof(view)));
+        const int previousViews = hudViews;
+        correctHud = true;
+        assert(Invoke(module, sceneCall, {Ptr(viewBytes.get() + 1)}) == 0);
+        assert(hudViews == previousViews + (cg ? 1 : 0));
+        assert(submittedView.x == (cg ? 117 : 17));
+        assert(!std::memcmp(viewBytes.get() + 1, &view, sizeof(view)));
+        correctHud = false;
         Reject([&] { Invoke(module, sceneCall, {0}); });
         view.glfog.registered = 2; auto badView = Unaligned(view);
         Reject([&] { Invoke(module, sceneCall, {Ptr(badView.get() + 1)}); });
@@ -424,6 +459,12 @@ template<class E, class V> static void Mode(comGameId_t id) {
         assert(Invoke(module, quadCall, {Float(-10), Float(20), Float(30), Float(40), Float(0.125f), Float(0.25f), Float(0.5f), Float(0.75f), 317}) == 0);
         const std::array<float, 8> quad = {-10, 20, 30, 40, 0.125f, 0.25f, 0.5f, 0.75f};
         assert(lastOperation == 10 && submittedQuad == quad && submittedShader == 317);
+        const int previousPictures = hudPictures;
+        correctHud = true;
+        assert(Invoke(module, quadCall, {Float(-10), Float(20), Float(30), Float(40), Float(0.125f), Float(0.25f), Float(0.5f), Float(0.75f), 317}) == 0);
+        assert(hudPictures == previousPictures + (cg ? 1 : 0));
+        assert(submittedQuad[0] == (cg ? 90 : -10) && submittedQuad[2] == (cg ? 22.5f : 30));
+        correctHud = false;
         if (cg) {
             auto gradient = [&](intptr_t color, int type, float x = -10) {
                 return Invoke(module, Call::CG_R_DRAWSTRETCHPIC_GRADIENT, {Float(x), Float(20), Float(30), Float(40),
@@ -441,6 +482,11 @@ template<class E, class V> static void Mode(comGameId_t id) {
             }
             assert(gradient(0, 0) == 0);
             assert(submittedDrawQuad.colors[2].u32 == UINT32_MAX && submittedDrawQuad.colors[3].u32 == UINT32_MAX);
+            correctHud = true;
+            assert(gradient(0, 0) == 0);
+            assert(submittedDrawQuad.xy[0][0] == 90 && submittedDrawQuad.xy[1][0] == 112.5f);
+            assert(submittedDrawQuad.colors[2].u32 == UINT32_MAX && submittedDrawQuad.st[0][0] == 0.125f);
+            correctHud = false;
             boundsCalls = 0; failBoundsAt = 1;
             Reject([&] { gradient(Ptr(colorBytes.get() + 1), 0); }); failBoundsAt = 0;
             Reject([&] { gradient(0, 0, INFINITY); });
@@ -456,6 +502,12 @@ template<class E, class V> static void Mode(comGameId_t id) {
                 assert(std::fabs(draw.xy[0][0] - (50 + radius)) < 0.0001f && draw.xy[0][1] == 30);
                 assert(std::fabs(draw.xy[1][0] - 50) < 0.0001f && std::fabs(draw.xy[1][1] - (30 + radius)) < 0.0001f);
                 assert(draw.st[0][0] == 0.125f && draw.st[1][0] == 0.5f && draw.st[2][1] == 0.75f);
+                correctHud = true;
+                assert(Invoke(module, rotated, {Float(10), Float(20), Float(80), Float(20),
+                    Float(0.125f), Float(0.25f), Float(0.5f), Float(0.75f), 317, Float(0)}) == 0);
+                assert(std::fabs(submittedDrawQuad.xy[0][0] - (140 + std::sqrt(1000.0f))) < 0.0001f);
+                assert(submittedDrawQuad.xy[0][1] == 30 && submittedDrawQuad.st[2][1] == 0.75f);
+                correctHud = false;
                 Reject([&] { Invoke(module, rotated, {Float(10), Float(20), Float(80), Float(20),
                     Float(0), Float(0), Float(1), Float(1), 317, Float(NAN)}); });
             } else {
@@ -602,6 +654,8 @@ int main() {
         assert(!CL_RTCWRenderCall(cgvm, Call::CG_R_LERPTAG, nullptr, result));
         assert(!CL_RTCWRenderCall(cgvm, Call::CG_R_GETMODELSHADER, nullptr, result));
         assert(!CL_RTCWRenderCall(uivm, Call::UI_CM_LERPTAG, nullptr, result));
+        assert(!CL_RTCWRenderCall(cgvm, Call::CG_R_REGISTERMODEL, nullptr, result));
+        assert(!CL_RTCWRenderCall(uivm, Call::UI_R_REGISTERMODEL, nullptr, result));
         intptr_t args[] = {42};
         assert(CL_CgameSystemCalls(args) == 10042 && CL_UISystemCalls(args) == 10042);
         assert(backendCalls == before && result == 12345);

@@ -51,7 +51,10 @@ class SharedPointerPolicyTests(unittest.TestCase):
                 self.assertIn("fnql::input::ResolvePointerOwner( inputs )", source)
                 self.assertIn("fnql::input::ResolvePointerMode( inputs )", source)
                 self.assertIn("inputs.consoleMask = KEYCATCH_CONSOLE;", source)
-                self.assertIn("inputs.menuMask = kPointerMenuMask;", source)
+                self.assertIn(
+                    "inputs.menuMask = Com_GameIsQuakeLive() ? kPointerMenuMask : KEYCATCH_BROWSER;",
+                    source,
+                )
                 self.assertIn(
                     "kPointerMenuMask = KEYCATCH_UI | KEYCATCH_CGAME | KEYCATCH_BROWSER",
                     source,

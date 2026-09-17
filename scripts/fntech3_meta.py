@@ -54,22 +54,26 @@ def compose_version_string(major: int, minor: int, patch: int, tweak: int = 0) -
 def compose_windows_version(major: int, minor: int, patch: int, tweak: int = 0) -> str:
     if min(major, minor, patch, tweak) < 0:
         raise ValueError("Windows version components must be non-negative")
+    if max(major, minor, patch, tweak) > 65535:
+        raise ValueError("Windows version components must fit in 16 bits (0-65535)")
     return f"{major},{minor},{patch},{tweak}"
 
 
-def read_version_defines(path: Path = VERSION_HEADER) -> dict[str, object]:
+def read_version_defines(path: Path = VERSION_HEADER, *, text: str | None = None) -> dict[str, object]:
     defines: dict[str, object] = {}
-    for line in path.read_text(encoding="utf-8").splitlines():
+    for line in (path.read_text(encoding="utf-8") if text is None else text).splitlines():
         match = _DEFINE_RE.match(line)
         if not match:
             continue
         key, raw_value = match.groups()
+        if key in defines:
+            raise ValueError(f"Duplicate version define: {key}")
         defines[key] = _parse_define_value(raw_value)
     return defines
 
 
-def base_metadata(path: Path = VERSION_HEADER) -> dict[str, object]:
-    defines = read_version_defines(path)
+def base_metadata(path: Path = VERSION_HEADER, *, text: str | None = None) -> dict[str, object]:
+    defines = read_version_defines(path, text=text)
     major = int(defines["FNTECH3_VERSION_MAJOR"])
     minor = int(defines["FNTECH3_VERSION_MINOR"])
     patch = int(defines["FNTECH3_VERSION_PATCH"])
@@ -80,6 +84,10 @@ def base_metadata(path: Path = VERSION_HEADER) -> dict[str, object]:
         raise ValueError(
             "FNTECH3_VERSION_STRING does not match the numeric version components"
         )
+    windows_version = compose_windows_version(major, minor, patch, tweak)
+    for key in ("FNTECH3_WINDOWS_FILE_VERSION", "FNTECH3_WINDOWS_PRODUCT_VERSION"):
+        if str(defines[key]).replace(" ", "") != windows_version:
+            raise ValueError(f"{key} does not match the numeric version components")
     return {
         "project_name": str(defines["FNTECH3_PROJECT_NAME"]),
         "project_name_short": str(defines["FNTECH3_PROJECT_NAME_SHORT"]),
@@ -137,11 +145,15 @@ def channel_metadata(
     iso_date, date_slug = normalize_date(build_date)
     short_commit = normalize_commit(commit)
 
-    if channel not in {"release", "manual"}:
+    if channel not in {"release", "candidate", "manual"}:
         raise ValueError(f"Unsupported channel: {channel}")
 
     version_value = str(meta["version"])
-    if channel == "release":
+    if channel in {"release", "candidate"}:
+        if build_number is not None:
+            raise ValueError("Versioned releases cannot override the build number")
+        if meta["version_tweak"] != 0:
+            raise ValueError("Versioned releases require a three-component version")
         expected_tag = f"{meta['tag_prefix']}{version_value}"
         release_tag = (ref_name or expected_tag).strip()
         if release_tag != expected_tag:

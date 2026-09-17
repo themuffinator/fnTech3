@@ -1071,19 +1071,9 @@ static rserr_t GLW_SetMode( int mode, const char *modeFS, qboolean fullscreen, q
 
 	if ( SDL_window )
 	{
-#ifdef USE_ICON
-		fnql::sdl::ScopedSurface icon( SDL_CreateSurfaceFrom(
-			CLIENT_WINDOW_ICON.width,
-			CLIENT_WINDOW_ICON.height,
-			SDL_PIXELFORMAT_RGBA32,
-			(void *)CLIENT_WINDOW_ICON.pixel_data,
-			CLIENT_WINDOW_ICON.bytes_per_pixel * CLIENT_WINDOW_ICON.width
-		) );
-		if ( icon )
-		{
-			SDL_SetWindowIcon( SDL_window, icon.get() );
-		}
-#endif
+		fntech3::icon::SetWindowIcon( SDL_window, Cvar_VariableString( "fs_basepath" ),
+			Com_GameProfile() ? Com_GameProfile()->id : COM_GAME_AUTO,
+			Cvar_Get( "cl_gameIcon", "1", CVAR_ARCHIVE )->integer != 0 );
 	}
 	else
 	{
@@ -1155,6 +1145,7 @@ static rserr_t GLimp_StartDriverAndSetMode( int mode, const char *modeFS, qboole
 	{
 		const char *driverName;
 
+		SDL_SetHint( SDL_HINT_APP_ID, "fntech3" );
 		if ( !SDL_Init( SDL_INIT_VIDEO ) )
 		{
 			Com_Printf( "SDL_Init( SDL_INIT_VIDEO ) FAILED (%s)\n", SDL_GetError() );

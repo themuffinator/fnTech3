@@ -316,7 +316,9 @@ static PointerOwner IN_ResolvePointerOwner( void )
 
 	inputs.catcher = Key_GetCatcher();
 	inputs.consoleMask = KEYCATCH_CONSOLE;
-	inputs.menuMask = kPointerMenuMask;
+	// Q3/RTCW modules draw their own cursor and consume relative deltas.
+	// Only QL modules and the engine browser use absolute positions.
+	inputs.menuMask = Com_GameIsQuakeLive() ? kPointerMenuMask : KEYCATCH_BROWSER;
 	// A fullscreen window exposes no desktop for the OS pointer to reach, so the
 	// fullscreen console keeps the established relative gameplay pointer.
 	inputs.consoleUsesAbsolutePointer = !glw_state.isFullscreen;

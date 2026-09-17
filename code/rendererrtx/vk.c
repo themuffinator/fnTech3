@@ -5,6 +5,8 @@
 #include <stdlib.h>
 
 #include "tr_local.h"
+#include "../renderercommon/tr_mesh_material.h"
+#include "../renderercommon/tr_rtcw_fog_gpu.h"
 #include "vk.h"
 #include "rtx_mdr_geometry.h"
 #include "rtx_scene_signature.h"
@@ -326,7 +328,8 @@ typedef enum {
 	RTX_RT_MATFLAG_CULL_FRONT = 1u << 9,
 	RTX_RT_MATFLAG_CULL_BACK = 1u << 10,
 	RTX_RT_MATFLAG_RASTER_OVERLAY = 1u << 11,
-	RTX_RT_MATFLAG_SECONDARY_VISIBLE = 1u << 12
+	RTX_RT_MATFLAG_SECONDARY_VISIBLE = 1u << 12,
+	RTX_RT_MATFLAG_RTCW_NOFOG = 1u << 13
 } rtxRtMaterialFlags_t;
 
 typedef struct {
@@ -511,6 +514,9 @@ typedef struct {
 	float legacyColorParams[4];        // enabled, intensityScale, RT contribution strength, reserved
 	float readabilityParams[4];        // lift, contrast, saturation, shadowFloor
 	uint32_t modes[4];                 // temporalEnable, spatialEnable, tonemapMode, bitflags
+	vec4_t rtcwFogColor;
+	vec4_t rtcwFogParams;
+	vec4_t rtcwFogControl; // RTCW profile, far clip, reserved
 } rtxRtTemporalParams_t;
 
 #define RTX_RT_DESC_SET 0
@@ -995,6 +1001,8 @@ static uint32_t vk_rt_estimate_dynamic_scene_signature( vec3_t outCentroid, uint
 			hash = vk_rt_hash_mix_u32( hash, (uint32_t)ref->oldframe );
 			hash = vk_rt_hash_mix_u32( hash, (uint32_t)ref->skinNum );
 			hash = vk_rt_hash_mix_u32( hash, (uint32_t)ref->customSkin );
+			if ( ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP )
+				hash = vk_rt_hash_mix_u32( hash, (uint32_t)ref->rtcw.blink );
 			hash = vk_rt_hash_quantized_float( hash, ref->backlerp, 0.01f );
 			hash = vk_rt_hash_quantized_float( hash, ref->axis[0][0], axisQuant );
 			hash = vk_rt_hash_quantized_float( hash, ref->axis[0][1], axisQuant );
@@ -3709,6 +3717,11 @@ static void vk_rt_translate_shader_to_material( const shader_t *shader, rtxRtMat
 		return;
 	}
 
+	if ( shader->rtcwNoFog &&
+		( !shader->stages[0] || !shader->stages[0]->rtcwFog ) ) {
+		material->flags |= RTX_RT_MATFLAG_RTCW_NOFOG;
+	}
+
 	if ( shader->cullType == CT_TWO_SIDED ) {
 		material->flags |= RTX_RT_MATFLAG_TWO_SIDED;
 	} else if ( shader->cullType == CT_BACK_SIDED ) {
@@ -5055,6 +5068,13 @@ static qboolean vk_rt_append_brush_entity_geometry( rtxRtCpuGeometry_t *geometry
 
 static void vk_rt_decode_md3_normal( short packedNormal, vec3_t outNormal )
 {
+	if ( ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP ) {
+		fnMdcVertex_t vertex = { 0 };
+		vertex.normal = (uint16_t)packedNormal;
+		FnMdc_DecodeNormal( &r_mdcNormals, &vertex, outNormal );
+		return;
+	}
+
 	const uint8_t lat = (uint8_t)( ( packedNormal >> 8 ) & 0xFF );
 	const uint8_t lng = (uint8_t)( packedNormal & 0xFF );
 	const float latRad = (float)lat * ( 2.0f * (float)M_PI / 255.0f );
@@ -5072,14 +5092,7 @@ static const shader_t *vk_rt_resolve_md3_shader( const trRefEntity_t *ent, const
 		shader = R_GetShaderByHandle( ent->e.customShader );
 	} else if ( ent->e.customSkin > 0 && ent->e.customSkin < tr.numSkins ) {
 		const skin_t *skin = R_GetSkinByHandle( ent->e.customSkin );
-		int i;
-
-		for ( i = 0; i < skin->numSurfaces; i++ ) {
-			if ( !strcmp( skin->surfaces[i].name, surface->name ) ) {
-				shader = skin->surfaces[i].shader;
-				break;
-			}
-		}
+		shader = R_MeshSkinShader( &ent->e, skin, surface->name );
 	} else if ( surface->numShaders > 0 ) {
 		const md3Shader_t *md3Shader = (const md3Shader_t *)( (const byte *)surface + surface->ofsShaders );
 		const int shaderIndex = ent->e.skinNum % surface->numShaders;
@@ -5519,6 +5532,11 @@ static qboolean vk_rt_append_md3_entity_geometry( rtxRtCpuGeometry_t *geometry, 
 		int v;
 		int t;
 		vec4_t tangent = { 1.0f, 0.0f, 0.0f, 1.0f };
+
+		if ( R_MeshSurfaceHidden( &ent->e, surface->name ) ) {
+			surface = (const md3Surface_t *)( (const byte *)surface + surface->ofsEnd );
+			continue;
+		}
 
 		if ( !vk_rt_cpu_geometry_find_or_add_material( geometry, shader, &materialIndex ) ) {
 			return qfalse;
@@ -8051,6 +8069,16 @@ static qboolean vk_rt_update_temporal_state( void )
 	params.readabilityParams[1] = vk_rt_readability_contrast();
 	params.readabilityParams[2] = vk_rt_readability_saturation();
 	params.readabilityParams[3] = vk_rt_readability_shadow_floor();
+
+	{
+		const fnRTCWFogDraw_t fog = FnRTCWFogDraw( &backEnd.refdef.rtcwFog,
+			qfalse, qfalse, qfalse, qfalse,
+			ri.gameId == COM_GAME_RTCW_SP && backEnd.refdef.rtcw.snooperView ? qtrue : qfalse, qtrue );
+		Vector4Copy( fog.color, params.rtcwFogColor );
+		Vector4Copy( fog.params, params.rtcwFogParams );
+		params.rtcwFogControl[0] = ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP ? 1.0f : 0.0f;
+		params.rtcwFogControl[1] = backEnd.viewParms.zFar;
+	}
 
 	params.modes[0] = vk_rt_temporal_enabled() ? 1u : 0u;
 	params.modes[1] = vk_rt_spatial_denoise_enabled() ? 1u : 0u;
@@ -19623,11 +19651,6 @@ void vk_bind_descriptor_sets( void )
 		end = VK_DESC_DEPTH_FADE;
 	}
 
-	offset_count = 0;
-	if ( /*start == VK_DESC_STORAGE || */ start == VK_DESC_UNIFORM ) { // uniform offset or storage offset
-		offsets[ offset_count++ ] = vk.cmd->descriptor_set.offset[ start ];
-	}
-
 	count = end - start + 1;
 
 	/*
@@ -19648,6 +19671,12 @@ void vk_bind_descriptor_sets( void )
 					tr.whiteImage->descriptor;
 			}
 		}
+	}
+
+	/* The fallback above may supply both the uniform descriptor and offset. */
+	offset_count = 0;
+	if ( start == VK_DESC_UNIFORM ) {
+		offsets[ offset_count++ ] = vk.cmd->descriptor_set.offset[start];
 	}
 
 	qvkCmdBindDescriptorSets( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_pipeline_layout_handle( RTX_VK_PIPELINE_LAYOUT_MAIN ), start, count, vk.cmd->descriptor_set.current + start, offset_count, offsets );

@@ -10812,21 +10812,33 @@ void vk_bind_descriptor_sets( void )
 
 	end = vk.cmd->descriptor_set.end;
 
-	offset_count = 0;
-	if ( /*start == VK_DESC_STORAGE || */ start == VK_DESC_UNIFORM ) { // uniform offset or storage offset
-		offsets[ offset_count++ ] = vk.cmd->descriptor_set.offset[ start ];
+	/* Single-texture shaders declare set 2 for depth fade, including draws
+	 * which disable that effect. Keep the statically used sampler valid. */
+	if ( start <= VK_DESC_DEPTH_FADE && end < VK_DESC_DEPTH_FADE &&
+		vk.maxBoundDescriptorSets > VK_DESC_DEPTH_FADE &&
+		vk.cmd->descriptor_set.current[VK_DESC_DEPTH_FADE] == VK_NULL_HANDLE ) {
+		end = VK_DESC_DEPTH_FADE;
 	}
 
 	count = end - start + 1;
 
-	/* Fill NULL descriptor gaps, including the range end: full-range rebinds
-	 * after mid-frame post-process passes can cover sets (texture2, fog
-	 * collapse) that no material has used yet this frame, and one NULL handle
-	 * would invalidate the entire bind. */
-	for ( i = start + 1; i <= end; i++ ) {
+	/* A post-process restore can precede the first uniform or material draw.
+	 * Set zero needs a dynamic uniform descriptor; the remaining sets need
+	 * valid samplers, including unused endpoints of the restored range. */
+	for ( i = start; i <= end; i++ ) {
 		if ( vk.cmd->descriptor_set.current[i] == VK_NULL_HANDLE ) {
-			vk.cmd->descriptor_set.current[i] = tr.whiteImage->descriptor;
+			if ( i == VK_DESC_UNIFORM ) {
+				vk.cmd->descriptor_set.current[i] = vk.cmd->uniform_descriptor;
+				vk.cmd->descriptor_set.offset[i] = vk.cmd->uniform_read_offset;
+			} else {
+				vk.cmd->descriptor_set.current[i] = tr.whiteImage->descriptor;
+			}
 		}
+	}
+
+	offset_count = 0;
+	if ( start == VK_DESC_UNIFORM ) {
+		offsets[ offset_count++ ] = vk.cmd->descriptor_set.offset[start];
 	}
 
 	qvkCmdBindDescriptorSets( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.pipeline_layout, start, count, vk.cmd->descriptor_set.current + start, offset_count, offsets );
@@ -13294,29 +13306,16 @@ qboolean vk_bloom( void )
 		qvkCmdDraw( vk.cmd->command_buffer, 4, 1, 0, 0 );
 	}
 
-	// invalidate pipeline state cache
-	//vk.cmd->last_pipeline = VK_NULL_HANDLE;
-
-	if ( vk.cmd->last_pipeline != VK_NULL_HANDLE )
-	{
-		// restore last pipeline
-		qvkCmdBindPipeline( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.cmd->last_pipeline );
-
-		vk_update_mvp( NULL );
-
-		// force depth range and viewport/scissor updates
-		vk.cmd->depth_range = DEPTH_RANGE_COUNT;
-
-		// restore clobbered descriptor sets
-		for ( i = 0; i < VK_NUM_BLOOM_PASSES; i++ ) {
-			if ( vk.cmd->descriptor_set.current[i] != VK_NULL_HANDLE ) {
-				if ( i == VK_DESC_UNIFORM /*|| i == VK_DESC_STORAGE*/ )
-					qvkCmdBindDescriptorSets( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.pipeline_layout, i, 1, &vk.cmd->descriptor_set.current[i], 1, &vk.cmd->descriptor_set.offset[i] );
-				else
-					qvkCmdBindDescriptorSets( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.pipeline_layout, i, 1, &vk.cmd->descriptor_set.current[i], 0, NULL );
-			}
-		}
-	}
+	/* Bloom uses incompatible descriptor layouts. The render-pass helper has
+	 * already cleared last_pipeline, so restoration cannot depend on it.
+	 * Rebind all main-layout sets on the next draw, even when its material is
+	 * unchanged (for example, a second RTCW head view with blinking enabled). */
+	vk.cmd->last_pipeline = VK_NULL_HANDLE;
+	vk.cmd->depth_range = DEPTH_RANGE_COUNT;
+	vk.cmd->descriptor_set.start = 0;
+	vk.cmd->descriptor_set.end =
+		MIN( VK_DESC_COUNT, vk.maxBoundDescriptorSets ) - 1;
+	Com_Memset( &vk.cmd->scissor_rect, 0xff, sizeof( vk.cmd->scissor_rect ) );
 
 	backEnd.doneBloom = qtrue;
 

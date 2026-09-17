@@ -17,11 +17,12 @@ param(
 	[string]$RendererDefault = $(if ($env:FNQL_MESON_RENDERER_DEFAULT) { $env:FNQL_MESON_RENDERER_DEFAULT } elseif ($env:FNQ3_MESON_RENDERER_DEFAULT) { $env:FNQ3_MESON_RENDERER_DEFAULT } else { 'glx' }),
 	[string]$BuildDir = $(if ($env:FNQL_MESON_BUILD_DIR) { $env:FNQL_MESON_BUILD_DIR } elseif ($env:FNQ3_MESON_BUILD_DIR) { $env:FNQ3_MESON_BUILD_DIR } else { 'meson\build\win32' }),
 	[switch]$SetupOnly,
+	[switch]$RTCWDevelopment,
 	[switch]$RunTests,
 	[switch]$Install,
 	[string]$DestDir = $(if ($env:FNQL_MESON_DESTDIR) { $env:FNQL_MESON_DESTDIR } elseif ($env:FNQ3_MESON_DESTDIR) { $env:FNQ3_MESON_DESTDIR } else { '' }),
 	[switch]$Archive,
-	[string]$RootArchiveName = $(if ($env:FNQL_MESON_ROOT_ARCHIVE_NAME) { $env:FNQL_MESON_ROOT_ARCHIVE_NAME } elseif ($env:FNQ3_MESON_ROOT_ARCHIVE_NAME) { $env:FNQ3_MESON_ROOT_ARCHIVE_NAME } else { 'FnQL-pkg.fnz' }),
+	[string]$RootArchiveName = $(if ($env:FNQL_MESON_ROOT_ARCHIVE_NAME) { $env:FNQL_MESON_ROOT_ARCHIVE_NAME } elseif ($env:FNQ3_MESON_ROOT_ARCHIVE_NAME) { $env:FNQ3_MESON_ROOT_ARCHIVE_NAME } else { 'fntech3-pkg.fnz' }),
 	[switch]$WithSteam,
 	[string]$SteamRepo = $(if ($env:FNQL_STEAM_REPO) { $env:FNQL_STEAM_REPO } else { '..\FnQL-Steam' })
 )
@@ -298,7 +299,7 @@ function Invoke-FnQLSteamBuild {
 
 $workspaceRoot = Split-Path -Parent $PSScriptRoot
 $buildPath = Resolve-BuildPath -WorkspaceRoot $workspaceRoot -SelectedBuildDir $BuildDir
-$canonicalRootArchiveName = 'FnQL-pkg.fnz'
+$canonicalRootArchiveName = 'fntech3-pkg.fnz'
 if ([System.IO.Path]::GetFileName($RootArchiveName) -ne $RootArchiveName -or
 	[System.IO.Path]::GetExtension($RootArchiveName) -ne '.fnz') {
 	throw "Root archive name must be a .fnz file name without a directory: $RootArchiveName"
@@ -334,6 +335,7 @@ $setupArgs = @(
 	'-Drenderer-dlopen=true',
 	"-Drenderers=$rendererCsv",
 	"-Drenderer-default=$RendererDefault",
+	"-Drtcw-development=$($RTCWDevelopment.IsPresent.ToString().ToLowerInvariant())",
 	'-Dzlib:default_library=static',
 	'-Dogg:default_library=static'
 )
@@ -397,7 +399,7 @@ if (-not $RunTests) {
 		$compileTargets.Add('fntech3.ded')
 	}
 	if ($Archive) {
-		$compileTargets.Add('FnQL-pkg.fnz')
+		$compileTargets.Add('fntech3-pkg.fnz')
 	}
 	$compileArgs += $compileTargets
 }

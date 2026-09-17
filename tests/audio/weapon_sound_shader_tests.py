@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-BASEQ3_SHADER_PATH = ROOT / "pkg" / "baseq3" / "sound" / "fnql-weapon-sounds.sndshd"
+BASEQ3_SHADER_PATH = ROOT / "pkg" / "games" / "quakelive" / "baseq3" / "sound" / "fnql-weapon-sounds.sndshd"
 Q3A_WEAPON_SOUNDS = {
     "sound/weapons/bfg/bfg_fire.wav",
     "sound/weapons/bfg/bfg_hum.wav",
@@ -103,6 +103,8 @@ class WeaponSoundShaderTests(unittest.TestCase):
     def test_shipped_tuning_matches_fnq3_reference_exactly(self) -> None:
         expected = {
             BASEQ3_SHADER_PATH:
+                "c2ed183785e01f227c4e59b5843f54f59b6bed1e5c4be569b39aae9971a61e29",
+            ROOT / "pkg/games/quake3/baseq3/sound/fnql-weapon-sounds.sndshd":
                 "c2ed183785e01f227c4e59b5843f54f59b6bed1e5c4be569b39aae9971a61e29",
         }
 

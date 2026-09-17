@@ -29,7 +29,7 @@ def parse_args() -> argparse.Namespace:
         nargs="?",
         default="summary",
     )
-    parser.add_argument("--channel", choices=("release", "manual"), default="release")
+    parser.add_argument("--channel", choices=("release", "candidate", "manual"), default="release")
     parser.add_argument("--build-number", type=non_negative_int)
     parser.add_argument("--build-date", default=os.environ.get("FNTECH3_BUILD_DATE", os.environ.get("FNQL_BUILD_DATE")))
     parser.add_argument("--commit", default=os.environ.get("GITHUB_SHA"))

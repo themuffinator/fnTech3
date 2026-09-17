@@ -1,0 +1,7 @@
+// Desaturated cool haze for the capture map.
+color 0.56 0.59 0.60
+mode exp
+density 0.00070
+start 192
+opacity 0.27
+sky 1

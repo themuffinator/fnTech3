@@ -91,7 +91,7 @@ def main():
               'renderer': args.renderer, 'started_utc': stamp, 'loads': [], 'events': []}
     result['binary_sha256'] = {
         path.name: hashlib.sha256(path.read_bytes()).hexdigest()
-        for path in (exe, exe.parent / f'fnql_{args.renderer}_x86.dll', exe.parent / 'FnQL-pkg.fnz')
+        for path in (exe, exe.parent / f'fnql_{args.renderer}_x86.dll', exe.parent / 'fntech3-pkg.fnz')
         if path.is_file()
     }
     (output / 'command.json').write_text(json.dumps(command, indent=2))

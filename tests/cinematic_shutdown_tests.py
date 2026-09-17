@@ -60,9 +60,17 @@ int main(){
  CIN_CloseAllVideos();assert(closed==5); // Idempotent after module cleanup.
  cls.state=CA_CINEMATIC;Open(0,6,FMV_PLAY,true,true);
  CIN_CloseAllVideos();assert(closed==6&&nextmaps==1&&cls.state==CA_DISCONNECTED);
+ // Individual failures before the first frame and held/EOF movies release too.
+ for(e_status status:{FMV_PLAY,FMV_EOF,FMV_IDLE}){
+  const int before=closed;Open(0,7,status,false);CIN_StopCinematic(0);
+  assert(closed==before+1&&!cinTable[0].iFile&&!cinTable[0].fileName[0]);
+ }
+ cls.state=CA_CINEMATIC;Open(0,8,FMV_EOF,false,true);currentHandle=0;
+ RoQShutdown();assert(closed==10&&nextmaps==2&&cls.state==CA_DISCONNECTED);
+ RoQShutdown();assert(closed==10&&nextmaps==2);
  filesystemLive=false; // Static owners must not call FS_FCloseFile after this.
  for(auto &movie:cinTable)movie.iFile.reset();
- assert(closed==6);
+ assert(closed==10);
 }
 '''
 

@@ -1,0 +1,7 @@
+// Very light cool haze for the wide exterior sight lines.
+color 0.53 0.58 0.61
+mode exp
+density 0.00055
+start 256
+opacity 0.25
+sky 1

@@ -1,7 +1,7 @@
 /* Copyright (C) 2026 fnTech3 contributors. GPL-2.0-or-later. */
 #ifndef FNTECH3_TR_RTCW_FOG_GL_H
 #define FNTECH3_TR_RTCW_FOG_GL_H
-#include "../renderercommon/tr_rtcw_fog_gpu.h"
+#include "../renderercommon/tr_rtcw_fog_blend.h"
 
 static fnRTCWFogDraw_t rtcwStageFog;
 
@@ -38,6 +38,7 @@ void RB_RTCWStageFog( const shaderStage_t *stage ) {
 		backEnd.projection2D, qfalse, qfalse,
 		ri.gameId == COM_GAME_RTCW_SP && backEnd.refdef.rtcw.snooperView ? qtrue : qfalse,
 		rtcwRadialFogAvailable );
+	FnRTCWFogBlendColor( &rtcwStageFog, stage ? stage->stateBits : 0 );
 	RB_RTCWFogToggle( !tess.shader || !tess.shader->rtcwNoFog ||
 		( stage && stage->rtcwFog ) ? qtrue : qfalse );
 }

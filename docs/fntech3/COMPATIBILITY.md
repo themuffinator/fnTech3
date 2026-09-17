@@ -1,6 +1,68 @@
 # fnTech3 compatibility ledger
 
+## Unified goal and supported-game scope
+
+fnTech3's goal is one modern id Tech 3 engine distribution and shared executable
+set for three games and four immutable profiles. Shared renderer, audio, input,
+platform, and tooling improvements must preserve each game's own contracts.
+Full compatibility is **not yet established for any profile**.
+
+| Game / mode | Startup profile | Current availability |
+| --- | --- | --- |
+| Quake III Arena | `q3` / `quake3` | Enabled; partial build, fixture, live, and interoperability evidence; required gates remain open. |
+| Quake Live | `ql` / `quakelive` | Enabled; retail client boundary is Windows x86; required gates remain open. |
+| Return to Castle Wolfenstein — single player | `rtcw-sp` | Experimental; default startup gated; `-Drtcw-development=true` permits isolated probes; campaign and broader compatibility gates remain open. |
+| Return to Castle Wolfenstein — multiplayer | `rtcw-mp` | Experimental; same build option and executable as SP; multiplayer and broader compatibility gates remain open. |
+
+RTCW is one title with two mode profiles. A mode change relaunches the same
+executable; it does not mutate the running process's profile. Catalog
+registration, a development option, or a partial runtime result does not
+establish supported release compatibility. The [Q3/QL matrix](#compatibility-and-gate-matrix)
+and [RTCW matrix](#rtcw-gate-matrix) together define the current unified scope.
+Dedicated-server and online-service gates apply according to each profile's
+contract; RTCW SP additionally requires campaign, AI, and save/load evidence.
+
 ## Status
+
+The [RoQ bounds and recovery checkpoint](2026-09-17-roq-bounds.md) adds checked
+movie framing, dimensions, codebooks, VQ/motion reads and partial shutdown. It
+fixes synchronous first-frame hangs and terminal-frame accounting, verifies
+27 distinct installed movies, and passes malformed-movie recovery under all four
+profiles through the same Windows x86 client. Original RTCW also ignores JPEG
+chunks, so that preserved policy is no longer listed as an unimplemented
+original-engine contract. Full cinematic/audio parity remains open.
+
+The [RTCW dynamic-light update](2026-09-17-rtcw-dlight-shadows.md) enables the
+shared Q3/QL `r_dlightMode` lighting and point-shadow path for ordinary SP/MP
+lights, stabilizes flickering torch projections, and admits MDS/MDC model
+casters in every raster backend. Executable tests, x86 builds and bounded
+`escape1` engine captures add lighting evidence; image parity and broader
+renderer/gameplay gates remain open.
+
+The [FOV/HUD restoration](2026-09-17-aspect-correction.md) restores FnQuake3's
+HUD rule/dump system for Q3 and both RTCW profiles, extends the shared FOV
+policy to RTCW, and leaves retail QL presentation untouched. Separate stock
+SP/MP HUD presets ship in their profile namespaces. Executable layout/import
+tests and windowed engine captures add presentation evidence; they do not
+close the broader renderer, mod-layout, campaign, or multiplayer gates.
+
+The [profile-scoped package update](2026-09-17-profile-packages.md) separates
+engine assets under `games/<profile>/<gamedir>/` in `fntech3-pkg.fnz` and
+incorporates the complete reviewed FnQuake3 package, including Team Arena.
+Executable resolver tests cover all four profiles; same-binary dedicated
+reads verify Q3/QL isolation and Q3 missionpack precedence. This adds package
+lookup/parser evidence without closing the broader filesystem or asset gates.
+
+The [RTCW audio-zone generation](2026-09-17-rtcw-audio-zones.md) adds sidecars
+for all 32 official SP and 15 official MP maps, including SP patches and the
+official MP map packs. Profile-specific material tests preserve Q3/QL behavior;
+all 47 files pass parser/lookup audits. Coverage warnings remain on 24 maps,
+and no listening or live OpenAL parity gate is closed by these generated assets.
+
+The following record describes the Q3/QL merger work. References to "both
+profiles" in that history mean Q3 and QL. Later RTCW evidence and remaining
+blockers are recorded in the [RTCW section](#rtcw-sp-and-mp-shared-executable-implementation-in-progress);
+earlier Q3/QL results must not be promoted to RTCW evidence.
 
 fnTech3 does **not** yet claim full Quake III Arena or Quake Live
 compatibility. Immutable profile selection, Q3/QL module adapters, server-memory
@@ -208,6 +270,8 @@ the commit, executable, platform, profile, command, inputs, and result.
 
 ## Profile contract summary
 
+### Quake III Arena and Quake Live
+
 | Contract | Quake III Arena (`q3`) | Quake Live (`ql`) |
 | --- | --- | --- |
 | Installation identity | `baseq3/pak0.pk3`; Q3 installation/Steam identity including AppID 2200 where applicable | `baseq3/pak00.pk3`, `bin.pk3`, and `web.pak` as required; retail Steam AppID 282440 |
@@ -223,15 +287,33 @@ identify Q3 protocols 68/71 and legacy Q3 demo handling (including the existing
 `.dm_66`, `.dm_67`, `.dm_68`, `.dm_71`, and supported `.dm3` paths), but every
 format still needs verification through the fnTech3 profile boundary.
 
+### Return to Castle Wolfenstein
+
+| Contract | Single player (`rtcw-sp`) | Multiplayer (`rtcw-mp`) |
+| --- | --- | --- |
+| Installation identity | `main/pak0.pk3` with SP marker evidence; shared RTCW Steam AppID 9010 where applicable | `main/mp_pak0.pk3` with MP marker evidence; same title/AppID |
+| Configuration and module selection | `wolfconfig.cfg`; `sp_` archives selected and `mp_` archives excluded from the mode policy | `wolfconfig_mp.cfg`; `mp_` archives selected and `sp_` archives excluded from the mode policy |
+| Preferred network/demo contract | Protocol 49; sustained wire/demo validation remains open | Protocol 60; retail peer and demo validation remain open |
+| Module and state boundary | Separate SP legacy-native imports/exports and frozen SP records; campaign AI and savegame lifecycle | Separate MP legacy-native imports/exports and frozen MP records; native-module pure proof and multiplayer state |
+| Maps/assets | RTCW BSP 47, MDC/MDS and RTCW materials, cinematics, audio, and navigation data | RTCW BSP 47 with mode-specific module/asset behavior and multiplayer objectives |
+| Runtime availability | Gated by default; explicit development builds use the shared Windows x86 client for recorded installed probes | Same executable and development gate; switching from SP starts a new process profile |
+
+Contract facts come from the [game-manager foundation](2026-09-14-rtcw-contracts.md)
+and subsequent checkpoints below. An installation containing both modes requires
+an explicit profile choice. The [RTCW gate matrix](#rtcw-gate-matrix) records
+which contracts have runtime evidence and which still need closure.
+
 ## Compatibility and gate matrix
 
 Status values are `PASS`, `PARTIAL`, `OPEN`, or `BLOCKED`. A `PASS` applies only
-to the evidence level named in the same cell.
+to the evidence level named in the same cell. This matrix covers Q3 and QL;
+the [RTCW gate matrix](#rtcw-gate-matrix) covers the other two profiles and is
+equally required for unified sign-off.
 
 | Surface | Q3 status/evidence | QL status/evidence | Required promotion gate |
 | --- | --- | --- | --- |
 | Immutable early profile selection | **PARTIAL — Unit/Build/Fixture.** Explicit aliases, marker precedence, ambiguity rejection, and immutability have tests; automatic and explicit dedicated startup pass against a legitimate installation. Canonical profile mirrors survive startup-variable replay. [Startup command overflow](2026-09-08-startup-command-bounds.md) now fails explicitly before a trailing profile override can be discarded. | **PARTIAL — Unit/Build/Fixture.** Same seam and successful automatic/explicit dedicated startup against retail assets. | Bounded known-retail pak metadata recognition now rejects filename-only placeholders and swapped archives; see the [identity checkpoint](2026-09-08-pak-identity.md). Payload integrity, broader archive variants, mixed trees, and restart behavior remain open. Q3/QL Steam discovery now has Unit/Build/Fixture evidence; see the [discovery checkpoint](2026-09-07-steam-discovery.md). |
-| Project identity and packaging | **PARTIAL — Unit/Build/Fixture.** Canonical metadata and primary output names are migrated. The engine-only x86 stage passes dependency/root-archive checks and profile probes. | **PARTIAL — Unit/Build/Fixture.** The same artifacts retain explicitly bound renderer, root-package, and WebUI sidecar names; the proprietary provider is excluded. | Provider staging is removed and known proprietary libraries are rejected; see the [packaging correction](2026-09-07-engine-only-packaging.md). Validate clean CI, reproducible artifacts and remaining packaging paths without renaming external contracts. |
+| Project identity and packaging | **PARTIAL — Unit/Build/Fixture.** Canonical metadata and primary output names are migrated. The engine-only x86 stage passes dependency/root-archive checks and profile probes. | **PARTIAL — Unit/Build/Fixture.** The same artifacts use the profile-scoped engine package and retain bound renderer/WebUI sidecar names; the proprietary provider is excluded. | Provider staging is removed and known proprietary libraries are rejected; see the [packaging correction](2026-09-07-engine-only-packaging.md). Validate clean CI, reproducible artifacts and remaining packaging paths without renaming external contracts. |
 | Filesystem, configs, pak order, and pure checks | **PARTIAL — Unit/Live.** Q3 config order and two-module pure proof are restored. Local QVM clients pass pure admission; malformed and oversized proofs have executable regressions. | **PARTIAL — Unit/Live.** Single-native-module pure proof and profile-specific config/service paths are preserved; local native clients pass pure admission. | [UDP fixture-pak downloads](2026-09-08-udp-pak-download.md) now complete byte-for-byte with pure admission in both reference directions for both profiles, baseline and impaired transport. The [interrupted UDP retry checkpoint](2026-09-08-download-retry-and-zombie-reconnect.md) verifies replacement of a retained partial file and corrects same-endpoint zombie-slot reconnect behavior in both profiles. The [whole-file pak integrity correction](2026-09-08-whole-file-pak-integrity.md) rejects short reads and CRC-mismatched payloads before exposing buffers, with both-profile corrupt/valid config and legitimate client runtime checks. The [allocation-bounds follow-up](2026-09-08-file-allocation-bounds.md) rejects unrepresentable whole-file lengths and prevents temporary-allocator alignment/header/capacity arithmetic overflow, with synthetic oversized-pak rejection in both profiles. Golden search-path/pure transcripts and clean-install probes, broader home/config/mod paths, HTTP/failure downloads, case/path behavior, streaming integrity and server-referenced paks remain required. |
 | Module ABI and VM/native loading | **PARTIAL — Unit/Live.** Retail qagame, cgame, and UI QVMs load and run a local session. Guarded synthetic [cgame](2026-09-08-q3-native-cgame.md), [UI](2026-09-08-q3-native-ui.md), and [qagame](2026-09-08-q3-native-qagame.md) DLLs also pass actual legacy vmMain/syscall transfers and callbacks; qagame covers shared-entity/collision access, restart and invalid-binding recovery. The [native loopback pair](2026-09-08-q3-native-snapshot-roundtrip.md) also checks initial/updated player and entity fields in client snapshots plus a live usercmd return. Frozen POD adapters, transactional DLL loading, QVM bounds, cgame traps/extensions, UI policy, and cvar flags have executable regressions. | **PARTIAL — Unit/Live.** Retail qagame API 10 and cgame/UI API 8 load and run through the same client. Guarded synthetic native imports now exercise config/usercmd transfers through the running client; see the [native import checkpoint](2026-09-08-native-guarded-imports.md). Its [opt-in runner](2026-09-08-native-runner.md) now supports packed installs and private-desktop normal-exit verification. Structured contracts remain separate; the native snapshot's additional `0x58` bytes remain unresolved. | Renderer configuration PODs and the Q3 cgame/UI adapter are frozen; see the [glconfig checkpoint](2026-09-08-glconfig-boundary.md). Both profiles marshal frozen configstring-transfer layouts; see the [game-state checkpoint](2026-09-08-gamestate-boundary.md). Incoming bot commands now marshal Q3/QL PODs with bounds checks; see the [bot-command correction](2026-09-08-bot-usercmd-boundary.md). QL user-command outputs use the frozen 28-byte adapter at cgame/qagame boundaries; see the [user-command checkpoint](2026-09-08-ql-usercmd-boundary.md). Resolve or safely contain the QL snapshot tail, complete the boundary audit, and broaden Q3 native and packaged-client module coverage. |
 | Live network codec and handshake | **PARTIAL — Unit/Live.** Local protocol-68 sessions and both directions against a freshly built clean FnQuake3 peer at the pinned baseline reach active state after pure admission (71 with fnTech3 as client, 68 with fnTech3 as server); see the [pinned-peer checkpoint](2026-09-08-pinned-q3-interop.md). Both directions also pass [controlled loopback loss, delay and duplication](2026-09-08-q3-impaired-interop.md) and [initial gamestate fragment-loss recovery](2026-09-08-q3-fragment-recovery.md). The [second-fragment checkpoint](2026-09-08-second-fragment-recovery.md) also passes and corrects earlier protocol-68-only claims. [Terminal-fragment loss](2026-09-08-terminal-fragment-recovery.md) recovers in both peer directions. Shared lineage still limits peer independence. Field parity, truncated messages, and float encodings are tested for protocols 68/71. | **PARTIAL — Unit/Live.** Local protocol-91 sessions reach active state. Both directions against the existing FnQL peer also pass [periodic loss/delay/duplication and initial gamestate-fragment loss](2026-09-08-ql-impaired-interop.md), with pure admission and native join UI/world rendering; [second-fragment loss](2026-09-08-second-fragment-recovery.md) and [terminal-fragment loss](2026-09-08-terminal-fragment-recovery.md) also recover. Reference source revision and active team gameplay remain unverified. Field parity and malformed-input tests pass; invalid usercmd batches drop only their sender without partial execution. | A [client-fragment checkpoint](2026-09-08-client-fragment-recovery.md) verifies exact, ordered delivery of six reliable commands after first-client-fragment loss in all four reference configurations. [UDP fixture-pak downloads](2026-09-08-udp-pak-download.md) also pass baseline and impaired reference transport. The [reliable acknowledgement unwind fix](2026-09-08-reliable-ack-error-unwind.md) prevents a rejected header from corrupting disconnect cleanup state. Golden packet transcripts, malformed/fuzz corpus, broader fragmentation/reliable/pure/download coverage, then bidirectional retail interop for each profile remain required. |
@@ -257,8 +339,8 @@ limits, native-module search/call tables, transactional cgame state transfers
 and source-compared protocol 49/60 message bodies. A validated controller now
 handles RTCW's menu mode commands by relaunching the same executable; synthetic
 Windows/Linux process tests exercise both directions without game input.
-**Default RTCW startup remains gated until the remaining adapters are implemented;
-this is not playable RTCW support.** An explicit Meson `-Drtcw-development=true`
+**Default RTCW startup remains gated; full gameplay and compatibility sign-off
+remain open.** An explicit Meson `-Drtcw-development=true`
 build permits isolated developer probes through the same shared executable and
 prints an experimental-build warning. It does not close any compatibility gate.
 Native SP/MP UI probes now pass cache imports, explicit VM pointer conversion
@@ -509,9 +591,13 @@ post-fix retest wrote matching 218,188-byte autosave and current-save files,
 then hit the explicit missing scene-fog GPU guard. Its engine screenshot shows
 that error dialog; playable SP and save restoration remain unverified. The
 full suite passes (111 Meson tests/two skips, 1,457 Python tests/eleven skips).
-Ordinary RTCW menu mouse-coordinate adaptation
-also remains open; that test delivered its one approved click directly to
-the native UI using RTCW's relative-delta contract.
+At that checkpoint, ordinary RTCW menu mouse-coordinate adaptation
+also remained open; that test delivered its one approved click directly to
+the native UI using RTCW's relative-delta contract. The subsequent
+[profile-specific menu mouse correction](2026-09-17-menu-mouse.md) restores
+relative UI/cgame motion for Q3 and RTCW across SDL, Win32 and X11, while
+preserving QL absolute input. Source, executable unit fixtures and Windows
+builds cover that correction; live menu hover/click validation remains open.
 
 Subsequent [approved startup retests](2026-09-16-rtcw-coronas.md) passed the new
 GL/GLSL scene-fog path, silent-backend voice response, RTCW XYZST decal boundary
@@ -566,6 +652,42 @@ tests with two skips, including 1,471 Python tests with eleven skips.
 Broader character/material GPU parity, campaign gameplay and
 interop remain open.
 
+The [activation/pickup/eyes correction](2026-09-17-rtcw-player-interactions.md)
+adds RTCW activation bindings and lean/any-key encodings, publishes the pickup
+preference to the server, and applies SP/MP blink rules to MD3/MDC attachments
+as well as MDS models. Failing-before regressions cover all three renderers;
+windowed installed probes show eyes in GL/Vulkan/RTX raster and verify default
+and explicitly disabled automatic-pickup userinfo. Live door/weapon interaction,
+native ray-tracing GPU output and broader gameplay
+remain open.
+
+The [RTCW eye-rendering follow-up](2026-09-17-rtcw-eye-rendering.md) corrects
+Vulkan descriptor state lost across bloom, which could remove a repeated head
+draw while leaving its eyelids visible. It also aligns RTCW MD3 packed normals
+with the already-correct MDC decoder in all raster backends and native RTX
+geometry, preserving Q3/QL calculations. Failing-before regressions, Windows
+and Linux tests, installed SP/MP head captures and an SP cinematic eye
+transition add evidence; all-character original-engine and native RT GPU
+parity remain open.
+
+The [engine command audit](2026-09-17-rtcw-engine-commands.md) accounts for 183
+original SP/MP command names and adds the remaining named action bindings,
+notebook/help, UI/translation reload, limbo chat, recommended settings and SP
+music queue dispatch. Executable regressions cover profile ownership, button
+values, input recovery and QL-only chat export isolation. Same-client installed
+SP/MP startup probes verify registrations and safe utility dispatch. Optional
+authoring tools and legacy integrations are explicitly classified; MP master
+match reporting returns an honest unavailable diagnostic. Actual gameplay and
+broader compatibility gates remain open.
+
+The [transparent-fog correction](2026-09-17-rtcw-transparent-fog.md) makes RTCW
+additive and filter passes fade toward their blend-neutral color. Compiled
+compositing regressions fail before and pass after in all three backends; nine
+fog tests pass on Windows/Linux x86. Inspected installed-SP engine captures
+show the torch rectangles removed in GL, Vulkan, and RTX raster. RTX's overall
+fog brightness, original-engine visual parity, and native RT runtime evidence
+remain separate open items.
+
 The [speech checkpoint](2026-09-17-rtcw-speech.md) removes the active-SP
 voice-amplitude guard with real legacy/OpenAL sample measurements and preserves
 MP's disabled talking-animation result. The measurement probe agrees with
@@ -587,8 +709,10 @@ letterbox flag/console mode and header frame rate, and repairs the shared
 first-frame clock transition. Windowed engine captures show the SP film through
 48 seconds on GL, Vulkan and RTX raster. Installed MP's absent startup movies
 fall through to its menu without changing archive isolation. Movie audio,
-the unimplemented RoQ JPEG chunk, complete codec validation and original-engine
-parity remain open.
+complete codec validation and original-engine parity remain open. The later
+[RoQ checkpoint](2026-09-17-roq-bounds.md) establishes that original SP/MP also
+ignore JPEG chunks; it preserves that policy and adds bounded decoder,
+installed-corpus and same-process recovery evidence.
 
 The [campaign/save checkpoint](2026-09-17-rtcw-campaign-savegames.md) launches
 all 47 official maps separately, initializes both AAS worlds on all 32 SP maps,
@@ -605,6 +729,34 @@ loader/conversion/cost comparisons. This does not close complete campaign,
 custom-cache generation, sustained navigation/gameplay or peer-interoperability
 gates; RTCW remains an explicitly enabled development profile.
 
+The [Vulkan/RTX fog and menu-resize correction](2026-09-17-rtcw-vulkan-fog-resize.md)
+supersedes the historical Vulkan/RTX active-fog guard above. Both raster
+backends now apply per-material scene/sky fog; installed `escape1` probes reach
+the opening 3D scene, retain the paused briefing across resolution changes,
+and capture controlled fog-on/off results. An actual SDL window-resize event
+also refreshes and restores the briefing. Native ray fog is implemented and
+compiled, but the x86 driver rejects required ray-tracing extensions, so native
+RT runtime and original-engine visual parity remain open. Q3's resized main
+menu was inspected; isolated QL evidence covers UI reload/state/dimensions and
+its splash only, with WebUI disabled.
+
+The [empty-model registration correction](2026-09-17-rtcw-empty-model-names.md)
+extends the RTCW bridge's silent handle-0 result to empty names as well as null
+pointers, matching original SP/MP behavior. The import regression fails before
+the correction and passes afterward; focused Windows x86 checks and seven
+installed runtime probes pass. SP `escape1` cinematic probes show zero
+`RE_RegisterModel: NULL name` warnings in GL/Vulkan/RTX raster. This is a
+bounded model-registration correction; broader compatibility gates remain open.
+
+The [shader animation limit correction](2026-09-17-rtcw-animmap.md) restores
+RTCW SP/MP's sixteen-frame ordinary `animMap` limit in GL/Vulkan/RTX. Actual
+parser regressions cover all profiles, bounds and the existing shaderx
+extension; fourteen focused Windows x86 checks and the strict development
+build pass. Six installed SP/MP map-startup probes report zero excess-animation
+warnings. These establish registration behavior, not fire-effect visual parity.
+
+#### RTCW gate matrix
+
 | RTCW gate | SP | MP | Required closure |
 | --- | --- | --- | --- |
 | Official maps and saves | Source/Unit/Live; 32 individual map launches with both AAS worlds, 25 gameplay save/reload/fresh-process cycles, repeat/cross-map/autosave and malformed-header handling; two-map retail save interchange; cinematic saves refused | Source/Unit/Live; 15 individual map launches, advertised modes and native warmup restarts with advancing match/usercmd clocks; separately authorized soldier movement/firing retest | Full campaign transitions and sustained AI/combat; broader historical/damaged save payloads; MP peers, objectives and other classes/weapons |
@@ -612,7 +764,7 @@ gates; RTCW remains an explicitly enabled development profile.
 | Filesystem/config/pure | Source/Unit; archive/config policy, ordered module/root lookup and intentional no-cache policy integrated; original SP pure default/flags; explicit pure-proof policy unavailable | Source/Unit/Build/Fixture; profile-owned two-native-module proof, pinned-module pak validation and local pure admission with retail modules; original/iortcw proof and verifier comparisons | SP pure contract; MP peer admission and broader architecture policy; retail mount observations, malformed and partial-install probes; legacy MP favorites import |
 | Module ABI | Source/Unit/Build/Fixture; 2,215 original/iortcw assertions on x86/x64; bounded bot-entity/movement-input/goal/movement-result/prediction/state/parser/trace/render/vertex/orientation records, 10-bit game entity limit, mode imports/exports, popup/menu/key translation, command values and native x86 game-owned animation pointer handoff | Source/Unit; 2,205 original/iortcw assertions on x86/x64; bounded bot-entity/movement-input/goal/movement-result/prediction/state/parser/trace/render/vertex/orientation records, 10-bit game entity limit, mode imports/exports, popup/menu/key translation, command values and WOLFINFO | Complete trap/export adapters, retail UI/cgame/qagame execution and live game-data binding; distinguish original/iortcw module flag/renderer contracts |
 | Live wire and demos | Source/Unit/Fixture; 1,143 matched native message encodings plus a decoder-only dictionary fixture; first local snapshot with installed modules and pure mode off | Source/Unit/Fixture; 1,117 matched native message encodings; local pure admission and first map snapshot with installed modules | Sustained live state integration, netchan/handshake rules, retail transcripts, demos and bidirectional interoperability |
-| Assets/renderers/audio | Source/Unit/Build/Fixture; RTCW v47 selection, stock `escape1` collision probe, frozen render records, basic scene/polygon/gradient imports, CPU 2D comparisons, MDC decoding/reference comparisons and native drawing through a synthetic Q3 fixture; indexed MD3/MDC/MDS tags, MDS poses and continuous LOD pass installed-asset CPU comparisons; native synthetic MDS draws through all three renderers; skin metadata/model lookup matches all 412 installed skins against four references; brush-surface shader lookup matches 1,925 cases per reference; explicit VM pointer/basic UI sound imports and source-compared dynamic/model lights integrated | Source/Unit/Build/Fixture; same contracts plus rotated pictures, stock `mp_beach` collision probe and inspected French native menu captures in all three renderers | Original-engine collision parity, full RTCW material flags, live corona/decal and GL fog parity, Vulkan/RTX scene-fog GPU paths, projected world-light GPU parity, retail MDS scene/tag and skin/model assembly validation, shader remap/GPU parity, remaining shader/fog/animation behavior, music/fade/cinematic contracts and further retail RTCW engine-render-target screenshots; MDC/MDS ray transport has CPU evidence only |
+| Assets/renderers/audio | Source/Unit/Build/Fixture; RTCW v47 selection, stock `escape1` collision probe, frozen render records, basic scene/polygon/gradient imports, CPU 2D comparisons, MDC decoding/reference comparisons and native drawing through a synthetic Q3 fixture; indexed MD3/MDC/MDS tags, MDS poses and continuous LOD pass installed-asset CPU comparisons; native synthetic MDS draws through all three renderers; skin metadata/model lookup matches all 412 installed skins against four references; brush-surface shader lookup matches 1,925 cases per reference; explicit VM pointer/basic UI sound imports and source-compared dynamic/model lights integrated | Source/Unit/Build/Fixture; same contracts plus rotated pictures, stock `mp_beach` collision probe and inspected French native menu captures in all three renderers | Original-engine collision parity, full RTCW material flags, live corona/decal and GL fog parity, Vulkan/RTX scene-fog original-engine parity and native RT runtime validation, projected world-light GPU parity, retail MDS scene/tag and skin/model assembly validation, shader remap/GPU parity, remaining shader/fog/animation behavior, music/fade/cinematic contracts and further retail RTCW engine-render-target screenshots; MDC/MDS ray transport has CPU evidence only |
 | Navigation | Source/Unit/Build/Fixture; live AAS8/RCD15 loading, both installed `escape1` worlds initialize; checked 128-state goal/movement lifecycle; shared entity updates with owned area links, per-world blocking, checked BSP imports, frame/state/time adapters and empty-config item updates; basic/trace/route/visibility, hide/attack, movement prediction and release ShowRoute imports; SP corner search; 70-pair graph/cost, route/cache and visibility comparisons with original/iortcw; tactical/prediction synthetic comparisons and 64-member installed prediction with stated arithmetic limits | Source/Unit/Build/Fixture; checked 64-state goal/movement lifecycle; same shared entity/ownership, BSP, frame/state/time, query, prediction and empty-item contracts; MP truncating costs versus SP ceiling, grid search and tactical occupancy verified; installed prediction uses SP geometry; RCD12 selection uses synthetic headers; stock MP keeps bots disabled | Dynamic-entity prediction and original BSP parity; cold-cache tactical divergences, installed-map/live tactical observations; missing-cache generation/writing, installed MP-cache observations, x87/fast-math numeric and decision differences, original-engine runtime route and gameplay evidence |
 | Gameplay and lifecycle | Open campaign; Source/Unit/Fixture for AI state lifecycle, camera evaluation, clean mission-briefing shutdown, shared movie-owner cleanup, main-menu shutdown and partial navigation-load cleanup; Windows x86 GL startup progresses through the opening cinematic to inspected first-person knife/HUD captures with either active audio backend and nonzero SP speech queries | Source/Unit/Fixture for local map initialization, profile-specific camera timing, briefing-movie playback/shutdown and active-briefing-to-SP handoff; gameplay remains open | SP movement/combat, broader character parity, audible speech/facial timing, campaign/AI/save-load/transitions; MP classes/objectives/maps; broader partial initialization, sustained play and shutdown |
 | Music and fades | Source/Unit/Build/Fixture; original-source queue/fade and SP loop/mixer comparisons; both-backend clear modes with preserved music and bounded PCM/gain routing; native menu music buffers on OpenAL; legacy initialized while muted | Source/Unit/Build/Fixture; exact two-argument import; native menu music buffers on OpenAL; legacy initialized while muted | Measured output and original playback parity; game-script triggers, save-load restoration and backend/device lifecycle |
@@ -620,7 +772,7 @@ gates; RTCW remains an explicitly enabled development profile.
 | Entity streams | Source/Unit/Build/Fixture; checked start/stop imports, shared decoder, eleven entity slots, queued replacement, immediate entity stop, bounded fades, both-backend synthetic stream runtime and installed introductory speech with nonzero amplitude | Source/Unit/Build/Fixture; checked start import, twenty-three entity slots, original intro-repeat loop policy, both-backend synthetic silent stream runtime | Original PCM/device timing; dialogue and mouth synchronization parity; save/load restoration; source-different SP loop correction and fade-slot admission; device recovery/resource pressure |
 | Speech amplitude/default sound | Source/Unit/Build/Fixture; signed one-shot/peak-stream measurements on both backends; 299,264 matching cases per original/iortcw SP reference on three targets; installed intro completes with nonzero queries; eight-frame silent default | Source/Unit/Build/Fixture; original zero speech response; 512-frame silent default; both-backend installed briefing startup | Original clock/output/facial parity; full dialogue/codec coverage; device recovery and resource pressure |
 | MP localization | Not an SP import | Source/Unit/Fixture; all eight installed dictionaries (1,201 records), 818,856 translations per original/iortcw reference, Windows x86/x64 and Linux x86 sanitizers; inspected French native main menu in all three renderers | Remaining UI/cgame rendering, byte/font agreement and language changes during a live session; optional translation-authoring diagnostics remain unimplemented |
-| Cinematic startup/presentation | Source/Unit/Build/Fixture; catalog-owned repeat policy and wolfintro selection, letterbox import/command, 24 fps header timing, clock handoff/rewind/wrap and inspected movie frames on all three raster renderers | Source/Unit/Build/Fixture; catalog logo/intro policy, original 30 fps behavior, missing-startup-movie fallback and briefing movie startup | RoQ JPEG and malformed codec coverage; original visual/timing parity, audible A/V synchronization, game-script fades and full campaign movie transitions |
+| Cinematic startup/presentation | Source/Unit/Build/Fixture/Live; catalog-owned repeat policy and wolfintro selection, letterbox import/command, 24 fps header timing, clock handoff/rewind/wrap and inspected movie frames on all three raster renderers; [bounded decoding and same-process malformed-movie recovery](2026-09-17-roq-bounds.md), installed movie corpus and final-frame checks | Source/Unit/Build/Fixture/Live; catalog logo/intro policy, original 30 fps behavior, missing-startup-movie fallback and briefing movie startup; same bounded decoder, installed movie corpus and malformed-movie recovery | JPEG no-op matches original SP/MP source. Complete malformed codec/fuzz coverage, original visual/timing parity, audible A/V synchronization, game-script fades and full campaign movie transitions remain required |
 | Shared release | Open | Open | Q3/QL non-regression, clean supported-platform builds, complete suite and same-artifact runtime evidence |
 
 The existing Q3/QL blockers below remain in force. Their evidence does not
@@ -789,11 +941,25 @@ Local compatibility work can continue while the account owner resolves it.
   subscription/download, provider loss/fault injection, and sustained
   GameServer callback tests.
 
+### Return to Castle Wolfenstein
+
+- Complete the [RTCW gate matrix](#rtcw-gate-matrix) for both modes using
+  legitimate installations and the same Windows x86 engine binaries.
+- Extend individual SP map/save probes to full campaign transitions,
+  sustained AI/combat, and broader save/load compatibility.
+- Extend local MP map probes to sustained classes, weapons, objectives,
+  pure admission, and bidirectional retail/reference peer interoperability.
+- Validate claimed demos, renderer/material/fog behavior, audio/input, and
+  partial initialization/recovery/shutdown for each mode.
+- Broaden real SP/MP menu handoffs while preserving mode-specific configs,
+  modules, filesystem rules, and process-lifetime profile isolation.
+
 ### Shared release
 
 - Run the full automated suite and supported build matrix on a clean checkout.
-- Run both profiles from the same packaged binaries with isolated homepaths and
-  no file replacement between launches.
+- Run all four profiles from the same packaged binaries with isolated homepaths
+  and no file replacement between launches. RTCW's development gate must be
+  resolved through evidence before full release compatibility can be claimed.
 - Validate only windowed sessions unless fullscreen permission is explicit.
   Rendering evidence must come from the engine `screenshot` command, never an
   operating-system capture. Automated probes must not control user input
@@ -828,19 +994,22 @@ not silently reinterpret these baseline results as proof for subsequent code.
 
 ## Full-compatibility sign-off
 
-The initial goal is complete only when every required matrix row is `PASS` at
-its stated highest evidence level for both profiles, all blockers and open live
-gates are closed or explicitly removed from the supported contract, and the
-same release artifacts pass:
+The unified goal is complete only when every required row in the Q3/QL and RTCW
+matrices passes at its required evidence level for `q3`, `ql`, `rtcw-sp`, and
+`rtcw-mp`, all applicable blockers and open live gates are closed, and the same
+release artifacts pass:
 
 1. automatic and explicit profile selection;
 2. exact module API/ABI and asset loading;
-3. client and dedicated-server networking in both interoperability directions;
+3. client and dedicated-server networking in both interoperability directions
+   where applicable;
 4. all claimed demo formats and malformed-input gates;
-5. representative gameplay/render/audio/input sessions using legitimate data;
+5. representative gameplay/render/audio/input sessions using legitimate data,
+   including RTCW SP campaign/AI/save-load and RTCW MP objectives;
 6. cross-profile isolation and deterministic packaging; and
 7. complete automated, build, and documented windowed runtime gates.
 
 Sign-off must identify the exact release artifacts and evidence bundle. A
 partial profile, one-way client connection, inherited FnQL result, or source
-claim cannot satisfy the goal.
+claim cannot satisfy the goal. A release may make a narrower, explicitly
+documented profile/platform claim, but that does not complete the unified goal.

@@ -1,0 +1,1406 @@
+{
+  "date": "2026-09-17",
+  "platform": "Windows x86",
+  "reference": "FnQuake3 7d8c9629cdc7979f09697266470359101ffd9eda",
+  "scope": "Scoped presentation evidence, not full profile compatibility.",
+  "runtimeProbes": [
+    {
+      "utc": "2026-09-17T14:49:58.770476+00:00",
+      "commit": "0b6af9ba7a17d73bf27c5c016c00772a1a93899a",
+      "worktreeDirty": true,
+      "profile": "q3",
+      "renderer": "glx",
+      "installation": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+      "map": "q3dm1",
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\aspect-restore\\runtime-bin\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "q3",
+        "+set",
+        "fs_basepath",
+        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\aspect-restore\\q3-glx\\home",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "960",
+        "+set",
+        "r_windowedHeight",
+        "540",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "cl_renderer",
+        "glx",
+        "+set",
+        "logfile",
+        "4",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "rtx_rt_mode",
+        "0",
+        "+set",
+        "rtx_rt_require",
+        "0",
+        "+set",
+        "net_ip6",
+        "::1",
+        "+set",
+        "net_port6",
+        "0",
+        "+exec",
+        "aspect-probe.cfg",
+        "+devmap",
+        "q3dm1"
+      ],
+      "executableSha256": "5b876438d98fe3918dd80781ac8488843c0a930f08872d70e7882c963f15d85b",
+      "rendererSha256": "20f9ba56e4f51cd8d03d7d36b742ed1d21d9f4cfeded4d1ce0983a0f428e1ea3",
+      "archiveSha256": "063eed980ccbd88aa021f8422abae3a9bf85c64d57450b491dc51b0a66cc523a",
+      "desktopSwitched": false,
+      "osInputControlled": false,
+      "engineReadyClick": false,
+      "scope": "Windowed world/HUD on-off-on captures; input disabled, SP briefing Ready only.",
+      "exitCode": 0,
+      "forcedStop": false,
+      "diagnostics": [
+        "HUD: loaded 13 rules from fnq3-hud.json.",
+        "\"cl_hudAspect\" is:\"1^7\" default:\"1^7\"",
+        "\"r_fovCorrection\" is:\"1^7\" default:\"1^7\""
+      ],
+      "errors": [],
+      "captures": [
+        "disabled.png",
+        "enabled.png",
+        "restored.png"
+      ],
+      "hudDumpWritten": true,
+      "installationUnchanged": true,
+      "evidenceDirectory": ".tmp/aspect-restore/q3-glx",
+      "captureEvidence": [
+        {
+          "name": "disabled.png",
+          "width": 960,
+          "height": 540,
+          "sha256": "9416b8f113af25a5bb99e1e4a533e65de90aa6e89e8d98098f4014fcfe0d34b5"
+        },
+        {
+          "name": "enabled.png",
+          "width": 960,
+          "height": 540,
+          "sha256": "f8d7ffdfead1035316e1eade80e28eb62f64aeaed47aa3502d2bfe29630cd11a"
+        },
+        {
+          "name": "restored.png",
+          "width": 960,
+          "height": 540,
+          "sha256": "0eb9b298d3fd00c89aac8c9ec4f4b526655870bcaf8adc175e220112e552b683"
+        }
+      ],
+      "logEvidence": [
+        {
+          "name": "commands.cfg",
+          "sha256": "3a2d03eac12015873a88d1b693267c94649473da28f1c74cfa53811227383d8b"
+        },
+        {
+          "name": "console.log",
+          "sha256": "1f6aa96681e6f07962859dd0e7bde6c4508ff4e869b49e694749a0ed4e33a36a"
+        },
+        {
+          "name": "fntech3-hud-dump.json",
+          "sha256": "f752cfdd83ab83f1a6528da15355f09beb46e688d8f6c7be5c68e69248934690"
+        }
+      ]
+    },
+    {
+      "utc": "2026-09-17T14:46:45.096498+00:00",
+      "commit": "0b6af9ba7a17d73bf27c5c016c00772a1a93899a",
+      "worktreeDirty": true,
+      "profile": "q3",
+      "renderer": "vk",
+      "installation": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+      "map": "q3dm1",
+      "command": [
+        "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "q3",
+        "+set",
+        "fs_basepath",
+        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\aspect-restore\\q3-vk\\home",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "960",
+        "+set",
+        "r_windowedHeight",
+        "540",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "cl_renderer",
+        "vk",
+        "+set",
+        "logfile",
+        "4",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "rtx_rt_mode",
+        "0",
+        "+set",
+        "rtx_rt_require",
+        "0",
+        "+exec",
+        "aspect-probe.cfg",
+        "+devmap",
+        "q3dm1"
+      ],
+      "executableSha256": "1d2ca24673f55a1a510503f72fec41f6b8902d9181b2c217036a44ff468375ef",
+      "rendererSha256": "f97f09cdb377597b58ba2b79eea3ca52f67fa1a826c9491f6ff029c91bc812ae",
+      "archiveSha256": "063eed980ccbd88aa021f8422abae3a9bf85c64d57450b491dc51b0a66cc523a",
+      "desktopSwitched": false,
+      "osInputControlled": false,
+      "engineReadyClick": false,
+      "scope": "Windowed world/HUD on-off-on captures; input disabled, SP briefing Ready only.",
+      "exitCode": 0,
+      "forcedStop": false,
+      "diagnostics": [
+        "HUD: loaded 13 rules from fnq3-hud.json.",
+        "\"cl_hudAspect\" is:\"1^7\" default:\"1^7\"",
+        "\"r_fovCorrection\" is:\"1^7\" default:\"1^7\""
+      ],
+      "errors": [],
+      "captures": [
+        "disabled.png",
+        "enabled.png",
+        "restored.png"
+      ],
+      "hudDumpWritten": true,
+      "installationUnchanged": true,
+      "evidenceDirectory": ".tmp/aspect-restore/q3-vk",
+      "captureEvidence": [
+        {
+          "name": "disabled.png",
+          "width": 960,
+          "height": 540,
+          "sha256": "8671e0a7a66bc1978fb5d1b672bb19a1d5e27c2191c873056653fafbd316ff95"
+        },
+        {
+          "name": "enabled.png",
+          "width": 960,
+          "height": 540,
+          "sha256": "d771765c0949ae6d10dbe71691f28896172f89b0bc5ddce22938f2042871d827"
+        },
+        {
+          "name": "restored.png",
+          "width": 960,
+          "height": 540,
+          "sha256": "7a8e1c0519f29b209077968d5aac0c7329aad74152532d22d5d779589084728b"
+        }
+      ],
+      "logEvidence": [
+        {
+          "name": "commands.cfg",
+          "sha256": "3a2d03eac12015873a88d1b693267c94649473da28f1c74cfa53811227383d8b"
+        },
+        {
+          "name": "console.log",
+          "sha256": "28c7be4a7d3982e2a49bd6cb9f2b0030c5e94e39e4801623a7a1a620e36e43f0"
+        },
+        {
+          "name": "fntech3-hud-dump.json",
+          "sha256": "f752cfdd83ab83f1a6528da15355f09beb46e688d8f6c7be5c68e69248934690"
+        }
+      ]
+    },
+    {
+      "utc": "2026-09-17T14:50:02.717949+00:00",
+      "commit": "0b6af9ba7a17d73bf27c5c016c00772a1a93899a",
+      "worktreeDirty": true,
+      "profile": "q3",
+      "renderer": "rtx",
+      "installation": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+      "map": "q3dm1",
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\aspect-restore\\runtime-bin\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "q3",
+        "+set",
+        "fs_basepath",
+        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\aspect-restore\\q3-rtx\\home",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "960",
+        "+set",
+        "r_windowedHeight",
+        "540",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "logfile",
+        "4",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "rtx_rt_mode",
+        "0",
+        "+set",
+        "rtx_rt_require",
+        "0",
+        "+set",
+        "net_ip6",
+        "::1",
+        "+set",
+        "net_port6",
+        "0",
+        "+exec",
+        "aspect-probe.cfg",
+        "+devmap",
+        "q3dm1"
+      ],
+      "executableSha256": "5b876438d98fe3918dd80781ac8488843c0a930f08872d70e7882c963f15d85b",
+      "rendererSha256": "aaf0c30325da1243bbc2a0c7c3b7ab8c183fbf108a4d7fd8190e3ad1c977d675",
+      "archiveSha256": "063eed980ccbd88aa021f8422abae3a9bf85c64d57450b491dc51b0a66cc523a",
+      "desktopSwitched": false,
+      "osInputControlled": false,
+      "engineReadyClick": false,
+      "scope": "Windowed world/HUD on-off-on captures; input disabled, SP briefing Ready only.",
+      "exitCode": 0,
+      "forcedStop": false,
+      "diagnostics": [
+        "HUD: loaded 13 rules from fnq3-hud.json.",
+        "\"cl_hudAspect\" is:\"1^7\" default:\"1^7\"",
+        "\"r_fovCorrection\" is:\"1^7\" default:\"1^7\""
+      ],
+      "errors": [],
+      "captures": [
+        "disabled.png",
+        "enabled.png",
+        "restored.png"
+      ],
+      "hudDumpWritten": true,
+      "installationUnchanged": true,
+      "evidenceDirectory": ".tmp/aspect-restore/q3-rtx",
+      "captureEvidence": [
+        {
+          "name": "disabled.png",
+          "width": 960,
+          "height": 540,
+          "sha256": "18e1a3b6825232a234b9e85275c856fd38b3143ca50d969d4a4cd8425e8614f4"
+        },
+        {
+          "name": "enabled.png",
+          "width": 960,
+          "height": 540,
+          "sha256": "3a3fe996f872387261b3a4c81593dd269aa040c56019ba6bb29c992140220726"
+        },
+        {
+          "name": "restored.png",
+          "width": 960,
+          "height": 540,
+          "sha256": "f95ad25bc494f23eb02b5d60746f8c4bfbacd71d8cdf00dd3044b134ca2c731a"
+        }
+      ],
+      "logEvidence": [
+        {
+          "name": "commands.cfg",
+          "sha256": "3a2d03eac12015873a88d1b693267c94649473da28f1c74cfa53811227383d8b"
+        },
+        {
+          "name": "console.log",
+          "sha256": "73dd9d0059725ed90035832f8c3e829e69263a634f572a51f0a83a4fe399725e"
+        },
+        {
+          "name": "fntech3-hud-dump.json",
+          "sha256": "f752cfdd83ab83f1a6528da15355f09beb46e688d8f6c7be5c68e69248934690"
+        }
+      ]
+    },
+    {
+      "utc": "2026-09-17T15:22:59.408381+00:00",
+      "commit": "0b6af9ba7a17d73bf27c5c016c00772a1a93899a",
+      "worktreeDirty": true,
+      "profile": "q3",
+      "renderer": "vk",
+      "installation": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+      "map": "q3dm1",
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\aspect-restore\\runtime-bin\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "q3",
+        "+set",
+        "fs_basepath",
+        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\aspect-restore\\q3-vk-linked-final\\home",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "960",
+        "+set",
+        "r_windowedHeight",
+        "540",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "cl_renderer",
+        "vk",
+        "+set",
+        "logfile",
+        "4",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "rtx_rt_mode",
+        "0",
+        "+set",
+        "rtx_rt_require",
+        "0",
+        "+set",
+        "net_ip6",
+        "::1",
+        "+set",
+        "net_port6",
+        "0",
+        "+exec",
+        "aspect-probe.cfg",
+        "+devmap",
+        "q3dm1"
+      ],
+      "executableSha256": "c092cd304cccec80e9fd4d4b42b4429fe291193e8114edbf04feec895eda9922",
+      "rendererSha256": "8472a62dee07a17004344867a0d18f74d7c6e01bad96448ae2551b67214f6927",
+      "archiveSha256": "837b49ced765fde9a86ee13cbc22ab792a858cce6f95c41f310bc7e1820ef497",
+      "desktopSwitched": false,
+      "osInputControlled": false,
+      "engineReadyClick": false,
+      "scope": "Windowed world/HUD on-off-on captures; input disabled, SP briefing Ready only. Instrumented console commands equip SP inventory or join the MP red team.",
+      "exitCode": 0,
+      "forcedStop": false,
+      "diagnostics": [
+        "HUD: loaded 13 rules from fnq3-hud.json.",
+        "\"cl_hudAspect\" is:\"1^7\" default:\"1^7\"",
+        "\"r_fovCorrection\" is:\"1^7\" default:\"1^7\""
+      ],
+      "errors": [],
+      "captures": [
+        "disabled.png",
+        "enabled.png",
+        "restored.png"
+      ],
+      "hudDumpWritten": true,
+      "installationUnchanged": true,
+      "evidenceDirectory": ".tmp/aspect-restore/q3-vk-linked-final",
+      "captureEvidence": [
+        {
+          "name": "disabled.png",
+          "width": 960,
+          "height": 540,
+          "sha256": "23c4c28a56b7e0ce2e2d2ef4a9ca080a1273e0d1a11892816cf079968cb059ee"
+        },
+        {
+          "name": "enabled.png",
+          "width": 960,
+          "height": 540,
+          "sha256": "47ff49f5ef380e0eb5cbc1d38e16ccaf12d82d3606d037365b36e71867658a2d"
+        },
+        {
+          "name": "restored.png",
+          "width": 960,
+          "height": 540,
+          "sha256": "b59e805b2fdaf62e237f26dee356228738740a75702176006ab641519da30d43"
+        }
+      ],
+      "logEvidence": [
+        {
+          "name": "commands.cfg",
+          "sha256": "3a2d03eac12015873a88d1b693267c94649473da28f1c74cfa53811227383d8b"
+        },
+        {
+          "name": "console.log",
+          "sha256": "0e070d455eec1ffe1f4e836d509f0388f97650ae98fa0dd5fe8ff970a00c313c"
+        },
+        {
+          "name": "fntech3-hud-dump.json",
+          "sha256": "2d6698f7c8648b5d35eb2c1fc3b168536cfd9a6603e88c5ea15cbf7cdac6f99e"
+        }
+      ]
+    },
+    {
+      "utc": "2026-09-17T14:49:20.132891+00:00",
+      "commit": "0b6af9ba7a17d73bf27c5c016c00772a1a93899a",
+      "worktreeDirty": true,
+      "profile": "ql",
+      "renderer": "vk",
+      "installation": "E:\\SteamLibrary\\steamapps\\common\\Quake Live",
+      "map": "campgrounds",
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\aspect-restore\\runtime-bin\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "ql",
+        "+set",
+        "fs_basepath",
+        "E:\\SteamLibrary\\steamapps\\common\\Quake Live",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\aspect-restore\\ql-vk-ffa\\home",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "960",
+        "+set",
+        "r_windowedHeight",
+        "540",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "cl_renderer",
+        "vk",
+        "+set",
+        "logfile",
+        "4",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "rtx_rt_mode",
+        "0",
+        "+set",
+        "rtx_rt_require",
+        "0",
+        "+set",
+        "net_ip6",
+        "::1",
+        "+set",
+        "net_port6",
+        "0",
+        "+exec",
+        "aspect-probe.cfg",
+        "+devmap",
+        "campgrounds",
+        "ffa"
+      ],
+      "executableSha256": "5b876438d98fe3918dd80781ac8488843c0a930f08872d70e7882c963f15d85b",
+      "rendererSha256": "f97f09cdb377597b58ba2b79eea3ca52f67fa1a826c9491f6ff029c91bc812ae",
+      "archiveSha256": "063eed980ccbd88aa021f8422abae3a9bf85c64d57450b491dc51b0a66cc523a",
+      "desktopSwitched": false,
+      "osInputControlled": false,
+      "engineReadyClick": false,
+      "scope": "Windowed world/HUD on-off-on captures; input disabled, SP briefing Ready only.",
+      "exitCode": 0,
+      "forcedStop": false,
+      "diagnostics": [
+        "\"cl_hudAspect\" is:\"1^7\" default:\"1^7\"",
+        "\"r_fovCorrection\" is:\"1^7\" default:\"1^7\""
+      ],
+      "errors": [],
+      "captures": [
+        "disabled.png",
+        "enabled.png",
+        "restored.png"
+      ],
+      "hudDumpWritten": false,
+      "installationUnchanged": true,
+      "evidenceDirectory": ".tmp/aspect-restore/ql-vk-ffa",
+      "captureEvidence": [
+        {
+          "name": "disabled.png",
+          "width": 960,
+          "height": 540,
+          "sha256": "c1a56ea740e0440de2e93caac8a6eab70058a148e40ba914049e626bca6b81af"
+        },
+        {
+          "name": "enabled.png",
+          "width": 960,
+          "height": 540,
+          "sha256": "7e8c29df0ce803105e86190a0ad6daa04bb4ebecd1e8df8acb48a3e42e3c7601"
+        },
+        {
+          "name": "restored.png",
+          "width": 960,
+          "height": 540,
+          "sha256": "c144abe11401ed650a6afd2672c5ea8dc0f4f2bece0fc7f225ab1373640d321b"
+        }
+      ],
+      "logEvidence": [
+        {
+          "name": "commands.cfg",
+          "sha256": "1202e0d44f823bb4966ce12416981a517f868dc906cb40b2c59e77b70d8427ae"
+        },
+        {
+          "name": "console.log",
+          "sha256": "6a4f8036abffdfbcb237e18b30d64826bd12c9b271b6b6cb0219dca26070f2b5"
+        }
+      ]
+    },
+    {
+      "utc": "2026-09-17T15:13:48.672627+00:00",
+      "commit": "0b6af9ba7a17d73bf27c5c016c00772a1a93899a",
+      "worktreeDirty": true,
+      "profile": "rtcw-sp",
+      "renderer": "vk",
+      "installation": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+      "map": "escape2",
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\aspect-restore\\probe-bin\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "rtcw-sp",
+        "+set",
+        "fs_basepath",
+        "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\aspect-restore\\rtcw-sp-vk-equipped-frame\\home",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "960",
+        "+set",
+        "r_windowedHeight",
+        "540",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "cl_renderer",
+        "vk",
+        "+set",
+        "logfile",
+        "4",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "rtx_rt_mode",
+        "0",
+        "+set",
+        "rtx_rt_require",
+        "0",
+        "+set",
+        "net_ip6",
+        "::1",
+        "+set",
+        "net_port6",
+        "0",
+        "+exec",
+        "aspect-probe.cfg",
+        "+spdevmap",
+        "escape2"
+      ],
+      "executableSha256": "7d4790c64de786e061024ebd0568aa198c94eed37566eb0fa26dfad1ff50a06d",
+      "rendererSha256": "8472a62dee07a17004344867a0d18f74d7c6e01bad96448ae2551b67214f6927",
+      "archiveSha256": "837b49ced765fde9a86ee13cbc22ab792a858cce6f95c41f310bc7e1820ef497",
+      "desktopSwitched": false,
+      "osInputControlled": false,
+      "engineReadyClick": true,
+      "scope": "Windowed world/HUD on-off-on captures; input disabled, SP briefing Ready only. Instrumented console commands equip SP inventory or join the MP red team.",
+      "exitCode": 0,
+      "forcedStop": false,
+      "diagnostics": [
+        "ASPECT_PROBE ready clicked once",
+        "ASPECT_PROBE frame time=8200 paused=0 wait=0 norender=0",
+        "HUD: loaded 10 rules from fntech3-hud.json."
+      ],
+      "errors": [],
+      "captures": [
+        "disabled.png",
+        "enabled.png",
+        "restored.png"
+      ],
+      "hudDumpWritten": true,
+      "installationUnchanged": true,
+      "evidenceDirectory": ".tmp/aspect-restore/rtcw-sp-vk-equipped-frame",
+      "captureEvidence": [
+        {
+          "name": "disabled.png",
+          "width": 960,
+          "height": 540,
+          "sha256": "95d6fc6ba1f7e3a2b42b4d836baaa4239c0dc73304ecb7de96e5816c0928ccad"
+        },
+        {
+          "name": "enabled.png",
+          "width": 960,
+          "height": 540,
+          "sha256": "a0e94bfb3674c8c481ba7c527c3acb3e9076f53ff6b2cf533e7d1697dbcbf245"
+        },
+        {
+          "name": "restored.png",
+          "width": 960,
+          "height": 540,
+          "sha256": "c408389d282f92fde7a809301d6df76b9753246effd1d41531923f20bdf2eb9a"
+        }
+      ],
+      "logEvidence": [
+        {
+          "name": "commands.cfg",
+          "sha256": "60bbbc6d84333689ebf5ad850ffef4a54a49692bbc808544e45a69ed1d1e519d"
+        },
+        {
+          "name": "console.log",
+          "sha256": "c9c8f20b8285f56cbf41a484d5d05dc88428ae22d7cbf2e4da29060dde858db8"
+        },
+        {
+          "name": "fntech3-hud-dump.json",
+          "sha256": "4c020bafc62acfde41a2ee5ad72ccecdb6c89889130f3d664211ab1dc0355321"
+        }
+      ]
+    },
+    {
+      "utc": "2026-09-17T15:08:24.544734+00:00",
+      "commit": "0b6af9ba7a17d73bf27c5c016c00772a1a93899a",
+      "worktreeDirty": true,
+      "profile": "rtcw-mp",
+      "renderer": "vk",
+      "installation": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+      "map": "mp_beach",
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\aspect-restore\\probe-bin\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "rtcw-mp",
+        "+set",
+        "fs_basepath",
+        "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\aspect-restore\\rtcw-mp-vk-preset-frame\\home",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "960",
+        "+set",
+        "r_windowedHeight",
+        "540",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "cl_renderer",
+        "vk",
+        "+set",
+        "logfile",
+        "4",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "rtx_rt_mode",
+        "0",
+        "+set",
+        "rtx_rt_require",
+        "0",
+        "+set",
+        "net_ip6",
+        "::1",
+        "+set",
+        "net_port6",
+        "0",
+        "+exec",
+        "aspect-probe.cfg",
+        "+devmap",
+        "mp_beach"
+      ],
+      "executableSha256": "3d2cd0ae56508a81a71158247a2942da0d4def4fa1ca4dff5d982682ab550cad",
+      "rendererSha256": "d3a0fa92874127a8cc9b2cbaa2c39587286f989b948876321e649d148e5db8b4",
+      "archiveSha256": "837b49ced765fde9a86ee13cbc22ab792a858cce6f95c41f310bc7e1820ef497",
+      "desktopSwitched": false,
+      "osInputControlled": false,
+      "engineReadyClick": false,
+      "scope": "Windowed world/HUD on-off-on captures; input disabled, SP briefing Ready only.",
+      "exitCode": 0,
+      "forcedStop": false,
+      "diagnostics": [
+        "ASPECT_PROBE frame time=8650 paused=0 wait=0 norender=0",
+        "HUD: loaded 19 rules from fntech3-hud.json."
+      ],
+      "errors": [],
+      "captures": [
+        "disabled.png",
+        "enabled.png",
+        "restored.png"
+      ],
+      "hudDumpWritten": true,
+      "installationUnchanged": true,
+      "evidenceDirectory": ".tmp/aspect-restore/rtcw-mp-vk-preset-frame",
+      "captureEvidence": [
+        {
+          "name": "disabled.png",
+          "width": 960,
+          "height": 540,
+          "sha256": "4fdfd5a4e707df2f49a16d1502498f620d08cb9fcea0912241718e74ebaf9f80"
+        },
+        {
+          "name": "enabled.png",
+          "width": 960,
+          "height": 540,
+          "sha256": "5f77b85ff038523b7a3c9234bdf1c2871ba83fa2d5bed3ffea4d8ed60aeff6af"
+        },
+        {
+          "name": "restored.png",
+          "width": 960,
+          "height": 540,
+          "sha256": "28448d7ba1c7ec357363a3a59ab650974ebc0b6624059b95014ef8fb9fba8b05"
+        }
+      ],
+      "logEvidence": [
+        {
+          "name": "commands.cfg",
+          "sha256": "60bbbc6d84333689ebf5ad850ffef4a54a49692bbc808544e45a69ed1d1e519d"
+        },
+        {
+          "name": "console.log",
+          "sha256": "a582d6f9e5c050354d4d3ecbd60317d14a46ce414a3e0017e1e1712eddfd07b6"
+        },
+        {
+          "name": "fntech3-hud-dump.json",
+          "sha256": "629b0f65ce3bc23cec472234733b6e7fdc20ee9f0db8051041bc94522ced183e"
+        }
+      ]
+    },
+    {
+      "utc": "2026-09-17T15:13:06.076183+00:00",
+      "commit": "0b6af9ba7a17d73bf27c5c016c00772a1a93899a",
+      "worktreeDirty": true,
+      "profile": "rtcw-mp",
+      "renderer": "vk",
+      "installation": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+      "map": "mp_beach",
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\aspect-restore\\probe-bin\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "rtcw-mp",
+        "+set",
+        "fs_basepath",
+        "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\aspect-restore\\rtcw-mp-vk-ultrawide-frame\\home",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "1280",
+        "+set",
+        "r_windowedHeight",
+        "540",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "cl_renderer",
+        "vk",
+        "+set",
+        "logfile",
+        "4",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "rtx_rt_mode",
+        "0",
+        "+set",
+        "rtx_rt_require",
+        "0",
+        "+set",
+        "net_ip6",
+        "::1",
+        "+set",
+        "net_port6",
+        "0",
+        "+exec",
+        "aspect-probe.cfg",
+        "+devmap",
+        "mp_beach"
+      ],
+      "executableSha256": "728d3211bcc59ee9345d85a0361c276691818cecbb57be63ff3ff7a00913270d",
+      "rendererSha256": "8472a62dee07a17004344867a0d18f74d7c6e01bad96448ae2551b67214f6927",
+      "archiveSha256": "837b49ced765fde9a86ee13cbc22ab792a858cce6f95c41f310bc7e1820ef497",
+      "desktopSwitched": false,
+      "osInputControlled": false,
+      "engineReadyClick": false,
+      "scope": "Windowed world/HUD on-off-on captures; input disabled, SP briefing Ready only. Instrumented console commands equip SP inventory or join the MP red team.",
+      "exitCode": 0,
+      "forcedStop": false,
+      "diagnostics": [
+        "ASPECT_PROBE frame time=8650 paused=0 wait=0 norender=0",
+        "HUD: loaded 19 rules from fntech3-hud.json."
+      ],
+      "errors": [],
+      "captures": [
+        "disabled.png",
+        "enabled.png",
+        "restored.png"
+      ],
+      "hudDumpWritten": true,
+      "installationUnchanged": true,
+      "evidenceDirectory": ".tmp/aspect-restore/rtcw-mp-vk-ultrawide-frame",
+      "captureEvidence": [
+        {
+          "name": "disabled.png",
+          "width": 1280,
+          "height": 540,
+          "sha256": "dcb1f17515061fc6db5ce21b0b41189b3aa70d0567d4597cd048eca9f64b3172"
+        },
+        {
+          "name": "enabled.png",
+          "width": 1280,
+          "height": 540,
+          "sha256": "5c18d29e61c6ca399416b669e751fcfc5fdd7b4546687b68525e5bd1fb932e19"
+        },
+        {
+          "name": "restored.png",
+          "width": 1280,
+          "height": 540,
+          "sha256": "9f4862d13fa904fa1b29014627a409003325db0781734475290bb3147ce1f6ca"
+        }
+      ],
+      "logEvidence": [
+        {
+          "name": "commands.cfg",
+          "sha256": "60bbbc6d84333689ebf5ad850ffef4a54a49692bbc808544e45a69ed1d1e519d"
+        },
+        {
+          "name": "console.log",
+          "sha256": "634937f31b506f0685709543e90a3d57ea84b03c6da4c5444f672249954cc766"
+        },
+        {
+          "name": "fntech3-hud-dump.json",
+          "sha256": "bb445ca2ac16bf314d1aa7b0fa9cf68f721a6d91ad50686ab27887e688ed85a1"
+        }
+      ]
+    }
+  ],
+  "installationFixtures": {
+    "q3": [
+      {
+        "path": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena\\baseq3\\pak0.pk3",
+        "sha256": "7ce8b3910620cd50a09e4f1100f426e8c6180f68895d589f80e6bd95af54bcae",
+        "entries": [
+          {
+            "name": "maps/q3dm1.bsp",
+            "size": 1906708,
+            "crc32": "ee62f4f9"
+          },
+          {
+            "name": "vm/cgame.qvm",
+            "size": 236956,
+            "crc32": "82834f63"
+          },
+          {
+            "name": "vm/qagame.qvm",
+            "size": 366480,
+            "crc32": "ace601e7"
+          }
+        ]
+      },
+      {
+        "path": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena\\baseq3\\pak1.pk3",
+        "sha256": "d4ffd60b4b414c3419499e321b6f5c2e933cf082df85823ad2d6ae2f803e1682",
+        "entries": [
+          {
+            "name": "vm/cgame.qvm",
+            "size": 240872,
+            "crc32": "06fe6638"
+          },
+          {
+            "name": "vm/qagame.qvm",
+            "size": 390360,
+            "crc32": "6f3897e1"
+          }
+        ]
+      },
+      {
+        "path": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena\\baseq3\\pak2.pk3",
+        "sha256": "ccae938a2f13a03b24902d675181d516a431699701ed88023a307f34b5bcd58c",
+        "entries": [
+          {
+            "name": "vm/cgame.qvm",
+            "size": 242200,
+            "crc32": "f507f901"
+          },
+          {
+            "name": "vm/qagame.qvm",
+            "size": 392100,
+            "crc32": "7f82aa1f"
+          }
+        ]
+      },
+      {
+        "path": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena\\baseq3\\pak3.pk3",
+        "sha256": "d03c0a0e06b99f9ecca2be7389f57faed406e85f7c09b9c56afdfa53ba25e312",
+        "entries": [
+          {
+            "name": "vm/cgame.qvm",
+            "size": 242204,
+            "crc32": "018465a3"
+          },
+          {
+            "name": "vm/qagame.qvm",
+            "size": 392100,
+            "crc32": "0b727740"
+          }
+        ]
+      },
+      {
+        "path": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena\\baseq3\\pak4.pk3",
+        "sha256": "af5f6d5c82fe4440ae0bb660f0648d1fa1731a9e8305a9eb652aa243428697f1",
+        "entries": [
+          {
+            "name": "vm/cgame.qvm",
+            "size": 284268,
+            "crc32": "b00b0f84"
+          },
+          {
+            "name": "vm/qagame.qvm",
+            "size": 466364,
+            "crc32": "15cb9058"
+          }
+        ]
+      },
+      {
+        "path": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena\\baseq3\\pak6.pk3",
+        "sha256": "bb4f0ae2bf603b050fb665436d3178ce7c1c20360e67bacf7c14d93daff38daf",
+        "entries": [
+          {
+            "name": "vm/cgame.qvm",
+            "size": 325192,
+            "crc32": "11f6ec21"
+          },
+          {
+            "name": "vm/qagame.qvm",
+            "size": 469392,
+            "crc32": "b843d57b"
+          }
+        ]
+      },
+      {
+        "path": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena\\baseq3\\pak7.pk3",
+        "sha256": "de6283ce23e3486a2622c5dbf73d3721a59f24debd380e90f43a97d952fea283",
+        "entries": [
+          {
+            "name": "vm/cgame.qvm",
+            "size": 325192,
+            "crc32": "0d2496a8"
+          },
+          {
+            "name": "vm/qagame.qvm",
+            "size": 469392,
+            "crc32": "d7239e13"
+          }
+        ]
+      },
+      {
+        "path": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena\\baseq3\\pak8.pk3",
+        "sha256": "812c9e97f231e89cefede3848c6110b7bd34245093af6f22c2cacde3e6b15663",
+        "entries": [
+          {
+            "name": "vm/cgame.qvm",
+            "size": 325220,
+            "crc32": "1cf7ba72"
+          },
+          {
+            "name": "vm/qagame.qvm",
+            "size": 469796,
+            "crc32": "41493c59"
+          }
+        ]
+      }
+    ],
+    "ql": [
+      {
+        "path": "E:\\SteamLibrary\\steamapps\\common\\Quake Live\\baseq3\\pak00.pk3",
+        "sha256": "7d5fd8d4786f9e140804b7279ce2589c8a7babdcf2886763a63a992ad9ef634b",
+        "entries": [
+          {
+            "name": "maps/campgrounds.bsp",
+            "size": 2924532,
+            "crc32": "0ddc0f1d"
+          },
+          {
+            "name": "ui/hud.menu",
+            "size": 24646,
+            "crc32": "2dfc0a37"
+          }
+        ]
+      },
+      {
+        "path": "E:\\SteamLibrary\\steamapps\\common\\Quake Live\\baseq3\\cgamex86.dll",
+        "sha256": "310542161ae03cc09a2edf7c5933a3cb5e2f13d791f59d5a33a62721bbf39953",
+        "size": 561152
+      },
+      {
+        "path": "E:\\SteamLibrary\\steamapps\\common\\Quake Live\\baseq3\\qagamex86.dll",
+        "sha256": "9bfad1b5df4cbbb3fcfb20781024fc5c0abe73ba8389c2f20be8c0a55552e83d",
+        "size": 640512
+      }
+    ],
+    "rtcw-sp": [
+      {
+        "path": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\main\\mp_bin.pk3",
+        "sha256": "bb6ee2302de55cd35a3145b790e43958fa92a98d3494b9fa96b457d030b0c05d",
+        "entries": [
+          {
+            "name": "cgame_mp_x86.dll",
+            "size": 589824,
+            "crc32": "50ea4303"
+          }
+        ]
+      },
+      {
+        "path": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\main\\mp_pak1.pk3",
+        "sha256": "248ff7c6a4c12f3fc08e0bb73a0602ffdb2e31c4a4c50929d76fa5f814cbf974",
+        "entries": [
+          {
+            "name": "ui_mp/hud.menu",
+            "size": 6479,
+            "crc32": "4ac40cd1"
+          }
+        ]
+      },
+      {
+        "path": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\main\\pak0.pk3",
+        "sha256": "1dfcfc3187ba09fe32cd8a7921a09cd15dd789816186c89b11e5e0d954c55e6c",
+        "entries": [
+          {
+            "name": "maps/escape2.bsp",
+            "size": 8410180,
+            "crc32": "345ccdad"
+          }
+        ]
+      },
+      {
+        "path": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\main\\sp_pak1.pk3",
+        "sha256": "66785d612f88a19c3bb5fd24f84d89b240375a28550a79039dfb6afae865ec9a",
+        "entries": [
+          {
+            "name": "ui/hud.menu",
+            "size": 5787,
+            "crc32": "0f3f24b2"
+          }
+        ]
+      },
+      {
+        "path": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\cgamex86.dll",
+        "sha256": "6c3c1260db46e92be5c6734f0d36966231fab1e1cabf60181e7a94e2c5b5fa41",
+        "size": 536576
+      },
+      {
+        "path": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\qagamex86.dll",
+        "sha256": "085346769622cbf19c085accd055bf8b59f3c773aca503711ea0f95e5288e7d1",
+        "size": 704512
+      },
+      {
+        "path": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\main\\cgame_mp_x86.dll",
+        "sha256": "a21378f24c6476335e81b0d72e3c684074e8a0a20a399062b9a3d64f4b542221",
+        "size": 589824
+      },
+      {
+        "path": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\main\\qagame_mp_x86.dll",
+        "sha256": "d8975b5c4e14488283c5eca7d549005304b04f1690705c13c174a171cc24c387",
+        "size": 700416
+      }
+    ],
+    "rtcw-mp": [
+      {
+        "path": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\main\\mp_bin.pk3",
+        "sha256": "bb6ee2302de55cd35a3145b790e43958fa92a98d3494b9fa96b457d030b0c05d",
+        "entries": [
+          {
+            "name": "cgame_mp_x86.dll",
+            "size": 589824,
+            "crc32": "50ea4303"
+          }
+        ]
+      },
+      {
+        "path": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\main\\mp_pak0.pk3",
+        "sha256": "c0e090e7b4245313bea64b5fb20b24d69786e593716cfe6bf85ee9b4f3c794b3",
+        "entries": [
+          {
+            "name": "maps/mp_beach.bsp",
+            "size": 7343512,
+            "crc32": "77533d56"
+          }
+        ]
+      },
+      {
+        "path": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\main\\mp_pak1.pk3",
+        "sha256": "248ff7c6a4c12f3fc08e0bb73a0602ffdb2e31c4a4c50929d76fa5f814cbf974",
+        "entries": [
+          {
+            "name": "ui_mp/hud.menu",
+            "size": 6479,
+            "crc32": "4ac40cd1"
+          }
+        ]
+      },
+      {
+        "path": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\main\\sp_pak1.pk3",
+        "sha256": "66785d612f88a19c3bb5fd24f84d89b240375a28550a79039dfb6afae865ec9a",
+        "entries": [
+          {
+            "name": "ui/hud.menu",
+            "size": 5787,
+            "crc32": "0f3f24b2"
+          }
+        ]
+      },
+      {
+        "path": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\cgamex86.dll",
+        "sha256": "6c3c1260db46e92be5c6734f0d36966231fab1e1cabf60181e7a94e2c5b5fa41",
+        "size": 536576
+      },
+      {
+        "path": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\qagamex86.dll",
+        "sha256": "085346769622cbf19c085accd055bf8b59f3c773aca503711ea0f95e5288e7d1",
+        "size": 704512
+      },
+      {
+        "path": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\main\\cgame_mp_x86.dll",
+        "sha256": "a21378f24c6476335e81b0d72e3c684074e8a0a20a399062b9a3d64f4b542221",
+        "size": 589824
+      },
+      {
+        "path": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\main\\qagame_mp_x86.dll",
+        "sha256": "d8975b5c4e14488283c5eca7d549005304b04f1690705c13c174a171cc24c387",
+        "size": 700416
+      }
+    ]
+  },
+  "sourceFiles": [
+    {
+      "path": "code/client/cl_hud.cpp",
+      "sha256": "d6d9e959139321550a9d2f8c6cb2b5afc7047349a139acbc13b325c79b61ee43"
+    },
+    {
+      "path": "code/renderercommon/tr_q3_fov.h",
+      "sha256": "95e642308d9612d9ac82c1d52f435ddba72f0ba642297128f5aea5d9bd1b2492"
+    },
+    {
+      "path": "pkg/games/rtcw-sp/main/fntech3-hud.json",
+      "sha256": "7f0d999c4c0dccc0ba2fb34827a0331e003a9337ca981ba5a1de2db267526b0b"
+    },
+    {
+      "path": "pkg/games/rtcw-mp/main/fntech3-hud.json",
+      "sha256": "9a567d96870dafe92f725878426ba0a8cea153621f2966659e9c1a726b206a17"
+    }
+  ],
+  "finalRTCWProbeInstrumentation": {
+    "sourceSha256": "05705004364ea26cf00eb5906cb47acf9372c17a6981d21ffe685acf00f273ae",
+    "probeSourceSha256": "459fd9b1589b5bb08223d5ded77a1a7ba0eb17312da4d51ef35a67c7f30b6dc5",
+    "additionalCommands": "\n    // Disposable instrumentation: the standing-authorized briefing Ready click only.\n    Cmd_AddCommand(\"fn_probe_ready\", []() {\n        static bool used=false;\n        if(used || !Com_GameIsRTCWSP() || cls.state!=CA_ACTIVE || !uivm ||\n           !(Key_GetCatcher()&KEYCATCH_UI) || !Cvar_VariableIntegerValue(\"cg_norender\") ||\n           (VM_Call(uivm,0,UI_GET_ACTIVE_MENU)!=UIMENU_BRIEFING &&\n            VM_Call(uivm,0,UI_GET_ACTIVE_MENU)!=UIMENU_PREGAME)) {\n            Com_Printf(\"ASPECT_PROBE ready refused\\n\");return;\n        }\n        used=true;\n        VM_Call(uivm,2,UI_MOUSE_EVENT,-640,-480);\n        VM_Call(uivm,2,UI_MOUSE_EVENT,620,470);\n        CL_KeyEvent(K_MOUSE1,qtrue,cls.realtime);\n        CL_KeyEvent(K_MOUSE1,qfalse,cls.realtime);\n        Com_Printf(\"ASPECT_PROBE ready clicked once\\n\");\n    });\n",
+    "frameHook": "\nstatic void AspectProbeFrame() {\n    static unsigned started=0;\n    static int phase=0;\n    if(cls.state!=CA_ACTIVE || !cl.snap.valid || !Com_GameIsRTCW()) return;\n    const unsigned now=static_cast<unsigned>(Sys_Milliseconds());\n    if(!started) started=now;\n    const unsigned elapsed=now-started;\n    static bool equipped=false;\n    if(Com_GameIsRTCWSP() && !equipped && elapsed>=4000) {\n        Cbuf_AddText(\"weapon 3\\n\"); equipped=true;\n    }\n    if(phase==0 && elapsed>=1500) {\n        Cbuf_AddText(Com_GameIsRTCWSP() ? \"fn_probe_ready; give all; weapon 3\\n\" : \"team red; CloseLimboMenu\\n\"); ++phase;\n    }\n    if(phase==1 && elapsed>=8000) {\n        Com_Printf(\"ASPECT_PROBE frame time=%d paused=%d wait=%d norender=%d\\n\",cl.snap.serverTime,\n            Cvar_VariableIntegerValue(\"cl_paused\"),Cvar_VariableIntegerValue(\"cl_waitForFire\"),Cvar_VariableIntegerValue(\"cg_norender\"));\n        Cbuf_AddText(\"hud_reload; set cl_hudDump 1; screenshotPNG enabled\\n\"); ++phase;\n    }\n    if(phase==2 && elapsed>=9000) { Cbuf_AddText(\"set cl_hudAspect 0; set r_fovCorrection 0\\n\"); ++phase; }\n    if(phase==3 && elapsed>=9300) { Cbuf_AddText(\"screenshotPNG disabled\\n\"); ++phase; }\n    if(phase==4 && elapsed>=10000) { Cbuf_AddText(\"set cl_hudAspect 1; set r_fovCorrection 1\\n\"); ++phase; }\n    if(phase==5 && elapsed>=10300) { Cbuf_AddText(\"screenshotPNG restored\\n\"); ++phase; }\n    if(phase==6 && elapsed>=11000) { Cbuf_AddText(\"quit\\n\"); ++phase; }\n}\n",
+    "scope": "One briefing Ready click per private process; no OS input or OS screen capture."
+  }
+}

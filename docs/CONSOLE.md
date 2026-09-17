@@ -2,7 +2,7 @@
 
 FnQL treats the console as its own configurable subsystem rather than as an afterthought hanging off HUD or menu scaling. This guide walks through the settings that shape how the console looks, feels, and behaves in day-to-day use.
 
-For menu and cinematic presentation controls, see the [Aspect Handling guide](ASPECT_CORRECTION.md). Retail cgame owns HUD projection and world FOV.
+For FOV, HUD, menu, and cinematic presentation controls, see the [Aspect Handling guide](ASPECT_CORRECTION.md). Engine HUD/FOV correction is available for Q3 and RTCW; retail Quake Live cgame owns its projection.
 
 ## Overview
 

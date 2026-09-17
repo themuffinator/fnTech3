@@ -272,7 +272,12 @@ typedef struct vkUniform_s {
 	vec4_t csmSplitAtlas;		// fragment: split near/far, atlas u offset/scale
 	vec4_t csmShadowColor;		// fragment: rgb strength, w reversed-depth flag
 	vec4_t csmView;				// vertex: view forward + distance offset
+	vec4_t rtcwFogColor;		// offset 368: RGB and off/linear/exp mode
+	vec4_t rtcwFogParams;		// start/end/density/radial
+	vec4_t rtcwFogEye[3];		// local-to-eye rows
 } vkUniform_t;
+
+uint32_t VK_PushUniform( const vkUniform_t *uniformData );
 
 #define TESS_XYZ   (1)
 #define TESS_RGBA0 (2)

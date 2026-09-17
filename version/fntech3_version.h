@@ -17,8 +17,11 @@ version.
 #define FNTECH3_PROJECT_NAME "fnTech3"
 #define FNTECH3_PROJECT_NAME_SHORT "fnTech3"
 #define FNTECH3_DISPLAY_NAME "fnTech3"
-#define FNTECH3_COMPATIBILITY_TARGET "Quake III Arena and Quake Live"
+#define FNTECH3_COMPATIBILITY_TARGET "Quake III Arena, Quake Live, and Return to Castle Wolfenstein (SP/MP)"
 
+/* Canonical release version. Use scripts/release_workflow.py prepare to update
+ * every representation together. Published versions use MAJOR.MINOR.PATCH;
+ * TWEAK stays zero and CI run/commit identity lives in the release manifest. */
 #define FNTECH3_VERSION_MAJOR 0
 #define FNTECH3_VERSION_MINOR 1
 #define FNTECH3_VERSION_PATCH 0

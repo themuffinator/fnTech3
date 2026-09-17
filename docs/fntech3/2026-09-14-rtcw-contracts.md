@@ -1,6 +1,6 @@
 # Game manager and RTCW contracts
 
-## Scope and current status
+## Scope and checkpoint status
 
 RTCW single player and multiplayer target the **same `fntech3.exe`** and shared
 engine. They are two profiles of one title, not separate engine distributions.
@@ -8,11 +8,14 @@ The catalog exposes `rtcw-sp` and `rtcw-mp`; `rtcw` or an installation containin
 both modes requires an explicit mode choice before compatibility-sensitive
 startup. Process-wide profile selection remains immutable.
 
-**RTCW gameplay is not implemented yet.** Its catalog entries have explicit
-runtime blockers, and both detection and activation reject them before the
-filesystem, protocol codec or module can accidentally use a Q3/QL contract.
-The remaining runtime, renderer, savegame and interoperability work is recorded
-in the [compatibility ledger](COMPATIBILITY.md).
+At the initial catalog checkpoint, RTCW gameplay was not implemented. Its
+catalog entries introduced explicit runtime blockers, with detection and
+activation rejecting them before the filesystem, protocol codec or module
+could accidentally use a Q3/QL contract. Subsequent development builds enable
+isolated probes with `-Drtcw-development=true`; default builds remain gated.
+The observations below retain their checkpoint scope. Current runtime,
+renderer, campaign/savegame and interoperability evidence and remaining work
+are recorded in the [RTCW gate matrix](COMPATIBILITY.md#rtcw-gate-matrix).
 
 The [game manager API](../../code/qcommon/game_manager.h) owns read-only title
 and profile enumeration, canonical keys and aliases, configuration filenames,

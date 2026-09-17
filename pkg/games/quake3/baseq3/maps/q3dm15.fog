@@ -1,0 +1,7 @@
+// Gentle cool haze layered over the map's authored fog volumes.
+color 0.57 0.59 0.58
+mode exp
+density 0.00045
+start 288
+opacity 0.16
+sky 1

@@ -1,0 +1,7 @@
+// Cool, low-saturation distance haze for Troubled Waters.
+color 0.53 0.59 0.61
+mode exp
+density 0.00060
+start 208
+opacity 0.26
+sky 1

@@ -457,6 +457,11 @@ static void DrawSkySide( image_t *image, const int mins[2], const int maxs[2] )
 	{
 		GL_Bind( image );
 #ifdef USE_VULKAN
+		vkUniform_t skyUniform;
+		Com_Memset( &skyUniform, 0, sizeof( skyUniform ) );
+		skyUniform.texFactors[0] = 1;
+		VK_SetRTCWFogParams( &skyUniform, NULL );
+		if ( VK_PushUniform( &skyUniform ) == ~0U ) return;
 		tess.svars.texcoordPtr[0] = tess.texCoords[0];
 
 		vk_bind_pipeline( vk.skybox_pipeline );
@@ -827,6 +832,7 @@ Other things could be stuck in here, like birds in the sky, etc
 ================
 */
 void RB_StageIteratorSky( void ) {
+	if ( !backEnd.refdef.rtcwFog.drawSky ) return;
 
 #if defined (USE_VULKAN) && !defined (USE_BUFFER_CLEAR)
 	if ( r_fastsky->integer && vk.clearAttachment ) {

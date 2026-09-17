@@ -10,6 +10,10 @@ static float RB_MdsLodFraction( const mdsModel_t *model, const refEntity_t *enti
 	const viewParms_t *view = &backEnd.viewParms;
 	vec3_t location;
 	float distance, projected = 0;
+#ifdef USE_PMLIGHT
+	/* Cube faces must see the same silhouette, regardless of their view axis. */
+	if ( view->passFlags & VPF_DLIGHT_SHADOW ) return 1.0f;
+#endif
 	VectorAdd( entity->origin, frame->localOrigin, location );
 	distance = DotProduct( view->or.axis[0], location ) - DotProduct( view->or.axis[0], view->or.origin );
 	if ( distance > 0 ) {

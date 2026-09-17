@@ -1,0 +1,7 @@
+// Soft warm-grey haze for the team arena.
+color 0.59 0.58 0.56
+mode exp
+density 0.00085
+start 160
+opacity 0.29
+sky 1

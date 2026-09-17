@@ -1,0 +1,7 @@
+// Neutral dungeon haze.
+color 0.59 0.58 0.56
+mode exp
+density 0.00105
+start 96
+opacity 0.35
+sky 1

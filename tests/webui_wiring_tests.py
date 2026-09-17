@@ -208,7 +208,7 @@ class WebUiWiringTests(unittest.TestCase):
             input_source.index("void CL_JoystickEvent(")
         ]
         self.assertIn(
-            "KEYCATCH_BROWSER | KEYCATCH_UI | KEYCATCH_CGAME",
+            "Key_GetCatcher() & KEYCATCH_BROWSER",
             relative_mouse,
         )
         self.assertNotIn("CL_WebView_OnMouseMove", relative_mouse)
@@ -1743,7 +1743,7 @@ class WebUiWiringTests(unittest.TestCase):
 
         for backend in (sdl_input, win_input, linux_input):
             with self.subTest(backend="shared pointer owner policy"):
-                self.assertIn("inputs.menuMask = kPointerMenuMask;", backend)
+                self.assertIn("inputs.menuMask = Com_GameIsQuakeLive() ? kPointerMenuMask : KEYCATCH_BROWSER;", backend)
                 self.assertIn(
                     "fnql::input::ResolvePointerOwner( inputs )",
                     backend,

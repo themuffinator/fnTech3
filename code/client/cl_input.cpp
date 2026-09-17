@@ -27,6 +27,7 @@ extern "C" {
 
 #include "client_cpp.h"
 #include "input_compat.hpp"
+#include "../compat/rtcw_game_abi.h"
 #include "../qcommon/netchan_safety.hpp"
 
 #include <array>
@@ -41,6 +42,8 @@ constexpr std::size_t kInputButtonCount = 16;
 struct InputCommandBinding {
 	const char *name;
 	xcommand_t handler;
+	bool rtcwOnly = false;
+	comGameId_t profile = COM_GAME_AUTO;
 };
 
 } // namespace
@@ -81,6 +84,8 @@ static kbutton_t in_lookup, in_lookdown, in_moveleft, in_moveright;
 static kbutton_t in_strafe, in_speed;
 static kbutton_t in_up, in_down, in_mlook;
 static std::array<kbutton_t, kInputButtonCount> in_buttons;
+// RTCW has a separate eight-bit weapon-button field and a kick byte.
+static std::array<kbutton_t, 9> in_rtcwButtons;
 
 static cvar_t *cl_nodelta;
 
@@ -181,6 +186,7 @@ static void IN_ClearCommandInputState( void ) {
 		*button = kbutton_t{};
 	}
 	in_buttons.fill( kbutton_t{} );
+	in_rtcwButtons.fill( kbutton_t{} );
 	if ( recenterMlook ) {
 		IN_CenterView();
 	}
@@ -215,6 +221,9 @@ static void IN_RemoveCommandInputSource( int sourceKey ) {
 		removeSource( button );
 	}
 	for ( kbutton_t& button : in_buttons ) {
+		removeSource( &button );
+	}
+	for ( kbutton_t& button : in_rtcwButtons ) {
 		removeSource( &button );
 	}
 	// Mlook shares the source/active mechanics but has no fractional-frame
@@ -484,6 +493,25 @@ static void IN_ButtonUp( void ) {
 }
 
 
+template <std::size_t Index>
+static void IN_RTCWButtonDown( void ) {
+	static_assert( Index < in_rtcwButtons.size(), "RTCW input button index out of range" );
+	IN_KeyDown( &in_rtcwButtons[Index] );
+}
+
+template <std::size_t Index>
+static void IN_RTCWButtonUp( void ) {
+	static_assert( Index < in_rtcwButtons.size(), "RTCW input button index out of range" );
+	IN_KeyUp( &in_rtcwButtons[Index] );
+}
+
+static bool IN_CommandBindingEnabled( const InputCommandBinding& binding ) {
+	if ( binding.rtcwOnly && !Com_GameIsRTCW() ) return false;
+	if ( binding.profile == COM_GAME_RTCW_SP ) return Com_GameIsRTCWSP();
+	if ( binding.profile == COM_GAME_RTCW_MP ) return Com_GameIsRTCWMP();
+	return true;
+}
+
 static constexpr std::array kInputCommandBindings{
 	InputCommandBinding{ "centerview", IN_CenterView },
 	InputCommandBinding{ "+moveup", IN_UpDown },
@@ -544,6 +572,34 @@ static constexpr std::array kInputCommandBindings{
 	InputCommandBinding{ "-button14", IN_ButtonUp<14> },
 	InputCommandBinding{ "+button15", IN_ButtonDown<15> },
 	InputCommandBinding{ "-button15", IN_ButtonUp<15> },
+	InputCommandBinding{ "+activate", IN_ButtonDown<6>, true },
+	InputCommandBinding{ "-activate", IN_ButtonUp<6>, true },
+	InputCommandBinding{ "+useitem", IN_ButtonDown<2>, true },
+	InputCommandBinding{ "-useitem", IN_ButtonUp<2>, true },
+	InputCommandBinding{ "+salute", IN_ButtonDown<3>, true },
+	InputCommandBinding{ "-salute", IN_ButtonUp<3>, true },
+	InputCommandBinding{ "+sprint", IN_ButtonDown<5>, true },
+	InputCommandBinding{ "-sprint", IN_ButtonUp<5>, true },
+	InputCommandBinding{ "+attack2", IN_RTCWButtonDown<0>, true },
+	InputCommandBinding{ "-attack2", IN_RTCWButtonUp<0>, true },
+	InputCommandBinding{ "+zoom", IN_RTCWButtonDown<1>, true },
+	InputCommandBinding{ "-zoom", IN_RTCWButtonUp<1>, true },
+	InputCommandBinding{ "+quickgren", IN_RTCWButtonDown<2>, true },
+	InputCommandBinding{ "-quickgren", IN_RTCWButtonUp<2>, true },
+	InputCommandBinding{ "+reload", IN_RTCWButtonDown<3>, true },
+	InputCommandBinding{ "-reload", IN_RTCWButtonUp<3>, true },
+	InputCommandBinding{ "+leanleft", IN_RTCWButtonDown<4>, true },
+	InputCommandBinding{ "-leanleft", IN_RTCWButtonUp<4>, true },
+	InputCommandBinding{ "+leanright", IN_RTCWButtonDown<5>, true },
+	InputCommandBinding{ "-leanright", IN_RTCWButtonUp<5>, true },
+	InputCommandBinding{ "+wbutton6", IN_RTCWButtonDown<6>, true, COM_GAME_RTCW_SP },
+	InputCommandBinding{ "-wbutton6", IN_RTCWButtonUp<6>, true, COM_GAME_RTCW_SP },
+	InputCommandBinding{ "+dropweapon", IN_RTCWButtonDown<6>, true, COM_GAME_RTCW_MP },
+	InputCommandBinding{ "-dropweapon", IN_RTCWButtonUp<6>, true, COM_GAME_RTCW_MP },
+	InputCommandBinding{ "+wbutton7", IN_RTCWButtonDown<7>, true },
+	InputCommandBinding{ "-wbutton7", IN_RTCWButtonUp<7>, true },
+	InputCommandBinding{ "+kick", IN_RTCWButtonDown<8>, true },
+	InputCommandBinding{ "-kick", IN_RTCWButtonUp<8>, true },
 	InputCommandBinding{ "+mlook", IN_MLookDown },
 	InputCommandBinding{ "-mlook", IN_MLookUp },
 };
@@ -551,6 +607,7 @@ static constexpr std::array kInputCommandBindings{
 
 qboolean CL_IsEngineStatefulInputCommand( const char *command ) {
 	for ( const InputCommandBinding& binding : kInputCommandBindings ) {
+		if ( !IN_CommandBindingEnabled( binding ) ) continue;
 		if ( binding.name[0] == '+' &&
 			fnql::input::IsCanonicalCommandSegment(
 				command, binding.name ) ) {
@@ -565,6 +622,7 @@ qboolean CL_IsEngineStatefulInputCommand( const char *command ) {
 
 static void IN_AddCommandBindings( void ) {
 	for ( const InputCommandBinding& binding : kInputCommandBindings ) {
+		if ( !IN_CommandBindingEnabled( binding ) ) continue;
 		Cmd_AddCommand( binding.name, binding.handler );
 	}
 }
@@ -572,6 +630,7 @@ static void IN_AddCommandBindings( void ) {
 
 static void IN_RemoveCommandBindings( void ) {
 	for ( const InputCommandBinding& binding : kInputCommandBindings ) {
+		if ( !IN_CommandBindingEnabled( binding ) ) continue;
 		Cmd_RemoveCommand( binding.name );
 	}
 }
@@ -649,6 +708,12 @@ static void CL_KeyMove( usercmd_t *cmd ) {
 	side = CL_SafeMoveValue(
 		side, -movespeed * CL_KeyState( &in_moveleft ) );
 
+	// RTCW uses activate + keyboard strafe to lean without moving sideways.
+	if ( Com_GameIsRTCW() && ( cmd->buttons & FNTECH3_RTCW_BUTTON_ACTIVATE ) ) {
+		if ( side > 0 ) cmd->rtcw.wbuttons |= FNTECH3_RTCW_WBUTTON_LEANRIGHT;
+		if ( side < 0 ) cmd->rtcw.wbuttons |= FNTECH3_RTCW_WBUTTON_LEANLEFT;
+		side = 0;
+	}
 
 	up = CL_SafeMoveValue(
 		up, movespeed * CL_KeyState( &in_up ) );
@@ -674,8 +739,8 @@ CL_MouseEvent
 void CL_MouseEvent( int dx, int dy /*, int time*/ ) {
 	if ( Key_GetCatcher() & KEYCATCH_CONSOLE ) {
 		Con_MouseEvent( dx, dy );
-	} else if ( Key_GetCatcher() & ( KEYCATCH_BROWSER | KEYCATCH_UI | KEYCATCH_CGAME ) ) {
-		// SE_MOUSE is a relative gameplay lane. An absolute owner may have been
+	} else if ( Key_GetCatcher() & KEYCATCH_BROWSER ) {
+		// SE_MOUSE carries relative motion. An absolute owner may have been
 		// selected by an earlier queued key event (for example Escape) after the
 		// platform already queued this delta; never reinterpret it as a position.
 		return;
@@ -683,6 +748,14 @@ void CL_MouseEvent( int dx, int dy /*, int time*/ ) {
 		return;
 	} else if ( Cvar_VariableIntegerValue( "cg_ignoreMouseInput" ) ) {
 		return;
+	} else if ( Key_GetCatcher() & KEYCATCH_UI ) {
+		if ( uivm && !Com_GameIsQuakeLive() ) {
+			VM_Call( uivm, 2, UI_MOUSE_EVENT, dx, dy );
+		}
+	} else if ( Key_GetCatcher() & KEYCATCH_CGAME ) {
+		if ( cgvm && !Com_GameIsQuakeLive() ) {
+			VM_Call( cgvm, 2, CG_MOUSE_EVENT, dx, dy );
+		}
 	} else if ( ( Key_GetCatcher() & ~KEYCATCH_RETAIL_MOUSEPASS ) == 0 ) {
 		cl.mouseDx[cl.mouseIndex] =
 			fnql::input::SaturatingAddInt( cl.mouseDx[cl.mouseIndex], dx );
@@ -747,6 +820,10 @@ void CL_MouseAbsoluteEvent( int x, int y ) {
 		Con_SetMousePos( x, y );
 	} else if ( Key_GetCatcher() & KEYCATCH_BROWSER ) {
 		CL_WebView_OnMouseMove( x, y );
+	} else if ( !Com_GameIsQuakeLive() ) {
+		// Q3/RTCW UI and cgame exports take deltas, not drawable positions.
+		// Backends can also queue a click position before a catcher change.
+		return;
 	} else if ( !CL_AdvertisementBridge_IsDelayElapsed() ) {
 		return;
 	} else if ( Cvar_VariableIntegerValue( "cg_ignoreMouseInput" ) ) {
@@ -1087,6 +1164,14 @@ static void CL_CmdButtons( usercmd_t *cmd ) {
 		}
 		in_buttons[i].wasPressed = false;
 	}
+	if ( Com_GameIsRTCW() ) {
+		for ( std::size_t i = 0; i < in_rtcwButtons.size(); ++i ) {
+			const bool pressed = in_rtcwButtons[i].active || in_rtcwButtons[i].wasPressed;
+			if ( i < 8 && pressed ) cmd->rtcw.wbuttons |= 1u << i;
+			if ( i == 8 ) cmd->rtcw.wolfkick = pressed ? 1 : 0;
+			in_rtcwButtons[i].wasPressed = false;
+		}
+	}
 
 	// BUTTON_TALK makes retail game code discard movement.  The retail
 	// mouse-pass catcher used by held HUD overlays must remain transparent.
@@ -1097,7 +1182,7 @@ static void CL_CmdButtons( usercmd_t *cmd ) {
 	// allow the game to know if any key at all is
 	// currently pressed, even if it isn't bound to anything
 	if ( anykeydown && !gameplayInputCaptured ) {
-		cmd->buttons |= BUTTON_ANY;
+		cmd->buttons |= Com_GameIsRTCW() ? FNTECH3_RTCW_BUTTON_ANY : BUTTON_ANY;
 	}
 }
 

@@ -1,0 +1,7 @@
+// Light neutral haze for The Bouncy Map.
+color 0.60 0.62 0.61
+mode exp
+density 0.00075
+start 176
+opacity 0.28
+sky 1

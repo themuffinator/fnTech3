@@ -1,0 +1,7 @@
+// Subtle cool haze for Powerstation 0218.
+color 0.56 0.58 0.58
+mode exp
+density 0.00090
+start 144
+opacity 0.30
+sky 1

@@ -1,6 +1,7 @@
-"""Execute RTCW pass fog selection, GL parameter transfer and real-tokenizer directives."""
+"""Execute RTCW fog selection, GPU transfers, shader math and real-tokenizer directives."""
 from pathlib import Path
 import os
+import re
 import shutil
 import subprocess
 import tempfile
@@ -22,6 +23,9 @@ PREFIX = r'''
 #include <map>
 #include <string>
 '''
+PREFIX += '\n'.join(re.findall(
+    r'^#define GLS_(?:SRCBLEND|DSTBLEND|BLEND_BITS)[^\n]*',
+    (ROOT / 'code/renderer/tr_local.h').read_text(), re.M)) + '\n'
 
 DRAW = r'''
 int main(){
@@ -64,7 +68,7 @@ enum {GL_FOG=0xb60,GL_FOG_COLOR=0xb66,GL_FOG_MODE=0xb65,GL_FOG_START=0xb63,
  GL_FOG_END=0xb64,GL_FOG_DENSITY=0xb62,GL_FOG_HINT=0xc54,GL_DONT_CARE=0x1100,
  GL_EXP=0x800,GL_LINEAR=0x2601};
 static struct{comGameId_t gameId;}ri;
-struct shaderStage_t{qboolean rtcwFog;};
+struct shaderStage_t{qboolean rtcwFog;unsigned stateBits;};
 struct shader_t{qboolean isSky,rtcwNoFog;};
 static struct{shader_t *shader;}tess;
 static struct{qboolean projection2D;struct{fnRTCWFogFrame_t rtcwFog;struct{qboolean snooperView;}rtcw;}refdef;}backEnd;
@@ -157,6 +161,55 @@ int main(){
 }
 '''
 
+VK = r'''
+#include <cstddef>
+struct shaderStage_t { qboolean rtcwFog; unsigned stateBits; };
+struct shader_t { qboolean isSky, rtcwNoFog; };
+static struct { comGameId_t gameId; } ri;
+static struct { shader_t *shader; } tess;
+static struct {
+ qboolean projection2D;
+ struct { fnRTCWFogFrame_t rtcwFog; struct { qboolean snooperView; } rtcw; } refdef;
+ struct { float modelMatrix[16]; } or;
+} backEnd;
+#include "code/renderercommon/tr_rtcw_fog_vk.h"
+int main() {
+ shader_t shader{}; shaderStage_t stage{}; tess.shader=&shader;
+ auto &frame=backEnd.refdef.rtcwFog;
+ frame.fog.registered=frame.skyFog.registered=qtrue;
+ frame.fog.start=10; frame.fog.end=110; frame.fog.mode=FN_RTCW_FOG_LINEAR;
+ frame.skyFog.mode=FN_RTCW_FOG_EXP; frame.skyFog.density=0.1f;
+ frame.fog.color[0]=0.25f; frame.fog.color[1]=-1; frame.fog.color[2]=2;
+ for(int i=0;i<16;++i) backEnd.or.modelMatrix[i]=float(i+1);
+ for(auto profile:{COM_GAME_QUAKE3,COM_GAME_QUAKELIVE,COM_GAME_RTCW_SP,COM_GAME_RTCW_MP}) {
+  ri.gameId=profile;
+  bool rtcw=profile==COM_GAME_RTCW_SP||profile==COM_GAME_RTCW_MP;
+  // Non-RTCW scene capture always produces a disabled snapshot.
+  frame.fogEnabled=frame.skyEnabled=rtcw?qtrue:qfalse;
+  for(auto sky:{qfalse,qtrue}) for(auto noFog:{qfalse,qtrue})
+  for(auto stageFog:{qfalse,qtrue}) for(auto ui:{qfalse,qtrue})
+  for(auto snooper:{qfalse,qtrue}) {
+   shader.isSky=sky; shader.rtcwNoFog=noFog; stage.rtcwFog=stageFog;
+   backEnd.projection2D=ui; backEnd.refdef.rtcw.snooperView=snooper;
+   vkUniform_t data; memset(&data,0xa5,sizeof(data));
+   const auto held=data; const auto snapshot=frame;
+   VK_SetRTCWFogParams(&data,&stage);
+   auto expected=FnRTCWFogDraw(&frame,sky,ui,noFog,stageFog,
+      profile==COM_GAME_RTCW_SP?snooper:qfalse,qtrue);
+   assert(!memcmp(data.rtcwFogColor,expected.color,16));
+   assert(!memcmp(data.rtcwFogParams,expected.params,16));
+   assert(!memcmp(&snapshot,&frame,sizeof(frame)));
+   assert(!memcmp(&held,&data,offsetof(vkUniform_t,rtcwFogColor)));
+   for(int row=0;row<3;++row) for(int col=0;col<4;++col)
+    assert(data.rtcwFogEye[row][col]==backEnd.or.modelMatrix[col*4+row]);
+   // The next 2D draw must overwrite a previously enabled fog UBO.
+   backEnd.projection2D=qtrue; VK_SetRTCWFogParams(&data,nullptr);
+   assert(data.rtcwFogColor[3]==0);
+  }
+ }
+}
+'''
+
 
 class RTCWFogGPUTests(unittest.TestCase):
     def compile_run(self, body):
@@ -171,7 +224,7 @@ class RTCWFogGPUTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix='rtcw-fog-gpu-', dir=ROOT / '.tmp') as tmp:
             source = Path(tmp) / 'probe.cpp'; exe = Path(tmp) / 'probe.exe'
             source.write_text(PREFIX + body)
-            built = subprocess.run([compiler, *flags, '-std=c++17', '-I', str(ROOT), str(source), '-o', str(exe)], cwd=ROOT, capture_output=True, text=True, timeout=60)
+            built = subprocess.run([compiler, *flags, '-std=c++17', '-fno-operator-names', '-I', str(ROOT), str(source), '-o', str(exe)], cwd=ROOT, capture_output=True, text=True, timeout=60)
             self.assertEqual(built.returncode, 0, built.stdout + built.stderr)
             options = {'creationflags': subprocess.CREATE_NO_WINDOW} if os.name == 'nt' else {}
             ran = subprocess.run([str(exe)], cwd=ROOT, capture_output=True, text=True, timeout=30, **options)
@@ -180,8 +233,44 @@ class RTCWFogGPUTests(unittest.TestCase):
     def test_pass_selection_and_equations(self):
         self.compile_run(DRAW)
 
+    def test_compiled_shader_visibility_matches_cpu_contract(self):
+        # Compile the actual shared GLSL scalar function with its vector type
+        # represented as a POD, so shader/CPU equation drift is observable.
+        shader = (ROOT / 'code/renderercommon/rtcw_fog.glsl').read_text()
+        self.compile_run(r'''
+#include <algorithm>
+#include <cmath>
+struct vec4 { float x,y,z,w; };
+static float clamp(float v,float lo,float hi){return std::clamp(v,lo,hi);}
+using std::abs;
+using std::exp;
+''' + shader + r'''
+int main(){
+ for(float mode:{0.0f,1.0f,2.0f})
+ for(float start:{0.0f,10.0f,100.0f})
+ for(float end:{0.0f,10.0f,100.0f})
+ for(float density:{0.0f,0.01f,1.0f})
+ for(float distance:{-1.0f,0.0f,5.0f,10.0f,50.0f,100.0f,10000.0f}){
+  fnRTCWFogDraw_t cpu{}; cpu.color[3]=mode;
+  cpu.params[0]=start;cpu.params[1]=end;cpu.params[2]=density;
+  float gpu=rtcwFogVisibility({0,0,0,mode},{start,end,density,1},distance);
+  assert(std::isfinite(gpu));
+  assert(fabsf(gpu-FnRTCWFogVisibility(&cpu,distance))<1e-6f);
+ }
+}
+''')
+
     def test_gl_and_glsl_state_transfer(self):
         self.compile_run(GL)
+
+    def test_vulkan_uniform_transfer_and_layout(self):
+        for backend in ('renderervk', 'rendererrtx'):
+            with self.subTest(backend=backend):
+                source = (ROOT / 'code' / backend / 'vk.h').read_text()
+                begin = source.index('typedef struct vkUniform_s {')
+                end = source.index('} vkUniform_t;', begin) + len('} vkUniform_t;')
+                # 'or' is an engine C field name, a C++ alternative token.
+                self.compile_run(source[begin:end] + VK)
 
     def test_original_profile_shader_fog_directives(self):
         shared = (ROOT / 'code/qcommon/q_shared.c').read_text()

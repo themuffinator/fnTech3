@@ -60,6 +60,79 @@ using fnql::ToQboolean;
 
 static fntech3::rtcw::translation::Catalog rtcwTranslations;
 
+static void CL_RTCWNotebook_f( void ) {
+	if ( !uivm || cls.state != CA_ACTIVE || clc.demoplaying ) return;
+	Cvar_Set( "cg_youGotMail", "0" );
+	VM_Call( uivm, 1, UI_SET_ACTIVE_MENU, UIMENU_NOTEBOOK );
+}
+
+static void CL_RTCWHelp_f( void ) {
+	if ( uivm && cls.state == CA_ACTIVE && !clc.demoplaying )
+		VM_Call( uivm, 1, UI_SET_ACTIVE_MENU, UIMENU_HELP );
+}
+
+static void CL_RTCWUIRestart_f( void ) {
+	if ( !cls.uiStarted ) return;
+	CL_ShutdownUI();
+	CL_InitUI();
+}
+
+static void CL_RTCWStartLimbo_f( void ) { cl.rtcwLimboMode = qtrue; }
+static void CL_RTCWStopLimbo_f( void ) { cl.rtcwLimboMode = qfalse; }
+
+static void CL_RTCWClientDamage_f( void ) {
+	// Original SP consumes this console command without action. Cgame damage
+	// travels through the usercmd cld field or an explicit client command.
+}
+
+static void CL_RTCWSetRecommended_f( void ) {
+	// Supported machines exceed RTCW's original CPU tiers. Retain the retail
+	// video-quality choice and profile-owned configuration files.
+	const bool highVideo = Cvar_Get( "r_highQualityVideo", "1", CVAR_ARCHIVE )->integer != 0;
+	Cbuf_AddText( highVideo ? "exec highVidhighCPU.cfg\n" : "exec lowVidhighCPU.cfg\n" );
+	Cvar_Set( "ui_glCustom", "999" );
+	if ( Sys_LowPhysicalMemory() ) {
+		Cvar_Set( "s_khz", "11" );
+		if ( !highVideo ) {
+			Cvar_Set( "r_lowMemTextureSize", "256" );
+			Cvar_Set( "r_lowMemTextureThreshold", "40.0" );
+		}
+	}
+	if ( Cmd_Argc() > 1 ) Cbuf_AddText( "vid_restart\n" );
+}
+
+static void CL_AddRTCWCommands( void ) {
+	if ( !Com_GameIsRTCW() ) return;
+	Cmd_AddCommand( "startLimboMode", CL_RTCWStartLimbo_f );
+	Cmd_AddCommand( "stopLimboMode", CL_RTCWStopLimbo_f );
+	Cmd_AddCommand( "updatescreen", SCR_UpdateScreen );
+	Cmd_AddCommand( "setRecommended", CL_RTCWSetRecommended_f );
+	if ( Com_GameIsRTCWSP() ) {
+		Cmd_AddCommand( "notebook", CL_RTCWNotebook_f );
+		Cmd_AddCommand( "cld", CL_RTCWClientDamage_f );
+	} else {
+		Cmd_AddCommand( "help", CL_RTCWHelp_f );
+		Cmd_AddCommand( "ui_restart", CL_RTCWUIRestart_f );
+		Cmd_AddCommand( "LoadTranslations", CL_RTCWReloadTranslations );
+	}
+}
+
+static void CL_RemoveRTCWCommands( void ) {
+	if ( !Com_GameIsRTCW() ) return;
+	Cmd_RemoveCommand( "startLimboMode" );
+	Cmd_RemoveCommand( "stopLimboMode" );
+	Cmd_RemoveCommand( "updatescreen" );
+	Cmd_RemoveCommand( "setRecommended" );
+	if ( Com_GameIsRTCWSP() ) {
+		Cmd_RemoveCommand( "notebook" );
+		Cmd_RemoveCommand( "cld" );
+	} else {
+		Cmd_RemoveCommand( "help" );
+		Cmd_RemoveCommand( "ui_restart" );
+		Cmd_RemoveCommand( "LoadTranslations" );
+	}
+}
+
 void CL_RTCWLimboChat( vm_t *vm, intptr_t source ) {
 	if ( !Com_GameIsRTCWMP() ) Com_Error( ERR_DROP, "RTCW limbo chat outside MP" );
 	if ( !source ) return; // Original cgame treats a null submission as absent.
@@ -2118,7 +2191,11 @@ Sends a disconnect message to the server
 This is also called on Com_Error and Com_Quit, so it shouldn't cause any errors
 =====================
 */
+static void CL_ResetWindowResizeState( void );
+
 qboolean CL_Disconnect( qboolean showMainMenu ) {
+	// ERR_DROP can longjmp out of a resize or renderer initialization.
+	CL_ResetWindowResizeState();
 	static bool cl_disconnecting = false;
 	bool cl_restarted = false;
 
@@ -2761,6 +2838,26 @@ doesn't know what graphics to reload
 static fnql::client::WindowResizeScheduler cl_windowResize;
 static qboolean cl_windowResizeRestart;
 static qboolean cl_windowModeChange;
+static int cl_restartMenu = UIMENU_NONE;
+static int cl_restartMenuPaused;
+
+static void CL_ResetWindowResizeState( void ) {
+	cl_windowResize.Reset();
+	cl_windowResizeRestart = qfalse;
+	cl_windowModeChange = qfalse;
+	cl_restartMenu = UIMENU_NONE;
+	cl_restartMenuPaused = 0;
+}
+
+static void CL_FinishUIMenuRestart( void ) {
+	if ( cl_restartMenu == UIMENU_NONE || cls.state == CA_LOADING || cls.state == CA_PRIMED ) return;
+	const int menu = cl_restartMenu;
+	const int paused = cl_restartMenuPaused;
+	cl_restartMenu = UIMENU_NONE;
+	cl_restartMenuPaused = 0;
+	CL_RestoreUIMenu( menu );
+	if ( paused ) Cvar_Set( "cl_paused", "1" );
+}
 
 static void CL_Vid_Restart( refShutdownCode_t shutdownCode );
 
@@ -2853,6 +2950,9 @@ static void CL_UpdateRetailVideoBridgeOwnership( void ) {
 
 
 static void CL_Vid_Restart( refShutdownCode_t shutdownCode ) {
+	const int restartMenu = cl_restartMenu != UIMENU_NONE ? cl_restartMenu : CL_UIMenuForRestart();
+	const int menuPaused = cl_restartMenu != UIMENU_NONE ? cl_restartMenuPaused :
+		( restartMenu != UIMENU_NONE ? Cvar_VariableIntegerValue( "cl_paused" ) : 0 );
 	// Any explicit or automatic restart supersedes an older pending resize.
 	cl_windowResize.Reset();
 
@@ -2902,6 +3002,14 @@ static void CL_Vid_Restart( refShutdownCode_t shutdownCode ) {
 	}
 
 	cls.startCgame = qfalse;
+	// Cgame initialization returns to CA_PRIMED. Restoring a paused menu now
+	// would stop the local server before it can send the activation snapshot,
+	// leaving loading/briefing UI in place forever. Reopen before drawing the
+	// first active frame; disconnected menus can reopen immediately.
+	cl_restartMenu = restartMenu;
+	cl_restartMenuPaused = menuPaused;
+	if ( restartMenu != UIMENU_NONE ) Cvar_Set( "cl_paused", "0" );
+	CL_FinishUIMenuRestart();
 	// Renderer, sound, UI, and cgame restarts can register a different set of
 	// public cvars. Refresh the retained WebUI schema once after that lifecycle
 	// boundary instead of rediscovering every cvar on a frame timer.
@@ -4627,6 +4735,7 @@ void CL_Frame( int msec, int realMsec ) {
 
 	// decide on the serverTime to render
 	CL_SetCGameTime();
+	CL_FinishUIMenuRestart();
 
 	oldViewYaw = cl.viewangles[YAW];
 	oldViewPitch = cl.viewangles[PITCH];
@@ -5903,6 +6012,13 @@ void CL_Init( void ) {
 
 	Cvar_Get ("password", "", CVAR_USERINFO | CVAR_NORESTART);
 	Cvar_Get ("cg_predictItems", "1", CVAR_USERINFO | CVAR_ARCHIVE );
+	if ( Com_GameIsRTCW() ) {
+		// The stock cgame registers these as archive-only. The engine must
+		// publish the pickup policy before the game handles ClientConnect.
+		Cvar_Get( "cg_autoactivate", "1", CVAR_USERINFO | CVAR_ARCHIVE );
+		if ( Com_GameIsRTCWSP() )
+			Cvar_Get( "cg_emptyswitch", "0", CVAR_USERINFO | CVAR_ARCHIVE );
+	}
 
 	// FNQL_Steam_Init() already ran, so a signed-in persona takes ownership of
 	// the identity keys before any archived value can reach a server.
@@ -5925,6 +6041,8 @@ void CL_Init( void ) {
 	//
 	// register client commands
 	//
+	CL_HudInit();
+	CL_AddRTCWCommands();
 	Cmd_AddCommand ("cmd", CL_ForwardToServer_f);
 	Cmd_AddCommand ("configstrings", CL_Configstrings_f);
 	Cmd_AddCommand ("clientinfo", CL_Clientinfo_f);
@@ -6023,6 +6141,7 @@ void CL_Shutdown( const char *finalmsg, qboolean quit ) {
 
 	CL_ShutdownRef( quit ? REF_UNLOAD_DLL : REF_DESTROY_WINDOW );
 
+	CL_HudShutdown();
 	Con_Shutdown();
 
 	Cmd_RemoveCommand ("cmd");
@@ -6055,6 +6174,7 @@ void CL_Shutdown( const char *finalmsg, qboolean quit ) {
 	Cmd_RemoveCommand ("serverinfo");
 	Cmd_RemoveCommand ("systeminfo");
 	Cmd_RemoveCommand ("modelist");
+	CL_RemoveRTCWCommands();
 	QLWebHost_UnregisterCommands();
 
 #ifdef USE_CURL

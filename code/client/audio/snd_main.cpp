@@ -685,21 +685,31 @@ static void S_StopStreamingSound_f() {
 static void S_Music_f( void ) {
 	int		c;
 
-	if( !si.StartBackgroundTrack ) {
+	if( !si.StartBackgroundTrack && !Com_GameIsRTCWSP() ) {
 		return;
 	}
 
 	c = Cmd_Argc();
 
 	if ( c == 2 ) {
-		si.StartBackgroundTrack( Cmd_Argv(1), nullptr );
+		S_StartBackgroundTrack( Cmd_Argv(1), Com_GameIsRTCW() ? Cmd_Argv(1) : nullptr );
 	} else if ( c == 3 ) {
-		si.StartBackgroundTrack( Cmd_Argv(1), Cmd_Argv(2) );
+		S_StartBackgroundTrack( Cmd_Argv(1), Cmd_Argv(2) );
 	} else {
 		Com_Printf ("Usage: music <musicfile> [loopfile]\n");
 		return;
 	}
 
+}
+
+static void S_QueueMusic_f( void ) {
+	int type = -2;
+	if ( ( Cmd_Argc() != 2 && Cmd_Argc() != 3 ) || !*Cmd_Argv( 1 ) ||
+		( Cmd_Argc() == 3 && !S_RTCWStreamInteger( 2, type ) ) ) {
+		Com_Printf( "Usage: queuemusic <musicfile> [-1|-2]\n" );
+		return;
+	}
+	S_StartRTCWBackgroundTrack( Cmd_Argv( 1 ), Cmd_Argv( 1 ), type == -1 ? -1 : -2 );
 }
 
 
@@ -822,6 +832,7 @@ extern "C" void S_Init( void )
 
 		Cmd_AddCommand( "play", S_Play_f );
 		Cmd_AddCommand( "music", S_Music_f );
+		if ( Com_GameIsRTCWSP() ) Cmd_AddCommand( "queuemusic", S_QueueMusic_f );
 		Cmd_AddCommand( "stopmusic", S_StopMusic_f );
 		if ( Com_GameIsRTCW() ) Cmd_AddCommand( "streamingsound", S_StreamingSound_f );
 		if ( Com_GameIsRTCWSP() ) Cmd_AddCommand( "stopstreamingsound", S_StopStreamingSound_f );
@@ -888,6 +899,7 @@ S_Shutdown
 extern "C" void S_Shutdown( void )
 {
 	Cmd_RemoveCommand( "streamingsound" );
+	Cmd_RemoveCommand( "queuemusic" );
 	Cmd_RemoveCommand( "stopstreamingsound" );
 	if ( si.StopAllSounds ) {
 		si.StopAllSounds();

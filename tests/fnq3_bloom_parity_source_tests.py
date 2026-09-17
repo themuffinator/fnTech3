@@ -62,13 +62,18 @@ class FnQ3BloomParitySourceTests(unittest.TestCase):
             with self.subTest(path=path):
                 self.assertEqual(expected_hash, digest(normalized_text(path)))
 
-    def test_vulkan_bloom_implementation_matches_fnq3(self) -> None:
+    def test_vulkan_bloom_draws_match_fnq3(self) -> None:
         vulkan = normalized_text("code/renderervk/vk.c")
         start = vulkan.index("qboolean vk_bloom(")
+        # Preserve the reference extraction, blur and composite. State recovery
+        # now has executable coverage in vulkan_bloom_state_tests: the original
+        # conditional restoration skipped descriptors after a render-pass reset.
+        composite = vulkan.index("// blend downscaled buffers", start)
+        end = vulkan.index("\n\t}", composite) + len("\n\t}")
         self.assertEqual(
-            "ee4a2926a1abf84d3838766e627a93c5885ee3dcabdec4efcdfd8a8d01d75bbc",
-            digest(vulkan[start:]),
-            f"vk_bloom drifted from FnQ3 {FNQ3_REFERENCE}",
+            "f434ca8ce43ae482ef53b443e86d47d5e4c0db74cd2f615df995f7ac6fdc0580",
+            digest(vulkan[start:end]),
+            f"vk_bloom draws drifted from FnQ3 {FNQ3_REFERENCE}",
         )
 
     def test_rtx_bloom_is_fnq3_with_the_fnq3_vulkan_highlight_guard(self) -> None:

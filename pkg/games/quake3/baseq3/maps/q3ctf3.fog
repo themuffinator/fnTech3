@@ -1,0 +1,7 @@
+// Dry neutral haze for The Stronghold.
+color 0.61 0.60 0.57
+mode exp
+density 0.00075
+start 176
+opacity 0.28
+sky 1

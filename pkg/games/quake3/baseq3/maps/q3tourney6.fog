@@ -1,0 +1,7 @@
+// Faint desaturated end-arena haze.
+color 0.57 0.59 0.60
+mode exp
+density 0.00080
+start 160
+opacity 0.29
+sky 1

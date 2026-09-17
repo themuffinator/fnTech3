@@ -1488,6 +1488,7 @@ qboolean Sys_RandomBytes( byte *string, int len );
 void	Sys_DisplaySystemConsole( qboolean show );
 
 void	Sys_ShowConsole( int level, qboolean quitOnClose );
+void	Sys_SetConsoleTitle( const char *title );
 void	Sys_SetErrorText( const char *text );
 
 // Startup conditions that are recoverable but need a human decision before the

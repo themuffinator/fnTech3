@@ -1,0 +1,7 @@
+// Low-saturation warm haze for The Longest Yard.
+color 0.60 0.58 0.55
+mode exp
+density 0.00095
+start 112
+opacity 0.32
+sky 1

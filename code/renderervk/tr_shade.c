@@ -318,6 +318,9 @@ void RB_BeginSurface( shader_t *shader, int fogNum ) {
 	} else {
 		tess.allowVBO = qfalse;
 	}
+#ifdef USE_PMLIGHT
+	if ( tess.dlightPass && tess.light && tess.light->rtcwShader ) tess.allowVBO = qfalse;
+#endif
 #endif
 
 	if ( shader->remappedShader ) {
@@ -675,6 +678,12 @@ static void ProjectDlightTexture( void ) {
 
 			vk_material_init( &material );
 			vk_material_set_descriptor( &material, VK_DESC_TEXTURE0, R_ImageDescriptor( tr.dlightImage ) );
+			if ( backEnd.refdef.rtcwFog.fogEnabled || backEnd.refdef.rtcwFog.skyEnabled ) {
+				vkUniform_t lightUniform;
+				Com_Memset( &lightUniform, 0, sizeof( lightUniform ) );
+				lightUniform.texFactors[0] = 1;
+				if ( VK_PushUniform( &lightUniform ) == ~0U ) return rebindIndex;
+			}
 			vk_bind_material( &material );
 		}
 
@@ -715,6 +724,7 @@ static void ProjectDlightTexture( void ) {
 uint32_t VK_PushUniform( const vkUniform_t *uniformData );
 void VK_SetFogParams( vkUniform_t *uniformData, int *fogStage );
 static vkUniform_t uniform;
+#include "../renderercommon/tr_rtcw_fog_vk.h"
 
 static float VK_ComputeTextureIntensityScale( const image_t *image )
 {
@@ -1154,7 +1164,8 @@ void R_ComputeTexCoords( const int b, const textureBundle_t *bundle ) {
 #ifdef USE_VULKAN
 static qboolean RB_DepthFadeShaderSupported( const shaderStage_t *pStage )
 {
-	return ( r_depthFade->integer &&
+	return ( !backEnd.refdef.rtcwFog.fogEnabled && !backEnd.refdef.rtcwFog.skyEnabled &&
+		r_depthFade->integer &&
 		pStage &&
 		tess.shader->dfType > DFT_NONE &&
 		tess.shader->dfType < DFT_TBD &&
@@ -1302,6 +1313,7 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 			}
 
 			VK_SetTextureFactors( &uniform, pStage, 0 );
+			VK_SetRTCWFogParams( &uniform, pStage );
 			RB_SetDepthFade( pStage, &material, &pushUniform );
 			pushUniform = qtrue;
 
@@ -1837,7 +1849,8 @@ void VK_LightingPass( void )
 #ifdef USE_VULKAN
 static qboolean VK_LiquidEffectActive( const shaderCommands_t *input )
 {
-	return input && input->shader && input->numPasses > 0 &&
+	return !backEnd.refdef.rtcwFog.fogEnabled && !backEnd.refdef.rtcwFog.skyEnabled &&
+		input && input->shader && input->numPasses > 0 &&
 		input->numIndexes > 0 && input->numVertexes > 0 &&
 		vk.fboActive && vk.liquidSnapshot.color_descriptor != VK_NULL_HANDLE &&
 		r_liquid && r_liquid->integer > 0 &&
@@ -2006,6 +2019,11 @@ void RB_StageIteratorGeneric( void )
 
 #ifdef USE_PMLIGHT
 	if ( tess.dlightPass ) {
+		if ( R_UsesRTCWLighting() && backEnd.refdef.rtcw.snooperView ) return;
+		if ( tess.light && tess.light->rtcwShader ) {
+			RB_RTCWProjectLightsForLight( tess.light );
+			return;
+		}
 		VK_LightingPass();
 		return;
 	}

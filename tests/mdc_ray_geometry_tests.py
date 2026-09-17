@@ -10,12 +10,16 @@ from mdc_renderer_tests import ROOT, renderer_fixture
 
 FIXTURE = r'''
 static model_t rayModel;
-struct skin_t { int numSurfaces; struct { const char *name; shader_t *shader; } surfaces[1]; } skin;
+struct skin_t { int numSurfaces; struct { const char *name; shader_t *shader; } surfaces[2]; } skin;
 static shader_t shaderTable[12];
 static struct { int numSkins; shader_t *defaultShader; } tr{2, shaderTable};
 static const model_t *R_GetModelByHandle(int handle) { assert(handle == 11); return &rayModel; }
 static shader_t *R_GetShaderByHandle(int handle) { assert(handle >= 0 && handle < 12); return &shaderTable[handle]; }
 static const skin_t *R_GetSkinByHandle(int handle) { assert(handle == 1); return &skin; }
+int Q_stricmp(const char *a,const char *b) {
+    while(*a && *b && std::tolower((unsigned char)*a)==std::tolower((unsigned char)*b)) { ++a; ++b; }
+    return std::tolower((unsigned char)*a)-std::tolower((unsigned char)*b);
+}
 enum { RTX_RT_MATFLAG_MASKED = 1 };
 struct rtxRtCpuGeometry_t {
     unsigned numVertices, numTriangles, sourceTriangleCount, sourceEntityCount, maskedTriangleCount;
@@ -93,6 +97,16 @@ int main() {
     geometry = {}; assert(vk_rt_append_mdc_entity_geometry(&geometry, &entity) && materialHandle == 0);
     entity.e.customShader = 9;
     geometry = {}; assert(vk_rt_append_mdc_entity_geometry(&geometry, &entity) && materialHandle == 9);
+    entity.e.customShader=0; entity.e.rtcw.blink=qtrue; ri.gameId=COM_GAME_RTCW_MP;
+    skin.numSurfaces=2; skin.surfaces[0]={"surface",&shaderTable[8]}; skin.surfaces[1]={"surface_b",&shaderTable[9]};
+    geometry={}; assert(vk_rt_append_mdc_entity_geometry(&geometry,&entity) && materialHandle==9);
+    skin.surfaces[1].shader=tr.defaultShader;
+    geometry={}; assert(vk_rt_append_mdc_entity_geometry(&geometry,&entity) && materialHandle==8);
+    ri.gameId=COM_GAME_RTCW_SP; entity.e.rtcw.blink=qfalse;
+    std::strcpy(rayModel.mdc[0]->surfaces[0].name,"h_blink");
+    geometry={}; assert(vk_rt_append_mdc_entity_geometry(&geometry,&entity) && !geometry.numVertices);
+    entity.e.rtcw.blink=qtrue; entity.e.customShader=9;
+    geometry={}; assert(vk_rt_append_mdc_entity_geometry(&geometry,&entity) && geometry.numVertices==3);
     for (failure = 1; failure <= 4; ++failure) {
         geometry = {}; assert(!vk_rt_append_mdc_entity_geometry(&geometry, &entity));
         assert(!geometry.sourceTriangleCount && !geometry.sourceEntityCount);
@@ -120,7 +134,10 @@ class MdcRayGeometryTests(unittest.TestCase):
             folder = Path(temp)
             source = folder / 'probe.cpp'
             executable = folder / ('probe.exe' if os.name == 'nt' else 'probe')
-            source.write_text(renderer_fixture('rendererrtx') + FIXTURE, encoding='utf-8')
+            fixture = '#include "code/qcommon/game_profile.h"\n' + renderer_fixture('rendererrtx')
+            fixture = fixture.replace('decltype(&::Error) Error;', 'decltype(&::Error) Error; comGameId_t gameId;')
+            fixture = fixture.replace('FreeFile, Print, Error};', 'FreeFile, Print, Error, COM_GAME_QUAKE3};')
+            source.write_text(fixture + FIXTURE, encoding='utf-8')
             build = subprocess.run([compiler, *target, '-std=c++17', '-I', str(ROOT), str(source),
                 '-o', str(executable)], cwd=ROOT, capture_output=True, text=True, timeout=90)
             self.assertEqual(build.returncode, 0, build.stdout + build.stderr)

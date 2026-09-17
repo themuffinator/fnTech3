@@ -20,12 +20,13 @@ effect. The map and renderer continue without global fog.
 
 For `maps/example.bsp`, the renderer requests `maps/example.fog` through the
 normal engine filesystem API only when `r_globalFog` is enabled. The
-engine-owned root `FnQL-pkg.fnz` archive may provide allowlisted `maps/*.fog`
-files with the same deterministic source-port precedence already used for
-`maps/*.azb`. If the root archive has no matching entry, the active game,
+engine-owned root `fntech3-pkg.fnz` archive may provide allowlisted `maps/*.fog`
+files under `games/<profile>/<gamedir>/maps/` with the same deterministic
+source-port precedence already used for `maps/*.azb`. Only the selected
+profile's namespace is searched. If the root archive has no matching entry, the active game,
 package, and loose-file search order remains the fallback.
 
-`FnQL-pkg.fnz` ships one conservative fog sidecar for each of the 149 BSP maps
+`fntech3-pkg.fnz` ships one conservative fog sidecar for each of the 149 BSP maps
 actually present in the retail Steam `baseq3/pak00.pk3`. The presets are
 deterministically derived from each map's world bounds, average lightmap colour,
 and authored BSP-fog count. They remain opt-in because `r_globalFog` defaults to

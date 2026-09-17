@@ -1,0 +1,7 @@
+// Faint blue-grey depth cue for the largest terrain arena.
+color 0.55 0.59 0.60
+mode exp
+density 0.00040
+start 384
+opacity 0.22
+sky 1

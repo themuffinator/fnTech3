@@ -13,6 +13,13 @@ static void RB_RTCWLightPass( const shaderStage_t *stage, int count, const glInd
 #ifdef USE_VULKAN
 	Vk_Pipeline_Def definition;
 	uint32_t pipeline;
+	vkUniform_t lightUniform;
+	Com_Memset( &lightUniform, 0, sizeof( lightUniform ) );
+	lightUniform.texFactors[0] = 1;
+	/* Plain projected lights temporarily disable scene fog in the original
+	 * renderer. Authored light materials retain the per-stage selection. */
+	if ( stage ) VK_SetRTCWFogParams( &lightUniform, stage );
+	if ( VK_PushUniform( &lightUniform ) == ~0U ) return;
 	vk_get_pipeline_def( vk.dlight_pipelines[0][tess.shader->cullType][tess.shader->polygonOffset], &definition );
 	definition.state_bits = state;
 	pipeline = vk_find_pipeline_ext( 0, &definition, qfalse );
@@ -59,7 +66,7 @@ static void RB_RTCWLightPass( const shaderStage_t *stage, int count, const glInd
 }
 
 /* Return whether the original index buffer must be rebound for a later pass. */
-static qboolean RB_RTCWProjectLights( void ) {
+static qboolean RB_RTCWProjectLightsForLight( const dlight_t *singleLight ) {
 	byte clips[SHADER_MAX_VERTEXES];
 	glIndex_t indexes[SHADER_MAX_INDEXES];
 	qboolean rebind = qfalse;
@@ -67,10 +74,10 @@ static qboolean RB_RTCWProjectLights( void ) {
 	if ( tess.numVertexes < 0 || tess.numVertexes > SHADER_MAX_VERTEXES ||
 		tess.numIndexes < 0 || tess.numIndexes > SHADER_MAX_INDEXES ) return qfalse;
 	if ( backEnd.refdef.rtcw.snooperView ) return qfalse;
-	for ( l = 0; l < backEnd.refdef.num_dlights && l < 32; ++l ) {
-		const dlight_t *light = &backEnd.refdef.dlights[l];
+	for ( l = 0; l < ( singleLight ? 1 : backEnd.refdef.num_dlights ) && l < 32; ++l ) {
+		const dlight_t *light = singleLight ? singleLight : &backEnd.refdef.dlights[l];
 		int count = 0, pass;
-		if ( !( (uint32_t)tess.dlightBits & (UINT32_C(1) << l) ) ) continue;
+		if ( !singleLight && !( (uint32_t)tess.dlightBits & (UINT32_C(1) << l) ) ) continue;
 		for ( vertex = 0; vertex < tess.numVertexes; ++vertex ) {
 			const rtcwLightVertex_t projected = RTCW_ProjectLightVertex( light->transformed,
 				light->radius, light->color, tess.xyz[vertex] );
@@ -104,5 +111,9 @@ static qboolean RB_RTCWProjectLights( void ) {
 		}
 	}
 	return rebind;
+}
+
+static qboolean RB_RTCWProjectLights( void ) {
+	return RB_RTCWProjectLightsForLight( NULL );
 }
 #endif

@@ -1,0 +1,7 @@
+// Faint blue-grey haze for the Team Arena duel map.
+color 0.55 0.59 0.61
+mode exp
+density 0.00050
+start 288
+opacity 0.24
+sky 1

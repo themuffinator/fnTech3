@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "name": "crosshair",
+      "match": { "shader": "gfx/2d/crosshair*" },
+      "mode": "uniform",
+      "align": { "x": "center", "y": "center" }
+    },
+    {
+      "name": "cursor_hint",
+      "match": { "region": { "x": 280, "y": 416, "w": 80, "h": 64 } },
+      "mode": "uniform",
+      "align": { "x": "center", "y": "bottom" }
+    },
+    {
+      "name": "stamina",
+      "match": { "shader": "white", "region": { "x": 0, "y": 392, "w": 28, "h": 88 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "bottom" }
+    },
+    {
+      "name": "health_and_armor",
+      "match": { "textLike": true, "region": { "x": 24, "y": 438, "w": 200, "h": 42 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "bottom" }
+    },
+    {
+      "name": "pickup_text",
+      "match": { "shader": "gfx/2d/hudchars", "region": { "x": 32, "y": 396, "w": 608, "h": 20 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "bottom" }
+    },
+    {
+      "name": "weapon_ammo_heat_and_lagometer",
+      "match": { "region": { "x": 480, "y": 394, "w": 160, "h": 86 } },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "bottom" }
+    },
+    {
+      "name": "notebook_notification",
+      "match": { "region": { "x": 410, "y": 448, "w": 48, "h": 32 } },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "bottom" }
+    },
+    {
+      "name": "holdable_item",
+      "match": { "shader": "icons/*", "region": { "x": 588, "y": 300, "w": 52, "h": 80 } },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "bottom" }
+    },
+    {
+      "name": "weapon_stability",
+      "match": { "shader": "white", "region": { "x": 48, "y": 200, "w": 20, "h": 80 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "center" }
+    },
+    {
+      "name": "upper_right_status",
+      "match": { "region": { "x": 350, "y": 0, "w": 290, "h": 80 } },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "top" }
+    }
+  ]
+}

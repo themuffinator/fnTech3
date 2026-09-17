@@ -308,6 +308,7 @@ client_src = [
   'code/client/cl_cgame.cpp',
   'code/client/cl_cin.cpp',
   'code/client/cl_console.cpp',
+  'code/client/cl_hud.cpp',
   'code/client/cl_input.cpp',
   'code/client/cl_jpeg.cpp',
   'code/client/cl_keys.cpp',
@@ -677,7 +678,7 @@ if win32
   win_resource_deps = files(
     'code/win32/q3.manifest',
     'code/win32/resource.h',
-    'code/win32/fnql.ico',
+    'assets/icons/fntech3.ico',
     'version/fnql_version.h',
     'version/fntech3_version.h',
   )
@@ -911,6 +912,18 @@ endif
 
 runtime_build_targets = renderer_targets
 
+if build_client and linux
+  foreach icon_size : ['16', '24', '32', '48', '64', '128', '256', '512', '1024']
+    install_data('assets/icons/fntech3-' + icon_size + '.png',
+      install_dir: get_option('datadir') / 'icons/hicolor' / (icon_size + 'x' + icon_size) / 'apps',
+      rename: 'fntech3.png',
+    )
+  endforeach
+  # This portable distribution needs the user's installation/profile arguments;
+  # provide a launcher template without registering an unconfigured launcher.
+  install_data('assets/icons/fntech3.desktop', install_dir: get_option('datadir') / 'fntech3')
+endif
+
 if build_client
   client_exe = executable(client_binary_name,
     q3_platform_src + q3_ui_src + qcommon_src + server_src + client_src + platform_asm_src + client_asm_src,
@@ -961,22 +974,34 @@ stock_ql_maps = stock_ql_maps_result.stdout().strip().split('\n')
 stock_audio_zone_sidecars = []
 stock_global_fog_sidecars = []
 foreach map_name : stock_ql_maps
-  stock_audio_zone_sidecars += files('pkg/baseq3/maps/' + map_name + '.azb')
-  stock_global_fog_sidecars += files('pkg/baseq3/maps/' + map_name + '.fog')
+  stock_audio_zone_sidecars += files('pkg/games/quakelive/baseq3/maps/' + map_name + '.azb')
+  stock_global_fog_sidecars += files('pkg/games/quakelive/baseq3/maps/' + map_name + '.fog')
 endforeach
 root_package_assets = stock_audio_zone_sidecars + stock_global_fog_sidecars + files(
-  'pkg/baseq3/scripts/fnql.shader',
-  'pkg/baseq3/sound/fnql-weapon-sounds.sndshd',
+  'pkg/games/quakelive/baseq3/scripts/fnql.shader',
+  'pkg/games/quakelive/baseq3/sound/fnql-weapon-sounds.sndshd',
+  'pkg/games/rtcw-sp/main/fntech3-hud.json',
+  'pkg/games/rtcw-mp/main/fntech3-hud.json',
 )
+stock_q3_assets_result = run_command(python, files('scripts/stock_q3_assets.py'), check: true)
+foreach asset : stock_q3_assets_result.stdout().strip().split('\n')
+  root_package_assets += files('pkg/games/quake3/' + asset)
+endforeach
+stock_rtcw_assets_result = run_command(python, files('scripts/stock_rtcw_maps.py'), check: true)
+foreach asset : stock_rtcw_assets_result.stdout().strip().split('\n')
+  root_package_assets += files('pkg/games/' + asset)
+endforeach
 
-custom_target('FnQL-pkg.fnz',
+custom_target('fntech3-pkg.fnz',
   input: root_package_assets + files(
     'scripts/build_root_archive.py',
     'scripts/fntech3_meta.py',
     'scripts/root_archive.py',
+    'scripts/stock_q3_assets.py',
     'scripts/stock_ql_maps.py',
+    'scripts/stock_rtcw_maps.py',
   ),
-  output: 'FnQL-pkg.fnz',
+  output: 'fntech3-pkg.fnz',
   command: [
     python,
     files('scripts/build_root_archive.py'),
@@ -1163,6 +1188,33 @@ window_placement_tests = executable('fnql_window_placement_tests',
 )
 test('fnql_window_placement', window_placement_tests)
 
+icon_test_sources = ['tests/application_icon_tests.cpp']
+icon_test_deps = []
+icon_test_args = common_cpp_args
+if win32
+  icon_test_sources += win_resource
+  icon_test_args += '-DNOMINMAX'
+  foreach lib : ['shell32', 'user32', 'gdi32']
+    icon_test_deps += cpp.find_library(lib)
+  endforeach
+endif
+if use_sdl
+  icon_test_deps += sdl_dep
+  icon_test_args += '-DFNTECH3_ICON_TEST_SDL'
+  if darwin
+    icon_test_sources += 'code/sdl/sdl_macos_window.m'
+    icon_test_deps += dependency('appleframeworks', modules: 'AppKit')
+  endif
+endif
+application_icon_tests = executable('fntech3_application_icon_tests',
+  icon_test_sources,
+  dependencies: icon_test_deps,
+  cpp_args: icon_test_args,
+)
+test('fntech3_application_icons', application_icon_tests,
+  args: [meson.current_build_dir(), meson.current_source_dir() / 'assets/icons/fntech3-128.png'],
+)
+
 test('fnql_ql_font_source', python,
   args: files('tests/ql_font_source_tests.py'),
 )
@@ -1182,7 +1234,9 @@ global_fog_tests = executable('fnql_global_fog_tests',
   c_args: common_c_args,
   cpp_args: common_cpp_args,
 )
-test('fnql_global_fog', global_fog_tests)
+test('fnql_global_fog', global_fog_tests,
+  args: [join_paths(meson.current_source_dir(), 'pkg', 'games')],
+)
 test('fnql_global_fog_source', python,
   args: files('tests/global_fog_source_tests.py'),
 )

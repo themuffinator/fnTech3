@@ -662,7 +662,7 @@ static void Message_Key( int key ) {
 
 	if (key == K_ESCAPE) {
 		Key_SetCatcher( Key_GetCatcher( ) & ~KEYCATCH_MESSAGE );
-		if ( cgvm && cgvm->dllExports ) {
+		if ( Com_GameIsQuakeLive() && cgvm && cgvm->dllExports ) {
 			VM_Call( cgvm, 0, CG_CHAT_UP );
 		}
 		Field_Clear( &chatField );
@@ -679,13 +679,15 @@ static void Message_Key( int key ) {
 			else if (chat_team)
 
 				Com_sprintf( buffer.data(), static_cast<int>( buffer.size() ), "say_team \"%s\"\n", chatField.buffer );
+			else if ( Com_GameIsRTCW() && cl.rtcwLimboMode )
+				Com_sprintf( buffer.data(), static_cast<int>( buffer.size() ), "say_limbo \"%s\"\n", chatField.buffer );
 			else
 				Com_sprintf( buffer.data(), static_cast<int>( buffer.size() ), "say \"%s\"\n", chatField.buffer );
 
 			CL_AddReliableCommand( buffer.data(), qfalse );
 		}
 		Key_SetCatcher( Key_GetCatcher( ) & ~KEYCATCH_MESSAGE );
-		if ( cgvm && cgvm->dllExports ) {
+		if ( Com_GameIsQuakeLive() && cgvm && cgvm->dllExports ) {
 			VM_Call( cgvm, 0, CG_CHAT_UP );
 		}
 		Field_Clear( &chatField );

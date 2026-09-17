@@ -1,0 +1,7 @@
+// Neutral proving-ground haze.
+color 0.60 0.60 0.58
+mode exp
+density 0.00090
+start 128
+opacity 0.31
+sky 1

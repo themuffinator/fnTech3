@@ -1,5 +1,7 @@
 # fnTech3 logos
 
+Executable and desktop icon exports are in [assets/icons](../icons/README.md).
+
 The approved mark is the first generated version, with a black numeral **3** on the orange flame body. Its original PNG is preserved unchanged.
 
 | Asset | Size | Use |

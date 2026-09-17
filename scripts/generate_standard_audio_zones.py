@@ -12,7 +12,7 @@ from typing import Sequence
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_WORK_ROOT = ROOT / ".tmp" / "audio-zone-standard-q3a"
-DEFAULT_OUTPUT_ROOT = ROOT / "pkg" / "baseq3"
+DEFAULT_OUTPUT_ROOT = ROOT / "pkg" / "games" / "quake3" / "baseq3"
 DEFAULT_REPORT_NAME = "audio-zone-sweep"
 DEFAULT_MAX_ZONES = 512
 MAX_AUDIT_SAMPLES = 1_000_000

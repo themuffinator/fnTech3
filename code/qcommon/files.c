@@ -231,11 +231,11 @@ static const unsigned pak_checksums[] = {
 #define MAX_FILEHASH_SIZE	4096
 #define IDPAKHEADER			0x4b434150u
 
-#define FNQL_ROOT_ARCHIVE_NAME			"FnQL-pkg.fnz"
-#define FNQL_ROOT_ARCHIVE_RENDERER_SHADER "scripts/fnql.shader"
-#define FNQL_ROOT_ARCHIVE_WEAPON_SOUNDS	"sound/fnql-weapon-sounds.sndshd"
-#define FNQL_ROOT_ARCHIVE_MAX_PATHS		8
-#define FNQL_ROOT_ARCHIVE_MAX_ENTRIES	64
+#define FNTECH3_ROOT_ARCHIVE_NAME			"fntech3-pkg.fnz"
+#define FNTECH3_ROOT_ARCHIVE_RENDERER_SHADER "scripts/fnql.shader"
+#define FNTECH3_ROOT_ARCHIVE_WEAPON_SOUNDS	"sound/fnql-weapon-sounds.sndshd"
+#define FNTECH3_ROOT_ARCHIVE_MAX_PATHS		8
+#define FNTECH3_ROOT_ARCHIVE_MAX_ENTRIES	64
 
 /* Retail Quake Live bounds the subscribed Workshop snapshot at 0x100 items. */
 #define MAX_WORKSHOP_INSTALLS			256
@@ -2872,6 +2872,30 @@ static pack_t *FS_LoadArchiveFile( const char *archivefile )
 }
 
 
+/* Archive members are virtual paths, never OS paths. Validate every component
+ * before constructing games/<profile>/<gamedir>/<qpath>, including values from
+ * search paths, so neither traversal nor truncation can cross a profile. */
+static qboolean FS_RootArchiveSafePath( const char *path, qboolean singleComponent )
+{
+	const char *part;
+	const char *p;
+
+	if ( path == NULL || path[0] == '\0' ) return qfalse;
+	part = path;
+	for ( p = path; ; p++ ) {
+		if ( *p == '/' || *p == '\0' ) {
+			if ( p == part || ( p - part == 1 && part[0] == '.' ) ||
+				( p - part == 2 && part[0] == '.' && part[1] == '.' ) ) return qfalse;
+			if ( *p == '\0' ) return qtrue;
+			if ( singleComponent ) return qfalse;
+			part = p + 1;
+		} else if ( *p == '\\' || *p == ':' || (unsigned char) *p < 32 || *p == 127 ) {
+			return qfalse;
+		}
+	}
+}
+
+
 static qboolean FS_RootArchiveAllowsMapSidecar( const char *qpath )
 {
 	static const char mapsPrefix[] = "maps/";
@@ -2891,9 +2915,12 @@ static qboolean FS_RootArchiveAllowsMapSidecar( const char *qpath )
 
 static qboolean FS_RootArchiveAllowsFile( const char *qpath )
 {
-	return qpath != NULL &&
-		( !FS_FilenameCompare( qpath, FNQL_ROOT_ARCHIVE_RENDERER_SHADER ) ||
-			!FS_FilenameCompare( qpath, FNQL_ROOT_ARCHIVE_WEAPON_SOUNDS ) ||
+	return FS_RootArchiveSafePath( qpath, qfalse ) &&
+		( !FS_FilenameCompare( qpath, FNTECH3_ROOT_ARCHIVE_RENDERER_SHADER ) ||
+			!FS_FilenameCompare( qpath, FNTECH3_ROOT_ARCHIVE_WEAPON_SOUNDS ) ||
+			( ( Com_GameIsQuake3() || Com_GameIsRTCW() ) &&
+				( !FS_FilenameCompare( qpath, "fntech3-hud.json" ) ||
+					!FS_FilenameCompare( qpath, "fnq3-hud.json" ) ) ) ||
 			FS_RootArchiveAllowsMapSidecar( qpath ) );
 }
 
@@ -2929,20 +2956,22 @@ static int FS_RootArchiveAddGameCandidate(
 	char candidates[][ MAX_ZPATH ],
 	int maxCandidates,
 	int candidateCount,
+	const char *profile,
 	const char *game,
 	const char *qpath )
 {
 	char candidate[ MAX_ZPATH ];
 
-	if ( game == NULL || game[ 0 ] == '\0' ) {
+	if ( !FS_RootArchiveSafePath( profile, qtrue ) ||
+		!FS_RootArchiveSafePath( game, qtrue ) || !FS_RootArchiveSafePath( qpath, qfalse ) ) {
 		return candidateCount;
 	}
 
-	if ( strlen( game ) + 1 + strlen( qpath ) >= MAX_ZPATH ) {
+	if ( strlen( "games/" ) + strlen( profile ) + 1 + strlen( game ) + 1 + strlen( qpath ) >= MAX_ZPATH ) {
 		return candidateCount;
 	}
 
-	Com_sprintf( candidate, sizeof( candidate ), "%s/%s", game, qpath );
+	Com_sprintf( candidate, sizeof( candidate ), "games/%s/%s/%s", profile, game, qpath );
 	return FS_RootArchiveAddCandidate( candidates, maxCandidates, candidateCount, candidate );
 }
 
@@ -2970,32 +2999,34 @@ static int FS_RootArchiveBuildCandidates(
 	char candidates[][ MAX_ZPATH ],
 	int maxCandidates )
 {
+	const comGameProfile_t *profile = Com_GameProfile();
 	const searchpath_t *search;
 	const char *gameDir;
 	int candidateCount;
 
 	candidateCount = 0;
+	if ( profile == NULL ) return 0;
 
+	/* Preserve the active filesystem's mod/base ordering, but only inside this
+	 * immutable profile's namespace. No unscoped or other-profile fallback. */
 	for ( search = fs_searchpaths; search != NULL; search = search->next ) {
 		gameDir = FS_RootArchiveSearchPathGameDir( search );
 		candidateCount = FS_RootArchiveAddGameCandidate(
-			candidates, maxCandidates, candidateCount, gameDir, qpath );
+			candidates, maxCandidates, candidateCount, profile->key, gameDir, qpath );
 	}
 
 	if ( fs_gamedirvar != NULL && fs_gamedirvar->string[ 0 ] != '\0' ) {
 		candidateCount = FS_RootArchiveAddGameCandidate(
-			candidates, maxCandidates, candidateCount, fs_gamedirvar->string, qpath );
+			candidates, maxCandidates, candidateCount, profile->key, fs_gamedirvar->string, qpath );
 	}
 
 	if ( basegame != NULL && basegame[ 0 ] != '\0' ) {
 		candidateCount = FS_RootArchiveAddGameCandidate(
-			candidates, maxCandidates, candidateCount, basegame, qpath );
+			candidates, maxCandidates, candidateCount, profile->key, basegame, qpath );
 	}
 
-	candidateCount = FS_RootArchiveAddGameCandidate(
-		candidates, maxCandidates, candidateCount, BASEGAME, qpath );
-
-	return FS_RootArchiveAddCandidate( candidates, maxCandidates, candidateCount, qpath );
+	return FS_RootArchiveAddGameCandidate(
+		candidates, maxCandidates, candidateCount, profile->key, profile->baseGame, qpath );
 }
 
 
@@ -3012,7 +3043,7 @@ static int FS_RootArchiveAddArchivePath(
 		return archivePathCount;
 	}
 
-	archivePath = FS_BuildOSPath( basePath, FNQL_ROOT_ARCHIVE_NAME, NULL );
+	archivePath = FS_BuildOSPath( basePath, FNTECH3_ROOT_ARCHIVE_NAME, NULL );
 	if ( strlen( archivePath ) >= MAX_OSPATH ) {
 		return archivePathCount;
 	}
@@ -3067,7 +3098,7 @@ static int FS_RootArchiveBuildArchivePaths(
 =================
 FS_ReadFileFromRootArchive
 
-Read compatibility-safe source-port assets from a fixed archive next to the executable.
+Read profile-scoped source-port assets from a fixed archive next to the executable.
 Restricted to explicitly owned renderer, audio-zone, global-fog, and sound-shader sidecars so it doesn't widen the general data search path.
 =================
 */
@@ -3087,8 +3118,8 @@ static int FS_ReadFileFromRootArchive( const char *qpath, void **buffer )
 	unzFile archive;
 	unz_file_info fileInfo;
 	byte *buf;
-	char archivePaths[ FNQL_ROOT_ARCHIVE_MAX_PATHS ][ MAX_OSPATH ];
-	char candidates[ FNQL_ROOT_ARCHIVE_MAX_ENTRIES ][ MAX_ZPATH ];
+	char archivePaths[ FNTECH3_ROOT_ARCHIVE_MAX_PATHS ][ MAX_OSPATH ];
+	char candidates[ FNTECH3_ROOT_ARCHIVE_MAX_ENTRIES ][ MAX_ZPATH ];
 	int archivePathCount;
 	int archivePathIndex;
 	int candidateCount;
@@ -3097,6 +3128,7 @@ static int FS_ReadFileFromRootArchive( const char *qpath, void **buffer )
 	int len;
 	int total;
 
+	if ( buffer != NULL ) *buffer = NULL;
 	if ( !FS_RootArchiveAllowsFile( qpath ) ) {
 		return -1;
 	}
@@ -3104,7 +3136,7 @@ static int FS_ReadFileFromRootArchive( const char *qpath, void **buffer )
 	archivePathCount = FS_RootArchiveBuildArchivePaths( archivePaths, ARRAY_LEN( archivePaths ) );
 	if ( archivePathCount == 0 ) {
 		if ( fs_debug->integer ) {
-			Com_Printf( "FS_ReadFile: %s (%s has no candidate paths)\n", qpath, FNQL_ROOT_ARCHIVE_NAME );
+			Com_Printf( "FS_ReadFile: %s (%s has no candidate paths)\n", qpath, FNTECH3_ROOT_ARCHIVE_NAME );
 		}
 		return -1;
 	}
@@ -3112,7 +3144,7 @@ static int FS_ReadFileFromRootArchive( const char *qpath, void **buffer )
 	candidateCount = FS_RootArchiveBuildCandidates( qpath, candidates, ARRAY_LEN( candidates ) );
 	if ( candidateCount == 0 ) {
 		if ( fs_debug->integer ) {
-			Com_Printf( "FS_ReadFile: %s (%s has no candidate entries)\n", qpath, FNQL_ROOT_ARCHIVE_NAME );
+			Com_Printf( "FS_ReadFile: %s (%s has no candidate entries)\n", qpath, FNTECH3_ROOT_ARCHIVE_NAME );
 		}
 		return -1;
 	}
@@ -3125,7 +3157,7 @@ static int FS_ReadFileFromRootArchive( const char *qpath, void **buffer )
 		if ( archive == NULL ) {
 			if ( fs_debug->integer ) {
 				Com_Printf( "FS_ReadFile: %s (%s not opened: '%s')\n",
-					qpath, FNQL_ROOT_ARCHIVE_NAME, archivePaths[ archivePathIndex ] );
+					qpath, FNTECH3_ROOT_ARCHIVE_NAME, archivePaths[ archivePathIndex ] );
 			}
 			continue;
 		}
@@ -3154,7 +3186,7 @@ static int FS_ReadFileFromRootArchive( const char *qpath, void **buffer )
 
 	if ( archiveEntry == NULL ) {
 		if ( fs_debug->integer ) {
-			Com_Printf( "FS_ReadFile: %s (not found in %s; tried", qpath, FNQL_ROOT_ARCHIVE_NAME );
+			Com_Printf( "FS_ReadFile: %s (not found in %s; tried", qpath, FNTECH3_ROOT_ARCHIVE_NAME );
 			for ( candidateIndex = 0; candidateIndex < candidateCount; candidateIndex++ ) {
 				Com_Printf( "%s%s", candidateIndex == 0 ? " " : ", ", candidates[ candidateIndex ] );
 			}
@@ -3171,7 +3203,7 @@ static int FS_ReadFileFromRootArchive( const char *qpath, void **buffer )
 
 	if ( fileInfo.compression_method != 0 && fileInfo.compression_method != 8 /* Z_DEFLATED */ ) {
 		Com_Printf( S_COLOR_YELLOW "%s|%s: unsupported compression method %i\n",
-			FNQL_ROOT_ARCHIVE_NAME, archiveEntry, (int) fileInfo.compression_method );
+			FNTECH3_ROOT_ARCHIVE_NAME, archiveEntry, (int) fileInfo.compression_method );
 		unzClose( archive );
 		return -1;
 	}
@@ -3315,7 +3347,7 @@ int FS_ReadFile( const char *qpath, void **buffer ) {
 		}
 	}
 
-	// FnQL source-port package assets are intentionally higher priority than
+	// fnTech3 profile-scoped package assets are intentionally higher priority than
 	// normal game data while staying limited to the fixed allowlist above.
 	len = FS_ReadFileFromRootArchive( qpath, buffer );
 	if ( len >= 0 ) {
@@ -5151,7 +5183,7 @@ char **FS_ListFiles( const char *path, const char *extension, int *numfiles )
 	 * single owned renderer shader only for the exact list operation used by
 	 * renderer startup, then let the normal allowlisted read path serve it. */
 	if ( Q_stricmp( path, "scripts" ) || Q_stricmp( extension, ".shader" ) ||
-		FS_ReadFileFromRootArchive( FNQL_ROOT_ARCHIVE_RENDERER_SHADER, NULL ) < 0 ) {
+		FS_ReadFileFromRootArchive( FNTECH3_ROOT_ARCHIVE_RENDERER_SHADER, NULL ) < 0 ) {
 		return files;
 	}
 

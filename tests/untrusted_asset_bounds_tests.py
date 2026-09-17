@@ -192,13 +192,15 @@ class ClientUntrustedInputTests(unittest.TestCase):
 
     def test_roq_chunk_walk_stays_inside_the_file_buffer(self) -> None:
         source = read("code/client/cl_cin.cpp")
-        # the buffer carries the trailing chunk header a 65536-byte chunk implies
+        # Full payloads fit, and packed chunks are bounded by bytes actually read.
         self.assertIn("std::array<byte, 65536 + 8> file;", source)
         block = body(source, "static void RoQInterrupt()", "static qboolean RoQ_init( void )")
-        self.assertIn("if ( frameOffset + 8 > cin.file.size() ) {", block)
+        self.assertIn("payloadBytes - offset < 8", block)
+        self.assertIn("movie.RoQFrameSize > payloadBytes - offset", block)
+        self.assertIn("offset != payloadBytes", block)
         self.assertNotIn("framedata\t\t += cinTable[currentHandle].RoQFrameSize;", block)
         # the legal chunk-size guard must NOT have been tightened
-        self.assertIn("RoQFrameSize>65536", block)
+        self.assertIn("payloadBytes > 65536", block)
 
 
 class SharedImageLoaderTests(unittest.TestCase):

@@ -120,7 +120,7 @@ class WindowManagementSourceTests(unittest.TestCase):
         for dependency in (
             "code/win32/q3.manifest",
             "code/win32/resource.h",
-            "code/win32/fnql.ico",
+            "assets/icons/fntech3.ico",
             "version/fnql_version.h",
             "version/fntech3_version.h",
         ):

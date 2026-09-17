@@ -1,0 +1,7 @@
+// Gentle industrial haze for The Fifth CTF.
+color 0.57 0.59 0.59
+mode exp
+density 0.00075
+start 176
+opacity 0.28
+sky 1

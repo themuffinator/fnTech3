@@ -174,7 +174,10 @@ class RtxRendererContractSourceTests(unittest.TestCase):
         self.assertNotIn("RDF_NOFOVCORRECTION", renderer_sources)
         self.assertIn("R_ApplyProfileFovCorrection", renderer_sources)
         fov = read("code/renderercommon/tr_q3_fov.h")
-        self.assertIn('ri.Cvar_VariableString( "com_gameProfile" ), "quake3"', fov)
+        self.assertIn('ri.Cvar_VariableString( "com_gameProfile" )', fov)
+        for profile in ("quake3", "rtcw-sp", "rtcw-mp"):
+            self.assertIn(f'!Q_stricmp( profile, "{profile}" )', fov)
+        self.assertNotIn('!Q_stricmp( profile, "quakelive" )', fov)
 
     def test_new_presentation_and_rt_features_are_conservative_by_default(self) -> None:
         init = read("code/rendererrtx/tr_init.c")

@@ -2,7 +2,7 @@
 
 FnQL splits display settings across three layers: how the window or fullscreen mode is created, how the scene is rendered internally, and which post-processing controls are applied to the final image. This guide covers renderer choice, video mode selection, framebuffer-based rendering, anti-aliasing, bloom, soft particles, and the related scene presentation controls.
 
-For menu and cinematic layout on widescreen displays, use the separate [Aspect Handling Guide](ASPECT_CORRECTION.md). Retail cgame owns HUD projection and world FOV. For screenshot output and capture-specific options, use the [Screenshot Guide](SCREENSHOTS.md).
+For FOV, HUD, menu, and cinematic layout on widescreen displays, use the separate [Aspect Handling Guide](ASPECT_CORRECTION.md). Q3 and RTCW offer engine correction; retail Quake Live cgame owns its HUD projection and world FOV. For screenshot output and capture-specific options, use the [Screenshot Guide](SCREENSHOTS.md).
 
 ## Renderer Choice
 
@@ -183,7 +183,7 @@ These settings affect the rendered scene itself rather than the window mode.
 - `r_colorGradeLUTScale`: Scene-linear RGB range represented by the LUT. Default `4.0` maps `0..4` into the LUT domain.
 - `r_greyscale`: Full-frame desaturation. Requires `r_fbo 1`.
 
-Use [ASPECT_CORRECTION.md](ASPECT_CORRECTION.md) for menu and cinematic layout. Native QL cgame geometry and world FOV are passed through without an engine-side post-correction.
+`r_fovCorrection 1` restores 4:3-authored world FOV correction for Q3 and RTCW in all renderers. Set it to `0` for mods that already correct FOV. See [ASPECT_CORRECTION.md](ASPECT_CORRECTION.md) for HUD rules and presentation controls. Native QL cgame geometry and world FOV are passed through without an engine-side post-correction.
 
 ### Hardware Gamma Ramps
 

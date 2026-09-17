@@ -2,6 +2,10 @@
 #ifndef FNTECH3_RTCW_LIGHT_SCENE_H
 #define FNTECH3_RTCW_LIGHT_SCENE_H
 #include "tr_rtcw_light_math.h"
+#ifdef USE_PMLIGHT
+#include "tr_rtcw_light_shadow.h"
+static rtcwLightShadowHistory_t rtcwLightShadowHistory[32];
+#endif
 static cvar_t *rtcwRadiusScale;
 
 void RE_AddRTCWLightToScene( const vec3_t origin, float intensity, float r, float g, float b, int flags ) {
@@ -49,6 +53,25 @@ void RE_AddRTCWLightToScene( const vec3_t origin, float intensity, float r, floa
 #ifdef USE_PMLIGHT
 	light.shadowIndex = light.shadowAtlasBaseFace = light.shadowSpotSource = light.shadowSpotSourceIndex = -1;
 	light.shadowPriorityMultiplier = 1.0f;
+	/* Ordinary RTCW lights share the Q3/QL per-pixel pass and shadow atlas.
+	 * Authored subtractive/flame materials keep their projected blend passes. */
+	if ( R_GetDlightMode() && !parameters.material ) {
+		const float gain = r_dlightIntensity->value * ( parameters.overdraw + 1 );
+		if ( ri.gameId == COM_GAME_RTCW_MP ) {
+			scale = r_dlightScale->value;
+			if ( !RTCW_LightFinite( scale ) || scale <= 0 ) return;
+			light.radius *= scale;
+		}
+		if ( !RTCW_LightFinite( light.radius ) || light.radius <= 0 ||
+			light.radius > WORLD_SIZE || !RTCW_LightFinite( gain ) || gain <= 0 ) return;
+		VectorScale( light.color, gain, light.color );
+		R_ApplyDlightColorControls( &light.color[0], &light.color[1], &light.color[2] );
+		if ( !RTCW_LightFinite( light.color[0] ) || !RTCW_LightFinite( light.color[1] ) ||
+			!RTCW_LightFinite( light.color[2] ) ) return;
+		light.shadowEligible = qtrue;
+		light.shadowProjectionFar = R_RTCWLightShadowProjection( rtcwLightShadowHistory,
+			ARRAY_LEN( rtcwLightShadowHistory ), origin, light.radius, tr.frameCount );
+	}
 #endif
 	backEndData->dlights[r_numdlights++] = light;
 }

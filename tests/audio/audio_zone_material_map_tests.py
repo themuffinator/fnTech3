@@ -108,8 +108,12 @@ def build_bsp(
     return bytes(header + body)
 
 
-def build_minimal_bsp(shader_name: str) -> bytes:
-    return build_bsp([shader_name], [(0, 0, (0, 0, 0), (128, 128, 128), 0)])
+def build_minimal_bsp(shader_name: str, *, version: int = 46, flags: int = 0) -> bytes:
+    data = bytearray(build_bsp([shader_name], [(0, 0, (0, 0, 0), (128, 128, 128), 0)]))
+    struct.pack_into("<i", data, 4, version)
+    shader_offset = struct.unpack_from("<i", data, 8 + BSP_LUMP_SHADERS * 8)[0]
+    struct.pack_into("<i", data, shader_offset + 64, flags)
+    return bytes(data)
 
 
 def resolve_tool() -> Path:
@@ -140,7 +144,8 @@ def resolve_tool() -> Path:
 
 
 class AudioZoneMaterialMapTests(unittest.TestCase):
-    def generate_and_dump(self, bsp_bytes: bytes, material_map: str | None = None) -> str:
+    def generate_and_dump(self, bsp_bytes: bytes, material_map: str | None = None,
+                          profile: str | None = None) -> str:
         tool = resolve_tool()
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -148,6 +153,8 @@ class AudioZoneMaterialMapTests(unittest.TestCase):
             bsp.write_bytes(bsp_bytes)
             output = root / "generated.azb"
             command = [str(tool), "--from-bsp", "-o", str(output)]
+            if profile is not None:
+                command.extend(["--profile", profile])
             if material_map is not None:
                 material_map_path = root / "audio-materials.txt"
                 material_map_path.write_text(material_map, encoding="utf-8")
@@ -172,6 +179,42 @@ class AudioZoneMaterialMapTests(unittest.TestCase):
             )
             self.assertEqual(dumped.returncode, 0, dumped.stderr)
             return dumped.stdout
+
+    def test_material_flags_follow_explicit_profile_not_bsp_version(self) -> None:
+        for profile, version in ((None, 47), ("quake3", 46), ("quakelive", 47),
+                                 ("rtcw-sp", 47), ("rtcw-mp", 47)):
+            rtcw = profile in {"rtcw-sp", "rtcw-mp"}
+            for flag, material in (
+                (0x40, "stone" if rtcw else "soft"),
+                (0x1000, "metal"),
+                *((flag, "stone" if rtcw else "neutral")
+                  for flag in (0x200000, 0x800000, 0x1000000)),
+                *((flag, "soft" if rtcw else "neutral")
+                  for flag in (0x40000, 0x80000, 0x100000, 0x400000, 0x2000000)),
+            ):
+                with self.subTest(profile=profile, flag=hex(flag)):
+                    dumped = self.generate_and_dump(
+                        build_minimal_bsp("textures/plain/panel", version=version, flags=flag),
+                        profile=profile,
+                    )
+                    self.assertIn(f"material {material}", dumped)
+
+    def test_bsp_profile_errors_leave_existing_output_untouched(self) -> None:
+        tool = resolve_tool()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            bsp = root / "q3.bsp"
+            bsp.write_bytes(build_minimal_bsp("textures/plain/panel"))
+            output = root / "old.azb"
+            output.write_bytes(b"previous sidecar")
+            for profile in ("rtcw-sp", "rtcw-mp", "quakelive", "unknown"):
+                result = subprocess.run(
+                    [str(tool), "--from-bsp", "--profile", profile, "-o", str(output), str(bsp)],
+                    capture_output=True, text=True, check=False,
+                )
+                self.assertNotEqual(result.returncode, 0, profile)
+                self.assertIn("--profile", result.stderr)
+                self.assertEqual(output.read_bytes(), b"previous sidecar")
 
     def test_material_map_overrides_shader_classification(self) -> None:
         tool = resolve_tool()

@@ -1,0 +1,564 @@
+{
+  "source": "https://github.com/themuffinator/FnQ3/tree/7d8c9629cdc7979f09697266470359101ffd9eda/pkg",
+  "sourceCommit": "7d8c9629cdc7979f09697266470359101ffd9eda",
+  "referenceHead": "fe36422a48f292a935e78130b0155346dff1788c",
+  "packageSubtreeMatchesPinnedCommit": true,
+  "sourceArchive": "FnQuake3/meson/build/FnQuake3-pkg.fnz",
+  "sourceArchiveSha256": "e155cccfd6a4b389e93ca4d3b946819190b1c9854b5ff90d981773929fc14f16",
+  "license": "GPL-2.0-or-later (FnQuake3 engine lineage; GPLv2 LICENSE)",
+  "mapping": "Prefix games/quake3/; rename the two sound shader files to the existing fnql-weapon-sounds.sndshd consumer qpath. Contents and provenance comments preserved.",
+  "assets": [
+    {
+      "source": "baseq3/fnq3-hud.json",
+      "packagePath": "games/quake3/baseq3/fnq3-hud.json",
+      "sha256": "ef86cba9bca1cf5e22f090f1887c3eb8c84e356c2a78dd79d227a19c64653a13",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/pro-q3dm13.azb",
+      "packagePath": "games/quake3/baseq3/maps/pro-q3dm13.azb",
+      "sha256": "547b9bdd2ab1bb25bacc4da40ab04319a06398fd73064d2a89fff7931e9ee02f",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/pro-q3dm13.fog",
+      "packagePath": "games/quake3/baseq3/maps/pro-q3dm13.fog",
+      "sha256": "289d93e68daf1829acda6b2d139c1926f35541f14d7c224429fffefcb09a735e",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/pro-q3dm6.azb",
+      "packagePath": "games/quake3/baseq3/maps/pro-q3dm6.azb",
+      "sha256": "988f678b3e507bb4d73914b6fb3fede5ec1c2ecf79840843f64c5a5458c8419b",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/pro-q3dm6.fog",
+      "packagePath": "games/quake3/baseq3/maps/pro-q3dm6.fog",
+      "sha256": "4f58dddf9bdc7cf10a7e8cf88a64cac54ef1788b2ef5a1ab864c2254f7a888e9",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/pro-q3tourney2.azb",
+      "packagePath": "games/quake3/baseq3/maps/pro-q3tourney2.azb",
+      "sha256": "60272335ba90ab5afee015063c3369e959d02949cea3709858e0073fbdcd4e32",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/pro-q3tourney2.fog",
+      "packagePath": "games/quake3/baseq3/maps/pro-q3tourney2.fog",
+      "sha256": "f7be96e89ce91a485573ac1ce093fa85c1aa4242e6c5a5f65ef5aa772291b73f",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/pro-q3tourney4.azb",
+      "packagePath": "games/quake3/baseq3/maps/pro-q3tourney4.azb",
+      "sha256": "15e7dd1c5ba0d14e4807a8e4804238be78cb1636fee676121ab33be95e1fa885",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/pro-q3tourney4.fog",
+      "packagePath": "games/quake3/baseq3/maps/pro-q3tourney4.fog",
+      "sha256": "bc654351d7e1f6d95f316ecc2ec5aef616ba5260258a1e78e27202772f7198c5",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/q3ctf1.azb",
+      "packagePath": "games/quake3/baseq3/maps/q3ctf1.azb",
+      "sha256": "11719262a3a21f510caed0d5b3720d7d3172c00b3dca65669cdd268b5226efbf",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/q3ctf1.fog",
+      "packagePath": "games/quake3/baseq3/maps/q3ctf1.fog",
+      "sha256": "a2ad271ae2be43e4002495f50607abe584a2232b72b428f59bc3a7a4048f8dc2",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/q3ctf2.azb",
+      "packagePath": "games/quake3/baseq3/maps/q3ctf2.azb",
+      "sha256": "9c0c28a37e69d658097df1390e0ea32107647386c5452bdefd2599a2bc56ec4f",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/q3ctf2.fog",
+      "packagePath": "games/quake3/baseq3/maps/q3ctf2.fog",
+      "sha256": "0d7630e69eafbe21779d76ce9a47c88f21166ff6ea117cf530344e8f6e631d1b",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/q3ctf3.azb",
+      "packagePath": "games/quake3/baseq3/maps/q3ctf3.azb",
+      "sha256": "ab498edbddda33db26455d80baa4f83f270f91486b45ad7618ffeadbc8542c39",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/q3ctf3.fog",
+      "packagePath": "games/quake3/baseq3/maps/q3ctf3.fog",
+      "sha256": "8b1561ffd04b2ff9f26abcc2550c98f5d3aaa4b65d1acbf8797f4258cc57138d",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/q3ctf4.azb",
+      "packagePath": "games/quake3/baseq3/maps/q3ctf4.azb",
+      "sha256": "7f4d36ebf9c5dc91d2fb88ee4c6551114f0deb3670e0a4479af8226e512aee23",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/q3ctf4.fog",
+      "packagePath": "games/quake3/baseq3/maps/q3ctf4.fog",
+      "sha256": "4f0a8a21523e46a255fc54b8b87c8f09a855560e2372a40455caa4f668c1bed5",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/q3ctf5.fog",
+      "packagePath": "games/quake3/baseq3/maps/q3ctf5.fog",
+      "sha256": "17cbfb6e3f847eb1e2515450f2d15ba0261f37fde497ba4213fbd21926f0cfe8",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/q3dm0.azb",
+      "packagePath": "games/quake3/baseq3/maps/q3dm0.azb",
+      "sha256": "1e8d6b2c981bd0da411819101d756fd13f6aed2d5d2159ea23c79258c4a9b36c",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/q3dm0.fog",
+      "packagePath": "games/quake3/baseq3/maps/q3dm0.fog",
+      "sha256": "686e79fd64ad3341b95c0d7a18a8b1d88da94827c133fffeecbd63a446d7cbea",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/q3dm1.azb",
+      "packagePath": "games/quake3/baseq3/maps/q3dm1.azb",
+      "sha256": "942594ed48f72193a68efb7b3cd13d253406bccbd5f8ea63e1dccb1580511aa7",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/q3dm1.fog",
+      "packagePath": "games/quake3/baseq3/maps/q3dm1.fog",
+      "sha256": "e8961a61b256273384ef3979bd2d10944be4fb9397948dd9c9cd4bdc559a16d1",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/q3dm10.azb",
+      "packagePath": "games/quake3/baseq3/maps/q3dm10.azb",
+      "sha256": "a02cd52f3407247c1c15cf9a29b2dd89766e2c1a48d075061fa42bf846367b19",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/q3dm10.fog",
+      "packagePath": "games/quake3/baseq3/maps/q3dm10.fog",
+      "sha256": "afd8fdad2411c19f49a2565dc7004d3f6a21751c418f71138b65da79438cc106",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/q3dm11.azb",
+      "packagePath": "games/quake3/baseq3/maps/q3dm11.azb",
+      "sha256": "938043d412aaed0321d0ef0658b6fe931b304f5c4ce4ae768f67c9cedc3c4be2",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/q3dm11.fog",
+      "packagePath": "games/quake3/baseq3/maps/q3dm11.fog",
+      "sha256": "b649a640c9d39b2c7aaa4c0246700f3ca17be23d84d262010ca29cfc5a255923",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/q3dm12.azb",
+      "packagePath": "games/quake3/baseq3/maps/q3dm12.azb",
+      "sha256": "8b0202345d4e894776a182a365e794dbac6b8af9f3e5d6e542802118732cca2d",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/q3dm12.fog",
+      "packagePath": "games/quake3/baseq3/maps/q3dm12.fog",
+      "sha256": "fec8bcda07847247249ae32ba1560cc180d6b673dd15b7df4194417280020215",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/q3dm13.azb",
+      "packagePath": "games/quake3/baseq3/maps/q3dm13.azb",
+      "sha256": "d8b14c191d909068a1ff007c742d0060dbc904d0c4edb737cf9a7b6898d95b5a",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/q3dm13.fog",
+      "packagePath": "games/quake3/baseq3/maps/q3dm13.fog",
+      "sha256": "1ec6e98ccb1aa1210ea6c5cebcfe9c5cbb58e6922e745728c01dc228a0c5b5bf",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/q3dm14.azb",
+      "packagePath": "games/quake3/baseq3/maps/q3dm14.azb",
+      "sha256": "5c775879fb9bf81961d9d84eef662638c2b6a47ea5e2f23439a23b31321fc74e",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/q3dm14.fog",
+      "packagePath": "games/quake3/baseq3/maps/q3dm14.fog",
+      "sha256": "892f823f8e674b16225a79e07ea0dc794f49d147fc15448338c814f970c3ab1f",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/q3dm15.azb",
+      "packagePath": "games/quake3/baseq3/maps/q3dm15.azb",
+      "sha256": "17286e723835aed9971e896c25f81c6110dc0d6b3c3648523ecc6eb9ab149b78",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/q3dm15.fog",
+      "packagePath": "games/quake3/baseq3/maps/q3dm15.fog",
+      "sha256": "44cff3321f73edc4ba56621fd49aab75a98102330e651404607c01b51a1ed884",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/q3dm16.azb",
+      "packagePath": "games/quake3/baseq3/maps/q3dm16.azb",
+      "sha256": "ea4b8d1522936a41bc4d96d9e0252a483012acc46f9a7a4dfb0d231ffc43e445",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/q3dm16.fog",
+      "packagePath": "games/quake3/baseq3/maps/q3dm16.fog",
+      "sha256": "acb9b6eac9be34ae2c1f528b396e746b0ac652700f87a2f6b773b3ab2bcf3151",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/q3dm17.azb",
+      "packagePath": "games/quake3/baseq3/maps/q3dm17.azb",
+      "sha256": "f989794eb4705cc1644a080e3446eb9aa02043d37dfb72d8bf451fd4bfe93ed5",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/q3dm17.fog",
+      "packagePath": "games/quake3/baseq3/maps/q3dm17.fog",
+      "sha256": "e8a8e1dc81ce070651c2c49584efc7cc21882ccac5a3d82924219407b71c1fbd",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/q3dm18.azb",
+      "packagePath": "games/quake3/baseq3/maps/q3dm18.azb",
+      "sha256": "74f512c89789057e1dbe39a9ceecb8cc8d76af4ad8cc3b6b077b21e3bc8dddbe",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/q3dm18.fog",
+      "packagePath": "games/quake3/baseq3/maps/q3dm18.fog",
+      "sha256": "e738dd8d243c4e035cd33e5e58be35ab9fa83c1c78eb9fbacf7874a5ab3485ac",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/q3dm19.azb",
+      "packagePath": "games/quake3/baseq3/maps/q3dm19.azb",
+      "sha256": "4d972d93c7ef1438d2972d142a2e6d366b90b05bb99762e2ac5c10870fbe7469",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/q3dm19.fog",
+      "packagePath": "games/quake3/baseq3/maps/q3dm19.fog",
+      "sha256": "25cdb2c1871701158460f36a91ab2375992ad9c1dda4c6643091232ed55053a9",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/q3dm2.azb",
+      "packagePath": "games/quake3/baseq3/maps/q3dm2.azb",
+      "sha256": "2bdec489eb9319b21d4479de84fafe36234ff440a723ff49f26c40afae99f812",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/q3dm2.fog",
+      "packagePath": "games/quake3/baseq3/maps/q3dm2.fog",
+      "sha256": "a601f99920ea40d40704acd83fad255cc5b148420e2754dc6587cce41923f276",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/q3dm3.azb",
+      "packagePath": "games/quake3/baseq3/maps/q3dm3.azb",
+      "sha256": "bd8fcfcbe8225ad3283d2dc6c203703c286a2ed08f1ff4b7c2d92827f0281536",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/q3dm3.fog",
+      "packagePath": "games/quake3/baseq3/maps/q3dm3.fog",
+      "sha256": "b419b8e9ea6e4ebc550461376e286cecd1f6d9157f20011ca75656070ef8817d",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/q3dm4.azb",
+      "packagePath": "games/quake3/baseq3/maps/q3dm4.azb",
+      "sha256": "6fe7dbf83fe524414c54b6602e6d936c6570a7d8a07b9c251740690da02aef08",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/q3dm4.fog",
+      "packagePath": "games/quake3/baseq3/maps/q3dm4.fog",
+      "sha256": "37a4d47b4b35c928a376de01e7aaa8c73e78fe27e1f2735c251cfd838e44444c",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/q3dm5.azb",
+      "packagePath": "games/quake3/baseq3/maps/q3dm5.azb",
+      "sha256": "fd9fdbb3a5d53183ebebdabe5cf8ea7d35d281bc43f8dde482ec7bfeda35064c",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/q3dm5.fog",
+      "packagePath": "games/quake3/baseq3/maps/q3dm5.fog",
+      "sha256": "26b83348d5cb22fd78c92fccb7f8679250d53d685aad3457946feb5c56329837",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/q3dm6.azb",
+      "packagePath": "games/quake3/baseq3/maps/q3dm6.azb",
+      "sha256": "37c6fe64318b9fc2a96f38fd29e671555017e447c198d4704f98fe106603bd4b",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/q3dm6.fog",
+      "packagePath": "games/quake3/baseq3/maps/q3dm6.fog",
+      "sha256": "a5f994fd19c294b92a3025f8d2a022dcffa3af3d8abd7149dbf85f75cf30bd31",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/q3dm7.azb",
+      "packagePath": "games/quake3/baseq3/maps/q3dm7.azb",
+      "sha256": "4df84a4436e7f2b64a5d8304f6392613e859aa474ee5f942355d2b307bd622e9",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/q3dm7.fog",
+      "packagePath": "games/quake3/baseq3/maps/q3dm7.fog",
+      "sha256": "29fcea492bdd41b40d93407be3c93de56725fc038ca92abe49a9e182e735a3ff",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/q3dm8.azb",
+      "packagePath": "games/quake3/baseq3/maps/q3dm8.azb",
+      "sha256": "497533191164b9e9969a0e334b0685396b5c4a2993cc8a67b0e836cab2839d95",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/q3dm8.fog",
+      "packagePath": "games/quake3/baseq3/maps/q3dm8.fog",
+      "sha256": "9c40c40457b2e8a710b86e22f03fb2febeea2a44215d6e916f1f8a57ef2ed8eb",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/q3dm9.azb",
+      "packagePath": "games/quake3/baseq3/maps/q3dm9.azb",
+      "sha256": "f420db7ab71019f1aaa67d79f827ad32324aafaced1105d276f65fd0ca95e0c5",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/q3dm9.fog",
+      "packagePath": "games/quake3/baseq3/maps/q3dm9.fog",
+      "sha256": "2b1024dbe19858c11eff473d01c987b35c82260730f86c424d30f0f5f782a92a",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/q3tourney1.azb",
+      "packagePath": "games/quake3/baseq3/maps/q3tourney1.azb",
+      "sha256": "d001b87c9ad7f34969fcf34f54b316d5d09435f91c09826bed54b9f95542c53f",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/q3tourney1.fog",
+      "packagePath": "games/quake3/baseq3/maps/q3tourney1.fog",
+      "sha256": "aa500a85c7f041be9c9057b6c4cf6cf2cd97eb7568306bb449f8cd8f869068cf",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/q3tourney2.azb",
+      "packagePath": "games/quake3/baseq3/maps/q3tourney2.azb",
+      "sha256": "3a7f7f5ef2130356646dd80f96bab4f052e58075ae85bfa5a9da639dcd31089f",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/q3tourney2.fog",
+      "packagePath": "games/quake3/baseq3/maps/q3tourney2.fog",
+      "sha256": "21872c3a3dd80ae6927b9a1816e5cb61fa689a58c4dc4ba7ac768f6c99eaf728",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/q3tourney3.azb",
+      "packagePath": "games/quake3/baseq3/maps/q3tourney3.azb",
+      "sha256": "00b1cc80044d2dbd6ed859f0e8c89e2c7776b31b49f06eaa9bfc2219171eb80b",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/q3tourney3.fog",
+      "packagePath": "games/quake3/baseq3/maps/q3tourney3.fog",
+      "sha256": "360b7c706c8e869c2cba38bb7cc7ef64f3e51a20b7a9c23c258bd1f3a8462c91",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/q3tourney4.azb",
+      "packagePath": "games/quake3/baseq3/maps/q3tourney4.azb",
+      "sha256": "25de35de61f2180734cbe14b61470bfa80febece3b56582df9cb74b89b5bf8cd",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/q3tourney4.fog",
+      "packagePath": "games/quake3/baseq3/maps/q3tourney4.fog",
+      "sha256": "52ac45cf85d18ed144f694e647cecb7856bf310d9270461dd9ff50f0c090378c",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/q3tourney5.azb",
+      "packagePath": "games/quake3/baseq3/maps/q3tourney5.azb",
+      "sha256": "33d2ca822254e93de188ec4d64f158f5a50b4fd6bfa2e45441e7224cbc51594b",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/q3tourney6.azb",
+      "packagePath": "games/quake3/baseq3/maps/q3tourney6.azb",
+      "sha256": "2cedcf57b79b13fd82f84bdc0c4810f00f589448cd4f4ccd502f520992c91424",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/maps/q3tourney6.fog",
+      "packagePath": "games/quake3/baseq3/maps/q3tourney6.fog",
+      "sha256": "a36e83592e6938fa8125a2484ea4ee6a29db5b7baeb12c91b45c398000cb9e07",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "baseq3/maps/q3tourney6_ctf.azb",
+      "packagePath": "games/quake3/baseq3/maps/q3tourney6_ctf.azb",
+      "sha256": "cdee30f243d8d75383e9ed1427bf21bd3e793d0ad40c609548b566b48c8eeb7a",
+      "hashEncoding": "binary"
+    },
+    {
+      "source": "baseq3/sound/fnq3-weapon-sounds.sndshd",
+      "packagePath": "games/quake3/baseq3/sound/fnql-weapon-sounds.sndshd",
+      "sha256": "c2ed183785e01f227c4e59b5843f54f59b6bed1e5c4be569b39aae9971a61e29",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "missionpack/maps/mpq3ctf1.fog",
+      "packagePath": "games/quake3/missionpack/maps/mpq3ctf1.fog",
+      "sha256": "07dc9fa9befcfab7f0cbea6f60d205b855442485137232b7f59ae95cf53f7ebd",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "missionpack/maps/mpq3ctf2.fog",
+      "packagePath": "games/quake3/missionpack/maps/mpq3ctf2.fog",
+      "sha256": "51a94a1c7b256013489c366cad7831d1aac2fc95bfad445c1e4cb9bc0f02dc46",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "missionpack/maps/mpq3ctf3.fog",
+      "packagePath": "games/quake3/missionpack/maps/mpq3ctf3.fog",
+      "sha256": "0c42946c0c895c038c7f077a52ec33240bcc8722f4695fab536e5f9ccfbe552c",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "missionpack/maps/mpq3ctf4.fog",
+      "packagePath": "games/quake3/missionpack/maps/mpq3ctf4.fog",
+      "sha256": "f6f004f5c0be5f6b466c48828c41023844e4de1c816a577ff6e6bea87f70b176",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "missionpack/maps/mpq3tourney6.fog",
+      "packagePath": "games/quake3/missionpack/maps/mpq3tourney6.fog",
+      "sha256": "4881f5c19df97141bb5e32e012037080f454c393308b16bc9f7dd35847b978f5",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "missionpack/maps/mpteam1.fog",
+      "packagePath": "games/quake3/missionpack/maps/mpteam1.fog",
+      "sha256": "24c8ff810a425007ed994f2c4928a68d1ac83939cec624085158464d568ef3af",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "missionpack/maps/mpteam2.fog",
+      "packagePath": "games/quake3/missionpack/maps/mpteam2.fog",
+      "sha256": "8ebef8f951d809a2434b0b0ccfb5c693410f91829d7b5e635e9cb92fbdf90b19",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "missionpack/maps/mpteam3.fog",
+      "packagePath": "games/quake3/missionpack/maps/mpteam3.fog",
+      "sha256": "49217730d9d4e27e0b27ccbddbe125b563e3cec84dda9ab07666e2dde354034b",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "missionpack/maps/mpteam4.fog",
+      "packagePath": "games/quake3/missionpack/maps/mpteam4.fog",
+      "sha256": "6b959f1f922fb92ce34737330868e95d3fbf1237bdf1f718390fcf981aaff974",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "missionpack/maps/mpteam5.fog",
+      "packagePath": "games/quake3/missionpack/maps/mpteam5.fog",
+      "sha256": "c734e180476b454d102d426fa6ad433d6a261433d05610216b7a6fb331ef7f75",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "missionpack/maps/mpteam6.fog",
+      "packagePath": "games/quake3/missionpack/maps/mpteam6.fog",
+      "sha256": "17839af1b70aa909f5aca21bfa26d4ee51e31d06ec1e025fea7b59754093e069",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "missionpack/maps/mpteam7.fog",
+      "packagePath": "games/quake3/missionpack/maps/mpteam7.fog",
+      "sha256": "a60170dc25a9d7135f49d4ac13958603485590fdfeec61256798edd88c33cfbe",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "missionpack/maps/mpteam8.fog",
+      "packagePath": "games/quake3/missionpack/maps/mpteam8.fog",
+      "sha256": "89966b4dc039fbb063f99fe95612443f6a02cd8af1124a605a0cff20674e5c86",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "missionpack/maps/mpterra1.fog",
+      "packagePath": "games/quake3/missionpack/maps/mpterra1.fog",
+      "sha256": "e2318d0b3409e4b39b6a3e1aeeb915146fd71f3d289c28ce1c37b0bf7da3de5c",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "missionpack/maps/mpterra2.fog",
+      "packagePath": "games/quake3/missionpack/maps/mpterra2.fog",
+      "sha256": "650341719e13200cc5c36b9c7cc06b68c1a87b193f3e9ef267baa1d199e9c865",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "missionpack/maps/mpterra3.fog",
+      "packagePath": "games/quake3/missionpack/maps/mpterra3.fog",
+      "sha256": "97c9b6d29bf9d03b620112af3053ebe4a17d3a52bd077be5e0a58167d7cb7b01",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "missionpack/maps/mptourney1.fog",
+      "packagePath": "games/quake3/missionpack/maps/mptourney1.fog",
+      "sha256": "c32a3b78f05975e4b615bd15db05e4c09db03bde88d0faebe6af36b97e6f3b06",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "missionpack/maps/mptourney2.fog",
+      "packagePath": "games/quake3/missionpack/maps/mptourney2.fog",
+      "sha256": "bc7058be6514407428b23875f81241c602c6c436d57f5e02d6f7a7dc2f1e987a",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "missionpack/maps/mptourney3.fog",
+      "packagePath": "games/quake3/missionpack/maps/mptourney3.fog",
+      "sha256": "2ae849a9b6d6a5f0abc7df1ac705c686d9196d2549b39886ba8a22c924c0245c",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "missionpack/maps/mptourney4.fog",
+      "packagePath": "games/quake3/missionpack/maps/mptourney4.fog",
+      "sha256": "9ad383138aa2c3c271d5cd5427973d399e557bf8d5f12bd0e71525451afab506",
+      "hashEncoding": "LF-normalized UTF-8"
+    },
+    {
+      "source": "missionpack/sound/fnq3-weapon-sounds.sndshd",
+      "packagePath": "games/quake3/missionpack/sound/fnql-weapon-sounds.sndshd",
+      "sha256": "2f6fc1fb76414194d32ea4bba8f64d1ad4c3898a7e808e1959bc1762a77cb86e",
+      "hashEncoding": "LF-normalized UTF-8"
+    }
+  ]
+}

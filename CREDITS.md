@@ -39,6 +39,30 @@ remain authoritative.
 
 ## Compatibility references and adapted work
 
+- [FnQuake3's HUD implementation](https://github.com/themuffinator/FnQ3/blob/7d8c9629cdc7979f09697266470359101ffd9eda/code/client/cl_hud.cpp)
+  supplies the restored layout rules, 3D HUD viewport placement, shader-name
+  matching, and grouped draw diagnostics under GPL-2.0-or-later, compatible
+  with this repository. fnTech3 adapts that implementation for its immutable
+  Q3/RTCW profiles, bounded JSON loading, profile-scoped package lookup, and
+  RTCW gradient/rotated draws. QL is excluded. The existing independently
+  implemented FnQuake3 FOV behavior is extended to both RTCW profiles.
+
+- RTCW's separate SP/MP HUD presets are independently authored from local
+  retail draw metadata, stock menu layout observations, and the published
+  [SP cgame](https://github.com/id-Software/RTCW-SP/tree/master/src/cgame) and
+  [MP cgame](https://github.com/id-Software/RTCW-MP/tree/master/src/cgame)
+  coordinate/shader contracts. This is reference-only use: no GPLv3 source
+  implementation or retail menu text is incorporated in the JSON presets.
+
+- The reviewed [FnQuake3 package assets](https://github.com/themuffinator/FnQ3/tree/7d8c9629cdc7979f09697266470359101ffd9eda/pkg)
+  supply Q3 and Team Arena audio-zone, fog, and sound-tuning data, plus the
+  retained legacy HUD preset, under `pkg/games/quake3/`. The package subtree
+  matches the pinned GPL-2.0-or-later merger baseline. Asset contents and
+  provenance comments are preserved; two sound-shader filenames are mapped
+  to fnTech3's existing consumer path. The [92-file inventory and hashes](docs/fntech3/2026-09-17-fnq3-package-assets.json)
+  distinguish this data import from engine implementation work. No retail
+  samples, maps, or modules are included.
+
 - id Software's [RTCW SP](https://github.com/id-Software/RTCW-SP) and
   [RTCW MP](https://github.com/id-Software/RTCW-MP) source releases, with
   [iortcw](https://github.com/iortcw/iortcw) as a cross-check, supply ABI,
@@ -126,6 +150,12 @@ remain authoritative.
   its header frame rate, using those client sources and the original common
   startup code as behavioral evidence. Shared clock and missing-movie recovery
   changes are independently authored; no reference movie decoder is copied.
+  The [RoQ bounds checkpoint](docs/fntech3/2026-09-17-roq-bounds.md) independently
+  corrects framing, codebook counts and recovery. Installed movie metadata and
+  [FFmpeg's RoQ decoder](https://github.com/FFmpeg/FFmpeg/blob/master/libavcodec/roqvideodec.c)
+  establish the length-dependent zero-count interpretation; FFmpeg implementation
+  text is not incorporated. Original SP/MP sources also establish the preserved
+  JPEG-chunk no-op policy.
 
 - RTCW material compression directives and image exemptions independently use
   behaviour observed in the original
@@ -323,6 +353,14 @@ remain authoritative.
   records that distinction, independently authored adapters and tests, and
   source/runtime evidence. No external implementation text is incorporated.
 
+- RTCW's silent null/empty model-registration result follows behavioral
+  observations of the original
+  [SP renderer](https://github.com/id-Software/RTCW-SP/blob/master/src/renderer/tr_model.c)
+  and [MP renderer](https://github.com/id-Software/RTCW-MP/blob/master/src/renderer/tr_model.c).
+  The bridge correction and regression checks are independently authored;
+  no GPLv3 implementation text is incorporated. See the
+  [empty-model checkpoint](docs/fntech3/2026-09-17-rtcw-empty-model-names.md).
+
 - The frozen Q3/QL configstring transfer contracts use layout facts from the pinned
   [FnQuake3 q_shared.h](https://github.com/themuffinator/FnQ3/blob/7d8c9629cdc7979f09697266470359101ffd9eda/code/qcommon/q_shared.h)
   and [FnQL q_shared.h](https://github.com/themuffinator/FnQL/blob/fce44fe714564621e6ceb79e3da7c53089646af2/code/qcommon/q_shared.h).
@@ -441,6 +479,12 @@ chapters; the GLSL implementation and synthetic tests are independently written.
   retained. Installed shader text, menu geometry and material pass counts are
   read-only evidence, not incorporated assets or implementation text.
 
+- RTCW's sixteen-frame shader animation limit follows the original
+  [SP renderer contract](https://github.com/id-Software/RTCW-SP/blob/master/src/renderer/tr_local.h)
+  and [MP renderer contract](https://github.com/id-Software/RTCW-MP/blob/master/src/renderer/tr_local.h),
+  corroborated by installed fire materials. This is reference-only use of a
+  format limit; no GPLv3 implementation or retail shader text is incorporated.
+
 - RTCW entity-stream allocation, stop and fade behavior is independently
   implemented from the original [SP sound system](https://github.com/id-Software/RTCW-SP/blob/master/src/client/snd_dma.c)
   and [MP sound system](https://github.com/id-Software/RTCW-MP/blob/master/src/client/snd_dma.c).
@@ -526,21 +570,54 @@ chapters; the GLSL implementation and synthetic tests are independently written.
   distinguishes source comparisons, engine fixes, retail defects and bounded
   runtime coverage.
 
+- RTCW activation/lean button encodings, pickup userinfo ownership, and mesh
+  blink selection are independently implemented from behavioral observations
+  of the original [SP client/game/renderer](https://github.com/id-Software/RTCW-SP/tree/master/src)
+  and [MP client/renderer](https://github.com/id-Software/RTCW-MP/tree/master/src).
+  No GPLv3 implementation text is incorporated. The
+  [interaction and eye checkpoint](docs/fntech3/2026-09-17-rtcw-player-interactions.md)
+  records failing-before regressions, installed observations, and limits.
+  The [eye-rendering follow-up](docs/fntech3/2026-09-17-rtcw-eye-rendering.md)
+  independently corrects Vulkan state recovery and reuses this project's
+  observed RTCW packed-normal contract for MD3 heads as well as MDC frames.
+  The independently authored [transparent-fog correction](docs/fntech3/2026-09-17-rtcw-transparent-fog.md)
+  follows framebuffer blend equations and flame-material observations from the
+  user's legitimate installation; no proprietary material text is incorporated.
+
+- The [RTCW engine command audit](docs/fntech3/2026-09-17-rtcw-engine-commands.md)
+  uses command names, input encodings, menu/chat ownership and music queue facts
+  from the original [SP engine](https://github.com/id-Software/RTCW-SP/tree/master/src)
+  and [MP engine](https://github.com/id-Software/RTCW-MP/tree/master/src).
+  Input bindings, command dispatch, regression fixtures and the inventory checker
+  are independently authored; no GPLv3 implementation text is incorporated.
+
 ## Retail-content boundary
 
-fnTech3 does not redistribute Quake III Arena or Quake Live data, retail game
-modules, Steam SDK/runtime binaries, Awesomium, credentials, captured private
-traffic, or other proprietary content. Runtime validation uses the user's
+The RTCW audio-zone authoring mode uses material-flag facts observed in the
+original [SP surface flags](https://github.com/id-Software/RTCW-SP/blob/master/src/game/surfaceflags.h)
+and [MP surface flags](https://github.com/id-Software/RTCW-MP/blob/master/src/game/surfaceflags.h),
+cross-checked against [iortcw](https://github.com/iortcw/iortcw).
+The acoustic classification is independently authored; no GPLv3 implementation
+text is incorporated. The 47 stock sidecars are generated acoustic metadata
+from a legitimate local installation, with source/output identities and limits
+in the [generation record](docs/fntech3/2026-09-17-rtcw-audio-zones.md).
+
+fnTech3 does not redistribute Quake III Arena, Quake Live, or Return to Castle
+Wolfenstein data, retail game modules, Steam SDK/runtime binaries, Awesomium,
+credentials, captured private traffic, or other proprietary content. Runtime
+validation uses the user's
 legitimate local installations and records only non-proprietary evidence.
 
 ## Project thanks
 
-Thanks to the Quake, Quake III, and Quake Live communities: players, server
-administrators, mod authors, mappers, tool authors, testers, reverse engineers,
-and maintainers who keep these games understandable and playable.
+Thanks to the Quake, Quake III, Quake Live, and Return to Castle Wolfenstein
+communities: players, server administrators, mod authors, mappers, tool authors,
+testers, reverse engineers, and maintainers who keep these games understandable
+and playable.
 
 ## Trademark note
 
 fnTech3 is independent and is not affiliated with, endorsed by, or sponsored by
-id Software, Bethesda, ZeniMax Media, or Valve. Quake, Quake III Arena, and
-Quake Live are trademarks of their respective owners.
+id Software, Bethesda, ZeniMax Media, or Valve. Quake, Quake III Arena,
+Quake Live, and Return to Castle Wolfenstein are trademarks of their respective
+owners.

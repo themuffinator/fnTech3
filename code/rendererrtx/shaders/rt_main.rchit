@@ -12,10 +12,12 @@ const uint RTX_RT_MATFLAG_EMISSIVE = 1u << 1;
 const uint RTX_RT_MATFLAG_TRANSLUCENT = 1u << 2;
 const uint RTX_RT_MATFLAG_PARTICLE = 1u << 6;
 const uint RTX_RT_MATFLAG_EFFECT = 1u << 7;
+const uint RTX_RT_MATFLAG_RTCW_NOFOG = 1u << 13;
 const uint RTX_RT_MODE_FLAG_PARTICLE_VOLUME = 1u << 3;
 const uint RTX_RT_MODE_FLAG_RASTER_REFERENCE = 1u << 4;
 const uint RTX_RT_PAYLOAD_FLAG_HIT = 1u << 0;
 const uint RTX_RT_PAYLOAD_FLAG_DYNAMIC = 1u << 1;
+const uint RTX_RT_PAYLOAD_FLAG_RTCW_NOFOG = 1u << 3;
 const uint RTX_RT_LIGHT_FLAG_CASTS_SHADOWS = 1u << 0;
 const uint RTX_RT_LIGHT_FLAG_SHADOW_ONLY = 1u << 1;
 
@@ -98,6 +100,9 @@ layout(set = 0, binding = 11, std430) readonly buffer RtTemporalParamsBuffer {
 	vec4 legacyColorParams;
 	vec4 readabilityParams;
 	uvec4 modes;
+	vec4 rtcwFogColor;
+	vec4 rtcwFogParams;
+	vec4 rtcwFogControl;
 } u_temporal;
 layout(set = 0, binding = 13) uniform sampler2D u_sceneTextures[RTX_RT_MAX_SCENE_TEXTURES];
 
@@ -609,6 +614,9 @@ void main()
 	payloadRadiance.hitT = gl_HitTEXT;
 	payloadRadiance.normal = N;
 	payloadRadiance.flags = RTX_RT_PAYLOAD_FLAG_HIT | (geometryClass == 1u ? RTX_RT_PAYLOAD_FLAG_DYNAMIC : 0u);
+	if ((materialFlags & RTX_RT_MATFLAG_RTCW_NOFOG) != 0u) {
+		payloadRadiance.flags |= RTX_RT_PAYLOAD_FLAG_RTCW_NOFOG;
+	}
 	payloadRadiance.shadowFactor = 1.0;
 	payloadRadiance.shadowLoss = vec3(0.0);
 	/*

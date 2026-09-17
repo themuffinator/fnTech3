@@ -5,11 +5,15 @@ places external renderer modules beside it, so renderer selection stays a
 runtime `\cl_renderer` choice instead of a reason to produce separate client
 executables.
 
-fnTech3 targets one shared engine for Quake III Arena and Quake Live. A
-successful build proves compilation and linkage; both profiles must separately
-pass the runtime and interoperability gates in the
-[compatibility ledger](docs/fntech3/COMPATIBILITY.md). Full compatibility is
-not yet established.
+fnTech3 targets one shared engine distribution for Quake III Arena (`q3`),
+Quake Live (`ql`), and Return to Castle Wolfenstein single player (`rtcw-sp`)
+and multiplayer (`rtcw-mp`). These four profiles share the client, dedicated
+server, and renderer build targets. RTCW remains experimental and is gated in
+default builds; see [RTCW development profiles](#rtcw-development-profiles).
+A successful build proves compilation and linkage. Each profile must separately
+pass its applicable runtime and interoperability gates in the
+[compatibility ledger](docs/fntech3/COMPATIBILITY.md) before the unified goal is
+complete. Full compatibility is not yet established for any profile.
 
 Steam service integration is optional and is never required to build fnTech3.
 Developers with the separate `../FnQL-Steam` repository can pass `-WithSteam`
@@ -17,7 +21,9 @@ to `.vscode/build-release.ps1` to build its strict dynamic-library target and
 stage only the resulting provider beside fnTech3. See
 [`docs/fnql/STEAM_PROVIDER.md`](docs/fnql/STEAM_PROVIDER.md).
 
-fnTech3 shared Q3/QL builds are **32-bit x86 only**. Build, test, package, and run Win32 on
+fnTech3 shared builds are **32-bit x86 only** because of the retail QL module
+boundary; enabling RTCW development does not widen that contract.
+Build, test, package, and run Win32 on
 Windows or i686 on Linux; x86_64, ARM, and macOS targets are unsupported for
 that shared release contract. The separate Windows Q3-only RTX diagnostic
 build below permits x86_64 with a narrower claim.
@@ -36,6 +42,13 @@ only fnTech3's settings overrides and still requires the legitimate retail
 `web.pak` for every untouched launcher resource. To build only the sidecar,
 run `python scripts/build_webpak.py --source-root code/client/webui --output
 .tmp/fnql-web.pak`.
+
+The engine asset archive is `fntech3-pkg.fnz`, with owned assets under
+`games/<profile>/<gamedir>/`. Upgrade it together with the engine; old
+`FnQL-pkg.fnz` archives are not read. See [package authoring and migration](docs/fntech3/PACKAGES.md).
+Meson and Make generate the package automatically. Legacy CMake currently
+requires a separate `python scripts/build_root_archive.py --output
+<executable-directory>/fntech3-pkg.fnz` step.
 
 ### meson/ninja
 
@@ -60,6 +73,8 @@ Project Meson options:
 `-Dbuild-server=true|false` - build the dedicated server executable, enabled by default
 
 `-Dq3-only=true|false` - opt into the experimental Windows x86_64 Q3-only diagnostic target below; disabled by default
+
+`-Drtcw-development=true|false` - enable incomplete RTCW SP/MP adapters in the same shared binaries for isolated development probes; disabled by default
 
 `-Drenderer-dlopen=true|false` - build external renderer modules and one unified client executable, enabled by default
 
@@ -107,6 +122,24 @@ checkout, fetch it with `meson subprojects download fontstash`. Client builds
 fail at configuration time if that retail host-font dependency is unavailable;
 they never silently substitute the incomplete host-font stubs.
 
+### RTCW development profiles
+
+RTCW SP and MP are two profiles of the same game and use the same `fntech3.exe`.
+For isolated probes, configure the shared Meson build with
+`-Drtcw-development=true`. This permits incomplete adapters to run and prints
+an experimental-build warning; it does not establish compatibility. The option
+does not change the selected profile's contracts or permit an in-process mode
+switch.
+
+The Windows helper exposes this as `-RTCWDevelopment`. VS Code's default
+`meson: build all games` task already enables it; ordinary release and debug
+tasks keep RTCW gated. Select `+set com_gameProfile rtcw-sp` or
+`+set com_gameProfile rtcw-mp`, a legitimate RTCW installation, an isolated
+writable home path, and `+set r_fullscreen 0`. See the
+[startup examples](README.md#windows-client-profile-selection) and
+[RTCW gate matrix](docs/fntech3/COMPATIBILITY.md#rtcw-gate-matrix).
+Menu mode changes relaunch the same executable with the destination profile.
+
 ### windows/msvc
 
 Install Visual Studio Community Edition 2017 or later, Python, Meson, and
@@ -118,23 +151,40 @@ Ninja. Open an x86 Native Tools developer prompt, then build through Meson:
 
 `meson install -C meson/build-msvc --destdir dist`
 
-VS Code's default Steam build and the launch configurations labelled
-`Retail QL / Win32` both use `meson/build/win32` (Release), so a manual launch
-cannot accidentally run an older Debug binary. The separate
-`meson: build Win32 debug (Steam)` task remains available for source-level
-debugging. All VS Code build and launch entry points are intentionally Win32
-only because retail Quake Live modules and Awesomium are 32-bit. The build
+VS Code's default `meson: build all games` task builds the client, dedicated
+server, all three renderers, and runtime packages in `meson/build/win32-dev`
+with debug symbols (`RelWithDebInfo`). It enables `-RTCWDevelopment`, which
+passes Meson's `-Drtcw-development=true` for the experimental RTCW adapters.
+The matching `(Steam)` task additionally builds the optional private provider.
+The existing release and debug tasks remain available; they keep RTCW gated.
+
+All launch configurations use the already-built `win32-dev` binaries and have
+no `preLaunchTask`. Build manually with Ctrl+Shift+B, then select a launch in
+Run and Debug (Microsoft C/C++ extension, Windows). Normal startup entries
+are named `Q3 glx`, `QL vk`, or `RTCW SP rtx`, with all three renderers for
+each of the four profiles. They use normal game startup without a map command
+or forced intro skipping. Map launch names follow
+`SP/MP bspname Map Title glx/vk/rtx`, grouped by game. The starter maps are
+Q3's `q3dm1` (Arena Gate), QL's `campgrounds` (Campgrounds), RTCW SP's
+`escape1` (Escape), and RTCW MP's `mp_beach` (Beach Invasion). Each has GLx,
+Vulkan, and RTX entries; the QL dedicated entry is also retained. SP uses
+`spmap`; QL supplies the required `ffa` factory. Installation paths are
+prompted with local defaults. Launches force windowed mode and use separate
+writable homes under `.tmp/vscode/<profile>/<renderer>`.
+
+These entries do not establish runtime compatibility; RTCW remains experimental,
+and RTX requires suitable driver/device capabilities. All VS Code build and
+launch entry points are intentionally Win32 only because retail Quake Live
+modules and Awesomium are 32-bit. The build
 helper compiles an explicit runtime-product list, so normal VS Code builds do
 not compile Meson's native test executables. Invoke the helper explicitly with
 `-RunTests` or use Meson directly for tests.
 
-Official Windows release archives include the compiled closed-source Win32
-`fnql_steam.dll` provider. Release CI downloads the exact binary pinned in
-`version/fnql_steam_provider.json`, verifies its SHA-256 digest and PE i386
-header, and never downloads provider source or Valve's `steam_api.dll`. Local
-Steam-enabled development continues to build the private `../FnQL-Steam`
-sibling through the `-WithSteam` helper path documented in
-`docs/fnql/STEAM_PROVIDER.md`.
+fnTech3 release archives exclude the proprietary `fnql_steam.dll` provider and
+Valve Steam runtimes. Release validation rejects these files; release CI does
+not fetch the provider. Local Steam-enabled development may build the private
+`../FnQL-Steam` sibling through the `-WithSteam` helper path documented in the
+[Steam provider notes](docs/fnql/STEAM_PROVIDER.md).
 
 Alternatively, open `code/win32/msvc2017/fnql.sln` and select a Win32
 Debug/Release configuration. Its maintained project delegates to Meson with
@@ -146,7 +196,7 @@ direct project invocations also reject x64 and ARM64 before compilation.
 
 Use this explicit Meson target when the installed Vulkan driver exposes the
 required KHR ray-tracing features to a 64-bit process but not to Win32. It is
-an experimental Q3-only diagnostic build; the default shared Q3/QL release
+an experimental Q3-only diagnostic build; the default shared release
 target remains Win32. From an **x64 Native Tools** developer prompt at the
 repository root, configure a separate build directory:
 
@@ -277,11 +327,11 @@ mkdir -p .tmp
 install_root="$(mktemp -d "$PWD/.tmp/linux-install.XXXXXX")"
 meson install -C meson/build-linux-x86 --destdir "$install_root"
 python3 scripts/verify_release_layout.py \
-  "$install_root/usr/local/FnQL-pkg.fnz"
+  "$install_root/usr/local/fntech3-pkg.fnz"
 ```
 
 The exact staging prefix follows Meson's configured `--prefix`. Keep
-`FnQL-pkg.fnz`, `fnql-web.pak`, and all selected renderer modules beside the
+`fntech3-pkg.fnz`, `fnql-web.pak`, and all selected renderer modules beside the
 client/server executables.
 
 #### Official-compatible i686 build
@@ -301,7 +351,7 @@ meson subprojects download fontstash
 make -j"$(nproc)" release ARCH=x86 COMPILE_ARCH=x86 USE_SDL=0 \
   USE_RENDERER_DLOPEN=1 USE_GLX=1 USE_VK=1 USE_RTX=1
 make install ARCH=x86 COMPILE_ARCH=x86 USE_SDL=0 DESTDIR="$PWD/.tmp/linux-x86/"
-python3 scripts/verify_release_layout.py .tmp/linux-x86/FnQL-pkg.fnz
+python3 scripts/verify_release_layout.py .tmp/linux-x86/fntech3-pkg.fnz
 file .tmp/linux-x86/fntech3 .tmp/linux-x86/fntech3.ded
 ```
 

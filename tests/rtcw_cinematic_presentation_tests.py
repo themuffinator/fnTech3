@@ -48,7 +48,8 @@ static std::array<Movie,MAX_VIDEO_HANDLES> cinTable;
 static struct {int currentHandle;std::array<byte,16>file;} cin;
 static int currentHandle=-1,CL_handle=-1,s_rawend=0,s_soundtime=100;
 static int nextmaps=0,openCalls=0,stopSounds=0,stopMovies=0,closeConsole=0,menuCalls=0;
-static bool skipLogo=false,validHeader=true,validFrame=true;
+static bool skipLogo=false,validHeader=true,validFrame=true,failedFirstFrame=false;
+static int fileLength=32,readLength=16;
 static const char *argument="movie.roq",*mode="";
 static cvar_t inGameVideo{},cinematicAspect{};
 static cvar_t *cl_inGameVideo=&inGameVideo,*cl_cinematicAspect=&cinematicAspect;
@@ -56,9 +57,9 @@ static void *uivm=nullptr;
 static bool CL_ShouldSkipIdLogoCinematic(const char *){return skipLogo;}
 static void CL_RunCinematicNextmap(){++nextmaps;}
 static int OpenFileRead(const char *name,File &file,qboolean unique){
- assert(unique);++openCalls;file.value=1;return strstr(name,"missing")?-1:32;
+ assert(unique);++openCalls;file.value=1;return strstr(name,"missing")?-1:fileLength;
 }
-static void FileRead(int handle,byte *out,int length){assert(handle==1&&length==16);out[0]=validHeader?0x84:0;out[1]=0x10;}
+static int FileRead(int handle,byte *out,int length){assert(handle==1&&length==16);out[0]=validHeader?0x84:0;out[1]=0x10;return readLength;}
 static void initRoQ(){}
 static bool RoQ_init(){return validFrame;}
 static void RoQShutdown(){cinTable[currentHandle].iFile.reset();cinTable[currentHandle].fileName[0]=0;}
@@ -68,7 +69,10 @@ static const char *Cmd_Argv(int index){return index==1?argument:mode;}
 static void S_StopAllSounds(){++stopSounds;}
 static void SCR_StopCinematic(){++stopMovies;cls.state=CA_DISCONNECTED;}
 static byte pixels[4]={1,2,3,255};
-static void SCR_RunCinematic(){cinTable[currentHandle].buf=pixels;}
+static void SCR_RunCinematic(){
+ if(failedFirstFrame){cinTable[currentHandle].status=FMV_IDLE;CL_handle=currentHandle=-1;return;}
+ cinTable[currentHandle].buf=pixels;
+}
 static void CIN_SetExtents(int,int,int,int,int);
 static void CIN_SetLooping(int,qboolean);
 static int resamples=0;
@@ -123,6 +127,17 @@ int main(){
    assert(movie.xpos==0&&movie.ypos==(box?105:0)&&movie.width==640&&movie.height==(box?270:480));
    assert(movie.looping==(option[0]=='2')&&movie.holdAtEnd==(option[0]=='1'));
   }
+  for(int count=0;count<16;++count){
+   cinTable={};cls.state=CA_DISCONNECTED;fileLength=count;
+   assert(CIN_PlayCinematic("short.roq",0,0,640,480,1)==-1);
+   assert(!cinTable[0].iFile.value&&!cinTable[0].fileName[0]);
+   fileLength=32;readLength=count;
+   assert(CIN_PlayCinematic("short-read.roq",0,0,640,480,1)==-1);
+   assert(!cinTable[0].iFile.value&&!cinTable[0].fileName[0]&&cls.state==CA_DISCONNECTED);
+   readLength=16;
+  }
+  cinTable={};cls.state=CA_DISCONNECTED;failedFirstFrame=true;
+  CL_PlayCinematic_f();assert(CL_handle==-1&&currentHandle==-1);failedFirstFrame=false;
  }
  profile=COM_GAME_RTCW_SP;cinTable={};cls.state=CA_DISCONNECTED;
  assert(CIN_PlayCinematic("missing.roq",0,0,640,480,33)==-1);
@@ -244,12 +259,13 @@ static int currentHandle=0,now=0,interrupts=0,resets=0,shutdowns=0;
 static struct {int currentHandle=0;}cin;
 static struct {int state=CA_CINEMATIC;}cls;
 static int CL_ScaledMilliseconds(){return now;}
-static bool restartInside=false,finishInside=false;
+static bool restartInside=false,finishInside=false;static int headerChunks=0;
 static void RoQReset(){++resets;auto &m=cinTable[currentHandle];m.startTime=m.lastTime=now;m.numQuads=0;m.status=FMV_LOOPED;}
 static void RoQInterrupt(){
  assert(++interrupts<1000);auto &m=cinTable[currentHandle];
  if(restartInside){restartInside=false;now+=5;m.startTime=m.lastTime=now;m.numQuads=0;}
  else if(finishInside){finishInside=false;m.status=FMV_EOF;}
+ else if(headerChunks){--headerChunks;}
  else ++m.numQuads;
 }
 static void RoQShutdown(){++shutdowns;cinTable[currentHandle].status=FMV_IDLE;}
@@ -257,7 +273,7 @@ static void RoQShutdown(){++shutdowns;cinTable[currentHandle].status=FMV_IDLE;}
 
 TIMING_CHECKS = r'''
 static void Clear(){cinTable={};cin.currentHandle=currentHandle=0;now=interrupts=resets=shutdowns=0;
- cls.state=CA_CINEMATIC;restartInside=finishInside=false;}
+ cls.state=CA_CINEMATIC;restartInside=finishInside=false;headerChunks=0;}
 int main(){
  for(auto id:{COM_GAME_RTCW_SP,COM_GAME_RTCW_MP,COM_GAME_QUAKE3,COM_GAME_QUAKELIVE}){
   profile=id;Clear();now=1000;assert(CIN_RunCinematic(0)==FMV_PLAY);
@@ -272,8 +288,9 @@ int main(){
   now=1042;CIN_RunCinematic(0);assert(interrupts==1);
   Clear();m.startTime=m.lastTime=INT_MAX-40;now=INT_MIN+40;
   CIN_RunCinematic(0);assert(m.numQuads==(id==COM_GAME_RTCW_SP?1:2));
-  Clear();m.numQuads=-1;CIN_RunCinematic(0);assert(interrupts==1&&m.numQuads==0);
-  Clear();now=1000;restartInside=true;CIN_RunCinematic(0);assert(interrupts==1&&m.tfps==0&&m.startTime==now);
+  Clear();m.numQuads=-1;CIN_RunCinematic(0);assert(interrupts==2&&m.numQuads==1);
+  Clear();headerChunks=3;CIN_RunCinematic(0);assert(interrupts==4&&m.numQuads==1&&now==0);
+  Clear();now=1000;restartInside=true;CIN_RunCinematic(0);assert(interrupts==2&&m.numQuads==1&&m.tfps==0&&m.startTime==now);
  }
  profile=COM_GAME_RTCW_SP;Clear();cinTable[0].roqFPS=65535;
  assert(CIN_FrameForTime(0,INT_MAX)==INT_MAX); // No signed multiplication overflow.

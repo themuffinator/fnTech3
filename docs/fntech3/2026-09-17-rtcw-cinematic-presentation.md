@@ -93,6 +93,11 @@ movie audio and game-script fades, and all campaign transitions. The shared
 one such chunk. Successful VQ playback and normal completion cannot prove that
 chunk's presentation. No JPEG behavior is changed here.
 
+The later [RoQ bounds checkpoint](2026-09-17-roq-bounds.md) establishes that the
+original SP and MP engines also ignore JPEG chunks. It preserves that policy
+and adds malformed-stream, installed-movie and same-process recovery evidence;
+the historical note above is not an established missing original-engine feature.
+
 The previously recorded unrelated dormant legacy wavelet mixer defect remains:
 its first compressed chunk selects ADPCM decoding while the loader is disabled.
 This checkpoint does not change that path.

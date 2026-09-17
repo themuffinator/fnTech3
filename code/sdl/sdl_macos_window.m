@@ -20,6 +20,24 @@ version.
 
 #include "sdl_macos_window.h"
 
+bool FNTECH3_MacSetGameIcon( const char *bundlePath )
+{
+	if ( !bundlePath || !*bundlePath ) return false;
+	@autoreleasepool {
+		NSString *path = [NSString stringWithUTF8String:bundlePath];
+		NSBundle *bundle = path ? [NSBundle bundleWithPath:path] : nil;
+		// Avoid inheriting Finder's generic application icon from an empty or
+		// malformed bundle. NSWorkspace understands its declared icon resources.
+		if ( !bundle || ![bundle objectForInfoDictionaryKey:@"CFBundleExecutable"] ||
+			(![bundle objectForInfoDictionaryKey:@"CFBundleIconFile"] &&
+			 ![bundle objectForInfoDictionaryKey:@"CFBundleIconName"]) ) return false;
+		NSImage *icon = [[NSWorkspace sharedWorkspace] iconForFile:path];
+		if ( !icon || ![icon isValid] ) return false;
+		[NSApp setApplicationIconImage:icon];
+		return true;
+	}
+}
+
 static int FNQL_MacInset( CGFloat value )
 {
 	if ( !isfinite( value ) || value <= 0.0 ) {

@@ -1,0 +1,7 @@
+// Neutral distant haze for the terrain arena.
+color 0.59 0.59 0.57
+mode exp
+density 0.00055
+start 288
+opacity 0.25
+sky 1

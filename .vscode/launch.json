@@ -1,67 +1,355 @@
 {
   "version": "0.2.0",
   "configurations": [
-
-
     {
-      "name": "Q3 OpenGL (GLx / Win32)",
+      "name": "Q3 glx",
       "type": "cppvsdbg",
       "request": "launch",
-      "program": "${workspaceFolder}\\meson\\build\\win32\\fntech3.exe",
-      "args": ["+set", "com_gameProfile", "q3", "+set", "fs_basepath", "${input:q3InstallPath}", "+set", "fs_homepath", "${workspaceFolder}\\.tmp\\vscode\\q3", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "glx", "+set", "com_steamIntegration", "0"],
-      "cwd": "${workspaceFolder}\\meson\\build\\win32",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "q3", "+set", "fs_basepath", "${input:q3InstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/q3/glx", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "glx", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
       "stopAtEntry": false,
-      "console": "internalConsole"
+      "console": "internalConsole",
+      "presentation": {
+        "group": "Quake III Arena",
+        "order": -3
+      }
     },
     {
-      "name": "Q3 Vulkan (VK / Win32)",
+      "name": "Q3 vk",
       "type": "cppvsdbg",
       "request": "launch",
-      "program": "${workspaceFolder}\\meson\\build\\win32\\fntech3.exe",
-      "args": ["+set", "com_gameProfile", "q3", "+set", "fs_basepath", "${input:q3InstallPath}", "+set", "fs_homepath", "${workspaceFolder}\\.tmp\\vscode\\q3", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "vk", "+set", "com_steamIntegration", "0"],
-      "cwd": "${workspaceFolder}\\meson\\build\\win32",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "q3", "+set", "fs_basepath", "${input:q3InstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/q3/vk", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "vk", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
       "stopAtEntry": false,
-      "console": "internalConsole"
+      "console": "internalConsole",
+      "presentation": {
+        "group": "Quake III Arena",
+        "order": -2
+      }
     },
     {
-      "name": "QL OpenGL (GLx / Steam / Retail / Win32)",
+      "name": "Q3 rtx",
       "type": "cppvsdbg",
       "request": "launch",
-      "program": "${workspaceFolder}\\meson\\build\\win32\\fntech3.exe",
-      "args": ["+set", "com_gameProfile", "ql", "+set", "fs_basepath", "${input:qlInstallPath}", "+set", "fs_homepath", "${workspaceFolder}\\.tmp\\vscode\\ql", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "glx", "+set", "com_steamIntegration", "1", "+set", "cl_webuiEnable", "1"],
-      "cwd": "${workspaceFolder}\\meson\\build\\win32",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "q3", "+set", "fs_basepath", "${input:q3InstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/q3/rtx", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "rtx", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
       "stopAtEntry": false,
-      "console": "internalConsole"
+      "console": "internalConsole",
+      "presentation": {
+        "group": "Quake III Arena",
+        "order": -1
+      }
     },
     {
-      "name": "QL Vulkan (VK / Steam / Retail / Win32)",
+      "name": "QL glx",
       "type": "cppvsdbg",
       "request": "launch",
-      "program": "${workspaceFolder}\\meson\\build\\win32\\fntech3.exe",
-      "args": ["+set", "com_gameProfile", "ql", "+set", "fs_basepath", "${input:qlInstallPath}", "+set", "fs_homepath", "${workspaceFolder}\\.tmp\\vscode\\ql", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "vk", "+set", "com_steamIntegration", "1", "+set", "cl_webuiEnable", "1"],
-      "cwd": "${workspaceFolder}\\meson\\build\\win32",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "ql", "+set", "fs_basepath", "${input:qlInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/ql/glx", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "glx", "+set", "com_steamIntegration", "1", "+set", "cl_webuiEnable", "1"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
       "stopAtEntry": false,
-      "console": "internalConsole"
+      "console": "internalConsole",
+      "presentation": {
+        "group": "Quake Live",
+        "order": -3
+      }
     },
     {
-      "name": "RTX (Steam / Retail QL / Win32)",
+      "name": "QL vk",
       "type": "cppvsdbg",
       "request": "launch",
-      "program": "${workspaceFolder}\\meson\\build\\win32-rtx\\fntech3.exe",
-      "args": ["+set", "r_fullscreen", "0", "+set", "cl_renderer", "rtx", "+set", "com_steamIntegration", "1", "+set", "cl_webuiEnable", "1"],
-      "cwd": "${workspaceFolder}\\meson\\build\\win32-rtx",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "ql", "+set", "fs_basepath", "${input:qlInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/ql/vk", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "vk", "+set", "com_steamIntegration", "1", "+set", "cl_webuiEnable", "1"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
       "stopAtEntry": false,
-      "console": "internalConsole"
+      "console": "internalConsole",
+      "presentation": {
+        "group": "Quake Live",
+        "order": -2
+      }
     },
     {
-      "name": "Dedicated (Steam / Retail QL / Win32)",
+      "name": "QL rtx",
       "type": "cppvsdbg",
       "request": "launch",
-      "program": "${workspaceFolder}\\meson\\build\\win32\\fntech3.ded.exe",
-      "args": ["+set", "com_steamIntegration", "1"],
-      "cwd": "${workspaceFolder}\\meson\\build\\win32",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "ql", "+set", "fs_basepath", "${input:qlInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/ql/rtx", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "rtx", "+set", "com_steamIntegration", "1", "+set", "cl_webuiEnable", "1"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
       "stopAtEntry": false,
-      "console": "internalConsole"
+      "console": "internalConsole",
+      "presentation": {
+        "group": "Quake Live",
+        "order": -1
+      }
+    },
+    {
+      "name": "RTCW SP glx",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "rtcw-sp", "+set", "fs_basepath", "${input:rtcwInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/rtcw-sp/glx", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "glx", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "RTCW SP",
+        "order": -3
+      }
+    },
+    {
+      "name": "RTCW SP vk",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "rtcw-sp", "+set", "fs_basepath", "${input:rtcwInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/rtcw-sp/vk", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "vk", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "RTCW SP",
+        "order": -2
+      }
+    },
+    {
+      "name": "RTCW SP rtx",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "rtcw-sp", "+set", "fs_basepath", "${input:rtcwInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/rtcw-sp/rtx", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "rtx", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "RTCW SP",
+        "order": -1
+      }
+    },
+    {
+      "name": "RTCW MP glx",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "rtcw-mp", "+set", "fs_basepath", "${input:rtcwInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/rtcw-mp/glx", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "glx", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "RTCW MP",
+        "order": -3
+      }
+    },
+    {
+      "name": "RTCW MP vk",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "rtcw-mp", "+set", "fs_basepath", "${input:rtcwInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/rtcw-mp/vk", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "vk", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "RTCW MP",
+        "order": -2
+      }
+    },
+    {
+      "name": "RTCW MP rtx",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "rtcw-mp", "+set", "fs_basepath", "${input:rtcwInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/rtcw-mp/rtx", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "rtx", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "RTCW MP",
+        "order": -1
+      }
+    },
+    {
+      "name": "MP q3dm1 Arena Gate glx",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "q3", "+set", "fs_basepath", "${input:q3InstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/q3/glx", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "glx", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "com_introplayed", "1", "+map", "q3dm1"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "Quake III Arena",
+        "order": 0
+      }
+    },
+    {
+      "name": "MP q3dm1 Arena Gate vk",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "q3", "+set", "fs_basepath", "${input:q3InstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/q3/vk", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "vk", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "com_introplayed", "1", "+map", "q3dm1"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "Quake III Arena",
+        "order": 1
+      }
+    },
+    {
+      "name": "MP q3dm1 Arena Gate rtx",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "q3", "+set", "fs_basepath", "${input:q3InstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/q3/rtx", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "rtx", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "com_introplayed", "1", "+map", "q3dm1"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "Quake III Arena",
+        "order": 2
+      }
+    },
+    {
+      "name": "MP campgrounds Campgrounds glx",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "ql", "+set", "fs_basepath", "${input:qlInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/ql/glx", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "glx", "+set", "com_steamIntegration", "1", "+set", "cl_webuiEnable", "1", "+set", "com_introplayed", "1", "+map", "campgrounds", "ffa"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "Quake Live",
+        "order": 0
+      }
+    },
+    {
+      "name": "MP campgrounds Campgrounds vk",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "ql", "+set", "fs_basepath", "${input:qlInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/ql/vk", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "vk", "+set", "com_steamIntegration", "1", "+set", "cl_webuiEnable", "1", "+set", "com_introplayed", "1", "+map", "campgrounds", "ffa"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "Quake Live",
+        "order": 1
+      }
+    },
+    {
+      "name": "MP campgrounds Campgrounds rtx",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "ql", "+set", "fs_basepath", "${input:qlInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/ql/rtx", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "rtx", "+set", "com_steamIntegration", "1", "+set", "cl_webuiEnable", "1", "+set", "com_introplayed", "1", "+map", "campgrounds", "ffa"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "Quake Live",
+        "order": 2
+      }
+    },
+    {
+      "name": "SP escape1 Escape glx",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "rtcw-sp", "+set", "fs_basepath", "${input:rtcwInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/rtcw-sp/glx", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "glx", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "com_introplayed", "1", "+spmap", "escape1"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "RTCW SP",
+        "order": 0
+      }
+    },
+    {
+      "name": "SP escape1 Escape vk",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "rtcw-sp", "+set", "fs_basepath", "${input:rtcwInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/rtcw-sp/vk", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "vk", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "com_introplayed", "1", "+spmap", "escape1"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "RTCW SP",
+        "order": 1
+      }
+    },
+    {
+      "name": "SP escape1 Escape rtx",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "rtcw-sp", "+set", "fs_basepath", "${input:rtcwInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/rtcw-sp/rtx", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "rtx", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "com_introplayed", "1", "+spmap", "escape1"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "RTCW SP",
+        "order": 2
+      }
+    },
+    {
+      "name": "MP mp_beach Beach Invasion glx",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "rtcw-mp", "+set", "fs_basepath", "${input:rtcwInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/rtcw-mp/glx", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "glx", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "com_introplayed", "1", "+map", "mp_beach"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "RTCW MP",
+        "order": 0
+      }
+    },
+    {
+      "name": "MP mp_beach Beach Invasion vk",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "rtcw-mp", "+set", "fs_basepath", "${input:rtcwInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/rtcw-mp/vk", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "vk", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "com_introplayed", "1", "+map", "mp_beach"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "RTCW MP",
+        "order": 1
+      }
+    },
+    {
+      "name": "MP mp_beach Beach Invasion rtx",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "rtcw-mp", "+set", "fs_basepath", "${input:rtcwInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/rtcw-mp/rtx", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "rtx", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "com_introplayed", "1", "+map", "mp_beach"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "RTCW MP",
+        "order": 2
+      }
+    },
+    {
+      "name": "MP campgrounds Campgrounds ded",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.ded.exe",
+      "args": ["+set", "com_gameProfile", "ql", "+set", "fs_basepath", "${input:qlInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/ql/dedicated", "+set", "com_steamIntegration", "1", "+set", "dedicated", "1", "+map", "campgrounds", "ffa"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "Servers",
+        "order": 0
+      }
     }
   ],
   "inputs": [
@@ -75,7 +363,13 @@
       "id": "qlInstallPath",
       "type": "promptString",
       "description": "Quake Live installation folder containing baseq3 (without quotes)",
-      "default": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live"
+      "default": "E:\\SteamLibrary\\steamapps\\common\\Quake Live"
+    },
+    {
+      "id": "rtcwInstallPath",
+      "type": "promptString",
+      "description": "Return to Castle Wolfenstein installation folder containing Main (without quotes)",
+      "default": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein"
     }
   ]
 }

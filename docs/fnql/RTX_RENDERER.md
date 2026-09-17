@@ -44,7 +44,8 @@ The required boundary is:
 - the retained FontStash host-text exports for drawing, measurement, metrics,
   and atlas diagnostics;
 - `RDF_NOFIRSTPERSON` behavior for retail capture and view composition;
-- no renderer-side `r_fovCorrection` or `RDF_NOFOVCORRECTION` path. Retail
+- no active renderer-side `r_fovCorrection` path for the QL profile. The shared
+  renderer's correction and `RDF_NOFOVCORRECTION` opt-out are for Q3/RTCW. Retail
   Quake Live game modules already provide the compatible horizontal-FOV
   behavior, so applying an inherited renderer correction would distort it a
   second time.

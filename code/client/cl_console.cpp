@@ -4059,7 +4059,7 @@ Con_MessageMode_f
 */
 static void Con_ToggleMessageCatcher( void ) {
 	Key_SetCatcher( Key_GetCatcher() ^ KEYCATCH_MESSAGE );
-	if ( cgvm && cgvm->dllExports ) {
+	if ( Com_GameIsQuakeLive() && cgvm && cgvm->dllExports ) {
 		VM_Call( cgvm, 0, ( Key_GetCatcher() & KEYCATCH_MESSAGE ) ? CG_CHAT_DOWN : CG_CHAT_UP );
 	}
 }
@@ -4068,7 +4068,7 @@ static void Con_ToggleMessageCatcher( void ) {
 static int Con_GetChatFieldY( void ) {
 	int chatFieldY = 413;
 
-	if ( cgvm && cgvm->dllExports ) {
+	if ( Com_GameIsQuakeLive() && cgvm && cgvm->dllExports ) {
 		const int cgameY = VM_Call( cgvm, 0, CG_GET_CHAT_FIELD_Y );
 
 		if ( cgameY > 0 ) {
@@ -4082,7 +4082,7 @@ static int Con_GetChatFieldY( void ) {
 static int Con_GetChatFieldPixelWidth( void ) {
 	int chatFieldWidth = SCREEN_WIDTH;
 
-	if ( cgvm && cgvm->dllExports ) {
+	if ( Com_GameIsQuakeLive() && cgvm && cgvm->dllExports ) {
 		const int cgameWidth = VM_Call( cgvm, 0, CG_GET_CHAT_FIELD_PIXEL_WIDTH );
 
 		if ( cgameWidth > 0 ) {
@@ -4096,7 +4096,7 @@ static int Con_GetChatFieldPixelWidth( void ) {
 static int Con_GetChatFieldWidthInChars( qboolean teamChat ) {
 	int width = 73;
 
-	if ( cgvm && cgvm->dllExports ) {
+	if ( Com_GameIsQuakeLive() && cgvm && cgvm->dllExports ) {
 		const int cgameWidth = VM_Call( cgvm, 0, CG_GET_CHAT_FIELD_WIDTH_IN_CHARS );
 
 		if ( cgameWidth > 0 ) {

@@ -1,0 +1,7 @@
+// Very light neutral haze for the introductory arena.
+color 0.62 0.64 0.65
+mode exp
+density 0.00040
+start 288
+opacity 0.18
+sky 1

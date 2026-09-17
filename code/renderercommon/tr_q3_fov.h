@@ -15,7 +15,7 @@ FnQuake3 at 7d8c9629cdc7979f09697266470359101ffd9eda. See CREDITS.md.
 #include <float.h>
 #include <math.h>
 
-/* Preserve the vertical framing of Q3's authored 4:3 horizontal FOV.
+/* Preserve the vertical framing of Q3/RTCW's authored 4:3 horizontal FOV.
  * A preserve-aspect presentation uses render pixels; a stretched presentation
  * also accounts for the physical display aspect. Invalid inputs are inert. */
 static void R_CorrectQ3ViewportFov( int width, int height,
@@ -53,11 +53,13 @@ static void R_ApplyProfileFovCorrection( const refdef_t *fd,
 	qboolean preserveAspect = qfalse;
 	if ( !initialized ) {
 		initialized = qtrue;
-		if ( !Q_stricmp( ri.Cvar_VariableString( "com_gameProfile" ), "quake3" ) ) {
+		const char *profile = ri.Cvar_VariableString( "com_gameProfile" );
+		if ( !Q_stricmp( profile, "quake3" )
+			|| !Q_stricmp( profile, "rtcw-sp" ) || !Q_stricmp( profile, "rtcw-mp" ) ) {
 			correction = ri.Cvar_Get( "r_fovCorrection", "1", CVAR_ARCHIVE_ND );
 			ri.Cvar_CheckRange( correction, "0", "1", CV_INTEGER );
 			ri.Cvar_SetDescription( correction,
-				"Fit Q3's authored 4:3 FOV to the viewport. Disable when game code supplies corrected FOV." );
+				"Fit Q3/RTCW's authored 4:3 FOV to the viewport. Disable when game code supplies corrected FOV. Inactive in Quake Live." );
 		}
 	}
 	if ( !correction || !correction->integer || !fd

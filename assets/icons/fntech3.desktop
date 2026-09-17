@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=fnTech3
+Comment=Unified source port for id Tech 3
+Exec=fntech3
+Icon=fntech3
+Terminal=false
+Categories=Game;ActionGame;
+StartupWMClass=fntech3

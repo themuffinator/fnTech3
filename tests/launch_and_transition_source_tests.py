@@ -31,6 +31,8 @@ class LaunchAndTransitionSourceTests(unittest.TestCase):
         launch = json.loads(read_source(".vscode/launch.json"))
 
         self.assertTrue(launch["configurations"])
+        combinations = set()
+        names = set()
         for configuration in launch["configurations"]:
             args = configuration["args"]
             profile = args[args.index("com_gameProfile") + 1] if "com_gameProfile" in args else "auto"
@@ -43,19 +45,35 @@ class LaunchAndTransitionSourceTests(unittest.TestCase):
             # the separate build tasks below provide explicit Steam staging.
             self.assertNotIn("preLaunchTask", configuration, configuration["name"])
             self.assertNotIn("disabled", configuration["name"].lower())
-            self.assertIn("Win32", configuration["name"])
-
-            if "Win32" in configuration["name"]:
-                expected_build_dir = (
-                    "meson\\build\\win32-rtx\\"
-                    if configuration["name"].startswith("RTX ")
-                    else "meson\\build\\win32\\"
-                )
-                self.assertIn(expected_build_dir, configuration["program"])
-                self.assertNotIn("win32-debug", configuration["program"])
-                if not local_services and "Dedicated" not in configuration["name"]:
-                    webui_index = args.index("cl_webuiEnable")
-                    self.assertEqual(args[webui_index + 1], "1", configuration["name"])
+            self.assertNotIn(configuration["name"], names)
+            names.add(configuration["name"])
+            self.assertIn("meson\\build\\win32-dev\\", configuration["program"])
+            self.assertIn("fs_basepath", args)
+            self.assertIn("fs_homepath", args)
+            command = "+spmap" if profile == "rtcw-sp" else "+map"
+            map_name = args[args.index(command) + 1] if command in args else None
+            if profile == "ql" and map_name:
+                self.assertEqual(args[args.index(command) + 2], "ffa")
+            if "cl_renderer" in args:
+                renderer = args[args.index("cl_renderer") + 1]
+                combinations.add((profile, renderer, bool(map_name)))
+                mode = "SP" if profile == "rtcw-sp" else "MP"
+                if map_name:
+                    self.assertRegex(configuration["name"], rf"^{mode} {map_name} .+ {renderer}$")
+                else:
+                    title = {"q3": "Q3", "ql": "QL", "rtcw-sp": "RTCW SP", "rtcw-mp": "RTCW MP"}[profile]
+                    self.assertEqual(configuration["name"], f"{title} {renderer}")
+                    self.assertFalse(any(arg in args for arg in ("+map", "+spmap", "+devmap", "+spdevmap")))
+                    self.assertNotIn("com_introplayed", args)
+                self.assertEqual(args[args.index("r_fullscreen") + 1], "0")
+                if not local_services:
+                    self.assertEqual(args[args.index("cl_webuiEnable") + 1], "1")
+        self.assertEqual(combinations, {
+            (profile, renderer, map_launch)
+            for profile in ("q3", "ql", "rtcw-sp", "rtcw-mp")
+            for renderer in ("glx", "vk", "rtx")
+            for map_launch in (False, True)
+        })
 
     def test_vscode_build_tasks_stage_the_steam_provider(self) -> None:
         tasks = json.loads(read_source(".vscode/tasks.json"))["tasks"]
@@ -63,7 +81,7 @@ class LaunchAndTransitionSourceTests(unittest.TestCase):
 
         self.assertTrue(build_tasks)
         for task in build_tasks:
-            self.assertIn("-WithSteam", task["args"], task["label"])
+            self.assertEqual("-WithSteam" in task["args"], "(Steam)" in task["label"])
             platform_index = task["args"].index("-Platform")
             self.assertEqual(task["args"][platform_index + 1], "Win32")
             self.assertNotIn("-RunTests", task["args"])
@@ -147,7 +165,7 @@ class LaunchAndTransitionSourceTests(unittest.TestCase):
         )
         self.assertIn("re.DrawStretchPic( x, y, w, h, s0, t0, s1, t1, args[9] );", ui)
         self.assertIn("SCR_AdjustRetailCGameLoadingBackdropUV( x, y, w, h", cgame)
-        self.assertIn("re.DrawStretchPic( x, y, w, h, s0, t0, s1, t1, args[9] );", cgame)
+        self.assertIn("CL_HudDrawStretchPic( x, y, w, h, s0, t0, s1, t1, args[9] );", cgame)
 
         self.assertIn("!uiMenuVisible", screen)
         self.assertIn("!browserOverlayRequested", screen)
@@ -248,14 +266,18 @@ class LaunchAndTransitionSourceTests(unittest.TestCase):
         main = read_source("code/client/cl_main.cpp")
         public = read_source("code/renderercommon/tr_types.h")
 
-        self.assertFalse((ROOT / "code/client/cl_hud.cpp").exists())
-        self.assertFalse((ROOT / "pkg/baseq3/fnql-hud.json").exists())
-        self.assertNotIn("CL_Hud", cgame)
+        self.assertFalse((ROOT / "pkg/games/quakelive/baseq3/fnql-hud.json").exists())
+        hud = read_source("code/client/cl_hud.cpp")
+        self.assertIn("hudSupported = Com_GameIsQuake3() || Com_GameIsRTCW();", hud)
+        self.assertIn("if ( !hudSupported ) return qtrue;", hud)
+        self.assertIn("CL_HudDrawStretchPic", cgame)
         self.assertNotIn("cl_hudAspect", main)
         self.assertNotIn("r_fovCorrection", main)
         self.assertIn("RDF_NOFOVCORRECTION 0x0002", public)
         fov = read_source("code/renderercommon/tr_q3_fov.h")
-        self.assertIn('ri.Cvar_VariableString( "com_gameProfile" ), "quake3"', fov)
+        self.assertIn('ri.Cvar_VariableString( "com_gameProfile" )', fov)
+        self.assertIn('!Q_stricmp( profile, "quake3" )', fov)
+        self.assertNotIn('!Q_stricmp( profile, "quakelive" )', fov)
         self.assertIn("if ( !correction || !correction->integer", fov)
 
     def test_screen_update_recursion_is_depth_bounded(self) -> None:

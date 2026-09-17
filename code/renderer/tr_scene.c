@@ -25,7 +25,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderercommon/tr_cubemap.h"
 #include "../renderercommon/tr_liquid.h"
 #include "../renderercommon/tr_muzzle_flash_light.h"
-#define FNTECH3_RTCW_GL_FOG
 #include "../renderercommon/tr_rtcw_fog_scene.h"
 #include "../renderercommon/tr_rtcw_corona_scene.h"
 

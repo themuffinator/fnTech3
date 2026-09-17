@@ -6,48 +6,42 @@ from pathlib import Path
 from typing import Iterable
 
 from fntech3_meta import ROOT
+from stock_q3_assets import Q3_PACKAGE_ASSETS
 from stock_ql_maps import STOCK_QL_MAPS
+from stock_rtcw_maps import STOCK_RTCW_MAPS
 
 
-ROOT_ARCHIVE_NAME = "FnQL-pkg.fnz"
+ROOT_ARCHIVE_NAME = "fntech3-pkg.fnz"
 PKG_ROOT = ROOT / "pkg"
-
-DEFAULT_AUDIO_ZONE_ASSETS = [
-    (
-        PKG_ROOT / "baseq3" / "maps" / f"{map_name}.azb",
-        Path("baseq3") / "maps" / f"{map_name}.azb",
-    )
-    for map_name in STOCK_QL_MAPS
-]
-
-DEFAULT_GLOBAL_FOG_ASSETS = [
-    (
-        PKG_ROOT / "baseq3" / "maps" / f"{map_name}.fog",
-        Path("baseq3") / "maps" / f"{map_name}.fog",
-    )
-    for map_name in STOCK_QL_MAPS
-]
-
-DEFAULT_WEAPON_SOUND_SHADER_ASSETS = [
-    (
-        PKG_ROOT / "baseq3" / "sound" / "fnql-weapon-sounds.sndshd",
-        Path("baseq3") / "sound" / "fnql-weapon-sounds.sndshd",
+# Canonical Com_GameProfile()->key values, never startup aliases or title IDs.
+GAME_PROFILES = ("quake3", "quakelive", "rtcw-sp", "rtcw-mp")
+# These paths are relative to games/<canonical profile>/. A title can have
+# multiple game directories (for example quake3/baseq3 and quake3/missionpack).
+PROFILE_REQUIRED_ASSETS = {
+    "quake3": Q3_PACKAGE_ASSETS,
+    "quakelive": (
+        *(f"baseq3/maps/{name}.azb" for name in STOCK_QL_MAPS),
+        *(f"baseq3/maps/{name}.fog" for name in STOCK_QL_MAPS),
+        "baseq3/scripts/fnql.shader",
+        "baseq3/sound/fnql-weapon-sounds.sndshd",
     ),
-]
-
-DEFAULT_RENDERER_SHADER_ASSETS = [
-    (
-        PKG_ROOT / "baseq3" / "scripts" / "fnql.shader",
-        Path("baseq3") / "scripts" / "fnql.shader",
-    ),
-]
-
+    **{
+        profile: (
+            "main/fntech3-hud.json",
+            *(f"main/maps/{name}.azb" for name in names),
+        )
+        for profile, names in STOCK_RTCW_MAPS.items()
+    },
+}
 DEFAULT_ROOT_ARCHIVE_REQUIRED_ASSETS = [
-    *DEFAULT_AUDIO_ZONE_ASSETS,
-    *DEFAULT_GLOBAL_FOG_ASSETS,
-    *DEFAULT_RENDERER_SHADER_ASSETS,
-    *DEFAULT_WEAPON_SOUND_SHADER_ASSETS,
+    (PKG_ROOT / "games" / profile / name, Path("games") / profile / name)
+    for profile, names in PROFILE_REQUIRED_ASSETS.items()
+    for name in names
 ]
+DEFAULT_AUDIO_ZONE_ASSETS = [asset for asset in DEFAULT_ROOT_ARCHIVE_REQUIRED_ASSETS if asset[1].suffix == ".azb"]
+DEFAULT_GLOBAL_FOG_ASSETS = [asset for asset in DEFAULT_ROOT_ARCHIVE_REQUIRED_ASSETS if asset[1].suffix == ".fog"]
+DEFAULT_WEAPON_SOUND_SHADER_ASSETS = [asset for asset in DEFAULT_ROOT_ARCHIVE_REQUIRED_ASSETS if asset[1].suffix == ".sndshd"]
+DEFAULT_RENDERER_SHADER_ASSETS = [asset for asset in DEFAULT_ROOT_ARCHIVE_REQUIRED_ASSETS if asset[1].suffix == ".shader"]
 
 
 def iter_package_assets(package_root: Path = PKG_ROOT) -> list[tuple[Path, Path]]:
@@ -58,10 +52,10 @@ def iter_package_assets(package_root: Path = PKG_ROOT) -> list[tuple[Path, Path]
 
     assets: list[tuple[Path, Path]] = []
     for source in sorted(package_root.rglob("*"), key=lambda path: path.as_posix().lower()):
-        if not source.is_file():
-            continue
         if source.is_symlink():
             raise ValueError(f"Root archive package asset must not be a symbolic link: {source}")
+        if not source.is_file():
+            continue
 
         resolved_source = source.resolve()
         if not path_is_relative_to(resolved_source, resolved_package_root):
@@ -71,6 +65,7 @@ def iter_package_assets(package_root: Path = PKG_ROOT) -> list[tuple[Path, Path]
         if dest_relative.name == ".gitkeep":
             continue
 
+        package_member_name(dest_relative)
         assets.append((source, dest_relative))
 
     if not assets:
@@ -108,6 +103,21 @@ def archive_member_name(dest_relative: Path | str) -> str:
     if any(any(ord(char) < 32 or ord(char) == 127 for char in part) for part in parts):
         raise ValueError(f"Root archive entry contains unsafe control character: {archive_name!r}")
     return archive_name
+
+
+def package_member_name(dest_relative: Path | str) -> str:
+    """Validate the runtime namespace as well as ZIP path safety."""
+    name = archive_member_name(dest_relative)
+    parts = name.split("/")
+    if len(parts) < 4 or parts[0] != "games" or parts[1] not in GAME_PROFILES:
+        raise ValueError(
+            f"Package asset must use games/<profile>/<gamedir>/<qpath> "
+            f"with a canonical game profile ({', '.join(GAME_PROFILES)}): {name}"
+        )
+    # Keep in sync with MAX_ZPATH: the loader never truncates candidate names.
+    if len(name.encode("utf-8")) >= 256:
+        raise ValueError(f"Package asset path exceeds the engine's MAX_ZPATH: {name}")
+    return name
 
 
 def validate_archive_member_names(archived_names: Iterable[str], *, archive_name: str) -> None:
@@ -149,6 +159,8 @@ def validate_root_archive_names(
 ) -> None:
     archived_name_list = list(archived_names)
     validate_archive_member_names(archived_name_list, archive_name=archive_name)
+    for name in archived_name_list:
+        package_member_name(name)
     present_names = set(archived_name_list)
     missing_assets = [
         name
@@ -177,6 +189,7 @@ def write_root_archive(
     *,
     package_root: Path = PKG_ROOT,
     assets: Iterable[tuple[Path, Path]] | None = None,
+    required_assets: Iterable[tuple[Path, Path]] | None = None,
 ) -> None:
     archive_path = archive_path.expanduser()
     package_root = package_root.expanduser()
@@ -203,18 +216,25 @@ def write_root_archive(
                 if not path_is_relative_to(source.resolve(), resolved_package_root):
                     raise ValueError(f"Root archive package asset escapes package root: {source}")
 
-                archive_name = archive_member_name(dest_relative)
+                archive_name = package_member_name(dest_relative)
                 archive_key = archive_name.lower()
                 if archive_key in archived_names:
                     raise ValueError(f"Duplicate root archive entry: {archive_name}")
                 archived_names.add(archive_key)
 
                 info = zipfile.ZipInfo(archive_name)
+                info.create_system = 3  # Fixed UNIX metadata, including on Windows.
                 info.compress_type = zipfile.ZIP_DEFLATED
                 info.date_time = (1980, 1, 1, 0, 0, 0)
                 info.external_attr = 0o644 << 16
                 archive.writestr(info, source.read_bytes())
 
+        if required_assets is not None:
+            validate_root_archive_names(
+                (package_member_name(dest) for _source, dest in archive_assets),
+                archive_name=archive_path.name,
+                assets=required_assets,
+            )
         os.replace(temp_path, archive_path)
     finally:
         if temp_path.exists():

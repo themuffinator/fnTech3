@@ -1,0 +1,7 @@
+// Stone-grey haze for The Place of Many Deaths.
+color 0.58 0.59 0.58
+mode exp
+density 0.00100
+start 112
+opacity 0.34
+sky 1

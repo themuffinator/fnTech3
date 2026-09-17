@@ -5,6 +5,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <string>
 
@@ -193,12 +195,33 @@ void TestSceneColorMatchesOutputTransform()
 
 } // namespace
 
-int main()
+int main( int argc, char **argv )
 {
 	TestDefaultsAndComments();
 	TestExplicitModesAndBooleans();
 	TestRequiredFieldsAndRanges();
 	TestStrictDirectivesAndBounds();
 	TestSceneColorMatchesOutputTransform();
+	// Validate shipped presets with the same parser used by every renderer.
+	if ( argc > 1 ) {
+		int count = 0;
+		for ( const auto &entry : std::filesystem::recursive_directory_iterator( argv[1] ) ) {
+			if ( !entry.is_regular_file() || entry.path().extension() != ".fog" ) continue;
+			std::ifstream input( entry.path(), std::ios::binary );
+			CHECK( input.good() );
+			const std::string text( ( std::istreambuf_iterator<char>( input ) ),
+				std::istreambuf_iterator<char>() );
+			globalFog_t fog{};
+			std::string error;
+			if ( !Parse( text, &fog, &error ) ) {
+				std::cerr << entry.path() << ": " << error << '\n';
+				return 1;
+			}
+			CHECK( fog.loaded );
+			++count;
+		}
+		CHECK( count > 0 );
+		std::cout << "Validated " << count << " packaged fog presets\n";
+	}
 	return 0;
 }

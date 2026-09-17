@@ -39,7 +39,7 @@ static const char *Profile(const char *name) {
     return profile;
 }
 static cvar_t *Register(const char *name, const char *value, int flags) {
-    assert(!strcmp(profile, "quake3"));
+    assert(!strcmp(profile, "quake3") || !strcmp(profile, "rtcw-sp") || !strcmp(profile, "rtcw-mp"));
     assert(!strcmp(name, "r_fovCorrection") && !strcmp(value, "1"));
     assert(flags == CVAR_ARCHIVE_ND);
     ++registrations;
@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
 #if defined(USE_FBO) || defined(USE_VULKAN)
     gls.windowWidth = 1920; gls.windowHeight = 1080;
 #endif
-    if (strcmp(profile, "quake3")) {
+    if (strcmp(profile, "quake3") && strcmp(profile, "rtcw-sp") && strcmp(profile, "rtcw-mp")) {
         for (flag = 0; flag < 16; ++flag) {
             view.rdflags = flag;
             ExpectFov(view, 90.0f, 60.0f);
@@ -98,6 +98,13 @@ int main(int argc, char **argv) {
     view.rdflags = 0; enabled.integer = 0;
     ExpectFov(view, 90.0f, 60.0f);
     enabled.integer = 1;
+    view.width = glConfig.vidWidth = 2560;
+    glConfig.windowAspect = 2560.0f / 1080.0f;
+    ExpectFov(view, 121.284493f, 73.739795f);
+    view.width = glConfig.vidWidth = 1080;
+    view.height = glConfig.vidHeight = 1920;
+    glConfig.windowAspect = 1080.0f / 1920.0f;
+    ExpectFov(view, 45.747330f, 73.739795f);
     view.width = glConfig.vidWidth = 1024;
     view.height = glConfig.vidHeight = 768;
     glConfig.windowAspect = 4.0f / 3.0f;
@@ -131,7 +138,7 @@ int main(int argc, char **argv) {
 
 
 class Q3FovProfileTests(unittest.TestCase):
-    def test_q3_projection_and_ql_isolation_in_each_backend_mode(self) -> None:
+    def test_legacy_projection_and_ql_isolation_in_each_backend_mode(self) -> None:
         compiler = next((path for name in ("clang", "gcc", "cc")
             if (path := shutil.which(name))), None)
         if compiler is None:
@@ -155,7 +162,7 @@ class Q3FovProfileTests(unittest.TestCase):
                         command.append("-lm")
                     build = subprocess.run(command, text=True, capture_output=True, timeout=60)
                     self.assertEqual(build.returncode, 0, build.stdout + build.stderr)
-                    for profile in ("quake3", "quakelive"):
+                    for profile in ("quake3", "quakelive", "rtcw-sp", "rtcw-mp", "unknown"):
                         result = subprocess.run([str(executable), profile],
                             text=True, capture_output=True, timeout=15)
                         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)

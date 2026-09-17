@@ -22,7 +22,7 @@ static qboolean vk_rt_append_mds_entity_geometry( rtxRtCpuGeometry_t *geometry, 
 		const shader_t *shader;
 		uint32_t material, base, vertex, triangle, indexCount;
 		vec4_t tangent = { 1, 0, 0, 1 };
-		if ( !surface->numVerts || !surface->numTriangles || R_MdsSurfaceHidden( &entity, mesh ) ) continue;
+		if ( !surface->numVerts || !surface->numTriangles || R_MeshSurfaceHidden( &entity, mesh->name ) ) continue;
 		shader = R_MdsSurfaceShader( &entity, mesh );
 		if ( !vk_rt_checked_u32_multiply( surface->numTriangles, 3, &indexCount ) ||
 			!vk_rt_cpu_geometry_find_or_add_material( geometry, shader, &material ) ||

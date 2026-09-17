@@ -795,7 +795,7 @@ TARGET_SERVER = $(DNAME)$(ARCHEXT)$(BINEXT)
 
 PKG_ROOT = pkg
 PKG_FILES = $(shell find $(PKG_ROOT) -type f 2>/dev/null)
-ROOT_ARCHIVE = FnQL-pkg.fnz
+ROOT_ARCHIVE = fntech3-pkg.fnz
 FNQL_WEBPAK = fnql-web.pak
 FNQL_WEBPAK_ROOT = code/client/webui
 FNQL_WEBPAK_SOURCES = $(shell find $(FNQL_WEBPAK_ROOT) -type f 2>/dev/null)
@@ -1222,6 +1222,7 @@ endif
 
 Q3OBJ = \
   $(B)/client/cl_cgame.o \
+  $(B)/client/cl_hud.o \
   $(B)/client/cl_cin.o \
   $(B)/client/cl_console.o \
   $(B)/client/cl_input.o \
@@ -1722,6 +1723,8 @@ $(B)/client/%.o: $(W32DIR)/%.c
 $(B)/client/%.o: $(W32DIR)/%.cpp
 	$(DO_CXX)
 
+$(B)/client/win_resource.o $(B)/ded/win_resource.o: assets/icons/fntech3.ico
+
 $(B)/client/%.o: $(W32DIR)/%.rc
 	$(DO_WINDRES)
 
@@ -1770,7 +1773,7 @@ $(B)/ded/%.o: $(W32DIR)/%.cpp
 $(B)/ded/%.o: $(W32DIR)/%.rc
 	$(DO_WINDRES)
 
-$(B)/$(ROOT_ARCHIVE): $(TARGETS) $(PKG_FILES) scripts/build_root_archive.py scripts/root_archive.py scripts/fntech3_meta.py
+$(B)/$(ROOT_ARCHIVE): $(TARGETS) $(PKG_FILES) scripts/build_root_archive.py scripts/root_archive.py scripts/stock_q3_assets.py scripts/stock_ql_maps.py scripts/stock_rtcw_maps.py scripts/fntech3_meta.py
 	$(echo_cmd) "ROOTARCHIVE $@"
 	$(Q)$(PYTHON) scripts/build_root_archive.py --package-root "$(PKG_ROOT)" --output "$@"
 

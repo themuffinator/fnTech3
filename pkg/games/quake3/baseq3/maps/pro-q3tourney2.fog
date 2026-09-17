@@ -1,0 +1,7 @@
+// Low-saturation atmospheric depth for Proving Grounds (pro).
+color 0.60 0.61 0.60
+mode exp
+density 0.00090
+start 112
+opacity 0.32
+sky 1

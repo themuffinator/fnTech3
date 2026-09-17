@@ -34,7 +34,9 @@ def renderer_fixture(renderer):
         function(math, signature) for signature in ('void AngleVectors(', 'void AnglesToAxis(', 'vec_t VectorNormalize(')
     ) + callbacks[end:]
     callbacks = callbacks.replace('static struct { trRefEntity_t *currentEntity; } backEnd{&entity};', '''
-struct viewParms_t { struct { vec3_t axis[3], origin; } or; float projectionMatrix[16]; };
+#define USE_PMLIGHT
+enum { VPF_DLIGHT_SHADOW=0x20 };
+struct viewParms_t { struct { vec3_t axis[3], origin; } or; float projectionMatrix[16]; int passFlags; };
 static struct { trRefEntity_t *currentEntity; viewParms_t viewParms; } backEnd{&entity, {}};
 static cvar_t lodScale, lodBias;
 static cvar_t *r_lodscale = &lodScale, *r_lodbias = &lodBias;
@@ -151,6 +153,9 @@ int main() {
     lodScale.value = 1; entity.e.rtcw.reFlags = 8;
     Near(RB_MdsLodFraction(mds, &entity.e), 1);
     ri.gameId = COM_GAME_RTCW_MP; Near(RB_MdsLodFraction(mds, &entity.e), 0.05f);
+    backEnd.viewParms.passFlags=VPF_DLIGHT_SHADOW;
+    Near(RB_MdsLodFraction(mds, &entity.e), 1);
+    backEnd.viewParms.passFlags=0;
     entity.e.rtcw.reFlags = 0;
     tess = {}; rb_surfaceTable[SF_MDS](&mds->surfaces[0]);
     assert(tess.numVertexes == 1 && !tess.numIndexes); // Collapsed triangle is degenerate.
@@ -209,10 +214,10 @@ int main() {
     skin.surfaces[1].shader = tr.defaultShader; assert(R_MdsSurfaceShader(&entity.e, &surface)->index == 8);
     ri.gameId = COM_GAME_RTCW_SP; assert(R_MdsSurfaceShader(&entity.e, &surface)->index == 8);
     std::strcpy(surface.name, "H_bLiNk"); entity.e.rtcw.blink = qfalse;
-    assert(R_MdsSurfaceHidden(&entity.e, &surface)); entity.e.rtcw.blink = qtrue;
-    assert(!R_MdsSurfaceHidden(&entity.e, &surface));
+    assert(R_MeshSurfaceHidden(&entity.e, surface.name)); entity.e.rtcw.blink = qtrue;
+    assert(!R_MeshSurfaceHidden(&entity.e, surface.name));
     for (auto game : {COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, COM_GAME_RTCW_MP}) {
-        ri.gameId = game; entity.e.rtcw.blink = qfalse; assert(!R_MdsSurfaceHidden(&entity.e, &surface));
+        ri.gameId = game; entity.e.rtcw.blink = qfalse; assert(!R_MeshSurfaceHidden(&entity.e, surface.name));
     }
     entity.e.customShader = 10; assert(R_MdsSurfaceShader(&entity.e, &surface)->index == 10);
     entity.e.customShader = 0; assert(R_MdsSurfaceShader(&entity.e, &surface) == tr.defaultShader);

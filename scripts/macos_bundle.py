@@ -22,14 +22,15 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 from fnql_meta import base_metadata
+from root_archive import ROOT_ARCHIVE_NAME
 
 
 APP_NAME = "FnQL.app"
 APP_EXECUTABLE = "FnQL"
 BUNDLE_IDENTIFIER = "org.fnql.fnql"
 MINIMUM_MACOS_VERSION = "11.0"
-ICON_NAME = "fnql.icns"
-PACKAGE_SIDECAR = "FnQL-pkg.fnz"
+ICON_NAME = "fntech3.icns"
+PACKAGE_SIDECAR = ROOT_ARCHIVE_NAME
 WEB_SIDECAR = "fnql-web.pak"
 SERVER_NAME = "fnql.ded"
 TOOL_NAME = "fnql-audiozonesc"
@@ -637,7 +638,7 @@ def stage_bundle(
     inputs: Mapping[str, Path],
     output: Path,
     *,
-    icon: Path = ROOT / "code" / "unix" / ICON_NAME,
+    icon: Path = ROOT / "assets" / "icons" / ICON_NAME,
     short_version: str | None = None,
     bundle_version: str | None = None,
     sign_identity: str | None = None,
@@ -770,7 +771,7 @@ def _build_parser() -> argparse.ArgumentParser:
         required=True,
         help="New distribution directory that will contain FnQL.app and standalone tools",
     )
-    parser.add_argument("--icon", type=Path, default=ROOT / "code" / "unix" / ICON_NAME)
+    parser.add_argument("--icon", type=Path, default=ROOT / "assets" / "icons" / ICON_NAME)
     parser.add_argument("--short-version", help="CFBundleShortVersionString (defaults to project base version)")
     parser.add_argument(
         "--bundle-version",

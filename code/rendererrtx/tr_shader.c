@@ -802,7 +802,9 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 		else if ( !Q_stricmp( token, "animMap" ) )
 		{
 			int	totalImages = 0;
-			int maxAnimations = s_extendedShader ? MAX_IMAGE_ANIMATIONS : MAX_IMAGE_ANIMATIONS_VQ3;
+			int maxAnimations = s_extendedShader ? MAX_IMAGE_ANIMATIONS :
+				( ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP ) ?
+				MAX_IMAGE_ANIMATIONS_RTCW : MAX_IMAGE_ANIMATIONS_VQ3;
 
 			token = COM_ParseExt( text, qfalse );
 			if ( !token[0] )
@@ -2509,6 +2511,8 @@ static int CollapseMultitexture( unsigned int st0bits, shaderStage_t *st0, shade
 		return 0;
 	}
 #endif
+
+	if ( shader.rtcwNoFog && st0->rtcwFog != st1->rtcwFog ) return 0;
 
 	// make sure both stages are active
 	if ( !st0->active || !st1->active ) {

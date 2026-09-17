@@ -1009,6 +1009,14 @@ void Sys_CreateConsole( const char *title, int xPos, int yPos, qboolean useXYpos
 	Sys_ShowConsole( 1, qfalse );
 }
 
+void Sys_SetConsoleTitle( const char *title )
+{
+	Q_strncpyz( s_syscon.title, title, sizeof( s_syscon.title ) );
+	if ( s_syscon.window ) {
+		SDL_SetWindowTitle( s_syscon.window, s_syscon.title );
+	}
+}
+
 void Sys_DestroyConsole( void )
 {
 	SysCon_CurrentGLContext currentContext( s_syscon.window );
@@ -1296,6 +1304,10 @@ qboolean Sys_ConsoleHandleEvent( const SDL_Event *event )
 #else
 
 void Sys_CreateConsole( const char *title, int xPos, int yPos, qboolean useXYpos )
+{
+}
+
+void Sys_SetConsoleTitle( const char *title )
 {
 }
 

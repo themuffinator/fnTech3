@@ -2288,6 +2288,21 @@ qboolean CL_UIMenusAreVisible( void ) {
 	return VM_Call( uivm, 0, UI_MENUS_ANY_VISIBLE ) ? qtrue : qfalse;
 }
 
+// UI_INIT rereads glconfig and rebuilds menu assets, but does not reopen the
+// old menu. RTCW exposes its active menu; Q3/QL can only restore the appropriate
+// root menu without inventing a module export or retaining invalid handles.
+int CL_UIMenuForRestart( void ) {
+	if ( !uivm || !( Key_GetCatcher() & KEYCATCH_UI ) ) return UIMENU_NONE;
+	if ( Com_GameIsRTCW() ) return VM_Call( uivm, 0, UI_GET_ACTIVE_MENU );
+	return cls.state == CA_ACTIVE ? UIMENU_INGAME : UIMENU_MAIN;
+}
+
+void CL_RestoreUIMenu( int menu ) {
+	if ( uivm && menu != UIMENU_NONE ) {
+		VM_Call( uivm, 1, UI_SET_ACTIVE_MENU, menu );
+	}
+}
+
 
 /*
 ====================

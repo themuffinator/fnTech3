@@ -19,7 +19,7 @@ from stock_ql_maps import STOCK_QL_MAPS
 
 
 DEFAULT_WORK_ROOT = ROOT / ".tmp" / "stock-ql-sidecars"
-DEFAULT_OUTPUT_ROOT = ROOT / "pkg" / "baseq3"
+DEFAULT_OUTPUT_ROOT = ROOT / "pkg" / "games" / "quakelive" / "baseq3"
 DEFAULT_MAX_ZONES = 512
 DEFAULT_AUDIT_SAMPLES = 32768
 SAFE_MAP_CHARS = frozenset(
@@ -52,7 +52,7 @@ FOG_OPACITY = 0.48
 FOG_OPACITY_NATIVE = 0.28
 
 # Maps whose derived density was overridden after looking at them in game.
-# These must match pkg/baseq3/maps/<name>.fog; the sidecar gate checks both.
+# These must match pkg/games/quakelive/baseq3/maps/<name>.fog; the sidecar gate checks both.
 FOG_DENSITY_OVERRIDES = {
     "campgrounds": 0.001,
     "intervention": 0.0009,

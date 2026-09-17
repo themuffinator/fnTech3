@@ -405,7 +405,7 @@ void R_SetupEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent ) {
 	d = VectorLength( ent->directedLight );
 	VectorScale( ent->lightDir, d, lightDir );
 #ifdef USE_PMLIGHT
-	if ( R_GetDlightMode() == 2 ) {
+	if ( R_GetDlightMode() == 2 && !( R_UsesRTCWLighting() && refdef->rtcw.snooperView ) ) {
 		// only direct lights
 		// but we need to deal with shadow light direction
 		VectorCopy( lightDir, shadowLightDir );
@@ -513,7 +513,6 @@ Return 0 for legacy vertex lighting
 
 int R_GetDlightMode( void )
 {
-	if ( R_UsesRTCWLighting() ) return 0;
 #ifdef USE_PMLIGHT
 	if (!qglGenProgramsARB) {
 		return 0;

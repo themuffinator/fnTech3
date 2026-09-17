@@ -109,7 +109,8 @@ fnql::input::PointerOwner WIN_ResolvePointerOwner( void )
 
 	inputs.catcher = Key_GetCatcher();
 	inputs.consoleMask = KEYCATCH_CONSOLE;
-	inputs.menuMask = kPointerMenuMask;
+	// Q3/RTCW modules share gameplay's relative pointer presentation.
+	inputs.menuMask = Com_GameIsQuakeLive() ? kPointerMenuMask : KEYCATCH_BROWSER;
 	inputs.consoleUsesAbsolutePointer = !glw_state.cdsFullscreen;
 
 	return fnql::input::ResolvePointerOwner( inputs );

@@ -249,7 +249,7 @@ the pointer in its established relative gameplay mode. q_shared.h stays the
 canonical owner of the catcher bit values, so the masks are parameters.
 */
 enum class PointerOwner {
-	Gameplay, // relative motion drives the view
+	Gameplay, // relative motion drives the view or a Q3/RTCW module cursor
 	Console,  // the engine console draws its own cursor over the window
 	Menu      // a retail UI/cgame/browser overlay consumes absolute positions
 };
@@ -257,7 +257,7 @@ enum class PointerOwner {
 struct PointerOwnerInputs {
 	int catcher = 0;
 	int consoleMask = 0;
-	int menuMask = 0;
+	int menuMask = 0; // absolute consumers only; Q3/RTCW modules stay relative
 	bool consoleUsesAbsolutePointer = false;
 };
 

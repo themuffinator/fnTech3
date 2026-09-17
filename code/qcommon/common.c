@@ -539,6 +539,8 @@ static void Com_ParseCommandLine( char *commandLine ) {
 }
 
 char cl_title[ MAX_CVAR_VALUE_STRING ] = CLIENT_WINDOW_TITLE;
+static qboolean com_customClientTitle;
+static qboolean com_customConsoleTitle;
 
 /*
 ===================
@@ -560,11 +562,13 @@ qboolean Com_EarlyParseCmdLine( char *commandLine, char *con_title, int title_si
 		if ( !Q_stricmpn( Cmd_Argv(0), "set", 3 ) && !Q_stricmp( Cmd_Argv(1), "cl_title" ) ) {
 			com_consoleLines[i][0] = '\0';
 			Q_strncpyz( cl_title, Cmd_ArgsFrom( 2 ), sizeof(cl_title) );
+			com_customClientTitle = qtrue;
 			continue;
 		}
 		if ( !Q_stricmp( Cmd_Argv(0), "cl_title" ) ) {
 			com_consoleLines[i][0] = '\0';
 			Q_strncpyz( cl_title, Cmd_ArgsFrom( 1 ), sizeof(cl_title) );
+			com_customClientTitle = qtrue;
 			continue;
 		}
 		if ( !Q_stricmpn( Cmd_Argv(0), "set", 3 ) && !Q_stricmp( Cmd_Argv(1), "con_title" ) ) {
@@ -604,6 +608,7 @@ qboolean Com_EarlyParseCmdLine( char *commandLine, char *con_title, int title_si
 		}
 	}
 
+	com_customConsoleTitle = con_title[0] ? qtrue : qfalse;
 	return (flags == 3) ? qtrue : qfalse ;
 }
 
@@ -4061,6 +4066,16 @@ static void Com_InitGameProfile( void ) {
 
 	if ( !Com_ActivateGameProfile( detection.profile->id ) ) {
 		Com_Error( ERR_FATAL, "fnTech3 attempted to change an active game profile" );
+	}
+
+	// The console already exists; client windows are created after profile selection.
+	if ( !com_customClientTitle ) {
+		Com_sprintf( cl_title, sizeof( cl_title ), CLIENT_WINDOW_TITLE " - %s",
+			detection.profile->displayName );
+	}
+	if ( !com_customConsoleTitle ) {
+		Sys_SetConsoleTitle( va( CONSOLE_WINDOW_TITLE " - %s",
+			detection.profile->displayName ) );
 	}
 
 	Cvar_Set2( "com_gameProfile", detection.profile->key, qtrue );

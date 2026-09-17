@@ -115,7 +115,7 @@ def make_macos_release_members(
     members = [
         member("FnQL.app/Contents/Info.plist", info, 0o644),
         member("FnQL.app/Contents/MacOS/FnQL", macho, 0o755),
-        member("FnQL.app/Contents/MacOS/FnQL-pkg.fnz", b"package", 0o644),
+        member("FnQL.app/Contents/MacOS/fntech3-pkg.fnz", b"package", 0o644),
         member("FnQL.app/Contents/MacOS/fnql-web.pak", b"web", 0o644),
         member("fntech3.ded", macho, 0o755),
         member("fnql-audiozonesc", macho, 0o755),
@@ -177,6 +177,40 @@ def populate_macos_release_stage(stage_root: Path) -> None:
 
 
 class ReleasePackagingTests(unittest.TestCase):
+    def test_candidate_packaging_produces_a_complete_verifiable_release_bundle(self) -> None:
+        from scripts import release_workflow
+        from scripts.fntech3_meta import base_metadata
+
+        scratch = ROOT / ".tmp" / "release-packaging-tests"
+        scratch.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=scratch) as temporary:
+            root = Path(temporary)
+            artifacts = root / "artifacts"
+            for variant in release.PUBLISHED_RELEASE_ARTIFACTS:
+                directory = artifacts / variant
+                directory.mkdir(parents=True)
+                if variant.startswith("linux"):
+                    for name in (*release.LINUX_RELEASE_EXECUTABLES, *release.LINUX_RELEASE_RENDERER_MODULES):
+                        (directory / name).write_bytes(make_elf_i386())
+                else:
+                    for name in ("fntech3.exe", "fntech3.ded.exe", "fnql_glx_x86.dll", "fnql_vk_x86.dll", "fnql_rtx_x86.dll"):
+                        (directory / name).write_bytes(make_pe(dll=name.endswith(".dll")))
+            version = str(base_metadata()["version"])
+            source = release.resolve_proof_source_commit(None)
+            args = SimpleNamespace(channel="candidate", artifact_root=artifacts,
+                                   output_dir=root / "output", temp_dir=root / "staging",
+                                   build_number=None, build_date="2026-09-01", commit=source,
+                                   ref_name=f"v{version}", glx_proof_root=None,
+                                   glx_rollback_metadata=None, require_glx_proof=False)
+            manifest = release.build_archives(args)
+            self.assertEqual(manifest["glx_runtime_proof"]["status"], "not-established")
+            self.assertEqual(manifest["source_commit"], source)
+            self.assertTrue(manifest["prerelease"])
+            info = {"version": version, "release_tag": f"v{version}",
+                    "head_commit": source, "build_date": "2026-09-01"}
+            files = release_workflow.release_files(args.output_dir / "release-manifest.json", info)
+            self.assertEqual(len(files), 5)
+
     def test_copy_release_artifact_contents_filters_build_garbage(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -433,10 +467,12 @@ class ReleasePackagingTests(unittest.TestCase):
         audio_destinations = {
             destination.as_posix()
             for _source, destination in root_archive.DEFAULT_AUDIO_ZONE_ASSETS
+            if destination.parts[1] == "quakelive"
         }
         fog_destinations = {
             destination.as_posix()
             for _source, destination in root_archive.DEFAULT_GLOBAL_FOG_ASSETS
+            if destination.parts[1] == "quakelive"
         }
         required_destinations = {
             destination.as_posix()
@@ -450,16 +486,17 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertEqual(len(stock_ql_maps.STOCK_QL_MAPS), 149)
         self.assertEqual(len(audio_destinations), 149)
         self.assertEqual(len(fog_destinations), 149)
-        self.assertEqual(len(required_destinations), 300)
-        self.assertIn("pkg/baseq3/maps/campgrounds.azb", sources)
-        self.assertIn("baseq3/maps/campgrounds.azb", audio_destinations)
-        self.assertIn("baseq3/maps/campgrounds.fog", fog_destinations)
-        self.assertIn("baseq3/maps/bloodrun.azb", audio_destinations)
-        self.assertIn("baseq3/maps/siberia.fog", fog_destinations)
-        self.assertNotIn("baseq3/maps/q3dm1.azb", audio_destinations)
-        self.assertIn("baseq3/sound/fnql-weapon-sounds.sndshd", required_destinations)
-        self.assertIn("baseq3/scripts/fnql.shader", required_destinations)
-        self.assertNotIn("baseq3/maps/test_bigbox.azb", audio_destinations)
+        self.assertEqual(len(required_destinations), 441)
+        self.assertIn("pkg/games/quakelive/baseq3/maps/campgrounds.azb", sources)
+        self.assertIn("games/quakelive/baseq3/maps/campgrounds.azb", audio_destinations)
+        self.assertIn("games/quakelive/baseq3/maps/campgrounds.fog", fog_destinations)
+        self.assertIn("games/quakelive/baseq3/maps/bloodrun.azb", audio_destinations)
+        self.assertIn("games/quakelive/baseq3/maps/siberia.fog", fog_destinations)
+        self.assertNotIn("games/quakelive/baseq3/maps/q3dm1.azb", audio_destinations)
+        self.assertIn("games/quakelive/baseq3/sound/fnql-weapon-sounds.sndshd", required_destinations)
+        self.assertIn("games/quakelive/baseq3/scripts/fnql.shader", required_destinations)
+        self.assertIn("games/quake3/baseq3/sound/fnql-weapon-sounds.sndshd", required_destinations)
+        self.assertNotIn("games/quakelive/baseq3/maps/test_bigbox.azb", audio_destinations)
 
         with tempfile.TemporaryDirectory() as tmp:
             archive_path = Path(tmp) / release.ROOT_ARCHIVE_NAME
@@ -476,17 +513,35 @@ class ReleasePackagingTests(unittest.TestCase):
         }
         self.assertTrue(required_destinations.issubset(packaged))
         self.assertEqual(packaged, expected_packaged)
-        self.assertNotIn("baseq3/fnql-hud.json", packaged)
+        self.assertEqual(
+            len({name for name in packaged if name.startswith("games/quake3/")}),
+            92,
+        )
+        self.assertIn("games/quake3/baseq3/maps/q3dm1.azb", packaged)
+        self.assertIn("games/quake3/missionpack/maps/mpteam1.fog", packaged)
+        self.assertIn("games/quake3/missionpack/sound/fnql-weapon-sounds.sndshd", packaged)
+        for profile, names in root_archive.STOCK_RTCW_MAPS.items():
+            self.assertEqual(
+                {name for name in packaged if name.startswith(f"games/{profile}/")},
+                {f"games/{profile}/main/maps/{name}.azb" for name in names}
+                | {f"games/{profile}/main/fntech3-hud.json"},
+            )
+        self.assertNotIn("games/quakelive/baseq3/fnql-hud.json", packaged)
 
     def test_meson_root_archive_inputs_include_non_map_pkg_assets(self) -> None:
         meson_build = (ROOT / "meson.build").read_text(encoding="utf-8")
 
-        self.assertNotIn("'pkg/baseq3/fnql-hud.json'", meson_build)
+        self.assertNotIn("'pkg/games/quakelive/baseq3/fnql-hud.json'", meson_build)
         self.assertIn("files('scripts/stock_ql_maps.py')", meson_build)
         self.assertIn("map_name + '.azb'", meson_build)
         self.assertIn("map_name + '.fog'", meson_build)
-        self.assertIn("'pkg/baseq3/scripts/fnql.shader'", meson_build)
-        self.assertIn("'pkg/baseq3/sound/fnql-weapon-sounds.sndshd'", meson_build)
+        self.assertIn("'pkg/games/quakelive/baseq3/scripts/fnql.shader'", meson_build)
+        self.assertIn("'pkg/games/quakelive/baseq3/sound/fnql-weapon-sounds.sndshd'", meson_build)
+        self.assertIn("files('scripts/stock_q3_assets.py')", meson_build)
+        self.assertIn("files('pkg/games/quake3/' + asset)", meson_build)
+        self.assertIn("files('scripts/stock_rtcw_maps.py')", meson_build)
+        for profile in ("rtcw-sp", "rtcw-mp"):
+            self.assertIn(f"'pkg/games/{profile}/main/fntech3-hud.json'", meson_build)
         self.assertNotIn("pkg/missionpack/", meson_build)
 
     def test_root_archive_rejects_unsafe_custom_archive_names(self) -> None:
@@ -505,8 +560,8 @@ class ReleasePackagingTests(unittest.TestCase):
                 )
 
         unsafe_names = (
-            "baseq3/maps/bad:name.azb",
-            "baseq3/maps/bad\nname.azb",
+            "games/quakelive/baseq3/maps/bad:name.azb",
+            "games/quakelive/baseq3/maps/bad\nname.azb",
         )
         for name in unsafe_names:
             with self.subTest(name=name):
@@ -515,7 +570,7 @@ class ReleasePackagingTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "duplicate"):
             root_archive.validate_archive_member_names(
-                ["baseq3/maps/q3dm1.azb", "baseq3/maps/Q3DM1.azb"],
+                ["games/quakelive/baseq3/maps/q3dm1.azb", "games/quakelive/baseq3/maps/Q3DM1.azb"],
                 archive_name="pkg.fnz",
             )
 
@@ -534,35 +589,63 @@ class ReleasePackagingTests(unittest.TestCase):
                     assets=[(outside, Path("baseq3") / "outside.txt")],
                 )
 
-    def test_root_archive_packs_the_whole_pkg_tree(self) -> None:
+    def test_root_archive_packs_all_profiles_and_mods_deterministically(self) -> None:
+        payloads = {
+            "games/quake3/baseq3/maps/shared.azb": b"q3",
+            "games/quakelive/baseq3/maps/shared.azb": b"ql",
+            "games/rtcw-sp/main/maps/shared.azb": b"sp",
+            "games/rtcw-mp/main/maps/shared.azb": b"mp",
+            "games/quake3/cpma/sound/custom.sndshd": b"mod",
+        }
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             package_root = root / "pkg"
-            (package_root / "baseq3" / "maps").mkdir(parents=True)
-            (package_root / "baseq3" / "maps" / "q3dm1.azb").write_bytes(b"zone")
-            (package_root / "baseq3" / "scripts" / "custom.shader").parent.mkdir(parents=True)
-            (package_root / "baseq3" / "scripts" / "custom.shader").write_text(
-                "textures/custom {}",
-                encoding="utf-8",
-            )
-            (package_root / "cpma" / "sound" / "custom.sndshd").parent.mkdir(parents=True)
-            (package_root / "cpma" / "sound" / "custom.sndshd").write_text(
-                "custom {}",
-                encoding="utf-8",
-            )
-            (package_root / "baseq2" / "maps").mkdir(parents=True)
-            (package_root / "baseq2" / "maps" / "q2dm1.azb").write_bytes(b"q2 zone")
-            archive_path = root / release.ROOT_ARCHIVE_NAME
+            for name, payload in payloads.items():
+                source = package_root / name
+                source.parent.mkdir(parents=True, exist_ok=True)
+                source.write_bytes(payload)
+            first, second = root / "first.fnz", root / "second.fnz"
+            root_archive.write_root_archive(first, package_root=package_root)
+            root_archive.write_root_archive(second, package_root=package_root)
+            self.assertEqual(first.read_bytes(), second.read_bytes())
+            with zipfile.ZipFile(first) as archive:
+                self.assertEqual({name: archive.read(name) for name in archive.namelist()}, payloads)
+                for info in archive.infolist():
+                    self.assertEqual(info.create_system, 3)
+                    self.assertEqual(info.date_time, (1980, 1, 1, 0, 0, 0))
+                    self.assertEqual(info.external_attr >> 16, 0o644)
 
-            root_archive.write_root_archive(archive_path, package_root=package_root)
-            with zipfile.ZipFile(archive_path) as archive:
-                names = set(archive.namelist())
+    def test_root_archive_rejects_unscoped_alias_unknown_and_overlong_names(self) -> None:
+        for name in (
+            "baseq3/maps/shared.azb", "maps/shared.azb",
+            "games/q3/baseq3/maps/shared.azb", "games/ql/baseq3/maps/shared.azb",
+            "games/rtcw/main/maps/shared.azb", "games/unknown/main/maps/shared.azb",
+            "games/quakelive/baseq3/../../quake3/baseq3/maps/shared.azb",
+            "games/quakelive/baseq3/maps/" + "a" * 256 + ".azb",
+        ):
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                root_archive.validate_root_archive_names([name], assets=[])
 
-        self.assertIn("baseq3/maps/q3dm1.azb", names)
-        self.assertIn("baseq3/scripts/custom.shader", names)
-        self.assertIn("cpma/sound/custom.sndshd", names)
-        self.assertIn("baseq2/maps/q2dm1.azb", names)
-        self.assertNotIn("pkg/baseq3/scripts/custom.shader", names)
+    def test_invalid_package_does_not_replace_previous_archive(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "pkg/games/quakelive/baseq3/maps/shared.azb"
+            source.parent.mkdir(parents=True)
+            source.write_bytes(b"zone")
+            output = root / root_archive.ROOT_ARCHIVE_NAME
+            output.write_bytes(b"previous package")
+            with self.assertRaisesRegex(ValueError, "missing required"):
+                root_archive.write_root_archive(
+                    output, package_root=root / "pkg",
+                    required_assets=root_archive.DEFAULT_ROOT_ARCHIVE_REQUIRED_ASSETS,
+                )
+            self.assertEqual(output.read_bytes(), b"previous package")
+            self.assertFalse(output.with_name(output.name + ".tmp").exists())
+            with self.assertRaisesRegex(ValueError, "canonical game profile"):
+                root_archive.write_root_archive(
+                    output, package_root=root / "pkg", assets=[(source, Path("baseq3/maps/shared.azb"))],
+                )
+            self.assertEqual(output.read_bytes(), b"previous package")
 
     def test_release_layout_verifier_requires_root_package_archive(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -616,13 +699,13 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertIn(release.ROOT_ARCHIVE_NAME, names)
         self.assertIn(release.FNQL_WEBPAK_NAME, names)
         self.assertIn("cpma/vm/cgame.qvm", names)
-        self.assertNotIn("baseq3/maps/q3dm1.azb", names)
-        self.assertIn("baseq3/maps/campgrounds.azb", root_archive_names)
-        self.assertIn("baseq3/maps/campgrounds.fog", root_archive_names)
-        self.assertIn("baseq3/maps/bloodrun.azb", root_archive_names)
-        self.assertIn("baseq3/maps/bloodrun.fog", root_archive_names)
-        self.assertNotIn("baseq3/maps/q3dm1.azb", root_archive_names)
-        self.assertIn("baseq3/sound/fnql-weapon-sounds.sndshd", root_archive_names)
+        self.assertNotIn("games/quakelive/baseq3/maps/q3dm1.azb", names)
+        self.assertIn("games/quakelive/baseq3/maps/campgrounds.azb", root_archive_names)
+        self.assertIn("games/quakelive/baseq3/maps/campgrounds.fog", root_archive_names)
+        self.assertIn("games/quakelive/baseq3/maps/bloodrun.azb", root_archive_names)
+        self.assertIn("games/quakelive/baseq3/maps/bloodrun.fog", root_archive_names)
+        self.assertNotIn("games/quakelive/baseq3/maps/q3dm1.azb", root_archive_names)
+        self.assertIn("games/quakelive/baseq3/sound/fnql-weapon-sounds.sndshd", root_archive_names)
         self.assertNotIn("maps/q3dm1.azb", names)
 
     def test_release_archive_validation_requires_package_docs(self) -> None:
@@ -1032,7 +1115,7 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertIn("name: linux-x86", workflow)
         self.assertIn("ARCH=x86 COMPILE_ARCH=x86", workflow)
         self.assertEqual(
-            workflow.count("verify_release_layout.py bin/FnQL-pkg.fnz"),
+            workflow.count("verify_release_layout.py bin/fntech3-pkg.fnz"),
             3,
         )
         self.assertEqual(workflow.count("--skip-subprojects"), 2)
@@ -1053,7 +1136,7 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertNotIn("verify_release_layout.py bin\n", workflow)
         self.assertNotIn("FNQ3_", workflow)
         self.assertNotIn("docs/fnquake3/", workflow)
-        self.assertIn('gh release create "${FNQL_RELEASE_TAG}"', workflow)
+        self.assertIn('python scripts/release_workflow.py draft --tag "$RELEASE_TAG"', workflow)
         self.assertNotIn("ubuntu-arm64:", workflow)
         self.assertNotIn("sign_macos:", workflow)
         self.assertNotIn("  macos:", workflow)

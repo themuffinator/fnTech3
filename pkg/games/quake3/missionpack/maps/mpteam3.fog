@@ -1,0 +1,7 @@
+// Neutral industrial haze for Quake 3 Arena's team circuit.
+color 0.57 0.59 0.58
+mode exp
+density 0.00090
+start 144
+opacity 0.30
+sky 1

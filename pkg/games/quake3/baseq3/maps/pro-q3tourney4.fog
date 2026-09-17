@@ -1,0 +1,7 @@
+// Low-saturation atmospheric depth for Vertical Vengeance (pro).
+color 0.56 0.59 0.60
+mode exp
+density 0.00085
+start 144
+opacity 0.30
+sky 1

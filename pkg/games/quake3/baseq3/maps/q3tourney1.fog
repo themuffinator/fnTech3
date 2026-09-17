@@ -1,0 +1,7 @@
+// Muted industrial haze for Power Station 0218.
+color 0.56 0.58 0.59
+mode exp
+density 0.00095
+start 112
+opacity 0.33
+sky 1
