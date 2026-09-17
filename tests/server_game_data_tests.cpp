@@ -693,6 +693,39 @@ void TestRTCWRecords( comGameId_t profile, std::int32_t maxClients )
 	ExpectGuardsIntact( full, "invalid RTCW bindings preserve module memory" );
 }
 
+void TestRTCWSaveEntityCapacity()
+{
+	Storage storage( sizeof(fntech3_rtcw_sp_sharedEntity_t) + 16,
+		sizeof(fntech3_rtcw_sp_playerState_t), 1024, 1 );
+	ServerGameDataView view;
+	auto binding = storage.Binding(); binding.entityCount = 128; binding.entityCapacity = 1024;
+	Expect( view.BindNative(COM_GAME_RTCW_SP, binding) == GameDataBindError::None,
+		"SP binds the full save-restore entity arena" );
+	Expect( view.EntityCount() == 128, "capacity does not change the active entity count" );
+	GameEntityRef ref;
+	Expect( view.EntityRefAt(1023, ref) && view.SetNumber(ref, 1023),
+		"SP restores entities beyond the initial count" );
+	Expect( view.EntityRefForPointer(storage.EntityBase() + 1023 * storage.entityStride, ref),
+		"SP links the last restored entity by checked pointer" );
+	Expect( !view.EntityRefAt(1024, ref) && !view.EntityRefForPointer(
+		storage.EntityBase() + 1024 * storage.entityStride, ref), "SP still rejects the arena endpoint" );
+	Expect( !view.EntityRefForPointer(storage.EntityBase() + 128 * storage.entityStride + 1, ref),
+		"SP still rejects misaligned restored handles" );
+	for ( int capacity : {-1, 127, 1025} ) {
+		binding.entityCapacity = capacity;
+		Expect( view.BindNative(COM_GAME_RTCW_SP, binding) == GameDataBindError::InvalidEntityCount,
+			"SP rejects an invalid capacity" );
+	}
+	binding.entityCapacity = 1024; --binding.entitySpanBytes;
+	Expect( view.BindNative(COM_GAME_RTCW_SP, binding) == GameDataBindError::EntitySpanTooSmall,
+		"capacity requires a complete native/QVM memory span" );
+	++binding.entitySpanBytes;
+	for ( auto profile : {COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, COM_GAME_RTCW_MP} )
+		Expect( view.BindNative(profile, binding) == GameDataBindError::InvalidEntityCount,
+			"other profiles do not broaden their entity contracts" );
+	ExpectGuardsIntact(storage, "SP save capacity preserves array guards");
+}
+
 } // namespace
 
 int main()
@@ -715,6 +748,7 @@ int main()
 	TestPointerConversionsAndGenerations();
 	TestBindingValidation();
 	TestQvmOffsetsAndArrayBounds();
+	TestRTCWSaveEntityCapacity();
 	TestRTCWRecords<fntech3_rtcw_sp_sharedEntity_t, fntech3_rtcw_sp_playerState_t>( COM_GAME_RTCW_SP, 128 );
 	TestRTCWRecords<fntech3_rtcw_mp_sharedEntity_t, fntech3_rtcw_mp_playerState_t>( COM_GAME_RTCW_MP, 64 );
 

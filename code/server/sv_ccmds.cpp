@@ -24,6 +24,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../qcommon/netchan_safety.hpp"
 
 #include <array>
+#include "server_rtcw_save.hpp"
+#include "../compat/rtcw_match_state.hpp"
 
 /*
 ===============================================================================
@@ -164,6 +166,8 @@ static void SV_Map_f( void ) {
 	std::array<char, MAX_QPATH> expanded{};
 	std::array<char, MAX_QPATH> mapname{};
 	int			len;
+	char saveFilename[fntech3::rtcw::savegame::PathBytes]{};
+	fntech3::rtcw::savegame::Header saveHeader;
 
 	cmd = Cmd_Argv(0);
 	singlePlayerCommand = Q_stricmpn( cmd, "sp", 2 ) == 0;
@@ -177,6 +181,11 @@ static void SV_Map_f( void ) {
 			SV_FactoryPrintMapUsage( cmd );
 		}
 		return;
+	}
+	if ( Com_GameIsRTCWSP() && Q_stricmp(COM_GetExtension(map), "svg") == 0 ) {
+		if ( !fntech3::rtcw::savegame::Filename(map, saveFilename) ||
+			!SV_RTCWReadSaveHeader(saveFilename, saveHeader) ) return;
+		map = saveHeader.map;
 	}
 	// Retail enforces the factory argument threshold before touching the BSP.
 	// An explicitly present empty argv[2] still passes this preflight and is
@@ -261,6 +270,25 @@ static void SV_Map_f( void ) {
 	Q_strncpyz( mapname.data(), map, SV_ArraySize(mapname) );
 
 	// start up the map
+	if ( Com_GameIsRTCWSP() ) {
+		// The native cgame publishes this value back into CS_FOGVARS at its
+		// first snapshot. Empty fog causes the original game to write a zero
+		// length followed by "none", misaligning the rest of its save stream.
+		Cvar_Set("r_mapFogColor", "0");
+		Cvar_Set("r_waterFogColor", "0");
+		Cvar_Set("r_savegameFogColor", "0");
+		if ( saveFilename[0] ) {
+			if ( !SV_RTCWStageSave(saveFilename, saveHeader) ) {
+				Com_Printf("Cannot stage RTCW save %s; previous save retained.\n", saveFilename); return;
+			}
+			Cvar_Set("savegame_filename", saveFilename);
+			Cvar_Set("savegame_loading", "1");
+		} else SV_RTCWClearSaveRequest();
+	}
+	if ( Com_GameIsRTCWMP() ) {
+		Cvar_SetIntegerValue("gamestate", FNTECH3_RTCW_MP_GS_INITIALIZE);
+		Cvar_Set("sv_serverRestarting", "0");
+	}
 	SV_SpawnServer( mapname.data(), SV_QBool( killBots ) );
 
 	// set the cheat value
@@ -316,16 +344,26 @@ static void SV_MapRestart_f( void ) {
 	if ( Cmd_Argc() > 1 ) {
 		delay = SV_ParseInt( Cmd_Argv(1) );
 	} else {
-		delay = 5;
+		delay = Com_GameIsRTCW() ? 0 : 5;
 	}
+	if ( Com_GameIsRTCWSP() && Cvar_VariableIntegerValue("savegame_loading") ) delay = 0;
 
-	if ( delay != 0 && Cvar_VariableIntegerValue( "g_doWarmup" ) == 0 ) {
+	if ( delay != 0 && ( Com_GameIsRTCWMP() || Cvar_VariableIntegerValue( "g_doWarmup" ) == 0 ) ) {
 		sv.restartTime = sv.time + delay * 1000;
 		if ( sv.restartTime == 0 ) {
 			sv.restartTime = 1;
 		}
 		SV_SetConfigstring( CS_WARMUP, va( "%i", sv.restartTime ) );
 		return;
+	}
+
+	if ( !SV_RTCWRestoreSaveTime() ) return;
+	if ( Com_GameIsRTCWMP() ) {
+		int nextState;
+		const int requested = Cmd_Argc() > 2 ? SV_ParseInt(Cmd_Argv(2)) : FNTECH3_RTCW_MP_GS_PLAYING;
+		if ( !fntech3::rtcw::RestartMatchState(Cvar_VariableIntegerValue("gamestate"), requested,
+			Cvar_VariableIntegerValue("g_noTeamSwitching") != 0, nextState) ) return;
+		Cvar_SetIntegerValue("gamestate", nextState);
 	}
 
 	if ( !Com_GameIsQuakeLive()
@@ -384,7 +422,12 @@ static void SV_MapRestart_f( void ) {
 	// make sure that level time is not zero
 	//sv.time = sv.time ? sv.time : 8;
 
+	if ( Com_GameIsRTCWMP() ) Cvar_Set("sv_serverRestarting", "1");
 	SV_RestartGameProgs();
+	// A saved SP level can rewind game time. Rebase the retained navigation
+	// clock and initialize the reloaded game's bot scheduler before cast
+	// entities are spawned by the settling frames.
+	if ( Com_GameIsRTCWSP() ) SV_BotFrame(sv.time);
 
 	// run a few frames to allow everything to settle
 	for ( int ignored : SV_Indices( 3 ) )
@@ -432,6 +475,7 @@ static void SV_MapRestart_f( void ) {
 	sv.time += 100;
 	VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );
 	svs.time += 100;
+	if ( Com_GameIsRTCWMP() ) Cvar_Set("sv_serverRestarting", "0");
 
 	// cycle per-match demo recordings: finalize the old demo and start a new one
 	if ( sv_autoRecordDemos && sv_autoRecordDemos->integer >= 3 ) {
@@ -467,6 +511,28 @@ static void SV_MapRestart_f( void ) {
 	}
 }
 
+
+static void SV_LoadGame_f() {
+	if ( !Com_GameIsRTCWSP() || Cvar_VariableIntegerValue("savegame_loading") ||
+		Cvar_VariableIntegerValue("g_reloading") ) return;
+	char filename[fntech3::rtcw::savegame::PathBytes]{};
+	fntech3::rtcw::savegame::Header header;
+	if ( Cmd_Argc() != 2 || !fntech3::rtcw::savegame::Filename(Cmd_Argv(1), filename) ) {
+		Com_Printf("loadgame <save name>: use a name within the save directory.\n"); return;
+	}
+	if ( !SV_RTCWReadSaveHeader(filename, header) ) return;
+	if ( com_sv_running->integer && com_frameTime != sv.restartedServerId &&
+		!sv.restartTime && Q_stricmp(header.map, Cvar_VariableString("mapname")) == 0 ) {
+		if ( !SV_RTCWStageSave(filename, header) ) {
+			Com_Printf("Cannot stage RTCW save %s; previous save retained.\n", filename); return;
+		}
+		Cvar_Set("savegame_filename", filename);
+		Cvar_Set("savegame_loading", "2");
+		SV_MapRestart_f();
+	} else {
+		Cbuf_AddText(va("%s \"%s\"\n", Cvar_VariableIntegerValue("sv_cheats") ? "spdevmap" : "spmap", filename));
+	}
+}
 
 /*
 ==================
@@ -1766,6 +1832,7 @@ void SV_AddOperatorCommands( void ) {
 #endif
 
 	SV_AddCommandSet( commands );
+	if ( Com_GameIsRTCWSP() ) Cmd_AddCommand("loadgame", SV_LoadGame_f);
 	if ( Com_GameProfile()->supportsWorkshop ) {
 		SV_AddCommandSet( workshopCommands );
 	}

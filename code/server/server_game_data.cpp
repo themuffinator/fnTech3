@@ -381,6 +381,10 @@ GameDataBindError ServerGameDataView::BindNative( comGameId_t profile,
 		|| binding.entityCount > FNTECH3_Q3_MAX_GENTITIES ) {
 		return GameDataBindError::InvalidEntityCount;
 	}
+	const int entityCapacity = binding.entityCapacity ? binding.entityCapacity : binding.entityCount;
+	if ( entityCapacity < binding.entityCount || entityCapacity > FNTECH3_Q3_MAX_GENTITIES
+		|| ( profile != COM_GAME_RTCW_SP && entityCapacity != binding.entityCount ) )
+		return GameDataBindError::InvalidEntityCount;
 	if ( !binding.entityBase ) {
 		return GameDataBindError::NullEntityBase;
 	}
@@ -395,7 +399,7 @@ GameDataBindError ServerGameDataView::BindNative( comGameId_t profile,
 		return GameDataBindError::MisalignedEntityStride;
 	}
 	std::size_t requiredEntitySpan = 0;
-	if ( !CheckedRequiredSpan( binding.entityCount, binding.entityStride,
+	if ( !CheckedRequiredSpan( entityCapacity, binding.entityStride,
 		requiredEntitySpan ) ) {
 		return GameDataBindError::EntitySpanOverflow;
 	}
@@ -439,6 +443,7 @@ GameDataBindError ServerGameDataView::BindNative( comGameId_t profile,
 	entityBase_ = static_cast<unsigned char *>( binding.entityBase );
 	entitySpanBytes_ = requiredEntitySpan;
 	entityCount_ = binding.entityCount;
+	entityCapacity_ = entityCapacity;
 	entityStride_ = binding.entityStride;
 	clientBase_ = static_cast<unsigned char *>( binding.clientBase );
 	clientSpanBytes_ = requiredClientSpan;
@@ -463,6 +468,7 @@ void ServerGameDataView::ClearBinding()
 	entityBase_ = nullptr;
 	entitySpanBytes_ = 0;
 	entityCount_ = 0;
+	entityCapacity_ = 0;
 	entityStride_ = 0;
 	clientBase_ = nullptr;
 	clientSpanBytes_ = 0;
@@ -504,7 +510,7 @@ std::size_t ServerGameDataView::PlayerStateBytesForProfile(
 bool ServerGameDataView::EntityRefAt( std::int32_t index,
 	GameEntityRef &destination ) const
 {
-	if ( !layout_ || index < 0 || index >= entityCount_ ) {
+	if ( !layout_ || index < 0 || index >= entityCapacity_ ) {
 		return false;
 	}
 	destination.owner = this;
@@ -529,7 +535,7 @@ bool ServerGameDataView::EntityRefForPointer( const void *pointer,
 		return false;
 	}
 	const std::size_t index = difference / entityStride_;
-	if ( index >= static_cast<std::size_t>( entityCount_ ) ) {
+	if ( index >= static_cast<std::size_t>( entityCapacity_ ) ) {
 		return false;
 	}
 	return EntityRefAt( static_cast<std::int32_t>( index ), destination );
@@ -539,7 +545,7 @@ bool ServerGameDataView::IsCurrent( const GameEntityRef &reference ) const
 {
 	return layout_ && reference.owner == this
 		&& reference.generation == generation_
-		&& reference.index >= 0 && reference.index < entityCount_;
+		&& reference.index >= 0 && reference.index < entityCapacity_;
 }
 
 void *ServerGameDataView::EntityPointer( const GameEntityRef &reference )

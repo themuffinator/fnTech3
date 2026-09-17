@@ -23,6 +23,7 @@ MENUS = ROOT / "code/compat/rtcw_menus.def"
 BSP_LAYOUT = ROOT / "code/compat/rtcw_bsp_layout.def"
 MDC_LAYOUT = ROOT / "code/compat/rtcw_mdc_layout.def"
 MDS_LAYOUT = ROOT / "code/compat/rtcw_mds_layout.def"
+TRAJECTORIES = ROOT / "code/compat/rtcw_trajectory_types.def"
 HEADERS = ("game/q_shared.h", "cgame/tr_types.h", "cgame/cg_public.h",
            "game/g_public.h", "ui/ui_public.h", "game/bg_public.h", "ui/keycodes.h",
            "qcommon/qfiles.h", "qcommon/cm_local.h", "client/cl_cgame.c", "client/cl_ui.c",
@@ -134,11 +135,17 @@ def translation_unit(mode: str, types: dict, iortcw: bool = False) -> tuple[str,
     for name in re.findall(r"FNTECH3_RTCW_KEY\((K_\w+), \d+\)", KEY_CODES.read_text()):
         lines.append(f'_Static_assert(FNTECH3_RTCW_{name} == {name}, "{name} key number");')
         checks += 1
+    for name, ordinal in re.findall(r"^FNTECH3_RTCW_TRAJECTORY\((\w+), \w+, (\d+)\)", TRAJECTORIES.read_text(), re.M):
+        lines.append(f'_Static_assert({name} == {ordinal}, "{name} trajectory number");')
+        checks += 1
     for name, sp, mp in re.findall(r"FNTECH3_RTCW_MENU\((\w+), (-?\d+), (-?\d+)\)", MENUS.read_text()):
         if int(sp if mode == "sp" else mp) >= 0:
             lines.append(f'_Static_assert(FNTECH3_RTCW_{mode.upper()}_UIMENU_{name} == UIMENU_{name}, "{name} menu");')
             checks += 1
     if mode == "mp":
+        for name in re.findall(r"FNTECH3_RTCW_MP_(GS_\w+)\s*=", BOUNDARY.read_text()):
+            lines.append(f'_Static_assert(FNTECH3_RTCW_MP_{name} == {name}, "MP {name} state");')
+            checks += 1
         prefix = "IORTCW" if iortcw else "RTCW"
         lines.append(f'_Static_assert(FNTECH3_{prefix}_MP_CVAR_WOLFINFO == CVAR_WOLFINFO, "MP WOLFINFO encoding");')
         lines.append('_Static_assert(FNTECH3_RTCW_MP_CS_WOLFINFO == CS_WOLFINFO, "MP WOLFINFO channel");')
@@ -240,6 +247,7 @@ def main() -> int:
               "bspLayoutSha256": hashlib.sha256(BSP_LAYOUT.read_bytes()).hexdigest(),
               "mdcLayoutSha256": hashlib.sha256(MDC_LAYOUT.read_bytes()).hexdigest(),
               "mdsLayoutSha256": hashlib.sha256(MDS_LAYOUT.read_bytes()).hexdigest(),
+              "trajectoryTypesSha256": hashlib.sha256(TRAJECTORIES.read_bytes()).hexdigest(),
               "results": results}
     output = args.report.resolve()
     output.parent.mkdir(parents=True, exist_ok=True)

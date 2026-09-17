@@ -3635,7 +3635,12 @@ void CL_SetCGameTime( void ) {
 	}
 
 	if ( cl.snap.serverTime - cl.oldFrameServerTime < 0 ) {
-		Com_Error( ERR_DROP, "cl.snap.serverTime < cl.oldFrameServerTime" );
+		if ( Com_GameIsRTCWSP() && !clc.demoplaying && com_sv_running->integer &&
+			clc.serverAddress.type == NA_LOOPBACK ) {
+			CL_FirstSnapshot();
+		} else {
+			Com_Error( ERR_DROP, "cl.snap.serverTime < cl.oldFrameServerTime" );
+		}
 	}
 	cl.oldFrameServerTime = cl.snap.serverTime;
 

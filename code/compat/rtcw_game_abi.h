@@ -35,6 +35,17 @@ enum {
 	FNTECH3_RTCW_GENTITYNUM_BITS = 10
 };
 
+/* RTCW MP's gamestate cvar is shared by the engine, game and cgame. */
+enum {
+	FNTECH3_RTCW_MP_GS_INITIALIZE = -1,
+	FNTECH3_RTCW_MP_GS_PLAYING = 0,
+	FNTECH3_RTCW_MP_GS_WARMUP_COUNTDOWN = 1,
+	FNTECH3_RTCW_MP_GS_WARMUP = 2,
+	FNTECH3_RTCW_MP_GS_INTERMISSION = 3,
+	FNTECH3_RTCW_MP_GS_WAITING_FOR_PLAYERS = 4,
+	FNTECH3_RTCW_MP_GS_RESET = 5
+};
+
 /* SP and MP BOTLIB_UPDATENTITY share this 112-byte input record. */
 typedef struct {
 	int32_t type, flags;

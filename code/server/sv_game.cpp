@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../compat/game_abi_adapter.h"
 #include "../compat/rtcw_module_abi.h"
 #include "../compat/rtcw_state_adapter.hpp"
+#include "../compat/rtcw_savegame.hpp"
 #include "../qcommon/vm_rtcw_filesystem.hpp"
 #define JSON_IMPLEMENTATION
 #include "../qcommon/json.h"
@@ -200,6 +201,18 @@ sharedEntity_t *SV_GentityNum( int num ) {
 	return static_cast<sharedEntity_t *>( serverGameData.EntityPointer( reference ) );
 }
 
+
+// Original SP G_LoadGame restores the numeric episode from its header, then
+// ReadEntity overwrites it with va("%s", a null missionLevel). Keep the valid
+// value already supplied by the module; do not alter its proprietary payload.
+static void SV_SetGameCvar( const char *name, const char *value ) {
+	if ( Com_GameIsRTCWSP() && name && value && !Q_stricmp(name, "g_episode") &&
+		!std::strcmp(value, "(null)") ) {
+		Com_DPrintf("RTCW: retained saved episode after null mission-level assignment\n");
+		return;
+	}
+	Cvar_SetSafe(name, value);
+}
 
 qboolean SV_ReadGameEntity( const void *entity,
 	sharedEntity_t *destination ) {
@@ -528,6 +541,10 @@ static void SV_LocateGameData( intptr_t entityAddress, int numGEntities, int siz
 	InvalidateServerGameData();
 	fntech3::server::NativeGameDataBinding binding;
 	binding.entityCount = numGEntities;
+	// Original SP owns a fixed g_entities[MAX_GENTITIES] arena. G_LoadGame
+	// links restored camera/mover entities before its final LocateGameData call.
+	// Keep the active count for snapshots, but admit handles within that arena.
+	if ( Com_GameIsRTCWSP() ) binding.entityCapacity = 1 << FNTECH3_RTCW_GENTITYNUM_BITS;
 	binding.entityStride = sizeofGEntity_t > 0
 		? static_cast<std::size_t>( sizeofGEntity_t ) : 0;
 	binding.clientCount = Com_GameClientLimit();
@@ -564,7 +581,7 @@ static void SV_LocateGameData( intptr_t entityAddress, int numGEntities, int siz
 			}
 			return unsignedStride * unsignedCount;
 		};
-		binding.entitySpanBytes = claimedSpan( numGEntities,
+		binding.entitySpanBytes = claimedSpan( binding.entityCapacity ? binding.entityCapacity : numGEntities,
 			sizeofGEntity_t );
 		binding.clientSpanBytes = claimedSpan( binding.clientCount,
 			sizeofGameClient );
@@ -960,7 +977,7 @@ static intptr_t SV_GameSystemCalls( intptr_t *args ) {
 		}
 		return 0;
 	case G_CVAR_SET:
-		Cvar_SetSafe( VMA(1), VMA(2) );
+		SV_SetGameCvar( VMA(1), VMA(2) );
 		return 0;
 	case G_CVAR_VARIABLE_INTEGER_VALUE:
 		return Cvar_VariableIntegerValue( VMA(1) );
@@ -3074,6 +3091,18 @@ See if the current console command is claimed by the game
 qboolean SV_GameCommand( void ) {
 	if ( sv.state != SS_GAME ) {
 		return qfalse;
+	}
+	if ( Com_GameIsRTCWSP() && !Q_stricmp(Cmd_Argv(0), "savegame") ) {
+		fntech3_rtcw_sp_playerState_t player{};
+		if ( !serverGameData.ReadPlayerState(0, player) ) {
+			Com_Printf("Cannot save RTCW without an active player.\n"); return qtrue;
+		}
+		// The retail game's cinematic cameraPortal pointer is not serialized as
+		// an entity index. Such a save can only reload at the same DLL address.
+		if ( player.common.eFlags & fntech3::rtcw::savegame::ViewingCamera ) {
+			Com_Printf("Cannot save RTCW during a cinematic; wait for gameplay to resume.\n");
+			return qtrue;
+		}
 	}
 
 	return SV_QBool( VM_Call( gvm, 0, GAME_CONSOLE_COMMAND ) != 0 );

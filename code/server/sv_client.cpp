@@ -3499,7 +3499,7 @@ static void SV_UserMove( client_t *cl, msg_t *msg, bool delta ) {
 		// don't execute if this is an old cmd which is already executed
 		// these old cmds are included when cl_packetdup > 0
 		//if ( cmds[i].serverTime <= cl->lastUsercmd.serverTime ) {
-		if ( !fnql::net::IsNewerCounter(
+		if ( !Com_GameIsRTCWSP() && !fnql::net::IsNewerCounter(
 			cmds[i].serverTime, cl->lastUsercmd.serverTime ) ) {
 			continue;
 		}

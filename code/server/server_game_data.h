@@ -38,6 +38,9 @@ struct NativeGameDataBinding {
 	std::size_t clientSpanBytes = 0;
 	std::int32_t clientCount = 0;
 	std::size_t clientStride = 0;
+	// SP restores and links saved entities before publishing its new high-water
+	// count. A nonzero capacity explicitly binds that larger, checked arena.
+	std::int32_t entityCapacity = 0;
 };
 
 enum class GameDataBindError {
@@ -189,6 +192,7 @@ private:
 	unsigned char *entityBase_ = nullptr;
 	std::size_t entitySpanBytes_ = 0;
 	std::int32_t entityCount_ = 0;
+	std::int32_t entityCapacity_ = 0;
 	std::size_t entityStride_ = 0;
 	unsigned char *clientBase_ = nullptr;
 	std::size_t clientSpanBytes_ = 0;

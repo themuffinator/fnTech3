@@ -37,14 +37,17 @@ template<class T> struct Guarded {
 int Entity() {
 	fntech3_rtcw_entityState_t input;
 	Fill(input);
-	for (int type = 0; type < 11; ++type) {
+	const trType_t expected[]{TR_STATIONARY, TR_INTERPOLATE, TR_LINEAR, TR_LINEAR_STOP,
+		TR_RTCW_LINEAR_STOP_BACK, TR_SINE, TR_GRAVITY, TR_RTCW_GRAVITY_LOW,
+		TR_RTCW_GRAVITY_FLOAT, TR_RTCW_GRAVITY_PAUSED, TR_RTCW_ACCELERATE, TR_RTCW_DECELERATE};
+	for (int type = 0; type < 12; ++type) {
 		input.pos.trType = type;
-		input.apos.trType = 10 - type;
+		input.apos.trType = 11 - type;
 		Guarded<entityState_t> internal;
 		Fill(internal.value);
 		RTCW_STATE_CHECK(state::ToInternal(input, internal.value) && internal.Intact());
-		RTCW_STATE_CHECK(internal.value.pos.trType == state::detail::TrajectoryTypes[type]);
-		RTCW_STATE_CHECK(internal.value.apos.trType == state::detail::TrajectoryTypes[10 - type]);
+		RTCW_STATE_CHECK(internal.value.pos.trType == expected[type]);
+		RTCW_STATE_CHECK(internal.value.apos.trType == expected[11 - type]);
 		RTCW_STATE_CHECK(internal.value.pos.gravity == 0 && internal.value.apos.gravity == 0);
 		RTCW_STATE_CHECK(internal.value.generic1 == 0 && internal.value.health == 0 &&
 			internal.value.armor == 0 && internal.value.location == 0 &&
@@ -56,7 +59,7 @@ int Entity() {
 	Guarded<entityState_t> internal;
 	Fill(internal.value);
 	const auto saved = internal;
-	for (int invalid : {-1, 11, 0x7fffffff}) {
+	for (int invalid : {-1, 12, 0x7fffffff}) {
 		input.pos.trType = invalid;
 		RTCW_STATE_CHECK(!state::ToInternal(input, internal.value));
 		RTCW_STATE_CHECK(std::memcmp(&saved, &internal, sizeof(internal)) == 0);

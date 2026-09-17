@@ -12,6 +12,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 PRELUDE = r'''
 #include "code/server/server.h"
+#include "code/compat/rtcw_savegame.hpp"
+#include "code/compat/rtcw_match_state.hpp"
 #include <cassert>
 #include <cstdarg>
 #include <cstring>
@@ -20,6 +22,7 @@ PRELUDE = r'''
 static const comGameProfile_t *profile;
 const comGameProfile_t *Com_GameProfile(){return profile;}
 int Com_GameIsRTCWSP(){return profile->id==COM_GAME_RTCW_SP;}
+int Com_GameIsRTCWMP(){return profile->id==COM_GAME_RTCW_MP;}
 int Com_GameIsQuakeLive(){return profile->id==COM_GAME_QUAKELIVE;}
 struct Value {cvar_t cvar{};std::string value,latched;};
 static std::map<std::string,Value> values;
@@ -31,6 +34,10 @@ cvar_t *Cvar_Get(const char *name,const char *text,int flags){
  v.cvar.flags|=flags;return &v.cvar;
 }
 void Cvar_Set(const char *name,const char *text){auto &v=values[name];update(v,text);v.latched.clear();v.cvar.latchedString=nullptr;}
+static bool SV_RTCWReadSaveHeader(const char*,fntech3::rtcw::savegame::Header&){assert(false);return false;}
+static bool SV_RTCWStageSave(const char*,const fntech3::rtcw::savegame::Header&){assert(false);return false;}
+static void SV_RTCWClearSaveRequest(){Cvar_Set("savegame_loading","0");Cvar_Set("savegame_filename","");}
+const char *COM_GetExtension(const char *s){const char *p=strrchr(s,'.');return p?p+1:"";}
 void Cvar_SetLatched(const char *name,const char *text){auto &v=values[name];v.latched=text;v.cvar.latchedString=v.latched.data();}
 void Cvar_SetIntegerValue(const char *name,int value){Cvar_Set(name,std::to_string(value).c_str());}
 cvar_t *sv_gametype,*sv_maxclients;
@@ -80,13 +87,19 @@ int main(){
    assert(sv_gametype->integer==(spCommand?2:mp?5:0));
    assert(sv_maxclients->integer==(spCommand?(sp?64:mp?32:8):(mp?20:8)));
    assert(prepares==(ql&&!spCommand)&&deactivates==(ql&&spCommand));
+   if(mp){assert(values.at("gamestate").value=="-1");assert(values.at("sv_serverRestarting").value=="0");}
+   else {assert(!values.count("gamestate")&&!values.count("sv_serverRestarting"));}
    if(sp||mp)assert(values["g_gameskill"].cvar.integer==(sp?1:3));
    if(spCommand&&sp)assert(values["bot_enable"].cvar.integer==1);
+   for(const char *fog:{"r_mapFogColor","r_waterFogColor","r_savegameFogColor"}){
+    if(sp)assert(values.at(fog).value=="0");else assert(!values.count(fog));
+   }
   }
   // A nonexistent map cannot tear down the server or apply new cvars.
   values.clear();SV_TestServerDefaults();Cvar_Set("sv_maxclients","37");
   command="spdevmap";map="missing";available=false;spawns=0;SV_Map_f();
   assert(!spawns&&sv_maxclients->integer==37&&sv_gametype->integer==(mp?5:0)&&pure==0);
+  assert(!values.count("gamestate")&&!values.count("sv_serverRestarting"));
   available=true;map="synthetic";
   if(ql){command="devmap";argc=2;preflight=spawns=probes=0;activeFactory=false;SV_Map_f();assert(preflight==1&&!spawns&&!probes);}
   // Direct campaign loads use the same preparation as map transitions; SP

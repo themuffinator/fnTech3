@@ -684,6 +684,9 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	//sv.time = sv.time ? sv.time : 8;
 
 	// load and spawn all other entities
+	if ( !SV_RTCWRestoreSaveTime() ) {
+		Com_Error(ERR_DROP, "Cannot restore RTCW save time");
+	}
 	SV_InitGameProgs();
 
 	// don't allow a map_restart if game is modified
@@ -1217,6 +1220,10 @@ void SV_Shutdown( const char *finalmsg ) {
 	sv.time = 0;
 
 	Cvar_Set( "sv_running", "0" );
+	if ( Com_GameIsRTCWSP() ) {
+		Cvar_Set("savegame_loading", "0");
+		Cvar_Set("savegame_filename", "");
+	}
 	SV_ResetServerCvarRuntime();
 	if ( !Com_GameIsQuakeLive() ) {
 		Cvar_Set( "sv_playingDemo", "0" );

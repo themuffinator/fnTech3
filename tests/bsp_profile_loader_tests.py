@@ -26,6 +26,7 @@ PRELUDE = r'''
 #include "code/qcommon/qfiles.h"
 #include "code/qcommon/ql_bsp.h"
 #include "code/qcommon/game_manager.h"
+#include "code/renderercommon/tr_rtcw_world_shader.h"
 #include <algorithm>
 #include <cassert>
 #include <climits>
@@ -132,9 +133,13 @@ static struct {
     decltype(&Z_Free) Free;
     decltype(&HunkAlloc) Hunk_Alloc;
     decltype(&Format) GameBspFormat;
+    comGameId_t gameId;
 } ri{Com_Error, FS_ReadFile, FS_FreeFile, Allocate, Z_Free, HunkAlloc, Format};
 static struct World { char name[MAX_QPATH], baseName[MAX_QPATH]; int dataSize; } s_worldData;
-static struct { qboolean worldMapLoaded, mapLoading; World *world; } tr;
+static struct { qboolean worldMapLoaded, mapLoading; World *world;
+    fnRTCWWorldShader_t rtcwWorld; void *sunShader; } tr;
+constexpr int LIGHTMAP_NONE = -1;
+static void *R_FindShader(const char *, int, qboolean) { assert(false); return nullptr; }
 '''
 
 

@@ -31,6 +31,8 @@ extern "C" {
 #include "../game/g_public.h"
 #include "../game/bg_public.h"
 
+bool SV_RTCWRestoreSaveTime();
+
 //=============================================================================
 
 #define	PERS_SCORE				0		// !!! MUST NOT CHANGE, SERVER AND

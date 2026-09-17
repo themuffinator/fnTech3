@@ -60,6 +60,8 @@ struct client_t {
     int gamestates = 0;
 };
 struct { int checksumFeed = 1234; int pure = 0; } sv;
+static bool rtcwSP;
+bool Com_GameIsRTCWSP() { return rtcwSP; }
 int SV_ReliableCommandLimit(const client_t *client) { return Netchan_ReliableCommandLimit(client->netchan.wireProfile); }
 
 auto SV_Indices(int count) {
@@ -134,6 +136,18 @@ int main() {
                 CHECK(peer.frames[1].messageAcked == 1000);
             }
         }
+    }
+    // Loading an SP save rewinds the game clock while retaining the local
+    // connection. Other profiles must continue rejecting duplicate/old input.
+    for (bool singlePlayer : {false, true}) {
+        rtcwSP = singlePlayer;
+        client_t client{};
+        client.lastUsercmd.serverTime = 10000;
+        msg_t rewind{};
+        SV_UserMove(&client, &rewind, true);
+        CHECK(client.dropped == 0);
+        CHECK(client.thought == (singlePlayer ? 3 : 0));
+        CHECK(client.lastUsercmd.serverTime == (singlePlayer ? 102 : 10000));
     }
     return 0;
 }

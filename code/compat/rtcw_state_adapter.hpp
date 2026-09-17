@@ -23,10 +23,14 @@ void Field( External &external, Internal &internal ) noexcept {
 }
 
 inline constexpr trType_t TrajectoryTypes[]{
-	TR_STATIONARY, TR_INTERPOLATE, TR_LINEAR, TR_LINEAR_STOP,
-	TR_RTCW_LINEAR_STOP_BACK, TR_SINE, TR_GRAVITY, TR_RTCW_GRAVITY_LOW,
-	TR_RTCW_GRAVITY_FLOAT, TR_RTCW_ACCELERATE, TR_RTCW_DECELERATE
+#define FNTECH3_RTCW_TRAJECTORY(reference, canonical, ordinal) canonical,
+#include "rtcw_trajectory_types.def"
+#undef FNTECH3_RTCW_TRAJECTORY
 };
+inline constexpr std::int32_t TrajectoryTypeCount = sizeof(TrajectoryTypes) / sizeof(TrajectoryTypes[0]);
+#define FNTECH3_RTCW_TRAJECTORY(reference, canonical, ordinal) static_assert(TrajectoryTypes[ordinal] == canonical);
+#include "rtcw_trajectory_types.def"
+#undef FNTECH3_RTCW_TRAJECTORY
 
 template<bool Out, class External, class Internal>
 bool Trajectory( External &external, Internal &internal ) noexcept {
@@ -35,7 +39,7 @@ bool Trajectory( External &external, Internal &internal ) noexcept {
 		static_assert( sizeof( type ) == sizeof( internal.trType ) );
 		std::memcpy( &type, &internal.trType, sizeof( type ) );
 		bool found = false;
-		for ( std::int32_t index = 0; index < 11; ++index ) {
+		for ( std::int32_t index = 0; index < TrajectoryTypeCount; ++index ) {
 			if ( type == static_cast<std::uint32_t>( TrajectoryTypes[index] ) ) {
 				external.trType = index;
 				found = true;
@@ -44,7 +48,7 @@ bool Trajectory( External &external, Internal &internal ) noexcept {
 		}
 		if ( !found ) return false;
 	} else {
-		if ( external.trType < 0 || external.trType >= 11 ) return false;
+		if ( external.trType < 0 || external.trType >= TrajectoryTypeCount ) return false;
 		internal.trType = TrajectoryTypes[external.trType];
 	}
 	Field<Out>( external.trTime, internal.trTime );

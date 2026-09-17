@@ -16,12 +16,19 @@ static sharedEntity_t *SV_RTCWWorldEntity( const vm_t *vm, intptr_t address, boo
 		|| !serverGameData.EntityRefForPointer( pointer, reference ) )
 		Com_Error( ERR_DROP, "RTCW world argument is not a registered entity" );
 	if ( geometry ) {
-		sharedEntity_t entity;
-		if ( !SV_ReadGameEntity( pointer, &entity )
-			|| !SV_ValidWorldBounds( entity.r.mins, entity.r.maxs )
+		sharedEntity_t entity{};
+		if ( !SV_ReadGameEntity( pointer, &entity ) )
+			Com_Error( ERR_DROP, "Cannot read RTCW world entity %d", reference.index );
+		if ( !SV_ValidWorldBounds( entity.r.mins, entity.r.maxs )
 			|| !SV_FiniteWorldVector( entity.r.currentOrigin )
 			|| !SV_FiniteWorldVector( entity.r.currentAngles ) )
-			Com_Error( ERR_DROP, "Invalid RTCW world entity geometry" );
+			Com_Error( ERR_DROP, "Invalid RTCW world entity geometry: entity %d type %d, "
+				"bounds (%g %g %g)-(%g %g %g), origin (%g %g %g), angles (%g %g %g)",
+				reference.index, entity.s.eType,
+				entity.r.mins[0], entity.r.mins[1], entity.r.mins[2],
+				entity.r.maxs[0], entity.r.maxs[1], entity.r.maxs[2],
+				entity.r.currentOrigin[0], entity.r.currentOrigin[1], entity.r.currentOrigin[2],
+				entity.r.currentAngles[0], entity.r.currentAngles[1], entity.r.currentAngles[2] );
 	}
 	return static_cast<sharedEntity_t *>( pointer );
 }
