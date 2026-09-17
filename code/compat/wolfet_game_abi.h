@@ -19,6 +19,7 @@ enum {
 	FNTECH3_WOLFET_MAX_AAS_QUERY = 4096,
 	/* ET limits chat records to 150 bytes where the engine uses 256. */
 	FNTECH3_WOLFET_MAX_MESSAGE_SIZE = 150,
+	FNTECH3_WOLFET_MAX_MATCHVARIABLES = 8,
 	FNTECH3_WOLFET_CS_PLAYERS = 689,
 	FNTECH3_WOLFET_CS_WOLFINFO = 21,
 	FNTECH3_WOLFET_UI_API_VERSION = 4,
@@ -132,6 +133,20 @@ typedef struct {
 	char stringData[FNTECH3_WOLFET_MAX_GAMESTATE_CHARS];
 	int32_t dataCount;
 } fntech3_wolfet_gameState_t;
+
+/* ET chat-match record. Its variables hold raw pointers into the module's own
+ * copy of the matched string, where this engine stores byte offsets, and its
+ * string is 150 bytes where the engine keeps 256. */
+typedef struct {
+	uint32_t ptr;
+	int32_t length;
+} fntech3_wolfet_bot_matchvariable_t;
+
+typedef struct {
+	char string[FNTECH3_WOLFET_MAX_MESSAGE_SIZE];
+	int32_t type, subtype;
+	fntech3_wolfet_bot_matchvariable_t variables[FNTECH3_WOLFET_MAX_MATCHVARIABLES];
+} fntech3_wolfet_bot_match_t;
 
 /* ET botlib goal, movement, console-message and weapon records, independently
  * declared from its game/be_ai_*.h. ET's goal carries two fields RTCW lacks and

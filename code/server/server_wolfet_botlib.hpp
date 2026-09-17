@@ -6,9 +6,13 @@
 #include "../botlib/be_ea.h"
 #include "../botlib/be_ai_chat.h"
 #include "../botlib/rtcw_navigation.h"
+#include "../botlib/wolfet_navigation.h"
+#include "../botlib/be_ai_move.h"
 #include "../compat/wolfet_state_adapter.hpp"
 #include "../botlib/be_ai_weap.h"
 #include <array>
+#include <cstddef>
+#include <cstdint>
 
 /* ET elementary-action and AI-state imports. ET repeats RTCW MP's argument
  * contracts for these ordinals and adds EA_Walk, EA_Prone and the fifteenth
@@ -295,6 +299,17 @@ static bool SV_WolfETBotLibCall( const vm_t *vm, fntech3::wolfet::module::Call c
 		result = exports.BotLibUpdateEntity( entity, &state );
 		return true;
 	}
+	case Call::BOTLIB_TEST: {
+		auto &exports = library();
+		auto *text = args[2]
+			? static_cast<char *>( SV_RTCWPointer( vm, args[2], MAX_QPATH ) ) : nullptr;
+		if ( text && !std::memchr( text, 0, MAX_QPATH ) )
+			Com_Error( ERR_DROP, "Unterminated WolfET library test argument" );
+		auto first = SV_RTCWVector( vm, args[3] );
+		auto second = SV_RTCWVector( vm, args[4] );
+		result = exports.Test( SV_RTCWInteger( args[1] ), text, first.data(), second.data() );
+		return true;
+	}
 	case Call::BOTLIB_GET_SNAPSHOT_ENTITY:
 		result = SV_BotGetSnapshotEntity( SV_RTCWInteger( args[1] ), SV_RTCWInteger( args[2] ) );
 		return true;
@@ -458,13 +473,14 @@ static bool SV_WolfETGoalCall( const vm_t *vm, fntech3::wolfet::module::Call cal
 	case Call::BOTLIB_AI_INTERBREED_GOAL_FUZZY_LOGIC: case Call::BOTLIB_AI_MUTATE_GOAL_FUZZY_LOGIC:
 	case Call::BOTLIB_AI_GENETIC_PARENTS_AND_CHILD_SELECTION:
 	case Call::BOTLIB_AI_INIT_MOVE_STATE: case Call::BOTLIB_AI_MOVE_TO_GOAL:
-	case Call::BOTLIB_AI_MOVE_IN_DIRECTION:
+	case Call::BOTLIB_AI_MOVE_IN_DIRECTION: case Call::BOTLIB_AI_INIT_AVOID_REACH:
 	case Call::BOTLIB_AI_REACHABILITY_AREA: case Call::BOTLIB_AI_MOVEMENT_VIEW_TARGET:
 	case Call::BOTLIB_AI_PREDICT_VISIBLE_POSITION:
 	case Call::BOTLIB_AI_CHOOSE_BEST_FIGHT_WEAPON: case Call::BOTLIB_AI_GET_WEAPON_INFO:
 	case Call::BOTLIB_AI_QUEUE_CONSOLE_MESSAGE: case Call::BOTLIB_AI_REMOVE_CONSOLE_MESSAGE:
 	case Call::BOTLIB_AI_NEXT_CONSOLE_MESSAGE: case Call::BOTLIB_AI_NUM_CONSOLE_MESSAGE:
 	case Call::BOTLIB_AI_CHAT_LENGTH: case Call::BOTLIB_AI_GET_CHAT_MESSAGE:
+	case Call::BOTLIB_AI_FIND_MATCH: case Call::BOTLIB_AI_MATCH_VARIABLE:
 	case Call::BOTLIB_AI_STRING_CONTAINS: case Call::BOTLIB_AI_UNIFY_WHITE_SPACES:
 	case Call::BOTLIB_AI_REPLACE_SYNONYMS: case Call::BOTLIB_AI_INITIAL_CHAT:
 	case Call::BOTLIB_AI_NUM_INITIAL_CHATS: case Call::BOTLIB_AI_REPLY_CHAT:
@@ -615,6 +631,11 @@ static bool SV_WolfETGoalCall( const vm_t *vm, fntech3::wolfet::module::Call cal
 		std::memcpy( destination, &output, sizeof( output ) );
 		break;
 	}
+	case Call::BOTLIB_AI_INIT_AVOID_REACH:
+		// Clearing the avoid-reach arrays is engine-internal; the frozen bot
+		// export has no entry for it.
+		BotInitAvoidReach( SV_RTCWInteger( args[1] ) );
+		break;
 	case Call::BOTLIB_AI_MOVE_IN_DIRECTION:
 		result = ai.BotMoveInDirection( SV_RTCWInteger( args[1] ),
 			SV_RTCWVector( vm, args[2] ).data(), SV_RTCWFloat( args[3] ),
@@ -682,6 +703,74 @@ static bool SV_WolfETGoalCall( const vm_t *vm, fntech3::wolfet::module::Call cal
 		const int size = SV_RTCWInteger( args[3] );
 		ai.BotGetChatMessage( SV_RTCWInteger( args[1] ), text( 2, size ), size );
 		break;
+	}
+	case Call::BOTLIB_AI_FIND_MATCH: {
+		/* The engine records each variable as an offset into its own 256-byte
+		 * copy; ET expects a pointer into the module's 150-byte copy. Translate
+		 * both, and drop a variable whose text does not survive the shorter
+		 * string rather than handing the module a pointer past its own record. */
+		const auto subject = SV_RTCWString<MAX_MESSAGE_SIZE>( vm, args[1] );
+		auto *destination = static_cast<fntech3_wolfet_bot_match_t *>(
+			SV_RTCWPointer( vm, args[2], sizeof( fntech3_wolfet_bot_match_t ) ) );
+		bot_match_t internal{};
+		result = ai.BotFindMatch( subject.data(), &internal,
+			static_cast<unsigned long>( args[3] ) );
+		if ( !result ) return true;
+		fntech3_wolfet_bot_match_t output{};
+		output.type = internal.type;
+		output.subtype = internal.subtype;
+		std::size_t length = 0;
+		while ( length + 1 < sizeof( output.string ) && length < sizeof( internal.string )
+			&& internal.string[length] ) {
+			output.string[length] = internal.string[length];
+			++length;
+		}
+		output.string[length] = '\0';
+		const auto base = reinterpret_cast<std::uintptr_t>( destination )
+			+ offsetof( fntech3_wolfet_bot_match_t, string );
+		// ET's record holds a 32-bit address because its modules are x86.
+		if ( base + sizeof( output.string ) > 0xffffffffu )
+			Com_Error( ERR_DROP, "WolfET match record outside the module address space" );
+		for ( int index = 0; index < FNTECH3_WOLFET_MAX_MATCHVARIABLES; ++index ) {
+			const int offset = internal.variables[index].offset;
+			const int size = internal.variables[index].length;
+			if ( offset < 0 || size < 0 || static_cast<std::size_t>( offset ) >= length
+				|| static_cast<std::size_t>( offset + size ) > length ) {
+				continue;
+			}
+			output.variables[index].ptr = static_cast<std::uint32_t>( base + offset );
+			output.variables[index].length = size;
+		}
+		std::memcpy( destination, &output, sizeof( output ) );
+		return true;
+	}
+	case Call::BOTLIB_AI_MATCH_VARIABLE: {
+		const int variable = SV_RTCWInteger( args[2] );
+		const int size = SV_RTCWInteger( args[4] );
+		auto *buffer = text( 3, size );
+		buffer[0] = '\0';
+		if ( variable < 0 || variable >= FNTECH3_WOLFET_MAX_MATCHVARIABLES ) {
+			// The original prints and returns an empty string for this.
+			result = 0;
+			return true;
+		}
+		fntech3_wolfet_bot_match_t input;
+		auto *record = SV_RTCWPointer( vm, args[1], sizeof( input ) );
+		std::memcpy( &input, record, sizeof( input ) );
+		const auto base = reinterpret_cast<std::uintptr_t>( record )
+			+ offsetof( fntech3_wolfet_bot_match_t, string );
+		const std::uintptr_t pointer = input.variables[variable].ptr;
+		const int stored = input.variables[variable].length;
+		// A variable must point inside the record the module handed us.
+		if ( !pointer || stored < 0 || pointer < base
+			|| pointer + static_cast<std::uintptr_t>( stored ) >= base + sizeof( input.string ) ) {
+			result = 0;
+			return true;
+		}
+		int copy = stored < size ? stored + 1 : size;
+		Q_strncpyz( buffer, reinterpret_cast<const char *>( pointer ), copy );
+		result = 0;
+		return true;
 	}
 	case Call::BOTLIB_AI_STRING_CONTAINS: {
 		const auto first = SV_RTCWString<MAX_STRING_CHARS>( vm, args[1] );
@@ -760,10 +849,41 @@ static bool SV_WolfETNavigationCall( const vm_t *vm, fntech3::wolfet::module::Ca
 		const auto maxs = SV_RTCWVector( vm, args[2] );
 		if ( !SV_ValidWorldBounds( mins.data(), maxs.data() ) )
 			Com_Error( ERR_DROP, "Inverted WolfET navigation bounds" );
-		AAS_SetBlockingEntity( mins.data(), maxs.data(), SV_RTCWInteger( args[3] ) );
+		// ET's own reset sentinel, bit policy and mover retry, not RTCW's.
+		AAS_WolfETSetBlockingEntity( mins.data(), maxs.data(), SV_RTCWInteger( args[3] ) );
 		result = 0;
 		return true;
 	}
+	case Call::BOTLIB_AAS_AREA_CENTER: {
+		auto *center = static_cast<float *>( SV_RTCWPointer( vm, args[2], sizeof( vec3_t ) ) );
+		// The original leaves the caller's vector alone for an invalid area.
+		AAS_WolfETAreaCenter( SV_RTCWInteger( args[1] ), center );
+		result = 0;
+		return true;
+	}
+	case Call::BOTLIB_AAS_AREA_WAYPOINT: {
+		auto *center = static_cast<float *>( SV_RTCWPointer( vm, args[2], sizeof( vec3_t ) ) );
+		result = AAS_WolfETAreaWaypoint( SV_RTCWInteger( args[1] ), center ) ? qtrue : qfalse;
+		return true;
+	}
+	case Call::BOTLIB_AAS_AREA_LADDER:
+		result = AAS_WolfETAreaLadder( SV_RTCWInteger( args[1] ) );
+		return true;
+	case Call::BOTLIB_AAS_RT_SHOWROUTE:
+		// The release body is entirely inside #ifdef DEBUG, so it draws nothing
+		// and touches no navigation data. Arguments are still validated.
+		SV_RTCWVector( vm, args[1] );
+		SV_RTCWInteger( args[2] );
+		SV_RTCWInteger( args[3] );
+		result = 0;
+		return true;
+	case Call::BOTLIB_AAS_RECORDTEAMDEATHAREA:
+		// The published body opens with an unconditional return; nothing is
+		// recorded in the shipped engine.
+		SV_RTCWVector( vm, args[1] );
+		for ( int index = 2; index <= 5; ++index ) SV_RTCWInteger( args[index] );
+		result = 0;
+		return true;
 	default: return false;
 	}
 }

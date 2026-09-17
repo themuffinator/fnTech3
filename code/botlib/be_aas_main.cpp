@@ -42,6 +42,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "aasfile.h"
 #include "botlib.h"
 #include "be_aas.h"
+#include "wolfet_navigation.h"
 #include "be_aas_funcs.h"
 #include "be_interface.h"
 #include "be_aas_def.h"
@@ -72,6 +73,72 @@ bool AAS_SetCurrentWorld( int index )
 		|| index >= static_cast<int>( ARRAY_LEN( aasWorlds ) ) ) return false;
 	aas_currentWorld = &aasWorlds[index];
 	return true;
+}
+
+/* ET's own AAS_SetAASBlockingEntity. It differs from both RTCW bodies: the
+ * reset sentinel is a negative value, a blocked area keeps every caller bit
+ * except the inverted low one, and BLOCKINGFLAG_MOVER restricts the block to
+ * mover areas and retries unrestricted when no area matched. */
+void AAS_WolfETSetBlockingEntity( const float *mins, const float *maxs, int blocking )
+{
+	// ET's BLOCKINGFLAG_MOVER, spelled ~0x7fffffff in its game headers.
+	constexpr int blockingFlagMover = static_cast<int>( 0x80000000u );
+	const bool samePoint = mins[0] == maxs[0] && mins[1] == maxs[1] && mins[2] == maxs[2];
+
+	if ( samePoint && blocking < 0 ) {
+		for ( int world = 0; AAS_SetCurrentWorld( world ); ++world ) {
+			if ( !aasworld.loaded ) continue;
+			for ( int area = 1; area < aasworld.numareas; ++area ) AAS_EnableRoutingArea( area, 1 );
+		}
+		return;
+	}
+
+	bool mover = ( blocking & blockingFlagMover ) != 0;
+	if ( mover ) blocking &= ~blockingFlagMover;
+	const int enable = ( blocking & ~0x1 ) | ( ( blocking & 1 ) ? 0 : 1 );
+
+	for ( ;; ) {
+		bool changed = false;
+		for ( int world = 0; AAS_SetCurrentWorld( world ); ++world ) {
+			if ( !aasworld.loaded ) continue;
+			vec3_t lower, upper;
+			VectorCopy( mins, lower );
+			VectorCopy( maxs, upper );
+			int areas[1024];
+			const int count = AAS_BBoxAreas( lower, upper, areas, ARRAY_LEN( areas ) );
+			for ( int i = 0; i < count; ++i ) {
+				if ( areas[i] < 0 || areas[i] >= aasworld.numareasettings ) continue;
+				if ( mover && !( aasworld.areasettings[areas[i]].contents & AREACONTENTS_MOVER ) ) continue;
+				AAS_EnableRoutingArea( areas[i], enable );
+				changed = true;
+			}
+		}
+		// The original retries once with the mover restriction removed.
+		if ( !mover || changed ) return;
+		mover = false;
+	}
+}
+
+bool AAS_WolfETAreaCenter( int area, float *center )
+{
+	if ( area < 0 || area >= aasworld.numareas || !aasworld.areas || !center ) return false;
+	VectorCopy( aasworld.areas[area].center, center );
+	return true;
+}
+
+int AAS_WolfETAreaLadder( int area )
+{
+	if ( area < 0 || area >= aasworld.numareasettings || !aasworld.areasettings ) return 0;
+	return aasworld.areasettings[area].areaflags & AREA_LADDER;
+}
+
+bool AAS_WolfETAreaWaypoint( int area, float * )
+{
+	/* ET stores one waypoint per area in its route table and answers false
+	 * whenever that table is absent. This engine builds no waypoint table, so
+	 * the honest answer is always the original's table-absent answer. */
+	(void)area;
+	return false;
 }
 
 void AAS_SetBlockingEntity( const float *mins, const float *maxs, int blocking )

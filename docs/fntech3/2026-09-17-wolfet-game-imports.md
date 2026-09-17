@@ -27,7 +27,9 @@ additional terms. No implementation text is incorporated into fnTech3.
 ET declares 212 game imports. Before this work fnTech3 handled 52 and dropped
 the rest with an explicit "Unsupported WolfET game import" error. It now handles
 189. Of the 23 that remain unhandled, 8 reproduce refusals that retail ET makes
-itself, so 15 are genuinely open.
+itself, so 15 were genuinely open. The
+[navigation follow-up](2026-09-17-wolfet-navigation.md) then closed nine of
+those, leaving six.
 
 | Group | State |
 | --- | --- |
