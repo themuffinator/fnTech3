@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_shade.c
 
 #include "tr_local.h"
+#include "../renderercommon/tr_rtcw_normal_fade.h"
 
 /*
 
@@ -879,6 +880,11 @@ void R_ComputeColors( const int b, color4ub_t *dest, const shaderStage_t *pStage
 		{
 			dest[i].rgba[3] = 255 - tess.vertexColors[i].rgba[3];
 		}
+		break;
+	case AGEN_RTCW_NORMALZFADE:
+		for ( i = 0; i < tess.numVertexes; ++i )
+			dest[i].rgba[3] = R_RTCWNormalZAlpha( &backEnd.currentEntity->e, tess.normal[i],
+				pStage->bundle[b].rtcwNormalZBounds, pStage->bundle[b].constantColor.rgba[3] );
 		break;
 	case AGEN_PORTAL:
 		{

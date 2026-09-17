@@ -286,6 +286,7 @@ static void S_Base_AddVoiceSamples( int clientNum, int samples, int rate, const 
 } // namespace
 
 #include "snd_rtcw_streams.hpp"
+#include "snd_rtcw_voice.hpp"
 
 extern "C" void S_PaintVoiceSamples( int starttime, int endtime, portable_samplepair_t *paintSamples ) {
 	if ( paintSamples == nullptr || endtime <= starttime ) {
@@ -599,6 +600,19 @@ static sfxHandle_t S_Base_RegisterSound( const char *name, qboolean compressed )
 S_BeginRegistration
 =====================
 */
+static void S_Base_LoadRTCWDefaultSound( sfx_t *sample ) {
+	const auto pcm = fntech3::audio::rtcw::DefaultSoundPCM(Com_GameIsRTCWSP() != 0,
+		Cvar_VariableIntegerValue("s_defaultsound") != 0);
+	sample->soundData = SND_malloc();
+	*sample->soundData = {};
+	std::copy(pcm.begin(), pcm.end(), sample->soundData->sndChunk);
+	sample->soundLength = static_cast<int>(pcm.size());
+	sample->soundChannels = 1;
+	sample->soundCompressionMethod = 0;
+	sample->defaultSound = qtrue;
+	sample->inMemory = qtrue;
+}
+
 static void S_Base_BeginRegistration( void ) {
 	s_soundMuted = false;		// we can play again
 
@@ -610,11 +624,21 @@ static void S_Base_BeginRegistration( void ) {
 	s_knownSfx.fill( sfx_t{} );
 	sfxHash.fill( nullptr );
 
-	S_Base_RegisterSound( "sound/feedback/hit.wav", qfalse ); // changed to a sound in baseq3
+	if ( Com_GameIsRTCW() ) {
+		// Reserve handle zero directly: the public name lookup rejects '*'
+		// player aliases and must never try to load this internal placeholder.
+		auto *sample = S_KnownSfxAt(s_numSfx++);
+		Q_strncpyz(sample->soundName, fntech3::audio::rtcw::DefaultSoundName, sizeof(sample->soundName));
+		S_Base_LoadRTCWDefaultSound(sample);
+	} else S_Base_RegisterSound( "sound/feedback/hit.wav", qfalse );
 }
 
 
 static void S_memoryLoad( sfx_t *sfx ) {
+	if ( Com_GameIsRTCW() && !Q_stricmp(sfx->soundName, fntech3::audio::rtcw::DefaultSoundName) ) {
+		S_Base_LoadRTCWDefaultSound(sfx);
+		return;
+	}
 
 	// load the sound file
 	if ( !S_LoadSound ( sfx ) ) {
@@ -1962,6 +1986,7 @@ extern "C" qboolean S_Base_Init( soundInterface_t *si ) {
 	si->StartRTCWEntityStream = S_Base_StartRTCWEntityStream;
 	si->StopRTCWEntityStream = S_Base_StopRTCWEntityStream;
 	si->FadeRTCWEntityStream = S_Base_FadeRTCWEntityStream;
+	si->RTCWVoiceAmplitude = S_Base_RTCWVoiceAmplitude;
 	si->StartBackgroundTrack = S_Base_StartBackgroundTrack;
 	si->StartRTCWBackgroundTrack = S_Base_StartRTCWBackgroundTrack;
 	si->FadeRTCWBackgroundTrack = S_Base_FadeRTCWBackgroundTrack;

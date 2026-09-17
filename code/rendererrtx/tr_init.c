@@ -254,6 +254,7 @@ cvar_t	*r_singleShader;
 cvar_t	*r_roundImagesDown;
 cvar_t	*r_colorMipLevels;
 cvar_t	*r_picmip;
+cvar_t *r_picmip2;
 cvar_t	*r_picmipFilter;
 cvar_t	*r_nomip;
 cvar_t	*r_showtris;
@@ -1903,6 +1904,7 @@ static void VarInfo( void )
 	ri.Printf( PRINT_ALL, "texturemode: %s\n", r_textureMode->string );
 	ri.Printf( PRINT_ALL, "texture bits: %d\n", r_texturebits->integer ? r_texturebits->integer : 32 );
 	ri.Printf( PRINT_ALL, "picmip: %d%s, filter: %d\n", r_picmip->integer, r_nomip->integer ? ", worldspawn only" : "", r_picmipFilter->integer );
+	if ( r_picmip2 ) ri.Printf( PRINT_ALL, "character picmip: %d\n", r_picmip2->integer );
 
 #ifdef USE_VULKAN
 	ri.Printf( PRINT_ALL, "tone map: %s, exposure %.2f\n",
@@ -2050,6 +2052,13 @@ static void R_Register( void )
 	r_picmip = ri.Cvar_Get( "r_picmip", "0", CVAR_ARCHIVE | CVAR_LATCH );
 	ri.Cvar_CheckRange( r_picmip, "0", "16", CV_INTEGER );
 	ri.Cvar_SetDescription( r_picmip, "Set texture quality, lower is better." );
+
+	r_picmip2 = NULL;
+	if ( ri.gameId == COM_GAME_RTCW_SP ) {
+		r_picmip2 = ri.Cvar_Get( "r_picmip2", "0", CVAR_ARCHIVE | CVAR_LATCH );
+		ri.Cvar_CheckRange( r_picmip2, "0", "16", CV_INTEGER );
+		ri.Cvar_SetDescription( r_picmip2, "RTCW single-player character texture quality; 0 keeps full resolution." );
+	}
 
 	r_picmipFilter = ri.Cvar_Get( "r_picmipFilter", "1", CVAR_ARCHIVE | CVAR_LATCH );
 	ri.Cvar_CheckRange( r_picmipFilter, "0", "15", CV_INTEGER );

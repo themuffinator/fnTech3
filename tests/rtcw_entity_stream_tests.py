@@ -227,6 +227,7 @@ int main(){
 
 def openal():
     return CODEC + r'''
+#include "code/client/audio/shared/RTCWSpeech.h"
 #include <algorithm>
 #include <cmath>
 using byte=unsigned char;using ALuint=unsigned;
@@ -246,7 +247,7 @@ struct Device{
  void alSourcef(unsigned,int,float){}
 };
 struct StreamPlayer{
- bool deferStart=false;int queued=0;float gain=1;unsigned source=0;std::vector<short> pcm;
+ bool deferStart=false,trackRTCWSpeech=false;int queued=0;float gain=1;unsigned source=0;std::vector<short> pcm;
  void Init(Device *,unsigned s){source=s;Clear();}void Clear(){queued=0;pcm.clear();}
  void Shutdown(){Clear();source=0;}void Update(float g,bool=true){gain=g;}
  int QueuedBufferCount()const{return queued;}bool Idle()const{return !queued;}
@@ -285,9 +286,12 @@ int main(){
   assert(lane.players[0].pcm[0]==1000&&!lane.players[0].pcm[1]&&!lane.players[1].pcm[0]&&lane.players[1].pcm[1]==-2000);
   assert(lane.players[0].gain==1&&lane.players[1].gain==1);
   s.StartRTCWEntityStream("speech",nullptr,3,3,1);s.ServiceRTCWEntityStreams();
-  assert(lane.players[0].gain==1&&!lane.players[1].gain&&lane.players[0].queued==2);
+  assert(lane.players[0].gain==1&&!lane.players[1].gain&&lane.players[0].queued==(sp?4:2));
+  assert(lane.players[0].trackRTCWSpeech==sp&&!lane.players[1].trackRTCWSpeech);
   volume.value=2;s.ServiceRTCWEntityStreams();assert(lane.players[0].gain==(sp?1.f:.5f));
   muted=true;s.ServiceRTCWEntityStreams();assert(!lane.players[0].gain);muted=false;
+  assert(lane.players[0].queued==(sp?8:2));
+  s.ServiceRTCWEntityStreams();assert(lane.players[0].queued==(sp?8:2));
   s.StopRTCWEntityStream(3);assert(!s.device_.allocated&&!lane.players[0].queued);
   volume.value=0;s.ServiceRTCWEntityStreams();assert(opens==closes);
   volume.value=1;s.StartRTCWEntityStream("short",nullptr,3,3,0);s.ServiceRTCWEntityStreams();

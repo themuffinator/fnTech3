@@ -495,9 +495,10 @@ probes pass, with all ten engine captures inspected. The complete suite passes
 SP entity loops intentionally stay on their entity lane, correcting the
 released source's music-channel bug. PCM and live-dialogue parity remain open.
 
-Voice amplitudes and live dialogue, missing-cache generation and AI, letterboxed
-movies, active GPU fog and broader gameplay/import coverage remain open.
-Campaign play and save/load remain unverified.
+At the entity-stream checkpoint, voice amplitudes and live dialogue,
+missing-cache generation and AI, letterboxed movies, active GPU fog and
+broader gameplay/import coverage remained open. Later startup, material and
+speech evidence is recorded below; campaign play and save/load remain unverified.
 
 The [first approved SP ready-click probe](2026-09-16-rtcw-autosave-write.md)
 reached the game-owned player-start action, then failed its initial autosave:
@@ -552,6 +553,43 @@ SP after the intro and MP first-person local warmup; all selected runs report
 `r_picmip 0`. This adds menu and rendering observations, without closing remote
 browser/join, favorites editing, sustained gameplay or interoperability gates.
 
+The [character-material correction](2026-09-17-rtcw-character-materials.md)
+adds SP character mip selection, RTCW conditional texture alternatives, MP's
+`nomipmap` alias and normal-based vertex alpha across all three renderers.
+The alpha evaluator agrees on 819,000 cases per original/iortcw SP/MP reference
+on Windows x86/x64 and sanitized Linux x86. Installed SP/MP briefing probes
+report zero unknown shader directives. The SP opening cinematic now shows
+assembled character heads/bodies and reaches first-person startup; `r_picmip`
+and `r_picmip2` remain zero. Six final Q3/QL raster-renderer regression captures
+were inspected. The complete Windows x86 development suite passes 111 Meson
+tests with two skips, including 1,471 Python tests with eleven skips.
+Broader character/material GPU parity, campaign gameplay and
+interop remain open.
+
+The [speech checkpoint](2026-09-17-rtcw-speech.md) removes the active-SP
+voice-amplitude guard with real legacy/OpenAL sample measurements and preserves
+MP's disabled talking-animation result. The measurement probe agrees with
+299,264 cases per original/iortcw SP reference on Windows x86/x64 and sanitized
+Linux x86. RTCW also owns its silent default sound, fixing a legacy intro
+failure caused by the missing Q3 fallback asset. Both audio backends complete
+the installed SP intro with nonzero speech results and inspected first-person
+captures; output was focus-muted, so audible synchronization remains open.
+Six ordinary-binary Q3/QL/MP audio startup checks and both Windows x86 builds
+pass. The full development suite passes 111 Meson tests with two skips and
+zero failures, including 1,475 Python tests with eleven skips. The 28 focused
+audio checks also pass on Windows x64 and sanitized Linux x86. Original
+device/PCM timing, facial synchronization, sustained playback and full gameplay
+remain open.
+
+The [startup/movie checkpoint](2026-09-17-rtcw-cinematic-presentation.md) moves
+default movie selection into the immutable profile catalog, admits SP's
+letterbox flag/console mode and header frame rate, and repairs the shared
+first-frame clock transition. Windowed engine captures show the SP film through
+48 seconds on GL, Vulkan and RTX raster. Installed MP's absent startup movies
+fall through to its menu without changing archive isolation. Movie audio,
+the unimplemented RoQ JPEG chunk, complete codec validation and original-engine
+parity remain open.
+
 | RTCW gate | SP | MP | Required closure |
 | --- | --- | --- | --- |
 | Title/profile selection | Source/Unit/Build/Fixture; registered and gated; installed Windows x86 SP-to-MP menu handoff using the same executable, correct modules and inspected captures; synthetic Windows/Linux handoff | Source/Unit/Build/Fixture; installed Windows x86 MP-to-SP menu and active-briefing handoffs using the same executable, correct modules and inspected destination captures; synthetic Windows/Linux handoff | Broader live menu/session transitions; macOS handoff build/runtime |
@@ -560,11 +598,13 @@ browser/join, favorites editing, sustained gameplay or interoperability gates.
 | Live wire and demos | Source/Unit/Fixture; 1,143 matched native message encodings plus a decoder-only dictionary fixture; first local snapshot with installed modules and pure mode off | Source/Unit/Fixture; 1,117 matched native message encodings; local pure admission and first map snapshot with installed modules | Sustained live state integration, netchan/handshake rules, retail transcripts, demos and bidirectional interoperability |
 | Assets/renderers/audio | Source/Unit/Build/Fixture; RTCW v47 selection, stock `escape1` collision probe, frozen render records, basic scene/polygon/gradient imports, CPU 2D comparisons, MDC decoding/reference comparisons and native drawing through a synthetic Q3 fixture; indexed MD3/MDC/MDS tags, MDS poses and continuous LOD pass installed-asset CPU comparisons; native synthetic MDS draws through all three renderers; skin metadata/model lookup matches all 412 installed skins against four references; brush-surface shader lookup matches 1,925 cases per reference; explicit VM pointer/basic UI sound imports and source-compared dynamic/model lights integrated | Source/Unit/Build/Fixture; same contracts plus rotated pictures, stock `mp_beach` collision probe and inspected French native menu captures in all three renderers | Original-engine collision parity, full RTCW material flags, live corona/decal and GL fog parity, Vulkan/RTX scene-fog GPU paths, projected world-light GPU parity, retail MDS scene/tag and skin/model assembly validation, shader remap/GPU parity, remaining shader/fog/animation behavior, music/fade/cinematic contracts and further retail RTCW engine-render-target screenshots; MDC/MDS ray transport has CPU evidence only |
 | Navigation | Source/Unit/Build/Fixture; live AAS8/RCD15 loading, both installed `escape1` worlds initialize; checked 128-state goal/movement lifecycle; shared entity updates with owned area links, per-world blocking, checked BSP imports, frame/state/time adapters and empty-config item updates; basic/trace/route/visibility, hide/attack, movement prediction and release ShowRoute imports; SP corner search; 70-pair graph/cost, route/cache and visibility comparisons with original/iortcw; tactical/prediction synthetic comparisons and 64-member installed prediction with stated arithmetic limits | Source/Unit/Build/Fixture; checked 64-state goal/movement lifecycle; same shared entity/ownership, BSP, frame/state/time, query, prediction and empty-item contracts; MP truncating costs versus SP ceiling, grid search and tactical occupancy verified; installed prediction uses SP geometry; RCD12 selection uses synthetic headers; stock MP keeps bots disabled | Dynamic-entity prediction and original BSP parity; cold-cache tactical divergences, installed-map/live tactical observations; missing-cache generation/writing, installed MP-cache observations, x87/fast-math numeric and decision differences, original-engine runtime route and gameplay evidence |
-| Gameplay and lifecycle | Open campaign; Source/Unit/Fixture for AI state lifecycle, camera evaluation, clean mission-briefing shutdown, shared movie-owner cleanup, main-menu shutdown and partial navigation-load cleanup; one isolated silent Windows x86 GL startup progresses through the opening cinematic to an inspected first-person knife/HUD capture | Source/Unit/Fixture for local map initialization, profile-specific camera timing, briefing-movie playback/shutdown and active-briefing-to-SP handoff; gameplay remains open | SP movement/combat, character rendering, active voice, campaign/AI/save-load/transitions; MP classes/objectives/maps; broader partial initialization, sustained play and shutdown |
+| Gameplay and lifecycle | Open campaign; Source/Unit/Fixture for AI state lifecycle, camera evaluation, clean mission-briefing shutdown, shared movie-owner cleanup, main-menu shutdown and partial navigation-load cleanup; Windows x86 GL startup progresses through the opening cinematic to inspected first-person knife/HUD captures with either active audio backend and nonzero SP speech queries | Source/Unit/Fixture for local map initialization, profile-specific camera timing, briefing-movie playback/shutdown and active-briefing-to-SP handoff; gameplay remains open | SP movement/combat, broader character parity, audible speech/facial timing, campaign/AI/save-load/transitions; MP classes/objectives/maps; broader partial initialization, sustained play and shutdown |
 | Music and fades | Source/Unit/Build/Fixture; original-source queue/fade and SP loop/mixer comparisons; both-backend clear modes with preserved music and bounded PCM/gain routing; native menu music buffers on OpenAL; legacy initialized while muted | Source/Unit/Build/Fixture; exact two-argument import; native menu music buffers on OpenAL; legacy initialized while muted | Measured output and original playback parity; game-script triggers, save-load restoration and backend/device lifecycle |
 | One-shot audio | Source/Unit/Build/Fixture; checked native/QVM imports, original-source channel-policy and fixed-range gain comparisons, legacy/OpenAL lifetime and failure handling; SP client-channel replacement and auto-channel separation | Source/Unit/Build/Fixture; same boundaries/backends, original MP auto-channel reuse and FIFO policy; inspected briefing startup on both backends | Queued/threaded timing; output-device/PCM parity; sustained game audio and resource pressure; documented safe exhaustion differences |
-| Entity streams | Source/Unit/Build/Fixture; checked start/stop imports, shared decoder, eleven entity slots, queued replacement, immediate entity stop, bounded fades, both-backend synthetic silent stream runtime | Source/Unit/Build/Fixture; checked start import, twenty-three entity slots, original intro-repeat loop policy, both-backend synthetic silent stream runtime | Original PCM/device timing; live dialogue and mouth amplitude; save/load restoration; source-different SP loop correction and fade-slot admission; device recovery/resource pressure |
+| Entity streams | Source/Unit/Build/Fixture; checked start/stop imports, shared decoder, eleven entity slots, queued replacement, immediate entity stop, bounded fades, both-backend synthetic stream runtime and installed introductory speech with nonzero amplitude | Source/Unit/Build/Fixture; checked start import, twenty-three entity slots, original intro-repeat loop policy, both-backend synthetic silent stream runtime | Original PCM/device timing; dialogue and mouth synchronization parity; save/load restoration; source-different SP loop correction and fade-slot admission; device recovery/resource pressure |
+| Speech amplitude/default sound | Source/Unit/Build/Fixture; signed one-shot/peak-stream measurements on both backends; 299,264 matching cases per original/iortcw SP reference on three targets; installed intro completes with nonzero queries; eight-frame silent default | Source/Unit/Build/Fixture; original zero speech response; 512-frame silent default; both-backend installed briefing startup | Original clock/output/facial parity; full dialogue/codec coverage; device recovery and resource pressure |
 | MP localization | Not an SP import | Source/Unit/Fixture; all eight installed dictionaries (1,201 records), 818,856 translations per original/iortcw reference, Windows x86/x64 and Linux x86 sanitizers; inspected French native main menu in all three renderers | Remaining UI/cgame rendering, byte/font agreement and language changes during a live session; optional translation-authoring diagnostics remain unimplemented |
+| Cinematic startup/presentation | Source/Unit/Build/Fixture; catalog-owned repeat policy and wolfintro selection, letterbox import/command, 24 fps header timing, clock handoff/rewind/wrap and inspected movie frames on all three raster renderers | Source/Unit/Build/Fixture; catalog logo/intro policy, original 30 fps behavior, missing-startup-movie fallback and briefing movie startup | RoQ JPEG and malformed codec coverage; original visual/timing parity, audible A/V synchronization, game-script fades and full campaign movie transitions |
 | Shared release | Open | Open | Q3/QL non-regression, clean supported-platform builds, complete suite and same-artifact runtime evidence |
 
 The existing Q3/QL blockers below remain in force. Their evidence does not

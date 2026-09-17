@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 // tr_image.c
 #include "tr_local.h"
+#include "../renderercommon/tr_rtcw_image_mip.h"
 #include "tr_glx_compat.h"
 
 static byte	s_intensitytable[256];
@@ -736,10 +737,10 @@ static void Upload32( byte *data, int x, int y, int width, int height, image_t *
 	// perform optional picmip operation
 	//
 	if ( picmip && ( tr.mapLoading || r_nomip->integer == 0 ) ) {
-		scaled_width >>= r_picmip->integer;
-		scaled_height >>= r_picmip->integer;
-		x >>= r_picmip->integer;
-		y >>= r_picmip->integer;
+		scaled_width >>= R_ImagePicMipLevel( image->flags );
+		scaled_height >>= R_ImagePicMipLevel( image->flags );
+		x >>= R_ImagePicMipLevel( image->flags );
+		y >>= R_ImagePicMipLevel( image->flags );
 	}
 
 	//

@@ -86,8 +86,8 @@ extern "C" int S_RTCWVoiceAmplitude( intptr_t entity ) {
 	if ( Com_GameIsRTCWMP() ) return 0;
 	if ( entity < 0 ) Com_Error( ERR_DROP, "Invalid RTCW voice-amplitude entity" );
 	if ( entity >= 128 || !si.Shutdown ) return 0;
-	Com_Error( ERR_DROP, "RTCW SP voice amplitude with active audio is not implemented" );
-	return 0;
+	if ( !si.RTCWVoiceAmplitude ) Com_Error( ERR_DROP, "RTCW speech interface is unavailable" );
+	return si.RTCWVoiceAmplitude( static_cast<int>(entity) );
 }
 
 /*
@@ -105,6 +105,7 @@ static bool S_ValidSoundInterface( const soundInterface_t *s )
 	if( !s->StartRTCWEntityStream ) return false;
 	if( !s->StopRTCWEntityStream ) return false;
 	if( !s->FadeRTCWEntityStream ) return false;
+	if( !s->RTCWVoiceAmplitude ) return false;
 	if( !s->StartBackgroundTrack ) return false;
 	if( !s->StartRTCWBackgroundTrack ) return false;
 	if( !s->FadeRTCWBackgroundTrack ) return false;
@@ -770,6 +771,10 @@ extern "C" void S_Init( void )
 		"  " S_COLOR_CYAN "legacy" S_COLOR_WHITE " - original software mixer and platform device fallback\n" );
 	s_backendActive = Cvar_Get( "s_backendActive", "none", CVAR_ROM );
 	Cvar_SetDescription( s_backendActive, "Reports the currently active sound backend." );
+	if ( Com_GameIsRTCW() ) {
+		cv = Cvar_Get( "s_defaultsound", "0", CVAR_ARCHIVE );
+		Cvar_SetDescription( cv, "Play RTCW's diagnostic placeholder for missing sounds; otherwise keep it silent. Requires snd_restart." );
+	}
 	s_alDevice = Cvar_Get( "s_alDevice", "", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	Cvar_SetDescription( s_alDevice, "Selects the OpenAL playback device when s_backend is set to openal.\n"
 		"Leave blank to use the system default device." );

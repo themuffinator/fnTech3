@@ -61,7 +61,8 @@ const comGameProfile_t profiles[] = { {
 	{ "0", "20", "8", "8", nullptr, nullptr, 1, "1", 1 },
 	{ "1", "64", "1024", 1024, COM_BOT_AI_QUAKE, 1, 0, 0, 1 },
 	COM_PURE_PROOF_QVM,
-	{ "sarge", "headmodel", "sarge", "sarge", "color1", "5", 1, 0 }
+	{ "sarge", "headmodel", "sarge", "sarge", "color1", "5", 1, 0 },
+	{ "cinematic idlogo.RoQ", "cinematic intro.RoQ", 0 }
 }, {
 	COM_GAME_QUAKELIVE,
 	"quakelive",
@@ -91,7 +92,8 @@ const comGameProfile_t profiles[] = { {
 	{ "0", "50", "8", "8", nullptr, nullptr, 1, "1", 1 },
 	{ "1", "64", "1024", 1024, COM_BOT_AI_QUAKE, 1, 0, 0, 1 },
 	COM_PURE_PROOF_QL_NATIVE,
-	{ "sarge", "headmodel", "sarge", "sarge", "color1", "5", 1, 0 }
+	{ "sarge", "headmodel", "sarge", "sarge", "color1", "5", 1, 0 },
+	{ "cinematic idlogo.RoQ", "cinematic intro.RoQ", 0 }
 }, {
 	COM_GAME_RTCW_SP,
 	"rtcw-sp",
@@ -119,7 +121,8 @@ const comGameProfile_t profiles[] = { {
 	{ "0", "20", "8", "32", "1", "64", 1, "0", 0 },
 	{ "1", "128", "2048", 2048, COM_BOT_AI_MOVEMENT, 2, 1, 16384, 0 },
 	COM_PURE_PROOF_UNAVAILABLE,
-	{ "bj2", "head", "default", nullptr, "color", nullptr, 0, 1 }
+	{ "bj2", "head", "default", nullptr, "color", nullptr, 0, 1 },
+	{ nullptr, "cinematic wolfintro.RoQ 3", 1 }
 }, {
 	COM_GAME_RTCW_MP,
 	"rtcw-mp",
@@ -147,7 +150,8 @@ const comGameProfile_t profiles[] = { {
 	{ "5", "0", "20", "32", "3", nullptr, 0, "1", 0 },
 	{ "0", "128", "1024", 1024, 0, 2, 1, 16384, 0 },
 	COM_PURE_PROOF_RTCW_NATIVE,
-	{ "multi", "head", "default", nullptr, "color", nullptr, 0, 1 }
+	{ "multi", "head", "default", nullptr, "color", nullptr, 0, 1 },
+	{ "cinematic gmlogo.RoQ", "cinematic wolfintro.RoQ", 0 }
 } };
 
 static_assert( sizeof( profiles ) / sizeof( profiles[0] ) == COM_GAME_COUNT - 1,

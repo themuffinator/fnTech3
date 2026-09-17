@@ -12,6 +12,7 @@ class StreamPlayer {
 public:
 	StreamConversionState conversion;
 	bool deferStart = false; // Paired RTCW channels start after both queues are ready.
+	bool trackRTCWSpeech = false;
 	void Init( OpenALDevice *device, ALuint source );
 	void Shutdown();
 	void Clear();
@@ -20,6 +21,7 @@ public:
 	bool Idle();
 	int QueuedBufferCount() const { return queuedBuffers_; }
 	double QueuedSeconds() const;
+	int RTCWSpeechAmplitude();
 
 private:
 	void ReclaimProcessedBuffers();
@@ -28,6 +30,8 @@ private:
 	ALuint source_ = 0;
 	int queuedBuffers_ = 0;
 	std::deque<double> queuedDurations_;
+	fntech3::audio::rtcw::SpeechQueue speech_;
+	int speechRate_ = 0;
 };
 
 void StreamPlayer::Init( OpenALDevice *device, ALuint source ) {
@@ -59,12 +63,15 @@ void StreamPlayer::ReclaimProcessedBuffers() {
 			if ( !queuedDurations_.empty() ) {
 				queuedDurations_.pop_front();
 			}
+			speech_.Pop();
 		}
 	}
 }
 
 void StreamPlayer::Clear() {
 	conversion = {};
+	speech_.Clear();
+	speechRate_ = 0;
 	if ( device_ == nullptr || source_ == 0 ) {
 		return;
 	}
@@ -148,6 +155,10 @@ bool StreamPlayer::QueuePCM16( const short *samples, int frameCount, int channel
 
 	++queuedBuffers_;
 	queuedDurations_.push_back( static_cast<double>( frameCount ) / static_cast<double>( sampleRate ) );
+	if ( trackRTCWSpeech ) {
+		speech_.Append(samples, frameCount, channels);
+		speechRate_ = sampleRate;
+	}
 
 	ALint state = 0;
 	device_->AL().alGetError();
@@ -160,6 +171,17 @@ bool StreamPlayer::QueuePCM16( const short *samples, int frameCount, int channel
 	}
 
 	return true;
+}
+
+int StreamPlayer::RTCWSpeechAmplitude() {
+	if ( !trackRTCWSpeech || !device_ || !source_ || speechRate_ <= 0 ) return 0;
+	ReclaimProcessedBuffers();
+	ALint state = 0, offset = -1;
+	device_->AL().alGetError();
+	device_->AL().alGetSourcei(source_, AL_SOURCE_STATE, &state);
+	device_->AL().alGetSourcei(source_, AL_SAMPLE_OFFSET, &offset);
+	if ( device_->AL().alGetError() != AL_NO_ERROR || state != AL_PLAYING || offset < 0 ) return 0;
+	return speech_.At(std::int64_t{offset} + fntech3::audio::rtcw::SpeechLookahead(speechRate_));
 }
 
 void StreamPlayer::Update( float gain, bool allowStart ) {

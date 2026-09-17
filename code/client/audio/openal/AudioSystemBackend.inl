@@ -13,6 +13,7 @@ public:
 	void StartRTCWEntityStream( const char *intro, const char *loop, int entity, int channel, int attenuation );
 	void StopRTCWEntityStream( int entity );
 	void FadeRTCWEntityStream( float volume, int time, int stream );
+	int RTCWVoiceAmplitude( int entity );
 	void StartLocalSound( sfxHandle_t sfxHandle, int channelNum, float volume );
 	void StartBackgroundTrack( const char *intro, const char *loop );
 	void StartRTCWBackgroundTrack( const char *intro, const char *loop, int fadeTime );
@@ -85,6 +86,19 @@ private:
 	bool started_ = false;
 	bool hardMuted_ = true;
 };
+
+int AudioSystem::RTCWVoiceAmplitude( int entity ) {
+	using namespace fntech3::audio::rtcw;
+	if ( !started_ || hardMuted_ || !Com_GameIsRTCWSP() || entity < 0 || entity >= SpeechClients ) return 0;
+	int amplitude = 0;
+	for ( int slot = 1; slot < entityStreams_.policy.Limit(); ++slot ) {
+		const auto &stream = entityStreams_.policy[slot];
+		auto &player = entityStreamLanes_[slot].players[0];
+		if ( stream.entity == entity && stream.channel == SpeechChannel && !player.Idle() )
+			amplitude = player.RTCWSpeechAmplitude();
+	}
+	return world_.RTCWVoiceAmplitude(entity, amplitude);
+}
 
 AudioSystem &AudioSystem::Get() {
 	static AudioSystem audioSystem;
@@ -321,6 +335,7 @@ bool AudioSystem::Init( soundInterface_t *si ) {
 	si->StartRTCWEntityStream = []( const char *intro, const char *loop, int entity, int channel, int attenuation ) { AudioSystem::Get().StartRTCWEntityStream( intro, loop, entity, channel, attenuation ); };
 	si->StopRTCWEntityStream = []( int entity ) { AudioSystem::Get().StopRTCWEntityStream( entity ); };
 	si->FadeRTCWEntityStream = []( float volume, int time, int stream ) { AudioSystem::Get().FadeRTCWEntityStream( volume, time, stream ); };
+	si->RTCWVoiceAmplitude = []( int entity ) { return AudioSystem::Get().RTCWVoiceAmplitude( entity ); };
 	si->StartLocalSound = []( sfxHandle_t sfxHandle, int channelNum, float volume ) { AudioSystem::Get().StartLocalSound( sfxHandle, channelNum, volume ); };
 	si->StartBackgroundTrack = []( const char *intro, const char *loop ) { AudioSystem::Get().StartBackgroundTrack( intro, loop ); };
 	si->StartRTCWBackgroundTrack = []( const char *intro, const char *loop, int time ) { AudioSystem::Get().StartRTCWBackgroundTrack( intro, loop, time ); };
@@ -431,7 +446,7 @@ void AudioSystem::BeginRegistration() {
 	}
 
 	weaponSoundShaders_.EnsureLoaded();
-	const std::string feedbackSample = NormalizeSoundName( "sound/feedback/hit.wav" );
+	const std::string feedbackSample = Com_GameIsRTCW() ? fntech3::audio::rtcw::DefaultSoundName : NormalizeSoundName( "sound/feedback/hit.wav" );
 	samples_.emplace_back( feedbackSample, weaponSoundShaders_.Find( feedbackSample ) );
 	sampleLookup_.emplace( feedbackSample, 0 );
 	samples_[0].EnsureLoaded( device_, true );

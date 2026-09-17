@@ -4,6 +4,8 @@
 #include "shared/RTCWMusic.h"
 #include "shared/RTCWLoops.h"
 #include "shared/RTCWOneShots.h"
+#include "shared/RTCWSpeech.h"
+#include "shared/RTCWDefaultSound.h"
 
 // The selected sound backend shares one process-lifetime SP music contract.
 // Sound initialization/shutdown reset it; a mere stop retains the music queue.

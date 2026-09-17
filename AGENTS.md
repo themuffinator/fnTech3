@@ -129,6 +129,10 @@ as part of that commit.
 - Never control, inject, capture, or hijack mouse or keyboard input without
   explicit, narrowly scoped permission for that action. Ask again for a new
   action or after the approved action has completed.
+- The only standing exception is the user's authorization to click buttons on
+  game intro screens solely to progress past them, including a briefing's Ready
+  button. These clicks do not require another permission request. All other
+  mouse and keyboard input remains subject to the rule above.
 - Never use operating-system screen capture to validate id Tech rendering. Use
   the engine's registered `screenshot` command and validate the image written
   from the render target. Repair or instrument that path if it is unavailable.

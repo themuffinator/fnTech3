@@ -1,4 +1,4 @@
-"""RTCW's exact MP/sound-disabled voice query and explicit active-SP guard."""
+"""RTCW voice import profile, entity bounds and audio lifecycle dispatch."""
 from pathlib import Path
 import os
 import shutil
@@ -21,7 +21,9 @@ int Com_GameIsRTCW(){return profile==COM_GAME_RTCW_SP||profile==COM_GAME_RTCW_MP
 int Com_GameIsRTCWMP(){return profile==COM_GAME_RTCW_MP;}
 void Com_Error(errorParm_t,const char *,...){throw 7;}
 static void Shutdown(){}
-static struct{void(*Shutdown)();}si;
+static int calls=0;
+static int Amplitude(int entity){++calls;return entity+25;}
+static struct{void(*Shutdown)();int(*RTCWVoiceAmplitude)(int);}si;
 '''
 CHECKS = r'''
 template<class F>void Reject(F f){bool threw=false;try{f();}catch(int){threw=true;}assert(threw);}
@@ -30,10 +32,16 @@ int main(){
   profile=game;
   for(bool active:{false,true}){
    si.Shutdown=active?Shutdown:nullptr;
+   si.RTCWVoiceAmplitude=Amplitude;
    for(int entity:{INT_MIN,-1,0,1,127,128,1023,INT_MAX}){
-    if(!Com_GameIsRTCW()||(profile==COM_GAME_RTCW_SP&&(entity<0||(active&&entity<128))))
+    const int before=calls;
+    if(!Com_GameIsRTCW()||(profile==COM_GAME_RTCW_SP&&entity<0))
      Reject([&]{S_RTCWVoiceAmplitude(entity);});
+    else if(profile==COM_GAME_RTCW_SP&&active&&entity<128){
+     assert(S_RTCWVoiceAmplitude(entity)==entity+25);assert(calls==before+1);continue;
+    }
     else assert(S_RTCWVoiceAmplitude(entity)==0);
+    assert(calls==before);
    }
    if(sizeof(intptr_t)>4){
     Reject([]{S_RTCWVoiceAmplitude(static_cast<intptr_t>(INT64_C(2147483648)));});
@@ -42,7 +50,7 @@ int main(){
   }
  }
  // Shutdown/device-init failure restores the valid silent case.
- profile=COM_GAME_RTCW_SP;si.Shutdown=Shutdown;Reject([]{S_RTCWVoiceAmplitude(3);});
+ profile=COM_GAME_RTCW_SP;si.Shutdown=Shutdown;si.RTCWVoiceAmplitude=nullptr;Reject([]{S_RTCWVoiceAmplitude(3);});
  si={};assert(S_RTCWVoiceAmplitude(3)==0);
 }
 '''

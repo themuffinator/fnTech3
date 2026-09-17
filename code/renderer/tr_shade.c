@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_shade.c
 
 #include "tr_local.h"
+#include "../renderercommon/tr_rtcw_normal_fade.h"
 #include "tr_glx_compat.h"
 
 #ifndef GL_COMBINE
@@ -74,6 +75,7 @@ static qboolean	setArraysOnce;
 static qboolean GLX_StreamDrawStageMaterialAllowed( const shaderStage_t *pStage,
 	int materialFlags, GLint multitextureEnv )
 {
+	if ( pStage->alphaGen == AGEN_RTCW_NORMALZFADE ) return qfalse; // Upload the computed vertex alpha.
 	return GLX_CompatStreamDrawAllowsMaterial( materialFlags, pStage->stateBits,
 		pStage->rgbGen, pStage->alphaGen, pStage->bundle[0].tcGen,
 		pStage->bundle[1].tcGen,
@@ -1574,6 +1576,11 @@ void R_ComputeColors( const shaderStage_t *pStage )
 		{
 			tess.svars.colors[i].rgba[3] = 255 - tess.vertexColors[i].rgba[3];
 		}
+		break;
+	case AGEN_RTCW_NORMALZFADE:
+		for ( i = 0; i < tess.numVertexes; ++i )
+			tess.svars.colors[i].rgba[3] = R_RTCWNormalZAlpha( &backEnd.currentEntity->e, tess.normal[i],
+				pStage->rtcwNormalZBounds, pStage->constantColor.rgba[3] );
 		break;
 	case AGEN_PORTAL:
 		{

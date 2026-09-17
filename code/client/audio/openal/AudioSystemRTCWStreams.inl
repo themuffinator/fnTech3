@@ -16,6 +16,7 @@ struct AudioSystem::RTCWEntityOutput {
 			if ( !lane.sources[channel] ) { Clear( index ); return false; }
 			lane.players[channel].Init( &system.device_, lane.sources[channel] );
 			lane.players[channel].deferStart = true;
+			lane.players[channel].trackRTCWSpeech = channel == 0 && Com_GameIsRTCWSP();
 			system.device_.AL().alSourcef( lane.sources[channel], AL_MAX_GAIN, 512.0f );
 		}
 		return true;
@@ -31,7 +32,11 @@ struct AudioSystem::RTCWEntityOutput {
 	int FramesNeeded( int index, int rate ) const {
 		const auto &lane = system.entityStreamLanes_[index];
 		if ( !lane.sources[0] || !lane.sources[1] ) return 0;
-		if ( lane.players[0].QueuedBufferCount() >= 2 || lane.players[1].QueuedBufferCount() >= 2 ) return 0;
+		// Facial animation reads 250 ms ahead. Eight 50 ms chunks provide that
+		// window plus refill headroom, within the existing global buffer budget.
+		const int target = Com_GameIsRTCWSP() && system.entityStreams_.policy[index].channel ==
+			fntech3::audio::rtcw::SpeechChannel ? 8 : 2;
+		if ( lane.players[0].QueuedBufferCount() >= target || lane.players[1].QueuedBufferCount() >= target ) return 0;
 		const auto &pool = system.device_.BufferPool();
 		if ( pool.FreeCount() + kMaxStreamBuffers - pool.TotalCount() < 2 ) return 0;
 		// Roughly 50 ms per chunk, bounded at both source-rate extremes.

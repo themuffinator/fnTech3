@@ -52,8 +52,6 @@ inline bool CL_RTCWCinematicCall( vm_t *vm, fntech3::rtcw::module::Call call,
 		std::array<int, 5> values;
 		for ( std::size_t i = 0; i < values.size(); ++i )
 			values[i] = CL_RTCWCinematicInteger( args[i + 2] );
-		if ( Com_GameIsRTCWSP() && ( values[4] & 0x20 ) )
-			Com_Error( ERR_DROP, "RTCW SP letterboxed cinematic presentation is not implemented" );
 		const auto name = CL_RTCWCinematicName( vm, args[1] );
 		result = CIN_PlayCinematic( name.data(), values[0], values[1], values[2], values[3], values[4] );
 		return true;

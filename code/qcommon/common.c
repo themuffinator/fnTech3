@@ -4087,6 +4087,23 @@ static void Com_InitGameProfile( void ) {
 }
 
 
+#ifndef DEDICATED
+static void Com_QueueIntroCinematics( void ) {
+	const comGameCinematicPolicy_t *movies = &Com_GameProfile()->cinematics;
+	const qboolean showLogo = movies->logoCommand &&
+		!( com_skipIdLogo && com_skipIdLogo->integer ) ? qtrue : qfalse;
+	if ( movies->introCommand && !com_introPlayed->integer ) {
+		if ( !movies->repeatIntro ) Cvar_Set( com_introPlayed->name, "1" );
+		if ( showLogo ) {
+			Cvar_Set( "nextmap", movies->introCommand );
+		} else {
+			Cbuf_AddText( va( "%s\n", movies->introCommand ) );
+		}
+	}
+	if ( showLogo ) Cbuf_AddText( va( "%s\n", movies->logoCommand ) );
+}
+#endif
+
 /*
 =================
 Com_Init
@@ -4376,17 +4393,7 @@ void Com_Init( char *commandLine ) {
 		// if the user didn't give any commands, run default action
 		if ( !com_dedicated->integer ) {
 #ifndef DEDICATED
-			if( !com_introPlayed->integer ) {
-				Cvar_Set( com_introPlayed->name, "1" );
-				if ( com_skipIdLogo && com_skipIdLogo->integer ) {
-					Cbuf_AddText( "cinematic intro.RoQ\n" );
-				} else {
-					Cvar_Set( "nextmap", "cinematic intro.RoQ" );
-				}
-			}
-			if ( !com_skipIdLogo || !com_skipIdLogo->integer ) {
-				Cbuf_AddText( "cinematic idlogo.RoQ\n" );
-			}
+			Com_QueueIntroCinematics();
 #endif
 		}
 	}

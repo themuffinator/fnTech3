@@ -63,7 +63,7 @@ int main(){
    const auto run=ui?Call::UI_CIN_RUNCINEMATIC:Call::CG_CIN_RUNCINEMATIC;
    const auto draw=ui?Call::UI_CIN_DRAWCINEMATIC:Call::CG_CIN_DRAWCINEMATIC;
    const auto extents=ui?Call::UI_CIN_SETEXTENTS:Call::CG_CIN_SETEXTENTS;
-   for(int flags=0;flags<32;++flags){
+   for(int flags=0;flags<64;++flags){
     intptr_t words[]={Ordinal(id,play),name("briefing.roq"),-10,0,640,480,flags};
     assert(dispatch(words)==13&&operation==1&&filename=="video/briefing.roq");
     assert((values==std::vector<int>{-10,0,640,480,flags}));
@@ -96,7 +96,8 @@ int main(){
     for(auto call:{stop,run,draw}){intptr_t scalar[]={Ordinal(id,call),wide};Reject([&]{dispatch(scalar);});}
    }
    intptr_t letterbox[]={Ordinal(id,play),name("valid.roq"),0,60,640,360,32};
-   if(id==COM_GAME_RTCW_SP)Reject([&]{dispatch(letterbox);});else assert(dispatch(letterbox)==13);
+   assert(dispatch(letterbox)==13);
+   assert((values==std::vector<int>{0,60,640,360,32}));
   }
   intptr_t words[]={0,name("valid.roq"),0,0,640,480,0},result=999;
   Reject([&]{CL_RTCWCinematicCall(nullptr,Call::UI_CIN_PLAYCINEMATIC,words,result);});assert(result==999);

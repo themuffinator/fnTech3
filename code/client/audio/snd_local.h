@@ -146,6 +146,7 @@ struct soundInterface_t {
 	void (*StartRTCWEntityStream)( const char *intro, const char *loop, int entity, int channel, int attenuation );
 	void (*StopRTCWEntityStream)( int entity );
 	void (*FadeRTCWEntityStream)( float volume, int time, int stream );
+	int (*RTCWVoiceAmplitude)( int entity );
 	void (*StartBackgroundTrack)( const char *intro, const char *loop );
 	void (*StartRTCWBackgroundTrack)( const char *intro, const char *loop, int fadeTime );
 	void (*FadeRTCWBackgroundTrack)( float volume, int time );

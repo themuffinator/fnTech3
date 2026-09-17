@@ -360,6 +360,7 @@ public:
 	int Rate() const { return rate_; }
 	int Frames() const { return frames_; }
 	int DurationMs() const { return durationMs_; }
+	bool RTCWSpeechAmplitude( std::int64_t frame, int &amplitude ) const { return speech_.At(frame, amplitude); }
 	const SoundShaderSettings &Shader() const { return shader_; }
 
 private:
@@ -378,6 +379,7 @@ private:
 	int rate_ = 0;
 	int frames_ = 0;
 	int durationMs_ = 0;
+	fntech3::audio::rtcw::SpeechEnvelope speech_;
 	SoundShaderSettings shader_;
 };
 
@@ -459,14 +461,16 @@ bool SoundSample::UploadPCM( OpenALDevice &device, const std::vector<short> &pcm
 	frames_ = static_cast<int>( frames ); // The accepted ALsizei byte count bounds this.
 	const int64_t durationMs = static_cast<int64_t>( frames ) * 1000 / rate;
 	durationMs_ = durationMs > std::numeric_limits<int>::max() ? std::numeric_limits<int>::max() : static_cast<int>( durationMs );
+	if ( Com_GameIsRTCWSP() ) speech_.Build(pcm.data(), frames_, channels_);
 	return true;
 }
 
 bool SoundSample::GenerateFallbackTone( OpenALDevice &device ) {
-	const int frames = 22050 / 4;
-	std::vector<short> pcm( static_cast<size_t>( frames ) );
+	const bool rtcw = Com_GameIsRTCW() != 0;
+	std::vector<short> pcm = rtcw ? fntech3::audio::rtcw::DefaultSoundPCM(Com_GameIsRTCWSP() != 0,
+		Cvar_VariableIntegerValue("s_defaultsound") != 0) : std::vector<short>(22050 / 4);
 
-	for ( int i = 0; i < frames; ++i ) {
+	for ( int i = 0; !rtcw && i < static_cast<int>(pcm.size()); ++i ) {
 		const float phase = static_cast<float>( i ) * 440.0f * 6.2831853071795864769f / 22050.0f;
 		pcm[static_cast<size_t>( i )] = static_cast<short>( std::sin( phase ) * 12000.0f );
 	}
@@ -475,7 +479,7 @@ bool SoundSample::GenerateFallbackTone( OpenALDevice &device ) {
 	missing_ = false;
 	loaded_ = UploadPCM( device, pcm, { AudioSampleEncoding::PCM, 1 }, 22050 );
 	if ( loaded_ ) {
-		durationMs_ = 250;
+		if ( !rtcw ) durationMs_ = 250;
 	} else {
 		defaultSample_ = false;
 		missing_ = true;
@@ -493,6 +497,8 @@ bool SoundSample::EnsureLoaded( OpenALDevice &device, bool allowToneFallback ) {
 	}
 
 	loadAttempted_ = true;
+	if ( Com_GameIsRTCW() && allowToneFallback && name_ == fntech3::audio::rtcw::DefaultSoundName )
+		return GenerateFallbackTone(device);
 
 	snd_info_t info = {};
 	fnql::ScopedTempMemory data( S_CodecLoad( name_.c_str(), &info ) );
@@ -572,6 +578,7 @@ void SoundSample::Unload( OpenALDevice &device ) {
 	rate_ = 0;
 	frames_ = 0;
 	durationMs_ = 0;
+	speech_.Clear();
 }
 
 enum class VoiceKind {
@@ -933,6 +940,7 @@ public:
 	void AddRTCWLoopingSound( const float *origin, const float *velocity, int range, sfxHandle_t handle, int volume, SoundSample *sample, float master );
 	void StartSound( int entityNum, int entchannel, sfxHandle_t handle, SoundSample *sample, const float *origin, float volume );
 	void StartRTCWSound( int entity, int channel, sfxHandle_t handle, SoundSample *sample, const float *origin, int flags );
+	int RTCWVoiceAmplitude( int entity, int amplitude ) const;
 	void UpdateEntityPosition( int entityNum, const float *origin );
 	void Respatialize( int entityNum, const float *origin, float axis[3][3] );
 	void Update( qboolean softMuted );
@@ -989,6 +997,27 @@ private:
 		{ 0.0f, 0.0f, 1.0f }
 	};
 };
+
+int Q3SoundWorld::RTCWVoiceAmplitude( int entity, int amplitude ) const {
+	using namespace fntech3::audio::rtcw;
+	if ( !device_ || !Com_GameIsRTCWSP() || entity < 0 || entity >= SpeechClients ) return 0;
+	for ( const auto &voice : oneShots_ ) {
+		if ( !voice.active || !voice.rtcwOneShot || !voice.source || !voice.sample ||
+			voice.entnum != entity || voice.entchannel != SpeechChannel ) continue;
+		if ( entity != listenerNumber_ ) {
+			const auto *origin = voice.fixedOrigin ? voice.origin.Data() : entityOrigins_[entity].Data();
+			const auto gains = SpatializeOrigin(origin, 1250.0f, 127, listenerOrigin_.Data(), listenerAxis_);
+			if ( gains.left <= 0 && gains.right <= 0 ) continue;
+		}
+		ALint state = 0, offset = -1;
+		device_->AL().alGetError();
+		device_->AL().alGetSourcei(voice.source, AL_SOURCE_STATE, &state);
+		device_->AL().alGetSourcei(voice.source, AL_SAMPLE_OFFSET, &offset);
+		if ( device_->AL().alGetError() != AL_NO_ERROR || state != AL_PLAYING || offset < 0 ) continue;
+		voice.sample->RTCWSpeechAmplitude(std::int64_t{offset} + SpeechLookahead(voice.sample->Rate()), amplitude);
+	}
+	return amplitude;
+}
 
 void Q3SoundWorld::Reset( OpenALDevice *device ) {
 	rtcwLoops_.Clear();

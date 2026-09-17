@@ -40,6 +40,8 @@ extern "C" {
 
 #include <algorithm>
 #include <array>
+#include <climits>
+#include <cstdint>
 #include <cstring>
 
 using fnql::FileRead;
@@ -55,6 +57,10 @@ constexpr int MINSIZE = 4;
 
 constexpr int DEFAULT_CIN_WIDTH = 512;
 constexpr int DEFAULT_CIN_HEIGHT = 512;
+
+// Original RTCW SP's movie presentation contract; MP/Q3/QL do not use bit 0x20.
+constexpr int RTCW_SP_CIN_LETTERBOX = 0x20;
+constexpr int RTCW_SP_CIN_BAR_HEIGHT = 105;
 
 [[maybe_unused]] constexpr int ROQ_QUAD = 0x1000;
 constexpr int ROQ_QUAD_INFO = 0x1001;
@@ -192,6 +198,7 @@ struct cin_cache {
 	int					CIN_WIDTH, CIN_HEIGHT;
 	int					xpos, ypos, width, height;
 	bool				looping, holdAtEnd, dirty, alterGameState, silent, shader;
+	bool				rtcwLetterBox;
 	ScopedFileHandle	iFile;
 	e_status			status;
 	int					startTime;
@@ -1491,6 +1498,18 @@ CIN_RunCinematic
 Fetch and decompress the pending frame
 ==================
 */
+static long CIN_FrameForTime( int handle, int now ) {
+	const auto &movie = cinTable[handle];
+	const auto elapsed = static_cast<std::uint32_t>( now ) -
+		static_cast<std::uint32_t>( movie.startTime );
+	if ( elapsed > INT_MAX ) return 0; // A clock preceding this movie's origin.
+	// SP advertises its movie rate in the RoQ header (wolfintro uses 24).
+	// Original MP and the shared Q3/QL path retain their 30 fps contract.
+	const auto rate = Com_GameIsRTCWSP() ? movie.roqFPS : 30;
+	const std::uint64_t frame = static_cast<std::uint64_t>( elapsed ) * rate / 1000;
+	return static_cast<long>( std::min<std::uint64_t>( frame, INT_MAX ) );
+}
+
 e_status CIN_RunCinematic( int handle )
 {
 	int start = 0;
@@ -1523,18 +1542,25 @@ e_status CIN_RunCinematic( int handle )
 	}
 
 	thisTime = CL_ScaledMilliseconds();
-	if (cinTable[currentHandle].shader && (abs(thisTime - cinTable[currentHandle].lastTime))>100) {
-		cinTable[currentHandle].startTime += thisTime - cinTable[currentHandle].lastTime;
+	const auto delta = static_cast<std::uint32_t>( thisTime ) -
+		static_cast<std::uint32_t>( cinTable[currentHandle].lastTime );
+	// Before the first client frame the clock uses system time. Rebase when
+	// client time starts (or rewinds), retaining the movie's elapsed time.
+	// A regular 32-bit clock wrap has a small positive unsigned delta.
+	if ( delta > INT_MAX || ( cinTable[currentHandle].shader && delta > 100 ) ) {
+		cinTable[currentHandle].startTime = static_cast<int>(
+			static_cast<std::uint32_t>( cinTable[currentHandle].startTime ) + delta );
 	}
-	cinTable[currentHandle].tfps = (((CL_ScaledMilliseconds() - cinTable[currentHandle].startTime)*3)/100);
+	cinTable[currentHandle].tfps = CIN_FrameForTime( currentHandle, thisTime );
 
 	start = cinTable[currentHandle].startTime;
-	while(  (cinTable[currentHandle].tfps != cinTable[currentHandle].numQuads)
+	while(  (cinTable[currentHandle].tfps > cinTable[currentHandle].numQuads)
 		&& (cinTable[currentHandle].status == FMV_PLAY) ) 
 	{
 		RoQInterrupt();
 		if (start != cinTable[currentHandle].startTime) {
-			cinTable[currentHandle].tfps = (((CL_ScaledMilliseconds() - cinTable[currentHandle].startTime)*3)/100);
+			thisTime = CL_ScaledMilliseconds();
+			cinTable[currentHandle].tfps = CIN_FrameForTime( currentHandle, thisTime );
 			start = cinTable[currentHandle].startTime;
 		}
 	}
@@ -1623,6 +1649,8 @@ int CIN_PlayCinematic( const char *arg, int x, int y, int w, int h, int systemBi
 	cinTable[currentHandle].playonwalls = 1;
 	cinTable[currentHandle].silent = (systemBits & CIN_silent) != 0;
 	cinTable[currentHandle].shader = (systemBits & CIN_shader) != 0;
+	cinTable[currentHandle].rtcwLetterBox = Com_GameIsRTCWSP() &&
+		(systemBits & RTCW_SP_CIN_LETTERBOX) != 0;
 
 	if (cinTable[currentHandle].alterGameState) {
 		// close the menu
@@ -1768,6 +1796,18 @@ static void CIN_DrawCinematicInternal( int handle, qboolean uniformAspect ) {
 		SCR_AdjustFrom640( &x, &y, &w, &h );
 	}
 
+	if ( cinTable[handle].rtcwLetterBox ) {
+		const float screenHeight = static_cast<float>( cls.glconfig.vidHeight );
+		const float barHeight = ( RTCW_SP_CIN_BAR_HEIGHT / 480.0f ) * screenHeight;
+		re.SetColor( colorBlack );
+		// SP anchors bars to the screen, using the scaled movie width. The
+		// bottom bar overlaps one pixel to cover fractional-resolution seams.
+		re.DrawStretchPic( 0, 0, w, barHeight, 0, 0, 0, 0, cls.whiteShader );
+		re.DrawStretchPic( 0, screenHeight - barHeight - 1, w, barHeight + 1,
+			0, 0, 0, 0, cls.whiteShader );
+		re.SetColor( nullptr );
+	}
+
 	if (cinTable[handle].dirty && (cinTable[handle].CIN_WIDTH != cinTable[handle].drawX || cinTable[handle].CIN_HEIGHT != cinTable[handle].drawY)) {
 		auto tempBuffer = ScopedTempMemory::Allocate( 256 * 256 * 4 );
 		int *buf2 = tempBuffer.as<int>();
@@ -1790,7 +1830,8 @@ void CIN_DrawCinematic( int handle ) {
 
 
 void CIN_DrawCinematicUI( int handle ) {
-	CIN_DrawCinematicInternal( handle, ToQboolean( cl_cinematicAspect && cl_cinematicAspect->integer ) );
+	CIN_DrawCinematicInternal( handle, ToQboolean( !Com_GameIsRTCW() &&
+		cl_cinematicAspect && cl_cinematicAspect->integer ) );
 }
 
 
@@ -1817,14 +1858,21 @@ void CL_PlayCinematic_f( void ) {
 	if (s && s[0] == '2') {
 		bits |= CIN_loop;
 	}
+	const bool letterBox = Com_GameIsRTCWSP() && s && s[0] == '3';
+	if ( letterBox ) bits |= RTCW_SP_CIN_LETTERBOX;
 
 	S_StopAllSounds ();
 
-	CL_handle = CIN_PlayCinematic( arg, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, bits );
+	const int inset = letterBox ? RTCW_SP_CIN_BAR_HEIGHT : 0;
+	CL_handle = CIN_PlayCinematic( arg, 0, inset, SCREEN_WIDTH, SCREEN_HEIGHT - 2 * inset, bits );
 	if (CL_handle >= 0) {
 		do {
 			SCR_RunCinematic();
 		} while (cinTable[currentHandle].buf == nullptr && cinTable[currentHandle].status == FMV_PLAY); // wait for first frame (load codebook and sound)
+	} else {
+		// An optional logo may be absent from an installed release. Continue
+		// the queued movie/map instead of abandoning the startup sequence.
+		CL_RunCinematicNextmap();
 	}
 }
 

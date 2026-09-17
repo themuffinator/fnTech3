@@ -289,7 +289,8 @@ typedef enum {
 	AGEN_LIGHTING_SPECULAR,
 	AGEN_WAVEFORM,
 	AGEN_PORTAL,
-	AGEN_CONST
+	AGEN_CONST,
+	AGEN_RTCW_NORMALZFADE
 } alphaGen_t;
 
 typedef enum {
@@ -422,6 +423,7 @@ typedef struct {
 	alphaGen_t		alphaGen;
 
 	color4ub_t		constantColor;			// for CGEN_CONST and AGEN_CONST
+	float rtcwNormalZBounds[2];
 
 	acff_t			adjustColorsForFog;
 
@@ -553,6 +555,8 @@ typedef struct shader_s {
 	unsigned	noLightScale:1;
 	unsigned	noVLcollapse:1;			// ignore vertexlight mode
 	qboolean	rtcwNoFog;
+	unsigned	rtcwCharacterMip:1; // SP character textures use r_picmip2.
+	unsigned	rtcwPicMipFiltered:1; // Distinguish the path filter from explicit nopicmip.
 	int		rtcwCompression; // Material-local default (0), forbid (-1), allow (1).
 
 	fogPass_t	fogPass;				// draw a blended pass, possibly with depth test equals
@@ -2286,6 +2290,7 @@ extern	cvar_t	*r_singleShader;				// make most world faces use default shader
 extern	cvar_t	*r_roundImagesDown;
 extern	cvar_t	*r_colorMipLevels;				// development aid to see texture mip usage
 extern	cvar_t	*r_picmip;						// controls picmip values
+extern cvar_t *r_picmip2; // RTCW SP character texture quality.
 extern	cvar_t	*r_picmipFilter;				// filters shader paths allowed to picmip
 extern	cvar_t	*r_nomip;						// apply picmip only on worldspawn textures
 extern	cvar_t	*r_finish;

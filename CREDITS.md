@@ -121,6 +121,11 @@ remain authoritative.
   run only in disposable GPLv3 comparison fixtures. The
   [limbo/cinematic checkpoint](docs/fntech3/2026-09-15-rtcw-limbo-cinematics.md)
   records colour-predicate differences and the unfinished cinematic gates.
+  The [startup/movie checkpoint](docs/fntech3/2026-09-17-rtcw-cinematic-presentation.md)
+  adds independently implemented catalog startup sequences, SP letterboxing and
+  its header frame rate, using those client sources and the original common
+  startup code as behavioral evidence. Shared clock and missing-movie recovery
+  changes are independently authored; no reference movie decoder is copied.
 
 - RTCW material compression directives and image exemptions independently use
   behaviour observed in the original
@@ -462,11 +467,17 @@ chapters; the GLSL implementation and synthetic tests are independently written.
   preserve the XYZST output and signed fragment-count contract. See the
   [fog](docs/fntech3/2026-09-16-rtcw-gl-fog.md) and
   [decal evidence](docs/fntech3/2026-09-16-rtcw-marks.md).
-- The limited RTCW voice-amplitude admission follows the original
-  [SP](https://github.com/id-Software/RTCW-SP/blob/master/src/client/snd_dma.c)
-  and [MP](https://github.com/id-Software/RTCW-MP/blob/master/src/client/snd_dma.c)
-  sound-system observations. Active SP audio remains explicitly unsupported
-  until real lookahead amplitude tracking is implemented.
+- RTCW speech measurements and the silent default sound are independently
+  implemented from the original
+  [SP mixer](https://github.com/id-Software/RTCW-SP/blob/master/src/client/snd_mix.c),
+  [SP sound system](https://github.com/id-Software/RTCW-SP/blob/master/src/client/snd_dma.c),
+  [MP sound system](https://github.com/id-Software/RTCW-MP/blob/master/src/client/snd_dma.c)
+  and [iortcw](https://github.com/iortcw/iortcw) observations. Both existing
+  backends measure real queued speech; original MP's disabled talking-animation
+  query remains zero. Reference functions and their GPLv3-or-later notices
+  appear only in disposable comparison probes. See the
+  [speech checkpoint](docs/fntech3/2026-09-17-rtcw-speech.md) for clock differences,
+  runtime observations and remaining playback-parity limits.
 - RTCW corona accumulation, SP flags/spotlights, MP visibility and persistent
   fades are independently implemented from the original
   [SP flare renderer](https://github.com/id-Software/RTCW-SP/blob/master/src/renderer/tr_flares.c)
@@ -492,6 +503,17 @@ chapters; the GLSL implementation and synthetic tests are independently written.
   observations. Their source IDs differ; the retired MPlayer source is not
   substituted with another service. See the
   [browser evidence and limits](docs/fntech3/2026-09-17-rtcw-ui-browser.md).
+
+- RTCW character-mip, conditional texture and normal-based alpha behavior is
+  independently implemented from observations of the original
+  [SP renderer](https://github.com/id-Software/RTCW-SP/tree/master/src/renderer),
+  [MP renderer](https://github.com/id-Software/RTCW-MP/tree/master/src/renderer)
+  and [iortcw](https://github.com/iortcw/iortcw). Reference switch bodies and
+  their GPLv3-or-later notices appear only in disposable comparison fixtures;
+  no reference implementation or retail shader text is incorporated. The
+  [character-material checkpoint](docs/fntech3/2026-09-17-rtcw-character-materials.md)
+  records alpha-byte comparisons, inspected startup captures and remaining
+  GPU/gameplay limits.
 
 ## Retail-content boundary
 

@@ -159,6 +159,13 @@ typedef enum comGameEntityHullPolicy_e {
 	COM_ENTITY_HULL_ENTITY_FLAG
 } comGameEntityHullPolicy_t;
 
+typedef struct comGameCinematicPolicy_s {
+	/* Trusted catalog commands, without a trailing newline; NULL omits a movie. */
+	const char *logoCommand;
+	const char *introCommand;
+	int repeatIntro;
+} comGameCinematicPolicy_t;
+
 typedef struct comGameProfile_s {
 	comGameId_t id;
 	const char *key;
@@ -195,6 +202,7 @@ typedef struct comGameProfile_s {
 	comGameBotPolicy_t bots;
 	comGamePureProof_t pureProof;
 	comGameAppearancePolicy_t appearance;
+	comGameCinematicPolicy_t cinematics;
 } comGameProfile_t;
 
 typedef struct comGameMarkerInputs_s {

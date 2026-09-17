@@ -129,7 +129,7 @@ enum { CGEN_IDENTITY, CGEN_LIGHTING_DIFFUSE, FILE_HASH_SIZE = 1 };
 struct shaderStage_t { int rgbGen; struct { int rgbGen; } bundle[1]; };
 struct shader_t {
     char name[MAX_QPATH]; int lightmapSearchIndex, lightmapIndex, index, rtcwCompression;
-    qboolean rtcwModelDiffuse, rtcwLightMaterial, defaultShader, needsNormal, noPicMip;
+    qboolean rtcwModelDiffuse, rtcwLightMaterial, defaultShader, needsNormal, noPicMip, rtcwCharacterMip;
     shader_t *next; shaderStage_t first;
 };
 static shader_t defaultShader{}, shader;

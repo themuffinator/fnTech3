@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "tr_local.h"
 #include "../renderercommon/tr_rtcw_shader_text.h"
 #include "../renderercommon/tr_rtcw_shader_material.h"
+#include "../renderercommon/tr_rtcw_normal_fade_parser.h"
 #include <float.h>
 
 // tr_shader.c -- this file deals with the parsing and definition of shaders
@@ -38,7 +39,7 @@ static	shader_t		shader;
 static	texModInfo_t	texMods[MAX_SHADER_STAGES][TR_MAX_TEXMODS+1]; // reserve one additional texmod for lightmap atlas correction
 
 static image_t *R_FindShaderImage( const char *name, imgFlags_t flags ) {
-	return R_FindImageFile( name, R_RTCWShaderImageFlags( name, flags, shader.rtcwCompression ) );
+	return R_FindImageFile( name, R_RTCWShaderImageFlags( name, flags, shader.rtcwCompression, shader.rtcwCharacterMip ? qtrue : qfalse ) );
 }
 
 static void ParseDepthFade( const char **text );
@@ -116,6 +117,7 @@ static qboolean R_ShaderPicMipAllowed( const char *name ) {
 static void R_ApplyShaderPicMipFilter( void ) {
 	if ( !R_ShaderPicMipAllowed( shader.name ) ) {
 		shader.noPicMip = qtrue;
+		shader.rtcwPicMipFiltered = ri.gameId == COM_GAME_RTCW_SP;
 	}
 }
 
@@ -664,10 +666,23 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 		{
 			break;
 		}
+		{
+			const rtcwMapDirective_t map = R_RTCWMapDirective( token, glConfig.colorBits,
+				glConfig.textureCompression, r_ext_compressed_textures->integer );
+			if ( map == RTCW_MAP_SKIP_STATIC || map == RTCW_MAP_SKIP_ANIMATED ) {
+				if ( !R_RTCWSkipMapArguments( text, map == RTCW_MAP_SKIP_ANIMATED ? qtrue : qfalse ) ) {
+					ri.Printf( PRINT_WARNING, "WARNING: missing RTCW map arguments in shader '%s'\n", shader.name );
+					return qfalse;
+				}
+				continue;
+			}
+			if ( map == RTCW_MAP_STATIC ) token = "map";
+			else if ( map == RTCW_MAP_ANIMATED ) token = "animMap";
+		}
 		//
 		// map <name>
 		//
-		else if ( !Q_stricmp( token, "map" ) )
+		if ( !Q_stricmp( token, "map" ) )
 		{
 			token = COM_ParseExt( text, qfalse );
 			if ( !token[0] )
@@ -1054,6 +1069,14 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 			else if ( !Q_stricmp( token, "vertex" ) )
 			{
 				stage->alphaGen = AGEN_VERTEX;
+			}
+			else if ( ( ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP ) &&
+				!Q_stricmp( token, "normalzfade" ) ) {
+				if ( !R_RTCWParseNormalZFade( text, &stage->constantColor.rgba[3], stage->rtcwNormalZBounds ) ) {
+					ri.Printf( PRINT_WARNING, "WARNING: invalid RTCW normalzfade in shader '%s'\n", shader.name );
+					return qfalse;
+				}
+				stage->alphaGen = AGEN_RTCW_NORMALZFADE;
 			}
 			else if ( !Q_stricmp( token, "lightingSpecular" ) )
 			{
@@ -2179,20 +2202,29 @@ static qboolean ParseShader( const char **text )
 			ParseSurfaceParm( text );
 			continue;
 		}
+		else if ( ri.gameId == COM_GAME_RTCW_SP && !Q_stricmp( token, "picmip2" ) ) {
+			shader.rtcwCharacterMip = 1;
+			if ( shader.rtcwPicMipFiltered ) shader.noPicMip = 0;
+			shader.rtcwPicMipFiltered = 0;
+			continue;
+		}
 		else if ( R_RTCWShaderCompressionDirective( token, &shader.rtcwCompression ) ) {
 			continue;
 		}
 		// no mip maps
-		else if ( !Q_stricmp( token, "nomipmaps" ) )
+		else if ( !Q_stricmp( token, "nomipmaps" ) ||
+			( ri.gameId == COM_GAME_RTCW_MP && !Q_stricmp( token, "nomipmap" ) ) )
 		{
 			shader.noMipMaps = 1;
 			shader.noPicMip = 1;
+			shader.rtcwPicMipFiltered = 0;
 			continue;
 		}
 		// no picmip adjustment
 		else if ( !Q_stricmp( token, "nopicmip" ) )
 		{
 			shader.noPicMip = 1;
+			shader.rtcwPicMipFiltered = 0;
 			continue;
 		}
 		else if ( !Q_stricmp( token, "novlcollapse" ) )
@@ -2519,6 +2551,10 @@ static qboolean CollapseMultitexture( shaderStage_t *st0, shaderStage_t *st1, in
 			return qfalse;
 		}
 	}
+
+	if ( st0->alphaGen == AGEN_RTCW_NORMALZFADE &&
+		( st0->constantColor.rgba[3] != st1->constantColor.rgba[3] ||
+		  memcmp( st0->rtcwNormalZBounds, st1->rtcwNormalZBounds, sizeof( st0->rtcwNormalZBounds ) ) ) ) return qfalse;
 
 	// make sure that lightmaps are in bundle 1
 	if ( st0->bundle[0].lightmap != LIGHTMAP_INDEX_NONE )
@@ -3080,7 +3116,7 @@ static void DetectNeeds( void )
 		{
 			shader.needsNormal = qtrue;
 		}
-		if ( stages[i].alphaGen == AGEN_LIGHTING_SPECULAR || stages[i].rgbGen == CGEN_LIGHTING_DIFFUSE )
+		if ( stages[i].alphaGen == AGEN_LIGHTING_SPECULAR || stages[i].alphaGen == AGEN_RTCW_NORMALZFADE || stages[i].rgbGen == CGEN_LIGHTING_DIFFUSE )
 		{
 			shader.needsNormal = qtrue;
 		}
