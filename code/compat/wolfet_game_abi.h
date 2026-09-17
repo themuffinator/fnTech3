@@ -20,6 +20,11 @@ enum {
 	/* ET limits chat records to 150 bytes where the engine uses 256. */
 	FNTECH3_WOLFET_MAX_MESSAGE_SIZE = 150,
 	FNTECH3_WOLFET_MAX_MATCHVARIABLES = 8,
+	/* Renderer record sizes from ET's cgame/tr_types.h and game/q_shared.h. */
+	FNTECH3_WOLFET_MAX_MAP_AREA_BYTES = 32,
+	FNTECH3_WOLFET_MAX_RENDER_STRINGS = 8,
+	FNTECH3_WOLFET_MAX_RENDER_STRING_LENGTH = 32,
+	FNTECH3_WOLFET_MAX_STRING_CHARS = 1024,
 	FNTECH3_WOLFET_CS_PLAYERS = 689,
 	FNTECH3_WOLFET_CS_WOLFINFO = 21,
 	FNTECH3_WOLFET_UI_API_VERSION = 4,
@@ -133,6 +138,87 @@ typedef struct {
 	char stringData[FNTECH3_WOLFET_MAX_GAMESTATE_CHARS];
 	int32_t dataCount;
 } fntech3_wolfet_gameState_t;
+
+/* ET renderer records, independently declared from its cgame/tr_types.h and
+ * game/q_shared.h. ET's reference entity carries a torso skeleton, per-frame
+ * model handles and fire/fade fields that Quake's does not, and its scene
+ * definition embeds a fog description; neither may be shared with another
+ * profile's renderer records. */
+typedef struct {
+	float xyz[3];
+	float st[2];
+	uint8_t modulate[4];
+} fntech3_wolfet_polyVert_t;
+
+typedef struct {
+	float origin[3];
+	float axis[3][3];
+} fntech3_wolfet_orientation_t;
+
+typedef struct {
+	int32_t firstPoint;
+	int32_t numPoints;
+} fntech3_wolfet_markFragment_t;
+
+typedef struct {
+	int32_t reType, renderfx, hModel;
+	float lightingOrigin[3];
+	float shadowPlane;
+	float axis[3][3], torsoAxis[3][3];
+	int32_t nonNormalizedAxes;
+	float origin[3];
+	int32_t frame, frameModel, torsoFrame, torsoFrameModel;
+	float oldorigin[3];
+	int32_t oldframe, oldframeModel, oldTorsoFrame, oldTorsoFrameModel;
+	float backlerp, torsoBacklerp;
+	int32_t skinNum, customSkin, customShader;
+	uint8_t shaderRGBA[4];
+	float shaderTexCoord[2];
+	float shaderTime, radius, rotation;
+	float fireRiseDir[3];
+	int32_t fadeStartTime, fadeEndTime;
+	float hilightIntensity;
+	int32_t reFlags, entityNum;
+} fntech3_wolfet_refEntity_t;
+
+typedef struct {
+	int32_t mode, hint, startTime, finishTime;
+	float color[4];
+	float start, end;
+	int32_t useEndForClip;
+	float density;
+	int32_t registered, drawsky, clearscreen;
+} fntech3_wolfet_glfog_t;
+
+typedef struct {
+	int32_t x, y, width, height;
+	float fov_x, fov_y;
+	float vieworg[3];
+	float viewaxis[3][3];
+	int32_t time, rdflags;
+	uint8_t areamask[FNTECH3_WOLFET_MAX_MAP_AREA_BYTES];
+	char text[FNTECH3_WOLFET_MAX_RENDER_STRINGS][FNTECH3_WOLFET_MAX_RENDER_STRING_LENGTH];
+	fntech3_wolfet_glfog_t glfog;
+} fntech3_wolfet_refdef_t;
+
+typedef struct {
+	char renderer_string[FNTECH3_WOLFET_MAX_STRING_CHARS];
+	char vendor_string[FNTECH3_WOLFET_MAX_STRING_CHARS];
+	char version_string[FNTECH3_WOLFET_MAX_STRING_CHARS];
+	char extensions_string[FNTECH3_WOLFET_MAX_STRING_CHARS * 4];
+	int32_t maxTextureSize, maxActiveTextures;
+	int32_t colorBits, depthBits, stencilBits;
+	int32_t driverType, hardwareType;
+	int32_t deviceSupportsGamma, textureCompression;
+	int32_t textureEnvAddAvailable, anisotropicAvailable;
+	float maxAnisotropy;
+	int32_t NVFogAvailable, NVFogMode;
+	int32_t ATIMaxTruformTess, ATINormalMode, ATIPointMode;
+	int32_t vidWidth, vidHeight;
+	float windowAspect;
+	int32_t displayFrequency;
+	int32_t isFullscreen, stereoEnabled, smpActive;
+} fntech3_wolfet_glconfig_t;
 
 /* ET chat-match record. Its variables hold raw pointers into the module's own
  * copy of the matched string, where this engine stores byte offsets, and its

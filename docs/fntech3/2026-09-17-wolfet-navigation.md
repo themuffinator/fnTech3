@@ -59,6 +59,15 @@ optionally null string argument. **`BOTLIB_AI_INIT_AVOID_REACH`** clears the
 movement state's avoid-reach arrays through the engine-internal
 `BotInitAvoidReach`; the frozen bot export has no entry for it.
 
+**Renderer records.** ET's poly vertex, orientation, mark fragment, reference
+entity, fog, scene definition and renderer configuration are declared and their
+sizes and key offsets pinned: 24, 48, 8, 236, 60, 428 and 7,264 bytes. ET's
+reference entity carries a torso skeleton, per-frame model handles and
+fire/fade fields Quake's does not, and its scene definition embeds a fog
+description, so none may be shared with another profile. Nothing consumes them
+yet — the ET client is still gated — but they are the boundary its cgame surface
+has to marshal, and pinning the layouts keeps a later bridge from inventing one.
+
 **Chat matches.** ET's `bot_match_t` is 224 bytes: a 150-byte string, type and
 subtype, then eight variables of a raw pointer and a length. This engine stores
 a byte offset into its own 256-byte string instead. `BOTLIB_AI_FIND_MATCH` runs

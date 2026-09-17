@@ -34,6 +34,19 @@ int main() {
  static_assert(sizeof(fntech3_wolfet_bot_entitystate_t) == 112, "ET entity state");
  static_assert(sizeof(fntech3_wolfet_bot_input_t) == 40, "ET bot input");
 
+ // ET renderer records the cgame boundary passes. Its reference entity carries
+ // a torso skeleton and per-frame model handles Quake's does not.
+ static_assert(sizeof(fntech3_wolfet_polyVert_t) == 24, "ET poly vertex");
+ static_assert(sizeof(fntech3_wolfet_orientation_t) == 48, "ET orientation");
+ static_assert(sizeof(fntech3_wolfet_markFragment_t) == 8, "ET mark fragment");
+ static_assert(sizeof(fntech3_wolfet_refEntity_t) == 236, "ET reference entity");
+ static_assert(offsetof(fntech3_wolfet_refEntity_t, origin) == 104, "ET entity origin");
+ static_assert(offsetof(fntech3_wolfet_refEntity_t, entityNum) == 232, "ET entity number");
+ static_assert(sizeof(fntech3_wolfet_glfog_t) == 60, "ET fog");
+ static_assert(sizeof(fntech3_wolfet_refdef_t) == 428, "ET scene definition");
+ static_assert(offsetof(fntech3_wolfet_refdef_t, glfog) == 368, "ET scene fog");
+ static_assert(sizeof(fntech3_wolfet_glconfig_t) == 7264, "ET renderer configuration");
+
  // A variable addresses the record's own string and never reaches past its
  // 150 bytes. The record stores a 32-bit address because ET's modules are x86,
  // so the bound check is written in that width rather than the host's.
