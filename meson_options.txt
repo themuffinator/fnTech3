@@ -13,6 +13,11 @@ option('build-client',
   value: true,
   description: 'Build the shared fnTech3 client executable')
 
+option('wolfet-development',
+  type: 'boolean',
+  value: false,
+  description: 'Enable incomplete Wolfenstein Enemy Territory dedicated-server probes; client remains gated')
+
 option('build-server',
   type: 'boolean',
   value: true,

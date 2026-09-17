@@ -13,6 +13,7 @@ General Public License, version 2 or (at your option) any later version.
 #include "../compat/q3_game_abi.h"
 #include "../compat/ql_game_abi.h"
 #include "../compat/rtcw_state_adapter.hpp"
+#include "../compat/wolfet_state_adapter.hpp"
 
 #include <cstring>
 #include <limits>
@@ -329,6 +330,18 @@ const ServerGameDataView::Layout *ServerGameDataView::FindLayout(
 		sizeof( fntech3_rtcw_mp_sharedEntity_t ), sizeof( fntech3_rtcw_mp_playerState_t ),
 		FNTECH3_RTCW_MP_MAX_CLIENTS );
 
+#define ET_R(member) offsetof(fntech3_wolfet_sharedEntity_t, r.member)
+	static const Layout etLayout{
+		COM_GAME_WOLFET, sizeof(fntech3_wolfet_sharedEntity_t),
+		sizeof(fntech3_wolfet_entityState_t), sizeof(fntech3_wolfet_playerState_t),
+		ET_R(linked), ET_R(linkcount), ET_R(svFlags), ET_R(singleClient),
+		ET_R(bmodel), ET_R(mins), ET_R(maxs), ET_R(contents), ET_R(absmin), ET_R(absmax),
+		ET_R(currentOrigin), ET_R(currentAngles), ET_R(ownerNum),
+		offsetof(fntech3_wolfet_sharedEntity_t, s.origin2),
+		offsetof(fntech3_wolfet_playerState_t, ping), FNTECH3_WOLFET_MAX_CLIENTS
+	};
+#undef ET_R
+
 	switch ( profile ) {
 	case COM_GAME_QUAKE3:
 		return &q3Layout;
@@ -338,6 +351,8 @@ const ServerGameDataView::Layout *ServerGameDataView::FindLayout(
 		return &spLayout;
 	case COM_GAME_RTCW_MP:
 		return &mpLayout;
+	case COM_GAME_WOLFET:
+		return &etLayout;
 	default:
 		return nullptr;
 	}
@@ -655,6 +670,10 @@ bool ServerGameDataView::ReadEntityState( const GameEntityRef &reference,
 		fntech3_rtcw_entityState_t external{};
 		return ReadEntityState( reference, external ) && rtcw::state::ToInternal( external, destination );
 	}
+	if (layout_->profile == COM_GAME_WOLFET) {
+		fntech3_wolfet_entityState_t external{};
+		return ReadEntityBytes(reference, 0, &external, sizeof(external)) && wolfet::state::ToInternal(external, destination);
+	}
 	if ( layout_->profile != COM_GAME_QUAKELIVE ) return false;
 	fntech3_ql_entityState_t external{};
 	if ( !ReadEntityBytes( reference, 0, &external, sizeof( external ) ) ) {
@@ -678,6 +697,10 @@ bool ServerGameDataView::WriteEntityState( const GameEntityRef &reference,
 	if ( layout_->profile == COM_GAME_RTCW_SP || layout_->profile == COM_GAME_RTCW_MP ) {
 		fntech3_rtcw_entityState_t external{};
 		return rtcw::state::FromInternal( source, external ) && WriteEntityState( reference, external );
+	}
+	if (layout_->profile == COM_GAME_WOLFET) {
+		fntech3_wolfet_entityState_t external{};
+		return wolfet::state::FromInternal(source, external) && WriteEntityBytes(reference, 0, &external, sizeof(external));
 	}
 	if ( layout_->profile != COM_GAME_QUAKELIVE ) return false;
 	fntech3_ql_entityState_t external{};
@@ -780,6 +803,10 @@ bool ServerGameDataView::ReadPlayerState( std::int32_t clientIndex,
 	if ( layout_->profile == COM_GAME_RTCW_MP ) {
 		fntech3_rtcw_mp_playerState_t external{};
 		return ReadPlayerState( clientIndex, external ) && rtcw::state::ToInternal( external, destination );
+	}
+	if (layout_->profile == COM_GAME_WOLFET) {
+		fntech3_wolfet_playerState_t external{};
+		return ReadClientBytes(clientIndex, 0, &external, sizeof(external)) && wolfet::state::ToInternal(external, destination);
 	}
 	if ( layout_->profile != COM_GAME_QUAKELIVE ) return false;
 	fntech3_ql_playerState_t external{};

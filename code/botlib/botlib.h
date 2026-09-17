@@ -458,6 +458,10 @@ struct botlib_export_s
 	int (*BotLibUpdateEntity)(int ent, bot_entitystate_t *state);
 	//just for testing
 	int (*Test)(int parm0, char *parm1, vec3_t parm2, vec3_t parm3);
+
+	// Engine-owned extensions; external module records remain profile-specific.
+	int (*PC_ReadTokenWithLocation)(int handle, pc_token_t *token, int *line, int *linesCrossed);
+	int (*PC_UnreadTokenHandle)(int handle);
 };
 using botlib_export_t = botlib_export_s;
 

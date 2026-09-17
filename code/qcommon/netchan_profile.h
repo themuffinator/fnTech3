@@ -25,6 +25,7 @@ version.
 #define NETCHAN_LEGACY_Q3_PROTOCOL_VERSION 68
 #define NETCHAN_RTCW_SP_PROTOCOL_VERSION 49
 #define NETCHAN_RTCW_MP_PROTOCOL_VERSION 60
+#define NETCHAN_WOLFET_PROTOCOL_VERSION 84
 
 /* Parsers deliberately pass unknown numeric profiles to the rejecting lookup.
  * A fixed C++ underlying type makes that validation defined for every unsigned
@@ -39,7 +40,8 @@ typedef enum
 	NETCHAN_WIRE_IOQ3,
 	NETCHAN_WIRE_QL_RETAIL,
 	NETCHAN_WIRE_RTCW_SP,
-	NETCHAN_WIRE_RTCW_MP
+	NETCHAN_WIRE_RTCW_MP,
+	NETCHAN_WIRE_WOLFET
 } netchanWireProfile_t;
 
 typedef enum {
@@ -58,6 +60,7 @@ NETCHAN_PROFILE_INLINE netchanWireProfile_t Netchan_SelectWireProfile(
 	int protocol, int legacyCompat ) {
 	if ( protocol == NETCHAN_RTCW_SP_PROTOCOL_VERSION ) return NETCHAN_WIRE_RTCW_SP;
 	if ( protocol == NETCHAN_RTCW_MP_PROTOCOL_VERSION ) return NETCHAN_WIRE_RTCW_MP;
+	if ( protocol == NETCHAN_WOLFET_PROTOCOL_VERSION ) return NETCHAN_WIRE_WOLFET;
 	if ( protocol == NETCHAN_QL_RETAIL_PROTOCOL_VERSION ) {
 		return NETCHAN_WIRE_QL_RETAIL;
 	}
@@ -81,6 +84,7 @@ NETCHAN_PROFILE_INLINE unsigned int Netchan_WireFeatures(
 			NETCHAN_FEATURE_SEQUENCE_CHECKSUM;
 	case NETCHAN_WIRE_QL_RETAIL:
 	case NETCHAN_WIRE_RTCW_MP:
+	case NETCHAN_WIRE_WOLFET:
 	case NETCHAN_WIRE_LEGACY_Q3:
 	default:
 		return NETCHAN_FEATURE_CLIENT_QPORT |
@@ -100,7 +104,8 @@ NETCHAN_PROFILE_INLINE int Netchan_ReliableCommandLimit( netchanWireProfile_t pr
 	case NETCHAN_WIRE_IOQ3:
 	case NETCHAN_WIRE_QL_RETAIL: return 64;
 	case NETCHAN_WIRE_RTCW_SP:
-	case NETCHAN_WIRE_RTCW_MP: return 256;
+	case NETCHAN_WIRE_RTCW_MP:
+	case NETCHAN_WIRE_WOLFET: return 256;
 	default: return 0;
 	}
 }
@@ -111,7 +116,8 @@ NETCHAN_PROFILE_INLINE int Netchan_MessageLimit( netchanWireProfile_t profile ) 
 	case NETCHAN_WIRE_IOQ3:
 	case NETCHAN_WIRE_QL_RETAIL: return 16384;
 	case NETCHAN_WIRE_RTCW_SP:
-	case NETCHAN_WIRE_RTCW_MP: return 32768;
+	case NETCHAN_WIRE_RTCW_MP:
+	case NETCHAN_WIRE_WOLFET: return 32768;
 	default: return 0;
 	}
 }

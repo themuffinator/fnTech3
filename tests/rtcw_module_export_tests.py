@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PRELUDE = r'''
 #include "code/qcommon/vm_local.h"
 #include "code/compat/rtcw_module_abi.h"
+#include "code/compat/wolfet_module_abi.h"
 #include "code/compat/rtcw_game_abi.h"
 #include "code/game/g_public.h"
 #include "code/ui/ui_public.h"
@@ -25,6 +26,7 @@ PRELUDE = r'''
 #include <setjmp.h>
 static comGameProfile_t profile;
 const comGameProfile_t *Com_GameProfile(void) { return &profile; }
+int Com_GameIsWolfET(void) { return profile.id == COM_GAME_WOLFET; }
 int Com_GameIsRTCW(void) { return profile.id == COM_GAME_RTCW_SP || profile.id == COM_GAME_RTCW_MP; }
 int Com_GameIsRTCWSP(void) { return profile.id == COM_GAME_RTCW_SP; }
 static jmp_buf errorJump;
@@ -299,8 +301,33 @@ static void Existing(comGameId_t id) {
       assert(!VM_PrepareRTCWExport(id, VM_GAME, GAME_INIT, 3, args, &output) && output == 42); }
 }
 int main(void) {
+    const struct { int call, args, external; } etCalls[] = {
+        {GAME_INIT,3,0}, {GAME_SHUTDOWN,1,1}, {GAME_CLIENT_CONNECT,3,2},
+        {GAME_CLIENT_BEGIN,1,3}, {GAME_CLIENT_USERINFO_CHANGED,1,4},
+        {GAME_CLIENT_DISCONNECT,1,5}, {GAME_CLIENT_COMMAND,1,6},
+        {GAME_CLIENT_THINK,1,7}, {GAME_RUN_FRAME,1,8},
+        {GAME_CONSOLE_COMMAND,0,9}, {BOTAI_START_FRAME,1,11}
+    };
     comGameId_t ids[] = {COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, COM_GAME_RTCW_SP, COM_GAME_RTCW_MP};
     unsigned i;
+    for (i = 0; i < sizeof(etCalls)/sizeof(etCalls[0]); ++i) {
+        Reset(COM_GAME_WOLFET);
+        assert(VM_Call(&module, etCalls[i].args, etCalls[i].call, 123, -42, 1) == nativeReturn);
+        assert(observedCall == etCalls[i].external && module.callLevel == 0);
+        if (etCalls[i].args) {
+            assert(observedArgs[0] == 123);
+            ERROR(VM_Call(&module, etCalls[i].args - 1, etCalls[i].call, 123, -42));
+        }
+    }
+    Reset(COM_GAME_WOLFET);
+    ERROR(VM_Call(&module, 0, 99999));
+#ifndef USE_DEDICATED
+    module.index = VM_UI; ERROR(VM_Call(&module, 3, GAME_INIT, 0, 0, 0));
+#endif
+    module.index = VM_GAME; module.entryPoint = NULL;
+    ERROR(VM_Call(&module, 3, GAME_INIT, 0, 0, 0));
+    module.dllExports = &module;
+    ERROR(VM_Call(&module, 3, GAME_INIT, 0, 0, 0));
     for (i = 0; i < sizeof(ids)/sizeof(ids[0]); ++i) {
         int32_t args[3] = {0}; int output = 42;
         Reset(ids[i]);

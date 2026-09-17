@@ -69,3 +69,16 @@ credited in [`CREDITS.md`](CREDITS.md). GPL-derived source files retain their
 original copyright and license headers. Meson subprojects and system
 dependencies retain their own license files and notices in their respective
 packages.
+
+## Enemy Territory reference observations
+
+The original [Enemy Territory source release](https://github.com/id-Software/Enemy-Territory/tree/40342a9e3690cb5b627a433d4d5cbf30e3c57698)
+is GPL-3.0-or-later with accompanying additional terms. It is a reference only:
+fnTech3 does not incorporate its implementation text or relicense this project.
+Frozen declarations, ordinal tables, field encodings, profile adapters and TAG
+asset validation are independently authored interoperability work. Source probes
+compile the user-selected external reference in disposable project-local folders;
+only independently generated synthetic packet vectors are checked in. Retail
+modules, maps, configuration assets and packets containing private data are not
+redistributed. The [ET evidence record](docs/fntech3/2026-09-17-wolfet-contracts.md)
+separates source/unit evidence from installed observations and open gates.

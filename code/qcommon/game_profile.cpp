@@ -27,7 +27,8 @@ namespace {
 const comGameTitle_t titles[] = {
 	{ COM_GAME_TITLE_QUAKE3, "quake3", "Quake III Arena" },
 	{ COM_GAME_TITLE_QUAKELIVE, "quakelive", "Quake Live" },
-	{ COM_GAME_TITLE_RTCW, "rtcw", "Return to Castle Wolfenstein" }
+	{ COM_GAME_TITLE_RTCW, "rtcw", "Return to Castle Wolfenstein" },
+	{ COM_GAME_TITLE_WOLFET, "wolfet", "Wolfenstein: Enemy Territory" }
 };
 
 /* One catalog owns title identity, aliases and startup contracts. RTCW facts
@@ -152,6 +153,35 @@ const comGameProfile_t profiles[] = { {
 	COM_PURE_PROOF_RTCW_NATIVE,
 	{ "multi", "head", "default", nullptr, "color", nullptr, 0, 1 },
 	{ "cinematic gmlogo.RoQ", "cinematic wolfintro.RoQ", 0 }
+}, {
+	COM_GAME_WOLFET,
+	"wolfet",
+	"Wolfenstein: Enemy Territory",
+	"etmain",
+	"pak0.pk3",
+	84,
+	84,
+	COM_PROTOCOL_FAMILY_WOLFET,
+	COM_MODULE_API_LEGACY_NATIVE,
+	COM_MODULE_API_LEGACY_NATIVE,
+	0,
+	0,
+	"1873030",
+	"Wolfenstein Enemy Territory",
+	COM_GAME_TITLE_WOLFET,
+	COM_GAME_MARKER_WOLFET,
+	{ "et", "enemy-territory", "enemyterritory", nullptr },
+	"etconfig.cfg",
+	"etconfig_server.cfg",
+	nullptr,
+	nullptr,
+	"Wolfenstein: Enemy Territory module, wire and renderer adapters are not yet complete",
+	64, 1024, 689, 512, COM_ENTITY_HULL_ENTITY_FLAG, "fntech3-wolfet-servercache.dat",
+	{ "4", "0", "20", "20", nullptr, nullptr, 0, "0", 1 },
+	{ "0", "64", "1024", 1024, 0, 1, 0, 0, 0 },
+	COM_PURE_PROOF_WOLFET_NATIVE,
+	{ "multi", "head", "default", nullptr, "color", nullptr, 0, 1 },
+	{ "cinematic etintro.roq", nullptr, 0 }
 } };
 
 static_assert( sizeof( profiles ) / sizeof( profiles[0] ) == COM_GAME_COUNT - 1,
@@ -182,6 +212,10 @@ bool EqualsIgnoreCase( const char *left, const char *right )
 
 bool RuntimeBlocked( const comGameProfile_t *profile )
 {
+#if defined(FNTECH3_WOLFET_DEVELOPMENT) && defined(DEDICATED)
+	// Server probes only until the distinct ET client/renderer boundary exists.
+	if (profile && profile->id == COM_GAME_WOLFET) return false;
+#endif
 #if defined( FNTECH3_RTCW_DEVELOPMENT )
 	/* Explicit developer builds exercise incomplete adapters with real modules.
 	 * This does not alter any profile contract or the release gate ledger. */
@@ -277,7 +311,10 @@ const PakIdentity pakIdentities[] = {
 	{ COM_GAME_MARKER_RTCW_SP, 2237, 0x844222c3u,
 		"maps/escape1.bsp", 12366352, 0x5f08b87cu },
 	{ COM_GAME_MARKER_RTCW_MP, 1372, 0x91dfaca0u,
-		"maps/mp_beach.bsp", 7343512, 0x77533d56u }
+		"maps/mp_beach.bsp", 7343512, 0x77533d56u },
+	// Steam build 7997832: metadata only, no retail payload is incorporated.
+	{ COM_GAME_MARKER_WOLFET, 1496, 0x061b5285u,
+		"maps/goldrush.bsp", 14757996, 0x7ebac2f4u }
 };
 
 std::uint32_t LE32( const unsigned char *p )
@@ -443,6 +480,8 @@ comGameBspFormat_t Com_GameManagerBspFormat( const comGameProfile_t *profile,
 		return COM_GAME_BSP_UNSUPPORTED;
 	if ( profile->titleId == COM_GAME_TITLE_RTCW )
 		return version == 47 ? COM_GAME_BSP_RTCW : COM_GAME_BSP_UNSUPPORTED;
+	if ( profile->titleId == COM_GAME_TITLE_WOLFET )
+		return version == 47 ? COM_GAME_BSP_WOLFET : COM_GAME_BSP_UNSUPPORTED;
 	if ( profile->titleId != COM_GAME_TITLE_QUAKE3 && profile->titleId != COM_GAME_TITLE_QUAKELIVE )
 		return COM_GAME_BSP_UNSUPPORTED;
 	/* Preserve the existing Q3/QL asset set, including IHV translation. RTCW's
@@ -557,7 +596,7 @@ int Com_GameManagerNativeModuleFilename( const comGameProfile_t *profile,
 	const bool windows = !std::strcmp( extension, ".dll" );
 	if ( !windows && std::strcmp( extension, ".so" )
 		&& std::strcmp( extension, ".dylib" ) ) return 0;
-	const bool rtcw = profile->titleId == COM_GAME_TITLE_RTCW;
+	const bool rtcw = profile->titleId == COM_GAME_TITLE_RTCW || profile->id == COM_GAME_WOLFET;
 	const char *arch = architecture;
 	if ( rtcw ) {
 		if ( windows && !std::strcmp( arch, "x86_64" ) ) arch = "x64";
@@ -601,6 +640,7 @@ int Com_GameManagerPureModuleFilename( const comGameProfile_t *profile,
 		name = "cgamex86.dll"; // Retail QL's native contract is fixed to x86.
 		break;
 	case COM_PURE_PROOF_RTCW_NATIVE:
+	case COM_PURE_PROOF_WOLFET_NATIVE:
 		if ( slot > 1 ) return 0;
 		return Com_GameManagerNativeModuleFilename( profile, slot ? "ui" : "cgame",
 			architecture, extension, 0, destination, capacity );
@@ -867,6 +907,11 @@ int Com_GameIsRTCWMP( void )
 	return activeProfile && activeProfile->id == COM_GAME_RTCW_MP;
 }
 
+int Com_GameIsWolfET( void )
+{
+	return activeProfile && activeProfile->id == COM_GAME_WOLFET;
+}
+
 unsigned Com_ProtocolFamilyForVersion( int protocol )
 {
 	switch ( protocol ) {
@@ -882,6 +927,8 @@ unsigned Com_ProtocolFamilyForVersion( int protocol )
 			return COM_PROTOCOL_FAMILY_LEGACY_QUAKE3;
 		case 71:
 			return COM_PROTOCOL_FAMILY_IOQUAKE3;
+		case 84:
+			return COM_PROTOCOL_FAMILY_WOLFET;
 		case 91:
 			return COM_PROTOCOL_FAMILY_QUAKELIVE;
 		default:
@@ -927,7 +974,7 @@ const char *Com_GameDetectionStatusName( comGameDetectionStatus_t status )
 		case COM_GAME_DETECTION_MODE_REQUIRED:
 			return "choose the RTCW mode explicitly with +set com_gameProfile rtcw-sp or rtcw-mp";
 		case COM_GAME_DETECTION_INCOMPLETE_ENGINE:
-			return "RTCW is recognized, but its engine adapters are not yet complete; see docs/fntech3/COMPATIBILITY.md";
+			return "the game is recognized, but its engine adapters are not yet complete; see docs/fntech3/COMPATIBILITY.md";
 		default:
 			return "invalid status";
 	}

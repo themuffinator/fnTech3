@@ -288,14 +288,15 @@ using SnapshotEntityIndex = int;
 
 struct SnapshotEntityNumbers {
 	int count = 0;
-	std::array<SnapshotEntityIndex, MAX_SNAPSHOT_ENTITIES> indices{};
+	std::array<SnapshotEntityIndex, MAX_SERVER_SNAPSHOT_ENTITIES> indices{};
 	bool unordered = false;
+	const int limit = Com_GameIsWolfET() ? FNTECH3_WOLFET_MAX_ENTITIES_IN_SNAPSHOT : MAX_SNAPSHOT_ENTITIES;
 
 	void Add( svEntity_t &svEnt, SnapshotEntityIndex index ) {
 		svEnt.snapshotCounter = sv.snapshotCounter;
 
 		// if we are full, silently discard entities
-		if ( count >= SV_ArraySize(indices) ) {
+		if ( count >= limit ) {
 			return;
 		}
 

@@ -4,7 +4,7 @@
   <img src="assets/logos/fntech3-readme-banner.png" alt="${project_name_short} — Unified source port for id Tech 3" width="720">
 </h1>
 
-### One engine for Quake III Arena, Quake Live, and Return to Castle Wolfenstein
+### One engine for Quake III Arena, Quake Live, RTCW, and Enemy Territory
 
 <p>
   <a href="docs/fntech3/COMPATIBILITY.md"><img alt="Compatibility Status" src="https://img.shields.io/badge/Compatibility-In%20Progress-2563eb?style=for-the-badge"></a>
@@ -22,8 +22,9 @@
 
 **${project_name_short}** is a unified source port for id Tech 3 games. Its goal
 is one engine distribution and shared executable set for **Quake III Arena**,
-**Quake Live**, and **Return to Castle Wolfenstein**, including RTCW's single
-player and multiplayer modes. It builds on FnQuake3 modernization and the FnQL
+**Quake Live**, **Return to Castle Wolfenstein**, including RTCW's single
+player and multiplayer modes, and **Wolfenstein: Enemy Territory**.
+It builds on FnQuake3 modernization and the FnQL
 compatibility baseline.
 
 The shared client and dedicated server select one immutable game profile before
@@ -39,8 +40,9 @@ game's own module, asset, network, demo, and gameplay contracts.
 | Quake Live | `ql` (canonical `quakelive`) | Enabled; retail client modules require Windows x86; compatibility validation remains in progress. |
 | Return to Castle Wolfenstein — single player | `rtcw-sp` | Experimental; requires a build with `-Drtcw-development=true`; gated in default builds. |
 | Return to Castle Wolfenstein — multiplayer | `rtcw-mp` | Experimental; requires the same development option; gated in default builds. |
+| Wolfenstein: Enemy Territory | `wolfet` (alias `et`) | Experimental dedicated probes require `-Dwolfet-development=true`; client startup remains blocked. |
 
-These three games and four profiles define the current project scope.
+These four games and five profiles define the current project scope.
 **Full compatibility is not yet established for any profile.** Track observed
 build, unit, fixture, live, and interoperability evidence in the
 [compatibility ledger](docs/fntech3/COMPATIBILITY.md). A successful build or an
@@ -54,8 +56,12 @@ renderer/audio/input gates remain open. See the
 limits and the [game-manager contracts](docs/fntech3/2026-09-14-rtcw-contracts.md)
 for profile and mode-switch behavior.
 
-fnTech3 is engine-only. Supply a legitimate Quake III Arena, Quake Live, or
-Return to Castle Wolfenstein installation for the selected profile. Retail
+The [ET implementation record](docs/fntech3/2026-09-17-wolfet-contracts.md)
+describes protocol 84, native game-module boundaries, dedicated probes, and
+the remaining client, renderer, pure-server and interoperability blockers.
+
+fnTech3 is engine-only. Supply a legitimate Quake III Arena, Quake Live,
+Return to Castle Wolfenstein, or Enemy Territory installation for the selected profile. Retail
 modules, assets, and proprietary runtimes stay
 in that installation. Release packages exclude the optional proprietary Steam
 provider and Valve Steam runtimes. Steam services require a separately supplied
@@ -193,7 +199,7 @@ QL services and must report unavailable services honestly.
 ### Technical and build docs
 
 - [Compatibility ledger](docs/fntech3/COMPATIBILITY.md) for the unified goal,
-  all four profiles, observed evidence, open gates, and release sign-off.
+  all five profiles, observed evidence, open gates, and release sign-off.
 - [Project mission and contributor rules](AGENTS.md) for shared-engine
   invariants and non-regression requirements.
 - [Build Guide](BUILD.md) for compiling fnTech3 locally.

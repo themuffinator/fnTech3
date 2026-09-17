@@ -591,6 +591,14 @@ chapters; the GLSL implementation and synthetic tests are independently written.
   Input bindings, command dispatch, regression fixtures and the inventory checker
   are independently authored; no GPLv3 implementation text is incorporated.
 
+- The Enemy Territory profile uses interoperability facts from the original
+  [id Software ET source release](https://github.com/id-Software/Enemy-Territory/tree/40342a9e3690cb5b627a433d4d5cbf30e3c57698)
+  and the user's legitimate installed game. The GPLv3 reference was inspected
+  for structure offsets, API ordinals, format encodings and observable behavior;
+  no implementation text is incorporated. Adapters, codecs, tag validation and
+  synthetic fixtures are independently authored. See the
+  [ET evidence record](docs/fntech3/2026-09-17-wolfet-contracts.md).
+
 ## Retail-content boundary
 
 The RTCW audio-zone authoring mode uses material-flag facts observed in the
@@ -602,8 +610,9 @@ text is incorporated. The 47 stock sidecars are generated acoustic metadata
 from a legitimate local installation, with source/output identities and limits
 in the [generation record](docs/fntech3/2026-09-17-rtcw-audio-zones.md).
 
-fnTech3 does not redistribute Quake III Arena, Quake Live, or Return to Castle
-Wolfenstein data, retail game modules, Steam SDK/runtime binaries, Awesomium,
+fnTech3 does not redistribute Quake III Arena, Quake Live, Return to Castle
+Wolfenstein or Enemy Territory data, retail game modules, Steam SDK/runtime
+binaries, Awesomium,
 credentials, captured private traffic, or other proprietary content. Runtime
 validation uses the user's
 legitimate local installations and records only non-proprietary evidence.

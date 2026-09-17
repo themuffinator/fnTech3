@@ -52,6 +52,9 @@ const comGameProfile_t *Com_GameProfile(void) { return &profile; }
 int Com_GameIsRTCW(void) { return profile.id == COM_GAME_RTCW_SP || profile.id == COM_GAME_RTCW_MP; }
 int Com_GameIsRTCWSP(void) { return profile.id == COM_GAME_RTCW_SP; }
 int Com_GameIsRTCWMP(void) { return profile.id == COM_GAME_RTCW_MP; }
+int Com_GameIsWolfET(void) { return profile.id == COM_GAME_WOLFET; }
+// ET's independent game boundary is exercised by wolfet tests and probes.
+static bool SV_WolfETGameCall(const intptr_t *, intptr_t &, intptr_t &) { assert(false); return false; }
 void QDECL Com_Error(errorParm_t, const char *, ...) { throw 7; }
 static int warnings;
 static int translationCalls;
@@ -421,17 +424,18 @@ int main() {
         try { Cvar_RegisterRTCW(nullptr, "safe", "0", 0, 0); } catch (int) { threw = true; }
         assert(threw && registrations == 0);
     }
-    for (auto id : {COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, COM_GAME_RTCW_SP, COM_GAME_RTCW_MP}) {
+    for (auto id : {COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, COM_GAME_RTCW_SP, COM_GAME_RTCW_MP, COM_GAME_WOLFET}) {
         Reset(id); publications = infoCalls = 0; warnings = 0; truncateInfo = false;
         cvar_modifiedFlags = CVAR_PROTECTED | CVAR_QL_PMOVE_SETTINGS;
         SV_UpdateRTCWCvarConfigstrings(qfalse); assert(publications == 0);
         cvar_modifiedFlags |= CVAR_RTCW_WOLFINFO;
         const int saved = cvar_modifiedFlags;
         SV_UpdateRTCWCvarConfigstrings(qfalse);
-        assert(publications == (id == COM_GAME_RTCW_MP ? 1 : 0));
+        const bool wolfInfo = id == COM_GAME_RTCW_MP || id == COM_GAME_WOLFET;
+        assert(publications == (wolfInfo ? 1 : 0));
         assert(infoCalls == publications);
-        if (id == COM_GAME_RTCW_MP) {
-            assert(configIndex == 36 && infoFlags == 0x04000000);
+        if (wolfInfo) {
+            assert(configIndex == (id == COM_GAME_WOLFET ? 21 : 36) && infoFlags == 0x04000000);
             assert(cvar_modifiedFlags == (CVAR_PROTECTED | CVAR_QL_PMOVE_SETTINGS));
             SV_UpdateRTCWCvarConfigstrings(qfalse); assert(publications == 1);
             truncateInfo = true;

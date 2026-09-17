@@ -11,12 +11,14 @@ PRELUDE = r'''
 #include "code/server/server.h"
 #include "code/qcommon/vm_local.h"
 #include "code/compat/rtcw_module_abi.h"
+#include "code/compat/wolfet_module_abi.h"
 #include <cassert>
 #include <array>
 #include <cstdarg>
 #include <cstring>
 static comGameProfile_t profile;
 const comGameProfile_t *Com_GameProfile(){return &profile;}
+int Com_GameIsWolfET(void) { return profile.id == COM_GAME_WOLFET; }
 int Com_GameIsRTCW(){return profile.id==COM_GAME_RTCW_SP||profile.id==COM_GAME_RTCW_MP;}
 int Com_GameIsRTCWSP(){return profile.id==COM_GAME_RTCW_SP;}
 struct Drop{};
@@ -126,7 +128,7 @@ class RTCWCastQueryTests(unittest.TestCase):
         vm = (ROOT / 'code/qcommon/vm.c').read_text()
         main = (ROOT / 'code/botlib/be_aas_main.cpp').read_text()
         source = PRELUDE
-        for signature in ('static qboolean VM_PrepareRTCWExport(', 'intptr_t QDECL VM_Call('):
+        for signature in ('static qboolean VM_PrepareRTCWExport(', 'static qboolean VM_PrepareWolfETGameExport(', 'intptr_t QDECL VM_Call('):
             source += '\n' + function(vm, signature)
         source += '\nstatic aas_rtcw_cast_callbacks_t rtcwCastCallbacks;\n'
         for signature in ('void AAS_SetRTCWCastCallbacks(', 'const aas_rtcw_cast_callbacks_t &AAS_RTCWCastCallbacks('):

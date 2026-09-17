@@ -62,6 +62,10 @@ endif
 cpu_family = host_machine.cpu_family()
 q3_only = get_option('q3-only')
 rtcw_development = get_option('rtcw-development')
+wolfet_development = get_option('wolfet-development')
+if wolfet_development and q3_only
+  error('WolfET developer probes require the shared executable.')
+endif
 if rtcw_development and q3_only
   error('RTCW developer probes require the shared x86 executable, not the Q3-only target.')
 endif
@@ -896,6 +900,10 @@ if build_client and not renderer_dlopen
 endif
 
 engine_cpp_args = common_cpp_args
+if wolfet_development
+  warning('WolfET development: incomplete dedicated-server adapters; client compatibility remains gated.')
+  engine_cpp_args += ['-DFNTECH3_WOLFET_DEVELOPMENT=1']
+endif
 if rtcw_development
   warning('RTCW developer build: incomplete SP/MP adapters are enabled for isolated probes. Release compatibility gates remain open.')
   engine_cpp_args += ['-DFNTECH3_RTCW_DEVELOPMENT=1']
@@ -1161,6 +1169,15 @@ server_game_data_tests = executable('fntech3_server_game_data_tests',
   cpp_args: common_cpp_args,
 )
 test('fntech3_server_game_data', server_game_data_tests)
+
+wolfet_contract_tests = executable('fntech3_wolfet_contract_tests',
+  ['tests/wolfet_contract_tests.cpp', 'code/server/server_game_data.cpp',
+   'code/compat/game_abi_adapter.c'],
+  include_directories: include_directories('code/qcommon', 'code/compat', 'code/server'),
+  c_args: common_c_args,
+  cpp_args: common_cpp_args,
+)
+test('fntech3_wolfet_contracts', wolfet_contract_tests)
 
 netchan_profile_tests = executable('fnql_netchan_profile_tests',
   'tests/netchan_profile_tests.cpp',
@@ -1674,9 +1691,9 @@ test('fnql_python_source_regressions', python,
     '-p', '*_tests.py',
   ],
   workdir: meson.current_source_dir(),
-  # Discovery includes over 1,300 checks and compiles native fixtures. A clean
-  # Windows run now exceeds five minutes; retain a bounded ten-minute gate.
-  timeout: 600,
+  # Discovery includes over 1,500 checks and compiles native fixtures. A clean
+  # Windows run can exceed ten minutes; retain a bounded fifteen-minute gate.
+  timeout: 900,
 )
 
 curl_summary = 'disabled'

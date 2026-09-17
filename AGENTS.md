@@ -7,10 +7,13 @@ whose shared client and dedicated-server binaries select the installed game at
 startup. The current game scope is Quake III Arena (`q3`), Quake Live (`ql`), and
 Return to Castle Wolfenstein single player (`rtcw-sp`) and multiplayer (`rtcw-mp`).
 RTCW is one title with two mode profiles using the same executable.
+Wolfenstein: Enemy Territory (`wolfet`) is a fourth title and fifth profile.
 
 Q3 and QL are enabled; RTCW remains experimental and gated in default builds,
-with `-Drtcw-development=true` enabling isolated development probes. The unified
-goal is not complete until all four profiles pass their applicable module ABI,
+with `-Drtcw-development=true` enabling isolated development probes. ET is also
+gated; `-Dwolfet-development=true` currently permits dedicated probes only.
+ET client startup remains blocked in all builds. The unified goal is not
+complete until all five profiles pass their applicable module ABI,
 network, demo, filesystem, asset, renderer, audio/input, gameplay, and
 live-interoperability gates, including RTCW SP campaign/savegame behavior, in
 [`docs/fntech3/COMPATIBILITY.md`](docs/fntech3/COMPATIBILITY.md).
@@ -53,7 +56,7 @@ evidence.
    exercised with user-supplied legitimate installations.
 9. Retail QL client modules impose an x86 boundary. The shared client proof
    target is Windows x86. A release cannot claim the complete unified client
-   contract unless the same engine binaries pass Q3, QL, RTCW SP, and RTCW MP.
+   contract unless the same engine binaries pass Q3, QL, RTCW SP, RTCW MP, and ET.
    Partial-profile and extra architecture-specific builds may make narrower,
    explicitly documented claims; they do not complete the unified goal.
 10. Optional online services must fail honestly. Never synthesize Steam

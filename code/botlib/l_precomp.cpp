@@ -3205,6 +3205,8 @@ int PC_ReadTokenHandle(int handle, pc_token_t *pc_token)
 		return 0;
 
 	ret = PC_ReadToken(sourceFiles[handle], &token);
+	if (!ret)
+		return 0;
 	strcpy(pc_token->string, token.string);
 	pc_token->type = token.type;
 	pc_token->subtype = token.subtype;
@@ -3214,6 +3216,23 @@ int PC_ReadTokenHandle(int handle, pc_token_t *pc_token)
 		StripDoubleQuotes(pc_token->string);
 	return ret;
 } //end of the function PC_ReadTokenHandle
+
+int PC_ReadTokenWithLocation(int handle, pc_token_t *token, int *line, int *linesCrossed)
+{
+	if (!token || !line || !linesCrossed || !PC_ReadTokenHandle(handle, token))
+		return 0;
+	*line = sourceFiles[handle]->token.line;
+	*linesCrossed = sourceFiles[handle]->token.linescrossed;
+	return 1;
+}
+
+int PC_UnreadTokenHandle(int handle)
+{
+	if (handle < 1 || handle >= MAX_SOURCEFILES || !sourceFiles[handle])
+		return 0;
+	PC_UnreadLastToken(sourceFiles[handle]);
+	return 1;
+}
 //============================================================================
 //
 // Parameter:			-

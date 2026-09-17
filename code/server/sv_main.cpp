@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <algorithm>
 #include <array>
+#include <utility>
 
 serverStatic_t	svs;				// persistant server info
 server_t		sv;					// local server
@@ -923,6 +924,19 @@ static void SVC_Info( const netadr_t *from ) {
 	Info_SetValueForKey( infostring.data(), "gametype", va( "%i", sv_gametype->integer ) );
 	Info_SetValueForKey( infostring.data(), "pure", va( "%i", sv.pure ) );
 	Info_SetValueForKey( infostring.data(), "g_needpass", va( "%d", Cvar_VariableIntegerValue( "g_needpass" ) ) );
+	if (Com_GameIsWolfET()) {
+		// ET browsers filter on this identity and use their own rule-key names.
+		Info_SetValueForKey(infostring.data(), "gamename", "et");
+		Info_SetValueForKey(infostring.data(), "serverload", "-1"); // No load measurement available.
+		for (const auto &rule : std::array<std::pair<const char *, const char *>, 5>{{
+			{"sv_allowAnonymous", "sv_allowAnonymous"}, {"friendlyFire", "g_friendlyFire"},
+			{"g_antilag", "g_antilag"}, {"weaprestrict", "g_heavyWeaponRestriction"},
+			{"balancedteams", "g_balancedteams"}}}) {
+			Info_SetValueForKey(infostring.data(), rule.first, va("%d", Cvar_VariableIntegerValue(rule.second)));
+		}
+		Info_SetValueForKey(infostring.data(), "maxlives", Cvar_VariableIntegerValue("g_maxlives") ? "1" : "0");
+		Info_SetValueForKey(infostring.data(), "needpass", Cvar_VariableIntegerValue("g_needpass") ? "1" : "0");
+	}
 	gamedir = Cvar_VariableString( "fs_game" );
 	if ( *gamedir != '\0' ) {
 		Info_SetValueForKey( infostring.data(), "game", gamedir );

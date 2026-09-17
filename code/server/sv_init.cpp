@@ -225,15 +225,15 @@ void SV_UpdateQLCvarConfigstrings( qboolean force ) {
 }
 
 void SV_UpdateRTCWCvarConfigstrings( qboolean force ) {
-	if ( !Com_GameIsRTCWMP() || ( !force && !( cvar_modifiedFlags & CVAR_RTCW_WOLFINFO ) ) ) {
+	if ( ( !Com_GameIsRTCWMP() && !Com_GameIsWolfET() ) || ( !force && !( cvar_modifiedFlags & CVAR_RTCW_WOLFINFO ) ) ) {
 		return;
 	}
 	qboolean truncated = qfalse;
 	const char *info = Cvar_InfoString( CVAR_RTCW_WOLFINFO, &truncated );
-	SV_SetConfigstring( FNTECH3_RTCW_MP_CS_WOLFINFO, info );
+	SV_SetConfigstring( Com_GameIsWolfET() ? FNTECH3_WOLFET_CS_WOLFINFO : FNTECH3_RTCW_MP_CS_WOLFINFO, info );
 	cvar_modifiedFlags &= ~CVAR_RTCW_WOLFINFO;
 	if ( truncated ) {
-		Com_Printf( S_COLOR_YELLOW "WARNING: truncated RTCW MP WOLFINFO configstring\n" );
+		Com_Printf( S_COLOR_YELLOW "WARNING: truncated %s WOLFINFO configstring\n", Com_GameProfile()->key );
 	}
 }
 
@@ -538,7 +538,10 @@ static void SV_ReferenceNativeModulePaks( void ) {
 
 static cvar_t *SV_RegisterPureMode() {
 	const auto &policy = Com_GameProfile()->server;
-	return Cvar_Get("sv_pure", policy.pure, CVAR_SYSTEMINFO | (policy.pureLatched ? CVAR_LATCH : 0));
+	auto *pure = Cvar_Get("sv_pure", policy.pure, CVAR_SYSTEMINFO | (policy.pureLatched ? CVAR_LATCH : 0));
+	if (Com_GameIsWolfET() && pure->integer)
+		Com_Error(ERR_DROP, "WolfET pure admission is not implemented; dedicated development probes require sv_pure 0");
+	return pure;
 }
 
 void SV_SpawnServer( const char *mapname, qboolean killBots ) {

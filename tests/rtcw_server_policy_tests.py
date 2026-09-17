@@ -23,6 +23,8 @@ static const comGameProfile_t *profile;
 const comGameProfile_t *Com_GameProfile(){return profile;}
 int Com_GameIsRTCWSP(){return profile->id==COM_GAME_RTCW_SP;}
 int Com_GameIsRTCWMP(){return profile->id==COM_GAME_RTCW_MP;}
+int Com_GameIsWolfET(){return profile->id==COM_GAME_WOLFET;}
+void QDECL Com_Error(errorParm_t,const char*,...){throw 7;}
 int Com_GameIsQuakeLive(){return profile->id==COM_GAME_QUAKELIVE;}
 struct Value {cvar_t cvar{};std::string value,latched;};
 static std::map<std::string,Value> values;
@@ -66,6 +68,14 @@ qboolean SV_FactoryPrepareMap(const char*,const char*,qboolean,qboolean){++prepa
 CHECKS = r'''
 int main(){
  for(const auto &p:profiles){profile=&p;
+  if(p.id==COM_GAME_WOLFET){
+   values.clear();auto *mode=SV_RegisterPureMode();
+   assert(mode->integer==0&&(mode->flags&CVAR_LATCH)&&(mode->flags&CVAR_SYSTEMINFO));
+   SV_TestServerDefaults();assert(sv_gametype->integer==4&&sv_maxclients->integer==20);
+   Cvar_SetLatched("sv_pure","1");bool rejected=false;
+   try{SV_RegisterPureMode();}catch(int){rejected=true;}
+   assert(rejected);continue;
+  }
   const bool sp=p.id==COM_GAME_RTCW_SP,mp=p.id==COM_GAME_RTCW_MP,ql=p.id==COM_GAME_QUAKELIVE;
   values.clear();auto *pureMode=SV_RegisterPureMode();assert(pureMode->integer==(sp?0:1));
   assert(pureMode->flags&CVAR_SYSTEMINFO);assert(bool(pureMode->flags&CVAR_LATCH)==!(sp||mp));

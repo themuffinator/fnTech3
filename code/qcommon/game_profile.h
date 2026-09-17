@@ -24,6 +24,7 @@ typedef enum comGameId_e
 	COM_GAME_QUAKELIVE,
 	COM_GAME_RTCW_SP,
 	COM_GAME_RTCW_MP,
+	COM_GAME_WOLFET,
 	COM_GAME_COUNT
 } comGameId_t;
 
@@ -34,7 +35,8 @@ typedef enum comGameTitleId_e
 {
 	COM_GAME_TITLE_QUAKE3 = 1,
 	COM_GAME_TITLE_QUAKELIVE,
-	COM_GAME_TITLE_RTCW
+	COM_GAME_TITLE_RTCW,
+	COM_GAME_TITLE_WOLFET
 } comGameTitleId_t;
 
 /* BSP version 47 is ambiguous without a title: RTCW has 17 lumps, while
@@ -49,7 +51,8 @@ typedef enum comGameBspFormat_e
 	COM_GAME_BSP_QUAKE3_IHV,
 	COM_GAME_BSP_QUAKE3,
 	COM_GAME_BSP_QUAKELIVE,
-	COM_GAME_BSP_RTCW
+	COM_GAME_BSP_RTCW,
+	COM_GAME_BSP_WOLFET
 } comGameBspFormat_t;
 
 typedef enum comGameDetectionStatus_e {
@@ -77,7 +80,8 @@ enum {
 	COM_GAME_MARKER_QUAKELIVE = 1 << 1,
 	COM_GAME_MARKER_UNRECOGNIZED_PAK = 1 << 2,
 	COM_GAME_MARKER_RTCW_SP = 1 << 3,
-	COM_GAME_MARKER_RTCW_MP = 1 << 4
+	COM_GAME_MARKER_RTCW_MP = 1 << 4,
+	COM_GAME_MARKER_WOLFET = 1 << 5
 };
 
 enum {
@@ -87,7 +91,8 @@ enum {
 	COM_PROTOCOL_FAMILY_RTCW_SP = 1 << 3,
 	COM_PROTOCOL_FAMILY_IORTCW_SP = 1 << 4,
 	COM_PROTOCOL_FAMILY_RTCW_MP = 1 << 5,
-	COM_PROTOCOL_FAMILY_IORTCW_MP = 1 << 6
+	COM_PROTOCOL_FAMILY_IORTCW_MP = 1 << 6,
+	COM_PROTOCOL_FAMILY_WOLFET = 1 << 7
 };
 
 enum {
@@ -151,7 +156,8 @@ typedef enum comGamePureProof_e {
 	COM_PURE_PROOF_UNAVAILABLE,
 	COM_PURE_PROOF_QVM,
 	COM_PURE_PROOF_QL_NATIVE,
-	COM_PURE_PROOF_RTCW_NATIVE
+	COM_PURE_PROOF_RTCW_NATIVE,
+	COM_PURE_PROOF_WOLFET_NATIVE
 } comGamePureProof_t;
 
 typedef enum comGameEntityHullPolicy_e {
@@ -246,6 +252,7 @@ int Com_GameIsQuakeLive( void );
 int Com_GameIsRTCW( void );
 int Com_GameIsRTCWSP( void );
 int Com_GameIsRTCWMP( void );
+int Com_GameIsWolfET( void );
 
 /* Map exact supported protocol versions to profile capability bits. */
 unsigned Com_ProtocolFamilyForVersion( int protocol );

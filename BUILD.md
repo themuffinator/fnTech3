@@ -7,8 +7,9 @@ executables.
 
 fnTech3 targets one shared engine distribution for Quake III Arena (`q3`),
 Quake Live (`ql`), and Return to Castle Wolfenstein single player (`rtcw-sp`)
-and multiplayer (`rtcw-mp`). These four profiles share the client, dedicated
-server, and renderer build targets. RTCW remains experimental and is gated in
+and multiplayer (`rtcw-mp`), and Wolfenstein: Enemy Territory (`wolfet`).
+These five profiles share the client, dedicated-server, and renderer build
+targets. RTCW and ET remain experimental and are gated in
 default builds; see [RTCW development profiles](#rtcw-development-profiles).
 A successful build proves compilation and linkage. Each profile must separately
 pass its applicable runtime and interoperability gates in the
@@ -76,6 +77,8 @@ Project Meson options:
 
 `-Drtcw-development=true|false` - enable incomplete RTCW SP/MP adapters in the same shared binaries for isolated development probes; disabled by default
 
+`-Dwolfet-development=true|false` - enable incomplete Enemy Territory dedicated-server adapters for isolated probes; disabled by default; ET client startup remains blocked
+
 `-Drenderer-dlopen=true|false` - build external renderer modules and one unified client executable, enabled by default
 
 `-Drenderers=glx,vk,rtx` - choose which external renderer modules are built; valid entries are exactly `glx`, `vk`, and `rtx`
@@ -121,6 +124,31 @@ Make and CMake use the same pinned FontStash source owned by
 checkout, fetch it with `meson subprojects download fontstash`. Client builds
 fail at configuration time if that retail host-font dependency is unavailable;
 they never silently substitute the incomplete host-font stubs.
+
+### Enemy Territory development profile
+
+Build the shared Windows x86 binaries with:
+
+```powershell
+.\.vscode\build-release.ps1 -Configuration RelWithDebInfo -BuildDir meson\build\win32-dev -Target both -Renderer all -WolfETDevelopment
+```
+
+The Meson equivalent is `-Dwolfet-development=true`; it is independent of the
+RTCW development option and cannot be combined with the Q3-only diagnostic
+build. Default builds reject `wolfet`. Even with the option enabled, the client
+rejects ET until its UI, cgame and renderer boundaries are implemented.
+
+A bounded, loopback-only dedicated probe with an isolated writable home is:
+
+```powershell
+python scripts/probe_wolfet_server.py --server meson/build/win32-dev/fntech3.ded.exe --installation "E:\SteamLibrary\steamapps\common\Wolfenstein Enemy Territory" --output .tmp/wolfet/probe
+```
+
+Supply your own installation path. The probe disables pure mode and optional
+PunkBuster services, loads `goldrush`, queries protocol 84, and exits. Use
+`--map` for another installed map and `--auto` for installation detection.
+This is startup evidence; it does not establish multiplayer interoperability.
+See the [ET gate matrix](docs/fntech3/COMPATIBILITY.md#wolfet-gate-matrix).
 
 ### RTCW development profiles
 

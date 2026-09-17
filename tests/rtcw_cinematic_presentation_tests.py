@@ -225,6 +225,10 @@ int main(){
   selected=&profile;played.integer=seen;skip.integer=bypass;
   com_skipIdLogo=bypass<0?nullptr:&skip;writes.clear();queued.clear();
   Com_QueueIntroCinematics();
+  if(profile.id==COM_GAME_WOLFET){
+   assert(queued==(bypass==1?"":"cinematic etintro.roq\n"));
+   assert(writes.empty()&&played.integer==seen);continue;
+  }
   const bool sp=profile.id==COM_GAME_RTCW_SP,mp=profile.id==COM_GAME_RTCW_MP;
   const std::string intro=sp?"cinematic wolfintro.RoQ 3":mp?"cinematic wolfintro.RoQ":"cinematic intro.RoQ";
   const std::string logo=sp?"":mp?"cinematic gmlogo.RoQ":"cinematic idlogo.RoQ";

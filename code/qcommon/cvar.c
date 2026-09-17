@@ -219,6 +219,15 @@ const char *Cvar_VariableString( const char *var_name ) {
 Cvar_VariableStringBuffer
 ============
 */
+void Cvar_LatchedVariableStringBufferSafe( const char *name, char *buffer, int size, int privateFlags ) {
+	const cvar_t *var = Cvar_FindVar( name );
+	const char *value = "";
+	if ( !buffer || size <= 0 ) return;
+	if ( var && !( var->flags & privateFlags ) )
+		value = var->latchedString ? var->latchedString : var->string;
+	Q_strncpyz( buffer, value, size );
+}
+
 void Cvar_VariableStringBuffer( const char *var_name, char *buffer, int bufsize ) {
 	cvar_t *var;
 	
@@ -2426,7 +2435,7 @@ void Cvar_RegisterRTCW( void *vmCvar, const char *varName, const char *defaultVa
 	fntech3_rtcw_vmCvar_t *destination = (fntech3_rtcw_vmCvar_t *)vmCvar;
 	vmCvar_t internal = { 0 };
 	int translatedFlags;
-	if ( !Com_GameIsRTCW() ) {
+	if ( !Com_GameIsRTCW() && !Com_GameIsWolfET() ) {
 		Com_Error( ERR_DROP, "RTCW cvar registration requires an RTCW profile" );
 		return;
 	}
@@ -2441,7 +2450,7 @@ void Cvar_RegisterRTCW( void *vmCvar, const char *varName, const char *defaultVa
 void Cvar_UpdateRTCW( void *vmCvar, int privateFlag ) {
 	fntech3_rtcw_vmCvar_t *destination = (fntech3_rtcw_vmCvar_t *)vmCvar;
 	vmCvar_t internal = { 0 };
-	if ( !Com_GameIsRTCW() ) {
+	if ( !Com_GameIsRTCW() && !Com_GameIsWolfET() ) {
 		Com_Error( ERR_DROP, "RTCW cvar update requires an RTCW profile" );
 		return;
 	}

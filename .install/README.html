@@ -278,7 +278,7 @@
       <div class="stats">
         <article class="card">
           <strong>Compatibility targets</strong>
-          <p>Quake III Arena, Quake Live, and Return to Castle Wolfenstein (SP/MP)</p>
+          <p>Quake III Arena, Quake Live, Return to Castle Wolfenstein (SP/MP), and Wolfenstein: Enemy Territory</p>
         </article>
         <article class="card">
           <strong>Base version</strong>
@@ -318,7 +318,8 @@
           <p><code>rtcw-mp</code>: experimental; uses the same executable and development option as SP; gated in default builds. Multiplayer interoperability remains open.</p>
         </article>
       </div>
-      <p class="lead">These three games and four profiles define the current project scope. <strong>Full compatibility is not yet established for any profile.</strong> Build and unit results do not replace runtime and retail-interoperability evidence. The <a href="docs/fntech3/COMPATIBILITY.md">compatibility ledger</a> records open gates and observed results.</p>
+      <p class="lead"><strong>Wolfenstein: Enemy Territory</strong>: <code>wolfet</code> (alias <code>et</code>) is experimental. <code>-Dwolfet-development=true</code> permits dedicated probes; ET client startup remains blocked. See the <a href="docs/fntech3/2026-09-17-wolfet-contracts.md">ET implementation record</a>.</p>
+      <p class="lead">These four games and five profiles define the current project scope. <strong>Full compatibility is not yet established for any profile.</strong> Build and unit results do not replace runtime and retail-interoperability evidence. The <a href="docs/fntech3/COMPATIBILITY.md">compatibility ledger</a> records open gates and observed results.</p>
       <p class="lead">RTCW SP and MP are modes of one title. Switching modes relaunches the same executable with a new profile. Development builds have menu, map, and save/load evidence, with remaining limits recorded in the <a href="docs/fntech3/COMPATIBILITY.md#rtcw-gate-matrix">RTCW gate matrix</a>.</p>
       <p class="footer">Supply your own legitimate installation. Retail modules, assets, and proprietary runtimes remain there. Release packages exclude the optional proprietary Steam provider and Valve Steam runtimes. Steam services require a separately supplied compatible provider; unavailable services are reported honestly.</p>
     </section>
@@ -331,7 +332,7 @@
       <div class="feature-grid">
         <article class="feature-group">
           <h3>Unified game compatibility</h3>
-          <p>Profile-owned installation, module ABI, protocol, demo, filesystem, asset, and optional-service contracts for Q3, QL, and RTCW SP/MP, including RTCW campaign and savegame boundaries.</p>
+          <p>Profile-owned installation, module ABI, protocol, demo, filesystem, asset, and optional-service contracts for Q3, QL, RTCW SP/MP, and Enemy Territory, including RTCW campaign and savegame boundaries.</p>
         </article>
         <article class="feature-group">
           <h3>Fast, modern hardware rendering</h3>
@@ -421,7 +422,7 @@
         <article class="doc-column">
           <h3>Technical and build docs</h3>
           <ul>
-            <li><a href="docs/fntech3/COMPATIBILITY.md">Compatibility ledger</a> for all four profiles, observed evidence, open gates, and unified release sign-off.</li>
+            <li><a href="docs/fntech3/COMPATIBILITY.md">Compatibility ledger</a> for all five profiles, observed evidence, open gates, and unified release sign-off.</li>
             <li><a href="https://github.com/themuffinator/fnTech3/blob/main/BUILD.md">Build Guide</a> for compiling fnTech3 locally and enabling experimental RTCW profiles.</li>
             <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/GLX.md">GLx Renderer Guide</a> for the default OpenGL-lineage renderer, diagnostics, and troubleshooting.</li>
             <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/fnql/INPUT_COMPATIBILITY.md">Input Compatibility Notes</a> for retail mouse math, text input, controllers, and legacy profiles.</li>

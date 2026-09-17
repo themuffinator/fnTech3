@@ -24,6 +24,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "netchan_safety.hpp"
 #include "protocol_contract.hpp"
 #include "../compat/rtcw_message_codec.hpp"
+#include "../compat/wolfet_message_codec.hpp"
+#include "../compat/wolfet_state_adapter.hpp"
 #include "../compat/rtcw_state_adapter.hpp"
 
 #include <algorithm>
@@ -156,6 +158,29 @@ qboolean MSG_ReadRTCWCanonical( msg_t *msg, const Internal *from, Internal *to, 
 	return qtrue;
 }
 
+template<class External, class Internal, class Write>
+qboolean MSG_WriteWolfETCanonical( msg_t *msg, const Internal *from, const Internal *to, Write write ) {
+	External baseline{}, sent{};
+	if ( ( from && !fntech3::wolfet::state::FromInternal( *from, baseline ) ) ||
+		( to && !fntech3::wolfet::state::FromInternal( *to, sent ) ) ) {
+		MSG_SetOverflow( msg );
+		return qfalse;
+	}
+	return write( from ? &baseline : nullptr, to ? &sent : nullptr );
+}
+
+template<class External, class Internal, class Read>
+qboolean MSG_ReadWolfETCanonical( msg_t *msg, const Internal *from, Internal *to, Read read ) {
+	External baseline{}, decoded{};
+	if ( !to || ( from && !fntech3::wolfet::state::FromInternal( *from, baseline ) ) ||
+		!read( from ? &baseline : nullptr, &decoded ) ||
+		!fntech3::wolfet::state::ToInternal( decoded, *to ) ) {
+		MSG_SetReadPastEnd( msg );
+		return qfalse;
+	}
+	return qtrue;
+}
+
 } // namespace
 
 qboolean MSG_WriteDeltaRTCWSPUsercmdKey( msg_t *msg, int key,
@@ -222,6 +247,41 @@ qboolean MSG_ReadDeltaRTCWEntity( msg_t *msg, const fntech3_rtcw_entityState_t *
 	using namespace fntech3::rtcw::message;
 	return ReadEntity( io, profile == COM_GAME_RTCW_SP ? Mode::SinglePlayer : Mode::Multiplayer,
 		from, to, number ) ? qtrue : qfalse;
+}
+
+qboolean MSG_WriteDeltaWolfETUsercmdKey( msg_t *msg, int key,
+	const fntech3_wolfet_usercmd_t *from, const fntech3_wolfet_usercmd_t *to ) {
+	RTCWMessageWriter io( msg );
+	return fntech3::wolfet::message::WriteCommand( io, key, from, to ) ? qtrue : qfalse;
+}
+
+qboolean MSG_ReadDeltaWolfETUsercmdKey( msg_t *msg, int key,
+	const fntech3_wolfet_usercmd_t *from, fntech3_wolfet_usercmd_t *to ) {
+	RTCWMessageReader io( msg );
+	return fntech3::wolfet::message::ReadCommand( io, key, from, to ) ? qtrue : qfalse;
+}
+
+qboolean MSG_WriteDeltaWolfETPlayerstate( msg_t *msg,
+	const fntech3_wolfet_playerState_t *from, const fntech3_wolfet_playerState_t *to ) {
+	RTCWMessageWriter io( msg );
+	return fntech3::wolfet::message::WritePlayer( io, from, to ) ? qtrue : qfalse;
+}
+
+qboolean MSG_ReadDeltaWolfETPlayerstate( msg_t *msg,
+	const fntech3_wolfet_playerState_t *from, fntech3_wolfet_playerState_t *to ) {
+	RTCWMessageReader io( msg );
+	return fntech3::wolfet::message::ReadPlayer( io, from, to ) ? qtrue : qfalse;
+}
+
+qboolean MSG_WriteDeltaWolfETEntity(msg_t *msg, const fntech3_wolfet_entityState_t *from,
+    const fntech3_wolfet_entityState_t *to, qboolean force) {
+    RTCWMessageWriter io(msg);
+    return fntech3::wolfet::message::WriteEntity(io, from, to, force != qfalse) ? qtrue : qfalse;
+}
+qboolean MSG_ReadDeltaWolfETEntity(msg_t *msg, const fntech3_wolfet_entityState_t *from,
+    fntech3_wolfet_entityState_t *to, int number) {
+    RTCWMessageReader io(msg);
+    return fntech3::wolfet::message::ReadEntity(io, from, to, number) ? qtrue : qfalse;
 }
 
 /*
@@ -1023,6 +1083,13 @@ MSG_WriteDeltaUsercmdKeyForWireProfile
 qboolean MSG_WriteDeltaUsercmdKeyForWireProfile( msg_t *msg, int key,
 	const usercmd_t *from, const usercmd_t *to,
 	netchanWireProfile_t profile ) {
+	if (profile == NETCHAN_WIRE_WOLFET) {
+		return MSG_WriteWolfETCanonical<fntech3_wolfet_usercmd_t>(msg, from, to,
+			[&](const auto *base, const auto *result) {
+				RTCWMessageWriter io(msg);
+				return fntech3::wolfet::message::WriteCommand(io, key, base, result) ? qtrue : qfalse;
+			});
+	}
 	if ( MSG_IsRTCWWireProfile( profile ) ) {
 		const auto write = [&]( const auto *base, const auto *sent ) {
 			RTCWMessageWriter io( msg );
@@ -1088,6 +1155,13 @@ MSG_ReadDeltaUsercmdKeyForWireProfile
 */
 qboolean MSG_ReadDeltaUsercmdKeyForWireProfile( msg_t *msg, int key,
 	const usercmd_t *from, usercmd_t *to, netchanWireProfile_t profile ) {
+	if (profile == NETCHAN_WIRE_WOLFET) {
+		return MSG_ReadWolfETCanonical<fntech3_wolfet_usercmd_t>(msg, from, to,
+			[&](const auto *base, auto *result) {
+				RTCWMessageReader io(msg);
+				return fntech3::wolfet::message::ReadCommand(io, key, base, result) ? qtrue : qfalse;
+			});
+	}
 	if ( MSG_IsRTCWWireProfile( profile ) ) {
 		const auto read = [&]( const auto *base, auto *decoded ) {
 			RTCWMessageReader io( msg );
@@ -1608,6 +1682,13 @@ identical, under the assumption that the in-order delta code will catch it.
 qboolean MSG_WriteDeltaEntityForWireProfile( msg_t *msg,
 	const entityState_t *from, const entityState_t *to, qboolean force,
 	netchanWireProfile_t profile ) {
+	if (profile == NETCHAN_WIRE_WOLFET) {
+		return MSG_WriteWolfETCanonical<fntech3_wolfet_entityState_t>(msg, from, to,
+			[&](const auto *base, const auto *result) {
+				RTCWMessageWriter io(msg);
+				return fntech3::wolfet::message::WriteEntity(io, base, result, force != qfalse) ? qtrue : qfalse;
+			});
+	}
 	if ( MSG_IsRTCWWireProfile( profile ) ) {
 		return MSG_WriteRTCWCanonical<fntech3_rtcw_entityState_t>( msg, from, to,
 			[&]( const auto *base, const auto *sent ) {
@@ -1742,6 +1823,13 @@ Can go from either a baseline or a previous packet_entity
 qboolean MSG_ReadDeltaEntityForWireProfile( msg_t *msg,
 	const entityState_t *from, entityState_t *to, int number,
 	netchanWireProfile_t profile ) {
+	if (profile == NETCHAN_WIRE_WOLFET) {
+		return MSG_ReadWolfETCanonical<fntech3_wolfet_entityState_t>(msg, from, to,
+			[&](const auto *base, auto *result) {
+				RTCWMessageReader io(msg);
+				return fntech3::wolfet::message::ReadEntity(io, base, result, number) ? qtrue : qfalse;
+			});
+	}
 	if ( MSG_IsRTCWWireProfile( profile ) ) {
 		return MSG_ReadRTCWCanonical<fntech3_rtcw_entityState_t>( msg, from, to,
 			[&]( const auto *base, auto *decoded ) {
@@ -2388,6 +2476,13 @@ MSG_WriteDeltaPlayerstate
 qboolean MSG_WriteDeltaPlayerstateForWireProfile( msg_t *msg,
 	const playerState_t *from, const playerState_t *to,
 	netchanWireProfile_t profile ) {
+	if (profile == NETCHAN_WIRE_WOLFET) {
+		return MSG_WriteWolfETCanonical<fntech3_wolfet_playerState_t>(msg, from, to,
+			[&](const auto *base, const auto *result) {
+				RTCWMessageWriter io(msg);
+				return fntech3::wolfet::message::WritePlayer(io, base, result) ? qtrue : qfalse;
+			});
+	}
 	if ( MSG_IsRTCWWireProfile( profile ) ) {
 		const auto write = [&]( const auto *base, const auto *sent ) {
 			RTCWMessageWriter io( msg );
@@ -2560,6 +2655,13 @@ MSG_ReadDeltaPlayerstate
 qboolean MSG_ReadDeltaPlayerstateForWireProfile( msg_t *msg,
 	const playerState_t *from, playerState_t *to,
 	netchanWireProfile_t profile ) {
+	if (profile == NETCHAN_WIRE_WOLFET) {
+		return MSG_ReadWolfETCanonical<fntech3_wolfet_playerState_t>(msg, from, to,
+			[&](const auto *base, auto *result) {
+				RTCWMessageReader io(msg);
+				return fntech3::wolfet::message::ReadPlayer(io, base, result) ? qtrue : qfalse;
+			});
+	}
 	if ( MSG_IsRTCWWireProfile( profile ) ) {
 		const auto read = [&]( const auto *base, auto *decoded ) {
 			RTCWMessageReader io( msg );

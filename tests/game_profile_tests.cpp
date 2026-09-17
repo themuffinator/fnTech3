@@ -73,7 +73,7 @@ static void TestNativeModuleNames()
 			const auto *profile = Com_GameManagerProfileAt( p );
 			for ( const char *module : { "cgame", "qagame", "ui" } ) {
 				char name[64];
-				const bool rtcw = profile->titleId == COM_GAME_TITLE_RTCW;
+				const bool rtcw = profile->titleId == COM_GAME_TITLE_RTCW || profile->id == COM_GAME_WOLFET;
 				const bool windows = !std::strcmp( host.ext, ".dll" );
 				const std::string arch = rtcw && windows && !std::strcmp( host.arch, "x86_64" )
 					? "x64" : host.arch;
@@ -143,7 +143,7 @@ static void TestNativeModuleNames()
 				assert( root == ( index >= 2 ? 1 : 0 ) );
 				const char *expected = profile == sp
 					? ( index % 2 ? "cgamex86.dll" : "cgame_sp_x86.dll" )
-					: profile->id == COM_GAME_RTCW_MP ? "cgame_mp_x86.dll" : "cgamex86.dll";
+					: (profile->id == COM_GAME_RTCW_MP || profile->id == COM_GAME_WOLFET) ? "cgame_mp_x86.dll" : "cgamex86.dll";
 				assert( !std::strcmp( output, expected ) );
 			} else {
 				assert( root == -7 );
@@ -209,8 +209,8 @@ static void TestNativeModuleCalls()
 
 static void TestManager()
 {
-	assert( Com_GameManagerTitleCount() == 3 );
-	assert( Com_GameManagerProfileCount() == 4 );
+	assert( Com_GameManagerTitleCount() == 4 );
+	assert( Com_GameManagerProfileCount() == 5 );
 	assert( !Com_GameManagerTitleAt( UINT_MAX ) );
 	assert( !Com_GameManagerProfileAt( UINT_MAX ) );
 	assert( !Com_GameManagerProfileAt( Com_GameManagerProfileCount() ) );
@@ -252,7 +252,7 @@ static void TestManager()
 		}
 	}
 	assert( seen == ( COM_GAME_MARKER_QUAKE3 | COM_GAME_MARKER_QUAKELIVE
-		| COM_GAME_MARKER_RTCW_SP | COM_GAME_MARKER_RTCW_MP ) );
+		| COM_GAME_MARKER_RTCW_SP | COM_GAME_MARKER_RTCW_MP | COM_GAME_MARKER_WOLFET ) );
 	const auto *sp = Com_GameProfileById( COM_GAME_RTCW_SP );
 	const auto *mp = Com_GameProfileById( COM_GAME_RTCW_MP );
 	assert( sp == Com_GameManagerFindProfile( "RTCW-SP" ) );
@@ -353,10 +353,10 @@ static void TestBspFormats()
 		assert( Com_GameManagerBspFormat( nullptr, version ) == COM_GAME_BSP_UNSUPPORTED );
 		for ( unsigned p = 0; p < Com_GameManagerProfileCount(); ++p ) {
 			const auto *profile = Com_GameManagerProfileAt( p );
-			const bool rtcw = profile->titleId == COM_GAME_TITLE_RTCW;
+			const bool rtcw = profile->titleId == COM_GAME_TITLE_RTCW || profile->id == COM_GAME_WOLFET;
 			assert( profile->collisionModelHandleCount == ( rtcw ? 512 : 256 ) );
 			const auto expected = version == 47
-				? ( rtcw ? COM_GAME_BSP_RTCW : COM_GAME_BSP_QUAKELIVE )
+				? ( profile->id == COM_GAME_WOLFET ? COM_GAME_BSP_WOLFET : rtcw ? COM_GAME_BSP_RTCW : COM_GAME_BSP_QUAKELIVE )
 				: !rtcw && version == 46 ? COM_GAME_BSP_QUAKE3
 				: !rtcw && version == 43 ? COM_GAME_BSP_QUAKE3_IHV
 				: COM_GAME_BSP_UNSUPPORTED;

@@ -72,19 +72,23 @@ constexpr ServerFlagMapping rtcwServerFlags[] = {
 };
 
 int ServerFlagsToInternal( comGameId_t profile, int flags ) {
-	if ( profile != COM_GAME_RTCW_SP && profile != COM_GAME_RTCW_MP ) return flags;
+	if ( profile != COM_GAME_RTCW_SP && profile != COM_GAME_RTCW_MP && profile != COM_GAME_WOLFET ) return flags;
 	uint32_t result = 0;
 	for ( const auto &bit : rtcwServerFlags ) {
+		if (profile == COM_GAME_WOLFET && (bit.external == FNTECH3_RTCW_SVF_CASTAI ||
+			bit.external == FNTECH3_RTCW_SVF_USE_CURRENT_ORIGIN)) continue;
 		if ( static_cast<uint32_t>( flags ) & bit.external ) result |= bit.internal;
 	}
 	return static_cast<int>( result );
 }
 
 int ServerFlagsFromInternal( comGameId_t profile, int flags, int previous ) {
-	if ( profile != COM_GAME_RTCW_SP && profile != COM_GAME_RTCW_MP ) return flags;
+	if ( profile != COM_GAME_RTCW_SP && profile != COM_GAME_RTCW_MP && profile != COM_GAME_WOLFET ) return flags;
 	// Engine updates must preserve module-owned bits the engine does not know.
 	uint32_t result = static_cast<uint32_t>( previous );
 	for ( const auto &bit : rtcwServerFlags ) {
+		if (profile == COM_GAME_WOLFET && (bit.external == FNTECH3_RTCW_SVF_CASTAI ||
+			bit.external == FNTECH3_RTCW_SVF_USE_CURRENT_ORIGIN)) continue;
 		result &= ~bit.external;
 		if ( static_cast<uint32_t>( flags ) & bit.internal ) result |= bit.external;
 	}
@@ -884,6 +888,8 @@ static intptr_t SV_RTCWGameSharedCall( fntech3::rtcw::module::Call call ) {
 	}
 }
 
+#include "server_wolfet_game.hpp"
+
 static intptr_t SV_GameSystemCalls( intptr_t *args ) {
 
 	// detect infinite loops in QVM code by counting syscalls per VM_Call invocation
@@ -900,6 +906,10 @@ static intptr_t SV_GameSystemCalls( intptr_t *args ) {
 	};
 
 	intptr_t operation = args[0];
+	if (Com_GameIsWolfET()) {
+		intptr_t result = 0;
+		if (SV_WolfETGameCall(args, operation, result)) return result;
+	}
 	if ( Com_GameIsRTCW() ) {
 		using namespace fntech3::rtcw::module;
 		const auto call = Lookup( Com_GameProfile()->id, Module::GAME, Direction::IMPORT, args[0] );
@@ -2857,12 +2867,14 @@ Called every time a map changes
 */
 void SV_ShutdownGameProgs( void ) {
 	if ( !gvm ) {
+		wolfETTagFiles.clear();
 		InvalidateServerGameData();
 		serverEntityOverride.clear();
 		SV_ResetGameCvarRegistration();
 		return;
 	}
 	VM_Call( gvm, 1, GAME_SHUTDOWN, qfalse );
+	wolfETTagFiles.clear();
 	InvalidateServerGameData();
 	VM_Free( gvm );
 	gvm = nullptr;
@@ -3055,6 +3067,11 @@ Called on a normal map change, not on a map_restart
 */
 void SV_InitGameProgs( void ) {
 	cvar_t	*var;
+	if (Com_GameIsWolfET()) {
+		Cvar_Get("sv_punkbuster", "0", CVAR_ROM);
+		Cvar_Set2("sv_punkbuster", "0", qtrue);
+		Com_Printf("WolfET: PunkBuster services are unavailable.\n");
+	}
 	//FIXME these are temp while I make bots run in vm
 	extern int	bot_enable;
 

@@ -49,7 +49,7 @@ uint32_t FnTech3_Q3CvarFlagsToInternal( uint32_t q3Flags ) {
 
 uint32_t FnTech3_RTCWCvarFlagsToInternal( comGameId_t profile, uint32_t flags ) {
 	uint32_t translated = 0;
-	if ( profile != COM_GAME_RTCW_SP && profile != COM_GAME_RTCW_MP ) {
+	if ( profile != COM_GAME_RTCW_SP && profile != COM_GAME_RTCW_MP && profile != COM_GAME_WOLFET ) {
 		return 0;
 	}
 #define RTCW_CVAR_FLAG(name) \
@@ -66,7 +66,7 @@ uint32_t FnTech3_RTCWCvarFlagsToInternal( comGameId_t profile, uint32_t flags ) 
 	RTCW_CVAR_FLAG(CHEAT)
 	RTCW_CVAR_FLAG(NORESTART)
 #undef RTCW_CVAR_FLAG
-	if ( profile == COM_GAME_RTCW_MP && ( flags & FNTECH3_RTCW_MP_CVAR_WOLFINFO ) ) {
+	if ( ( profile == COM_GAME_RTCW_MP || profile == COM_GAME_WOLFET ) && ( flags & FNTECH3_RTCW_MP_CVAR_WOLFINFO ) ) {
 		translated |= CVAR_RTCW_WOLFINFO;
 	}
 	return translated;

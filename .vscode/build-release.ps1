@@ -18,6 +18,7 @@ param(
 	[string]$BuildDir = $(if ($env:FNQL_MESON_BUILD_DIR) { $env:FNQL_MESON_BUILD_DIR } elseif ($env:FNQ3_MESON_BUILD_DIR) { $env:FNQ3_MESON_BUILD_DIR } else { 'meson\build\win32' }),
 	[switch]$SetupOnly,
 	[switch]$RTCWDevelopment,
+	[switch]$WolfETDevelopment,
 	[switch]$RunTests,
 	[switch]$Install,
 	[string]$DestDir = $(if ($env:FNQL_MESON_DESTDIR) { $env:FNQL_MESON_DESTDIR } elseif ($env:FNQ3_MESON_DESTDIR) { $env:FNQ3_MESON_DESTDIR } else { '' }),
@@ -336,6 +337,7 @@ $setupArgs = @(
 	"-Drenderers=$rendererCsv",
 	"-Drenderer-default=$RendererDefault",
 	"-Drtcw-development=$($RTCWDevelopment.IsPresent.ToString().ToLowerInvariant())",
+	"-Dwolfet-development=$($WolfETDevelopment.IsPresent.ToString().ToLowerInvariant())",
 	'-Dzlib:default_library=static',
 	'-Dogg:default_library=static'
 )

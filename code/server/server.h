@@ -62,6 +62,10 @@ typedef enum {
 // so leave more room for slow-snaps clients etc.
 #define NUM_SNAPSHOT_FRAMES (PACKET_BACKUP*4)
 
+// Engine storage covers ET's larger window. Snapshot construction still applies
+// the selected profile's limit, retaining 256 entities for existing profiles.
+#define MAX_SERVER_SNAPSHOT_ENTITIES FNTECH3_WOLFET_MAX_ENTITIES_IN_SNAPSHOT
+
 typedef struct snapshotFrame_s {
 	entityState_t *ents[ MAX_GENTITIES ];
 	int	frameNum;
@@ -114,7 +118,7 @@ typedef struct {
 	int				messageSize;		// used to rate drop packets
 
 	int				frameNum;			// from snapshot storage to compare with last valid
-	entityState_t	*ents[ MAX_SNAPSHOT_ENTITIES ];
+	entityState_t	*ents[ MAX_SERVER_SNAPSHOT_ENTITIES ];
 
 } clientSnapshot_t;
 

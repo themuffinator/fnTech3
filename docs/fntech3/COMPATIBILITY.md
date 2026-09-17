@@ -3,7 +3,7 @@
 ## Unified goal and supported-game scope
 
 fnTech3's goal is one modern id Tech 3 engine distribution and shared executable
-set for three games and four immutable profiles. Shared renderer, audio, input,
+set for four games and five immutable profiles. Shared renderer, audio, input,
 platform, and tooling improvements must preserve each game's own contracts.
 Full compatibility is **not yet established for any profile**.
 
@@ -13,16 +13,25 @@ Full compatibility is **not yet established for any profile**.
 | Quake Live | `ql` / `quakelive` | Enabled; retail client boundary is Windows x86; required gates remain open. |
 | Return to Castle Wolfenstein — single player | `rtcw-sp` | Experimental; default startup gated; `-Drtcw-development=true` permits isolated probes; campaign and broader compatibility gates remain open. |
 | Return to Castle Wolfenstein — multiplayer | `rtcw-mp` | Experimental; same build option and executable as SP; multiplayer and broader compatibility gates remain open. |
+| Wolfenstein: Enemy Territory | `wolfet` / `et` | Experimental; `-Dwolfet-development=true` permits dedicated probes only; client startup remains gated in every build. |
 
 RTCW is one title with two mode profiles. A mode change relaunches the same
 executable; it does not mutate the running process's profile. Catalog
 registration, a development option, or a partial runtime result does not
 establish supported release compatibility. The [Q3/QL matrix](#compatibility-and-gate-matrix)
-and [RTCW matrix](#rtcw-gate-matrix) together define the current unified scope.
+and [RTCW matrix](#rtcw-gate-matrix), plus the [ET matrix](#wolfet-gate-matrix), define the current unified scope.
 Dedicated-server and online-service gates apply according to each profile's
 contract; RTCW SP additionally requires campaign, AI, and save/load evidence.
 
 ## Status
+
+The [ET contract and dedicated-server slice](2026-09-17-wolfet-contracts.md)
+adds a distinct immutable profile, protocol-84 codecs, frozen module records,
+checked server-memory transfers, native game imports, and attachment-tag loading.
+ET is not a supported client release. UI/cgame, MDM/MDX rendering, demos,
+pure admission, gameplay, and bidirectional interoperability remain open. A
+retail ET client reaches an active non-pure spectator session on the experimental
+server and both processes exit normally; the reverse direction remains gated.
 
 The [RoQ bounds and recovery checkpoint](2026-09-17-roq-bounds.md) adds checked
 movie framing, dimensions, codebooks, VQ/motion reads and partial shutdown. It
@@ -957,7 +966,7 @@ Local compatibility work can continue while the account owner resolves it.
 ### Shared release
 
 - Run the full automated suite and supported build matrix on a clean checkout.
-- Run all four profiles from the same packaged binaries with isolated homepaths
+- Run all five profiles from the same packaged binaries with isolated homepaths
   and no file replacement between launches. RTCW's development gate must be
   resolved through evidence before full release compatibility can be claimed.
 - Validate only windowed sessions unless fullscreen permission is explicit.
@@ -994,10 +1003,10 @@ not silently reinterpret these baseline results as proof for subsequent code.
 
 ## Full-compatibility sign-off
 
-The unified goal is complete only when every required row in the Q3/QL and RTCW
-matrices passes at its required evidence level for `q3`, `ql`, `rtcw-sp`, and
-`rtcw-mp`, all applicable blockers and open live gates are closed, and the same
-release artifacts pass:
+The unified goal is complete only when every required row in the Q3/QL, RTCW
+and WolfET matrices passes at its required evidence level for `q3`, `ql`,
+`rtcw-sp`, `rtcw-mp` and `wolfet`, all applicable blockers and open live gates
+are closed, and the same release artifacts pass:
 
 1. automatic and explicit profile selection;
 2. exact module API/ABI and asset loading;
@@ -1013,3 +1022,25 @@ Sign-off must identify the exact release artifacts and evidence bundle. A
 partial profile, one-way client connection, inherited FnQL result, or source
 claim cannot satisfy the goal. A release may make a narrower, explicitly
 documented profile/platform claim, but that does not complete the unified goal.
+
+## WolfET gate matrix
+
+Enemy Territory is the fifth immutable profile and fourth title. Its initial
+[implementation record](2026-09-17-wolfet-contracts.md) separates original-source
+checks, generated packet fixtures and installed dedicated observations.
+
+| Gate | Evidence | Remaining requirement |
+| --- | --- | --- |
+| Profile / identity / discovery | Source, Unit, Live | Default/client gates preserved; broader installs and platforms remain open. |
+| Module ABI / server memory | Source, Unit, Live subset | 1,323 layout/ordinal checks, native qagame startup; full game/UI/cgame surfaces remain open. |
+| Protocol-84 message bodies | Source, Unit, inbound Interop subset | 1,169 original-engine comparisons and inbound retail sessions; full transport and malformed peer behavior remain open. |
+| Filesystem / pure / downloads | Unit, Live subset | Separate etmain/home and native names; pure mode is explicitly unavailable; download/admission gates open. |
+| Assets / collision | Source, Unit, Live subset | Six stock BSPs and installed TAGs load; MDM/MDX/render assets remain open. |
+| Dedicated gameplay / snapshots | Live, inbound Interop subset | All six maps initialize under explicit and auto selection; a retail client reaches CS_ACTIVE, joins Axis/Allies and respawns. Callback visibility, movement/combat/objectives and rotation remain open. |
+| Client / renderer / audio / input | Blocked | Client startup stays gated; no client or visual claim. |
+| Demos / bidirectional interoperability | Inbound Interop subset; demos open | Non-pure retail spectator/team admission connects to fnTech3; reverse direction and ET demo playback remain open. |
+| Optional services | Unavailable | No PunkBuster, authentication or Workshop success is synthesized. |
+
+Build with `-Dwolfet-development=true` only for isolated dedicated probes.
+This option is independent of `-Drtcw-development=true`; neither option closes
+any release gate. Q3/QL/RTCW evidence is not ET evidence.

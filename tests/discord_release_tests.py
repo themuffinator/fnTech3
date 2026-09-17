@@ -148,7 +148,7 @@ class DiscordReleasePayloadTests(unittest.TestCase):
             "https://github.com/themuffinator/FnQL/releases/tag/0.1.0.58-20260728-f35445c9",
         )
         self.assertEqual(embed["timestamp"], "2026-07-28T00:00:00Z")
-        self.assertEqual(embed["footer"], {"text": "fnTech3 | Target: Quake III Arena, Quake Live, and Return to Castle Wolfenstein (SP/MP)"})
+        self.assertEqual(embed["footer"], {"text": "fnTech3 | Target: Quake III Arena, Quake Live, Return to Castle Wolfenstein (SP/MP), and Wolfenstein: Enemy Territory"})
 
     def test_payload_fields_report_version_state_and_ordered_downloads(self) -> None:
         fields = sample_payload()["embeds"][0]["fields"]  # type: ignore[index]

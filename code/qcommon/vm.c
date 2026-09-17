@@ -37,6 +37,7 @@ and one exported function: Perform
 #include "vm_local.h"
 #include "vm_header_bounds.h"
 #include "../compat/rtcw_module_abi.h"
+#include "../compat/wolfet_module_abi.h"
 #include "../compat/rtcw_game_abi.h"
 #include "../game/g_public.h"
 #include "../ui/ui_public.h"
@@ -3070,6 +3071,28 @@ static qboolean VM_PrepareRTCWExport( comGameId_t profile, vmIndex_t index,
 	return qtrue;
 }
 
+static qboolean VM_PrepareWolfETGameExport(vmIndex_t index, int callnum, int nargs, int *output) {
+	if (index != VM_GAME || !output) return qfalse;
+	int minimum = -1;
+	switch (callnum) {
+#define ET_EXPORT(name, count) case name: *output = FNTECH3_WOLFET_##name; minimum = count; break;
+	ET_EXPORT(GAME_INIT, 3)
+	ET_EXPORT(GAME_SHUTDOWN, 1)
+	ET_EXPORT(GAME_CLIENT_CONNECT, 3)
+	ET_EXPORT(GAME_CLIENT_BEGIN, 1)
+	ET_EXPORT(GAME_CLIENT_USERINFO_CHANGED, 1)
+	ET_EXPORT(GAME_CLIENT_DISCONNECT, 1)
+	ET_EXPORT(GAME_CLIENT_COMMAND, 1)
+	ET_EXPORT(GAME_CLIENT_THINK, 1)
+	ET_EXPORT(GAME_RUN_FRAME, 1)
+	ET_EXPORT(GAME_CONSOLE_COMMAND, 0)
+	ET_EXPORT(BOTAI_START_FRAME, 1)
+#undef ET_EXPORT
+	default: return qfalse;
+	}
+	return nargs >= minimum ? qtrue : qfalse;
+}
+
 intptr_t QDECL VM_Call( vm_t *vm, int nargs, int callnum, ... )
 {
 	//vm_t	*oldVM;
@@ -3103,18 +3126,19 @@ intptr_t QDECL VM_Call( vm_t *vm, int nargs, int callnum, ... )
 	}
 #endif
 
-	if ( Com_GameIsRTCW() ) {
+	if ( Com_GameIsRTCW() || Com_GameIsWolfET() ) {
 		int32_t args[MAX_VMMAIN_CALL_ARGS - 1] = { 0 };
 		int externalCall;
 		va_list ap;
 		if ( !vm->entryPoint || vm->dllExports ) {
-			Com_Error( ERR_DROP, "RTCW requires a legacy native module: %s", vm->name );
+			Com_Error( ERR_DROP, "%s requires a legacy native module: %s", Com_GameProfile()->key, vm->name );
 			return 0;
 		}
 		va_start( ap, callnum );
 		for ( i = 0; i < nargs; ++i ) args[i] = va_arg( ap, int32_t );
 		va_end( ap );
-		if ( !VM_PrepareRTCWExport( Com_GameProfile()->id, vm->index, callnum, nargs, args, &externalCall ) ) {
+		if ( !(Com_GameIsWolfET() ? VM_PrepareWolfETGameExport(vm->index, callnum, nargs, &externalCall)
+			: VM_PrepareRTCWExport( Com_GameProfile()->id, vm->index, callnum, nargs, args, &externalCall )) ) {
 			Com_Error( ERR_DROP, "Unsupported %s %s export %d with %d arguments",
 				Com_GameProfile()->key, vm->name, callnum, nargs );
 			return 0;

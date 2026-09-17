@@ -36,17 +36,17 @@ void Cvar_Get(const char *name,const char *value,int){
 ''' + catalog + function + r'''
 int main(){
  for(const auto &p:profiles){
-  profile=&p;bool ql=Com_GameIsQuakeLive(),mp=p.id==COM_GAME_RTCW_MP;
+  profile=&p;bool ql=Com_GameIsQuakeLive(),disabled=p.id==COM_GAME_RTCW_MP||p.id==COM_GAME_WOLFET;
   values.clear();defaults.clear();SV_BotInitCvars();
   assert(values.at("bot_grapple")== (ql?"1":"0"));
   assert(values.at("bot_rocketjump")=="1");
-  assert(values.at("bot_enable")== (mp?"0":"1"));
-  values["bot_enable"]=mp?"1":"0";
+  assert(values.at("bot_enable")== (disabled?"0":"1"));
+  values["bot_enable"]=disabled?"1":"0";
   values["bot_grapple"]=ql?"0":"1";SV_BotInitCvars();
   assert(values.at("bot_grapple")== (ql?"0":"1"));
   assert(defaults.at("bot_grapple")== (ql?"1":"0"));
-  assert(values.at("bot_enable")== (mp?"1":"0"));
-  assert(defaults.at("bot_enable")== (mp?"0":"1"));
+  assert(values.at("bot_enable")== (disabled?"1":"0"));
+  assert(defaults.at("bot_enable")== (disabled?"0":"1"));
  }
 }
 '''

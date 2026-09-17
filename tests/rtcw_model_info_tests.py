@@ -18,12 +18,14 @@ PRELUDE = r'''
 #include "code/cgame/cg_public.h"
 #include "code/renderercommon/tr_types.h"
 #include "code/compat/rtcw_module_abi.h"
+#include "code/compat/wolfet_module_abi.h"
 #include "code/compat/rtcw_game_abi.h"
 #include "code/compat/rtcw_key_adapter.h"
 #include "code/server/server_rtcw_args.hpp"
 #include <cassert>
 static comGameProfile_t profile;
 const comGameProfile_t *Com_GameProfile() { return &profile; }
+int Com_GameIsWolfET(void) { return profile.id == COM_GAME_WOLFET; }
 int Com_GameIsRTCW() { return profile.id == COM_GAME_RTCW_SP || profile.id == COM_GAME_RTCW_MP; }
 void QDECL Com_Error(errorParm_t, const char *, ...) { throw 7; }
 static vm_t game, client;

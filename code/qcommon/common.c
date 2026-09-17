@@ -4059,7 +4059,7 @@ static void Com_InitGameProfile( void ) {
 		Com_Error( ERR_FATAL,
 			"fnTech3 game profile detection failed (%s, evidence: %s). "
 			"Set fs_basepath to the game's installation and select "
-			"+set com_gameProfile quake3|quakelive|rtcw-sp|rtcw-mp.",
+			"+set com_gameProfile quake3|quakelive|rtcw-sp|rtcw-mp|wolfet.",
 			Com_GameDetectionStatusName( detection.status ),
 			Com_GameDetectionEvidenceName( detection.evidence ) );
 	}
@@ -4082,13 +4082,15 @@ static void Com_InitGameProfile( void ) {
 	com_gameProfile->flags &= ~CVAR_USER_CREATED;
 	com_gameProfile->flags |= CVAR_INIT | CVAR_PROTECTED | CVAR_ROM;
 	Cvar_SetDescription( com_gameProfile,
-		"Immutable compatibility profile selected at startup. Use auto, quake3, quakelive, rtcw-sp, or rtcw-mp on the command line." );
+		"Immutable compatibility profile selected at startup. Use auto, quake3, quakelive, rtcw-sp, rtcw-mp, or wolfet on the command line." );
 
 	Com_Printf( "Game profile: %s (%s, detected from %s)\n",
 		detection.profile->displayName, detection.profile->key,
 		Com_GameDetectionEvidenceName( detection.evidence ) );
 	if ( detection.profile->runtimeBlocker ) {
-		Com_Printf( "EXPERIMENTAL RTCW DEVELOPMENT BUILD: %s. Compatibility gates remain open.\n",
+		Com_Printf( Com_GameIsWolfET()
+			? "EXPERIMENTAL WOLFET DEVELOPMENT BUILD: %s. Compatibility gates remain open.\n"
+			: "EXPERIMENTAL RTCW DEVELOPMENT BUILD: %s. Compatibility gates remain open.\n",
 			detection.profile->runtimeBlocker );
 	}
 	Cmd_AddCommand( "gameList", Com_GameList_f );

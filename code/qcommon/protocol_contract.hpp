@@ -32,7 +32,8 @@ enum class Family : std::uint8_t {
 	Ioquake3,
 	QuakeLive,
 	RtcwSinglePlayer,
-	RtcwMultiplayer
+	RtcwMultiplayer,
+	WolfET
 };
 
 /*
@@ -45,7 +46,8 @@ enum class GameMessageLayout : std::uint8_t {
 	Quake3,
 	QuakeLive,
 	RtcwSinglePlayer,
-	RtcwMultiplayer
+	RtcwMultiplayer,
+	WolfET
 };
 
 enum class Capability : std::uint32_t {
@@ -200,10 +202,19 @@ inline constexpr Contract RtcwMultiplayer{
 	QuakeCommands, QuakeInfoKeys, RtcwLimits
 };
 
+inline constexpr Contract WolfET{
+	Family::WolfET, NETCHAN_WOLFET_PROTOCOL_VERSION, NETCHAN_WOLFET_PROTOCOL_VERSION,
+	NETCHAN_WIRE_WOLFET, GameMessageLayout::WolfET,
+	Bit(Capability::ClientQport) | Bit(Capability::ReliableXor) | Bit(Capability::CompressedConnect),
+	QuakeCommands, QuakeInfoKeys,
+	{1400u, 32768u, 8u, 2048u, 256u, 32u}
+};
+
 [[nodiscard]] constexpr const Contract *Find( int protocol,
 	bool legacyCompatibility = false ) noexcept {
 	if ( protocol == RtcwSinglePlayer.protocol ) return &RtcwSinglePlayer;
 	if ( protocol == RtcwMultiplayer.protocol ) return &RtcwMultiplayer;
+	if ( protocol == WolfET.protocol ) return &WolfET;
 	if ( protocol == QuakeLive.protocol ) {
 		return &QuakeLive;
 	}
@@ -222,6 +233,8 @@ inline constexpr Contract RtcwMultiplayer{
 [[nodiscard]] constexpr const Contract *TryForWireProfile(
 	netchanWireProfile_t profile ) noexcept {
 	switch ( profile ) {
+	case NETCHAN_WIRE_WOLFET:
+		return &WolfET;
 	case NETCHAN_WIRE_RTCW_SP:
 		return &RtcwSinglePlayer;
 	case NETCHAN_WIRE_RTCW_MP:

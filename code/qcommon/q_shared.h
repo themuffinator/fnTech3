@@ -1303,6 +1303,7 @@ typedef struct playerState_s {
 	int			externalEventTime;
 	int			armorTier;		// retail Quake Live tiered armor state: 0=green, 1=yellow, 2=red
 	rtcwPlayerStateExtension_t rtcw;
+	struct { int nextWeapon, identifyClientHealth; } wolfet;
 } playerState_t;
 
 
@@ -1346,6 +1347,7 @@ typedef struct usercmd_s {
 	signed char	forwardmove, rightmove, upmove;
 	unsigned short reserved;	// retain the existing 28-byte canonical prefix
 	rtcwUsercmdExtension_t rtcw;
+	struct { unsigned char flags, doubleTap, identClient; } wolfet;
 } usercmd_t;
 
 //===================================================================
@@ -1367,7 +1369,9 @@ typedef enum {
 	TR_RTCW_GRAVITY_FLOAT,
 	TR_RTCW_ACCELERATE,
 	TR_RTCW_DECELERATE,
-	TR_RTCW_GRAVITY_PAUSED
+	TR_RTCW_GRAVITY_PAUSED,
+	TR_WOLFET_SPLINE,
+	TR_WOLFET_LINEAR_PATH
 } trType_t;
 
 typedef struct {
@@ -1434,6 +1438,7 @@ typedef struct entityState_s {
 	int		jumpTime;
 	int		doubleJumped;
 	rtcwEntityStateExtension_t rtcw;
+	struct { int nextWeapon; } wolfet;
 } entityState_t;
 
 typedef enum {

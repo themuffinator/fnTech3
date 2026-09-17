@@ -168,6 +168,20 @@ void MSG_ReportChangeVectors_f( void );
 
 // RTCW message bodies have explicit frozen boundaries. False means overflow,
 // invalid input or truncation; failed reads leave the destination unchanged.
+#include "../compat/wolfet_game_abi.h"
+qboolean MSG_WriteDeltaWolfETUsercmdKey( msg_t *msg, int key,
+	const fntech3_wolfet_usercmd_t *from, const fntech3_wolfet_usercmd_t *to ) ;
+qboolean MSG_ReadDeltaWolfETUsercmdKey( msg_t *msg, int key,
+	const fntech3_wolfet_usercmd_t *from, fntech3_wolfet_usercmd_t *to ) ;
+qboolean MSG_WriteDeltaWolfETPlayerstate( msg_t *msg,
+	const fntech3_wolfet_playerState_t *from, const fntech3_wolfet_playerState_t *to ) ;
+qboolean MSG_ReadDeltaWolfETPlayerstate( msg_t *msg,
+	const fntech3_wolfet_playerState_t *from, fntech3_wolfet_playerState_t *to ) ;
+qboolean MSG_WriteDeltaWolfETEntity(msg_t *msg, const fntech3_wolfet_entityState_t *from,
+    const fntech3_wolfet_entityState_t *to, qboolean force) ;
+qboolean MSG_ReadDeltaWolfETEntity(msg_t *msg, const fntech3_wolfet_entityState_t *from,
+    fntech3_wolfet_entityState_t *to, int number) ;
+
 qboolean MSG_WriteDeltaRTCWSPUsercmdKey( msg_t *msg, int key,
 	const fntech3_rtcw_sp_usercmd_t *from, const fntech3_rtcw_sp_usercmd_t *to );
 qboolean MSG_ReadDeltaRTCWSPUsercmdKey( msg_t *msg, int key,
@@ -717,6 +731,7 @@ int		Cvar_VariableIntegerValue( const char *var_name );
 const char *Cvar_VariableString( const char *var_name );
 void	Cvar_VariableStringBuffer( const char *var_name, char *buffer, int bufsize );
 void	Cvar_VariableStringBufferSafe( const char *var_name, char *buffer, int bufsize, int flag );
+void Cvar_LatchedVariableStringBufferSafe( const char *name, char *buffer, int size, int privateFlags );
 // returns an empty string if not defined
 
 unsigned Cvar_Flags( const char *var_name );
