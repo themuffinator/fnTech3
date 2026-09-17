@@ -222,5 +222,6 @@ WOLFET_TRANSFER(Player, fntech3_wolfet_playerState_t, playerState_t)
 WOLFET_TRANSFER(Command, fntech3_wolfet_usercmd_t, usercmd_t)
 WOLFET_TRANSFER(Trace, fntech3_wolfet_trace_t, trace_t)
 #undef WOLFET_TRANSFER
+
 } // namespace fntech3::wolfet::state
 #endif

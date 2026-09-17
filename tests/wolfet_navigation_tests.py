@@ -47,6 +47,14 @@ int main() {
  static_assert(offsetof(fntech3_wolfet_refdef_t, glfog) == 368, "ET scene fog");
  static_assert(sizeof(fntech3_wolfet_glconfig_t) == 7264, "ET renderer configuration");
 
+ // ET's prediction result carries a world trace Quake's prediction never makes.
+ static_assert(sizeof(fntech3_wolfet_bsp_surface_t) == 24, "ET trace surface");
+ static_assert(sizeof(fntech3_wolfet_cplane_t) == 20, "ET trace plane");
+ static_assert(sizeof(fntech3_wolfet_bsp_trace_t) == 84, "ET world trace");
+ static_assert(sizeof(fntech3_wolfet_aas_clientmove_t) == 128, "ET prediction result");
+ static_assert(offsetof(fntech3_wolfet_aas_clientmove_t, trace) == 24, "ET result trace");
+ static_assert(offsetof(fntech3_wolfet_aas_clientmove_t, frames) == 124, "ET result frames");
+
  // A variable addresses the record's own string and never reaches past its
  // 150 bytes. The record stores a 32-bit address because ET's modules are x86,
  // so the bound check is written in that width rather than the host's.
@@ -133,8 +141,8 @@ class WolfETNavigationTests(unittest.TestCase):
         begin = text.index('bool AAS_WolfETAreaWaypoint(')
         self.assertIn('return false;', text[begin:text.index('\n}\n', begin)])
 
-    def test_coverage_only_leaves_the_prediction_trace(self):
-        """The only open import is the one needing a world trace we do not make."""
+    def test_every_declared_import_is_handled(self):
+        """Only the ordinals retail ET refuses itself may remain unhandled."""
         declared = re.findall(
             r'FNTECH3_WOLFET_MODULE_CALL\(GAME, IMPORT, (\w+), \d+\)',
             _source('code/compat/wolfet_module_calls.def'))
@@ -157,10 +165,9 @@ RETAIL_REFUSES = (
     'BOTLIB_AI_ADD_AVOID_SPOT', 'BOTLIB_AI_SET_AVOID_GOAL_TIME',
 )
 
-# The one import still refused: ET's movement prediction reports a full world
-# trace this engine's prediction does not produce. See
-# docs/fntech3/2026-09-17-wolfet-visibility.md.
-NAVIGATION_RESIDUAL = ('BOTLIB_AAS_PREDICT_CLIENT_MOVEMENT',)
+# Every declared ET game import is now handled; only the ordinals retail ET
+# refuses itself remain.
+NAVIGATION_RESIDUAL = ()
 
 
 if __name__ == '__main__':

@@ -1,6 +1,7 @@
 /* Copyright (C) 2026 fnTech3 contributors. GPL-2.0-or-later. */
 #ifndef FNTECH3_WOLFET_NAVIGATION_H
 #define FNTECH3_WOLFET_NAVIGATION_H
+#include "wolfet_prediction_record.h"
 
 /* Engine-internal ET navigation entry points. They do not extend Quake's
  * botlib export POD and do not expose its structures to ET modules.

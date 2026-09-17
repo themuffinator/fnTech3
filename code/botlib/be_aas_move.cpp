@@ -37,6 +37,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "l_libvar.h"
 #include "aasfile.h"
 #include "botlib.h"
+#include "wolfet_navigation.h"
 #include "be_aas.h"
 #include "be_aas_funcs.h"
 #include "be_aas_def.h"
@@ -1083,6 +1084,8 @@ static int AAS_ClientMovementPrediction( aas_clientmove_t *move,
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
+#include "wolfet_prediction.hpp"
+
 int AAS_PredictClientMovement(aas_clientmove_t *move,
 								int entnum, const vec3_t origin,
 								int presencetype, int onground,

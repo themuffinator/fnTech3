@@ -105,7 +105,9 @@ compile past; those tests pass unchanged otherwise.
 
 ## Remaining gates
 
-One import stays refused. `BOTLIB_AAS_PREDICT_CLIENT_MOVEMENT` returns ET's
+One import stayed refused at this checkpoint; the
+[prediction follow-up](2026-09-17-wolfet-prediction.md) closes it by writing
+ET's loop. `BOTLIB_AAS_PREDICT_CLIENT_MOVEMENT` returns ET's
 `aas_clientmove_t`, which embeds a full world trace carrying a plane, a surface
 and contents. ET produces it because its prediction loop traces with the bot
 library's world trace; this engine's prediction traces client bounding boxes and

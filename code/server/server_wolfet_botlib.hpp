@@ -7,6 +7,7 @@
 #include "../botlib/be_ai_chat.h"
 #include "../botlib/rtcw_navigation.h"
 #include "../botlib/wolfet_navigation.h"
+#include "../botlib/wolfet_prediction_record.h"
 #include "../botlib/be_ai_move.h"
 #include "../compat/wolfet_state_adapter.hpp"
 #include "../botlib/be_ai_weap.h"
@@ -14,6 +15,64 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+
+
+/* ET's prediction result reaches the module as its own record. Every scalar is
+ * checked first, and the surface name is always terminated. Both sides are
+ * frozen: the world trace is 84 bytes and the result 128. */
+static bool SV_WolfETPredictionOutput( const aas_wolfet_clientmove_t &source,
+	fntech3_wolfet_aas_clientmove_t &destination ) {
+	static_assert( sizeof( fntech3_wolfet_bsp_trace_t ) == 84,
+		"ET world trace is a frozen 84-byte record" );
+	static_assert( sizeof( fntech3_wolfet_aas_clientmove_t ) == 128,
+		"ET prediction result is a frozen 128-byte record" );
+	const auto finite = []( float value ) {
+		std::uint32_t bits;
+		std::memcpy( &bits, &value, sizeof( bits ) );
+		return ( bits & 0x7f800000u ) != 0x7f800000u;
+	};
+	const auto vector = [&finite]( const float *values ) {
+		return finite( values[0] ) && finite( values[1] ) && finite( values[2] );
+	};
+	if ( !vector( source.endpos ) || !vector( source.velocity )
+		|| !vector( source.trace.endpos ) || !vector( source.trace.plane.normal )
+		|| !finite( source.trace.fraction ) || !finite( source.trace.plane.dist )
+		|| !finite( source.trace.exp_dist ) || !finite( source.endcontents )
+		|| !finite( source.time ) ) {
+		return false;
+	}
+	destination = {};
+	VectorCopy( source.endpos, destination.endpos );
+	VectorCopy( source.velocity, destination.velocity );
+	destination.trace.allsolid = source.trace.allsolid;
+	destination.trace.startsolid = source.trace.startsolid;
+	destination.trace.fraction = source.trace.fraction;
+	VectorCopy( source.trace.endpos, destination.trace.endpos );
+	VectorCopy( source.trace.plane.normal, destination.trace.plane.normal );
+	destination.trace.plane.dist = source.trace.plane.dist;
+	destination.trace.plane.type = source.trace.plane.type;
+	destination.trace.plane.signbits = source.trace.plane.signbits;
+	destination.trace.exp_dist = source.trace.exp_dist;
+	destination.trace.sidenum = source.trace.sidenum;
+	std::size_t length = 0;
+	while ( length + 1 < sizeof( destination.trace.surface.name )
+		&& length < sizeof( source.trace.surface.name )
+		&& source.trace.surface.name[length] ) {
+		destination.trace.surface.name[length] = source.trace.surface.name[length];
+		++length;
+	}
+	destination.trace.surface.name[length] = '\0';
+	destination.trace.surface.flags = source.trace.surface.flags;
+	destination.trace.surface.value = source.trace.surface.value;
+	destination.trace.contents = source.trace.contents;
+	destination.trace.ent = source.trace.ent;
+	destination.presencetype = source.presencetype;
+	destination.stopevent = source.stopevent;
+	destination.endcontents = source.endcontents;
+	destination.time = source.time;
+	destination.frames = source.frames;
+	return true;
+}
 
 /* ET elementary-action and AI-state imports. ET repeats RTCW MP's argument
  * contracts for these ordinals and adds EA_Walk, EA_Prone and the fifteenth
@@ -939,6 +998,28 @@ static bool SV_WolfETNavigationCall( const vm_t *vm, fntech3::wolfet::module::Ca
 			danger.data(), SV_RTCWInteger( args[6] ), SV_RTCWFloat( args[7] ),
 			SV_RTCWFloat( args[8] ), SV_RTCWInteger( args[9] ) );
 		if ( result < 0 ) Com_Error( ERR_DROP, "Invalid WolfET retreat area" );
+		return true;
+	}
+	case Call::BOTLIB_AAS_PREDICT_CLIENT_MOVEMENT: {
+		auto *destination = SV_RTCWPointer( vm, args[1],
+			sizeof( fntech3_wolfet_aas_clientmove_t ) );
+		auto origin = SV_RTCWVector( vm, args[3] );
+		auto velocity = SV_RTCWVector( vm, args[6] );
+		auto command = SV_RTCWVector( vm, args[7] );
+		// ET names the fourth argument presencetype in its trap but passes it
+		// as the entity its hit-entity stop watches for.
+		aas_wolfet_clientmove_t predicted{};
+		result = AAS_WolfETPredictClientMovement( &predicted, SV_RTCWInteger( args[2] ),
+			origin.data(), SV_RTCWInteger( args[4] ), SV_RTCWInteger( args[5] ),
+			velocity.data(), command.data(), SV_RTCWInteger( args[8] ),
+			SV_RTCWInteger( args[9] ), SV_RTCWFloat( args[10] ),
+			SV_RTCWInteger( args[11] ), SV_RTCWInteger( args[12] ) );
+		// The thirteenth argument only drives the original's debug drawing.
+		SV_RTCWInteger( args[13] );
+		fntech3_wolfet_aas_clientmove_t output{};
+		if ( !SV_WolfETPredictionOutput( predicted, output ) )
+			Com_Error( ERR_DROP, "Invalid WolfET movement prediction" );
+		std::memcpy( destination, &output, sizeof( output ) );
 		return true;
 	}
 	case Call::BOTLIB_AAS_RECORDTEAMDEATHAREA:

@@ -139,6 +139,40 @@ typedef struct {
 	int32_t dataCount;
 } fntech3_wolfet_gameState_t;
 
+/* ET's prediction result, independently declared from its game/be_aas.h and
+ * game/botlib.h. The embedded trace is a world trace: Quake's prediction
+ * reports a navigation trace with none of these fields. */
+typedef struct {
+	char name[16];
+	int32_t flags, value;
+} fntech3_wolfet_bsp_surface_t;
+
+typedef struct {
+	float normal[3];
+	float dist;
+	uint8_t type, signbits, pad[2];
+} fntech3_wolfet_cplane_t;
+
+typedef struct {
+	int32_t allsolid, startsolid;
+	float fraction;
+	float endpos[3];
+	fntech3_wolfet_cplane_t plane;
+	float exp_dist;
+	int32_t sidenum;
+	fntech3_wolfet_bsp_surface_t surface;
+	int32_t contents, ent;
+} fntech3_wolfet_bsp_trace_t;
+
+typedef struct {
+	float endpos[3];
+	float velocity[3];
+	fntech3_wolfet_bsp_trace_t trace;
+	int32_t presencetype, stopevent;
+	float endcontents, time;
+	int32_t frames;
+} fntech3_wolfet_aas_clientmove_t;
+
 /* ET renderer records, independently declared from its cgame/tr_types.h and
  * game/q_shared.h. ET's reference entity carries a torso skeleton, per-frame
  * model handles and fire/fade fields that Quake's does not, and its scene
