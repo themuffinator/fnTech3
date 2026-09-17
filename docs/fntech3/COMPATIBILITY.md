@@ -68,7 +68,10 @@ end to end. The [navigation follow-up](2026-09-17-wolfet-navigation.md) raises
 handled ET game imports to 198 of 212, corrects a blocking-entity rule the
 retail game module reaches, and adds ET's chat-match record. The six still
 refused each need navigation data or trace results this engine does not
-produce.
+produce. The [redirected-download record](2026-09-17-wolfet-web-downloads.md)
+adds ET's server-side www download: the redirect message, the fallback URL and
+the client progress protocol, kept unknown to the other four profiles. No ET
+download has been transferred over any path.
 
 The [RoQ bounds and recovery checkpoint](2026-09-17-roq-bounds.md) adds checked
 movie framing, dimensions, codebooks, VQ/motion reads and partial shutdown. It
@@ -1074,7 +1077,7 @@ checks, generated packet fixtures and installed dedicated observations.
 | Profile / identity / discovery | Source, Unit, Live | Default/client gates preserved; broader installs and platforms remain open. |
 | Module ABI / server memory | Source, Unit, Live subset | 1,326 layout/constant/ordinal checks, native qagame startup, and 198 of 212 game imports handled including every import the retail game module issues; see the [import](2026-09-17-wolfet-game-imports.md) and [navigation](2026-09-17-wolfet-navigation.md) records. Six routing and prediction imports, plus the full UI/cgame surfaces, remain open. |
 | Protocol-84 message bodies | Source, Unit, inbound Interop subset | 1,169 original-engine comparisons and inbound retail sessions; full transport and malformed peer behavior remain open. |
-| Filesystem / pure / downloads | Unit, Live, inbound Interop subset | Separate etmain/home and native names. Pure admission now works: a retail client passes the proof, reaches CS_ACTIVE and joins both teams on all six stock maps; see the [pure record](2026-09-17-wolfet-pure.md). The official-pak refusal is now profile-owned and covers etmain and mp_bin; see the [download correction](2026-09-17-wolfet-downloads.md). Broader maps and mods, gamestate-overflow fallback, transferred downloads, the www redirect and the reverse direction remain open. |
+| Filesystem / pure / downloads | Unit, Live, inbound Interop subset | Separate etmain/home and native names. Pure admission now works: a retail client passes the proof, reaches CS_ACTIVE and joins both teams on all six stock maps; see the [pure record](2026-09-17-wolfet-pure.md). The official-pak refusal is now profile-owned and covers etmain and mp_bin; see the [download correction](2026-09-17-wolfet-downloads.md), and the www redirect has source and unit evidence; see the [redirect record](2026-09-17-wolfet-web-downloads.md). Broader maps and mods, gamestate-overflow fallback, any transferred download and the reverse direction remain open. |
 | Assets / collision | Source, Unit, Live subset | Six stock BSPs and installed TAGs load; MDM/MDX/render assets remain open. |
 | Dedicated gameplay / snapshots | Source, Unit, Live, inbound Interop subset | All six maps initialize under explicit and auto selection; a retail client reaches CS_ACTIVE, joins Axis/Allies, respawns and receives replies to two objective-camera requests. [Callbacks/proxies](2026-09-17-wolfet-snapshots.md) and [viewpoints/server capacity](2026-09-17-wolfet-viewpoints.md) pass executable regressions. A retail client also spawns, moves about 250 units and follows a goldrush-to-battery map change under pure admission; see the [gameplay record](2026-09-17-wolfet-gameplay.md). Live landmine/proxy/brush/lean visibility, rendered cameras, dense retail exchanges, movement parity, combat and objectives remain open. |
 | Client / renderer / audio / input | Blocked | Client startup stays gated; no client or visual claim. |

@@ -52,6 +52,10 @@ cvar_t	*sv_masterAdvertise;
 cvar_t	*sv_master[MAX_MASTER_SERVERS];		// master server ip address
 cvar_t	*sv_reconnectlimit;		// minimum seconds between connect messages
 cvar_t	*sv_tempbanmessage;	// ET temporary-ban rejection text
+cvar_t	*sv_wwwDownload;		// ET redirected downloads
+cvar_t	*sv_wwwBaseURL;
+cvar_t	*sv_wwwDlDisconnected;
+cvar_t	*sv_wwwFallbackURL;
 cvar_t	*sv_padPackets;			// add nop bytes to messages
 cvar_t	*sv_killserver;			// menu system can set to 1 to shut server down
 cvar_t	*sv_mapname;

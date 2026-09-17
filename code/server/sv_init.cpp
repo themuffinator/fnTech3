@@ -1080,6 +1080,10 @@ void SV_Init( void )
 		sv_showloss = nullptr;
 	}
 
+	sv_wwwDownload = Cvar_Get( "sv_wwwDownload", "0", CVAR_ARCHIVE );
+	sv_wwwBaseURL = Cvar_Get( "sv_wwwBaseURL", "", CVAR_ARCHIVE );
+	sv_wwwDlDisconnected = Cvar_Get( "sv_wwwDlDisconnected", "0", CVAR_ARCHIVE );
+	sv_wwwFallbackURL = Cvar_Get( "sv_wwwFallbackURL", "", CVAR_ARCHIVE );
 	sv_tempbanmessage = Cvar_Get( "sv_tempbanmessage",
 		"You have been kicked and are temporarily banned from joining this server.", 0 );
 	sv_padPackets = Cvar_Get( "sv_padPackets", "0", CVAR_DEVELOPER );

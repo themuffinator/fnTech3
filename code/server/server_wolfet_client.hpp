@@ -34,9 +34,22 @@ struct BinaryMessage {
 	std::array<char, MaxBinaryMessage> data{};
 };
 
+/* ET's redirected-download state. The original keeps these on its client_t;
+ * they stay engine-internal here so no other profile's client widens. */
+struct WebDownload {
+	bool capable = false;      // client advertised cl_wwwDownload
+	bool redirected = false;   // a redirect message was sent for this file
+	bool transferring = false; // client acknowledged and is fetching
+	bool fallback = false;     // last redirect failed, use the block transfer
+	unsigned notify = 0;       // one-shot console notices, see NotifyAll
+};
+
+enum { NotifyRedirect = 0x1, NotifyBegin = 0x2, NotifyAll = 0x3 };
+
 struct State {
 	std::array<TempBan, MaxTempBans> bans{};
 	std::array<BinaryMessage, FNTECH3_WOLFET_MAX_CLIENTS> messages{};
+	std::array<WebDownload, FNTECH3_WOLFET_MAX_CLIENTS> downloads{};
 };
 
 inline State &Storage() {
@@ -54,6 +67,15 @@ inline void Reset() {
 		message.overflowed = false;
 		message.data.fill( '\0' );
 	}
+	state.downloads.fill( WebDownload{} );
+}
+
+inline WebDownload *Download( int client ) {
+	if ( !Com_GameIsWolfET() || !svs.clients || client < 0 || client >= sv_maxclients->integer
+		|| client >= FNTECH3_WOLFET_MAX_CLIENTS ) {
+		return nullptr;
+	}
+	return &Storage().downloads[client];
 }
 
 // Original ET stores svs.time + length * 1000 without checking the product.

@@ -2491,11 +2491,119 @@ static void SV_BeginDownload_f( client_t *cl ) {
 
 	cl->downloading = qtrue;
 
+	if ( Com_GameIsWolfET() ) {
+		// Each file gets its own one-shot console notices and redirect state.
+		if ( auto *web = fntech3::wolfet::server::Download( SV_ClientIndex( cl ) ) ) {
+			web->redirected = false;
+			web->transferring = false;
+			web->notify = fntech3::wolfet::server::NotifyAll;
+		}
+	}
+
 	if ( cl->gamestateAck == GSA_ACKED ) {
 		cl->gamestateAck = GSA_SENT_ONCE;
 	}
 }
 
+
+/*
+==================
+SV_WolfETSendRedirect
+
+Writes ET's redirect form of svc_download: a -1 block, the URL, the file size
+and the flag word. A zero size and the URL-only flag mark the fallback URL.
+==================
+*/
+static void SV_WolfETSendRedirect( client_t *cl, std::array<byte, MAX_DOWNLOAD_BLKSIZE * 2 + 8> &buffer,
+	const char *url, int size, int flags )
+{
+	msg_t msg;
+	MSG_Init( &msg, buffer.data(), static_cast<int>( buffer.size() ) - 8 );
+	MSG_WriteLong( &msg, cl->lastClientCommand );
+	SV_UpdateServerCommandsToClient( cl, &msg );
+	MSG_WriteByte( &msg, svc_download );
+	MSG_WriteShort( &msg, -1 );
+	MSG_WriteString( &msg, url );
+	MSG_WriteLong( &msg, size );
+	MSG_WriteLong( &msg, flags );
+	SV_SendMessageToClient( &msg, cl );
+}
+
+/*
+==================
+SV_WolfETWriteDownloadRedirect
+
+ET hands a capable client a URL instead of blocks. Returns true when a redirect
+message was sent, in which case no block transfer starts for this attempt.
+==================
+*/
+static bool SV_WolfETWriteDownloadRedirect( client_t *cl,
+	std::array<byte, MAX_DOWNLOAD_BLKSIZE * 2 + 8> &buffer )
+{
+	using namespace fntech3::wolfet::server;
+	if ( !Com_GameIsWolfET() || !sv_wwwDownload->integer ) {
+		return false;
+	}
+	auto *web = Download( SV_ClientIndex( cl ) );
+	if ( !web ) {
+		return false;
+	}
+
+	// The fallback URL replaces every strategy while it is configured.
+	const auto fallbackUrl = [&]() -> bool {
+		if ( !sv_wwwFallbackURL->string || !sv_wwwFallbackURL->string[0] ) {
+			return false;
+		}
+		Com_Printf( "clientDownload: sending client '%s' to fallback URL '%s'\n",
+			cl->name, sv_wwwFallbackURL->string );
+		// Size zero with flag bit one tells the client this is a plain URL.
+		SV_WolfETSendRedirect( cl, buffer, sv_wwwFallbackURL->string, 0, 2 );
+		return true;
+	};
+
+	if ( !web->capable ) {
+		if ( fallbackUrl() ) return true;
+		Com_Printf( "Client '%s' is not configured for www download\n", cl->name );
+		return false;
+	}
+
+	if ( web->fallback ) {
+		// One failed redirect sends this file the ordinary way, then the flag
+		// clears so a later file can be redirected again.
+		web->fallback = false;
+		if ( fallbackUrl() ) return true;
+		Com_Printf( "Client '%s': falling back to regular downloading for failed file %s\n",
+			cl->name, cl->downloadName );
+		return false;
+	}
+
+	fileHandle_t handle = FS_INVALID_HANDLE;
+	const int size = FS_SV_FOpenFileRead( cl->downloadName, &handle );
+	if ( handle != FS_INVALID_HANDLE ) FS_FCloseFile( handle );
+	if ( size <= 0 ) {
+		Com_Printf( "ERROR: Client '%s': couldn't extract file size for %s\n",
+			cl->name, cl->downloadName );
+		return false;
+	}
+
+	if ( !sv_wwwBaseURL->string || !sv_wwwBaseURL->string[0] ) {
+		Com_Printf( "ERROR: sv_wwwDownload is enabled but sv_wwwBaseURL is empty\n" );
+		return false;
+	}
+
+	std::array<char, MAX_OSPATH> url{};
+	Com_sprintf( url.data(), static_cast<int>( url.size() ), "%s/%s",
+		sv_wwwBaseURL->string, cl->downloadName );
+	if ( web->notify & NotifyRedirect ) {
+		web->notify &= ~NotifyRedirect;
+		Com_Printf( "Redirecting client '%s' to %s\n", cl->name, url.data() );
+	}
+	web->redirected = true;
+	// DL_FLAG_DISCON is bit zero: the client may disconnect while fetching.
+	SV_WolfETSendRedirect( cl, buffer, url.data(), size,
+		sv_wwwDlDisconnected->integer ? ( 1 << 0 ) : 0 );
+	return true;
+}
 
 /*
 ==================
@@ -2509,6 +2617,11 @@ global download throttle (zero when no packet was sent).
 static int SV_WriteDownloadToClient( client_t *cl )
 {
 	int curindex;
+	// ET stops writing while the client fetches the file itself.
+	if ( Com_GameIsWolfET() ) {
+		const auto *web = fntech3::wolfet::server::Download( SV_ClientIndex( cl ) );
+		if ( web && web->transferring ) return 0;
+	}
 	const int downloadWindow = SV_DownloadWindow( cl );
 	const int downloadBlockBytes = SV_DownloadBlockBytes( cl );
 	int unreferenced = 1;
@@ -2559,6 +2672,12 @@ static int SV_WriteDownloadToClient( client_t *cl )
 		}
 
 		cl->download = FS_INVALID_HANDLE;
+
+		// ET can hand the client a URL instead of blocks. A refused or failed
+		// redirect falls through to the ordinary transfer below.
+		if ( !idPack && !unreferenced && SV_WolfETWriteDownloadRedirect( cl, msgBuffer ) ) {
+			return 0;
+		}
 
 		// We open the file here
 		if ( !(sv_allowDownload->integer & DLF_ENABLE) ||
@@ -3036,6 +3155,14 @@ void SV_UserinfoChanged( client_t *cl, qboolean updateUserinfo, qboolean runFilt
 		return;
 	}
 
+	if ( Com_GameIsWolfET() ) {
+		// ET learns whether a client can fetch files itself from its userinfo.
+		if ( auto *web = fntech3::wolfet::server::Download( SV_ClientIndex( cl ) ) ) {
+			val = Info_ValueForKey( cl->userinfo, "cl_wwwDownload" );
+			web->capable = val[0] != 0 && atoi( val ) != 0;
+		}
+	}
+
 	// rate command
 
 	// if the client is on the same subnet as the server and we aren't running an
@@ -3237,7 +3364,70 @@ struct ucmd_t {
 	void (*func)( client_t *cl );
 };
 
-static constexpr std::array<ucmd_t, 9> ucmds = {{
+/*
+==================
+SV_WolfETWebDownload_f
+
+ET's clients report the progress of a redirected download through this command.
+Anything unexpected drops that client, as the original does.
+==================
+*/
+static void SV_WolfETWebDownload_f( client_t *cl ) {
+	using namespace fntech3::wolfet::server;
+	auto *web = Download( SV_ClientIndex( cl ) );
+	const char *subcmd = Cmd_Argv( 1 );
+
+	if ( !web || !web->redirected ) {
+		Com_Printf( "SV_WWWDownload: unexpected wwwdl '%s' for client '%s'\n", subcmd, cl->name );
+		SV_DropClient( cl, va( "SV_WWWDownload: unexpected wwwdl %s", subcmd ) );
+		return;
+	}
+
+	if ( !Q_stricmp( subcmd, "ack" ) ) {
+		if ( web->transferring ) {
+			Com_Printf( "WARNING: dupe wwwdl ack from client '%s'\n", cl->name );
+		}
+		web->transferring = true;
+		return;
+	}
+	if ( !Q_stricmp( subcmd, "bbl8r" ) ) {
+		SV_DropClient( cl, "acking disconnected download mode" );
+		return;
+	}
+
+	if ( !web->transferring ) {
+		Com_Printf( "SV_WWWDownload: unexpected wwwdl '%s' for client '%s'\n", subcmd, cl->name );
+		SV_DropClient( cl, va( "SV_WWWDownload: unexpected wwwdl %s", subcmd ) );
+		return;
+	}
+
+	if ( !Q_stricmp( subcmd, "done" ) ) {
+		SV_CloseDownload( cl );
+		cl->downloadName[0] = '\0';
+		web->transferring = false;
+		return;
+	}
+	if ( !Q_stricmp( subcmd, "fail" ) || !Q_stricmp( subcmd, "chkfail" ) ) {
+		if ( !Q_stricmp( subcmd, "chkfail" ) ) {
+			Com_Printf( "WARNING: client '%s' reports that the redirect download for '%s' had wrong checksum.\n",
+				cl->name, cl->downloadName );
+			Com_Printf( "         you should check your download redirect configuration.\n" );
+		}
+		SV_CloseDownload( cl );
+		cl->downloadName[0] = '\0';
+		web->transferring = false;
+		// The next attempt uses the ordinary block transfer.
+		web->fallback = true;
+		SV_SendClientGameState( cl );
+		return;
+	}
+
+	Com_Printf( "SV_WWWDownload: unknown wwwdl subcommand '%s' for client '%s'\n", subcmd, cl->name );
+	SV_DropClient( cl, va( "SV_WWWDownload: unknown wwwdl subcommand '%s'", subcmd ) );
+}
+
+static constexpr std::array<ucmd_t, 10> ucmds = {{
+	{"wwwdl", SV_WolfETWebDownload_f},
 	{"userinfo", SV_UpdateUserinfo_f},
 	{"disconnect", SV_Disconnect_f},
 	{"cp", SV_VerifyPaks_f},
@@ -3252,9 +3442,16 @@ static constexpr std::array<ucmd_t, 9> ucmds = {{
 static const ucmd_t *SV_FindClientCommand( const char *name )
 {
 	for ( const auto &ucmd : ucmds ) {
-		if ( !strcmp( name, ucmd.name ) ) {
-			return &ucmd;
+		if ( strcmp( name, ucmd.name ) ) {
+			continue;
 		}
+		// Only ET has a redirected-download protocol. Under any other profile
+		// this name stays unknown to the engine and reaches the game module,
+		// exactly as it did before ET was added.
+		if ( !strcmp( ucmd.name, "wwwdl" ) && !Com_GameIsWolfET() ) {
+			return nullptr;
+		}
+		return &ucmd;
 	}
 	return nullptr;
 }

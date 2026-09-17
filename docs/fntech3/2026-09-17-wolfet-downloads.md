@@ -82,9 +82,11 @@ which is staged separately from a retail installation and is still open.
 
 ## Remaining gates
 
-- No ET download has been transferred end to end, over UDP or HTTP. ET's
-  `sv_wwwDownload` redirect, its `sv_wwwFallbackURL` behaviour and its
-  disconnected-download flag are unimplemented and untested.
+- No ET download has been transferred end to end, over UDP or HTTP. The
+  `sv_wwwDownload` redirect, `sv_wwwFallbackURL` and the disconnected-download
+  flag are implemented by the
+  [redirect record](2026-09-17-wolfet-web-downloads.md) with source and unit
+  evidence, but nothing has been transferred over them either.
 - RTCW's newly effective refusal has source and unit evidence only; no retail
   RTCW client run was made.
 - Everything else in the [ET matrix](COMPATIBILITY.md#wolfet-gate-matrix)
