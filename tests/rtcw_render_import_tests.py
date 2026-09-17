@@ -173,8 +173,18 @@ CHECKS = r'''
 static intptr_t Ptr(const void *value) { return reinterpret_cast<intptr_t>(value); }
 static intptr_t Float(float value) { int32_t bits; std::memcpy(&bits, &value, 4); return bits; }
 static void Allow(const void *address, std::size_t bytes) { ranges.emplace_back(reinterpret_cast<uintptr_t>(address), bytes); }
+struct ForgetRange {
+    void operator()(unsigned char *data) const {
+        const auto start = reinterpret_cast<uintptr_t>(data + 1);
+        ranges.erase(std::remove_if(ranges.begin(), ranges.end(),
+            [start](const auto &range) { return range.first == start; }), ranges.end());
+        delete[] data;
+    }
+};
 template<class T> static auto Unaligned(const T &value) {
-    auto data = std::make_unique<unsigned char[]>(sizeof(T) + 1);
+    // Do not leave freed allocations in the synthetic VM's accessible ranges.
+    // Reuse of a larger stale range made bounds-rejection checks intermittent.
+    auto data = std::unique_ptr<unsigned char[], ForgetRange>(new unsigned char[sizeof(T) + 1]);
     data[0] = 0xe5; std::memcpy(data.get() + 1, &value, sizeof(T));
     Allow(data.get() + 1, sizeof(T)); return data;
 }
@@ -186,10 +196,13 @@ static intptr_t Invoke(Module module, Call call, std::initializer_list<intptr_t>
     std::copy(values.begin(), values.end(), args.get() + 1);
     return module == Module::CGAME ? CL_CgameSystemCalls(args.get()) : CL_UISystemCalls(args.get());
 }
-template<class F> static void Reject(F action, bool backendMayRun = false) {
+template<class F> static void Reject(F action, bool backendMayRun = false, int line = __builtin_LINE()) {
     const int before = backendCalls;
     bool rejected = false; try { action(); } catch (int) { rejected = true; }
-    assert(rejected && (backendMayRun || before == backendCalls));
+    if (!rejected || (!backendMayRun && before != backendCalls)) {
+        std::fprintf(stderr, "Rejection contract failed at probe.cpp:%d\n", line);
+        std::abort();
+    }
 }
 template<class E, class V> static void Mode(comGameId_t id) {
     profile.id = id;
@@ -248,6 +261,7 @@ template<class E, class V> static void Mode(comGameId_t id) {
         Reject([&]{Invoke(Module::CGAME,call,{Ptr(output.data()+MAX_TOKEN_CHARS+2),4});});
         if(sizeof(intptr_t)>4)Reject([&]{Invoke(Module::CGAME,call,{Ptr(output.data()+1),static_cast<intptr_t>(INT64_C(0x100000000))});});
     }
+    ranges.resize(4); // The token output buffer has left scope.
     for (int surface : {INT_MIN, -1, 0, 1, INT_MAX}) for (int lightmap : {INT_MIN, -1, 0, 1, INT_MAX}) {
         assert(Invoke(Module::CGAME, Call::CG_R_GETMODELSHADER, {317, surface, lightmap}) == 731 && lastOperation == 17);
         assert((modelShaderArgs == std::array<int,3>{317, surface, lightmap}));

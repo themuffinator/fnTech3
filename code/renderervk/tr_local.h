@@ -55,6 +55,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderercommon/tr_ql_cvars.h"
 #include "../renderercommon/tr_global_fog.h"
 #include "../renderercommon/tr_rtcw_fog_view.h"
+#include "../renderercommon/tr_rtcw_world_shader.h"
 #include "../renderercommon/tr_liquid.h"
 #include "../renderercommon/tr_underwater.h"
 #include "tr_common.h"
@@ -527,6 +528,7 @@ typedef struct shader_s {
 
 	qboolean	isSky;
 	skyParms_t	sky;
+	fnRTCWWorldShader_t rtcwWorld;
 	qboolean	skySunValid;
 	vec3_t		skySunColor;
 	vec3_t		skySunDirection;
@@ -2018,6 +2020,7 @@ typedef struct {
 	shader_t *rtcwSpotFlareShader;
 	shader_t				*lensFlareShader;
 	shader_t				*sunShader;
+	fnRTCWWorldShader_t rtcwWorld;
 
 	int						numLightmaps;
 	image_t					**lightmaps;

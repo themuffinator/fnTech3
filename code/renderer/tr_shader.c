@@ -2115,6 +2115,12 @@ static qboolean ParseShader( const char **text )
 			return qfalse;
 		}
 		if ( rtcwFogDirective ) continue;
+		rtcwFogDirective = FnRTCWWorldShaderDirective( ri.gameId, token, text, &shader.rtcwWorld );
+		if ( rtcwFogDirective < 0 ) {
+			ri.Printf( PRINT_WARNING, "WARNING: invalid RTCW world directive in shader %s\n", shader.name );
+			return qfalse;
+		}
+		if ( rtcwFogDirective ) continue;
 		// end of shader definition
 		if ( token[0] == '}' )
 		{

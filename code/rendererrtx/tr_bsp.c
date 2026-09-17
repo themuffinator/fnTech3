@@ -140,6 +140,8 @@ static void R_SetWorldSunFromShader( const shader_t *shader )
 {
 	vec3_t directionToSun;
 
+	if ( shader && ( ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP ) )
+		FnRTCWWorldShaderMerge( &tr.rtcwWorld, &shader->rtcwWorld );
 	if ( !shader || !shader->skySunValid || shader->skySunIntensity <= 0.0f ) {
 		return;
 	}
@@ -3930,6 +3932,8 @@ void RE_LoadWorldMap( const char *name ) {
 
 	// Reset the authored world sun before used BSP sky shaders select it.
 	R_ClearWorldSun();
+	Com_Memset( &tr.rtcwWorld, 0, sizeof( tr.rtcwWorld ) );
+	if ( ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP ) tr.sunShader = NULL;
 
 	tr.worldMapLoaded = qtrue;
 
@@ -4038,6 +4042,9 @@ void RE_LoadWorldMap( const char *name ) {
 	R_LoadVisibility( &header->lumps[LUMP_VISIBILITY] );
 	R_LoadEntities( &header->lumps[LUMP_ENTITIES] );
 	R_LoadLightGrid( &header->lumps[LUMP_LIGHTGRID] );
+	// Resolve after all material parsing: R_FindShader owns shared parser scratch.
+	if ( tr.rtcwWorld.sunShader[0] )
+		tr.sunShader = R_FindShader( tr.rtcwWorld.sunShader, LIGHTMAP_NONE, qtrue );
 
 #ifdef USE_VBO
 	R_BuildWorldVBO( s_worldData.surfaces, s_worldData.numsurfaces );

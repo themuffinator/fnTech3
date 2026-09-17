@@ -766,7 +766,7 @@ void RB_DrawSun( float scale, shader_t *shader ) {
 	vec3_t		origin, vec1, vec2;
 	color4ub_t	sunColor;
 
-	if ( !backEnd.skyRenderedThisView )
+	if ( !shader || !backEnd.skyRenderedThisView )
 		return;
 
 	sunColor.u32 = ~0U;
@@ -774,6 +774,7 @@ void RB_DrawSun( float scale, shader_t *shader ) {
 	qglLoadMatrixf( backEnd.viewParms.world.modelMatrix );
 
 	dist = backEnd.viewParms.zFar / 1.75;		// div sqrt(3)
+	if ( ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP ) scale = 0.2f;
 	size = dist * scale;
 
 	VectorMA( backEnd.viewParms.or.origin, dist, tr.sunDirection, origin );
