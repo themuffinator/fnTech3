@@ -169,7 +169,11 @@ python scripts/probe_wolfet_retail_client.py --server meson/build/win32-dev/fnte
 Use a fresh output directory for each run. Replace `--camera-check` with
 `--team-check` for Axis/Allies admission; these modes are mutually exclusive.
 Add `--pure` to run the server with `sv_pure 1` and require the client to pass
-pure admission before entering the world.
+pure admission before entering the world. `--move-check` spawns on Axis and runs
+the engine's own movement commands from a config in the isolated home, comparing
+`viewpos` readouts; `--rotation-check` changes the server map to `battery` while
+the client is active and requires it to re-enter the world. Neither injects
+mouse or keyboard input, and neither claims movement or rendering parity.
 Camera replies do not establish rendered-camera or gameplay correctness.
 See the [ET gate matrix](docs/fntech3/COMPATIBILITY.md#wolfet-gate-matrix).
 

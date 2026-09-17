@@ -54,7 +54,12 @@ admission: it restores retail's `sv_pure 1` default, admits ET wherever the
 RTCW native module pair was handled, and publishes the loaded-pak names retail
 ET clients require but fnTech3 had left empty. A retail ET client now passes
 pure admission, reaches CS_ACTIVE and joins both teams; one map and one client
-do not close the broader pure, download or interoperability gates.
+do not close the broader pure, download or interoperability gates. The
+[gameplay follow-up](2026-09-17-wolfet-gameplay.md) adds two more bounded
+inbound runs under pure admission: a retail client spawns on Axis and moves
+about 250 units through three distinct view origins, and a goldrush-to-battery
+map change keeps that client connected and re-entering the world. Movement
+parity, combat, objectives and dense exchanges remain open.
 
 The [RoQ bounds and recovery checkpoint](2026-09-17-roq-bounds.md) adds checked
 movie framing, dimensions, codebooks, VQ/motion reads and partial shutdown. It
@@ -1059,7 +1064,7 @@ checks, generated packet fixtures and installed dedicated observations.
 | Protocol-84 message bodies | Source, Unit, inbound Interop subset | 1,169 original-engine comparisons and inbound retail sessions; full transport and malformed peer behavior remain open. |
 | Filesystem / pure / downloads | Unit, Live, inbound Interop subset | Separate etmain/home and native names. Pure admission now works: a retail client passes the proof and reaches CS_ACTIVE on one map; see the [pure record](2026-09-17-wolfet-pure.md). Broader maps and mods, gamestate-overflow fallback, downloads and the reverse direction remain open. |
 | Assets / collision | Source, Unit, Live subset | Six stock BSPs and installed TAGs load; MDM/MDX/render assets remain open. |
-| Dedicated gameplay / snapshots | Source, Unit, Live, inbound Interop subset | All six maps initialize under explicit and auto selection; a retail client reaches CS_ACTIVE, joins Axis/Allies, respawns and receives replies to two objective-camera requests. [Callbacks/proxies](2026-09-17-wolfet-snapshots.md) and [viewpoints/server capacity](2026-09-17-wolfet-viewpoints.md) pass executable regressions. Live landmine/proxy/brush/lean visibility, rendered cameras, dense retail exchanges, movement/combat/objectives and rotation remain open. |
+| Dedicated gameplay / snapshots | Source, Unit, Live, inbound Interop subset | All six maps initialize under explicit and auto selection; a retail client reaches CS_ACTIVE, joins Axis/Allies, respawns and receives replies to two objective-camera requests. [Callbacks/proxies](2026-09-17-wolfet-snapshots.md) and [viewpoints/server capacity](2026-09-17-wolfet-viewpoints.md) pass executable regressions. A retail client also spawns, moves about 250 units and follows a goldrush-to-battery map change under pure admission; see the [gameplay record](2026-09-17-wolfet-gameplay.md). Live landmine/proxy/brush/lean visibility, rendered cameras, dense retail exchanges, movement parity, combat and objectives remain open. |
 | Client / renderer / audio / input | Blocked | Client startup stays gated; no client or visual claim. |
 | Demos / bidirectional interoperability | Inbound Interop subset; demos open | Non-pure retail spectator/team admission connects to fnTech3; reverse direction and ET demo playback remain open. |
 | Optional services | Unavailable | No PunkBuster, authentication or Workshop success is synthesized. |
