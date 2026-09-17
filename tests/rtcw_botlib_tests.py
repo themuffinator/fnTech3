@@ -97,8 +97,8 @@ bool AAS_SetCurrentWorld(int){assert(false);return false;}
 void AAS_SetBlockingEntity(const float*,const float*,int){assert(false);}
 void BotInitAvoidReach(int){assert(false);}
 bool EA_ClientInputAvailable(int){assert(false);return false;}
-unsigned EA_RTCWExtraInputFlags(int){assert(false);return 0;}
-void EA_RestoreRTCWInput(int,const bot_input_t*,unsigned){assert(false);}
+unsigned EA_ExtraInputFlags(int){assert(false);return 0;}
+void EA_RestoreInput(int,const bot_input_t*,unsigned){assert(false);}
 #include "code/server/server_rtcw_botlib.hpp"
 using namespace fntech3::rtcw::module;
 template<class F> void rejected(F f){try{f();assert(false);}catch(Drop&) {}}
@@ -270,7 +270,7 @@ int main(){
 
     def test_numeric_settings_and_empty_action_shutdown(self):
         source = PRELUDE[:PRELUDE.index('static int Export_BotLibSetup();')]
-        source += '\nbotlib_globals_t botlibglobals;\nstatic bot_input_t *botinputs;\nstatic unsigned rtcwActionExtras[MAX_GAME_CLIENTS];\n'
+        source += '\nbotlib_globals_t botlibglobals;\nstatic bot_input_t *botinputs;\nstatic unsigned actionExtras[MAX_GAME_CLIENTS];\n'
         actions = (ROOT / 'code/botlib/be_ea.cpp').read_text()
         source += function(actions, 'int EA_Setup(void)') + '\n' + function(actions, 'void EA_Shutdown(void)')
         source += r'''

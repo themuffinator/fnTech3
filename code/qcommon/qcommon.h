@@ -83,6 +83,7 @@ void MSG_Clear( msg_t *buf );
 void MSG_WriteData( msg_t *buf, const void *data, int length );
 void MSG_Bitstream( msg_t *buf );
 void MSG_RawBitstream( msg_t *buf );
+void MSG_Uncompressed( msg_t *buf );
 
 // TTimo
 // copy a msg_t in case we need to store it as is for a bit

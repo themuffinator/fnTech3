@@ -117,4 +117,9 @@ int BotLoadChatFile(int chatstate, const char *chatfile, const char *chatname);
 void BotSetChatGender(int chatstate, int gender);
 //store the bot name in the chat state
 void BotSetChatName(int chatstate, const char *name, int client);
+// Internal services for the RTCW and ET adapters. Their BotSetChatName has no
+// client argument, and their BotEnterChat carries the speaking client instead
+// of reading one stored by BotSetChatName.
+void BotSetChatNameLegacy(int chatstate, const char *name);
+void BotEnterChatLegacy(int chatstate, int client, int sendto);
 

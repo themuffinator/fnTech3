@@ -16,7 +16,7 @@ def direction_source(scripted_prediction=False):
 #include "code/botlib/be_ea.h"
 botlib_globals_t botlibglobals;
 static bot_input_t *botinputs;
-static unsigned rtcwActionExtras[MAX_GAME_CLIENTS];
+static unsigned actionExtras[MAX_GAME_CLIENTS];
 static constexpr int MAX_USERMOVE=400,PREDICTIONTIME_JUMP=3;
 static int brushTypes;
 void BotSetBrushModelTypes(){++brushTypes;}

@@ -113,8 +113,8 @@ static void checkBoundary(bool native){
   // Exact-end, unaligned buffers are accepted; failed arguments publish nothing.
   fntech3_rtcw_bot_input_t initial{.5f,{1,2,3},17,{4,5,6},0x40000000,19};
   reset(initial,memory.size()-40);auto edge=get(.5f,memory.size()-40);assert(!std::memcmp(&initial,&edge,40));
-  auto unchanged=[&](auto attempt){auto data=memory;auto state=botinputs[client];unsigned extra=EA_RTCWExtraInputFlags(client);
-   rejected(attempt);assert(memory==data&&!std::memcmp(&state,&botinputs[client],sizeof(state))&&extra==EA_RTCWExtraInputFlags(client));};
+  auto unchanged=[&](auto attempt){auto data=memory;auto state=botinputs[client];unsigned extra=EA_ExtraInputFlags(client);
+   rejected(attempt);assert(memory==data&&!std::memcmp(&state,&botinputs[client],sizeof(state))&&extra==EA_ExtraInputFlags(client));};
   for(int bad:{-1,p.maxClients,INT_MAX,INT_MIN})unchanged([&]{call(424,bad,{0});});
   for(int bits:{int(0x7f800000u),int(0xff800000u),int(0x7fc00001u)}){
    unchanged([&]{call(426,client,{bits,address(65)});});

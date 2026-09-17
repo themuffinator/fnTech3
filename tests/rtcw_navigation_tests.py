@@ -31,8 +31,8 @@ void BotInitAvoidReach(int){assert(false);}
 server_t sv{};serverStatic_t svs{};
 void SV_ClientThink(client_t*,usercmd_t*){assert(false);}
 bool EA_ClientInputAvailable(int){assert(false);return false;}
-unsigned EA_RTCWExtraInputFlags(int){assert(false);return 0;}
-void EA_RestoreRTCWInput(int,const bot_input_t*,unsigned){assert(false);}
+unsigned EA_ExtraInputFlags(int){assert(false);return 0;}
+void EA_RestoreInput(int,const bot_input_t*,unsigned){assert(false);}
 int SV_BotLibShutdown(){assert(false);return 0;}
 static int bspDumps;
 void AAS_DumpBSPData(){++bspDumps;}

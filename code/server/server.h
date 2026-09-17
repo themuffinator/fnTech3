@@ -330,6 +330,7 @@ extern	cvar_t	*sv_masterAdvertise;
 extern	cvar_t	*sv_master[MAX_MASTER_SERVERS];
 extern	cvar_t	*sv_reconnectlimit;
 extern	cvar_t	*sv_padPackets;
+extern	cvar_t	*sv_tempbanmessage;
 extern	cvar_t	*sv_killserver;
 extern	cvar_t	*sv_mapname;
 extern	cvar_t	*sv_mapChecksum;
@@ -567,6 +568,7 @@ qboolean	SV_inPVS (const vec3_t p1, const vec3_t p2);
 //
 void		SV_BotFrame( int time );
 int			SV_BotAllocateClient(void);
+int			SV_WolfETAllocateBotClient(int preferred);
 void		SV_BotFreeClient( int clientNum );
 
 void		SV_BotInitCvars(void);

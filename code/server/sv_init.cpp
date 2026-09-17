@@ -1069,6 +1069,8 @@ void SV_Init( void )
 		sv_showloss = nullptr;
 	}
 
+	sv_tempbanmessage = Cvar_Get( "sv_tempbanmessage",
+		"You have been kicked and are temporarily banned from joining this server.", 0 );
 	sv_padPackets = Cvar_Get( "sv_padPackets", "0", CVAR_DEVELOPER );
 	Cvar_SetDescription( sv_padPackets, "Adds padding bytes to network packets for rate debugging." );
 	sv_killserver = Cvar_Get( "sv_killserver", "0", 0 );

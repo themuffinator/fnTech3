@@ -2943,6 +2943,41 @@ int BotChatLength(int chatstate)
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
+// RTCW and ET speak as the client passed to BotEnterChat and have no tell path.
+void BotEnterChatLegacy(int chatstate, int client, int sendto)
+{
+	bot_chatstate_t *cs;
+
+	cs = BotChatStateFromHandle(chatstate);
+	if (!cs) return;
+
+	if (strlen(cs->chatmessage))
+	{
+		BotRemoveTildes(cs->chatmessage);
+		if (LibVarGetValue("bot_testichat")) {
+			botimport.Print(PRT_MESSAGE, "%s\n", cs->chatmessage);
+		}
+		else if (sendto == CHAT_TEAM) {
+			EA_SayTeam(client, cs->chatmessage);
+		}
+		else {
+			EA_Say(client, cs->chatmessage);
+		}
+		//clear the chat message from the state
+		strcpy(cs->chatmessage, "");
+	} //end if
+} //end of the function BotEnterChatLegacy
+
+// The legacy contract stores the name only; the chat state keeps its client.
+void BotSetChatNameLegacy(int chatstate, const char *name)
+{
+	bot_chatstate_t *cs;
+
+	cs = BotChatStateFromHandle(chatstate);
+	if (!cs) return;
+	Q_strncpyz( cs->name, name, sizeof( cs->name ) );
+} //end of the function BotSetChatNameLegacy
+
 void BotEnterChat(int chatstate, int clientto, int sendto)
 {
 	bot_chatstate_t *cs;

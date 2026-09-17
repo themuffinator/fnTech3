@@ -27,8 +27,8 @@ botlib_export_t *botlib_export;
 int SV_BotLibSetup(){assert(false);return 0;}
 void BotInitAvoidReach(int){assert(false);}
 bool EA_ClientInputAvailable(int){assert(false);return false;}
-unsigned EA_RTCWExtraInputFlags(int){assert(false);return 0;}
-void EA_RestoreRTCWInput(int,const bot_input_t*,unsigned){assert(false);}
+unsigned EA_ExtraInputFlags(int){assert(false);return 0;}
+void EA_RestoreInput(int,const bot_input_t*,unsigned){assert(false);}
 int SV_BotLibShutdown(){assert(false);return 0;}
 bool AAS_SetCurrentWorld(int){assert(false);return false;}
 void AAS_SetBlockingEntity(const float*,const float*,int){assert(false);}
@@ -48,6 +48,7 @@ qboolean SV_ReadGameEntity(const void *in,sharedEntity_t *out){return readFailur
 qboolean SV_WriteGameEntity(void *out,const sharedEntity_t *in){return writeFailure?qfalse:WriteEntity(out,in);}
 '''
     server = (ROOT / 'code/server/sv_bot.cpp').read_text()
+    source += function(server, 'static int SV_BotAllocateClientSlot(')
     source += function(server, 'int SV_BotAllocateClient(')
     source += function(server, 'void SV_BotFreeClient(')
     source += function((ROOT / 'code/server/sv_client.cpp').read_text(), 'void SV_ClientThink (')

@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "server.h"
+#include "server_wolfet_client.hpp"
 #include "../qcommon/netchan_codec.hpp"
 
 /*
@@ -179,9 +180,41 @@ then buffer them and make sure they get sent in correct order
 ================
 */
 
+/*
+===============
+SV_WolfETWriteBinaryMessage
+
+ET appends a module-supplied binary payload after svc_EOF. A payload that no
+longer fits is kept and reported as overflowed rather than truncated.
+===============
+*/
+static void SV_WolfETWriteBinaryMessage( msg_t *msg, int client )
+{
+	using namespace fntech3::wolfet::server;
+	if ( !Com_GameIsWolfET() || !ValidClient( client ) ) {
+		return;
+	}
+	auto &message = Storage().messages[client];
+	if ( !message.length ) {
+		return;
+	}
+
+	MSG_Uncompressed( msg );
+
+	if ( ( msg->cursize + message.length ) >= msg->maxsize ) {
+		message.overflowed = true;
+		return;
+	}
+
+	MSG_WriteData( msg, message.data.data(), message.length );
+	message.length = 0;
+	message.overflowed = false;
+}
+
 void SV_Netchan_Transmit( client_t *client, msg_t *msg)
 {
 	MSG_WriteByte( msg, svc_EOF );
+	SV_WolfETWriteBinaryMessage( msg, static_cast<int>( client - svs.clients ) );
 
 	if(client->netchan.unsentFragments || client->netchan_start_queue)
 	{

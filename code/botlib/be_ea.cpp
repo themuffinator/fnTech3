@@ -44,20 +44,20 @@ static constexpr int MAX_USERMOVE = 400;
 [[maybe_unused]] static constexpr int MAX_COMMANDARGUMENTS = 10;
 
 static bot_input_t *botinputs;
-static unsigned rtcwActionExtras[MAX_GAME_CLIENTS];
+static unsigned actionExtras[MAX_GAME_CLIENTS];
 
 bool EA_ClientInputAvailable(int client) {
 	return botinputs && client >= 0 && client < botlibglobals.maxclients;
 }
 
-unsigned EA_RTCWExtraInputFlags(int client) {
-	return rtcwActionExtras[client];
+unsigned EA_ExtraInputFlags(int client) {
+	return actionExtras[client];
 }
 
-void EA_RestoreRTCWInput(int client, const bot_input_t *input, unsigned extraFlags) {
+void EA_RestoreInput(int client, const bot_input_t *input, unsigned extraFlags) {
 	if (input) {
 		botinputs[client] = *input;
-		rtcwActionExtras[client] = extraFlags;
+		actionExtras[client] = extraFlags;
 	} else {
 		EA_ResetInput(client);
 	}
@@ -472,7 +472,7 @@ void EA_ResetInput(int client)
 		// RTCW's previous-jump marker aliases MOVELEFT (external bit 128).
 		// Keep that observable rule within RTCW; Quake has a separate bit.
 		if (jumped) bi->actionflags |= ACTION_MOVELEFT;
-		rtcwActionExtras[client] = 0;
+		actionExtras[client] = 0;
 	} else if (jumped) bi->actionflags |= ACTION_JUMPEDLASTFRAME;
 } //end of the function EA_ResetInput
 //===========================================================================
@@ -485,7 +485,7 @@ int EA_Setup(void)
 {
 	//initialize the bot inputs
 	botinputs = botlib::ClearedHunkAlloc<bot_input_t>(botlibglobals.maxclients);
-	std::memset(rtcwActionExtras, 0, sizeof(rtcwActionExtras));
+	std::memset(actionExtras, 0, sizeof(actionExtras));
 	return BLERR_NOERROR;
 } //end of the function EA_Setup
 //===========================================================================
@@ -498,5 +498,5 @@ void EA_Shutdown(void)
 {
 	if (botinputs) FreeMemory(botinputs);
 	botinputs = nullptr;
-	std::memset(rtcwActionExtras, 0, sizeof(rtcwActionExtras));
+	std::memset(actionExtras, 0, sizeof(actionExtras));
 } //end of the function EA_Shutdown

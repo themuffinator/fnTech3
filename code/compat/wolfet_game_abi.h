@@ -13,6 +13,12 @@ enum {
 	FNTECH3_WOLFET_MAX_CONFIGSTRINGS = 1024,
 	FNTECH3_WOLFET_MAX_GAMESTATE_CHARS = 16000,
 	FNTECH3_WOLFET_MAX_ENTITIES_IN_SNAPSHOT = 512,
+	FNTECH3_WOLFET_GENTITYNUM_BITS = 10,
+	/* Largest module-supplied AAS result count fnTech3 will accept in one
+	 * query; the original engine trusts the caller without a bound. */
+	FNTECH3_WOLFET_MAX_AAS_QUERY = 4096,
+	/* ET limits chat records to 150 bytes where the engine uses 256. */
+	FNTECH3_WOLFET_MAX_MESSAGE_SIZE = 150,
 	FNTECH3_WOLFET_CS_PLAYERS = 689,
 	FNTECH3_WOLFET_CS_WOLFINFO = 21,
 	FNTECH3_WOLFET_UI_API_VERSION = 4,
@@ -126,6 +132,57 @@ typedef struct {
 	char stringData[FNTECH3_WOLFET_MAX_GAMESTATE_CHARS];
 	int32_t dataCount;
 } fntech3_wolfet_gameState_t;
+
+/* ET botlib goal, movement, console-message and weapon records, independently
+ * declared from its game/be_ai_*.h. ET's goal carries two fields RTCW lacks and
+ * its console message is limited to 150 bytes, so none of these may be shared
+ * with another profile's records or copied straight into engine storage. */
+typedef struct {
+	float origin[3];
+	int32_t areanum;
+	float mins[3], maxs[3];
+	int32_t entitynum, number, flags, iteminfo, urgency, goalEndTime;
+} fntech3_wolfet_bot_goal_t;
+
+typedef struct {
+	float origin[3], velocity[3], viewoffset[3];
+	int32_t entitynum, client;
+	float thinktime;
+	int32_t presencetype;
+	float viewangles[3];
+	int32_t or_moveflags, areanum;
+} fntech3_wolfet_bot_initmove_t;
+
+typedef struct {
+	int32_t failure, type, blocked, blockentity, traveltype, flags, weapon;
+	float movedir[3], ideal_viewangles[3];
+} fntech3_wolfet_bot_moveresult_t;
+
+typedef struct {
+	int32_t handle;
+	float time;
+	int32_t type;
+	char message[FNTECH3_WOLFET_MAX_MESSAGE_SIZE];
+	uint32_t prev, next;
+} fntech3_wolfet_bot_consolemessage_t;
+
+/* ET botlib entity record, independently declared from its game/botlib.h. */
+typedef struct {
+	int32_t type, flags;
+	float origin[3], angles[3], old_origin[3], mins[3], maxs[3];
+	int32_t groundent, solid, modelindex, modelindex2, frame, event, eventParm;
+	int32_t powerups, weapon, legsAnim, torsoAnim;
+} fntech3_wolfet_bot_entitystate_t;
+
+/* ET botlib input record. ET shares RTCW's 40-byte layout and adds ACTION_PRONE
+ * as the fifteenth external action bit (botlib.h ACTION_PRONE 16384). */
+typedef struct {
+	float thinktime;
+	float dir[3];
+	float speed;
+	float viewangles[3];
+	int32_t actionflags, weapon;
+} fntech3_wolfet_bot_input_t;
 
 typedef struct {
 	int32_t snapFlags, ping, serverTime;

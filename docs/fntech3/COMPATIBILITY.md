@@ -40,7 +40,16 @@ landmine/proxy behavior remains open. The
 origin-only brush visibility, self/exclusive cameras and lean, and removes the
 incorrect 512-entity server cap while preserving the frozen cgame limit.
 4,936 finite camera/lean cases match the original-source calculation; live
-visibility and rendered-camera parity remain open.
+visibility and rendered-camera parity remain open. The
+[game-import follow-up](2026-09-17-wolfet-game-imports.md) raises handled ET
+game imports from 52 to 189 of 212, covering every import the retail game
+module can issue. It adds the binary message channel, temporary bans and their
+connection refusal, ET's three-argument drop-client import, preferred-slot bot
+allocation, the dedicated sound stubs, and the elementary-action, AI-state,
+bot-library and navigation surfaces. Eight of the 23 unhandled ordinals
+reproduce refusals retail ET makes itself; the other 15 need bot-library
+exports or record conversions without evidence. No live ET bot session is
+claimed.
 
 The [RoQ bounds and recovery checkpoint](2026-09-17-roq-bounds.md) adds checked
 movie framing, dimensions, codebooks, VQ/motion reads and partial shutdown. It
@@ -1041,7 +1050,7 @@ checks, generated packet fixtures and installed dedicated observations.
 | Gate | Evidence | Remaining requirement |
 | --- | --- | --- |
 | Profile / identity / discovery | Source, Unit, Live | Default/client gates preserved; broader installs and platforms remain open. |
-| Module ABI / server memory | Source, Unit, Live subset | 1,326 layout/constant/ordinal checks, native qagame startup; full game/UI/cgame surfaces remain open. |
+| Module ABI / server memory | Source, Unit, Live subset | 1,326 layout/constant/ordinal checks, native qagame startup, and 189 of 212 game imports handled including every import the retail game module issues; see the [import record](2026-09-17-wolfet-game-imports.md). Fifteen bot-library and match-record imports, plus the full UI/cgame surfaces, remain open. |
 | Protocol-84 message bodies | Source, Unit, inbound Interop subset | 1,169 original-engine comparisons and inbound retail sessions; full transport and malformed peer behavior remain open. |
 | Filesystem / pure / downloads | Unit, Live subset | Separate etmain/home and native names; pure mode is explicitly unavailable; download/admission gates open. |
 | Assets / collision | Source, Unit, Live subset | Six stock BSPs and installed TAGs load; MDM/MDX/render assets remain open. |

@@ -4,6 +4,8 @@
 #include "../compat/wolfet_module_abi.h"
 #include "../compat/wolfet_state_adapter.hpp"
 #include "../compat/wolfet_tags.hpp"
+#include "server_wolfet_client.hpp"
+#include "server_wolfet_botlib.hpp"
 #include <utility>
 
 struct WolfETTagFile { std::string name; std::vector<fntech3::wolfet::tags::Tag> tags; };
@@ -37,6 +39,11 @@ static bool SV_WolfETGameCall(const intptr_t *args, intptr_t &operation, intptr_
     using namespace fntech3::wolfet::module;
     const auto call = Lookup(Module::GAME, Direction::IMPORT, args[0]);
     const auto pointer = [args](int n) { return VM_ArgPtr(args[n]); };
+    if (SV_WolfETBotLibCall(gvm, call, args, result)) return true;
+    if (SV_WolfETGoalCall(gvm, call, args, result)) return true;
+    if (SV_WolfETActionCall(gvm, call, args, result)) return true;
+    if (SV_WolfETAIStateCall(gvm, call, args, result)) return true;
+    if (SV_WolfETNavigationCall(gvm, call, args, result)) return true;
     switch (call) {
     case Call::G_CVAR_LATCHEDVARIABLESTRINGBUFFER: {
         if (args[3] < 0 || args[3] > INT_MAX) Com_Error(ERR_DROP, "Invalid WolfET cvar buffer size");
@@ -47,6 +54,43 @@ static bool SV_WolfETGameCall(const intptr_t *args, intptr_t &operation, intptr_
         }
         result = 0; return true;
     }
+    case Call::G_DROP_CLIENT: {
+        // ET adds a temporary-ban length that Quake's two-argument import lacks.
+        const int client = static_cast<int>(args[1]);
+        // Drop reasons are module text, not paths: a long one must not be fatal.
+        const auto reason = SV_RTCWString<MAX_STRING_CHARS>(gvm, args[2]);
+        if (args[3] < INT_MIN || args[3] > INT_MAX)
+            Com_Error(ERR_DROP, "Invalid WolfET drop-client ban length");
+        if (fntech3::wolfet::server::ValidClient(client)) {
+            SV_DropClient(&SV_ClientForIndex(client), reason.data());
+            if (args[3])
+                fntech3::wolfet::server::TempBanAddress(
+                    SV_ClientForIndex(client).netchan.remoteAddress, static_cast<int>(args[3]));
+        }
+        result = 0; return true;
+    }
+    case Call::G_BOT_ALLOCATE_CLIENT:
+        // ET passes a preferred slot; the shared import takes none.
+        result = SV_WolfETAllocateBotClient(static_cast<int>(args[1])); return true;
+    case Call::G_SENDMESSAGE: {
+        if (args[3] < 0 || args[3] > fntech3::wolfet::server::MaxBinaryMessage)
+            Com_Error(ERR_DROP, "Invalid WolfET binary message length");
+        const auto *payload = args[3]
+            ? static_cast<const char *>(VM_RTCWFilePointer(gvm, args[2], args[3])) : nullptr;
+        fntech3::wolfet::server::SendBinaryMessage(
+            static_cast<int>(args[1]), payload, static_cast<int>(args[3]));
+        result = 0; return true;
+    }
+    case Call::G_MESSAGESTATUS:
+        result = fntech3::wolfet::server::BinaryMessageStatus(static_cast<int>(args[1]));
+        return true;
+    case Call::G_REGISTERSOUND:
+        // ET's dedicated server has no sound system; its stub returns no handle.
+        result = 0; return true;
+    case Call::G_GET_SOUND_LENGTH:
+        // Matching ET's dedicated stub, which drops rather than inventing a length.
+        Com_Error(ERR_DROP, "WolfET sound length is unavailable on a dedicated server");
+        result = 0; return true;
     case Call::PB_STAT_REPORT:
         // Original ET exposes a void, inert report import. No service success.
         result = 0; return true;
@@ -151,8 +195,10 @@ static bool SV_WolfETGameCall(const intptr_t *args, intptr_t &operation, intptr_
     ET_SHARED(G_FS_GETFILELIST)
     ET_SHARED(G_SEND_CONSOLE_COMMAND)
     ET_SHARED(G_LOCATE_GAME_DATA)
-    ET_SHARED(G_DROP_CLIENT)
     ET_SHARED(G_SEND_SERVER_COMMAND)
+    ET_SHARED(G_BOT_FREE_CLIENT)
+    ET_SHARED(G_DEBUG_POLYGON_CREATE)
+    ET_SHARED(G_DEBUG_POLYGON_DELETE)
     ET_SHARED(G_SET_CONFIGSTRING)
     ET_SHARED(G_GET_CONFIGSTRING)
     ET_SHARED(G_GET_USERINFO)

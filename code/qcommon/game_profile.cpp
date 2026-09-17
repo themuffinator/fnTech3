@@ -178,7 +178,7 @@ const comGameProfile_t profiles[] = { {
 	"Wolfenstein: Enemy Territory module, wire and renderer adapters are not yet complete",
 	64, 1024, 689, 512, COM_ENTITY_HULL_ENTITY_FLAG, "fntech3-wolfet-servercache.dat",
 	{ "4", "0", "20", "20", nullptr, nullptr, 0, "0", 1 },
-	{ "0", "64", "1024", 1024, 0, 1, 0, 0, 0 },
+	{ "0", "64", "1024", 1024, 0, 1, 1, 16384, 0 },
 	COM_PURE_PROOF_WOLFET_NATIVE,
 	{ "multi", "head", "default", nullptr, "color", nullptr, 0, 1 },
 	{ "cinematic etintro.roq", nullptr, 0 }

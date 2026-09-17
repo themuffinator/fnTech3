@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // sv_client.cpp -- server code for dealing with clients
 
 #include "server.h"
+#include "server_wolfet_client.hpp"
 #include "../qcommon/protocol_contract.hpp"
 #include "../qcommon/netchan_safety.hpp"
 #include "../platform/fnql_steam.h"
@@ -204,6 +205,12 @@ void SV_GetChallenge( const netadr_t *from, const msg_t *msg ) {
 		return;
 	}
 #endif
+
+	// ET rejects a temporarily banned address before any connection work.
+	if ( Com_GameIsWolfET() && fntech3::wolfet::server::TempBanIsBanned( *from ) ) {
+		NET_OutOfBandPrint( NS_SERVER, from, "print\n%s\n", sv_tempbanmessage->string );
+		return;
+	}
 
 	// Prevent using getchallenge as an amplifier
 	if ( SVC_RateLimitAddress( from, 10, 1000 ) ) {
@@ -1520,6 +1527,12 @@ void SV_DirectConnect( const netadr_t *from ) {
 	const fnql::protocol::Contract *protocolContract;
 
 	Com_DPrintf( "SVC_DirectConnect()\n" );
+
+	// ET rejects a temporarily banned address before any connection work.
+	if ( Com_GameIsWolfET() && fntech3::wolfet::server::TempBanIsBanned( *from ) ) {
+		NET_OutOfBandPrint( NS_SERVER, from, "print\n%s\n", sv_tempbanmessage->string );
+		return;
+	}
 
 #ifdef USE_BANS
 	// Check whether this client is banned.

@@ -336,6 +336,19 @@ void MSG_Bitstream( msg_t *buf ) {
 }
 
 
+// ET appends its binary message channel as byte-aligned, uncompressed bytes
+// after svc_EOF. Reference: Enemy-Territory qcommon/msg.c MSG_Uncompressed.
+void MSG_Uncompressed( msg_t *buf ) {
+	if ( !buf ) {
+		return;
+	}
+	// align to byte-boundary
+	buf->bit = ( buf->bit + 7 ) & ~7;
+	buf->oob = qtrue;
+	buf->rawbit = qfalse;
+}
+
+
 void MSG_RawBitstream( msg_t *buf ) {
 	if ( !buf ) {
 		return;

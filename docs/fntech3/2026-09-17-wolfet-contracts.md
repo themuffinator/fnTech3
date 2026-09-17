@@ -202,9 +202,11 @@ Generated test data, retail inputs and these local logs are not committed.
 
 - ET UI/cgame imports, exports, client-state and renderer records; MDM/MDX
   skeletal models and renderer/audio/input behavior.
-- Full game syscall coverage, live callback/proxy visibility, remaining ET
-  viewpoint/visibility flags, binary messages, anti-lag collision options and
-  restart/gameplay behavior; see the snapshot follow-up above.
+- Live callback/proxy visibility, remaining ET viewpoint/visibility flags,
+  anti-lag collision options and restart/gameplay behavior; see the snapshot
+  follow-up above. Game syscall coverage and binary messages are largely closed
+  by the [game-import follow-up](2026-09-17-wolfet-game-imports.md), which
+  leaves fifteen bot-library and match-record imports open.
 - Pure native-module proof and pure pak semantics. Experimental ET servers
   default to non-pure; requesting pure mode fails explicitly.
 - Full connect/gamestate/snapshot coverage and bidirectional retail peers;

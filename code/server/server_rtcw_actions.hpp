@@ -79,17 +79,17 @@ static bool SV_RTCWActionCall(const vm_t *vm, fntech3::rtcw::module::Call call,
 		const float time = SV_RTCWFloat(args[2]);
 		void *destination = SV_RTCWPointer(vm, args[3], sizeof(fntech3_rtcw_bot_input_t));
 		bot_input_t input; ea.EA_GetInput(client, time, &input);
-		const auto output = fntech3::rtcw::bot::ActionOutput(input, EA_RTCWExtraInputFlags(client));
+		const auto output = fntech3::rtcw::bot::ActionOutput(input, EA_ExtraInputFlags(client));
 		std::memcpy(destination, &output, sizeof(output)); break;
 	}
 	case Call::BOTLIB_EA_RESET_INPUT: {
-		if (!args[2]) { EA_RestoreRTCWInput(client, nullptr, 0); break; }
+		if (!args[2]) { EA_RestoreInput(client, nullptr, 0); break; }
 		fntech3_rtcw_bot_input_t input;
 		std::memcpy(&input, SV_RTCWPointer(vm, args[2], sizeof(input)), sizeof(input));
 		bot_input_t converted;
 		if (!fntech3::rtcw::bot::ActionInput(input, converted))
 			Com_Error(ERR_DROP, "Invalid RTCW action input");
-		EA_RestoreRTCWInput(client, &converted,
+		EA_RestoreInput(client, &converted,
 			static_cast<unsigned>(input.actionflags) & ~fntech3::rtcw::bot::KnownActionBits); break;
 	}
 	default: return false;

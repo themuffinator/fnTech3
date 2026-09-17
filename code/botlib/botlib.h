@@ -119,6 +119,7 @@ using weaponinfo_t = weaponinfo_s;
 #define ACTION_FOLLOWME			0x08000000
 #define ACTION_JUMPEDLASTFRAME		0x10000000
 #define ACTION_RTCW_RELOAD		0x20000000 // engine-internal; translated at the RTCW boundary
+#define ACTION_WOLFET_PRONE		0x40000000 // engine-internal; translated at the ET boundary
 
 //the bot input, will be converted to a usercmd_t
 struct bot_input_s

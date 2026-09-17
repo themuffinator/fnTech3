@@ -58,20 +58,34 @@ static void BotImport_StoreDebugPolygon( bot_debugpoly_t &poly, int color, int n
 
 /*
 ==================
-SV_BotAllocateClient
+SV_BotAllocateClientSlot
+
+A positive preferred slot is ET's requested client number; other values scan
+from the profile's first bot slot.
 ==================
 */
-int SV_BotAllocateClient( void ) {
+static int SV_BotAllocateClientSlot( int preferred ) {
 	client_t	*cl = nullptr;
 	sharedEntity_t entity;
 	const auto &policy = Com_GameProfile()->bots;
 
-	// find a client slot
-	for ( client_t &candidate : SV_Clients() ) {
-		if ( SV_ClientIndex( &candidate ) < policy.firstClientSlot ) continue;
-		if ( candidate.state == CS_FREE ) {
-			cl = &candidate;
-			break;
+	if ( preferred > 0 ) {
+		// ET lets the module request one slot; a taken slot is not reassigned.
+		if ( !SV_IsClientIndex( preferred ) || preferred >= Com_GameProfile()->maxClients ) {
+			return -1;
+		}
+		cl = &SV_ClientForIndex( preferred );
+		if ( cl->state != CS_FREE ) {
+			return -1;
+		}
+	} else {
+		// find a client slot
+		for ( client_t &candidate : SV_Clients() ) {
+			if ( SV_ClientIndex( &candidate ) < policy.firstClientSlot ) continue;
+			if ( candidate.state == CS_FREE ) {
+				cl = &candidate;
+				break;
+			}
 		}
 	}
 
@@ -103,6 +117,15 @@ int SV_BotAllocateClient( void ) {
 	cl->country = "BOT";
 
 	return i;
+}
+
+int SV_BotAllocateClient( void ) {
+	return SV_BotAllocateClientSlot( -1 );
+}
+
+// ET's import carries the requested slot; zero and negative values scan.
+int SV_WolfETAllocateBotClient( int preferred ) {
+	return SV_BotAllocateClientSlot( preferred );
 }
 
 
