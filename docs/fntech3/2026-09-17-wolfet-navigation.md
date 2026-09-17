@@ -92,15 +92,20 @@ Six imports stay refused because this engine does not produce what they return:
 
 | Import | What it needs |
 | --- | --- |
-| `BOTLIB_AAS_LISTAREASINRANGE` | A travel-time flood over `areaupdate` and `hidetraveltimes`; the data is present, the query is not written. |
-| `BOTLIB_AAS_AVOIDDANGERAREA` | The same flood with ET's danger-distance scoring. |
-| `BOTLIB_AAS_RETREAT` | The same flood over a caller-supplied danger-spot list. |
-| `BOTLIB_AAS_NEARESTHIDEAREA` | Additionally needs per-area visibility, which comes from ET's route table. |
+| `BOTLIB_AAS_LISTAREASINRANGE` | A travel-time flood over `areaupdate` and `hidetraveltimes`, which are present, plus the per-area waypoints and visibility that are not. |
+| `BOTLIB_AAS_AVOIDDANGERAREA` | The same flood with ET's danger-distance scoring; reads the waypoints. |
+| `BOTLIB_AAS_RETREAT` | The same flood over a caller-supplied danger-spot list; reads the waypoints. |
+| `BOTLIB_AAS_NEARESTHIDEAREA` | The same flood, reading both the waypoints and the visibility. |
 | `BOTLIB_AAS_ALTROUTEGOALS` | ET selects on `AREACONTENTS_ROUTEPORTAL` and `AREACONTENTS_CLUSTERPORTAL` with a `500 + 3.0 × goal` window; the shared Quake function selects on cluster and view portals with a `1.1 × goal` window, so ET needs its own body rather than a type argument. |
 | `BOTLIB_AAS_PREDICT_CLIENT_MOVEMENT` | ET's `aas_clientmove_t` embeds a full `bsp_trace_t` with plane, surface and contents, taken from the bot library's world trace. This engine's prediction produces an `aas_trace_t`, which carries none of those. Filling them with zeros would report a surface the module could act on, so the import fails instead. |
 
-An ET route table would close the waypoint query and the visibility that
-`NEARESTHIDEAREA` needs; it is not started.
+All four floods read `aasworld.areawaypoints`, and two also call
+`AAS_AreaVisible`, so the single prerequisite is ET's route table rather than
+four separate queries. ET builds that table at runtime from the AAS data and
+caches it as `maps/<map>.rtb`, identified `XRTB` at version 17. fnTech3 loads
+RTCW's separate `.rcd` route cache (versions 15 and 12) and has no route-table
+builder or reader; that builder is the work these four imports wait on, and it
+is not started.
 
 Everything else in the [ET matrix](COMPATIBILITY.md#wolfet-gate-matrix) remains
 as recorded, including the gated ET client.
