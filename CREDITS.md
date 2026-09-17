@@ -515,6 +515,17 @@ chapters; the GLSL implementation and synthetic tests are independently written.
   records alpha-byte comparisons, inspected startup captures and remaining
   GPU/gameplay limits.
 
+- RTCW save selection/restart, cinematic-save protection, episode preservation,
+  trajectory ordinals, MP match-state restarts, and world sun/light-grid metadata are independently
+  implemented from behavior facts observed in the original
+  [SP server and save system](https://github.com/id-Software/RTCW-SP),
+  [MP contracts and renderer](https://github.com/id-Software/RTCW-MP),
+  [iortcw](https://github.com/iortcw/iortcw), and the user's legitimate retail
+  installation. No GPLv3 implementation text or proprietary save serializer is
+  incorporated. The [campaign/save checkpoint](docs/fntech3/2026-09-17-rtcw-campaign-savegames.md)
+  distinguishes source comparisons, engine fixes, retail defects and bounded
+  runtime coverage.
+
 ## Retail-content boundary
 
 fnTech3 does not redistribute Quake III Arena or Quake Live data, retail game

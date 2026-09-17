@@ -590,8 +590,24 @@ fall through to its menu without changing archive isolation. Movie audio,
 the unimplemented RoQ JPEG chunk, complete codec validation and original-engine
 parity remain open.
 
+The [campaign/save checkpoint](2026-09-17-rtcw-campaign-savegames.md) launches
+all 47 official maps separately, initializes both AAS worlds on all 32 SP maps,
+and exercises same-process plus fresh-process saves on all 25 playable SP maps.
+It repairs save staging/timing, bot scheduling after restart, saved entity
+capacity, fog/episode metadata, cinematic-save protection, all twelve trajectory
+ordinals, and authored sun/light-grid directives. Inspected MP world captures
+cover all 15 maps with the advertised objective/checkpoint mode. Two specifically
+authorized movement/attack probes were run: SP passed; MP passed a separately
+authorized retest after repairing match-state restarts and the probe's command
+scheduling. All 15 MP maps also pass native warmup restarts with advancing
+snapshot/usercmd clocks. Seventy installed AAS/RCD pairs pass
+loader/conversion/cost comparisons. This does not close complete campaign,
+custom-cache generation, sustained navigation/gameplay or peer-interoperability
+gates; RTCW remains an explicitly enabled development profile.
+
 | RTCW gate | SP | MP | Required closure |
 | --- | --- | --- | --- |
+| Official maps and saves | Source/Unit/Live; 32 individual map launches with both AAS worlds, 25 gameplay save/reload/fresh-process cycles, repeat/cross-map/autosave and malformed-header handling; two-map retail save interchange; cinematic saves refused | Source/Unit/Live; 15 individual map launches, advertised modes and native warmup restarts with advancing match/usercmd clocks; separately authorized soldier movement/firing retest | Full campaign transitions and sustained AI/combat; broader historical/damaged save payloads; MP peers, objectives and other classes/weapons |
 | Title/profile selection | Source/Unit/Build/Fixture; registered and gated; installed Windows x86 SP-to-MP menu handoff using the same executable, correct modules and inspected captures; synthetic Windows/Linux handoff | Source/Unit/Build/Fixture; installed Windows x86 MP-to-SP menu and active-briefing handoffs using the same executable, correct modules and inspected destination captures; synthetic Windows/Linux handoff | Broader live menu/session transitions; macOS handoff build/runtime |
 | Filesystem/config/pure | Source/Unit; archive/config policy, ordered module/root lookup and intentional no-cache policy integrated; original SP pure default/flags; explicit pure-proof policy unavailable | Source/Unit/Build/Fixture; profile-owned two-native-module proof, pinned-module pak validation and local pure admission with retail modules; original/iortcw proof and verifier comparisons | SP pure contract; MP peer admission and broader architecture policy; retail mount observations, malformed and partial-install probes; legacy MP favorites import |
 | Module ABI | Source/Unit/Build/Fixture; 2,215 original/iortcw assertions on x86/x64; bounded bot-entity/movement-input/goal/movement-result/prediction/state/parser/trace/render/vertex/orientation records, 10-bit game entity limit, mode imports/exports, popup/menu/key translation, command values and native x86 game-owned animation pointer handoff | Source/Unit; 2,205 original/iortcw assertions on x86/x64; bounded bot-entity/movement-input/goal/movement-result/prediction/state/parser/trace/render/vertex/orientation records, 10-bit game entity limit, mode imports/exports, popup/menu/key translation, command values and WOLFINFO | Complete trap/export adapters, retail UI/cgame/qagame execution and live game-data binding; distinguish original/iortcw module flag/renderer contracts |
