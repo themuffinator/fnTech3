@@ -6218,6 +6218,63 @@ qboolean FS_idPak(const char *pak, const char *base, int numPaks)
 
 /*
 ================
+FS_OfficialPak
+
+True when pak, given without extension as "gamedir/name", is an official pak of
+the ACTIVE profile. Every title refuses the numbered paks of its own base game;
+profiles using Quake's base directory also refuse Team Arena's, ET additionally
+ships its client modules in etmain/mp_bin and refuses that by name, and QL's
+two-digit pak00 is refused only under QL so a Q3 add-on of that name stays
+downloadable.
+
+FS_idPak compares against the compile-time BASEGAME, which is Quake's directory.
+Profiles whose base game is named differently need this instead, or they would
+offer the game's own retail paks for download.
+================
+*/
+qboolean FS_OfficialPak( const char *pak )
+{
+	const comGameProfile_t *profile;
+	const char *base;
+	int i;
+
+	if ( pak == NULL || *pak == '\0' ) {
+		return qfalse;
+	}
+
+	profile = Com_GameProfile();
+	base = profile != NULL ? profile->baseGame : BASEGAME;
+
+	if ( Com_GameIsWolfET() && !FS_FilenameCompare( pak, va( "%s/mp_bin", base ) ) ) {
+		return qtrue;
+	}
+
+	if ( Com_GameIsQuakeLive() && !FS_FilenameCompare( pak, va( "%s/pak00", base ) ) ) {
+		return qtrue;
+	}
+
+	for ( i = 0; i < NUM_ID_PAKS; i++ ) {
+		if ( !FS_FilenameCompare( pak, va( "%s/pak%d", base, i ) ) ) {
+			return qtrue;
+		}
+	}
+
+	/* Team Arena belongs to Quake's base directory, so both profiles that use
+	 * it keep refusing its numbered paks. RTCW and ET have no such pack. */
+	if ( !Q_stricmp( base, BASEGAME ) ) {
+		for ( i = 0; i < NUM_TA_PAKS; i++ ) {
+			if ( !FS_FilenameCompare( pak, va( "%s/pak%d", BASETA, i ) ) ) {
+				return qtrue;
+			}
+		}
+	}
+
+	return qfalse;
+}
+
+
+/*
+================
 FS_InvalidGameDir
 return true if path is a reference to current directory or directory traversal
 or a sub-directory
@@ -6285,8 +6342,8 @@ qboolean FS_ComparePaks( char *neededpaks, int len, qboolean dlstring ) {
 			FS_StripPackExtension( pakName );
 		}
 
-		// never autodownload any of the id paks
-		if ( FS_idPak( pakName, BASEGAME, NUM_ID_PAKS ) || FS_idPak( pakName, BASETA, NUM_TA_PAKS ) ) {
+		// never autodownload any of the profile's official paks
+		if ( FS_OfficialPak( pakName ) ) {
 			continue;
 		}
 

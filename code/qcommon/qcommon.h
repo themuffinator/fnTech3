@@ -1007,6 +1007,7 @@ qboolean FS_IsPureChecksum( int sum );
 
 qboolean FS_InvalidGameDir( const char *gamedir );
 qboolean FS_idPak( const char *pak, const char *base, int numPaks );
+qboolean FS_OfficialPak( const char *pak );
 qboolean FS_ComparePaks( char *neededpaks, int len, qboolean dlstring );
 
 void FS_Rename( const char *from, const char *to );

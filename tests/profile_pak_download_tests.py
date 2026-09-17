@@ -39,6 +39,10 @@ constexpr bool qtrue=true,qfalse=false;
 #define MAX_ZPATH 256
 bool ql,localExists;
 bool Com_GameIsQuakeLive(){return ql;}
+bool Com_GameIsQuake3(){return !ql;}
+bool Com_GameIsWolfET(){return false;}
+struct comGameProfile_t{const char*baseGame;};
+const comGameProfile_t*Com_GameProfile(){static comGameProfile_t p{BASEGAME};return &p;}
 int Q_stricmp(const char*a,const char*b){
  std::string x(a),y(b);
  for(auto&c:x)c=std::tolower(static_cast<unsigned char>(c));
@@ -66,7 +70,7 @@ const char*fs_serverReferencedPakNames[]={nullptr};
         for signature in (
             'qboolean FS_FilenameCompare(', 'static qboolean FS_CheckDirTraversal(',
             'static const char *FS_GetPackExtension(', 'static qboolean FS_StripPackExtension(',
-            'qboolean FS_idPak(', 'qboolean FS_ComparePaks(',
+            'qboolean FS_idPak(', 'qboolean FS_OfficialPak(', 'qboolean FS_ComparePaks(',
         ):
             harness += '\n' + function(signature)
         harness += r'''
@@ -83,6 +87,16 @@ int main(){
   for(const char*name:{"mods/pak00","baseq3/pak000","baseq3/pak09","baseq3/pak00extra","baseq3/pak00.pk3"})
    assert(!FS_idPak(name,BASEGAME,NUM_ID_PAKS));
   assert(!FS_idPak("missionpack/pak00",BASETA,NUM_TA_PAKS));
+  // The profile-owned policy answers the download paths. Quake Live adds its
+  // two-digit retail pak; both profiles share Quake's base directory and so
+  // keep refusing Team Arena's numbered set.
+  for(const char*name:{"baseq3/pak0","baseq3/pak8","missionpack/pak0","missionpack/pak3"})
+   assert(FS_OfficialPak(name));
+  assert(FS_OfficialPak("baseq3/pak00")==ql);
+  assert(!FS_OfficialPak("missionpack/pak4"));
+  for(const char*name:{"baseq3/pak9","baseq3/mp_bin","etmain/pak0","mods/pak0",""})
+   assert(!FS_OfficialPak(name));
+  assert(!FS_OfficialPak(static_cast<const char*>(nullptr)));
   for(const char*name:{"baseq3/pak00","baseq3/pak00.pk3","baseq3/pak00.pak"}){
    fs_serverReferencedPakNames[0]=name;
    const std::string remote=std::string(name)+(strchr(name,'.')?"":".pk3");
