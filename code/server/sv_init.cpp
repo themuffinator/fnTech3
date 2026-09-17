@@ -527,7 +527,7 @@ static void SV_PrepareRTCWCampaign( void ) {
 static void SV_ReferenceNativeModulePaks( void ) {
 	if ( Com_GameIsQuakeLive() ) {
 		FS_TouchFileInPak( QL_NATIVE_CGAME_DLL );
-	} else if ( Com_GameProfile()->pureProof == COM_PURE_PROOF_RTCW_NATIVE ) {
+	} else if ( Com_PureProofIsNativeModulePair( Com_GameProfile() ) ) {
 		char name[MAX_QPATH];
 		for ( unsigned slot = 0; slot < 2; ++slot ) {
 			if ( Com_GameManagerPureModuleFilename( Com_GameProfile(), slot, ARCH_STRING,
@@ -538,10 +538,8 @@ static void SV_ReferenceNativeModulePaks( void ) {
 
 static cvar_t *SV_RegisterPureMode() {
 	const auto &policy = Com_GameProfile()->server;
-	auto *pure = Cvar_Get("sv_pure", policy.pure, CVAR_SYSTEMINFO | (policy.pureLatched ? CVAR_LATCH : 0));
-	if (Com_GameIsWolfET() && pure->integer)
-		Com_Error(ERR_DROP, "WolfET pure admission is not implemented; dedicated development probes require sv_pure 0");
-	return pure;
+	return Cvar_Get("sv_pure", policy.pure,
+		CVAR_SYSTEMINFO | (policy.pureLatched ? CVAR_LATCH : 0));
 }
 
 void SV_SpawnServer( const char *mapname, qboolean killBots ) {
@@ -775,16 +773,24 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	Cvar_Set( "sv_referencedPaks", p );
 
 	Cvar_Set( "sv_paks", "" );
-	Cvar_Set( "sv_pakNames", "" ); // not used on client-side
+	// Q3 and QL clients ignore the loaded-pak names. Retail ET stores them next
+	// to the checksums and faults without them, so ET publishes both. Retail
+	// RTCW MP reads the same key; that profile keeps its current behaviour until
+	// a retail RTCW client run confirms the same requirement.
+	Cvar_Set( "sv_pakNames", "" );
 
 	if ( sv.pure != 0 ) {
-		int freespace, pakslen, infolen;
+		int freespace, pakslen, nameslen, infolen;
 		qboolean overflowed = qfalse;
 		qboolean infoTruncated = qfalse;
+		const bool publishNames = Com_GameIsWolfET();
+		qboolean namesOverflowed = qfalse;
+		const char *names = publishNames ? FS_LoadedPakPureNames( &namesOverflowed ) : "";
 
 		p = FS_LoadedPakChecksums( &overflowed );
 
 		pakslen = strlen( p ) + 9; // + strlen( "\\sv_paks\\" )
+		nameslen = publishNames ? static_cast<int>( strlen( names ) ) + 13 : 0; // + "\\sv_pakNames\\"
 		freespace = SV_RemainingGameState();
 		infolen = strlen( Cvar_InfoString_Big( CVAR_SYSTEMINFO, &infoTruncated ) );
 
@@ -792,7 +798,9 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 			Com_Printf( S_COLOR_YELLOW "WARNING: truncated systeminfo!\n" );
 		}
 
-		if ( pakslen > freespace || infolen + pakslen >= BIG_INFO_STRING || overflowed ) {
+		if ( pakslen + nameslen > freespace
+			|| infolen + pakslen + nameslen >= BIG_INFO_STRING
+			|| overflowed || namesOverflowed ) {
 			// switch to degraded pure mode
 			// this could *potentially* lead to a false "unpure client" detection
 			// which is better than guaranteed drop
@@ -801,6 +809,9 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 			// the server sends these to the clients so they will only
 			// load pk3s also loaded at the server
 			Cvar_Set( "sv_paks", p );
+			if ( publishNames ) {
+				Cvar_Set( "sv_pakNames", names );
+			}
 			if ( *p == '\0' ) {
 				Com_Printf( S_COLOR_YELLOW "WARNING: sv_pure set but no PK3 files loaded\n" );
 			}

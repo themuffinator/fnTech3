@@ -142,7 +142,8 @@ VS Code's **meson: setup/build all games** tasks enable ET alongside RTCW.
 The **Wolfenstein: Enemy Territory** launch group contains dedicated launches
 for all six stock maps, with an installation-path prompt, loopback binding and
 a separate writable home per map. They run the existing development binary
-without an implicit rebuild. Pure mode and PunkBuster are disabled. ET client
+without an implicit rebuild. PunkBuster is disabled and the launches keep
+`sv_pure 0`; ET itself now defaults to retail's `sv_pure 1`. ET client
 launches will be added when the client boundary can run.
 
 A bounded, loopback-only dedicated probe with an isolated writable home is:
@@ -156,7 +157,7 @@ PunkBuster services, loads `goldrush`, queries protocol 84, and exits. Use
 `--map` for another installed map and `--auto` for installation detection.
 This is startup evidence; it does not establish multiplayer interoperability.
 
-On Windows, the retail-client probe checks inbound non-pure admission using
+On Windows, the retail-client probe checks inbound admission, pure or not, using
 isolated homes and an unswitched private desktop. It keeps the client windowed
 and disables mouse/joystick input. To check two objective-camera requests and
 their received replies:
@@ -167,6 +168,8 @@ python scripts/probe_wolfet_retail_client.py --server meson/build/win32-dev/fnte
 
 Use a fresh output directory for each run. Replace `--camera-check` with
 `--team-check` for Axis/Allies admission; these modes are mutually exclusive.
+Add `--pure` to run the server with `sv_pure 1` and require the client to pass
+pure admission before entering the world.
 Camera replies do not establish rendered-camera or gameplay correctness.
 See the [ET gate matrix](docs/fntech3/COMPATIBILITY.md#wolfet-gate-matrix).
 

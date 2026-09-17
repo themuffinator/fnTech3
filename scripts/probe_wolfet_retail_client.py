@@ -2,7 +2,7 @@
 """Bounded inbound ET retail-client interoperability, without input automation.
 
 Windows only. Runs windowed on unswitched private desktops with isolated homes.
-This verifies a non-pure connection and optional console-driven team changes,
+This verifies a connection, optionally pure, and optional console-driven team changes,
 not gameplay or rendering parity.
 """
 from pathlib import Path
@@ -35,7 +35,7 @@ def command(executable, installation, home, settings, commands):
     return result + commands
 
 
-def probe(server, installation, output, team_check=False, camera_check=False):
+def probe(server, installation, output, team_check=False, camera_check=False, pure=False):
     output.mkdir(parents=True, exist_ok=False)
     server_home, client_home = output/'server', output/'client'
     server_home.mkdir(); client_home.mkdir()
@@ -46,7 +46,7 @@ def probe(server, installation, output, team_check=False, camera_check=False):
         port = reservation.getsockname()[1]
     server_command = command(server, installation, server_home, dict(
         com_gameProfile='wolfet', dedicated='1', developer='1', net_ip='127.0.0.1',
-        net_port=str(port), sv_pure='0', sv_punkbuster='0', bot_enable='0',
+        net_port=str(port), sv_pure='1' if pure else '0', sv_punkbuster='0', bot_enable='0',
         sv_master1='', sv_master2='', sv_master3='', sv_master4='', sv_master5=''),
         ['+map', 'goldrush', '+wait', '1100', '+quit'])
     client_actions = ['+connect', f'127.0.0.1:{port}']
@@ -65,14 +65,16 @@ def probe(server, installation, output, team_check=False, camera_check=False):
         cl_punkbuster='0', cl_allowDownload='0', cl_wwwDownload='0',
         r_ignorehwgamma='1', developer='1', cl_showServerCommands='1' if camera_check else '0'),
         client_actions)
-    result = dict(evidence='Interop: inbound, non-pure team admission' if team_check else 'Interop: inbound, non-pure spectator only',
+    kind = 'pure' if pure else 'non-pure'
+    result = dict(evidence=f'Interop: inbound, {kind} team admission' if team_check
+                  else f'Interop: inbound, {kind} spectator only',
                   profile='wolfet', serverCommand=server_command, clientCommand=client_command,
                   serverSha256=hashlib.sha256(server.read_bytes()).hexdigest(),
                   clientSha256=hashlib.sha256(client.read_bytes()).hexdigest(),
                   moduleSha256=hashlib.sha256((installation/'etmain/qagame_mp_x86.dll').read_bytes()).hexdigest(),
                   passed=False)
     if camera_check:
-        result['evidence'] = 'Interop: inbound, non-pure objective-camera requests and replies'
+        result['evidence'] = f'Interop: inbound, {kind} objective-camera requests and replies'
     server_log = server_home/'etmain/qconsole.log'
     read_log = lambda: server_log.read_text(encoding='utf-8', errors='replace') if server_log.exists() else ''
     processes = []
@@ -105,6 +107,11 @@ def probe(server, installation, output, team_check=False, camera_check=False):
                   active='Going from CS_PRIMED to CS_ACTIVE for fntech3-et-probe' in log,
                   clientBegin='ClientBegin: 0' in log,
                   disconnected='Going from CS_ACTIVE to CS_ZOMBIE for fntech3-et-probe' in log)
+    if pure:
+        # Under sv_pure the client cannot enter the world until the server has
+        # accepted its cp proof, so reaching CS_ACTIVE without an unpure drop is
+        # the admission evidence.
+        result['pureAdmission'] = (result['active'] and 'Unpure client detected' not in log)
     if team_check:
         result['teamAdmission'] = {name: f'\\t\\{number}\\c\\0' in log
                                    for name, number in (('axis', 1), ('allies', 2))}
@@ -117,7 +124,8 @@ def probe(server, installation, output, team_check=False, camera_check=False):
                             and result['active'] and result['clientBegin'] and result['disconnected']
                             and result['installationUnchanged'] and 'ERROR:' not in log
                             and all(result.get('teamAdmission', {}).values())
-                            and all(result.get('cameraReplies', {}).values()))
+                            and all(result.get('cameraReplies', {}).values())
+                            and result.get('pureAdmission', True))
     (output/'result.json').write_text(json.dumps(result, indent=2)+'\n', encoding='utf-8')
     print(json.dumps({k: v for k, v in result.items() if not k.endswith('Command')}, indent=2))
     return result['passed']
@@ -133,8 +141,11 @@ if __name__ == '__main__':
                         help='issue console commands to join Axis and Allies; no mouse/keyboard input')
     checks.add_argument('--camera-check', action='store_true',
                         help='open the limbo panel and verify replies for two objective cameras; no visual parity claim')
+    parser.add_argument('--pure', action='store_true',
+                        help='run the server with sv_pure 1 and require the client to pass pure admission')
     args = parser.parse_args()
     if os.name != 'nt':
         parser.error('This retail Windows client probe requires Windows')
     raise SystemExit(0 if probe(args.server.resolve(strict=True), args.installation.resolve(strict=True),
-                               args.output.resolve(), args.team_check, args.camera_check) else 1)
+                               args.output.resolve(), args.team_check, args.camera_check,
+                               args.pure) else 1)

@@ -253,6 +253,9 @@ int Com_GameIsRTCW( void );
 int Com_GameIsRTCWSP( void );
 int Com_GameIsRTCWMP( void );
 int Com_GameIsWolfET( void );
+/* RTCW SP/MP and ET all prove pure admission with their native cgame and UI
+ * module files rather than QVMs or a single retail binary. */
+int Com_PureProofIsNativeModulePair( const comGameProfile_t *profile );
 
 /* Map exact supported protocol versions to profile capability bits. */
 unsigned Com_ProtocolFamilyForVersion( int protocol );

@@ -177,7 +177,7 @@ const comGameProfile_t profiles[] = { {
 	nullptr,
 	"Wolfenstein: Enemy Territory module, wire and renderer adapters are not yet complete",
 	64, 1024, 689, 512, COM_ENTITY_HULL_ENTITY_FLAG, "fntech3-wolfet-servercache.dat",
-	{ "4", "0", "20", "20", nullptr, nullptr, 0, "0", 1 },
+	{ "4", "0", "20", "20", nullptr, nullptr, 0, "1", 0 },
 	{ "0", "64", "1024", 1024, 0, 1, 1, 16384, 0 },
 	COM_PURE_PROOF_WOLFET_NATIVE,
 	{ "multi", "head", "default", nullptr, "color", nullptr, 0, 1 },
@@ -911,6 +911,13 @@ int Com_GameIsWolfET( void )
 {
 	return activeProfile && activeProfile->id == COM_GAME_WOLFET;
 }
+
+int Com_PureProofIsNativeModulePair( const comGameProfile_t *profile )
+{
+	return profile && ( profile->pureProof == COM_PURE_PROOF_RTCW_NATIVE
+		|| profile->pureProof == COM_PURE_PROOF_WOLFET_NATIVE );
+}
+
 
 unsigned Com_ProtocolFamilyForVersion( int protocol )
 {

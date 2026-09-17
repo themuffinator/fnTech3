@@ -207,8 +207,9 @@ Generated test data, retail inputs and these local logs are not committed.
   follow-up above. Game syscall coverage and binary messages are largely closed
   by the [game-import follow-up](2026-09-17-wolfet-game-imports.md), which
   leaves fifteen bot-library and match-record imports open.
-- Pure native-module proof and pure pak semantics. Experimental ET servers
-  default to non-pure; requesting pure mode fails explicitly.
+- Broader pure pak semantics. The native-module proof itself is closed by the
+  [pure follow-up](2026-09-17-wolfet-pure.md); ET servers now default to pure
+  as retail does. Other maps, mods, downloads and overflow fallback stay open.
 - Full connect/gamestate/snapshot coverage and bidirectional retail peers;
   brief inbound non-pure spectator/team-admission sessions do not close this gate.
 - Demo discovery/playback, downloads, malformed asset recovery, long-running

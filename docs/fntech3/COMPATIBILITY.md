@@ -49,7 +49,12 @@ allocation, the dedicated sound stubs, and the elementary-action, AI-state,
 bot-library and navigation surfaces. Eight of the 23 unhandled ordinals
 reproduce refusals retail ET makes itself; the other 15 need bot-library
 exports or record conversions without evidence. No live ET bot session is
-claimed.
+claimed. The [pure follow-up](2026-09-17-wolfet-pure.md) then opens ET pure
+admission: it restores retail's `sv_pure 1` default, admits ET wherever the
+RTCW native module pair was handled, and publishes the loaded-pak names retail
+ET clients require but fnTech3 had left empty. A retail ET client now passes
+pure admission, reaches CS_ACTIVE and joins both teams; one map and one client
+do not close the broader pure, download or interoperability gates.
 
 The [RoQ bounds and recovery checkpoint](2026-09-17-roq-bounds.md) adds checked
 movie framing, dimensions, codebooks, VQ/motion reads and partial shutdown. It
@@ -1052,7 +1057,7 @@ checks, generated packet fixtures and installed dedicated observations.
 | Profile / identity / discovery | Source, Unit, Live | Default/client gates preserved; broader installs and platforms remain open. |
 | Module ABI / server memory | Source, Unit, Live subset | 1,326 layout/constant/ordinal checks, native qagame startup, and 189 of 212 game imports handled including every import the retail game module issues; see the [import record](2026-09-17-wolfet-game-imports.md). Fifteen bot-library and match-record imports, plus the full UI/cgame surfaces, remain open. |
 | Protocol-84 message bodies | Source, Unit, inbound Interop subset | 1,169 original-engine comparisons and inbound retail sessions; full transport and malformed peer behavior remain open. |
-| Filesystem / pure / downloads | Unit, Live subset | Separate etmain/home and native names; pure mode is explicitly unavailable; download/admission gates open. |
+| Filesystem / pure / downloads | Unit, Live, inbound Interop subset | Separate etmain/home and native names. Pure admission now works: a retail client passes the proof and reaches CS_ACTIVE on one map; see the [pure record](2026-09-17-wolfet-pure.md). Broader maps and mods, gamestate-overflow fallback, downloads and the reverse direction remain open. |
 | Assets / collision | Source, Unit, Live subset | Six stock BSPs and installed TAGs load; MDM/MDX/render assets remain open. |
 | Dedicated gameplay / snapshots | Source, Unit, Live, inbound Interop subset | All six maps initialize under explicit and auto selection; a retail client reaches CS_ACTIVE, joins Axis/Allies, respawns and receives replies to two objective-camera requests. [Callbacks/proxies](2026-09-17-wolfet-snapshots.md) and [viewpoints/server capacity](2026-09-17-wolfet-viewpoints.md) pass executable regressions. Live landmine/proxy/brush/lean visibility, rendered cameras, dense retail exchanges, movement/combat/objectives and rotation remain open. |
 | Client / renderer / audio / input | Blocked | Client startup stays gated; no client or visual claim. |

@@ -69,12 +69,13 @@ CHECKS = r'''
 int main(){
  for(const auto &p:profiles){profile=&p;
   if(p.id==COM_GAME_WOLFET){
+   // Retail ET starts pure and does not latch the cvar.
    values.clear();auto *mode=SV_RegisterPureMode();
-   assert(mode->integer==0&&(mode->flags&CVAR_LATCH)&&(mode->flags&CVAR_SYSTEMINFO));
+   assert(mode->integer==1&&!(mode->flags&CVAR_LATCH)&&(mode->flags&CVAR_SYSTEMINFO));
    SV_TestServerDefaults();assert(sv_gametype->integer==4&&sv_maxclients->integer==20);
-   Cvar_SetLatched("sv_pure","1");bool rejected=false;
-   try{SV_RegisterPureMode();}catch(int){rejected=true;}
-   assert(rejected);continue;
+   Cvar_Set("sv_pure","0");assert(SV_RegisterPureMode()->integer==0);
+   Cvar_Set("sv_pure","1");assert(SV_RegisterPureMode()->integer==1);
+   continue;
   }
   const bool sp=p.id==COM_GAME_RTCW_SP,mp=p.id==COM_GAME_RTCW_MP,ql=p.id==COM_GAME_QUAKELIVE;
   values.clear();auto *pureMode=SV_RegisterPureMode();assert(pureMode->integer==(sp?0:1));

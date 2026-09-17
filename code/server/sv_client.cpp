@@ -2888,7 +2888,7 @@ static void SV_VerifyPaks_f( client_t *cl ) {
 			}
 		} else if ( Com_GameProfile()->pureProof == COM_PURE_PROOF_QL_NATIVE ) {
 			bGood = FS_FileIsInPAK( QL_NATIVE_CGAME_DLL, &nBinChkSum, nullptr );
-		} else if ( Com_GameProfile()->pureProof == COM_PURE_PROOF_RTCW_NATIVE ) {
+		} else if ( Com_PureProofIsNativeModulePair( Com_GameProfile() ) ) {
 			char name[MAX_QPATH];
 			bGood = Com_GameManagerPureModuleFilename( Com_GameProfile(), 0, ARCH_STRING,
 				DLL_EXT, name, sizeof( name ) ) && FS_FileIsInPAK( name, &nBinChkSum, nullptr );
@@ -2914,7 +2914,7 @@ static void SV_VerifyPaks_f( client_t *cl ) {
 		else
 		{
 			// we may get incoming cp sequences from a previous serverId, which we need to ignore
-			const bool stale = Com_GameProfile()->pureProof == COM_PURE_PROOF_RTCW_NATIVE
+			const bool stale = Com_PureProofIsNativeModulePair( Com_GameProfile() )
 				? incomingServerId < sv.checksumFeedServerId : incomingServerId != sv.serverId;
 			if ( stale ) {
 				Com_DPrintf( "ignoring outdated cp command from client %s\n", cl->name );
@@ -2938,7 +2938,7 @@ static void SV_VerifyPaks_f( client_t *cl ) {
 				bGood = false;
 				break;
 			}
-			if ( Com_GameIsQuake3() || Com_GameProfile()->pureProof == COM_PURE_PROOF_RTCW_NATIVE ) {
+			if ( Com_GameIsQuake3() || Com_PureProofIsNativeModulePair( Com_GameProfile() ) ) {
 				if ( !SV_ParsePureChecksum( Cmd_Argv(nCurArg++), moduleChecksum )
 					|| moduleChecksum != nUiChkSum ) {
 					bGood = false;

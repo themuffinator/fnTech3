@@ -2787,10 +2787,10 @@ static void CL_SendPureChecksums( void ) {
 	if ( !cl_connectedToPureServer || clc.demoplaying )
 		return;
 
-	// Q3 and RTCW MP have distinct cgame/UI slots in the filesystem proof.
+	// Q3, RTCW and ET have distinct cgame/UI slots in the filesystem proof.
 	// Retail QL prefixes one native-module pak before its general references.
 	if ( Com_GameProfile()->pureProof == COM_PURE_PROOF_QVM ||
-		Com_GameProfile()->pureProof == COM_PURE_PROOF_RTCW_NATIVE ) {
+		Com_PureProofIsNativeModulePair( Com_GameProfile() ) ) {
 		len = Com_sprintf( cMsg.data(), static_cast<int>( cMsg.size() ),
 			"cp %d ", cl.serverId );
 	} else if ( Com_GameProfile()->pureProof == COM_PURE_PROOF_QL_NATIVE ) {

@@ -7035,6 +7035,62 @@ const char *FS_LoadedPakNames( void ) {
 
 /*
 =====================
+FS_LoadedPakPureNames
+
+Returns a space separated "gamedir/basename" name for every loaded pk3, in the
+same order and with the same exclusions as FS_LoadedPakChecksums. RTCW and ET
+clients store these names next to the checksums they receive, so their servers
+must publish both. Available in dedicated builds, unlike the console-only
+FS_LoadedPakNames.
+=====================
+*/
+const char *FS_LoadedPakPureNames( qboolean *overflowed ) {
+	static char	info[BIG_INFO_STRING];
+	const searchpath_t *search;
+	const char *packExt;
+	char *s, *max;
+	int len;
+
+	s = info;
+	info[0] = '\0';
+	max = &info[sizeof(info)-1];
+	if ( overflowed )
+		*overflowed = qfalse;
+
+	for ( search = fs_searchpaths ; search ; search = search->next ) {
+		if ( !search->pack )
+			continue;
+
+		if ( search->pack->exclude )
+			continue;
+
+		packExt = search->pack->format == PACK_FORMAT_PAK ? ".pak" : "";
+		len = (int)strlen( search->pack->pakGamename ) + 1
+			+ (int)strlen( search->pack->pakBasename ) + (int)strlen( packExt );
+		if ( info[0] )
+			len++;
+
+		if ( s + len > max ) {
+			if ( overflowed )
+				*overflowed = qtrue;
+			break;
+		}
+
+		if ( info[0] )
+			s = Q_stradd( s, " " );
+
+		s = Q_stradd( s, search->pack->pakGamename );
+		s = Q_stradd( s, "/" );
+		s = Q_stradd( s, search->pack->pakBasename );
+		s = Q_stradd( s, packExt );
+	}
+
+	return info;
+}
+
+
+/*
+=====================
 FS_ReferencedPakChecksums
 
 Returns a space separated string containing the checksums of all referenced pk3 files.
