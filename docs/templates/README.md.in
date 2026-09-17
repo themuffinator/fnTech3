@@ -1,6 +1,9 @@
 <div align="center">
 
-# ${project_name_short}
+<h1>
+  <img src="assets/logos/fntech3-readme-banner.png" alt="${project_name_short} — Unified source port for id Tech 3" width="720">
+</h1>
+
 ### One engine, Quake III Arena and Quake Live profiles
 
 <p>
