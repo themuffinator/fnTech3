@@ -55,7 +55,7 @@ def command(executable, installation, home, settings, commands):
 
 
 def probe(server, installation, output, team_check=False, camera_check=False,
-          move_check=False, rotation_check=False, pure=False):
+          move_check=False, rotation_check=False, pure=False, mapname='goldrush'):
     output.mkdir(parents=True, exist_ok=False)
     server_home, client_home = output/'server', output/'client'
     server_home.mkdir(); client_home.mkdir()
@@ -68,8 +68,8 @@ def probe(server, installation, output, team_check=False, camera_check=False,
         com_gameProfile='wolfet', dedicated='1', developer='1', net_ip='127.0.0.1',
         net_port=str(port), sv_pure='1' if pure else '0', sv_punkbuster='0', bot_enable='0',
         sv_master1='', sv_master2='', sv_master3='', sv_master4='', sv_master5=''),
-        ['+map', 'goldrush'] + (['+wait', '400', '+map', 'battery', '+wait', '1200']
-                                if rotation_check else ['+wait', '1100']) + ['+quit'])
+        ['+map', mapname] + (['+wait', '400', '+map', 'battery', '+wait', '1200']
+                             if rotation_check else ['+wait', '1100']) + ['+quit'])
     client_actions = ['+connect', f'127.0.0.1:{port}']
     if camera_check:
         client_actions += ['+wait', '300', '+openlimbomenu', '+wait', '30',
@@ -106,7 +106,7 @@ def probe(server, installation, output, team_check=False, camera_check=False,
         summary = f'Interop: inbound, {kind} map rotation'
     else:
         summary = f'Interop: inbound, {kind} spectator only'
-    result = dict(evidence=summary,
+    result = dict(evidence=summary, map=mapname,
                   profile='wolfet', serverCommand=server_command, clientCommand=client_command,
                   serverSha256=hashlib.sha256(server.read_bytes()).hexdigest(),
                   clientSha256=hashlib.sha256(client.read_bytes()).hexdigest(),
@@ -210,6 +210,8 @@ if __name__ == '__main__':
                         help='spawn on Axis and issue the engine movement commands briefly; no input is injected')
     checks.add_argument('--rotation-check', action='store_true',
                         help='change the server map while a client is active and require it to rejoin')
+    parser.add_argument('--map', default='goldrush',
+                        help='stock map to load; rotation always changes to battery')
     parser.add_argument('--pure', action='store_true',
                         help='run the server with sv_pure 1 and require the client to pass pure admission')
     args = parser.parse_args()
@@ -217,4 +219,5 @@ if __name__ == '__main__':
         parser.error('This retail Windows client probe requires Windows')
     raise SystemExit(0 if probe(args.server.resolve(strict=True), args.installation.resolve(strict=True),
                                args.output.resolve(), args.team_check, args.camera_check,
-                               args.move_check, args.rotation_check, args.pure) else 1)
+                               args.move_check, args.rotation_check, args.pure,
+                               args.map) else 1)

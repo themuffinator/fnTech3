@@ -59,6 +59,9 @@ This is scoped to ET. Retail RTCW MP reads the same key from its own server, so
 that profile very likely has the same defect; it is left unchanged here because
 there is no retail RTCW client run to confirm it, and changing a second
 profile's systeminfo without evidence would be a silent cross-profile change.
+(Followed up in the [RTCW pure-name record](2026-09-17-rtcw-mp-pure-names.md):
+RTCW MP stores the names but never reads them back, a retail MP client admits
+without them, and the "very likely" above did not hold.)
 
 ## Verification
 
@@ -89,18 +92,33 @@ no unpure drop. The same run against the previous binary faulted in the client.
 A non-pure control run with the same binary still passes, so nothing in the
 existing admission path regressed.
 
+All six stock maps repeat this with the later `41cbb678` server, each joining
+Axis and Allies under `sv_pure 1` with both processes exiting 0 and the
+installation unchanged:
+
+| Map | Pure admission | Axis | Allies | Elapsed |
+| --- | --- | --- | --- | --- |
+| goldrush | yes | yes | yes | 55.7 s |
+| battery | yes | yes | yes | 55.6 s |
+| oasis | yes | yes | yes | 55.6 s |
+| radar | yes | yes | yes | 55.4 s |
+| railgun | yes | yes | yes | 55.3 s |
+| fueldump | yes | yes | yes | 55.4 s |
+
 Two existing fixtures needed matching updates: the pure-profile contract probe
 gained the new predicate, and the server-policy probe now expects ET's retail
 `sv_pure` default instead of the development refusal it previously asserted.
 
 ## Remaining gates
 
-- One map, one client and one installation. Pure behaviour across the other
-  five stock maps, mods with their own paks, gamestate-overflow fallback, and
-  the degraded no-`sv_paks` path are unverified.
+- One client and one installation. All six stock maps pass, but mods with
+  their own paks, gamestate-overflow fallback and the degraded no-`sv_paks`
+  path are unverified, as is any map larger than the stock set.
 - Downloads of missing paks under pure ET, and the reverse direction with
   fnTech3 as the ET client, remain open; ET client startup is still gated.
-- Retail RTCW MP's identical `sv_pakNames` requirement is unresolved, as above.
+- Retail RTCW MP's `sv_pakNames` requirement is resolved: it has none. The
+  [RTCW pure-name record](2026-09-17-rtcw-mp-pure-names.md) shows the fault is
+  ET-specific and the scoping here is correct, so nothing changed for that profile.
 - Everything else in the [ET matrix](COMPATIBILITY.md#wolfet-gate-matrix)
   remains as recorded.
 
@@ -108,5 +126,6 @@ gained the new predicate, and the server-policy probe now expects ET's retail
 
 `FS_LoadedPakNames` remains a console-only helper compiled out of dedicated
 builds and reporting bare basenames; it is unchanged and is not the function
-servers publish. The RTCW MP pure-name gap described above is the one product
-issue this slice found outside its scope.
+servers publish. The RTCW MP pure-name question described above is the one
+product issue this slice found outside its scope; it was investigated separately
+and turned out to need no change.
