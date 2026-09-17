@@ -10,6 +10,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import socket
 import sys
 import time
@@ -34,7 +35,7 @@ def command(executable, installation, home, settings, commands):
     return result + commands
 
 
-def probe(server, installation, output, team_check=False):
+def probe(server, installation, output, team_check=False, camera_check=False):
     output.mkdir(parents=True, exist_ok=False)
     server_home, client_home = output/'server', output/'client'
     server_home.mkdir(); client_home.mkdir()
@@ -49,7 +50,11 @@ def probe(server, installation, output, team_check=False):
         sv_master1='', sv_master2='', sv_master3='', sv_master4='', sv_master5=''),
         ['+map', 'goldrush', '+wait', '1100', '+quit'])
     client_actions = ['+connect', f'127.0.0.1:{port}']
-    if team_check:
+    if camera_check:
+        client_actions += ['+wait', '300', '+openlimbomenu', '+wait', '30',
+                           '+obj', '0', '+wait', '90', '+obj', '1', '+wait', '90',
+                           '+openlimbomenu', '+wait', '240', '+quit']
+    elif team_check:
         client_actions += ['+wait', '300', '+team', 'axis', '0', '3', '2',
                            '+wait', '300', '+team', 'allies', '0', '8', '7',
                            '+wait', '150', '+quit']
@@ -58,7 +63,7 @@ def probe(server, installation, output, team_check=False):
     client_command = command(client, installation, client_home, dict(
         com_maxfps='30', s_initsound='0', r_mode='3', name='fntech3-et-probe',
         cl_punkbuster='0', cl_allowDownload='0', cl_wwwDownload='0',
-        r_ignorehwgamma='1', developer='1'),
+        r_ignorehwgamma='1', developer='1', cl_showServerCommands='1' if camera_check else '0'),
         client_actions)
     result = dict(evidence='Interop: inbound, non-pure team admission' if team_check else 'Interop: inbound, non-pure spectator only',
                   profile='wolfet', serverCommand=server_command, clientCommand=client_command,
@@ -66,6 +71,8 @@ def probe(server, installation, output, team_check=False):
                   clientSha256=hashlib.sha256(client.read_bytes()).hexdigest(),
                   moduleSha256=hashlib.sha256((installation/'etmain/qagame_mp_x86.dll').read_bytes()).hexdigest(),
                   passed=False)
+    if camera_check:
+        result['evidence'] = 'Interop: inbound, non-pure objective-camera requests and replies'
     server_log = server_home/'etmain/qconsole.log'
     read_log = lambda: server_log.read_text(encoding='utf-8', errors='replace') if server_log.exists() else ''
     processes = []
@@ -101,10 +108,16 @@ def probe(server, installation, output, team_check=False):
     if team_check:
         result['teamAdmission'] = {name: f'\\t\\{number}\\c\\0' in log
                                    for name, number in (('axis', 1), ('allies', 2))}
+    if camera_check:
+        client_log = client_home/'etmain/etconsole.log'
+        client_text = client_log.read_text(encoding='utf-8', errors='replace') if client_log.exists() else ''
+        replies = set(re.findall(r'\bserverCommand:\s+\d+\s*:\s+portalcampos\s+([01])\b', client_text))
+        result['cameraReplies'] = {objective: objective in replies for objective in ('0', '1')}
     result['passed'] = bool(result.get('clientExit') == 0 and result.get('serverExit') == 0
                             and result['active'] and result['clientBegin'] and result['disconnected']
                             and result['installationUnchanged'] and 'ERROR:' not in log
-                            and all(result.get('teamAdmission', {}).values()))
+                            and all(result.get('teamAdmission', {}).values())
+                            and all(result.get('cameraReplies', {}).values()))
     (output/'result.json').write_text(json.dumps(result, indent=2)+'\n', encoding='utf-8')
     print(json.dumps({k: v for k, v in result.items() if not k.endswith('Command')}, indent=2))
     return result['passed']
@@ -115,10 +128,13 @@ if __name__ == '__main__':
     parser.add_argument('--server', type=Path, required=True)
     parser.add_argument('--installation', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
-    parser.add_argument('--team-check', action='store_true',
+    checks = parser.add_mutually_exclusive_group()
+    checks.add_argument('--team-check', action='store_true',
                         help='issue console commands to join Axis and Allies; no mouse/keyboard input')
+    checks.add_argument('--camera-check', action='store_true',
+                        help='open the limbo panel and verify replies for two objective cameras; no visual parity claim')
     args = parser.parse_args()
     if os.name != 'nt':
         parser.error('This retail Windows client probe requires Windows')
     raise SystemExit(0 if probe(args.server.resolve(strict=True), args.installation.resolve(strict=True),
-                               args.output.resolve(), args.team_check) else 1)
+                               args.output.resolve(), args.team_check, args.camera_check) else 1)

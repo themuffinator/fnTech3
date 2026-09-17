@@ -171,6 +171,7 @@ void SV_ClearWorld( void ) {
 	for ( svEntity_t &entity : sv.svEntities ) {
 		entity.worldSector = nullptr;
 		entity.nextEntityInWorldSector = nullptr;
+		entity.wolfetOriginCluster = -1;
 	}
 
 	// get world map bounds
@@ -315,6 +316,8 @@ void SV_LinkEntity( sharedEntity_t *gEnt ) {
 	ent->lastCluster = 0;
 	ent->areanum = -1;
 	ent->areanum2 = -1;
+	ent->wolfetOriginCluster = Com_GameIsWolfET() && entity.r.bmodel
+		? CM_LeafCluster( CM_PointLeafnum( entity.r.currentOrigin ) ) : -1;
 
 	//get all leafs, including solids
 	num_leafs = CM_BoxLeafnums( entity.r.absmin, entity.r.absmax,

@@ -48,6 +48,7 @@ typedef struct svEntity_s {
 	int			numClusters;		// if -1, use headnode instead
 	int			clusternums[MAX_ENT_CLUSTERS];
 	int			lastCluster;		// if all the clusters don't fit in clusternums
+	int			wolfetOriginCluster; // ET brush origin, independent of its bounds
 	int			areanum, areanum2;
 	int			snapshotCounter;	// used to prevent double adding from portal views
 } svEntity_t;
@@ -62,9 +63,9 @@ typedef enum {
 // so leave more room for slow-snaps clients etc.
 #define NUM_SNAPSHOT_FRAMES (PACKET_BACKUP*4)
 
-// Engine storage covers ET's larger window. Snapshot construction still applies
-// the selected profile's limit, retaining 256 entities for existing profiles.
-#define MAX_SERVER_SNAPSHOT_ENTITIES FNTECH3_WOLFET_MAX_ENTITIES_IN_SNAPSHOT
+// ET's server can select every entity; its separate cgame snapshot POD has 512
+// slots. Other profiles retain their existing 256-entity selection limit.
+#define MAX_SERVER_SNAPSHOT_ENTITIES MAX_GENTITIES
 
 typedef struct snapshotFrame_s {
 	entityState_t *ents[ MAX_GENTITIES ];

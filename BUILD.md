@@ -155,6 +155,19 @@ Supply your own installation path. The probe disables pure mode and optional
 PunkBuster services, loads `goldrush`, queries protocol 84, and exits. Use
 `--map` for another installed map and `--auto` for installation detection.
 This is startup evidence; it does not establish multiplayer interoperability.
+
+On Windows, the retail-client probe checks inbound non-pure admission using
+isolated homes and an unswitched private desktop. It keeps the client windowed
+and disables mouse/joystick input. To check two objective-camera requests and
+their received replies:
+
+```powershell
+python scripts/probe_wolfet_retail_client.py --server meson/build/win32-dev/fntech3.ded.exe --installation "E:\SteamLibrary\steamapps\common\Wolfenstein Enemy Territory" --output .tmp/wolfet/camera --camera-check
+```
+
+Use a fresh output directory for each run. Replace `--camera-check` with
+`--team-check` for Axis/Allies admission; these modes are mutually exclusive.
+Camera replies do not establish rendered-camera or gameplay correctness.
 See the [ET gate matrix](docs/fntech3/COMPATIBILITY.md#wolfet-gate-matrix).
 
 ### RTCW development profiles

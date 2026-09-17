@@ -70,6 +70,11 @@ constexpr ServerFlagMapping rtcwServerFlags[] = {
 	{ FNTECH3_RTCW_SVF_NOSERVERINFO, SVF_NOSERVERINFO },
 	{ FNTECH3_RTCW_SVF_NOTSINGLECLIENT, SVF_NOTSINGLECLIENT }
 };
+constexpr ServerFlagMapping wolfetServerFlags[] = {
+	{ FNTECH3_WOLFET_SVF_IGNOREBMODELEXTENTS, SVF_WOLFET_ORIGIN_ONLY },
+	{ FNTECH3_WOLFET_SVF_SELF_PORTAL, SVF_WOLFET_SELF_PORTAL },
+	{ FNTECH3_WOLFET_SVF_SELF_PORTAL_EXCLUSIVE, SVF_WOLFET_SELF_PORTAL_EXCLUSIVE }
+};
 
 int ServerFlagsToInternal( comGameId_t profile, int flags ) {
 	if ( profile != COM_GAME_RTCW_SP && profile != COM_GAME_RTCW_MP && profile != COM_GAME_WOLFET ) return flags;
@@ -78,6 +83,10 @@ int ServerFlagsToInternal( comGameId_t profile, int flags ) {
 		if (profile == COM_GAME_WOLFET && (bit.external == FNTECH3_RTCW_SVF_CASTAI ||
 			bit.external == FNTECH3_RTCW_SVF_USE_CURRENT_ORIGIN)) continue;
 		if ( static_cast<uint32_t>( flags ) & bit.external ) result |= bit.internal;
+	}
+	if ( profile == COM_GAME_WOLFET ) {
+		for ( const auto &bit : wolfetServerFlags )
+			if ( static_cast<uint32_t>( flags ) & bit.external ) result |= bit.internal;
 	}
 	return static_cast<int>( result );
 }
@@ -91,6 +100,12 @@ int ServerFlagsFromInternal( comGameId_t profile, int flags, int previous ) {
 			bit.external == FNTECH3_RTCW_SVF_USE_CURRENT_ORIGIN)) continue;
 		result &= ~bit.external;
 		if ( static_cast<uint32_t>( flags ) & bit.internal ) result |= bit.external;
+	}
+	if ( profile == COM_GAME_WOLFET ) {
+		for ( const auto &bit : wolfetServerFlags ) {
+			result &= ~bit.external;
+			if ( static_cast<uint32_t>( flags ) & bit.internal ) result |= bit.external;
+		}
 	}
 	int output;
 	static_assert( sizeof( output ) == sizeof( result ) );

@@ -35,7 +35,12 @@ server and both processes exit normally; the reverse direction remains gated.
 The [ET snapshot follow-up](2026-09-17-wolfet-snapshots.md) adds checked per-client
 callbacks and single/multiple visibility proxies with executable regressions.
 Retail Axis/Allies admission and same-binary Q3/QL startup still pass; live
-landmine/proxy behavior and the remaining visibility contracts are open.
+landmine/proxy behavior remains open. The
+[viewpoint and capacity follow-up](2026-09-17-wolfet-viewpoints.md) adds ET
+origin-only brush visibility, self/exclusive cameras and lean, and removes the
+incorrect 512-entity server cap while preserving the frozen cgame limit.
+4,936 finite camera/lean cases match the original-source calculation; live
+visibility and rendered-camera parity remain open.
 
 The [RoQ bounds and recovery checkpoint](2026-09-17-roq-bounds.md) adds checked
 movie framing, dimensions, codebooks, VQ/motion reads and partial shutdown. It
@@ -1036,11 +1041,11 @@ checks, generated packet fixtures and installed dedicated observations.
 | Gate | Evidence | Remaining requirement |
 | --- | --- | --- |
 | Profile / identity / discovery | Source, Unit, Live | Default/client gates preserved; broader installs and platforms remain open. |
-| Module ABI / server memory | Source, Unit, Live subset | 1,323 layout/ordinal checks, native qagame startup; full game/UI/cgame surfaces remain open. |
+| Module ABI / server memory | Source, Unit, Live subset | 1,326 layout/constant/ordinal checks, native qagame startup; full game/UI/cgame surfaces remain open. |
 | Protocol-84 message bodies | Source, Unit, inbound Interop subset | 1,169 original-engine comparisons and inbound retail sessions; full transport and malformed peer behavior remain open. |
 | Filesystem / pure / downloads | Unit, Live subset | Separate etmain/home and native names; pure mode is explicitly unavailable; download/admission gates open. |
 | Assets / collision | Source, Unit, Live subset | Six stock BSPs and installed TAGs load; MDM/MDX/render assets remain open. |
-| Dedicated gameplay / snapshots | Source, Unit, Live, inbound Interop subset | All six maps initialize under explicit and auto selection; a retail client reaches CS_ACTIVE, joins Axis/Allies and respawns. [Snapshot callbacks and visibility proxies](2026-09-17-wolfet-snapshots.md) pass executable regressions; live landmine/proxy behavior, origin-only brush visibility, self portals/leaning, movement/combat/objectives and rotation remain open. |
+| Dedicated gameplay / snapshots | Source, Unit, Live, inbound Interop subset | All six maps initialize under explicit and auto selection; a retail client reaches CS_ACTIVE, joins Axis/Allies, respawns and receives replies to two objective-camera requests. [Callbacks/proxies](2026-09-17-wolfet-snapshots.md) and [viewpoints/server capacity](2026-09-17-wolfet-viewpoints.md) pass executable regressions. Live landmine/proxy/brush/lean visibility, rendered cameras, dense retail exchanges, movement/combat/objectives and rotation remain open. |
 | Client / renderer / audio / input | Blocked | Client startup stays gated; no client or visual claim. |
 | Demos / bidirectional interoperability | Inbound Interop subset; demos open | Non-pure retail spectator/team admission connects to fnTech3; reverse direction and ET demo playback remain open. |
 | Optional services | Unavailable | No PunkBuster, authentication or Workshop success is synthesized. |

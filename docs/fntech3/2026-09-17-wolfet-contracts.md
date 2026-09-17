@@ -57,7 +57,7 @@ is rejected. Steam supplies discovery only, not authentication or Workshop.
 | User command / entity / player POD | 28 / 288 / 1,452 bytes |
 | Parser token | 1,048 bytes, including line and crossed-line metadata |
 | Entity shared data | Begins at byte 288; does not contain RTCW's duplicated entity state |
-| Snapshot / reliable commands / message bytes | 512 entities / 256 commands / 32,768 bytes |
+| Client-module snapshot / reliable commands / message bytes | 512 entities / 256 commands / 32,768 bytes |
 | BSP / collision model handles | Version 47, ordinary 17-lump header / 512 |
 | Entity/player delta fields | 71 / 77, ordered independently from RTCW |
 
@@ -78,14 +78,17 @@ Executable unit checks cover transactional state transfers, all trajectory
 encodings, high weapon slots, extra events, malformed/truncated messages,
 profile immutability, build gates, module names and traversal rejection,
 server array strides and sentinels, and TAG bounds/nonfinite values.
-Server snapshot storage now accommodates ET's 512 entities; construction keeps
+At this checkpoint server snapshot storage accommodated 512 entities; construction kept
 the existing 256-entity cap for Q3, QL and both RTCW profiles. An executable
 regression fills and overflows the window for each profile and checks the
 destination frame capacity. ET snapshot callbacks and visibility flags remain
 separate open gates at this checkpoint. The later
 [snapshot follow-up](2026-09-17-wolfet-snapshots.md) implements callbacks and
 single/multiple visibility proxies with Source/Unit evidence; live behavior and
-the other ET visibility contracts remain open.
+the other ET visibility contracts remained open. The later
+[viewpoint/capacity follow-up](2026-09-17-wolfet-viewpoints.md) implements the
+origin-only and camera flags and corrects the server capacity: 512 is the frozen
+cgame record limit, while server selection must cover the full entity-index space.
 
 ## Installed dedicated observations
 

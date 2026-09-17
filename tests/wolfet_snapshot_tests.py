@@ -10,6 +10,7 @@ from compiler_support import compiler_target_args
 ROOT = Path(__file__).resolve().parents[1]
 HOST = r'''
 #include "code/server/server.h"
+#include "code/server/server_world_bounds.hpp"
 #include <array>
 #include <cassert>
 #include <iterator>
@@ -33,16 +34,23 @@ qboolean SV_WriteGameEntityByNum(int n,const sharedEntity_t *value){
 }
 void QDECL Com_DPrintf(const char*,...){}
 static bool SV_GameForcesSnapshotEntity(int,int){return false;}
-static bool SV_AreasVisibleForSnapshot(int,const svEntity_t*){return true;}
-int CM_PointLeafnum(const float*){return 0;}
-int CM_LeafArea(int){return 0;}
-int CM_LeafCluster(int){return 0;}
-int CM_WriteAreaBits(byte *out,int){out[0]=1;return 1;}
-byte *CM_ClusterPVS(int){static byte visible[1]={1};return visible;}
+static bool areasConnected=true,missingPvs=false;
+static std::vector<std::array<float,3>> viewpoints;
+static byte visibility[2]={1,2};
+static bool SV_AreasVisibleForSnapshot(int,const svEntity_t*){return areasConnected;}
+int CM_PointLeafnum(const float *point){
+ assert(viewpoints.size()<100);viewpoints.push_back({point[0],point[1],point[2]});return point[0]>=100?1:0;
+}
+int CM_LeafArea(int leaf){return leaf;}
+int CM_LeafCluster(int leaf){return leaf;}
+int CM_NumClusters(){return 8;}
+int CM_WriteAreaBits(byte *out,int area){out[0]|=byte(1<<area);return 1;}
+byte *CM_ClusterPVS(int cluster){return missingPvs?nullptr:visibility+(cluster==1?1:0);}
 using SnapshotEntityIndex = int;
 static void setup(comGameId_t id,int count){
  profile=id;std::memset(&sv,0,sizeof(sv));std::memset(&svs,0,sizeof(svs));
  std::memset(&storage,0,sizeof(storage));std::memset(entities.data(),0,sizeof(entities));calls=0;allow=true;
+ areasConnected=true;missingPvs=false;viewpoints.clear();visibility[0]=1;visibility[1]=2;
  sv.state=SS_GAME;sv.snapshotCounter=19;sv.num_entities=count;
  svs.currFrame=&storage;storage.count=count;
  for(int i=0;i<count;++i){entities[i].s.number=i;entities[i].s.otherEntityNum=ENTITYNUM_NONE;
@@ -53,13 +61,13 @@ static void setup(comGameId_t id,int count){
 CHECKS = r'''
 int main(){
  static_assert(MAX_SERVER_SNAPSHOT_ENTITIES >= MAX_SNAPSHOT_ENTITIES);
- static_assert(MAX_SERVER_SNAPSHOT_ENTITIES == 512);
+ static_assert(MAX_SERVER_SNAPSHOT_ENTITIES == MAX_GENTITIES);
  for(auto id:{COM_GAME_QUAKE3,COM_GAME_QUAKELIVE,COM_GAME_RTCW_SP,COM_GAME_RTCW_MP,COM_GAME_WOLFET}){
-  setup(id,600);
+  setup(id,MAX_GENTITIES);
   struct { SnapshotEntityNumbers value; unsigned sentinel=0x5a5aa5a5; } guarded;
-  const int expected=id==COM_GAME_WOLFET?512:256;
+  const int expected=id==COM_GAME_WOLFET?MAX_GENTITIES:256;
   svEntity_t entity{};
-  for(int index=0;index<600;++index){
+  for(int index=0;index<MAX_GENTITIES+32;++index){
    entity.snapshotCounter=0;
    guarded.value.Add(entity,index);
    assert(guarded.value.count==(index<expected?index+1:expected));
@@ -67,14 +75,14 @@ int main(){
   }
   assert(guarded.sentinel==0x5a5aa5a5);
   clientSnapshot_t frame{};
-  std::array<entityState_t,600> states{};
+  static std::array<entityState_t,MAX_GENTITIES> states{};
   assert(guarded.value.count<=std::size(frame.ents));
   for(int index=0;index<guarded.value.count;++index){
    assert(guarded.value.indices[index]==index);
    frame.ents[index]=&states[guarded.value.indices[index]];
   }
   assert(frame.ents[expected-1]==&states[expected-1]);
-  assert(calls==(id==COM_GAME_WOLFET?512:0));
+  assert(calls==(id==COM_GAME_WOLFET?MAX_GENTITIES:0));
  }
  setup(COM_GAME_WOLFET,2);
  for(int invalid:{-1,2,INT_MAX}){

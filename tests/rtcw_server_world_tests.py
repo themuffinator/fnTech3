@@ -1,4 +1,4 @@
-"""Execute server world queries through all four frozen game-data layouts."""
+"""Execute server world queries through all five frozen game-data layouts."""
 from pathlib import Path
 import os
 import shutil
@@ -28,11 +28,13 @@ PRELUDE = r'''
 #include <cmath>
 #include <cstring>
 #include <limits>
+#include <type_traits>
 #include <vector>
 server_t sv{};
 static comGameProfile_t profile{};
 const comGameProfile_t *Com_GameProfile() { return &profile; }
 int Com_GameIsRTCW() { return profile.id == COM_GAME_RTCW_SP || profile.id == COM_GAME_RTCW_MP; }
+int Com_GameIsWolfET() { return profile.id == COM_GAME_WOLFET; }
 static fntech3::server::ServerGameDataView serverGameData;
 struct Drop {};
 void QDECL Com_Error(errorParm_t, const char *, ...) { throw Drop{}; }
@@ -83,7 +85,8 @@ template<class Entity, class Player> void run(comGameId_t id,bool qvm) {
  constexpr size_t stride=sizeof(Entity)+48, base=128, count=4;
  std::vector<byte> memory(base+count*stride+128,0xa5),clients(sizeof(Player));
  for(size_t i=0;i<count;++i){Entity initial{};initial.s.number=(int)i;
-  initial.r.s.number=991;initial.r.svFlags=static_cast<int>(0x80000002u);
+  if constexpr (!std::is_same_v<Entity,fntech3_wolfet_sharedEntity_t>) initial.r.s.number=991;
+  initial.r.svFlags=static_cast<int>(0x80000002u);
   initial.r.ownerNum=1023;
   initial.r.mins[0]=initial.r.mins[1]=-16;initial.r.mins[2]=-24;
   initial.r.maxs[0]=initial.r.maxs[1]=16;initial.r.maxs[2]=32;
@@ -141,6 +144,18 @@ template<class Entity, class Player> void run(comGameId_t id,bool qvm) {
   auto good=read(0);write(0,bad);auto before=memory;auto *old=sv.svEntities[0].worldSector;int calls=boxCalls;
   rejected([&]{link(0);});assert(memory==before&&sv.svEntities[0].worldSector==old&&calls==boxCalls);write(0,good);
  }
+ if(Com_GameIsWolfET()){
+  auto brush=read(0);brush.r.bmodel=1;brush.r.currentOrigin[0]=100;
+  brush.r.svFlags|=FNTECH3_WOLFET_SVF_IGNOREBMODELEXTENTS;write(0,brush);
+  for(int cluster:{-1,0,7,31}){
+   destinationCluster=cluster;link(0);
+   assert(sv.svEntities[0].wolfetOriginCluster==cluster);
+   assert(read(0).r.svFlags==brush.r.svFlags);
+  }
+  brush.r.bmodel=0;write(0,brush);link(0);assert(sv.svEntities[0].wolfetOriginCluster==-1);
+  brush.r.bmodel=1;write(0,brush);link(0);assert(sv.svEntities[0].wolfetOriginCluster==31);
+  SV_ClearWorld();assert(sv.svEntities[0].wolfetOriginCluster==-1);
+ }
  if(Com_GameIsRTCW()){
   rejected([&]{invoke(Call::G_LINKENTITY,{address(base+1)});});
   rejected([&]{invoke(Call::G_UNLINKENTITY,{address(base+sizeof(Entity))});});
@@ -184,6 +199,7 @@ template<class Entity, class Player> void run(comGameId_t id,bool qvm) {
 int main(){
  run<fntech3_q3_sharedEntity_t,fntech3_q3_playerState_t>(COM_GAME_QUAKE3,false);
  run<fntech3_ql_sharedEntity_t,fntech3_ql_playerState_t>(COM_GAME_QUAKELIVE,false);
+ run<fntech3_wolfet_sharedEntity_t,fntech3_wolfet_playerState_t>(COM_GAME_WOLFET,false);
  for(bool qvm:{false,true}){
   run<fntech3_rtcw_sp_sharedEntity_t,fntech3_rtcw_sp_playerState_t>(COM_GAME_RTCW_SP,qvm);
   run<fntech3_rtcw_mp_sharedEntity_t,fntech3_rtcw_mp_playerState_t>(COM_GAME_RTCW_MP,qvm);

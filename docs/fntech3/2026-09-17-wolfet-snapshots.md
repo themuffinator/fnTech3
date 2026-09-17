@@ -143,7 +143,11 @@ setting.
 
 Live landmine/proxy observations, ET origin-only brush-model visibility,
 self-portal/exclusive viewpoint flags and leaning need further evidence or
-implementation. Movement, combat, objectives, restart/rotation, remaining game
+implementation at this checkpoint. The subsequent
+[viewpoint follow-up](2026-09-17-wolfet-viewpoints.md) implements those remaining
+viewpoint paths, adds source comparisons and corrects this checkpoint's server
+capacity to distinguish it from the 512-entry cgame contract. Live visibility
+gates remain open. Movement, combat, objectives, restart/rotation, remaining game
 imports, pure admission, downloads and demo playback also remain open. UI/cgame,
 MDM/MDX rendering, audio/input and reverse interoperability keep fnTech3's ET
 client gated. The [ET ledger](COMPATIBILITY.md#wolfet-gate-matrix) remains partial.

@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "server.h"
+#include "server_world_bounds.hpp"
 #include "../qcommon/netchan_safety.hpp"
 
 #include <array>
@@ -291,7 +292,8 @@ struct SnapshotEntityNumbers {
 	std::array<SnapshotEntityIndex, MAX_SERVER_SNAPSHOT_ENTITIES> indices{};
 	bool unordered = false;
 	int clientNum = 0;
-	const int limit = Com_GameIsWolfET() ? FNTECH3_WOLFET_MAX_ENTITIES_IN_SNAPSHOT : MAX_SNAPSHOT_ENTITIES;
+	bool wolfetSelfPortalAdded = false;
+	const int limit = Com_GameIsWolfET() ? MAX_SERVER_SNAPSHOT_ENTITIES : MAX_SNAPSHOT_ENTITIES;
 
 	void Add( svEntity_t &svEnt, SnapshotEntityIndex index ) {
 		const bool wolfet = Com_GameIsWolfET() != 0;
@@ -595,6 +597,10 @@ static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_
 	if ( sv.state == SS_DEAD ) {
 		return;
 	}
+	if ( Com_GameIsWolfET() && !SV_FiniteWorldVector( origin ) ) {
+		Com_Error( ERR_DROP, "Invalid ET snapshot viewpoint" );
+		return;
+	}
 
 	leafnum = CM_PointLeafnum (origin);
 	clientarea = CM_LeafArea (leafnum);
@@ -604,6 +610,21 @@ static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_
 	frame->areabytes = CM_WriteAreaBits( frame->areabits, clientarea );
 
 	clientpvs = CM_ClusterPVS (clientcluster);
+
+	// Expand an ET player's second viewpoint once per client snapshot. Keeping
+	// the visit state with the snapshot also terminates self-referential portals.
+	if ( Com_GameIsWolfET() && !eNums.wolfetSelfPortalAdded ) {
+		eNums.wolfetSelfPortalAdded = true;
+		sharedEntity_t viewer;
+		if ( !SV_ReadGameEntityByNum( frame->ps.clientNum, &viewer ) ) {
+			Com_Error( ERR_DROP, "Invalid ET snapshot viewer %i", frame->ps.clientNum );
+			return;
+		}
+		if ( viewer.r.svFlags & SVF_WOLFET_SELF_PORTAL ) {
+			eNums.MarkUnordered();
+			SV_AddEntitiesVisibleFromPoint( viewer.s.origin2, frame, eNums, portal );
+		}
+	}
 
 	for ( e = 0 ; e < svs.currFrame->count; e++ ) {
 		sharedEntity_t entity;
@@ -633,6 +654,17 @@ static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_
 
 		if ( SV_GameForcesSnapshotEntity( frame->ps.clientNum, es->number ) ) {
 			eNums.Add( *svEnt, e );
+			continue;
+		}
+
+		// ET's origin-only brush rule bypasses both extent and area tests. A
+		// solid/out-of-range origin must never index the PVS or reveal the brush.
+		if ( Com_GameIsWolfET() && ( entity.r.svFlags & SVF_WOLFET_ORIGIN_ONLY ) ) {
+			const int cluster = svEnt->wolfetOriginCluster;
+			if ( clientpvs && cluster >= 0 && cluster < CM_NumClusters() &&
+				( clientpvs[cluster >> 3] & ( 1u << ( cluster & 7 ) ) ) ) {
+				eNums.Add( *svEnt, e );
+			}
 			continue;
 		}
 
@@ -851,6 +883,35 @@ static void SV_BuildCommonSnapshot( void )
 }
 
 
+// ET's connected client owns the exclusive camera, even when its playerstate
+// follows another client. Lean uses the playerstate's rolled right vector.
+static void SV_SnapshotViewOrigin( const client_t *client, const playerState_t &state, vec3_t origin ) {
+	VectorCopy( state.origin, origin );
+	if ( Com_GameIsWolfET() ) {
+		sharedEntity_t camera;
+		if ( !SV_ReadGameEntity( client->gentity, &camera ) ) {
+			Com_Error( ERR_DROP, "Invalid ET snapshot camera entity" );
+			return;
+		}
+		if ( camera.r.svFlags & SVF_WOLFET_SELF_PORTAL_EXCLUSIVE )
+			VectorCopy( camera.s.origin2, origin );
+	}
+	origin[2] += state.viewheight;
+	if ( !Com_GameIsWolfET() ) return;
+	if ( state.rtcw.leanf != 0.0f ) {
+		vec3_t angles, right;
+		VectorCopy( state.viewangles, angles );
+		angles[ROLL] += state.rtcw.leanf * 0.5f;
+		if ( !SV_FiniteWorldVector( angles ) ) {
+			Com_Error( ERR_DROP, "Invalid ET snapshot lean angles" );
+			return;
+		}
+		AngleVectors( angles, nullptr, right, nullptr );
+		for ( int axis = 0; axis < 3; ++axis ) origin[axis] += state.rtcw.leanf * right[axis];
+	}
+	if ( !SV_FiniteWorldVector( origin ) ) Com_Error( ERR_DROP, "Invalid ET snapshot camera origin" );
+}
+
 /*
 =============
 SV_BuildClientSnapshot
@@ -928,8 +989,7 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 	svEnt->snapshotCounter = sv.snapshotCounter;
 
 	// find the client's viewpoint
-	VectorCopy( playerState.origin, org );
-	org[2] += playerState.viewheight;
+	SV_SnapshotViewOrigin( client, playerState, org );
 	clientLeaf = CM_PointLeafnum( org );
 	clientArea = CM_LeafArea( clientLeaf );
 

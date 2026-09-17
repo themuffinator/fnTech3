@@ -598,7 +598,8 @@ chapters; the GLSL implementation and synthetic tests are independently written.
   no implementation text is incorporated. Adapters, codecs, tag validation and
   synthetic fixtures are independently authored. See the
   [ET evidence record](docs/fntech3/2026-09-17-wolfet-contracts.md) and
-  [snapshot callback/visibility follow-up](docs/fntech3/2026-09-17-wolfet-snapshots.md).
+  [snapshot callback/visibility follow-up](docs/fntech3/2026-09-17-wolfet-snapshots.md)
+  and [viewpoint/capacity record](docs/fntech3/2026-09-17-wolfet-viewpoints.md).
 
 ## Retail-content boundary
 

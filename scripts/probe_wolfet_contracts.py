@@ -66,7 +66,10 @@ def translation_unit():
                  'MAX_GAMESTATE_CHARS': 'MAX_GAMESTATE_CHARS', 'CS_PLAYERS': 'CS_PLAYERS',
                  'CS_WOLFINFO': 'CS_WOLFINFO', 'MAX_ENTITIES_IN_SNAPSHOT': 'MAX_ENTITIES_IN_SNAPSHOT',
                  'UI_API_VERSION': 'UI_API_VERSION', 'CGAME_API_VERSION': 'CGAME_IMPORT_API_VERSION',
-                 'GAME_API_VERSION': 'GAME_API_VERSION'}
+                 'GAME_API_VERSION': 'GAME_API_VERSION',
+                 'SVF_IGNOREBMODELEXTENTS': 'SVF_IGNOREBMODELEXTENTS',
+                 'SVF_SELF_PORTAL': 'SVF_SELF_PORTAL',
+                 'SVF_SELF_PORTAL_EXCLUSIVE': 'SVF_SELF_PORTAL_EXCLUSIVE'}
     for own, ref in constants.items():
         lines += [f'_Static_assert(FNTECH3_WOLFET_{own} == {ref}, "{ref}");']
         checks += 1

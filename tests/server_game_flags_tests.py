@@ -1,4 +1,4 @@
-"""RTCW server flags must retain their meaning across the canonical boundary."""
+"""RTCW/ET server flags retain their distinct meanings at the native boundary."""
 from pathlib import Path
 import os
 import shutil
@@ -71,6 +71,21 @@ int main() {
             int value = signedBits(1u << bit);
             assert(ServerFlagsToInternal(profile, value) == value);
             assert(ServerFlagsFromInternal(profile, value, ~value) == value);
+        }
+    }
+    constexpr uint32_t etKnown = (known & ~0x90u) | 0x1c000u;
+    assert(ServerFlagsToInternal(COM_GAME_WOLFET, 0x4000) == SVF_WOLFET_ORIGIN_ONLY);
+    assert(ServerFlagsToInternal(COM_GAME_WOLFET, 0x8000) == SVF_WOLFET_SELF_PORTAL);
+    assert(ServerFlagsToInternal(COM_GAME_WOLFET, 0x10000) == SVF_WOLFET_SELF_PORTAL_EXCLUSIVE);
+    assert(ServerFlagsToInternal(COM_GAME_WOLFET, 0x90) == 0); // POW/BLANK are module-owned.
+    for (uint32_t subset = 0; subset <= 0x1ffff; ++subset) {
+        const int canonical = ServerFlagsToInternal(COM_GAME_WOLFET, subset);
+        assert(!(canonical & (SVF_CLIENTMASK | SVF_SELF_PORTAL2 | SVF_RTCW_CASTAI | SVF_USE_CURRENT_ORIGIN)));
+        for (uint32_t previous : {0u, 0x80000092u, 0xffffffffu}) {
+            const uint32_t encoded = ServerFlagsFromInternal(COM_GAME_WOLFET, canonical, signedBits(previous));
+            assert((encoded & etKnown) == (subset & etKnown));
+            assert((encoded & ~etKnown) == (previous & ~etKnown));
+            assert(ServerFlagsToInternal(COM_GAME_WOLFET, signedBits(encoded)) == canonical);
         }
     }
 }

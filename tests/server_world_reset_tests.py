@@ -22,7 +22,7 @@ class ServerWorldResetTests(unittest.TestCase):
 using clipHandle_t=int;
 using vec3_t=float[3];
 struct worldSector_t {void *entities;int oldMarker;};
-struct svEntity_t {worldSector_t *worldSector;svEntity_t *nextEntityInWorldSector;int baseline;};
+struct svEntity_t {worldSector_t *worldSector;svEntity_t *nextEntityInWorldSector;int baseline;int wolfetOriginCluster;};
 std::array<worldSector_t,4> sv_worldSectors;
 int sv_numworldSectors=4;
 struct {std::array<svEntity_t,4> svEntities;} sv;
@@ -33,7 +33,7 @@ void SV_CreateworldSector(int depth,float *mins,float *maxs){assert(depth==0 && 
 int main(){
  for(int i=0;i<4;i++){
   sv_worldSectors[i]={&sv.svEntities[i],37};
-  sv.svEntities[i]={&sv_worldSectors[i],&sv.svEntities[(i+1)%4],100+i};
+  sv.svEntities[i]={&sv_worldSectors[i],&sv.svEntities[(i+1)%4],100+i,47};
  }
  for(int repeat=0;repeat<2;repeat++){
   SV_ClearWorld();
@@ -42,6 +42,7 @@ int main(){
    assert(!sv_worldSectors[i].entities && sv_worldSectors[i].oldMarker==0);
    assert(!sv.svEntities[i].worldSector && !sv.svEntities[i].nextEntityInWorldSector);
    assert(sv.svEntities[i].baseline==100+i);
+   assert(sv.svEntities[i].wolfetOriginCluster==-1);
   }
  }
 }

@@ -57,6 +57,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define SVF_RTCW_CASTAI             0x00080000
 #define SVF_RTCW_NOFOOTSTEPS        0x00100000
 #define SVF_RTCW_VISDUMMY_MULTIPLE  0x00200000
+#define SVF_WOLFET_ORIGIN_ONLY     0x00400000
+#define SVF_WOLFET_SELF_PORTAL     0x00800000
+#define SVF_WOLFET_SELF_PORTAL_EXCLUSIVE 0x01000000
 
 //===============================================================
 
