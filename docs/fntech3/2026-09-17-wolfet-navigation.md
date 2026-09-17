@@ -88,7 +88,8 @@ blocking-entity import from this set, and it ships with `bot_enable 0`.
 
 ## Remaining gates
 
-Six imports stay refused because this engine does not produce what they return:
+Six imports stay refused because this engine does not produce what they return.
+Five of the six share a single missing prerequisite:
 
 | Import | What it needs |
 | --- | --- |
@@ -96,16 +97,15 @@ Six imports stay refused because this engine does not produce what they return:
 | `BOTLIB_AAS_AVOIDDANGERAREA` | The same flood with ET's danger-distance scoring; reads the waypoints. |
 | `BOTLIB_AAS_RETREAT` | The same flood over a caller-supplied danger-spot list; reads the waypoints. |
 | `BOTLIB_AAS_NEARESTHIDEAREA` | The same flood, reading both the waypoints and the visibility. |
-| `BOTLIB_AAS_ALTROUTEGOALS` | ET selects on `AREACONTENTS_ROUTEPORTAL` and `AREACONTENTS_CLUSTERPORTAL` with a `500 + 3.0 × goal` window; the shared Quake function selects on cluster and view portals with a `1.1 × goal` window, so ET needs its own body rather than a type argument. |
+| `BOTLIB_AAS_ALTROUTEGOALS` | Its own body, plus the waypoints. ET selects on `AREACONTENTS_ROUTEPORTAL` and `AREACONTENTS_CLUSTERPORTAL` with a `500 + 3.0 × goal` window and publishes each goal at the area's waypoint; the shared Quake function selects on cluster and view portals with a `1.1 × goal` window and has no waypoints, so a type argument cannot express it. |
 | `BOTLIB_AAS_PREDICT_CLIENT_MOVEMENT` | ET's `aas_clientmove_t` embeds a full `bsp_trace_t` with plane, surface and contents, taken from the bot library's world trace. This engine's prediction produces an `aas_trace_t`, which carries none of those. Filling them with zeros would report a surface the module could act on, so the import fails instead. |
 
-All four floods read `aasworld.areawaypoints`, and two also call
-`AAS_AreaVisible`, so the single prerequisite is ET's route table rather than
-four separate queries. ET builds that table at runtime from the AAS data and
+All five routing imports read `aasworld.areawaypoints`, and two also call
+`AAS_AreaVisible`, so they share one prerequisite: ET's route table. ET builds that table at runtime from the AAS data and
 caches it as `maps/<map>.rtb`, identified `XRTB` at version 17. fnTech3 loads
 RTCW's separate `.rcd` route cache (versions 15 and 12) and has no route-table
-builder or reader; that builder is the work these four imports wait on, and it
-is not started.
+builder or reader; that builder is the work those five imports wait on, and it
+is not started. The sixth, movement prediction, is independent of it.
 
 Everything else in the [ET matrix](COMPATIBILITY.md#wolfet-gate-matrix) remains
 as recorded, including the gated ET client.
