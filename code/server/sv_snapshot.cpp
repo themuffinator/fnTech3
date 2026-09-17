@@ -290,14 +290,24 @@ struct SnapshotEntityNumbers {
 	int count = 0;
 	std::array<SnapshotEntityIndex, MAX_SERVER_SNAPSHOT_ENTITIES> indices{};
 	bool unordered = false;
+	int clientNum = 0;
 	const int limit = Com_GameIsWolfET() ? FNTECH3_WOLFET_MAX_ENTITIES_IN_SNAPSHOT : MAX_SNAPSHOT_ENTITIES;
 
 	void Add( svEntity_t &svEnt, SnapshotEntityIndex index ) {
+		const bool wolfet = Com_GameIsWolfET() != 0;
+		if ( wolfet && svEnt.snapshotCounter == sv.snapshotCounter ) return;
 		svEnt.snapshotCounter = sv.snapshotCounter;
 
 		// if we are full, silently discard entities
 		if ( count >= limit ) {
 			return;
+		}
+		if ( wolfet ) {
+			if ( !svs.currFrame || index < 0 || index >= svs.currFrame->count || !svs.currFrame->ents[index] ) {
+				Com_Error( ERR_DROP, "Invalid ET snapshot storage index %i", index );
+				return;
+			}
+			if ( !SV_WolfETSnapshotCallback( svs.currFrame->ents[index]->number, clientNum ) ) return;
 		}
 
 		indices[count++] = index;
@@ -307,6 +317,34 @@ struct SnapshotEntityNumbers {
 		unordered = true;
 	}
 };
+
+// ET visibility proxies select stored entities without requiring the target's
+// own PVS to overlap the client. Single-target and fan-out proxies have distinct
+// NOCLIENT rules in the original contract; keep their selection explicit.
+static bool SV_AddWolfETVisibilityTargets( const sharedEntity_t &dummy, SnapshotEntityNumbers &numbers ) {
+	if ( !Com_GameIsWolfET() ) return false;
+	const bool single = ( dummy.r.svFlags & SVF_RTCW_VISDUMMY ) != 0;
+	if ( !single && !( dummy.r.svFlags & SVF_RTCW_VISDUMMY_MULTIPLE ) ) return false;
+	if ( single && ( dummy.s.otherEntityNum < 0 || dummy.s.otherEntityNum >= sv.num_entities ) ) {
+		Com_Error( ERR_DROP, "Invalid ET visibility target %i", dummy.s.otherEntityNum );
+		return true;
+	}
+	for ( int index = 0; index < svs.currFrame->count; ++index ) {
+		const auto &state = *svs.currFrame->ents[index];
+		if ( single ? state.number != dummy.s.otherEntityNum :
+			( state.number == dummy.s.number || state.otherEntityNum != dummy.s.number ) ) continue;
+		sharedEntity_t target{};
+		if ( !SV_ReadGameEntityByNum( state.number, &target ) ) {
+			Com_Error( ERR_DROP, "Invalid ET visibility entity %i", state.number );
+			return true;
+		}
+		if ( !target.r.linked || ( !single && ( target.r.svFlags & SVF_NOCLIENT ) ) ) continue;
+		numbers.Add( sv.svEntities[state.number], index );
+		numbers.MarkUnordered();
+		if ( single ) break;
+	}
+	return true;
+}
 
 
 /*
@@ -342,6 +380,7 @@ SV_EntityPassesSnapshotClientFlags
 ===============
 */
 static bool SV_EntityPassesSnapshotClientFlags( const sharedEntity_t &entity, int clientNum ) {
+	if ( entity.r.svFlags & SVF_NOCLIENT ) return false;
 	// entities can be flagged to be sent to only one client
 	if ( entity.r.svFlags & SVF_SINGLECLIENT ) {
 		if ( entity.r.singleClient != clientNum ) {
@@ -634,6 +673,8 @@ static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_
 			}
 		}
 
+		if ( SV_AddWolfETVisibilityTargets( entity, eNums ) ) continue;
+
 		// add it
 		eNums.Add( *svEnt, e );
 
@@ -745,7 +786,9 @@ static void SV_BuildCommonSnapshot( void )
 			}
 
 			// entities can be flagged to explicitly not be sent to the client
-			if ( entity.r.svFlags & SVF_NOCLIENT ) {
+			// ET single-target proxies may explicitly reveal a NOCLIENT master.
+			// Keep it in common storage, then filter normal per-client candidates.
+			if ( ( entity.r.svFlags & SVF_NOCLIENT ) && !Com_GameIsWolfET() ) {
 				continue;
 			}
 
@@ -857,6 +900,7 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 	frame->ps = playerState;
 
 	clientNum = frame->ps.clientNum;
+	entityNumbers.clientNum = clientNum;
 	if ( clientNum < 0 || clientNum >= MAX_GENTITIES ) {
 		Com_Error( ERR_DROP, "SV_SvEntityForGentity: bad gEnt" );
 	}

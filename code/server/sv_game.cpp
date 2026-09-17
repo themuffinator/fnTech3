@@ -262,6 +262,24 @@ qboolean SV_ClientIsRTCWCastAI( const client_t *client ) {
 	return SV_QBool( ( entity.r.svFlags & SVF_RTCW_CASTAI ) != 0 );
 }
 
+bool SV_WolfETSnapshotCallback( int entityNum, int clientNum ) {
+	if ( !Com_GameIsWolfET() ) return true;
+	fntech3::server::GameEntityRef reference;
+	int enabled = 0;
+	if ( clientNum < 0 || clientNum >= serverGameData.ClientCount() ||
+		!serverGameData.EntityRefAt( entityNum, reference ) ||
+		!serverGameData.GetWolfETSnapshotCallback( reference, enabled ) ) {
+		Com_Error( ERR_DROP, "Invalid ET snapshot callback entity/client %i/%i", entityNum, clientNum );
+		return false;
+	}
+	if ( !enabled ) return true;
+	if ( !gvm ) {
+		Com_Error( ERR_DROP, "ET snapshot callback has no game module" );
+		return false;
+	}
+	return VM_Call( gvm, 2, GAME_SNAPSHOT_CALLBACK, entityNum, clientNum ) != 0;
+}
+
 
 qboolean SV_WriteGameEntity( void *entity,
 	const sharedEntity_t *source ) {

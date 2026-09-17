@@ -36,8 +36,8 @@ class LaunchAndTransitionSourceTests(unittest.TestCase):
         for configuration in launch["configurations"]:
             args = configuration["args"]
             profile = args[args.index("com_gameProfile") + 1] if "com_gameProfile" in args else "auto"
-            self.assertIn(profile, ("auto", "q3", "quake3", "ql", "quakelive", "rtcw-sp", "rtcw-mp"))
-            local_services = profile in ("q3", "quake3", "rtcw-sp", "rtcw-mp")
+            self.assertIn(profile, ("auto", "q3", "quake3", "ql", "quakelive", "rtcw-sp", "rtcw-mp", "wolfet"))
+            local_services = profile in ("q3", "quake3", "rtcw-sp", "rtcw-mp", "wolfet")
             steam_index = args.index("com_steamIntegration")
             self.assertEqual(args[steam_index + 1], "0" if local_services else "1", configuration["name"])
             # Launching must not implicitly rebuild the engine. These profiles

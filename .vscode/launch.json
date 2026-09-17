@@ -350,6 +350,90 @@
         "group": "Servers",
         "order": 0
       }
+    },
+    {
+      "name": "ET battery Seawall Battery ded",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.ded.exe",
+      "args": ["+set", "com_gameProfile", "wolfet", "+set", "fs_basepath", "${input:wolfetInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/wolfet/battery", "+set", "r_fullscreen", "0", "+set", "com_steamIntegration", "0", "+set", "dedicated", "1", "+set", "net_ip", "127.0.0.1", "+set", "sv_pure", "0", "+set", "sv_punkbuster", "0", "+set", "bot_enable", "0", "+map", "battery"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "Wolfenstein: Enemy Territory",
+        "order": 0
+      }
+    },
+    {
+      "name": "ET fueldump Fuel Dump ded",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.ded.exe",
+      "args": ["+set", "com_gameProfile", "wolfet", "+set", "fs_basepath", "${input:wolfetInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/wolfet/fueldump", "+set", "r_fullscreen", "0", "+set", "com_steamIntegration", "0", "+set", "dedicated", "1", "+set", "net_ip", "127.0.0.1", "+set", "sv_pure", "0", "+set", "sv_punkbuster", "0", "+set", "bot_enable", "0", "+map", "fueldump"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "Wolfenstein: Enemy Territory",
+        "order": 1
+      }
+    },
+    {
+      "name": "ET goldrush Gold Rush ded",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.ded.exe",
+      "args": ["+set", "com_gameProfile", "wolfet", "+set", "fs_basepath", "${input:wolfetInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/wolfet/goldrush", "+set", "r_fullscreen", "0", "+set", "com_steamIntegration", "0", "+set", "dedicated", "1", "+set", "net_ip", "127.0.0.1", "+set", "sv_pure", "0", "+set", "sv_punkbuster", "0", "+set", "bot_enable", "0", "+map", "goldrush"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "Wolfenstein: Enemy Territory",
+        "order": 2
+      }
+    },
+    {
+      "name": "ET oasis Siwa Oasis ded",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.ded.exe",
+      "args": ["+set", "com_gameProfile", "wolfet", "+set", "fs_basepath", "${input:wolfetInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/wolfet/oasis", "+set", "r_fullscreen", "0", "+set", "com_steamIntegration", "0", "+set", "dedicated", "1", "+set", "net_ip", "127.0.0.1", "+set", "sv_pure", "0", "+set", "sv_punkbuster", "0", "+set", "bot_enable", "0", "+map", "oasis"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "Wolfenstein: Enemy Territory",
+        "order": 3
+      }
+    },
+    {
+      "name": "ET radar Wurzburg Radar ded",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.ded.exe",
+      "args": ["+set", "com_gameProfile", "wolfet", "+set", "fs_basepath", "${input:wolfetInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/wolfet/radar", "+set", "r_fullscreen", "0", "+set", "com_steamIntegration", "0", "+set", "dedicated", "1", "+set", "net_ip", "127.0.0.1", "+set", "sv_pure", "0", "+set", "sv_punkbuster", "0", "+set", "bot_enable", "0", "+map", "radar"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "Wolfenstein: Enemy Territory",
+        "order": 4
+      }
+    },
+    {
+      "name": "ET railgun Rail Gun ded",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.ded.exe",
+      "args": ["+set", "com_gameProfile", "wolfet", "+set", "fs_basepath", "${input:wolfetInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/wolfet/railgun", "+set", "r_fullscreen", "0", "+set", "com_steamIntegration", "0", "+set", "dedicated", "1", "+set", "net_ip", "127.0.0.1", "+set", "sv_pure", "0", "+set", "sv_punkbuster", "0", "+set", "bot_enable", "0", "+map", "railgun"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "Wolfenstein: Enemy Territory",
+        "order": 5
+      }
     }
   ],
   "inputs": [
@@ -370,6 +454,12 @@
       "type": "promptString",
       "description": "Return to Castle Wolfenstein installation folder containing Main (without quotes)",
       "default": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein"
+    },
+    {
+      "id": "wolfetInstallPath",
+      "type": "promptString",
+      "description": "Wolfenstein: Enemy Territory installation folder containing etmain (without quotes)",
+      "default": "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory"
     }
   ]
 }

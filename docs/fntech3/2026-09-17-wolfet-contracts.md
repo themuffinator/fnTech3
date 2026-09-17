@@ -82,7 +82,10 @@ Server snapshot storage now accommodates ET's 512 entities; construction keeps
 the existing 256-entity cap for Q3, QL and both RTCW profiles. An executable
 regression fills and overflows the window for each profile and checks the
 destination frame capacity. ET snapshot callbacks and visibility flags remain
-separate open gates.
+separate open gates at this checkpoint. The later
+[snapshot follow-up](2026-09-17-wolfet-snapshots.md) implements callbacks and
+single/multiple visibility proxies with Source/Unit evidence; live behavior and
+the other ET visibility contracts remain open.
 
 ## Installed dedicated observations
 
@@ -196,8 +199,9 @@ Generated test data, retail inputs and these local logs are not committed.
 
 - ET UI/cgame imports, exports, client-state and renderer records; MDM/MDX
   skeletal models and renderer/audio/input behavior.
-- Full game syscall coverage, callback-filtered snapshots, ET visibility flags,
-  binary messages, anti-lag collision options and restart/gameplay behavior.
+- Full game syscall coverage, live callback/proxy visibility, remaining ET
+  viewpoint/visibility flags, binary messages, anti-lag collision options and
+  restart/gameplay behavior; see the snapshot follow-up above.
 - Pure native-module proof and pure pak semantics. Experimental ET servers
   default to non-pure; requesting pure mode fails explicitly.
 - Full connect/gamestate/snapshot coverage and bidirectional retail peers;

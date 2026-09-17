@@ -1,5 +1,19 @@
 # fnTech3 banner generation prompts
 
+## Enemy Territory social-banner revision (2026-09-17)
+
+Tool: built-in image generation. Final export: `fntech3-social-banner.jpg`, 1600 × 900, JPEG quality 92. Reference 2 was decoded from the pinned original ET application icon for local reference only.
+
+Use case: precise-object-edit / compositing.
+Asset type: existing fnTech3 GitHub social preview banner.
+Input image 1 is the edit target: the approved 1600 x 900 social banner. Input image 2 is a small original Wolfenstein: Enemy Territory application-icon reference, solely for the fourth emblem shape.
+Add the Wolfenstein: Enemy Territory emblem as the FOURTH icon in the small hot-orange game-icon row under the subtitle. Preserve the original fnTech3 flame logo, logo position and size, black fn and 3, orange TECH inset, exact subtitle "Unified source port for id Tech 3", fiery soft-focused background, colors and 16:9 composition closely.
+Recenter the footer row as a compact group of FOUR distinct emblems ordered Quake III Arena, Quake Live, Return to Castle Wolfenstein, Enemy Territory. Retain the exact recognizable three existing emblems. Give the new ET icon the same optical height and monochrome orange treatment as its neighbors. From reference 2, preserve the characteristic winged Wolfenstein upper symbol and the intrinsic angular ET monogram beneath it, including dark knockout gaps. Omit the Windows-icon white outline and red/white color treatment. The ET monogram distinguishes this fourth emblem from the third RTCW emblem. Do not substitute the ET: Legacy letter-E logo. No additional game-title text or labels.
+The row should remain secondary and below the subtitle, around 90 percent of image height, evenly spaced and centered with safe bottom clearance. Add width to the row to accommodate the fourth icon without shrinking the main logo or subtitle. Keep every other aspect as close to image 1 as possible.
+Output an opaque finished 1600 x 900 landscape image suitable for JPEG export.
+
+## Original banner generation
+
 Tool: built-in image generation. Both banner prompts use the approved first logo, `fntech3-logo.png`, as their visual reference.
 
 ## Social banner

@@ -25,6 +25,7 @@
         "-Renderers",
         "glx,vk,rtx",
         "-RTCWDevelopment",
+        "-WolfETDevelopment",
         "-Archive",
         "-SetupOnly"
       ],
@@ -32,7 +33,7 @@
         "$gcc",
         "$msCompile"
       ],
-      "detail": "Windows x86 development build for Q3, QL, RTCW SP/MP and GLx/Vulkan/RTX. RTCW adapters remain experimental."
+      "detail": "Windows x86 development build for Q3, QL, RTCW SP/MP, Enemy Territory dedicated and GLx/Vulkan/RTX. RTCW and ET adapters remain experimental; ET client startup is gated."
     },
     {
       "label": "meson: build all games",
@@ -55,13 +56,14 @@
         "-Renderers",
         "glx,vk,rtx",
         "-RTCWDevelopment",
+        "-WolfETDevelopment",
         "-Archive"
       ],
       "problemMatcher": [
         "$gcc",
         "$msCompile"
       ],
-      "detail": "Windows x86 development build for Q3, QL, RTCW SP/MP and GLx/Vulkan/RTX. RTCW adapters remain experimental.",
+      "detail": "Windows x86 development build for Q3, QL, RTCW SP/MP, Enemy Territory dedicated and GLx/Vulkan/RTX. RTCW and ET adapters remain experimental; ET client startup is gated.",
       "group": {
         "kind": "build",
         "isDefault": true
@@ -88,6 +90,7 @@
         "-Renderers",
         "glx,vk,rtx",
         "-RTCWDevelopment",
+        "-WolfETDevelopment",
         "-Archive",
         "-WithSteam"
       ],
@@ -95,7 +98,7 @@
         "$gcc",
         "$msCompile"
       ],
-      "detail": "Windows x86 development build for Q3, QL, RTCW SP/MP and GLx/Vulkan/RTX. RTCW adapters remain experimental."
+      "detail": "Windows x86 development build for Q3, QL, RTCW SP/MP, Enemy Territory dedicated and GLx/Vulkan/RTX. RTCW and ET adapters remain experimental; ET client startup is gated."
     },
     {
       "label": "meson: setup",

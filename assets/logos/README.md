@@ -12,9 +12,11 @@ The approved mark is the first generated version, with a black numeral **3** on 
 
 Both banners include the subtitle **Unified source port for id Tech 3**. The original vertical emblem has no subtitle.
 
-Only the social banner includes the game-icon row beneath the subtitle, ordered **Quake III Arena, Quake Live, Return to Castle Wolfenstein** from left to right. The README banner retains its subtitle without game icons. Game profile compatibility evidence remains in the [compatibility ledger](../../docs/fntech3/COMPATIBILITY.md).
+Only the social banner includes the game-icon row beneath the subtitle, ordered **Quake III Arena, Quake Live, Return to Castle Wolfenstein, Wolfenstein: Enemy Territory** from left to right. The README banner retains its subtitle without game icons. Game profile compatibility evidence remains in the [compatibility ledger](../../docs/fntech3/COMPATIBILITY.md).
 
 The small monochrome emblems were generated using visual references for [Quake III Arena](https://www.steamgriddb.com/game/2255/icons), [Quake Live](https://x.com/QuakeLive), and [Return to Castle Wolfenstein](https://freebiesupply.com/logos/return-to-castle-wolfenstein-logo/). Only the emblem shapes informed the edit; decorative finishes and title lettering were omitted.
+
+The fourth emblem uses the original [Enemy Territory application icon](https://github.com/id-Software/Enemy-Territory/blob/40342a9e3690cb5b627a433d4d5cbf30e3c57698/src/win32/wolfet.ico) as a visual reference. Its winged symbol and ET monogram were generated in the same orange treatment; the reference icon is not bundled. The built-in image generation edit preserves the approved logo, subtitle and backdrop. The social banner was exported at 1600 × 900, JPEG quality 92.
 
 The root README embeds the horizontal banner at 720 pixels wide. Its source is maintained in [the README template](../../docs/templates/README.md.in); the existing [documentation generator](../../scripts/generate_docs.py) preserves the banner on regeneration.
 

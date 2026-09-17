@@ -3086,6 +3086,7 @@ static qboolean VM_PrepareWolfETGameExport(vmIndex_t index, int callnum, int nar
 	ET_EXPORT(GAME_CLIENT_THINK, 1)
 	ET_EXPORT(GAME_RUN_FRAME, 1)
 	ET_EXPORT(GAME_CONSOLE_COMMAND, 0)
+	ET_EXPORT(GAME_SNAPSHOT_CALLBACK, 2)
 	ET_EXPORT(BOTAI_START_FRAME, 1)
 #undef ET_EXPORT
 	default: return qfalse;
@@ -3111,6 +3112,10 @@ intptr_t QDECL VM_Call( vm_t *vm, int nargs, int callnum, ... )
 #endif
 	if ( nargs < 0 || nargs >= MAX_VMMAIN_CALL_ARGS ) {
 		Com_Error( ERR_DROP, "VM_Call: invalid argument count %d", nargs );
+		return 0;
+	}
+	if ( callnum == GAME_SNAPSHOT_CALLBACK && ( vm->index != VM_GAME || !Com_GameIsWolfET() ) ) {
+		Com_Error( ERR_DROP, "ET snapshot callback requires an ET game module" );
 		return 0;
 	}
 	if ( vm->index == VM_GAME &&

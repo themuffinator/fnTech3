@@ -3,6 +3,7 @@
 #include "../code/compat/wolfet_module_abi.h"
 #include "../code/compat/wolfet_message_codec.hpp"
 #include "../code/compat/wolfet_tags.hpp"
+#include "../code/compat/q3_game_abi.h"
 #include "../code/server/server_game_data.h"
 #include "../code/qcommon/protocol_contract.hpp"
 #include <cassert>
@@ -126,12 +127,15 @@ int main() {
     for (auto &slot : clients) for (auto &word : slot.tail) word = 0x87654321;
     entities[1].prefix.s.number = 1; entities[1].prefix.s.nextWeapon = 42;
     entities[1].prefix.r.linked = 1; entities[1].prefix.r.svFlags = 0x200;
+    entities[1].prefix.r.snapshotCallback = 1;
     clients[1].prefix = player;
     NativeGameDataBinding binding{entities,sizeof(entities),2,sizeof(EntitySlot),clients,sizeof(clients),2,sizeof(ClientSlot)};
     ServerGameDataView view; assert(view.BindNative(COM_GAME_WOLFET,binding) == GameDataBindError::None);
     GameEntityRef reference; assert(view.EntityRefAt(1,reference));
     entityState_t entity{}; assert(view.ReadEntityState(reference,entity)); assert(entity.wolfet.nextWeapon == 42);
     int32_t linked; assert(view.GetLinked(reference,linked) && linked == 1);
+    int32_t callback = -1;
+    assert(view.GetWolfETSnapshotCallback(reference,callback) && callback == 1);
     assert(view.SetLinked(reference,0)); assert(entities[1].prefix.r.linked == 0);
     assert(view.SetPlayerPing(1,70)); assert(clients[1].prefix.ping == 70);
     playerState_t client{}; assert(view.ReadPlayerState(1,client)); assert(client.wolfet.identifyClientHealth == 97);
@@ -140,6 +144,15 @@ int main() {
     binding.entityStride = sizeof(fntech3_wolfet_sharedEntity_t)-4;
     assert(view.BindNative(COM_GAME_WOLFET,binding) == GameDataBindError::EntityStrideTooSmall);
     assert(!view.IsBound() && !view.IsCurrent(reference));
+    callback = 42;
+    assert(!view.GetWolfETSnapshotCallback(reference,callback) && callback == 42);
+    fntech3_q3_sharedEntity_t q3Entities[2]{};
+    fntech3_q3_playerState_t q3Clients[2]{};
+    NativeGameDataBinding q3Binding{q3Entities,sizeof(q3Entities),2,sizeof(q3Entities[0]),
+        q3Clients,sizeof(q3Clients),2,sizeof(q3Clients[0])};
+    assert(view.BindNative(COM_GAME_QUAKE3,q3Binding) == GameDataBindError::None);
+    assert(view.EntityRefAt(1,reference));
+    assert(!view.GetWolfETSnapshotCallback(reference,callback) && callback == 42);
     for (auto &slot : entities) for (auto word : slot.tail) assert(word == 0x12345678);
     for (auto &slot : clients) for (auto word : slot.tail) assert(word == 0x87654321);
 }

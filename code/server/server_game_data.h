@@ -129,6 +129,8 @@ public:
 	bool GetSvFlags( const GameEntityRef &reference,
 		std::int32_t &destination ) const;
 	bool SetSvFlags( const GameEntityRef &reference, std::int32_t value );
+	bool GetWolfETSnapshotCallback( const GameEntityRef &reference,
+		std::int32_t &destination ) const;
 	bool GetSingleClient( const GameEntityRef &reference,
 		std::int32_t &destination ) const;
 	bool SetSingleClient( const GameEntityRef &reference, std::int32_t value );

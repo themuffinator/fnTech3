@@ -306,7 +306,7 @@ int main(void) {
         {GAME_CLIENT_BEGIN,1,3}, {GAME_CLIENT_USERINFO_CHANGED,1,4},
         {GAME_CLIENT_DISCONNECT,1,5}, {GAME_CLIENT_COMMAND,1,6},
         {GAME_CLIENT_THINK,1,7}, {GAME_RUN_FRAME,1,8},
-        {GAME_CONSOLE_COMMAND,0,9}, {BOTAI_START_FRAME,1,11}
+        {GAME_CONSOLE_COMMAND,0,9}, {GAME_SNAPSHOT_CALLBACK,2,10}, {BOTAI_START_FRAME,1,11}
     };
     comGameId_t ids[] = {COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, COM_GAME_RTCW_SP, COM_GAME_RTCW_MP};
     unsigned i;
@@ -331,6 +331,7 @@ int main(void) {
     for (i = 0; i < sizeof(ids)/sizeof(ids[0]); ++i) {
         int32_t args[3] = {0}; int output = 42;
         Reset(ids[i]);
+        ERROR(VM_Call(&module, 2, GAME_SNAPSHOT_CALLBACK, 0, 1));
         // No varargs supplied: release builds must reject these before reading.
         ERROR(VM_Call(&module, -1, GAME_INIT)); ERROR(VM_Call(&module, INT_MIN, GAME_INIT));
         ERROR(VM_Call(&module, MAX_VMMAIN_CALL_ARGS, GAME_INIT));

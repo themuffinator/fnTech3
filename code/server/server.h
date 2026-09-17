@@ -516,6 +516,7 @@ qboolean	SV_ReadGameEntity( const void *entity, sharedEntity_t *destination );
 qboolean	SV_ClientIsRTCWCastAI( const client_t *client );
 qboolean	SV_WriteGameEntity( void *entity, const sharedEntity_t *source );
 qboolean	SV_ReadGameEntityByNum( int num, sharedEntity_t *destination );
+bool SV_WolfETSnapshotCallback( int entityNum, int clientNum );
 qboolean	SV_WriteGameEntityByNum( int num, const sharedEntity_t *source );
 qboolean	SV_ReadGameClient( int num, playerState_t *destination );
 qboolean	SV_SetGameClientPing( int num, int ping );

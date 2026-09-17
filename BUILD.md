@@ -138,6 +138,13 @@ RTCW development option and cannot be combined with the Q3-only diagnostic
 build. Default builds reject `wolfet`. Even with the option enabled, the client
 rejects ET until its UI, cgame and renderer boundaries are implemented.
 
+VS Code's **meson: setup/build all games** tasks enable ET alongside RTCW.
+The **Wolfenstein: Enemy Territory** launch group contains dedicated launches
+for all six stock maps, with an installation-path prompt, loopback binding and
+a separate writable home per map. They run the existing development binary
+without an implicit rebuild. Pure mode and PunkBuster are disabled. ET client
+launches will be added when the client boundary can run.
+
 A bounded, loopback-only dedicated probe with an isolated writable home is:
 
 ```powershell

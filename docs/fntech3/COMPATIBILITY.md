@@ -32,6 +32,10 @@ ET is not a supported client release. UI/cgame, MDM/MDX rendering, demos,
 pure admission, gameplay, and bidirectional interoperability remain open. A
 retail ET client reaches an active non-pure spectator session on the experimental
 server and both processes exit normally; the reverse direction remains gated.
+The [ET snapshot follow-up](2026-09-17-wolfet-snapshots.md) adds checked per-client
+callbacks and single/multiple visibility proxies with executable regressions.
+Retail Axis/Allies admission and same-binary Q3/QL startup still pass; live
+landmine/proxy behavior and the remaining visibility contracts are open.
 
 The [RoQ bounds and recovery checkpoint](2026-09-17-roq-bounds.md) adds checked
 movie framing, dimensions, codebooks, VQ/motion reads and partial shutdown. It
@@ -1036,7 +1040,7 @@ checks, generated packet fixtures and installed dedicated observations.
 | Protocol-84 message bodies | Source, Unit, inbound Interop subset | 1,169 original-engine comparisons and inbound retail sessions; full transport and malformed peer behavior remain open. |
 | Filesystem / pure / downloads | Unit, Live subset | Separate etmain/home and native names; pure mode is explicitly unavailable; download/admission gates open. |
 | Assets / collision | Source, Unit, Live subset | Six stock BSPs and installed TAGs load; MDM/MDX/render assets remain open. |
-| Dedicated gameplay / snapshots | Live, inbound Interop subset | All six maps initialize under explicit and auto selection; a retail client reaches CS_ACTIVE, joins Axis/Allies and respawns. Callback visibility, movement/combat/objectives and rotation remain open. |
+| Dedicated gameplay / snapshots | Source, Unit, Live, inbound Interop subset | All six maps initialize under explicit and auto selection; a retail client reaches CS_ACTIVE, joins Axis/Allies and respawns. [Snapshot callbacks and visibility proxies](2026-09-17-wolfet-snapshots.md) pass executable regressions; live landmine/proxy behavior, origin-only brush visibility, self portals/leaning, movement/combat/objectives and rotation remain open. |
 | Client / renderer / audio / input | Blocked | Client startup stays gated; no client or visual claim. |
 | Demos / bidirectional interoperability | Inbound Interop subset; demos open | Non-pure retail spectator/team admission connects to fnTech3; reverse direction and ET demo playback remain open. |
 | Optional services | Unavailable | No PunkBuster, authentication or Workshop success is synthesized. |

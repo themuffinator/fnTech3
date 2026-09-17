@@ -746,6 +746,14 @@ DEFINE_SCALAR_ACCESSORS( OwnerNum, ownerNumOffset )
 
 #undef DEFINE_SCALAR_ACCESSORS
 
+bool ServerGameDataView::GetWolfETSnapshotCallback( const GameEntityRef &reference,
+	std::int32_t &destination ) const
+{
+	return layout_ && layout_->profile == COM_GAME_WOLFET &&
+		ReadEntityBytes( reference, offsetof( fntech3_wolfet_sharedEntity_t, r.snapshotCallback ),
+			&destination, sizeof( destination ) );
+}
+
 bool ServerGameDataView::GetNumber( const GameEntityRef &reference,
 	std::int32_t &destination ) const
 {
