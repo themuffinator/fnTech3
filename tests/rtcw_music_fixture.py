@@ -5,6 +5,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def function(source, signature):
     start = source.index(signature)
+    while ';' in source[start:source.index('{', start)]:
+        start = source.index(signature, start + len(signature))
     return source[start:source.index('\n}', start) + 2]
 
 
@@ -119,6 +121,7 @@ public:
     void UpdateBackgroundTrack();void ServiceBackgroundTrack();
     void StopAllSounds();void ClearRTCWSounds(qboolean);void DisableSounds();
     void Update(int);bool UpdateDeviceState(int){return true;}
+    void ClearRTCWEntityStreams(){} void ServiceRTCWEntityStreams(){}
     bool IsSoftMuted()const{return softMuted;}
     int StreamOutputRate()const{return 48000;}
     bool FlushStream(StreamPlayer &){return true;}
@@ -225,6 +228,7 @@ static fntech3::audio::rtcw::LoopFrame rtcwLoops;
 struct channel_t{int active=0;};static channel_t loop_channels[MAX_CHANNELS];static int numLoopChannels;
 static int channels=0,voiceLanes=0,submits=0;
 static void S_ChannelSetup(){channels=0;}static void ResetVoiceLanes(){voiceLanes=0;}
+static void S_Base_ClearRTCWEntityStreams(){}
 static void SNDDMA_BeginPainting(){}static void SNDDMA_Submit(){++submits;}
 static byte hardware[128];
 static struct{int speed=48000,samplebits=16,samples=64;byte *buffer=hardware;}dma;
@@ -313,6 +317,7 @@ static struct {
     decltype(&StreamFade) FadeRTCWBackgroundTrack=nullptr;
     decltype(&AllFade) FadeRTCWAllSounds=nullptr;
     decltype(&ClearRTCWSounds) ClearRTCWSounds=nullptr;
+    void (*FadeRTCWEntityStream)(float,int,int)=nullptr;
 }si;
 ''' + output + methods + r'''
 int main() {

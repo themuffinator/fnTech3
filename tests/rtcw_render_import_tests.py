@@ -15,6 +15,8 @@ PRELUDE = r'''
 #include "code/qcommon/qcommon.h"
 #include "code/compat/render_record_adapter.hpp"
 #include "code/compat/rtcw_module_abi.h"
+#include "code/renderercommon/tr_rtcw_marks.h"
+#include "code/renderercommon/tr_rtcw_corona.h"
 #include <array>
 #include <cassert>
 #include <climits>
@@ -24,6 +26,7 @@ PRELUDE = r'''
 // Audio dispatch is executed by rtcw_music_tests.
 template<class VM> static bool CL_RTCWAudioCall(VM *, fntech3::rtcw::module::Call, intptr_t *) { return false; }
 template<class VM> static bool CL_RTCWCinematicCall(VM *, fntech3::rtcw::module::Call, intptr_t *, intptr_t &) { return false; }
+template<class VM> static bool CL_RTCWCameraCall(VM *, fntech3::rtcw::module::Call, intptr_t *, intptr_t &) { return false; }
 using namespace fntech3::rtcw::module;
 static comGameProfile_t profile;
 const comGameProfile_t *Com_GameProfile() { return &profile; }
@@ -69,9 +72,12 @@ static void AddRTCWLight(const vec3_t origin, float radius, float r, float g, fl
 }
 static std::array<int,3> fogWords;
 static std::array<float,4> fogValues;
+static int MarkRTCWFragments(int, const vec3_t *, const vec3_t, int, fnRTCWMarkPoint_t *, int, markFragment_t *) { assert(false); return 0; }
 static void SetRTCWFog(int command,int first,int second,float r,float g,float b,float density) {
     Backend(20); fogWords={command,first,second}; fogValues={r,g,b,density};
 }
+static fnRTCWCorona_t submittedCorona;
+static void AddRTCWCoronaToScene(const fnRTCWCorona_t *corona) { Backend(21); submittedCorona=*corona; }
 static void LoadWorld(const char *name) { assert(!std::strcmp(name, "synthetic/resource")); Backend(1); }
 static qhandle_t RegisterModel(const char *name) { LoadWorld(name); Backend(2); return 101; }
 static qhandle_t RegisterSkin(const char *name) { LoadWorld(name); Backend(3); return 102; }
@@ -136,6 +142,8 @@ static qboolean GetEntityToken(char *output, int capacity) {
     return endTokens ? qfalse : qtrue;
 }
 static struct {
+    decltype(&::AddRTCWCoronaToScene) AddRTCWCoronaToScene;
+    decltype(&::MarkRTCWFragments) MarkRTCWFragments;
     decltype(&::LoadWorld) LoadWorld;
     decltype(&::RegisterModel) RegisterModel;
     decltype(&::RegisterSkin) RegisterSkin;
@@ -156,7 +164,7 @@ static struct {
     decltype(&::AddRTCWLight) AddRTCWLightToScene;
     decltype(&::GetEntityToken) GetEntityToken;
     decltype(&::SetRTCWFog) SetRTCWFog;
-} re{LoadWorld, RegisterModel, RegisterSkin, RegisterShader, RegisterShaderNoMip,
+} re{AddRTCWCoronaToScene, MarkRTCWFragments, LoadWorld, RegisterModel, RegisterSkin, RegisterShader, RegisterShaderNoMip,
      ClearScene, AddEntity, Render, SetColor, Quad, ModelBounds, Remap, Polys, DrawQuad, LerpTagEntity, GetSkinModel, GetShaderFromModel, AddRTCWLight, GetEntityToken, SetRTCWFog};
 #include "code/client/client_rtcw_render_compat.hpp"
 '''
@@ -185,6 +193,30 @@ template<class F> static void Reject(F action, bool backendMayRun = false) {
 }
 template<class E, class V> static void Mode(comGameId_t id) {
     profile.id = id;
+    {
+        const vec3_t origin={1.25f,-2.5f,3.75f};ranges.clear();auto bytes=Unaligned(origin);
+        for(auto module:{Module::CGAME,Module::UI}) {
+            const auto call=module==Module::CGAME?Call::CG_R_ADDCORONATOSCENE:Call::UI_R_ADDCORONATOSCENE;
+            for(int flags:{INT_MIN,-1,0,1,2,3,4,INT_MAX}) {
+                assert(Invoke(module,call,{Ptr(bytes.get()+1),Float(0.2f),Float(0.4f),Float(0.6f),Float(2),-17,flags})==0&&lastOperation==21);
+                assert(!memcmp(submittedCorona.origin,origin,12)&&submittedCorona.scale==2&&submittedCorona.id==-17&&submittedCorona.flags==flags);
+                assert(submittedCorona.color[0]==0.2f&&submittedCorona.color[1]==0.4f&&submittedCorona.color[2]==0.6f);
+            }
+            Reject([&]{Invoke(module,call,{0,0,0,0,Float(1),0,1});});
+            Reject([&]{Invoke(module,call,{Ptr(bytes.get()+2),0,0,0,Float(1),0,1});});
+            for(int index=0;index<4;++index) {
+                intptr_t values[]={Float(1),Float(1),Float(1),Float(1)};values[index]=Float(NAN);
+                Reject([&]{Invoke(module,call,{Ptr(bytes.get()+1),values[0],values[1],values[2],values[3],0,1});});
+            }
+            if(sizeof(intptr_t)>4) {
+                const auto wide=static_cast<intptr_t>(INT64_C(0x100000000));
+                Reject([&]{Invoke(module,call,{Ptr(bytes.get()+1),0,0,0,Float(1),wide,1});});
+                Reject([&]{Invoke(module,call,{Ptr(bytes.get()+1),0,0,0,Float(1),0,wide});});
+            }
+            failBackend=true;Reject([&]{Invoke(module,call,{Ptr(bytes.get()+1),0,0,0,Float(1),0,1});},true);failBackend=false;
+        }
+        ranges.clear();
+    }
     assert(Invoke(Module::CGAME,Call::CG_R_SETFOG,{6,10,2000,Float(0.2f),Float(0.3f),Float(0.4f),Float(1.1f)})==0);
     assert((fogWords==std::array<int,3>{6,10,2000}));
     assert((fogValues==std::array<float,4>{0.2f,0.3f,0.4f,1.1f}));
@@ -509,7 +541,7 @@ template<class E, class V> static void Mode(comGameId_t id) {
         }
     }
     // Unimplemented imports must leave the result untouched and read no args.
-    for (auto call : {Call::CG_R_ADDCORONATOSCENE, Call::UI_R_ADDCORONATOSCENE}) {
+    for (auto call : {Call::CG_LOADCAMERA, Call::CG_TESTPRINTINT}) {
         intptr_t result = 12345; const int calls = backendCalls;
         assert(!CL_RTCWRenderCall(cgvm, call, nullptr, result) && result == 12345 && backendCalls == calls);
     }

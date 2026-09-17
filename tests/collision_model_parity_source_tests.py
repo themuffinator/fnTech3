@@ -52,7 +52,7 @@ class CollisionModelParitySourceTests(unittest.TestCase):
         self.assertIn("SV_AsBool( capsule )", selector)
         self.assertRegex(
             selector,
-            re.compile(r"UseCapsuleEntityModel\(\s*SV_AsBool\( capsule \),"
+            re.compile(r"UseCapsuleEntityModel\(\s*Com_GameProfile\(\)->entityHullPolicy,\s*SV_AsBool\( capsule \),"
                        r"\s*\( entity\.r\.svFlags & SVF_CAPSULE \) != 0 \)"),
         )
 

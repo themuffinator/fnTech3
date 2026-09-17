@@ -49,6 +49,18 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 static aas_t aasWorlds[2];
 aas_t *aas_currentWorld = &aasWorlds[0];
 
+static aas_rtcw_cast_callbacks_t rtcwCastCallbacks;
+
+void AAS_SetRTCWCastCallbacks(const aas_rtcw_cast_callbacks_t &callbacks)
+{
+	rtcwCastCallbacks = Com_GameIsRTCW() ? callbacks : aas_rtcw_cast_callbacks_t{};
+}
+
+const aas_rtcw_cast_callbacks_t &AAS_RTCWCastCallbacks()
+{
+	return rtcwCastCallbacks;
+}
+
 aas_t &AAS_EntityWorld()
 {
 	return Com_GameIsRTCW() ? aasWorlds[0] : aasworld;

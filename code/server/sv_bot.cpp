@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "server.h"
 #include "../botlib/botlib.h"
+#include "server_rtcw_cast.hpp"
 
 #include <algorithm>
 #include <array>
@@ -580,6 +581,7 @@ SV_BotInitBotLib
 */
 void SV_BotInitBotLib(void) {
 	botlib_import_t	botlib_import{};
+	AAS_SetRTCWCastCallbacks({SV_RTCWCastAvailable, SV_RTCWCastVisible, SV_RTCWCastAttack});
 
 	SV_ZFree( debugpolygons );
 	bot_maxdebugpolys = Cvar_VariableIntegerValue("bot_maxdebugpolys");

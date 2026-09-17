@@ -52,10 +52,41 @@ typedef struct {
 	int32_t or_moveflags;
 } fntech3_rtcw_bot_initmove_t;
 
+/* Goal records share a shape with Quake, but their flag meanings differ. */
+typedef struct {
+	float origin[3];
+	int32_t areanum;
+	float mins[3], maxs[3];
+	int32_t entitynum, number, flags, iteminfo;
+} fntech3_rtcw_bot_goal_t;
+
+/* A separate result contract: RTCW bit 256 means future view, not avoidance. */
+typedef struct {
+	int32_t failure, type, blocked, blockentity, traveltype, flags, weapon;
+	float movedir[3], ideal_viewangles[3];
+} fntech3_rtcw_bot_moveresult_t;
+
 typedef struct {
 	float thinktime, dir[3], speed, viewangles[3];
 	int32_t actionflags, weapon;
 } fntech3_rtcw_bot_input_t;
+
+/* Navigation traces are distinct from the engine collision trace above the
+ * game boundary. The shared SP/MP prediction result has no Quake endarea and
+ * encodes endcontents as a numeric float, not integer bits. */
+typedef struct {
+	int32_t startsolid;
+	float fraction, endpos[3];
+	int32_t ent, lastarea, area, planenum;
+} fntech3_rtcw_aas_trace_t;
+
+typedef struct {
+	float endpos[3], velocity[3];
+	fntech3_rtcw_aas_trace_t trace;
+	int32_t presencetype, stopevent;
+	float endcontents, time;
+	int32_t frames;
+} fntech3_rtcw_aas_clientmove_t;
 
 enum {
 	FNTECH3_RTCW_ACTION_ATTACK = 1, FNTECH3_RTCW_ACTION_USE = 2,
@@ -432,6 +463,16 @@ typedef struct {
 	float xyz[3], st[2];
 	uint8_t modulate[4];
 } fntech3_rtcw_polyVert_t;
+
+/* CG_CM_MARKFRAGMENTS returns XYZST vertices at a twenty-byte stride.
+ * Negative numPoints denotes texture coordinates supplied by the renderer. */
+typedef struct {
+	int32_t firstPoint, numPoints;
+} fntech3_rtcw_markFragment_t;
+
+typedef struct {
+	float xyz[3], st[2];
+} fntech3_rtcw_markPoint_t;
 
 typedef struct {
 	float origin[3], axis[3][3];

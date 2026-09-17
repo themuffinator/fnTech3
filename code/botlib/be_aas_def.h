@@ -206,6 +206,16 @@ struct aas_rtcw_visibility_t
 	int bytes;
 };
 
+// Game callbacks may route too; tactical work must not alias areaupdate.
+struct aas_rtcw_tactical_node_t
+{
+	vec3_t entry;
+	int next;
+	unsigned short cost, visited;
+	byte visibility;
+	bool queued;
+};
+
 struct aas_s
 {
 	int loaded;									//true when an AAS file is loaded
@@ -313,6 +323,9 @@ struct aas_s
 	vec3_t *rtcwWaypoints;
 	int rtcwVisibilityArea;
 	qboolean rtcwRouteCacheLoaded;
+	aas_rtcw_tactical_node_t *rtcwTacticalNodes;
+	int rtcwTacticalCapacity;
+	uint64_t rtcwTacticalToken;
 	unsigned short *hidetraveltimes;
 	aas_midrangearea_t *midrangeareas;
 	int *clusterareas;

@@ -481,6 +481,11 @@ static void R_SetFarClip( void )
 	}
 
 	tr.viewParms.zFar = sqrt( farthestCornerDistance );
+	if ( ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP ) {
+		const float fogFar = tr.refdef.rtcwFog.farClip;
+		if ( fogFar > r_znear->value && fogFar < tr.viewParms.zFar )
+			tr.viewParms.zFar = fogFar;
+	}
 }
 
 

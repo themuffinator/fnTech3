@@ -45,7 +45,11 @@ void CL_RTCWLimboChat(vm_t *, intptr_t source) { assert(source == 123); }
 template<class VM> static bool CL_RTCWRenderCall(VM *, fntech3::rtcw::module::Call, intptr_t *, intptr_t &) { return false; }
 // Audio dispatch is executed by rtcw_music_tests.
 template<class VM> static bool CL_RTCWAudioCall(VM *, fntech3::rtcw::module::Call, intptr_t *) { return false; }
+// Voice query lifecycle and entity bounds execute in rtcw_voice_tests.
+int S_RTCWVoiceAmplitude(intptr_t) { assert(false); return 0; }
 template<class VM> static bool CL_RTCWCinematicCall(VM *, fntech3::rtcw::module::Call, intptr_t *, intptr_t &) { return false; }
+// Camera dispatch and lifetime execute in rtcw_camera_tests.
+template<class VM> static bool CL_RTCWCameraCall(VM *, fntech3::rtcw::module::Call, intptr_t *, intptr_t &) { return false; }
 constexpr int MAX_PARSE_ENTITIES = 2048;
 struct clSnapshot_t {
     qboolean valid;

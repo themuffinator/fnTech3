@@ -379,21 +379,191 @@ synthetic route queries and 17,920 queries over the 70 installed navigation
 pairs on Windows x86/x64 and Linux x86 with sanitizers. The MP corpus uses
 synthetic RCD12 headers over SP data.
 These are source/fixture comparisons, not live AI or retail peer evidence.
-Entity-stream audio, missing-cache generation and AI, letterboxed
+The [visibility checkpoint](2026-09-16-rtcw-visibility.md) connects cached
+RCD visibility and SP import 323, with distinct SP and MP fuzzy-area searches.
+Original/iortcw references agree on 10,816 synthetic visibility queries,
+87,552 fuzzy queries and, for SP, 32,768 route-position queries. Each also
+passes visibility and fuzzy checks over all 70 installed navigation pairs;
+SP adds 17,493 route-position comparisons with routing endpoints. The 427
+non-routing endpoint cases are explicitly excluded from route parity because
+the engine's existing safety guards reject them earlier. Windows and Linux
+are each compared with their own reference binaries; cross-platform numeric
+identity and sustained live tactical behavior remain open.
+The [cast-query callback checkpoint](2026-09-16-rtcw-cast-query-callbacks.md)
+adds the server-to-game callbacks for hide and attack queries. Both modes use
+their exact five-argument exports 11 and 12, with owned position vectors and
+explicit native-module availability. Synthetic native dispatch, nested calls
+and profile isolation are verified.
+The [tactical navigation checkpoint](2026-09-16-rtcw-tactical-navigation.md)
+implements imports 321/322 with original SP/MP frame budgets, flags, occupancy
+and entity-area policies. Per reference, 4,096 hide and 4,096 warm-cache attack
+queries agree with full callback arguments. Original-game normalization and
+iortcw MP's disabled occupancy are explicit comparison conditions. Cold-cache
+diagnostics differ in 215 of 4,096 attacks and retain subsequent route
+differences; retail investigation and live callback use remain open. Search
+storage is independent of route-cache work lists and survives nonlocal errors
+through map-owned cleanup. Complete tests, both builds, SP/MP briefing probes
+and six Q3/QL renderer checks pass; this does not establish live campaign AI.
+The [movement-prediction checkpoint](2026-09-16-rtcw-movement-prediction.md)
+adds imports 319/320, the exact 80-byte prediction record and original SP/MP
+physics/event policies. Both game ABIs use 10-bit entity numbers; cast/tactical
+guards now use that limit instead of SP's larger internal botlib allocation.
+Each original reference agrees on 7,267 defined synthetic predictions under
+strict SSE arithmetic. Original start-solid undefined behavior is excluded;
+default Linux x87 strict arithmetic still fails exact numeric agreement, and
+fast-math diagnostics show drift without changed decisions in this corpus.
+iortcw deliberately differs in friction and normalization.
+The [installed-prediction checkpoint](2026-09-16-rtcw-installed-prediction.md)
+compares 64 distinct installed AAS members with their matching BSP contents.
+Each original mode agrees on 36,771 defined predictions with strict Clang
+Windows x86/x64, MSVC x86 and Linux x86 SSE2 sanitizer builds. Original undefined
+trace paths remain excluded. The broader fast-math diagnostic has one changed
+decision per original reference, so unchanged decisions are not a general
+guarantee. Dynamic entities, original BSP/retail numeric parity and live AI
+remain open; MP policy uses SP geometry in this fixture.
+The [entity-collision checkpoint](2026-09-16-rtcw-entity-collision.md) corrects
+RTCW target-capsule selection for box and point queries through an immutable
+profile policy. Each original/iortcw selector agrees in 1,024 cases across
+Windows x86/x64 and sanitized Linux x86. Actual server/AAS fixtures verify
+external entity layouts, nearest hits, pass filtering and both navigation
+worlds, with synthetic collision backends. Physical collision and live
+moving-entity prediction remain open. Both builds, the full suite and eight
+inspected startup/renderer captures pass; Q3/QL shape selection is unchanged.
+The [movement-area checkpoint](2026-09-16-rtcw-movement-areas.md) admits checked
+import 553, preserves SP-only disabled-area behavior and RTCW model-travel
+selection, and rejects invalid entity/model accesses or incomplete worlds.
+Each original/iortcw reference agrees on 32,256 movement queries plus direct
+area/model queries across Windows x86/x64 and sanitized Linux x86. Synthetic
+BSP ground responses isolate lookup policy; active campaign movement remains
+unverified.
+The [directional-movement checkpoint](2026-09-16-rtcw-directional-movement.md)
+admits checked import 550 and preserves RTCW grounded-flag, slime, normalization
+and setup-setting behavior. Each original/iortcw reference agrees in 51,200
+queries under strict Windows x86/x64 and sanitized Linux x86 SSE2 arithmetic,
+using shared engine AAS/prediction/action services. Fast math changes 25,744
+combined records but no success decisions in this corpus; this does not
+supersede the installed prediction diagnostic's decision difference. Failed
+prediction is rejected before subsequent actions. Builds, the full suite and
+eight inspected startup/renderer captures pass; active AI remains unverified.
+The [movement-view checkpoint](2026-09-16-rtcw-movement-views.md) adds checked
+imports 554/573, a frozen goal layout and distinct original SP/MP next-link
+selection. It preserves partial targets on failure, original distance/travel
+rules and visible-position semantics, with bounded traversal and checked
+storage. Original SP/MP agree in 71,712 synthetic selector/view cases each
+under strict Windows x86/x64 and sanitized Linux x86 SSE2 arithmetic; iortcw signature/normalization and
+fast-math differences remain explicit diagnostics. Module boundaries, focused
+tests, both builds, the full suite (111 Meson tests and 1,436 Python tests, with
+two and 11 skips respectively), and eight inspected engine captures pass.
+Live actor movement remains unverified.
+The [travel-execution checkpoint](2026-09-16-rtcw-travel-execution.md) adds
+original SP/MP policies for 22 travel routines. Each original agrees in
+126,720 synthetic cases under strict Windows x86/x64 and sanitized Linux x86
+SSE2 arithmetic, including actions, state changes and defined result fields.
+Undefined original output words are excluded explicitly; shared engine
+services and controlled BSP responses limit the evidence. Compiler/iortcw
+numeric differences remain diagnostics, with no compared decision changes.
+Both builds, 14 focused tests on three targets, the full suite (111 Meson and
+1,440 Python tests, with two and 11 skips), and eight inspected captures pass.
+Active actor travel remains unverified.
+The [movement-to-goal checkpoint](2026-09-16-rtcw-movement-to-goal.md) adds
+checked import 549 with a frozen 52-byte result, explicit goal/result bit
+translation, owned buffers and validation. Shared orchestration retains
+original route lifetime, jump-pad recovery and distinct SP/MP future views;
+ladder fallback and traversal bounds handle partial or malformed state.
+Original SP/MP agree in 18,432 synthetic cases each under strict Windows
+x86/x64 and sanitized Linux x86 SSE2 arithmetic. iortcw has explicit decision
+differences; original fast-math differences are numeric in this corpus.
+Both builds, 18 focused tests on three targets, the complete suite (111 Meson
+and 1,446 Python tests, with two and 11 skips), and eight inspected captures
+pass. Active actor movement remains open.
+The [jump run-up checkpoint](2026-09-16-rtcw-jump-runstart.md) adds RTCW
+normalization/slime policy and stops jump actions on failed prediction.
+All four original/iortcw references agree in 9,476 defined helper cases each
+under strict Windows x86/x64 and sanitized Linux x86 SSE2 arithmetic, with
+960 failed predictions and four nonfinite reference velocities excluded
+explicitly. Fast-math differences and its six excluded velocities are
+recorded separately. Both builds, 13 focused tests on three targets and eight
+inspected captures pass. The complete suite passes 111 Meson tests (two
+skips), including 1,449 Python tests (eleven skips).
+The [entity-stream checkpoint](2026-09-16-rtcw-entity-streams.md) adds checked
+start/stop imports, a shared pool/decoder, both-backend queued replacement and
+SP entity stops/fades. Original-source allocation, stop and fade comparisons
+agree on Windows x86/x64 and sanitized Linux x86; 26 focused audio tests pass
+on all three. Both builds, four muted SP/MP stream probes and six Q3/QL renderer
+probes pass, with all ten engine captures inspected. The complete suite passes
+111 Meson tests (two skips), including 1,455 Python tests (eleven skips).
+SP entity loops intentionally stay on their entity lane, correcting the
+released source's music-channel bug. PCM and live-dialogue parity remain open.
+
+Voice amplitudes and live dialogue, missing-cache generation and AI, letterboxed
 movies, active GPU fog and broader gameplay/import coverage remain open.
 Campaign play and save/load remain unverified.
+
+The [first approved SP ready-click probe](2026-09-16-rtcw-autosave-write.md)
+reached the game-owned player-start action, then failed its initial autosave:
+the engine discarded the write byte count and returned zero. The adapter now
+preserves RTCW game/cgame write results and admits bounded, non-truncating
+save-file replacement. Focused tests and both builds pass. The first approved
+post-fix retest wrote matching 218,188-byte autosave and current-save files,
+then hit the explicit missing scene-fog GPU guard. Its engine screenshot shows
+that error dialog; playable SP and save restoration remain unverified. The
+full suite passes (111 Meson tests/two skips, 1,457 Python tests/eleven skips).
+Ordinary RTCW menu mouse-coordinate adaptation
+also remains open; that test delivered its one approved click directly to
+the native UI using RTCW's relative-delta contract.
+
+Subsequent [approved startup retests](2026-09-16-rtcw-coronas.md) passed the new
+GL/GLSL scene-fog path, silent-backend voice response, RTCW XYZST decal boundary
+and corona imports in sequence. Retest 5 then stopped at `CG_LOADCAMERA` (98).
+All five approved startup clicks are consumed, and their engine screenshots
+remain error dialogs. At that checkpoint, SP had no capture after the intro.
+Active voice amplitude and save restoration remain open; Vulkan/RTX retain
+the active scene-fog guard. The decal POD probes now pass 2,215 assertions per
+SP reference and 2,205 per MP reference on Windows x86/x64. Current default and
+development client/server/renderer builds and seven focused Linux x86
+sanitizer checks pass; all six post-change Q3/QL renderer captures were inspected
+and audited. The full suite passes 111 Meson tests with two skips, including
+1,465 Python tests with eleven skips (529.459 seconds).
+
+The [camera implementation](2026-09-16-rtcw-cameras.md) adds an owned 64-slot
+manager, bounded file parsing, fixed/interpolated/spline evaluation, target and
+FOV events, and checked camera imports. Original SP and MP timing policies are
+selected by profile; iortcw MP's use of SP timing is recorded separately.
+Final source comparisons cover 320,880 sample pairs per Windows x86/x64
+architecture, with exact original-SP and finite original-MP results; undefined
+MP outputs and iortcw numerical differences are recorded separately. A new,
+separately authorized 90-second windowed `escape1` test progressed through ten
+camera commands and reached the first-person knife/health-HUD view with a valid
+snapshot, camera mode cleared and no engine error. All four engine screenshots
+were inspected. Character/attachment defects and missing skin-shader warnings
+remain; the test used disabled audio and no movement/combat input. The sole
+camera-test click is consumed. Full SP/MP gameplay compatibility remains open.
+The final camera suite passes 111 Meson tests with two skips, including 1,470
+Python tests with eleven skips (511.371 seconds). Nine focused Windows x86/x64
+and Linux x86 sanitizer tests pass, and all six final Q3/QL renderer captures
+were inspected and audited against the final ordinary executable.
+
+The [RTCW UI browser query boundary](2026-09-17-rtcw-ui-browser.md) now dispatches
+the supported LAN query imports and translates SP/MP list IDs explicitly. The
+installed MP Join Server menu opens without its prior unsupported-import-75
+error. One focused RTCW boundary test and 32 shared UI tests pass, and the
+Windows x86 client rebuild passes. The 1600x1200 no-CSM screenshot set includes
+SP after the intro and MP first-person local warmup; all selected runs report
+`r_picmip 0`. This adds menu and rendering observations, without closing remote
+browser/join, favorites editing, sustained gameplay or interoperability gates.
 
 | RTCW gate | SP | MP | Required closure |
 | --- | --- | --- | --- |
 | Title/profile selection | Source/Unit/Build/Fixture; registered and gated; installed Windows x86 SP-to-MP menu handoff using the same executable, correct modules and inspected captures; synthetic Windows/Linux handoff | Source/Unit/Build/Fixture; installed Windows x86 MP-to-SP menu and active-briefing handoffs using the same executable, correct modules and inspected destination captures; synthetic Windows/Linux handoff | Broader live menu/session transitions; macOS handoff build/runtime |
 | Filesystem/config/pure | Source/Unit; archive/config policy, ordered module/root lookup and intentional no-cache policy integrated; original SP pure default/flags; explicit pure-proof policy unavailable | Source/Unit/Build/Fixture; profile-owned two-native-module proof, pinned-module pak validation and local pure admission with retail modules; original/iortcw proof and verifier comparisons | SP pure contract; MP peer admission and broader architecture policy; retail mount observations, malformed and partial-install probes; legacy MP favorites import |
-| Module ABI | Source/Unit/Build/Fixture; 2,091 original/iortcw assertions on x86/x64; bounded bot-entity/movement-input/state/parser/trace/render/vertex/orientation records, mode imports/exports, popup/menu/key translation, command values and native x86 game-owned animation pointer handoff | Source/Unit; 2,081 original/iortcw assertions on x86/x64; bounded bot-entity/movement-input/state/parser/trace/render/vertex/orientation records, mode imports/exports, popup/menu/key translation, command values and WOLFINFO | Complete trap/export adapters, retail UI/cgame/qagame execution and live game-data binding; distinguish original/iortcw module flag/renderer contracts |
+| Module ABI | Source/Unit/Build/Fixture; 2,215 original/iortcw assertions on x86/x64; bounded bot-entity/movement-input/goal/movement-result/prediction/state/parser/trace/render/vertex/orientation records, 10-bit game entity limit, mode imports/exports, popup/menu/key translation, command values and native x86 game-owned animation pointer handoff | Source/Unit; 2,205 original/iortcw assertions on x86/x64; bounded bot-entity/movement-input/goal/movement-result/prediction/state/parser/trace/render/vertex/orientation records, 10-bit game entity limit, mode imports/exports, popup/menu/key translation, command values and WOLFINFO | Complete trap/export adapters, retail UI/cgame/qagame execution and live game-data binding; distinguish original/iortcw module flag/renderer contracts |
 | Live wire and demos | Source/Unit/Fixture; 1,143 matched native message encodings plus a decoder-only dictionary fixture; first local snapshot with installed modules and pure mode off | Source/Unit/Fixture; 1,117 matched native message encodings; local pure admission and first map snapshot with installed modules | Sustained live state integration, netchan/handshake rules, retail transcripts, demos and bidirectional interoperability |
-| Assets/renderers/audio | Source/Unit/Build/Fixture; RTCW v47 selection, stock `escape1` collision probe, frozen render records, basic scene/polygon/gradient imports, CPU 2D comparisons, MDC decoding/reference comparisons and native drawing through a synthetic Q3 fixture; indexed MD3/MDC/MDS tags, MDS poses and continuous LOD pass installed-asset CPU comparisons; native synthetic MDS draws through all three renderers; skin metadata/model lookup matches all 412 installed skins against four references; brush-surface shader lookup matches 1,925 cases per reference; explicit VM pointer/basic UI sound imports and source-compared dynamic/model lights integrated | Source/Unit/Build/Fixture; same contracts plus rotated pictures, stock `mp_beach` collision probe and inspected French native menu captures in all three renderers | Original-engine collision parity, full RTCW material flags, remaining corona/decal/fog imports, projected world-light GPU parity, retail MDS scene/tag and skin/model assembly validation, shader remap/GPU parity, remaining shader/fog/animation behavior, music/fade/cinematic contracts and further retail RTCW engine-render-target screenshots; MDC/MDS ray transport has CPU evidence only |
-| Navigation | Source/Unit/Build/Fixture; live AAS8/RCD15 loading, both installed `escape1` worlds initialize; checked 128-state goal/movement lifecycle; shared entity updates with owned area links, per-world blocking, checked BSP imports, frame/state/time adapters and empty-config item updates; basic/trace/route query imports; 70-pair graph/cost and route/cache comparisons with original/iortcw | Source/Unit/Build/Fixture; checked 64-state goal/movement lifecycle; same shared entity/ownership, BSP, frame/state/time, query and empty-item contracts; MP truncating costs versus SP ceiling verified; RCD12 selection uses synthetic headers; stock MP keeps bots disabled | Remaining tactical queries and movement; missing-cache generation/writing, installed MP-cache observations, extended-precision differences, original-engine runtime route and gameplay evidence |
-| Gameplay and lifecycle | Open campaign; Source/Unit/Fixture for AI state lifecycle, clean mission-briefing shutdown, shared movie-owner cleanup, main-menu shutdown and partial navigation-load cleanup | Source/Unit/Fixture for local map initialization, briefing-movie playback/shutdown and active-briefing-to-SP handoff; gameplay remains open | SP campaign/AI/save-load/transitions; MP classes/objectives/maps; broader partial initialization, sustained play and shutdown |
-| Music and fades | Source/Unit/Build/Fixture; original-source queue/fade and SP loop/mixer comparisons; both-backend clear modes with preserved music and bounded PCM/gain routing; native menu music buffers on OpenAL; legacy initialized while muted | Source/Unit/Build/Fixture; exact two-argument import; native menu music buffers on OpenAL; legacy initialized while muted | Measured output and original playback parity; game-script triggers, entity streaming, save-load restoration and backend/device lifecycle |
-| One-shot audio | Source/Unit/Build/Fixture; checked native/QVM imports, original-source channel-policy and fixed-range gain comparisons, legacy/OpenAL lifetime and failure handling; SP client-channel replacement and auto-channel separation | Source/Unit/Build/Fixture; same boundaries/backends, original MP auto-channel reuse and FIFO policy; inspected briefing startup on both backends | Entity-stream replacement; queued/threaded timing; output-device/PCM parity; sustained game audio and resource pressure; documented safe exhaustion differences |
+| Assets/renderers/audio | Source/Unit/Build/Fixture; RTCW v47 selection, stock `escape1` collision probe, frozen render records, basic scene/polygon/gradient imports, CPU 2D comparisons, MDC decoding/reference comparisons and native drawing through a synthetic Q3 fixture; indexed MD3/MDC/MDS tags, MDS poses and continuous LOD pass installed-asset CPU comparisons; native synthetic MDS draws through all three renderers; skin metadata/model lookup matches all 412 installed skins against four references; brush-surface shader lookup matches 1,925 cases per reference; explicit VM pointer/basic UI sound imports and source-compared dynamic/model lights integrated | Source/Unit/Build/Fixture; same contracts plus rotated pictures, stock `mp_beach` collision probe and inspected French native menu captures in all three renderers | Original-engine collision parity, full RTCW material flags, live corona/decal and GL fog parity, Vulkan/RTX scene-fog GPU paths, projected world-light GPU parity, retail MDS scene/tag and skin/model assembly validation, shader remap/GPU parity, remaining shader/fog/animation behavior, music/fade/cinematic contracts and further retail RTCW engine-render-target screenshots; MDC/MDS ray transport has CPU evidence only |
+| Navigation | Source/Unit/Build/Fixture; live AAS8/RCD15 loading, both installed `escape1` worlds initialize; checked 128-state goal/movement lifecycle; shared entity updates with owned area links, per-world blocking, checked BSP imports, frame/state/time adapters and empty-config item updates; basic/trace/route/visibility, hide/attack, movement prediction and release ShowRoute imports; SP corner search; 70-pair graph/cost, route/cache and visibility comparisons with original/iortcw; tactical/prediction synthetic comparisons and 64-member installed prediction with stated arithmetic limits | Source/Unit/Build/Fixture; checked 64-state goal/movement lifecycle; same shared entity/ownership, BSP, frame/state/time, query, prediction and empty-item contracts; MP truncating costs versus SP ceiling, grid search and tactical occupancy verified; installed prediction uses SP geometry; RCD12 selection uses synthetic headers; stock MP keeps bots disabled | Dynamic-entity prediction and original BSP parity; cold-cache tactical divergences, installed-map/live tactical observations; missing-cache generation/writing, installed MP-cache observations, x87/fast-math numeric and decision differences, original-engine runtime route and gameplay evidence |
+| Gameplay and lifecycle | Open campaign; Source/Unit/Fixture for AI state lifecycle, camera evaluation, clean mission-briefing shutdown, shared movie-owner cleanup, main-menu shutdown and partial navigation-load cleanup; one isolated silent Windows x86 GL startup progresses through the opening cinematic to an inspected first-person knife/HUD capture | Source/Unit/Fixture for local map initialization, profile-specific camera timing, briefing-movie playback/shutdown and active-briefing-to-SP handoff; gameplay remains open | SP movement/combat, character rendering, active voice, campaign/AI/save-load/transitions; MP classes/objectives/maps; broader partial initialization, sustained play and shutdown |
+| Music and fades | Source/Unit/Build/Fixture; original-source queue/fade and SP loop/mixer comparisons; both-backend clear modes with preserved music and bounded PCM/gain routing; native menu music buffers on OpenAL; legacy initialized while muted | Source/Unit/Build/Fixture; exact two-argument import; native menu music buffers on OpenAL; legacy initialized while muted | Measured output and original playback parity; game-script triggers, save-load restoration and backend/device lifecycle |
+| One-shot audio | Source/Unit/Build/Fixture; checked native/QVM imports, original-source channel-policy and fixed-range gain comparisons, legacy/OpenAL lifetime and failure handling; SP client-channel replacement and auto-channel separation | Source/Unit/Build/Fixture; same boundaries/backends, original MP auto-channel reuse and FIFO policy; inspected briefing startup on both backends | Queued/threaded timing; output-device/PCM parity; sustained game audio and resource pressure; documented safe exhaustion differences |
+| Entity streams | Source/Unit/Build/Fixture; checked start/stop imports, shared decoder, eleven entity slots, queued replacement, immediate entity stop, bounded fades, both-backend synthetic silent stream runtime | Source/Unit/Build/Fixture; checked start import, twenty-three entity slots, original intro-repeat loop policy, both-backend synthetic silent stream runtime | Original PCM/device timing; live dialogue and mouth amplitude; save/load restoration; source-different SP loop correction and fade-slot admission; device recovery/resource pressure |
 | MP localization | Not an SP import | Source/Unit/Fixture; all eight installed dictionaries (1,201 records), 818,856 translations per original/iortcw reference, Windows x86/x64 and Linux x86 sanitizers; inspected French native main menu in all three renderers | Remaining UI/cgame rendering, byte/font agreement and language changes during a live session; optional translation-authoring diagnostics remain unimplemented |
 | Shared release | Open | Open | Q3/QL non-regression, clean supported-platform builds, complete suite and same-artifact runtime evidence |
 

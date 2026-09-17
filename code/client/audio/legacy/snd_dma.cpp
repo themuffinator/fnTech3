@@ -41,6 +41,7 @@ extern "C" {
 #include "../shared/AudioVoiceQueue.h"
 #include "../shared/AudioMix.h"
 #include "../snd_rtcw.h"
+#include "../shared/RTCWStreamFiles.h"
 
 #include <algorithm>
 #include <array>
@@ -53,6 +54,7 @@ static void S_Base_UpdateBackgroundTrack( void );
 static void S_Base_StopAllSounds( void );
 static void S_Base_StopBackgroundTrack( void );
 static void S_memoryLoad( sfx_t *sfx );
+static void S_Base_RawSamplesToBuffer( int &rawEnd, portable_samplepair_t *buffer, int samples, int rate, int width, int channels, const byte *data, float volume );
 
 namespace {
 
@@ -283,6 +285,8 @@ static void S_Base_AddVoiceSamples( int clientNum, int samples, int rate, const 
 
 } // namespace
 
+#include "snd_rtcw_streams.hpp"
+
 extern "C" void S_PaintVoiceSamples( int starttime, int endtime, portable_samplepair_t *paintSamples ) {
 	if ( paintSamples == nullptr || endtime <= starttime ) {
 		return;
@@ -349,6 +353,15 @@ static void S_Base_SoundInfo( void ) {
 		}
 		Com_Printf( "Remote voice lanes: %i allocated, %i active\n",
 			fnql_audio_voice::kMaxLanes, activeVoiceLanes );
+		if ( Com_GameIsRTCW() ) {
+			int active = 0, buffered = 0;
+			for ( int i = 1; i < rtcwStreams.policy.Limit(); ++i ) {
+				active += rtcwStreams.policy[i].active;
+				const int queued = static_cast<int32_t>( static_cast<uint32_t>(rtcwStreamRaw[i].end) - static_cast<uint32_t>(s_soundtime) );
+				buffered += rtcwStreamRaw[i].buffered && queued > 0 && queued <= MAX_RAW_SAMPLES;
+			}
+			Com_Printf( "RTCW entity streams: %d active, %d buffered\n", active, buffered );
+		}
 
 	}
 	Com_Printf("----------------------\n" );
@@ -707,6 +720,7 @@ static void S_Base_StartRTCWSound( const vec3_t origin, int entity, int channel,
 		return;
 	}
 	auto *sample = S_KnownSfxAt(handle);
+	rtcwStreams.policy.StopChannel( entity, channel );
 	if ( !sample->inMemory ) S_memoryLoad(sample);
 	const int now = Sys_Milliseconds();
 	sample->lastTimeUsed = now;
@@ -920,6 +934,7 @@ static void S_Base_ClearSoundBuffer( void ) {
 	s_rawend = 0;
 	s_rtcwMusicRawEnd = 0;
 	ResetVoiceLanes();
+	S_Base_ClearRTCWEntityStreams();
 
 	if (dma.samplebits == 8)
 		clear = 0x80;
@@ -967,6 +982,7 @@ static void S_Base_ClearRTCWSounds( qboolean clearMusic ) {
 	S_ChannelSetup();
 	s_rawend = 0;
 	ResetVoiceLanes();
+	S_Base_ClearRTCWEntityStreams();
 	S_Base_UpdateBackgroundTrack();
 }
 
@@ -1547,6 +1563,7 @@ static void S_Update_( int msec ) {
 
 	// add raw data from streamed samples
 	S_Base_UpdateBackgroundTrack();
+	S_Base_UpdateRTCWEntityStreams();
 
 	const bool traceTiming = s_debugTiming != nullptr && s_debugTiming->integer;
 	const int paintStarted = traceTiming ? Sys_Milliseconds() : 0;
@@ -1809,6 +1826,7 @@ static void S_Base_Shutdown( void ) {
 		return;
 	}
 
+	S_Base_ClearRTCWEntityStreams();
 	SNDDMA_Shutdown();
 
 	// release sound buffers only when switching to dedicated 
@@ -1916,6 +1934,7 @@ extern "C" qboolean S_Base_Init( soundInterface_t *si ) {
 		s_paintedtime = 0;
 
 		S_Base_StopAllSounds();
+		rtcwStreams.SetProfile( Com_GameIsRTCWSP() != 0 );
 
 		// setup (likely) or allocate (unlikely) buffer for muted painting
 		if ( mutedBytes <= mutedPaintBuffer.size() ) {
@@ -1940,6 +1959,9 @@ extern "C" qboolean S_Base_Init( soundInterface_t *si ) {
 	si->StartLocalSound = S_Base_StartLocalSound;
 	si->StartRTCWSound = S_Base_StartRTCWSound;
 	si->StartRTCWLocalSound = S_Base_StartRTCWLocalSound;
+	si->StartRTCWEntityStream = S_Base_StartRTCWEntityStream;
+	si->StopRTCWEntityStream = S_Base_StopRTCWEntityStream;
+	si->FadeRTCWEntityStream = S_Base_FadeRTCWEntityStream;
 	si->StartBackgroundTrack = S_Base_StartBackgroundTrack;
 	si->StartRTCWBackgroundTrack = S_Base_StartRTCWBackgroundTrack;
 	si->FadeRTCWBackgroundTrack = S_Base_FadeRTCWBackgroundTrack;

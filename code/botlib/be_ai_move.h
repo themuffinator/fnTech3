@@ -60,6 +60,8 @@ static constexpr int MOVERESULT_ONTOPOFOBSTACLE = 32;	//bot is ontop of obstacle
 static constexpr int MOVERESULT_ONTOPOF_FUNCBOB = 64;	//bot is ontop of a func_bobbing
 static constexpr int MOVERESULT_ONTOPOF_ELEVATOR = 128;	//bot is ontop of an elevator (func_plat)
 static constexpr int MOVERESULT_BLOCKEDBYAVOIDSPOT = 256;	//bot is blocked by an avoid spot
+// Engine-internal RTCW meaning; external bit 256 is mapped at the boundary.
+static constexpr int MOVERESULT_FUTUREVIEW = 512;
 //
 static constexpr int MAX_AVOIDREACH = 1;
 static constexpr int MAX_AVOIDSPOTS = 32;
@@ -72,6 +74,7 @@ static constexpr int RESULTTYPE_ELEVATORUP = 1;			//elevator is up
 static constexpr int RESULTTYPE_WAITFORFUNCBOBBING = 2;	//waiting for func bobbing to arrive
 static constexpr int RESULTTYPE_BADGRAPPLEPATH = 4;		//grapple path is obstructed
 static constexpr int RESULTTYPE_INSOLIDAREA = 8;		//stuck in solid area, this is bad
+static constexpr int RESULTTYPE_INVISIBLEGRAPPLE = 16; // RTCW external type 2
 
 //structure used to initialize the movement state
 //the or_moveflags MFL_ONGROUND, MFL_TELEPORTED and MFL_WATERJUMP come from the playerstate
@@ -126,6 +129,8 @@ void BotInitAvoidReach(int movestate);
 void BotResetLastAvoidReach(int movestate);
 //returns a reachability area if the origin is in one
 int BotReachabilityArea(vec3_t origin, int client);
+//finds a reachable area near the origin using the selected game's probes
+int BotFuzzyPointReachabilityArea(vec3_t origin);
 //view target based on movement
 int BotMovementViewTarget(int movestate, bot_goal_t *goal, int travelflags, float lookahead, vec3_t target);
 //predict the position of a player based on movement towards a goal

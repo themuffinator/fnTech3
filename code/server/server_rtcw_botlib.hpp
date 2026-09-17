@@ -6,6 +6,8 @@
 #include "server_rtcw_aas_query.hpp"
 #include "server_rtcw_ai_state.hpp"
 #include "server_rtcw_actions.hpp"
+#include "server_rtcw_movement_view.hpp"
+#include "server_rtcw_move_goal.hpp"
 #include "../botlib/rtcw_navigation.h"
 #include "../compat/rtcw_bot_entity.hpp"
 #include "../compat/rtcw_state_adapter.hpp"
@@ -33,7 +35,34 @@ static bool SV_RTCWBotLibCall( const vm_t *vm, fntech3::rtcw::module::Call call,
 	if ( SV_RTCWAASQueryCall( vm, call, args, result ) ) return true;
 	if ( SV_RTCWAIStateCall( vm, call, args, result ) ) return true;
 	if ( SV_RTCWActionCall( vm, call, args, result ) ) return true;
+	if ( SV_RTCWMovementViewCall( vm, call, args, result ) ) return true;
+	if ( SV_RTCWMoveToGoalCall( vm, call, args, result ) ) return true;
 	switch ( call ) {
+	case Call::BOTLIB_AI_MOVE_IN_DIRECTION: {
+		if (!botlib_export) Com_Error(ERR_DROP, "RTCW bot library interface is unavailable");
+		const int state = SV_RTCWInteger(args[1]);
+		auto direction = SV_RTCWVector(vm, args[2]);
+		const float speed = SV_RTCWFloat(args[3]);
+		const int type = SV_RTCWInteger(args[4]);
+		if (!fntech3::rtcw::movement::Position(direction.data()) || !fntech3::rtcw::routing::Coordinate(speed))
+			Com_Error(ERR_DROP, "Invalid RTCW directional movement");
+		result = botlib_export->ai.BotMoveInDirection(state, direction.data(), speed, type);
+		if (result != 0 && result != 1) Com_Error(ERR_DROP, "Invalid RTCW directional movement result");
+		return true;
+	}
+	case Call::BOTLIB_AI_REACHABILITY_AREA: {
+		if (!botlib_export) Com_Error(ERR_DROP, "RTCW bot library interface is unavailable");
+		auto origin = SV_RTCWVector(vm, args[1]);
+		const int entity = SV_RTCWInteger(args[2]);
+		// The historical parameter is named client, but is the trace's ignored
+		// entity. Cast actors may lie outside the human client slots.
+		if (!fntech3::rtcw::movement::Position(origin.data())
+			|| entity < -1 || entity >= (1 << FNTECH3_RTCW_GENTITYNUM_BITS))
+			Com_Error(ERR_DROP, "Invalid RTCW reachability-area arguments");
+		result = botlib_export->ai.BotReachabilityArea(origin.data(), entity);
+		if (result < 0 || result >= 65535) Com_Error(ERR_DROP, "Invalid RTCW reachability area");
+		return true;
+	}
 	case Call::BOTLIB_USER_COMMAND:
 		if (Com_GameProfile()->id == COM_GAME_RTCW_SP)
 			SV_RTCWBotUserCommand<fntech3_rtcw_sp_usercmd_t>(vm, args);

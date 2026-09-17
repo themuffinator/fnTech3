@@ -733,6 +733,7 @@ extern "C" void S_PaintChannels( int endtime ) {
 			}
 		}
 		S_PaintVoiceSamples( s_paintedtime, end, paintbuffer.data() );
+		S_PaintRTCWEntityStreams( s_paintedtime, end, paintbuffer.data() );
 		if ( rtcwSP ) {
 			S_PaintRTCWMusic( s_paintedtime, end, paintbuffer.data() );
 			for ( int sample = 0; sample < end - s_paintedtime; ++sample ) {

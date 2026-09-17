@@ -25,7 +25,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderercommon/tr_cubemap.h"
 #include "../renderercommon/tr_liquid.h"
 #include "../renderercommon/tr_muzzle_flash_light.h"
+#define FNTECH3_RTCW_GL_FOG
 #include "../renderercommon/tr_rtcw_fog_scene.h"
+#include "../renderercommon/tr_rtcw_corona_scene.h"
 
 static int			r_firstSceneDrawSurf;
 #ifdef USE_PMLIGHT
@@ -196,6 +198,7 @@ R_InitNextFrame
 ====================
 */
 void R_InitNextFrame( void ) {
+	rtcwCoronaCount = rtcwCoronaFirst = 0;
 
 	backEndData->commands.used = 0;
 
@@ -224,6 +227,7 @@ RE_ClearScene
 ====================
 */
 void RE_ClearScene( void ) {
+	rtcwCoronaFirst = rtcwCoronaCount;
 	r_firstSceneDlight = r_numdlights;
 	r_firstSceneEntity = r_numentities;
 	r_firstScenePoly = r_numpolys;
@@ -1455,6 +1459,7 @@ void RE_RenderScene( const refdef_t *fd ) {
 	tr.refdef.rdflags = fd->rdflags;
 	tr.refdef.rtcw = fd->rtcw;
 	R_CopyRTCWFogToScene( fd );
+	R_CopyRTCWCoronasToScene();
 
 	// copy the areamask data over and note if it has changed, which
 	// will force a reset of the visible leafs even if the view hasn't moved

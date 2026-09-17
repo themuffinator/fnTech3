@@ -143,6 +143,9 @@ struct soundInterface_t {
 	void (*StartLocalSound)( sfxHandle_t sfx, int channelNum, float volume );
 	void (*StartRTCWSound)( const vec3_t origin, int entity, int channel, sfxHandle_t handle, int flags );
 	void (*StartRTCWLocalSound)( sfxHandle_t handle, int channel );
+	void (*StartRTCWEntityStream)( const char *intro, const char *loop, int entity, int channel, int attenuation );
+	void (*StopRTCWEntityStream)( int entity );
+	void (*FadeRTCWEntityStream)( float volume, int time, int stream );
 	void (*StartBackgroundTrack)( const char *intro, const char *loop );
 	void (*StartRTCWBackgroundTrack)( const char *intro, const char *loop, int fadeTime );
 	void (*FadeRTCWBackgroundTrack)( float volume, int time );
@@ -205,6 +208,7 @@ extern	int		numLoopChannels;
 extern	int		s_soundtime;
 float S_Base_RTCWMasterGain( void );
 void S_PaintRTCWMusic( int first, int end, portable_samplepair_t *paint );
+void S_PaintRTCWEntityStreams( int first, int end, portable_samplepair_t *paint );
 extern	int		s_paintedtime;
 extern	int		s_rawend;
 extern	vec3_t	listener_forward;

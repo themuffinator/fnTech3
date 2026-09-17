@@ -3082,6 +3082,7 @@ public:
 		unsigned int texModWaveFuncs0, unsigned int texModWaveFuncs1, int fogAdjust,
 		int materialCombine, qboolean fogPass );
 	qboolean BindFogMaterial();
+	void SetRTCWFog( const float *color, const float *params );
 	qboolean BindLiquidMaterial( const float *params, const float *eyeAndCount,
 		const float *targetInverse, const float *reflect,
 		const float *impulses, const float *amplitudes );
@@ -5098,6 +5099,12 @@ qboolean RendererModule::BindFogMaterial()
 	return GLX_Material_BindFog( &material_ );
 }
 
+void RendererModule::SetRTCWFog( const float *color, const float *params )
+{
+	std::memcpy( material_.rtcwFogColor, color, sizeof( material_.rtcwFogColor ) );
+	std::memcpy( material_.rtcwFogParams, params, sizeof( material_.rtcwFogParams ) );
+}
+
 qboolean RendererModule::BindLiquidMaterial( const float *params,
 	const float *eyeAndCount, const float *targetInverse, const float *reflect,
 	const float *impulses, const float *amplitudes )
@@ -6277,6 +6284,11 @@ extern "C" qboolean GLX_Renderer_BindMaterialStage( int flags, unsigned int stat
 extern "C" qboolean GLX_Renderer_BindFogMaterial( void )
 {
 	return glx::g_module.BindFogMaterial();
+}
+
+extern "C" void GLX_Renderer_SetRTCWFog( const float *color, const float *params )
+{
+	glx::g_module.SetRTCWFog( color, params );
 }
 
 extern "C" qboolean GLX_Renderer_BindLiquidMaterial( const float *params,

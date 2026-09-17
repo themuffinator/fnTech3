@@ -59,6 +59,7 @@ void GLX_Renderer_RecordMaterialStage( int path, int flags, unsigned int stateBi
 	int fogAdjust, int materialCombine, qboolean fogPass,
 	int numVertexes, int numIndexes );
 qboolean GLX_Renderer_MaterialRendererActive( void );
+void GLX_Renderer_SetRTCWFog( const float *color, const float *params );
 qboolean GLX_Renderer_BindMaterialStage( int flags, unsigned int stateBits,
 	int rgbGen, int alphaGen, int tcGen0, int tcGen1, int texMods0, int texMods1,
 	unsigned int texModTypes0, unsigned int texModTypes1,

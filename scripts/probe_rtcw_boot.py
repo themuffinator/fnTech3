@@ -10,6 +10,7 @@ import argparse
 import datetime
 import hashlib
 import json
+import io
 import os
 import re
 import shutil
@@ -17,6 +18,8 @@ import subprocess
 import sys
 import tempfile
 import time
+import wave
+import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tests'))
@@ -67,12 +70,16 @@ def main():
                         help='Frames to wait after becoming active before capture (1-1200)')
     parser.add_argument('--server-state', action='store_true',
                         help='Print server status and the game entity list before a map capture')
+    parser.add_argument('--entity-streams', action='store_true',
+                        help='Exercise synthetic silent entity streams, replacement and stop on the selected audio backend')
     parser.add_argument('--language', type=int, choices=range(5), default=0)
     parser.add_argument('--pure', type=int, choices=(0, 1),
                         help='Override the selected profile default for an explicit pure-admission probe')
     parser.add_argument('--audio', choices=('off', 'openal-muted', 'legacy-muted'), default='off',
                         help='Focus-muted OpenAL exercises decoding; zero-volume legacy checks device initialization only')
     args = parser.parse_args()
+    if args.entity_streams and (args.scene != 'map' or args.audio == 'off'):
+        parser.error('--entity-streams requires --scene map and an enabled muted audio backend')
     if not 1 <= args.frames <= 1200:
         parser.error('--frames must be between 1 and 1200')
     if os.name != 'nt':
@@ -93,6 +100,16 @@ def main():
             continue
         row_dir = output / mode; row_dir.mkdir()
         home = Path(tempfile.mkdtemp(prefix='home-', dir=row_dir)); game = home / 'main'; game.mkdir()
+        if args.entity_streams:
+            payload = io.BytesIO()
+            with wave.open(payload, 'wb') as sound:
+                sound.setnchannels(2); sound.setsampwidth(2); sound.setframerate(22050)
+                sound.writeframes(bytes(22050 * 4 * 30))
+            # This fixture contains only generated silence. A pak also tests
+            # MP pure admission without changing the legitimate installation.
+            with zipfile.ZipFile(game / 'zz-fntech3-stream-probe.pk3', 'w', zipfile.ZIP_DEFLATED) as pak:
+                info = zipfile.ZipInfo('sound/fntech3-stream-probe.wav', (1980, 1, 1, 0, 0, 0))
+                info.compress_type = zipfile.ZIP_DEFLATED; pak.writestr(info, payload.getvalue())
         filename = f'fntech3-rtcw-{mode}-{args.scene}-{args.renderer}'
         startup = dict(com_gameProfile=f'rtcw-{mode}', fs_basepath=str(installation), fs_homepath=str(home),
             fs_game='', fs_cdpath='', r_fullscreen='0', r_windowedMode='-1', r_windowedWidth='640',
@@ -125,6 +142,15 @@ def main():
         if args.server_state and args.scene == 'map':
             diagnostics += 'status debug; entitylist; sv_maxclients; sv_fps; timescale; g_reloading; cvarlist savegame_loading; '
         tail = f'wait {args.frames}; sv_pure; {diagnostics}screenshotPNG {filename}; wait 5; quit'
+        if args.entity_streams:
+            sound = 'sound/fntech3-stream-probe.wav'
+            stop = 'stopstreamingsound 1000' if mode == 'sp' else 's_stop'
+            restore = 'set s_volume 0; ' if args.audio == 'legacy-muted' else ''
+            exercise = (f's_stop; set s_volume 1; streamingsound {sound} 1000 3 0; '
+                        f'streamingsound {sound} 1000 0 0; wait 12; echo stream_probe_started; s_info; '
+                        f'streamingsound {sound} 1000 3 0; wait 12; echo stream_probe_replaced; s_info; '
+                        f'{stop}; wait 12; echo stream_probe_stopped; {restore}s_info; ')
+            tail = f'wait {args.frames}; {exercise}sv_pure; {diagnostics}screenshotPNG {filename}; wait 5; quit'
         if args.server_state and args.scene == 'map':
             tail = 'status debug; ' + tail
         if args.scene == 'map':
@@ -148,6 +174,7 @@ def main():
             renderer=args.renderer, rendererSha256=sha(executable.parent / f'fnql_{args.renderer}_x86.dll'),
             captureDelayFrames=args.frames,
             serverStateDiagnostics=args.server_state,
+            entityStreamProbe=args.entity_streams,
             command=command, desktopSwitched=False, audio=args.audio, pureOverride=args.pure, screenshots=[])
         process = None
         try:
@@ -176,6 +203,16 @@ def main():
             row['engineErrors'] = [line for line in text.splitlines() if re.search(
                 r'error:|sys_error|fatal crashed:|not implemented|unsupported rtcw|rtcw[^\n]*unsupported|recursive cl_shutdown|server command overflow|lost reliable commands|reliable command.*cycled out', line, re.I)]
             row['passed'] &= row['windowedObserved'] and not row['engineErrors']
+            if args.entity_streams:
+                observations = {}
+                for event in ('started', 'replaced', 'stopped'):
+                    marker = 'stream_probe_' + event
+                    section = text.rsplit(marker, 1)[-1] if marker in text else ''
+                    match = re.search(r'RTCW entity streams: (\d+) active, (\d+) buffered', section)
+                    observations[event] = list(map(int, match.groups())) if match else None
+                row['entityStreamObservations'] = observations
+                row['entityStreamsPassed'] = observations == dict(started=[2, 2], replaced=[2, 2], stopped=[0, 0])
+                row['passed'] &= row['entityStreamsPassed']
             if args.audio != 'off':
                 row['audioInitialized'] = ('Using OpenAL backend' if args.audio == 'openal-muted' else 'Backend: legacy') in text
                 row['musicQueuedBuffers'] = [int(n) for n in re.findall(r'Music stream buffers: (\d+) queued', text)]

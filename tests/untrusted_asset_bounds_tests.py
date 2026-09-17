@@ -286,7 +286,7 @@ class FilesystemWriteBoundaryTests(unittest.TestCase):
     def test_write_lengths_and_handles_are_validated_at_both_boundaries(self) -> None:
         source = read("code/qcommon/files.c")
         core = body(source, "int FS_Write", "FS_Printf")
-        vm = body(source, "void FS_VM_WriteFile", "FS_VM_Seek")
+        vm = body(source, "int FS_VM_WriteFile", "FS_VM_Seek")
         self.assertIn("FS_WriteRequestIsValid( buffer, len, h )", core)
         self.assertIn("FS_WriteRequestIsValid( buffer, len, f )", vm)
         self.assertIn("if ( len == 0 )", core)

@@ -132,6 +132,7 @@ struct clientActive_t {
 	rtcwUsercmdExtension_t cgameRTCWCommand;	// mode-specific values supplied by RTCW cgame
 	vec3_t		cgameRTCWLerpOrigin;	// MP's interpolated viewpoint; cleared with the map state
 	rtcwLimboChat_t rtcwLimboChat;
+	qboolean	rtcwCameraMode;	// SP primary-camera input policy; reset with map state
 
 	// cmds[cmdNumber] is the predicted command, [cmdNumber-1] is the last
 	// properly generated command

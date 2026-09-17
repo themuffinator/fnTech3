@@ -26,7 +26,7 @@ MDS_LAYOUT = ROOT / "code/compat/rtcw_mds_layout.def"
 HEADERS = ("game/q_shared.h", "cgame/tr_types.h", "cgame/cg_public.h",
            "game/g_public.h", "ui/ui_public.h", "game/bg_public.h", "ui/keycodes.h",
            "qcommon/qfiles.h", "qcommon/cm_local.h", "client/cl_cgame.c", "client/cl_ui.c",
-           "game/botlib.h", "game/be_ai_goal.h", "game/be_ai_move.h")
+           "game/botlib.h", "game/be_ai_goal.h", "game/be_ai_move.h", "game/be_aas.h")
 
 
 def records() -> dict[str, list[tuple[str, str, bool]]]:
@@ -86,22 +86,32 @@ def translation_unit(mode: str, types: dict, iortcw: bool = False) -> tuple[str,
     lines += ['#include "q_shared.h"', '#undef int8_t', '#include "tr_types.h"',
              '#include "cg_public.h"', '#include "g_public.h"',
              '#include "ui_public.h"', '#include "bg_public.h"', '#include "keycodes.h"',
-             '#include "botlib.h"', '#include "be_ai_goal.h"', '#include "be_ai_move.h"', '#include <stddef.h>',
+             '#include "botlib.h"', '#include "be_ai_goal.h"', '#include "be_ai_move.h"',
+             '#include "be_aas.h"', '#undef SE_NONE', '#include <stddef.h>',
              f'#include "{BOUNDARY.as_posix()}"']
     pairs = [(f"fntech3_rtcw_{name}", original) for name, original in (
         ("trajectory_t", "trajectory_t"), ("plane_t", "cplane_t"),
         ("bot_entitystate_t", "bot_entitystate_t"),
         ("bot_initmove_t", "bot_initmove_t"),
+        ("bot_goal_t", "bot_goal_t"),
+        ("bot_moveresult_t", "bot_moveresult_t"),
         ("bot_input_t", "bot_input_t"),
+        ("aas_trace_t", "aas_trace_t"), ("aas_clientmove_t", "aas_clientmove_t"),
         ("trace_t", "trace_t"), ("gameState_t", "gameState_t"),
         ("entityState_t", "entityState_t"), ("vmCvar_t", "vmCvar_t"),
         ("uiClientState_t", "uiClientState_t"), ("glconfig_t", "glconfig_t"),
         ("pc_token_t", "pc_token_t"), ("qtime_t", "qtime_t"),
         ("glyphInfo_t", "glyphInfo_t"), ("fontInfo_t", "fontInfo_t"),
-        ("polyVert_t", "polyVert_t"), ("orientation_t", "orientation_t"))]
+        ("markFragment_t", "markFragment_t"), ("polyVert_t", "polyVert_t"), ("orientation_t", "orientation_t"))]
     pairs += [(f"fntech3_rtcw_{mode}_{name}", name) for name in (
         "usercmd_t", "playerState_t", "sharedEntity_t", "snapshot_t", "refEntity_t", "refdef_t")]
-    checks = 0
+    lines.append('_Static_assert(sizeof(fntech3_rtcw_markPoint_t) == sizeof(vec5_t), "RTCW mark point stride");')
+    lines.append('_Static_assert(offsetof(fntech3_rtcw_markPoint_t, st) == 3 * sizeof(float), "RTCW mark ST offset");')
+    checks = 2
+    lines.append('_Static_assert(_Generic(((aas_clientmove_t*)0)->endcontents, float: 1, default: 0), "RTCW prediction contents are numeric float");')
+    checks += 1
+    lines.append('_Static_assert(FNTECH3_RTCW_GENTITYNUM_BITS == GENTITYNUM_BITS, "RTCW game entity-number limit");')
+    checks += 1
     for own, original in pairs:
         lines.append(f'_Static_assert(sizeof({own}) == sizeof({original}), "{original} size");')
         lines.append(f'_Static_assert(_Alignof({own}) == _Alignof({original}), "{original} alignment");')
@@ -180,7 +190,8 @@ def probe(compiler: str, target: str | None, mode: str, source: Path,
                       "ui/keycodes.h": "client/keycodes.h",
                       "game/botlib.h": "botlib/botlib.h",
                       "game/be_ai_goal.h": "botlib/be_ai_goal.h",
-                      "game/be_ai_move.h": "botlib/be_ai_move.h"}.get(header, header)
+                      "game/be_ai_move.h": "botlib/be_ai_move.h",
+                      "game/be_aas.h": "botlib/be_aas.h"}.get(header, header)
         hashes[header] = hashlib.sha256((reference / header).read_bytes()).hexdigest()
     unit, checks = translation_unit(mode, types, iortcw)
     path = scratch / f"{mode}.c"

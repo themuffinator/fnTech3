@@ -40,6 +40,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "be_aas.h"
 #include "be_aas_funcs.h"
 #include "be_aas_def.h"
+#include "rtcw_movement.hpp"
+#include "rtcw_navigation.h"
 
 extern botlib_import_t botimport;
 
@@ -73,6 +75,10 @@ int AAS_DropToFloor(vec3_t origin, vec3_t mins, vec3_t maxs)
 //===========================================================================
 void AAS_InitSettings(void)
 {
+	if (Com_GameIsRTCW()) {
+		fntech3::rtcw::movement::Settings(aassettings, Com_GameIsRTCWSP() != 0);
+		return;
+	}
 	aassettings.phys_gravitydirection[0]	= 0;
 	aassettings.phys_gravitydirection[1]	= 0;
 	aassettings.phys_gravitydirection[2]	= -1;
@@ -120,8 +126,13 @@ void AAS_InitSettings(void)
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
-int AAS_AgainstLadder(vec3_t origin)
+static int AAS_AgainstLadderWithFallback(vec3_t origin, int previousArea)
 {
+	const bool rtcw = Com_GameIsRTCW();
+	if (rtcw && (!fntech3::rtcw::movement::Position(origin) || !aasworld.loaded || !aasworld.initialized
+		|| !aasworld.nodes || aasworld.numnodes < 2 || !aasworld.planes || aasworld.numplanes < 1
+		|| !aasworld.areas || !aasworld.areasettings || aasworld.numareas < 2
+		|| aasworld.numareasettings != aasworld.numareas)) return qfalse;
 	int areanum, i, facenum, side;
 	vec3_t org;
 	aas_plane_t *plane;
@@ -151,20 +162,40 @@ int AAS_AgainstLadder(vec3_t origin)
 		} //end if
 	} //end if
 	//if in solid... wrrr shouldn't happen
-	if (!areanum) return qfalse;
+	if (!areanum && rtcw) areanum = previousArea;
+	if (!areanum || (rtcw && (areanum < 0 || areanum >= aasworld.numareas))) return qfalse;
 	//if not in a ladder area
 	if (!(aasworld.areasettings[areanum].areaflags & AREA_LADDER)) return qfalse;
 	//if a crouch only area
 	if (!(aasworld.areasettings[areanum].presencetype & PRESENCE_NORMAL)) return qfalse;
 	//
 	area = &aasworld.areas[areanum];
+	if (rtcw && (area->numfaces < 0 || area->firstface < 0 || area->firstface > aasworld.faceindexsize
+		|| area->numfaces > aasworld.faceindexsize - area->firstface
+		|| !aasworld.faceindex || !aasworld.faces)) return qfalse;
 	for (i = 0; i < area->numfaces; i++)
 	{
+		if (rtcw && i == 4096) return qfalse;
 		facenum = aasworld.faceindex[area->firstface + i];
+		if (rtcw && (facenum == INT_MIN || abs(facenum) >= aasworld.numfaces)) return qfalse;
 		side = facenum < 0;
 		face = &aasworld.faces[abs(facenum)];
 		//if the face isn't a ladder face
 		if (!(face->faceflags & FACE_LADDER)) continue;
+		if (rtcw) {
+			if (face->planenum < 0 || face->planenum >= aasworld.numplanes
+				|| (face->planenum ^ side) >= aasworld.numplanes || face->firstedge < 0
+				|| face->numedges < 0 || face->firstedge > aasworld.edgeindexsize
+				|| face->numedges > aasworld.edgeindexsize - face->firstedge
+				|| !aasworld.edgeindex || !aasworld.edges || !aasworld.vertexes) return qfalse;
+			for (int edgeIndex = 0; edgeIndex < face->numedges; ++edgeIndex) {
+				const int signedEdge = aasworld.edgeindex[face->firstedge + edgeIndex];
+				if (signedEdge == INT_MIN || abs(signedEdge) >= aasworld.numedges) return qfalse;
+				const auto &edge = aasworld.edges[abs(signedEdge)];
+				for (int vertex : edge.v)
+					if (vertex < 0 || vertex >= aasworld.numvertexes) return qfalse;
+			}
+		}
 		//get the plane the face is in
 		plane = &aasworld.planes[face->planenum ^ side];
 		//if the origin is pretty close to the plane
@@ -175,6 +206,19 @@ int AAS_AgainstLadder(vec3_t origin)
 	} //end for
 	return qfalse;
 } //end of the function AAS_AgainstLadder
+
+int AAS_AgainstLadder(vec3_t origin)
+{
+	return AAS_AgainstLadderWithFallback(origin, 0);
+}
+
+bool AAS_RTCWAgainstLadder(const float *origin, int previousArea)
+{
+	if (!Com_GameIsRTCW() || !origin) return false;
+	vec3_t owned;
+	VectorCopy(origin, owned);
+	return AAS_AgainstLadderWithFallback(owned, previousArea) != 0;
+}
 //===========================================================================
 // returns qtrue if the bot is on the ground
 //
@@ -194,13 +238,14 @@ int AAS_OnGround(vec3_t origin, int presencetype, int passent)
 	trace = AAS_TraceClientBBox(origin, end, presencetype, passent);
 
 	//if in solid
-	if (trace.startsolid) return qfalse;
+	if (trace.startsolid) return Com_GameIsRTCWSP() ? qtrue : qfalse;
 	//if nothing hit at all
 	if (trace.fraction >= 1.0) return qfalse;
 	//if too far from the hit plane
 	if (origin[2] - trace.endpos[2] > 10) return qfalse;
 	//check if the plane isn't too steep
 	plane = AAS_PlaneFromNum(trace.planenum);
+	if (Com_GameIsRTCW() && !plane) return qfalse;
 	if (DotProduct(plane->normal, up) < aassettings.phys_maxsteepness) return qfalse;
 	//the bot is on the ground
 	return qtrue;
@@ -253,8 +298,12 @@ void AAS_SetMovedir(vec3_t angles, vec3_t movedir)
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-void AAS_JumpReachRunStart(aas_reachability_t *reach, vec3_t runstart)
+static bool AAS_JumpReachRunStartChecked(aas_reachability_t *reach, vec3_t runstart)
 {
+	const bool rtcw = Com_GameIsRTCW();
+	if (rtcw && (!reach || !runstart || !fntech3::rtcw::movement::Position(reach->start)
+		|| !fntech3::rtcw::movement::Position(reach->end)
+		|| !botimport.PointContents || !botimport.EntityTrace || !aasworld.arealinkedentities)) return false;
 	vec3_t hordir, start, cmdmove;
 	aas_clientmove_t move;
 
@@ -262,24 +311,48 @@ void AAS_JumpReachRunStart(aas_reachability_t *reach, vec3_t runstart)
 	hordir[0] = reach->start[0] - reach->end[0];
 	hordir[1] = reach->start[1] - reach->end[1];
 	hordir[2] = 0;
-	VectorNormalize(hordir);
+	if (rtcw) fntech3::rtcw::movement::Normalize(hordir);
+	else VectorNormalize(hordir);
 	//start point
 	VectorCopy(reach->start, start);
 	start[2] += 1;
 	//get command movement
 	VectorScale(hordir, 400, cmdmove);
 	//
-	AAS_PredictClientMovement(&move, -1, start, PRESENCE_NORMAL, qtrue,
+	const int predicted = AAS_PredictClientMovement(&move, -1, start, PRESENCE_NORMAL, qtrue,
 								vec3_origin, cmdmove, 1, 2, 0.1f,
 								SE_ENTERWATER|SE_ENTERSLIME|SE_ENTERLAVA|
 								SE_HITGROUNDDAMAGE|SE_GAP, 0, qfalse);
-	VectorCopy(move.endpos, runstart);
+	if (rtcw && !predicted) return false;
 	//don't enter slime or lava and don't fall from too high
-	if (move.stopevent & (SE_ENTERSLIME|SE_ENTERLAVA|SE_HITGROUNDDAMAGE))
+	// RTCW slime is traversable; Quake backs away from it.
+	const int hazards = SE_ENTERLAVA | SE_HITGROUNDDAMAGE | (rtcw ? 0 : SE_ENTERSLIME);
+	if (move.stopevent & hazards)
 	{
 		VectorCopy(start, runstart);
 	} //end if
+	else VectorCopy(move.endpos, runstart);
+	return true;
+}
+
+void AAS_JumpReachRunStart(aas_reachability_t *reach, vec3_t runstart)
+{
+	if (!AAS_JumpReachRunStartChecked(reach, runstart) && Com_GameIsRTCW() && runstart) {
+		// The legacy void entry is also used by debug drawing. Give it a defined
+		// fallback; movement uses the private boolean entry and stops on failure.
+		if (reach && fntech3::rtcw::movement::Position(reach->start)) VectorCopy(reach->start, runstart);
+		else VectorClear(runstart);
+	}
 } //end of the function AAS_JumpReachRunStart
+
+bool AAS_RTCWJumpReachRunStart(const float *from, const float *to, float *runstart)
+{
+	if (!Com_GameIsRTCW() || !from || !to || !runstart) return false;
+	aas_reachability_t reach{};
+	VectorCopy(from, reach.start);
+	VectorCopy(to, reach.end);
+	return AAS_JumpReachRunStartChecked(&reach, runstart);
+}
 //===========================================================================
 // returns the Z velocity when rocket jumping at the origin
 //
@@ -517,6 +590,7 @@ static int AAS_ClientMovementPrediction( aas_clientmove_t *move,
 	vec3_t up = {0, 0, 1};
 	aas_plane_t *plane, *plane2;
 	aas_trace_t trace, steptrace;
+	const bool rtcw = Com_GameIsRTCW() != 0;
 	
 	if (frametime <= 0) frametime = 0.1f;
 	//
@@ -555,7 +629,9 @@ static int AAS_ClientMovementPrediction( aas_clientmove_t *move,
 		//if on the ground or swimming
 		if (onground || swimming)
 		{
-			friction = swimming ? phys_waterfriction : phys_friction;
+			// Published original RTCW reverses Quake's choice. iortcw later
+			// changed it back; the selected original-game contract owns this.
+			friction = ((swimming != 0) != rtcw) ? phys_waterfriction : phys_friction;
 			//apply friction
 			VectorScale(frame_test_vel, 1/frametime, frame_test_vel);
 			AAS_ApplyFriction(frame_test_vel, friction, phys_stopspeed, frametime);
@@ -602,7 +678,7 @@ static int AAS_ClientMovementPrediction( aas_clientmove_t *move,
 				wishdir[2] = 0;
 			} //end else
 			//
-			wishspeed = VectorNormalize(wishdir);
+			wishspeed = rtcw ? fntech3::rtcw::movement::Normalize(wishdir) : VectorNormalize(wishdir);
 			if (wishspeed > maxvel) wishspeed = maxvel;
 			VectorScale(frame_test_vel, 1/frametime, frame_test_vel);
 			AAS_Accelerate(frame_test_vel, frametime, wishdir, wishspeed, accelerate);
@@ -640,6 +716,8 @@ static int AAS_ClientMovementPrediction( aas_clientmove_t *move,
 		do
 		{
 			VectorAdd(org, left_test_vel, end);
+			if (rtcw && (!fntech3::rtcw::movement::Position(org) || !fntech3::rtcw::movement::Position(end)))
+				return qfalse;
 			//trace a bounding box
 			trace = AAS_TraceClientBBox(org, end, presencetype, entnum);
 			//
@@ -651,7 +729,7 @@ static int AAS_ClientMovementPrediction( aas_clientmove_t *move,
 			} //end if
 //#endif //AAS_MOVE_DEBUG
 			//
-			if (stopevent & (SE_ENTERAREA|SE_TOUCHJUMPPAD|SE_TOUCHTELEPORTER|SE_TOUCHCLUSTERPORTAL))
+			if (stopevent & (rtcw ? SE_ENTERAREA : (SE_ENTERAREA|SE_TOUCHJUMPPAD|SE_TOUCHTELEPORTER|SE_TOUCHCLUSTERPORTAL)))
 			{
 				numareas = AAS_TraceAreas(org, trace.endpos, areas, points, 20);
 				for (i = 0; i < numareas; i++)
@@ -673,7 +751,7 @@ static int AAS_ClientMovementPrediction( aas_clientmove_t *move,
 						} //end if
 					} //end if
 					//NOTE: if not the first frame
-					if ((stopevent & SE_TOUCHJUMPPAD) && n)
+					if (!rtcw && (stopevent & SE_TOUCHJUMPPAD) && n)
 					{
 						if (aasworld.areasettings[areas[i]].contents & AREACONTENTS_JUMPPAD)
 						{
@@ -689,7 +767,7 @@ static int AAS_ClientMovementPrediction( aas_clientmove_t *move,
 							return qtrue;
 						} //end if
 					} //end if
-					if (stopevent & SE_TOUCHTELEPORTER)
+					if (!rtcw && (stopevent & SE_TOUCHTELEPORTER))
 					{
 						if (aasworld.areasettings[areas[i]].contents & AREACONTENTS_TELEPORTER)
 						{
@@ -705,7 +783,7 @@ static int AAS_ClientMovementPrediction( aas_clientmove_t *move,
 							return qtrue;
 						} //end if
 					} //end if
-					if (stopevent & SE_TOUCHCLUSTERPORTAL)
+					if (!rtcw && (stopevent & SE_TOUCHCLUSTERPORTAL))
 					{
 						if (aasworld.areasettings[areas[i]].contents & AREACONTENTS_CLUSTERPORTAL)
 						{
@@ -747,6 +825,7 @@ static int AAS_ClientMovementPrediction( aas_clientmove_t *move,
 			{
 				//get the plane the bounding box collided with
 				plane = AAS_PlaneFromNum(trace.planenum);
+				if (rtcw && !plane) return qfalse;
 				//
 				if (stopevent & SE_HITGROUNDAREA)
 				{
@@ -783,6 +862,7 @@ static int AAS_ClientMovementPrediction( aas_clientmove_t *move,
 					if (!steptrace.startsolid)
 					{
 						plane2 = AAS_PlaneFromNum(steptrace.planenum);
+						if (rtcw && !plane2) return qfalse;
 						if (DotProduct(plane2->normal, up) > phys_maxsteepness)
 						{
 							VectorSubtract(end, steptrace.endpos, left_test_vel);
@@ -947,7 +1027,7 @@ static int AAS_ClientMovementPrediction( aas_clientmove_t *move,
 				//if it is a gap (lower than one step height)
 				if (gaptrace.endpos[2] < org[2] - aassettings.phys_maxstep - 1)
 				{
-					if (!(AAS_PointContents(end) & CONTENTS_WATER))
+					if (!(AAS_PointContents(end) & (CONTENTS_WATER | (rtcw ? CONTENTS_SLIME : 0))))
 					{
 						VectorCopy(lastorg, move->endpos);
 						move->endarea = AAS_PointAreaNum(lastorg);
@@ -963,6 +1043,27 @@ static int AAS_ClientMovementPrediction( aas_clientmove_t *move,
 				} //end if
 			} //end if
 		} //end else if
+		if (rtcw) {
+			// RTCW tests the final area after ground/gap events, including
+			// frame zero. Quake's path above tests areas crossed by the trace.
+			const int destination = AAS_PointAreaNum(org);
+			if (destination < 0 || destination >= aasworld.numareasettings) return qfalse;
+			const int contents = aasworld.areasettings[destination].contents;
+			const int touched = (stopevent & SE_TOUCHJUMPPAD) && (contents & AREACONTENTS_JUMPPAD)
+				? SE_TOUCHJUMPPAD : ((stopevent & SE_TOUCHTELEPORTER) && (contents & AREACONTENTS_TELEPORTER)
+					? SE_TOUCHTELEPORTER : SE_NONE);
+			if (touched) {
+				VectorCopy(org, move->endpos);
+				VectorScale(frame_test_vel, 1 / frametime, move->velocity);
+				move->endarea = destination;
+				move->trace = trace;
+				move->presencetype = presencetype;
+				move->stopevent = touched;
+				move->time = n * frametime;
+				move->frames = n;
+				return qtrue;
+			}
+		}
 	} //end for
 	//
 	VectorCopy(org, move->endpos);
@@ -990,12 +1091,33 @@ int AAS_PredictClientMovement(aas_clientmove_t *move,
 								int maxframes, float frametime,
 								int stopevent, int stopareanum, int visualize)
 {
+	if (Com_GameIsRTCW()) {
+		using namespace fntech3::rtcw::movement;
+		if (!move) return qfalse;
+		*move = {};
+		if (!aasworld.loaded || !aasworld.initialized || !aasworld.areasettings
+			|| aasworld.numareas <= 0 || aasworld.numareas > 65535 || aasworld.numareasettings != aasworld.numareas
+			|| !aasworld.nodes || aasworld.numnodes < 2 || !aasworld.planes || aasworld.numplanes < 2
+			|| maxframes > MaxFrames
+			|| !Position(origin) || !Position(velocity) || !Position(cmdmove)
+			|| !fntech3::rtcw::routing::Finite(frametime)) return qfalse;
+		if (frametime > 0 && !fntech3::rtcw::routing::Finite(1.0f / frametime)) return qfalse;
+		stopevent &= StopEvents;
+	}
 	const vec3_t mins = { -4, -4, -4 };
 	const vec3_t maxs = { 4, 4, 4 };
-	return AAS_ClientMovementPrediction(move, entnum, origin, presencetype, onground,
+	const int result = AAS_ClientMovementPrediction(move, entnum, origin, presencetype, onground,
 										velocity, cmdmove, cmdframes, maxframes,
 										frametime, stopevent, stopareanum,
 										mins, maxs, visualize);
+	if (Com_GameIsRTCW()) {
+		fntech3_rtcw_aas_clientmove_t checked;
+		if (!fntech3::rtcw::movement::Result(*move, checked)) {
+			*move = {};
+			return qfalse;
+		}
+	}
+	return result;
 } //end of the function AAS_PredictClientMovement
 //===========================================================================
 //

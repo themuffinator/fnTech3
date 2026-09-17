@@ -49,7 +49,8 @@ clipHandle_t SV_ClipHandleForEntity( const sharedEntity_t *ent, qboolean capsule
 		return CM_InlineModel( entity.s.modelindex );
 	}
 	if ( fnql::server::collision::UseCapsuleEntityModel(
-		SV_AsBool( capsule ), ( entity.r.svFlags & SVF_CAPSULE ) != 0 ) ) {
+		Com_GameProfile()->entityHullPolicy, SV_AsBool( capsule ),
+		( entity.r.svFlags & SVF_CAPSULE ) != 0 ) ) {
 		// create a temp capsule from bounding box sizes
 		return CM_TempBoxModel( entity.r.mins, entity.r.maxs, qtrue );
 	}

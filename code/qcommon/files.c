@@ -7691,15 +7691,40 @@ int FS_VM_ReadFile( void *buffer, int len, fileHandle_t f, handleOwner_t owner )
 }
 
 
-void FS_VM_WriteFile( void *buffer, int len, fileHandle_t f, handleOwner_t owner ) {
+int FS_VM_WriteFile( void *buffer, int len, fileHandle_t f, handleOwner_t owner ) {
 
 	if ( !FS_WriteRequestIsValid( buffer, len, f ) )
-		return;
+		return 0;
 
 	if ( fsh[f].owner != owner || !fsh[f].handleFiles.file.v )
-		return;
+		return 0;
 
-	FS_Write( buffer, len, f );
+	return FS_Write( buffer, len, f );
+}
+
+
+// RTCW commits its autosave by renaming a completed temporary file. Both
+// paths belong to the writable game directory. Keep the previous save and
+// the temporary file intact if replacement fails; never fall back to a
+// truncating copy over the previous save.
+void FS_VM_RenameFile( const char *from, const char *to ) {
+	char source[MAX_OSPATH * 3 + 1];
+	char destination[MAX_OSPATH * 3 + 1];
+	if ( !fs_searchpaths ) {
+		Com_Error( ERR_FATAL, "Filesystem call made without initialization" );
+	}
+	if ( !FS_WriteQpathIsValid( from ) || !FS_WriteQpathIsValid( to ) ) {
+		Com_Error( ERR_DROP, "Invalid module rename path" );
+		return;
+	}
+	FS_CheckFilenameIsNotAllowed( from, __func__, qfalse );
+	FS_CheckFilenameIsNotAllowed( to, __func__, qfalse );
+	if ( !FS_FilenameCompare( from, to ) ) return;
+	Q_strncpyz( source, FS_BuildOSPath( fs_homepath->string, fs_gamedir, from ), sizeof( source ) );
+	Q_strncpyz( destination, FS_BuildOSPath( fs_homepath->string, fs_gamedir, to ), sizeof( destination ) );
+	if ( FS_CreatePath( destination ) || !Sys_ReplaceFile( source, destination ) ) {
+		Com_Error( ERR_DROP, "Unable to rename module file %s to %s; files retained", from, to );
+	}
 }
 
 

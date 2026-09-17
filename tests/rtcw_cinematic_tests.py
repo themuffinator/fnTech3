@@ -32,6 +32,7 @@ static void Bounds(vm_t *vm,intptr_t address,std::size_t size){
 static void *VM_ExplicitArgPtr(vm_t *vm,intptr_t address){return vm->native?reinterpret_cast<void *>(address):vm->bytes+address;}
 static bool CL_RTCWRenderCall(vm_t *,Call,intptr_t *,intptr_t &){return false;}
 static bool CL_RTCWAudioCall(vm_t *,Call,intptr_t *){return false;}
+static bool CL_RTCWCameraCall(vm_t *,Call,intptr_t *,intptr_t &){return false;}
 static intptr_t CL_CGameTrapForProfile(intptr_t value){return value;}
 static int backendCalls,operation;
 static std::vector<int> values;

@@ -685,7 +685,9 @@ typedef enum {
 // profile's frozen vmMain ordinal. They are not Q3/QL module exports.
 typedef enum {
 	GAME_RETRIEVE_MOVESPEEDS_FROM_CLIENT = 0x10000, // ( int entity, char *text );
-	GAME_GETMODELINFO // SP: ( int client, char *modelName, opaque native modelInfo ** );
+	GAME_GETMODELINFO, // SP: ( int client, char *modelName, opaque native modelInfo ** );
+	AICAST_VISIBLEFROMPOS, // RTCW: ( float *source, int sourceEntity, float *destination, int destinationEntity, int update );
+	AICAST_CHECKATTACKATPOS // RTCW: ( int entity, int enemy, float *position, int ducking, int allowHitWorld );
 } gameEngineExport_t;
 
 // Retail Quake Live native DLL slot order recovered from qagamex86.dll dllEntry().

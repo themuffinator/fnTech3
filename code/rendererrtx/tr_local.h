@@ -448,6 +448,7 @@ typedef struct {
 	GLint			mtEnv3;						// 0, GL_MODULATE, GL_ADD, GL_DECAL
 
 	qboolean		isDetail;
+	qboolean		rtcwFog; // Explicit fog-on stage inside an RTCW nofog material.
 	qboolean		depthFragment;
 
 #ifdef USE_VULKAN
@@ -551,6 +552,7 @@ typedef struct shader_s {
 	unsigned	noPicMip:1;				// for images that must always be full resolution
 	unsigned	noLightScale:1;
 	unsigned	noVLcollapse:1;			// ignore vertexlight mode
+	qboolean	rtcwNoFog;
 	int		rtcwCompression; // Material-local default (0), forbid (-1), allow (1).
 
 	fogPass_t	fogPass;				// draw a blended pass, possibly with depth test equals
@@ -654,6 +656,8 @@ typedef struct {
 	char		text[MAX_RENDER_STRINGS][MAX_RENDER_STRING_LENGTH];
 	rtcwRenderView_t rtcw;
 	fnRTCWFogFrame_t rtcwFog;
+	int numRTCWCoronas;
+	fnRTCWCorona_t rtcwCoronas[FN_RTCW_MAX_CORONAS];
 
 	int			num_entities;
 	trRefEntity_t	*entities;
@@ -2003,6 +2007,7 @@ typedef struct {
 	shader_t				*enemyOutlineShader;
 
 	shader_t				*flareShader;
+	shader_t *rtcwSpotFlareShader;
 	shader_t				*lensFlareShader;
 	shader_t				*sunShader;
 
@@ -2127,6 +2132,7 @@ extern cvar_t	*r_lodscale;
 
 extern cvar_t	*r_teleporterFlash;		// teleport hyperspace visual
 
+extern cvar_t	*r_wolffog;
 extern cvar_t	*r_fastsky;				// controls whether sky should be cleared or drawn
 extern cvar_t	*r_neatsky;				// nomip and nopicmip for skyboxes, cnq3 like look
 extern cvar_t	*r_drawSun;				// controls drawing of sun quad
@@ -2795,6 +2801,9 @@ MARKERS, POLYGON PROJECTION ON WORLD POLYGONS
 ============================================================
 */
 
+void RE_AddRTCWCoronaToScene( const fnRTCWCorona_t *corona );
+int R_MarkRTCWFragments( int rotation, const vec3_t *corners, const vec3_t projection,
+	int maxPoints, fnRTCWMarkPoint_t *points, int maxFragments, markFragment_t *fragments );
 int R_MarkFragments( int numPoints, const vec3_t *points, const vec3_t projection,
 				   int maxPoints, vec3_t pointBuffer, int maxFragments, markFragment_t *fragmentBuffer );
 

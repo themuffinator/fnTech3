@@ -429,6 +429,8 @@ static qboolean GLX_Material_VertexSource( const MaterialStageKey &stageKey,
 		"varying vec4 v_Color;\n"
 		"varying vec2 v_TexCoord0;\n"
 		"varying vec2 v_TexCoord1;\n"
+		"uniform vec4 u_RTCWFogParams;\n"
+		"varying float v_RTCWFogDistance;\n"
 		"vec4 GLX_PreparedColor(void)\n"
 		"{\n"
 		"#if GLX_MATERIAL_RGBGEN == 0\n"
@@ -506,6 +508,8 @@ static qboolean GLX_Material_VertexSource( const MaterialStageKey &stageKey,
 		"void main(void)\n"
 		"{\n"
 		"    gl_Position = ftransform();\n"
+		"    vec3 eye = (gl_ModelViewMatrix * gl_Vertex).xyz;\n"
+		"    v_RTCWFogDistance = u_RTCWFogParams.w > 0.0 ? length(eye) : abs(eye.z);\n"
 		"    v_Color = GLX_PreparedColor();\n"
 		"    v_TexCoord0 = GLX_PreparedTexCoord0();\n"
 		"    v_TexCoord1 = GLX_PreparedTexCoord1();\n"
@@ -739,6 +743,23 @@ static qboolean GLX_Material_FragmentSource( const MaterialStageKey &stageKey,
 		"varying vec4 v_Color;\n"
 		"varying vec2 v_TexCoord0;\n"
 		"varying vec2 v_TexCoord1;\n"
+		"uniform vec4 u_RTCWFogColor;\n"
+		"uniform vec4 u_RTCWFogParams;\n"
+		"varying float v_RTCWFogDistance;\n"
+		"vec4 GLX_ApplyRTCWFog(vec4 color)\n"
+		"{\n"
+		"    if (u_RTCWFogColor.w == 0.0) return color;\n"
+		"    float visibility;\n"
+		"    if (u_RTCWFogColor.w == 2.0)\n"
+		"        visibility = exp(-u_RTCWFogParams.z * v_RTCWFogDistance);\n"
+		"    else if (u_RTCWFogParams.y == u_RTCWFogParams.x)\n"
+		"        visibility = v_RTCWFogDistance < u_RTCWFogParams.y ? 1.0 : 0.0;\n"
+		"    else\n"
+		"        visibility = clamp((u_RTCWFogParams.y - v_RTCWFogDistance) /\n"
+		"            (u_RTCWFogParams.y - u_RTCWFogParams.x), 0.0, 1.0);\n"
+		"    color.rgb = mix(u_RTCWFogColor.rgb, color.rgb, visibility);\n"
+		"    return color;\n"
+		"}\n"
 		"vec4 GLX_ApplyPreparedStageLanguage(vec4 color)\n"
 		"{\n"
 		"    vec4 prepared = color;\n"
@@ -978,7 +999,7 @@ static qboolean GLX_Material_FragmentSource( const MaterialStageKey &stageKey,
 		"#if GLX_MATERIAL_FOG_PASS\n"
 		"    prepared += vec4(0.0);\n"
 		"#endif\n"
-		"    return prepared;\n"
+		"    return GLX_ApplyRTCWFog(prepared);\n"
 		"}\n"
 		"void main(void)\n"
 		"{\n"
@@ -1417,6 +1438,8 @@ static MaterialProgram *GLX_Material_CreateProgram( MaterialState *state,
 
 	program->texture0Uniform = state->fns.GetUniformLocation( program->program, "u_Texture0" );
 	program->texture1Uniform = state->fns.GetUniformLocation( program->program, "u_Texture1" );
+	program->rtcwFogColorUniform = state->fns.GetUniformLocation( program->program, "u_RTCWFogColor" );
+	program->rtcwFogParamsUniform = state->fns.GetUniformLocation( program->program, "u_RTCWFogParams" );
 	state->fns.UseProgram( program->program );
 	if ( program->texture0Uniform >= 0 ) {
 		state->fns.Uniform1i( program->texture0Uniform, 0 );
@@ -2072,6 +2095,12 @@ qboolean GLX_Material_BindIR( MaterialState *state, const MaterialIR &material )
 
 	program->binds++;
 	state->binds++;
+	if ( program->rtcwFogColorUniform >= 0 ) {
+		state->fns.Uniform4fv( program->rtcwFogColorUniform, 1, state->rtcwFogColor );
+	}
+	if ( program->rtcwFogParamsUniform >= 0 ) {
+		state->fns.Uniform4fv( program->rtcwFogParamsUniform, 1, state->rtcwFogParams );
+	}
 	GLX_Material_SetLastError( state, "" );
 	return qtrue;
 }

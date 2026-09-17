@@ -817,7 +817,7 @@ void RB_StageIteratorSky( void ) {
 	}
 #endif // USE_PMLIGHT
 
-	if ( r_fastsky->integer ) {
+	if ( r_fastsky->integer || !backEnd.refdef.rtcwFog.drawSky ) {
 		return;
 	}
 
@@ -838,6 +838,8 @@ void RB_StageIteratorSky( void ) {
 	} else {
 		qglDepthRange( sky_min_depth, 1.0 );
 	}
+
+	RB_RTCWStageFog( NULL );
 
 	// draw the outer skybox
 	if ( tess.shader->sky.outerbox[0] && tess.shader->sky.outerbox[0] != tr.defaultImage ) {
@@ -865,6 +867,7 @@ void RB_StageIteratorSky( void ) {
 	// back to normal depth range
 	qglDepthRange( 0.0, 1.0 );
 
+	RB_RTCWFogToggle( qfalse );
 	// note that sky was drawn so we will draw a sun later
 	backEnd.skyRenderedThisView = qtrue;
 }

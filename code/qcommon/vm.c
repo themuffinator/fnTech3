@@ -2987,6 +2987,8 @@ static qboolean VM_PrepareRTCWExport( comGameId_t profile, vmIndex_t index,
 		RTCW_EXPORT(BOTAI_START_FRAME, 1)
 		RTCW_EXPORT(GAME_RETRIEVE_MOVESPEEDS_FROM_CLIENT, 2)
 		RTCW_EXPORT(GAME_GETMODELINFO, 3)
+		RTCW_EXPORT(AICAST_VISIBLEFROMPOS, 5)
+		RTCW_EXPORT(AICAST_CHECKATTACKATPOS, 5)
 		default: return qfalse;
 		}
 		break;
@@ -3089,8 +3091,9 @@ intptr_t QDECL VM_Call( vm_t *vm, int nargs, int callnum, ... )
 		return 0;
 	}
 	if ( vm->index == VM_GAME &&
-		( callnum == GAME_RETRIEVE_MOVESPEEDS_FROM_CLIENT || callnum == GAME_GETMODELINFO ) && !Com_GameIsRTCW() ) {
-		Com_Error( ERR_DROP, "RTCW animation export requires an RTCW profile" );
+		( callnum == GAME_RETRIEVE_MOVESPEEDS_FROM_CLIENT || callnum == GAME_GETMODELINFO ||
+		  callnum == AICAST_VISIBLEFROMPOS || callnum == AICAST_CHECKATTACKATPOS ) && !Com_GameIsRTCW() ) {
+		Com_Error( ERR_DROP, "RTCW game export requires an RTCW profile" );
 		return 0;
 	}
 #ifndef USE_DEDICATED

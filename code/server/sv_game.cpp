@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../compat/game_abi_adapter.h"
 #include "../compat/rtcw_module_abi.h"
 #include "../compat/rtcw_state_adapter.hpp"
+#include "../qcommon/vm_rtcw_filesystem.hpp"
 #define JSON_IMPLEMENTATION
 #include "../qcommon/json.h"
 #undef JSON_IMPLEMENTATION
@@ -889,6 +890,9 @@ static intptr_t SV_GameSystemCalls( intptr_t *args ) {
 		if ( SV_RTCWWorldCall( gvm, call, args, worldResult ) ) return worldResult;
 		if ( SV_RTCWBotLibCall( gvm, call, args, worldResult ) ) return worldResult;
 		switch ( call ) {
+		case Call::G_FS_RENAME:
+			VM_RTCWRenameFile( gvm, args[1], args[2] );
+			return 0;
 		case Call::G_GETTAG:
 			return SV_RTCWGetTag(gvm, args[1], args[2], args[3]);
 		case Call::G_TRACE:
@@ -986,6 +990,7 @@ static intptr_t SV_GameSystemCalls( intptr_t *args ) {
 		VM_CHECKBOUNDS( gvm, args[1], args[2] );
 		return FS_VM_ReadFile( VMA(1), args[2], args[3], H_QAGAME );
 	case G_FS_WRITE:
+		if ( Com_GameIsRTCW() ) return VM_RTCWWriteFile( gvm, args[1], args[2], args[3], H_QAGAME );
 		VM_CHECKBOUNDS( gvm, args[1], args[2] );
 		FS_VM_WriteFile( VMA(1), args[2], args[3], H_QAGAME );
 		return 0;

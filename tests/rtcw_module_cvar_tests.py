@@ -28,6 +28,7 @@ PRELUDE = r'''
 #include "code/ui/ui_public.h"
 #include "code/game/g_public.h"
 #include <array>
+#include <algorithm>
 #include <cassert>
 #include <climits>
 #include <cstring>
@@ -37,12 +38,15 @@ template<class VM> static bool CL_RTCWRenderCall(VM *, fntech3::rtcw::module::Ca
 // Audio argument arrays are executed separately by rtcw_music_tests.
 template<class VM> static bool CL_RTCWAudioCall(VM *, fntech3::rtcw::module::Call, intptr_t *) { return false; }
 template<class VM> static bool CL_RTCWCinematicCall(VM *, fntech3::rtcw::module::Call, intptr_t *, intptr_t &) { return false; }
+template<class VM> static bool CL_RTCWCameraCall(VM *, fntech3::rtcw::module::Call, intptr_t *, intptr_t &) { return false; }
 // World calls and their real game-data host execute in rtcw_server_world_tests.
 template<class VM> static bool SV_RTCWWorldCall(VM *, fntech3::rtcw::module::Call, const intptr_t *, intptr_t &) { return false; }
 // Bot-library bootstrap has its own argument/lifecycle execution fixture.
 template<class VM> static bool SV_RTCWBotLibCall(VM *, fntech3::rtcw::module::Call, const intptr_t *, intptr_t &) { return false; }
 // Tag handoff and the real nested cgame callback run in rtcw_tag_handoff_tests.
 template<class VM> static intptr_t SV_RTCWGetTag(VM *, intptr_t, intptr_t, intptr_t) { assert(false); return 0; }
+// Checked file writes and rename dispatch execute in rtcw_file_write_tests.
+template<class VM> static void VM_RTCWRenameFile(VM *, intptr_t, intptr_t) { assert(false); }
 static comGameProfile_t profile;
 const comGameProfile_t *Com_GameProfile(void) { return &profile; }
 int Com_GameIsRTCW(void) { return profile.id == COM_GAME_RTCW_SP || profile.id == COM_GAME_RTCW_MP; }
@@ -240,6 +244,60 @@ int main() {
             assert(FnTech3_RTCWCvarFlagsToInternal(id, bits | 0xfffff000u) == expected);
         }
         Reset(id); CheckRTCWKeyImports(CL_UISystemCalls, true);
+        // Original MP list IDs differ from SP/Q3; queue indices must not be remapped.
+        for (intptr_t source : {intptr_t(-1), intptr_t(0), intptr_t(1), intptr_t(2), intptr_t(3), INTPTR_MAX}) {
+            std::array<intptr_t, 6> mapped;
+            intptr_t args[] = {75, source, -1, 1, 617, 919};
+            const std::array<intptr_t, 6> saved = {75, source, -1, 1, 617, 919};
+            const int expected[] = {0, 2, 3, -1};
+            const int expectedSP[] = {0, -1, 2, 3};
+            for (auto op : {UI_LAN_GETSERVERCOUNT, UI_LAN_UPDATEVISIBLEPINGS, UI_LAN_RESETPINGS,
+                           UI_LAN_GETSERVERPING, UI_LAN_SERVERISVISIBLE, UI_LAN_MARKSERVERVISIBLE,
+                           UI_LAN_GETSERVERADDRESSSTRING, UI_LAN_GETSERVERINFO, UI_LAN_COMPARESERVERS}) {
+                mapped.fill(-777);
+                const auto out = CL_RTCWUIBrowserArguments(op, args, mapped);
+                assert(out == mapped.data() && out[0] == 75);
+                assert(out[1] == (source < 0 || source > 3 ? -1 : Com_GameIsRTCWMP() ? expected[source] : expectedSP[source]));
+                if (op == UI_LAN_COMPARESERVERS) assert(out[2] == -1 && out[3] == 1 && out[4] == 617 && out[5] == 919);
+                if (op == UI_LAN_GETSERVERCOUNT) assert(out[2] == -777); // Never read unused arguments.
+                assert(!std::memcmp(args, saved.data(), sizeof(args)));
+            }
+            for (auto op : {UI_LAN_CLEARPING, UI_LAN_GETPING, UI_LAN_GETPINGINFO, UI_LAN_SERVERSTATUS}) {
+                mapped.fill(-777);
+                assert(CL_RTCWUIBrowserArguments(op, args, mapped) == args && mapped[0] == -777);
+            }
+        }
+        for (auto call : {Call::UI_LAN_GETPINGQUEUECOUNT, Call::UI_LAN_CLEARPING, Call::UI_LAN_GETPINGINFO,
+                          Call::UI_LAN_GETSERVERCOUNT, Call::UI_LAN_GETSERVERADDRESSSTRING,
+                          Call::UI_LAN_GETSERVERINFO, Call::UI_LAN_GETSERVERPING, Call::UI_LAN_MARKSERVERVISIBLE,
+                          Call::UI_LAN_SERVERISVISIBLE, Call::UI_LAN_UPDATEVISIBLEPINGS, Call::UI_LAN_RESETPINGS,
+                          Call::UI_LAN_SERVERSTATUS, Call::UI_LAN_COMPARESERVERS}) {
+            intptr_t args[] = {Ordinal(id, call), 2, -1, 1, 617, 919};
+            assert(CL_UISystemCalls(args) == 10000 + CL_RTCWUISharedCall(call));
+            assert(args[1] == 2); // Do not rewrite the module's argument frame.
+        }
+        for (auto call : {Call::UI_LAN_GETSERVERADDRESSSTRING, Call::UI_LAN_GETSERVERINFO,
+                          Call::UI_LAN_GETPING, Call::UI_LAN_GETPINGINFO, Call::UI_LAN_SERVERSTATUS}) {
+            const int buffer = call == Call::UI_LAN_GETSERVERADDRESSSTRING || call == Call::UI_LAN_GETSERVERINFO ? 3 : 2;
+            for (intptr_t badLength : {intptr_t(-1), intptr_t(0)}) {
+                intptr_t args[] = {Ordinal(id, call), 0, 17, 31, 47, 0};
+                args[buffer + 1] = badLength;
+                bool failed = false; try { CL_UISystemCalls(args); } catch (int e) { failed = e == 7; }
+                assert(failed);
+            }
+            intptr_t args[] = {Ordinal(id, call), 0, 17, 31, 47, 0};
+            args[buffer] = 0;
+            bool failed = false; try { CL_UISystemCalls(args); } catch (int e) { failed = e == 7; }
+            assert(failed);
+        }
+        intptr_t resetStatus[] = {Ordinal(id, Call::UI_LAN_SERVERSTATUS), 0, 0, 0};
+        assert(CL_UISystemCalls(resetStatus) == 10000 + UI_LAN_SERVERSTATUS);
+        intptr_t ping[] = {Ordinal(id, Call::UI_LAN_GETPING), 0, 17, 31, 47};
+        lastBounds = 0;
+        assert(CL_UISystemCalls(ping) == 10000 + UI_LAN_GETPING && lastBounds == sizeof(int));
+        ping[4] = 0;
+        bool pingFailed = false; try { CL_UISystemCalls(ping); } catch (int e) { pingFailed = e == 7; }
+        assert(pingFailed);
         if (id == COM_GAME_RTCW_MP) {
             intptr_t translated[]{Ordinal(id, Call::UI_CL_TRANSLATE_STRING), 111, 222};
             translationCalls = 0; assert(CL_UISystemCalls(translated) == 0 && translationCalls == 1);
@@ -410,6 +468,7 @@ class RTCWModuleCvarTests(unittest.TestCase):
         pointer = game[game.index("class VmArgPtr {"):game.index("\n#undef VMA")]
         bodies += pointer + "\n#define VMA(n) VmArgPtr(VM_ArgPtr(args[n]))\n"
         bodies += function(ui, "static intptr_t CL_RTCWUISharedCall(") + "\n"
+        bodies += function(ui, "static intptr_t *CL_RTCWUIBrowserArguments(") + "\n"
         dispatch = function(ui, "static intptr_t CL_UISystemCalls(")
         bodies += dispatch[:dispatch.index("\tswitch( operation )")] + "return 10000 + operation;\n}\n#undef VMA\n"
         for signature in ("static void SV_GetUsercmd(",

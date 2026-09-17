@@ -48,6 +48,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "be_aas_funcs.h"
 #include "be_interface.h"
 #include "be_aas_def.h"
+#include "be_ai_move.h"
+#include "rtcw_navigation.h"
+#include "../compat/rtcw_routecache_format.hpp"
 
 #define ROUTING_DEBUG
 
@@ -1299,6 +1302,10 @@ void AAS_InitRouting(void)
 //===========================================================================
 void AAS_FreeRoutingCaches(void)
 {
+	if (aasworld.rtcwTacticalNodes) FreeMemory(aasworld.rtcwTacticalNodes);
+	aasworld.rtcwTacticalNodes = nullptr;
+	aasworld.rtcwTacticalCapacity = 0;
+	aasworld.rtcwTacticalToken = 0;
 	if (aasworld.rtcwVisibility) FreeMemory(aasworld.rtcwVisibility);
 	aasworld.rtcwVisibility = nullptr;
 	if (aasworld.rtcwVisibilityData) FreeMemory(aasworld.rtcwVisibilityData);
@@ -1868,6 +1875,130 @@ int AAS_AreaTravelTimeToGoalArea(int areanum, vec3_t origin, int goalareanum, in
 	}
 	return 0;
 } //end of the function AAS_AreaTravelTimeToGoalArea
+
+bool AAS_RTCWMovementRoutingReady()
+{
+	// Deep geometry and cache-index validation belongs to AAS initialization.
+	// These checks also make movement queries safe during partial teardown.
+	return Com_GameIsRTCW() && aasworld.loaded && aasworld.initialized
+		&& aasworld.numareas > 1 && aasworld.numareas <= 65535
+		&& aasworld.numareasettings == aasworld.numareas && aasworld.areasettings
+		&& aasworld.areas && aasworld.reachabilitysize > 0 && aasworld.reachability
+		&& aasworld.clusters && aasworld.numclusters > 0
+		&& aasworld.portals && aasworld.numportals > 0
+		&& aasworld.portalindexsize >= 0 && (aasworld.portalindexsize == 0 || aasworld.portalindex)
+		&& aasworld.areacontentstravelflags && aasworld.rtcwGroundSteepness
+		&& aasworld.areatraveltimes && aasworld.reversedreachability
+		&& aasworld.areaupdate && aasworld.portalupdate && aasworld.portalmaxtraveltimes
+		&& aasworld.clusterareacache && aasworld.portalcache;
+}
+
+int AAS_RTCWMovementReachability(const float *origin, int area, int lastGoal,
+	int previousArea, int goal, int routeFlags, int movementFlags)
+{
+	if (!AAS_RTCWMovementRoutingReady() || !origin || area <= 0 || area >= aasworld.numareas
+		|| goal <= 0 || goal >= aasworld.numareas) return 0;
+	vec3_t from;
+	for (unsigned axis = 0; axis < 3; ++axis) {
+		if (!fntech3::rtcw::routing::Coordinate(origin[axis])) return 0;
+		from[axis] = origin[axis];
+	}
+	const auto &settings = aasworld.areasettings[area];
+	const int first = settings.firstreachablearea, count = settings.numreachableareas;
+	// Zero is the original iterator's sentinel, even if storage exists there.
+	// An empty or invalid span cannot borrow the following area's links.
+	if (first <= 0 || count <= 0 || first >= aasworld.reachabilitysize
+		|| count > aasworld.reachabilitysize - first) return 0;
+	const int endpointContents = settings.contents | aasworld.areasettings[goal].contents;
+	const int entryFlags = ((endpointContents & AREACONTENTS_DONOTENTER) ? TFL_DONOTENTER : 0)
+		| ((endpointContents & 1024) ? fntech3::rtcw::routing::DoNotEnterLarge : 0);
+	routeFlags |= entryFlags;
+	movementFlags |= entryFlags;
+	const bool singlePlayer = Com_GameIsRTCWSP();
+	int best = 0, bestCost = 0;
+	for (int number = first; number < first + count; ++number) {
+		const auto &reach = aasworld.reachability[number];
+		if (reach.areanum <= 0 || reach.areanum >= aasworld.numareas
+			|| (lastGoal == goal && reach.areanum == previousArea)
+			|| (AAS_TravelFlagForType(reach.traveltype) & ~movementFlags)
+			|| (AAS_AreaContentsTravelFlags(reach.areanum) & ~movementFlags)
+			|| (singlePlayer && !AAS_AreaReachability(reach.areanum))) continue;
+		vec3_t destination;
+		VectorCopy(reach.end, destination);
+		int cost, next;
+		if (!AAS_AreaRouteToGoalArea(reach.areanum, destination, goal, routeFlags, &cost, &next)
+			|| cost <= 0) continue;
+		// SP rejects only a first routing step back into the current area.
+		// A same-area route deliberately checks the stored dummy record zero.
+		if (singlePlayer && (next < 0 || next >= aasworld.reachabilitysize
+			|| aasworld.reachability[next].areanum == area)) continue;
+		cost += reach.traveltime;
+		if (!singlePlayer) {
+			vec3_t start;
+			VectorCopy(reach.start, start);
+			cost += AAS_AreaTravelTime(area, from, start);
+		}
+		if (!best || cost < bestCost) {
+			best = number;
+			bestCost = cost;
+		}
+	}
+	return best;
+}
+
+bool AAS_RTCWMovementFuturePosition(int reachNumber, const float *goalOrigin, int goalArea,
+	int travelFlags, float *position)
+{
+	if (!AAS_RTCWMovementRoutingReady() || !goalOrigin || !position
+		|| goalArea <= 0 || goalArea >= aasworld.numareas || reachNumber <= 0
+		|| reachNumber >= aasworld.reachabilitysize) return false;
+	for (int axis = 0; axis < 3; ++axis)
+		if (!fntech3::rtcw::routing::Coordinate(goalOrigin[axis])) return false;
+	auto current = aasworld.reachability[reachNumber];
+	const auto valid = [&]() {
+		if (current.areanum <= 0 || current.areanum >= aasworld.numareas) return false;
+		for (int axis = 0; axis < 3; ++axis)
+			if (!fntech3::rtcw::routing::Coordinate(current.end[axis])) return false;
+		return true;
+	};
+	if (!valid()) return false;
+	if (current.areanum == goalArea) {
+		VectorCopy(goalOrigin, position);
+		return true;
+	}
+	int initialCost, next;
+	if (!AAS_AreaRouteToGoalArea(current.areanum, current.end, goalArea, travelFlags, &initialCost, &next))
+		return false;
+	if (!Com_GameIsRTCWSP()) {
+		// A route cache can name stored record zero. Only the movement-link
+		// iterator treats zero as its stop sentinel.
+		if (next < 0 || next >= aasworld.reachabilitysize) return false;
+		current = aasworld.reachability[next];
+		if (!valid()) return false;
+		VectorCopy(current.end, position);
+		return true;
+	}
+	int previousCost = 999999;
+	// Original SP allows equal costs. Bound cycles without discarding valid
+	// equal-cost steps, and publish only a completed look-ahead target.
+	for (int step = 0; step < 4096; ++step) {
+		int cost;
+		if (!AAS_AreaRouteToGoalArea(current.areanum, current.end, goalArea, travelFlags, &cost, &next)
+			|| cost > previousCost || next < 0 || next >= aasworld.reachabilitysize) return false;
+		previousCost = cost;
+		current = aasworld.reachability[next];
+		if (!valid()) return false;
+		if (current.areanum == goalArea) {
+			VectorCopy(goalOrigin, position);
+			return true;
+		}
+		if (initialCost - cost > 120) {
+			VectorCopy(current.end, position);
+			return true;
+		}
+	}
+	return false;
+}
 //===========================================================================
 //
 // Parameter:			-
@@ -2045,6 +2176,12 @@ int AAS_NextAreaReachability(int areanum, int reachnum)
 	} //end if
 
 	settings = &aasworld.areasettings[areanum];
+	if (Com_GameIsRTCW()) {
+		const int first = settings->firstreachablearea, count = settings->numreachableareas;
+		if (!aasworld.reachability || first <= 0 || count <= 0 || first >= aasworld.reachabilitysize
+			|| count > aasworld.reachabilitysize - first
+			|| (reachnum && (reachnum < first || reachnum >= first + count))) return 0;
+	}
 	if (!reachnum)
 	{
 		return settings->firstreachablearea;
@@ -2070,6 +2207,7 @@ int AAS_NextAreaReachability(int areanum, int reachnum)
 int AAS_NextModelReachability(int num, int modelnum)
 {
 	int i;
+	if (Com_GameIsRTCW() && (!aasworld.initialized || !aasworld.reachability)) return 0;
 
 	if (num <= 0) num = 1;
 	else if (num >= aasworld.reachabilitysize) return 0;
@@ -2077,11 +2215,13 @@ int AAS_NextModelReachability(int num, int modelnum)
 	//
 	for (i = num; i < aasworld.reachabilitysize; i++)
 	{
-		if ((aasworld.reachability[i].traveltype & TRAVELTYPE_MASK) == TRAVEL_ELEVATOR)
+		const int travel = Com_GameIsRTCW() ? aasworld.reachability[i].traveltype
+			: aasworld.reachability[i].traveltype & TRAVELTYPE_MASK;
+		if (travel == TRAVEL_ELEVATOR)
 		{
 			if (aasworld.reachability[i].facenum == modelnum) return i;
 		} //end if
-		else if ((aasworld.reachability[i].traveltype & TRAVELTYPE_MASK) == TRAVEL_FUNCBOB)
+		else if (travel == TRAVEL_FUNCBOB)
 		{
 			if ((aasworld.reachability[i].facenum & 0x0000FFFF) == modelnum) return i;
 		} //end if
@@ -2151,8 +2291,75 @@ int AAS_RandomGoalArea(int areanum, int travelflags, int *goalareanum, vec3_t go
 //===========================================================================
 static int AAS_AreaVisible(int srcarea, int destarea)
 {
-	return qfalse;
+	if (!Com_GameIsRTCW() || !aasworld.rtcwRouteCacheLoaded
+		|| srcarea < 0 || srcarea >= aasworld.numareas
+		|| destarea < 0 || destarea >= aasworld.numareas
+		|| !aasworld.rtcwVisibility || !aasworld.rtcwDecodedVisibility)
+		return qfalse;
+	if (aasworld.rtcwVisibilityArea != srcarea) {
+		const auto &row = aasworld.rtcwVisibility[srcarea];
+		// Missing rows leave the previous decoded row intact, as in RTCW.
+		if (!row.data || row.bytes <= 0) return qfalse;
+		if (!fntech3::rtcw::routecache::DecompressVisibility(
+			{row.data, static_cast<std::size_t>(row.bytes)}, aasworld.numareas,
+			aasworld.rtcwDecodedVisibility, aasworld.numareas)) return qfalse;
+		aasworld.rtcwVisibilityArea = srcarea;
+	}
+	return aasworld.rtcwDecodedVisibility[destarea];
 } //end of the function AAS_AreaVisible
+
+bool AAS_RTCWRouteFirstVisiblePosition(const float *source, const float *destination,
+	int travelFlags, float *position)
+{
+	if (!Com_GameIsRTCWSP() || !aasworld.initialized || !source || !destination || !position)
+		return false;
+	vec3_t cursor, target;
+	for (unsigned axis = 0; axis < 3; ++axis) {
+		if (!fntech3::rtcw::routing::Coordinate(source[axis])
+			|| !fntech3::rtcw::routing::Coordinate(destination[axis])) return false;
+		cursor[axis] = source[axis];
+		target[axis] = destination[axis];
+	}
+	int area = BotFuzzyPointReachabilityArea(cursor);
+	if (area <= 0 || area >= aasworld.numareas) return false;
+	const int goal = BotFuzzyPointReachabilityArea(target);
+	if (goal <= 0 || goal >= aasworld.numareas) return false;
+	if (area == goal || AAS_AreaVisible(area, goal)) {
+		VectorCopy(cursor, position);
+		return true;
+	}
+	// Original SP requires a visibility row for the destination before walking
+	// the route, even though each lookup reads the traversed area's row.
+	if (!aasworld.rtcwRouteCacheLoaded || !aasworld.rtcwVisibility
+		|| !aasworld.rtcwVisibility[goal].data) return false;
+	int previousCost = 0;
+	for (unsigned step = 0; step < 200; ++step) {
+		int cost, link;
+		if (!AAS_AreaRouteToGoalArea(area, cursor, goal, travelFlags, &cost, &link)
+			|| (step && cost >= previousCost)
+			|| link < 0 || link >= aasworld.reachabilitysize || !aasworld.reachability)
+			return false;
+		previousCost = cost;
+		const auto &next = aasworld.reachability[link];
+		if (next.areanum <= 0 || next.areanum >= aasworld.numareas) return false;
+		// Crossing directly into the destination returns the preceding position.
+		// Otherwise, the first visible area contributes its entry point.
+		if (next.areanum == goal) {
+			VectorCopy(cursor, position);
+			return true;
+		}
+		if (AAS_AreaVisible(next.areanum, goal)) {
+			VectorCopy(next.end, position);
+			return true;
+		}
+		area = next.areanum;
+		VectorCopy(next.end, cursor);
+	}
+	return false;
+}
+
+#include "rtcw_tactical.hpp"
+
 #if 0
 //===========================================================================
 //

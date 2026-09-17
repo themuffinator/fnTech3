@@ -32,6 +32,9 @@ void EA_RestoreRTCWInput(int,const bot_input_t*,unsigned){assert(false);}
 int SV_BotLibShutdown(){assert(false);return 0;}
 bool AAS_SetCurrentWorld(int){assert(false);return false;}
 void AAS_SetBlockingEntity(const float*,const float*,int){assert(false);}
+bool AAS_RTCWRouteFirstVisiblePosition(const float*,const float*,int,float*){assert(false);return false;}
+bool AAS_RTCWHidePosition(const float*,int,int,const float*,int,int,float*){assert(false);return false;}
+int AAS_RTCWAttackPosition(int,int,int,float,int,float*){assert(false);return 0;}
 '''
     catalog = (ROOT / 'code/qcommon/game_profile.cpp').read_text()
     source += catalog[catalog.index('const comGameProfile_t profiles[]'):catalog.index('\nstatic_assert(')]

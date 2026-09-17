@@ -33,6 +33,8 @@ extern "C" {
 #include "snd_rtcw.h"
 
 #include <cstdlib>
+#include <cerrno>
+#include <climits>
 
 using fnql::ToQboolean;
 
@@ -76,6 +78,18 @@ struct DisabledRTCWMusicOutput {
 fntech3::audio::rtcw::Music &S_RTCWMusic() { return rtcwMusic; }
 fntech3::audio::rtcw::MasterFade &S_RTCWMasterFade() { return rtcwMasterFade; }
 
+extern "C" int S_RTCWVoiceAmplitude( intptr_t entity ) {
+	if ( !Com_GameIsRTCW() || entity < INT_MIN || entity > INT_MAX )
+		Com_Error( ERR_DROP, "Invalid RTCW voice-amplitude request" );
+	/* TALKANIM is disabled in original MP. SP's table stays zero when the
+	 * sound system is absent; use the actual interface, not a mutable cvar. */
+	if ( Com_GameIsRTCWMP() ) return 0;
+	if ( entity < 0 ) Com_Error( ERR_DROP, "Invalid RTCW voice-amplitude entity" );
+	if ( entity >= 128 || !si.Shutdown ) return 0;
+	Com_Error( ERR_DROP, "RTCW SP voice amplitude with active audio is not implemented" );
+	return 0;
+}
+
 /*
 =================
 S_ValidateInterface
@@ -88,6 +102,9 @@ static bool S_ValidSoundInterface( const soundInterface_t *s )
 	if( !s->StartLocalSound ) return false;
 	if( !s->StartRTCWSound ) return false;
 	if( !s->StartRTCWLocalSound ) return false;
+	if( !s->StartRTCWEntityStream ) return false;
+	if( !s->StopRTCWEntityStream ) return false;
+	if( !s->FadeRTCWEntityStream ) return false;
 	if( !s->StartBackgroundTrack ) return false;
 	if( !s->StartRTCWBackgroundTrack ) return false;
 	if( !s->FadeRTCWBackgroundTrack ) return false;
@@ -164,6 +181,16 @@ extern "C" void S_StartRTCWLocalSound( sfxHandle_t handle, int channel ) {
 	if ( si.StartRTCWLocalSound ) si.StartRTCWLocalSound(handle, channel);
 }
 
+extern "C" void S_StartRTCWEntityStream( const char *intro, const char *loop, int entity, int channel, int attenuation ) {
+	if ( !Com_GameIsRTCW() || entity >= 1024 ) Com_Error( ERR_DROP, "Invalid RTCW streaming sound entity" );
+	if ( si.StartRTCWEntityStream ) si.StartRTCWEntityStream( intro, loop, entity, channel, attenuation );
+}
+
+extern "C" void S_StopRTCWEntityStream( int entity ) {
+	if ( !Com_GameIsRTCWSP() || entity >= 1024 ) Com_Error( ERR_DROP, "Invalid RTCW streaming sound stop" );
+	if ( si.StopRTCWEntityStream ) si.StopRTCWEntityStream( entity );
+}
+
 
 /*
 =================
@@ -206,9 +233,9 @@ extern "C" void S_StartRTCWBackgroundTrack( const char *intro, const char *loop,
 extern "C" void S_FadeRTCWStreamingSound( float volume, int time, int stream ) {
 	if ( !Com_GameIsRTCWSP() || !fntech3::audio::rtcw::ValidFadeVolume( volume ) )
 		Com_Error( ERR_DROP, "Invalid RTCW streaming fade" );
-	// Music is stream zero. Entity streaming imports remain gated, so there
-	// are no allocated non-music streams to fade yet.
+	// External stream zero is music; entity slots are never native pointers.
 	if ( stream == 0 && si.FadeRTCWBackgroundTrack ) si.FadeRTCWBackgroundTrack( volume, time );
+	else if ( stream > 0 && stream < 12 && si.FadeRTCWEntityStream ) si.FadeRTCWEntityStream( volume, time, stream );
 }
 
 extern "C" void S_FadeRTCWAllSounds( float volume, int time ) {
@@ -624,6 +651,36 @@ static void S_Play_f( void ) {
 S_Music_f
 =================
 */
+static bool S_RTCWStreamInteger( int argument, int &value ) {
+	const char *text = Cmd_Argv( argument );
+	char *end;
+	errno = 0;
+	const long parsed = std::strtol( text, &end, 10 );
+	if ( !*text || *end || errno == ERANGE || parsed < INT_MIN || parsed > INT_MAX ) return false;
+	value = static_cast<int>( parsed );
+	return true;
+}
+
+static void S_StreamingSound_f() {
+	const int count = Cmd_Argc();
+	int entity = -1, channel = 0, attenuation = 0;
+	if ( ( count != 2 && count != 5 && count != 6 ) || ( count >= 5 &&
+		( !S_RTCWStreamInteger( 2, entity ) || !S_RTCWStreamInteger( 3, channel ) || !S_RTCWStreamInteger( 4, attenuation ) ) ) || entity >= 1024 ) {
+		Com_Printf( "Usage: streamingsound <file> [entity channel attenuation [loopfile]]\n" );
+		return;
+	}
+	S_StartRTCWEntityStream( Cmd_Argv(1), count == 6 ? Cmd_Argv(5) : nullptr, entity, channel, attenuation );
+}
+
+static void S_StopStreamingSound_f() {
+	int entity;
+	if ( Cmd_Argc() != 2 || !S_RTCWStreamInteger( 1, entity ) || entity >= 1024 ) {
+		Com_Printf( "Usage: stopstreamingsound <entity>\n" );
+		return;
+	}
+	S_StopRTCWEntityStream( entity );
+}
+
 static void S_Music_f( void ) {
 	int		c;
 
@@ -761,6 +818,8 @@ extern "C" void S_Init( void )
 		Cmd_AddCommand( "play", S_Play_f );
 		Cmd_AddCommand( "music", S_Music_f );
 		Cmd_AddCommand( "stopmusic", S_StopMusic_f );
+		if ( Com_GameIsRTCW() ) Cmd_AddCommand( "streamingsound", S_StreamingSound_f );
+		if ( Com_GameIsRTCWSP() ) Cmd_AddCommand( "stopstreamingsound", S_StopStreamingSound_f );
 		Cmd_AddCommand( "s_list", S_SoundList );
 		Cmd_AddCommand( "s_stop", S_StopAllSounds );
 		Cmd_AddCommand( "s_info", S_SoundInfo );
@@ -823,6 +882,8 @@ S_Shutdown
 */
 extern "C" void S_Shutdown( void )
 {
+	Cmd_RemoveCommand( "streamingsound" );
+	Cmd_RemoveCommand( "stopstreamingsound" );
 	if ( si.StopAllSounds ) {
 		si.StopAllSounds();
 	}

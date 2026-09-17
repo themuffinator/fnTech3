@@ -10,6 +10,9 @@ public:
 
 	void StartSound( const float *origin, int entnum, int entchannel, sfxHandle_t sfxHandle, float volume );
 	void StartRTCWSound( const float *origin, int entity, int channel, sfxHandle_t handle, int flags );
+	void StartRTCWEntityStream( const char *intro, const char *loop, int entity, int channel, int attenuation );
+	void StopRTCWEntityStream( int entity );
+	void FadeRTCWEntityStream( float volume, int time, int stream );
 	void StartLocalSound( sfxHandle_t sfxHandle, int channelNum, float volume );
 	void StartBackgroundTrack( const char *intro, const char *loop );
 	void StartRTCWBackgroundTrack( const char *intro, const char *loop, int fadeTime );
@@ -45,6 +48,9 @@ public:
 
 private:
 	struct RTCWMusicOutput;
+	struct RTCWEntityOutput;
+	void ClearRTCWEntityStreams();
+	void ServiceRTCWEntityStreams();
 	fntech3::audio::rtcw::SampleTime RTCWClock();
 	void ClearRTCWMusic();
 	bool FlushStream( StreamPlayer &player );
@@ -61,6 +67,12 @@ private:
 	StreamPlayer musicPlayer_;
 	StreamPlayer rawPlayer_;
 	VoiceChatPlayer voicePlayer_;
+	struct EntityStreamLane {
+		std::array<StreamPlayer, 2> players;
+		std::array<ALuint, 2> sources{};
+	};
+	std::array<EntityStreamLane, fntech3::audio::rtcw::EntityStreams::Capacity> entityStreamLanes_{};
+	fntech3::audio::rtcw::EntityStreamFiles entityStreams_;
 	std::deque<SoundSample> samples_;
 	std::unordered_map<std::string, sfxHandle_t> sampleLookup_;
 	SoundShaderLibrary weaponSoundShaders_;
@@ -288,6 +300,7 @@ bool AudioSystem::Init( soundInterface_t *si ) {
 	musicPlayer_.Init( &device_, device_.MusicSource() );
 	rawPlayer_.Init( &device_, device_.RawSource() );
 	voicePlayer_.Init( &device_ );
+	entityStreams_.SetProfile( Com_GameIsRTCWSP() != 0 );
 
 	samples_.clear();
 	sampleLookup_.clear();
@@ -305,6 +318,9 @@ bool AudioSystem::Init( soundInterface_t *si ) {
 		auto &audio = AudioSystem::Get();
 		audio.StartRTCWSound(nullptr, audio.world_.ListenerNumber(), channel, handle, 0);
 	};
+	si->StartRTCWEntityStream = []( const char *intro, const char *loop, int entity, int channel, int attenuation ) { AudioSystem::Get().StartRTCWEntityStream( intro, loop, entity, channel, attenuation ); };
+	si->StopRTCWEntityStream = []( int entity ) { AudioSystem::Get().StopRTCWEntityStream( entity ); };
+	si->FadeRTCWEntityStream = []( float volume, int time, int stream ) { AudioSystem::Get().FadeRTCWEntityStream( volume, time, stream ); };
 	si->StartLocalSound = []( sfxHandle_t sfxHandle, int channelNum, float volume ) { AudioSystem::Get().StartLocalSound( sfxHandle, channelNum, volume ); };
 	si->StartBackgroundTrack = []( const char *intro, const char *loop ) { AudioSystem::Get().StartBackgroundTrack( intro, loop ); };
 	si->StartRTCWBackgroundTrack = []( const char *intro, const char *loop, int time ) { AudioSystem::Get().StartRTCWBackgroundTrack( intro, loop, time ); };
@@ -336,6 +352,8 @@ bool AudioSystem::Init( soundInterface_t *si ) {
 
 	return true;
 }
+
+#include "AudioSystemRTCWStreams.inl"
 
 void AudioSystem::Shutdown() {
 	if ( !started_ ) {
@@ -491,6 +509,7 @@ void AudioSystem::StartRTCWSound( const float *origin, int entity, int channel, 
 		Com_Printf(S_COLOR_YELLOW "S_StartRTCWSound: handle %i out of range\n", handle);
 		return;
 	}
+	entityStreams_.policy.StopChannel( entity, channel );
 	if ( sample->EnsureLoaded(device_, handle == 0) )
 		world_.StartRTCWSound(entity, channel, handle, sample, origin, flags);
 }
@@ -720,6 +739,7 @@ void AudioSystem::StopAllSounds() {
 	}
 
 	world_.StopAllSounds();
+	ClearRTCWEntityStreams();
 	rawPlayer_.Clear();
 	voicePlayer_.Clear();
 	if ( Com_GameIsRTCWSP() ) ClearRTCWMusic();
@@ -729,6 +749,7 @@ void AudioSystem::StopAllSounds() {
 void AudioSystem::ClearRTCWSounds( qboolean clearMusic ) {
 	if ( !started_ ) return;
 	world_.StopAllSounds();
+	ClearRTCWEntityStreams();
 	rawPlayer_.Clear();
 	voicePlayer_.Clear();
 	if ( clearMusic ) ClearRTCWMusic();
@@ -848,6 +869,7 @@ void AudioSystem::Update( int msec ) {
 	device_.ApplyDopplerState();
 	const bool deferredUpdates = device_.BeginDeferredUpdates();
 	world_.Update( softMuted );
+	ServiceRTCWEntityStreams();
 	if ( deferredUpdates ) {
 		device_.EndDeferredUpdates();
 	}
@@ -864,6 +886,7 @@ void AudioSystem::Update( int msec ) {
 
 void AudioSystem::DisableSounds() {
 	world_.StopAllSounds();
+	ClearRTCWEntityStreams();
 	rawPlayer_.Clear();
 	voicePlayer_.Clear();
 	if ( Com_GameIsRTCWSP() ) ClearRTCWMusic();
@@ -873,11 +896,20 @@ void AudioSystem::DisableSounds() {
 
 void AudioSystem::ClearSoundBuffer() {
 	world_.ClearSoundBuffer();
+	ClearRTCWEntityStreams();
 	rawPlayer_.Clear();
 	voicePlayer_.Clear();
 }
 
 void AudioSystem::SoundInfo() {
+	if ( Com_GameIsRTCW() ) {
+		int active = 0, buffered = 0;
+		for ( int i = 1; i < entityStreams_.policy.Limit(); ++i ) {
+			active += entityStreams_.policy[i].active;
+			buffered += !entityStreamLanes_[i].players[0].Idle() || !entityStreamLanes_[i].players[1].Idle();
+		}
+		Com_Printf( "RTCW entity streams: %d active, %d buffered\n", active, buffered );
+	}
 	device_.RefreshDeviceConnection();
 	device_.RefreshTimingDiagnostics();
 	const ModernOpenALCapabilities &caps = device_.Capabilities();

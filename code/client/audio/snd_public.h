@@ -35,6 +35,9 @@ void S_StartLocalSound( sfxHandle_t sfx, int channelNum );
 void S_StartLocalSoundVolume( sfxHandle_t sfx, int channelNum, float volume );
 void S_StartRTCWSound( const vec3_t origin, int entity, int channel, sfxHandle_t handle, int flags );
 void S_StartRTCWLocalSound( sfxHandle_t handle, int channel );
+void S_StartRTCWEntityStream( const char *intro, const char *loop, int entity, int channel, int attenuation );
+void S_StopRTCWEntityStream( int entity );
+int S_RTCWVoiceAmplitude( intptr_t entity );
 
 void S_StartBackgroundTrack( const char *intro, const char *loop );
 void S_StartRTCWBackgroundTrack( const char *intro, const char *loop, int fadeTime );

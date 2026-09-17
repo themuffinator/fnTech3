@@ -75,7 +75,9 @@ class RTCWShaderMaterialTests(unittest.TestCase):
                     self.assertIn('R_RTCWShaderCompressionDirective( token, &shader.rtcwCompression )', parser)
                     initializer = function(source, 'static void InitShader(')
                     self.assertIn('Com_Memset( &shader, 0, sizeof( shader ) )', initializer)
-                    cpp = folder / 'probe.cpp'; exe = folder / 'probe.exe'
+                    # Keep each executable distinct: Windows may retain a
+                    # completed image briefly while the next renderer links.
+                    cpp = folder / f'{renderer}.cpp'; exe = folder / f'{renderer}.exe'
                     cpp.write_text(common(renderer) + HOST + function(source, 'static image_t *R_FindShaderImage(') + CHECKS,
                                    encoding='utf-8')
                     built = subprocess.run([compiler, *target, '-std=c++17', '-O2', '-I', str(ROOT), str(cpp), '-o', str(exe)],

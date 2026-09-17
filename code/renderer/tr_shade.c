@@ -68,6 +68,7 @@ SURFACE SHADERS
 
 shaderCommands_t	tess;
 static qboolean	setArraysOnce;
+#include "tr_rtcw_fog_gl.h"
 
 #ifdef RENDERER_GLX
 static qboolean GLX_StreamDrawStageMaterialAllowed( const shaderStage_t *pStage,
@@ -653,7 +654,8 @@ void R_BindAnimatedImage( const textureBundle_t *bundle ) {
 
 static qboolean RB_DepthFadeActive( const shaderStage_t *pStage )
 {
-	return pStage &&
+	/* The optional ARB depth-fade program has no scene-fog variant yet. */
+	return pStage && !RB_RTCWHasFog() &&
 		!pStage->depthFragment &&
 		tess.shader->dfType > DFT_NONE &&
 		tess.shader->dfType < DFT_TBD &&
@@ -827,6 +829,10 @@ void RB_BeginSurface( shader_t *shader, int fogNum ) {
 	else
 		tess.allowVBO = qfalse;
 #endif
+
+	/* Existing CPU tessellation retains the per-stage RTCW fog contract.
+	 * The static ARB VBO programs do not carry scene-fog parameters yet. */
+	if ( RB_RTCWHasFog() ) tess.allowVBO = qfalse;
 
 #ifdef USE_PMLIGHT
 	if ( tess.fogNum != fogNum || tess.cullType != state->cullType ) {
@@ -1759,6 +1765,8 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 		if ( !pStage )
 			break;
 
+		RB_RTCWStageFog( pStage );
+
 		//
 		// do multitexture
 		//
@@ -1838,7 +1846,7 @@ static color4ub_t rb_liquidColors[SHADER_MAX_VERTEXES];
 
 static qboolean RB_LiquidEffectActive( const shaderCommands_t *input )
 {
-	return input && input->shader && input->numPasses > 0 &&
+	return input && input->shader && !RB_RTCWHasFog() && input->numPasses > 0 &&
 		input->numIndexes > 0 && input->numVertexes > 0 &&
 		fboEnabled && FBO_LiquidScreenTexture() &&
 		r_liquid && r_liquid->integer > 0 &&
@@ -2476,6 +2484,7 @@ void RB_StageIteratorGeneric( void )
 	{
 		qglDisable( GL_POLYGON_OFFSET_FILL );
 	}
+	RB_RTCWFogToggle( qfalse );
 }
 
 

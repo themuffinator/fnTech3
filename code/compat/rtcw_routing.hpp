@@ -25,7 +25,12 @@ inline std::uint32_t Bits(float value) {
 	std::memcpy(&bits, &value, sizeof(bits));
 	return bits;
 }
-inline bool Finite(float value) { return (Bits(value) & 0x7f800000u) != 0x7f800000u; }
+inline bool Finite(float value) {
+	// Keep the integer classification observable when legacy fast-math builds
+	// use the same value in a floating-point comparison afterwards.
+	const volatile auto bits = Bits(value);
+	return (bits & 0x7f800000u) != 0x7f800000u;
+}
 inline bool Coordinate(float value) { return (Bits(value) & 0x7fffffffu) <= 0x48000000u; }
 inline int CacheBudget(float kilobytes) {
 	// Decode a bounded positive binary32 integer without an unsafe float cast

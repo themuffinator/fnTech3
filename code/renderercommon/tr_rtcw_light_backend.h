@@ -46,7 +46,13 @@ static void RB_RTCWLightPass( const shaderStage_t *stage, int count, const glInd
 #else
 	qglColorPointer( 4, GL_UNSIGNED_BYTE, 0, rtcwLightColors );
 #endif
+#ifdef FNTECH3_RTCW_LIGHT_FLOAT_COLORS
+	if ( !stage ) RB_RTCWFogToggle( qfalse );
+#endif
 	R_DrawElements( count, indexes );
+#ifdef FNTECH3_RTCW_LIGHT_FLOAT_COLORS
+	if ( !stage ) RB_RTCWFogToggle( qtrue );
+#endif
 #endif
 	backEnd.pc.c_totalIndexes += count;
 	backEnd.pc.c_dlightIndexes += count;

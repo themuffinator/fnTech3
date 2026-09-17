@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "tr_local.h"
 #include "tr_glx_compat.h"
 #include "../renderercommon/tr_lens_flare.h"
+#include "../renderercommon/tr_rtcw_corona_backend.h"
 
 /*
 =============================================================================
@@ -93,6 +94,7 @@ R_ClearFlares
 ==================
 */
 void R_ClearFlares( void ) {
+	R_ClearRTCWCoronaFades();
 	int		i;
 
 	Com_Memset( r_flareStructs, 0, sizeof( r_flareStructs ) );
@@ -520,7 +522,7 @@ void RB_RenderFlares (void) {
 	// RB_AddDlightFlares();
 
 	// perform z buffer readback on each flare in this view
-	draw = qfalse;
+	draw = RB_PrepareRTCWCoronas();
 	prev = &r_activeFlares;
 	while ( ( f = *prev ) != NULL ) {
 		// throw out any flares that weren't added last frame
@@ -574,6 +576,7 @@ void RB_RenderFlares (void) {
 #ifdef RENDERER_GLX
 	GLX_CompatBeginGpuPassTimer( GLX_GPU_PASS_FLARE );
 #endif
+	RB_DrawRTCWCoronas();
 	for ( f = r_activeFlares ; f ; f = f->next ) {
 		if ( f->frameSceneNum == backEnd.viewParms.frameSceneNum && f->portalView == backEnd.viewParms.portalView && f->drawIntensity ) {
 			RB_RenderFlare( f );

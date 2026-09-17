@@ -88,7 +88,7 @@ static void Reset(comGameId_t id) {
     memset(observedArgs, 0x5a, sizeof(observedArgs));
 }
 static void Reject(vmIndex_t index, int call, int nargs, int a, int b, int c) {
-    int32_t args[3] = {a, b, c}, saved[3]; int output = 1234;
+    int32_t args[5] = {a, b, c, 1, 1}, saved[5]; int output = 1234;
     memcpy(saved, args, sizeof(args));
     assert(!VM_PrepareRTCWExport(profile.id, index, call, nargs, args, &output));
     assert(output == 1234 && !memcmp(saved, args, sizeof(args)));
@@ -105,6 +105,8 @@ static void RTCW(comGameId_t id) {
         {VM_GAME, BOTAI_START_FRAME, 10, 10, 1, 1},
         {VM_GAME, GAME_RETRIEVE_MOVESPEEDS_FROM_CLIENT, 13, 13, 2, 2},
         {VM_GAME, GAME_GETMODELINFO, 14, -1, 3, 3},
+        {VM_GAME, AICAST_VISIBLEFROMPOS, 11, 11, 5, 5},
+        {VM_GAME, AICAST_CHECKATTACKATPOS, 12, 12, 5, 5},
 #ifndef USE_DEDICATED
         {VM_UI, UI_GETAPIVERSION, 0, 0, 0, 0}, {VM_UI, UI_INIT, 1, 1, 1, 1},
         {VM_UI, UI_SHUTDOWN, 2, 2, 0, 0}, {VM_UI, UI_MOUSE_EVENT, 4, 4, 2, 2},
@@ -130,18 +132,18 @@ static void RTCW(comGameId_t id) {
             const int before = nativeCalls;
             Reject(calls[i].index, calls[i].call, count, 0, 1, 1);
             module.index = calls[i].index; module.callLevel = 0; module.syscallCount = 73;
-            ERROR(VM_Call(&module, count, calls[i].call, 0, 1, 1));
+            ERROR(VM_Call(&module, count, calls[i].call, 0, 1, 1, 1, 1));
             assert(nativeCalls == before && module.callLevel == 0 && module.syscallCount == 73);
             continue;
         }
         for (n = 0; n < count; ++n) Reject(calls[i].index, calls[i].call, n, 0, 1, 1);
         module.index = calls[i].index; module.callLevel = 0; module.syscallCount = 73;
-        assert(VM_Call(&module, count, calls[i].call, 0, 1, 1) == -1234567);
+        assert(VM_Call(&module, count, calls[i].call, 0, 1, 1, 1, 1) == -1234567);
         assert(observedCall == (id == COM_GAME_RTCW_SP ? calls[i].sp : calls[i].mp));
         assert(observedLevel == 1 && observedCounter == 0 && module.syscallCount == 1 && module.callLevel == 0);
         for (n = 0; n < 15; ++n) assert(observedArgs[n] == (n > 0 && n < count ? 1 : 0));
         module.callLevel = 3; module.syscallCount = 97;
-        assert(VM_Call(&module, count, calls[i].call, 0, 1, 1) == -1234567);
+        assert(VM_Call(&module, count, calls[i].call, 0, 1, 1, 1, 1) == -1234567);
         assert(observedLevel == 4 && observedCounter == 97 && module.syscallCount == 98 && module.callLevel == 3);
     }
     Reject(VM_BAD, GAME_INIT, 3, 0, 1, 1);

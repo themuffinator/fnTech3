@@ -182,6 +182,56 @@ remain authoritative.
   policies around the inherited routing engine, with a checked module import.
   Original/iortcw functions execute only in disposable GPLv3 fixtures with
   independent mutable caches and queues; installed navigation stays in memory.
+  The [visibility checkpoint](docs/fntech3/2026-09-16-rtcw-visibility.md)
+  adds independently authored cached visibility and SP route-position queries,
+  and distinct SP/MP neighborhood settings in the inherited fuzzy-area search.
+  Original SP/MP and iortcw bodies remain in disposable GPLv3 fixtures only;
+  the production code retains its GPLv2-or-later license.
+  The [cast-query callback checkpoint](docs/fntech3/2026-09-16-rtcw-cast-query-callbacks.md)
+  independently implements the original SP/MP server-to-game visibility and
+  attack callback contracts. Source bodies are observations, not imported code;
+  native-dispatch fixtures use a synthetic game entry point.
+  The [tactical navigation checkpoint](docs/fntech3/2026-09-16-rtcw-tactical-navigation.md)
+  independently implements original SP/MP hide/attack policies with separate
+  search storage and checked imports. GPLv3 reference functions run only in
+  disposable comparisons; source occupancy/math differences and cold-cache
+  divergences are recorded explicitly.
+  The [movement-prediction checkpoint](docs/fntech3/2026-09-16-rtcw-movement-prediction.md)
+  uses original SP/MP physics, event-order and layout observations to extend
+  the inherited GPLv2-or-later movement engine and independently implement its
+  checked result adapter. GPLv3 reference bodies remain in disposable fixtures;
+  original undefined trace paths, iortcw policy differences and compiler
+  arithmetic differences are recorded separately.
+  The [installed-prediction comparison](docs/fntech3/2026-09-16-rtcw-installed-prediction.md)
+  combines those disposable references with the engine's own AAS loader and
+  BSP contents service; installed inputs remain in memory and are not shipped.
+  The [movement-area checkpoint](docs/fntech3/2026-09-16-rtcw-movement-areas.md)
+  adds a checked reachability lookup and independently implements original
+  SP disabled-area and RTCW model-travel policies. Its GPLv3 reference bodies
+  remain confined to disposable comparisons over synthetic geometry.
+  The [directional-movement checkpoint](docs/fntech3/2026-09-16-rtcw-directional-movement.md)
+  independently extends inherited movement code using original grounded-flag,
+  slime, normalization and setup-setting observations. Original/iortcw GPLv3
+  bodies execute only in disposable fixtures sharing engine AAS and action
+  services; failed-prediction safety and compiler differences are explicit.
+  The [movement-view checkpoint](docs/fntech3/2026-09-16-rtcw-movement-views.md)
+  adds independently authored SP/MP next-link policies and checked goal/view
+  boundaries to inherited movement code. Reference GPLv3 bodies stay in
+  disposable comparisons with separate engine routing worlds; iortcw's changed
+  SP selector signature and normalization remain diagnostic differences.
+  The [travel-execution checkpoint](docs/fntech3/2026-09-16-rtcw-travel-execution.md)
+  independently adds SP/MP travel, ladder, mover and hook policies. Disposable
+  original/iortcw comparisons share engine services and explicitly exclude
+  undefined original result fields; no GPLv3 implementation text is imported.
+  The [movement-to-goal checkpoint](docs/fntech3/2026-09-16-rtcw-movement-to-goal.md)
+  independently extends shared route orchestration, previous-area ladder
+  detection and SP/MP look-ahead, with explicit goal/result bit mappings.
+  Disposable reference programs preserve caller-owned optional fields while
+  excluding undefined helper-local fields from comparisons.
+  The [jump run-up checkpoint](docs/fntech3/2026-09-16-rtcw-jump-runstart.md)
+  adds independently authored RTCW slime/normalization policy and failure
+  propagation. Original/iortcw helper bodies remain in disposable fixtures;
+  failed predictions and nonfinite reference results are explicitly excluded.
 - RTCW server defaults, campaign allocation and world-import arguments use
   behavior facts from the original [SP server](https://github.com/id-Software/RTCW-SP/tree/master/src/server)
   and [MP server](https://github.com/id-Software/RTCW-MP/tree/master/src/server).
@@ -189,6 +239,10 @@ remain authoritative.
   queries retain fnTech3's existing GPL-2.0-or-later implementation. No GPLv3
   reference implementation text or game logic is incorporated. The
   [server checkpoint](docs/fntech3/2026-09-15-rtcw-server-world.md) records scope.
+  The [entity-collision checkpoint](docs/fntech3/2026-09-16-rtcw-entity-collision.md)
+  independently adds RTCW's entity-flag hull policy. Original and iortcw
+  selectors remain confined to disposable GPLv3 comparisons; the production
+  collision engine and Quake profile policies are retained.
 
 - The independently authored synthetic Q3 UI fixture uses public ordinal/layout
   facts from the GPL-2.0-or-later pinned
@@ -381,6 +435,63 @@ chapters; the GLSL implementation and synthetic tests are independently written.
   and legitimate installed files. The inherited GPLv2-or-later tokenizer is
   retained. Installed shader text, menu geometry and material pass counts are
   read-only evidence, not incorporated assets or implementation text.
+
+- RTCW entity-stream allocation, stop and fade behavior is independently
+  implemented from the original [SP sound system](https://github.com/id-Software/RTCW-SP/blob/master/src/client/snd_dma.c)
+  and [MP sound system](https://github.com/id-Software/RTCW-MP/blob/master/src/client/snd_dma.c).
+  The controller and bounded decoder serve both existing audio backends.
+  The comparison probe compiles unchanged GPLv3 functions only in disposable
+  fixtures with their notices; production retains its GPLv2-or-later license.
+  The released SP entity-loop/music-channel bug is corrected explicitly; see
+  the [evidence and limits](docs/fntech3/2026-09-16-rtcw-entity-streams.md).
+
+- RTCW game/cgame file-write return values and save-file promotion are
+  independently implemented from observations of the original
+  [SP filesystem traps](https://github.com/id-Software/RTCW-SP/blob/master/src/server/sv_game.c)
+  and [MP filesystem traps](https://github.com/id-Software/RTCW-MP/blob/master/src/server/sv_game.c).
+  The inherited GPLv2-or-later filesystem remains the implementation;
+  [runtime findings and limits](docs/fntech3/2026-09-16-rtcw-autosave-write.md)
+  distinguish the observed autosave failure from subsequent verification.
+
+- RTCW scene-fog selection, shader directives, GL application and decal
+  projection are independently implemented from observations of the original
+  [SP renderer](https://github.com/id-Software/RTCW-SP/tree/master/src/renderer)
+  and [MP renderer](https://github.com/id-Software/RTCW-MP/tree/master/src/renderer).
+  Decals reuse this repository's inherited GPLv2-or-later Q3 polygon clipper;
+  no RTCW implementation text is incorporated. Separate engine/module records
+  preserve the XYZST output and signed fragment-count contract. See the
+  [fog](docs/fntech3/2026-09-16-rtcw-gl-fog.md) and
+  [decal evidence](docs/fntech3/2026-09-16-rtcw-marks.md).
+- The limited RTCW voice-amplitude admission follows the original
+  [SP](https://github.com/id-Software/RTCW-SP/blob/master/src/client/snd_dma.c)
+  and [MP](https://github.com/id-Software/RTCW-MP/blob/master/src/client/snd_dma.c)
+  sound-system observations. Active SP audio remains explicitly unsupported
+  until real lookahead amplitude tracking is implemented.
+- RTCW corona accumulation, SP flags/spotlights, MP visibility and persistent
+  fades are independently implemented from the original
+  [SP flare renderer](https://github.com/id-Software/RTCW-SP/blob/master/src/renderer/tr_flares.c)
+  and [MP flare renderer](https://github.com/id-Software/RTCW-MP/blob/master/src/renderer/tr_flares.c)
+  observations. The existing fnTech3 backend quad paths provide GPU submission;
+  [evidence and limits](docs/fntech3/2026-09-16-rtcw-coronas.md) distinguish
+  checked implementation from the still-open mission and image-parity gates.
+
+- RTCW camera parsing, sampled paths and profile-specific timing are
+  independently implemented from the original
+  [SP camera system](https://github.com/id-Software/RTCW-SP/tree/master/src/splines),
+  [MP camera system](https://github.com/id-Software/RTCW-MP/tree/master/src/splines)
+  and [iortcw](https://github.com/iortcw/iortcw) observations. The source probe
+  compiles their unchanged GPLv3-or-later implementations only in disposable
+  executables; production remains independently written GPLv2-or-later code.
+  [Camera evidence and limits](docs/fntech3/2026-09-16-rtcw-cameras.md) distinguish
+  original MP timing, iortcw's SP timing, undefined paths and live gates.
+
+- RTCW browser-query dispatch and list-source translation are independently
+  implemented from the original
+  [SP contract](https://github.com/id-Software/RTCW-SP/blob/master/src/game/q_shared.h)
+  and [MP contract](https://github.com/id-Software/RTCW-MP/blob/master/src/game/q_shared.h)
+  observations. Their source IDs differ; the retired MPlayer source is not
+  substituted with another service. See the
+  [browser evidence and limits](docs/fntech3/2026-09-17-rtcw-ui-browser.md).
 
 ## Retail-content boundary
 

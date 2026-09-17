@@ -42,6 +42,9 @@ inline int CL_RTCWAudioInteger( intptr_t value ) {
 inline std::array<char, 64> CL_RTCWAudioName( vm_t *vm, intptr_t address ) {
 	std::array<char, 64> name{};
 	if ( !address ) return name;
+	if ( !vm || static_cast<std::uintptr_t>( address ) >
+		(std::numeric_limits<std::uintptr_t>::max)() - name.size() )
+		Com_Error( ERR_DROP, "Invalid RTCW audio name pointer" );
 	VM_CHECKBOUNDS( vm, address, 1 );
 	const auto *source = static_cast<const char *>( VM_ExplicitArgPtr( vm, address ) );
 	if ( !source ) Com_Error( ERR_DROP, "Invalid RTCW music name" );
@@ -57,6 +60,24 @@ inline bool CL_RTCWAudioCall( vm_t *vm, fntech3::rtcw::module::Call call, intptr
 	using fntech3::rtcw::module::Call;
 	if ( !Com_GameIsRTCW() ) return false;
 	switch ( call ) {
+	case Call::CG_S_STARTSTREAMINGSOUND: {
+		if ( !vm ) Com_Error( ERR_DROP, "RTCW streaming import requires an initialized module" );
+		const int entity = CL_RTCWAudioInteger( args[3] );
+		if ( entity >= ( 1 << FNTECH3_RTCW_GENTITYNUM_BITS ) ) Com_Error( ERR_DROP, "Invalid RTCW streaming entity" );
+		const int channel = CL_RTCWAudioInteger( args[4] );
+		const int attenuation = CL_RTCWAudioInteger( args[5] );
+		const auto intro = CL_RTCWAudioName( vm, args[1] );
+		const auto loop = CL_RTCWAudioName( vm, args[2] );
+		S_StartRTCWEntityStream( intro.data(), loop.data(), entity, channel, attenuation );
+		return true;
+	}
+	case Call::CG_S_STOPSTREAMINGSOUND: {
+		if ( !Com_GameIsRTCWSP() ) return false;
+		const int entity = CL_RTCWAudioInteger( args[1] );
+		if ( entity >= ( 1 << FNTECH3_RTCW_GENTITYNUM_BITS ) ) Com_Error( ERR_DROP, "Invalid RTCW streaming entity" );
+		S_StopRTCWEntityStream( entity );
+		return true;
+	}
 	case Call::CG_S_STARTSOUND:
 	case Call::CG_S_STARTSOUNDEX: {
 		const int entity = args[1] ? CL_RTCWAudioInteger(args[2]) : CL_RTCWAudioEntity(args[2]);

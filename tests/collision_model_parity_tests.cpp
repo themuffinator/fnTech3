@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
+#include <initializer_list>
 
 static comGameProfile_t selectedProfile{};
 static const comGameProfile_t *activeProfile;
@@ -59,11 +60,16 @@ void TestRetailEntityShapeSelection()
 	using fnql::server::collision::UseCapsuleEntityModel;
 
 	// Ordinary point/box traces keep the target box.
-	CHECK( !UseCapsuleEntityModel( false, true ) );
-	CHECK( !UseCapsuleEntityModel( false, false ) );
+	CHECK( !UseCapsuleEntityModel( COM_ENTITY_HULL_TRACE_SHAPE, false, true ) );
+	CHECK( !UseCapsuleEntityModel( COM_ENTITY_HULL_TRACE_SHAPE, false, false ) );
 	// Capsule-vs-capsule math is selected only when both sides request it.
-	CHECK( UseCapsuleEntityModel( true, true ) );
-	CHECK( !UseCapsuleEntityModel( true, false ) );
+	CHECK( UseCapsuleEntityModel( COM_ENTITY_HULL_TRACE_SHAPE, true, true ) );
+	CHECK( !UseCapsuleEntityModel( COM_ENTITY_HULL_TRACE_SHAPE, true, false ) );
+	// RTCW's target shape belongs to the entity, independent of the sweep.
+	for ( bool sweep : { false, true } ) {
+		CHECK( UseCapsuleEntityModel( COM_ENTITY_HULL_ENTITY_FLAG, sweep, true ) );
+		CHECK( !UseCapsuleEntityModel( COM_ENTITY_HULL_ENTITY_FLAG, sweep, false ) );
+	}
 }
 
 void TestCapsuleTraceProfile()

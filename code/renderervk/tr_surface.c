@@ -1496,6 +1496,8 @@ static void RB_SurfaceBad( const surfaceType_t *surfType ) {
 
 
 static void RB_SurfaceFlare( srfFlare_t *surf ) {
+	// Original RTCW disables BSP flare surfaces; cgame submits its coronas.
+	if ( ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP ) return;
 	if ( r_flares->integer ) {
 #ifdef USE_VBO
 		VBO_Flush();

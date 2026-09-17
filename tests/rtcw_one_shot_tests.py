@@ -139,6 +139,7 @@ struct channel_t {int allocTime,startSample,entnum,entchannel,leftvol,rightvol,m
 static channel_t s_channels[MAX_CHANNELS],*freelist=nullptr;
 static void SetChannelFreeLink(channel_t *channel,channel_t *next){memcpy(channel,&next,sizeof(next));}
 static OneShots rtcwOneShots;
+static struct {struct {void StopChannel(int,int){}}policy;} rtcwStreams;
 static std::array<vec3_t,MAX_GENTITIES> rtcwEntityPositions;
 static int listener_number=0;static float listener_origin[3];static std::array<vec3_t,3> listener_axis={{{1,0,0},{0,1,0},{0,0,1}}};
 static struct {float origin[3];} loopSounds[MAX_GENTITIES];static struct {int channels=2;} dma;

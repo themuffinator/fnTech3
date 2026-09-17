@@ -634,6 +634,13 @@ static void RB_BeginDrawingView( void ) {
 		clearBits |= GL_STENCIL_BUFFER_BIT;
 	}
 
+	if ( backEnd.refdef.rtcwFog.fogEnabled &&
+		( backEnd.refdef.rtcwFog.fog.clearscreen || r_fastsky->integer ) ) {
+		const float *color = backEnd.refdef.rtcwFog.fog.color;
+		qglClearColor( color[0], color[1], color[2], 1 );
+		clearBits |= GL_COLOR_BUFFER_BIT;
+	}
+
 	if ( clearBits ) {
 		// ensures that depth writes are enabled for the depth clear
 		GL_State( GLS_DEFAULT );
@@ -1350,6 +1357,7 @@ RB_SetGL2D
 */
 void RB_SetGL2D( void ) {
 	backEnd.projection2D = qtrue;
+	RB_RTCWFogToggle( qfalse );
 
 	// set 2D virtual screen size
 	qglViewport( 0, 0, glConfig.vidWidth, glConfig.vidHeight );

@@ -910,6 +910,20 @@ static intptr_t CL_RTCWUISharedCall( fntech3::rtcw::module::Call call ) {
 	RTCW_SHARED_CALL(UI_MEMORY_REMAINING)
 	RTCW_SHARED_CALL(UI_LAN_LOADCACHEDSERVERS)
 	RTCW_SHARED_CALL(UI_LAN_SAVECACHEDSERVERS)
+	RTCW_SHARED_CALL(UI_LAN_GETPINGQUEUECOUNT)
+	RTCW_SHARED_CALL(UI_LAN_CLEARPING)
+	RTCW_SHARED_CALL(UI_LAN_GETPING)
+	RTCW_SHARED_CALL(UI_LAN_GETPINGINFO)
+	RTCW_SHARED_CALL(UI_LAN_GETSERVERCOUNT)
+	RTCW_SHARED_CALL(UI_LAN_GETSERVERADDRESSSTRING)
+	RTCW_SHARED_CALL(UI_LAN_GETSERVERINFO)
+	RTCW_SHARED_CALL(UI_LAN_GETSERVERPING)
+	RTCW_SHARED_CALL(UI_LAN_MARKSERVERVISIBLE)
+	RTCW_SHARED_CALL(UI_LAN_SERVERISVISIBLE)
+	RTCW_SHARED_CALL(UI_LAN_UPDATEVISIBLEPINGS)
+	RTCW_SHARED_CALL(UI_LAN_RESETPINGS)
+	RTCW_SHARED_CALL(UI_LAN_SERVERSTATUS)
+	RTCW_SHARED_CALL(UI_LAN_COMPARESERVERS)
 	RTCW_SHARED_CALL(UI_S_STOPBACKGROUNDTRACK)
 	RTCW_SHARED_CALL(UI_FLOOR)
 	RTCW_SHARED_CALL(UI_CEIL)
@@ -933,8 +947,38 @@ static intptr_t CL_RTCWUISharedCall( fntech3::rtcw::module::Call call ) {
 	}
 }
 
+static intptr_t *CL_RTCWUIBrowserArguments( intptr_t operation, intptr_t *args,
+	std::array<intptr_t, 6> &translated ) {
+	// Original MP q_shared.h: Local=0, Global=1, Favorites=2, MPlayer=3.
+	// SP uses Local=0, MPlayer=1, Global=2, Favorites=3. The retired MPlayer
+	// service has no separate list here; never substitute Internet results for it.
+	int count;
+	switch ( operation ) {
+	case UI_LAN_GETSERVERCOUNT:
+	case UI_LAN_UPDATEVISIBLEPINGS:
+	case UI_LAN_RESETPINGS: count = 1; break;
+	case UI_LAN_GETSERVERPING:
+	case UI_LAN_SERVERISVISIBLE: count = 2; break;
+	case UI_LAN_MARKSERVERVISIBLE: count = 3; break;
+	case UI_LAN_GETSERVERADDRESSSTRING:
+	case UI_LAN_GETSERVERINFO: count = 4; break;
+	case UI_LAN_COMPARESERVERS: count = 5; break;
+	default: return args; // Ping queue slots and server addresses are not list sources.
+	}
+	std::copy_n( args, count + 1, translated.begin() );
+	if ( args[1] < 0 || args[1] > 3 ) {
+		translated[1] = -1; // Preserve the browser's empty/invalid-list behavior.
+	} else {
+		constexpr int mpSources[] = { AS_LOCAL, AS_GLOBAL, AS_FAVORITES, -1 };
+		constexpr int spSources[] = { AS_LOCAL, -1, AS_GLOBAL, AS_FAVORITES };
+		translated[1] = ( Com_GameIsRTCWMP() ? mpSources : spSources )[args[1]];
+	}
+	return translated.data();
+}
+
 static intptr_t CL_UISystemCalls( intptr_t *args ) {
 	intptr_t operation = args[0];
+	std::array<intptr_t, 6> browserArguments{};
 	if ( Com_GameIsRTCW() ) {
 		using namespace fntech3::rtcw::module;
 		const auto call = Lookup( Com_GameProfile()->id, Module::UI, Direction::IMPORT, args[0] );
@@ -1037,6 +1081,27 @@ static intptr_t CL_UISystemCalls( intptr_t *args ) {
 			}
 			break;
 		}
+	}
+	if ( Com_GameIsRTCW() ) {
+		args = CL_RTCWUIBrowserArguments( operation, args, browserArguments );
+		int buffer = 0;
+		switch ( operation ) {
+		case UI_LAN_GETSERVERADDRESSSTRING:
+		case UI_LAN_GETSERVERINFO: buffer = 3; break;
+		case UI_LAN_GETPING:
+			// The ping handler writes a scalar result outside its text buffer.
+			if ( !args[4] ) Com_Error( ERR_DROP, "Missing RTCW UI ping result" );
+			VM_CHECKBOUNDS( uivm, args[4], sizeof( int ) );
+			buffer = 2; break;
+		case UI_LAN_GETPINGINFO: buffer = 2; break;
+		case UI_LAN_SERVERSTATUS:
+			// A null buffer with zero length is the documented query/reset form.
+			if ( args[3] == 0 && args[2] == 0 ) break;
+			buffer = 2; break;
+		default: break;
+		}
+		if ( buffer && ( !args[buffer] || args[buffer + 1] <= 0 || args[buffer + 1] > INT_MAX ) )
+			Com_Error( ERR_DROP, "Invalid RTCW UI browser output buffer" );
 	}
 	switch( operation ) {
 	case UI_ERROR:

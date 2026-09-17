@@ -458,3 +458,5 @@ int R_MarkFragments( int numPoints, const vec3_t *points, const vec3_t projectio
 	return returnedFragments;
 }
 
+
+#include "../renderercommon/tr_rtcw_marks_surface.h"

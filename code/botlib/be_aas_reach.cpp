@@ -30,6 +30,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *****************************************************************************/
 
 #include "../qcommon/q_shared.h"
+#include "../qcommon/game_profile.h"
 #include "l_log.h"
 #include "l_memory.h"
 #include "l_script.h"
@@ -522,11 +523,15 @@ static void AAS_FreeReachability(aas_lreachability_t *lreach)
 //===========================================================================
 int AAS_AreaReachability(int areanum)
 {
+	if (Com_GameIsRTCW() && (!aasworld.areasettings || aasworld.numareasettings != aasworld.numareas)) return 0;
 	if (areanum < 0 || areanum >= aasworld.numareas)
 	{
 		AAS_Error("AAS_AreaReachability: areanum %d out of range\n", areanum);
 		return 0;
 	} //end if
+	// Original SP removes temporarily disabled areas from fuzzy/movement
+	// queries. MP and Quake still report their stored reachability count.
+	if (Com_GameIsRTCWSP() && (aasworld.areasettings[areanum].areaflags & AREA_DISABLED)) return 0;
 	return aasworld.areasettings[areanum].numreachableareas;
 } //end of the function AAS_AreaReachability
 //===========================================================================

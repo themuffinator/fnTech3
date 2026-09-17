@@ -17,6 +17,7 @@ SOURCE = r'''
 static struct {comGameId_t gameId; void (*Error)(errorParm_t,const char*,...);} ri;
 static cvar_t fastsky{};
 static cvar_t *r_fastsky=&fastsky;
+static cvar_t *r_wolffog=nullptr;
 static struct {
  fnRTCWFogState_t rtcwFog;
  qboolean rtcwSkyPortal;
@@ -40,7 +41,11 @@ int main(){
   RE_SetRTCWFog(10,6,20,NAN,NAN,NAN,NAN); // absent target is harmless
   RE_SetRTCWFog(6,10,2000,0.2f,0.3f,0.4f,1.1f);
   RE_SetRTCWFog(10,6,0,NAN,NAN,NAN,NAN);view.time=101;
-  reject([&]{R_CopyRTCWFogToScene(&view);}); // active fog must not silently disappear
+#ifdef FNTECH3_RTCW_GL_FOG
+  R_CopyRTCWFogToScene(&view);
+#else
+  reject([&]{R_CopyRTCWFogToScene(&view);});
+#endif
   assert(tr.refdef.rtcwFog.fogEnabled&&tr.refdef.rtcwFog.farClip==2000);
   auto snapshot=tr.refdef.rtcwFog;
   RE_SetRTCWFog(6,20,3000,0.8f,0.7f,0.6f,1.1f);
@@ -52,7 +57,11 @@ int main(){
   view.rdflags=0;view.rtcw.skyboxPortal=qtrue;
   R_CopyRTCWFogToScene(&view);assert(tr.rtcwSkyPortal&&!tr.refdef.rtcwFog.fogEnabled);
   RE_SetRTCWFog(2,0,500,0.5f,0.5f,0.5f,0.1f);
+#ifdef FNTECH3_RTCW_GL_FOG
+  R_CopyRTCWFogToScene(&view);
+#else
   reject([&]{R_CopyRTCWFogToScene(&view);});
+#endif
   assert(tr.refdef.rtcwFog.fog.end==500);
   auto saved=tr.rtcwFog;
   reject([]{RE_SetRTCWFog(-1,0,0,0,0,0,0);});
@@ -90,13 +99,14 @@ class RTCWFogSceneTests(unittest.TestCase):
             flags = ['-m32']
         with tempfile.TemporaryDirectory(prefix='rtcw-fog-scene-', dir=ROOT / '.tmp') as temp:
             folder = Path(temp); source = folder / 'probe.cpp'; executable = folder / 'probe.exe'
-            source.write_text(SOURCE, encoding='utf-8')
-            command = [compiler, *flags, '-std=c++17', '-Wall', '-Wextra', '-Werror', '-I', str(ROOT), str(source), '-o', str(executable)]
-            built = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, timeout=60)
-            self.assertEqual(built.returncode, 0, built.stdout + built.stderr)
-            options = {'creationflags': subprocess.CREATE_NO_WINDOW} if os.name == 'nt' else {}
-            run = subprocess.run([str(executable)], cwd=ROOT, capture_output=True, text=True, timeout=30, **options)
-            self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+            for supported in (False, True):
+                source.write_text(('#define FNTECH3_RTCW_GL_FOG\n' if supported else '') + SOURCE, encoding='utf-8')
+                command = [compiler, *flags, '-std=c++17', '-Wall', '-Wextra', '-Werror', '-Wno-unused-variable', '-I', str(ROOT), str(source), '-o', str(executable)]
+                built = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, timeout=60)
+                self.assertEqual(built.returncode, 0, built.stdout + built.stderr)
+                options = {'creationflags': subprocess.CREATE_NO_WINDOW} if os.name == 'nt' else {}
+                run = subprocess.run([str(executable)], cwd=ROOT, capture_output=True, text=True, timeout=30, **options)
+                self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
 
 
 if __name__ == '__main__':

@@ -941,6 +941,11 @@ public:
 	void PrintAudioZoneInfo() const;
 
 	int ListenerNumber() const { return listenerNumber_; }
+	fntech3::audio::rtcw::LoopGains EntityStreamGains( const fntech3::audio::rtcw::EntityStream &stream,
+		float volume, float fade, float master ) const {
+		const float *origin = stream.entity >= 0 && stream.entity < 1024 && stream.attenuation ? entityOrigins_[stream.entity].Data() : nullptr;
+		return fntech3::audio::rtcw::EntityStreamGains( origin, listenerOrigin_.Data(), listenerAxis_, volume, fade, master );
+	}
 
 private:
 	void ApplyVoice( SoundVoice &voice, qboolean softMuted );

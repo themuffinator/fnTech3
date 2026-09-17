@@ -39,6 +39,8 @@ static constexpr int GFL_NONE = 0;
 static constexpr int GFL_ITEM = 1;
 static constexpr int GFL_ROAM = 2;
 static constexpr int GFL_DROPPED = 4;
+// Engine-internal RTCW meaning; its external bit 4 is mapped at the boundary.
+static constexpr int GFL_NOSLOWAPPROACH = 8;
 
 //a bot goal
 struct bot_goal_s

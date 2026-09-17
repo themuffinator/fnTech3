@@ -33,6 +33,8 @@ static void TestPureModuleNames()
 	const auto *mp = Com_GameProfileById( COM_GAME_RTCW_MP );
 	assert( q3->pureProof == COM_PURE_PROOF_QVM && ql->pureProof == COM_PURE_PROOF_QL_NATIVE );
 	assert( sp->pureProof == COM_PURE_PROOF_UNAVAILABLE && mp->pureProof == COM_PURE_PROOF_RTCW_NATIVE );
+	assert( q3->entityHullPolicy == COM_ENTITY_HULL_TRACE_SHAPE && ql->entityHullPolicy == COM_ENTITY_HULL_TRACE_SHAPE );
+	assert( sp->entityHullPolicy == COM_ENTITY_HULL_ENTITY_FLAG && mp->entityHullPolicy == COM_ENTITY_HULL_ENTITY_FLAG );
 	for ( const auto *profile : { q3, ql, sp, mp } ) {
 		for ( const char *extension : { ".dll", ".so", ".dylib" } ) {
 			for ( unsigned slot = 0; slot < 4; ++slot ) {

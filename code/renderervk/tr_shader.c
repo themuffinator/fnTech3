@@ -894,6 +894,12 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 		{
 			stage->isDetail = qtrue;
 		}
+		else if ( ( ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP ) &&
+			!Q_stricmp( token, "fog" ) ) {
+			token = COM_ParseExt( text, qfalse );
+			if ( !token[0] ) return qfalse;
+			stage->rtcwFog = !Q_stricmp( token, "on" ) ? qtrue : qfalse;
+		}
 		//
 		// blendfunc <srcFactor> <dstFactor>
 		// or blendfunc <add|filter|blend>
@@ -2038,12 +2044,15 @@ shader.  Parse it into the global shader variable.  Later functions
 will optimize it.
 =================
 */
+#include "../renderercommon/tr_rtcw_shader_fog.h"
+
 static qboolean ParseShader( const char **text )
 {
 	resultType res;
 	branchType branch;
 	const char *token;
 	int numStages;
+	int rtcwFogDirective;
 	qboolean skySunValid;
 	vec3_t skySunColor = { 0.0f, 0.0f, 0.0f };
 	vec3_t skySunDirection = { 0.0f, 0.0f, 0.0f };
@@ -2074,6 +2083,12 @@ static qboolean ParseShader( const char **text )
 			ri.Printf( PRINT_WARNING, "WARNING: no concluding '}' in shader %s\n", shader.name );
 			return qfalse;
 		}
+		rtcwFogDirective = R_RTCWShaderFogDirective( token, text );
+		if ( rtcwFogDirective < 0 ) {
+			ri.Printf( PRINT_WARNING, "WARNING: invalid RTCW fog directive in shader %s\n", shader.name );
+			return qfalse;
+		}
+		if ( rtcwFogDirective ) continue;
 		// end of shader definition
 		if ( token[0] == '}' )
 		{
@@ -5006,10 +5021,11 @@ static void CreateExternalShaders( void ) {
 
 	tr.projectionShadowShader = R_FindShader( "projectionShadow", LIGHTMAP_NONE, qtrue );
 	tr.flareShader = R_FindShader( "flareShader", LIGHTMAP_NONE, qtrue );
+	tr.rtcwSpotFlareShader = ri.gameId == COM_GAME_RTCW_SP ? R_FindShader( "spotLight", LIGHTMAP_NONE, qtrue ) : tr.flareShader;
 
 	// Hack to make fogging work correctly on flares. Fog colors are calculated
 	// in tr_flare.c already.
-	if(!tr.flareShader->defaultShader)
+	if(ri.gameId != COM_GAME_RTCW_SP && ri.gameId != COM_GAME_RTCW_MP && !tr.flareShader->defaultShader)
 	{
 		int index;
 

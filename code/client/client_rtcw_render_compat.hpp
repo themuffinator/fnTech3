@@ -8,6 +8,8 @@
 #include <climits>
 #include <limits>
 #include <memory>
+#include "client_rtcw_marks.hpp"
+#include "../renderercommon/tr_rtcw_corona.h"
 
 inline const char *CL_RTCWRenderName( vm_t *vm, intptr_t address ) {
 	if ( !address ) Com_Error( ERR_DROP, "Null RTCW renderer resource name" );
@@ -58,6 +60,21 @@ inline bool CL_RTCWRenderCall( vm_t *vm, fntech3::rtcw::module::Call call,
 	if ( !Com_GameIsRTCW() ) return false;
 	if ( !vm ) Com_Error( ERR_DROP, "RTCW renderer import requires an initialized module" );
 	switch ( call ) {
+	case Call::CG_R_ADDCORONATOSCENE:
+	case Call::UI_R_ADDCORONATOSCENE: {
+		if ( args[6] < INT_MIN || args[6] > INT_MAX || args[7] < INT_MIN || args[7] > INT_MAX )
+			Com_Error( ERR_DROP, "Invalid RTCW corona identity or flags" );
+		fnRTCWCorona_t corona{};
+		std::memcpy( corona.origin, CL_RTCWRenderSpan( vm, args[1], sizeof( corona.origin ) ), sizeof( corona.origin ) );
+		corona.color[0] = VMF(2); corona.color[1] = VMF(3); corona.color[2] = VMF(4);
+		corona.scale = VMF(5); corona.id = static_cast<int>( args[6] ); corona.flags = static_cast<int>( args[7] );
+		if ( !FnRTCWCoronaValid( &corona ) ) Com_Error( ERR_DROP, "Invalid RTCW corona values" );
+		re.AddRTCWCoronaToScene( &corona );
+		break;
+	}
+	case Call::CG_CM_MARKFRAGMENTS:
+		result = CL_RTCWMarkFragments( vm, args );
+		return true;
 	case Call::CG_RB_ZOMBIEFXADDNEWHIT:
 		if ( Com_GameProfile()->id != COM_GAME_RTCW_SP ) return false;
 		// Original SP disables RB_ZombieFXAddNewHit before examining any

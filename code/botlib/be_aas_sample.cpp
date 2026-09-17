@@ -43,6 +43,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "be_interface.h"
 #include "be_aas_funcs.h"
 #include "be_aas_def.h"
+#include "rtcw_movement.hpp"
 
 
 //#define AAS_SAMPLE_DEBUG
@@ -479,13 +480,10 @@ aas_trace_t AAS_TraceClientBBox(vec3_t start, vec3_t end, int presencetype,
 	
 	while (1)
 	{
-		//pop up the stack
-		tstack_p--;
 		//if the trace stack is empty (ended up with a piece of the
 		//line to be traced in an area)
-		if (tstack_p < tracestack)
+		if (tstack_p == tracestack)
 		{
-			tstack_p++;
 			//nothing was hit
 			trace.startsolid = qfalse;
 			trace.fraction = 1.0;
@@ -497,6 +495,9 @@ aas_trace_t AAS_TraceClientBBox(vec3_t start, vec3_t end, int presencetype,
 			trace.planenum = 0;
 			return trace;
 		} //end if
+		// Check before decrementing: a one-before-array pointer is invalid
+		// even when the following operation would move it back into range.
+		--tstack_p;
 		//number of the current node to test the line against
 		nodenum = tstack_p->nodenum;
 		//if it is an area
@@ -529,7 +530,8 @@ aas_trace_t AAS_TraceClientBBox(vec3_t start, vec3_t end, int presencetype,
 					trace.startsolid = qfalse;
 					VectorSubtract(end, start, v1);
 					VectorSubtract(tstack_p->start, start, v2);
-					trace.fraction = VectorLength(v2) / VectorNormalize(v1);
+					trace.fraction = VectorLength(v2) / (Com_GameIsRTCW()
+						? fntech3::rtcw::movement::Normalize(v1) : VectorNormalize(v1));
 					VectorMA(tstack_p->start, -0.125, v1, tstack_p->start);
 				} //end else
 				VectorCopy(tstack_p->start, trace.endpos);
@@ -582,7 +584,8 @@ aas_trace_t AAS_TraceClientBBox(vec3_t start, vec3_t end, int presencetype,
 				trace.startsolid = qfalse;
 				VectorSubtract(end, start, v1);
 				VectorSubtract(tstack_p->start, start, v2);
-				trace.fraction = VectorLength(v2) / VectorNormalize(v1);
+				trace.fraction = VectorLength(v2) / (Com_GameIsRTCW()
+					? fntech3::rtcw::movement::Normalize(v1) : VectorNormalize(v1));
 				VectorMA(tstack_p->start, -0.125, v1, tstack_p->start);
 			} //end else
 			VectorCopy(tstack_p->start, trace.endpos);
@@ -1319,6 +1322,8 @@ int AAS_AreaInfo( int areanum, aas_areainfo_t *info )
 aas_plane_t *AAS_PlaneFromNum(int planenum)
 {
 	if (!aasworld.loaded) return nullptr;
+	if (Com_GameIsRTCW() && (planenum < 0 || planenum >= aasworld.numplanes || !aasworld.planes))
+		return nullptr;
 
 	return &aasworld.planes[planenum];
 } //end of the function AAS_PlaneFromNum

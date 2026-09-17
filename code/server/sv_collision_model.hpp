@@ -14,17 +14,22 @@ version.
 #ifndef FNQL_SERVER_SV_COLLISION_MODEL_HPP
 #define FNQL_SERVER_SV_COLLISION_MODEL_HPP
 
+#include "../qcommon/game_profile.h"
+
 namespace fnql::server::collision {
 
 /*
  * QLSRP records the retail QL contract: SVF_CAPSULE changes an entity hull
  * only for capsule traces.  Point/box traces, including hitscan weapon fire,
- * continue to test the entity's axis-aligned box.
+ * continue to test the entity's axis-aligned box. Original RTCW SP/MP
+ * sv_world.c selects the entity's flagged capsule for every trace shape.
+ * The immutable profile owns this difference.
  */
 [[nodiscard]] constexpr bool UseCapsuleEntityModel(
-	bool traceUsesCapsule, bool entitySupportsCapsule ) noexcept
+	comGameEntityHullPolicy_t policy, bool traceUsesCapsule, bool entitySupportsCapsule ) noexcept
 {
-	return traceUsesCapsule && entitySupportsCapsule;
+	return entitySupportsCapsule
+		&& ( traceUsesCapsule || policy == COM_ENTITY_HULL_ENTITY_FLAG );
 }
 
 } // namespace fnql::server::collision

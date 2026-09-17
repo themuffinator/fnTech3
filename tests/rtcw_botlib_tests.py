@@ -28,6 +28,10 @@ PRELUDE = r'''
 static const comGameProfile_t *profile;
 const comGameProfile_t *Com_GameProfile(){return profile;}
 int Com_GameIsRTCW(){return profile->id==COM_GAME_RTCW_SP||profile->id==COM_GAME_RTCW_MP;}
+// The visibility fixture replaces this stand-in with the actual route query.
+bool AAS_RTCWRouteFirstVisiblePosition(const float*,const float*,int,float*){assert(false);return false;}
+bool AAS_RTCWHidePosition(const float*,int,int,const float*,int,int,float*){assert(false);return false;}
+int AAS_RTCWAttackPosition(int,int,int,float,int,float*){assert(false);return 0;}
 struct Drop{};
 void QDECL Com_Error(errorParm_t,const char*,...){throw Drop{};}
 // Server AI slots are exercised with real entity adapters in their own fixture.

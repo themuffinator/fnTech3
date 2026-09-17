@@ -100,6 +100,7 @@ static cvar_t *r_ignorehwgamma;
 
 cvar_t  *r_teleporterFlash;
 
+cvar_t	*r_wolffog;
 cvar_t	*r_fastsky;
 cvar_t	*r_neatsky;
 cvar_t	*r_drawSun;
@@ -2167,7 +2168,7 @@ static void R_Register( void )
 	ri.Cvar_SetDescription( r_lodCurveError, "Level of detail error on curved surface grids. Higher values result in better quality at a distance." );
 	r_lodbias = ri.Cvar_Get( "r_lodbias", "-2", CVAR_ARCHIVE_ND );
 	ri.Cvar_SetDescription( r_lodbias, "Sets the level of detail of in-game models:\n -2: Ultra (further delays LOD transition in the distance)\n -1: Very High (delays LOD transition in the distance)\n 0: High\n 1: Medium\n 2: Low" );
-	r_flares = ri.Cvar_Get ("r_flares", "0", CVAR_ARCHIVE_ND );
+	r_flares = ri.Cvar_Get ("r_flares", (ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP) ? "1" : "0", CVAR_ARCHIVE_ND );
 	ri.Cvar_SetDescription( r_flares, "Enables corona effects on light sources." );
 	r_znear = ri.Cvar_Get( "r_znear", "4", CVAR_CHEAT );
 	ri.Cvar_CheckRange( r_znear, "0.001", "200", CV_FLOAT );
@@ -2181,6 +2182,7 @@ static void R_Register( void )
 	r_teleporterFlash = ri.Cvar_Get( "r_teleporterFlash", "1", CVAR_ARCHIVE | CVAR_PROTECTED | CVAR_CLOUD );
 	ri.Cvar_CheckRange( r_teleporterFlash, "0", "1", CV_INTEGER );
 	ri.Cvar_SetDescription( r_teleporterFlash, "Show a white screen instead of a black screen when being teleported in hyperspace." );
+	r_wolffog = ri.Cvar_Get( "r_wolffog", "1", 0 );
 	r_fastsky = ri.Cvar_Get( "r_fastsky", "0", CVAR_ARCHIVE_ND );
 	ri.Cvar_SetDescription( r_fastsky, "Draw flat colored skies." );
 	r_drawSun = ri.Cvar_Get( "r_drawSun", "0", CVAR_ARCHIVE_ND );
@@ -2813,7 +2815,7 @@ static void R_Register( void )
 
 	r_flareSize = ri.Cvar_Get( "r_flareSize", "40", CVAR_CHEAT );
 	ri.Cvar_SetDescription( r_flareSize, "Radius of light flares. Requires \\r_flares 1." );
-	r_flareFade = ri.Cvar_Get( "r_flareFade", "10", CVAR_CHEAT );
+	r_flareFade = ri.Cvar_Get( "r_flareFade", (ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP) ? "5" : "10", CVAR_CHEAT );
 	ri.Cvar_SetDescription( r_flareFade, "Distance to fade out light flares. Requires \\r_flares 1." );
 	r_flareCoeff = ri.Cvar_Get( "r_flareCoeff", "150", CVAR_CHEAT );
 	ri.Cvar_CheckRange( r_flareCoeff, "0.1", NULL, CV_FLOAT );
@@ -3918,6 +3920,8 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 	re.EndFrame = RE_EndFrame;
 
 	re.MarkFragments = R_MarkFragments;
+	re.MarkRTCWFragments = R_MarkRTCWFragments;
+	re.AddRTCWCoronaToScene = RE_AddRTCWCoronaToScene;
 	re.LerpTag = R_LerpTag;
 	re.LerpTagEntity = R_LerpTagEntity;
 	re.ModelBounds = R_ModelBounds;

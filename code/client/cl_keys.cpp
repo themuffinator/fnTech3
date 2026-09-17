@@ -26,6 +26,7 @@ extern "C" {
 #include "client_cpp.h"
 #include "input_compat.hpp"
 #include "../compat/rtcw_key_adapter.h"
+#include "client_rtcw_camera_input.hpp"
 
 #include <algorithm>
 #include <array>
@@ -931,6 +932,13 @@ static void CL_KeyDownEvent( int key, unsigned time )
 		return;
 	}
 
+	const auto cameraAction = CL_RTCWCameraKeyAction(Com_GameIsRTCWSP(),
+		cl.rtcwCameraMode, Key_GetCatcher(), key, true);
+	if (cameraAction != rtcwCameraKeyAction::Pass) {
+		if (cameraAction == rtcwCameraKeyAction::Interrupt) CL_AddReliableCommand("cameraInterrupt", qfalse);
+		return;
+	}
+
 	// keys can still be used for bound actions
 	if ( ( key < 128 || key == K_MOUSE1 ) && cls.state == CA_CINEMATIC && Key_GetCatcher() == 0 ) {
 		if ( Cvar_VariableIntegerValue( "com_cameraMode" ) == 0 ) {
@@ -1008,6 +1016,8 @@ static void CL_KeyUpEvent( int key, unsigned time )
 	if ( key == K_CONSOLE || ( key == K_ESCAPE && keys[K_SHIFT].down ) ) {
 		return;
 	}
+	if (CL_RTCWCameraKeyAction(Com_GameIsRTCWSP(), cl.rtcwCameraMode,
+		Key_GetCatcher(), key, false) != rtcwCameraKeyAction::Pass) return;
 
 	//
 	// key up events only perform actions if the game key binding is

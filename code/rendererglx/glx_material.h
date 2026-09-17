@@ -54,6 +54,8 @@ struct MaterialProgram {
 	GLuint fragmentShader;
 	GLint texture0Uniform;
 	GLint texture1Uniform;
+	GLint rtcwFogColorUniform;
+	GLint rtcwFogParamsUniform;
 	unsigned int binds;
 	qboolean valid;
 };
@@ -97,6 +99,8 @@ struct MaterialRequest {
 };
 
 struct MaterialState {
+	float rtcwFogColor[4];
+	float rtcwFogParams[4];
 	cvar_t *r_glxMaterialRenderer;
 	cvar_t *r_glxMaterialDebug;
 	cvar_t *r_glxMaterialPrecache;

@@ -13,6 +13,7 @@ def mixer():
 #include <climits>
 constexpr int PAINTBUFFER_SIZE=8,MAX_CHANNELS=96,SND_CHUNK_SIZE=8,SND_CHUNK_SIZE_FLOAT=4;
 struct portable_samplepair_t {int left=0,right=0;};
+static void S_PaintRTCWEntityStreams(int,int,portable_samplepair_t *){}
 static std::array<portable_samplepair_t,PAINTBUFFER_SIZE> paintbuffer;
 static portable_samplepair_t s_rawsamples[MAX_RAW_SAMPLES];
 static std::array<portable_samplepair_t,MAX_RAW_SAMPLES> s_rtcwMusicRawSamples;

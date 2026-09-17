@@ -35,6 +35,8 @@ extern "C" {
 #include "../compat/rtcw_state_adapter.hpp"
 #include "../compat/rtcw_client_adapter.hpp"
 #include "../qcommon/netchan_safety.hpp"
+#include "../qcommon/vm_rtcw_filesystem.hpp"
+#include "client_rtcw_camera.hpp"
 
 #include <algorithm>
 #include <array>
@@ -1772,6 +1774,7 @@ void CL_ShutdownCGame( void ) {
 	cls.cgameStarted = qfalse;
 	CL_ClearEnemyHighlightState();
 	CL_ClearLiquidInteractionState();
+	CL_ClearRTCWCameras();
 
 	if ( !cgvm ) {
 		return;
@@ -2017,7 +2020,10 @@ static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		if ( CL_RTCWRenderCall( cgvm, call, args, rendererResult ) ) return rendererResult;
 		if ( CL_RTCWAudioCall( cgvm, call, args ) ) return 0;
 		if ( CL_RTCWCinematicCall( cgvm, call, args, rendererResult ) ) return rendererResult;
+		if ( CL_RTCWCameraCall( cgvm, call, args, rendererResult ) ) return rendererResult;
 		switch ( call ) {
+		case Call::CG_S_GETVOICEAMPLITUDE:
+			return S_RTCWVoiceAmplitude( args[1] );
 		case Call::CG_S_REGISTERSOUND:
 			// RTCW's cgame supplies only the name, like its UI. Never read a
 			// nonexistent Quake compression argument from the module's array.
@@ -2205,6 +2211,7 @@ static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		FS_VM_ReadFile( VMA(1), args[2], args[3], H_CGAME );
 		return 0;
 	case CG_FS_WRITE:
+		if ( Com_GameIsRTCW() ) return VM_RTCWWriteFile( cgvm, args[1], args[2], args[3], H_CGAME );
 		VM_CHECKBOUNDS( cgvm, args[1], args[2] );
 		FS_VM_WriteFile( VMA(1), args[2], args[3], H_CGAME );
 		return 0;

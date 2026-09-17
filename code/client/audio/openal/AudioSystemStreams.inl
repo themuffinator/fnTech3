@@ -11,6 +11,7 @@ struct StreamConversionState {
 class StreamPlayer {
 public:
 	StreamConversionState conversion;
+	bool deferStart = false; // Paired RTCW channels start after both queues are ready.
 	void Init( OpenALDevice *device, ALuint source );
 	void Shutdown();
 	void Clear();
@@ -154,7 +155,7 @@ bool StreamPlayer::QueuePCM16( const short *samples, int frameCount, int channel
 	if ( device_->AL().alGetError() != AL_NO_ERROR ) {
 		return true;
 	}
-	if ( startPlayback && state != AL_PLAYING ) {
+	if ( startPlayback && !deferStart && state != AL_PLAYING ) {
 		device_->AL().alSourcePlay( source_ );
 	}
 

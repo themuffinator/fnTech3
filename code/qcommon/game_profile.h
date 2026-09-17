@@ -154,6 +154,11 @@ typedef enum comGamePureProof_e {
 	COM_PURE_PROOF_RTCW_NATIVE
 } comGamePureProof_t;
 
+typedef enum comGameEntityHullPolicy_e {
+	COM_ENTITY_HULL_TRACE_SHAPE,
+	COM_ENTITY_HULL_ENTITY_FLAG
+} comGameEntityHullPolicy_t;
+
 typedef struct comGameProfile_s {
 	comGameId_t id;
 	const char *key;
@@ -183,6 +188,7 @@ typedef struct comGameProfile_s {
 	int playerConfigstringBase;
 	/* Includes the two reserved temporary hull handles at the end. */
 	int collisionModelHandleCount;
+	comGameEntityHullPolicy_t entityHullPolicy;
 	/* Private engine cache; NULL means this profile never reads or writes it. */
 	const char *serverCacheFile;
 	comGameServerPolicy_t server;

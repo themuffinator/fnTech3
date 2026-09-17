@@ -19,10 +19,14 @@ static void R_CopyRTCWFogToScene( const refdef_t *view ) {
 	if ( view->rtcw.skyboxPortal ) tr.rtcwSkyPortal = qtrue;
 	tr.refdef.rtcwFog = FnRTCWFogCapture( &tr.rtcwFog,
 		ri.gameId == COM_GAME_RTCW_MP ? qtrue : qfalse, tr.rtcwSkyPortal, view );
-	/* The controller and immutable view transfer are implemented. Keep active
-	 * scene fog honest until its stage/sky GPU contract is connected. */
+	if ( r_wolffog && !r_wolffog->integer ) {
+		tr.refdef.rtcwFog.fogEnabled = tr.refdef.rtcwFog.skyEnabled = qfalse;
+	}
+#ifndef FNTECH3_RTCW_GL_FOG
+	/* Vulkan/RTX stage and sky paths have not yet admitted this contract. */
 	if ( tr.refdef.rtcwFog.fogEnabled ||
 		( tr.refdef.rtcwFog.skyEnabled && tr.refdef.rtcwFog.drawSky && !r_fastsky->integer ) )
 		ri.Error( ERR_DROP, "RTCW scene fog GPU application is not implemented" );
+#endif
 }
 #endif

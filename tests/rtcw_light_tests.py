@@ -165,6 +165,8 @@ static void Record(int count,const glIndex_t *indexes) {
 static void R_DrawElements(int count,const glIndex_t *indexes) {
     assert(glCoordinates && glColors); Record(count,indexes);
 }
+// Fog enable/disable and GL/GLSL parameter transfer execute in rtcw_fog_gpu_tests.
+static void RB_RTCWFogToggle(qboolean) {}
 struct Vk_Pipeline_Def { unsigned state_bits; };
 static struct { uint32_t dlight_pipelines[2][3][2]; } vk;
 static void vk_get_pipeline_def(uint32_t,Vk_Pipeline_Def *def) { def->state_bits=0; }

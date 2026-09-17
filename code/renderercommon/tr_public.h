@@ -23,10 +23,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define __TR_PUBLIC_H
 
 #include "tr_types.h"
+#include "tr_rtcw_marks.h"
+#include "tr_rtcw_corona.h"
 #include "../qcommon/game_profile.h"
 #include "vulkan/vulkan.h"
 
-#define	REF_API_VERSION		23
+#define	REF_API_VERSION		25
 
 //
 // these are the functions exported by the refresh module
@@ -101,6 +103,9 @@ typedef struct {
 
 	int		(*MarkFragments)( int numPoints, const vec3_t *points, const vec3_t projection,
 				   int maxPoints, vec3_t pointBuffer, int maxFragments, markFragment_t *fragmentBuffer );
+	int		(*MarkRTCWFragments)( int rotation, const vec3_t *corners, const vec3_t projection,
+		int maxPoints, fnRTCWMarkPoint_t *points, int maxFragments, markFragment_t *fragments );
+	void	(*AddRTCWCoronaToScene)( const fnRTCWCorona_t *corona );
 
 	int		(*LerpTag)( orientation_t *tag,  qhandle_t model, int startFrame, int endFrame,
 					 float frac, const char *tagName );
