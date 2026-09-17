@@ -47,6 +47,16 @@ int Q_stricmp(const char *a,const char *b){
 }
 void Q_strncpyz(char *out,const char *in,int n){assert(n>0);int i=0;while(i+1<n&&in[i]){out[i]=in[i];++i;}out[i]=0;}
 #include "code/botlib/l_libvar.cpp"
+// ET derives its own waypoints and visibility; these fixtures never build them.
+// The callback record is declared so the extracted setter compiles.
+struct aas_wolfet_callbacks_t{
+ bool (*available)()=nullptr;
+ int (*visible)(const float*,int,const float*,int,int)=nullptr;
+};
+void AAS_WolfETBuildVisibility(){}
+void AAS_WolfETFreeVisibility(){}
+int AAS_WolfETAreaVisible(int,int){return 0;}
+const float *AAS_WolfETWaypoint(int){return nullptr;}
 static int Export_BotLibSetup();
 static int Export_BotLibShutdown();
 static int failure,dropStage,stopStage;

@@ -119,6 +119,18 @@ void AAS_WolfETSetBlockingEntity( const float *mins, const float *maxs, int bloc
 	}
 }
 
+static aas_wolfet_callbacks_t wolfetCallbacks;
+
+void AAS_SetWolfETCallbacks( const aas_wolfet_callbacks_t &callbacks )
+{
+	wolfetCallbacks = callbacks;
+}
+
+const aas_wolfet_callbacks_t &AAS_WolfETCallbacks()
+{
+	return wolfetCallbacks;
+}
+
 bool AAS_WolfETAreaCenter( int area, float *center )
 {
 	if ( area < 0 || area >= aasworld.numareas || !aasworld.areas || !center ) return false;
@@ -132,13 +144,14 @@ int AAS_WolfETAreaLadder( int area )
 	return aasworld.areasettings[area].areaflags & AREA_LADDER;
 }
 
-bool AAS_WolfETAreaWaypoint( int area, float * )
+bool AAS_WolfETAreaWaypoint( int area, float *center )
 {
-	/* ET stores one waypoint per area in its route table and answers false
-	 * whenever that table is absent. This engine builds no waypoint table, so
-	 * the honest answer is always the original's table-absent answer. */
-	(void)area;
-	return false;
+	// A cleared waypoint means the area produced none, which the original
+	// reports the same way: false, with the caller's vector untouched.
+	const float *waypoint = AAS_WolfETWaypoint( area );
+	if ( !waypoint || !center ) return false;
+	VectorCopy( waypoint, center );
+	return true;
 }
 
 void AAS_SetBlockingEntity( const float *mins, const float *maxs, int blocking )

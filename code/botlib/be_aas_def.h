@@ -323,6 +323,13 @@ struct aas_s
 	vec3_t *rtcwWaypoints;
 	int rtcwVisibilityArea;
 	qboolean rtcwRouteCacheLoaded;
+	// ET derives its own waypoints and visibility from the loaded world; the
+	// bit matrix is engine storage, never a module or file contract.
+	vec3_t *wolfetWaypoints;
+	unsigned short *wolfetDangerDistance;
+	byte *wolfetVisibility;
+	int wolfetVisibilityStride;
+	qboolean wolfetVisibilityBuilt;
 	aas_rtcw_tactical_node_t *rtcwTacticalNodes;
 	int rtcwTacticalCapacity;
 	uint64_t rtcwTacticalToken;

@@ -10,6 +10,7 @@
 #include "../botlib/be_ai_move.h"
 #include "../compat/wolfet_state_adapter.hpp"
 #include "../botlib/be_ai_weap.h"
+#include "../botlib/be_aas.h"
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -877,6 +878,69 @@ static bool SV_WolfETNavigationCall( const vm_t *vm, fntech3::wolfet::module::Ca
 		SV_RTCWInteger( args[3] );
 		result = 0;
 		return true;
+	case Call::BOTLIB_AAS_LISTAREASINRANGE: {
+		const int count = SV_RTCWInteger( args[6] );
+		if ( count <= 0 || count > FNTECH3_WOLFET_MAX_AAS_QUERY )
+			Com_Error( ERR_DROP, "Invalid WolfET area-range count" );
+		auto source = SV_RTCWVector( vm, args[1] );
+		auto *areas = static_cast<vec_t *>( SV_RTCWPointer( vm, args[5],
+			static_cast<std::size_t>( count ) * sizeof( vec3_t ) ) );
+		result = AAS_WolfETListAreasInRange( source.data(), SV_RTCWInteger( args[2] ),
+			SV_RTCWFloat( args[3] ), SV_RTCWInteger( args[4] ),
+			reinterpret_cast<vec3_t *>( areas ), count );
+		return true;
+	}
+	case Call::BOTLIB_AAS_AVOIDDANGERAREA: {
+		auto source = SV_RTCWVector( vm, args[1] );
+		auto danger = SV_RTCWVector( vm, args[3] );
+		result = AAS_WolfETAvoidDangerArea( source.data(), SV_RTCWInteger( args[2] ),
+			danger.data(), SV_RTCWInteger( args[4] ), SV_RTCWFloat( args[5] ),
+			SV_RTCWInteger( args[6] ) );
+		return true;
+	}
+	case Call::BOTLIB_AAS_ALTROUTEGOALS: {
+		const int count = SV_RTCWInteger( args[5] );
+		if ( count <= 0 || count > FNTECH3_WOLFET_MAX_AAS_QUERY )
+			Com_Error( ERR_DROP, "Invalid WolfET alternative route count" );
+		auto start = SV_RTCWVector( vm, args[1] );
+		auto goal = SV_RTCWVector( vm, args[2] );
+		auto *goals = static_cast<aas_altroutegoal_t *>( SV_RTCWPointer( vm, args[4],
+			static_cast<std::size_t>( count ) * sizeof( aas_altroutegoal_t ) ) );
+		// ET's sixth argument is a debug colour its release body never uses.
+		SV_RTCWInteger( args[6] );
+		static_assert( sizeof( aas_altroutegoal_t ) == 24,
+			"ET alternative route goal is a frozen 24-byte record" );
+		result = AAS_WolfETAlternativeRouteGoals( start.data(), goal.data(),
+			SV_RTCWInteger( args[3] ), goals, count );
+		return true;
+	}
+	case Call::BOTLIB_AAS_NEARESTHIDEAREA: {
+		auto origin = SV_RTCWVector( vm, args[2] );
+		auto enemy = SV_RTCWVector( vm, args[5] );
+		// The last argument is optional: without it there is no distance limit.
+		std::array<float, 3> reference{};
+		if ( args[9] ) reference = SV_RTCWVector( vm, args[9] );
+		result = AAS_WolfETNearestHideArea( SV_RTCWInteger( args[1] ), origin.data(),
+			SV_RTCWInteger( args[3] ), SV_RTCWInteger( args[4] ), enemy.data(),
+			SV_RTCWInteger( args[6] ), SV_RTCWInteger( args[7] ), SV_RTCWFloat( args[8] ),
+			args[9] ? reference.data() : nullptr );
+		if ( result < 0 ) Com_Error( ERR_DROP, "Invalid WolfET hide area" );
+		return true;
+	}
+	case Call::BOTLIB_AAS_RETREAT: {
+		const int spots = SV_RTCWInteger( args[2] );
+		if ( spots < 0 || spots > FNTECH3_WOLFET_MAX_AAS_QUERY )
+			Com_Error( ERR_DROP, "Invalid WolfET danger spot count" );
+		auto *list = spots ? static_cast<int *>( SV_RTCWPointer( vm, args[1],
+			static_cast<std::size_t>( spots ) * sizeof( int ) ) ) : nullptr;
+		auto source = SV_RTCWVector( vm, args[3] );
+		auto danger = SV_RTCWVector( vm, args[5] );
+		result = AAS_WolfETRetreat( list, spots, source.data(), SV_RTCWInteger( args[4] ),
+			danger.data(), SV_RTCWInteger( args[6] ), SV_RTCWFloat( args[7] ),
+			SV_RTCWFloat( args[8] ), SV_RTCWInteger( args[9] ) );
+		if ( result < 0 ) Com_Error( ERR_DROP, "Invalid WolfET retreat area" );
+		return true;
+	}
 	case Call::BOTLIB_AAS_RECORDTEAMDEATHAREA:
 		// The published body opens with an unconditional return; nothing is
 		// recorded in the shipped engine.

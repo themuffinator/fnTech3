@@ -1106,7 +1106,11 @@ static aas_routingcache_t *AAS_ReadCache(fileHandle_t fp)
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
+#include <vector>
+#include <cstddef>
 #include "rtcw_routecache_loader.hpp"
+#include "wolfet_navigation.h"
+#include "wolfet_visibility.hpp"
 
 static int AAS_ReadRouteCache(void)
 {
@@ -1293,6 +1297,8 @@ void AAS_InitRouting(void)
 	aasworld.max_routingcachesize = 1024 * (int) LibVarValue("max_routingcache", "12288");
 	// read any routing cache if available
 	AAS_ReadRouteCache();
+	// ET derives waypoints and visibility itself; it has no cache to read.
+	AAS_WolfETBuildVisibility();
 } //end of the function AAS_InitRouting
 //===========================================================================
 //
@@ -1312,6 +1318,7 @@ void AAS_FreeRoutingCaches(void)
 	aasworld.rtcwVisibilityData = nullptr;
 	if (aasworld.rtcwDecodedVisibility) FreeMemory(aasworld.rtcwDecodedVisibility);
 	aasworld.rtcwDecodedVisibility = nullptr;
+	AAS_WolfETFreeVisibility();
 	if (aasworld.rtcwWaypoints) FreeMemory(aasworld.rtcwWaypoints);
 	aasworld.rtcwWaypoints = nullptr;
 	aasworld.rtcwVisibilityArea = -1;
@@ -2382,6 +2389,8 @@ float DistancePointToLine(vec3_t v1, vec3_t v2, vec3_t point)
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
+#include "wolfet_routing.hpp"
+
 int AAS_NearestHideArea(int srcnum, vec3_t origin, int areanum, int enemynum, vec3_t enemyorigin, int enemyareanum, int travelflags)
 {
 	int i, j, nextareanum, badtravelflags, numreach, bestarea;

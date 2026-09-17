@@ -44,10 +44,10 @@ ET now has its own `AAS_WolfETSetBlockingEntity`; the RTCW body is untouched.
 directly, bounded by `numareas` and `numareasettings`. As in the original, an
 invalid area leaves the caller's vector untouched rather than writing zeros.
 
-**Area waypoint** returns false. ET publishes one waypoint per area only when
-its route table built one, and answers false when that table is absent; fnTech3
-builds no ET route table, so false is the original's own answer for this state,
-not an invention. The route cache loader is still gated to RTCW.
+**Area waypoint** returned false at this checkpoint, because fnTech3 had no
+waypoint table and false is the original's own answer for that state. The
+[visibility follow-up](2026-09-17-wolfet-visibility.md) derives the table and
+this query now answers from it.
 
 **Two route imports are inert in the shipped engine.** `AAS_RT_ShowRoute`'s
 entire body sits inside `#ifdef DEBUG`, and `AAS_RecordTeamDeathArea` opens with
@@ -88,24 +88,14 @@ blocking-entity import from this set, and it ships with `bot_enable 0`.
 
 ## Remaining gates
 
-Six imports stay refused because this engine does not produce what they return.
-Five of the six share a single missing prerequisite:
-
-| Import | What it needs |
-| --- | --- |
-| `BOTLIB_AAS_LISTAREASINRANGE` | A travel-time flood over `areaupdate` and `hidetraveltimes`, which are present, plus the per-area waypoints and visibility that are not. |
-| `BOTLIB_AAS_AVOIDDANGERAREA` | The same flood with ET's danger-distance scoring; reads the waypoints. |
-| `BOTLIB_AAS_RETREAT` | The same flood over a caller-supplied danger-spot list; reads the waypoints. |
-| `BOTLIB_AAS_NEARESTHIDEAREA` | The same flood, reading both the waypoints and the visibility. |
-| `BOTLIB_AAS_ALTROUTEGOALS` | Its own body, plus the waypoints. ET selects on `AREACONTENTS_ROUTEPORTAL` and `AREACONTENTS_CLUSTERPORTAL` with a `500 + 3.0 × goal` window and publishes each goal at the area's waypoint; the shared Quake function selects on cluster and view portals with a `1.1 × goal` window and has no waypoints, so a type argument cannot express it. |
-| `BOTLIB_AAS_PREDICT_CLIENT_MOVEMENT` | ET's `aas_clientmove_t` embeds a full `bsp_trace_t` with plane, surface and contents, taken from the bot library's world trace. This engine's prediction produces an `aas_trace_t`, which carries none of those. Filling them with zeros would report a surface the module could act on, so the import fails instead. |
-
-All five routing imports read `aasworld.areawaypoints`, and two also call
-`AAS_AreaVisible`, so they share one prerequisite: ET's route table. ET builds that table at runtime from the AAS data and
-caches it as `maps/<map>.rtb`, identified `XRTB` at version 17. fnTech3 loads
-RTCW's separate `.rcd` route cache (versions 15 and 12) and has no route-table
-builder or reader; that builder is the work those five imports wait on, and it
-is not started. The sixth, movement prediction, is independent of it.
+Six imports stayed refused at this checkpoint. The
+[visibility follow-up](2026-09-17-wolfet-visibility.md) then closed five of
+them by deriving ET's waypoints and area visibility from the loaded navigation
+world rather than from the route table this record blamed, and corrects the
+attribution below. Only `BOTLIB_AAS_PREDICT_CLIENT_MOVEMENT` remains: ET's
+`aas_clientmove_t` embeds a full world trace with a plane, a surface and
+contents, which this engine's prediction does not produce, and zeros there
+would report a surface a module could act on.
 
 Everything else in the [ET matrix](COMPATIBILITY.md#wolfet-gate-matrix) remains
 as recorded, including the gated ET client.
@@ -114,4 +104,6 @@ as recorded, including the gated ET client.
 
 None new. The blocking-entity divergence described above is an ET defect, not a
 finding in another profile: RTCW's own body is unchanged and still selects its
-single-player and multiplayer sentinels as before.
+single-player and multiplayer sentinels as before. This record's attribution of
+the five routing imports to a missing route table was itself wrong; see the
+visibility follow-up.

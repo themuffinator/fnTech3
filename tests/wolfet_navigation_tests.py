@@ -120,8 +120,8 @@ class WolfETNavigationTests(unittest.TestCase):
         begin = text.index('bool AAS_WolfETAreaWaypoint(')
         self.assertIn('return false;', text[begin:text.index('\n}\n', begin)])
 
-    def test_coverage_only_leaves_navigation_work(self):
-        """Every remaining open import needs engine navigation data we lack."""
+    def test_coverage_only_leaves_the_prediction_trace(self):
+        """The only open import is the one needing a world trace we do not make."""
         declared = re.findall(
             r'FNTECH3_WOLFET_MODULE_CALL\(GAME, IMPORT, (\w+), \d+\)',
             _source('code/compat/wolfet_module_calls.def'))
@@ -144,13 +144,10 @@ RETAIL_REFUSES = (
     'BOTLIB_AI_ADD_AVOID_SPOT', 'BOTLIB_AI_SET_AVOID_GOAL_TIME',
 )
 
-# Imports that need navigation data or engine results this build does not
-# produce; see docs/fntech3/2026-09-17-wolfet-navigation.md.
-NAVIGATION_RESIDUAL = (
-    'BOTLIB_AAS_ALTROUTEGOALS', 'BOTLIB_AAS_AVOIDDANGERAREA',
-    'BOTLIB_AAS_LISTAREASINRANGE', 'BOTLIB_AAS_NEARESTHIDEAREA',
-    'BOTLIB_AAS_PREDICT_CLIENT_MOVEMENT', 'BOTLIB_AAS_RETREAT',
-)
+# The one import still refused: ET's movement prediction reports a full world
+# trace this engine's prediction does not produce. See
+# docs/fntech3/2026-09-17-wolfet-visibility.md.
+NAVIGATION_RESIDUAL = ('BOTLIB_AAS_PREDICT_CLIENT_MOVEMENT',)
 
 
 if __name__ == '__main__':
