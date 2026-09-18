@@ -22,6 +22,16 @@ static_assert( Netchan_SelectWireProfile( 60, 1 ) == NETCHAN_WIRE_RTCW_MP );
 static_assert( Netchan_WireFeatures( NETCHAN_WIRE_RTCW_SP ) == NETCHAN_FEATURE_CLIENT_QPORT );
 static_assert( Netchan_WireFeatures( NETCHAN_WIRE_RTCW_MP ) ==
 	( NETCHAN_FEATURE_CLIENT_QPORT | NETCHAN_FEATURE_RELIABLE_XOR ) );
+// Elite Force: Holomatch scrambles packets and sends raw bits with neither
+// checksum nor XOR; single player stays on loopback with only the qport.
+static_assert( Netchan_SelectWireProfile( 24, 0 ) == NETCHAN_WIRE_STVEF_HM );
+static_assert( Netchan_SelectWireProfile( 24, 1 ) == NETCHAN_WIRE_STVEF_HM );
+static_assert( Netchan_SelectWireProfile( 40, 1 ) == NETCHAN_WIRE_STVEF_SP );
+static_assert( Netchan_WireFeatures( NETCHAN_WIRE_STVEF_HM ) == ( NETCHAN_FEATURE_CLIENT_QPORT |
+	NETCHAN_FEATURE_PACKET_SCRAMBLE | NETCHAN_FEATURE_RAW_MESSAGES ) );
+static_assert( Netchan_WireFeatures( NETCHAN_WIRE_STVEF_SP ) == NETCHAN_FEATURE_CLIENT_QPORT );
+static_assert( Netchan_MessageLimit( NETCHAN_WIRE_STVEF_HM ) == 16384 );
+static_assert( Netchan_ReliableCommandLimit( NETCHAN_WIRE_STVEF_HM ) == 64 );
 static_assert( Netchan_SelectWireProfile( NETCHAN_QL_RETAIL_PROTOCOL_VERSION, 0 ) ==
 	NETCHAN_WIRE_QL_RETAIL );
 static_assert( Netchan_SelectWireProfile( NETCHAN_QL_RETAIL_PROTOCOL_VERSION, 1 ) ==

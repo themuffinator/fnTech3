@@ -22,6 +22,21 @@ static_assert( !RtcwSinglePlayer.Has( Capability::SequenceChecksum ) );
 static_assert( !RtcwMultiplayer.Has( Capability::SequenceChecksum ) );
 static_assert( RtcwLimits.reliableCommands == 256 && RtcwLimits.messageBytes == 32768 );
 static_assert( RtcwLimits.downloadWindow == 8 && RtcwLimits.downloadBlockBytes == 2048 );
+static_assert( Find( 24 ) == &STVEFHolomatch && Find( 24, true ) == &STVEFHolomatch );
+static_assert( Find( 40 ) == &STVEFSinglePlayer );
+static_assert( TryForWireProfile( NETCHAN_WIRE_STVEF_HM ) == &STVEFHolomatch );
+static_assert( TryForWireProfile( NETCHAN_WIRE_STVEF_SP ) == &STVEFSinglePlayer );
+static_assert( STVEFHolomatch.gameMessageLayout == GameMessageLayout::STVEFHolomatch );
+static_assert( STVEFHolomatch.Has( Capability::PacketScramble ) &&
+	STVEFHolomatch.Has( Capability::RawMessages ) );
+static_assert( !STVEFHolomatch.Has( Capability::ReliableXor ) &&
+	!STVEFHolomatch.Has( Capability::SequenceChecksum ) &&
+	!STVEFHolomatch.Has( Capability::CompressedConnect ) );
+static_assert( STVEFHolomatch.limits.downloadWindow == 8 &&
+	STVEFHolomatch.limits.downloadBlockBytes == 2048 );
+static_assert( STVEFHolomatch.limits.reliableCommands == 64 &&
+	STVEFHolomatch.limits.messageBytes == 16384 );
+static_assert( !STVEFSinglePlayer.Has( Capability::PacketScramble ) );
 static_assert( Find( 999 ) == nullptr );
 static_assert( Find( 71, true ) == &Ioquake3 );
 static_assert( Find( 999, true ) == &LegacyQuake3 );

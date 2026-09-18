@@ -69,6 +69,7 @@ typedef struct {
 	qboolean	overflowed;		// set to true if the buffer size failed (with allowoverflow set)
 	qboolean	oob;			// raw out-of-band operation, no static huffman encoding/decoding
 	qboolean	rawbit;			// raw bitstream operation, no static huffman but keeps bit packing
+	qboolean	alignSkipsByte;	// Elite Force raw bits: data and strings after a partial byte start one byte later
 	byte	*data;
 	int		maxsize;
 	int		maxbits;			// maxsize in bits, for overflow checks
@@ -83,6 +84,7 @@ void MSG_Clear( msg_t *buf );
 void MSG_WriteData( msg_t *buf, const void *data, int length );
 void MSG_Bitstream( msg_t *buf );
 void MSG_RawBitstream( msg_t *buf );
+void MSG_STVEFBitstream( msg_t *buf );
 void MSG_Uncompressed( msg_t *buf );
 
 // TTimo

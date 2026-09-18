@@ -1217,6 +1217,7 @@ typedef struct {
 // so if a playerState_t is transmitted, the entityState_t can be fully derived
 // from it.
 #include "rtcw_state.h"
+#include "stvef_state.h"
 
 typedef struct playerState_s {
 	int			commandTime;	// cmd->serverTime of last executed command
@@ -1305,6 +1306,7 @@ typedef struct playerState_s {
 	int			armorTier;		// retail Quake Live tiered armor state: 0=green, 1=yellow, 2=red
 	rtcwPlayerStateExtension_t rtcw;
 	struct { int nextWeapon, identifyClientHealth; } wolfet;
+	stvefPlayerStateExtension_t stvef;
 } playerState_t;
 
 
@@ -1440,6 +1442,7 @@ typedef struct entityState_s {
 	int		doubleJumped;
 	rtcwEntityStateExtension_t rtcw;
 	struct { int nextWeapon; } wolfet;
+	stvefEntityStateExtension_t stvef;
 } entityState_t;
 
 typedef enum {

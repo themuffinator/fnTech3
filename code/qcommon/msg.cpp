@@ -27,6 +27,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../compat/wolfet_message_codec.hpp"
 #include "../compat/wolfet_state_adapter.hpp"
 #include "../compat/rtcw_state_adapter.hpp"
+#include "../compat/stvef_message_codec.hpp"
+#include "../compat/stvef_state_adapter.hpp"
 
 #include <algorithm>
 #include <cstddef>
@@ -100,6 +102,42 @@ static int MSG_ReadBits( msg_t *msg, int bits );
 
 namespace {
 
+// Byte alignment for Elite Force data and strings (MSG_STVEFBitstream). The
+// writer clears the unused bits and the skipped byte so its output is
+// reproducible; retail leaves whatever the buffer held, which no reader uses.
+void MSG_AlignWrite( msg_t *msg ) noexcept {
+	if ( !msg || !msg->rawbit || !msg->alignSkipsByte || !( msg->bit & 7 ) ) {
+		return;
+	}
+	if ( !MSG_ValidStorage( msg ) || msg->overflowed || msg->bit < 0 ) {
+		MSG_SetOverflow( msg );
+		return;
+	}
+	const int partial = msg->bit >> 3;
+	const long long aligned = ( static_cast<long long>( partial ) + 2 ) * 8;
+	if ( aligned > msg->maxbits ) {
+		MSG_SetOverflow( msg );
+		return;
+	}
+	msg->data[partial] &= static_cast<byte>( ( 1u << ( msg->bit & 7 ) ) - 1u );
+	msg->data[partial + 1] = 0;
+	msg->bit = static_cast<int>( aligned );
+	msg->cursize = msg->bit >> 3;
+}
+
+void MSG_AlignRead( msg_t *msg ) noexcept {
+	if ( !msg || !msg->rawbit || !msg->alignSkipsByte || !( msg->bit & 7 ) ) {
+		return;
+	}
+	const long long aligned = ( static_cast<long long>( msg->bit >> 3 ) + 2 ) * 8;
+	if ( msg->bit < 0 || aligned > MSG_ReadBitLimit( msg ) ) {
+		MSG_SetReadPastEnd( msg );
+		return;
+	}
+	msg->bit = static_cast<int>( aligned );
+	msg->readcount = msg->bit >> 3;
+}
+
 class RTCWMessageWriter {
 	msg_t *msg;
 public:
@@ -135,6 +173,10 @@ bool MSG_IsRTCWWireProfile( netchanWireProfile_t profile ) {
 	return profile == NETCHAN_WIRE_RTCW_SP || profile == NETCHAN_WIRE_RTCW_MP;
 }
 
+bool MSG_IsSTVEFWireProfile( netchanWireProfile_t profile ) {
+	return profile == NETCHAN_WIRE_STVEF_HM || profile == NETCHAN_WIRE_STVEF_SP;
+}
+
 template<class External, class Internal, class Write>
 qboolean MSG_WriteRTCWCanonical( msg_t *msg, const Internal *from, const Internal *to, Write write ) {
 	External baseline{}, sent{};
@@ -152,6 +194,29 @@ qboolean MSG_ReadRTCWCanonical( msg_t *msg, const Internal *from, Internal *to, 
 	if ( !to || ( from && !fntech3::rtcw::state::FromInternal( *from, baseline ) ) ||
 		!read( from ? &baseline : nullptr, &decoded ) ||
 		!fntech3::rtcw::state::ToInternal( decoded, *to ) ) {
+		MSG_SetReadPastEnd( msg );
+		return qfalse;
+	}
+	return qtrue;
+}
+
+template<class External, class Internal, class Write>
+qboolean MSG_WriteSTVEFCanonical( msg_t *msg, const Internal *from, const Internal *to, Write write ) {
+	External baseline{}, sent{};
+	if ( ( from && !fntech3::stvef::state::FromInternal( *from, baseline ) ) ||
+		( to && !fntech3::stvef::state::FromInternal( *to, sent ) ) ) {
+		MSG_SetOverflow( msg );
+		return qfalse;
+	}
+	return write( from ? &baseline : nullptr, to ? &sent : nullptr );
+}
+
+template<class External, class Internal, class Read>
+qboolean MSG_ReadSTVEFCanonical( msg_t *msg, const Internal *from, Internal *to, Read read ) {
+	External baseline{}, decoded{};
+	if ( !to || ( from && !fntech3::stvef::state::FromInternal( *from, baseline ) ) ||
+		!read( from ? &baseline : nullptr, &decoded ) ||
+		!fntech3::stvef::state::ToInternal( decoded, *to ) ) {
 		MSG_SetReadPastEnd( msg );
 		return qfalse;
 	}
@@ -333,6 +398,7 @@ void MSG_Bitstream( msg_t *buf ) {
 	}
 	buf->oob = qfalse;
 	buf->rawbit = qfalse;
+	buf->alignSkipsByte = qfalse;
 }
 
 
@@ -346,6 +412,7 @@ void MSG_Uncompressed( msg_t *buf ) {
 	buf->bit = ( buf->bit + 7 ) & ~7;
 	buf->oob = qtrue;
 	buf->rawbit = qfalse;
+	buf->alignSkipsByte = qfalse;
 }
 
 
@@ -355,6 +422,21 @@ void MSG_RawBitstream( msg_t *buf ) {
 	}
 	buf->oob = qfalse;
 	buf->rawbit = qtrue;
+	buf->alignSkipsByte = qfalse;
+}
+
+
+// Elite Force Holomatch (retail protocol 24) packs every game message as raw
+// LSB-first bits. Its byte-aligned data and strings do not round up to the
+// next byte: when the stream is inside a byte, they begin one byte after it
+// (stvoyHM.exe MSG_WriteData 0x422b10 and MSG_ReadString 0x423250).
+void MSG_STVEFBitstream( msg_t *buf ) {
+	if ( !buf ) {
+		return;
+	}
+	buf->oob = qfalse;
+	buf->rawbit = qtrue;
+	buf->alignSkipsByte = qtrue;
 }
 
 
@@ -366,6 +448,7 @@ void MSG_BeginReading( msg_t *msg ) {
 	msg->bit = 0;
 	msg->oob = qfalse;
 	msg->rawbit = qfalse;
+	msg->alignSkipsByte = qfalse;
 }
 
 
@@ -377,6 +460,7 @@ void MSG_BeginReadingOOB( msg_t *msg ) {
 	msg->bit = 0;
 	msg->oob = qtrue;
 	msg->rawbit = qfalse;
+	msg->alignSkipsByte = qfalse;
 }
 
 
@@ -471,6 +555,11 @@ void MSG_WriteBits( msg_t *msg, int value, int bits ) {
 			return;
 		}
 		for ( i = 0; i < nbits; i++ ) {
+			// Start each byte clear, as retail Elite Force does, so the
+			// unused tail of the final byte is zero rather than stale.
+			if ( ( bitIndex & 7 ) == 0 ) {
+				msg->data[ bitIndex >> 3 ] = 0;
+			}
 			if ( encodedValue & ( 1u << i ) ) {
 				msg->data[ bitIndex >> 3 ] |= 1u << ( bitIndex & 7 );
 			} else {
@@ -665,6 +754,7 @@ void MSG_WriteData( msg_t *buf, const void *data, int length ) {
 		MSG_SetOverflow( buf );
 		return;
 	}
+	MSG_AlignWrite( buf );
 
 	const auto *bytes = static_cast<const byte *>( data );
 	for ( int i = 0; i < length; ++i ) {
@@ -698,6 +788,7 @@ void MSG_WriteString( msg_t *sb, const char *s ) {
 	int l, i;
 	char v;
 
+	MSG_AlignWrite( sb );
 	l = s ? strlen( s ) : 0;
 	if ( l >= MAX_STRING_CHARS ) {
 		Com_Printf( "MSG_WriteString: MAX_STRING_CHARS\n" );
@@ -720,6 +811,7 @@ void MSG_WriteBigString( msg_t *sb, const char *s ) {
 	int l, i;
 	char v;
 
+	MSG_AlignWrite( sb );
 	l = s ? strlen( s ) : 0;
 	if ( l >= BIG_INFO_STRING ) {
 		Com_Printf( "MSG_WriteBigString: BIG_INFO_STRING\n" );
@@ -741,6 +833,7 @@ void MSG_WriteBigString( msg_t *sb, const char *s ) {
 
 static void MSG_WriteRetailString( msg_t *sb, const char *s,
 	std::size_t capacity, const char *overflowMessage ) {
+	MSG_AlignWrite( sb );
 	const std::size_t length = s ? std::strlen( s ) : 0;
 	if ( length >= capacity ) {
 		Com_Printf( "%s\n", overflowMessage );
@@ -751,6 +844,7 @@ static void MSG_WriteRetailString( msg_t *sb, const char *s,
 }
 
 static void MSG_WriteRTCWString( msg_t *msg, const char *text, std::size_t capacity ) {
+	MSG_AlignWrite( msg );
 	const std::size_t length = text ? std::strlen( text ) : 0;
 	if ( length >= capacity ) {
 		Com_Printf( "MSG_WriteString: RTCW string exceeds capacity\n" );
@@ -767,6 +861,12 @@ static void MSG_WriteRTCWString( msg_t *msg, const char *text, std::size_t capac
 
 void MSG_WriteStringForWireProfile( msg_t *sb, const char *s,
 	netchanWireProfile_t profile ) {
+	if ( MSG_IsSTVEFWireProfile( profile ) ) {
+		// Retail Elite Force writes strings unfiltered.
+		MSG_WriteRetailString( sb, s, MAX_STRING_CHARS,
+			"MSG_WriteString: MAX_STRING_CHARS" );
+		return;
+	}
 	if ( MSG_IsRTCWWireProfile( profile ) ) {
 		MSG_WriteRTCWString( sb, s, MAX_STRING_CHARS );
 		return;
@@ -782,6 +882,11 @@ void MSG_WriteStringForWireProfile( msg_t *sb, const char *s,
 
 void MSG_WriteBigStringForWireProfile( msg_t *sb, const char *s,
 	netchanWireProfile_t profile ) {
+	if ( MSG_IsSTVEFWireProfile( profile ) ) {
+		MSG_WriteRetailString( sb, s, BIG_INFO_STRING,
+			"MSG_WriteString: BIG_INFO_STRING" );
+		return;
+	}
 	if ( MSG_IsRTCWWireProfile( profile ) ) {
 		MSG_WriteRTCWString( sb, s, BIG_INFO_STRING );
 		return;
@@ -869,6 +974,7 @@ static const char *MSG_ReadStringInto( msg_t *msg, char *string,
 	std::size_t capacity, bool preserveHighBytes, bool sanitizePercent,
 	bool stopAtNewline ) {
 	std::size_t l = 0;
+	MSG_AlignRead( msg );
 	do {
 		int c;
 		c = MSG_ReadByte( msg ); // use ReadByte so -1 is out of bounds
@@ -903,7 +1009,8 @@ const char *MSG_ReadStringForWireProfile( msg_t *msg,
 	netchanWireProfile_t profile ) {
 	static char string[MAX_STRING_CHARS];
 	return MSG_ReadStringInto( msg, string, sizeof( string ),
-		profile == NETCHAN_WIRE_QL_RETAIL, true, false );
+		profile == NETCHAN_WIRE_QL_RETAIL || MSG_IsSTVEFWireProfile( profile ),
+		true, false );
 }
 
 
@@ -911,8 +1018,9 @@ const char *MSG_ReadCommandStringForWireProfile( msg_t *msg,
 	netchanWireProfile_t profile ) {
 	static char string[MAX_STRING_CHARS];
 	const bool retail = profile == NETCHAN_WIRE_QL_RETAIL;
+	// Retail Elite Force keeps high bytes but still turns '%' into '.'.
 	return MSG_ReadStringInto( msg, string, sizeof( string ),
-		retail, !retail, false );
+		retail || MSG_IsSTVEFWireProfile( profile ), !retail, false );
 }
 
 
@@ -927,7 +1035,8 @@ const char *MSG_ReadBigStringForWireProfile( msg_t *msg,
 	netchanWireProfile_t profile ) {
 	static char string[BIG_INFO_STRING];
 	return MSG_ReadStringInto( msg, string, sizeof( string ),
-		profile == NETCHAN_WIRE_QL_RETAIL || MSG_IsRTCWWireProfile( profile ), true, false );
+		profile == NETCHAN_WIRE_QL_RETAIL || MSG_IsRTCWWireProfile( profile ) ||
+		MSG_IsSTVEFWireProfile( profile ), true, false );
 }
 
 
@@ -948,6 +1057,7 @@ void MSG_ReadData( msg_t *msg, void *data, int len ) {
 		MSG_SetReadPastEnd( msg );
 		return;
 	}
+	MSG_AlignRead( msg );
 
 	auto *bytes = static_cast<byte *>( data );
 	for ( int i = 0; i < len; ++i ) {
@@ -1096,6 +1206,17 @@ MSG_WriteDeltaUsercmdKeyForWireProfile
 qboolean MSG_WriteDeltaUsercmdKeyForWireProfile( msg_t *msg, int key,
 	const usercmd_t *from, const usercmd_t *to,
 	netchanWireProfile_t profile ) {
+	if ( profile == NETCHAN_WIRE_STVEF_HM ) {
+		// Holomatch commands carry no key.
+		return MSG_WriteSTVEFCanonical<fntech3_stvef_mp_usercmd_t>( msg, from, to,
+			[&]( const auto *base, const auto *sent ) {
+				RTCWMessageWriter io( msg );
+				return fntech3::stvef::message::WriteCommand( io, base, sent ) ? qtrue : qfalse;
+			} );
+	}
+	if ( profile == NETCHAN_WIRE_STVEF_SP ) {
+		return qfalse;
+	}
 	if (profile == NETCHAN_WIRE_WOLFET) {
 		return MSG_WriteWolfETCanonical<fntech3_wolfet_usercmd_t>(msg, from, to,
 			[&](const auto *base, const auto *result) {
@@ -1168,6 +1289,16 @@ MSG_ReadDeltaUsercmdKeyForWireProfile
 */
 qboolean MSG_ReadDeltaUsercmdKeyForWireProfile( msg_t *msg, int key,
 	const usercmd_t *from, usercmd_t *to, netchanWireProfile_t profile ) {
+	if ( profile == NETCHAN_WIRE_STVEF_HM ) {
+		return MSG_ReadSTVEFCanonical<fntech3_stvef_mp_usercmd_t>( msg, from, to,
+			[&]( const auto *base, auto *decoded ) {
+				RTCWMessageReader io( msg );
+				return fntech3::stvef::message::ReadCommand( io, base, decoded );
+			} );
+	}
+	if ( profile == NETCHAN_WIRE_STVEF_SP ) {
+		return qfalse;
+	}
 	if (profile == NETCHAN_WIRE_WOLFET) {
 		return MSG_ReadWolfETCanonical<fntech3_wolfet_usercmd_t>(msg, from, to,
 			[&](const auto *base, auto *result) {
@@ -1695,6 +1826,16 @@ identical, under the assumption that the in-order delta code will catch it.
 qboolean MSG_WriteDeltaEntityForWireProfile( msg_t *msg,
 	const entityState_t *from, const entityState_t *to, qboolean force,
 	netchanWireProfile_t profile ) {
+	if ( profile == NETCHAN_WIRE_STVEF_HM ) {
+		return MSG_WriteSTVEFCanonical<fntech3_stvef_mp_entityState_t>( msg, from, to,
+			[&]( const auto *base, const auto *sent ) {
+				RTCWMessageWriter io( msg );
+				return fntech3::stvef::message::WriteEntity( io, base, sent, force != qfalse ) ? qtrue : qfalse;
+			} );
+	}
+	if ( profile == NETCHAN_WIRE_STVEF_SP ) {
+		return qfalse;
+	}
 	if (profile == NETCHAN_WIRE_WOLFET) {
 		return MSG_WriteWolfETCanonical<fntech3_wolfet_entityState_t>(msg, from, to,
 			[&](const auto *base, const auto *result) {
@@ -1836,6 +1977,16 @@ Can go from either a baseline or a previous packet_entity
 qboolean MSG_ReadDeltaEntityForWireProfile( msg_t *msg,
 	const entityState_t *from, entityState_t *to, int number,
 	netchanWireProfile_t profile ) {
+	if ( profile == NETCHAN_WIRE_STVEF_HM ) {
+		return MSG_ReadSTVEFCanonical<fntech3_stvef_mp_entityState_t>( msg, from, to,
+			[&]( const auto *base, auto *decoded ) {
+				RTCWMessageReader io( msg );
+				return fntech3::stvef::message::ReadEntity( io, base, decoded, number );
+			} );
+	}
+	if ( profile == NETCHAN_WIRE_STVEF_SP ) {
+		return qfalse;
+	}
 	if (profile == NETCHAN_WIRE_WOLFET) {
 		return MSG_ReadWolfETCanonical<fntech3_wolfet_entityState_t>(msg, from, to,
 			[&](const auto *base, auto *result) {
@@ -2489,6 +2640,16 @@ MSG_WriteDeltaPlayerstate
 qboolean MSG_WriteDeltaPlayerstateForWireProfile( msg_t *msg,
 	const playerState_t *from, const playerState_t *to,
 	netchanWireProfile_t profile ) {
+	if ( profile == NETCHAN_WIRE_STVEF_HM ) {
+		return MSG_WriteSTVEFCanonical<fntech3_stvef_mp_playerState_t>( msg, from, to,
+			[&]( const auto *base, const auto *sent ) {
+				RTCWMessageWriter io( msg );
+				return fntech3::stvef::message::WritePlayer( io, base, sent ) ? qtrue : qfalse;
+			} );
+	}
+	if ( profile == NETCHAN_WIRE_STVEF_SP ) {
+		return qfalse;
+	}
 	if (profile == NETCHAN_WIRE_WOLFET) {
 		return MSG_WriteWolfETCanonical<fntech3_wolfet_playerState_t>(msg, from, to,
 			[&](const auto *base, const auto *result) {
@@ -2668,6 +2829,16 @@ MSG_ReadDeltaPlayerstate
 qboolean MSG_ReadDeltaPlayerstateForWireProfile( msg_t *msg,
 	const playerState_t *from, playerState_t *to,
 	netchanWireProfile_t profile ) {
+	if ( profile == NETCHAN_WIRE_STVEF_HM ) {
+		return MSG_ReadSTVEFCanonical<fntech3_stvef_mp_playerState_t>( msg, from, to,
+			[&]( const auto *base, auto *decoded ) {
+				RTCWMessageReader io( msg );
+				return fntech3::stvef::message::ReadPlayer( io, base, decoded );
+			} );
+	}
+	if ( profile == NETCHAN_WIRE_STVEF_SP ) {
+		return qfalse;
+	}
 	if (profile == NETCHAN_WIRE_WOLFET) {
 		return MSG_ReadWolfETCanonical<fntech3_wolfet_playerState_t>(msg, from, to,
 			[&](const auto *base, auto *result) {

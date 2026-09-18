@@ -1210,6 +1210,13 @@ stvef_mp3_frames_tests = executable('fntech3_stvef_mp3_frames_tests',
 )
 test('fntech3_stvef_mp3_frames', stvef_mp3_frames_tests)
 
+stvef_abi_layout_tests = executable('fntech3_stvef_abi_layout_tests',
+  'tests/stvef_abi_layout_tests.cpp',
+  include_directories: include_directories('code/qcommon', 'code/compat'),
+  cpp_args: common_cpp_args,
+)
+test('fntech3_stvef_abi_layouts', stvef_abi_layout_tests)
+
 wolfet_client_boundary_tests = executable('fntech3_wolfet_client_boundary_tests',
   'tests/wolfet_client_boundary_tests.cpp',
   include_directories: include_directories('code/qcommon', 'code/compat', 'code/client'),
@@ -1422,6 +1429,17 @@ message_codec_tests = executable('fnql_message_codec_tests',
   cpp_args: common_cpp_args + ['-DDEDICATED'],
 )
 test('fnql_message_codec', message_codec_tests)
+
+# Not a test: decodes retail Elite Force demos from a user installation
+# through scripts/probe_stvef_demos.py.
+stvef_demo_probe = executable('fntech3_stvef_demo_probe',
+  'tests/fixtures/stvef_demo_probe.cpp',
+  'code/qcommon/msg.cpp',
+  'code/qcommon/huffman_static.c',
+  include_directories: include_directories('code/qcommon'),
+  c_args: common_c_args + ['-DDEDICATED'],
+  cpp_args: common_cpp_args + ['-DDEDICATED'],
+)
 
 protocol_layout_tests = executable('fnql_protocol_layout_tests',
   'tests/protocol_layout_tests.cpp',

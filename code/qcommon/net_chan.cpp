@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "qcommon.h"
 #include "net_address.hpp"
 #include "netchan_safety.hpp"
+#include "stvef_netchan.hpp"
 
 #include <algorithm>
 #include <cstddef>
@@ -83,6 +84,20 @@ constexpr std::uint32_t FragmentBit = 1u << 31;
 void ReportInvalidPacket( const char *operation, int length ) {
 	Com_Printf( S_COLOR_YELLOW "%s: rejected invalid packet length %d\n",
 		operation, length );
+}
+
+// Elite Force Holomatch obscures every sequenced datagram once its header and
+// payload are complete (stvef_netchan.hpp).
+void ScrambleForWire( const netchan_t *chan, msg_t *send ) {
+	if ( !Netchan_WireHasFeature( chan->wireProfile,
+		NETCHAN_FEATURE_PACKET_SCRAMBLE ) ) {
+		return;
+	}
+	if ( send->cursize < 0 || !fntech3::stvef::netchan::Scramble(
+		send->data, static_cast<std::size_t>( send->cursize ) ) ) {
+		Com_Error( ERR_DROP, "%s: packet of %d bytes exceeds MAX_PACKETLEN",
+			__func__, send->cursize );
+	}
 }
 
 } // namespace
@@ -188,6 +203,7 @@ void Netchan_TransmitNextFragment( netchan_t *chan ) {
 	MSG_WriteShort( &send, chan->unsentFragmentStart );
 	MSG_WriteShort( &send, fragmentLength );
 	MSG_WriteData( &send, chan->unsentBuffer + chan->unsentFragmentStart, fragmentLength );
+	ScrambleForWire( chan, &send );
 
 	// send the datagram
 	NET_SendPacket( chan->sock, send.cursize, send.data, &chan->remoteAddress );
@@ -255,6 +271,7 @@ static void Netchan_EnqueueFragments( const netchan_t *chan, const int length, c
 		MSG_WriteShort( &send, unsentFragmentStart );
 		MSG_WriteShort( &send, fragmentLength );
 		MSG_WriteData( &send, data + unsentFragmentStart, fragmentLength );
+		ScrambleForWire( chan, &send );
 
 		// enqueue the datagram
 		NET_QueuePacket( chan->sock, send.cursize, send.data, &chan->remoteAddress, 0 /*offset*/ );
@@ -323,6 +340,7 @@ void Netchan_Transmit( netchan_t *chan, int length, const byte *data ) {
 	chan->outgoingSequence = fnql::net::NextSequence( chan->outgoingSequence );
 
 	MSG_WriteData( &send, data, length );
+	ScrambleForWire( chan, &send );
 
 	// send the datagram
 	NET_SendPacket( chan->sock, send.cursize, send.data, &chan->remoteAddress );
@@ -381,6 +399,7 @@ void Netchan_Enqueue( netchan_t *chan, int length, const byte *data ) {
 			chan->outgoingSequence ) );
 
 	MSG_WriteData( &send, data, length );
+	ScrambleForWire( chan, &send );
 
 	// enqueue the datagram
 	NET_QueuePacket( chan->sock, send.cursize, send.data, &chan->remoteAddress, 0 /*offset*/ );
@@ -415,8 +434,13 @@ qboolean Netchan_Process( netchan_t *chan, msg_t *msg ) {
 		return qfalse;
 	}
 
-	// XOR unscramble all data in the packet after the header
-//	Netchan_UnScramblePacket( msg );
+	// Holomatch packets are restored before anything past the sequence is read.
+	if ( Netchan_WireHasFeature( chan->wireProfile,
+		NETCHAN_FEATURE_PACKET_SCRAMBLE ) &&
+		!fntech3::stvef::netchan::Unscramble( msg->data,
+			static_cast<std::size_t>( msg->cursize ) ) ) {
+		return qfalse;
+	}
 
 	// get sequence numbers		
 	MSG_BeginReadingOOB( msg );

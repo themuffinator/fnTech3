@@ -33,7 +33,9 @@ enum class Family : std::uint8_t {
 	QuakeLive,
 	RtcwSinglePlayer,
 	RtcwMultiplayer,
-	WolfET
+	WolfET,
+	STVEFHolomatch,
+	STVEFSinglePlayer
 };
 
 /*
@@ -47,7 +49,9 @@ enum class GameMessageLayout : std::uint8_t {
 	QuakeLive,
 	RtcwSinglePlayer,
 	RtcwMultiplayer,
-	WolfET
+	WolfET,
+	STVEFHolomatch,
+	STVEFSinglePlayer
 };
 
 enum class Capability : std::uint32_t {
@@ -57,7 +61,9 @@ enum class Capability : std::uint32_t {
 	CompressedConnect = 1u << 3,
 	PlatformAuthentication = 1u << 4,
 	WorkshopContent = 1u << 5,
-	RetailClientsMayJoin = 1u << 6
+	RetailClientsMayJoin = 1u << 6,
+	PacketScramble = 1u << 7,
+	RawMessages = 1u << 8
 };
 
 [[nodiscard]] constexpr std::uint32_t Bit( Capability capability ) noexcept {
@@ -210,8 +216,35 @@ inline constexpr Contract WolfET{
 	{1400u, 32768u, 8u, 2048u, 256u, 32u}
 };
 
+// Retail stvoyHM.exe 1.20: 16 KB messages, 64 reliable commands, 32 packet
+// backups, and 2 KB download blocks in a window of eight
+// (SV_WriteDownloadToClient 0x430060), as in the Quake III engine of its era.
+inline constexpr Contract STVEFHolomatch{
+	Family::STVEFHolomatch, NETCHAN_STVEF_HM_PROTOCOL_VERSION,
+	NETCHAN_STVEF_HM_PROTOCOL_VERSION, NETCHAN_WIRE_STVEF_HM,
+	GameMessageLayout::STVEFHolomatch,
+	Bit( Capability::ClientQport ) | Bit( Capability::PacketScramble ) |
+		Bit( Capability::RawMessages ) | Bit( Capability::RetailClientsMayJoin ),
+	QuakeCommands, QuakeInfoKeys,
+	{ 1'400u, Netchan_MessageLimit( NETCHAN_WIRE_STVEF_HM ), 8u, 2'048u,
+		Netchan_ReliableCommandLimit( NETCHAN_WIRE_STVEF_HM ), 32u }
+};
+
+// Single player never leaves the loopback channel.
+inline constexpr Contract STVEFSinglePlayer{
+	Family::STVEFSinglePlayer, NETCHAN_STVEF_SP_PROTOCOL_VERSION,
+	NETCHAN_STVEF_SP_PROTOCOL_VERSION, NETCHAN_WIRE_STVEF_SP,
+	GameMessageLayout::STVEFSinglePlayer,
+	Bit( Capability::ClientQport ),
+	QuakeCommands, QuakeInfoKeys,
+	{ 1'400u, Netchan_MessageLimit( NETCHAN_WIRE_STVEF_SP ), 8u, 1'024u,
+		Netchan_ReliableCommandLimit( NETCHAN_WIRE_STVEF_SP ), 32u }
+};
+
 [[nodiscard]] constexpr const Contract *Find( int protocol,
 	bool legacyCompatibility = false ) noexcept {
+	if ( protocol == STVEFHolomatch.protocol ) return &STVEFHolomatch;
+	if ( protocol == STVEFSinglePlayer.protocol ) return &STVEFSinglePlayer;
 	if ( protocol == RtcwSinglePlayer.protocol ) return &RtcwSinglePlayer;
 	if ( protocol == RtcwMultiplayer.protocol ) return &RtcwMultiplayer;
 	if ( protocol == WolfET.protocol ) return &WolfET;
@@ -233,6 +266,10 @@ inline constexpr Contract WolfET{
 [[nodiscard]] constexpr const Contract *TryForWireProfile(
 	netchanWireProfile_t profile ) noexcept {
 	switch ( profile ) {
+	case NETCHAN_WIRE_STVEF_HM:
+		return &STVEFHolomatch;
+	case NETCHAN_WIRE_STVEF_SP:
+		return &STVEFSinglePlayer;
 	case NETCHAN_WIRE_WOLFET:
 		return &WolfET;
 	case NETCHAN_WIRE_RTCW_SP:
