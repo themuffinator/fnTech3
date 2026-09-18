@@ -42,8 +42,15 @@ static cvar_t musicVolume{1},effectsVolume{1},voiceVolume{1};
 static cvar_t *s_musicVolume=&musicVolume,*s_volume=&effectsVolume,*s_voiceVolume=&voiceVolume;
 static fntech3::audio::rtcw::Music music;
 static fntech3::audio::rtcw::MasterFade master;
+// ET keeps its own master fade beside RTCW's. These probes drive RTCW only, so
+// the ET level exists but is never set.
+static fntech3::audio::rtcw::MasterFade wolfetMaster;
+static int Com_GameIsWolfET(){return 0;}
 static auto &S_RTCWMusic(){return music;}
 static auto &S_RTCWMasterFade(){return master;}
+static auto &S_WolfETMasterFade(){return wolfetMaster;}
+static void S_UpdateWolfETMasterFade(){}
+static void UpdateWolfETMasterFade(){}
 struct snd_info_t {int rate=22050,width=2,channels=2;unsigned speakerMask=0;};
 struct snd_stream_t {snd_info_t info;int remaining=1000000;};
 static int opened=0,closed=0,reads=0;

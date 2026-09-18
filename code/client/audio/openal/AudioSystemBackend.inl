@@ -10,6 +10,11 @@ public:
 
 	void StartSound( const float *origin, int entnum, int entchannel, sfxHandle_t sfxHandle, float volume );
 	void StartRTCWSound( const float *origin, int entity, int channel, sfxHandle_t handle, int flags );
+	void StartWolfETSound( const float *origin, int entity, int channel, sfxHandle_t handle, int flags, int volume );
+	void FadeWolfETAllSounds( float volume, int time, qboolean stopSounds );
+	void UpdateWolfETMasterFade();
+	int WolfETSoundLength( sfxHandle_t handle );
+	int WolfETCurrentSoundTime();
 	void StartRTCWEntityStream( const char *intro, const char *loop, int entity, int channel, int attenuation );
 	void StopRTCWEntityStream( int entity );
 	void FadeRTCWEntityStream( float volume, int time, int stream );
@@ -29,6 +34,7 @@ public:
 	void ClearLoopingSounds( qboolean killall );
 	void AddLoopingSound( int entityNum, const float *origin, const float *velocity, sfxHandle_t sfxHandle );
 	void AddRTCWLoopingSound( const float *origin, const float *velocity, int range, sfxHandle_t handle, int volume );
+	void AddWolfETLoopingSound( const float *origin, const float *velocity, int range, sfxHandle_t handle, int volume, int soundTime );
 	void AddRealLoopingSound( int entityNum, const float *origin, const float *velocity, sfxHandle_t sfxHandle );
 	void StopLoopingSound( int entityNum );
 	void Respatialize( int entityNum, const float *origin, float axis[3][3], int inwater );
@@ -85,6 +91,8 @@ private:
 	fntech3::audio::rtcw::SampleClock rtcwClock_;
 	bool started_ = false;
 	bool hardMuted_ = true;
+	// Set when an ET fade was told to stop what it faded once it completes.
+	bool wolfetStopAfterFade_ = false;
 };
 
 int AudioSystem::RTCWVoiceAmplitude( int entity ) {
@@ -328,6 +336,15 @@ bool AudioSystem::Init( soundInterface_t *si ) {
 	si->Shutdown = []() { AudioSystem::Get().Shutdown(); };
 	si->StartSound = []( const vec3_t origin, int entnum, int entchannel, sfxHandle_t sfxHandle, float volume ) { AudioSystem::Get().StartSound( origin, entnum, entchannel, sfxHandle, volume ); };
 	si->StartRTCWSound = []( const vec3_t origin, int entity, int channel, sfxHandle_t handle, int flags ) { AudioSystem::Get().StartRTCWSound(origin, entity, channel, handle, flags); };
+	si->StartWolfETSound = []( const vec3_t origin, int entity, int channel, sfxHandle_t handle, int flags, int volume ) { AudioSystem::Get().StartWolfETSound(origin, entity, channel, handle, flags, volume); };
+	si->StartWolfETLocalSound = []( sfxHandle_t handle, int channel, int volume ) {
+		auto &audio = AudioSystem::Get();
+		audio.StartWolfETSound(nullptr, audio.world_.ListenerNumber(), channel, handle, 0, volume);
+	};
+	si->AddWolfETLoopingSound = []( const vec3_t origin, const vec3_t velocity, int range, sfxHandle_t handle, int volume, int soundTime ) { AudioSystem::Get().AddWolfETLoopingSound( origin, velocity, range, handle, volume, soundTime ); };
+	si->FadeWolfETAllSounds = []( float volume, int time, qboolean stopSounds ) { AudioSystem::Get().FadeWolfETAllSounds( volume, time, stopSounds ); };
+	si->WolfETSoundLength = []( sfxHandle_t handle ) { return AudioSystem::Get().WolfETSoundLength( handle ); };
+	si->WolfETCurrentSoundTime = []() { return AudioSystem::Get().WolfETCurrentSoundTime(); };
 	si->StartRTCWLocalSound = []( sfxHandle_t handle, int channel ) {
 		auto &audio = AudioSystem::Get();
 		audio.StartRTCWSound(nullptr, audio.world_.ListenerNumber(), channel, handle, 0);
@@ -515,6 +532,21 @@ void AudioSystem::StartSound( const float *origin, int entnum, int entchannel, s
 	world_.StartSound( entnum, entchannel, sfxHandle, sample, origin, volume );
 }
 
+void AudioSystem::StartWolfETSound( const float *origin, int entity, int channel,
+	sfxHandle_t handle, int flags, int volume ) {
+	if ( !started_ || hardMuted_ ) return;
+	if ( !origin && (entity < 0 || entity >= MAX_GENTITIES) )
+		Com_Error(ERR_DROP, "S_StartWolfETSound: bad entitynum %i", entity);
+	auto *sample = GetSample(handle);
+	if ( !sample ) {
+		Com_Printf(S_COLOR_YELLOW "S_StartWolfETSound: handle %i out of range\n", handle);
+		return;
+	}
+	entityStreams_.policy.StopChannel( entity, channel );
+	if ( sample->EnsureLoaded(device_, handle == 0) )
+		world_.StartWolfETSound(entity, channel, handle, sample, origin, flags, volume);
+}
+
 void AudioSystem::StartRTCWSound( const float *origin, int entity, int channel, sfxHandle_t handle, int flags ) {
 	if ( !started_ || hardMuted_ ) return;
 	if ( !origin && (entity < 0 || entity >= MAX_GENTITIES) )
@@ -590,6 +622,36 @@ void AudioSystem::FadeRTCWBackgroundTrack( float volume, int time ) {
 
 void AudioSystem::FadeRTCWAllSounds( float volume, int time ) {
 	S_RTCWMasterFade().Set( volume, time, RTCWClock(), StreamOutputRate() );
+}
+
+// ET's fade can be told to stop what it faded once the fade completes, and a
+// second stopping fade begun before the first finished stops everything at once.
+void AudioSystem::FadeWolfETAllSounds( float volume, int time, qboolean stopSounds ) {
+	auto &fade = S_WolfETMasterFade();
+	if ( wolfetStopAfterFade_ && RTCWClock() < fade.end ) StopAllSounds();
+	fade.Set( volume, time, RTCWClock(), StreamOutputRate() );
+	wolfetStopAfterFade_ = stopSounds ? true : false;
+}
+
+void AudioSystem::UpdateWolfETMasterFade() {
+	auto &fade = S_WolfETMasterFade();
+	if ( !wolfetStopAfterFade_ || RTCWClock() < fade.end ) return;
+	fade.Value( RTCWClock() );
+	wolfetStopAfterFade_ = false;
+	StopAllSounds();
+}
+
+int AudioSystem::WolfETSoundLength( sfxHandle_t handle ) {
+	const SoundSample *sample = GetSample( handle );
+	if ( !sample || sample->Rate() <= 0 ) return -1;
+	return static_cast<int>( static_cast<std::int64_t>( sample->Frames() ) * 1000 / sample->Rate() );
+}
+
+int AudioSystem::WolfETCurrentSoundTime() {
+	// ET reports its mixer clock one second ahead, which is what its modules
+	// compare a submitted loop start time against.
+	const int rate = StreamOutputRate();
+	return static_cast<int>( RTCWClock() ) + rate;
 }
 
 void AudioSystem::ClearRTCWMusic() {
@@ -807,6 +869,16 @@ void AudioSystem::DumpSpatialDebug() const {
 	world_.DumpSpatialDebug( device_, preferredEntity );
 }
 
+void AudioSystem::AddWolfETLoopingSound( const float *origin, const float *velocity,
+	int range, sfxHandle_t handle, int volume, int soundTime ) {
+	if ( !started_ || hardMuted_ || cls.state != CA_ACTIVE || !world_.AcceptsRTCWLoop( volume ) ) return;
+	SoundSample *sample = GetSample( handle );
+	if ( !sample ) Com_Error( ERR_DROP, "ET looping sound handle %d is invalid", handle );
+	if ( !sample->EnsureLoaded( device_, handle == 0 ) ) return;
+	world_.AddWolfETLoopingSound( origin, velocity, range, handle, volume, sample,
+		S_WolfETMasterFade().current, soundTime );
+}
+
 void AudioSystem::AddRTCWLoopingSound( const float *origin, const float *velocity,
 	int range, sfxHandle_t handle, int volume ) {
 	if ( !started_ || hardMuted_ || cls.state != CA_ACTIVE || !world_.AcceptsRTCWLoop( volume ) ) return;
@@ -871,6 +943,7 @@ void AudioSystem::Update( int msec ) {
 	if ( !started_ ) {
 		return;
 	}
+	if ( Com_GameIsWolfET() ) UpdateWolfETMasterFade();
 	if ( !UpdateDeviceState( msec ) ) {
 		rtcwClock_.Pause();
 		return;

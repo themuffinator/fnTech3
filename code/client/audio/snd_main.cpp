@@ -78,6 +78,11 @@ struct DisabledRTCWMusicOutput {
 fntech3::audio::rtcw::Music &S_RTCWMusic() { return rtcwMusic; }
 fntech3::audio::rtcw::MasterFade &S_RTCWMasterFade() { return rtcwMasterFade; }
 
+// ET's master fade is its own: the other Wolfenstein profile's fade belongs to
+// single player and neither may see the other's level.
+static fntech3::audio::rtcw::MasterFade wolfetMasterFade;
+fntech3::audio::rtcw::MasterFade &S_WolfETMasterFade() { return wolfetMasterFade; }
+
 extern "C" int S_RTCWVoiceAmplitude( intptr_t entity ) {
 	if ( !Com_GameIsRTCW() || entity < INT_MIN || entity > INT_MAX )
 		Com_Error( ERR_DROP, "Invalid RTCW voice-amplitude request" );
@@ -175,6 +180,111 @@ extern "C" void S_StartLocalSound( sfxHandle_t sfx, int channelNum )
 extern "C" void S_StartRTCWSound( const vec3_t origin, int entity, int channel, sfxHandle_t handle, int flags ) {
 	if ( !Com_GameIsRTCW() ) Com_Error(ERR_DROP, "RTCW sound requested for another game profile");
 	if ( si.StartRTCWSound ) si.StartRTCWSound(origin, entity, channel, handle, flags);
+}
+
+/*
+=================
+Enemy Territory sound
+
+ET's modules carry values the other Wolfenstein contract has no place for: a
+volume with every one-shot, a start time with every looping sound, and a flag
+saying whether a fade also stops what it faded. Each is passed through rather
+than dropped, and every entry refuses a profile that is not ET so no other
+profile can reach ET's behaviour.
+=================
+*/
+static int S_WolfETVolume( int volume ) {
+	// ET's modules submit 0..255 with 127 as their own default. A value outside
+	// that never becomes a louder sound than the module asked for.
+	if ( volume < 0 || volume > 255 ) Com_Error( ERR_DROP, "Invalid ET sound volume" );
+	return volume;
+}
+
+extern "C" void S_StartWolfETSound( const vec3_t origin, int entity, int channel,
+	sfxHandle_t handle, int flags, int volume ) {
+	if ( !Com_GameIsWolfET() ) Com_Error( ERR_DROP, "ET sound requested for another game profile" );
+	if ( si.StartWolfETSound ) si.StartWolfETSound( origin, entity, channel, handle, flags, S_WolfETVolume( volume ) );
+}
+
+extern "C" void S_StartWolfETLocalSound( sfxHandle_t handle, int channel, int volume ) {
+	if ( !Com_GameIsWolfET() ) Com_Error( ERR_DROP, "ET local sound requested for another game profile" );
+	if ( si.StartWolfETLocalSound ) si.StartWolfETLocalSound( handle, channel, S_WolfETVolume( volume ) );
+}
+
+extern "C" void S_AddWolfETLoopingSound( const vec3_t origin, const vec3_t velocity,
+	int range, sfxHandle_t handle, int volume, int soundTime ) {
+	if ( !Com_GameIsWolfET() || range < 0 )
+		Com_Error( ERR_DROP, "Invalid ET looping sound contract" );
+	if ( si.AddWolfETLoopingSound )
+		si.AddWolfETLoopingSound( origin, velocity, range, handle, volume, soundTime );
+}
+
+extern "C" void S_ClearWolfETLoopingSounds( void ) {
+	// ET submits its whole loop set every frame and takes no argument here.
+	if ( !Com_GameIsWolfET() ) Com_Error( ERR_DROP, "ET loop reset requires the ET profile" );
+	S_ClearLoopingSoundsFrame();
+}
+
+extern "C" void S_ClearWolfETSounds( qboolean killMusic ) {
+	if ( !Com_GameIsWolfET() ) Com_Error( ERR_DROP, "ET sound reset requires the ET profile" );
+	S_ClearLoopingSoundsFrame();
+	if ( si.ClearRTCWSounds ) si.ClearRTCWSounds( killMusic );
+}
+
+extern "C" void S_FadeWolfETAllSounds( float volume, int time, qboolean stopSounds ) {
+	if ( !Com_GameIsWolfET() || !fntech3::audio::rtcw::ValidFadeVolume( volume ) )
+		Com_Error( ERR_DROP, "Invalid ET master fade" );
+	if ( si.FadeWolfETAllSounds ) si.FadeWolfETAllSounds( volume, time, stopSounds );
+}
+
+extern "C" void S_FadeWolfETStreamingSound( float volume, int time, int stream ) {
+	if ( !Com_GameIsWolfET() || !fntech3::audio::rtcw::ValidFadeVolume( volume ) )
+		Com_Error( ERR_DROP, "Invalid ET streaming fade" );
+	// Stream zero is the music track; the rest are entity slots and are never
+	// native pointers.
+	if ( stream == 0 && si.FadeRTCWBackgroundTrack ) si.FadeRTCWBackgroundTrack( volume, time );
+	else if ( stream > 0 && stream < 12 && si.FadeRTCWEntityStream ) si.FadeRTCWEntityStream( volume, time, stream );
+}
+
+extern "C" void S_StartWolfETBackgroundTrack( const char *intro, const char *loop, int fadeTime ) {
+	if ( !Com_GameIsWolfET() ) Com_Error( ERR_DROP, "ET music requested for another game profile" );
+	if ( si.StartRTCWBackgroundTrack ) si.StartRTCWBackgroundTrack( intro, loop, fadeTime );
+}
+
+extern "C" int S_StartWolfETEntityStream( const char *intro, const char *loop, int entity,
+	int channel, int attenuation ) {
+	if ( !Com_GameIsWolfET() || entity >= MAX_GENTITIES )
+		Com_Error( ERR_DROP, "Invalid ET streaming sound entity" );
+	if ( !si.StartRTCWEntityStream ) return 0;
+	si.StartRTCWEntityStream( intro, loop, entity, channel, attenuation );
+	// ET's import returns a value its own client never sets, so it stays zero
+	// rather than reporting a stream identity this engine does not issue.
+	return 0;
+}
+
+extern "C" void S_StopWolfETEntityStream( int entity ) {
+	if ( !Com_GameIsWolfET() || entity >= MAX_GENTITIES )
+		Com_Error( ERR_DROP, "Invalid ET streaming sound stop" );
+	if ( si.StopRTCWEntityStream ) si.StopRTCWEntityStream( entity );
+}
+
+extern "C" int S_WolfETVoiceAmplitude( int entity ) {
+	if ( !Com_GameIsWolfET() ) Com_Error( ERR_DROP, "Invalid ET voice-amplitude request" );
+	if ( entity < 0 ) Com_Error( ERR_DROP, "Invalid ET voice-amplitude entity" );
+	// ET declares this import but its own client leaves the table empty, so a
+	// talking animation is never driven by an amplitude this engine invented.
+	return 0;
+}
+
+extern "C" int S_WolfETSoundLength( sfxHandle_t handle ) {
+	if ( !Com_GameIsWolfET() ) Com_Error( ERR_DROP, "ET sound length requested for another game profile" );
+	// ET answers -1 for a handle it does not know.
+	return si.WolfETSoundLength ? si.WolfETSoundLength( handle ) : -1;
+}
+
+extern "C" int S_WolfETCurrentSoundTime( void ) {
+	if ( !Com_GameIsWolfET() ) Com_Error( ERR_DROP, "ET sound time requested for another game profile" );
+	return si.WolfETCurrentSoundTime ? si.WolfETCurrentSoundTime() : 0;
 }
 
 extern "C" void S_StartRTCWLocalSound( sfxHandle_t handle, int channel ) {
@@ -749,6 +859,7 @@ extern "C" void S_Init( void )
 	si = {};
 	rtcwMusic = {};
 	rtcwMasterFade = {};
+	wolfetMasterFade = {};
 
 	s_volume = Cvar_Get( "s_volume", "0.8", CVAR_ARCHIVE );
 	Cvar_CheckRange( s_volume, "0", "2", CV_FLOAT );
@@ -913,6 +1024,7 @@ extern "C" void S_Shutdown( void )
 	Cvar_Set( "s_backendActive", "none" );
 	rtcwMusic = {};
 	rtcwMasterFade = {};
+	wolfetMasterFade = {};
 
 	Cmd_RemoveCommand( "play" );
 	Cmd_RemoveCommand( "music");

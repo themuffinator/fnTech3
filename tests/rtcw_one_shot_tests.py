@@ -130,6 +130,9 @@ constexpr bool qtrue=true,qfalse=false;
 #define S_COLOR_YELLOW ""
 static bool sp=true,rtcw=true,s_soundStarted=true,s_soundMuted=false;
 static bool Com_GameIsRTCWSP(){return sp;}static bool Com_GameIsRTCW(){return rtcw;}
+// This fixture drives RTCW only; ET's own one-shot path is exercised elsewhere.
+static bool Com_GameIsWolfET(){return false;}
+static void S_UpdateWolfETMasterFade(){}
 static void Com_Error(int,const char *,...){throw 1;}static void Com_Printf(const char *,...){}static void Com_DPrintf(const char *,...){}
 static void VectorCopy(const float *in,float *out){memcpy(out,in,12);}
 static int now=100;static int Sys_Milliseconds(){return now;}
@@ -179,7 +182,7 @@ int main(){
 def openal():
     world = (ROOT / 'code/client/audio/openal/AudioSystemWorld.inl').read_text()
     return COMMON + r'''
-using sfxHandle_t=int;using ALint=int;constexpr int kMaxVoices=96,AL_NO_ERROR=0,AL_SOURCE_STATE=1,AL_PLAYING=2,AL_PAUSED=3;static bool sp;static int Sys_Milliseconds(){return 100;}static bool Com_GameIsRTCWSP(){return sp;}
+using sfxHandle_t=int;using ALint=int;constexpr int kMaxVoices=96,AL_NO_ERROR=0,AL_SOURCE_STATE=1,AL_PLAYING=2,AL_PAUSED=3;static bool sp;static int Sys_Milliseconds(){return 100;}static bool Com_GameIsRTCWSP(){return sp;}static bool Com_GameIsWolfET(){return false;}
 struct SoundSample{};
 struct Device {unsigned next=1;bool fail=false;int state=AL_PLAYING;unsigned AcquireVoiceSource(){return fail?0:next++;}void CreateVoiceFilters(unsigned &,unsigned &){};
  Device &AL(){return *this;}int alGetError(){return 0;}void alGetSourcei(unsigned,int,int *out){*out=state;}};

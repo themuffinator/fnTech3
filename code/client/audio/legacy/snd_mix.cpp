@@ -691,9 +691,12 @@ extern "C" void S_PaintChannels( int endtime ) {
 	int		sampleOffset;
 	byte	*buffer;
 
+	// ET fades the whole mix the same way single-player RTCW does, through the
+	// engine's Wolfenstein master gain; neither profile sees the other's level.
 	const bool rtcwSP = Com_GameIsRTCWSP() != 0;
-	const float masterGain = rtcwSP ? S_Base_RTCWMasterGain() : 1.0f;
-	snd_vol = rtcwSP ? fntech3::audio::rtcw::EffectsMixVolume( s_volume->value, masterGain ) : s_volume->value * 255;
+	const bool wolfensteinFade = rtcwSP || Com_GameIsWolfET() != 0;
+	const float masterGain = wolfensteinFade ? S_Base_RTCWMasterGain() : 1.0f;
+	snd_vol = wolfensteinFade ? fntech3::audio::rtcw::EffectsMixVolume( s_volume->value, masterGain ) : s_volume->value * 255;
 
 	if ( (!gw_active && !gw_minimized && s_muteWhenUnfocused->integer) || (gw_minimized && s_muteWhenMinimized->integer) ) {
 		buffer = dma_buffer2;
@@ -792,7 +795,12 @@ extern "C" void S_PaintChannels( int endtime ) {
 			// is a looping sound effect and the end of
 			// the sample is hit
 			do {
-				sampleOffset = (ltime % sc->soundLength);
+				// A loop with a submitted start time keeps its phase relative to
+				// that time; RTCW submits none and stays on the mixer's clock.
+				sampleOffset = ch->startSample ?
+					static_cast<int>( ( static_cast<unsigned>( ltime ) -
+						static_cast<unsigned>( ch->startSample ) ) % static_cast<unsigned>( sc->soundLength ) ) :
+					(ltime % sc->soundLength);
 
 				count = end - ltime;
 				if ( sampleOffset + count > sc->soundLength ) {

@@ -139,8 +139,8 @@ static void S_memoryLoad(sfx_t *sample){sample->inMemory=true;++loads;}
 static LoopFrame rtcwLoops;
 struct loopSound_t {bool active=false;};static std::array<loopSound_t,1024> loopSounds;
 static float listener_origin[3]={0,0,0};static std::array<vec3_t,3> listener_axis{{{1,0,0},{0,1,0},{0,0,1}}};
-static struct {int channels=2;} dma;
-struct channel_t {int master_vol,leftvol,rightvol; sfx_t *thesfx;bool doppler;};
+static struct {int channels=2;int speed=22050;} dma;
+struct channel_t {int master_vol,leftvol,rightvol,startSample; sfx_t *thesfx;bool doppler;};
 static channel_t loop_channels[MAX_CHANNELS];static int numLoopChannels;
 '''
     for name in ('static void S_Base_AddRTCWLoopingSound(', 'static void S_AddRTCWLoopSounds(',

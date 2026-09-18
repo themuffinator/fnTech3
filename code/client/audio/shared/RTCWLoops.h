@@ -20,6 +20,11 @@ struct Loop {
 	float range = 1250.0f;
 	int volume = 0;
 	bool loudUnderwater = false; // Observed metadata; original mixer never reads it.
+	// Enemy Territory alone submits the time a loop is considered to have
+	// started, so every listener hears it at the same point in its cycle. RTCW
+	// submits no such time and leaves this zero, keeping its phase on the
+	// mixer's own clock.
+	int startTime = 0;
 };
 
 class LoopFrame {
@@ -30,7 +35,8 @@ public:
 	bool Accepts( int volume ) const { return volume != 0 && count_ < Capacity; }
 	const Loop &operator[]( std::size_t index ) const { return loops_[index]; }
 
-	int Append( const float *origin, const float *velocity, int range, int handle, int volume, float master = 1.0f ) {
+	int Append( const float *origin, const float *velocity, int range, int handle, int volume,
+		float master = 1.0f, int startTime = 0 ) {
 		if ( !Accepts( volume ) || range < 0 || !origin || !velocity ) return -1;
 		Loop next;
 		std::memcpy( next.origin.data(), origin, sizeof( next.origin ) );
@@ -39,6 +45,7 @@ public:
 		next.range = range ? static_cast<float>( range ) : 1250.0f;
 		next.volume = LoopVolume( volume, master );
 		next.loudUnderwater = ( static_cast<unsigned>( volume ) & 256u ) != 0;
+		next.startTime = startTime;
 		loops_[count_] = next;
 		return static_cast<int>( count_++ );
 	}

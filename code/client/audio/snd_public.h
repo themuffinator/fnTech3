@@ -34,6 +34,25 @@ void S_StartSoundVolume( vec3_t origin, int entnum, int entchannel, sfxHandle_t 
 void S_StartLocalSound( sfxHandle_t sfx, int channelNum );
 void S_StartLocalSoundVolume( sfxHandle_t sfx, int channelNum, float volume );
 void S_StartRTCWSound( const vec3_t origin, int entity, int channel, sfxHandle_t handle, int flags );
+// Enemy Territory carries a per-sound volume its own modules set, a start
+// time on looping sounds, and a flag deciding whether a fade also stops the
+// sounds it faded. None of those exist in the other Wolfenstein contract.
+void S_StartWolfETSound( const vec3_t origin, int entity, int channel, sfxHandle_t handle,
+	int flags, int volume );
+void S_StartWolfETLocalSound( sfxHandle_t handle, int channel, int volume );
+void S_AddWolfETLoopingSound( const vec3_t origin, const vec3_t velocity, int range,
+	sfxHandle_t handle, int volume, int soundTime );
+void S_ClearWolfETLoopingSounds( void );
+void S_ClearWolfETSounds( qboolean killMusic );
+void S_FadeWolfETAllSounds( float volume, int time, qboolean stopSounds );
+void S_FadeWolfETStreamingSound( float volume, int time, int stream );
+void S_StartWolfETBackgroundTrack( const char *intro, const char *loop, int fadeTime );
+int S_StartWolfETEntityStream( const char *intro, const char *loop, int entity,
+	int channel, int attenuation );
+void S_StopWolfETEntityStream( int entity );
+int S_WolfETVoiceAmplitude( int entity );
+int S_WolfETSoundLength( sfxHandle_t handle );
+int S_WolfETCurrentSoundTime( void );
 void S_StartRTCWLocalSound( sfxHandle_t handle, int channel );
 void S_StartRTCWEntityStream( const char *intro, const char *loop, int entity, int channel, int attenuation );
 void S_StopRTCWEntityStream( int entity );

@@ -6,6 +6,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 DISPATCH = ROOT/'code/client/cl_ui.cpp'
 RENDER = ROOT/'code/client/client_wolfet_render_compat.hpp'
+AUDIO = ROOT/'code/client/client_wolfet_audio_compat.hpp'
 RECORD = ROOT/'docs/fntech3/2026-09-18-wolfet-ui-boundary.md'
 
 # Six of these have no case in ET's own engine either, so refusing them is what
@@ -18,9 +19,6 @@ REFUSED_BY_ET_ITSELF = {
 OPEN = dict(REFUSED_BY_ET_ITSELF, **{
     'UI_FS_DELETEFILE': 20,
     'UI_R_ADDLIGHTTOSCENE': 29, 'UI_R_DRAW2DPOLYS': 33,
-    'UI_S_REGISTERSOUND': 39, 'UI_S_STARTLOCALSOUND': 40,
-    'UI_S_FADESTREAMINGSOUND': 41, 'UI_S_FADEALLSOUNDS': 42,
-    'UI_S_STOPBACKGROUNDTRACK': 79, 'UI_S_STARTBACKGROUNDTRACK': 80,
     'UI_CL_TRANSLATE_STRING': 108, 'UI_OPENURL': 109,
 })
 
@@ -44,6 +42,7 @@ def _regions():
         _function(DISPATCH, 'static intptr_t CL_WolfETUISharedCall'),
         _function(DISPATCH, 'static bool CL_WolfETUICall'),
         _function(RENDER, 'inline bool CL_WolfETRenderCall'),
+        _function(AUDIO, 'inline bool CL_WolfETAudioCall'),
     ))
 
 
@@ -59,7 +58,7 @@ class WolfETUIImportTests(unittest.TestCase):
         self.assertEqual(len(declared), 121)
         handled = _handled() & set(declared)
         self.assertEqual(sorted(set(declared) - handled), sorted(OPEN))
-        self.assertEqual(len(handled), 104)
+        self.assertEqual(len(handled), 110)
 
     def test_open_ordinals_match_the_declared_ones(self):
         declared = _imports()
@@ -99,8 +98,8 @@ class WolfETUIImportTests(unittest.TestCase):
 
     def test_the_record_names_what_et_itself_refuses(self):
         record = RECORD.read_text(encoding='utf-8')
-        self.assertIn('104 are handled', record)
-        self.assertIn('The 17 that remain open', record)
+        self.assertIn('110 are handled', record)
+        self.assertIn('The 11 that remain open', record)
         for ordinal in sorted(REFUSED_BY_ET_ITSELF.values()):
             self.assertRegex(record, r'\b%d\b' % ordinal,
                              'ordinal %d refused by ET itself is unrecorded' % ordinal)

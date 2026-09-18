@@ -1963,6 +1963,7 @@ private:
 #include "client_rtcw_cinematic_compat.hpp"
 #include "client_rtcw_sound_name.hpp"
 #include "client_wolfet_render_compat.hpp"
+#include "client_wolfet_audio_compat.hpp"
 
 static intptr_t CL_CGameTrapForProfile( intptr_t trap ) {
 	if ( !Com_GameIsQuake3() ) {
@@ -2269,6 +2270,7 @@ static bool CL_WolfETCgameCall( intptr_t *args, intptr_t &operation, intptr_t &r
 	using namespace fntech3::wolfet::module;
 	const auto call = Lookup( Module::CGAME, Direction::IMPORT, args[0] );
 	if ( CL_WolfETRenderCall( cgvm, call, args, result ) ) return true;
+	if ( CL_WolfETAudioCall( cgvm, call, args, result ) ) return true;
 	bool handledKey = false;
 	const intptr_t keyResult = CL_WolfETKeyCall( cgvm, call, args, handledKey );
 	if ( handledKey ) { result = keyResult; return true; }

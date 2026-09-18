@@ -35,6 +35,7 @@ extern "C" {
 #include "../compat/wolfet_client_adapter.hpp"
 #include "../compat/wolfet_key_adapter.h"
 #include "client_wolfet_render_compat.hpp"
+#include "client_wolfet_audio_compat.hpp"
 
 #include <algorithm>
 #include <array>
@@ -1123,6 +1124,7 @@ static bool CL_WolfETUICall( intptr_t *args, intptr_t &operation, intptr_t &resu
 	using namespace fntech3::wolfet::module;
 	const auto call = Lookup( Module::UI, Direction::IMPORT, args[0] );
 	if ( CL_WolfETRenderCall( uivm, call, args, result ) ) return true;
+	if ( CL_WolfETAudioCall( uivm, call, args, result ) ) return true;
 	switch ( call ) {
 	case Call::UI_CVAR_LATCHEDVARIABLESTRINGBUFFER:
 		VM_CHECKBOUNDS( uivm, args[2], args[3] );

@@ -11,4 +11,5 @@
 // Sound initialization/shutdown reset it; a mere stop retains the music queue.
 fntech3::audio::rtcw::Music &S_RTCWMusic();
 fntech3::audio::rtcw::MasterFade &S_RTCWMasterFade();
+fntech3::audio::rtcw::MasterFade &S_WolfETMasterFade();
 #endif

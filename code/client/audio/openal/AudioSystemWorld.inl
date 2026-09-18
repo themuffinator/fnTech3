@@ -938,8 +938,10 @@ public:
 	void AddLoopingSound( int entityNum, const float *origin, const float *velocity, sfxHandle_t handle, SoundSample *sample, qboolean realLoop );
 	bool AcceptsRTCWLoop( int volume ) const { return rtcwLoops_.Accepts( volume ); }
 	void AddRTCWLoopingSound( const float *origin, const float *velocity, int range, sfxHandle_t handle, int volume, SoundSample *sample, float master );
+	void AddWolfETLoopingSound( const float *origin, const float *velocity, int range, sfxHandle_t handle, int volume, SoundSample *sample, float master, int soundTime );
 	void StartSound( int entityNum, int entchannel, sfxHandle_t handle, SoundSample *sample, const float *origin, float volume );
 	void StartRTCWSound( int entity, int channel, sfxHandle_t handle, SoundSample *sample, const float *origin, int flags );
+	void StartWolfETSound( int entity, int channel, sfxHandle_t handle, SoundSample *sample, const float *origin, int flags, int volume );
 	int RTCWVoiceAmplitude( int entity, int amplitude ) const;
 	void UpdateEntityPosition( int entityNum, const float *origin );
 	void Respatialize( int entityNum, const float *origin, float axis[3][3] );
@@ -1145,6 +1147,21 @@ void Q3SoundWorld::AddLoopingSound( int entityNum, const float *origin, const fl
 	voice.doppler = ( s_doppler != nullptr && s_doppler->integer != 0 && VectorLengthSquared( voice.velocity.Data() ) > 0.0f );
 }
 
+// ET submits the time each loop started, so its phase follows that time rather
+// than the device clock. A time in the future yields the start of the sample.
+void Q3SoundWorld::AddWolfETLoopingSound( const float *origin, const float *velocity,
+	int range, sfxHandle_t handle, int volume, SoundSample *sample, float master, int soundTime ) {
+	if ( !sample ) return;
+	const int slot = rtcwLoops_.Append( origin, velocity, range, handle, volume, master, soundTime );
+	if ( slot < 0 ) return;
+	AddLoopingSound( slot, origin, velocity, handle, sample, qfalse );
+	SoundVoice &voice = loopVoices_[slot];
+	voice.rtcwLoop = true;
+	voice.rtcwLoopData = rtcwLoops_[slot];
+	voice.entnum = ENTITYNUM_NONE; // Submission order is not a sound entity index.
+	voice.doppler = false;
+}
+
 void Q3SoundWorld::AddRTCWLoopingSound( const float *origin, const float *velocity,
 	int range, sfxHandle_t handle, int volume, SoundSample *sample, float master ) {
 	if ( !sample ) return;
@@ -1296,6 +1313,30 @@ void Q3SoundWorld::StartSound( int entityNum, int entchannel, sfxHandle_t handle
 	}
 
 	PlayOneShot(voice, entityNum, entchannel, handle, sample, origin, volume, startTime);
+}
+
+// ET carries a volume with every one-shot, where the other Wolfenstein profile
+// always plays at its own default. 127 is what ET's modules pass unless a
+// caller chose otherwise, so it is the value that means "unchanged".
+void Q3SoundWorld::StartWolfETSound( int entity, int channel, sfxHandle_t handle,
+	SoundSample *sample, const float *origin, int flags, int volume ) {
+	if ( !sample || volume <= 0 ) return;
+	const int slot = rtcwOneShots_.Start(false, 128, listenerNumber_, Sys_Milliseconds(),
+		{entity, channel, handle, flags}, [&](int index) { oneShots_[index].Release(*device_); });
+	if ( slot < 0 ) return;
+	auto &voice = oneShots_[slot];
+	if ( !voice.source ) {
+		voice.source = device_->AcquireVoiceSource();
+		if ( !voice.source ) {
+			rtcwOneShots_.Release(slot);
+			voice.Release(*device_);
+			return;
+		}
+		device_->CreateVoiceFilters(voice.directFilter, voice.sendFilter);
+	}
+	voice.rtcwOneShot = true;
+	PlayOneShot(&voice, entity, channel, handle, sample, origin,
+		static_cast<float>( volume ) / 127.0f, rtcwOneShots_[slot].allocated);
 }
 
 void Q3SoundWorld::StartRTCWSound( int entity, int channel, sfxHandle_t handle,
@@ -2037,8 +2078,13 @@ void Q3SoundWorld::Update( qboolean softMuted ) {
 			device_->AL().alSourcei( voice.source, AL_BUFFER, voice.sample->Buffer() );
 			device_->AL().alSourcei( voice.source, AL_LOOPING, AL_TRUE );
 			if ( voice.rtcwLoop ) {
+				// A submitted start time moves the phase; without one the loop
+				// joins the common device-clock cycle as the other profile does.
+				const std::int64_t elapsed = voice.rtcwLoopData.startTime ?
+					loopMicroseconds - static_cast<std::int64_t>( voice.rtcwLoopData.startTime ) * 1000 :
+					loopMicroseconds;
 				device_->AL().alSourcei( voice.source, AL_SAMPLE_OFFSET,
-					fntech3::audio::rtcw::LoopSampleOffset( loopMicroseconds,
+					fntech3::audio::rtcw::LoopSampleOffset( elapsed < 0 ? 0 : elapsed,
 						voice.sample->Rate(), voice.sample->Frames() ) );
 			}
 		}

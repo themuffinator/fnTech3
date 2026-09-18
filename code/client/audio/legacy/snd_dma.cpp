@@ -154,6 +154,9 @@ cvar_t		*s_device;
 
 static std::array<loopSound_t, MAX_GENTITIES> loopSounds;
 static fntech3::audio::rtcw::LoopFrame rtcwLoops;
+static void S_UpdateWolfETMasterFade( void );
+// Set when an ET fade was told to stop what it faded once it completes.
+static bool s_wolfetStopAfterFade = false;
 static	channel_t	*freelist = nullptr;
 
 static sfx_t *S_KnownSfxAt( sfxHandle_t handle )
@@ -768,6 +771,44 @@ static void S_Base_StartRTCWLocalSound( sfxHandle_t handle, int channel ) {
 	S_Base_StartRTCWSound(nullptr, listener_number, channel, handle, 0);
 }
 
+// ET submits a volume with every one-shot. Its own modules pass 127 unless a
+// caller chose otherwise, so the value is used as given rather than replaced
+// by the Wolfenstein default.
+static void S_Base_StartWolfETSound( const vec3_t origin, int entity, int channel,
+	sfxHandle_t handle, int flags, int volume ) {
+	if ( !s_soundStarted || s_soundMuted ) return;
+	if ( !origin && (entity < 0 || entity >= MAX_GENTITIES) )
+		Com_Error(ERR_DROP, "S_StartWolfETSound: bad entitynum %i", entity);
+	if ( handle < 0 || handle >= s_numSfx ) {
+		Com_Printf(S_COLOR_YELLOW "S_StartWolfETSound: handle %i out of range\n", handle);
+		return;
+	}
+	if ( volume <= 0 ) return;
+	auto *sample = S_KnownSfxAt(handle);
+	rtcwStreams.policy.StopChannel( entity, channel );
+	if ( !sample->inMemory ) S_memoryLoad(sample);
+	const int now = Sys_Milliseconds();
+	sample->lastTimeUsed = now;
+	const int slot = rtcwOneShots.Start(false, 128, listener_number, now,
+		{entity, channel, handle, flags}, [](int index) { s_channels[index].thesfx = nullptr; });
+	if ( slot < 0 ) return;
+	auto &voice = s_channels[slot];
+	voice = {};
+	voice.allocTime = rtcwOneShots[slot].allocated;
+	voice.entnum = entity;
+	voice.entchannel = channel;
+	voice.thesfx = sample;
+	voice.master_vol = volume;
+	voice.fixed_origin = origin ? qtrue : qfalse;
+	if ( origin ) VectorCopy(origin, voice.origin);
+	S_SpatializeRTCWOneShot(voice);
+	voice.startSample = START_SAMPLE_IMMEDIATE;
+}
+
+static void S_Base_StartWolfETLocalSound( sfxHandle_t handle, int channel, int volume ) {
+	S_Base_StartWolfETSound(nullptr, listener_number, channel, handle, 0, volume);
+}
+
 static void S_Base_StartSound( const vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfxHandle, float volume ) {
 	channel_t	*ch;
 	sfx_t		*sfx;
@@ -1077,6 +1118,21 @@ static void S_Base_AddRTCWLoopingSound( const vec3_t origin, const vec3_t veloci
 		Com_GameIsRTCWSP() ? S_RTCWMasterFade().current : 1.0f );
 }
 
+// ET also submits the time each loop is considered to have started, so every
+// listener hears it at the same point in its cycle instead of wherever the
+// local mixer clock happens to be.
+static void S_Base_AddWolfETLoopingSound( const vec3_t origin, const vec3_t velocity,
+	int range, sfxHandle_t handle, int volume, int soundTime ) {
+	if ( !s_soundStarted || s_soundMuted || cls.state != CA_ACTIVE || !rtcwLoops.Accepts( volume ) ) return;
+	if ( handle < 0 || handle >= s_numSfx )
+		Com_Error( ERR_DROP, "ET looping sound handle %d is invalid", handle );
+	sfx_t *sample = S_KnownSfxAt( handle );
+	if ( !sample->inMemory ) S_memoryLoad( sample );
+	if ( !sample->soundLength ) Com_Error( ERR_DROP, "ET looping sound has no samples" );
+	rtcwLoops.Append( origin, velocity, range, handle, volume,
+		S_WolfETMasterFade().current, soundTime );
+}
+
 static void S_Base_AddLoopingSound( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfxHandle ) {
 	sfx_t *sfx;
 
@@ -1195,6 +1251,10 @@ static void S_AddRTCWLoopSounds( void ) {
 		channel.leftvol = gains.left;
 		channel.rightvol = gains.right;
 		channel.thesfx = sample;
+		// Zero for RTCW, which submits no start time and keeps the mixer's own
+		// phase; ET's submitted millisecond time becomes a sample offset.
+		channel.startSample = loop.startTime ?
+			static_cast<int>( static_cast<std::int64_t>( loop.startTime ) * dma.speed / 1000 ) : 0;
 	}
 }
 
@@ -1450,6 +1510,7 @@ static void S_Base_Update( int msec ) {
 	int			total;
 	channel_t	*ch;
 
+	if ( Com_GameIsWolfET() ) S_UpdateWolfETMasterFade();
 	if ( !s_soundStarted || s_soundMuted ) {
 //		Com_DPrintf ("not started or muted\n");
 		return;
@@ -1678,9 +1739,42 @@ static void S_Base_FadeRTCWAllSounds( float volume, int time ) {
 	S_RTCWMasterFade().Set( volume, time, s_soundtime, dma.speed );
 }
 
+// ET's fade can be told to stop what it faded once the fade completes. A second
+// stopping fade begun before the first finished stops everything at once, which
+// is what ET's own client does rather than letting the two overlap.
+static void S_Base_FadeWolfETAllSounds( float volume, int time, qboolean stopSounds ) {
+	auto &fade = S_WolfETMasterFade();
+	if ( s_wolfetStopAfterFade && s_soundtime < fade.end ) S_Base_StopAllSounds();
+	fade.Set( volume, time, s_soundtime, dma.speed );
+	s_wolfetStopAfterFade = stopSounds ? true : false;
+}
+
+static void S_UpdateWolfETMasterFade( void ) {
+	auto &fade = S_WolfETMasterFade();
+	if ( !s_wolfetStopAfterFade || s_soundtime < fade.end ) return;
+	fade.Value( s_soundtime );
+	s_wolfetStopAfterFade = false;
+	S_Base_StopAllSounds();
+}
+
 extern "C" float S_Base_RTCWMasterGain( void ) {
+	if ( Com_GameIsWolfET() )
+		return std::clamp( S_WolfETMasterFade().Value( s_soundtime ), 0.0f, 16.0f );
 	return Com_GameIsRTCWSP() ?
 		std::clamp( S_RTCWMasterFade().Value( s_soundtime ), 0.0f, 16.0f ) : 1.0f;
+}
+
+static int S_Base_WolfETSoundLength( sfxHandle_t handle ) {
+	if ( handle < 0 || handle >= s_numSfx ) return -1;
+	const sfx_t *sample = S_KnownSfxAt( handle );
+	if ( !sample || dma.speed <= 0 ) return -1;
+	return static_cast<int>( static_cast<std::int64_t>( sample->soundLength ) * 1000 / dma.speed );
+}
+
+static int S_Base_WolfETCurrentSoundTime( void ) {
+	// ET reports the mixer's own sample clock one second ahead, which is what
+	// its modules compare a submitted loop start time against.
+	return s_soundtime + dma.speed;
 }
 
 static void S_Base_StartBackgroundTrack( const char *intro, const char *loop ){
@@ -1982,6 +2076,12 @@ extern "C" qboolean S_Base_Init( soundInterface_t *si ) {
 	si->StartSound = S_Base_StartSound;
 	si->StartLocalSound = S_Base_StartLocalSound;
 	si->StartRTCWSound = S_Base_StartRTCWSound;
+	si->StartWolfETSound = S_Base_StartWolfETSound;
+	si->StartWolfETLocalSound = S_Base_StartWolfETLocalSound;
+	si->AddWolfETLoopingSound = S_Base_AddWolfETLoopingSound;
+	si->FadeWolfETAllSounds = S_Base_FadeWolfETAllSounds;
+	si->WolfETSoundLength = S_Base_WolfETSoundLength;
+	si->WolfETCurrentSoundTime = S_Base_WolfETCurrentSoundTime;
 	si->StartRTCWLocalSound = S_Base_StartRTCWLocalSound;
 	si->StartRTCWEntityStream = S_Base_StartRTCWEntityStream;
 	si->StopRTCWEntityStream = S_Base_StopRTCWEntityStream;

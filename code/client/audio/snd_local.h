@@ -142,6 +142,8 @@ struct soundInterface_t {
 	void (*StartSound)( const vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx, float volume );
 	void (*StartLocalSound)( sfxHandle_t sfx, int channelNum, float volume );
 	void (*StartRTCWSound)( const vec3_t origin, int entity, int channel, sfxHandle_t handle, int flags );
+	void (*StartWolfETSound)( const vec3_t origin, int entity, int channel, sfxHandle_t handle, int flags, int volume );
+	void (*StartWolfETLocalSound)( sfxHandle_t handle, int channel, int volume );
 	void (*StartRTCWLocalSound)( sfxHandle_t handle, int channel );
 	void (*StartRTCWEntityStream)( const char *intro, const char *loop, int entity, int channel, int attenuation );
 	void (*StopRTCWEntityStream)( int entity );
@@ -151,6 +153,9 @@ struct soundInterface_t {
 	void (*StartRTCWBackgroundTrack)( const char *intro, const char *loop, int fadeTime );
 	void (*FadeRTCWBackgroundTrack)( float volume, int time );
 	void (*FadeRTCWAllSounds)( float volume, int time );
+	void (*FadeWolfETAllSounds)( float volume, int time, qboolean stopSounds );
+	int (*WolfETSoundLength)( sfxHandle_t handle );
+	int (*WolfETCurrentSoundTime)( void );
 	void (*StopBackgroundTrack)( void );
 	void (*UpdateBackgroundTrack)( void );
 	void (*RawSamples)(int samples, int rate, int width, int channels, const byte *data, float volume);
@@ -161,6 +166,7 @@ struct soundInterface_t {
 	void (*ClearLoopingSounds)( qboolean killall );
 	void (*AddLoopingSound)( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx );
 	void (*AddRTCWLoopingSound)( const vec3_t origin, const vec3_t velocity, int range, sfxHandle_t sfx, int volume );
+	void (*AddWolfETLoopingSound)( const vec3_t origin, const vec3_t velocity, int range, sfxHandle_t sfx, int volume, int soundTime );
 	void (*AddRealLoopingSound)( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx );
 	void (*StopLoopingSound)(int entityNum );
 	void (*Respatialize)( int entityNum, const vec3_t origin, vec3_t axis[3], int inwater );

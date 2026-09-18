@@ -52,18 +52,18 @@ one; each profile keeps its own table.
 
 ## Coverage
 
-Of the 147 imports ET's cgame declares, **106 are handled**. The dispatcher
+Of the 147 imports ET's cgame declares, **125 are handled**, counting the sound
+surface the [sound record](2026-09-18-wolfet-audio.md) added after this one. The dispatcher
 routes ET's own records and renderer services first, then its key imports, then
 a table of imports whose meaning and argument shape are already this engine's.
 An import that reaches the end of that chain is refused by name and ordinal. No
 ET argument is dropped anywhere: an import this engine cannot answer exactly is
 not answered approximately.
 
-The 41 that remain open, and why:
+The 22 that remain open, and why:
 
 | Ordinals | Imports | Why |
 | --- | --- | --- |
-| 36–51, 100, 111, 112 | the sound surface | ET's sound carries a per-sound volume, a start time on looping sounds, a stop-sounds flag on fades, and queries for a sound's length and the current sound time. The shared audio interface has none of these, and answering without them would silently discard what ET asked for. |
 | 113–116 | the camera path surface | ET's camera paths need an ET-owned camera contract; the existing one is another profile's. |
 | 34, 35 | decal projection and clearing | No shared renderer service. |
 | 64 | the polygon buffer | No shared renderer service; the record is declared and checked but nothing consumes it. |
@@ -107,8 +107,9 @@ above, and checks that the refusal path still names the import.
   any of these imports. The evidence is source and unit only.
 - The renderer still has no MDM/MDX model type, so the model handles this
   boundary carries are transported, not drawn.
-- ET's 121 UI imports are untouched, as are its sound, camera, demo and reverse
-  interoperability surfaces.
+- ET's camera, demo and reverse interoperability surfaces remain untouched. Its
+  UI imports are opened by the [UI record](2026-09-18-wolfet-ui-boundary.md) and
+  its sound surface by the [sound record](2026-09-18-wolfet-audio.md).
 - Everything else in the [ET matrix](COMPATIBILITY.md#wolfet-gate-matrix)
   remains as recorded.
 
