@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Parse every MDM and MDX in an installed Enemy Territory with fnTech3's reader.
+"""Parse every MDM and MDX in an installed Enemy Territory with both fnTech3 readers.
 
 Extracts the models from the installation's paks into a scratch directory, never
-writing to the installation, and reports the parser's verdict for each file.
+writing to the installation, runs both the compatibility reader and the
+renderer's own byte reader over each file, and reports whether they agree.
 This is asset-decode evidence; it makes no rendering claim.
 """
 from pathlib import Path
@@ -20,9 +21,66 @@ ROOT = Path(__file__).resolve().parents[1]
 
 HARNESS = r'''
 #include "code/compat/wolfet_model_format.hpp"
+#include "code/renderercommon/tr_wolfet_model_format.h"
 #include <cstdio>
 #include <cstdlib>
 #include <vector>
+
+// The renderer reads these files with its own byte reader, separate from the
+// compatibility one. Both must accept the same files and agree on their counts,
+// or the renderer would be drawing something the decoder never verified.
+static int RendererMesh(const std::vector<unsigned char> &bytes, int &surfaces,
+ int &tags, int &verts, int &tris) {
+ fnWolfETMeshView_t view;
+ if (!FnWolfET_Mesh(bytes.data(), bytes.size(), &view)) return 0;
+ surfaces = (int)view.numSurfaces;
+ tags = (int)view.numTags;
+ verts = tris = 0;
+ for (uint32_t i = 0; i < view.numSurfaces; ++i) {
+  fnWolfETMeshSurfaceView_t surface;
+  if (!FnWolfET_MeshSurface(&view, i, &surface)) return 0;
+  for (uint32_t v = 0; v < surface.numVerts; ++v) {
+   fnWolfETVertexView_t vertex;
+   if (!FnWolfET_MeshVertex(&surface, v, &vertex)) return 0;
+   for (uint32_t w = 0; w < vertex.numWeights; ++w) {
+    fnWolfETWeight_t weight;
+    if (!FnWolfET_MeshWeight(&vertex, w, &weight)) return 0;
+    // ET's own header calls this an index into the surface's bone references,
+    // but its renderer and its shipped assets both use the global bone list.
+    if (weight.bone >= FN_WOLFET_MAX_BONES) return 0;
+   }
+  }
+  verts += (int)surface.numVerts;
+  tris += (int)surface.numTriangles;
+ }
+ for (uint32_t i = 0; i < view.numTags; ++i) {
+  fnWolfETTag_t tag;
+  if (!FnWolfET_MeshTag(&view, i, &tag, nullptr)) return 0;
+ }
+ return 1;
+}
+
+static int RendererSkeleton(const std::vector<unsigned char> &bytes, int &frames,
+ int &bones, int &torso) {
+ fnWolfETSkeletonView_t view;
+ if (!FnWolfET_Skeleton(bytes.data(), bytes.size(), &view)) return 0;
+ frames = (int)view.numFrames;
+ bones = (int)view.numBones;
+ torso = view.torsoParent;
+ for (uint32_t f = 0; f < view.numFrames; ++f) {
+  fnWolfETFrame_t frame;
+  if (!FnWolfET_Frame(&view, f, &frame)) return 0;
+  for (uint32_t b = 0; b < view.numBones; ++b) {
+   fnWolfETBonePose_t pose;
+   if (!FnWolfET_BonePose(&view, f, b, &pose)) return 0;
+  }
+ }
+ for (uint32_t b = 0; b < view.numBones; ++b) {
+  fnWolfETBone_t bone;
+  if (!FnWolfET_Bone(&view, b, &bone, nullptr)) return 0;
+ }
+ return 1;
+}
 
 int main(int argc, char **argv) {
  if (argc != 3) return 2;
@@ -41,14 +99,29 @@ int main(int argc, char **argv) {
   Mdx mdx;
   const Error error = ParseMdx(bytes.data(), bytes.size(), mdx);
   if (error != Error::None) { std::printf("%s\n", ErrorName(error)); return 1; }
-  std::printf("ok version=%d frames=%d bones=%d torso=%d\n",
+  int frames = 0, bones = 0, torso = 0;
+  if (!RendererSkeleton(bytes, frames, bones, torso)) {
+   std::printf("renderer reader refused\n"); return 1;
+  }
+  if (frames != mdx.numFrames || bones != mdx.numBones || torso != mdx.torsoParent) {
+   std::printf("readers disagree\n"); return 1;
+  }
+  std::printf("ok version=%d frames=%d bones=%d torso=%d renderer=agrees\n",
    mdx.version, mdx.numFrames, mdx.numBones, mdx.torsoParent);
   return 0;
  }
  Mdm mdm;
  const Error error = ParseMdm(bytes.data(), bytes.size(), 0, mdm);
  if (error != Error::None) { std::printf("%s\n", ErrorName(error)); return 1; }
- std::printf("ok version=%d surfaces=%d tags=%d verts=%d tris=%d maxbone=%d\n",
+ int surfaces = 0, tags = 0, verts = 0, tris = 0;
+ if (!RendererMesh(bytes, surfaces, tags, verts, tris)) {
+  std::printf("renderer reader refused\n"); return 1;
+ }
+ if (surfaces != mdm.numSurfaces || tags != mdm.numTags ||
+  verts != mdm.totalVerts || tris != mdm.totalTriangles) {
+  std::printf("readers disagree\n"); return 1;
+ }
+ std::printf("ok version=%d surfaces=%d tags=%d verts=%d tris=%d maxbone=%d renderer=agrees\n",
   mdm.version, mdm.numSurfaces, mdm.numTags, mdm.totalVerts, mdm.totalTriangles,
   mdm.maxBoneReference);
  return 0;

@@ -34,7 +34,10 @@ FNTECH3_WOLFET_MODEL_FIELD(mdmSurface_t, numBoneReferences, 164, 4)
 FNTECH3_WOLFET_MODEL_FIELD(mdmSurface_t, ofsBoneReferences, 168, 4)
 FNTECH3_WOLFET_MODEL_FIELD(mdmSurface_t, ofsEnd, 172, 4)
 
-/* ET's tag carries its own axis, where RTCW's MDS tag carries a torso weight. */
+/* ET's tag carries its own axis, where RTCW's MDS tag carries a torso weight.
+ * These sizes are each record's own length, not a stride: a surface and a tag
+ * both carry variable-length data and are chained by their ofsEnd, and a vertex
+ * is followed by as many weights as it claims. Only the fixed part is tabled. */
 FNTECH3_WOLFET_MODEL_RECORD(mdmTag_t, 128, 4)
 FNTECH3_WOLFET_MODEL_FIELD(mdmTag_t, name, 0, 64)
 FNTECH3_WOLFET_MODEL_FIELD(mdmTag_t, axis, 64, 36)
