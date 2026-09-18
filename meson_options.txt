@@ -16,7 +16,7 @@ option('build-client',
 option('wolfet-development',
   type: 'boolean',
   value: false,
-  description: 'Enable incomplete Wolfenstein Enemy Territory dedicated-server probes; client remains gated')
+  description: 'Enable Wolfenstein Enemy Territory client and server developer probes with real modules; release gates remain open')
 
 option('build-server',
   type: 'boolean',

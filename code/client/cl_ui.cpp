@@ -1801,7 +1801,10 @@ static intptr_t CL_UISystemCalls( intptr_t *args ) {
 	case UI_PC_ADD_GLOBAL_DEFINE:
 		return botlib_export->PC_AddGlobalDefine( VMA(1) );
 	case UI_PC_LOAD_SOURCE:
-		return botlib_export->PC_LoadSourceHandle( VMA(1) );
+		// ET's menus nest parentheses inside macro arguments and name macros
+		// within them, which only its own reading of a macro call accepts.
+		return Com_GameIsWolfET() ? botlib_export->PC_LoadWolfETSourceHandle( VMA(1) )
+			: botlib_export->PC_LoadSourceHandle( VMA(1) );
 	case UI_PC_FREE_SOURCE:
 		return botlib_export->PC_FreeSourceHandle( args[1] );
 	case UI_PC_READ_TOKEN:

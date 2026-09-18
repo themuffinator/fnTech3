@@ -21,6 +21,8 @@ PRELUDE = r'''
 #include "code/compat/wolfet_module_abi.h"
 #include "code/compat/rtcw_game_abi.h"
 #include "code/compat/rtcw_key_adapter.h"
+#include "code/compat/wolfet_key_adapter.h"
+#include "code/compat/wolfet_menu_adapter.h"
 #include "code/server/server_rtcw_args.hpp"
 #include <cassert>
 static comGameProfile_t profile;

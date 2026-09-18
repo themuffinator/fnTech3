@@ -359,10 +359,22 @@ static int PC_UnreadSourceToken(source_t *source, token_t *token)
 // Returns:					-
 // Changes Globals:		-
 //============================================================================
+static define_t *PC_FindHashedDefine(define_t **definehash, const char *name);
+static int PC_ExpandDefineIntoSource(source_t *source, token_t *deftoken, define_t *define);
+
+/* Two sets of rules for reading a macro's arguments. Quake 3's drops a nested
+ * "(" from an argument, so the call ends at the nested ")" and every argument
+ * after it is lost. Enemy Territory's counts the call's own "(" as the first
+ * level, keeps a nested pair inside the argument, and expands a macro named
+ * inside an argument before collecting it; its menus rely on all three. A
+ * source reads by ET's rules only when ET's client asked for it that way, so
+ * no other profile's scripts read differently. */
 static int PC_ReadDefineParms(source_t *source, define_t *define, token_t **parms, int maxparms)
 {
 	token_t token, *t, *last;
 	int i, done, lastcomma, numparms, indent;
+	const int wolfet = source->wolfetDefineParms != 0;
+	const int outermost = wolfet ? 1 : 0;
 
 	if (!PC_ReadSourceToken(source, &token))
 	{
@@ -385,7 +397,7 @@ static int PC_ReadDefineParms(source_t *source, define_t *define, token_t **parm
 		return qfalse;
 	} //end if
 	//read the define parameters
-	for (done = 0, numparms = 0, indent = 0; !done;)
+	for (done = 0, numparms = 0, indent = outermost; !done;)
 	{
 		if (numparms >= maxparms)
 		{
@@ -411,7 +423,7 @@ static int PC_ReadDefineParms(source_t *source, define_t *define, token_t **parm
 			//
 			if (!strcmp(token.string, ","))
 			{
-				if (indent <= 0)
+				if (indent <= outermost)
 				{
 					if (lastcomma) SourceWarning(source, "too many comma's");
 					break;
@@ -422,7 +434,7 @@ static int PC_ReadDefineParms(source_t *source, define_t *define, token_t **parm
 			if (!strcmp(token.string, "("))
 			{
 				indent++;
-				continue;
+				if (!wolfet) continue;
 			} //end if
 			else if (!strcmp(token.string, ")"))
 			{
@@ -434,6 +446,15 @@ static int PC_ReadDefineParms(source_t *source, define_t *define, token_t **parm
 					} //end if
 					done = 1;
 					break;
+				} //end if
+			} //end if
+			else if (wolfet && token.type == TT_NAME)
+			{
+				define_t *nested = PC_FindHashedDefine(source->definehash, token.string);
+				if (nested)
+				{
+					if (!PC_ExpandDefineIntoSource(source, &token, nested)) return qfalse;
+					continue;
 				} //end if
 			} //end if
 			//
@@ -2747,6 +2768,12 @@ int PC_ReadToken(source_t *source, token_t *token)
 				continue;
 			} //end if
 		} //end if
+		//if skipping source because of conditional compilation. This must come
+		//before the string concatenation below: that looks ahead for another
+		//string, and a look-ahead from inside a skipped branch reads straight
+		//through the #else or #endif that ends it, after which the skipped
+		//string would be returned as though it had never been skipped.
+		if (source->skip) continue;
 		// recursively concatenate strings that are behind each other still resolving defines
 		if (token->type == TT_STRING)
 		{
@@ -2769,8 +2796,6 @@ int PC_ReadToken(source_t *source, token_t *token)
 				}
 			}
 		} //end if
-		//if skipping source because of conditional compilation
-		if (source->skip) continue;
 		//if the token is a name
 		if (token->type == TT_NAME)
 		{
@@ -3152,7 +3177,7 @@ static constexpr int MAX_SOURCEFILES = 64;
 
 source_t *sourceFiles[MAX_SOURCEFILES];
 
-int PC_LoadSourceHandle(const char *filename)
+static int PC_LoadSourceHandleRules(const char *filename, int wolfet)
 {
 	source_t *source;
 	int i;
@@ -3168,9 +3193,20 @@ int PC_LoadSourceHandle(const char *filename)
 	source = LoadSourceFile(filename);
 	if (!source)
 		return 0;
+	source->wolfetDefineParms = wolfet;
 	sourceFiles[i] = source;
 	return i;
+} //end of the function PC_LoadSourceHandleRules
+
+int PC_LoadSourceHandle(const char *filename)
+{
+	return PC_LoadSourceHandleRules(filename, 0);
 } //end of the function PC_LoadSourceHandle
+
+int PC_LoadWolfETSourceHandle(const char *filename)
+{
+	return PC_LoadSourceHandleRules(filename, 1);
+} //end of the function PC_LoadWolfETSourceHandle
 //============================================================================
 //
 // Parameter:			-

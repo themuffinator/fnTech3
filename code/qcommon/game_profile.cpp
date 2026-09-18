@@ -212,8 +212,10 @@ bool EqualsIgnoreCase( const char *left, const char *right )
 
 bool RuntimeBlocked( const comGameProfile_t *profile )
 {
-#if defined(FNTECH3_WOLFET_DEVELOPMENT) && defined(DEDICATED)
-	// Server probes only until the distinct ET client/renderer boundary exists.
+#if defined(FNTECH3_WOLFET_DEVELOPMENT)
+	/* Explicit developer builds exercise the ET client and server with real
+	 * modules, as the RTCW developer build does. This does not alter the
+	 * profile contract or lift the release gate below. */
 	if (profile && profile->id == COM_GAME_WOLFET) return false;
 #endif
 #if defined( FNTECH3_RTCW_DEVELOPMENT )

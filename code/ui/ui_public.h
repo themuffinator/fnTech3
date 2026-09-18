@@ -298,12 +298,21 @@ typedef enum {
 	UIMENU_WM_LIMBO,
 	UIMENU_WM_AUTOUPDATE,
 	UIMENU_BRIEFING,
+	// Enemy Territory's own, beside the other Wolfenstein profile's.
+	UIMENU_WM_FTQUICKMESSAGE,
+	UIMENU_WM_FTQUICKMESSAGEALT,
+	UIMENU_WM_TAPOUT,
+	UIMENU_WM_TAPOUT_LMS,
+	UIMENU_INGAME_MESSAGEMODE,
 	UIMENU_COUNT
 } uiMenuCommand_t;
 
 // Engine-only request, translated at the RTCW boundary. Do not insert it in
 // the legacy/structured export lists: RTCW's real export number is 8.
-enum { UI_GET_ACTIVE_MENU = 0x10000 };
+enum { UI_GET_ACTIVE_MENU = 0x10000,
+	/* Enemy Territory asks its UI whether a key runs a bound command, and
+	 * whether the UI is waiting to capture a key for a binding. */
+	UI_CHECKEXECKEY = 0x10001, UI_WANTSBINDKEYS = 0x10002 };
 
 #define SORT_HOST			0
 #define SORT_MAP			1

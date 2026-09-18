@@ -71,7 +71,8 @@ class WolfETClientServiceTests(unittest.TestCase):
         """ET names a menu by number where the other Wolfenstein profile names
         it by string; its own client also refuses while replaying a demo."""
         region = _function(CGAME, 'static bool CL_WolfETCgameCall')
-        self.assertIn('VM_Call( uivm, 1, UI_SET_ACTIVE_MENU, args[1] );', region)
+        self.assertIn('FnTech3_WolfETMenuToInternal( args[1] )', region)
+        self.assertIn('VM_Call( uivm, 1, UI_SET_ACTIVE_MENU, menu );', region)
         self.assertIn('cls.state == CA_ACTIVE && !clc.demoplaying && uivm', region)
 
     def test_two_dimensional_polygons_are_a_fan_with_their_own_colours(self):

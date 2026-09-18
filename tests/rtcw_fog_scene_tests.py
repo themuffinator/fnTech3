@@ -21,6 +21,7 @@ static cvar_t *r_wolffog=nullptr;
 static struct {
  fnRTCWFogState_t rtcwFog;
  qboolean rtcwSkyPortal;
+ float identityLight;
  struct {int time; fnRTCWFogFrame_t rtcwFog;} refdef;
 } tr;
 static void Error(errorParm_t,const char*,...){throw 7;}

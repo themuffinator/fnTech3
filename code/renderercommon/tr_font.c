@@ -1197,6 +1197,14 @@ static void R_BuildClassicFontCacheName( const char *fontName, int pointSize,
 	char *name, int nameSize ) {
 	char stem[MAX_QPATH];
 
+	// Enemy Territory names its pre-rendered fonts after the font and size
+	// alone, fonts/ariblk_27.dat, where the Quake lineage prefixes fontImage_.
+	// Its fonts ship only as those files, so under the wrong name every glyph
+	// fell back to a plain block.
+	if ( ri.gameId == COM_GAME_WOLFET ) {
+		Com_sprintf( name, nameSize, "fonts/%s_%i.dat", fontName, pointSize );
+		return;
+	}
 	R_BuildClassicFontStem( fontName, stem, sizeof( stem ) );
 	if ( stem[0] ) {
 		Com_sprintf( name, nameSize, "fonts/fontImage_%s_%i.dat", stem, pointSize );

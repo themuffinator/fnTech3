@@ -128,7 +128,7 @@ class RTCWCastQueryTests(unittest.TestCase):
         vm = (ROOT / 'code/qcommon/vm.c').read_text()
         main = (ROOT / 'code/botlib/be_aas_main.cpp').read_text()
         source = PRELUDE
-        for signature in ('static qboolean VM_PrepareRTCWExport(', 'static qboolean VM_PrepareWolfETGameExport(', 'intptr_t QDECL VM_Call('):
+        for signature in ('static qboolean VM_PrepareRTCWExport(', 'static qboolean VM_PrepareWolfETExport(', 'intptr_t QDECL VM_Call('):
             source += '\n' + function(vm, signature)
         source += '\nstatic aas_rtcw_cast_callbacks_t rtcwCastCallbacks;\n'
         for signature in ('void AAS_SetRTCWCastCallbacks(', 'const aas_rtcw_cast_callbacks_t &AAS_RTCWCastCallbacks('):

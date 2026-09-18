@@ -717,7 +717,16 @@ void RB_CalcWaveAlpha( const waveForm_t *wf, unsigned char *dstColors )
 	int v;
 	float glow;
 
-	glow = EvalWaveFormClamped( wf );
+	// A noise wave has no lookup table. Enemy Territory evaluates it as the
+	// colour wave does, and does not clamp it before the byte is stored, so a
+	// wave reaching outside zero and one wraps; its main-menu lightning is
+	// drawn that way. No other shipped content uses a noise alpha wave, which
+	// every other profile's renderer refused outright.
+	if ( wf->func == GF_NOISE ) {
+		glow = wf->base + R_NoiseGet4f( 0, 0, 0, ( tess.shaderTime + wf->phase ) * wf->frequency ) * wf->amplitude;
+	} else {
+		glow = EvalWaveFormClamped( wf );
+	}
 
 	v = 255 * glow;
 

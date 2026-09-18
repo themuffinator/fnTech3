@@ -46,7 +46,7 @@ int main() {
     comGameMarkerInputs_t mixed{"auto",COM_GAME_MARKER_WOLFET | COM_GAME_MARKER_QUAKE3,0,0};
     assert(Com_DetectGameProfileMarkers(&mixed).status == COM_GAME_DETECTION_AMBIGUOUS);
     mixed.basePathMarkers = COM_GAME_MARKER_WOLFET;
-#if defined(FNTECH3_WOLFET_DEVELOPMENT) && defined(DEDICATED) && !defined(FNTECH3_Q3_ONLY)
+#if defined(FNTECH3_WOLFET_DEVELOPMENT) && !defined(FNTECH3_Q3_ONLY)
     assert(Com_DetectGameProfileMarkers(&mixed).profile == et);
     assert(Com_GameManagerCanActivate(et) && Com_ActivateGameProfile(COM_GAME_WOLFET));
     assert(Com_GameIsWolfET() && !Com_GameIsRTCW() && !Com_GameIsQuake3());

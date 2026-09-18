@@ -20,6 +20,8 @@ PRELUDE = r'''
 #ifndef USE_DEDICATED
 #include "code/cgame/cg_public.h"
 #include "code/compat/rtcw_key_adapter.h"
+#include "code/compat/wolfet_key_adapter.h"
+#include "code/compat/wolfet_menu_adapter.h"
 #endif
 #include <assert.h>
 #include <limits.h>
@@ -197,8 +199,11 @@ static void RTCW(comGameId_t id) {
             assert(observedArgs[0] == (n | 1024));
         }
         { // All original menu returns cross back to the canonical vocabulary.
-            static const int spAll[] = {0,1,2,3,5,6,8,4,7,9,10,11,12,13,14,15,16,17,-1,18,-1,19};
-            static const int mpAll[] = {0,1,2,3,4,5,6,-1,-1,7,8,9,10,11,12,13,14,15,16,17,18,-1};
+            /* The last five are Enemy Territory's menus, which neither RTCW mode has. */
+            static const int spAll[] = {0,1,2,3,5,6,8,4,7,9,10,11,12,13,14,15,16,17,-1,18,-1,19,-1,-1,-1,-1,-1};
+            static const int mpAll[] = {0,1,2,3,4,5,6,-1,-1,7,8,9,10,11,12,13,14,15,16,17,18,-1,-1,-1,-1,-1,-1};
+            _Static_assert(sizeof(spAll)/sizeof(spAll[0]) == UIMENU_COUNT, "one SP entry per menu");
+            _Static_assert(sizeof(mpAll)/sizeof(mpAll[0]) == UIMENU_COUNT, "one MP entry per menu");
             for (n = 0; n < UIMENU_COUNT; ++n) {
                 const int external = id == COM_GAME_RTCW_SP ? spAll[n] : mpAll[n];
                 if (external < 0) { Reject(VM_UI, UI_SET_ACTIVE_MENU, 1, n, 0, 0); continue; }
@@ -322,7 +327,9 @@ int main(void) {
     Reset(COM_GAME_WOLFET);
     ERROR(VM_Call(&module, 0, 99999));
 #ifndef USE_DEDICATED
-    module.index = VM_UI; ERROR(VM_Call(&module, 3, GAME_INIT, 0, 0, 0));
+    /* ET's UI exports are translated; an export only Quake Live's UI has
+     * carries no ET ordinal and is refused. */
+    module.index = VM_UI; ERROR(VM_Call(&module, 0, UI_REFRESH_DISPLAY_CONTEXT));
 #endif
     module.index = VM_GAME; module.entryPoint = NULL;
     ERROR(VM_Call(&module, 3, GAME_INIT, 0, 0, 0));

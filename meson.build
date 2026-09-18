@@ -901,7 +901,7 @@ endif
 
 engine_cpp_args = common_cpp_args
 if wolfet_development
-  warning('WolfET development: incomplete dedicated-server adapters; client compatibility remains gated.')
+  warning('WolfET developer build: the ET client and server run with real modules for isolated probes. Release compatibility gates remain open.')
   engine_cpp_args += ['-DFNTECH3_WOLFET_DEVELOPMENT=1']
 endif
 if rtcw_development

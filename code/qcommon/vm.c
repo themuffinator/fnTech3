@@ -46,6 +46,8 @@ and one exported function: Perform
 #include "../cgame/cg_public.h"
 #include "../client/keycodes.h"
 #include "../compat/rtcw_key_adapter.h"
+#include "../compat/wolfet_key_adapter.h"
+#include "../compat/wolfet_menu_adapter.h"
 #endif
 
 opcode_info_t ops[ OP_MAX ] =
@@ -3071,27 +3073,106 @@ static qboolean VM_PrepareRTCWExport( comGameId_t profile, vmIndex_t index,
 	return qtrue;
 }
 
-static qboolean VM_PrepareWolfETGameExport(vmIndex_t index, int callnum, int nargs, int *output) {
-	if (index != VM_GAME || !output) return qfalse;
+/* Translates the engine's export numbers into ET's, and ET-meaning arguments
+ * into ET's own numbering. A key with no ET equivalent is accepted and then
+ * not delivered (output -1), as the other Wolfenstein profile's is. */
+static qboolean VM_PrepareWolfETExport( vmIndex_t index, int callnum, int nargs,
+	int32_t *args, int *output ) {
 	int minimum = -1;
-	switch (callnum) {
+	if ( !output || !args ) return qfalse;
+	*output = -1;
 #define ET_EXPORT(name, count) case name: *output = FNTECH3_WOLFET_##name; minimum = count; break;
-	ET_EXPORT(GAME_INIT, 3)
-	ET_EXPORT(GAME_SHUTDOWN, 1)
-	ET_EXPORT(GAME_CLIENT_CONNECT, 3)
-	ET_EXPORT(GAME_CLIENT_BEGIN, 1)
-	ET_EXPORT(GAME_CLIENT_USERINFO_CHANGED, 1)
-	ET_EXPORT(GAME_CLIENT_DISCONNECT, 1)
-	ET_EXPORT(GAME_CLIENT_COMMAND, 1)
-	ET_EXPORT(GAME_CLIENT_THINK, 1)
-	ET_EXPORT(GAME_RUN_FRAME, 1)
-	ET_EXPORT(GAME_CONSOLE_COMMAND, 0)
-	ET_EXPORT(GAME_SNAPSHOT_CALLBACK, 2)
-	ET_EXPORT(BOTAI_START_FRAME, 1)
-#undef ET_EXPORT
+	switch ( index ) {
+	case VM_GAME:
+		switch ( callnum ) {
+		ET_EXPORT(GAME_INIT, 3)
+		ET_EXPORT(GAME_SHUTDOWN, 1)
+		ET_EXPORT(GAME_CLIENT_CONNECT, 3)
+		ET_EXPORT(GAME_CLIENT_BEGIN, 1)
+		ET_EXPORT(GAME_CLIENT_USERINFO_CHANGED, 1)
+		ET_EXPORT(GAME_CLIENT_DISCONNECT, 1)
+		ET_EXPORT(GAME_CLIENT_COMMAND, 1)
+		ET_EXPORT(GAME_CLIENT_THINK, 1)
+		ET_EXPORT(GAME_RUN_FRAME, 1)
+		ET_EXPORT(GAME_CONSOLE_COMMAND, 0)
+		ET_EXPORT(GAME_SNAPSHOT_CALLBACK, 2)
+		ET_EXPORT(BOTAI_START_FRAME, 1)
+		default: return qfalse;
+		}
+		break;
+#ifndef USE_DEDICATED
+	case VM_UI:
+		switch ( callnum ) {
+		ET_EXPORT(UI_GETAPIVERSION, 0)
+		ET_EXPORT(UI_INIT, 1)
+		ET_EXPORT(UI_SHUTDOWN, 0)
+		ET_EXPORT(UI_KEY_EVENT, 2)
+		ET_EXPORT(UI_MOUSE_EVENT, 2)
+		ET_EXPORT(UI_REFRESH, 1)
+		ET_EXPORT(UI_IS_FULLSCREEN, 0)
+		ET_EXPORT(UI_SET_ACTIVE_MENU, 1)
+		ET_EXPORT(UI_GET_ACTIVE_MENU, 0)
+		ET_EXPORT(UI_CONSOLE_COMMAND, 1)
+		ET_EXPORT(UI_DRAW_CONNECT_SCREEN, 1)
+		ET_EXPORT(UI_HASUNIQUECDKEY, 0)
+		ET_EXPORT(UI_CHECKEXECKEY, 1)
+		ET_EXPORT(UI_WANTSBINDKEYS, 0)
+		default: return qfalse;
+		}
+		break;
+	case VM_CGAME:
+		switch ( callnum ) {
+		ET_EXPORT(CG_INIT, 4)
+		ET_EXPORT(CG_SHUTDOWN, 0)
+		ET_EXPORT(CG_CONSOLE_COMMAND, 0)
+		ET_EXPORT(CG_DRAW_ACTIVE_FRAME, 3)
+		ET_EXPORT(CG_CROSSHAIR_PLAYER, 0)
+		ET_EXPORT(CG_LAST_ATTACKER, 0)
+		ET_EXPORT(CG_KEY_EVENT, 2)
+		ET_EXPORT(CG_MOUSE_EVENT, 2)
+		ET_EXPORT(CG_EVENT_HANDLING, 1)
+		ET_EXPORT(CG_GET_TAG, 3)
+		ET_EXPORT(CG_CHECKEXECKEY, 1)
+		ET_EXPORT(CG_WANTSBINDKEYS, 0)
+		ET_EXPORT(CG_MESSAGERECEIVED, 2)
+		default: return qfalse;
+		}
+		break;
+#endif
 	default: return qfalse;
 	}
-	return nargs >= minimum ? qtrue : qfalse;
+#undef ET_EXPORT
+	if ( minimum < 0 || nargs < minimum ) return qfalse;
+#ifndef USE_DEDICATED
+	if ( ( index == VM_UI && ( callnum == UI_KEY_EVENT || callnum == UI_CHECKEXECKEY ) ) ||
+		( index == VM_CGAME && ( callnum == CG_KEY_EVENT || callnum == CG_CHECKEXECKEY ) ) ) {
+		/* ET's key numbers from the mouse wheel upward sit four below this
+		 * engine's; a key ET has no number for is not delivered. */
+		const int key = FnTech3_WolfETKeyEventFromInternal( args[0] );
+		if ( ( callnum == UI_KEY_EVENT || callnum == CG_KEY_EVENT ) && ( args[1] < 0 || args[1] > 1 ) )
+			return qfalse;
+		if ( key < 0 ) *output = -1;
+		else args[0] = key;
+	}
+	if ( index == VM_UI && callnum == UI_SET_ACTIVE_MENU ) {
+		const int menu = FnTech3_WolfETMenuFromInternal( args[0] );
+		if ( menu < 0 ) return qfalse;
+		args[0] = menu;
+	}
+	if ( index == VM_CGAME && callnum == CG_EVENT_HANDLING ) {
+		/* The engine only ever asks ET's cgame to leave its own event mode;
+		 * ET's other events are the cgame's own to enter. */
+		if ( args[0] != CGAME_EVENT_NONE ) return qfalse;
+		args[0] = 0;
+	}
+	if ( index == VM_CGAME && callnum == CG_DRAW_ACTIVE_FRAME ) {
+		/* ET's stereo views are Quake's; its demo flag is a boolean. */
+		if ( args[1] < STEREO_CENTER || args[1] > STEREO_RIGHT || args[2] < 0 || args[2] > 1 )
+			return qfalse;
+	}
+	if ( index == VM_CGAME && callnum == CG_INIT && ( args[3] < 0 || args[3] > 1 ) ) return qfalse;
+#endif
+	return qtrue;
 }
 
 intptr_t QDECL VM_Call( vm_t *vm, int nargs, int callnum, ... )
@@ -3142,7 +3223,7 @@ intptr_t QDECL VM_Call( vm_t *vm, int nargs, int callnum, ... )
 		va_start( ap, callnum );
 		for ( i = 0; i < nargs; ++i ) args[i] = va_arg( ap, int32_t );
 		va_end( ap );
-		if ( !(Com_GameIsWolfET() ? VM_PrepareWolfETGameExport(vm->index, callnum, nargs, &externalCall)
+		if ( !(Com_GameIsWolfET() ? VM_PrepareWolfETExport( vm->index, callnum, nargs, args, &externalCall )
 			: VM_PrepareRTCWExport( Com_GameProfile()->id, vm->index, callnum, nargs, args, &externalCall )) ) {
 			Com_Error( ERR_DROP, "Unsupported %s %s export %d with %d arguments",
 				Com_GameProfile()->key, vm->name, callnum, nargs );
@@ -3158,7 +3239,8 @@ intptr_t QDECL VM_Call( vm_t *vm, int nargs, int callnum, ... )
 		--vm->callLevel;
 #ifndef USE_DEDICATED
 		if ( vm->index == VM_UI && callnum == UI_GET_ACTIVE_MENU ) {
-			const int menu = VM_RTCWMenuFromExternal( Com_GameProfile()->id, r );
+			const int menu = Com_GameIsWolfET() ? FnTech3_WolfETMenuToInternal( r )
+				: VM_RTCWMenuFromExternal( Com_GameProfile()->id, r );
 			if ( menu < 0 ) {
 				Com_Error( ERR_DROP, "Invalid %s active menu %lld", Com_GameProfile()->key, (long long)r );
 				return 0;

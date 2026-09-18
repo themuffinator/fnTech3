@@ -38,6 +38,7 @@ extern "C" {
 #include "../compat/wolfet_client_adapter.hpp"
 #include "../compat/wolfet_state_adapter.hpp"
 #include "../compat/wolfet_key_adapter.h"
+#include "../compat/wolfet_menu_adapter.h"
 #include "client_wolfet_state.hpp"
 #include "../qcommon/netchan_safety.hpp"
 #include "../qcommon/vm_rtcw_filesystem.hpp"
@@ -2193,8 +2194,10 @@ static intptr_t CL_WolfETCgameSharedCall( fntech3::wolfet::module::Call call ) {
 	}
 }
 
+// ET's trace imports pass the end point before the box, as the engine's own
+// trace does: ( results, start, end, mins, maxs, model, brushmask ).
 static void CL_WolfETCMTrace( fntech3_wolfet_trace_t *destination,
-	const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end,
+	const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
 	int model, int brushmask, const vec3_t origin, const vec3_t angles,
 	qboolean capsule, qboolean transformed ) {
 	if ( !destination || !start || !end ) {
@@ -2414,7 +2417,11 @@ static bool CL_WolfETCgameCall( intptr_t *args, intptr_t &operation, intptr_t &r
 		// Wolfenstein profile does, and its own client refuses to open one
 		// while disconnected or replaying a demo.
 		if ( cls.state == CA_ACTIVE && !clc.demoplaying && uivm ) {
-			VM_Call( uivm, 1, UI_SET_ACTIVE_MENU, args[1] );
+			// The export translates the engine's menu into ET's again, so a
+			// number ET's own table does not hold is refused here, by name.
+			const int menu = FnTech3_WolfETMenuToInternal( args[1] );
+			if ( menu < 0 ) Com_Error( ERR_DROP, "Unknown ET menu %lld", (long long)args[1] );
+			VM_Call( uivm, 1, UI_SET_ACTIVE_MENU, menu );
 		}
 		result = 0; return true;
 	case Call::CG_TRANSLATE_STRING:
@@ -2957,7 +2964,10 @@ static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 	case CG_PC_ADD_GLOBAL_DEFINE:
 		return botlib_export->PC_AddGlobalDefine( VMA(1) );
 	case CG_PC_LOAD_SOURCE:
-		return botlib_export->PC_LoadSourceHandle( VMA(1) );
+		// ET's menus nest parentheses inside macro arguments and name macros
+		// within them, which only its own reading of a macro call accepts.
+		return Com_GameIsWolfET() ? botlib_export->PC_LoadWolfETSourceHandle( VMA(1) )
+			: botlib_export->PC_LoadSourceHandle( VMA(1) );
 	case CG_PC_FREE_SOURCE:
 		return botlib_export->PC_FreeSourceHandle( args[1] );
 	case CG_PC_READ_TOKEN:
@@ -3801,7 +3811,13 @@ void CL_InitCGame( void ) {
 	// init for this gamestate
 	// use the lastExecutedServerCommand instead of the serverCommandSequence
 	// otherwise server commands sent just before a gamestate are dropped
-	VM_Call( cgvm, 3, CG_INIT, clc.serverMessageSequence, clc.lastExecutedServerCommand, clc.clientNum );
+	if ( Com_GameIsWolfET() ) {
+		// ET's cgame is told whether it is replaying a demo at initialisation.
+		VM_Call( cgvm, 4, CG_INIT, clc.serverMessageSequence, clc.lastExecutedServerCommand,
+			clc.clientNum, clc.demoplaying ? 1 : 0 );
+	} else {
+		VM_Call( cgvm, 3, CG_INIT, clc.serverMessageSequence, clc.lastExecutedServerCommand, clc.clientNum );
+	}
 
 	// reset any CVAR_CHEAT cvars registered by cgame
 	if ( !clc.demoplaying && !cl_connectedToCheatServer )

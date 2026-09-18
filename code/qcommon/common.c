@@ -4140,7 +4140,9 @@ void Com_Init( char *commandLine ) {
 	Com_Printf( "%s %s %s\n", SVN_VERSION, PLATFORM_STRING, __DATE__ );
 
 	if ( Q_setjmp( abortframe ) ) {
-		Sys_Error ("Error during initialization");
+		// A disconnect-class error jumps here without printing, so carry its
+		// message into the report rather than losing it.
+		Sys_Error( "Error during initialization%s%s", com_errorMessage[0] ? ": " : "", com_errorMessage );
 	}
 
 	// bk001129 - do this before anything else decides to push events

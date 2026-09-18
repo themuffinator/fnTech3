@@ -107,6 +107,7 @@ struct source_s
 	define_t **definehash;					//hash chain with defines
 	indent_t *indentstack;					//stack with indents
 	int skip;								// > 0 if skipping conditional code
+	int wolfetDefineParms;					// read macro arguments by Enemy Territory's rules
 	token_t token;							//last read token
 };
 using source_t = source_s;
@@ -178,6 +179,8 @@ using pc_token_t = pc_token_s;
 
 //
 int PC_LoadSourceHandle(const char *filename);
+// Enemy Territory reads macro arguments by its own rules; see PC_ReadDefineParms.
+int PC_LoadWolfETSourceHandle(const char *filename);
 int PC_FreeSourceHandle(int handle);
 int PC_ReadTokenHandle(int handle, pc_token_t *pc_token);
 int PC_ReadTokenWithLocation(int handle, pc_token_t *token, int *line, int *linesCrossed);

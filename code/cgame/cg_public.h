@@ -454,7 +454,12 @@ typedef enum {
 // Engine-only semantic exports. VM_Call maps these to the selected RTCW
 // vmMain ordinal; they must never overlap the published Q3/QL export numbers.
 typedef enum {
-	CG_GET_TAG = 0x10000 // ( int client, char *tagName, RTCW orientation * );
+	CG_GET_TAG = 0x10000, // ( int client, char *tagName, RTCW orientation * );
+	// Enemy Territory: the same two key questions its UI answers, and a
+	// binary message delivered to the cgame.
+	CG_CHECKEXECKEY = 0x10001,
+	CG_WANTSBINDKEYS = 0x10002,
+	CG_MESSAGERECEIVED = 0x10003
 } cgameEngineExport_t;
 
 // Retail Quake Live native DLL slot order recovered from cgamex86.dll dllEntry().

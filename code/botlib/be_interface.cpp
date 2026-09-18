@@ -978,6 +978,7 @@ botlib_export_t *GetBotLibAPI(int apiVersion, botlib_import_t *import) {
 
 	be_botlib_export.PC_AddGlobalDefine = PC_AddGlobalDefine;
 	be_botlib_export.PC_LoadSourceHandle = PC_LoadSourceHandle;
+	be_botlib_export.PC_LoadWolfETSourceHandle = PC_LoadWolfETSourceHandle;
 	be_botlib_export.PC_FreeSourceHandle = PC_FreeSourceHandle;
 	be_botlib_export.PC_ReadTokenHandle = PC_ReadTokenHandle;
 	be_botlib_export.PC_ReadTokenWithLocation = PC_ReadTokenWithLocation;
