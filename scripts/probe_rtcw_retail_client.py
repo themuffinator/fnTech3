@@ -52,7 +52,7 @@ def published(text, key):
     return match.group(1) if match else None
 
 
-def probe(server, installation, output, pure=False, team_check=False):
+def probe(server, installation, output, pure=False, team_check=False, map_name='mp_beach', gametype=None):
     output.mkdir(parents=True, exist_ok=False)
     server_home, client_home = output/'server', output/'client'
     server_home.mkdir(); client_home.mkdir()
@@ -66,8 +66,9 @@ def probe(server, installation, output, pure=False, team_check=False):
     server_command = command(server, installation, server_home, dict(
         com_gameProfile='rtcw-mp', dedicated='1', developer='1', net_ip='127.0.0.1',
         net_port=str(port), sv_pure='1' if pure else '0', sv_punkbuster='0', bot_enable='0',
-        sv_master1='', sv_master2='', sv_master3='', sv_master4='', sv_master5=''),
-        ['+map', 'mp_beach', '+wait', '100', '+sv_paks', '+sv_pakNames', '+sv_pure',
+        sv_master1='', sv_master2='', sv_master3='', sv_master4='', sv_master5='',
+        **({'g_gametype': str(gametype)} if gametype is not None else {})),
+        ['+map', map_name, '+wait', '100', '+sv_paks', '+sv_pakNames', '+sv_pure',
          '+wait', '1000', '+quit'])
     client_actions = ['+connect', f'127.0.0.1:{port}']
     if team_check:
@@ -82,7 +83,7 @@ def probe(server, installation, output, pure=False, team_check=False):
     kind = 'pure' if pure else 'non-pure'
     result = dict(evidence=f'Interop: inbound, {kind} '
                            + ('team admission' if team_check else 'spectator only'),
-                  profile='rtcw-mp', serverCommand=server_command, clientCommand=client_command,
+                  profile='rtcw-mp', map=map_name, serverCommand=server_command, clientCommand=client_command,
                   serverSha256=hashlib.sha256(server.read_bytes()).hexdigest(),
                   clientSha256=hashlib.sha256(client.read_bytes()).hexdigest(),
                   moduleSha256=hashlib.sha256((installation/'Main/qagame_mp_x86.dll').read_bytes()).hexdigest(),
@@ -169,8 +170,10 @@ if __name__ == '__main__':
                         help='run the server with sv_pure 1 and require the client to pass pure admission')
     parser.add_argument('--team-check', action='store_true',
                         help='issue console commands to join both teams; no mouse/keyboard input')
+    parser.add_argument('--map', default='mp_beach', help='server map; an installed RTCW MP map')
+    parser.add_argument('--gametype', type=int, help='server g_gametype (5 objective, 6 stopwatch, 7 checkpoint)')
     args = parser.parse_args()
     if os.name != 'nt':
         parser.error('This retail Windows client probe requires Windows')
     raise SystemExit(0 if probe(args.server.resolve(strict=True), args.installation.resolve(strict=True),
-                               args.output.resolve(), args.pure, args.team_check) else 1)
+                               args.output.resolve(), args.pure, args.team_check, args.map, args.gametype) else 1)

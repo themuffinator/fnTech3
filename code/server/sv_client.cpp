@@ -2123,8 +2123,16 @@ int SV_RemainingGameState( void )
 	entityState_t nullstate{};
 	msg_t		msg;
 	std::array<byte, MAX_GAME_MSGLEN_BUF> msgBuffer{};
+	// Q3 and QL keep their conservative estimate: QL's encoding within a Q3
+	// message. RTCW sends the gamestate in one message of its own, twice that
+	// size, with its own tables; original RTCW publishes sv_paks unconditionally,
+	// so estimating it as Q3 wrongly dropped big maps to degraded pure.
+	const netchanWireProfile_t wire = Com_GameIsRTCW()
+		? Netchan_SelectWireProfile( Com_GameProfile()->preferredProtocol, 0 )
+		: NETCHAN_WIRE_QL_RETAIL;
+	const int limit = Com_GameIsRTCW() ? Netchan_MessageLimit( wire ) : MAX_MSGLEN;
 
-	MSG_Init( &msg, msgBuffer.data(), MAX_MSGLEN );
+	MSG_Init( &msg, msgBuffer.data(), limit );
 
 	MSG_WriteLong( &msg, 7 ); // last client command
 
@@ -2140,17 +2148,17 @@ int SV_RemainingGameState( void )
 	for ( int index : SV_Indices( Com_GameConfigstringLimit() ) ) {
 		if ( index == CS_SERVERINFO ) {
 			SV_WriteConfigstringMessage( msg, index,
-				Cvar_InfoString( CVAR_SERVERINFO, nullptr ), NETCHAN_WIRE_QL_RETAIL );
+				Cvar_InfoString( CVAR_SERVERINFO, nullptr ), wire );
 			continue;
 		}
 		if ( index == CS_SYSTEMINFO ) {
 			SV_WriteConfigstringMessage( msg, index,
-				Cvar_InfoString_Big( CVAR_SYSTEMINFO, nullptr ), NETCHAN_WIRE_QL_RETAIL );
+				Cvar_InfoString_Big( CVAR_SYSTEMINFO, nullptr ), wire );
 			continue;
 		}
 		if ( sv.configstrings[index][0] ) {
 			SV_WriteConfigstringMessage( msg, index,
-				sv.configstrings[index], NETCHAN_WIRE_QL_RETAIL );
+				sv.configstrings[index], wire );
 		}
 	}
 
@@ -2160,7 +2168,7 @@ int SV_RemainingGameState( void )
 			continue;
 		}
 		SV_WriteBaselineMessage( msg, nullstate, entityNum,
-			NETCHAN_WIRE_QL_RETAIL );
+			wire );
 	}
 
 	MSG_WriteByte( &msg, svc_EOF );
@@ -2178,7 +2186,7 @@ int SV_RemainingGameState( void )
 	// reserve some space for potential userinfo expansion
 	len += 512;
 
-	return MAX_MSGLEN - len;
+	return limit - len;
 }
 
 

@@ -1,0 +1,629 @@
+{
+  "date": "2026-09-18T07:53:51.403043+00:00",
+  "commit": "b3840a334b4f778ab6c4fff69ac0aef304db4481",
+  "worktreeDirty": true,
+  "scope": "RTCW MP pure admission on every installed MP map, inbound and outbound.",
+  "build": {
+    "platform": "Windows x86",
+    "buildDir": "meson/build/win32-gaps",
+    "clientSha256": "82880be0ac4a02498587e6f4a3f25c0ef594561030182fa5dbfd6787a9f238a8",
+    "dedicatedSha256": "1824a65de8f5aa6daf72c7e1c855d04ab9502aa222c414c9758a0f088282563e",
+    "note": "Built from the shared tree at 9bd471f plus the uncommitted gamestate-budget correction in sv_client.cpp."
+  },
+  "retail": {
+    "wolfMP": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+    "qagameMP": "d8975b5c4e14488283c5eca7d549005304b04f1690705c13c174a171cc24c387"
+  },
+  "sourceFiles": [
+    {
+      "path": "code/server/sv_client.cpp",
+      "sha256": "7af6aa0b35b72ea862a1b403daf773b63a848e8fb6b7f01b8d9f5a3a39be0594"
+    },
+    {
+      "path": "tests/rtcw_gamestate_budget_tests.py",
+      "sha256": "300c9c4cbca883cc2a02dc69bc314dcc7e49cec19319d0cc87f4dc4781443d8a"
+    }
+  ],
+  "scripts": [
+    {
+      "path": "scripts/sweep_rtcw_mp_pure.py",
+      "sha256": "b029913bf40ff4e212b82be93927971525e8757606d26fee77672ca8fd7e460b"
+    },
+    {
+      "path": "scripts/probe_rtcw_retail_client.py",
+      "sha256": "df44c99b94b4ce52dcef8aac9a354d764b23af4e63390bd55888bef65f4fa704"
+    },
+    {
+      "path": "scripts/probe_client_to_server.py",
+      "sha256": "29b32af5f46868890479cbd9821441df1e809283955802ed04080e446414f896"
+    }
+  ],
+  "command": "python scripts/sweep_rtcw_mp_pure.py --client meson/build/win32-gaps/fntech3.exe --server meson/build/win32-gaps/fntech3.ded.exe --installation <RTCW root> --output .tmp/rtcw-pure-sweep/final",
+  "firstSweep": {
+    "output": ".tmp/rtcw-pure-sweep/all",
+    "passed": 14,
+    "maps": 15,
+    "failure": {
+      "map": "mp_sub",
+      "direction": "inbound",
+      "serverWarning": "WARNING: skipping sv_paks setup to avoid gamestate overflow",
+      "clientPureListEntries": 0,
+      "clientSawPureServer": false,
+      "publishedPaks": ""
+    }
+  },
+  "maps": 15,
+  "passed": 15,
+  "rows": [
+    {
+      "map": "mp_assault",
+      "gametype": 5,
+      "pak": "mp_pak0.pk3",
+      "inbound": {
+        "passed": true,
+        "active": true,
+        "clientBegin": true,
+        "pureAdmission": true,
+        "clientSawPureServer": true,
+        "clientPureListEntries": 15,
+        "publishedPaks": "2031588061 -12507464 536894334 -1646710850 -1393701318 1789456988 -1153491798 -2145192499 -137448799 131270674 125907563 -1023558518 764840216 -272430295 1886207346",
+        "clientExit": 0,
+        "serverExit": 0,
+        "installationUnchanged": true,
+        "elapsedSeconds": 55.953
+      },
+      "outbound": {
+        "passed": true,
+        "serverActive": true,
+        "serverBegin": true,
+        "unpureDrop": false,
+        "clientSawPureServer": true,
+        "handshakeReplies": [
+          "challengeResponse 923484958",
+          "connectResponse"
+        ],
+        "clientExit": 0,
+        "installationUnchanged": true,
+        "elapsedSeconds": 12.046,
+        "screenshots": [
+          {
+            "name": "handshake-world.png",
+            "sha256": "06fa3bc85144fa7ca917b9f20f0c8497109fe2957f777c275b32b770f01c6890"
+          }
+        ]
+      }
+    },
+    {
+      "map": "mp_base",
+      "gametype": 5,
+      "pak": "mp_pak0.pk3",
+      "inbound": {
+        "passed": true,
+        "active": true,
+        "clientBegin": true,
+        "pureAdmission": true,
+        "clientSawPureServer": true,
+        "clientPureListEntries": 15,
+        "publishedPaks": "2031588061 -12507464 536894334 -1646710850 -1393701318 1789456988 -1153491798 -2145192499 -137448799 131270674 125907563 -1023558518 764840216 -272430295 1886207346",
+        "clientExit": 0,
+        "serverExit": 0,
+        "installationUnchanged": true,
+        "elapsedSeconds": 56.156
+      },
+      "outbound": {
+        "passed": true,
+        "serverActive": true,
+        "serverBegin": true,
+        "unpureDrop": false,
+        "clientSawPureServer": true,
+        "handshakeReplies": [
+          "challengeResponse 1244554314",
+          "connectResponse"
+        ],
+        "clientExit": 0,
+        "installationUnchanged": true,
+        "elapsedSeconds": 12.282,
+        "screenshots": [
+          {
+            "name": "handshake-world.png",
+            "sha256": "62e94ff249e7b720847c8b4124dab54b7239f6736377ad0040531459476e8407"
+          }
+        ]
+      }
+    },
+    {
+      "map": "mp_beach",
+      "gametype": 5,
+      "pak": "mp_pak0.pk3",
+      "inbound": {
+        "passed": true,
+        "active": true,
+        "clientBegin": true,
+        "pureAdmission": true,
+        "clientSawPureServer": true,
+        "clientPureListEntries": 15,
+        "publishedPaks": "2031588061 -12507464 536894334 -1646710850 -1393701318 1789456988 -1153491798 -2145192499 -137448799 131270674 125907563 -1023558518 764840216 -272430295 1886207346",
+        "clientExit": 0,
+        "serverExit": 0,
+        "installationUnchanged": true,
+        "elapsedSeconds": 55.437
+      },
+      "outbound": {
+        "passed": true,
+        "serverActive": true,
+        "serverBegin": true,
+        "unpureDrop": false,
+        "clientSawPureServer": true,
+        "handshakeReplies": [
+          "challengeResponse 1090743827",
+          "connectResponse"
+        ],
+        "clientExit": 0,
+        "installationUnchanged": true,
+        "elapsedSeconds": 11.063,
+        "screenshots": [
+          {
+            "name": "handshake-world.png",
+            "sha256": "05fda7dd55d2d56ab903505d4e2b9b44eac4f0e71e08de4bed7afccd32736c9e"
+          }
+        ]
+      }
+    },
+    {
+      "map": "mp_castle",
+      "gametype": 5,
+      "pak": "mp_pak0.pk3",
+      "inbound": {
+        "passed": true,
+        "active": true,
+        "clientBegin": true,
+        "pureAdmission": true,
+        "clientSawPureServer": true,
+        "clientPureListEntries": 15,
+        "publishedPaks": "2031588061 -12507464 536894334 -1646710850 -1393701318 1789456988 -1153491798 -2145192499 -137448799 131270674 125907563 -1023558518 764840216 -272430295 1886207346",
+        "clientExit": 0,
+        "serverExit": 0,
+        "installationUnchanged": true,
+        "elapsedSeconds": 55.375
+      },
+      "outbound": {
+        "passed": true,
+        "serverActive": true,
+        "serverBegin": true,
+        "unpureDrop": false,
+        "clientSawPureServer": true,
+        "handshakeReplies": [
+          "challengeResponse 1097426048",
+          "connectResponse"
+        ],
+        "clientExit": 0,
+        "installationUnchanged": true,
+        "elapsedSeconds": 10.781,
+        "screenshots": [
+          {
+            "name": "handshake-world.png",
+            "sha256": "a8e2a74fe72e510591fde5e67a08661cc1ec9babae481f6688fd718ec7afaa29"
+          }
+        ]
+      }
+    },
+    {
+      "map": "mp_chateau",
+      "gametype": 5,
+      "pak": "mp_pakmaps3.pk3",
+      "inbound": {
+        "passed": true,
+        "active": true,
+        "clientBegin": true,
+        "pureAdmission": true,
+        "clientSawPureServer": true,
+        "clientPureListEntries": 15,
+        "publishedPaks": "2031588061 -12507464 536894334 -1646710850 -1393701318 1789456988 -1153491798 -2145192499 -137448799 131270674 125907563 -1023558518 764840216 -272430295 1886207346",
+        "clientExit": 0,
+        "serverExit": 0,
+        "installationUnchanged": true,
+        "elapsedSeconds": 55.422
+      },
+      "outbound": {
+        "passed": true,
+        "serverActive": true,
+        "serverBegin": true,
+        "unpureDrop": false,
+        "clientSawPureServer": true,
+        "handshakeReplies": [
+          "challengeResponse 1759731583",
+          "connectResponse"
+        ],
+        "clientExit": 0,
+        "installationUnchanged": true,
+        "elapsedSeconds": 10.969,
+        "screenshots": [
+          {
+            "name": "handshake-world.png",
+            "sha256": "0f0aba931f4dd64fa34b49b2380548f34f2d4572e428bf90fc8c2219e6b9784e"
+          }
+        ]
+      }
+    },
+    {
+      "map": "mp_dam",
+      "gametype": 5,
+      "pak": "mp_pakmaps5.pk3",
+      "inbound": {
+        "passed": true,
+        "active": true,
+        "clientBegin": true,
+        "pureAdmission": true,
+        "clientSawPureServer": true,
+        "clientPureListEntries": 15,
+        "publishedPaks": "2031588061 -12507464 536894334 -1646710850 -1393701318 1789456988 -1153491798 -2145192499 -137448799 131270674 125907563 -1023558518 764840216 -272430295 1886207346",
+        "clientExit": 0,
+        "serverExit": 0,
+        "installationUnchanged": true,
+        "elapsedSeconds": 55.406
+      },
+      "outbound": {
+        "passed": true,
+        "serverActive": true,
+        "serverBegin": true,
+        "unpureDrop": false,
+        "clientSawPureServer": true,
+        "handshakeReplies": [
+          "challengeResponse 716053343",
+          "connectResponse"
+        ],
+        "clientExit": 0,
+        "installationUnchanged": true,
+        "elapsedSeconds": 11.656,
+        "screenshots": [
+          {
+            "name": "handshake-world.png",
+            "sha256": "846a5924832d88aeedce07b287baa536af6d0db49f7954014deb14da7b97d617"
+          }
+        ]
+      }
+    },
+    {
+      "map": "mp_depot",
+      "gametype": 5,
+      "pak": "mp_pak0.pk3",
+      "inbound": {
+        "passed": true,
+        "active": true,
+        "clientBegin": true,
+        "pureAdmission": true,
+        "clientSawPureServer": true,
+        "clientPureListEntries": 15,
+        "publishedPaks": "2031588061 -12507464 536894334 -1646710850 -1393701318 1789456988 -1153491798 -2145192499 -137448799 131270674 125907563 -1023558518 764840216 -272430295 1886207346",
+        "clientExit": 0,
+        "serverExit": 0,
+        "installationUnchanged": true,
+        "elapsedSeconds": 55.547
+      },
+      "outbound": {
+        "passed": true,
+        "serverActive": true,
+        "serverBegin": true,
+        "unpureDrop": false,
+        "clientSawPureServer": true,
+        "handshakeReplies": [
+          "challengeResponse 502006955",
+          "connectResponse"
+        ],
+        "clientExit": 0,
+        "installationUnchanged": true,
+        "elapsedSeconds": 11.61,
+        "screenshots": [
+          {
+            "name": "handshake-world.png",
+            "sha256": "56fe4737c5032a52f0a6b06f51f00c884d69a46ba180c197d42c99698925e2a6"
+          }
+        ]
+      }
+    },
+    {
+      "map": "mp_destruction",
+      "gametype": 7,
+      "pak": "mp_pak0.pk3",
+      "inbound": {
+        "passed": true,
+        "active": true,
+        "clientBegin": true,
+        "pureAdmission": true,
+        "clientSawPureServer": true,
+        "clientPureListEntries": 15,
+        "publishedPaks": "2031588061 -12507464 536894334 -1646710850 -1393701318 1789456988 -1153491798 -2145192499 -137448799 131270674 125907563 -1023558518 764840216 -272430295 1886207346",
+        "clientExit": 0,
+        "serverExit": 0,
+        "installationUnchanged": true,
+        "elapsedSeconds": 55.421
+      },
+      "outbound": {
+        "passed": true,
+        "serverActive": true,
+        "serverBegin": true,
+        "unpureDrop": false,
+        "clientSawPureServer": true,
+        "handshakeReplies": [
+          "challengeResponse 107288259",
+          "connectResponse"
+        ],
+        "clientExit": 0,
+        "installationUnchanged": true,
+        "elapsedSeconds": 11.625,
+        "screenshots": [
+          {
+            "name": "handshake-world.png",
+            "sha256": "89ba9df60bc52c43c8b953d5348dac0668655d14863b61db02e8303b28f78d0e"
+          }
+        ]
+      }
+    },
+    {
+      "map": "mp_ice",
+      "gametype": 5,
+      "pak": "mp_pakmaps1.pk3",
+      "inbound": {
+        "passed": true,
+        "active": true,
+        "clientBegin": true,
+        "pureAdmission": true,
+        "clientSawPureServer": true,
+        "clientPureListEntries": 15,
+        "publishedPaks": "2031588061 -12507464 536894334 -1646710850 -1393701318 1789456988 -1153491798 -2145192499 -137448799 131270674 125907563 -1023558518 764840216 -272430295 1886207346",
+        "clientExit": 0,
+        "serverExit": 0,
+        "installationUnchanged": true,
+        "elapsedSeconds": 55.468
+      },
+      "outbound": {
+        "passed": true,
+        "serverActive": true,
+        "serverBegin": true,
+        "unpureDrop": false,
+        "clientSawPureServer": true,
+        "handshakeReplies": [
+          "challengeResponse 548830948",
+          "connectResponse"
+        ],
+        "clientExit": 0,
+        "installationUnchanged": true,
+        "elapsedSeconds": 11.437,
+        "screenshots": [
+          {
+            "name": "handshake-world.png",
+            "sha256": "2c797ac431877c12e95c659ff8cf1fd0f916f19e751be4557ec178a9f646de5c"
+          }
+        ]
+      }
+    },
+    {
+      "map": "mp_keep",
+      "gametype": 5,
+      "pak": "mp_pakmaps2.pk3",
+      "inbound": {
+        "passed": true,
+        "active": true,
+        "clientBegin": true,
+        "pureAdmission": true,
+        "clientSawPureServer": true,
+        "clientPureListEntries": 15,
+        "publishedPaks": "2031588061 -12507464 536894334 -1646710850 -1393701318 1789456988 -1153491798 -2145192499 -137448799 131270674 125907563 -1023558518 764840216 -272430295 1886207346",
+        "clientExit": 0,
+        "serverExit": 0,
+        "installationUnchanged": true,
+        "elapsedSeconds": 55.484
+      },
+      "outbound": {
+        "passed": true,
+        "serverActive": true,
+        "serverBegin": true,
+        "unpureDrop": false,
+        "clientSawPureServer": true,
+        "handshakeReplies": [
+          "challengeResponse 281225635",
+          "connectResponse"
+        ],
+        "clientExit": 0,
+        "installationUnchanged": true,
+        "elapsedSeconds": 11.86,
+        "screenshots": [
+          {
+            "name": "handshake-world.png",
+            "sha256": "1dcb6609e755b336bed0711cb27830f6bde28d425af756c18f665b25aa40cea2"
+          }
+        ]
+      }
+    },
+    {
+      "map": "mp_rocket",
+      "gametype": 5,
+      "pak": "mp_pakmaps6.pk3",
+      "inbound": {
+        "passed": true,
+        "active": true,
+        "clientBegin": true,
+        "pureAdmission": true,
+        "clientSawPureServer": true,
+        "clientPureListEntries": 15,
+        "publishedPaks": "2031588061 -12507464 536894334 -1646710850 -1393701318 1789456988 -1153491798 -2145192499 -137448799 131270674 125907563 -1023558518 764840216 -272430295 1886207346",
+        "clientExit": 0,
+        "serverExit": 0,
+        "installationUnchanged": true,
+        "elapsedSeconds": 55.563
+      },
+      "outbound": {
+        "passed": true,
+        "serverActive": true,
+        "serverBegin": true,
+        "unpureDrop": false,
+        "clientSawPureServer": true,
+        "handshakeReplies": [
+          "challengeResponse 314670690",
+          "connectResponse"
+        ],
+        "clientExit": 0,
+        "installationUnchanged": true,
+        "elapsedSeconds": 11.234,
+        "screenshots": [
+          {
+            "name": "handshake-world.png",
+            "sha256": "442b09455a42fd17c7299dc064abdd4be48a0a894fcaafa873aada4da56253a1"
+          }
+        ]
+      }
+    },
+    {
+      "map": "mp_sub",
+      "gametype": 5,
+      "pak": "mp_pak0.pk3",
+      "inbound": {
+        "passed": true,
+        "active": true,
+        "clientBegin": true,
+        "pureAdmission": true,
+        "clientSawPureServer": true,
+        "clientPureListEntries": 15,
+        "publishedPaks": "2031588061 -12507464 536894334 -1646710850 -1393701318 1789456988 -1153491798 -2145192499 -137448799 131270674 125907563 -1023558518 764840216 -272430295 1886207346",
+        "clientExit": 0,
+        "serverExit": 0,
+        "installationUnchanged": true,
+        "elapsedSeconds": 55.453
+      },
+      "outbound": {
+        "passed": true,
+        "serverActive": true,
+        "serverBegin": true,
+        "unpureDrop": false,
+        "clientSawPureServer": true,
+        "handshakeReplies": [
+          "challengeResponse 1592417466",
+          "connectResponse"
+        ],
+        "clientExit": 0,
+        "installationUnchanged": true,
+        "elapsedSeconds": 13.484,
+        "screenshots": [
+          {
+            "name": "handshake-world.png",
+            "sha256": "46c36efbc926aeaab2c6af14730277958081e7f0712190ac3547b8f3ae9d1cbf"
+          }
+        ]
+      }
+    },
+    {
+      "map": "mp_tram",
+      "gametype": 5,
+      "pak": "mp_pakmaps4.pk3",
+      "inbound": {
+        "passed": true,
+        "active": true,
+        "clientBegin": true,
+        "pureAdmission": true,
+        "clientSawPureServer": true,
+        "clientPureListEntries": 15,
+        "publishedPaks": "2031588061 -12507464 536894334 -1646710850 -1393701318 1789456988 -1153491798 -2145192499 -137448799 131270674 125907563 -1023558518 764840216 -272430295 1886207346",
+        "clientExit": 0,
+        "serverExit": 0,
+        "installationUnchanged": true,
+        "elapsedSeconds": 55.468
+      },
+      "outbound": {
+        "passed": true,
+        "serverActive": true,
+        "serverBegin": true,
+        "unpureDrop": false,
+        "clientSawPureServer": true,
+        "handshakeReplies": [
+          "challengeResponse 1311538626",
+          "connectResponse"
+        ],
+        "clientExit": 0,
+        "installationUnchanged": true,
+        "elapsedSeconds": 11.234,
+        "screenshots": [
+          {
+            "name": "handshake-world.png",
+            "sha256": "520499ca5a86cdec3a1d22c33d49b6a404cee62459f5a4434960c7784d5dba71"
+          }
+        ]
+      }
+    },
+    {
+      "map": "mp_trenchtoast",
+      "gametype": 7,
+      "pak": "mp_pakmaps0.pk3",
+      "inbound": {
+        "passed": true,
+        "active": true,
+        "clientBegin": true,
+        "pureAdmission": true,
+        "clientSawPureServer": true,
+        "clientPureListEntries": 15,
+        "publishedPaks": "2031588061 -12507464 536894334 -1646710850 -1393701318 1789456988 -1153491798 -2145192499 -137448799 131270674 125907563 -1023558518 764840216 -272430295 1886207346",
+        "clientExit": 0,
+        "serverExit": 0,
+        "installationUnchanged": true,
+        "elapsedSeconds": 55.453
+      },
+      "outbound": {
+        "passed": true,
+        "serverActive": true,
+        "serverBegin": true,
+        "unpureDrop": false,
+        "clientSawPureServer": true,
+        "handshakeReplies": [
+          "challengeResponse 1806514017",
+          "connectResponse"
+        ],
+        "clientExit": 0,
+        "installationUnchanged": true,
+        "elapsedSeconds": 11.453,
+        "screenshots": [
+          {
+            "name": "handshake-world.png",
+            "sha256": "c74bc8b89389c5b322299ce60f4a8459b6453d703b0fecad664131c624ea7cbc"
+          }
+        ]
+      }
+    },
+    {
+      "map": "mp_village",
+      "gametype": 5,
+      "pak": "mp_pak0.pk3",
+      "inbound": {
+        "passed": true,
+        "active": true,
+        "clientBegin": true,
+        "pureAdmission": true,
+        "clientSawPureServer": true,
+        "clientPureListEntries": 15,
+        "publishedPaks": "2031588061 -12507464 536894334 -1646710850 -1393701318 1789456988 -1153491798 -2145192499 -137448799 131270674 125907563 -1023558518 764840216 -272430295 1886207346",
+        "clientExit": 0,
+        "serverExit": 0,
+        "installationUnchanged": true,
+        "elapsedSeconds": 55.485
+      },
+      "outbound": {
+        "passed": true,
+        "serverActive": true,
+        "serverBegin": true,
+        "unpureDrop": false,
+        "clientSawPureServer": true,
+        "handshakeReplies": [
+          "challengeResponse 923485450",
+          "connectResponse"
+        ],
+        "clientExit": 0,
+        "installationUnchanged": true,
+        "elapsedSeconds": 10.656,
+        "screenshots": [
+          {
+            "name": "handshake-world.png",
+            "sha256": "8feff69bbd90784d1c4fcbdb53d9b5276290a5ae1ac57c370f7a5b6dc22912ca"
+          }
+        ]
+      }
+    }
+  ]
+}

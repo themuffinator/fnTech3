@@ -75,6 +75,8 @@ def probe(args, output):
         values = dict(com_gameProfile=args.profile, **values)
     if args.only_visible:
         values['sv_onlyVisibleClients'] = '1'
+    if args.gametype is not None:
+        values['g_gametype'] = str(args.gametype)
     server_command = [str(server)]
     for name, value in values.items():
         server_command += ['+set', name, value]
@@ -189,6 +191,7 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--map', help='server map; defaults to mp_beach or q3dm17')
     parser.add_argument('--pure', action='store_true', help='run the server with sv_pure 1')
+    parser.add_argument('--gametype', type=int, help='server g_gametype; defaults to the profile probe mode')
     parser.add_argument('--team-check', action='store_true', help='rtcw-mp: join Axis then Allies')
     parser.add_argument('--only-visible', action='store_true', help='rtcw-mp: server sets sv_onlyVisibleClients 1')
     args = parser.parse_args()
