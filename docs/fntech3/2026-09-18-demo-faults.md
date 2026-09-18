@@ -4,10 +4,11 @@ The Q3/QL Demos row still asked to broaden truncation and malformed-input
 coverage, and the RTCW matrix asked for malformed RTCW demos. Earlier
 checkpoints ran hand-made truncation and invalid-length cases under `q3` and
 `ql`. This record plays fixed envelope faults and 40 seeded body corruptions of
-each of five demos: two Q3, one QL and two RTCW MP. Both Q3 sets are also played
-in retail `quake3.exe` 1.32. No engine code changed; the
+each of five demos: two Q3, one QL and two RTCW MP. One RTCW MP run stopped
+after 16 of its 47 variants. Both Q3 sets are also played in retail
+`quake3.exe` 1.32. No engine code changed; the
 [machine-readable record](2026-09-18-demo-faults.json) holds identities, seeds,
-commands and every variant's outcome.
+commands and every played variant's outcome.
 
 ## Method
 
@@ -36,7 +37,25 @@ disabled, and uses console commands only.
 
 ## Results
 
-DEMO_TABLE
+| Demo | Records | Played by | Seed | Variants | Completed | Rejected | Stalled | Crashed | Hung |
+| --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Q3 `four`, shipped with 1.32 | 1,262 | fnTech3 | 20260918 | 47 | 3 | 44 | 0 | 0 | 0 |
+| Q3 `four`, shipped with 1.32 | 1,262 | retail 1.32 | 20260918 | 47 | 4 | 17 | 0 | 26 | 0 |
+| Q3, recorded by fnTech3 | 121 | fnTech3 | 7 | 47 | 4 | 43 | 0 | 0 | 0 |
+| Q3, recorded by fnTech3 | 121 | retail 1.32 | 7 | 47 | 5 | 27 | 1 | 14 | 0 |
+| QL, recorded by fnTech3 | 240 | fnTech3 | 20260918 | 47 | 5 | 41 | 1 | 0 | 0 |
+| RTCW MP, recorded by retail WolfMP | 146 | fnTech3 | 11 | 47 | 4 | 42 | 1 | 0 | 0 |
+| RTCW MP, recorded by fnTech3 | 121 | fnTech3 | 13 | 16 of 47 | 4 | 12 | 0 | 0 | 0 |
+
+Each run is the seven fixed variants and 40 corruptions from the seed shown.
+The run of the fnTech3 RTCW MP recording stopped 3.6 seconds into its 17th
+variant, while the map was loading, and wrote no result file; the cause was not
+recorded. Its 16 finished rows are rebuilt from the outcomes the probe printed
+and the console logs it saved. Earlier that day, an earlier fnTech3 build and an
+earlier revision of the probe played all 47 variants of that recording, with
+corruption seed 20260918, in real time rather than under `timedemo` and with no
+`stalled` outcome. Its fixed variants ended the same way, and all 40
+corruptions were rejected.
 
 Every fixed variant behaves as fnTech3's earlier checkpoints require:
 truncations complete normally and invalid lengths are rejected. No fnTech3 run
@@ -74,5 +93,6 @@ fnTech3 completed, with two exceptions:
 
 RTCW SP demos are refused before any record is read (see the
 [RTCW demo record](2026-09-18-rtcw-demos.md)), so they have no fault corpus.
-Retail QL and retail WolfMP were not run on these variants. Seeking and
-protocol switching within a damaged demo remain open.
+This build has no result for the last 31 variants of the fnTech3 RTCW MP
+recording. Retail QL and retail WolfMP were not run on these variants.
+Seeking and protocol switching within a damaged demo remain open.
