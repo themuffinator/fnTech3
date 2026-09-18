@@ -32,7 +32,7 @@ def fixture(renderer):
     for pattern in (r'typedef enum\s*\{[^{}]*SF_BAD[^{}]*\}\s*surfaceType_t;',
                     r'typedef enum\s*\{[^{}]*MOD_BAD[^{}]*\}\s*modtype_t;'):
         source += re.search(pattern, local)[0] + '\n'
-    source += '#include "code/renderercommon/tr_mdc_model_types.h"\n#include "code/renderercommon/tr_mds_model_types.h"\ntypedef struct bmodel_s bmodel_t;\n'
+    source += '#include "code/renderercommon/tr_mdc_model_types.h"\n#include "code/renderercommon/tr_mds_model_types.h"\n#include "code/renderercommon/tr_wolfet_model_types.h"\ntypedef struct bmodel_s bmodel_t;\n'
     source += re.search(r'typedef struct model_s\s*\{[^{}]*\}\s*model_t;', local)[0] + '\n'
     source += '''
 static struct { comGameId_t gameId; } ri = {COM_GAME_QUAKE3};

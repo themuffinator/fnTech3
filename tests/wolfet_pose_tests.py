@@ -182,6 +182,7 @@ int main(void) {
 	{
 		unsigned char *b = skeleton + BONES_AT + FN_WOLFET_MDX_BONE_BYTES;
 		PutF(b + 68, 1.0f);   /* bone 1 is fully driven by the torso */
+		PutI(skeleton + 88, 0);   /* and bone 0 is what the torso turns about */
 		assert(FnWolfET_Skeleton(skeleton, BYTES, &view));
 		params = Params(&view);
 		params.torsoView = params.oldTorsoView = NULL;
@@ -189,7 +190,44 @@ int main(void) {
 		assert(!FnWolfET_DecodePoseSelected(&params, 2, &pose));
 		params = Params(&view);
 		assert(FnWolfET_DecodePose(&params, &pose));
+
+		/* The entity's own torso rotation turns a weighted bone about the torso
+		 * parent's position. A quarter turn takes bone 1, ten units along x from
+		 * bone 0, ten units along y instead. */
+		params = Params(&view);
+		memset(params.torsoAxis, 0, sizeof(params.torsoAxis));
+		params.torsoAxis[0][1] = 1; params.torsoAxis[1][0] = -1; params.torsoAxis[2][2] = 1;
+		assert(FnWolfET_DecodePose(&params, &pose));
+		Near(pose.bones[1].origin[0], 1);
+		Near(pose.bones[1].origin[1], 12);
+		Near(pose.bones[1].origin[2], 3);
+		Near(pose.bones[1].axis[0][1], -1);
+		Near(pose.bones[1].axis[1][0], 1);
+		Near(pose.bones[1].axis[2][2], 1);
+		/* Only bones that carry torso weight are turned, so bone 2 -- a child of
+		 * bone 1 that carries none -- stays where the raw pose put it. That is
+		 * what ET does: its torso pass walks the weighted bones, not the tree. */
+		Near(pose.bones[2].origin[0], 21);
+		Near(pose.bones[2].origin[1], 2);
+		/* Half weight is a straight blend towards the identity, not half a turn,
+		 * which is the rule ET chose and why a blended axis is no longer a
+		 * rotation. */
+		PutF(b + 68, 0.5f);
+		assert(FnWolfET_Skeleton(skeleton, BYTES, &view));
+		params.frameView = params.oldFrameView = params.torsoView = params.oldTorsoView = &view;
+		assert(FnWolfET_DecodePose(&params, &pose));
+		Near(pose.bones[1].origin[0], 6);
+		Near(pose.bones[1].origin[1], 7);
+		Near(pose.bones[1].origin[2], 3);
+
+		/* A weighted bone with no torso parent named has nothing to turn about. */
+		PutI(skeleton + 88, -1);
+		assert(FnWolfET_Skeleton(skeleton, BYTES, &view));
+		params.frameView = params.oldFrameView = params.torsoView = params.oldTorsoView = &view;
+		Rejected(&params);
+
 		PutF(b + 68, 0);
+		PutI(skeleton + 88, -1);
 		assert(FnWolfET_Skeleton(skeleton, BYTES, &view));
 	}
 
@@ -270,6 +308,11 @@ class WolfETPoseTests(unittest.TestCase):
         text = POSE.read_text(encoding='utf-8')
         self.assertIn('weight.bone >= pose->numBones', text)
         self.assertIn('not a position in the surface', text)
+
+    def test_the_entity_turns_the_torso_it_weights(self):
+        text = POSE.read_text(encoding='utf-8')
+        self.assertIn('view->torsoParent < 0 ) return 0', text)
+        self.assertIn('params->torsoAxis[column][row]', text)
 
     def test_the_record_states_what_is_and_is_not_claimed(self):
         record = RECORD.read_text(encoding='utf-8')

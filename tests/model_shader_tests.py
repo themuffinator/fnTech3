@@ -56,7 +56,7 @@ def brush_fixture(renderer):
     records += re.search(r'typedef enum\s*\{[^{}]*MOD_BAD[^{}]*\}\s*modtype_t;', local)[0]
     end = local.index('} bmodel_t;')
     records += local[local.rindex('typedef struct', 0, end):end + len('} bmodel_t;')]
-    records += '\n#include "code/renderercommon/tr_mdc_model_types.h"\n#include "code/renderercommon/tr_mds_model_types.h"\n'
+    records += '\n#include "code/renderercommon/tr_mdc_model_types.h"\n#include "code/renderercommon/tr_mds_model_types.h"\n#include "code/renderercommon/tr_wolfet_model_types.h"\n'
     records += re.search(r'typedef struct model_s\s*\{[^{}]*\}\s*model_t;', local)[0]
     source = common(renderer) + r'''
 struct shader_t { char name[MAX_QPATH]; int lightmapIndex, index; };

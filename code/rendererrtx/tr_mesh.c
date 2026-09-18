@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderercommon/tr_mesh_view.h"
 #include "../renderercommon/tr_mds_entity.h"
 #include "../renderercommon/tr_mds_material.h"
+#include "../renderercommon/tr_wolfet_add_surfaces.h"
 
 static float ProjectRadius( float r, vec3_t location )
 {
@@ -346,7 +347,10 @@ void R_AddMD3Surfaces( trRefEntity_t *ent,
 	//
 	// compute LOD
 	//
-	lod = shadowCtx ? 0 : R_ComputeLOD( ent );
+	/* ET's limbo panel asks for its heads at full detail, which the other
+	 * profiles have no flag for; the field is only ever set from ET's own
+	 * render record. */
+	lod = ( shadowCtx || ent->e.wolfet.forceNoLod ) ? 0 : R_ComputeLOD( ent );
 
 	numSurfaces = R_MeshSurfaceCount( tr.currentModel, lod );
 

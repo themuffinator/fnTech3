@@ -3246,6 +3246,12 @@ static void R_AddEntitySurfaces( void ) {
 				case MOD_MESH:
 					R_AddMD3Surfaces( ent, NULL );
 					break;
+				case MOD_WOLFET_MESH:
+					R_AddWolfETSurfaces( ent );
+					break;
+				case MOD_WOLFET_SKELETON:
+					// A skeleton owns no surfaces; it poses a mesh, it is not one.
+					break;
 				case MOD_MDR:
 					R_MDRAddAnimSurfaces( ent, NULL );
 					break;

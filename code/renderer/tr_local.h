@@ -1316,6 +1316,7 @@ typedef enum {
 
 	SF_MDC,
 	SF_MDS,
+	SF_WOLFET,
 
 	SF_NUM_SURFACE_TYPES,
 	SF_MAX = 0x7fffffff			// ensures that sizeof( surfaceType_t ) == sizeof( int )
@@ -1639,11 +1640,14 @@ typedef enum {
 	MOD_MDR,
 	MOD_IQM,
 	MOD_MDC,
-	MOD_MDS
+	MOD_MDS,
+	MOD_WOLFET_MESH,
+	MOD_WOLFET_SKELETON
 } modtype_t;
 
 #include "../renderercommon/tr_mdc_model_types.h"
 #include "../renderercommon/tr_mds_model_types.h"
+#include "../renderercommon/tr_wolfet_model_types.h"
 
 typedef struct model_s {
 	char		name[MAX_QPATH];
@@ -1655,6 +1659,8 @@ typedef struct model_s {
 	md3Header_t	*md3[MD3_MAX_LODS];	// only if type == MOD_MESH
 	mdcModel_t	*mdc[MD3_MAX_LODS];	// only if type == MOD_MDC
 	mdsModel_t	*mds;	// only if type == MOD_MDS
+	wolfetMeshModel_t	*wolfetMesh;		// only if type == MOD_WOLFET_MESH
+	wolfetSkeletonModel_t	*wolfetSkeleton;	// only if type == MOD_WOLFET_SKELETON
 	void	*modelData;			// only if type == (MOD_MDR | MOD_IQM)
 
 	int			 numLods;
@@ -2286,6 +2292,7 @@ void R_SwapBuffers( int );
 void R_RenderView( const viewParms_t *parms );
 
 void R_AddMD3Surfaces( trRefEntity_t *e, dlightShadowCasterContext_t *casterContext );
+void R_AddWolfETSurfaces( trRefEntity_t *e );
 void R_AddNullModelSurfaces( trRefEntity_t *e );
 void R_AddBeamSurfaces( trRefEntity_t *e );
 void R_AddRailSurfaces( trRefEntity_t *e, qboolean isUnderwater );

@@ -20,7 +20,7 @@ def renderer_fixture(renderer):
     for pattern in (r'typedef enum\s*\{[^{}]*SF_BAD[^{}]*\}\s*surfaceType_t;',
                     r'typedef enum\s*\{[^{}]*MOD_BAD[^{}]*\}\s*modtype_t;'):
         source += re.search(pattern, local)[0] + '\n'
-    source += '#include "code/renderercommon/tr_mdc_model_types.h"\n#include "code/renderercommon/tr_mds_model_types.h"\nstruct bmodel_t;\n'
+    source += '#include "code/renderercommon/tr_mdc_model_types.h"\n#include "code/renderercommon/tr_mds_model_types.h"\n#include "code/renderercommon/tr_wolfet_model_types.h"\nstruct bmodel_t;\n'
     source += re.search(r'typedef struct model_s\s*\{[^{}]*\}\s*model_t;', local)[0] + '\n'
     source += 'struct trRefEntity_t { refEntity_t e; };\n'
     callbacks = CALLBACKS.replace('static mdcModel_t *Allocate', 'static mdsModel_t *Allocate').replace('(mdcModel_t *)allocations', '(mdsModel_t *)allocations')

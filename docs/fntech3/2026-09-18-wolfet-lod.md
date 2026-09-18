@@ -69,8 +69,11 @@ pose does not hold refused.
 - **Nothing is drawn.** Reading, posing, detail, collapse and tags all exist as
   arithmetic; the renderer still has no model type for ET's meshes, no surface
   and no draw call. No visual claim is made and the ET client remains gated.
+  *Closed by the [drawing record](2026-09-18-wolfet-drawing.md).*
 - None of this has been run against a retail mesh; the evidence is hand-built
-  fixtures whose expected values are derivable.
+  fixtures whose expected values are derivable. *Closed by the
+  [drawing record](2026-09-18-wolfet-drawing.md), which runs it over every
+  installed mesh and skeleton.*
 - Everything else in the [ET matrix](COMPATIBILITY.md#wolfet-gate-matrix)
   remains as recorded.
 

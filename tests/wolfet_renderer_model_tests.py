@@ -151,10 +151,15 @@ class WolfETRendererModelTests(unittest.TestCase):
         """Surfaces, tags and vertices are variable length; indexing any of them
         by a fixed stride would read the wrong record."""
         text = (ROOT/'code/renderercommon/tr_wolfet_model_format.h').read_text(encoding='utf-8')
-        for walker in ('FnWolfET_MeshSurface', 'FnWolfET_MeshTag', 'FnWolfET_MeshVertex'):
+        # Each walker steps by a length the record itself carries: a surface and
+        # a tag by their own end offset, a vertex by where its weights finish.
+        steps = {'FnWolfET_MeshSurface': 'offset += out->end',
+                 'FnWolfET_MeshTag': 'offset += end',
+                 'FnWolfET_MeshVertex': 'offset = out->next'}
+        for walker, step in steps.items():
             body = text[text.index('int %s(' % walker):]
             body = body[:body.index('\n}\n')]
-            self.assertIn('offset +=', body, walker)
+            self.assertIn(step, body, walker)
             self.assertNotIn('* FN_WOLFET_MDM_TAG_BYTES', body, walker)
 
     def test_the_probe_compares_both_readers(self):

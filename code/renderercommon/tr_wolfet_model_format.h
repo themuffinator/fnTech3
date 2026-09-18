@@ -127,87 +127,145 @@ static inline int FnWolfET_Mesh( const unsigned char *data, size_t bytes, fnWolf
 	return 1;
 }
 
-/* Walks to the surface at an index, since a surface's length depends on the
- * vertices inside it. Returns 0 when any record would leave the file. */
+static inline int FnWolfET_MeshVertexAt( const fnWolfETMeshSurfaceView_t *surface,
+	uint32_t offset, fnWolfETVertexView_t *out );
+
+/* Checks what the drawing path would otherwise index without bounds: a
+ * triangle names a vertex of this surface, a collapse entry points backwards,
+ * and every weight names a bone a skeleton could hold. A weight's bone index
+ * cannot be checked against a bone count here, because an ET mesh does not name
+ * the skeleton it will be posed with; the pose refuses an index its own
+ * skeleton does not hold. */
+static inline int FnWolfET_ValidateMeshSurface( const fnWolfETMeshSurfaceView_t *surface ) {
+	uint32_t i, offset;
+	if ( !surface || !surface->data ) return 0;
+	for ( i = 0; i < surface->numBoneReferences; ++i )
+		if ( FnWolfET_U32( surface->data + surface->boneReferences + (size_t)i * 4 ) >=
+			FN_WOLFET_MAX_BONES ) return 0;
+	offset = surface->vertices;
+	for ( i = 0; i < surface->numVerts; ++i ) {
+		fnWolfETVertexView_t vertex;
+		uint32_t w;
+		const uint32_t collapse = FnWolfET_U32( surface->data + surface->collapseMap + (size_t)i * 4 );
+		if ( collapse >= ( i ? i : 1 ) ) return 0;
+		if ( !FnWolfET_MeshVertexAt( surface, offset, &vertex ) ) return 0;
+		for ( w = 0; w < vertex.numWeights; ++w ) {
+			const unsigned char *p = vertex.weights + (size_t)w * FN_WOLFET_MDM_WEIGHT_BYTES;
+			if ( FnWolfET_I32( p ) < 0 || FnWolfET_U32( p ) >= FN_WOLFET_MAX_BONES ) return 0;
+		}
+		offset = vertex.next;
+	}
+	for ( i = 0; i < surface->numTriangles; ++i ) {
+		const unsigned char *triangle = surface->data + surface->triangles + (size_t)i * 12;
+		int j;
+		for ( j = 0; j < 3; ++j )
+			if ( FnWolfET_U32( triangle + j * 4 ) >= surface->numVerts ) return 0;
+	}
+	return 1;
+}
+
+/* Reads the surface that begins at a byte offset. A surface's length depends on
+ * the vertices inside it, so the next one begins at `offset + out->end`.
+ * Returns 0 when any record it names would leave the file. */
+static inline int FnWolfET_MeshSurfaceAt( const fnWolfETMeshView_t *view, uint32_t offset,
+	fnWolfETMeshSurfaceView_t *out ) {
+	fnWolfETMeshSurfaceView_t surface;
+	const unsigned char *p;
+	if ( !view || !view->data || !out ) return 0;
+	if ( !FnWolfET_Range( view->bytes, offset, 1, FN_WOLFET_MDM_SURFACE_BYTES,
+		FN_WOLFET_MDM_HEADER_BYTES ) ) return 0;
+	p = view->data + offset;
+	if ( !FnWolfET_Name( p + 4, 64 ) || !FnWolfET_Name( p + 68, 64 ) ) return 0;
+	memset( &surface, 0, sizeof( surface ) );
+	surface.data = view->data;
+	surface.bytes = view->bytes;
+	surface.shader = FnWolfET_I32( p + 132 );
+	if ( FnWolfET_I32( p + 136 ) < 0 || FnWolfET_I32( p + 144 ) < 0 ||
+		FnWolfET_I32( p + 148 ) < 0 || FnWolfET_I32( p + 152 ) < 0 ||
+		FnWolfET_I32( p + 156 ) < 0 || FnWolfET_I32( p + 160 ) < 0 ||
+		FnWolfET_I32( p + 164 ) < 0 || FnWolfET_I32( p + 168 ) < 0 ||
+		FnWolfET_I32( p + 172 ) <= 0 ) return 0;
+	surface.minLod = FnWolfET_U32( p + 136 );
+	surface.numVerts = FnWolfET_U32( p + 144 );
+	surface.vertices = offset + FnWolfET_U32( p + 148 );
+	surface.numTriangles = FnWolfET_U32( p + 152 );
+	surface.triangles = offset + FnWolfET_U32( p + 156 );
+	surface.collapseMap = offset + FnWolfET_U32( p + 160 );
+	surface.numBoneReferences = FnWolfET_U32( p + 164 );
+	surface.boneReferences = offset + FnWolfET_U32( p + 168 );
+	surface.end = FnWolfET_U32( p + 172 );
+	if ( surface.numVerts > FN_WOLFET_MAX_VERTS ||
+		surface.numTriangles > FN_WOLFET_MAX_TRIANGLES ||
+		surface.numBoneReferences > FN_WOLFET_MAX_BONES ) return 0;
+	/* Every record named by this surface must lie inside the file, and the
+	 * surface's own end must not run past it either. */
+	if ( !FnWolfET_Range( view->bytes, surface.triangles, surface.numTriangles,
+			FN_WOLFET_MDM_TRIANGLE_BYTES, FN_WOLFET_MDM_HEADER_BYTES ) ||
+		!FnWolfET_Range( view->bytes, surface.collapseMap, surface.numVerts, 4,
+			FN_WOLFET_MDM_HEADER_BYTES ) ||
+		!FnWolfET_Range( view->bytes, surface.boneReferences, surface.numBoneReferences, 4,
+			FN_WOLFET_MDM_HEADER_BYTES ) ||
+		surface.end > view->bytes - offset ) return 0;
+	if ( !FnWolfET_ValidateMeshSurface( &surface ) ) return 0;
+	*out = surface;
+	return 1;
+}
+
+/* Walks to the surface at an index. */
 static inline int FnWolfET_MeshSurface( const fnWolfETMeshView_t *view, uint32_t index,
 	fnWolfETMeshSurfaceView_t *out ) {
-	uint32_t offset;
-	uint32_t i;
-	if ( !view || !view->data || !out || index >= view->numSurfaces ) return 0;
+	uint32_t offset, i;
+	if ( !view || !out || index >= view->numSurfaces ) return 0;
 	offset = view->surfaces;
 	for ( i = 0; ; ++i ) {
-		fnWolfETMeshSurfaceView_t surface;
-		const unsigned char *p;
-		if ( !FnWolfET_Range( view->bytes, offset, 1, FN_WOLFET_MDM_SURFACE_BYTES,
-			FN_WOLFET_MDM_HEADER_BYTES ) ) return 0;
-		p = view->data + offset;
-		if ( !FnWolfET_Name( p + 4, 64 ) || !FnWolfET_Name( p + 68, 64 ) ) return 0;
-		memset( &surface, 0, sizeof( surface ) );
-		surface.data = view->data;
-		surface.bytes = view->bytes;
-		surface.shader = FnWolfET_I32( p + 132 );
-		if ( FnWolfET_I32( p + 136 ) < 0 || FnWolfET_I32( p + 144 ) < 0 ||
-			FnWolfET_I32( p + 148 ) < 0 || FnWolfET_I32( p + 152 ) < 0 ||
-			FnWolfET_I32( p + 156 ) < 0 || FnWolfET_I32( p + 160 ) < 0 ||
-			FnWolfET_I32( p + 164 ) < 0 || FnWolfET_I32( p + 168 ) < 0 ||
-			FnWolfET_I32( p + 172 ) <= 0 ) return 0;
-		surface.minLod = FnWolfET_U32( p + 136 );
-		surface.numVerts = FnWolfET_U32( p + 144 );
-		surface.vertices = offset + FnWolfET_U32( p + 148 );
-		surface.numTriangles = FnWolfET_U32( p + 152 );
-		surface.triangles = offset + FnWolfET_U32( p + 156 );
-		surface.collapseMap = offset + FnWolfET_U32( p + 160 );
-		surface.numBoneReferences = FnWolfET_U32( p + 164 );
-		surface.boneReferences = offset + FnWolfET_U32( p + 168 );
-		surface.end = FnWolfET_U32( p + 172 );
-		if ( surface.numVerts > FN_WOLFET_MAX_VERTS ||
-			surface.numTriangles > FN_WOLFET_MAX_TRIANGLES ||
-			surface.numBoneReferences > FN_WOLFET_MAX_BONES ) return 0;
-		/* Every record named by this surface must lie inside the file, and the
-		 * surface's own end must not run past it either. */
-		if ( !FnWolfET_Range( view->bytes, surface.triangles, surface.numTriangles,
-				FN_WOLFET_MDM_TRIANGLE_BYTES, FN_WOLFET_MDM_HEADER_BYTES ) ||
-			!FnWolfET_Range( view->bytes, surface.collapseMap, surface.numVerts, 4,
-				FN_WOLFET_MDM_HEADER_BYTES ) ||
-			!FnWolfET_Range( view->bytes, surface.boneReferences, surface.numBoneReferences, 4,
-				FN_WOLFET_MDM_HEADER_BYTES ) ||
-			surface.end > view->bytes - offset ) return 0;
-		if ( i == index ) { *out = surface; return 1; }
-		offset += surface.end;
+		if ( !FnWolfET_MeshSurfaceAt( view, offset, out ) ) return 0;
+		if ( i == index ) return 1;
+		offset += out->end;
 	}
+}
+
+/* Reads the vertex that begins at a byte offset. A vertex's single declared
+ * weight is followed by as many more as it claims, so the next one begins at
+ * `out->next`. */
+static inline int FnWolfET_MeshVertexAt( const fnWolfETMeshSurfaceView_t *surface,
+	uint32_t offset, fnWolfETVertexView_t *out ) {
+	fnWolfETVertexView_t vertex;
+	const unsigned char *p;
+	uint32_t weights;
+	if ( !surface || !surface->data || !out ) return 0;
+	if ( !FnWolfET_Range( surface->bytes, offset, 1, FN_WOLFET_MDM_VERTEX_PREFIX_BYTES,
+		FN_WOLFET_MDM_HEADER_BYTES ) ) return 0;
+	p = surface->data + offset;
+	if ( FnWolfET_I32( p + 20 ) <= 0 ) return 0;
+	weights = FnWolfET_U32( p + 20 );
+	/* A vertex may be weighted onto as many bones as the skeleton has. */
+	if ( weights > FN_WOLFET_MAX_BONES ) return 0;
+	if ( !FnWolfET_Range( surface->bytes, offset + FN_WOLFET_MDM_VERTEX_PREFIX_BYTES,
+		weights, FN_WOLFET_MDM_WEIGHT_BYTES, FN_WOLFET_MDM_HEADER_BYTES ) ) return 0;
+	memset( &vertex, 0, sizeof( vertex ) );
+	vertex.normal[0] = FnWolfET_Float( p );
+	vertex.normal[1] = FnWolfET_Float( p + 4 );
+	vertex.normal[2] = FnWolfET_Float( p + 8 );
+	vertex.st[0] = FnWolfET_Float( p + 12 );
+	vertex.st[1] = FnWolfET_Float( p + 16 );
+	vertex.numWeights = weights;
+	vertex.weights = surface->data + offset + FN_WOLFET_MDM_VERTEX_PREFIX_BYTES;
+	vertex.next = offset + FN_WOLFET_MDM_VERTEX_PREFIX_BYTES +
+		weights * FN_WOLFET_MDM_WEIGHT_BYTES;
+	*out = vertex;
+	return 1;
 }
 
 /* Walks to the vertex at an index within a surface. */
 static inline int FnWolfET_MeshVertex( const fnWolfETMeshSurfaceView_t *surface,
 	uint32_t index, fnWolfETVertexView_t *out ) {
-	uint32_t offset;
-	uint32_t i;
-	if ( !surface || !surface->data || !out || index >= surface->numVerts ) return 0;
+	uint32_t offset, i;
+	if ( !surface || !out || index >= surface->numVerts ) return 0;
 	offset = surface->vertices;
 	for ( i = 0; ; ++i ) {
-		fnWolfETVertexView_t vertex;
-		const unsigned char *p;
-		uint32_t weights;
-		if ( !FnWolfET_Range( surface->bytes, offset, 1, FN_WOLFET_MDM_VERTEX_PREFIX_BYTES,
-			FN_WOLFET_MDM_HEADER_BYTES ) ) return 0;
-		p = surface->data + offset;
-		if ( FnWolfET_I32( p + 20 ) <= 0 ) return 0;
-		weights = FnWolfET_U32( p + 20 );
-		/* A vertex may be weighted onto as many bones as the skeleton has. */
-		if ( weights > FN_WOLFET_MAX_BONES ) return 0;
-		if ( !FnWolfET_Range( surface->bytes, offset + FN_WOLFET_MDM_VERTEX_PREFIX_BYTES,
-			weights, FN_WOLFET_MDM_WEIGHT_BYTES, FN_WOLFET_MDM_HEADER_BYTES ) ) return 0;
-		memset( &vertex, 0, sizeof( vertex ) );
-		vertex.normal[0] = FnWolfET_Float( p );
-		vertex.normal[1] = FnWolfET_Float( p + 4 );
-		vertex.normal[2] = FnWolfET_Float( p + 8 );
-		vertex.st[0] = FnWolfET_Float( p + 12 );
-		vertex.st[1] = FnWolfET_Float( p + 16 );
-		vertex.numWeights = weights;
-		vertex.weights = surface->data + offset + FN_WOLFET_MDM_VERTEX_PREFIX_BYTES;
-		offset += FN_WOLFET_MDM_VERTEX_PREFIX_BYTES + weights * FN_WOLFET_MDM_WEIGHT_BYTES;
-		vertex.next = offset;
-		if ( i == index ) { *out = vertex; return 1; }
+		if ( !FnWolfET_MeshVertexAt( surface, offset, out ) ) return 0;
+		if ( i == index ) return 1;
+		offset = out->next;
 	}
 }
 

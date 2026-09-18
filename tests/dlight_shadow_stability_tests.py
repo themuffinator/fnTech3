@@ -400,7 +400,12 @@ class DlightShadowStabilityTests(unittest.TestCase):
 
                 mesh = read_text(f"{renderer}/tr_mesh.c")
                 animation = read_text(f"{renderer}/tr_animation.c")
-                self.assertRegex(mesh, r"lod = \w+ \? 0 : R_ComputeLOD")
+                # The caster pass always draws at full detail, whatever else
+                # the entity asks for.
+                self.assertRegex(
+                    mesh,
+                    r"lod = \(?\s*\w+(?:\s*\|\|[^?]*?)?\)?\s*\? 0 : R_ComputeLOD",
+                )
                 self.assertIn("lodnum = 0", animation)
 
     def test_portal_views_own_dlights_and_restore_parent_shadow_plans(self):

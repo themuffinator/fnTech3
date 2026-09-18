@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "tr_local.h"
 #include "../renderercommon/tr_mdc_model.h"
 #include "../renderercommon/tr_mds_model.h"
+#include "../renderercommon/tr_wolfet_model.h"
 #include "../renderercommon/tr_mesh_tags.h"
 
 #define	LL(x) x=LittleLong(x)
@@ -211,7 +212,9 @@ static modelExtToLoaderMap_t modelLoaders[ ] =
 	{ "mdr", R_RegisterMDR },
 	{ "md3", R_RegisterMD3 },
 	{ "mdc", R_RegisterMDC },
-	{ "mds", R_RegisterMDS }
+	{ "mds", R_RegisterMDS },
+	{ "mdm", R_RegisterWolfETMesh },
+	{ "mdx", R_RegisterWolfETSkeleton }
 };
 
 static int numModelLoaders = ARRAY_LEN(modelLoaders);

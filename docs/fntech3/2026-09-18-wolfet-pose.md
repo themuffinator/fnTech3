@@ -84,7 +84,9 @@ refused. A refused pose is checked to leave the caller's storage untouched.
 
 - **Nothing is drawn.** The renderer can read and pose these skeletons; it has
   no model type for them, no surface, no level-of-detail collapse and no draw
-  call. No visual claim is made and the ET client remains gated.
+  call. No visual claim is made and the ET client remains gated. *Closed by the
+  [drawing record](2026-09-18-wolfet-drawing.md), which also adds the entity's
+  torso rotation this slice left out.*
 - No pose has been evaluated from a retail skeleton against a retail mesh; the
   evidence here is a hand-built fixture whose expected values are derivable.
 - Everything else in the [ET matrix](COMPATIBILITY.md#wolfet-gate-matrix)

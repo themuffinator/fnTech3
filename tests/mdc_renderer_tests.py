@@ -217,7 +217,7 @@ def renderer_fixture(renderer):
         if name != 'RB_SurfaceMDC':
             table = table.replace(name, 'Noop')
     source = PRELUDE + surface_enum + '\n' + model_enum + '\n'
-    source += '#include "code/renderercommon/tr_mdc_model_types.h"\n#include "code/renderercommon/tr_mds_model_types.h"\nstruct bmodel_t;\n' + model_type
+    source += '#include "code/renderercommon/tr_mdc_model_types.h"\n#include "code/renderercommon/tr_mds_model_types.h"\n#include "code/renderercommon/tr_wolfet_model_types.h"\nstruct bmodel_t;\n' + model_type
     source += '\nstruct trRefEntity_t { refEntity_t e; };\n' + CALLBACKS
     return source + table + '\n' + FIXTURE[:FIXTURE.index('int main(void)')]
 

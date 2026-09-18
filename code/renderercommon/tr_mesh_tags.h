@@ -3,6 +3,7 @@
 #define FNTECH3_TR_MESH_TAGS_H
 
 #include "tr_mds_entity.h"
+#include "tr_wolfet_entity.h"
 
 /* Indexed tag lookup is distinct from the legacy boolean LerpTag interface.
  * The start index is inclusive, allowing repeated names to be enumerated. */
@@ -56,6 +57,13 @@ int R_LerpTagEntity( orientation_t *destination, const refEntity_t *entity, cons
 	if ( !entity || !name ) goto done;
 	model = R_GetModelByHandle( entity->hModel );
 	if ( !model ) goto done;
+	if ( model->type == MOD_WOLFET_MESH ) {
+		/* ET poses a mesh with the skeletons its entity names, so a tag is
+		 * placed from the entity alone; there is no per-frame tag to blend. */
+		memset( &result, 0, sizeof( result ) );
+		index = R_WolfETTag( model->wolfetMesh, entity, name, first, &result );
+		goto done;
+	}
 	if ( model->type == MOD_MDS ) {
 		/* Skeletal tags preserve their basis (no row normalization), use both
 		 * animation channels and publish an all-zero orientation on failure. */

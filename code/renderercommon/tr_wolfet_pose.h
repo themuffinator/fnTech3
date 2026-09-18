@@ -242,11 +242,40 @@ static inline int FnWolfET_DecodePoseSelected( const fnWolfETPoseParams_t *param
 		}
 	}
 
+	/* The entity's own torso rotation turns every bone that carries torso
+	 * weight about the torso parent's resolved position, scaled by that
+	 * weight. ET applies it the same way to every such bone: the separate
+	 * treatment its renderer keeps for attachment bones is commented out of
+	 * the shipped source, where the other Wolfenstein profile still takes it,
+	 * so an ET tag turns with the torso exactly as a mesh bone does. */
 	memset( &result, 0, sizeof( result ) );
 	result.numBones = view->numBones;
 	for ( index = 0; index < view->numBones; ++index ) {
+		fnWolfETTransform_t *output = &result.bones[index];
+		const float weight = info[index].torsoWeight, inverse = 1.0f - weight;
+		const float *pivot;
+		float relative[3];
 		if ( !needed[index] ) continue;
-		result.bones[index] = raw[index];
+		*output = raw[index];
+		if ( weight <= 0 ) continue;
+		/* A bone cannot be turned about a torso parent the file does not name. */
+		if ( view->torsoParent < 0 ) return 0;
+		pivot = raw[view->torsoParent].origin;
+		for ( row = 0; row < 3; ++row ) relative[row] = raw[index].origin[row] - pivot[row];
+		for ( row = 0; row < 3; ++row ) {
+			float rotation[3];
+			for ( column = 0; column < 3; ++column ) {
+				rotation[column] = weight * params->torsoAxis[column][row];
+				if ( row == column ) rotation[column] += inverse;
+			}
+			for ( column = 0; column < 3; ++column ) output->axis[row][column] =
+				rotation[0] * raw[index].axis[0][column] +
+				rotation[1] * raw[index].axis[1][column] +
+				rotation[2] * raw[index].axis[2][column];
+			output->origin[row] = rotation[0] * relative[0] + rotation[1] * relative[1] +
+				rotation[2] * relative[2] + pivot[row];
+		}
+		if ( !FnWolfET_FiniteTransform( output ) ) return 0;
 	}
 	*destination = result;
 	return 1;
