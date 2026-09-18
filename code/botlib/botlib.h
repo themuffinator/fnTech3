@@ -463,6 +463,8 @@ struct botlib_export_s
 	// Engine-owned extensions; external module records remain profile-specific.
 	int (*PC_ReadTokenWithLocation)(int handle, pc_token_t *token, int *line, int *linesCrossed);
 	int (*PC_UnreadTokenHandle)(int handle);
+	// ET's UI clears the parser's global defines between menu loads.
+	void (*PC_RemoveAllGlobalDefines)(void);
 };
 using botlib_export_t = botlib_export_s;
 

@@ -31,6 +31,10 @@ extern "C" {
 #include "../compat/game_abi_adapter.h"
 #include "../compat/rtcw_module_abi.h"
 #include "../compat/rtcw_client_adapter.hpp"
+#include "../compat/wolfet_module_abi.h"
+#include "../compat/wolfet_client_adapter.hpp"
+#include "../compat/wolfet_key_adapter.h"
+#include "client_wolfet_render_compat.hpp"
 
 #include <algorithm>
 #include <array>
@@ -125,6 +129,14 @@ static void GetClientState( uiClientState_t *state ) {
 	Q_strncpyz( state->updateInfoString, cls.updateInfoString, sizeof( state->updateInfoString ) );
 	Q_strncpyz( state->messageString, clc.serverMessage, sizeof( state->messageString ) );
 	state->clientNum = cl.snap.ps.clientNum;
+}
+
+static void GetWolfETClientState( fntech3_wolfet_uiClientState_t *destination ) {
+	uiClientState_t internal{};
+	GetClientState( &internal );
+	if ( !destination || !fntech3::wolfet::client::FromInternal( internal, *destination ) ) {
+		Com_Error( ERR_DROP, "Invalid ET UI client state transfer" );
+	}
 }
 
 static void GetRTCWClientState( fntech3_rtcw_uiClientState_t *destination ) {
@@ -477,6 +489,18 @@ static void LAN_MarkServerVisible(int source, int n, qboolean visible ) {
 LAN_ServerIsVisible
 =======================
 */
+// ET asks whether the server at an index of some list is also a favourite.
+// Its favourites list answers yes for any valid index, as ET's own does.
+static int CL_WolfETServerIsInFavoriteList( int source, int n ) {
+	if ( source == AS_FAVORITES ) return LAN_GetServerAt( source, n ) ? qtrue : qfalse;
+	const serverInfo_t *server = LAN_GetServerAt( source, n );
+	if ( !server ) return qfalse;
+	for ( int i = 0; i < cls.numfavoriteservers; ++i ) {
+		if ( NET_CompareAdr( &cls.favoriteServers[i].adr, &server->adr ) ) return qtrue;
+	}
+	return qfalse;
+}
+
 static int LAN_ServerIsVisible(int source, int n ) {
 	const serverInfo_t *server = LAN_GetServerAt( source, n );
 
@@ -976,6 +1000,283 @@ static intptr_t *CL_RTCWUIBrowserArguments( intptr_t operation, intptr_t *args,
 	return translated.data();
 }
 
+
+/*
+=====================
+CL_WolfETUISharedCall
+
+Enemy Territory UI imports whose meaning and argument shape are already this
+engine's. Everything touching an ET record, an ET key number, an ET renderer
+service or a service fnTech3 does not provide is handled before this table.
+=====================
+*/
+static intptr_t CL_WolfETUISharedCall( fntech3::wolfet::module::Call call ) {
+	using fntech3::wolfet::module::Call;
+	switch ( call ) {
+#define WOLFET_SHARED_CALL(name) case Call::name: return name;
+	WOLFET_SHARED_CALL(UI_ERROR)
+	WOLFET_SHARED_CALL(UI_PRINT)
+	WOLFET_SHARED_CALL(UI_MILLISECONDS)
+	WOLFET_SHARED_CALL(UI_CVAR_SET)
+	WOLFET_SHARED_CALL(UI_CVAR_VARIABLEVALUE)
+	WOLFET_SHARED_CALL(UI_CVAR_VARIABLESTRINGBUFFER)
+	WOLFET_SHARED_CALL(UI_CVAR_SETVALUE)
+	WOLFET_SHARED_CALL(UI_CVAR_RESET)
+	WOLFET_SHARED_CALL(UI_ARGC)
+	WOLFET_SHARED_CALL(UI_ARGV)
+	WOLFET_SHARED_CALL(UI_CMD_EXECUTETEXT)
+	WOLFET_SHARED_CALL(UI_FS_FOPENFILE)
+	WOLFET_SHARED_CALL(UI_FS_READ)
+	WOLFET_SHARED_CALL(UI_FS_WRITE)
+	WOLFET_SHARED_CALL(UI_FS_FCLOSEFILE)
+	WOLFET_SHARED_CALL(UI_FS_GETFILELIST)
+	WOLFET_SHARED_CALL(UI_UPDATESCREEN)
+	WOLFET_SHARED_CALL(UI_GETCLIPBOARDDATA)
+	WOLFET_SHARED_CALL(UI_GETCONFIGSTRING)
+	WOLFET_SHARED_CALL(UI_MEMORY_REMAINING)
+	WOLFET_SHARED_CALL(UI_GET_CDKEY)
+	WOLFET_SHARED_CALL(UI_SET_CDKEY)
+	WOLFET_SHARED_CALL(UI_VERIFY_CDKEY)
+	WOLFET_SHARED_CALL(UI_PC_ADD_GLOBAL_DEFINE)
+	WOLFET_SHARED_CALL(UI_PC_LOAD_SOURCE)
+	WOLFET_SHARED_CALL(UI_PC_FREE_SOURCE)
+	WOLFET_SHARED_CALL(UI_KEY_CLEARSTATES)
+	WOLFET_SHARED_CALL(UI_LAN_GETPINGQUEUECOUNT)
+	WOLFET_SHARED_CALL(UI_LAN_CLEARPING)
+	WOLFET_SHARED_CALL(UI_LAN_GETPING)
+	WOLFET_SHARED_CALL(UI_LAN_GETPINGINFO)
+	WOLFET_SHARED_CALL(UI_LAN_GETSERVERCOUNT)
+	WOLFET_SHARED_CALL(UI_LAN_GETSERVERADDRESSSTRING)
+	WOLFET_SHARED_CALL(UI_LAN_GETSERVERINFO)
+	WOLFET_SHARED_CALL(UI_LAN_MARKSERVERVISIBLE)
+	WOLFET_SHARED_CALL(UI_LAN_UPDATEVISIBLEPINGS)
+	WOLFET_SHARED_CALL(UI_LAN_RESETPINGS)
+	WOLFET_SHARED_CALL(UI_LAN_LOADCACHEDSERVERS)
+	WOLFET_SHARED_CALL(UI_LAN_SAVECACHEDSERVERS)
+	WOLFET_SHARED_CALL(UI_LAN_ADDSERVER)
+	WOLFET_SHARED_CALL(UI_LAN_REMOVESERVER)
+	WOLFET_SHARED_CALL(UI_LAN_SERVERSTATUS)
+	WOLFET_SHARED_CALL(UI_LAN_GETSERVERPING)
+	WOLFET_SHARED_CALL(UI_LAN_SERVERISVISIBLE)
+	WOLFET_SHARED_CALL(UI_LAN_COMPARESERVERS)
+	WOLFET_SHARED_CALL(UI_CIN_PLAYCINEMATIC)
+	WOLFET_SHARED_CALL(UI_CIN_STOPCINEMATIC)
+	WOLFET_SHARED_CALL(UI_CIN_RUNCINEMATIC)
+	WOLFET_SHARED_CALL(UI_CIN_DRAWCINEMATIC)
+	WOLFET_SHARED_CALL(UI_CIN_SETEXTENTS)
+	WOLFET_SHARED_CALL(UI_SET_PBCLSTATUS)
+	WOLFET_SHARED_CALL(UI_FLOOR)
+	WOLFET_SHARED_CALL(UI_CEIL)
+#undef WOLFET_SHARED_CALL
+	case Call::UI_MEMSET: return TRAP_MEMSET;
+	case Call::UI_MEMCPY: return TRAP_MEMCPY;
+	case Call::UI_STRNCPY: return TRAP_STRNCPY;
+	case Call::UI_SIN: return TRAP_SIN;
+	case Call::UI_COS: return TRAP_COS;
+	case Call::UI_ATAN2: return TRAP_ATAN2;
+	case Call::UI_SQRT: return TRAP_SQRT;
+	default: return -1;
+	}
+}
+
+/*
+=====================
+CL_WolfETUIBrowserArguments
+
+ET numbers its browser sources Local=0, Global=1, Favorites=2, where this engine
+keeps a retired MPlayer slot at 1 and so numbers Global 2 and Favorites 3. An
+unmapped number becomes -1, which the browser reads as an empty list, rather
+than selecting a different list than the module asked for.
+=====================
+*/
+static intptr_t *CL_WolfETUIBrowserArguments( intptr_t operation, intptr_t *args,
+	std::array<intptr_t, 6> &translated ) {
+	int count;
+	switch ( operation ) {
+	case UI_LAN_GETSERVERCOUNT:
+	case UI_LAN_UPDATEVISIBLEPINGS:
+	case UI_LAN_RESETPINGS: count = 1; break;
+	case UI_LAN_GETSERVERPING:
+	case UI_LAN_SERVERISVISIBLE: count = 2; break;
+	case UI_LAN_MARKSERVERVISIBLE: count = 3; break;
+	case UI_LAN_GETSERVERADDRESSSTRING:
+	case UI_LAN_GETSERVERINFO: count = 4; break;
+	case UI_LAN_COMPARESERVERS: count = 5; break;
+	default: return args; // Ping queue slots and server addresses are not lists.
+	}
+	std::copy_n( args, count + 1, translated.begin() );
+	constexpr int sources[] = { AS_LOCAL, AS_GLOBAL, AS_FAVORITES };
+	translated[1] = args[1] >= 0 && args[1] < 3 ? sources[args[1]] : -1;
+	return translated.data();
+}
+
+/*
+=====================
+CL_WolfETUICall
+
+Enemy Territory UI imports. Returns true when answered here, or false with the
+shared trap in operation. Six of the 121 ordinals ET declares have no case in
+its own engine either; those are refused exactly as ET refuses them.
+=====================
+*/
+static bool CL_WolfETUICall( intptr_t *args, intptr_t &operation, intptr_t &result ) {
+	using namespace fntech3::wolfet::module;
+	const auto call = Lookup( Module::UI, Direction::IMPORT, args[0] );
+	if ( CL_WolfETRenderCall( uivm, call, args, result ) ) return true;
+	switch ( call ) {
+	case Call::UI_CVAR_LATCHEDVARIABLESTRINGBUFFER:
+		VM_CHECKBOUNDS( uivm, args[2], args[3] );
+		Cvar_LatchedVariableStringBufferSafe( VMA(1), VMA(2), static_cast<int>( args[3] ),
+			uivm->privateFlag );
+		result = 0; return true;
+	case Call::UI_CVAR_CREATE:
+		Cvar_RegisterRTCW( nullptr, VMA(1), VMA(2), args[3], uivm->privateFlag );
+		result = 0; return true;
+	case Call::UI_CVAR_INFOSTRINGBUFFER:
+		VM_CHECKBOUNDS( uivm, args[2], args[3] );
+		Cvar_InfoStringBuffer( FnTech3_RTCWCvarFlagsToInternal( Com_GameProfile()->id,
+			static_cast<uint32_t>( args[1] ) ), VMA(2), args[3] );
+		result = 0; return true;
+	case Call::UI_CVAR_REGISTER:
+		VM_CHECKBOUNDS( uivm, args[1], sizeof( fntech3_wolfet_vmCvar_t ) );
+		Cvar_RegisterRTCW( VMA(1), VMA(2), VMA(3), args[4], uivm->privateFlag );
+		result = 0; return true;
+	case Call::UI_CVAR_UPDATE:
+		VM_CHECKBOUNDS( uivm, args[1], sizeof( fntech3_wolfet_vmCvar_t ) );
+		Cvar_UpdateRTCW( VMA(1), uivm->privateFlag );
+		result = 0; return true;
+	case Call::UI_ADDCOMMAND:
+		Cmd_AddCommand( VMA(1), nullptr );
+		result = 0; return true;
+	case Call::UI_KEY_ISDOWN:
+		result = CL_WolfETKeyIsDown( static_cast<int>( args[1] ) );
+		return true;
+	case Call::UI_KEY_GETCATCHER:
+		result = CL_WolfETGetKeyCatcher();
+		return true;
+	case Call::UI_KEY_SETCATCHER:
+		CL_WolfETSetKeyCatcher( static_cast<int>( args[1] ) );
+		result = 0; return true;
+	case Call::UI_KEY_SETBINDING:
+		CL_WolfETSetBinding( static_cast<int>( args[1] ), VMA(2) );
+		result = 0; return true;
+	case Call::UI_KEY_KEYNUMTOSTRINGBUF:
+	case Call::UI_KEY_GETBINDINGBUF:
+		VM_CHECKBOUNDS( uivm, args[2], args[3] );
+		CL_WolfETKeyString( static_cast<int>( args[1] ), VMA(2), static_cast<int>( args[3] ),
+			call == Call::UI_KEY_GETBINDINGBUF ? qtrue : qfalse );
+		result = 0; return true;
+	case Call::UI_KEY_BINDINGTOKEYS: {
+		VM_CHECKBOUNDS( uivm, args[2], sizeof( int32_t ) );
+		VM_CHECKBOUNDS( uivm, args[3], sizeof( int32_t ) );
+		auto *first = static_cast<int32_t *>( VM_ExplicitArgPtr( uivm, args[2] ) );
+		auto *second = static_cast<int32_t *>( VM_ExplicitArgPtr( uivm, args[3] ) );
+		if ( !first || !second ) Com_Error( ERR_DROP, "Invalid ET binding key output" );
+		int bound[2] = { -1, -1 };
+		CL_WolfETKeysForBinding( VMA(1), &bound[0], &bound[1] );
+		*first = bound[0];
+		*second = bound[1];
+		result = 0; return true;
+	}
+	case Call::UI_KEY_GETOVERSTRIKEMODE:
+		result = Key_GetOverstrikeMode();
+		return true;
+	case Call::UI_KEY_SETOVERSTRIKEMODE:
+		Key_SetOverstrikeMode( args[1] ? qtrue : qfalse );
+		result = 0; return true;
+	case Call::UI_GETGLCONFIG:
+		VM_CHECKBOUNDS( uivm, args[1], sizeof( fntech3_wolfet_glconfig_t ) );
+		CL_CopyWolfETGlconfig( VMA(1), re.GetConfig() );
+		result = 0; return true;
+	case Call::UI_GETCLIENTSTATE:
+		VM_CHECKBOUNDS( uivm, args[1], sizeof( fntech3_wolfet_uiClientState_t ) );
+		GetWolfETClientState( VMA(1) );
+		result = 0; return true;
+	case Call::UI_REAL_TIME:
+		VM_CHECKBOUNDS( uivm, args[1], sizeof( fntech3_wolfet_qtime_t ) );
+		result = Com_RealTimeRTCW( VMA(1) );
+		return true;
+	case Call::UI_PC_READ_TOKEN:
+		VM_CHECKBOUNDS( uivm, args[2], sizeof( fntech3_wolfet_pc_token_t ) );
+		result = CL_WolfETReadToken( args[1], VMA(2) );
+		return true;
+	case Call::UI_PC_UNREAD_TOKEN:
+		result = botlib_export->PC_UnreadTokenHandle( args[1] );
+		return true;
+	case Call::UI_PC_SOURCE_FILE_AND_LINE:
+		VM_CHECKBOUNDS( uivm, args[2], FNTECH3_WOLFET_SOURCE_FILENAME_CHARS );
+		VM_CHECKBOUNDS( uivm, args[3], sizeof( int32_t ) );
+		result = CL_WolfETSourceFileAndLine( args[1], VMA(2), VMA(3) );
+		return true;
+	case Call::UI_R_REGISTERFONT:
+		VM_CHECKBOUNDS( uivm, args[3], sizeof( fntech3_wolfet_fontInfo_t ) );
+		CL_WolfETRegisterFont( VMA(1), args[2], VMA(3) );
+		result = 0; return true;
+	case Call::UI_LAN_SERVERISINFAVORITELIST:
+		// ET asks whether a server from some list is also a favourite. The
+		// source it names is its own numbering, so it is translated first.
+		result = CL_WolfETServerIsInFavoriteList( args[1] >= 0 && args[1] < 3 ?
+			( args[1] == 0 ? AS_LOCAL : args[1] == 1 ? AS_GLOBAL : AS_FAVORITES ) : -1,
+			static_cast<int>( args[2] ) );
+		return true;
+	case Call::UI_CL_GETLIMBOSTRING: {
+		// ET keeps seven limbo chat lines and its UI can ask for one. Nothing
+		// in ET's own client ever writes that buffer, so a valid index yields
+		// an empty line, exactly as its own engine does. Only the terminator is
+		// written, so a module buffer shorter than ET's 140 bytes is safe.
+		if ( args[1] < 0 || args[1] >= FNTECH3_WOLFET_LIMBOCHAT_HEIGHT ) { result = qfalse; return true; }
+		VM_CHECKBOUNDS( uivm, args[2], 1 );
+		auto *destination = static_cast<char *>( VM_ExplicitArgPtr( uivm, args[2] ) );
+		if ( !destination ) Com_Error( ERR_DROP, "Invalid ET limbo string output" );
+		destination[0] = '\0';
+		result = qtrue; return true;
+	}
+	case Call::UI_SET_PBSVSTATUS:
+		// ET's own client accepts and discards this; no anti-cheat service
+		// exists here and none is reported as present.
+		result = 0; return true;
+	case Call::UI_CHECKAUTOUPDATE: {
+		static bool reported = false;
+		if ( !reported ) {
+			Com_Printf( "ET automatic updates are unavailable in fnTech3.\n" );
+			reported = true;
+		}
+		// No update result is established and no legacy update server is
+		// contacted; the module simply never sees an update offered.
+		result = 0; return true;
+	}
+	case Call::UI_GET_AUTOUPDATE:
+		Com_Printf( "ET update installation is unavailable in fnTech3; use the fnTech3 distribution to update the engine.\n" );
+		result = 0; return true;
+	case Call::UI_GETHUNKDATA: {
+		// As on the cgame side: fnTech3 predicts no per-map hunk usage, and ET
+		// draws no loading bar when the expected total is not positive.
+		VM_CHECKBOUNDS( uivm, args[1], sizeof( int32_t ) );
+		VM_CHECKBOUNDS( uivm, args[2], sizeof( int32_t ) );
+		auto *used = static_cast<int32_t *>( VM_ExplicitArgPtr( uivm, args[1] ) );
+		auto *expected = static_cast<int32_t *>( VM_ExplicitArgPtr( uivm, args[2] ) );
+		if ( !used || !expected ) Com_Error( ERR_DROP, "Invalid ET hunk data output" );
+		*used = 0;
+		*expected = 0;
+		result = 0; return true;
+	}
+	case Call::UI_PC_REMOVE_ALL_GLOBAL_DEFINES:
+		botlib_export->PC_RemoveAllGlobalDefines();
+		result = 0; return true;
+	default:
+		operation = CL_WolfETUISharedCall( call );
+		if ( operation < 0 ) {
+			const auto *descriptor = Describe( call );
+			Com_Error( ERR_DROP, "Unsupported %s UI import %ld (%s)",
+				Com_GameProfile()->key, static_cast<long>( args[0] ),
+				descriptor ? descriptor->name : "unknown ordinal" );
+			result = 0; return true;
+		}
+		break;
+	}
+	return false;
+}
+
 static intptr_t CL_UISystemCalls( intptr_t *args ) {
 	intptr_t operation = args[0];
 	std::array<intptr_t, 6> browserArguments{};
@@ -1081,6 +1382,11 @@ static intptr_t CL_UISystemCalls( intptr_t *args ) {
 			}
 			break;
 		}
+	}
+	if ( Com_GameIsWolfET() ) {
+		intptr_t wolfetResult = 0;
+		if ( CL_WolfETUICall( args, operation, wolfetResult ) ) return wolfetResult;
+		args = CL_WolfETUIBrowserArguments( operation, args, browserArguments );
 	}
 	if ( Com_GameIsRTCW() ) {
 		args = CL_RTCWUIBrowserArguments( operation, args, browserArguments );
