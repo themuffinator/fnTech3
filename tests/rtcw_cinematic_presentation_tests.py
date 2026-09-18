@@ -229,6 +229,12 @@ int main(){
    assert(queued==(bypass==1?"":"cinematic etintro.roq\n"));
    assert(writes.empty()&&played.integer==seen);continue;
   }
+  if(profile.id==COM_GAME_STVEF_SP||profile.id==COM_GAME_STVEF_MP){
+   // Elite Force SP opens with its logo movie; Holomatch starts on its menu.
+   const bool logo=profile.id==COM_GAME_STVEF_SP&&bypass!=1;
+   assert(queued==(logo?"cinematic eflogo\n":""));
+   assert(writes.empty()&&played.integer==seen);continue;
+  }
   const bool sp=profile.id==COM_GAME_RTCW_SP,mp=profile.id==COM_GAME_RTCW_MP;
   const std::string intro=sp?"cinematic wolfintro.RoQ 3":mp?"cinematic wolfintro.RoQ":"cinematic intro.RoQ";
   const std::string logo=sp?"":mp?"cinematic gmlogo.RoQ":"cinematic idlogo.RoQ";

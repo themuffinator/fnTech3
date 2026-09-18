@@ -50,7 +50,12 @@ class SteamIdentitySourceTests(unittest.TestCase):
             r'Cvar_Get\s*\(\s*"name",\s*([^,]+),\s*([^)]*)\)', self.main
         )
         self.assertIsNotNone(registration)
-        self.assertEqual('"UnnamedPlayer"', registration.group(1).strip())
+        # Profiles may name their own default player (Elite Force's retail
+        # "RedShirt" and "Munro"); every other profile keeps "UnnamedPlayer".
+        default = " ".join(registration.group(1).split())
+        self.assertEqual('Com_GameProfile()->appearance.playerName ? '
+                         'Com_GameProfile()->appearance.playerName : "UnnamedPlayer"',
+                         default)
         self.assertIn("CVAR_USERINFO", registration.group(2))
         self.assertIn("CVAR_ARCHIVE_ND", registration.group(2))
         self.assertIn('kUnnamedPlayer[] = "UnnamedPlayer"', self.identity)

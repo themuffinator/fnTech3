@@ -102,6 +102,14 @@ int main(){
    }
    continue;
   }
+  if(p.id==COM_GAME_STVEF_SP){
+   // Elite Force SP serves one local client over loopback: never pure.
+   values.clear();auto *mode=SV_RegisterPureMode();
+   assert(mode->integer==0&&!(mode->flags&CVAR_LATCH)&&(mode->flags&CVAR_SYSTEMINFO));
+   SV_TestServerDefaults();assert(sv_gametype->integer==0&&sv_maxclients->integer==1);
+   assert(values["fraglimit"].cvar.integer==0&&!(values["fraglimit"].cvar.flags&CVAR_SERVERINFO));
+   continue;
+  }
   const bool sp=p.id==COM_GAME_RTCW_SP,mp=p.id==COM_GAME_RTCW_MP,ql=p.id==COM_GAME_QUAKELIVE;
   values.clear();auto *pureMode=SV_RegisterPureMode();assert(pureMode->integer==(sp?0:1));
   assert(pureMode->flags&CVAR_SYSTEMINFO);assert(bool(pureMode->flags&CVAR_LATCH)==!(sp||mp));

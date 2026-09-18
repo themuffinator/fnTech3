@@ -25,6 +25,8 @@ typedef enum comGameId_e
 	COM_GAME_RTCW_SP,
 	COM_GAME_RTCW_MP,
 	COM_GAME_WOLFET,
+	COM_GAME_STVEF_SP,
+	COM_GAME_STVEF_MP,
 	COM_GAME_COUNT
 } comGameId_t;
 
@@ -36,7 +38,8 @@ typedef enum comGameTitleId_e
 	COM_GAME_TITLE_QUAKE3 = 1,
 	COM_GAME_TITLE_QUAKELIVE,
 	COM_GAME_TITLE_RTCW,
-	COM_GAME_TITLE_WOLFET
+	COM_GAME_TITLE_WOLFET,
+	COM_GAME_TITLE_STVEF
 } comGameTitleId_t;
 
 /* BSP version 47 is ambiguous without a title: RTCW has 17 lumps, while
@@ -81,7 +84,11 @@ enum {
 	COM_GAME_MARKER_UNRECOGNIZED_PAK = 1 << 2,
 	COM_GAME_MARKER_RTCW_SP = 1 << 3,
 	COM_GAME_MARKER_RTCW_MP = 1 << 4,
-	COM_GAME_MARKER_WOLFET = 1 << 5
+	COM_GAME_MARKER_WOLFET = 1 << 5,
+	/* Elite Force's single player and Holomatch modes share baseEF/pak0.pk3.
+	 * The one pak sets both marks, so the user must choose the mode. */
+	COM_GAME_MARKER_STVEF_SP = 1 << 6,
+	COM_GAME_MARKER_STVEF_MP = 1 << 7
 };
 
 enum {
@@ -92,13 +99,20 @@ enum {
 	COM_PROTOCOL_FAMILY_IORTCW_SP = 1 << 4,
 	COM_PROTOCOL_FAMILY_RTCW_MP = 1 << 5,
 	COM_PROTOCOL_FAMILY_IORTCW_MP = 1 << 6,
-	COM_PROTOCOL_FAMILY_WOLFET = 1 << 7
+	COM_PROTOCOL_FAMILY_WOLFET = 1 << 7,
+	/* Elite Force: SP loopback 40, retail Holomatch 24, ioEF/Lilium 26. */
+	COM_PROTOCOL_FAMILY_STVEF_SP = 1 << 8,
+	COM_PROTOCOL_FAMILY_STVEF_HM = 1 << 9,
+	COM_PROTOCOL_FAMILY_IOEF = 1 << 10
 };
 
 enum {
 	COM_MODULE_API_QVM = 1 << 0,
 	COM_MODULE_API_LEGACY_NATIVE = 1 << 1,
-	COM_MODULE_API_STRUCTURED_NATIVE = 1 << 2
+	COM_MODULE_API_STRUCTURED_NATIVE = 1 << 2,
+	/* Elite Force SP: GetGameAPI/GetUIAPI function tables, with the cgame's
+	 * dllEntry/vmMain taken from the same loaded game library. */
+	COM_MODULE_API_STVEF_SP_NATIVE = 1 << 3
 };
 
 /* Engine defaults are separate from limits and module-owned game rules.
@@ -140,7 +154,11 @@ typedef struct comGameBotPolicy_s {
 } comGameBotPolicy_t;
 
 /* Userinfo appearance keys are part of the selected game's client contract.
- * NULL team/secondary-color defaults mean that game has no such engine keys. */
+ * NULL team/secondary-color defaults mean that game has no such engine keys.
+ * Trailing members are zero for the Quake and Wolfenstein games: a NULL
+ * headKey or colorKey means no such key, a NULL bodyKey means "model", and a
+ * NULL playerName keeps the engine's UnnamedPlayer default. Elite Force SP
+ * publishes its three-part player as legsModel/torsoModel/headModel. */
 typedef struct comGameAppearancePolicy_s {
 	const char *bodyModel;
 	const char *headKey;
@@ -150,6 +168,10 @@ typedef struct comGameAppearancePolicy_s {
 	const char *secondColor;
 	int modelSetsHead;
 	int archiveDefaults;
+	const char *bodyKey;
+	const char *torsoKey;
+	const char *torsoModel;
+	const char *playerName;
 } comGameAppearancePolicy_t;
 
 typedef enum comGamePureProof_e {
@@ -253,6 +275,9 @@ int Com_GameIsRTCW( void );
 int Com_GameIsRTCWSP( void );
 int Com_GameIsRTCWMP( void );
 int Com_GameIsWolfET( void );
+int Com_GameIsSTVEF( void );
+int Com_GameIsSTVEFSP( void );
+int Com_GameIsSTVEFMP( void );
 /* RTCW SP/MP and ET all prove pure admission with their native cgame and UI
  * module files rather than QVMs or a single retail binary. */
 int Com_PureProofIsNativeModulePair( const comGameProfile_t *profile );

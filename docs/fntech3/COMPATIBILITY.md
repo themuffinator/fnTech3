@@ -3,7 +3,7 @@
 ## Unified goal and supported-game scope
 
 fnTech3's goal is one modern id Tech 3 engine distribution and shared executable
-set for four games and five immutable profiles. Shared renderer, audio, input,
+set for five games and seven immutable profiles. Shared renderer, audio, input,
 platform, and tooling improvements must preserve each game's own contracts.
 Full compatibility is **not yet established for any profile**.
 
@@ -14,16 +14,25 @@ Full compatibility is **not yet established for any profile**.
 | Return to Castle Wolfenstein — single player | `rtcw-sp` | Experimental; default startup gated; `-Drtcw-development=true` permits isolated probes; campaign and broader compatibility gates remain open. |
 | Return to Castle Wolfenstein — multiplayer | `rtcw-mp` | Experimental; same build option and executable as SP; multiplayer and broader compatibility gates remain open. |
 | Wolfenstein: Enemy Territory | `wolfet` / `et` | Experimental; `-Dwolfet-development=true` permits dedicated probes only; client startup remains gated in every build. |
+| Star Trek Voyager: Elite Force — single player | `stvef-sp` | Experimental; default startup gated; `-Dstvef-development=true` permits isolated probes; module, savegame, cinematic and renderer gates remain open. |
+| Star Trek Voyager: Elite Force — Holomatch | `stvef-mp` | Experimental; same build option and executable as SP; QVM, wire, demo and interoperability gates remain open. |
 
 RTCW is one title with two mode profiles. A mode change relaunches the same
 executable; it does not mutate the running process's profile. Catalog
 registration, a development option, or a partial runtime result does not
 establish supported release compatibility. The [Q3/QL matrix](#compatibility-and-gate-matrix)
-and [RTCW matrix](#rtcw-gate-matrix), plus the [ET matrix](#wolfet-gate-matrix), define the current unified scope.
+and [RTCW matrix](#rtcw-gate-matrix), plus the [ET matrix](#wolfet-gate-matrix) and the
+[Elite Force matrix](#elite-force-gate-matrix), define the current unified scope.
+Elite Force is one title with two mode profiles, as RTCW is.
 Dedicated-server and online-service gates apply according to each profile's
 contract; RTCW SP additionally requires campaign, AI, and save/load evidence.
 
 ## Status
+
+The [Elite Force foundation](2026-09-18-stvef-contracts.md) registers
+`stvef-sp` and `stvef-mp` behind `-Dstvef-development=true`, identifies the
+retail installation, and adds MP3 decoding that reproduces every one of the
+8,074 retail `#UNCOMP` sizes. No Elite Force module or wire boundary exists yet.
 
 The [ET contract and dedicated-server slice](2026-09-17-wolfet-contracts.md)
 adds a distinct immutable profile, protocol-84 codecs, frozen module records,
@@ -1152,3 +1161,23 @@ checks, generated packet fixtures and installed dedicated observations.
 Build with `-Dwolfet-development=true` only for isolated dedicated probes.
 This option is independent of `-Drtcw-development=true`; neither option closes
 any release gate. Q3/QL/RTCW evidence is not ET evidence.
+
+## Elite Force gate matrix
+
+Star Trek Voyager: Elite Force is the fifth title, with two mode profiles:
+`stvef-sp` hosts Raven's single-player `efgamex86.dll`/`efuix86.dll`, and
+`stvef-mp` runs the Holomatch QVMs. The [foundation record](2026-09-18-stvef-contracts.md)
+pins the installation identity and startup contracts.
+
+| Gate | Evidence | Remaining requirement |
+| --- | --- | --- |
+| Profile / identity / discovery | Source, Unit, Live subset | Both profiles, their aliases and the shared-pak mode choice pass unit checks; the Holomatch profile mounts the retail paks in a developer dedicated server. Broader installations and platforms remain open. |
+| Audio codecs | Source, Unit, Fixture | Every one of the 8,129 retail MP3 files decodes, and every one of the 8,074 Raven `#UNCOMP` sizes is reproduced by the retail frame rule. Playback, lip-sync (`#MAXVOL`) and ambient sets remain open. |
+| Holomatch module ABI / wire / demos | Open | QVM syscall tables, frozen records, protocol 24 and 26 codecs, handshake, `.efdemo` playback and pure admission. |
+| SP module host / savegames | Open | Function-table game host, cgame from the same library, UI table, retail `.sav` chunks, level transitions and autosaves. |
+| Renderer / cinematics | Open | Elite Force refEntity and shader behavior, MD4/MDR models in use, Bink movies. |
+| Interoperability | Open | Retail Holomatch client and server in both directions. |
+| Optional services | Unavailable | No authorize/master success is synthesized. |
+
+Build with `-Dstvef-development=true` only for isolated probes. The option is
+independent of the RTCW and ET options; none of them closes any release gate.

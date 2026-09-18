@@ -1,0 +1,286 @@
+/*
+===========================================================================
+Copyright (C) 2026 fnTech3 contributors
+
+This file is part of fnTech3 and is distributed under the terms of the GNU
+General Public License, version 2 or (at your option) any later version.
+===========================================================================
+*/
+
+// MPEG-1/2 Layer III sound and music for Star Trek Voyager: Elite Force.
+// Retail Elite Force stores its effects, speech and music as MP3 frames with a
+// trailing Raven ID3v1 tag ("#UNCOMP", "#MAXVOL"); see
+// docs/fntech3/2026-09-18-stvef-contracts.md. Raven's "#UNCOMP" byte count
+// includes every MPEG frame, so this codec decodes frame by frame with
+// minimp3 (CC0) and never drops a leading Xing/Info frame as tag metadata.
+// The codec is registered only for Elite Force profiles, so other games keep
+// their retail extension fallback behaviour.
+
+#ifdef USE_CODEC_MP3
+
+extern "C" {
+#include "../../client.h"
+#include "snd_codec.h"
+}
+
+#include "../../client_cpp.h"
+
+#include <cstdint>
+#include <cstring>
+#include <limits>
+#include <new>
+
+// The decoder is third-party code; keep strict project warnings on our own
+// translation unit without applying them to minimp3's implementation.
+#if defined( _MSC_VER ) && !defined( __clang__ )
+#pragma warning( push, 0 )
+#elif defined( __GNUC__ ) || defined( __clang__ )
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wsign-compare"
+#pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic ignored "-Wcast-qual"
+#endif
+#define MINIMP3_IMPLEMENTATION
+#include <minimp3.h>
+#if defined( _MSC_VER ) && !defined( __clang__ )
+#pragma warning( pop )
+#elif defined( __GNUC__ ) || defined( __clang__ )
+#pragma GCC diagnostic pop
+#endif
+
+#include "snd_mp3_frames.h"
+
+using fnql::AllocateZoneMemory;
+using fnql::FileRead;
+using fnql::ScopedTempMemory;
+using fnql::ScopedZoneMemory;
+
+namespace {
+
+using fntech3::audio::Mp3FrameDecoder;
+using fntech3::audio::Mp3StreamInfo;
+
+// minimp3 adapter for the frame walker in snd_mp3_frames.h.
+struct MiniMp3 {
+	mp3dec_t decoder;
+	static int Decode( void *self, const std::uint8_t *data, int bytes, short *pcm,
+		int *frameBytes, int *frameOffset, int *channels, int *rate ) {
+		mp3dec_frame_info_t info{};
+		const int samples = mp3dec_decode_frame( &static_cast<MiniMp3 *>( self )->decoder,
+			data, bytes, pcm, &info );
+		*frameBytes = info.frame_bytes;
+		*frameOffset = info.frame_offset;
+		*channels = info.channels;
+		*rate = info.hz;
+		return samples;
+	}
+};
+
+static_assert( sizeof( mp3d_sample_t ) == sizeof( short ),
+	"the engine mixer consumes signed 16-bit samples" );
+
+// Streams own their compressed bytes, the minimp3 state and one decoded frame.
+struct Mp3Stream {
+	byte *compressed;
+	MiniMp3 codec;
+	Mp3FrameDecoder frames;
+};
+
+// Effects are unpacked as mono, as retail's decoder does; streams keep the
+// source channels.
+bool S_MP3_Info( const Mp3StreamInfo &scan, int outputChannels, snd_info_t *info ) {
+	if ( !scan.valid || outputChannels < 1 || outputChannels > scan.channels ) {
+		return false;
+	}
+	info->rate = scan.rate;
+	info->width = 2;
+	info->channels = outputChannels;
+	info->samples = scan.frames;
+	info->size = scan.frames * outputChannels * 2;
+	info->dataofs = 0;
+	info->speakerMask = 0;
+	return true;
+}
+
+} // namespace
+
+snd_codec_t mp3_codec =
+{
+	"mp3",
+	S_MP3_CodecLoad,
+	S_MP3_CodecOpenStream,
+	S_MP3_CodecReadStream,
+	S_MP3_CodecCloseStream,
+	nullptr
+};
+
+/*
+=================
+S_MP3_CodecOpenStream
+
+Music tracks are a few megabytes; keep the compressed file in zone memory and
+decode one MPEG frame at a time as the mixer asks for samples.
+=================
+*/
+snd_stream_t *S_MP3_CodecOpenStream( const char *filename )
+{
+	if ( !filename ) {
+		return nullptr;
+	}
+	snd_stream_t *stream = S_CodecUtilOpen( filename, &mp3_codec );
+	if ( !stream ) {
+		return nullptr;
+	}
+	if ( stream->length <= 0 ) {
+		S_CodecUtilClose( &stream );
+		return nullptr;
+	}
+
+	ScopedZoneMemory stateStorage = AllocateZoneMemory( sizeof( Mp3Stream ), "Mp3Stream", __FILE__, __LINE__ );
+	ScopedZoneMemory compressed = AllocateZoneMemory( stream->length, "compressed mp3", __FILE__, __LINE__ );
+	if ( !stateStorage.get() || !compressed.get() ) {
+		S_CodecUtilClose( &stream );
+		return nullptr;
+	}
+	auto *state = new ( stateStorage.get() ) Mp3Stream{};
+
+	int filled = 0;
+	while ( filled < stream->length ) {
+		const int count = FileRead( stream->file, compressed.as<byte>() + filled, stream->length - filled );
+		if ( count <= 0 ) {
+			break;
+		}
+		filled += count;
+	}
+	if ( filled != stream->length ) {
+		S_CodecUtilClose( &stream );
+		return nullptr;
+	}
+	stream->pos = filled;
+
+	mp3dec_init( &state->codec.decoder );
+	state->frames.Reset( compressed.as<std::uint8_t>(), filled );
+	const Mp3StreamInfo scan = state->frames.Scan( &state->codec, &MiniMp3::Decode );
+	if ( !S_MP3_Info( scan, scan.channels, &stream->info ) ) {
+		S_CodecUtilClose( &stream );
+		return nullptr;
+	}
+	mp3dec_init( &state->codec.decoder );
+	state->frames.Reset( compressed.as<std::uint8_t>(), filled );
+
+	state->compressed = static_cast<byte *>( compressed.release() );
+	stream->ptr = stateStorage.release();
+	return stream;
+}
+
+/*
+=================
+S_MP3_CodecCloseStream
+=================
+*/
+void S_MP3_CodecCloseStream( snd_stream_t *stream )
+{
+	if ( !stream ) {
+		return;
+	}
+	auto *state = static_cast<Mp3Stream *>( stream->ptr );
+	if ( state ) {
+		if ( state->compressed ) {
+			Z_Free( state->compressed );
+		}
+		Z_Free( state );
+		stream->ptr = nullptr;
+	}
+	S_CodecUtilClose( &stream );
+}
+
+/*
+=================
+S_MP3_CodecReadStream
+=================
+*/
+int S_MP3_CodecReadStream( snd_stream_t *stream, int bytes, void *buffer )
+{
+	if ( !stream || !stream->ptr || !buffer || bytes <= 0 ) {
+		return 0;
+	}
+	auto *state = static_cast<Mp3Stream *>( stream->ptr );
+	const int read = state->frames.Read( &state->codec, &MiniMp3::Decode,
+		stream->info.channels, stream->info.rate, stream->info.channels,
+		static_cast<short *>( buffer ), bytes );
+#ifdef Q3_BIG_ENDIAN
+	auto *samples = static_cast<short *>( buffer );
+	for ( int i = 0; i < read / 2; ++i ) {
+		samples[i] = LittleShort( samples[i] );
+	}
+#endif
+	return read;
+}
+
+/*
+=================
+S_MP3_CodecLoad
+
+Effects decode completely into temporary hunk memory, as the WAV and Vorbis
+loaders do. A buffer whose advertised tail was not decoded is never returned.
+=================
+*/
+void *S_MP3_CodecLoad( const char *filename, snd_info_t *info )
+{
+	if ( !filename || !info ) {
+		return nullptr;
+	}
+
+	ScopedZoneMemory compressed;
+	int length;
+	{
+		auto file = fnql::ScopedReadFile::Read( filename );
+		if ( !file ) {
+			return nullptr;
+		}
+		length = file.length();
+		if ( length <= 0 ) {
+			return nullptr;
+		}
+		compressed = AllocateZoneMemory( length, "compressed mp3", __FILE__, __LINE__ );
+		if ( !compressed.get() ) {
+			return nullptr;
+		}
+		std::memcpy( compressed.get(), file.get(), length );
+	} // Release the file's temporary hunk before allocating decoded samples.
+
+	ScopedZoneMemory stateStorage = AllocateZoneMemory( sizeof( Mp3Stream ), "Mp3Stream", __FILE__, __LINE__ );
+	if ( !stateStorage.get() ) {
+		return nullptr;
+	}
+	auto *state = new ( stateStorage.get() ) Mp3Stream{};
+	mp3dec_init( &state->codec.decoder );
+	state->frames.Reset( compressed.as<std::uint8_t>(), length );
+	snd_info_t decodedInfo{};
+	const Mp3StreamInfo scan = state->frames.Scan( &state->codec, &MiniMp3::Decode );
+	if ( !S_MP3_Info( scan, 1, &decodedInfo ) ) {
+		return nullptr;
+	}
+	ScopedTempMemory buffer = ScopedTempMemory::Allocate( decodedInfo.size );
+	if ( !buffer.get() ) {
+		return nullptr;
+	}
+	mp3dec_init( &state->codec.decoder );
+	state->frames.Reset( compressed.as<std::uint8_t>(), length );
+	const int bytesRead = state->frames.Read( &state->codec, &MiniMp3::Decode,
+		scan.channels, scan.rate, 1, buffer.as<short>(), decodedInfo.size );
+	if ( bytesRead <= 0 || bytesRead != decodedInfo.size ) {
+		return nullptr;
+	}
+#ifdef Q3_BIG_ENDIAN
+	auto *samples = buffer.as<short>();
+	for ( int i = 0; i < bytesRead / 2; ++i ) {
+		samples[i] = LittleShort( samples[i] );
+	}
+#endif
+	*info = decodedInfo;
+	return buffer.release();
+}
+
+#endif // USE_CODEC_MP3

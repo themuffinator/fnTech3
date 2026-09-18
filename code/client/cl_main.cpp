@@ -5443,13 +5443,16 @@ static void CL_InitRef( void ) {
 static void CL_RegisterAppearanceCvars( void ) {
 	const auto &appearance = Com_GameProfile()->appearance;
 	const int flags = CVAR_USERINFO | (appearance.archiveDefaults ? CVAR_ARCHIVE : CVAR_ARCHIVE_ND);
-	Cvar_Get("model", appearance.bodyModel, flags);
-	Cvar_Get(appearance.headKey, appearance.headModel, flags);
+	// Elite Force SP publishes legsModel/torsoModel/headModel; Holomatch has
+	// only "model" and no head-model key.
+	Cvar_Get(appearance.bodyKey ? appearance.bodyKey : "model", appearance.bodyModel, flags);
+	if (appearance.torsoKey) Cvar_Get(appearance.torsoKey, appearance.torsoModel, flags);
+	if (appearance.headKey) Cvar_Get(appearance.headKey, appearance.headModel, flags);
 	if (appearance.teamModel) {
 		Cvar_Get("team_model", appearance.teamModel, flags);
 		Cvar_Get("team_headmodel", appearance.teamModel, flags);
 	}
-	Cvar_Get(appearance.colorKey, "4", CVAR_USERINFO | CVAR_ARCHIVE);
+	if (appearance.colorKey) Cvar_Get(appearance.colorKey, "4", CVAR_USERINFO | CVAR_ARCHIVE);
 	if (appearance.secondColor) Cvar_Get("color2", appearance.secondColor, CVAR_USERINFO | CVAR_ARCHIVE);
 }
 
@@ -5461,7 +5464,7 @@ static void CL_SetModel_f( void ) {
 	if ( arg[0] ) {
 		Cvar_Set( "model", arg );
 		const auto &appearance = Com_GameProfile()->appearance;
-		if (appearance.modelSetsHead) Cvar_Set(appearance.headKey, arg);
+		if (appearance.modelSetsHead && appearance.headKey) Cvar_Set(appearance.headKey, arg);
 	} else {
 		Cvar_VariableStringBuffer( "model", name.data(), static_cast<int>( name.size() ) );
 		Com_Printf( "model is set to %s\n", name.data() );
@@ -6196,7 +6199,8 @@ void CL_Init( void ) {
 	cl_reconnectArgs = Cvar_Get( "cl_reconnectArgs", "", CVAR_ARCHIVE_ND | CVAR_NOTABCOMPLETE );
 
 	// userinfo
-	Cvar_Get ("name", "UnnamedPlayer", CVAR_USERINFO | CVAR_ARCHIVE_ND );
+	Cvar_Get ("name", Com_GameProfile()->appearance.playerName
+		? Com_GameProfile()->appearance.playerName : "UnnamedPlayer", CVAR_USERINFO | CVAR_ARCHIVE_ND );
 	if ( quakeLive ) {
 		// Retail publishes the Steam account country alongside the persona name and
 		// archives it, so a profile config carries both identity keys.

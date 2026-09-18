@@ -119,14 +119,16 @@ static void reset(){
 static void checkLifecycle(){
  for(const auto &p:profiles){profile=&p;reset();
   const bool sp=p.id==COM_GAME_RTCW_SP,mp=p.id==COM_GAME_RTCW_MP,et=p.id==COM_GAME_WOLFET;
-  std::vector<int> expected=sp?std::vector<int>{1,2,6}:(mp||et)?std::vector<int>{1,2}:std::vector<int>{1,2,3,4,5,6};
+  // Elite Force SP's game has its own NPC AI and starts no Quake AI system.
+  const bool efsp=p.id==COM_GAME_STVEF_SP;
+  std::vector<int> expected=sp?std::vector<int>{1,2,6}:(mp||et||efsp)?std::vector<int>{1,2}:std::vector<int>{1,2,3,4,5,6};
   assert(Export_BotLibShutdown()==BLERR_LIBRARYNOTSETUP);
   assert(Export_BotLibUpdateEntity(0,nullptr)==BLERR_LIBRARYNOTSETUP);
   assert(Export_BotLibStartFrame(0)==BLERR_LIBRARYNOTSETUP);
   assert(Export_BotLibSetup()==0&&starts==expected&&botlibsetup&&botlibglobals.botlibsetup);
-  assert(botlibglobals.maxclients==(sp||mp?128:64)&&botlibglobals.maxentities==(sp?2048:1024));
+  assert(botlibglobals.maxclients==(sp||mp?128:efsp?1:64)&&botlibglobals.maxentities==(sp?2048:1024));
   assert(Export_BotLibSetup()==0&&starts==expected);
-  assert(Export_BotLibLoadMap("synthetic")==0&&levelItems==(!sp&&!mp&&!et)&&brushTypes==1);
+  assert(Export_BotLibLoadMap("synthetic")==0&&levelItems==(!sp&&!mp&&!et&&!efsp)&&brushTypes==1);
   mapResult=37;assert(Export_BotLibLoadMap("invalid")==37&&brushTypes==1);
   assert(Export_BotLibUpdateEntity(-1,nullptr)==BLERR_INVALIDENTITYNUMBER);
   assert(Export_BotLibUpdateEntity(botlibglobals.maxentities,nullptr)==BLERR_INVALIDENTITYNUMBER);

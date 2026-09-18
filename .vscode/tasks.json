@@ -26,6 +26,7 @@
         "glx,vk,rtx",
         "-RTCWDevelopment",
         "-WolfETDevelopment",
+        "-STVEFDevelopment",
         "-Archive",
         "-SetupOnly"
       ],
@@ -33,7 +34,7 @@
         "$gcc",
         "$msCompile"
       ],
-      "detail": "Windows x86 development build for Q3, QL, RTCW SP/MP, Enemy Territory dedicated and GLx/Vulkan/RTX. RTCW and ET adapters remain experimental; ET client startup is gated."
+      "detail": "Windows x86 development build for Q3, QL, RTCW SP/MP, Enemy Territory, Elite Force SP/Holomatch and GLx/Vulkan/RTX. RTCW, ET and Elite Force adapters remain experimental."
     },
     {
       "label": "meson: build all games",
@@ -57,13 +58,14 @@
         "glx,vk,rtx",
         "-RTCWDevelopment",
         "-WolfETDevelopment",
+        "-STVEFDevelopment",
         "-Archive"
       ],
       "problemMatcher": [
         "$gcc",
         "$msCompile"
       ],
-      "detail": "Windows x86 development build for Q3, QL, RTCW SP/MP, Enemy Territory dedicated and GLx/Vulkan/RTX. RTCW and ET adapters remain experimental; ET client startup is gated.",
+      "detail": "Windows x86 development build for Q3, QL, RTCW SP/MP, Enemy Territory, Elite Force SP/Holomatch and GLx/Vulkan/RTX. RTCW, ET and Elite Force adapters remain experimental.",
       "group": {
         "kind": "build",
         "isDefault": true
@@ -91,6 +93,7 @@
         "glx,vk,rtx",
         "-RTCWDevelopment",
         "-WolfETDevelopment",
+        "-STVEFDevelopment",
         "-Archive",
         "-WithSteam"
       ],
@@ -98,7 +101,7 @@
         "$gcc",
         "$msCompile"
       ],
-      "detail": "Windows x86 development build for Q3, QL, RTCW SP/MP, Enemy Territory dedicated and GLx/Vulkan/RTX. RTCW and ET adapters remain experimental; ET client startup is gated."
+      "detail": "Windows x86 development build for Q3, QL, RTCW SP/MP, Enemy Territory, Elite Force SP/Holomatch and GLx/Vulkan/RTX. RTCW, ET and Elite Force adapters remain experimental."
     },
     {
       "label": "meson: setup",

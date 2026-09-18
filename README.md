@@ -4,7 +4,7 @@
   <img src="assets/logos/fntech3-readme-banner.png" alt="fnTech3 — Unified source port for id Tech 3" width="720">
 </h1>
 
-### One engine for Quake III Arena, Quake Live, RTCW, and Enemy Territory
+### One engine for Quake III Arena, Quake Live, RTCW, Enemy Territory, and Elite Force
 
 <p>
   <a href="docs/fntech3/COMPATIBILITY.md"><img alt="Compatibility Status" src="https://img.shields.io/badge/Compatibility-In%20Progress-2563eb?style=for-the-badge"></a>
@@ -14,7 +14,7 @@
   <a href="LICENSE"><img alt="GPL-2.0 License" src="https://img.shields.io/badge/License-GPL--2.0-c2410c?style=for-the-badge"></a>
 </p>
 
-*Compatibility targets: Quake III Arena, Quake Live, Return to Castle Wolfenstein (SP/MP), and Wolfenstein: Enemy Territory · Base version: `0.1.0` · Current build: `0.1.0`*
+*Compatibility targets: Quake III Arena, Quake Live, Return to Castle Wolfenstein (SP/MP), Wolfenstein: Enemy Territory, and Star Trek Voyager: Elite Force (SP/Holomatch) · Base version: `0.1.0` · Current build: `0.1.0`*
 
 </div>
 
@@ -23,7 +23,9 @@
 **fnTech3** is a unified source port for id Tech 3 games. Its goal
 is one engine distribution and shared executable set for **Quake III Arena**,
 **Quake Live**, **Return to Castle Wolfenstein**, including RTCW's single
-player and multiplayer modes, and **Wolfenstein: Enemy Territory**.
+player and multiplayer modes, **Wolfenstein: Enemy Territory**, and
+**Star Trek Voyager: Elite Force**, including its single player and Holomatch
+modes.
 It builds on FnQuake3 modernization and the FnQL
 compatibility baseline.
 
@@ -41,8 +43,10 @@ game's own module, asset, network, demo, and gameplay contracts.
 | Return to Castle Wolfenstein — single player | `rtcw-sp` | Experimental; requires a build with `-Drtcw-development=true`; gated in default builds. |
 | Return to Castle Wolfenstein — multiplayer | `rtcw-mp` | Experimental; requires the same development option; gated in default builds. |
 | Wolfenstein: Enemy Territory | `wolfet` (alias `et`) | Experimental dedicated probes require `-Dwolfet-development=true`; client startup remains blocked. |
+| Star Trek Voyager: Elite Force — single player | `stvef-sp` | Experimental; requires a build with `-Dstvef-development=true`; gated in default builds. |
+| Star Trek Voyager: Elite Force — Holomatch | `stvef-mp` | Experimental; requires the same development option; gated in default builds. |
 
-These four games and five profiles define the current project scope.
+These five games and seven profiles define the current project scope.
 **Full compatibility is not yet established for any profile.** Track observed
 build, unit, fixture, live, and interoperability evidence in the
 [compatibility ledger](docs/fntech3/COMPATIBILITY.md). A successful build or an

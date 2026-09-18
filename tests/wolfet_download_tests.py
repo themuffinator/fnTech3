@@ -97,6 +97,14 @@ int main() {
  select(COM_GAME_RTCW_SP, "main");
  official({"main/pak0"}, {"main/mp_bin", "missionpack/pak0", "baseq3/pak0"});
 
+ // Elite Force's two modes share baseEF and its Raven paks, including the
+ // Expansion Pack's pak3; Quake's Team Arena paks are not theirs.
+ for (auto id : {COM_GAME_STVEF_SP, COM_GAME_STVEF_MP}) {
+  select(id, "baseEF");
+  official({"baseEF/pak0", "baseEF/pak2", "BASEEF\\PAK3"},
+           {"baseEF/pak9", "baseq3/pak0", "missionpack/pak0", "main/pak0"});
+ }
+
  // An empty or absent name is never official, and a profile with no base game
  // falls back to the compile-time directory rather than matching everything.
  for (auto id : {COM_GAME_QUAKE3, COM_GAME_WOLFET, COM_GAME_RTCW_MP}) {
@@ -146,7 +154,8 @@ class WolfETDownloadTests(unittest.TestCase):
         """The policy above is only meaningful if these are the real directories."""
         self.assertEqual(_catalog_base_games(), {
             'QUAKE3': 'baseq3', 'QUAKELIVE': 'baseq3', 'RTCW_SP': 'main',
-            'RTCW_MP': 'main', 'WOLFET': 'etmain'})
+            'RTCW_MP': 'main', 'WOLFET': 'etmain', 'STVEF_SP': 'baseEF',
+            'STVEF_MP': 'baseEF'})
 
     def test_download_paths_use_the_profile_policy(self):
         """Neither the server nor the client may fall back to Quake's BASEGAME."""

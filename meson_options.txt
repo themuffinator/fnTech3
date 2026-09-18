@@ -13,6 +13,11 @@ option('build-client',
   value: true,
   description: 'Build the shared fnTech3 client executable')
 
+option('stvef-development',
+  type: 'boolean',
+  value: false,
+  description: 'Enable incomplete Star Trek Voyager: Elite Force SP/Holomatch profiles for isolated developer probes; not a compatibility claim')
+
 option('wolfet-development',
   type: 'boolean',
   value: false,
@@ -65,6 +70,11 @@ option('ogg-vorbis',
   type: 'boolean',
   value: true,
   description: 'Enable Ogg Vorbis codec support using system vorbisfile or the subproject fallback')
+
+option('mp3',
+  type: 'boolean',
+  value: true,
+  description: 'Enable the MP3 sound codec (minimp3) used by Star Trek Voyager: Elite Force profiles')
 
 option('local-headers',
   type: 'boolean',

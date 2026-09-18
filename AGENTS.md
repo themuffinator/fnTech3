@@ -8,12 +8,15 @@ startup. The current game scope is Quake III Arena (`q3`), Quake Live (`ql`), an
 Return to Castle Wolfenstein single player (`rtcw-sp`) and multiplayer (`rtcw-mp`).
 RTCW is one title with two mode profiles using the same executable.
 Wolfenstein: Enemy Territory (`wolfet`) is a fourth title and fifth profile.
+Star Trek Voyager: Elite Force is a fifth title with two mode profiles, single
+player (`stvef-sp`) and Holomatch (`stvef-mp`), sharing one installation.
 
 Q3 and QL are enabled; RTCW remains experimental and gated in default builds,
 with `-Drtcw-development=true` enabling isolated development probes. ET is also
 gated; `-Dwolfet-development=true` currently permits dedicated probes only.
-ET client startup remains blocked in all builds. The unified goal is not
-complete until all five profiles pass their applicable module ABI,
+ET client startup remains blocked in all builds. Elite Force is gated too;
+`-Dstvef-development=true` enables its isolated probes. The unified goal is not
+complete until all seven profiles pass their applicable module ABI,
 network, demo, filesystem, asset, renderer, audio/input, gameplay, and
 live-interoperability gates, including RTCW SP campaign/savegame behavior, in
 [`docs/fntech3/COMPATIBILITY.md`](docs/fntech3/COMPATIBILITY.md).

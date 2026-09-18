@@ -4124,7 +4124,7 @@ static void Com_InitGameProfile( void ) {
 	com_gameProfile->flags &= ~CVAR_USER_CREATED;
 	com_gameProfile->flags |= CVAR_INIT | CVAR_PROTECTED | CVAR_ROM;
 	Cvar_SetDescription( com_gameProfile,
-		"Immutable compatibility profile selected at startup. Use auto, quake3, quakelive, rtcw-sp, rtcw-mp, or wolfet on the command line." );
+		"Immutable compatibility profile selected at startup. Use auto, quake3, quakelive, rtcw-sp, rtcw-mp, wolfet, stvef-sp, or stvef-mp on the command line." );
 
 	Com_Printf( "Game profile: %s (%s, detected from %s)\n",
 		detection.profile->displayName, detection.profile->key,
@@ -4132,6 +4132,8 @@ static void Com_InitGameProfile( void ) {
 	if ( detection.profile->runtimeBlocker ) {
 		Com_Printf( Com_GameIsWolfET()
 			? "EXPERIMENTAL WOLFET DEVELOPMENT BUILD: %s. Compatibility gates remain open.\n"
+			: Com_GameIsSTVEF()
+			? "EXPERIMENTAL ELITE FORCE DEVELOPMENT BUILD: %s. Compatibility gates remain open.\n"
 			: "EXPERIMENTAL RTCW DEVELOPMENT BUILD: %s. Compatibility gates remain open.\n",
 			detection.profile->runtimeBlocker );
 	}

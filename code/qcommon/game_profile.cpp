@@ -28,7 +28,8 @@ const comGameTitle_t titles[] = {
 	{ COM_GAME_TITLE_QUAKE3, "quake3", "Quake III Arena" },
 	{ COM_GAME_TITLE_QUAKELIVE, "quakelive", "Quake Live" },
 	{ COM_GAME_TITLE_RTCW, "rtcw", "Return to Castle Wolfenstein" },
-	{ COM_GAME_TITLE_WOLFET, "wolfet", "Wolfenstein: Enemy Territory" }
+	{ COM_GAME_TITLE_WOLFET, "wolfet", "Wolfenstein: Enemy Territory" },
+	{ COM_GAME_TITLE_STVEF, "stvef", "Star Trek: Voyager - Elite Force" }
 };
 
 /* One catalog owns title identity, aliases and startup contracts. RTCW facts
@@ -182,6 +183,71 @@ const comGameProfile_t profiles[] = { {
 	COM_PURE_PROOF_WOLFET_NATIVE,
 	{ "multi", "head", "default", nullptr, "color", nullptr, 0, 1 },
 	{ "cinematic etintro.roq", nullptr, 0 }
+}, {
+	/* Retail stvoy.exe 1.20 (2001-04-16): loopback protocol 40, efconfig.cfg,
+	 * efgamex86.dll/efuix86.dll beside the executable and Bink movies. See
+	 * docs/fntech3/2026-09-18-stvef-contracts.md. */
+	COM_GAME_STVEF_SP,
+	"stvef-sp",
+	"Star Trek: Voyager - Elite Force (Single Player)",
+	"baseEF",
+	"pak0.pk3",
+	40,
+	40,
+	COM_PROTOCOL_FAMILY_STVEF_SP,
+	COM_MODULE_API_STVEF_SP_NATIVE,
+	COM_MODULE_API_STVEF_SP_NATIVE,
+	0,
+	0,
+	nullptr,
+	nullptr,
+	COM_GAME_TITLE_STVEF,
+	COM_GAME_MARKER_STVEF_SP,
+	{ "efsp", "stvoy", "eliteforce-sp", nullptr },
+	"efconfig.cfg",
+	"efconfig_server.cfg",
+	nullptr,
+	nullptr,
+	"Elite Force SP module, savegame, cinematic and renderer adapters are not yet complete",
+	1, 1024, 522, 256, COM_ENTITY_HULL_TRACE_SHAPE, nullptr,
+	{ "0", "0", "1", "1", nullptr, nullptr, 0, "0", 0 },
+	{ "0", "1", "1024", 1024, 0, 1, 0, 0, 0 },
+	COM_PURE_PROOF_UNAVAILABLE,
+	{ "hazard/default", "headModel", "munro/default", nullptr, nullptr, nullptr, 0, 1,
+		"legsModel", "torsoModel", "hazard/default", "Munro" },
+	{ "cinematic eflogo", nullptr, 0 }
+}, {
+	/* Retail stvoyHM.exe 1.20 (2001-04-18): Huffman-free protocol 24 and the
+	 * Holomatch QVMs in baseEF/pak0-3.pk3; ioEF/Lilium Voyager speak 26. */
+	COM_GAME_STVEF_MP,
+	"stvef-mp",
+	"Star Trek: Voyager - Elite Force (Holomatch)",
+	"baseEF",
+	"pak0.pk3",
+	24,
+	24,
+	COM_PROTOCOL_FAMILY_STVEF_HM | COM_PROTOCOL_FAMILY_IOEF,
+	COM_MODULE_API_QVM | COM_MODULE_API_LEGACY_NATIVE,
+	COM_MODULE_API_QVM,
+	0,
+	0,
+	nullptr,
+	nullptr,
+	COM_GAME_TITLE_STVEF,
+	COM_GAME_MARKER_STVEF_MP,
+	{ "stvef-hm", "holomatch", "efhm", "stvoyhm" },
+	"hmconfig.cfg",
+	"hmconfig_server.cfg",
+	nullptr,
+	nullptr,
+	"Elite Force Holomatch module, wire and renderer adapters are not yet complete",
+	64, 1024, 544, 256, COM_ENTITY_HULL_TRACE_SHAPE, "fntech3-stvef-servercache.dat",
+	{ "0", "20", "8", "8", nullptr, nullptr, 1, "1", 1 },
+	{ "1", "64", "1024", 1024, COM_BOT_AI_QUAKE, 1, 0, 0, 1 },
+	COM_PURE_PROOF_QVM,
+	{ "munro/red", nullptr, nullptr, nullptr, "color", nullptr, 0, 1,
+		nullptr, nullptr, nullptr, "RedShirt" },
+	{ nullptr, nullptr, 0 }
 } };
 
 static_assert( sizeof( profiles ) / sizeof( profiles[0] ) == COM_GAME_COUNT - 1,
@@ -212,6 +278,11 @@ bool EqualsIgnoreCase( const char *left, const char *right )
 
 bool RuntimeBlocked( const comGameProfile_t *profile )
 {
+#if defined( FNTECH3_STVEF_DEVELOPMENT )
+	/* Developer builds exercise Elite Force's SP and Holomatch adapters with
+	 * the retail modules. Neither mode's release gate is lifted by this. */
+	if ( profile && profile->titleId == COM_GAME_TITLE_STVEF ) return false;
+#endif
 #if defined(FNTECH3_WOLFET_DEVELOPMENT)
 	/* Explicit developer builds exercise the ET client and server with real
 	 * modules, as the RTCW developer build does. This does not alter the
@@ -316,7 +387,13 @@ const PakIdentity pakIdentities[] = {
 		"maps/mp_beach.bsp", 7343512, 0x77533d56u },
 	// Steam build 7997832: metadata only, no retail payload is incorporated.
 	{ COM_GAME_MARKER_WOLFET, 1496, 0x061b5285u,
-		"maps/goldrush.bsp", 14757996, 0x7ebac2f4u }
+		"maps/goldrush.bsp", 14757996, 0x7ebac2f4u },
+	// Retail baseEF/pak0.pk3 (2000-08-21) carries both Elite Force modes, so
+	// SP and Holomatch share one identity and a probe reports both marks.
+	{ COM_GAME_MARKER_STVEF_SP, 2330, 0xd7ab74a1u,
+		"maps/borg1.bsp", 8142016, 0x4e7d14d6u },
+	{ COM_GAME_MARKER_STVEF_MP, 2330, 0xd7ab74a1u,
+		"maps/borg1.bsp", 8142016, 0x4e7d14d6u }
 };
 
 std::uint32_t LE32( const unsigned char *p )
@@ -484,6 +561,10 @@ comGameBspFormat_t Com_GameManagerBspFormat( const comGameProfile_t *profile,
 		return version == 47 ? COM_GAME_BSP_RTCW : COM_GAME_BSP_UNSUPPORTED;
 	if ( profile->titleId == COM_GAME_TITLE_WOLFET )
 		return version == 47 ? COM_GAME_BSP_WOLFET : COM_GAME_BSP_UNSUPPORTED;
+	/* Every retail Elite Force map is IBSP 46 with Quake III's lump layout;
+	 * Raven's changes are surface/content flag meanings owned by the modules. */
+	if ( profile->titleId == COM_GAME_TITLE_STVEF )
+		return version == 46 ? COM_GAME_BSP_QUAKE3 : COM_GAME_BSP_UNSUPPORTED;
 	if ( profile->titleId != COM_GAME_TITLE_QUAKE3 && profile->titleId != COM_GAME_TITLE_QUAKELIVE )
 		return COM_GAME_BSP_UNSUPPORTED;
 	/* Preserve the existing Q3/QL asset set, including IHV translation. RTCW's
@@ -598,6 +679,16 @@ int Com_GameManagerNativeModuleFilename( const comGameProfile_t *profile,
 	const bool windows = !std::strcmp( extension, ".dll" );
 	if ( !windows && std::strcmp( extension, ".so" )
 		&& std::strcmp( extension, ".dylib" ) ) return 0;
+	if ( profile->id == COM_GAME_STVEF_SP ) {
+		/* Retail stvoy.exe loads the game and cgame from one efgamex86.dll and
+		 * the menus from efuix86.dll. Raven shipped only Win32 x86 modules. */
+		if ( candidate || !windows || std::strcmp( architecture, "x86" ) ) return 0;
+		const char *leaf = std::strcmp( module, "ui" ) ? "efgamex86.dll" : "efuix86.dll";
+		const auto length = std::strlen( leaf );
+		if ( length >= capacity ) return 0;
+		std::memcpy( destination, leaf, length + 1 );
+		return 1;
+	}
 	const bool rtcw = profile->titleId == COM_GAME_TITLE_RTCW || profile->id == COM_GAME_WOLFET;
 	const char *arch = architecture;
 	if ( rtcw ) {
@@ -659,6 +750,14 @@ int Com_GameManagerNativeModuleCandidate( const comGameProfile_t *profile,
 	unsigned candidate, char *destination, unsigned capacity, int *installationRoot )
 {
 	if ( !installationRoot ) return 0;
+	if ( profile && profile == Com_GameProfileById( COM_GAME_STVEF_SP ) ) {
+		/* The retail SP engine never reads its modules from paks or mod
+		 * directories; they are installed beside stvoy.exe. */
+		if ( !Com_GameManagerNativeModuleFilename( profile, module, architecture,
+			extension, candidate, destination, capacity ) ) return 0;
+		*installationRoot = 1;
+		return 1;
+	}
 	const bool root = profile == Com_GameProfileById( COM_GAME_RTCW_SP ) && candidate >= 2;
 	if ( !Com_GameManagerNativeModuleFilename( profile, module, architecture,
 		extension, root ? candidate - 2 : candidate, destination, capacity ) ) return 0;
@@ -670,7 +769,8 @@ int Com_GameManagerResolveRootModule( const comGameProfile_t *profile,
 	const char *root, const char *filename, const char *architecture,
 	const char *extension, char *destination, unsigned capacity )
 {
-	if ( !profile || profile != Com_GameProfileById( COM_GAME_RTCW_SP )
+	if ( !profile || ( profile != Com_GameProfileById( COM_GAME_RTCW_SP )
+			&& profile != Com_GameProfileById( COM_GAME_STVEF_SP ) )
 		|| !root || !root[0] || !filename || !destination || !capacity ) return 0;
 	bool known = false;
 	for ( const char *module : { "cgame", "qagame", "ui" } ) {
@@ -914,6 +1014,21 @@ int Com_GameIsWolfET( void )
 	return activeProfile && activeProfile->id == COM_GAME_WOLFET;
 }
 
+int Com_GameIsSTVEF( void )
+{
+	return activeProfile && activeProfile->titleId == COM_GAME_TITLE_STVEF;
+}
+
+int Com_GameIsSTVEFSP( void )
+{
+	return activeProfile && activeProfile->id == COM_GAME_STVEF_SP;
+}
+
+int Com_GameIsSTVEFMP( void )
+{
+	return activeProfile && activeProfile->id == COM_GAME_STVEF_MP;
+}
+
 int Com_PureProofIsNativeModulePair( const comGameProfile_t *profile )
 {
 	return profile && ( profile->pureProof == COM_PURE_PROOF_RTCW_NATIVE
@@ -924,6 +1039,12 @@ int Com_PureProofIsNativeModulePair( const comGameProfile_t *profile )
 unsigned Com_ProtocolFamilyForVersion( int protocol )
 {
 	switch ( protocol ) {
+		case 24:
+			return COM_PROTOCOL_FAMILY_STVEF_HM;
+		case 26:
+			return COM_PROTOCOL_FAMILY_IOEF;
+		case 40:
+			return COM_PROTOCOL_FAMILY_STVEF_SP;
 		case 49:
 			return COM_PROTOCOL_FAMILY_RTCW_SP;
 		case 50:
@@ -958,7 +1079,8 @@ int Com_GameProfileAllowsModuleApi( const comGameProfile_t *profile,
 {
 	const unsigned knownApis = COM_MODULE_API_QVM
 		| COM_MODULE_API_LEGACY_NATIVE
-		| COM_MODULE_API_STRUCTURED_NATIVE;
+		| COM_MODULE_API_STRUCTURED_NATIVE
+		| COM_MODULE_API_STVEF_SP_NATIVE;
 	return profile && moduleApi != 0
 		&& ( moduleApi & ( moduleApi - 1 ) ) == 0
 		&& ( moduleApi & knownApis ) != 0
@@ -981,7 +1103,7 @@ const char *Com_GameDetectionStatusName( comGameDetectionStatus_t status )
 		case COM_GAME_DETECTION_UNRECOGNIZED_PAK:
 			return "unrecognized base pak identity; verify the installation or select its profile explicitly";
 		case COM_GAME_DETECTION_MODE_REQUIRED:
-			return "choose the RTCW mode explicitly with +set com_gameProfile rtcw-sp or rtcw-mp";
+			return "choose the game mode explicitly with +set com_gameProfile rtcw-sp, rtcw-mp, stvef-sp or stvef-mp";
 		case COM_GAME_DETECTION_INCOMPLETE_ENGINE:
 			return "the game is recognized, but its engine adapters are not yet complete; see docs/fntech3/COMPATIBILITY.md";
 		default:

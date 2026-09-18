@@ -534,7 +534,8 @@ const char *Sys_SteamPath( comGameId_t game )
 	const char *platformDataRoot;
 #endif
 
-	if ( !profile ) {
+	// Titles never sold on Steam (Elite Force) have no AppID or folder name.
+	if ( !profile || !profile->steamAppId || !profile->steamInstallName ) {
 		return "";
 	}
 	steamPath = steamPaths[profile->id];

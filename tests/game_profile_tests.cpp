@@ -73,6 +73,24 @@ static void TestNativeModuleNames()
 			const auto *profile = Com_GameManagerProfileAt( p );
 			for ( const char *module : { "cgame", "qagame", "ui" } ) {
 				char name[64];
+				if ( profile->id == COM_GAME_STVEF_SP ) {
+					// Raven shipped one Win32 x86 game/cgame library and one UI library.
+					const bool retail = !std::strcmp( host.arch, "x86" ) && !std::strcmp( host.ext, ".dll" );
+					std::memset( name, 0x5a, sizeof( name ) );
+					assert( !!Com_GameManagerNativeModuleFilename( profile, module, host.arch,
+						host.ext, 0, name, sizeof( name ) ) == retail );
+					if ( retail ) assert( !std::strcmp( name, std::strcmp( module, "ui" )
+						? "efgamex86.dll" : "efuix86.dll" ) );
+					else for ( char byte : name ) assert( byte == 0x5a );
+					assert( !Com_GameManagerNativeModuleFilename( profile, module, host.arch,
+						host.ext, 1, name, sizeof( name ) ) );
+					const unsigned leaf = std::strcmp( module, "ui" ) ? 13u : 11u;
+					assert( !Com_GameManagerNativeModuleFilename( profile, module, "x86",
+						".dll", 0, name, leaf ) );
+					assert( Com_GameManagerNativeModuleFilename( profile, module, "x86",
+						".dll", 0, name, leaf + 1 ) && std::strlen( name ) == leaf );
+					continue;
+				}
 				const bool rtcw = profile->titleId == COM_GAME_TITLE_RTCW || profile->id == COM_GAME_WOLFET;
 				const bool windows = !std::strcmp( host.ext, ".dll" );
 				const std::string arch = rtcw && windows && !std::strcmp( host.arch, "x86_64" )
@@ -139,7 +157,9 @@ static void TestNativeModuleNames()
 				"x86", ".dll", index, output, sizeof( output ), &root );
 			const bool present = index < ( profile == sp ? 4u : 1u );
 			assert( ( result != 0 ) == present );
-			if ( present ) {
+			if ( present && profile->id == COM_GAME_STVEF_SP ) {
+				assert( root == 1 && !std::strcmp( output, "efgamex86.dll" ) );
+			} else if ( present ) {
 				assert( root == ( index >= 2 ? 1 : 0 ) );
 				const char *expected = profile == sp
 					? ( index % 2 ? "cgamex86.dll" : "cgame_sp_x86.dll" )
@@ -209,8 +229,8 @@ static void TestNativeModuleCalls()
 
 static void TestManager()
 {
-	assert( Com_GameManagerTitleCount() == 4 );
-	assert( Com_GameManagerProfileCount() == 5 );
+	assert( Com_GameManagerTitleCount() == 5 );
+	assert( Com_GameManagerProfileCount() == 7 );
 	assert( !Com_GameManagerTitleAt( UINT_MAX ) );
 	assert( !Com_GameManagerProfileAt( UINT_MAX ) );
 	assert( !Com_GameManagerProfileAt( Com_GameManagerProfileCount() ) );
@@ -231,7 +251,8 @@ static void TestManager()
 		const auto *title = Com_GameManagerTitleAt( t );
 		assert( title == Com_GameManagerTitleById( title->id ) );
 		const auto count = Com_GameManagerTitleProfileCount( title->id );
-		assert( count == ( title->id == COM_GAME_TITLE_RTCW ? 2u : 1u ) );
+		assert( count == ( title->id == COM_GAME_TITLE_RTCW
+			|| title->id == COM_GAME_TITLE_STVEF ? 2u : 1u ) );
 		for ( unsigned i = 0; i < count; ++i ) {
 			const auto *profile = Com_GameManagerTitleProfileAt( title->id, i );
 			assert( profile && profile->titleId == title->id );
@@ -252,7 +273,8 @@ static void TestManager()
 		}
 	}
 	assert( seen == ( COM_GAME_MARKER_QUAKE3 | COM_GAME_MARKER_QUAKELIVE
-		| COM_GAME_MARKER_RTCW_SP | COM_GAME_MARKER_RTCW_MP | COM_GAME_MARKER_WOLFET ) );
+		| COM_GAME_MARKER_RTCW_SP | COM_GAME_MARKER_RTCW_MP | COM_GAME_MARKER_WOLFET
+		| COM_GAME_MARKER_STVEF_SP | COM_GAME_MARKER_STVEF_MP ) );
 	const auto *sp = Com_GameProfileById( COM_GAME_RTCW_SP );
 	const auto *mp = Com_GameProfileById( COM_GAME_RTCW_MP );
 	assert( sp == Com_GameManagerFindProfile( "RTCW-SP" ) );
@@ -271,7 +293,8 @@ static void TestManager()
 	assert( !Com_GameManagerInstallationMatches( nullptr, UINT_MAX ) );
 	assert( !Com_GameManagerInstallationMatches( sp, UINT_MAX ) );
 	for ( const char *filename : { "autoexec.cfg", "q3config.cfg", "q3config_server.cfg",
-		"qzconfig.cfg", "repconfig.cfg", "wolfconfig.cfg", "WOLFCONFIG_MP.CFG", "wolfconfig_server.cfg" } ) {
+		"qzconfig.cfg", "repconfig.cfg", "wolfconfig.cfg", "WOLFCONFIG_MP.CFG", "wolfconfig_server.cfg",
+		"efconfig.cfg", "efconfig_server.cfg", "HMCONFIG.CFG", "hmconfig_server.cfg" } ) {
 		assert( Com_GameManagerIsConfigFile( filename ) );
 	}
 	assert( !Com_GameManagerIsConfigFile( "default.cfg" ) );
@@ -332,6 +355,41 @@ static void TestManager()
 		assert( result.evidence == COM_GAME_EVIDENCE_EXPLICIT && !result.profile );
 	}
 	assert( Detect( "rtcw", 0, 0, 0 ).status == COM_GAME_DETECTION_MODE_REQUIRED );
+	assert( Detect( "stvef", 0, 0, 0 ).status == COM_GAME_DETECTION_MODE_REQUIRED );
+	assert( Detect( "auto", COM_GAME_MARKER_STVEF_SP | COM_GAME_MARKER_STVEF_MP, 0, 0 ).status
+		== COM_GAME_DETECTION_MODE_REQUIRED );
+	assert( Detect( "auto", COM_GAME_MARKER_STVEF_SP | COM_GAME_MARKER_QUAKE3, 0, 0 ).status
+		== COM_GAME_DETECTION_AMBIGUOUS );
+	{
+		const auto *efsp = Com_GameProfileById( COM_GAME_STVEF_SP );
+		const auto *efmp = Com_GameProfileById( COM_GAME_STVEF_MP );
+		assert( efsp == Com_GameManagerFindProfile( "STVEF-SP" ) && efsp == Com_GameManagerFindProfile( "stvoy" ) );
+		assert( efmp == Com_GameManagerFindProfile( "holomatch" ) && efmp == Com_GameManagerFindProfile( "stvef-hm" ) );
+		assert( !std::strcmp( efsp->baseGame, "baseEF" ) && !std::strcmp( efmp->baseGame, "baseEF" ) );
+		assert( !efsp->steamAppId && !efsp->steamInstallName && !efmp->steamAppId && !efmp->steamInstallName );
+		assert( !std::strcmp( Com_GameManagerConfigFile( efsp, 0 ), "efconfig.cfg" ) );
+		assert( !std::strcmp( Com_GameManagerConfigFile( efmp, 0 ), "hmconfig.cfg" ) );
+		assert( !std::strcmp( Com_GameManagerConfigFile( efmp, 1 ), "hmconfig_server.cfg" ) );
+		assert( Com_GameManagerInstallationMatches( efsp, COM_GAME_MARKER_STVEF_SP | COM_GAME_MARKER_STVEF_MP ) );
+		assert( !Com_GameManagerInstallationMatches( efmp, COM_GAME_MARKER_STVEF_MP | COM_GAME_MARKER_RTCW_MP ) );
+		for ( int protocol = -1; protocol < 100; ++protocol ) {
+			assert( !!Com_GameProfileAllowsProtocol( efsp, protocol ) == ( protocol == 40 ) );
+			assert( !!Com_GameProfileAllowsProtocol( efmp, protocol ) == ( protocol == 24 || protocol == 26 ) );
+		}
+		assert( Com_GameProfileAllowsModuleApi( efsp, COM_MODULE_API_STVEF_SP_NATIVE ) );
+		assert( !Com_GameProfileAllowsModuleApi( efsp, COM_MODULE_API_QVM ) );
+		assert( !Com_GameProfileAllowsModuleApi( efsp, COM_MODULE_API_LEGACY_NATIVE ) );
+		assert( Com_GameProfileAllowsModuleApi( efmp, COM_MODULE_API_QVM ) );
+		assert( !Com_GameProfileAllowsModuleApi( efmp, COM_MODULE_API_STVEF_SP_NATIVE ) );
+		assert( efsp->pureProof == COM_PURE_PROOF_UNAVAILABLE && efmp->pureProof == COM_PURE_PROOF_QVM );
+		assert( efsp->maxClients == 1 && efmp->maxClients == 64 );
+		for ( const auto *other : { Com_GameProfileById( COM_GAME_QUAKE3 ), Com_GameProfileById( COM_GAME_QUAKELIVE ),
+			Com_GameProfileById( COM_GAME_RTCW_SP ), Com_GameProfileById( COM_GAME_RTCW_MP ),
+			Com_GameProfileById( COM_GAME_WOLFET ) } ) {
+			for ( int protocol : { 24, 26, 40 } ) assert( !Com_GameProfileAllowsProtocol( other, protocol ) );
+			assert( !Com_GameProfileAllowsModuleApi( other, COM_MODULE_API_STVEF_SP_NATIVE ) );
+		}
+	}
 	for ( unsigned markers = 0; markers < 32; ++markers ) {
 		const auto result = Detect( "auto", markers, 0, 0 );
 		if ( markers & COM_GAME_MARKER_UNRECOGNIZED_PAK ) {
@@ -355,7 +413,9 @@ static void TestBspFormats()
 			const auto *profile = Com_GameManagerProfileAt( p );
 			const bool rtcw = profile->titleId == COM_GAME_TITLE_RTCW || profile->id == COM_GAME_WOLFET;
 			assert( profile->collisionModelHandleCount == ( rtcw ? 512 : 256 ) );
-			const auto expected = version == 47
+			const bool stvef = profile->titleId == COM_GAME_TITLE_STVEF;
+			const auto expected = stvef ? ( version == 46 ? COM_GAME_BSP_QUAKE3 : COM_GAME_BSP_UNSUPPORTED )
+				: version == 47
 				? ( profile->id == COM_GAME_WOLFET ? COM_GAME_BSP_WOLFET : rtcw ? COM_GAME_BSP_RTCW : COM_GAME_BSP_QUAKELIVE )
 				: !rtcw && version == 46 ? COM_GAME_BSP_QUAKE3
 				: !rtcw && version == 43 ? COM_GAME_BSP_QUAKE3_IHV

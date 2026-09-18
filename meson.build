@@ -63,8 +63,12 @@ cpu_family = host_machine.cpu_family()
 q3_only = get_option('q3-only')
 rtcw_development = get_option('rtcw-development')
 wolfet_development = get_option('wolfet-development')
+stvef_development = get_option('stvef-development')
 if wolfet_development and q3_only
   error('WolfET developer probes require the shared executable.')
+endif
+if stvef_development and q3_only
+  error('Elite Force developer probes require the shared x86 executable, not the Q3-only target.')
 endif
 if rtcw_development and q3_only
   error('RTCW developer probes require the shared x86 executable, not the Q3-only target.')
@@ -668,6 +672,18 @@ else
   ogg_vorbis_source = 'disabled'
 endif
 
+if build_client and get_option('mp3')
+  # Elite Force's sounds and music are MPEG-1 Layer III; minimp3 is CC0.
+  minimp3_dep = dependency('minimp3', required: true, fallback: 'minimp3')
+  client_src += 'code/client/audio/codecs/snd_codec_mp3.cpp'
+  client_deps += minimp3_dep
+  common_c_args += ['-DUSE_CODEC_MP3']
+  common_cpp_args += ['-DUSE_CODEC_MP3']
+  mp3_source = minimp3_dep.type_name() == 'internal' ? 'subproject' : 'system'
+else
+  mp3_source = 'disabled'
+endif
+
 if win32
   win_resource = []
   if cc.get_argument_syntax() == 'gcc'
@@ -907,6 +923,10 @@ endif
 if rtcw_development
   warning('RTCW developer build: incomplete SP/MP adapters are enabled for isolated probes. Release compatibility gates remain open.')
   engine_cpp_args += ['-DFNTECH3_RTCW_DEVELOPMENT=1']
+endif
+if stvef_development
+  warning('Elite Force developer build: incomplete SP/Holomatch adapters are enabled for isolated probes. Release compatibility gates remain open.')
+  engine_cpp_args += ['-DFNTECH3_STVEF_DEVELOPMENT=1']
 endif
 
 client_c_args = common_c_args
@@ -1183,6 +1203,12 @@ wolfet_contract_tests = executable('fntech3_wolfet_contract_tests',
   cpp_args: common_cpp_args,
 )
 test('fntech3_wolfet_contracts', wolfet_contract_tests)
+
+stvef_mp3_frames_tests = executable('fntech3_stvef_mp3_frames_tests',
+  'tests/stvef_mp3_frames_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_stvef_mp3_frames', stvef_mp3_frames_tests)
 
 wolfet_client_boundary_tests = executable('fntech3_wolfet_client_boundary_tests',
   'tests/wolfet_client_boundary_tests.cpp',
@@ -1726,4 +1752,5 @@ summary({
   'cURL': curl_summary,
   'JPEG': jpeg_source,
   'Ogg Vorbis': ogg_vorbis_source,
+  'MP3': mp3_source,
 }, section: 'fnTech3 build')

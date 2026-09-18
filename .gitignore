@@ -13,6 +13,8 @@ output/
 __pycache__/
 *.pyc
 .tmp/
+# Local reverse-engineering notes of retail binaries; never committed.
+.ref/
 make-macosx-values.local
 subprojects/*
 !subprojects/*.wrap

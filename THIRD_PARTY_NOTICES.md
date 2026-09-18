@@ -82,3 +82,22 @@ only independently generated synthetic packet vectors are checked in. Retail
 modules, maps, configuration assets and packets containing private data are not
 redistributed. The [ET evidence record](docs/fntech3/2026-09-17-wolfet-contracts.md)
 separates source/unit evidence from installed observations and open gates.
+
+## Elite Force references and minimp3
+
+fnTech3's Elite Force support is interoperability work against the user's
+legitimate installation. Raven's [Elite Force SP mod SDK](https://github.com/UberGames/SP-Mod-Source-Code/tree/04e0e618d1ee57a2919f1a852a688c03b1aa155d)
+is distributed under the non-free "STEF Game Source License"; it is consulted
+only for names, ordinals and record layouts, and none of its text is
+incorporated. [Lilium Voyager](https://github.com/zturtleman/lilium-voyager/tree/0f7dcd89d142c8b635ce2756a80cb62411731848)
+and the engine side of [VoyagerSP-Android](https://github.com/imjustadudegamer/VoyagerSP-Android/tree/0d8942e86a8469859da086f590875bcb66b4f4df)
+are GPL-2.0-or-later and GPLv2 references; their text is not incorporated
+either. Observations of the retail `stvoy.exe` are cited by address in the
+[Elite Force records](docs/fntech3/2026-09-18-stvef-contracts.md).
+
+The MP3 codec builds [minimp3](https://github.com/lieff/minimp3/tree/ea99364f61c14656440e8d77e9c233ccf3124633)
+(copyright Lion "lieff") from `subprojects/minimp3.wrap`. minimp3 is dedicated
+to the public domain under Creative Commons CC0 1.0 Universal, which is
+compatible with this repository's GPL license; its `LICENSE` file stays with
+the fetched subproject. Retail MP3 files, Bink movies and the proprietary Bink
+runtime are never redistributed.

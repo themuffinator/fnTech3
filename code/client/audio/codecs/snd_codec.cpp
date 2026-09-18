@@ -135,6 +135,15 @@ extern "C" void S_CodecInit( void ) {
 	S_CodecRegister( &ogg_codec );
 #endif
 
+#ifdef USE_CODEC_MP3
+	// Elite Force stores most sounds and all music as MP3. Retail Quake and
+	// Wolfenstein engines never decode MP3, so their extension fallback must
+	// not start finding .mp3 files; the codec joins only Elite Force.
+	if ( Com_GameIsSTVEF() ) {
+		S_CodecRegister( &mp3_codec );
+	}
+#endif
+
 	// Register wav last so it is tried first when a file extension was not found.
 	S_CodecRegister( &wav_codec );
 }

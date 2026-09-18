@@ -19,6 +19,7 @@ param(
 	[switch]$SetupOnly,
 	[switch]$RTCWDevelopment,
 	[switch]$WolfETDevelopment,
+	[switch]$STVEFDevelopment,
 	[switch]$RunTests,
 	[switch]$Install,
 	[string]$DestDir = $(if ($env:FNQL_MESON_DESTDIR) { $env:FNQL_MESON_DESTDIR } elseif ($env:FNQ3_MESON_DESTDIR) { $env:FNQ3_MESON_DESTDIR } else { '' }),
@@ -338,6 +339,7 @@ $setupArgs = @(
 	"-Drenderer-default=$RendererDefault",
 	"-Drtcw-development=$($RTCWDevelopment.IsPresent.ToString().ToLowerInvariant())",
 	"-Dwolfet-development=$($WolfETDevelopment.IsPresent.ToString().ToLowerInvariant())",
+	"-Dstvef-development=$($STVEFDevelopment.IsPresent.ToString().ToLowerInvariant())",
 	'-Dzlib:default_library=static',
 	'-Dogg:default_library=static'
 )

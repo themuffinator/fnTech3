@@ -53,7 +53,7 @@ template<class T> bool cleared(const T &v){
 }
 static void checkPools(){
  for(const auto &p:profiles){profile=&p;const int count=p.maxClients;
-  assert(count==(p.id==COM_GAME_RTCW_SP?128:64));
+  assert(count==(p.id==COM_GAME_RTCW_SP?128:p.id==COM_GAME_STVEF_SP?1:64));
   for(int invalid:{-1,0,count+1,INT_MAX}){
    assert(!BotGoalStateFromHandle(invalid)&&!BotMoveStateFromHandle(invalid));
    BotFreeGoalState(invalid);BotFreeMoveState(invalid);BotResetGoalState(invalid);BotResetMoveState(invalid);

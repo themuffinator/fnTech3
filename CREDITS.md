@@ -601,6 +601,24 @@ chapters; the GLSL implementation and synthetic tests are independently written.
   [snapshot callback/visibility follow-up](docs/fntech3/2026-09-17-wolfet-snapshots.md)
   and [viewpoint/capacity record](docs/fntech3/2026-09-17-wolfet-viewpoints.md).
 
+- The Star Trek Voyager: Elite Force profiles use interoperability facts from
+  the user's legitimate installation, observations of its retail `stvoy.exe`,
+  and three references kept distinct from implementation:
+  [Lilium Voyager](https://github.com/zturtleman/lilium-voyager/tree/0f7dcd89d142c8b635ce2756a80cb62411731848)
+  (GPL-2.0-or-later) for the Holomatch engine contract; Raven's
+  [Elite Force SP mod SDK](https://github.com/UberGames/SP-Mod-Source-Code/tree/04e0e618d1ee57a2919f1a852a688c03b1aa155d),
+  whose non-free "STEF Game Source License" limits its use to names, ordinals
+  and record layouts; and the GPLv2 engine side of
+  [VoyagerSP-Android](https://github.com/imjustadudegamer/VoyagerSP-Android/tree/0d8942e86a8469859da086f590875bcb66b4f4df)
+  as a second single-player host. No implementation text from any of them is
+  incorporated. See the [Elite Force foundation record](docs/fntech3/2026-09-18-stvef-contracts.md).
+
+- Elite Force's MP3 sounds and music are decoded by
+  [minimp3](https://github.com/lieff/minimp3/tree/ea99364f61c14656440e8d77e9c233ccf3124633)
+  by Lion (lieff), released under CC0 1.0 and consumed through
+  `subprojects/minimp3.wrap`. The frame walker that reproduces retail
+  unpacking sizes is independently authored.
+
 ## Retail-content boundary
 
 The RTCW audio-zone authoring mode uses material-flag facts observed in the
@@ -613,22 +631,22 @@ from a legitimate local installation, with source/output identities and limits
 in the [generation record](docs/fntech3/2026-09-17-rtcw-audio-zones.md).
 
 fnTech3 does not redistribute Quake III Arena, Quake Live, Return to Castle
-Wolfenstein or Enemy Territory data, retail game modules, Steam SDK/runtime
-binaries, Awesomium,
+Wolfenstein, Enemy Territory or Elite Force data, retail game modules, Bink or
+other proprietary runtimes, Steam SDK/runtime binaries, Awesomium,
 credentials, captured private traffic, or other proprietary content. Runtime
 validation uses the user's
 legitimate local installations and records only non-proprietary evidence.
 
 ## Project thanks
 
-Thanks to the Quake, Quake III, Quake Live, and Return to Castle Wolfenstein
-communities: players, server administrators, mod authors, mappers, tool authors,
+Thanks to the Quake, Quake III, Quake Live, Return to Castle Wolfenstein and
+Star Trek Voyager: Elite Force communities: players, server administrators, mod authors, mappers, tool authors,
 testers, reverse engineers, and maintainers who keep these games understandable
 and playable.
 
 ## Trademark note
 
 fnTech3 is independent and is not affiliated with, endorsed by, or sponsored by
-id Software, Bethesda, ZeniMax Media, or Valve. Quake, Quake III Arena,
-Quake Live, and Return to Castle Wolfenstein are trademarks of their respective
-owners.
+id Software, Bethesda, ZeniMax Media, Valve, Raven Software, Activision or
+Paramount. Quake, Quake III Arena, Quake Live, Return to Castle Wolfenstein,
+Star Trek and Elite Force are trademarks of their respective owners.
