@@ -1,0 +1,93 @@
+/* Copyright (C) 2026 fnTech3 contributors. GPL-2.0-or-later.
+ * MDM v3 and MDX v2 layout facts recorded from the original Enemy Territory
+ * qcommon/qfiles.h at 40342a9e3690cb5b627a433d4d5cbf30e3c57698.
+ * Reference-probe assertions, not production disk PODs.
+ * Intentionally no include guard: consumed as a table.
+ */
+
+/* MDM, the mesh half: surfaces weighted onto bones that live in an MDX. */
+FNTECH3_WOLFET_MODEL_RECORD(mdmHeader_t, 100, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmHeader_t, ident, 0, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmHeader_t, version, 4, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmHeader_t, name, 8, 64)
+FNTECH3_WOLFET_MODEL_FIELD(mdmHeader_t, lodScale, 72, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmHeader_t, lodBias, 76, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmHeader_t, numSurfaces, 80, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmHeader_t, ofsSurfaces, 84, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmHeader_t, numTags, 88, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmHeader_t, ofsTags, 92, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmHeader_t, ofsEnd, 96, 4)
+
+FNTECH3_WOLFET_MODEL_RECORD(mdmSurface_t, 176, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmSurface_t, ident, 0, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmSurface_t, name, 4, 64)
+FNTECH3_WOLFET_MODEL_FIELD(mdmSurface_t, shader, 68, 64)
+FNTECH3_WOLFET_MODEL_FIELD(mdmSurface_t, shaderIndex, 132, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmSurface_t, minLod, 136, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmSurface_t, ofsHeader, 140, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmSurface_t, numVerts, 144, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmSurface_t, ofsVerts, 148, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmSurface_t, numTriangles, 152, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmSurface_t, ofsTriangles, 156, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmSurface_t, ofsCollapseMap, 160, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmSurface_t, numBoneReferences, 164, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmSurface_t, ofsBoneReferences, 168, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmSurface_t, ofsEnd, 172, 4)
+
+/* ET's tag carries its own axis, where RTCW's MDS tag carries a torso weight. */
+FNTECH3_WOLFET_MODEL_RECORD(mdmTag_t, 128, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmTag_t, name, 0, 64)
+FNTECH3_WOLFET_MODEL_FIELD(mdmTag_t, axis, 64, 36)
+FNTECH3_WOLFET_MODEL_FIELD(mdmTag_t, boneIndex, 100, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmTag_t, offset, 104, 12)
+FNTECH3_WOLFET_MODEL_FIELD(mdmTag_t, numBoneReferences, 116, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmTag_t, ofsBoneReferences, 120, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmTag_t, ofsEnd, 124, 4)
+
+FNTECH3_WOLFET_MODEL_RECORD(mdmVertex_t, 44, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmVertex_t, normal, 0, 12)
+FNTECH3_WOLFET_MODEL_FIELD(mdmVertex_t, texCoords, 12, 8)
+FNTECH3_WOLFET_MODEL_FIELD(mdmVertex_t, numWeights, 20, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmVertex_t, weights, 24, 20)
+
+FNTECH3_WOLFET_MODEL_RECORD(mdmWeight_t, 20, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmWeight_t, boneIndex, 0, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmWeight_t, boneWeight, 4, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmWeight_t, offset, 8, 12)
+
+FNTECH3_WOLFET_MODEL_RECORD(mdmTriangle_t, 12, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmTriangle_t, indexes, 0, 12)
+
+FNTECH3_WOLFET_MODEL_RECORD(mdmLOD_t, 12, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmLOD_t, numSurfaces, 0, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmLOD_t, ofsSurfaces, 4, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdmLOD_t, ofsEnd, 8, 4)
+
+/* MDX, the skeleton half. Version 2 moved the parent offset here from the mesh. */
+FNTECH3_WOLFET_MODEL_RECORD(mdxHeader_t, 96, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdxHeader_t, ident, 0, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdxHeader_t, version, 4, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdxHeader_t, name, 8, 64)
+FNTECH3_WOLFET_MODEL_FIELD(mdxHeader_t, numFrames, 72, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdxHeader_t, numBones, 76, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdxHeader_t, ofsFrames, 80, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdxHeader_t, ofsBones, 84, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdxHeader_t, torsoParent, 88, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdxHeader_t, ofsEnd, 92, 4)
+
+FNTECH3_WOLFET_MODEL_RECORD(mdxFrame_t, 52, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdxFrame_t, bounds, 0, 24)
+FNTECH3_WOLFET_MODEL_FIELD(mdxFrame_t, localOrigin, 24, 12)
+FNTECH3_WOLFET_MODEL_FIELD(mdxFrame_t, radius, 36, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdxFrame_t, parentOffset, 40, 12)
+
+FNTECH3_WOLFET_MODEL_RECORD(mdxBoneFrameCompressed_t, 12, 2)
+FNTECH3_WOLFET_MODEL_FIELD(mdxBoneFrameCompressed_t, angles, 0, 8)
+FNTECH3_WOLFET_MODEL_FIELD(mdxBoneFrameCompressed_t, ofsAngles, 8, 4)
+
+FNTECH3_WOLFET_MODEL_RECORD(mdxBoneInfo_t, 80, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdxBoneInfo_t, name, 0, 64)
+FNTECH3_WOLFET_MODEL_FIELD(mdxBoneInfo_t, parent, 64, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdxBoneInfo_t, torsoWeight, 68, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdxBoneInfo_t, parentDist, 72, 4)
+FNTECH3_WOLFET_MODEL_FIELD(mdxBoneInfo_t, flags, 76, 4)

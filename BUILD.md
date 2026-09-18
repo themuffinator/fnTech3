@@ -176,6 +176,15 @@ the client is active and requires it to re-enter the world. `--map` selects
 another stock map. None of these inject mouse or keyboard input, and none claim
 movement or rendering parity.
 Camera replies do not establish rendered-camera or gameplay correctness.
+To decode every skeletal model in an installation without running the engine:
+
+```powershell
+python scripts/probe_wolfet_models.py --installation "E:\SteamLibrary\steamapps\common\Wolfenstein Enemy Territory" --output .tmp/wolfet/models
+```
+
+It extracts each MDM and MDX into the output directory, parses it and reports a
+verdict per file. This is asset-decode evidence and makes no rendering claim.
+
 See the [ET gate matrix](docs/fntech3/COMPATIBILITY.md#wolfet-gate-matrix).
 
 ### RTCW development profiles

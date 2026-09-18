@@ -80,7 +80,10 @@ no live behaviour is claimed. The
 [prediction follow-up](2026-09-17-wolfet-prediction.md) then writes ET's own
 movement prediction and the world-trace result it returns, completing the
 declared ET game import surface at 204 of 212: the eight that remain are the
-ordinals retail ET's own engine refuses.
+ordinals retail ET's own engine refuses. The
+[model record](2026-09-18-wolfet-models.md) adds bounded MDM and MDX readers
+and decodes all 21 skeletal files in a legitimate installation; decoding is not
+rendering and the client stays gated.
 
 The [RoQ bounds and recovery checkpoint](2026-09-17-roq-bounds.md) adds checked
 movie framing, dimensions, codebooks, VQ/motion reads and partial shutdown. It
@@ -1087,7 +1090,7 @@ checks, generated packet fixtures and installed dedicated observations.
 | Module ABI / server memory | Source, Unit, Live subset | 1,326 layout/constant/ordinal checks, native qagame startup, and every declared game import handled: 204 of 212, the other eight being ordinals retail ET refuses itself. See the [import](2026-09-17-wolfet-game-imports.md), [navigation](2026-09-17-wolfet-navigation.md), [visibility](2026-09-17-wolfet-visibility.md) and [prediction](2026-09-17-wolfet-prediction.md) records. The full UI and cgame surfaces remain open, and the navigation imports have no retail content to run against. |
 | Protocol-84 message bodies | Source, Unit, inbound Interop subset | 1,169 original-engine comparisons and inbound retail sessions; full transport and malformed peer behavior remain open. |
 | Filesystem / pure / downloads | Unit, Live, inbound Interop subset | Separate etmain/home and native names. Pure admission now works: a retail client passes the proof, reaches CS_ACTIVE and joins both teams on all six stock maps; see the [pure record](2026-09-17-wolfet-pure.md). The official-pak refusal is now profile-owned and covers etmain and mp_bin; see the [download correction](2026-09-17-wolfet-downloads.md), and the www redirect has source and unit evidence; see the [redirect record](2026-09-17-wolfet-web-downloads.md). Broader maps and mods, gamestate-overflow fallback, any transferred download and the reverse direction remain open. |
-| Assets / collision | Source, Unit, Live subset | Six stock BSPs and installed TAGs load; MDM/MDX/render assets remain open. |
+| Assets / collision | Source, Unit, Live subset | Six stock BSPs and installed TAGs load, and all 21 installed MDM/MDX skeletal files decode through bounded readers; see the [model record](2026-09-18-wolfet-models.md). Rendering those models, and the remaining render assets, stay open. |
 | Dedicated gameplay / snapshots | Source, Unit, Live, inbound Interop subset | All six maps initialize under explicit and auto selection; a retail client reaches CS_ACTIVE, joins Axis/Allies, respawns and receives replies to two objective-camera requests. [Callbacks/proxies](2026-09-17-wolfet-snapshots.md) and [viewpoints/server capacity](2026-09-17-wolfet-viewpoints.md) pass executable regressions. A retail client also spawns, moves about 250 units and follows a goldrush-to-battery map change under pure admission; see the [gameplay record](2026-09-17-wolfet-gameplay.md). Live landmine/proxy/brush/lean visibility, rendered cameras, dense retail exchanges, movement parity, combat and objectives remain open. |
 | Client / renderer / audio / input | Blocked | Client startup stays gated; no client or visual claim. |
 | Demos / bidirectional interoperability | Inbound Interop subset; demos open | Non-pure retail spectator/team admission connects to fnTech3; reverse direction and ET demo playback remain open. |
