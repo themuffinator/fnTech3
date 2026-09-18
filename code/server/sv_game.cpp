@@ -967,6 +967,12 @@ static intptr_t SV_GameSystemCalls( intptr_t *args ) {
 		case Call::G_REAL_TIME:
 			VM_CHECKBOUNDS( gvm, args[1], sizeof( fntech3_rtcw_qtime_t ) );
 			return Com_RealTimeRTCW( VMA(1) );
+		case Call::G_ENDGAME:
+			// SP only (MP has no such ordinal). The final campaign script and
+			// the end-of-level reload call it; original SP never returns from
+			// it, ending the frame to open the endgame menu (sv_game.c).
+			Com_Error( ERR_ENDGAME, "endgame" );
+			return 0;
 		case Call::G_CVAR_REGISTER:
 			VM_CHECKBOUNDS( gvm, args[1], sizeof( fntech3_rtcw_vmCvar_t ) );
 			Cvar_RegisterRTCW( VMA(1), VMA(2), VMA(3), args[4], gvm->privateFlag );

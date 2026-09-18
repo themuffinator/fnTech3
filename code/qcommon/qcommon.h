@@ -1369,6 +1369,9 @@ void	CL_ForwardCommandToServer( const char *string );
 // so when they are typed in at the console, they will need to be forwarded.
 
 void CL_CDDialog( void );
+// RTCW SP ends its campaign through the game module; the UI's endgame menu
+// (credits) opens on the next client frame.
+void CL_EndgameMenu( void );
 // bring up the "need a cd to play" dialog
 
 void CL_ShutdownAll( void );

@@ -322,7 +322,7 @@ void NORETURN FORMAT_PRINTF(2, 3) QDECL Com_Error( errorParm_t code, const char 
 	Sys_CancelRelaunch();
 
 #if defined(_WIN32) && defined(_DEBUG)
-	if ( code != ERR_DISCONNECT && code != ERR_NEED_CD ) {
+	if ( code != ERR_DISCONNECT && code != ERR_NEED_CD && code != ERR_ENDGAME ) {
 		if ( !com_noErrorInterrupt->integer ) {
 			ShowWindow( g_wv.hWnd, SW_MINIMIZE );
 			DebugBreak();
@@ -343,7 +343,8 @@ void NORETURN FORMAT_PRINTF(2, 3) QDECL Com_Error( errorParm_t code, const char 
 
 	// when we are running automated scripts, make sure we
 	// know if anything failed
-	if ( com_buildScript && com_buildScript->integer ) {
+	// Ending RTCW SP's campaign is not a failure, even for a build script.
+	if ( com_buildScript && com_buildScript->integer && code != ERR_ENDGAME ) {
 		code = ERR_FATAL;
 	}
 
@@ -370,7 +371,7 @@ void NORETURN FORMAT_PRINTF(2, 3) QDECL Com_Error( errorParm_t code, const char 
 		Cvar_SetIntegerValue( "com_errorCode", code );
 	}
 
-	if ( code != ERR_DISCONNECT && code != ERR_NEED_CD ) {
+	if ( code != ERR_DISCONNECT && code != ERR_NEED_CD && code != ERR_ENDGAME ) {
 		// we can't recover from ERR_FATAL so there is no recipients for com_errorMessage
 		// also if ERR_FATAL was called from S_Malloc - CopyString for a long (2+ chars) text
 		// will trigger recursive error without proper client/server shutdown
@@ -426,6 +427,26 @@ void NORETURN FORMAT_PRINTF(2, 3) QDECL Com_Error( errorParm_t code, const char 
 			Com_Printf( "Server didn't have CD\n" );
 		}
 #endif
+		FS_PureServerSetLoadedPaks( "", "" );
+		com_errorEntered = qfalse;
+
+		Q_longjmp( abortframe, 1 );
+	} else if ( code == ERR_ENDGAME ) {
+		// RTCW SP's game module ends the campaign from inside its own frame, as
+		// original SP does: no message, the server stops, and the UI opens its
+		// endgame menu (credits) on the next client frame.
+		VM_Forced_Unload_Start();
+		SV_Shutdown( "endgame" );
+		Com_EndRedirect();
+#ifndef DEDICATED
+		if ( com_cl_running && com_cl_running->integer ) {
+			CL_Disconnect( qtrue );
+			CL_FlushMemory();
+			CL_EndgameMenu();
+		}
+#endif
+		VM_Forced_Unload_Done();
+
 		FS_PureServerSetLoadedPaks( "", "" );
 		com_errorEntered = qfalse;
 

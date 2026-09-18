@@ -1,0 +1,145 @@
+{
+  "date": "2026-09-18T07:30:57.653256+00:00",
+  "commit": "dc8416e93d50782f2744c765c5d1f6cc44a6247f",
+  "worktreeDirty": true,
+  "scope": "RTCW import audit; SP G_ENDGAME campaign end.",
+  "audit": {
+    "table": "code/compat/rtcw_module_calls.def",
+    "importOrdinals": 435,
+    "referencedByDispatchers": 419,
+    "unreferenced": [
+      "UI_CM_LOADMODEL",
+      "UI_LAN_GETLOCALSERVERCOUNT",
+      "UI_LAN_GETLOCALSERVERADDRESSSTRING",
+      "UI_LAN_GETGLOBALSERVERCOUNT",
+      "UI_LAN_GETGLOBALSERVERADDRESSSTRING",
+      "UI_OPENURL",
+      "G_ENDGAME",
+      "BOTLIB_AAS_ENTITY_VISIBLE",
+      "BOTLIB_AAS_IN_FIELD_OF_VISION",
+      "BOTLIB_AAS_VISIBLE_CLIENTS",
+      "BOTLIB_AI_SET_AVOID_GOAL_TIME",
+      "BOTLIB_AI_ADD_AVOID_SPOT",
+      "BOTLIB_AAS_ALTERNATIVE_ROUTE_GOAL",
+      "BOTLIB_AAS_PREDICT_ROUTE",
+      "BOTLIB_AAS_POINT_REACHABILITY_AREA_INDEX",
+      "G_FS_COPY_FILE"
+    ],
+    "reachedByRetailModules": [
+      "G_ENDGAME"
+    ],
+    "method": "each IMPORT name searched as Call::NAME or MACRO(NAME) across client, server, qcommon, compat and botlib sources",
+    "afterCorrection": {
+      "dispatched": 420,
+      "refusedByName": 15
+    }
+  },
+  "sourceFiles": [
+    {
+      "path": "code/qcommon/q_shared.h",
+      "sha256": "385c44c29ad7f394511a52057f261e07e419258d3c65aa84d4992fc6930c130c"
+    },
+    {
+      "path": "code/qcommon/common.c",
+      "sha256": "ef86db00a43069d8d0681b396c733523e3ca36204beb37f2bf7db2eee3017501"
+    },
+    {
+      "path": "code/qcommon/qcommon.h",
+      "sha256": "07667a599d28edac4fd8eca523dcf6bfa29e7975b1abca1d77102e8cd72c30da"
+    },
+    {
+      "path": "code/client/cl_main.cpp",
+      "sha256": "048ec4aec0bb01087bf788fece1fdc20f27f033c285b06d89f674ec86f3b69d0"
+    },
+    {
+      "path": "code/client/client.h",
+      "sha256": "3ac6174e941045fe7f28769f514e8c06d9d96fff0754d0ea8442ab84808882d4"
+    },
+    {
+      "path": "code/server/sv_game.cpp",
+      "sha256": "d53633ff08504b6d33de55eb2e0247c04ba907216c9471e278d761dee6c536f0"
+    },
+    {
+      "path": "tests/rtcw_endgame_tests.py",
+      "sha256": "aef12f73ac9f4ca88cdaa19f8e8705db7d58af1247cf8e6731028e76a4bc02fc"
+    }
+  ],
+  "sourceReferences": [
+    {
+      "url": "https://github.com/id-Software/RTCW-SP/blob/master/src/server/sv_game.c",
+      "observation": "G_ENDGAME raises Com_Error(ERR_ENDGAME, \"endgame\")",
+      "license": "GPL-3.0-or-later with id Software additional terms; read only"
+    },
+    {
+      "url": "https://github.com/id-Software/RTCW-SP/blob/master/src/qcommon/common.c",
+      "observation": "ERR_ENDGAME: SV_Shutdown(\"endgame\"), CL_Disconnect, CL_FlushMemory, CL_EndgameMenu, longjmp; no message",
+      "license": "GPL-3.0-or-later with id Software additional terms; read only"
+    },
+    {
+      "url": "https://github.com/id-Software/RTCW-SP/blob/master/src/game/ai_cast_script_actions.c",
+      "observation": "changelevel gamefinished sets RELOAD_ENDGAME",
+      "license": "GPL-3.0-or-later with id Software additional terms; read only"
+    }
+  ],
+  "installedScripts": {
+    "map": "cutscene19",
+    "trigger": "maps/cutscene19.script: trigger player endmap; maps/cutscene19.ai: trigger endmap { changelevel gamefinished 250 }"
+  },
+  "privateClients": {
+    "worktreeCommit": "dc8416e93d50782f2744c765c5d1f6cc44a6247f",
+    "hook": "tests/rtcw_campaign_probe.hpp",
+    "hookSha256": "519852711cc3cfe8be8ef2e81d1629caed4ef9eb726033e896cb91677fdc1acc",
+    "before": "645eb094e58ef20b379f968b56860e3d94b2e0e7931d295b4b8a674c572b797d",
+    "after": "c3e668a12cb0d872d188587a19e8fea09c8ef52efbc68014236fad56c0e38cc3",
+    "input": "one briefing Ready click (AGENTS.md standing exception); no other input"
+  },
+  "runs": {
+    "before": {
+      "exitCode": null,
+      "forcedStop": true,
+      "engineErrors": [
+        "ERROR: Unsupported rtcw-sp game import 2 (G_ENDGAME)",
+        "----- Server Shutdown (Server crashed: Unsupported rtcw-sp game import 2 (G_ENDGAME)) -----"
+      ],
+      "passed": false,
+      "windowedObserved": true,
+      "observations": [
+        "CAMPAIGN start map=cutscene19 state=8 valid=1 time=650 camera=0 health=100 origin=512.000,1024.000,-551.875 weapon=0 loading=0",
+        "CAMPAIGN intro Ready click at 620,470"
+      ],
+      "screenshots": [],
+      "error": "Engine reported an initialization error; see console.log",
+      "command": "+set com_gameProfile rtcw-sp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\endgame-worktree\\.tmp\\endgame-run-baseline\\cutscene19\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_windowedMode -1 +set r_windowedWidth 800 +set r_windowedHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 1 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_ip6 ::1 +set net_port6 0 +spdevmap cutscene19",
+      "serverShutdown": [
+        "----- Server Shutdown (Server crashed: Unsupported rtcw-sp game import 2 (G_ENDGAME)) -----"
+      ]
+    },
+    "after": {
+      "exitCode": 0,
+      "forcedStop": false,
+      "engineErrors": [],
+      "passed": true,
+      "windowedObserved": true,
+      "observations": [
+        "CAMPAIGN start map=cutscene19 state=8 valid=1 time=650 camera=0 health=100 origin=512.000,1024.000,-551.875 weapon=0 loading=0",
+        "CAMPAIGN intro Ready click at 620,470",
+        "CAMPAIGN before-save map=cutscene19 state=1 valid=0 time=0 camera=0 health=0 origin=0.000,0.000,0.000 weapon=0 loading=0"
+      ],
+      "screenshots": [
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\endgame-worktree\\.tmp\\endgame-run-fixed\\cutscene19\\campaign-before.png",
+          "sha256": "2601329bd649302f25c06309983a53fde5e845004ae6a266f40760d452e0cc4a"
+        }
+      ],
+      "error": null,
+      "command": "+set com_gameProfile rtcw-sp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\endgame-worktree\\.tmp\\endgame-run-fixed\\cutscene19\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_windowedMode -1 +set r_windowedWidth 800 +set r_windowedHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 1 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_ip6 ::1 +set net_port6 0 +spdevmap cutscene19",
+      "serverShutdown": [
+        "----- Server Shutdown (endgame) -----"
+      ]
+    }
+  },
+  "focusedTests": {
+    "file": "tests/rtcw_endgame_tests.py",
+    "passed": 4
+  }
+}

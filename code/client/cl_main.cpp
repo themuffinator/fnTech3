@@ -770,6 +770,17 @@ void CL_CDDialog( void ) {
 	cls.cddialog = qtrue;	// start it next frame
 }
 
+/*
+===============
+CL_EndgameMenu
+
+Called by Com_Error when RTCW SP's game module ends the campaign
+===============
+*/
+void CL_EndgameMenu( void ) {
+	cls.endgamemenu = ToQboolean( Com_GameIsRTCWSP() != 0 );	// start it next frame
+}
+
 
 /*
 =======================================================================
@@ -4768,6 +4779,10 @@ void CL_Frame( int msec, int realMsec ) {
 		// bring up the cd error dialog if needed
 		cls.cddialog = qfalse;
 		VM_Call( uivm, 1, UI_SET_ACTIVE_MENU, UIMENU_NEED_CD );
+	} else if ( cls.endgamemenu && uivm ) {
+		// RTCW SP's campaign ended: its UI shows the endgame menu (credits).
+		cls.endgamemenu = qfalse;
+		VM_Call( uivm, 1, UI_SET_ACTIVE_MENU, UIMENU_ENDGAME );
 	} else	if ( cls.state == CA_DISCONNECTED && !( Key_GetCatcher( ) & KEYCATCH_UI )
 		&& !( Key_GetCatcher() & KEYCATCH_BROWSER ) && !CL_UIMenusAreVisible()
 		&& !Cvar_VariableIntegerValue( "ui_browserAwesomiumPending" )

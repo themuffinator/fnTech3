@@ -338,7 +338,8 @@ typedef enum {
 	ERR_DROP,					// print to console and disconnect from game
 	ERR_SERVERDISCONNECT,		// don't kill server
 	ERR_DISCONNECT,				// client disconnected from the server
-	ERR_NEED_CD					// pop up the need-cd dialog
+	ERR_NEED_CD,				// pop up the need-cd dialog
+	ERR_ENDGAME					// RTCW SP campaign end: stop the server, open the endgame menu
 } errorParm_t;
 
 

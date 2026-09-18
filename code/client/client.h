@@ -337,6 +337,7 @@ struct clientStatic_t {
 	qboolean	gameSwitch;
 
 	qboolean	cddialog;			// bring up the cd needed dialog next frame
+	qboolean	endgamemenu;		// RTCW SP: bring up the endgame menu next frame
 
 	char		servername[MAX_OSPATH];		// name of server from original connect (used by reconnect)
 
