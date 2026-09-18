@@ -738,12 +738,16 @@ cvar_t *Cvar_Set2( const char *var_name, const char *value, qboolean force ) {
 	 * do that before checking the write-protection flags so a normal retail
 	 * config load does not produce a misleading diagnostic.  Resetting a
 	 * cvar that already matches its reset value is likewise a no-op.  A
-	 * different value still takes the protected-cvar path below.
+	 * different value still takes the protected-cvar path below, and so does
+	 * the current value while a latched value is pending: the latch handling
+	 * below cancels the pending value.
 	 */
-	if ( value && strcmp( value, var->string ) == 0 )
-		return var;
-	if ( !value && strcmp( var->resetString, var->string ) == 0 )
-		return var;
+	if ( !( ( var->flags & CVAR_LATCH ) && var->latchedString ) ) {
+		if ( value && strcmp( value, var->string ) == 0 )
+			return var;
+		if ( !value && strcmp( var->resetString, var->string ) == 0 )
+			return var;
+	}
 
 	if ( var->flags & (CVAR_ROM | CVAR_INIT | CVAR_CHEAT | CVAR_DEVELOPER) && !force )
 	{
@@ -783,6 +787,11 @@ cvar_t *Cvar_Set2( const char *var_name, const char *value, qboolean force ) {
 		{
 			Z_Free( var->latchedString );
 			var->latchedString = NULL;
+			// written configs and the WebUI still hold the pending value
+			cvar_modifiedFlags |= var->flags;
+#ifndef DEDICATED
+			Cvar_PublishChange( var );
+#endif
 			return var;
 		}
 
@@ -2140,9 +2149,10 @@ void Cvar_CheckRange( cvar_t *var, const char *mins, const char *maxs, cvarValid
 	if ( maxs )
 		var->maxs = CopyString( maxs );
 
-	// Force an initial range check. Cvar_Set2 returns before validating a
-	// value equal to the current one, so a config value set before the range
-	// existed would pass unchecked; validate the current value here instead.
+	// Force an initial range check. Setting the current value would not do:
+	// with nothing pending, Cvar_Set2 returns before validating it, so a
+	// config value set before the range existed would pass unchecked; with a
+	// latched value pending, it would cancel that. Validate it here instead.
 	value = Cvar_Validate( var, var->string, qtrue );
 	if ( strcmp( value, var->string ) != 0 )
 		Cvar_Set( var->name, value );

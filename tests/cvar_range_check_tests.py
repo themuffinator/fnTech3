@@ -1,10 +1,14 @@
-"""Run the real cvar system through Cvar_CheckRange's initial range check.
+"""Run the real cvar system through range checks and writes of the current value.
 
 Configuration files run before most engine cvars are registered, so a value
 they set reaches Cvar_CheckRange as the cvar's current value. Cvar_Set2 skips
 a value equal to the current one before validating it (a config replaying a
 startup-only cvar must stay quiet), so the range check has to validate the
 current value itself.
+
+The skip does not apply while a latched cvar has a pending latched value:
+writing its current value then cancels the pending one, forced or not, as in
+Quake3e.
 """
 from pathlib import Path
 import os
@@ -17,7 +21,7 @@ from compiler_support import compiler_target_args
 
 ROOT = Path(__file__).resolve().parents[1]
 
-HARNESS = r'''
+PREAMBLE = r'''
 #define _CRT_SECURE_NO_WARNINGS 1
 #include "code/qcommon/q_shared.c"
 #include "code/qcommon/q_math.c"
@@ -30,6 +34,7 @@ HARNESS = r'''
 cvar_t *com_cl_running, *com_sv_running;
 qboolean com_errorEntered;
 static char printed[65536];
+static char published[256];
 static int argc;
 static const char *argv[4];
 static int failures;
@@ -64,7 +69,9 @@ int Com_GameIsWolfET( void ) { return 0; }
 const comGameProfile_t *Com_GameProfile( void ) { return NULL; }
 uint32_t FnTech3_Q3CvarFlagsToInternal( uint32_t flags ) { return flags; }
 uint32_t FnTech3_RTCWCvarFlagsToInternal( comGameId_t profile, uint32_t flags ) { (void)profile; return flags; }
-void CL_WebView_PublishCvarChange( const char *name, const char *value, qboolean replicate ) { (void)name; (void)value; (void)replicate; }
+void CL_WebView_PublishCvarChange( const char *name, const char *value, qboolean replicate ) {
+	(void)replicate; snprintf( published, sizeof( published ), "%s=%s", name, value );
+}
 
 /* One configuration line, the way Cbuf hands it to the seta command. */
 static void Seta( const char *name, const char *value ) {
@@ -74,7 +81,9 @@ static void Seta( const char *name, const char *value ) {
 
 #define CHECK( condition ) do { if ( !( condition ) ) { \
 	fprintf( stderr, "line %d: %s\nconsole: %s\n", __LINE__, #condition, printed ); failures++; } } while ( 0 )
+'''
 
+RANGE_CHECKS = PREAMBLE + r'''
 int main( void ) {
 	cvar_t *cv;
 	int count;
@@ -151,19 +160,114 @@ int main( void ) {
 }
 '''
 
+LATCH_CHECKS = PREAMBLE + r'''
+/* One console line that names a cvar, as Cmd_ExecuteString hands it on. */
+static void Console( const char *name, const char *value ) {
+	argc = 2; argv[0] = name; argv[1] = value;
+	Cvar_Command();
+}
+
+int main( void ) {
+	cvar_t *cv;
+	int count;
+
+	Cvar_Init();
+
+	/* r_ignorehwgamma 1, r_ignorehwgamma 0, vid_restart: setting the current
+	   value back cancels the pending one quietly, so the renderer registers 0
+	   again. Configs and the WebUI hold the pending 1 until told otherwise. */
+	cv = Cvar_Get( "r_ignorehwgamma", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
+	Cvar_CheckRange( cv, "-1", "1", CV_INTEGER );
+	printed[0] = '\0';
+	Console( "r_ignorehwgamma", "1" );
+	CHECK( strstr( printed, "will be changed upon restarting" ) );
+	CHECK( cv->latchedString && !strcmp( cv->latchedString, "1" ) && !strcmp( published, "r_ignorehwgamma=1" ) );
+	printed[0] = '\0';
+	cvar_modifiedFlags = 0;
+	Console( "r_ignorehwgamma", "0" );
+	CHECK( !cv->latchedString && !strcmp( cv->string, "0" ) && !printed[0] );
+	CHECK( ( cvar_modifiedFlags & CVAR_ARCHIVE ) && !strcmp( published, "r_ignorehwgamma=0" ) );
+	cv = Cvar_Get( "r_ignorehwgamma", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
+	CHECK( cv->integer == 0 && !cv->latchedString );
+
+	/* A forced write of the current value cancels it too, as does a reset,
+	   forced or not, of a cvar that holds its reset value. */
+	Console( "r_ignorehwgamma", "1" );
+	Cvar_Set( "r_ignorehwgamma", "0" );
+	CHECK( !cv->latchedString && !strcmp( cv->string, "0" ) );
+	Console( "r_ignorehwgamma", "1" );
+	Cvar_Reset( "r_ignorehwgamma" );
+	CHECK( !cv->latchedString && !strcmp( cv->string, "0" ) );
+	Console( "r_ignorehwgamma", "1" );
+	Cvar_ForceReset( "r_ignorehwgamma" );
+	CHECK( !cv->latchedString && !strcmp( cv->string, "0" ) );
+
+	/* With nothing pending, the current value is still a quiet no-op. So is
+	   the pending value itself, and another value replaces it. */
+	count = cv->modificationCount;
+	printed[0] = '\0';
+	cvar_modifiedFlags = 0;
+	Seta( "r_ignorehwgamma", "0" );
+	CHECK( !printed[0] && !cvar_modifiedFlags && cv->modificationCount == count );
+	Console( "r_ignorehwgamma", "1" );
+	count = cv->modificationCount;
+	printed[0] = '\0';
+	Seta( "r_ignorehwgamma", "1" );
+	CHECK( !printed[0] && cv->modificationCount == count && !strcmp( cv->latchedString, "1" ) );
+	Seta( "r_ignorehwgamma", "-1" );
+	CHECK( !strcmp( cv->latchedString, "-1" ) && !strcmp( cv->string, "0" ) );
+
+	/* Replays of write-protected, cheat-protected and read-only values stay
+	   quiet, and so does resetting a read-only cvar that holds its reset
+	   value. Other values are refused. */
+	Cvar_Set( "sv_cheats", "0" );
+	cv = Cvar_Get( "vm_rtChecks", "15", CVAR_INIT | CVAR_PROTECTED );
+	Cvar_Get( "timescale", "1", CVAR_CHEAT | CVAR_SYSTEMINFO );
+	Cvar_Get( "sv_running", "0", CVAR_ROM );
+	printed[0] = '\0';
+	Seta( "vm_rtChecks", "15" );
+	Seta( "timescale", "1" );
+	Seta( "sv_running", "0" );
+	Cvar_Reset( "sv_running" );
+	CHECK( !printed[0] );
+	Seta( "vm_rtChecks", "0" );
+	CHECK( strstr( printed, "write protected" ) && !strcmp( cv->string, "15" ) );
+	Seta( "timescale", "2" );
+	CHECK( strstr( printed, "cheat protected" ) && Cvar_VariableIntegerValue( "timescale" ) == 1 );
+	Seta( "sv_running", "1" );
+	CHECK( strstr( printed, "read only" ) && Cvar_VariableIntegerValue( "sv_running" ) == 0 );
+
+	/* A protected cvar keeps its pending value: the write that would cancel it
+	   is refused like any other. */
+	Cvar_Set( "developer", "1" );
+	cv = Cvar_Get( "r_ext_multitexture", "1", CVAR_ARCHIVE_ND | CVAR_LATCH | CVAR_DEVELOPER );
+	Console( "r_ext_multitexture", "0" );
+	Cvar_Set( "developer", "0" );
+	printed[0] = '\0';
+	Console( "r_ext_multitexture", "1" );
+	CHECK( strstr( printed, "developer mode" ) && cv->latchedString && !strcmp( cv->latchedString, "0" ) );
+	Cvar_Set( "r_ext_multitexture", "1" );
+	CHECK( !cv->latchedString && !strcmp( cv->string, "1" ) );
+
+	if ( !failures )
+		printf( "cvar latch cancel ok\n" );
+	return failures ? 1 : 0;
+}
+'''
+
 
 class CvarRangeCheckTests(unittest.TestCase):
-    def test_initial_range_check_validates_the_current_value(self):
+    def run_harness(self, source, name, expected):
         compiler = shutil.which("clang") or shutil.which("gcc")
         if not compiler:
             self.skipTest("C compiler unavailable")
         scratch = ROOT / ".tmp"
         scratch.mkdir(exist_ok=True)
-        with tempfile.TemporaryDirectory(prefix="cvar-range-", dir=scratch) as directory:
+        with tempfile.TemporaryDirectory(prefix=f"{name}-", dir=scratch) as directory:
             path = Path(directory)
-            fixture = path / "cvar_range.c"
-            fixture.write_text(HARNESS, encoding="utf-8")
-            executable = path / ("cvar_range.exe" if os.name == "nt" else "cvar_range")
+            fixture = path / f"{name}.c"
+            fixture.write_text(source, encoding="utf-8")
+            executable = path / (f"{name}.exe" if os.name == "nt" else name)
             target = compiler_target_args(compiler)
             if os.name == "nt" and not target:
                 target = ["-DFNTECH3_Q3_ONLY"]
@@ -175,7 +279,13 @@ class CvarRangeCheckTests(unittest.TestCase):
             self.assertEqual(build.returncode, 0, build.stdout + build.stderr)
             result = subprocess.run([str(executable)], cwd=ROOT, capture_output=True, text=True, timeout=15)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-            self.assertIn("cvar range check ok", result.stdout)
+            self.assertIn(expected, result.stdout)
+
+    def test_initial_range_check_validates_the_current_value(self):
+        self.run_harness(RANGE_CHECKS, "cvar_range", "cvar range check ok")
+
+    def test_writing_the_current_value_cancels_a_pending_latched_value(self):
+        self.run_harness(LATCH_CHECKS, "cvar_latch", "cvar latch cancel ok")
 
 
 if __name__ == "__main__":
