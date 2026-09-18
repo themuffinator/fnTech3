@@ -1514,6 +1514,8 @@ static void RB_SurfaceSkip( void *surf ) {
 #include "../renderercommon/tr_mdc_surface.h"
 #include "../renderercommon/tr_mds_surface.h"
 #include "../renderercommon/tr_wolfet_surface.h"
+#include "../renderercommon/tr_wolfet_foliage_surface.h"
+#include "../renderercommon/tr_wolfet_decal_surface.h"
 
 void (*rb_surfaceTable[SF_NUM_SURFACE_TYPES])( void *) = {
 	(void(*)(void*))RB_SurfaceBad,			// SF_BAD, 
@@ -1529,5 +1531,7 @@ void (*rb_surfaceTable[SF_NUM_SURFACE_TYPES])( void *) = {
 	(void(*)(void*))RB_SurfaceEntity,		// SF_ENTITY
 	(void(*)(void*))RB_SurfaceMDC,			// SF_MDC
 	(void(*)(void*))RB_SurfaceMDS,			// SF_MDS
-	(void(*)(void*))RB_SurfaceWolfET		// SF_WOLFET
+	(void(*)(void*))RB_SurfaceWolfET,		// SF_WOLFET
+	(void(*)(void*))RB_SurfaceWolfETFoliage,	// SF_WOLFET_FOLIAGE
+	(void(*)(void*))RB_SurfaceWolfETDecal	// SF_WOLFET_DECAL
 };

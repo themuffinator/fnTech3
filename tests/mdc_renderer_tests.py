@@ -213,9 +213,8 @@ def renderer_fixture(renderer):
     table_text = (ROOT / 'code' / renderer / 'tr_surface.c').read_text()
     table_start = table_text.index('void (*rb_surfaceTable[SF_NUM_SURFACE_TYPES])')
     table = table_text[table_start:table_text.index('\n};', table_start) + 3]
-    for name in re.findall(r'\)\)(RB_\w+)', table):
-        if name != 'RB_SurfaceMDC':
-            table = table.replace(name, 'Noop')
+    # Whole entries only: one surface function's name can begin another's.
+    table = re.sub(r'\)\)(RB_\w+)', lambda m: m[0] if m[1] == 'RB_SurfaceMDC' else '))Noop', table)
     source = PRELUDE + surface_enum + '\n' + model_enum + '\n'
     source += '#include "code/renderercommon/tr_mdc_model_types.h"\n#include "code/renderercommon/tr_mds_model_types.h"\n#include "code/renderercommon/tr_wolfet_model_types.h"\nstruct bmodel_t;\n' + model_type
     source += '\nstruct trRefEntity_t { refEntity_t e; };\n' + CALLBACKS

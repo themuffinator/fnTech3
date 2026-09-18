@@ -671,6 +671,8 @@ static void SetViewportAndScissor( void ) {
 }
 
 
+#include "../renderercommon/tr_wolfet_view_clear.h"
+
 /*
 =================
 RB_BeginDrawingView
@@ -707,14 +709,18 @@ static void RB_BeginDrawingView( void ) {
 
 #ifdef USE_VULKAN
 	vk_clear_depth( qtrue );
-	if ( backEnd.refdef.rtcwFog.fogEnabled &&
-		( backEnd.refdef.rtcwFog.fog.clearscreen || r_fastsky->integer ) ) {
+	{
 		vec4_t color;
-		int channel;
-		for ( channel = 0; channel < 3; ++channel )
-			color[channel] = Com_Clamp( 0, 1, backEnd.refdef.rtcwFog.fog.color[channel] );
-		color[3] = 1;
-		vk_clear_color( color );
+		if ( RB_WolfETGlobalFogClearColor( color ) ) {
+			vk_clear_color( color );
+		} else if ( backEnd.refdef.rtcwFog.fogEnabled &&
+			( backEnd.refdef.rtcwFog.fog.clearscreen || r_fastsky->integer ) ) {
+			int channel;
+			for ( channel = 0; channel < 3; ++channel )
+				color[channel] = Com_Clamp( 0, 1, backEnd.refdef.rtcwFog.fog.color[channel] );
+			color[3] = 1;
+			vk_clear_color( color );
+		}
 	}
 #else
 	// ensures that depth writes are enabled for the depth clear

@@ -999,6 +999,10 @@ stock_rtcw_assets_result = run_command(python, files('scripts/stock_rtcw_maps.py
 foreach asset : stock_rtcw_assets_result.stdout().strip().split('\n')
   root_package_assets += files('pkg/games/' + asset)
 endforeach
+stock_wolfet_assets_result = run_command(python, files('scripts/stock_wolfet_maps.py'), check: true)
+foreach asset : stock_wolfet_assets_result.stdout().strip().split('\n')
+  root_package_assets += files('pkg/games/' + asset)
+endforeach
 
 custom_target('fntech3-pkg.fnz',
   input: root_package_assets + files(
@@ -1008,6 +1012,7 @@ custom_target('fntech3-pkg.fnz',
     'scripts/stock_q3_assets.py',
     'scripts/stock_ql_maps.py',
     'scripts/stock_rtcw_maps.py',
+    'scripts/stock_wolfet_maps.py',
   ),
   output: 'fntech3-pkg.fnz',
   command: [

@@ -63,6 +63,10 @@ qboolean SV_FactoryHasActive(){return activeFactory?qtrue:qfalse;}
 qboolean SV_HandleQuitOnExitLevel(const char*){return qfalse;}
 void SV_FactoryDeactivate(){++deactivates;}
 qboolean SV_FactoryPrepareMap(const char*,const char*,qboolean,qboolean){++prepares;return qtrue;}
+// ET's single-player switch and default type come from its gameinfo.dat.
+static bool etSinglePlayer;
+qboolean SV_WolfETSinglePlayerEnabled(){return etSinglePlayer?qtrue:qfalse;}
+int SV_WolfETDefaultSinglePlayerGameType(){return 0;}
 '''
 
 CHECKS = r'''
@@ -75,6 +79,27 @@ int main(){
    SV_TestServerDefaults();assert(sv_gametype->integer==4&&sv_maxclients->integer==20);
    Cvar_Set("sv_pure","0");assert(SV_RegisterPureMode()->integer==0);
    Cvar_Set("sv_pure","1");assert(SV_RegisterPureMode()->integer==1);
+   // Single-player commands are refused, before any map lookup, unless the
+   // gameinfo enables them; then they select its single-player type.
+   for(const char *cmd:{"spmap","spdevmap"}){
+    command=cmd;map="synthetic";values.clear();SV_TestServerDefaults();
+    spawns=pure=probes=0;available=true;argc=2;etSinglePlayer=false;SV_Map_f();
+    assert(!spawns&&!probes&&pure==0&&sv_gametype->integer==4);
+    etSinglePlayer=true;SV_Map_f();assert(spawns==1&&probes==1&&sv_gametype->integer==0);
+   }
+   etSinglePlayer=false;
+   // An ordinary map command keeps every ET game type -- its game reloads a
+   // map in Objective, type 2 -- and starts from a fresh match state.
+   for(const char *cmd:{"map","devmap"})for(int type:{0,2,4}){
+    command=cmd;map="synthetic";values.clear();SV_TestServerDefaults();
+    Cvar_Set("g_gametype",std::to_string(type).c_str());
+    Cvar_Set("gamestate","3");Cvar_Set("g_currentRound","1");Cvar_Set("g_nextTimeLimit","7");
+    spawns=pure=probes=0;available=true;argc=2;SV_Map_f();
+    assert(spawns==1&&probes==1&&pure==0&&sv_gametype->integer==type);
+    assert(values.at("gamestate").value=="-1"&&values.at("g_currentRound").value=="0");
+    assert(values.at("g_nextTimeLimit").value=="0");
+    assert(values["sv_cheats"].cvar.integer==(cmd[0]=='d'));
+   }
    continue;
   }
   const bool sp=p.id==COM_GAME_RTCW_SP,mp=p.id==COM_GAME_RTCW_MP,ql=p.id==COM_GAME_QUAKELIVE;

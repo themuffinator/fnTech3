@@ -38,6 +38,8 @@ static	shaderStage_t	stages[MAX_SHADER_STAGES];
 static	shader_t		shader;
 static	texModInfo_t	texMods[MAX_SHADER_STAGES][TR_MAX_TEXMODS+1]; // reserve one additional texmod for lightmap atlas correction
 
+#include "../renderercommon/tr_wolfet_shader.h"
+
 static image_t *R_FindShaderImage( const char *name, imgFlags_t flags ) {
 	return R_FindImageFile( name, R_RTCWShaderImageFlags( name, flags, shader.rtcwCompression, shader.rtcwCharacterMip ? qtrue : qfalse ) );
 }
@@ -679,6 +681,36 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 			if ( map == RTCW_MAP_STATIC ) token = "map";
 			else if ( map == RTCW_MAP_ANIMATED ) token = "animMap";
 		}
+		// Enemy Territory names a lightmap stage with a keyword of its own. Its
+		// special images read as they do after "map"; any other image is a
+		// lightmap of its own, clamped and never compressed.
+		if ( ri.gameId == COM_GAME_WOLFET && !Q_stricmp( token, "lightmap" ) )
+		{
+			const char *argument = *text;
+			token = COM_ParseExt( text, qfalse );
+			if ( !token[0] )
+			{
+				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'lightmap' keyword in shader '%s'\n", shader.name );
+				return qfalse;
+			}
+			if ( token[0] == '$' || token[0] == '*' )
+			{
+				*text = argument;
+				token = "map";
+			}
+			else
+			{
+				stage->bundle[0].image[0] = R_FindShaderImage( token,
+					IMGFLAG_NOLIGHTSCALE | IMGFLAG_NO_COMPRESSION | IMGFLAG_NOSCALE | IMGFLAG_CLAMPTOEDGE );
+				if ( !stage->bundle[0].image[0] )
+				{
+					ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
+					return qfalse;
+				}
+				stage->bundle[0].tcGen = TCGEN_LIGHTMAP;
+				continue;
+			}
+		}
 		//
 		// map <name>
 		//
@@ -797,7 +829,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 		{
 			int	totalImages = 0;
 			int maxAnimations = s_extendedShader ? MAX_IMAGE_ANIMATIONS :
-				( ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP ) ?
+				R_WolfensteinShaderDialect() ?
 				MAX_IMAGE_ANIMATIONS_RTCW : MAX_IMAGE_ANIMATIONS_VQ3;
 
 			token = COM_ParseExt( text, qfalse );
@@ -914,7 +946,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 		{
 			stage->isDetail = qtrue;
 		}
-		else if ( ( ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP ) &&
+		else if ( R_WolfensteinShaderDialect() &&
 			!Q_stricmp( token, "fog" ) ) {
 			token = COM_ParseExt( text, qfalse );
 			if ( !token[0] ) return qfalse;
@@ -1072,7 +1104,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 			{
 				stage->alphaGen = AGEN_VERTEX;
 			}
-			else if ( ( ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP ) &&
+			else if ( R_WolfensteinShaderDialect() &&
 				!Q_stricmp( token, "normalzfade" ) ) {
 				if ( !R_RTCWParseNormalZFade( text, &stage->constantColor.rgba[3], stage->rtcwNormalZBounds ) ) {
 					ri.Printf( PRINT_WARNING, "WARNING: invalid RTCW normalzfade in shader '%s'\n", shader.name );
@@ -2221,7 +2253,7 @@ static qboolean ParseShader( const char **text )
 		}
 		// no mip maps
 		else if ( !Q_stricmp( token, "nomipmaps" ) ||
-			( ri.gameId == COM_GAME_RTCW_MP && !Q_stricmp( token, "nomipmap" ) ) )
+			( ( ri.gameId == COM_GAME_RTCW_MP || ri.gameId == COM_GAME_WOLFET ) && !Q_stricmp( token, "nomipmap" ) ) )
 		{
 			shader.noMipMaps = 1;
 			shader.noPicMip = 1;
@@ -2320,6 +2352,27 @@ static qboolean ParseShader( const char **text )
 			}
 			continue;
 		}
+		// Enemy Territory: implicitMap / implicitMask / implicitBlend <image>
+		else if ( ri.gameId == COM_GAME_WOLFET && !Q_stricmpn( token, "implicit", 8 ) )
+		{
+			R_WolfETImplicitDirective( token, text );
+			continue;
+		}
+		// distancecull <opaque distance> <transparent distance> <alpha threshold>
+		else if ( ri.gameId == COM_GAME_WOLFET && !Q_stricmp( token, "distancecull" ) )
+		{
+			int value;
+			for ( value = 0; value < 3; value++ ) {
+				token = COM_ParseExt( text, qfalse );
+				if ( !token[0] ) {
+					ri.Printf( PRINT_WARNING, "WARNING: missing distancecull parms in shader '%s'\n", shader.name );
+				} else {
+					shader.wolfetDistanceCull[value] = Q_atof( token );
+				}
+			}
+			FnWolfET_DistanceCullFinish( shader.wolfetDistanceCull );
+			continue;
+		}
 		// sort
 		else if ( !Q_stricmp( token, "sort" ) )
 		{
@@ -2383,7 +2436,7 @@ static qboolean ParseShader( const char **text )
 	//
 	// ignore shaders that don't have any stages, unless it is a sky or fog
 	//
-	if ( numStages == 0 && !shader.isSky && !(shader.contentFlags & CONTENTS_FOG ) ) {
+	if ( numStages == 0 && !shader.isSky && !(shader.contentFlags & CONTENTS_FOG ) && !s_wolfetImplicitMap[0] ) {
 		return qfalse;
 	}
 
@@ -3081,6 +3134,7 @@ static void InitShader( const char *name, int lightmapIndex ) {
 	VectorSet( shader.surfaceLightColor, 1.0f, 1.0f, 1.0f );
 	VectorSet( shader.surfaceLightImageColor, 1.0f, 1.0f, 1.0f );
 	R_ApplyShaderPicMipFilter();
+	R_WolfETResetImplicit();
 
 	// we need to know original (unmodified) lightmap index
 	// because shader search functions expects this
@@ -3694,6 +3748,9 @@ shader_t *R_FindShaderByName( const char *name ) {
 	}
 
 	COM_StripExtension(name, strippedName, sizeof(strippedName));
+	if ( ri.gameId == COM_GAME_WOLFET ) {
+		R_WolfETFixShaderName( strippedName );
+	}
 
 	hash = generateHashValue(strippedName, FILE_HASH_SIZE);
 
@@ -3820,8 +3877,8 @@ static shader_t *R_FindShaderInternal( const char *name, int lightmapIndex,
 	}
 
 	// use (fullbright) vertex lighting if the bsp file doesn't have
-	// lightmaps
-	if ( lightmapIndex >= 0 && lightmapIndex >= tr.numLightmaps ) {
+	// lightmaps, or if an external one it names could not be loaded
+	if ( lightmapIndex >= 0 && ( lightmapIndex >= tr.numLightmaps || !tr.lightmaps[lightmapIndex] ) ) {
 		lightmapIndex = LIGHTMAP_BY_VERTEX;
 	} else if ( lightmapIndex < LIGHTMAP_2D ) {
 		// negative lightmap indexes cause stray pointers (think tr.lightmaps[lightmapIndex])
@@ -3830,6 +3887,9 @@ static shader_t *R_FindShaderInternal( const char *name, int lightmapIndex,
 	}
 
 	COM_StripExtension(name, strippedName, sizeof(strippedName));
+	if ( ri.gameId == COM_GAME_WOLFET ) {
+		R_WolfETFixShaderName( strippedName );
+	}
 
 	hash = generateHashValue(strippedName, FILE_HASH_SIZE);
 
@@ -3872,9 +3932,13 @@ static shader_t *R_FindShaderInternal( const char *name, int lightmapIndex,
 		if ( !ParseShader( &shaderText ) ) {
 			// had errors, so use default shader
 			shader.defaultShader = qtrue;
+			return FinishShader();
 		}
 
-		return FinishShader();
+		// an Enemy Territory shader mapped implicitly goes on to find its image
+		if ( !s_wolfetImplicitMap[0] ) {
+			return FinishShader();
+		}
 	}
 
 	//
@@ -3886,7 +3950,22 @@ static shader_t *R_FindShaderInternal( const char *name, int lightmapIndex,
 
 		flags = IMGFLAG_NONE;
 
-		if (mipRawImage)
+		if ( ri.gameId == COM_GAME_WOLFET )
+		{
+			// ET keeps an implicit shader's own mip keywords, and a shader
+			// registered without mipmaps never has them
+			if ( !mipRawImage ) {
+				shader.noMipMaps = qtrue;
+				shader.noPicMip = qtrue;
+			}
+			if ( !shader.noMipMaps )
+				flags |= IMGFLAG_MIPMAP;
+			if ( !shader.noPicMip )
+				flags |= IMGFLAG_PICMIP;
+			if ( !mipRawImage )
+				flags |= IMGFLAG_CLAMPTOEDGE;
+		}
+		else if (mipRawImage)
 		{
 			flags |= IMGFLAG_MIPMAP;
 			if ( !shader.noPicMip )
@@ -3897,7 +3976,7 @@ static shader_t *R_FindShaderInternal( const char *name, int lightmapIndex,
 			flags |= IMGFLAG_CLAMPTOEDGE;
 		}
 
-		image = R_FindShaderImage( name, flags );
+		image = R_FindShaderImage( R_WolfETImplicitImage( name ), flags );
 		if ( !image ) {
 			ri.Printf( PRINT_DEVELOPER, "Shader image unavailable for: %s\n", name );
 			shader.defaultShader = qtrue;
@@ -3908,7 +3987,11 @@ static shader_t *R_FindShaderInternal( const char *name, int lightmapIndex,
 	//
 	// create the default shading commands
 	//
-	R_CreateDefaultShading( image );
+	if ( ri.gameId == COM_GAME_WOLFET ) {
+		R_CreateWolfETDefaultShading( image );
+	} else {
+		R_CreateDefaultShading( image );
+	}
 
 	return FinishShader();
 }
@@ -4486,7 +4569,7 @@ static void CreateExternalShaders( void ) {
 
 	// Hack to make fogging work correctly on flares. Fog colors are calculated
 	// in tr_flare.c already.
-	if(ri.gameId != COM_GAME_RTCW_SP && ri.gameId != COM_GAME_RTCW_MP && !tr.flareShader->defaultShader)
+	if(!FnRTCWCoronaProfile( ri.gameId ) && !tr.flareShader->defaultShader)
 	{
 		int index;
 
@@ -4512,7 +4595,9 @@ static void CreateExternalShaders( void ) {
 	shader.sort = SS_BLEND1;
 	tr.lensFlareShader = FinishShader();
 
-	tr.sunShader = R_FindShader( "sun", LIGHTMAP_NONE, qtrue );
+	// Enemy Territory names its sun per map, with a sunshader directive,
+	// and ships no image for the stock one.
+	tr.sunShader = ri.gameId == COM_GAME_WOLFET ? NULL : R_FindShader( "sun", LIGHTMAP_NONE, qtrue );
 }
 
 

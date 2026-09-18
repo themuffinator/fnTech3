@@ -50,7 +50,7 @@ template<class F>void Reject(F action){bool caught=false;try{action();}catch(int
 SCENE=r'''
 int main(){
  fnRTCWCorona_t corona{{1,2,3},{0.25f,0.5f,1},2,-7,3};
- for(auto profile:{COM_GAME_RTCW_SP,COM_GAME_RTCW_MP}){
+ for(auto profile:{COM_GAME_RTCW_SP,COM_GAME_RTCW_MP,COM_GAME_WOLFET}){
   ri.gameId=profile;rtcwCoronaCount=rtcwCoronaFirst=0;tr.registered=0;
   RE_AddRTCWCoronaToScene(&corona);assert(rtcwCoronaCount==0);tr.registered=1;
   for(int i=0;i<40;++i){corona.id=i;RE_AddRTCWCoronaToScene(&corona);}assert(rtcwCoronaCount==32);
@@ -78,7 +78,7 @@ int main(){
  backEnd.refdef.numRTCWCoronas=1;
  fnRTCWCorona_t base{{0,0,-100},{1,0.5f,0.25f},2,37,1};
  auto frame=[&](int number,int time,int flags){backEnd.viewParms.frameCount=number;backEnd.refdef.time=time;backEnd.refdef.rtcwCoronas[0]=base;backEnd.refdef.rtcwCoronas[0].flags=flags;quads.clear();};
- for(auto profile:{COM_GAME_RTCW_SP,COM_GAME_RTCW_MP}){
+ for(auto profile:{COM_GAME_RTCW_SP,COM_GAME_RTCW_MP,COM_GAME_WOLFET}){
   ri.gameId=profile;R_ClearRTCWCoronaFades();frame(10,1000,1);assert(RB_PrepareRTCWCoronas());RB_DrawRTCWCoronas();
   assert(quads.size()==1&&quads[0].color.rgba[3]==1); // 1ms first visible fade
   frame(11,1100,1);assert(RB_PrepareRTCWCoronas());RB_DrawRTCWCoronas();
@@ -88,7 +88,7 @@ int main(){
   frame(12,1300,2);assert(RB_PrepareRTCWCoronas());RB_DrawRTCWCoronas();
   assert(quads.size()==1&&quads[0].shader==(profile==COM_GAME_RTCW_SP?18:17));
   assert(quads[0].color.rgba[3]==(profile==COM_GAME_RTCW_SP?253:255));
-  frame(13,1600,0);bool shown=RB_PrepareRTCWCoronas();assert(shown==(profile==COM_GAME_RTCW_MP));
+  frame(13,1600,0);bool shown=RB_PrepareRTCWCoronas();assert(shown==(profile!=COM_GAME_RTCW_SP)); // ET reads visibility as RTCW multiplayer does
   frame(14,1900,0);assert(!RB_PrepareRTCWCoronas());
   // A skipped frame restarts a new visible fade.
   frame(17,2200,1);assert(RB_PrepareRTCWCoronas());RB_DrawRTCWCoronas();assert(quads.back().color.rgba[3]==1);

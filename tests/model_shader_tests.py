@@ -17,6 +17,7 @@ PRELUDE = r'''
 #include "code/qcommon/game_profile.h"
 #include "code/qcommon/qfiles.h"
 #include "code/renderercommon/tr_types.h"
+#include "code/renderercommon/tr_wolfet_decal.h"
 #include <cassert>
 #include <cctype>
 #include <climits>
@@ -129,12 +130,15 @@ enum { CGEN_IDENTITY, CGEN_LIGHTING_DIFFUSE, FILE_HASH_SIZE = 1 };
 struct shaderStage_t { int rgbGen; struct { int rgbGen; } bundle[1]; };
 struct shader_t {
     char name[MAX_QPATH]; int lightmapSearchIndex, lightmapIndex, index, rtcwCompression;
-    qboolean rtcwModelDiffuse, rtcwLightMaterial, defaultShader, needsNormal, noPicMip, rtcwCharacterMip;
+    qboolean rtcwModelDiffuse, rtcwLightMaterial, defaultShader, needsNormal, noPicMip, noMipMaps, rtcwCharacterMip;
     shader_t *next; shaderStage_t first;
 };
 static shader_t defaultShader{}, shader;
 static shaderStage_t stages[1];
-static struct { shader_t *defaultShader; int numLightmaps; } tr{&defaultShader, 8};
+static image_t lightmapImage{"*lightmap", nullptr, IMGFLAG_NONE};
+static image_t *lightmapSlots[8]{&lightmapImage, &lightmapImage, &lightmapImage, &lightmapImage,
+    &lightmapImage, &lightmapImage, &lightmapImage, &lightmapImage};
+static struct { shader_t *defaultShader; int numLightmaps; image_t **lightmaps; } tr{&defaultShader, 8, lightmapSlots};
 static shader_t *hashTable[FILE_HASH_SIZE];
 static std::vector<std::unique_ptr<shader_t>> allocations;
 static int parses, imageReads, finishes, stageCount = 1;
@@ -154,6 +158,11 @@ static const char *FindShaderInShaderText(const char *) { return explicitShader 
 static qboolean ParseShader(const char **) { ++parses; return parseSuccess ? qtrue : qfalse; }
 static image_t *R_FindImageFile(const char *, imgFlags_t flags) { ++imageReads; lastFlags = flags; return imageAvailable ? &rawImage : nullptr; }
 static void R_CreateDefaultShading(image_t *) { RGB(stages[0]) = shader.lightmapIndex == LIGHTMAP_NONE ? CGEN_LIGHTING_DIFFUSE : CGEN_IDENTITY; }
+// Enemy Territory's dialect is exercised by its own tests; these profiles never reach it.
+static char s_wolfetImplicitMap[MAX_QPATH];
+static const char *R_WolfETImplicitImage(const char *name) { return name; }
+static void R_WolfETFixShaderName(char *) {}
+static void R_CreateWolfETDefaultShading(image_t *image) { R_CreateDefaultShading(image); }
 static shader_t *FinishShader() {
     ++finishes; const int stage = stageCount;
 ''' + adjustment + r'''

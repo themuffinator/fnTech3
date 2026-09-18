@@ -542,7 +542,8 @@ typedef enum {
 	MST_PLANAR,
 	MST_PATCH,
 	MST_TRIANGLE_SOUP,
-	MST_FLARE
+	MST_FLARE,
+	MST_FOLIAGE		// Enemy Territory's instanced foliage
 } mapSurfaceType_t;
 
 typedef struct {

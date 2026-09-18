@@ -302,8 +302,9 @@ void R_LoadTGA ( const char *name, byte **pic, int *width, int *height)
     free (flip);
   }
 #endif
-  // instead we just print a warning
-  if (targa_header.attributes & 0x20) {
+  // instead we just print a warning; Enemy Territory ignores the flag
+  // silently, and its own images carry it
+  if ((targa_header.attributes & 0x20) && ri.gameId != COM_GAME_WOLFET) {
     ri.Printf( PRINT_WARNING, "WARNING: '%s' TGA file header declares top-down image, ignoring\n", name);
   }
 

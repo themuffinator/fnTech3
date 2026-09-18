@@ -3,6 +3,7 @@
 #define FNTECH3_RTCW_CORONA_H
 #include <stdint.h>
 #include <string.h>
+#include "../qcommon/game_profile.h"
 
 enum { FN_RTCW_MAX_CORONAS = 32, FN_RTCW_MAX_CORONA_FADES = 128 };
 /* Owned scene data, never a game-module pointer. */
@@ -23,6 +24,13 @@ static inline int FnRTCWCoronaValid( const fnRTCWCorona_t *corona ) {
 	for ( i = 0; i < 3; ++i )
 		if ( !FnRTCWCoronaFinite( corona->origin[i] ) || !FnRTCWCoronaFinite( corona->color[i] ) ) return 0;
 	return 1;
+}
+
+/* Enemy Territory's coronas are the other Wolfenstein profile's multiplayer
+ * coronas: its cgame decides visibility, and the renderer fades and draws
+ * them the same way, with the same flare shader. */
+static inline int FnRTCWCoronaProfile( comGameId_t profile ) {
+	return profile == COM_GAME_RTCW_SP || profile == COM_GAME_RTCW_MP || profile == COM_GAME_WOLFET;
 }
 
 /* The original flags word is a bitmask in SP, a boolean in MP. */

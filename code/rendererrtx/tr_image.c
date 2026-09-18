@@ -1260,6 +1260,23 @@ static const char *R_LoadImage( const char *name, byte **pic, int *width, int *h
 	return localName;
 }
 
+/*
+=================
+R_LoadImagePixels
+
+Loads an image's pixels, as 32 bit RGBA, without making a texture of them.
+The caller frees them with ri.Free.
+=================
+*/
+byte *R_LoadImagePixels( const char *name, int *width, int *height )
+{
+	byte *pic;
+
+	R_LoadImage( name, &pic, width, height );
+	return pic;
+}
+
+
 qboolean R_ImageAverageColor( const char *name, vec3_t color )
 {
 	byte *pic;

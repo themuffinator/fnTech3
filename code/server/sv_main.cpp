@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "server.h"
 #include "server_cvar_compat.hpp"
 #include "../qcommon/netchan_safety.hpp"
+#include "../compat/wolfet_gameinfo.hpp"
 
 #include <algorithm>
 #include <array>
@@ -734,6 +735,49 @@ SVC_RateLimitAddress
 Rate limit for a particular address
 ================
 */
+static fntech3::wolfet::gameinfo::GameInfo svWolfETGameInfo;
+static bool svWolfETGameInfoLoaded;
+
+void SV_WolfETLoadGameInfo( void ) {
+	void *text = nullptr;
+	const int length = FS_ReadFile( "gameinfo.dat", &text );
+	svWolfETGameInfo = length > 0 && text
+		? fntech3::wolfet::gameinfo::Parse( static_cast<const char *>( text ), static_cast<size_t>( length ) )
+		: fntech3::wolfet::gameinfo::GameInfo{};
+	if ( text ) {
+		FS_FreeFile( text );
+	}
+	svWolfETGameInfoLoaded = true;
+}
+
+static const fntech3::wolfet::gameinfo::GameInfo &SV_WolfETGameInfo( void ) {
+	if ( !svWolfETGameInfoLoaded ) {
+		SV_WolfETLoadGameInfo();
+	}
+	return svWolfETGameInfo;
+}
+
+// Quake 3's engine knows one single-player game type; Enemy Territory's
+// numbers its game types differently and lists its single-player ones.
+qboolean SV_GameTypeIsSinglePlayer( int gameType ) {
+	if ( Com_GameIsWolfET() ) {
+		return fntech3::wolfet::gameinfo::IsSinglePlayer( SV_WolfETGameInfo(), gameType ) ? qtrue : qfalse;
+	}
+	return gameType == GT_SINGLE_PLAYER ? qtrue : qfalse;
+}
+
+qboolean SV_WolfETGameTypeIsCoop( int gameType ) {
+	return fntech3::wolfet::gameinfo::IsCoop( SV_WolfETGameInfo(), gameType ) ? qtrue : qfalse;
+}
+
+qboolean SV_WolfETSinglePlayerEnabled( void ) {
+	return SV_WolfETGameInfo().spEnabled ? qtrue : qfalse;
+}
+
+int SV_WolfETDefaultSinglePlayerGameType( void ) {
+	return SV_WolfETGameInfo().defaultSPGameType;
+}
+
 qboolean SVC_RateLimitAddress( const netadr_t *from, int burst, int period ) {
 	leakyBucket_t *bucket = SVC_BucketForAddress( from, burst, period );
 
@@ -801,7 +845,7 @@ static void SVC_Status( const netadr_t *from ) {
 
 	// ignore if we are in single player
 #ifndef DEDICATED
-	if ( Cvar_VariableIntegerValue( "g_gametype" ) == GT_SINGLE_PLAYER || Cvar_VariableIntegerValue("ui_singlePlayerActive")) {
+	if ( SV_GameTypeIsSinglePlayer( Cvar_VariableIntegerValue( "g_gametype" ) ) || Cvar_VariableIntegerValue("ui_singlePlayerActive")) {
 		return;
 	}
 #endif
@@ -872,7 +916,7 @@ static void SVC_Info( const netadr_t *from ) {
 
 	// ignore if we are in single player
 #ifndef DEDICATED
-	if ( Cvar_VariableIntegerValue( "g_gametype" ) == GT_SINGLE_PLAYER || Cvar_VariableIntegerValue("ui_singlePlayerActive")) {
+	if ( SV_GameTypeIsSinglePlayer( Cvar_VariableIntegerValue( "g_gametype" ) ) || Cvar_VariableIntegerValue("ui_singlePlayerActive")) {
 		return;
 	}
 #endif

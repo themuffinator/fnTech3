@@ -83,7 +83,7 @@ static void RB_QueueRTCWCorona( const fnRTCWCorona_t *corona ) {
 static qboolean RB_PrepareRTCWCoronas( void ) {
 	int i;
 	qboolean draw = qfalse;
-	if ( (ri.gameId != COM_GAME_RTCW_SP && ri.gameId != COM_GAME_RTCW_MP) || !tr.world ) return qfalse;
+	if ( !FnRTCWCoronaProfile( ri.gameId ) || !tr.world ) return qfalse;
 	for ( i = 0; i < FN_RTCW_MAX_CORONA_FADES; ++i ) {
 		rtcwCoronaFade_t *fade = &rtcwCoronaFades[i];
 		if ( (int64_t)fade->frame < (int64_t)backEnd.viewParms.frameCount - 1 ||
@@ -109,7 +109,7 @@ static qboolean RB_PrepareRTCWCoronas( void ) {
 		int visible;
 		if ( !fade->used || fade->scene != backEnd.viewParms.frameSceneNum ||
 			fade->portal != (int)backEnd.viewParms.portalView ) continue;
-		visible = FnRTCWCoronaVisible( ri.gameId == COM_GAME_RTCW_MP, fade->corona.flags );
+		visible = FnRTCWCoronaVisible( ri.gameId != COM_GAME_RTCW_SP, fade->corona.flags );
 		if ( visible != fade->visible ) {
 			fade->visible = visible;
 			fade->fadeTime = (int64_t)backEnd.refdef.time - 1;
@@ -126,7 +126,7 @@ static qboolean RB_PrepareRTCWCoronas( void ) {
 static void RB_DrawRTCWCoronas( void ) {
 	int i, component, pass;
 	uint64_t before = UINT64_MAX;
-	if ( ri.gameId != COM_GAME_RTCW_SP && ri.gameId != COM_GAME_RTCW_MP ) return;
+	if ( !FnRTCWCoronaProfile( ri.gameId ) ) return;
 	// Original active-list order is newest first, including reused fade slots.
 	for ( pass = 0; pass < FN_RTCW_MAX_CORONA_FADES; ++pass ) {
 		const rtcwCoronaFade_t *fade = NULL;

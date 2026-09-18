@@ -27,8 +27,14 @@ static std::string configValue;
 static constexpr int CS_WARMUP=5;
 int Com_GameIsRTCWSP(){return profile==2;}
 int Com_GameIsRTCWMP(){return profile==3;}
-int Com_GameIsRTCW(){return profile>=2;}
+int Com_GameIsRTCW(){return profile==2||profile==3;}
 int Com_GameIsQuakeLive(){return profile==1;}
+int Com_GameIsWolfET(){return profile==4;}
+// ET's gameinfo.dat names game type 0 single-player and 1 cooperative.
+static Cvar gametype;
+static Cvar *sv_gametype=&gametype;
+bool SV_GameTypeIsSinglePlayer(int type){return type==0;}
+bool SV_WolfETGameTypeIsCoop(int type){return type==1;}
 int Cmd_Argc(){return int(args.size());}
 const char *Cmd_Argv(int index){return args.at(index).c_str();}
 int SV_ParseInt(const char *s){return std::stoi(s);}
@@ -39,7 +45,7 @@ bool SV_HandleQuitOnExitLevel(const char*){return false;}
 bool SV_RTCWRestoreSaveTime(){++restoreCalls;return true;}
 const char *va(const char *fmt,...){static char b[64];va_list a;va_start(a,fmt);vsnprintf(b,sizeof(b),fmt,a);va_end(a);return b;}
 void SV_SetConfigstring(int i,const char *s){configIndex=i;configValue=s;}
-static void reset(int p){profile=p;sv={0,0,10000};running.integer=1;cvars.clear();cvars["gamestate"]=1;args={"map_restart"};restoreCalls=0;configValue.clear();}
+static void reset(int p){profile=p;sv={0,0,10000};running.integer=1;gametype.integer=4;cvars.clear();cvars["gamestate"]=1;args={"map_restart"};restoreCalls=0;configValue.clear();}
 '''
 CHECKS = r'''
 int main(){
@@ -58,16 +64,32 @@ int main(){
   args={"map_restart","0",std::to_string(wanted)};SV_MapRestart_f();
   assert(!sv.restartTime&&cvars["gamestate"]==(accepted?result:old));
  }
+ // ET's team game types keep MP's transitions, but resolve a reset to warmup
+ // whatever the team lock.
+ for(int locked:{0,1})for(int old=-1;old<=5;++old)for(int wanted=0;wanted<=5;++wanted){
+  int result=777;bool accepted=fntech3::rtcw::RestartMatchState(old,wanted,false,result);
+  reset(4);cvars["gamestate"]=old;cvars["g_noTeamSwitching"]=locked;
+  args={"map_restart","0",std::to_string(wanted)};SV_MapRestart_f();
+  assert(!sv.restartTime&&cvars["gamestate"]==(accepted?result:old));
+  if(accepted&&wanted==5)assert(cvars["gamestate"]==2);
+ }
+ // ET's single-player and co-op restarts ignore the requested state and play
+ // straight through, so an intermission cannot restart into play.
+ for(int type:{0,1})for(int old=-1;old<=5;++old){
+  reset(4);gametype.integer=type;cvars["gamestate"]=old;
+  args={"map_restart","0","2"};SV_MapRestart_f();
+  assert(!sv.restartTime&&cvars["gamestate"]==(old<=2?0:old));
+ }
  for(int invalid:{INT_MIN,-2,6,INT_MAX}){
   int result=777;assert(!fntech3::rtcw::RestartMatchState(invalid,0,false,result)&&result==777);
   assert(!fntech3::rtcw::RestartMatchState(0,invalid,false,result)&&result==777);
  }
- for(int p=0;p<4;++p){
+ for(int p=0;p<5;++p){
   reset(p);SV_MapRestart_f();assert(sv.restartTime==(p<2?15000:0));
-  assert(restoreCalls==(p>=2));assert(cvars["gamestate"]==(p==3?0:1));
+  assert(restoreCalls==(p>=2));assert(cvars["gamestate"]==(p>=3?0:1));
   reset(p);cvars["g_doWarmup"]=1;args={"map_restart","3"};SV_MapRestart_f();
-  assert(sv.restartTime==(p==3?13000:0));
-  if(p==3)assert(configValue=="13000"&&configIndex==5&&cvars["gamestate"]==1);
+  assert(sv.restartTime==(p>=3?13000:0));
+  if(p>=3)assert(configValue=="13000"&&configIndex==5&&cvars["gamestate"]==1);
   reset(p);args={"map_restart","0"};SV_MapRestart_f();assert(!sv.restartTime&&restoreCalls==1);
   reset(p);sv.restartedServerId=com_frameTime;SV_MapRestart_f();assert(!sv.restartTime&&!restoreCalls);
   reset(p);running.integer=0;SV_MapRestart_f();assert(!sv.restartTime&&!restoreCalls);

@@ -194,9 +194,10 @@ profile can reach ET's behaviour.
 =================
 */
 static int S_WolfETVolume( int volume ) {
-	// ET's modules submit 0..255 with 127 as their own default. A value outside
-	// that never becomes a louder sound than the module asked for.
-	if ( volume < 0 || volume > 255 ) Com_Error( ERR_DROP, "Invalid ET sound volume" );
+	// ET's modules usually submit 0..255, with 127 as their own default, but
+	// ET's mixer takes any volume: one at or below zero is silent and one above
+	// 255 is louder. Map speakers use both, so every value passes through; each
+	// backend drops a silent sound itself.
 	return volume;
 }
 

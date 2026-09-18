@@ -144,7 +144,7 @@ class RTCWShaderMaterialTests(unittest.TestCase):
                     # All map, clampmap, animmap, sky and implicit-image paths
                     # must use the policy, not just the UI path in the live probe.
                     self.assertEqual(source.count('R_FindImageFile('), 1)
-                    self.assertEqual(source.count('R_FindShaderImage('), 7)
+                    self.assertEqual(source.count('R_FindShaderImage('), 8)
                     parser = function(source, 'static qboolean ParseShader(')
                     self.assertIn('R_RTCWShaderCompressionDirective( token, &shader.rtcwCompression )', parser)
                     initializer = function(source, 'static void InitShader(')

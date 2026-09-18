@@ -182,14 +182,18 @@ class AudioZoneMaterialMapTests(unittest.TestCase):
 
     def test_material_flags_follow_explicit_profile_not_bsp_version(self) -> None:
         for profile, version in ((None, 47), ("quake3", 46), ("quakelive", 47),
-                                 ("rtcw-sp", 47), ("rtcw-mp", 47)):
+                                 ("rtcw-sp", 47), ("rtcw-mp", 47), ("wolfet", 47)):
             rtcw = profile in {"rtcw-sp", "rtcw-mp"}
+            # Enemy Territory keeps RTCW's material bits but gives 0x40 to a
+            # water splash. That votes liquid, which a dry zone never takes as
+            # its own material, so the zone is left neutral rather than stone.
+            wolf = rtcw or profile == "wolfet"
             for flag, material in (
-                (0x40, "stone" if rtcw else "soft"),
+                (0x40, "stone" if rtcw else "neutral" if profile == "wolfet" else "soft"),
                 (0x1000, "metal"),
-                *((flag, "stone" if rtcw else "neutral")
+                *((flag, "stone" if wolf else "neutral")
                   for flag in (0x200000, 0x800000, 0x1000000)),
-                *((flag, "soft" if rtcw else "neutral")
+                *((flag, "soft" if wolf else "neutral")
                   for flag in (0x40000, 0x80000, 0x100000, 0x400000, 0x2000000)),
             ):
                 with self.subTest(profile=profile, flag=hex(flag)):
@@ -207,7 +211,7 @@ class AudioZoneMaterialMapTests(unittest.TestCase):
             bsp.write_bytes(build_minimal_bsp("textures/plain/panel"))
             output = root / "old.azb"
             output.write_bytes(b"previous sidecar")
-            for profile in ("rtcw-sp", "rtcw-mp", "quakelive", "unknown"):
+            for profile in ("rtcw-sp", "rtcw-mp", "wolfet", "quakelive", "unknown"):
                 result = subprocess.run(
                     [str(tool), "--from-bsp", "--profile", profile, "-o", str(output), str(bsp)],
                     capture_output=True, text=True, check=False,

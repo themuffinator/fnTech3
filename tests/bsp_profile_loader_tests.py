@@ -118,6 +118,11 @@ static void R_ShutdownAdvertisements() {}
 static void R_LoadGlobalFogForWorld() {}
 static void R_BuildSurfaceLightProxiesForWorld() {}
 static void R_LoadStaticMapLightsForWorld() {}
+static void R_LoadWolfETExternalLightmaps(const lump_t *) {}
+static cvar_t vertexLight;
+static cvar_t *r_vertexLight = &vertexLight;
+constexpr int GLHW_PERMEDIA2 = 4;
+static struct { int hardwareType; } glConfig;
 static void R_LoadAdvertisements(const lump_t *lump) {
     ++advertisements;
     assert(lump->fileofs == 152 && lump->filelen == 128);

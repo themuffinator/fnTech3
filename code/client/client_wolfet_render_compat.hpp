@@ -151,6 +151,30 @@ inline bool CL_WolfETRenderCall( vm_t *vm, fntech3::wolfet::module::Call call,
 		re.AddRTCWCoronaToScene( &corona );
 		break;
 	}
+	case Call::CG_R_PROJECTDECAL: {
+		// A shader, a footprint of one, three or four points, a direction and
+		// depth, a colour, and how long the mark lasts and how long it fades.
+		// ET ignores a footprint of any other size before reading it.
+		if ( args[2] < INT_MIN || args[2] > INT_MAX || args[6] < INT_MIN || args[6] > INT_MAX ||
+			args[7] < INT_MIN || args[7] > INT_MAX )
+			Com_Error( ERR_DROP, "Invalid ET decal request" );
+		const int numPoints = static_cast<int>( args[2] );
+		if ( numPoints != 1 && numPoints != 3 && numPoints != 4 ) break;
+		vec3_t points[4];
+		vec4_t projection, color;
+		const auto pointBytes = sizeof( vec3_t ) * static_cast<std::size_t>( numPoints );
+		std::memcpy( points, CL_RTCWRenderSpan( vm, args[3], pointBytes ), pointBytes );
+		std::memcpy( projection, CL_RTCWRenderSpan( vm, args[4], sizeof( projection ) ), sizeof( projection ) );
+		std::memcpy( color, CL_RTCWRenderSpan( vm, args[5], sizeof( color ) ), sizeof( color ) );
+		if ( re.ProjectWolfETDecal ) {
+			re.ProjectWolfETDecal( static_cast<qhandle_t>( args[1] ), numPoints, points, projection, color,
+				static_cast<int>( args[6] ), static_cast<int>( args[7] ) );
+		}
+		break;
+	}
+	case Call::CG_R_CLEARDECALS:
+		if ( re.ClearWolfETDecals ) re.ClearWolfETDecals();
+		break;
 	case Call::CG_R_ADDLIGHTTOSCENE:
 	case Call::UI_R_ADDLIGHTTOSCENE: {
 		// ET sends a radius and a brightness separately, then a shader handle

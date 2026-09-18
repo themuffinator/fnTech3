@@ -397,6 +397,13 @@ extern	int serverBansCount;
 //
 qboolean SVC_RateLimit( rateLimit_t *bucket, int burst, int period );
 qboolean SVC_RateLimitAddress( const netadr_t *from, int burst, int period );
+// Whether a game type is single player by the running game's own rules.
+qboolean SV_GameTypeIsSinglePlayer( int gameType );
+// Enemy Territory reads those rules from gameinfo.dat, again for each map.
+void SV_WolfETLoadGameInfo( void );
+qboolean SV_WolfETSinglePlayerEnabled( void );
+qboolean SV_WolfETGameTypeIsCoop( int gameType );
+int SV_WolfETDefaultSinglePlayerGameType( void );
 void SVC_RateRestoreBurstAddress( const netadr_t *from, int burst, int period );
 void SVC_RateRestoreToxicAddress( const netadr_t *from, int burst, int period );
 void SVC_RateDropAddress( const netadr_t *from, int burst, int period );

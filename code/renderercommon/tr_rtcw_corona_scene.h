@@ -6,7 +6,7 @@ static fnRTCWCorona_t rtcwCoronas[FN_RTCW_MAX_CORONAS];
 static int rtcwCoronaCount, rtcwCoronaFirst;
 
 void RE_AddRTCWCoronaToScene( const fnRTCWCorona_t *corona ) {
-	if ( ri.gameId != COM_GAME_RTCW_SP && ri.gameId != COM_GAME_RTCW_MP )
+	if ( !FnRTCWCoronaProfile( ri.gameId ) )
 		ri.Error( ERR_DROP, "RTCW corona outside its game profile" );
 	if ( !FnRTCWCoronaValid( corona ) ) ri.Error( ERR_DROP, "Invalid RTCW corona" );
 	if ( !tr.registered || rtcwCoronaCount >= FN_RTCW_MAX_CORONAS ) return;
@@ -15,7 +15,7 @@ void RE_AddRTCWCoronaToScene( const fnRTCWCorona_t *corona ) {
 
 static void R_CopyRTCWCoronasToScene( void ) {
 	tr.refdef.numRTCWCoronas = 0;
-	if ( ri.gameId != COM_GAME_RTCW_SP && ri.gameId != COM_GAME_RTCW_MP ) return;
+	if ( !FnRTCWCoronaProfile( ri.gameId ) ) return;
 	tr.refdef.numRTCWCoronas = rtcwCoronaCount - rtcwCoronaFirst;
 	Com_Memcpy( tr.refdef.rtcwCoronas, rtcwCoronas + rtcwCoronaFirst,
 		tr.refdef.numRTCWCoronas * sizeof( rtcwCoronas[0] ) );

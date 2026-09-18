@@ -6,7 +6,10 @@
  * -1 for malformed input. Original SP publishes map/water parameters to its
  * cgame via cvars; MP installs those slots directly. */
 static int R_RTCWShaderFogDirective( const char *keyword, const char **text ) {
-	const qboolean mp = ri.gameId == COM_GAME_RTCW_MP ? qtrue : qfalse;
+	/* Enemy Territory parses these as RTCW multiplayer does, and stores the
+	 * colour scaled by the identity light, as its cgame's fog is. */
+	const qboolean wolfet = ri.gameId == COM_GAME_WOLFET ? qtrue : qfalse;
+	const qboolean mp = ri.gameId == COM_GAME_RTCW_MP || wolfet ? qtrue : qfalse;
 	qboolean sky, water, linear;
 	vec3_t color;
 	const char *token;
@@ -30,6 +33,7 @@ static int R_RTCWShaderFogDirective( const char *keyword, const char **text ) {
 		!FnRTCWFogFinite( color[0] ) || !FnRTCWFogFinite( color[1] ) ||
 		!FnRTCWFogFinite( color[2] ) ) return -1;
 	value = (float)parsed;
+	if ( wolfet ) VectorScale( color, tr.identityLight, color );
 	/* The rounded float must also fit before conversion to the legacy int. */
 	if ( (double)value >= INT_MAX || ( sky && value > 1 ) ) return -1;
 	if ( sky ) {

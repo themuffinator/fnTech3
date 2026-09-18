@@ -7,11 +7,18 @@
  */
 #define MAX_IMAGE_ANIMATIONS_RTCW 16
 
+/* The Wolfenstein shader dialect: both RTCW profiles, and Enemy Territory,
+ * whose renderer grew from RTCW's multiplayer one and keeps its keywords. */
+static inline qboolean R_WolfensteinShaderDialect( void ) {
+	return ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP ||
+		ri.gameId == COM_GAME_WOLFET ? qtrue : qfalse;
+}
+
 /* Compression directives belong to the material being parsed. Do not let a
  * previous material's opt-out affect later registrations or another profile.
  */
 static qboolean R_RTCWShaderCompressionDirective( const char *token, int *policy ) {
-	if ( ri.gameId != COM_GAME_RTCW_SP && ri.gameId != COM_GAME_RTCW_MP ) return qfalse;
+	if ( !R_WolfensteinShaderDialect() ) return qfalse;
 	if ( !Q_stricmp( token, "nocompress" ) ) {
 		*policy = -1;
 		return qtrue;
@@ -25,8 +32,8 @@ static qboolean R_RTCWShaderCompressionDirective( const char *token, int *policy
 
 static imgFlags_t R_RTCWShaderImageFlags( const char *name, imgFlags_t flags, int policy,
 	qboolean characterMip ) {
-	if ( ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP ) {
-		/* Original RTCW exempts lightmaps, skies and weapon images. Mode 2
+	if ( R_WolfensteinShaderDialect() ) {
+		/* Original RTCW, and ET after it, exempt lightmaps, skies and weapon images. Mode 2
 		 * additionally requires each material to opt into compression.
 		 */
 		if ( policy < 0 || ( r_ext_compressed_textures->integer == 2 && policy != 1 ) ||
@@ -50,7 +57,7 @@ static rtcwMapDirective_t R_RTCWMapDirective( const char *token, int colorBits,
 	int compressionAvailable, int compressionEnabled ) {
 	int selected;
 	qboolean animated = qfalse;
-	if ( ri.gameId != COM_GAME_RTCW_SP && ri.gameId != COM_GAME_RTCW_MP ) return RTCW_MAP_UNCHANGED;
+	if ( !R_WolfensteinShaderDialect() ) return RTCW_MAP_UNCHANGED;
 	if ( !Q_stricmp( token, "map16" ) ) selected = colorBits <= 16;
 	else if ( !Q_stricmp( token, "map32" ) ) selected = colorBits > 16;
 	else if ( !Q_stricmp( token, "mapcomp" ) ) selected = compressionAvailable && compressionEnabled;

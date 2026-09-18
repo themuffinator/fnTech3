@@ -514,6 +514,8 @@ static void RB_DrawWorldCelOutlineForScene( qboolean *drawn ) {
 #endif
 
 
+#include "../renderercommon/tr_wolfet_view_clear.h"
+
 /*
 =================
 RB_BeginDrawingView
@@ -552,14 +554,18 @@ static void RB_BeginDrawingView( void ) {
 	if ( R_ViewPassClearsDepth( &backEnd.viewParms ) ) {
 		vk_clear_depth( R_ViewPassClearsStencil( &backEnd.viewParms ) );
 	}
-	if ( backEnd.refdef.rtcwFog.fogEnabled &&
-		( backEnd.refdef.rtcwFog.fog.clearscreen || r_fastsky->integer ) ) {
+	{
 		vec4_t color;
-		int channel;
-		for ( channel = 0; channel < 3; ++channel )
-			color[channel] = Com_Clamp( 0, 1, backEnd.refdef.rtcwFog.fog.color[channel] );
-		color[3] = 1;
-		vk_clear_color( color );
+		if ( RB_WolfETGlobalFogClearColor( color ) ) {
+			vk_clear_color( color );
+		} else if ( backEnd.refdef.rtcwFog.fogEnabled &&
+			( backEnd.refdef.rtcwFog.fog.clearscreen || r_fastsky->integer ) ) {
+			int channel;
+			for ( channel = 0; channel < 3; ++channel )
+				color[channel] = Com_Clamp( 0, 1, backEnd.refdef.rtcwFog.fog.color[channel] );
+			color[3] = 1;
+			vk_clear_color( color );
+		}
 	}
 #else
 	if ( R_ViewPassClearsDepth( &backEnd.viewParms ) ) {

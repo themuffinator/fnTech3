@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderercommon/tr_rtcw_fog_scene.h"
 #include "../renderercommon/tr_wolfet_global_fog_scene.h"
 #include "../renderercommon/tr_rtcw_corona_scene.h"
+#include "../renderercommon/tr_wolfet_decal_scene.h"
 
 static int			r_firstSceneDrawSurf;
 #ifdef USE_PMLIGHT
@@ -202,6 +203,8 @@ R_InitNextFrame
 */
 void R_InitNextFrame( void ) {
 	rtcwCoronaCount = rtcwCoronaFirst = 0;
+	R_ResetWolfETDecalRequests();
+	R_ResetWolfETDecalSurfaces();
 
 	backEndData->commands.used = 0;
 
@@ -1340,6 +1343,7 @@ void RE_RenderScene( const refdef_t *fd ) {
 	R_CopyRTCWFogToScene( fd );
 	R_WolfETAdvanceGlobalFog();
 	R_CopyRTCWCoronasToScene();
+	R_CopyWolfETDecalProjectorsToScene();
 
 	// copy the areamask data over and note if it has changed, which
 	// will force a reset of the visible leafs even if the view hasn't moved

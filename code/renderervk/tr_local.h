@@ -55,6 +55,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderercommon/tr_ql_cvars.h"
 #include "../renderercommon/tr_global_fog.h"
 #include "../renderercommon/tr_wolfet_global_fog.h"
+#include "../renderercommon/tr_wolfet_decal.h"
 #include "../renderercommon/tr_rtcw_fog_view.h"
 #include "../renderercommon/tr_rtcw_world_shader.h"
 #include "../renderercommon/tr_liquid.h"
@@ -557,6 +558,7 @@ typedef struct shader_s {
 	unsigned	noLightScale:1;
 	unsigned	noVLcollapse:1;			// ignore vertexlight mode
 	qboolean	rtcwNoFog;
+	float		wolfetDistanceCull[4];	// ET: opaque, transparent, alpha, 1 / (transparent - opaque)
 	unsigned	rtcwCharacterMip:1; // SP character textures use r_picmip2.
 	unsigned	rtcwPicMipFiltered:1; // Distinguish the path filter from explicit nopicmip.
 	int		rtcwCompression; // Material-local default (0), forbid (-1), allow (1).
@@ -1387,6 +1389,8 @@ typedef enum {
 	SF_MDC,
 	SF_MDS,
 	SF_WOLFET,
+	SF_WOLFET_FOLIAGE,
+	SF_WOLFET_DECAL,
 
 	SF_NUM_SURFACE_TYPES,
 	SF_MAX = 0x7fffffff			// ensures that sizeof( surfaceType_t ) == sizeof( int )
@@ -1513,6 +1517,9 @@ typedef struct {
 	drawVert_t		*verts;
 } srfTriangles_t;
 
+#include "../renderercommon/tr_wolfet_foliage_types.h"
+#include "../renderercommon/tr_wolfet_decal_types.h"
+
 typedef struct {
 	vec3_t translate;
 	quat_t rotate;
@@ -1627,6 +1634,9 @@ typedef struct {
 	vec3_t		bounds[2];		// for culling
 	msurface_t	*firstSurface;
 	int			numSurfaces;
+	// Enemy Territory's decals kept on this model; none for other profiles
+	fnWolfETDecal_t	*wolfetDecals;
+	int			numWolfETDecals;
 } bmodel_t;
 
 #define	MAX_MAP_ADVERTISEMENTS	30
@@ -2113,6 +2123,11 @@ typedef struct {
 #endif
 
 	qboolean				vertexLightingAllowed;
+	// Enemy Territory's decal projectors for the scene being built. Only the
+	// front end presses them, so they stay out of the refdef each draw
+	// command copies.
+	int			numWolfETDecalProjectors;
+	fnWolfETDecalProjector_t	wolfetDecalProjectors[FN_WOLFET_MAX_DECAL_PROJECTORS];
 } trGlobals_t;
 
 
@@ -2153,6 +2168,7 @@ extern cvar_t	*r_lodscale;
 extern cvar_t	*r_teleporterFlash;		// teleport hyperspace visual
 
 extern cvar_t	*r_wolffog;
+extern cvar_t	*r_drawfoliage;	// registered for Enemy Territory alone
 extern cvar_t	*r_fastsky;				// controls whether sky should be cleared or drawn
 extern cvar_t	*r_neatsky;				// nomip and nopicmip for skyboxes, cnq3 like look
 extern cvar_t	*r_drawSun;				// controls drawing of sun quad
@@ -2504,6 +2520,7 @@ const void *RB_TakeVideoFrameCmd( const void *data );
 
 float R_ClampDenorm( float v );
 qboolean R_ImageAverageColor( const char *name, vec3_t color );
+byte	*R_LoadImagePixels( const char *name, int *width, int *height );
 
 //
 // tr_shader.c
@@ -2757,6 +2774,10 @@ void RE_ClearScene( void );
 void RE_AddRefEntityToScene( const refEntity_t *ent, qboolean intShaderTime );
 void RE_AddPolyToScene( qhandle_t hShader , int numVerts, const polyVert_t *verts, int num );
 void RE_AddRTCWLightToScene( const vec3_t origin, float intensity, float r, float g, float b, int flags );
+void RE_ProjectWolfETDecal( qhandle_t hShader, int numPoints, const vec3_t *points,
+	const vec4_t projection, const vec4_t color, int lifeTime, int fadeTime );
+void RE_ClearWolfETDecals( void );
+void R_ResetWolfETDecalSurfaces( void );
 void RE_AddWolfETLightToScene( const vec3_t origin, float radius, float intensity,
 	float r, float g, float b, qhandle_t hShader, int flags );
 void RE_AddWolfET2DPolys( const polyVert_t *verts, int numVerts, qhandle_t hShader );

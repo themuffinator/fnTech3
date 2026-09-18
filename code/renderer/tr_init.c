@@ -76,6 +76,7 @@ cvar_t  *r_teleporterFlash;
 
 qboolean rtcwRadialFogAvailable;
 cvar_t	*r_wolffog;
+cvar_t	*r_drawfoliage;
 cvar_t	*r_fastsky;
 cvar_t	*r_neatsky;
 cvar_t	*r_drawSun;
@@ -2715,6 +2716,7 @@ static void R_Register( void )
 	ri.Cvar_CheckRange( r_teleporterFlash, "0", "1", CV_INTEGER );
 	ri.Cvar_SetDescription( r_teleporterFlash, "Show a white screen instead of a black screen when being teleported in hyperspace." );
 	r_wolffog = ri.Cvar_Get( "r_wolffog", "1", 0 );
+	r_drawfoliage = ri.gameId == COM_GAME_WOLFET ? ri.Cvar_Get( "r_drawfoliage", "1", CVAR_CHEAT ) : NULL;
 	r_fastsky = ri.Cvar_Get( "r_fastsky", "0", CVAR_ARCHIVE_ND );
 	ri.Cvar_SetDescription( r_fastsky, "Draw flat colored skies." );
 	r_drawSun = ri.Cvar_Get( "r_drawSun", "0", CVAR_ARCHIVE_ND );
@@ -3381,7 +3383,9 @@ static void R_Register( void )
 
 	//r_stencilbits = ri.Cvar_Get( "r_stencilbits", "8", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	r_ignorehwgamma = ri.Cvar_Get( "r_ignorehwgamma", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
-	ri.Cvar_CheckRange( r_ignorehwgamma, "0", "1", CV_INTEGER );
+	// Retail engines skip hardware gamma for any nonzero value, and Enemy
+	// Territory's shipped player configs use -1.
+	ri.Cvar_CheckRange( r_ignorehwgamma, "-1", "1", CV_INTEGER );
 	ri.Cvar_SetDescription( r_ignorehwgamma, "Overrides hardware gamma capabilities." );
 
 	r_flares = ri.Cvar_Get( "r_flares", (ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP) ? "1" : "0", CVAR_ARCHIVE_ND );
@@ -3698,6 +3702,8 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 	re.AddLightToScene = RE_AddLightToScene;
 	re.AddRTCWLightToScene = RE_AddRTCWLightToScene;
 	re.AddWolfETLightToScene = RE_AddWolfETLightToScene;
+	re.ProjectWolfETDecal = RE_ProjectWolfETDecal;
+	re.ClearWolfETDecals = RE_ClearWolfETDecals;
 	re.AddWolfET2DPolys = RE_AddWolfET2DPolys;
 	re.LoadWolfETDynamicShader = RE_LoadWolfETDynamicShader;
 	re.GetWolfETTextureId = RE_GetWolfETTextureId;

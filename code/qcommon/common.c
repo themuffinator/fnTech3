@@ -73,6 +73,7 @@ qboolean Com_DemoProtocolSupported( int protocol ) {
 #else
 #define MIN_COMHUNKMEGS		64
 #define DEF_COMHUNKMEGS		256
+#define MIN_WOLFET_COMHUNKMEGS	128
 #endif
 
 #define DEF_COMZONEMEGS		64
@@ -2274,6 +2275,22 @@ static void Com_InitHunkMemory( void ) {
 
 	// allocate the stack based hunk allocator
 	cv = Cvar_Get( "com_hunkMegs", XSTRING( DEF_COMHUNKMEGS ), CVAR_LATCH | CVAR_ARCHIVE );
+#ifndef DEDICATED
+	// Enemy Territory's own configuration asks for 56 megabytes, sized for its
+	// original engine. This client keeps more of a map on the hunk: the six
+	// official maps peak between 60 and 70 megabytes here, where the original
+	// recorded 36 to 47. The floor leaves room for larger custom maps.
+	if ( Com_GameIsWolfET() ) {
+		// A range check neither changes a value already set nor applies a
+		// latched one before the next start, so the floor is set outright.
+		if ( cv->integer < MIN_WOLFET_COMHUNKMEGS ) {
+			Com_Printf( "com_hunkMegs %i is below what Enemy Territory's maps need here; using %i.\n",
+				cv->integer, MIN_WOLFET_COMHUNKMEGS );
+			cv = Cvar_Set2( "com_hunkMegs", XSTRING( MIN_WOLFET_COMHUNKMEGS ), qtrue );
+		}
+		Cvar_CheckRange( cv, XSTRING( MIN_WOLFET_COMHUNKMEGS ), NULL, CV_INTEGER );
+	} else
+#endif
 	Cvar_CheckRange( cv, XSTRING( MIN_COMHUNKMEGS ), NULL, CV_INTEGER );
 	Cvar_SetDescription( cv, "The size of the hunk memory segment." );
 

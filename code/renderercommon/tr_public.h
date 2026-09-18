@@ -175,6 +175,10 @@ typedef struct {
 	void (*RestoreWolfETViewParms)( void );
 	void (*SetRTCWFog)( int command, int first, int second, float r, float g, float b, float density );
 	void (*SetWolfETGlobalFog)( qboolean restore, int duration, float r, float g, float b, float depthForOpaque );
+	// ET's decals: a projector pressed onto the map, and every kept decal cleared.
+	void (*ProjectWolfETDecal)( qhandle_t hShader, int numPoints, const vec3_t *points,
+		const vec4_t projection, const vec4_t color, int lifeTime, int fadeTime );
+	void (*ClearWolfETDecals)( void );
 
 
 } refexport_t;

@@ -182,6 +182,12 @@ static void SV_Map_f( void ) {
 		}
 		return;
 	}
+	// Enemy Territory enables its single-player map commands only when its
+	// gameinfo.dat does, and retail's does not.
+	if ( singlePlayerCommand && Com_GameIsWolfET() && !SV_WolfETSinglePlayerEnabled() ) {
+		Com_Printf( "Single Player is not enabled.\n" );
+		return;
+	}
 	if ( Com_GameIsRTCWSP() && Q_stricmp(COM_GetExtension(map), "svg") == 0 ) {
 		if ( !fntech3::rtcw::savegame::Filename(map, saveFilename) ||
 			!SV_RTCWReadSaveHeader(saveFilename, saveHeader) ) return;
@@ -230,7 +236,11 @@ static void SV_Map_f( void ) {
 		if ( quakeLive ) {
 			SV_FactoryDeactivate();
 		}
-		Cvar_SetIntegerValue( "g_gametype", GT_SINGLE_PLAYER );
+		if ( Com_GameIsWolfET() ) {
+			Cvar_SetIntegerValue( "g_gametype", SV_WolfETDefaultSinglePlayerGameType() );
+		} else {
+			Cvar_SetIntegerValue( "g_gametype", GT_SINGLE_PLAYER );
+		}
 		Cvar_Set( "g_doWarmup", "0" );
 		// may not set sv_maxclients directly, always set latched
 		Cvar_SetLatched( "sv_maxclients", serverPolicy.singlePlayerCommandClients );
@@ -248,7 +258,11 @@ static void SV_Map_f( void ) {
 		} else {
 			cheat = false;
 		}
-		if( sv_gametype->integer == GT_SINGLE_PLAYER ) {
+		// Quake 3 turns its single-player game type into a free-for-all
+		// for an ordinary map command. Enemy Territory numbers its game
+		// types differently and changes none of them here: its game reloads
+		// a map in Objective, type 2, by this very command.
+		if( !Com_GameIsWolfET() && sv_gametype->integer == GT_SINGLE_PLAYER ) {
 			Cvar_SetIntegerValue( "g_gametype", GT_FFA );
 			killBots = true;
 		} else {
@@ -288,6 +302,13 @@ static void SV_Map_f( void ) {
 	if ( Com_GameIsRTCWMP() ) {
 		Cvar_SetIntegerValue("gamestate", FNTECH3_RTCW_MP_GS_INITIALIZE);
 		Cvar_Set("sv_serverRestarting", "0");
+	}
+	// Enemy Territory begins every map, including the one its game reloads
+	// by this command, from a fresh match state, round and time limit.
+	if ( Com_GameIsWolfET() ) {
+		Cvar_SetIntegerValue("gamestate", FNTECH3_RTCW_MP_GS_INITIALIZE);
+		Cvar_Set("g_currentRound", "0");
+		Cvar_Set("g_nextTimeLimit", "0");
 	}
 	SV_SpawnServer( mapname.data(), SV_QBool( killBots ) );
 
@@ -344,11 +365,11 @@ static void SV_MapRestart_f( void ) {
 	if ( Cmd_Argc() > 1 ) {
 		delay = SV_ParseInt( Cmd_Argv(1) );
 	} else {
-		delay = Com_GameIsRTCW() ? 0 : 5;
+		delay = Com_GameIsRTCW() || Com_GameIsWolfET() ? 0 : 5;
 	}
 	if ( Com_GameIsRTCWSP() && Cvar_VariableIntegerValue("savegame_loading") ) delay = 0;
 
-	if ( delay != 0 && ( Com_GameIsRTCWMP() || Cvar_VariableIntegerValue( "g_doWarmup" ) == 0 ) ) {
+	if ( delay != 0 && ( Com_GameIsRTCWMP() || Com_GameIsWolfET() || Cvar_VariableIntegerValue( "g_doWarmup" ) == 0 ) ) {
 		sv.restartTime = sv.time + delay * 1000;
 		if ( sv.restartTime == 0 ) {
 			sv.restartTime = 1;
@@ -363,6 +384,15 @@ static void SV_MapRestart_f( void ) {
 		const int requested = Cmd_Argc() > 2 ? SV_ParseInt(Cmd_Argv(2)) : FNTECH3_RTCW_MP_GS_PLAYING;
 		if ( !fntech3::rtcw::RestartMatchState(Cvar_VariableIntegerValue("gamestate"), requested,
 			Cvar_VariableIntegerValue("g_noTeamSwitching") != 0, nextState) ) return;
+		Cvar_SetIntegerValue("gamestate", nextState);
+	}
+	if ( Com_GameIsWolfET() ) {
+		const int gameType = sv_gametype->integer;
+		const bool solo = SV_GameTypeIsSinglePlayer( gameType ) || SV_WolfETGameTypeIsCoop( gameType );
+		const int requested = !solo && Cmd_Argc() > 2 ? SV_ParseInt(Cmd_Argv(2)) : FNTECH3_RTCW_MP_GS_PLAYING;
+		int nextState;
+		if ( !fntech3::rtcw::RestartMatchState(Cvar_VariableIntegerValue("gamestate"), requested,
+			false, nextState, !solo) ) return;
 		Cvar_SetIntegerValue("gamestate", nextState);
 	}
 
@@ -422,7 +452,7 @@ static void SV_MapRestart_f( void ) {
 	// make sure that level time is not zero
 	//sv.time = sv.time ? sv.time : 8;
 
-	if ( Com_GameIsRTCWMP() ) Cvar_Set("sv_serverRestarting", "1");
+	if ( Com_GameIsRTCWMP() || Com_GameIsWolfET() ) Cvar_Set("sv_serverRestarting", "1");
 	SV_RestartGameProgs();
 	// A saved SP level can rewind game time. Rebase the retained navigation
 	// clock and initialize the reloaded game's bot scheduler before cast
@@ -475,7 +505,7 @@ static void SV_MapRestart_f( void ) {
 	sv.time += 100;
 	VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );
 	svs.time += 100;
-	if ( Com_GameIsRTCWMP() ) Cvar_Set("sv_serverRestarting", "0");
+	if ( Com_GameIsRTCWMP() || Com_GameIsWolfET() ) Cvar_Set("sv_serverRestarting", "0");
 
 	// cycle per-match demo recordings: finalize the old demo and start a new one
 	if ( sv_autoRecordDemos && sv_autoRecordDemos->integer >= 3 ) {

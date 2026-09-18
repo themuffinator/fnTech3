@@ -547,6 +547,14 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	bool		isBot;
 	const char	*p;
 
+	// The original engines leave the command that started the map tokenized
+	// while the game module initialises, and Enemy Territory's game reads it
+	// back there: a map that opens no campaign is loaded again by that same
+	// command. Unloading the client and clearing its pure lists tokenize
+	// strings of their own, so the command is kept here and restored below.
+	char spawnCommand[BIG_INFO_STRING];
+	Q_strncpyz( spawnCommand, Cmd_Cmd(), sizeof( spawnCommand ) );
+
 	SV_PrepareRTCWCampaign();
 
 	// shut down the existing game if it is running
@@ -658,6 +666,9 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	srand( Com_Milliseconds() );
 	Com_RandomBytes( reinterpret_cast<byte *>( &sv.checksumFeed ), sizeof( sv.checksumFeed ) );
 	FS_Restart( sv.checksumFeed );
+	if ( Com_GameIsWolfET() ) {
+		SV_WolfETLoadGameInfo();
+	}
 
 	Sys_SetStatus( "Loading map %s", mapname );
 	CM_LoadMap( va( "maps/%s.bsp", mapname ), qfalse, &checksum );
@@ -687,6 +698,11 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	// load and spawn all other entities
 	if ( !SV_RTCWRestoreSaveTime() ) {
 		Com_Error(ERR_DROP, "Cannot restore RTCW save time");
+	}
+	Cmd_TokenizeString( spawnCommand );
+	// Enemy Territory's game is told when it starts inside a map load.
+	if ( Com_GameIsWolfET() ) {
+		Cvar_Set( "sv_serverRestarting", "1" );
 	}
 	SV_InitGameProgs();
 
@@ -834,6 +850,9 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	SV_SetConfigstring( CS_SERVERINFO, Cvar_InfoString( CVAR_SERVERINFO, nullptr ) );
 	cvar_modifiedFlags &= ~CVAR_SERVERINFO;
 	SV_UpdateRTCWCvarConfigstrings( qtrue );
+	if ( Com_GameIsWolfET() ) {
+		Cvar_Set( "sv_serverRestarting", "0" );
+	}
 
 	if ( Com_GameIsQuakeLive() ) {
 		// Retail native cgame prediction consumes these engine-owned cvar groups.

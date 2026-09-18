@@ -486,7 +486,8 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertEqual(len(stock_ql_maps.STOCK_QL_MAPS), 149)
         self.assertEqual(len(audio_destinations), 149)
         self.assertEqual(len(fog_destinations), 149)
-        self.assertEqual(len(required_destinations), 441)
+        # 441 before Enemy Territory added a zone file for each of its six maps.
+        self.assertEqual(len(required_destinations), 447)
         self.assertIn("pkg/games/quakelive/baseq3/maps/campgrounds.azb", sources)
         self.assertIn("games/quakelive/baseq3/maps/campgrounds.azb", audio_destinations)
         self.assertIn("games/quakelive/baseq3/maps/campgrounds.fog", fog_destinations)
@@ -526,6 +527,12 @@ class ReleasePackagingTests(unittest.TestCase):
                 {f"games/{profile}/main/maps/{name}.azb" for name in names}
                 | {f"games/{profile}/main/fntech3-hud.json"},
             )
+        # Enemy Territory ships a zone file for each of its six official maps.
+        self.assertEqual(
+            {name for name in packaged if name.startswith("games/wolfet/")},
+            {f"games/wolfet/etmain/maps/{name}.azb" for name in root_archive.STOCK_WOLFET_MAPS},
+        )
+        self.assertEqual(len(root_archive.STOCK_WOLFET_MAPS), 6)
         self.assertNotIn("games/quakelive/baseq3/fnql-hud.json", packaged)
 
     def test_meson_root_archive_inputs_include_non_map_pkg_assets(self) -> None:
@@ -540,6 +547,8 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertIn("files('scripts/stock_q3_assets.py')", meson_build)
         self.assertIn("files('pkg/games/quake3/' + asset)", meson_build)
         self.assertIn("files('scripts/stock_rtcw_maps.py')", meson_build)
+        self.assertIn("files('scripts/stock_wolfet_maps.py')", meson_build)
+        self.assertIn("'scripts/stock_wolfet_maps.py',", meson_build)
         for profile in ("rtcw-sp", "rtcw-mp"):
             self.assertIn(f"'pkg/games/{profile}/main/fntech3-hud.json'", meson_build)
         self.assertNotIn("pkg/missionpack/", meson_build)

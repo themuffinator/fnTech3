@@ -203,7 +203,7 @@ void SV_GetChallenge( const netadr_t *from, const msg_t *msg ) {
 
 	// ignore if we are in single player
 #ifndef DEDICATED
-	if ( Cvar_VariableIntegerValue( "g_gametype" ) == GT_SINGLE_PLAYER || Cvar_VariableIntegerValue("ui_singlePlayerActive")) {
+	if ( SV_GameTypeIsSinglePlayer( Cvar_VariableIntegerValue( "g_gametype" ) ) || Cvar_VariableIntegerValue("ui_singlePlayerActive")) {
 		return;
 	}
 #endif

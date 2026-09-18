@@ -5079,16 +5079,19 @@ static void CL_InitRenderer( void ) {
 	retailWindowedHeightModificationCount = r_windowedHeight->modificationCount;
 	retailStereoModificationCount = r_stereo->modificationCount;
 
-	// load character sets
-	cls.charSetShader = re.RegisterShader( "gfx/2d/bigchars" );
-	cls.recordShader = re.RegisterShaderNoMip( "icons/record" );
+	// load character sets. Enemy Territory ships its own console art under
+	// names of its own: a font sheet for the console, a cloud background and
+	// its UI's cursor. It has no recording icon, so none is registered.
+	const bool wolfet = Com_GameIsWolfET() != 0;
+	cls.charSetShader = re.RegisterShader( wolfet ? "gfx/2d/consolechars" : "gfx/2d/bigchars" );
+	cls.recordShader = wolfet ? 0 : re.RegisterShaderNoMip( "icons/record" );
 	cls.whiteShader = re.RegisterShader( "white" );
 	// Q3 owns the stock "console" shader. QL's pak00 contains duplicate
 	// definitions with that name, including one referencing absent Q3 images;
 	// only QL needs the uniquely named sidecar alias for its retail variant.
-	cls.consoleShader = re.RegisterShader(
+	cls.consoleShader = re.RegisterShader( wolfet ? "console-16bit" :
 		Com_GameProfile()->id == COM_GAME_QUAKELIVE ? "fnql/console" : "console" );
-	cls.cursorShader = re.RegisterShaderNoMip( "menu/art/3_cursor2" );
+	cls.cursorShader = re.RegisterShaderNoMip( wolfet ? "ui/assets/3_cursor3" : "menu/art/3_cursor2" );
 
 	// Rebuild every client-owned canvas from the renderer's actual drawable
 	// dimensions. This must precede console reflow: centred console extents use
@@ -5737,15 +5740,18 @@ static bool isValidRenderer( const char *s ) {
 
 static void CL_InitGLimp_Cvars( void )
 {
-	const bool hadRetailVideoBridgeMarker = !retailVideoCvarsInitialized
-		&& Cvar_VariableString( "r_qlRetailVideoBridge" )[0];
-	const bool hadRetailVideoConfig = !retailVideoCvarsInitialized
-		&& !hadRetailVideoBridgeMarker
-		&& ( Cvar_VariableString( "r_windowedMode" )[0]
-			|| Cvar_VariableString( "r_windowedWidth" )[0]
-			|| Cvar_VariableString( "r_windowedHeight" )[0]
-			|| Cvar_VariableString( "r_stereo" )[0]
-			|| Cvar_VariableString( "r_ext_gamma_control" )[0] );
+	// Only Quake Live's configs select the retail video cvars; see
+	// UsesRetailVideoConfig. The other profiles keep r_mode, r_ignorehwgamma
+	// and r_stereoEnabled as configured.
+	fnql::client::cvars::RetailVideoConfigInputs retailVideo;
+	retailVideo.quakeLive = Com_GameIsQuakeLive() != 0;
+	retailVideo.initialized = retailVideoCvarsInitialized;
+	retailVideo.hadOwnershipMarker = Cvar_VariableString( "r_qlRetailVideoBridge" )[0] != '\0';
+	retailVideo.hadRetailVideoCvars = Cvar_VariableString( "r_windowedMode" )[0]
+		|| Cvar_VariableString( "r_windowedWidth" )[0]
+		|| Cvar_VariableString( "r_windowedHeight" )[0]
+		|| Cvar_VariableString( "r_stereo" )[0]
+		|| Cvar_VariableString( "r_ext_gamma_control" )[0];
 	bool useRetailVideoConfig;
 
 	r_aspectRatio = Cvar_Get( "r_aspectRatio", "0", CVAR_ARCHIVE | CVAR_LATCH | CVAR_CLOUD );
@@ -5762,12 +5768,16 @@ static void CL_InitGLimp_Cvars( void )
 	Cvar_SetDescription( r_windowedHeight, "Retail custom window height used by r_windowedMode -1." );
 	r_stereo = Cvar_Get( "r_stereo", "0", CVAR_ARCHIVE | CVAR_LATCH );
 	Cvar_CheckRange( r_stereo, "0", "1", CV_INTEGER );
-	Cvar_SetDescription( r_stereo, "Retail stereo pixel-format selector, bridged to r_stereoEnabled." );
+	Cvar_SetDescription( r_stereo, retailVideo.quakeLive
+		? "Retail stereo pixel-format selector, bridged to r_stereoEnabled."
+		: "Retail stereo pixel-format status, published from r_stereoEnabled." );
 	r_noFastRestart = Cvar_Get( "r_noFastRestart", "0", CVAR_ARCHIVE );
 	Cvar_CheckRange( r_noFastRestart, "0", "1", CV_INTEGER );
 	Cvar_SetDescription( r_noFastRestart, "Force vid_restart fast/keep_window to perform a complete video restart." );
 	r_ext_gamma_control = Cvar_Get( "r_ext_gamma_control", "1", CVAR_ARCHIVE | CVAR_LATCH | CVAR_CLOUD );
-	Cvar_SetDescription( r_ext_gamma_control, "Permit platform hardware gamma control; bridged to r_ignoreHWGamma." );
+	Cvar_SetDescription( r_ext_gamma_control, retailVideo.quakeLive
+		? "Permit platform hardware gamma control; bridged to r_ignoreHWGamma."
+		: "Retail 3Dfx gamma extension switch, kept for configs; r_ignorehwgamma gates hardware gamma." );
 	r_gl_vendor = Cvar_Get( "r_gl_vendor", "", CVAR_ROM | CVAR_PROTECTED );
 	Cvar_SetDescription( r_gl_vendor, "Active renderer vendor string." );
 	r_gl_renderer = Cvar_Get( "r_gl_renderer", "", CVAR_ROM | CVAR_PROTECTED );
@@ -5776,16 +5786,22 @@ static void CL_InitGLimp_Cvars( void )
 	Cvar_SetDescription( r_gl_reserved, "Retail occlusion-query status; zero when no common renderer capability is published." );
 	r_lastValidRenderer = Cvar_Get( "r_lastValidRenderer", "", CVAR_ARCHIVE );
 	Cvar_SetDescription( r_lastValidRenderer, "Last renderer device string that initialized successfully." );
-	r_qlRetailVideoBridge = Cvar_Get( "r_qlRetailVideoBridge", "0", CVAR_ARCHIVE | CVAR_PROTECTED );
-	Cvar_SetDescription( r_qlRetailVideoBridge, "Internal ownership marker for retail video compatibility controls." );
+	// The marker records Quake Live's ownership. Other profiles never register
+	// it, which also keeps CL_UpdateRetailVideoBridgeOwnership from claiming
+	// the retail cvars for them.
+	if ( retailVideo.quakeLive ) {
+		r_qlRetailVideoBridge = Cvar_Get( "r_qlRetailVideoBridge", "0", CVAR_ARCHIVE | CVAR_PROTECTED );
+		Cvar_SetDescription( r_qlRetailVideoBridge, "Internal ownership marker for retail video compatibility controls." );
+		retailVideo.ownershipMarked = r_qlRetailVideoBridge->integer != 0;
+	}
 
-	useRetailVideoConfig = hadRetailVideoConfig || r_qlRetailVideoBridge->integer
-		|| ( retailVideoCvarsInitialized
-			&& ( r_windowedMode->modificationCount != retailWindowedModeModificationCount
-				|| r_windowedWidth->modificationCount != retailWindowedWidthModificationCount
-				|| r_windowedHeight->modificationCount != retailWindowedHeightModificationCount
-				|| r_stereo->modificationCount != retailStereoModificationCount
-				|| r_ext_gamma_control->modificationCount != retailGammaModificationCount ) );
+	retailVideo.retailVideoCvarsChanged =
+		r_windowedMode->modificationCount != retailWindowedModeModificationCount
+		|| r_windowedWidth->modificationCount != retailWindowedWidthModificationCount
+		|| r_windowedHeight->modificationCount != retailWindowedHeightModificationCount
+		|| r_stereo->modificationCount != retailStereoModificationCount
+		|| r_ext_gamma_control->modificationCount != retailGammaModificationCount;
+	useRetailVideoConfig = fnql::client::cvars::UsesRetailVideoConfig( retailVideo );
 	if ( useRetailVideoConfig ) {
 		Cvar_Set2( "r_qlRetailVideoBridge", "1", qtrue );
 		Cvar_Set( "r_stereoEnabled", r_stereo->string );

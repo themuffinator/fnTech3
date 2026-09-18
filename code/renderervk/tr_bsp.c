@@ -568,6 +568,9 @@ static void R_LoadLightmaps( const lump_t *l ) {
 }
 
 
+#include "../renderercommon/tr_wolfet_lightmap_load.h"
+
+
 /*
 =================
 RE_SetWorldVisData
@@ -2028,6 +2031,7 @@ static void ParseFace( const dsurface_t *ds, const drawVert_t *verts, msurface_t
 	int			lightmapNum;
 	float		lightmapX, lightmapY;
 	int			sfaceSize, ofsIndexes;
+	int			maxPoints;
 	//static const int idx_pattern[] = {2, 3, 4, 3, 5, 4};
 	//static const int idx_pattern2[] = {5, 4, 3, 2, 3, 4};
 
@@ -2048,9 +2052,13 @@ static void ParseFace( const dsurface_t *ds, const drawVert_t *verts, msurface_t
 	surf->shader = ShaderForShaderNum( LittleLong( ds->shaderNum ), lightmapNum );
 
 	numPoints = LittleLong( ds->numVerts );
-	if (numPoints > MAX_FACE_POINTS) {
+	// Enemy Territory draws a planar surface of any size its compiler
+	// wrote, bounded only by what one batch holds; the other profiles keep
+	// Quake 3's cap.
+	maxPoints = ri.gameId == COM_GAME_WOLFET ? SHADER_MAX_VERTEXES : MAX_FACE_POINTS;
+	if (numPoints > maxPoints) {
 		ri.Printf( PRINT_WARNING, "WARNING: MAX_FACE_POINTS exceeded: %i\n", numPoints);
-		numPoints = MAX_FACE_POINTS;
+		numPoints = maxPoints;
 		surf->shader = tr.defaultShader;
 	}
 
@@ -2239,8 +2247,10 @@ static void ParseTriSurf( const dsurface_t *ds, const drawVert_t *verts, msurfac
 	tr.lightmapOffset[0] = lightmapX;
 	tr.lightmapOffset[1] = lightmapY;
 
-	// get shader
-	surf->shader = ShaderForShaderNum( LittleLong( ds->shaderNum ), LIGHTMAP_BY_VERTEX );
+	// get shader; Enemy Territory lights a triangle surface with its own
+	// lightmap when its compiler gave it one
+	surf->shader = ShaderForShaderNum( LittleLong( ds->shaderNum ),
+		ri.gameId == COM_GAME_WOLFET ? lightmapNum : LIGHTMAP_BY_VERTEX );
 
 	numVerts = LittleLong( ds->numVerts );
 	numIndexes = LittleLong( ds->numIndexes );
@@ -3028,6 +3038,8 @@ static void R_MovePatchSurfacesToHunk( void ) {
 }
 
 
+#include "../renderercommon/tr_wolfet_foliage_parse.h"
+
 /*
 ===============
 R_LoadSurfaces
@@ -3039,13 +3051,14 @@ static void R_LoadSurfaces( const lump_t *surfs, const lump_t *verts, const lump
 	const drawVert_t *dv;
 	int			*indexes;
 	int			count;
-	int			numFaces, numMeshes, numTriSurfs, numFlares;
+	int			numFaces, numMeshes, numTriSurfs, numFlares, numFoliage;
 	int			i;
 
 	numFaces = 0;
 	numMeshes = 0;
 	numTriSurfs = 0;
 	numFlares = 0;
+	numFoliage = 0;
 
 	in = (void *)(fileBase + surfs->fileofs);
 	if (surfs->filelen % sizeof(*in))
@@ -3083,6 +3096,15 @@ static void R_LoadSurfaces( const lump_t *surfs, const lump_t *verts, const lump
 			ParseFlare( in, dv, out, indexes );
 			numFlares++;
 			break;
+		case MST_FOLIAGE:
+			// Only Enemy Territory's maps carry foliage.
+			if ( ri.gameId != COM_GAME_WOLFET ) {
+				ri.Error( ERR_DROP, "Bad surfaceType %i", LittleLong( in->surfaceType ) );
+			}
+			ParseWolfETFoliage( in, dv, verts->filelen / (int)sizeof( *dv ), out,
+				indexes, indexLump->filelen / (int)sizeof( *indexes ) );
+			numFoliage++;
+			break;
 		default:
 			ri.Error( ERR_DROP, "Bad surfaceType %i", LittleLong( in->surfaceType ) );
 		}
@@ -3100,6 +3122,9 @@ static void R_LoadSurfaces( const lump_t *surfs, const lump_t *verts, const lump
 
 	ri.Printf( PRINT_ALL, "...loaded %d faces, %i meshes, %i trisurfs, %i flares\n", 
 		numFaces, numMeshes, numTriSurfs, numFlares );
+	if ( numFoliage ) {
+		ri.Printf( PRINT_ALL, "...loaded %i foliage surfaces\n", numFoliage );
+	}
 }
 
 
@@ -3141,6 +3166,13 @@ static void R_LoadSubmodels( const lump_t *l ) {
 
 		out->firstSurface = s_worldData.surfaces + LittleLong( in->firstSurface );
 		out->numSurfaces = LittleLong( in->numSurfaces );
+
+		// Enemy Territory keeps 1024 decals on the world and 128 on every
+		// other brush model.
+		if ( ri.gameId == COM_GAME_WOLFET ) {
+			out->numWolfETDecals = i == 0 ? FN_WOLFET_MAX_WORLD_DECALS : FN_WOLFET_MAX_ENTITY_DECALS;
+			out->wolfetDecals = ri.Hunk_Alloc( out->numWolfETDecals * sizeof( *out->wolfetDecals ), h_low );
+		}
 	}
 }
 
@@ -3792,7 +3824,7 @@ void RE_LoadWorldMap( const char *name ) {
 	// set default sun direction to be used if it isn't overridden by a shader
 	R_ClearWorldSun();
 	Com_Memset( &tr.rtcwWorld, 0, sizeof( tr.rtcwWorld ) );
-	if ( ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP ) tr.sunShader = NULL;
+	if ( ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP || ri.gameId == COM_GAME_WOLFET ) tr.sunShader = NULL;
 	R_ClearStaticMapLights();
 	R_ClearSurfaceLightProxies();
 
@@ -3882,6 +3914,10 @@ void RE_LoadWorldMap( const char *name ) {
 
 	// load into heap
 	R_LoadLightmaps( &header->lumps[LUMP_LIGHTMAPS] );
+	// as for a map's own lightmaps, vertex lighting needs none
+	if ( !r_vertexLight->integer && glConfig.hardwareType != GLHW_PERMEDIA2 ) {
+		R_LoadWolfETExternalLightmaps( &header->lumps[LUMP_SURFACES] );
+	}
 	R_PreLoadFogs( &header->lumps[LUMP_FOGS] );
 	R_LoadShaders( &header->lumps[LUMP_SHADERS] );
 	R_LoadPlanes( &header->lumps[LUMP_PLANES] );

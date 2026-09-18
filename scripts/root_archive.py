@@ -9,12 +9,13 @@ from fntech3_meta import ROOT
 from stock_q3_assets import Q3_PACKAGE_ASSETS
 from stock_ql_maps import STOCK_QL_MAPS
 from stock_rtcw_maps import STOCK_RTCW_MAPS
+from stock_wolfet_maps import STOCK_WOLFET_MAPS
 
 
 ROOT_ARCHIVE_NAME = "fntech3-pkg.fnz"
 PKG_ROOT = ROOT / "pkg"
 # Canonical Com_GameProfile()->key values, never startup aliases or title IDs.
-GAME_PROFILES = ("quake3", "quakelive", "rtcw-sp", "rtcw-mp")
+GAME_PROFILES = ("quake3", "quakelive", "rtcw-sp", "rtcw-mp", "wolfet")
 # These paths are relative to games/<canonical profile>/. A title can have
 # multiple game directories (for example quake3/baseq3 and quake3/missionpack).
 PROFILE_REQUIRED_ASSETS = {
@@ -32,6 +33,7 @@ PROFILE_REQUIRED_ASSETS = {
         )
         for profile, names in STOCK_RTCW_MAPS.items()
     },
+    "wolfet": tuple(f"etmain/maps/{name}.azb" for name in STOCK_WOLFET_MAPS),
 }
 DEFAULT_ROOT_ARCHIVE_REQUIRED_ASSETS = [
     (PKG_ROOT / "games" / profile / name, Path("games") / profile / name)

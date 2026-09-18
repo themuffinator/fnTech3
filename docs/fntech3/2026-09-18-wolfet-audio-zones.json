@@ -1,0 +1,620 @@
+{
+ "date": "2026-09-18",
+ "commit": "d389928fc9bea50645580b4f4e4250e903b8f219",
+ "workingTree": "dirty; includes this change and unrelated ongoing work",
+ "platform": "Windows x86",
+ "installation": "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory",
+ "tool": "meson/build/win32-dev/fnql-audiozonesc.exe",
+ "toolSha256": "fc2ba5f58fe6005d92dced308544cedfd8345c1f81397dbf4ce4984798e35669",
+ "samplesPerMap": 32768,
+ "maxZonesPerMap": 512,
+ "strictAudit": false,
+ "summary": {
+  "auditFailed": 0,
+  "generateFailed": 0,
+  "generated": 0,
+  "overrides": 0,
+  "passed": 6,
+  "planned": 0,
+  "total": 6,
+  "warnings": 8
+ },
+ "generationCommand": "python scripts/generate_stock_wolfet_audio_zones.py \"E:/SteamLibrary/steamapps/common/Wolfenstein Enemy Territory\" --tool meson/build/win32-dev/fnql-audiozonesc.exe",
+ "sourceFiles": {
+  "code/tools/audiozones/audiozonesc.cpp": "2441e1cc49c4c2431aa3acfa8ea4a0eed104f586499ad6b4a28d9189e81da8c9",
+  "code/client/audio/shared/AudioZoneFormat.h": "d2ed8dd35fba7c25a5ef7f3c9387f0149ca1d3b66a181264872d48bba707354f",
+  "code/client/audio/shared/AudioZoneRuntime.h": "18b435a4885bd2d4881214589a02c87157ab18ce207a47ead647708e8760a495",
+  "scripts/generate_stock_wolfet_audio_zones.py": "620228343a36b681594d5bee828126a18ce1dd1b1209c16dd169763e1c9028e3",
+  "scripts/stock_wolfet_maps.py": "935c53f2ee68ae3781f7e1d8e2cddc5cc4cfa54997d7e602adbcceee08cafe61"
+ },
+ "packages": {
+  "pak0.pk3": {
+   "bytes": 228138631,
+   "sha256": "712966b20e06523fe81419516500e499c86b2b4fec823856ddbd333fcb3d26e5"
+  }
+ },
+ "maps": [
+  {
+   "map": "battery",
+   "profile": "wolfet",
+   "output": "wolfet/etmain/maps/battery.azb",
+   "pak": "pak0.pk3",
+   "entry": "maps/battery.bsp",
+   "bspBytes": 13059256,
+   "bspCrc32": "b34cdd14",
+   "bspSha256": "db40ccc2cbd5fe1d96af305674c8aaba652883efb868139b6f0e182959952506",
+   "azbBytes": 70184,
+   "azbSha256": "1d822a838df18b1f151f41b755f2177f06653abfb657854457dd43014fdccb18",
+   "audit": {
+    "bytes": 70184,
+    "confidence": {
+     "anomaly": 0.349,
+     "grade": "good",
+     "lookup": 0.241,
+     "material": 0.973,
+     "overall": 0.802,
+     "overlap": 1.0,
+     "portal": 1.0
+    },
+    "flags": {
+     "generated": 255,
+     "outdoor": 42,
+     "underwater": 16
+    },
+    "lookup": {
+     "avgBlend": 0.449,
+     "checksum": 16041152333387947078,
+     "coverage": 0.983,
+     "elapsedMs": 9.91,
+     "hits": 32221,
+     "nsPerSample": 302.42,
+     "portalBlends": 8949,
+     "samples": 32768,
+     "specificHits": 7753
+    },
+    "materials": {
+     "liquid": 16,
+     "metal": 143,
+     "neutral": 14,
+     "sky": 13,
+     "soft": 38,
+     "stone": 31
+    },
+    "overlaps": {
+     "equalPriority": 0,
+     "total": 440
+    },
+    "portalCurves": {
+     "ease-in": 66,
+     "ease-out": 772,
+     "smooth": 238
+    },
+    "portalTuning": {
+     "distanceAvg": 260.021,
+     "distanceMax": 512.0,
+     "distanceMin": 64.0,
+     "maxBlendAvg": 0.479,
+     "maxBlendMax": 0.55,
+     "maxBlendMin": 0.168
+    },
+    "portals": {
+     "maxPerZone": 16,
+     "oneWay": 0,
+     "opennessAvg": 0.821,
+     "opennessMax": 1.0,
+     "opennessMin": 0.045,
+     "self": 0,
+     "total": 1076
+    },
+    "presets": {
+     "hall": 22,
+     "hallway": 29,
+     "outdoors": 37,
+     "room": 5,
+     "small-room": 121,
+     "stone-room": 25,
+     "underwater": 16
+    },
+    "summedVolume": 834840363008.0,
+    "version": 3,
+    "warnings": [
+     "zones cover more than half of the sidecar bounds; generated volumes may have collapsed",
+     "most lookups resolve to map-scale zones instead of specific volumes"
+    ],
+    "zones": 255
+   },
+   "status": "passed"
+  },
+  {
+   "map": "fueldump",
+   "profile": "wolfet",
+   "output": "wolfet/etmain/maps/fueldump.azb",
+   "pak": "pak0.pk3",
+   "entry": "maps/fueldump.bsp",
+   "bspBytes": 15758196,
+   "bspCrc32": "2ffa73e5",
+   "bspSha256": "049ee883778d06b5264eaeac9243c43dff0c5fedb73662d681464047be33f198",
+   "azbBytes": 107827,
+   "azbSha256": "efb06d45132474813a6216bd72bf7e27276cbc21a7ca0e0c41c1a79a58d2dab5",
+   "audit": {
+    "bytes": 107827,
+    "confidence": {
+     "anomaly": 0.1,
+     "grade": "good",
+     "lookup": 0.56,
+     "material": 0.922,
+     "overall": 0.867,
+     "overlap": 1.0,
+     "portal": 1.0
+    },
+    "flags": {
+     "generated": 417,
+     "outdoor": 27,
+     "underwater": 0
+    },
+    "lookup": {
+     "avgBlend": 0.452,
+     "checksum": 9918048272813916539,
+     "coverage": 0.804,
+     "elapsedMs": 18.458,
+     "hits": 26352,
+     "nsPerSample": 563.293,
+     "portalBlends": 15245,
+     "samples": 32768,
+     "specificHits": 14751
+    },
+    "materials": {
+     "metal": 103,
+     "neutral": 65,
+     "sky": 1,
+     "soft": 229,
+     "stone": 19
+    },
+    "overlaps": {
+     "equalPriority": 0,
+     "total": 667
+    },
+    "portalCurves": {
+     "ease-in": 188,
+     "ease-out": 1000,
+     "smooth": 424
+    },
+    "portalTuning": {
+     "distanceAvg": 208.152,
+     "distanceMax": 512.0,
+     "distanceMin": 64.0,
+     "maxBlendAvg": 0.452,
+     "maxBlendMax": 0.55,
+     "maxBlendMin": 0.169
+    },
+    "portals": {
+     "maxPerZone": 16,
+     "oneWay": 0,
+     "opennessAvg": 0.754,
+     "opennessMax": 1.0,
+     "opennessMin": 0.048,
+     "self": 0,
+     "total": 1612
+    },
+    "presets": {
+     "hall": 48,
+     "hallway": 68,
+     "outdoors": 27,
+     "room": 58,
+     "small-room": 191,
+     "stone-room": 25
+    },
+    "summedVolume": 210076893184.0,
+    "version": 3,
+    "warnings": [
+     "most lookups resolve to map-scale zones instead of specific volumes"
+    ],
+    "zones": 417
+   },
+   "status": "passed"
+  },
+  {
+   "map": "goldrush",
+   "profile": "wolfet",
+   "output": "wolfet/etmain/maps/goldrush.azb",
+   "pak": "pak0.pk3",
+   "entry": "maps/goldrush.bsp",
+   "bspBytes": 14757996,
+   "bspCrc32": "7ebac2f4",
+   "bspSha256": "7d4cfe7b5c54e68588213ce1bef90c2c565a35e436c8371c04550ef043d7910d",
+   "azbBytes": 99883,
+   "azbSha256": "8c4f22fda948661525e6530a334a9c8bd9004860ae22cc9f8d27b5e738f42766",
+   "audit": {
+    "bytes": 99883,
+    "confidence": {
+     "anomaly": 0.137,
+     "grade": "good",
+     "lookup": 0.427,
+     "material": 0.868,
+     "overall": 0.817,
+     "overlap": 1.0,
+     "portal": 1.0
+    },
+    "flags": {
+     "generated": 512,
+     "outdoor": 43,
+     "underwater": 0
+    },
+    "lookup": {
+     "avgBlend": 0.437,
+     "checksum": 18230972482540396210,
+     "coverage": 0.647,
+     "elapsedMs": 31.84,
+     "hits": 21189,
+     "nsPerSample": 971.664,
+     "portalBlends": 12135,
+     "samples": 32768,
+     "specificHits": 9044
+    },
+    "materials": {
+     "metal": 22,
+     "neutral": 135,
+     "sky": 32,
+     "soft": 279,
+     "stone": 44
+    },
+    "overlaps": {
+     "equalPriority": 0,
+     "total": 883
+    },
+    "portalCurves": {
+     "ease-in": 110,
+     "ease-out": 872,
+     "smooth": 266
+    },
+    "portalTuning": {
+     "distanceAvg": 195.368,
+     "distanceMax": 512.0,
+     "distanceMin": 64.0,
+     "maxBlendAvg": 0.468,
+     "maxBlendMax": 0.55,
+     "maxBlendMin": 0.168
+    },
+    "portals": {
+     "maxPerZone": 16,
+     "oneWay": 0,
+     "opennessAvg": 0.796,
+     "opennessMax": 1.0,
+     "opennessMin": 0.045,
+     "self": 0,
+     "total": 1248
+    },
+    "presets": {
+     "hall": 27,
+     "hallway": 55,
+     "outdoors": 36,
+     "room": 54,
+     "small-room": 334,
+     "stone-room": 6
+    },
+    "summedVolume": 75715919872.0,
+    "version": 3,
+    "warnings": [
+     "most lookups resolve to map-scale zones instead of specific volumes"
+    ],
+    "zones": 512
+   },
+   "status": "passed"
+  },
+  {
+   "map": "oasis",
+   "profile": "wolfet",
+   "output": "wolfet/etmain/maps/oasis.azb",
+   "pak": "pak0.pk3",
+   "entry": "maps/oasis.bsp",
+   "bspBytes": 15962208,
+   "bspCrc32": "758f1525",
+   "bspSha256": "1dd00722ab9da83dbd2eb397a01478333c02bb473fd3d9e9447a0a9e2a988da3",
+   "azbBytes": 115447,
+   "azbSha256": "3c0d0e9e72e65d925322fb8e3c13defbcc52a71159172bf0aaeb7a1b2d6d2117",
+   "audit": {
+    "bytes": 115447,
+    "confidence": {
+     "anomaly": 0.164,
+     "grade": "good",
+     "lookup": 0.351,
+     "material": 0.813,
+     "overall": 0.782,
+     "overlap": 1.0,
+     "portal": 1.0
+    },
+    "flags": {
+     "generated": 512,
+     "outdoor": 13,
+     "underwater": 0
+    },
+    "lookup": {
+     "avgBlend": 0.464,
+     "checksum": 13054138355705907532,
+     "coverage": 0.626,
+     "elapsedMs": 21.905,
+     "hits": 20499,
+     "nsPerSample": 668.475,
+     "portalBlends": 8346,
+     "samples": 32768,
+     "specificHits": 7198
+    },
+    "materials": {
+     "metal": 19,
+     "neutral": 191,
+     "sky": 5,
+     "soft": 286,
+     "stone": 11
+    },
+    "overlaps": {
+     "equalPriority": 0,
+     "total": 1220
+    },
+    "portalCurves": {
+     "ease-in": 166,
+     "ease-out": 962,
+     "smooth": 468
+    },
+    "portalTuning": {
+     "distanceAvg": 174.756,
+     "distanceMax": 512.0,
+     "distanceMin": 64.0,
+     "maxBlendAvg": 0.449,
+     "maxBlendMax": 0.55,
+     "maxBlendMin": 0.167
+    },
+    "portals": {
+     "maxPerZone": 16,
+     "oneWay": 0,
+     "opennessAvg": 0.747,
+     "opennessMax": 1.0,
+     "opennessMin": 0.043,
+     "self": 0,
+     "total": 1596
+    },
+    "presets": {
+     "hall": 38,
+     "hallway": 41,
+     "outdoors": 12,
+     "room": 74,
+     "small-room": 341,
+     "stone-room": 6
+    },
+    "summedVolume": 160539197440.0,
+    "version": 3,
+    "warnings": [
+     "most lookups resolve to map-scale zones instead of specific volumes"
+    ],
+    "zones": 512
+   },
+   "status": "passed"
+  },
+  {
+   "map": "radar",
+   "profile": "wolfet",
+   "output": "wolfet/etmain/maps/radar.azb",
+   "pak": "pak0.pk3",
+   "entry": "maps/radar.bsp",
+   "bspBytes": 15574232,
+   "bspCrc32": "5cdfdfda",
+   "bspSha256": "0c0c505b6c36397902871a23ed12d9034723e53ebb2e9b7234c3ab46dc53db1b",
+   "azbBytes": 64512,
+   "azbSha256": "cd2a3a15714848c1f2cce1491a81285928740cda507505596d6c513fa934e75d",
+   "audit": {
+    "bytes": 64512,
+    "confidence": {
+     "anomaly": 0.125,
+     "grade": "good",
+     "lookup": 0.387,
+     "material": 0.956,
+     "overall": 0.834,
+     "overlap": 1.0,
+     "portal": 1.0
+    },
+    "flags": {
+     "generated": 318,
+     "outdoor": 34,
+     "underwater": 0
+    },
+    "lookup": {
+     "avgBlend": 0.432,
+     "checksum": 5860437341139574684,
+     "coverage": 0.596,
+     "elapsedMs": 13.347,
+     "hits": 19532,
+     "nsPerSample": 407.306,
+     "portalBlends": 5837,
+     "samples": 32768,
+     "specificHits": 7561
+    },
+    "materials": {
+     "metal": 37,
+     "neutral": 28,
+     "sky": 13,
+     "soft": 233,
+     "stone": 7
+    },
+    "overlaps": {
+     "equalPriority": 0,
+     "total": 480
+    },
+    "portalCurves": {
+     "ease-in": 62,
+     "ease-out": 584,
+     "smooth": 186
+    },
+    "portalTuning": {
+     "distanceAvg": 201.639,
+     "distanceMax": 512.0,
+     "distanceMin": 64.0,
+     "maxBlendAvg": 0.474,
+     "maxBlendMax": 0.55,
+     "maxBlendMin": 0.167
+    },
+    "portals": {
+     "maxPerZone": 16,
+     "oneWay": 0,
+     "opennessAvg": 0.81,
+     "opennessMax": 1.0,
+     "opennessMin": 0.042,
+     "self": 0,
+     "total": 832
+    },
+    "presets": {
+     "hall": 15,
+     "hallway": 56,
+     "outdoors": 33,
+     "room": 29,
+     "small-room": 177,
+     "stone-room": 8
+    },
+    "summedVolume": 212864466944.0,
+    "version": 3,
+    "warnings": [
+     "most lookups resolve to map-scale zones instead of specific volumes"
+    ],
+    "zones": 318
+   },
+   "status": "passed"
+  },
+  {
+   "map": "railgun",
+   "profile": "wolfet",
+   "output": "wolfet/etmain/maps/railgun.azb",
+   "pak": "pak0.pk3",
+   "entry": "maps/railgun.bsp",
+   "bspBytes": 15541084,
+   "bspCrc32": "187b7a34",
+   "bspSha256": "f520aab2579a2f1f814aeb4c61913f8b2a1f6fe117812f888e5a449b6b685b09",
+   "azbBytes": 32963,
+   "azbSha256": "03eee1a998a337c8bccb11305bff11a61eb0e77da83a10ec5beb9a69566c50c5",
+   "audit": {
+    "bytes": 32963,
+    "confidence": {
+     "anomaly": 0.387,
+     "grade": "good",
+     "lookup": 0.102,
+     "material": 0.918,
+     "overall": 0.751,
+     "overlap": 1.0,
+     "portal": 1.0
+    },
+    "flags": {
+     "generated": 141,
+     "outdoor": 28,
+     "underwater": 0
+    },
+    "lookup": {
+     "avgBlend": 0.469,
+     "checksum": 9473795326417074791,
+     "coverage": 1.0,
+     "elapsedMs": 8.548,
+     "hits": 32768,
+     "nsPerSample": 260.858,
+     "portalBlends": 13786,
+     "samples": 32768,
+     "specificHits": 3350
+    },
+    "materials": {
+     "metal": 27,
+     "neutral": 23,
+     "sky": 3,
+     "soft": 81,
+     "stone": 7
+    },
+    "overlaps": {
+     "equalPriority": 0,
+     "total": 255
+    },
+    "portalCurves": {
+     "ease-in": 38,
+     "ease-out": 318,
+     "smooth": 112
+    },
+    "portalTuning": {
+     "distanceAvg": 206.083,
+     "distanceMax": 512.0,
+     "distanceMin": 64.0,
+     "maxBlendAvg": 0.463,
+     "maxBlendMax": 0.55,
+     "maxBlendMin": 0.172
+    },
+    "portals": {
+     "maxPerZone": 16,
+     "oneWay": 0,
+     "opennessAvg": 0.783,
+     "opennessMax": 1.0,
+     "opennessMin": 0.056,
+     "self": 0,
+     "total": 468
+    },
+    "presets": {
+     "hall": 15,
+     "hallway": 12,
+     "outdoors": 28,
+     "room": 14,
+     "small-room": 58,
+     "stone-room": 14
+    },
+    "summedVolume": 112977223680.0,
+    "version": 3,
+    "warnings": [
+     "zones cover more than half of the sidecar bounds; generated volumes may have collapsed",
+     "most lookups resolve to map-scale zones instead of specific volumes"
+    ],
+    "zones": 141
+   },
+   "status": "passed"
+  }
+ ],
+ "totalSidecarBytes": 490816,
+ "totalZones": 2155,
+ "mapsWithWarnings": 6,
+ "warnings": {
+  "most lookups resolve to map-scale zones instead of specific volumes": 6,
+  "zones cover more than half of the sidecar bounds; generated volumes may have collapsed": 2
+ },
+ "reproducibility": {
+  "runs": 2,
+  "byteIdenticalSidecars": 6
+ },
+ "archive": {
+  "path": ".tmp/wolfet-audio-zones/fntech3-pkg.fnz",
+  "entries": 447,
+  "bytes": 2972513,
+  "sha256": "758ebd160bb8d8044ce513415f5972f5b48270beb1c9b77eb13ac456cf1d0cf7",
+  "wolfetEntries": [
+   "games/wolfet/etmain/maps/battery.azb",
+   "games/wolfet/etmain/maps/fueldump.azb",
+   "games/wolfet/etmain/maps/goldrush.azb",
+   "games/wolfet/etmain/maps/oasis.azb",
+   "games/wolfet/etmain/maps/radar.azb",
+   "games/wolfet/etmain/maps/railgun.azb"
+  ]
+ },
+ "runtime": {
+  "probe": "python scripts/probe_wolfet_maps.py --executable meson/build/win32-dev/fntech3.exe --installation \"E:/SteamLibrary/steamapps/common/Wolfenstein Enemy Territory\" --output .tmp/wolfet-maps-13 --extra meminfo",
+  "loadedZones": {
+   "battery": 255,
+   "fueldump": 417,
+   "goldrush": 512,
+   "oasis": 512,
+   "radar": 318,
+   "railgun": 141
+  },
+  "renderers": [
+   "glx",
+   "vk",
+   "rtx"
+  ]
+ },
+ "validation": {
+  "mesonPassed": [
+   "fnql_audio_zones",
+   "fnql_audio_zone_authoring_audit",
+   "fnql_audio_zone_material_map"
+  ],
+  "liveListening": "not performed",
+  "temporaryRetailBspsRetained": 0
+ }
+}

@@ -52,7 +52,7 @@ one; each profile keeps its own table.
 
 ## Coverage
 
-Of the 147 imports ET's cgame declares, **144 are handled**, counting what the
+Of the 147 imports ET's cgame declares, **146 are handled**, counting what the
 [sound](2026-09-18-wolfet-audio.md), [light](2026-09-18-wolfet-light.md),
 [client services](2026-09-18-wolfet-client-services.md),
 [text and files](2026-09-18-wolfet-text-and-files.md) and
@@ -66,16 +66,16 @@ An import that reaches the end of that chain is refused by name and ordinal. No
 ET argument is dropped anywhere: an import this engine cannot answer exactly is
 not answered approximately.
 
-The 3 that remain open, and why:
+The 1 that remains open, and why:
 
 | Ordinals | Imports | Why |
 | --- | --- | --- |
-| 34, 35 | decal projection and clearing | No shared renderer service. |
 | 177 | render to texture | A per-backend framebuffer copy that two of this engine's three renderers do not have; retail ET never calls it. |
 
-The global fog (68) was open for the same reason as the decals until the
-renderer gained ET's world-covering fog volume; see the
-[global fog record](2026-09-18-wolfet-global-fog.md).
+The global fog (68) was open until the renderer gained ET's world-covering
+fog volume; see the [global fog record](2026-09-18-wolfet-global-fog.md). The
+decal imports (34, 35) were open until the renderers gained ET's decals; see
+the [map load record](2026-09-18-wolfet-map-load.md).
 
 ## Verification
 

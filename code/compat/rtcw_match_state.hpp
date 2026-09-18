@@ -6,10 +6,13 @@ namespace fntech3::rtcw {
 
 // Independently expressed transition contract observed in RTCW MP's
 // SV_TransitionGameState/SV_CheckTransitionGameState. See the campaign ledger.
-inline bool RestartMatchState(int current, int requested, bool lockedTeams, int &result) {
+// Enemy Territory keeps these rules but plays single-player and cooperative
+// restarts straight through, and resolves a reset to warmup alone.
+inline bool RestartMatchState(int current, int requested, bool lockedTeams, int &result,
+	bool intermissionToWarmup = true) {
 	if ( current < FNTECH3_RTCW_MP_GS_INITIALIZE || current > FNTECH3_RTCW_MP_GS_RESET ||
 		requested < FNTECH3_RTCW_MP_GS_PLAYING || requested > FNTECH3_RTCW_MP_GS_RESET ) return false;
-	if ( current == FNTECH3_RTCW_MP_GS_INTERMISSION && requested == FNTECH3_RTCW_MP_GS_PLAYING )
+	if ( intermissionToWarmup && current == FNTECH3_RTCW_MP_GS_INTERMISSION && requested == FNTECH3_RTCW_MP_GS_PLAYING )
 		requested = FNTECH3_RTCW_MP_GS_WARMUP;
 	// Rows: initialize, playing, countdown, warmup, intermission, waiting, reset.
 	// Bits identify accepted requested states; reset is resolved after validation.

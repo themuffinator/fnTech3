@@ -122,7 +122,7 @@ static void Set(const char *name,const char *value){cvars[name]=value;}
 static void QDECL Print(int,const char *,...){}
 static struct{comGameId_t gameId;decltype(&Print)Printf=Print;decltype(&Set)Cvar_Set=Set;}ri;
 static struct{qboolean rtcwNoFog;char name[32];}shader;
-static struct{fnRTCWFogState_t rtcwFog;struct{int time;}refdef;}tr;
+static struct{fnRTCWFogState_t rtcwFog;struct{int time;}refdef;float identityLight;}tr;
 int QDECL Com_sprintf(char *out,int size,const char *format,...){va_list args;va_start(args,format);int n=vsnprintf(out,size,format,args);va_end(args);return n;}
 void Q_strncpyz(char *out,const char *in,int size){assert(size>0);snprintf(out,size,"%s",in);}
 '''
@@ -131,9 +131,9 @@ PARSER_CHECKS = r'''
 #include "code/renderercommon/tr_rtcw_shader_fog.h"
 static int Parse(const char *keyword,const char *args){return R_RTCWShaderFogDirective(keyword,&args);}
 int main(){
- for(auto profile:{COM_GAME_QUAKE3,COM_GAME_QUAKELIVE,COM_GAME_RTCW_SP,COM_GAME_RTCW_MP}){
-  ri.gameId=profile;tr={};shader={};cvars.clear();tr.refdef.time=20;
-  bool rtcw=profile==COM_GAME_RTCW_SP||profile==COM_GAME_RTCW_MP;
+ for(auto profile:{COM_GAME_QUAKE3,COM_GAME_QUAKELIVE,COM_GAME_RTCW_SP,COM_GAME_RTCW_MP,COM_GAME_WOLFET}){
+  ri.gameId=profile;tr={};shader={};cvars.clear();tr.refdef.time=20;tr.identityLight=0.5f;
+  bool rtcw=profile==COM_GAME_RTCW_SP||profile==COM_GAME_RTCW_MP||profile==COM_GAME_WOLFET;
   assert(Parse("NoFog","")==int(rtcw)&&bool(shader.rtcwNoFog)==rtcw);
   assert(Parse("fogparms","( 1 0 0 ) 100")==0);
   if(!rtcw){assert(Parse("fogvars","( 1 0 0 ) 100")==0&&cvars.empty());continue;}
@@ -153,6 +153,10 @@ int main(){
   }else{
    assert(cvars.empty()&&tr.rtcwFog.slots[4].end==1000&&tr.rtcwFog.slots[5].end==300);
    assert(tr.rtcwFog.selected==4&&tr.rtcwFog.slots[9].finishTime==70);
+   // ET keeps the colour scaled by the identity light; RTCW MP keeps it as written.
+   const float scale=profile==COM_GAME_WOLFET?0.5f:1.0f;
+   assert(tr.rtcwFog.slots[4].color[0]==0.2f*scale&&tr.rtcwFog.slots[4].color[2]==0.4f*scale);
+   assert(tr.rtcwFog.slots[5].color[1]==0.5f*scale&&tr.rtcwFog.slots[4].color[3]==1);
   }
   const auto saved=tr;const auto savedCvars=cvars;
   assert(Parse("waterfogvars","( 0.7 0.8 0.9 ) 0")==1);

@@ -19,7 +19,8 @@ static inline int FnRTCWWorldShaderDirective( comGameId_t profile, const char *t
 	const char **text, fnRTCWWorldShader_t *state ) {
 	const char *value, *before;
 	int kind;
-	if ( profile != COM_GAME_RTCW_SP && profile != COM_GAME_RTCW_MP ) return 0;
+	/* Enemy Territory keeps RTCW's world directives unchanged. */
+	if ( profile != COM_GAME_RTCW_SP && profile != COM_GAME_RTCW_MP && profile != COM_GAME_WOLFET ) return 0;
 	if ( !Q_stricmp(token, "sunshader") ) kind = 0;
 	else if ( !Q_stricmp(token, "lightgridmulamb") ) kind = 1;
 	else if ( !Q_stricmp(token, "lightgridmuldir") ) kind = 2;

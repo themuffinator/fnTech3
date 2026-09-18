@@ -101,6 +101,8 @@ static qboolean	R_CullGrid( srfGridMesh_t *cv ) {
 }
 
 
+#include "../renderercommon/tr_wolfet_foliage_world.h"
+
 /*
 ================
 R_CullSurface
@@ -125,6 +127,10 @@ static qboolean	R_CullSurface( const surfaceType_t *surface, shader_t *shader ) 
 
 	if ( *surface == SF_TRIANGLES ) {
 		return R_CullTriSurf( (srfTriangles_t *)surface );
+	}
+
+	if ( *surface == SF_WOLFET_FOLIAGE ) {
+		return R_CullWolfETFoliage( (const srfWolfETFoliage_t *)surface );
 	}
 
 	if ( *surface != SF_FACE ) {
@@ -235,6 +241,10 @@ static qboolean R_LightCullSurface( const surfaceType_t* surface, const dlight_t
 		const srfTriangles_t* tris = (const srfTriangles_t*)surface;
 		return R_LightCullBounds( dl, tris->bounds[0], tris->bounds[1] );
 		}
+	case SF_WOLFET_FOLIAGE: {
+		const srfWolfETFoliage_t* foliage = (const srfWolfETFoliage_t*)surface;
+		return R_LightCullBounds( dl, foliage->bounds[0], foliage->bounds[1] );
+		}
 	default:
 		return qfalse;
 	};
@@ -332,6 +342,13 @@ static int R_DlightTrisurf( srfTriangles_t *surf, int dlightBits ) {
 }
 
 
+static int R_DlightWolfETFoliage( srfWolfETFoliage_t *foliage, int dlightBits ) {
+	// as for trisurfs, every instance takes the leaf's dlights
+	foliage->dlightBits = dlightBits;
+	return dlightBits;
+}
+
+
 /*
 ====================
 R_DlightSurface
@@ -348,6 +365,8 @@ static int R_DlightSurface( msurface_t *surf, int dlightBits ) {
 		dlightBits = R_DlightGrid( (srfGridMesh_t *)surf->data, dlightBits );
 	} else if ( *surf->data == SF_TRIANGLES ) {
 		dlightBits = R_DlightTrisurf( (srfTriangles_t *)surf->data, dlightBits );
+	} else if ( *surf->data == SF_WOLFET_FOLIAGE ) {
+		dlightBits = R_DlightWolfETFoliage( (srfWolfETFoliage_t *)surf->data, dlightBits );
 	} else {
 		dlightBits = 0;
 	}
@@ -360,6 +379,8 @@ static int R_DlightSurface( msurface_t *surf, int dlightBits ) {
 }
 #endif // USE_LEGACY_DLIGHTS
 
+
+#include "../renderercommon/tr_wolfet_decal_world.h"
 
 /*
 ======================
@@ -377,6 +398,12 @@ static void R_AddWorldSurface( msurface_t *surf, int dlightBits ) {
 	// try to cull before dlighting or adding
 	if ( R_CullSurface( surf->data, surf->shader ) ) {
 		return;
+	}
+
+	// Enemy Territory presses the scene's decals onto each world surface a
+	// view adds; a brush model takes its own in R_AddBrushModelSurfaces.
+	if ( tr.numWolfETDecalProjectors && tr.currentEntityNum == REFENTITYNUM_WORLD ) {
+		R_ProjectWolfETDecals( surf );
 	}
 
 #ifdef USE_PMLIGHT
@@ -557,6 +584,19 @@ void R_AddBrushModelSurfaces( trRefEntity_t *ent,
 		return;
 	}
 
+	// Enemy Territory presses the scene's decals onto a brush model in the
+	// model's own space, before its surfaces are added.
+	if ( tr.numWolfETDecalProjectors ) {
+		fnWolfETDecalProjector_t localProjectors[FN_WOLFET_MAX_DECAL_PROJECTORS];
+		const int numLocalProjectors = R_WolfETBrushModelProjectors( bmodel, localProjectors );
+		int surface, projector;
+		for ( surface = 0; surface < bmodel->numSurfaces; surface++ ) {
+			for ( projector = 0; projector < numLocalProjectors; projector++ ) {
+				R_ProjectWolfETDecalOntoSurface( &localProjectors[projector], bmodel->firstSurface + surface, bmodel );
+			}
+		}
+	}
+
 #ifdef USE_PMLIGHT
 #ifdef USE_LEGACY_DLIGHTS
 	if ( R_GetDlightMode() )
@@ -568,6 +608,7 @@ void R_AddBrushModelSurfaces( trRefEntity_t *ent,
 		for ( s = 0; s < bmodel->numSurfaces; s++ ) {
 			R_AddWorldSurface( bmodel->firstSurface + s, 0 );
 		}
+		R_AddWolfETDecalSurfaces( bmodel );
 
 		R_SetupEntityLighting( &tr.refdef, ent );
 		
@@ -594,6 +635,7 @@ void R_AddBrushModelSurfaces( trRefEntity_t *ent,
 	for ( i = 0 ; i < bmodel->numSurfaces ; i++ ) {
 		R_AddWorldSurface( bmodel->firstSurface + i, tr.currentEntity->needDlights );
 	}
+	R_AddWolfETDecalSurfaces( bmodel );
 #endif
 }
 
@@ -1196,6 +1238,10 @@ void R_AddWorldSurfaces( void ) {
 	int i;
 #endif
 
+	// Enemy Territory culls its scene's decal projectors against each view
+	// before any surface of it is added, the world's or a brush model's.
+	R_CullWolfETDecalProjectors();
+
 	if ( !r_drawworld->integer ) {
 		return;
 	}
@@ -1219,6 +1265,9 @@ void R_AddWorldSurfaces( void ) {
 	}
 
 	R_RecursiveWorldNode( tr.world->nodes, 15, ( 1ULL << tr.refdef.num_dlights ) - 1 );
+
+	// the decals kept on the world, drawn where this view added their surfaces
+	R_AddWolfETDecalSurfaces( tr.world->bmodels );
 
 #ifdef USE_PMLIGHT
 #ifdef USE_LEGACY_DLIGHTS

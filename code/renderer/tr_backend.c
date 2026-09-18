@@ -599,6 +599,8 @@ static void RB_DrawWorldCelOutlineForScene( qboolean *drawn ) {
 #endif
 
 
+#include "../renderercommon/tr_wolfet_view_clear.h"
+
 /*
 =================
 RB_BeginDrawingView
@@ -634,11 +636,17 @@ static void RB_BeginDrawingView( void ) {
 		clearBits |= GL_STENCIL_BUFFER_BIT;
 	}
 
-	if ( backEnd.refdef.rtcwFog.fogEnabled &&
-		( backEnd.refdef.rtcwFog.fog.clearscreen || r_fastsky->integer ) ) {
-		const float *color = backEnd.refdef.rtcwFog.fog.color;
-		qglClearColor( color[0], color[1], color[2], 1 );
-		clearBits |= GL_COLOR_BUFFER_BIT;
+	{
+		vec4_t globalFog;
+		if ( RB_WolfETGlobalFogClearColor( globalFog ) ) {
+			qglClearColor( globalFog[0], globalFog[1], globalFog[2], globalFog[3] );
+			clearBits |= GL_COLOR_BUFFER_BIT;
+		} else if ( backEnd.refdef.rtcwFog.fogEnabled &&
+			( backEnd.refdef.rtcwFog.fog.clearscreen || r_fastsky->integer ) ) {
+			const float *color = backEnd.refdef.rtcwFog.fog.color;
+			qglClearColor( color[0], color[1], color[2], 1 );
+			clearBits |= GL_COLOR_BUFFER_BIT;
+		}
 	}
 
 	if ( clearBits ) {

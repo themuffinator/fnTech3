@@ -324,6 +324,19 @@ qhandle_t RE_RegisterModel( const char *name ) {
 
 	ext = COM_GetExtension( localName );
 
+	// Enemy Territory looks for the compressed model first and the plain one
+	// second, whichever of the two it was asked for, and for nothing else.
+	if ( ri.gameId == COM_GAME_WOLFET && ( !Q_stricmp( ext, "md3" ) || !Q_stricmp( ext, "mdc" ) ) ) {
+		COM_StripExtension( name, altName, sizeof( altName ) );
+		Q_strcat( altName, sizeof( altName ), ".mdc" );
+		if ( R_RegisterMDC( altName, mod ) ) {
+			return mod->index;
+		}
+		COM_StripExtension( name, altName, sizeof( altName ) );
+		Q_strcat( altName, sizeof( altName ), ".md3" );
+		return R_RegisterMD3( altName, mod );
+	}
+
 	if( *ext )
 	{
 		// Look for the correct loader and use it

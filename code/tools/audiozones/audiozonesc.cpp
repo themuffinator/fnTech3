@@ -1373,9 +1373,13 @@ struct MaterialOverrideRule {
 	bool wildcard = false;
 };
 
+// Surface flag bits are shared across titles but not their meanings.
+enum class MaterialFlags { Quake, Rtcw, WolfET };
+
 struct BspMap {
 	std::int32_t version = 0;
-	bool rtcwMaterials = false;
+	// The same surface flag bits mean different materials in different titles.
+	MaterialFlags materialFlags = MaterialFlags::Quake;
 	Vec3 worldMins;
 	Vec3 worldMaxs;
 	bool haveWorldBounds = false;
@@ -1909,12 +1913,12 @@ static int DominantPresetOverride( const LeafAcoustics &acoustics ) {
 	return bestWeight > 0.0 ? bestPreset : -1;
 }
 
-static void AccumulateShaderAcoustics( const BspShader &shader, bool rtcwMaterials, const std::vector<MaterialOverrideRule> &overrides, float roleWeight, LeafAcoustics &acoustics ) {
+static void AccumulateShaderAcoustics( const BspShader &shader, MaterialFlags materialFlags, const std::vector<MaterialOverrideRule> &overrides, float roleWeight, LeafAcoustics &acoustics ) {
 	const double weight = static_cast<double>( roleWeight );
 	if ( shader.surfaceFlags & SURF_METALSTEPS ) {
 		AddMaterialVote( acoustics, static_cast<std::uint8_t>( azfmt::MaterialClass::Metal ), weight );
 	}
-	if ( rtcwMaterials ) {
+	if ( materialFlags == MaterialFlags::Rtcw ) {
 		// Disk-flag facts shared by original RTCW SP/MP src/game/surfaceflags.h
 		// and iortcw SP/MP code/qcommon/surfaceflags.h. Acoustic grouping is ours.
 		// In particular 0x40 is ceramic, not Q3/QL flesh; BSP 47 alone cannot
@@ -1926,6 +1930,23 @@ static void AccumulateShaderAcoustics( const BspShader &shader, bool rtcwMateria
 		}
 		if ( shader.surfaceFlags & softSurfaces ) {
 			AddMaterialVote( acoustics, static_cast<std::uint8_t>( azfmt::MaterialClass::Soft ), weight );
+		}
+	} else if ( materialFlags == MaterialFlags::WolfET ) {
+		// Enemy Territory's src/game/surfaceflags.h keeps RTCW's material bits
+		// but gives 0x40 to a water splash rather than ceramic, so it votes
+		// liquid here and not stone. Its 0x80000000 marks ground a landmine can
+		// be planted in, which says nothing acoustic and is not counted.
+		constexpr int hardSurfaces = 0x200000 | 0x800000 | 0x1000000; // glass, roof, rubble
+		constexpr int softSurfaces = 0x40000 | 0x80000 | 0x100000 | 0x400000 | 0x2000000; // wood, grass, gravel, snow, carpet
+		constexpr int splashSurfaces = 0x40;
+		if ( shader.surfaceFlags & hardSurfaces ) {
+			AddMaterialVote( acoustics, static_cast<std::uint8_t>( azfmt::MaterialClass::Stone ), weight );
+		}
+		if ( shader.surfaceFlags & softSurfaces ) {
+			AddMaterialVote( acoustics, static_cast<std::uint8_t>( azfmt::MaterialClass::Soft ), weight );
+		}
+		if ( shader.surfaceFlags & splashSurfaces ) {
+			AddMaterialVote( acoustics, static_cast<std::uint8_t>( azfmt::MaterialClass::Liquid ), weight );
 		}
 	} else if ( shader.surfaceFlags & SURF_FLESH ) {
 		AddMaterialVote( acoustics, static_cast<std::uint8_t>( azfmt::MaterialClass::Soft ), weight );
@@ -2008,7 +2029,7 @@ static LeafAcoustics AnalyzeLeafAcoustics( const BspMap &map, const BspLeaf &lea
 			if ( shader.surfaceFlags & SURF_SKY ) {
 				acoustics.skyDrawSurfaceWeight += static_cast<double>( kDrawSurfaceRoleWeight );
 			}
-			AccumulateShaderAcoustics( shader, map.rtcwMaterials, overrides, kDrawSurfaceRoleWeight, acoustics );
+			AccumulateShaderAcoustics( shader, map.materialFlags, overrides, kDrawSurfaceRoleWeight, acoustics );
 		}
 	}
 
@@ -2027,7 +2048,7 @@ static LeafAcoustics AnalyzeLeafAcoustics( const BspMap &map, const BspLeaf &lea
 				acoustics.contents |= brush.contentFlags;
 			}
 			if ( brush.shaderNum >= 0 && static_cast<std::size_t>( brush.shaderNum ) < map.shaders.size() ) {
-				AccumulateShaderAcoustics( map.shaders[static_cast<std::size_t>( brush.shaderNum )], map.rtcwMaterials, overrides, kBrushBodyRoleWeight, acoustics );
+				AccumulateShaderAcoustics( map.shaders[static_cast<std::size_t>( brush.shaderNum )], map.materialFlags, overrides, kBrushBodyRoleWeight, acoustics );
 			}
 			if ( brush.firstSide >= 0 && brush.numSides > 0 &&
 				static_cast<std::size_t>( brush.firstSide ) <= map.brushSides.size() ) {
@@ -2039,7 +2060,7 @@ static LeafAcoustics AnalyzeLeafAcoustics( const BspMap &map, const BspLeaf &lea
 						continue;
 					}
 					if ( side.shaderNum >= 0 && static_cast<std::size_t>( side.shaderNum ) < map.shaders.size() ) {
-						AccumulateShaderAcoustics( map.shaders[static_cast<std::size_t>( side.shaderNum )], map.rtcwMaterials, overrides, kBrushSideRoleWeight, acoustics );
+						AccumulateShaderAcoustics( map.shaders[static_cast<std::size_t>( side.shaderNum )], map.materialFlags, overrides, kBrushSideRoleWeight, acoustics );
 					}
 				}
 			}
@@ -2857,8 +2878,9 @@ static int FromBspCommand( int argc, char **argv ) {
 				return 2;
 			}
 			profile = argv[++i];
-			if ( profile != "quake3" && profile != "quakelive" && profile != "rtcw-sp" && profile != "rtcw-mp" ) {
-				std::cerr << "--profile must be quake3, quakelive, rtcw-sp, or rtcw-mp\n";
+			if ( profile != "quake3" && profile != "quakelive" && profile != "rtcw-sp" && profile != "rtcw-mp" &&
+				profile != "wolfet" ) {
+				std::cerr << "--profile must be quake3, quakelive, rtcw-sp, rtcw-mp, or wolfet\n";
 				return 2;
 			}
 		} else if ( arg == "--max-zones" ) {
@@ -2908,7 +2930,8 @@ static int FromBspCommand( int argc, char **argv ) {
 		std::cerr << input.string() << ": BSP version does not match --profile " << profile << "\n";
 		return 1;
 	}
-	map.rtcwMaterials = profile == "rtcw-sp" || profile == "rtcw-mp";
+	map.materialFlags = profile == "rtcw-sp" || profile == "rtcw-mp" ? MaterialFlags::Rtcw :
+		profile == "wolfet" ? MaterialFlags::WolfET : MaterialFlags::Quake;
 
 	std::vector<Zone> overrideZones;
 	if ( !overridePath.empty() ) {
@@ -3541,11 +3564,12 @@ static void PrintUsage( const char *argv0 ) {
 	std::cerr
 		<< "Usage:\n"
 		<< "  " << argv0 << " [-o output.azb] input.audiozones\n"
-		<< "  " << argv0 << " --from-bsp [-o output.azb] [--profile quake3|quakelive|rtcw-sp|rtcw-mp] [--merge overrides.audiozones] [--material-map audio-materials.txt] [--max-zones N] input.bsp\n"
+		<< "  " << argv0 << " --from-bsp [-o output.azb] [--profile quake3|quakelive|rtcw-sp|rtcw-mp|wolfet] [--merge overrides.audiozones] [--material-map audio-materials.txt] [--max-zones N] input.bsp\n"
 		<< "  " << argv0 << " --dump input.azb\n"
 		<< "  " << argv0 << " --audit [--strict] [--samples N] input.azb\n\n"
 		<< "BSP generation reads IBSP v46/v47 leaves, clusters, areas, surfaces, brushes, and shaders.\n"
-		<< "Specify --profile rtcw-sp or rtcw-mp for RTCW material flags; the default retains Q3/QL interpretation.\n"
+		<< "Specify --profile rtcw-sp or rtcw-mp for RTCW material flags, or wolfet for Enemy Territory's;\n"
+		<< "the default retains Q3/QL interpretation.\n"
 		<< "Material maps use: shader/pattern material [preset name] [flag outdoor] [weight N].\n"
 		<< "Generated zones use negative priorities, so merged manual override zones win naturally.\n\n"
 		<< "Text format:\n"

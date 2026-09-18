@@ -45,9 +45,8 @@ static cvar_t *r_lodscale = &lodScale, *r_lodbias = &lodBias;
     text = (ROOT / 'code' / renderer / 'tr_surface.c').read_text()
     start = text.index('void (*rb_surfaceTable[SF_NUM_SURFACE_TYPES])')
     table = text[start:text.index('\n};', start) + 3]
-    for name in re.findall(r'\)\)(RB_\w+)', table):
-        if name != 'RB_SurfaceMDS':
-            table = table.replace(name, 'Noop')
+    # Whole entries only: one surface function's name can begin another's.
+    table = re.sub(r'\)\)(RB_\w+)', lambda m: m[0] if m[1] == 'RB_SurfaceMDS' else '))Noop', table)
     source += table + '\n' + FIXTURE[:FIXTURE.index('int main(void)')]
     return source + r'''
 static model_t testModel;

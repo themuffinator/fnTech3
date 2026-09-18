@@ -62,6 +62,13 @@ static struct {
 } ri{Allocate, ReadFile, FreeFile, Print, COM_GAME_QUAKE3};
 void Q_strncpyz(char *out, const char *in, int bytes) { assert(bytes > 0); std::strncpy(out, in, bytes - 1); out[bytes - 1] = 0; }
 char *Q_strlwr(char *text) { for (char *p = text; *p; ++p) *p = (char)std::tolower((unsigned char)*p); return text; }
+int Q_stricmpn(const char *a, const char *b, int n) {
+    for (; n > 0; --n, ++a, ++b) {
+        const int d = std::tolower((unsigned char)*a) - std::tolower((unsigned char)*b);
+        if (d || !*a) return d;
+    }
+    return 0;
+}
 int Q_stricmp(const char *a, const char *b) {
     while (*a && *b && std::tolower((unsigned char)*a) == std::tolower((unsigned char)*b)) { ++a; ++b; }
     return std::tolower((unsigned char)*a) - std::tolower((unsigned char)*b);
@@ -147,6 +154,28 @@ int main() {
         if (rtcw) { assert(!tr.skins[tr.numSkins-1]->registered); assert(R_GetSkinByHandle(tr.numSkins-1) == tr.skins[0]); }
         assert(buffers.empty());
     }
+    // Enemy Territory reads every skin name as a file, recognises a model or
+    // tag entry only by its prefix, and keeps no player scale.
+    Reset(COM_GAME_WOLFET);
+    assert(!RE_RegisterSkin("plain") && reads == 1 && tr.numSkins == 1);
+    assert(!RE_RegisterSkin("missing.skin") && !RE_RegisterSkin("missing.skin") && reads == 3 && tr.numSkins == 1);
+    files["body.skin"] = "// intro\ntag_head,\n/* block */\n\"Head\",\"texture/head\"\n"
+        "md3_part,models/body.mds\nmd3_hat,models/hat.md3\nplayerscale,1.25\nTORSO,texture/torso\n"
+        "body_tag_x,texture/x\nhat_md3_x,texture/y\n";
+    {
+        const auto handle = RE_RegisterSkin("body.skin"); assert(handle && tr.skins[handle]->registered);
+        const auto *skin = tr.skins[handle];
+        assert(skin->numSurfaces == 5 && skin->numModels == 2);
+        assert(!std::strcmp(skin->surfaces[1].name, "playerscale") && skin->surfaces[1].shader->name == "1.25");
+        assert(!std::strcmp(skin->surfaces[3].name, "body_tag_x") && !std::strcmp(skin->surfaces[4].name, "hat_md3_x"));
+        char output[MAX_QPATH];
+        assert(RE_GetSkinModel(handle, "MD3_HAT", output) && !std::strcmp(output, "models/hat.md3"));
+        std::strcpy(output, "untouched");
+        assert(!RE_GetSkinModel(handle, "playerscale", output) && !std::strcmp(output, "untouched"));
+    }
+    files["models/loper/upper.skin"] = "md3_part,models/upper.mdc\n";
+    assert(!RE_RegisterSkin("models/loper/upper.skin"));
+    assert(buffers.empty());
     Reset(COM_GAME_RTCW_SP);
     std::string content;
     for (int i = 0; i < 300; ++i) content += "md3_"+std::to_string(i)+",models/"+std::to_string(i)+".mds\n";

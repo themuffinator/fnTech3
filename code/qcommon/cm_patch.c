@@ -981,7 +981,10 @@ static void CM_AddFacetBevels( facet_t *facet ) {
 					} //end if
 					ChopWindingInPlace( &w2, newplane, newplane[3], 0.1f );
 					if (!w2) {
-						Com_DPrintf("WARNING: CM_AddFacetBevels... invalid bevel\n");
+						// Enemy Territory drops this report: its maps make many
+						if ( !Com_GameIsWolfET() ) {
+							Com_DPrintf("WARNING: CM_AddFacetBevels... invalid bevel\n");
+						}
 						continue;
 					}
 					else {
