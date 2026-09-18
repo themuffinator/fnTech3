@@ -1,0 +1,464 @@
+{
+  "date": "2026-09-18T07:07:23.068565+00:00",
+  "commit": "26d87f80019fe42122cfea3c1b02acd116807e6e",
+  "worktreeDirty": true,
+  "worktreeNote": "Built from the shared checkout, which also held the WolfET session's uncommitted client/VM/renderer edits; none of those files is part of this slice.",
+  "scope": "RTCW handshake layouts both directions; outbound retail RTCW MP admission; sv_onlyVisibleClients; Q3-only authorization; Q3 handshake non-regression.",
+  "sourceFiles": [
+    {
+      "path": "code/qcommon/rtcw_handshake.hpp",
+      "sha256": "d8b347d004c277c25393bcec7043c473ca3b5851088276d575317045d3d163a3"
+    },
+    {
+      "path": "code/client/cl_main.cpp",
+      "sha256": "bb336f1337b9e7ecef2535302bc1fca1fcc48b7a5e06d1856e45f58a4acbad15"
+    },
+    {
+      "path": "code/client/cl_parse.cpp",
+      "sha256": "10b70fc4f7df5cdfd7ddfcd6baa0cfbe3ba8a979f3aca0f9af26eb00ee4c32af"
+    },
+    {
+      "path": "code/client/client.h",
+      "sha256": "dc03863c08c4d9df77d0396c3b43f0f202e72df55adeb90040c8f23c4849a4f7"
+    },
+    {
+      "path": "code/server/sv_client.cpp",
+      "sha256": "e783b2daf8bc4f1eb525cbfcc3001a5ccb97780314fcca7e0ae077506a3a25e5"
+    },
+    {
+      "path": "code/server/sv_init.cpp",
+      "sha256": "fe10e3e4dcd8b1dda1151a4414309ad6bb40311d1f6f048b2675306747342d31"
+    },
+    {
+      "path": "tests/rtcw_handshake_tests.py",
+      "sha256": "1ad4bc8245bb1d3420b8248f5f7484614b3b636118c6ec67362fd07ae1308494"
+    },
+    {
+      "path": "scripts/probe_client_to_server.py",
+      "sha256": "6fc5b8e69335a8657e2a8fe03e948e119e188d67af09cb625ac615c2e7338801"
+    },
+    {
+      "path": "scripts/probe_rtcw_only_visible_clients.py",
+      "sha256": "428f2437ed8c9c785bcdd0b9065cc45aec594d1e94b3172a946fd476ce4e7292"
+    }
+  ],
+  "sourceReferences": [
+    {
+      "path": "E:\\_SOURCE\\_CODE\\RTCW-MP-master\\src\\server\\sv_client.c",
+      "url": "https://github.com/id-Software/RTCW-MP/blob/master/src/server/sv_client.c",
+      "license": "GPL-3.0-or-later with id Software additional terms; read only",
+      "observation": "challengeResponse <challenge> [<sv_onlyVisibleClients>]; bare connectResponse"
+    },
+    {
+      "path": "E:\\_SOURCE\\_CODE\\RTCW-MP-master\\src\\client\\cl_main.c",
+      "url": "https://github.com/id-Software/RTCW-MP/blob/master/src/client/cl_main.c",
+      "license": "GPL-3.0-or-later with id Software additional terms; read only",
+      "observation": "clc.onlyVisibleClients from the second token; AUTHORIZE_SERVER_NAME wolfauthorize.idsoftware.com"
+    },
+    {
+      "path": "E:\\_SOURCE\\_CODE\\RTCW-MP-master\\src\\client\\cl_parse.c",
+      "url": "https://github.com/id-Software/RTCW-MP/blob/master/src/client/cl_parse.c",
+      "license": "GPL-3.0-or-later with id Software additional terms; compiled unchanged only in a disposable comparison fixture",
+      "observation": "isEntVisible and its use in CL_DeltaEntity",
+      "sha256": "5c2713ac2d8e66ee4318b100f40c61e8bb53920ba4a5b7b09c2f81fa7dc6dc0f"
+    },
+    {
+      "path": "E:\\_SOURCE\\_CODE\\RTCW-SP-master\\src\\server\\sv_client.c",
+      "url": "https://github.com/id-Software/RTCW-SP/blob/master/src/server/sv_client.c",
+      "license": "GPL-3.0-or-later with id Software additional terms; read only",
+      "observation": "challengeResponse <challenge>"
+    },
+    {
+      "path": "E:\\_SOURCE\\_CODE\\iortcw-master\\MP\\code\\server\\sv_client.c",
+      "url": "https://github.com/iortcw/iortcw/blob/master/MP/code/server/sv_client.c",
+      "license": "GPL-3.0-or-later with id Software additional terms; read only",
+      "observation": "challengeResponse <challenge> <onlyVisibleClients> <nonce> <protocol>; game-name gate; connectResponse <challenge>"
+    },
+    {
+      "path": "E:\\_SOURCE\\_CODE\\iortcw-master\\MP\\code\\client\\cl_parse.c",
+      "url": "https://github.com/iortcw/iortcw/blob/master/MP/code/client/cl_parse.c",
+      "license": "GPL-3.0-or-later with id Software additional terms; compiled unchanged only in a disposable comparison fixture",
+      "observation": "isEntVisible identical to the original",
+      "sha256": "89ea900a003dce3036130059909b4fe8c043c94ff9aef9d3bfc90836bffa99fd"
+    }
+  ],
+  "build": {
+    "platform": "Windows x86",
+    "buildDir": "meson/build/win32-gaps",
+    "configuration": "debugoptimized, strict-warnings=true, rtcw-development=true, wolfet-development=true",
+    "clientSha256": "c16b8a274608d0a9aadfcb819dd1d477f157ce505dd21cb8c8b3ab54b555a885",
+    "dedicatedSha256": "5ddbd178c3fc51e5434f1b58d9ea357e273f239e716ef6c0e5d23bdfd67df630"
+  },
+  "retail": {
+    "wolfMP": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+    "qagameMP": "d8975b5c4e14488283c5eca7d549005304b04f1690705c13c174a171cc24c387"
+  },
+  "failingBefore": {
+    "outputFolder": ".tmp\\rtcw-outbound\\nonpure-spectator-1",
+    "clientSha256": "55adb7cc5be3ea617cb150059a998ff9da843894e686f55751877a5cc14d7ff5",
+    "serverRejections": 20,
+    "clientProtocolMismatch": true,
+    "clientForcedAfterSeconds": 63.344
+  },
+  "runtime": {
+    "retail-nonpure": {
+      "evidence": "Interop: outbound to retail, non-pure",
+      "profile": "rtcw-mp",
+      "map": "mp_beach",
+      "pure": false,
+      "retailServer": true,
+      "serverCommand": "+set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-outbound\\final\\retail-nonpure\\server-home +set dedicated 1 +set developer 1 +set logfile 2 +set net_ip 127.0.0.1 +set net_port 61455 +set sv_pure 0 +set sv_master1  +set sv_master2  +set sv_master3  +set sv_master4  +set sv_master5  +set g_gametype 5 +set bot_enable 0 +set sv_punkbuster 0 +map mp_beach",
+      "clientCommand": "+set com_gameProfile rtcw-mp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-outbound\\final\\retail-nonpure\\client-home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_windowedMode -1 +set r_windowedWidth 800 +set r_windowedHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set developer 1 +set net_ip 127.0.0.1 +set net_port 0 +set net_ip6 ::1 +set net_port6 0 +connect 127.0.0.1:61455",
+      "clientAction": "wait 200; CloseLimboMenu; -scores; wait 60; screenshotPNG handshake-world; wait 30; quit",
+      "clientSha256": "c16b8a274608d0a9aadfcb819dd1d477f157ce505dd21cb8c8b3ab54b555a885",
+      "serverSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+      "moduleSha256": "d8975b5c4e14488283c5eca7d549005304b04f1690705c13c174a171cc24c387",
+      "passed": true,
+      "serverReadySeconds": 3.843,
+      "clientExit": 0,
+      "clientForced": false,
+      "installationUnchanged": true,
+      "elapsedSeconds": 12.078,
+      "handshakeReplies": [
+        "challengeResponse 1331510012",
+        "connectResponse"
+      ],
+      "serverActive": true,
+      "serverBegin": true,
+      "unpureDrop": false,
+      "rejectedConnect": [],
+      "clientErrors": [],
+      "clientSawPureServer": false,
+      "clientHidesUnseenPlayers": false,
+      "screenshots": [
+        {
+          "name": "handshake-world.png",
+          "sha256": "8e6b6ce29f657e94589958b90f6a1649c9512c3d772863dbcb726510e743f2ec"
+        }
+      ],
+      "sourceCommit": "26d87f80019fe42122cfea3c1b02acd116807e6e"
+    },
+    "retail-pure-team": {
+      "evidence": "Interop: outbound to retail, pure, team admission",
+      "profile": "rtcw-mp",
+      "map": "mp_beach",
+      "pure": true,
+      "retailServer": true,
+      "serverCommand": "+set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-outbound\\final\\retail-pure-team\\server-home +set dedicated 1 +set developer 1 +set logfile 2 +set net_ip 127.0.0.1 +set net_port 60027 +set sv_pure 1 +set sv_master1  +set sv_master2  +set sv_master3  +set sv_master4  +set sv_master5  +set g_gametype 5 +set bot_enable 0 +set sv_punkbuster 0 +map mp_beach",
+      "clientCommand": "+set com_gameProfile rtcw-mp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-outbound\\final\\retail-pure-team\\client-home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_windowedMode -1 +set r_windowedWidth 800 +set r_windowedHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set developer 1 +set net_ip 127.0.0.1 +set net_port 0 +set net_ip6 ::1 +set net_port6 0 +connect 127.0.0.1:60027",
+      "clientAction": "wait 200; team r; wait 240; CloseLimboMenu; -scores; wait 60; screenshotPNG handshake-axis; team b; wait 240; CloseLimboMenu; -scores; wait 60; screenshotPNG handshake-allies; wait 30; quit",
+      "clientSha256": "c16b8a274608d0a9aadfcb819dd1d477f157ce505dd21cb8c8b3ab54b555a885",
+      "serverSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+      "moduleSha256": "d8975b5c4e14488283c5eca7d549005304b04f1690705c13c174a171cc24c387",
+      "passed": true,
+      "serverReadySeconds": 3.281,
+      "clientExit": 0,
+      "clientForced": false,
+      "installationUnchanged": true,
+      "elapsedSeconds": 19.641,
+      "handshakeReplies": [
+        "challengeResponse 1264648251",
+        "connectResponse"
+      ],
+      "serverActive": true,
+      "serverBegin": true,
+      "unpureDrop": false,
+      "rejectedConnect": [],
+      "clientErrors": [],
+      "clientSawPureServer": true,
+      "clientHidesUnseenPlayers": false,
+      "screenshots": [
+        {
+          "name": "handshake-allies.png",
+          "sha256": "1b6505d090dbb23a081d557e9a7c280364ba67a8bb9c6644653ee17f553b38ad"
+        },
+        {
+          "name": "handshake-axis.png",
+          "sha256": "c449515e8120367843c216242c957d564e764c8c75552d1370da6d8eb94d8128"
+        }
+      ],
+      "teamAdmission": {
+        "axis": true,
+        "allies": true
+      },
+      "sourceCommit": "26d87f80019fe42122cfea3c1b02acd116807e6e"
+    },
+    "retail-only-visible": {
+      "evidence": "Interop: outbound to retail, non-pure, sv_onlyVisibleClients 1",
+      "profile": "rtcw-mp",
+      "map": "mp_beach",
+      "pure": false,
+      "retailServer": true,
+      "serverCommand": "+set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-outbound\\final\\retail-only-visible\\server-home +set dedicated 1 +set developer 1 +set logfile 2 +set net_ip 127.0.0.1 +set net_port 57059 +set sv_pure 0 +set sv_master1  +set sv_master2  +set sv_master3  +set sv_master4  +set sv_master5  +set g_gametype 5 +set bot_enable 0 +set sv_punkbuster 0 +set sv_onlyVisibleClients 1 +map mp_beach",
+      "clientCommand": "+set com_gameProfile rtcw-mp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-outbound\\final\\retail-only-visible\\client-home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_windowedMode -1 +set r_windowedWidth 800 +set r_windowedHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set developer 1 +set net_ip 127.0.0.1 +set net_port 0 +set net_ip6 ::1 +set net_port6 0 +connect 127.0.0.1:57059",
+      "clientAction": "wait 200; CloseLimboMenu; -scores; wait 60; screenshotPNG handshake-world; wait 30; quit",
+      "clientSha256": "c16b8a274608d0a9aadfcb819dd1d477f157ce505dd21cb8c8b3ab54b555a885",
+      "serverSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+      "moduleSha256": "d8975b5c4e14488283c5eca7d549005304b04f1690705c13c174a171cc24c387",
+      "passed": true,
+      "serverReadySeconds": 3.078,
+      "clientExit": 0,
+      "clientForced": false,
+      "installationUnchanged": true,
+      "elapsedSeconds": 10.984,
+      "handshakeReplies": [
+        "challengeResponse 1144282703 1",
+        "connectResponse"
+      ],
+      "serverActive": true,
+      "serverBegin": true,
+      "unpureDrop": false,
+      "rejectedConnect": [],
+      "clientErrors": [],
+      "clientSawPureServer": false,
+      "clientHidesUnseenPlayers": true,
+      "screenshots": [
+        {
+          "name": "handshake-world.png",
+          "sha256": "0c82d8c424be793d9faaf18e551b781040103190a763dd2fa437c5d3753b8653"
+        }
+      ],
+      "sourceCommit": "26d87f80019fe42122cfea3c1b02acd116807e6e"
+    },
+    "fntech3-pure-team": {
+      "evidence": "Live: fnTech3 client and server, pure, team admission",
+      "profile": "rtcw-mp",
+      "map": "mp_beach",
+      "pure": true,
+      "retailServer": false,
+      "serverCommand": "+set com_gameProfile rtcw-mp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-outbound\\final\\fntech3-pure-team\\server-home +set dedicated 1 +set developer 1 +set logfile 2 +set net_ip 127.0.0.1 +set net_port 60235 +set sv_pure 1 +set sv_master1  +set sv_master2  +set sv_master3  +set sv_master4  +set sv_master5  +set g_gametype 5 +set bot_enable 0 +set sv_punkbuster 0 +map mp_beach",
+      "clientCommand": "+set com_gameProfile rtcw-mp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-outbound\\final\\fntech3-pure-team\\client-home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_windowedMode -1 +set r_windowedWidth 800 +set r_windowedHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set developer 1 +set net_ip 127.0.0.1 +set net_port 0 +set net_ip6 ::1 +set net_port6 0 +connect 127.0.0.1:60235",
+      "clientAction": "wait 200; team r; wait 240; CloseLimboMenu; -scores; wait 60; screenshotPNG handshake-axis; team b; wait 240; CloseLimboMenu; -scores; wait 60; screenshotPNG handshake-allies; wait 30; quit",
+      "clientSha256": "c16b8a274608d0a9aadfcb819dd1d477f157ce505dd21cb8c8b3ab54b555a885",
+      "serverSha256": "5ddbd178c3fc51e5434f1b58d9ea357e273f239e716ef6c0e5d23bdfd67df630",
+      "moduleSha256": "d8975b5c4e14488283c5eca7d549005304b04f1690705c13c174a171cc24c387",
+      "passed": true,
+      "serverReadySeconds": 2.656,
+      "clientExit": 0,
+      "clientForced": false,
+      "installationUnchanged": true,
+      "elapsedSeconds": 18.875,
+      "handshakeReplies": [
+        "challengeResponse 1879133778 0 -240899607 60 FnQL",
+        "connectResponse 1879133778"
+      ],
+      "serverActive": true,
+      "serverBegin": true,
+      "unpureDrop": false,
+      "rejectedConnect": [],
+      "clientErrors": [],
+      "clientSawPureServer": true,
+      "clientHidesUnseenPlayers": false,
+      "screenshots": [
+        {
+          "name": "handshake-allies.png",
+          "sha256": "0337831365986162a94ae2a57d25071973c376d58959e56945711e5422714098"
+        },
+        {
+          "name": "handshake-axis.png",
+          "sha256": "087df76abe79c6afcfdaba9a21627d71102caecfabe9e542a2ad6074e6bfd2ad"
+        }
+      ],
+      "teamAdmission": {
+        "axis": true,
+        "allies": true
+      },
+      "sourceCommit": "26d87f80019fe42122cfea3c1b02acd116807e6e"
+    },
+    "fntech3-only-visible": {
+      "evidence": "Live: fnTech3 client and server, non-pure, sv_onlyVisibleClients 1",
+      "profile": "rtcw-mp",
+      "map": "mp_beach",
+      "pure": false,
+      "retailServer": false,
+      "serverCommand": "+set com_gameProfile rtcw-mp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-outbound\\final\\fntech3-only-visible\\server-home +set dedicated 1 +set developer 1 +set logfile 2 +set net_ip 127.0.0.1 +set net_port 60350 +set sv_pure 0 +set sv_master1  +set sv_master2  +set sv_master3  +set sv_master4  +set sv_master5  +set g_gametype 5 +set bot_enable 0 +set sv_punkbuster 0 +set sv_onlyVisibleClients 1 +map mp_beach",
+      "clientCommand": "+set com_gameProfile rtcw-mp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-outbound\\final\\fntech3-only-visible\\client-home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_windowedMode -1 +set r_windowedWidth 800 +set r_windowedHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set developer 1 +set net_ip 127.0.0.1 +set net_port 0 +set net_ip6 ::1 +set net_port6 0 +connect 127.0.0.1:60350",
+      "clientAction": "wait 200; CloseLimboMenu; -scores; wait 60; screenshotPNG handshake-world; wait 30; quit",
+      "clientSha256": "c16b8a274608d0a9aadfcb819dd1d477f157ce505dd21cb8c8b3ab54b555a885",
+      "serverSha256": "5ddbd178c3fc51e5434f1b58d9ea357e273f239e716ef6c0e5d23bdfd67df630",
+      "moduleSha256": "d8975b5c4e14488283c5eca7d549005304b04f1690705c13c174a171cc24c387",
+      "passed": true,
+      "serverReadySeconds": 2.453,
+      "clientExit": 0,
+      "clientForced": false,
+      "installationUnchanged": true,
+      "elapsedSeconds": 9.39,
+      "handshakeReplies": [
+        "challengeResponse 1329019188 1 478293306 60 FnQL",
+        "connectResponse 1329019188"
+      ],
+      "serverActive": true,
+      "serverBegin": true,
+      "unpureDrop": false,
+      "rejectedConnect": [],
+      "clientErrors": [],
+      "clientSawPureServer": false,
+      "clientHidesUnseenPlayers": true,
+      "screenshots": [
+        {
+          "name": "handshake-world.png",
+          "sha256": "0f8dcea6b7d1b0c9b6f6ca6a55c3485b57749277f8365f40959a8364ab6e85d0"
+        }
+      ],
+      "sourceCommit": "26d87f80019fe42122cfea3c1b02acd116807e6e"
+    },
+    "q3-pure": {
+      "evidence": "Live: fnTech3 client and server, pure",
+      "profile": "q3",
+      "map": "q3dm17",
+      "pure": true,
+      "retailServer": false,
+      "serverCommand": "+set com_gameProfile q3 +set fs_basepath C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-outbound\\final\\q3-pure\\server-home +set dedicated 1 +set developer 1 +set logfile 2 +set net_ip 127.0.0.1 +set net_port 58789 +set sv_pure 1 +set sv_master1  +set sv_master2  +set sv_master3  +set sv_master4  +set sv_master5  +set g_gametype 0 +set bot_enable 0 +map q3dm17",
+      "clientCommand": "+set com_gameProfile q3 +set fs_basepath C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-outbound\\final\\q3-pure\\client-home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_windowedMode -1 +set r_windowedWidth 800 +set r_windowedHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set developer 1 +set net_ip 127.0.0.1 +set net_port 0 +set net_ip6 ::1 +set net_port6 0 +connect 127.0.0.1:58789",
+      "clientAction": "wait 200; wait 60; screenshotPNG handshake-world; wait 30; quit",
+      "clientSha256": "c16b8a274608d0a9aadfcb819dd1d477f157ce505dd21cb8c8b3ab54b555a885",
+      "serverSha256": "5ddbd178c3fc51e5434f1b58d9ea357e273f239e716ef6c0e5d23bdfd67df630",
+      "moduleSha256": "7ce8b3910620cd50a09e4f1100f426e8c6180f68895d589f80e6bd95af54bcae",
+      "passed": true,
+      "serverReadySeconds": 2.438,
+      "clientExit": 0,
+      "clientForced": false,
+      "installationUnchanged": true,
+      "elapsedSeconds": 9.672,
+      "handshakeReplies": [
+        "challengeResponse 771215326 1573258103 68 FnQL",
+        "connectResponse 771215326"
+      ],
+      "serverActive": true,
+      "serverBegin": true,
+      "unpureDrop": false,
+      "rejectedConnect": [],
+      "clientErrors": [],
+      "clientSawPureServer": true,
+      "clientHidesUnseenPlayers": false,
+      "screenshots": [
+        {
+          "name": "handshake-world.png",
+          "sha256": "74ce4f3d9973f505637ab3e9b42ce166cf450173720b921d27c3ecc58ed825e6"
+        }
+      ],
+      "sourceCommit": "26d87f80019fe42122cfea3c1b02acd116807e6e"
+    },
+    "inbound-retail-pure-team": {
+      "evidence": "Interop: inbound, pure team admission",
+      "profile": "rtcw-mp",
+      "serverCommand": "+set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-outbound\\final\\inbound-retail-pure-team\\server +set r_fullscreen 0 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set logfile 2 +set com_viewlog 0 +set com_gameProfile rtcw-mp +set dedicated 1 +set developer 1 +set net_ip 127.0.0.1 +set net_port 58792 +set sv_pure 1 +set sv_punkbuster 0 +set bot_enable 0 +set sv_master1  +set sv_master2  +set sv_master3  +set sv_master4  +set sv_master5  +map mp_beach +wait 100 +sv_paks +sv_pakNames +sv_pure +wait 1000 +quit",
+      "clientCommand": "+set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-outbound\\final\\inbound-retail-pure-team\\client +set r_fullscreen 0 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set logfile 2 +set com_viewlog 0 +set com_maxfps 30 +set s_initsound 0 +set r_mode 3 +set name fntech3-rtcw-probe +set cl_punkbuster 0 +set cl_allowDownload 0 +set r_ignorehwgamma 1 +set developer 1 +connect 127.0.0.1:58792 +wait 300 +team r +wait 300 +team b +wait 150 +quit",
+      "serverSha256": "5ddbd178c3fc51e5434f1b58d9ea357e273f239e716ef6c0e5d23bdfd67df630",
+      "clientSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+      "moduleSha256": "d8975b5c4e14488283c5eca7d549005304b04f1690705c13c174a171cc24c387",
+      "passed": true,
+      "clientExit": 0,
+      "serverExit": 0,
+      "installationUnchanged": true,
+      "elapsedSeconds": 55.437,
+      "active": true,
+      "clientBegin": true,
+      "disconnected": true,
+      "publishedPaks": "2031588061 -12507464 536894334 -1646710850 -1393701318 1789456988 -1153491798 -2145192499 -137448799 131270674 125907563 -1023558518 764840216 -272430295 1886207346",
+      "publishedPakNames": "",
+      "publishedPure": "1",
+      "clientAccessViolation": false,
+      "pureAdmission": true,
+      "clientSawPureServer": true,
+      "clientPureListEntries": 15,
+      "officialPakError": false,
+      "teamAdmission": {
+        "axis": true,
+        "allies": true
+      }
+    }
+  },
+  "onlyVisibleClientsComparison": {
+    "x86": {
+      "implementation": {
+        "path": "code/client/cl_parse.cpp",
+        "sha256": "10b70fc4f7df5cdfd7ddfcd6baa0cfbe3ba8a979f3aca0f9af26eb00ee4c32af"
+      },
+      "results": [
+        {
+          "reference": "E:\\_SOURCE\\_CODE\\RTCW-MP-master\\src\\client\\cl_parse.c",
+          "referenceSha256": "5c2713ac2d8e66ee4318b100f40c61e8bb53920ba4a5b7b09c2f81fa7dc6dc0f",
+          "compiler": "C:\\Program Files\\LLVM\\bin\\clang++.EXE",
+          "target": [
+            "--target=i686-pc-windows-msvc"
+          ],
+          "exitCode": 0,
+          "stderr": "",
+          "cases": 100000,
+          "traces": 436777,
+          "visible": 87392,
+          "leaning": 24905,
+          "low": 24915,
+          "unseen": 12608
+        },
+        {
+          "reference": "E:\\_SOURCE\\_CODE\\iortcw-master\\MP\\code\\client\\cl_parse.c",
+          "referenceSha256": "89ea900a003dce3036130059909b4fe8c043c94ff9aef9d3bfc90836bffa99fd",
+          "compiler": "C:\\Program Files\\LLVM\\bin\\clang++.EXE",
+          "target": [
+            "--target=i686-pc-windows-msvc"
+          ],
+          "exitCode": 0,
+          "stderr": "",
+          "cases": 100000,
+          "traces": 436777,
+          "visible": 87392,
+          "leaning": 24905,
+          "low": 24915,
+          "unseen": 12608
+        }
+      ],
+      "passed": true
+    },
+    "x64": {
+      "implementation": {
+        "path": "code/client/cl_parse.cpp",
+        "sha256": "10b70fc4f7df5cdfd7ddfcd6baa0cfbe3ba8a979f3aca0f9af26eb00ee4c32af"
+      },
+      "results": [
+        {
+          "reference": "E:\\_SOURCE\\_CODE\\RTCW-MP-master\\src\\client\\cl_parse.c",
+          "referenceSha256": "5c2713ac2d8e66ee4318b100f40c61e8bb53920ba4a5b7b09c2f81fa7dc6dc0f",
+          "compiler": "C:\\Program Files\\LLVM\\bin\\clang++.EXE",
+          "target": [
+            "-DFNTECH3_Q3_ONLY"
+          ],
+          "exitCode": 0,
+          "stderr": "",
+          "cases": 100000,
+          "traces": 436777,
+          "visible": 87392,
+          "leaning": 24905,
+          "low": 24915,
+          "unseen": 12608
+        },
+        {
+          "reference": "E:\\_SOURCE\\_CODE\\iortcw-master\\MP\\code\\client\\cl_parse.c",
+          "referenceSha256": "89ea900a003dce3036130059909b4fe8c043c94ff9aef9d3bfc90836bffa99fd",
+          "compiler": "C:\\Program Files\\LLVM\\bin\\clang++.EXE",
+          "target": [
+            "-DFNTECH3_Q3_ONLY"
+          ],
+          "exitCode": 0,
+          "stderr": "",
+          "cases": 100000,
+          "traces": 436777,
+          "visible": 87392,
+          "leaning": 24905,
+          "low": 24915,
+          "unseen": 12608
+        }
+      ],
+      "passed": true
+    }
+  },
+  "focusedTests": {
+    "file": "tests/rtcw_handshake_tests.py",
+    "passed": 3,
+    "targets": [
+      "Windows x86",
+      "Windows x64"
+    ]
+  }
+}

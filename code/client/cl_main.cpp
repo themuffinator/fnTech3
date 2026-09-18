@@ -33,6 +33,7 @@ extern "C" {
 #include "window_resize.hpp"
 #include "../qcommon/protocol_contract.hpp"
 #include "../qcommon/netchan_safety.hpp"
+#include "../qcommon/rtcw_handshake.hpp"
 #include "../qcommon/steam_identity.hpp"
 #include "../platform/fnql_steam.h"
 #include "../compat/rtcw_translation.hpp"
@@ -3674,10 +3675,11 @@ static void CL_CheckForResend( void ) {
 
 	switch ( cls.state ) {
 	case CA_CONNECTING:
-		// The retired Quake III authorize service applies only to the legacy
-		// protocol. Protocol 91 authenticates with its Steam challenge ticket.
+		// The retired Quake III authorize service applies only to Q3's legacy
+		// protocol. Protocol 91 authenticates with its Steam challenge ticket,
+		// and RTCW's own authorizer was a different, decommissioned service.
 #ifndef STANDALONE
-		if ( com_protocol->integer <= OLD_PROTOCOL_VERSION &&
+		if ( Com_GameIsQuake3() && com_protocol->integer <= OLD_PROTOCOL_VERSION &&
 			!Cvar_VariableIntegerValue("com_standalone") &&
 			clc.serverAddress.type == NA_IP &&
 			!Sys_IsLANAddress( &clc.serverAddress ) )
@@ -3695,9 +3697,16 @@ static void CL_CheckForResend( void ) {
 			}
 		} else {
 			// Legacy/ioq3 peers echo this nonce, preventing an unrelated server
-			// from redirecting the connection.
+			// from redirecting the connection. iortcw servers also refuse any
+			// game name but their own; original RTCW servers ignore both tokens.
+			const char *gameName = GAMENAME_FOR_MASTER;
+			if ( Com_GameIsRTCWMP() ) {
+				gameName = fntech3::rtcw::handshake::MultiplayerGameName;
+			} else if ( Com_GameIsRTCWSP() ) {
+				gameName = fntech3::rtcw::handshake::SinglePlayerGameName;
+			}
 			NET_OutOfBandPrint( NS_CLIENT, &clc.serverAddress,
-				"getchallenge %d %s", clc.challenge, GAMENAME_FOR_MASTER );
+				"getchallenge %d %s", clc.challenge, gameName );
 			steamChallengeTicket.requestMode =
 				fnql::client::auth::ChallengeRequestMode::LegacyNonce;
 		}
@@ -4044,6 +4053,45 @@ static bool CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 			return false;
 		}
 
+		// RTCW servers use their own token layouts: MP's second token is
+		// sv_onlyVisibleClients, not a nonce echo, and original servers of
+		// both modes name no protocol because they speak only their own.
+		if ( Com_GameIsRTCW() ) {
+			std::array<const char *, 6> tokens{};
+			const int count = std::min( Cmd_Argc(), static_cast<int>( tokens.size() ) );
+			for ( int i = 0; i < count; ++i ) {
+				tokens[i] = Cmd_Argv( i );
+			}
+			const int ownProtocol = Com_GameProfile()->preferredProtocol;
+			const auto reply = fntech3::rtcw::handshake::ParseChallengeReply(
+				Com_GameIsRTCWMP() != 0, count, tokens.data(), clc.challenge, ownProtocol,
+				NET_CompareAdr( from, &clc.serverAddress ) != qfalse );
+			if ( !reply.accepted ) {
+				Com_DPrintf( "Challenge response did not prove its source. Ignored.\n" );
+				return false;
+			}
+			if ( reply.protocol != ownProtocol ) {
+				// iortcw's client warns and connects anyway; the server decides.
+				Com_Printf( S_COLOR_YELLOW "Warning: Server reports protocol version %d, "
+					"we have %d. Trying anyways.\n", reply.protocol, ownProtocol );
+			}
+			clc.compat = qfalse;
+			clc.handshakeProtocol = ownProtocol;
+			clc.rtcwOnlyVisibleClients = Com_GameIsRTCWMP() ? reply.onlyVisibleClients : 0;
+			if ( clc.rtcwOnlyVisibleClients ) {
+				Com_DPrintf( "Server hides players this client cannot see (sv_onlyVisibleClients %d).\n",
+					clc.rtcwOnlyVisibleClients );
+			}
+			clc.challenge = reply.challenge;
+			cls.state = CA_CHALLENGING;
+			clc.connectPacketCount = 0;
+			clc.connectTime = -99999;
+			clc.serverAddress = *from;
+			CL_EraseSteamChallengePayload();
+			Com_DPrintf( "challengeResponse: %d\n", clc.challenge );
+			return true;
+		}
+
 		c = Cmd_Argv( 2 );
 		if ( *c != '\0' )
 			challenge = std::atoi( c );
@@ -4158,7 +4206,22 @@ static bool CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 		const fnql::protocol::Contract *contract =
 			fnql::protocol::Find( negotiatedProtocol, clc.compat != qfalse );
 
-		if ( !clc.compat &&
+		if ( Com_GameIsRTCW() ) {
+			// Original RTCW servers answer with a bare connectResponse and
+			// ioquake3-lineage ones echo the challenge, which must then match.
+			std::array<const char *, 3> tokens{};
+			const int count = std::min( Cmd_Argc(), static_cast<int>( tokens.size() ) );
+			for ( int i = 0; i < count; ++i ) {
+				tokens[i] = Cmd_Argv( i );
+			}
+			negotiatedProtocol = Com_GameProfile()->preferredProtocol;
+			if ( !fntech3::rtcw::handshake::AcceptConnectReply( count, tokens.data(),
+				clc.challenge, negotiatedProtocol ) ) {
+				Com_Printf( "ConnectResponse with bad challenge received. Ignored.\n" );
+				return false;
+			}
+			clc.compat = qfalse;
+		} else if ( !clc.compat &&
 			( !contract || contract->family != fnql::protocol::Family::QuakeLive ) ) {
 			// first argument: challenge response
 			c = Cmd_Argv( 1 );

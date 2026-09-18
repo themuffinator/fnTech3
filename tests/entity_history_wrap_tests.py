@@ -27,13 +27,15 @@ constexpr int MAX_PARSE_ENTITIES = 8, MAX_GENTITIES = 16, ERR_DROP = 1;
 using qboolean = int;
 constexpr int qtrue = 1, qfalse = 0;
 struct entityState_t { int number, value; };
-struct clSnapshot_t { int parseEntitiesNum, numEntities; };
+struct clSnapshot_t { int parseEntitiesNum, numEntities, serverTime; };
 struct msg_t { int readcount = 0; int numbers[4] = {}; bool remove = false; };
 struct { int parseEntitiesNum; entityState_t parseEntities[8], entityBaselines[16]; } cl;
 struct cvar_t { int integer; } shownet;
 cvar_t *cl_shownet = &shownet;
 void Com_Error(int, const char *, ...) { throw 1; }
 void Com_Printf(const char *, ...) {}
+// RTCW MP's server-requested culling is profile-gated and covered separately.
+void CL_RTCWApplyOnlyVisibleClients(entityState_t *, int) {}
 int MSG_ReadEntitynum(msg_t *msg) { return msg->numbers[msg->readcount++]; }
 void CL_ReadDeltaEntity(msg_t *msg, const entityState_t *, entityState_t *out, int number) {
     *out = {msg->remove ? MAX_GENTITIES - 1 : number, 99};

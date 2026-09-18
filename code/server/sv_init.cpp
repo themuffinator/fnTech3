@@ -1082,6 +1082,12 @@ void SV_Init( void )
 		sv_showloss = nullptr;
 	}
 
+	if ( Com_GameIsRTCWMP() ) {
+		// Original MP sends this in its challenge reply; a set value asks each
+		// client to stop drawing players it cannot see (sv_init.c, sv_client.c).
+		(void)Cvar_Get( "sv_onlyVisibleClients", "0", 0 );
+	}
+
 	sv_wwwDownload = Cvar_Get( "sv_wwwDownload", "0", CVAR_ARCHIVE );
 	sv_wwwBaseURL = Cvar_Get( "sv_wwwBaseURL", "", CVAR_ARCHIVE );
 	sv_wwwDlDisconnected = Cvar_Get( "sv_wwwDlDisconnected", "0", CVAR_ARCHIVE );

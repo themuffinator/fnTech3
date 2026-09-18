@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../compat/wolfet_module_abi.h"
 #include "../qcommon/protocol_contract.hpp"
 #include "../qcommon/netchan_safety.hpp"
+#include "../qcommon/rtcw_handshake.hpp"
 #include "../platform/fnql_steam.h"
 #include "retail_auth_challenge.hpp"
 #include "stats_contract.hpp"
@@ -253,7 +254,18 @@ void SV_GetChallenge( const netadr_t *from, const msg_t *msg ) {
 		return;
 	}
 
-	if ( Cmd_Argc() < 2 ) {
+	if ( Com_GameIsRTCWMP() ) {
+		// RTCW MP's second token is sv_onlyVisibleClients: original servers send
+		// it only when set, and iortcw follows it with the nonce and protocol.
+		// Quake III's layout would hand an RTCW client the nonce as that value.
+		std::array<char, 128> reply{};
+		const bool sentNonce = Cmd_Argc() >= 2;
+		fntech3::rtcw::handshake::FormatMultiplayerChallengeReply( reply.data(), reply.size(),
+			challenge, Cvar_VariableIntegerValue( "sv_onlyVisibleClients" ), sentNonce,
+			sentNonce ? SV_ParseInt( Cmd_Argv( 1 ) ) : 0, com_protocol->integer,
+			fnql::protocol::FnqlHandshakeMarker.data() );
+		NET_OutOfBandPrint( NS_SERVER, from, "%s", reply.data() );
+	} else if ( Cmd_Argc() < 2 ) {
 		// legacy client query, don't send unneeded information
 		NET_OutOfBandPrint( NS_SERVER, from, "challengeResponse %i", challenge );
 	} else {

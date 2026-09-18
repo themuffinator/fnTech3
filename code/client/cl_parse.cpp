@@ -436,6 +436,91 @@ Parses deltas from the given base and adds the resulting entity
 to the current frame
 ==================
 */
+/*
+==================
+RTCW MP only-visible-clients
+
+A server with sv_onlyVisibleClients set asks its clients, in the challenge
+reply, to stop drawing players they cannot see. Original RTCW MP (and iortcw)
+decide in the client parser: seven solid-only lines from the eye to points on
+the player, and a player unseen for more than 600 ms gets EF_NODRAW. Both run
+on the parsed state, so the result also becomes the next delta's base, and
+the per-player times are never reset. Behaviour observed in RTCW-MP
+src/client/cl_parse.c (isEntVisible, CL_DeltaEntity); independently written.
+==================
+*/
+static constexpr int RTCW_EF_NODRAW = 0x00000080;	// RTCW MP bg_public.h
+static std::array<int, MAX_CLIENTS> clRTCWLastVisible{};
+
+static bool CL_RTCWPlayerVisible( const entityState_t *ent ) {
+	vec3_t eye, target, toward, side, farSide, nearSide, up = { 0.0f, 0.0f, 1.0f };
+	trace_t trace;
+
+	VectorCopy( cl.cgameRTCWLerpOrigin, eye );
+	eye[2] += ( cl.snap.ps.viewheight - 1 );
+	if ( cl.snap.ps.rtcw.leanf != 0 ) {
+		vec3_t angles, leanRight;
+		VectorCopy( cl.snap.ps.viewangles, angles );
+		angles[ROLL] += cl.snap.ps.rtcw.leanf / 2.0f;
+		AngleVectors( angles, nullptr, leanRight, nullptr );
+		VectorMA( eye, cl.snap.ps.rtcw.leanf, leanRight, eye );
+	}
+
+	// The original moves one end point up and back down between lines, so the
+	// later points inherit that exact float arithmetic; keep the same order.
+	vec3_t end;
+	VectorCopy( ent->pos.trBase, end );
+	VectorSubtract( end, eye, toward );
+	VectorNormalizeFast( toward );
+	CrossProduct( toward, up, side );
+	VectorNormalizeFast( side );
+	VectorScale( side, 10, nearSide );
+	VectorScale( side, 18, farSide );
+
+	const bool low = ent->rtcw.animMovetype != 0;
+	const float eyeHeight = low ? 16.0f : 40.0f;
+	const auto clear = [&]( const vec3_t point ) {
+		CM_BoxTrace( &trace, eye, point, nullptr, nullptr, 0, CONTENTS_SOLID, qfalse );
+		return trace.fraction == 1.0f;
+	};
+
+	end[2] += eyeHeight;					// eye to eye
+	if ( clear( end ) ) return true;
+	end[2] += 16;							// eye to top of head
+	if ( clear( end ) ) return true;
+	end[2] -= 16;
+	end[2] -= eyeHeight;					// eye to origin
+	if ( clear( end ) ) return true;
+	VectorAdd( end, farSide, target );		// right knee
+	target[2] += 8;
+	if ( clear( target ) ) return true;
+	VectorAdd( end, nearSide, target );		// right shoulder
+	target[2] += low ? 28 : 52;
+	if ( clear( target ) ) return true;
+	VectorScale( farSide, -1, farSide );
+	VectorScale( nearSide, -1, nearSide );
+	VectorAdd( end, nearSide, target );		// left knee
+	target[2] += 2;
+	if ( clear( target ) ) return true;
+	VectorAdd( end, farSide, target );		// left shoulder
+	target[2] += low ? 16 : 36;
+	return clear( target );
+}
+
+static void CL_RTCWApplyOnlyVisibleClients( entityState_t *state, int serverTime ) {
+	if ( !clc.rtcwOnlyVisibleClients || !Com_GameIsRTCWMP() ||
+		state->number < 0 || state->number >= Com_GameProfile()->maxClients ||
+		state->number >= static_cast<int>( clRTCWLastVisible.size() ) ) {
+		return;
+	}
+	if ( CL_RTCWPlayerVisible( state ) ) {
+		clRTCWLastVisible[state->number] = serverTime;
+		state->eFlags &= ~RTCW_EF_NODRAW;
+	} else if ( clRTCWLastVisible[state->number] < serverTime - 600 ) {
+		state->eFlags |= RTCW_EF_NODRAW;
+	}
+}
+
 static void CL_DeltaEntity( msg_t *msg, clSnapshot_t *frame, int newnum, const entityState_t *old, qboolean unchanged) {
 	entityState_t	*state;
 
@@ -452,6 +537,7 @@ static void CL_DeltaEntity( msg_t *msg, clSnapshot_t *frame, int newnum, const e
 	if ( state->number == (MAX_GENTITIES-1) ) {
 		return;		// entity was delta removed
 	}
+	CL_RTCWApplyOnlyVisibleClients( state, frame->serverTime );
 	cl.parseEntitiesNum = fnql::net::NextCounter( cl.parseEntitiesNum );
 	frame->numEntities++;
 }

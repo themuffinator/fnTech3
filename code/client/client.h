@@ -201,6 +201,7 @@ struct clientConnection_t {
 
 	int			challenge;					// from the server to use for connecting
 	int			handshakeProtocol;			// protocol selected by challengeResponse
+	int			rtcwOnlyVisibleClients;		// RTCW MP server asks to hide unseen players
 	int			checksumFeed;				// from the server for checksum calculations
 
 	// these are our reliable messages that go to the server
