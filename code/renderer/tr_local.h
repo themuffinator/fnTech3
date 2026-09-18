@@ -2757,6 +2757,8 @@ void RE_ClearScene( void );
 void RE_AddRefEntityToScene( const refEntity_t *ent, qboolean intShaderTime );
 void RE_AddPolyToScene( qhandle_t hShader , int numVerts, const polyVert_t *verts, int num );
 void RE_AddRTCWLightToScene( const vec3_t origin, float intensity, float r, float g, float b, int flags );
+void RE_AddWolfETLightToScene( const vec3_t origin, float radius, float intensity,
+	float r, float g, float b, qhandle_t hShader, int flags );
 extern qboolean rtcwRadialFogAvailable;
 void RB_RTCWStageFog( const shaderStage_t *stage );
 void RB_RTCWFogToggle( qboolean enabled );

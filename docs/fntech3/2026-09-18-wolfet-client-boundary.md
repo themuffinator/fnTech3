@@ -52,22 +52,22 @@ one; each profile keeps its own table.
 
 ## Coverage
 
-Of the 147 imports ET's cgame declares, **125 are handled**, counting the sound
-surface the [sound record](2026-09-18-wolfet-audio.md) added after this one. The dispatcher
+Of the 147 imports ET's cgame declares, **126 are handled**, counting the sound
+surface the [sound record](2026-09-18-wolfet-audio.md) and the dynamic light the
+[light record](2026-09-18-wolfet-light.md) added after this one. The dispatcher
 routes ET's own records and renderer services first, then its key imports, then
 a table of imports whose meaning and argument shape are already this engine's.
 An import that reaches the end of that chain is refused by name and ordinal. No
 ET argument is dropped anywhere: an import this engine cannot answer exactly is
 not answered approximately.
 
-The 22 that remain open, and why:
+The 21 that remain open, and why:
 
 | Ordinals | Imports | Why |
 | --- | --- | --- |
 | 113–116 | the camera path surface | ET's camera paths need an ET-owned camera contract; the existing one is another profile's. |
 | 34, 35 | decal projection and clearing | No shared renderer service. |
 | 64 | the polygon buffer | No shared renderer service; the record is declared and checked but nothing consumes it. |
-| 65 | the dynamic light | ET's light carries a radius and an intensity separately, plus a shader handle and a force flag. The shared light has one magnitude and no shader. |
 | 68 | the global fog | No shared renderer service. Per-map fog (67) is handled. |
 | 70, 71 | saving and restoring view parameters | No shared renderer service. |
 | 165 | 2D polygons | No shared renderer service. |

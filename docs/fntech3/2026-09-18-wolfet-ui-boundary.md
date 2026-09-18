@@ -68,18 +68,18 @@ the engine, never synthesised, and a missing key stays missing.
 
 ## Coverage
 
-Of the 121 imports ET's UI declares, **110 are handled**, counting the sound
-surface the [sound record](2026-09-18-wolfet-audio.md) added after this one. The dispatcher routes
+Of the 121 imports ET's UI declares, **111 are handled**, counting the sound
+surface the [sound record](2026-09-18-wolfet-audio.md) and the dynamic light the
+[light record](2026-09-18-wolfet-light.md) added after this one. The dispatcher routes
 ET's renderer services first, then its own records, keys and services, then a
 table of imports whose meaning and argument shape are already this engine's. An
 import reaching the end of that chain is refused by name and ordinal.
 
-The 11 that remain open:
+The 10 that remain open:
 
 | Ordinals | Imports | Why |
 | --- | --- | --- |
 | 21, 38, 57, 58, 59, 60 | copy file, load collision model, the superseded LAN counters | ET's own engine refuses these; see above. |
-| 29 | the dynamic light | ET's light carries a radius and an intensity separately, plus a shader handle and a force flag. |
 | 33 | 2D polygons | No shared renderer service. |
 | 20 | file deletion | ET's own delete also removes a directory tree; implementing half of it would be worse than refusing it. |
 | 108 | string translation | Needs ET's own localisation files, which this record does not open. |

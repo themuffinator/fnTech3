@@ -162,6 +162,9 @@ typedef struct {
 	qboolean (*GetSkinModel)( qhandle_t skin, const char *type, char *name );
 	qhandle_t (*GetShaderFromModel)( qhandle_t model, int surface, int withLightmap );
 	void (*AddRTCWLightToScene)( const vec3_t origin, float intensity, float r, float g, float b, int flags );
+	// ET names a radius and a brightness separately, and carries a shader and flags.
+	void (*AddWolfETLightToScene)( const vec3_t origin, float radius, float intensity,
+		float r, float g, float b, qhandle_t hShader, int flags );
 	void (*SetRTCWFog)( int command, int first, int second, float r, float g, float b, float density );
 
 

@@ -2748,6 +2748,8 @@ void RE_ClearScene( void );
 void RE_AddRefEntityToScene( const refEntity_t *ent, qboolean intShaderTime );
 void RE_AddPolyToScene( qhandle_t hShader , int numVerts, const polyVert_t *verts, int num );
 void RE_AddRTCWLightToScene( const vec3_t origin, float intensity, float r, float g, float b, int flags );
+void RE_AddWolfETLightToScene( const vec3_t origin, float radius, float intensity,
+	float r, float g, float b, qhandle_t hShader, int flags );
 void RE_SetRTCWFog( int command, int first, int second, float r, float g, float b, float density );
 shader_t *R_FindRTCWLightShader( const char *name );
 void RE_AddLightToScene( const vec3_t org, float intensity, float r, float g, float b );

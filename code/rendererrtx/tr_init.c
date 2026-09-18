@@ -3941,6 +3941,7 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 	re.LightForPoint = R_LightForPoint;
 	re.AddLightToScene = RE_AddLightToScene;
 	re.AddRTCWLightToScene = RE_AddRTCWLightToScene;
+	re.AddWolfETLightToScene = RE_AddWolfETLightToScene;
 	re.SetRTCWFog = RE_SetRTCWFog;
 	re.AddAdditiveLightToScene = RE_AddAdditiveLightToScene;
 	re.AddLinearLightToScene = RE_AddLinearLightToScene;

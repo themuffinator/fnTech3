@@ -1231,6 +1231,7 @@ RE_AddLightToScene
 =====================
 */
 #include "../renderercommon/tr_rtcw_light_scene.h"
+#include "../renderercommon/tr_wolfet_light_scene.h"
 
 void RE_AddLightToScene( const vec3_t org, float intensity, float r, float g, float b ) {
 	vec3_t adjustedOrigin;

@@ -151,6 +151,18 @@ inline bool CL_WolfETRenderCall( vm_t *vm, fntech3::wolfet::module::Call call,
 		re.AddRTCWCoronaToScene( &corona );
 		break;
 	}
+	case Call::CG_R_ADDLIGHTTOSCENE:
+	case Call::UI_R_ADDLIGHTTOSCENE: {
+		// ET sends a radius and a brightness separately, then a shader handle
+		// and its own flag word. Every one of them crosses.
+		if ( args[7] < INT_MIN || args[7] > INT_MAX || args[8] < INT_MIN || args[8] > INT_MAX )
+			Com_Error( ERR_DROP, "Invalid ET light shader or flags" );
+		vec3_t origin;
+		std::memcpy( origin, CL_RTCWRenderSpan( vm, args[1], sizeof( origin ) ), sizeof( origin ) );
+		re.AddWolfETLightToScene( origin, VMF(2), VMF(3), VMF(4), VMF(5), VMF(6),
+			static_cast<qhandle_t>( args[7] ), static_cast<int>( args[8] ) );
+		break;
+	}
 	case Call::CG_R_SETFOG:
 		for ( int i = 1; i <= 3; ++i )
 			if ( args[i] < INT_MIN || args[i] > INT_MAX )
