@@ -1,0 +1,2143 @@
+{
+ "date": "2026-09-18T09:12:56.817430+00:00",
+ "commit": "1e537ef4c30f322cd420ec8694e2650e5d0d1bde",
+ "decoderLastChanged": "15d9ddaed82747ebbc4bb1b973016953ace46b09",
+ "scope": "Seeded corruptions of installed RoQ movies: the shared decoder under AddressSanitizer, and the running client under q3, rtcw-sp and rtcw-mp.",
+ "sourceFiles": [
+  {
+   "path": "code/client/cl_cin.cpp",
+   "sha256": "5933bcf26a833143582c3793b3229ca37f2642895cd57c575791d0cf9cdf3273"
+  },
+  {
+   "path": "scripts/fuzz_roq_decoder.py",
+   "sha256": "f6b9f94b4dca1d78782bf64546b52ef7280b5e310e932ed64ead965307716dde"
+  },
+  {
+   "path": "scripts/probe_roq_faults.py",
+   "sha256": "b32e04a85b830014e0df7bb53c0597149b5d6a7efe592cf00a5ccffe401e02fe"
+  }
+ ],
+ "harness": {
+  "corpus": {
+   "target": "Windows x86, MSVC AddressSanitizer",
+   "buildCommand": "cl /nologo /std:c++17 /EHsc /O1 /Zi /fsanitize=address /I E:\\Repositories\\fnTech3 E:\\Repositories\\fnTech3\\.tmp\\roq-fuzz\\corpus\\roq_fuzz.cpp /Fe:E:\\Repositories\\fnTech3\\.tmp\\roq-fuzz\\corpus\\roq_fuzz.exe /Fo:E:\\Repositories\\fnTech3\\.tmp\\roq-fuzz\\corpus\\ /Fd:E:\\Repositories\\fnTech3\\.tmp\\roq-fuzz\\corpus\\",
+   "harnessSha256": "7892b427abbe7864045633be4d8fb637faad0bdc22bb4ef0f309889081cd7296",
+   "decoder": "code\\client\\cl_cin.cpp",
+   "decoderSourceSha256": "5933bcf26a833143582c3793b3229ca37f2642895cd57c575791d0cf9cdf3273",
+   "seed": 20260918,
+   "variantsPerMovie": 1000,
+   "movies": {
+    "baseq3/pak0.pk3:video/idlogo.RoQ": {
+     "sha256": "1f358ad1dcfc0ba67a37cbc66631e8507f861da3faf05cb7da5d0521e141c87b",
+     "movieBytes": 2895296,
+     "chunks": 566,
+     "baselineFrames": 210,
+     "baselineAudioBlocks": 167,
+     "count": 1000,
+     "seed": 20260918,
+     "framesPublished": 165072,
+     "decoderCalls": 452540,
+     "outcomes": {
+      "ended": 192,
+      "looped": 182,
+      "rejected": 626
+     },
+     "reasons": {
+      "incomplete stereo sample": 9,
+      "invalid VQ payload or motion range": 375,
+      "invalid or truncated chunk header": 132,
+      "invalid packet chunk count": 1,
+      "invalid packet header": 1,
+      "nonempty hang chunk": 10,
+      "truncated chunk payload": 60,
+      "truncated codebook": 14,
+      "unsupported chunk type": 14,
+      "unsupported quad dimensions": 10
+     },
+     "outcomesByKind": {
+      "anywhere": {
+       "ended": 31,
+       "looped": 27,
+       "rejected": 192
+      },
+      "chunk-duplicated": {
+       "ended": 35,
+       "looped": 30
+      },
+      "chunk-removed": {
+       "ended": 25,
+       "looped": 31
+      },
+      "header-flags": {
+       "ended": 22,
+       "looped": 17,
+       "rejected": 18
+      },
+      "header-id": {
+       "ended": 12,
+       "looped": 7,
+       "rejected": 42
+      },
+      "header-size": {
+       "rejected": 78
+      },
+      "header-size-delta": {
+       "rejected": 54
+      },
+      "payload": {
+       "ended": 41,
+       "looped": 48,
+       "rejected": 161
+      },
+      "truncated": {
+       "rejected": 60
+      },
+      "zeroed": {
+       "ended": 26,
+       "looped": 22,
+       "rejected": 21
+      }
+     },
+     "exitCode": 0,
+     "seconds": 234.3
+    },
+    "baseq3/pak0.pk3:video/demoEnd.RoQ": {
+     "sha256": "d2d847771f12c8b06cf18a3f071c173ddf337e12cf59d91fdd2743ad5a1d2d7c",
+     "movieBytes": 3373893,
+     "chunks": 653,
+     "baselineFrames": 326,
+     "baselineAudioBlocks": 0,
+     "count": 1000,
+     "seed": 20260918,
+     "framesPublished": 301269,
+     "decoderCalls": 605279,
+     "outcomes": {
+      "ended": 212,
+      "looped": 218,
+      "rejected": 570
+     },
+     "reasons": {
+      "invalid VQ payload or motion range": 317,
+      "invalid or truncated chunk header": 137,
+      "invalid packet chunk count": 2,
+      "nonempty hang chunk": 10,
+      "truncated chunk payload": 60,
+      "truncated codebook": 17,
+      "unsupported chunk type": 19,
+      "unsupported quad dimensions": 8
+     },
+     "outcomesByKind": {
+      "anywhere": {
+       "ended": 38,
+       "looped": 38,
+       "rejected": 174
+      },
+      "chunk-duplicated": {
+       "ended": 35,
+       "looped": 30
+      },
+      "chunk-removed": {
+       "ended": 25,
+       "looped": 31
+      },
+      "header-flags": {
+       "ended": 10,
+       "looped": 16,
+       "rejected": 31
+      },
+      "header-id": {
+       "ended": 13,
+       "looped": 9,
+       "rejected": 39
+      },
+      "header-size": {
+       "rejected": 78
+      },
+      "header-size-delta": {
+       "rejected": 54
+      },
+      "payload": {
+       "ended": 70,
+       "looped": 77,
+       "rejected": 103
+      },
+      "truncated": {
+       "rejected": 60
+      },
+      "zeroed": {
+       "ended": 21,
+       "looped": 17,
+       "rejected": 31
+      }
+     },
+     "exitCode": 0,
+     "seconds": 291.1
+    },
+    "baseq3/pak0.pk3:video/tier1.RoQ": {
+     "sha256": "591ef1b2703b5c9821dd7af971c754ac93d9dd773f758721ed35555f6feafad8",
+     "movieBytes": 6272334,
+     "chunks": 1098,
+     "baselineFrames": 366,
+     "baselineAudioBlocks": 365,
+     "count": 1000,
+     "seed": 20260918,
+     "framesPublished": 324887,
+     "decoderCalls": 977258,
+     "outcomes": {
+      "ended": 216,
+      "looped": 211,
+      "rejected": 573
+     },
+     "reasons": {
+      "incomplete stereo sample": 12,
+      "invalid VQ payload or motion range": 329,
+      "invalid or truncated chunk header": 133,
+      "invalid packet chunk count": 2,
+      "nonempty hang chunk": 10,
+      "truncated chunk payload": 60,
+      "truncated codebook": 8,
+      "unsupported chunk type": 14,
+      "unsupported quad dimensions": 5
+     },
+     "outcomesByKind": {
+      "anywhere": {
+       "ended": 37,
+       "looped": 37,
+       "rejected": 176
+      },
+      "chunk-duplicated": {
+       "ended": 35,
+       "looped": 30
+      },
+      "chunk-removed": {
+       "ended": 25,
+       "looped": 31
+      },
+      "header-flags": {
+       "ended": 15,
+       "looped": 16,
+       "rejected": 26
+      },
+      "header-id": {
+       "ended": 12,
+       "looped": 8,
+       "rejected": 41
+      },
+      "header-size": {
+       "rejected": 78
+      },
+      "header-size-delta": {
+       "rejected": 54
+      },
+      "payload": {
+       "ended": 67,
+       "looped": 66,
+       "rejected": 117
+      },
+      "truncated": {
+       "rejected": 60
+      },
+      "zeroed": {
+       "ended": 25,
+       "looped": 23,
+       "rejected": 21
+      }
+     },
+     "exitCode": 0,
+     "seconds": 449.5
+    },
+    "Main/pak0.pk3:video/menu.roq": {
+     "sha256": "32a465188546f71d13402316947dc98f3722495ee45c2c7ef364b5442e940d1e",
+     "movieBytes": 4919482,
+     "chunks": 707,
+     "baselineFrames": 353,
+     "baselineAudioBlocks": 0,
+     "count": 1000,
+     "seed": 20260918,
+     "framesPublished": 315888,
+     "decoderCalls": 634511,
+     "outcomes": {
+      "ended": 223,
+      "looped": 212,
+      "rejected": 565
+     },
+     "reasons": {
+      "incomplete stereo sample": 2,
+      "invalid VQ payload or motion range": 322,
+      "invalid or truncated chunk header": 117,
+      "invalid packet chunk count": 1,
+      "invalid packet header": 1,
+      "nonempty hang chunk": 10,
+      "truncated chunk payload": 60,
+      "truncated codebook": 29,
+      "unsupported chunk type": 13,
+      "unsupported quad dimensions": 10
+     },
+     "outcomesByKind": {
+      "anywhere": {
+       "ended": 46,
+       "looped": 41,
+       "rejected": 163
+      },
+      "chunk-duplicated": {
+       "ended": 35,
+       "looped": 30
+      },
+      "chunk-removed": {
+       "ended": 25,
+       "looped": 31
+      },
+      "header-flags": {
+       "ended": 10,
+       "looped": 9,
+       "rejected": 38
+      },
+      "header-id": {
+       "ended": 13,
+       "looped": 8,
+       "rejected": 40
+      },
+      "header-size": {
+       "rejected": 78
+      },
+      "header-size-delta": {
+       "rejected": 54
+      },
+      "payload": {
+       "ended": 63,
+       "looped": 64,
+       "rejected": 123
+      },
+      "truncated": {
+       "rejected": 60
+      },
+      "zeroed": {
+       "ended": 31,
+       "looped": 29,
+       "rejected": 9
+      }
+     },
+     "exitCode": 0,
+     "seconds": 201.8
+    },
+    "Main/pak0.pk3:video/menu2.roq": {
+     "sha256": "20bb318bd190d82c74beb674f90dc3d32a54a10283ed9ea584a3696d352f624b",
+     "movieBytes": 7628035,
+     "chunks": 1069,
+     "baselineFrames": 534,
+     "baselineAudioBlocks": 0,
+     "count": 1000,
+     "seed": 20260918,
+     "framesPublished": 484244,
+     "decoderCalls": 971280,
+     "outcomes": {
+      "ended": 221,
+      "looped": 223,
+      "rejected": 556
+     },
+     "reasons": {
+      "incomplete stereo sample": 2,
+      "invalid VQ payload or motion range": 308,
+      "invalid or truncated chunk header": 123,
+      "invalid packet chunk count": 2,
+      "nonempty hang chunk": 10,
+      "truncated chunk payload": 60,
+      "truncated codebook": 32,
+      "unsupported chunk type": 15,
+      "unsupported quad dimensions": 4
+     },
+     "outcomesByKind": {
+      "anywhere": {
+       "ended": 44,
+       "looped": 46,
+       "rejected": 160
+      },
+      "chunk-duplicated": {
+       "ended": 35,
+       "looped": 30
+      },
+      "chunk-removed": {
+       "ended": 25,
+       "looped": 31
+      },
+      "header-flags": {
+       "ended": 11,
+       "looped": 9,
+       "rejected": 37
+      },
+      "header-id": {
+       "ended": 12,
+       "looped": 8,
+       "rejected": 41
+      },
+      "header-size": {
+       "rejected": 78
+      },
+      "header-size-delta": {
+       "rejected": 54
+      },
+      "payload": {
+       "ended": 68,
+       "looped": 74,
+       "rejected": 108
+      },
+      "truncated": {
+       "rejected": 60
+      },
+      "zeroed": {
+       "ended": 26,
+       "looped": 25,
+       "rejected": 18
+      }
+     },
+     "exitCode": 0,
+     "seconds": 704.0
+    },
+    "Main/mp_pak0.pk3:video/mp_beach.roq": {
+     "sha256": "7b1602ff4b41043b5aba6e042772eaea82b599bb1276633c2d4509b81ad43e43",
+     "movieBytes": 1597910,
+     "chunks": 733,
+     "baselineFrames": 366,
+     "baselineAudioBlocks": 0,
+     "count": 1000,
+     "seed": 20260918,
+     "framesPublished": 340461,
+     "decoderCalls": 683635,
+     "outcomes": {
+      "ended": 218,
+      "looped": 225,
+      "rejected": 557
+     },
+     "reasons": {
+      "incomplete stereo sample": 2,
+      "invalid VQ payload or motion range": 268,
+      "invalid or truncated chunk header": 159,
+      "invalid packet chunk count": 2,
+      "nonempty hang chunk": 10,
+      "truncated chunk payload": 60,
+      "truncated codebook": 34,
+      "unsupported chunk type": 14,
+      "unsupported quad dimensions": 8
+     },
+     "outcomesByKind": {
+      "anywhere": {
+       "ended": 60,
+       "looped": 65,
+       "rejected": 125
+      },
+      "chunk-duplicated": {
+       "ended": 35,
+       "looped": 30
+      },
+      "chunk-removed": {
+       "ended": 25,
+       "looped": 31
+      },
+      "header-flags": {
+       "ended": 12,
+       "looped": 9,
+       "rejected": 36
+      },
+      "header-id": {
+       "ended": 11,
+       "looped": 8,
+       "rejected": 42
+      },
+      "header-size": {
+       "rejected": 78
+      },
+      "header-size-delta": {
+       "rejected": 54
+      },
+      "payload": {
+       "ended": 64,
+       "looped": 72,
+       "rejected": 114
+      },
+      "truncated": {
+       "rejected": 60
+      },
+      "zeroed": {
+       "ended": 11,
+       "looped": 10,
+       "rejected": 48
+      }
+     },
+     "exitCode": 0,
+     "seconds": 103.0
+    },
+    "Main/mp_pakmaps6.pk3:video/mp_rocket.roq": {
+     "sha256": "4bb0f066ab8cf3470b279579581f850ab806472cf2b35ca246af9cd4389193f3",
+     "movieBytes": 1397604,
+     "chunks": 653,
+     "baselineFrames": 326,
+     "baselineAudioBlocks": 0,
+     "count": 1000,
+     "seed": 20260918,
+     "framesPublished": 310540,
+     "decoderCalls": 623763,
+     "outcomes": {
+      "ended": 225,
+      "looped": 240,
+      "rejected": 535
+     },
+     "reasons": {
+      "incomplete stereo sample": 3,
+      "invalid VQ payload or motion range": 246,
+      "invalid or truncated chunk header": 155,
+      "invalid packet chunk count": 2,
+      "nonempty hang chunk": 10,
+      "truncated chunk payload": 60,
+      "truncated codebook": 32,
+      "unsupported chunk type": 19,
+      "unsupported quad dimensions": 8
+     },
+     "outcomesByKind": {
+      "anywhere": {
+       "ended": 62,
+       "looped": 63,
+       "rejected": 125
+      },
+      "chunk-duplicated": {
+       "ended": 35,
+       "looped": 30
+      },
+      "chunk-removed": {
+       "ended": 25,
+       "looped": 31
+      },
+      "header-flags": {
+       "ended": 9,
+       "looped": 15,
+       "rejected": 33
+      },
+      "header-id": {
+       "ended": 11,
+       "looped": 8,
+       "rejected": 42
+      },
+      "header-size": {
+       "rejected": 78
+      },
+      "header-size-delta": {
+       "rejected": 54
+      },
+      "payload": {
+       "ended": 72,
+       "looped": 84,
+       "rejected": 94
+      },
+      "truncated": {
+       "rejected": 60
+      },
+      "zeroed": {
+       "ended": 11,
+       "looped": 9,
+       "rejected": 49
+      }
+     },
+     "exitCode": 0,
+     "seconds": 52.5
+    }
+   },
+   "passed": true
+  },
+  "large": {
+   "target": "Windows x86, MSVC AddressSanitizer",
+   "buildCommand": "cl /nologo /std:c++17 /EHsc /O1 /Zi /fsanitize=address /I E:\\Repositories\\fnTech3 E:\\Repositories\\fnTech3\\.tmp\\roq-fuzz\\large\\roq_fuzz.cpp /Fe:E:\\Repositories\\fnTech3\\.tmp\\roq-fuzz\\large\\roq_fuzz.exe /Fo:E:\\Repositories\\fnTech3\\.tmp\\roq-fuzz\\large\\ /Fd:E:\\Repositories\\fnTech3\\.tmp\\roq-fuzz\\large\\",
+   "harnessSha256": "7892b427abbe7864045633be4d8fb637faad0bdc22bb4ef0f309889081cd7296",
+   "decoder": "code\\client\\cl_cin.cpp",
+   "decoderSourceSha256": "5933bcf26a833143582c3793b3229ca37f2642895cd57c575791d0cf9cdf3273",
+   "seed": 7,
+   "variantsPerMovie": 100,
+   "movies": {
+    "baseq3/pak0.pk3:video/end.RoQ": {
+     "sha256": "590ac2de1e493f368f6a0320beab8f5c27bf9b939ae1a6a36877182038d8b173",
+     "movieBytes": 23392627,
+     "chunks": 5757,
+     "baselineFrames": 1922,
+     "baselineAudioBlocks": 1912,
+     "count": 100,
+     "seed": 7,
+     "framesPublished": 185846,
+     "decoderCalls": 557109,
+     "outcomes": {
+      "ended": 20,
+      "looped": 28,
+      "rejected": 52
+     },
+     "reasons": {
+      "incomplete stereo sample": 1,
+      "invalid VQ payload or motion range": 28,
+      "invalid or truncated chunk header": 15,
+      "truncated chunk payload": 4,
+      "truncated codebook": 1,
+      "unsupported chunk type": 3
+     },
+     "outcomesByKind": {
+      "anywhere": {
+       "ended": 7,
+       "looped": 6,
+       "rejected": 12
+      },
+      "chunk-duplicated": {
+       "ended": 2,
+       "looped": 5
+      },
+      "chunk-removed": {
+       "ended": 1,
+       "looped": 4
+      },
+      "header-flags": {
+       "ended": 2,
+       "looped": 1,
+       "rejected": 5
+      },
+      "header-id": {
+       "looped": 3,
+       "rejected": 5
+      },
+      "header-size": {
+       "rejected": 4
+      },
+      "header-size-delta": {
+       "rejected": 5
+      },
+      "payload": {
+       "ended": 6,
+       "looped": 8,
+       "rejected": 11
+      },
+      "truncated": {
+       "rejected": 4
+      },
+      "zeroed": {
+       "ended": 2,
+       "looped": 1,
+       "rejected": 6
+      }
+     },
+     "exitCode": 0,
+     "seconds": 152.7
+    },
+    "baseq3/pak0.pk3:video/intro.RoQ": {
+     "sha256": "27f0c64acea6c058c4d68698155b786d5221031eb2ce695020aceb92d768c52e",
+     "movieBytes": 49180272,
+     "chunks": 8045,
+     "baselineFrames": 2695,
+     "baselineAudioBlocks": 2694,
+     "count": 100,
+     "seed": 7,
+     "framesPublished": 296309,
+     "decoderCalls": 884061,
+     "outcomes": {
+      "ended": 31,
+      "looped": 29,
+      "rejected": 40
+     },
+     "reasons": {
+      "incomplete stereo sample": 2,
+      "invalid VQ payload or motion range": 21,
+      "invalid or truncated chunk header": 10,
+      "truncated chunk payload": 4,
+      "truncated codebook": 1,
+      "unsupported chunk type": 2
+     },
+     "outcomesByKind": {
+      "anywhere": {
+       "ended": 7,
+       "looped": 6,
+       "rejected": 12
+      },
+      "chunk-duplicated": {
+       "ended": 2,
+       "looped": 5
+      },
+      "chunk-removed": {
+       "ended": 1,
+       "looped": 4
+      },
+      "header-flags": {
+       "ended": 4,
+       "looped": 1,
+       "rejected": 3
+      },
+      "header-id": {
+       "looped": 4,
+       "rejected": 4
+      },
+      "header-size": {
+       "rejected": 4
+      },
+      "header-size-delta": {
+       "rejected": 5
+      },
+      "payload": {
+       "ended": 11,
+       "looped": 7,
+       "rejected": 7
+      },
+      "truncated": {
+       "rejected": 4
+      },
+      "zeroed": {
+       "ended": 6,
+       "looped": 2,
+       "rejected": 1
+      }
+     },
+     "exitCode": 0,
+     "seconds": 343.5
+    },
+    "Main/sp_pak1.pk3:video/wolfintro.RoQ": {
+     "sha256": "88b31c00ea85d56c73b22eb37007ea2fb0c45abe48bd4a17335720ac981be075",
+     "movieBytes": 55625495,
+     "chunks": 12134,
+     "baselineFrames": 4142,
+     "baselineAudioBlocks": 4139,
+     "count": 100,
+     "seed": 7,
+     "framesPublished": 364245,
+     "decoderCalls": 1068380,
+     "outcomes": {
+      "ended": 22,
+      "looped": 22,
+      "rejected": 56
+     },
+     "reasons": {
+      "incomplete stereo sample": 3,
+      "invalid VQ payload or motion range": 35,
+      "invalid or truncated chunk header": 11,
+      "truncated chunk payload": 4,
+      "truncated codebook": 1,
+      "unsupported chunk type": 2
+     },
+     "outcomesByKind": {
+      "anywhere": {
+       "ended": 5,
+       "looped": 2,
+       "rejected": 18
+      },
+      "chunk-duplicated": {
+       "ended": 2,
+       "looped": 5
+      },
+      "chunk-removed": {
+       "ended": 1,
+       "looped": 4
+      },
+      "header-flags": {
+       "ended": 4,
+       "looped": 1,
+       "rejected": 3
+      },
+      "header-id": {
+       "looped": 4,
+       "rejected": 4
+      },
+      "header-size": {
+       "rejected": 4
+      },
+      "header-size-delta": {
+       "rejected": 5
+      },
+      "payload": {
+       "ended": 6,
+       "looped": 5,
+       "rejected": 14
+      },
+      "truncated": {
+       "rejected": 4
+      },
+      "zeroed": {
+       "ended": 4,
+       "looped": 1,
+       "rejected": 4
+      }
+     },
+     "exitCode": 0,
+     "seconds": 627.8
+    }
+   },
+   "passed": true
+  },
+  "commands": [
+   "python scripts/fuzz_roq_decoder.py --count 1000 --output .tmp/roq-fuzz/corpus --movie ... (7)",
+   "python scripts/fuzz_roq_decoder.py --count 100 --seed 7 --output .tmp/roq-fuzz/large --movie ... (3)"
+  ],
+  "environment": "Visual Studio x86 developer environment, MSVC /fsanitize=address; movies passed over stdin from the installation paks, never written to disk"
+ },
+ "sensitivity": {
+  "decoder": "code/client/cl_cin.cpp at 1223898, before the RoQ bounds checkpoint",
+  "decoderSourceSha256": "ee30b50d5bb4a0a761e318a26eaa4353dfc4ce0bda30b48e4cd2e395cc910f23",
+  "movie": "baseq3/pak0.pk3:video/idlogo.RoQ",
+  "count": 40,
+  "seed": 20260918,
+  "exitCode": 1,
+  "failedVariant": 37,
+  "report": "==21816==ERROR: AddressSanitizer: global-buffer-overflow on address 0x0089bc74 at pc 0x7b39a6ca bp 0x00edf7a4 sp 0x00edf388"
+ },
+ "live": {
+  "q3": {
+   "movie": "pak0.pk3:video/tier1.RoQ",
+   "movieBytes": 6272334,
+   "movieSha256": "591ef1b2703b5c9821dd7af971c754ac93d9dd773f758721ed35555f6feafad8",
+   "count": 60,
+   "seed": 20260918,
+   "framesPerVariant": 20,
+   "command": "+set com_gameProfile q3 +set fs_basepath C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\roq-live\\q3\\home +set fs_game  +set r_fullscreen 0 +set r_mode 3 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_port 0 +exec probe.cfg",
+   "exitCode": 0,
+   "forcedTermination": false,
+   "elapsedSeconds": 22.2,
+   "completed": true,
+   "outcomes": {
+    "played": 57,
+    "rejected": 3,
+    "refused": 0,
+    "unknown": 0
+   },
+   "reasons": {
+    "invalid VQ payload or motion range": 3
+   },
+   "screenshots": [
+    {
+     "name": "roq-fuzz-final.png",
+     "sha256": "26a32b2f36d08299de6ddd22ae263ce27aadb9137d1722f80429015905a42e46"
+    }
+   ],
+   "clientSha256": "4d04deff698f67b948fabdb106a806c0233fa9fcd2e255bf8e39a529a798e650",
+   "sourceCommit": "efaec964fc44c474ae25eb50c1a6394ddf84bd2d",
+   "passed": true,
+   "variants": {
+    "fuzz-000": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "rejected",
+     "reason": "invalid VQ payload or motion range",
+     "inputSha256": "984f83078a34c68293f9806aed2eaf40b75212029095612e39f772cb23d7ecf2"
+    },
+    "fuzz-001": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "29b588a72b41a1aacc389e1250dfe24d92606c3690c139920aca49156ba30523"
+    },
+    "fuzz-002": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "cde60f46959d8b1d3dc766934fb7223cb9b829b00adba85790ac0fdf17b9e464"
+    },
+    "fuzz-003": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "6241d971b24215381c4ec9bd02fc632ed7a27ca82052f92d242ebbdda5cec7c0"
+    },
+    "fuzz-004": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "2c3e25e9d08819aef2b21984cbea8895fd3617be7b52cf53420cccd935910578"
+    },
+    "fuzz-005": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "13c167384b4500bbbb81fa96872d0ac1c27ff4cf12bb7e2eea1293819a667fff"
+    },
+    "fuzz-006": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "d43a15e69fd4b82447ba44e40fd0623fe01e792b31a8d4a29a6c21b3a0418ce7"
+    },
+    "fuzz-007": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "6ffac31faff091f8d5bcba89cd8393bad257219cbb569a5cbdc2b581d59615a0"
+    },
+    "fuzz-008": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "79ded4b09a1e9c5fc40fb9bcafbea3b193dc0586ab6247813fdd3eadde22b464"
+    },
+    "fuzz-009": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "100dc8603f40d387f5a93dbc94576b2510cdfdf04818a6490a94b9a6793fb812"
+    },
+    "fuzz-010": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "882dd1e8372239623340a5f9cd939d2e8439585c9d6b73395bfa7d57783ca9e4"
+    },
+    "fuzz-011": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "45bced099844239df7bfae22c71dc67d7d20b8c4da4158b1c21c1096f159d862"
+    },
+    "fuzz-012": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "d6c6c0a8aea15bd801b9db5f9641be49ef7392bd498243a0960faeec51f15f7e"
+    },
+    "fuzz-013": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "7bac6e21d8236831f91d8d285c35e0a9241a9c613311323de2c042c49a107202"
+    },
+    "fuzz-014": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "587c01a5d8b11c54141f36d05b7b29feaef5a1f0663b18e2d7ffb5ba1b5c73b7"
+    },
+    "fuzz-015": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "6ce018374f74b5565c8197f796a95e3cc92f300406853de484a4e9f2424400ba"
+    },
+    "fuzz-016": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "2b57055b1845cf6d0ccbd12f535a2a386886263122f4d7eb567c2133b0f61e77"
+    },
+    "fuzz-017": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "fda87a9d8aea0bb55dcedc7cccb92c2f5af26b96117a2e44da6417b7b2c1b0e8"
+    },
+    "fuzz-018": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "9af20e694af827e99431bc84eded2a580b0138795ebf4cf756eaec3502ebbc59"
+    },
+    "fuzz-019": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "15dfa572d7f91c907afa7cc5de8581956001eb6fbe786a75c67f1237c5c0b0a8"
+    },
+    "fuzz-020": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "791ba83bd8b34bba4c3d9973e1d53e7162348d239f0d64bf0de446addfc7654d"
+    },
+    "fuzz-021": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "2826920e84ca047c4e91105576f0054eeca54e6468052ed756e96d1e7dc08267"
+    },
+    "fuzz-022": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "d7e85503a9e9caf2529a7f43f031a3ec1b52f21a0d179a9ae233d6b9d7cc1efa"
+    },
+    "fuzz-023": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "f3331c300404ed632ae55b6ece0482ab695497b9ae5135e4c97feaffeb5f8008"
+    },
+    "fuzz-024": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "49c0d2a7c0a3c660dddbe12d8b7f78f89a5cba52b063980d993665081aa42528"
+    },
+    "fuzz-025": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "891beb6fb52e7c6d577633705b034f527c97fe9e286de8c538513abdacad3860"
+    },
+    "fuzz-026": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "6b82a5970730311c199775fac29bfd1e186fb8e64934807ac3b983dc3adaae76"
+    },
+    "fuzz-027": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "rejected",
+     "reason": "invalid VQ payload or motion range",
+     "inputSha256": "e447e20feb960717da325bd5b078c1f321624295dc1d23008da655017592f9ee"
+    },
+    "fuzz-028": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "eea085fd1cd2f94c0ea83c3cd1d2b498d9389e6c0e90a7849e6688ebc70afd83"
+    },
+    "fuzz-029": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "36f2ab77ee64d303376a8cdf27535a943f94c477719213ef616178b443e42f39"
+    },
+    "fuzz-030": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "5e82339c7059d2b17aebc4649414c711a4bb5689d952fa1c8b148cf41bc62a19"
+    },
+    "fuzz-031": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "304774ea078bbacc6a5120724db2dbe3a465381e6181a72d0aa4cfa0fde0fa45"
+    },
+    "fuzz-032": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "55525337a64d483597c28d0b76f4a5e2b246ff204ed7b296672b8f562bcc0dee"
+    },
+    "fuzz-033": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "a4216240602dd2a3a861ccf5e6629f3bc245e15633db69bc26941b2141d35dea"
+    },
+    "fuzz-034": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "099216afe7abd71b782e25f8fcb2b46e958f2b29d78dafd5a97245735af0eafc"
+    },
+    "fuzz-035": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "1d9a5b78f2ff87edf1c313a0d3077d9161d8e0d3d47b51f281de8eb37668bce4"
+    },
+    "fuzz-036": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "0b439c670a23ae3c3e9080a928b18ee03b99577824bfc4bfb297313690601be5"
+    },
+    "fuzz-037": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "d732c9ad2addc3780de96a860c8bf6f0fbe3e0508fe36eb4317714442f82f120"
+    },
+    "fuzz-038": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "11af7f55642571ee8fbf13a6ce00289c6ca7452bc23013a9763eadc31912b9ab"
+    },
+    "fuzz-039": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "92617a96d456cb92e1da8631ebeb2784dda5cd84ef0ca9390891db138a82dc6f"
+    },
+    "fuzz-040": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "ee62b1e96848ea8e9f4b991aa15ffed1c102473b99b2c9a183c659efc8c5cbfd"
+    },
+    "fuzz-041": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "57abd8fdf73a7e11126080f1ddcd67ddf46667d5b86703a710f980de4cd80ec0"
+    },
+    "fuzz-042": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "9ccaab57093b69e92dadd23e85c30f83563a2d6ce3a74158ef05de896e79c6be"
+    },
+    "fuzz-043": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "d325efed5c5aee77059c9411c0303243658a88a848ace32db36662cbcbae055b"
+    },
+    "fuzz-044": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "acb605e72c851fa4ffba326df8a18e7c6df9daae6656c7e7016613fab3234f7b"
+    },
+    "fuzz-045": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "a83193076775565335fb2d8ea720fbf902ed0566e8f130e7e78e475d8cd58052"
+    },
+    "fuzz-046": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "rejected",
+     "reason": "invalid VQ payload or motion range",
+     "inputSha256": "ac2feb7b1b362210d5ed2b6440e8237c9f5c5cd73d8603fea12987dda955ae51"
+    },
+    "fuzz-047": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "c374a67122864d7366052bdb3d3ae7620c2d46e69a74ec7a01bb7461ce9b1954"
+    },
+    "fuzz-048": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "4418e48fd022570518cb06c8d175e68cb5f9124737eb89275cb65616979b9dd4"
+    },
+    "fuzz-049": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "185365c24a6826ecef846f894b2470dd8e522bab38ba95095c523e737b7fa4ed"
+    },
+    "fuzz-050": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "41e41761beb25cf00d39626bc65479c4ecd8339386cbd4158cb070a1262e7710"
+    },
+    "fuzz-051": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "fe29462858afa636597075620a09831dc639de4ba5e1bae8761077ed802efbb2"
+    },
+    "fuzz-052": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "1f0894d270d3ce4fa62c8185a0dfe948f82131bd63f77fefd973eec0e168525e"
+    },
+    "fuzz-053": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "4935ff2a494d7406121827c5e37542102f098371fb4cc7a6e0dcec412af56ba8"
+    },
+    "fuzz-054": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "c2eaf98060a2687f650ee03ef0d3fd3786f48e3de8d0b860e4af5edde5ee18b9"
+    },
+    "fuzz-055": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "beafc77bf45fb51d41141bb0a95df6fb2d62a344843dffbdeb3f77676b742bc7"
+    },
+    "fuzz-056": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "2419dc5fdeb018785380863d2b6f5847896dae26ac137f9851ea9853210ab226"
+    },
+    "fuzz-057": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "1c654b132ba9ee2d4dc533442ee09d300de5f0f458f6390537ee7cad6a8eab7d"
+    },
+    "fuzz-058": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "1959fc5e69ccb065531a4adea0cdad3c2c7736fd7fccb74363c7052cb9b86947"
+    },
+    "fuzz-059": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "b53de72cde2cd2db742bc9de397487ad4e70ca180008eaed94977640f40bfef7"
+    }
+   }
+  },
+  "rtcw-sp": {
+   "movie": "pak0.pk3:video/menu.roq",
+   "movieBytes": 4919482,
+   "movieSha256": "32a465188546f71d13402316947dc98f3722495ee45c2c7ef364b5442e940d1e",
+   "count": 60,
+   "seed": 5,
+   "framesPerVariant": 20,
+   "command": "+set com_gameProfile rtcw-sp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\roq-live\\rtcw-sp\\home +set fs_game  +set r_fullscreen 0 +set r_mode 3 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_port 0 +exec probe.cfg",
+   "exitCode": 0,
+   "forcedTermination": false,
+   "elapsedSeconds": 22.7,
+   "completed": true,
+   "outcomes": {
+    "played": 58,
+    "rejected": 2,
+    "refused": 0,
+    "unknown": 0
+   },
+   "reasons": {
+    "invalid VQ payload or motion range": 2
+   },
+   "screenshots": [
+    {
+     "name": "roq-fuzz-final.png",
+     "sha256": "73e00bf1c2516671d4c7092fa0f93be367d4010885b4b1ae550af1a3c14cd76d"
+    }
+   ],
+   "clientSha256": "4d04deff698f67b948fabdb106a806c0233fa9fcd2e255bf8e39a529a798e650",
+   "sourceCommit": "efaec964fc44c474ae25eb50c1a6394ddf84bd2d",
+   "passed": true,
+   "variants": {
+    "fuzz-000": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "5c12dd8c9de461c5657b9aa496dcccaee641960720622ce1af069b3537210a16"
+    },
+    "fuzz-001": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "d99ab3849002224c4e97e4cadbafa1135593acb2db98aa9335ca97aa931b18fb"
+    },
+    "fuzz-002": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "2e14c5bbbd968797d91d67cce1fffd7ce832940016ba72e7118ee2483c37ff91"
+    },
+    "fuzz-003": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "75ee6542f2420efddd5125e934d7854f87b280d040936b062cbcc00f8ab33459"
+    },
+    "fuzz-004": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "03f8d3b6874a4aed3e4c977102b44ab382ddc86c268ae6d4c980cb58b4187a14"
+    },
+    "fuzz-005": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "402d8f21903259aff1a08bd712988bf2fa474b05420c50d0030ef1e2d426eb7a"
+    },
+    "fuzz-006": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "rejected",
+     "reason": "invalid VQ payload or motion range",
+     "inputSha256": "442c4d77d1a84b65a32794e98cac3221a959a4eeff2f389dc67915c2df97b1c8"
+    },
+    "fuzz-007": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "259d67be2770fd8b25871ed54962ef8a3566ee2c711673bf025de48139240038"
+    },
+    "fuzz-008": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "fe06640faa3621f289577e6d72e78f6b27ede4c40239885c7aa82b3e9bf1ba52"
+    },
+    "fuzz-009": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "79ed2d8564f58655e2d73eefe0b2bd06ec5a91d65e5714ef4bebfd832058bd07"
+    },
+    "fuzz-010": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "00bec11eff4e9b292e41bf2e40476a07211eec27e4e048a74438ff00ee40ce50"
+    },
+    "fuzz-011": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "68635a7286f7ca2708e79a11039de8e34285f110a1eb0adb373674c2f4114a5d"
+    },
+    "fuzz-012": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "47e35f2040a0f0718425519572a771b5c5c26555daac19c57ce9f52511a3c214"
+    },
+    "fuzz-013": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "afa2fd6412eea61a9fddc572c8e031c2971d4228a105d31cf4d3cc6911fa3172"
+    },
+    "fuzz-014": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "rejected",
+     "reason": "invalid VQ payload or motion range",
+     "inputSha256": "79e63a47745096b6d2f7ed66d09c4caf236a20934280b73f5d367a2a171fa1cf"
+    },
+    "fuzz-015": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "82c8d65cb50090ff5678aca01196527dd32362e46973f8de393cdc0690ab900e"
+    },
+    "fuzz-016": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "12d3882e8a14c0c001568b2044ac038e3148de410d4c5ae94252b44edac7a498"
+    },
+    "fuzz-017": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "ed1eca841fc9ea6edf55c649f10187b458e7f87c056da68a8b27c49e58306206"
+    },
+    "fuzz-018": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "4084d0916f474e1298d1b424339dcb52b0c012e2a9180efd4b245fc4e7e984b5"
+    },
+    "fuzz-019": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "a278fbefcc8afd27e911e66da608a9d89d890efc232ca8e5a5221413bf6a350c"
+    },
+    "fuzz-020": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "b0a2aefae0af6494662159a43bb4fdf739c485456aabf9a0fec83a8088841b9f"
+    },
+    "fuzz-021": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "e56f76f9d6887a21818f7aa6c48caf02a8148a963f9b74edec5cb0c3ef60b01c"
+    },
+    "fuzz-022": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "8ba87017db0ea53093bf11aed45e7f86d63fbd1df12bc8bb26e1822b56893b4e"
+    },
+    "fuzz-023": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "847a5112674a4ea4b756dd35f920881f901d8d727ca99fd3c0938fd93123e348"
+    },
+    "fuzz-024": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "3196f8f3af9fd224d4ddcb78743de06a5a2486a97d318a3c992b27ef77482c8c"
+    },
+    "fuzz-025": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "b7a28e3d3c9a13bc448f84c480e1954a9ab0a9179ebafd623a0bcdf8271216ba"
+    },
+    "fuzz-026": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "9b8d1770672a852e30b1fcc2e744dbfae72482a184ee977a5c1c8b9acad5da19"
+    },
+    "fuzz-027": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "ed9f00ab5d56b3e05dd8bb04d54243efe291bd2d1610e8b182e9eab47bd562cd"
+    },
+    "fuzz-028": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "3675ba4b7aca09d8ea4e26c2023ec19f10d7aa2802b6dddbdec2cf79f14858ee"
+    },
+    "fuzz-029": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "c44791db0491a8b3f837d436a0929aaa4ad1e75f1a192fdf83d8bc7c20147872"
+    },
+    "fuzz-030": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "3589979f9f9431ad849486842c4238885a24bb14f7a29c629a525c4324420c17"
+    },
+    "fuzz-031": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "0b9ad079d9eefafce6c0baed58ea177b66596c39fa9b84bee2dde28f4b36f682"
+    },
+    "fuzz-032": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "1ca2cc83a9afaf1fc35ab2320b7623110c2001f8dca1d39af53f77389bfc9238"
+    },
+    "fuzz-033": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "a8cd076ef082e668d2b746e6539a26809fdd0c412fb8b4d324b001e7bfd34d26"
+    },
+    "fuzz-034": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "086ff9273916d43a7196eb0e72435aa5a73c69c54869b1ca2c3aa85497de9b22"
+    },
+    "fuzz-035": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "be091b3240b595faabe0127e5d333e12382e819700d6e06222a16d5a5e758d49"
+    },
+    "fuzz-036": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "763e45bea9fa1d9541a4e37600dfab7806f4196874dbe35b9797a95664b0e85a"
+    },
+    "fuzz-037": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "01b2e10b40afa00fddf2fab6aae77771310d4693bfaee30eac6d0dc686915bba"
+    },
+    "fuzz-038": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "01850db51b5b8073ffdd002adcdccce30398e671cd986880b659f98321779549"
+    },
+    "fuzz-039": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "d6f7469095aa0f5c2c2a220f06c83645473a28cc01770903057474f88043e153"
+    },
+    "fuzz-040": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "3cac55763f216580ec19a2a4ea27f91eb7318d4a195d07c9d193e1f0ea3ddb1e"
+    },
+    "fuzz-041": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "e88596fe97247d2307d3ab5d0ede45ff9e30efb41ce634fcf55d20e15045ccb3"
+    },
+    "fuzz-042": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "b5879aec9f13afb0b93399e60b3ac20fe5010db658ffd7d9ff4ae674b6134c83"
+    },
+    "fuzz-043": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "717f9fdba20ec2752b5478bc60a3a79340bbdadc88aac061eee8d31a6d8bb1fc"
+    },
+    "fuzz-044": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "b62ebe6acebd691fd349cb9abdd045d9cb025c432d2cff49f370618a27daed20"
+    },
+    "fuzz-045": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "1eaa29402ab5f67de81d931a7c9c1af356e74a7ad6257c8d4f362eff72a62424"
+    },
+    "fuzz-046": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "5c6e6f9a215b5dd04d4dce6af2af67335f7b338d634772c9b26ae8723d734a67"
+    },
+    "fuzz-047": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "35da618ca9bcc58cb64c4908ea8388df48323b8c556d698ebb627a48233d658d"
+    },
+    "fuzz-048": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "93820efed79467e5c08d5c2ed884c2dcfc55bc916424afe9fc8ec31b5c9ad073"
+    },
+    "fuzz-049": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "4240fe1c115f9efd43916015bf72c1f7601ba059b20cb48741ad29ad2a95fdb6"
+    },
+    "fuzz-050": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "b6895a97a854641e27645c7faa703e7a9f4677140dff8e6d1981da01bd41c970"
+    },
+    "fuzz-051": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "00d1f0893be78f1b6d1c364e20498c95feeb3bcf27818c9481fcd06e7a779552"
+    },
+    "fuzz-052": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "aa314d9c4a4f5129381e0503bb5fe8f37e09c9b36025ff7c3fad7df25f51d0b5"
+    },
+    "fuzz-053": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "56e5e4fc34427e289fc8fb80137457a66d04207e68af4b0e11cd9dbe8c8fe355"
+    },
+    "fuzz-054": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "9c2fe87a86bca5e6dc86f97ddb70419ae11f9993e51db310699b06d022bdeb64"
+    },
+    "fuzz-055": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "2852343fa51cd74d22eb7235d3cd0c1ddd6e3729518f5699409f6386e32994c4"
+    },
+    "fuzz-056": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "08f479cf3862f6ddccbec9b47de95495070c57a088f9ca1992ff0823119a1146"
+    },
+    "fuzz-057": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "21069fed204e41a3ae4ef59892daaa17d354e22cf4d3498501a586252b8fa47c"
+    },
+    "fuzz-058": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "454afbe69f357339887b2f4ae7e44c341da630a92453fd3fe6dc9be890dc2fd5"
+    },
+    "fuzz-059": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "fb5871e0f55d61fe0530c12c2f4b0a283a60f321cd66c7c5866e9bc490e2c215"
+    }
+   }
+  },
+  "rtcw-mp": {
+   "movie": "mp_pak0.pk3:video/mp_beach.roq",
+   "movieBytes": 1597910,
+   "movieSha256": "7b1602ff4b41043b5aba6e042772eaea82b599bb1276633c2d4509b81ad43e43",
+   "count": 60,
+   "seed": 9,
+   "framesPerVariant": 20,
+   "command": "+set com_gameProfile rtcw-mp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\roq-live\\rtcw-mp\\home +set fs_game  +set r_fullscreen 0 +set r_mode 3 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_port 0 +exec probe.cfg",
+   "exitCode": 0,
+   "forcedTermination": false,
+   "elapsedSeconds": 22.2,
+   "completed": true,
+   "outcomes": {
+    "played": 58,
+    "rejected": 2,
+    "refused": 0,
+    "unknown": 0
+   },
+   "reasons": {
+    "invalid VQ payload or motion range": 1,
+    "unsupported quad dimensions": 1
+   },
+   "screenshots": [
+    {
+     "name": "roq-fuzz-final.png",
+     "sha256": "460fa8b34fdb9bddf36170e573b4abbcf1c3702fcc59f181ef5319ea9e28af58"
+    }
+   ],
+   "clientSha256": "4d04deff698f67b948fabdb106a806c0233fa9fcd2e255bf8e39a529a798e650",
+   "sourceCommit": "efaec964fc44c474ae25eb50c1a6394ddf84bd2d",
+   "passed": true,
+   "variants": {
+    "fuzz-000": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "421973ac411fbfc9ef72c4dda16095318a960dfb6d0e4fbcd21989106f7a873d"
+    },
+    "fuzz-001": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "d5c891aa80efdbdfa881dfa348c7353d7b267e6718fbb739e0fab51f1c254b97"
+    },
+    "fuzz-002": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "b11d748d422cb8a2ad952ed2a2f6a2a8c80db8ed1271736719c2a28fc5604bb8"
+    },
+    "fuzz-003": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "acf1e74a75c12e7176b6459c2bc9587defd56e4533a0072150792c14344782af"
+    },
+    "fuzz-004": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "5f76e037aa726e9fbe4d706ca9d1c2fbffc22820d315cfce14ed5550b705c262"
+    },
+    "fuzz-005": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "479df733aabb7ba29ade81d98603424934e88f91f0a361db429d55a9d01efcd8"
+    },
+    "fuzz-006": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "rejected",
+     "reason": "invalid VQ payload or motion range",
+     "inputSha256": "8c49fd328808b4a9b34999191e1e28d215f70a9c37da33150fe3baa79a4e13d6"
+    },
+    "fuzz-007": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "7613ba3071119118253a7477d9749b7ecee0dde7a73b2932497ed9548e1271f4"
+    },
+    "fuzz-008": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "4529ded5de845d986802da77970c160b051e79fe9321fd336ca6c477c6ca2887"
+    },
+    "fuzz-009": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "3273efd287ea1c432dc5c562f97813296141382422fe302a4e6715d50ab426c8"
+    },
+    "fuzz-010": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "35b123104d64df3aa9def301953548741f89cf82ebbe7de92c21c965a62ad48b"
+    },
+    "fuzz-011": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "757fb56cf267d1922c64d2fb42275861900a348559dfa3ed23495419b50f2d39"
+    },
+    "fuzz-012": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "d7018b95ba40145afefc5427b5fc52542229caa6f84a76515767f922355ba3c7"
+    },
+    "fuzz-013": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "632d69152a8c1dffc7ba7421eb20084e1cd6633d5ef5aa906ca0d0a47621414e"
+    },
+    "fuzz-014": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "e8a48ae0f431375e41b3109f00a8ae99824af60c602c39fee25ff803881e350e"
+    },
+    "fuzz-015": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "81fd9a39dfc53c4901efead4a8c9bd660efb7af47ad7f7fdc2d6497321e434d1"
+    },
+    "fuzz-016": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "ad3bfe74d24d63b0471e9231619bf73478f4fc0bdddc0b50429a073dd551a85a"
+    },
+    "fuzz-017": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "546152a5247ee3812ad8b2566a6f593e52edcc4f850d8d3d6ebe0a4e67a779d0"
+    },
+    "fuzz-018": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "7d2402439e0d75838c964253bdd0016cd0a4944af555a38b96c88d188d2b29c1"
+    },
+    "fuzz-019": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "e2c2377a779448ddd388c24d94657e9b599c6875b3471da31e0c1d005fcdd97a"
+    },
+    "fuzz-020": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "4841dba3b5721672d35c9b3886b46f8f277f655111408ce3f7b2a7bc397a785a"
+    },
+    "fuzz-021": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "69a29252b0a1b6044719ce33444d86bbaa7c40c4e4421e88368ec3f2094579b9"
+    },
+    "fuzz-022": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "282a9d42b4828ca2f51faf125f79fc762247a6a556331ec634d6eabe0502cd88"
+    },
+    "fuzz-023": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "cbf53e78af93d2ea65cf9f04fdf7b3d8eb6cc1e0bba61e07a985e5b23f7d52fd"
+    },
+    "fuzz-024": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "f9ff7227b18e278165470c0079b2c51f48b90ff10b79cf1e1c5a8dd2d8345521"
+    },
+    "fuzz-025": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "ec60758000332fcf8923276b36eb3a88374f5c55c7ad774270c97b935595e31f"
+    },
+    "fuzz-026": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "226ed1cca3823128222176d3ae208d888708e01d5fe14426950a6d9113d92b8b"
+    },
+    "fuzz-027": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "88139607fcf0c51a5ff55f9c8e8f45bc62c5009026dcdac596dee1afbce843e2"
+    },
+    "fuzz-028": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "137c173fafba85c5d2f1cc4808ef29e4798398cb53cf79402e785cb7bb1c3886"
+    },
+    "fuzz-029": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "bb559b335c6835445ca817e9bae0a099f43612b8b43814dd0077176d9cf538c6"
+    },
+    "fuzz-030": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "c7e2bb1fe40b63cce944c17203cf44983adbd430f2b01991bccdf504e91650b8"
+    },
+    "fuzz-031": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "752caddfe9513488d5252fe880b36c7306a0e8f667bcc0de07adae552fba90ca"
+    },
+    "fuzz-032": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "bf8e66f8e54d6cbf4b9828c18c115299eca11b01c0088327c51e930525a3df4c"
+    },
+    "fuzz-033": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "6e979e6f944a1d2432a310bc01dfe6bf5c4de00e8417a676bdb045a412bc5190"
+    },
+    "fuzz-034": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "e53838e094335d0fa5d734ea9f4921fafb5d1b41711ad6b2eab60fed0a21957b"
+    },
+    "fuzz-035": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "ef0a8c44aa307012976dea0cc9def28b592df9e5249b97c0790b8edbefc2185f"
+    },
+    "fuzz-036": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "8b473a5eaa3eb33f4d81b6353a93e8e5afd5a90c591b25e61145f33c194b37f9"
+    },
+    "fuzz-037": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "62801adc54934ce4a45140993db8c3df96479ad61f88e816d9c1e237d0576c4e"
+    },
+    "fuzz-038": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "28a6051e3fdb564d83066e537f33b777a152ddc177e267449f3fbfb721c40886"
+    },
+    "fuzz-039": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "2faca6a9b641a4d0b65040332398065dc7b55403324bc9defa75be7e25cd4caa"
+    },
+    "fuzz-040": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "b81c28138e9a6b9346046738dbd45563d3a7f9640a69e14a691d45d86b4bf37d"
+    },
+    "fuzz-041": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "eb38e41b7f2808afa3237a62e613f3238a3fb03a39d19d9b58702de3e8948df7"
+    },
+    "fuzz-042": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "28ded10b227d5f82ea7cd3fcb0e08cef0fac6883c4c7c656d4e7d9dfd846b774"
+    },
+    "fuzz-043": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "cac32c2c14b5f5c58f842c88dd54fb9c10ef47a9731996e2ded2595e37f7140a"
+    },
+    "fuzz-044": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "863d0c6224269e98664d1d34d29ce6993f9cdde2fb581d60920d6b532b7d7b96"
+    },
+    "fuzz-045": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "084780324fd7b202253cdad2aa597753d9207952d7a7dec1fa011ce80213f875"
+    },
+    "fuzz-046": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "79896ca4e5244206a1d18c9786297ab310cc34737ce8d318d21130641494b3b8"
+    },
+    "fuzz-047": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "5f309352740e3de37f3ece8afc613fbbd8f089c7b9a75186a4cfb6c6783f894e"
+    },
+    "fuzz-048": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "d2f20be93cf9fcd3e4fd547e1bde8e44c22f1a25425fec28927ab3485f7d2266"
+    },
+    "fuzz-049": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "d6f3dcde6bb2f5f223ed594533a60b3509e828d89883d439c72ffc797bbe3bfe"
+    },
+    "fuzz-050": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "5ddc6e8d4942a6a33f1dcdc34d5ccdad11f8a3aad0ac215921c6fc0fe40b6c9c"
+    },
+    "fuzz-051": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "8b25c0a133ee8b8cda3a217647f52d9ac27c47474b35cf40c97646423bcb71f2"
+    },
+    "fuzz-052": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "992b24a5b444008583ec856f2edda31b5aad896ea13e4e214833b140d2931162"
+    },
+    "fuzz-053": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "b002edb1f06dbcbd28f5feef256e4e0ee739cbc4071ea640a2c166a57bf520d6"
+    },
+    "fuzz-054": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "rejected",
+     "reason": "unsupported quad dimensions",
+     "inputSha256": "4af234e9945d8cc0f6fd96c2c5e91f6583506f239aa7000cbcd112456cfcefd1"
+    },
+    "fuzz-055": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "d5729440500857ede8812207c742c17f2f9b03f234fd024c847ac01699c1c80e"
+    },
+    "fuzz-056": {
+     "corruption": "payload",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "91b8a43c3eec3fd850e9f3d71f1e8ffc2c5ad9df25abfdb78a9034ab80575982"
+    },
+    "fuzz-057": {
+     "corruption": "anywhere",
+     "looping": false,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "f7c106802fcfb91114a366e5e2cc0d9068f019c1fd2602375614000300f61d65"
+    },
+    "fuzz-058": {
+     "corruption": "payload",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "b0e37c5ca50a620ef81ec21be43f715b9785b254b7ebc24364bf8d10328c498b"
+    },
+    "fuzz-059": {
+     "corruption": "anywhere",
+     "looping": true,
+     "outcome": "played",
+     "reason": null,
+     "inputSha256": "9f7fda621dc43ea52c91235dc2cbd0aea562c6e79b5ef1d32ca0676b7999caee"
+    }
+   }
+  }
+ },
+ "liveEnvironment": "Windowed private desktops, sound and mouse/joystick input disabled, console commands only; engine screenshotPNG; corrupted copies deleted after each run, only hashes kept."
+}
