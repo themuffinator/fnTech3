@@ -97,7 +97,7 @@ def probe(args, output):
     client_command = [str(args.client)]
     for name, value in dict(com_gameProfile=args.profile, fs_basepath=str(args.installation),
                             fs_homepath=str(client_home), fs_game='', fs_cdpath='', r_fullscreen='0',
-                            r_windowedMode='-1', r_windowedWidth='800', r_windowedHeight='600',
+                            r_mode='-1', r_customWidth='800', r_customHeight='600',
                             in_mouse='0', in_joystick='0', in_nograb='1', s_initsound='0',
                             com_steamIntegration='0', fs_skipWorkshop='1', cl_webuiEnable='0',
                             cl_renderer='glx', logfile='2', developer='1', net_ip='127.0.0.1',

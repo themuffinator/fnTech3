@@ -158,9 +158,9 @@ class RendererCvarCompatibilitySourceTests(unittest.TestCase):
         ):
             self.assertIn(registration, client)
 
-        self.assertIn("hadRetailVideoBridgeMarker", client)
-        self.assertIn("&& !hadRetailVideoBridgeMarker", client)
-        self.assertIn("hadRetailVideoConfig", client)
+        self.assertIn("retailVideo.hadOwnershipMarker", client)
+        self.assertIn("retailVideo.hadRetailVideoCvars", client)
+        self.assertIn("UsesRetailVideoConfig( retailVideo )", client)
         self.assertIn("CL_UpdateRetailVideoBridgeOwnership();", client)
         self.assertIn("static void CL_UpdateRetailVideoBridgeOwnership", client)
         self.assertIn(

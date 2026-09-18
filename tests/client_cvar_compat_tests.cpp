@@ -108,11 +108,62 @@ void TestRetailAvidemo()
 	CHECK( !plan.captureScreenshot );
 }
 
+void TestRetailVideoConfigOwnership()
+{
+	using fnql::client::cvars::RetailVideoConfigInputs;
+	using fnql::client::cvars::UsesRetailVideoConfig;
+
+	// Retail Q3, RTCW and ET configs archive r_stereo and r_ext_gamma_control.
+	// Neither they, a marker left by an earlier build, nor a later change to
+	// r_windowedMode makes those profiles use QL's video config.
+	RetailVideoConfigInputs inputs;
+	inputs.hadRetailVideoCvars = true;
+	CHECK( !UsesRetailVideoConfig( inputs ) );
+	inputs.hadOwnershipMarker = true;
+	inputs.ownershipMarked = true;
+	CHECK( !UsesRetailVideoConfig( inputs ) );
+	inputs.initialized = true;
+	inputs.retailVideoCvarsChanged = true;
+	CHECK( !UsesRetailVideoConfig( inputs ) );
+
+	// Quake Live adopts a config retail QL wrote, but not an unmarked one of
+	// its own, and adopts later changes to the retail cvars.
+	inputs = {};
+	inputs.quakeLive = true;
+	inputs.hadRetailVideoCvars = true;
+	CHECK( UsesRetailVideoConfig( inputs ) );
+	inputs.hadOwnershipMarker = true;
+	CHECK( !UsesRetailVideoConfig( inputs ) );
+	inputs.initialized = true;
+	inputs.retailVideoCvarsChanged = true;
+	CHECK( UsesRetailVideoConfig( inputs ) );
+
+	// For Quake Live, every input keeps the decision made before the bridge
+	// was limited to that profile.
+	for ( unsigned bits = 0; bits < 32; ++bits ) {
+		inputs = {};
+		inputs.quakeLive = true;
+		inputs.initialized = ( bits & 1 ) != 0;
+		inputs.hadOwnershipMarker = ( bits & 2 ) != 0;
+		inputs.hadRetailVideoCvars = ( bits & 4 ) != 0;
+		inputs.ownershipMarked = ( bits & 8 ) != 0;
+		inputs.retailVideoCvarsChanged = ( bits & 16 ) != 0;
+		const bool before = ( !inputs.initialized && !inputs.hadOwnershipMarker
+				&& inputs.hadRetailVideoCvars )
+			|| inputs.ownershipMarked
+			|| ( inputs.initialized && inputs.retailVideoCvarsChanged );
+		CHECK( UsesRetailVideoConfig( inputs ) == before );
+		inputs.quakeLive = false;
+		CHECK( !UsesRetailVideoConfig( inputs ) );
+	}
+}
+
 } // namespace
 
 int main()
 {
 	TestRetailTimeNudge();
 	TestRetailAvidemo();
+	TestRetailVideoConfigOwnership();
 	return failures == 0 ? 0 : 1;
 }

@@ -31,6 +31,17 @@ Retail-specific behavior covered by the common renderer contract includes:
 - `r_aspectRatio`, the windowed-mode aliases, `r_stereo`,
   `r_ext_gamma_control`, and `r_noFastRestart` at the client/video boundary.
 
+Only the Quake Live profile treats the windowed-mode aliases, `r_stereo` and
+`r_ext_gamma_control` as its video configuration. There, a retail config or a
+change to one of them sets `r_qlRetailVideoBridge`, keeps `r_windowedMode`
+independent from `r_mode`, and carries `r_stereo` and `r_ext_gamma_control`
+into `r_stereoEnabled` and `r_ignoreHWGamma`. Retail Q3, RTCW and ET configs
+archive `r_stereo` and `r_ext_gamma_control` too, but those engines select the
+window with `r_mode` and gate hardware gamma with `r_ignorehwgamma`. Those
+profiles therefore never register the marker: `r_windowedMode` follows `r_mode`
+at every renderer start, and `r_ignorehwgamma` and `r_stereoEnabled` keep their
+configured values.
+
 The retail aspect classifier publishes `1` for ratios at least 16:9, `2` for
 ratios at least 16:10 but below 16:9, `3` below 4:3, and `0` otherwise. The
 classification uses the active drawable rather than assuming the requested

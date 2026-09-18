@@ -83,8 +83,8 @@ def run(args, item, output):
     (game / 'autoexec.cfg').write_text(config)
     (folder / 'autoexec.cfg').write_text(config)
     startup = dict(com_gameProfile='rtcw-' + item['mode'], fs_basepath=str(args.installation),
-        fs_homepath=str(home), fs_game='', fs_cdpath='', r_fullscreen='0', r_windowedMode='-1',
-        r_windowedWidth='800', r_windowedHeight='600', in_mouse='0', in_joystick='0', in_nograb='1',
+        fs_homepath=str(home), fs_game='', fs_cdpath='', r_fullscreen='0', r_mode='-1',
+        r_customWidth='800', r_customHeight='600', in_mouse='0', in_joystick='0', in_nograb='1',
         s_initsound='1', com_steamIntegration='0', fs_skipWorkshop='1', cl_webuiEnable='0',
         cl_renderer='glx', logfile='4', net_ip='127.0.0.1', net_port='0', net_ip6='::1', net_port6='0')
     command = [str(args.executable)]

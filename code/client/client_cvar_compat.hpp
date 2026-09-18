@@ -150,6 +150,43 @@ strict latch boundary, inclusive capture start, and exclusive stop boundary.
 	return plan;
 }
 
+struct RetailVideoConfigInputs {
+	bool quakeLive = false;
+	// An earlier renderer start in this process registered the video cvars.
+	bool initialized = false;
+	// Set before the first registration, by a config or the command line.
+	bool hadOwnershipMarker = false;
+	bool hadRetailVideoCvars = false;
+	// r_qlRetailVideoBridge is nonzero.
+	bool ownershipMarked = false;
+	// A retail video cvar changed since the last renderer start.
+	bool retailVideoCvarsChanged = false;
+};
+
+/*
+Only Quake Live's retail engine selects its window with r_windowedMode,
+r_windowedWidth and r_windowedHeight, so only its configs make those cvars,
+r_stereo and r_ext_gamma_control the video configuration. The first renderer
+start adopts a config without the ownership marker, which retail QL wrote, and
+later renderer starts adopt changes to the retail cvars. Once adopted, the
+marker keeps them in charge. Q3, RTCW and ET configs archive r_stereo and
+r_ext_gamma_control as well, but those engines select the window with r_mode
+and gate hardware gamma with r_ignorehwgamma, so r_mode, r_ignorehwgamma and
+r_stereoEnabled stay in charge there.
+*/
+[[nodiscard]] constexpr bool UsesRetailVideoConfig(
+	const RetailVideoConfigInputs& inputs ) noexcept
+{
+	if ( !inputs.quakeLive ) {
+		return false;
+	}
+	if ( inputs.ownershipMarked ) {
+		return true;
+	}
+	return inputs.initialized ? inputs.retailVideoCvarsChanged
+		: !inputs.hadOwnershipMarker && inputs.hadRetailVideoCvars;
+}
+
 } // namespace fnql::client::cvars
 
 #endif // FNQL_CLIENT_CVAR_COMPAT_HPP

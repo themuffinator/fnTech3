@@ -186,6 +186,47 @@ class ClientCvarCompatibilitySourceTests(unittest.TestCase):
         self.assertIn("SelectTimeNudge(", self.cgame)
         self.assertIn("Sys_IsLANAddress( &clc.serverAddress )", self.cgame)
 
+    def test_retail_video_config_belongs_to_quake_live(self) -> None:
+        # Retail Q3, RTCW and ET configs archive r_stereo and
+        # r_ext_gamma_control too. Only a QL config may replace r_stereoEnabled
+        # and r_ignorehwgamma or free r_windowedMode from r_mode.
+        start = self.main.index("static void CL_InitGLimp_Cvars( void )\n{")
+        body = self.main[start:self.main.index("\n}\n", start)]
+        self.assertIn("retailVideo.quakeLive = Com_GameIsQuakeLive() != 0;", body)
+        self.assertEqual(1, self.main.count('Cvar_Get( "r_qlRetailVideoBridge"'))
+        self.assertRegex(
+            body,
+            r"if \( retailVideo\.quakeLive \) \{\s*"
+            r'r_qlRetailVideoBridge = Cvar_Get\( "r_qlRetailVideoBridge"',
+        )
+        self.assertIn(
+            "useRetailVideoConfig = "
+            "fnql::client::cvars::UsesRetailVideoConfig( retailVideo );",
+            body,
+        )
+        bridge = body[body.index("if ( useRetailVideoConfig ) {"):]
+        bridge = bridge[:bridge.index("}")]
+        self.assertIn('Cvar_Set( "r_stereoEnabled", r_stereo->string );', bridge)
+        self.assertIn('Cvar_Set( "r_ignoreHWGamma",', bridge)
+        for name in ("r_stereoEnabled", "r_ignoreHWGamma"):
+            with self.subTest(name=name):
+                writes = re.findall(
+                    rf'Cvar_Set2?\(\s*"{name}"', self.client_sources, re.IGNORECASE
+                )
+                self.assertEqual(1, len(writes))
+        migration = body[body.index("if ( !useRetailVideoConfig ) {"):]
+        self.assertIn('Cvar_Set2( "r_windowedMode", r_mode->string, qtrue );', migration)
+        self.assertIn(
+            "if ( !retailVideoCvarsInitialized || !r_qlRetailVideoBridge ) {",
+            self.main,
+        )
+
+        policy = read("code/client/client_cvar_compat.hpp")
+        policy = policy[policy.index("constexpr bool UsesRetailVideoConfig("):]
+        self.assertRegex(
+            policy, r"\{\s*if \( !inputs\.quakeLive \) \{\s*return false;\s*\}"
+        )
+
     def test_fnql_extensions_remain_available(self) -> None:
         for name in (
             "cl_allowDownload",

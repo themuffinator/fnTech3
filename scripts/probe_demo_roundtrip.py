@@ -90,8 +90,8 @@ def envelope(path):
 
 def fntech3_command(client, installation, home, profile, extra):
     values = dict(com_gameProfile=profile, fs_basepath=str(installation), fs_homepath=str(home),
-                  fs_game='', fs_cdpath='', r_fullscreen='0', r_windowedMode='-1',
-                  r_windowedWidth='800', r_windowedHeight='600', in_mouse='0', in_joystick='0',
+                  fs_game='', fs_cdpath='', r_fullscreen='0', r_mode='-1',
+                  r_customWidth='800', r_customHeight='600', in_mouse='0', in_joystick='0',
                   in_nograb='1', s_initsound='0', com_steamIntegration='0', fs_skipWorkshop='1',
                   cl_webuiEnable='0', cl_renderer='glx', logfile='2', net_ip='127.0.0.1',
                   net_port='0', net_ip6='::1', net_port6='0')

@@ -94,8 +94,8 @@ def main():
     game.mkdir()
     filename = f'fntech3-wolfet-{args.scene}-{args.map}-{args.renderer}'
     startup = dict(com_gameProfile='wolfet', fs_basepath=str(installation), fs_homepath=str(home),
-        fs_game='', fs_cdpath='', r_fullscreen='0', r_windowedMode='-1', r_windowedWidth='640',
-        r_windowedHeight='480', in_mouse='0', in_joystick='0', in_nograb='1', s_initsound='0',
+        fs_game='', fs_cdpath='', r_fullscreen='0', r_mode='-1', r_customWidth='640',
+        r_customHeight='480', in_mouse='0', in_joystick='0', in_nograb='1', s_initsound='0',
         com_steamIntegration='0', fs_skipWorkshop='1', cl_webuiEnable='0', cl_renderer=args.renderer,
         logfile='4', net_ip='127.0.0.1', net_port='0', net_ip6='::1', net_port6='0',
         rtx_rt_mode='0', rtx_rt_require='0')
