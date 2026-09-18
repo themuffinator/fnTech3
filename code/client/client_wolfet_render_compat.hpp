@@ -197,6 +197,57 @@ inline bool CL_WolfETRenderCall( vm_t *vm, fntech3::wolfet::module::Call call,
 		// own render synchronisation is the same wait.
 		re.SyncRender();
 		break;
+	case Call::CG_R_ADDPOLYBUFFERTOSCENE: {
+		// ET submits an indexed batch and expects the renderer to hold on to
+		// the module's own buffer until the frame is drawn. Retaining module
+		// memory is not something this engine does, so the batch is expanded
+		// into its triangles here and copied into the engine's own scene. The
+		// triangles, their vertices and their shader are identical; only the
+		// fog volume is chosen per triangle rather than once for the batch.
+		VM_CHECKBOUNDS( vm, args[1], sizeof( fntech3_wolfet_polyBuffer_t ) );
+		const auto *buffer = static_cast<const fntech3_wolfet_polyBuffer_t *>(
+			VM_ExplicitArgPtr( vm, args[1] ) );
+		if ( !buffer ) Com_Error( ERR_DROP, "Invalid ET polygon buffer" );
+		const int vertices = buffer->numVerts;
+		const int indices = buffer->numIndicies;
+		if ( vertices < 0 || vertices > FNTECH3_WOLFET_MAX_PB_VERTS ||
+			indices < 0 || indices > FNTECH3_WOLFET_MAX_PB_INDICIES )
+			Com_Error( ERR_DROP, "Invalid ET polygon buffer counts" );
+		// A batch that is not whole triangles, or names a vertex it does not
+		// carry, is refused rather than drawn with whatever happened to be there.
+		if ( indices % 3 || !indices || !vertices ) break;
+		for ( int i = 0; i < indices; ++i ) {
+			if ( buffer->indicies[i] < 0 || buffer->indicies[i] >= vertices )
+				Com_Error( ERR_DROP, "ET polygon buffer index out of range" );
+		}
+		const auto count = static_cast<std::size_t>( indices );
+		std::unique_ptr<polyVert_t, decltype( &Hunk_FreeTempMemory )> staging(
+			static_cast<polyVert_t *>( Hunk_AllocateTempMemory(
+				static_cast<int>( count * sizeof( polyVert_t ) ) ) ), Hunk_FreeTempMemory );
+		polyVert_t *expanded = staging.get();
+		if ( !expanded ) Com_Error( ERR_DROP, "ET polygon buffer allocation failed" );
+		for ( std::size_t i = 0; i < count; ++i ) {
+			const int index = buffer->indicies[i];
+			polyVert_t &vertex = expanded[i];
+			vertex = {};
+			for ( int axis = 0; axis < 3; ++axis ) vertex.xyz[axis] = buffer->xyz[index][axis];
+			vertex.st[0] = buffer->st[index][0];
+			vertex.st[1] = buffer->st[index][1];
+			for ( int channel = 0; channel < 4; ++channel )
+				vertex.modulate.rgba[channel] = buffer->color[index][channel];
+		}
+		re.AddPolyToScene( buffer->shader, 3, expanded, indices / 3 );
+		break;
+	}
+	case Call::CG_R_LOADDYNAMICSHADER: {
+		// ET defines a shader at runtime instead of shipping it in a file.
+		// Either argument may be absent: neither empties the list, a name
+		// alone removes one definition.
+		const char *name = args[1] ? CL_WolfETRenderName( vm, args[1] ) : nullptr;
+		const char *text = args[2] ? CL_WolfETRenderName( vm, args[2] ) : nullptr;
+		result = re.LoadWolfETDynamicShader( name, text );
+		return true;
+	}
 	case Call::CG_R_SETFOG:
 		for ( int i = 1; i <= 3; ++i )
 			if ( args[i] < INT_MIN || args[i] > INT_MAX )

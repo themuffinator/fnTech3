@@ -4220,11 +4220,19 @@ return NULL if not found
 If found, it will return a valid shader
 =====================
 */
+#include "../renderercommon/tr_wolfet_dynamic_shader.h"
+
 static const char *FindShaderInShaderText( const char *shadername ) {
 
 	const char *token, *p;
 
 	int i, hash;
+
+	// ET looks up its runtime definitions before the loaded shader text.
+	p = R_WolfETFindDynamicShader( shadername );
+	if ( p ) {
+		return p;
+	}
 
 	hash = generateHashValue(shadername, MAX_SHADERTEXT_HASH);
 

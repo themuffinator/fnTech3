@@ -3699,6 +3699,7 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 	re.AddRTCWLightToScene = RE_AddRTCWLightToScene;
 	re.AddWolfETLightToScene = RE_AddWolfETLightToScene;
 	re.AddWolfET2DPolys = RE_AddWolfET2DPolys;
+	re.LoadWolfETDynamicShader = RE_LoadWolfETDynamicShader;
 	re.SaveWolfETViewParms = RE_SaveWolfETViewParms;
 	re.RestoreWolfETViewParms = RE_RestoreWolfETViewParms;
 	re.SetRTCWFog = RE_SetRTCWFog;

@@ -167,6 +167,8 @@ typedef struct {
 		float r, float g, float b, qhandle_t hShader, int flags );
 	// ET's screen-space triangle fan, and the one saved view its portal sky needs.
 	void (*AddWolfET2DPolys)( const polyVert_t *verts, int numVerts, qhandle_t hShader );
+	// ET defines shaders at runtime instead of shipping them in a .shader file.
+	qboolean (*LoadWolfETDynamicShader)( const char *name, const char *text );
 	void (*SaveWolfETViewParms)( void );
 	void (*RestoreWolfETViewParms)( void );
 	void (*SetRTCWFog)( int command, int first, int second, float r, float g, float b, float density );

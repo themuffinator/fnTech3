@@ -2751,6 +2751,7 @@ void RE_AddRTCWLightToScene( const vec3_t origin, float intensity, float r, floa
 void RE_AddWolfETLightToScene( const vec3_t origin, float radius, float intensity,
 	float r, float g, float b, qhandle_t hShader, int flags );
 void RE_AddWolfET2DPolys( const polyVert_t *verts, int numVerts, qhandle_t hShader );
+qboolean RE_LoadWolfETDynamicShader( const char *name, const char *text );
 void RE_SaveWolfETViewParms( void );
 void RE_RestoreWolfETViewParms( void );
 void RE_SetRTCWFog( int command, int first, int second, float r, float g, float b, float density );
