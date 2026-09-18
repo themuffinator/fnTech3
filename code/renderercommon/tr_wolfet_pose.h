@@ -291,4 +291,44 @@ static inline int FnWolfET_SkinVertex( const fnWolfETVertexView_t *vertex,
 	return 1;
 }
 
+/* Places a mesh tag. ET's tag carries its own axis and offset in the space of
+ * the bone it hangs from, where the other Wolfenstein profile's tag is simply
+ * that bone, so the bone transform and the tag's own frame are composed here.
+ * Returns the index on success so a caller can continue searching past it. */
+static inline int FnWolfET_TagOrientation( const fnWolfETMeshView_t *mesh, uint32_t index,
+	const fnWolfETPose_t *pose, float origin[3], float axis[3][3] ) {
+	fnWolfETTag_t tag;
+	const fnWolfETTransform_t *bone;
+	int row, column;
+	if ( !mesh || !pose || !origin || !axis ) return 0;
+	if ( !FnWolfET_MeshTag( mesh, index, &tag, NULL ) ) return 0;
+	if ( tag.bone >= pose->numBones ) return 0;
+	bone = &pose->bones[tag.bone];
+	for ( row = 0; row < 3; ++row ) {
+		origin[row] = bone->origin[row] + tag.offset[0] * bone->axis[row][0] +
+			tag.offset[1] * bone->axis[row][1] + tag.offset[2] * bone->axis[row][2];
+		if ( !isfinite( origin[row] ) ) return 0;
+	}
+	for ( row = 0; row < 3; ++row ) for ( column = 0; column < 3; ++column ) {
+		axis[row][column] = tag.axis[row][0] * bone->axis[column][0] +
+			tag.axis[row][1] * bone->axis[column][1] + tag.axis[row][2] * bone->axis[column][2];
+		if ( !isfinite( axis[row][column] ) ) return 0;
+	}
+	return 1;
+}
+
+/* Finds a named tag from a starting index, as ET's tag lookup does. */
+static inline int FnWolfET_FindTag( const fnWolfETMeshView_t *mesh, const char *name, int first ) {
+	uint32_t index;
+	if ( !mesh || !name ) return -1;
+	if ( first < 0 ) first = 0;
+	for ( index = (uint32_t)first; index < mesh->numTags; ++index ) {
+		fnWolfETTag_t tag;
+		const char *tagName = NULL;
+		if ( !FnWolfET_MeshTag( mesh, index, &tag, &tagName ) ) return -1;
+		if ( tagName && !strcmp( tagName, name ) ) return (int)index;
+	}
+	return -1;
+}
+
 #endif
