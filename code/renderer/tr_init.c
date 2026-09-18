@@ -3704,6 +3704,7 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 	re.SaveWolfETViewParms = RE_SaveWolfETViewParms;
 	re.RestoreWolfETViewParms = RE_RestoreWolfETViewParms;
 	re.SetRTCWFog = RE_SetRTCWFog;
+	re.SetWolfETGlobalFog = RE_SetWolfETGlobalFog;
 	re.AddAdditiveLightToScene = RE_AddAdditiveLightToScene;
 	re.AddLinearLightToScene = RE_AddLinearLightToScene;
 	re.AddLiquidInteractionToScene = RE_AddLiquidInteractionToScene;

@@ -50,6 +50,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderercommon/tr_dlight_shadow.h"
 #include "../renderercommon/tr_ql_cvars.h"
 #include "../renderercommon/tr_global_fog.h"
+#include "../renderercommon/tr_wolfet_global_fog.h"
 #include "../renderercommon/tr_rtcw_fog_view.h"
 #include "../renderercommon/tr_rtcw_world_shader.h"
 #include "../renderercommon/tr_liquid.h"
@@ -1259,6 +1260,7 @@ typedef struct {
 	int			numfogs;
 	fog_t		*fogs;
 	globalFog_t	globalFog;
+	fnWolfETGlobalFog_t	wolfetGlobalFog;	// ET's brushless world fog
 
 	vec3_t		lightGridOrigin;
 	vec3_t		lightGridSize;
@@ -2846,6 +2848,7 @@ int RE_GetWolfETTextureId( const char *name );
 void RE_SaveWolfETViewParms( void );
 void RE_RestoreWolfETViewParms( void );
 void RE_SetRTCWFog( int command, int first, int second, float r, float g, float b, float density );
+void RE_SetWolfETGlobalFog( qboolean restore, int duration, float red, float green, float blue, float depthForOpaque );
 shader_t *R_FindRTCWLightShader( const char *name );
 void RE_AddLightToScene( const vec3_t org, float intensity, float r, float g, float b );
 void RE_AddAdditiveLightToScene( const vec3_t org, float intensity, float r, float g, float b );

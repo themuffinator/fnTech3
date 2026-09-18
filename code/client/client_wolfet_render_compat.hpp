@@ -251,6 +251,14 @@ inline bool CL_WolfETRenderCall( vm_t *vm, fntech3::wolfet::module::Call call,
 	case Call::CG_R_GETTEXTUREID:
 		result = re.GetWolfETTextureId( CL_WolfETRenderName( vm, args[1] ) );
 		return true;
+	case Call::CG_R_SETGLOBALFOG:
+		// ET's map compiles one fog volume with no brush of its own, covering
+		// the whole world; this retunes that one, optionally over a duration.
+		if ( args[2] < INT_MIN || args[2] > INT_MAX )
+			Com_Error( ERR_DROP, "Invalid ET global fog duration" );
+		re.SetWolfETGlobalFog( args[1] ? qtrue : qfalse, static_cast<int>( args[2] ),
+			VMF(3), VMF(4), VMF(5), VMF(6) );
+		break;
 	case Call::CG_R_SETFOG:
 		for ( int i = 1; i <= 3; ++i )
 			if ( args[i] < INT_MIN || args[i] > INT_MAX )

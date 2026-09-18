@@ -3662,41 +3662,50 @@ static void R_LoadFogs( const lump_t *l, const lump_t *brushesLump, const lump_t
 	for ( i=0 ; i<count ; i++, fogs++) {
 		out->originalBrushNumber = LittleLong( fogs->brushNum );
 
-		if ( (unsigned)out->originalBrushNumber >= brushesCount ) {
-			ri.Error( ERR_DROP, "fog brushNumber out of range" );
+		if ( out->originalBrushNumber == -1 ) {
+			// A fog volume with no brush of its own covers the whole world.
+			// Enemy Territory compiles exactly one of these per map and lets a
+			// module retune it; reading -1 as a brush index refuses the map.
+			VectorSet( out->bounds[0], MIN_WORLD_COORD, MIN_WORLD_COORD, MIN_WORLD_COORD );
+			VectorSet( out->bounds[1], MAX_WORLD_COORD, MAX_WORLD_COORD, MAX_WORLD_COORD );
+			firstSide = 0;
+		} else {
+			if ( (unsigned)out->originalBrushNumber >= brushesCount ) {
+				ri.Error( ERR_DROP, "fog brushNumber out of range" );
+			}
+			brush = brushes + out->originalBrushNumber;
+
+			firstSide = LittleLong( brush->firstSide );
+
+			if ( (unsigned)firstSide > sidesCount - 6 ) {
+				ri.Error( ERR_DROP, "fog brush sideNumber out of range" );
+			}
+
+			// brushes are always sorted with the axial sides first
+			sideNum = firstSide + 0;
+			planeNum = LittleLong( sides[ sideNum ].planeNum );
+			out->bounds[0][0] = -s_worldData.planes[ planeNum ].dist;
+
+			sideNum = firstSide + 1;
+			planeNum = LittleLong( sides[ sideNum ].planeNum );
+			out->bounds[1][0] = s_worldData.planes[ planeNum ].dist;
+
+			sideNum = firstSide + 2;
+			planeNum = LittleLong( sides[ sideNum ].planeNum );
+			out->bounds[0][1] = -s_worldData.planes[ planeNum ].dist;
+
+			sideNum = firstSide + 3;
+			planeNum = LittleLong( sides[ sideNum ].planeNum );
+			out->bounds[1][1] = s_worldData.planes[ planeNum ].dist;
+
+			sideNum = firstSide + 4;
+			planeNum = LittleLong( sides[ sideNum ].planeNum );
+			out->bounds[0][2] = -s_worldData.planes[ planeNum ].dist;
+
+			sideNum = firstSide + 5;
+			planeNum = LittleLong( sides[ sideNum ].planeNum );
+			out->bounds[1][2] = s_worldData.planes[ planeNum ].dist;
 		}
-		brush = brushes + out->originalBrushNumber;
-
-		firstSide = LittleLong( brush->firstSide );
-
-		if ( (unsigned)firstSide > sidesCount - 6 ) {
-			ri.Error( ERR_DROP, "fog brush sideNumber out of range" );
-		}
-
-		// brushes are always sorted with the axial sides first
-		sideNum = firstSide + 0;
-		planeNum = LittleLong( sides[ sideNum ].planeNum );
-		out->bounds[0][0] = -s_worldData.planes[ planeNum ].dist;
-
-		sideNum = firstSide + 1;
-		planeNum = LittleLong( sides[ sideNum ].planeNum );
-		out->bounds[1][0] = s_worldData.planes[ planeNum ].dist;
-
-		sideNum = firstSide + 2;
-		planeNum = LittleLong( sides[ sideNum ].planeNum );
-		out->bounds[0][1] = -s_worldData.planes[ planeNum ].dist;
-
-		sideNum = firstSide + 3;
-		planeNum = LittleLong( sides[ sideNum ].planeNum );
-		out->bounds[1][1] = s_worldData.planes[ planeNum ].dist;
-
-		sideNum = firstSide + 4;
-		planeNum = LittleLong( sides[ sideNum ].planeNum );
-		out->bounds[0][2] = -s_worldData.planes[ planeNum ].dist;
-
-		sideNum = firstSide + 5;
-		planeNum = LittleLong( sides[ sideNum ].planeNum );
-		out->bounds[1][2] = s_worldData.planes[ planeNum ].dist;
 
 		// get information from the shader for fog parameters
 		shader = R_FindShader( fogs->shader, LIGHTMAP_NONE, qtrue );
@@ -3723,6 +3732,14 @@ static void R_LoadFogs( const lump_t *l, const lump_t *brushesLump, const lump_t
 
 		d = shader->fogParms.depthForOpaque < 1 ? 1 : shader->fogParms.depthForOpaque;
 		out->tcScale = 1.0f / ( d * 8 );
+
+		// Remember what the map authored for the world-covering volume, so a
+		// module can send the fog back to it.
+		if ( out->originalBrushNumber == -1 ) {
+			FnWolfET_GlobalFogAuthored( &s_worldData.wolfetGlobalFog,
+				(int)( out - s_worldData.fogs ), shader->fogParms.color,
+				shader->fogParms.depthForOpaque );
+		}
 
 		// set the gradient vector
 		sideNum = LittleLong( fogs->visibleSide );

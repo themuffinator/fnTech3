@@ -174,6 +174,7 @@ typedef struct {
 	void (*SaveWolfETViewParms)( void );
 	void (*RestoreWolfETViewParms)( void );
 	void (*SetRTCWFog)( int command, int first, int second, float r, float g, float b, float density );
+	void (*SetWolfETGlobalFog)( qboolean restore, int duration, float r, float g, float b, float depthForOpaque );
 
 
 } refexport_t;

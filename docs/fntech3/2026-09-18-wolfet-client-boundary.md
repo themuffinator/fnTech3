@@ -52,26 +52,30 @@ one; each profile keeps its own table.
 
 ## Coverage
 
-Of the 147 imports ET's cgame declares, **143 are handled**, counting what the
+Of the 147 imports ET's cgame declares, **144 are handled**, counting what the
 [sound](2026-09-18-wolfet-audio.md), [light](2026-09-18-wolfet-light.md),
 [client services](2026-09-18-wolfet-client-services.md),
 [text and files](2026-09-18-wolfet-text-and-files.md) and
 [camera](2026-09-18-wolfet-camera.md) and
 [scene geometry](2026-09-18-wolfet-scene-geometry.md) and
-[texture identity](2026-09-18-wolfet-texture-id.md) records added after this one. The dispatcher
+[texture identity](2026-09-18-wolfet-texture-id.md) and
+[global fog](2026-09-18-wolfet-global-fog.md) records added after this one. The dispatcher
 routes ET's own records and renderer services first, then its key imports, then
 a table of imports whose meaning and argument shape are already this engine's.
 An import that reaches the end of that chain is refused by name and ordinal. No
 ET argument is dropped anywhere: an import this engine cannot answer exactly is
 not answered approximately.
 
-The 4 that remain open, and why:
+The 3 that remain open, and why:
 
 | Ordinals | Imports | Why |
 | --- | --- | --- |
 | 34, 35 | decal projection and clearing | No shared renderer service. |
-| 68 | the global fog | No shared renderer service. Per-map fog (67) is handled. |
 | 177 | render to texture | A per-backend framebuffer copy that two of this engine's three renderers do not have; retail ET never calls it. |
+
+The global fog (68) was open for the same reason as the decals until the
+renderer gained ET's world-covering fog volume; see the
+[global fog record](2026-09-18-wolfet-global-fog.md).
 
 ## Verification
 
@@ -102,8 +106,9 @@ above, and checks that the refusal path still names the import.
 
 - **Nothing here runs.** The ET client stays gated, so no ET module has called
   any of these imports. The evidence is source and unit only.
-- The renderer still has no MDM/MDX model type, so the model handles this
-  boundary carries are transported, not drawn.
+- The renderer had no MDM/MDX model type when this was written, so the model
+  handles this boundary carries were transported, not drawn; it has both now,
+  by the [drawing record](2026-09-18-wolfet-drawing.md).
 - ET's demo and reverse interoperability surfaces remain untouched. Its UI
   imports are opened by the [UI record](2026-09-18-wolfet-ui-boundary.md), its
   sound surface by the [sound record](2026-09-18-wolfet-audio.md) and its camera
