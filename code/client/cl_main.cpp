@@ -5220,7 +5220,10 @@ static void CL_InitRenderer( void ) {
 	// names of its own: a font sheet for the console, a cloud background and
 	// its UI's cursor. It has no recording icon, so none is registered.
 	const bool wolfet = Com_GameIsWolfET() != 0;
-	cls.charSetShader = re.RegisterShader( wolfet ? "gfx/2d/consolechars" : "gfx/2d/bigchars" );
+	// Elite Force has no bigchars; its console font is a 16x16 grid whose
+	// glyphs fill the left half of each cell (see CL_CharsetCellWidth).
+	cls.charSetShader = Com_GameIsSTVEF() ? re.RegisterShaderNoMip( "gfx/2d/charsgrid_med" )
+		: re.RegisterShader( wolfet ? "gfx/2d/consolechars" : "gfx/2d/bigchars" );
 	cls.recordShader = wolfet ? 0 : re.RegisterShaderNoMip( "icons/record" );
 	cls.whiteShader = re.RegisterShader( "white" );
 	// Q3 owns the stock "console" shader. QL's pak00 contains duplicate

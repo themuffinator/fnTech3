@@ -840,7 +840,8 @@ static void CL_ToggleMenuInternal( int key, qboolean sendKeyUp, unsigned time ) 
 
 	if ( uivm ) {
 		VM_Call( uivm, 3, UI_KEY_EVENT, key, qtrue, time );
-		if ( sendKeyUp ) {
+		// Holomatch's UI takes every key event as a press.
+		if ( sendKeyUp && !Com_GameIsSTVEFMP() ) {
 			VM_Call( uivm, 3, UI_KEY_EVENT, key, qfalse, time );
 		}
 	}
@@ -1042,7 +1043,9 @@ static void CL_KeyUpEvent( int key, unsigned time )
 	if ( ( Key_GetCatcher() & KEYCATCH_BROWSER ) && !( Key_GetCatcher() & KEYCATCH_CONSOLE ) ) {
 		CL_DispatchBrowserKeyEvent( key, qfalse );
 	} else if ( Key_GetCatcher() & KEYCATCH_UI ) {
-		if ( uivm ) {
+		// Holomatch's UI takes every key event as a press, so it is sent none
+		// for a release (stvoyHM.exe sends key-down events only, 0x40bee6).
+		if ( uivm && !Com_GameIsSTVEFMP() ) {
 			VM_Call( uivm, 3, UI_KEY_EVENT, key, qfalse, time );
 		}
 	} else if ( Key_GetCatcher() & KEYCATCH_CGAME ) {

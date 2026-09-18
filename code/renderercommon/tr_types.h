@@ -88,9 +88,32 @@ typedef enum {
 	RT_PORTALSURFACE,		// doesn't draw anything, just info for portals
 	RT_SPLASH,
 	RT_RAIL_CORE_TAPER,
+	// Elite Force's procedural primitives; their shape is in refEntity_t.stvef.
+	RT_STVEF_ORIENTEDSPRITE,
+	RT_STVEF_ALPHAVERTPOLY,
+	RT_STVEF_LINE,
+	RT_STVEF_ORIENTEDLINE,
+	RT_STVEF_LINE2,
+	RT_STVEF_BEZIER,
+	RT_STVEF_CYLINDER,
+	RT_STVEF_ELECTRICITY,
 
 	RT_MAX_REF_ENTITY_TYPE
 } refEntityType_t;
+
+// Engine-owned Elite Force effect state. Its module record keeps these in one
+// union after shaderTime; the client adapter unpacks the member each primitive
+// type reads, and turns the Elite Force render flags that have no shared
+// meaning into fields of their own.
+typedef struct {
+	float width, width2, stscale, height, bias, deviation;
+	vec3_t control1, control2;
+	qboolean wrap, taper;
+	color4ub_t vertexColors[4];	// RT_STVEF_ALPHAVERTPOLY corners
+	qboolean fullbright;		// retail renderfx 0x10: brighten after grid light
+	qboolean darken;			// retail renderfx 0x1: darken after grid light
+	qboolean forceAlpha;		// retail renderfx 0x800: shaderRGBA alpha on every stage
+} stvefRenderEntity_t;
 
 // Engine-owned RTCW animation/effect state. Module records are frozen in
 // compat/ and translated before crossing the renderer API.
@@ -160,6 +183,7 @@ typedef struct {
 	float		rotation;
 	rtcwRenderEntity_t rtcw;
 	wolfetRenderEntity_t wolfet;
+	stvefRenderEntity_t stvef;
 } refEntity_t;
 
 

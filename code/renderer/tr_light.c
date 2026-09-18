@@ -388,6 +388,15 @@ void R_SetupEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent ) {
 	// bonus items and view weapons have a fixed minimum add
 	if ( R_UsesRTCWLighting() && ent->e.rtcw.hilightIntensity != 0.0f ) {
 		for ( i = 0; i < 3; ++i ) ent->ambientLight[i] += tr.identityLight * 128 * ent->e.rtcw.hilightIntensity;
+	} else if ( ent->e.stvef.fullbright || ent->e.stvef.darken ) {
+		// Elite Force brightens or darkens after the grid light, in place of the
+		// minimum add, and dynamic lights still apply (stvoyHM.exe 0x479f3c).
+		// Retail lets a darkened ambient go negative; it stops at zero here.
+		const float change = tr.identityLight * ( ent->e.stvef.fullbright ? 100.0f : -100.0f );
+		for ( i = 0; i < 3; ++i ) {
+			ent->ambientLight[i] += change;
+			if ( ent->ambientLight[i] < 0.0f ) ent->ambientLight[i] = 0.0f;
+		}
 	} else if ( !R_UsesRTCWLighting() || ( ent->e.renderfx & RF_MINLIGHT ) ) {
 		// give everything a minimum light add
 		ent->ambientLight[0] += tr.identityLight * 32;

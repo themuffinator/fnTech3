@@ -5,10 +5,10 @@
 This slice gives the `stvef-mp` client the retail protocol-24 connection: the
 connectionless handshake, the framing of client and server messages, pure
 checksums, downloads, `.efdemo` recording and playback, and the one-byte
-button field. The cgame and UI import tables, the renderer's Elite Force
-entity types and a session with a retail peer are later slices; until the
-cgame slice lands, a connection stops when the client loads the cgame module.
-The profile stays behind `-Dstvef-development=true`.
+button field. The cgame and UI import tables and the renderer's Elite Force
+entity types are in the [cgame and UI record](2026-09-18-stvef-holomatch-cgame-ui.md);
+a session with a retail peer is a later slice. The profile stays behind
+`-Dstvef-development=true`.
 
 ## Evidence and provenance
 
@@ -44,8 +44,8 @@ was used as a cross-check; where it differs from retail, retail is followed.
 
 ## Remaining
 
-- The cgame and UI modules, and the renderer's Elite Force entity types.
-- A session between this client and a retail or Lilium server, and playback
-  of the retail demos through the client.
+- A session between this client and a retail or Lilium server. The retail
+  demos now play through the client; see the
+  [cgame and UI record](2026-09-18-stvef-holomatch-cgame-ui.md).
 - CD-key authorization is not attempted: the Raven authorize service is gone,
   and retail servers admit clients after their 20-second timeout.

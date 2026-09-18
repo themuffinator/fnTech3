@@ -102,6 +102,7 @@ extern cvar_t *r_ext_texture_filter_anisotropic;
 extern cvar_t *r_ext_max_anisotropy;
 
 float R_NoiseGet4f( float x, float y, float z, double t );
+float R_NoiseRandom( int index );
 void  R_NoiseInit( void );
 
 image_t *R_FindImageFile( const char *name, imgFlags_t flags );
@@ -112,6 +113,7 @@ void R_IssuePendingRenderCommands( void );
 qhandle_t RE_RegisterShaderLightMap( const char *name, int lightmapIndex );
 qhandle_t RE_RegisterShader( const char *name );
 qhandle_t RE_RegisterShaderNoMip( const char *name );
+qhandle_t RE_RegisterShader3D( const char *name );
 qhandle_t RE_RegisterShaderFromImage(const char *name, int lightmapIndex, image_t *image, qboolean mipRawImage);
 
 // font stuff

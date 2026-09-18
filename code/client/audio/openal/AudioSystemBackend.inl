@@ -463,7 +463,9 @@ void AudioSystem::BeginRegistration() {
 	}
 
 	weaponSoundShaders_.EnsureLoaded();
-	const std::string feedbackSample = Com_GameIsRTCW() ? fntech3::audio::rtcw::DefaultSoundName : NormalizeSoundName( "sound/feedback/hit.wav" );
+	// Elite Force reserves its silent sound/null.wav as handle 0 (stvoyHM.exe 0x42a296).
+	const std::string feedbackSample = Com_GameIsRTCW() ? fntech3::audio::rtcw::DefaultSoundName
+		: NormalizeSoundName( Com_GameIsSTVEF() ? "sound/null.wav" : "sound/feedback/hit.wav" );
 	samples_.emplace_back( feedbackSample, weaponSoundShaders_.Find( feedbackSample ) );
 	sampleLookup_.emplace( feedbackSample, 0 );
 	samples_[0].EnsureLoaded( device_, true );

@@ -354,6 +354,11 @@ static genFunc_t NameToGenFunc( const char *funcname )
 	{
 		return GF_NOISE;
 	}
+	else if ( !Q_stricmp( funcname, "random" ) &&
+		( ri.gameId == COM_GAME_STVEF_SP || ri.gameId == COM_GAME_STVEF_MP ) )
+	{
+		return GF_RANDOM;
+	}
 
 	ri.Printf( PRINT_WARNING, "WARNING: invalid genfunc name '%s' in shader '%s'\n", funcname, shader.name );
 	return GF_SIN;
@@ -932,6 +937,12 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 			else if ( !Q_stricmp( token, "equal" ) )
 			{
 				depthFuncBits = GLS_DEPTHFUNC_EQUAL;
+			}
+			else if ( !Q_stricmp( token, "disable" ) &&
+				( ri.gameId == COM_GAME_STVEF_SP || ri.gameId == COM_GAME_STVEF_MP ) )
+			{
+				// Elite Force turns depth testing off (stvoyHM.exe 0x466267).
+				depthFuncBits = GLS_DEPTHTEST_DISABLE;
 			}
 			else
 			{
@@ -4171,6 +4182,32 @@ qhandle_t RE_RegisterShaderNoMip( const char *name ) {
 
 	return sh->index;
 }
+/*
+====================
+RE_RegisterShader3D
+
+Elite Force's cgame registers some effect shaders for the 3D scene. An image
+without a script then becomes a vertex-lit, depth-tested surface with mipmaps,
+under a handle apart from the 2D registration of the same name (stvoyHM.exe
+0x4685a0).
+====================
+*/
+qhandle_t RE_RegisterShader3D( const char *name ) {
+	shader_t	*sh;
+
+	if ( strlen( name ) >= MAX_QPATH ) {
+		ri.Printf( PRINT_ALL, "Shader name exceeds MAX_QPATH\n" );
+		return 0;
+	}
+
+	sh = R_FindShader( name, LIGHTMAP_NONE, qtrue );
+	if ( sh->defaultShader ) {
+		return 0;
+	}
+
+	return sh->index;
+}
+
 
 /*
 ====================

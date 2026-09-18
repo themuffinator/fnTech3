@@ -1452,6 +1452,8 @@ static void RB_SurfaceAxis( void ) {
 
 //===========================================================================
 
+#include "../renderercommon/tr_stvef_surface.h"
+
 /*
 ====================
 RB_SurfaceEntity
@@ -1480,7 +1482,9 @@ static void RB_SurfaceEntity( const surfaceType_t *surfType ) {
 		RB_SurfaceLightningBolt();
 		break;
 	default:
-		RB_SurfaceAxis();
+		if ( !RB_SurfaceSTVEF() ) {
+			RB_SurfaceAxis();
+		}
 		break;
 	}
 #ifdef USE_VBO

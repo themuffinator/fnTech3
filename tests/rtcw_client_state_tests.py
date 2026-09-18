@@ -104,6 +104,9 @@ int Com_GameIsWolfET(void) { return profile.id == COM_GAME_WOLFET; }
 // The dispatcher offers ET its own answer before the shared trap switch. This
 // fixture drives only RTCW, so ET declines every call here.
 static bool CL_WolfETCgameCall(intptr_t *, intptr_t &, intptr_t &) { return false; }
+// Nor is Elite Force's cgame boundary reached: its dispatcher has its own probe.
+int Com_GameIsSTVEFMP(void) { return profile.id == COM_GAME_STVEF_MP; }
+static bool CL_STVEFCgameCall(intptr_t *, intptr_t &, intptr_t &) { assert(false); return false; }
 int Com_GameIsRTCWSP(void) { return profile.id == COM_GAME_RTCW_SP; }
 int Com_GameIsRTCWMP(void) { return profile.id == COM_GAME_RTCW_MP; }
 // Only the key-name import reads a cvar by name here; English names.

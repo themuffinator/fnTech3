@@ -450,7 +450,7 @@ static void Con_DrawSmallCharFloat( float x, float y, int ch ) {
 	size = 0.0625f;
 
 	re.DrawStretchPic( x, y, console_char_width, console_char_height,
-		fcol, frow, fcol + size, frow + size,
+		fcol, frow, fcol + CL_CharsetCellWidth(), frow + size,
 		cls.charSetShader );
 }
 

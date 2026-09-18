@@ -15,7 +15,7 @@ Full compatibility is **not yet established for any profile**.
 | Return to Castle Wolfenstein — multiplayer | `rtcw-mp` | Experimental; same build option and executable as SP; multiplayer and broader compatibility gates remain open. |
 | Wolfenstein: Enemy Territory | `wolfet` / `et` | Experimental; `-Dwolfet-development=true` permits dedicated probes only; client startup remains gated in every build. |
 | Star Trek Voyager: Elite Force — single player | `stvef-sp` | Experimental; default startup gated; `-Dstvef-development=true` permits isolated probes; module, savegame, cinematic and renderer gates remain open. |
-| Star Trek Voyager: Elite Force — Holomatch | `stvef-mp` | Experimental; same build option and executable as SP; QVM, wire, demo and interoperability gates remain open. |
+| Star Trek Voyager: Elite Force — Holomatch | `stvef-mp` | Experimental; same build option and executable as SP; the retail QVMs run and the retail demos play in a developer client; interoperability and part of the renderer gate remain open. |
 
 RTCW is one title with two mode profiles. A mode change relaunches the same
 executable; it does not mutate the running process's profile. Catalog
@@ -40,7 +40,10 @@ game module with its bots on a developer dedicated server: free-for-all and a
 complete capture-the-flag match run without errors. The
 [Holomatch client slice](2026-09-18-stvef-holomatch-client.md) adds the retail
 handshake, client framing, downloads, pure checksums and `.efdemo` recording
-and playback. The cgame and UI modules, the renderer and interoperability
+and playback. The [Holomatch cgame and UI slice](2026-09-18-stvef-holomatch-cgame-ui.md)
+runs the retail cgame and UI with Raven's effect primitives in all three
+renderers: the retail main menu draws, and all three retail demos play to the
+end. Entity alpha forcing, a live session with a server and interoperability
 remain open.
 
 The [ET contract and dedicated-server slice](2026-09-17-wolfet-contracts.md)
@@ -1184,10 +1187,10 @@ pins the installation identity and startup contracts.
 | Audio codecs | Source, Unit, Fixture | Every one of the 8,129 retail MP3 files decodes, and every one of the 8,074 Raven `#UNCOMP` sizes is reproduced by the retail frame rule. Playback, lip-sync (`#MAXVOL`) and ambient sets remain open. |
 | Holomatch wire codec | Source, Unit, Fixture | Protocol-24 bit packing, alignment, strings, entity/player/command deltas, frozen records and the packet scramble. All 32,675 retail demo records decode, and re-encoding reproduces retail's bits except where retail flagged decode-invisible changes ([record](2026-09-18-stvef-holomatch.md)). Lilium's protocol 26 remains open. |
 | Holomatch game module / server | Source, Unit, Live subset | The retail `qagame.qvm` runs with bots on a developer dedicated server: game imports, records, server flags, shield boxes, round-to-nearest float conversion, the 1.17 bot contract and botlib differences, Expansion Pack modes, and server-side framing ([record](2026-09-18-stvef-holomatch-server.md)). The 1.20 item-choice argument, a retail client session and pure admission remain open. |
-| Holomatch client framing / demos | Source, Unit | Retail handshake with nonce and protocol checks, raw-bit framing with the acknowledgement in snapshots, retail read-past-end semantics, `cp` without a server id, the missing-file download, the one-byte button field, and `.efdemo` naming, refusal and playback selection ([record](2026-09-18-stvef-holomatch-client.md)). A live session and demo playback need the cgame slice. |
-| Holomatch cgame / UI | Open | cgame and UI import tables and records, key events, the server browser traps. |
+| Holomatch client framing / demos | Source, Unit, Live subset | Retail handshake with nonce and protocol checks, raw-bit framing with the acknowledgement in snapshots, retail read-past-end semantics, `cp` without a server id, the missing-file download, the one-byte button field, and `.efdemo` naming, refusal and playback selection ([record](2026-09-18-stvef-holomatch-client.md)). All three retail demos play to the end in a developer client ([record](2026-09-18-stvef-holomatch-cgame-ui.md)). A live session remains open. |
+| Holomatch cgame / UI | Source, Unit, Live subset | The retail cgame and UI run in a developer client: both import tables with retail's accepted and refused numbers, their records, the quiet cvar set, 3D shader registration, press-only UI key events, both server lists and the absent CD-key service ([record](2026-09-18-stvef-holomatch-cgame-ui.md)). The UI draws the main menu; the cgame plays the retail demos. A live session remains open. |
 | SP module host / savegames | Open | Function-table game host, cgame from the same library, UI table, retail `.sav` chunks, level transitions and autosaves. |
-| Renderer / cinematics | Open | Elite Force refEntity and shader behavior, MD4/MDR models in use, Bink movies. |
+| Renderer / cinematics | Source, Unit, Live subset | Holomatch's entity record and its eight effect primitives, its lighting flags, the `random` wave and `depthFunc disable`, the overbright default and the console font, in all three renderers; demo frames were compared with Lilium Voyager's ([record](2026-09-18-stvef-holomatch-cgame-ui.md)). Entity alpha forcing, the remaining shader parser differences, MD4/MDR models in use and Bink movies remain open. |
 | Interoperability | Open | Retail Holomatch client and server in both directions. |
 | Optional services | Unavailable | No authorize/master success is synthesized. |
 

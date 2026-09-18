@@ -348,7 +348,8 @@ class WebUiWiringTests(unittest.TestCase):
         self.assertIn("static void CL_ToggleMenuInternal( int key, qboolean sendKeyUp, unsigned time )", keys)
         self.assertIn("CL_ToggleMenuInternal( key, qfalse, time );", keys)
         self.assertIn("CL_ToggleMenuInternal( K_ESCAPE, qtrue, cls.realtime );", keys)
-        self.assertIn("if ( sendKeyUp )", keys)
+        # Holomatch's UI reads every key event as a press and is sent no release.
+        self.assertIn("if ( sendKeyUp && !Com_GameIsSTVEFMP() )", keys)
         self.assertIn("VM_Call( uivm, 3, UI_KEY_EVENT, key, qfalse, time );", keys)
         self.assertIn("Key_GetCatcher() & KEYCATCH_BROWSER", keys)
         self.assertIn('Cmd_AddCommand( "togglemenu", CL_ToggleMenu_f );', client)

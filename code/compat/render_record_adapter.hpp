@@ -9,6 +9,7 @@
 #include "ql_game_abi.h"
 #include "rtcw_game_abi.h"
 #include "wolfet_game_abi.h"
+#include "stvef_game_abi.h"
 #include <cstddef>
 #include <cstring>
 #include <iterator>
@@ -300,6 +301,102 @@ inline bool WolfETRefdef( const fntech3_wolfet_refdef_t &source, refdef_t &desti
 	return true;
 }
 
+// Holomatch's reference entity is Quake III's up to shaderTime, then one union
+// whose member depends on the type (retail RE_AddRefEntityToScene 0x46ba70
+// copies 160 bytes and accepts types below 15). Its type ordinals are its own.
+inline bool STVEFEntity( const fntech3_stvef_mp_refEntity_t &source, refEntity_t &destination ) noexcept {
+	constexpr refEntityType_t types[] = { RT_MODEL, RT_SPRITE, RT_STVEF_ORIENTEDSPRITE,
+		RT_STVEF_ALPHAVERTPOLY, RT_BEAM, RT_RAIL_CORE, RT_RAIL_RINGS, RT_LIGHTNING,
+		RT_PORTALSURFACE, RT_STVEF_LINE, RT_STVEF_ORIENTEDLINE, RT_STVEF_LINE2,
+		RT_STVEF_BEZIER, RT_STVEF_CYLINDER, RT_STVEF_ELECTRICITY };
+	static_assert( std::size( types ) == FNTECH3_STVEF_MP_RT_MAX );
+	if ( source.reType < 0 || source.reType >= FNTECH3_STVEF_MP_RT_MAX ||
+		( source.nonNormalizedAxes != 0 && source.nonNormalizedAxes != 1 ) ) return false;
+	refEntity_t result{};
+	result.reType = types[source.reType];
+	constexpr struct { int external, internal; } flags[] = {
+		{ FNTECH3_STVEF_MP_RF_THIRD_PERSON, RF_THIRD_PERSON },
+		{ FNTECH3_STVEF_MP_RF_FIRST_PERSON, RF_FIRST_PERSON },
+		{ FNTECH3_STVEF_MP_RF_DEPTHHACK, RF_DEPTHHACK }, { FNTECH3_STVEF_MP_RF_NOSHADOW, RF_NOSHADOW },
+		{ FNTECH3_STVEF_MP_RF_LIGHTING_ORIGIN, RF_LIGHTING_ORIGIN },
+		{ FNTECH3_STVEF_MP_RF_SHADOW_PLANE, RF_SHADOW_PLANE },
+		{ FNTECH3_STVEF_MP_RF_WRAP_FRAMES, RF_WRAP_FRAMES }
+	};
+	for ( const auto &flag : flags ) if ( source.renderfx & flag.external ) result.renderfx |= flag.internal;
+	// Retail's own lighting and alpha rules; other bits have no retail effect.
+	result.stvef.fullbright = source.renderfx & FNTECH3_STVEF_MP_RF_FULLBRIGHT ? qtrue : qfalse;
+	result.stvef.darken = !result.stvef.fullbright && ( source.renderfx & FNTECH3_STVEF_MP_RF_MINLIGHT ) ? qtrue : qfalse;
+	result.stvef.forceAlpha = source.renderfx & FNTECH3_STVEF_MP_RF_FORCE_ENT_ALPHA ? qtrue : qfalse;
+	result.hModel = source.hModel;
+	Bytes( result.lightingOrigin, source.lightingOrigin );
+	result.shadowPlane = source.shadowPlane;
+	Bytes( result.axis, source.axis );
+	result.nonNormalizedAxes = source.nonNormalizedAxes ? qtrue : qfalse;
+	Bytes( result.origin, source.origin );
+	result.frame = source.frame;
+	Bytes( result.oldorigin, source.oldorigin );
+	result.oldframe = source.oldframe;
+	result.backlerp = source.backlerp;
+	result.skinNum = source.skinNum;
+	result.customSkin = source.customSkin;
+	result.customShader = source.customShader;
+	Bytes( result.shader, source.shaderRGBA );
+	Bytes( result.shaderTexCoord, source.shaderTexCoord );
+	Bytes( result.shaderTime, source.shaderTime );
+	// The union's first two words are a sprite's rotation and radius. Retail's
+	// sprite fog test reads the second as a radius for every generated type.
+	const auto &data = source.data;
+	result.rotation = data.sprite.rotation;
+	result.radius = data.sprite.radius;
+	auto &shape = result.stvef;
+	switch ( result.reType ) {
+	case RT_STVEF_ALPHAVERTPOLY:
+		Bytes( shape.vertexColors, data.sprite.vertRGBA );
+		break;
+	case RT_STVEF_LINE: case RT_STVEF_ORIENTEDLINE: case RT_STVEF_LINE2:
+		shape.width = data.line.width; shape.width2 = data.line.width2;
+		shape.stscale = data.line.stscale;
+		break;
+	case RT_STVEF_BEZIER:
+		shape.width = data.bezier.width;
+		Bytes( shape.control1, data.bezier.control1 );
+		Bytes( shape.control2, data.bezier.control2 );
+		break;
+	case RT_STVEF_CYLINDER:
+		shape.width = data.cylinder.width; shape.width2 = data.cylinder.width2;
+		shape.stscale = data.cylinder.stscale; shape.height = data.cylinder.height;
+		shape.bias = data.cylinder.bias; shape.wrap = data.cylinder.wrap ? qtrue : qfalse;
+		break;
+	case RT_STVEF_ELECTRICITY:
+		shape.width = data.electricity.width; shape.deviation = data.electricity.deviation;
+		shape.stscale = data.electricity.stscale;
+		shape.wrap = data.electricity.wrap ? qtrue : qfalse;
+		shape.taper = data.electricity.taper ? qtrue : qfalse;
+		break;
+	default:
+		break;
+	}
+	destination = result;
+	return true;
+}
+
+// Quake III's view without its render-string text; only no-world and
+// hyperspace have meaning for Holomatch.
+inline bool STVEFRefdef( const fntech3_stvef_refdef_t &source, refdef_t &destination ) noexcept {
+	refdef_t result{};
+	result.x = source.x; result.y = source.y;
+	result.width = source.width; result.height = source.height;
+	result.fov_x = source.fov_x; result.fov_y = source.fov_y;
+	Bytes( result.vieworg, source.vieworg );
+	Bytes( result.viewaxis, source.viewaxis );
+	result.time = source.time;
+	result.rdflags = ( source.rdflags & FNTECH3_STVEF_MP_RDF_NOWORLDMODEL ? RDF_NOWORLDMODEL : 0 ) |
+		( source.rdflags & FNTECH3_STVEF_MP_RDF_HYPERSPACE ? RDF_HYPERSPACE : 0 );
+	Bytes( result.areamask, source.areamask );
+	destination = result;
+	return true;
+}
+
 template<class External, class Internal, class Adapter>
 bool Read( const void *source, Internal &destination, Adapter adapter ) noexcept {
 	if ( !source ) return false;
@@ -317,6 +414,7 @@ constexpr std::size_t EntityBytes( comGameId_t profile ) noexcept {
 	case COM_GAME_RTCW_SP: return sizeof( fntech3_rtcw_sp_refEntity_t );
 	case COM_GAME_RTCW_MP: return sizeof( fntech3_rtcw_mp_refEntity_t );
 	case COM_GAME_WOLFET: return sizeof( fntech3_wolfet_refEntity_t );
+	case COM_GAME_STVEF_MP: return sizeof( fntech3_stvef_mp_refEntity_t );
 	default: return 0;
 	}
 }
@@ -328,6 +426,7 @@ constexpr std::size_t RefdefBytes( comGameId_t profile ) noexcept {
 	case COM_GAME_RTCW_SP: return sizeof( fntech3_rtcw_sp_refdef_t );
 	case COM_GAME_RTCW_MP: return sizeof( fntech3_rtcw_mp_refdef_t );
 	case COM_GAME_WOLFET: return sizeof( fntech3_wolfet_refdef_t );
+	case COM_GAME_STVEF_MP: return sizeof( fntech3_stvef_refdef_t );
 	default: return 0;
 	}
 }
@@ -344,6 +443,8 @@ inline bool ReadEntity( comGameId_t profile, const void *source, refEntity_t &de
 		return detail::Read<fntech3_rtcw_mp_refEntity_t>( source, destination, detail::RTCWEntity<fntech3_rtcw_mp_refEntity_t> );
 	case COM_GAME_WOLFET:
 		return detail::Read<fntech3_wolfet_refEntity_t>( source, destination, detail::WolfETEntity );
+	case COM_GAME_STVEF_MP:
+		return detail::Read<fntech3_stvef_mp_refEntity_t>( source, destination, detail::STVEFEntity );
 	default: return false;
 	}
 }
@@ -370,6 +471,8 @@ inline bool ReadRefdef( comGameId_t profile, const void *source, refdef_t &desti
 		return detail::Read<fntech3_rtcw_mp_refdef_t>( source, destination, detail::RTCWRefdef<fntech3_rtcw_mp_refdef_t> );
 	case COM_GAME_WOLFET:
 		return detail::Read<fntech3_wolfet_refdef_t>( source, destination, detail::WolfETRefdef );
+	case COM_GAME_STVEF_MP:
+		return detail::Read<fntech3_stvef_refdef_t>( source, destination, detail::STVEFRefdef );
 	default: return false;
 	}
 }

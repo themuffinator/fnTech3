@@ -849,6 +849,7 @@ private:
 #include "client_rtcw_audio_compat.hpp"
 #include "client_rtcw_cinematic_compat.hpp"
 #include "client_rtcw_sound_name.hpp"
+#include "client_stvef_ui.hpp"
 
 
 static qboolean UI_GetValue( char* value, int valueSize, const char* key ) {
@@ -1435,6 +1436,10 @@ static intptr_t CL_UISystemCalls( intptr_t *args ) {
 		intptr_t wolfetResult = 0;
 		if ( CL_WolfETUICall( args, operation, wolfetResult ) ) return wolfetResult;
 		args = CL_WolfETUIBrowserArguments( operation, args, browserArguments );
+	}
+	if ( Com_GameIsSTVEFMP() ) {
+		intptr_t stvefResult = 0;
+		if ( CL_STVEFUICall( args, operation, stvefResult ) ) return stvefResult;
 	}
 	if ( Com_GameIsRTCW() ) {
 		args = CL_RTCWUIBrowserArguments( operation, args, browserArguments );
@@ -2690,6 +2695,10 @@ static bool CL_UIApiVersionSupported( int version, bool structured ) {
 	if ( Com_GameIsRTCW() ) {
 		return !structured && version == FNTECH3_RTCW_UI_API_VERSION;
 	}
+	// Retail Holomatch accepts only its own UI version (stvoyHM.exe 0x4132bc).
+	if ( Com_GameIsSTVEFMP() ) {
+		return !structured && version == FNTECH3_STVEF_MP_UI_API_VERSION;
+	}
 	if ( Com_GameIsQuake3() ) {
 		return !structured && ( version == UI_OLD_API_VERSION
 			|| version == UI_Q3_API_VERSION );
@@ -2712,6 +2721,10 @@ static const char *CL_UIModuleLoadFailureMessage( void ) {
 	if ( Com_GameIsQuake3() ) {
 		return "VM_Create on UI failed for Quake III Arena; verify the selected "
 			"baseq3/mod contains vm/ui.qvm or a compatible native UI module";
+	}
+	if ( Com_GameIsSTVEFMP() ) {
+		return "VM_Create on UI failed for Elite Force Holomatch; verify the "
+			"baseEF/mod paks contain vm/ui.qvm";
 	}
 	return "VM_Create on UI failed; retail Quake Live on Windows requires "
 		"the Win32 fnTech3 build and legitimate retail UI modules";
@@ -2761,7 +2774,7 @@ void CL_InitUI( void ) {
 	// sanity check
 	v = VM_Call( uivm, 0, UI_GETAPIVERSION );
 	if ( !CL_UIApiVersionSupported( v, uivm->dllExports != nullptr ) ) {
-		const char *expected = Com_GameIsRTCW() ? "4" : Com_GameIsQuake3() ? "4 or 6"
+		const char *expected = Com_GameIsRTCW() || Com_GameIsSTVEFMP() ? "4" : Com_GameIsQuake3() ? "4 or 6"
 			: uivm->dllExports ? "8" : "4, 6, 7 or 8";
 		// Free uivm now, so UI_SHUTDOWN doesn't get called later.
 		VM_Free( uivm );
@@ -2775,11 +2788,22 @@ void CL_InitUI( void ) {
 
 	// init for this gamestate
 	VM_Call( uivm, 1, UI_INIT, (cls.state >= CA_AUTHORIZING && cls.state < CA_ACTIVE) );
+
+	// Holomatch's UI asks for a CD key until these are set. Raven's key check
+	// and authorize service are not part of this engine, so it never asks.
+	if ( Com_GameIsSTVEFMP() ) {
+		Cvar_Set( "ui_cdkeychecked", "1" );
+		Cvar_Set( "ui_cdkeychecked2", "1" );
+	}
 }
 
 
 #ifndef STANDALONE
 qboolean UI_usesUniqueCDKey( void ) {
+	// Holomatch's UI has no such export.
+	if ( uivm && Com_GameIsSTVEFMP() ) {
+		return qfalse;
+	}
 	if (uivm) {
 		return (VM_Call( uivm, 0, UI_HASUNIQUECDKEY ) != 0) ? qtrue : qfalse;
 	} else {

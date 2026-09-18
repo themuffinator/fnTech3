@@ -58,6 +58,14 @@ static float EvalWaveForm( const waveForm_t *wf )
 {
 	float	*table;
 
+	// Elite Force: base + amplitude when a noise value from 0 to 2, chosen by
+	// the millisecond clock plus phase, is at most the frequency; base
+	// otherwise (stvoyHM.exe EvalWaveForm 0x47b5f8).
+	if ( wf->func == GF_RANDOM ) {
+		const int clock = (int)( ri.Milliseconds() + wf->phase );
+		return R_NoiseRandom( clock ) <= wf->frequency ? wf->base + wf->amplitude : wf->base;
+	}
+
 	table = TableForFunc( wf->func );
 
 	return WAVEVALUE( table, wf->base, wf->amplitude, wf->phase, wf->frequency );

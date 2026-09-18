@@ -306,6 +306,7 @@ struct trRefEntity_t {
     struct {
         int renderfx; vec3_t origin,lightingOrigin,axis[3];
         struct { float hilightIntensity; int entityNum; } rtcw;
+        struct { qboolean fullbright, darken; } stvef;
         float hilightIntensity; int entityNum; // Original-reference view, fixture only.
     } e;
     qboolean lightingCalculated; vec3_t ambientLight,directedLight,lightDir,shadowLightDir; int ambientLightInt;
@@ -367,6 +368,29 @@ int main() {
             R_SetupEntityLighting(&view,&entity);
             assert(entity.ambientLight[0]==245 && entity.directedLight[0]==166);
         }
+    }
+    // Elite Force brightens (0x10) or darkens (0x1) by 100 in place of the
+    // minimum add of 32; brightening wins, and darkening stops at zero.
+    for(auto profile:{COM_GAME_STVEF_SP,COM_GAME_STVEF_MP}) {
+        ri.gameId=profile; mode.integer=0;
+        trRefdef_t view{}; view.rdflags=RDF_NOWORLDMODEL;
+        const struct { bool fullbright,darken; float ambient; } cases[]={
+            {false,false,182},{true,false,250},{false,true,50},{true,true,250}};
+        for(const auto &c:cases) {
+            trRefEntity_t entity{}; entity.e.axis[0][0]=entity.e.axis[1][1]=entity.e.axis[2][2]=1;
+            entity.e.stvef.fullbright=c.fullbright ? qtrue : qfalse; entity.e.stvef.darken=c.darken ? qtrue : qfalse;
+            R_SetupEntityLighting(&view,&entity);
+            assert(entity.ambientLight[0]==c.ambient && entity.ambientLight[1]==c.ambient && entity.ambientLight[2]==c.ambient);
+        }
+        // From the light grid's 10, 20, 30.
+        world.lightGridData=&world; view.rdflags=0;
+        trRefEntity_t entity{}; entity.e.axis[0][0]=entity.e.axis[1][1]=entity.e.axis[2][2]=1;
+        entity.e.stvef.darken=qtrue; R_SetupEntityLighting(&view,&entity);
+        assert(entity.ambientLight[0]==0 && entity.ambientLight[1]==0 && entity.ambientLight[2]==0);
+        entity={}; entity.e.axis[0][0]=entity.e.axis[1][1]=entity.e.axis[2][2]=1;
+        entity.e.stvef.fullbright=qtrue; R_SetupEntityLighting(&view,&entity);
+        assert(entity.ambientLight[0]==110 && entity.ambientLight[1]==120 && entity.ambientLight[2]==130);
+        world.lightGridData=nullptr;
     }
 }
 '''

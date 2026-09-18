@@ -633,7 +633,11 @@ static void S_Base_BeginRegistration( void ) {
 		auto *sample = S_KnownSfxAt(s_numSfx++);
 		Q_strncpyz(sample->soundName, fntech3::audio::rtcw::DefaultSoundName, sizeof(sample->soundName));
 		S_Base_LoadRTCWDefaultSound(sample);
-	} else S_Base_RegisterSound( "sound/feedback/hit.wav", qfalse );
+	} else {
+		// Elite Force reserves its silent sound/null.wav as handle 0, so a
+		// sound that cannot be loaded plays nothing (stvoyHM.exe 0x42a296).
+		S_Base_RegisterSound( Com_GameIsSTVEF() ? "sound/null.wav" : "sound/feedback/hit.wav", qfalse );
+	}
 }
 
 

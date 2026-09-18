@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../qcommon/game_profile.h"
 #include "vulkan/vulkan.h"
 
-#define	REF_API_VERSION		25
+#define	REF_API_VERSION		26
 
 //
 // these are the functions exported by the refresh module
@@ -179,6 +179,9 @@ typedef struct {
 	void (*ProjectWolfETDecal)( qhandle_t hShader, int numPoints, const vec3_t *points,
 		const vec4_t projection, const vec4_t color, int lifeTime, int fadeTime );
 	void (*ClearWolfETDecals)( void );
+	// Elite Force registers effect shaders for the 3D scene: an image with no
+	// script becomes a lit, depth-tested, mipmapped surface, not a 2D picture.
+	qhandle_t (*RegisterShader3D)( const char *name );
 
 
 } refexport_t;

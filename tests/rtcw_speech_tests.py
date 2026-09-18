@@ -136,8 +136,9 @@ def default_sound():
 #include <cmath>
 #include <string>
 #include <map>
-static bool sp=true,rtcw=true;static int audible=0;
+static bool sp=true,rtcw=true,stvef=false;static int audible=0;
 static bool Com_GameIsRTCWSP(){return sp;}static bool Com_GameIsRTCW(){return rtcw;}
+static bool Com_GameIsSTVEF(){return stvef;}
 static int Cvar_VariableIntegerValue(const char *name){assert(std::string(name)=="s_defaultsound");return audible;}
 constexpr bool qfalse=false,qtrue=true;
 struct sndBuffer{short sndChunk[1024];sndBuffer *next;};
@@ -149,7 +150,7 @@ static sndBuffer chunks[8];static sndBuffer *SND_malloc(){return &chunks[allocat
 static void SND_setup(){}
 static sfx_t *S_KnownSfxAt(int index){assert(index==0);return &s_knownSfx[0];}
 static void Q_strncpyz(char *out,const char *in,size_t size){assert(std::strlen(in)<size);std::strcpy(out,in);}
-static void S_Base_RegisterSound(const char *name,bool){assert(std::string(name)=="sound/feedback/hit.wav");++ordinaryRegistrations;++s_numSfx;}
+static void S_Base_RegisterSound(const char *name,bool){assert(std::string(name)==(stvef?"sound/null.wav":"sound/feedback/hit.wav"));++ordinaryRegistrations;++s_numSfx;}
 static bool S_LoadSound(sfx_t *){++codecLoads;return false;}
 static int Q_stricmp(const char *a,const char *b){return std::strcmp(a,b);}
 static void Com_DPrintf(const char *,...){}
@@ -195,6 +196,9 @@ int main(){
  rtcw=false;s_numSfx=0;S_Base_BeginRegistration();assert(ordinaryRegistrations==1&&codecLoads==0);
  openal::AudioSystem s;s.BeginRegistration();assert(s.sampleLookup_.at("sound/feedback/hit.wav")==0);
  assert(s.samples_[0].uploaded.size()==5512&&s.samples_[0].durationMs_==250&&s.samples_[0].uploaded[1]!=0);
+ // Elite Force keeps handle 0 for its own silent sound.
+ stvef=true;s_numSfx=0;S_Base_BeginRegistration();assert(ordinaryRegistrations==2&&codecLoads==0);
+ openal::AudioSystem e;e.BeginRegistration();assert(e.samples_.size()==1&&e.sampleLookup_.at("sound/null.wav")==0);
 }
 '''
 

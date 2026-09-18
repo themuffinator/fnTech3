@@ -1779,6 +1779,10 @@ static qboolean CL_GetServerCommand( int serverCommandNumber ) {
 	tokenizeCurrentCommand();
 
 	if ( !strcmp( cmd, "disconnect" ) ) {
+		// Elite Force shows the command's own text after the word, as sent
+		// (stvoyHM.exe CL_GetServerCommand 0x402b80).
+		if ( Com_GameIsSTVEFMP() && !Q_strncmp( s, "disconnect", 10 ) )
+			Com_Error( ERR_SERVERDISCONNECT, "%s", s + 10 );
 		// https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=552
 		// allow server to indicate why they were disconnected
 		if ( argc >= 2 )
@@ -1968,6 +1972,7 @@ private:
 #include "client_rtcw_sound_name.hpp"
 #include "client_wolfet_render_compat.hpp"
 #include "client_wolfet_audio_compat.hpp"
+#include "client_stvef_cgame.hpp"
 
 static intptr_t CL_CGameTrapForProfile( intptr_t trap ) {
 	if ( !Com_GameIsQuake3() ) {
@@ -2602,6 +2607,10 @@ static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 	if ( Com_GameIsWolfET() ) {
 		intptr_t wolfetResult = 0;
 		if ( CL_WolfETCgameCall( args, operation, wolfetResult ) ) return wolfetResult;
+	}
+	if ( Com_GameIsSTVEFMP() ) {
+		intptr_t stvefResult = 0;
+		if ( CL_STVEFCgameCall( args, operation, stvefResult ) ) return stvefResult;
 	}
 	switch( operation ) {
 	case CG_PRINT:

@@ -62,6 +62,8 @@ static bool SV_WolfETGameCall(const intptr_t *, intptr_t &, intptr_t &) { assert
 int Com_GameIsSTVEFMP(void) { return profile.id == COM_GAME_STVEF_MP; }
 static bool SV_STVEFGameCall(const intptr_t *, intptr_t &, intptr_t &) { assert(false); return false; }
 static bool CL_WolfETUICall(intptr_t *, intptr_t &, intptr_t &) { assert(false); return false; }
+// Elite Force's UI dispatcher has its own probe.
+static bool CL_STVEFUICall(intptr_t *, intptr_t &, intptr_t &) { assert(false); return false; }
 static intptr_t *CL_WolfETUIBrowserArguments(intptr_t, intptr_t *args, std::array<intptr_t, 6> &) { return args; }
 void QDECL Com_Error(errorParm_t, const char *, ...) { throw 7; }
 static int warnings;

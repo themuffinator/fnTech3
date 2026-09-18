@@ -2700,7 +2700,10 @@ static void R_Register( void )
 	ri.Cvar_SetDescription( r_fullbright, "Debugging tool to render the entire level without lighting." );
 	r_overBrightBits = ri.Cvar_Get( "r_overBrightBits", "1", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_SetDescription( r_overBrightBits, "Sets the intensity of overall brightness of texture pixels." );
-	r_mapOverBrightBits = ri.Cvar_Get( "r_mapOverBrightBits", "2", CVAR_ARCHIVE_ND | CVAR_LATCH );
+	// Elite Force's maps are lit for one overbright bit (retail default "1").
+	r_mapOverBrightBits = ri.Cvar_Get( "r_mapOverBrightBits",
+		( ri.gameId == COM_GAME_STVEF_SP || ri.gameId == COM_GAME_STVEF_MP ) ? "1" : "2",
+		CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_SetDescription( r_mapOverBrightBits, "Sets the number of overbright bits baked into all lightmaps and map data." );
 	// Retail Quake Live persists this bounded cap and applies it while normalizing overbright map RGB.
 	r_mapOverBrightCap = ri.Cvar_Get( "r_mapOverBrightCap", "255", CVAR_ARCHIVE | CVAR_LATCH | CVAR_VM_CREATED | CVAR_CLOUD );
@@ -3772,6 +3775,7 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 	re.AddWolfETLightToScene = RE_AddWolfETLightToScene;
 	re.ProjectWolfETDecal = RE_ProjectWolfETDecal;
 	re.ClearWolfETDecals = RE_ClearWolfETDecals;
+	re.RegisterShader3D = RE_RegisterShader3D;
 	re.AddWolfET2DPolys = RE_AddWolfET2DPolys;
 	re.LoadWolfETDynamicShader = RE_LoadWolfETDynamicShader;
 	re.GetWolfETTextureId = RE_GetWolfETTextureId;

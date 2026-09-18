@@ -258,7 +258,8 @@ typedef enum {
 	GF_SAWTOOTH, 
 	GF_INVERSE_SAWTOOTH, 
 
-	GF_NOISE
+	GF_NOISE,
+	GF_RANDOM	// Elite Force: base or base + amplitude, at random each millisecond
 
 } genFunc_t;
 

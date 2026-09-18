@@ -521,6 +521,11 @@ void CL_StopRecord_f( void );
 netchanWireProfile_t CL_ActiveWireProfile( void );
 // Elite Force Holomatch's retail protocol-24 framing, live or from a demo.
 qboolean CL_STVEFFraming( void );
+// The texture width of one character in the console font. Elite Force's
+// charsgrid_med draws each glyph in the left half of its cell.
+static inline float CL_CharsetCellWidth( void ) {
+	return Com_GameIsSTVEF() ? 0.03125f : 0.0625f;
+}
 static inline int CL_ReliableCommandLimit( void ) {
 	return Netchan_ReliableCommandLimit( CL_ActiveWireProfile() );
 }

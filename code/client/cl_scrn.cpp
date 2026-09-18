@@ -423,7 +423,7 @@ void SCR_DrawSmallChar( int x, int y, int ch ) {
 
 	re.DrawStretchPic( x, y, smallchar_width, smallchar_height,
 					   fcol, frow, 
-					   fcol + size, frow + size, 
+					   fcol + CL_CharsetCellWidth(), frow + size, 
 					   cls.charSetShader );
 }
 
@@ -452,7 +452,7 @@ void SCR_DrawSmallString( int x, int y, const char *s, int len ) {
 		fcol = col*0.0625;
 
 		re.DrawStretchPic( x, y, smallchar_width, smallchar_height,
-						   fcol, frow, fcol + size, frow + size, 
+						   fcol, frow, fcol + CL_CharsetCellWidth(), frow + size, 
 						   cls.charSetShader );
 
 		x += smallchar_width;
@@ -641,7 +641,7 @@ static void SCR_DrawHostScaledChar( float x, float y, float width, float height,
 	fcol = col * 0.0625f;
 	size = 0.0625f;
 
-	re.DrawStretchPic( x, y, width, height, fcol, frow, fcol + size, frow + size, cls.charSetShader );
+	re.DrawStretchPic( x, y, width, height, fcol, frow, fcol + CL_CharsetCellWidth(), frow + size, cls.charSetShader );
 }
 
 

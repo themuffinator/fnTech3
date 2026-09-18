@@ -50,6 +50,13 @@ void R_NoiseInit( void )
 	}
 }
 
+/* Elite Force's random waveform reads one noise value, moved to 0..2, chosen
+ * by the low byte of its clock (stvoyHM.exe 0x46bf20). */
+float R_NoiseRandom( int index )
+{
+	return s_noise_table[ s_noise_perm[ index & NOISE_MASK ] ] + 1.0f;
+}
+
 float R_NoiseGet4f( float x, float y, float z, double t )
 {
 	int i;

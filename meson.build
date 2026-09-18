@@ -1231,6 +1231,13 @@ stvef_client_wire_tests = executable('fntech3_stvef_client_wire_tests',
 )
 test('fntech3_stvef_client_wire', stvef_client_wire_tests)
 
+stvef_render_record_tests = executable('fntech3_stvef_render_record_tests',
+  'tests/stvef_render_record_tests.cpp',
+  include_directories: include_directories('code/qcommon', 'code/compat', 'code/client'),
+  cpp_args: common_cpp_args,
+)
+test('fntech3_stvef_render_records', stvef_render_record_tests)
+
 wolfet_client_boundary_tests = executable('fntech3_wolfet_client_boundary_tests',
   'tests/wolfet_client_boundary_tests.cpp',
   include_directories: include_directories('code/qcommon', 'code/compat', 'code/client'),
