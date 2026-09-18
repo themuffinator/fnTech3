@@ -184,6 +184,10 @@ static void SV_WriteSnapshotToClient( const client_t *client, msg_t *msg ) {
 	// NOTE, MRE: now sent at the start of every message from server to client
 	// let the client know which reliable clientCommands we have received
 	//MSG_WriteLong( msg, client->lastClientCommand );
+	// Holomatch still sends it here, in every snapshot.
+	if ( SV_LegacyFraming( client ) ) {
+		MSG_WriteLong( msg, client->lastClientCommand );
+	}
 
 	// send over the current server time so the client can drift
 	// its view of time to try to match
@@ -219,8 +223,15 @@ static void SV_WriteSnapshotToClient( const client_t *client, msg_t *msg ) {
 	// don't send any changes to zombies
 	if ( client->state <= CS_ZOMBIE ) {
 		// playerstate
-		MSG_WriteByte( msg, 0 ); // # of changes
-		MSG_WriteBits( msg, 0, 1 ); // no array changes
+		if ( SV_LegacyFraming( client ) ) {
+			// Every field and array block flagged unchanged.
+			static const playerState_t unchanged{};
+			MSG_WriteDeltaPlayerstateForWireProfile( msg, &unchanged, &unchanged,
+				client->netchan.wireProfile );
+		} else {
+			MSG_WriteByte( msg, 0 ); // # of changes
+			MSG_WriteBits( msg, 0, 1 ); // no array changes
+		}
 		// packet entities
 		MSG_WriteBits( msg, (MAX_GENTITIES-1), GENTITYNUM_BITS );
 		return;
@@ -245,6 +256,37 @@ static void SV_WriteSnapshotToClient( const client_t *client, msg_t *msg ) {
 			MSG_WriteByte (msg, svc_nop);
 		}
 	}
+}
+
+
+/*
+==================
+SV_WriteLegacyDownloadSnapshot
+
+Holomatch clients learn which reliable commands arrived only from snapshots.
+A message carrying download blocks therefore opens with an empty one, as
+Lilium Voyager's server does; retail appends its blocks to regular snapshots.
+==================
+*/
+void SV_WriteLegacyDownloadSnapshot( const client_t *client, msg_t *msg ) {
+	static const playerState_t empty{};
+	int snapFlags = svs.snapFlagServerBit;
+
+	MSG_WriteByte( msg, svc_snapshot );
+	MSG_WriteLong( msg, client->lastClientCommand );
+	MSG_WriteLong( msg, client->oldServerTime ? sv.time + client->oldServerTime : sv.time );
+	MSG_WriteByte( msg, 0 ); // not delta compressed
+	if ( client->rateDelayed ) {
+		snapFlags |= SNAPFLAG_RATE_DELAYED;
+	}
+	if ( client->state != CS_ACTIVE ) {
+		snapFlags |= SNAPFLAG_NOT_ACTIVE;
+	}
+	MSG_WriteByte( msg, snapFlags );
+	MSG_WriteByte( msg, 0 ); // no areabits
+	MSG_WriteData( msg, nullptr, 0 );
+	MSG_WriteDeltaPlayerstateForWireProfile( msg, &empty, &empty, client->netchan.wireProfile );
+	MSG_WriteBits( msg, MAX_GENTITIES - 1, GENTITYNUM_BITS );
 }
 
 
@@ -1071,9 +1113,13 @@ void SV_SendClientSnapshot( client_t *client ) {
 	MSG_Init( &msg, msg_buf.data(), Netchan_MessageLimit( client->netchan.wireProfile ) );
 	msg.allowoverflow = qtrue;
 
-	// NOTE, MRE: all server->client messages now acknowledge
-	// let the client know which reliable clientCommands we have received
-	MSG_WriteLong( &msg, client->lastClientCommand );
+	if ( SV_LegacyFraming( client ) ) {
+		MSG_STVEFBitstream( &msg );
+	} else {
+		// NOTE, MRE: all server->client messages now acknowledge
+		// let the client know which reliable clientCommands we have received
+		MSG_WriteLong( &msg, client->lastClientCommand );
+	}
 
 	// (re)send any reliable server commands
 	SV_UpdateServerCommandsToClient( client, &msg );

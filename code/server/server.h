@@ -690,6 +690,22 @@ static inline int SV_SvEntityIndex( const svEntity_t *entity ) {
 	return static_cast<int>( entity - sv.svEntities );
 }
 
+/* Elite Force Holomatch frames messages as Quake III 1.17 did: raw bits from
+ * the first byte, the reliable acknowledgement inside each snapshot, a zero
+ * byte closing the gamestate, and no end-of-message opcode. */
+static inline bool SV_LegacyFraming( const client_t *client ) {
+	return Netchan_WireHasFeature( client->netchan.wireProfile,
+		NETCHAN_FEATURE_RAW_MESSAGES ) != 0;
+}
+
+void SV_WriteLegacyDownloadSnapshot( const client_t *client, msg_t *msg );
+
+// Elite Force Holomatch's engine-owned Expansion Pack modes (sv_init.cpp).
+void SV_STVEFRegisterModes( void );
+void SV_STVEFClearModes( void );
+bool SV_STVEFModesModified( void );
+bool SV_STVEFModeActive( void );
+
 static inline bool SV_IsClientIndex( int clientNum ) {
 	return clientNum >= 0 && clientNum < sv.maxclients;
 }

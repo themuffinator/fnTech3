@@ -96,6 +96,8 @@ int BotSetupWeaponAI(void);
 void BotShutdownWeaponAI(void);
 //returns the best weapon to fight with
 int BotChooseBestFightWeapon(int weaponstate, int *inventory);
+//Elite Force 1.20: the same with its extra game argument (fixed weight 300 for slots 11 and 23)
+int BotChooseBestFightWeaponSTVEF(int weaponstate, int *inventory, int favorFixedSlots);
 //returns the information of the current weapon
 void BotGetWeaponInfo(int weaponstate, int weapon, weaponinfo_t *weaponinfo);
 //loads the weapon weights

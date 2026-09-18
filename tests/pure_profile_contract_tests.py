@@ -118,6 +118,8 @@ template<typename T,size_t N> static int SV_ArraySize(const std::array<T,N> &) {
 static bool FS_IsPureChecksum(int sum) { return sum == 11 || sum == 22 || sum == 99 || sum == INT32_MIN; }
 static void SV_SendClientSnapshot(client_t *client) { assert(client->state == CS_ZOMBIE); ++snapshots; }
 static void SV_DropClient(client_t *,const char *) { ++drops; }
+static bool legacyFraming; // Elite Force Holomatch: its cp names no server id.
+static bool SV_LegacyFraming(const client_t *) { return legacyFraming; }
 '''
 
 
@@ -157,6 +159,12 @@ int main() {
     assert(Verify("cp 17 11 22 @ 7").pureAuthentic); /* Pinned Q3 allows no general refs. */
     client_t stale = Verify("cp 16 11 22 @ 11 22 99 122");
     assert(!stale.gotCP && !stale.pureAuthentic && !drops && !snapshots);
+    legacyFraming = true; /* Holomatch: cp cgame ui @ refs... mixed. */
+    assert(Verify("cp 11 22 @ 11 22 99 122").pureAuthentic && !drops);
+    assert(Verify("cp 11 22 @ 7").pureAuthentic);
+    Reject("cp 17 11 22 @ 11 22 99 122");
+    Reject("cp 11 22 @");
+    legacyFraming = false;
     missingUi = true;
     Reject(sent);
     missingUi = false;

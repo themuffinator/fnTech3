@@ -30,6 +30,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *****************************************************************************/
 
 #include "../qcommon/q_shared.h"
+#include "../qcommon/game_profile.h"
 #include "l_libvar.h"
 #include "l_log.h"
 #include "l_memory.h"
@@ -134,7 +135,9 @@ static int BotValidWeaponNumber(int weaponnum)
 {
 	if (weaponnum <= 0 || weaponnum > weaponconfig->numweapons)
 	{
-		botimport.Print(PRT_ERROR, "weapon number out of range\n");
+		// Elite Force's botlib refuses these silently; its bots ask for
+		// weapon 0 whenever none has a positive weight.
+		if (!Com_GameIsSTVEFMP()) botimport.Print(PRT_ERROR, "weapon number out of range\n");
 		return qfalse;
 	} //end if
 	return qtrue;
@@ -428,6 +431,47 @@ int BotChooseBestFightWeapon(int weaponstate, int *inventory)
 	} //end for
 	return bestweapon;
 } //end of the function BotChooseBestFightWeapon
+//===========================================================================
+// Elite Force 1.20's version takes a third argument from its game. When it is
+// set, weapon slots 11 and 23 weigh 300 whatever the bot's fuzzy weights say
+// (stvoyHM.exe botlib 0x48feb0); every other slot is weighed as above.
+//===========================================================================
+int BotChooseBestFightWeaponSTVEF(int weaponstate, int *inventory, int favorFixedSlots)
+{
+	int i, index, bestweapon;
+	float weight, bestweight;
+	weaponconfig_t *wc;
+	bot_weaponstate_t *ws;
+
+	ws = BotWeaponStateFromHandle(weaponstate);
+	if (!ws) return 0;
+	wc = weaponconfig;
+	if (!weaponconfig) return 0;
+	if (!ws->weaponweightconfig) return 0;
+
+	bestweight = 0;
+	bestweapon = 0;
+	for (i = 0; i < wc->numweapons; i++)
+	{
+		if (!wc->weaponinfo[i].valid) continue;
+		if (favorFixedSlots && (i == 11 || i == 23))
+		{
+			weight = 300;
+		}
+		else
+		{
+			index = ws->weaponweightindex[i];
+			if (index < 0) continue;
+			weight = FuzzyWeight(inventory, ws->weaponweightconfig, index);
+		}
+		if (weight > bestweight)
+		{
+			bestweight = weight;
+			bestweapon = i;
+		} //end if
+	} //end for
+	return bestweapon;
+} //end of the function BotChooseBestFightWeaponSTVEF
 //===========================================================================
 //
 // Parameter:				-

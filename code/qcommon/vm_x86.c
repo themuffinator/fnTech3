@@ -1271,6 +1271,13 @@ static void emit_cvttss2si( uint32_t intreg, uint32_t xmmreg )
 	emit_op_reg( 0x0F, 0x2C, xmmreg, intreg );
 }
 
+// Rounds by MXCSR, nearest-even unless a caller changed it.
+static void emit_cvtss2si( uint32_t intreg, uint32_t xmmreg )
+{
+	Emit1( 0xF3 );
+	emit_op_reg( 0x0F, 0x2D, xmmreg, intreg );
+}
+
 static void emit_sqrt( uint32_t xmmreg, uint32_t base, int32_t offset )
 {
 	Emit1( 0xF3 );
@@ -3363,15 +3370,20 @@ __compile:
 				if ( HasSSEFP() ) {
 					rx[0] = alloc_rx( R_EAX );
 					sx[0] = load_sx_opstack( R_XMM0 | RCONST ); // xmm0 = *opstack
-					emit_cvttss2si( rx[0], sx[0] );		// cvttss2si xmm0, eax
+					if ( vm->roundFloatToInt ) {
+						emit_cvtss2si( rx[0], sx[0] );		// cvtss2si xmm0, eax
+					} else {
+						emit_cvttss2si( rx[0], sx[0] );		// cvttss2si xmm0, eax
+					}
 					unmask_sx( sx[0] );
 					store_rx_opstack( rx[0] );				// *opstack = eax
 				} else {
 					static int32_t fp_cw[2] = { 0x0000, 0x0F7F }; // [0] - current value, [1] - round towards zero
+					static int32_t fp_cw_nearest[2] = { 0x0000, 0x037F }; // [1] - round to nearest
 					flush_opstack_top();
 					alloc_rx( R_EAX | FORCED );
 					emit_fld( R_OPSTACK, opstack * sizeof( int32_t ) ); // fld dword ptr [opStack]
-					mov_rx_ptr( R_EAX, &fp_cw );
+					mov_rx_ptr( R_EAX, vm->roundFloatToInt ? fp_cw_nearest : fp_cw );
 					EmitString( "9B D9 38" );	// fnstcw word ptr [eax]
 					EmitString( "D9 68 04" );	// fldcw word ptr [eax+4]
 					emit_fistp( R_OPSTACK, opstack * sizeof( int32_t ) ); // fistp dword ptr [opStack]

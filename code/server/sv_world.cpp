@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "server.h"
 #include "sv_collision_model.hpp"
 #include "server_world_bounds.hpp"
+#include "../compat/stvef_game_abi.h"
 
 #include <algorithm>
 #include <array>
@@ -262,6 +263,18 @@ void SV_LinkEntity( sharedEntity_t *gEnt ) {
 	// encode the size into the entityState_t for client prediction
 	if ( entity.r.bmodel ) {
 		entity.s.solid = SOLID_BMODEL;		// a solid_box will never create this value
+	} else if ( Com_GameIsSTVEFMP() && ( entity.r.svFlags & SVF_STVEF_SHIELD_BBOX ) ) {
+		// Elite Force shields are thin boxes: s.solid carries the half-width
+		// along their wide axis and the flag says which axis that is. Retail
+		// stvoyHM.exe (SV_LinkEntity 0x436550) tests this before contents,
+		// takes a 4-unit X extent to mean a Y-facing shield, and caps the
+		// height at 254.
+		const bool alongY = entity.r.maxs[0] == 4.0f;
+		i = static_cast<int>( std::clamp( entity.r.maxs[alongY ? 1 : 0], 1.0f, 255.0f ) );
+		j = static_cast<int>( std::clamp( -entity.r.mins[alongY ? 1 : 0], 1.0f, 255.0f ) );
+		k = static_cast<int>( std::clamp( entity.r.maxs[2], 1.0f, 254.0f ) );
+		entity.s.eFlags |= alongY ? FNTECH3_STVEF_MP_EF_SHIELD_BOX_Y : FNTECH3_STVEF_MP_EF_SHIELD_BOX_X;
+		entity.s.solid = (k<<16) | (j<<8) | i;
 	} else if ( entity.r.contents & ( CONTENTS_SOLID | CONTENTS_BODY ) ) {
 		// assume that x/y are equal and symmetric
 		i = static_cast<int>( std::clamp( entity.r.maxs[0], 1.0f, 255.0f ) );

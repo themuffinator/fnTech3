@@ -356,6 +356,14 @@ but not on every player enter or exit.
 */
 static constexpr int HEARTBEAT_MSEC = 300 * 1000;
 static constexpr int MASTERDNS_MSEC = 24 * 60 * 60 * 1000;
+// Raven's Elite Force masters listen on 27953 and read a key-value heartbeat.
+static constexpr int STVEF_PORT_MASTER = 27953;
+static constexpr char STVEF_HEARTBEAT_GAME[] = "STEF1";
+
+static int SV_MasterPort()
+{
+	return Com_GameIsSTVEFMP() ? STVEF_PORT_MASTER : PORT_MASTER;
+}
 static void SV_MasterHeartbeat( const char *message )
 {
 	static std::array<std::array<netadr_t, 2>, MAX_MASTER_SERVERS> adr{}; // [2] for v4 and v6 address for the same address string.
@@ -398,7 +406,7 @@ static void SV_MasterHeartbeat( const char *message )
 				if(res == 2)
 				{
 					// if no port was specified, use the default master port
-					adr[i][0].port = BigShort(PORT_MASTER);
+					adr[i][0].port = BigShort(SV_MasterPort());
 				}
 				
 				if(res)
@@ -415,7 +423,7 @@ static void SV_MasterHeartbeat( const char *message )
 				if(res == 2)
 				{
 					// if no port was specified, use the default master port
-					adr[i][1].port = BigShort(PORT_MASTER);
+					adr[i][1].port = BigShort(SV_MasterPort());
 				}
 				
 				if(res)
@@ -437,6 +445,17 @@ static void SV_MasterHeartbeat( const char *message )
 		// this command should be changed if the server info / status format
 		// ever changes incompatibly
 
+		if ( Com_GameIsSTVEFMP() ) {
+			// retail stvoyHM.exe: \heartbeat\<port>\gamename\STEF1\ ; the
+			// master then polls getstatus.
+			if(adr[i][0].type != NA_BAD)
+				NET_OutOfBandPrint( NS_SERVER, &adr[i][0], "\\heartbeat\\%d\\gamename\\%s\\",
+					Cvar_VariableIntegerValue( "net_port" ), STVEF_HEARTBEAT_GAME );
+			if(adr[i][1].type != NA_BAD)
+				NET_OutOfBandPrint( NS_SERVER, &adr[i][1], "\\heartbeat\\%d\\gamename\\%s\\",
+					Cvar_VariableIntegerValue( "net_port6" ), STVEF_HEARTBEAT_GAME );
+			continue;
+		}
 		if(adr[i][0].type != NA_BAD)
 			NET_OutOfBandPrint( NS_SERVER, &adr[i][0], "heartbeat %s\n", message);
 		if(adr[i][1].type != NA_BAD)
@@ -875,6 +894,11 @@ static void SVC_Status( const netadr_t *from ) {
 	// echo back the parameter to status. so master servers can use it as a challenge
 	// to prevent timed spoofed reply packets that add ghost servers
 	Info_SetValueForKey( infostring.data(), "challenge", Cmd_Argv( 1 ) );
+	if ( Com_GameIsSTVEFMP() ) {
+		// Retail publishes protocol in its serverinfo, and Raven's master
+		// lists only servers whose status carries it.
+		Info_SetValueForKey( infostring.data(), "protocol", va( "%i", com_protocol->integer ) );
+	}
 
 	s = status.data();
 	status[0] = '\0';
@@ -990,7 +1014,16 @@ static void SVC_Info( const netadr_t *from ) {
 	if ( *gamedir != '\0' ) {
 		Info_SetValueForKey( infostring.data(), "game", gamedir );
 	}
+	// Retail marks a server running an Expansion Pack mode (SVC_Info 0x4349ff).
+	if ( SV_STVEFModeActive() ) {
+		Info_SetValueForKey( infostring.data(), "vv", "1" );
+	}
 
+	if ( Com_GameIsSTVEFMP() ) {
+		// Retail: infoResponse "<info>" on one line (SVC_Info 0x434800).
+		NET_OutOfBandPrint( NS_SERVER, from, "infoResponse \"%s\"", infostring.data() );
+		return;
+	}
 	NET_OutOfBandPrint( NS_SERVER, from, "infoResponse\n%s", infostring.data() );
 }
 
@@ -1126,8 +1159,11 @@ static void SV_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 			}
 			return;
 		}
-		if ( !Huff_Decompress( msg, 12 ) ) {
-			return;
+		// Elite Force clients send connect as plain text.
+		if ( !Com_GameIsSTVEFMP() ) {
+			if ( !Huff_Decompress( msg, 12 ) ) {
+				return;
+			}
 		}
 	}
 

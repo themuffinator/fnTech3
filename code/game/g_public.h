@@ -60,6 +60,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define SVF_WOLFET_ORIGIN_ONLY     0x00400000
 #define SVF_WOLFET_SELF_PORTAL     0x00800000
 #define SVF_WOLFET_SELF_PORTAL_EXCLUSIVE 0x01000000
+#define SVF_STVEF_SHIELD_BBOX      0x02000000 // Elite Force: s.solid encodes a shield's thin axis
 
 //===============================================================
 

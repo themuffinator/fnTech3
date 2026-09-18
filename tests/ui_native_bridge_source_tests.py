@@ -928,7 +928,12 @@ class UiNativeBridgeSourceTests(unittest.TestCase):
         self.assertIn("SV_ParsePureChecksum( pArg, moduleChecksum )", verify_paks)
         self.assertIn('FS_FileIsInPAK( "vm/cgame.qvm", &nBinChkSum, nullptr )', verify_paks)
         self.assertIn('FS_FileIsInPAK( "vm/ui.qvm", &nUiChkSum, nullptr )', verify_paks)
-        self.assertIn("if ( Com_GameIsQuake3() )", verify_paks)
+        # Quake III and Elite Force Holomatch prove their pure modules as QVMs.
+        self.assertIn(
+            "const bool qvmProof = Com_GameProfile()->pureProof == COM_PURE_PROOF_QVM;",
+            verify_paks,
+        )
+        self.assertIn("if ( qvmProof )", verify_paks)
 
         self.assertIn("FS_TouchFileInPak( QL_NATIVE_CGAME_DLL );", sv_init)
         self.assertNotIn('FS_TouchFileInPak( "vm/cgame.qvm" );', sv_init)

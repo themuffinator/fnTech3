@@ -49,6 +49,8 @@ ABI_AT( fntech3_stvef_refdef_t, rdflags, 76 );
 ABI_AT( fntech3_stvef_refdef_t, areamask, 80 );
 
 // Holomatch.
+ABI_SIZE( fntech3_stvef_bot_input_t, 40 );
+ABI_AT( fntech3_stvef_bot_input_t, actionflags, 32 );
 ABI_POD( fntech3_stvef_mp_entityState_t );
 ABI_SIZE( fntech3_stvef_mp_entityState_t, 204 );
 ABI_AT( fntech3_stvef_mp_entityState_t, pos, 12 );

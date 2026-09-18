@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "server.h"
 #include "../compat/rtcw_game_abi.h"
+#include "server_stvef_policy.hpp"
 
 #include <array>
 #include <cstring>
@@ -524,6 +525,70 @@ static void SV_PrepareRTCWCampaign( void ) {
 	if ( !bots->integer ) Cvar_Set( "bot_enable", "1" );
 }
 
+/*
+================
+Elite Force Holomatch modes
+
+The five Expansion Pack modes are latched serverinfo cvars whose conflicts
+the engine resolves before each map, as retail does (server_stvef_policy.hpp).
+================
+*/
+static std::array<cvar_t *, fntech3::stvef::server::PModCount> stvefModes{};
+
+void SV_STVEFRegisterModes( void ) {
+	if ( !Com_GameIsSTVEFMP() ) return;
+	for ( std::size_t i = 0; i < stvefModes.size(); ++i ) {
+		stvefModes[i] = Cvar_Get( fntech3::stvef::server::PModNames[i], "0",
+			CVAR_SERVERINFO | CVAR_LATCH );
+	}
+}
+
+void SV_STVEFClearModes( void ) {
+	if ( !Com_GameIsSTVEFMP() ) return;
+	for ( const char *name : fntech3::stvef::server::PModNames ) {
+		Cvar_Set( name, "0" );
+	}
+}
+
+bool SV_STVEFModesModified( void ) {
+	if ( !Com_GameIsSTVEFMP() ) return false;
+	for ( const cvar_t *mode : stvefModes ) {
+		if ( mode && mode->modified ) return true;
+	}
+	return false;
+}
+
+bool SV_STVEFModeActive( void ) {
+	if ( !Com_GameIsSTVEFMP() ) return false;
+	for ( const cvar_t *mode : stvefModes ) {
+		if ( mode && mode->integer ) return true;
+	}
+	return false;
+}
+
+// Applies the pending game type and modes, then switches off every mode the
+// game type or another mode excludes. The game reads the result at init.
+static void SV_PrepareSTVEFModes( void ) {
+	using namespace fntech3::stvef::server;
+	if ( !Com_GameIsSTVEFMP() ) return;
+	const auto *gameType = Cvar_Get( "g_gametype", Com_GameProfile()->server.gameType,
+		CVAR_SERVERINFO | CVAR_LATCH );
+	auto &modes = stvefModes;
+	PModSet requested{};
+	for ( std::size_t i = 0; i < PModCount; ++i ) {
+		modes[i] = Cvar_Get( PModNames[i], "0", CVAR_SERVERINFO | CVAR_LATCH );
+		requested[i] = modes[i]->integer != 0;
+	}
+	const PModSet resolved = ResolvePMods( gameType->integer, requested );
+	for ( std::size_t i = 0; i < PModCount; ++i ) {
+		if ( requested[i] && !resolved[i] ) {
+			Com_Printf( "%s is not available with this game type or mode; disabled.\n", PModNames[i] );
+			Cvar_Set2( PModNames[i], "0", qtrue );
+		}
+		modes[i]->modified = qfalse;
+	}
+}
+
 static void SV_ReferenceNativeModulePaks( void ) {
 	if ( Com_GameIsQuakeLive() ) {
 		FS_TouchFileInPak( QL_NATIVE_CGAME_DLL );
@@ -556,6 +621,7 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	Q_strncpyz( spawnCommand, Cmd_Cmd(), sizeof( spawnCommand ) );
 
 	SV_PrepareRTCWCampaign();
+	SV_PrepareSTVEFModes();
 
 	// shut down the existing game if it is running
 	SV_ShutdownGameProgs();
@@ -917,6 +983,7 @@ void SV_Init( void )
 	sv_gametype = Cvar_Get ("g_gametype", serverPolicy.gameType, CVAR_SERVERINFO | CVAR_LATCH );
 	if ( serverPolicy.mapSkill ) Cvar_Get( "g_gameskill", serverPolicy.mapSkill, CVAR_SERVERINFO | CVAR_LATCH );
 	Cvar_SetDescription( sv_gametype, "Set the gametype to mod." );
+	SV_STVEFRegisterModes();
 	if ( quakeLive ) {
 		sv_ammoPack = Cvar_Get( "g_ammoPack", "1", CVAR_LATCH );
 		Cvar_SetDescription( sv_ammoPack,

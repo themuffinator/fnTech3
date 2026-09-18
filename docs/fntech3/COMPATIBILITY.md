@@ -34,8 +34,11 @@ The [Elite Force foundation](2026-09-18-stvef-contracts.md) registers
 retail installation, and adds MP3 decoding that reproduces every one of the
 8,074 retail `#UNCOMP` sizes. The [Holomatch wire slice](2026-09-18-stvef-holomatch.md)
 adds retail protocol-24 message coding and the packet scramble; all 32,675
-records of the retail Holomatch demos decode through the engine. Framing,
-module boundaries and interoperability remain open.
+records of the retail Holomatch demos decode through the engine. The
+[Holomatch server slice](2026-09-18-stvef-holomatch-server.md) hosts the retail
+game module with its bots on a developer dedicated server: free-for-all and a
+complete capture-the-flag match run without errors. The client, cgame and UI
+modules, the renderer and interoperability remain open.
 
 The [ET contract and dedicated-server slice](2026-09-17-wolfet-contracts.md)
 adds a distinct immutable profile, protocol-84 codecs, frozen module records,
@@ -1177,7 +1180,8 @@ pins the installation identity and startup contracts.
 | Profile / identity / discovery | Source, Unit, Live subset | Both profiles, their aliases and the shared-pak mode choice pass unit checks; the Holomatch profile mounts the retail paks in a developer dedicated server. Broader installations and platforms remain open. |
 | Audio codecs | Source, Unit, Fixture | Every one of the 8,129 retail MP3 files decodes, and every one of the 8,074 Raven `#UNCOMP` sizes is reproduced by the retail frame rule. Playback, lip-sync (`#MAXVOL`) and ambient sets remain open. |
 | Holomatch wire codec | Source, Unit, Fixture | Protocol-24 bit packing, alignment, strings, entity/player/command deltas, frozen records and the packet scramble. All 32,675 retail demo records decode, and re-encoding reproduces retail's bits except where retail flagged decode-invisible changes ([record](2026-09-18-stvef-holomatch.md)). Lilium's protocol 26 remains open. |
-| Holomatch module ABI / framing / demos | Open | QVM syscall tables, server and client framing, handshake, downloads, `.efdemo` playback and pure admission. |
+| Holomatch game module / server | Source, Unit, Live subset | The retail `qagame.qvm` runs with bots on a developer dedicated server: game imports, records, server flags, shield boxes, round-to-nearest float conversion, the 1.17 bot contract and botlib differences, Expansion Pack modes, and server-side framing ([record](2026-09-18-stvef-holomatch-server.md)). The 1.20 item-choice argument, a retail client session and pure admission remain open. |
+| Holomatch client / cgame / UI / demos | Open | Client framing and handshake, cgame and UI import tables, `.efdemo` recording and playback. |
 | SP module host / savegames | Open | Function-table game host, cgame from the same library, UI table, retail `.sav` chunks, level transitions and autosaves. |
 | Renderer / cinematics | Open | Elite Force refEntity and shader behavior, MD4/MDR models in use, Bink movies. |
 | Interoperability | Open | Retail Holomatch client and server in both directions. |

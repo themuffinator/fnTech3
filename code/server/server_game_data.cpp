@@ -13,6 +13,7 @@ General Public License, version 2 or (at your option) any later version.
 #include "../compat/q3_game_abi.h"
 #include "../compat/ql_game_abi.h"
 #include "../compat/rtcw_state_adapter.hpp"
+#include "../compat/stvef_state_adapter.hpp"
 #include "../compat/wolfet_state_adapter.hpp"
 
 #include <cstring>
@@ -342,6 +343,19 @@ const ServerGameDataView::Layout *ServerGameDataView::FindLayout(
 	};
 #undef ET_R
 
+	// Holomatch's entityShared_t has no leading entity state: r follows s.
+#define EF_R(member) offsetof(fntech3_stvef_mp_sharedEntity_t, r.member)
+	static const Layout stvefLayout{
+		COM_GAME_STVEF_MP, sizeof(fntech3_stvef_mp_sharedEntity_t),
+		sizeof(fntech3_stvef_mp_entityState_t), sizeof(fntech3_stvef_mp_playerState_t),
+		EF_R(linked), EF_R(linkcount), EF_R(svFlags), EF_R(singleClient),
+		EF_R(bmodel), EF_R(mins), EF_R(maxs), EF_R(contents), EF_R(absmin), EF_R(absmax),
+		EF_R(currentOrigin), EF_R(currentAngles), EF_R(ownerNum),
+		offsetof(fntech3_stvef_mp_sharedEntity_t, s.origin2),
+		offsetof(fntech3_stvef_mp_playerState_t, ping), FNTECH3_STVEF_MP_MAX_CLIENTS
+	};
+#undef EF_R
+
 	switch ( profile ) {
 	case COM_GAME_QUAKE3:
 		return &q3Layout;
@@ -353,6 +367,8 @@ const ServerGameDataView::Layout *ServerGameDataView::FindLayout(
 		return &mpLayout;
 	case COM_GAME_WOLFET:
 		return &etLayout;
+	case COM_GAME_STVEF_MP:
+		return &stvefLayout;
 	default:
 		return nullptr;
 	}
@@ -674,6 +690,11 @@ bool ServerGameDataView::ReadEntityState( const GameEntityRef &reference,
 		fntech3_wolfet_entityState_t external{};
 		return ReadEntityBytes(reference, 0, &external, sizeof(external)) && wolfet::state::ToInternal(external, destination);
 	}
+	if ( layout_->profile == COM_GAME_STVEF_MP ) {
+		fntech3_stvef_mp_entityState_t external{};
+		return ReadEntityBytes( reference, 0, &external, sizeof( external ) ) &&
+			stvef::state::ToInternal( external, destination );
+	}
 	if ( layout_->profile != COM_GAME_QUAKELIVE ) return false;
 	fntech3_ql_entityState_t external{};
 	if ( !ReadEntityBytes( reference, 0, &external, sizeof( external ) ) ) {
@@ -701,6 +722,11 @@ bool ServerGameDataView::WriteEntityState( const GameEntityRef &reference,
 	if (layout_->profile == COM_GAME_WOLFET) {
 		fntech3_wolfet_entityState_t external{};
 		return wolfet::state::FromInternal(source, external) && WriteEntityBytes(reference, 0, &external, sizeof(external));
+	}
+	if ( layout_->profile == COM_GAME_STVEF_MP ) {
+		fntech3_stvef_mp_entityState_t external{};
+		return stvef::state::FromInternal( source, external ) &&
+			WriteEntityBytes( reference, 0, &external, sizeof( external ) );
 	}
 	if ( layout_->profile != COM_GAME_QUAKELIVE ) return false;
 	fntech3_ql_entityState_t external{};
@@ -815,6 +841,11 @@ bool ServerGameDataView::ReadPlayerState( std::int32_t clientIndex,
 	if (layout_->profile == COM_GAME_WOLFET) {
 		fntech3_wolfet_playerState_t external{};
 		return ReadClientBytes(clientIndex, 0, &external, sizeof(external)) && wolfet::state::ToInternal(external, destination);
+	}
+	if ( layout_->profile == COM_GAME_STVEF_MP ) {
+		fntech3_stvef_mp_playerState_t external{};
+		return ReadClientBytes( clientIndex, 0, &external, sizeof( external ) ) &&
+			stvef::state::ToInternal( external, destination );
 	}
 	if ( layout_->profile != COM_GAME_QUAKELIVE ) return false;
 	fntech3_ql_playerState_t external{};

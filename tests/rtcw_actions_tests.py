@@ -58,6 +58,18 @@ static void checkBoundary(bool native){
    assert(handled&&result==0);
   };
   const int client=p.maxClients-1;
+  if(p.id==COM_GAME_STVEF_MP){
+   // Holomatch keeps the 1.17 contract without RTCW's boundary: moving up and
+   // down are a jump and a crouch, and the previous-jump marker is MOVELEFT.
+   intptr_t result=73;assert(!SV_RTCWActionCall(nullptr,Call::BOTLIB_EA_VIEW,nullptr,result)&&result==73);
+   EA_MoveUp(client);assert(botinputs[client].actionflags==ACTION_JUMP);EA_ResetInput(client);
+   assert(botinputs[client].actionflags==ACTION_MOVELEFT);EA_ResetInput(client);
+   assert(botinputs[client].actionflags==0);
+   EA_MoveDown(client);assert(botinputs[client].actionflags==ACTION_CROUCH);EA_ResetInput(client);
+   EA_Jump(client);EA_ResetInput(client);EA_Jump(client);
+   assert(botinputs[client].actionflags==ACTION_MOVELEFT);
+   EA_Shutdown();continue;
+  }
   if(!rtcw){
    intptr_t result=73;assert(!SV_RTCWActionCall(nullptr,Call::BOTLIB_EA_VIEW,nullptr,result)&&result==73);
    EA_MoveUp(client);assert(botinputs[client].actionflags==ACTION_MOVEUP);EA_ResetInput(client);

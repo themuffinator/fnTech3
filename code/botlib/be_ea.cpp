@@ -233,13 +233,16 @@ void EA_Respawn(int client)
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
+// RTCW and Elite Force Holomatch keep Quake III 1.17's action contract: moving
+// up is a jump, moving down a crouch, and the previous-jump marker is the
+// MOVELEFT bit. Their game modules read those bits back.
 void EA_Jump(int client)
 {
 	bot_input_t *bi;
 
 	bi = &botinputs[client];
 
-	if (bi->actionflags & (Com_GameIsRTCW() ? ACTION_MOVELEFT : ACTION_JUMPEDLASTFRAME))
+	if (bi->actionflags & ((Com_GameIsRTCW() || Com_GameIsSTVEFMP()) ? ACTION_MOVELEFT : ACTION_JUMPEDLASTFRAME))
 	{
 		bi->actionflags &= ~ACTION_JUMP;
 	} //end if
@@ -260,7 +263,7 @@ void EA_DelayedJump(int client)
 
 	bi = &botinputs[client];
 
-	if (bi->actionflags & (Com_GameIsRTCW() ? ACTION_MOVELEFT : ACTION_JUMPEDLASTFRAME))
+	if (bi->actionflags & ((Com_GameIsRTCW() || Com_GameIsSTVEFMP()) ? ACTION_MOVELEFT : ACTION_JUMPEDLASTFRAME))
 	{
 		bi->actionflags &= ~ACTION_DELAYEDJUMP;
 	} //end if
@@ -323,7 +326,7 @@ void EA_MoveUp(int client)
 
 	bi = &botinputs[client];
 
-	bi->actionflags |= Com_GameIsRTCW() ? ACTION_JUMP : ACTION_MOVEUP;
+	bi->actionflags |= (Com_GameIsRTCW() || Com_GameIsSTVEFMP()) ? ACTION_JUMP : ACTION_MOVEUP;
 } //end of the function EA_MoveUp
 //===========================================================================
 //
@@ -337,7 +340,7 @@ void EA_MoveDown(int client)
 
 	bi = &botinputs[client];
 
-	bi->actionflags |= Com_GameIsRTCW() ? ACTION_CROUCH : ACTION_MOVEDOWN;
+	bi->actionflags |= (Com_GameIsRTCW() || Com_GameIsSTVEFMP()) ? ACTION_CROUCH : ACTION_MOVEDOWN;
 } //end of the function EA_MoveDown
 //===========================================================================
 //
@@ -468,9 +471,10 @@ void EA_ResetInput(int client)
 	bi->speed = 0;
 	jumped = bi->actionflags & ACTION_JUMP;
 	bi->actionflags = 0;
-	if (Com_GameIsRTCW()) {
-		// RTCW's previous-jump marker aliases MOVELEFT (external bit 128).
-		// Keep that observable rule within RTCW; Quake has a separate bit.
+	if ((Com_GameIsRTCW() || Com_GameIsSTVEFMP())) {
+		// The 1.17 previous-jump marker aliases MOVELEFT (external bit 128).
+		// Keep that observable rule for RTCW and Holomatch; Quake III 1.32
+		// has a separate bit.
 		if (jumped) bi->actionflags |= ACTION_MOVELEFT;
 		actionExtras[client] = 0;
 	} else if (jumped) bi->actionflags |= ACTION_JUMPEDLASTFRAME;

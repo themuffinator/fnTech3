@@ -31,6 +31,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "../qcommon/q_shared.h"
 #include "../qcommon/qcommon.h"
+#include "../qcommon/game_profile.h"
 #include "l_memory.h"
 #include "l_libvar.h"
 #include "l_script.h"
@@ -3154,7 +3155,9 @@ int BotSetupChatAI(void)
 	file = LibVarString("matchfile", "match.c");
 	matchtemplates = BotLoadMatchTemplates(file);
 	//
-	if (!LibVarValue("nochat", "0"))
+	// Elite Force's bots never reply to chat: it ships no rchat.c and its
+	// botlib has no rchatfile variable.
+	if (!LibVarValue("nochat", "0") && !Com_GameIsSTVEF())
 	{
 		file = LibVarString("rchatfile", "rchat.c");
 		replychats = BotLoadReplyChat(file);

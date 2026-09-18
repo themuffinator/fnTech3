@@ -299,7 +299,8 @@ int AAS_OriginOfMoverWithModelNum(int modelnum, vec3_t origin)
 	for (i = 0; i < entityWorld.maxentities; i++)
 	{
 		ent = &entityWorld.entities[i];
-		if (ent->i.type == ET_MOVER)
+		// Elite Force inserts ET_ALT_MISSILE before its movers.
+		if (ent->i.type == (Com_GameIsSTVEFMP() ? ET_MOVER + 1 : ET_MOVER))
 		{
 			if (ent->i.modelindex == modelnum)
 			{

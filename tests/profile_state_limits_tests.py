@@ -120,6 +120,7 @@ int main(){
 #include "q_shared.h"
 #include "qcommon.h"
 #include "netchan_safety.hpp"
+#include "stvef_netchan.hpp"
 #include <cassert>
 #include <cstring>
 #include <algorithm>

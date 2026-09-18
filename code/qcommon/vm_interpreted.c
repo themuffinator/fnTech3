@@ -567,7 +567,7 @@ nextInstruction2:
 			break;
 
 		case OP_CVFI:
-			*opStack = (int) r0.f;
+			*opStack = vm->roundFloatToInt ? VM_RoundFloatToInt( r0.f ) : (int) r0.f;
 			break;
 
 		case MOP_LOCAL_LOAD4:

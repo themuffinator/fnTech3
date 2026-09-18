@@ -1,4 +1,4 @@
-"""RTCW/ET server flags retain their distinct meanings at the native boundary."""
+"""RTCW/ET/Elite Force server flags retain their distinct meanings at the native boundary."""
 from pathlib import Path
 import os
 import shutil
@@ -24,6 +24,7 @@ class ServerGameFlagsTests(unittest.TestCase):
 #include "code/qcommon/game_profile.h"
 #include "code/game/g_public.h"
 #include "code/compat/rtcw_game_abi.h"
+#include "code/compat/stvef_game_abi.h"
 #include <cassert>
 #include <cstdint>
 #include <cstring>
@@ -72,6 +73,26 @@ int main() {
             assert(ServerFlagsToInternal(profile, value) == value);
             assert(ServerFlagsFromInternal(profile, value, ~value) == value);
         }
+    }
+    // Holomatch: 0x2 is its shield box, not Quake III's client mask, and 0x10
+    // (SVF_ELIMINATED) belongs to the module.
+    constexpr uint32_t efKnown = 0xfebu;
+    assert(ServerFlagsToInternal(COM_GAME_STVEF_MP, 0x2) == SVF_STVEF_SHIELD_BBOX);
+    assert(ServerFlagsToInternal(COM_GAME_STVEF_MP, 0x10) == 0);
+    assert(ServerFlagsToInternal(COM_GAME_STVEF_MP, 0x4) == 0);
+    for (uint32_t subset = 0; subset <= 0xfff; ++subset) {
+        const int canonical = ServerFlagsToInternal(COM_GAME_STVEF_MP, subset);
+        assert(!(canonical & (SVF_CLIENTMASK | SVF_SELF_PORTAL2)));
+        for (uint32_t previous : {0u, 0x80000014u, 0xffffffffu}) {
+            const uint32_t encoded = ServerFlagsFromInternal(COM_GAME_STVEF_MP, canonical, signedBits(previous));
+            assert((encoded & efKnown) == (subset & efKnown));
+            assert((encoded & ~efKnown) == (previous & ~efKnown));
+            assert(ServerFlagsToInternal(COM_GAME_STVEF_MP, signedBits(encoded)) == canonical);
+        }
+    }
+    for (const auto &bit : stvefServerFlags) {
+        assert(bit.external && !(bit.external & (bit.external - 1)));
+        assert(bit.internal && !(bit.internal & (bit.internal - 1)));
     }
     constexpr uint32_t etKnown = (known & ~0x90u) | 0x1c000u;
     assert(ServerFlagsToInternal(COM_GAME_WOLFET, 0x4000) == SVF_WOLFET_ORIGIN_ONLY);

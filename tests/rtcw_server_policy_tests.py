@@ -177,6 +177,8 @@ class RTCWServerPolicyTests(unittest.TestCase):
         source += '\nstatic void SV_TestServerDefaults(){\n' + defaults + '\n}\n'
         source += r'''
 void SV_SpawnServer(const char*,qboolean){++spawns;SV_PrepareRTCWCampaign();Cvar_Get("sv_maxclients",profile->server.clients,0);}
+// Elite Force mode rules have their own fixture; spmap only asks for them.
+static int modeClears;void SV_STVEFClearModes(){++modeClears;}
 '''
         source += function(commands, 'static void SV_Map_f(') + CHECKS
         spawn = function(init, 'void SV_SpawnServer(')

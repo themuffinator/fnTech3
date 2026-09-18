@@ -52,6 +52,7 @@ void Cbuf_AddText(const char *text){assert(std::string(text)=="quit\n");events.e
 static void SV_BuildClientSnapshot(client_t *c){assert(c==svs.clients);events.emplace_back("snapshot");}
 void MSG_Init(msg_t *msg,byte *data,int size){*msg={};msg->data=data;msg->maxsize=size;events.emplace_back("message");}
 void MSG_WriteLong(msg_t *msg,int n){assert(n==73&&msg->allowoverflow);events.emplace_back("ack");}
+void MSG_STVEFBitstream(msg_t*){assert(false);} // no Elite Force client is driven here
 void SV_UpdateServerCommandsToClient(client_t*,msg_t*){events.emplace_back("commands");}
 static void SV_WriteSnapshotToClient(const client_t*,msg_t *msg){events.emplace_back("writeSnapshot");msg->overflowed=overflow?qtrue:qfalse;}
 void MSG_Clear(msg_t *msg){msg->cursize=0;events.emplace_back("clear");}

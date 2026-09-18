@@ -30,6 +30,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../compat/rtcw_module_abi.h"
 #include "../compat/rtcw_state_adapter.hpp"
 #include "../compat/rtcw_savegame.hpp"
+#include "../compat/stvef_game_abi.h"
 #include "../qcommon/vm_rtcw_filesystem.hpp"
 #define JSON_IMPLEMENTATION
 #include "../qcommon/json.h"
@@ -70,6 +71,21 @@ constexpr ServerFlagMapping rtcwServerFlags[] = {
 	{ FNTECH3_RTCW_SVF_NOSERVERINFO, SVF_NOSERVERINFO },
 	{ FNTECH3_RTCW_SVF_NOTSINGLECLIENT, SVF_NOTSINGLECLIENT }
 };
+// Holomatch keeps Quake III's numbers except for its shield boxes at 0x2, which
+// Quake III uses as SVF_CLIENTMASK. SVF_ELIMINATED (0x10) is game state the
+// engine never reads, so it stays with the module.
+constexpr ServerFlagMapping stvefServerFlags[] = {
+	{ FNTECH3_STVEF_MP_SVF_NOCLIENT, SVF_NOCLIENT },
+	{ FNTECH3_STVEF_MP_SVF_SHIELD_BBOX, SVF_STVEF_SHIELD_BBOX },
+	{ FNTECH3_STVEF_MP_SVF_BOT, SVF_BOT },
+	{ FNTECH3_STVEF_MP_SVF_BROADCAST, SVF_BROADCAST },
+	{ FNTECH3_STVEF_MP_SVF_PORTAL, SVF_PORTAL },
+	{ FNTECH3_STVEF_MP_SVF_USE_CURRENT_ORIGIN, SVF_USE_CURRENT_ORIGIN },
+	{ FNTECH3_STVEF_MP_SVF_SINGLECLIENT, SVF_SINGLECLIENT },
+	{ FNTECH3_STVEF_MP_SVF_NOSERVERINFO, SVF_NOSERVERINFO },
+	{ FNTECH3_STVEF_MP_SVF_CAPSULE, SVF_CAPSULE },
+	{ FNTECH3_STVEF_MP_SVF_NOTSINGLECLIENT, SVF_NOTSINGLECLIENT }
+};
 constexpr ServerFlagMapping wolfetServerFlags[] = {
 	{ FNTECH3_WOLFET_SVF_IGNOREBMODELEXTENTS, SVF_WOLFET_ORIGIN_ONLY },
 	{ FNTECH3_WOLFET_SVF_SELF_PORTAL, SVF_WOLFET_SELF_PORTAL },
@@ -77,6 +93,12 @@ constexpr ServerFlagMapping wolfetServerFlags[] = {
 };
 
 int ServerFlagsToInternal( comGameId_t profile, int flags ) {
+	if ( profile == COM_GAME_STVEF_MP ) {
+		uint32_t result = 0;
+		for ( const auto &bit : stvefServerFlags )
+			if ( static_cast<uint32_t>( flags ) & bit.external ) result |= bit.internal;
+		return static_cast<int>( result );
+	}
 	if ( profile != COM_GAME_RTCW_SP && profile != COM_GAME_RTCW_MP && profile != COM_GAME_WOLFET ) return flags;
 	uint32_t result = 0;
 	for ( const auto &bit : rtcwServerFlags ) {
@@ -92,6 +114,17 @@ int ServerFlagsToInternal( comGameId_t profile, int flags ) {
 }
 
 int ServerFlagsFromInternal( comGameId_t profile, int flags, int previous ) {
+	if ( profile == COM_GAME_STVEF_MP ) {
+		// Engine updates must preserve module-owned bits the engine does not know.
+		uint32_t result = static_cast<uint32_t>( previous );
+		for ( const auto &bit : stvefServerFlags ) {
+			result &= ~bit.external;
+			if ( static_cast<uint32_t>( flags ) & bit.internal ) result |= bit.external;
+		}
+		int output;
+		std::memcpy( &output, &result, sizeof( output ) );
+		return output;
+	}
 	if ( profile != COM_GAME_RTCW_SP && profile != COM_GAME_RTCW_MP && profile != COM_GAME_WOLFET ) return flags;
 	// Engine updates must preserve module-owned bits the engine does not know.
 	uint32_t result = static_cast<uint32_t>( previous );
@@ -922,6 +955,7 @@ static intptr_t SV_RTCWGameSharedCall( fntech3::rtcw::module::Call call ) {
 }
 
 #include "server_wolfet_game.hpp"
+#include "server_stvef_game.hpp"
 
 static intptr_t SV_GameSystemCalls( intptr_t *args ) {
 
@@ -942,6 +976,10 @@ static intptr_t SV_GameSystemCalls( intptr_t *args ) {
 	if (Com_GameIsWolfET()) {
 		intptr_t result = 0;
 		if (SV_WolfETGameCall(args, operation, result)) return result;
+	}
+	if ( Com_GameIsSTVEFMP() ) {
+		intptr_t result = 0;
+		if ( SV_STVEFGameCall( args, operation, result ) ) return result;
 	}
 	if ( Com_GameIsRTCW() ) {
 		using namespace fntech3::rtcw::module;

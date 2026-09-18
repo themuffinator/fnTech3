@@ -81,7 +81,8 @@ static bot_movestate_t *travelSetup(){
  aasworld.areasettings[1].numreachableareas=1;
  aasworld.reachabilitysize=2;aasworld.reachability=botlib::ClearedAlloc<aas_reachability_t>(2);
  aasworld.time=5;contents=bspCalls=0;traceSolid=false;obstruction=ENTITYNUM_WORLD;
- auto &mover=AAS_EntityWorld().entities[1].i;mover.valid=qtrue;mover.type=ET_MOVER;mover.modelindex=3;
+ // Elite Force Holomatch numbers its movers one higher (ET_ALT_MISSILE comes first).
+ auto &mover=AAS_EntityWorld().entities[1].i;mover.valid=qtrue;mover.type=Com_GameIsSTVEFMP()?ET_MOVER+1:ET_MOVER;mover.modelindex=3;
  moveActions.clear();commands.clear();return ms;
 }
 static void travelFinish(){FreeMemory(aasworld.reachability);aasworld.reachability=nullptr;finish();}

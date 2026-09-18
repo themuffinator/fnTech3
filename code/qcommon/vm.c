@@ -2344,6 +2344,15 @@ vm_t *VM_CreateNative( vmIndex_t index, syscall_t systemCalls, dllSyscall_t dllS
 
 	vm->compiled = qfalse;
 
+	// Elite Force's QVMs round OP_CVFI to nearest. The interpreter and the x86
+	// compilers implement that; other compilers still truncate.
+	vm->roundFloatToInt = Com_GameIsSTVEF() ? qtrue : qfalse;
+#if !id386 && !idx64
+	if ( vm->roundFloatToInt && interpret >= VMI_COMPILED ) {
+		interpret = VMI_BYTECODE;
+	}
+#endif
+
 #ifdef NO_VM_COMPILED
 	if ( interpret >= VMI_COMPILED ) {
 		Com_Printf( "Architecture doesn't have a bytecode compiler, using interpreter\n" );

@@ -242,6 +242,8 @@ static void SV_Map_f( void ) {
 			Cvar_SetIntegerValue( "g_gametype", GT_SINGLE_PLAYER );
 		}
 		Cvar_Set( "g_doWarmup", "0" );
+		// Holomatch's single-player ladder runs with no Expansion Pack mode.
+		SV_STVEFClearModes();
 		// may not set sv_maxclients directly, always set latched
 		Cvar_SetLatched( "sv_maxclients", serverPolicy.singlePlayerCommandClients );
 		cmd += 2;
@@ -396,9 +398,10 @@ static void SV_MapRestart_f( void ) {
 		Cvar_SetIntegerValue("gamestate", nextState);
 	}
 
+	// Holomatch also reloads the map when an Expansion Pack mode changed.
 	if ( !Com_GameIsQuakeLive()
 		&& ( sv_maxclients->modified || sv_gametype->modified
-			|| sv_pure->modified ) ) {
+			|| sv_pure->modified || SV_STVEFModesModified() ) ) {
 		std::array<char, MAX_QPATH> mapname{};
 
 		Com_Printf( "variable change -- restarting.\n" );

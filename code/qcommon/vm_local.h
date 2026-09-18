@@ -224,8 +224,26 @@ struct vm_s {
 
 	qboolean	forceDataMask;
 
+	// Elite Force's QVMs expect OP_CVFI to round to nearest, ties to even, as
+	// retail's x87 fistp does; Quake III's truncate.
+	qboolean	roundFloatToInt;
+
 	int			privateFlag;
 };
+
+/* OP_CVFI when rounding: nearest, ties to even; NaN and values outside the
+ * int32 range give INT32_MIN, as x86 conversions do. */
+static inline int32_t VM_RoundFloatToInt( float value ) {
+	if ( !( value >= -2147483648.0f && value < 2147483648.0f ) ) {
+		return INT32_MIN;
+	}
+	float whole = floorf( value );
+	const float fraction = value - whole;
+	if ( fraction > 0.5f || ( fraction == 0.5f && fmodf( whole, 2.0f ) != 0.0f ) ) {
+		whole += 1.0f;
+	}
+	return (int32_t)whole;
+}
 
 qboolean VM_Compile( vm_t *vm, vmHeader_t *header );
 int32_t VM_CallCompiled( vm_t *vm, int nargs, int32_t *args );

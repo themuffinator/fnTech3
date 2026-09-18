@@ -2127,12 +2127,16 @@ int SV_RemainingGameState( void )
 	// message. RTCW sends the gamestate in one message of its own, twice that
 	// size, with its own tables; original RTCW publishes sv_paks unconditionally,
 	// so estimating it as Q3 wrongly dropped big maps to degraded pure.
-	const netchanWireProfile_t wire = Com_GameIsRTCW()
+	const bool ownWire = Com_GameIsRTCW() || Com_GameIsSTVEFMP();
+	const netchanWireProfile_t wire = ownWire
 		? Netchan_SelectWireProfile( Com_GameProfile()->preferredProtocol, 0 )
 		: NETCHAN_WIRE_QL_RETAIL;
-	const int limit = Com_GameIsRTCW() ? Netchan_MessageLimit( wire ) : MAX_MSGLEN;
+	const int limit = ownWire ? Netchan_MessageLimit( wire ) : MAX_MSGLEN;
 
 	MSG_Init( &msg, msgBuffer.data(), limit );
+	if ( Netchan_WireHasFeature( wire, NETCHAN_FEATURE_RAW_MESSAGES ) ) {
+		MSG_STVEFBitstream( &msg );
+	}
 
 	MSG_WriteLong( &msg, 7 ); // last client command
 
@@ -2237,9 +2241,14 @@ static void SV_SendClientGameState( client_t *client ) {
 
 	MSG_Init( &msg, msgBuffer.data(), Netchan_MessageLimit( client->netchan.wireProfile ) );
 
-	// NOTE, MRE: all server->client messages now acknowledge
-	// let the client know which reliable clientCommands we have received
-	MSG_WriteLong( &msg, client->lastClientCommand );
+	if ( SV_LegacyFraming( client ) ) {
+		// Holomatch acknowledges reliable commands only in snapshots.
+		MSG_STVEFBitstream( &msg );
+	} else {
+		// NOTE, MRE: all server->client messages now acknowledge
+		// let the client know which reliable clientCommands we have received
+		MSG_WriteLong( &msg, client->lastClientCommand );
+	}
 
 	// send any server commands waiting to be sent first.
 	// we have to do this cause we send the client->reliableSequence
@@ -2285,9 +2294,15 @@ static void SV_SendClientGameState( client_t *client ) {
 			client->netchan.wireProfile );
 	}
 
-	MSG_WriteByte( &msg, svc_EOF );
+	if ( SV_LegacyFraming( client ) ) {
+		// A zero byte closes the list and no client number follows: the
+		// Holomatch cgame reads its number from the first snapshot.
+		MSG_WriteByte( &msg, svc_bad );
+	} else {
+		MSG_WriteByte( &msg, svc_EOF );
 
-	MSG_WriteLong( &msg, SV_ClientIndex( client ) );
+		MSG_WriteLong( &msg, SV_ClientIndex( client ) );
+	}
 
 	// write the checksum feed
 	MSG_WriteLong( &msg, sv.checksumFeed );
@@ -2757,15 +2772,26 @@ static int SV_WriteDownloadToClient( client_t *cl )
 			}
 
 			MSG_Init( &msg, msgBuffer.data(), SV_ArraySize(msgBuffer) - 8 );
-			MSG_WriteLong( &msg, cl->lastClientCommand );
+			if ( SV_LegacyFraming( cl ) ) {
+				MSG_STVEFBitstream( &msg );
+				SV_WriteLegacyDownloadSnapshot( cl, &msg );
+			} else {
+				MSG_WriteLong( &msg, cl->lastClientCommand );
+			}
 
 			MSG_WriteByte( &msg, svc_download );
 			MSG_WriteShort( &msg, 0 ); // client is expecting block zero
 			MSG_WriteLong( &msg, -1 ); // illegal file size
-			MSG_WriteStringForWireProfile(
-				&msg, errorMessage.data(), cl->netchan.wireProfile );
-
-			MSG_WriteByte( &msg, svc_EOF );
+			if ( SV_LegacyFraming( cl ) ) {
+				// Retail sends no reason, then an empty chunk that its
+				// client reads before moving on (SV_WriteDownloadToClient
+				// 0x430060, CL_ParseDownload 0x4114e0).
+				MSG_WriteShort( &msg, 0 );
+			} else {
+				MSG_WriteStringForWireProfile(
+					&msg, errorMessage.data(), cl->netchan.wireProfile );
+				MSG_WriteByte( &msg, svc_EOF );
+			}
 			SV_Netchan_Transmit( cl, &msg );
 
 			*cl->downloadName = '\0';
@@ -2839,7 +2865,12 @@ static int SV_WriteDownloadToClient( client_t *cl )
 	curindex = (cl->downloadXmitBlock % downloadWindow);
 
 	MSG_Init( &msg, msgBuffer.data(), SV_ArraySize(msgBuffer) - 8 );
-	MSG_WriteLong( &msg, cl->lastClientCommand );
+	if ( SV_LegacyFraming( cl ) ) {
+		MSG_STVEFBitstream( &msg );
+		SV_WriteLegacyDownloadSnapshot( cl, &msg );
+	} else {
+		MSG_WriteLong( &msg, cl->lastClientCommand );
+	}
 
 	MSG_WriteByte( &msg, svc_download );
 	MSG_WriteShort( &msg, cl->downloadXmitBlock );
@@ -2854,7 +2885,9 @@ static int SV_WriteDownloadToClient( client_t *cl )
 	if ( cl->downloadBlockSize[curindex] > 0 )
 		MSG_WriteData( &msg, cl->downloadBlocks[curindex], cl->downloadBlockSize[curindex] );
 
-	MSG_WriteByte( &msg, svc_EOF );
+	if ( !SV_LegacyFraming( cl ) ) {
+		MSG_WriteByte( &msg, svc_EOF );
+	}
 	SV_Netchan_Transmit( cl, &msg );
 
 	Com_DPrintf( "clientDownload: %d : writing block %d\n", SV_ClientIndex( cl ), cl->downloadXmitBlock );
@@ -3021,7 +3054,8 @@ static void SV_VerifyPaks_f( client_t *cl ) {
 	if ( sv.pure != 0 ) {
 
 		nBinChkSum = nUiChkSum = nChkSum1 = 0;
-		if ( Com_GameIsQuake3() ) {
+		const bool qvmProof = Com_GameProfile()->pureProof == COM_PURE_PROOF_QVM;
+		if ( qvmProof ) {
 			bGood = FS_FileIsInPAK( "vm/cgame.qvm", &nBinChkSum, nullptr );
 			if ( !FS_FileIsInPAK( "vm/ui.qvm", &nUiChkSum, nullptr ) ) {
 				bGood = false;
@@ -3046,9 +3080,13 @@ static void SV_VerifyPaks_f( client_t *cl ) {
 		// start at arg 2 ( skip serverId cl_paks )
 		nCurArg = 1;
 
-		pArg = Cmd_Argv(nCurArg++);
-		int incomingServerId;
-		if ( !SV_ParsePureChecksum( pArg, incomingServerId ) ) {
+		// Holomatch clients send no serverId: "cp cgame ui @ refs... mixed".
+		const bool legacyFraming = SV_LegacyFraming( cl );
+		int incomingServerId = sv.serverId;
+		if ( legacyFraming ) {
+			// Nothing to skip or compare.
+		}
+		else if ( !SV_ParsePureChecksum( Cmd_Argv(nCurArg++), incomingServerId ) ) {
 			bGood = false;
 		}
 		else
@@ -3067,7 +3105,8 @@ static void SV_VerifyPaks_f( client_t *cl ) {
 
 			// Q3/RTCW MP: cp serverId cgame ui @ refs... mixedChecksum (zero refs allowed).
 			// QL: cp serverId bin @ firstref refs... mixedChecksum.
-			if (nClientPaks < 6) {
+			// Holomatch: cp cgame ui @ refs... mixedChecksum.
+			if (nClientPaks < ( legacyFraming ? 5 : 6 )) {
 				bGood = false;
 				break;
 			}
@@ -3078,7 +3117,7 @@ static void SV_VerifyPaks_f( client_t *cl ) {
 				bGood = false;
 				break;
 			}
-			if ( Com_GameIsQuake3() || Com_PureProofIsNativeModulePair( Com_GameProfile() ) ) {
+			if ( qvmProof || Com_PureProofIsNativeModulePair( Com_GameProfile() ) ) {
 				if ( !SV_ParsePureChecksum( Cmd_Argv(nCurArg++), moduleChecksum )
 					|| moduleChecksum != nUiChkSum ) {
 					bGood = false;
@@ -3814,8 +3853,13 @@ void SV_ExecuteClientMessage( client_t *cl, msg_t *msg ) {
 	int	serverId;
 	int reliableAcknowledge;
 	std::uint32_t pendingReliable = 0;
+	const bool legacyFraming = SV_LegacyFraming( cl );
 
-	MSG_Bitstream( msg );
+	if ( legacyFraming ) {
+		MSG_STVEFBitstream( msg );
+	} else {
+		MSG_Bitstream( msg );
+	}
 
 	serverId = MSG_ReadLong( msg );
 
@@ -3928,7 +3972,8 @@ void SV_ExecuteClientMessage( client_t *cl, msg_t *msg ) {
 		SV_UserMove( cl, msg, true );
 	} else if ( c == clc_moveNoDelta ) {
 		SV_UserMove( cl, msg, false );
-	} else if ( c != clc_EOF ) {
+	} else if ( c != clc_EOF && !( legacyFraming && c == -1 ) ) {
+		// Holomatch messages end with their data, which reads as -1.
 		Com_Printf( "WARNING: bad command byte %i for client %i\n", c, SV_ClientIndex( cl ) );
 	}
 

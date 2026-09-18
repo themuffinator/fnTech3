@@ -11,6 +11,7 @@ General Public License, version 2 or (at your option) any later version.
 
 #include "../code/compat/q3_game_abi.h"
 #include "../code/compat/ql_game_abi.h"
+#include "../code/compat/stvef_game_abi.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -693,6 +694,76 @@ void TestRTCWRecords( comGameId_t profile, std::int32_t maxClients )
 	ExpectGuardsIntact( full, "invalid RTCW bindings preserve module memory" );
 }
 
+// Holomatch's shared entity is 204 bytes of state then 100 of r, with no
+// leading state in r; its 468-byte player state carries four events.
+void TestSTVEFRecords()
+{
+	Expect( ServerGameDataView::EntityPrefixBytesForProfile( COM_GAME_STVEF_MP ) == 304 &&
+		ServerGameDataView::PlayerStateBytesForProfile( COM_GAME_STVEF_MP ) == 468,
+		"Holomatch exposes its exact record prefixes" );
+	Storage storage( sizeof( fntech3_stvef_mp_sharedEntity_t ) + 12,
+		sizeof( fntech3_stvef_mp_playerState_t ) + 20 );
+	ServerGameDataView view;
+	Expect( view.BindNative( COM_GAME_STVEF_MP, storage.Binding() ) == GameDataBindError::None,
+		"bind Holomatch entity and player records with private tails" );
+	fntech3_stvef_mp_sharedEntity_t external{};
+	external.s.number = 7;
+	external.s.pos.trType = 5;
+	external.s.pos.trBase[2] = 64.0f;
+	external.s.solid = 0x102030;
+	external.s.torsoAnim = 21;
+	std::memcpy( storage.EntityBase() + storage.entityStride, &external, sizeof( external ) );
+	GameEntityRef reference;
+	Expect( view.EntityRefAt( 1, reference ), "resolve Holomatch entity reference" );
+	entityState_t state{};
+	Expect( view.ReadEntityState( reference, state ) && state.number == 7 &&
+		state.pos.trType == TR_GRAVITY && state.pos.trBase[2] == 64.0f &&
+		state.solid == 0x102030 && state.torsoAnim == 21 && state.generic1 == 0,
+		"read the Holomatch entity state through its adapter" );
+	CheckFieldAccessors( view, reference );
+	std::memcpy( &external, storage.EntityBase() + storage.entityStride, sizeof( external ) );
+	Expect( external.r.linked == 1 && external.r.linkcount == 2 && external.r.contents == 5,
+		"Holomatch shared accessors address r at offset 204" );
+	auto before = storage.entities;
+	state.eFlags = 0x400000;
+	Expect( view.WriteEntityState( reference, state ), "write the Holomatch entity state" );
+	ExpectOnlyRangeChanged( before, storage.entities, kGuardBytes + storage.entityStride,
+		sizeof( fntech3_stvef_mp_entityState_t ), "state writes preserve r and game-private data" );
+	before = storage.entities;
+	state.pos.trType = TR_QL_ACCEL;
+	Expect( !view.WriteEntityState( reference, state ) && storage.entities == before,
+		"Holomatch rejects a trajectory type it does not have" );
+
+	fntech3_stvef_mp_playerState_t player{};
+	player.commandTime = 4321;
+	player.events[3] = 44;
+	player.eventParms[2] = 7;
+	player.damageShieldCount = 9;
+	player.introTime = 1500;
+	player.ammo[15] = 99;
+	std::memcpy( storage.ClientBase() + storage.clientStride, &player, sizeof( player ) );
+	playerState_t canonical{};
+	Expect( view.ReadPlayerState( 1, canonical ) && canonical.commandTime == 4321 &&
+		canonical.stvef.events[1] == 44 && canonical.stvef.eventParms[0] == 7 &&
+		canonical.stvef.damageShieldCount == 9 && canonical.stvef.introTime == 1500 &&
+		canonical.ammo[15] == 99, "read the Holomatch player state with its extension" );
+	before = storage.clients;
+	Expect( view.SetPlayerPing( 1, 61 ), "write the Holomatch ping" );
+	ExpectOnlyRangeChanged( before, storage.clients, kGuardBytes + storage.clientStride +
+		offsetof( fntech3_stvef_mp_playerState_t, ping ), 4, "ping lands at offset 460" );
+	ExpectGuardsIntact( storage, "Holomatch access preserves record-array guards" );
+
+	Storage full( sizeof( fntech3_stvef_mp_sharedEntity_t ), sizeof( fntech3_stvef_mp_playerState_t ), 1, 64 );
+	Expect( view.BindNative( COM_GAME_STVEF_MP, full.Binding() ) == GameDataBindError::None,
+		"bind 64 Holomatch clients" );
+	auto invalid = full.Binding();
+	invalid.clientCount = 65;
+	Expect( view.BindNative( COM_GAME_STVEF_MP, invalid ) == GameDataBindError::InvalidClientCount,
+		"reject more clients than the Holomatch game holds" );
+	Expect( view.BindNative( COM_GAME_STVEF_SP, full.Binding() ) == GameDataBindError::UnsupportedProfile,
+		"single player does not use QVM records" );
+}
+
 void TestRTCWSaveEntityCapacity()
 {
 	Storage storage( sizeof(fntech3_rtcw_sp_sharedEntity_t) + 16,
@@ -751,6 +822,7 @@ int main()
 	TestRTCWSaveEntityCapacity();
 	TestRTCWRecords<fntech3_rtcw_sp_sharedEntity_t, fntech3_rtcw_sp_playerState_t>( COM_GAME_RTCW_SP, 128 );
 	TestRTCWRecords<fntech3_rtcw_mp_sharedEntity_t, fntech3_rtcw_mp_playerState_t>( COM_GAME_RTCW_MP, 64 );
+	TestSTVEFRecords();
 
 	if ( failures != 0 ) {
 		std::cerr << failures << " server game-data checks failed\n";

@@ -73,6 +73,9 @@ enum {
 	FNTECH3_STVEF_MP_SVF_NOSERVERINFO = 0x00000200,
 	FNTECH3_STVEF_MP_SVF_CAPSULE = 0x00000400,
 	FNTECH3_STVEF_MP_SVF_NOTSINGLECLIENT = 0x00000800,
+	/* Entity flags the engine sets on a linked shield box. */
+	FNTECH3_STVEF_MP_EF_SHIELD_BOX_X = 0x00000800,
+	FNTECH3_STVEF_MP_EF_SHIELD_BOX_Y = 0x00400000,
 	/* Holomatch render entity types, in Raven's ordinal order. */
 	FNTECH3_STVEF_MP_RT_MODEL = 0,
 	FNTECH3_STVEF_MP_RT_SPRITE = 1,
@@ -357,6 +360,16 @@ typedef struct {
 	fntech3_stvef_mp_entityState_t entities[FNTECH3_STVEF_MAX_ENTITIES_IN_SNAPSHOT];
 	int32_t numServerCommands, serverCommandSequence;
 } fntech3_stvef_mp_snapshot_t;
+
+/* Quake III's bot_input_t; its actionflags carry the 1.17 bit order. */
+typedef struct {
+	float thinktime;
+	float dir[3];
+	float speed;
+	float viewangles[3];
+	int32_t actionflags;
+	int32_t weapon;
+} fntech3_stvef_bot_input_t;
 
 /* Raven's FX primitives share one 28-byte union after shaderTime. */
 typedef union {

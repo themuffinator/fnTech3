@@ -16,9 +16,11 @@ class RTCWGamestateBudgetTests(unittest.TestCase):
         # budget, but it must measure RTCW's encoding against RTCW's 32 KiB
         # message rather than Quake III's 16 KiB one (mp_sub fell to degraded
         # pure under the Q3 estimate).
-        self.assertIn('const netchanWireProfile_t wire = Com_GameIsRTCW()', self.body)
+        # Elite Force Holomatch measures its own raw-bit wire the same way.
+        self.assertIn('const bool ownWire = Com_GameIsRTCW() || Com_GameIsSTVEFMP();', self.body)
+        self.assertIn('const netchanWireProfile_t wire = ownWire', self.body)
         self.assertIn('Netchan_SelectWireProfile( Com_GameProfile()->preferredProtocol, 0 )', self.body)
-        self.assertIn('const int limit = Com_GameIsRTCW() ? Netchan_MessageLimit( wire ) : MAX_MSGLEN;', self.body)
+        self.assertIn('const int limit = ownWire ? Netchan_MessageLimit( wire ) : MAX_MSGLEN;', self.body)
         self.assertIn('MSG_Init( &msg, msgBuffer.data(), limit );', self.body)
         self.assertIn('return limit - len;', self.body)
         # Every configstring and baseline is measured with the selected wire.

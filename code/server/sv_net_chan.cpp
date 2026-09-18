@@ -213,7 +213,11 @@ static void SV_WolfETWriteBinaryMessage( msg_t *msg, int client )
 
 void SV_Netchan_Transmit( client_t *client, msg_t *msg)
 {
-	MSG_WriteByte( msg, svc_EOF );
+	// Holomatch messages end where their data ends; retail clients reject
+	// the svc_EOF opcode itself.
+	if ( !SV_LegacyFraming( client ) ) {
+		MSG_WriteByte( msg, svc_EOF );
+	}
 	SV_WolfETWriteBinaryMessage( msg, static_cast<int>( client - svs.clients ) );
 
 	if(client->netchan.unsentFragments || client->netchan_start_queue)

@@ -1217,6 +1217,13 @@ stvef_abi_layout_tests = executable('fntech3_stvef_abi_layout_tests',
 )
 test('fntech3_stvef_abi_layouts', stvef_abi_layout_tests)
 
+stvef_vm_rounding_tests = executable('fntech3_stvef_vm_rounding_tests',
+  'tests/stvef_vm_rounding_tests.cpp',
+  include_directories: include_directories('code/qcommon'),
+  cpp_args: common_cpp_args,
+)
+test('fntech3_stvef_vm_rounding', stvef_vm_rounding_tests)
+
 wolfet_client_boundary_tests = executable('fntech3_wolfet_client_boundary_tests',
   'tests/wolfet_client_boundary_tests.cpp',
   include_directories: include_directories('code/qcommon', 'code/compat', 'code/client'),
@@ -1559,6 +1566,18 @@ collision_capsule_trace_tests = executable('fnql_collision_capsule_trace_tests',
   dependencies: collision_capsule_trace_deps,
 )
 test('fnql_collision_capsule_trace', collision_capsule_trace_tests)
+
+stvef_server_policy_tests = executable('fntech3_stvef_server_policy_tests',
+  [
+    'tests/stvef_server_policy_tests.cpp',
+    'code/qcommon/q_math.c',
+  ],
+  include_directories: include_directories('code/qcommon'),
+  c_args: common_c_args,
+  cpp_args: common_cpp_args,
+  dependencies: collision_capsule_trace_deps,
+)
+test('fntech3_stvef_server_policy', stvef_server_policy_tests)
 test('fnql_collision_model_parity_source', python,
   args: files('tests/collision_model_parity_source_tests.py'),
 )
