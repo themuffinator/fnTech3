@@ -43,8 +43,7 @@ handshake, client framing, downloads, pure checksums and `.efdemo` recording
 and playback. The [Holomatch cgame and UI slice](2026-09-18-stvef-holomatch-cgame-ui.md)
 runs the retail cgame and UI with Raven's effect primitives in all three
 renderers: the retail main menu draws, and all three retail demos play to the
-end. Entity alpha forcing, a live session with a server and interoperability
-remain open.
+end. A live session with a server and interoperability remain open.
 
 The [ET contract and dedicated-server slice](2026-09-17-wolfet-contracts.md)
 adds a distinct immutable profile, protocol-84 codecs, frozen module records,
@@ -1190,7 +1189,7 @@ pins the installation identity and startup contracts.
 | Holomatch client framing / demos | Source, Unit, Live subset | Retail handshake with nonce and protocol checks, raw-bit framing with the acknowledgement in snapshots, retail read-past-end semantics, `cp` without a server id, the missing-file download, the one-byte button field, and `.efdemo` naming, refusal and playback selection ([record](2026-09-18-stvef-holomatch-client.md)). All three retail demos play to the end in a developer client ([record](2026-09-18-stvef-holomatch-cgame-ui.md)). A live session remains open. |
 | Holomatch cgame / UI | Source, Unit, Live subset | The retail cgame and UI run in a developer client: both import tables with retail's accepted and refused numbers, their records, the quiet cvar set, 3D shader registration, press-only UI key events, both server lists and the absent CD-key service ([record](2026-09-18-stvef-holomatch-cgame-ui.md)). The UI draws the main menu; the cgame plays the retail demos. A live session remains open. |
 | SP module host / savegames | Open | Function-table game host, cgame from the same library, UI table, retail `.sav` chunks, level transitions and autosaves. |
-| Renderer / cinematics | Source, Unit, Live subset | Holomatch's entity record and its eight effect primitives, its lighting flags, the `random` wave and `depthFunc disable`, the overbright default and the console font, in all three renderers; demo frames were compared with Lilium Voyager's ([record](2026-09-18-stvef-holomatch-cgame-ui.md)). Entity alpha forcing, the remaining shader parser differences, MD4/MDR models in use and Bink movies remain open. |
+| Renderer / cinematics | Source, Unit, Live subset | Holomatch's entity record and its eight effect primitives, its lighting flags, entity alpha forcing, the `random` wave and `depthFunc disable`, the overbright default and the console font, in all three renderers; demo frames were compared with Lilium Voyager's ([record](2026-09-18-stvef-holomatch-cgame-ui.md)). The remaining shader parser differences, MD4/MDR models in use and Bink movies remain open. |
 | Interoperability | Open | Retail Holomatch client and server in both directions. |
 | Optional services | Unavailable | No authorize/master success is synthesized. |
 

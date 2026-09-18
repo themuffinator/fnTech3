@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 #include "tr_local.h"
+#include "../renderercommon/tr_stvef_alpha.h"
 
 backEndData_t	*backEndData;
 backEndState_t	backEnd;
@@ -1046,7 +1047,7 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs, rbDr
 			( vk.renderPassIndex == RENDER_PASS_MAIN ||
 			  vk.renderPassIndex == RENDER_PASS_POST_BLOOM ) &&
 			vk_depth_fade_available() ) {
-			RB_EndSurface();
+			RB_EndSurfaceWithSTVEFAlpha();
 			vk_copy_depth_fade();
 			depthFadeSnapshot = vk_depth_fade_ready();
 			if ( depthFadeSnapshot ) {
@@ -1063,7 +1064,7 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs, rbDr
 		if ( ( (oldSort ^ drawSurf->sort ) & ~QSORT_REFENTITYNUM_MASK )
 			|| ( !qlRendererCvars.forceMergeEntities->integer && !shader->entityMergable ) ) {
 			//if ( oldShader != NULL ) {
-				RB_EndSurface();
+				RB_EndSurfaceWithSTVEFAlpha();
 			//}
 #ifdef USE_PMLIGHT
 			#define INSERT_POINT SS_FOG

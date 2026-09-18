@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 #include "tr_local.h"
+#include "../renderercommon/tr_stvef_alpha.h"
 #include "tr_glx_compat.h"
 
 backEndData_t	*backEndData;
@@ -928,7 +929,7 @@ static qboolean RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs )
 			( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) == 0 ) {
 			if ( RB_DrawSurfListNeedsDepthFadeSnapshot( drawSurfs, numDrawSurfs, i ) ) {
 				if ( oldShader != NULL ) {
-					RB_EndSurface();
+					RB_EndSurfaceWithSTVEFAlpha();
 					oldShader = NULL;
 				}
 				FBO_CopyDepthFade();
@@ -951,7 +952,7 @@ static qboolean RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs )
 		if ( ( (oldSort ^ drawSurf->sort ) & ~QSORT_REFENTITYNUM_MASK )
 			|| ( !qlRendererCvars.forceMergeEntities->integer && !shader->entityMergable ) ) {
 			if ( oldShader != NULL ) {
-				RB_EndSurface();
+				RB_EndSurfaceWithSTVEFAlpha();
 			}
 #ifdef USE_PMLIGHT
 			#define INSERT_POINT SS_FOG

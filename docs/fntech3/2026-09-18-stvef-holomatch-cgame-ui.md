@@ -7,9 +7,9 @@ This slice runs the retail Holomatch `cgame.qvm` and `ui.qvm` in the
 server lists and key events, and the renderer contracts Holomatch's effects
 depend on: Raven's effect entity types, the lighting flags, two shader
 keywords, the overbright default, the console font and the silent default
-sound. With it, the retail demos play in the developer client. Entity alpha
-forcing, a live session with a server and the single-player profile are
-later slices. The profile stays behind `-Dstvef-development=true`.
+sound, and entity alpha forcing. With it, the retail demos play in the
+developer client. A live session with a server and the single-player profile
+are later slices. The profile stays behind `-Dstvef-development=true`.
 
 ## Evidence and provenance
 
@@ -36,6 +36,7 @@ differs from retail, retail is followed.
 | Entity record | 160 bytes; one 28-byte union after `shaderTime`; `RE_AddRefEntityToScene` `0x46ba70` refuses types 15 and above | The adapter maps Raven's type ordinals and unpacks each union member into engine-owned fields |
 | Effect surfaces | `RB_SurfaceEntity` `0x476c30`: oriented sprite `0x476fd0`, corner-colored sprite `0x477150`, view-facing line `0x4743b0`/`0x4744a0`, oriented line (inline), tapered line `0x474800`/`0x474900`, bezier `0x474d70`/`0x474ea0`, cylinder `0x475360`, electricity `0x475d90`/`0x475910` | One shared implementation in all three renderers, with retail's vertex order, texture coordinates and colors |
 | Lighting flags | `R_SetupEntityLighting` `0x479f3c`: 0x10 adds 100 x identityLight and 0x1 subtracts it, in place of the minimum add of 32 | Same. A darkened ambient stops at zero where retail lets it go negative |
+| Entity alpha | Render flag 0x800: when the surface list flushes a batch (`RB_RenderDrawSurfList` `0x463831`), the batch's entity supplies its alpha if that is from 1 to 254; every single-texture stage then takes it at each vertex and draws with source-alpha blending only, so with no depth write or alpha test (`RB_StageIteratorGeneric` `0x46c5e2`). Multitexture stages keep their state, and the list's final batch is flushed without it | Same in all three renderers. The Vulkan renderers draw a forced stage with a per-vertex-color pipeline of the stage's own kind. Shadow-map passes, which retail does not have, never take it |
 | Shader keywords | Wave function `random` (`EvalWaveForm` `0x47b5f8`, noise `0x46bf20`) and `depthFunc disable` (`0x466267`) | Both, for the Elite Force profiles only |
 | Map overbright | `r_mapOverBrightBits` defaults to 1 | 1 for Elite Force; other profiles keep 2 |
 | Console font | `gfx/2d/charsgrid_med`, each glyph in the left half of its cell | Same |
@@ -64,9 +65,16 @@ installation was left unchanged. Frames were checked with the engine's
   per frame, so its waits were doubled. The world, HUD, weapons and effects
   agree. At frame 280 Lilium drew the portable shield's damaged look; fnTech3
   draws the same look at frames 276 to 278, so the two engines start their
-  demos a few frames apart. Which one matches retail's start was not tested.
+  demos a few frames apart. The gap grows later in the demo, so frames were
+  not matched by number past frame 460. Which engine matches retail's timing
+  was not tested.
 - The Vulkan and RTX renderers draw the same demo frames, with the effect
   entities and HUD.
+- Entities with forced alpha are in 8,433 of `demo0000`'s 11,803 frames:
+  players pulsing between alpha 50 and 150 and eliminated players fading
+  out. With the flag applied, a pulsing player at fnTech3's frame 10 matches
+  Lilium's frame 12 (the two-frame start offset): the scene shows through it
+  the same way. All three renderers draw it translucent.
 
 ## Tests
 
@@ -79,18 +87,17 @@ installation was left unchanged. Frames were checked with the engine's
   test prints, both server lists, the CD key and the gamestate transfer.
 - `rtcw_light_tests` checks the brightening and darkening flags in all three
   renderers.
+- `stvef_forced_alpha_tests` compiles the shared alpha rules (which alpha is
+  forced, which flushes and stages take it, the 0x65 blend state) and checks
+  where each renderer's surface list and stage loop apply them.
 - The renderer API version, default sound, UI version and key-release checks
   in `rtx_renderer_contract_source_tests`, `ql_font_source_tests`,
   `underwater_view_source_tests`, `rtcw_speech_tests`, `ui_module_abi_tests`
-  and `webui_wiring_tests` follow these changes.
+  and `webui_wiring_tests` follow these changes, as does the draw loop probe in
+  `rtx_raster_execution_tests`.
 
 ## Remaining
 
-- Entity alpha forcing (render flag 0x800) is decoded but not applied. Retail
-  (`RB_RenderDrawSurfList` `0x463831`, `RB_StageIteratorGeneric` `0x46c5e2`)
-  replaces every single-texture stage's vertex alpha with the entity's when it
-  is below 255, draws that stage with source-alpha blending and no depth
-  write, and never applies it to a view's last batch.
 - Retail shader parser differences not yet compared: surface parameters such
   as `shotclip`, and the environment texture generator.
 - A session between this client and a server: fnTech3's own, retail or

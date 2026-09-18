@@ -112,7 +112,7 @@ typedef struct {
 	color4ub_t vertexColors[4];	// RT_STVEF_ALPHAVERTPOLY corners
 	qboolean fullbright;		// retail renderfx 0x10: brighten after grid light
 	qboolean darken;			// retail renderfx 0x1: darken after grid light
-	qboolean forceAlpha;		// retail renderfx 0x800: shaderRGBA alpha on every stage
+	qboolean forceAlpha;		// retail renderfx 0x800: shaderRGBA alpha on single-texture stages
 } stvefRenderEntity_t;
 
 // Engine-owned RTCW animation/effect state. Module records are frozen in

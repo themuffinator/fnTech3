@@ -1918,6 +1918,9 @@ typedef struct {
 	qboolean drawConsole;
 	qboolean doneShadows;
 
+	// Elite Force: the alpha forced on the batch being flushed, or 0
+	// (renderercommon/tr_stvef_alpha.h).
+	int stvefForcedAlpha;
 } backEndState_t;
 
 /*

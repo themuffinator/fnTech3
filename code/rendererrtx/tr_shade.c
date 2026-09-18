@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "tr_local.h"
 #include "../renderercommon/tr_rtcw_normal_fade.h"
+#include "../renderercommon/tr_stvef_alpha.h"
 
 /*
 
@@ -1163,6 +1164,40 @@ static uint32_t VK_ShadowCasterPipeline( uint32_t pipeline )
 }
 #endif
 
+/* Elite Force's forced entity alpha draws a single-texture stage with the
+ * per-vertex colors it computes and source-alpha blending, whatever the
+ * stage's own color source and state (renderercommon/tr_stvef_alpha.h). */
+static qboolean VK_STVEFForcedAlphaPipeline( uint32_t pipeline, uint32_t *forced )
+{
+	Vk_Pipeline_Def def;
+
+	vk_get_pipeline_def( pipeline, &def );
+	switch ( def.shader_type ) {
+	case TYPE_SIGNLE_TEXTURE:
+	case TYPE_SIGNLE_TEXTURE_IDENTITY:
+	case TYPE_SIGNLE_TEXTURE_FIXED_COLOR:
+	case TYPE_SIGNLE_TEXTURE_ENT_COLOR:
+	case TYPE_SIGNLE_TEXTURE_DF:
+		def.shader_type = TYPE_SIGNLE_TEXTURE;
+		break;
+	case TYPE_SIGNLE_TEXTURE_ENV:
+	case TYPE_SIGNLE_TEXTURE_IDENTITY_ENV:
+	case TYPE_SIGNLE_TEXTURE_FIXED_COLOR_ENV:
+	case TYPE_SIGNLE_TEXTURE_ENT_COLOR_ENV:
+		def.shader_type = TYPE_SIGNLE_TEXTURE_ENV;
+		break;
+	default:
+		return qfalse;
+	}
+	def.state_bits = STVEF_FORCED_ALPHA_STATE;
+	def.depth_fade = 0;
+	def.allow_discard = 0;
+	def.color.rgb = 0;
+	def.color.alpha = 0;
+	*forced = vk_find_pipeline_ext( 0, &def, qfalse );
+	return qtrue;
+}
+
 static void RB_IterateStagesGeneric( const shaderCommands_t *input, qboolean fogCollapse )
 #else
 static void RB_IterateStagesGeneric( const shaderCommands_t *input )
@@ -1176,6 +1211,9 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 	uint32_t pipeline;
 	int fog_stage;
 	qboolean pushUniform;
+	int forcedAlpha;
+	uint32_t forcedPipeline;
+	qboolean forced;
 
 	vk_bind_index();
 
@@ -1212,7 +1250,15 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 #endif
 
 #ifdef USE_VULKAN
+		// Elite Force: the batch's entity alpha replaces the stage's own.
+		forcedAlpha = RB_STVEFStageAlpha( pStage );
+		forcedPipeline = 0;
+		forced = forcedAlpha && VK_STVEFForcedAlphaPipeline( backEnd.viewParms.portalView == PV_MIRROR
+			? pStage->vk_mirror_pipeline[fog_stage] : pStage->vk_pipeline[fog_stage], &forcedPipeline );
 		tess_flags |= pStage->tessFlags;
+		if ( forced ) {
+			tess_flags |= TESS_RGBA0;
+		}
 
 		for ( i = 0;  i < pStage->numTexBundles; i++ ) {
 			if ( pStage->bundle[i].image[0] != NULL ) {
@@ -1232,6 +1278,10 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 					pushUniform = qtrue;
 				}
 			}
+		}
+
+		if ( forced ) {
+			RB_STVEFSetVertexAlpha( tess.svars.colors[0], tess.numVertexes, forcedAlpha );
 		}
 
 		VK_SetTextureFactors( &uniform, pStage, 0 );
@@ -1266,12 +1316,15 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 #ifdef USE_PMLIGHT
 			pipeline = VK_ShadowCasterPipeline( pipeline );
 #endif
+		if ( forced ) {
+			pipeline = forcedPipeline;
+		}
 
 		vk_bind_pipeline( pipeline );
 		vk_bind_geometry( tess_flags );
 		vk_draw_geometry( tess.depthRange, qtrue );
 
-		if ( pStage->depthFragment ) {
+		if ( pStage->depthFragment && !forced ) {
 			if ( backEnd.viewParms.portalView == PV_MIRROR )
 				pipeline = pStage->vk_mirror_pipeline_df;
 			else

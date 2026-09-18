@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "tr_local.h"
 #include "../renderercommon/tr_rtcw_normal_fade.h"
+#include "../renderercommon/tr_stvef_alpha.h"
 #include "tr_glx_compat.h"
 
 #ifndef GL_COMBINE
@@ -1789,6 +1790,8 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 		{
 			qboolean glxStreamedDraw = qfalse;
 			qboolean depthFade = RB_DepthFadeActive( pStage );
+			// Elite Force: the batch's entity alpha replaces the stage's own.
+			const int forcedAlpha = RB_STVEFStageAlpha( pStage );
 
 #ifdef RENDERER_GLX
 			GLX_CompatRecordMaterialStage( pStage, GLX_STAGE_PATH_GENERIC, input->numVertexes, input->numIndexes );
@@ -1805,6 +1808,10 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 				qglTexCoordPointer( 2, GL_FLOAT, 0, input->svars.texcoordPtr[0] );
 				qglColorPointer( 4, GL_UNSIGNED_BYTE, 0, input->svars.colors[0].rgba );
 			}
+			if ( forcedAlpha ) {
+				RB_STVEFSetVertexAlpha( tess.svars.colors, tess.numVertexes, forcedAlpha );
+				depthFade = qfalse;
+			}
 
 			//
 			// set state
@@ -1818,13 +1825,13 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 				R_BindAnimatedImage( &pStage->bundle[0] );
 			}
 
-			GL_State( pStage->stateBits );
+			GL_State( forcedAlpha ? STVEF_FORCED_ALPHA_STATE : pStage->stateBits );
 
 			//
 			// draw
 			//
 #ifdef RENDERER_GLX
-			if ( !depthFade ) {
+			if ( !depthFade && !forcedAlpha ) {
 				glxStreamedDraw = GLX_TryStreamDrawStage( input, pStage, qfalse, 0 );
 			}
 #endif
@@ -1834,7 +1841,7 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 					RB_DrawDepthFadeStage( input );
 				else
 					R_DrawElements( input->numIndexes, input->indexes );
-				if ( pStage->depthFragment )
+				if ( pStage->depthFragment && !forcedAlpha )
 				{
 					GL_State( pStage->stateBits | GLS_DEPTHMASK_TRUE );
 					GL_ProgramEnable();

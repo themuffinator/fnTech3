@@ -95,6 +95,8 @@ static int vk_depth_fade_ready(void) { return 0; }
 static int vk_depth_fade_available(void) { return 0; }
 static void vk_copy_depth_fade(void) { assert(0); }
 static void RB_EndSurface(void) {}
+// Elite Force's forced entity alpha changes how a batch is drawn, not which.
+static void RB_EndSurfaceWithSTVEFAlpha(void) { RB_EndSurface(); }
 static void RB_BeginSurface(shader_t *shader, int fog) { (void)fog; tess.shader = shader; }
 static void RB_DrawWorldCelOutlineForScene(qboolean *drawn) { *drawn = qtrue; }
 static int vk_capture_liquid_scene(void) { assert(0); return 0; }
