@@ -1618,6 +1618,8 @@ void R_SetColorMappings( void ) {
 R_InitImages
 ===============
 */
+#include "../renderercommon/tr_wolfet_texture_id.h"
+
 void R_InitImages( void ) {
 
 	// initialize linear gamma table before setting color mappings for the first time

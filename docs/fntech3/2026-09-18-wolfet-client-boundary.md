@@ -52,25 +52,26 @@ one; each profile keeps its own table.
 
 ## Coverage
 
-Of the 147 imports ET's cgame declares, **142 are handled**, counting what the
+Of the 147 imports ET's cgame declares, **143 are handled**, counting what the
 [sound](2026-09-18-wolfet-audio.md), [light](2026-09-18-wolfet-light.md),
 [client services](2026-09-18-wolfet-client-services.md),
 [text and files](2026-09-18-wolfet-text-and-files.md) and
 [camera](2026-09-18-wolfet-camera.md) and
-[scene geometry](2026-09-18-wolfet-scene-geometry.md) records added after this one. The dispatcher
+[scene geometry](2026-09-18-wolfet-scene-geometry.md) and
+[texture identity](2026-09-18-wolfet-texture-id.md) records added after this one. The dispatcher
 routes ET's own records and renderer services first, then its key imports, then
 a table of imports whose meaning and argument shape are already this engine's.
 An import that reaches the end of that chain is refused by name and ordinal. No
 ET argument is dropped anywhere: an import this engine cannot answer exactly is
 not answered approximately.
 
-The 5 that remain open, and why:
+The 4 that remain open, and why:
 
 | Ordinals | Imports | Why |
 | --- | --- | --- |
 | 34, 35 | decal projection and clearing | No shared renderer service. |
 | 68 | the global fog | No shared renderer service. Per-map fog (67) is handled. |
-| 177, 178 | render to texture and texture identity | No shared renderer service. |
+| 177 | render to texture | A per-backend framebuffer copy that two of this engine's three renderers do not have; retail ET never calls it. |
 
 ## Verification
 

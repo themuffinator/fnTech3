@@ -74,9 +74,26 @@ class WolfETSceneGeometryTests(unittest.TestCase):
         text = DYNAMIC.read_text(encoding='utf-8')
         self.assertIn('ri.gameId != COM_GAME_WOLFET', text)
 
+    def test_the_texture_lookup_is_exact_and_et_only(self):
+        """ET compares the stored name without case folding; so must this."""
+        text = (ROOT/'code/renderercommon/tr_wolfet_texture_id.h').read_text(encoding='utf-8')
+        self.assertIn('!strcmp( name, tr.images[i]->imgName )', text)
+        self.assertNotIn('Q_stricmp', text)
+        self.assertIn('if ( !name || !name[0] ) {', text)
+        self.assertIn('ri.gameId != COM_GAME_WOLFET', text)
+        for renderer in RENDERERS:
+            init = (ROOT/('code/%s/tr_init.c' % renderer)).read_text(encoding='utf-8')
+            self.assertIn('re.GetWolfETTextureId = RE_GetWolfETTextureId;', init, renderer)
+
     def test_the_record_states_the_coverage(self):
         record = RECORD.read_text(encoding='utf-8')
         self.assertIn('142 of the 147', record)
+        lookup = (ROOT/'docs/fntech3/2026-09-18-wolfet-texture-id.md').read_text(encoding='utf-8')
+        self.assertIn('143 of the 147', lookup)
+        # The reason each refusal stands must stay written down.
+        for reason in ('Render to texture (177)', 'Decal projection and clearing (34, 35)',
+                       'Global fog (68)'):
+            self.assertIn(reason, lookup, reason)
 
 
 if __name__ == '__main__':

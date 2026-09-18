@@ -248,6 +248,9 @@ inline bool CL_WolfETRenderCall( vm_t *vm, fntech3::wolfet::module::Call call,
 		result = re.LoadWolfETDynamicShader( name, text );
 		return true;
 	}
+	case Call::CG_R_GETTEXTUREID:
+		result = re.GetWolfETTextureId( CL_WolfETRenderName( vm, args[1] ) );
+		return true;
 	case Call::CG_R_SETFOG:
 		for ( int i = 1; i <= 3; ++i )
 			if ( args[i] < INT_MIN || args[i] > INT_MAX )

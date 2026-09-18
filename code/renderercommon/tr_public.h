@@ -169,6 +169,8 @@ typedef struct {
 	void (*AddWolfET2DPolys)( const polyVert_t *verts, int numVerts, qhandle_t hShader );
 	// ET defines shaders at runtime instead of shipping them in a .shader file.
 	qboolean (*LoadWolfETDynamicShader)( const char *name, const char *text );
+	// ET asks for the index of an image it already loaded, or -1.
+	int (*GetWolfETTextureId)( const char *name );
 	void (*SaveWolfETViewParms)( void );
 	void (*RestoreWolfETViewParms)( void );
 	void (*SetRTCWFog)( int command, int first, int second, float r, float g, float b, float density );

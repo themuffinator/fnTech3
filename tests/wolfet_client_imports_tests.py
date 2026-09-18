@@ -16,7 +16,6 @@ RECORD = ROOT/'docs/fntech3/2026-09-18-wolfet-client-boundary.md'
 OPEN = {
     'CG_R_PROJECTDECAL': 34, 'CG_R_CLEARDECALS': 35,
     'CG_R_SETGLOBALFOG': 68, 'CG_R_RENDERTOTEXTURE': 177,
-    'CG_R_GETTEXTUREID': 178,
 }
 
 
@@ -59,7 +58,7 @@ class WolfETClientImportTests(unittest.TestCase):
         self.assertEqual(len(declared), 147)
         handled = _handled() & set(declared)
         self.assertEqual(sorted(set(declared) - handled), sorted(OPEN))
-        self.assertEqual(len(handled), 142)
+        self.assertEqual(len(handled), 143)
 
     def test_open_ordinals_match_the_declared_ones(self):
         declared = _imports()
@@ -91,8 +90,8 @@ class WolfETClientImportTests(unittest.TestCase):
         # the declared import ordinals inside it are claimed as open.
         self.assertEqual(sorted(listed & set(_imports().values())),
                          sorted(set(OPEN.values())))
-        self.assertIn('142 are handled', record)
-        self.assertIn('The 5 that remain open', record)
+        self.assertIn('143 are handled', record)
+        self.assertIn('The 4 that remain open', record)
 
     def test_et_keys_are_translated_rather_than_passed_through(self):
         """ET numbers the mouse wheel four below this engine; passing one
