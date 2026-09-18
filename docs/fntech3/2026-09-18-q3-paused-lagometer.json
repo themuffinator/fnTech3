@@ -1,0 +1,157 @@
+{
+  "date": "2026-09-18T07:42:50.175857+00:00",
+  "commit": "9bd471fc63c5867580b47995e3f90b4b25123284",
+  "worktreeDirty": true,
+  "scope": "Q3 paused-demo lagometer: retail quake3.exe versus fnTech3; no engine change.",
+  "script": {
+    "path": "scripts/probe_q3_paused_demo.py",
+    "sha256": "c84af374633f64c687ec40f02ca740165fbaca7336452750ee809bea34c432ca"
+  },
+  "demo": {
+    "name": "four",
+    "source": "baseq3/pak0.pk3 demos/four.dm_68 (read in place)"
+  },
+  "retailSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+  "clientSha256": "82880be0ac4a02498587e6f4a3f25c0ef594561030182fa5dbfd6787a9f238a8",
+  "installationUnchanged": true,
+  "results": {
+    "retail": {
+      "command": "+set fs_basepath C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\q3-paused-demo\\run-2\\retail-home +set fs_game  +set r_fullscreen 0 +set r_mode 3 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set logfile 2 +set com_maxfps 60 +set cg_lagometer 1 +set con_notifytime 0 +set nextdemo quit +set activeAction wait 30; set cl_freezeDemo 1; wait 5; screenshot; wait 90; screenshot; wait 3; set cl_freezeDemo 0; wait 60; screenshot; +demo four",
+      "exitCode": 0,
+      "forcedTermination": false,
+      "elapsedSeconds": 64.985,
+      "screenshots": [
+        {
+          "name": "retail-shot0000.tga",
+          "sha256": "8d11622c921a180d70d6127049f09f41a5a8f76fa4ab1905fdaa03fa39d27131"
+        },
+        {
+          "name": "retail-shot0001.tga",
+          "sha256": "88d6491be8a4796fa2731484b2040845db632d367ae59bca6bb70a76aad993fd"
+        },
+        {
+          "name": "retail-shot0002.tga",
+          "sha256": "2ae929ae80a5a90a0250a76d1fe38920140092b3bf7289b7bed9c6f5c58aa9c0"
+        }
+      ],
+      "pausedDifference": {
+        "size": [
+          640,
+          480
+        ],
+        "changedPixels": 42,
+        "box": [
+          593,
+          448,
+          638,
+          451
+        ],
+        "boxFraction": [
+          0.9266,
+          0.9333,
+          0.9969,
+          0.9396
+        ]
+      },
+      "resumedDifference": {
+        "size": [
+          640,
+          480
+        ],
+        "changedPixels": 305074,
+        "box": [
+          0,
+          0,
+          640,
+          480
+        ],
+        "boxFraction": [
+          0.0,
+          0.0,
+          1.0,
+          1.0
+        ]
+      }
+    },
+    "fntech3": {
+      "command": "+set com_gameProfile q3 +set fs_basepath C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\q3-paused-demo\\run-2\\fntech3-home +set fs_game  +set r_fullscreen 0 +set r_mode 3 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set logfile 2 +set com_maxfps 60 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set cg_lagometer 1 +set con_notifytime 0 +set cl_quitOnDemoCompleted 1 +set activeAction wait 30; set cl_freezeDemo 1; wait 5; screenshotPNG paused-a; wait 90; screenshotPNG paused-b; wait 3; set cl_freezeDemo 0; wait 60; screenshotPNG paused-c; +demo four",
+      "exitCode": 0,
+      "forcedTermination": false,
+      "elapsedSeconds": 66.344,
+      "screenshots": [
+        {
+          "name": "fntech3-paused-a.png",
+          "sha256": "3e8c01cfab3fbd2cca622d833320e103db267b2b2296288273982f91c52125f5"
+        },
+        {
+          "name": "fntech3-paused-b.png",
+          "sha256": "71a40b1d1a800d104b96eaf19f6469e861b8a46c9a25ded6b8f07908871bef6a"
+        },
+        {
+          "name": "fntech3-paused-c.png",
+          "sha256": "b462374e55568f0fdb5bbed28a757cb9304199ec9b3a0e52dbcb8210b5b99fa6"
+        }
+      ],
+      "pausedDifference": {
+        "size": [
+          1280,
+          960
+        ],
+        "changedPixels": 284,
+        "box": [
+          1185,
+          896,
+          1274,
+          901
+        ],
+        "boxFraction": [
+          0.9258,
+          0.9333,
+          0.9953,
+          0.9385
+        ]
+      },
+      "resumedDifference": {
+        "size": [
+          1280,
+          960
+        ],
+        "changedPixels": 1219573,
+        "box": [
+          0,
+          0,
+          1280,
+          960
+        ],
+        "boxFraction": [
+          0.0,
+          0.0,
+          1.0,
+          1.0
+        ]
+      }
+    }
+  },
+  "firstRun": {
+    "note": "Without con_notifytime 0 retail also differed by its own screenshot notice; the fnTech3 run reused one file name.",
+    "retailPausedDifference": {
+      "size": [
+        640,
+        480
+      ],
+      "changedPixels": 1425,
+      "box": [
+        9,
+        16,
+        638,
+        451
+      ],
+      "boxFraction": [
+        0.0141,
+        0.0333,
+        0.9969,
+        0.9396
+      ]
+    }
+  }
+}
