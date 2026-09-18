@@ -31,6 +31,7 @@ extern "C" {
 #include "../compat/game_abi_adapter.h"
 #include "../compat/rtcw_module_abi.h"
 #include "../compat/rtcw_client_adapter.hpp"
+#include "../compat/rtcw_server_cache.hpp"
 #include "../compat/wolfet_module_abi.h"
 #include "../compat/wolfet_client_adapter.hpp"
 #include "../compat/wolfet_key_adapter.h"
@@ -52,9 +53,11 @@ extern "C" {
 #include <windows.h>
 #endif
 
+using fnql::FileRead;
 using fnql::FileReadObject;
 using fnql::FileWriteObject;
 using fnql::OpenHomeFileRead;
+using fnql::OpenSvFileRead;
 using fnql::ScopedFileHandle;
 using fnql::ScopedZoneMemory;
 
@@ -168,6 +171,8 @@ static bool LAN_CacheRecordValid( const serverInfo_t &server ) {
 		&& std::memchr( server.game, 0, sizeof( server.game ) );
 }
 
+static void LAN_ImportWolfMPFavorites( void );
+
 static void LAN_LoadCachedServers( void ) {
 	const char *filename = Com_GameManagerServerCacheFile( Com_GameProfile() );
 	if ( !filename ) return;
@@ -177,7 +182,13 @@ static void LAN_LoadCachedServers( void ) {
 	// Preserve the existing Q3/QL disk layout, but never publish partial reads.
 	constexpr int payloadBytes = sizeof( cls.globalServers ) + sizeof( cls.favoriteServers );
 	ScopedFileHandle file;
-	if ( OpenHomeFileRead( filename, file ) != 3 * sizeof( int ) + payloadBytes || !file ) return;
+	const int length = OpenHomeFileRead( filename, file );
+	if ( !file ) {
+		// The first MP start without its own cache takes WolfMP's favorites once.
+		if ( length < 0 && Com_GameIsRTCWMP() ) LAN_ImportWolfMPFavorites();
+		return;
+	}
+	if ( length != 3 * sizeof( int ) + payloadBytes ) return;
 	int header[3];
 	if ( FileReadObject( file.get(), header ) != sizeof( header )
 		|| header[0] < 0 || header[0] > MAX_GLOBAL_SERVERS
@@ -270,6 +281,35 @@ static int LAN_AddServer(int source, const char *name, const char *address) {
 		return 0;
 	}
 	return -1;
+}
+
+
+/*
+====================
+LAN_ImportWolfMPFavorites
+
+Original WolfMP keeps its browser cache in <fs_homepath>/servercache.dat, in a
+layout of its own. fnTech3's MP cache has its own name and records, so the first
+MP start without it adds WolfMP's IPv4 favorites. The WolfMP file is only read.
+====================
+*/
+static void LAN_ImportWolfMPFavorites( void ) {
+	namespace wolfmp = fntech3::rtcw::server_cache;
+	ScopedFileHandle file;
+	if ( OpenSvFileRead( wolfmp::LegacyFileName, file ) != static_cast<int>( wolfmp::FileBytes ) || !file ) return;
+	auto data = std::make_unique<unsigned char[]>( wolfmp::FileBytes );
+	if ( FileRead( file.get(), data.get(), wolfmp::FileBytes ) != static_cast<int>( wolfmp::FileBytes ) ) return;
+	std::array<wolfmp::Favorite, wolfmp::OtherRecords> favorites;
+	const int count = wolfmp::ReadFavorites( data.get(), wolfmp::FileBytes, favorites.data() );
+	int imported = 0;
+	for ( int i = 0; i < count; ++i ) {
+		const auto &favorite = favorites[i];
+		char address[32];
+		Com_sprintf( address, sizeof( address ), "%i.%i.%i.%i:%i", favorite.ip[0], favorite.ip[1],
+			favorite.ip[2], favorite.ip[3], favorite.port );
+		if ( LAN_AddServer( AS_FAVORITES, favorite.hostName, address ) == 1 ) ++imported;
+	}
+	if ( imported ) Com_Printf( "Imported %d favorite servers from WolfMP's %s\n", imported, wolfmp::LegacyFileName );
 }
 
 

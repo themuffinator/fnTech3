@@ -20,24 +20,47 @@ PRELUDE = r'''
 #include "code/qcommon/qcommon.h"
 #include "code/qcommon/game_manager.h"
 #include "code/client/client_cpp.h"
+#include "code/compat/rtcw_server_cache.hpp"
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <climits>
+#include <cstdarg>
+#include <cstdio>
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
+using fnql::FileRead;
 using fnql::FileReadObject;
 using fnql::FileWriteObject;
 using fnql::OpenHomeFileRead;
+using fnql::OpenSvFileRead;
 using fnql::ScopedFileHandle;
-static std::map<std::string, std::vector<byte>> files;
+static std::map<std::string, std::vector<byte>> files, legacy; // game directory, home root
+static std::vector<std::pair<std::string, std::string>> added;
+static int addResult = 1;
 static std::vector<byte> *current;
 static size_t position;
 static int opens, closes, reads, writes, warnings, badRead, badWrite, lengthDelta;
 static bool throwRead, throwWrite, missingHandle;
 static const comGameProfile_t *cacheProfile;
 #define Com_GameProfile() cacheProfile
+#define Com_GameIsRTCWMP() (cacheProfile->id == COM_GAME_RTCW_MP)
+int QDECL Com_sprintf(char *dest, int size, const char *format, ...) {
+    va_list args; va_start(args, format); const int length = std::vsnprintf(dest, size, format, args); va_end(args);
+    return length;
+}
+static int LAN_AddServer(int source, const char *name, const char *address) {
+    assert(source == AS_FAVORITES); added.emplace_back(name, address); return addResult;
+}
+int FS_SV_FOpenFileRead(const char *name, fileHandle_t *handle) {
+    assert(!current); ++opens; *handle = FS_INVALID_HANDLE;
+    const auto found = legacy.find(name);
+    if (found == legacy.end()) return -1;
+    current = &found->second; position = 0; *handle = 1;
+    return int(found->second.size());
+}
 void QDECL Com_Printf(const char *, ...) { ++warnings; }
 int FS_Home_FOpenFileRead(const char *name, fileHandle_t *handle) {
     assert(!current); ++opens; *handle = FS_INVALID_HANDLE;
@@ -169,8 +192,72 @@ int main() {
         assert(cls.numglobalservers == MAX_GLOBAL_SERVERS && cls.numfavoriteservers == MAX_OTHER_SERVERS);
         Populate(); ResetIO(); std::memset(cls.favoriteServers[0].game, 'x', MAX_NAME_LENGTH);
         LAN_SaveServersToCache(); assert(!opens);
+        // Only MP, and only without its own cache, looks for WolfMP's; none exists here.
         Populate(); ResetIO(); files.erase(name); LAN_LoadCachedServers();
-        assert(opens == 1 && !closes && !reads && !cls.numglobalservers && !cls.numfavoriteservers);
+        assert(opens == (id == COM_GAME_RTCW_MP ? 2 : 1) && !closes && !reads);
+        assert(!cls.numglobalservers && !cls.numfavoriteservers && added.empty());
+    }
+    Favorites();
+}
+'''
+
+IMPORT = r'''
+static std::vector<byte> WolfMP(int favorites) {
+    namespace wolfmp = fntech3::rtcw::server_cache;
+    std::vector<byte> file(wolfmp::FileBytes);
+    SetInt(file, 0, 5); SetInt(file, 4, 2); SetInt(file, 8, favorites); SetInt(file, 12, int(wolfmp::ArrayBytes));
+    return file;
+}
+static void Favorite(std::vector<byte> &file, int index, int type, std::array<int, 4> ip, int port, const std::string &host) {
+    namespace wolfmp = fntech3::rtcw::server_cache;
+    const size_t record = wolfmp::FavoritesOffset + size_t(index) * wolfmp::RecordBytes;
+    SetInt(file, record, type);
+    for (int i = 0; i < 4; ++i) file[record + 4 + i] = byte(ip[i]);
+    file[record + 18] = byte(port >> 8); file[record + 19] = byte(port);
+    std::memcpy(file.data() + record + 20, host.data(), std::min<size_t>(host.size(), 32));
+}
+static void Favorites() {
+    cacheProfile = Com_GameProfileById(COM_GAME_RTCW_MP);
+    const std::string own = cacheProfile->serverCacheFile;
+    auto wolfmp = WolfMP(4);
+    Favorite(wolfmp, 0, 4, {192,168,1,20}, 27960, "Alpha");
+    Favorite(wolfmp, 1, 5, {10,0,0,9}, 27960, "Retired IPX");
+    Favorite(wolfmp, 2, 4, {10,0,0,5}, 27961, std::string(40, 'B'));
+    Favorite(wolfmp, 3, 4, {127,0,0,1}, 65535, "Gamma");
+    Favorite(wolfmp, 4, 4, {10,0,0,6}, 27960, "Past the count");
+    legacy["servercache.dat"] = wolfmp;
+    files.erase(own); added.clear(); Populate(); ResetIO(); LAN_LoadCachedServers();
+    const std::vector<std::pair<std::string, std::string>> expected = {
+        {"Alpha", "192.168.1.20:27960"}, {std::string(31, 'B'), "10.0.0.5:27961"}, {"Gamma", "127.0.0.1:65535"}};
+    assert(added == expected && opens == 2 && closes == 1 && reads == 1 && warnings == 1);
+    // Nothing new to add prints nothing.
+    addResult = 0; added.clear(); ResetIO(); LAN_LoadCachedServers();
+    assert(added.size() == 3 && !warnings); addResult = 1;
+    // An existing fnTech3 cache, valid or not, is never merged with WolfMP's.
+    Populate(); LAN_SaveServersToCache();
+    for (bool damaged : {false, true}) {
+        if (damaged) files[own].pop_back();
+        added.clear(); ResetIO(); LAN_LoadCachedServers(); assert(added.empty() && opens == 1);
+    }
+    files.erase(own);
+    // Not a complete WolfMP cache: iortcw's three-count layout among them.
+    for (int variant = 0; variant < 6; ++variant) {
+        auto bad = wolfmp;
+        if (variant == 0) bad.pop_back();
+        if (variant == 1) bad.push_back(0);
+        if (variant == 2) SetInt(bad, 12, int(fntech3::rtcw::server_cache::ArrayBytes) - 204);
+        if (variant == 3) SetInt(bad, 8, -1);
+        if (variant == 4) SetInt(bad, 8, 129);
+        if (variant == 5) bad.resize(12 + (4096 + 128) * 244);
+        legacy["servercache.dat"] = bad; added.clear(); ResetIO(); LAN_LoadCachedServers();
+        assert(added.empty() && opens == 2 && !warnings);
+    }
+    // Q3, QL and SP never import it.
+    legacy["servercache.dat"] = wolfmp;
+    for (auto id : {COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, COM_GAME_RTCW_SP}) {
+        cacheProfile = Com_GameProfileById(id);
+        if (cacheProfile->serverCacheFile) files.erase(cacheProfile->serverCacheFile);
+        added.clear(); ResetIO(); LAN_LoadCachedServers(); assert(added.empty() && opens <= 1);
     }
 }
 '''
@@ -191,11 +278,13 @@ static struct {
     int numglobalservers, numfavoriteservers, numGlobalServerAddresses;
 } cls;
 '''
-        for signature in ['static bool LAN_CacheRecordValid(', 'static void LAN_LoadCachedServers(', 'static void LAN_SaveServersToCache(']:
+        for signature in ['static void LAN_ImportWolfMPFavorites( void ) {', 'static bool LAN_CacheRecordValid(',
+                          'static void LAN_LoadCachedServers( void ) {', 'static void LAN_SaveServersToCache(']:
             body += function(source, signature) + '\n'
+        checks = CHECKS.replace('int main() {', IMPORT + 'int main() {')
         (ROOT / '.tmp').mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='server-cache-', dir=ROOT / '.tmp') as temporary:
-            fixture = Path(temporary) / 'cache.cpp'; fixture.write_text(body + CHECKS)
+            fixture = Path(temporary) / 'cache.cpp'; fixture.write_text(body + checks)
             executable = Path(temporary) / ('cache.exe' if os.name == 'nt' else 'cache')
             flags = compiler_target_args(compiler)
             if os.name == 'nt' and not flags:

@@ -1,0 +1,128 @@
+{
+ "date": "2026-09-18T08:59:50.545587+00:00",
+ "commit": "1c7c2c66bd415e4460b680772e03cb0035f9283a",
+ "worktreeDirty": true,
+ "build": {
+  "tree": "detached worktree at the commit above plus this change only (cl_ui.cpp, rtcw_server_cache.hpp, server_cache_tests.py)",
+  "configuration": "Windows x86, RelWithDebInfo, client and GLx renderer, RTCW and WolfET development gates on",
+  "clientSha256": "d6d2896c7ffc9a1e4dd2f148511143e3aa5d8f7dc415285c257851fc02253f48",
+  "worktreeStatus": [
+   "M code/client/cl_ui.cpp",
+   " M tests/server_cache_tests.py",
+   "?? code/compat/rtcw_server_cache.hpp",
+   "?? scripts/probe_rtcw_favorites_import.py"
+  ]
+ },
+ "scope": "One-way import of retail WolfMP favorites into the rtcw-mp profile when it has no server cache of its own.",
+ "sourceFiles": [
+  {
+   "path": "code/compat/rtcw_server_cache.hpp",
+   "sha256": "bcc2f22702c7b29f940a97b3240282c4d61dc0f3b3064d663274c0f5567cdbda"
+  },
+  {
+   "path": "code/client/cl_ui.cpp",
+   "sha256": "3e40b532d394588415fbfa71eb85c61ce33e1b748742a15c32b5d77153fa216b"
+  },
+  {
+   "path": "tests/server_cache_tests.py",
+   "sha256": "d813f1f735976f14517dc6f4c1bcbe3fc295bfd1997a21a8ea6ebbf3fdde743a"
+  },
+  {
+   "path": "scripts/probe_rtcw_favorites_import.py",
+   "sha256": "6bbb9e9ba91e61b14630bb20b9e2037ad96564e11552be62af258b228dde515a"
+  }
+ ],
+ "retailWolfMPSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+ "command": "python scripts/probe_rtcw_favorites_import.py --client <worktree fntech3.exe> --installation <Return to Castle Wolfenstein> --reference <RTCW-MP src> --output .tmp/rtcw-favorites",
+ "layout": {
+  "measured": {
+   "recordBytes": 204,
+   "addressOffset": 0,
+   "ipOffset": 4,
+   "portOffset": 18,
+   "hostNameOffset": 20,
+   "NA_IP": 4
+  },
+  "expected": {
+   "recordBytes": 204,
+   "addressOffset": 0,
+   "ipOffset": 4,
+   "portOffset": 18,
+   "hostNameOffset": 20,
+   "NA_IP": 4
+  },
+  "matches": true,
+  "references": {
+   "qcommon/qcommon.h": "84e3eb7b02968326a3e42776b63a52019035471c589be92c9fcc7fd3a35bccb1",
+   "client/client.h": "26b74fe5745d03754038f2c0aafcbfee57bed646a6c3c9648fb766ea1c231246"
+  }
+ },
+ "retailRoundTrip": {
+  "exitCode": 0,
+  "forcedTermination": false,
+  "elapsedSeconds": 3.2,
+  "writtenSha256": "430495863eee2f4aec681996c9bf460f55652e153618411b3477838b5269984d",
+  "rewrittenSha256": "430495863eee2f4aec681996c9bf460f55652e153618411b3477838b5269984d",
+  "rewrittenByRetail": true,
+  "identical": true,
+  "counts": [
+   0,
+   0,
+   3,
+   470016
+  ]
+ },
+ "retailControl": {
+  "exitCode": 0,
+  "forcedTermination": false,
+  "elapsedSeconds": 3.9,
+  "counts": [
+   0,
+   0,
+   0,
+   470016
+  ]
+ },
+ "fntech3Starts": [
+  {
+   "exitCode": 0,
+   "forcedTermination": false,
+   "elapsedSeconds": 6.8,
+   "command": "+set com_gameProfile rtcw-mp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-favorites\\fntech3-home +set fs_game  +set r_fullscreen 0 +set r_mode 3 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_port 0 +set com_introplayed 1 +exec probe.cfg",
+   "importLines": [
+    "Imported 2 favorite servers from WolfMP's servercache.dat"
+   ],
+   "ownCacheSha256": "c3df9a930b47afd98bccb809eb10a224948b6180e8d75d954392b0db6f5cec1e",
+   "favoriteCount": 2,
+   "hostsInOwnCache": [
+    "fnTech3 import A",
+    "fnTech3 import B"
+   ]
+  },
+  {
+   "exitCode": 0,
+   "forcedTermination": false,
+   "elapsedSeconds": 6.9,
+   "command": "+set com_gameProfile rtcw-mp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-favorites\\fntech3-home +set fs_game  +set r_fullscreen 0 +set r_mode 3 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_port 0 +set com_introplayed 1 +exec probe.cfg",
+   "importLines": [],
+   "ownCacheSha256": "c3df9a930b47afd98bccb809eb10a224948b6180e8d75d954392b0db6f5cec1e",
+   "favoriteCount": 2,
+   "hostsInOwnCache": [
+    "fnTech3 import A",
+    "fnTech3 import B"
+   ]
+  }
+ ],
+ "wolfmpFileUnchanged": true,
+ "failures": [],
+ "passed": true,
+ "tests": {
+  "file": "tests/server_cache_tests.py",
+  "targets": [
+   "Windows x64 (clang++)",
+   "Windows x86 (clang++ i686)"
+  ],
+  "result": "pass"
+ },
+ "environment": "Windowed private desktops, sound and mouse/joystick input disabled, commands from startup configs; no operating-system capture. The synthetic WolfMP cache holds generated server names only."
+}
