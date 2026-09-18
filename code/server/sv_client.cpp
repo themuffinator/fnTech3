@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "server.h"
 #include "server_wolfet_client.hpp"
+#include "../compat/wolfet_module_abi.h"
 #include "../qcommon/protocol_contract.hpp"
 #include "../qcommon/netchan_safety.hpp"
 #include "../platform/fnql_steam.h"
@@ -3757,6 +3758,37 @@ SV_ExecuteClientMessage
 Parse a client packet
 ===================
 */
+/*
+===================
+SV_WolfETParseBinaryMessage
+
+ET's client may append an opaque payload after the end of its packet, which
+belongs to the game module rather than to the server. It is handed over
+unexamined, with the command time the client's last movement carried.
+===================
+*/
+static void SV_WolfETParseBinaryMessage( client_t *cl, msg_t *msg ) {
+	if ( !Com_GameIsWolfET() || !gvm || !cl ) {
+		return;
+	}
+
+	MSG_Uncompressed( msg );
+
+	const int size = msg->cursize - msg->readcount;
+	if ( size <= 0 || size > fntech3::wolfet::server::MaxBinaryMessage ) {
+		return;
+	}
+	/* The payload is a raw pointer into the packet. Only a native module can be
+	 * handed one; a bytecode module would need it copied into its own memory,
+	 * which this engine does not do for ET. */
+	if ( !gvm->dllExports ) {
+		return;
+	}
+	VM_Call( gvm, 4, FNTECH3_WOLFET_GAME_MESSAGERECEIVED, SV_ClientIndex( cl ),
+		reinterpret_cast<intptr_t>( &msg->data[msg->readcount] ), size,
+		cl->lastUsercmd.serverTime );
+}
+
 void SV_ExecuteClientMessage( client_t *cl, msg_t *msg ) {
 	int	c;
 	int	serverId;
@@ -3879,6 +3911,8 @@ void SV_ExecuteClientMessage( client_t *cl, msg_t *msg ) {
 	} else if ( c != clc_EOF ) {
 		Com_Printf( "WARNING: bad command byte %i for client %i\n", c, SV_ClientIndex( cl ) );
 	}
+
+	SV_WolfETParseBinaryMessage( cl, msg );
 //	if ( msg->readcount != msg->cursize ) {
 //		Com_Printf( "WARNING: Junk at end of packet for client %i\n", SV_ClientIndex( cl ) );
 //	}

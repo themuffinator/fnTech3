@@ -16,14 +16,11 @@ OPEN = {
     'CG_FS_DELETEFILE': 16,
     'CG_R_PROJECTDECAL': 34, 'CG_R_CLEARDECALS': 35,
     'CG_R_ADDPOLYBUFFERTOSCENE': 64,
-    'CG_R_SETGLOBALFOG': 68, 'CG_R_SAVEVIEWPARMS': 70, 'CG_R_RESTOREVIEWPARMS': 71,
+    'CG_R_SETGLOBALFOG': 68,
     'CG_LOADCAMERA': 113, 'CG_STARTCAMERA': 114, 'CG_STOPCAMERA': 115,
-    'CG_GETCAMERAINFO': 116,
-    'CG_INGAME_POPUP': 162, 'CG_INGAME_CLOSEPOPUP': 163,
-    'CG_R_DRAW2DPOLYS': 165, 'CG_TRANSLATE_STRING': 170,
-    'CG_SENDMESSAGE': 174, 'CG_MESSAGESTATUS': 175,
+    'CG_GETCAMERAINFO': 116, 'CG_TRANSLATE_STRING': 170,
     'CG_R_LOADDYNAMICSHADER': 176, 'CG_R_RENDERTOTEXTURE': 177,
-    'CG_R_GETTEXTUREID': 178, 'CG_R_FINISH': 179,
+    'CG_R_GETTEXTUREID': 178,
 }
 
 
@@ -65,7 +62,7 @@ class WolfETClientImportTests(unittest.TestCase):
         self.assertEqual(len(declared), 147)
         handled = _handled() & set(declared)
         self.assertEqual(sorted(set(declared) - handled), sorted(OPEN))
-        self.assertEqual(len(handled), 126)
+        self.assertEqual(len(handled), 134)
 
     def test_open_ordinals_match_the_declared_ones(self):
         declared = _imports()
@@ -97,8 +94,8 @@ class WolfETClientImportTests(unittest.TestCase):
         # the declared import ordinals inside it are claimed as open.
         self.assertEqual(sorted(listed & set(_imports().values())),
                          sorted(set(OPEN.values())))
-        self.assertIn('126 are handled', record)
-        self.assertIn('The 21 that remain open', record)
+        self.assertIn('134 are handled', record)
+        self.assertIn('The 13 that remain open', record)
 
     def test_et_keys_are_translated_rather_than_passed_through(self):
         """ET numbers the mouse wheel four below this engine; passing one

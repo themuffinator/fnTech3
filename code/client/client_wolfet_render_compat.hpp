@@ -163,6 +163,40 @@ inline bool CL_WolfETRenderCall( vm_t *vm, fntech3::wolfet::module::Call call,
 			static_cast<qhandle_t>( args[7] ), static_cast<int>( args[8] ) );
 		break;
 	}
+	case Call::CG_R_DRAW2DPOLYS:
+	case Call::UI_R_DRAW2DPOLYS: {
+		// ET submits a screen-space fan: points, count, shader.
+		if ( args[2] < 0 || args[2] > INT_MAX ) Com_Error( ERR_DROP, "Invalid ET 2D polygon count" );
+		const auto count = static_cast<std::size_t>( args[2] );
+		if ( !count ) break;
+		if ( count > INT_MAX / sizeof( fntech3_wolfet_polyVert_t ) )
+			Com_Error( ERR_DROP, "ET 2D polygon batch is too large" );
+		const auto *source = static_cast<const unsigned char *>(
+			CL_RTCWRenderSpan( vm, args[1], count * sizeof( fntech3_wolfet_polyVert_t ) ) );
+		polyVert_t local[256];
+		std::unique_ptr<polyVert_t, decltype( &Hunk_FreeTempMemory )> staging( nullptr, Hunk_FreeTempMemory );
+		polyVert_t *vertices = local;
+		if ( count > std::size( local ) ) {
+			staging.reset( static_cast<polyVert_t *>( Hunk_AllocateTempMemory(
+				static_cast<int>( count * sizeof( polyVert_t ) ) ) ) );
+			vertices = staging.get();
+		}
+		for ( std::size_t i = 0; i < count; ++i )
+			fntech3::render::ReadWolfETPolyVert( source + i * sizeof( fntech3_wolfet_polyVert_t ), vertices[i] );
+		re.AddWolfET2DPolys( vertices, static_cast<int>( count ), args[3] );
+		break;
+	}
+	case Call::CG_R_SAVEVIEWPARMS:
+		re.SaveWolfETViewParms();
+		break;
+	case Call::CG_R_RESTOREVIEWPARMS:
+		re.RestoreWolfETViewParms();
+		break;
+	case Call::CG_R_FINISH:
+		// ET queues a pipeline finish for the frame it is drawing; the engine's
+		// own render synchronisation is the same wait.
+		re.SyncRender();
+		break;
 	case Call::CG_R_SETFOG:
 		for ( int i = 1; i <= 3; ++i )
 			if ( args[i] < INT_MIN || args[i] > INT_MAX )

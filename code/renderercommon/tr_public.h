@@ -165,6 +165,10 @@ typedef struct {
 	// ET names a radius and a brightness separately, and carries a shader and flags.
 	void (*AddWolfETLightToScene)( const vec3_t origin, float radius, float intensity,
 		float r, float g, float b, qhandle_t hShader, int flags );
+	// ET's screen-space triangle fan, and the one saved view its portal sky needs.
+	void (*AddWolfET2DPolys)( const polyVert_t *verts, int numVerts, qhandle_t hShader );
+	void (*SaveWolfETViewParms)( void );
+	void (*RestoreWolfETViewParms)( void );
 	void (*SetRTCWFog)( int command, int first, int second, float r, float g, float b, float density );
 
 

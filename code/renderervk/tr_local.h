@@ -2750,6 +2750,9 @@ void RE_AddPolyToScene( qhandle_t hShader , int numVerts, const polyVert_t *vert
 void RE_AddRTCWLightToScene( const vec3_t origin, float intensity, float r, float g, float b, int flags );
 void RE_AddWolfETLightToScene( const vec3_t origin, float radius, float intensity,
 	float r, float g, float b, qhandle_t hShader, int flags );
+void RE_AddWolfET2DPolys( const polyVert_t *verts, int numVerts, qhandle_t hShader );
+void RE_SaveWolfETViewParms( void );
+void RE_RestoreWolfETViewParms( void );
 void RE_SetRTCWFog( int command, int first, int second, float r, float g, float b, float density );
 shader_t *R_FindRTCWLightShader( const char *name );
 void RE_AddLightToScene( const vec3_t org, float intensity, float r, float g, float b );
@@ -2903,6 +2906,15 @@ typedef struct {
 	refDrawQuad_t quad;
 } drawQuadCommand_t;
 
+// ET's screen-space triangle fan. The vertices live in the frame's polygon
+// pool, so the command only points at them.
+typedef struct {
+	int			commandId;
+	shader_t	*shader;
+	int			numVerts;
+	int			commandBytes;
+} wolfet2DPolyCommand_t;
+
 typedef struct drawSurfsCommand_s {
 	int		commandId;
 	trRefdef_t	refdef;
@@ -2953,7 +2965,8 @@ typedef enum {
 	RC_COLORMASK,
 	RC_CLEARDEPTH,
 	RC_CLEARCOLOR,
-	RC_DRAW_QUAD
+	RC_DRAW_QUAD,
+	RC_WOLFET_2D_POLYS
 } renderCommand_t;
 
 

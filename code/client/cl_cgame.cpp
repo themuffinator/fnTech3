@@ -38,6 +38,7 @@ extern "C" {
 #include "../compat/wolfet_client_adapter.hpp"
 #include "../compat/wolfet_state_adapter.hpp"
 #include "../compat/wolfet_key_adapter.h"
+#include "client_wolfet_state.hpp"
 #include "../qcommon/netchan_safety.hpp"
 #include "../qcommon/vm_rtcw_filesystem.hpp"
 #include "client_rtcw_camera.hpp"
@@ -2378,6 +2379,41 @@ static bool CL_WolfETCgameCall( intptr_t *args, intptr_t &operation, intptr_t &r
 		*expected = 0;
 		{ result = 0; return true; }
 	}
+	case Call::CG_SENDMESSAGE: {
+		// ET hands the engine an opaque payload to append after the end of its
+		// next outgoing packet. A length outside ET's own limit is refused
+		// rather than truncated, and a refused payload replaces nothing.
+		using namespace fntech3::wolfet::client;
+		if ( args[2] < 0 || args[2] > MaxBinaryMessage )
+			Com_Error( ERR_DROP, "Invalid ET binary message length %ld", static_cast<long>( args[2] ) );
+		const auto length = static_cast<std::size_t>( args[2] );
+		auto &message = Message();
+		if ( !length ) { message.length = 0; result = 0; return true; }
+		VM_CHECKBOUNDS( cgvm, args[1], length );
+		const void *source = VM_ExplicitArgPtr( cgvm, args[1] );
+		if ( !source ) Com_Error( ERR_DROP, "Invalid ET binary message" );
+		std::memcpy( message.data.data(), source, length );
+		message.length = static_cast<int>( length );
+		result = 0; return true;
+	}
+	case Call::CG_MESSAGESTATUS: {
+		using namespace fntech3::wolfet::client;
+		const auto &message = Message();
+		result = message.length == 0 ? MessageEmpty :
+			message.overflowed ? MessageWaitingOverflow : MessageWaiting;
+		return true;
+	}
+	case Call::CG_INGAME_POPUP:
+		// ET names a menu by its own ordinal, not by a string as the other
+		// Wolfenstein profile does, and its own client refuses to open one
+		// while disconnected or replaying a demo.
+		if ( cls.state == CA_ACTIVE && !clc.demoplaying && uivm ) {
+			VM_Call( uivm, 1, UI_SET_ACTIVE_MENU, args[1] );
+		}
+		result = 0; return true;
+	case Call::CG_INGAME_CLOSEPOPUP:
+		// Retail ET's own client performs no operation here.
+		result = 0; return true;
 	case Call::CG_PUMPEVENTLOOP:
 		// Retail ET's own client performs no operation here.
 		{ result = 0; return true; }

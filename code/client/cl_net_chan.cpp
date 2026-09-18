@@ -27,6 +27,7 @@ extern "C" {
 #include "client_cpp.h"
 #include "../qcommon/netchan_codec.hpp"
 #include "../qcommon/netchan_safety.hpp"
+#include "client_wolfet_state.hpp"
 
 using fnql::ReadUnaligned;
 
@@ -158,7 +159,36 @@ bool CL_Netchan_TransmitNextFragment( netchan_t *chan )
 CL_Netchan_Transmit
 ================
 */
+/*
+===============
+CL_WolfETWriteBinaryMessage
+
+ET appends its cgame's binary payload after the end of the outgoing packet. A
+payload that no longer fits is kept and reported as overflowed rather than
+truncated, so the module can decide what to do about it.
+===============
+*/
+static void CL_WolfETWriteBinaryMessage( msg_t *msg ) {
+	using namespace fntech3::wolfet::client;
+	if ( !Com_GameIsWolfET() ) return;
+	auto &message = Message();
+	if ( !message.length ) return;
+
+	MSG_Uncompressed( msg );
+
+	if ( ( msg->cursize + message.length ) >= msg->maxsize ) {
+		message.overflowed = true;
+		return;
+	}
+
+	MSG_WriteData( msg, message.data.data(), message.length );
+	message.length = 0;
+	message.overflowed = false;
+}
+
 extern "C" void CL_Netchan_Transmit( netchan_t *chan, msg_t *msg ) {
+
+	CL_WolfETWriteBinaryMessage( msg );
 
 	if ( Netchan_WireHasFeature( chan->wireProfile,
 		NETCHAN_FEATURE_RELIABLE_XOR ) )

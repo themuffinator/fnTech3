@@ -26,6 +26,8 @@ extern "C" {
 }
 
 #include "client_cpp.h"
+#include "client_wolfet_state.hpp"
+#include "../compat/wolfet_module_abi.h"
 #include "../qcommon/netchan_safety.hpp"
 
 #include <algorithm>
@@ -1361,6 +1363,30 @@ static void CL_ParseCommandString( msg_t *msg ) {
 CL_ParseServerMessage
 =====================
 */
+/*
+=====================
+CL_WolfETParseBinaryMessage
+
+ET's server may append an opaque payload after the end of its message, which
+belongs to the cgame rather than to the engine. It is handed over unexamined.
+=====================
+*/
+static void CL_WolfETParseBinaryMessage( msg_t *msg ) {
+	using namespace fntech3::wolfet::client;
+	if ( !Com_GameIsWolfET() || !cgvm ) return;
+
+	MSG_Uncompressed( msg );
+
+	const int size = msg->cursize - msg->readcount;
+	if ( size <= 0 || size > MaxBinaryMessage ) return;
+	// The payload is a raw pointer into the packet. Only a native module can be
+	// handed one; a bytecode module would need it copied into its own memory,
+	// which this engine does not do for ET.
+	if ( !cgvm->dllExports ) return;
+	VM_Call( cgvm, 3, FNTECH3_WOLFET_CG_MESSAGERECEIVED,
+		reinterpret_cast<intptr_t>( &msg->data[msg->readcount] ), size, cl.snap.serverTime );
+}
+
 void CL_ParseServerMessage( msg_t *msg ) {
 	int cmd;
 
@@ -1451,4 +1477,6 @@ void CL_ParseServerMessage( msg_t *msg ) {
 			CL_AlignLegacyDemoMessage( msg );
 		}
 	}
+
+	CL_WolfETParseBinaryMessage( msg );
 }

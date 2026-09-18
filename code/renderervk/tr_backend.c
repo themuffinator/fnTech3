@@ -1450,6 +1450,7 @@ static const void *RB_StretchPic( const void *data ) {
 }
 
 #include "../renderercommon/tr_draw_quad_backend.h"
+#include "../renderercommon/tr_wolfet_2d_poly_backend.h"
 
 
 #ifdef USE_PMLIGHT
@@ -4322,6 +4323,9 @@ void RB_ExecuteRenderCommands( const void *data ) {
 			break;
 		case RC_DRAW_QUAD:
 			data = RB_DrawQuad( data );
+			break;
+		case RC_WOLFET_2D_POLYS:
+			data = RB_DrawWolfET2DPolys( data );
 			break;
 		case RC_STRETCH_PIC:
 			data = RB_StretchPic( data );
