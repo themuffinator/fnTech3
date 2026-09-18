@@ -42,6 +42,7 @@ extern "C" {
 #include "../qcommon/netchan_safety.hpp"
 #include "../qcommon/vm_rtcw_filesystem.hpp"
 #include "client_rtcw_camera.hpp"
+#include "client_wolfet_camera.hpp"
 
 #include <algorithm>
 #include <array>
@@ -1881,6 +1882,7 @@ void CL_ShutdownCGame( void ) {
 	CL_ClearEnemyHighlightState();
 	CL_ClearLiquidInteractionState();
 	CL_ClearRTCWCameras();
+	CL_ClearWolfETCameras();
 	CL_HudResetCGame();
 
 	if ( !cgvm ) {
@@ -2272,6 +2274,7 @@ static bool CL_WolfETCgameCall( intptr_t *args, intptr_t &operation, intptr_t &r
 	const auto call = Lookup( Module::CGAME, Direction::IMPORT, args[0] );
 	if ( CL_WolfETRenderCall( cgvm, call, args, result ) ) return true;
 	if ( CL_WolfETAudioCall( cgvm, call, args, result ) ) return true;
+	if ( CL_WolfETCameraCall( cgvm, call, args, result ) ) return true;
 	bool handledKey = false;
 	const intptr_t keyResult = CL_WolfETKeyCall( cgvm, call, args, handledKey );
 	if ( handledKey ) { result = keyResult; return true; }

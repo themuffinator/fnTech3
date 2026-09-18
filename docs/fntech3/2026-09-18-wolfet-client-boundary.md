@@ -52,21 +52,21 @@ one; each profile keeps its own table.
 
 ## Coverage
 
-Of the 147 imports ET's cgame declares, **136 are handled**, counting what the
+Of the 147 imports ET's cgame declares, **140 are handled**, counting what the
 [sound](2026-09-18-wolfet-audio.md), [light](2026-09-18-wolfet-light.md),
-[client services](2026-09-18-wolfet-client-services.md) and
-[text and files](2026-09-18-wolfet-text-and-files.md) records added after this one. The dispatcher
+[client services](2026-09-18-wolfet-client-services.md),
+[text and files](2026-09-18-wolfet-text-and-files.md) and
+[camera](2026-09-18-wolfet-camera.md) records added after this one. The dispatcher
 routes ET's own records and renderer services first, then its key imports, then
 a table of imports whose meaning and argument shape are already this engine's.
 An import that reaches the end of that chain is refused by name and ordinal. No
 ET argument is dropped anywhere: an import this engine cannot answer exactly is
 not answered approximately.
 
-The 11 that remain open, and why:
+The 7 that remain open, and why:
 
 | Ordinals | Imports | Why |
 | --- | --- | --- |
-| 113–116 | the camera path surface | ET's camera paths need an ET-owned camera contract; the existing one is another profile's. |
 | 34, 35 | decal projection and clearing | No shared renderer service. |
 | 64 | the polygon buffer | No shared renderer service; the record is declared and checked but nothing consumes it. |
 | 68 | the global fog | No shared renderer service. Per-map fog (67) is handled. |
@@ -103,9 +103,10 @@ above, and checks that the refusal path still names the import.
   any of these imports. The evidence is source and unit only.
 - The renderer still has no MDM/MDX model type, so the model handles this
   boundary carries are transported, not drawn.
-- ET's camera, demo and reverse interoperability surfaces remain untouched. Its
-  UI imports are opened by the [UI record](2026-09-18-wolfet-ui-boundary.md) and
-  its sound surface by the [sound record](2026-09-18-wolfet-audio.md).
+- ET's demo and reverse interoperability surfaces remain untouched. Its UI
+  imports are opened by the [UI record](2026-09-18-wolfet-ui-boundary.md), its
+  sound surface by the [sound record](2026-09-18-wolfet-audio.md) and its camera
+  paths by the [camera record](2026-09-18-wolfet-camera.md).
 - Everything else in the [ET matrix](COMPATIBILITY.md#wolfet-gate-matrix)
   remains as recorded.
 

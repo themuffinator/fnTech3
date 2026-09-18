@@ -135,6 +135,7 @@ struct clientActive_t {
 	// are a separate contract from RTCW's and never share its storage.
 	struct { unsigned char flags, identClient; } cgameWolfETCommand;
 	vec3_t		cgameWolfETLerpOrigin;	// ET's interpolated viewpoint; cleared with the map state
+	qboolean	wolfetCameraMode;	// ET primary-camera input policy; reset with map state
 	rtcwLimboChat_t rtcwLimboChat;
 	qboolean	rtcwLimboMode;	// engine chat routing; cleared with connection/map state
 	qboolean	rtcwCameraMode;	// SP primary-camera input policy; reset with map state
