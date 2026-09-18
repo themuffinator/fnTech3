@@ -774,9 +774,11 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 
 	Cvar_Set( "sv_paks", "" );
 	// Q3 and QL clients ignore the loaded-pak names. Retail ET stores them next
-	// to the checksums and faults without them, so ET publishes both. Retail
-	// RTCW MP reads the same key; that profile keeps its current behaviour until
-	// a retail RTCW client run confirms the same requirement.
+	// to the checksums and then dereferences them for its official-pak check, so
+	// it faults without them and ET publishes both. Retail RTCW MP reads the same
+	// key but never reads the names back, and a retail MP client admits to a pure
+	// server without them, so that profile keeps the empty value; see
+	// docs/fntech3/2026-09-17-rtcw-mp-pure-names.md.
 	Cvar_Set( "sv_pakNames", "" );
 
 	if ( sv.pure != 0 ) {
