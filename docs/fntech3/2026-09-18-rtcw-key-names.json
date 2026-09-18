@@ -1,0 +1,256 @@
+{
+  "date": "2026-09-18T08:04:36.368557+00:00",
+  "commit": "0d2e6eba288c3e9f7587d0cc97e210098bdb9ffb",
+  "worktreeDirty": true,
+  "scope": "RTCW module key names in cl_language; live language change on the MP spectator hint.",
+  "sourceFiles": [
+    {
+      "path": "code/compat/rtcw_keynames.def",
+      "sha256": "00deedea0a842aa1ae2a2462549cfe703f39a5a53653558e06cf8bba62e2e9e8"
+    },
+    {
+      "path": "code/compat/rtcw_key_names.hpp",
+      "sha256": "f96da5b7b7472db6a4db85d3675e35364e7262a158e158c36e23291c0426fc12"
+    },
+    {
+      "path": "code/client/cl_keys.cpp",
+      "sha256": "d17e2061b7a7e65705c83ca9b420bbfca7cbf4f09ae4f5b9f1ede89457dd7b97"
+    },
+    {
+      "path": "code/client/cl_main.cpp",
+      "sha256": "fd42a2c02f9dcc937d680c74d65b30f043e943f7c6a015d8edcf14b7913d9421"
+    },
+    {
+      "path": "tests/rtcw_key_names_tests.py",
+      "sha256": "e0442638f762b971e7f3db991631afab2318922bf82343055f88980160a078ea"
+    },
+    {
+      "path": "scripts/probe_rtcw_key_names.py",
+      "sha256": "fae1047bf819be7e0c3018921ca4f2da60a11e654aef4673c739fc19dc007c87"
+    },
+    {
+      "path": "scripts/probe_rtcw_language_hint.py",
+      "sha256": "bb8bf3eec952b47e5357b738faa8424a086a582bc253c80690f66329e8755d9b"
+    }
+  ],
+  "referenceComparison": {
+    "x86": {
+      "implementation": {
+        "header": "code/compat/rtcw_key_names.hpp",
+        "table": "code/compat/rtcw_keynames.def",
+        "sha256": "00deedea0a842aa1ae2a2462549cfe703f39a5a53653558e06cf8bba62e2e9e8"
+      },
+      "spReference": {
+        "path": "E:\\_SOURCE\\_CODE\\RTCW-SP-master\\src\\client\\cl_keys.c",
+        "sha256": "4a61c0034e0b82e08ee4d68706eeeba3e5cd6710dbf5035b6db2e82e57e3a2ee"
+      },
+      "mpReference": {
+        "path": "E:\\_SOURCE\\_CODE\\RTCW-MP-master\\src\\client\\cl_keys.c",
+        "sha256": "e6ffd9c75553f86454cbdba316c03edebab37fe3b4bece9122932afe130b3d04"
+      },
+      "comparison": {
+        "compared": 5472,
+        "exitCode": 0,
+        "target": [
+          "--target=i686-pc-windows-msvc"
+        ]
+      },
+      "retail": {
+        "rows": 106,
+        "checked": 1060,
+        "missing": [],
+        "executables": {
+          "SP": "07d206f61da5c80562ff60d68c645bca349b31adb5d7e0e7f186d61ad46683c7",
+          "MP": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5"
+        }
+      },
+      "passed": true
+    },
+    "x64": {
+      "implementation": {
+        "header": "code/compat/rtcw_key_names.hpp",
+        "table": "code/compat/rtcw_keynames.def",
+        "sha256": "00deedea0a842aa1ae2a2462549cfe703f39a5a53653558e06cf8bba62e2e9e8"
+      },
+      "spReference": {
+        "path": "E:\\_SOURCE\\_CODE\\RTCW-SP-master\\src\\client\\cl_keys.c",
+        "sha256": "4a61c0034e0b82e08ee4d68706eeeba3e5cd6710dbf5035b6db2e82e57e3a2ee"
+      },
+      "mpReference": {
+        "path": "E:\\_SOURCE\\_CODE\\RTCW-MP-master\\src\\client\\cl_keys.c",
+        "sha256": "e6ffd9c75553f86454cbdba316c03edebab37fe3b4bece9122932afe130b3d04"
+      },
+      "comparison": {
+        "compared": 5472,
+        "exitCode": 0,
+        "target": [
+          "-DFNTECH3_Q3_ONLY"
+        ]
+      },
+      "retail": {
+        "rows": 106,
+        "checked": 1060,
+        "missing": [],
+        "executables": {
+          "SP": "07d206f61da5c80562ff60d68c645bca349b31adb5d7e0e7f186d61ad46683c7",
+          "MP": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5"
+        }
+      },
+      "passed": true
+    }
+  },
+  "retail": {
+    "wolfSP": "07d206f61da5c80562ff60d68c645bca349b31adb5d7e0e7f186d61ad46683c7",
+    "wolfMP": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5"
+  },
+  "hint": {
+    "frenchBefore": {
+      "language": 1,
+      "liveSwitch": false,
+      "clientSha256": "82880be0ac4a02498587e6f4a3f25c0ef594561030182fa5dbfd6787a9f238a8",
+      "serverSha256": "1824a65de8f5aa6daf72c7e1c855d04ab9502aa222c414c9758a0f088282563e",
+      "runs": {
+        "fntech3": {
+          "command": "+set com_gameProfile rtcw-mp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-language-hint\\before-fr\\fntech3-home +set fs_game  +set r_fullscreen 0 +set r_mode 3 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set com_introplayed 1 +set cl_language 1 +set name language-probe +set net_port 0 +set activeAction wait 300; CloseLimboMenu; wait 60; screenshotPNG hint; wait 20; quit +connect 127.0.0.1:59405",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "screenshots": [
+            {
+              "name": "fntech3-hint.png",
+              "sha256": "c5ad7826560e554ef95ea2b00874e9246f61a28e5d5ead7d500bd962907dfc77"
+            }
+          ],
+          "executableSha256": "82880be0ac4a02498587e6f4a3f25c0ef594561030182fa5dbfd6787a9f238a8"
+        },
+        "retail": {
+          "command": "+set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-language-hint\\before-fr\\retail-home +set r_fullscreen 0 +set r_mode 3 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set logfile 2 +set cl_punkbuster 0 +set cl_allowDownload 0 +set r_ignorehwgamma 1 +set com_introplayed 1 +set cl_language 1 +set name language-probe +set activeAction wait 300; CloseLimboMenu; wait 60; screenshot; wait 20; quit; +connect 127.0.0.1:59405",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "screenshots": [
+            {
+              "name": "retail-shot0000.tga",
+              "sha256": "2e18950a0a1a97d32748a67a5b14cb4d0f915e4bbe49fa675af64a1ef2dbe39d"
+            }
+          ],
+          "executableSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5"
+        }
+      }
+    },
+    "frenchAfter": {
+      "language": 1,
+      "liveSwitch": false,
+      "clientSha256": "4d04deff698f67b948fabdb106a806c0233fa9fcd2e255bf8e39a529a798e650",
+      "serverSha256": "a78c55336507951811e1aafcb1b28755a82f5887b646db3ec040e22df2e1a718",
+      "runs": {
+        "fntech3": {
+          "command": "+set com_gameProfile rtcw-mp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-language-hint\\after-1\\fntech3-home +set fs_game  +set r_fullscreen 0 +set r_mode 3 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set com_introplayed 1 +set cl_language 1 +set name language-probe +set net_port 0 +set activeAction wait 300; CloseLimboMenu; wait 60; screenshotPNG hint; wait 20; quit +connect 127.0.0.1:65245",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "screenshots": [
+            {
+              "name": "fntech3-hint.png",
+              "sha256": "de819ea032028dd746a224511fd11201e99c17e73cfe04abef44c0b088171deb"
+            }
+          ],
+          "executableSha256": "4d04deff698f67b948fabdb106a806c0233fa9fcd2e255bf8e39a529a798e650"
+        },
+        "retail": {
+          "command": "+set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-language-hint\\after-1\\retail-home +set r_fullscreen 0 +set r_mode 3 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set logfile 2 +set cl_punkbuster 0 +set cl_allowDownload 0 +set r_ignorehwgamma 1 +set com_introplayed 1 +set cl_language 1 +set name language-probe +set activeAction wait 300; CloseLimboMenu; wait 60; screenshot; wait 20; quit; +connect 127.0.0.1:65245",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "screenshots": [
+            {
+              "name": "retail-shot0000.tga",
+              "sha256": "938a5ffc216ef7b46f800a48ae12607bb3f462909a95d0a2766a6a976b50e13a"
+            }
+          ],
+          "executableSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5"
+        }
+      }
+    },
+    "germanAfter": {
+      "language": 2,
+      "liveSwitch": false,
+      "clientSha256": "4d04deff698f67b948fabdb106a806c0233fa9fcd2e255bf8e39a529a798e650",
+      "serverSha256": "a78c55336507951811e1aafcb1b28755a82f5887b646db3ec040e22df2e1a718",
+      "runs": {
+        "fntech3": {
+          "command": "+set com_gameProfile rtcw-mp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-language-hint\\after-2\\fntech3-home +set fs_game  +set r_fullscreen 0 +set r_mode 3 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set com_introplayed 1 +set cl_language 2 +set name language-probe +set net_port 0 +set activeAction wait 300; CloseLimboMenu; wait 60; screenshotPNG hint; wait 20; quit +connect 127.0.0.1:51285",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "screenshots": [
+            {
+              "name": "fntech3-hint.png",
+              "sha256": "894ff3cde38b65fd1a8e072c9a61604d27132ae9b575cf8a4965a35086e1c354"
+            }
+          ],
+          "executableSha256": "4d04deff698f67b948fabdb106a806c0233fa9fcd2e255bf8e39a529a798e650"
+        },
+        "retail": {
+          "command": "+set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-language-hint\\after-2\\retail-home +set r_fullscreen 0 +set r_mode 3 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set logfile 2 +set cl_punkbuster 0 +set cl_allowDownload 0 +set r_ignorehwgamma 1 +set com_introplayed 1 +set cl_language 2 +set name language-probe +set activeAction wait 300; CloseLimboMenu; wait 60; screenshot; wait 20; quit; +connect 127.0.0.1:51285",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "screenshots": [
+            {
+              "name": "retail-shot0000.tga",
+              "sha256": "72c82088d7054bee78517381626f2da396c1077d050a095c9f5d7f03aa86c9ef"
+            }
+          ],
+          "executableSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5"
+        }
+      }
+    },
+    "liveSwitchToFrench": {
+      "language": 1,
+      "liveSwitch": true,
+      "clientSha256": "4d04deff698f67b948fabdb106a806c0233fa9fcd2e255bf8e39a529a798e650",
+      "serverSha256": "a78c55336507951811e1aafcb1b28755a82f5887b646db3ec040e22df2e1a718",
+      "runs": {
+        "fntech3": {
+          "command": "+set com_gameProfile rtcw-mp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-language-hint\\live-2\\fntech3-home +set fs_game  +set r_fullscreen 0 +set r_mode 3 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set com_introplayed 1 +set cl_language 0 +set name language-probe +set net_port 0 +set activeAction wait 300; CloseLimboMenu; wait 60; screenshotPNG hint-a; wait 5; set cl_language 1; wait 120; screenshotPNG hint-b; wait 20; quit +connect 127.0.0.1:51558",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "screenshots": [
+            {
+              "name": "fntech3-hint-a.png",
+              "sha256": "2423acf61ab59fcb60808273cfcf99a32166a66a784d0dadf55e574d6d7d2710"
+            },
+            {
+              "name": "fntech3-hint-b.png",
+              "sha256": "3fa3d459b3abaa823a9add777ba0dd9be3b7c1e0909bacb524559700cc5900d6"
+            }
+          ],
+          "executableSha256": "4d04deff698f67b948fabdb106a806c0233fa9fcd2e255bf8e39a529a798e650"
+        },
+        "retail": {
+          "command": "+set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-language-hint\\live-2\\retail-home +set r_fullscreen 0 +set r_mode 3 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set logfile 2 +set cl_punkbuster 0 +set cl_allowDownload 0 +set r_ignorehwgamma 1 +set com_introplayed 1 +set cl_language 0 +set name language-probe +set activeAction wait 300; CloseLimboMenu; wait 60; screenshot; set cl_language 1; wait 120; screenshot; wait 20; quit; +connect 127.0.0.1:51558",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "screenshots": [
+            {
+              "name": "retail-shot0000.tga",
+              "sha256": "6f659330275ccd25e175e6a8d8c14af49cb4fd07867fd2d507f1b553f73723a9"
+            },
+            {
+              "name": "retail-shot0001.tga",
+              "sha256": "18022eacbd16e3d113aa517d26c67eb4260b80959d3624776e115cda8f974dfc"
+            }
+          ],
+          "executableSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5"
+        }
+      }
+    }
+  },
+  "notes": [
+    "frenchBefore used the client built before the key-name change; the other runs used the rebuilt client.",
+    "An earlier live-switch run captured fnTech3 after the switch because screenshotPNG renders the next frame; the probe now waits five frames."
+  ],
+  "focusedTests": {
+    "file": "tests/rtcw_key_names_tests.py",
+    "passed": 2,
+    "targets": [
+      "Windows x86",
+      "Windows x64"
+    ]
+  }
+}

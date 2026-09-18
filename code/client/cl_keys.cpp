@@ -26,6 +26,7 @@ extern "C" {
 #include "client_cpp.h"
 #include "input_compat.hpp"
 #include "../compat/rtcw_key_adapter.h"
+#include "../compat/rtcw_key_names.hpp"
 #include "../compat/wolfet_key_adapter.h"
 #include "client_rtcw_camera_input.hpp"
 
@@ -1219,8 +1220,15 @@ void CL_RTCWKeyString( int key, char *buffer, int size, qboolean binding ) {
 		Com_Error( ERR_DROP, "NULL RTCW key string buffer" );
 		return;
 	}
-	const int internal = FnTech3_RTCWKeyToInternal( key );
-	const char *value = binding ? Key_GetBinding( internal ) : Key_KeynumToString( internal );
+	if ( !binding ) {
+		// Original RTCW hands its modules the translated name of the module's
+		// own key number, in the player's cl_language, not the console's name.
+		std::array<char, 5> tiny{};
+		Q_strncpyz( buffer, fntech3::rtcw::keys::NameForModule( key,
+			Cvar_VariableIntegerValue( "cl_language" ), Com_GameIsRTCWMP() != 0, tiny.data() ), size );
+		return;
+	}
+	const char *value = Key_GetBinding( FnTech3_RTCWKeyToInternal( key ) );
 	Q_strncpyz( buffer, value ? value : "", size );
 }
 

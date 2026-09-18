@@ -111,6 +111,9 @@ static void CL_RTCWSetRecommended_f( void ) {
 
 static void CL_AddRTCWCommands( void ) {
 	if ( !Com_GameIsRTCW() ) return;
+	// Both original modes archive the player's language: MP translates its
+	// strings with it, and both name keys for their modules in it.
+	Cvar_Get( "cl_language", "0", CVAR_ARCHIVE );
 	Cmd_AddCommand( "startLimboMode", CL_RTCWStartLimbo_f );
 	Cmd_AddCommand( "stopLimboMode", CL_RTCWStopLimbo_f );
 	Cmd_AddCommand( "updatescreen", SCR_UpdateScreen );
