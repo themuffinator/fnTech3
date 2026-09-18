@@ -2261,7 +2261,7 @@ static void R_Register( void )
 	ri.Cvar_CheckRange( r_dlightShadowMaxLights, "0", va( "%i", MAX_DLIGHTS ), CV_INTEGER );
 	ri.Cvar_SetDescription( r_dlightShadowMaxLights, "Maximum number of dynamic lights allowed to cast shadows in a view." );
 	ri.Cvar_SetGroup( r_dlightShadowMaxLights, CVG_RENDERER );
-	r_dlightShadowResolution = ri.Cvar_Get( "r_dlightShadowResolution", "256", CVAR_ARCHIVE_ND | CVAR_LATCH );
+	r_dlightShadowResolution = ri.Cvar_Get( "r_dlightShadowResolution", "1024", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_CheckRange( r_dlightShadowResolution, "64", "1024", CV_INTEGER );
 	ri.Cvar_SetDescription( r_dlightShadowResolution, "Nominal per-face resolution for dynamic-light shadow maps. The renderer rounds it down as needed to fit the atlas." );
 	ri.Cvar_SetGroup( r_dlightShadowResolution, CVG_RENDERER );
@@ -2277,7 +2277,7 @@ static void R_Register( void )
 	ri.Cvar_CheckRange( r_spotShadowMaxLights, "0", va( "%i", SPOT_SHADOW_MAX_LIGHTS ), CV_INTEGER );
 	ri.Cvar_SetDescription( r_spotShadowMaxLights, "Maximum number of spotlight shadow tiles the planned 2D atlas may reserve." );
 	ri.Cvar_SetGroup( r_spotShadowMaxLights, CVG_RENDERER );
-	r_spotShadowResolution = ri.Cvar_Get( "r_spotShadowResolution", "256", CVAR_ARCHIVE_ND | CVAR_LATCH );
+	r_spotShadowResolution = ri.Cvar_Get( "r_spotShadowResolution", "1024", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_CheckRange( r_spotShadowResolution, va( "%i", SPOT_SHADOW_MIN_TILE_SIZE ), va( "%i", SPOT_SHADOW_MAX_TILE_SIZE ), CV_INTEGER );
 	ri.Cvar_SetDescription( r_spotShadowResolution, "Nominal tile resolution for planned 2D spotlight shadow maps. The renderer rounds it down as needed to fit the atlas." );
 	ri.Cvar_SetGroup( r_spotShadowResolution, CVG_RENDERER );

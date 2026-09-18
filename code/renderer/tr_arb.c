@@ -3940,7 +3940,7 @@ static qboolean FBO_DlightShadowAtlasWanted( dlightShadowAtlasLayout_t *layout )
 	}
 
 	return R_DlightShadowAtlasLayout( correctnessMode ? 1 : r_dlightShadowMaxLights->integer,
-		r_dlightShadowResolution ? r_dlightShadowResolution->integer : 256,
+		r_dlightShadowResolution ? r_dlightShadowResolution->integer : 1024,
 		glConfig.maxTextureSize, layout );
 #else
 	return qfalse;
@@ -4006,7 +4006,7 @@ static qboolean FBO_SpotShadowAtlasWanted( spotShadowAtlasLayout_t *layout )
 	}
 
 	return R_SpotShadowAtlasLayout( r_spotShadowMaxLights->integer,
-		r_spotShadowResolution ? r_spotShadowResolution->integer : 256,
+		r_spotShadowResolution ? r_spotShadowResolution->integer : 1024,
 		glConfig.maxTextureSize, layout );
 #else
 	return qfalse;

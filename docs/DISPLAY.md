@@ -259,7 +259,7 @@ Dynamic-light shadow-map controls:
   - `0`: Hard shadows.
   - `1`: 2x2 PCF.
   - `2`: Four-tap poisson PCF.
-- `r_dlightShadowResolution`: Requested per-face shadow-map resolution. Valid range is `64..1024`, default is `256`. The renderer rounds this down to a power of two and may reduce it to fit the atlas.
+- `r_dlightShadowResolution`: Requested per-face shadow-map resolution. Valid range is `64..1024`, default is `1024`. The renderer rounds this down to a power of two and may reduce it to fit the atlas.
 - `r_dlightShadowMaxLights`: Maximum dynamic lights allowed to cast shadows in one view. Default is `4`. Lower values give each light more atlas space; higher values favor coverage over sharpness.
 - `r_dlightShadowStrength`: Controls how strongly shadow-map occlusion dims the dynamic light. Default is `0.95`.
 - `r_dlightShadowBias`: Receiver bias in world units. Default is `4`.

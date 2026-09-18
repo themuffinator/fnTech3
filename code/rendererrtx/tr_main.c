@@ -2388,7 +2388,7 @@ static int R_ShadowSpotSurfaceRequestedTileSize( const surfaceLightProxy_t *prox
 	int tileSize;
 	float importance;
 
-	tileSize = r_spotShadowResolution ? r_spotShadowResolution->integer : 256;
+	tileSize = r_spotShadowResolution ? r_spotShadowResolution->integer : 1024;
 	if ( !proxy ) {
 		return tileSize;
 	}
@@ -2764,7 +2764,7 @@ static void R_PlanSpotShadows( void )
 	}
 
 	R_ShadowManagerPlanSpotAtlas( maxLights,
-		r_spotShadowResolution ? r_spotShadowResolution->integer : 256,
+		r_spotShadowResolution ? r_spotShadowResolution->integer : 1024,
 		glConfig.maxTextureSize );
 	R_ShadowManagerCollectSpotCandidates();
 	if ( manager->spotCandidateCount <= 0 ) {
@@ -2815,7 +2815,7 @@ static void R_PlanDlightShadows( void )
 	}
 
 	R_ShadowManagerPlanPointAtlas( maxLights,
-		r_dlightShadowResolution ? r_dlightShadowResolution->integer : 256,
+		r_dlightShadowResolution ? r_dlightShadowResolution->integer : 1024,
 		glConfig.maxTextureSize );
 
 	for ( i = 0; i < tr.viewParms.num_dlights; i++ ) {
