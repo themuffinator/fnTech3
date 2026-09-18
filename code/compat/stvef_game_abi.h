@@ -56,6 +56,10 @@ enum {
 
 	/* Holomatch: 64 clients, four player events, 16 weapons. */
 	FNTECH3_STVEF_MP_MAX_CLIENTS = 64,
+	/* A one-byte button field: seven buttons (attack, talk, use item,
+	 * gesture, walking, alternate attack, use) and 0x80 for "any key". */
+	FNTECH3_STVEF_MP_BUTTON_COUNT = 7,
+	FNTECH3_STVEF_MP_BUTTON_ANY = 0x80,
 	FNTECH3_STVEF_MP_MAX_PS_EVENTS = 4,
 	FNTECH3_STVEF_MP_MAX_STATS = 16,
 	FNTECH3_STVEF_MP_MAX_WEAPONS = 16,

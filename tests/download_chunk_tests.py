@@ -40,6 +40,8 @@ int MSG_ReadLong(msg_t*m){return read(m,4);}
 void MSG_ReadData(msg_t*m,void*d,int n){auto*b=static_cast<byte*>(d);for(int i=0;i<n;++i){int v=read(m,1);if(v<0){memset(b+i,0,n-i);return;}b[i]=byte(v);}}
 int profile;
 int CL_ActiveWireProfile(){return profile;}
+bool stvef;
+qboolean CL_STVEFFraming(){return stvef;}
 const char* MSG_ReadStringForWireProfile(msg_t*,int){return "server refusal";}
 struct Connection{char downloadTempName[64]="baseq3/test.pk3.tmp",downloadName[64]="baseq3/test.pk3";int recordfile=0,download=0,downloadBlock=0,downloadSize=0,downloadCount=0;}clc;
 std::vector<std::string> commands;
@@ -119,6 +121,13 @@ int main(){
   assert(clc.downloadCount==std::numeric_limits<int>::max()&&written.size()==4);
 
  }
+ // Elite Force: a missing file is a size of -1 and an empty chunk; the client
+ // reads both and moves on to the next file instead of dropping.
+ stvef=true;
+ {reset(0,0);msg_t m;for(int v:{0,0,0xff,0xff,0xff,0xff,0,0})m.data.push_back(byte(v));
+  m.cursize=int(m.data.size());CL_ParseDownload(&m);
+  assert(next==1&&commands.empty()&&!opens&&m.readcount==8);}
+ stvef=false;
 }
 '''
         with tempfile.TemporaryDirectory() as folder:

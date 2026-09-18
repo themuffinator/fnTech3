@@ -125,6 +125,16 @@ void MSG_AlignWrite( msg_t *msg ) noexcept {
 	msg->cursize = msg->bit >> 3;
 }
 
+// Elite Force's value readers refuse a value the message cannot hold and leave
+// the position where it was (stvoyHM.exe MSG_ReadByte 0x4231c0, MSG_ReadShort
+// 0x4231f0, MSG_ReadLong 0x423220 test readcount + n <= cursize first). An
+// optional trailing field, such as the checksum feed a demo's gamestate lacks,
+// therefore reads as -1 without ending the message.
+[[nodiscard]] bool MSG_STVEFValueMissing( const msg_t *msg, int bits ) noexcept {
+	return msg && msg->rawbit && msg->alignSkipsByte && !msg->oob &&
+		!MSG_CanAdvanceBits( msg->bit, bits, MSG_ReadBitLimit( msg ) );
+}
+
 void MSG_AlignRead( msg_t *msg ) noexcept {
 	if ( !msg || !msg->rawbit || !msg->alignSkipsByte || !( msg->bit & 7 ) ) {
 		return;
@@ -918,6 +928,9 @@ void MSG_WriteAngle16( msg_t *sb, float f ) {
 int MSG_ReadChar (msg_t *msg ) {
 	int	c;
 	
+	if ( MSG_STVEFValueMissing( msg, 8 ) ) {
+		return -1;
+	}
 	c = (signed char)MSG_ReadBits( msg, 8 );
 	if ( msg->readcount > msg->cursize ) {
 		c = -1;
@@ -929,6 +942,9 @@ int MSG_ReadChar (msg_t *msg ) {
 int MSG_ReadByte( msg_t *msg ) {
 	int	c;
 	
+	if ( MSG_STVEFValueMissing( msg, 8 ) ) {
+		return -1;
+	}
 	c = (unsigned char)MSG_ReadBits( msg, 8 );
 	if ( msg->readcount > msg->cursize ) {
 		c = -1;
@@ -939,6 +955,9 @@ int MSG_ReadByte( msg_t *msg ) {
 int MSG_ReadShort( msg_t *msg ) {
 	int	c;
 	
+	if ( MSG_STVEFValueMissing( msg, 16 ) ) {
+		return -1;
+	}
 	c = (short)MSG_ReadBits( msg, 16 );
 	if ( msg->readcount > msg->cursize ) {
 		c = -1;
@@ -950,6 +969,9 @@ int MSG_ReadShort( msg_t *msg ) {
 int MSG_ReadLong( msg_t *msg ) {
 	int	c;
 	
+	if ( MSG_STVEFValueMissing( msg, 32 ) ) {
+		return -1;
+	}
 	c = MSG_ReadBits( msg, 32 );
 	if ( msg->readcount > msg->cursize ) {
 		c = -1;

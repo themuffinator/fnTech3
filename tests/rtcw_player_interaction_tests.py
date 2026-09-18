@@ -17,6 +17,7 @@ def input_fixture(client):
     source = r'''
 #include "code/client/input_compat.hpp"
 #include "code/compat/rtcw_state_adapter.hpp"
+#include "code/compat/stvef_game_abi.h"
 #include "code/qcommon/game_profile.h"
 #include <cassert>
 #include <map>
@@ -27,6 +28,7 @@ static comGameId_t profile;
 int Com_GameIsRTCW() { return profile==COM_GAME_RTCW_SP || profile==COM_GAME_RTCW_MP; }
 int Com_GameIsRTCWSP() { return profile==COM_GAME_RTCW_SP; }
 int Com_GameIsRTCWMP() { return profile==COM_GAME_RTCW_MP; }
+int Com_GameIsSTVEFMP() { return profile==COM_GAME_STVEF_MP; }
 static int catcher, anykeydown, com_frameTime=100;
 static unsigned frame_msec=16;
 static int Key_GetCatcher() { return catcher; }
@@ -67,15 +69,25 @@ static void Invoke(const char *command, const char *key="42", const char *tag="f
 static usercmd_t Sample() { usercmd_t cmd{}; CL_CmdButtons(&cmd); return cmd; }
 int main() {
  run.integer=freelook.integer=1;
- for(auto id:{COM_GAME_QUAKE3,COM_GAME_QUAKELIVE,COM_GAME_RTCW_SP,COM_GAME_RTCW_MP}) {
-  profile=id; bool rtcw=Com_GameIsRTCW(); IN_ClearCommandInputState(); IN_AddCommandBindings();
+ for(auto id:{COM_GAME_QUAKE3,COM_GAME_QUAKELIVE,COM_GAME_RTCW_SP,COM_GAME_RTCW_MP,COM_GAME_STVEF_MP}) {
+  profile=id; bool rtcw=Com_GameIsRTCW(), ef=Com_GameIsSTVEFMP();
+  IN_ClearCommandInputState(); IN_AddCommandBindings();
   assert(commands.count("+activate")==rtcw && commands.count("-activate")==rtcw);
+  assert(commands.count("+altattack")==ef && commands.count("-use")==ef);
   assert(bool(CL_IsEngineStatefulInputCommand("+activate"))==rtcw);
   assert(!CL_IsEngineStatefulInputCommand("+activate_more"));
   assert(CL_IsEngineStatefulInputCommand("+attack"));
-  anykeydown=1; catcher=0; assert(Sample().buttons==(rtcw?128:BUTTON_ANY));
+  anykeydown=1; catcher=0; assert(Sample().buttons==(rtcw?128:ef?FNTECH3_STVEF_MP_BUTTON_ANY:BUTTON_ANY));
   catcher=2; assert(Sample().buttons==BUTTON_TALK);
   catcher=0; anykeydown=0;
+  if(ef) {
+   // Elite Force's one-byte buttons: alternate attack 5, use 6, and nothing
+   // beyond its seven buttons reaches the command.
+   Invoke("+altattack"); assert(Sample().buttons==32); Invoke("-altattack");
+   Invoke("+use"); assert(Sample().buttons==64); Invoke("-use");
+   Invoke("+button7"); assert(!Sample().buttons); Invoke("-button7");
+   assert(!Sample().buttons);
+  }
   if(rtcw) {
    // A sub-frame tap survives once, held keys persist, and either alias releases it.
    Invoke("+activate"); Invoke("-activate"); auto cmd=Sample(); assert(cmd.buttons==64);

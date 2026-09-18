@@ -14,7 +14,8 @@ class ReliableAckTransactionTests(unittest.TestCase):
         source = (ROOT/'code/client/cl_parse.cpp').read_text()
         start = source.index('static void CL_ValidateReliableAcknowledge(')
         validation = source[start:source.index('\n}', start)+2]
-        start = source.index('if ( !CL_IsLegacyDemoMessage() ||', source.index('void CL_ParseServerMessage('))
+        # Elite Force acknowledges inside its snapshots instead; see stvef below.
+        start = source.index('if ( !stvef && ( !CL_IsLegacyDemoMessage() ||', source.index('void CL_ParseServerMessage('))
         caller = source[start:source.index('\n\t// parse the message', start)]
         main = (ROOT/'code/client/cl_main.cpp').read_text()
         start = main.index('void CL_AddReliableCommand(')
@@ -42,7 +43,7 @@ void Q_strncpyz(char*d,const char*s,int n){strncpy(d,s,n);d[n-1]=0;}
 bool CL_IsLegacyDemoMessage(){return false;}
 int CL_LegacyDemoProtocol(){return 0;}
 int MSG_ReadLong(int *msg){return *msg;}
-''' + validation + '\n' + add + '\nvoid parse(int *msg){'+caller+'}\nvoid writeWindow(){'+window+'}\n' + r'''
+''' + validation + '\n' + add + '\nvoid parse(int *msg){const bool stvef=false;'+caller+'}\nvoid writeWindow(){'+window+'}\n' + r'''
 void setup(int seq,int ack,bool demo=false){clc={};clc.reliableSequence=seq;clc.reliableAcknowledge=ack;clc.demoplaying=demo;clc.serverAddress.type=1;errors=warnings=0;com_errorEntered=false;}
 void apply(int incoming){parse(&incoming);}
 int main(){

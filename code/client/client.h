@@ -519,6 +519,8 @@ void CL_Disconnect_f( void );
 void CL_ReadDemoMessage( void );
 void CL_StopRecord_f( void );
 netchanWireProfile_t CL_ActiveWireProfile( void );
+// Elite Force Holomatch's retail protocol-24 framing, live or from a demo.
+qboolean CL_STVEFFraming( void );
 static inline int CL_ReliableCommandLimit( void ) {
 	return Netchan_ReliableCommandLimit( CL_ActiveWireProfile() );
 }

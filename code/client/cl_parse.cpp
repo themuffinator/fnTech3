@@ -82,6 +82,7 @@ static bool CL_IsLegacyDemoMessage( void ) {
 	return clc.demoplaying && clc.demoLegacyFormat;
 }
 
+
 static int CL_LegacyDemoProtocol( void ) {
 	return clc.demoLegacyProtocol ? clc.demoLegacyProtocol : 43;
 }
@@ -745,6 +746,10 @@ static void CL_ParseSnapshot( msg_t *msg ) {
 	// message before we got to svc_snapshot
 	newSnap.serverCommandNum = clc.serverCommandSequence;
 
+	if ( CL_STVEFFraming() ) {
+		CL_ValidateReliableAcknowledge( MSG_ReadLong( msg ) );
+	}
+
 	if ( CL_IsLegacyDemoMessage() && CL_LegacyDemoProtocol() < 46 ) {
 		newSnap.cmdNum = MSG_ReadLong( msg );
 	}
@@ -872,6 +877,11 @@ static void CL_ParseSnapshot( msg_t *msg ) {
 	}
 
 	cl.newSnapshots = qtrue;
+
+	// Holomatch's gamestate names no client; its cgame reads this instead.
+	if ( CL_STVEFFraming() ) {
+		clc.clientNum = cl.snap.ps.clientNum;
+	}
 
 	clc.eventMask |= EM_SNAPSHOT;
 }
@@ -1083,6 +1093,7 @@ static void CL_ParseGamestate( msg_t *msg ) {
 
 	// parse all the configstrings and baselines
 	cl.gameState.dataCount = 1;	// leave a 0 at the beginning for uninitialized configstrings
+	const bool stvef = CL_STVEFFraming() != qfalse;
 	while ( 1 ) {
 		cmd = MSG_ReadByte( msg );
 
@@ -1090,7 +1101,9 @@ static void CL_ParseGamestate( msg_t *msg ) {
 			break;
 		}
 
-		if ( cmd == svc_EOF ) {
+		// Elite Force ends the list with a zero byte, or with the end of a
+		// demo's record (stvoyHM.exe CL_ParseGamestate 0x411320).
+		if ( stvef ? cmd <= 0 : cmd == svc_EOF ) {
 			break;
 		}
 
@@ -1148,7 +1161,12 @@ static void CL_ParseGamestate( msg_t *msg ) {
 
 	clc.eventMask |= EM_GAMESTATE;
 
-	if ( !CL_IsLegacyDemoMessage() ) {
+	if ( stvef ) {
+		// No client number follows. A demo's gamestate also lacks the checksum
+		// feed, which then reads as -1, as it does in retail.
+		clc.clientNum = 0;
+		clc.checksumFeed = MSG_ReadLong( msg );
+	} else if ( !CL_IsLegacyDemoMessage() ) {
 		clc.clientNum = MSG_ReadLong(msg);
 		// read the checksum feed
 		clc.checksumFeed = MSG_ReadLong( msg );
@@ -1269,6 +1287,14 @@ static void CL_ParseDownload( msg_t *msg ) {
 
 		if (clc.downloadSize < 0)
 		{
+			if ( CL_STVEFFraming() ) {
+				// Elite Force sends an empty chunk instead of a reason, and its
+				// client moves on to the next file (stvoyHM.exe 0x4114e0).
+				MSG_ReadShort( msg );
+				Com_Printf( "File not found.\n" );
+				CL_NextDownload();
+				return;
+			}
 			Com_Error( ERR_DROP, "%s", MSG_ReadStringForWireProfile(
 				msg, CL_ActiveWireProfile() ) );
 			return;
@@ -1282,7 +1308,11 @@ static void CL_ParseDownload( msg_t *msg ) {
 		return;
 	}
 
-	MSG_ReadData(msg, data.data(), size);
+	// An empty chunk carries no data. Elite Force's aligned data would skip a
+	// byte even for none, so it is not read at all, as every server writes it.
+	if ( size > 0 ) {
+		MSG_ReadData( msg, data.data(), size );
+	}
 	if ( msg->readcount > msg->cursize ) {
 		// The outer parser checks overruns too late to protect the download
 		// file and nextdl acknowledgement from a partial chunk.
@@ -1483,13 +1513,19 @@ void CL_ParseServerMessage( msg_t *msg ) {
 	}
 
 	clc.eventMask = 0;
+	// Elite Force Holomatch frames its messages as raw bits with no leading
+	// acknowledgement and no end marker; its snapshots carry the acknowledgement
+	// (stvoyHM.exe CL_ParseServerMessage 0x4116d0, CL_ParseSnapshot 0x410f80).
+	const bool stvef = CL_STVEFFraming() != qfalse;
 	if ( CL_IsLegacyDemoMessage() ) {
 		MSG_RawBitstream( msg );
+	} else if ( stvef ) {
+		MSG_STVEFBitstream( msg );
 	} else {
 		MSG_Bitstream( msg );
 	}
 
-	if ( !CL_IsLegacyDemoMessage() || CL_LegacyDemoProtocol() >= 46 ) {
+	if ( !stvef && ( !CL_IsLegacyDemoMessage() || CL_LegacyDemoProtocol() >= 46 ) ) {
 		CL_ValidateReliableAcknowledge( MSG_ReadLong( msg ) );
 	}
 
@@ -1507,8 +1543,14 @@ void CL_ParseServerMessage( msg_t *msg ) {
 
 		cmd = MSG_ReadByte( msg );
 
-		if ( cmd == svc_EOF ) {
+		// An Elite Force message ends where its data ends.
+		if ( stvef ? cmd == -1 : cmd == svc_EOF ) {
 			SHOWNET( msg, "END OF MESSAGE" );
+			break;
+		}
+
+		if ( stvef && cmd > svc_snapshot ) {
+			Com_Error( ERR_DROP, "%s: Illegible server message", __func__ );
 			break;
 		}
 

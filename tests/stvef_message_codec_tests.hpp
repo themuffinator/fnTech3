@@ -208,6 +208,51 @@ inline int TestCommands() {
 	return 0;
 }
 
+// A value the message cannot hold reads as -1 and leaves the position where it
+// was, as retail's readers test before reading. A gamestate recorded in a demo
+// ends at its zero byte, so its absent checksum feed must not end the message.
+inline int TestMissingValues() {
+	std::array<byte, 16> storage{};
+	msg_t msg{};
+	BeginWrite( msg, storage.data(), static_cast<int>( storage.size() ) );
+	MSG_WriteBits( &msg, 0x155, 10 );
+	MSG_WriteByte( &msg, 0 );
+	CHECK( msg.cursize == 3 );
+
+	msg_t reader{};
+	BeginRead( reader, storage.data(), static_cast<int>( storage.size() ), msg.cursize );
+	CHECK( MSG_ReadEntitynum( &reader ) == 0x155 );
+	CHECK( MSG_ReadByte( &reader ) == 0 );
+	const int bit = reader.bit;
+	const int readcount = reader.readcount;
+	CHECK( MSG_ReadLong( &reader ) == -1 );
+	CHECK( MSG_ReadShort( &reader ) == -1 );
+	CHECK( MSG_ReadByte( &reader ) == -1 );
+	CHECK( reader.bit == bit && reader.readcount == readcount );
+	CHECK( reader.readcount <= reader.cursize );
+
+	// A value that fits exactly is read, and the end still reads as -1.
+	BeginWrite( msg, storage.data(), static_cast<int>( storage.size() ) );
+	MSG_WriteBits( &msg, 0x155, 10 );
+	MSG_WriteByte( &msg, 0 );
+	MSG_WriteLong( &msg, 0x12345678 );
+	BeginRead( reader, storage.data(), static_cast<int>( storage.size() ), msg.cursize );
+	CHECK( MSG_ReadEntitynum( &reader ) == 0x155 );
+	CHECK( MSG_ReadByte( &reader ) == 0 );
+	CHECK( MSG_ReadLong( &reader ) == 0x12345678 );
+	CHECK( MSG_ReadByte( &reader ) == -1 );
+	CHECK( reader.readcount <= reader.cursize );
+
+	// Other raw-bit profiles keep the sticky past-end state.
+	BeginRead( reader, storage.data(), static_cast<int>( storage.size() ), 3 );
+	MSG_RawBitstream( &reader );
+	CHECK( MSG_ReadEntitynum( &reader ) == 0x155 );
+	CHECK( MSG_ReadByte( &reader ) == 0 );
+	CHECK( MSG_ReadLong( &reader ) == -1 );
+	CHECK( reader.readcount > reader.cursize );
+	return 0;
+}
+
 inline int TestSinglePlayerWireIsClosed() {
 	std::array<byte, 64> storage{};
 	msg_t msg{};
@@ -227,6 +272,7 @@ inline int TestSTVEFMessageCodecs() {
 	if ( const int result = TestEntityDeltas() ) return result;
 	if ( const int result = TestPlayerDeltas() ) return result;
 	if ( const int result = TestCommands() ) return result;
+	if ( const int result = TestMissingValues() ) return result;
 	if ( const int result = TestSinglePlayerWireIsClosed() ) return result;
 	return 0;
 }

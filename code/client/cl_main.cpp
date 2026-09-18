@@ -34,6 +34,7 @@ extern "C" {
 #include "../qcommon/protocol_contract.hpp"
 #include "../qcommon/netchan_safety.hpp"
 #include "../qcommon/rtcw_handshake.hpp"
+#include "../qcommon/stvef_handshake.hpp"
 #include "../qcommon/steam_identity.hpp"
 #include "../platform/fnql_steam.h"
 #include "../compat/rtcw_translation.hpp"
@@ -306,6 +307,9 @@ void CL_RTCWTranslateString( vm_t *vm, intptr_t source, intptr_t destination ) {
 namespace {
 
 constexpr const char *LEGACY_DEMOEXT = "dm3";
+// Elite Force Holomatch names its demos after the game, not the protocol
+// (stvoyHM.exe "demos/%s.efdemo").
+constexpr const char *STVEF_DEMOEXT = "efdemo";
 constexpr int kMaxServersPerPacket = 256;
 constexpr std::size_t kServerAddressHashBuckets = 1024;
 
@@ -546,6 +550,11 @@ static qboolean CL_IsLegacyDemoExt( const char *ext )
 	return ToQboolean( !Q_stricmp( ext, LEGACY_DEMOEXT ) );
 }
 
+static bool CL_IsSTVEFDemoExt( const char *ext )
+{
+	return ext && !Q_stricmp( ext, STVEF_DEMOEXT );
+}
+
 /*
 ====================
 CL_ParseDemoProtocolExtension
@@ -618,6 +627,9 @@ static netchanWireProfile_t CL_DemoWireProfileForProtocol( int protocol )
 	if ( protocol == NETCHAN_RTCW_MP_PROTOCOL_VERSION ) {
 		return NETCHAN_WIRE_RTCW_MP;
 	}
+	if ( protocol == NETCHAN_STVEF_HM_PROTOCOL_VERSION ) {
+		return NETCHAN_WIRE_STVEF_HM;
+	}
 	if ( protocol == NEW_PROTOCOL_VERSION ) {
 		return NETCHAN_WIRE_IOQ3;
 	}
@@ -641,6 +653,11 @@ netchanWireProfile_t CL_ActiveWireProfile( void )
 		if ( profile ) return Netchan_SelectWireProfile( profile->preferredProtocol, 0 );
 	}
 	return clc.netchan.wireProfile;
+}
+
+qboolean CL_STVEFFraming( void )
+{
+	return ToQboolean( CL_ActiveWireProfile() == NETCHAN_WIRE_STVEF_HM );
 }
 
 /*
@@ -893,7 +910,13 @@ void CL_StopRecord_f( void ) {
 
 		Com_sprintf( tempName.data(), static_cast<int>( tempName.size() ), "%s.tmp", clc.recordName );
 
-		Com_sprintf( finalName.data(), static_cast<int>( finalName.size() ), "%s.%s%d", clc.recordName, DEMOEXT, protocol );
+		// Elite Force demos carry the game's own extension, not a protocol.
+		const bool stvef = CL_STVEFFraming() != qfalse;
+		if ( stvef ) {
+			Com_sprintf( finalName.data(), static_cast<int>( finalName.size() ), "%s.%s", clc.recordName, STVEF_DEMOEXT );
+		} else {
+			Com_sprintf( finalName.data(), static_cast<int>( finalName.size() ), "%s.%s%d", clc.recordName, DEMOEXT, protocol );
+		}
 
 		if ( clc.explicitRecordName ) {
 			FS_HomeRemove( finalName.data() );
@@ -901,8 +924,13 @@ void CL_StopRecord_f( void ) {
 			// add sequence suffix to avoid overwrite
 			sequence = 0;
 			while ( FS_FileExists( finalName.data() ) && ++sequence < 1000 ) {
-				Com_sprintf( finalName.data(), static_cast<int>( finalName.size() ), "%s-%02d.%s%d",
-					clc.recordName, sequence, DEMOEXT, protocol );
+				if ( stvef ) {
+					Com_sprintf( finalName.data(), static_cast<int>( finalName.size() ), "%s-%02d.%s",
+						clc.recordName, sequence, STVEF_DEMOEXT );
+				} else {
+					Com_sprintf( finalName.data(), static_cast<int>( finalName.size() ), "%s-%02d.%s%d",
+						clc.recordName, sequence, DEMOEXT, protocol );
+				}
 			}
 		}
 
@@ -982,10 +1010,17 @@ static void CL_WriteGamestate( qboolean initial )
 
 	// write out the gamestate message
 	MSG_Init( &msg, bufData.data(), Netchan_MessageLimit( CL_ActiveWireProfile() ) );
-	MSG_Bitstream( &msg );
+	// Elite Force records retail's layout: raw bits, no acknowledgement, and a
+	// zero byte with nothing after it (stvoyHM.exe CL_Record_f 0x40c1e0).
+	const bool stvef = CL_STVEFFraming() != qfalse;
+	if ( stvef ) {
+		MSG_STVEFBitstream( &msg );
+	} else {
+		MSG_Bitstream( &msg );
 
-	// NOTE, MRE: all server->client messages now acknowledge
-	MSG_WriteLong( &msg, clc.reliableSequence );
+		// NOTE, MRE: all server->client messages now acknowledge
+		MSG_WriteLong( &msg, clc.reliableSequence );
+	}
 
 	if ( initial ) {
 		clc.demoMessageSequence = 1;
@@ -1022,18 +1057,22 @@ static void CL_WriteGamestate( qboolean initial )
 	}
 
 	// finalize message
-	MSG_WriteByte( &msg, svc_EOF );
+	if ( stvef ) {
+		MSG_WriteByte( &msg, svc_bad );
+	} else {
+		MSG_WriteByte( &msg, svc_EOF );
 
-	// finished writing the gamestate stuff
+		// finished writing the gamestate stuff
 
-	// write the client num
-	MSG_WriteLong( &msg, clc.clientNum );
+		// write the client num
+		MSG_WriteLong( &msg, clc.clientNum );
 
-	// write the checksum feed
-	MSG_WriteLong( &msg, clc.checksumFeed );
+		// write the checksum feed
+		MSG_WriteLong( &msg, clc.checksumFeed );
 
-	// finished writing the client packet
-	MSG_WriteByte( &msg, svc_EOF );
+		// finished writing the client packet
+		MSG_WriteByte( &msg, svc_EOF );
+	}
 
 	// write it to the demo file
 	if ( clc.demoplaying )
@@ -1146,15 +1185,24 @@ static void CL_WriteSnapshot( void ) {
 	}
 
 	MSG_Init( &msg, bufData.data(), Netchan_MessageLimit( CL_ActiveWireProfile() ) );
-	MSG_Bitstream( &msg );
+	// Elite Force acknowledges inside the snapshot and has no end marker.
+	const bool stvef = CL_STVEFFraming() != qfalse;
+	if ( stvef ) {
+		MSG_STVEFBitstream( &msg );
+	} else {
+		MSG_Bitstream( &msg );
 
-	// NOTE, MRE: all server->client messages now acknowledge
-	MSG_WriteLong( &msg, clc.reliableSequence );
+		// NOTE, MRE: all server->client messages now acknowledge
+		MSG_WriteLong( &msg, clc.reliableSequence );
+	}
 
 	// Write all pending server commands
 	CL_WriteServerCommands( &msg );
 
 	MSG_WriteByte( &msg, svc_snapshot );
+	if ( stvef ) {
+		MSG_WriteLong( &msg, clc.reliableSequence );
+	}
 	MSG_WriteLong( &msg, snap->serverTime ); // sv.time
 	MSG_WriteByte( &msg, clc.demoDeltaNum ); // 0 or 1
 	MSG_WriteByte( &msg, snap->snapFlags );  // snapFlags
@@ -1170,7 +1218,9 @@ static void CL_WriteSnapshot( void ) {
 	CL_EmitPacketEntities( oldSnap, snap, &msg, saved_ents );
 
 	// finished writing the client packet
-	MSG_WriteByte( &msg, svc_EOF );
+	if ( !stvef ) {
+		MSG_WriteByte( &msg, svc_EOF );
+	}
 
 	// write it to the demo file
 	if ( clc.demoplaying )
@@ -1237,8 +1287,9 @@ static void CL_Record_f( void ) {
 		return;
 	}
 
-	// Original RTCW SP refuses outright; MP and Q3 made this a warning.
-	if ( Com_GameIsRTCWSP() && !Cvar_VariableValue( "g_synchronousClients" ) ) {
+	// Original RTCW SP and Elite Force Holomatch refuse outright (stvoyHM.exe
+	// CL_Record_f 0x40c24e); RTCW MP and Q3 made this a warning.
+	if ( ( Com_GameIsRTCWSP() || Com_GameIsSTVEFMP() ) && !Cvar_VariableValue( "g_synchronousClients" ) ) {
 		Com_Printf( "The server must have 'g_synchronousClients 1' set for demos\n" );
 		return;
 	}
@@ -1256,6 +1307,7 @@ static void CL_Record_f( void ) {
 			// Strip every demo extension this build can actually play, including
 			// retail Quake Live dm_91, before the final protocol is appended.
 			if ( CL_IsLegacyDemoExt( ext ) ||
+				( Com_GameIsSTVEFMP() && CL_IsSTVEFDemoExt( ext ) ) ||
 				( CL_ParseDemoProtocolExtension( ext, &protocol ) &&
 					CL_DemoProtocolSupported( protocol ) ) ) {
 				*(strrchr( demoName.data(), '.' )) = '\0';
@@ -1325,7 +1377,11 @@ static void CL_CompleteRecordName(const char *args, int argNum )
 	{
 		std::array<char, 16> demoExt;
 
-		Com_sprintf( demoExt.data(), static_cast<int>( demoExt.size() ), "." DEMOEXT "%d", com_protocol->integer );
+		if ( Com_GameIsSTVEFMP() ) {
+			Com_sprintf( demoExt.data(), static_cast<int>( demoExt.size() ), ".%s", STVEF_DEMOEXT );
+		} else {
+			Com_sprintf( demoExt.data(), static_cast<int>( demoExt.size() ), "." DEMOEXT "%d", com_protocol->integer );
+		}
 		Field_CompleteFilename( "demos", demoExt.data(), qtrue, FS_MATCH_EXTERN | FS_MATCH_STICK );
 	}
 }
@@ -1489,6 +1545,19 @@ static int CL_WalkDemoExt( const char *arg, char *name, int name_len, ScopedFile
 	int i;
 
 	handle.reset();
+
+	// Holomatch has one demo format, named after the game.
+	if ( Com_GameIsSTVEFMP() ) {
+		Com_sprintf( name, name_len, "demos/%s.%s", arg, STVEF_DEMOEXT );
+		OpenPureFileRead( name, handle );
+		if ( handle ) {
+			Com_Printf( "Demo file: %s\n", name );
+			return NETCHAN_STVEF_HM_PROTOCOL_VERSION;
+		}
+		Com_Printf( "Not found: %s\n", name );
+		return -1;
+	}
+
 	preferredProtocol = ( Com_GameProfile()->id == COM_GAME_QUAKELIVE ) ?
 		QL_RETAIL_PROTOCOL_VERSION : 0;
 
@@ -1544,6 +1613,8 @@ static qboolean CL_DemoNameCallback_f( const char *filename, int length )
 		return ToQboolean( Com_GameProfile()->id == COM_GAME_QUAKE3 );
 
 	extension = COM_GetExtension( filename );
+	if ( CL_IsSTVEFDemoExt( extension ) )
+		return ToQboolean( Com_GameIsSTVEFMP() );
 	if ( !CL_ParseDemoProtocolExtension( extension, &version ) )
 		return qfalse;
 
@@ -1609,7 +1680,17 @@ static void CL_PlayDemo_f( void ) {
 
 	// check for an explicit demo extension first
 	ext_test = strrchr(arg, '.');
-	if ( ext_test && CL_IsLegacyDemoExt( ext_test + 1 ) )
+	if ( ext_test && CL_IsSTVEFDemoExt( ext_test + 1 ) )
+	{
+		if ( !Com_GameIsSTVEFMP() ) {
+			Com_Printf( "Elite Force .efdemo demos require the stvef-mp profile.\n" );
+			return;
+		}
+		protocol = NETCHAN_STVEF_HM_PROTOCOL_VERSION;
+		Com_sprintf( name.data(), static_cast<int>( name.size() ), "demos/%s", arg );
+		OpenPureFileRead( name.data(), hFile );
+	}
+	else if ( ext_test && CL_IsLegacyDemoExt( ext_test + 1 ) )
 	{
 		if ( Com_GameProfile()->id != COM_GAME_QUAKE3 ) {
 			Com_Printf( "Legacy .dm3 demos require the q3 profile.\n" );
@@ -2924,7 +3005,10 @@ static void CL_SendPureChecksums( void ) {
 
 	// Q3, RTCW and ET have distinct cgame/UI slots in the filesystem proof.
 	// Retail QL prefixes one native-module pak before its general references.
-	if ( Com_GameProfile()->pureProof == COM_PURE_PROOF_QVM ||
+	// Elite Force Holomatch names no server id (stvoyHM.exe 0x40df30).
+	if ( CL_STVEFFraming() ) {
+		len = Com_sprintf( cMsg.data(), static_cast<int>( cMsg.size() ), "cp " );
+	} else if ( Com_GameProfile()->pureProof == COM_PURE_PROOF_QVM ||
 		Com_PureProofIsNativeModulePair( Com_GameProfile() ) ) {
 		len = Com_sprintf( cMsg.data(), static_cast<int>( cMsg.size() ),
 			"cp %d ", cl.serverId );
@@ -3715,6 +3799,10 @@ static void CL_CheckForResend( void ) {
 				gameName = fntech3::rtcw::handshake::MultiplayerGameName;
 			} else if ( Com_GameIsRTCWSP() ) {
 				gameName = fntech3::rtcw::handshake::SinglePlayerGameName;
+			} else if ( Com_GameIsSTVEFMP() ) {
+				// Retail Holomatch servers read no arguments; Lilium Voyager's
+				// check the name and echo the nonce.
+				gameName = fntech3::stvef::handshake::GameName;
 			}
 			NET_OutOfBandPrint( NS_CLIENT, &clc.serverAddress,
 				"getchallenge %d %s", clc.challenge, gameName );
@@ -3764,8 +3852,13 @@ static void CL_CheckForResend( void ) {
 		}
 
 		len = Com_sprintf( data.data(), static_cast<int>( data.size() ), "connect \"%s\"", info.data() );
-		// NOTE TTimo don't forget to set the right data length!
-		NET_OutOfBandCompress( NS_CLIENT, &clc.serverAddress, reinterpret_cast<byte *>( data.data() ), len );
+		if ( Com_GameIsSTVEFMP() ) {
+			// Holomatch sends its connect as plain text (stvoyHM.exe 0x40e41f).
+			NET_OutOfBandPrint( NS_CLIENT, &clc.serverAddress, "%s", data.data() );
+		} else {
+			// NOTE TTimo don't forget to set the right data length!
+			NET_OutOfBandCompress( NS_CLIENT, &clc.serverAddress, reinterpret_cast<byte *>( data.data() ), len );
+		}
 		// the most current userinfo has been sent, so watch for any
 		// newer changes to userinfo variables
 		cvar_modifiedFlags &= ~CVAR_USERINFO;
@@ -4103,6 +4196,39 @@ static bool CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 			return true;
 		}
 
+		// Holomatch: retail servers send the challenge alone; Lilium Voyager's
+		// and ours echo the nonce and name a protocol. This client speaks only
+		// the retail protocol, which ioEF servers still accept.
+		if ( Com_GameIsSTVEFMP() ) {
+			std::array<const char *, 4> tokens{};
+			const int count = std::min( Cmd_Argc(), static_cast<int>( tokens.size() ) );
+			for ( int i = 0; i < count; ++i ) {
+				tokens[i] = Cmd_Argv( i );
+			}
+			const auto reply = fntech3::stvef::handshake::ParseChallengeReply( count,
+				tokens.data(), clc.challenge, NET_CompareAdr( from, &clc.serverAddress ) != qfalse );
+			if ( !reply.accepted ) {
+				Com_DPrintf( "Challenge response did not prove its source. Ignored.\n" );
+				return false;
+			}
+			const int ownProtocol = Com_GameProfile()->preferredProtocol;
+			if ( !fntech3::stvef::handshake::ServerAcceptsRetailProtocol(
+				reply.advertisedProtocol, ownProtocol ) ) {
+				Com_Printf( S_COLOR_YELLOW "Warning: Server reports protocol version %d, "
+					"we have %d. Trying anyways.\n", reply.advertisedProtocol, ownProtocol );
+			}
+			clc.compat = qfalse;
+			clc.handshakeProtocol = ownProtocol;
+			clc.challenge = reply.challenge;
+			cls.state = CA_CHALLENGING;
+			clc.connectPacketCount = 0;
+			clc.connectTime = -99999;
+			clc.serverAddress = *from;
+			CL_EraseSteamChallengePayload();
+			Com_DPrintf( "challengeResponse: %d\n", clc.challenge );
+			return true;
+		}
+
 		c = Cmd_Argv( 2 );
 		if ( *c != '\0' )
 			challenge = std::atoi( c );
@@ -4227,6 +4353,20 @@ static bool CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 			}
 			negotiatedProtocol = Com_GameProfile()->preferredProtocol;
 			if ( !fntech3::rtcw::handshake::AcceptConnectReply( count, tokens.data(),
+				clc.challenge, negotiatedProtocol ) ) {
+				Com_Printf( "ConnectResponse with bad challenge received. Ignored.\n" );
+				return false;
+			}
+			clc.compat = qfalse;
+		} else if ( Com_GameIsSTVEFMP() ) {
+			// The retail server answers with the bare keyword.
+			std::array<const char *, 3> tokens{};
+			const int count = std::min( Cmd_Argc(), static_cast<int>( tokens.size() ) );
+			for ( int i = 0; i < count; ++i ) {
+				tokens[i] = Cmd_Argv( i );
+			}
+			negotiatedProtocol = Com_GameProfile()->preferredProtocol;
+			if ( !fntech3::stvef::handshake::AcceptConnectReply( count, tokens.data(),
 				clc.challenge, negotiatedProtocol ) ) {
 				Com_Printf( "ConnectResponse with bad challenge received. Ignored.\n" );
 				return false;

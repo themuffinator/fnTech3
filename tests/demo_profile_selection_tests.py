@@ -39,12 +39,13 @@ class DemoProfileSelectionTests(unittest.TestCase):
 #include <string>
 #include <vector>
 enum { COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, COM_GAME_RTCW_SP, COM_GAME_RTCW_MP,
-       COM_GAME_WOLFET, OLD_PROTOCOL_VERSION = 68, NEW_PROTOCOL_VERSION = 71,
+       COM_GAME_WOLFET, COM_GAME_STVEF_MP, OLD_PROTOCOL_VERSION = 68, NEW_PROTOCOL_VERSION = 71,
        QL_RETAIL_PROTOCOL_VERSION = 91, NETCHAN_RTCW_SP_PROTOCOL_VERSION = 49,
-       NETCHAN_RTCW_MP_PROTOCOL_VERSION = 60 };
+       NETCHAN_RTCW_MP_PROTOCOL_VERSION = 60, NETCHAN_STVEF_HM_PROTOCOL_VERSION = 24 };
 struct Profile { int id; const char *displayName = "fixture"; } profile;
 Profile *Com_GameProfile() { return &profile; }
 int Com_GameIsRTCWSP() { return profile.id == COM_GAME_RTCW_SP; }
+int Com_GameIsSTVEFMP() { return profile.id == COM_GAME_STVEF_MP; }
 const int demo_protocols[] = {''' + demo_protocols + r'''};
 bool Com_DemoProtocolSupported(int p) {
     for (int value : demo_protocols) if (value && value == p) return true;
@@ -64,6 +65,7 @@ void Com_Printf(const char *, ...) {}
 #define Com_sprintf snprintf
 #define DEMOEXT "dm_"
 #define LEGACY_DEMOEXT "dm3"
+#define STVEF_DEMOEXT "efdemo"
 
 #define MAX_OSPATH 256
 #define ARRAY_LEN(a) (sizeof(a)/sizeof((a)[0]))
@@ -93,6 +95,7 @@ const char *Cmd_Argv(int) { return argument.c_str(); }
             "static bool CL_TryDemoProtocol(") + "\n" + function(
             "static int CL_WalkDemoExt(") + "\n" + function(
             "static qboolean CL_IsLegacyDemoExt(") + "\n" + function(
+            "static bool CL_IsSTVEFDemoExt(") + "\n" + function(
             "static bool CL_ParseDemoProtocolExtension(") + "\n" + function(
             "static qboolean CL_DemoNameCallback_f(") + "\n" + source[
                 source.index("static void CL_PlayDemo_f("):source.index(
@@ -183,6 +186,26 @@ int main() {
     for (int protocol : {49, 60, 66, 67, 68, 71, 91}) assert(!CL_DemoProtocolSupported(protocol));
     files = std::set<std::string>(everything.begin(), everything.end()); attempts.clear();
     assert(CL_WalkDemoExt("mixed", name, sizeof(name), handle) == -1 && attempts.empty());
+
+    // Elite Force Holomatch plays only its .efdemo files, and only it does.
+    profile.id = COM_GAME_STVEF_MP;
+    files = std::set<std::string>(everything.begin(), everything.end());
+    files.insert("demos/mixed.efdemo"); attempts.clear();
+    assert(CL_WalkDemoExt("mixed", name, sizeof(name), handle) == 24);
+    assert(attempts == std::vector<std::string>{"demos/mixed.efdemo"});
+    files.erase("demos/mixed.efdemo"); attempts.clear();
+    assert(CL_WalkDemoExt("mixed", name, sizeof(name), handle) == -1 && !handle);
+    for (int protocol : {49, 60, 66, 67, 68, 71, 91}) assert(!CL_DemoProtocolSupported(protocol));
+    assert(CL_DemoNameCallback_f("x.EFDEMO", 8) && !CL_DemoNameCallback_f("x.dm_68", 7));
+    int before = transitions;
+    argument = "mixed.dm_68"; attempts.clear();
+    CL_PlayDemo_f(); assert(transitions == before && attempts.empty());
+    files.insert("demos/mixed.efdemo"); argument = "mixed.efdemo"; attempts.clear();
+    CL_PlayDemo_f();
+    assert(transitions == before + 1 && attempts == std::vector<std::string>{"demos/mixed.efdemo"});
+    profile.id = COM_GAME_QUAKE3; before = transitions; attempts.clear();
+    CL_PlayDemo_f(); assert(transitions == before && attempts.empty());
+    assert(!CL_DemoNameCallback_f("x.efdemo", 8));
 }
 '''
         with tempfile.TemporaryDirectory() as tmp:

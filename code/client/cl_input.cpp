@@ -28,6 +28,7 @@ extern "C" {
 #include "client_cpp.h"
 #include "input_compat.hpp"
 #include "../compat/rtcw_game_abi.h"
+#include "../compat/stvef_game_abi.h"
 #include "../qcommon/netchan_safety.hpp"
 
 #include <array>
@@ -509,6 +510,7 @@ static bool IN_CommandBindingEnabled( const InputCommandBinding& binding ) {
 	if ( binding.rtcwOnly && !Com_GameIsRTCW() ) return false;
 	if ( binding.profile == COM_GAME_RTCW_SP ) return Com_GameIsRTCWSP();
 	if ( binding.profile == COM_GAME_RTCW_MP ) return Com_GameIsRTCWMP();
+	if ( binding.profile == COM_GAME_STVEF_MP ) return Com_GameIsSTVEFMP();
 	return true;
 }
 
@@ -600,6 +602,12 @@ static constexpr std::array kInputCommandBindings{
 	InputCommandBinding{ "-wbutton7", IN_RTCWButtonUp<7>, true },
 	InputCommandBinding{ "+kick", IN_RTCWButtonDown<8>, true },
 	InputCommandBinding{ "-kick", IN_RTCWButtonUp<8>, true },
+	// Elite Force binds alternate fire and use to buttons 5 and 6 (stvoyHM.exe
+	// shares the +button5 and +button6 handlers, 0x409890 and 0x409930).
+	InputCommandBinding{ "+altattack", IN_ButtonDown<5>, false, COM_GAME_STVEF_MP },
+	InputCommandBinding{ "-altattack", IN_ButtonUp<5>, false, COM_GAME_STVEF_MP },
+	InputCommandBinding{ "+use", IN_ButtonDown<6>, false, COM_GAME_STVEF_MP },
+	InputCommandBinding{ "-use", IN_ButtonUp<6>, false, COM_GAME_STVEF_MP },
 	InputCommandBinding{ "+mlook", IN_MLookDown },
 	InputCommandBinding{ "-mlook", IN_MLookUp },
 };
@@ -1158,8 +1166,11 @@ static void CL_CmdButtons( usercmd_t *cmd ) {
 	// send a button bit even if the key was pressed and released in
 	// less than a frame
 	//
+	// Elite Force's command has one button byte: seven buttons, then "any key".
+	const std::size_t buttonCount = Com_GameIsSTVEFMP()
+		? FNTECH3_STVEF_MP_BUTTON_COUNT : in_buttons.size();
 	for ( std::size_t i = 0; i < in_buttons.size(); i++ ) {
-		if ( in_buttons[i].active || in_buttons[i].wasPressed ) {
+		if ( i < buttonCount && ( in_buttons[i].active || in_buttons[i].wasPressed ) ) {
 			cmd->buttons |= 1 << static_cast<int>( i );
 		}
 		in_buttons[i].wasPressed = false;
@@ -1182,7 +1193,8 @@ static void CL_CmdButtons( usercmd_t *cmd ) {
 	// allow the game to know if any key at all is
 	// currently pressed, even if it isn't bound to anything
 	if ( anykeydown && !gameplayInputCaptured ) {
-		cmd->buttons |= Com_GameIsRTCW() ? FNTECH3_RTCW_BUTTON_ANY : BUTTON_ANY;
+		cmd->buttons |= Com_GameIsRTCW() ? FNTECH3_RTCW_BUTTON_ANY :
+			Com_GameIsSTVEFMP() ? FNTECH3_STVEF_MP_BUTTON_ANY : BUTTON_ANY;
 	}
 }
 
@@ -1544,7 +1556,14 @@ void CL_WritePacket( int repeat ) {
 
 	MSG_Init( &buf, data.data(), Netchan_MessageLimit( CL_ActiveWireProfile() ) );
 
-	MSG_Bitstream( &buf );
+	// Elite Force Holomatch writes raw bits and ends where its data ends
+	// (stvoyHM.exe CL_WritePacket 0x40a660).
+	const bool stvef = CL_STVEFFraming() != qfalse;
+	if ( stvef ) {
+		MSG_STVEFBitstream( &buf );
+	} else {
+		MSG_Bitstream( &buf );
+	}
 	// write the current serverId so the server
 	// can tell if this is from the current gameState
 	MSG_WriteLong( &buf, cl.serverId );
@@ -1649,7 +1668,9 @@ void CL_WritePacket( int repeat ) {
 		Com_Printf( "%i ", buf.cursize );
 	}
 
-	MSG_WriteByte( &buf, clc_EOF );
+	if ( !stvef ) {
+		MSG_WriteByte( &buf, clc_EOF );
+	}
 
 	if ( buf.overflowed ) {
 		if ( cls.state >= CA_CONNECTED && cls.state != CA_CINEMATIC ) {

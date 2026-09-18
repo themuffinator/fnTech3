@@ -1224,6 +1224,13 @@ stvef_vm_rounding_tests = executable('fntech3_stvef_vm_rounding_tests',
 )
 test('fntech3_stvef_vm_rounding', stvef_vm_rounding_tests)
 
+stvef_client_wire_tests = executable('fntech3_stvef_client_wire_tests',
+  'tests/stvef_client_wire_tests.cpp',
+  include_directories: include_directories('code/qcommon'),
+  cpp_args: common_cpp_args,
+)
+test('fntech3_stvef_client_wire', stvef_client_wire_tests)
+
 wolfet_client_boundary_tests = executable('fntech3_wolfet_client_boundary_tests',
   'tests/wolfet_client_boundary_tests.cpp',
   include_directories: include_directories('code/qcommon', 'code/compat', 'code/client'),

@@ -49,6 +49,8 @@ static struct {
 } clc;
 static netchanWireProfile_t activeProfile;
 static netchanWireProfile_t CL_ActiveWireProfile() { return activeProfile; }
+constexpr const char *STVEF_DEMOEXT = "efdemo";
+static qboolean CL_STVEFFraming() { return ToQboolean(activeProfile == NETCHAN_WIRE_STVEF_HM); }
 static std::vector<int> writes;
 static int closes, removals;
 static std::string finalName, printed;
@@ -81,7 +83,9 @@ static void Check(netchanWireProfile_t profile,bool extended,bool staleCompat,
     if (staleCompat) clc.dm68compat = qtrue;
     writes.clear(); closes = removals = 0; finalName.clear(); printed.clear();
     CL_StopRecord_f();
-    assert(finalName == "demos/probe.dm_" + std::to_string(expected));
+    // Elite Force names its demos after the game, not the protocol.
+    assert(finalName == (profile == NETCHAN_WIRE_STVEF_HM ? std::string("demos/probe.efdemo")
+        : "demos/probe.dm_" + std::to_string(expected)));
     assert(writes == std::vector<int>({-1,-1}) && closes == 1 && removals == 1);
     assert(!clc.demorecording && !clc.spDemoRecording);
     assert(printed == "Stopped demo recording.\n");
@@ -107,6 +111,8 @@ int main() {
     Check(NETCHAN_WIRE_RTCW_MP,false,false,false,0,60);
     Check(NETCHAN_WIRE_RTCW_MP,false,true,false,0,60);
     Check(NETCHAN_WIRE_RTCW_MP,false,false,true,0,60);
+    Check(NETCHAN_WIRE_STVEF_HM,false,false,false,0,24);
+    Check(NETCHAN_WIRE_STVEF_HM,false,true,true,0,24);
 }
 '''
         scratch = ROOT / ".tmp"
@@ -143,7 +149,7 @@ int main() {
 #include <string>
 typedef int qboolean;
 enum { qfalse, qtrue, FS_INVALID_HANDLE = -1, MAX_OSPATH = 128, CA_CONNECTED = 5, CA_ACTIVE = 8 };
-enum { COM_GAME_QUAKE3, COM_GAME_RTCW_SP, COM_GAME_RTCW_MP };
+enum { COM_GAME_QUAKE3, COM_GAME_RTCW_SP, COM_GAME_RTCW_MP, COM_GAME_STVEF_MP };
 #define S_COLOR_YELLOW "^3"
 #define Com_sprintf snprintf
 struct qtime_t { int tm_year, tm_mon, tm_mday, tm_hour, tm_min, tm_sec; };
@@ -160,9 +166,11 @@ static int game = COM_GAME_QUAKE3, gamestates;
 static float synchronous;
 static std::string argument, printed, opened;
 static int Com_GameIsRTCWSP() { return game == COM_GAME_RTCW_SP; }
+static int Com_GameIsSTVEFMP() { return game == COM_GAME_STVEF_MP; }
 static netchanWireProfile_t CL_ActiveWireProfile() {
     return game == COM_GAME_RTCW_SP ? NETCHAN_WIRE_RTCW_SP :
-        game == COM_GAME_RTCW_MP ? NETCHAN_WIRE_RTCW_MP : NETCHAN_WIRE_LEGACY_Q3;
+        game == COM_GAME_RTCW_MP ? NETCHAN_WIRE_RTCW_MP :
+        game == COM_GAME_STVEF_MP ? NETCHAN_WIRE_STVEF_HM : NETCHAN_WIRE_LEGACY_Q3;
 }
 static int Cmd_Argc() { return argument.empty() ? 1 : 2; }
 static const char *Cmd_Argv(int) { return argument.c_str(); }
@@ -181,6 +189,7 @@ static const char *COM_GetExtension(const char *name) {
     const char *dot = std::strrchr(name, '.'); return dot ? dot + 1 : "";
 }
 static qboolean CL_IsLegacyDemoExt(const char *) { return qfalse; }
+static bool CL_IsSTVEFDemoExt(const char *) { return false; }
 static bool CL_ParseDemoProtocolExtension(const char *, int *) { return false; }
 static bool CL_DemoProtocolSupported(int) { return false; }
 static void Q_strncpyz(char *out, const char *in, int size) { snprintf(out, size, "%s", in); }
@@ -218,6 +227,9 @@ int main() {
     Record(COM_GAME_RTCW_SP, 1.0f, true, true, false, false);
     /* Original SP tests the float value; the shared advice tests the integer. */
     Record(COM_GAME_RTCW_SP, 0.5f, true, true, false, true);
+    // Retail Elite Force Holomatch refuses as original RTCW SP does.
+    Record(COM_GAME_STVEF_MP, 0.0f, true, false, true, false);
+    Record(COM_GAME_STVEF_MP, 1.0f, false, true, false, false);
     // MP and Q3 keep their warning and record anyway.
     Record(COM_GAME_RTCW_MP, 0.0f, true, true, false, true);
     Record(COM_GAME_RTCW_MP, 0.0f, false, true, false, false);

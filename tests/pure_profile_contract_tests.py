@@ -120,6 +120,7 @@ static void SV_SendClientSnapshot(client_t *client) { assert(client->state == CS
 static void SV_DropClient(client_t *,const char *) { ++drops; }
 static bool legacyFraming; // Elite Force Holomatch: its cp names no server id.
 static bool SV_LegacyFraming(const client_t *) { return legacyFraming; }
+static qboolean CL_STVEFFraming() { return legacyFraming ? qtrue : qfalse; }
 '''
 
 
@@ -160,11 +161,16 @@ int main() {
     client_t stale = Verify("cp 16 11 22 @ 11 22 99 122");
     assert(!stale.gotCP && !stale.pureAuthentic && !drops && !snapshots);
     legacyFraming = true; /* Holomatch: cp cgame ui @ refs... mixed. */
+    CL_SendPureChecksums();
+    assert(sent == "cp 11 22 @ 11 22 99 122 ");
+    assert(Verify(sent).pureAuthentic && !drops);
     assert(Verify("cp 11 22 @ 11 22 99 122").pureAuthentic && !drops);
     assert(Verify("cp 11 22 @ 7").pureAuthentic);
     Reject("cp 17 11 22 @ 11 22 99 122");
     Reject("cp 11 22 @");
     legacyFraming = false;
+    CL_SendPureChecksums();
+    assert(sent == "cp 17 11 22 @ 11 22 99 122 ");
     missingUi = true;
     Reject(sent);
     missingUi = false;
