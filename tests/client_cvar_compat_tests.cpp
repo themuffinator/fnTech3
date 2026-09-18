@@ -113,9 +113,9 @@ void TestRetailVideoConfigOwnership()
 	using fnql::client::cvars::RetailVideoConfigInputs;
 	using fnql::client::cvars::UsesRetailVideoConfig;
 
-	// Retail Q3, RTCW and ET configs archive r_stereo and r_ext_gamma_control.
-	// Neither they, a marker left by an earlier build, nor a later change to
-	// r_windowedMode makes those profiles use QL's video config.
+	// Retail Q3, RTCW and ET configs archive r_stereo. Neither they, a marker
+	// left by an earlier build, nor a later change to r_windowedMode makes
+	// those profiles use QL's video config.
 	RetailVideoConfigInputs inputs;
 	inputs.hadRetailVideoCvars = true;
 	CHECK( !UsesRetailVideoConfig( inputs ) );

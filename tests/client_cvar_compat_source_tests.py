@@ -187,9 +187,8 @@ class ClientCvarCompatibilitySourceTests(unittest.TestCase):
         self.assertIn("Sys_IsLANAddress( &clc.serverAddress )", self.cgame)
 
     def test_retail_video_config_belongs_to_quake_live(self) -> None:
-        # Retail Q3, RTCW and ET configs archive r_stereo and
-        # r_ext_gamma_control too. Only a QL config may replace r_stereoEnabled
-        # and r_ignorehwgamma or free r_windowedMode from r_mode.
+        # Retail Q3, RTCW and ET configs archive r_stereo too. Only a QL config
+        # may replace r_stereoEnabled or free r_windowedMode from r_mode.
         start = self.main.index("static void CL_InitGLimp_Cvars( void )\n{")
         body = self.main[start:self.main.index("\n}\n", start)]
         self.assertIn("retailVideo.quakeLive = Com_GameIsQuakeLive() != 0;", body)
@@ -207,13 +206,10 @@ class ClientCvarCompatibilitySourceTests(unittest.TestCase):
         bridge = body[body.index("if ( useRetailVideoConfig ) {"):]
         bridge = bridge[:bridge.index("}")]
         self.assertIn('Cvar_Set( "r_stereoEnabled", r_stereo->string );', bridge)
-        self.assertIn('Cvar_Set( "r_ignoreHWGamma",', bridge)
-        for name in ("r_stereoEnabled", "r_ignoreHWGamma"):
-            with self.subTest(name=name):
-                writes = re.findall(
-                    rf'Cvar_Set2?\(\s*"{name}"', self.client_sources, re.IGNORECASE
-                )
-                self.assertEqual(1, len(writes))
+        writes = re.findall(
+            r'Cvar_Set2?\(\s*"r_stereoEnabled"', self.client_sources, re.IGNORECASE
+        )
+        self.assertEqual(1, len(writes))
         migration = body[body.index("if ( !useRetailVideoConfig ) {"):]
         self.assertIn('Cvar_Set2( "r_windowedMode", r_mode->string, qtrue );', migration)
         self.assertIn(
@@ -225,6 +221,31 @@ class ClientCvarCompatibilitySourceTests(unittest.TestCase):
         policy = policy[policy.index("constexpr bool UsesRetailVideoConfig("):]
         self.assertRegex(
             policy, r"\{\s*if \( !inputs\.quakeLive \) \{\s*return false;\s*\}"
+        )
+
+    def test_r_ext_gamma_control_never_selects_hardware_gamma(self) -> None:
+        # In retail quakelive_steam.exe, GetDeviceGammaRamp (0x469b00) and the
+        # gamma set path (0x469c30) test r_ignoreHWGamma alone, and
+        # r_ext_gamma_control only chooses WGL_3DFX_gamma_control (0x46b302),
+        # as in Q3 1.32. The client keeps r_ext_gamma_control for configs, but
+        # never writes r_ignorehwgamma, and neither the value nor a change of
+        # r_ext_gamma_control claims the retail video config.
+        client = "\n".join(
+            path.read_text(encoding="utf-8")
+            for path in sorted((ROOT / "code/client").rglob("*"))
+            if path.suffix in (".c", ".cpp", ".h", ".hpp", ".inl")
+        )
+        self.assertEqual(
+            [], re.findall(r'Cvar_Set\w*\(\s*"r_ignorehwgamma"', client, re.IGNORECASE)
+        )
+        self.assertNotIn("r_ext_gamma_control->", client)
+        self.assertEqual(
+            [], re.findall(r'Cvar_Variable\w*\(\s*"r_ext_gamma_control"', client)
+        )
+        self.assertIn(
+            'Cvar_SetDescription( r_ext_gamma_control, "Retail 3Dfx gamma extension '
+            'switch, kept for configs; r_ignorehwgamma gates hardware gamma." );',
+            self.main,
         )
 
     def test_fnql_extensions_remain_available(self) -> None:

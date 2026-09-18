@@ -518,7 +518,6 @@ static int retailWindowedModeModificationCount;
 static int retailWindowedWidthModificationCount;
 static int retailWindowedHeightModificationCount;
 static int retailStereoModificationCount;
-static int retailGammaModificationCount;
 
 cvar_t *r_colorbits;
 // these also shared with renderers:
@@ -3073,14 +3072,12 @@ static void CL_UpdateRetailVideoBridgeOwnership( void ) {
 	if ( r_windowedMode->modificationCount != retailWindowedModeModificationCount
 		|| r_windowedWidth->modificationCount != retailWindowedWidthModificationCount
 		|| r_windowedHeight->modificationCount != retailWindowedHeightModificationCount
-		|| r_stereo->modificationCount != retailStereoModificationCount
-		|| r_ext_gamma_control->modificationCount != retailGammaModificationCount ) {
+		|| r_stereo->modificationCount != retailStereoModificationCount ) {
 		Cvar_Set2( "r_qlRetailVideoBridge", "1", qtrue );
 		retailWindowedModeModificationCount = r_windowedMode->modificationCount;
 		retailWindowedWidthModificationCount = r_windowedWidth->modificationCount;
 		retailWindowedHeightModificationCount = r_windowedHeight->modificationCount;
 		retailStereoModificationCount = r_stereo->modificationCount;
-		retailGammaModificationCount = r_ext_gamma_control->modificationCount;
 	}
 }
 
@@ -5741,8 +5738,8 @@ static bool isValidRenderer( const char *s ) {
 static void CL_InitGLimp_Cvars( void )
 {
 	// Only Quake Live's configs select the retail video cvars; see
-	// UsesRetailVideoConfig. The other profiles keep r_mode, r_ignorehwgamma
-	// and r_stereoEnabled as configured.
+	// UsesRetailVideoConfig. The other profiles keep r_mode and r_stereoEnabled
+	// as configured, and every profile keeps r_ignorehwgamma as configured.
 	fnql::client::cvars::RetailVideoConfigInputs retailVideo;
 	retailVideo.quakeLive = Com_GameIsQuakeLive() != 0;
 	retailVideo.initialized = retailVideoCvarsInitialized;
@@ -5750,8 +5747,7 @@ static void CL_InitGLimp_Cvars( void )
 	retailVideo.hadRetailVideoCvars = Cvar_VariableString( "r_windowedMode" )[0]
 		|| Cvar_VariableString( "r_windowedWidth" )[0]
 		|| Cvar_VariableString( "r_windowedHeight" )[0]
-		|| Cvar_VariableString( "r_stereo" )[0]
-		|| Cvar_VariableString( "r_ext_gamma_control" )[0];
+		|| Cvar_VariableString( "r_stereo" )[0];
 	bool useRetailVideoConfig;
 
 	r_aspectRatio = Cvar_Get( "r_aspectRatio", "0", CVAR_ARCHIVE | CVAR_LATCH | CVAR_CLOUD );
@@ -5774,10 +5770,11 @@ static void CL_InitGLimp_Cvars( void )
 	r_noFastRestart = Cvar_Get( "r_noFastRestart", "0", CVAR_ARCHIVE );
 	Cvar_CheckRange( r_noFastRestart, "0", "1", CV_INTEGER );
 	Cvar_SetDescription( r_noFastRestart, "Force vid_restart fast/keep_window to perform a complete video restart." );
+	// Retail QL, like Q3 1.32, reads r_ext_gamma_control only to choose
+	// WGL_3DFX_gamma_control and gates hardware gamma on r_ignoreHWGamma alone.
+	// It stays registered so that configs keep it; nothing reads it.
 	r_ext_gamma_control = Cvar_Get( "r_ext_gamma_control", "1", CVAR_ARCHIVE | CVAR_LATCH | CVAR_CLOUD );
-	Cvar_SetDescription( r_ext_gamma_control, retailVideo.quakeLive
-		? "Permit platform hardware gamma control; bridged to r_ignoreHWGamma."
-		: "Retail 3Dfx gamma extension switch, kept for configs; r_ignorehwgamma gates hardware gamma." );
+	Cvar_SetDescription( r_ext_gamma_control, "Retail 3Dfx gamma extension switch, kept for configs; r_ignorehwgamma gates hardware gamma." );
 	r_gl_vendor = Cvar_Get( "r_gl_vendor", "", CVAR_ROM | CVAR_PROTECTED );
 	Cvar_SetDescription( r_gl_vendor, "Active renderer vendor string." );
 	r_gl_renderer = Cvar_Get( "r_gl_renderer", "", CVAR_ROM | CVAR_PROTECTED );
@@ -5799,20 +5796,17 @@ static void CL_InitGLimp_Cvars( void )
 		r_windowedMode->modificationCount != retailWindowedModeModificationCount
 		|| r_windowedWidth->modificationCount != retailWindowedWidthModificationCount
 		|| r_windowedHeight->modificationCount != retailWindowedHeightModificationCount
-		|| r_stereo->modificationCount != retailStereoModificationCount
-		|| r_ext_gamma_control->modificationCount != retailGammaModificationCount;
+		|| r_stereo->modificationCount != retailStereoModificationCount;
 	useRetailVideoConfig = fnql::client::cvars::UsesRetailVideoConfig( retailVideo );
 	if ( useRetailVideoConfig ) {
 		Cvar_Set2( "r_qlRetailVideoBridge", "1", qtrue );
 		Cvar_Set( "r_stereoEnabled", r_stereo->string );
-		Cvar_Set( "r_ignoreHWGamma", r_ext_gamma_control->integer ? "0" : "1" );
 	}
 	retailVideoCvarsInitialized = true;
 	retailWindowedModeModificationCount = r_windowedMode->modificationCount;
 	retailWindowedWidthModificationCount = r_windowedWidth->modificationCount;
 	retailWindowedHeightModificationCount = r_windowedHeight->modificationCount;
 	retailStereoModificationCount = r_stereo->modificationCount;
-	retailGammaModificationCount = r_ext_gamma_control->modificationCount;
 
 	// shared with GLimp
 	r_allowSoftwareGL = Cvar_Get( "r_allowSoftwareGL", "0", CVAR_LATCH );

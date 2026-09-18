@@ -165,14 +165,15 @@ struct RetailVideoConfigInputs {
 
 /*
 Only Quake Live's retail engine selects its window with r_windowedMode,
-r_windowedWidth and r_windowedHeight, so only its configs make those cvars,
-r_stereo and r_ext_gamma_control the video configuration. The first renderer
-start adopts a config without the ownership marker, which retail QL wrote, and
-later renderer starts adopt changes to the retail cvars. Once adopted, the
-marker keeps them in charge. Q3, RTCW and ET configs archive r_stereo and
-r_ext_gamma_control as well, but those engines select the window with r_mode
-and gate hardware gamma with r_ignorehwgamma, so r_mode, r_ignorehwgamma and
-r_stereoEnabled stay in charge there.
+r_windowedWidth and r_windowedHeight, so only its configs make those cvars and
+r_stereo the video configuration. The first renderer start adopts a config
+without the ownership marker, which retail QL wrote, and later renderer starts
+adopt changes to the retail cvars. Once adopted, the marker keeps them in
+charge. Q3, RTCW and ET configs archive r_stereo as well, but those engines
+select the window with r_mode, so r_mode and r_stereoEnabled stay in charge
+there. r_ext_gamma_control is not a video cvar in any profile: every retail
+engine, QL included, reads it only to choose WGL_3DFX_gamma_control and gates
+hardware gamma with r_ignorehwgamma alone, which keeps its configured value.
 */
 [[nodiscard]] constexpr bool UsesRetailVideoConfig(
 	const RetailVideoConfigInputs& inputs ) noexcept

@@ -31,16 +31,20 @@ Retail-specific behavior covered by the common renderer contract includes:
 - `r_aspectRatio`, the windowed-mode aliases, `r_stereo`,
   `r_ext_gamma_control`, and `r_noFastRestart` at the client/video boundary.
 
-Only the Quake Live profile treats the windowed-mode aliases, `r_stereo` and
-`r_ext_gamma_control` as its video configuration. There, a retail config or a
-change to one of them sets `r_qlRetailVideoBridge`, keeps `r_windowedMode`
-independent from `r_mode`, and carries `r_stereo` and `r_ext_gamma_control`
-into `r_stereoEnabled` and `r_ignoreHWGamma`. Retail Q3, RTCW and ET configs
-archive `r_stereo` and `r_ext_gamma_control` too, but those engines select the
-window with `r_mode` and gate hardware gamma with `r_ignorehwgamma`. Those
-profiles therefore never register the marker: `r_windowedMode` follows `r_mode`
-at every renderer start, and `r_ignorehwgamma` and `r_stereoEnabled` keep their
-configured values.
+Only the Quake Live profile treats the windowed-mode aliases and `r_stereo` as
+its video configuration. There, a retail config or a change to one of them sets
+`r_qlRetailVideoBridge`, keeps `r_windowedMode` independent from `r_mode`, and
+carries `r_stereo` into `r_stereoEnabled`. Retail Q3, RTCW and ET configs
+archive `r_stereo` too, but those engines select the window with `r_mode`.
+Those profiles therefore never register the marker: `r_windowedMode` follows
+`r_mode` at every renderer start, and `r_stereoEnabled` keeps its configured
+value.
+
+`r_ext_gamma_control` is registered in every profile so that retail configs
+keep it, but nothing reads it. Every retail engine, Quake Live included, reads
+it only to choose the `WGL_3DFX_gamma_control` extension, and gates hardware
+gamma on `r_ignorehwgamma` alone. `r_ignorehwgamma` therefore keeps its
+configured value in every profile and is the only switch for hardware gamma.
 
 The retail aspect classifier publishes `1` for ratios at least 16:9, `2` for
 ratios at least 16:10 but below 16:9, `3` below 4:3, and `0` otherwise. The

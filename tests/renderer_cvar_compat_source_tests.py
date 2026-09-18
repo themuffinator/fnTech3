@@ -168,6 +168,23 @@ class RendererCvarCompatibilitySourceTests(unittest.TestCase):
             client,
         )
         self.assertIn('Cvar_Set2( "r_qlRetailVideoBridge", "1", qtrue )', client)
+        # r_ext_gamma_control is registered for retail configs only. Each
+        # renderer's r_ignorehwgamma alone gates hardware gamma, and the client
+        # never writes it.
+        self.assertNotRegex(client, r'(?i)Cvar_Set\w*\(\s*"r_ignorehwgamma"')
+        for renderer in RENDERERS:
+            with self.subTest(renderer=renderer):
+                init = read(f"code/{renderer}/tr_init.c")
+                self.assertIn(
+                    'r_ignorehwgamma = ri.Cvar_Get( "r_ignorehwgamma", "0", '
+                    "CVAR_ARCHIVE_ND | CVAR_LATCH )",
+                    init,
+                )
+                self.assertRegex(
+                    init,
+                    r"if \( r_ignorehwgamma->integer \)\s*"
+                    r"glConfig\.deviceSupportsGamma = qfalse;",
+                )
         self.assertNotIn('Cvar_Set( "r_mode", r_windowedMode->string )', client)
         self.assertIn("CL_GetRequestedMode( qboolean fullscreen )", client)
         self.assertIn('Cvar_Set( "r_stereoEnabled", r_stereo->string )', client)

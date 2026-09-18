@@ -72,10 +72,13 @@ that the client routes the decision through it.
 
 ## Not changed
 
-- QL still copies `!r_ext_gamma_control` into `r_ignoreHWGamma`, which the
+- QL still copied `!r_ext_gamma_control` into `r_ignoreHWGamma`, which the
   retail code above does not do. The retail `qzconfig.cfg` holds
-  `r_ignoreHWGamma "1"` and ends at `0` with hardware gamma here, before and
-  after this change; by that code, retail QL would draw it with software gamma.
+  `r_ignoreHWGamma "1"` and ended at `0` with hardware gamma, before and after
+  this change; by that code, retail QL would draw it with software gamma. A
+  later change removed the copy, and QL now keeps `r_ignoreHWGamma` as
+  configured: see
+  [Quake Live keeps r_ignoreHWGamma as configured](2026-09-18-ql-hardware-gamma.md).
 - In Q3, RTCW and ET, a window resized by dragging keeps its size for the
   session. The next restart that recreates the window returns to `r_mode`.
   Upstream Quake3e's resize handler does not write `r_mode` either.
