@@ -9,6 +9,11 @@ ROOT = Path(__file__).resolve().parents[1]
 
 PRELUDE = r'''
 #include "code/qcommon/q_shared.h"
+// q_math.c includes this just above the extracted Q_rsqrt; x64 MSVC-ABI
+// compilers take its _MSC_SSE2 branch.
+#ifdef _MSC_SSE2
+#include <intrin.h>
+#endif
 #include "code/qcommon/qfiles.h"
 #include "code/qcommon/game_profile.h"
 #include "code/renderercommon/tr_mdc_decode.h"
