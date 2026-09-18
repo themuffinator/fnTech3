@@ -5,6 +5,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 BACKEND = r'''
 #include "code/compat/rtcw_key_adapter.h"
+#include "code/compat/rtcw_key_names.hpp"
 #include "code/client/keys.h"
 static const char *keyBindings[MAX_KEYS];
 static bool keyDown[MAX_KEYS];
@@ -58,8 +59,11 @@ static void CheckRTCWKeyImports(intptr_t (*dispatch)(intptr_t *), bool ui) {
             183, (intptr_t)buffer.value, 7};
         assert(dispatch(read) == 0 && keyObserved == K_MWHEELDOWN && lastBounds == 7);
         assert(!std::strcmp(buffer.value, "bindin") && buffer.before == 'B' && buffer.after == 'A');
+        // Names come from the module's own key number, as original RTCW's
+        // translated lookup does, without consulting the engine's key state.
         read[0] = Ordinal(profile.id, ui ? Call::UI_KEY_KEYNUMTOSTRINGBUF : Call::CG_KEY_KEYNUMTOSTRINGBUF);
-        assert(dispatch(read) == 0 && keyObserved == K_MWHEELDOWN);
+        const int named = keyReads;
+        assert(dispatch(read) == 0 && keyReads == named);
         assert(!std::strcmp(buffer.value, "MWHEEL") && buffer.before == 'B' && buffer.after == 'A');
         read[0] = Ordinal(profile.id, ui ? Call::UI_KEY_GETBINDINGBUF : Call::CG_KEY_GETBINDINGBUF);
         read[1] = 184;

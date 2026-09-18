@@ -52,6 +52,8 @@ const comGameProfile_t *Com_GameProfile(void) { return &profile; }
 int Com_GameIsRTCW(void) { return profile.id == COM_GAME_RTCW_SP || profile.id == COM_GAME_RTCW_MP; }
 int Com_GameIsRTCWSP(void) { return profile.id == COM_GAME_RTCW_SP; }
 int Com_GameIsRTCWMP(void) { return profile.id == COM_GAME_RTCW_MP; }
+// Only the key-name import reads a cvar by name here; English names.
+int Cvar_VariableIntegerValue(const char *name) { assert(!std::strcmp(name, "cl_language")); return 0; }
 int Com_GameIsWolfET(void) { return profile.id == COM_GAME_WOLFET; }
 // ET's independent game and UI boundaries are exercised by wolfet tests and
 // probes. This fixture drives only RTCW, so ET declines every call here.

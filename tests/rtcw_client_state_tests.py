@@ -105,6 +105,9 @@ int Com_GameIsWolfET(void) { return profile.id == COM_GAME_WOLFET; }
 // fixture drives only RTCW, so ET declines every call here.
 static bool CL_WolfETCgameCall(intptr_t *, intptr_t &, intptr_t &) { return false; }
 int Com_GameIsRTCWSP(void) { return profile.id == COM_GAME_RTCW_SP; }
+int Com_GameIsRTCWMP(void) { return profile.id == COM_GAME_RTCW_MP; }
+// Only the key-name import reads a cvar by name here; English names.
+int Cvar_VariableIntegerValue(const char *name) { assert(!std::strcmp(name, "cl_language")); return 0; }
 static intptr_t CL_CGameTrapForProfile(intptr_t call) { return call; }
 struct vm_s { int privateFlag; void *entryPoint, *dllExports; byte *dataBase; int exactDataLength; };
 #include "code/client/client_rtcw_sound_name.hpp"
