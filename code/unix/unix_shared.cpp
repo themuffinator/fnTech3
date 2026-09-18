@@ -359,6 +359,30 @@ int Sys_Remove( const char *ospath ) {
 
 /*
 ==============
+Sys_RemoveDirectory
+
+Removes an empty directory. Returns 0 on success, like Sys_Remove.
+==============
+*/
+int Sys_RemoveDirectory( const char *ospath ) {
+	return rmdir( ospath );
+}
+
+
+/*
+==============
+Sys_IsDirectory
+==============
+*/
+qboolean Sys_IsDirectory( const char *ospath ) {
+	struct stat info;
+	if ( stat( ospath, &info ) != 0 ) return qfalse;
+	return S_ISDIR( info.st_mode ) ? qtrue : qfalse;
+}
+
+
+/*
+==============
 Sys_ReplaceFile
 
 POSIX rename atomically replaces a file within the same filesystem.

@@ -16,9 +16,7 @@ REFUSED_BY_ET_ITSELF = {
     'UI_LAN_GETLOCALSERVERCOUNT': 57, 'UI_LAN_GETLOCALSERVERADDRESSSTRING': 58,
     'UI_LAN_GETGLOBALSERVERCOUNT': 59, 'UI_LAN_GETGLOBALSERVERADDRESSSTRING': 60,
 }
-OPEN = dict(REFUSED_BY_ET_ITSELF, **{
-    'UI_FS_DELETEFILE': 20,
-    'UI_CL_TRANSLATE_STRING': 108, 'UI_OPENURL': 109,
+OPEN = dict(REFUSED_BY_ET_ITSELF, **{ 'UI_OPENURL': 109,
 })
 
 
@@ -57,7 +55,7 @@ class WolfETUIImportTests(unittest.TestCase):
         self.assertEqual(len(declared), 121)
         handled = _handled() & set(declared)
         self.assertEqual(sorted(set(declared) - handled), sorted(OPEN))
-        self.assertEqual(len(handled), 112)
+        self.assertEqual(len(handled), 114)
 
     def test_open_ordinals_match_the_declared_ones(self):
         declared = _imports()
@@ -97,8 +95,8 @@ class WolfETUIImportTests(unittest.TestCase):
 
     def test_the_record_names_what_et_itself_refuses(self):
         record = RECORD.read_text(encoding='utf-8')
-        self.assertIn('112 are handled', record)
-        self.assertIn('The 9 that remain open', record)
+        self.assertIn('114 are handled', record)
+        self.assertIn('The 7 that remain open', record)
         for ordinal in sorted(REFUSED_BY_ET_ITSELF.values()):
             self.assertRegex(record, r'\b%d\b' % ordinal,
                              'ordinal %d refused by ET itself is unrecorded' % ordinal)

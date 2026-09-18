@@ -917,6 +917,89 @@ void FS_HomeRemove( const char *osPath )
 }
 
 
+/*
+===========
+FS_WolfETDelete
+
+Enemy Territory's own delete. It reaches only three named folders under the
+home game directory, and a directory is removed with everything inside it.
+Returns 1 when the path is gone, 0 otherwise, as ET's does.
+===========
+*/
+static int FS_WolfETDeleteTree( const char *relative, int depth )
+{
+	char **files;
+	int count, i, ok;
+	char *ospath;
+
+	/* A profile directory is one level deep in every ET installation; refuse to
+	 * walk further rather than follow an unexpectedly deep tree. */
+	if ( depth > 4 ) {
+		return 0;
+	}
+
+	ospath = FS_BuildOSPath( fs_homepath->string, fs_gamedir, relative );
+	if ( !Sys_IsDirectory( ospath ) ) {
+		return Sys_Remove( ospath ) == 0 ? 1 : 0;
+	}
+
+	/* Directories first, then the files beside them. */
+	files = Sys_ListFiles( ospath, "/", NULL, &count, qfalse );
+	ok = 1;
+	if ( files ) {
+		for ( i = 0; i < count; i++ ) {
+			char child[MAX_OSPATH];
+			if ( !Q_stricmp( files[i], "." ) || !Q_stricmp( files[i], ".." ) ) {
+				continue;
+			}
+			Com_sprintf( child, sizeof( child ), "%s/%s", relative, files[i] );
+			if ( !FS_WolfETDeleteTree( child, depth + 1 ) ) {
+				ok = 0;
+			}
+		}
+		Sys_FreeFileList( files );
+	}
+	files = Sys_ListFiles( ospath, NULL, NULL, &count, qfalse );
+	if ( files ) {
+		for ( i = 0; i < count; i++ ) {
+			char *child = FS_BuildOSPath( fs_homepath->string, fs_gamedir,
+				va( "%s/%s", relative, files[i] ) );
+			if ( Sys_Remove( child ) != 0 ) {
+				ok = 0;
+			}
+		}
+		Sys_FreeFileList( files );
+	}
+	if ( !ok ) {
+		return 0;
+	}
+	ospath = FS_BuildOSPath( fs_homepath->string, fs_gamedir, relative );
+	return Sys_RemoveDirectory( ospath ) == 0 ? 1 : 0;
+}
+
+int FS_WolfETDelete( const char *path )
+{
+	if ( !fs_searchpaths ) {
+		Com_Error( ERR_FATAL, "Filesystem call made without initialization" );
+		return 0;
+	}
+	if ( !path || !path[0] ) {
+		return 0;
+	}
+	/* ET allows deletion only from these three, and so does this. */
+	if ( Q_strncmp( path, "save/", 5 ) != 0 &&
+		Q_strncmp( path, "profiles/", 9 ) != 0 &&
+		Q_strncmp( path, "demos/", 6 ) != 0 ) {
+		return 0;
+	}
+	if ( !FS_WriteQpathIsValid( path ) ) {
+		return 0;
+	}
+	FS_CheckFilenameIsNotAllowed( path, __func__, qtrue );
+	return FS_WolfETDeleteTree( path, 0 );
+}
+
+
 /* Remove a validated path relative to fs_homepath rather than fs_gamedir. */
 void FS_SV_HomeRemove( const char *osPath )
 {

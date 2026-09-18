@@ -301,6 +301,33 @@ int Sys_Remove( const char *ospath ) {
 
 /*
 ==============
+Sys_RemoveDirectory
+
+Removes an empty directory. Returns 0 on success, like Sys_Remove.
+==============
+*/
+int Sys_RemoveDirectory( const char *ospath ) {
+	const fntech3::win::Path path( ospath );
+	return path ? _wrmdir( path.c_str() ) : -1;
+}
+
+
+/*
+==============
+Sys_IsDirectory
+==============
+*/
+qboolean Sys_IsDirectory( const char *ospath ) {
+	const fntech3::win::Path path( ospath );
+	if ( !path ) return qfalse;
+	struct _stat info;
+	if ( _wstat( path.c_str(), &info ) != 0 ) return qfalse;
+	return ( info.st_mode & _S_IFDIR ) ? qtrue : qfalse;
+}
+
+
+/*
+==============
 Sys_ReplaceFile
 
 Atomically replaces an existing destination when the filesystem supports it.

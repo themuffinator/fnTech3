@@ -60,6 +60,13 @@ using fnql::ToQboolean;
 
 static fntech3::rtcw::translation::Catalog rtcwTranslations;
 
+/* ET's localisation files were read against the pinned original and carry the
+ * same grammar as the other Wolfenstein profile's: an optional #version, then
+ * records of an English key and the same four translations, with an optional
+ * offset pair. That is an observation about two files, not a shared contract,
+ * so ET keeps its own catalogue and neither profile can see the other's. */
+static fntech3::rtcw::translation::Catalog wolfetTranslations;
+
 static void CL_RTCWNotebook_f( void ) {
 	if ( !uivm || cls.state != CA_ACTIVE || clc.demoplaying ) return;
 	Cvar_Set( "cg_youGotMail", "0" );
@@ -195,6 +202,75 @@ void CL_RTCWReloadTranslations( void ) {
 		const std::string filename = std::string( "translations/" ) + files.get()[i];
 		if ( filename.size() < MAX_QPATH ) CL_RTCWLoadTranslationFile( filename.c_str() );
 	}
+}
+
+static void CL_WolfETLoadTranslationFile( const char *filename ) {
+	ScopedFileHandle file;
+	const int bytes = OpenFileRead( filename, file );
+	if ( bytes <= 0 || !file ) return;
+	if ( static_cast<std::size_t>( bytes ) > fntech3::rtcw::translation::FileBytes ) {
+		Com_Printf( S_COLOR_YELLOW "ET translation file is too large: %s\n", filename );
+		return;
+	}
+	std::string text( static_cast<std::size_t>( bytes ), '\0' );
+	if ( FileRead( file.get(), text.data(), text.size() ) != bytes ) {
+		Com_Printf( S_COLOR_YELLOW "Incomplete ET translation file: %s\n", filename );
+		return;
+	}
+	const auto loaded = wolfetTranslations.Load( text );
+	if ( !loaded.accepted )
+		Com_Printf( S_COLOR_YELLOW "Invalid ET translation file %s near byte %u; file ignored\n",
+			filename, static_cast<unsigned>( loaded.offset ) );
+	else
+		Com_DPrintf( "Loaded %u ET translations from %s\n", static_cast<unsigned>( loaded.records ), filename );
+}
+
+void CL_WolfETReloadTranslations( void ) {
+	if ( !Com_GameIsWolfET() ) return;
+	Cvar_Get( "cl_language", "0", CVAR_ARCHIVE );
+	Cvar_Get( "cl_debugTranslation", "0", 0 );
+	wolfetTranslations.Clear();
+	CL_WolfETLoadTranslationFile( "scripts/translation.cfg" );
+	int count = 0;
+	std::unique_ptr<char *, decltype( &FS_FreeFileList )> files(
+		FS_ListFiles( "translations", ".cfg", &count ), FS_FreeFileList );
+	if ( !files || count < 0 || count > 2048 ) return;
+	for ( int i = 0; i < count; ++i ) {
+		const std::string filename = std::string( "translations/" ) + files.get()[i];
+		if ( filename.size() < MAX_QPATH ) CL_WolfETLoadTranslationFile( filename.c_str() );
+	}
+}
+
+/* ET's modules hand the engine a string and a buffer. English, an unselected
+ * language and an empty string all come back unchanged, which is what ET does;
+ * a selected language with no matching record also comes back unchanged, again
+ * as ET does on a lookup miss. Nothing is invented for a language whose file is
+ * absent. */
+void CL_WolfETTranslateString( vm_t *vm, intptr_t source, intptr_t destination ) {
+	using namespace fntech3::rtcw::translation;
+	if ( !Com_GameIsWolfET() || !vm || !destination )
+		Com_Error( ERR_DROP, "Invalid ET translation call" );
+	VM_CHECKBOUNDS( vm, destination, OutputBytes );
+	void *output = VM_ExplicitArgPtr( vm, destination );
+	if ( !output ) Com_Error( ERR_DROP, "Invalid ET translation output" );
+	std::string result = "(null)";
+	if ( source ) {
+		const char *input = static_cast<const char *>( VM_ExplicitArgPtr( vm, source ) );
+		if ( !input ) Com_Error( ERR_DROP, "Invalid ET translation input" );
+		std::size_t length = 0;
+		while ( length < OutputBytes ) {
+			VM_CHECKBOUNDS( vm, source, length + 1 );
+			if ( !input[length] ) break;
+			++length;
+		}
+		if ( length == OutputBytes ) Com_Error( ERR_DROP, "ET translation input is too long" );
+		result = wolfetTranslations.Translate( std::string_view( input, length ),
+			Cvar_VariableIntegerValue( "cl_language" ), Cvar_VariableIntegerValue( "cl_debugTranslation" ) );
+	}
+	if ( result.size() >= OutputBytes ) Com_Error( ERR_DROP, "ET translation output is too long" );
+	// The input may alias the output. No module bytes change until translation
+	// and every size check are complete.
+	std::memcpy( output, result.c_str(), result.size() + 1 );
 }
 
 void CL_RTCWTranslateString( vm_t *vm, intptr_t source, intptr_t destination ) {
@@ -6043,6 +6119,8 @@ void CL_Init( void ) {
 	//
 	CL_HudInit();
 	CL_AddRTCWCommands();
+	// ET reloads its localisation files from the same console command.
+	if ( Com_GameIsWolfET() ) Cmd_AddCommand( "LoadTranslations", CL_WolfETReloadTranslations );
 	Cmd_AddCommand ("cmd", CL_ForwardToServer_f);
 	Cmd_AddCommand ("configstrings", CL_Configstrings_f);
 	Cmd_AddCommand ("clientinfo", CL_Clientinfo_f);

@@ -52,16 +52,17 @@ one; each profile keeps its own table.
 
 ## Coverage
 
-Of the 147 imports ET's cgame declares, **134 are handled**, counting what the
-[sound](2026-09-18-wolfet-audio.md), [light](2026-09-18-wolfet-light.md) and
-[client services](2026-09-18-wolfet-client-services.md) records added after this one. The dispatcher
+Of the 147 imports ET's cgame declares, **136 are handled**, counting what the
+[sound](2026-09-18-wolfet-audio.md), [light](2026-09-18-wolfet-light.md),
+[client services](2026-09-18-wolfet-client-services.md) and
+[text and files](2026-09-18-wolfet-text-and-files.md) records added after this one. The dispatcher
 routes ET's own records and renderer services first, then its key imports, then
 a table of imports whose meaning and argument shape are already this engine's.
 An import that reaches the end of that chain is refused by name and ordinal. No
 ET argument is dropped anywhere: an import this engine cannot answer exactly is
 not answered approximately.
 
-The 13 that remain open, and why:
+The 11 that remain open, and why:
 
 | Ordinals | Imports | Why |
 | --- | --- | --- |
@@ -70,8 +71,6 @@ The 13 that remain open, and why:
 | 64 | the polygon buffer | No shared renderer service; the record is declared and checked but nothing consumes it. |
 | 68 | the global fog | No shared renderer service. Per-map fog (67) is handled. |
 | 176–178 | dynamic shaders, render to texture, texture identity | No shared renderer service. |
-| 170 | string translation | Needs ET's own localisation files. |
-| 16 | file deletion | ET's own delete also removes a directory tree, which only its UI uses. Implementing half of it would be worse than refusing it. |
 
 ## Verification
 

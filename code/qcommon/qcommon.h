@@ -1013,6 +1013,8 @@ qboolean FS_ComparePaks( char *neededpaks, int len, qboolean dlstring );
 void FS_Rename( const char *from, const char *to );
 
 void FS_HomeRemove( const char *homePath );
+// ET's own delete: a file or a whole directory, under three named folders.
+int FS_WolfETDelete( const char *path );
 void FS_SV_HomeRemove( const char *homePath );
 
 void	FS_FilenameCompletion( const char *dir, const char *ext, qboolean stripExt, void(*callback)(const char *s), int flags );
@@ -1532,6 +1534,8 @@ void		Sys_ShowIP(void);
 qboolean	Sys_Mkdir( const char *path );
 FILE	*Sys_FOpen( const char *ospath, const char *mode );
 int		Sys_Remove( const char *ospath );
+int		Sys_RemoveDirectory( const char *ospath );
+qboolean	Sys_IsDirectory( const char *ospath );
 qboolean Sys_ReplaceFile( const char *from, const char *to );
 qboolean Sys_ResetReadOnlyAttribute( const char *ospath );
 

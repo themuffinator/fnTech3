@@ -1233,6 +1233,12 @@ static bool CL_WolfETUICall( intptr_t *args, intptr_t &operation, intptr_t &resu
 		destination[0] = '\0';
 		result = qtrue; return true;
 	}
+	case Call::UI_FS_DELETEFILE:
+		result = FS_WolfETDelete( VMA(1) );
+		return true;
+	case Call::UI_CL_TRANSLATE_STRING:
+		CL_WolfETTranslateString( uivm, args[1], args[2] );
+		result = 0; return true;
 	case Call::UI_SET_PBSVSTATUS:
 		// ET's own client accepts and discards this; no anti-cheat service
 		// exists here and none is reported as present.

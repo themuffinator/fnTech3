@@ -2311,6 +2311,9 @@ static bool CL_WolfETCgameCall( intptr_t *args, intptr_t &operation, intptr_t &r
 		Cvar_LatchedVariableStringBufferSafe( VMA(1), VMA(2), static_cast<int>( args[3] ),
 			cgvm->privateFlag );
 		{ result = 0; return true; }
+	case Call::CG_FS_DELETEFILE:
+		result = FS_WolfETDelete( VMA(1) );
+		return true;
 	case Call::CG_FS_GETFILELIST:
 		VM_CHECKBOUNDS( cgvm, args[3], args[4] );
 		{ result = FS_GetFileList( VMA(1), VMA(2), VMA(3), static_cast<int>( args[4] ) ); return true; }
@@ -2410,6 +2413,9 @@ static bool CL_WolfETCgameCall( intptr_t *args, intptr_t &operation, intptr_t &r
 		if ( cls.state == CA_ACTIVE && !clc.demoplaying && uivm ) {
 			VM_Call( uivm, 1, UI_SET_ACTIVE_MENU, args[1] );
 		}
+		result = 0; return true;
+	case Call::CG_TRANSLATE_STRING:
+		CL_WolfETTranslateString( cgvm, args[1], args[2] );
 		result = 0; return true;
 	case Call::CG_INGAME_CLOSEPOPUP:
 		// Retail ET's own client performs no operation here.
