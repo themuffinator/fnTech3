@@ -1,0 +1,616 @@
+{
+  "date": "2026-09-18T06:52:24.572297+00:00",
+  "commit": "89ac8cc63962b7b0b16017e779a67a535492762d",
+  "worktreeDirty": true,
+  "worktreeNote": "Built from the shared checkout, which also held the WolfET session's uncommitted client/VM/renderer edits; none of those files is part of this slice.",
+  "scope": "Profile-owned demo protocols; RTCW MP record/replay and retail demo exchange; RTCW SP record precondition and replay refusal; Q3/QL demo non-regression.",
+  "sourceFiles": [
+    {
+      "path": "code/client/cl_main.cpp",
+      "sha256": "89dccab677307f9548466787a866cf933e5b10b82e9bf0ee41d5b5e651cf4ba2"
+    },
+    {
+      "path": "code/qcommon/common.c",
+      "sha256": "7aab3fdea80233e3c9107631f3dd8298204ae0f8006645e42a3ed81392170fef"
+    },
+    {
+      "path": "tests/demo_profile_selection_tests.py",
+      "sha256": "417e0af8376eb0a54b0c10b0912aaede51657c737227abad4abdd88ded91d942"
+    },
+    {
+      "path": "tests/demo_record_profile_tests.py",
+      "sha256": "42f195e2055a891f9349e2c87ebce71212586094129838329c7718a8f785a98b"
+    },
+    {
+      "path": "tests/rtcw_md3_normal_tests.py",
+      "sha256": "123fe2076a410c294b504c90d9b8acd54ec73a29711dda444185c89405f4e37d"
+    },
+    {
+      "path": "tests/ql_demo_source_tests.py",
+      "sha256": "1d591c393879280823d0268b6c80e65cfbe9d12b308b02f3524b049710fff522"
+    },
+    {
+      "path": "scripts/probe_demo_roundtrip.py",
+      "sha256": "06653f38dc0ba07be866494543af24b7dc0fc8db33148c1dedb24b48416886bb"
+    }
+  ],
+  "sourceReferences": [
+    {
+      "path": "E:\\_SOURCE\\_CODE\\RTCW-SP-master\\src\\client\\cl_main.c",
+      "url": "https://github.com/id-Software/RTCW-SP/blob/master/src/client/cl_main.c",
+      "license": "GPL-3.0-or-later with id Software additional terms; read only",
+      "observation": "CL_Record_f refuses without g_synchronousClients and names demos .dm_49"
+    },
+    {
+      "path": "E:\\_SOURCE\\_CODE\\RTCW-MP-master\\src\\client\\cl_main.c",
+      "url": "https://github.com/id-Software/RTCW-MP/blob/master/src/client/cl_main.c",
+      "license": "GPL-3.0-or-later with id Software additional terms; read only",
+      "observation": "CL_Record_f warns only and names demos .dm_60"
+    },
+    {
+      "path": "E:\\_SOURCE\\_CODE\\RTCW-SP-master\\src\\cgame\\cg_players.c",
+      "url": "https://github.com/id-Software/RTCW-SP/blob/master/src/cgame/cg_players.c",
+      "license": "GPL-3.0-or-later with id Software additional terms; read only",
+      "observation": "CG_CheckForExistingModelInfo requests model info from the game module"
+    },
+    {
+      "path": "E:\\_SOURCE\\_CODE\\RTCW-SP-master\\src\\server\\sv_game.c",
+      "url": "https://github.com/id-Software/RTCW-SP/blob/master/src/server/sv_game.c",
+      "license": "GPL-3.0-or-later with id Software additional terms; read only",
+      "observation": "SV_GetModelInfo calls VM_Call(gvm, GAME_GETMODELINFO, ...)"
+    }
+  ],
+  "build": {
+    "platform": "Windows x86",
+    "buildDir": "meson/build/win32-gaps",
+    "configuration": "debugoptimized, strict-warnings=true, rtcw-development=true, wolfet-development=true",
+    "command": "powershell -File .vscode/build-release.ps1 -Configuration RelWithDebInfo -BuildDir meson\\build\\win32-gaps -Target both -Renderer all -RTCWDevelopment -WolfETDevelopment",
+    "clientSha256": "55adb7cc5be3ea617cb150059a998ff9da843894e686f55751877a5cc14d7ff5",
+    "dedicatedSha256": "4b97945f2c11adbd788cc5fab71591ca2d857690c07ae000074bfd616089c71c",
+    "glxSha256": "6f12ab05057df7e42b9949b39d7fa02098adb3f5fc745f82fe66aac07738ed4b"
+  },
+  "retail": {
+    "wolfMP": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+    "wolfSP": "07d206f61da5c80562ff60d68c645bca349b31adb5d7e0e7f186d61ad46683c7"
+  },
+  "runtime": {
+    "self-q3": {
+      "scenario": "self",
+      "profile": "q3",
+      "start": [
+        "+devmap",
+        "q3dm17"
+      ],
+      "record": {
+        "command": "+set com_gameProfile q3 +set fs_basepath C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-demos\\final\\self-q3\\record-home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_windowedMode -1 +set r_windowedWidth 800 +set r_windowedHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_ip 127.0.0.1 +set net_port 0 +set net_ip6 ::1 +set net_port6 0 +devmap q3dm17",
+        "exitCode": 0,
+        "forcedTermination": false,
+        "elapsedSeconds": 13.765,
+        "screenshots": [
+          {
+            "name": "record-a.png",
+            "sha256": "3edf0eebc6b21f2c54354d3facc79a6e30154663d2f0072d4286925b02166040"
+          }
+        ],
+        "engineErrors": [],
+        "writtenFiles": [
+          "fntech3-q3-probe.dm_68"
+        ],
+        "passed": true
+      },
+      "demo": {
+        "file": "fntech3-q3-probe.dm_68",
+        "bytes": 5389,
+        "messages": 121,
+        "terminated": true,
+        "firstSequence": 62,
+        "lastSequence": 183,
+        "sequencesIncrease": true,
+        "sha256": "508133b59776e2ff6da371a2a47d60fb096922ecc210b583d0dd8d0bbfe4f5d3"
+      },
+      "playback": {
+        "command": "+set com_gameProfile q3 +set fs_basepath C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-demos\\final\\self-q3\\playback-home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_windowedMode -1 +set r_windowedWidth 800 +set r_windowedHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_ip 127.0.0.1 +set net_port 0 +set net_ip6 ::1 +set net_port6 0 +exec probe.cfg",
+        "exitCode": 0,
+        "forcedTermination": false,
+        "elapsedSeconds": 9.39,
+        "completionMarker": true,
+        "screenshots": [
+          {
+            "name": "playback-a.png",
+            "sha256": "5f26c40fefd1ec2cc3509f3e8c3130a74563b6ff980ab89e62c96c619f32bbf4"
+          },
+          {
+            "name": "playback-b.png",
+            "sha256": "866e46d38aa77859a5a8cdab7113c370aa80ad9718e609b36d6eecefd6cb4ea0"
+          }
+        ],
+        "engineErrors": [],
+        "demoFile": true,
+        "passed": true
+      },
+      "timedemoRun": {
+        "command": "+set com_gameProfile q3 +set fs_basepath C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-demos\\final\\self-q3\\timedemo-home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_windowedMode -1 +set r_windowedWidth 800 +set r_windowedHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_ip 127.0.0.1 +set net_port 0 +set net_ip6 ::1 +set net_port6 0 +exec probe.cfg",
+        "exitCode": 0,
+        "forcedTermination": false,
+        "elapsedSeconds": 1.703,
+        "completionMarker": true,
+        "screenshots": [
+          {
+            "name": "timedemo-a.png",
+            "sha256": "dc93ae6d8ae8bf018c73156b9bd6cbdc9b0fc0823888bca397ebacab91e04705"
+          },
+          {
+            "name": "timedemo-b.png",
+            "sha256": "1ac102883fe604670fe41430f8f4bd7910997ea045774c01049c65855d3961ed"
+          }
+        ],
+        "engineErrors": [],
+        "demoFile": true,
+        "timedemo": "153 frames, 0.20 seconds: 746.3 fps",
+        "passed": true
+      },
+      "passed": true,
+      "installationUnchanged": true,
+      "clientSha256": "55adb7cc5be3ea617cb150059a998ff9da843894e686f55751877a5cc14d7ff5",
+      "sourceCommit": "89ac8cc63962b7b0b16017e779a67a535492762d"
+    },
+    "self-ql": {
+      "scenario": "self",
+      "profile": "ql",
+      "start": [
+        "+map",
+        "campgrounds",
+        "ffa"
+      ],
+      "record": {
+        "command": "+set com_gameProfile ql +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Quake Live +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-demos\\final\\self-ql\\record-home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_windowedMode -1 +set r_windowedWidth 800 +set r_windowedHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_ip 127.0.0.1 +set net_port 0 +set net_ip6 ::1 +set net_port6 0 +map campgrounds ffa",
+        "exitCode": 0,
+        "forcedTermination": false,
+        "elapsedSeconds": 14.141,
+        "screenshots": [
+          {
+            "name": "record-a.png",
+            "sha256": "114ce5650969d3609c620c2af0833e7fdea65fad3159b3649a2bcdc9ecd8e5d9"
+          }
+        ],
+        "engineErrors": [],
+        "writtenFiles": [
+          "fntech3-ql-probe.dm_91"
+        ],
+        "passed": true
+      },
+      "demo": {
+        "file": "fntech3-ql-probe.dm_91",
+        "bytes": 9901,
+        "messages": 240,
+        "terminated": true,
+        "firstSequence": 122,
+        "lastSequence": 362,
+        "sequencesIncrease": true,
+        "sha256": "4e9692f034351dd3d4dc3530234c8c268056b539ec1942e9e9a00d76efc09cf2"
+      },
+      "playback": {
+        "command": "+set com_gameProfile ql +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Quake Live +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-demos\\final\\self-ql\\playback-home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_windowedMode -1 +set r_windowedWidth 800 +set r_windowedHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_ip 127.0.0.1 +set net_port 0 +set net_ip6 ::1 +set net_port6 0 +exec probe.cfg",
+        "exitCode": 0,
+        "forcedTermination": false,
+        "elapsedSeconds": 9.719,
+        "completionMarker": true,
+        "screenshots": [
+          {
+            "name": "playback-a.png",
+            "sha256": "bc56a528d01d57b31d2c0ea15268d1862594b3cd3edc745e43d2c298e55631a5"
+          },
+          {
+            "name": "playback-b.png",
+            "sha256": "01645c7692776fc0b120530ca0ec363cd1d8defad41681a2a36245adbc477ecd"
+          }
+        ],
+        "engineErrors": [],
+        "demoFile": true,
+        "passed": true
+      },
+      "timedemoRun": {
+        "command": "+set com_gameProfile ql +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Quake Live +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-demos\\final\\self-ql\\timedemo-home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_windowedMode -1 +set r_windowedWidth 800 +set r_windowedHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_ip 127.0.0.1 +set net_port 0 +set net_ip6 ::1 +set net_port6 0 +exec probe.cfg",
+        "exitCode": 0,
+        "forcedTermination": false,
+        "elapsedSeconds": 2.438,
+        "completionMarker": true,
+        "screenshots": [
+          {
+            "name": "timedemo-a.png",
+            "sha256": "817247346042d24abbd46de055f0455a452498e0ce3c934175f2bb290dca48b6"
+          },
+          {
+            "name": "timedemo-b.png",
+            "sha256": "a09d773121b86cdf73297e8705cc4ceecacc4f65544fbb54715baccda02cce5a"
+          }
+        ],
+        "engineErrors": [],
+        "demoFile": true,
+        "timedemo": "153 frames, 0.28 seconds: 546.4 fps",
+        "passed": true
+      },
+      "passed": true,
+      "installationUnchanged": true,
+      "clientSha256": "55adb7cc5be3ea617cb150059a998ff9da843894e686f55751877a5cc14d7ff5",
+      "sourceCommit": "89ac8cc63962b7b0b16017e779a67a535492762d"
+    },
+    "self-rtcw-mp": {
+      "scenario": "self",
+      "profile": "rtcw-mp",
+      "start": [
+        "+devmap",
+        "mp_beach"
+      ],
+      "record": {
+        "command": "+set com_gameProfile rtcw-mp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-demos\\final\\self-rtcw-mp\\record-home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_windowedMode -1 +set r_windowedWidth 800 +set r_windowedHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_ip 127.0.0.1 +set net_port 0 +set net_ip6 ::1 +set net_port6 0 +devmap mp_beach",
+        "exitCode": 0,
+        "forcedTermination": false,
+        "elapsedSeconds": 14.172,
+        "screenshots": [
+          {
+            "name": "record-a.png",
+            "sha256": "15bb39c72f99b4ad7e35cce5b9f9853502389566bf6a9aa08defc4a05e5142ce"
+          }
+        ],
+        "engineErrors": [],
+        "writtenFiles": [
+          "fntech3-rtcw-mp-probe.dm_60"
+        ],
+        "passed": true
+      },
+      "demo": {
+        "file": "fntech3-rtcw-mp-probe.dm_60",
+        "bytes": 14242,
+        "messages": 121,
+        "terminated": true,
+        "firstSequence": 62,
+        "lastSequence": 183,
+        "sequencesIncrease": true,
+        "sha256": "9bed06af96a495079f54e20f5820b92e90c26d458f9df78445382aab2d33ee26"
+      },
+      "playback": {
+        "command": "+set com_gameProfile rtcw-mp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-demos\\final\\self-rtcw-mp\\playback-home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_windowedMode -1 +set r_windowedWidth 800 +set r_windowedHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_ip 127.0.0.1 +set net_port 0 +set net_ip6 ::1 +set net_port6 0 +exec probe.cfg",
+        "exitCode": 0,
+        "forcedTermination": false,
+        "elapsedSeconds": 9.75,
+        "completionMarker": true,
+        "screenshots": [
+          {
+            "name": "playback-a.png",
+            "sha256": "a1437c2623b6cae3a21bdd82b40fa8c4f9c184a38fd90e61b7cffa5ef37d920c"
+          },
+          {
+            "name": "playback-b.png",
+            "sha256": "d27a8412c598c836002c773a56ac0ae2662cacc5de1daacebc941fbaf607f4c2"
+          }
+        ],
+        "engineErrors": [],
+        "demoFile": true,
+        "passed": true
+      },
+      "timedemoRun": {
+        "command": "+set com_gameProfile rtcw-mp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-demos\\final\\self-rtcw-mp\\timedemo-home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_windowedMode -1 +set r_windowedWidth 800 +set r_windowedHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_ip 127.0.0.1 +set net_port 0 +set net_ip6 ::1 +set net_port6 0 +exec probe.cfg",
+        "exitCode": 0,
+        "forcedTermination": false,
+        "elapsedSeconds": 2.437,
+        "completionMarker": true,
+        "screenshots": [
+          {
+            "name": "timedemo-a.png",
+            "sha256": "076233c445369a6d0f8260a5ea5238772a13b711a8aa6c550c9aa05248e976d9"
+          },
+          {
+            "name": "timedemo-b.png",
+            "sha256": "e6d900dfaff6ce61ead5bec6c5fcaf7a1f6f1e79792cb273cd7724bd33862649"
+          }
+        ],
+        "engineErrors": [],
+        "demoFile": true,
+        "timedemo": "152 frames, 0.43 seconds: 350.2 fps",
+        "passed": true
+      },
+      "passed": true,
+      "installationUnchanged": true,
+      "clientSha256": "55adb7cc5be3ea617cb150059a998ff9da843894e686f55751877a5cc14d7ff5",
+      "sourceCommit": "89ac8cc63962b7b0b16017e779a67a535492762d"
+    },
+    "retail-out": {
+      "scenario": "rtcw-mp-retail-out",
+      "profile": "rtcw-mp",
+      "command": "+set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-demos\\final\\retail-out\\retail-home +set r_fullscreen 0 +set r_mode 3 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set logfile 2 +set com_viewlog 0 +set s_initsound 0 +set cl_punkbuster 0 +set cl_allowDownload 0 +set r_ignorehwgamma 1 +set com_maxfps 30 +set nextdemo quit +set activeAction wait 30; screenshot; wait 90; screenshot; +demo fntech3-rtcw-mp-probe",
+      "retailSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+      "demo": {
+        "file": "fntech3-rtcw-mp-probe.dm_60",
+        "bytes": 14242,
+        "messages": 121,
+        "terminated": true,
+        "firstSequence": 62,
+        "lastSequence": 183,
+        "sequencesIncrease": true,
+        "sha256": "9bed06af96a495079f54e20f5820b92e90c26d458f9df78445382aab2d33ee26"
+      },
+      "exitCode": 0,
+      "forcedTermination": false,
+      "elapsedSeconds": 13.203,
+      "screenshots": [
+        {
+          "name": "shot0000.tga",
+          "sha256": "aca6d68c69e373b5341b13b5f618d9662bd4f813786052150bc21945599d2226"
+        },
+        {
+          "name": "shot0001.tga",
+          "sha256": "8e9e7de6e378c7413b0f2b20abccec7da0aa2c42efbbb7c025bb01a8cea70dd4"
+        }
+      ],
+      "engineErrors": [],
+      "passed": true,
+      "installationUnchanged": true,
+      "sourceCommit": "89ac8cc63962b7b0b16017e779a67a535492762d"
+    },
+    "retail-in-nonpure": {
+      "scenario": "rtcw-mp-retail-in",
+      "profile": "rtcw-mp",
+      "map": "mp_beach",
+      "pure": false,
+      "serverCommand": "+set com_gameProfile rtcw-mp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-demos\\final\\retail-in-nonpure\\server-home +set dedicated 1 +set developer 1 +set net_ip 127.0.0.1 +set net_port 62415 +set sv_pure 0 +set sv_punkbuster 0 +set bot_enable 0 +set g_gametype 5 +set logfile 2 +set sv_master1  +set sv_master2  +set sv_master3  +set sv_master4  +set sv_master5  +map mp_beach +wait 100 +echo RTCW_SERVER_READY +wait 2400 +quit",
+      "clientCommand": "+set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-demos\\final\\retail-in-nonpure\\retail-home +set r_fullscreen 0 +set r_mode 3 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set logfile 2 +set com_viewlog 0 +set s_initsound 0 +set cl_punkbuster 0 +set cl_allowDownload 0 +set r_ignorehwgamma 1 +set com_maxfps 30 +set name fntech3-demo-probe +set activeAction wait 150; record retail-mp-probe; wait 450; stoprecord; wait 10; quit; +connect 127.0.0.1:62415",
+      "retailSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+      "retailExit": 0,
+      "retailForced": false,
+      "retailElapsedSeconds": 14.328,
+      "serverActive": true,
+      "demo": {
+        "file": "retail-mp-probe.dm_60",
+        "bytes": 14629,
+        "messages": 147,
+        "terminated": true,
+        "firstSequence": 88,
+        "lastSequence": 235,
+        "sequencesIncrease": true,
+        "sha256": "01e68f71ffb3527a94ff974fd6f2a5d16b6a7d05a19498a3a94b31f0907051c3"
+      },
+      "playback": {
+        "command": "+set com_gameProfile rtcw-mp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-demos\\final\\retail-in-nonpure\\playback-home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_windowedMode -1 +set r_windowedWidth 800 +set r_windowedHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_ip 127.0.0.1 +set net_port 0 +set net_ip6 ::1 +set net_port6 0 +exec probe.cfg",
+        "exitCode": 0,
+        "forcedTermination": false,
+        "elapsedSeconds": 10.0,
+        "completionMarker": true,
+        "screenshots": [
+          {
+            "name": "playback-a.png",
+            "sha256": "5cc4418c653d6e9b45071f92f8aa0261d222a801249405ffefd587a9f8611a58"
+          },
+          {
+            "name": "playback-b.png",
+            "sha256": "67cf76659496acc57ce1e51bcd53b72b0e5a292e58a3647cddabdebcccd91218"
+          }
+        ],
+        "engineErrors": [],
+        "demoFile": true,
+        "passed": true
+      },
+      "timedemoRun": {
+        "command": "+set com_gameProfile rtcw-mp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-demos\\final\\retail-in-nonpure\\timedemo-home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_windowedMode -1 +set r_windowedWidth 800 +set r_windowedHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_ip 127.0.0.1 +set net_port 0 +set net_ip6 ::1 +set net_port6 0 +exec probe.cfg",
+        "exitCode": 0,
+        "forcedTermination": false,
+        "elapsedSeconds": 2.625,
+        "completionMarker": true,
+        "screenshots": [
+          {
+            "name": "timedemo-a.png",
+            "sha256": "c7ff873d2fa9f5dfedcbe14e73a79537bfb7b4f84c6b5e404f3c0b4132b576f8"
+          },
+          {
+            "name": "timedemo-b.png",
+            "sha256": "9b8097f7abf2eea5fc7b154b994b6fc5a91fdee981fb211a43c4c66c26bfdacb"
+          }
+        ],
+        "engineErrors": [],
+        "demoFile": true,
+        "timedemo": "148 frames, 0.50 seconds: 295.4 fps",
+        "passed": true
+      },
+      "passed": true,
+      "installationUnchanged": true,
+      "clientSha256": "55adb7cc5be3ea617cb150059a998ff9da843894e686f55751877a5cc14d7ff5",
+      "serverSha256": "4b97945f2c11adbd788cc5fab71591ca2d857690c07ae000074bfd616089c71c",
+      "sourceCommit": "89ac8cc63962b7b0b16017e779a67a535492762d"
+    },
+    "retail-in-pure": {
+      "scenario": "rtcw-mp-retail-in",
+      "profile": "rtcw-mp",
+      "map": "mp_beach",
+      "pure": true,
+      "serverCommand": "+set com_gameProfile rtcw-mp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-demos\\final\\retail-in-pure\\server-home +set dedicated 1 +set developer 1 +set net_ip 127.0.0.1 +set net_port 50552 +set sv_pure 1 +set sv_punkbuster 0 +set bot_enable 0 +set g_gametype 5 +set logfile 2 +set sv_master1  +set sv_master2  +set sv_master3  +set sv_master4  +set sv_master5  +map mp_beach +wait 100 +echo RTCW_SERVER_READY +wait 2400 +quit",
+      "clientCommand": "+set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-demos\\final\\retail-in-pure\\retail-home +set r_fullscreen 0 +set r_mode 3 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set logfile 2 +set com_viewlog 0 +set s_initsound 0 +set cl_punkbuster 0 +set cl_allowDownload 0 +set r_ignorehwgamma 1 +set com_maxfps 30 +set name fntech3-demo-probe +set activeAction wait 150; record retail-mp-probe; wait 450; stoprecord; wait 10; quit; +connect 127.0.0.1:50552",
+      "retailSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+      "retailExit": 0,
+      "retailForced": false,
+      "retailElapsedSeconds": 13.485,
+      "serverActive": true,
+      "pureAdmission": true,
+      "demo": {
+        "file": "retail-mp-probe.dm_60",
+        "bytes": 14785,
+        "messages": 146,
+        "terminated": true,
+        "firstSequence": 78,
+        "lastSequence": 224,
+        "sequencesIncrease": true,
+        "sha256": "7cc0f4ad1e2e6633dec2064b86c4e51281abceba5412d8c73cc759e5bad71e0f"
+      },
+      "playback": {
+        "command": "+set com_gameProfile rtcw-mp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-demos\\final\\retail-in-pure\\playback-home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_windowedMode -1 +set r_windowedWidth 800 +set r_windowedHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_ip 127.0.0.1 +set net_port 0 +set net_ip6 ::1 +set net_port6 0 +exec probe.cfg",
+        "exitCode": 0,
+        "forcedTermination": false,
+        "elapsedSeconds": 9.516,
+        "completionMarker": true,
+        "screenshots": [
+          {
+            "name": "playback-a.png",
+            "sha256": "c3199390db04be8a6b4512c7671969ed5b8c66d9f0ee37f2c80682774f896b35"
+          },
+          {
+            "name": "playback-b.png",
+            "sha256": "16c1aa003aae496849477f892868eb6e3a2e53da04a9897dfdec41009f2c0803"
+          }
+        ],
+        "engineErrors": [],
+        "demoFile": true,
+        "passed": true
+      },
+      "timedemoRun": {
+        "command": "+set com_gameProfile rtcw-mp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-demos\\final\\retail-in-pure\\timedemo-home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_windowedMode -1 +set r_windowedWidth 800 +set r_windowedHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_ip 127.0.0.1 +set net_port 0 +set net_ip6 ::1 +set net_port6 0 +exec probe.cfg",
+        "exitCode": 0,
+        "forcedTermination": false,
+        "elapsedSeconds": 2.421,
+        "completionMarker": true,
+        "screenshots": [
+          {
+            "name": "timedemo-a.png",
+            "sha256": "d5b5106a2f646c5cdc91dc47e683c08a23b50eceee6026a5e9c31d59634d760a"
+          },
+          {
+            "name": "timedemo-b.png",
+            "sha256": "4075bb2c5a408805a56f5ec86e5d7bc5d27afd8d6210f9d4cc9849bcb4916ac8"
+          }
+        ],
+        "engineErrors": [],
+        "demoFile": true,
+        "timedemo": "147 frames, 0.41 seconds: 361.2 fps",
+        "passed": true
+      },
+      "passed": true,
+      "installationUnchanged": true,
+      "clientSha256": "55adb7cc5be3ea617cb150059a998ff9da843894e686f55751877a5cc14d7ff5",
+      "serverSha256": "4b97945f2c11adbd788cc5fab71591ca2d857690c07ae000074bfd616089c71c",
+      "sourceCommit": "89ac8cc63962b7b0b16017e779a67a535492762d"
+    },
+    "rtcw-sp": {
+      "scenario": "rtcw-sp",
+      "profile": "rtcw-sp",
+      "record": {
+        "command": "+set com_gameProfile rtcw-sp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-demos\\final\\rtcw-sp\\record-home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_windowedMode -1 +set r_windowedWidth 800 +set r_windowedHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_ip 127.0.0.1 +set net_port 0 +set net_ip6 ::1 +set net_port6 0 +loadgame probe",
+        "save": {
+          "file": "campaign.svg",
+          "sha256": "22e98961a50e6fa587ef7816261676f2612dc1e217001a7c848ab099dac969d8"
+        },
+        "exitCode": 0,
+        "forcedTermination": false,
+        "elapsedSeconds": 20.219,
+        "screenshots": [
+          {
+            "name": "record-a.png",
+            "sha256": "693fef9c6f5fc903f1016c86998a2693949f8681164975cc000a6dfdc7914160"
+          }
+        ],
+        "engineErrors": [],
+        "writtenFiles": [
+          "fntech3-sp-probe.dm_49"
+        ],
+        "unsynchronizedRefused": true,
+        "passed": true
+      },
+      "demo": {
+        "file": "fntech3-sp-probe.dm_49",
+        "bytes": 23229,
+        "messages": 121,
+        "terminated": true,
+        "firstSequence": 154,
+        "lastSequence": 275,
+        "sequencesIncrease": true,
+        "sha256": "eee3a8e5c551986f3e2271265da40237af9982bcaf8869dd002f0b4de2ee99c6"
+      },
+      "playbackRefusal": {
+        "command": "+set com_gameProfile rtcw-sp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\rtcw-demos\\final\\rtcw-sp\\playback-home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_windowedMode -1 +set r_windowedWidth 800 +set r_windowedHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_ip 127.0.0.1 +set net_port 0 +set net_ip6 ::1 +set net_port6 0 +exec probe.cfg",
+        "exitCode": 0,
+        "forcedTermination": false,
+        "elapsedSeconds": 2.125,
+        "refused": true,
+        "foundFile": true,
+        "mapLoaded": false,
+        "marker": true,
+        "engineErrors": [],
+        "passed": true
+      },
+      "passed": true,
+      "installationUnchanged": true,
+      "clientSha256": "55adb7cc5be3ea617cb150059a998ff9da843894e686f55751877a5cc14d7ff5",
+      "sourceCommit": "89ac8cc63962b7b0b16017e779a67a535492762d"
+    }
+  },
+  "retailSinglePlayer": {
+    "ownDemo": {
+      "exit": null,
+      "forcedAfterSeconds": 45.55,
+      "demoSha256": "1cae8d64ef9d8c3690c0b92528fddee28b28a7383338826ebc6d07bdeb833342",
+      "exeSha256": "07d206f61da5c80562ff60d68c645bca349b31adb5d7e0e7f186d61ad46683c7",
+      "fatalText": "VM_Call with NULL vm",
+      "lastLogLines": [
+        "LOADING... WolfPlayer",
+        "----- CL_Shutdown -----"
+      ]
+    },
+    "fntech3Demo": {
+      "exit": null,
+      "forcedAfterSeconds": 90.08,
+      "demoSha256": "c4b432f6a33be31086584e64d975fde3e57a04901544e47bb1bce38313a801d0",
+      "lastLogLine": "LOADING... collision map",
+      "note": "Run before the window-text reader existed; stopped at the same load stage."
+    },
+    "recordRefusedWithoutSync": "The server must have 'g_synchronousClients 1' set for demos",
+    "recordWithSync": {
+      "demo": "retail-sp-probe.dm_49",
+      "demoSha256": "1cae8d64ef9d8c3690c0b92528fddee28b28a7383338826ebc6d07bdeb833342",
+      "exit": 0
+    }
+  },
+  "focusedTests": {
+    "files": [
+      "tests/demo_profile_selection_tests.py",
+      "tests/demo_record_profile_tests.py",
+      "tests/rtcw_md3_normal_tests.py",
+      "tests/ql_demo_source_tests.py"
+    ],
+    "passed": 10,
+    "failedAgainstPreviousSource": [
+      "demo_profile_selection_tests",
+      "demo_record_profile_tests (both methods)"
+    ]
+  },
+  "baselineSuite": {
+    "when": "after the rtcw_md3 test fix, before the demo changes",
+    "passed": 1679,
+    "skipped": 67,
+    "failed": 2,
+    "failures": [
+      "tests/rtcw_tag_handoff_tests.py (WolfET uncommitted vm.c edit)",
+      "tests/wolfet_client_services_tests.py (WolfET uncommitted edit)"
+    ],
+    "log": ".tmp/gaps-pytest-baseline.log"
+  },
+  "postChangeSuite": {
+    "log": ".tmp/rtcw-demos/full-suite-after.log",
+    "passed": 1664,
+    "skipped": 67,
+    "failedEntries": 27,
+    "thisSlice": {
+      "count": 20,
+      "fixed": true,
+      "causes": [
+        "tests/ql_demo_source_tests.py pinned QL as the last demo_protocols entry",
+        "the JSON link target of this record did not exist yet: 11 release-packaging tests and 8 subtests"
+      ],
+      "verification": "ql_demo_source_tests 6 passed; release_packaging_tests 48 passed, 1 skipped, 22 subtests"
+    },
+    "wolfetInFlight": {
+      "count": 7,
+      "causes": [
+        "vm.c calls FnTech3_WolfET* menu/key helpers undeclared in the RTCW VM harnesses: rtcw_animation_handoff, rtcw_cast_query, rtcw_model_info, rtcw_module_export (subtest), rtcw_tag_handoff",
+        "tr_rtcw_fog_scene.h reads identityLight: rtcw_fog_scene",
+        "wolfet_client_services popup expectation"
+      ]
+    }
+  }
+}

@@ -580,12 +580,28 @@ static bool CL_ParseDemoProtocolExtension( const char *ext, int *protocol )
 	return true;
 }
 
+// Each profile plays only the demo protocols it owns. Original RTCW SP and MP
+// each name demos after their single wire protocol (cl_main.c, CL_Record_f).
+// ET demo playback is not implemented, so ET admits none.
 static bool CL_DemoProtocolSupported( int protocol )
 {
-	return Com_DemoProtocolSupported( protocol ) &&
-		( Com_GameProfile()->id == COM_GAME_QUAKELIVE
-			? protocol == QL_RETAIL_PROTOCOL_VERSION
-			: protocol != QL_RETAIL_PROTOCOL_VERSION );
+	if ( !Com_DemoProtocolSupported( protocol ) ) {
+		return false;
+	}
+	switch ( Com_GameProfile()->id ) {
+	case COM_GAME_QUAKE3:
+		return protocol != QL_RETAIL_PROTOCOL_VERSION &&
+			protocol != NETCHAN_RTCW_SP_PROTOCOL_VERSION &&
+			protocol != NETCHAN_RTCW_MP_PROTOCOL_VERSION;
+	case COM_GAME_QUAKELIVE:
+		return protocol == QL_RETAIL_PROTOCOL_VERSION;
+	case COM_GAME_RTCW_SP:
+		return protocol == NETCHAN_RTCW_SP_PROTOCOL_VERSION;
+	case COM_GAME_RTCW_MP:
+		return protocol == NETCHAN_RTCW_MP_PROTOCOL_VERSION;
+	default:
+		return false;
+	}
 }
 
 static netchanWireProfile_t CL_DemoWireProfileForProtocol( int protocol )
@@ -593,10 +609,23 @@ static netchanWireProfile_t CL_DemoWireProfileForProtocol( int protocol )
 	if ( protocol == QL_RETAIL_PROTOCOL_VERSION ) {
 		return NETCHAN_WIRE_QL_RETAIL;
 	}
+	if ( protocol == NETCHAN_RTCW_SP_PROTOCOL_VERSION ) {
+		return NETCHAN_WIRE_RTCW_SP;
+	}
+	if ( protocol == NETCHAN_RTCW_MP_PROTOCOL_VERSION ) {
+		return NETCHAN_WIRE_RTCW_MP;
+	}
 	if ( protocol == NEW_PROTOCOL_VERSION ) {
 		return NETCHAN_WIRE_IOQ3;
 	}
 	return NETCHAN_WIRE_LEGACY_Q3;
+}
+
+// Only Q3 message bodies can be relabelled dm_68 until an ioq3 extension
+// message requires dm_71. Every other profile has one demo protocol.
+static bool CL_WireProfileKeepsDm68Fallback( netchanWireProfile_t profile )
+{
+	return profile == NETCHAN_WIRE_LEGACY_Q3 || profile == NETCHAN_WIRE_IOQ3;
 }
 
 netchanWireProfile_t CL_ActiveWireProfile( void )
@@ -839,7 +868,7 @@ void CL_StopRecord_f( void ) {
 
 		// Select the extension from the actual wire contract. Explicit legacy
 		// demo playback retains the source protocol recorded in the file.
-		if ( clc.dm68compat && CL_ActiveWireProfile() != NETCHAN_WIRE_QL_RETAIL ) {
+		if ( clc.dm68compat && CL_WireProfileKeepsDm68Fallback( CL_ActiveWireProfile() ) ) {
 			protocol = OLD_PROTOCOL_VERSION;
 		} else if ( clc.demoplaying && clc.demoLegacyProtocol ) {
 			protocol = clc.demoLegacyProtocol;
@@ -1194,6 +1223,12 @@ static void CL_Record_f( void ) {
 		return;
 	}
 
+	// Original RTCW SP refuses outright; MP and Q3 made this a warning.
+	if ( Com_GameIsRTCWSP() && !Cvar_VariableValue( "g_synchronousClients" ) ) {
+		Com_Printf( "The server must have 'g_synchronousClients 1' set for demos\n" );
+		return;
+	}
+
 	// sync 0 doesn't prevent recording, so not forcing it off .. everyone does g_sync 1 ; record ; g_sync 0 ..
 	if ( NET_IsLocalAddress( &clc.serverAddress ) && !Cvar_VariableIntegerValue( "g_synchronousClients" ) ) {
 		Com_Printf (S_COLOR_YELLOW "WARNING: You should set 'g_synchronousClients 1' for smoother demo recording\n");
@@ -1254,8 +1289,9 @@ static void CL_Record_f( void ) {
 	clc.demowaiting = qtrue;
 
 	// Only Q3 message bodies can retain the dm_68 fallback until an
-	// extension message requires dm_71. QL bodies always require dm_91.
-	clc.dm68compat = ToQboolean( CL_ActiveWireProfile() != NETCHAN_WIRE_QL_RETAIL );
+	// extension message requires dm_71. QL bodies always require dm_91, and
+	// RTCW bodies their own dm_49 or dm_60.
+	clc.dm68compat = ToQboolean( CL_WireProfileKeepsDm68Fallback( CL_ActiveWireProfile() ) );
 
 	// write out the gamestate message
 	CL_WriteGamestate( qtrue );
@@ -1461,7 +1497,8 @@ static int CL_WalkDemoExt( const char *arg, char *name, int name_len, ScopedFile
 		}
 	}
 
-	if ( Com_GameProfile()->id == COM_GAME_QUAKELIVE ) return -1;
+	// Pre-1.27 dm3 files are Q3 message bodies; no other profile parses them.
+	if ( Com_GameProfile()->id != COM_GAME_QUAKE3 ) return -1;
 
 	Com_sprintf( name, name_len, "demos/%s.%s", arg, LEGACY_DEMOEXT );
 	OpenPureFileRead( name, handle );
@@ -1560,7 +1597,7 @@ static void CL_PlayDemo_f( void ) {
 	ext_test = strrchr(arg, '.');
 	if ( ext_test && CL_IsLegacyDemoExt( ext_test + 1 ) )
 	{
-		if ( Com_GameProfile()->id == COM_GAME_QUAKELIVE ) {
+		if ( Com_GameProfile()->id != COM_GAME_QUAKE3 ) {
 			Com_Printf( "Legacy .dm3 demos require the q3 profile.\n" );
 			return;
 		}
@@ -1613,6 +1650,15 @@ static void CL_PlayDemo_f( void ) {
 		return;
 	}
 
+	// The SP cgame asks the game module for every player's animation data,
+	// and playback runs no game module. Retail SP loads the map and then fails
+	// fatally ("VM_Call with NULL vm") on its own demos, so refuse before
+	// disturbing the current session.
+	if ( Com_GameIsRTCWSP() ) {
+		Com_Printf( "RTCW single-player demos cannot be replayed: its cgame needs animation data from a running game module.\n" );
+		return;
+	}
+
 	hFile.reset();
 
 	// make sure a local server is killed
@@ -1645,10 +1691,9 @@ static void CL_PlayDemo_f( void ) {
 	clc.demoplaying = qtrue;
 	Q_strncpyz( cls.servername, shortname, sizeof( cls.servername ) );
 
-	if ( protocol <= OLD_PROTOCOL_VERSION )
-		clc.compat = qtrue;
-	else
-		clc.compat = qfalse;
+	// Same rule as a live connection: only Q3 legacy framing is compat. RTCW's
+	// lower protocol numbers are not Q3 legacy protocols.
+	clc.compat = ToQboolean( clc.demoWireProfile == NETCHAN_WIRE_LEGACY_Q3 );
 
 	// read demo messages until connected
 #ifdef USE_CURL

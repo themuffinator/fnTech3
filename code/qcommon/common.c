@@ -40,12 +40,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "../client/keys.h"
 
+/* Every demo protocol this engine can parse. The client admits only those the
+ * active profile owns; Q3's entries keep their historical search order. */
 const int demo_protocols[] = {
 	66,
 	67,
 	OLD_PROTOCOL_VERSION,
 	NEW_PROTOCOL_VERSION,
 	QL_RETAIL_PROTOCOL_VERSION,
+	NETCHAN_RTCW_SP_PROTOCOL_VERSION,
+	NETCHAN_RTCW_MP_PROTOCOL_VERSION,
 	0
 };
 

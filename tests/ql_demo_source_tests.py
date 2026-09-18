@@ -16,7 +16,10 @@ class QuakeLiveDemoSourceTests(unittest.TestCase):
         common = read_repo_file("code/qcommon/common.c")
         qcommon = read_repo_file("code/qcommon/qcommon.h")
 
-        self.assertIn("QL_RETAIL_PROTOCOL_VERSION,\n\t0", common)
+        start = common.index("const int demo_protocols[] = {")
+        registry = common[start:common.index("};", start)]
+        self.assertIn("\tQL_RETAIL_PROTOCOL_VERSION,\n", registry)
+        self.assertTrue(registry.rstrip().endswith("\t0"))
         self.assertIn("qboolean Com_DemoProtocolSupported( int protocol )", common)
         self.assertIn(
             "#define\tQL_RETAIL_PROTOCOL_VERSION\tNETCHAN_QL_RETAIL_PROTOCOL_VERSION",
