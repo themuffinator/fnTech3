@@ -1277,6 +1277,11 @@ static void CL_FinishMove( usercmd_t *cmd ) {
 		cmd->rtcw.cld = cl.cgameRTCWCommand.cld;
 		cmd->rtcw.mpSetup = cl.cgameRTCWCommand.mpSetup;
 		cmd->rtcw.identClient = cl.cgameRTCWCommand.identClient;
+	} else if ( Com_GameIsWolfET() ) {
+		// ET's doubleTap is produced by input, not by the cgame, and is left
+		// to whatever this frame's movement decided.
+		cmd->wolfet.flags = cl.cgameWolfETCommand.flags;
+		cmd->wolfet.identClient = cl.cgameWolfETCommand.identClient;
 	}
 
 	// send the current server time so the amount of movement

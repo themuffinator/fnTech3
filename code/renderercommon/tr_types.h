@@ -105,6 +105,24 @@ typedef struct {
 	qboolean highlight, blink;
 } rtcwRenderEntity_t;
 
+// Engine-owned Enemy Territory animation/effect state. ET's reference entity
+// carries a per-frame model handle beside every frame index, because MDM
+// meshes and MDX skeletons are separate models; RTCW's single MDS does not.
+// Kept apart from the RTCW record so neither profile inherits the other's
+// fields.
+typedef struct {
+	vec3_t torsoAxis[3];
+	int torsoFrame, oldTorsoFrame;
+	float torsoBacklerp;
+	qhandle_t frameModel, torsoFrameModel;
+	qhandle_t oldframeModel, oldTorsoFrameModel;
+	vec3_t fireRiseDir;
+	int fadeStartTime, fadeEndTime;
+	float hilightIntensity;
+	int reFlags, entityNum;
+	qboolean highlight, blink, forceNoLod;
+} wolfetRenderEntity_t;
+
 typedef struct {
 	refEntityType_t	reType;
 	int			renderfx;
@@ -141,6 +159,7 @@ typedef struct {
 	float		radius;
 	float		rotation;
 	rtcwRenderEntity_t rtcw;
+	wolfetRenderEntity_t wolfet;
 } refEntity_t;
 
 
@@ -162,6 +181,22 @@ typedef struct {
 	rtcwRenderFog_t fog;
 } rtcwRenderView_t;
 
+// Engine-owned Enemy Territory view state. ET keeps RTCW's embedded fog
+// description but has no snooper view and no separate draw-skybox flag.
+typedef struct {
+	int mode, hint, startTime, finishTime;
+	vec4_t color;
+	float start, end;
+	qboolean useEndForClip;
+	float density;
+	qboolean registered, drawsky, clearscreen;
+} wolfetRenderFog_t;
+
+typedef struct {
+	qboolean skyboxPortal, underwater, drawingSky;
+	wolfetRenderFog_t fog;
+} wolfetRenderView_t;
+
 typedef struct {
 	int			x, y, width, height;
 	float		fov_x, fov_y;
@@ -179,6 +214,7 @@ typedef struct {
 	// text messages for deform text shaders
 	char		text[MAX_RENDER_STRINGS][MAX_RENDER_STRING_LENGTH];
 	rtcwRenderView_t rtcw;
+	wolfetRenderView_t wolfet;
 } refdef_t;
 
 /*

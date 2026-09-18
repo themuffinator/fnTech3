@@ -223,5 +223,26 @@ WOLFET_TRANSFER(Command, fntech3_wolfet_usercmd_t, usercmd_t)
 WOLFET_TRANSFER(Trace, fntech3_wolfet_trace_t, trace_t)
 #undef WOLFET_TRANSFER
 
+// ET's gamestate is its own: 1,024 configstring slots over 16,000 bytes, where
+// this engine reserves more of both. A gamestate is published only when it is
+// internally consistent, so a module never receives an offset that does not
+// address its own string data.
+inline bool FromInternal(const gameState_t &source, fntech3_wolfet_gameState_t &destination) noexcept {
+    static_assert(MAX_GAME_CONFIGSTRINGS >= FNTECH3_WOLFET_MAX_CONFIGSTRINGS);
+    static_assert(MAX_GAMESTATE_CHARS >= FNTECH3_WOLFET_MAX_GAMESTATE_CHARS);
+    if (source.dataCount < 1 || source.dataCount > FNTECH3_WOLFET_MAX_GAMESTATE_CHARS ||
+        source.stringData[0] != '\0' || source.stringData[source.dataCount - 1] != '\0') return false;
+    for (int index = 0; index < FNTECH3_WOLFET_MAX_CONFIGSTRINGS; ++index) {
+        if (source.stringOffsets[index] < 0 || source.stringOffsets[index] >= source.dataCount) return false;
+    }
+    fntech3_wolfet_gameState_t result{};
+    for (int index = 0; index < FNTECH3_WOLFET_MAX_CONFIGSTRINGS; ++index)
+        result.stringOffsets[index] = source.stringOffsets[index];
+    std::memcpy(result.stringData, source.stringData, static_cast<std::size_t>(source.dataCount));
+    result.dataCount = source.dataCount;
+    destination = result;
+    return true;
+}
+
 } // namespace fntech3::wolfet::state
 #endif

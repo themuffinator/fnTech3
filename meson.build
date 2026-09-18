@@ -1179,6 +1179,13 @@ wolfet_contract_tests = executable('fntech3_wolfet_contract_tests',
 )
 test('fntech3_wolfet_contracts', wolfet_contract_tests)
 
+wolfet_client_boundary_tests = executable('fntech3_wolfet_client_boundary_tests',
+  'tests/wolfet_client_boundary_tests.cpp',
+  include_directories: include_directories('code/qcommon', 'code/compat', 'code/client'),
+  cpp_args: common_cpp_args,
+)
+test('fntech3_wolfet_client_boundary', wolfet_client_boundary_tests)
+
 netchan_profile_tests = executable('fnql_netchan_profile_tests',
   'tests/netchan_profile_tests.cpp',
   include_directories: include_directories('code/qcommon'),

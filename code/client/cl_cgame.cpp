@@ -34,6 +34,10 @@ extern "C" {
 #include "../compat/rtcw_module_abi.h"
 #include "../compat/rtcw_state_adapter.hpp"
 #include "../compat/rtcw_client_adapter.hpp"
+#include "../compat/wolfet_module_abi.h"
+#include "../compat/wolfet_client_adapter.hpp"
+#include "../compat/wolfet_state_adapter.hpp"
+#include "../compat/wolfet_key_adapter.h"
 #include "../qcommon/netchan_safety.hpp"
 #include "../qcommon/vm_rtcw_filesystem.hpp"
 #include "client_rtcw_camera.hpp"
@@ -695,6 +699,65 @@ void CL_RTCWRegisterFont( const char *name, int pointSize, void *destination ) {
 	}
 }
 
+void CL_CopyWolfETGlconfig( void *destination, const glconfig_t *source ) {
+	auto *output = static_cast<fntech3_wolfet_glconfig_t *>( destination );
+	if ( !output || !source || !fntech3::wolfet::client::FromInternal( *source, *output ) ) {
+		Com_Error( ERR_DROP, "Invalid ET renderer configuration transfer" );
+	}
+}
+
+int CL_WolfETReadToken( int handle, void *destination ) {
+	auto *output = static_cast<fntech3_wolfet_pc_token_t *>( destination );
+	if ( !output ) {
+		Com_Error( ERR_DROP, "Null ET parser token destination" );
+		return 0;
+	}
+	pc_token_t token{};
+	const int result = botlib_export->PC_ReadTokenHandle( handle, &token );
+	if ( result && !fntech3::wolfet::client::FromInternal( token, *output ) ) {
+		Com_Error( ERR_DROP, "Invalid ET parser token transfer" );
+		return 0;
+	}
+	return result;
+}
+
+void CL_WolfETRegisterFont( const char *name, int pointSize, void *destination ) {
+	auto *output = static_cast<fntech3_wolfet_fontInfo_t *>( destination );
+	if ( !output ) {
+		Com_Error( ERR_DROP, "Null ET font destination" );
+		return;
+	}
+	fontInfo_t font{};
+	re.RegisterFont( name, pointSize, &font );
+	if ( !fntech3::wolfet::client::FromInternal( font, *output ) ) {
+		Com_Error( ERR_DROP, "Invalid ET font transfer" );
+	}
+}
+
+int CL_WolfETSourceFileAndLine( int handle, char *filename, int *line ) {
+	if ( !filename || !line ) {
+		Com_Error( ERR_DROP, "NULL ET parser location output" );
+		return 0;
+	}
+	// ET's own callers reserve 128 bytes for this name while the parser can
+	// report a full MAX_STRING_CHARS path, so the result is truncated to what
+	// the module asked for rather than written past it.
+	char sourceName[MAX_STRING_CHARS] = {};
+	int sourceLine = 0;
+	const int result = botlib_export->PC_SourceFileAndLine( handle, sourceName, &sourceLine );
+	if ( !result ) return 0;
+	const char *end = static_cast<const char *>( std::memchr( sourceName, '\0', sizeof( sourceName ) ) );
+	if ( !end ) {
+		Com_Error( ERR_DROP, "Unterminated ET parser source filename" );
+		return 0;
+	}
+	const size_t count = std::min<size_t>( end - sourceName, FNTECH3_WOLFET_SOURCE_FILENAME_CHARS - 1 );
+	std::memcpy( filename, sourceName, count );
+	filename[count] = '\0';
+	*line = sourceLine;
+	return result;
+}
+
 int CL_RTCWSourceFileAndLine( int handle, char *filename, int *line ) {
 	if ( !filename || !line ) {
 		Com_Error( ERR_DROP, "NULL RTCW parser location output" );
@@ -1286,6 +1349,13 @@ static qboolean CL_GetQLUserCmd( int cmdNumber,
 	return qtrue;
 }
 
+static qboolean CL_GetWolfETUserCmd( int number, fntech3_wolfet_usercmd_t *destination ) {
+	if ( !destination ) return qfalse;
+	usercmd_t source;
+	if ( !CL_GetUserCmd( number, &source ) ) return qfalse;
+	return fntech3::wolfet::state::FromInternal( source, *destination ) ? qtrue : qfalse;
+}
+
 template<typename ExternalCommand>
 static qboolean CL_GetRTCWUserCmd( int number, ExternalCommand *destination ) {
 	if ( !destination ) return qfalse;
@@ -1419,6 +1489,29 @@ static qboolean CL_GetQ3Snapshot( int snapshotNumber,
 	return qtrue;
 }
 
+static qboolean CL_GetWolfETSnapshot( int number, fntech3_wolfet_snapshot_t *destination ) {
+	if ( !destination ) return qfalse;
+	const clSnapshot_t *source = CL_FindSnapshot( number );
+	if ( !source ) return qfalse;
+	fntech3_wolfet_snapshot_t result{};
+	result.snapFlags = source->snapFlags;
+	result.ping = source->ping;
+	result.serverTime = source->serverTime;
+	static_assert( sizeof( result.areamask ) == sizeof( source->areamask ) );
+	std::memcpy( result.areamask, source->areamask, sizeof( result.areamask ) );
+	if ( !fntech3::wolfet::state::FromInternal( source->ps, result.ps ) ) return qfalse;
+	result.numEntities = std::min( source->numEntities, (int)FNTECH3_WOLFET_MAX_ENTITIES_IN_SNAPSHOT );
+	for ( int i = 0; i < result.numEntities; ++i ) {
+		const auto index = ( static_cast<uint32_t>( source->parseEntitiesNum ) + i ) & ( MAX_PARSE_ENTITIES - 1 );
+		if ( !fntech3::wolfet::state::FromInternal( cl.parseEntities[index], result.entities[i] ) ) return qfalse;
+	}
+	// ET's own client leaves numServerCommands zero here as well; the reliable
+	// command boundary is carried by serverCommandSequence alone.
+	result.serverCommandSequence = source->serverCommandNum;
+	*destination = result;
+	return qtrue;
+}
+
 template<typename ExternalSnapshot>
 static qboolean CL_GetRTCWSnapshot( int number, ExternalSnapshot *destination ) {
 	if ( !destination ) return qfalse;
@@ -1524,6 +1617,18 @@ static void CL_SetUserCmdValue( int userCmdValue, int userCmdPrimary, float sens
 	cl.cgameUserCmdPrimary = userCmdPrimary;
 	cl.cgameUserCmdFov = userCmdFov;
 	cl.cgameSensitivity = sensitivityScale;
+}
+
+static void CL_SetWolfETUserCmdValue( int stateValue, int flags, float sensitivity,
+	int identClient ) {
+	cl.cgameUserCmdValue = stateValue;
+	cl.cgameUserCmdPrimary = 0;
+	cl.cgameUserCmdFov = 0;
+	cl.cgameSensitivity = sensitivity;
+	// ET's flags word is its own; it is not RTCW's holdable slot and must never
+	// be published through that profile's command extension.
+	cl.cgameWolfETCommand.flags = static_cast<unsigned char>( flags );
+	cl.cgameWolfETCommand.identClient = static_cast<unsigned char>( identClient );
 }
 
 static void CL_SetRTCWUserCmdValue( int weapon, int holdable, float sensitivity,
@@ -1857,6 +1962,7 @@ private:
 #include "client_rtcw_audio_compat.hpp"
 #include "client_rtcw_cinematic_compat.hpp"
 #include "client_rtcw_sound_name.hpp"
+#include "client_wolfet_render_compat.hpp"
 
 static intptr_t CL_CGameTrapForProfile( intptr_t trap ) {
 	if ( !Com_GameIsQuake3() ) {
@@ -2012,6 +2118,282 @@ static intptr_t CL_RTCWCgameSharedCall( fntech3::rtcw::module::Call call ) {
 	}
 }
 
+
+/*
+=====================
+CL_WolfETCgameSharedCall
+
+Enemy Territory imports whose meaning and argument shape are this engine's own,
+so they need no ET record marshalling. Everything that touches an ET record, an
+ET key number or an ET-only renderer service is handled before this table is
+consulted. An import ET declares that this engine cannot answer is not listed
+here and is refused by name, never silently ignored.
+=====================
+*/
+static intptr_t CL_WolfETCgameSharedCall( fntech3::wolfet::module::Call call ) {
+	using fntech3::wolfet::module::Call;
+	switch ( call ) {
+#define WOLFET_SHARED_CALL(name) case Call::name: return name;
+	WOLFET_SHARED_CALL(CG_PRINT)
+	WOLFET_SHARED_CALL(CG_ERROR)
+	WOLFET_SHARED_CALL(CG_MILLISECONDS)
+	WOLFET_SHARED_CALL(CG_CVAR_SET)
+	WOLFET_SHARED_CALL(CG_CVAR_VARIABLESTRINGBUFFER)
+	WOLFET_SHARED_CALL(CG_ARGC)
+	WOLFET_SHARED_CALL(CG_ARGV)
+	WOLFET_SHARED_CALL(CG_ARGS)
+	WOLFET_SHARED_CALL(CG_FS_FOPENFILE)
+	WOLFET_SHARED_CALL(CG_FS_READ)
+	WOLFET_SHARED_CALL(CG_FS_WRITE)
+	WOLFET_SHARED_CALL(CG_FS_FCLOSEFILE)
+	WOLFET_SHARED_CALL(CG_SENDCONSOLECOMMAND)
+	WOLFET_SHARED_CALL(CG_ADDCOMMAND)
+	WOLFET_SHARED_CALL(CG_REMOVECOMMAND)
+	WOLFET_SHARED_CALL(CG_SENDCLIENTCOMMAND)
+	WOLFET_SHARED_CALL(CG_UPDATESCREEN)
+	WOLFET_SHARED_CALL(CG_CM_LOADMAP)
+	WOLFET_SHARED_CALL(CG_CM_NUMINLINEMODELS)
+	WOLFET_SHARED_CALL(CG_CM_INLINEMODEL)
+	WOLFET_SHARED_CALL(CG_CM_LOADMODEL)
+	WOLFET_SHARED_CALL(CG_CM_TEMPBOXMODEL)
+	WOLFET_SHARED_CALL(CG_CM_TEMPCAPSULEMODEL)
+	WOLFET_SHARED_CALL(CG_CM_POINTCONTENTS)
+	WOLFET_SHARED_CALL(CG_CM_TRANSFORMEDPOINTCONTENTS)
+	WOLFET_SHARED_CALL(CG_GETCURRENTSNAPSHOTNUMBER)
+	WOLFET_SHARED_CALL(CG_GETSERVERCOMMAND)
+	WOLFET_SHARED_CALL(CG_GETCURRENTCMDNUMBER)
+	WOLFET_SHARED_CALL(CG_MEMORY_REMAINING)
+	WOLFET_SHARED_CALL(CG_SNAPVECTOR)
+	WOLFET_SHARED_CALL(CG_PC_ADD_GLOBAL_DEFINE)
+	WOLFET_SHARED_CALL(CG_PC_LOAD_SOURCE)
+	WOLFET_SHARED_CALL(CG_PC_FREE_SOURCE)
+	WOLFET_SHARED_CALL(CG_CIN_PLAYCINEMATIC)
+	WOLFET_SHARED_CALL(CG_CIN_STOPCINEMATIC)
+	WOLFET_SHARED_CALL(CG_CIN_RUNCINEMATIC)
+	WOLFET_SHARED_CALL(CG_CIN_DRAWCINEMATIC)
+	WOLFET_SHARED_CALL(CG_CIN_SETEXTENTS)
+	WOLFET_SHARED_CALL(CG_MEMSET)
+	WOLFET_SHARED_CALL(CG_MEMCPY)
+	WOLFET_SHARED_CALL(CG_STRNCPY)
+	WOLFET_SHARED_CALL(CG_SIN)
+	WOLFET_SHARED_CALL(CG_COS)
+	WOLFET_SHARED_CALL(CG_ATAN2)
+	WOLFET_SHARED_CALL(CG_SQRT)
+	WOLFET_SHARED_CALL(CG_FLOOR)
+	WOLFET_SHARED_CALL(CG_CEIL)
+	WOLFET_SHARED_CALL(CG_TESTPRINTINT)
+	WOLFET_SHARED_CALL(CG_TESTPRINTFLOAT)
+	WOLFET_SHARED_CALL(CG_ACOS)
+#undef WOLFET_SHARED_CALL
+	default: return -1;
+	}
+}
+
+static void CL_WolfETCMTrace( fntech3_wolfet_trace_t *destination,
+	const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end,
+	int model, int brushmask, const vec3_t origin, const vec3_t angles,
+	qboolean capsule, qboolean transformed ) {
+	if ( !destination || !start || !end ) {
+		Com_Error( ERR_DROP, "Invalid ET collision trace arguments" );
+	}
+	trace_t result{};
+	if ( transformed ) {
+		CM_TransformedBoxTrace( &result, start, end, mins, maxs, model, brushmask, origin, angles, capsule );
+	} else {
+		CM_BoxTrace( &result, start, end, mins, maxs, model, brushmask, capsule );
+	}
+	if ( !fntech3::wolfet::state::FromInternal( result, *destination ) ) {
+		Com_Error( ERR_DROP, "Invalid ET collision trace result" );
+	}
+}
+
+// ET's key imports speak ET key numbers, which stop four short of this
+// engine's. Translating here keeps a module number out of an engine binding.
+static intptr_t CL_WolfETKeyCall( vm_t *vm, fntech3::wolfet::module::Call call,
+	intptr_t *args, bool &handled ) {
+	using fntech3::wolfet::module::Call;
+	handled = true;
+	switch ( call ) {
+	case Call::CG_KEY_ISDOWN:
+		return CL_WolfETKeyIsDown( static_cast<int>( args[1] ) );
+	case Call::CG_KEY_GETCATCHER:
+		return CL_WolfETGetKeyCatcher();
+	case Call::CG_KEY_SETCATCHER:
+		CL_WolfETSetKeyCatcher( static_cast<int>( args[1] ) );
+		return 0;
+	case Call::CG_KEY_GETKEY:
+		return CL_WolfETKeyForBinding( VMA(1) );
+	case Call::CG_KEY_SETBINDING:
+		CL_WolfETSetBinding( static_cast<int>( args[1] ), VMA(2) );
+		return 0;
+	case Call::CG_KEY_KEYNUMTOSTRINGBUF:
+	case Call::CG_KEY_GETBINDINGBUF:
+		VM_CHECKBOUNDS( vm, args[2], args[3] );
+		CL_WolfETKeyString( static_cast<int>( args[1] ), VMA(2), static_cast<int>( args[3] ),
+			call == Call::CG_KEY_GETBINDINGBUF ? qtrue : qfalse );
+		return 0;
+	case Call::CG_KEY_BINDINGTOKEYS: {
+		VM_CHECKBOUNDS( vm, args[2], sizeof( int32_t ) );
+		VM_CHECKBOUNDS( vm, args[3], sizeof( int32_t ) );
+		auto *first = static_cast<int32_t *>( VM_ExplicitArgPtr( vm, args[2] ) );
+		auto *second = static_cast<int32_t *>( VM_ExplicitArgPtr( vm, args[3] ) );
+		if ( !first || !second ) Com_Error( ERR_DROP, "Invalid ET binding key output" );
+		int bound[2] = { -1, -1 };
+		CL_WolfETKeysForBinding( VMA(1), &bound[0], &bound[1] );
+		*first = bound[0];
+		*second = bound[1];
+		return 0;
+	}
+	case Call::CG_KEY_GETOVERSTRIKEMODE:
+		return Key_GetOverstrikeMode();
+	case Call::CG_KEY_SETOVERSTRIKEMODE:
+		Key_SetOverstrikeMode( static_cast<qboolean>( args[1] ) );
+		return 0;
+	default:
+		handled = false;
+		return 0;
+	}
+}
+
+/*
+=====================
+CL_WolfETCgameCall
+
+Enemy Territory cgame imports. Returns true when the import is answered
+here, or false with the shared trap in operation when the engine already
+means the same thing by it. An import ET declares that this engine cannot
+answer exactly is refused by name rather than answered approximately.
+=====================
+*/
+static bool CL_WolfETCgameCall( intptr_t *args, intptr_t &operation, intptr_t &result ) {
+	using namespace fntech3::wolfet::module;
+	const auto call = Lookup( Module::CGAME, Direction::IMPORT, args[0] );
+	if ( CL_WolfETRenderCall( cgvm, call, args, result ) ) return true;
+	bool handledKey = false;
+	const intptr_t keyResult = CL_WolfETKeyCall( cgvm, call, args, handledKey );
+	if ( handledKey ) { result = keyResult; return true; }
+	switch ( call ) {
+	case Call::CG_CM_BOXTRACE:
+	case Call::CG_CM_CAPSULETRACE:
+	case Call::CG_CM_TRANSFORMEDBOXTRACE:
+	case Call::CG_CM_TRANSFORMEDCAPSULETRACE: {
+		const qboolean transformed = call == Call::CG_CM_TRANSFORMEDBOXTRACE ||
+			call == Call::CG_CM_TRANSFORMEDCAPSULETRACE ? qtrue : qfalse;
+		const qboolean capsule = call == Call::CG_CM_CAPSULETRACE ||
+			call == Call::CG_CM_TRANSFORMEDCAPSULETRACE ? qtrue : qfalse;
+		VM_CHECKBOUNDS( cgvm, args[1], sizeof( fntech3_wolfet_trace_t ) );
+		const float *origin = nullptr, *angles = nullptr;
+		for ( int index = 2; index <= 5; ++index ) {
+			if ( args[index] ) VM_CHECKBOUNDS( cgvm, args[index], sizeof( vec3_t ) );
+		}
+		if ( transformed ) {
+			VM_CHECKBOUNDS( cgvm, args[8], sizeof( vec3_t ) );
+			VM_CHECKBOUNDS( cgvm, args[9], sizeof( vec3_t ) );
+			origin = VMA(8); angles = VMA(9);
+		}
+		CL_WolfETCMTrace( VMA(1), VMA(2), VMA(3), VMA(4), VMA(5), args[6], args[7],
+			origin, angles, capsule, transformed );
+		{ result = 0; return true; }
+	}
+	case Call::CG_CVAR_REGISTER:
+		VM_CHECKBOUNDS( cgvm, args[1], sizeof( fntech3_wolfet_vmCvar_t ) );
+		Cvar_RegisterRTCW( VMA(1), VMA(2), VMA(3), args[4], cgvm->privateFlag );
+		{ result = 0; return true; }
+	case Call::CG_CVAR_UPDATE:
+		VM_CHECKBOUNDS( cgvm, args[1], sizeof( fntech3_wolfet_vmCvar_t ) );
+		Cvar_UpdateRTCW( VMA(1), cgvm->privateFlag );
+		{ result = 0; return true; }
+	case Call::CG_CVAR_LATCHEDVARIABLESTRINGBUFFER:
+		VM_CHECKBOUNDS( cgvm, args[2], args[3] );
+		Cvar_LatchedVariableStringBufferSafe( VMA(1), VMA(2), static_cast<int>( args[3] ),
+			cgvm->privateFlag );
+		{ result = 0; return true; }
+	case Call::CG_FS_GETFILELIST:
+		VM_CHECKBOUNDS( cgvm, args[3], args[4] );
+		{ result = FS_GetFileList( VMA(1), VMA(2), VMA(3), static_cast<int>( args[4] ) ); return true; }
+	case Call::CG_PC_READ_TOKEN:
+		VM_CHECKBOUNDS( cgvm, args[2], sizeof( fntech3_wolfet_pc_token_t ) );
+		{ result = CL_WolfETReadToken( args[1], VMA(2) ); return true; }
+	case Call::CG_PC_UNREAD_TOKEN:
+		{ result = botlib_export->PC_UnreadTokenHandle( args[1] ); return true; }
+	case Call::CG_PC_SOURCE_FILE_AND_LINE:
+		VM_CHECKBOUNDS( cgvm, args[2], FNTECH3_WOLFET_SOURCE_FILENAME_CHARS );
+		VM_CHECKBOUNDS( cgvm, args[3], sizeof( int32_t ) );
+		{ result = CL_WolfETSourceFileAndLine( args[1], VMA(2), VMA(3) ); return true; }
+	case Call::CG_R_REGISTERFONT:
+		VM_CHECKBOUNDS( cgvm, args[3], sizeof( fntech3_wolfet_fontInfo_t ) );
+		CL_WolfETRegisterFont( VMA(1), args[2], VMA(3) );
+		{ result = 0; return true; }
+	case Call::CG_REAL_TIME:
+		VM_CHECKBOUNDS( cgvm, args[1], sizeof( fntech3_wolfet_qtime_t ) );
+		static_assert( sizeof( fntech3_wolfet_qtime_t ) == sizeof( fntech3_rtcw_qtime_t ) );
+		{ result = Com_RealTimeRTCW( VMA(1) ); return true; }
+	case Call::CG_GETGLCONFIG:
+		VM_CHECKBOUNDS( cgvm, args[1], sizeof( fntech3_wolfet_glconfig_t ) );
+		CL_CopyWolfETGlconfig( VMA(1), &cls.glconfig );
+		{ result = 0; return true; }
+	case Call::CG_GETGAMESTATE: {
+		VM_CHECKBOUNDS( cgvm, args[1], sizeof( fntech3_wolfet_gameState_t ) );
+		auto *destination = static_cast<fntech3_wolfet_gameState_t *>( VMA(1) );
+		if ( !destination || !fntech3::wolfet::state::FromInternal( cl.gameState, *destination ) ) {
+			Com_Error( ERR_DROP, "Invalid ET gamestate module transfer" );
+		}
+		{ result = 0; return true; }
+	}
+	case Call::CG_GETSNAPSHOT:
+		VM_CHECKBOUNDS( cgvm, args[2], sizeof( fntech3_wolfet_snapshot_t ) );
+		{ result = CL_GetWolfETSnapshot( args[1], VMA(2) ); return true; }
+	case Call::CG_GETUSERCMD:
+		VM_CHECKBOUNDS( cgvm, args[2], sizeof( fntech3_wolfet_usercmd_t ) );
+		{ result = CL_GetWolfETUserCmd( args[1], VMA(2) ); return true; }
+	case Call::CG_SETUSERCMDVALUE:
+		CL_SetWolfETUserCmdValue( static_cast<int>( args[1] ), static_cast<int>( args[2] ),
+			VMF(3), static_cast<int>( args[4] ) );
+		{ result = 0; return true; }
+	case Call::CG_SETCLIENTLERPORIGIN: {
+		// ET passes three float words rather than a pointer. Validate all
+		// three encodings before any of them is committed.
+		std::uint32_t bits[3];
+		for ( int i = 0; i < 3; ++i ) {
+			bits[i] = static_cast<std::uint32_t>( args[i + 1] );
+			if ( ( bits[i] & 0x7f800000u ) == 0x7f800000u )
+				Com_Error( ERR_DROP, "Invalid ET interpolated client origin" );
+		}
+		std::memcpy( cl.cgameWolfETLerpOrigin, bits, sizeof( bits ) );
+		{ result = 0; return true; }
+	}
+	case Call::CG_GETHUNKDATA: {
+		// ET draws a loading bar from used/expected hunk bytes and skips it
+		// entirely when the expected total is not positive. fnTech3 predicts
+		// no per-map hunk usage, so it reports none rather than inventing a
+		// figure that would drive a meaningless bar.
+		VM_CHECKBOUNDS( cgvm, args[1], sizeof( int32_t ) );
+		VM_CHECKBOUNDS( cgvm, args[2], sizeof( int32_t ) );
+		auto *used = static_cast<int32_t *>( VM_ExplicitArgPtr( cgvm, args[1] ) );
+		auto *expected = static_cast<int32_t *>( VM_ExplicitArgPtr( cgvm, args[2] ) );
+		if ( !used || !expected ) Com_Error( ERR_DROP, "Invalid ET hunk data output" );
+		*used = 0;
+		*expected = 0;
+		{ result = 0; return true; }
+	}
+	case Call::CG_PUMPEVENTLOOP:
+		// Retail ET's own client performs no operation here.
+		{ result = 0; return true; }
+	default: {
+		operation = CL_WolfETCgameSharedCall( call );
+		if ( operation < 0 ) {
+			const auto *descriptor = Describe( call );
+			Com_Error( ERR_DROP, "Unsupported %s cgame import %ld (%s)",
+				Com_GameProfile()->key, static_cast<long>( args[0] ),
+				descriptor ? descriptor->name : "unknown ordinal" );
+			{ result = 0; return true; }
+		}
+		break;
+	}
+	}
+	return false;
+}
+
 static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 	intptr_t operation = CL_CGameTrapForProfile( args[0] );
 	if ( Com_GameIsRTCW() ) {
@@ -2160,6 +2542,12 @@ static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 			}
 			break;
 		}
+	}
+	// Each profile answers only for itself, so the order of these is free; ET
+	// sits after RTCW's so the two never share a switch over module calls.
+	if ( Com_GameIsWolfET() ) {
+		intptr_t wolfetResult = 0;
+		if ( CL_WolfETCgameCall( args, operation, wolfetResult ) ) return wolfetResult;
 	}
 	switch( operation ) {
 	case CG_PRINT:

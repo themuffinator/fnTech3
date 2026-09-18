@@ -26,6 +26,7 @@ extern "C" {
 #include "client_cpp.h"
 #include "input_compat.hpp"
 #include "../compat/rtcw_key_adapter.h"
+#include "../compat/wolfet_key_adapter.h"
 #include "client_rtcw_camera_input.hpp"
 
 #include <algorithm>
@@ -1255,5 +1256,81 @@ void CL_RTCWSetKeyCatcher( int catcher ) {
 	RTCW_CATCHER(KEYCATCH_MESSAGE)
 	RTCW_CATCHER(KEYCATCH_CGAME)
 #undef RTCW_CATCHER
+	Key_SetCatcher( internal );
+}
+
+// Enemy Territory's key vocabulary is its own. It ends at K_AUX16, so the four
+// keys this engine numbers above that have no ET number and are never reported;
+// a module number above ET's range never becomes an engine binding either.
+qboolean CL_WolfETKeyIsDown( int key ) {
+	const int internal = FnTech3_WolfETKeyToInternal( key );
+	return internal < 0 ? qfalse : Key_IsDown( internal );
+}
+
+void CL_WolfETSetBinding( int key, const char *binding ) {
+	const int internal = FnTech3_WolfETKeyToInternal( key );
+	if ( internal >= 0 && binding ) Key_SetBinding( internal, binding );
+}
+
+void CL_WolfETKeyString( int key, char *buffer, int size, qboolean binding ) {
+	if ( size <= 0 ) return;
+	if ( !buffer ) {
+		Com_Error( ERR_DROP, "NULL ET key string buffer" );
+		return;
+	}
+	const int internal = FnTech3_WolfETKeyToInternal( key );
+	const char *value = binding ? Key_GetBinding( internal ) : Key_KeynumToString( internal );
+	Q_strncpyz( buffer, value ? value : "", size );
+}
+
+int CL_WolfETKeyForBinding( const char *binding ) {
+	if ( !binding ) return -1;
+	// Search in the module's own order, so an engine-only key holding the same
+	// binding never displaces the key ET would have reported.
+	for ( int key = 0; key <= FNTECH3_WOLFET_K_AUX16; ++key ) {
+		const int internal = FnTech3_WolfETKeyToInternal( key );
+		const char *value = internal < 0 ? nullptr : Key_GetBinding( internal );
+		if ( value && !Q_stricmp( binding, value ) ) return key;
+	}
+	return -1;
+}
+
+// ET asks for the two keys bound to a command and expects -1 in either slot
+// that has none. Both are searched in ET's own key order.
+void CL_WolfETKeysForBinding( const char *binding, int *first, int *second ) {
+	if ( !first || !second ) Com_Error( ERR_DROP, "NULL ET binding key output" );
+	*first = *second = -1;
+	if ( !binding ) return;
+	for ( int key = 0; key <= FNTECH3_WOLFET_K_AUX16; ++key ) {
+		const int internal = FnTech3_WolfETKeyToInternal( key );
+		const char *value = internal < 0 ? nullptr : Key_GetBinding( internal );
+		if ( !value || Q_stricmp( binding, value ) ) continue;
+		if ( *first < 0 ) *first = key;
+		else if ( *second < 0 ) { *second = key; return; }
+	}
+}
+
+int CL_WolfETGetKeyCatcher( void ) {
+	const int internal = Key_GetCatcher();
+	int external = 0;
+#define WOLFET_CATCHER(name) if ( internal & name ) external |= name;
+	WOLFET_CATCHER(KEYCATCH_CONSOLE)
+	WOLFET_CATCHER(KEYCATCH_UI)
+	WOLFET_CATCHER(KEYCATCH_MESSAGE)
+	WOLFET_CATCHER(KEYCATCH_CGAME)
+#undef WOLFET_CATCHER
+	// This engine's own mouse-pass and browser catchers are outside ET's four
+	// and are deliberately not reported.
+	return external;
+}
+
+void CL_WolfETSetKeyCatcher( int catcher ) {
+	int internal = Key_GetCatcher() & KEYCATCH_BROWSER;
+#define WOLFET_CATCHER(name) if ( catcher & name ) internal |= name;
+	WOLFET_CATCHER(KEYCATCH_CONSOLE)
+	WOLFET_CATCHER(KEYCATCH_UI)
+	WOLFET_CATCHER(KEYCATCH_MESSAGE)
+	WOLFET_CATCHER(KEYCATCH_CGAME)
+#undef WOLFET_CATCHER
 	Key_SetCatcher( internal );
 }

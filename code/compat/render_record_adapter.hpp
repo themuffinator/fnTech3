@@ -8,6 +8,7 @@
 #include "q3_game_abi.h"
 #include "ql_game_abi.h"
 #include "rtcw_game_abi.h"
+#include "wolfet_game_abi.h"
 #include <cstddef>
 #include <cstring>
 #include <iterator>
@@ -182,6 +183,123 @@ bool RTCWRefdef( const T &source, refdef_t &destination ) noexcept {
 	return true;
 }
 
+inline bool WolfETEntity( const fntech3_wolfet_refEntity_t &source, refEntity_t &destination ) noexcept {
+	// ET's ordinals are its own: RT_SPLASH is fourth and a tapered rail core
+	// sits between the two rail types. Never reuse another profile's table.
+	constexpr refEntityType_t types[] = { RT_MODEL, RT_POLY, RT_SPRITE, RT_SPLASH,
+		RT_BEAM, RT_RAIL_CORE, RT_RAIL_CORE_TAPER, RT_RAIL_RINGS, RT_LIGHTNING, RT_PORTALSURFACE };
+	if ( source.reType < 0 || static_cast<std::size_t>( source.reType ) >= std::size( types ) ||
+		( source.nonNormalizedAxes != 0 && source.nonNormalizedAxes != 1 ) ) return false;
+	refEntity_t result{};
+	result.reType = types[source.reType];
+	constexpr struct { int external, internal; } flags[] = {
+		{ FNTECH3_WOLFET_RF_MINLIGHT, RF_MINLIGHT }, { FNTECH3_WOLFET_RF_THIRD_PERSON, RF_THIRD_PERSON },
+		{ FNTECH3_WOLFET_RF_FIRST_PERSON, RF_FIRST_PERSON }, { FNTECH3_WOLFET_RF_DEPTHHACK, RF_DEPTHHACK },
+		{ FNTECH3_WOLFET_RF_NOSHADOW, RF_NOSHADOW }, { FNTECH3_WOLFET_RF_LIGHTING_ORIGIN, RF_LIGHTING_ORIGIN },
+		{ FNTECH3_WOLFET_RF_SHADOW_PLANE, RF_SHADOW_PLANE }, { FNTECH3_WOLFET_RF_WRAP_FRAMES, RF_WRAP_FRAMES }
+	};
+	for ( const auto &flag : flags ) if ( source.renderfx & flag.external ) result.renderfx |= flag.internal;
+	// Highlight, blink and forced detail have no shared renderer flag. They are
+	// carried in ET's own tail so unknown external bits acquire no engine effect.
+	result.wolfet.highlight = source.renderfx & FNTECH3_WOLFET_RF_HILIGHT ? qtrue : qfalse;
+	result.wolfet.blink = source.renderfx & FNTECH3_WOLFET_RF_BLINK ? qtrue : qfalse;
+	result.wolfet.forceNoLod = source.renderfx & FNTECH3_WOLFET_RF_FORCENOLOD ? qtrue : qfalse;
+	result.hModel = source.hModel;
+	Bytes( result.lightingOrigin, source.lightingOrigin );
+	result.shadowPlane = source.shadowPlane;
+	Bytes( result.axis, source.axis );
+	Bytes( result.wolfet.torsoAxis, source.torsoAxis );
+	result.nonNormalizedAxes = source.nonNormalizedAxes ? qtrue : qfalse;
+	Bytes( result.origin, source.origin );
+	result.frame = source.frame;
+	// Each frame index has its own model handle, because an ET pose names both
+	// an MDM mesh and the MDX skeleton it is posed with.
+	result.wolfet.frameModel = source.frameModel;
+	result.wolfet.torsoFrame = source.torsoFrame;
+	result.wolfet.torsoFrameModel = source.torsoFrameModel;
+	Bytes( result.oldorigin, source.oldorigin );
+	result.oldframe = source.oldframe;
+	result.wolfet.oldframeModel = source.oldframeModel;
+	result.wolfet.oldTorsoFrame = source.oldTorsoFrame;
+	result.wolfet.oldTorsoFrameModel = source.oldTorsoFrameModel;
+	result.backlerp = source.backlerp;
+	result.wolfet.torsoBacklerp = source.torsoBacklerp;
+	result.skinNum = source.skinNum;
+	result.customSkin = source.customSkin;
+	result.customShader = source.customShader;
+	Bytes( result.shader, source.shaderRGBA );
+	Bytes( result.shaderTexCoord, source.shaderTexCoord );
+	Bytes( result.shaderTime, source.shaderTime );
+	result.radius = source.radius;
+	result.rotation = source.rotation;
+	Bytes( result.wolfet.fireRiseDir, source.fireRiseDir );
+	result.wolfet.fadeStartTime = source.fadeStartTime;
+	result.wolfet.fadeEndTime = source.fadeEndTime;
+	result.wolfet.hilightIntensity = source.hilightIntensity;
+	result.wolfet.reFlags = source.reFlags;
+	result.wolfet.entityNum = source.entityNum;
+	destination = result;
+	return true;
+}
+
+inline bool WolfETTagEntity( const fntech3_wolfet_refEntity_t &source, refEntity_t &destination ) noexcept {
+	// A tag lookup reads only the pose: which models, which frames, and how far
+	// between them. Scene type, render flags, bounds and material fields are not
+	// tag inputs and must not be carried in from an uninitialized module record.
+	refEntity_t result{};
+	result.reType = RT_MODEL;
+	result.hModel = source.hModel;
+	result.frame = source.frame;
+	result.oldframe = source.oldframe;
+	Bytes( result.backlerp, source.backlerp );
+	result.wolfet.frameModel = source.frameModel;
+	result.wolfet.oldframeModel = source.oldframeModel;
+	result.wolfet.torsoFrame = source.torsoFrame;
+	result.wolfet.torsoFrameModel = source.torsoFrameModel;
+	result.wolfet.oldTorsoFrame = source.oldTorsoFrame;
+	result.wolfet.oldTorsoFrameModel = source.oldTorsoFrameModel;
+	Bytes( result.wolfet.torsoBacklerp, source.torsoBacklerp );
+	Bytes( result.wolfet.torsoAxis, source.torsoAxis );
+	destination = result;
+	return true;
+}
+
+inline bool WolfETRefdef( const fntech3_wolfet_refdef_t &source, refdef_t &destination ) noexcept {
+	const auto &fog = source.glfog;
+	for ( int flag : { fog.useEndForClip, fog.registered, fog.drawsky, fog.clearscreen } )
+		if ( flag != 0 && flag != 1 ) return false;
+	refdef_t result{};
+	result.x = source.x; result.y = source.y;
+	result.width = source.width; result.height = source.height;
+	result.fov_x = source.fov_x; result.fov_y = source.fov_y;
+	Bytes( result.vieworg, source.vieworg );
+	Bytes( result.viewaxis, source.viewaxis );
+	result.time = source.time;
+	Bytes( result.areamask, source.areamask );
+	Bytes( result.text, source.text );
+	// ET bit 8 is a skybox portal, not Quake's RDF_NOFIRSTPERSON, and bit 16 is
+	// underwater. ET also declares a snooper-view bit that its own release never
+	// sets; nothing here grants it an effect.
+	const auto flags = source.rdflags;
+	result.rdflags = ( flags & FNTECH3_WOLFET_RDF_NOWORLDMODEL ? RDF_NOWORLDMODEL : 0 ) |
+		( flags & FNTECH3_WOLFET_RDF_HYPERSPACE ? RDF_HYPERSPACE : 0 );
+	result.wolfet.skyboxPortal = flags & FNTECH3_WOLFET_RDF_SKYBOXPORTAL ? qtrue : qfalse;
+	result.wolfet.underwater = flags & FNTECH3_WOLFET_RDF_UNDERWATER ? qtrue : qfalse;
+	result.wolfet.drawingSky = flags & FNTECH3_WOLFET_RDF_DRAWINGSKY ? qtrue : qfalse;
+	auto &output = result.wolfet.fog;
+	output.mode = fog.mode; output.hint = fog.hint;
+	output.startTime = fog.startTime; output.finishTime = fog.finishTime;
+	Bytes( output.color, fog.color );
+	output.start = fog.start; output.end = fog.end;
+	output.useEndForClip = fog.useEndForClip ? qtrue : qfalse;
+	output.density = fog.density;
+	output.registered = fog.registered ? qtrue : qfalse;
+	output.drawsky = fog.drawsky ? qtrue : qfalse;
+	output.clearscreen = fog.clearscreen ? qtrue : qfalse;
+	destination = result;
+	return true;
+}
+
 template<class External, class Internal, class Adapter>
 bool Read( const void *source, Internal &destination, Adapter adapter ) noexcept {
 	if ( !source ) return false;
@@ -198,6 +316,7 @@ constexpr std::size_t EntityBytes( comGameId_t profile ) noexcept {
 	case COM_GAME_QUAKELIVE: return sizeof( fntech3_ql_refEntity_t );
 	case COM_GAME_RTCW_SP: return sizeof( fntech3_rtcw_sp_refEntity_t );
 	case COM_GAME_RTCW_MP: return sizeof( fntech3_rtcw_mp_refEntity_t );
+	case COM_GAME_WOLFET: return sizeof( fntech3_wolfet_refEntity_t );
 	default: return 0;
 	}
 }
@@ -208,6 +327,7 @@ constexpr std::size_t RefdefBytes( comGameId_t profile ) noexcept {
 	case COM_GAME_QUAKELIVE: return sizeof( fntech3_ql_refdef_t );
 	case COM_GAME_RTCW_SP: return sizeof( fntech3_rtcw_sp_refdef_t );
 	case COM_GAME_RTCW_MP: return sizeof( fntech3_rtcw_mp_refdef_t );
+	case COM_GAME_WOLFET: return sizeof( fntech3_wolfet_refdef_t );
 	default: return 0;
 	}
 }
@@ -222,6 +342,8 @@ inline bool ReadEntity( comGameId_t profile, const void *source, refEntity_t &de
 		return detail::Read<fntech3_rtcw_sp_refEntity_t>( source, destination, detail::RTCWEntity<fntech3_rtcw_sp_refEntity_t> );
 	case COM_GAME_RTCW_MP:
 		return detail::Read<fntech3_rtcw_mp_refEntity_t>( source, destination, detail::RTCWEntity<fntech3_rtcw_mp_refEntity_t> );
+	case COM_GAME_WOLFET:
+		return detail::Read<fntech3_wolfet_refEntity_t>( source, destination, detail::WolfETEntity );
 	default: return false;
 	}
 }
@@ -246,6 +368,8 @@ inline bool ReadRefdef( comGameId_t profile, const void *source, refdef_t &desti
 		return detail::Read<fntech3_rtcw_sp_refdef_t>( source, destination, detail::RTCWRefdef<fntech3_rtcw_sp_refdef_t> );
 	case COM_GAME_RTCW_MP:
 		return detail::Read<fntech3_rtcw_mp_refdef_t>( source, destination, detail::RTCWRefdef<fntech3_rtcw_mp_refdef_t> );
+	case COM_GAME_WOLFET:
+		return detail::Read<fntech3_wolfet_refdef_t>( source, destination, detail::WolfETRefdef );
 	default: return false;
 	}
 }
@@ -265,6 +389,31 @@ inline bool ReadRTCWPolyVert( const void *source, polyVert_t &destination ) noex
 inline bool WriteRTCWOrientation( void *destination, const orientation_t &source ) noexcept {
 	if ( !destination ) return false;
 	fntech3_rtcw_orientation_t record{};
+	detail::Bytes( record.origin, source.origin );
+	detail::Bytes( record.axis, source.axis );
+	std::memcpy( destination, &record, sizeof( record ) );
+	return true;
+}
+
+inline bool ReadWolfETTagEntity( const void *source, refEntity_t &destination ) noexcept {
+	return detail::Read<fntech3_wolfet_refEntity_t>( source, destination, detail::WolfETTagEntity );
+}
+
+inline bool ReadWolfETPolyVert( const void *source, polyVert_t &destination ) noexcept {
+	if ( !source ) return false;
+	fntech3_wolfet_polyVert_t record;
+	std::memcpy( &record, source, sizeof( record ) );
+	polyVert_t result{};
+	detail::Bytes( result.xyz, record.xyz );
+	detail::Bytes( result.st, record.st );
+	detail::Bytes( result.modulate, record.modulate );
+	destination = result;
+	return true;
+}
+
+inline bool WriteWolfETOrientation( void *destination, const orientation_t &source ) noexcept {
+	if ( !destination ) return false;
+	fntech3_wolfet_orientation_t record{};
 	detail::Bytes( record.origin, source.origin );
 	detail::Bytes( record.axis, source.axis );
 	std::memcpy( destination, &record, sizeof( record ) );

@@ -67,6 +67,10 @@ static struct {
     float cgameSensitivity;
     rtcwUsercmdExtension_t cgameRTCWCommand;
     vec3_t cgameRTCWLerpOrigin;
+    // Present so CL_FinishMove compiles as written; this fixture drives only
+    // the RTCW profile, so these stay untouched.
+    struct { unsigned char flags, identClient; } cgameWolfETCommand;
+    vec3_t cgameWolfETLerpOrigin;
     int serverTime;
     vec3_t viewangles;
 } cl;
@@ -96,6 +100,10 @@ void QDECL Com_Error(errorParm_t, const char *, ...) { throw 7; }
 static comGameProfile_t profile;
 const comGameProfile_t *Com_GameProfile(void) { return &profile; }
 int Com_GameIsRTCW(void) { return profile.id == COM_GAME_RTCW_SP || profile.id == COM_GAME_RTCW_MP; }
+int Com_GameIsWolfET(void) { return profile.id == COM_GAME_WOLFET; }
+// The dispatcher offers ET its own answer before the shared trap switch. This
+// fixture drives only RTCW, so ET declines every call here.
+static bool CL_WolfETCgameCall(intptr_t *, intptr_t &, intptr_t &) { return false; }
 int Com_GameIsRTCWSP(void) { return profile.id == COM_GAME_RTCW_SP; }
 static intptr_t CL_CGameTrapForProfile(intptr_t call) { return call; }
 struct vm_s { int privateFlag; void *entryPoint, *dllExports; byte *dataBase; int exactDataLength; };

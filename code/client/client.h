@@ -131,6 +131,10 @@ struct clientActive_t {
 	float		cgameSensitivity;
 	rtcwUsercmdExtension_t cgameRTCWCommand;	// mode-specific values supplied by RTCW cgame
 	vec3_t		cgameRTCWLerpOrigin;	// MP's interpolated viewpoint; cleared with the map state
+	// ET's cgame supplies its own command flags and spectated client; these
+	// are a separate contract from RTCW's and never share its storage.
+	struct { unsigned char flags, identClient; } cgameWolfETCommand;
+	vec3_t		cgameWolfETLerpOrigin;	// ET's interpolated viewpoint; cleared with the map state
 	rtcwLimboChat_t rtcwLimboChat;
 	qboolean	rtcwLimboMode;	// engine chat routing; cleared with connection/map state
 	qboolean	rtcwCameraMode;	// SP primary-camera input policy; reset with map state
@@ -680,6 +684,17 @@ int CL_RTCWKeyForBinding( const char *binding );
 int CL_RTCWGetKeyCatcher( void );
 void CL_RTCWSetKeyCatcher( int catcher );
 void CL_RTCWPopup( const char *name, qboolean close );
+qboolean CL_WolfETKeyIsDown( int key );
+void CL_WolfETSetBinding( int key, const char *binding );
+void CL_WolfETKeyString( int key, char *buffer, int size, qboolean binding );
+int CL_WolfETKeyForBinding( const char *binding );
+void CL_WolfETKeysForBinding( const char *binding, int *first, int *second );
+int CL_WolfETGetKeyCatcher( void );
+void CL_WolfETSetKeyCatcher( int catcher );
+void CL_CopyWolfETGlconfig( void *destination, const glconfig_t *source );
+int CL_WolfETReadToken( int handle, void *destination );
+int CL_WolfETSourceFileAndLine( int handle, char *filename, int *line );
+void CL_WolfETRegisterFont( const char *name, int pointSize, void *destination );
 void	CL_CopyRetailGlconfig( void *glconfig );
 
 typedef struct {

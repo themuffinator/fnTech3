@@ -32,7 +32,75 @@ enum {
 	FNTECH3_WOLFET_GAME_API_VERSION = 8,
 	FNTECH3_WOLFET_SVF_IGNOREBMODELEXTENTS = 0x00004000,
 	FNTECH3_WOLFET_SVF_SELF_PORTAL = 0x00008000,
-	FNTECH3_WOLFET_SVF_SELF_PORTAL_EXCLUSIVE = 0x00010000
+	FNTECH3_WOLFET_SVF_SELF_PORTAL_EXCLUSIVE = 0x00010000,
+	/* Client-boundary sizes from ET's cgame/tr_types.h, game/q_shared.h and
+	 * ui/ui_public.h. */
+	FNTECH3_WOLFET_MAX_QPATH = 64,
+	/* ET's own callers reserve this much for a parser source filename. */
+	FNTECH3_WOLFET_SOURCE_FILENAME_CHARS = 128,
+	FNTECH3_WOLFET_GLYPHS_PER_FONT = 256,
+	FNTECH3_WOLFET_MAX_PB_VERTS = 1025,
+	FNTECH3_WOLFET_MAX_PB_INDICIES = FNTECH3_WOLFET_MAX_PB_VERTS * 6,
+	/* ET reference-entity render flags. Bits 0x100 and 0x200 are ET's own
+	 * highlight and blink; 0x400 forces the highest detail level. */
+	FNTECH3_WOLFET_RF_MINLIGHT = 0x0001,
+	FNTECH3_WOLFET_RF_THIRD_PERSON = 0x0002,
+	FNTECH3_WOLFET_RF_FIRST_PERSON = 0x0004,
+	FNTECH3_WOLFET_RF_DEPTHHACK = 0x0008,
+	FNTECH3_WOLFET_RF_NOSHADOW = 0x0010,
+	FNTECH3_WOLFET_RF_LIGHTING_ORIGIN = 0x0020,
+	FNTECH3_WOLFET_RF_SHADOW_PLANE = 0x0040,
+	FNTECH3_WOLFET_RF_WRAP_FRAMES = 0x0080,
+	FNTECH3_WOLFET_RF_HILIGHT = 0x0100,
+	FNTECH3_WOLFET_RF_BLINK = 0x0200,
+	FNTECH3_WOLFET_RF_FORCENOLOD = 0x0400,
+	/* ET scene flags. Bit 8 is a skybox portal, not Quake's no-first-person. */
+	FNTECH3_WOLFET_RDF_NOWORLDMODEL = 1,
+	FNTECH3_WOLFET_RDF_HYPERSPACE = 4,
+	FNTECH3_WOLFET_RDF_SKYBOXPORTAL = 8,
+	FNTECH3_WOLFET_RDF_UNDERWATER = 16,
+	FNTECH3_WOLFET_RDF_DRAWINGSKY = 32,
+	FNTECH3_WOLFET_RDF_SNOOPERVIEW = 64,
+	/* ET reference-entity types, in ET's own ordinal order. */
+	FNTECH3_WOLFET_RT_MODEL = 0,
+	FNTECH3_WOLFET_RT_POLY = 1,
+	FNTECH3_WOLFET_RT_SPRITE = 2,
+	FNTECH3_WOLFET_RT_SPLASH = 3,
+	FNTECH3_WOLFET_RT_BEAM = 4,
+	FNTECH3_WOLFET_RT_RAIL_CORE = 5,
+	FNTECH3_WOLFET_RT_RAIL_CORE_TAPER = 6,
+	FNTECH3_WOLFET_RT_RAIL_RINGS = 7,
+	FNTECH3_WOLFET_RT_LIGHTNING = 8,
+	FNTECH3_WOLFET_RT_PORTALSURFACE = 9,
+	/* ET parser token types, shared with its UI and cgame parsers. */
+	FNTECH3_WOLFET_TT_STRING = 1,
+	FNTECH3_WOLFET_TT_LITERAL = 2,
+	FNTECH3_WOLFET_TT_NUMBER = 3,
+	FNTECH3_WOLFET_TT_NAME = 4,
+	FNTECH3_WOLFET_TT_PUNCTUATION = 5,
+	/* ET renderer driver, hardware and compression ordinals. */
+	FNTECH3_WOLFET_GLDRV_ICD = 0,
+	FNTECH3_WOLFET_GLDRV_STANDALONE = 1,
+	FNTECH3_WOLFET_GLDRV_VOODOO = 2,
+	FNTECH3_WOLFET_GLHW_GENERIC = 0,
+	FNTECH3_WOLFET_GLHW_3DFX_2D3D = 1,
+	FNTECH3_WOLFET_GLHW_RIVA128 = 2,
+	FNTECH3_WOLFET_GLHW_RAGEPRO = 3,
+	FNTECH3_WOLFET_GLHW_PERMEDIA2 = 4,
+	FNTECH3_WOLFET_TC_NONE = 0,
+	FNTECH3_WOLFET_TC_S3TC = 1,
+	FNTECH3_WOLFET_TC_EXT_COMP_S3TC = 2,
+	/* ET connection states, as its UI reports them. */
+	FNTECH3_WOLFET_CA_UNINITIALIZED = 0,
+	FNTECH3_WOLFET_CA_DISCONNECTED = 1,
+	FNTECH3_WOLFET_CA_AUTHORIZING = 2,
+	FNTECH3_WOLFET_CA_CONNECTING = 3,
+	FNTECH3_WOLFET_CA_CHALLENGING = 4,
+	FNTECH3_WOLFET_CA_CONNECTED = 5,
+	FNTECH3_WOLFET_CA_LOADING = 6,
+	FNTECH3_WOLFET_CA_PRIMED = 7,
+	FNTECH3_WOLFET_CA_ACTIVE = 8,
+	FNTECH3_WOLFET_CA_CINEMATIC = 9
 };
 
 typedef struct {
@@ -327,5 +395,39 @@ typedef struct {
 	fntech3_wolfet_entityState_t entities[FNTECH3_WOLFET_MAX_ENTITIES_IN_SNAPSHOT];
 	int32_t numServerCommands, serverCommandSequence;
 } fntech3_wolfet_snapshot_t;
+
+/* ET client-boundary records. The font record is the one ET's UI and cgame
+ * both fill in place; the polygon buffer is ET's only batched geometry
+ * submission and is over fifty kilobytes, so it is never copied onto a stack.
+ * ET's client state is what its UI reads to drive the connection screens. */
+typedef struct {
+	int32_t height, top, bottom, pitch, xSkip, imageWidth, imageHeight;
+	float s, t, s2, t2;
+	int32_t glyph;
+	char shaderName[32];
+} fntech3_wolfet_glyphInfo_t;
+
+typedef struct {
+	fntech3_wolfet_glyphInfo_t glyphs[FNTECH3_WOLFET_GLYPHS_PER_FONT];
+	float glyphScale;
+	char name[FNTECH3_WOLFET_MAX_QPATH];
+} fntech3_wolfet_fontInfo_t;
+
+typedef struct {
+	float xyz[FNTECH3_WOLFET_MAX_PB_VERTS][4];
+	float st[FNTECH3_WOLFET_MAX_PB_VERTS][2];
+	uint8_t color[FNTECH3_WOLFET_MAX_PB_VERTS][4];
+	int32_t numVerts;
+	int32_t indicies[FNTECH3_WOLFET_MAX_PB_INDICIES];
+	int32_t numIndicies;
+	int32_t shader;
+} fntech3_wolfet_polyBuffer_t;
+
+typedef struct {
+	int32_t connState, connectPacketCount, clientNum;
+	char servername[FNTECH3_WOLFET_MAX_STRING_CHARS];
+	char updateInfoString[FNTECH3_WOLFET_MAX_STRING_CHARS];
+	char messageString[FNTECH3_WOLFET_MAX_STRING_CHARS];
+} fntech3_wolfet_uiClientState_t;
 
 #endif
