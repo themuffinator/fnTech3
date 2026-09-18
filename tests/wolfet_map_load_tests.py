@@ -432,7 +432,7 @@ class WolfETEngineWiringTests(unittest.TestCase):
         client = read('code/client/cl_main.cpp')
         for name in ('"gfx/2d/consolechars"', '"console-16bit"', '"ui/assets/3_cursor3"'):
             self.assertIn(name, client)
-        self.assertIn('cls.recordShader = wolfet ? 0 :', client)
+        self.assertIn('cls.recordShader = wolfet || Com_GameIsSTVEF() ? 0 :', client)
         self.assertIn('Com_GameIsWolfET() ? 0 : re.RegisterShaderNoMip( "ui/assets/backscreen_smoke" )',
                       read('code/client/cl_scrn.cpp'))
         sound = read('code/client/audio/snd_main.cpp')

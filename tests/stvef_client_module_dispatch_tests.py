@@ -406,5 +406,21 @@ class STVEFClientModuleDispatchTests(unittest.TestCase):
             self.assertIn('ok', run.stdout)
 
 
+class STVEFCgameSystemInfoTests(unittest.TestCase):
+    def test_server_values_return_after_the_cgame_registers_its_cvars(self):
+        # Registering a cvar resets a value the server's systeminfo created;
+        # retail keeps the server's g_synchronousClients, which decides both
+        # demo recording and prediction.
+        source = (ROOT / 'code/client/cl_cgame.cpp').read_text(encoding='utf-8')
+        init = source[source.index('void CL_InitCGame( void )'):]
+        init = init[:init.index('\n}\n')]
+        reapply = init.index('if ( Com_GameIsSTVEFMP() && !clc.demoplaying ) {\n\t\tCL_SystemInfoChanged( qfalse );')
+        self.assertLess(init.index('CG_INIT'), reapply)
+        self.assertLess(reapply, init.index('cls.state = CA_PRIMED;'))
+        record = (ROOT / 'code/client/cl_main.cpp').read_text(encoding='utf-8')
+        self.assertIn('( Com_GameIsRTCWSP() || Com_GameIsSTVEFMP() ) && !Cvar_VariableValue( "g_synchronousClients" )',
+                      record)
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -3834,6 +3834,15 @@ void CL_InitCGame( void ) {
 	if ( !clc.demoplaying && !cl_connectedToCheatServer )
 		Cvar_SetCheatState();
 
+	// Registering a cvar here resets a value the server's systeminfo created to
+	// the module's default; retail Holomatch keeps the server's value. It
+	// matters for g_synchronousClients: retail refuses to record a demo
+	// without it (0x40c253) and its cgame stops predicting with it. Apply the
+	// server's values again now that the cgame has registered its cvars.
+	if ( Com_GameIsSTVEFMP() && !clc.demoplaying ) {
+		CL_SystemInfoChanged( qfalse );
+	}
+
 	// have the renderer touch all its images, so they are present
 	// on the card even if the driver does deferred loading
 	re.EndRegistration();
