@@ -13,8 +13,10 @@ commands and results.
 ## Method
 
 [`scripts/probe_q3_paused_demo.py`](../../scripts/probe_q3_paused_demo.py) plays
-the installation's own shipped demo `four` (`demos/four.dm_68` in `pak0.pk3`)
-in retail `quake3.exe` 1.32 and in the fnTech3 client under the `q3` profile.
+the installation's own shipped demo `four` in retail `quake3.exe` 1.32 and in
+the fnTech3 client under the `q3` profile. Both engines opened
+`demos/four.dm_66` from `pak6.pk3`, which is byte-identical to `pak8.pk3`'s
+`four.dm_68`.
 Each engine freezes the demo with `cl_freezeDemo 1`, takes an engine screenshot,
 waits 90 frames, takes a second, then resumes and takes a third. Both run
 windowed on unswitched private desktops with isolated homes, sound and

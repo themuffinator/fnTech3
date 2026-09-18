@@ -9,7 +9,10 @@
   },
   "demo": {
     "name": "four",
-    "source": "baseq3/pak0.pk3 demos/four.dm_68 (read in place)"
+    "opened": "demos/four.dm_66 from baseq3/pak6.pk3 in both engines (read in place)",
+    "sha256": "bf761f64415cae84e14271c0a865e1f05c843b0bd58fdd0706da7f6f5ad4766e",
+    "identicalTo": "demos/four.dm_68 in baseq3/pak8.pk3",
+    "bytes": 152158
   },
   "retailSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
   "clientSha256": "82880be0ac4a02498587e6f4a3f25c0ef594561030182fa5dbfd6787a9f238a8",

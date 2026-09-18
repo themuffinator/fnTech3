@@ -2,7 +2,8 @@
 """Compare what changes on screen while a Q3 demo is paused, retail versus fnTech3.
 
 Both retail quake3.exe and the fnTech3 client (q3 profile) play the same demo
-from the installation's own paks (default `four`, shipped in baseq3/pak0.pk3),
+from the installation's own paks (default `four`, shipped as baseq3/pak6.pk3
+demos/four.dm_66 and the identical pak8.pk3 demos/four.dm_68),
 freeze it with cl_freezeDemo, take two engine screenshots 90 frames apart, and
 resume. The probe reports, for each engine, how many pixels differ between the
 two paused frames and the bounding box of those pixels, so a difference confined
