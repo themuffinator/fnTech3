@@ -1,0 +1,265 @@
+{
+ "date": "2026-09-18T08:46:15.995824+00:00",
+ "commit": "efaec964fc44c474ae25eb50c1a6394ddf84bd2d",
+ "worktreeDirty": true,
+ "scope": "Four profiles (q3, ql, rtcw-sp, rtcw-mp) against one shared writable home with the same client: config persistence, one-way QL migration, protocol state, module API and native-cache separation.",
+ "sourceFiles": [
+  {
+   "path": "scripts/probe_profile_isolation.py",
+   "sha256": "ba4616b84909f3d12d486a404b37609fa69589db5e18eb462cdf01f7a098c465"
+  },
+  {
+   "path": "code/qcommon/common.c",
+   "sha256": "5dd1292e496d3ede016e3f2d46ba2016fbefe530b766f217df94e40e28de0be1"
+  },
+  {
+   "path": "code/qcommon/game_profile.cpp",
+   "sha256": "f37399558be1d53f880740fed2fde5c913ca4807c37da67bb324aa82a3e6e4a1"
+  },
+  {
+   "path": "code/client/cl_ui.cpp",
+   "sha256": "3a5b8aae4e8e94634abba3874b2d372ee6019584bedbf82826bfd2772d0753b5"
+  }
+ ],
+ "client": {
+  "path": "meson/build/win32-gaps/fntech3.exe",
+  "sha256": "4d04deff698f67b948fabdb106a806c0233fa9fcd2e255bf8e39a529a798e650",
+  "platform": "Windows x86, RelWithDebInfo, RTCW and WolfET development gates on"
+ },
+ "installations": {
+  "q3": "Quake III Arena 1.32 (Steam)",
+  "ql": "Quake Live (Steam)",
+  "rtcw": "Return to Castle Wolfenstein (Steam)"
+ },
+ "command": "python scripts/probe_profile_isolation.py --client meson/build/win32-gaps/fntech3.exe --q3 <Quake 3 Arena> --ql <Quake Live> --rtcw <Return to Castle Wolfenstein> --output .tmp/profile-isolation",
+ "rounds": {
+  "first": {
+   "q3": {
+    "exitCode": 0,
+    "forcedTermination": false,
+    "elapsedSeconds": 1.2,
+    "marker": true,
+    "command": "+set com_gameProfile q3 +set fs_basepath C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\profile-isolation\\shared-home +set fs_game  +set r_fullscreen 0 +set r_mode 3 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_port 0 +set com_introplayed 1 +exec probe-round1-q3.cfg"
+   },
+   "ql": {
+    "exitCode": 0,
+    "forcedTermination": false,
+    "elapsedSeconds": 2.0,
+    "marker": true,
+    "command": "+set com_gameProfile ql +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Quake Live +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\profile-isolation\\shared-home +set fs_game  +set r_fullscreen 0 +set r_mode 3 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_port 0 +set com_introplayed 1 +exec probe-round1-ql.cfg"
+   },
+   "rtcw-sp": {
+    "exitCode": 0,
+    "forcedTermination": false,
+    "elapsedSeconds": 1.4,
+    "marker": true,
+    "command": "+set com_gameProfile rtcw-sp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\profile-isolation\\shared-home +set fs_game  +set r_fullscreen 0 +set r_mode 3 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_port 0 +set com_introplayed 1 +exec probe-round1-rtcw-sp.cfg"
+   },
+   "rtcw-mp": {
+    "exitCode": 0,
+    "forcedTermination": false,
+    "elapsedSeconds": 1.2,
+    "marker": true,
+    "command": "+set com_gameProfile rtcw-mp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\profile-isolation\\shared-home +set fs_game  +set r_fullscreen 0 +set r_mode 3 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_port 0 +set com_introplayed 1 +exec probe-round1-rtcw-mp.cfg"
+   }
+  },
+  "second": {
+   "rtcw-mp": {
+    "exitCode": 0,
+    "forcedTermination": false,
+    "elapsedSeconds": 1.2,
+    "marker": true,
+    "seen": {
+     "fntech3_iso_q3": null,
+     "fntech3_iso_ql": null,
+     "fntech3_iso_rtcw_sp": null,
+     "fntech3_iso_rtcw_mp": "rtcw-mp",
+     "name": "iso-rtcw-mp",
+     "cl_maxpackets": "44",
+     "protocol": "60"
+    },
+    "modules": {
+     "native": [
+      "cgame_mp_x86.dll",
+      "ui_mp_x86.dll"
+     ],
+     "qvm": [],
+     "cacheDirectories": [
+      "29982d226cd0fa110ed00e63621afdac"
+     ]
+    },
+    "foreignModules": [],
+    "mismatches": {},
+    "command": "+set com_gameProfile rtcw-mp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\profile-isolation\\shared-home +set fs_game  +set r_fullscreen 0 +set r_mode 3 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_port 0 +set com_introplayed 1 +exec probe-round2-rtcw-mp.cfg"
+   },
+   "rtcw-sp": {
+    "exitCode": 0,
+    "forcedTermination": false,
+    "elapsedSeconds": 1.4,
+    "marker": true,
+    "seen": {
+     "fntech3_iso_q3": null,
+     "fntech3_iso_ql": null,
+     "fntech3_iso_rtcw_sp": "rtcw-sp",
+     "fntech3_iso_rtcw_mp": null,
+     "name": "iso-rtcw-sp",
+     "cl_maxpackets": "43",
+     "protocol": "49"
+    },
+    "modules": {
+     "native": [
+      "cgamex86.dll",
+      "uix86.dll"
+     ],
+     "qvm": [],
+     "cacheDirectories": [
+      "d7bf044631bcdb416662fc62a00d6c86"
+     ]
+    },
+    "foreignModules": [],
+    "mismatches": {},
+    "command": "+set com_gameProfile rtcw-sp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\profile-isolation\\shared-home +set fs_game  +set r_fullscreen 0 +set r_mode 3 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_port 0 +set com_introplayed 1 +exec probe-round2-rtcw-sp.cfg"
+   },
+   "ql": {
+    "exitCode": 0,
+    "forcedTermination": false,
+    "elapsedSeconds": 1.4,
+    "marker": true,
+    "seen": {
+     "fntech3_iso_q3": "q3",
+     "fntech3_iso_ql": "ql",
+     "fntech3_iso_rtcw_sp": null,
+     "fntech3_iso_rtcw_mp": null,
+     "name": "iso-ql",
+     "cl_maxpackets": "42",
+     "protocol": "91"
+    },
+    "modules": {
+     "native": [
+      "cgamex86.dll",
+      "qagamex86.dll",
+      "uix86.dll"
+     ],
+     "qvm": [],
+     "cacheDirectories": [
+      "9e9ae977d745c5274309021ae9682adc"
+     ]
+    },
+    "foreignModules": [],
+    "mismatches": {},
+    "command": "+set com_gameProfile ql +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Quake Live +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\profile-isolation\\shared-home +set fs_game  +set r_fullscreen 0 +set r_mode 3 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_port 0 +set com_introplayed 1 +exec probe-round2-ql.cfg"
+   },
+   "q3": {
+    "exitCode": 0,
+    "forcedTermination": false,
+    "elapsedSeconds": 1.0,
+    "marker": true,
+    "seen": {
+     "fntech3_iso_q3": "q3",
+     "fntech3_iso_ql": null,
+     "fntech3_iso_rtcw_sp": null,
+     "fntech3_iso_rtcw_mp": null,
+     "name": "iso-q3",
+     "cl_maxpackets": "41",
+     "protocol": "68"
+    },
+    "modules": {
+     "native": [],
+     "qvm": [
+      "vm/cgame.qvm",
+      "vm/ui.qvm"
+     ],
+     "cacheDirectories": []
+    },
+    "foreignModules": [],
+    "mismatches": {},
+    "command": "+set com_gameProfile q3 +set fs_basepath C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\profile-isolation\\shared-home +set fs_game  +set r_fullscreen 0 +set r_mode 3 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_port 0 +set com_introplayed 1 +exec probe-round2-q3.cfg"
+   }
+  },
+  "third": {
+   "ql": {
+    "exitCode": 0,
+    "forcedTermination": false,
+    "elapsedSeconds": 1.6,
+    "marker": true,
+    "seen": {
+     "fntech3_iso_q3_later": null,
+     "fntech3_iso_q3": "q3"
+    },
+    "command": "+set com_gameProfile ql +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Quake Live +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\profile-isolation\\shared-home +set fs_game  +set r_fullscreen 0 +set r_mode 3 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_port 0 +set com_introplayed 1 +exec probe-round3-ql.cfg"
+   }
+  }
+ },
+ "configurationFiles": {
+  "baseq3/q3config.cfg": {
+   "profile": "q3",
+   "exists": true,
+   "markers": [
+    "q3"
+   ],
+   "laterMarker": true
+  },
+  "qzconfig.cfg": {
+   "profile": "ql",
+   "exists": true,
+   "markers": [
+    "q3",
+    "ql"
+   ],
+   "laterMarker": false
+  },
+  "repconfig.cfg": {
+   "profile": "ql",
+   "exists": true,
+   "markers": [],
+   "laterMarker": false
+  },
+  "main/wolfconfig.cfg": {
+   "profile": "rtcw-sp",
+   "exists": true,
+   "markers": [
+    "rtcw-sp"
+   ],
+   "laterMarker": false
+  },
+  "main/wolfconfig_mp.cfg": {
+   "profile": "rtcw-mp",
+   "exists": true,
+   "markers": [
+    "rtcw-mp"
+   ],
+   "laterMarker": false
+  }
+ },
+ "homeFiles": [
+  ".tmp\\native\\29982d226cd0fa110ed00e63621afdac\\cgame_mp_x86.dll",
+  ".tmp\\native\\29982d226cd0fa110ed00e63621afdac\\ui_mp_x86.dll",
+  ".tmp\\native\\6f1ae48a467898bc1ceffe0fb8566cab\\cgamex86.dll",
+  ".tmp\\native\\6f1ae48a467898bc1ceffe0fb8566cab\\qagamex86.dll",
+  ".tmp\\native\\6f1ae48a467898bc1ceffe0fb8566cab\\uix86.dll",
+  ".tmp\\native\\7b4f3e4e22152aaed818577b496e7984\\cgame_mp_x86.dll",
+  ".tmp\\native\\7b4f3e4e22152aaed818577b496e7984\\ui_mp_x86.dll",
+  ".tmp\\native\\9e9ae977d745c5274309021ae9682adc\\cgamex86.dll",
+  ".tmp\\native\\9e9ae977d745c5274309021ae9682adc\\qagamex86.dll",
+  ".tmp\\native\\9e9ae977d745c5274309021ae9682adc\\uix86.dll",
+  ".tmp\\native\\aea44817f8bdc6cfe80622287d3fb839\\cgamex86.dll",
+  ".tmp\\native\\aea44817f8bdc6cfe80622287d3fb839\\uix86.dll",
+  ".tmp\\native\\d7bf044631bcdb416662fc62a00d6c86\\cgamex86.dll",
+  ".tmp\\native\\d7bf044631bcdb416662fc62a00d6c86\\uix86.dll",
+  ".tmp\\native\\dfbdbeff00455e58a7aa01f4e9b16c98\\cgamex86.dll",
+  ".tmp\\native\\dfbdbeff00455e58a7aa01f4e9b16c98\\qagamex86.dll",
+  ".tmp\\native\\dfbdbeff00455e58a7aa01f4e9b16c98\\uix86.dll",
+  "baseq3\\q3config.cfg",
+  "baseq3\\servercache.dat",
+  "main\\fntech3-rtcw-mp-servercache.dat",
+  "main\\wolfconfig.cfg",
+  "main\\wolfconfig_mp.cfg",
+  "pk3cache.dat",
+  "qzconfig.cfg",
+  "repconfig.cfg"
+ ],
+ "installationsUnchanged": true,
+ "failures": [],
+ "passed": true,
+ "environment": "Windowed private desktops, sound and mouse/joystick input disabled, console commands only; no operating-system capture."
+}
