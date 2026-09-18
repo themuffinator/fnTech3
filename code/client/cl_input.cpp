@@ -1736,7 +1736,9 @@ void CL_InitInput( void ) {
 	cl_run = Cvar_Get( "cl_run", "1", CVAR_ARCHIVE_ND );
 	Cvar_SetDescription( cl_run, "Persistent player running movement." );
 	cl_sensitivity = Cvar_Get( "sensitivity", "2", CVAR_ARCHIVE );
-	Cvar_CheckRange( cl_sensitivity, "0.1", "10", CV_FLOAT );
+	// Unbounded like every retail engine: player configs shipped with all four
+	// games use values from 10 to 40.
+	Cvar_CheckRange( cl_sensitivity, nullptr, nullptr, CV_FLOAT );
 	Cvar_SetDescription( cl_sensitivity, "Sets base mouse sensitivity (mouse speed)." );
 	Cvar_SetDescription( Cvar_Get( "cg_ignoreMouseInput", "0", CVAR_ROM ), "Read-only Quake Live cgame/UI bridge flag that blocks gameplay mouse deltas while retained overlays own input." );
 	cl_mouseAccel = Cvar_Get( "cl_mouseAccel", "0",

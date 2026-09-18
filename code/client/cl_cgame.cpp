@@ -3241,8 +3241,6 @@ static uint64_t QL_CG_PackFloatBits64( float lo, float hi ) {
 
 static void QDECL QL_CG_trap_Cvar_RegisterRange( vmCvar_t *vmCvar, const char *varName,
 		const char *defaultValue, const char *minimumValue, const char *maximumValue, int flags ) {
-	Cvar_Register( vmCvar, varName, defaultValue, flags, cgvm ? cgvm->privateFlag : CVAR_PRIVATE );
-
 	cvar_t *cv = Cvar_Get( varName, defaultValue, flags );
 	if ( cv ) {
 		// Retail bounds are numeric clamps, not an integer type declaration. A
@@ -3250,6 +3248,10 @@ static void QDECL QL_CG_trap_Cvar_RegisterRange( vmCvar_t *vmCvar, const char *v
 		// such as 0.75; treating those as integers destroys retail settings.
 		Cvar_CheckRange( cv, minimumValue, maximumValue, CV_FLOAT );
 	}
+
+	// Clamp before filling the module's copy, as retail does, so cgame starts
+	// from the bounded value rather than seeing it change on its next update.
+	Cvar_Register( vmCvar, varName, defaultValue, flags, cgvm ? cgvm->privateFlag : CVAR_PRIVATE );
 }
 
 static void QDECL QL_CG_trap_Cvar_SetValue( const char *varName, float value ) {

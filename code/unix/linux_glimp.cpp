@@ -3615,11 +3615,14 @@ void IN_Init( void )
 	// mouse variables
 	in_mouse = Cvar_Get(
 		"in_mouse", "1", CVAR_ARCHIVE | CVAR_LATCH | CVAR_CLOUD );
-	Cvar_CheckRange( in_mouse, "0", "1", CV_INTEGER );
+	// Accept the Win32 and SDL sources too: retail Quake III and RTCW configs
+	// carry -1 and Quake Live's carry 2, and either must still enable the mouse.
+	Cvar_CheckRange( in_mouse, "-1", "2", CV_INTEGER );
 	Cvar_SetDescription( in_mouse,
 		"Mouse data input source:\n" \
 		"  0 - disable mouse input\n" \
-		"  1 - enable mouse input" );
+		"  1 - enable mouse input\n" \
+		" -1, 2 - Win32/SDL mouse sources, which enable mouse input here" );
 
 	if ( in_mouse->integer )
 	{

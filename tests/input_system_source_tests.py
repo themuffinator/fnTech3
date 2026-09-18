@@ -3206,7 +3206,7 @@ class NativeX11InputProducerTests(unittest.TestCase):
             self.source,
         )
         self.assertIn(
-            'Cvar_CheckRange( in_mouse, "0", "1", CV_INTEGER )',
+            'Cvar_CheckRange( in_mouse, "-1", "2", CV_INTEGER )',
             self.source,
         )
 

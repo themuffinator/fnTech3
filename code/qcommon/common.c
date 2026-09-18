@@ -2281,8 +2281,8 @@ static void Com_InitHunkMemory( void ) {
 	// official maps peak between 60 and 70 megabytes here, where the original
 	// recorded 36 to 47. The floor leaves room for larger custom maps.
 	if ( Com_GameIsWolfET() ) {
-		// A range check neither changes a value already set nor applies a
-		// latched one before the next start, so the floor is set outright.
+		// The range check below would raise a lower value as well; setting
+		// the floor first says why, in Enemy Territory's terms.
 		if ( cv->integer < MIN_WOLFET_COMHUNKMEGS ) {
 			Com_Printf( "com_hunkMegs %i is below what Enemy Territory's maps need here; using %i.\n",
 				cv->integer, MIN_WOLFET_COMHUNKMEGS );

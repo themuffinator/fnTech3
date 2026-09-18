@@ -2113,6 +2113,8 @@ Cvar_CheckRange
 */
 void Cvar_CheckRange( cvar_t *var, const char *mins, const char *maxs, cvarValidator_t type )
 {
+	const char *value;
+
 	if ( type >= CV_MAX ) {
 		Com_Printf( S_COLOR_YELLOW "Invalid validation type %i for %s\n", type, var->name );
 		return;
@@ -2138,8 +2140,12 @@ void Cvar_CheckRange( cvar_t *var, const char *mins, const char *maxs, cvarValid
 	if ( maxs )
 		var->maxs = CopyString( maxs );
 
-	// Force an initial range check
-	Cvar_Set( var->name, var->string );
+	// Force an initial range check. Cvar_Set2 returns before validating a
+	// value equal to the current one, so a config value set before the range
+	// existed would pass unchecked; validate the current value here instead.
+	value = Cvar_Validate( var, var->string, qtrue );
+	if ( strcmp( value, var->string ) != 0 )
+		Cvar_Set( var->name, value );
 }
 
 
