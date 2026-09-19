@@ -1664,22 +1664,36 @@ static intptr_t CL_UISystemCalls( intptr_t *args ) {
 		S_StartLocalSound( args[1], args[2] );
 		return 0;
 
+	// Quake III's UI numbers keys as original Quake III does; Quake Live's
+	// takes this engine's numbers.
 	case UI_KEY_KEYNUMTOSTRINGBUF:
 		VM_CHECKBOUNDS( uivm, args[2], args[3] );
-		Key_KeynumToStringBuf( args[1], VMA(2), args[3] );
+		if ( Com_GameIsQuake3() ) {
+			CL_Q3KeyString( args[1], VMA(2), args[3], qfalse );
+		} else {
+			Key_KeynumToStringBuf( args[1], VMA(2), args[3] );
+		}
 		return 0;
 
 	case UI_KEY_GETBINDINGBUF:
 		VM_CHECKBOUNDS( uivm, args[2], args[3] );
-		Key_GetBindingBuf( args[1], VMA(2), args[3] );
+		if ( Com_GameIsQuake3() ) {
+			CL_Q3KeyString( args[1], VMA(2), args[3], qtrue );
+		} else {
+			Key_GetBindingBuf( args[1], VMA(2), args[3] );
+		}
 		return 0;
 
 	case UI_KEY_SETBINDING:
-		Key_SetBinding( args[1], VMA(2) );
+		if ( Com_GameIsQuake3() ) {
+			CL_Q3SetBinding( args[1], VMA(2) );
+		} else {
+			Key_SetBinding( args[1], VMA(2) );
+		}
 		return 0;
 
 	case UI_KEY_ISDOWN:
-		return Key_IsDown( args[1] );
+		return Com_GameIsQuake3() ? CL_Q3KeyIsDown( args[1] ) : Key_IsDown( args[1] );
 
 	case UI_KEY_GETOVERSTRIKEMODE:
 		return Key_GetOverstrikeMode();

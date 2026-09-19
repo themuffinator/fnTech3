@@ -2906,30 +2906,44 @@ static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		return 0;
 	case CG_MEMORY_REMAINING:
 		return Hunk_MemoryRemaining();
+	// Quake III's cgame numbers keys as original Quake III does; Quake Live's
+	// takes this engine's numbers.
 	case CG_KEY_ISDOWN:
-		return Key_IsDown( args[1] );
+		return Com_GameIsQuake3() ? CL_Q3KeyIsDown( args[1] ) : Key_IsDown( args[1] );
 	case CG_KEY_GETCATCHER:
 		return Key_GetCatcher();
 	case CG_KEY_SETCATCHER:
 		CL_SetCGameKeyCatcher( args[1] );
 		return 0;
 	case CG_KEY_GETKEY:
-		return Key_GetKey( VMA(1) );
+		return Com_GameIsQuake3() ? CL_Q3KeyForBinding( VMA(1) ) : Key_GetKey( VMA(1) );
 	case CG_KEY_KEYNUMTOSTRINGBUF:
 		VM_CHECKBOUNDS( cgvm, args[2], args[3] );
-		Q_strncpyz( VMA(2), Key_KeynumToString( args[1] ), args[3] );
+		if ( Com_GameIsQuake3() ) {
+			CL_Q3KeyString( args[1], VMA(2), args[3], qfalse );
+		} else {
+			Q_strncpyz( VMA(2), Key_KeynumToString( args[1] ), args[3] );
+		}
 		return 0;
 	case CG_KEY_GETBINDINGBUF:
 	{
 		const char *binding;
 
 		VM_CHECKBOUNDS( cgvm, args[2], args[3] );
+		if ( Com_GameIsQuake3() ) {
+			CL_Q3KeyString( args[1], VMA(2), args[3], qtrue );
+			return 0;
+		}
 		binding = Key_GetBinding( args[1] );
 		Q_strncpyz( VMA(2), binding ? binding : "", args[3] );
 		return 0;
 	}
 	case CG_KEY_SETBINDING:
-		Key_SetBinding( args[1], VMA(2) );
+		if ( Com_GameIsQuake3() ) {
+			CL_Q3SetBinding( args[1], VMA(2) );
+		} else {
+			Key_SetBinding( args[1], VMA(2) );
+		}
 		return 0;
 	case CG_KEY_GETOVERSTRIKEMODE:
 		return Key_GetOverstrikeMode();

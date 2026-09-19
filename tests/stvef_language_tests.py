@@ -212,8 +212,9 @@ class STVEFLanguageTests(unittest.TestCase):
         self.assertIn('fntech3::stvef::keys::NameForModule( key,\n'
                       '			Cvar_VariableString( "g_language" ), Com_GameIsSTVEFMP() != 0, tiny.data() )',
                       function(keys, 'void CL_STVEFKeyString('))
-        event = function(keys, 'static void CL_UIKeyDownEvent(')
-        self.assertIn('key = FnTech3_STVEFKeyEventFromInternal( key );', event)
+        self.assertIn('if ( Com_GameIsSTVEF() ) {\n\t\treturn FnTech3_STVEFKeyEventFromInternal( key );',
+                      function(keys, 'static int CL_ModuleKeyEvent('))
+        self.assertIn('key = CL_ModuleKeyEvent( key );', function(keys, 'static void CL_UIKeyDownEvent('))
         # Every key press the UI is handed goes through it.
         self.assertEqual(keys.count('VM_Call( uivm, 3, UI_KEY_EVENT, key, qtrue, time );'), 1)
         self.assertEqual(keys.count('CL_UIKeyDownEvent( key, time );'), 2)

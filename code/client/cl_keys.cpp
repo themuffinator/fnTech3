@@ -25,6 +25,7 @@ extern "C" {
 
 #include "client_cpp.h"
 #include "input_compat.hpp"
+#include "../compat/q3_key_adapter.h"
 #include "../compat/rtcw_key_adapter.h"
 #include "../compat/rtcw_key_names.hpp"
 #include "../compat/stvef_key_adapter.h"
@@ -759,21 +760,70 @@ static void CL_ActivateNativeMenu( uiMenuCommand_t menu ) {
 
 /*
 =============
+CL_ModuleKeyEvent
+
+The number a UI or cgame is handed for a key event, or -1 for a key its game
+has no number for. Quake III and Elite Force number keys as original Quake III
+does, four below this engine from the mouse wheel upward, and q3_ui's and Elite
+Force's menus take joystick buttons 1-4 as Enter: this engine's mouse wheel
+numbers are those buttons there. Quake Live's modules take this engine's own
+numbers; RTCW's and ET's are converted with the rest of their calls in vm.c.
+=============
+*/
+static int CL_ModuleKeyEvent( int key ) {
+	if ( Com_GameIsQuake3() ) {
+		return FnTech3_Q3KeyEventFromInternal( key );
+	}
+	if ( Com_GameIsSTVEF() ) {
+		return FnTech3_STVEFKeyEventFromInternal( key );
+	}
+	return key;
+}
+
+
+/*
+=============
 CL_UIKeyDownEvent
 
-Hands the UI a key press. Elite Force's UI gets its own number for the key,
-and nothing for a key it has no number for: its menus take joystick buttons
-1-4 as Enter, and this engine's mouse wheel numbers are those buttons there.
+Hands the UI a key press, numbered for its game; a key that game has no
+number for is not delivered.
 =============
 */
 static void CL_UIKeyDownEvent( int key, unsigned time ) {
-	if ( Com_GameIsSTVEF() ) {
-		key = FnTech3_STVEFKeyEventFromInternal( key );
-		if ( key < 0 ) {
-			return;
-		}
+	key = CL_ModuleKeyEvent( key );
+	if ( key >= 0 ) {
+		VM_Call( uivm, 3, UI_KEY_EVENT, key, qtrue, time );
 	}
-	VM_Call( uivm, 3, UI_KEY_EVENT, key, qtrue, time );
+}
+
+
+/*
+=============
+CL_UIKeyUpEvent
+
+Hands the UI a key release, numbered as its press was.
+=============
+*/
+static void CL_UIKeyUpEvent( int key, unsigned time ) {
+	key = CL_ModuleKeyEvent( key );
+	if ( key >= 0 ) {
+		VM_Call( uivm, 3, UI_KEY_EVENT, key, qfalse, time );
+	}
+}
+
+
+/*
+=============
+CL_CGameKeyEvent
+
+Hands the cgame a key press or release, numbered as the UI's are.
+=============
+*/
+static void CL_CGameKeyEvent( int key, qboolean down ) {
+	key = CL_ModuleKeyEvent( key );
+	if ( key >= 0 ) {
+		VM_Call( cgvm, 2, CG_KEY_EVENT, key, down );
+	}
 }
 
 
@@ -864,7 +914,7 @@ static void CL_ToggleMenuInternal( int key, qboolean sendKeyUp, unsigned time ) 
 		CL_UIKeyDownEvent( key, time );
 		// Elite Force's menus take every key event as a press.
 		if ( sendKeyUp && !Com_GameIsSTVEF() ) {
-			VM_Call( uivm, 3, UI_KEY_EVENT, key, qfalse, time );
+			CL_UIKeyUpEvent( key, time );
 		}
 	}
 }
@@ -1000,7 +1050,7 @@ static void CL_KeyDownEvent( int key, unsigned time )
 		Message_Key( key );
 	} else if ( Key_GetCatcher( ) & KEYCATCH_CGAME ) {
 		if ( cgvm ) {
-			VM_Call( cgvm, 2, CG_KEY_EVENT, key, qtrue );
+			CL_CGameKeyEvent( key, qtrue );
 		}
 	} else if ( cls.state == CA_DISCONNECTED ) {
 		Console_Key( key );
@@ -1069,11 +1119,11 @@ static void CL_KeyUpEvent( int key, unsigned time )
 		// none for a release (stvoyHM.exe 0x40bee6, stvoy.exe 0x407198 send
 		// key-down events only).
 		if ( uivm && !Com_GameIsSTVEF() ) {
-			VM_Call( uivm, 3, UI_KEY_EVENT, key, qfalse, time );
+			CL_UIKeyUpEvent( key, time );
 		}
 	} else if ( Key_GetCatcher() & KEYCATCH_CGAME ) {
 		if ( cgvm ) {
-			VM_Call( cgvm, 2, CG_KEY_EVENT, key, qfalse );
+			CL_CGameKeyEvent( key, qfalse );
 		}
 	}
 }
@@ -1228,6 +1278,52 @@ void Key_SetCatcher( int catcher )
 	}
 
 	keyCatchers = catcher;
+}
+
+// Quake III's modules number keys as original Quake III does
+// (q3_key_adapter.h). A key this engine numbers outside that vocabulary is
+// never reported, and a module number outside it never becomes an engine
+// binding. Quake Live's modules take this engine's own numbers.
+qboolean CL_Q3KeyIsDown( int key ) {
+	const int internal = FnTech3_Q3KeyToInternal( key );
+	return internal < 0 ? qfalse : Key_IsDown( internal );
+}
+
+void CL_Q3SetBinding( int key, const char *binding ) {
+	const int internal = FnTech3_Q3KeyToInternal( key );
+	if ( internal >= 0 && binding ) Key_SetBinding( internal, binding );
+}
+
+void CL_Q3KeyString( int key, char *buffer, int size, qboolean binding ) {
+	if ( size <= 0 ) return;
+	if ( !buffer ) {
+		Com_Error( ERR_DROP, "NULL Quake III key string buffer" );
+		return;
+	}
+	const int internal = FnTech3_Q3KeyToInternal( key );
+	if ( binding ) {
+		const char *value = Key_GetBinding( internal );
+		Q_strncpyz( buffer, value ? value : "", size );
+	} else if ( internal >= 0 || key == -1 ) {
+		Q_strncpyz( buffer, Key_KeynumToString( internal ), size );
+	} else if ( key < 0 || key > 255 ) {
+		Q_strncpyz( buffer, "<OUT OF RANGE>", size );
+	} else {
+		// Quake III names a number it has no key for in hex.
+		Com_sprintf( buffer, size, "0x%02x", key );
+	}
+}
+
+int CL_Q3KeyForBinding( const char *binding ) {
+	if ( !binding ) return -1;
+	// Search in the module's own order, so an engine-only key holding the same
+	// binding never displaces the key Quake III would have reported.
+	for ( int key = 0; key <= FNTECH3_Q3_K_AUX16; ++key ) {
+		const int internal = FnTech3_Q3KeyToInternal( key );
+		const char *value = internal < 0 ? nullptr : Key_GetBinding( internal );
+		if ( value && !Q_stricmp( binding, value ) ) return key;
+	}
+	return -1;
 }
 
 qboolean CL_RTCWKeyIsDown( int key ) {

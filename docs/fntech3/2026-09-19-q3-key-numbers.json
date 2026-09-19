@@ -1,0 +1,110 @@
+{
+  "implementation": {
+    "code/compat/q3_key_adapter.h": "a4075045833d53863c47b85cc48595c2bfe037bb2be8cd4081526b0a9b8e3bb9",
+    "code/compat/rtcw_key_adapter.h": "7bf8d4e7b8dfc943502d1b89d12d7aa761e175615d9c6ad7ad344a4eb8281b6e",
+    "code/compat/rtcw_keycodes.def": "9cca9cc7eeaf16b420416bc893e8d89d8241f802e02edfc70ab170cf387f506d",
+    "code/client/keycodes.h": "5d2a9af50c76b5414e7f5062b7a56ae66d1324c1f8f0be9e69970309f5ee47bb",
+    "code/qcommon/keys.c": "2449e88bd6acbb6a04d7eed6e696dde3e9594277ad742619bf3db545c2ec8576",
+    "code/client/cl_keys.cpp": "3bb1c408f086fe1303571f7a52b61f12e601d560fd73c41d5b8daaa932eb3ef8"
+  },
+  "retail": {
+    "quake3": {
+      "file": "quake3.exe",
+      "sha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+      "table": "0x4bf950",
+      "rows": 107,
+      "firstRow": [
+        "TAB",
+        9
+      ],
+      "codeReferences": [
+        "0x40a72e",
+        "0x40a735",
+        "0x40a7c0",
+        "0x40a7c5"
+      ]
+    },
+    "quakelive": {
+      "file": "quakelive_steam.exe",
+      "sha256": "c926fe9f6c851e00b3b9332e88903ad01f28fdd60454873891c0158f5ded1299",
+      "table": "0x565b88",
+      "rows": 111,
+      "firstRow": [
+        "TAB",
+        9
+      ],
+      "codeReferences": [
+        "0x4b65b6",
+        "0x4b65bc",
+        "0x4b6bd2",
+        "0x4b6bd9"
+      ]
+    }
+  },
+  "quake3Numbers": {
+    "checked": 304,
+    "mismatches": [],
+    "engineKeysNotDelivered": {
+      "count": 47,
+      "first": [
+        183,
+        184,
+        185,
+        186,
+        237,
+        238,
+        239,
+        240
+      ],
+      "quakeLiveOnly": [
+        "MOUSE6",
+        "MOUSE7",
+        "MOUSE8",
+        "MOUSE9"
+      ]
+    },
+    "notDeliveredLeaks": []
+  },
+  "quakeLiveNumbers": {
+    "checked": 111,
+    "mismatches": []
+  },
+  "quake3Names": {
+    "compared": 304,
+    "differences": [
+      {
+        "key": 130,
+        "retail": "0x82",
+        "fnTech3": "POWER"
+      },
+      {
+        "key": 157,
+        "retail": "0x9d",
+        "fnTech3": "F13"
+      },
+      {
+        "key": 158,
+        "retail": "0x9e",
+        "fnTech3": "F14"
+      },
+      {
+        "key": 159,
+        "retail": "0x9f",
+        "fnTech3": "F15"
+      },
+      {
+        "key": 176,
+        "retail": "KP_STAR",
+        "fnTech3": "0xb0"
+      }
+    ]
+  },
+  "lastKey": {
+    "engineAux16": 236,
+    "quake3Aux16": 232
+  },
+  "target": [
+    "-DFNTECH3_Q3_ONLY"
+  ],
+  "passed": true
+}
