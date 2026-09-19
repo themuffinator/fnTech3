@@ -85,6 +85,10 @@ int BotChooseLTGItem(int goalstate, vec3_t origin, int *inventory, int travelfla
 //be larger than the travel time towards the long term goal from the current bot position
 int BotChooseNBGItem(int goalstate, vec3_t origin, int *inventory, int travelflags,
 							bot_goal_t *ltg, float maxtime);
+//Elite Force 1.20: the same with its game's last argument, as its botlib chooses
+int BotChooseLTGItemSTVEF(int goalstate, vec3_t origin, int *inventory, int travelflags, int randomItems);
+int BotChooseNBGItemSTVEF(int goalstate, vec3_t origin, int *inventory, int travelflags,
+							bot_goal_t *ltg, float maxtime, int randomItems);
 //returns true if the bot touches the goal
 int BotTouchingGoal(const vec3_t origin, const bot_goal_t *goal);
 //returns true if the goal should be visible but isn't

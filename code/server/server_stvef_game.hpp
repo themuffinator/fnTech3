@@ -6,6 +6,7 @@
 #include "../compat/stvef_bot_actions.hpp"
 #include "../compat/stvef_game_imports.hpp"
 #include "../botlib/be_ai_chat.h"
+#include "../botlib/be_ai_goal.h"
 #include "../botlib/be_ai_weap.h"
 #include "../botlib/be_ea.h"
 
@@ -97,6 +98,16 @@ static bool SV_STVEFGameCall( const intptr_t *args, intptr_t &operation, intptr_
 	case Call::BOTLIB_AI_LOAD_CHARACTER:
 		result = botlib_export->ai.BotLoadCharacter( static_cast<char *>( pointer( 1 ) ),
 			static_cast<float>( static_cast<std::int32_t>( args[2] ) ) );
+		return true;
+	case Call::BOTLIB_AI_CHOOSE_LTG_ITEM:
+		// The 1.20 game passes a last argument that retail's item choice uses.
+		result = BotChooseLTGItemSTVEF( static_cast<int>( args[1] ), static_cast<float *>( pointer( 2 ) ),
+			static_cast<int *>( pointer( 3 ) ), static_cast<int>( args[4] ), static_cast<int>( args[5] ) );
+		return true;
+	case Call::BOTLIB_AI_CHOOSE_NBG_ITEM:
+		result = BotChooseNBGItemSTVEF( static_cast<int>( args[1] ), static_cast<float *>( pointer( 2 ) ),
+			static_cast<int *>( pointer( 3 ) ), static_cast<int>( args[4] ),
+			static_cast<bot_goal_t *>( pointer( 5 ) ), SV_STVEFFloat( args[6] ), static_cast<int>( args[7] ) );
 		return true;
 	case Call::BOTLIB_AI_CHOOSE_BEST_FIGHT_WEAPON:
 		// The 1.20 game passes a third argument that the botlib uses.

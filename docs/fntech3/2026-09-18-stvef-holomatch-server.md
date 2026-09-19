@@ -72,21 +72,31 @@ the entities it finds.
 
 ## Differences and open items
 
-- The 1.20 game also passes a trailing argument to `BotChooseLTGItem` and
-  `BotChooseNBGItem` (535/536); retail's botlib uses it in item choice
-  (`0x48ec70`). fnTech3 ignores it, as Lilium does, so long-term goals follow
-  the Quake III botlib.
+- Bots choose items as retail's botlib does (long-term goals `0x48ec70`,
+  nearby goals `0x48efb0`), not as Quake III 1.32's does. The 1.20 game passes
+  a last argument to `BotChooseLTGItem` and `BotChooseNBGItem` (535/536):
+  when it is set, items that never spawned are considered and every item but
+  a roam point weighs `ceil( random() * 10 )` in place of its fuzzy weight.
+  Retail also weighs with the undecided fuzzy weights, passes over any goal
+  it is still avoiding, marks a chosen goal as an item only, and avoids it for
+  half its respawn time (30 seconds under 10, 5 when dropped). Lilium keeps
+  the Quake III rules and ignores the argument.
 - `sv_maxclients` stays within the game module's 64 client slots; retail allows
   128.
 - CD-key authorization and master publication are optional services with no
   synthesized success.
-- Still open: the client and its framing, the cgame and UI modules, the
-  renderer, `.efdemo` playback and sessions with retail clients and servers.
+- The client, its modules, the renderer, demos and sessions with other
+  engines are in the [client](2026-09-18-stvef-holomatch-client.md),
+  [cgame and UI](2026-09-18-stvef-holomatch-cgame-ui.md) and
+  [sessions](2026-09-18-stvef-holomatch-sessions.md) records.
 
 ## Tests
 
 - `fntech3_stvef_vm_rounding` checks the interpreter's rounding against
   `cvtss2si` for two million floats, and the edge cases.
+- `stvef_bot_item_choice_tests` compiles the retail item choice from the
+  botlib and checks eligibility, the random weight, avoided goals, the goal
+  flag and avoid times, and the nearby-goal limits.
 - `fntech3_stvef_server_policy` pins the mode rules, the 1.17 action bits,
   which imports keep Quake III's contract, and the perpendicular vector.
 - `fntech3_server_game_data` reads and writes Holomatch records through the

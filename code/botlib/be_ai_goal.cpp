@@ -1612,6 +1612,162 @@ int BotChooseNBGItem(int goalstate, vec3_t origin, int *inventory, int travelfla
 	return qtrue;
 } //end of the function BotChooseNBGItem
 //===========================================================================
+// Elite Force 1.20's item choice (stvoyHM.exe botlib: long term 0x48ec70,
+// nearby 0x48efb0). Its game passes a last argument. When it is set, items
+// that never spawned are considered, and every item but a roam point weighs
+// a random whole number from 1 to 10 instead of its fuzzy weight. Retail
+// also passes over every goal it is still avoiding, marks the chosen goal as
+// an item only, and avoids it for half its respawn time: 30 seconds when that
+// is under 10, and 5 for a dropped item.
+//===========================================================================
+static qboolean BotSTVEFItemEligible(const levelitem_t *li, int randomItems)
+{
+	if (g_gametype == GT_SINGLE_PLAYER) {
+		if (li->flags & IFL_NOTSINGLE) return qfalse;
+	}
+	else if (g_gametype >= GT_TEAM) {
+		if (li->flags & IFL_NOTTEAM) return qfalse;
+	}
+	else if (li->flags & IFL_NOTFREE) return qfalse;
+	if (li->flags & IFL_NOTBOT) return qfalse;
+	if (!li->goalareanum) return qfalse;
+	if (!li->entitynum && !(li->flags & IFL_ROAM) && !randomItems) return qfalse;
+	return qtrue;
+} //end of the function BotSTVEFItemEligible
+
+static float BotSTVEFItemWeight(const bot_goalstate_t *gs, const levelitem_t *li, int *inventory,
+	int weightnum, int randomItems)
+{
+	float weight;
+
+	if (!(li->flags & IFL_ROAM) && randomItems)
+	{
+		// ceil( rand() & 0x7fff scaled to 0..1, times 10 ), in retail's order
+		weight = (float) ceil((rand() & 0x7fff) * (double)(1.0f / 0x7fff) * 10.0f);
+	} //end if
+	else
+	{
+		weight = FuzzyWeightUndecided(inventory, gs->itemweightconfig, weightnum);
+		//dropped items weigh 1000 more
+		if (li->timeout) weight += 1000;
+	} //end else
+	if (li->flags & IFL_ROAM) weight *= li->weight;
+	return weight;
+} //end of the function BotSTVEFItemWeight
+
+static int BotPushSTVEFItemGoal(int goalstate, bot_goalstate_t *gs, itemconfig_t *ic, levelitem_t *item)
+{
+	iteminfo_t *iteminfo = &ic->iteminfo[item->iteminfo];
+	bot_goal_t goal = {};
+	float avoidtime;
+
+	VectorCopy(item->goalorigin, goal.origin);
+	VectorCopy(iteminfo->mins, goal.mins);
+	VectorCopy(iteminfo->maxs, goal.maxs);
+	goal.areanum = item->goalareanum;
+	goal.entitynum = item->entitynum;
+	goal.number = item->number;
+	goal.flags = GFL_ITEM;
+	goal.iteminfo = item->iteminfo;
+	avoidtime = (float) (iteminfo->respawntime * 0.5);
+	if (avoidtime < 10) avoidtime = 30;
+	if (item->timeout) avoidtime = 5;
+	BotAddToAvoidGoals(gs, item->number, avoidtime);
+	BotPushGoal(goalstate, &goal);
+	return qtrue;
+} //end of the function BotPushSTVEFItemGoal
+
+// The area the bot is in, or the last one with reachabilities; 0 in solid.
+static int BotSTVEFGoalArea(bot_goalstate_t *gs, vec3_t origin)
+{
+	int areanum = BotReachabilityArea(origin, gs->client);
+	if (!areanum || !AAS_AreaReachability(areanum)) areanum = gs->lastreachabilityarea;
+	gs->lastreachabilityarea = areanum;
+	return areanum;
+} //end of the function BotSTVEFGoalArea
+
+int BotChooseLTGItemSTVEF(int goalstate, vec3_t origin, int *inventory, int travelflags, int randomItems)
+{
+	int areanum, t, weightnum;
+	float weight, bestweight;
+	itemconfig_t *ic;
+	levelitem_t *li, *bestitem;
+	bot_goalstate_t *gs;
+
+	gs = BotGoalStateFromHandle(goalstate);
+	if (!gs || !gs->itemweightconfig) return qfalse;
+	areanum = BotSTVEFGoalArea(gs, origin);
+	if (!areanum) return qfalse;
+	ic = itemconfig;
+	if (!ic) return qfalse;
+	bestweight = 0;
+	bestitem = nullptr;
+	for (li = levelitems; li; li = li->next)
+	{
+		if (!BotSTVEFItemEligible(li, randomItems)) continue;
+		weightnum = gs->itemweightindex[ic->iteminfo[li->iteminfo].number];
+		if (weightnum < 0) continue;
+		if (BotAvoidGoalTime(goalstate, li->number) > 0) continue;
+		weight = BotSTVEFItemWeight(gs, li, inventory, weightnum, randomItems);
+		if (weight <= 0) continue;
+		t = AAS_AreaTravelTimeToGoalArea(areanum, origin, li->goalareanum, travelflags);
+		if (t <= 0) continue;
+		const double scaled = weight / (t * 0.01);	//retail scales by the double 0.01
+		if (scaled > bestweight)
+		{
+			bestweight = (float) scaled;
+			bestitem = li;
+		} //end if
+	} //end for
+	if (!bestitem) return qfalse;
+	return BotPushSTVEFItemGoal(goalstate, gs, ic, bestitem);
+} //end of the function BotChooseLTGItemSTVEF
+
+int BotChooseNBGItemSTVEF(int goalstate, vec3_t origin, int *inventory, int travelflags,
+	bot_goal_t *ltg, float maxtime, int randomItems)
+{
+	int areanum, t, weightnum, ltg_time;
+	float weight, bestweight;
+	itemconfig_t *ic;
+	levelitem_t *li, *bestitem;
+	bot_goalstate_t *gs;
+
+	gs = BotGoalStateFromHandle(goalstate);
+	if (!gs || !gs->itemweightconfig) return qfalse;
+	areanum = BotSTVEFGoalArea(gs, origin);
+	if (!areanum) return qfalse;
+	if (ltg) ltg_time = AAS_AreaTravelTimeToGoalArea(areanum, origin, ltg->areanum, travelflags);
+	else ltg_time = 99999;
+	ic = itemconfig;
+	if (!ic) return qfalse;
+	bestweight = 0;
+	bestitem = nullptr;
+	for (li = levelitems; li; li = li->next)
+	{
+		if (!BotSTVEFItemEligible(li, randomItems)) continue;
+		weightnum = gs->itemweightindex[ic->iteminfo[li->iteminfo].number];
+		if (weightnum < 0) continue;
+		if (BotAvoidGoalTime(goalstate, li->number) > 0) continue;
+		weight = BotSTVEFItemWeight(gs, li, inventory, weightnum, randomItems);
+		if (weight <= 0) continue;
+		t = AAS_AreaTravelTimeToGoalArea(areanum, origin, li->goalareanum, travelflags);
+		if (t <= 0 || !(t < maxtime)) continue;
+		const double scaled = weight / (t * 0.01);	//retail scales by the double 0.01
+		if (!(scaled > bestweight)) continue;
+		//a dropped item may be taken whatever the way back to the long term goal
+		t = 0;
+		if (ltg && !li->timeout)
+			t = AAS_AreaTravelTimeToGoalArea(li->goalareanum, li->goalorigin, ltg->areanum, travelflags);
+		if (t <= ltg_time)
+		{
+			bestweight = (float) scaled;
+			bestitem = li;
+		} //end if
+	} //end for
+	if (!bestitem) return qfalse;
+	return BotPushSTVEFItemGoal(goalstate, gs, ic, bestitem);
+} //end of the function BotChooseNBGItemSTVEF
+//===========================================================================
 //
 // Parameter:				-
 // Returns:					-
