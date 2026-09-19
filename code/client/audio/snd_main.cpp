@@ -897,6 +897,11 @@ extern "C" void S_Init( void )
 		cv = Cvar_Get( "s_defaultsound", "0", CVAR_ARCHIVE );
 		Cvar_SetDescription( cv, "Play RTCW's diagnostic placeholder for missing sounds; otherwise keep it silent. Requires snd_restart." );
 	}
+	if ( Com_GameIsSTVEF() ) {
+		// Registered as retail S_Init registers it (stvoyHM.exe 0x429b46).
+		cv = Cvar_Get( "s_language", "", CVAR_ARCHIVE | CVAR_NORESTART );
+		Cvar_SetDescription( cv, "Elite Force voice language: DEUTSCH plays the German voices (sound/vox_d) where the game has them. Applies to sounds loaded afterwards." );
+	}
 	s_alDevice = Cvar_Get( "s_alDevice", "", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	Cvar_SetDescription( s_alDevice, "Selects the OpenAL playback device when s_backend is set to openal.\n"
 		"Leave blank to use the system default device." );

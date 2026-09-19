@@ -27,6 +27,8 @@ extern "C" {
 #include "input_compat.hpp"
 #include "../compat/rtcw_key_adapter.h"
 #include "../compat/rtcw_key_names.hpp"
+#include "../compat/stvef_key_adapter.h"
+#include "../compat/stvef_key_names.hpp"
 #include "../compat/wolfet_key_adapter.h"
 #include "client_rtcw_camera_input.hpp"
 
@@ -757,6 +759,26 @@ static void CL_ActivateNativeMenu( uiMenuCommand_t menu ) {
 
 /*
 =============
+CL_UIKeyDownEvent
+
+Hands the UI a key press. Elite Force's UI gets its own number for the key,
+and nothing for a key it has no number for: its menus take joystick buttons
+1-4 as Enter, and this engine's mouse wheel numbers are those buttons there.
+=============
+*/
+static void CL_UIKeyDownEvent( int key, unsigned time ) {
+	if ( Com_GameIsSTVEF() ) {
+		key = FnTech3_STVEFKeyEventFromInternal( key );
+		if ( key < 0 ) {
+			return;
+		}
+	}
+	VM_Call( uivm, 3, UI_KEY_EVENT, key, qtrue, time );
+}
+
+
+/*
+=============
 CL_ToggleMenuInternal
 
 Routes Quake Live-style menu toggles through the same path as the hard-coded
@@ -839,7 +861,7 @@ static void CL_ToggleMenuInternal( int key, qboolean sendKeyUp, unsigned time ) 
 	}
 
 	if ( uivm ) {
-		VM_Call( uivm, 3, UI_KEY_EVENT, key, qtrue, time );
+		CL_UIKeyDownEvent( key, time );
 		// Holomatch's UI takes every key event as a press.
 		if ( sendKeyUp && !Com_GameIsSTVEFMP() ) {
 			VM_Call( uivm, 3, UI_KEY_EVENT, key, qfalse, time );
@@ -972,7 +994,7 @@ static void CL_KeyDownEvent( int key, unsigned time )
 		CL_DispatchBrowserKeyEvent( key, qtrue );
 	} else if ( Key_GetCatcher( ) & KEYCATCH_UI ) {
 		if ( uivm ) {
-			VM_Call( uivm, 3, UI_KEY_EVENT, key, qtrue, time );
+			CL_UIKeyDownEvent( key, time );
 		}
 	} else if ( Key_GetCatcher( ) & KEYCATCH_MESSAGE ) {
 		Message_Key( key );
@@ -1268,6 +1290,34 @@ void CL_RTCWSetKeyCatcher( int catcher ) {
 	RTCW_CATCHER(KEYCATCH_CGAME)
 #undef RTCW_CATCHER
 	Key_SetCatcher( internal );
+}
+
+qboolean CL_STVEFKeyIsDown( int key ) {
+	const int internal = FnTech3_STVEFKeyToInternal( key );
+	return internal < 0 ? qfalse : Key_IsDown( internal );
+}
+
+void CL_STVEFSetBinding( int key, const char *binding ) {
+	const int internal = FnTech3_STVEFKeyToInternal( key );
+	if ( internal >= 0 && binding ) Key_SetBinding( internal, binding );
+}
+
+void CL_STVEFKeyString( int key, char *buffer, int size, qboolean binding ) {
+	if ( size <= 0 ) return;
+	if ( !buffer ) {
+		Com_Error( ERR_DROP, "NULL Elite Force key string buffer" );
+		return;
+	}
+	if ( !binding ) {
+		// Retail hands its modules the translated name of the module's own key
+		// number, in the player's g_language.
+		std::array<char, 5> tiny{};
+		Q_strncpyz( buffer, fntech3::stvef::keys::NameForModule( key,
+			Cvar_VariableString( "g_language" ), Com_GameIsSTVEFMP() != 0, tiny.data() ), size );
+		return;
+	}
+	const char *value = Key_GetBinding( FnTech3_STVEFKeyToInternal( key ) );
+	Q_strncpyz( buffer, value ? value : "", size );
 }
 
 // Enemy Territory's key vocabulary is its own. It ends at K_AUX16, so the four

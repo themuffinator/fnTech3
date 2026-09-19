@@ -6397,6 +6397,15 @@ void CL_Init( void ) {
 		// Quake III treats this deprecated cvar as read-only zero.
 		Cvar_Get ("cg_stereoSeparation", "0", CVAR_ROM);
 	}
+	if ( Com_GameIsSTVEF() ) {
+		// Retail's text and keyboard languages, archived and kept through
+		// cvar_restart: g_language (CL_Init, stvoyHM.exe 0x40fa14) picks the
+		// modules' text files and the key names they are given; k_language
+		// (IN_Init, 0x43ed12) picked a keyboard map, which here is the
+		// operating system's layout.
+		Cvar_Get( "g_language", "", CVAR_ARCHIVE | CVAR_NORESTART );
+		Cvar_Get( "k_language", "american", CVAR_ARCHIVE | CVAR_NORESTART );
+	}
 
 	//
 	// register client commands

@@ -131,6 +131,17 @@ static void LAN_GetServerAddressString( int source, int n, char *buf, int buflen
 	lan.push_back( { source, n, buflen } ); Q_strncpyz( buf, source == AS_LOCAL ? "10.0.0.2:27960" : "192.0.2.9:27960", buflen );
 }
 
+// Elite Force's key imports, recorded.
+struct KeyCall { std::string what; int key; intptr_t buffer; int size; };
+static std::vector<KeyCall> keyCalls;
+qboolean CL_STVEFKeyIsDown( int key ) { keyCalls.push_back( { "down", key, 0, 0 } ); return qtrue; }
+void CL_STVEFSetBinding( int key, const char *binding ) {
+	keyCalls.push_back( { std::string( "bind " ) + binding, key, 0, 0 } );
+}
+void CL_STVEFKeyString( int key, char *buffer, int size, qboolean binding ) {
+	keyCalls.push_back( { binding ? "binding" : "name", key, reinterpret_cast<intptr_t>( buffer ), size } );
+}
+
 #include "code/client/client_stvef_cgame.hpp"
 #include "code/client/client_stvef_ui.hpp"
 
@@ -319,6 +330,27 @@ static void ServerLists() {
 	}
 }
 
+static void Keys() {
+	// The UI's key imports take Elite Force's own key numbers.
+	keyCalls.clear(); bounds.clear();
+	Outcome outcome = Dispatch( true, { Number( true, Call::UI_KEY_KEYNUMTOSTRINGBUF ), 183, Address( scratch[0] ), 32 } );
+	assert( outcome.handled && outcome.error.empty() );
+	outcome = Dispatch( true, { Number( true, Call::UI_KEY_GETBINDINGBUF ), 185, Address( scratch[1] ), 256 } );
+	assert( outcome.handled && outcome.error.empty() );
+	assert( bounds.size() == 2 && bounds[0].vm == uivm && bounds[0].address == Address( scratch[0] ) && bounds[0].bytes == 32 );
+	assert( bounds[1].address == Address( scratch[1] ) && bounds[1].bytes == 256 );
+	std::strcpy( scratch[2], "weapnext" );
+	outcome = Dispatch( true, { Number( true, Call::UI_KEY_SETBINDING ), 184, Address( scratch[2] ) } );
+	assert( outcome.handled );
+	outcome = Dispatch( true, { Number( true, Call::UI_KEY_ISDOWN ), 232 } );
+	assert( outcome.handled && outcome.result == qtrue );
+	assert( keyCalls.size() == 4 );
+	assert( keyCalls[0].what == "name" && keyCalls[0].key == 183 && keyCalls[0].buffer == Address( scratch[0] ) && keyCalls[0].size == 32 );
+	assert( keyCalls[1].what == "binding" && keyCalls[1].key == 185 && keyCalls[1].size == 256 );
+	assert( keyCalls[2].what == "bind weapnext" && keyCalls[2].key == 184 );
+	assert( keyCalls[3].what == "down" && keyCalls[3].key == 232 );
+}
+
 static void CdKey() {
 	// No key is accepted or stored: the authorize service is gone.
 	std::strcpy( scratch[0], "ABCD1234EFGH5678" );
@@ -371,6 +403,7 @@ int main() {
 	Cvars();
 	Prints();
 	ServerLists();
+	Keys();
 	CdKey();
 	GameState();
 	Records();

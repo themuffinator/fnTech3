@@ -18,14 +18,14 @@ inline constexpr KeyName keyNames[] = {
 #undef FNTECH3_RTCW_KEYNAME
 };
 
-/* The name original RTCW hands a module for a key number: its translated
- * Key_KeynumToString, which the UI and cgame key-name imports use (cl_keys.c,
- * cl_ui.c). A printable character is itself, ';' included; otherwise the name
- * table for cl_language (1 French, 2 German, 3 Italian, 4 Spanish, anything
- * else English); otherwise "0x" and two lowercase hex digits. tiny must hold
- * at least five characters and is returned for the single-character and hex
- * forms. */
-inline const char *NameForModule( int key, int clLanguage, bool multiplayer, char *tiny ) {
+// The names[] columns.
+enum Column { English, French, GermanSP, GermanMP, Italian, Spanish };
+
+/* A translated Key_KeynumToString over one column: a printable character is
+ * itself, ';' included; otherwise the column's name; otherwise "0x" and two
+ * lowercase hex digits. tiny must hold at least five characters and is
+ * returned for the single-character and hex forms. */
+inline const char *NameInColumn( int key, Column column, char *tiny ) {
 	if ( key == -1 ) {
 		return "<KEY NOT FOUND>";
 	}
@@ -36,14 +36,6 @@ inline const char *NameForModule( int key, int clLanguage, bool multiplayer, cha
 		tiny[0] = static_cast<char>( key );
 		tiny[1] = '\0';
 		return tiny;
-	}
-	int column = 0;
-	switch ( static_cast<long long>( clLanguage ) - 1 ) {
-	case 0: column = 1; break;
-	case 1: column = multiplayer ? 3 : 2; break;
-	case 2: column = 4; break;
-	case 3: column = 5; break;
-	default: break;
 	}
 	for ( const KeyName &entry : keyNames ) {
 		if ( entry.key == key ) {
@@ -57,6 +49,22 @@ inline const char *NameForModule( int key, int clLanguage, bool multiplayer, cha
 	tiny[3] = static_cast<char>( low > 9 ? low - 10 + 'a' : low + '0' );
 	tiny[4] = '\0';
 	return tiny;
+}
+
+/* The name original RTCW hands a module for a key number: its translated
+ * Key_KeynumToString, which the UI and cgame key-name imports use (cl_keys.c,
+ * cl_ui.c), over the column for cl_language (1 French, 2 German, 3 Italian,
+ * 4 Spanish, anything else English). */
+inline const char *NameForModule( int key, int clLanguage, bool multiplayer, char *tiny ) {
+	Column column = English;
+	switch ( static_cast<long long>( clLanguage ) - 1 ) {
+	case 0: column = French; break;
+	case 1: column = multiplayer ? GermanMP : GermanSP; break;
+	case 2: column = Italian; break;
+	case 3: column = Spanish; break;
+	default: break;
+	}
+	return NameInColumn( key, column, tiny );
 }
 
 } // namespace fntech3::rtcw::keys

@@ -53,7 +53,7 @@ Opens/loads a sound, tries codec based on the sound's file extension
 then tries all supported codecs.
 =================
 */
-void *S_CodecGetSound( const char *filename, snd_info_t *info ) {
+void *S_CodecGetSound( const char *filename, snd_info_t *info, bool quiet = false ) {
 	snd_codec_t *codec;
 	snd_codec_t *orgCodec = nullptr;
 	bool orgNameFailed = false;
@@ -116,9 +116,36 @@ void *S_CodecGetSound( const char *filename, snd_info_t *info ) {
 		}
 	}
 
-	Com_DPrintf( S_COLOR_YELLOW "WARNING: Failed to %s sound %s!\n", info ? "load" : "open", filename );
+	if ( !quiet ) {
+		Com_DPrintf( S_COLOR_YELLOW "WARNING: Failed to %s sound %s!\n", info ? "load" : "open", filename );
+	}
 
 	return nullptr;
+}
+
+/*
+=================
+S_STVEFGermanVoice
+
+Elite Force ships German recordings of its voices under sound/vox_d. When
+s_language is DEUTSCH, retail S_LoadSound (stvoyHM.exe 0x42c690, stvoy.exe
+0x4232f3) turns the first "voice/" in a sound's name into "vox_d/" and loads
+that .wav or .mp3; only when neither exists does it load the name as given.
+=================
+*/
+bool S_STVEFGermanVoice( const char *filename, std::array<char, MAX_QPATH> &german ) {
+	if ( !Com_GameIsSTVEF() || Q_stricmp( Cvar_VariableString( "s_language" ), "DEUTSCH" ) ) {
+		return false;
+	}
+
+	Q_strncpyz( german.data(), filename, static_cast<int>( german.size() ) );
+	char *voice = const_cast<char *>( Q_stristr( german.data(), "voice/" ) );
+	if ( voice == nullptr ) {
+		return false;
+	}
+
+	memcpy( voice, "vox_d", 5 );
+	return true;
 }
 
 } // namespace
@@ -163,6 +190,14 @@ S_CodecLoad
 =================
 */
 extern "C" void *S_CodecLoad( const char *filename, snd_info_t *info ) {
+	std::array<char, MAX_QPATH> german;
+	if ( S_STVEFGermanVoice( filename, german ) ) {
+		void *rtn = S_CodecGetSound( german.data(), info, true );
+		if ( rtn ) {
+			return rtn;
+		}
+	}
+
 	return S_CodecGetSound( filename, info );
 }
 

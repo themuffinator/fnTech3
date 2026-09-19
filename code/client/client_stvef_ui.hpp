@@ -45,10 +45,6 @@ static intptr_t CL_STVEFUISharedCall( fntech3::stvef::module::Call call ) {
 	STVEF_SHARED_CALL(UI_UPDATESCREEN)
 	STVEF_SHARED_CALL(UI_CM_LERPTAG)
 	STVEF_SHARED_CALL(UI_S_STARTLOCALSOUND)
-	STVEF_SHARED_CALL(UI_KEY_KEYNUMTOSTRINGBUF)
-	STVEF_SHARED_CALL(UI_KEY_GETBINDINGBUF)
-	STVEF_SHARED_CALL(UI_KEY_SETBINDING)
-	STVEF_SHARED_CALL(UI_KEY_ISDOWN)
 	STVEF_SHARED_CALL(UI_KEY_GETOVERSTRIKEMODE)
 	STVEF_SHARED_CALL(UI_KEY_SETOVERSTRIKEMODE)
 	STVEF_SHARED_CALL(UI_KEY_CLEARSTATES)
@@ -117,6 +113,20 @@ static bool CL_STVEFUICall( intptr_t *args, intptr_t &operation, intptr_t &resul
 		// Raven's CD-key check and authorize service are not part of this
 		// engine; no key is accepted or stored.
 		result = qfalse;
+		return true;
+	// Key numbers are Elite Force's own (stvef_key_adapter.h), and a key's
+	// name is the translated one retail gives its modules.
+	case Call::UI_KEY_KEYNUMTOSTRINGBUF:
+	case Call::UI_KEY_GETBINDINGBUF:
+		VM_CHECKBOUNDS( uivm, args[2], args[3] );
+		CL_STVEFKeyString( static_cast<int>( args[1] ), VMA(2), static_cast<int>( args[3] ),
+			call == Call::UI_KEY_GETBINDINGBUF ? qtrue : qfalse );
+		return true;
+	case Call::UI_KEY_SETBINDING:
+		CL_STVEFSetBinding( static_cast<int>( args[1] ), VMA(2) );
+		return true;
+	case Call::UI_KEY_ISDOWN:
+		result = CL_STVEFKeyIsDown( static_cast<int>( args[1] ) );
 		return true;
 	default:
 		operation = CL_STVEFUISharedCall( call );
