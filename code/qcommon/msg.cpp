@@ -1237,7 +1237,11 @@ qboolean MSG_WriteDeltaUsercmdKeyForWireProfile( msg_t *msg, int key,
 			} );
 	}
 	if ( profile == NETCHAN_WIRE_STVEF_SP ) {
-		return qfalse;
+		return MSG_WriteSTVEFCanonical<fntech3_stvef_sp_usercmd_t>( msg, from, to,
+			[&]( const auto *base, const auto *sent ) {
+				RTCWMessageWriter io( msg );
+				return fntech3::stvef::message::sp::WriteCommand( io, base, sent ) ? qtrue : qfalse;
+			} );
 	}
 	if (profile == NETCHAN_WIRE_WOLFET) {
 		return MSG_WriteWolfETCanonical<fntech3_wolfet_usercmd_t>(msg, from, to,
@@ -1319,7 +1323,11 @@ qboolean MSG_ReadDeltaUsercmdKeyForWireProfile( msg_t *msg, int key,
 			} );
 	}
 	if ( profile == NETCHAN_WIRE_STVEF_SP ) {
-		return qfalse;
+		return MSG_ReadSTVEFCanonical<fntech3_stvef_sp_usercmd_t>( msg, from, to,
+			[&]( const auto *base, auto *decoded ) {
+				RTCWMessageReader io( msg );
+				return fntech3::stvef::message::sp::ReadCommand( io, base, decoded );
+			} );
 	}
 	if (profile == NETCHAN_WIRE_WOLFET) {
 		return MSG_ReadWolfETCanonical<fntech3_wolfet_usercmd_t>(msg, from, to,
@@ -1856,7 +1864,11 @@ qboolean MSG_WriteDeltaEntityForWireProfile( msg_t *msg,
 			} );
 	}
 	if ( profile == NETCHAN_WIRE_STVEF_SP ) {
-		return qfalse;
+		return MSG_WriteSTVEFCanonical<fntech3_stvef_sp_entityState_t>( msg, from, to,
+			[&]( const auto *base, const auto *sent ) {
+				RTCWMessageWriter io( msg );
+				return fntech3::stvef::message::sp::WriteEntity( io, base, sent, force != qfalse ) ? qtrue : qfalse;
+			} );
 	}
 	if (profile == NETCHAN_WIRE_WOLFET) {
 		return MSG_WriteWolfETCanonical<fntech3_wolfet_entityState_t>(msg, from, to,
@@ -2007,7 +2019,11 @@ qboolean MSG_ReadDeltaEntityForWireProfile( msg_t *msg,
 			} );
 	}
 	if ( profile == NETCHAN_WIRE_STVEF_SP ) {
-		return qfalse;
+		return MSG_ReadSTVEFCanonical<fntech3_stvef_sp_entityState_t>( msg, from, to,
+			[&]( const auto *base, auto *decoded ) {
+				RTCWMessageReader io( msg );
+				return fntech3::stvef::message::sp::ReadEntity( io, base, decoded, number );
+			} );
 	}
 	if (profile == NETCHAN_WIRE_WOLFET) {
 		return MSG_ReadWolfETCanonical<fntech3_wolfet_entityState_t>(msg, from, to,
@@ -2670,7 +2686,11 @@ qboolean MSG_WriteDeltaPlayerstateForWireProfile( msg_t *msg,
 			} );
 	}
 	if ( profile == NETCHAN_WIRE_STVEF_SP ) {
-		return qfalse;
+		return MSG_WriteSTVEFCanonical<fntech3_stvef_sp_playerState_t>( msg, from, to,
+			[&]( const auto *base, const auto *sent ) {
+				RTCWMessageWriter io( msg );
+				return fntech3::stvef::message::sp::WritePlayer( io, base, sent ) ? qtrue : qfalse;
+			} );
 	}
 	if (profile == NETCHAN_WIRE_WOLFET) {
 		return MSG_WriteWolfETCanonical<fntech3_wolfet_playerState_t>(msg, from, to,
@@ -2859,7 +2879,11 @@ qboolean MSG_ReadDeltaPlayerstateForWireProfile( msg_t *msg,
 			} );
 	}
 	if ( profile == NETCHAN_WIRE_STVEF_SP ) {
-		return qfalse;
+		return MSG_ReadSTVEFCanonical<fntech3_stvef_sp_playerState_t>( msg, from, to,
+			[&]( const auto *base, auto *decoded ) {
+				RTCWMessageReader io( msg );
+				return fntech3::stvef::message::sp::ReadPlayer( io, base, decoded );
+			} );
 	}
 	if (profile == NETCHAN_WIRE_WOLFET) {
 		return MSG_ReadWolfETCanonical<fntech3_wolfet_playerState_t>(msg, from, to,

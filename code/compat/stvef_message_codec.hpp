@@ -371,5 +371,99 @@ template<class Reader> bool ReadCommand( Reader &io, const Command *from, Comman
 	return true;
 }
 
+/* Single player. stvoy.exe talks only to itself over loopback and records no
+ * demos, so no retail program ever reads these bodies; they are fnTech3's own.
+ * A record is a run of 32-bit words, sent as one changed bit per word and
+ * then each changed word whole, so every field arrives exactly. An entity
+ * starts with its number and a removal bit, as Holomatch's does. */
+namespace sp {
+
+using Entity = fntech3_stvef_sp_entityState_t;
+using Player = fntech3_stvef_sp_playerState_t;
+using Command = fntech3_stvef_sp_usercmd_t;
+static_assert( sizeof( Entity ) % 4 == 0 && sizeof( Player ) % 4 == 0 && sizeof( Command ) % 4 == 0 );
+
+template<class Writer, class Record> bool WriteWords( Writer &io, const Record &from, const Record &to ) {
+	for ( std::size_t offset = 0; offset < sizeof( Record ); offset += 4 ) {
+		const auto value = Word( to, offset );
+		const bool changed = value != Word( from, offset );
+		io.Write( changed, 1 );
+		if ( changed ) io.Write( value, 32 );
+	}
+	return io.Good();
+}
+
+template<class Reader, class Record> bool ReadWords( Reader &io, Record &result ) {
+	for ( std::size_t offset = 0; offset < sizeof( Record ) && io.Good(); offset += 4 ) {
+		if ( io.Read( 1 ) ) SetWord( result, offset, io.Read( 32 ) );
+	}
+	return io.Good();
+}
+
+template<class Writer> bool WriteEntity( Writer &io, const Entity *from, const Entity *to, bool force ) {
+	if ( !from && !to ) return io.Good();
+	const int number = to ? to->number : from->number;
+	if ( number < 0 || number >= FNTECH3_STVEF_MAX_GENTITIES ) return io.Fail();
+	if ( !to ) {
+		io.Write( static_cast<std::uint32_t>( number ), kEntityNumberBits );
+		io.Write( 1, 1 );
+		return io.Good();
+	}
+	const Entity empty{};
+	if ( !from ) from = &empty;
+	if ( !force && !std::memcmp( from, to, sizeof( Entity ) ) ) return io.Good();
+	io.Write( static_cast<std::uint32_t>( number ), kEntityNumberBits );
+	io.Write( 0, 1 );
+	return WriteWords( io, *from, *to );
+}
+
+/* The caller has read the entity number. A removal publishes number 1023. */
+template<class Reader> bool ReadEntity( Reader &io, const Entity *from, Entity *to, int number ) {
+	if ( !to || number < 0 || number >= FNTECH3_STVEF_MAX_GENTITIES ) return io.Fail();
+	Entity result{};
+	if ( io.Read( 1 ) ) {
+		result.number = FNTECH3_STVEF_MAX_GENTITIES - 1;
+	} else {
+		if ( from ) result = *from;
+		if ( !ReadWords( io, result ) ) return false;
+		result.number = number;
+	}
+	if ( !io.Good() ) return false;
+	*to = result;
+	return true;
+}
+
+template<class Writer> bool WritePlayer( Writer &io, const Player *from, const Player *to ) {
+	if ( !to ) return io.Fail();
+	const Player empty{};
+	return WriteWords( io, from ? *from : empty, *to );
+}
+
+template<class Reader> bool ReadPlayer( Reader &io, const Player *from, Player *to ) {
+	if ( !to ) return io.Fail();
+	Player result{};
+	if ( from ) result = *from;
+	if ( !ReadWords( io, result ) ) return false;
+	*to = result;
+	return true;
+}
+
+template<class Writer> bool WriteCommand( Writer &io, const Command *from, const Command *to ) {
+	if ( !to ) return io.Fail();
+	const Command empty{};
+	return WriteWords( io, from ? *from : empty, *to );
+}
+
+template<class Reader> bool ReadCommand( Reader &io, const Command *from, Command *to ) {
+	if ( !to ) return io.Fail();
+	Command result{};
+	if ( from ) result = *from;
+	if ( !ReadWords( io, result ) ) return false;
+	*to = result;
+	return true;
+}
+
+} // namespace sp
+
 } // namespace fntech3::stvef::message
 #endif

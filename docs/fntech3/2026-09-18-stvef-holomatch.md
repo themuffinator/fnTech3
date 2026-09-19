@@ -62,8 +62,8 @@ retail does not.
   and intro timers and the damage shield count live in the canonical
   state's Elite Force extension, and only Quake III's six trajectory types
   are accepted.
-- The single-player wire profile (protocol 40) is loopback-only. Its delta
-  functions refuse until the single-player host defines that format.
+- The single-player wire profile (protocol 40) is loopback-only, and its
+  delta bodies are fnTech3's own ([single-player host](2026-09-19-stvef-sp-host.md)).
 
 ## Retail demo decoding
 

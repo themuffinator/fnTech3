@@ -5,8 +5,8 @@
 This record covers hosting the retail single-player game module,
 `efgamex86.dll`, on fnTech3's server: its function-table boundary, its
 records and the server's view of its entities. The cgame half of the same
-library, snapshots on the loopback wire, the menus in `efuix86.dll`,
-savegames, level transitions, movies and lip-sync belong to later slices.
+library, the menus in `efuix86.dll`, savegames, level transitions, movies
+and lip-sync belong to later slices; the loopback wire is described below.
 The profile stays behind `-Dstvef-development=true`.
 
 The frozen single-player records in `code/compat/stvef_game_abi.h` cite this
@@ -62,6 +62,19 @@ gentity's client pointer. Of the server flags, the engine reads only no-client,
 bot, broadcast and portal; the NPC, usable, trimodel and other bits are the
 game's.
 
+## The loopback wire
+
+Retail single player never leaves the machine: `stvoy.exe` connects only to
+its own server over loopback and records no demos, so no other program ever
+reads its message bodies. fnTech3 therefore gives single player's entity,
+player and command deltas bodies of its own that lose nothing: each record
+goes as a run of 32-bit words, a changed bit per word followed by each
+changed word whole, and an entity starts with its number and a removal bit as
+Holomatch's does. The records cross between the engine's state and retail's
+through the same adapter the game boundary uses, which refuses a value a
+narrow retail field cannot hold instead of truncating it. The channel itself
+is single player's protocol 40 with a client port and no packet scrambling.
+
 ## Results
 
 A developer dedicated server with the `stvef-sp` profile ran each of the 63
@@ -89,9 +102,15 @@ no entity.
   attachment before `Init` and the version check.
 - `fntech3_stvef_abi_layouts` pins the import and export table offsets
   retail fills and calls.
+- `stvef_sp_wire_tests` sends 2,000 rounds of random entity baselines,
+  deltas, forced entities and removals, and player and command deltas from
+  nothing and from a previous record, through a bit buffer, and checks that
+  every field arrives exactly, that a truncated message publishes nothing and
+  that entity numbers outside the array are refused; it also pins the six
+  bodies' use on the single-player wire.
 
 ## Remaining
 
-The client: the cgame half with its imports, single-player snapshots on the
-loopback wire and the menus. Then savegames, level transitions and
-autosaves, Bink movies, lip-sync and ambient sound sets.
+The client: the cgame half with its imports and the menus. Then savegames,
+level transitions and autosaves, Bink movies, lip-sync and ambient sound
+sets.

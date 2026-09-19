@@ -1,5 +1,6 @@
-/* Elite Force Holomatch message tests. Included by message_codec_tests.cpp,
- * which supplies CHECK and the Com_Error/Com_Printf stubs.
+/* Elite Force message tests: Holomatch's retail bodies and single player's
+ * loopback ones. Included by message_codec_tests.cpp, which supplies CHECK and
+ * the Com_Error/Com_Printf stubs.
  *
  * Expected bytes are hand-packed from the protocol-24 rules: plain bits, least
  * significant first; the 5-bit change-vector symbol or 31 and a raw 50-bit
@@ -253,14 +254,71 @@ inline int TestMissingValues() {
 	return 0;
 }
 
-inline int TestSinglePlayerWireIsClosed() {
-	std::array<byte, 64> storage{};
-	msg_t msg{};
-	entityState_t state{};
-	usercmd_t command{};
-	BeginWrite( msg, storage.data(), static_cast<int>( storage.size() ) );
-	CHECK( !MSG_WriteDeltaEntityForWireProfile( &msg, &state, &state, qtrue, NETCHAN_WIRE_STVEF_SP ) );
-	CHECK( !MSG_WriteDeltaUsercmdKeyForWireProfile( &msg, 0, &command, &command, NETCHAN_WIRE_STVEF_SP ) );
+inline void BeginPlainRead( msg_t &reader, byte *storage, int size, const msg_t &written ) {
+	MSG_Init( &reader, storage, size );
+	reader.cursize = written.cursize;
+	MSG_BeginReading( &reader );
+}
+
+/* Single player's loopback bodies are fnTech3's own; through the message
+ * layer, every field the retail records hold arrives exactly, the SP extras
+ * included, and a removal publishes entity 1023. */
+inline int TestSinglePlayerWire() {
+	std::array<byte, 4096> storage{};
+	const int size = static_cast<int>( storage.size() );
+	msg_t msg{}, reader{};
+
+	entityState_t from{}, to{}, decoded{};
+	from.number = to.number = 12;
+	to.pos.trType = TR_LINEAR;
+	to.pos.trBase[2] = 96.5f;
+	to.eFlags = 0x40001;
+	to.stvef.modelindex3 = 17;
+	to.stvef.torsoAnimTimer = 850;
+	MSG_Init( &msg, storage.data(), size );
+	CHECK( MSG_WriteDeltaEntityForWireProfile( &msg, &from, &to, qfalse, NETCHAN_WIRE_STVEF_SP ) );
+	BeginPlainRead( reader, storage.data(), size, msg );
+	CHECK( MSG_ReadEntitynum( &reader ) == 12 );
+	CHECK( MSG_ReadDeltaEntityForWireProfile( &reader, &from, &decoded, 12, NETCHAN_WIRE_STVEF_SP ) );
+	CHECK( decoded.number == 12 && decoded.pos.trType == TR_LINEAR && decoded.pos.trBase[2] == 96.5f );
+	CHECK( decoded.eFlags == 0x40001 && decoded.stvef.modelindex3 == 17 && decoded.stvef.torsoAnimTimer == 850 );
+
+	MSG_Init( &msg, storage.data(), size );
+	CHECK( MSG_WriteDeltaEntityForWireProfile( &msg, &to, nullptr, qfalse, NETCHAN_WIRE_STVEF_SP ) );
+	BeginPlainRead( reader, storage.data(), size, msg );
+	CHECK( MSG_ReadEntitynum( &reader ) == 12 );
+	CHECK( MSG_ReadDeltaEntityForWireProfile( &reader, &to, &decoded, 12, NETCHAN_WIRE_STVEF_SP ) );
+	CHECK( decoded.number == MAX_GENTITIES - 1 );
+
+	playerState_t player{}, playerDecoded{};
+	player.commandTime = 4321;
+	player.origin[1] = 12.25f;
+	player.stats[0] = 100;
+	player.stvef.leanofs = -5;
+	player.stvef.borgAdaptHits[31] = 9;
+	MSG_Init( &msg, storage.data(), size );
+	CHECK( MSG_WriteDeltaPlayerstateForWireProfile( &msg, nullptr, &player, NETCHAN_WIRE_STVEF_SP ) );
+	BeginPlainRead( reader, storage.data(), size, msg );
+	CHECK( MSG_ReadDeltaPlayerstateForWireProfile( &reader, nullptr, &playerDecoded, NETCHAN_WIRE_STVEF_SP ) );
+	CHECK( playerDecoded.commandTime == 4321 && playerDecoded.origin[1] == 12.25f && playerDecoded.stats[0] == 100 );
+	CHECK( playerDecoded.stvef.leanofs == -5 && playerDecoded.stvef.borgAdaptHits[31] == 9 );
+
+	// A value a narrow retail field cannot hold is refused, not truncated.
+	player.stvef.leanofs = 200;
+	MSG_Init( &msg, storage.data(), size );
+	CHECK( !MSG_WriteDeltaPlayerstateForWireProfile( &msg, nullptr, &player, NETCHAN_WIRE_STVEF_SP ) );
+
+	usercmd_t command{}, next{}, commandDecoded{};
+	next.serverTime = 5000;
+	next.buttons = 0x12345678;
+	next.forwardmove = -127;
+	next.angles[1] = 0x4000;
+	MSG_Init( &msg, storage.data(), size );
+	CHECK( MSG_WriteDeltaUsercmdKeyForWireProfile( &msg, 0, &command, &next, NETCHAN_WIRE_STVEF_SP ) );
+	BeginPlainRead( reader, storage.data(), size, msg );
+	CHECK( MSG_ReadDeltaUsercmdKeyForWireProfile( &reader, 0, &command, &commandDecoded, NETCHAN_WIRE_STVEF_SP ) );
+	CHECK( commandDecoded.serverTime == 5000 && commandDecoded.buttons == 0x12345678 );
+	CHECK( commandDecoded.forwardmove == -127 && commandDecoded.angles[1] == 0x4000 );
 	return 0;
 }
 
@@ -273,6 +331,6 @@ inline int TestSTVEFMessageCodecs() {
 	if ( const int result = TestPlayerDeltas() ) return result;
 	if ( const int result = TestCommands() ) return result;
 	if ( const int result = TestMissingValues() ) return result;
-	if ( const int result = TestSinglePlayerWireIsClosed() ) return result;
+	if ( const int result = TestSinglePlayerWire() ) return result;
 	return 0;
 }
