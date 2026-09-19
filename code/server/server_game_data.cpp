@@ -468,11 +468,14 @@ GameDataBindError ServerGameDataView::BindNative( comGameId_t profile,
 	}
 
 	if ( binding.clientCount <= 0
-		|| binding.clientCount > candidateLayout->maxClients
-		|| binding.clientCount > entityCapacity ) {
+		|| binding.clientCount > candidateLayout->maxClients ) {
 		return GameDataBindError::InvalidClientCount;
 	}
 	if ( candidateLayout->clientPointerOffset != kNoField ) {
+		// Client n is gentity n, so every client needs its gentity.
+		if ( binding.clientCount > entityCapacity ) {
+			return GameDataBindError::InvalidClientCount;
+		}
 		layout_ = candidateLayout;
 		entityBase_ = static_cast<unsigned char *>( binding.entityBase );
 		entitySpanBytes_ = requiredEntitySpan;

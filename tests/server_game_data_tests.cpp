@@ -760,8 +760,9 @@ void TestSTVEFRecords()
 	invalid.clientCount = 65;
 	Expect( view.BindNative( COM_GAME_STVEF_MP, invalid ) == GameDataBindError::InvalidClientCount,
 		"reject more clients than the Holomatch game holds" );
-	Expect( view.BindNative( COM_GAME_STVEF_SP, full.Binding() ) == GameDataBindError::UnsupportedProfile,
-		"single player does not use QVM records" );
+	// Single player's gentity is longer than Holomatch's shared entity.
+	Expect( view.BindNative( COM_GAME_STVEF_SP, full.Binding() ) == GameDataBindError::EntityStrideTooSmall,
+		"single player refuses Holomatch's records" );
 }
 
 void TestRTCWSaveEntityCapacity()
