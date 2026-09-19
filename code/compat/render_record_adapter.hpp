@@ -398,20 +398,22 @@ inline bool STVEFRefdef( const fntech3_stvef_refdef_t &source, refdef_t &destina
 }
 
 /* Single player's reference entity is Quake III 1.17's: its eight types with
- * Quake III's numbers and flags, then a lighting direction and a sprite's
- * radius and rotation. Its renderer adds the same fixed ambient light to
+ * Quake III's numbers and flags, and a flag that holds a one-shot animation on
+ * its last frame, then a lighting direction and a sprite's radius and
+ * rotation. Its renderer adds the same fixed ambient light to
  * every entity (stvoy.exe 0x45b818), as Quake III 1.32 does, so none of
  * Holomatch's lighting flags apply, and it works out each entity's lighting
  * direction itself (0x45b740) without reading the record's. */
 inline bool STVEFSPEntity( const fntech3_stvef_sp_refEntity_t &source, refEntity_t &destination ) noexcept {
 	static_assert( RT_MODEL == 0 && RT_POLY == 1 && RT_PORTALSURFACE == 7 && FNTECH3_STVEF_SP_RT_MAX == 8 );
-	static_assert( RF_MINLIGHT == 0x1 && RF_DEPTHHACK == 0x8 && RF_NOSHADOW == 0x40 && RF_WRAP_FRAMES == 0x200 );
+	static_assert( RF_MINLIGHT == 0x1 && RF_DEPTHHACK == 0x8 && RF_NOSHADOW == 0x40 && RF_WRAP_FRAMES == 0x200 &&
+		RF_CAP_FRAMES == 0x400 );
 	if ( source.reType < 0 || source.reType >= FNTECH3_STVEF_SP_RT_MAX ||
 		( source.nonNormalizedAxes != 0 && source.nonNormalizedAxes != 1 ) ) return false;
 	refEntity_t result{};
 	result.reType = static_cast<refEntityType_t>( source.reType );
 	constexpr int flags = RF_MINLIGHT | RF_THIRD_PERSON | RF_FIRST_PERSON | RF_DEPTHHACK | RF_NOSHADOW |
-		RF_LIGHTING_ORIGIN | RF_SHADOW_PLANE | RF_WRAP_FRAMES;
+		RF_LIGHTING_ORIGIN | RF_SHADOW_PLANE | RF_WRAP_FRAMES | RF_CAP_FRAMES;
 	result.renderfx = source.renderfx & flags;
 	result.hModel = source.hModel;
 	Bytes( result.lightingOrigin, source.lightingOrigin );

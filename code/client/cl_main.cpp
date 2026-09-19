@@ -6408,6 +6408,9 @@ void CL_Init( void ) {
 		Cvar_Get( "g_language", "", CVAR_ARCHIVE | CVAR_NORESTART );
 		Cvar_Get( "k_language", "american", CVAR_ARCHIVE | CVAR_NORESTART );
 	}
+	// Single player's cgame, half of the game library the server loads,
+	// answers to this client.
+	CL_STVEFSPAttachCGame( qtrue );
 
 	//
 	// register client commands
@@ -6511,6 +6514,7 @@ void CL_Shutdown( const char *finalmsg, qboolean quit ) {
 	S_DisableSounds();
 
 	CL_ShutdownVMs();
+	CL_STVEFSPAttachCGame( qfalse );
 
 	CL_ShutdownRef( quit ? REF_UNLOAD_DLL : REF_DESTROY_WINDOW );
 

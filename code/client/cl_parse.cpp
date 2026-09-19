@@ -727,6 +727,28 @@ static void CL_ReportViewAngleAnchor( const clSnapshot_t *newSnap ) {
 
 /*
 ================
+CL_STVEFSPLastCommandRun
+
+Elite Force SP's cgame predicts from the last command the server ran, which
+retail's snapshots carry as its number (stvoy.exe CL_ParseSnapshot 0x409559).
+Loopback snapshots carry that command's time, so the newest command sent at
+or before it is the one; when every kept command is newer, the one before
+the oldest.
+================
+*/
+static int CL_STVEFSPLastCommandRun( int commandTime ) {
+	int number = cl.cmdNumber;
+	for ( int i = 0; i < CMD_BACKUP && number > 0; ++i, --number ) {
+		if ( cl.cmds[number & CMD_MASK].serverTime <= commandTime ) {
+			return number;
+		}
+	}
+	return number;
+}
+
+
+/*
+================
 CL_ParseSnapshot
 
 If the snapshot is parsed properly, it will be copied to
@@ -823,6 +845,9 @@ static void CL_ParseSnapshot( msg_t *msg ) {
 			CL_ReadDeltaPlayerstate( msg, nullptr, &newSnap.ps );
 		}
 		newSnap.psRaw = newSnap.ps;
+	}
+	if ( Com_GameIsSTVEFSP() ) {
+		newSnap.cmdNum = CL_STVEFSPLastCommandRun( newSnap.ps.commandTime );
 	}
 
 	// read packet entities

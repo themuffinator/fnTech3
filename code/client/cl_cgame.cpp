@@ -1973,6 +1973,7 @@ private:
 #include "client_wolfet_render_compat.hpp"
 #include "client_wolfet_audio_compat.hpp"
 #include "client_stvef_cgame.hpp"
+#include "client_stvef_sp_cgame.hpp"
 
 static intptr_t CL_CGameTrapForProfile( intptr_t trap ) {
 	if ( !Com_GameIsQuake3() ) {
@@ -2612,6 +2613,10 @@ static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		intptr_t stvefResult = 0;
 		if ( CL_STVEFCgameCall( args, operation, stvefResult ) ) return stvefResult;
 	}
+	if ( Com_GameIsSTVEFSP() ) {
+		intptr_t stvefSpResult = 0;
+		if ( CL_STVEFSPCgameCall( args, operation, stvefSpResult ) ) return stvefSpResult;
+	}
 	switch( operation ) {
 	case CG_PRINT:
 		Com_Printf( "%s", VMA(1).String() );
@@ -3086,6 +3091,38 @@ static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		Com_Error( ERR_DROP, "Bad cgame system trap: %ld", static_cast<long>( args[0] ) );
 	}
 	return 0;
+}
+
+
+/*
+====================
+CL_STVEFSPCgameSyscall
+
+Elite Force SP's cgame imports, which reach the client through the game
+library's attachment: the shared dispatcher once the cgame has started, the
+level-spawn handler before.
+====================
+*/
+static intptr_t CL_STVEFSPCgameSyscall( intptr_t *args ) {
+	return cgvm ? CL_CgameSystemCalls( args ) : CL_STVEFSPEarlyCgameCall( args );
+}
+
+
+/*
+====================
+CL_STVEFSPAttachCGame
+
+Lends the server the client's side of Elite Force SP's cgame, or takes it
+back: the cgame's imports, and the hook that shuts the cgame down before the
+game library unloads.
+====================
+*/
+void CL_STVEFSPAttachCGame( qboolean attach ) {
+	if ( attach && Com_GameIsSTVEFSP() ) {
+		SV_STVEFSPAttachClient( CL_STVEFSPCgameSyscall, CL_ShutdownCGame );
+	} else {
+		SV_STVEFSPAttachClient( nullptr, nullptr );
+	}
 }
 
 
@@ -3762,6 +3799,11 @@ void CL_RegisterCGameCvars( void ) {
 	if ( cgvm || ( com_dedicated && com_dedicated->integer ) ) {
 		return;
 	}
+	// Elite Force SP's cgame is half of the game library, which only the
+	// server loads.
+	if ( Com_GameIsSTVEFSP() ) {
+		return;
+	}
 
 	interpret = static_cast<vmInterpret_t>( Cvar_VariableIntegerValue( "vm_cgame" ) );
 	registrationVm = CL_LoadCGameVM( interpret );
@@ -3827,7 +3869,15 @@ void CL_InitCGame( void ) {
 		}
 	}
 
-	cgvm = CL_LoadCGameVM( interpret );
+	if ( Com_GameIsSTVEFSP() ) {
+		// The cgame half of the game library the local server loaded.
+		if ( !SV_STVEFSPCgameMain() ) {
+			Com_Error( ERR_DROP, "Elite Force SP's cgame needs its game running on the local server" );
+		}
+		cgvm = VM_CreateHosted( VM_CGAME, CL_STVEFSPCgameEntry );
+	} else {
+		cgvm = CL_LoadCGameVM( interpret );
+	}
 	if ( !cgvm ) {
 		Com_Error( ERR_DROP, "VM_Create on cgame failed" );
 	}

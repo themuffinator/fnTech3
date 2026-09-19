@@ -40,9 +40,11 @@ the record's. The record is refused outright for an unknown type or a
 non-boolean axis flag, and any bit the engine gives another meaning (its
 crosshair flag, 0x10) is dropped. The view is Holomatch's.
 
-`RF_CAP_FRAMES` (0x400), which holds a one-shot animation on its last frame,
-has no engine flag yet and is dropped; the cgame slice, whose models use it,
-has to add it.
+`RF_CAP_FRAMES` (0x400) holds a one-shot animation on its last frame:
+retail's MD3 path caps both frames at the last before it would wrap them
+(`R_AddMD3Surfaces` `0x461f8b`). The engine has the same flag, with the same
+number, in all three renderers; the cgame sets it on props that animate once
+and on explosion models.
 
 ## Results
 
@@ -67,5 +69,6 @@ cartography, button highlights and `ST:V EF V1.20`, captured with the engine's
 
 ## Remaining
 
-The cgame half of `efgamex86.dll` in the client, which draws the game and the
-loading screen; savegames with their thumbnails; Bink movies.
+Savegames with their thumbnails; Bink movies. The cgame half of
+`efgamex86.dll`, which draws the game and the loading screen, has
+[its own record](2026-09-19-stvef-sp-cgame.md).

@@ -3208,6 +3208,45 @@ void SV_InitGameProgs( void ) {
 
 /*
 ====================
+SV_STVEFSPAttachClient / SV_STVEFSPCgameMain
+
+The client's side of Elite Force SP's cgame, which lives in the game library.
+====================
+*/
+void SV_STVEFSPAttachClient( svSTVEFSPCgameSyscalls_t syscalls, void ( *detach )( void ) ) {
+	stvefSpClientSyscalls = syscalls;
+	stvefSpClientDetach = detach;
+}
+
+vmMainFunc_t SV_STVEFSPCgameMain( void ) {
+	return stvefSpCgameMain;
+}
+
+
+/*
+====================
+SV_STVEFSPCameraOrigin
+
+Elite Force SP's snapshots are seen from a running camera scene's position,
+which the server asks the cgame for (stvoy.exe SV_BuildClientSnapshot
+0x4283a3); false when no scene runs.
+====================
+*/
+qboolean SV_STVEFSPCameraOrigin( vec3_t origin ) {
+	if ( !stvefSpCgameMain ) {
+		return qfalse;
+	}
+	vec3_t camera = { 0, 0, 0 };
+	if ( !stvefSpCgameMain( FNTECH3_STVEF_SP_CG_CAMERA_POS, reinterpret_cast<intptr_t>( camera ) ) ) {
+		return qfalse;
+	}
+	VectorCopy( camera, origin );
+	return qtrue;
+}
+
+
+/*
+====================
 SV_STVEFSPGameAllowedToSaveHere
 
 Retail SG_GameAllowedToSaveHere (stvoy.exe 0x4272e0). The SP menus ask it

@@ -52,6 +52,7 @@ int S_StartWolfETEntityStream( const char *intro, const char *loop, int entity,
 void S_StopWolfETEntityStream( int entity );
 int S_WolfETVoiceAmplitude( int entity );
 int S_WolfETSoundLength( sfxHandle_t handle );
+int S_STVEFSoundLength( sfxHandle_t handle );
 int S_WolfETCurrentSoundTime( void );
 void S_StartRTCWLocalSound( sfxHandle_t handle, int channel );
 void S_StartRTCWEntityStream( const char *intro, const char *loop, int entity, int channel, int attenuation );

@@ -2230,6 +2230,40 @@ static void * QDECL VM_LoadDll( vmIndex_t index, const char *name,
 
 /*
 ================
+VM_CreateHosted
+
+A module that lives in another module's library: Elite Force SP's cgame is
+half of the game library the server loads. The VM owns no library; the
+engine drives the module through dispatcher.
+================
+*/
+vm_t *VM_CreateHosted( vmIndex_t index, vmMainFunc_t dispatcher ) {
+	vm_t *vm;
+
+	if ( !dispatcher ) {
+		Com_Error( ERR_FATAL, "VM_CreateHosted: bad parms" );
+	}
+	if ( (unsigned)index >= VM_COUNT ) {
+		Com_Error( ERR_DROP, "VM_CreateHosted: bad vm index %i", index );
+	}
+	vm = &vmTable[ index ];
+	if ( vm->name ) {
+		Com_Error( ERR_DROP, "VM_CreateHosted: %s is already loaded", vm->name );
+		return NULL;
+	}
+	vm->name = vmName[ index ];
+	vm->index = index;
+	vm->entryPoint = dispatcher;
+	vm->privateFlag = 0; // allow reading private cvars
+	vm->dataAlloc = ~0U;
+	vm->dataMask = ~0U;
+	vm->dataBase = 0;
+	return vm;
+}
+
+
+/*
+================
 VM_CreateTable
 
 Loads a native module whose engine boundary is a function table, not vmMain:

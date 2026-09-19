@@ -69,9 +69,12 @@ Retail single player never leaves the machine: `stvoy.exe` connects only to
 its own server over loopback and records no demos, so no other program ever
 reads its message bodies. fnTech3 therefore gives single player's entity,
 player and command deltas bodies of its own that lose nothing: each record
-goes as a run of 32-bit words, a changed bit per word followed by each
-changed word whole, and an entity starts with its number and a removal bit as
-Holomatch's does. The records cross between the engine's state and retail's
+goes as a run of 32-bit words, counted up to the last changed one, with a
+changed bit for each of those and each changed word in the shortest of five
+forms: zero, an 8- or 16-bit integer, a whole float from -4096 to 4095, or
+all 32 bits. An entity starts with its number and a removal bit as
+Holomatch's does. A placed model's baseline takes a few dozen bytes, which
+lets the largest levels' gamestates fit single player's 16 KB message. The records cross between the engine's state and retail's
 through the same adapter the game boundary uses, which refuses a value a
 narrow retail field cannot hold instead of truncating it. The channel itself
 is single player's protocol 40 with a client port and no packet scrambling.
@@ -107,11 +110,14 @@ no entity.
   deltas, forced entities and removals, and player and command deltas from
   nothing and from a previous record, through a bit buffer, and checks that
   every field arrives exactly, that a truncated message publishes nothing and
-  that entity numbers outside the array are refused; it also pins the six
-  bodies' use on the single-player wire.
+  that entity numbers outside the array are refused; it sends every word
+  form at its boundaries, with a negative zero, a NaN and a denormal kept
+  exact, bounds a placed model's baseline and refuses a word count beyond
+  the record; it also pins the six bodies' use on the single-player wire.
 
 ## Remaining
 
-The client's cgame half with its imports; the menus are hosted
-([record](2026-09-19-stvef-sp-menus.md)). Then savegames, level transitions
-and autosaves, Bink movies, lip-sync and ambient sound sets.
+The client hosts the menus ([record](2026-09-19-stvef-sp-menus.md)) and the
+cgame half ([record](2026-09-19-stvef-sp-cgame.md)). Savegames, level
+transitions and autosaves, Bink movies, lip-sync and ambient sound sets
+remain.

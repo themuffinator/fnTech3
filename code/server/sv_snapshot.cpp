@@ -927,7 +927,27 @@ static void SV_BuildCommonSnapshot( void )
 
 // ET's connected client owns the exclusive camera, even when its playerstate
 // follows another client. Lean uses the playerstate's rolled right vector.
+// Elite Force SP sees from a running camera scene's position, which its cgame
+// supplies, and otherwise from the eye moved by its own lean (stvoy.exe
+// SV_BuildClientSnapshot 0x4283a3).
 static void SV_SnapshotViewOrigin( const client_t *client, const playerState_t &state, vec3_t origin ) {
+	if ( Com_GameIsSTVEFSP() ) {
+		if ( SV_STVEFSPCameraOrigin( origin ) ) {
+			if ( !SV_FiniteWorldVector( origin ) ) Com_Error( ERR_DROP, "Invalid Elite Force camera origin" );
+			return;
+		}
+		VectorCopy( state.origin, origin );
+		origin[2] += state.viewheight;
+		if ( state.stvef.leanofs ) {
+			vec3_t angles, right;
+			VectorCopy( state.viewangles, angles );
+			angles[ROLL] += state.stvef.leanofs * 0.5f;
+			AngleVectors( angles, nullptr, right, nullptr );
+			for ( int axis = 0; axis < 3; ++axis ) origin[axis] += state.stvef.leanofs * right[axis];
+		}
+		if ( !SV_FiniteWorldVector( origin ) ) Com_Error( ERR_DROP, "Invalid Elite Force snapshot origin" );
+		return;
+	}
 	VectorCopy( state.origin, origin );
 	if ( Com_GameIsWolfET() ) {
 		sharedEntity_t camera;

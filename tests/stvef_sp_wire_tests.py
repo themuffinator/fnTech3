@@ -2,9 +2,11 @@
 
 Retail stvoy.exe talks only to itself and records no demos, so its wire is
 never read by another program; fnTech3's bodies send each record as 32-bit
-words with a changed bit apiece. The probe drives them through a bit buffer
-with random records and deltas and checks that every field, and every
-removal, arrives exactly; the source check pins their use for the SP wire.
+words, counted up to the last changed one, each changed word in the shortest
+of five lossless forms. The probe drives them through a bit buffer with
+random records, deltas, every word form and its boundaries, and checks that
+every field, and every removal, arrives exactly and that a placed model's
+baseline stays small; the source check pins their use for the SP wire.
 """
 from pathlib import Path
 import os
@@ -101,6 +103,48 @@ int main() {
 		assert( message::ReadCommand( wire, &command, &commandDecoded ) );
 		assert( !std::memcmp( &commandDecoded, &commandNext, sizeof( commandNext ) ) );
 	}
+	// Every word form, its boundaries, and values that must stay exact: the
+	// negative zero, a NaN and a denormal are not whole floats.
+	using fntech3::stvef::message::FloatWord;
+	const std::uint32_t specials[] = { 0, 1, 0x7f, 0x80, 0xffffff80u, 0xffffff7fu, 0x7fff, 0x8000,
+		0xffff8000u, 0xffff7fffu, FloatWord( 1.0f ), FloatWord( -1.0f ), FloatWord( 4095.0f ),
+		FloatWord( 4096.0f ), FloatWord( -4096.0f ), FloatWord( -4097.0f ), FloatWord( 0.5f ),
+		0x80000000u, 0x7fc00000u, 0xffffffffu, 0x00400000u };
+	for ( std::uint32_t value : specials ) {
+		message::Player from{}, to{}, decoded{};
+		std::memcpy( &to.origin[1], &value, 4 );
+		std::memcpy( &to.ping, &value, 4 );
+		Bits wire;
+		assert( message::WritePlayer( wire, &from, &to ) );
+		assert( message::ReadPlayer( wire, &from, &decoded ) );
+		assert( !std::memcmp( &decoded, &to, sizeof( to ) ) && wire.readBit == wire.writeBit );
+	}
+	// A gamestate's baseline of a placed model, with whole-number position and
+	// angles, takes a few dozen bytes.
+	message::Entity placed{};
+	placed.number = 300;
+	placed.eType = 4;
+	placed.pos.trBase[0] = placed.origin[0] = 1024.0f;
+	placed.pos.trBase[1] = placed.origin[1] = -512.0f;
+	placed.pos.trBase[2] = placed.origin[2] = 64.0f;
+	placed.apos.trBase[1] = placed.angles[1] = 90.0f;
+	placed.modelindex = 45;
+	placed.solid = 0x00202020;
+	Bits baseline;
+	assert( message::WriteEntity( baseline, nullptr, &placed, true ) );
+	assert( baseline.writeBit <= 40 * 8 );
+	message::Entity placedBack{};
+	assert( static_cast<int>( baseline.Read( 10 ) ) == 300 );
+	assert( message::ReadEntity( baseline, nullptr, &placedBack, 300 ) );
+	assert( !std::memcmp( &placedBack, &placed, sizeof( placed ) ) );
+	// A word count beyond the record is refused.
+	Bits oversized;
+	oversized.Write( 0, 10 + 1 );
+	oversized.Write( 255, 8 );
+	message::Entity refused{};
+	oversized.Read( 10 );
+	assert( !message::ReadEntity( oversized, nullptr, &refused, 5 ) );
+
 	// A truncated message publishes nothing.
 	message::Player player{}, decoded{};
 	player.ping = 99;

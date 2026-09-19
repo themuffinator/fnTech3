@@ -7,7 +7,9 @@
 #include "../code/qcommon/qcommon.h"
 #include "../code/compat/render_record_adapter.hpp"
 #include "../code/client/client_stvef_records.hpp"
+#include "../code/compat/stvef_draw_adapter.hpp"
 #include <climits>
+#include <cmath>
 #include <cstdio>
 #include <cstring>
 
@@ -305,8 +307,9 @@ void TestSPEntity() {
 void TestSPFlags() {
 	// Quake III's flags keep their numbers, minimum light included: retail's
 	// renderer lights every entity alike, so none of them darkens anything.
+	// Holding a one-shot animation's last frame is 0x400, as in the engine.
 	const int shared[] = { RF_MINLIGHT, RF_THIRD_PERSON, RF_FIRST_PERSON, RF_DEPTHHACK, RF_NOSHADOW,
-		RF_LIGHTING_ORIGIN, RF_SHADOW_PLANE, RF_WRAP_FRAMES };
+		RF_LIGHTING_ORIGIN, RF_SHADOW_PLANE, RF_WRAP_FRAMES, RF_CAP_FRAMES };
 	fntech3_stvef_sp_refEntity_t source = FilledSP();
 	refEntity_t entity{};
 	int all = 0;
@@ -322,6 +325,48 @@ void TestSPFlags() {
 	CHECK( ReadEntity( COM_GAME_STVEF_SP, &source, entity ) );
 	CHECK( entity.renderfx == all && !( entity.renderfx & RF_CROSSHAIR ) );
 	CHECK( !entity.stvef.fullbright && !entity.stvef.darken && !entity.stvef.forceAlpha );
+}
+
+bool Near( float value, float expected ) { return std::fabs( value - expected ) < 1e-4f; }
+
+void TestSPRotatedPicture() {
+	using fntech3::stvef::render::RotatedQuad;
+	refDrawQuad_t quad;
+	// Unturned: the rectangle, corners from the top-left clockwise.
+	CHECK( RotatedQuad( 10, 20, 30, 40, 0.25f, 0.5f, 0.75f, 1.0f, 0, 7, quad ) );
+	const float plain[4][2] = { { 10, 20 }, { 40, 20 }, { 40, 60 }, { 10, 60 } };
+	for ( int i = 0; i < 4; ++i ) CHECK( Near( quad.xy[i][0], plain[i][0] ) && Near( quad.xy[i][1], plain[i][1] ) );
+	CHECK( quad.st[0][0] == 0.25f && quad.st[0][1] == 0.5f && quad.st[2][0] == 0.75f && quad.st[2][1] == 1.0f );
+	CHECK( quad.shader == 7 && !quad.colorMask );
+	// A quarter turn swings the picture about its top-right corner, which stays.
+	CHECK( RotatedQuad( 10, 20, 30, 40, 0, 0, 1, 1, 90, 7, quad ) );
+	const float turned[4][2] = { { 40, -10 }, { 40, 20 }, { 0, 20 }, { 0, -10 } };
+	for ( int i = 0; i < 4; ++i ) CHECK( Near( quad.xy[i][0], turned[i][0] ) && Near( quad.xy[i][1], turned[i][1] ) );
+	// A non-finite value draws nothing and leaves the output alone.
+	refDrawQuad_t saved = quad;
+	CHECK( !RotatedQuad( 10, 20, 30, 40, 0, 0, 1, 1, NAN, 7, quad ) );
+	CHECK( !RotatedQuad( INFINITY, 20, 30, 40, 0, 0, 1, 1, 0, 7, quad ) );
+	CHECK( !std::memcmp( &quad, &saved, sizeof( quad ) ) );
+}
+
+void TestSPSoundChannels() {
+	// The engine's channels keep their meaning, local ones included.
+	CHECK( CL_STVEFSPSoundChannel( FNTECH3_STVEF_SP_CHAN_AUTO ) == CHAN_AUTO );
+	CHECK( CL_STVEFSPSoundChannel( FNTECH3_STVEF_SP_CHAN_LOCAL ) == CHAN_LOCAL );
+	CHECK( CL_STVEFSPSoundChannel( FNTECH3_STVEF_SP_CHAN_WEAPON ) == CHAN_WEAPON );
+	CHECK( CL_STVEFSPSoundChannel( FNTECH3_STVEF_SP_CHAN_VOICE ) == CHAN_VOICE );
+	CHECK( CL_STVEFSPSoundChannel( FNTECH3_STVEF_SP_CHAN_ITEM ) == CHAN_ITEM );
+	CHECK( CL_STVEFSPSoundChannel( FNTECH3_STVEF_SP_CHAN_BODY ) == CHAN_BODY );
+	CHECK( CL_STVEFSPSoundChannel( FNTECH3_STVEF_SP_CHAN_LOCAL_SOUND ) == CHAN_LOCAL_SOUND );
+	CHECK( CL_STVEFSPSoundChannel( FNTECH3_STVEF_SP_CHAN_ANNOUNCER ) == CHAN_ANNOUNCER );
+	// Single player's own channels are distinct from each other and from the
+	// engine's, so none plays as local or replaces another's sound.
+	const int own[] = { FNTECH3_STVEF_SP_CHAN_VOICE_ATTEN, FNTECH3_STVEF_SP_CHAN_AMBIENT,
+		FNTECH3_STVEF_SP_CHAN_MENU1, FNTECH3_STVEF_SP_CHAN_MENU2, 12, 40 };
+	for ( int i = 0; i < 6; ++i ) {
+		CHECK( CL_STVEFSPSoundChannel( own[i] ) > CHAN_ANNOUNCER );
+		for ( int j = 0; j < i; ++j ) CHECK( CL_STVEFSPSoundChannel( own[i] ) != CL_STVEFSPSoundChannel( own[j] ) );
+	}
 }
 
 void TestRefdef() {
@@ -420,6 +465,8 @@ int main() {
 	TestUnion();
 	TestSPEntity();
 	TestSPFlags();
+	TestSPRotatedPicture();
+	TestSPSoundChannels();
 	TestRefdef();
 	TestGlconfig();
 	if ( failures ) {

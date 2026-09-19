@@ -508,6 +508,7 @@ void	VM_Init( void );
 vm_t	*VM_Create( vmIndex_t index, syscall_t systemCalls, dllSyscall_t dllSyscalls, vmInterpret_t interpret );
 vm_t	*VM_CreateNative( vmIndex_t index, syscall_t systemCalls, dllSyscall_t dllSyscalls, vmInterpret_t interpret, void *dllImports, int dllApiVersion );
 vm_t	*VM_CreateTable( vmIndex_t index, const char *symbolName, vmMainFunc_t dispatcher, void **symbol );
+vm_t	*VM_CreateHosted( vmIndex_t index, vmMainFunc_t dispatcher );
 qboolean VM_HasPinnedNativeModule( vmIndex_t index );
 
 void	VM_Free( vm_t *vm );
@@ -1426,6 +1427,13 @@ void SV_PacketEvent( const netadr_t *from, msg_t *msg );
 int SV_FrameMsec( void );
 qboolean SV_GameCommand( void );
 qboolean SV_STVEFSPGameAllowedToSaveHere( qboolean inCamera );
+/* Elite Force SP's cgame is half of the game library the server loads. The
+ * client lends the server its handler for the cgame's imports and a hook that
+ * shuts the cgame down before the library unloads; the server lends the
+ * client the cgame's vmMain while the library is loaded. */
+typedef intptr_t ( *svSTVEFSPCgameSyscalls_t )( intptr_t *args );
+void SV_STVEFSPAttachClient( svSTVEFSPCgameSyscalls_t syscalls, void ( *detach )( void ) );
+vmMainFunc_t SV_STVEFSPCgameMain( void );
 void SV_RTCWSendMoveSpeeds( const vm_t *source, intptr_t entity, intptr_t text );
 intptr_t SV_RTCWGetModelInfo( const vm_t *source, intptr_t client, intptr_t name, intptr_t output );
 int SV_SendQueuedPackets( void );

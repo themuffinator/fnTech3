@@ -118,7 +118,9 @@ void CL_STVEFSPUILerpTag( fntech3_stvef_orientation_t *tag, std::int32_t model, 
 	static_assert( sizeof( fntech3_stvef_orientation_t ) == sizeof( orientation_t ) );
 	re.LerpTag( reinterpret_cast<orientation_t *>( tag ), model, startFrame, endFrame, frac, tagName );
 }
-void CL_STVEFSPUIStartLocalSound( std::int32_t sfx, std::int32_t channel ) { S_StartLocalSound( sfx, channel ); }
+void CL_STVEFSPUIStartLocalSound( std::int32_t sfx, std::int32_t channel ) {
+	S_StartLocalSound( sfx, CL_STVEFSPSoundChannel( channel ) );
+}
 std::int32_t CL_STVEFSPUIRegisterSound( const char *name ) { return S_RegisterSound( name, qfalse ); }
 // A loop on the listener, entity 0 in single player, with no position
 // (S_StartLocalLoopingSound 0x420970).
@@ -144,9 +146,9 @@ void CL_STVEFSPUIStoreSaveComment( const char *comment ) {
 	Q_strncpyz( stvefSpSaveComment, comment ? comment : "", sizeof( stvefSpSaveComment ) );
 }
 std::uint8_t *CL_STVEFSPUIGetScreenshot( std::int32_t *valid ) {
-	static std::uint8_t screenshot[FNTECH3_STVEF_SP_SCREENSHOT_SIZE * FNTECH3_STVEF_SP_SCREENSHOT_SIZE * 4];
-	if ( valid ) *valid = qfalse;
-	return screenshot;
+	STVEFSPScreenshot &screenshot = CL_STVEFSPScreenshot();
+	if ( valid ) *valid = screenshot.valid ? qtrue : qfalse;
+	return screenshot.rgba;
 }
 
 void CL_STVEFSPUIKeyName( std::int32_t key, char *buffer, std::int32_t size ) {

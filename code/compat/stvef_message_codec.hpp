@@ -373,29 +373,88 @@ template<class Reader> bool ReadCommand( Reader &io, const Command *from, Comman
 
 /* Single player. stvoy.exe talks only to itself over loopback and records no
  * demos, so no retail program ever reads these bodies; they are fnTech3's own.
- * A record is a run of 32-bit words, sent as one changed bit per word and
- * then each changed word whole, so every field arrives exactly. An entity
- * starts with its number and a removal bit, as Holomatch's does. */
+ * A record is a run of 32-bit words. A body gives the count of words up to the
+ * last changed one, a changed bit for each of those, and each changed word in
+ * the shortest of five lossless forms: zero, an 8- or 16-bit integer, a whole
+ * float from -4096 to 4095, or all 32 bits. An entity starts with its number
+ * and a removal bit, as Holomatch's does. A gamestate carries every baseline
+ * this way within single player's 16 KB message. */
 namespace sp {
 
 using Entity = fntech3_stvef_sp_entityState_t;
 using Player = fntech3_stvef_sp_playerState_t;
 using Command = fntech3_stvef_sp_usercmd_t;
 static_assert( sizeof( Entity ) % 4 == 0 && sizeof( Player ) % 4 == 0 && sizeof( Command ) % 4 == 0 );
+static_assert( sizeof( Player ) / 4 < 256, "Word counts fit in a byte" );
+
+inline constexpr int kWholeFloatBits = 13;
+inline constexpr int kWholeFloatBias = 4096;
+
+/* A word that is a float holding a whole number from -4096 to 4095, as that
+ * number; a negative zero is not one. */
+inline bool WholeFloat( std::uint32_t value, int &whole ) noexcept {
+	float number;
+	std::memcpy( &number, &value, 4 );
+	if ( !( number >= -kWholeFloatBias && number < kWholeFloatBias ) ) return false;
+	whole = static_cast<int>( number );
+	return FloatWord( static_cast<float>( whole ) ) == value && value != 0;
+}
+
+template<class Writer> void WriteValue( Writer &io, std::uint32_t value ) {
+	const auto signedValue = static_cast<std::int32_t>( value );
+	int whole = 0;
+	if ( !value ) {
+		io.Write( 0, 1 );
+	} else if ( signedValue >= -128 && signedValue <= 127 ) {
+		io.Write( 1, 2 );
+		io.Write( value & 0xffu, 8 );
+	} else if ( signedValue >= -32768 && signedValue <= 32767 ) {
+		io.Write( 3, 3 );
+		io.Write( value & 0xffffu, 16 );
+	} else if ( WholeFloat( value, whole ) ) {
+		io.Write( 7, 4 );
+		io.Write( static_cast<std::uint32_t>( whole + kWholeFloatBias ), kWholeFloatBits );
+	} else {
+		io.Write( 15, 4 );
+		io.Write( value, 32 );
+	}
+}
+
+template<class Reader> std::uint32_t ReadValue( Reader &io ) {
+	if ( !io.Read( 1 ) ) return 0;
+	if ( !io.Read( 1 ) ) {
+		return static_cast<std::uint32_t>( static_cast<std::int32_t>( static_cast<std::int8_t>( io.Read( 8 ) ) ) );
+	}
+	if ( !io.Read( 1 ) ) {
+		return static_cast<std::uint32_t>( static_cast<std::int32_t>( static_cast<std::int16_t>( io.Read( 16 ) ) ) );
+	}
+	if ( !io.Read( 1 ) ) {
+		return FloatWord( static_cast<float>( static_cast<int>( io.Read( kWholeFloatBits ) ) - kWholeFloatBias ) );
+	}
+	return io.Read( 32 );
+}
 
 template<class Writer, class Record> bool WriteWords( Writer &io, const Record &from, const Record &to ) {
-	for ( std::size_t offset = 0; offset < sizeof( Record ); offset += 4 ) {
-		const auto value = Word( to, offset );
-		const bool changed = value != Word( from, offset );
+	constexpr std::size_t words = sizeof( Record ) / 4;
+	std::size_t count = 0;
+	for ( std::size_t word = 0; word < words; ++word ) {
+		if ( Word( to, word * 4 ) != Word( from, word * 4 ) ) count = word + 1;
+	}
+	io.Write( static_cast<std::uint32_t>( count ), 8 );
+	for ( std::size_t word = 0; word < count; ++word ) {
+		const auto value = Word( to, word * 4 );
+		const bool changed = value != Word( from, word * 4 );
 		io.Write( changed, 1 );
-		if ( changed ) io.Write( value, 32 );
+		if ( changed ) WriteValue( io, value );
 	}
 	return io.Good();
 }
 
 template<class Reader, class Record> bool ReadWords( Reader &io, Record &result ) {
-	for ( std::size_t offset = 0; offset < sizeof( Record ) && io.Good(); offset += 4 ) {
-		if ( io.Read( 1 ) ) SetWord( result, offset, io.Read( 32 ) );
+	const std::size_t count = io.Read( 8 );
+	if ( count > sizeof( Record ) / 4 ) return io.Fail();
+	for ( std::size_t word = 0; word < count && io.Good(); ++word ) {
+		if ( io.Read( 1 ) ) SetWord( result, word * 4, ReadValue( io ) );
 	}
 	return io.Good();
 }

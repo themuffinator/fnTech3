@@ -532,6 +532,7 @@ qboolean	SV_ReadGameEntityByNum( int num, sharedEntity_t *destination );
 bool SV_WolfETSnapshotCallback( int entityNum, int clientNum );
 qboolean	SV_WriteGameEntityByNum( int num, const sharedEntity_t *source );
 qboolean	SV_ReadGameClient( int num, playerState_t *destination );
+qboolean	SV_STVEFSPCameraOrigin( vec3_t origin );
 qboolean	SV_SetGameClientPing( int num, int ping );
 svEntity_t	*SV_SvEntityForGentity( sharedEntity_t *gEnt );
 void		SV_InitGameProgs ( void );

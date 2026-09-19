@@ -283,6 +283,15 @@ extern "C" int S_WolfETSoundLength( sfxHandle_t handle ) {
 	return si.WolfETSoundLength ? si.WolfETSoundLength( handle ) : -1;
 }
 
+// Elite Force SP asks how long a sound plays, in milliseconds, and gets 0 for
+// a handle it does not know (stvoy.exe S_GetSampleLengthInMilliSeconds
+// 0x423520).
+extern "C" int S_STVEFSoundLength( sfxHandle_t handle ) {
+	if ( !Com_GameIsSTVEFSP() ) Com_Error( ERR_DROP, "Elite Force sound length requested for another game profile" );
+	const int length = si.WolfETSoundLength ? si.WolfETSoundLength( handle ) : -1;
+	return length < 0 ? 0 : length;
+}
+
 extern "C" int S_WolfETCurrentSoundTime( void ) {
 	if ( !Com_GameIsWolfET() ) Com_Error( ERR_DROP, "ET sound time requested for another game profile" );
 	return si.WolfETCurrentSoundTime ? si.WolfETCurrentSoundTime() : 0;

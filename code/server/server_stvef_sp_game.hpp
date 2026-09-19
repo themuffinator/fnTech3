@@ -30,9 +30,11 @@ fileHandle_t stvefSpCameraFile = 0;
 std::int32_t stvefSpSavedGameJustLoaded = FNTECH3_STVEF_SP_SAVED_NO;
 std::int32_t stvefSpLoadTransition = 0;
 // The cgame half of efgamex86.dll: its vmMain, and the client's handler for
-// its syscalls once a client registers one.
+// its syscalls and its hook that shuts the cgame down, once a client
+// registers them.
 vmMainFunc_t stvefSpCgameMain = nullptr;
 std::intptr_t ( *stvefSpClientSyscalls )( std::intptr_t *args ) = nullptr;
+void ( *stvefSpClientDetach )() = nullptr;
 
 /* The cgame's one syscall. The game half calls cgame functions as it runs
  * (it starts world sounds through them), so retail attaches the cgame before
@@ -352,7 +354,10 @@ intptr_t QDECL SV_STVEFSPGameEntry( int command, ... ) {
 		break;
 	}
 	case GAME_SHUTDOWN:
+		// Retail shuts the game down, then the client's cgame, then frees the
+		// library (SV_ShutdownGameProgs 0x425450).
 		game->Shutdown();
+		if ( stvefSpClientDetach ) stvefSpClientDetach();
 		stvefSpGame = nullptr;
 		stvefSpCgameMain = nullptr;
 		if ( stvefSpCameraFile ) {

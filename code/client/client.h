@@ -761,6 +761,7 @@ void CL_HudDrawStretchPic( float x, float y, float w, float h,
 //
 void CL_InitCGame( void );
 void CL_ShutdownCGame( void );
+void CL_STVEFSPAttachCGame( qboolean attach );
 qboolean CL_GameCommand( void );
 void CL_CGameRendering( stereoFrame_t stereo );
 void CL_SetCGameTime( void );

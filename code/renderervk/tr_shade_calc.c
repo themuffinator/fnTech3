@@ -66,6 +66,12 @@ static float EvalWaveForm( const waveForm_t *wf )
 		const int clock = (int)( ri.Milliseconds() + wf->phase );
 		return R_NoiseRandom( clock ) <= wf->frequency ? wf->base + wf->amplitude : wf->base;
 	}
+	// Elite Force also takes noise as a wave, as in tcMod stretch: base plus
+	// amplitude times the noise at (time + phase) * frequency (stvoy.exe
+	// EvalWaveForm 0x4642ec, stvoyHM.exe 0x47b5cc).
+	if ( wf->func == GF_NOISE && ( ri.gameId == COM_GAME_STVEF_SP || ri.gameId == COM_GAME_STVEF_MP ) ) {
+		return wf->base + R_NoiseGet4f( 0, 0, 0, ( backEnd.refdef.floatTime + wf->phase ) * wf->frequency ) * wf->amplitude;
+	}
 
 	table = TableForFunc( wf->func );
 

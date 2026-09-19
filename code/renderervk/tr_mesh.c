@@ -321,6 +321,11 @@ void R_AddMD3Surfaces( trRefEntity_t *ent,
 
 	if ( tr.currentModel->type == MOD_MDS ) {
 		R_MdsSanitizeFrames( &tr.currentModel->mds->view, &ent->e, ri.gameId );
+	} else if ( ent->e.renderfx & RF_CAP_FRAMES ) {
+		// Held on the last frame before any wrap; a negative frame is not
+		// held (stvoy.exe R_AddMD3Surfaces 0x461f8b).
+		if ( ent->e.frame > frameCount - 1 ) ent->e.frame = frameCount - 1;
+		if ( ent->e.oldframe > frameCount - 1 ) ent->e.oldframe = frameCount - 1;
 	} else if ( ent->e.renderfx & RF_WRAP_FRAMES ) {
 		ent->e.frame %= frameCount;
 		ent->e.oldframe %= frameCount;
