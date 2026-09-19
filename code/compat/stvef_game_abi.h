@@ -7,7 +7,7 @@
 /* Independently declared Elite Force interoperability records, never engine
  * storage. SP layouts are confirmed against the retail 1.20 stvoy.exe,
  * efgamex86.dll and efuix86.dll (copy sizes and field reads cited in
- * docs/fntech3/2026-09-18-stvef-sp-host.md); Holomatch layouts follow the
+ * docs/fntech3/2026-09-19-stvef-sp-host.md); Holomatch layouts follow the
  * retail QVM contract (docs/fntech3/2026-09-18-stvef-holomatch.md). Raven's
  * SP mod SDK is consulted for names and ordinals only, under its non-free
  * licence; no text from it is incorporated.

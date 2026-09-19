@@ -41,6 +41,9 @@ struct NativeGameDataBinding {
 	// SP restores and links saved entities before publishing its new high-water
 	// count. A nonzero capacity explicitly binds that larger, checked arena.
 	std::int32_t entityCapacity = 0;
+	// Elite Force SP publishes no client array: each player state is reached
+	// through its gentity's client pointer, so clientBase and clientStride are
+	// unused and only clientCount is checked.
 };
 
 enum class GameDataBindError {
@@ -181,6 +184,9 @@ private:
 
 	void AdvanceGeneration();
 	void ClearBinding();
+	/* The player state of a client: a slot of the bound client array, or for
+	 * Elite Force SP the record its gentity's client pointer names. */
+	unsigned char *ClientRecord( std::int32_t clientIndex ) const;
 	bool ReadEntityBytes( const GameEntityRef &reference, std::size_t offset,
 		void *destination, std::size_t byteCount ) const;
 	bool WriteEntityBytes( const GameEntityRef &reference, std::size_t offset,
@@ -201,6 +207,8 @@ private:
 	std::int32_t clientCount_ = 0;
 	std::size_t clientStride_ = 0;
 	std::uint64_t generation_ = 0;
+	// Elite Force SP's gentity has no linkcount; the engine keeps its own.
+	std::int32_t engineLinkcounts_[MAX_GENTITIES] = {};
 };
 
 } // namespace fntech3::server

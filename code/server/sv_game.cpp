@@ -86,6 +86,14 @@ constexpr ServerFlagMapping stvefServerFlags[] = {
 	{ FNTECH3_STVEF_MP_SVF_CAPSULE, SVF_CAPSULE },
 	{ FNTECH3_STVEF_MP_SVF_NOTSINGLECLIENT, SVF_NOTSINGLECLIENT }
 };
+// Elite Force SP's engine reads four of its bits; its NPC, usable, trimodel
+// and other bits are the game's own.
+constexpr ServerFlagMapping stvefSpServerFlags[] = {
+	{ FNTECH3_STVEF_SP_SVF_NOCLIENT, SVF_NOCLIENT },
+	{ FNTECH3_STVEF_SP_SVF_BOT, SVF_BOT },
+	{ FNTECH3_STVEF_SP_SVF_BROADCAST, SVF_BROADCAST },
+	{ FNTECH3_STVEF_SP_SVF_PORTAL, SVF_PORTAL }
+};
 constexpr ServerFlagMapping wolfetServerFlags[] = {
 	{ FNTECH3_WOLFET_SVF_IGNOREBMODELEXTENTS, SVF_WOLFET_ORIGIN_ONLY },
 	{ FNTECH3_WOLFET_SVF_SELF_PORTAL, SVF_WOLFET_SELF_PORTAL },
@@ -96,6 +104,12 @@ int ServerFlagsToInternal( comGameId_t profile, int flags ) {
 	if ( profile == COM_GAME_STVEF_MP ) {
 		uint32_t result = 0;
 		for ( const auto &bit : stvefServerFlags )
+			if ( static_cast<uint32_t>( flags ) & bit.external ) result |= bit.internal;
+		return static_cast<int>( result );
+	}
+	if ( profile == COM_GAME_STVEF_SP ) {
+		uint32_t result = 0;
+		for ( const auto &bit : stvefSpServerFlags )
 			if ( static_cast<uint32_t>( flags ) & bit.external ) result |= bit.internal;
 		return static_cast<int>( result );
 	}
@@ -114,13 +128,17 @@ int ServerFlagsToInternal( comGameId_t profile, int flags ) {
 }
 
 int ServerFlagsFromInternal( comGameId_t profile, int flags, int previous ) {
-	if ( profile == COM_GAME_STVEF_MP ) {
+	if ( profile == COM_GAME_STVEF_MP || profile == COM_GAME_STVEF_SP ) {
 		// Engine updates must preserve module-owned bits the engine does not know.
 		uint32_t result = static_cast<uint32_t>( previous );
-		for ( const auto &bit : stvefServerFlags ) {
-			result &= ~bit.external;
-			if ( static_cast<uint32_t>( flags ) & bit.internal ) result |= bit.external;
-		}
+		const auto apply = [&]( const auto &table ) {
+			for ( const auto &bit : table ) {
+				result &= ~bit.external;
+				if ( static_cast<uint32_t>( flags ) & bit.internal ) result |= bit.external;
+			}
+		};
+		if ( profile == COM_GAME_STVEF_SP ) apply( stvefSpServerFlags );
+		else apply( stvefServerFlags );
 		int output;
 		std::memcpy( &output, &result, sizeof( output ) );
 		return output;
@@ -956,6 +974,7 @@ static intptr_t SV_RTCWGameSharedCall( fntech3::rtcw::module::Call call ) {
 
 #include "server_wolfet_game.hpp"
 #include "server_stvef_game.hpp"
+#include "server_stvef_sp_game.hpp"
 
 static intptr_t SV_GameSystemCalls( intptr_t *args ) {
 
@@ -3050,6 +3069,17 @@ void SV_RestartGameProgs( void ) {
 	InvalidateServerGameData();
 	SV_ResetGameCvarRegistration();
 
+	if ( Com_GameIsSTVEFSP() ) {
+		// The function-table game reloads through GetGameAPI.
+		VM_Free( gvm );
+		gvm = SV_STVEFSPLoadGame();
+		if ( !gvm ) {
+			Com_Error( ERR_DROP, "VM_Restart on game failed" );
+		}
+		SV_InitGameVM( true );
+		return;
+	}
+
 	// do a restart instead of a free
 	gvm = VM_Restart( gvm );
 	if ( !gvm ) {
@@ -3160,8 +3190,9 @@ void SV_InitGameProgs( void ) {
 		bot_enable = 0;
 	}
 
-	// load the dll or bytecode
-	gvm = SV_LoadGameModule( static_cast<vmInterpret_t>( Cvar_VariableIntegerValue( "vm_game" ) ) );
+	// load the dll or bytecode; Elite Force SP's game is a function table
+	gvm = Com_GameIsSTVEFSP() ? SV_STVEFSPLoadGame()
+		: SV_LoadGameModule( static_cast<vmInterpret_t>( Cvar_VariableIntegerValue( "vm_game" ) ) );
 	if ( !gvm ) {
 		Com_Error( ERR_DROP, "VM_Create on game failed" );
 	}

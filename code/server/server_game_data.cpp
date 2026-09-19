@@ -21,6 +21,11 @@ General Public License, version 2 or (at your option) any later version.
 
 namespace fntech3::server {
 
+namespace {
+// A field the module's record does not have.
+constexpr std::size_t kNoField = ~std::size_t{ 0 };
+}
+
 struct ServerGameDataView::Layout {
 	comGameId_t profile;
 	std::size_t entityPrefixBytes;
@@ -42,6 +47,10 @@ struct ServerGameDataView::Layout {
 	std::size_t sharedStateOrigin2Offset;
 	std::size_t playerPingOffset;
 	std::int32_t maxClients;
+	// Elite Force SP names its owner by gentity pointer and reaches each
+	// player state through its gentity's client pointer.
+	bool ownerIsPointer = false;
+	std::size_t clientPointerOffset = kNoField;
 };
 
 namespace {
@@ -356,6 +365,20 @@ const ServerGameDataView::Layout *ServerGameDataView::FindLayout(
 	};
 #undef EF_R
 
+	// Elite Force SP's gentity: its entityState, then the engine's fields,
+	// with client and owner pointers and no linkcount or singleClient.
+#define EFSP(member) offsetof(fntech3_stvef_sp_gentity_t, member)
+	static const Layout stvefSpLayout{
+		COM_GAME_STVEF_SP, sizeof(fntech3_stvef_sp_gentity_t),
+		sizeof(fntech3_stvef_sp_entityState_t), sizeof(fntech3_stvef_sp_playerState_t),
+		EFSP(linked), kNoField, EFSP(svFlags), kNoField,
+		EFSP(bmodel), EFSP(mins), EFSP(maxs), EFSP(contents), EFSP(absmin), EFSP(absmax),
+		EFSP(currentOrigin), EFSP(currentAngles), EFSP(owner), EFSP(s.origin2),
+		offsetof(fntech3_stvef_sp_playerState_t, ping), FNTECH3_STVEF_SP_MAX_CLIENTS,
+		true, EFSP(client)
+	};
+#undef EFSP
+
 	switch ( profile ) {
 	case COM_GAME_QUAKE3:
 		return &q3Layout;
@@ -369,6 +392,8 @@ const ServerGameDataView::Layout *ServerGameDataView::FindLayout(
 		return &etLayout;
 	case COM_GAME_STVEF_MP:
 		return &stvefLayout;
+	case COM_GAME_STVEF_SP:
+		return &stvefSpLayout;
 	default:
 		return nullptr;
 	}
@@ -414,7 +439,8 @@ GameDataBindError ServerGameDataView::BindNative( comGameId_t profile,
 	}
 	const int entityCapacity = binding.entityCapacity ? binding.entityCapacity : binding.entityCount;
 	if ( entityCapacity < binding.entityCount || entityCapacity > FNTECH3_Q3_MAX_GENTITIES
-		|| ( profile != COM_GAME_RTCW_SP && entityCapacity != binding.entityCount ) )
+		|| ( profile != COM_GAME_RTCW_SP && profile != COM_GAME_STVEF_SP
+			&& entityCapacity != binding.entityCount ) )
 		return GameDataBindError::InvalidEntityCount;
 	if ( !binding.entityBase ) {
 		return GameDataBindError::NullEntityBase;
@@ -442,8 +468,19 @@ GameDataBindError ServerGameDataView::BindNative( comGameId_t profile,
 	}
 
 	if ( binding.clientCount <= 0
-		|| binding.clientCount > candidateLayout->maxClients ) {
+		|| binding.clientCount > candidateLayout->maxClients
+		|| binding.clientCount > entityCapacity ) {
 		return GameDataBindError::InvalidClientCount;
+	}
+	if ( candidateLayout->clientPointerOffset != kNoField ) {
+		layout_ = candidateLayout;
+		entityBase_ = static_cast<unsigned char *>( binding.entityBase );
+		entitySpanBytes_ = requiredEntitySpan;
+		entityCount_ = binding.entityCount;
+		entityCapacity_ = entityCapacity;
+		entityStride_ = binding.entityStride;
+		clientCount_ = binding.clientCount;
+		return GameDataBindError::None;
 	}
 	if ( !binding.clientBase ) {
 		return GameDataBindError::NullClientBase;
@@ -511,6 +548,7 @@ void ServerGameDataView::Invalidate()
 {
 	AdvanceGeneration();
 	ClearBinding();
+	std::memset( engineLinkcounts_, 0, sizeof( engineLinkcounts_ ) );
 }
 
 bool ServerGameDataView::IsBound() const { return layout_ != nullptr; }
@@ -598,20 +636,33 @@ const void *ServerGameDataView::EntityPointer(
 		* entityStride_;
 }
 
-void *ServerGameDataView::ClientPointer( std::int32_t index )
+unsigned char *ServerGameDataView::ClientRecord( std::int32_t clientIndex ) const
 {
-	if ( !layout_ || index < 0 || index >= clientCount_ ) {
+	if ( !layout_ || clientIndex < 0 || clientIndex >= clientCount_ ) {
 		return nullptr;
 	}
-	return clientBase_ + static_cast<std::size_t>( index ) * clientStride_;
+	if ( layout_->clientPointerOffset == kNoField ) {
+		return clientBase_ + static_cast<std::size_t>( clientIndex ) * clientStride_;
+	}
+	// Client n is gentity n; its client pointer is null until the game
+	// connects it.
+	void *pointer = nullptr;
+	std::memcpy( &pointer, entityBase_ + static_cast<std::size_t>( clientIndex ) * entityStride_
+		+ layout_->clientPointerOffset, sizeof( pointer ) );
+	if ( reinterpret_cast<std::uintptr_t>( pointer ) % kAbiAlignment != 0 ) {
+		return nullptr;
+	}
+	return static_cast<unsigned char *>( pointer );
+}
+
+void *ServerGameDataView::ClientPointer( std::int32_t index )
+{
+	return ClientRecord( index );
 }
 
 const void *ServerGameDataView::ClientPointer( std::int32_t index ) const
 {
-	if ( !layout_ || index < 0 || index >= clientCount_ ) {
-		return nullptr;
-	}
-	return clientBase_ + static_cast<std::size_t>( index ) * clientStride_;
+	return ClientRecord( index );
 }
 
 bool ServerGameDataView::ReadEntityBytes( const GameEntityRef &reference,
@@ -643,13 +694,14 @@ bool ServerGameDataView::WriteEntityBytes( const GameEntityRef &reference,
 bool ServerGameDataView::ReadClientBytes( std::int32_t clientIndex,
 	std::size_t offset, void *destination, std::size_t byteCount ) const
 {
-	if ( !destination || !layout_ || clientIndex < 0 || clientIndex >= clientCount_
-		|| offset > layout_->playerStateBytes
+	if ( !destination || !layout_ || offset > layout_->playerStateBytes
 		|| byteCount > layout_->playerStateBytes - offset ) {
 		return false;
 	}
-	const unsigned char *record = clientBase_
-		+ static_cast<std::size_t>( clientIndex ) * clientStride_;
+	const unsigned char *record = ClientRecord( clientIndex );
+	if ( !record ) {
+		return false;
+	}
 	std::memcpy( destination, record + offset, byteCount );
 	return true;
 }
@@ -657,13 +709,14 @@ bool ServerGameDataView::ReadClientBytes( std::int32_t clientIndex,
 bool ServerGameDataView::WriteClientBytes( std::int32_t clientIndex,
 	std::size_t offset, const void *source, std::size_t byteCount )
 {
-	if ( !source || !layout_ || clientIndex < 0 || clientIndex >= clientCount_
-		|| offset > layout_->playerStateBytes
+	if ( !source || !layout_ || offset > layout_->playerStateBytes
 		|| byteCount > layout_->playerStateBytes - offset ) {
 		return false;
 	}
-	unsigned char *record = clientBase_
-		+ static_cast<std::size_t>( clientIndex ) * clientStride_;
+	unsigned char *record = ClientRecord( clientIndex );
+	if ( !record ) {
+		return false;
+	}
 	std::memcpy( record + offset, source, byteCount );
 	return true;
 }
@@ -692,6 +745,11 @@ bool ServerGameDataView::ReadEntityState( const GameEntityRef &reference,
 	}
 	if ( layout_->profile == COM_GAME_STVEF_MP ) {
 		fntech3_stvef_mp_entityState_t external{};
+		return ReadEntityBytes( reference, 0, &external, sizeof( external ) ) &&
+			stvef::state::ToInternal( external, destination );
+	}
+	if ( layout_->profile == COM_GAME_STVEF_SP ) {
+		fntech3_stvef_sp_entityState_t external{};
 		return ReadEntityBytes( reference, 0, &external, sizeof( external ) ) &&
 			stvef::state::ToInternal( external, destination );
 	}
@@ -725,6 +783,11 @@ bool ServerGameDataView::WriteEntityState( const GameEntityRef &reference,
 	}
 	if ( layout_->profile == COM_GAME_STVEF_MP ) {
 		fntech3_stvef_mp_entityState_t external{};
+		return stvef::state::FromInternal( source, external ) &&
+			WriteEntityBytes( reference, 0, &external, sizeof( external ) );
+	}
+	if ( layout_->profile == COM_GAME_STVEF_SP ) {
+		fntech3_stvef_sp_entityState_t external{};
 		return stvef::state::FromInternal( source, external ) &&
 			WriteEntityBytes( reference, 0, &external, sizeof( external ) );
 	}
@@ -763,14 +826,97 @@ bool ServerGameDataView::WriteEntityState( const GameEntityRef &reference,
 	}
 
 DEFINE_SCALAR_ACCESSORS( Linked, linkedOffset )
-DEFINE_SCALAR_ACCESSORS( Linkcount, linkcountOffset )
 DEFINE_SCALAR_ACCESSORS( SvFlags, svFlagsOffset )
-DEFINE_SCALAR_ACCESSORS( SingleClient, singleClientOffset )
 DEFINE_SCALAR_ACCESSORS( Bmodel, bmodelOffset )
 DEFINE_SCALAR_ACCESSORS( Contents, contentsOffset )
-DEFINE_SCALAR_ACCESSORS( OwnerNum, ownerNumOffset )
 
 #undef DEFINE_SCALAR_ACCESSORS
+
+bool ServerGameDataView::GetLinkcount( const GameEntityRef &reference,
+	std::int32_t &destination ) const
+{
+	if ( layout_ && layout_->linkcountOffset == kNoField ) {
+		if ( !IsCurrent( reference ) ) return false;
+		destination = engineLinkcounts_[reference.index];
+		return true;
+	}
+	return layout_ && ReadEntityBytes( reference, layout_->linkcountOffset,
+		&destination, sizeof( destination ) );
+}
+
+bool ServerGameDataView::SetLinkcount( const GameEntityRef &reference,
+	std::int32_t value )
+{
+	if ( layout_ && layout_->linkcountOffset == kNoField ) {
+		if ( !IsCurrent( reference ) ) return false;
+		engineLinkcounts_[reference.index] = value;
+		return true;
+	}
+	return layout_ && WriteEntityBytes( reference, layout_->linkcountOffset,
+		&value, sizeof( value ) );
+}
+
+// A record without singleClient sends every entity to its one client.
+bool ServerGameDataView::GetSingleClient( const GameEntityRef &reference,
+	std::int32_t &destination ) const
+{
+	if ( layout_ && layout_->singleClientOffset == kNoField ) {
+		if ( !IsCurrent( reference ) ) return false;
+		destination = 0;
+		return true;
+	}
+	return layout_ && ReadEntityBytes( reference, layout_->singleClientOffset,
+		&destination, sizeof( destination ) );
+}
+
+bool ServerGameDataView::SetSingleClient( const GameEntityRef &reference,
+	std::int32_t value )
+{
+	if ( layout_ && layout_->singleClientOffset == kNoField ) {
+		return IsCurrent( reference );
+	}
+	return layout_ && WriteEntityBytes( reference, layout_->singleClientOffset,
+		&value, sizeof( value ) );
+}
+
+/* Elite Force SP's owner is a gentity pointer. The engine sees its number;
+ * a null pointer, or one that names no gentity, is ENTITYNUM_NONE. Writing
+ * back the number the engine read leaves the pointer untouched. */
+bool ServerGameDataView::GetOwnerNum( const GameEntityRef &reference,
+	std::int32_t &destination ) const
+{
+	if ( !layout_ ) return false;
+	if ( !layout_->ownerIsPointer ) {
+		return ReadEntityBytes( reference, layout_->ownerNumOffset,
+			&destination, sizeof( destination ) );
+	}
+	void *owner = nullptr;
+	if ( !ReadEntityBytes( reference, layout_->ownerNumOffset, &owner, sizeof( owner ) ) ) {
+		return false;
+	}
+	GameEntityRef target;
+	destination = owner && EntityRefForPointer( owner, target ) ? target.index : ENTITYNUM_NONE;
+	return true;
+}
+
+bool ServerGameDataView::SetOwnerNum( const GameEntityRef &reference,
+	std::int32_t value )
+{
+	if ( !layout_ ) return false;
+	if ( !layout_->ownerIsPointer ) {
+		return WriteEntityBytes( reference, layout_->ownerNumOffset,
+			&value, sizeof( value ) );
+	}
+	std::int32_t current = 0;
+	if ( !GetOwnerNum( reference, current ) ) return false;
+	if ( value == current ) return true;
+	void *owner = nullptr;
+	if ( value != ENTITYNUM_NONE ) {
+		if ( value < 0 || value >= entityCapacity_ ) return false;
+		owner = entityBase_ + static_cast<std::size_t>( value ) * entityStride_;
+	}
+	return WriteEntityBytes( reference, layout_->ownerNumOffset, &owner, sizeof( owner ) );
+}
 
 bool ServerGameDataView::GetWolfETSnapshotCallback( const GameEntityRef &reference,
 	std::int32_t &destination ) const
@@ -844,6 +990,11 @@ bool ServerGameDataView::ReadPlayerState( std::int32_t clientIndex,
 	}
 	if ( layout_->profile == COM_GAME_STVEF_MP ) {
 		fntech3_stvef_mp_playerState_t external{};
+		return ReadClientBytes( clientIndex, 0, &external, sizeof( external ) ) &&
+			stvef::state::ToInternal( external, destination );
+	}
+	if ( layout_->profile == COM_GAME_STVEF_SP ) {
+		fntech3_stvef_sp_playerState_t external{};
 		return ReadClientBytes( clientIndex, 0, &external, sizeof( external ) ) &&
 			stvef::state::ToInternal( external, destination );
 	}

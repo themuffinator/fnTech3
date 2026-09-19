@@ -507,6 +507,7 @@ typedef void (QDECL *dllEntryNative_t)( void **exports, void *imports, int *apiV
 void	VM_Init( void );
 vm_t	*VM_Create( vmIndex_t index, syscall_t systemCalls, dllSyscall_t dllSyscalls, vmInterpret_t interpret );
 vm_t	*VM_CreateNative( vmIndex_t index, syscall_t systemCalls, dllSyscall_t dllSyscalls, vmInterpret_t interpret, void *dllImports, int dllApiVersion );
+vm_t	*VM_CreateTable( vmIndex_t index, const char *symbolName, vmMainFunc_t dispatcher, void **symbol );
 qboolean VM_HasPinnedNativeModule( vmIndex_t index );
 
 void	VM_Free( vm_t *vm );

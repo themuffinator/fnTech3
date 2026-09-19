@@ -2230,6 +2230,70 @@ static void * QDECL VM_LoadDll( vmIndex_t index, const char *name,
 
 /*
 ================
+VM_CreateTable
+
+Loads a native module whose engine boundary is a function table, not vmMain:
+Elite Force SP's game, whose GetGameAPI returns its exports. The library is
+found as any of the profile's native modules is, and symbolName is resolved
+into *symbol. The engine drives the module through dispatcher, which calls
+the table the symbol provides.
+================
+*/
+vm_t *VM_CreateTable( vmIndex_t index, const char *symbolName, vmMainFunc_t dispatcher, void **symbol ) {
+	char		filename[ MAX_QPATH ];
+	void		*libHandle = NULL;
+	unsigned	candidate;
+	int			installationRoot;
+	vm_t		*vm;
+
+	if ( !symbolName || !dispatcher || !symbol ) {
+		Com_Error( ERR_FATAL, "VM_CreateTable: bad parms" );
+	}
+	*symbol = NULL;
+	if ( (unsigned)index >= VM_COUNT ) {
+		Com_Error( ERR_DROP, "VM_CreateTable: bad vm index %i", index );
+	}
+	vm = &vmTable[ index ];
+	if ( vm->name ) {
+		Com_Error( ERR_DROP, "VM_CreateTable: %s is already loaded", vm->name );
+		return NULL;
+	}
+
+	filename[0] = '\0';
+	for ( candidate = 0; Com_GameManagerNativeModuleCandidate( Com_GameProfile(), vmName[ index ],
+		ARCH_STRING, DLL_EXT, candidate, filename, sizeof( filename ), &installationRoot ); ++candidate ) {
+		libHandle = VM_OpenNativeModule( index, filename, qfalse, installationRoot ? qtrue : qfalse );
+		if ( libHandle ) {
+			break;
+		}
+	}
+	if ( !libHandle ) {
+		Com_Printf( "VM_CreateTable '%s' failed\n", filename );
+		return NULL;
+	}
+
+	*symbol = Sys_LoadFunction( libHandle, symbolName );
+	if ( !*symbol ) {
+		Com_Printf( "VM_CreateTable: '%s' has no %s\n", filename, symbolName );
+		Sys_UnloadLibrary( libHandle );
+		return NULL;
+	}
+	Com_Printf( "VM_CreateTable '%s' ok\n", filename );
+
+	vm->name = vmName[ index ];
+	vm->index = index;
+	vm->dllHandle = libHandle;
+	vm->entryPoint = dispatcher;
+	vm->privateFlag = 0; // allow reading private cvars
+	vm->dataAlloc = ~0U;
+	vm->dataMask = ~0U;
+	vm->dataBase = 0;
+	return vm;
+}
+
+
+/*
+================
 VM_Create
 
 If image ends in .qvm it will be interpreted, otherwise

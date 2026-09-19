@@ -14,6 +14,7 @@ General Public License, version 2 or (at your option) any later version.
 
 #include "../code/compat/stvef_game_abi.h"
 #include "../code/compat/stvef_module_abi.h"
+#include "../code/compat/stvef_sp_game_api.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -177,6 +178,32 @@ ABI_AT( fntech3_stvef_sp_gentity_t, contents, 0x114 );
 ABI_AT( fntech3_stvef_sp_gentity_t, currentOrigin, 0x130 );
 ABI_AT( fntech3_stvef_sp_gentity_t, owner, 0x148 );
 ABI_SIZE( fntech3_stvef_sp_gentity_t, 0x14c );
+// stvoy.exe fills 42 imports from its stack at 0x425490: Printf first, the
+// voice-volume array at +0x9c, then Malloc and Free.
+ABI_SIZE( fntech3_stvef_sp_game_import_t, 0xa8 );
+ABI_AT( fntech3_stvef_sp_game_import_t, cvar, 0x10 );
+ABI_AT( fntech3_stvef_sp_game_import_t, FS_FOpenFile, 0x28 );
+ABI_AT( fntech3_stvef_sp_game_import_t, AppendToSaveGame, 0x44 );
+ABI_AT( fntech3_stvef_sp_game_import_t, SendConsoleCommand, 0x50 );
+ABI_AT( fntech3_stvef_sp_game_import_t, SetBrushModel, 0x70 );
+ABI_AT( fntech3_stvef_sp_game_import_t, trace, 0x74 );
+ABI_AT( fntech3_stvef_sp_game_import_t, linkentity, 0x8c );
+ABI_AT( fntech3_stvef_sp_game_import_t, S_Override, 0x9c );
+ABI_AT( fntech3_stvef_sp_game_import_t, Free, 0xa4 );
+// The export offsets retail calls and reads.
+ABI_AT( fntech3_stvef_sp_game_export_t, Init, 0x4 );
+ABI_AT( fntech3_stvef_sp_game_export_t, Shutdown, 0x8 );
+ABI_AT( fntech3_stvef_sp_game_export_t, WriteLevel, 0xc );
+ABI_AT( fntech3_stvef_sp_game_export_t, ReadLevel, 0x10 );
+ABI_AT( fntech3_stvef_sp_game_export_t, ClientConnect, 0x18 );
+ABI_AT( fntech3_stvef_sp_game_export_t, ClientBegin, 0x1c );
+ABI_AT( fntech3_stvef_sp_game_export_t, ClientUserinfoChanged, 0x20 );
+ABI_AT( fntech3_stvef_sp_game_export_t, ClientDisconnect, 0x24 );
+ABI_AT( fntech3_stvef_sp_game_export_t, ClientCommand, 0x28 );
+ABI_AT( fntech3_stvef_sp_game_export_t, ClientThink, 0x2c );
+ABI_AT( fntech3_stvef_sp_game_export_t, RunFrame, 0x30 );
+ABI_AT( fntech3_stvef_sp_game_export_t, ConsoleCommand, 0x34 );
+ABI_AT( fntech3_stvef_sp_game_export_t, num_entities, 0x40 );
 #endif
 ABI_SIZE( fntech3_stvef_sp_snapshot_t, 60004 );
 ABI_AT( fntech3_stvef_sp_snapshot_t, cmdNum, 0x2c );

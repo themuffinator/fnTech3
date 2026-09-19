@@ -7,6 +7,8 @@
 
 #include <cstdint>
 #include <cstring>
+#include <limits>
+#include <type_traits>
 
 /* Field-by-field transfers between the frozen Elite Force Holomatch records
  * and the engine's canonical state. Holomatch keeps Quake III's field meanings
@@ -157,6 +159,99 @@ bool Command( External &external, Internal &internal ) noexcept {
 	return true;
 }
 
+// A narrow record field and its engine int; publishing fails when the engine
+// value does not fit.
+template<bool Out, class External, class Internal>
+bool Narrow( External &external, Internal &internal ) noexcept {
+	using Limits = std::numeric_limits<std::remove_cv_t<External>>;
+	if constexpr ( Out ) {
+		if ( internal < Limits::min() || internal > Limits::max() ) return false;
+		external = static_cast<std::remove_cv_t<External>>( internal );
+	} else {
+		internal = external;
+	}
+	return true;
+}
+
+// Single player's entity is Holomatch's plus a third model, both animation
+// timers, a scale and a push vector.
+template<bool Out, class External, class Internal>
+bool SPEntity( External &external, Internal &internal ) noexcept {
+	if ( !Entity<Out>( external, internal ) ) return false;
+	Field<Out>( external.modelindex3, internal.stvef.modelindex3 );
+	Field<Out>( external.legsAnimTimer, internal.stvef.legsAnimTimer );
+	Field<Out>( external.torsoAnimTimer, internal.stvef.torsoAnimTimer );
+	Field<Out>( external.scale, internal.stvef.scale );
+	Field<Out>( external.pushVec, internal.stvef.pushVec );
+	return true;
+}
+
+template<bool Out, class External, class Internal>
+bool SPPlayer( External &external, Internal &internal ) noexcept {
+	Field<Out>( external.commandTime, internal.commandTime );
+	Field<Out>( external.pm_type, internal.pm_type );
+	Field<Out>( external.bobCycle, internal.bobCycle );
+	Field<Out>( external.pm_flags, internal.pm_flags );
+	Field<Out>( external.pm_time, internal.pm_time );
+	Field<Out>( external.origin, internal.origin );
+	Field<Out>( external.velocity, internal.velocity );
+	Field<Out>( external.weaponTime, internal.weaponTime );
+	Field<Out>( external.rechargeTime, internal.stvef.rechargeTime );
+	if ( !Narrow<Out>( external.useTime, internal.stvef.useTime ) ||
+		!Narrow<Out>( external.leanofs, internal.stvef.leanofs ) ||
+		!Narrow<Out>( external.friction, internal.stvef.friction ) ||
+		!Narrow<Out>( external.leanStopDebounceTime, internal.stvef.leanStopDebounceTime ) ) return false;
+	Field<Out>( external.gravity, internal.gravity );
+	Field<Out>( external.speed, internal.speed );
+	Field<Out>( external.delta_angles, internal.delta_angles );
+	Field<Out>( external.groundEntityNum, internal.groundEntityNum );
+	Field<Out>( external.legsAnim, internal.legsAnim );
+	Field<Out>( external.legsAnimTimer, internal.legsTimer );
+	Field<Out>( external.torsoAnim, internal.torsoAnim );
+	Field<Out>( external.torsoAnimTimer, internal.torsoTimer );
+	Field<Out>( external.scale, internal.stvef.scale );
+	Field<Out>( external.movementDir, internal.movementDir );
+	Field<Out>( external.eFlags, internal.eFlags );
+	Field<Out>( external.eventSequence, internal.eventSequence );
+	static_assert( FNTECH3_STVEF_SP_MAX_PS_EVENTS == MAX_PS_EVENTS );
+	Field<Out>( external.events, internal.events );
+	Field<Out>( external.eventParms, internal.eventParms );
+	Field<Out>( external.externalEvent, internal.externalEvent );
+	Field<Out>( external.externalEventParm, internal.externalEventParm );
+	Field<Out>( external.externalEventTime, internal.externalEventTime );
+	Field<Out>( external.clientNum, internal.clientNum );
+	Field<Out>( external.weapon, internal.weapon );
+	Field<Out>( external.weaponstate, internal.weaponstate );
+	Field<Out>( external.viewangles, internal.viewangles );
+	Field<Out>( external.viewheight, internal.viewheight );
+	Field<Out>( external.damageEvent, internal.damageEvent );
+	Field<Out>( external.damageYaw, internal.damageYaw );
+	Field<Out>( external.damagePitch, internal.damagePitch );
+	Field<Out>( external.damageCount, internal.damageCount );
+	Field<Out>( external.stats, internal.stats );
+	Field<Out>( external.persistant, internal.persistant );
+	Field<Out>( external.powerups, internal.powerups );
+	// Four ammo types, the engine's first four slots.
+	for ( unsigned n = 0; n < FNTECH3_STVEF_SP_MAX_AMMO; ++n ) Field<Out>( external.ammo[n], internal.ammo[n] );
+	Field<Out>( external.borgAdaptHits, internal.stvef.borgAdaptHits );
+	Field<Out>( external.pushVec, internal.stvef.pushVec );
+	Field<Out>( external.ping, internal.ping );
+	return true;
+}
+
+// Single player's buttons are a full int.
+template<bool Out, class External, class Internal>
+bool SPCommand( External &external, Internal &internal ) noexcept {
+	Field<Out>( external.serverTime, internal.serverTime );
+	Field<Out>( external.buttons, internal.buttons );
+	Field<Out>( external.weapon, internal.weapon );
+	Field<Out>( external.angles, internal.angles );
+	Field<Out>( external.forwardmove, internal.forwardmove );
+	Field<Out>( external.rightmove, internal.rightmove );
+	Field<Out>( external.upmove, internal.upmove );
+	return true;
+}
+
 } // namespace detail
 
 #define STVEF_TRANSFER(kind, externalType, internalType) \
@@ -171,6 +266,9 @@ inline bool ToInternal( const externalType &source, internalType &destination ) 
 STVEF_TRANSFER( Entity, fntech3_stvef_mp_entityState_t, entityState_t )
 STVEF_TRANSFER( Player, fntech3_stvef_mp_playerState_t, playerState_t )
 STVEF_TRANSFER( Command, fntech3_stvef_mp_usercmd_t, usercmd_t )
+STVEF_TRANSFER( SPEntity, fntech3_stvef_sp_entityState_t, entityState_t )
+STVEF_TRANSFER( SPPlayer, fntech3_stvef_sp_playerState_t, playerState_t )
+STVEF_TRANSFER( SPCommand, fntech3_stvef_sp_usercmd_t, usercmd_t )
 #undef STVEF_TRANSFER
 
 // Holomatch's gamestate holds 1,024 configstrings in 16,000 bytes. Publish
