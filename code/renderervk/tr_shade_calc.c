@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_shade_calc.c
 
 #include "tr_local.h"
+#include "../renderercommon/tr_stvef_env.h"
 // -EC-: avoid using ri.ftol
 #define	WAVEVALUE( table, base, amplitude, phase, freq )  ((base) + table[ (int64_t)( ( ( (phase) + tess.shaderTime * (freq) ) * FUNCTABLE_SIZE ) ) & FUNCTABLE_MASK ] * (amplitude))
 
@@ -999,6 +1000,12 @@ Special version for first-person models, borrowed from OpenArena
 ========================
 */
 void RB_CalcEnvironmentTexCoordsFP( float *st, int screenMap ) {
+	if ( R_STVEFEnvironment() ) {
+		// Elite Force has one environment mapping, first person or not.
+		RB_CalcEnvironmentTexCoordsSTVEF( st );
+		return;
+	}
+
 	int			i;
 	const float	*v, *normal;
 	vec3_t		viewer, reflected, where, why, who; // what
@@ -1054,6 +1061,11 @@ void RB_CalcEnvironmentTexCoords( float *st )
 	const float *v, *normal;
 	vec3_t		viewer, reflected;
 	float		d;
+
+	if ( R_STVEFEnvironment() ) {
+		RB_CalcEnvironmentTexCoordsSTVEF( st );
+		return;
+	}
 
 	v = tess.xyz[0];
 	normal = tess.normal[0];

@@ -567,7 +567,9 @@ static qboolean isStaticTCgen( shaderStage_t *stage, int bundle )
 		case TCGEN_TEXTURE:
 			return qtrue;
 		case TCGEN_ENVIRONMENT_MAPPED:
-			if ( bundle == 0 && stage->bundle[bundle].numTexMods == 0 ) {
+			// Elite Force maps its own way, on the CPU (tr_stvef_env.h).
+			if ( bundle == 0 && stage->bundle[bundle].numTexMods == 0 &&
+				ri.gameId != COM_GAME_STVEF_SP && ri.gameId != COM_GAME_STVEF_MP ) {
 				stage->tessFlags |= TESS_ENV0 << bundle;
 				stage->tessFlags &= ~( TESS_ST0 << bundle );
 				return qtrue;

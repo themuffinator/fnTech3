@@ -40,6 +40,8 @@ differs from retail, retail is followed.
 | Lighting flags | `R_SetupEntityLighting` `0x479f3c`: 0x10 adds 100 x identityLight and 0x1 subtracts it, in place of the minimum add of 32 | Same. A darkened ambient stops at zero where retail lets it go negative |
 | Entity alpha | Render flag 0x800: when the surface list flushes a batch (`RB_RenderDrawSurfList` `0x463831`), the batch's entity supplies its alpha if that is from 1 to 254; every single-texture stage then takes it at each vertex and draws with source-alpha blending only, so with no depth write or alpha test (`RB_StageIteratorGeneric` `0x46c5e2`). Multitexture stages keep their state, and the list's final batch is flushed without it | Same in all three renderers. The Vulkan renderers draw a forced stage with a per-vertex-color pipeline of the stage's own kind. Shadow-map passes, which retail does not have, never take it |
 | Shader keywords | Wave function `random` (`EvalWaveForm` `0x47b5f8`, noise `0x46bf20`) and `depthFunc disable` (`0x466267`) | Both, for the Elite Force profiles only |
+| Environment mapping | `RB_CalcEnvironmentTexCoords` `0x47cb50`: s = (n.v) n.x - v.x / 2 and t = (n.v) n.y - v.y / 2 with v toward the viewer; a first-person entity uses its light direction L instead, s = (n.L) n.x - L.x and t = (n.L) n.y - L.y. Quake III maps the reflection's y and z around 0.5 | Same in all three renderers, on the CPU: the GPU environment paths, which compute Quake III's mapping, are off for Elite Force |
+| Surface parameters | Retail's table (`0x4d4a80`) gives `shotclip` and `ladder` collision contents bits and has no `forcefield`; its renderer draws none of them differently | Unknown parameters are ignored, as retail ignores `forcefield`; collision takes these bits from the compiled map |
 | Map overbright | `r_mapOverBrightBits` defaults to 1 | 1 for Elite Force; other profiles keep 2 |
 | Console font | `gfx/2d/charsgrid_med`, each glyph in the left half of its cell | Same |
 
@@ -99,6 +101,9 @@ installation was left unchanged. Frames were checked with the engine's
   test prints, both server lists, the CD key and the gamestate transfer.
 - `rtcw_light_tests` checks the brightening and darkening flags in all three
   renderers.
+- `stvef_environment_map_tests` computes retail's environment mapping on
+  known vectors, for the view and for a first-person entity, and checks that
+  every renderer uses it with its GPU shortcuts off.
 - `stvef_forced_alpha_tests` compiles the shared alpha rules (which alpha is
   forced, which flushes and stages take it, the 0x65 blend state) and checks
   where each renderer's surface list and stage loop apply them.
@@ -110,8 +115,6 @@ installation was left unchanged. Frames were checked with the engine's
 
 ## Remaining
 
-- Retail shader parser differences not yet compared: surface parameters such
-  as `shotclip`, and the environment texture generator.
 - A session between this client and a server: fnTech3's own, retail or
   Lilium.
 - Language selection for text and voice (`s_language`).

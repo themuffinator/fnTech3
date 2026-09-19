@@ -4076,7 +4076,9 @@ static shader_t *FinishShader( void ) {
 				}
 			}
 
-			if ( env_mask == 1 && !pStage->depthFragment ) {
+			// Elite Force maps its own way, on the CPU (tr_stvef_env.h).
+			if ( env_mask == 1 && !pStage->depthFragment &&
+				ri.gameId != COM_GAME_STVEF_SP && ri.gameId != COM_GAME_STVEF_MP ) {
 				if ( def.shader_type >= TYPE_GENERIC_BEGIN && def.shader_type <= TYPE_GENERIC_END ) {
 					def.shader_type++; // switch to *_ENV version
 					shader.tessFlags |= TESS_NNN | TESS_VPOS;
