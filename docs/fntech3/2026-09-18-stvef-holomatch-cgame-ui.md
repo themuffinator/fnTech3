@@ -8,8 +8,10 @@ server lists and key events, and the renderer contracts Holomatch's effects
 depend on: Raven's effect entity types, the lighting flags, two shader
 keywords, the overbright default, the console font and the silent default
 sound, and entity alpha forcing. With it, the retail demos play in the
-developer client. A live session with a server and the single-player profile
-are later slices. The profile stays behind `-Dstvef-development=true`.
+developer client. Live sessions are in the
+[sessions record](2026-09-18-stvef-holomatch-sessions.md); the single-player
+profile is a later slice. The profile stays behind
+`-Dstvef-development=true`.
 
 ## Evidence and provenance
 
@@ -64,10 +66,20 @@ installation was left unchanged. Frames were checked with the engine's
   Voyager at matched `timedemo` frames. Lilium runs its command buffer twice
   per frame, so its waits were doubled. The world, HUD, weapons and effects
   agree. At frame 280 Lilium drew the portable shield's damaged look; fnTech3
-  draws the same look at frames 276 to 278, so the two engines start their
-  demos a few frames apart. The gap grows later in the demo, so frames were
-  not matched by number past frame 460. Which engine matches retail's timing
-  was not tested.
+  draws the same look at frames 276 to 278. The gap grows later in the demo,
+  so frames were not matched by number past frame 460.
+- The retail client `stvoyHM.exe` 1.20 played `demo0000` in `timedemo` on the
+  four retail paks, and reports 11,803 frames, the count fnTech3 reports. The
+  demo timelines are the same; the offsets above come from where each
+  engine's `wait` count starts. Six frames were captured from retail and
+  from fnTech3 on the same four paks: a fading player, a full-screen
+  shimmer, beams, the damaged portable shield and an eliminated player
+  burning away. The two engines draw them alike: over each frame's world
+  view the mean of each color channel differs by at most 2 of 255, and the
+  average pixel by 3 to 9, most where random static is drawn. The
+  installation also holds a third-party texture pack, which draws some
+  effects differently; retail cannot load it (see the
+  [sessions record](2026-09-18-stvef-holomatch-sessions.md)).
 - The Vulkan and RTX renderers draw the same demo frames, with the effect
   entities and HUD.
 - Entities with forced alpha are in 8,433 of `demo0000`'s 11,803 frames:

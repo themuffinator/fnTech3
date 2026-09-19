@@ -1,12 +1,12 @@
-# Elite Force Holomatch live sessions and Lilium Voyager interoperability
+# Elite Force Holomatch live sessions and interoperability
 
 ## Scope
 
-This record covers live Holomatch sessions over loopback UDP: fnTech3's
-client against fnTech3's dedicated server, and each against Lilium Voyager
-1.40. It also covers recording a demo during a live session and playing that
-demo in both engines. The retail `stvoyHM.exe` client and server, pure
-admission and downloads are not covered. The profile stays behind
+This record covers live Holomatch sessions over loopback UDP between
+fnTech3, Lilium Voyager 1.40 and the retail `stvoyHM.exe` 1.20, as client and
+as server, with and without pure admission. It also covers recording a demo
+during a live session and playing that demo in fnTech3 and Lilium Voyager.
+Downloads are not covered. The profile stays behind
 `-Dstvef-development=true`.
 
 ## Setup
@@ -22,6 +22,21 @@ Lilium Voyager 1.40's 32-bit dedicated server stops with an access violation
 on this machine before it writes any output, with or without arguments; its
 64-bit dedicated server was used.
 
+Retail was run with `fs_cdpath` pointing at a copy of the four retail paks
+and `fs_basepath` at a scratch folder, both given as short paths, and wrote
+only there. Three facts shaped that setup:
+
+- Retail formats search paths into 128-byte buffers. With longer paths it
+  truncates them, finds no paks, falls back to its restricted demo mode and
+  stops on `Couldn't load default.cfg`.
+- The installation also holds a third-party texture pack,
+  `zSTVEFtex.pk3`. With it in the search path the retail server overflows its
+  stack about 20 seconds after starting, with no client connected. fnTech3
+  and Lilium load it without trouble.
+- Retail does not treat 127.0.0.1 as a LAN address. It first asks Raven's
+  authorize server about the client, then answers the challenge when its
+  authorize wait runs out, about 20 seconds later.
+
 ## Results
 
 | Client | Server | Result |
@@ -29,6 +44,13 @@ on this machine before it writes any output, with or without arguments; its
 | fnTech3 | fnTech3 | The retail handshake completes (`challengeResponse`, then `connectResponse`). The client enters the game, is eliminated by a bot, sees the scoreboard with all three players and an 11 ms ping, and disconnects cleanly |
 | Lilium Voyager | fnTech3 | Lilium reads protocol 24 from the challenge reply, switches to its legacy protocol, enters the game and plays with a normal HUD, and disconnects cleanly |
 | fnTech3 | Lilium Voyager | Lilium's reply names protocol 26; the client connects with protocol 24, which Lilium admits. The client enters the game and plays, and disconnects cleanly |
+| fnTech3 | Retail | Retail answers with a bare `challengeResponse` and a bare `connectResponse`. The client enters the game, plays with a normal HUD, and disconnects cleanly |
+| Retail | fnTech3 | The retail client, windowed at 640x480, enters the game on fnTech3's server, draws its own HUD and takes its own screenshots, and quits cleanly |
+
+With `sv_pure 1` every server admits every client tried: fnTech3's and
+Lilium's clients on fnTech3's server, fnTech3's client on Lilium's and on
+retail's, and retail's client on fnTech3's. Each client reports a pure server
+and enters the game; none is dropped as unpure.
 
 ## Demos recorded live
 
@@ -58,7 +80,6 @@ Force does not ship.
 
 ## Remaining
 
-- Sessions with the retail `stvoyHM.exe` client or server. Retail writes its
-  configuration and logs into its installation directory, so a run needs a
-  separate writable base path.
-- Pure admission (`sv_pure 1`) and downloads between engines.
+- Downloads between engines.
+- A retail server and client on this machine together, and Lilium's client
+  on the retail server; neither is needed to cover a fnTech3 boundary.
