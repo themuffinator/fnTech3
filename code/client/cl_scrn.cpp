@@ -1110,6 +1110,10 @@ static void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 	bool uiMenuVisible;
 	bool drawConnectScreen;
 	float menuBlurStrength;
+	// Elite Force SP refreshes its menus every frame, after the connection
+	// screen, and they draw only while they hold the keys (stvoy.exe
+	// SCR_DrawScreenField 0x40a130).
+	const bool refreshEveryFrame = Com_GameIsSTVEFSP();
 
 	re.BeginFrame( stereoFrame );
 	const int beginEnded = traceField ? Sys_Milliseconds() : 0;
@@ -1185,7 +1189,9 @@ static void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 			// connecting clients will only show the connection dialog
 			SCR_DrawRetailConnectBackdrop();
 			// refresh to update the time
-			VM_Call( uivm, 1, UI_REFRESH, cls.realtime );
+			if ( !refreshEveryFrame ) {
+				VM_Call( uivm, 1, UI_REFRESH, cls.realtime );
+			}
 			VM_Call( uivm, 1, UI_DRAW_CONNECT_SCREEN, qfalse );
 			break;
 		case CA_LOADING:
@@ -1197,7 +1203,9 @@ static void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 			// also draw the connection information, so it doesn't
 			// flash away too briefly on local or lan games
 			// refresh to update the time
-			VM_Call( uivm, 1, UI_REFRESH, cls.realtime );
+			if ( !refreshEveryFrame ) {
+				VM_Call( uivm, 1, UI_REFRESH, cls.realtime );
+			}
 			VM_Call( uivm, 1, UI_DRAW_CONNECT_SCREEN, qtrue );
 			break;
 		case CA_ACTIVE:
@@ -1228,7 +1236,7 @@ static void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 
 	// the menu draws next
 	const int sceneEnded = traceField ? Sys_Milliseconds() : 0;
-	if ( uiVisible && !browserSuppressUiRefresh ) {
+	if ( ( uiVisible || ( refreshEveryFrame && uivm ) ) && !browserSuppressUiRefresh ) {
 		VM_Call( uivm, 1, UI_REFRESH, cls.realtime );
 	}
 	const int menuEnded = traceField ? Sys_Milliseconds() : 0;

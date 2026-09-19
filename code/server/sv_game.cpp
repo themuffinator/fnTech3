@@ -3208,6 +3208,39 @@ void SV_InitGameProgs( void ) {
 
 /*
 ====================
+SV_STVEFSPGameAllowedToSaveHere
+
+Retail SG_GameAllowedToSaveHere (stvoy.exe 0x4272e0). The SP menus ask it
+before opening any menu with inCamera set, which asks only the game (it
+refuses during its camera scenes) and allows a menu when no game runs.
+Without inCamera it also requires a running level whose name does not start
+with '_' and a living player.
+====================
+*/
+qboolean SV_STVEFSPGameAllowedToSaveHere( qboolean inCamera ) {
+	if ( !inCamera ) {
+		if ( !com_sv_running || !com_sv_running->integer || sv.state != SS_GAME ) {
+			return qfalse;
+		}
+		const char *mapname = Cvar_VariableString( "mapname" );
+		if ( mapname[0] == '_' ) {
+			return qfalse;
+		}
+		// Health is the first stat.
+		playerState_t player{};
+		if ( !SV_ReadGameClient( 0, &player ) || player.stats[0] <= 0 ) {
+			return qfalse;
+		}
+	}
+	if ( !stvefSpGame ) {
+		return inCamera;
+	}
+	return stvefSpGame->GameAllowedToSaveHere() ? qtrue : qfalse;
+}
+
+
+/*
+====================
 SV_GameCommand
 
 See if the current console command is claimed by the game

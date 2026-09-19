@@ -381,7 +381,7 @@ inline bool STVEFEntity( const fntech3_stvef_mp_refEntity_t &source, refEntity_t
 }
 
 // Quake III's view without its render-string text; only no-world and
-// hyperspace have meaning for Holomatch.
+// hyperspace have meaning, with the same numbers in both modes.
 inline bool STVEFRefdef( const fntech3_stvef_refdef_t &source, refdef_t &destination ) noexcept {
 	refdef_t result{};
 	result.x = source.x; result.y = source.y;
@@ -393,6 +393,44 @@ inline bool STVEFRefdef( const fntech3_stvef_refdef_t &source, refdef_t &destina
 	result.rdflags = ( source.rdflags & FNTECH3_STVEF_MP_RDF_NOWORLDMODEL ? RDF_NOWORLDMODEL : 0 ) |
 		( source.rdflags & FNTECH3_STVEF_MP_RDF_HYPERSPACE ? RDF_HYPERSPACE : 0 );
 	Bytes( result.areamask, source.areamask );
+	destination = result;
+	return true;
+}
+
+/* Single player's reference entity is Quake III 1.17's: its eight types with
+ * Quake III's numbers and flags, then a lighting direction and a sprite's
+ * radius and rotation. Its renderer adds the same fixed ambient light to
+ * every entity (stvoy.exe 0x45b818), as Quake III 1.32 does, so none of
+ * Holomatch's lighting flags apply, and it works out each entity's lighting
+ * direction itself (0x45b740) without reading the record's. */
+inline bool STVEFSPEntity( const fntech3_stvef_sp_refEntity_t &source, refEntity_t &destination ) noexcept {
+	static_assert( RT_MODEL == 0 && RT_POLY == 1 && RT_PORTALSURFACE == 7 && FNTECH3_STVEF_SP_RT_MAX == 8 );
+	static_assert( RF_MINLIGHT == 0x1 && RF_DEPTHHACK == 0x8 && RF_NOSHADOW == 0x40 && RF_WRAP_FRAMES == 0x200 );
+	if ( source.reType < 0 || source.reType >= FNTECH3_STVEF_SP_RT_MAX ||
+		( source.nonNormalizedAxes != 0 && source.nonNormalizedAxes != 1 ) ) return false;
+	refEntity_t result{};
+	result.reType = static_cast<refEntityType_t>( source.reType );
+	constexpr int flags = RF_MINLIGHT | RF_THIRD_PERSON | RF_FIRST_PERSON | RF_DEPTHHACK | RF_NOSHADOW |
+		RF_LIGHTING_ORIGIN | RF_SHADOW_PLANE | RF_WRAP_FRAMES;
+	result.renderfx = source.renderfx & flags;
+	result.hModel = source.hModel;
+	Bytes( result.lightingOrigin, source.lightingOrigin );
+	result.shadowPlane = source.shadowPlane;
+	Bytes( result.axis, source.axis );
+	result.nonNormalizedAxes = source.nonNormalizedAxes ? qtrue : qfalse;
+	Bytes( result.origin, source.origin );
+	result.frame = source.frame;
+	Bytes( result.oldorigin, source.oldorigin );
+	result.oldframe = source.oldframe;
+	result.backlerp = source.backlerp;
+	result.skinNum = source.skinNum;
+	result.customSkin = source.customSkin;
+	result.customShader = source.customShader;
+	Bytes( result.shader, source.shaderRGBA );
+	Bytes( result.shaderTexCoord, source.shaderTexCoord );
+	Bytes( result.shaderTime, source.shaderTime );
+	result.radius = source.radius;
+	result.rotation = source.rotation;
 	destination = result;
 	return true;
 }
@@ -415,6 +453,7 @@ constexpr std::size_t EntityBytes( comGameId_t profile ) noexcept {
 	case COM_GAME_RTCW_MP: return sizeof( fntech3_rtcw_mp_refEntity_t );
 	case COM_GAME_WOLFET: return sizeof( fntech3_wolfet_refEntity_t );
 	case COM_GAME_STVEF_MP: return sizeof( fntech3_stvef_mp_refEntity_t );
+	case COM_GAME_STVEF_SP: return sizeof( fntech3_stvef_sp_refEntity_t );
 	default: return 0;
 	}
 }
@@ -426,7 +465,8 @@ constexpr std::size_t RefdefBytes( comGameId_t profile ) noexcept {
 	case COM_GAME_RTCW_SP: return sizeof( fntech3_rtcw_sp_refdef_t );
 	case COM_GAME_RTCW_MP: return sizeof( fntech3_rtcw_mp_refdef_t );
 	case COM_GAME_WOLFET: return sizeof( fntech3_wolfet_refdef_t );
-	case COM_GAME_STVEF_MP: return sizeof( fntech3_stvef_refdef_t );
+	case COM_GAME_STVEF_MP:
+	case COM_GAME_STVEF_SP: return sizeof( fntech3_stvef_refdef_t );
 	default: return 0;
 	}
 }
@@ -445,6 +485,8 @@ inline bool ReadEntity( comGameId_t profile, const void *source, refEntity_t &de
 		return detail::Read<fntech3_wolfet_refEntity_t>( source, destination, detail::WolfETEntity );
 	case COM_GAME_STVEF_MP:
 		return detail::Read<fntech3_stvef_mp_refEntity_t>( source, destination, detail::STVEFEntity );
+	case COM_GAME_STVEF_SP:
+		return detail::Read<fntech3_stvef_sp_refEntity_t>( source, destination, detail::STVEFSPEntity );
 	default: return false;
 	}
 }
@@ -472,6 +514,7 @@ inline bool ReadRefdef( comGameId_t profile, const void *source, refdef_t &desti
 	case COM_GAME_WOLFET:
 		return detail::Read<fntech3_wolfet_refdef_t>( source, destination, detail::WolfETRefdef );
 	case COM_GAME_STVEF_MP:
+	case COM_GAME_STVEF_SP:
 		return detail::Read<fntech3_stvef_refdef_t>( source, destination, detail::STVEFRefdef );
 	default: return false;
 	}

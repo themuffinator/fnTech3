@@ -1425,6 +1425,7 @@ void SV_TrackCvarChanges( void );
 void SV_PacketEvent( const netadr_t *from, msg_t *msg );
 int SV_FrameMsec( void );
 qboolean SV_GameCommand( void );
+qboolean SV_STVEFSPGameAllowedToSaveHere( qboolean inCamera );
 void SV_RTCWSendMoveSpeeds( const vm_t *source, intptr_t entity, intptr_t text );
 intptr_t SV_RTCWGetModelInfo( const vm_t *source, intptr_t client, intptr_t name, intptr_t output );
 int SV_SendQueuedPackets( void );

@@ -15,6 +15,7 @@ General Public License, version 2 or (at your option) any later version.
 #include "../code/compat/stvef_game_abi.h"
 #include "../code/compat/stvef_module_abi.h"
 #include "../code/compat/stvef_sp_game_api.h"
+#include "../code/compat/stvef_sp_ui_api.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -204,6 +205,29 @@ ABI_AT( fntech3_stvef_sp_game_export_t, ClientThink, 0x2c );
 ABI_AT( fntech3_stvef_sp_game_export_t, RunFrame, 0x30 );
 ABI_AT( fntech3_stvef_sp_game_export_t, ConsoleCommand, 0x34 );
 ABI_AT( fntech3_stvef_sp_game_export_t, num_entities, 0x40 );
+// The menus: stvoy.exe copies 0x30 bytes of exports and fills 0xec bytes of
+// imports at 0x40a4a0, leaving the scissor slot at +0x7c empty.
+ABI_SIZE( fntech3_stvef_sp_ui_export_t, 0x30 );
+ABI_AT( fntech3_stvef_sp_ui_export_t, UI_KeyEvent, 0x8 );
+ABI_AT( fntech3_stvef_sp_ui_export_t, UI_Refresh, 0x10 );
+ABI_AT( fntech3_stvef_sp_ui_export_t, UI_GetActiveMenu, 0x14 );
+ABI_AT( fntech3_stvef_sp_ui_export_t, UI_SetActiveMenu, 0x18 );
+ABI_AT( fntech3_stvef_sp_ui_export_t, UI_DrawConnect, 0x20 );
+ABI_AT( fntech3_stvef_sp_ui_export_t, UI_DrawConnectText, 0x24 );
+ABI_AT( fntech3_stvef_sp_ui_export_t, UI_UpdateConnectionMessageString, 0x2c );
+ABI_SIZE( fntech3_stvef_sp_ui_import_t, 0xec );
+ABI_AT( fntech3_stvef_sp_ui_import_t, Cvar_Create, 0x1c );
+ABI_AT( fntech3_stvef_sp_ui_import_t, FS_FOpenFile, 0x34 );
+ABI_AT( fntech3_stvef_sp_ui_import_t, R_RegisterModel, 0x50 );
+ABI_AT( fntech3_stvef_sp_ui_import_t, R_DrawStretchPic, 0x78 );
+ABI_AT( fntech3_stvef_sp_ui_import_t, R_ScissorPic, 0x7c );
+ABI_AT( fntech3_stvef_sp_ui_import_t, R_LerpTag, 0x88 );
+ABI_AT( fntech3_stvef_sp_ui_import_t, DrawStretchRaw, 0x98 );
+ABI_AT( fntech3_stvef_sp_ui_import_t, SG_GameAllowedToSaveHere, 0xa8 );
+ABI_AT( fntech3_stvef_sp_ui_import_t, SCR_GetScreenshot, 0xb0 );
+ABI_AT( fntech3_stvef_sp_ui_import_t, Key_SetCatcher, 0xd4 );
+ABI_AT( fntech3_stvef_sp_ui_import_t, GetGlconfig, 0xdc );
+ABI_AT( fntech3_stvef_sp_ui_import_t, Milliseconds, 0xe8 );
 #endif
 ABI_SIZE( fntech3_stvef_sp_snapshot_t, 60004 );
 ABI_AT( fntech3_stvef_sp_snapshot_t, cmdNum, 0x2c );

@@ -348,8 +348,8 @@ class WebUiWiringTests(unittest.TestCase):
         self.assertIn("static void CL_ToggleMenuInternal( int key, qboolean sendKeyUp, unsigned time )", keys)
         self.assertIn("CL_ToggleMenuInternal( key, qfalse, time );", keys)
         self.assertIn("CL_ToggleMenuInternal( K_ESCAPE, qtrue, cls.realtime );", keys)
-        # Holomatch's UI reads every key event as a press and is sent no release.
-        self.assertIn("if ( sendKeyUp && !Com_GameIsSTVEFMP() )", keys)
+        # Elite Force's menus read every key event as a press and are sent no release.
+        self.assertIn("if ( sendKeyUp && !Com_GameIsSTVEF() )", keys)
         self.assertIn("VM_Call( uivm, 3, UI_KEY_EVENT, key, qfalse, time );", keys)
         self.assertIn("Key_GetCatcher() & KEYCATCH_BROWSER", keys)
         self.assertIn('Cmd_AddCommand( "togglemenu", CL_ToggleMenu_f );', client)
@@ -1777,7 +1777,7 @@ class WebUiWiringTests(unittest.TestCase):
         self.assertIn('Cvar_VariableIntegerValue( "web_browserActive" )', screen)
         self.assertIn('Cvar_VariableIntegerValue( "ui_browserAwesomiumPending" )', screen)
         self.assertIn("browserSuppressUiRefresh = browserDrawableSurface || ( Key_GetCatcher() & KEYCATCH_BROWSER );", screen)
-        self.assertIn("if ( uiVisible && !browserSuppressUiRefresh )", screen)
+        self.assertIn("if ( ( uiVisible || ( refreshEveryFrame && uivm ) ) && !browserSuppressUiRefresh )", screen)
         self.assertIn("CL_WebHost_DrawBrowserSurface();", screen)
 
     def test_build_manifests_include_webui_client_source(self) -> None:

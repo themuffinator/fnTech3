@@ -906,6 +906,7 @@ const char *CL_Awesomium_LastError( void );
 //
 void CL_InitUI( void );
 void CL_ShutdownUI( void );
+void CL_STVEFSPConnectionText( const char *text, qboolean message );
 int Key_GetCatcher( void );
 void Key_SetCatcher( int catcher );
 

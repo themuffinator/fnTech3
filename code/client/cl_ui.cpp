@@ -850,6 +850,7 @@ private:
 #include "client_rtcw_cinematic_compat.hpp"
 #include "client_rtcw_sound_name.hpp"
 #include "client_stvef_ui.hpp"
+#include "client_stvef_sp_ui.hpp"
 
 
 static qboolean UI_GetValue( char* value, int valueSize, const char* key ) {
@@ -2668,6 +2669,21 @@ void CL_RestoreUIMenu( int menu ) {
 
 /*
 ====================
+CL_STVEFSPConnectionText
+
+Hands Elite Force SP's connection screen its attempt count or the server's
+message; other titles read both through the client state.
+====================
+*/
+void CL_STVEFSPConnectionText( const char *text, qboolean message ) {
+	if ( uivm && Com_GameIsSTVEFSP() ) {
+		CL_STVEFSPUIConnectionText( text, message != qfalse );
+	}
+}
+
+
+/*
+====================
 CL_ShutdownUI
 ====================
 */
@@ -2676,6 +2692,10 @@ void CL_ShutdownUI( void ) {
 	cls.uiStarted = qfalse;
 	if ( !uivm ) {
 		return;
+	}
+	if ( Com_GameIsSTVEFSP() ) {
+		Cmd_RemoveCommand( "genericmenu" );
+		Cmd_RemoveCommand( "endholodeckmenu" );
 	}
 	VM_Call( uivm, 0, UI_SHUTDOWN );
 	VM_Free( uivm );
@@ -2698,6 +2718,10 @@ static bool CL_UIApiVersionSupported( int version, bool structured ) {
 	// Retail Holomatch accepts only its own UI version (stvoyHM.exe 0x4132bc).
 	if ( Com_GameIsSTVEFMP() ) {
 		return !structured && version == FNTECH3_STVEF_MP_UI_API_VERSION;
+	}
+	// Elite Force SP's menus take version 2 (stvoy.exe 0x40a733).
+	if ( Com_GameIsSTVEFSP() ) {
+		return !structured && version == FNTECH3_STVEF_SP_UI_API_VERSION;
 	}
 	if ( Com_GameIsQuake3() ) {
 		return !structured && ( version == UI_OLD_API_VERSION
@@ -2726,6 +2750,10 @@ static const char *CL_UIModuleLoadFailureMessage( void ) {
 		return "VM_Create on UI failed for Elite Force Holomatch; verify the "
 			"baseEF/mod paks contain vm/ui.qvm";
 	}
+	if ( Com_GameIsSTVEFSP() ) {
+		return "VM_Create on UI failed for Elite Force single player; verify "
+			"efuix86.dll is in the installation folder beside stvoy.exe";
+	}
 	return "VM_Create on UI failed; retail Quake Live on Windows requires "
 		"the Win32 fnTech3 build and legitimate retail UI modules";
 }
@@ -2752,6 +2780,16 @@ void CL_InitUI( void ) {
 		}
 	}
 
+	if ( Com_GameIsSTVEFSP() ) {
+		// Elite Force SP's menus are a function table.
+		uivm = CL_STVEFSPLoadUI();
+		if ( !uivm ) {
+			Com_Error( ERR_FATAL, "%s", CL_UIModuleLoadFailureMessage() );
+		}
+		Cmd_AddCommand( "genericmenu", CL_STVEFSPGenericMenu_f );
+		Cmd_AddCommand( "endholodeckmenu", CL_STVEFSPEndHolodeckMenu_f );
+	}
+	else {
 	CL_InitUIImports();
 	uivm = VM_CreateNative( VM_UI, CL_UISystemCalls, UI_DllSyscall, interpret, ql_ui_imports, UI_QL_API_VERSION );
 	if ( !uivm ) {
@@ -2770,11 +2808,13 @@ void CL_InitUI( void ) {
 			Com_Error( ERR_FATAL, "%s", CL_UIModuleLoadFailureMessage() );
 		}
 	}
+	}
 
 	// sanity check
 	v = VM_Call( uivm, 0, UI_GETAPIVERSION );
 	if ( !CL_UIApiVersionSupported( v, uivm->dllExports != nullptr ) ) {
-		const char *expected = Com_GameIsRTCW() || Com_GameIsSTVEFMP() ? "4" : Com_GameIsQuake3() ? "4 or 6"
+		const char *expected = Com_GameIsRTCW() || Com_GameIsSTVEFMP() ? "4" : Com_GameIsSTVEFSP() ? "2"
+			: Com_GameIsQuake3() ? "4 or 6"
 			: uivm->dllExports ? "8" : "4, 6, 7 or 8";
 		// Free uivm now, so UI_SHUTDOWN doesn't get called later.
 		VM_Free( uivm );
@@ -2800,8 +2840,8 @@ void CL_InitUI( void ) {
 
 #ifndef STANDALONE
 qboolean UI_usesUniqueCDKey( void ) {
-	// Holomatch's UI has no such export.
-	if ( uivm && Com_GameIsSTVEFMP() ) {
+	// Elite Force's menus have no such export.
+	if ( uivm && Com_GameIsSTVEF() ) {
 		return qfalse;
 	}
 	if (uivm) {

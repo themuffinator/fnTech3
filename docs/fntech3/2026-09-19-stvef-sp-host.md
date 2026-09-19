@@ -5,8 +5,9 @@
 This record covers hosting the retail single-player game module,
 `efgamex86.dll`, on fnTech3's server: its function-table boundary, its
 records and the server's view of its entities. The cgame half of the same
-library, the menus in `efuix86.dll`, savegames, level transitions, movies
-and lip-sync belong to later slices; the loopback wire is described below.
+library, savegames, level transitions, movies and lip-sync belong to later
+slices, and the menus in `efuix86.dll` have [their own record](2026-09-19-stvef-sp-menus.md);
+the loopback wire is described below.
 The profile stays behind `-Dstvef-development=true`.
 
 The frozen single-player records in `code/compat/stvef_game_abi.h` cite this
@@ -111,6 +112,6 @@ no entity.
 
 ## Remaining
 
-The client: the cgame half with its imports and the menus. Then savegames,
-level transitions and autosaves, Bink movies, lip-sync and ambient sound
-sets.
+The client's cgame half with its imports; the menus are hosted
+([record](2026-09-19-stvef-sp-menus.md)). Then savegames, level transitions
+and autosaves, Bink movies, lip-sync and ambient sound sets.

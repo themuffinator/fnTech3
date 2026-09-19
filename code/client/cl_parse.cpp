@@ -1073,6 +1073,7 @@ static void CL_ParseGamestate( msg_t *msg ) {
 	Con_Close();
 
 	clc.connectPacketCount = 0;
+	CL_STVEFSPConnectionText( "", qfalse );
 
 	// clear old error message
 	Cvar_Set( "com_errorMessage", "" );

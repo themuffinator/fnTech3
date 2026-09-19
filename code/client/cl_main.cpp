@@ -3767,6 +3767,7 @@ static void CL_CheckForResend( void ) {
 
 	clc.connectTime = cls.realtime;	// for retransmit requests
 	clc.connectPacketCount++;
+	CL_STVEFSPConnectionText( va( "(%i)", clc.connectPacketCount ), qfalse );
 
 	switch ( cls.state ) {
 	case CA_CONNECTING:
@@ -4501,6 +4502,7 @@ static bool CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 		if ( ( fromserver = NET_CompareAdr( from, &clc.serverAddress ) ) || NET_CompareAdr( from, &rcon_address ) ) {
 			s = MSG_ReadString( msg );
 			Q_strncpyz( clc.serverMessage, s, sizeof( clc.serverMessage ) );
+			CL_STVEFSPConnectionText( s, qtrue );
 			Com_Printf( "%s", s );
 		}
 		return fromserver;

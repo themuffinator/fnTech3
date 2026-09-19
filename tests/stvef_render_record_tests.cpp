@@ -1,7 +1,8 @@
 /* Copyright (C) 2026 fnTech3 contributors. GPL-2.0-or-later. */
-/* Elite Force Holomatch render records: the reference entity with its effect
- * union, the view, and the glconfig both modules receive. Nothing here draws;
- * these are the translations the client applies at the module boundary. */
+/* Elite Force render records: Holomatch's reference entity with its effect
+ * union, single player's Quake III 1.17 entity, the view both modes share and
+ * each mode's glconfig. Nothing here draws; these are the translations the
+ * client applies at the module boundary. */
 #include "../code/qcommon/q_shared.h"
 #include "../code/qcommon/qcommon.h"
 #include "../code/compat/render_record_adapter.hpp"
@@ -35,13 +36,14 @@ static_assert( sizeof( fntech3_stvef_mp_refEntity_t ) == 160, "Holomatch refEnti
 static_assert( offsetof( fntech3_stvef_mp_refEntity_t, data ) == 132, "Holomatch effect union" );
 static_assert( sizeof( fntech3_stvef_mp_refEntityData_t ) == 28, "Holomatch union size" );
 static_assert( sizeof( fntech3_stvef_refdef_t ) == 112, "Holomatch refdef_t" );
+static_assert( sizeof( fntech3_stvef_sp_refEntity_t ) == 152, "SP refEntity_t" );
 
 void TestRecordSizes() {
 	CHECK( fntech3::render::EntityBytes( COM_GAME_STVEF_MP ) == sizeof( fntech3_stvef_mp_refEntity_t ) );
 	CHECK( fntech3::render::RefdefBytes( COM_GAME_STVEF_MP ) == sizeof( fntech3_stvef_refdef_t ) );
-	// The single-player profile hosts native code and has no module records here.
-	CHECK( fntech3::render::EntityBytes( COM_GAME_STVEF_SP ) == 0 );
-	CHECK( fntech3::render::RefdefBytes( COM_GAME_STVEF_SP ) == 0 );
+	// Single player's view is Holomatch's; its entity is its own.
+	CHECK( fntech3::render::EntityBytes( COM_GAME_STVEF_SP ) == sizeof( fntech3_stvef_sp_refEntity_t ) );
+	CHECK( fntech3::render::RefdefBytes( COM_GAME_STVEF_SP ) == sizeof( fntech3_stvef_refdef_t ) );
 }
 
 fntech3_stvef_mp_refEntity_t Filled() {
@@ -231,6 +233,97 @@ void TestUnion() {
 	CHECK( entity.stvef.width == 0.0f && entity.stvef.deviation == 0.0f && !entity.stvef.wrap && !entity.stvef.taper );
 }
 
+fntech3_stvef_sp_refEntity_t FilledSP() {
+	fntech3_stvef_sp_refEntity_t source{};
+	source.hModel = 83; source.shadowPlane = -17; source.frame = 19; source.oldframe = 41;
+	source.backlerp = 0.25f; source.skinNum = 71; source.customSkin = 73; source.customShader = 79;
+	for ( int i = 0; i < 3; ++i ) {
+		source.lightingOrigin[i] = 10.0f + i; source.origin[i] = 20.0f + i; source.oldorigin[i] = 30.0f + i;
+		source.lightDir[i] = -1.0f - i;
+		for ( int j = 0; j < 3; ++j ) source.axis[i][j] = 50.0f + i * 3 + j;
+	}
+	for ( int i = 0; i < 4; ++i ) source.shaderRGBA[i] = static_cast<uint8_t>( 100 + i );
+	source.shaderTexCoord[0] = 0.125f; source.shaderTexCoord[1] = 0.625f;
+	source.shaderTime = -0.5f;
+	source.radius = 12.5f; source.rotation = 45.0f;
+	return source;
+}
+
+void TestSPEntity() {
+	fntech3_stvef_sp_refEntity_t source = FilledSP();
+	source.nonNormalizedAxes = 1;
+	refEntity_t entity;
+	std::memset( &entity, 0xa5, sizeof( entity ) );
+	CHECK( ReadEntity( COM_GAME_STVEF_SP, &source, entity ) );
+	CHECK( entity.reType == RT_MODEL && entity.hModel == 83 && entity.nonNormalizedAxes == qtrue );
+	CHECK( entity.shadowPlane == -17 && entity.frame == 19 && entity.oldframe == 41 && entity.backlerp == 0.25f );
+	CHECK( entity.skinNum == 71 && entity.customSkin == 73 && entity.customShader == 79 );
+	for ( int i = 0; i < 3; ++i ) {
+		CHECK( entity.lightingOrigin[i] == 10.0f + i && entity.origin[i] == 20.0f + i );
+		CHECK( entity.oldorigin[i] == 30.0f + i );
+		for ( int j = 0; j < 3; ++j ) CHECK( entity.axis[i][j] == 50.0f + i * 3 + j );
+	}
+	for ( int i = 0; i < 4; ++i ) CHECK( entity.shader.rgba[i] == 100 + i );
+	CHECK( entity.shaderTexCoord[0] == 0.125f && entity.shaderTexCoord[1] == 0.625f );
+	CHECK( entity.shaderTime.f == -0.5f );
+	// A sprite's radius and rotation have their own fields in single player.
+	CHECK( entity.radius == 12.5f && entity.rotation == 45.0f );
+	// Nothing of Holomatch's lighting or shapes, and nothing another title owns.
+	CHECK( !entity.renderfx && !entity.stvef.fullbright && !entity.stvef.darken && !entity.stvef.forceAlpha );
+	CHECK( entity.stvef.width == 0.0f && !entity.stvef.wrap && !entity.stvef.taper );
+	const rtcwRenderEntity_t rtcw{};
+	CHECK( !std::memcmp( &entity.rtcw, &rtcw, sizeof( rtcw ) ) );
+
+	// Quake III's eight types, with Quake III's numbers.
+	const refEntityType_t expected[] = { RT_MODEL, RT_POLY, RT_SPRITE, RT_BEAM, RT_RAIL_CORE,
+		RT_RAIL_RINGS, RT_LIGHTNING, RT_PORTALSURFACE };
+	static_assert( sizeof( expected ) / sizeof( expected[0] ) == FNTECH3_STVEF_SP_RT_MAX );
+	for ( int type = 0; type < FNTECH3_STVEF_SP_RT_MAX; ++type ) {
+		source.reType = type;
+		CHECK( ReadEntity( COM_GAME_STVEF_SP, &source, entity ) );
+		CHECK( entity.reType == expected[type] );
+	}
+	// Holomatch's extra types do not exist here; a refused record leaves the
+	// output untouched.
+	refEntity_t saved;
+	std::memset( &entity, 0xb7, sizeof( entity ) );
+	std::memcpy( &saved, &entity, sizeof( entity ) );
+	for ( int type : { -1, static_cast<int>( FNTECH3_STVEF_SP_RT_MAX ), 14, INT_MAX, INT_MIN } ) {
+		source.reType = type;
+		CHECK( !ReadEntity( COM_GAME_STVEF_SP, &source, entity ) );
+		CHECK( !std::memcmp( &entity, &saved, sizeof( entity ) ) );
+	}
+	source.reType = RT_MODEL;
+	for ( int boolean : { -1, 2, INT_MAX } ) {
+		source.nonNormalizedAxes = boolean;
+		CHECK( !ReadEntity( COM_GAME_STVEF_SP, &source, entity ) );
+		CHECK( !std::memcmp( &entity, &saved, sizeof( entity ) ) );
+	}
+	CHECK( !ReadEntity( COM_GAME_STVEF_SP, nullptr, entity ) );
+}
+
+void TestSPFlags() {
+	// Quake III's flags keep their numbers, minimum light included: retail's
+	// renderer lights every entity alike, so none of them darkens anything.
+	const int shared[] = { RF_MINLIGHT, RF_THIRD_PERSON, RF_FIRST_PERSON, RF_DEPTHHACK, RF_NOSHADOW,
+		RF_LIGHTING_ORIGIN, RF_SHADOW_PLANE, RF_WRAP_FRAMES };
+	fntech3_stvef_sp_refEntity_t source = FilledSP();
+	refEntity_t entity{};
+	int all = 0;
+	for ( int flag : shared ) {
+		source.renderfx = flag;
+		CHECK( ReadEntity( COM_GAME_STVEF_SP, &source, entity ) );
+		CHECK( entity.renderfx == flag );
+		CHECK( !entity.stvef.fullbright && !entity.stvef.darken && !entity.stvef.forceAlpha );
+		all |= flag;
+	}
+	// Bits the engine gives other meanings (0x10 is its crosshair) stay clear.
+	source.renderfx = -1;
+	CHECK( ReadEntity( COM_GAME_STVEF_SP, &source, entity ) );
+	CHECK( entity.renderfx == all && !( entity.renderfx & RF_CROSSHAIR ) );
+	CHECK( !entity.stvef.fullbright && !entity.stvef.darken && !entity.stvef.forceAlpha );
+}
+
 void TestRefdef() {
 	fntech3_stvef_refdef_t source{};
 	source.x = -10; source.y = 6; source.width = 1024; source.height = 768;
@@ -255,9 +348,15 @@ void TestRefdef() {
 		// Only no-world and hyperspace carry meaning; the view has no text.
 		CHECK( view.rdflags == ( ( flags & 1 ? RDF_NOWORLDMODEL : 0 ) | ( flags & 4 ? RDF_HYPERSPACE : 0 ) ) );
 		CHECK( !view.text[0][0] );
+		// Single player reads the same view.
+		refdef_t spView;
+		std::memset( &spView, 0x5a, sizeof( spView ) );
+		CHECK( ReadRefdef( COM_GAME_STVEF_SP, &source, spView ) );
+		CHECK( !std::memcmp( &spView, &view, sizeof( view ) ) );
 	}
 	refdef_t view{};
 	CHECK( !ReadRefdef( COM_GAME_STVEF_MP, nullptr, view ) );
+	CHECK( !ReadRefdef( COM_GAME_STVEF_SP, nullptr, view ) );
 }
 
 void TestGlconfig() {
@@ -292,6 +391,23 @@ void TestGlconfig() {
 	CHECK( config.textureEnvAddAvailable == 1 && config.textureFilterAnisotropicAvailable == 1 );
 	CHECK( config.vidWidth == 1024 && config.vidHeight == 768 && config.windowAspect == 4.0f / 3.0f );
 	CHECK( config.displayFrequency == 60 && !config.isFullscreen && !config.stereoEnabled && !config.smpActive );
+
+	// Single player's names its texture units maxActiveTextures and adds
+	// clamp-to-edge after anisotropy.
+	struct { uint32_t before; fntech3_stvef_sp_glconfig_t config; uint32_t after; } spGuarded;
+	std::memset( &spGuarded, 0xa5, sizeof( spGuarded ) );
+	CL_CopySTVEFSPGlconfig( &spGuarded.config, source );
+	CHECK( spGuarded.before == 0xa5a5a5a5u && spGuarded.after == 0xa5a5a5a5u );
+	const auto &sp = spGuarded.config;
+	CHECK( !std::strcmp( sp.renderer_string, "fnTech3 renderer" ) && !std::strcmp( sp.version_string, "4.6" ) );
+	CHECK( std::strlen( sp.extensions_string ) == sizeof( sp.extensions_string ) - 1 );
+	CHECK( sp.maxTextureSize == 16384 && sp.maxActiveTextures == 4 );
+	CHECK( sp.colorBits == 32 && sp.depthBits == 24 && sp.stencilBits == 8 );
+	CHECK( sp.driverType == GLDRV_ICD && sp.hardwareType == GLHW_GENERIC );
+	CHECK( sp.deviceSupportsGamma == 1 && sp.textureCompression == TC_S3TC && sp.textureEnvAddAvailable == 1 );
+	CHECK( sp.textureFilterAnisotropicAvailable == 1 && sp.clampToEdgeAvailable == 1 );
+	CHECK( sp.vidWidth == 1024 && sp.vidHeight == 768 && sp.windowAspect == 4.0f / 3.0f );
+	CHECK( sp.displayFrequency == 60 && !sp.isFullscreen && !sp.stereoEnabled && !sp.smpActive );
 }
 
 } // namespace
@@ -302,6 +418,8 @@ int main() {
 	TestTypes();
 	TestFlags();
 	TestUnion();
+	TestSPEntity();
+	TestSPFlags();
 	TestRefdef();
 	TestGlconfig();
 	if ( failures ) {
