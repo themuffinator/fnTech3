@@ -5,8 +5,8 @@
 This record covers live Holomatch sessions over loopback UDP between
 fnTech3, Lilium Voyager 1.40 and the retail `stvoyHM.exe` 1.20, as client and
 as server, with and without pure admission. It also covers recording a demo
-during a live session and playing that demo in fnTech3 and Lilium Voyager.
-Downloads are not covered. The profile stays behind
+during a live session and playing that demo in fnTech3 and Lilium Voyager,
+and downloading a missing pak from each server. The profile stays behind
 `-Dstvef-development=true`.
 
 ## Setup
@@ -71,6 +71,32 @@ each engine show the same scene.
 The client also no longer registers the `icons/record` image, which Elite
 Force does not ship.
 
+## Downloads between engines
+
+Each server had one extra pak that no client had: `zzdltest.pk3`, holding the
+retail `hm_noon` map as `maps/dltest.bsp` (487,016 bytes), built in the
+scratch folder and never placed in the installation. The server ran `dltest`
+with `sv_allowDownload 1`; the client connected with `cl_allowDownload 1`.
+
+| Client | Server | Result, with `sv_pure 0` and with `sv_pure 1` |
+| --- | --- | --- |
+| fnTech3 | fnTech3 | The client downloads the pak and enters the map |
+| Lilium Voyager | fnTech3 | The same |
+| Retail | fnTech3 | The same; the server logs the download's start and completion, then `ClientBegin` |
+| fnTech3 | Lilium Voyager | The same |
+| fnTech3 | Retail | The same |
+
+Every downloaded pak was byte-identical to the server's, and every pure
+server admitted the client that had just downloaded from it.
+
+Retail's server sends one 2 KB block per message and paces its messages by
+the client's `rate` (it does not treat 127.0.0.1 as a LAN address). Sampling
+the partial file every half second, the pak reached fnTech3's client, which
+sends `rate 25000`, at about 14 KB/s: 35 seconds. The retail client's
+default `rate 3000` receives it at about 2.4 KB/s, as the retail client
+showed against the retail server. fnTech3's and Lilium's servers send
+downloads at their own configured rate.
+
 ## Tests
 
 - `stvef_client_module_dispatch_tests` checks that the systeminfo is applied
@@ -80,6 +106,5 @@ Force does not ship.
 
 ## Remaining
 
-- Downloads between engines.
-- A retail server and client on this machine together, and Lilium's client
-  on the retail server; neither is needed to cover a fnTech3 boundary.
+- Lilium's client on the retail server, which did not connect within 40
+  seconds; it covers no fnTech3 boundary.

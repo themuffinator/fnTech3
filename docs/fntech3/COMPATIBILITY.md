@@ -15,7 +15,7 @@ Full compatibility is **not yet established for any profile**.
 | Return to Castle Wolfenstein — multiplayer | `rtcw-mp` | Experimental; same build option and executable as SP; multiplayer and broader compatibility gates remain open. |
 | Wolfenstein: Enemy Territory | `wolfet` / `et` | Experimental; `-Dwolfet-development=true` permits dedicated probes only; client startup remains gated in every build. |
 | Star Trek Voyager: Elite Force — single player | `stvef-sp` | Experimental; default startup gated; `-Dstvef-development=true` permits isolated probes; module, savegame, cinematic and renderer gates remain open. |
-| Star Trek Voyager: Elite Force — Holomatch | `stvef-mp` | Experimental; same build option and executable as SP; the retail QVMs run, the retail demos play as retail draws them, and fnTech3 plays with Lilium Voyager and the retail game as client and server in a developer build; downloads and part of the renderer gate remain open. |
+| Star Trek Voyager: Elite Force — Holomatch | `stvef-mp` | Experimental; same build option and executable as SP; the retail QVMs run, the retail demos play as retail draws them, and fnTech3 plays with and downloads from Lilium Voyager and the retail game as client and server in a developer build; part of the renderer gate remains open. |
 
 RTCW is one title with two mode profiles. A mode change relaunches the same
 executable; it does not mutate the running process's profile. Catalog
@@ -48,8 +48,8 @@ plays live with Lilium Voyager and the retail game, as client and server and
 with pure servers, and records demos live that fnTech3 and Lilium play. The
 [languages record](2026-09-19-stvef-languages.md) plays the German voices,
 gives the UI retail's translated key names and its own key numbers, and
-registers retail's three language cvars. Downloads between engines remain
-open.
+registers retail's three language cvars. A missing pak downloads between
+fnTech3, Lilium and retail in every direction.
 
 The [ET contract and dedicated-server slice](2026-09-17-wolfet-contracts.md)
 adds a distinct immutable profile, protocol-84 codecs, frozen module records,
@@ -1197,7 +1197,7 @@ pins the installation identity and startup contracts.
 | Languages | Source, Unit, Fixture, Live subset | German voices chosen by `s_language`, loaded from `sound/vox_d` at runtime; translated key names chosen by `g_language`, all 7,904 compared equal with both retail executables' tables; `s_language`, `g_language` and `k_language` registered as retail registers them ([record](2026-09-19-stvef-languages.md)). The single-player movies' German sound track remains open with Bink. |
 | SP module host / savegames | Open | Function-table game host, cgame from the same library, UI table, retail `.sav` chunks, level transitions and autosaves. |
 | Renderer / cinematics | Source, Unit, Live subset | Holomatch's entity record and its eight effect primitives, its lighting flags, entity alpha forcing, environment mapping, the `random` wave and `depthFunc disable`, the overbright default and the console font, in all three renderers; demo frames were compared with Lilium Voyager's and with the retail client's ([record](2026-09-18-stvef-holomatch-cgame-ui.md)). The single-player renderer contracts (MD4/MDR models in use) and Bink movies remain open. |
-| Interoperability | Live, Interop | fnTech3 plays with Lilium Voyager 1.40 and the retail `stvoyHM.exe` 1.20 as client and as server, with and without pure admission, and demos recorded live play in fnTech3 and Lilium ([record](2026-09-18-stvef-holomatch-sessions.md)). Downloads remain open. |
+| Interoperability | Live, Interop | fnTech3 plays with Lilium Voyager 1.40 and the retail `stvoyHM.exe` 1.20 as client and as server, with and without pure admission; demos recorded live play in fnTech3 and Lilium; and a missing pak downloads byte-identical between every pairing, pure or not ([record](2026-09-18-stvef-holomatch-sessions.md)). |
 | Optional services | Unavailable | No authorize/master success is synthesized. |
 
 Build with `-Dstvef-development=true` only for isolated probes. The option is
