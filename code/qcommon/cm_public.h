@@ -59,6 +59,8 @@ int			CM_LeafCluster (int leafnum);
 int			CM_LeafArea (int leafnum);
 
 void		CM_AdjustAreaPortalState( int area1, int area2, qboolean open );
+int			*CM_AreaPortalCounts( int *count );
+void		CM_FloodAreaConnections( void );
 qboolean	CM_AreasConnected( int area1, int area2 );
 
 int			CM_WriteAreaBits( byte *buffer, int area );

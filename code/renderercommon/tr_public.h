@@ -182,6 +182,14 @@ typedef struct {
 	// Elite Force registers effect shaders for the 3D scene: an image with no
 	// script becomes a lit, depth-tested, mipmapped surface, not a 2D picture.
 	qhandle_t (*RegisterShader3D)( const char *name );
+	// Elite Force single player keeps a picture of the screen for its
+	// savegames: the next frame drawn, averaged down to side by side RGBA
+	// pixels with its bottom row first, and done set once they are there.
+	// A picture of NULL withdraws a request that has not been met.
+	void (*CaptureSTVEFThumbnail)( byte *rgba, int side, qboolean *done );
+	// An image file's pixels as RGBA, its top row first, or NULL. The caller
+	// frees them with Z_Free.
+	byte *(*LoadImagePixels)( const char *name, int *width, int *height );
 
 
 } refexport_t;

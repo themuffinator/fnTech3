@@ -382,6 +382,23 @@ void	CM_FloodAreaConnections( void ) {
 
 /*
 ====================
+CM_AreaPortalCounts
+
+The area portals' reference counts, one for each pair of areas, which Elite
+Force SP's savegames keep whole (CM_WritePortalState, stvoy.exe 0x40b8b0).
+Restoring them takes a flood of the area connections afterwards.
+====================
+*/
+int *CM_AreaPortalCounts( int *count ) {
+	if ( count ) {
+		*count = cm.numAreas * cm.numAreas;
+	}
+	return cm.areaPortals;
+}
+
+
+/*
+====================
 CM_AdjustAreaPortalState
 
 ====================

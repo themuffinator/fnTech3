@@ -3738,6 +3738,10 @@ static void SV_UserMove( client_t *cl, msg_t *msg, bool delta ) {
 		// gate below treats it: it is skipped as already executed, and the
 		// commands after it are what move the client for the first time.
 		SV_ClientEnterWorld( cl, &cmds[0] );
+		// Elite Force SP saves the level the player has just entered.
+		if ( Com_GameIsSTVEFSP() ) {
+			SV_STVEFSPEnteredWorld();
+		}
 		// the moves can be processed normally
 	}
 

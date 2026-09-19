@@ -111,8 +111,8 @@ void CL_STVEFSPUIDrawStretchPic( float x, float y, float w, float h,
 	re.DrawStretchPic( x, y, w, h, s1, t1, s2, t2, shader );
 }
 void CL_STVEFSPUIUpdateScreen() { SCR_UpdateScreen(); }
-// The savegame slice captures the screen for a save's thumbnail.
-void CL_STVEFSPUIPrecacheScreenshot() {}
+// The menus keep the screen as it is before they are drawn over it.
+void CL_STVEFSPUIPrecacheScreenshot() { CL_STVEFSPPrecacheScreenshot(); }
 void CL_STVEFSPUILerpTag( fntech3_stvef_orientation_t *tag, std::int32_t model, std::int32_t startFrame,
 	std::int32_t endFrame, float frac, const char *tagName ) {
 	static_assert( sizeof( fntech3_stvef_orientation_t ) == sizeof( orientation_t ) );
@@ -133,22 +133,23 @@ void CL_STVEFSPUIDrawStretchRaw( std::int32_t x, std::int32_t y, std::int32_t w,
 	re.DrawStretchRaw( x, y, w, h, cols, rows, data, 0, qtrue );
 }
 
-// Savegames arrive with the savegame slice: until then there are none. The
-// menus ask whether saving is allowed before opening any menu.
-std::int32_t CL_STVEFSPUIGetSaveImage( const char *, void * ) { return qfalse; }
-void *CL_STVEFSPUIGetSaveComment( const char * ) { return nullptr; }
-std::int32_t CL_STVEFSPUIValidateSave( const char * ) { return qfalse; }
+// The load and save menus list the savegames, which the server keeps.
+std::int32_t CL_STVEFSPUIGetSaveImage( const char *name, void *pixels ) {
+	return SV_STVEFSPSaveImage( name, pixels );
+}
+void *CL_STVEFSPUIGetSaveComment( const char *name ) {
+	return const_cast<char *>( SV_STVEFSPSaveComment( name ) );
+}
+std::int32_t CL_STVEFSPUIValidateSave( const char *name ) { return SV_STVEFSPValidateSave( name ); }
 std::int32_t CL_STVEFSPUIAllowedToSave( std::int32_t inCamera ) {
 	return SV_STVEFSPGameAllowedToSaveHere( inCamera ? qtrue : qfalse );
 }
-char stvefSpSaveComment[128];
-void CL_STVEFSPUIStoreSaveComment( const char *comment ) {
-	Q_strncpyz( stvefSpSaveComment, comment ? comment : "", sizeof( stvefSpSaveComment ) );
-}
+void CL_STVEFSPUIStoreSaveComment( const char *comment ) { SV_STVEFSPStoreSaveComment( comment ); }
+// The kept picture of the screen, taken now if there is none (0x40a3a0).
 std::uint8_t *CL_STVEFSPUIGetScreenshot( std::int32_t *valid ) {
-	STVEFSPScreenshot &screenshot = CL_STVEFSPScreenshot();
-	if ( valid ) *valid = screenshot.valid ? qtrue : qfalse;
-	return screenshot.rgba;
+	std::uint8_t *pixels = const_cast<std::uint8_t *>( CL_STVEFSPScreenshotPixels() );
+	if ( valid ) *valid = CL_STVEFSPScreenshotValid();
+	return pixels;
 }
 
 void CL_STVEFSPUIKeyName( std::int32_t key, char *buffer, std::int32_t size ) {

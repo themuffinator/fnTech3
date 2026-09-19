@@ -551,7 +551,7 @@ static void R_IssueRenderCommands( void ) {
 	// clear it out, in case this is a sync and not a buffer flip
 	cmdList->used = 0;
 
-	if ( backEnd.screenshotMask == 0 && !backEnd.levelshotPending &&
+	if ( backEnd.screenshotMask == 0 && !backEnd.levelshotPending && !backEnd.stvefThumbnail &&
 		!backEnd.screenshotCubeActive && !backEnd.screenshotCubeFrontPending ) {
 		if ( ri.CL_IsMinimized() )
 			return; // skip backend when minimized
@@ -562,6 +562,7 @@ static void R_IssueRenderCommands( void ) {
 		if ( ri.CL_IsMinimized() && !RE_CanMinimize() ) {
 			backEnd.screenshotMask = 0;
 			backEnd.levelshotPending = qfalse;
+			backEnd.stvefThumbnail = NULL;
 			backEnd.screenshotCubeActive = qfalse;
 			backEnd.screenshotCubeFrontPending = qfalse;
 			backEnd.screenshotCubeFailed = qfalse;

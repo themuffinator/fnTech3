@@ -1955,6 +1955,12 @@ typedef struct {
 	char	screenshotBMP[ MAX_OSPATH ];
 	qboolean screenShotPNGsilent;
 	qboolean levelshotPending;
+	// Elite Force single player's picture of the screen, taken at the end of
+	// this frame: where its pixels go, how wide they are, and the flag the
+	// backend sets once they are there.
+	byte	*stvefThumbnail;
+	int		stvefThumbnailSide;
+	qboolean *stvefThumbnailDone;
 	qboolean screenShotTGAsilent;
 	qboolean screenShotJPGsilent;
 	qboolean screenShotBMPsilent;
@@ -3042,6 +3048,7 @@ void RB_TakeScreenshot( int x, int y, int width, int height, const char *fileNam
 void RB_TakeScreenshotJPEG( int x, int y, int width, int height, const char *fileName );
 void RB_TakeScreenshotBMP( int x, int y, int width, int height, const char *fileName, int clipboard );
 void RB_TakeLevelShot( void );
+void RB_TakeSTVEFThumbnail( void );
 void RB_SaveCubemapScreenshot( byte *rgb, int width, int height, int format,
 	const char *fileName, const vec3_t vieworg, vec3_t viewaxis[3] );
 

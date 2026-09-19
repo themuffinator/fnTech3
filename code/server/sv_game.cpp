@@ -975,6 +975,7 @@ static intptr_t SV_RTCWGameSharedCall( fntech3::rtcw::module::Call call ) {
 #include "server_wolfet_game.hpp"
 #include "server_stvef_game.hpp"
 #include "server_stvef_sp_game.hpp"
+#include "server_stvef_sp_save.hpp"
 
 static intptr_t SV_GameSystemCalls( intptr_t *args ) {
 

@@ -4552,7 +4552,8 @@ static const void *RB_SwapBuffers( const void *data ) {
 	// buffer swap may take undefined time to complete, we can't measure it in a reliable way
 	backEnd.pc.msec = ri.Milliseconds() - backEnd.pc.msec;
 
-	if ( ( backEnd.screenshotMask || backEnd.levelshotPending ) && tr.frameCount > 1 ) {
+	if ( ( backEnd.screenshotMask || backEnd.levelshotPending || backEnd.stvefThumbnail )
+		&& tr.frameCount > 1 ) {
 #ifdef USE_FBO
 		if ( superSampled ) {
 			qglScissor( 0, 0, gls.captureWidth, gls.captureHeight );
@@ -4590,6 +4591,9 @@ static const void *RB_SwapBuffers( const void *data ) {
 		if ( backEnd.levelshotPending ) {
 			RB_TakeLevelShot();
 			backEnd.levelshotPending = qfalse;
+		}
+		if ( backEnd.stvefThumbnail ) {
+			RB_TakeSTVEFThumbnail();
 		}
 		backEnd.screenshotPNG[0] = '\0';
 		backEnd.screenshotJPG[0] = '\0';

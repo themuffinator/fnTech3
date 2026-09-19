@@ -4483,9 +4483,11 @@ static const void *RB_SwapBuffers( const void *data ) {
 #endif
 
 #ifdef USE_VULKAN
-	if ( ( backEnd.screenshotMask || backEnd.levelshotPending ) && vk.cmd->waitForFence ) {
+	if ( ( backEnd.screenshotMask || backEnd.levelshotPending || backEnd.stvefThumbnail )
+		&& vk.cmd->waitForFence ) {
 #else
-	if ( ( backEnd.screenshotMask || backEnd.levelshotPending ) && tr.frameCount > 1 ) {
+	if ( ( backEnd.screenshotMask || backEnd.levelshotPending || backEnd.stvefThumbnail )
+		&& tr.frameCount > 1 ) {
 #endif
 		if ( backEnd.screenshotMask & SCREENSHOT_PNG && backEnd.screenshotPNG[0] ) {
 			RB_TakeScreenshotPNG( 0, 0, gls.captureWidth, gls.captureHeight, backEnd.screenshotPNG );
@@ -4517,6 +4519,9 @@ static const void *RB_SwapBuffers( const void *data ) {
 		if ( backEnd.levelshotPending ) {
 			RB_TakeLevelShot();
 			backEnd.levelshotPending = qfalse;
+		}
+		if ( backEnd.stvefThumbnail ) {
+			RB_TakeSTVEFThumbnail();
 		}
 
 		backEnd.screenshotPNG[0] = '\0';

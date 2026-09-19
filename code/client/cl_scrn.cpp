@@ -26,6 +26,7 @@ extern "C" {
 }
 
 #include "../renderercommon/ql_font_text.h"
+#include "client_stvef_sp_screen.hpp"
 
 #include <algorithm>
 #include <array>

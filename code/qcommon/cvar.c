@@ -297,6 +297,31 @@ void Cvar_CommandCompletion( void (*callback)(const char *s) )
 }
 
 
+/*
+============
+Cvar_ForEachWithFlags
+
+Every cvar that carries all of the given flags, in the order they were
+created, most recent first. Elite Force SP's savegames keep the userinfo
+cvars this way (SG_WriteCvars, stvoy.exe 0x426c90).
+============
+*/
+void Cvar_ForEachWithFlags( int flags, void (*callback)( const char *name, const char *string, void *context ),
+	void *context )
+{
+	const cvar_t *cvar;
+
+	if ( !callback ) {
+		return;
+	}
+	for ( cvar = cvar_vars; cvar; cvar = cvar->next ) {
+		if ( cvar->name && cvar->string && ( cvar->flags & flags ) == flags ) {
+			callback( cvar->name, cvar->string, context );
+		}
+	}
+}
+
+
 static qboolean Cvar_IsIntegral( const char *s ) {
 
 	if ( *s == '-' && *(s+1) != '\0' )

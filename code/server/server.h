@@ -484,6 +484,12 @@ void SV_ExecuteClientMessage( client_t *cl, msg_t *msg );
 void SV_UserinfoChanged( client_t *cl, qboolean updateUserinfo, qboolean runFilter );
 
 void SV_ClientEnterWorld( client_t *client, const usercmd_t *cmd );
+/* Elite Force SP's savegames (server_stvef_sp_save.hpp): its own map and
+ * savegame commands, the autosave a level is entered with, and the game's
+ * saving code run without a file for sv_testsave. */
+void SV_STVEFSPAddCommands( void );
+void SV_STVEFSPEnteredWorld( void );
+void SV_STVEFSPTestSave( void );
 void SV_FreeClient( client_t *client );
 void SV_DropClient( client_t *drop, const char *reason );
 void SV_StartDemoRecord( client_t *client );

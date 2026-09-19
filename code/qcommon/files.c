@@ -7956,6 +7956,39 @@ void FS_VM_RenameFile( const char *from, const char *to ) {
 }
 
 
+/*
+===========
+FS_HomeReplaceFile
+
+Elite Force SP commits a savegame by renaming the file it wrote, and reports
+a failure without ending the game (SG_Move, stvoy.exe 0x4274f0). Both paths
+belong to the writable game directory. Returns qtrue once the destination is
+the written file.
+===========
+*/
+qboolean FS_HomeReplaceFile( const char *from, const char *to ) {
+	char source[MAX_OSPATH * 3 + 1];
+	char destination[MAX_OSPATH * 3 + 1];
+	if ( !fs_searchpaths ) {
+		Com_Error( ERR_FATAL, "Filesystem call made without initialization" );
+	}
+	if ( !FS_WriteQpathIsValid( from ) || !FS_WriteQpathIsValid( to ) ) {
+		return qfalse;
+	}
+	FS_CheckFilenameIsNotAllowed( from, __func__, qfalse );
+	FS_CheckFilenameIsNotAllowed( to, __func__, qfalse );
+	if ( !FS_FilenameCompare( from, to ) ) {
+		return qtrue;
+	}
+	Q_strncpyz( source, FS_BuildOSPath( fs_homepath->string, fs_gamedir, from ), sizeof( source ) );
+	Q_strncpyz( destination, FS_BuildOSPath( fs_homepath->string, fs_gamedir, to ), sizeof( destination ) );
+	if ( FS_CreatePath( destination ) || !Sys_ReplaceFile( source, destination ) ) {
+		return qfalse;
+	}
+	return qtrue;
+}
+
+
 int FS_VM_SeekFile( fileHandle_t f, long offset, fsOrigin_t origin, handleOwner_t owner ) {
 	int r;
 

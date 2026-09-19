@@ -383,6 +383,15 @@ void NORETURN FORMAT_PRINTF(2, 3) QDECL Com_Error( errorParm_t code, const char 
 
 	Cbuf_Init();
 
+	if ( Com_GameIsSTVEFSP() ) {
+#ifndef DEDICATED
+		CL_STVEFSPUnprecacheScreenshot();
+#endif
+		if ( code == ERR_DROP ) {
+			SV_STVEFSPSaveAbort();
+		}
+	}
+
 	if ( code == ERR_DISCONNECT || code == ERR_SERVERDISCONNECT ) {
 		VM_Forced_Unload_Start();
 		SV_Shutdown( "Server disconnected" );

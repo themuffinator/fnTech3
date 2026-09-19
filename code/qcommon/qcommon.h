@@ -743,6 +743,10 @@ unsigned Cvar_Flags( const char *var_name );
 // returns CVAR_NONEXISTENT if cvar doesn't exist or the flags of that particular CVAR.
 
 void	Cvar_CommandCompletion( void(*callback)(const char *s) );
+
+void	Cvar_ForEachWithFlags( int flags, void (*callback)( const char *name, const char *string, void *context ),
+			void *context );
+// every cvar carrying all of the given flags, newest first
 // callback with each valid string
 
 void 	Cvar_Reset( const char *var_name );
@@ -1017,6 +1021,9 @@ qboolean FS_ComparePaks( char *neededpaks, int len, qboolean dlstring );
 void FS_Rename( const char *from, const char *to );
 
 void FS_HomeRemove( const char *homePath );
+
+qboolean FS_HomeReplaceFile( const char *from, const char *to );
+// renames a written file over another in the writable game directory
 // ET's own delete: a file or a whole directory, under three named folders.
 int FS_WolfETDelete( const char *path );
 void FS_SV_HomeRemove( const char *homePath );
@@ -1405,6 +1412,15 @@ void Key_WriteBindings( fileHandle_t f );
 void S_ClearSoundBuffer( void );
 // call before filesystem access
 
+/* Elite Force single player's picture of the screen, which its savegames
+ * keep, its menus show and its loading screen draws (cl_scrn.cpp). */
+void CL_STVEFSPPrecacheScreenshot( void );
+void CL_STVEFSPUnprecacheScreenshot( void );
+const byte *CL_STVEFSPScreenshotPixels( void );
+qboolean CL_STVEFSPScreenshotValid( void );
+void CL_STVEFSPSetScreenshot( const byte *pixels, int width, int height );
+qboolean CL_STVEFSPLevelshot( const char *map, byte *pixels );
+
 void CL_SystemInfoChanged( qboolean onlyGame );
 qboolean CL_GameSwitch( void );
 
@@ -1427,6 +1443,14 @@ void SV_PacketEvent( const netadr_t *from, msg_t *msg );
 int SV_FrameMsec( void );
 qboolean SV_GameCommand( void );
 qboolean SV_STVEFSPGameAllowedToSaveHere( qboolean inCamera );
+/* Elite Force SP's savegames, saves/<name>.sav (sv_game.cpp). The menus read
+ * a save's comment and picture, and store the comment a save is made with;
+ * the error unwind drops a savegame that was being written. */
+void SV_STVEFSPStoreSaveComment( const char *comment );
+const char *SV_STVEFSPSaveComment( const char *name );
+qboolean SV_STVEFSPValidateSave( const char *name );
+qboolean SV_STVEFSPSaveImage( const char *name, void *pixels );
+void SV_STVEFSPSaveAbort( void );
 /* Elite Force SP's cgame is half of the game library the server loads. The
  * client lends the server its handler for the cgame's imports and a hook that
  * shuts the cgame down before the library unloads; the server lends the

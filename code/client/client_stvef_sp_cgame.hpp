@@ -18,11 +18,13 @@
  * spawns, before the cgame starts; CL_STVEFSPEarlyCgameCall answers those.
  */
 
-// The loading screen draws the kept screenshot, 256 pixels square, where a
-// level has no levelshot (CG_R_DRAWSCREENSHOT at 0x403006).
+/* The loading screen draws the kept picture of the screen, 256 pixels
+ * square, where a level has no levelshot (CG_R_DRAWSCREENSHOT at 0x403006).
+ * Retail draws whatever its one buffer holds, which is black until a
+ * savegame or a level fills it, and takes no picture of its own here: a
+ * frame being drawn is not one to keep. */
 static void CL_STVEFSPDrawScreenshot( float x, float y, float w, float h ) {
 	STVEFSPScreenshot &screenshot = CL_STVEFSPScreenshot();
-	if ( !screenshot.valid ) return;
 	re.DrawStretchRaw( static_cast<int>( x ), static_cast<int>( y ), static_cast<int>( w ), static_cast<int>( h ),
 		FNTECH3_STVEF_SP_SCREENSHOT_SIZE, FNTECH3_STVEF_SP_SCREENSHOT_SIZE, screenshot.rgba, 0, qtrue );
 }

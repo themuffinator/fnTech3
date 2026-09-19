@@ -1,0 +1,169 @@
+{
+  "utc": "2026-09-19T22:49:29.761961+00:00",
+  "sourceCommit": "7b4ad43014df4e22a9e1a9ab8ae6755fce93cd47",
+  "sourceChanges": [
+    "code/compat/stvef_sp_savegame.hpp",
+    "code/server/server_stvef_sp_save.hpp",
+    "code/client/client_stvef_sp_screen.hpp",
+    "code/renderercommon/tr_stvef_thumbnail.h"
+  ],
+  "platform": "Windows 11, x86 build, OpenGL renderer, 1024x768 window",
+  "installation": "E:\\Games\\Star Trek Voyager Elite Force",
+  "installationUnchanged": true,
+  "note": "Elite Force single player's savegames written and read by both engines. Retail stvoy.exe 1.20 read the installation's paks through a short fs_cdpath and wrote only to a scratch fs_basepath; fnTech3 ran with an isolated fs_homepath. Neither engine wrote to the installation. Each save's leading chunks are the engine's; the game's WriteLevel follows, and it reuses some of the same four-letter ids.",
+  "saves": {
+    "fntech3-full-borg2": {
+      "bytes": 844200,
+      "chunks": 4376,
+      "engineChunks": [
+        "COMM(128)",
+        "SHOT(262144)",
+        "MPCM(1024)",
+        "CVCN(4) with 14 CVAR/VALU pairs",
+        "GAME(4) = 0",
+        "TIME(4) = 10450",
+        "TIMR(4) = 14",
+        "PRTS(100)",
+        "CSCN(4) with 92 CSIN/CSDA pairs"
+      ],
+      "gameChunks": 4155,
+      "autosave": false
+    },
+    "fntech3-autosave-borg2": {
+      "bytes": 328575,
+      "chunks": 1109,
+      "engineChunks": [
+        "COMM(128)",
+        "SHOT(262144)",
+        "MPCM(1024)",
+        "CVCN(4) with 14 CVAR/VALU pairs",
+        "GAME(4) = 1",
+        "CVSV(1024), 4 AMMO(1024), 32 ADPT(1024)"
+      ],
+      "gameChunks": 1039,
+      "autosave": true
+    },
+    "fntech3-autosave-tutorial": {
+      "bytes": 328575,
+      "chunks": 1109,
+      "engineChunks": [
+        "COMM(128)",
+        "SHOT(262144)",
+        "MPCM(1024)",
+        "CVCN(4) with 14 CVAR/VALU pairs",
+        "GAME(4) = 1",
+        "CVSV(1024), 4 AMMO(1024), 32 ADPT(1024)"
+      ],
+      "gameChunks": 1039,
+      "autosave": true
+    },
+    "fntech3-hub-borg2": {
+      "bytes": 844201,
+      "chunks": 4376,
+      "engineChunks": [
+        "COMM(128)",
+        "SHOT(262144)",
+        "MPCM(1024)",
+        "CVCN(4) with 14 CVAR/VALU pairs",
+        "GAME(4) = 0",
+        "TIME(4) = 19450",
+        "TIMR(4) = 25",
+        "PRTS(100)",
+        "CSCN(4) with 92 CSIN/CSDA pairs"
+      ],
+      "gameChunks": 4155,
+      "autosave": false
+    },
+    "fntech3-quicksave-tutorial": {
+      "bytes": 517468,
+      "chunks": 2948,
+      "engineChunks": [
+        "COMM(128)",
+        "SHOT(262144)",
+        "MPCM(1024)",
+        "CVCN(4) with 14 CVAR/VALU pairs",
+        "GAME(4) = 0",
+        "TIME(4) = 12900",
+        "TIMR(4) = 5",
+        "PRTS(484)",
+        "CSCN(4) with 76 CSIN/CSDA pairs"
+      ],
+      "gameChunks": 2759,
+      "autosave": false
+    },
+    "retail-full-tutorial": {
+      "bytes": 522028,
+      "chunks": 3185,
+      "engineChunks": [
+        "COMM(128)",
+        "SHOT(262144)",
+        "MPCM(1024)",
+        "CVCN(4) with 9 CVAR/VALU pairs",
+        "GAME(4) = 0",
+        "TIME(4) = 8050",
+        "TIMR(4) = 34",
+        "PRTS(484)",
+        "CSCN(4) with 76 CSIN/CSDA pairs"
+      ],
+      "gameChunks": 3006,
+      "autosave": false
+    },
+    "retail-autosave-tutorial": {
+      "bytes": 328320,
+      "chunks": 1099,
+      "engineChunks": [
+        "COMM(128)",
+        "SHOT(262144)",
+        "MPCM(1024)",
+        "CVCN(4) with 9 CVAR/VALU pairs",
+        "GAME(4) = 1",
+        "CVSV(1024), 4 AMMO(1024), 32 ADPT(1024)"
+      ],
+      "gameChunks": 1039,
+      "autosave": true
+    }
+  },
+  "interop": {
+    "fntech3ReadsRetailSave": {
+      "save": "retail-full-tutorial",
+      "console": [
+        "^5Loading game \"rtsave\"...",
+        "^5Done."
+      ],
+      "result": "tutorial restored at retail's player position with 100 health and 100 armour"
+    },
+    "retailReadsFnTech3Save": {
+      "save": "fntech3-quicksave-tutorial",
+      "console": [
+        "^5Loading game \"quik\"...",
+        "^5Done."
+      ],
+      "result": "tutorial restored at fnTech3's player position with 100 health and 100 armour"
+    }
+  },
+  "transitions": {
+    "commands": [
+      "map tutorial",
+      "maptransition borg2",
+      "loadtransition tutorial",
+      "loadtransition borg2"
+    ],
+    "savesAfter": [
+      "saves/auto.sav",
+      "saves/hub/borg2.sav",
+      "saves/hub/tutorial.sav"
+    ],
+    "console": [
+      "^5Restoring game \"hub/tutorial\"...",
+      "^1Failed to open savegame \"hub/tutorial\"",
+      "^5Restoring game \"hub/borg2\"...",
+      "^5Done."
+    ]
+  },
+  "commandRefusals": [
+    "^1Can't wipe 'auto' or 'exitholodeck'",
+    "^1Can't save to 'current'",
+    "^1Can't load from \"current\"",
+    "^1Bad loadgame name."
+  ]
+}

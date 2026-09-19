@@ -1884,6 +1884,16 @@ void SV_AddOperatorCommands( void ) {
 	}
 #endif
 #endif
+	if ( Com_GameIsSTVEFSP() ) {
+		// Elite Force SP's map, devmap, transitions and savegames take the
+		// place of the map commands, and it has no single-player aliases.
+		SV_STVEFSPAddCommands();
+		Cmd_SetCommandCompletionFunc( "map", SV_CompleteMapName );
+		Cmd_SetCommandCompletionFunc( "devmap", SV_CompleteMapName );
+		Cmd_SetCommandCompletionFunc( "maptransition", SV_CompleteMapName );
+		Cmd_SetCommandCompletionFunc( "loadtransition", SV_CompleteMapName );
+		return;
+	}
 	SV_AddCommandSet( mapCommands );
 	SV_SetMapCompletionForCommands( mapCommands );
 	if ( Com_GameIsQuakeLive() ) {

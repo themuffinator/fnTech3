@@ -30,7 +30,7 @@ attaches to is described in the [game host record](2026-09-19-stvef-sp-host.md).
 | Viewpoint | The server asks the cgame for a running camera scene's position (`vmMain(5)`) and otherwise uses the eye, moved by the lean: the roll plus half the lean, then the lean along that right vector (`SV_BuildClientSnapshot` `0x4283a3`) | The same, for the snapshots of the SP profile |
 | Lighting | The light grid at a point; zeros where a map has none (`R_GetLighting` `0x45bf10`). The cgame uses it for the player's light level, which characters can see by | The renderer's `LightForPoint`, with zeros where it has no grid |
 | Rotated pictures | Turned by an angle in degrees about the picture's top-right corner, drawing the shader's first image (`RB_RotatePic` `0x450fc0`) | A textured quad with the same corners, drawn with the whole shader |
-| Kept screenshot | The loading screen draws the 256×256 screenshot a savegame keeps where a level has no levelshot (`0x403006`) | The shared single-player screenshot, which the savegame slice fills |
+| Kept screenshot | The loading screen draws the 256×256 screenshot a savegame keeps where a level has no levelshot (`0x403006`) | The shared single-player picture of the screen, which the savegames keep and fill ([record](2026-09-19-stvef-sp-savegames.md)) |
 | Sample length | Length in milliseconds, 0 for an unknown sound (`0x423520`) | The same |
 | Sound channels | Raven's SP numbering: an attenuated voice (4) after the voice, item 5, body 6, ambient 7, local 8, announcer 9 and two menu channels. Retail attenuates by channel: a voice stays at full volume to 1,024 units, an attenuated voice falls silent by about 290, others stay full to 256 and then fall off at Quake III's rate (`S_SpatializeOrigin` `0x420510`) | Translated to the engine's channels for the cgame's and the menus' sounds, so body and ambient sounds are no longer taken for the engine's local channels; single player's own channels take distinct numbers above the engine's. The per-channel falloff belongs with the ambient sound slice |
 | Force feedback (34–37) | Force-feedback joysticks | None |
@@ -73,7 +73,8 @@ renderer at its panels' noise wave, now drawn as retail draws it.
 
 ## Remaining
 
-Ambient sound sets, which also give movers their sounds; savegames, their
-screenshots and the full-load path; level transitions; Bink movies;
+Ambient sound sets, which also give movers their sounds; Bink movies;
 lip-sync; and a comparison with the retail renderer of the lighting values
 and of the characters, whose bodies are Raven's RDM5 skeletal models.
+Savegames, their pictures and the levels a player moves between are in the
+[savegame record](2026-09-19-stvef-sp-savegames.md).

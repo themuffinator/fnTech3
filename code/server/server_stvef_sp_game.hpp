@@ -164,13 +164,13 @@ std::int32_t SV_STVEFSPFileList( const char *path, const char *extension, char *
 	return FS_GetFileList( path, extension, list, size );
 }
 
-// Savegames arrive with the savegame slice; until then none is written or read.
-std::int32_t SV_STVEFSPAppendToSave( std::uint32_t, void *, std::int32_t ) { return qfalse; }
-std::int32_t SV_STVEFSPReadFromSave( std::uint32_t chunk, void *, std::int32_t, void ** ) {
-	Com_Error( ERR_DROP, "Elite Force SP savegame chunk %08x requested with no savegame", chunk );
-	return 0;
-}
-std::int32_t SV_STVEFSPReadFromSaveOptional( std::uint32_t, void *, std::int32_t, void ** ) { return 0; }
+// The savegames themselves are in server_stvef_sp_save.hpp, which this
+// header's import table calls and which the server includes after it.
+std::int32_t SV_STVEFSPAppendToSave( std::uint32_t chunk, void *data, std::int32_t length );
+std::int32_t SV_STVEFSPReadFromSave( std::uint32_t chunk, void *address, std::int32_t length,
+	void **addressPointer );
+std::int32_t SV_STVEFSPReadFromSaveOptional( std::uint32_t chunk, void *address, std::int32_t length,
+	void **addressPointer );
 
 void SV_STVEFSPConsoleCommand( const char *text ) { Cbuf_AddText( text ); }
 void SV_STVEFSPDropClient( std::int32_t clientNum, const char *reason ) { SV_GameDropClient( clientNum, reason ); }
@@ -366,8 +366,11 @@ intptr_t QDECL SV_STVEFSPGameEntry( int command, ... ) {
 		}
 		return 0;
 	case GAME_CLIENT_CONNECT:
-		// A pointer to the refusal text, or null.
-		result = reinterpret_cast<intptr_t>( game->ClientConnect( arg[0], arg[1], stvefSpSavedGameJustLoaded ) );
+		// A pointer to the refusal text, or null. A client that is already
+		// connected when a level spawns is connected afresh, which a save
+		// being read restores afterwards (SV_SpawnServer 0x425bba).
+		result = reinterpret_cast<intptr_t>( game->ClientConnect( arg[0], arg[1],
+			arg[1] ? stvefSpSavedGameJustLoaded : FNTECH3_STVEF_SP_SAVED_NO ) );
 		break;
 	case GAME_CLIENT_BEGIN: {
 		fntech3_stvef_sp_usercmd_t cmd = SV_STVEFSPCommand( arg[0] );

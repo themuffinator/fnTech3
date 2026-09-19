@@ -118,6 +118,8 @@ no entity.
 ## Remaining
 
 The client hosts the menus ([record](2026-09-19-stvef-sp-menus.md)) and the
-cgame half ([record](2026-09-19-stvef-sp-cgame.md)). Savegames, level
-transitions and autosaves, Bink movies, lip-sync and ambient sound sets
-remain.
+cgame half ([record](2026-09-19-stvef-sp-cgame.md)); the savegames the game
+writes through this host, the levels a player moves between and the picture
+a save keeps are in the
+[savegame record](2026-09-19-stvef-sp-savegames.md). Bink movies, lip-sync
+and ambient sound sets remain.

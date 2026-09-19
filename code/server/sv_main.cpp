@@ -1700,6 +1700,12 @@ void SV_Frame( int msec, int realMsec ) {
 		time_game = Sys_Milliseconds () - startTime;
 	}
 
+	// Elite Force SP runs the game's saving code without a file while
+	// sv_testsave is set.
+	if ( Com_GameIsSTVEFSP() ) {
+		SV_STVEFSPTestSave();
+	}
+
 	// check timeouts
 	SV_CheckTimeouts();
 

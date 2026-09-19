@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderercommon/tr_fnq3_bloom_config.h"
 #include "../renderercommon/tr_ql_lighting_config.h"
 #include "../renderercommon/tr_levelshot.h"
+#include "../renderercommon/tr_stvef_thumbnail.h"
 
 glconfig_t	glConfig;
 
@@ -1477,6 +1478,65 @@ void RB_TakeLevelShot( void ) {
 
 	ri.Printf( PRINT_ALL, "Wrote %s (%dx%d)\n", checkname, params.outputWidth, params.outputHeight );
 }
+
+/*
+==================
+RB_TakeSTVEFThumbnail
+
+The picture Elite Force single player keeps of the screen, taken once the
+frame is drawn and before it is shown, as retail takes it (stvoy.exe
+0x44fd80 through SCR_PrecacheScreenshot 0x40a360).
+==================
+*/
+void RB_TakeSTVEFThumbnail( void ) {
+	byte	*allsource, *source;
+	byte	*rgba = backEnd.stvefThumbnail;
+	int		side = backEnd.stvefThumbnailSide;
+	size_t	offset = 0;
+	int		padlen;
+	int		i;
+
+	backEnd.stvefThumbnail = NULL;
+	if ( !rgba || side <= 0 || gls.captureWidth <= 0 || gls.captureHeight <= 0 ) {
+		return;
+	}
+
+	allsource = RB_ReadPixels( 0, 0, gls.captureWidth, gls.captureHeight, &offset, &padlen, 0 );
+	if ( !allsource ) {
+		ri.Printf( PRINT_WARNING, "WARNING: unable to read pixels for the savegame picture.\n" );
+		return;
+	}
+	source = allsource + offset;
+	R_STVEFThumbnail( source, gls.captureWidth, gls.captureHeight, padlen, rgba, side );
+	ri.Hunk_FreeTempMemory( allsource );
+
+	// The screen's own gamma, as a screenshot of it keeps.
+	for ( i = 0; i < side * side; i++ ) {
+		R_GammaCorrect( rgba + i * 4, 3 );
+	}
+
+	if ( backEnd.stvefThumbnailDone ) {
+		*backEnd.stvefThumbnailDone = qtrue;
+		backEnd.stvefThumbnailDone = NULL;
+	}
+}
+
+
+/*
+==================
+RE_CaptureSTVEFThumbnail
+
+Elite Force single player asks for the screen as the next frame draws it:
+side by side pixels of RGBA, the bottom row first, with done set once they
+are there. A picture of NULL withdraws a request that has not been met.
+==================
+*/
+static void RE_CaptureSTVEFThumbnail( byte *rgba, int side, qboolean *done ) {
+	backEnd.stvefThumbnail = rgba;
+	backEnd.stvefThumbnailSide = side;
+	backEnd.stvefThumbnailDone = done;
+}
+
 
 static void R_ScheduleLevelShot( void )
 {
@@ -3952,6 +4012,8 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 	re.ProjectWolfETDecal = RE_ProjectWolfETDecal;
 	re.ClearWolfETDecals = RE_ClearWolfETDecals;
 	re.RegisterShader3D = RE_RegisterShader3D;
+	re.CaptureSTVEFThumbnail = RE_CaptureSTVEFThumbnail;
+	re.LoadImagePixels = R_LoadImagePixels;
 	re.AddWolfET2DPolys = RE_AddWolfET2DPolys;
 	re.LoadWolfETDynamicShader = RE_LoadWolfETDynamicShader;
 	re.GetWolfETTextureId = RE_GetWolfETTextureId;

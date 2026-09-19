@@ -20829,7 +20829,8 @@ void vk_end_frame( void )
 			vk_bloom();
 		}
 
-		if ( ( backEnd.screenshotMask || backEnd.levelshotPending ) && vk.capture.image )
+		if ( ( backEnd.screenshotMask || backEnd.levelshotPending || backEnd.stvefThumbnail )
+			&& vk.capture.image )
 		{
 			vk_end_render_pass();
 
