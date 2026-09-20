@@ -18,6 +18,10 @@ historical upstream records, not fnTech3 release history. See the
 
 ### Compatibility
 
+- Validate Elite Force RDM5 skeletal models before renderer allocation, restore
+  retail LOD and held-frame behaviour, and match its lighting defaults and
+  colour rounding across GLx, Vulkan and RTX.
+
 - Support Elite Force Holomatch protocol 26 with Lilium Voyager/ioEF, including
   compressed messages, sequence checksums, pure servers, downloads and `.dm_26`
   demos. Retail protocol 24 and `.efdemo` remain available in the same build.

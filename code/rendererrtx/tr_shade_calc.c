@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_shade_calc.c
 
 #include "tr_local.h"
+#include "../renderercommon/tr_stvef_light.h"
 #include "../renderercommon/tr_stvef_env.h"
 // -EC-: avoid using ri.ftol
 #define	WAVEVALUE( table, base, amplitude, phase, freq )  ((base) + table[ (int64_t)( ( ( (phase) + tess.shaderTime * (freq) ) * FUNCTABLE_SIZE ) ) & FUNCTABLE_MASK ] * (amplitude))
@@ -1292,19 +1293,25 @@ static void RB_CalcDiffuseColor_scalar( unsigned char *colors )
 			R_CelQuantizeModelLighting( ent, &colors[i*4] );
 			continue;
 		}
-		j = myftol( ambientLight[0] + incoming * directedLight[0] );
+		j = ri.gameId == COM_GAME_STVEF_SP || ri.gameId == COM_GAME_STVEF_MP
+			? FnSTVEF_LightByte( ambientLight[0] + incoming * directedLight[0] )
+			: myftol( ambientLight[0] + incoming * directedLight[0] );
 		if ( j > 255 ) {
 			j = 255;
 		}
 		colors[i*4+0] = j;
 
-		j = myftol( ambientLight[1] + incoming * directedLight[1] );
+		j = ri.gameId == COM_GAME_STVEF_SP || ri.gameId == COM_GAME_STVEF_MP
+			? FnSTVEF_LightByte( ambientLight[1] + incoming * directedLight[1] )
+			: myftol( ambientLight[1] + incoming * directedLight[1] );
 		if ( j > 255 ) {
 			j = 255;
 		}
 		colors[i*4+1] = j;
 
-		j = myftol( ambientLight[2] + incoming * directedLight[2] );
+		j = ri.gameId == COM_GAME_STVEF_SP || ri.gameId == COM_GAME_STVEF_MP
+			? FnSTVEF_LightByte( ambientLight[2] + incoming * directedLight[2] )
+			: myftol( ambientLight[2] + incoming * directedLight[2] );
 		if ( j > 255 ) {
 			j = 255;
 		}

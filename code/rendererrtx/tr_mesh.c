@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_mesh.c: triangle model functions
 
 #include "tr_local.h"
+#include "../renderercommon/tr_stvef_lod.h"
 #include "../renderercommon/tr_mesh_view.h"
 #include "../renderercommon/tr_mds_entity.h"
 #include "../renderercommon/tr_mds_material.h"
@@ -218,7 +219,13 @@ int R_ComputeLOD( trRefEntity_t *ent ) {
 			radius = RadiusFromBounds( frame->bounds[0], frame->bounds[1] );
 		}
 
-		if ( ( projectedRadius = ProjectRadius( radius, ent->e.origin ) ) != 0 )
+		projectedRadius = ProjectRadius( radius, ent->e.origin );
+		if ( ri.gameId == COM_GAME_STVEF_SP || ri.gameId == COM_GAME_STVEF_MP ) {
+			const float scale = ri.gameId == COM_GAME_STVEF_MP && r_lodscale->value > 20.0f ? 20.0f : r_lodscale->value;
+			return FnSTVEF_ComputeLOD( tr.currentModel->numLods, projectedRadius, scale, r_lodbias->integer );
+		}
+
+		if ( projectedRadius != 0 )
 		{
 			lodscale = r_lodscale->value;
 			if (lodscale > 20) lodscale = 20;

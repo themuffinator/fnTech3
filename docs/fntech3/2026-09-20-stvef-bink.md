@@ -94,3 +94,16 @@ hashes. Logs and engine captures remain under `.tmp/stvef-gaps/` in the isolated
 This closes the absent Bink playback path with fixture and live evidence. It
 does not establish complete cinematic/audio parity, RDM5/lighting parity, or
 Lilium protocol-26 compatibility. Those claims remain separate gates.
+
+## Follow-up observations
+
+The later [model/lighting](2026-09-20-stvef-mdr.md) and
+[protocol-26](2026-09-20-stvef-ioef.md) records address those separate slices.
+A subsequent retail presentation audit found two remaining movie behaviours:
+`cl_VidFadeUp` and `cl_VidFadeDown` default to one and produce one-second
+transitions, with the first decoded frame and sound paused during fade-in
+(`0x403790`, `0x4036b0`, `0x404151`). These transitions are not yet carried by
+the native-runtime playback path. Also, `cl_VideoQuality` is more precisely a
+choice of texture presentation paths: mode 1 tiles a complete frame through
+small textures, while mode 2 crops a central region. Calling both modes
+"texture reduction" above is insufficient; the crop remains unimplemented.

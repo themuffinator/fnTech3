@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_light.c
 
 #include "tr_local.h"
+#include "../renderercommon/tr_stvef_light.h"
 
 #define	DLIGHT_AT_RADIUS		16
 // at the edge of a dlight's influence, this amount of light will be added
@@ -375,7 +376,7 @@ void R_SetupEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent ) {
 
 	// if NOWORLDMODEL, only use dynamic lights (menu system, etc)
 	if ( !(refdef->rdflags & RDF_NOWORLDMODEL )
-		&& tr.world->lightGridData ) {
+		&& tr.world && tr.world->lightGridData ) {
 		R_SetupEntityLightingGrid( ent );
 	} else {
 		ent->ambientLight[0] = ent->ambientLight[1] =
@@ -464,9 +465,12 @@ void R_SetupEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent ) {
 	}
 
 	// save out the byte packet version
-	((byte *)&ent->ambientLightInt)[0] = myftol( ent->ambientLight[0] ); // -EC-: don't use ri.ftol to avoid precision losses
-	((byte *)&ent->ambientLightInt)[1] = myftol( ent->ambientLight[1] );
-	((byte *)&ent->ambientLightInt)[2] = myftol( ent->ambientLight[2] );
+	((byte *)&ent->ambientLightInt)[0] = ri.gameId == COM_GAME_STVEF_SP || ri.gameId == COM_GAME_STVEF_MP
+		? FnSTVEF_LightByte( ent->ambientLight[0] ) : myftol( ent->ambientLight[0] ); // -EC-: don't use ri.ftol to avoid precision losses
+	((byte *)&ent->ambientLightInt)[1] = ri.gameId == COM_GAME_STVEF_SP || ri.gameId == COM_GAME_STVEF_MP
+		? FnSTVEF_LightByte( ent->ambientLight[1] ) : myftol( ent->ambientLight[1] );
+	((byte *)&ent->ambientLightInt)[2] = ri.gameId == COM_GAME_STVEF_SP || ri.gameId == COM_GAME_STVEF_MP
+		? FnSTVEF_LightByte( ent->ambientLight[2] ) : myftol( ent->ambientLight[2] );
 	((byte *)&ent->ambientLightInt)[3] = 0xff;
 
 	// transform the direction to local space
@@ -495,7 +499,7 @@ int R_LightForPoint( vec3_t point, vec3_t ambientLight, vec3_t directedLight, ve
 {
 	trRefEntity_t ent;
 
-	if ( tr.world->lightGridData == NULL )
+	if ( !tr.world || tr.world->lightGridData == NULL )
 	  return qfalse;
 
 	Com_Memset(&ent, 0, sizeof(ent));
