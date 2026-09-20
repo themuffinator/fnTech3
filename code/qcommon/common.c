@@ -4111,9 +4111,19 @@ static void Com_InitGameProfile( void ) {
 		Com_Error( ERR_FATAL,
 			"fnTech3 game profile detection failed (%s, evidence: %s). "
 			"Set fs_basepath to the game's installation and select "
-			"+set com_gameProfile quake3|quakelive|rtcw-sp|rtcw-mp|wolfet.",
+			"+set com_gameProfile quake3|quakelive|rtcw-sp|rtcw-mp|wolfet|stvef-sp|stvef-mp.",
 			Com_GameDetectionStatusName( detection.status ),
 			Com_GameDetectionEvidenceName( detection.evidence ) );
+	}
+
+	if ( detection.profile->id == COM_GAME_STVEF_SP ) {
+		char nativeModule[MAX_QPATH];
+		if ( !Com_GameManagerNativeModuleFilename( detection.profile, "qagame",
+			ARCH_STRING, DLL_EXT, 0, nativeModule, sizeof( nativeModule ) ) ) {
+			Com_Error( ERR_FATAL, "Elite Force single player requires Windows x86 and "
+				"the installation's efgamex86.dll and efuix86.dll. "
+				"Use +set com_gameProfile stvef-mp for Holomatch on this platform." );
+		}
 	}
 
 	if ( !Com_ActivateGameProfile( detection.profile->id ) ) {

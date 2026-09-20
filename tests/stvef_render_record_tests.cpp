@@ -34,6 +34,12 @@ int failures = 0;
 using fntech3::render::ReadEntity;
 using fntech3::render::ReadRefdef;
 
+// The ABI copies stored 32-bit values. x87 can evaluate a literal or division
+// at greater precision, so compare the actual record bits without a tolerance.
+bool SameFloatBits( const float &a, const float &b ) {
+	return !std::memcmp( &a, &b, sizeof( a ) );
+}
+
 static_assert( sizeof( fntech3_stvef_mp_refEntity_t ) == 160, "Holomatch refEntity_t" );
 static_assert( offsetof( fntech3_stvef_mp_refEntity_t, data ) == 132, "Holomatch effect union" );
 static_assert( sizeof( fntech3_stvef_mp_refEntityData_t ) == 28, "Holomatch union size" );
@@ -192,8 +198,8 @@ void TestUnion() {
 		source.reType = type;
 		source.data.line.width = 6.4f; source.data.line.width2 = 2.5f; source.data.line.stscale = -48.0f;
 		CHECK( ReadEntity( COM_GAME_STVEF_MP, &source, entity ) );
-		CHECK( entity.stvef.width == 6.4f && entity.stvef.width2 == 2.5f && entity.stvef.stscale == -48.0f );
-		CHECK( entity.rotation == 6.4f && entity.radius == 2.5f );
+		CHECK( SameFloatBits( entity.stvef.width, source.data.line.width ) && entity.stvef.width2 == 2.5f && entity.stvef.stscale == -48.0f );
+		CHECK( SameFloatBits( entity.rotation, source.data.line.width ) && entity.radius == 2.5f );
 	}
 
 	source = Filled();
@@ -226,7 +232,7 @@ void TestUnion() {
 	source.data.electricity.stscale = 2.0f; source.data.electricity.wrap = -1;
 	source.data.electricity.taper = 1;
 	CHECK( ReadEntity( COM_GAME_STVEF_MP, &source, entity ) );
-	CHECK( entity.stvef.width == 3.0f && entity.stvef.deviation == 0.3f && entity.stvef.stscale == 2.0f );
+	CHECK( entity.stvef.width == 3.0f && SameFloatBits( entity.stvef.deviation, source.data.electricity.deviation ) && entity.stvef.stscale == 2.0f );
 	CHECK( entity.stvef.wrap == qtrue && entity.stvef.taper == qtrue );
 
 	// A model leaves every shape field clear whatever the union holds.
@@ -384,7 +390,7 @@ void TestRefdef() {
 		std::memset( &view, 0xa5, sizeof( view ) );
 		CHECK( ReadRefdef( COM_GAME_STVEF_MP, &source, view ) );
 		CHECK( view.x == -10 && view.y == 6 && view.width == 1024 && view.height == 768 );
-		CHECK( view.fov_x == 90.0f && view.fov_y == 73.74f && view.time == INT_MAX );
+		CHECK( view.fov_x == 90.0f && SameFloatBits( view.fov_y, source.fov_y ) && view.time == INT_MAX );
 		for ( int i = 0; i < 3; ++i ) {
 			CHECK( view.vieworg[i] == 1.0f + i );
 			for ( int j = 0; j < 3; ++j ) CHECK( view.viewaxis[i][j] == 0.5f * ( i * 3 + j ) );
@@ -434,7 +440,7 @@ void TestGlconfig() {
 	CHECK( config.driverType == GLDRV_ICD && config.hardwareType == GLHW_GENERIC );
 	CHECK( config.deviceSupportsGamma == 1 && config.textureCompression == TC_S3TC );
 	CHECK( config.textureEnvAddAvailable == 1 && config.textureFilterAnisotropicAvailable == 1 );
-	CHECK( config.vidWidth == 1024 && config.vidHeight == 768 && config.windowAspect == 4.0f / 3.0f );
+	CHECK( config.vidWidth == 1024 && config.vidHeight == 768 && SameFloatBits( config.windowAspect, source.windowAspect ) );
 	CHECK( config.displayFrequency == 60 && !config.isFullscreen && !config.stereoEnabled && !config.smpActive );
 
 	// Single player's names its texture units maxActiveTextures and adds
@@ -451,7 +457,7 @@ void TestGlconfig() {
 	CHECK( sp.driverType == GLDRV_ICD && sp.hardwareType == GLHW_GENERIC );
 	CHECK( sp.deviceSupportsGamma == 1 && sp.textureCompression == TC_S3TC && sp.textureEnvAddAvailable == 1 );
 	CHECK( sp.textureFilterAnisotropicAvailable == 1 && sp.clampToEdgeAvailable == 1 );
-	CHECK( sp.vidWidth == 1024 && sp.vidHeight == 768 && sp.windowAspect == 4.0f / 3.0f );
+	CHECK( sp.vidWidth == 1024 && sp.vidHeight == 768 && SameFloatBits( sp.windowAspect, source.windowAspect ) );
 	CHECK( sp.displayFrequency == 60 && !sp.isFullscreen && !sp.stereoEnabled && !sp.smpActive );
 }
 

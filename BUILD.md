@@ -79,7 +79,7 @@ Project Meson options:
 
 `-Dwolfet-development=true|false` - enable incomplete Enemy Territory dedicated-server adapters for isolated probes; disabled by default; ET client startup remains blocked
 
-`-Dstvef-development=true|false` - enable incomplete Star Trek Voyager: Elite Force single player (`stvef-sp`) and Holomatch (`stvef-mp`) adapters for isolated probes; disabled by default. The Windows helper exposes it as `-STVEFDevelopment`
+`-Dstvef-development=true|false` - enable incomplete Star Trek Voyager: Elite Force single player (`stvef-sp`) and Holomatch (`stvef-mp`) adapters for isolated probes; disabled by default. The Windows helper exposes it as `-STVEFDevelopment`. Single player requires Windows x86 and the installed `efgamex86.dll` and `efuix86.dll`; unsupported platforms refuse it before filesystem startup. Holomatch uses the installed QVMs and has Windows x86 client/server and Linux i686 dedicated-server observations in the [compatibility ledger](docs/fntech3/COMPATIBILITY.md).
 
 `-Dmp3=true|false` - build the MP3 sound codec (minimp3 through `subprojects/minimp3.wrap`) that Elite Force needs for its sounds and music, enabled by default; it is registered only for Elite Force profiles
 

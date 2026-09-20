@@ -18,7 +18,8 @@ class MdrFormatTests(unittest.TestCase):
                 self.skipTest('Clang C/C++ compiler unavailable')
             with self.subTest(language=language), tempfile.TemporaryDirectory(prefix='mdr-format-', dir=ROOT / '.tmp') as temp:
                 executable = Path(temp) / ('probe.exe' if os.name == 'nt' else 'probe')
-                args = [compiler, *compiler_target_args(compiler), '-x', language,
+                target = compiler_target_args(compiler) if os.name == 'nt' else ['-m32']
+                args = [compiler, *target, '-x', language,
                         '-std=' + ('c11' if language == 'c' else 'c++17'),
                         str(ROOT / 'tests/mdr_format_tests.c'), '-o', str(executable)]
                 if os.name != 'nt':

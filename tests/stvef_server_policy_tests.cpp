@@ -94,7 +94,10 @@ int TestActionBits() {
 	input.weapon = 7;
 	input.actionflags = ACTION_ATTACK | ACTION_STVEF_ALTATTACK | ACTION_MOVELEFT;
 	const auto output = bot::ActionOutput( input );
-	CHECK( output.thinktime == 0.1f && output.dir[1] == 1.0f && output.speed == 400.0f );
+	// Compare the stored float bits; x87 may retain extra precision in a
+	// literal, which is unrelated to the module boundary's copy contract.
+	CHECK( !std::memcmp( &output.thinktime, &input.thinktime, sizeof( input.thinktime ) ) );
+	CHECK( output.dir[1] == 1.0f && output.speed == 400.0f );
 	CHECK( output.viewangles[0] == -12.5f && output.weapon == 7 );
 	CHECK( output.actionflags == ( 0x1 | 0x2000 | 0x80 ) );
 	return 0;

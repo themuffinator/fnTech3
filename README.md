@@ -43,7 +43,7 @@ game's own module, asset, network, demo, and gameplay contracts.
 | Return to Castle Wolfenstein — single player | `rtcw-sp` | Experimental; requires a build with `-Drtcw-development=true`; gated in default builds. |
 | Return to Castle Wolfenstein — multiplayer | `rtcw-mp` | Experimental; requires the same development option; gated in default builds. |
 | Wolfenstein: Enemy Territory | `wolfet` (alias `et`) | Experimental dedicated probes require `-Dwolfet-development=true`; client startup remains blocked. |
-| Star Trek Voyager: Elite Force — single player | `stvef-sp` | Experimental; requires a build with `-Dstvef-development=true`; gated in default builds. |
+| Star Trek Voyager: Elite Force — single player | `stvef-sp` | Experimental; Windows x86 with the installed retail modules; requires `-Dstvef-development=true`; gated in default builds. |
 | Star Trek Voyager: Elite Force — Holomatch | `stvef-mp` | Experimental; requires the same development option; gated in default builds. |
 
 These five games and seven profiles define the current project scope.

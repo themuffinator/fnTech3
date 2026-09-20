@@ -18,6 +18,9 @@ historical upstream records, not fnTech3 release history. See the
 
 ### Compatibility
 
+- Refuse Elite Force single player before filesystem startup on platforms that
+  cannot host its Windows x86 modules, with an actionable Holomatch alternative.
+
 - Report unavailable Elite Force movie audio when Bink initializes its sound
   factory but cannot open the movie's sound buffer; video playback continues.
 
@@ -58,6 +61,10 @@ historical upstream records, not fnTech3 release history. See the
   `KP_STAR` binding does not fire and an existing `bind *` keeps working.
 
 ### Builds and Packaging
+
+- Fix a missing botlib header exposed by the Linux i686 build and make four
+  compatibility fixtures portable across GCC, Clang and MSVC. Record Linux
+  Holomatch server sessions with fnTech3, Lilium Voyager and the retail client.
 
 - Start independent fnTech3 versioning at 0.1.0, with reviewed changelog entries
   and manually requested GitHub draft prereleases built from an existing tag.
