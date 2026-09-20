@@ -43,6 +43,7 @@ extern "C" {
 #include "../snd_rtcw.h"
 #include "../shared/RTCWStreamFiles.h"
 #include "../shared/STVEFAmbient.h"
+#include "../shared/STVEFLipSync.h"
 
 #include <algorithm>
 #include <array>
@@ -157,6 +158,10 @@ static std::array<loopSound_t, MAX_GENTITIES> loopSounds;
 static fntech3::audio::rtcw::LoopFrame rtcwLoops;
 // Elite Force single player's ambient loops, which carry their own volume.
 static fntech3::audio::stvef::AmbientLoopFrame stvefAmbientLoops;
+// How wide a mouth each entity holds, which Elite Force SP's game reads.
+static fntech3::audio::stvef::lipsync::Mouths stvefMouths;
+static_assert( sizeof( int ) == sizeof( std::int32_t ),
+	"the game reads the mouths as a plain int array" );
 static void S_UpdateWolfETMasterFade( void );
 // Set when an ET fade was told to stop what it faded once it completes.
 static bool s_wolfetStopAfterFade = false;
@@ -981,6 +986,12 @@ static void S_Base_StartSound( const vec3_t origin, int entityNum, int entchanne
 	ch->leftvol = ch->master_vol;		// these will get calced at next spatialize
 	ch->rightvol = ch->master_vol;		// unless the game isn't running
 	ch->doppler = qfalse;
+
+	if ( Com_GameIsSTVEFSP() && ( entchannel == fntech3::audio::stvef::VoiceChannel
+		|| entchannel == fntech3::audio::stvef::AttenuatedVoiceChannel ) ) {
+		// A voice starting closes that entity's mouth until it is measured.
+		stvefMouths.Close( entityNum );
+	}
 }
 
 
@@ -1021,6 +1032,7 @@ static void S_Base_ClearSoundBuffer( void ) {
 	loopSounds.fill( loopSound_t{} );
 	rtcwLoops.Clear();
 	stvefAmbientLoops.Clear();
+	stvefMouths.Reset();
 	std::fill_n( loop_channels, MAX_CHANNELS, channel_t{} );
 	numLoopChannels = 0;
 
@@ -1073,6 +1085,7 @@ static void S_Base_ClearRTCWSounds( qboolean clearMusic ) {
 	loopSounds.fill(loopSound_t{});
 	rtcwLoops.Clear();
 	stvefAmbientLoops.Clear();
+	stvefMouths.Reset();
 	std::fill_n(loop_channels, MAX_CHANNELS, channel_t{});
 	numLoopChannels = 0;
 	S_ChannelSetup();
@@ -1308,6 +1321,78 @@ static void S_AddRTCWLoopSounds( void ) {
 			static_cast<int>( static_cast<std::int64_t>( loop.startTime ) * dma.speed / 1000 ) : 0;
 	}
 }
+
+/*
+==================
+S_STVEFSPSampleAt
+
+One sample of a sound the mixer keeps. Retail reads the sound it holds in
+memory; a sound held any other way measures as silence, as retail's own
+unhandled methods do (stvoy.exe 0x4215d1).
+==================
+*/
+static short S_STVEFSPSampleAt( const sfx_t *sfx, int index ) {
+	if ( !sfx || sfx->soundCompressionMethod != 0 || index < 0 || index >= sfx->soundLength ) {
+		return 0;
+	}
+	const sndBuffer *chunk = sfx->soundData;
+	int remaining = index;
+	while ( chunk != nullptr && remaining >= SND_CHUNK_SIZE ) {
+		chunk = chunk->next;
+		remaining -= SND_CHUNK_SIZE;
+	}
+	return chunk != nullptr ? chunk->sndChunk[remaining] : 0;
+}
+
+
+/*
+==================
+S_STVEFSPMeasureMouths
+
+How wide a mouth each entity holds, which Elite Force SP's game reads to move
+its faces. Retail fills the array as a mix ends: every entity is cleared, then
+every channel carrying a voice or an attenuated voice is measured where the
+mix has reached (stvoy.exe 0x421480). A channel is measured afresh only when
+the mix has reached its very start or the wait has run out; any other answers
+with what its entity last measured.
+==================
+*/
+static void S_STVEFSPMeasureMouths( int position ) {
+	namespace lipsync = fntech3::audio::stvef::lipsync;
+	stvefMouths.Clear();
+	const lipsync::Thresholds thresholds = S_STVEFThresholds();
+	for ( int slot = 0; slot < MAX_CHANNELS; ++slot ) {
+		const channel_t &ch = s_channels[slot];
+		const sfx_t *sfx = ch.thesfx;
+		if ( sfx == nullptr ) {
+			continue;
+		}
+		if ( ch.entchannel != fntech3::audio::stvef::VoiceChannel
+			&& ch.entchannel != fntech3::audio::stvef::AttenuatedVoiceChannel ) {
+			continue;
+		}
+		const auto sampleAt = [sfx]( int index ) { return S_STVEFSPSampleAt( sfx, index ); };
+		const int level = lipsync::Answer( stvefMouths, sampleAt, ch.entnum,
+			ch.startSample, position, s_paintedtime, sfx->soundLength, sfx->peak, thresholds );
+		stvefMouths.Write( ch.entnum, level );
+		if ( s_show->integer == 3 ) {
+			// Retail traces every mouth it measures (stvoy.exe 0x4214e8).
+			Com_Printf( "(%i)%i %s vol = %i\n", ch.entnum, slot, sfx->soundName, level );
+		}
+	}
+	stvefMouths.Mixed( s_paintedtime );
+}
+
+
+/*
+==================
+S_Base_STVEFSPMouths
+==================
+*/
+static const int *S_Base_STVEFSPMouths( void ) {
+	return stvefMouths.Levels();
+}
+
 
 /*
 ==================
@@ -1743,6 +1828,10 @@ static void S_Update_( int msec ) {
 	S_PaintChannels( endtime );
 
 	SNDDMA_Submit();
+
+	if ( Com_GameIsSTVEFSP() ) {
+		S_STVEFSPMeasureMouths( s_paintedtime );
+	}
 
 	if ( traceTiming ) {
 		Com_Printf( "snd_timing ms=%d elapsed=%d work_ms=%d paint_ms=%d cursor=%d previous_end=%d start=%d end=%u raw_end=%d rate=%d\n",
@@ -2187,6 +2276,7 @@ extern "C" qboolean S_Base_Init( soundInterface_t *si ) {
 	si->AddLoopingSound = S_Base_AddLoopingSound;
 	si->AddRTCWLoopingSound = S_Base_AddRTCWLoopingSound;
 	si->AddSTVEFAmbientLoopingSound = S_Base_AddSTVEFAmbientLoopingSound;
+	si->STVEFSPMouths = S_Base_STVEFSPMouths;
 	si->AddRealLoopingSound = S_Base_AddRealLoopingSound;
 	si->StopLoopingSound = S_Base_StopLoopingSound;
 	si->Respatialize = S_Base_Respatialize;

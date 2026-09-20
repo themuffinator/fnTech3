@@ -1458,6 +1458,9 @@ void SV_STVEFSPSaveAbort( void );
  * client the cgame's vmMain while the library is loaded. */
 typedef intptr_t ( *svSTVEFSPCgameSyscalls_t )( intptr_t *args );
 void SV_STVEFSPAttachClient( svSTVEFSPCgameSyscalls_t syscalls, void ( *detach )( void ) );
+// How wide a mouth each entity holds, which the client measures as it
+// plays and Elite Force SP's game reads through its S_Override import.
+void SV_STVEFSPVoiceVolumes( const int *levels );
 vmMainFunc_t SV_STVEFSPCgameMain( void );
 void SV_RTCWSendMoveSpeeds( const vm_t *source, intptr_t entity, intptr_t text );
 intptr_t SV_RTCWGetModelInfo( const vm_t *source, intptr_t client, intptr_t name, intptr_t output );

@@ -46,6 +46,10 @@ cvar_t *s_voiceStep;
 cvar_t *s_doppler;
 cvar_t *s_pvs;
 cvar_t *s_separation;
+cvar_t *s_threshold1;
+cvar_t *s_threshold2;
+cvar_t *s_threshold3;
+cvar_t *s_threshold4;
 cvar_t *s_muteWhenMinimized;
 cvar_t *s_muteWhenUnfocused;
 cvar_t *s_backend;
@@ -127,6 +131,7 @@ static bool S_ValidSoundInterface( const soundInterface_t *s )
 	if( !s->AddLoopingSound ) return false;
 	if( !s->AddRTCWLoopingSound ) return false;
 	if( !s->AddSTVEFAmbientLoopingSound ) return false;
+	if( !s->STVEFSPMouths ) return false;
 	if( !s->AddRealLoopingSound ) return false;
 	if( !s->StopLoopingSound ) return false;
 	if( !s->Respatialize ) return false;
@@ -474,6 +479,12 @@ extern "C" void S_AddRealLoopingSound( int entityNum, const vec3_t origin,
 	}
 }
 
+extern "C" const int *S_STVEFSPMouths( void )
+{
+	return si.STVEFSPMouths ? si.STVEFSPMouths() : NULL;
+}
+
+
 extern "C" void S_AddSTVEFAmbientLoopingSound( const vec3_t origin, sfxHandle_t sfx, int volume )
 {
 	if ( si.AddSTVEFAmbientLoopingSound ) si.AddSTVEFAmbientLoopingSound( origin, sfx, volume );
@@ -543,6 +554,11 @@ extern "C" void S_Update( int msec )
 {
 	if ( si.Update ) {
 		si.Update( msec );
+	}
+	if ( Com_GameIsSTVEFSP() ) {
+		// Elite Force SP's game reads how wide a mouth each entity holds from
+		// an array the engine fills as it plays (stvoy.exe 0x421480).
+		SV_STVEFSPVoiceVolumes( S_STVEFSPMouths() );
 	}
 }
 
@@ -930,6 +946,19 @@ extern "C" void S_Init( void )
 			"  0 - a sound is heard only on the side it comes from\n"
 			"  0.5 - default, the engine's own spread\n"
 			"  1 - both channels hear every sound alike" );
+	}
+	if ( Com_GameIsSTVEFSP() ) {
+		// Single player alone registers these, and compares them in this order
+		// to decide how wide a mouth a voice opens (stvoy.exe 0x41fb5d).
+		// Holomatch has no lip-sync and registers none of them.
+		s_threshold1 = Cvar_Get( "s_threshold1", "0.5", 0 );
+		s_threshold2 = Cvar_Get( "s_threshold2", "4.0", 0 );
+		s_threshold3 = Cvar_Get( "s_threshold3", "7.0", 0 );
+		s_threshold4 = Cvar_Get( "s_threshold4", "8.0", 0 );
+		Cvar_SetDescription( s_threshold1, "How loud a voice must be before Elite Force single player opens the speaker's mouth at all, against the loudest the sound itself reaches." );
+		Cvar_SetDescription( s_threshold2, "How loud a voice must be for Elite Force single player to open the speaker's mouth past its narrowest." );
+		Cvar_SetDescription( s_threshold3, "How loud a voice must be for Elite Force single player to open the speaker's mouth wider still." );
+		Cvar_SetDescription( s_threshold4, "How loud a voice must be for Elite Force single player to open the speaker's mouth its widest." );
 	}
 	s_alDevice = Cvar_Get( "s_alDevice", "", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	Cvar_SetDescription( s_alDevice, "Selects the OpenAL playback device when s_backend is set to openal.\n"

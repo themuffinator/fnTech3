@@ -3226,6 +3226,23 @@ vmMainFunc_t SV_STVEFSPCgameMain( void ) {
 
 /*
 ====================
+SV_STVEFSPVoiceVolumes
+
+How wide a mouth each entity holds. The client measures them as it plays and
+hands them over; the game reads the array they land in through its S_Override
+import, and a server with nothing playing leaves every mouth shut.
+====================
+*/
+void SV_STVEFSPVoiceVolumes( const int *levels ) {
+	if ( levels == NULL ) {
+		return;
+	}
+	std::copy( levels, levels + FNTECH3_STVEF_SP_LIPSYNC_ENTITIES, stvefSpVoiceVolume );
+}
+
+
+/*
+====================
 SV_STVEFSPCameraOrigin
 
 Elite Force SP's snapshots are seen from a running camera scene's position,

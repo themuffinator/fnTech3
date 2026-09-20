@@ -60,6 +60,7 @@ namespace {
 
 using fntech3::audio::Mp3FrameDecoder;
 using fntech3::audio::Mp3StreamInfo;
+using fntech3::audio::Mp3RavenPeak;
 
 // minimp3 adapter for the frame walker in snd_mp3_frames.h.
 struct MiniMp3 {
@@ -279,6 +280,7 @@ void *S_MP3_CodecLoad( const char *filename, snd_info_t *info )
 		samples[i] = LittleShort( samples[i] );
 	}
 #endif
+	decodedInfo.peak = Mp3RavenPeak( compressed.as<std::uint8_t>(), length );
 	*info = decodedInfo;
 	return buffer.release();
 }

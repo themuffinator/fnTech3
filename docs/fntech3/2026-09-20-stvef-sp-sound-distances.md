@@ -42,7 +42,11 @@ occlusion and HRTF reach them as they reach every other profile's.
 
 Both backends also hold a sound back as it starts, where it belongs to the
 listener's own entity and plays on one of the channels retail holds back, so
-that what the player does is quieter than the world around them.
+that what the player does is quieter than the world around them. Retail's own
+`S_StartSound` takes no volume, so it sets those sounds to three quarters of
+full rather than scaling what it was asked for; the engine scales instead,
+which is the same thing wherever retail can be asked, and keeps a sound the
+engine wanted quieter from being made louder.
 
 ## Results
 
@@ -96,6 +100,5 @@ across the room:
 
 ## Remaining
 
-Lip-sync, which the game reads from the engine's per-entity voice volumes
-(`s_threshold1` through `s_threshold4` against each sample's `#MAXVOL`
-peak), and Bink movies.
+Bink movies. Lip-sync, which measures the same voices these distances carry,
+has its own [record](2026-09-20-stvef-sp-lipsync.md).

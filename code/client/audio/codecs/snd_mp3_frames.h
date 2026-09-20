@@ -33,6 +33,31 @@ struct Mp3StreamInfo {
 using Mp3DecodeFn = int ( * )( void *self, const std::uint8_t *data, int bytes,
 	short *pcm, int *frameBytes, int *frameOffset, int *channels, int *rate );
 
+/* The loudest byte Raven's own tag reports for this file, or none where it
+ * carries none. Retail takes the number after "#MAXVOL" in the comment field
+ * of a trailing ID3v1 tag, and counts a file without one as 128
+ * (stvoy.exe 0x408c70, 0x408df2). */
+inline float Mp3RavenPeak( const std::uint8_t *data, int length ) noexcept {
+	constexpr int kTagBytes = 128;
+	constexpr int kCommentOffset = 0x61;
+	constexpr int kCommentBytes = 30;
+	constexpr int kKeyword = 7; // "#MAXVOL"
+	if ( !data || length < kTagBytes ) return 0.0f;
+	const char *tag = reinterpret_cast<const char *>( data ) + length - kTagBytes;
+	if ( std::memcmp( tag, "TAG", 3 ) != 0 ) return 0.0f;
+	const char *comment = tag + kCommentOffset;
+	if ( std::memcmp( comment, "#MAXVOL", kKeyword ) != 0 ) return 0.0f;
+	int at = kKeyword;
+	while ( at < kCommentBytes && ( comment[at] == ' ' || comment[at] == '\t' ) ) ++at;
+	int peak = 0;
+	bool digits = false;
+	for ( ; at < kCommentBytes && comment[at] >= '0' && comment[at] <= '9'; ++at ) {
+		peak = peak * 10 + ( comment[at] - '0' );
+		digits = true;
+	}
+	return digits ? static_cast<float>( peak ) : 0.0f;
+}
+
 /* Byte size of the frame at 'header' without its padding slot, or 0. */
 inline int Mp3UnpaddedFrameBytes( const std::uint8_t *header, int frameBytes ) noexcept {
 	if ( !header || frameBytes <= 0 ) return 0;

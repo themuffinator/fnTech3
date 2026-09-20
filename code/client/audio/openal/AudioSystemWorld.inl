@@ -361,6 +361,10 @@ public:
 	int Frames() const { return frames_; }
 	int DurationMs() const { return durationMs_; }
 	bool RTCWSpeechAmplitude( std::int64_t frame, int &amplitude ) const { return speech_.At(frame, amplitude); }
+	// The loudest byte Raven's tag reports, and the sound as Elite Force SP
+	// measures it; the device keeps the samples, so these stand in for them.
+	float Peak() const { return peak_; }
+	short STVEFSample( int frame ) const { return stvefTopBytes_.At(frame); }
 	const SoundShaderSettings &Shader() const { return shader_; }
 
 private:
@@ -380,6 +384,8 @@ private:
 	int frames_ = 0;
 	int durationMs_ = 0;
 	fntech3::audio::rtcw::SpeechEnvelope speech_;
+	fntech3::audio::stvef::lipsync::TopBytes stvefTopBytes_;
+	float peak_ = 0.0f;
 	SoundShaderSettings shader_;
 };
 
@@ -462,6 +468,7 @@ bool SoundSample::UploadPCM( OpenALDevice &device, const std::vector<short> &pcm
 	const int64_t durationMs = static_cast<int64_t>( frames ) * 1000 / rate;
 	durationMs_ = durationMs > std::numeric_limits<int>::max() ? std::numeric_limits<int>::max() : static_cast<int>( durationMs );
 	if ( Com_GameIsRTCWSP() ) speech_.Build(pcm.data(), frames_, channels_);
+	if ( Com_GameIsSTVEFSP() ) stvefTopBytes_.Build(pcm.data(), frames_, channels_);
 	return true;
 }
 
@@ -535,6 +542,7 @@ bool SoundSample::EnsureLoaded( OpenALDevice &device, bool allowToneFallback ) {
 
 	missing_ = false;
 	defaultSample_ = false;
+	peak_ = info.peak;
 	if ( device.SupportsSampleFormat( loadFormat ) ) {
 		loaded_ = UploadPCM( device, pcm, loadFormat, info.rate );
 		if ( !loaded_ && info.channels > 2 ) {
@@ -579,6 +587,8 @@ void SoundSample::Unload( OpenALDevice &device ) {
 	frames_ = 0;
 	durationMs_ = 0;
 	speech_.Clear();
+	stvefTopBytes_.Clear();
+	peak_ = 0.0f;
 }
 
 enum class VoiceKind {
@@ -951,6 +961,8 @@ public:
 	void StartRTCWSound( int entity, int channel, sfxHandle_t handle, SoundSample *sample, const float *origin, int flags );
 	void StartWolfETSound( int entity, int channel, sfxHandle_t handle, SoundSample *sample, const float *origin, int flags, int volume );
 	int RTCWVoiceAmplitude( int entity, int amplitude ) const;
+	void STVEFSPMeasureMouths( int mixedSamples );
+	const int *STVEFSPMouths() const;
 	void UpdateEntityPosition( int entityNum, const float *origin );
 	void Respatialize( int entityNum, const float *origin, float axis[3][3] );
 	void Update( qboolean softMuted );
@@ -983,6 +995,8 @@ private:
 
 	OpenALDevice *device_ = nullptr;
 	std::array<SoundVoice, kMaxVoices> oneShots_;
+	// How wide a mouth each entity holds, for Elite Force SP alone.
+	fntech3::audio::stvef::lipsync::Mouths stvefMouths_;
 	// Entity loops take the voice of their entity; Elite Force's ambient
 	// loops, which belong to no entity, take the voices after them.
 	std::array<SoundVoice, MAX_GENTITIES + fntech3::audio::stvef::AmbientLoopFrame::Capacity> loopVoices_;
@@ -1010,6 +1024,48 @@ private:
 		{ 0.0f, 0.0f, 1.0f }
 	};
 };
+
+/*
+How wide a mouth each entity holds, which Elite Force SP's game reads to move
+its faces. Retail measures every channel carrying a voice as a mix ends
+(stvoy.exe 0x421480); the device mixes for us, so the measurement is taken
+where each voice has played to, the moment the game asks for it. A voice is
+measured afresh only at its very start or once the wait has run out; any
+other answers with what its entity last measured.
+*/
+void Q3SoundWorld::STVEFSPMeasureMouths( int mixedSamples ) {
+	namespace lipsync = fntech3::audio::stvef::lipsync;
+	stvefMouths_.Clear();
+	if ( !device_ || !Com_GameIsSTVEFSP() ) {
+		return;
+	}
+	const lipsync::Thresholds thresholds = S_STVEFThresholds();
+	for ( const SoundVoice &voice : oneShots_ ) {
+		if ( !voice.active || !voice.source || !voice.sample ) {
+			continue;
+		}
+		if ( voice.entchannel != fntech3::audio::stvef::VoiceChannel
+			&& voice.entchannel != fntech3::audio::stvef::AttenuatedVoiceChannel ) {
+			continue;
+		}
+		ALint state = 0, offset = -1;
+		device_->AL().alGetError();
+		device_->AL().alGetSourcei( voice.source, AL_SOURCE_STATE, &state );
+		device_->AL().alGetSourcei( voice.source, AL_SAMPLE_OFFSET, &offset );
+		if ( device_->AL().alGetError() != AL_NO_ERROR || state != AL_PLAYING || offset < 0 ) {
+			continue;
+		}
+		const SoundSample *sample = voice.sample;
+		const auto sampleAt = [sample]( int frame ) { return sample->STVEFSample( frame ); };
+		stvefMouths_.Write( voice.entnum, lipsync::Answer( stvefMouths_, sampleAt, voice.entnum,
+			0, offset, mixedSamples, sample->Frames(), sample->Peak(), thresholds ) );
+	}
+	stvefMouths_.Mixed( mixedSamples );
+}
+
+const int *Q3SoundWorld::STVEFSPMouths() const {
+	return stvefMouths_.Levels();
+}
 
 int Q3SoundWorld::RTCWVoiceAmplitude( int entity, int amplitude ) const {
 	using namespace fntech3::audio::rtcw;
@@ -1065,6 +1121,7 @@ void Q3SoundWorld::Reset( OpenALDevice *device ) {
 	for ( Vec3f &origin : entityOrigins_ ) {
 		origin = Vec3f();
 	}
+	stvefMouths_.Reset();
 	if ( device_ != nullptr ) {
 		device_->UpdateListener( listenerOrigin_.Data(), listenerVelocity_.Data(), listenerAxis_ );
 		device_->UpdateReverb( environment_ );
@@ -1281,6 +1338,12 @@ void Q3SoundWorld::StartSound( int entityNum, int entchannel, sfxHandle_t handle
 		fntech3::audio::stvef::QuieterAtListener( entchannel ) ) {
 		// Single player is quieter about what the player themselves do.
 		volume *= fntech3::audio::stvef::ListenerScale;
+	}
+
+	if ( Com_GameIsSTVEFSP() && ( entchannel == fntech3::audio::stvef::VoiceChannel
+		|| entchannel == fntech3::audio::stvef::AttenuatedVoiceChannel ) ) {
+		// A voice starting closes that entity's mouth until it is measured.
+		stvefMouths_.Close( entityNum );
 	}
 
 	const int startTime = Sys_Milliseconds();
@@ -1984,6 +2047,28 @@ void Q3SoundWorld::DumpSpatialDebug( const OpenALDevice &device, int preferredEn
 			selected->debugSendTone,
 			selected->debugSendToneLF,
 			selected->debugSendToneHF );
+	}
+
+	if ( Com_GameIsSTVEFSP() ) {
+		Com_Printf( "Elite Force mouths:\n" );
+		int spoken = 0;
+		for ( int slot = 0; slot < static_cast<int>( oneShots_.size() ); ++slot ) {
+			const SoundVoice &voice = oneShots_[static_cast<size_t>( slot )];
+			if ( !voice.active || !voice.sample ) {
+				continue;
+			}
+			if ( voice.entchannel != fntech3::audio::stvef::VoiceChannel
+				&& voice.entchannel != fntech3::audio::stvef::AttenuatedVoiceChannel ) {
+				continue;
+			}
+			Com_Printf( "  (%i)%i %s peak = %.0f vol = %i\n", voice.entnum, slot,
+				voice.sample->Name().c_str(), voice.sample->Peak(),
+				stvefMouths_.Mouth( voice.entnum ) );
+			++spoken;
+		}
+		if ( spoken == 0 ) {
+			Com_Printf( "  none speaking\n" );
+		}
 	}
 
 	if ( s_alSourceClassDebug != nullptr && s_alSourceClassDebug->integer ) {

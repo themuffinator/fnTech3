@@ -25,6 +25,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../../qcommon/q_shared.h"
 #include "../../qcommon/qcommon.h"
 #include "snd_public.h"
+#ifdef __cplusplus
+// Every file reaches snd_local.h from inside an extern "C" block, and this
+// one is C++ of its own.
+extern "C++" {
+#include "shared/STVEFLipSync.h"
+}
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -71,6 +78,7 @@ struct sfx_t {
 	int				soundCompressionMethod;
 	int 			soundLength;
 	int				soundChannels;
+	float			peak;			// the loudest byte Raven's tag reports, or none
 	char 			soundName[MAX_QPATH];
 	int				lastTimeUsed;
 	sfx_t			*next;
@@ -167,6 +175,8 @@ struct soundInterface_t {
 	void (*AddLoopingSound)( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx );
 	void (*AddRTCWLoopingSound)( const vec3_t origin, const vec3_t velocity, int range, sfxHandle_t sfx, int volume );
 	void (*AddSTVEFAmbientLoopingSound)( const vec3_t origin, sfxHandle_t sfx, int volume );
+	// How wide a mouth each entity holds, for Elite Force SP alone.
+	const int *(*STVEFSPMouths)( void );
 	void (*AddWolfETLoopingSound)( const vec3_t origin, const vec3_t velocity, int range, sfxHandle_t sfx, int volume, int soundTime );
 	void (*AddRealLoopingSound)( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx );
 	void (*StopLoopingSound)(int entityNum );
@@ -242,6 +252,22 @@ static ID_INLINE float S_STVEFSeparation( void ) {
 	if ( s_separation->value > 1.0f ) return 1.0f;
 	return s_separation->value;
 }
+// Elite Force SP alone registers these four, in the order retail compares
+// them to decide how wide a mouth a voice opens (0x421637).
+extern cvar_t *s_threshold1;
+extern cvar_t *s_threshold2;
+extern cvar_t *s_threshold3;
+extern cvar_t *s_threshold4;
+#ifdef __cplusplus
+extern "C++" inline fntech3::audio::stvef::lipsync::Thresholds S_STVEFThresholds( void ) {
+	fntech3::audio::stvef::lipsync::Thresholds thresholds;
+	if ( s_threshold1 != NULL ) thresholds.closed = s_threshold1->value;
+	if ( s_threshold2 != NULL ) thresholds.narrow = s_threshold2->value;
+	if ( s_threshold3 != NULL ) thresholds.wide = s_threshold3->value;
+	if ( s_threshold4 != NULL ) thresholds.widest = s_threshold4->value;
+	return thresholds;
+}
+#endif
 extern cvar_t *s_muteWhenUnfocused;
 extern cvar_t *s_muteWhenMinimized;
 extern cvar_t *s_khz;

@@ -35,6 +35,9 @@ struct snd_info_t {
 	int size;
 	int dataofs;
 	unsigned int speakerMask; // Internal codec metadata; zero keeps legacy channel order.
+	// The loudest byte the sound reaches, which Elite Force measures its
+	// lip-sync against; zero where the file reports none.
+	float peak = 0.0f;
 };
 
 struct snd_codec_t;

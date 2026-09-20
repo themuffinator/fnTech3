@@ -89,6 +89,9 @@ void S_AddRTCWLoopingSound( const vec3_t origin, const vec3_t velocity, int rang
 // Elite Force single player's ambient loops carry the volume their set has
 // faded to, and no entity: at most 32 a frame, merged by sound.
 void S_AddSTVEFAmbientLoopingSound( const vec3_t origin, sfxHandle_t sfx, int volume );
+// How wide a mouth each entity holds, which Elite Force SP's game reads;
+// null where no backend is measuring them.
+const int *S_STVEFSPMouths( void );
 void S_StopLoopingSound(int entityNum );
 
 // recompute the relative volumes for all running sounds

@@ -251,7 +251,7 @@ of a forced fallback of a player specific sound
 ==============
 */
 extern "C" qboolean S_LoadSound( sfx_t *sfx ) {
-	snd_info_t info;
+	snd_info_t info{};
 
 	ScopedTempMemory dataStorage( S_CodecLoad( sfx->soundName, &info ) );
 	auto *data = dataStorage.as<byte>();
@@ -280,6 +280,7 @@ extern "C" qboolean S_LoadSound( sfx_t *sfx ) {
 	auto *samples = sampleStorage.as<short>();
 
 	sfx->lastTimeUsed = s_soundtime + 1; // Com_Milliseconds()+1
+	sfx->peak = info.peak;
 
 	// Each of these compression schemes works, but 16-bit quality is nicer and
 	// with a local install we can rely on the sound memory manager to page sound.
