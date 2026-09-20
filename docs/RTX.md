@@ -60,8 +60,9 @@ failed RT frame stop the renderer instead of silently falling back.
 
 ## Recommended Starting Point
 
-FnQL keeps experimental and compatibility-sensitive presentation features
-disabled by default. Start with:
+This configuration keeps optional presentation features off while testing
+native RT. RTX defaults to the linear-light pipeline (`r_hdr 1`); use the
+existing SDR path (`r_hdr 0`) when comparing legacy retail images:
 
 ```cfg
 seta rtx_rt_mode "2"

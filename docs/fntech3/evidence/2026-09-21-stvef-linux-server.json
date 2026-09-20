@@ -2754,7 +2754,7 @@
     ]
   },
   "automatedTests": {
-    "status": "Windows passed; Linux Python suite still running",
+    "status": "Windows passed; Linux completed with failures in the aggregate Python target. No complete Linux pass is claimed.",
     "linuxLog": ".tmp/stvef-gaps/linux-i686/meson-logs/testlog-linux-portability.txt",
     "windowsLog": "meson/build/win32-dev/meson-logs/testlog-linux-portability.txt",
     "environment": "WSL Git wrapper translates only this Windows-managed worktree for read-only metadata; temporary test repositories use native Git unchanged. Meson timeout multiplier 4 accommodates DrvFS packaging I/O.",
@@ -2768,6 +2768,26 @@
       "pythonSeconds": 624.824,
       "log": "meson\\build\\win32-dev\\meson-logs\\testlog-linux-portability.json",
       "logSha256": "d24fcc223be6fec382173ebdf74519a06517160cbb387f764663b23c15cdf840"
+    },
+    "linux": {
+      "results": {
+        "OK": 94,
+        "SKIP": 1,
+        "FAIL": 1
+      },
+      "pythonTests": 1843,
+      "pythonSkipped": 82,
+      "pythonFailures": 126,
+      "pythonErrors": 1,
+      "pythonSeconds": 3095.492,
+      "log": ".tmp\\stvef-gaps\\linux-i686\\meson-logs\\testlog-linux-portability.json",
+      "logSha256": "77de670befd8e4e1a252284ebce56f336226706f25ab69a1a6694872cbba9479",
+      "analysis": [
+        "115 failure reports compile standalone fixtures for host x86_64 rather than required Linux i686.",
+        "An Elite Force environment-map fixture omits the math library link.",
+        "Other reports include ET reference target selection, ET LOD precision, ET precompiler host execution, and unavailable POSIX chmod semantics on DrvFS.",
+        "One packaging subtest captured the tracked-file list before a new evidence document was added during the run; its older staged copy could not resolve the new link."
+      ]
     }
   },
   "limitations": [

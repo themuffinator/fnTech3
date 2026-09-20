@@ -67,6 +67,28 @@ This establishes track/content delivery, not exact real-time pacing or
 subjective listening parity. The authentic installed Bink DLL is restored
 and its identity verified after the observer probes.
 
+## SDR control
+
+Two subsequent RTX runs isolate its colour pipeline. RTX defaults to `r_hdr 1`,
+which uses linear-light texture filtering and lighting before final sRGB output;
+the earlier GLx/Vulkan comparisons used their legacy colour path. Selecting
+RTX's existing `r_hdr 0` setting gives `display-referred-sdr` in both new logs.
+No production code or defaults change.
+
+With only that setting changed, all three held-movie quality modes match the
+verified Vulkan images byte-for-byte, including the repeated final frames.
+The complete shadows-off, blob, stencil and projection images differ from
+Vulkan by at most one channel value. Their mean differences range from
+0.001212 to 0.008261. The unshadowed scene's mean difference from retail falls
+from 29.770335 to 0.606185, comparable to GLx and Vulkan. Ten further engine
+captures and the unchanged executable identities are recorded under
+`sdrControls` in the manifest.
+
+These controls attribute the large mismatch in these scenes to comparing the
+enhanced linear-light pipeline with legacy display-referred rendering. They
+do not establish general image parity. Future retail comparisons must record
+the active colour pipeline as well as the loaded renderer.
+
 ## Linux i686
 
 The Linux i686 client and all three renderer modules build with GCC 13.3.

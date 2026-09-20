@@ -3927,8 +3927,412 @@
     "Installed assets used read-only or through independent test-owned copies; no proprietary media committed."
   ],
   "remaining": [
-    "Complete renderer image parity; RTX held-movie images have measured differences from GLx.",
-    "Broader scenes, devices and subjective listening; Linux client networking and audio.",
-    "Development gates remain enabled."
-  ]
+    "Broader renderer scenes and retail image comparisons; default HDR and legacy SDR are distinct rendering contracts.",
+    "Broader devices and subjective listening; Linux client networking and audio are outside this renderer record.",
+    "Hardware ray tracing is not exercised. Development gates remain enabled."
+  ],
+  "sdrControls": {
+    "sourceCommit": "b1207a21705937f3faf4df83aa858efb911ee4b9",
+    "client": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+      "bytes": 8504320,
+      "sha256": "472cbc04661deec1fd4fe3a2a1380251ff34b3147ec9ac4a33e68ed1a3fce151"
+    },
+    "renderer": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_rtx_x86.dll",
+      "bytes": 2900992,
+      "sha256": "c15d4058aa366417b838f7ec1dc79bc18752a1a120f9a04c19818ea4d48c47d1"
+    },
+    "sourceDefault": "RTX registers r_hdr=1 in code/rendererrtx/tr_init.c; r_hdr=0 selects the existing display-referred SDR path.",
+    "changedSetting": {
+      "r_hdr": 0
+    },
+    "runs": [
+      {
+        "renderer": "rtx",
+        "exit": 0,
+        "seconds": 94.328,
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:/Games/fnTech3-tests/efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-renderer-sdr-held-rtx",
+          "+set",
+          "cl_renderer",
+          "rtx",
+          "+set",
+          "r_hdr",
+          "0",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_FirstTime",
+          "1",
+          "+set",
+          "developer",
+          "1",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_maxfps",
+          "60",
+          "+set",
+          "com_maxfpsUnfocused",
+          "60",
+          "+set",
+          "com_maxfpsMinimized",
+          "60",
+          "+set",
+          "cl_drawFPS",
+          "0",
+          "+set",
+          "cl_drawSpeed",
+          "0",
+          "+set",
+          "r_bloom",
+          "0",
+          "+set",
+          "r_gamma",
+          "1",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "cl_VidFadeUp",
+          "0",
+          "+set",
+          "cl_VidFadeDown",
+          "0",
+          "+exec",
+          "probe.cfg"
+        ],
+        "script": "wait 60\nrenderer_switch\nset cl_VideoQuality 0\ncinematic st_01 1\nwait 1200\nscreenshot held_0\nwait 60\nscreenshot held_0_repeat\nwait 3\nset cl_VideoQuality 1\ncinematic st_01 1\nwait 1200\nscreenshot held_1\nwait 60\nscreenshot held_1_repeat\nwait 3\nset cl_VideoQuality 2\ncinematic st_01 1\nwait 1200\nscreenshot held_2\nwait 60\nscreenshot held_2_repeat\nwait 3\ndisconnect\necho HELD_MOVIE_COMPLETE\nquit\n",
+        "completed": true,
+        "backendVerified": true,
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-sdr-held-rtx\\baseEF\\screenshots\\held_0.png",
+            "bytes": 922218,
+            "sha256": "b51684fa5073cc2c997957e418051e688071fa577dfdb159e093d02117d9c52a"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-sdr-held-rtx\\baseEF\\screenshots\\held_0_repeat.png",
+            "bytes": 922218,
+            "sha256": "b51684fa5073cc2c997957e418051e688071fa577dfdb159e093d02117d9c52a"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-sdr-held-rtx\\baseEF\\screenshots\\held_1.png",
+            "bytes": 922218,
+            "sha256": "b51684fa5073cc2c997957e418051e688071fa577dfdb159e093d02117d9c52a"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-sdr-held-rtx\\baseEF\\screenshots\\held_1_repeat.png",
+            "bytes": 922218,
+            "sha256": "b51684fa5073cc2c997957e418051e688071fa577dfdb159e093d02117d9c52a"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-sdr-held-rtx\\baseEF\\screenshots\\held_2.png",
+            "bytes": 922218,
+            "sha256": "43784791b3ffa633e3c00322a06561e474f51fc9cf1f2f63369bdedc02af3b6a"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-sdr-held-rtx\\baseEF\\screenshots\\held_2_repeat.png",
+            "bytes": 922218,
+            "sha256": "43784791b3ffa633e3c00322a06561e474f51fc9cf1f2f63369bdedc02af3b6a"
+          }
+        ],
+        "kind": "heldMovies",
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-sdr-held-rtx\\baseEF\\qconsole.log",
+          "bytes": 12020,
+          "sha256": "f4977c3f45359e74c2e82d831aa7bdf17412c272d091d9b87a7bf6c1576986ce"
+        },
+        "backendEvidence": [
+          "RTX capability gate: requested=disabled (0), active=disabled (0), require=0",
+          "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+          "post gamma: domain display-referred-sdr, shader enabled, r_gamma 1.00, exponent 1.000, overbright scale 1.00",
+          "current renderer: rtx"
+        ]
+      },
+      {
+        "engine": "after-rtx",
+        "exit": 0,
+        "seconds": 21.688,
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-renderer-sdr-shadow-after-rtx",
+          "+set",
+          "cl_renderer",
+          "rtx",
+          "+set",
+          "r_hdr",
+          "0",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_FirstTime",
+          "1",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+exec",
+          "probe.cfg"
+        ],
+        "script": "wait 60\nload mdr_scene\nwait 90\ncg_draw2D 0\ncg_drawGun 0\nset cg_fov 110\nnpc spawn tuvok\nwait 600\nset d_npcfreeze 1\nset cg_noplayeranims 1\nset cg_shadows 0\nwait 10\nscreenshot shadow_off\nwait 3\nset cg_shadows 1\nwait 10\nscreenshot shadow_blob\nwait 3\nset cg_shadows 2\nwait 10\nscreenshot shadow_stencil\nwait 3\nset cg_shadows 3\nwait 10\nscreenshot shadow_projection\nwait 3\necho SHADOW_PROBE_COMPLETE\nquit\n",
+        "completed": true,
+        "events": [
+          "Using 24 color bits, 24 depth, 8 stencil display.",
+          "PIXELFORMAT: color(24-bits) Z(24-bit) stencil(8-bits)",
+          "VM_LoadDll: loaded native module cache 'E:\\Games\\fnTech3-tests\\stvef-renderer-sdr-shadow-after-rtx\\.tmp\\native\\b31bb69fa0f9c05152f7ad028bd8bcc5\\efuix86.dll'",
+          "VM_LoadDll: loaded native module cache 'E:\\Games\\fnTech3-tests\\stvef-renderer-sdr-shadow-after-rtx\\.tmp\\native\\b31bb69fa0f9c05152f7ad028bd8bcc5\\efgamex86.dll'",
+          "VM_LoadDll: loaded native module cache 'E:\\Games\\fnTech3-tests\\stvef-renderer-sdr-shadow-after-rtx\\.tmp\\native\\b31bb69fa0f9c05152f7ad028bd8bcc5\\efuix86.dll'",
+          "Wrote screenshots/shadow_off.png",
+          "Wrote screenshots/shadow_blob.png",
+          "Wrote screenshots/shadow_stencil.png",
+          "Wrote screenshots/shadow_projection.png",
+          "SHADOW_PROBE_COMPLETE"
+        ],
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-sdr-shadow-after-rtx\\baseEF\\screenshots\\shadow_blob.png",
+            "bytes": 922218,
+            "sha256": "c07dc0e5bcc54a70c7bdef27fdb4adf5723bfbc4f6639159b308eed77d07a6ce"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-sdr-shadow-after-rtx\\baseEF\\screenshots\\shadow_off.png",
+            "bytes": 922218,
+            "sha256": "5fb5b763e45a3725d16f5b89f1e22a8820906c0198dfd767b7c0f3e271a03e42"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-sdr-shadow-after-rtx\\baseEF\\screenshots\\shadow_projection.png",
+            "bytes": 922218,
+            "sha256": "9d35fb10486f9f08de78f637e4fdeb3279421ca80fb7f14c920692b5227cd74d"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-sdr-shadow-after-rtx\\baseEF\\screenshots\\shadow_stencil.png",
+            "bytes": 922218,
+            "sha256": "0bc8e7aea0903e8b67f424b295d9d1569d791317ad3fdfeac6b222c86d4365d6"
+          }
+        ],
+        "kind": "shadows",
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-sdr-shadow-after-rtx\\baseEF\\qconsole.log",
+          "bytes": 7063,
+          "sha256": "a467da868f4684e8d9f4519ee05ea8ee546a535aa924c969dd50dc1fc1d32242"
+        },
+        "backendEvidence": [
+          "RTX capability gate: requested=disabled (0), active=disabled (0), require=0",
+          "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+          "post gamma: domain display-referred-sdr, shader enabled, r_gamma 1.00, exponent 1.000, overbright scale 1.00",
+          "post gamma: domain display-referred-sdr, shader enabled, r_gamma 1.00, exponent 1.000, overbright scale 1.00"
+        ]
+      }
+    ],
+    "comparison": {
+      "heldMovies": [
+        {
+          "quality": 0,
+          "repeated": {
+            "meanAbsoluteChannelDifference": 0.0,
+            "maximumChannelDifference": 0,
+            "differentPixels": 0
+          },
+          "comparedWithGLx": {
+            "meanAbsoluteChannelDifference": 0.00015082465277777777,
+            "maximumChannelDifference": 1,
+            "differentPixels": 85
+          },
+          "comparedWithVulkan": {
+            "meanAbsoluteChannelDifference": 0.0,
+            "maximumChannelDifference": 0,
+            "differentPixels": 0
+          }
+        },
+        {
+          "quality": 1,
+          "repeated": {
+            "meanAbsoluteChannelDifference": 0.0,
+            "maximumChannelDifference": 0,
+            "differentPixels": 0
+          },
+          "comparedWithGLx": {
+            "meanAbsoluteChannelDifference": 0.00015082465277777777,
+            "maximumChannelDifference": 1,
+            "differentPixels": 85
+          },
+          "comparedWithVulkan": {
+            "meanAbsoluteChannelDifference": 0.0,
+            "maximumChannelDifference": 0,
+            "differentPixels": 0
+          }
+        },
+        {
+          "quality": 2,
+          "repeated": {
+            "meanAbsoluteChannelDifference": 0.0,
+            "maximumChannelDifference": 0,
+            "differentPixels": 0
+          },
+          "comparedWithGLx": {
+            "meanAbsoluteChannelDifference": 0.0,
+            "maximumChannelDifference": 0,
+            "differentPixels": 0
+          },
+          "comparedWithVulkan": {
+            "meanAbsoluteChannelDifference": 0.0,
+            "maximumChannelDifference": 0,
+            "differentPixels": 0
+          }
+        }
+      ],
+      "shadows": [
+        {
+          "mode": "off",
+          "comparedWithVulkan": {
+            "meanAbsoluteChannelDifference": 0.0012239583333333334,
+            "maximumChannelDifference": 1,
+            "differentPixels": 1103
+          },
+          "comparedWithGLx": {
+            "meanAbsoluteChannelDifference": 0.0020355902777777777,
+            "maximumChannelDifference": 1,
+            "differentPixels": 1768
+          },
+          "comparedWithRetail": {
+            "meanAbsoluteChannelDifference": 0.6061848958333333,
+            "maximumChannelDifference": 53,
+            "differentPixels": 238191
+          },
+          "shadowOnly": {
+            "meanAbsoluteChannelDifference": 0.0,
+            "maximumChannelDifference": 0,
+            "differentPixels": 0
+          }
+        },
+        {
+          "mode": "blob",
+          "comparedWithVulkan": {
+            "meanAbsoluteChannelDifference": 0.008260633680555556,
+            "maximumChannelDifference": 1,
+            "differentPixels": 4899
+          },
+          "comparedWithGLx": {
+            "meanAbsoluteChannelDifference": 0.0020323350694444442,
+            "maximumChannelDifference": 1,
+            "differentPixels": 1767
+          },
+          "comparedWithRetail": {
+            "meanAbsoluteChannelDifference": 0.602412109375,
+            "maximumChannelDifference": 53,
+            "differentPixels": 237847
+          },
+          "shadowOnly": {
+            "meanAbsoluteChannelDifference": 0.0061686197916666664,
+            "maximumChannelDifference": 3,
+            "differentPixels": 2466
+          }
+        },
+        {
+          "mode": "stencil",
+          "comparedWithVulkan": {
+            "meanAbsoluteChannelDifference": 0.0047515190972222225,
+            "maximumChannelDifference": 1,
+            "differentPixels": 2644
+          },
+          "comparedWithGLx": {
+            "meanAbsoluteChannelDifference": 0.002025824652777778,
+            "maximumChannelDifference": 1,
+            "differentPixels": 1762
+          },
+          "comparedWithRetail": {
+            "meanAbsoluteChannelDifference": 0.6020290798611111,
+            "maximumChannelDifference": 46,
+            "differentPixels": 237443
+          },
+          "shadowOnly": {
+            "meanAbsoluteChannelDifference": 0.00935546875,
+            "maximumChannelDifference": 22,
+            "differentPixels": 2436
+          }
+        },
+        {
+          "mode": "projection",
+          "comparedWithVulkan": {
+            "meanAbsoluteChannelDifference": 0.0012120225694444444,
+            "maximumChannelDifference": 1,
+            "differentPixels": 1093
+          },
+          "comparedWithGLx": {
+            "meanAbsoluteChannelDifference": 0.0020876736111111113,
+            "maximumChannelDifference": 6,
+            "differentPixels": 1768
+          },
+          "comparedWithRetail": {
+            "meanAbsoluteChannelDifference": 0.6000564236111111,
+            "maximumChannelDifference": 53,
+            "differentPixels": 235513
+          },
+          "shadowOnly": {
+            "meanAbsoluteChannelDifference": 0.018511284722222222,
+            "maximumChannelDifference": 42,
+            "differentPixels": 2773
+          }
+        }
+      ]
+    },
+    "conclusion": "In these controlled scenes, choosing the existing SDR path removes the large HDR/legacy mismatch. All held-movie modes match Vulkan byte-for-byte; shadow scenes differ from Vulkan by at most one channel value. Enhanced linear-light output is not expected to reproduce legacy display-referred filtering and lighting exactly. No production code or defaults changed."
+  }
 }

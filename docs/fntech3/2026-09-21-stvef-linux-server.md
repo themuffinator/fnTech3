@@ -47,12 +47,17 @@ one shared engine build defect:
 The two corrected compiled fixtures pass with GCC's default x87 evaluation and
 with MSVC. The MDR C/C++ and pure-proof executable fixtures pass on both hosts.
 The complete Windows run passes 120 targets with two skips, including 1,843
-Python tests with 72 conditional skips. Linux has completed 94 targets with
-one skip; its aggregate Python target is still running at this checkpoint,
-so this record does not claim a complete Linux suite pass. An earlier
-900-second aggregate run timed out during packaging on WSL's DrvFS. The
-current run allows four times that duration and translates the Windows
-worktree's Git metadata path for read-only WSL queries.
+Python tests with 72 conditional skips. Linux completes 94 targets with one
+skip, but its aggregate Python target fails: 1,843 tests, 126 failure reports,
+one error and 82 skips. Of those reports, 115 compile standalone fixtures for
+the host's 64-bit architecture instead of the engine's required i686 target.
+Another Elite Force fixture omits the math-library link. Other failures include
+ET fixtures, unavailable POSIX permission semantics on DrvFS, and a packaging
+test whose tracked-file snapshot preceded a document added during the run.
+The manifest preserves the complete failed-run identity and counts; no
+complete Linux suite pass is claimed. The aggregate finishes in about 51
+minutes with a fourfold timeout allowance after an earlier 900-second timeout.
+Read-only WSL Git queries translate the Windows worktree metadata path.
 
 The [manifest](evidence/2026-09-21-stvef-linux-server.json) records the source
 states, binary and installed-pak hashes, configuration, commands, selected
@@ -66,6 +71,8 @@ installation is modified. Local RCON passwords, client GUIDs, proprietary
 assets, images and demos are excluded from the committed evidence. Private
 scripts and logs remain in `.tmp/stvef-gaps/linux-*` and the test homes.
 
-This is Linux dedicated-server evidence, not a Linux client or non-x86 claim.
+This record covers the Linux dedicated server. The separate
+[client follow-up](2026-09-21-stvef-linux-client.md) adds the reverse network
+direction and further cross-engine demos; neither is a non-x86 claim.
 The development gate stays enabled. Broader installations, complete renderer
 image parity and subjective listening/device coverage remain open.
