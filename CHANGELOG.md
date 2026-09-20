@@ -18,6 +18,10 @@ historical upstream records, not fnTech3 release history. See the
 
 ### Compatibility
 
+- Support Elite Force Holomatch protocol 26 with Lilium Voyager/ioEF, including
+  compressed messages, sequence checksums, pure servers, downloads and `.dm_26`
+  demos. Retail protocol 24 and `.efdemo` remain available in the same build.
+
 - Play Elite Force single-player Bink movies using the user's installed Windows
   x86 runtime, including in-game pause/resume, German track selection and
   low-resolution fallback. No proprietary runtime or movie data is included.

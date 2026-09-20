@@ -594,6 +594,7 @@ static bool CL_ParseDemoProtocolExtension( const char *ext, int *protocol )
 
 // Each profile plays only the demo protocols it owns. Original RTCW SP and MP
 // each name demos after their single wire protocol (cl_main.c, CL_Record_f).
+// Holomatch's .efdemo path handles retail 24 separately; ioEF uses .dm_26.
 // ET demo playback is not implemented, so ET admits none.
 static bool CL_DemoProtocolSupported( int protocol )
 {
@@ -602,15 +603,16 @@ static bool CL_DemoProtocolSupported( int protocol )
 	}
 	switch ( Com_GameProfile()->id ) {
 	case COM_GAME_QUAKE3:
-		return protocol != QL_RETAIL_PROTOCOL_VERSION &&
-			protocol != NETCHAN_RTCW_SP_PROTOCOL_VERSION &&
-			protocol != NETCHAN_RTCW_MP_PROTOCOL_VERSION;
+		return protocol == 66 || protocol == 67 ||
+			protocol == OLD_PROTOCOL_VERSION || protocol == NEW_PROTOCOL_VERSION;
 	case COM_GAME_QUAKELIVE:
 		return protocol == QL_RETAIL_PROTOCOL_VERSION;
 	case COM_GAME_RTCW_SP:
 		return protocol == NETCHAN_RTCW_SP_PROTOCOL_VERSION;
 	case COM_GAME_RTCW_MP:
 		return protocol == NETCHAN_RTCW_MP_PROTOCOL_VERSION;
+	case COM_GAME_STVEF_MP:
+		return protocol == NETCHAN_IOEF_PROTOCOL_VERSION;
 	default:
 		return false;
 	}
@@ -630,6 +632,9 @@ static netchanWireProfile_t CL_DemoWireProfileForProtocol( int protocol )
 	if ( protocol == NETCHAN_STVEF_HM_PROTOCOL_VERSION ) {
 		return NETCHAN_WIRE_STVEF_HM;
 	}
+	if ( protocol == NETCHAN_IOEF_PROTOCOL_VERSION ) {
+		return NETCHAN_WIRE_IOEF;
+	}
 	if ( protocol == NEW_PROTOCOL_VERSION ) {
 		return NETCHAN_WIRE_IOQ3;
 	}
@@ -637,7 +642,7 @@ static netchanWireProfile_t CL_DemoWireProfileForProtocol( int protocol )
 }
 
 // Only Q3 message bodies can be relabelled dm_68 until an ioq3 extension
-// message requires dm_71. Every other profile has one demo protocol.
+// message requires dm_71. Other message layouts keep their exact protocol.
 static bool CL_WireProfileKeepsDm68Fallback( netchanWireProfile_t profile )
 {
 	return profile == NETCHAN_WIRE_LEGACY_Q3 || profile == NETCHAN_WIRE_IOQ3;
@@ -910,7 +915,7 @@ void CL_StopRecord_f( void ) {
 
 		Com_sprintf( tempName.data(), static_cast<int>( tempName.size() ), "%s.tmp", clc.recordName );
 
-		// Elite Force demos carry the game's own extension, not a protocol.
+		// Retail Elite Force uses .efdemo; protocol 26 uses .dm_26.
 		const bool stvef = CL_STVEFFraming() != qfalse;
 		if ( stvef ) {
 			Com_sprintf( finalName.data(), static_cast<int>( finalName.size() ), "%s.%s", clc.recordName, STVEF_DEMOEXT );
@@ -1010,7 +1015,7 @@ static void CL_WriteGamestate( qboolean initial )
 
 	// write out the gamestate message
 	MSG_Init( &msg, bufData.data(), Netchan_MessageLimit( CL_ActiveWireProfile() ) );
-	// Elite Force records retail's layout: raw bits, no acknowledgement, and a
+	// Retail Elite Force records raw bits, no acknowledgement, and a
 	// zero byte with nothing after it (stvoyHM.exe CL_Record_f 0x40c1e0).
 	const bool stvef = CL_STVEFFraming() != qfalse;
 	if ( stvef ) {
@@ -1377,10 +1382,11 @@ static void CL_CompleteRecordName(const char *args, int argNum )
 	{
 		std::array<char, 16> demoExt;
 
-		if ( Com_GameIsSTVEFMP() ) {
+		if ( CL_STVEFFraming() ) {
 			Com_sprintf( demoExt.data(), static_cast<int>( demoExt.size() ), ".%s", STVEF_DEMOEXT );
 		} else {
-			Com_sprintf( demoExt.data(), static_cast<int>( demoExt.size() ), "." DEMOEXT "%d", com_protocol->integer );
+			Com_sprintf( demoExt.data(), static_cast<int>( demoExt.size() ), "." DEMOEXT "%d",
+				fnql::protocol::ForWireProfile( CL_ActiveWireProfile() ).demoProtocol );
 		}
 		Field_CompleteFilename( "demos", demoExt.data(), qtrue, FS_MATCH_EXTERN | FS_MATCH_STICK );
 	}
@@ -1546,7 +1552,7 @@ static int CL_WalkDemoExt( const char *arg, char *name, int name_len, ScopedFile
 
 	handle.reset();
 
-	// Holomatch has one demo format, named after the game.
+	// Preserve retail .efdemo lookup first, then try ioEF's .dm_26.
 	if ( Com_GameIsSTVEFMP() ) {
 		Com_sprintf( name, name_len, "demos/%s.%s", arg, STVEF_DEMOEXT );
 		OpenPureFileRead( name, handle );
@@ -1555,6 +1561,8 @@ static int CL_WalkDemoExt( const char *arg, char *name, int name_len, ScopedFile
 			return NETCHAN_STVEF_HM_PROTOCOL_VERSION;
 		}
 		Com_Printf( "Not found: %s\n", name );
+		if ( CL_TryDemoProtocol( arg, NETCHAN_IOEF_PROTOCOL_VERSION, name, name_len, handle ) )
+			return NETCHAN_IOEF_PROTOCOL_VERSION;
 		return -1;
 	}
 
@@ -4198,8 +4206,8 @@ static bool CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 		}
 
 		// Holomatch: retail servers send the challenge alone; Lilium Voyager's
-		// and ours echo the nonce and name a protocol. This client speaks only
-		// the retail protocol, which ioEF servers still accept.
+		// and ours echo the nonce and name a protocol. Select the exact
+		// advertised Holomatch contract, with 24 for a bare retail reply.
 		if ( Com_GameIsSTVEFMP() ) {
 			std::array<const char *, 4> tokens{};
 			const int count = std::min( Cmd_Argc(), static_cast<int>( tokens.size() ) );
@@ -4212,14 +4220,13 @@ static bool CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 				Com_DPrintf( "Challenge response did not prove its source. Ignored.\n" );
 				return false;
 			}
-			const int ownProtocol = Com_GameProfile()->preferredProtocol;
-			if ( !fntech3::stvef::handshake::ServerAcceptsRetailProtocol(
-				reply.advertisedProtocol, ownProtocol ) ) {
-				Com_Printf( S_COLOR_YELLOW "Warning: Server reports protocol version %d, "
-					"we have %d. Trying anyways.\n", reply.advertisedProtocol, ownProtocol );
+			const int selectedProtocol = fntech3::stvef::handshake::SelectProtocol( reply );
+			if ( !selectedProtocol ) {
+				Com_Printf( "Unsupported Elite Force server protocol %d. Ignored.\n", reply.advertisedProtocol );
+				return false;
 			}
 			clc.compat = qfalse;
-			clc.handshakeProtocol = ownProtocol;
+			clc.handshakeProtocol = selectedProtocol;
 			clc.challenge = reply.challenge;
 			cls.state = CA_CHALLENGING;
 			clc.connectPacketCount = 0;
@@ -4360,13 +4367,13 @@ static bool CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 			}
 			clc.compat = qfalse;
 		} else if ( Com_GameIsSTVEFMP() ) {
-			// The retail server answers with the bare keyword.
+			// Retail answers with the bare keyword; protocol 26 echoes the challenge.
 			std::array<const char *, 3> tokens{};
 			const int count = std::min( Cmd_Argc(), static_cast<int>( tokens.size() ) );
 			for ( int i = 0; i < count; ++i ) {
 				tokens[i] = Cmd_Argv( i );
 			}
-			negotiatedProtocol = Com_GameProfile()->preferredProtocol;
+			negotiatedProtocol = clc.handshakeProtocol > 0 ? clc.handshakeProtocol : com_protocol->integer;
 			if ( !fntech3::stvef::handshake::AcceptConnectReply( count, tokens.data(),
 				clc.challenge, negotiatedProtocol ) ) {
 				Com_Printf( "ConnectResponse with bad challenge received. Ignored.\n" );

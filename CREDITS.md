@@ -612,6 +612,8 @@ chapters; the GLSL implementation and synthetic tests are independently written.
   [VoyagerSP-Android](https://github.com/imjustadudegamer/VoyagerSP-Android/tree/0d8942e86a8469859da086f590875bcb66b4f4df)
   as a second single-player host. No implementation text from any of them is
   incorporated. See the [Elite Force foundation record](docs/fntech3/2026-09-18-stvef-contracts.md).
+  Protocol 26 also uses independently generated synthetic fixtures from
+  Lilium's message encoder, with [bidirectional runtime evidence](docs/fntech3/2026-09-20-stvef-ioef.md).
 
 - Elite Force's MP3 sounds and music are decoded by
   [minimp3](https://github.com/lieff/minimp3/tree/ea99364f61c14656440e8d77e9c233ccf3124633)

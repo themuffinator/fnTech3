@@ -1635,7 +1635,9 @@ void SV_DirectConnect( const netadr_t *from ) {
 
 	sv_proto = com_protocol->integer;
 
-	if ( cl_proto <= OLD_PROTOCOL_VERSION )
+	if ( Com_GameIsSTVEFMP() )
+		compat = cl_proto == NETCHAN_STVEF_HM_PROTOCOL_VERSION;
+	else if ( cl_proto <= OLD_PROTOCOL_VERSION )
 		compat = true;
 	else
 	{
@@ -1666,11 +1668,11 @@ void SV_DirectConnect( const netadr_t *from ) {
 
 	// if "client" is present in userinfo and it is a modern client
 	// then assume it can properly decode long strings and protocol extensions
-	if ( !compat && *Info_ValueForKey( userinfo.data(), "client" ) != '\0' ) {
+	if ( !compat && !Com_GameIsSTVEFMP() && *Info_ValueForKey( userinfo.data(), "client" ) != '\0' ) {
 		longstr = true;
 	} else {
 		longstr = false;
-		if ( com_protocolCompat && cl_proto != QL_RETAIL_PROTOCOL_VERSION ) {
+		if ( com_protocolCompat && !Com_GameIsSTVEFMP() && cl_proto != QL_RETAIL_PROTOCOL_VERSION ) {
 			// enforce dm68-compatible stream for other clients
 			compat = true;
 		}

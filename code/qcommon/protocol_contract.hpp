@@ -35,7 +35,8 @@ enum class Family : std::uint8_t {
 	RtcwMultiplayer,
 	WolfET,
 	STVEFHolomatch,
-	STVEFSinglePlayer
+	STVEFSinglePlayer,
+	IoEF
 };
 
 /*
@@ -51,7 +52,8 @@ enum class GameMessageLayout : std::uint8_t {
 	RtcwMultiplayer,
 	WolfET,
 	STVEFHolomatch,
-	STVEFSinglePlayer
+	STVEFSinglePlayer,
+	IoEF
 };
 
 enum class Capability : std::uint32_t {
@@ -230,6 +232,18 @@ inline constexpr Contract STVEFHolomatch{
 		Netchan_ReliableCommandLimit( NETCHAN_WIRE_STVEF_HM ), 32u }
 };
 
+// Lilium Voyager/ioEF protocol 26 uses compressed game messages and a
+// sequence checksum, but its connectionless connect remains plain text.
+// qcommon.h in Lilium 0f7dcd89 sets a 48-block, 1024-byte download window.
+inline constexpr Contract IoEF{
+	Family::IoEF, NETCHAN_IOEF_PROTOCOL_VERSION, NETCHAN_IOEF_PROTOCOL_VERSION,
+	NETCHAN_WIRE_IOEF, GameMessageLayout::IoEF,
+	Bit( Capability::ClientQport ) | Bit( Capability::SequenceChecksum ),
+	QuakeCommands, QuakeInfoKeys,
+	{ 1'400u, Netchan_MessageLimit( NETCHAN_WIRE_IOEF ), 48u, 1'024u,
+		Netchan_ReliableCommandLimit( NETCHAN_WIRE_IOEF ), 32u }
+};
+
 // Single player never leaves the loopback channel.
 inline constexpr Contract STVEFSinglePlayer{
 	Family::STVEFSinglePlayer, NETCHAN_STVEF_SP_PROTOCOL_VERSION,
@@ -244,6 +258,7 @@ inline constexpr Contract STVEFSinglePlayer{
 [[nodiscard]] constexpr const Contract *Find( int protocol,
 	bool legacyCompatibility = false ) noexcept {
 	if ( protocol == STVEFHolomatch.protocol ) return &STVEFHolomatch;
+	if ( protocol == IoEF.protocol ) return &IoEF;
 	if ( protocol == STVEFSinglePlayer.protocol ) return &STVEFSinglePlayer;
 	if ( protocol == RtcwSinglePlayer.protocol ) return &RtcwSinglePlayer;
 	if ( protocol == RtcwMultiplayer.protocol ) return &RtcwMultiplayer;
@@ -266,6 +281,8 @@ inline constexpr Contract STVEFSinglePlayer{
 [[nodiscard]] constexpr const Contract *TryForWireProfile(
 	netchanWireProfile_t profile ) noexcept {
 	switch ( profile ) {
+	case NETCHAN_WIRE_IOEF:
+		return &IoEF;
 	case NETCHAN_WIRE_STVEF_HM:
 		return &STVEFHolomatch;
 	case NETCHAN_WIRE_STVEF_SP:

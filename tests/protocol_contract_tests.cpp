@@ -24,6 +24,14 @@ static_assert( RtcwLimits.reliableCommands == 256 && RtcwLimits.messageBytes == 
 static_assert( RtcwLimits.downloadWindow == 8 && RtcwLimits.downloadBlockBytes == 2048 );
 static_assert( Find( 24 ) == &STVEFHolomatch && Find( 24, true ) == &STVEFHolomatch );
 static_assert( Find( 40 ) == &STVEFSinglePlayer );
+static_assert( Find( 26 ) == &IoEF && Find( 26, true ) == &IoEF );
+static_assert( TryForWireProfile( NETCHAN_WIRE_IOEF ) == &IoEF );
+static_assert( IoEF.gameMessageLayout == GameMessageLayout::IoEF );
+static_assert( IoEF.Has( Capability::SequenceChecksum ) && IoEF.Has( Capability::ClientQport ) );
+static_assert( !IoEF.Has( Capability::PacketScramble ) && !IoEF.Has( Capability::RawMessages ) &&
+	!IoEF.Has( Capability::ReliableXor ) && !IoEF.Has( Capability::CompressedConnect ) );
+static_assert( IoEF.limits.downloadWindow == 48 && IoEF.limits.downloadBlockBytes == 1024 &&
+	IoEF.limits.messageBytes == 16384 && IoEF.limits.reliableCommands == 64 );
 static_assert( TryForWireProfile( NETCHAN_WIRE_STVEF_HM ) == &STVEFHolomatch );
 static_assert( TryForWireProfile( NETCHAN_WIRE_STVEF_SP ) == &STVEFSinglePlayer );
 static_assert( STVEFHolomatch.gameMessageLayout == GameMessageLayout::STVEFHolomatch );

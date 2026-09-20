@@ -113,6 +113,8 @@ int main() {
     Check(NETCHAN_WIRE_RTCW_MP,false,false,true,0,60);
     Check(NETCHAN_WIRE_STVEF_HM,false,false,false,0,24);
     Check(NETCHAN_WIRE_STVEF_HM,false,true,true,0,24);
+    Check(NETCHAN_WIRE_IOEF,false,false,false,0,26);
+    Check(NETCHAN_WIRE_IOEF,false,true,true,0,26);
 }
 '''
         scratch = ROOT / ".tmp"

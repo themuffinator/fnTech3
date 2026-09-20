@@ -95,6 +95,12 @@ are GPL-2.0-or-later and GPLv2 references; their text is not incorporated
 either. Observations of the retail `stvoy.exe` are cited by address in the
 [Elite Force records](docs/fntech3/2026-09-18-stvef-contracts.md).
 
+The protocol-26 tests contain synthetic encoded bytes produced by the pinned
+Lilium message encoder. The optional generator compiles against a separately
+supplied GPL checkout; neither its implementation nor game content is copied
+into fnTech3. The independently written codec and fixture provenance are
+documented in the [ioEF record](docs/fntech3/2026-09-20-stvef-ioef.md).
+
 The MP3 codec builds [minimp3](https://github.com/lieff/minimp3/tree/ea99364f61c14656440e8d77e9c233ccf3124633)
 (copyright Lion "lieff") from `subprojects/minimp3.wrap`. minimp3 is dedicated
 to the public domain under Creative Commons CC0 1.0 Universal, which is
