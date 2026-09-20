@@ -2,11 +2,13 @@
 
 ## Scope
 
-This record covers how far single player's sounds carry and how they are
-spread between the two channels: the distance each channel is heard at full
-volume, the falloff past it, the `s_separation` cvar both of Elite Force's
-executables register, and what a mono device hears. Lip-sync and Bink movies
-belong to later slices. The profile stays behind `-Dstvef-development=true`.
+This record covers how far single player's sounds carry, how loudly they
+start and how they are spread between the two channels: the distance each
+channel is heard at full volume, the falloff past it, the sounds the player
+themselves make being held back, the `s_separation` cvar both of Elite
+Force's executables register, and what a mono device hears. Lip-sync and Bink
+movies belong to later slices. The profile stays behind
+`-Dstvef-development=true`.
 
 The distances live in `code/client/audio/shared/STVEFAmbient.h`, which the
 [ambient record](2026-09-20-stvef-sp-ambient.md) already used for its loops;
@@ -23,6 +25,7 @@ the same way.
 | An attenuated voice | Full volume to 38.4 units and falling five times as fast, silent by about 290 (`0x420568`) | The same. The engine has no channel for it, so it is marshalled to a number of its own above the engine's (`CL_STVEFSPSoundChannel`) and the mixers look for that one |
 | The spread | `s_separation`, registered archived at `0.5` by both executables (`0x41fad2`, `stvoyHM.exe` `0x429ab7`): the near channel takes the pan blended towards the cvar, the far channel the cvar less the pan, neither below nothing (`0x4205dd`) | The same cvar, registered for the Elite Force profiles alone and clamped to 0 through 1. Its default is the even spread the engine already has, so no other game is moved |
 | A mono device | Both channels at three quarters (`0x4205d1`) | The same in single player; the engine's own devices stay at one |
+| The sounds the player makes | A sound from the listener's own entity starts at three quarters on every channel the game numbers below its ambient one, and at its whole volume on the others (`S_StartSound` `0x4208cc`) | The same, in both backends, on the numbers those channels are marshalled to: the engine's own up to its body channel, and single player's attenuated voice |
 | Multiplayer | Quake III's own: 80 units, one falloff for every channel, a mono device at one (`stvoyHM.exe` `0x42a580`) | Unchanged, and the single-player distances are gated on the single-player profile |
 | The ambient loops | Measured as sounds with no channel of their own (`0x420d28` passes none) | The same, and now spread by the cvar as well |
 
@@ -36,6 +39,10 @@ measured; the fade that hides the device's residual floor is left off with
 it, since it would silence a voice well short of the 2,274 units one
 carries. Single player's voices stay positional, so the engine's reverb,
 occlusion and HRTF reach them as they reach every other profile's.
+
+Both backends also hold a sound back as it starts, where it belongs to the
+listener's own entity and plays on one of the channels retail holds back, so
+that what the player does is quieter than the world around them.
 
 ## Results
 
@@ -59,10 +66,14 @@ across the room:
   channels, which is the spread turned off, so the cvar reaches the mixer.
 - The room's ambient loop stays a sound at the listener — the OpenAL dump
   holds `sound/ambience/voyager/voy1bridge.wav` at no distance and full
-  gain — and the sounds the player's own entity makes stay at full volume on
-  both channels, as they do in retail. The bridge's own machinery is heard
-  at its distance and panned: `sound/ambience/voyager/lcars1.wav` at 0 and
-  113, and `sound/movers/doors/door1.wav` at 39 and 47.
+  gain. The bridge's own machinery is heard at its distance and panned:
+  `sound/ambience/voyager/lcars1.wav` at 0 and 113, and
+  `sound/movers/doors/door1.wav` at 39 and 47.
+- A sound the player themselves makes on one of the held-back channels plays
+  at three quarters: `kill` sounds `sound/voice/munro/misc/death3.wav` on the
+  voice channel at 95 on each side, where the whole of it is 127. The
+  cinematic's own explosions, which the game plays on a channel above
+  ambient, stay at 127.
 - Holomatch was started on `hm_voy1` with the same build and the same mixer
   trace, and reached the map with nothing sounding in an empty server.
 - The installation was left unchanged.
@@ -72,13 +83,15 @@ across the room:
 - `stvef_sp_sound_distance_tests` compiles the distances: the three
   falloffs, each at its full-volume distance, at half volume and past
   silence, every other channel carrying as far as a sound with none, the
-  spread at both ends and at its default, and the mono device. It pins the
-  channel numbers single player's voices arrive on against the engine's own
-  enumeration and the single-player ABI, the cvar's registration and its
-  Elite Force gate, the channel reaching the legacy mixer with the ambient
-  loops measured as channel-less, and the OpenAL backend leaving the
-  device's attenuation and horizon fade off for what it has measured while
-  keeping those voices positional.
+  spread at both ends and at its default, the mono device, and which channels
+  hold a sound back at the listener. It pins the channel numbers single
+  player's voices arrive on against the engine's own enumeration and the
+  single-player ABI, the channels held back derived from that same
+  marshalling, both backends holding a sound back as it starts, the cvar's
+  registration and its Elite Force gate, the channel reaching the legacy
+  mixer with the ambient loops measured as channel-less, and the OpenAL
+  backend leaving the device's attenuation and horizon fade off for what it
+  has measured while keeping those voices positional.
 - `stvef_sp_ambient_tests` continues to cover the loops themselves.
 
 ## Remaining

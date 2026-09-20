@@ -837,6 +837,12 @@ static void S_Base_StartSound( const vec3_t origin, int entityNum, int entchanne
 	sfx_t		*sfx;
 	int i, oldest, chosen, startTime;
 	int	inplay, allowed;
+
+	if ( Com_GameIsSTVEFSP() && entityNum == listener_number &&
+		fntech3::audio::stvef::QuieterAtListener( entchannel ) ) {
+		// Single player is quieter about what the player themselves do.
+		volume *= fntech3::audio::stvef::ListenerScale;
+	}
 	const int masterVolume = S_VolumeToMasterVolume( volume );
 
 	if ( !s_soundStarted || s_soundMuted ) {

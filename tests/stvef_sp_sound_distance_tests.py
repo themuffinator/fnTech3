@@ -113,9 +113,27 @@ static void Spread() {
 	assert( gains.left == 191 && gains.right == 191 );
 }
 
+static void AtTheListener() {
+	// The sounds the player themselves make are held back on every channel
+	// the game numbers below its ambient one: the engine's own up to its body
+	// channel, and single player's attenuated voice (0x4208cc).
+	assert( ef::ListenerScale == 0.75f );
+	for ( int channel = 0; channel <= 5; ++channel ) {
+		assert( ef::QuieterAtListener( channel ) );
+	}
+	assert( ef::QuieterAtListener( ef::AttenuatedVoiceChannel ) );
+
+	// The engine's local sound and announcer channels, and the numbers single
+	// player's ambient and menu channels take, keep the whole of a sound.
+	for ( const int channel : { 6, 7, 15, 18, 19 } ) {
+		assert( !ef::QuieterAtListener( channel ) );
+	}
+}
+
 int main() {
 	Falloff();
 	Spread();
+	AtTheListener();
 	return 0;
 }
 '''
@@ -142,25 +160,68 @@ class STVEFSPSoundDistanceTests(unittest.TestCase):
             ran = subprocess.run([str(binary)], capture_output=True, text=True, timeout=60, **options)
             self.assertEqual(ran.returncode, 0, ran.stdout + ran.stderr)
 
-    def test_the_channels_a_sound_arrives_on(self):
-        # Single player's voice keeps the engine's own number; its attenuated
-        # voice, which the engine has no channel for, is marshalled to a
-        # number above the engine's, and the mixers must look for that one.
+    def channels(self):
+        """The engine's channel numbers, single player's, and the marshalling."""
         engine = read('code/qcommon/q_shared.h')
         names = engine[engine.index('\tCHAN_AUTO,'):engine.index('} soundChannel_t;')]
         numbers = {name.strip().split('\t')[0].split(',')[0].strip(): index
                    for index, name in enumerate(names.strip().splitlines())}
-        announcer = numbers['CHAN_ANNOUNCER']
         abi = read('code/compat/stvef_game_abi.h')
         single = {name: int(value) for name, value in
                   re.findall(r'FNTECH3_STVEF_SP_(CHAN_\w+) = (\d+)', abi)}
         marshalled = function(read('code/client/client_stvef_records.hpp'),
                               'inline int CL_STVEFSPSoundChannel( int channel ) {')
+        return numbers, single, marshalled
+
+    def marshalled_channels(self):
+        """Every single-player channel and the number the engine sees it on."""
+        numbers, single, marshalled = self.channels()
+        named = {single[sp]: numbers[name] for sp, name in
+                 re.findall(r'case FNTECH3_STVEF_SP_(CHAN_\w+): return (CHAN_\w+);', marshalled)}
+        return {value: named.get(value, numbers['CHAN_ANNOUNCER'] + 1 + value)
+                for value in single.values()}
+
+    def test_the_channels_a_sound_arrives_on(self):
+        # Single player's voice keeps the engine's own number; its attenuated
+        # voice, which the engine has no channel for, is marshalled to a
+        # number above the engine's, and the mixers must look for that one.
+        numbers, single, marshalled = self.channels()
+        announcer = numbers['CHAN_ANNOUNCER']
         self.assertIn('case FNTECH3_STVEF_SP_CHAN_VOICE: return CHAN_VOICE;', marshalled)
         self.assertIn('default: return channel < 0 ? channel : CHAN_ANNOUNCER + 1 + channel;', marshalled)
         self.assertIn('inline constexpr int VoiceChannel = %d;' % numbers['CHAN_VOICE'], self.header)
         self.assertIn('inline constexpr int AttenuatedVoiceChannel = %d;'
                       % (announcer + 1 + single['CHAN_VOICE_ATTEN']), self.header)
+
+    def test_the_sounds_the_player_makes(self):
+        # Retail holds back every channel the game numbers below its ambient
+        # one, so the engine's own numbers for those are what the mixers look
+        # for; single player's ambient, local, announcer and menu sounds keep
+        # the whole of their volume.
+        marshalled = self.marshalled_channels()
+        ambient = self.channels()[1]['CHAN_AMBIENT']
+        quieter = {engine for single, engine in marshalled.items() if single < ambient}
+        louder = {engine for single, engine in marshalled.items() if single >= ambient}
+        self.assertEqual({0, 1, 2, 3, 4, 5, 12}, quieter)
+        self.assertFalse(quieter & louder)
+        self.assertIn('return ( channel >= 0 && channel <= %d ) || channel == AttenuatedVoiceChannel;'
+                      % max(channel for channel in quieter if channel < 12), self.header)
+        self.assertIn('inline constexpr float ListenerScale = 0.75f;', self.header)
+
+        # Both backends hold the sound back as it starts, as retail does.
+        held = ('if ( Com_GameIsSTVEFSP() && entityNum == %s &&\n'
+                '\t\tfntech3::audio::stvef::QuieterAtListener( entchannel ) ) {\n'
+                '\t\t// Single player is quieter about what the player themselves do.\n'
+                '\t\tvolume *= fntech3::audio::stvef::ListenerScale;\n'
+                '\t}')
+        legacy = function(read('code/client/audio/legacy/snd_dma.cpp'),
+                          'static void S_Base_StartSound( const vec3_t origin,')
+        self.assertIn(held % 'listener_number', legacy)
+        self.assertLess(legacy.index('volume *= fntech3::audio::stvef::ListenerScale;'),
+                        legacy.index('const int masterVolume = S_VolumeToMasterVolume( volume );'))
+        openal = function(read('code/client/audio/openal/AudioSystemWorld.inl'),
+                          'void Q3SoundWorld::StartSound( int entityNum,')
+        self.assertIn(held % 'listenerNumber_', openal)
 
     def test_the_cvar_the_channels_are_spread_by(self):
         registration = function(read('code/client/audio/snd_main.cpp'), 'extern "C" void S_Init( void )')

@@ -46,6 +46,18 @@ inline constexpr float AttenuatedVoiceAttenuation = 0.004f;
 inline constexpr int VoiceChannel = 3;
 inline constexpr int AttenuatedVoiceChannel = 12;
 
+/* Single player holds back the sounds the listener's own entity makes,
+ * on every channel the game numbers below its ambient one
+ * (S_StartSound stvoy.exe 0x4208cc); its ambient, local, announcer and
+ * menu sounds keep the whole of their volume. Those are the engine's own
+ * channels up to its body channel, and single player's attenuated voice,
+ * which sits above them. */
+inline constexpr float ListenerScale = 0.75f;
+
+inline bool QuieterAtListener( int channel ) {
+	return ( channel >= 0 && channel <= 5 ) || channel == AttenuatedVoiceChannel;
+}
+
 /* How far a sound on a channel carries at full volume, and how quickly it
  * falls away after that. */
 inline void ChannelFalloff( int channel, float &fullVolume, float &attenuation ) {

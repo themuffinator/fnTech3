@@ -1277,6 +1277,12 @@ void Q3SoundWorld::StartSound( int entityNum, int entchannel, sfxHandle_t handle
 		Com_Error( ERR_DROP, "S_StartSound: bad entitynum %i", entityNum );
 	}
 
+	if ( Com_GameIsSTVEFSP() && entityNum == listenerNumber_ &&
+		fntech3::audio::stvef::QuieterAtListener( entchannel ) ) {
+		// Single player is quieter about what the player themselves do.
+		volume *= fntech3::audio::stvef::ListenerScale;
+	}
+
 	const int startTime = Sys_Milliseconds();
 
 	if ( entityNum != ENTITYNUM_WORLD ) {
