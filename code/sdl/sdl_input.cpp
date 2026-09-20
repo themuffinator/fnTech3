@@ -654,7 +654,10 @@ static int IN_TranslateSDLToQ3Key( const sdlKeyInfo_t *keyinfo, qboolean down )
 			case SDLK_KP_5:         key = K_KP_5;          break;
 			case SDLK_INSERT:       key = K_INS;           break;
 			case SDLK_KP_0:         key = K_KP_INS;        break;
-			case SDLK_KP_MULTIPLY:  key = '*'; /*K_KP_STAR;*/ break;
+			// Retail reports the keypad star as a character on Windows and
+			// X11; only the Mac clients emit K_KP_STAR. Keep the character,
+			// and see docs/fntech3/2026-09-20-keypad-star.md.
+			case SDLK_KP_MULTIPLY:  key = '*';             break;
 			case SDLK_KP_PLUS:      key = K_KP_PLUS;       break;
 			case SDLK_KP_MINUS:     key = K_KP_MINUS;      break;
 			case SDLK_KP_DIVIDE:    key = K_KP_SLASH;      break;

@@ -113,9 +113,6 @@ static const keyname_t keynames[] =
 	{"F10", K_F10},
 	{"F11", K_F11},
 	{"F12", K_F12},
-	{"F13", K_F13},
-	{"F14", K_F14},
-	{"F15", K_F15},
 
 	{"INS", K_INS},
 	{"DEL", K_DEL},
@@ -203,7 +200,7 @@ static const keyname_t keynames[] =
 	{"KP_MINUS",		K_KP_MINUS },
 	{"KP_PLUS",			K_KP_PLUS },
 	{"KP_NUMLOCK",		K_KP_NUMLOCK },
-	//{"KP_STAR",			K_KP_STAR },
+	{"KP_STAR",			K_KP_STAR },
 	{"KP_EQUALS",		K_KP_EQUALS },
 
 	{"PAUSE", K_PAUSE},
@@ -217,7 +214,6 @@ static const keyname_t keynames[] =
 	{"SCROLLOCK", K_SCROLLOCK },
 	{"BREAK", K_BREAK},
 	{"MENU", K_MENU},
-	{"POWER", K_POWER},
 	{"EURO", K_EURO},
 	{"UNDO", K_UNDO},
 
@@ -254,6 +250,25 @@ static const keyname_t keynames[] =
 	{"PAD0_PADDLE3", K_PAD0_PADDLE3 },
 	{"PAD0_PADDLE4", K_PAD0_PADDLE4 },
 	{"PAD0_TOUCHPAD", K_PAD0_TOUCHPAD },
+
+	{NULL,0}
+};
+
+
+// Names accepted but never written. Both retail tables leave these four keys
+// unnamed -- quake3.exe 1.32 and quakelive_steam.exe agree here -- so
+// Key_KeynumToString spells them as hex and a config this engine writes stays
+// readable by either retail engine. Configs written by earlier builds of this
+// engine, and by its FnQuake3 and Quake3e lineage, name them, so those lines
+// still load. Tab completion offers only the names above, the ones this engine
+// writes back.
+static const keyname_t keyaliases[] =
+{
+	{"POWER", K_POWER},
+
+	{"F13", K_F13},
+	{"F14", K_F14},
+	{"F15", K_F15},
 
 	{NULL,0}
 };
@@ -346,6 +361,12 @@ int Key_StringToKeynum( const char *str ) {
 
 	// scan for a text match
 	for ( kn = keynames ; kn->name ; kn++ ) {
+		if ( !Q_stricmp( str, kn->name ) )
+			return kn->keynum;
+	}
+
+	// then the names this engine accepts but never writes
+	for ( kn = keyaliases ; kn->name ; kn++ ) {
 		if ( !Q_stricmp( str, kn->name ) )
 			return kn->keynum;
 	}

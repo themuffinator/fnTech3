@@ -155,16 +155,22 @@ with both tables. It passed:
 
 ## Differences
 
-- Names: this engine names 130 `POWER` and 157-159 `F13`-`F15`, which
-  quake3.exe leaves as hex, and has no `KP_STAR` name for 176, the choice
-  already recorded for [Elite Force](2026-09-19-stvef-languages.md). These are
-  the engine's names for every profile and are unchanged here.
+- Names: this engine named 130 `POWER` and 157-159 `F13`-`F15`, which
+  quake3.exe leaves as hex, and had no `KP_STAR` name for 176, the choice also
+  recorded for [Elite Force](2026-09-19-stvef-languages.md). Those were the
+  engine's names for every profile and were unchanged here; the
+  [key-name record](2026-09-20-key-names.md) corrects all five rows, so the
+  `quake3Names.differences` rows in the
+  [machine-readable record](2026-09-19-q3-key-numbers.json) are the ones that
+  stood before that correction.
 - A Quake III menu can no longer bind mouse buttons 6-9 or keys above `AUX16`;
   before, they reached it under other keys' numbers. The console still binds
   them (`bind MOUSE6 ...`). Retail Quake III has no such keys, and the RTCW, ET
   and Elite Force adapters make the same choice.
 - A hexadecimal key name in a config is still this engine's number:
-  `bind 0xe9` binds `AUX13` here, and no key in quake3.exe.
+  `bind 0xe9` binds `AUX13` here, and no key in quake3.exe. Neither retail
+  engine writes a hexadecimal name above `0x9f`, so no config either of them
+  writes can carry one; see the [key-name record](2026-09-20-key-names.md).
 
 ## Remaining gates
 

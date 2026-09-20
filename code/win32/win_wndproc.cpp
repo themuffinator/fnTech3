@@ -775,8 +775,9 @@ static int MapKey( int nVirtKey, int key )
 			return K_KP_SLASH;
 		case 0xAF:
 			return K_KP_PLUS;
-		//case '*':
-		//	return K_KP_STAR;
+		// No case for the keypad star: it is non-extended scancode 0x37 and
+		// never reaches this branch, and retail leaves it as the character
+		// '*' anyway. See docs/fntech3/2026-09-20-keypad-star.md.
 		}
 		return result;
 	}

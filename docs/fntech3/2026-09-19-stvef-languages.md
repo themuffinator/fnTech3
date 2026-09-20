@@ -80,6 +80,7 @@ key, and nothing above 232 does.
 
 - Retail refuses a stereo `.wav` ("is a stereo wav file"); this engine plays
   it. All 481 retail `.wav` files are mono.
-- This engine has no `KP_STAR` key name, a choice it shares with Quake3e for
-  every game, so a retail config line `bind KP_STAR ...` must use `0xb0`. No
-  retail config binds that key; the key itself works.
+- This engine had no `KP_STAR` key name, a choice it shared with Quake3e for
+  every game, so a retail config line `bind KP_STAR ...` had to use `0xb0`. The
+  [key-name record](2026-09-20-key-names.md) restores the name for every game,
+  as both retail tables carry it; the keypad key itself still reports `*`.

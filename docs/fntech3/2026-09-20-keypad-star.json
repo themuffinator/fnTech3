@@ -1,0 +1,87 @@
+{
+  "layout": "0x08090809",
+  "source": "code/win32/win_wndproc.cpp",
+  "keys": [
+    {
+      "key": "keypad *",
+      "virtualKey": "VK_MULTIPLY",
+      "scancode": 55,
+      "extended": false,
+      "branch": "not extended",
+      "character": "*",
+      "scantokey": "'*'"
+    },
+    {
+      "key": "keypad /",
+      "virtualKey": "VK_DIVIDE",
+      "scancode": 57397,
+      "extended": true,
+      "branch": "extended",
+      "character": "/",
+      "scantokey": "'/'"
+    },
+    {
+      "key": "keypad +",
+      "virtualKey": "VK_ADD",
+      "scancode": 78,
+      "extended": false,
+      "branch": "not extended",
+      "character": "+",
+      "scantokey": "K_KP_PLUS"
+    },
+    {
+      "key": "keypad -",
+      "virtualKey": "VK_SUBTRACT",
+      "scancode": 74,
+      "extended": false,
+      "branch": "not extended",
+      "character": "-",
+      "scantokey": "K_KP_MINUS"
+    },
+    {
+      "key": "keypad .",
+      "virtualKey": "VK_DECIMAL",
+      "scancode": 83,
+      "extended": false,
+      "branch": "not extended",
+      "character": ".",
+      "scantokey": "K_DEL"
+    },
+    {
+      "key": "keypad 0",
+      "virtualKey": "VK_NUMPAD0",
+      "scancode": 82,
+      "extended": false,
+      "branch": "not extended",
+      "character": "0",
+      "scantokey": "K_INS"
+    },
+    {
+      "key": "num lock",
+      "virtualKey": "VK_NUMLOCK",
+      "scancode": 69,
+      "extended": false,
+      "branch": "not extended",
+      "character": null,
+      "scantokey": "K_PAUSE"
+    },
+    {
+      "key": "main /",
+      "virtualKey": "VK_OEM_2",
+      "scancode": 53,
+      "extended": false,
+      "branch": "not extended",
+      "character": "/",
+      "scantokey": "'/'"
+    },
+    {
+      "key": "enter",
+      "virtualKey": "VK_RETURN",
+      "scancode": 28,
+      "extended": false,
+      "branch": "not extended",
+      "character": "\r",
+      "scantokey": "K_ENTER"
+    }
+  ]
+}

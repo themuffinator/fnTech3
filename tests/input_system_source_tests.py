@@ -53,6 +53,46 @@ def assert_order(
         cursor = next_cursor
 
 
+def array_entries(source: str, declaration: str) -> list[str]:
+    """Split a flat C array initializer into its elements.
+
+    Character literals may hold a comma or a slash, so the scan tracks
+    them instead of splitting the text naively, and drops `//` comments.
+    """
+    open_brace = source.index("{", source.index(declaration))
+    body = source[open_brace + 1 : source.index("};", open_brace)]
+    body = " ".join(line.split("//")[0] for line in body.splitlines())
+
+    entries: list[str] = []
+    current: list[str] = []
+    index = 0
+    while index < len(body):
+        char = body[index]
+        if char == "'":
+            literal = [char]
+            index += 1
+            while index < len(body):
+                literal.append(body[index])
+                if body[index] == "\\":
+                    index += 1
+                    literal.append(body[index])
+                elif body[index] == "'":
+                    break
+                index += 1
+            current.append("".join(literal))
+        elif char == ",":
+            entries.append("".join(current).strip())
+            current = []
+        else:
+            current.append(char)
+        index += 1
+
+    tail = "".join(current).strip()
+    if tail:
+        entries.append(tail)
+    return entries
+
+
 class SharedEventQueueRecoveryTests(unittest.TestCase):
     def test_reset_events_are_append_only_and_consumed_as_ordered_barriers(
         self,
@@ -3208,6 +3248,100 @@ class NativeX11InputProducerTests(unittest.TestCase):
         self.assertIn(
             'Cvar_CheckRange( in_mouse, "-1", "2", CV_INTEGER )',
             self.source,
+        )
+
+
+class KeypadStarProducerTests(unittest.TestCase):
+    """The keypad star stays a character key, as retail reports it.
+
+    quake3.exe 1.32 leaves non-extended scancode 0x37 as the character '*'
+    in its Win32 producer and maps XK_KP_Multiply to '*' in its X11
+    producer; RTCW SP, RTCW MP and ET do the same. Only the Mac clients and
+    the ioquake3 lineage report K_KP_STAR. keys.c names 176 KP_STAR so a
+    retail config round-trips, but no producer here reports that key, and a
+    "bind *" keeps firing from the keypad. Moving to K_KP_STAR would depart
+    from retail behaviour on the proof target and kill those bindings, so it is
+    a maintainer decision to record in
+    docs/fntech3/2026-09-20-keypad-star.md, not a source edit.
+    """
+
+    SCANTOKEY = "static const int s_scantokey[ 128 ] ="
+    SCANTOCHAR = "static const int s_scantochar[ 128 ] ="
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.sdl = read_text("code/sdl/sdl_input.cpp")
+        cls.wndproc = read_text("code/win32/win_wndproc.cpp")
+        cls.x11 = read_text("code/unix/linux_glimp.cpp")
+
+    def test_every_producer_reports_the_keypad_star_as_a_character(
+        self,
+    ) -> None:
+        translate = function_body(self.sdl, "IN_TranslateSDLToQ3Key")
+        self.assertIn("case SDLK_KP_MULTIPLY:  key = '*';", translate)
+        self.assertNotIn("key = K_KP_STAR", translate)
+
+        self.assertIn("case XK_KP_Multiply: *key = '*';", self.x11)
+        self.assertNotIn("*key = K_KP_STAR", self.x11)
+
+        scantokey = array_entries(self.wndproc, self.SCANTOKEY)
+        self.assertEqual(len(scantokey), 128)
+        self.assertEqual(scantokey[0x37], "'*'")
+        self.assertNotIn("return K_KP_STAR", self.wndproc)
+
+    def test_the_star_is_the_only_keypad_key_left_as_a_character(
+        self,
+    ) -> None:
+        translate = function_body(self.sdl, "IN_TranslateSDLToQ3Key")
+        self.assertIn("case SDLK_KP_PLUS:      key = K_KP_PLUS;", translate)
+        self.assertIn("case SDLK_KP_MINUS:     key = K_KP_MINUS;", translate)
+        self.assertIn("case SDLK_KP_DIVIDE:    key = K_KP_SLASH;", translate)
+        self.assertIn("case SDLK_KP_EQUALS:    key = K_KP_EQUALS;", translate)
+
+        scantokey = array_entries(self.wndproc, self.SCANTOKEY)
+        self.assertEqual(scantokey[0x4A], "K_KP_MINUS")
+        self.assertEqual(scantokey[0x4E], "K_KP_PLUS")
+
+        # The keypad slash shares scancode 0x35 with the main keyboard's
+        # slash and arrives extended, so only MapKey's extended branch can
+        # tell them apart. The star owns non-extended 0x37 and never
+        # reaches that branch, which is why a case for it there would
+        # answer for a different key.
+        self.assertEqual(scantokey[0x35], "'/'")
+        extended = section(
+            function_body(self.wndproc, "MapKey"),
+            "case K_PAUSE:",
+            "return result;",
+        )
+        self.assertIn("case '/':", extended)
+        self.assertIn("return K_KP_SLASH;", extended)
+        self.assertNotIn("case '*':", extended)
+
+    def test_the_keypad_star_still_reaches_the_character_paths(self) -> None:
+        # No key mapping decides what a text field receives: Windows pairs
+        # the key with a WM_CHAR and SDL with a text event, so the star
+        # types itself in the console either way.
+        scantochar = array_entries(self.wndproc, self.SCANTOCHAR)
+        self.assertEqual(len(scantochar), 128)
+        self.assertEqual(scantochar[0x37], "'*'")
+        self.assertEqual(scantochar[0x77], "'*'")
+        assert_order(
+            self,
+            section(self.wndproc, "case WM_CHAR:", "case WM_UNICHAR:"),
+            "MapChar( wParam, scancode )",
+            "SE_CHAR",
+        )
+
+        self.assertIn(
+            "IN_QueueTextInput(",
+            section(
+                function_body(self.sdl, "HandleEvents"),
+                "case SDL_EVENT_TEXT_INPUT:",
+                "case SDL_EVENT_MOUSE_MOTION:",
+            ),
+        )
+        self.assertIn(
+            "SE_CHAR", function_body(self.sdl, "IN_QueueTextInput")
         )
 
 
