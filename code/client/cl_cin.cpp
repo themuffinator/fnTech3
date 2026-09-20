@@ -37,12 +37,15 @@ extern "C" {
 }
 
 #include "client_cpp.h"
+#include "cinematic_bink.hpp"
 
 #include <algorithm>
 #include <array>
 #include <climits>
 #include <cstdint>
 #include <cstring>
+#include <filesystem>
+#include <memory>
 
 using fnql::FileRead;
 using fnql::OpenFileRead;
@@ -198,6 +201,8 @@ struct cin_cache {
 	int					xpos, ypos, width, height;
 	bool				looping, holdAtEnd, dirty, alterGameState, silent, shader;
 	bool				rtcwLetterBox;
+	bool				stvefInGame;
+	std::unique_ptr<fntech3::stvef::bink::Movie> bink;
 	ScopedFileHandle	iFile;
 	e_status			status;
 	int					startTime;
@@ -237,6 +242,7 @@ static cinematics_t		cin;
 static std::array<cin_cache, MAX_VIDEO_HANDLES> cinTable;
 static int				currentHandle = -1;
 static int				CL_handle = -1;
+static char stvefPendingMovie[MAX_QPATH];
 
 extern "C" {
 extern int				s_soundtime;		// sample PAIRS
@@ -254,12 +260,18 @@ void CIN_CloseAllVideos( void ) {
 		// Stop may return early before the first frame, at EOF, or after a
 		// connection-state change. Bulk teardown still owns these resources.
 		cinTable[i].iFile.reset();
+		cinTable[i].bink.reset();
+		if ( cinTable[i].stvefInGame ) Cvar_Set( "cl_paused", "0" );
+		cinTable[i].stvefInGame = false;
 		cinTable[i].fileName[0] = '\0';
 		cinTable[i].buf = nullptr;
 		cinTable[i].status = FMV_IDLE;
 		cinTable[i].dirty = false;
 	}
 	currentHandle = cin.currentHandle = CL_handle = -1;
+	// A map's client-module restart also closes videos. Keep a requested
+	// in-game movie queued until its first active snapshot; disconnect and
+	// explicit cinematic stop cancel that request in SCR_StopCinematic.
 }
 
 
@@ -1528,9 +1540,15 @@ static qboolean RoQ_init( void )
 static void RoQShutdown( void ) {
 	if ( currentHandle < 0 ) return;
 	Com_DPrintf("finished cinematic\n");
-	cinTable[currentHandle].status = FMV_IDLE;
+	cinTable[currentHandle].status = cinTable[currentHandle].bink ? FMV_EOF : FMV_IDLE;
 
 	cinTable[currentHandle].iFile.reset();
+	cinTable[currentHandle].bink.reset();
+	if ( cinTable[currentHandle].stvefInGame ) {
+		Cvar_Set( "cl_paused", "0" );
+		cinTable[currentHandle].stvefInGame = false;
+		if ( CL_handle == currentHandle ) CL_handle = -1;
+	}
 
 	if (cinTable[currentHandle].alterGameState && cls.state == CA_CINEMATIC) {
 		cls.state = CA_DISCONNECTED;
@@ -1547,6 +1565,8 @@ static void RoQShutdown( void ) {
 	currentHandle = -1;
 }
 
+#include "client_stvef_sp_cinematic.hpp"
+
 /*
 ==================
 CIN_StopCinematic
@@ -1560,7 +1580,7 @@ e_status CIN_StopCinematic( int handle ) {
 	Com_DPrintf("trFMV::stop(), closing %s\n", cinTable[currentHandle].fileName.data());
 
 	if (cinTable[currentHandle].alterGameState) {
-		if ( cls.state != CA_CINEMATIC ) {
+		if ( cls.state != CA_CINEMATIC && !cinTable[currentHandle].bink ) {
 			return cinTable[currentHandle].status;
 		}
 	}
@@ -1596,6 +1616,7 @@ e_status CIN_RunCinematic( int handle )
 	int thisTime = 0;
 
 	if (handle < 0 || handle>= MAX_VIDEO_HANDLES || cinTable[handle].status == FMV_EOF) return FMV_EOF;
+	if ( cinTable[handle].bink ) return CIN_RunBink( handle );
 
 	if (cin.currentHandle != handle) {
 		currentHandle = handle;
@@ -1690,6 +1711,9 @@ int CIN_PlayCinematic( const char *arg, int x, int y, int w, int h, int systemBi
 	} else {
 		Com_sprintf( name.data(), static_cast<int>( name.size() ), "%s", arg );
 	}
+	const bool bink = Com_GameIsSTVEFSP() && ( !*COM_GetExtension( name.data() ) ||
+		!Q_stricmp( COM_GetExtension( name.data() ), "bik" ) );
+	if ( bink ) COM_DefaultExtension( name.data(), static_cast<int>( name.size() ), ".bik" );
 
 	if (!(systemBits & CIN_system)) {
 		for ( i = 0 ; i < MAX_VIDEO_HANDLES ; i++ ) {
@@ -1700,6 +1724,7 @@ int CIN_PlayCinematic( const char *arg, int x, int y, int w, int h, int systemBi
 	}
 
 	Com_DPrintf("CIN_PlayCinematic( %s )\n", arg);
+	if ( bink ) return CIN_PlayBink( name.data(), x, y, w, h, systemBits );
 
 	// The decoder cache is several MiB. Aggregate assignment creates a stack
 	// temporary with MSVC; reset the trivially stored decoder state in place.
@@ -1938,8 +1963,13 @@ void CL_PlayCinematic_f( void ) {
 		return;
 	}
 
-	if (cls.state == CA_CINEMATIC) {
+	if ( cls.state == CA_CINEMATIC || ( Com_GameIsSTVEFSP() && CL_handle >= 0 ) ) {
 		SCR_StopCinematic();
+	}
+	if ( Com_GameIsSTVEFSP() ) {
+		stvefPendingMovie[0] = '\0';
+		Cvar_Set( "timescale", "1" );
+		Cvar_Set( "skippingCinematic", "0" );
 	}
 
 	if ((s && s[0] == '1') || Q_stricmp(arg,"demoend.roq")==0 || Q_stricmp(arg,"end.roq")==0) {
@@ -1975,8 +2005,59 @@ void SCR_DrawCinematic( void ) {
 	}
 }
 
+static void CL_PlaySTVEFSPInGameCinematic( const char *name ) {
+	SCR_StopCinematic();
+	Cvar_Set( "timescale", "1" );
+	Cvar_Set( "skippingCinematic", "0" );
+	S_StopAllSounds();
+	CL_handle = CIN_PlayCinematic( name, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0 );
+	if ( CL_handle >= 0 ) {
+		cinTable[CL_handle].stvefInGame = true;
+		if ( uivm ) VM_Call( uivm, 1, UI_SET_ACTIVE_MENU, UIMENU_NONE );
+		Cvar_Set( "cl_paused", "1" );
+	}
+}
+
+void CL_PlayInGameCinematic_f( void ) {
+	if ( !Com_GameIsSTVEFSP() || Cmd_Argc() != 2 ) return;
+	if ( cls.state != CA_ACTIVE ) {
+		Q_strncpyz( stvefPendingMovie, Cmd_Argv( 1 ), sizeof( stvefPendingMovie ) );
+		return;
+	}
+	CL_PlaySTVEFSPInGameCinematic( Cmd_Argv( 1 ) );
+}
+
+qboolean SCR_DrawSTVEFSPInGameCinematic( void ) {
+	if ( !Com_GameIsSTVEFSP() || CL_handle < 0 || CL_handle >= MAX_VIDEO_HANDLES ||
+		!cinTable[CL_handle].stvefInGame ) return qfalse;
+	re.SetColor( colorBlack );
+	re.DrawStretchPic( 0, 0, cls.glconfig.vidWidth, cls.glconfig.vidHeight,
+		0, 0, 0, 0, cls.whiteShader );
+	re.SetColor( nullptr );
+	CIN_DrawCinematicUI( CL_handle );
+	return qtrue;
+}
+
+qboolean CL_STVEFSPCinematicKey( int key ) {
+	if ( !Com_GameIsSTVEFSP() || Key_GetCatcher() || CL_handle < 0 ||
+		CL_handle >= MAX_VIDEO_HANDLES || !cinTable[CL_handle].bink ||
+		( key >= 128 && key != K_MOUSE1 ) ) return qfalse;
+	// Retail ignores early skip requests for 1200 ms, consuming the request.
+	if ( static_cast<std::uint32_t>( Sys_Milliseconds() ) -
+		static_cast<std::uint32_t>( cinTable[CL_handle].startTime ) >= 1200 ) {
+		SCR_StopCinematic();
+	}
+	return qtrue;
+}
+
 
 void SCR_RunCinematic( void ) {
+	if ( Com_GameIsSTVEFSP() && stvefPendingMovie[0] && cls.state == CA_ACTIVE ) {
+		char name[MAX_QPATH];
+		Q_strncpyz( name, stvefPendingMovie, sizeof( name ) );
+		stvefPendingMovie[0] = '\0';
+		CL_PlaySTVEFSPInGameCinematic( name );
+	}
 	if (CL_handle >= 0 && CL_handle < MAX_VIDEO_HANDLES) {
 		CIN_RunCinematic(CL_handle);
 	}
@@ -1984,6 +2065,7 @@ void SCR_RunCinematic( void ) {
 
 
 void SCR_StopCinematic( void ) {
+	stvefPendingMovie[0] = '\0';
 	if (CL_handle >= 0 && CL_handle < MAX_VIDEO_HANDLES) {
 		CIN_StopCinematic(CL_handle);
 		S_StopAllSounds ();

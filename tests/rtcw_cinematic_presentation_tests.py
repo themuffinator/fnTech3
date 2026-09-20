@@ -24,6 +24,12 @@ HOST = r'''
 static comGameId_t profile;
 int Com_GameIsRTCWSP(){return profile==COM_GAME_RTCW_SP;}
 int Com_GameIsRTCW(){return Com_GameIsRTCWSP()||profile==COM_GAME_RTCW_MP;}
+int Com_GameIsSTVEFSP(){return 0;}
+const char *COM_GetExtension(const char *){assert(false);return "";}
+void COM_DefaultExtension(char *,int,const char *){assert(false);}
+static int CIN_PlayBink(const char *,int,int,int,int,int){assert(false);return -1;}
+static void Cvar_Set(const char *,const char *){assert(false);}
+static char stvefPendingMovie[MAX_QPATH];
 void QDECL Com_Error(errorParm_t,const char *,...){throw 1;}
 void QDECL Com_DPrintf(const char *,...){}
 int QDECL Com_sprintf(char *out,int size,const char *format,...){
@@ -263,7 +269,8 @@ constexpr int MAX_VIDEO_HANDLES=16;
 static comGameId_t profile=COM_GAME_RTCW_SP;
 int Com_GameIsRTCWSP(){return profile==COM_GAME_RTCW_SP;}
 struct Movie {int startTime=0,lastTime=0,playonwalls=1;long tfps=0,numQuads=0,roqFPS=24;
- bool shader=false,alterGameState=false,looping=false;e_status status=FMV_PLAY;};
+ bool shader=false,alterGameState=false,looping=false,bink=false;e_status status=FMV_PLAY;};
+static e_status CIN_RunBink(int){assert(false);return FMV_EOF;}
 static std::array<Movie,MAX_VIDEO_HANDLES>cinTable;
 static int currentHandle=0,now=0,interrupts=0,resets=0,shutdowns=0;
 static struct {int currentHandle=0;}cin;

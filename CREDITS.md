@@ -619,6 +619,12 @@ chapters; the GLSL implementation and synthetic tests are independently written.
   `subprojects/minimp3.wrap`. The frame walker that reproduces retail
   unpacking sizes is independently authored.
 
+- Elite Force single-player movies use the user's installed Bink 1 runtime
+  through an independently declared interface observed in that installation.
+  No SDK header, decoder implementation or runtime binary is incorporated.
+  The [movie record](docs/fntech3/2026-09-20-stvef-bink.md) separates the native
+  runtime's role from the engine's file validation, playback and rendering.
+
 ## Retail-content boundary
 
 The RTCW audio-zone authoring mode uses material-flag facts observed in the

@@ -19,8 +19,10 @@ HOST = r'''
 #include <climits>
 #include <cstdint>
 #include <cstring>
+#include <memory>
 #include <string>
 #include <vector>
+namespace fntech3::stvef::bink {class Movie {};}
 struct ScopedFileHandle {
  int handle=0; int get()const{return handle;} void reset(){handle=0;}
 };

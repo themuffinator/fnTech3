@@ -1210,6 +1210,7 @@ static void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 			VM_Call( uivm, 1, UI_DRAW_CONNECT_SCREEN, qtrue );
 			break;
 		case CA_ACTIVE:
+			if ( SCR_DrawSTVEFSPInGameCinematic() ) break;
 			// always supply STEREO_CENTER as vieworg offset is now done by the engine.
 			CL_CGameRendering( stereoFrame );
 			SCR_DrawDemoRecording();

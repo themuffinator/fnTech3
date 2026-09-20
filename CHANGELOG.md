@@ -18,6 +18,10 @@ historical upstream records, not fnTech3 release history. See the
 
 ### Compatibility
 
+- Play Elite Force single-player Bink movies using the user's installed Windows
+  x86 runtime, including in-game pause/resume, German track selection and
+  low-resolution fallback. No proprietary runtime or movie data is included.
+
 - Carry Elite Force single player's scissor rectangle through all three renderers,
   including fractional pixel conversion, reset, and clipping bounds.
 

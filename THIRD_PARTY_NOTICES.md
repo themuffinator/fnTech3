@@ -101,3 +101,9 @@ to the public domain under Creative Commons CC0 1.0 Universal, which is
 compatible with this repository's GPL license; its `LICENSE` file stays with
 the fetched subproject. Retail MP3 files, Bink movies and the proprietary Bink
 runtime are never redistributed.
+
+The Windows x86 SP client can load the installation's `binkw32.dll` by an
+absolute path. This optional interoperability boundary contains independently
+declared exports and no proprietary SDK headers or implementation text. Its
+framing checks, platform limits and installed observations are documented in
+the [Bink movie record](docs/fntech3/2026-09-20-stvef-bink.md).

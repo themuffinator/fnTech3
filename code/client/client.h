@@ -730,6 +730,9 @@ void	RE_MeasureScaledText( const char *text, const char *end, int fontHandle, fl
 //
 
 void CL_PlayCinematic_f( void );
+void CL_PlayInGameCinematic_f( void );
+qboolean SCR_DrawSTVEFSPInGameCinematic( void );
+qboolean CL_STVEFSPCinematicKey( int key );
 void SCR_DrawCinematic (void);
 void SCR_RunCinematic (void);
 void SCR_StopCinematic (void);

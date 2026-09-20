@@ -1324,7 +1324,6 @@ Used for cinematics.
 =============
 */
 void RE_StretchRaw( int x, int y, int w, int h, int cols, int rows, const byte *data, int client, qboolean dirty ) {
-	int			i, j;
 	int			start, end;
 
 	if ( !tr.registered ) {
@@ -1336,14 +1335,11 @@ void RE_StretchRaw( int x, int y, int w, int h, int cols, int rows, const byte *
 		start = ri.Milliseconds();
 	}
 
-	// make sure rows and cols are powers of 2
-	for ( i = 0 ; ( 1 << i ) < cols ; i++ ) {
-	}
-	for ( j = 0 ; ( 1 << j ) < rows ; j++ ) {
-	}
-
-	if ( ( 1 << i ) != cols || ( 1 << j ) != rows ) {
-		ri.Error( ERR_DROP, "%s(): size not a power of 2: %i by %i", __func__, cols, rows );
+	// EF's Bink movies include 512 by 384 frames. Modern scratch textures
+	// retain their native dimensions; other profiles keep the RoQ contract.
+	if ( cols <= 0 || rows <= 0 || cols > glConfig.maxTextureSize || rows > glConfig.maxTextureSize ||
+		( ri.gameId != COM_GAME_STVEF_SP && ( ( cols & ( cols - 1 ) ) || ( rows & ( rows - 1 ) ) ) ) ) {
+		ri.Error( ERR_DROP, "Draw_StretchRaw: invalid cinematic size: %i by %i", cols, rows );
 	}
 
 	RE_UploadCinematic( w, h, cols, rows, data, client, dirty );
