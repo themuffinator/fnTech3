@@ -26,6 +26,7 @@ extern "C" {
 #include "../shared/AudioSpeakerLayout.h"
 #include "../snd_rtcw.h"
 #include "../shared/RTCWStreamFiles.h"
+#include "../shared/STVEFAmbient.h"
 
 #include <AL/al.h>
 #include <AL/alc.h>

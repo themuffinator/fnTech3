@@ -2,6 +2,7 @@
 #ifndef FNTECH3_CLIENT_STVEF_SP_CGAME_HPP
 #define FNTECH3_CLIENT_STVEF_SP_CGAME_HPP
 #include "../compat/stvef_draw_adapter.hpp"
+#include "client_stvef_sp_ambient.hpp"
 #include "../compat/stvef_module_abi.h"
 #include "../compat/stvef_state_adapter.hpp"
 #include "client_stvef_records.hpp"
@@ -103,17 +104,31 @@ static intptr_t CL_STVEFSPCgameCommonCall( fntech3::stvef::module::Call call, in
 	case Call::CG_S_GETSAMPLELENGTH:
 		return S_STVEFSoundLength( static_cast<sfxHandle_t>( args[1] ) );
 	case Call::CG_S_UPDATEAMBIENTSET:
+		// The room the player is in, played where they are. Retail plays
+		// nothing before its sound system has started (0x402d83).
+		if ( cls.soundRegistered ) {
+			CL_STVEFSPAmbientUpdateSet( reinterpret_cast<const char *>( args[1] ),
+				reinterpret_cast<const float *>( args[2] ) );
+		}
+		return 0;
 	case Call::CG_AS_PARSESETS:
+		CL_STVEFSPAmbientParseSets();
+		return 0;
 	case Call::CG_AS_ADDENTRY:
-		// Ambient sound sets are not played yet.
+		CL_STVEFSPAmbientAddPrecacheEntry( reinterpret_cast<const char *>( args[1] ) );
 		return 0;
 	case Call::CG_S_ADDLOCALSET:
-		// Retail answers the client's time for a set it does not know
-		// (S_AddLocalSet 0x41ddc2).
-		return cls.realtime;
+		// A set around a point, which answers when it last played; retail
+		// answers the client's time for a set it does not know (0x41ddc2).
+		return CL_STVEFSPAmbientAddLocalSet( reinterpret_cast<const char *>( args[1] ),
+			reinterpret_cast<const float *>( args[2] ), reinterpret_cast<const float *>( args[3] ),
+			static_cast<int>( args[4] ), static_cast<int>( args[5] ) );
 	case Call::CG_AS_GETBMODELSOUND:
-		// And -1, no sound, for a mover whose set it does not know (0x41de1f).
-		return -1;
+		// A mover's sound, or -1 where its set is not one this engine read
+		// (0x41de1f). The sets are read as the cgame starts, so a level's
+		// first movers ask before there are any, as they do in retail.
+		return CL_STVEFSPAmbientBModelSound( reinterpret_cast<const char *>( args[1] ),
+			static_cast<int>( args[2] ) );
 	case Call::CG_MEMORY_REMAINING:
 		return Hunk_MemoryRemaining();
 	default:

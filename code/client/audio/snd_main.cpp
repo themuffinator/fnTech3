@@ -125,6 +125,7 @@ static bool S_ValidSoundInterface( const soundInterface_t *s )
 	if( !s->ClearLoopingSounds ) return false;
 	if( !s->AddLoopingSound ) return false;
 	if( !s->AddRTCWLoopingSound ) return false;
+	if( !s->AddSTVEFAmbientLoopingSound ) return false;
 	if( !s->AddRealLoopingSound ) return false;
 	if( !s->StopLoopingSound ) return false;
 	if( !s->Respatialize ) return false;
@@ -471,6 +472,12 @@ extern "C" void S_AddRealLoopingSound( int entityNum, const vec3_t origin,
 		si.AddRealLoopingSound( entityNum, origin, velocity, sfx );
 	}
 }
+
+extern "C" void S_AddSTVEFAmbientLoopingSound( const vec3_t origin, sfxHandle_t sfx, int volume )
+{
+	if ( si.AddSTVEFAmbientLoopingSound ) si.AddSTVEFAmbientLoopingSound( origin, sfx, volume );
+}
+
 
 extern "C" void S_AddRTCWLoopingSound( const vec3_t origin, const vec3_t velocity,
 	int range, sfxHandle_t sfx, int volume ) {
@@ -865,6 +872,10 @@ extern "C" void S_Init( void )
 			s_backendActive != nullptr ? s_backendActive->string : "unknown" );
 		Com_Printf( "--------------------------------\n" );
 		return;
+	}
+	if ( Com_GameIsSTVEFSP() ) {
+		// Elite Force's ambient sets hold sounds of the system being started.
+		CL_STVEFSPClearAmbientSets();
 	}
 	si = {};
 	rtcwMusic = {};

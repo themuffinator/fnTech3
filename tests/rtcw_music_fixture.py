@@ -13,6 +13,7 @@ def function(source, signature):
 COMMON = r'''
 #include "code/client/audio/shared/RTCWMusic.h"
 #include "code/client/audio/shared/RTCWLoops.h"
+#include "code/client/audio/shared/STVEFAmbient.h"
 #include "code/client/audio/shared/AudioMix.h"
 #include "code/client/audio/shared/AudioSpeakerLayout.h"
 #include <algorithm>
@@ -232,6 +233,7 @@ static std::array<portable_samplepair_t,MAX_RAW_SAMPLES> s_rtcwMusicRawSamples;
 constexpr int MAX_CHANNELS=96;
 struct loopSound_t{bool active=false;};static std::array<loopSound_t,1024> loopSounds;
 static fntech3::audio::rtcw::LoopFrame rtcwLoops;
+static fntech3::audio::stvef::AmbientLoopFrame stvefAmbientLoops;
 struct channel_t{int active=0;};static channel_t loop_channels[MAX_CHANNELS];static int numLoopChannels;
 static int channels=0,voiceLanes=0,submits=0;
 static void S_ChannelSetup(){channels=0;}static void ResetVoiceLanes(){voiceLanes=0;}

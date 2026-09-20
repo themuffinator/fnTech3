@@ -42,6 +42,7 @@ extern "C" {
 #include "../shared/AudioMix.h"
 #include "../snd_rtcw.h"
 #include "../shared/RTCWStreamFiles.h"
+#include "../shared/STVEFAmbient.h"
 
 #include <algorithm>
 #include <array>
@@ -154,6 +155,8 @@ cvar_t		*s_device;
 
 static std::array<loopSound_t, MAX_GENTITIES> loopSounds;
 static fntech3::audio::rtcw::LoopFrame rtcwLoops;
+// Elite Force single player's ambient loops, which carry their own volume.
+static fntech3::audio::stvef::AmbientLoopFrame stvefAmbientLoops;
 static void S_UpdateWolfETMasterFade( void );
 // Set when an ET fade was told to stop what it faded once it completes.
 static bool s_wolfetStopAfterFade = false;
@@ -995,6 +998,7 @@ static void S_Base_ClearSoundBuffer( void ) {
 	// stop looping sounds
 	loopSounds.fill( loopSound_t{} );
 	rtcwLoops.Clear();
+	stvefAmbientLoops.Clear();
 	std::fill_n( loop_channels, MAX_CHANNELS, channel_t{} );
 	numLoopChannels = 0;
 
@@ -1046,6 +1050,7 @@ static void S_Base_ClearRTCWSounds( qboolean clearMusic ) {
 	}
 	loopSounds.fill(loopSound_t{});
 	rtcwLoops.Clear();
+	stvefAmbientLoops.Clear();
 	std::fill_n(loop_channels, MAX_CHANNELS, channel_t{});
 	numLoopChannels = 0;
 	S_ChannelSetup();
@@ -1078,6 +1083,7 @@ S_ClearLoopingSoundsFrame
 */
 static void S_Base_ClearLoopingSoundsFrame( void ) {
 	rtcwLoops.Clear();
+	stvefAmbientLoops.Clear();
 	for ( loopSound_t &loop : loopSounds ) {
 		loop.active = qfalse;
 	}
@@ -1093,6 +1099,7 @@ S_ClearLoopingSounds
 static void S_Base_ClearLoopingSounds( qboolean killall ) {
 	int i;
 	rtcwLoops.Clear();
+	stvefAmbientLoops.Clear();
 	for ( i = 0 ; i < MAX_GENTITIES ; i++) {
 		if (killall || loopSounds[i].kill == qtrue || (loopSounds[i].sfx && loopSounds[i].sfx->soundLength == 0)) {
 			S_Base_StopLoopingSound(i);
@@ -1135,6 +1142,24 @@ static void S_Base_AddWolfETLoopingSound( const vec3_t origin, const vec3_t velo
 	if ( !sample->soundLength ) Com_Error( ERR_DROP, "ET looping sound has no samples" );
 	rtcwLoops.Append( origin, velocity, range, handle, volume,
 		S_WolfETMasterFade().current, soundTime );
+}
+
+/*
+==================
+S_Base_AddSTVEFAmbientLoopingSound
+
+Elite Force single player's ambient loops belong to no entity and each plays
+at the volume its set has faded to (S_AddAmbientLoopingSound 0x420bd0).
+==================
+*/
+static void S_Base_AddSTVEFAmbientLoopingSound( const vec3_t origin, sfxHandle_t handle, int volume ) {
+	if ( !s_soundStarted || s_soundMuted || volume <= 0 || !stvefAmbientLoops.Accepts() ) return;
+	if ( handle < 0 || handle >= s_numSfx )
+		Com_Error( ERR_DROP, "Elite Force ambient looping sound handle %d is invalid", handle );
+	sfx_t *sample = S_KnownSfxAt( handle );
+	if ( !sample->inMemory ) S_memoryLoad( sample );
+	if ( !sample->soundLength ) Com_Error( ERR_DROP, "%s has length 0", sample->soundName );
+	stvefAmbientLoops.Append( origin, handle, volume );
 }
 
 static void S_Base_AddLoopingSound( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfxHandle ) {
@@ -1262,6 +1287,36 @@ static void S_AddRTCWLoopSounds( void ) {
 	}
 }
 
+/*
+==================
+S_AddSTVEFAmbientLoopSounds
+
+Elite Force single player's ambient loops, those playing the same sound
+summed into one channel as retail sums them (S_AddLoopSounds 0x420ca0).
+==================
+*/
+static void S_AddSTVEFAmbientLoopSounds( void ) {
+	std::array<bool, fntech3::audio::stvef::AmbientLoopFrame::Capacity> merged{};
+	for ( std::size_t i = 0; i < stvefAmbientLoops.Size() && numLoopChannels < MAX_CHANNELS; ++i ) {
+		if ( merged[i] ) continue;
+		const auto &loop = stvefAmbientLoops[i];
+		for ( std::size_t j = i; j < stvefAmbientLoops.Size(); ++j ) {
+			if ( stvefAmbientLoops[j].handle == loop.handle ) merged[j] = true;
+		}
+		sfx_t *sample = S_KnownSfxAt( loop.handle );
+		sample->lastTimeUsed = s_soundtime;
+		const auto gains = fntech3::audio::stvef::SpatializeMerged( stvefAmbientLoops, i,
+			listener_origin, listener_axis.data(), dma.channels == 1 );
+		if ( !gains.left && !gains.right ) continue;
+		channel_t &channel = loop_channels[numLoopChannels++];
+		channel = channel_t{};
+		channel.master_vol = kMasterVolume;
+		channel.leftvol = gains.left;
+		channel.rightvol = gains.right;
+		channel.thesfx = sample;
+	}
+}
+
 static void S_AddLoopSounds( void ) {
 	if ( Com_GameIsRTCW() ) {
 		S_AddRTCWLoopSounds();
@@ -1335,6 +1390,10 @@ static void S_AddLoopSounds( void ) {
 		if ( numLoopChannels >= MAX_CHANNELS ) {
 			return;
 		}
+	}
+
+	if ( Com_GameIsSTVEFSP() ) {
+		S_AddSTVEFAmbientLoopSounds();
 	}
 }
 
@@ -2105,6 +2164,7 @@ extern "C" qboolean S_Base_Init( soundInterface_t *si ) {
 	si->ClearLoopingSounds = S_Base_ClearLoopingSounds;
 	si->AddLoopingSound = S_Base_AddLoopingSound;
 	si->AddRTCWLoopingSound = S_Base_AddRTCWLoopingSound;
+	si->AddSTVEFAmbientLoopingSound = S_Base_AddSTVEFAmbientLoopingSound;
 	si->AddRealLoopingSound = S_Base_AddRealLoopingSound;
 	si->StopLoopingSound = S_Base_StopLoopingSound;
 	si->Respatialize = S_Base_Respatialize;

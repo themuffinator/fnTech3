@@ -34,6 +34,7 @@ public:
 	void ClearLoopingSounds( qboolean killall );
 	void AddLoopingSound( int entityNum, const float *origin, const float *velocity, sfxHandle_t sfxHandle );
 	void AddRTCWLoopingSound( const float *origin, const float *velocity, int range, sfxHandle_t handle, int volume );
+	void AddSTVEFAmbientLoopingSound( const float *origin, sfxHandle_t handle, int volume );
 	void AddWolfETLoopingSound( const float *origin, const float *velocity, int range, sfxHandle_t handle, int volume, int soundTime );
 	void AddRealLoopingSound( int entityNum, const float *origin, const float *velocity, sfxHandle_t sfxHandle );
 	void StopLoopingSound( int entityNum );
@@ -368,6 +369,7 @@ bool AudioSystem::Init( soundInterface_t *si ) {
 	si->ClearLoopingSounds = []( qboolean killall ) { AudioSystem::Get().ClearLoopingSounds( killall ); };
 	si->AddLoopingSound = []( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfxHandle ) { AudioSystem::Get().AddLoopingSound( entityNum, origin, velocity, sfxHandle ); };
 	si->AddRTCWLoopingSound = []( const vec3_t origin, const vec3_t velocity, int range, sfxHandle_t handle, int volume ) { AudioSystem::Get().AddRTCWLoopingSound( origin, velocity, range, handle, volume ); };
+	si->AddSTVEFAmbientLoopingSound = []( const vec3_t origin, sfxHandle_t handle, int volume ) { AudioSystem::Get().AddSTVEFAmbientLoopingSound( origin, handle, volume ); };
 	si->AddRealLoopingSound = []( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfxHandle ) { AudioSystem::Get().AddRealLoopingSound( entityNum, origin, velocity, sfxHandle ); };
 	si->StopLoopingSound = []( int entityNum ) { AudioSystem::Get().StopLoopingSound( entityNum ); };
 	si->Respatialize = []( int entityNum, const vec3_t origin, vec3_t axis[3], int inwater ) { AudioSystem::Get().Respatialize( entityNum, origin, axis, inwater ); };
@@ -879,6 +881,15 @@ void AudioSystem::AddWolfETLoopingSound( const float *origin, const float *veloc
 	if ( !sample->EnsureLoaded( device_, handle == 0 ) ) return;
 	world_.AddWolfETLoopingSound( origin, velocity, range, handle, volume, sample,
 		S_WolfETMasterFade().current, soundTime );
+}
+
+void AudioSystem::AddSTVEFAmbientLoopingSound( const float *origin, sfxHandle_t handle, int volume ) {
+	if ( !started_ || hardMuted_ || cls.state != CA_ACTIVE || volume <= 0
+		|| !world_.AcceptsSTVEFAmbientLoop() ) return;
+	SoundSample *sample = GetSample( handle );
+	if ( !sample ) Com_Error( ERR_DROP, "Elite Force ambient looping sound handle %d is invalid", handle );
+	if ( !sample->EnsureLoaded( device_, handle == 0 ) ) return;
+	world_.AddSTVEFAmbientLoopingSound( origin, handle, volume, sample );
 }
 
 void AudioSystem::AddRTCWLoopingSound( const float *origin, const float *velocity,

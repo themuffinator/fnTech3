@@ -610,6 +610,10 @@ public:
 	bool rtcwLoop = false;
 	bool rtcwOneShot = false;
 	fntech3::audio::rtcw::Loop rtcwLoopData;
+	// Elite Force single player's ambient loops carry the volume their set
+	// has faded to and are spatialized the way retail spatializes them.
+	bool stvefAmbient = false;
+	int stvefVolume = 0;
 	bool liquidBoundary = false;
 	float occlusion = 0.0f;
 	float occlusionTarget = 0.0f;
@@ -662,6 +666,8 @@ public:
 		rtcwLoop = false;
 		rtcwOneShot = false;
 		rtcwLoopData = {};
+		stvefAmbient = false;
+		stvefVolume = 0;
 		liquidBoundary = false;
 		occlusion = 0.0f;
 		occlusionTarget = 0.0f;
@@ -937,7 +943,9 @@ public:
 	void StopLoopingSound( int entityNum );
 	void AddLoopingSound( int entityNum, const float *origin, const float *velocity, sfxHandle_t handle, SoundSample *sample, qboolean realLoop );
 	bool AcceptsRTCWLoop( int volume ) const { return rtcwLoops_.Accepts( volume ); }
+	bool AcceptsSTVEFAmbientLoop() const { return stvefAmbientLoops_.Accepts(); }
 	void AddRTCWLoopingSound( const float *origin, const float *velocity, int range, sfxHandle_t handle, int volume, SoundSample *sample, float master );
+	void AddSTVEFAmbientLoopingSound( const float *origin, sfxHandle_t handle, int volume, SoundSample *sample );
 	void AddWolfETLoopingSound( const float *origin, const float *velocity, int range, sfxHandle_t handle, int volume, SoundSample *sample, float master, int soundTime );
 	void StartSound( int entityNum, int entchannel, sfxHandle_t handle, SoundSample *sample, const float *origin, float volume );
 	void StartRTCWSound( int entity, int channel, sfxHandle_t handle, SoundSample *sample, const float *origin, int flags );
@@ -975,8 +983,11 @@ private:
 
 	OpenALDevice *device_ = nullptr;
 	std::array<SoundVoice, kMaxVoices> oneShots_;
-	std::array<SoundVoice, MAX_GENTITIES> loopVoices_;
+	// Entity loops take the voice of their entity; Elite Force's ambient
+	// loops, which belong to no entity, take the voices after them.
+	std::array<SoundVoice, MAX_GENTITIES + fntech3::audio::stvef::AmbientLoopFrame::Capacity> loopVoices_;
 	fntech3::audio::rtcw::LoopFrame rtcwLoops_;
+	fntech3::audio::stvef::AmbientLoopFrame stvefAmbientLoops_;
 	fntech3::audio::rtcw::OneShots rtcwOneShots_;
 	std::array<Vec3f, MAX_GENTITIES> entityOrigins_;
 	int listenerNumber_ = 0;
@@ -1062,6 +1073,7 @@ void Q3SoundWorld::Reset( OpenALDevice *device ) {
 
 void Q3SoundWorld::StopAllSounds() {
 	rtcwLoops_.Clear();
+	stvefAmbientLoops_.Clear();
 	rtcwOneShots_.Reset();
 	loopFrameClearPending_ = false;
 	for ( SoundVoice &voice : oneShots_ ) {
@@ -1079,6 +1091,7 @@ void Q3SoundWorld::ClearSoundBuffer() {
 
 void Q3SoundWorld::ClearLoopingSoundsFrame() {
 	rtcwLoops_.Clear();
+	stvefAmbientLoops_.Clear();
 	loopFrameClearPending_ = true;
 	for ( SoundVoice &voice : loopVoices_ ) {
 		if ( voice.active ) {
@@ -1089,6 +1102,7 @@ void Q3SoundWorld::ClearLoopingSoundsFrame() {
 
 void Q3SoundWorld::ClearLoopingSounds( qboolean killall ) {
 	rtcwLoops_.Clear();
+	stvefAmbientLoops_.Clear();
 	for ( SoundVoice &voice : loopVoices_ ) {
 		if ( !voice.active ) {
 			continue;
@@ -1118,7 +1132,8 @@ ALuint Q3SoundWorld::AllocateVoiceSourceForLoop() {
 }
 
 void Q3SoundWorld::AddLoopingSound( int entityNum, const float *origin, const float *velocity, sfxHandle_t handle, SoundSample *sample, qboolean realLoop ) {
-	if ( entityNum < 0 || entityNum >= MAX_GENTITIES || sample == nullptr ) {
+	// The voices past the entities' belong to the loops that have no entity.
+	if ( entityNum < 0 || entityNum >= static_cast<int>( loopVoices_.size() ) || sample == nullptr ) {
 		return;
 	}
 
@@ -1158,6 +1173,23 @@ void Q3SoundWorld::AddWolfETLoopingSound( const float *origin, const float *velo
 	SoundVoice &voice = loopVoices_[slot];
 	voice.rtcwLoop = true;
 	voice.rtcwLoopData = rtcwLoops_[slot];
+	voice.entnum = ENTITYNUM_NONE; // Submission order is not a sound entity index.
+	voice.doppler = false;
+}
+
+/* Elite Force single player submits its ambient loops without an entity or
+ * a velocity, each with the volume its set has faded to (0x420bd0). */
+void Q3SoundWorld::AddSTVEFAmbientLoopingSound( const float *origin, sfxHandle_t handle,
+	int volume, SoundSample *sample ) {
+	if ( !sample ) return;
+	const float velocity[3] = { 0.0f, 0.0f, 0.0f };
+	const int appended = stvefAmbientLoops_.Append( origin, handle, volume );
+	if ( appended < 0 ) return;
+	const int slot = MAX_GENTITIES + appended;
+	AddLoopingSound( slot, origin, velocity, handle, sample, qfalse );
+	SoundVoice &voice = loopVoices_[slot];
+	voice.stvefAmbient = true;
+	voice.stvefVolume = stvefAmbientLoops_[appended].volume;
 	voice.entnum = ENTITYNUM_NONE; // Submission order is not a sound entity index.
 	voice.doppler = false;
 }
@@ -1559,7 +1591,7 @@ void Q3SoundWorld::ApplyVoice( SoundVoice &voice, qboolean softMuted ) {
 	const float *voiceOrigin = voice.fixedOrigin ? voice.origin.Data() : entityOrigins_[voice.entnum].Data();
 	const float *sourceVelocity = voice.velocity.Data();
 	const bool listenerAttached = !voice.rtcwLoop && ( voice.entnum == listenerNumber_ );
-	const bool rtcwSpatial = voice.rtcwLoop || voice.rtcwOneShot;
+	const bool rtcwSpatial = voice.rtcwLoop || voice.rtcwOneShot || voice.stvefAmbient;
 	const bool localOnly = !rtcwSpatial && IsLocalOnlyChannel( voice.entchannel );
 	const bool stereoSample = ( voice.sample->Channels() > 1 );
 	const bool twoChannelSample = ( voice.sample->Channels() == 2 );
@@ -1580,7 +1612,15 @@ void Q3SoundWorld::ApplyVoice( SoundVoice &voice, qboolean softMuted ) {
 	const float wetScale = shader.enabled ? shader.wetScale : kDefaultSoundShaderScale;
 	const float pitchScale = shader.enabled && !rtcwSpatial ? shader.pitchScale : kDefaultSoundShaderScale;
 	SpatialParams spatial;
-	if ( voice.rtcwLoop ) {
+	if ( voice.stvefAmbient ) {
+		// Retail's own distances and stereo separation (0x420510): the pan
+		// keeps the loudness whichever way the listener faces.
+		const auto gains = fntech3::audio::stvef::Spatialize( voiceOrigin,
+			static_cast<float>( voice.stvefVolume ), listenerOrigin_.Data(), listenerAxis_ );
+		const int sum = gains.left + gains.right;
+		spatial.gain = ( std::min )( 1.0f, static_cast<float>( sum ) / 255.0f );
+		spatial.pan = sum ? static_cast<float>( gains.right - gains.left ) / sum : 0.0f;
+	} else if ( voice.rtcwLoop ) {
 		const auto gains = fntech3::audio::rtcw::SpatializeLoop( voice.rtcwLoopData,
 			listenerOrigin_.Data(), listenerAxis_ );
 		spatial.gain = static_cast<float>( (std::max)( gains.left, gains.right ) ) / 127.0f;
@@ -2048,7 +2088,15 @@ void Q3SoundWorld::Update( qboolean softMuted ) {
 		// logical state stays, but the OpenAL source and filters go back to
 		// the pool so audible sounds never starve. They resume seamlessly
 		// when the listener comes back into range.
-		if ( voice.rtcwLoop ) {
+		if ( voice.stvefAmbient ) {
+			const auto gains = fntech3::audio::stvef::Spatialize( voice.origin.Data(),
+				static_cast<float>( voice.stvefVolume ), listenerOrigin_.Data(), listenerAxis_ );
+			if ( !gains.left && !gains.right ) {
+				voice.ReleaseSource( *device_ );
+				voice.refreshedThisFrame = qfalse;
+				continue;
+			}
+		} else if ( voice.rtcwLoop ) {
 			const auto gains = fntech3::audio::rtcw::SpatializeLoop( voice.rtcwLoopData,
 				listenerOrigin_.Data(), listenerAxis_ );
 			if ( !gains.left && !gains.right ) {

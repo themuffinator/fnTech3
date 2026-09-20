@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 COMMON = r'''
 #include "code/client/audio/shared/RTCWLoops.h"
 #include "code/client/audio/shared/RTCWMusic.h"
+#include "code/client/audio/shared/STVEFAmbient.h"
 #include <cassert>
 #include <climits>
 #include <cfloat>
@@ -137,6 +138,8 @@ static sfx_t samples[3];static int s_numSfx=3,s_soundtime=42,loads;
 static sfx_t *S_KnownSfxAt(int handle){assert(handle>=0&&handle<3);return samples+handle;}
 static void S_memoryLoad(sfx_t *sample){sample->inMemory=true;++loads;}
 static LoopFrame rtcwLoops;
+// Elite Force's ambient loops share the frame's clearing.
+static fntech3::audio::stvef::AmbientLoopFrame stvefAmbientLoops;
 struct loopSound_t {bool active=false;};static std::array<loopSound_t,1024> loopSounds;
 static float listener_origin[3]={0,0,0};static std::array<vec3_t,3> listener_axis{{{1,0,0},{0,1,0},{0,0,1}}};
 static struct {int channels=2;int speed=22050;} dma;
@@ -212,7 +215,8 @@ static float AudibilityHorizonDistance(float){return 1250;}
 struct Vec{float xyz[3]{};void Set(const float *v){memcpy(xyz,v,12);}const float *Data()const{return xyz;}};
 enum class VoiceKind{Loop};
 struct SoundVoice{
- bool active=false,looping=false,occlusionInitialized=false,fixedOrigin=false,killWhenUnrefreshed=false,refreshedThisFrame=false,doppler=false,rtcwLoop=false;
+ bool active=false,looping=false,occlusionInitialized=false,fixedOrigin=false,killWhenUnrefreshed=false,refreshedThisFrame=false,doppler=false,rtcwLoop=false,stvefAmbient=false;
+ int stvefVolume=0;
  int handle=0,entnum=0,entchannel=0,lastOcclusionSmoothTime=0,nextEnvironmentUpdateTime=0;float occlusion=0,occlusionTarget=0;
  unsigned source=0,directFilter=0,sendFilter=0;
  SoundSample *sample=nullptr;VoiceKind kind=VoiceKind::Loop;Vec origin,velocity;Loop rtcwLoopData;
@@ -221,7 +225,8 @@ struct SoundVoice{
 };
 struct Q3SoundWorld{
  Device device;Device *device_=&device;std::array<SoundVoice,1024> loopVoices_;std::array<SoundVoice,2> oneShots_;
- LoopFrame rtcwLoops_;bool loopFrameClearPending_=false;std::array<Vec,1024> entityOrigins_;
+ LoopFrame rtcwLoops_;fntech3::audio::stvef::AmbientLoopFrame stvefAmbientLoops_;
+ bool loopFrameClearPending_=false;std::array<Vec,1024> entityOrigins_;
  Vec listenerOrigin_;int listenerNumber_=0;float listenerAxis_[3][3]={{1,0,0},{0,1,0},{0,0,1}};
  unsigned nextSource=1;int applied=0;
  bool AcceptsRTCWLoop(int v)const{return rtcwLoops_.Accepts(v);}

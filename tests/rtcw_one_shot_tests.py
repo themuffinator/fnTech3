@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 COMMON = r'''
 #include "code/client/audio/shared/RTCWOneShots.h"
 #include "code/client/audio/shared/RTCWLoops.h"
+#include "code/client/audio/shared/STVEFAmbient.h"
 #include <cassert>
 #include <climits>
 #include <cstring>
@@ -250,7 +251,8 @@ struct SpatialParams {float gain=0,pan=0;};
 static bool IsLocalOnlyChannel(int channel){return channel==1||channel==6||channel==7;}
 static int generic=0;static SpatialParams ComputeSpatialParams(const float *,const float *,const float (*)[3],int,float,float){++generic;return {0.42f,0.1f};}
 static SpatialParams calculate(bool shot,bool loop,int entity,int channel,const float *voiceOrigin){
- struct {bool rtcwOneShot,rtcwLoop;int entnum,entchannel;Loop rtcwLoopData;}voice{shot,loop,entity,channel,{}};
+ struct {bool rtcwOneShot,rtcwLoop;int entnum,entchannel;Loop rtcwLoopData;bool stvefAmbient;int stvefVolume;}
+  voice{shot,loop,entity,channel,{},false,0};
  voice.rtcwLoopData.volume=255;
  const int listenerNumber_=0;const float referenceScale=1,rangeScale=1;
  struct {float value[3]{};const float *Data()const{return value;}}listenerOrigin_;

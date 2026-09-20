@@ -86,6 +86,9 @@ void S_ClearLoopingSounds( qboolean killall );
 void S_AddLoopingSound( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx );
 void S_AddRealLoopingSound( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx );
 void S_AddRTCWLoopingSound( const vec3_t origin, const vec3_t velocity, int range, sfxHandle_t sfx, int volume );
+// Elite Force single player's ambient loops carry the volume their set has
+// faded to, and no entity: at most 32 a frame, merged by sound.
+void S_AddSTVEFAmbientLoopingSound( const vec3_t origin, sfxHandle_t sfx, int volume );
 void S_StopLoopingSound(int entityNum );
 
 // recompute the relative volumes for all running sounds

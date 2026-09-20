@@ -177,8 +177,11 @@ class STVEFSPCgameTests(unittest.TestCase):
         host = read('code/client/client_stvef_sp_cgame.hpp')
         common = function(host, 'static intptr_t CL_STVEFSPCgameCommonCall(')
         self.assertIn('return S_STVEFSoundLength( static_cast<sfxHandle_t>( args[1] ) );', common)
-        self.assertIn('return cls.realtime;', common[common.index('case Call::CG_S_ADDLOCALSET:'):])
-        self.assertIn('return -1;', common[common.index('case Call::CG_AS_GETBMODELSOUND:'):])
+        # The ambient sets answer these; the ambient tests pin what they say.
+        self.assertIn('return CL_STVEFSPAmbientAddLocalSet(',
+                      common[common.index('case Call::CG_S_ADDLOCALSET:'):])
+        self.assertIn('return CL_STVEFSPAmbientBModelSound(',
+                      common[common.index('case Call::CG_AS_GETBMODELSOUND:'):])
         self.assertIn('if ( !args[3] ) return 0;', common[common.index('case Call::CG_FS_READ:'):])
         call = function(host, 'static bool CL_STVEFSPCgameCall(')
         self.assertIn('fntech3::stvef::render::RotatedQuad(', call)

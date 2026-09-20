@@ -35,7 +35,7 @@ attaches to is described in the [game host record](2026-09-19-stvef-sp-host.md).
 | Sound channels | Raven's SP numbering: an attenuated voice (4) after the voice, item 5, body 6, ambient 7, local 8, announcer 9 and two menu channels. Retail attenuates by channel: a voice stays at full volume to 1,024 units, an attenuated voice falls silent by about 290, others stay full to 256 and then fall off at Quake III's rate (`S_SpatializeOrigin` `0x420510`) | Translated to the engine's channels for the cgame's and the menus' sounds, so body and ambient sounds are no longer taken for the engine's local channels; single player's own channels take distinct numbers above the engine's. The per-channel falloff belongs with the ambient sound slice |
 | Force feedback (34–37) | Force-feedback joysticks | None |
 | Scissor (55) | A 2D clip rectangle (backend command 3) | Ignored: neither the SDK's cgame nor the menus set one |
-| Ambient sets (65–69) | Sets read from `sound/sound.txt` | Not played yet. Unknown sets are answered as retail answers them: a local set the client's time (`0x41ddc2`), a mover's sound −1 (`0x41de1f`), so movers are silent |
+| Ambient sets (65–69) | Sets read from `sound/sound.txt` | Read and played, with retail's crossfade between rooms and its distances for the loops ([record](2026-09-20-stvef-sp-ambient.md)) |
 | Update screen (16) | Pumps the event loop, then redraws | Redraws only, as Quake III 1.32 does, because a server restart inside that loop breaks the load |
 | Noise waves | Both executables take `noise` as a wave anywhere a wave is read: the base plus the amplitude times the noise at (time + phase) × frequency (`EvalWaveForm`, `stvoy.exe` `0x4642ec`, `stvoyHM.exe` `0x47b5cc`); Quake III takes it only in vertex deforms. The retail `_brig` map's panels stretch their texture with it | The same in all three renderers, for both modes; without it the renderer stopped the level |
 | Held frames | The render flag 0x400 caps both frames at a model's last before any wrap (`R_AddMD3Surfaces` `0x461f8b`); the cgame sets it on props that animate once and on explosion models | The engine's `RF_CAP_FRAMES`, with the same number, in all three renderers' MD3 path |
@@ -73,8 +73,10 @@ renderer at its panels' noise wave, now drawn as retail draws it.
 
 ## Remaining
 
-Ambient sound sets, which also give movers their sounds; Bink movies;
-lip-sync; and a comparison with the retail renderer of the lighting values
-and of the characters, whose bodies are Raven's RDM5 skeletal models.
+Bink movies; lip-sync; retail's own sound distances for single player's
+other sounds; and a comparison with the retail renderer of the lighting
+values and of the characters, whose bodies are Raven's RDM5 skeletal models.
+Ambient sound sets are in the
+[ambient record](2026-09-20-stvef-sp-ambient.md).
 Savegames, their pictures and the levels a player moves between are in the
 [savegame record](2026-09-19-stvef-sp-savegames.md).
