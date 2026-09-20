@@ -619,6 +619,8 @@ chapters; the GLSL implementation and synthetic tests are independently written.
   the [model and lighting record](docs/fntech3/2026-09-20-stvef-mdr.md).
   Synthetic effect geometry is compared with the installed Holomatch routines
   in the [effect record](docs/fntech3/2026-09-20-stvef-effects.md).
+  Native projection and stencil extrusion observations are documented in the
+  [shadow record](docs/fntech3/2026-09-20-stvef-shadows.md).
 
 - Elite Force's MP3 sounds and music are decoded by
   [minimp3](https://github.com/lieff/minimp3/tree/ea99364f61c14656440e8d77e9c233ccf3124633)

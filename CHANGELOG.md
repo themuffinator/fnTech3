@@ -18,6 +18,9 @@ historical upstream records, not fnTech3 release history. See the
 
 ### Compatibility
 
+- Restore Elite Force's full-length stencil shadow extrusion in GLx, Vulkan
+  and RTX, with native geometry fixtures for both SP and Holomatch.
+
 - Bound Elite Force cylinder detail and electricity lengths before integer
   conversion, with native retail geometry fixtures for all eight Holomatch
   effect primitives in GLx, Vulkan and RTX.

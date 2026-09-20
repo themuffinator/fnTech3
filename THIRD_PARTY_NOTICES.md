@@ -85,6 +85,10 @@ separates source/unit evidence from installed observations and open gates.
 
 ## Elite Force references and minimp3
 
+The [shadow fixtures](docs/fntech3/2026-09-20-stvef-shadows.md) record
+independently chosen synthetic geometry observed through the user's installed
+executables. They contain no proprietary implementation or game assets.
+
 fnTech3's Elite Force support is interoperability work against the user's
 legitimate installation. Raven's [Elite Force SP mod SDK](https://github.com/UberGames/SP-Mod-Source-Code/tree/04e0e618d1ee57a2919f1a852a688c03b1aa155d)
 is distributed under the non-free "STEF Game Source License"; it is consulted
