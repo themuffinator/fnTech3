@@ -85,6 +85,10 @@ separates source/unit evidence from installed observations and open gates.
 
 ## Elite Force references and minimp3
 
+The [movie audio probe](docs/fntech3/2026-09-20-stvef-movie-audio.md) independently
+declares the observed Bink sound callback boundary and uses the Windows
+DirectSound interface. It contains no proprietary runtime or decoded audio.
+
 The [shadow fixtures](docs/fntech3/2026-09-20-stvef-shadows.md) record
 independently chosen synthetic geometry observed through the user's installed
 executables. They contain no proprietary implementation or game assets.

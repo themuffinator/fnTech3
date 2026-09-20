@@ -52,6 +52,7 @@ public:
 			!Load( next_, "_BinkNextFrame@4" ) || !Load( copy_, "_BinkCopyToBuffer@28" ) ||
 			!Load( track_, "_BinkSetSoundTrack@4" ) || !Load( soundSystem_, "_BinkSetSoundSystem@8" ) ||
 			!Load( directSound_, "_BinkOpenDirectSound@4" ) || !Load( volume_, "_BinkSetVolume@8" ) ||
+			!Load( soundState_, "_BinkSetSoundOnOff@8" ) ||
 			!Load( pause_, "_BinkPause@8" ) ||
 			!Load( errorText_, "_BinkGetError@0" ) ) {
 			error_ = "binkw32.dll does not expose Elite Force's Bink 1 interface";
@@ -139,7 +140,12 @@ public:
 
 	const FileInfo &Info() const { return info_; }
 	const char *Error() const { return error_.c_str(); }
-	bool Sound() const { return sound_; }
+	bool Sound() const {
+		// Factory initialization can succeed even when opening the movie's
+		// sound buffer fails. In the installed Bink 1 runtime (0x1000b260),
+		// -1 queries the current sound state without turning it on or off.
+		return sound_ && native_ && soundState_( native_, -1 ) != 0;
+	}
 	std::uint8_t *Pixels() { return ready_ ? pixels_.data() : nullptr; }
 
 	void Close() {
@@ -181,6 +187,7 @@ private:
 	std::int32_t (FN_BINK_CALL *soundSystem_)( SoundFactory, std::uint32_t ) = nullptr;
 	SoundFactory directSound_ = nullptr;
 	void (FN_BINK_CALL *volume_)( NativePrefix *, std::int32_t ) = nullptr;
+	std::int32_t (FN_BINK_CALL *soundState_)( NativePrefix *, std::int32_t ) = nullptr;
 	std::int32_t (FN_BINK_CALL *pause_)( NativePrefix *, std::int32_t ) = nullptr;
 	const char *(FN_BINK_CALL *errorText_)() = nullptr;
 	FileInfo info_{};

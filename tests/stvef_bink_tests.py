@@ -96,13 +96,16 @@ static void Sys_UnloadLibrary(void *);
 #include "code/client/cinematic_bink.hpp"
 static int loads,unloads,opened,closed,waits,decoded,copied,advances,soundCalls,vol,pauses,pauseState;
 static bool failLoad,failOpen,badMetadata,waiting,skipFrame,soundSuccess=true;
+static bool soundBufferSuccess=true,nativeSoundOn;
+static int soundQueries;
 static const char *missing=nullptr;
 static std::uint32_t selected;
 static NativePrefix native;
 static NativePrefix *__stdcall Open(const void *data,std::uint32_t flags){
  assert(flags==0x04004000&&data);++opened;
  if(failOpen)return nullptr;
- native={512,384,3,1,0,15,1};if(badMetadata)native.width=1024;return &native;
+ native={512,384,3,1,0,15,1};nativeSoundOn=soundBufferSuccess&&selected!=0xffffffffu;
+ if(badMetadata)native.width=1024;return &native;
 }
 static void __stdcall Close(NativePrefix *p){assert(p==&native);++closed;}
 static std::int32_t __stdcall Wait(NativePrefix *p){assert(p==&native);++waits;return waiting;}
@@ -116,6 +119,7 @@ static void __stdcall Track(std::uint32_t track){selected=track;}
 static void *__stdcall DirectSound(std::uint32_t value){assert(!value);return reinterpret_cast<void *>(2);}
 static std::int32_t __stdcall Sound(void *(__stdcall *factory)(std::uint32_t),std::uint32_t value){assert(factory==DirectSound&&!value);++soundCalls;return soundSuccess;}
 static void __stdcall Volume(NativePrefix *p,std::int32_t value){assert(p==&native);vol=value;}
+static std::int32_t __stdcall SoundState(NativePrefix *p,std::int32_t value){assert(p==&native&&value==-1);++soundQueries;return nativeSoundOn;}
 static std::int32_t __stdcall Pause(NativePrefix *p,std::int32_t value){assert(p==&native);++pauses;pauseState=value;return value;}
 static const char *__stdcall Error(){return "native error";}
 static void *Sys_LoadLibrary(const char *path){assert(!strcmp(path,"installation/binkw32.dll"));++loads;return failLoad?nullptr:reinterpret_cast<void *>(1);}
@@ -127,6 +131,7 @@ static void *Sys_LoadFunction(void *lib,const char *name){
  EXPORT("_BinkNextFrame@4",Next);EXPORT("_BinkCopyToBuffer@28",Copy);EXPORT("_BinkSetSoundTrack@4",Track);
  EXPORT("_BinkSetSoundSystem@8",Sound);EXPORT("_BinkOpenDirectSound@4",DirectSound);EXPORT("_BinkSetVolume@8",Volume);EXPORT("_BinkGetError@0",Error);
  EXPORT("_BinkPause@8",Pause);
+ EXPORT("_BinkSetSoundOnOff@8",SoundState);
 #undef EXPORT
  assert(false);return nullptr;
 }
@@ -136,7 +141,7 @@ int main(){
  assert(!movie.Open({},path,false,false)&&!loads&&!movie.Pixels());
  failLoad=true;assert(!movie.Open(File(),path,false,false)&&loads==1&&!unloads);failLoad=false;
  for(const char *name:{"_BinkOpen@8","_BinkClose@4","_BinkWait@4","_BinkDoFrame@4","_BinkNextFrame@4","_BinkCopyToBuffer@28",
-  "_BinkSetSoundTrack@4","_BinkSetSoundSystem@8","_BinkOpenDirectSound@4","_BinkSetVolume@8","_BinkPause@8","_BinkGetError@0"}){
+  "_BinkSetSoundTrack@4","_BinkSetSoundSystem@8","_BinkOpenDirectSound@4","_BinkSetVolume@8","_BinkPause@8","_BinkSetSoundOnOff@8","_BinkGetError@0"}){
   missing=name;int before=unloads;assert(!movie.Open(File(),path,false,false)&&unloads==before+1);movie.Close();assert(unloads==before+1);
  }
  missing=nullptr;failOpen=true;assert(!movie.Open(File(),path,false,false)&&std::string(movie.Error())=="native error");
@@ -167,6 +172,14 @@ int main(){
  assert(movie.Open(File(1),path,true,false)&&!movie.Sound()&&selected==0xffffffffu&&soundCalls==1);
  soundSuccess=false;assert(movie.Open(File(1),path,true,true)&&!movie.Sound()&&selected==0xffffffffu&&soundCalls==2);
  skipFrame=true;assert(movie.Step(0)==Movie::Result::End&&!movie.Pixels()&&*movie.Error());
+ // The device factory can initialize but refuse this movie's sound buffer.
+ // Keep video usable and preserve the requested track for a later rewind.
+ skipFrame=false;soundSuccess=true;soundBufferSuccess=false;
+ assert(movie.Open(File(2),path,true,true)&&!movie.Sound()&&selected==7);
+ assert(movie.Step(0)==Movie::Result::Frame&&movie.Pixels());
+ soundBufferSuccess=true;assert(!movie.Sound());
+ assert(movie.Rewind()&&movie.Sound()&&selected==7);
+ before=soundQueries;movie.Close();assert(!movie.Sound()&&soundQueries==before);
  movie.Close();assert(unloads==loads-1);
 }
 '''

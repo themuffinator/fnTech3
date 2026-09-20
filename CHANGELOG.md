@@ -18,6 +18,9 @@ historical upstream records, not fnTech3 release history. See the
 
 ### Compatibility
 
+- Report unavailable Elite Force movie audio when Bink initializes its sound
+  factory but cannot open the movie's sound buffer; video playback continues.
+
 - Restore Elite Force's full-length stencil shadow extrusion in GLx, Vulkan
   and RTX, with native geometry fixtures for both SP and Holomatch.
 
