@@ -60,3 +60,7 @@ visible scenes, so its evidence here remains the executable geometry fixture.
 The mathematical fixture establishes the projection and extrusion contracts.
 Scene-level image parity and movie audio remain separate evidence requirements.
 The profile's development gate remains in place.
+
+A [follow-up with a wider camera](2026-09-20-stvef-shadow-scenes.md) adds
+positive live blob, stencil and projection observations in all three renderers.
+Movie audio delivery is covered by its [separate record](2026-09-20-stvef-movie-audio.md).
