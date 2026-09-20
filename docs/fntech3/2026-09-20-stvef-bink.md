@@ -1,5 +1,11 @@
 # Elite Force single-player Bink movies
 
+**Live-evidence correction (2026-09-21):** These probes used `r_renderer`,
+which does not select fnTech3's backend. All fnTech3 live runs in this record
+used GLx; Vulkan/RTX labels in the historical manifest identify the requested
+test cases only. Source, native-vector and compiled-fixture evidence is
+unchanged. See the [renderer audit](2026-09-21-stvef-renderer-verification.md).
+
 The Windows x86 SP client plays the installation's packed BIKi movies through
 its own `binkw32.dll`. The DLL is loaded by an absolute installation path;
 neither that runtime nor its headers or movie files are distributed. Other
@@ -76,8 +82,7 @@ Windowed engine probes, with mouse and joystick disabled and no pointer grab,
 establish the following:
 
 - `st_01` plays for its 75 frames and runs its `nextmap` continuation. Engine
-  captures of the movie and the returned menu are identical across GLx, Vulkan
-  and RTX at 640 by 480.
+  captures of the movie and the returned menu are identical across three GLx runs at 640 by 480.
 - `st_04` selects track 1 for German and initializes Bink sound. This probe used
   volume zero; it does not establish audible language or mixing parity.
 - A movie with only one track selects track 0 for German. Low-resolution

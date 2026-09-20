@@ -1,0 +1,3934 @@
+{
+  "sourceCommit": "e311abf8f7685abbc080ca5a0dc43e376e89b488",
+  "recordDate": "2026-09-21",
+  "correction": "September 20 r_renderer requests did not select a backend; their actual live evidence is GLx only. Original identities/measurements remain annotated in their manifests.",
+  "selector": "cl_renderer",
+  "windowsClient": {
+    "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+    "bytes": 8504320,
+    "sha256": "472cbc04661deec1fd4fe3a2a1380251ff34b3147ec9ac4a33e68ed1a3fce151"
+  },
+  "windowsRenderers": {
+    "glx": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_glx_x86.dll",
+      "bytes": 2441216,
+      "sha256": "f25046c6026b105e51bc936c3c4f63bd4ef51f21d604f723f0ca23a8ba533f6d"
+    },
+    "vk": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_vk_x86.dll",
+      "bytes": 2610688,
+      "sha256": "d891f9552e3f6dc9d81e47f8338ad3ff7ebf710d22648dc26be700569382962f"
+    },
+    "rtx": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_rtx_x86.dll",
+      "bytes": 2900992,
+      "sha256": "c15d4058aa366417b838f7ec1dc79bc18752a1a120f9a04c19818ea4d48c47d1"
+    }
+  },
+  "scissorProbe": {
+    "executable": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\renderer-probe-bin\\fntech3.exe",
+      "bytes": 8505344,
+      "sha256": "da792d6887352b1a0b84c21401c9d2e6433c94bb81f72c0a756b915e4c38df95"
+    },
+    "originalSource": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\code\\client\\cl_scrn.cpp",
+      "bytes": 39581,
+      "sha256": "bf3afb3d2530fd19ae259ddc6670474e715527717fb214b433c60bb98c11bca5"
+    },
+    "instrumentedSource": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\cl_scrn_renderer_probe.cpp",
+      "bytes": 40519,
+      "sha256": "7940cf7c243ad55d3bfd74df2c7d80e436eb6f68b54acb357aa07ade911b0418"
+    },
+    "buildScript": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\build_scissor_recheck.py",
+      "bytes": 2000,
+      "sha256": "7c88fd271f8fe7a40dd49384ae47e0ed535dd5499b1e9db02886d189d518c37f"
+    },
+    "scope": "Private copy of cl_scrn.cpp with the five documented scissor draws; original production source and binary untouched."
+  },
+  "linux": {
+    "client": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\linux-client-i686\\fntech3",
+      "bytes": 23893932,
+      "sha256": "4b2467518de5c63e379655c5f74783080afa8aadb3341c8ac652bde6e282329b"
+    },
+    "renderers": {
+      "glx": {
+        "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\linux-client-i686\\fnql_glx_x86.so",
+        "bytes": 8192628,
+        "sha256": "f6b8ccc701c5b55a345ec70b4211185a3e31ac4e95c051ed3c8c6993fa911b5a"
+      },
+      "vk": {
+        "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\linux-client-i686\\fnql_vk_x86.so",
+        "bytes": 7403904,
+        "sha256": "bba7816fe521b8ded642e92268393430342f8f2fa1f19ec30801cf77621d0890"
+      },
+      "rtx": {
+        "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\linux-client-i686\\fnql_rtx_x86.so",
+        "bytes": 8119796,
+        "sha256": "d0b9f44c57902b76dc78f6a4bf072bae44b0b039debb1b5afc48b6ca6d926d7e"
+      }
+    },
+    "compiler": "GCC 13.3.0 i686",
+    "display": "Private Xvfb, 640x480x24",
+    "softwareDriver": "Mesa llvmpipe 25.2.8, LLVM 20.1.2",
+    "crossFile": "[binaries]\nc = ['gcc', '-m32']\ncpp = ['g++', '-m32']\nar = 'ar'\nstrip = 'strip'\npkg-config = 'pkg-config'\n\n[host_machine]\nsystem = 'linux'\ncpu_family = 'x86'\ncpu = 'i686'\nendian = 'little'\n\n[properties]\nneeds_exe_wrapper = false\npkg_config_libdir = ['/usr/lib/i386-linux-gnu/pkgconfig', '/usr/share/pkgconfig']\n",
+    "runs": [
+      {
+        "renderer": "glx",
+        "exit": 0,
+        "seconds": 4.016,
+        "command": [
+          "wsl",
+          "-d",
+          "Ubuntu",
+          "--cd",
+          "/mnt/c/Users/djdac/.codex/worktrees/stvef-support/fnTech3/.tmp/stvef-gaps/linux-client-i686",
+          "--exec",
+          "env",
+          "TMPDIR=/mnt/c/Users/djdac/.codex/worktrees/stvef-support/fnTech3/.tmp/stvef-gaps/linux-display-tmp",
+          "LIBGL_ALWAYS_SOFTWARE=1",
+          "timeout",
+          "50",
+          "xvfb-run",
+          "-a",
+          "-e",
+          "/mnt/e/Games/fnTech3-tests/linux-client-demo-glx/xvfb.log",
+          "-s",
+          "-screen 0 640x480x24 -nolisten tcp",
+          "/mnt/c/Users/djdac/.codex/worktrees/stvef-support/fnTech3/.tmp/stvef-gaps/linux-client-i686/fntech3",
+          "+set",
+          "com_gameProfile",
+          "stvef-mp",
+          "+set",
+          "fs_basepath",
+          "/mnt/e/Games/fnTech3-tests/efassets-retail",
+          "+set",
+          "fs_homepath",
+          "/mnt/e/Games/fnTech3-tests/linux-client-demo-glx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "developer",
+          "1",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "cl_motd",
+          "0",
+          "+set",
+          "com_maxfps",
+          "60",
+          "+set",
+          "com_maxfpsUnfocused",
+          "60",
+          "+set",
+          "com_maxfpsMinimized",
+          "60",
+          "+set",
+          "net_enabled",
+          "0",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+exec",
+          "probe.cfg"
+        ],
+        "script": "set nextdemo \"exec completed.cfg\"\nset timedemo 1\ndemo linux_probe.efdemo\nwait 30\nscreenshot linux_frame\n",
+        "executableSha256": "4b2467518de5c63e379655c5f74783080afa8aadb3341c8ac652bde6e282329b",
+        "sourceSha256": "7a79a29aea4e563576f8c0e0adb6ce923a6b37f4d0c8c20aca870e685384b80a",
+        "completed": true,
+        "events": [
+          "----- Initializing Renderer ----",
+          "Initializing OpenGL extensions",
+          "GLx renderer bootstrap: product tier GL41, hint modern, executor GL41/mac-modern, GL 4.5, material yes, dlight yes, post-shader yes, stream persistent-map, timer query yes, debug output no",
+          "GL_VENDOR: Mesa",
+          "GL_RENDERER: llvmpipe (LLVM 20.1.2, 256 bits)",
+          "GL_VERSION: 4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.2",
+          "GLx renderer bootstrap: product tier GL41, hint modern, executor GL41/mac-modern, GL 4.5, material yes, dlight yes, post-shader yes, stream persistent-map, timer query yes, debug output no",
+          "^5Warning: cvar \"cg_stereoSeparation\" given initial values: \"0\" and \"0.4\"",
+          "Wrote screenshots/linux_frame.png",
+          "107 frames, 0.89 seconds: 119.7 fps",
+          "LINUX_CLIENT_COMPLETE",
+          "...unloading OpenGL DLL",
+          "EXPERIMENTAL ELITE FORCE DEVELOPMENT BUILD: Elite Force Holomatch module, wire and renderer adapters are not yet complete. Compatibility gates remain open.",
+          "----- Initializing Renderer ----",
+          "Initializing OpenGL extensions",
+          "GLx renderer bootstrap: product tier GL41, hint modern, executor GL41/mac-modern, GL 4.5, material yes, dlight yes, post-shader yes, stream persistent-map, timer query yes, debug output no",
+          "GL_VENDOR: Mesa",
+          "GL_RENDERER: llvmpipe (LLVM 20.1.2, 256 bits)",
+          "GL_VERSION: 4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.2",
+          "GLx renderer bootstrap: product tier GL41, hint modern, executor GL41/mac-modern, GL 4.5, material yes, dlight yes, post-shader yes, stream persistent-map, timer query yes, debug output no",
+          "^5Warning: cvar \"cg_stereoSeparation\" given initial values: \"0\" and \"0.4\"",
+          "Wrote screenshots/linux_frame.png",
+          "107 frames, 0.89 seconds: 119.7 fps",
+          "LINUX_CLIENT_COMPLETE",
+          "...unloading OpenGL DLL"
+        ],
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\linux-client-demo-glx\\baseEF\\screenshots\\linux_frame.png",
+            "sha256": "d00c486258c14f8baafc43575cf0d7078470c83e971fdcb6fccccd9cd6325281"
+          }
+        ],
+        "backendEvidence": {
+          "renderer": "glx",
+          "verified": true,
+          "log": {
+            "path": "E:\\Games\\fnTech3-tests\\linux-client-demo-glx\\baseEF\\qconsole.log",
+            "bytes": 13887,
+            "sha256": "ca3afcc2e89eebc3c34103b51c50b3887016f685220f0191277801f6e29df8d1"
+          },
+          "lines": [
+            "GL_RENDERER: llvmpipe (LLVM 20.1.2, 256 bits)",
+            "GL_VERSION: 4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.2"
+          ]
+        },
+        "frames": 107
+      },
+      {
+        "renderer": "vk",
+        "exit": 0,
+        "seconds": 6.875,
+        "command": [
+          "wsl",
+          "-d",
+          "Ubuntu",
+          "--cd",
+          "/mnt/c/Users/djdac/.codex/worktrees/stvef-support/fnTech3/.tmp/stvef-gaps/linux-client-i686",
+          "--exec",
+          "env",
+          "TMPDIR=/mnt/c/Users/djdac/.codex/worktrees/stvef-support/fnTech3/.tmp/stvef-gaps/linux-display-tmp",
+          "LIBGL_ALWAYS_SOFTWARE=1",
+          "timeout",
+          "50",
+          "xvfb-run",
+          "-a",
+          "-e",
+          "/mnt/e/Games/fnTech3-tests/linux-client-demo-vk/xvfb.log",
+          "-s",
+          "-screen 0 640x480x24 -nolisten tcp",
+          "/mnt/c/Users/djdac/.codex/worktrees/stvef-support/fnTech3/.tmp/stvef-gaps/linux-client-i686/fntech3",
+          "+set",
+          "com_gameProfile",
+          "stvef-mp",
+          "+set",
+          "fs_basepath",
+          "/mnt/e/Games/fnTech3-tests/efassets-retail",
+          "+set",
+          "fs_homepath",
+          "/mnt/e/Games/fnTech3-tests/linux-client-demo-vk",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "cl_renderer",
+          "vk",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "developer",
+          "1",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "cl_motd",
+          "0",
+          "+set",
+          "com_maxfps",
+          "60",
+          "+set",
+          "com_maxfpsUnfocused",
+          "60",
+          "+set",
+          "com_maxfpsMinimized",
+          "60",
+          "+set",
+          "net_enabled",
+          "0",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+exec",
+          "probe.cfg"
+        ],
+        "script": "set nextdemo \"exec completed.cfg\"\nset timedemo 1\ndemo linux_probe.efdemo\nwait 30\nscreenshot linux_frame\n",
+        "executableSha256": "4b2467518de5c63e379655c5f74783080afa8aadb3341c8ac652bde6e282329b",
+        "sourceSha256": "7a79a29aea4e563576f8c0e0adb6ce923a6b37f4d0c8c20aca870e685384b80a",
+        "completed": true,
+        "events": [
+          "----- Initializing Renderer ----",
+          "...loading 'libvulkan.so.1' : success",
+          "VK_RENDERER: CPU llvmpipe (LLVM 20.1.2, 256 bits), 0x0000",
+          "^5Vulkan: warmed 194 pipeline handles in 536 msec",
+          "^5Vulkan: warmed 27 pipeline handles in 37 msec",
+          "^5Warning: cvar \"cg_stereoSeparation\" given initial values: \"0\" and \"0.4\"",
+          "^5Vulkan: warmed 84 pipeline handles in 134 msec",
+          "Wrote screenshots/linux_frame.png",
+          "107 frames, 3.15 seconds: 33.9 fps",
+          "LINUX_CLIENT_COMPLETE",
+          "^5Vulkan: saved pipeline cache cache/vkpc_00010005_00000000_06402008_6c398282.bin (1 KB)",
+          "...unloading Vulkan DLL",
+          "EXPERIMENTAL ELITE FORCE DEVELOPMENT BUILD: Elite Force Holomatch module, wire and renderer adapters are not yet complete. Compatibility gates remain open.",
+          "----- Initializing Renderer ----",
+          "...loading 'libvulkan.so.1' : success",
+          "VK_RENDERER: CPU llvmpipe (LLVM 20.1.2, 256 bits), 0x0000",
+          "^5Vulkan: warmed 194 pipeline handles in 536 msec",
+          "^5Vulkan: warmed 27 pipeline handles in 37 msec",
+          "^5Warning: cvar \"cg_stereoSeparation\" given initial values: \"0\" and \"0.4\"",
+          "^5Vulkan: warmed 84 pipeline handles in 134 msec",
+          "Wrote screenshots/linux_frame.png",
+          "107 frames, 3.15 seconds: 33.9 fps",
+          "LINUX_CLIENT_COMPLETE",
+          "^5Vulkan: saved pipeline cache cache/vkpc_00010005_00000000_06402008_6c398282.bin (1 KB)",
+          "...unloading Vulkan DLL"
+        ],
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\linux-client-demo-vk\\baseEF\\screenshots\\linux_frame.png",
+            "sha256": "be8f9ecb6c415261afb821cb8b6b10a1963b52a781d1557f372778c25a585bc4"
+          }
+        ],
+        "backendEvidence": {
+          "renderer": "vk",
+          "verified": true,
+          "log": {
+            "path": "E:\\Games\\fnTech3-tests\\linux-client-demo-vk\\baseEF\\qconsole.log",
+            "bytes": 10360,
+            "sha256": "58f6bbd09fc9ac5431af11c08db45d56c15cae7597717e07a956758c16fdfed1"
+          },
+          "lines": [
+            "VK_RENDERER: CPU llvmpipe (LLVM 20.1.2, 256 bits), 0x0000",
+            "VK_VERSION: API: 1.4.318, Driver: 25.2.8"
+          ]
+        },
+        "frames": 107
+      },
+      {
+        "renderer": "rtx",
+        "exit": 0,
+        "seconds": 5.813,
+        "command": [
+          "wsl",
+          "-d",
+          "Ubuntu",
+          "--cd",
+          "/mnt/c/Users/djdac/.codex/worktrees/stvef-support/fnTech3/.tmp/stvef-gaps/linux-client-i686",
+          "--exec",
+          "env",
+          "TMPDIR=/mnt/c/Users/djdac/.codex/worktrees/stvef-support/fnTech3/.tmp/stvef-gaps/linux-display-tmp",
+          "LIBGL_ALWAYS_SOFTWARE=1",
+          "timeout",
+          "50",
+          "xvfb-run",
+          "-a",
+          "-e",
+          "/mnt/e/Games/fnTech3-tests/linux-client-demo-rtx/xvfb.log",
+          "-s",
+          "-screen 0 640x480x24 -nolisten tcp",
+          "/mnt/c/Users/djdac/.codex/worktrees/stvef-support/fnTech3/.tmp/stvef-gaps/linux-client-i686/fntech3",
+          "+set",
+          "com_gameProfile",
+          "stvef-mp",
+          "+set",
+          "fs_basepath",
+          "/mnt/e/Games/fnTech3-tests/efassets-retail",
+          "+set",
+          "fs_homepath",
+          "/mnt/e/Games/fnTech3-tests/linux-client-demo-rtx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "cl_renderer",
+          "rtx",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "developer",
+          "1",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "cl_motd",
+          "0",
+          "+set",
+          "com_maxfps",
+          "60",
+          "+set",
+          "com_maxfpsUnfocused",
+          "60",
+          "+set",
+          "com_maxfpsMinimized",
+          "60",
+          "+set",
+          "net_enabled",
+          "0",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+exec",
+          "probe.cfg"
+        ],
+        "script": "set nextdemo \"exec completed.cfg\"\nset timedemo 1\ndemo linux_probe.efdemo\nwait 30\nscreenshot linux_frame\n",
+        "executableSha256": "4b2467518de5c63e379655c5f74783080afa8aadb3341c8ac652bde6e282329b",
+        "sourceSha256": "7a79a29aea4e563576f8c0e0adb6ce923a6b37f4d0c8c20aca870e685384b80a",
+        "completed": true,
+        "events": [
+          "----- Initializing Renderer ----",
+          "...loading 'libvulkan.so.1' : success",
+          "^5Vulkan: loader API 1.3, requesting 1.2",
+          "^3Vulkan: GPU debug markers requested, but VK_EXT_debug_marker is not available on this device",
+          "^3Vulkan: GPU debug markers requested but unavailable on this device",
+          "VK_RENDERER: CPU llvmpipe (LLVM 20.1.2, 256 bits), 0x0000",
+          "^5Warning: cvar \"cg_stereoSeparation\" given initial values: \"0\" and \"0.4\"",
+          "Wrote screenshots/linux_frame.png",
+          "107 frames, 2.56 seconds: 41.8 fps",
+          "LINUX_CLIENT_COMPLETE",
+          "...unloading Vulkan DLL",
+          "EXPERIMENTAL ELITE FORCE DEVELOPMENT BUILD: Elite Force Holomatch module, wire and renderer adapters are not yet complete. Compatibility gates remain open.",
+          "----- Initializing Renderer ----",
+          "...loading 'libvulkan.so.1' : success",
+          "^5Vulkan: loader API 1.3, requesting 1.2",
+          "^3Vulkan: GPU debug markers requested, but VK_EXT_debug_marker is not available on this device",
+          "^3Vulkan: GPU debug markers requested but unavailable on this device",
+          "VK_RENDERER: CPU llvmpipe (LLVM 20.1.2, 256 bits), 0x0000",
+          "^5Warning: cvar \"cg_stereoSeparation\" given initial values: \"0\" and \"0.4\"",
+          "Wrote screenshots/linux_frame.png",
+          "107 frames, 2.56 seconds: 41.8 fps",
+          "LINUX_CLIENT_COMPLETE",
+          "...unloading Vulkan DLL"
+        ],
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\linux-client-demo-rtx\\baseEF\\screenshots\\linux_frame.png",
+            "sha256": "5ce93aba6061439199a7270a360777c17e4ac0ad5411c8887ab4376bbed637f3"
+          }
+        ],
+        "backendEvidence": {
+          "renderer": "rtx",
+          "verified": true,
+          "log": {
+            "path": "E:\\Games\\fnTech3-tests\\linux-client-demo-rtx\\baseEF\\qconsole.log",
+            "bytes": 10599,
+            "sha256": "2d644e2bbc5f07a5032e4f9a927e4f2f78eab0284ce86f15b2cdf3f882912cde"
+          },
+          "lines": [
+            "RTX capability gate: requested=disabled (0), active=disabled (0), require=0",
+            "VK_RENDERER: CPU llvmpipe (LLVM 20.1.2, 256 bits), 0x0000",
+            "VK_VERSION: API: 1.4.318, Driver: 25.2.8"
+          ]
+        },
+        "frames": 107
+      }
+    ],
+    "limitation": "Software raster only, no hardware ray tracing, no Linux audio or client network session in this record."
+  },
+  "windowsRuns": {
+    "scissor": [
+      {
+        "renderer": "glx",
+        "exit": 0,
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-check-scissor-glx\\baseEF\\screenshots\\scissor.png",
+            "bytes": 922218,
+            "sha256": "c607ef80327f0ee0805474c02198c0af61e4a23d6be556af61ecf663cb2b492f"
+          }
+        ],
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\renderer-probe-bin\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:/Games/Star Trek Voyager Elite Force",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-renderer-check-scissor-glx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "developer",
+          "1",
+          "+set",
+          "r_bloom",
+          "0",
+          "+set",
+          "stvef_scissorProbe",
+          "1",
+          "+set",
+          "com_maxfps",
+          "60",
+          "+set",
+          "com_maxfpsUnfocused",
+          "60",
+          "+set",
+          "cl_drawFPS",
+          "0",
+          "+set",
+          "cl_drawSpeed",
+          "0",
+          "+exec",
+          "probe.cfg"
+        ],
+        "size": [
+          640,
+          480
+        ],
+        "colors": {
+          "(0, 0, 255)": 282800,
+          "(0, 255, 0)": 24000,
+          "(255, 0, 0)": 400
+        },
+        "samples": {
+          "0,0": [
+            0,
+            0,
+            255
+          ],
+          "15,15": [
+            255,
+            0,
+            0
+          ],
+          "100,80": [
+            0,
+            0,
+            255
+          ],
+          "100,81": [
+            0,
+            255,
+            0
+          ],
+          "299,200": [
+            0,
+            255,
+            0
+          ],
+          "300,201": [
+            0,
+            0,
+            255
+          ],
+          "400,400": [
+            0,
+            0,
+            255
+          ]
+        },
+        "backendVerified": true,
+        "backendEvidence": {
+          "renderer": "glx",
+          "verified": true,
+          "log": {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-check-scissor-glx\\baseEF\\qconsole.log",
+            "bytes": 12303,
+            "sha256": "c92523527184d1e7802a3ad7fcf878ccc74b428266d0a4f72e2513829865b346"
+          },
+          "lines": [
+            "GL_RENDERER: NVIDIA GeForce RTX 4060 Laptop GPU/PCIe/SSE2",
+            "GL_VERSION: 4.6.0 NVIDIA 591.74",
+            "current renderer: glx"
+          ]
+        }
+      },
+      {
+        "renderer": "vk",
+        "exit": 0,
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-check-scissor-vk\\baseEF\\screenshots\\scissor.png",
+            "bytes": 922218,
+            "sha256": "c607ef80327f0ee0805474c02198c0af61e4a23d6be556af61ecf663cb2b492f"
+          }
+        ],
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\renderer-probe-bin\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:/Games/Star Trek Voyager Elite Force",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-renderer-check-scissor-vk",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "cl_renderer",
+          "vk",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "developer",
+          "1",
+          "+set",
+          "r_bloom",
+          "0",
+          "+set",
+          "stvef_scissorProbe",
+          "1",
+          "+set",
+          "com_maxfps",
+          "60",
+          "+set",
+          "com_maxfpsUnfocused",
+          "60",
+          "+set",
+          "cl_drawFPS",
+          "0",
+          "+set",
+          "cl_drawSpeed",
+          "0",
+          "+exec",
+          "probe.cfg"
+        ],
+        "size": [
+          640,
+          480
+        ],
+        "colors": {
+          "(0, 0, 255)": 282800,
+          "(0, 255, 0)": 24000,
+          "(255, 0, 0)": 400
+        },
+        "samples": {
+          "0,0": [
+            0,
+            0,
+            255
+          ],
+          "15,15": [
+            255,
+            0,
+            0
+          ],
+          "100,80": [
+            0,
+            0,
+            255
+          ],
+          "100,81": [
+            0,
+            255,
+            0
+          ],
+          "299,200": [
+            0,
+            255,
+            0
+          ],
+          "300,201": [
+            0,
+            0,
+            255
+          ],
+          "400,400": [
+            0,
+            0,
+            255
+          ]
+        },
+        "backendVerified": true,
+        "backendEvidence": {
+          "renderer": "vk",
+          "verified": true,
+          "log": {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-check-scissor-vk\\baseEF\\qconsole.log",
+            "bytes": 11369,
+            "sha256": "4de371642f9754b445e47303ff0e674f01a495457ab33762148c332acc9790a0"
+          },
+          "lines": [
+            "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+            "VK_VERSION: API: 1.4.325, Driver: 591.74.0.0",
+            "current renderer: vk"
+          ]
+        }
+      },
+      {
+        "renderer": "rtx",
+        "exit": 0,
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-check-scissor-rtx\\baseEF\\screenshots\\scissor.png",
+            "bytes": 922218,
+            "sha256": "c607ef80327f0ee0805474c02198c0af61e4a23d6be556af61ecf663cb2b492f"
+          }
+        ],
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\renderer-probe-bin\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:/Games/Star Trek Voyager Elite Force",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-renderer-check-scissor-rtx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "cl_renderer",
+          "rtx",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "developer",
+          "1",
+          "+set",
+          "r_bloom",
+          "0",
+          "+set",
+          "stvef_scissorProbe",
+          "1",
+          "+set",
+          "com_maxfps",
+          "60",
+          "+set",
+          "com_maxfpsUnfocused",
+          "60",
+          "+set",
+          "cl_drawFPS",
+          "0",
+          "+set",
+          "cl_drawSpeed",
+          "0",
+          "+exec",
+          "probe.cfg"
+        ],
+        "size": [
+          640,
+          480
+        ],
+        "colors": {
+          "(0, 0, 255)": 282800,
+          "(0, 255, 0)": 24000,
+          "(255, 0, 0)": 400
+        },
+        "samples": {
+          "0,0": [
+            0,
+            0,
+            255
+          ],
+          "15,15": [
+            255,
+            0,
+            0
+          ],
+          "100,80": [
+            0,
+            0,
+            255
+          ],
+          "100,81": [
+            0,
+            255,
+            0
+          ],
+          "299,200": [
+            0,
+            255,
+            0
+          ],
+          "300,201": [
+            0,
+            0,
+            255
+          ],
+          "400,400": [
+            0,
+            0,
+            255
+          ]
+        },
+        "backendVerified": true,
+        "backendEvidence": {
+          "renderer": "rtx",
+          "verified": true,
+          "log": {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-check-scissor-rtx\\baseEF\\qconsole.log",
+            "bytes": 11483,
+            "sha256": "46a5d9e4aa5b3d6d3f85a07bb9d41c386cafda7168bffc53be17795e7f504a47"
+          },
+          "lines": [
+            "RTX capability gate: requested=disabled (0), active=disabled (0), require=0",
+            "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+            "VK_VERSION: API: 1.4.325, Driver: 591.74.0.0",
+            "current renderer: rtx"
+          ]
+        }
+      }
+    ],
+    "shadows": [
+      {
+        "engine": "after-vk",
+        "exit": 0,
+        "seconds": 23.671,
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-renderer-check-shadow-after-vk",
+          "+set",
+          "cl_renderer",
+          "vk",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_FirstTime",
+          "1",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+exec",
+          "probe.cfg"
+        ],
+        "script": "wait 60\nload mdr_scene\nwait 90\ncg_draw2D 0\ncg_drawGun 0\nset cg_fov 110\nnpc spawn tuvok\nwait 600\nset d_npcfreeze 1\nset cg_noplayeranims 1\nset cg_shadows 0\nwait 10\nscreenshot shadow_off\nwait 3\nset cg_shadows 1\nwait 10\nscreenshot shadow_blob\nwait 3\nset cg_shadows 2\nwait 10\nscreenshot shadow_stencil\nwait 3\nset cg_shadows 3\nwait 10\nscreenshot shadow_projection\nwait 3\necho SHADOW_PROBE_COMPLETE\nquit\n",
+        "completed": true,
+        "events": [
+          "Using 24 color bits, 24 depth, 8 stencil display.",
+          "PIXELFORMAT: color(24-bits) Z(24-bit) stencil(8-bits)",
+          "VM_LoadDll: loaded native module cache 'E:\\Games\\fnTech3-tests\\stvef-renderer-check-shadow-after-vk\\.tmp\\native\\6bb140755c3e6672723717b29086e361\\efuix86.dll'",
+          "VM_LoadDll: loaded native module cache 'E:\\Games\\fnTech3-tests\\stvef-renderer-check-shadow-after-vk\\.tmp\\native\\6bb140755c3e6672723717b29086e361\\efgamex86.dll'",
+          "VM_LoadDll: loaded native module cache 'E:\\Games\\fnTech3-tests\\stvef-renderer-check-shadow-after-vk\\.tmp\\native\\6bb140755c3e6672723717b29086e361\\efuix86.dll'",
+          "Wrote screenshots/shadow_off.png",
+          "Wrote screenshots/shadow_blob.png",
+          "Wrote screenshots/shadow_stencil.png",
+          "Wrote screenshots/shadow_projection.png",
+          "SHADOW_PROBE_COMPLETE"
+        ],
+        "captures": [
+          {
+            "name": "shadow_blob.png",
+            "sha256": "016609434681058d2db2c1a4dfce8e11e59de572d986de5999a49368f3f2315b"
+          },
+          {
+            "name": "shadow_off.png",
+            "sha256": "521f7a4bdc09d280333edb660c0aa35c3328652404d586dbf8607e0e7d66ce84"
+          },
+          {
+            "name": "shadow_projection.png",
+            "sha256": "1032b7c90dcadf22a90b16edd69823c42d6d29a90185de3abe54b6ca5901753b"
+          },
+          {
+            "name": "shadow_stencil.png",
+            "sha256": "22f366f57911c11411dd9ffa42c0b19e31e081c51c1d77543680e066628ceeed"
+          }
+        ],
+        "backendEvidence": {
+          "renderer": "vk",
+          "verified": true,
+          "log": {
+            "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\renderer-check-shadows\\after-vk\\qconsole.log",
+            "bytes": 6702,
+            "sha256": "2ec71c18d2389925a274dbab90d4ec8d168da6c3e6ab00901ac26dc0fb1d61e3"
+          },
+          "lines": [
+            "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+            "VK_VERSION: API: 1.4.325, Driver: 591.74.0.0"
+          ]
+        }
+      },
+      {
+        "engine": "after-rtx",
+        "exit": 0,
+        "seconds": 20.719,
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-renderer-check-shadow-after-rtx",
+          "+set",
+          "cl_renderer",
+          "rtx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_FirstTime",
+          "1",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+exec",
+          "probe.cfg"
+        ],
+        "script": "wait 60\nload mdr_scene\nwait 90\ncg_draw2D 0\ncg_drawGun 0\nset cg_fov 110\nnpc spawn tuvok\nwait 600\nset d_npcfreeze 1\nset cg_noplayeranims 1\nset cg_shadows 0\nwait 10\nscreenshot shadow_off\nwait 3\nset cg_shadows 1\nwait 10\nscreenshot shadow_blob\nwait 3\nset cg_shadows 2\nwait 10\nscreenshot shadow_stencil\nwait 3\nset cg_shadows 3\nwait 10\nscreenshot shadow_projection\nwait 3\necho SHADOW_PROBE_COMPLETE\nquit\n",
+        "completed": true,
+        "events": [
+          "Using 24 color bits, 24 depth, 8 stencil display.",
+          "PIXELFORMAT: color(24-bits) Z(24-bit) stencil(8-bits)",
+          "VM_LoadDll: loaded native module cache 'E:\\Games\\fnTech3-tests\\stvef-renderer-check-shadow-after-rtx\\.tmp\\native\\35167193bc03c61a8a5d73924046353c\\efuix86.dll'",
+          "VM_LoadDll: loaded native module cache 'E:\\Games\\fnTech3-tests\\stvef-renderer-check-shadow-after-rtx\\.tmp\\native\\35167193bc03c61a8a5d73924046353c\\efgamex86.dll'",
+          "VM_LoadDll: loaded native module cache 'E:\\Games\\fnTech3-tests\\stvef-renderer-check-shadow-after-rtx\\.tmp\\native\\35167193bc03c61a8a5d73924046353c\\efuix86.dll'",
+          "Wrote screenshots/shadow_off.png",
+          "Wrote screenshots/shadow_blob.png",
+          "Wrote screenshots/shadow_stencil.png",
+          "Wrote screenshots/shadow_projection.png",
+          "SHADOW_PROBE_COMPLETE"
+        ],
+        "captures": [
+          {
+            "name": "shadow_blob.png",
+            "sha256": "ba166ac9c4191a0ee33fcb9ad2c8d7604179a39c276a6e3b64cf18719aa4739f"
+          },
+          {
+            "name": "shadow_off.png",
+            "sha256": "7cee9bd7ca597c61d1f88d222c293b13d925b4dcd4cceb9a231678b502362ef9"
+          },
+          {
+            "name": "shadow_projection.png",
+            "sha256": "9d4eee72b8e456efb54eb05a6f4926e366647e7e543af94aa3747b77186d7d9e"
+          },
+          {
+            "name": "shadow_stencil.png",
+            "sha256": "d090ad77778db3134fb3af86deb7327e6adeecd0778f40bd2ebcc764ec19fa68"
+          }
+        ],
+        "backendEvidence": {
+          "renderer": "rtx",
+          "verified": true,
+          "log": {
+            "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\renderer-check-shadows\\after-rtx\\qconsole.log",
+            "bytes": 7092,
+            "sha256": "16f7d9880d13c1b5c90b4a0be0ce80bb7a26fbcbf8e5230cfb38f4e21874efb7"
+          },
+          "lines": [
+            "RTX capability gate: requested=disabled (0), active=disabled (0), require=0",
+            "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+            "VK_VERSION: API: 1.4.325, Driver: 591.74.0.0"
+          ]
+        }
+      }
+    ],
+    "effects": [
+      {
+        "renderer": "vk",
+        "exit": 0,
+        "seconds": 3.578,
+        "completed": true,
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-mp",
+          "+set",
+          "fs_basepath",
+          "E:/Games/Star Trek Voyager Elite Force",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-renderer-check-effects-vk",
+          "+set",
+          "cl_renderer",
+          "vk",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+exec",
+          "probe.cfg"
+        ],
+        "script": "wait 60\nset timedemo 1\ndemo demo0000\nwait 10\nscreenshot fx_early\nwait 268\nscreenshot fx_shield\nwait 182\nscreenshot fx_later\nwait 3\necho SURFACE_PROBE_COMPLETE\nquit\n",
+        "events": [
+          "CL_FirstSnapshot: maps/CTF_VOY2.bsp, cgame 1289 ms, snapshot wait 1 ms",
+          "Wrote screenshots/fx_early.png",
+          "Wrote screenshots/fx_shield.png",
+          "Wrote screenshots/fx_later.png",
+          "SURFACE_PROBE_COMPLETE"
+        ],
+        "captures": [
+          {
+            "name": "fx_early.png",
+            "sha256": "921be1a3eed375d1f50ff43f4cb1c6f8de63d8609751a6f0edef76213c64df43"
+          },
+          {
+            "name": "fx_later.png",
+            "sha256": "55ad081890db2ec25b06c4abe822d1f95fd6204098b9ea34712bb56fba2b54cf"
+          },
+          {
+            "name": "fx_shield.png",
+            "sha256": "eef85caffd3da3fd9daae08b1df95ee39d1c40af764f37f65ae4ca2328e6c638"
+          }
+        ],
+        "backendEvidence": {
+          "renderer": "vk",
+          "verified": true,
+          "log": {
+            "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\renderer-check-effects\\vk\\qconsole.log",
+            "bytes": 16797,
+            "sha256": "732ed48f487367b4338621ccd8cc361d400abb752ff299706976e76aaf236e0b"
+          },
+          "lines": [
+            "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+            "VK_VERSION: API: 1.4.325, Driver: 591.74.0.0"
+          ]
+        }
+      },
+      {
+        "renderer": "rtx",
+        "exit": 0,
+        "seconds": 2.406,
+        "completed": true,
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-mp",
+          "+set",
+          "fs_basepath",
+          "E:/Games/Star Trek Voyager Elite Force",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-renderer-check-effects-rtx",
+          "+set",
+          "cl_renderer",
+          "rtx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+exec",
+          "probe.cfg"
+        ],
+        "script": "wait 60\nset timedemo 1\ndemo demo0000\nwait 10\nscreenshot fx_early\nwait 268\nscreenshot fx_shield\nwait 182\nscreenshot fx_later\nwait 3\necho SURFACE_PROBE_COMPLETE\nquit\n",
+        "events": [
+          "CL_FirstSnapshot: maps/CTF_VOY2.bsp, cgame 757 ms, snapshot wait 1 ms",
+          "Wrote screenshots/fx_early.png",
+          "Wrote screenshots/fx_shield.png",
+          "Wrote screenshots/fx_later.png",
+          "SURFACE_PROBE_COMPLETE"
+        ],
+        "captures": [
+          {
+            "name": "fx_early.png",
+            "sha256": "ea7cc38bc5991451844b2bd411d1832d3ecb627c76dbbdade4cd38952ccb98c9"
+          },
+          {
+            "name": "fx_later.png",
+            "sha256": "2e96af99b994677c4dae943e95bd84586bd89884823ec3dfd1aaa8f71f2d2fe9"
+          },
+          {
+            "name": "fx_shield.png",
+            "sha256": "4f44432707ac2239580539da5a27abd3db4e0f6ace1ea741cabb2f8aa28572d0"
+          }
+        ],
+        "backendEvidence": {
+          "renderer": "rtx",
+          "verified": true,
+          "log": {
+            "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\renderer-check-effects\\rtx\\qconsole.log",
+            "bytes": 17013,
+            "sha256": "b25d07647b7423f5d4d6ca053eaa43ba08758461c39da257433c8103129f2041"
+          },
+          "lines": [
+            "RTX capability gate: requested=disabled (0), active=disabled (0), require=0",
+            "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+            "VK_VERSION: API: 1.4.325, Driver: 591.74.0.0"
+          ]
+        }
+      }
+    ],
+    "presentation": [
+      {
+        "renderer": "vk",
+        "exit": 0,
+        "seconds": 41.391,
+        "launch": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:/Games/Star Trek Voyager Elite Force",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-renderer-check-presentation-vk",
+          "+set",
+          "cl_renderer",
+          "vk",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+exec",
+          "probe.cfg"
+        ],
+        "clientSHA256": "472cbc04661deec1fd4fe3a2a1380251ff34b3147ec9ac4a33e68ed1a3fce151",
+        "commands": "wait 60\nset nextmap \"echo PRESENTATION_NATURAL_END\"\ncinematic st_01\nwait 1\nscreenshot presentation_fade_00\nwait 15\nscreenshot presentation_fade_01\nwait 15\nscreenshot presentation_fade_02\nwait 15\nscreenshot presentation_fade_03\nwait 15\nscreenshot presentation_fade_04\nwait 15\nscreenshot presentation_fade_05\nwait 15\nscreenshot presentation_fade_06\nwait 15\nscreenshot presentation_fade_07\nwait 15\nscreenshot presentation_fade_08\nwait 15\nscreenshot presentation_fade_09\nwait 15\nscreenshot presentation_fade_10\nwait 15\nscreenshot presentation_fade_11\nwait 15\nscreenshot presentation_fade_12\nwait 15\nscreenshot presentation_fade_13\nwait 15\nscreenshot presentation_fade_14\nwait 15\nscreenshot presentation_fade_15\nwait 15\nscreenshot presentation_fade_16\nwait 15\nscreenshot presentation_fade_17\nwait 15\nscreenshot presentation_fade_18\nwait 15\nscreenshot presentation_fade_19\nwait 15\nscreenshot presentation_fade_20\nwait 15\nscreenshot presentation_fade_21\nwait 15\nscreenshot presentation_fade_22\nwait 15\nscreenshot presentation_fade_23\nwait 15\nscreenshot presentation_fade_24\nwait 15\nscreenshot presentation_fade_25\nwait 15\nscreenshot presentation_fade_26\nwait 15\nscreenshot presentation_fade_27\nwait 15\nscreenshot presentation_fade_28\nwait 15\nscreenshot presentation_fade_29\nwait 15\nscreenshot presentation_fade_30\nwait 15\nscreenshot presentation_fade_31\nwait 15\nset cl_VidFadeUp 0\nset cl_VideoQuality 0\ncinematic st_01 1\nwait 360\nscreenshot presentation_quality_0\nwait 2\nset cl_VidFadeUp 0\nset cl_VideoQuality 1\ncinematic st_01 1\nwait 360\nscreenshot presentation_quality_1\nwait 2\nset cl_VidFadeUp 0\nset cl_VideoQuality 2\ncinematic st_01 1\nwait 360\nscreenshot presentation_quality_2\nwait 2\ndisconnect\necho PRESENTATION_COMPLETE\nwait 2\nquit\n",
+        "events": [
+          "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+          "^5Bink finished: video/st_01.bik",
+          "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+          "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+          "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+          "PRESENTATION_COMPLETE"
+        ],
+        "captures": [
+          {
+            "name": "presentation_fade_00.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              0.007392578125,
+              0.0023795572916666665,
+              0.00181640625
+            ],
+            "sha256": "462ee5d63ad0c9da671759a13219e6b70db274b011f2393e1ace7cbb739ba28c"
+          },
+          {
+            "name": "presentation_fade_01.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              1.4725651041666667,
+              1.240126953125,
+              1.21560546875
+            ],
+            "sha256": "4e80675ec8fee66a2e8bc043cae1146c51e72b93e45b97763293ce322d336710"
+          },
+          {
+            "name": "presentation_fade_02.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              5.176243489583333,
+              4.375501302083333,
+              4.2888411458333335
+            ],
+            "sha256": "b84e908f0f63374b8249aa6153e8e2cb8e5398131d67c5f553c9c34b23c88c7f"
+          },
+          {
+            "name": "presentation_fade_03.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              6.262623697916666,
+              5.2951171875,
+              5.19025390625
+            ],
+            "sha256": "b59c3f95ef0174ff06beab7138d8c30f772342a029d0a4093cfa5109f6d69e2e"
+          },
+          {
+            "name": "presentation_fade_04.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              6.201751302083333,
+              5.262490234375,
+              5.180794270833333
+            ],
+            "sha256": "7d30402b19ab5a76bfaa8c9b845660273af14713d499320026287ad409bc58a9"
+          },
+          {
+            "name": "presentation_fade_05.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              6.24818359375,
+              5.304638671875,
+              5.230501302083334
+            ],
+            "sha256": "ba938592320aaf191ed73b7e4dd7a25dba0ce7c0ded1a001ffdc5ddff90f4aed"
+          },
+          {
+            "name": "presentation_fade_06.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              6.3219140625,
+              5.336090494791667,
+              5.269078776041667
+            ],
+            "sha256": "93b79eceb040d9cf3790c29fd7761bb29034718ed2f9f3c04f005139beac9b2b"
+          },
+          {
+            "name": "presentation_fade_07.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              6.336927083333333,
+              5.35884765625,
+              5.290511067708334
+            ],
+            "sha256": "082bd67a4a3733c4105f9923e3dd6aaec44afd3e35dd2bd8b4323c2530e46a5c"
+          },
+          {
+            "name": "presentation_fade_08.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              6.3322526041666665,
+              5.35802734375,
+              5.3113671875
+            ],
+            "sha256": "e158ab16038d5115bd7508bd5d47d27d33c1a5c3a9f39845c5fe23d87a086bba"
+          },
+          {
+            "name": "presentation_fade_09.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              14.877145182291667,
+              7.913287760416667,
+              10.756497395833334
+            ],
+            "sha256": "a414935a19069f568c10c3c115bb018170821ce4b00d27840d0fea3ee341083b"
+          },
+          {
+            "name": "presentation_fade_10.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              22.428206380208334,
+              13.317679036458333,
+              17.92279296875
+            ],
+            "sha256": "ff3d07c4d007ae50d8f0704abe7fbc7bc11255f6cd77c01fe35ad87552b3293e"
+          },
+          {
+            "name": "presentation_fade_11.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              30.372805989583334,
+              16.241630859375,
+              21.96945638020833
+            ],
+            "sha256": "b5c7310bb25ba9d1e55914ecff05fad5922fc4ef5ef56c854e18772536156484"
+          },
+          {
+            "name": "presentation_fade_12.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              26.486233723958332,
+              14.934462890625,
+              19.3517578125
+            ],
+            "sha256": "8262e7a2c1b18a37050b944261daacf2761066d689c47a8523cfb83ae76f7099"
+          },
+          {
+            "name": "presentation_fade_13.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              22.217171223958335,
+              13.601337890625,
+              16.369830729166665
+            ],
+            "sha256": "54d7e2e33c006b3541b5735370eb89f9889fac8c7c0943deff0c6e72ae649715"
+          },
+          {
+            "name": "presentation_fade_14.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              15.9185546875,
+              10.497506510416667,
+              12.074417317708333
+            ],
+            "sha256": "0b25d1e1cee1eab1d58b654bfc61f681de5b5923e71c4718f8f370c9ad2a7ab6"
+          },
+          {
+            "name": "presentation_fade_15.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              13.982281901041667,
+              9.355462239583334,
+              10.677220052083333
+            ],
+            "sha256": "86fa5605527b3edcb7f4cad7c90bc0a5567b50ee4235c1be7b26921582e8d67c"
+          },
+          {
+            "name": "presentation_fade_16.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              12.648997395833334,
+              8.225305989583333,
+              9.599645182291667
+            ],
+            "sha256": "38bdb4b55cb9491946375b673db5042e906ebbdf7633e40ed176961e5ff9149b"
+          },
+          {
+            "name": "presentation_fade_17.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              10.75115234375,
+              7.391666666666667,
+              8.426373697916667
+            ],
+            "sha256": "948679e88e55dd3da03cbac9a3930197d188200ae7c420b7b65bf825d55bd01d"
+          },
+          {
+            "name": "presentation_fade_18.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              13.078893229166667,
+              8.272763671875,
+              10.501712239583334
+            ],
+            "sha256": "d73a6ccfbf1c1a097fc8c37b200ef88d6831067af945cda138db35d41fd87af5"
+          },
+          {
+            "name": "presentation_fade_19.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              10.942171223958333,
+              8.015237630208333,
+              8.936751302083334
+            ],
+            "sha256": "9bd47d45d248e5bd28307cc1896a68e1b280188e33553731f86eb1b264578cdf"
+          },
+          {
+            "name": "presentation_fade_20.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              6.5259407552083335,
+              5.367513020833333,
+              5.64115234375
+            ],
+            "sha256": "d08bb1a29be8f68283a4f705933d354388a67de83bc8c9626fcd6cb26e40305d"
+          },
+          {
+            "name": "presentation_fade_21.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              6.2239778645833335,
+              5.2019661458333335,
+              5.417942708333333
+            ],
+            "sha256": "32086f22c2370fce1a000af05e315f73df44807d725c0840da1b52ec4fc2b9f1"
+          },
+          {
+            "name": "presentation_fade_22.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              5.91126953125,
+              5.025442708333333,
+              5.182356770833334
+            ],
+            "sha256": "b7ecb178661ad46bec538c64de8ca68eef24708647e8cdac8537d80acbed2168"
+          },
+          {
+            "name": "presentation_fade_23.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              5.838326822916667,
+              4.977740885416667,
+              5.142252604166667
+            ],
+            "sha256": "959fd94e77a724528115b064a95db6e055361f7731bc14d2a6e1741cd2385691"
+          },
+          {
+            "name": "presentation_fade_24.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              5.833785807291667,
+              4.971276041666667,
+              5.139020182291667
+            ],
+            "sha256": "c6a990c0a86dcedff38a6ccce550364167eab806bf3478e1750991f13df65462"
+          },
+          {
+            "name": "presentation_fade_25.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              5.786393229166666,
+              4.946500651041666,
+              5.10859375
+            ],
+            "sha256": "815e63131f33d87dcf827f710d5a4449473c87a2350a926af1dd673333d8bd13"
+          },
+          {
+            "name": "presentation_fade_26.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              5.7851953125,
+              4.947649739583333,
+              5.116767578125
+            ],
+            "sha256": "b51684fa5073cc2c997957e418051e688071fa577dfdb159e093d02117d9c52a"
+          },
+          {
+            "name": "presentation_fade_27.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              2.4315397135416665,
+              2.0722265625,
+              2.1491178385416667
+            ],
+            "sha256": "6c9501ce18156db0709899b709638f92d706966a3f1d7aae82aef6735c2fadbe"
+          },
+          {
+            "name": "presentation_fade_28.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              26.372434895833333,
+              15.762418619791667,
+              12.410270182291667
+            ],
+            "sha256": "dc9b14a3e6bb74aa17be3097d68013fc8195ee0c56a2eaa2431875dee523f695"
+          },
+          {
+            "name": "presentation_fade_29.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              26.372434895833333,
+              15.762418619791667,
+              12.410270182291667
+            ],
+            "sha256": "dc9b14a3e6bb74aa17be3097d68013fc8195ee0c56a2eaa2431875dee523f695"
+          },
+          {
+            "name": "presentation_fade_30.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              27.80419921875,
+              17.283889973958335,
+              13.685315755208334
+            ],
+            "sha256": "9e2759a37f9dd0e7da9ccd4b28b494a12c5685ea27bad2f9538bf8e5f8211deb"
+          },
+          {
+            "name": "presentation_fade_31.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              26.372434895833333,
+              15.762418619791667,
+              12.410270182291667
+            ],
+            "sha256": "dc9b14a3e6bb74aa17be3097d68013fc8195ee0c56a2eaa2431875dee523f695"
+          },
+          {
+            "name": "presentation_quality_0.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              5.770787760416667,
+              4.9304817708333335,
+              5.09953125
+            ],
+            "sha256": "53ed16f526918d750b5b8ad23b31a72363f6b5cead49d3a8ca82aeb5ee584dce"
+          },
+          {
+            "name": "presentation_quality_1.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              5.7851953125,
+              4.947649739583333,
+              5.116767578125
+            ],
+            "sha256": "b51684fa5073cc2c997957e418051e688071fa577dfdb159e093d02117d9c52a"
+          },
+          {
+            "name": "presentation_quality_2.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              13.167034505208333,
+              10.712828776041667,
+              10.277724609375
+            ],
+            "sha256": "43784791b3ffa633e3c00322a06561e474f51fc9cf1f2f63369bdedc02af3b6a"
+          }
+        ],
+        "backendEvidence": {
+          "renderer": "vk",
+          "verified": true,
+          "log": {
+            "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\renderer-check-presentation-captures\\vk\\qconsole.log",
+            "bytes": 13223,
+            "sha256": "854faf1c8340194595ac9e3338e902410491ce29dd5c1047db057f544d1c9065"
+          },
+          "lines": [
+            "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+            "VK_VERSION: API: 1.4.325, Driver: 591.74.0.0"
+          ]
+        }
+      },
+      {
+        "renderer": "rtx",
+        "exit": 0,
+        "seconds": 40.641,
+        "launch": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:/Games/Star Trek Voyager Elite Force",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-renderer-check-presentation-rtx",
+          "+set",
+          "cl_renderer",
+          "rtx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+exec",
+          "probe.cfg"
+        ],
+        "clientSHA256": "472cbc04661deec1fd4fe3a2a1380251ff34b3147ec9ac4a33e68ed1a3fce151",
+        "commands": "wait 60\nset nextmap \"echo PRESENTATION_NATURAL_END\"\ncinematic st_01\nwait 1\nscreenshot presentation_fade_00\nwait 15\nscreenshot presentation_fade_01\nwait 15\nscreenshot presentation_fade_02\nwait 15\nscreenshot presentation_fade_03\nwait 15\nscreenshot presentation_fade_04\nwait 15\nscreenshot presentation_fade_05\nwait 15\nscreenshot presentation_fade_06\nwait 15\nscreenshot presentation_fade_07\nwait 15\nscreenshot presentation_fade_08\nwait 15\nscreenshot presentation_fade_09\nwait 15\nscreenshot presentation_fade_10\nwait 15\nscreenshot presentation_fade_11\nwait 15\nscreenshot presentation_fade_12\nwait 15\nscreenshot presentation_fade_13\nwait 15\nscreenshot presentation_fade_14\nwait 15\nscreenshot presentation_fade_15\nwait 15\nscreenshot presentation_fade_16\nwait 15\nscreenshot presentation_fade_17\nwait 15\nscreenshot presentation_fade_18\nwait 15\nscreenshot presentation_fade_19\nwait 15\nscreenshot presentation_fade_20\nwait 15\nscreenshot presentation_fade_21\nwait 15\nscreenshot presentation_fade_22\nwait 15\nscreenshot presentation_fade_23\nwait 15\nscreenshot presentation_fade_24\nwait 15\nscreenshot presentation_fade_25\nwait 15\nscreenshot presentation_fade_26\nwait 15\nscreenshot presentation_fade_27\nwait 15\nscreenshot presentation_fade_28\nwait 15\nscreenshot presentation_fade_29\nwait 15\nscreenshot presentation_fade_30\nwait 15\nscreenshot presentation_fade_31\nwait 15\nset cl_VidFadeUp 0\nset cl_VideoQuality 0\ncinematic st_01 1\nwait 360\nscreenshot presentation_quality_0\nwait 2\nset cl_VidFadeUp 0\nset cl_VideoQuality 1\ncinematic st_01 1\nwait 360\nscreenshot presentation_quality_1\nwait 2\nset cl_VidFadeUp 0\nset cl_VideoQuality 2\ncinematic st_01 1\nwait 360\nscreenshot presentation_quality_2\nwait 2\ndisconnect\necho PRESENTATION_COMPLETE\nwait 2\nquit\n",
+        "events": [
+          "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+          "^5Bink finished: video/st_01.bik",
+          "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+          "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+          "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+          "PRESENTATION_COMPLETE"
+        ],
+        "captures": [
+          {
+            "name": "presentation_fade_00.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              0.20255533854166666,
+              0.11503255208333334,
+              0.10157552083333334
+            ],
+            "sha256": "7232a1dec99352a51b0a91e58842fe6fa7dfa57b82a4436041c7ce258bf9c65f"
+          },
+          {
+            "name": "presentation_fade_01.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              2.7148958333333333,
+              2.1405338541666667,
+              2.05912109375
+            ],
+            "sha256": "9df3550aaafed04e0d15b90feb665a20c7c610e88a56bb6caae1dd7b2ddfe3da"
+          },
+          {
+            "name": "presentation_fade_02.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              4.206722005208333,
+              3.440107421875,
+              3.350546875
+            ],
+            "sha256": "4463be69f003facc89fc0bf4480ce3840462d109679beaa8615970963d937f07"
+          },
+          {
+            "name": "presentation_fade_03.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              6.585436197916667,
+              5.551702473958334,
+              5.439407552083333
+            ],
+            "sha256": "87a4941cf3227ee698ceb268ff7daba0d2d1a745c34ed4daf05b54096742708d"
+          },
+          {
+            "name": "presentation_fade_04.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              6.4787369791666665,
+              5.485631510416667,
+              5.40126953125
+            ],
+            "sha256": "25fa033c5044fdfef91bd7333cf0c36ac0bb1229b7a998cb7ced80a1949bbf1d"
+          },
+          {
+            "name": "presentation_fade_05.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              6.562311197916666,
+              5.5451171875,
+              5.474775390625
+            ],
+            "sha256": "5888563c1b94086b9a0ac3683238a12e0976ccfbc6dee04a83b8f901b1153df8"
+          },
+          {
+            "name": "presentation_fade_06.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              6.614970703125,
+              5.571982421875,
+              5.503092447916667
+            ],
+            "sha256": "50235e8373573e42f5f8c111975832b66cbe6cf040bd363edad7a7057369602a"
+          },
+          {
+            "name": "presentation_fade_07.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              6.638268229166667,
+              5.591975911458333,
+              5.539456380208334
+            ],
+            "sha256": "9ccc7811abc8d2279962fb859e8c00dfa464d8011fb7814cea373a2854e78fab"
+          },
+          {
+            "name": "presentation_fade_08.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              9.265348307291667,
+              6.052760416666667,
+              6.96658203125
+            ],
+            "sha256": "96853f32a8016ba0213a134196f0fdb3a62ff5a720fadc274f44f74039dad5fa"
+          },
+          {
+            "name": "presentation_fade_09.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              19.764762369791665,
+              11.169329427083333,
+              15.124690755208333
+            ],
+            "sha256": "a486f7096a8bdda4709377bf2989206b72560d44234cb806f98042a0d0aa177d"
+          },
+          {
+            "name": "presentation_fade_10.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              23.234765625,
+              13.585953776041666,
+              17.981728515625
+            ],
+            "sha256": "042cdd4330e591e1150903718cf9c9a5fa815a512e0b886a150c8c36cd6ab6d8"
+          },
+          {
+            "name": "presentation_fade_11.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              29.981686197916666,
+              16.306409505208332,
+              21.629309895833334
+            ],
+            "sha256": "d4bfc48ece651bc08508d454b73945a26db6725f999a1734b52e77a8d85c6479"
+          },
+          {
+            "name": "presentation_fade_12.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              24.106354166666666,
+              14.8775390625,
+              18.029560546875
+            ],
+            "sha256": "728fbd90cb9b7073ebc0d0af2a51ed6573519e58f880c3f3c9cc854570b3ea92"
+          },
+          {
+            "name": "presentation_fade_13.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              19.921627604166666,
+              12.438779296875,
+              14.684827473958334
+            ],
+            "sha256": "b91f74207f71f6108278bf68b4faac6595836024da9df98f0dc1a34b67314541"
+          },
+          {
+            "name": "presentation_fade_14.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              15.113427734375,
+              10.249319661458333,
+              11.603606770833334
+            ],
+            "sha256": "50a499dc11a5e3df09f56b94b69ad411d418763147445e040176ef32795bafac"
+          },
+          {
+            "name": "presentation_fade_15.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              13.487216796875,
+              8.925963541666667,
+              10.268655598958333
+            ],
+            "sha256": "17bca6fc7ef0162bc091afa2674cc550d5bd398ce38c158927abf0cbb2062d6f"
+          },
+          {
+            "name": "presentation_fade_16.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              12.058893229166667,
+              8.041995442708334,
+              9.214114583333334
+            ],
+            "sha256": "09e0f589ec6ccdb07d6668924f3a03c5464745f9122594e1d432860edf7b4819"
+          },
+          {
+            "name": "presentation_fade_17.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              15.99857421875,
+              9.7089453125,
+              12.491184895833333
+            ],
+            "sha256": "c188e930c0b9e8540d9bd96b2f3f93ad801e543d73e490a5f6f632981d1aa380"
+          },
+          {
+            "name": "presentation_fade_18.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              13.368746744791666,
+              8.517604166666667,
+              10.738111979166666
+            ],
+            "sha256": "11ed1cfcff1aed6e00c744ecf4b4e2a90a48855d347e7e3f61edee3654928f20"
+          },
+          {
+            "name": "presentation_fade_19.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              11.252701822916666,
+              8.273108723958334,
+              9.187275390625
+            ],
+            "sha256": "ecb2eeec9e079000bde6a1b99a6b4673ef430ad9b950058d42e879cf4bfbdd41"
+          },
+          {
+            "name": "presentation_fade_20.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              6.840042317708333,
+              5.618356119791667,
+              5.889143880208334
+            ],
+            "sha256": "d867917314261ed7f52ac6eb196f8e664463b9cf81b87ea578374d430951962e"
+          },
+          {
+            "name": "presentation_fade_21.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              6.6788932291666665,
+              5.536689453125,
+              5.782037760416666
+            ],
+            "sha256": "b89b4065abfbd8301b139b041ac3a0a84670e0deecda142d8bcf55b959ed4c5c"
+          },
+          {
+            "name": "presentation_fade_22.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              6.315104166666667,
+              5.343678385416666,
+              5.491038411458334
+            ],
+            "sha256": "39de8baf33fb21b7a44678d85569b66917c559a38ff6ca8fbae92a975dc837d2"
+          },
+          {
+            "name": "presentation_fade_23.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              6.189137369791666,
+              5.260100911458333,
+              5.4079361979166665
+            ],
+            "sha256": "cd8a1331f462df12b782645c2b900e42c38a2abf377d54b03a193e168b193add"
+          },
+          {
+            "name": "presentation_fade_24.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              6.15685546875,
+              5.241510416666666,
+              5.406585286458333
+            ],
+            "sha256": "88a39a9e1b2c804b9f91a051b1b8e884e6e49f08cb71b25cdef4ccb11bd23917"
+          },
+          {
+            "name": "presentation_fade_25.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              6.131077473958333,
+              5.23109375,
+              5.392428385416666
+            ],
+            "sha256": "34cc981322f1dab176d023ec13fd6434fca39b26775d6f8ed2c739f9c6267f32"
+          },
+          {
+            "name": "presentation_fade_26.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              6.131416015625,
+              5.237994791666667,
+              5.40490234375
+            ],
+            "sha256": "ff33d6091ed8416f75fb081b8e9fb3547e6b20ca436ca47686be289b23668f27"
+          },
+          {
+            "name": "presentation_fade_27.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              5.448499348958333,
+              4.631263020833333,
+              4.776136067708333
+            ],
+            "sha256": "e43e15b2d3a0fbf691d0feaf05a19069e28f7bf8c730f1c6898f52040a9b13f4"
+          },
+          {
+            "name": "presentation_fade_28.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              4.369007161458334,
+              3.6674544270833334,
+              3.778190104166667
+            ],
+            "sha256": "a004b6a9a8ef46d6f45b67ffca2d5760f306f417f665e42309e726c2a114a71c"
+          },
+          {
+            "name": "presentation_fade_29.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              3.0761002604166667,
+              2.5214876302083336,
+              2.5937955729166666
+            ],
+            "sha256": "765d60db2c51f3e99e0be0835927cd6a451184c1cf041ba52053976834e3569c"
+          },
+          {
+            "name": "presentation_fade_30.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              1.3489388020833333,
+              1.03427734375,
+              1.0442708333333333
+            ],
+            "sha256": "8e2be0d55003230127de76197d3ceb52ac1e1b2bb2085cbbb4acef80de5d5bf4"
+          },
+          {
+            "name": "presentation_fade_31.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              34.33439453125,
+              27.293343098958335,
+              21.031962890625
+            ],
+            "sha256": "eb35deef85b0fd7cd1caf0cb4d5fd55a0a0d5fc4abb954545d39df2a33acb5bd"
+          },
+          {
+            "name": "presentation_quality_0.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              6.120182291666667,
+              5.2219140625,
+              5.38201171875
+            ],
+            "sha256": "408e581fe4219dbfa1cfc4ed91ec8aff8966d53b38320701c27751e12470a539"
+          },
+          {
+            "name": "presentation_quality_1.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              6.131416015625,
+              5.237994791666667,
+              5.40490234375
+            ],
+            "sha256": "ff33d6091ed8416f75fb081b8e9fb3547e6b20ca436ca47686be289b23668f27"
+          },
+          {
+            "name": "presentation_quality_2.png",
+            "size": [
+              640,
+              480
+            ],
+            "mean": [
+              13.978004557291667,
+              11.402991536458334,
+              10.950598958333334
+            ],
+            "sha256": "fab8c01cc88f16fece6c5f4ead65c5099166e81ac7fabf68eb9f69640ec2986a"
+          }
+        ],
+        "backendEvidence": {
+          "renderer": "rtx",
+          "verified": true,
+          "log": {
+            "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\renderer-check-presentation-captures\\rtx\\qconsole.log",
+            "bytes": 13336,
+            "sha256": "b1d3f8563087c07079da7db8bace5450736203beac31752f4b826829f0e09ff3"
+          },
+          "lines": [
+            "RTX capability gate: requested=disabled (0), active=disabled (0), require=0",
+            "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+            "VK_VERSION: API: 1.4.325, Driver: 591.74.0.0"
+          ]
+        }
+      }
+    ],
+    "heldMovies": [
+      {
+        "renderer": "vk",
+        "exit": 0,
+        "seconds": 92.781,
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:/Games/fnTech3-tests/efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-renderer-check-held-vk",
+          "+set",
+          "cl_renderer",
+          "vk",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_FirstTime",
+          "1",
+          "+set",
+          "developer",
+          "1",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_maxfps",
+          "60",
+          "+set",
+          "com_maxfpsUnfocused",
+          "60",
+          "+set",
+          "com_maxfpsMinimized",
+          "60",
+          "+set",
+          "cl_drawFPS",
+          "0",
+          "+set",
+          "cl_drawSpeed",
+          "0",
+          "+set",
+          "r_bloom",
+          "0",
+          "+set",
+          "r_gamma",
+          "1",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "cl_VidFadeUp",
+          "0",
+          "+set",
+          "cl_VidFadeDown",
+          "0",
+          "+exec",
+          "probe.cfg"
+        ],
+        "script": "wait 60\nrenderer_switch\nset cl_VideoQuality 0\ncinematic st_01 1\nwait 1200\nscreenshot held_0\nwait 60\nscreenshot held_0_repeat\nwait 3\nset cl_VideoQuality 1\ncinematic st_01 1\nwait 1200\nscreenshot held_1\nwait 60\nscreenshot held_1_repeat\nwait 3\nset cl_VideoQuality 2\ncinematic st_01 1\nwait 1200\nscreenshot held_2\nwait 60\nscreenshot held_2_repeat\nwait 3\ndisconnect\necho HELD_MOVIE_COMPLETE\nquit\n",
+        "completed": true,
+        "backendVerified": true,
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-check-held-vk\\baseEF\\screenshots\\held_0.png",
+            "sha256": "b51684fa5073cc2c997957e418051e688071fa577dfdb159e093d02117d9c52a"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-check-held-vk\\baseEF\\screenshots\\held_0_repeat.png",
+            "sha256": "b51684fa5073cc2c997957e418051e688071fa577dfdb159e093d02117d9c52a"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-check-held-vk\\baseEF\\screenshots\\held_1.png",
+            "sha256": "b51684fa5073cc2c997957e418051e688071fa577dfdb159e093d02117d9c52a"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-check-held-vk\\baseEF\\screenshots\\held_1_repeat.png",
+            "sha256": "b51684fa5073cc2c997957e418051e688071fa577dfdb159e093d02117d9c52a"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-check-held-vk\\baseEF\\screenshots\\held_2.png",
+            "sha256": "43784791b3ffa633e3c00322a06561e474f51fc9cf1f2f63369bdedc02af3b6a"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-check-held-vk\\baseEF\\screenshots\\held_2_repeat.png",
+            "sha256": "43784791b3ffa633e3c00322a06561e474f51fc9cf1f2f63369bdedc02af3b6a"
+          }
+        ],
+        "backendEvidence": {
+          "renderer": "vk",
+          "verified": true,
+          "log": {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-check-held-vk\\baseEF\\qconsole.log",
+            "bytes": 11938,
+            "sha256": "ab3cf33299f2b87c38aee84e3edddbb8dc675748e6c149d22e0127a8cef26db9"
+          },
+          "lines": [
+            "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+            "VK_VERSION: API: 1.4.325, Driver: 591.74.0.0",
+            "current renderer: vk"
+          ]
+        }
+      },
+      {
+        "renderer": "rtx",
+        "exit": 0,
+        "seconds": 89.062,
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:/Games/fnTech3-tests/efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-renderer-check-held-rtx",
+          "+set",
+          "cl_renderer",
+          "rtx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_FirstTime",
+          "1",
+          "+set",
+          "developer",
+          "1",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_maxfps",
+          "60",
+          "+set",
+          "com_maxfpsUnfocused",
+          "60",
+          "+set",
+          "com_maxfpsMinimized",
+          "60",
+          "+set",
+          "cl_drawFPS",
+          "0",
+          "+set",
+          "cl_drawSpeed",
+          "0",
+          "+set",
+          "r_bloom",
+          "0",
+          "+set",
+          "r_gamma",
+          "1",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "cl_VidFadeUp",
+          "0",
+          "+set",
+          "cl_VidFadeDown",
+          "0",
+          "+exec",
+          "probe.cfg"
+        ],
+        "script": "wait 60\nrenderer_switch\nset cl_VideoQuality 0\ncinematic st_01 1\nwait 1200\nscreenshot held_0\nwait 60\nscreenshot held_0_repeat\nwait 3\nset cl_VideoQuality 1\ncinematic st_01 1\nwait 1200\nscreenshot held_1\nwait 60\nscreenshot held_1_repeat\nwait 3\nset cl_VideoQuality 2\ncinematic st_01 1\nwait 1200\nscreenshot held_2\nwait 60\nscreenshot held_2_repeat\nwait 3\ndisconnect\necho HELD_MOVIE_COMPLETE\nquit\n",
+        "completed": true,
+        "backendVerified": true,
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-check-held-rtx\\baseEF\\screenshots\\held_0.png",
+            "sha256": "ff33d6091ed8416f75fb081b8e9fb3547e6b20ca436ca47686be289b23668f27"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-check-held-rtx\\baseEF\\screenshots\\held_0_repeat.png",
+            "sha256": "ff33d6091ed8416f75fb081b8e9fb3547e6b20ca436ca47686be289b23668f27"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-check-held-rtx\\baseEF\\screenshots\\held_1.png",
+            "sha256": "ff33d6091ed8416f75fb081b8e9fb3547e6b20ca436ca47686be289b23668f27"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-check-held-rtx\\baseEF\\screenshots\\held_1_repeat.png",
+            "sha256": "ff33d6091ed8416f75fb081b8e9fb3547e6b20ca436ca47686be289b23668f27"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-check-held-rtx\\baseEF\\screenshots\\held_2.png",
+            "sha256": "fab8c01cc88f16fece6c5f4ead65c5099166e81ac7fabf68eb9f69640ec2986a"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-check-held-rtx\\baseEF\\screenshots\\held_2_repeat.png",
+            "sha256": "fab8c01cc88f16fece6c5f4ead65c5099166e81ac7fabf68eb9f69640ec2986a"
+          }
+        ],
+        "backendEvidence": {
+          "renderer": "rtx",
+          "verified": true,
+          "log": {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-renderer-check-held-rtx\\baseEF\\qconsole.log",
+            "bytes": 12052,
+            "sha256": "c64efa8497a80bb294b226217d4c847dbe85f02688d933d0d904a77968f6acba"
+          },
+          "lines": [
+            "RTX capability gate: requested=disabled (0), active=disabled (0), require=0",
+            "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+            "VK_VERSION: API: 1.4.325, Driver: 591.74.0.0",
+            "current renderer: rtx"
+          ]
+        }
+      }
+    ],
+    "lifecycle": [
+      {
+        "renderer": "vk",
+        "case": "natural",
+        "exit": 0,
+        "seconds": 14.05,
+        "launch": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:/Games/Star Trek Voyager Elite Force",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-renderer-check-presentation-vk",
+          "+set",
+          "cl_renderer",
+          "vk",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+exec",
+          "fade_lifecycle.cfg"
+        ],
+        "commands": "wait 60\nrenderer_switch\nset nextmap \"exec fade_done.cfg\"\ncinematic st_01\nwait 100\nscreenshot lifecycle_natural_middle\n",
+        "events": [
+          "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+          "^5Bink finished: video/st_01.bik",
+          "FADE_NATURAL_CONTINUATION"
+        ],
+        "captures": [
+          {
+            "name": "lifecycle_natural_middle.png",
+            "sha256": "93b79eceb040d9cf3790c29fd7761bb29034718ed2f9f3c04f005139beac9b2b"
+          },
+          {
+            "name": "lifecycle_natural_return.png",
+            "sha256": "dc9b14a3e6bb74aa17be3097d68013fc8195ee0c56a2eaa2431875dee523f695"
+          }
+        ],
+        "backendVerified": true,
+        "backendEvidence": {
+          "renderer": "vk",
+          "verified": true,
+          "log": {
+            "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\renderer-check-lifecycle\\vk-natural\\qconsole.log",
+            "bytes": 11664,
+            "sha256": "5f6e60218a213374b33e037401d5a011e51d46f7b62c7c2286ff6944e0ce902a"
+          },
+          "lines": [
+            "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+            "VK_VERSION: API: 1.4.325, Driver: 591.74.0.0",
+            "current renderer: vk"
+          ]
+        }
+      },
+      {
+        "renderer": "vk",
+        "case": "ingame",
+        "exit": 0,
+        "seconds": 35.81,
+        "launch": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:/Games/Star Trek Voyager Elite Force",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-renderer-check-presentation-vk",
+          "+set",
+          "cl_renderer",
+          "vk",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+exec",
+          "fade_lifecycle.cfg"
+        ],
+        "commands": "wait 60\nrenderer_switch\nload mdr_scene\nwait 120\ningamecinematic st_01\nwait 30\necho FADE_INGAME_PLAYING\ncl_paused\nscreenshot lifecycle_ingame_fade\nwait 1200\necho FADE_INGAME_RETURN\ncl_paused\nscreenshot lifecycle_ingame_return\nwait 2\nquit\n",
+        "events": [
+          "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+          "FADE_INGAME_PLAYING",
+          "\"cl_paused\" is:\"1^7\"",
+          "^5Bink finished: video/st_01.bik",
+          "FADE_INGAME_RETURN",
+          "\"cl_paused\" is:\"0^7\""
+        ],
+        "captures": [
+          {
+            "name": "lifecycle_ingame_fade.png",
+            "sha256": "a232de022e9c89e3e18222b9f1d5c1ec8b36ca79ab2bd3f98107c770a88ab856"
+          },
+          {
+            "name": "lifecycle_ingame_return.png",
+            "sha256": "f7f1a79f4135607ceb680426f115ee5941ef21482469a309662ea7a662fa5e33"
+          }
+        ],
+        "backendVerified": true,
+        "backendEvidence": {
+          "renderer": "vk",
+          "verified": true,
+          "log": {
+            "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\renderer-check-lifecycle\\vk-ingame\\qconsole.log",
+            "bytes": 143054,
+            "sha256": "ae4d94b6aa4a39c1ddd214efe839c934f3e1c31ac20f129cad9209e32cd4d113"
+          },
+          "lines": [
+            "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+            "VK_VERSION: API: 1.4.325, Driver: 591.74.0.0",
+            "current renderer: vk"
+          ]
+        }
+      },
+      {
+        "renderer": "rtx",
+        "case": "natural",
+        "exit": 0,
+        "seconds": 10.73,
+        "launch": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:/Games/Star Trek Voyager Elite Force",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-renderer-check-presentation-rtx",
+          "+set",
+          "cl_renderer",
+          "rtx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+exec",
+          "fade_lifecycle.cfg"
+        ],
+        "commands": "wait 60\nrenderer_switch\nset nextmap \"exec fade_done.cfg\"\ncinematic st_01\nwait 100\nscreenshot lifecycle_natural_middle\n",
+        "events": [
+          "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+          "^5Bink finished: video/st_01.bik",
+          "FADE_NATURAL_CONTINUATION"
+        ],
+        "captures": [
+          {
+            "name": "lifecycle_natural_middle.png",
+            "sha256": "0643565e2064e02a0fb0730fc009391a2ba23649144404432436b7a5995f3a3a"
+          },
+          {
+            "name": "lifecycle_natural_return.png",
+            "sha256": "eb35deef85b0fd7cd1caf0cb4d5fd55a0a0d5fc4abb954545d39df2a33acb5bd"
+          }
+        ],
+        "backendVerified": true,
+        "backendEvidence": {
+          "renderer": "rtx",
+          "verified": true,
+          "log": {
+            "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\renderer-check-lifecycle\\rtx-natural\\qconsole.log",
+            "bytes": 11687,
+            "sha256": "613294662224df18932fe4d0db5aa30d1572f1966fd6ae5e4024e7504afbd63a"
+          },
+          "lines": [
+            "RTX capability gate: requested=disabled (0), active=disabled (0), require=0",
+            "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+            "VK_VERSION: API: 1.4.325, Driver: 591.74.0.0",
+            "current renderer: rtx"
+          ]
+        }
+      },
+      {
+        "renderer": "rtx",
+        "case": "ingame",
+        "exit": 0,
+        "seconds": 35.88,
+        "launch": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:/Games/Star Trek Voyager Elite Force",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-renderer-check-presentation-rtx",
+          "+set",
+          "cl_renderer",
+          "rtx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+exec",
+          "fade_lifecycle.cfg"
+        ],
+        "commands": "wait 60\nrenderer_switch\nload mdr_scene\nwait 120\ningamecinematic st_01\nwait 30\necho FADE_INGAME_PLAYING\ncl_paused\nscreenshot lifecycle_ingame_fade\nwait 1200\necho FADE_INGAME_RETURN\ncl_paused\nscreenshot lifecycle_ingame_return\nwait 2\nquit\n",
+        "events": [
+          "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+          "FADE_INGAME_PLAYING",
+          "\"cl_paused\" is:\"1^7\"",
+          "^5Bink finished: video/st_01.bik",
+          "FADE_INGAME_RETURN",
+          "\"cl_paused\" is:\"0^7\""
+        ],
+        "captures": [
+          {
+            "name": "lifecycle_ingame_fade.png",
+            "sha256": "fe81d3f2643e848d8dfb8e75d5f68999de969c7befb26dfe73aa36d4f3c7235b"
+          },
+          {
+            "name": "lifecycle_ingame_return.png",
+            "sha256": "d972c2e87eb976b5b90c26dbd23054d993486446860d727f1137a059839f6c1f"
+          }
+        ],
+        "backendVerified": true,
+        "backendEvidence": {
+          "renderer": "rtx",
+          "verified": true,
+          "log": {
+            "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\renderer-check-lifecycle\\rtx-ingame\\qconsole.log",
+            "bytes": 143184,
+            "sha256": "acc0e2e2db795561021dd8a6c620702ccc22681eefdd1874aef0880959585856"
+          },
+          "lines": [
+            "RTX capability gate: requested=disabled (0), active=disabled (0), require=0",
+            "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+            "VK_VERSION: API: 1.4.325, Driver: 591.74.0.0",
+            "current renderer: rtx"
+          ]
+        }
+      }
+    ],
+    "audio": [
+      {
+        "renderer": "vk",
+        "language": "ENGLISH",
+        "exit": 0,
+        "seconds": 27.25,
+        "completed": true,
+        "naturalEnd": true,
+        "observerSHA256": "0806d29a3ccd259abe7083a3889ed30a21bb0d9177eed2958b7a2461dd0c0d56",
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-renderer-check-audio-vk-english",
+          "+set",
+          "cl_renderer",
+          "vk",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+exec",
+          "probe.cfg"
+        ],
+        "script": "wait 60\nrenderer_switch\nset nextmap \"exec completed.cfg\"\ncinematic st_04\n",
+        "events": [
+          "Bink: video/st_04.bik, 512x384, 300 frames, track 0, sound on",
+          "AUDIO_NATURAL_END",
+          "AUDIO_PROBE_COMPLETE"
+        ],
+        "audio": {
+          "frequency": 44100,
+          "bits": 16,
+          "channels": 2,
+          "bytes": 3528252,
+          "unlocks": 108,
+          "plays": 2,
+          "stops": 3,
+          "hardwareCalls": 7284,
+          "hardwareErrors": 0,
+          "maximumCursor": 131000,
+          "ownMeterSamples": 867,
+          "maximumOwnPeak": 0.0311798,
+          "finalFrame": 300,
+          "expectedFrames": 300,
+          "milliseconds": 23719,
+          "pauseCalls": 2,
+          "volumes": [
+            0,
+            -10000,
+            0,
+            -10000
+          ]
+        },
+        "pcmSHA256": "853f6d6abeb7739033ad6a17488de6d96245790c486e1c8a432dd52843a68a5e",
+        "backendVerified": true,
+        "backendEvidence": {
+          "renderer": "vk",
+          "verified": true,
+          "log": {
+            "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\renderer-check-audio\\vk-english.log",
+            "bytes": 8256,
+            "sha256": "1f2398a5253d19c1be2b37606b304880cfb1aee1170cda24f398e7e0abebc7cd"
+          },
+          "lines": [
+            "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+            "VK_VERSION: API: 1.4.325, Driver: 591.74.0.0",
+            "current renderer: vk"
+          ]
+        }
+      },
+      {
+        "renderer": "vk",
+        "language": "DEUTSCH",
+        "exit": 0,
+        "seconds": 33.141,
+        "completed": true,
+        "naturalEnd": true,
+        "observerSHA256": "0806d29a3ccd259abe7083a3889ed30a21bb0d9177eed2958b7a2461dd0c0d56",
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-renderer-check-audio-vk-deutsch",
+          "+set",
+          "cl_renderer",
+          "vk",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+exec",
+          "probe.cfg"
+        ],
+        "script": "wait 60\nrenderer_switch\nset nextmap \"exec completed.cfg\"\ncinematic st_04\n",
+        "events": [
+          "Bink: video/st_04.bik, 512x384, 300 frames, track 1, sound on",
+          "AUDIO_NATURAL_END",
+          "AUDIO_PROBE_COMPLETE"
+        ],
+        "audio": {
+          "frequency": 44100,
+          "bits": 16,
+          "channels": 2,
+          "bytes": 3529788,
+          "unlocks": 108,
+          "plays": 2,
+          "stops": 3,
+          "hardwareCalls": 8626,
+          "hardwareErrors": 0,
+          "maximumCursor": 131000,
+          "ownMeterSamples": 1103,
+          "maximumOwnPeak": 0.0407624,
+          "finalFrame": 300,
+          "expectedFrames": 300,
+          "milliseconds": 29921,
+          "pauseCalls": 2,
+          "volumes": [
+            0,
+            -10000,
+            0,
+            -10000
+          ]
+        },
+        "pcmSHA256": "24837b8b7b7ce83cbc201a1190eb7c2a730e70b8e24c8233ea64907c260e08f4",
+        "backendVerified": true,
+        "backendEvidence": {
+          "renderer": "vk",
+          "verified": true,
+          "log": {
+            "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\renderer-check-audio\\vk-deutsch.log",
+            "bytes": 8256,
+            "sha256": "7e6f63814374ca8859825f3e8bf565cd2c4b1efe159ef32706a7345e47478a8c"
+          },
+          "lines": [
+            "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+            "VK_VERSION: API: 1.4.325, Driver: 591.74.0.0",
+            "current renderer: vk"
+          ]
+        }
+      },
+      {
+        "renderer": "rtx",
+        "language": "ENGLISH",
+        "exit": 0,
+        "seconds": 26.312,
+        "completed": true,
+        "naturalEnd": true,
+        "observerSHA256": "0806d29a3ccd259abe7083a3889ed30a21bb0d9177eed2958b7a2461dd0c0d56",
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-renderer-check-audio-rtx-english",
+          "+set",
+          "cl_renderer",
+          "rtx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+exec",
+          "probe.cfg"
+        ],
+        "script": "wait 60\nrenderer_switch\nset nextmap \"exec completed.cfg\"\ncinematic st_04\n",
+        "events": [
+          "Bink: video/st_04.bik, 512x384, 300 frames, track 0, sound on",
+          "AUDIO_NATURAL_END",
+          "AUDIO_PROBE_COMPLETE"
+        ],
+        "audio": {
+          "frequency": 44100,
+          "bits": 16,
+          "channels": 2,
+          "bytes": 3528000,
+          "unlocks": 108,
+          "plays": 2,
+          "stops": 3,
+          "hardwareCalls": 6892,
+          "hardwareErrors": 0,
+          "maximumCursor": 130980,
+          "ownMeterSamples": 826,
+          "maximumOwnPeak": 0.0311215,
+          "finalFrame": 300,
+          "expectedFrames": 300,
+          "milliseconds": 22766,
+          "pauseCalls": 2,
+          "volumes": [
+            0,
+            -10000,
+            0,
+            -10000
+          ]
+        },
+        "pcmSHA256": "b73a932e0b8fd905a5d13612ec112ada3cf922c957555e465e6824bb0ae2de3e",
+        "backendVerified": true,
+        "backendEvidence": {
+          "renderer": "rtx",
+          "verified": true,
+          "log": {
+            "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\renderer-check-audio\\rtx-english.log",
+            "bytes": 8457,
+            "sha256": "93e9268d7dcb4978aca8aa9e2441df127772c9008f1912996bf86b12f35748b2"
+          },
+          "lines": [
+            "RTX capability gate: requested=disabled (0), active=disabled (0), require=0",
+            "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+            "VK_VERSION: API: 1.4.325, Driver: 591.74.0.0",
+            "current renderer: rtx"
+          ]
+        }
+      },
+      {
+        "renderer": "rtx",
+        "language": "DEUTSCH",
+        "exit": 0,
+        "seconds": 26.718,
+        "completed": true,
+        "naturalEnd": true,
+        "observerSHA256": "0806d29a3ccd259abe7083a3889ed30a21bb0d9177eed2958b7a2461dd0c0d56",
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-renderer-check-audio-rtx-deutsch",
+          "+set",
+          "cl_renderer",
+          "rtx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+exec",
+          "probe.cfg"
+        ],
+        "script": "wait 60\nrenderer_switch\nset nextmap \"exec completed.cfg\"\ncinematic st_04\n",
+        "events": [
+          "Bink: video/st_04.bik, 512x384, 300 frames, track 1, sound on",
+          "AUDIO_NATURAL_END",
+          "AUDIO_PROBE_COMPLETE"
+        ],
+        "audio": {
+          "frequency": 44100,
+          "bits": 16,
+          "channels": 2,
+          "bytes": 3528000,
+          "unlocks": 108,
+          "plays": 2,
+          "stops": 3,
+          "hardwareCalls": 7580,
+          "hardwareErrors": 0,
+          "maximumCursor": 131068,
+          "ownMeterSamples": 949,
+          "maximumOwnPeak": 0.0418151,
+          "finalFrame": 300,
+          "expectedFrames": 300,
+          "milliseconds": 23828,
+          "pauseCalls": 2,
+          "volumes": [
+            0,
+            -10000,
+            0,
+            -10000
+          ]
+        },
+        "pcmSHA256": "d7798f77c2990e7edda2e8d02b539c952b0f4472e109a368881fcc2ae4b57b69",
+        "backendVerified": true,
+        "backendEvidence": {
+          "renderer": "rtx",
+          "verified": true,
+          "log": {
+            "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\renderer-check-audio\\rtx-deutsch.log",
+            "bytes": 8457,
+            "sha256": "4c626b758df9452932f8ecec10c5da6d97f0f50c6c2b3885a8abb14af72274b6"
+          },
+          "lines": [
+            "RTX capability gate: requested=disabled (0), active=disabled (0), require=0",
+            "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+            "VK_VERSION: API: 1.4.325, Driver: 591.74.0.0",
+            "current renderer: rtx"
+          ]
+        }
+      }
+    ],
+    "audioFailure": [
+      {
+        "renderer": "vk",
+        "language": "ENGLISH",
+        "exit": 0,
+        "seconds": 14.781,
+        "completed": true,
+        "naturalEnd": true,
+        "observerSHA256": "eb98d04bbc15cb0ccfd21a4f810b2a0c2985b6629df7625eef6d35c560bcba01",
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-renderer-check-audio-failed-vk-english",
+          "+set",
+          "cl_renderer",
+          "vk",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+exec",
+          "probe.cfg"
+        ],
+        "script": "wait 60\nrenderer_switch\nset nextmap \"exec completed.cfg\"\ncinematic st_01\n",
+        "events": [
+          "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+          "Bink audio device unavailable",
+          "AUDIO_NATURAL_END",
+          "AUDIO_PROBE_COMPLETE"
+        ],
+        "audio": {
+          "frequency": 0,
+          "bits": 0,
+          "channels": 0,
+          "bytes": 0,
+          "unlocks": 0,
+          "plays": 0,
+          "stops": 0,
+          "hardwareCalls": 2,
+          "hardwareErrors": 0,
+          "maximumCursor": 0,
+          "ownMeterSamples": 340,
+          "maximumOwnPeak": 4.05211e-05,
+          "finalFrame": 75,
+          "expectedFrames": 75,
+          "milliseconds": 11859,
+          "pauseCalls": 2,
+          "volumes": []
+        },
+        "pcmSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "backendVerified": true,
+        "backendEvidence": {
+          "renderer": "vk",
+          "verified": true,
+          "log": {
+            "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\renderer-check-audio-failed\\vk-english.log",
+            "bytes": 8293,
+            "sha256": "9bb5d8ab58d4dd54d08117bb9ab68f5f9695c2999a76280f23cf7bb509ee9c72"
+          },
+          "lines": [
+            "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+            "VK_VERSION: API: 1.4.325, Driver: 591.74.0.0",
+            "current renderer: vk"
+          ]
+        }
+      },
+      {
+        "renderer": "rtx",
+        "language": "ENGLISH",
+        "exit": 0,
+        "seconds": 14.062,
+        "completed": true,
+        "naturalEnd": true,
+        "observerSHA256": "eb98d04bbc15cb0ccfd21a4f810b2a0c2985b6629df7625eef6d35c560bcba01",
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-renderer-check-audio-failed-rtx-english",
+          "+set",
+          "cl_renderer",
+          "rtx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+exec",
+          "probe.cfg"
+        ],
+        "script": "wait 60\nrenderer_switch\nset nextmap \"exec completed.cfg\"\ncinematic st_01\n",
+        "events": [
+          "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+          "Bink audio device unavailable",
+          "AUDIO_NATURAL_END",
+          "AUDIO_PROBE_COMPLETE"
+        ],
+        "audio": {
+          "frequency": 0,
+          "bits": 0,
+          "channels": 0,
+          "bytes": 0,
+          "unlocks": 0,
+          "plays": 0,
+          "stops": 0,
+          "hardwareCalls": 2,
+          "hardwareErrors": 0,
+          "maximumCursor": 0,
+          "ownMeterSamples": 356,
+          "maximumOwnPeak": 4.18081e-05,
+          "finalFrame": 75,
+          "expectedFrames": 75,
+          "milliseconds": 10844,
+          "pauseCalls": 2,
+          "volumes": []
+        },
+        "pcmSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "backendVerified": true,
+        "backendEvidence": {
+          "renderer": "rtx",
+          "verified": true,
+          "log": {
+            "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\renderer-check-audio-failed\\rtx-english.log",
+            "bytes": 8494,
+            "sha256": "47ae14c55dddf761f75984fefbff70fd42ac3c268731e5d98126a516bddd1abe"
+          },
+          "lines": [
+            "RTX capability gate: requested=disabled (0), active=disabled (0), require=0",
+            "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+            "VK_VERSION: API: 1.4.325, Driver: 591.74.0.0",
+            "current renderer: rtx"
+          ]
+        }
+      }
+    ]
+  },
+  "imageComparisons": {
+    "shadows": [
+      {
+        "renderer": "glx",
+        "mode": "blob",
+        "retailShadowPixels": 8244,
+        "shadowPixels": 8344,
+        "maskDisagreement": 192,
+        "background": {
+          "meanAbsoluteChannelDifference": 0.6060807291666667,
+          "maximumChannelDifference": 53,
+          "differentPixels": 238185
+        },
+        "shadowOnly": {
+          "meanAbsoluteChannelDifference": 0.006171875,
+          "maximumChannelDifference": 3,
+          "differentPixels": 2467
+        },
+        "comparedWithGLx": {
+          "meanAbsoluteChannelDifference": 0.0,
+          "maximumChannelDifference": 0,
+          "differentPixels": 0
+        }
+      },
+      {
+        "renderer": "glx",
+        "mode": "stencil",
+        "retailShadowPixels": 3787,
+        "shadowPixels": 3735,
+        "maskDisagreement": 258,
+        "background": {
+          "meanAbsoluteChannelDifference": 0.6060807291666667,
+          "maximumChannelDifference": 53,
+          "differentPixels": 238185
+        },
+        "shadowOnly": {
+          "meanAbsoluteChannelDifference": 0.009352213541666666,
+          "maximumChannelDifference": 22,
+          "differentPixels": 2434
+        },
+        "comparedWithGLx": {
+          "meanAbsoluteChannelDifference": 0.0,
+          "maximumChannelDifference": 0,
+          "differentPixels": 0
+        }
+      },
+      {
+        "renderer": "glx",
+        "mode": "projection",
+        "retailShadowPixels": 3098,
+        "shadowPixels": 3100,
+        "maskDisagreement": 80,
+        "background": {
+          "meanAbsoluteChannelDifference": 0.6060807291666667,
+          "maximumChannelDifference": 53,
+          "differentPixels": 238185
+        },
+        "shadowOnly": {
+          "meanAbsoluteChannelDifference": 0.018450520833333334,
+          "maximumChannelDifference": 42,
+          "differentPixels": 2768
+        },
+        "comparedWithGLx": {
+          "meanAbsoluteChannelDifference": 0.0,
+          "maximumChannelDifference": 0,
+          "differentPixels": 0
+        }
+      },
+      {
+        "renderer": "vk",
+        "mode": "blob",
+        "retailShadowPixels": 8244,
+        "shadowPixels": 8914,
+        "maskDisagreement": 882,
+        "background": {
+          "meanAbsoluteChannelDifference": 0.6061783854166667,
+          "maximumChannelDifference": 53,
+          "differentPixels": 238161
+        },
+        "shadowOnly": {
+          "meanAbsoluteChannelDifference": 0.010299479166666667,
+          "maximumChannelDifference": 3,
+          "differentPixels": 5048
+        },
+        "comparedWithGLx": {
+          "meanAbsoluteChannelDifference": 0.009921875,
+          "maximumChannelDifference": 1,
+          "differentPixels": 6343
+        }
+      },
+      {
+        "renderer": "vk",
+        "mode": "stencil",
+        "retailShadowPixels": 3787,
+        "shadowPixels": 4473,
+        "maskDisagreement": 950,
+        "background": {
+          "meanAbsoluteChannelDifference": 0.6061783854166667,
+          "maximumChannelDifference": 53,
+          "differentPixels": 238161
+        },
+        "shadowOnly": {
+          "meanAbsoluteChannelDifference": 0.011904296875,
+          "maximumChannelDifference": 21,
+          "differentPixels": 3473
+        },
+        "comparedWithGLx": {
+          "meanAbsoluteChannelDifference": 0.0064453125,
+          "maximumChannelDifference": 1,
+          "differentPixels": 4108
+        }
+      },
+      {
+        "renderer": "vk",
+        "mode": "projection",
+        "retailShadowPixels": 3098,
+        "shadowPixels": 3105,
+        "maskDisagreement": 85,
+        "background": {
+          "meanAbsoluteChannelDifference": 0.6061783854166667,
+          "maximumChannelDifference": 53,
+          "differentPixels": 238161
+        },
+        "shadowOnly": {
+          "meanAbsoluteChannelDifference": 0.018518880208333335,
+          "maximumChannelDifference": 42,
+          "differentPixels": 2773
+        },
+        "comparedWithGLx": {
+          "meanAbsoluteChannelDifference": 0.002982855902777778,
+          "maximumChannelDifference": 6,
+          "differentPixels": 2570
+        }
+      },
+      {
+        "renderer": "rtx",
+        "mode": "blob",
+        "retailShadowPixels": 8244,
+        "shadowPixels": 8961,
+        "maskDisagreement": 907,
+        "background": {
+          "meanAbsoluteChannelDifference": 29.770335286458334,
+          "maximumChannelDifference": 60,
+          "differentPixels": 302658
+        },
+        "shadowOnly": {
+          "meanAbsoluteChannelDifference": 0.013738064236111111,
+          "maximumChannelDifference": 3,
+          "differentPixels": 5842
+        },
+        "comparedWithGLx": {
+          "meanAbsoluteChannelDifference": 29.795944010416665,
+          "maximumChannelDifference": 59,
+          "differentPixels": 300437
+        }
+      },
+      {
+        "renderer": "rtx",
+        "mode": "stencil",
+        "retailShadowPixels": 3787,
+        "shadowPixels": 4478,
+        "maskDisagreement": 953,
+        "background": {
+          "meanAbsoluteChannelDifference": 29.770335286458334,
+          "maximumChannelDifference": 60,
+          "differentPixels": 302658
+        },
+        "shadowOnly": {
+          "meanAbsoluteChannelDifference": 0.016866319444444444,
+          "maximumChannelDifference": 24,
+          "differentPixels": 3869
+        },
+        "comparedWithGLx": {
+          "meanAbsoluteChannelDifference": 29.791015625,
+          "maximumChannelDifference": 59,
+          "differentPixels": 301180
+        }
+      },
+      {
+        "renderer": "rtx",
+        "mode": "projection",
+        "retailShadowPixels": 3098,
+        "shadowPixels": 3105,
+        "maskDisagreement": 85,
+        "background": {
+          "meanAbsoluteChannelDifference": 29.770335286458334,
+          "maximumChannelDifference": 60,
+          "differentPixels": 302658
+        },
+        "shadowOnly": {
+          "meanAbsoluteChannelDifference": 0.18056640625,
+          "maximumChannelDifference": 72,
+          "differentPixels": 3144
+        },
+        "comparedWithGLx": {
+          "meanAbsoluteChannelDifference": 29.62094943576389,
+          "maximumChannelDifference": 59,
+          "differentPixels": 297381
+        }
+      }
+    ],
+    "preliminaryPresentation": [
+      {
+        "renderer": "glx",
+        "quality0vs1": {
+          "meanAbsoluteChannelDifference": 0.0,
+          "maximumChannelDifference": 0,
+          "differentPixels": 0
+        },
+        "quality2vsGLx": {
+          "meanAbsoluteChannelDifference": 0.0,
+          "maximumChannelDifference": 0,
+          "differentPixels": 0
+        }
+      },
+      {
+        "renderer": "vk",
+        "quality0vs1": {
+          "meanAbsoluteChannelDifference": 0.598369140625,
+          "maximumChannelDifference": 127,
+          "differentPixels": 30949
+        },
+        "quality2vsGLx": {
+          "meanAbsoluteChannelDifference": 0.0,
+          "maximumChannelDifference": 0,
+          "differentPixels": 0
+        }
+      },
+      {
+        "renderer": "rtx",
+        "quality0vs1": {
+          "meanAbsoluteChannelDifference": 1.2836599392361112,
+          "maximumChannelDifference": 219,
+          "differentPixels": 48285
+        },
+        "quality2vsGLx": {
+          "meanAbsoluteChannelDifference": 0.7252463107638889,
+          "maximumChannelDifference": 71,
+          "differentPixels": 52273
+        }
+      }
+    ],
+    "heldPresentation": [
+      {
+        "renderer": "vk",
+        "repeatedHeldFrames": [
+          {
+            "meanAbsoluteChannelDifference": 0.0,
+            "maximumChannelDifference": 0,
+            "differentPixels": 0
+          },
+          {
+            "meanAbsoluteChannelDifference": 0.0,
+            "maximumChannelDifference": 0,
+            "differentPixels": 0
+          },
+          {
+            "meanAbsoluteChannelDifference": 0.0,
+            "maximumChannelDifference": 0,
+            "differentPixels": 0
+          }
+        ],
+        "quality0vs1": {
+          "meanAbsoluteChannelDifference": 0.0,
+          "maximumChannelDifference": 0,
+          "differentPixels": 0
+        },
+        "quality0vsGLx": {
+          "meanAbsoluteChannelDifference": 0.00015082465277777777,
+          "maximumChannelDifference": 1,
+          "differentPixels": 85
+        },
+        "quality2vsGLx": {
+          "meanAbsoluteChannelDifference": 0.0,
+          "maximumChannelDifference": 0,
+          "differentPixels": 0
+        }
+      },
+      {
+        "renderer": "rtx",
+        "repeatedHeldFrames": [
+          {
+            "meanAbsoluteChannelDifference": 0.0,
+            "maximumChannelDifference": 0,
+            "differentPixels": 0
+          },
+          {
+            "meanAbsoluteChannelDifference": 0.0,
+            "maximumChannelDifference": 0,
+            "differentPixels": 0
+          },
+          {
+            "meanAbsoluteChannelDifference": 0.0,
+            "maximumChannelDifference": 0,
+            "differentPixels": 0
+          }
+        ],
+        "quality0vs1": {
+          "meanAbsoluteChannelDifference": 0.0,
+          "maximumChannelDifference": 0,
+          "differentPixels": 0
+        },
+        "quality0vsGLx": {
+          "meanAbsoluteChannelDifference": 0.3086165364583333,
+          "maximumChannelDifference": 71,
+          "differentPixels": 26744
+        },
+        "quality2vsGLx": {
+          "meanAbsoluteChannelDifference": 0.7252463107638889,
+          "maximumChannelDifference": 71,
+          "differentPixels": 52273
+        }
+      }
+    ]
+  },
+  "audioComparisons": [
+    {
+      "renderer": "vk",
+      "language": "ENGLISH",
+      "bytes": 3528252,
+      "referenceBytes": 3528000,
+      "rawEqual": false,
+      "extraBytes": 252,
+      "silentInsertions": [
+        {
+          "referenceOffset": 688128,
+          "bytes": 252,
+          "stereoFrames": 63
+        }
+      ],
+      "equalAfterRemovingObservedSilence": true,
+      "extraMilliseconds": 1.4285714285714286,
+      "rawSHA256": "853f6d6abeb7739033ad6a17488de6d96245790c486e1c8a432dd52843a68a5e",
+      "referenceSHA256": "b73a932e0b8fd905a5d13612ec112ada3cf922c957555e465e6824bb0ae2de3e"
+    },
+    {
+      "renderer": "vk",
+      "language": "DEUTSCH",
+      "bytes": 3529788,
+      "referenceBytes": 3528000,
+      "rawEqual": false,
+      "extraBytes": 1788,
+      "silentInsertions": [
+        {
+          "referenceOffset": 688128,
+          "bytes": 252,
+          "stereoFrames": 63
+        },
+        {
+          "referenceOffset": 818948,
+          "bytes": 512,
+          "stereoFrames": 128
+        },
+        {
+          "referenceOffset": 949508,
+          "bytes": 512,
+          "stereoFrames": 128
+        },
+        {
+          "referenceOffset": 1571588,
+          "bytes": 512,
+          "stereoFrames": 128
+        }
+      ],
+      "equalAfterRemovingObservedSilence": true,
+      "extraMilliseconds": 10.136054421768707,
+      "rawSHA256": "24837b8b7b7ce83cbc201a1190eb7c2a730e70b8e24c8233ea64907c260e08f4",
+      "referenceSHA256": "d7798f77c2990e7edda2e8d02b539c952b0f4472e109a368881fcc2ae4b57b69"
+    },
+    {
+      "renderer": "rtx",
+      "language": "ENGLISH",
+      "bytes": 3528000,
+      "referenceBytes": 3528000,
+      "rawEqual": true,
+      "extraBytes": 0,
+      "silentInsertions": [],
+      "equalAfterRemovingObservedSilence": true,
+      "extraMilliseconds": 0.0,
+      "rawSHA256": "b73a932e0b8fd905a5d13612ec112ada3cf922c957555e465e6824bb0ae2de3e",
+      "referenceSHA256": "b73a932e0b8fd905a5d13612ec112ada3cf922c957555e465e6824bb0ae2de3e"
+    },
+    {
+      "renderer": "rtx",
+      "language": "DEUTSCH",
+      "bytes": 3528000,
+      "referenceBytes": 3528000,
+      "rawEqual": true,
+      "extraBytes": 0,
+      "silentInsertions": [],
+      "equalAfterRemovingObservedSilence": true,
+      "extraMilliseconds": 0.0,
+      "rawSHA256": "d7798f77c2990e7edda2e8d02b539c952b0f4472e109a368881fcc2ae4b57b69",
+      "referenceSHA256": "d7798f77c2990e7edda2e8d02b539c952b0f4472e109a368881fcc2ae4b57b69"
+    }
+  ],
+  "audioReference": [
+    {
+      "language": "en",
+      "sha256": "b73a932e0b8fd905a5d13612ec112ada3cf922c957555e465e6824bb0ae2de3e",
+      "command": [
+        "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\bink_audio_published.exe",
+        "E:\\Games\\Star Trek Voyager Elite Force\\binkw32.dll",
+        "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\renderer-audio-reference\\st_04.bik",
+        "en",
+        "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\renderer-audio-reference\\en.pcm",
+        "file"
+      ],
+      "result": {
+        "sound": 1,
+        "frames": 300,
+        "expectedFrames": 300,
+        "track": 0,
+        "frequency": 44100,
+        "bits": 16,
+        "channels": 2,
+        "bytes": 3528000,
+        "hash": "5541272738123462857",
+        "unlocks": 108,
+        "plays": 1,
+        "stops": 2,
+        "peak": 24036,
+        "nonzero": 1763624,
+        "rms": 3612.74,
+        "volumes": [
+          0,
+          -10000,
+          -609,
+          0
+        ],
+        "hardwareCalls": 0,
+        "hardwareErrors": 0,
+        "maximumCursor": 0,
+        "ownMeterSamples": 0,
+        "maximumOwnPeak": 0
+      }
+    },
+    {
+      "language": "de",
+      "sha256": "d7798f77c2990e7edda2e8d02b539c952b0f4472e109a368881fcc2ae4b57b69",
+      "command": [
+        "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\bink_audio_published.exe",
+        "E:\\Games\\Star Trek Voyager Elite Force\\binkw32.dll",
+        "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\renderer-audio-reference\\st_04.bik",
+        "de",
+        "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\renderer-audio-reference\\de.pcm",
+        "file"
+      ],
+      "result": {
+        "sound": 1,
+        "frames": 300,
+        "expectedFrames": 300,
+        "track": 1,
+        "frequency": 44100,
+        "bits": 16,
+        "channels": 2,
+        "bytes": 3528000,
+        "hash": "12963676124868127847",
+        "unlocks": 108,
+        "plays": 1,
+        "stops": 2,
+        "peak": 31420,
+        "nonzero": 1763682,
+        "rms": 5508.52,
+        "volumes": [
+          0,
+          -10000,
+          -609,
+          0
+        ],
+        "hardwareCalls": 0,
+        "hardwareErrors": 0,
+        "maximumCursor": 0,
+        "ownMeterSamples": 0,
+        "maximumOwnPeak": 0
+      }
+    }
+  ],
+  "authenticRuntimeRestored": {
+    "path": "E:\\Games\\fnTech3-tests\\efassets\\binkw32.dll",
+    "bytes": 273408,
+    "sha256": "56d9eb00927c6db570c63e3669672d12b3896088071f72938c4ca92de4269d48"
+  },
+  "safety": [
+    "Windowed mode and disabled mouse/joystick; no input injection or operating-system screen capture.",
+    "Engine screenshot commands only; private virtual display for Linux.",
+    "Installed assets used read-only or through independent test-owned copies; no proprietary media committed."
+  ],
+  "remaining": [
+    "Complete renderer image parity; RTX held-movie images have measured differences from GLx.",
+    "Broader scenes, devices and subjective listening; Linux client networking and audio.",
+    "Development gates remain enabled."
+  ]
+}

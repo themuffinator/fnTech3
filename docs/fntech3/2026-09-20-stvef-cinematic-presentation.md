@@ -1,5 +1,11 @@
 # Elite Force single-player movie presentation
 
+**Live-evidence correction (2026-09-21):** These probes used `r_renderer`,
+which does not select fnTech3's backend. All fnTech3 live runs in this record
+used GLx; Vulkan/RTX labels in the historical manifest identify the requested
+test cases only. Source, native-vector and compiled-fixture evidence is
+unchanged. See the [renderer audit](2026-09-21-stvef-renderer-verification.md).
+
 The Windows x86 SP client now carries retail's one-second movie fades and
 the central crop selected by `cl_VideoQuality >= 2`. The installed Bink
 runtime still owns decoding; no runtime, SDK header, movie or retail
@@ -68,19 +74,19 @@ A separate installed-DLL probe pauses the first and last decoded frames of
 pixel hash as the original corpus run. This tests the pause interface without
 sound or real-time pacing.
 
-Windowed GLx, Vulkan and RTX runs use isolated writable homes under
+Three windowed GLx runs use isolated writable homes under
 `E:\Games\fnTech3-tests`, disabled mouse/joystick input, and the registered
-engine `screenshot` command. Each renderer produces 32 sequential fade
+engine `screenshot` command. Each run produces 32 sequential fade
 captures and three held-frame quality captures:
 
 - The first frame increases in brightness while held; the final frame
   decreases before the menu returns. After fitting a brightness multiplier,
   mean per-channel residuals in the sampled transitions are below 0.15 on
-  the 8-bit scale. Capture times are not synchronized between renderers.
+  the 8-bit scale. Capture times are not synchronized between runs.
 - Quality 0 and 1 held images are byte-identical. Quality 2 held images are
-  byte-identical across all three renderers and show the central crop.
+  byte-identical across those GLx runs and show the central crop.
 - Six further live sessions cover standalone completion and in-game playback
-  in each renderer. Every standalone movie runs its `nextmap` continuation.
+  in GLx. Every standalone movie runs its `nextmap` continuation.
   Every in-game movie reports `cl_paused 1` during playback and
   `cl_paused 0` on return, with the level still connected.
 

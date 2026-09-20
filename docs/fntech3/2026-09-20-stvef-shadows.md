@@ -1,5 +1,11 @@
 # Elite Force shadow geometry
 
+**Live-evidence correction (2026-09-21):** These probes used `r_renderer`,
+which does not select fnTech3's backend. All fnTech3 live runs in this record
+used GLx; Vulkan/RTX labels in the historical manifest identify the requested
+test cases only. Source, native-vector and compiled-fixture evidence is
+unchanged. See the [renderer audit](2026-09-21-stvef-renderer-verification.md).
+
 Elite Force's legacy-light stencil shadows now extrude vertices along the full
 light vector in all three renderers. The inherited height cap shortened a
 vertical shadow from 512 units to 51.2, which could stop it before reaching
@@ -39,21 +45,20 @@ target passes 1,843 tests with 72 conditional skips.
 The local windowed probe uses the retail `tutorial` save and a static model,
 with isolated homes under `E:\Games\fnTech3-tests`. Images come only from
 engine `screenshot` commands. It compares the installed retail engine with
-the before/after GLx, Vulkan and RTX builds. No mouse or keyboard input is
+the before/after GLx builds. No mouse or keyboard input is
 controlled and no operating-system capture is used.
 
 The static-model probe changes `cg_shadows` between off and stencil mode.
 Before the correction, 1,061 pixels disagree with retail about whether they
 are shadowed. After it, only three pixels disagree. Retail shadows 2,723
-pixels and fnTech3 shadows 2,720; the corrected images are identical across
-GLx, Vulkan and RTX. The mean difference in the isolated shadow contribution
+pixels and fnTech3 shadows 2,720; the corrected GLx images are identical across those runs. The mean difference in the isolated shadow contribution
 is below 0.0007 per 8-bit colour channel. Background rendering differences
 remain separate from this shadow mask comparison.
 
 A second probe spawns Tuvok, lets his transporter effect settle, freezes his
 AI and holds his animation frame through the module's debug cvars. Retail and
-all three corrected renderers complete this probe; fnTech3's images are again
-identical across renderers. Together, the two probes produce 33 engine images
+three corrected GLx runs complete this probe; fnTech3's images are again
+identical across those runs. Together, the two probes produce 33 engine images
 across 11 windowed runs. Projection mode does not change these particular
 visible scenes, so its evidence here remains the executable geometry fixture.
 
@@ -62,5 +67,5 @@ Scene-level image parity and movie audio remain separate evidence requirements.
 The profile's development gate remains in place.
 
 A [follow-up with a wider camera](2026-09-20-stvef-shadow-scenes.md) adds
-positive live blob, stencil and projection observations in all three renderers.
+positive live blob, stencil and projection observations in GLx.
 Movie audio delivery is covered by its [separate record](2026-09-20-stvef-movie-audio.md).

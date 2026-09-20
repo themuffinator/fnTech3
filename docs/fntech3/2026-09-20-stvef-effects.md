@@ -1,5 +1,11 @@
 # Elite Force Holomatch effect geometry
 
+**Live-evidence correction (2026-09-21):** These probes used `r_renderer`,
+which does not select fnTech3's backend. All fnTech3 live runs in this record
+used GLx; Vulkan/RTX labels in the historical manifest identify the requested
+test cases only. Source, native-vector and compiled-fixture evidence is
+unchanged. See the [renderer audit](2026-09-21-stvef-renderer-verification.md).
+
 All eight Holomatch effect primitives now have executable geometry comparisons
 against retail in each renderer. The checks also exposed two undefined
 float-to-integer conversions: cylinder detail was converted before clamping,
@@ -61,14 +67,14 @@ target passes 1,842 tests with 72 conditional skips.
 
 ## Windowed checks and limits
 
-The rebuilt GLx, Vulkan and RTX renderers each play the opening portion of
+Three runs of the rebuilt GLx renderer each play the opening portion of
 the installed `demo0000.efdemo`, with three engine `screenshot` captures.
 Every run reaches its completion marker and exits normally. Tests use
 isolated homes under `E:\Games\fnTech3-tests`, windowed mode and disabled
 mouse/joystick input; no operating-system capture is used.
 
-The early and later images are byte-identical across all three renderers.
-The shield image differs between GLx and the two Vulkan backends, with mean
+The early and later images are byte-identical across the three GLx runs.
+The shield image differs between those GLx runs, with mean
 absolute differences of 2.06, 4.16 and 5.04 in its RGB channels. The effect
 waveform uses each process's wall clock; these captures do not synchronize
 that clock and do not establish full image parity.

@@ -1,15 +1,21 @@
 # Elite Force visible shadow modes
 
+**Live-evidence correction (2026-09-21):** These probes used `r_renderer`,
+which does not select fnTech3's backend. All fnTech3 live runs in this record
+used GLx; Vulkan/RTX labels in the historical manifest identify the requested
+test cases only. Source, native-vector and compiled-fixture evidence is
+unchanged. See the [renderer audit](2026-09-21-stvef-renderer-verification.md).
+
 A wider view of the saved `tutorial` scene now establishes positive live
 examples of blob, stencil and projection shadows. The previous camera cut off
 the NPC's feet and projected shadow. This follow-up changes only the probe:
 `cg_fov 110` includes the receiving floor, and the settled Tuvok NPC retains
 the frozen AI and held animation used in the earlier shadow checks.
 
-The retail engine and GLx, Vulkan and RTX each complete one windowed run,
+The retail engine completes one windowed run and fnTech3 three GLx runs,
 capturing all four `cg_shadows` values through their own `screenshot` commands.
 All sixteen captures are retained locally. Every fnTech3 image is identical
-across its three renderers. There is no keyboard/mouse control or operating-
+across its three GLx runs. There is no keyboard/mouse control or operating-
 system screen capture, and writable homes stay under `E:\Games\fnTech3-tests`.
 
 Comparisons subtract each engine's shadow-off image to separate the shadow

@@ -414,5 +414,21 @@
     "Shield captures have unsynchronized wall-clock random waveforms and differ in intensity",
     "Full image parity, broader shadow coverage and audible movie parity remain open",
     "Windowed isolated writable homes; no input control or OS capture"
-  ]
+  ],
+  "rendererValidationCorrection": {
+    "date": "2026-09-21",
+    "actualFnTech3LiveRenderer": "glx",
+    "reason": "The probe used r_renderer, but the engine selector is cl_renderer. The retained Vulkan/RTX labels are intended cases, not observed backends.",
+    "invalidatedClaims": [
+      "Live Vulkan/RTX coverage",
+      "Cross-backend image equality or differences"
+    ],
+    "unaffectedEvidence": [
+      "Source inspection",
+      "Native mathematical comparisons",
+      "Compiled fixtures",
+      "Actual GLx live results"
+    ],
+    "followup": "../2026-09-21-stvef-renderer-verification.md"
+  }
 }

@@ -1,5 +1,11 @@
 # Elite Force movie audio output
 
+**Live-evidence correction (2026-09-21):** These probes used `r_renderer`,
+which does not select fnTech3's backend. All fnTech3 live runs in this record
+used GLx; Vulkan/RTX labels in the historical manifest identify the requested
+test cases only. Source, native-vector and compiled-fixture evidence is
+unchanged. See the [renderer audit](2026-09-21-stvef-renderer-verification.md).
+
 The client now distinguishes successful Bink sound-factory initialization
 from an available movie sound buffer. When DirectSound refuses the buffer,
 the movie still plays, but the engine reports audio as unavailable. Previously
@@ -45,15 +51,15 @@ volume maps to 0 dB, mute to -100 dB and half volume to -6.09 dB. Device runs
 retain the same PCM, advance the real playback cursor, produce a nonzero
 signal in the probe's own session meter and report no DirectSound API errors.
 
-Windowed engine runs exercise both `st_04` languages in GLx, Vulkan and RTX,
+Windowed engine runs exercise both `st_04` languages in three GLx runs per language,
 including the one-second fades and natural completion. A test-owned observer
 DLL in an isolated installation forwards to the unchanged installed runtime.
 Each run reaches frame 300, sends the selected track to DirectSound,
 mutes during transitions and completes its continuation. The observer records
 only that engine's movie buffers; it does not capture other applications.
 
-Four engine recordings match the native-file PCM byte-for-byte. The German
-Vulkan and RTX recordings each contain an additional 252 zero bytes at byte
+Four engine recordings match the native-file PCM byte-for-byte. The German recordings labelled
+Vulkan and RTX (also GLx) each contain an additional 252 zero bytes at byte
 196,608: 63 stereo frames, or 1.43 ms. Removing only that observed silent
 insertion makes every other sample identical. Two control runs through the
 installed retail engine also insert silence: each adds 252 bytes and another
@@ -62,7 +68,7 @@ that such insertions occur in the native playback path; synchronization is
 the inferred cause. The manifest retains the raw hashes, lengths and every
 insertion offset. Exact real-time sample delivery is not claimed.
 
-Three further windowed runs refuse the movie buffer in each renderer. All
+Three further windowed runs refuse the movie buffer in GLx. All
 75 video frames still complete, the continuation runs and the client exits
 cleanly. Each log reports `sound off` and `Bink audio device unavailable`;
 the observer receives no movie PCM and records no buffer play calls.

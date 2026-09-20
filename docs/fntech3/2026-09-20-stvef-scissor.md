@@ -1,5 +1,11 @@
 # Elite Force single-player scissor
 
+**Live-evidence correction (2026-09-21):** These probes used `r_renderer`,
+which does not select fnTech3's backend. All fnTech3 live runs in this record
+used GLx; Vulkan/RTX labels in the historical manifest identify the requested
+test cases only. Source, native-vector and compiled-fixture evidence is
+unchanged. See the [renderer audit](2026-09-21-stvef-renderer-verification.md).
+
 The SP cgame's `CG_R_SCISSOR` import now clips subsequent 2D rendering in
 GLx, Vulkan and RTX raster. The retail menu table's unused `R_ScissorPic`
 slot stays empty, as retail initializes it. The development gate remains.
@@ -50,7 +56,7 @@ grabbing disabled. It queued, in order:
 4. Empty scissor `(300, 300, 0, 0)`, then a yellow full-screen picture.
 5. Reset.
 
-The engine's `screenshot` command captured all three renderers. Each image
+The engine's `screenshot` command captured three GLx runs. Each image
 contains exactly 282,800 blue pixels, 24,000 green pixels, 400 red pixels
 and no yellow pixels. The green rectangle starts at `(100, 81)` and ends
 at `(299, 200)`, proving rounding after the lower-left conversion. Every
@@ -62,7 +68,7 @@ commands, executable and renderer hashes, pixel counts and image hashes.
 Build logs and the synthetic engine captures remain under
 `.tmp/stvef-gaps/` in the isolated `stvef-support` checkout.
 
-This closes the ignored scissor import with unit and live renderer evidence.
+This establishes unit coverage of the scissor import and GLx live evidence.
 It does not establish retail image parity for RDM5 characters or lighting,
 or Bink movie playback. During the movie audit, Python's ZIP reader also
 reported a bad CRC for the installation's `video/st_21.bik`; the installation

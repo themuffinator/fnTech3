@@ -1737,5 +1737,21 @@
     "Current-process output meter observes a delivered signal; it is not a subjective listening comparison",
     "No microphone, system loopback recording, input control or OS screen capture",
     "Proprietary movies and PCM remain local and are not committed"
-  ]
+  ],
+  "rendererValidationCorrection": {
+    "date": "2026-09-21",
+    "actualFnTech3LiveRenderer": "glx",
+    "reason": "The probe used r_renderer, but the engine selector is cl_renderer. The retained Vulkan/RTX labels are intended cases, not observed backends.",
+    "invalidatedClaims": [
+      "Live Vulkan/RTX coverage",
+      "Cross-backend image equality or differences"
+    ],
+    "unaffectedEvidence": [
+      "Source inspection",
+      "Native mathematical comparisons",
+      "Compiled fixtures",
+      "Actual GLx live results"
+    ],
+    "followup": "../2026-09-21-stvef-renderer-verification.md"
+  }
 }
