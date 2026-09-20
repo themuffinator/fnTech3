@@ -18,6 +18,10 @@ historical upstream records, not fnTech3 release history. See the
 
 ### Compatibility
 
+- Bound Elite Force cylinder detail and electricity lengths before integer
+  conversion, with native retail geometry fixtures for all eight Holomatch
+  effect primitives in GLx, Vulkan and RTX.
+
 - Restore Elite Force single-player movie fades and the central crop selected
   by `cl_VideoQuality 2`, including decoder pause and sound muting during
   transitions in all three renderers.

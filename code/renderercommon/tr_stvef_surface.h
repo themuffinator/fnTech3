@@ -234,12 +234,16 @@ static void RB_SurfaceSTVEFCylinder( void ) {
 	vec3_t middle, right, up, bottomRadius, topRadius, top;
 	vec3_t bottomRing[32], topRing[32];
 	float faceStep, sStep = 0.0f;
+	float detail;
 	int faces, i;
 	VectorMA( e->origin, e->stvef.height * 0.5f, e->axis[0], middle );
 	VectorSubtract( middle, backEnd.viewParms.or.origin, middle );
-	faces = (int)( ( 1.0f - VectorNormalize( middle ) * ( 1.0f / 1024.0f ) ) * e->stvef.bias * 32.0f );
-	if ( faces < 7 ) faces = 7;
-	else if ( faces > 32 ) faces = 32;
+	detail = ( 1.0f - VectorNormalize( middle ) * ( 1.0f / 1024.0f ) ) * e->stvef.bias * 32.0f;
+	// Clamp before converting: a NaN or oversized module-supplied bias must
+	// never reach an undefined float-to-int conversion.
+	if ( !( detail >= 7.0f ) ) faces = 7;
+	else if ( detail >= 32.0f ) faces = 32;
+	else faces = (int)detail;
 	MakeNormalVectors( e->axis[0], right, up );
 	VectorScale( up, e->stvef.width * 0.5f, bottomRadius );
 	VectorScale( up, e->stvef.width2 * 0.5f, topRadius );
@@ -295,7 +299,11 @@ static void RB_SurfaceSTVEFElectricity( void ) {
 	int i;
 	VectorSubtract( e->oldorigin, e->origin, direction );
 	// Retail truncates the length to whole units before dividing it.
-	stepLength = (float)(int)VectorNormalize( direction ) * ( 1.0f / 16.0f );
+	stepLength = VectorNormalize( direction );
+	// 2^31 is the first non-negative float outside a signed 32-bit integer.
+	// Reject invalid lengths before touching the batch or truncating them.
+	if ( !( stepLength >= 0.0f ) || stepLength >= 2147483648.0f ) return;
+	stepLength = (float)(int)stepLength * ( 1.0f / 16.0f );
 	RB_CHECKOVERFLOW( STVEF_ELECTRICITY_SEGMENTS * 4, STVEF_ELECTRICITY_SEGMENTS * 6 );
 	VectorCopy( e->origin, point );
 	for ( i = 0; i < STVEF_ELECTRICITY_SEGMENTS; ++i ) {

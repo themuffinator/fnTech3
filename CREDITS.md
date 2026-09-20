@@ -617,6 +617,8 @@ chapters; the GLSL implementation and synthetic tests are independently written.
   The independently written RDM5 reader and renderer corrections are checked
   against the installed retail mathematical routines and model corpus; see
   the [model and lighting record](docs/fntech3/2026-09-20-stvef-mdr.md).
+  Synthetic effect geometry is compared with the installed Holomatch routines
+  in the [effect record](docs/fntech3/2026-09-20-stvef-effects.md).
 
 - Elite Force's MP3 sounds and music are decoded by
   [minimp3](https://github.com/lieff/minimp3/tree/ea99364f61c14656440e8d77e9c233ccf3124633)

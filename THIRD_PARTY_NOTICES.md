@@ -105,6 +105,9 @@ The RDM5 and lighting tests contain independently authored fixtures and numeric
 observations from retail mathematical routines. No retail binary or model data
 is included; their identities and the limits of the comparison are recorded in
 the [model and lighting record](docs/fntech3/2026-09-20-stvef-mdr.md).
+The [effect geometry fixtures](docs/fntech3/2026-09-20-stvef-effects.md) likewise
+contain only independently chosen inputs and numerical observations; no
+retail code, assets or captured game state is included.
 
 The MP3 codec builds [minimp3](https://github.com/lieff/minimp3/tree/ea99364f61c14656440e8d77e9c233ccf3124633)
 (copyright Lion "lieff") from `subprojects/minimp3.wrap`. minimp3 is dedicated
