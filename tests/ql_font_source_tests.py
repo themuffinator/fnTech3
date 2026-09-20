@@ -97,7 +97,7 @@ class QLFontSourceTests(unittest.TestCase):
 
     def test_host_text_service_is_exported_by_every_renderer(self) -> None:
         public = read("code/renderercommon/tr_public.h")
-        self.assertIn("REF_API_VERSION\t\t26", public)
+        self.assertIn("REF_API_VERSION\t\t27", public)
         self.assertIn("(*DrawScaledText)", public)
         self.assertIn("(*MeasureScaledText)", public)
         self.assertIn("(*GetScaledFontMetrics)", public)

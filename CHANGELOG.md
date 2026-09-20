@@ -18,6 +18,9 @@ historical upstream records, not fnTech3 release history. See the
 
 ### Compatibility
 
+- Carry Elite Force single player's scissor rectangle through all three renderers,
+  including fractional pixel conversion, reset, and clipping bounds.
+
 - Name keys as both retail key tables name them. The keypad star is `KP_STAR`
   again, so a retail config line that binds it loads and is written back
   instead of being refused and lost, and keys 130 and 157-159 are written as

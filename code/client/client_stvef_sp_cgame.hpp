@@ -191,9 +191,7 @@ static bool CL_STVEFSPCgameCall( intptr_t *args, intptr_t &operation, intptr_t &
 		return true;
 	}
 	case Call::CG_R_SCISSOR:
-		// Neither the retail cgame nor its menus set a scissor; the engine's
-		// renderers keep no scissor state for 2D drawing.
-		Com_DPrintf( "Elite Force SP cgame scissor ignored\n" );
+		re.SetSTVEFScissor( VMF(1), VMF(2), VMF(3), VMF(4) );
 		return true;
 	case Call::CG_GETGLCONFIG:
 		CL_CopySTVEFSPGlconfig( VMA(1), cls.glconfig );

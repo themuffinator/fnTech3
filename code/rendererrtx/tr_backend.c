@@ -1532,6 +1532,7 @@ RB_SetGL2D
 */
 static void RB_SetGL2D( void ) {
 	backEnd.projection2D = qtrue;
+	backEnd.scissor2DSet = qfalse;
 
 #ifdef USE_VULKAN
 	vk_update_mvp( NULL );
@@ -1707,6 +1708,7 @@ static const void *RB_StretchPic( const void *data ) {
 }
 
 #include "../renderercommon/tr_draw_quad_backend.h"
+#include "../renderercommon/tr_stvef_scissor_backend.h"
 #include "../renderercommon/tr_wolfet_2d_poly_backend.h"
 
 
@@ -3037,6 +3039,7 @@ static void RB_RenderCSMShadowAtlas( drawSurf_t *drawSurfs, int numDrawSurfs )
 	tess.allowVBO = qfalse;
 #endif
 	backEnd.projection2D = qtrue;
+	backEnd.scissor2DSet = qfalse;
 	vk_clear_depth_force( qfalse );
 	backEnd.projection2D = qfalse;
 	originalTime = backEnd.refdef.floatTime;
@@ -4171,6 +4174,7 @@ static const void *RB_DrawBuffer( const void *data ) {
 	if ( r_clear->integer && vk.clearAttachment ) {
 		const vec4_t color = {1, 0, 0.5, 1};
 		backEnd.projection2D = qtrue; // to ensure we have viewport that occupies entire window
+		backEnd.scissor2DSet = qfalse;
 		vk_clear_color( color );
 		backEnd.projection2D = qfalse;
 	}
@@ -4392,6 +4396,7 @@ static const void *RB_ClearColor( const void *data )
 
 #ifdef USE_VULKAN
 	backEnd.projection2D = qtrue;
+	backEnd.scissor2DSet = qfalse;
 	vk_clear_color( clearColor );
 	backEnd.projection2D = qfalse;
 #else
@@ -4577,6 +4582,9 @@ void RB_ExecuteRenderCommands( const void *data ) {
 			break;
 		case RC_WOLFET_2D_POLYS:
 			data = RB_DrawWolfET2DPolys( data );
+			break;
+		case RC_STVEF_SCISSOR:
+			data = RB_SetSTVEFScissor( data );
 			break;
 		case RC_STRETCH_PIC:
 			data = RB_StretchPic( data );

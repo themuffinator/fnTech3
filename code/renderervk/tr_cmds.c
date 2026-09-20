@@ -757,6 +757,7 @@ void RE_StretchPic( float x, float y, float w, float h,
 }
 
 #include "../renderercommon/tr_draw_quad_cmd.h"
+#include "../renderercommon/tr_stvef_scissor_cmd.h"
 #include "../renderercommon/tr_wolfet_2d_poly_cmd.h"
 
 #define MODE_RED_CYAN	1

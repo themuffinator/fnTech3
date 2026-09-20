@@ -10319,6 +10319,13 @@ static void get_viewport(VkViewport *viewport, Vk_Depth_Range depth_range) {
 }
 
 static void get_scissor_rect(VkRect2D *r) {
+	if ( backEnd.projection2D && backEnd.scissor2DSet ) {
+		r->offset.x = backEnd.scissor2D.x;
+		r->offset.y = backEnd.scissor2D.y;
+		r->extent.width = backEnd.scissor2D.width;
+		r->extent.height = backEnd.scissor2D.height;
+		return;
+	}
 
 	if ( !backEnd.projection2D && R_ViewPassUsesScissor( &backEnd.viewParms ) )
 	{

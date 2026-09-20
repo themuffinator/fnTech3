@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../qcommon/game_profile.h"
 #include "vulkan/vulkan.h"
 
-#define	REF_API_VERSION		26
+#define	REF_API_VERSION		27
 
 //
 // these are the functions exported by the refresh module
@@ -190,6 +190,9 @@ typedef struct {
 	// An image file's pixels as RGBA, its top row first, or NULL. The caller
 	// frees them with Z_Free.
 	byte *(*LoadImagePixels)( const char *name, int *width, int *height );
+	// Elite Force SP's 2D clip rectangle, in framebuffer pixels. Negative x
+	// restores the whole framebuffer. A new 3D/2D transition resets it too.
+	void (*SetSTVEFScissor)( float x, float y, float w, float h );
 
 
 } refexport_t;

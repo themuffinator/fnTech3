@@ -1366,6 +1366,7 @@ RB_SetGL2D
 */
 void RB_SetGL2D( void ) {
 	backEnd.projection2D = qtrue;
+	backEnd.scissor2DSet = qfalse;
 	RB_RTCWFogToggle( qfalse );
 
 	// set 2D virtual screen size
@@ -1520,6 +1521,7 @@ static const void *RB_StretchPic( const void *data ) {
 }
 
 #include "../renderercommon/tr_draw_quad_backend.h"
+#include "../renderercommon/tr_stvef_scissor_backend.h"
 #include "../renderercommon/tr_wolfet_2d_poly_backend.h"
 
 
@@ -4681,6 +4683,9 @@ void RB_ExecuteRenderCommands( const void *data ) {
 			break;
 		case RC_WOLFET_2D_POLYS:
 			data = RB_DrawWolfET2DPolys( data );
+			break;
+		case RC_STVEF_SCISSOR:
+			data = RB_SetSTVEFScissor( data );
 			break;
 		case RC_STRETCH_PIC:
 			data = RB_StretchPic( data );
