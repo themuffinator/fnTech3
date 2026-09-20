@@ -668,7 +668,7 @@ S_SpatializeOrigin
 Used for spatializing s_channels
 =================
 */
-static void S_SpatializeOrigin( const vec3_t origin, int master_vol, int *left_vol, int *right_vol )
+static void S_SpatializeOrigin( const vec3_t origin, int master_vol, int *left_vol, int *right_vol, int entchannel )
 {
 	vec_t	dot;
 	vec_t	dist;
@@ -676,13 +676,29 @@ static void S_SpatializeOrigin( const vec3_t origin, int master_vol, int *left_v
 	vec3_t	source_vec;
 	vec3_t	vec;
 
-	const float dist_mult = kSoundAttenuate;
+	float dist_mult = kSoundAttenuate;
+	float full_volume = kSoundFullVolume;
+	float mono_scale = 1.0f;
+	// The engine spreads the two channels evenly; Elite Force spreads them
+	// by a cvar of its own, whose default is that same even spread.
+	float separation = 0.5f;
+
+	if ( Com_GameIsSTVEF() ) {
+		separation = S_STVEFSeparation();
+	}
+	if ( Com_GameIsSTVEFSP() ) {
+		// Single player holds a sound at full volume to 256 units rather
+		// than 80, a voice to 1,024, an attenuated voice hardly at all, and
+		// plays a mono device at three quarters (stvoy.exe 0x420510).
+		fntech3::audio::stvef::ChannelFalloff( entchannel, full_volume, dist_mult );
+		mono_scale = fntech3::audio::stvef::MonoScale;
+	}
 	
 	// calculate stereo separation and distance attenuation
 	VectorSubtract(origin, listener_origin, source_vec);
 
 	dist = VectorNormalize(source_vec);
-	dist -= kSoundFullVolume;
+	dist -= full_volume;
 	if (dist < 0)
 		dist = 0;			// close enough to be at full volume
 	dist *= dist_mult;		// different attenuation levels
@@ -693,13 +709,13 @@ static void S_SpatializeOrigin( const vec3_t origin, int master_vol, int *left_v
 
 	if (dma.channels == 1)
 	{ // no attenuation = no spatialization
-		rscale = 1.0;
-		lscale = 1.0;
+		rscale = mono_scale;
+		lscale = mono_scale;
 	}
 	else
 	{
-		rscale = 0.5 * (1.0 + dot);
-		lscale = 0.5 * (1.0 - dot);
+		rscale = dot * (1.0f - separation) + separation;
+		lscale = separation - dot * (1.0f - separation);
 		if ( rscale < 0.0 ) {
 			rscale = 0.0;
 		}
@@ -1306,7 +1322,7 @@ static void S_AddSTVEFAmbientLoopSounds( void ) {
 		sfx_t *sample = S_KnownSfxAt( loop.handle );
 		sample->lastTimeUsed = s_soundtime;
 		const auto gains = fntech3::audio::stvef::SpatializeMerged( stvefAmbientLoops, i,
-			listener_origin, listener_axis.data(), dma.channels == 1 );
+			listener_origin, listener_axis.data(), dma.channels == 1, S_STVEFSeparation() );
 		if ( !gains.left && !gains.right ) continue;
 		channel_t &channel = loop_channels[numLoopChannels++];
 		channel = channel_t{};
@@ -1341,9 +1357,9 @@ static void S_AddLoopSounds( void ) {
 		}
 
 		if (loop->kill) {
-			S_SpatializeOrigin( loop->origin, kMasterVolume, &left_total, &right_total);	// 3d
+			S_SpatializeOrigin( loop->origin, kMasterVolume, &left_total, &right_total, CHAN_AUTO);	// 3d
 		} else {
-			S_SpatializeOrigin( loop->origin, kSphereVolume,  &left_total, &right_total);	// sphere
+			S_SpatializeOrigin( loop->origin, kSphereVolume,  &left_total, &right_total, CHAN_AUTO);	// sphere
 		}
 
 		loop->sfx->lastTimeUsed = startTime;
@@ -1356,9 +1372,9 @@ static void S_AddLoopSounds( void ) {
 			loop2->mergeFrame = loopFrame;
 
 			if (loop2->kill) {
-				S_SpatializeOrigin( loop2->origin, kMasterVolume, &left, &right);		// 3d
+				S_SpatializeOrigin( loop2->origin, kMasterVolume, &left, &right, CHAN_AUTO);		// 3d
 			} else {
-				S_SpatializeOrigin( loop2->origin, kSphereVolume,  &left, &right);		// sphere
+				S_SpatializeOrigin( loop2->origin, kSphereVolume,  &left, &right, CHAN_AUTO);		// sphere
 			}
 
 			loop2->sfx->lastTimeUsed = startTime;
@@ -1514,7 +1530,7 @@ static void S_Base_Respatialize( int entityNum, const vec3_t head, vec3_t axis[3
 				continue;
 			}
 
-			S_SpatializeOrigin (origin, ch->master_vol, &ch->leftvol, &ch->rightvol);
+			S_SpatializeOrigin (origin, ch->master_vol, &ch->leftvol, &ch->rightvol, ch->entchannel);
 		}
 	}
 

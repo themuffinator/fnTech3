@@ -45,6 +45,7 @@ cvar_t *s_voiceVolume;
 cvar_t *s_voiceStep;
 cvar_t *s_doppler;
 cvar_t *s_pvs;
+cvar_t *s_separation;
 cvar_t *s_muteWhenMinimized;
 cvar_t *s_muteWhenUnfocused;
 cvar_t *s_backend;
@@ -921,6 +922,14 @@ extern "C" void S_Init( void )
 		// Registered as retail S_Init registers it (stvoyHM.exe 0x429b46).
 		cv = Cvar_Get( "s_language", "", CVAR_ARCHIVE | CVAR_NORESTART );
 		Cvar_SetDescription( cv, "Elite Force voice language: DEUTSCH plays the German voices (sound/vox_d) where the game has them. Applies to sounds loaded afterwards." );
+		// Both of Elite Force's executables register this one and spread the
+		// two channels by it (stvoy.exe 0x41fad2, stvoyHM.exe 0x429ab7); a
+		// half, its default, is the spread the engine has of its own.
+		s_separation = Cvar_Get( "s_separation", "0.5", CVAR_ARCHIVE );
+		Cvar_SetDescription( s_separation, "How far apart Elite Force places the left and right channels:\n"
+			"  0 - a sound is heard only on the side it comes from\n"
+			"  0.5 - default, the engine's own spread\n"
+			"  1 - both channels hear every sound alike" );
 	}
 	s_alDevice = Cvar_Get( "s_alDevice", "", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	Cvar_SetDescription( s_alDevice, "Selects the OpenAL playback device when s_backend is set to openal.\n"

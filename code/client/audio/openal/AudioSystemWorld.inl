@@ -1592,6 +1592,9 @@ void Q3SoundWorld::ApplyVoice( SoundVoice &voice, qboolean softMuted ) {
 	const float *sourceVelocity = voice.velocity.Data();
 	const bool listenerAttached = !voice.rtcwLoop && ( voice.entnum == listenerNumber_ );
 	const bool rtcwSpatial = voice.rtcwLoop || voice.rtcwOneShot || voice.stvefAmbient;
+	// Elite Force single player measures its own distances, so the device
+	// attenuates nothing for it; the voice stays positional all the same.
+	const bool stvefSpatial = Com_GameIsSTVEFSP() && !voice.stvefAmbient;
 	const bool localOnly = !rtcwSpatial && IsLocalOnlyChannel( voice.entchannel );
 	const bool stereoSample = ( voice.sample->Channels() > 1 );
 	const bool twoChannelSample = ( voice.sample->Channels() == 2 );
@@ -1604,7 +1607,8 @@ void Q3SoundWorld::ApplyVoice( SoundVoice &voice, qboolean softMuted ) {
 	const bool pvsCulled = positionalSource && s_pvs != nullptr && s_pvs->integer &&
 		!S_OriginInPVS( listenerOrigin_.Data(), voiceOrigin );
 	const bool directStereoSource = stereoSample && !encodedSoundField && !spatializedStereoWorldSource;
-	const bool useOpenALDistance = positionalSource && device_->UsesOpenALDistanceAttenuation();
+	const bool worldDistance = positionalSource && !stvefSpatial;
+	const bool useOpenALDistance = worldDistance && device_->UsesOpenALDistanceAttenuation();
 	const SoundShaderSettings &shader = voice.sample->Shader();
 	const float gainScale = shader.enabled && !rtcwSpatial ? shader.gainScale : kDefaultSoundShaderScale;
 	const float referenceScale = shader.enabled ? shader.referenceScale : kDefaultSoundShaderScale;
@@ -1616,7 +1620,8 @@ void Q3SoundWorld::ApplyVoice( SoundVoice &voice, qboolean softMuted ) {
 		// Retail's own distances and stereo separation (0x420510): the pan
 		// keeps the loudness whichever way the listener faces.
 		const auto gains = fntech3::audio::stvef::Spatialize( voiceOrigin,
-			static_cast<float>( voice.stvefVolume ), listenerOrigin_.Data(), listenerAxis_ );
+			static_cast<float>( voice.stvefVolume ), listenerOrigin_.Data(), listenerAxis_,
+			false, S_STVEFSeparation() );
 		const int sum = gains.left + gains.right;
 		spatial.gain = ( std::min )( 1.0f, static_cast<float>( sum ) / 255.0f );
 		spatial.pan = sum ? static_cast<float>( gains.right - gains.left ) / sum : 0.0f;
@@ -1629,6 +1634,15 @@ void Q3SoundWorld::ApplyVoice( SoundVoice &voice, qboolean softMuted ) {
 	} else if ( listenerAttached || localOnly ) {
 		spatial.gain = 1.0f;
 		spatial.pan = 0.0f;
+	} else if ( stvefSpatial ) {
+		// Retail's own falloff for the channel the sound plays on, and the
+		// spread its cvar asks for (stvoy.exe 0x420510).
+		const auto gains = fntech3::audio::stvef::Spatialize( voiceOrigin, 127.0f,
+			listenerOrigin_.Data(), listenerAxis_, false,
+			S_STVEFSeparation(), voice.entchannel );
+		spatial.gain = static_cast<float>( ( std::max )( gains.left, gains.right ) ) / 127.0f;
+		const int sum = gains.left + gains.right;
+		spatial.pan = sum ? static_cast<float>( gains.right - gains.left ) / sum : 0.0f;
 	} else if ( voice.rtcwOneShot ) {
 		const auto gains = fntech3::audio::rtcw::SpatializeOrigin(voiceOrigin, 1250.0f, 127,
 			listenerOrigin_.Data(), listenerAxis_);
@@ -1660,7 +1674,7 @@ void Q3SoundWorld::ApplyVoice( SoundVoice &voice, qboolean softMuted ) {
 		} else {
 			UpdateVoiceEnvironment( voice, voiceOrigin );
 			SmoothVoiceOcclusion( voice, now );
-			if ( positionalSource ) {
+			if ( worldDistance ) {
 				horizonGain = HorizonGain( distance, rangeScale );
 			}
 		}
@@ -1711,7 +1725,7 @@ void Q3SoundWorld::ApplyVoice( SoundVoice &voice, qboolean softMuted ) {
 		device_->SetSourceSpatialize( voice.source, true );
 		device_->SetSourceDirectChannels( voice.source, false );
 		device_->AL().alSourcei( voice.source, AL_SOURCE_RELATIVE, AL_FALSE );
-		device_->ConfigureSourceDistance( voice.source, true, referenceScale, rangeScale );
+		device_->ConfigureSourceDistance( voice.source, worldDistance, referenceScale, rangeScale );
 		device_->AL().alSource3f( voice.source, AL_POSITION, voiceOrigin[0], voiceOrigin[1], voiceOrigin[2] );
 		if ( voice.doppler ) {
 			device_->AL().alSource3f( voice.source, AL_VELOCITY, sourceVelocity[0], sourceVelocity[1], sourceVelocity[2] );

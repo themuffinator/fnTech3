@@ -35,7 +35,7 @@ them is described in the [cgame record](2026-09-19-stvef-sp-cgame.md).
 | A sub-wave | Once a fresh random delay of `timeBetweenWaves` seconds has passed, one of the set's sounds at a random volume from its range scaled by the set's volume, never above it, on the ambient channel (`0x41dc00`, `S_StartAmbientSound` `0x420680`) | The same delay, volume and channel |
 | A set around a point | Full volume within half its radius, then falling to nothing at the radius; its sounds play at the point and belong to the entity that asked. The answer is when the set last played, which the game keeps for each of its sounding entities (`S_AddLocalSet` `0x41dda0`, `0x41da60`) | The same, and the client's own time for a set this engine does not know, as retail answers |
 | A mover's sound | The set's sound for the stage asked for, or none where the set is not one the engine read (`AS_GetBModelSound` `0x41ddf0`) | The same. The sets are read as the cgame starts, so a level's movers ask before there are any and take their looping sound from the sets the level before left behind, as they do in retail |
-| Distances | Full volume within 256 units of the listener, then falling by 0.0008 a unit to silence at 1,506, panned by the listener's right axis and the stereo separation, or both channels at three quarters on a mono device (`S_SpatializeOrigin` `0x420510`) | The same for the ambient loops. Retail's separation cvar is not read: its default, a half, is what the loops are panned with. The distances of single player's other sounds are still the engine's, and retail's voice channels reach further than its own; that belongs to the next slice |
+| Distances | Full volume within 256 units of the listener, then falling by 0.0008 a unit to silence at 1,506, panned by the listener's right axis and the stereo separation, or both channels at three quarters on a mono device (`S_SpatializeOrigin` `0x420510`) | The same for the ambient loops, and, since the [sound distance record](2026-09-20-stvef-sp-sound-distances.md), for the rest of single player's sounds, each channel at the distance retail gives it and spread by retail's own `s_separation` |
 
 ## Results
 
@@ -72,7 +72,6 @@ with an isolated writable home path, on `tutorial`:
 
 ## Remaining
 
-Retail's own distances for single player's other sounds, where a voice is
-heard at full volume to 1,024 units and an attenuated voice falls silent by
-about 290; lip-sync, which the game reads from the engine's per-entity voice
-volumes; and Bink movies.
+Lip-sync, which the game reads from the engine's per-entity voice volumes,
+and Bink movies. Retail's own distances for single player's other sounds are
+in the [sound distance record](2026-09-20-stvef-sp-sound-distances.md).

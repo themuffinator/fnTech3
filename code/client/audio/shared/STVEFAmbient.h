@@ -9,16 +9,21 @@
 #include <cstring>
 
 /*
- * Elite Force single player's ambient loops. Its ambient sets each hold one
- * looping wave, which the cgame submits every frame with the volume the set
- * has faded to; retail keeps at most 32 of them a frame, merges those that
- * play the same sound and mixes each with its own volume
- * (S_AddAmbientLoopingSound stvoy.exe 0x420bd0, S_AddLoopSounds 0x420ca0).
+ * How Elite Force single player's sounds reach the listener, and the ambient
+ * loops its sets submit.
  *
- * The gains are retail's spatialization (S_SpatializeOrigin 0x420510): full
- * volume within 256 units of the listener, then falling by 0.0008 a unit to
- * silence at 1,506, panned by the listener's right axis and the stereo
- * separation, or both channels at three quarters on a mono device.
+ * Retail measures every sound the same way (S_SpatializeOrigin stvoy.exe
+ * 0x420510): the distance from the listener less the distance the sound is
+ * heard at full volume, times a falloff, taken from one; the pan follows the
+ * listener's right axis blended with the stereo separation, and a mono
+ * device hears both channels at three quarters. A sound carries full volume
+ * to 256 units and falls silent by 1,506, except on the two voice channels:
+ * a voice holds to 1,024 units, and an attenuated voice holds to 38.4 and
+ * falls five times as fast, silent by about 290.
+ *
+ * An ambient set's looping wave comes with the volume the set has faded to;
+ * retail keeps at most 32 loops a frame and merges those playing the same
+ * sound (S_AddAmbientLoopingSound 0x420bd0, S_AddLoopSounds 0x420ca0).
  */
 
 namespace fntech3::audio::stvef {
@@ -26,6 +31,35 @@ namespace fntech3::audio::stvef {
 inline constexpr float FullVolumeDistance = 256.0f;
 inline constexpr float Attenuation = 0.0008f;
 inline constexpr float MonoScale = 0.75f;
+// Retail's own stereo separation cvar, which it leaves at a half.
+inline constexpr float Separation = 0.5f;
+// A voice is heard at full volume much further away, and an attenuated
+// voice hardly at all (0x420559).
+inline constexpr float VoiceFullVolumeDistance = 1024.0f;
+inline constexpr float AttenuatedVoiceFullVolumeDistance = 38.4f;
+inline constexpr float AttenuatedVoiceAttenuation = 0.004f;
+
+/* The engine's numbers for those two channels. Single player's voice keeps
+ * Quake III's own number, and its attenuated voice, which the engine has no
+ * channel for, takes a number of its own above them (the client's
+ * CL_STVEFSPSoundChannel; stvef_sp_sound_distance_tests pins the pair). */
+inline constexpr int VoiceChannel = 3;
+inline constexpr int AttenuatedVoiceChannel = 12;
+
+/* How far a sound on a channel carries at full volume, and how quickly it
+ * falls away after that. */
+inline void ChannelFalloff( int channel, float &fullVolume, float &attenuation ) {
+	if ( channel == VoiceChannel ) {
+		fullVolume = VoiceFullVolumeDistance;
+		attenuation = Attenuation;
+	} else if ( channel == AttenuatedVoiceChannel ) {
+		fullVolume = AttenuatedVoiceFullVolumeDistance;
+		attenuation = AttenuatedVoiceAttenuation;
+	} else {
+		fullVolume = FullVolumeDistance;
+		attenuation = Attenuation;
+	}
+}
 
 struct AmbientLoop {
 	std::array<float, 3> origin{};
@@ -60,14 +94,18 @@ private:
 struct Gains { int left = 0, right = 0; };
 
 /* One sound's gains at the listener. The distance is measured from the
- * listener, the pan from its right axis; separation is the engine's stereo
- * separation, which retail takes from a cvar. */
+ * listener and the pan from its right axis; the channel decides how far the
+ * sound carries, and separation is the stereo separation retail leaves at a
+ * half. */
 inline Gains Spatialize( const float *origin, float volume, const float *listener,
-	const float axis[3][3], bool mono = false, float separation = 0.5f ) {
+	const float axis[3][3], bool mono = false, float separation = Separation,
+	int channel = -1 ) {
 	Gains gains;
 	if ( !origin || !listener || !( volume > 0 ) ) {
 		return gains;
 	}
+	float fullVolume = FullVolumeDistance, attenuation = Attenuation;
+	ChannelFalloff( channel, fullVolume, attenuation );
 	std::array<float, 3> source;
 	float squared = 0;
 	for ( std::size_t i = 0; i < source.size(); ++i ) {
@@ -78,8 +116,8 @@ inline Gains Spatialize( const float *origin, float volume, const float *listene
 	if ( !std::isfinite( distance ) ) {
 		return gains;
 	}
-	const float beyond = ( std::max )( 0.0f, distance - FullVolumeDistance );
-	const float scale = 1.0f - beyond * Attenuation;
+	const float beyond = ( std::max )( 0.0f, distance - fullVolume );
+	const float scale = 1.0f - beyond * attenuation;
 	if ( !( scale > 0 ) ) {
 		return gains;
 	}
@@ -101,18 +139,18 @@ inline Gains Spatialize( const float *origin, float volume, const float *listene
 		right = ( std::max )( 0.0f, dot * ( 1.0f - separation ) + separation );
 		left = ( std::max )( 0.0f, separation - dot * ( 1.0f - separation ) );
 	}
-	const auto channel = [&]( float side ) {
+	const auto gainFor = [&]( float side ) {
 		const int value = static_cast<int>( scale * side * volume );
 		return ( std::max )( 0, ( std::min )( 255, value ) );
 	};
-	gains.right = channel( right );
-	gains.left = channel( left );
+	gains.right = gainFor( right );
+	gains.left = gainFor( left );
 	return gains;
 }
 
 /* The gains of every loop playing one sound, summed as retail sums them. */
 inline Gains SpatializeMerged( const AmbientLoopFrame &loops, std::size_t first,
-	const float *listener, const float axis[3][3], bool mono = false, float separation = 0.5f ) {
+	const float *listener, const float axis[3][3], bool mono = false, float separation = Separation ) {
 	Gains total;
 	if ( first >= loops.Size() ) {
 		return total;

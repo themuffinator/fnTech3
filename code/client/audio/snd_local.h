@@ -233,6 +233,15 @@ extern cvar_t *s_voiceVolume;
 extern cvar_t *s_voiceStep;
 extern cvar_t *s_doppler;
 extern cvar_t *s_pvs;
+// Elite Force alone registers this one; the games that do not leave it
+// null and are spread evenly, which is this cvar's own default.
+extern cvar_t *s_separation;
+static ID_INLINE float S_STVEFSeparation( void ) {
+	if ( s_separation == NULL ) return 0.5f;
+	if ( s_separation->value < 0.0f ) return 0.0f;
+	if ( s_separation->value > 1.0f ) return 1.0f;
+	return s_separation->value;
+}
 extern cvar_t *s_muteWhenUnfocused;
 extern cvar_t *s_muteWhenMinimized;
 extern cvar_t *s_khz;

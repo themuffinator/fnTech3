@@ -249,6 +249,9 @@ def spatial():
     return COMMON + r'''
 struct SpatialParams {float gain=0,pan=0;};
 static bool IsLocalOnlyChannel(int channel){return channel==1||channel==6||channel==7;}
+// Elite Force's own measuring is checked by stvef_sp_sound_distance_tests.
+static bool Com_GameIsSTVEFSP(){return false;}
+static float S_STVEFSeparation(){return 0.5f;}
 static int generic=0;static SpatialParams ComputeSpatialParams(const float *,const float *,const float (*)[3],int,float,float){++generic;return {0.42f,0.1f};}
 static SpatialParams calculate(bool shot,bool loop,int entity,int channel,const float *voiceOrigin){
  struct {bool rtcwOneShot,rtcwLoop;int entnum,entchannel;Loop rtcwLoopData;bool stvefAmbient;int stvefVolume;}
