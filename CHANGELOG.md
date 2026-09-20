@@ -18,6 +18,10 @@ historical upstream records, not fnTech3 release history. See the
 
 ### Compatibility
 
+- Restore Elite Force single-player movie fades and the central crop selected
+  by `cl_VideoQuality 2`, including decoder pause and sound muting during
+  transitions in all three renderers.
+
 - Validate Elite Force RDM5 skeletal models before renderer allocation, restore
   retail LOD and held-frame behaviour, and match its lighting defaults and
   colour rounding across GLx, Vulkan and RTX.

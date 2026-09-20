@@ -94,7 +94,7 @@ static void Sys_UnloadLibrary(void *);
 #define _M_IX86
 #endif
 #include "code/client/cinematic_bink.hpp"
-static int loads,unloads,opened,closed,waits,decoded,copied,advances,soundCalls,vol;
+static int loads,unloads,opened,closed,waits,decoded,copied,advances,soundCalls,vol,pauses,pauseState;
 static bool failLoad,failOpen,badMetadata,waiting,skipFrame,soundSuccess=true;
 static const char *missing=nullptr;
 static std::uint32_t selected;
@@ -116,6 +116,7 @@ static void __stdcall Track(std::uint32_t track){selected=track;}
 static void *__stdcall DirectSound(std::uint32_t value){assert(!value);return reinterpret_cast<void *>(2);}
 static std::int32_t __stdcall Sound(void *(__stdcall *factory)(std::uint32_t),std::uint32_t value){assert(factory==DirectSound&&!value);++soundCalls;return soundSuccess;}
 static void __stdcall Volume(NativePrefix *p,std::int32_t value){assert(p==&native);vol=value;}
+static std::int32_t __stdcall Pause(NativePrefix *p,std::int32_t value){assert(p==&native);++pauses;pauseState=value;return value;}
 static const char *__stdcall Error(){return "native error";}
 static void *Sys_LoadLibrary(const char *path){assert(!strcmp(path,"installation/binkw32.dll"));++loads;return failLoad?nullptr:reinterpret_cast<void *>(1);}
 static void Sys_UnloadLibrary(void *lib){assert(lib==reinterpret_cast<void *>(1));++unloads;}
@@ -125,6 +126,7 @@ static void *Sys_LoadFunction(void *lib,const char *name){
  EXPORT("_BinkOpen@8",Open);EXPORT("_BinkClose@4",Close);EXPORT("_BinkWait@4",Wait);EXPORT("_BinkDoFrame@4",Decode);
  EXPORT("_BinkNextFrame@4",Next);EXPORT("_BinkCopyToBuffer@28",Copy);EXPORT("_BinkSetSoundTrack@4",Track);
  EXPORT("_BinkSetSoundSystem@8",Sound);EXPORT("_BinkOpenDirectSound@4",DirectSound);EXPORT("_BinkSetVolume@8",Volume);EXPORT("_BinkGetError@0",Error);
+ EXPORT("_BinkPause@8",Pause);
 #undef EXPORT
  assert(false);return nullptr;
 }
@@ -134,7 +136,7 @@ int main(){
  assert(!movie.Open({},path,false,false)&&!loads&&!movie.Pixels());
  failLoad=true;assert(!movie.Open(File(),path,false,false)&&loads==1&&!unloads);failLoad=false;
  for(const char *name:{"_BinkOpen@8","_BinkClose@4","_BinkWait@4","_BinkDoFrame@4","_BinkNextFrame@4","_BinkCopyToBuffer@28",
-  "_BinkSetSoundTrack@4","_BinkSetSoundSystem@8","_BinkOpenDirectSound@4","_BinkSetVolume@8","_BinkGetError@0"}){
+  "_BinkSetSoundTrack@4","_BinkSetSoundSystem@8","_BinkOpenDirectSound@4","_BinkSetVolume@8","_BinkPause@8","_BinkGetError@0"}){
   missing=name;int before=unloads;assert(!movie.Open(File(),path,false,false)&&unloads==before+1);movie.Close();assert(unloads==before+1);
  }
  missing=nullptr;failOpen=true;assert(!movie.Open(File(),path,false,false)&&std::string(movie.Error())=="native error");
@@ -144,15 +146,24 @@ int main(){
  movie.Volume(-1);assert(vol==0);movie.Volume(std::numeric_limits<float>::quiet_NaN());assert(vol==0);
  movie.Volume(0.5f);assert(vol==16384);movie.Volume(100);assert(vol==32768);
  waiting=true;assert(movie.Step(100)==Movie::Result::Frame&&decoded==1&&!waits&&native.frame==2&&movie.Pixels()[0]==1);
+ movie.Pause(true,100);movie.Pause(true,200);
+ assert(pauses==1&&pauseState==1&&movie.Step(1100)==Movie::Result::Waiting&&decoded==1&&!waits);
+ movie.Pause(false,1100);movie.Pause(false,1101);assert(pauses==2&&!pauseState);
  assert(movie.Step(101)==Movie::Result::Waiting&&waits==1&&decoded==1);
  waiting=false;skipFrame=true;assert(movie.Step(167)==Movie::Result::Waiting&&native.frame==3&&copied==1&&movie.Pixels()[0]==1);
  skipFrame=false;assert(movie.Step(234)==Movie::Result::Frame&&native.frame==3&&copied==2&&movie.Pixels()[0]==3);
  assert(movie.Step(300)==Movie::Result::Waiting);assert(movie.Step(301)==Movie::Result::End);
  assert(movie.Rewind()&&native.frame==1&&!movie.Pixels());
  movie.Step(0xffffff00u);movie.Step(0xffffff50u);movie.Step(0xfffffff0u);
- assert(movie.Step(0x20)==Movie::Result::Waiting&&movie.Step(0x40)==Movie::Result::End);
+ // Pause the last frame across clock wrap; its remaining duration survives.
+ movie.Pause(true,0xfffffff5u);assert(movie.Step(0x800)==Movie::Result::Waiting);
+ movie.Pause(false,0x3ddu);
+ assert(movie.Step(0x408)==Movie::Result::Waiting&&movie.Step(0x428)==Movie::Result::End);
+ movie.Pause(true,0x500);assert(movie.Rewind());assert(movie.Step(0x600)==Movie::Result::Frame);
+ movie.Pause(true,0x600);
  before=closed;movie.Close();movie.Close();assert(closed==before+1&&!movie.Pixels()&&!movie.Sound());
  assert(movie.Step(0)==Movie::Result::End&&!movie.Rewind());
+ before=pauses;movie.Pause(true,0);movie.Pause(false,0);assert(pauses==before);
  assert(movie.Open(File(1),path,true,false)&&!movie.Sound()&&selected==0xffffffffu&&soundCalls==1);
  soundSuccess=false;assert(movie.Open(File(1),path,true,true)&&!movie.Sound()&&selected==0xffffffffu&&soundCalls==2);
  skipFrame=true;assert(movie.Step(0)==Movie::Result::End&&!movie.Pixels()&&*movie.Error());

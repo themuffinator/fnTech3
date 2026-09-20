@@ -8,14 +8,29 @@ static e_status CIN_RunBink( int handle ) {
 	using Result = fntech3::stvef::bink::Movie::Result;
 	auto &movie = cinTable[handle];
 	if ( movie.status == FMV_IDLE ) return FMV_IDLE;
+	const auto now = static_cast<std::uint32_t>( Sys_Milliseconds() );
+	auto &presentation = movie.binkPresentation;
+	presentation.Update( now );
+	if ( presentation.Ending() ) {
+		movie.bink->Volume( 0 );
+		if ( !presentation.Done() ) return movie.status;
+		Com_DPrintf( "Bink finished: %s\n", movie.fileName.data() );
+		currentHandle = handle;
+		RoQShutdown();
+		return FMV_EOF;
+	}
+	movie.bink->Pause( presentation.Pause(), now );
 	const bool mute = movie.silent ||
+		presentation.Mute() ||
 		( !gw_active && Cvar_VariableIntegerValue( "s_muteWhenUnfocused" ) ) ||
 		( gw_minimized && Cvar_VariableIntegerValue( "s_muteWhenMinimized" ) );
 	movie.bink->Volume( mute ? 0.0f : Cvar_VariableValue( "s_volume" ) );
-	const auto result = movie.bink->Step( static_cast<std::uint32_t>( Sys_Milliseconds() ) );
+	const auto result = movie.bink->Step( now );
 	if ( result == Result::Frame ) {
 		movie.buf = movie.bink->Pixels();
 		movie.dirty = true;
+		presentation.Frame( now );
+		movie.bink->Pause( presentation.Pause(), now );
 	}
 	if ( result != Result::End ) return movie.status;
 	if ( !*movie.bink->Error() && movie.looping && movie.bink->Rewind() ) {
@@ -26,6 +41,10 @@ static e_status CIN_RunBink( int handle ) {
 		movie.bink->Volume( 0 );
 		movie.status = FMV_IDLE;
 		return FMV_IDLE;
+	}
+	if ( !*movie.bink->Error() && presentation.End( now ) ) {
+		movie.bink->Volume( 0 );
+		return movie.status;
 	}
 	if ( *movie.bink->Error() ) Com_Printf( "Cannot decode %s: %s\n", movie.fileName.data(), movie.bink->Error() );
 	Com_DPrintf( "Bink finished: %s\n", movie.fileName.data() );
@@ -107,6 +126,12 @@ static int CIN_PlayBink( const char *qpath, int x, int y, int w, int h, int bits
 	movie.alterGameState = ( bits & CIN_system ) != 0;
 	movie.silent = ( bits & CIN_silent ) != 0;
 	movie.shader = ( bits & CIN_shader ) != 0;
+	// Shader movies are an engine extension, with continuous texture playback.
+	// Retail's presentation transitions belong to screen cinematics.
+	movie.binkPresentation.Open(
+		!movie.shader && Cvar_VariableValue( "cl_VidFadeUp" ) != 0.0f,
+		!movie.shader && Cvar_VariableValue( "cl_VidFadeDown" ) != 0.0f,
+		movie.shader ? 0.0f : Cvar_VariableValue( "cl_VideoQuality" ) );
 	movie.rtcwLetterBox = false;
 	movie.stvefInGame = false;
 	movie.playonwalls = 1;
@@ -117,6 +142,23 @@ static int CIN_PlayBink( const char *qpath, int x, int y, int w, int h, int bits
 	}
 	Con_Close();
 	return CIN_RunBink( handle ) == FMV_EOF ? -1 : handle;
+}
+
+static void CIN_DrawBink( int handle, float x, float y, float width, float height ) {
+	auto &movie = cinTable[handle];
+	const auto frame = movie.binkPresentation.Pixels( movie.buf,
+		std::size_t( movie.CIN_WIDTH ) * movie.CIN_HEIGHT * 4,
+		movie.CIN_WIDTH, movie.CIN_HEIGHT, movie.dirty );
+	if ( !frame.pixels ) return;
+	re.DrawStretchRaw( x, y, width, height * frame.heightScale, frame.width, frame.height,
+		frame.pixels, handle, ToQboolean( movie.dirty ) );
+	movie.dirty = false;
+	if ( movie.binkPresentation.Alpha() < 1.0f ) {
+		const vec4_t black = { 0, 0, 0, 1.0f - movie.binkPresentation.Alpha() };
+		re.SetColor( black );
+		re.DrawStretchPic( x, y, width, height, 0, 0, 1, 1, cls.whiteShader );
+		re.SetColor( nullptr );
+	}
 }
 
 #endif

@@ -629,6 +629,8 @@ chapters; the GLSL implementation and synthetic tests are independently written.
   No SDK header, decoder implementation or runtime binary is incorporated.
   The [movie record](docs/fntech3/2026-09-20-stvef-bink.md) separates the native
   runtime's role from the engine's file validation, playback and rendering.
+  The [presentation record](docs/fntech3/2026-09-20-stvef-cinematic-presentation.md)
+  documents independently observed retail fade and crop behaviour.
 
 ## Retail-content boundary
 

@@ -28,6 +28,7 @@ int Com_GameIsSTVEFSP(){return 0;}
 const char *COM_GetExtension(const char *){assert(false);return "";}
 void COM_DefaultExtension(char *,int,const char *){assert(false);}
 static int CIN_PlayBink(const char *,int,int,int,int,int){assert(false);return -1;}
+static void CIN_DrawBink(int,float,float,float,float){assert(false);}
 static void Cvar_Set(const char *,const char *){assert(false);}
 static char stvefPendingMovie[MAX_QPATH];
 void QDECL Com_Error(errorParm_t,const char *,...){throw 1;}
@@ -48,7 +49,7 @@ struct Movie {
  std::array<char,256>fileName{};File iFile;int ROQSize=0;
  int xpos=0,ypos=0,width=0,height=0,CIN_WIDTH=0,CIN_HEIGHT=0,drawX=512,drawY=512,playonwalls=0;
  bool looping=false,holdAtEnd=false,dirty=false,alterGameState=false,silent=false,shader=false;
- bool rtcwLetterBox=false;byte *buf=nullptr;e_status status=FMV_IDLE;
+ bool rtcwLetterBox=false,bink=false;byte *buf=nullptr;e_status status=FMV_IDLE;
 };
 static std::array<Movie,MAX_VIDEO_HANDLES> cinTable;
 static struct {int currentHandle;std::array<byte,16>file;} cin;

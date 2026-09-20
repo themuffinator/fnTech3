@@ -12,6 +12,7 @@ HOST = r'''
 #include <cstdio>
 #include <memory>
 #include <unordered_map>
+#include "code/compat/stvef_cinematic_presentation.hpp"
 using byte=unsigned char;
 enum e_status {FMV_EOF,FMV_PLAY,FMV_IDLE};
 using qboolean=int;
@@ -23,9 +24,10 @@ class Movie {
 public:
  enum class Result {Waiting,Frame,End};
  Result result=Result::Waiting;
- int steps=0,rewinds=0;bool rewindOK=true;float volume=1;
+ int steps=0,rewinds=0;bool rewindOK=true,paused=false;float volume=1;
  const char *error="";byte pixels[4]={1,2,3,4};
- Result Step(std::uint32_t){++steps;return result;}
+ Result Step(std::uint32_t){if(paused)return Result::Waiting;++steps;return result;}
+ void Pause(bool value,std::uint32_t){paused=value;}
  void Volume(float value){volume=value;}
  bool Rewind(){++rewinds;if(!rewindOK)error="rewind failed";return rewindOK;}
  const char *Error(){return error;}
@@ -35,6 +37,7 @@ public:
 struct Row {
  std::array<char,256>fileName{};
  std::unique_ptr<fntech3::stvef::bink::Movie>bink;
+ fntech3::stvef::bink::Presentation binkPresentation;
  struct {void reset(){}}iFile;
  e_status status=FMV_IDLE;
  bool dirty=false,stvefInGame=false,alterGameState=false,silent=false,looping=false,holdAtEnd=false;
@@ -72,6 +75,7 @@ static e_status CIN_RunCinematic(int handle){return CIN_RunBink(handle);}
 static int CIN_PlayCinematic(const char *name,int x,int y,int w,int h,int bits){
  assert(!x&&!y&&w==640&&h==480&&!bits);++playCalls;played=name;if(failPlay)return -1;
  auto &row=cinTable[0];row.bink=std::make_unique<fntech3::stvef::bink::Movie>();
+ row.binkPresentation.Open(Cvar_VariableValue("cl_VidFadeUp")!=0,Cvar_VariableValue("cl_VidFadeDown")!=0,0);
  row.fileName[0]='x';row.status=FMV_PLAY;row.startTime=now;return 0;
 }
 '''
@@ -174,7 +178,7 @@ int main(){
         body = function(source, 'static std::unique_ptr<fntech3::stvef::bink::Movie> CIN_OpenBink(')
         stvef_bink_tests.STVEFBinkTests().execute(host + body + checks)
 
-    def test_movie_commands_pending_load_pause_completion_loop_hold_and_keys(self):
+    def lifecycle(self, checks):
         source = (ROOT / 'code/client/cl_cin.cpp').read_text()
         adapter = (ROOT / 'code/client/client_stvef_sp_cinematic.hpp').read_text()
         body = HOST + '\n'.join(function(source, name) for name in (
@@ -183,7 +187,61 @@ int main(){
         body += '\n'.join(function(source, name) for name in (
             'static void CL_PlaySTVEFSPInGameCinematic(', 'void CL_PlayInGameCinematic_f(',
             'qboolean CL_STVEFSPCinematicKey(', 'void SCR_RunCinematic(', 'void SCR_StopCinematic('))
-        stvef_bink_tests.STVEFBinkTests().execute(body + CHECKS)
+        stvef_bink_tests.STVEFBinkTests().execute(body + checks)
+
+    def test_movie_commands_pending_load_pause_completion_loop_hold_and_keys(self):
+        self.lifecycle(CHECKS)
+
+    def test_fades_freeze_decoder_mute_and_defer_completion_without_blocking_shutdown(self):
+        self.lifecycle(r"""
+int main(){
+ using Result=fntech3::stvef::bink::Movie::Result;
+ cls.state=CA_ACTIVE;cvars["cl_VidFadeUp"]="1";cvars["cl_VidFadeDown"]="1";cvars["s_volume"]="0.7";
+ auto &row=cinTable[0];
+ for(unsigned origin:{100u,0xfffffff0u}){
+  now=static_cast<int>(origin);CL_PlayInGameCinematic_f();
+  row.bink->result=Result::Frame;SCR_RunCinematic();
+  assert(row.bink->paused&&row.bink->volume==0&&row.bink->steps==1&&row.binkPresentation.Alpha()==0);
+  const auto *first=row.buf;
+  for(unsigned elapsed:{1u,500u,999u}){
+   now=static_cast<int>(origin+elapsed);SCR_RunCinematic();
+   assert(row.buf==first&&row.bink->paused&&row.bink->steps==1&&row.bink->volume==0);
+   assert(Cvar_VariableIntegerValue("cl_paused")==1&&CL_handle==0);
+  }
+  now=static_cast<int>(origin+1000);SCR_RunCinematic();
+  assert(!row.bink->paused&&row.bink->steps==2&&row.bink->volume==0.7f&&row.binkPresentation.Alpha()==1);
+  row.bink->result=Result::End;now=static_cast<int>(origin+2000);SCR_RunCinematic();
+  assert(row.bink&&row.bink->volume==0&&row.binkPresentation.Alpha()==1&&row.buf==first);
+  for(unsigned elapsed:{1u,500u,999u}){
+   now=static_cast<int>(origin+2000+elapsed);SCR_RunCinematic();
+   assert(row.bink->steps==3&&row.bink->volume==0&&Cvar_VariableIntegerValue("cl_paused")==1);
+  }
+  now=static_cast<int>(origin+3000);SCR_RunCinematic();
+  assert(!row.bink&&CL_handle==-1&&!Cvar_VariableIntegerValue("cl_paused")&&cls.state==CA_ACTIVE);
+ }
+ // Forced stop releases the pause at every presentation phase.
+ for(int phase=0;phase<3;++phase){
+  now=100;CL_PlayInGameCinematic_f();row.bink->result=Result::Frame;SCR_RunCinematic();
+  if(phase){now=1100;SCR_RunCinematic();}
+  if(phase==2){row.bink->result=Result::End;SCR_RunCinematic();}
+  SCR_StopCinematic();assert(!row.bink&&CL_handle==-1&&!Cvar_VariableIntegerValue("cl_paused"));
+ }
+ // Loop and hold extensions do not acquire a fade-out or a repeated fade-in.
+ for(bool loop:{true,false}){
+  now=100;CL_PlayInGameCinematic_f();row.bink->result=Result::Frame;SCR_RunCinematic();
+  now=1100;SCR_RunCinematic();row.looping=loop;row.holdAtEnd=!loop;
+  row.bink->result=Result::End;SCR_RunCinematic();
+  assert(row.bink&&!row.binkPresentation.Ending()&&row.status==(loop?FMV_PLAY:FMV_IDLE));
+  SCR_StopCinematic();row.looping=row.holdAtEnd=false;
+ }
+ // A failed decode never waits on a fade; neither does a movie with no frame.
+ for(bool hasFrame:{true,false}){
+  now=100;CL_PlayInGameCinematic_f();
+  if(hasFrame){row.bink->result=Result::Frame;SCR_RunCinematic();now=1100;SCR_RunCinematic();row.bink->error="failed";}
+  row.bink->result=Result::End;SCR_RunCinematic();assert(!row.bink&&CL_handle==-1);
+ }
+}
+""")
 
     def test_renderer_movie_dimensions_remain_profile_specific(self):
         host = r'''

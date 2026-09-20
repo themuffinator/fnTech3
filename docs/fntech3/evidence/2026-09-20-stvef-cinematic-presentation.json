@@ -1,0 +1,2253 @@
+{
+  "baseCommit": "23ac037e5684dd73644fa49cac38bdf928f453ce",
+  "changes": "Movie presentation implementation and regressions on this base",
+  "platform": "Windows x86 MSVC",
+  "profile": "stvef-sp",
+  "build": "meson compile -C meson/build/win32-dev; stvef-development, rtcw-development, wolfet-development enabled",
+  "client": {
+    "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+    "bytes": 8503808,
+    "sha256": "d7ebd41b745318cdd56b4b6cf3f586b14c559982a2a424be7c41ea0dba9dc3d4"
+  },
+  "renderers": {
+    "glx": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_glx_x86.dll",
+      "bytes": 2440704,
+      "sha256": "d71199f4d87b6a7f5857d282e30f7c4129c6fda91d0089490e805b2abfd561ab"
+    },
+    "vk": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_vk_x86.dll",
+      "bytes": 2610688,
+      "sha256": "75151b4c72fe005c66924b28b342ed24eb426470573239b0040061b99baa1996"
+    },
+    "rtx": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_rtx_x86.dll",
+      "bytes": 2900992,
+      "sha256": "6c79581f3cc4bddd06976f80eb97ee077ac4606aba7b0aaa195ab911fb3c9341"
+    }
+  },
+  "installation": [
+    {
+      "path": "E:\\Games\\Star Trek Voyager Elite Force\\stvoy.exe",
+      "bytes": 675840,
+      "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74"
+    },
+    {
+      "path": "E:\\Games\\Star Trek Voyager Elite Force\\binkw32.dll",
+      "bytes": 273408,
+      "sha256": "56d9eb00927c6db570c63e3669672d12b3896088071f72938c4ca92de4269d48"
+    }
+  ],
+  "sources": [
+    {
+      "path": "code/compat/stvef_cinematic_presentation.hpp",
+      "sha256": "50d1870459785f45952c54a90b590a5ec24a28eb144b9da2ea17cd4b5e423aa8"
+    },
+    {
+      "path": "code/client/cinematic_bink.hpp",
+      "sha256": "d4c0e92d90517702010bb1f90db7696513bfc428316f23f7da519db2a6dccc5c"
+    },
+    {
+      "path": "code/client/client_stvef_sp_cinematic.hpp",
+      "sha256": "ae517f0fc1c8cd12f1f9b0c57397c83c357b5ed7197058a3cf7b4423cac53b54"
+    },
+    {
+      "path": "code/client/cl_cin.cpp",
+      "sha256": "b57a5034a22464ee3b2b065588594db525e13996f4c85fc50af44af25d162686"
+    },
+    {
+      "path": "code/client/cl_main.cpp",
+      "sha256": "829c7e86098f6bd8a207466435fe08063062e148775061786c9693f34f31f125"
+    },
+    {
+      "path": "tests/stvef_bink_tests.py",
+      "sha256": "94284b850110a8b176ebeb9f961e5189563e9809191cd86aefa8b3f31567630a"
+    },
+    {
+      "path": "tests/stvef_cinematic_tests.py",
+      "sha256": "3831c17d34100ea2bcd293fb674de2efc005a01fddd8c536a3e81c821052c180"
+    },
+    {
+      "path": "tests/stvef_cinematic_presentation_tests.py",
+      "sha256": "71da25d141af743a1d6324a3c5986629d911c90fc03aa96f3abca97d63237c35"
+    }
+  ],
+  "nativePresentation": {
+    "source": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\retail_presentation_probe.c",
+      "bytes": 2048,
+      "sha256": "aa7f151a8c33f6f226afd08d2d8236c10f0c9ffb54e6da0fa757370fd60275e8"
+    },
+    "binary": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\retail_presentation_probe.exe",
+      "bytes": 137728,
+      "sha256": "f378636f93ca105fa4ef6066e17dc67d0045875ff88a91e0abd33cf891527cfb"
+    },
+    "command": [
+      "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\retail_presentation_probe.exe",
+      "E:\\Games\\Star Trek Voyager Elite Force\\stvoy.exe",
+      "geometry",
+      "ignored"
+    ],
+    "mode": "Synthetic 640x480 pixels, recording draw callback and fake clock; native movie handle null",
+    "output": [
+      "mode 1",
+      "draw 1 rect 0 0 256 256 texture 256 256 fade 1 first 00000000 last 00027e7f",
+      "draw 2 rect 256 0 256 256 texture 256 256 fade 1 first 00000100 last 00027f7f",
+      "draw 3 rect 512 0 128 256 texture 128 256 fade 1 first 00000200 last 00027fff",
+      "draw 4 rect 0 256 256 128 texture 256 128 fade 1 first 00028000 last 0003be7f",
+      "draw 5 rect 256 256 256 128 texture 256 128 fade 1 first 00028100 last 0003bf7f",
+      "draw 6 rect 512 256 128 128 texture 128 128 fade 1 first 00028200 last 0003bfff",
+      "draw 7 rect 0 384 256 64 texture 256 64 fade 1 first 0003c000 last 00045e7f",
+      "draw 8 rect 256 384 256 64 texture 256 64 fade 1 first 0003c100 last 00045f7f",
+      "draw 9 rect 512 384 128 64 texture 128 64 fade 1 first 0003c200 last 00045fff",
+      "draw 10 rect 0 448 256 32 texture 256 32 fade 1 first 00046000 last 0004ae7f",
+      "draw 11 rect 256 448 256 32 texture 256 32 fade 1 first 00046100 last 0004af7f",
+      "draw 12 rect 512 448 128 32 texture 128 32 fade 1 first 00046200 last 0004afff",
+      "mode 2",
+      "draw 1 rect 0 0 640 640 texture 256 256 fade 1 first 000168c0 last 00027f7f",
+      "fade in elapsed 0",
+      "draw 2 rect 0 0 640 640 texture 256 256 fade 0 first 000168c0 last 00027f7f",
+      "fade in elapsed 1",
+      "draw 3 rect 0 0 640 640 texture 256 256 fade 0.00100000005 first 000168c0 last 00027f7f",
+      "fade in elapsed 250",
+      "draw 4 rect 0 0 640 640 texture 256 256 fade 0.25 first 000168c0 last 00027f7f",
+      "fade in elapsed 500",
+      "draw 5 rect 0 0 640 640 texture 256 256 fade 0.5 first 000168c0 last 00027f7f",
+      "fade in elapsed 999",
+      "draw 6 rect 0 0 640 640 texture 256 256 fade 0.999000072 first 000168c0 last 00027f7f",
+      "fade in elapsed 1000",
+      "draw 7 rect 0 0 640 640 texture 256 256 fade 1 first 000168c0 last 00027f7f",
+      "fade in elapsed 1001",
+      "draw 8 rect 0 0 640 640 texture 256 256 fade 1 first 000168c0 last 00027f7f",
+      "fade out elapsed 0",
+      "draw 9 rect 0 0 640 640 texture 256 256 fade 1 first 000168c0 last 00027f7f",
+      "fade out elapsed 1",
+      "draw 10 rect 0 0 640 640 texture 256 256 fade 0.999000013 first 000168c0 last 00027f7f",
+      "fade out elapsed 250",
+      "draw 11 rect 0 0 640 640 texture 256 256 fade 0.75 first 000168c0 last 00027f7f",
+      "fade out elapsed 500",
+      "draw 12 rect 0 0 640 640 texture 256 256 fade 0.49999997 first 000168c0 last 00027f7f",
+      "fade out elapsed 999",
+      "draw 13 rect 0 0 640 640 texture 256 256 fade 0.00099995255 first 000168c0 last 00027f7f",
+      "fade out elapsed 1000",
+      "draw 14 rect 0 0 640 640 texture 256 256 fade 0 first 000168c0 last 00027f7f",
+      "fade out elapsed 1001",
+      "draw 15 rect 0 0 640 640 texture 256 256 fade 0 first 000168c0 last 00027f7f"
+    ],
+    "fadeVectorCount": 14,
+    "fadeMaximumAbsoluteTolerance": 2e-07,
+    "cropSourceRectangle": [
+      192,
+      144,
+      256,
+      192
+    ],
+    "cropTextureDimensions": [
+      256,
+      256
+    ],
+    "cropDrawRectangle": [
+      0,
+      0,
+      640,
+      640
+    ],
+    "quality1TileCount": 12
+  },
+  "nativePause": {
+    "command": [
+      "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\bink_pause_probe.exe",
+      "E:/Games/Star Trek Voyager Elite Force/binkw32.dll"
+    ],
+    "source": ".tmp/stvef-gaps/bink_pause_probe.cpp",
+    "exit": 0,
+    "fixture": "video/st_01.bik",
+    "sha256": "4b5ba539395aba37048b6023dc6b4ba0f739daf839059bd9bcb6ac01fd8a4555",
+    "outcome": {
+      "width": 512,
+      "height": 384,
+      "frames": 75,
+      "expected": 75,
+      "track": 0,
+      "hash": "11389406841381628606"
+    },
+    "baselineHash": "11389406841381628606",
+    "mode": "Pause first and last decoded frame, verify Step waits while paused, resume; synthetic clock, sound and native wait disabled"
+  },
+  "windowedPresentation": [
+    {
+      "renderer": "glx",
+      "exit": 0,
+      "seconds": 28.406,
+      "launch": [
+        "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "stvef-sp",
+        "+set",
+        "fs_basepath",
+        "E:/Games/Star Trek Voyager Elite Force",
+        "+set",
+        "fs_homepath",
+        "E:\\Games\\fnTech3-tests\\stvef-cinematic-glx",
+        "+set",
+        "r_renderer",
+        "glx",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "com_hunkMegs",
+        "256",
+        "+set",
+        "com_zoneMegs",
+        "128",
+        "+exec",
+        "probe.cfg"
+      ],
+      "clientSHA256": "d7ebd41b745318cdd56b4b6cf3f586b14c559982a2a424be7c41ea0dba9dc3d4",
+      "commands": "wait 60\nset nextmap \"echo PRESENTATION_NATURAL_END\"\ncinematic st_01\nwait 1\nscreenshot presentation_fade_00\nwait 15\nscreenshot presentation_fade_01\nwait 15\nscreenshot presentation_fade_02\nwait 15\nscreenshot presentation_fade_03\nwait 15\nscreenshot presentation_fade_04\nwait 15\nscreenshot presentation_fade_05\nwait 15\nscreenshot presentation_fade_06\nwait 15\nscreenshot presentation_fade_07\nwait 15\nscreenshot presentation_fade_08\nwait 15\nscreenshot presentation_fade_09\nwait 15\nscreenshot presentation_fade_10\nwait 15\nscreenshot presentation_fade_11\nwait 15\nscreenshot presentation_fade_12\nwait 15\nscreenshot presentation_fade_13\nwait 15\nscreenshot presentation_fade_14\nwait 15\nscreenshot presentation_fade_15\nwait 15\nscreenshot presentation_fade_16\nwait 15\nscreenshot presentation_fade_17\nwait 15\nscreenshot presentation_fade_18\nwait 15\nscreenshot presentation_fade_19\nwait 15\nscreenshot presentation_fade_20\nwait 15\nscreenshot presentation_fade_21\nwait 15\nscreenshot presentation_fade_22\nwait 15\nscreenshot presentation_fade_23\nwait 15\nscreenshot presentation_fade_24\nwait 15\nscreenshot presentation_fade_25\nwait 15\nscreenshot presentation_fade_26\nwait 15\nscreenshot presentation_fade_27\nwait 15\nscreenshot presentation_fade_28\nwait 15\nscreenshot presentation_fade_29\nwait 15\nscreenshot presentation_fade_30\nwait 15\nscreenshot presentation_fade_31\nwait 15\nset cl_VidFadeUp 0\nset cl_VideoQuality 0\ncinematic st_01 1\nwait 360\nscreenshot presentation_quality_0\nwait 2\nset cl_VidFadeUp 0\nset cl_VideoQuality 1\ncinematic st_01 1\nwait 360\nscreenshot presentation_quality_1\nwait 2\nset cl_VidFadeUp 0\nset cl_VideoQuality 2\ncinematic st_01 1\nwait 360\nscreenshot presentation_quality_2\nwait 2\ndisconnect\necho PRESENTATION_COMPLETE\nwait 2\nquit\n",
+      "events": [
+        "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+        "^5Bink finished: video/st_01.bik",
+        "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+        "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+        "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+        "PRESENTATION_COMPLETE"
+      ],
+      "captures": [
+        {
+          "name": "presentation_fade_00.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            0.032034505208333335,
+            0.02313802083333333,
+            0.020826822916666668
+          ],
+          "sha256": "2b069a0fa639af499bc3478756f421e280afd89b56fdf9dc0357683702fe673e"
+        },
+        {
+          "name": "presentation_fade_01.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            1.40630859375,
+            1.1864420572916667,
+            1.1618880208333333
+          ],
+          "sha256": "ae8e53047e3dc3969add1dc5824c8eae287c6a89c6da0c062fd6d8bcae86522a"
+        },
+        {
+          "name": "presentation_fade_02.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            2.8862727864583335,
+            2.4362727864583333,
+            2.384954427083333
+          ],
+          "sha256": "2d01b904f0517ae217b857a04434fce24b3e873104edf06bde6d39e7483135e7"
+        },
+        {
+          "name": "presentation_fade_03.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            4.450048828125,
+            3.7640201822916666,
+            3.687841796875
+          ],
+          "sha256": "e21fa0cdee004d9ca1cefdf2e5afc2b45afe62e4379c25e507299231ea5e9fbf"
+        },
+        {
+          "name": "presentation_fade_04.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            5.956728515625,
+            5.035192057291667,
+            4.939361979166667
+          ],
+          "sha256": "834c330f728f3fc00f0304bcb7c983fd834aa8ddd3a6537f25c0b1f6e6646648"
+        },
+        {
+          "name": "presentation_fade_05.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            6.182724609375,
+            5.25181640625,
+            5.148759765625
+          ],
+          "sha256": "dba19e7ff4e3c5b8c9af8fbc0d9b4014706425bf6ddcb8e2f465d7dbcdb36584"
+        },
+        {
+          "name": "presentation_fade_06.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            6.248238932291667,
+            5.304674479166667,
+            5.230504557291667
+          ],
+          "sha256": "bfde1f19eb99f8d998d328f5c823868e22b5dbb83a017b27ce9fee2e0ea9f259"
+        },
+        {
+          "name": "presentation_fade_07.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            6.311526692708333,
+            5.332718098958333,
+            5.2698763020833335
+          ],
+          "sha256": "86c960c1de03f81d7b9be7ad7130e0fccc23b4db385a7632382555996bf4b4e7"
+        },
+        {
+          "name": "presentation_fade_08.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            6.3369368489583335,
+            5.358857421875,
+            5.29052734375
+          ],
+          "sha256": "aff5af7f633bc3d0eb72737eb7faf39805c888887dab362e2e652f38abc925a0"
+        },
+        {
+          "name": "presentation_fade_09.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            6.291617838541667,
+            5.343694661458334,
+            5.301110026041667
+          ],
+          "sha256": "f22da61f035aa917c4eced3bdf16cfaedb99d1f482860ad25a7559de21cd895d"
+        },
+        {
+          "name": "presentation_fade_10.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            19.482252604166668,
+            10.93216796875,
+            14.897376302083334
+          ],
+          "sha256": "cb23ecb27b0bfd80ecedf0dd14825aea2daeb17fbb2f7f0940f1b9fde43e8e2e"
+        },
+        {
+          "name": "presentation_fade_11.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            25.450384114583333,
+            14.036748046875,
+            18.890641276041666
+          ],
+          "sha256": "511363c2fb0e66133962b8dd819f6cc82eaaa773964a7dc70f59c9151cfeb0db"
+        },
+        {
+          "name": "presentation_fade_12.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            29.69012369791667,
+            16.064104817708333,
+            21.395559895833333
+          ],
+          "sha256": "32e6bba2e1a3319aec370a978e2de5735263021b051b39eb17ff5121874b09f4"
+        },
+        {
+          "name": "presentation_fade_13.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            22.217138671875,
+            13.60130859375,
+            16.36984700520833
+          ],
+          "sha256": "74a8cc736ce68cc6a664d76a01254a1f931e1b597fe70d8dc1bdfa776586f44e"
+        },
+        {
+          "name": "presentation_fade_14.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            15.918502604166667,
+            10.497477213541666,
+            12.074384765625
+          ],
+          "sha256": "1bac70a2feee4eb54e818770a5fedd9a646c73e470a12ae0b2cf5ab2267d9a51"
+        },
+        {
+          "name": "presentation_fade_15.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            13.982216796875,
+            9.35541015625,
+            10.677141927083333
+          ],
+          "sha256": "395260dc5a866c3f42d47d191c9adb61480d49c4376e52cef3e4a6c9883a0c02"
+        },
+        {
+          "name": "presentation_fade_16.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            12.648899739583333,
+            8.225221354166667,
+            9.599547526041667
+          ],
+          "sha256": "32320d2fe470596d07959fbfc051a08ad9c5d12ab02b3d13051ce98a97cc547c"
+        },
+        {
+          "name": "presentation_fade_17.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            15.707483723958333,
+            9.458629557291667,
+            12.253304036458333
+          ],
+          "sha256": "4f74c9ba374383a6217f42dd5178908dc6653335c42452f9e7fda642d30bb0a3"
+        },
+        {
+          "name": "presentation_fade_18.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            12.091891276041666,
+            8.778079427083334,
+            9.763131510416667
+          ],
+          "sha256": "fb5dc8a29c7a7363bb11e6aba21f2dce49fbf587d96b13f5594388b3723556cc"
+        },
+        {
+          "name": "presentation_fade_19.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            7.5932845052083335,
+            6.118134765625,
+            6.538564453125
+          ],
+          "sha256": "edde9ac363bef2aa42f67af8a1dcfbaa8d2955a11c2a1e4a9e17fcc131ccbdad"
+        },
+        {
+          "name": "presentation_fade_20.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            6.36365234375,
+            5.282252604166667,
+            5.530169270833333
+          ],
+          "sha256": "e64fa2b635a4ec102fde6f9e3600d12fe4938d017cdfacf5e5c0772909976da3"
+        },
+        {
+          "name": "presentation_fade_21.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            5.953059895833333,
+            5.055914713541667,
+            5.205068359375
+          ],
+          "sha256": "78fa1d2aec67cb4eaae88df0d62218889fe1a8e199195bc29381baae94e71957"
+        },
+        {
+          "name": "presentation_fade_22.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            5.87005859375,
+            4.995130208333333,
+            5.146520182291667
+          ],
+          "sha256": "0faf89258827ba2fc1fa438f41931e576e8c4b484bb96a4290c0aab8620029e9"
+        },
+        {
+          "name": "presentation_fade_23.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            5.833662109375,
+            4.971149088541667,
+            5.138902994791667
+          ],
+          "sha256": "74403a8daee3c05fe4f880f318f6ab6c24784ac8505997991604d1e86d0fc42a"
+        },
+        {
+          "name": "presentation_fade_24.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            5.786311848958333,
+            4.946416015625,
+            5.108489583333333
+          ],
+          "sha256": "ae3b8de7614318c2e938b83955e608f97f1327b047dc1008eb693d81a157ebee"
+        },
+        {
+          "name": "presentation_fade_25.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            5.785120442708333,
+            4.94759765625,
+            5.1166764322916665
+          ],
+          "sha256": "3051cdb03d8105462331f82b9034eca985600f893059e4b8aabd1022ac8003ac"
+        },
+        {
+          "name": "presentation_fade_26.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            4.6551953125,
+            3.989130859375,
+            4.120224609375
+          ],
+          "sha256": "acc0ad7ae8bf8a90ed0b3df3114a84d5b671dc486e220fa11afb0565b607f1f9"
+        },
+        {
+          "name": "presentation_fade_27.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            3.2811588541666667,
+            2.815055338541667,
+            2.902294921875
+          ],
+          "sha256": "229544a4d3d5a6403924d39747a779af18069b0ab34b84d5b86f50b8bbc23ab6"
+        },
+        {
+          "name": "presentation_fade_28.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            1.829423828125,
+            1.556044921875,
+            1.6166829427083333
+          ],
+          "sha256": "f375fbcccc68b010e98998cd075e66bd85cf24ca3646cbf6316e560c4e61cc58"
+        },
+        {
+          "name": "presentation_fade_29.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            0.4037890625,
+            0.34077799479166665,
+            0.34951171875
+          ],
+          "sha256": "467e9b1b2e3e101fe32fb8a104efd7b9e06dccb1cb831e75da6fe813fea70b50"
+        },
+        {
+          "name": "presentation_fade_30.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            26.372805989583334,
+            15.761002604166666,
+            12.410628255208334
+          ],
+          "sha256": "9d4758759876e119f83b9553bd0737bedeb5919d086aea8eb1a65c9223adb5f0"
+        },
+        {
+          "name": "presentation_fade_31.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            27.804541015625,
+            17.2824609375,
+            13.685608723958333
+          ],
+          "sha256": "3333357f35b22d38c3a1664a734dd5de855114a8a54e7ffb02006365cc03bc1e"
+        },
+        {
+          "name": "presentation_quality_0.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            5.785120442708333,
+            4.94759765625,
+            5.1166764322916665
+          ],
+          "sha256": "3051cdb03d8105462331f82b9034eca985600f893059e4b8aabd1022ac8003ac"
+        },
+        {
+          "name": "presentation_quality_1.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            5.785120442708333,
+            4.94759765625,
+            5.1166764322916665
+          ],
+          "sha256": "3051cdb03d8105462331f82b9034eca985600f893059e4b8aabd1022ac8003ac"
+        },
+        {
+          "name": "presentation_quality_2.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            13.167034505208333,
+            10.712828776041667,
+            10.277724609375
+          ],
+          "sha256": "43784791b3ffa633e3c00322a06561e474f51fc9cf1f2f63369bdedc02af3b6a"
+        }
+      ]
+    },
+    {
+      "renderer": "vk",
+      "exit": 0,
+      "seconds": 27.125,
+      "launch": [
+        "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "stvef-sp",
+        "+set",
+        "fs_basepath",
+        "E:/Games/Star Trek Voyager Elite Force",
+        "+set",
+        "fs_homepath",
+        "E:\\Games\\fnTech3-tests\\stvef-cinematic-vk",
+        "+set",
+        "r_renderer",
+        "vk",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "com_hunkMegs",
+        "256",
+        "+set",
+        "com_zoneMegs",
+        "128",
+        "+exec",
+        "probe.cfg"
+      ],
+      "clientSHA256": "d7ebd41b745318cdd56b4b6cf3f586b14c559982a2a424be7c41ea0dba9dc3d4",
+      "commands": "wait 60\nset nextmap \"echo PRESENTATION_NATURAL_END\"\ncinematic st_01\nwait 1\nscreenshot presentation_fade_00\nwait 15\nscreenshot presentation_fade_01\nwait 15\nscreenshot presentation_fade_02\nwait 15\nscreenshot presentation_fade_03\nwait 15\nscreenshot presentation_fade_04\nwait 15\nscreenshot presentation_fade_05\nwait 15\nscreenshot presentation_fade_06\nwait 15\nscreenshot presentation_fade_07\nwait 15\nscreenshot presentation_fade_08\nwait 15\nscreenshot presentation_fade_09\nwait 15\nscreenshot presentation_fade_10\nwait 15\nscreenshot presentation_fade_11\nwait 15\nscreenshot presentation_fade_12\nwait 15\nscreenshot presentation_fade_13\nwait 15\nscreenshot presentation_fade_14\nwait 15\nscreenshot presentation_fade_15\nwait 15\nscreenshot presentation_fade_16\nwait 15\nscreenshot presentation_fade_17\nwait 15\nscreenshot presentation_fade_18\nwait 15\nscreenshot presentation_fade_19\nwait 15\nscreenshot presentation_fade_20\nwait 15\nscreenshot presentation_fade_21\nwait 15\nscreenshot presentation_fade_22\nwait 15\nscreenshot presentation_fade_23\nwait 15\nscreenshot presentation_fade_24\nwait 15\nscreenshot presentation_fade_25\nwait 15\nscreenshot presentation_fade_26\nwait 15\nscreenshot presentation_fade_27\nwait 15\nscreenshot presentation_fade_28\nwait 15\nscreenshot presentation_fade_29\nwait 15\nscreenshot presentation_fade_30\nwait 15\nscreenshot presentation_fade_31\nwait 15\nset cl_VidFadeUp 0\nset cl_VideoQuality 0\ncinematic st_01 1\nwait 360\nscreenshot presentation_quality_0\nwait 2\nset cl_VidFadeUp 0\nset cl_VideoQuality 1\ncinematic st_01 1\nwait 360\nscreenshot presentation_quality_1\nwait 2\nset cl_VidFadeUp 0\nset cl_VideoQuality 2\ncinematic st_01 1\nwait 360\nscreenshot presentation_quality_2\nwait 2\ndisconnect\necho PRESENTATION_COMPLETE\nwait 2\nquit\n",
+      "events": [
+        "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+        "^5Bink finished: video/st_01.bik",
+        "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+        "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+        "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+        "PRESENTATION_COMPLETE"
+      ],
+      "captures": [
+        {
+          "name": "presentation_fade_00.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            0.032034505208333335,
+            0.02313802083333333,
+            0.020826822916666668
+          ],
+          "sha256": "2b069a0fa639af499bc3478756f421e280afd89b56fdf9dc0357683702fe673e"
+        },
+        {
+          "name": "presentation_fade_01.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            1.4688118489583333,
+            1.2369205729166666,
+            1.2134016927083333
+          ],
+          "sha256": "fcc0650ee5f33babae3124e73f6596465aceb660dd409ee481376299ac06b485"
+        },
+        {
+          "name": "presentation_fade_02.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            2.9492805989583335,
+            2.4877799479166667,
+            2.4386555989583334
+          ],
+          "sha256": "351ef887874a0408f13424bf57125cf6548373c20e03c4fe8efac0211965f608"
+        },
+        {
+          "name": "presentation_fade_03.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            4.491337890625,
+            3.797327473958333,
+            3.723056640625
+          ],
+          "sha256": "76f93755aca293534e456ca19f9ba43914ddccc8be9d0ab6e31cbfd54743f174"
+        },
+        {
+          "name": "presentation_fade_04.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            6.050367838541667,
+            5.117685546875,
+            5.013704427083334
+          ],
+          "sha256": "4be2c351026911e4253f0a453caf484a08874d93bf0c1ed438c6d6616d872f05"
+        },
+        {
+          "name": "presentation_fade_05.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            6.182724609375,
+            5.25181640625,
+            5.148759765625
+          ],
+          "sha256": "dba19e7ff4e3c5b8c9af8fbc0d9b4014706425bf6ddcb8e2f465d7dbcdb36584"
+        },
+        {
+          "name": "presentation_fade_06.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            6.248238932291667,
+            5.304674479166667,
+            5.230504557291667
+          ],
+          "sha256": "bfde1f19eb99f8d998d328f5c823868e22b5dbb83a017b27ce9fee2e0ea9f259"
+        },
+        {
+          "name": "presentation_fade_07.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            6.321969401041667,
+            5.3361197916666665,
+            5.269140625
+          ],
+          "sha256": "76f1f42dc88eddbfa7b2bf8c80b59e2c78d3269eddd11f6463a823440de5e3d6"
+        },
+        {
+          "name": "presentation_fade_08.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            6.3369368489583335,
+            5.358857421875,
+            5.29052734375
+          ],
+          "sha256": "aff5af7f633bc3d0eb72737eb7faf39805c888887dab362e2e652f38abc925a0"
+        },
+        {
+          "name": "presentation_fade_09.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            6.291617838541667,
+            5.343694661458334,
+            5.301110026041667
+          ],
+          "sha256": "f22da61f035aa917c4eced3bdf16cfaedb99d1f482860ad25a7559de21cd895d"
+        },
+        {
+          "name": "presentation_fade_10.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            19.482252604166668,
+            10.93216796875,
+            14.897376302083334
+          ],
+          "sha256": "cb23ecb27b0bfd80ecedf0dd14825aea2daeb17fbb2f7f0940f1b9fde43e8e2e"
+        },
+        {
+          "name": "presentation_fade_11.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            25.450384114583333,
+            14.036748046875,
+            18.890641276041666
+          ],
+          "sha256": "511363c2fb0e66133962b8dd819f6cc82eaaa773964a7dc70f59c9151cfeb0db"
+        },
+        {
+          "name": "presentation_fade_12.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            26.486214192708335,
+            14.934427083333333,
+            19.351695963541665
+          ],
+          "sha256": "a0f72f25d137211ab7625b3f85fe758ef111afedb7fe02f385d963a40b8b0380"
+        },
+        {
+          "name": "presentation_fade_13.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            22.217138671875,
+            13.60130859375,
+            16.36984700520833
+          ],
+          "sha256": "74a8cc736ce68cc6a664d76a01254a1f931e1b597fe70d8dc1bdfa776586f44e"
+        },
+        {
+          "name": "presentation_fade_14.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            15.918502604166667,
+            10.497477213541666,
+            12.074384765625
+          ],
+          "sha256": "1bac70a2feee4eb54e818770a5fedd9a646c73e470a12ae0b2cf5ab2267d9a51"
+        },
+        {
+          "name": "presentation_fade_15.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            13.982216796875,
+            9.35541015625,
+            10.677141927083333
+          ],
+          "sha256": "395260dc5a866c3f42d47d191c9adb61480d49c4376e52cef3e4a6c9883a0c02"
+        },
+        {
+          "name": "presentation_fade_16.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            12.648899739583333,
+            8.225221354166667,
+            9.599547526041667
+          ],
+          "sha256": "32320d2fe470596d07959fbfc051a08ad9c5d12ab02b3d13051ce98a97cc547c"
+        },
+        {
+          "name": "presentation_fade_17.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            15.570113932291667,
+            9.102770182291666,
+            11.987763671875
+          ],
+          "sha256": "f868e38d629c8fc896ca49101b4954268d6bb1e41d504d0f69a17eca2bb89416"
+        },
+        {
+          "name": "presentation_fade_18.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            12.091891276041666,
+            8.778079427083334,
+            9.763131510416667
+          ],
+          "sha256": "fb5dc8a29c7a7363bb11e6aba21f2dce49fbf587d96b13f5594388b3723556cc"
+        },
+        {
+          "name": "presentation_fade_19.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            7.5932845052083335,
+            6.118134765625,
+            6.538564453125
+          ],
+          "sha256": "edde9ac363bef2aa42f67af8a1dcfbaa8d2955a11c2a1e4a9e17fcc131ccbdad"
+        },
+        {
+          "name": "presentation_fade_20.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            6.36365234375,
+            5.282252604166667,
+            5.530169270833333
+          ],
+          "sha256": "e64fa2b635a4ec102fde6f9e3600d12fe4938d017cdfacf5e5c0772909976da3"
+        },
+        {
+          "name": "presentation_fade_21.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            5.953059895833333,
+            5.055914713541667,
+            5.205068359375
+          ],
+          "sha256": "78fa1d2aec67cb4eaae88df0d62218889fe1a8e199195bc29381baae94e71957"
+        },
+        {
+          "name": "presentation_fade_22.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            5.868382161458333,
+            4.990748697916667,
+            5.154186197916666
+          ],
+          "sha256": "6a735fc6c3bd659e8d8bd05919c45f7fa11bcb23f4990ad67058b9a4a33a237f"
+        },
+        {
+          "name": "presentation_fade_23.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            5.833662109375,
+            4.971149088541667,
+            5.138902994791667
+          ],
+          "sha256": "74403a8daee3c05fe4f880f318f6ab6c24784ac8505997991604d1e86d0fc42a"
+        },
+        {
+          "name": "presentation_fade_24.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            5.786311848958333,
+            4.946416015625,
+            5.108489583333333
+          ],
+          "sha256": "ae3b8de7614318c2e938b83955e608f97f1327b047dc1008eb693d81a157ebee"
+        },
+        {
+          "name": "presentation_fade_25.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            5.785120442708333,
+            4.94759765625,
+            5.1166764322916665
+          ],
+          "sha256": "3051cdb03d8105462331f82b9034eca985600f893059e4b8aabd1022ac8003ac"
+        },
+        {
+          "name": "presentation_fade_26.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            4.6551953125,
+            3.989130859375,
+            4.120224609375
+          ],
+          "sha256": "acc0ad7ae8bf8a90ed0b3df3114a84d5b671dc486e220fa11afb0565b607f1f9"
+        },
+        {
+          "name": "presentation_fade_27.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            3.2811588541666667,
+            2.815055338541667,
+            2.902294921875
+          ],
+          "sha256": "229544a4d3d5a6403924d39747a779af18069b0ab34b84d5b86f50b8bbc23ab6"
+        },
+        {
+          "name": "presentation_fade_28.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            1.829423828125,
+            1.556044921875,
+            1.6166829427083333
+          ],
+          "sha256": "f375fbcccc68b010e98998cd075e66bd85cf24ca3646cbf6316e560c4e61cc58"
+        },
+        {
+          "name": "presentation_fade_29.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            0.38669270833333336,
+            0.326787109375,
+            0.333662109375
+          ],
+          "sha256": "a2344aeba3e4cc004f903e22fd34fb0ab3e1262a21599137c97425cba2f0ee86"
+        },
+        {
+          "name": "presentation_fade_30.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            26.372805989583334,
+            15.761002604166666,
+            12.410628255208334
+          ],
+          "sha256": "9d4758759876e119f83b9553bd0737bedeb5919d086aea8eb1a65c9223adb5f0"
+        },
+        {
+          "name": "presentation_fade_31.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            27.804541015625,
+            17.2824609375,
+            13.685608723958333
+          ],
+          "sha256": "3333357f35b22d38c3a1664a734dd5de855114a8a54e7ffb02006365cc03bc1e"
+        },
+        {
+          "name": "presentation_quality_0.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            5.785120442708333,
+            4.94759765625,
+            5.1166764322916665
+          ],
+          "sha256": "3051cdb03d8105462331f82b9034eca985600f893059e4b8aabd1022ac8003ac"
+        },
+        {
+          "name": "presentation_quality_1.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            5.785120442708333,
+            4.94759765625,
+            5.1166764322916665
+          ],
+          "sha256": "3051cdb03d8105462331f82b9034eca985600f893059e4b8aabd1022ac8003ac"
+        },
+        {
+          "name": "presentation_quality_2.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            13.167034505208333,
+            10.712828776041667,
+            10.277724609375
+          ],
+          "sha256": "43784791b3ffa633e3c00322a06561e474f51fc9cf1f2f63369bdedc02af3b6a"
+        }
+      ]
+    },
+    {
+      "renderer": "rtx",
+      "exit": 0,
+      "seconds": 27.078,
+      "launch": [
+        "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "stvef-sp",
+        "+set",
+        "fs_basepath",
+        "E:/Games/Star Trek Voyager Elite Force",
+        "+set",
+        "fs_homepath",
+        "E:\\Games\\fnTech3-tests\\stvef-cinematic-rtx",
+        "+set",
+        "r_renderer",
+        "rtx",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "com_hunkMegs",
+        "256",
+        "+set",
+        "com_zoneMegs",
+        "128",
+        "+exec",
+        "probe.cfg"
+      ],
+      "clientSHA256": "d7ebd41b745318cdd56b4b6cf3f586b14c559982a2a424be7c41ea0dba9dc3d4",
+      "commands": "wait 60\nset nextmap \"echo PRESENTATION_NATURAL_END\"\ncinematic st_01\nwait 1\nscreenshot presentation_fade_00\nwait 15\nscreenshot presentation_fade_01\nwait 15\nscreenshot presentation_fade_02\nwait 15\nscreenshot presentation_fade_03\nwait 15\nscreenshot presentation_fade_04\nwait 15\nscreenshot presentation_fade_05\nwait 15\nscreenshot presentation_fade_06\nwait 15\nscreenshot presentation_fade_07\nwait 15\nscreenshot presentation_fade_08\nwait 15\nscreenshot presentation_fade_09\nwait 15\nscreenshot presentation_fade_10\nwait 15\nscreenshot presentation_fade_11\nwait 15\nscreenshot presentation_fade_12\nwait 15\nscreenshot presentation_fade_13\nwait 15\nscreenshot presentation_fade_14\nwait 15\nscreenshot presentation_fade_15\nwait 15\nscreenshot presentation_fade_16\nwait 15\nscreenshot presentation_fade_17\nwait 15\nscreenshot presentation_fade_18\nwait 15\nscreenshot presentation_fade_19\nwait 15\nscreenshot presentation_fade_20\nwait 15\nscreenshot presentation_fade_21\nwait 15\nscreenshot presentation_fade_22\nwait 15\nscreenshot presentation_fade_23\nwait 15\nscreenshot presentation_fade_24\nwait 15\nscreenshot presentation_fade_25\nwait 15\nscreenshot presentation_fade_26\nwait 15\nscreenshot presentation_fade_27\nwait 15\nscreenshot presentation_fade_28\nwait 15\nscreenshot presentation_fade_29\nwait 15\nscreenshot presentation_fade_30\nwait 15\nscreenshot presentation_fade_31\nwait 15\nset cl_VidFadeUp 0\nset cl_VideoQuality 0\ncinematic st_01 1\nwait 360\nscreenshot presentation_quality_0\nwait 2\nset cl_VidFadeUp 0\nset cl_VideoQuality 1\ncinematic st_01 1\nwait 360\nscreenshot presentation_quality_1\nwait 2\nset cl_VidFadeUp 0\nset cl_VideoQuality 2\ncinematic st_01 1\nwait 360\nscreenshot presentation_quality_2\nwait 2\ndisconnect\necho PRESENTATION_COMPLETE\nwait 2\nquit\n",
+      "events": [
+        "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+        "^5Bink finished: video/st_01.bik",
+        "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+        "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+        "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+        "PRESENTATION_COMPLETE"
+      ],
+      "captures": [
+        {
+          "name": "presentation_fade_00.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            0.010462239583333333,
+            0.003977864583333333,
+            0.003128255208333333
+          ],
+          "sha256": "793cedd3130c7a250e8cab65754f69f87b80bed248feae6034e4b0ab17c8c59d"
+        },
+        {
+          "name": "presentation_fade_01.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            1.4688118489583333,
+            1.2369205729166666,
+            1.2134016927083333
+          ],
+          "sha256": "fcc0650ee5f33babae3124e73f6596465aceb660dd409ee481376299ac06b485"
+        },
+        {
+          "name": "presentation_fade_02.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            2.9492805989583335,
+            2.4877799479166667,
+            2.4386555989583334
+          ],
+          "sha256": "351ef887874a0408f13424bf57125cf6548373c20e03c4fe8efac0211965f608"
+        },
+        {
+          "name": "presentation_fade_03.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            4.512333984375,
+            3.8145865885416668,
+            3.7393098958333333
+          ],
+          "sha256": "c8350d65ff5a7b6c20e61504f879e712d30a3605dfe280ef6631953fc4fdce65"
+        },
+        {
+          "name": "presentation_fade_04.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            6.050367838541667,
+            5.117685546875,
+            5.013704427083334
+          ],
+          "sha256": "4be2c351026911e4253f0a453caf484a08874d93bf0c1ed438c6d6616d872f05"
+        },
+        {
+          "name": "presentation_fade_05.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            6.182724609375,
+            5.25181640625,
+            5.148759765625
+          ],
+          "sha256": "dba19e7ff4e3c5b8c9af8fbc0d9b4014706425bf6ddcb8e2f465d7dbcdb36584"
+        },
+        {
+          "name": "presentation_fade_06.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            6.248238932291667,
+            5.304674479166667,
+            5.230504557291667
+          ],
+          "sha256": "bfde1f19eb99f8d998d328f5c823868e22b5dbb83a017b27ce9fee2e0ea9f259"
+        },
+        {
+          "name": "presentation_fade_07.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            6.321969401041667,
+            5.3361197916666665,
+            5.269140625
+          ],
+          "sha256": "76f1f42dc88eddbfa7b2bf8c80b59e2c78d3269eddd11f6463a823440de5e3d6"
+        },
+        {
+          "name": "presentation_fade_08.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            6.3369368489583335,
+            5.358857421875,
+            5.29052734375
+          ],
+          "sha256": "aff5af7f633bc3d0eb72737eb7faf39805c888887dab362e2e652f38abc925a0"
+        },
+        {
+          "name": "presentation_fade_09.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            6.291617838541667,
+            5.343694661458334,
+            5.301110026041667
+          ],
+          "sha256": "f22da61f035aa917c4eced3bdf16cfaedb99d1f482860ad25a7559de21cd895d"
+        },
+        {
+          "name": "presentation_fade_10.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            19.482252604166668,
+            10.93216796875,
+            14.897376302083334
+          ],
+          "sha256": "cb23ecb27b0bfd80ecedf0dd14825aea2daeb17fbb2f7f0940f1b9fde43e8e2e"
+        },
+        {
+          "name": "presentation_fade_11.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            25.450384114583333,
+            14.036748046875,
+            18.890641276041666
+          ],
+          "sha256": "511363c2fb0e66133962b8dd819f6cc82eaaa773964a7dc70f59c9151cfeb0db"
+        },
+        {
+          "name": "presentation_fade_12.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            26.486214192708335,
+            14.934427083333333,
+            19.351695963541665
+          ],
+          "sha256": "a0f72f25d137211ab7625b3f85fe758ef111afedb7fe02f385d963a40b8b0380"
+        },
+        {
+          "name": "presentation_fade_13.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            22.217138671875,
+            13.60130859375,
+            16.36984700520833
+          ],
+          "sha256": "74a8cc736ce68cc6a664d76a01254a1f931e1b597fe70d8dc1bdfa776586f44e"
+        },
+        {
+          "name": "presentation_fade_14.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            15.918502604166667,
+            10.497477213541666,
+            12.074384765625
+          ],
+          "sha256": "1bac70a2feee4eb54e818770a5fedd9a646c73e470a12ae0b2cf5ab2267d9a51"
+        },
+        {
+          "name": "presentation_fade_15.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            13.982216796875,
+            9.35541015625,
+            10.677141927083333
+          ],
+          "sha256": "395260dc5a866c3f42d47d191c9adb61480d49c4376e52cef3e4a6c9883a0c02"
+        },
+        {
+          "name": "presentation_fade_16.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            12.648899739583333,
+            8.225221354166667,
+            9.599547526041667
+          ],
+          "sha256": "32320d2fe470596d07959fbfc051a08ad9c5d12ab02b3d13051ce98a97cc547c"
+        },
+        {
+          "name": "presentation_fade_17.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            15.570113932291667,
+            9.102770182291666,
+            11.987763671875
+          ],
+          "sha256": "f868e38d629c8fc896ca49101b4954268d6bb1e41d504d0f69a17eca2bb89416"
+        },
+        {
+          "name": "presentation_fade_18.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            12.091891276041666,
+            8.778079427083334,
+            9.763131510416667
+          ],
+          "sha256": "fb5dc8a29c7a7363bb11e6aba21f2dce49fbf587d96b13f5594388b3723556cc"
+        },
+        {
+          "name": "presentation_fade_19.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            7.5932845052083335,
+            6.118134765625,
+            6.538564453125
+          ],
+          "sha256": "edde9ac363bef2aa42f67af8a1dcfbaa8d2955a11c2a1e4a9e17fcc131ccbdad"
+        },
+        {
+          "name": "presentation_fade_20.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            6.36365234375,
+            5.282252604166667,
+            5.530169270833333
+          ],
+          "sha256": "e64fa2b635a4ec102fde6f9e3600d12fe4938d017cdfacf5e5c0772909976da3"
+        },
+        {
+          "name": "presentation_fade_21.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            5.953059895833333,
+            5.055914713541667,
+            5.205068359375
+          ],
+          "sha256": "78fa1d2aec67cb4eaae88df0d62218889fe1a8e199195bc29381baae94e71957"
+        },
+        {
+          "name": "presentation_fade_22.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            5.868382161458333,
+            4.990748697916667,
+            5.154186197916666
+          ],
+          "sha256": "6a735fc6c3bd659e8d8bd05919c45f7fa11bcb23f4990ad67058b9a4a33a237f"
+        },
+        {
+          "name": "presentation_fade_23.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            5.833662109375,
+            4.971149088541667,
+            5.138902994791667
+          ],
+          "sha256": "74403a8daee3c05fe4f880f318f6ab6c24784ac8505997991604d1e86d0fc42a"
+        },
+        {
+          "name": "presentation_fade_24.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            5.786311848958333,
+            4.946416015625,
+            5.108489583333333
+          ],
+          "sha256": "ae3b8de7614318c2e938b83955e608f97f1327b047dc1008eb693d81a157ebee"
+        },
+        {
+          "name": "presentation_fade_25.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            5.785120442708333,
+            4.94759765625,
+            5.1166764322916665
+          ],
+          "sha256": "3051cdb03d8105462331f82b9034eca985600f893059e4b8aabd1022ac8003ac"
+        },
+        {
+          "name": "presentation_fade_26.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            4.6364453125,
+            3.9735221354166668,
+            4.101318359375
+          ],
+          "sha256": "f480a0a78e7a2c49d0a84832008f37ef2dc214ff9cea697eee33b507faf234c8"
+        },
+        {
+          "name": "presentation_fade_27.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            3.2654817708333335,
+            2.8028743489583334,
+            2.8898893229166664
+          ],
+          "sha256": "4acb0771e4f0478cb884064b7f69933d4aa1e30154718573f667128c6f3b21d1"
+        },
+        {
+          "name": "presentation_fade_28.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            1.8133235677083333,
+            1.5431673177083334,
+            1.6040657552083333
+          ],
+          "sha256": "e5ccca40484f1847a2a58f9a5b10f148d71626e117b1709dd0fe0bfebecde68b"
+        },
+        {
+          "name": "presentation_fade_29.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            0.38669270833333336,
+            0.326787109375,
+            0.333662109375
+          ],
+          "sha256": "a2344aeba3e4cc004f903e22fd34fb0ab3e1262a21599137c97425cba2f0ee86"
+        },
+        {
+          "name": "presentation_fade_30.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            26.372805989583334,
+            15.761002604166666,
+            12.410628255208334
+          ],
+          "sha256": "9d4758759876e119f83b9553bd0737bedeb5919d086aea8eb1a65c9223adb5f0"
+        },
+        {
+          "name": "presentation_fade_31.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            27.804541015625,
+            17.2824609375,
+            13.685608723958333
+          ],
+          "sha256": "3333357f35b22d38c3a1664a734dd5de855114a8a54e7ffb02006365cc03bc1e"
+        },
+        {
+          "name": "presentation_quality_0.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            5.785120442708333,
+            4.94759765625,
+            5.1166764322916665
+          ],
+          "sha256": "3051cdb03d8105462331f82b9034eca985600f893059e4b8aabd1022ac8003ac"
+        },
+        {
+          "name": "presentation_quality_1.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            5.785120442708333,
+            4.94759765625,
+            5.1166764322916665
+          ],
+          "sha256": "3051cdb03d8105462331f82b9034eca985600f893059e4b8aabd1022ac8003ac"
+        },
+        {
+          "name": "presentation_quality_2.png",
+          "size": [
+            640,
+            480
+          ],
+          "mean": [
+            13.167034505208333,
+            10.712828776041667,
+            10.277724609375
+          ],
+          "sha256": "43784791b3ffa633e3c00322a06561e474f51fc9cf1f2f63369bdedc02af3b6a"
+        }
+      ]
+    }
+  ],
+  "imageComparison": [
+    {
+      "renderer": "glx",
+      "fadeIn": [
+        {
+          "frame": 1,
+          "brightnessScale": 0.24069798437414314,
+          "meanResidual": 0.09159262803262579
+        },
+        {
+          "frame": 2,
+          "brightnessScale": 0.493446098855108,
+          "meanResidual": 0.09730836093810963
+        },
+        {
+          "frame": 3,
+          "brightnessScale": 0.7507484629453869,
+          "meanResidual": 0.10180600667212189
+        }
+      ],
+      "fadeOut": [
+        {
+          "frame": 26,
+          "brightnessScale": 0.7963157927995975,
+          "meanResidual": 0.13145028041109266
+        },
+        {
+          "frame": 27,
+          "brightnessScale": 0.5569565174059091,
+          "meanResidual": 0.14104607509837108
+        },
+        {
+          "frame": 28,
+          "brightnessScale": 0.3177032221716965,
+          "meanResidual": 0.1368497250957967
+        },
+        {
+          "frame": 29,
+          "brightnessScale": 0.07811830955722145,
+          "meanResidual": 0.0992416135536008
+        }
+      ],
+      "quality0equals1": true,
+      "quality2equalsGLx": true
+    },
+    {
+      "renderer": "vk",
+      "fadeIn": [
+        {
+          "frame": 1,
+          "brightnessScale": 0.24880998301954574,
+          "meanResidual": 0.09069536897594146
+        },
+        {
+          "frame": 2,
+          "brightnessScale": 0.49750744315745776,
+          "meanResidual": 0.09399368118046716
+        },
+        {
+          "frame": 3,
+          "brightnessScale": 0.7466076364151187,
+          "meanResidual": 0.0977963959481931
+        }
+      ],
+      "fadeOut": [
+        {
+          "frame": 26,
+          "brightnessScale": 0.7963157927995975,
+          "meanResidual": 0.13145028041109266
+        },
+        {
+          "frame": 27,
+          "brightnessScale": 0.5569565174059091,
+          "meanResidual": 0.14104607509837108
+        },
+        {
+          "frame": 28,
+          "brightnessScale": 0.3177032221716965,
+          "meanResidual": 0.1368497250957967
+        },
+        {
+          "frame": 29,
+          "brightnessScale": 0.07430722186513126,
+          "meanResidual": 0.09752606538506989
+        }
+      ],
+      "quality0equals1": true,
+      "quality2equalsGLx": true
+    },
+    {
+      "renderer": "rtx",
+      "fadeIn": [
+        {
+          "frame": 1,
+          "brightnessScale": 0.24880998301954574,
+          "meanResidual": 0.09069536897594146
+        },
+        {
+          "frame": 2,
+          "brightnessScale": 0.49750744315745776,
+          "meanResidual": 0.09399368118046716
+        },
+        {
+          "frame": 3,
+          "brightnessScale": 0.7506065292731102,
+          "meanResidual": 0.09916592910768078
+        }
+      ],
+      "fadeOut": [
+        {
+          "frame": 26,
+          "brightnessScale": 0.7923455274986015,
+          "meanResidual": 0.13247805808962673
+        },
+        {
+          "frame": 27,
+          "brightnessScale": 0.5532186612916781,
+          "meanResidual": 0.14114654034245736
+        },
+        {
+          "frame": 28,
+          "brightnessScale": 0.3139270327409327,
+          "meanResidual": 0.13756162179981474
+        },
+        {
+          "frame": 29,
+          "brightnessScale": 0.07430722186513126,
+          "meanResidual": 0.09752606538506989
+        }
+      ],
+      "quality0equals1": true,
+      "quality2equalsGLx": true
+    }
+  ],
+  "windowedLifecycle": [
+    {
+      "renderer": "glx",
+      "case": "natural",
+      "exit": 0,
+      "seconds": 9.52,
+      "launch": [
+        "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "stvef-sp",
+        "+set",
+        "fs_basepath",
+        "E:/Games/Star Trek Voyager Elite Force",
+        "+set",
+        "fs_homepath",
+        "E:\\Games\\fnTech3-tests\\stvef-cinematic-glx",
+        "+set",
+        "r_renderer",
+        "glx",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "com_hunkMegs",
+        "256",
+        "+set",
+        "com_zoneMegs",
+        "128",
+        "+exec",
+        "fade_lifecycle.cfg"
+      ],
+      "commands": "wait 60\nset nextmap \"exec fade_done.cfg\"\ncinematic st_01\nwait 100\nscreenshot lifecycle_natural_middle\n",
+      "events": [
+        "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+        "^5Bink finished: video/st_01.bik",
+        "FADE_NATURAL_CONTINUATION"
+      ],
+      "captures": [
+        {
+          "name": "lifecycle_natural_middle.png",
+          "sha256": "ede3230a92150e4bff62432f69ecf68387d6cbfb6c10df525ba87e1f5055a234"
+        },
+        {
+          "name": "lifecycle_natural_return.png",
+          "sha256": "3333357f35b22d38c3a1664a734dd5de855114a8a54e7ffb02006365cc03bc1e"
+        }
+      ]
+    },
+    {
+      "renderer": "glx",
+      "case": "ingame",
+      "exit": 0,
+      "seconds": 15.89,
+      "launch": [
+        "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "stvef-sp",
+        "+set",
+        "fs_basepath",
+        "E:/Games/Star Trek Voyager Elite Force",
+        "+set",
+        "fs_homepath",
+        "E:\\Games\\fnTech3-tests\\stvef-cinematic-glx",
+        "+set",
+        "r_renderer",
+        "glx",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "com_hunkMegs",
+        "256",
+        "+set",
+        "com_zoneMegs",
+        "128",
+        "+exec",
+        "fade_lifecycle.cfg"
+      ],
+      "commands": "wait 60\nload mdr_scene\nwait 120\ningamecinematic st_01\nwait 30\necho FADE_INGAME_PLAYING\ncl_paused\nscreenshot lifecycle_ingame_fade\nwait 600\necho FADE_INGAME_RETURN\ncl_paused\nscreenshot lifecycle_ingame_return\nwait 2\nquit\n",
+      "events": [
+        "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+        "FADE_INGAME_PLAYING",
+        "\"cl_paused\" is:\"1^7\"",
+        "^5Bink finished: video/st_01.bik",
+        "FADE_INGAME_RETURN",
+        "\"cl_paused\" is:\"0^7\""
+      ],
+      "captures": [
+        {
+          "name": "lifecycle_ingame_fade.png",
+          "sha256": "2d01b904f0517ae217b857a04434fce24b3e873104edf06bde6d39e7483135e7"
+        },
+        {
+          "name": "lifecycle_ingame_return.png",
+          "sha256": "b374435b495909d467b9755a2a83a64bb105b2201bae75319b0d6719aed30c61"
+        }
+      ]
+    },
+    {
+      "renderer": "vk",
+      "case": "natural",
+      "exit": 0,
+      "seconds": 9.5,
+      "launch": [
+        "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "stvef-sp",
+        "+set",
+        "fs_basepath",
+        "E:/Games/Star Trek Voyager Elite Force",
+        "+set",
+        "fs_homepath",
+        "E:\\Games\\fnTech3-tests\\stvef-cinematic-vk",
+        "+set",
+        "r_renderer",
+        "vk",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "com_hunkMegs",
+        "256",
+        "+set",
+        "com_zoneMegs",
+        "128",
+        "+exec",
+        "fade_lifecycle.cfg"
+      ],
+      "commands": "wait 60\nset nextmap \"exec fade_done.cfg\"\ncinematic st_01\nwait 100\nscreenshot lifecycle_natural_middle\n",
+      "events": [
+        "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+        "^5Bink finished: video/st_01.bik",
+        "FADE_NATURAL_CONTINUATION"
+      ],
+      "captures": [
+        {
+          "name": "lifecycle_natural_middle.png",
+          "sha256": "ede3230a92150e4bff62432f69ecf68387d6cbfb6c10df525ba87e1f5055a234"
+        },
+        {
+          "name": "lifecycle_natural_return.png",
+          "sha256": "3333357f35b22d38c3a1664a734dd5de855114a8a54e7ffb02006365cc03bc1e"
+        }
+      ]
+    },
+    {
+      "renderer": "vk",
+      "case": "ingame",
+      "exit": 0,
+      "seconds": 15.72,
+      "launch": [
+        "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "stvef-sp",
+        "+set",
+        "fs_basepath",
+        "E:/Games/Star Trek Voyager Elite Force",
+        "+set",
+        "fs_homepath",
+        "E:\\Games\\fnTech3-tests\\stvef-cinematic-vk",
+        "+set",
+        "r_renderer",
+        "vk",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "com_hunkMegs",
+        "256",
+        "+set",
+        "com_zoneMegs",
+        "128",
+        "+exec",
+        "fade_lifecycle.cfg"
+      ],
+      "commands": "wait 60\nload mdr_scene\nwait 120\ningamecinematic st_01\nwait 30\necho FADE_INGAME_PLAYING\ncl_paused\nscreenshot lifecycle_ingame_fade\nwait 600\necho FADE_INGAME_RETURN\ncl_paused\nscreenshot lifecycle_ingame_return\nwait 2\nquit\n",
+      "events": [
+        "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+        "FADE_INGAME_PLAYING",
+        "\"cl_paused\" is:\"1^7\"",
+        "^5Bink finished: video/st_01.bik",
+        "FADE_INGAME_RETURN",
+        "\"cl_paused\" is:\"0^7\""
+      ],
+      "captures": [
+        {
+          "name": "lifecycle_ingame_fade.png",
+          "sha256": "2d01b904f0517ae217b857a04434fce24b3e873104edf06bde6d39e7483135e7"
+        },
+        {
+          "name": "lifecycle_ingame_return.png",
+          "sha256": "b374435b495909d467b9755a2a83a64bb105b2201bae75319b0d6719aed30c61"
+        }
+      ]
+    },
+    {
+      "renderer": "rtx",
+      "case": "natural",
+      "exit": 0,
+      "seconds": 9.55,
+      "launch": [
+        "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "stvef-sp",
+        "+set",
+        "fs_basepath",
+        "E:/Games/Star Trek Voyager Elite Force",
+        "+set",
+        "fs_homepath",
+        "E:\\Games\\fnTech3-tests\\stvef-cinematic-rtx",
+        "+set",
+        "r_renderer",
+        "rtx",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "com_hunkMegs",
+        "256",
+        "+set",
+        "com_zoneMegs",
+        "128",
+        "+exec",
+        "fade_lifecycle.cfg"
+      ],
+      "commands": "wait 60\nset nextmap \"exec fade_done.cfg\"\ncinematic st_01\nwait 100\nscreenshot lifecycle_natural_middle\n",
+      "events": [
+        "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+        "^5Bink finished: video/st_01.bik",
+        "FADE_NATURAL_CONTINUATION"
+      ],
+      "captures": [
+        {
+          "name": "lifecycle_natural_middle.png",
+          "sha256": "ede3230a92150e4bff62432f69ecf68387d6cbfb6c10df525ba87e1f5055a234"
+        },
+        {
+          "name": "lifecycle_natural_return.png",
+          "sha256": "3333357f35b22d38c3a1664a734dd5de855114a8a54e7ffb02006365cc03bc1e"
+        }
+      ]
+    },
+    {
+      "renderer": "rtx",
+      "case": "ingame",
+      "exit": 0,
+      "seconds": 15.64,
+      "launch": [
+        "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "stvef-sp",
+        "+set",
+        "fs_basepath",
+        "E:/Games/Star Trek Voyager Elite Force",
+        "+set",
+        "fs_homepath",
+        "E:\\Games\\fnTech3-tests\\stvef-cinematic-rtx",
+        "+set",
+        "r_renderer",
+        "rtx",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "com_hunkMegs",
+        "256",
+        "+set",
+        "com_zoneMegs",
+        "128",
+        "+exec",
+        "fade_lifecycle.cfg"
+      ],
+      "commands": "wait 60\nload mdr_scene\nwait 120\ningamecinematic st_01\nwait 30\necho FADE_INGAME_PLAYING\ncl_paused\nscreenshot lifecycle_ingame_fade\nwait 600\necho FADE_INGAME_RETURN\ncl_paused\nscreenshot lifecycle_ingame_return\nwait 2\nquit\n",
+      "events": [
+        "Bink: video/st_01.bik, 512x384, 75 frames, track 0, sound off",
+        "FADE_INGAME_PLAYING",
+        "\"cl_paused\" is:\"1^7\"",
+        "^5Bink finished: video/st_01.bik",
+        "FADE_INGAME_RETURN",
+        "\"cl_paused\" is:\"0^7\""
+      ],
+      "captures": [
+        {
+          "name": "lifecycle_ingame_fade.png",
+          "sha256": "96879833bd58b8f161e827d5a97e61cf30e0fe2fbc195df5394932218d10e760"
+        },
+        {
+          "name": "lifecycle_ingame_return.png",
+          "sha256": "b374435b495909d467b9755a2a83a64bb105b2201bae75319b0d6719aed30c61"
+        }
+      ]
+    }
+  ],
+  "validation": {
+    "focusedTests": 18,
+    "focusedFailures": 0,
+    "linuxFocused": {
+      "distribution": "Ubuntu via WSL",
+      "compiler": "Clang",
+      "tests": 17,
+      "failures": 0,
+      "command": "PYTHONPATH=tests python3 -m unittest stvef_bink_tests stvef_cinematic_tests stvef_cinematic_presentation_tests cinematic_shutdown_tests roq_bounds_tests rtcw_cinematic_presentation_tests",
+      "sanitizers": "address,undefined on framing/crop/RoQ probes; native-runtime ABI is mocked"
+    },
+    "initialSuite": {
+      "pythonTests": 1841,
+      "pythonFailures": 2,
+      "pythonSkipped": 72,
+      "causes": [
+        "RoQ fixture missing the new Presentation declaration",
+        "Packaging snapshot taken between document and linked manifest creation"
+      ],
+      "fixVerification": "Both corrected cases passed a focused rerun"
+    },
+    "fullSuite": {
+      "passed": 120,
+      "skipped": 2,
+      "failed": 0
+    },
+    "log": ".tmp/stvef-gaps/presentation-complete-suite.log",
+    "pythonTests": 1841,
+    "pythonSkipped": 72
+  },
+  "limits": [
+    "Windows x86 installed-runtime boundary",
+    "Silent runtime probes do not establish audible movie parity",
+    "Modern full-image textures replace retail quality 0 padding and quality 1 tiling",
+    "Crop padding is cleared and undersized frames retain the complete image",
+    "No mouse/keyboard control or OS screen capture",
+    "Other renderer/effect and installation/platform gates remain separate"
+  ]
+}

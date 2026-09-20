@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 PRELUDE = r'''
 #include "code/qcommon/q_shared.h"
+#include "code/compat/stvef_cinematic_presentation.hpp"
 #include <array>
 #include <cassert>
 #include <memory>
@@ -41,6 +42,7 @@ struct Movie{
  bool stvefInGame=false;
  struct Decoder {~Decoder(){++binkClosed;}};
  std::unique_ptr<Decoder> bink;
+ fntech3::stvef::bink::Presentation binkPresentation;
 };
 static std::array<Movie,MAX_VIDEO_HANDLES> cinTable;
 static int currentHandle=-1,CL_handle=-1;

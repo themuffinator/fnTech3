@@ -118,3 +118,6 @@ absolute path. This optional interoperability boundary contains independently
 declared exports and no proprietary SDK headers or implementation text. Its
 framing checks, platform limits and installed observations are documented in
 the [Bink movie record](docs/fntech3/2026-09-20-stvef-bink.md).
+The [presentation follow-up](docs/fntech3/2026-09-20-stvef-cinematic-presentation.md)
+uses synthetic pixels and measured fade values from the installed retail
+executable; no proprietary rendering or decoder implementation is incorporated.

@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 HOST = r'''
 #include "code/qcommon/q_shared.h"
 #include "code/renderercommon/tr_types.h"
+#include "code/compat/stvef_cinematic_presentation.hpp"
 #include <algorithm>
 #include <array>
 #include <cassert>

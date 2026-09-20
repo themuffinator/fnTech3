@@ -52,6 +52,7 @@ public:
 			!Load( next_, "_BinkNextFrame@4" ) || !Load( copy_, "_BinkCopyToBuffer@28" ) ||
 			!Load( track_, "_BinkSetSoundTrack@4" ) || !Load( soundSystem_, "_BinkSetSoundSystem@8" ) ||
 			!Load( directSound_, "_BinkOpenDirectSound@4" ) || !Load( volume_, "_BinkSetVolume@8" ) ||
+			!Load( pause_, "_BinkPause@8" ) ||
 			!Load( errorText_, "_BinkGetError@0" ) ) {
 			error_ = "binkw32.dll does not expose Elite Force's Bink 1 interface";
 			Close();
@@ -88,12 +89,13 @@ public:
 			CloseNative();
 			return false;
 		}
-		started_ = last_ = ready_ = false;
+		started_ = last_ = ready_ = paused_ = false;
 		return true;
 	}
 
 	Result Step( std::uint32_t now ) {
 		if ( !native_ ) return Result::End;
+		if ( paused_ ) return Result::Waiting;
 		if ( last_ ) {
 			const std::uint64_t duration = ( std::uint64_t( info_.rateDivisor ) * 1000 + info_.rate - 1 ) / info_.rate;
 			return std::uint32_t( now - lastTime_ ) >= duration ? Result::End : Result::Waiting;
@@ -127,6 +129,14 @@ public:
 		}
 	}
 
+	void Pause( bool paused, std::uint32_t now ) {
+		if ( !native_ || !pause_ || paused == paused_ ) return;
+		pause_( native_, paused ? 1 : 0 );
+		if ( paused ) pauseTime_ = now;
+		else if ( last_ ) lastTime_ += now - pauseTime_;
+		paused_ = paused;
+	}
+
 	const FileInfo &Info() const { return info_; }
 	const char *Error() const { return error_.c_str(); }
 	bool Sound() const { return sound_; }
@@ -140,7 +150,7 @@ public:
 		library_ = nullptr;
 		std::vector<std::uint8_t>().swap( bytes_ );
 		std::vector<std::uint8_t>().swap( pixels_ );
-		sound_ = started_ = last_ = ready_ = false;
+		sound_ = started_ = last_ = ready_ = paused_ = false;
 	}
 
 private:
@@ -171,12 +181,13 @@ private:
 	std::int32_t (FN_BINK_CALL *soundSystem_)( SoundFactory, std::uint32_t ) = nullptr;
 	SoundFactory directSound_ = nullptr;
 	void (FN_BINK_CALL *volume_)( NativePrefix *, std::int32_t ) = nullptr;
+	std::int32_t (FN_BINK_CALL *pause_)( NativePrefix *, std::int32_t ) = nullptr;
 	const char *(FN_BINK_CALL *errorText_)() = nullptr;
 	FileInfo info_{};
 	std::vector<std::uint8_t> bytes_, pixels_;
 	std::string error_;
-	std::uint32_t lastTime_ = 0;
-	bool sound_ = false, started_ = false, last_ = false, ready_ = false;
+	std::uint32_t lastTime_ = 0, pauseTime_ = 0;
+	bool sound_ = false, started_ = false, last_ = false, ready_ = false, paused_ = false;
 };
 
 #undef FN_BINK_NATIVE

@@ -38,6 +38,7 @@ extern "C" {
 
 #include "client_cpp.h"
 #include "cinematic_bink.hpp"
+#include "../compat/stvef_cinematic_presentation.hpp"
 
 #include <algorithm>
 #include <array>
@@ -203,6 +204,7 @@ struct cin_cache {
 	bool				rtcwLetterBox;
 	bool				stvefInGame;
 	std::unique_ptr<fntech3::stvef::bink::Movie> bink;
+	fntech3::stvef::bink::Presentation binkPresentation;
 	ScopedFileHandle	iFile;
 	e_status			status;
 	int					startTime;
@@ -261,6 +263,7 @@ void CIN_CloseAllVideos( void ) {
 		// connection-state change. Bulk teardown still owns these resources.
 		cinTable[i].iFile.reset();
 		cinTable[i].bink.reset();
+		cinTable[i].binkPresentation.Reset();
 		if ( cinTable[i].stvefInGame ) Cvar_Set( "cl_paused", "0" );
 		cinTable[i].stvefInGame = false;
 		cinTable[i].fileName[0] = '\0';
@@ -1544,6 +1547,7 @@ static void RoQShutdown( void ) {
 
 	cinTable[currentHandle].iFile.reset();
 	cinTable[currentHandle].bink.reset();
+	cinTable[currentHandle].binkPresentation.Reset();
 	if ( cinTable[currentHandle].stvefInGame ) {
 		Cvar_Set( "cl_paused", "0" );
 		cinTable[currentHandle].stvefInGame = false;
@@ -1909,6 +1913,10 @@ static void CIN_DrawCinematicInternal( int handle, qboolean uniformAspect ) {
 		SCR_AdjustFrom640Uniform( &x, &y, &w, &h );
 	} else {
 		SCR_AdjustFrom640( &x, &y, &w, &h );
+	}
+	if ( cinTable[handle].bink ) {
+		CIN_DrawBink( handle, x, y, w, h );
+		return;
 	}
 
 	if ( cinTable[handle].rtcwLetterBox ) {

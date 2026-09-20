@@ -44,8 +44,10 @@ decoding. Initialization failure is reported, with silent video still available.
 The native-resolution image is uploaded by GLx, Vulkan and RTX; only the SP
 profile may pass non-power-of-two cinematic dimensions to those renderers.
 Invalid or oversized dimensions are rejected before upload for every profile.
-Retail's obsolete `cl_VideoQuality` texture-reduction modes are not reproduced;
-the engine uses the complete decoded frame, with `_lo` available separately.
+The [presentation follow-up](2026-09-20-stvef-cinematic-presentation.md) adds
+retail's fades and `cl_VideoQuality` central crop. Modes 0 and 1 preserve the
+complete decoded frame through one modern texture, with `_lo` available
+separately.
 
 ## Evidence
 
@@ -99,11 +101,12 @@ Lilium protocol-26 compatibility. Those claims remain separate gates.
 
 The later [model/lighting](2026-09-20-stvef-mdr.md) and
 [protocol-26](2026-09-20-stvef-ioef.md) records address those separate slices.
-A subsequent retail presentation audit found two remaining movie behaviours:
+A subsequent retail presentation audit identified two further movie behaviours:
 `cl_VidFadeUp` and `cl_VidFadeDown` default to one and produce one-second
 transitions, with the first decoded frame and sound paused during fade-in
-(`0x403790`, `0x4036b0`, `0x404151`). These transitions are not yet carried by
-the native-runtime playback path. Also, `cl_VideoQuality` is more precisely a
+(`0x403790`, `0x4036b0`, `0x404151`). Also, `cl_VideoQuality` is precisely a
 choice of texture presentation paths: mode 1 tiles a complete frame through
 small textures, while mode 2 crops a central region. Calling both modes
-"texture reduction" above is insufficient; the crop remains unimplemented.
+"texture reduction" is insufficient. Both the transitions and central crop are
+now implemented and checked in the
+[presentation record](2026-09-20-stvef-cinematic-presentation.md).

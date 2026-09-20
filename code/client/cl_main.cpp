@@ -6444,6 +6444,9 @@ void CL_Init( void ) {
 	if ( Com_GameIsSTVEFSP() ) {
 		Cmd_AddCommand( "ingamecinematic", CL_PlayInGameCinematic_f );
 		Cvar_Get( "cl_VideoUsingLoRes", "0", CVAR_ARCHIVE );
+		Cvar_Get( "cl_VideoQuality", "0", CVAR_ARCHIVE );
+		Cvar_Get( "cl_VidFadeUp", "1", CVAR_TEMP );
+		Cvar_Get( "cl_VidFadeDown", "1", CVAR_TEMP );
 		Cvar_Get( "skippingCinematic", "0", CVAR_ROM );
 	}
 	Cmd_AddCommand ("stoprecord", CL_StopRecord_f);
