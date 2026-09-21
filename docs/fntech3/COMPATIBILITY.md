@@ -1199,9 +1199,10 @@ The [SP cadence correction](2026-09-21-stvef-sp-cadence.md) keeps simulation
 ticks independent of `timescale` and sends local snapshots after new ticks,
 removing the growing fixed-step snapshot lag. Native fixtures, seven-profile
 compiled controls, production scene reruns and another retail save round trip
-cover the change. Startup/capture phase differences and diagonal bands in the
-Vulkan/RTX tutorial corridor remain open; the new images are not synchronized
-retail renderer parity evidence.
+cover the change. Startup/capture phase differences remain open; the new
+images are not synchronized retail renderer parity evidence. Full-resolution
+comparisons retract an initial contact-sheet impression of a Vulkan/RTX
+corridor defect: those corridor images agree with GLx within one channel value.
 
 The [renderer selection audit](2026-09-21-stvef-renderer-verification.md)
 corrects the September 20 live probes: `r_renderer` did not select a

@@ -118,17 +118,31 @@ pass input-disabled preflight: SP loads the retail tutorial save and Holomatch
 starts a local match with Munro. Existing manual homes, launchers, settings
 and saves are preserved; no manual launcher was executed.
 
-## Remaining renderer observation and limits
+## Corrected image assessment and limits
 
-In the controlled tutorial scene set, the corridor has conspicuous diagonal
-bands in the Vulkan and RTX captures, absent from GLx and retail. Two additional Vulkan control sessions
-disable `cg_shadows` or `r_dynamiclight` separately. Both corridor samples
-(80 and 160) remain pixel-identical to the corresponding Vulkan baseline.
-The shadow control does change the early Tuvok view, confirming that the
-setting takes effect. The corridor difference is therefore not removed by
-either control and remains an open renderer issue. No renderer code changes
-are included in this correction. Save/preflight sessions used normal defaults
-and do not isolate a backend-specific cause; their GLx views can show bands too.
+The initial contact-sheet inspection incorrectly identified diagonal corridor
+bands as a Vulkan/RTX difference from GLx. Full-resolution RGB comparisons
+of the retained images disprove that assessment. At samples 80 and 160, both
+Vulkan and RTX agree with GLx within **one channel value at every pixel**;
+their mean absolute differences are 0.002663 and 0.002692 out of 255. The
+earlier visual assessment is retracted, and no backend-specific corridor
+blocker is established by these images. The manifest preserves the initial
+assessment and its quantitative correction.
+
+Two Vulkan controls disabled `cg_shadows` or `r_dynamiclight` separately.
+Both corridor samples remain pixel-identical to their Vulkan baseline; the
+shadow control does change the early Tuvok view. Five subsequent sessions
+show lightmaps alone in GLx/Vulkan, and fullbright, increased picmip, and
+anisotropic filtering in Vulkan. The two lightmap-only images have an RGB
+mean difference of 0.001160. These controls and measurements are retained,
+without treating resized contact sheets as pixel evidence.
+
+Other scene differences remain bounded rather than dismissed: tutorial sample
+20 has a mean GLx/Vulkan difference of 0.008628 but a maximum channel difference
+of 57, and later `voy1` ship/effect frames have larger differences. Their
+dynamic states have not been synchronized. Neither those captures nor the
+native startup/frame-phase differences establish full renderer parity.
+No renderer code changes are included in this cadence correction.
 
 The tests run windowed on a private desktop that is never activated, with
 mouse, joystick and force feedback disabled. They use independent writable
