@@ -1,0 +1,2250 @@
+{
+  "schema": 1,
+  "date": "2026-09-21",
+  "title": "Elite Force SP save integrity",
+  "sourceCommit": "af3b719c14446c16c58088b81869e71bb376d156",
+  "baselineCommit": "eb48fc4bda552bcbf2517e0bd1bb33d2740854e2",
+  "status": "PARTIAL; checked writes/close and failure propagation fixed; both Elite Force profiles remain development-gated",
+  "sourceFiles": [
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\code\\qcommon\\files.c",
+      "bytes": 209799,
+      "sha256": "92cdbbd12be17042aa4071af5266ea2bbc310f1d9346a7d21bce2bccadd52e4b"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\code\\qcommon\\qcommon.h",
+      "bytes": 59560,
+      "sha256": "47cd8e1f69bbbf4c285e2ea0c0ad5e14d572e9c84003d066b428298ccf81ee7f"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\code\\server\\server_stvef_sp_save.hpp",
+      "bytes": 34338,
+      "sha256": "692f5e960d53fa488d2eb9a6ee660ef706edc7992cabe1819c8a4d1c250e67bc"
+    }
+  ],
+  "baselineSourceObjects": {
+    "code/qcommon/files.c": "d291a598e41526a3a4629b7e49ef19e8f8534e26",
+    "code/qcommon/qcommon.h": "95e10930b6f2286043d338b1a08bf2f5f0dca2bb",
+    "code/server/server_stvef_sp_save.hpp": "7e55cfc61e6ed9a8d2ffdaa5a968142849e99d22"
+  },
+  "testFiles": [
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\tests\\stvef_sp_save_write_tests.py",
+      "bytes": 14441,
+      "sha256": "0261b3f812edf06496b3559cf5b1d14d785f04c74ed8893ab98cc6dbf8619792"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\tests\\stvef_sp_savegame_tests.py",
+      "bytes": 30701,
+      "sha256": "e336a4b86c8d68780351b42f1aaca59f532b195dd559ae9d6f6c14bf6001b4d5"
+    }
+  ],
+  "correction": "Sticky chunk failure prevents partial publication; close checks stream and final-flush errors. Failed saves do not print Done or advance a hub transition. Deliberate game save refusals retain their previous transition flow. Complete temporary file retained after replacement failure.",
+  "provenance": {
+    "retail": {
+      "path": "E:\\Games\\Star Trek Voyager Elite Force\\stvoy.exe",
+      "bytes": 675840,
+      "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74"
+    },
+    "moduleSources": [
+      {
+        "path": "E:\\Games\\fnTech3-tests\\efassets\\efgamex86.dll",
+        "bytes": 999500,
+        "sha256": "c159cba671544ddcc8694887c21bbeba13fead35bbf4488c08914f66695105a9"
+      },
+      {
+        "path": "E:\\Games\\fnTech3-tests\\efassets\\efuix86.dll",
+        "bytes": 458824,
+        "sha256": "35dfe9ca1a3ee20cc1d314013d1d5c281cd9ed2b68fc57b22af77bb2a0bedfb2"
+      },
+      {
+        "path": "E:\\Games\\fnTech3-tests\\efassets\\binkw32.dll",
+        "bytes": 273408,
+        "sha256": "56d9eb00927c6db570c63e3669672d12b3896088071f72938c4ca92de4269d48"
+      },
+      {
+        "path": "E:\\Games\\fnTech3-tests\\efassets\\FFC10.dll",
+        "bytes": 126976,
+        "sha256": "d4e88d9028e86894be5c61c62c7a0f648a032032d545a37834813389d61354a3"
+      }
+    ],
+    "representativeLoadedModules": [
+      {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-saves-fn\\.tmp\\native\\bffad11f13b8575ae8874806ed079cac\\efgamex86.dll",
+        "bytes": 999500,
+        "sha256": "c159cba671544ddcc8694887c21bbeba13fead35bbf4488c08914f66695105a9"
+      },
+      {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-saves-fn\\.tmp\\native\\bffad11f13b8575ae8874806ed079cac\\efuix86.dll",
+        "bytes": 458824,
+        "sha256": "35dfe9ca1a3ee20cc1d314013d1d5c281cd9ed2b68fc57b22af77bb2a0bedfb2"
+      }
+    ],
+    "use": "Independently found and implemented engine error handling; no external code incorporated. Retail save chunk order and successful save behavior retained."
+  },
+  "platforms": {
+    "windows": "Windows x86 MSVC 19.44.35222; private inactive desktop, GLx",
+    "linux": "Ubuntu 24.04.3 WSL i686 GCC 13.3 / Clang 18.1.3; compiled save regression under AddressSanitizer and UndefinedBehaviorSanitizer. Retail SP runtime remains Windows x86 only."
+  },
+  "beforeRegression": {
+    "sourceCommit": "eb48fc4bda552bcbf2517e0bd1bb33d2740854e2",
+    "outcome": "Expected failure: first failed fwrite reports success and replaces the original save",
+    "log": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\sp-save-write-before.log",
+      "bytes": 999,
+      "sha256": "318c6f7ff6518beecf9b550d05d95917a984f24aed8c27961963d1b3dcba3535"
+    },
+    "scope": "Initial extracted-function reproducer; the current tracked regression was then expanded with close, command, transition and recovery cases."
+  },
+  "unitTests": {
+    "command": "python -m unittest stvef_sp_save_write_tests stvef_sp_savegame_tests rtcw_file_write_tests rtcw_savegame_tests windows_utf8_files_tests -v",
+    "windows": {
+      "tests": 22,
+      "skipped": 0,
+      "seconds": 6.733,
+      "log": {
+        "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\sp-save-write-focused.log",
+        "bytes": 3383,
+        "sha256": "22784d45f7a0a138e9c06c1505f9df3390848d822a8baf506234f44de3a1ecb8"
+      }
+    },
+    "linux": {
+      "tests": 22,
+      "skipped": 1,
+      "seconds": 13.586,
+      "log": {
+        "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\save-integrity-linux-focused.log",
+        "bytes": 3437,
+        "sha256": "ab4861f53f3b7ad33abab6fa0de68e50eeb127c17a3ca8699b210c4f1668f73b"
+      }
+    },
+    "primarySaveScenarios": 97,
+    "writeBoundaries": 70,
+    "successfulRetries": "One successful retry after each injected write boundary; additional primary success/refusal/recovery/command cases",
+    "scope": "Actual append/save/command/transition/FS_Write/checked-close functions; owned fixture game callbacks, checksum and file wrappers. Platform replacement behavior also tested separately and in real Windows runtime."
+  },
+  "builds": [
+    {
+      "command": "meson compile -C meson/build/win32-dev -j 4",
+      "outcome": "passed",
+      "log": {
+        "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\save-integrity-win-build.log",
+        "bytes": 19237,
+        "sha256": "a655faa6e6e71d28e56d4bcb490fd845abcc21665e6fa8132ad4d1533167999a"
+      }
+    },
+    {
+      "command": "meson compile -C .tmp/stvef-gaps/linux-client-i686 -j 4",
+      "outcome": "passed",
+      "log": {
+        "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\save-integrity-linux-client-build.log",
+        "bytes": 305376,
+        "sha256": "79f3038931d9d6aef6e8334a195c18b1a944bf043c66664f530dd5fdc5b1fa03"
+      }
+    },
+    {
+      "command": "meson compile -C .tmp/stvef-gaps/linux-i686 -j 4",
+      "outcome": "passed",
+      "log": {
+        "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\save-integrity-linux-dedicated-build.log",
+        "bytes": 52958,
+        "sha256": "cde5536769e76456b6349d72037af210eeb0b97a7614cc57ee768e308d94a90f"
+      }
+    }
+  ],
+  "windowsSuite": {
+    "command": "meson test -C meson/build/win32-dev --print-errorlogs -j 4",
+    "passed": 120,
+    "failed": 0,
+    "skipped": 2,
+    "pythonTests": 1865,
+    "pythonSeconds": 695.345,
+    "pythonSkipped": 72,
+    "skippedTargets": [
+      "fnTech3:fnql_audio_loopback",
+      "fnTech3:fnql_retail_factory_probe"
+    ],
+    "log": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\save-integrity-win-suite.log",
+      "bytes": 9877,
+      "sha256": "59a8d8d674e1f5faee296759fa69968d0cb3b3c4378ea533364b6879eaa5fd56"
+    },
+    "detailedLog": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\save-integrity-windows-testlog.txt",
+      "bytes": 134685,
+      "sha256": "6ef48b1b009bc9c11a833baae3ec19e967a566fc30f1f65271bf73a01396fee5"
+    },
+    "jsonLog": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\save-integrity-windows-testlog.json",
+      "bytes": 2319230,
+      "sha256": "2d412d5157d52e499513fa6e9a744b20477bef5d59d00a71ec592e838783e83e"
+    }
+  },
+  "artifacts": [
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+      "bytes": 8523776,
+      "sha256": "f6d8247ab17a11f9a50531222ebc65abff19a4147b93ca64befebe8201926dca"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.ded.exe",
+      "bytes": 2654720,
+      "sha256": "1083641aca98dd97929fd7176c66f73f08cfbdae0d39a955baf05ec90a16e894"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_glx_x86.dll",
+      "bytes": 2443264,
+      "sha256": "0690b3778c81f97dab20641a6b637d7fad8fe5f741a002980f8568f63fdb9b58"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_vk_x86.dll",
+      "bytes": 2612736,
+      "sha256": "372cecd14061a3480a6e31327e95c6925916666517dd8d3f4ef2ea124c61492c"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_rtx_x86.dll",
+      "bytes": 2903040,
+      "sha256": "a2428efb40533235465500a596185c9ebf00f2dc6ae85d6f78b98de21ccd702c"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\linux-client-i686\\fntech3",
+      "bytes": 24068728,
+      "sha256": "af7b232e3ac5799161619580ec671abed29bfa98f3f8ab2fe5f862d790cc7501"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\linux-i686\\fntech3.ded",
+      "bytes": 11340832,
+      "sha256": "996fc75ed4d3f21cb3963e439996d8f5e03f0e1901ed72a6ccb9c04202b5c0f4"
+    }
+  ],
+  "fixtureInventory": {
+    "selection": "All supplied maps/*.bsp excluding hm_* and ctf_*; each has info_player_start; case-insensitive sorted pak precedence.",
+    "assets": [
+      {
+        "path": "E:\\Games\\fnTech3-tests\\efassets\\baseEF\\pak0.pk3",
+        "bytes": 566234769,
+        "sha256": "44feb77eeec4670975e3c9f6c09b930d73d12e5b586761107d20ec105c03c7ae"
+      },
+      {
+        "path": "E:\\Games\\fnTech3-tests\\efassets\\baseEF\\pak1.pk3",
+        "bytes": 6492912,
+        "sha256": "19412051c2e48d0f51c27127f38280d12401afaf53c38e3af4517768641600eb"
+      },
+      {
+        "path": "E:\\Games\\fnTech3-tests\\efassets\\baseEF\\pak2.pk3",
+        "bytes": 12408486,
+        "sha256": "8b573723b6827b38974d6da1619f485f4cd66a0ef26d06a3d0135b5e80988e39"
+      },
+      {
+        "path": "E:\\Games\\fnTech3-tests\\efassets\\baseEF\\pak3.pk3",
+        "bytes": 88885710,
+        "sha256": "6cdbbdd34276eb52f9a3d9b54a4ac95156f8abeced7eee05f26ffa85b538a175"
+      },
+      {
+        "path": "E:\\Games\\fnTech3-tests\\efassets\\baseEF\\zSTVEFtex.pk3",
+        "bytes": 839268276,
+        "sha256": "71f1c273accbcbdc5698128d99840b11505ffab9277444e82c51fb204ae31941"
+      }
+    ],
+    "inventory": {
+      "_brig": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 722824,
+        "bspSha256": "3ed94825e8eb2fade9d5d2fcff19ab552f743e01912d13b4185a51867959abd0",
+        "crc32": "f9631f29"
+      },
+      "_holodeck_camelot": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 4633816,
+        "bspSha256": "8484d73c22d2038adc478100a4e5f15e1649f6a2e423584adf6a6602a7bd6330",
+        "crc32": "bf4fee16"
+      },
+      "_holodeck_firingrange": {
+        "pak": "pak3.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 581916,
+        "bspSha256": "4c735726770c5a70faf591f3d07fc358884d19194b8503f0647ff8ece4d9fcfd",
+        "crc32": "8909fa65"
+      },
+      "_holodeck_garden": {
+        "pak": "pak3.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 2746852,
+        "bspSha256": "2939e14e168bf08acffc210b79cb6ae9bf2454c18e038a2d1f9a01a9241dbb1d",
+        "crc32": "7c01ad88"
+      },
+      "_holodeck_highnoon": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 2264576,
+        "bspSha256": "04b5e682ec0490ad3176e244f79acbc876b8e2ad55715f5faeedd7213d3d9470",
+        "crc32": "b8011b21"
+      },
+      "_holodeck_minigame": {
+        "pak": "pak3.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 1148480,
+        "bspSha256": "605b51dc656814e4ac3da4ef512f5c7f47753e7adbcc290bc5ab10276ade2c68",
+        "crc32": "8acaf2fa"
+      },
+      "_holodeck_proton": {
+        "pak": "pak3.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 8071236,
+        "bspSha256": "eb139e372a5c4f811c82e3ee2f8346afa0cb17963352e57900e4bb6735b24409",
+        "crc32": "f0f79e80"
+      },
+      "_holodeck_proton2": {
+        "pak": "pak3.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 3814840,
+        "bspSha256": "2e461826c72f08589930c3e0060084ac3c49e4e800c60ff08fd584e0ff471c24",
+        "crc32": "8e70d577"
+      },
+      "_holodeck_temple": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 3405756,
+        "bspSha256": "d833088e898ca916c912e97592406f6abbaed615270977408eecec87053600bb",
+        "crc32": "10607c57"
+      },
+      "_holodeck_warlord": {
+        "pak": "pak3.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 6883576,
+        "bspSha256": "23fcf15b06f97f9995bf97d067b93125021490f8148556e0556f7f5047b89557",
+        "crc32": "b345d7e5"
+      },
+      "borg1": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 8142016,
+        "bspSha256": "e73c8967525aa939e137a3b83c6cf93e413f7673bf2734f11b4dc84074acc7de",
+        "crc32": "4e7d14d6"
+      },
+      "borg2": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 7464852,
+        "bspSha256": "cbc8b0aef78ec919b389fe02500de089025bb3dc8e2f01f835508c86729bc43d",
+        "crc32": "2010ac4e"
+      },
+      "borg3": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 9003272,
+        "bspSha256": "8748025104eeecca8526b5e78cdd45cd11bebdb11e1b6bd312f5f0c36e5af657",
+        "crc32": "2e05b2a6"
+      },
+      "borg4": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 9282540,
+        "bspSha256": "b7b7d8bc5a6ffb19db5444ee6ea423f47ff8158627e97646e1d1f1ad79685c83",
+        "crc32": "9b2368a9"
+      },
+      "borg5": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 5321156,
+        "bspSha256": "16526fac73f4e7871eeb142b4637989a13b2f2216fddc22de57adcd6fd0974ea",
+        "crc32": "402d0320"
+      },
+      "borg6": {
+        "pak": "pak1.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 8971156,
+        "bspSha256": "aaf51316d40defd9d03b059401b91dbdc47e275bf5198266b7598ec3ffa5cb5f",
+        "crc32": "46935313"
+      },
+      "dn1": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 8575312,
+        "bspSha256": "0f58643a15f0b2032901154b9db0a24d437e897ff063ccf9e8a40077504ad1ea",
+        "crc32": "a48e45a5"
+      },
+      "dn2": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 4619000,
+        "bspSha256": "65bef1329471aec01110c39841016f31f9223a0df7abc2550c42ed849b18f6cb",
+        "crc32": "99c6149c"
+      },
+      "dn3": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 4251744,
+        "bspSha256": "f7764fef6128e050dea976a91b18badced08176844114efa69c4d2df6e51d7fb",
+        "crc32": "04b3307e"
+      },
+      "dn4": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 3565800,
+        "bspSha256": "f2bc4f7b8badd3938e7f3ce92861abd1d13f2c3c6c517933c48ddc386c68fe81",
+        "crc32": "219ac319"
+      },
+      "dn5": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 7193424,
+        "bspSha256": "9b307693a8bacc3cf232bec7f038b0e07188d4d0c93322da3fc12b7eb91d2983",
+        "crc32": "f8225f1e"
+      },
+      "dn6": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 10859668,
+        "bspSha256": "133158e9bcf47678b10fabfee2df24f6ba5a37fc9ebc92a25f6255d02dfdbe22",
+        "crc32": "0c498d1d"
+      },
+      "dn8": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 6991368,
+        "bspSha256": "d8062f286790aab50b955d3f0d7583080b71988dc1a3add524cf5efb72d4bce1",
+        "crc32": "22b1f639"
+      },
+      "forge1": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 6337812,
+        "bspSha256": "f938da2950b8bdf0bb8e0461d817e2b64edc0fb58b80d663993f7feeb0d93020",
+        "crc32": "ffb4127f"
+      },
+      "forge2": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 4274144,
+        "bspSha256": "0b314b80e7d748307b9fd27e6a36e2f479cdc11f0ebcc48c3785908f0a9dcb34",
+        "crc32": "2703c768"
+      },
+      "forge3": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 5590408,
+        "bspSha256": "8f2136bcb263931f14e9381aaa0846a9f5ba5f55223b7c4c6304de375088c5b4",
+        "crc32": "2017ac7c"
+      },
+      "forge4": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 8145880,
+        "bspSha256": "569982c0e8e3ebfec89f3a29dfc813574bbcfa5570ec1f816054d51b5fe2c7f4",
+        "crc32": "ef4b81d6"
+      },
+      "forge5": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 10508268,
+        "bspSha256": "5dea7769d38da9cdd8ae9ea80e3f934c2910625324bb7c64815f103c94e00fc6",
+        "crc32": "6324516e"
+      },
+      "forgeboss": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 5710128,
+        "bspSha256": "ffd5d5d6284499c761a589bb653984ff9c1e5c351de3715d5b9be03a292abd5e",
+        "crc32": "c4c8a5f0"
+      },
+      "holodeck": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 2277920,
+        "bspSha256": "37752e06e632c3569338af9c6477c451cbecc31390c66e56b0eb22097cc68c49",
+        "crc32": "134b3daf"
+      },
+      "scav1": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 5350244,
+        "bspSha256": "468df16416cb53a7b7c81566783bb8d96855f857b8b310aa0af701b17fb7ab34",
+        "crc32": "0772d4b1"
+      },
+      "scav2": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 10322348,
+        "bspSha256": "d119d96013c11ae7b4b88bbb8ff10e22a3d2a79abdaf232c54a12b479e760891",
+        "crc32": "1a4ea87c"
+      },
+      "scav3": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 6319024,
+        "bspSha256": "25522b80d666ef14e240abef4c7be46fbe67d13bfbc955d33f62b8aa03bb12a9",
+        "crc32": "f1aee2a8"
+      },
+      "scav3b": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 6108996,
+        "bspSha256": "704f7072b6ad9edfa0dc6f92a0b6be272a506e0a11ade7f64677c5e038b7da74",
+        "crc32": "1b7ca36d"
+      },
+      "scav4": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 5031072,
+        "bspSha256": "def01a9b87906d26c0b9e4221456f1c8d0a590e850daf71621d43522ec2a8f6c",
+        "crc32": "a224c744"
+      },
+      "scav5": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 5557596,
+        "bspSha256": "f2d17879b8044c81dec5a374d064934a58c88c0d6b72b2972fd818f0e3def0a9",
+        "crc32": "d290d316"
+      },
+      "scavboss": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 4470260,
+        "bspSha256": "bfd5e6ea89c1bbe229e682ecc29c52a647340e8566e47cfd5412fe67ac76f43f",
+        "crc32": "d5542556"
+      },
+      "stasis1": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 4183508,
+        "bspSha256": "0a9816fbf6819fc7bd78730e928b0f09d724e4aed64a0ba919f66232548a2751",
+        "crc32": "1fa5034e"
+      },
+      "stasis2": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 6179132,
+        "bspSha256": "65d9d7e2f17110a4c05167818c90644215f1cdcc61b78e47eada0736add70a23",
+        "crc32": "a7d12192"
+      },
+      "stasis3": {
+        "pak": "pak1.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 3886440,
+        "bspSha256": "39e7123891dba48574e2f32da6fdf267fa6fb1e1e99f34985a7595f87c658bd7",
+        "crc32": "0bf2205d"
+      },
+      "tour/deck01": {
+        "pak": "pak3.pk3",
+        "playerStart": 2,
+        "playerDeathmatch": 0,
+        "bspBytes": 3236216,
+        "bspSha256": "40d9458bb881151815d5c233a24201355fef6ac62f702ce168e1bf6a6f6cef9d",
+        "crc32": "7f7f35cd"
+      },
+      "tour/deck02": {
+        "pak": "pak3.pk3",
+        "playerStart": 3,
+        "playerDeathmatch": 0,
+        "bspBytes": 7250464,
+        "bspSha256": "f743af2756b50819641c9c8abdbb8e2fbafe8036b93f3f6935f94e77052ab6a6",
+        "crc32": "6a1545fd"
+      },
+      "tour/deck03": {
+        "pak": "pak3.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 5412628,
+        "bspSha256": "eca93d6e669618789466d5a50f30577b954f85d414502e4ff4e4205f1c6632dd",
+        "crc32": "10d9e4a3"
+      },
+      "tour/deck04": {
+        "pak": "pak3.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 10369668,
+        "bspSha256": "128cfb0b041e98c926dd5bc0b2dadc4f3fa6bb44706e774a4169bbd30d796eaf",
+        "crc32": "19ef730b"
+      },
+      "tour/deck05": {
+        "pak": "pak3.pk3",
+        "playerStart": 2,
+        "playerDeathmatch": 0,
+        "bspBytes": 4266340,
+        "bspSha256": "16a095b85982dd8ab4e48b085acab83781e9d16dec7c7e614e2db553728cc618",
+        "crc32": "742d54e0"
+      },
+      "tour/deck08": {
+        "pak": "pak3.pk3",
+        "playerStart": 3,
+        "playerDeathmatch": 0,
+        "bspBytes": 5864812,
+        "bspSha256": "fa52fd726daff0102cbe2bc18efec48763e75bc06154e01e0b44c62b256af188",
+        "crc32": "309c6f52"
+      },
+      "tour/deck09": {
+        "pak": "pak3.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 9549480,
+        "bspSha256": "18014b4cc58630a9a13f89a734b0510057ecd384da6715d1f01967e33a8d1466",
+        "crc32": "91d61db6"
+      },
+      "tour/deck10": {
+        "pak": "pak3.pk3",
+        "playerStart": 2,
+        "playerDeathmatch": 0,
+        "bspBytes": 3889776,
+        "bspSha256": "116a64d27c40b8975cafee250bb6c8ef6a27338311529b63e64a33269266fc37",
+        "crc32": "bda8a217"
+      },
+      "tour/deck11": {
+        "pak": "pak3.pk3",
+        "playerStart": 2,
+        "playerDeathmatch": 0,
+        "bspBytes": 3733768,
+        "bspSha256": "bea0aed0520e83f180757029c367bc05398aadeca9988d224ee100960a96d723",
+        "crc32": "8c77f931"
+      },
+      "tour/deck15": {
+        "pak": "pak3.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 2549088,
+        "bspSha256": "308a8ebd3f3cf9454ed555bb2c624c3405a3a6a618e1b3362e830a24786268ee",
+        "crc32": "4f99bd2a"
+      },
+      "tutorial": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 3976292,
+        "bspSha256": "9485ae048d679661775e90107bbaa78698ff5d4927ab70ee55cbbecc9cdd619a",
+        "crc32": "37fd5b94"
+      },
+      "voy1": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 1984908,
+        "bspSha256": "f6e869199d7a663fea8055828bf93e7d9484833aa46772000e0fe0ea5c265105",
+        "crc32": "794f7ebd"
+      },
+      "voy13": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 5039228,
+        "bspSha256": "041b7f0bf8c705716ea7215fb3314613a6fd0084c586cc1d05b345ff16e2fe84",
+        "crc32": "35bb61dc"
+      },
+      "voy14": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 3926376,
+        "bspSha256": "e8811e864fbb87370129bbe98f4623b4f3e40b277c27b91dc0ae7e764d40efe2",
+        "crc32": "cdfc7519"
+      },
+      "voy15": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 5214196,
+        "bspSha256": "67597de209f38906070f851177f5a42fb1c8ee3317720892fda66e5dbe9753b7",
+        "crc32": "ec962757"
+      },
+      "voy16": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 8931248,
+        "bspSha256": "c5a9cf920b838825d21fe082130dd7ab0b379d9bb049aca72e715a21163e9a19",
+        "crc32": "e17c3308"
+      },
+      "voy17": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 5622700,
+        "bspSha256": "9b8a4de5dd39d2df6cbdd4a080eb15e129bf412eb0e8363eedfaa60ec537b62f",
+        "crc32": "9a105f32"
+      },
+      "voy2": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 6761072,
+        "bspSha256": "bb5f5e2708ba70f5002ba8e7099673f736c7841beff4821b899e2e065ad3d691",
+        "crc32": "e9dcb7d8"
+      },
+      "voy20": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 1776808,
+        "bspSha256": "486c067e3d882806b46b5bbf622451cc1f97b5fe47354cdfdcb284ebd3ea5191",
+        "crc32": "e166b376"
+      },
+      "voy3": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 4232924,
+        "bspSha256": "f8a72441b87b9c29a13a0dbbb25594ce84da66d8ff432bf8169b9b378b2cb0b3",
+        "crc32": "bc81a4bb"
+      },
+      "voy4": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 4046392,
+        "bspSha256": "8c1caa699994d7413d51fadbcf8b4872cb2ff1ce804a85a077d799afafa282e9",
+        "crc32": "7f4d4253"
+      },
+      "voy5": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 4993352,
+        "bspSha256": "0820d3f5ef9aefffc52e04d2b7f87b9d8f204c7564c855a4ce9a3f90d6bcfce9",
+        "crc32": "1da2f863"
+      },
+      "voy6": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 2842664,
+        "bspSha256": "ce9d9b8ef0dc8471ed67b0201b35e781066fcfbdb10bb16c61d3456c30d35b33",
+        "crc32": "b086b2c7"
+      },
+      "voy7": {
+        "pak": "pak1.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 5237736,
+        "bspSha256": "abf53af78c30fa85a0050b14998f5fa57072443d3c34598950f545ce3f91a5d3",
+        "crc32": "a814cc94"
+      },
+      "voy8": {
+        "pak": "pak1.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 2551304,
+        "bspSha256": "38318549a5fdf4e719fe13e04b5bc4947d842f4a69b4bda6e2487182f8195aae",
+        "crc32": "beda9018"
+      },
+      "voy9": {
+        "pak": "pak0.pk3",
+        "playerStart": 1,
+        "playerDeathmatch": 0,
+        "bspBytes": 5848608,
+        "bspSha256": "31769f09e8e8c19a71e14941fb3b4a2ece7750ad30845a7d0cad46c0a9bb2951",
+        "crc32": "0f7e1c53"
+      }
+    }
+  },
+  "saveReloads": {
+    "rawManifest": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\sp-save-integrity-runtime.json",
+      "bytes": 15499,
+      "sha256": "e9f10550af698f667efb29fd2f366de217f719bba6a978a15fe28d814dfe1737"
+    },
+    "runs": [
+      {
+        "case": "fn",
+        "exit": 0,
+        "terminated": null,
+        "seconds": 56.094,
+        "privateDesktop": true,
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-save-integrity-saves-fn",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "use_ff",
+          "0",
+          "+set",
+          "developer",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_FirstTime",
+          "1",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+exec",
+          "probe.cfg"
+        ],
+        "settings": {
+          "com_gameProfile": "stvef-sp",
+          "fs_basepath": "E:\\Games\\fnTech3-tests\\efassets",
+          "fs_homepath": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-saves-fn",
+          "cl_renderer": "glx",
+          "r_fullscreen": 0,
+          "r_mode": 3,
+          "in_mouse": 0,
+          "in_joystick": 0,
+          "in_nograb": 1,
+          "s_initsound": 0,
+          "use_ff": 0,
+          "developer": 0,
+          "logfile": 2,
+          "com_introplayed": 1,
+          "com_FirstTime": 1,
+          "com_zoneMegs": 128,
+          "com_hunkMegs": 256,
+          "com_maxfps": 60,
+          "com_maxfpsUnfocused": 60,
+          "com_maxfpsMinimized": 60,
+          "net_enabled": 0,
+          "cl_motd": 0,
+          "con_notifytime": 0,
+          "cl_drawFPS": 0,
+          "cl_drawSpeed": 0
+        },
+        "script": "wait 60\ndevmap tutorial\nwait 180\nsave integrity_first\nwait 240\nload integrity_first\nwait 10\nsave integrity_reload\nscreenshot integrity_reload\nwait 240\nmaptransition borg2\nwait 60\nsave integrity_transition\nscreenshot integrity_transition\nloadtransition tutorial\nwait 60\nsave integrity_hub_fallback\nloadtransition borg2\nwait 10\nsave integrity_hub_restore\nscreenshot integrity_hub_restore\nwait 3\necho SAVE_INTEGRITY_COMPLETE\nquit\n",
+        "executable": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "bytes": 8523776,
+          "sha256": "f6d8247ab17a11f9a50531222ebc65abff19a4147b93ca64befebe8201926dca"
+        },
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-saves-fn\\baseEF\\qconsole.log",
+          "bytes": 20871,
+          "sha256": "a83ac29e138a11d4270db79e2532623444106be4c04e35e8403b278317a47e29"
+        },
+        "completed": true,
+        "saves": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-saves-fn\\baseEF\\saves\\auto.sav",
+            "bytes": 844205,
+            "sha256": "83f3856e3fcc2732a1b0f0d481fd947ace93d50472755974aabb74ad3ed06b79",
+            "chunks": 4376,
+            "engine": {
+              "MPCM": "borg2",
+              "GAME": 0,
+              "TIME": 3050,
+              "TIMR": 30
+            }
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-saves-fn\\baseEF\\saves\\integrity_first.sav",
+            "bytes": 517466,
+            "sha256": "1ccf7793fb079d8d329f71123e2fca1c742321696e6bd0aa4c89491d1b4d9cab",
+            "chunks": 2948,
+            "engine": {
+              "MPCM": "tutorial",
+              "GAME": 0,
+              "TIME": 5100,
+              "TIMR": 36
+            }
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-saves-fn\\baseEF\\saves\\integrity_hub_fallback.sav",
+            "bytes": 524522,
+            "sha256": "cda4c30d68d23b72e29a39d6d74eaa77e57afb57d6c58b95729972f4f90e9ff7",
+            "chunks": 3294,
+            "engine": {
+              "MPCM": "tutorial",
+              "GAME": 0,
+              "TIME": 2650,
+              "TIMR": 46
+            }
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-saves-fn\\baseEF\\saves\\integrity_hub_restore.sav",
+            "bytes": 844205,
+            "sha256": "4b878bfb7532717511c0726d8e43f92c09ae86e38ced71a67b4ba05402441b00",
+            "chunks": 4376,
+            "engine": {
+              "MPCM": "borg2",
+              "GAME": 0,
+              "TIME": 3150,
+              "TIMR": 42
+            }
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-saves-fn\\baseEF\\saves\\integrity_reload.sav",
+            "bytes": 517466,
+            "sha256": "c0c9069a41835cdaa32421001a02badf5b60a1f634e0342b231534717096ce38",
+            "chunks": 2948,
+            "engine": {
+              "MPCM": "tutorial",
+              "GAME": 0,
+              "TIME": 5450,
+              "TIMR": 14
+            }
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-saves-fn\\baseEF\\saves\\integrity_transition.sav",
+            "bytes": 844205,
+            "sha256": "cc308612b4496f8471e319677efdfa2a7c540233c85bbe9e3f7d41940dfab3ed",
+            "chunks": 4376,
+            "engine": {
+              "MPCM": "borg2",
+              "GAME": 0,
+              "TIME": 2850,
+              "TIMR": 14
+            }
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-saves-fn\\baseEF\\saves\\hub\\borg2.sav",
+            "bytes": 844205,
+            "sha256": "b69cb107b98ced89aea5a1a3fb256620b3a1ef725e648f0cb0da6cac0f23e67f",
+            "chunks": 4376,
+            "engine": {
+              "MPCM": "borg2",
+              "GAME": 0,
+              "TIME": 3050,
+              "TIMR": 30
+            }
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-saves-fn\\baseEF\\saves\\hub\\tutorial.sav",
+            "bytes": 524522,
+            "sha256": "460eb441eee7ac50087f4d6cbd2b8d9ca622e5c578540003c578e383fada4b43",
+            "chunks": 3294,
+            "engine": {
+              "MPCM": "tutorial",
+              "GAME": 0,
+              "TIME": 2650,
+              "TIMR": 46
+            }
+          }
+        ],
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-saves-fn\\baseEF\\screenshots\\integrity_hub_restore.png",
+            "bytes": 922218,
+            "sha256": "74c711b4fb84313c175fa13ac2f6232e05572aa737896191498c28e9bcfe2bff"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-saves-fn\\baseEF\\screenshots\\integrity_reload.png",
+            "bytes": 922218,
+            "sha256": "699860262d2700c9c492f60b7cb5c25e14fd17e2e31e103275e80ab5bef5d733"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-saves-fn\\baseEF\\screenshots\\integrity_transition.png",
+            "bytes": 922218,
+            "sha256": "24bddadd927f2626a2366b8d0c972186473d45c7bacfa0aa0429091dcd01cf9c"
+          }
+        ],
+        "events": [
+          "Server: tutorial",
+          "^5Saving game \"integrity_first\"...",
+          "^5Done.",
+          "^5Loading game \"integrity_first\"...",
+          "Server: tutorial",
+          "^5Done.",
+          "^5Saving game \"integrity_reload\"...",
+          "^5Done.",
+          "Server: borg2",
+          "^5Saving game \"integrity_transition\"...",
+          "^5Done.",
+          "^5Restoring game \"hub/tutorial\"...",
+          "^1Failed to open savegame \"hub/tutorial\"",
+          "Server: tutorial",
+          "^5Saving game \"integrity_hub_fallback\"...",
+          "^5Done.",
+          "^5Restoring game \"hub/borg2\"...",
+          "Server: borg2",
+          "^5Done.",
+          "^5Saving game \"integrity_hub_restore\"...",
+          "^5Done."
+        ]
+      },
+      {
+        "case": "retail",
+        "exit": 0,
+        "terminated": null,
+        "seconds": 15.125,
+        "privateDesktop": true,
+        "command": [
+          "E:\\Games\\fnTech3-tests\\stvef-save-integrity-saves-retail\\stvoy.exe",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\stvef-save-integrity-saves-retail",
+          "+set",
+          "fs_cdpath",
+          "E:\\Games\\fnTech3-tests\\efassets",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "use_ff",
+          "0",
+          "+set",
+          "developer",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_FirstTime",
+          "1",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+exec",
+          "probe.cfg"
+        ],
+        "settings": {
+          "fs_basepath": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-saves-retail",
+          "fs_cdpath": "E:\\Games\\fnTech3-tests\\efassets",
+          "r_fullscreen": 0,
+          "r_mode": 3,
+          "in_mouse": 0,
+          "in_joystick": 0,
+          "in_nograb": 1,
+          "s_initsound": 0,
+          "use_ff": 0,
+          "developer": 0,
+          "logfile": 2,
+          "com_introplayed": 1,
+          "com_FirstTime": 1,
+          "com_zoneMegs": 128,
+          "com_hunkMegs": 256,
+          "com_maxfps": 60,
+          "com_maxfpsUnfocused": 60,
+          "com_maxfpsMinimized": 60,
+          "net_enabled": 0,
+          "cl_motd": 0,
+          "con_notifytime": 0,
+          "cl_drawFPS": 0,
+          "cl_drawSpeed": 0
+        },
+        "script": "wait 60\nload integrity_first\nwait 600\nsave integrity_retail_reload\nscreenshot integrity_retail_reload\nwait 3\necho SAVE_INTEGRITY_COMPLETE\nquit\n",
+        "executable": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-saves-retail\\stvoy.exe",
+          "bytes": 675840,
+          "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74"
+        },
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-saves-retail\\baseEF\\qconsole.log",
+          "bytes": 7889,
+          "sha256": "2e666574ab5f072ddaf205ba8532fabc9a2e6c06bac2ed28e386231a56f400ad"
+        },
+        "completed": true,
+        "saves": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-saves-retail\\baseEF\\saves\\integrity_first.sav",
+            "bytes": 517466,
+            "sha256": "1ccf7793fb079d8d329f71123e2fca1c742321696e6bd0aa4c89491d1b4d9cab",
+            "chunks": 2948,
+            "engine": {
+              "MPCM": "tutorial",
+              "GAME": 0,
+              "TIME": 5100,
+              "TIMR": 36
+            }
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-saves-retail\\baseEF\\saves\\integrity_retail_reload.sav",
+            "bytes": 517211,
+            "sha256": "895f744832c232e44c19a325572ae32604502e5628c4270cc0c7f0fbfab41f6a",
+            "chunks": 2938,
+            "engine": {
+              "MPCM": "tutorial",
+              "GAME": 0,
+              "TIME": 11750,
+              "TIMR": 35
+            }
+          }
+        ],
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-saves-retail\\baseEF\\screenshots\\integrity_retail_reload.tga",
+            "bytes": 921618,
+            "sha256": "d3c553a865e75d2bb11fdf3653087068116373c6a4fee21c6e602aba0c389cea"
+          }
+        ],
+        "events": [
+          "^5Loading game \"integrity_first\"...",
+          "Server: tutorial",
+          "^5Done.",
+          "^5Saving game \"integrity_retail_reload\"...",
+          "^5Done."
+        ]
+      },
+      {
+        "case": "fn-retail",
+        "exit": 0,
+        "terminated": null,
+        "seconds": 8.016,
+        "privateDesktop": true,
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-save-integrity-saves-fn-retail",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "use_ff",
+          "0",
+          "+set",
+          "developer",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_FirstTime",
+          "1",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+exec",
+          "probe.cfg"
+        ],
+        "settings": {
+          "com_gameProfile": "stvef-sp",
+          "fs_basepath": "E:\\Games\\fnTech3-tests\\efassets",
+          "fs_homepath": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-saves-fn-retail",
+          "cl_renderer": "glx",
+          "r_fullscreen": 0,
+          "r_mode": 3,
+          "in_mouse": 0,
+          "in_joystick": 0,
+          "in_nograb": 1,
+          "s_initsound": 0,
+          "use_ff": 0,
+          "developer": 0,
+          "logfile": 2,
+          "com_introplayed": 1,
+          "com_FirstTime": 1,
+          "com_zoneMegs": 128,
+          "com_hunkMegs": 256,
+          "com_maxfps": 60,
+          "com_maxfpsUnfocused": 60,
+          "com_maxfpsMinimized": 60,
+          "net_enabled": 0,
+          "cl_motd": 0,
+          "con_notifytime": 0,
+          "cl_drawFPS": 0,
+          "cl_drawSpeed": 0
+        },
+        "script": "wait 60\nload integrity_retail_reload\nwait 10\nsave integrity_fn_retail_reload\nscreenshot integrity_fn_retail_reload\nwait 3\necho SAVE_INTEGRITY_COMPLETE\nquit\n",
+        "executable": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "bytes": 8523776,
+          "sha256": "f6d8247ab17a11f9a50531222ebc65abff19a4147b93ca64befebe8201926dca"
+        },
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-saves-fn-retail\\baseEF\\qconsole.log",
+          "bytes": 6732,
+          "sha256": "bb967a036570f1d6098d3d555ed7098e0e1a8baef765eeec011f70c1ee6094fc"
+        },
+        "completed": true,
+        "saves": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-saves-fn-retail\\baseEF\\saves\\integrity_fn_retail_reload.sav",
+            "bytes": 517466,
+            "sha256": "b632628d71419f8721343783caf7fce2854d1b1978abe28b7b3e496323d9cbf8",
+            "chunks": 2948,
+            "engine": {
+              "MPCM": "tutorial",
+              "GAME": 0,
+              "TIME": 12100,
+              "TIMR": 29
+            }
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-saves-fn-retail\\baseEF\\saves\\integrity_retail_reload.sav",
+            "bytes": 517211,
+            "sha256": "895f744832c232e44c19a325572ae32604502e5628c4270cc0c7f0fbfab41f6a",
+            "chunks": 2938,
+            "engine": {
+              "MPCM": "tutorial",
+              "GAME": 0,
+              "TIME": 11750,
+              "TIMR": 35
+            }
+          }
+        ],
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-saves-fn-retail\\baseEF\\screenshots\\integrity_fn_retail_reload.png",
+            "bytes": 922218,
+            "sha256": "699860262d2700c9c492f60b7cb5c25e14fd17e2e31e103275e80ab5bef5d733"
+          }
+        ],
+        "events": [
+          "^5Loading game \"integrity_retail_reload\"...",
+          "Server: tutorial",
+          "^5Done.",
+          "^5Saving game \"integrity_fn_retail_reload\"...",
+          "^5Done."
+        ]
+      }
+    ]
+  },
+  "failureRecovery": {
+    "rawManifest": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\sp-save-integrity-failures.json",
+      "bytes": 26056,
+      "sha256": "c5b098c08a63c62de10875a0710c9566284ddce5c66c7989cf8e17f0a4c4182e"
+    },
+    "runs": [
+      {
+        "fault": "create",
+        "phase": "failure",
+        "exit": 0,
+        "terminated": null,
+        "seconds": 12.422,
+        "privateDesktop": true,
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-create",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "use_ff",
+          "0",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "developer",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_FirstTime",
+          "1",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+exec",
+          "probe.cfg"
+        ],
+        "settings": {
+          "com_gameProfile": "stvef-sp",
+          "fs_basepath": "E:\\Games\\fnTech3-tests\\efassets",
+          "fs_homepath": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-create",
+          "cl_renderer": "glx",
+          "r_fullscreen": 0,
+          "r_mode": 3,
+          "in_mouse": 0,
+          "in_joystick": 0,
+          "in_nograb": 1,
+          "use_ff": 0,
+          "s_initsound": 0,
+          "developer": 0,
+          "logfile": 2,
+          "com_introplayed": 1,
+          "com_FirstTime": 1,
+          "com_zoneMegs": 128,
+          "com_hunkMegs": 256
+        },
+        "script": "wait 60\nload slot\nwait 90\necho INTEGRITY_SAVE_BEGIN\nsave slot\necho INTEGRITY_SAVE_END\nwait 5\necho INTEGRITY_HUB_BEGIN\nloadtransition borg2\nwait 60\nmapname\necho INTEGRITY_HUB_END\nscreenshot create_failure\nwait 3\necho SAVE_FAILURE_PROBE_COMPLETE\nquit\n",
+        "executable": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "bytes": 8523776,
+          "sha256": "f6d8247ab17a11f9a50531222ebc65abff19a4147b93ca64befebe8201926dca"
+        },
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-create\\failure-qconsole.log",
+          "bytes": 7053,
+          "sha256": "f12fa116c51de51d552c337616e9c8d5eeb3a41359843f59bf56fadac82c290e"
+        },
+        "before": {
+          "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-create\\baseEF\\saves\\slot.sav": {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-create\\baseEF\\saves\\slot.sav",
+            "bytes": 517466,
+            "sha256": "1ccf7793fb079d8d329f71123e2fca1c742321696e6bd0aa4c89491d1b4d9cab"
+          },
+          "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-create\\baseEF\\saves\\hub\\tutorial.sav": {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-create\\baseEF\\saves\\hub\\tutorial.sav",
+            "bytes": 517466,
+            "sha256": "1ccf7793fb079d8d329f71123e2fca1c742321696e6bd0aa4c89491d1b4d9cab"
+          }
+        },
+        "after": {
+          "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-create\\baseEF\\saves\\slot.sav": {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-create\\baseEF\\saves\\slot.sav",
+            "bytes": 517466,
+            "sha256": "1ccf7793fb079d8d329f71123e2fca1c742321696e6bd0aa4c89491d1b4d9cab",
+            "chunks": 2948
+          },
+          "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-create\\baseEF\\saves\\hub\\tutorial.sav": {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-create\\baseEF\\saves\\hub\\tutorial.sav",
+            "bytes": 517466,
+            "sha256": "1ccf7793fb079d8d329f71123e2fca1c742321696e6bd0aa4c89491d1b4d9cab",
+            "chunks": 2948
+          }
+        },
+        "saveSegment": "^5Saving game \"slot\"...\n^1Failed to create new savegame file \"saves/current.sav\"\n^1Failed to create savegame\n",
+        "hubSegment": "^1Failed to create new savegame file \"saves/current.sav\"\n^1Failed to create savegame\n^1Cannot leave the level: its hub save failed\n\"mapname\" is:\"tutorial^7\"\nDisplay the name of the current map being used on a server.\n",
+        "current": null,
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-create\\baseEF\\screenshots\\create_failure.png",
+            "bytes": 922218,
+            "sha256": "b60c3f165224b049cbc03501653822082dd9f78d8c85bb6027ef07bb60cb500c"
+          }
+        ]
+      },
+      {
+        "fault": "create",
+        "phase": "recovery",
+        "exit": 0,
+        "terminated": null,
+        "seconds": 19.625,
+        "privateDesktop": true,
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-create",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "use_ff",
+          "0",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "developer",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_FirstTime",
+          "1",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+exec",
+          "probe.cfg"
+        ],
+        "settings": {
+          "com_gameProfile": "stvef-sp",
+          "fs_basepath": "E:\\Games\\fnTech3-tests\\efassets",
+          "fs_homepath": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-create",
+          "cl_renderer": "glx",
+          "r_fullscreen": 0,
+          "r_mode": 3,
+          "in_mouse": 0,
+          "in_joystick": 0,
+          "in_nograb": 1,
+          "use_ff": 0,
+          "s_initsound": 0,
+          "developer": 0,
+          "logfile": 2,
+          "com_introplayed": 1,
+          "com_FirstTime": 1,
+          "com_zoneMegs": 128,
+          "com_hunkMegs": 256
+        },
+        "script": "wait 60\nload slot\nwait 90\necho INTEGRITY_SAVE_BEGIN\nsave slot\necho INTEGRITY_SAVE_END\nwait 5\necho INTEGRITY_HUB_BEGIN\nloadtransition borg2\nwait 60\nmapname\necho INTEGRITY_HUB_END\nscreenshot create_recovery\nwait 3\necho SAVE_FAILURE_PROBE_COMPLETE\nquit\n",
+        "executable": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "bytes": 8523776,
+          "sha256": "f6d8247ab17a11f9a50531222ebc65abff19a4147b93ca64befebe8201926dca"
+        },
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-create\\recovery-qconsole.log",
+          "bytes": 10389,
+          "sha256": "09ce3234ee5c81bc487d4420a51d0b6297f1781d11c98f79a9e6536213dfb87b"
+        },
+        "before": {
+          "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-create\\baseEF\\saves\\slot.sav": {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-create\\baseEF\\saves\\slot.sav",
+            "bytes": 517466,
+            "sha256": "1ccf7793fb079d8d329f71123e2fca1c742321696e6bd0aa4c89491d1b4d9cab"
+          },
+          "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-create\\baseEF\\saves\\hub\\tutorial.sav": {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-create\\baseEF\\saves\\hub\\tutorial.sav",
+            "bytes": 517466,
+            "sha256": "1ccf7793fb079d8d329f71123e2fca1c742321696e6bd0aa4c89491d1b4d9cab"
+          }
+        },
+        "after": {
+          "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-create\\baseEF\\saves\\slot.sav": {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-create\\baseEF\\saves\\slot.sav",
+            "bytes": 517466,
+            "sha256": "b74697832957e38d8f2fa757101bcf94a15287dcb51fbfcf0d4367f5d68fc113",
+            "chunks": 2948
+          },
+          "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-create\\baseEF\\saves\\hub\\tutorial.sav": {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-create\\baseEF\\saves\\hub\\tutorial.sav",
+            "bytes": 517466,
+            "sha256": "3cb14ac8a0f03c8cd2fd05f8970cb338c7eca409d199887b682b5bb87dbf313c",
+            "chunks": 2948
+          }
+        },
+        "saveSegment": "^5Saving game \"slot\"...\n^5Done.\n",
+        "hubSegment": "^5Restoring game \"hub/borg2\"...\n^1Failed to open savegame \"hub/borg2\"\n==== ShutdownGame ====\n... ICARUS_Shutdown\n... Reference Tags Cleared\n... Navigation Data Cleared\n------ Server Initialization ------\nServer: borg2\nRE_Shutdown( 0 )\nHunk_Clear: reset the hunk ok\n...loaded in 0 milliseconds\n----------------------\n27197 files in 5 pk3 files\nVM_LoadDll: loaded native module cache 'E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-create\\.tmp\\native\\a0838dcc6caa37ff0df6bd7b5820fbd5\\efgamex86.dll'\nVM_CreateTable 'efgamex86.dll' ok\n------- Game Initialization -------\ngamename: baseEF\ngamedate: Apr 16 2001\nParsing ext_data/boltOns.cfg\nParsing ext_data/NPCs.cfg\nParsing addon.npc\n------ ICARUS Initialization ------\nICARUS version : 1.33\n-----------------------------------\n0 squadPaths generated\n0 teams with 0 entities\n4 items registered\n-----------------------------------\n-----------------------------------\nRE_Shutdown( 0 )\n----- R_Init -----\nGLx renderer bootstrap: product tier GL46, hint high-end, executor GL46/high-end, GL 4.6, material yes, dlight yes, post-shader yes, stream persistent-map, timer query yes, debug output no\nGLx pass schedule: valid 10/541629f7 frame-setup>sky-opaque-world>opaque-entities>dynamic-lights>dynamic-scene>transparent-layers>first-person-weapon>hud-2d>postprocess>output-export\nGAMMA: hardware w/ 0 overbright bits\ntexturemode: GL_LINEAR_MIPMAP_LINEAR\ntexture bits: 32\npicmip: 0, filter: 1\nInitializing Shaders\n^3QL fonts: unable to read fonts/handelgothic.ttf\n^3QL fonts: unable to read fonts/notosans-regular.ttf\n^3QL fonts: unable to read fonts/droidsansmono.ttf\n^3QL fonts: unable to read fonts/droidsansfallbackfull.ttf\nQL fonts: using Windows fallback C:\\WINDOWS\\Fonts\\segoeui.ttf\nQL fonts: retail FontStash/STB host text enabled\n----- finished R_Init -----\nVM_LoadDll: loaded native module cache 'E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-create\\.tmp\\native\\a0838dcc6caa37ff0df6bd7b5820fbd5\\efuix86.dll'\nVM_CreateTable 'efuix86.dll' ok\n^3WARNING: Unable to load ambient sound \"sound/ambience/borg/borgset1.wav\"\n^3WARNING: Unable to load ambient sound \"sound/ambience/borg/ambsound1.wav\"\n^3WARNING: Unable to load ambient sound \"sound/ambience/borg/ambsound2.wav\"\n^3WARNING: Unable to load ambient sound \"sound/ambience/borg/ambsound3.wav\"\n^3WARNING: Unable to load ambient sound \"sound/ambience/borg/ambsound4.wav\"\n^3WARNING: Unable to load ambient sound \"sound/ambience/borg/ambsound5.wav\"\n^3WARNING: Unable to load ambient sound \"sound/ambience/borg/ambsound6.wav\"\n^3WARNING: Unable to load ambient sound \"sound/ambience/borg/ambsound7.wav\"\n^3WARNING: Unable to load ambient sound \"sound/ambience/borg/borgset2.wav\"\n^3WARNING: Unable to load ambient sound \"sound/ambience/borg/borgzappers.wav\"\n^3WARNING: Unable to load ambient sound \"sound/ambience/borg/bluerings.wav\"\n^3WARNING: Too many subwaves on set \"messhall\"\n^3WARNING: Too many subwaves on set \"messhall\"\n^3WARNING: Too many subwaves on set \"messhall\"\n^3WARNING: Too many subwaves on set \"messhall\"\n^3WARNING: Too many subwaves on set \"messhall\"\n^3WARNING: Unable to load ambient sound \"sound/ambience/steamloop1.wav\"\n^3WARNING: Unable to load ambient sound \"sound/ambience/borg/yellowringsfast.wav\"\n^3WARNING: Unable to load ambient sound \"sound/ambience/borg/borgregenhum.wav\"\nAS_ParseFile: Parsed 103 ambient set(s)\nstitched 28 LoD cracks\n...loaded 12836 faces, 240 meshes, 11 trisurfs, 100 flares\nCom_TouchMemory: 2 msec\nCL_InitCGame:  6.22 seconds\nCL_FirstSnapshot: maps/borg2.bsp, cgame 6222 ms, snapshot wait 108 ms\n\"mapname\" is:\"borg2^7\"\nDisplay the name of the current map being used on a server.\n",
+        "current": null,
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-create\\baseEF\\screenshots\\create_recovery.png",
+            "bytes": 922218,
+            "sha256": "9ece617ef39e72af65c79c0c1411ab53150eb9e643af7e3bbeea3840b6a7423b"
+          }
+        ]
+      },
+      {
+        "fault": "replace",
+        "phase": "failure",
+        "exit": 0,
+        "terminated": null,
+        "seconds": 12.828,
+        "privateDesktop": true,
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-replace",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "use_ff",
+          "0",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "developer",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_FirstTime",
+          "1",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+exec",
+          "probe.cfg"
+        ],
+        "settings": {
+          "com_gameProfile": "stvef-sp",
+          "fs_basepath": "E:\\Games\\fnTech3-tests\\efassets",
+          "fs_homepath": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-replace",
+          "cl_renderer": "glx",
+          "r_fullscreen": 0,
+          "r_mode": 3,
+          "in_mouse": 0,
+          "in_joystick": 0,
+          "in_nograb": 1,
+          "use_ff": 0,
+          "s_initsound": 0,
+          "developer": 0,
+          "logfile": 2,
+          "com_introplayed": 1,
+          "com_FirstTime": 1,
+          "com_zoneMegs": 128,
+          "com_hunkMegs": 256
+        },
+        "script": "wait 60\nload slot\nwait 90\necho INTEGRITY_SAVE_BEGIN\nsave slot\necho INTEGRITY_SAVE_END\nwait 5\necho INTEGRITY_HUB_BEGIN\nloadtransition borg2\nwait 60\nmapname\necho INTEGRITY_HUB_END\nscreenshot replace_failure\nwait 3\necho SAVE_FAILURE_PROBE_COMPLETE\nquit\n",
+        "executable": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "bytes": 8523776,
+          "sha256": "f6d8247ab17a11f9a50531222ebc65abff19a4147b93ca64befebe8201926dca"
+        },
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-replace\\failure-qconsole.log",
+          "bytes": 7042,
+          "sha256": "775f4f152e77e7c7a09bac951388cc4ec2626d94c5947056c5731c6edea65d65"
+        },
+        "before": {
+          "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-replace\\baseEF\\saves\\slot.sav": {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-replace\\baseEF\\saves\\slot.sav",
+            "bytes": 517466,
+            "sha256": "1ccf7793fb079d8d329f71123e2fca1c742321696e6bd0aa4c89491d1b4d9cab"
+          },
+          "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-replace\\baseEF\\saves\\hub\\tutorial.sav": {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-replace\\baseEF\\saves\\hub\\tutorial.sav",
+            "bytes": 517466,
+            "sha256": "1ccf7793fb079d8d329f71123e2fca1c742321696e6bd0aa4c89491d1b4d9cab"
+          }
+        },
+        "after": {
+          "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-replace\\baseEF\\saves\\slot.sav": {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-replace\\baseEF\\saves\\slot.sav",
+            "bytes": 517466,
+            "sha256": "1ccf7793fb079d8d329f71123e2fca1c742321696e6bd0aa4c89491d1b4d9cab",
+            "chunks": 2948
+          },
+          "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-replace\\baseEF\\saves\\hub\\tutorial.sav": {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-replace\\baseEF\\saves\\hub\\tutorial.sav",
+            "bytes": 517466,
+            "sha256": "1ccf7793fb079d8d329f71123e2fca1c742321696e6bd0aa4c89491d1b4d9cab",
+            "chunks": 2948
+          }
+        },
+        "saveSegment": "^5Saving game \"slot\"...\n^1Error during savegame-rename. Check \"saves/slot.sav\" for write-protect!\n",
+        "hubSegment": "^1Error during savegame-rename. Check \"saves/hub/tutorial.sav\" for write-protect!\n^1Cannot leave the level: its hub save failed\n\"mapname\" is:\"tutorial^7\"\nDisplay the name of the current map being used on a server.\n",
+        "current": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-replace\\baseEF\\saves\\current.sav",
+          "bytes": 517466,
+          "sha256": "6afe1f07a68c3238d6fa1b6edb36ac798a8b07abfa420e50477cc9de859c3e2e",
+          "chunks": 2948
+        },
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-replace\\baseEF\\screenshots\\replace_failure.png",
+            "bytes": 922218,
+            "sha256": "b60c3f165224b049cbc03501653822082dd9f78d8c85bb6027ef07bb60cb500c"
+          }
+        ]
+      },
+      {
+        "fault": "replace",
+        "phase": "recovery",
+        "exit": 0,
+        "terminated": null,
+        "seconds": 20.047,
+        "privateDesktop": true,
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-replace",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "use_ff",
+          "0",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "developer",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_FirstTime",
+          "1",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+exec",
+          "probe.cfg"
+        ],
+        "settings": {
+          "com_gameProfile": "stvef-sp",
+          "fs_basepath": "E:\\Games\\fnTech3-tests\\efassets",
+          "fs_homepath": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-replace",
+          "cl_renderer": "glx",
+          "r_fullscreen": 0,
+          "r_mode": 3,
+          "in_mouse": 0,
+          "in_joystick": 0,
+          "in_nograb": 1,
+          "use_ff": 0,
+          "s_initsound": 0,
+          "developer": 0,
+          "logfile": 2,
+          "com_introplayed": 1,
+          "com_FirstTime": 1,
+          "com_zoneMegs": 128,
+          "com_hunkMegs": 256
+        },
+        "script": "wait 60\nload slot\nwait 90\necho INTEGRITY_SAVE_BEGIN\nsave slot\necho INTEGRITY_SAVE_END\nwait 5\necho INTEGRITY_HUB_BEGIN\nloadtransition borg2\nwait 60\nmapname\necho INTEGRITY_HUB_END\nscreenshot replace_recovery\nwait 3\necho SAVE_FAILURE_PROBE_COMPLETE\nquit\n",
+        "executable": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "bytes": 8523776,
+          "sha256": "f6d8247ab17a11f9a50531222ebc65abff19a4147b93ca64befebe8201926dca"
+        },
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-replace\\recovery-qconsole.log",
+          "bytes": 10394,
+          "sha256": "3090cbb9597553a670235b889637007c080d08cf5c4c07b2b15cf6bb9e1862ef"
+        },
+        "before": {
+          "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-replace\\baseEF\\saves\\slot.sav": {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-replace\\baseEF\\saves\\slot.sav",
+            "bytes": 517466,
+            "sha256": "1ccf7793fb079d8d329f71123e2fca1c742321696e6bd0aa4c89491d1b4d9cab"
+          },
+          "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-replace\\baseEF\\saves\\hub\\tutorial.sav": {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-replace\\baseEF\\saves\\hub\\tutorial.sav",
+            "bytes": 517466,
+            "sha256": "1ccf7793fb079d8d329f71123e2fca1c742321696e6bd0aa4c89491d1b4d9cab"
+          }
+        },
+        "after": {
+          "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-replace\\baseEF\\saves\\slot.sav": {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-replace\\baseEF\\saves\\slot.sav",
+            "bytes": 517466,
+            "sha256": "1658a9d81665a8730b7548d4b011fdfaf1890e6ec0efb206c5154f09d29b3b44",
+            "chunks": 2948
+          },
+          "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-replace\\baseEF\\saves\\hub\\tutorial.sav": {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-replace\\baseEF\\saves\\hub\\tutorial.sav",
+            "bytes": 517466,
+            "sha256": "33b42e5174c25e7d72e92023501a669f8c3cae1a9464b143c86e27b9d11a2cbd",
+            "chunks": 2948
+          }
+        },
+        "saveSegment": "^5Saving game \"slot\"...\n^5Done.\n",
+        "hubSegment": "^5Restoring game \"hub/borg2\"...\n^1Failed to open savegame \"hub/borg2\"\n==== ShutdownGame ====\n... ICARUS_Shutdown\n... Reference Tags Cleared\n... Navigation Data Cleared\n------ Server Initialization ------\nServer: borg2\nRE_Shutdown( 0 )\nHunk_Clear: reset the hunk ok\n...loaded in 0 milliseconds\n----------------------\n27197 files in 5 pk3 files\nVM_LoadDll: loaded native module cache 'E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-replace\\.tmp\\native\\6433c8ff1f75219d227f79b607d0b8ff\\efgamex86.dll'\nVM_CreateTable 'efgamex86.dll' ok\n------- Game Initialization -------\ngamename: baseEF\ngamedate: Apr 16 2001\nParsing ext_data/boltOns.cfg\nParsing ext_data/NPCs.cfg\nParsing addon.npc\n------ ICARUS Initialization ------\nICARUS version : 1.33\n-----------------------------------\n0 squadPaths generated\n0 teams with 0 entities\n4 items registered\n-----------------------------------\n-----------------------------------\nRE_Shutdown( 0 )\n----- R_Init -----\nGLx renderer bootstrap: product tier GL46, hint high-end, executor GL46/high-end, GL 4.6, material yes, dlight yes, post-shader yes, stream persistent-map, timer query yes, debug output no\nGLx pass schedule: valid 10/541629f7 frame-setup>sky-opaque-world>opaque-entities>dynamic-lights>dynamic-scene>transparent-layers>first-person-weapon>hud-2d>postprocess>output-export\nGAMMA: hardware w/ 0 overbright bits\ntexturemode: GL_LINEAR_MIPMAP_LINEAR\ntexture bits: 32\npicmip: 0, filter: 1\nInitializing Shaders\n^3QL fonts: unable to read fonts/handelgothic.ttf\n^3QL fonts: unable to read fonts/notosans-regular.ttf\n^3QL fonts: unable to read fonts/droidsansmono.ttf\n^3QL fonts: unable to read fonts/droidsansfallbackfull.ttf\nQL fonts: using Windows fallback C:\\WINDOWS\\Fonts\\segoeui.ttf\nQL fonts: retail FontStash/STB host text enabled\n----- finished R_Init -----\nVM_LoadDll: loaded native module cache 'E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-replace\\.tmp\\native\\6433c8ff1f75219d227f79b607d0b8ff\\efuix86.dll'\nVM_CreateTable 'efuix86.dll' ok\n^3WARNING: Unable to load ambient sound \"sound/ambience/borg/borgset1.wav\"\n^3WARNING: Unable to load ambient sound \"sound/ambience/borg/ambsound1.wav\"\n^3WARNING: Unable to load ambient sound \"sound/ambience/borg/ambsound2.wav\"\n^3WARNING: Unable to load ambient sound \"sound/ambience/borg/ambsound3.wav\"\n^3WARNING: Unable to load ambient sound \"sound/ambience/borg/ambsound4.wav\"\n^3WARNING: Unable to load ambient sound \"sound/ambience/borg/ambsound5.wav\"\n^3WARNING: Unable to load ambient sound \"sound/ambience/borg/ambsound6.wav\"\n^3WARNING: Unable to load ambient sound \"sound/ambience/borg/ambsound7.wav\"\n^3WARNING: Unable to load ambient sound \"sound/ambience/borg/borgset2.wav\"\n^3WARNING: Unable to load ambient sound \"sound/ambience/borg/borgzappers.wav\"\n^3WARNING: Unable to load ambient sound \"sound/ambience/borg/bluerings.wav\"\n^3WARNING: Too many subwaves on set \"messhall\"\n^3WARNING: Too many subwaves on set \"messhall\"\n^3WARNING: Too many subwaves on set \"messhall\"\n^3WARNING: Too many subwaves on set \"messhall\"\n^3WARNING: Too many subwaves on set \"messhall\"\n^3WARNING: Unable to load ambient sound \"sound/ambience/steamloop1.wav\"\n^3WARNING: Unable to load ambient sound \"sound/ambience/borg/yellowringsfast.wav\"\n^3WARNING: Unable to load ambient sound \"sound/ambience/borg/borgregenhum.wav\"\nAS_ParseFile: Parsed 103 ambient set(s)\nstitched 28 LoD cracks\n...loaded 12836 faces, 240 meshes, 11 trisurfs, 100 flares\nCom_TouchMemory: 1 msec\nCL_InitCGame:  6.24 seconds\nCL_FirstSnapshot: maps/borg2.bsp, cgame 6238 ms, snapshot wait 61 ms\n\"mapname\" is:\"borg2^7\"\nDisplay the name of the current map being used on a server.\n",
+        "current": null,
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-save-integrity-failure-replace\\baseEF\\screenshots\\replace_recovery.png",
+            "bytes": 922218,
+            "sha256": "5240f8478bb676f4980ea463b10831261ce1b4277433dd2ed600a7c5baf7a1c1"
+          }
+        ]
+      }
+    ],
+    "historicalFileChecks": "Before/after/current hashes were captured and parsed at each phase. Recovery intentionally replaces the destinations and temporary current file; historical hashes are observations, not claims those paths still hold the old bytes."
+  },
+  "manualPreflight": {
+    "rawManifest": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\stvef-save-integrity-manual-preflight.json",
+      "bytes": 6081,
+      "sha256": "52006178cd92cd92e5b7f328647d656cb8f4cb3fd1e5571ecb6488904c67f6fe"
+    },
+    "runs": [
+      {
+        "case": "save-integrity-manual-preflight-stvef-sp",
+        "profile": "stvef-sp",
+        "exit": 0,
+        "terminated": null,
+        "seconds": 14.422,
+        "privateDesktop": true,
+        "command": [
+          "E:\\Games\\fnTech3-tests\\stvef-manual\\engine\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\save-integrity-manual-preflight-stvef-sp",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "use_ff",
+          "0",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "developer",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_FirstTime",
+          "1",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+exec",
+          "probe.cfg"
+        ],
+        "settings": {
+          "com_gameProfile": "stvef-sp",
+          "fs_basepath": "E:\\Games\\fnTech3-tests\\efassets",
+          "fs_homepath": "E:\\Games\\fnTech3-tests\\save-integrity-manual-preflight-stvef-sp",
+          "cl_renderer": "glx",
+          "r_fullscreen": 0,
+          "r_mode": 3,
+          "in_mouse": 0,
+          "in_joystick": 0,
+          "in_nograb": 1,
+          "use_ff": 0,
+          "s_initsound": 0,
+          "developer": 0,
+          "logfile": 2,
+          "com_introplayed": 1,
+          "com_FirstTime": 1,
+          "com_zoneMegs": 128,
+          "com_hunkMegs": 256
+        },
+        "script": "wait 60\nset cg_thirdPerson 1\nload mdr_scene\nwait 180\nrenderer_switch\nscreenshot preflight\nwait 3\necho SAVE_INTEGRITY_PREFLIGHT_COMPLETE\nquit\n",
+        "executable": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-manual\\engine\\fntech3.exe",
+          "bytes": 8523776,
+          "sha256": "f6d8247ab17a11f9a50531222ebc65abff19a4147b93ca64befebe8201926dca"
+        },
+        "rendererBinary": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-manual\\engine\\fnql_glx_x86.dll",
+          "bytes": 2443264,
+          "sha256": "0690b3778c81f97dab20641a6b637d7fad8fe5f741a002980f8568f63fdb9b58"
+        },
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\save-integrity-manual-preflight-stvef-sp\\baseEF\\qconsole.log",
+          "bytes": 6740,
+          "sha256": "647d41b2bcf03105e5c369ae5a7c39510c6984d797bab73efa7f00fde47fed46"
+        },
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\save-integrity-manual-preflight-stvef-sp\\baseEF\\screenshots\\preflight.png",
+            "bytes": 922218,
+            "sha256": "af96ada285fc6ee53719e748aebb22c862e7a84579b20606012e09864b7fb588"
+          }
+        ],
+        "completed": true,
+        "verifiedRenderer": true
+      },
+      {
+        "case": "save-integrity-manual-preflight-stvef-mp",
+        "profile": "stvef-mp",
+        "exit": 0,
+        "terminated": null,
+        "seconds": 20.437,
+        "privateDesktop": true,
+        "command": [
+          "E:\\Games\\fnTech3-tests\\stvef-manual\\engine\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-mp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\save-integrity-manual-preflight-stvef-mp",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "use_ff",
+          "0",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "developer",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_FirstTime",
+          "1",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+exec",
+          "probe.cfg"
+        ],
+        "settings": {
+          "com_gameProfile": "stvef-mp",
+          "fs_basepath": "E:\\Games\\fnTech3-tests\\efassets",
+          "fs_homepath": "E:\\Games\\fnTech3-tests\\save-integrity-manual-preflight-stvef-mp",
+          "cl_renderer": "glx",
+          "r_fullscreen": 0,
+          "r_mode": 3,
+          "in_mouse": 0,
+          "in_joystick": 0,
+          "in_nograb": 1,
+          "use_ff": 0,
+          "s_initsound": 0,
+          "developer": 0,
+          "logfile": 2,
+          "com_introplayed": 1,
+          "com_FirstTime": 1,
+          "com_zoneMegs": 128,
+          "com_hunkMegs": 256
+        },
+        "script": "wait 60\nset sv_pure 0\nset g_gametype 0\nset sv_maxclients 4\nmap hm_borg1\nwait 120\naddbot Munro 2\nwait 90\nmap_restart 0\nwait 180\nrenderer_switch\nscreenshot preflight\nwait 3\necho SAVE_INTEGRITY_PREFLIGHT_COMPLETE\nquit\n",
+        "executable": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-manual\\engine\\fntech3.exe",
+          "bytes": 8523776,
+          "sha256": "f6d8247ab17a11f9a50531222ebc65abff19a4147b93ca64befebe8201926dca"
+        },
+        "rendererBinary": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-manual\\engine\\fnql_glx_x86.dll",
+          "bytes": 2443264,
+          "sha256": "0690b3778c81f97dab20641a6b637d7fad8fe5f741a002980f8568f63fdb9b58"
+        },
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\save-integrity-manual-preflight-stvef-mp\\baseEF\\qconsole.log",
+          "bytes": 8305,
+          "sha256": "6fbc230b7c6608ab619003948f2b8f8b8da5dee0299e29375376a69b84895396"
+        },
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\save-integrity-manual-preflight-stvef-mp\\baseEF\\screenshots\\preflight.png",
+            "bytes": 922218,
+            "sha256": "12f8a8cc0850c0599ece38093ff1ac8902c64ff6da3e389d506043988bcda09d"
+          }
+        ],
+        "completed": true,
+        "verifiedRenderer": true
+      }
+    ],
+    "holomatchBotRetainedAcrossRestart": true
+  },
+  "reviewedCaptures": {
+    "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\sp-save-integrity-review.png",
+    "bytes": 606621,
+    "sha256": "bbfb26446b304a45c21597d4623ebbd96d736abd3985f1217e9477880e742ed2"
+  },
+  "manualStage": {
+    "files": [
+      {
+        "name": "fntech3.exe",
+        "bytes": 8523776,
+        "sha256": "f6d8247ab17a11f9a50531222ebc65abff19a4147b93ca64befebe8201926dca"
+      },
+      {
+        "name": "fnql_glx_x86.dll",
+        "bytes": 2443264,
+        "sha256": "0690b3778c81f97dab20641a6b637d7fad8fe5f741a002980f8568f63fdb9b58"
+      },
+      {
+        "name": "fnql_vk_x86.dll",
+        "bytes": 2612736,
+        "sha256": "372cecd14061a3480a6e31327e95c6925916666517dd8d3f4ef2ea124c61492c"
+      },
+      {
+        "name": "fnql_rtx_x86.dll",
+        "bytes": 2903040,
+        "sha256": "a2428efb40533235465500a596185c9ebf00f2dc6ae85d6f78b98de21ccd702c"
+      },
+      {
+        "name": "fntech3-pkg.fnz",
+        "bytes": 2972513,
+        "sha256": "758ebd160bb8d8044ce513415f5972f5b48270beb1c9b77eb13ac456cf1d0cf7"
+      },
+      {
+        "name": "fnql-web.pak",
+        "bytes": 59253,
+        "sha256": "6c210165880fff668900fd3e4e3c90137623043e1b5315f24b693f367f756382"
+      },
+      {
+        "name": "OpenAL32.dll",
+        "bytes": 1588736,
+        "sha256": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+      },
+      {
+        "name": "COPYING.OpenAL.txt",
+        "bytes": 23330,
+        "sha256": "d808ce217e5b611854da622b57ec29fe545584c48bc5352fae72a4b6e5074a15"
+      }
+    ],
+    "acceptance": "Physical input, menu save/load and rebinding, listening, force-feedback hardware and campaign-wide acceptance remain pending. Sampled startup command and weapon timing now matches retail; snapshot packet identifiers differ and broader image parity remains open.",
+    "sourceCommit": "af3b719c14446c16c58088b81869e71bb376d156",
+    "saveIntegritySourceFiles": [
+      {
+        "path": "code/qcommon/files.c",
+        "sha256": "92cdbbd12be17042aa4071af5266ea2bbc310f1d9346a7d21bce2bccadd52e4b"
+      },
+      {
+        "path": "code/qcommon/qcommon.h",
+        "sha256": "47cd8e1f69bbbf4c285e2ea0c0ad5e14d572e9c84003d066b428298ccf81ee7f"
+      },
+      {
+        "path": "code/server/server_stvef_sp_save.hpp",
+        "sha256": "692f5e960d53fa488d2eb9a6ee660ef706edc7992cabe1819c8a4d1c250e67bc"
+      }
+    ],
+    "saveIntegrityUpdate": "Engine artifacts refreshed after checked SP save writes/close, preserved saves on failure, honest save messages and hub failure handling. Full Windows suite, Linux builds/sanitizers and real file obstruction/recovery/save round trips verified.",
+    "saveIntegrityRetainedFiles": {
+      "E:\\Games\\fnTech3-tests\\stvef-manual\\Launch-Holomatch.cmd": {
+        "name": "Launch-Holomatch.cmd",
+        "bytes": 457,
+        "sha256": "2ccb5a4a2bd4fb2940dd355d0d8d916c3998cae98df0633ab3f7137648edde50"
+      },
+      "E:\\Games\\fnTech3-tests\\stvef-manual\\Launch-SP.cmd": {
+        "name": "Launch-SP.cmd",
+        "bytes": 471,
+        "sha256": "dc34bddd53c6dd77cef7a3455c967a25e46a21fd7851f3cc77ab73d1f0c33864"
+      },
+      "E:\\Games\\fnTech3-tests\\stvef-manual\\README.md": {
+        "name": "README.md",
+        "bytes": 3781,
+        "sha256": "c50e2358775d62161f710199341dc1e2d40f4066f92ec89708fd547bb1aec58f"
+      },
+      "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-mp\\baseEF\\hmconfig.cfg": {
+        "name": "hmconfig.cfg",
+        "bytes": 628,
+        "sha256": "03334c93d841eba073757e5b24b42607726eb429b0d59cdd781ebbaa459e93fb"
+      },
+      "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-mp\\baseEF\\manual-start.cfg": {
+        "name": "manual-start.cfg",
+        "bytes": 103,
+        "sha256": "f42f1f3796522b934899a83e3a23598fe5afd7c24e334992f7daaba207857a14"
+      },
+      "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-sp\\baseEF\\efconfig.cfg": {
+        "name": "efconfig.cfg",
+        "bytes": 628,
+        "sha256": "03334c93d841eba073757e5b24b42607726eb429b0d59cdd781ebbaa459e93fb"
+      },
+      "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-sp\\baseEF\\manual-start.cfg": {
+        "name": "manual-start.cfg",
+        "bytes": 25,
+        "sha256": "db8fc410afb5071121007eed57832e2e4730a7da5c57618b2138e298bca2c75b"
+      },
+      "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-sp\\baseEF\\saves\\mdr_scene.sav": {
+        "name": "mdr_scene.sav",
+        "bytes": 517020,
+        "sha256": "d51894ac5b58ff7fbd213f17012bc8512cfbff07935ad9f774bfa5c35d9ad59f"
+      }
+    },
+    "saveIntegrityReadmeUpdate": {
+      "before": {
+        "name": "README.md",
+        "bytes": 3781,
+        "sha256": "c50e2358775d62161f710199341dc1e2d40f4066f92ec89708fd547bb1aec58f"
+      },
+      "after": {
+        "name": "README.md",
+        "bytes": 3793,
+        "sha256": "46fd9835f48e7b40df89f9bced6255e4a57b38821058c67e250e69dc2f72f925"
+      },
+      "scope": "Current engine provenance paragraph only; user settings, saves and launchers unchanged"
+    }
+  },
+  "previousManualStage": {
+    "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\stvef-save-integrity-manual-before.json",
+    "bytes": 31437,
+    "sha256": "b568b981605936bda817d82fcf3ed752f03cb88a7c6d3f9013277f2ab044e6ff"
+  },
+  "safety": {
+    "testRoot": "E:/Games/fnTech3-tests",
+    "homes": "Independent copies and writable homes; real installation unchanged",
+    "display": "Windowed, private inactive Windows desktops",
+    "input": "Mouse/joystick and feedback disabled; no input control/capture/injection",
+    "sound": "Disabled",
+    "capture": "Engine screenshot command only",
+    "fileFaults": "Owned empty directory blocks current.sav creation; owned destination handles deny delete sharing to block replacement. Each obstruction removed before recovery. No volume exhaustion or installation changes.",
+    "retention": "Useful logs/captures/scripts in worktree .tmp/stvef-gaps and authorized E:/Games/fnTech3-tests homes"
+  },
+  "limits": [
+    "Controlled write and close faults, not power-loss durability or fsync guarantees.",
+    "Successful chunk format/order unchanged; sampled real saves and hub transitions are not campaign traversal.",
+    "Physical movement/look/fire, menu rebinding/save/load, listening and feedback hardware remain pending.",
+    "Nine runtime sessions and eleven engine captures; no universal pixel-parity claim.",
+    "Existing bad-CRC st_21.bik, missing asset paths/messhall warnings, Windows x86 native RT limitation and wider Linux-suite failures remain outside this slice."
+  ],
+  "localTools": [
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\private_process.py",
+      "bytes": 4310,
+      "sha256": "d3ad5f43a28b4d251af6fce331dd88d72c9e575979ccdc8405534ad8b8ba80ae"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\probe_sp_save_integrity.py",
+      "bytes": 6057,
+      "sha256": "d4db5d2a4e30bf237799d945cf41035ecbdb86e72bbb8c74b19b51bf282f2e31"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\probe_sp_save_failures.py",
+      "bytes": 5958,
+      "sha256": "0cbe4ee8ce97cb7d66e1c61ad245b53f92b90de255b9e1eb3ad595aaa1b8d872"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\refresh_stvef_save_integrity_manual.py",
+      "bytes": 3249,
+      "sha256": "182064a07dab84fcd6295b33a047a49c860fc3f967b6f3018cb437b359042b27"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\probe_save_integrity_manual_stage.py",
+      "bytes": 2879,
+      "sha256": "cbeea95bd8075bdf2be78faef1437454b1b903b1bb48ccada39a05b8de072c4f"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\record_save_integrity.py",
+      "bytes": 11655,
+      "sha256": "03110c35a8e5dc1a37d76c193e5d10e70d679efd657da9a0f8227e85c3b4aab3"
+    }
+  ],
+  "packagingCheck": {
+    "command": "python -m unittest release_packaging_tests.ReleasePackagingTests.test_packaged_evidence_links_and_missing_target -v",
+    "passed": 1,
+    "log": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\save-integrity-packaging-test.log",
+      "bytes": 254,
+      "sha256": "81328ad105c19b3230caa786bdfaafd2ae67761e9aeac3d78e91f32a73721b9a"
+    }
+  }
+}

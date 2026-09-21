@@ -17,12 +17,18 @@ framing in `code/compat/stvef_sp_savegame.hpp`; the picture is
 described in the [game host record](2026-09-19-stvef-sp-host.md), and the
 menus that list saves in the [menu record](2026-09-19-stvef-sp-menus.md).
 
+The [save-integrity follow-up](2026-09-21-stvef-save-integrity.md) corrects
+publication after an ignored chunk-write error and checks final close/flush
+errors. Failed saves preserve the previous file, suppress completion messages
+and prevent an attempted hub write failure from advancing the level. Real
+filesystem obstruction/recovery and a fresh retail save round trip are recorded.
+
 ## The file
 
 | Contract | Retail `stvoy.exe` 1.20 | fnTech3 |
 | --- | --- | --- |
 | Where a save lives | `saves/<name>.sav`, the name built into one of eight rotating buffers (`0x4267a0`) | The same path in the writable game directory; a save is looked up through the search paths, so an installation's own saves are read where they are |
-| A chunk | Its four-letter id, its data's length and the data's block checksum, then the data and the magic `0x1234ABCD`, each word little-endian (`SG_Append` `0x427a40`) | The same, written as three words, the data and the magic; a short write prints `^1Failed to write %s chunk` |
+| A chunk | Its four-letter id, its data's length and the data's block checksum, then the data and the magic `0x1234ABCD`, each word little-endian (`SG_Append` `0x427a40`) | The same, written as three words, the data and the magic; a short write prints `^1Failed to write %s chunk` and now prevents the entire transaction from replacing the previous save |
 | Reading a chunk | By id, and by length unless the caller passes zero for any length. A chunk that is not the one asked for is `Loaded chunk ID (%s) does not match requested chunk ID (%s)`; the checksum, the magic and the byte count are each an error of their own (`SG_Read` `0x427b60`) | The same checks and messages in the same order. A save is held whole in memory rather than read from an open file, because the map spawns in the middle of a read and clears the hunk. A chunk whose length runs past the end of the save is refused before anything is read |
 | An optional read | Reads the id, and where it is another chunk's seeks back and answers nothing (`0x427e50`) | The same, without a seek: the read leaves the place it started at. The end of a save answers as an id of zero, so an optional read there is quiet |
 | Memory for a chunk | Without an address the engine allocates the chunk's length, which the game frees with the engine's own `Free` (`0x427ce8`) | The same allocator, with one byte more, always zero, so that a chunk of text from a damaged save still ends |
