@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_init.c -- functions that are not called every frame
 
 #include "tr_local.h"
+#include "../renderercommon/tr_stvef_cvars.h"
 #include "../renderercommon/tr_fnq3_bloom_config.h"
 #include "../renderercommon/tr_ql_lighting_config.h"
 #include "../renderercommon/tr_levelshot.h"
@@ -3015,7 +3016,7 @@ static void R_Register( void )
 	//
 	r_allowExtensions = ri.Cvar_Get( "r_allowExtensions", "1", CVAR_ARCHIVE_ND | CVAR_LATCH | CVAR_DEVELOPER );
 	ri.Cvar_SetDescription( r_allowExtensions, "Use all of the OpenGL extensions your card is capable of." );
-	r_ext_compressed_textures = ri.Cvar_Get( "r_ext_compressed_textures", "0", CVAR_ARCHIVE_ND | CVAR_LATCH | CVAR_DEVELOPER );
+	r_ext_compressed_textures = R_RegisterTextureCompressionCvar();
 	ri.Cvar_SetDescription( r_ext_compressed_textures, "Enables texture compression." );
 	r_ext_multitexture = ri.Cvar_Get( "r_ext_multitexture", "1", CVAR_ARCHIVE_ND | CVAR_LATCH | CVAR_DEVELOPER );
 	ri.Cvar_SetDescription( r_ext_multitexture, "Enables hardware multi-texturing (0: off, 1: on)." );

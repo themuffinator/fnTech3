@@ -21,7 +21,8 @@ def capture_script(engine, samples=(20, 80, 160)):
             or any(a >= b for a, b in zip(samples, samples[1:]))):
         raise ValueError('samples must increase strictly within 2..1000000')
     retail = engine == 'retail'
-    result = ['r_textureMode', 'r_simpleMipMaps', 'r_picmip', 'r_gamma', 'r_overBrightBits']
+    result = ['r_textureMode', 'r_simpleMipMaps', 'r_picmip', 'r_gamma', 'r_overBrightBits',
+              'r_ext_compress_textures']
     previous = 0
     for sample in samples:
         count = (sample - previous) * (2 if retail else 1)
