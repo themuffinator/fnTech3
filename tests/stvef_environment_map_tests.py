@@ -106,7 +106,8 @@ class STVEFEnvironmentMapTests(unittest.TestCase):
             executable = folder / ('probe.exe' if os.name == 'nt' else 'probe')
             source.write_text(PROBE, encoding='utf-8')
             build = subprocess.run([compiler, *compiler_target_args(compiler), '-std=c99', '-I', str(ROOT),
-                str(source), '-o', str(executable)], cwd=ROOT, capture_output=True, text=True, timeout=60)
+                str(source), '-o', str(executable), *([] if os.name == 'nt' else ['-lm'])],
+                cwd=ROOT, capture_output=True, text=True, timeout=60)
             self.assertEqual(build.returncode, 0, build.stdout + build.stderr)
             options = {'creationflags': subprocess.CREATE_NO_WINDOW} if os.name == 'nt' else {}
             run = subprocess.run([str(executable)], cwd=ROOT, capture_output=True, text=True, timeout=15, **options)

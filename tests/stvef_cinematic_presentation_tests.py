@@ -113,7 +113,9 @@ int main(){
    assert(calls==(time<1000?"RCPN":"R")&&re.dirty==(time==0)&&!m.dirty&&re.x==3&&re.y==5&&re.w==640);
    assert(re.cols==(quality>=2?256:640)&&re.rows==(quality>=2?256:480));
    assert(re.h==(quality>=2?640:480));
-   if(time<1000)assert(re.alpha==1-time*.001f);
+   // These sampled endpoints/midpoints are exact binary fractions. Do not
+   // compare the stored draw colour with an unrounded x87 expression.
+   if(time<1000)assert(re.alpha==(time==0?1.0f:0.5f));
   }
   m.binkPresentation.End(2000);m.binkPresentation.Update(2500);calls.clear();CIN_DrawBink(0,3,5,640,480);
   assert(calls=="RCPN"&&re.alpha==.5f&&!re.dirty);

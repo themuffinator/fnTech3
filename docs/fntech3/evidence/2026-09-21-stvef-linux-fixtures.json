@@ -1,0 +1,156 @@
+{
+  "baseCommit": "ce8a715c74494da3b353849bed7eef007b762b68",
+  "recordDate": "2026-09-21",
+  "scope": "Standalone fixture portability only; no production engine changes.",
+  "sources": [
+    {
+      "path": "tests\\compiler_support.py",
+      "bytes": 720,
+      "sha256": "642b652aa0982002b0a3f0b0d653a7a5a745e99a4767c78a48e565248e8f78ec"
+    },
+    {
+      "path": "tests\\stvef_environment_map_tests.py",
+      "bytes": 6314,
+      "sha256": "a01a2a6447a8f1144b449d4dc079d24a3967b82dad659db156554a0cf593eb88"
+    },
+    {
+      "path": "tests\\stvef_cinematic_presentation_tests.py",
+      "bytes": 9088,
+      "sha256": "55226eb94f202a2b26b9c2314a9d6a7a230a392245038310447408098d6b63b7"
+    },
+    {
+      "path": "tests\\load_path_tests.py",
+      "bytes": 7444,
+      "sha256": "edbafb637cd03f85a831de650e62657629e91d6210585dc4f6d782a2e2669c54"
+    }
+  ],
+  "originalRun": "evidence/2026-09-21-stvef-linux-server.json",
+  "originalArchitectureFailureReportsResolved": 115,
+  "linuxDirect": {
+    "tests": 375,
+    "skips": 1,
+    "seconds": 357.428,
+    "initialFailureReports": 10,
+    "log": {
+      "path": ".tmp\\stvef-gaps\\linux-fixture-targets.log",
+      "bytes": 63432,
+      "sha256": "6f589992d897ff4724ada18f21df7e78adf3fa49a27057cebe9097899927d08f"
+    }
+  },
+  "linuxIndirect": {
+    "tests": 61,
+    "seconds": 187.683,
+    "failures": 0,
+    "modules": [
+      "rtcw_aas_load_tests",
+      "rtcw_aas_query_tests",
+      "rtcw_aas_trace_tests",
+      "rtcw_actions_tests",
+      "rtcw_ai_state_tests",
+      "rtcw_bot_client_tests",
+      "rtcw_bot_entity_tests",
+      "rtcw_bsp_query_tests",
+      "rtcw_cast_lifecycle_tests",
+      "rtcw_cast_messages_tests",
+      "rtcw_cast_query_tests",
+      "rtcw_direction_tests",
+      "rtcw_entity_collision_tests",
+      "rtcw_goal_route_tests",
+      "rtcw_item_update_tests",
+      "rtcw_jump_runstart_tests",
+      "rtcw_move_goal_tests",
+      "rtcw_movement_area_tests",
+      "rtcw_movement_view_tests",
+      "rtcw_navigation_tests",
+      "rtcw_prediction_tests",
+      "rtcw_route_query_tests",
+      "rtcw_routecache_load_tests",
+      "rtcw_routing_tests",
+      "rtcw_tactical_tests",
+      "rtcw_tag_handoff_tests",
+      "rtcw_travel_tests",
+      "rtcw_visibility_tests"
+    ],
+    "log": {
+      "path": ".tmp\\stvef-gaps\\linux-additional-targets.log",
+      "bytes": 11644,
+      "sha256": "579f1300b790dc64f8bf0da8b1519c9433029ada56de5405538430a4e08610a5"
+    }
+  },
+  "finalEliteForceLinux": {
+    "tests": 93,
+    "log": {
+      "path": ".tmp\\stvef-gaps\\linux-stvef-fixtures-final.log",
+      "bytes": 198,
+      "sha256": "f1467dc27569cd2092175413f6e76c4a2f68239a4bfeebf5b3ead85ba1f064a3"
+    },
+    "seconds": 72.42
+  },
+  "windowsEliteForce": {
+    "tests": 93,
+    "log": {
+      "path": ".tmp\\stvef-gaps\\windows-stvef-fixture-followup.log",
+      "bytes": 198,
+      "sha256": "5c86e76f40cf9e75bca1a23967e6c683815283c6c35d75849ce397356fb15316"
+    },
+    "seconds": 35.011
+  },
+  "finalLoadPathLinux": {
+    "tests": 1,
+    "log": {
+      "path": ".tmp\\stvef-gaps\\linux-load-path-final.log",
+      "bytes": 103,
+      "sha256": "44dd8d819ab2acd45980689ee2535d4d75225e1ed1f1e6c11dc9a994cb901e60"
+    },
+    "seconds": 1.035
+  },
+  "finalWindowsFocused": {
+    "tests": 10,
+    "log": {
+      "path": ".tmp\\stvef-gaps\\windows-fixtures-final.log",
+      "bytes": 115,
+      "sha256": "46a2bf0cc2fb26a95a9669e98b07034e86f233b8391c3e24acb385df36b0617b"
+    },
+    "seconds": 87.783
+  },
+  "remaining": [
+    {
+      "test": "wolfet_lod_tests.WolfETLodTests.test_detail_collapse_and_tags",
+      "output": "Traceback (most recent call last):\n  File \"/mnt/c/Users/djdac/.codex/worktrees/stvef-support/fnTech3/tests/wolfet_lod_tests.py\", line 183, in test_detail_collapse_and_tags\n    self.assertEqual(run.returncode, 0, run.stdout + run.stderr)\nAssertionError: -6 != 0 : lod: /mnt/c/Users/djdac/.codex/worktrees/stvef-support/fnTech3/.tmp/wolfet-lod/tmp4ltw5uwo/lod.cpp:100: int main(): Assertion `FnWolfET_LodVertexCount(&surface, 0.1f, 1) == 35' failed.\n\n"
+    },
+    {
+      "test": "wolfet_menu_precompiler_tests.MenuPrecompilerTests.test_the_two_readings_differ_only_where_et_needs_them_to",
+      "output": "Traceback (most recent call last):\n  File \"/mnt/c/Users/djdac/.codex/worktrees/stvef-support/fnTech3/tests/wolfet_menu_precompiler_tests.py\", line 106, in test_the_two_readings_differ_only_where_et_needs_them_to\n    self.assertNotEqual(streams['nested.menu', '0'], streams['nested.menu', '1'])\nAssertionError: [] == []\n"
+    },
+    {
+      "test": "wolfet_menu_precompiler_tests.MenuPrecompilerTests.test_token_streams (case='nested')",
+      "output": "Traceback (most recent call last):\n  File \"/mnt/c/Users/djdac/.codex/worktrees/stvef-support/fnTech3/tests/wolfet_menu_precompiler_tests.py\", line 90, in test_token_streams\n    self.assertEqual(tokens, expected, run.stderr)\nAssertionError: Lists differ: [] != ['[', '100', '-', '6', 'go', 'open', '(', 'x', ')', '(', 'y', ')', ']', 'end']\n\nSecond list contains 14 additional elements.\nFirst extra element 0:\n'['\n\n- []\n+ ['[', '100', '-', '6', 'go', 'open', '(', 'x', ')', '(', 'y', ')', ']', 'end'] : \n"
+    },
+    {
+      "test": "wolfet_menu_precompiler_tests.MenuPrecompilerTests.test_token_streams (case='quake')",
+      "output": "Traceback (most recent call last):\n  File \"/mnt/c/Users/djdac/.codex/worktrees/stvef-support/fnTech3/tests/wolfet_menu_precompiler_tests.py\", line 90, in test_token_streams\n    self.assertEqual(tokens, expected, run.stderr)\nAssertionError: Lists differ: [] != ['[', '1', '2', ']', 'end']\n\nSecond list contains 5 additional elements.\nFirst extra element 0:\n'['\n\n- []\n+ ['[', '1', '2', ']', 'end'] : \n"
+    },
+    {
+      "test": "wolfet_menu_precompiler_tests.MenuPrecompilerTests.test_token_streams (case='skipped-else')",
+      "output": "Traceback (most recent call last):\n  File \"/mnt/c/Users/djdac/.codex/worktrees/stvef-support/fnTech3/tests/wolfet_menu_precompiler_tests.py\", line 90, in test_token_streams\n    self.assertEqual(tokens, expected, run.stderr)\nAssertionError: Lists differ: [] != ['[', '2', 'two', ']', 'end']\n\nSecond list contains 5 additional elements.\nFirst extra element 0:\n'['\n\n- []\n+ ['[', '2', 'two', ']', 'end'] : \n"
+    },
+    {
+      "test": "wolfet_menu_precompiler_tests.MenuPrecompilerTests.test_token_streams (case='skipped-if')",
+      "output": "Traceback (most recent call last):\n  File \"/mnt/c/Users/djdac/.codex/worktrees/stvef-support/fnTech3/tests/wolfet_menu_precompiler_tests.py\", line 90, in test_token_streams\n    self.assertEqual(tokens, expected, run.stderr)\nAssertionError: Lists differ: [] != ['[', '1', 'one', ']', 'end']\n\nSecond list contains 5 additional elements.\nFirst extra element 0:\n'['\n\n- []\n+ ['[', '1', 'one', ']', 'end'] : \n"
+    },
+    {
+      "test": "wolfet_menu_precompiler_tests.MenuPrecompilerTests.test_token_streams (case='skipped-quake')",
+      "output": "Traceback (most recent call last):\n  File \"/mnt/c/Users/djdac/.codex/worktrees/stvef-support/fnTech3/tests/wolfet_menu_precompiler_tests.py\", line 90, in test_token_streams\n    self.assertEqual(tokens, expected, run.stderr)\nAssertionError: Lists differ: [] != ['end']\n\nSecond list contains 1 additional elements.\nFirst extra element 0:\n'end'\n\n- []\n+ ['end'] : \n"
+    },
+    {
+      "test": "wolfet_menu_precompiler_tests.MenuPrecompilerTests.test_token_streams (case='join')",
+      "output": "Traceback (most recent call last):\n  File \"/mnt/c/Users/djdac/.codex/worktrees/stvef-support/fnTech3/tests/wolfet_menu_precompiler_tests.py\", line 90, in test_token_streams\n    self.assertEqual(tokens, expected, run.stderr)\nAssertionError: Lists differ: [] != ['abcd', 'end']\n\nSecond list contains 2 additional elements.\nFirst extra element 0:\n'abcd'\n\n- []\n+ ['abcd', 'end'] : \n"
+    }
+  ],
+  "otherFullSuiteLimits": [
+    "The ET packet reference probe still requests an unsupported Linux host target.",
+    "DrvFS does not preserve the POSIX file modes expected by a macOS packaging test.",
+    "The packaging subtest affected by the mid-run document addition passes in the final Windows focused check."
+  ],
+  "claim": "All 115 original architecture failure reports are covered by passing reruns. All Elite Force Python fixtures pass on both hosts. The full Linux suite is not claimed passing; unrelated ET and filesystem-dependent checks remain open."
+}

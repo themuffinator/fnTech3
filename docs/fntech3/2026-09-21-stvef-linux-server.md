@@ -58,6 +58,9 @@ The manifest preserves the complete failed-run identity and counts; no
 complete Linux suite pass is claimed. The aggregate finishes in about 51
 minutes with a fourfold timeout allowance after an earlier 900-second timeout.
 Read-only WSL Git queries translate the Windows worktree metadata path.
+The [fixture follow-up](2026-09-21-stvef-linux-fixtures.md) resolves all 115
+architecture reports and passes all Elite Force Python fixtures on both
+hosts; unrelated Linux checks remain open.
 
 The [manifest](evidence/2026-09-21-stvef-linux-server.json) records the source
 states, binary and installed-pak hashes, configuration, commands, selected
