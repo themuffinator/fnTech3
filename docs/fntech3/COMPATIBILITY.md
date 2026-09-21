@@ -1204,6 +1204,14 @@ images are not synchronized retail renderer parity evidence. Full-resolution
 comparisons retract an initial contact-sheet impression of a Vulkan/RTX
 corridor defect: those corridor images agree with GLx within one channel value.
 
+The [rectangular mipmap correction](2026-09-21-stvef-image-mips.md) fixes
+incomplete Vulkan/RTX texture chains and one-dimensional weighted filtering
+in all renderers. Exact compiled upload checks cover all seven profiles on
+Windows x86 and Linux i686; a visible, independently created texture fixture
+reduces the measured Vulkan/RTX difference from GLx from 11.824 to 0.040
+channel values. This shared renderer defect is separate from the retracted
+corridor assessment and does not close broader retail image parity.
+
 The [renderer selection audit](2026-09-21-stvef-renderer-verification.md)
 corrects the September 20 live probes: `r_renderer` did not select a
 backend, so those runs were GLx only. Source and compiled fixtures remain

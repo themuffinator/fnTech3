@@ -152,6 +152,13 @@ commands, settings, source/build identities, save records and log/image
 hashes; proprietary inputs, executable bytes and game images are not committed.
 Useful local evidence is retained under `.tmp/stvef-gaps`.
 
+A later [mipmap validation run](2026-09-21-stvef-image-mips.md) reused six
+normal fnTech3 scene homes. Six logs and eight of their eighteen screenshots
+changed; ten screenshots still match their original hashes. This record
+preserves the historical observations and numerical comparisons, and its
+manifest records the retention check. Native controls, slow/fast runs, save
+evidence and the compiled fixture are unaffected.
+
 Native controls also report the early `Janeway` affect warning and muted-audio
 diagnostics; they are not newly attributed to fnTech3. Previously recorded
 corrupt `st_21.bik`, wider Linux-suite failures and Windows x86 RT limits remain

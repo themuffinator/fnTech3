@@ -5743,5 +5743,155 @@
       "maximum": 1,
       "channelsOverOne": 0
     }
+  },
+  "localEvidenceRetentionNote": {
+    "event": "Six stock-asset runs during rectangular-mipmap validation reused these earlier scene homes. New run evidence was copied to distinct stvef-mips-stock folders. Original recorded hashes and numerical comparisons are preserved as historical observations.",
+    "followup": "2026-09-21-stvef-image-mips.json",
+    "checks": [
+      {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-sp-cadence-glx-tutorial\\baseEF\\qconsole.log",
+        "recordedSha256": "a5fafdc5e0a2872daddc8df31c8b6acd51b56edc25b21855c6a39ad56cd2d740",
+        "currentSha256": "0704b8ce20e4c8e51d99543bbef7c856197fa36e03e87cf974d54fec230809c5",
+        "matches": false
+      },
+      {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-sp-cadence-glx-tutorial\\baseEF\\screenshots\\frame_160.png",
+        "recordedSha256": "831a149cbab0465f76c20bf0fbf85d2ad3742164116bbcf4d9bb183789d1e76a",
+        "currentSha256": "831a149cbab0465f76c20bf0fbf85d2ad3742164116bbcf4d9bb183789d1e76a",
+        "matches": true
+      },
+      {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-sp-cadence-glx-tutorial\\baseEF\\screenshots\\frame_20.png",
+        "recordedSha256": "2ec93e4716987996877089cf23b3f4b0e391f2a30c235d7a95f57adc8027a047",
+        "currentSha256": "2ec93e4716987996877089cf23b3f4b0e391f2a30c235d7a95f57adc8027a047",
+        "matches": true
+      },
+      {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-sp-cadence-glx-tutorial\\baseEF\\screenshots\\frame_80.png",
+        "recordedSha256": "5f1bd1583f1062f223a3b254a8694339a334129148c245174c14d2dd128564fa",
+        "currentSha256": "5f1bd1583f1062f223a3b254a8694339a334129148c245174c14d2dd128564fa",
+        "matches": true
+      },
+      {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-sp-cadence-vk-tutorial\\baseEF\\qconsole.log",
+        "recordedSha256": "703266f2f53ad36b34890ed867973f9f6836ed01020094151385e519f8cc4509",
+        "currentSha256": "41686a660efcaef150d37ef0e8d71eaecf3e8980c4b4e82405f722cf1654f82b",
+        "matches": false
+      },
+      {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-sp-cadence-vk-tutorial\\baseEF\\screenshots\\frame_160.png",
+        "recordedSha256": "b0bbde1a783a4bbfdbf67769e89eb5a6684172d0169542abb924f088b6738172",
+        "currentSha256": "b0bbde1a783a4bbfdbf67769e89eb5a6684172d0169542abb924f088b6738172",
+        "matches": true
+      },
+      {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-sp-cadence-vk-tutorial\\baseEF\\screenshots\\frame_20.png",
+        "recordedSha256": "014e3ecea2526d94abae53f80ed2ca664906ad17811ee34e7aa64eefa96cb58b",
+        "currentSha256": "ca1248f4a7826b1b938bd714656ad0de83d3ca92d084cd5f755601295178ddf0",
+        "matches": false
+      },
+      {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-sp-cadence-vk-tutorial\\baseEF\\screenshots\\frame_80.png",
+        "recordedSha256": "f6b99f6f9c0629ee4ff076c0a6c9f4eec43f798e31bccb3ffd87859a2abe9dda",
+        "currentSha256": "f6b99f6f9c0629ee4ff076c0a6c9f4eec43f798e31bccb3ffd87859a2abe9dda",
+        "matches": true
+      },
+      {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-sp-cadence-rtx-tutorial\\baseEF\\qconsole.log",
+        "recordedSha256": "4c921cae69db99858e06fb985916dd3b3ed4870da4e66c45c906dae5a2995351",
+        "currentSha256": "ef188106b51057dc0e7ab886dbdc1cac60747ba2b1b3a92318a4f24546dd16bb",
+        "matches": false
+      },
+      {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-sp-cadence-rtx-tutorial\\baseEF\\screenshots\\frame_160.png",
+        "recordedSha256": "b0bbde1a783a4bbfdbf67769e89eb5a6684172d0169542abb924f088b6738172",
+        "currentSha256": "b0bbde1a783a4bbfdbf67769e89eb5a6684172d0169542abb924f088b6738172",
+        "matches": true
+      },
+      {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-sp-cadence-rtx-tutorial\\baseEF\\screenshots\\frame_20.png",
+        "recordedSha256": "014e3ecea2526d94abae53f80ed2ca664906ad17811ee34e7aa64eefa96cb58b",
+        "currentSha256": "ca1248f4a7826b1b938bd714656ad0de83d3ca92d084cd5f755601295178ddf0",
+        "matches": false
+      },
+      {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-sp-cadence-rtx-tutorial\\baseEF\\screenshots\\frame_80.png",
+        "recordedSha256": "f6b99f6f9c0629ee4ff076c0a6c9f4eec43f798e31bccb3ffd87859a2abe9dda",
+        "currentSha256": "f6b99f6f9c0629ee4ff076c0a6c9f4eec43f798e31bccb3ffd87859a2abe9dda",
+        "matches": true
+      },
+      {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-sp-cadence-glx-voy1\\baseEF\\qconsole.log",
+        "recordedSha256": "deab35e02804478e8027e9d1555bf4bfdb0cedf603482e0c3111e98a023f1ea7",
+        "currentSha256": "7914f73163a6bcca5f463dff4d91a1f495f0ddd2da6a1fb37a1321d361ac4795",
+        "matches": false
+      },
+      {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-sp-cadence-glx-voy1\\baseEF\\screenshots\\frame_160.png",
+        "recordedSha256": "0b987ecd6bc8062aec4ce8f122f7e6ac204382f39b83f81d02795f82ad8ea3b4",
+        "currentSha256": "395260dc5a866c3f42d47d191c9adb61480d49c4376e52cef3e4a6c9883a0c02",
+        "matches": false
+      },
+      {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-sp-cadence-glx-voy1\\baseEF\\screenshots\\frame_20.png",
+        "recordedSha256": "f5c36c39ef1d6a67ffca5f144835ddefd526204803c30a2607dd44e65369f5fc",
+        "currentSha256": "f5c36c39ef1d6a67ffca5f144835ddefd526204803c30a2607dd44e65369f5fc",
+        "matches": true
+      },
+      {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-sp-cadence-glx-voy1\\baseEF\\screenshots\\frame_80.png",
+        "recordedSha256": "d875623d973d9d1f6870a87851cd955ad920d291152fbd53380e4001c39c024d",
+        "currentSha256": "e2e09828e4bfe17c091dbbd429474207d3b9a940cabe5d3d50812e04bcbf4810",
+        "matches": false
+      },
+      {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-sp-cadence-vk-voy1\\baseEF\\qconsole.log",
+        "recordedSha256": "d417d50dfa19255e0c6d54fb5720a2b1ff5a2b506c4f92ea8a2c6d15bd4b6929",
+        "currentSha256": "9d44e5511b52730100db41632328fd91e30a5160c9866d8b277536775c582982",
+        "matches": false
+      },
+      {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-sp-cadence-vk-voy1\\baseEF\\screenshots\\frame_160.png",
+        "recordedSha256": "da034e7f040ef0c33e614b24700f1ad36af3d0016cfaced145695bffc708e104",
+        "currentSha256": "86fa5605527b3edcb7f4cad7c90bc0a5567b50ee4235c1be7b26921582e8d67c",
+        "matches": false
+      },
+      {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-sp-cadence-vk-voy1\\baseEF\\screenshots\\frame_20.png",
+        "recordedSha256": "7d30402b19ab5a76bfaa8c9b845660273af14713d499320026287ad409bc58a9",
+        "currentSha256": "7d30402b19ab5a76bfaa8c9b845660273af14713d499320026287ad409bc58a9",
+        "matches": true
+      },
+      {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-sp-cadence-vk-voy1\\baseEF\\screenshots\\frame_80.png",
+        "recordedSha256": "028cccbae5892e183a84a09eec6ca5af8f04aa38c4e8342b16341a8652fc7cd8",
+        "currentSha256": "a414935a19069f568c10c3c115bb018170821ce4b00d27840d0fea3ee341083b",
+        "matches": false
+      },
+      {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-sp-cadence-rtx-voy1\\baseEF\\qconsole.log",
+        "recordedSha256": "94cb78055544b1abdecbd6a75b12c70e34d7320889b122e6fe21f3e753254055",
+        "currentSha256": "09a24648965781ca790395e9f98ba8f85c35be2a3ac52c6accdffa88614a6607",
+        "matches": false
+      },
+      {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-sp-cadence-rtx-voy1\\baseEF\\screenshots\\frame_160.png",
+        "recordedSha256": "40ef65f7ea52e5b419bc6e6ac1de5b63964b4ea8d0685cec3adce50c9f63eb5e",
+        "currentSha256": "86fa5605527b3edcb7f4cad7c90bc0a5567b50ee4235c1be7b26921582e8d67c",
+        "matches": false
+      },
+      {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-sp-cadence-rtx-voy1\\baseEF\\screenshots\\frame_20.png",
+        "recordedSha256": "7d30402b19ab5a76bfaa8c9b845660273af14713d499320026287ad409bc58a9",
+        "currentSha256": "7d30402b19ab5a76bfaa8c9b845660273af14713d499320026287ad409bc58a9",
+        "matches": true
+      },
+      {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-sp-cadence-rtx-voy1\\baseEF\\screenshots\\frame_80.png",
+        "recordedSha256": "deb30833bae5e4a63f153553398f760837fcdcdb53ccbd5a082a7f7854ee0f06",
+        "currentSha256": "a414935a19069f568c10c3c115bb018170821ce4b00d27840d0fea3ee341083b",
+        "matches": false
+      }
+    ]
   }
 }
