@@ -635,6 +635,9 @@ chapters; the GLSL implementation and synthetic tests are independently written.
   The [method-selection record](docs/fntech3/2026-09-21-stvef-compression-method.md)
   adds native compression preferences, floating-point enable behavior and
   live video-restart validation of the independent implementation.
+  The [lightmap-control record](docs/fntech3/2026-09-21-stvef-lightmap-controls.md)
+  pins the native compression/precision choices and validates merged and
+  separate uploads across the three renderer backends.
   Native projection and stencil extrusion observations are documented in the
   [shadow record](docs/fntech3/2026-09-20-stvef-shadows.md).
   The [movie audio record](docs/fntech3/2026-09-20-stvef-movie-audio.md)

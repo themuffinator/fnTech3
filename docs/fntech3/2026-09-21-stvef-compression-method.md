@@ -91,8 +91,9 @@ is controlled, and no proprietary content or executable bytes are committed.
 Useful logs, helper sources, observations and captures remain in the designated
 project and test directories.
 
-Native lightmap compression and the `r_texturebitslm` precision control still
-need implementation and runtime evidence. Localized image differences,
+The subsequent [lightmap-control correction](2026-09-21-stvef-lightmap-controls.md)
+implements and validates native lightmap compression and `r_texturebitslm`
+precision, including merged/separate uploads and Vulkan precision fallback. Localized image differences,
 campaign play, physical input, menu save/load/rebinding, listening and feedback
 hardware remain open. Existing asset defects, wider Linux-suite failures and
 the Windows x86 ray-tracing limitation are unchanged. Both EF profiles remain

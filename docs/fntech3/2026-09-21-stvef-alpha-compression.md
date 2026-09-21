@@ -88,7 +88,9 @@ modified or committed. Useful local logs, probes and captures are retained.
 
 The subsequent [method-selection correction](2026-09-21-stvef-compression-method.md)
 implements and validates native compression preferences and fractional enable
-values. Native lightmap compression and texture-bit controls remain open. Localized image differences, broader
+values. The [lightmap-control follow-up](2026-09-21-stvef-lightmap-controls.md)
+then covers native lightmap compression and precision on merged/separate
+uploads, including Vulkan precision fallback. Localized image differences, broader
 campaign behavior, physical input, menu use, listening and feedback hardware
 remain open. Existing asset defects, wider Linux-suite failures and the
 Windows x86 ray-tracing limitation are unchanged. The Linux build repeats

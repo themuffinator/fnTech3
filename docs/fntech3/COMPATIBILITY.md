@@ -1235,9 +1235,13 @@ Disabled-compression and Vulkan/RTX control captures remain pixel-identical.
 The [method-selection correction](2026-09-21-stvef-compression-method.md)
 also honors the native preference and fractional enable values, with 448
 native observations, seven-profile Windows/Linux checks and seven complete
-restart cycles. The full Windows suite passes 120 targets (two skips),
-including 1,857 Python checks. Native lightmap compression and texture-bit
-controls, localized image differences and broader acceptance remain open.
+restart cycles. The [lightmap-control correction](2026-09-21-stvef-lightmap-controls.md)
+honors native compression and precision, including merged/separate uploads
+and Vulkan precision fallback, with 648 native observations and Windows/Linux
+checks on all three backends. Eleven completed sessions produce 88 verified
+engine captures. The full Windows suite passes 120 targets (two skips),
+including 1,859 Python checks. Localized image differences, campaign play
+and broader input/audio/device acceptance remain open.
 
 The [renderer selection audit](2026-09-21-stvef-renderer-verification.md)
 corrects the September 20 live probes: `r_renderer` did not select a
