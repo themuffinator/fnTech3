@@ -377,8 +377,10 @@ static void R_MipMap2( unsigned * const out, unsigned * const in, int inWidth, i
 	int			outWidth, outHeight;
 	unsigned	*temp;
 
-	outWidth = inWidth >> 1;
-	outHeight = inHeight >> 1;
+	// A rectangular mip continues along its longer axis after the other
+	// reaches one texel. The wrapped filter still applies on both axes.
+	outWidth = MAX( 1, inWidth >> 1 );
+	outHeight = MAX( 1, inHeight >> 1 );
 
 	if ( out == in )
 		temp = ri.Hunk_AllocateTempMemory( outWidth * outHeight * 4 );
@@ -709,8 +711,8 @@ static void Upload32( byte *data, int x, int y, int width, int height, image_t *
 	//
 	while ( scaled_width > glConfig.maxTextureSize
 		|| scaled_height > glConfig.maxTextureSize ) {
-		scaled_width >>= 1;
-		scaled_height >>= 1;
+		scaled_width = MAX( 1, scaled_width >> 1 );
+		scaled_height = MAX( 1, scaled_height >> 1 );
 		x >>= 1;
 		y >>= 1;
 	}
