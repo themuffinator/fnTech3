@@ -279,7 +279,7 @@ class STVEFSPSavegameTests(unittest.TestCase):
             self.assertIn(message, text, message)
 
     def test_a_save_is_written_in_retail_order(self):
-        write = function(self.save, 'qboolean SV_STVEFSPWriteSavegame( const char *name, qboolean autosave ) {')
+        write = function(self.save, 'qboolean SV_STVEFSPWriteSavegame(')
         # Only a full save is refused where the game says saving is not allowed.
         self.assertIn('if ( !autosave && !SV_STVEFSPGameAllowedToSaveHere( qfalse ) ) {', write)
         order = ['SV_STVEFSPCreateSave( "current" )', 'SV_STVEFSPWriteComment( autosave, map )',
@@ -426,7 +426,7 @@ class STVEFSPSavegameTests(unittest.TestCase):
         hub = function(self.save, 'void SV_STVEFSPLoadTransition_f() {')
         order = ['stvefSpLoadTransition = 1;', 'CL_STVEFSPPrecacheScreenshot();',
                  'SV_STVEFSPPlayerEndOfLevelSave();', '"hub/%s"',
-                 'SV_STVEFSPWriteSavegame( name, qfalse );', 'Cvar_Set( "spawntarget", target );',
+                 'SV_STVEFSPWriteSavegame( name, qfalse, &writeFailed );', 'Cvar_Set( "spawntarget", target );',
                  'if ( !SV_STVEFSPReadHubSave( map ) ) {', 'SV_STVEFSPStartMap( map );']
         self.assertEqual(sorted(order, key=hub.index), order)
         restore = function(self.save, 'qboolean SV_STVEFSPReadHubSave( const char *map ) {')
@@ -456,7 +456,7 @@ class STVEFSPSavegameTests(unittest.TestCase):
                  '"^1Cannot save on holodeck or brig.\\n"', 'USAGE: \\"save <filename>\\"',
                  'SV_STVEFSPPlayerHealth() <= 0', '"^1Can\'t save to \'current\'\\n"',
                  'cg_virtualvoyager', 'CL_STVEFSPPrecacheScreenshot();', "name[4] == '*'",
-                 'savegame::NameAllowed( name )', 'SV_STVEFSPWriteSavegame( name, qfalse );']
+                 'savegame::NameAllowed( name )', 'if ( SV_STVEFSPWriteSavegame( name, qfalse ) ) {']
         self.assertEqual(sorted(order, key=save.index), order)
         load = function(self.save, 'void SV_STVEFSPLoad_f() {')
         self.assertIn('stvefSpLoadTransition = 0;', load)

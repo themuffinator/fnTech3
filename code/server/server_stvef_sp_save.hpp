@@ -26,6 +26,7 @@ namespace savegame = fntech3::stvef::savegame;
 // game's saving code without a file, which a real save overrides (0x427373).
 fileHandle_t stvefSpSaveFile = 0;
 bool stvefSpSaveWriting = false;
+bool stvefSpSaveFailed = false;
 cvar_t *stvefSpTestSave = nullptr;
 
 /* A save being read, held whole. Retail reads it from an open file, but the
@@ -58,15 +59,19 @@ const char *SV_STVEFSPSavePath( const char *name ) {
 
 void SV_STVEFSPWipeSave( const char *name ) { FS_HomeRemove( SV_STVEFSPSavePath( name ) ); }
 
-void SV_STVEFSPCloseWrite() {
+qboolean SV_STVEFSPCloseWrite() {
+	qboolean success = stvefSpSaveWriting && stvefSpSaveFile && !stvefSpSaveFailed ? qtrue : qfalse;
 	if ( stvefSpSaveFile ) {
-		FS_FCloseFile( stvefSpSaveFile );
+		if ( !FS_FCloseFileWrite( stvefSpSaveFile ) ) success = qfalse;
 		stvefSpSaveFile = 0;
 	}
 	stvefSpSaveWriting = false;
+	stvefSpSaveFailed = false;
+	return success;
 }
 
 qboolean SV_STVEFSPCreateSave( const char *name ) {
+	stvefSpSaveFailed = false;
 	SV_STVEFSPWipeSave( name );
 	const char *path = SV_STVEFSPSavePath( name );
 	stvefSpSaveFile = FS_FOpenFileWrite( path );
@@ -118,25 +123,25 @@ std::int32_t SV_STVEFSPAppendChunk( std::uint32_t id, const void *data, std::int
 		// The game's saving code is being run for its own sake.
 		return qtrue;
 	}
-	static const unsigned char nothing = 0;
-	const void *bytes = length > 0 && data ? data : &nothing;
-	if ( length < 0 || ( length > 0 && !data ) ) {
+	// Engine writers and the retail game's WriteLevel may ignore an import's
+	// return value. Once any chunk fails, never publish this transaction.
+	if ( stvefSpSaveFailed ) return qfalse;
+	if ( !stvefSpSaveFile || length < 0 ||
+		length > INT_MAX - static_cast<int>( savegame::FrameBytes ) || ( length > 0 && !data ) ) {
+		stvefSpSaveFailed = true;
 		Com_Printf( "^1Failed to write %s chunk\n", name );
 		return qfalse;
 	}
+	static const unsigned char nothing = 0;
+	const void *bytes = length > 0 ? data : &nothing;
 	unsigned char header[12], trailer[4];
 	savegame::PutFrameHeader( id, static_cast<std::uint32_t>( length ),
 		static_cast<std::uint32_t>( Com_BlockChecksum( bytes, length ) ), header );
 	savegame::PutFrameTrailer( trailer );
-	int written = 0;
-	if ( stvefSpSaveFile ) {
-		written += FS_Write( header, sizeof( header ), stvefSpSaveFile );
-		if ( length > 0 ) {
-			written += FS_Write( data, length, stvefSpSaveFile );
-		}
-		written += FS_Write( trailer, sizeof( trailer ), stvefSpSaveFile );
-	}
-	if ( written != length + static_cast<int>( savegame::FrameBytes ) ) {
+	if ( FS_Write( header, sizeof( header ), stvefSpSaveFile ) != sizeof( header ) ||
+		( length > 0 && FS_Write( data, length, stvefSpSaveFile ) != length ) ||
+		FS_Write( trailer, sizeof( trailer ), stvefSpSaveFile ) != sizeof( trailer ) ) {
+		stvefSpSaveFailed = true;
 		Com_Printf( "^1Failed to write %s chunk\n", name );
 		return qfalse;
 	}
@@ -456,11 +461,18 @@ qboolean SV_STVEFSPMoveSave( const char *from, const char *to ) {
 }
 
 /* A whole save written, then put in place of the one it replaces
- * (SG_WriteSavegame 0x427350). */
-qboolean SV_STVEFSPWriteSavegame( const char *name, qboolean autosave ) {
+ * (SG_WriteSavegame 0x427350). writeFailed distinguishes a failed transaction
+ * from a deliberate game refusal, which hub transitions may continue past. */
+qboolean SV_STVEFSPWriteSavegame( const char *name, qboolean autosave, qboolean *writeFailed = nullptr ) {
+	if ( writeFailed ) *writeFailed = qfalse;
+	if ( !stvefSpGame || stvefSpSaveWriting ) {
+		Com_Printf( "^1Cannot start savegame while its game writer is unavailable\n" );
+		return qfalse;
+	}
 	if ( !autosave && !SV_STVEFSPGameAllowedToSaveHere( qfalse ) ) {
 		return qfalse;
 	}
+	if ( writeFailed ) *writeFailed = qtrue;
 	if ( !SV_STVEFSPCreateSave( "current" ) ) {
 		Com_Printf( "^1Failed to create savegame\n" );
 		SV_STVEFSPWipeSave( "current" );
@@ -484,9 +496,14 @@ qboolean SV_STVEFSPWriteSavegame( const char *name, qboolean autosave ) {
 	if ( stvefSpGame ) {
 		stvefSpGame->WriteLevel( autosave );
 	}
-	SV_STVEFSPCloseWrite();
+	if ( !SV_STVEFSPCloseWrite() ) {
+		Com_Printf( "^1Failed to write savegame \"%s\"\n", name );
+		SV_STVEFSPWipeSave( "current" );
+		return qfalse;
+	}
 	if ( SV_STVEFSPMoveSave( "current", name ) ) {
 		SV_STVEFSPWipeSave( "current" );
+		if ( writeFailed ) *writeFailed = qfalse;
 		return qtrue;
 	}
 	return qfalse;
@@ -650,7 +667,18 @@ void SV_STVEFSPLoadTransition_f() {
 #endif
 	SV_STVEFSPPlayerEndOfLevelSave();
 	Com_sprintf( name, sizeof( name ), "hub/%s", Cvar_VariableString( "mapname" ) );
-	SV_STVEFSPWriteSavegame( name, qfalse );
+	// The game can deliberately disallow a save during a transition. Keep
+	// that flow, but do not leave after an attempted write or rename failed.
+	qboolean writeFailed;
+	SV_STVEFSPWriteSavegame( name, qfalse, &writeFailed );
+	if ( writeFailed ) {
+		stvefSpLoadTransition = 0;
+#ifndef DEDICATED
+		CL_STVEFSPUnprecacheScreenshot();
+#endif
+		Com_Printf( "^1Cannot leave the level: its hub save failed\n" );
+		return;
+	}
 	Cvar_Set( "spawntarget", target );
 	if ( !SV_STVEFSPReadHubSave( map ) ) {
 		SV_STVEFSPStartMap( map );
@@ -704,8 +732,9 @@ void SV_STVEFSPSave_f() {
 		return;
 	}
 	Com_Printf( "^5Saving game \"%s\"...\n", name );
-	SV_STVEFSPWriteSavegame( name, qfalse );
-	Com_Printf( "^5Done.\n" );
+	if ( SV_STVEFSPWriteSavegame( name, qfalse ) ) {
+		Com_Printf( "^5Done.\n" );
+	}
 }
 
 /* A save read back. "*respawn" takes the level's own autosave, or the save
