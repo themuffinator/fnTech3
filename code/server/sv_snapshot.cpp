@@ -1045,10 +1045,14 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 
 	frame->frameNum = svs.currFrame->frameNum;
 
-	// never send client's own entity, because it can
-	// be regenerated from the playerstate
-	svEnt = &sv.svEntities[ clientNum ];
-	svEnt->snapshotCounter = sv.snapshotCounter;
+	// SP's cgame visits the player through the packet-entity list to update
+	// animation state shared with its game half. Retail SP includes that
+	// entity when visible (stvoy.exe 0x428330, visibility walk 0x4285a0).
+	// Other profiles regenerate it from playerstate without sending it.
+	if ( !Com_GameIsSTVEFSP() ) {
+		svEnt = &sv.svEntities[ clientNum ];
+		svEnt->snapshotCounter = sv.snapshotCounter;
+	}
 
 	// find the client's viewpoint
 	SV_SnapshotViewOrigin( client, playerState, org );
