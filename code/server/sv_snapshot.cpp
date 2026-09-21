@@ -1182,10 +1182,14 @@ void SV_SendClientMessages( void )
 		//if ( !client.gamestateAcked )
 		//	continue;		// waiting usercmd/downloading
 
-		// 1. Local clients get snapshots every server frame
-		// 2. Remote clients get snapshots depending from rate and requested number of updates
-
-		if ( svs.time - client.lastSnapshotTime < client.snapshotMsec )
+		// Retail Elite Force SP sends a local snapshot after each new
+		// simulation tick (0x4287e0, loopback deadline at 0x427f16).
+		// SV_Frame gates these calls on tick progress. Keep the real-time
+		// schedule for other profiles and remote clients, and preserve the
+		// queue/rate guards below so pending deltas cannot be overwritten.
+		const bool stvefLocal = Com_GameIsSTVEFSP()
+			&& client.netchan.remoteAddress.type == NA_LOOPBACK;
+		if ( !stvefLocal && svs.time - client.lastSnapshotTime < client.snapshotMsec )
 			continue;		// It's not time yet
 
 		if ( client.netchan.unsentFragments || client.netchan_start_queue )
