@@ -100,6 +100,11 @@ differences: normal fnTech3 times are 50 ms ahead, fast times are 100 ms
 ahead, and slow snapshot numbering differs by one. Their causes have not
 been isolated. These images do not establish synchronized pixel parity.
 
+The later [startup/capture follow-up](2026-09-21-stvef-sp-startup.md) isolates
+the screenshot phase and aligns displayed snapshot times with a revised
+capture script. Its new observations do not retroactively synchronize the
+captures described here.
+
 Three further production sessions exercise saves and transitions with normal
 elapsed-time scheduling. A tutorial save at `TIME=5300` reloads and re-saves
 at `5800`. Transition to `borg2` starts a fresh clock (`2850`), a missing

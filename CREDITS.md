@@ -625,6 +625,8 @@ chapters; the GLSL implementation and synthetic tests are independently written.
   The [SP cadence record](docs/fntech3/2026-09-21-stvef-sp-cadence.md)
   pins simulation and local snapshot scheduling to independently observed
   retail function outputs; no proprietary implementation is incorporated.
+  The [startup/capture follow-up](docs/fntech3/2026-09-21-stvef-sp-startup.md)
+  adds independently observed settling-frame clocks and SP screenshot timing.
   Native projection and stencil extrusion observations are documented in the
   [shadow record](docs/fntech3/2026-09-20-stvef-shadows.md).
   The [movie audio record](docs/fntech3/2026-09-20-stvef-movie-audio.md)

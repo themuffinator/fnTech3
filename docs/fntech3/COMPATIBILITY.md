@@ -1199,8 +1199,9 @@ The [SP cadence correction](2026-09-21-stvef-sp-cadence.md) keeps simulation
 ticks independent of `timescale` and sends local snapshots after new ticks,
 removing the growing fixed-step snapshot lag. Native fixtures, seven-profile
 compiled controls, production scene reruns and another retail save round trip
-cover the change. Startup/capture phase differences remain open; the new
-images are not synchronized retail renderer parity evidence. Full-resolution
+cover the change. Those captures used different frame phases and are not
+synchronized retail renderer parity evidence; the later startup/capture
+follow-up below aligns displayed times. Full-resolution
 comparisons retract an initial contact-sheet impression of a Vulkan/RTX
 corridor defect: those corridor images agree with GLx within one channel value.
 
@@ -1211,6 +1212,14 @@ Windows x86 and Linux i686; a visible, independently created texture fixture
 reduces the measured Vulkan/RTX difference from GLx from 11.824 to 0.040
 channel values. This shared renderer defect is separate from the retracted
 corridor assessment and does not close broader retail image parity.
+
+The [SP startup/capture follow-up](2026-09-21-stvef-sp-startup.md) corrects
+the four map-settling calls to retail's current-clock ordering, with native
+observations, seven-profile compiled controls, all 66 maps in the current
+SP inventory and another retail save round trip. An adjusted capture script
+aligns displayed snapshot times at three rates. Nine SP image comparisons
+then use verified matching filters; their mean RGB differences are 1.15–2.25
+out of 255. These bounded observations do not close campaign or image parity.
 
 The [renderer selection audit](2026-09-21-stvef-renderer-verification.md)
 corrects the September 20 live probes: `r_renderer` did not select a
