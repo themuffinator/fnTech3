@@ -30,6 +30,8 @@ static struct { comGameId_t gameId; } ri;
 typedef struct { int integer; } cvar_t;
 static cvar_t bits;
 static cvar_t *r_texturebits=&bits;
+static cvar_t lightmapBits, lightmapCompression;
+static cvar_t *r_texturebitslm=&lightmapBits, *r_ext_compress_lightmaps=&lightmapCompression;
 HAS_ALPHA
 FORMAT
 static int Normalize(int format) {
@@ -60,7 +62,7 @@ int main(void) {
                 else expected=textureBits==16?GL_RGB5:textureBits==32?GL_RGB8:GL_RGB;
             }
             if(srgb) expected=alpha?GL_SRGB8_ALPHA8:GL_SRGB8;
-            if(lightmap) expected=GL_RGB;
+            if(lightmap) expected=elite&&textureBits==16?GL_RGB5:elite&&textureBits==32?GL_RGB8:GL_RGB;
             actual=CALL;
             if(actual!=expected || memcmp(pixels,before,sizeof(pixels))) {
                 fprintf(stderr,"profile=%d tc=%d bits=%d alpha=%d allow=%d variant=%d lm=%d srgb=%d: %x != %x\n",

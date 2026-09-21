@@ -18,11 +18,12 @@ static struct {
     cvar_t *(*Cvar_Get)(const char *, const char *, int);
 } ri;
 static cvar_t *r_ext_compressed_textures;
+static cvar_t *r_ext_compress_lightmaps, *r_texturebitslm;
 HEADER
 static void Register(void) { REGISTRATION }
 
 int main(void) {
-    int profile, preset, cases = 0;
+    int profile, preset, which, cases = 0;
     for (profile = COM_GAME_QUAKE3; profile < COM_GAME_COUNT; ++profile) {
         const int elite = profile == COM_GAME_STVEF_SP || profile == COM_GAME_STVEF_MP;
         const char *name = elite ? "r_ext_compress_textures" : "r_ext_compressed_textures";
@@ -97,8 +98,37 @@ int main(void) {
             while (cvar_vars) Cvar_Unset(cvar_vars);
             ++cases;
         }
+        for (which = 0; which < 2; ++which) for (preset = -1; preset < 4; ++preset) {
+            const char *names[] = { "r_ext_compress_lightmaps", "r_texturebitslm" };
+            const int values[] = { 0, 1, 16, 32 };
+            cvar_t *cv;
+            Cvar_Init();
+            ri.gameId = (comGameId_t)profile; ri.Cvar_Get = Cvar_Get;
+            if (preset >= 0) Seta(names[which], va("%d", values[preset]));
+            Register();
+            cv = which ? r_texturebitslm : r_ext_compress_lightmaps;
+            if (elite) {
+                CHECK(cv && cv == Cvar_FindVar(names[which]));
+                CHECK(cv->flags == (CVAR_ARCHIVE | CVAR_LATCH));
+                CHECK(!strcmp(cv->resetString, "0"));
+                CHECK(cv->integer == (preset < 0 ? 0 : values[preset]));
+                Seta(cv->name, "-7");
+                CHECK(cv->latchedString && !strcmp(cv->latchedString, "-7"));
+                Register();
+                CHECK(cv->integer == -7 && !cv->latchedString);
+                Cvar_Reset(cv->name); Register();
+                CHECK(cv->integer == 0 && !cv->latchedString);
+            } else {
+                CHECK(!cv);
+                cv = Cvar_FindVar(names[which]);
+                CHECK(preset < 0 ? !cv : cv && cv->integer == values[preset] &&
+                      !(cv->flags & CVAR_LATCH));
+            }
+            while (cvar_vars) Cvar_Unset(cvar_vars);
+            ++cases;
+        }
     }
-    if (!failures) printf("49 compression config/latch cases passed\n");
+    if (!failures) printf("119 compression config/latch cases passed\n");
     return failures ? 1 : 0;
 }
 '''
@@ -135,7 +165,7 @@ class STVEFRendererCvarTests(unittest.TestCase):
                     ran = subprocess.run([str(executable)], cwd=ROOT, capture_output=True,
                                          text=True, timeout=20, **options)
                     self.assertEqual(ran.returncode, 0, ran.stdout + ran.stderr)
-                    self.assertIn('49 compression config/latch cases passed', ran.stdout)
+                    self.assertIn('119 compression config/latch cases passed', ran.stdout)
 
 
 if __name__ == '__main__':

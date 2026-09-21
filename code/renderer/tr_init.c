@@ -242,6 +242,8 @@ cvar_t	*r_ignoreGLErrors;
 
 //cvar_t	*r_stencilbits;
 cvar_t	*r_texturebits;
+cvar_t	*r_texturebitslm;
+cvar_t	*r_ext_compress_lightmaps;
 
 #ifdef USE_FBO
 cvar_t	*r_ext_multisample;

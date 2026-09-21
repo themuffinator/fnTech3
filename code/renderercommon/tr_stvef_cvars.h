@@ -11,9 +11,13 @@ static cvar_t *R_RegisterTextureCompressionCvar( void ) {
 	 * a Q3-style setting must not override an Elite Force configuration.
 	 */
 	if ( ri.gameId == COM_GAME_STVEF_SP || ri.gameId == COM_GAME_STVEF_MP ) {
+		r_ext_compress_lightmaps = ri.Cvar_Get( "r_ext_compress_lightmaps", "0", CVAR_ARCHIVE | CVAR_LATCH );
+		r_texturebitslm = ri.Cvar_Get( "r_texturebitslm", "0", CVAR_ARCHIVE | CVAR_LATCH );
 		r_ext_preferred_tc_method = ri.Cvar_Get( "r_ext_preferred_tc_method", "0", CVAR_ARCHIVE | CVAR_LATCH );
 		return ri.Cvar_Get( "r_ext_compress_textures", "1", CVAR_ARCHIVE | CVAR_LATCH );
 	}
+	r_ext_compress_lightmaps = NULL;
+	r_texturebitslm = NULL;
 	r_ext_preferred_tc_method = NULL;
 	return ri.Cvar_Get( "r_ext_compressed_textures", "0", CVAR_ARCHIVE_ND | CVAR_LATCH | CVAR_DEVELOPER );
 }

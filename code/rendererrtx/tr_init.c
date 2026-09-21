@@ -244,6 +244,8 @@ cvar_t	*r_ignoreGLErrors;
 
 //cvar_t	*r_stencilbits;
 cvar_t	*r_texturebits;
+cvar_t	*r_texturebitslm;
+cvar_t	*r_ext_compress_lightmaps;
 cvar_t	*r_ext_multisample;
 cvar_t	*r_ext_alpha_to_coverage;
 

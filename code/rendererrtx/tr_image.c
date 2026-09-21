@@ -764,6 +764,19 @@ static void upload_vk_image( image_t *image, byte *pic ) {
 
 	Image_Upload_Data upload_data;
 	int w, h;
+	int textureBits = r_texturebits->integer;
+
+	if ( image->flags & IMGFLAG_LIGHTMAP ) {
+		/* Lightmaps are opaque, including allocation-only atlas uploads.
+		 * EF's explicit positive lightmap precision overrides texture bits.
+		 */
+		if ( ri.gameId == COM_GAME_STVEF_SP || ri.gameId == COM_GAME_STVEF_MP ) {
+			if ( r_texturebitslm->integer > 0 ) textureBits = r_texturebitslm->integer;
+			if ( textureBits != 16 ) textureBits = 0;
+		} else {
+			textureBits = 0;
+		}
+	}
 
 	generate_image_upload_data( image, pic, &upload_data );
 
@@ -772,11 +785,11 @@ static void upload_vk_image( image_t *image, byte *pic ) {
 
 	if ( image->srgbDecode ) {
 		image->internalFormat = VK_FORMAT_R8G8B8A8_SRGB;
-	} else if ( r_texturebits->integer > 16 || r_texturebits->integer == 0 || ( image->flags & IMGFLAG_LIGHTMAP ) ) {
+	} else if ( textureBits > 16 || textureBits == 0 ) {
 		image->internalFormat = VK_FORMAT_R8G8B8A8_UNORM;
 		//image->internalFormat = VK_FORMAT_B8G8R8A8_UNORM;
 	} else {
-		qboolean has_alpha = RawImage_HasAlpha( upload_data.buffer, w * h );
+		qboolean has_alpha = !( image->flags & IMGFLAG_LIGHTMAP ) && RawImage_HasAlpha( upload_data.buffer, w * h );
 		image->internalFormat = has_alpha ? VK_FORMAT_B4G4R4A4_UNORM_PACK16 : VK_FORMAT_A1R5G5B5_UNORM_PACK16;
 	}
 
@@ -795,8 +808,23 @@ static GLint RawImage_GetInternalFormat( const byte *scan, int numPixels, qboole
 {
 	GLint internalFormat;
 
-	if ( lightMap )
+	if ( lightMap ) {
+		if ( ri.gameId == COM_GAME_STVEF_SP || ri.gameId == COM_GAME_STVEF_MP ) {
+			const int bits = r_texturebitslm->integer > 0 ? r_texturebitslm->integer : r_texturebits->integer;
+			/* Native SP/HM choose compression before lightmap precision.
+			 * Explicit per-image opt-outs remain authoritative.
+			 */
+			if ( allowCompression && r_ext_compress_lightmaps->integer ) {
+				if ( glConfig.textureCompression == TC_S3TC_ARB )
+					return GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
+				if ( glConfig.textureCompression == TC_S3TC )
+					return GL_RGB4_S3TC;
+			}
+			if ( bits == 16 ) return GL_RGB5;
+			if ( bits == 32 ) return GL_RGB8;
+		}
 		return GL_RGB;
+	}
 
 	if ( RawImage_HasAlpha( scan, numPixels ) )
 	{

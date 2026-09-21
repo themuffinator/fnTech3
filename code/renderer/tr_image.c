@@ -614,8 +614,23 @@ static GLint RawImage_GetInternalFormat( const byte *scan, int numPixels, qboole
 	GLint internalFormat;
 	qboolean hasAlpha;
 
-	if ( lightMap )
+	if ( lightMap ) {
+		if ( ri.gameId == COM_GAME_STVEF_SP || ri.gameId == COM_GAME_STVEF_MP ) {
+			const int bits = r_texturebitslm->integer > 0 ? r_texturebitslm->integer : r_texturebits->integer;
+			/* Native SP/HM choose compression before lightmap precision.
+			 * Explicit per-image opt-outs remain authoritative.
+			 */
+			if ( allowCompression && r_ext_compress_lightmaps->integer ) {
+				if ( glConfig.textureCompression == TC_S3TC_ARB )
+					return GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
+				if ( glConfig.textureCompression == TC_S3TC )
+					return GL_RGB4_S3TC;
+			}
+			if ( bits == 16 ) return GL_RGB5;
+			if ( bits == 32 ) return GL_RGB8;
+		}
 		return GL_RGB;
+	}
 
 	hasAlpha = RawImage_HasAlpha( scan, numPixels );
 
