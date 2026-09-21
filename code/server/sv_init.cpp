@@ -758,8 +758,12 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	// to load during actual gameplay
 	sv.state = SS_LOADING;
 
-	// make sure that level time is not zero
-	//sv.time = sv.time ? sv.time : 8;
+	// Retail Elite Force SP starts each level at 1000 (stvoy.exe 1.20,
+	// 0x425ac9). Its delayed reference tags can truncate a fractional delay
+	// to the initial time; zero means no think and leaves camera tags absent.
+	if ( Com_GameIsSTVEFSP() ) {
+		sv.time = 1000;
+	}
 
 	// load and spawn all other entities
 	if ( !SV_RTCWRestoreSaveTime() ) {
