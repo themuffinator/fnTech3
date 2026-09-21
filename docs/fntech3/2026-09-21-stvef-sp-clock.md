@@ -105,7 +105,9 @@ is unchanged and no proprietary inputs or images are committed.
 
 The prepared manual launchers and instructions are under
 `E:/Games/fnTech3-tests/stvef-manual`. Their normal input and audio are enabled
-only when the user launches them. Force-feedback effects remain unimplemented.
+only when the user launches them. Force-feedback effects were unimplemented
+at this checkpoint; the [later bridge](2026-09-21-stvef-force-feedback.md)
+adds the device boundary and native effect rules, with physical tests pending.
 The [extended runtime record](2026-09-21-stvef-runtime-coverage.md) covers full
 Holomatch demos and the observed x86 ray-tracing capability limit. Broader
 campaign play, synchronized retail image parity and physical-device acceptance

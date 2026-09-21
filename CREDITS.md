@@ -638,6 +638,13 @@ chapters; the GLSL implementation and synthetic tests are independently written.
   The [presentation record](docs/fntech3/2026-09-20-stvef-cinematic-presentation.md)
   documents independently observed retail fade and crop behaviour.
 
+- Elite Force single-player force feedback uses interoperability observations
+  from the user's installed executable and FFC10 runtime. The effect table,
+  scheduler, C++ ABI declarations and lifecycle controller are independently
+  authored; no CFeel SDK or proprietary implementation is incorporated. The
+  [feedback record](docs/fntech3/2026-09-21-stvef-force-feedback.md) identifies
+  the reference binaries, native observations and device-test limits.
+
 ## Retail-content boundary
 
 The RTCW audio-zone authoring mode uses material-flag facts observed in the

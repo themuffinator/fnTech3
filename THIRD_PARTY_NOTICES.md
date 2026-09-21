@@ -132,3 +132,11 @@ the [Bink movie record](docs/fntech3/2026-09-20-stvef-bink.md).
 The [presentation follow-up](docs/fntech3/2026-09-20-stvef-cinematic-presentation.md)
 uses synthetic pixels and measured fade values from the installed retail
 executable; no proprietary rendering or decoder implementation is incorporated.
+
+The optional Windows x86 SP force-feedback bridge likewise loads the user's
+installed `FFC10.dll` by an absolute path. Its independently declared CFeel 1.0
+ABI and effect parameters are interoperability observations; no proprietary
+SDK headers, runtime implementation or DLL is incorporated. The
+[feedback fixture and record](docs/fntech3/2026-09-21-stvef-force-feedback.md)
+contain numeric observations and owned test callbacks, not game assets or
+proprietary code.

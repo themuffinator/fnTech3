@@ -76,8 +76,9 @@ activated and Linux uses Xvfb. Both force windowed rendering and disable
 mouse and joystick input. Screenshots come only from the engine command.
 No proprietary files are committed or altered in the installation.
 
-Physical input and listening results are still pending. Force-feedback
-effects have no device backend, and broader campaign, effect-image and
-platform acceptance remain open. No new unrelated issue was found; the
+Physical input and listening results are still pending. Force-feedback had
+no device backend in these runs; the later [feedback implementation](2026-09-21-stvef-force-feedback.md)
+adds an opt-in installed-runtime bridge with physical acceptance still open.
+Broader campaign, effect-image and platform acceptance remain open. No new unrelated issue was found; the
 [earlier runtime record](2026-09-21-stvef-runtime-coverage.md) retains the
 previously reported asset, Linux-suite and cleanup limitations.
