@@ -607,6 +607,19 @@ static cvar_t *SV_RegisterPureMode() {
 		CVAR_SYSTEMINFO | (policy.pureLatched ? CVAR_LATCH : 0));
 }
 
+static void SV_RunStartupFrame( void ) {
+	// Retail Elite Force SP calls the settling frames at the current clock,
+	// then advances it (stvoy.exe 1.20, 0x425b43 and 0x425be2). Keep that clock
+	// visible to game imports too; changing only the RunFrame argument is not
+	// equivalent. Other profiles retain their advance-before-call ordering.
+	const bool advanceAfterFrame = Com_GameIsSTVEFSP() != 0;
+	Cbuf_Wait();
+	if ( !advanceAfterFrame ) sv.time += 100;
+	VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );
+	SV_BotFrame( sv.time );
+	if ( advanceAfterFrame ) sv.time += 100;
+}
+
 void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	int			checksum;
 	bool		isBot;
@@ -787,10 +800,7 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	// run a few frames to allow everything to settle
 	for ( int ignored : SV_Indices( 3 ) ) {
 		(void)ignored;
-		Cbuf_Wait();
-		sv.time += 100;
-		VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );
-		SV_BotFrame( sv.time );
+		SV_RunStartupFrame();
 	}
 
 	// create a baseline for more efficient communications
@@ -835,10 +845,7 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	}
 
 	// run another frame to allow things to look at all the players
-	Cbuf_Wait();
-	sv.time += 100;
-	VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );
-	SV_BotFrame( sv.time );
+	SV_RunStartupFrame();
 	svs.time += 100;
 
 	// Publish the selected profile's native module paks for download/proof.

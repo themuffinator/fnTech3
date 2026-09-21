@@ -1,0 +1,177 @@
+{
+  "source": "User-supplied stvoy.exe 1.20; independently observed startup frame blocks",
+  "executableSha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74",
+  "addresses": {
+    "firstThree": "0x425b43..0x425b6e",
+    "lastFrame": "0x425be2..0x425bfb",
+    "levelTime": "0xa41c3c",
+    "gameExports": "0xa41c28",
+    "runFrameSlot": "0x30"
+  },
+  "method": "Map retail executable without startup; execute the original frame loops and time increments. Substitute an owned RunFrame callback that records the argument and engine clock. Return before baseline construction and configstring publication; preserve the native clock writes and clean the two pending cdecl stack arguments at the latter boundary.",
+  "initialClockNote": "Native map startup sets 1000 at 0x425ac9. Other initial values exercise zero, adjacent, restored-save and near-signed-limit clocks.",
+  "probeSha256": "c75e198912c1680c2b39cf1280ab81904faeb53784e3841e2946b9516fddbd3a",
+  "cases": [
+    {
+      "start": 0,
+      "afterThree": 300,
+      "final": 400,
+      "frames": [
+        {
+          "argument": 0,
+          "engineTime": 0
+        },
+        {
+          "argument": 100,
+          "engineTime": 100
+        },
+        {
+          "argument": 200,
+          "engineTime": 200
+        },
+        {
+          "argument": 300,
+          "engineTime": 300
+        }
+      ]
+    },
+    {
+      "start": 1,
+      "afterThree": 301,
+      "final": 401,
+      "frames": [
+        {
+          "argument": 1,
+          "engineTime": 1
+        },
+        {
+          "argument": 101,
+          "engineTime": 101
+        },
+        {
+          "argument": 201,
+          "engineTime": 201
+        },
+        {
+          "argument": 301,
+          "engineTime": 301
+        }
+      ]
+    },
+    {
+      "start": 999,
+      "afterThree": 1299,
+      "final": 1399,
+      "frames": [
+        {
+          "argument": 999,
+          "engineTime": 999
+        },
+        {
+          "argument": 1099,
+          "engineTime": 1099
+        },
+        {
+          "argument": 1199,
+          "engineTime": 1199
+        },
+        {
+          "argument": 1299,
+          "engineTime": 1299
+        }
+      ]
+    },
+    {
+      "start": 1000,
+      "afterThree": 1300,
+      "final": 1400,
+      "frames": [
+        {
+          "argument": 1000,
+          "engineTime": 1000
+        },
+        {
+          "argument": 1100,
+          "engineTime": 1100
+        },
+        {
+          "argument": 1200,
+          "engineTime": 1200
+        },
+        {
+          "argument": 1300,
+          "engineTime": 1300
+        }
+      ]
+    },
+    {
+      "start": 9000,
+      "afterThree": 9300,
+      "final": 9400,
+      "frames": [
+        {
+          "argument": 9000,
+          "engineTime": 9000
+        },
+        {
+          "argument": 9100,
+          "engineTime": 9100
+        },
+        {
+          "argument": 9200,
+          "engineTime": 9200
+        },
+        {
+          "argument": 9300,
+          "engineTime": 9300
+        }
+      ]
+    },
+    {
+      "start": 75000,
+      "afterThree": 75300,
+      "final": 75400,
+      "frames": [
+        {
+          "argument": 75000,
+          "engineTime": 75000
+        },
+        {
+          "argument": 75100,
+          "engineTime": 75100
+        },
+        {
+          "argument": 75200,
+          "engineTime": 75200
+        },
+        {
+          "argument": 75300,
+          "engineTime": 75300
+        }
+      ]
+    },
+    {
+      "start": 2147483200,
+      "afterThree": 2147483500,
+      "final": 2147483600,
+      "frames": [
+        {
+          "argument": 2147483200,
+          "engineTime": 2147483200
+        },
+        {
+          "argument": 2147483300,
+          "engineTime": 2147483300
+        },
+        {
+          "argument": 2147483400,
+          "engineTime": 2147483400
+        },
+        {
+          "argument": 2147483500,
+          "engineTime": 2147483500
+        }
+      ]
+    }
+  ]
+}
