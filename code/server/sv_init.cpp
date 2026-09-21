@@ -695,8 +695,9 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 
 	// set nextmap to the same map, but it may be overridden
 	// by the game startup or another console command
-	Cvar_Set( "nextmap", "map_restart 0" );
-//	Cvar_Set( "nextmap", va("map %s", server) );
+	// EF SP reloads the map in full (stvoy.exe 1.20, 0x425a52). It has no
+	// multiplayer map_restart command and must reinitialize both DLL halves.
+	Cvar_Set( "nextmap", Com_GameIsSTVEFSP() ? va( "map %s", mapname ) : "map_restart 0" );
 
 	// try to reset level time if server is empty
 	if ( !sv_levelTimeReset->integer && !sv.restartTime ) {
