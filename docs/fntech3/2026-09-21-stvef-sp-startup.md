@@ -30,8 +30,9 @@ Only `stvef-sp` advances the clock after the callbacks. The other six
 profiles retain their previous ordering, the map still runs three frames
 before reconnecting clients and one afterward, and both `sv.time` and
 `svs.time` retain their final values. This correction concerns full map
-startup; it does not claim the separate `map_restart` path has been matched
-to retail SP.
+startup. The later [map-reload investigation](2026-09-21-stvef-map-reloads.md)
+establishes that retail SP has no `map_restart` command, removes the accidental
+multiplayer path and restores retail's full-map `nextmap` continuation.
 
 `tests/stvef_sp_startup_tests.py` compiles the actual startup helper and both
 call-site blocks from `SV_SpawnServer`. It compares seven SP sequences with

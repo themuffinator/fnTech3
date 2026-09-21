@@ -627,6 +627,9 @@ chapters; the GLSL implementation and synthetic tests are independently written.
   retail function outputs; no proprietary implementation is incorporated.
   The [startup/capture follow-up](docs/fntech3/2026-09-21-stvef-sp-startup.md)
   adds independently observed settling-frame clocks and SP screenshot timing.
+  The [map-reload record](docs/fntech3/2026-09-21-stvef-map-reloads.md) pins
+  SP command registration and full-map continuations to native observations,
+  and documents the independently corrected shared client-storage crash.
   The [texture-compression record](docs/fntech3/2026-09-21-stvef-texture-compression.md)
   pins the menu/configuration control to native registration and runtime facts,
   and separates texture-format differences from renderer comparisons.

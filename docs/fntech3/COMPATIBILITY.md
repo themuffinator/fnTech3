@@ -1221,6 +1221,13 @@ aligns displayed snapshot times at three rates. Nine SP image comparisons
 then use verified matching filters; their mean RGB differences are 1.15–2.25
 out of 255. These bounded observations do not close campaign or image parity.
 
+The [map-reload correction](2026-09-21-stvef-map-reloads.md) removes SP's
+accidental multiplayer restart command and restores retail's full-map
+continuation. It also fixes a shared Windows stack overflow during Holomatch
+client-array resizing. Native observations, seven-profile command checks,
+bounded-stack storage tests and Windows/Linux bot-retaining reloads cover
+these changes. Campaign and manual acceptance remain open.
+
 The [texture-compression follow-up](2026-09-21-stvef-texture-compression.md)
 connects both retail menus' `r_ext_compress_textures` setting to the renderer,
 with native defaults and flags, seven-profile compiled checks and live video
