@@ -1224,5 +1224,11 @@ on all three renderers. Two held Holomatch views gain bounded retail image
 comparisons; shield and explosion effects still vary in repeated captures
 from retail itself, so full effect image parity remains open.
 
+The [runtime follow-up](2026-09-21-stvef-runtime-followup.md) adds a complete
+fnTech3-to-retail-to-fnTech3 SP save round trip after a longer retail startup
+wait, plus a 107-frame Linux Holomatch run with the ray-tracing pipeline
+active on software Vulkan. These are bounded fixture/platform observations;
+manual menu saves, campaign-wide acceptance and Windows x86 RT remain open.
+
 Build with `-Dstvef-development=true` only for isolated probes. The option is
 independent of the RTCW and ET options; none of them closes any release gate.

@@ -41,6 +41,11 @@ SP module requires Windows x86, so an x64 run cannot close that SP gate.
 Native RT remains unavailable in this tested configuration. The fallback and
 strict refusal behave honestly.
 
+A [later Linux i686 probe](2026-09-21-stvef-runtime-followup.md) completes a
+107-frame Holomatch demo with the native ray-tracing pipeline active on
+llvmpipe's software Vulkan driver. That adds platform-specific functional
+evidence without changing this Windows x86 capability limit or proving SP RT.
+
 The [manifest](evidence/2026-09-21-stvef-runtime-coverage.json) records the
 executable, renderer and installation identities, commands, settings, complete
 frame counts, capability messages, logs and capture hashes. All tests use

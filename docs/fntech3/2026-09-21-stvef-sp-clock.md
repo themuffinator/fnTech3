@@ -75,6 +75,11 @@ contract; no external implementation text was incorporated.
   local map with a Munro bot. Hands-on input, menu save/load and listening are
   still pending.
 
+The [later runtime follow-up](2026-09-21-stvef-runtime-followup.md) resolves
+the unattended retail re-save limitation for this tutorial fixture: after a
+longer wait, retail saves successfully and fnTech3 reloads and re-saves its
+output. The original early refusals remain recorded separately.
+
 The initial complete Windows run has 119 passing Meson targets, two skips and
 one failing Python aggregate. Its 1,844 Python tests have one error and 72
 skips: an unrelated GLx dry-run fixture exceeds the Windows path limit under
