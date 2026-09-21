@@ -3838,6 +3838,7 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 	re.DrawStretchPic = RE_StretchPic;
 	re.DrawQuad = RE_DrawQuad;
 	re.SetSTVEFScissor = RE_SetSTVEFScissor;
+	re.DrawSTVEFRaw = RE_DrawSTVEFRaw;
 	re.DrawStretchRaw = RE_StretchRaw;
 	re.UploadCinematic = RE_UploadCinematic;
 	re.DrawWebUISurface = RE_DrawWebUISurface;

@@ -26,8 +26,8 @@
  * frame being drawn is not one to keep. */
 static void CL_STVEFSPDrawScreenshot( float x, float y, float w, float h ) {
 	STVEFSPScreenshot &screenshot = CL_STVEFSPScreenshot();
-	re.DrawStretchRaw( static_cast<int>( x ), static_cast<int>( y ), static_cast<int>( w ), static_cast<int>( h ),
-		FNTECH3_STVEF_SP_SCREENSHOT_SIZE, FNTECH3_STVEF_SP_SCREENSHOT_SIZE, screenshot.rgba, 0, qtrue );
+	re.DrawSTVEFRaw( static_cast<int>( x ), static_cast<int>( y ), static_cast<int>( w ), static_cast<int>( h ),
+		FNTECH3_STVEF_SP_SCREENSHOT_SIZE, FNTECH3_STVEF_SP_SCREENSHOT_SIZE, screenshot.rgba, 1.0f );
 }
 
 /* A snapshot in single player's record. Retail fills the flags, ping, time,

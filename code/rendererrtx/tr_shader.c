@@ -5218,6 +5218,19 @@ static void CreateInternalShaders( void ) {
 	tr.cinematicShader = FinishShader();
 }
 
+/* SP raw images ignore source alpha and the UI's current drawing color. */
+shader_t *R_CreateSTVEFRawShader( const char *name, image_t *image ) {
+	InitShader( name, LIGHTMAP_NONE );
+	shader.cullType = CT_TWO_SIDED;
+	stages[0].bundle[0].image[0] = image;
+	stages[0].bundle[0].tcGen = TCGEN_TEXTURE;
+	stages[0].active = qtrue;
+	stages[0].bundle[0].rgbGen = CGEN_EXACT_VERTEX;
+	stages[0].stateBits = GLS_DEPTHTEST_DISABLE;
+	return FinishShader();
+}
+
+
 
 /*
 ====================

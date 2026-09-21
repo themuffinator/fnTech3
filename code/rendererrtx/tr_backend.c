@@ -1602,6 +1602,8 @@ void RE_StretchRaw( int x, int y, int w, int h, int cols, int rows, const byte *
 }
 
 
+#include "../renderercommon/tr_stvef_raw.h"
+
 void RE_UploadCinematic( int w, int h, int cols, int rows, const byte *data, int client, qboolean dirty ) {
 
 	image_t *image;

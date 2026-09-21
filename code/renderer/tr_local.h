@@ -1977,6 +1977,9 @@ typedef struct {
 	shader_t				*defaultShader;
 	shader_t				*whiteShader;
 	shader_t				*cinematicShader;
+	image_t *stvefRawImages[32];
+	shader_t *stvefRawShaders[32];
+	int stvefRawFrame, stvefRawUsed;
 	shader_t				*shadowShader;
 	shader_t				*projectionShadowShader;
 	shader_t				*enemyRimShader;
@@ -3093,6 +3096,8 @@ void R_AddAdvertisementQueryCmd( const advertisementQueryEntry_t *entries, int n
 void RE_SetColor( const float *rgba );
 void RE_DrawQuad( const refDrawQuad_t *quad );
 void RE_SetSTVEFScissor( float x, float y, float w, float h );
+void RE_DrawSTVEFRaw( int x, int y, int w, int h, int cols, int rows, const byte *data, float lightValue );
+shader_t *R_CreateSTVEFRawShader( const char *name, image_t *image );
 void RE_StretchPic ( float x, float y, float w, float h, 
 					  float s1, float t1, float s2, float t2, qhandle_t hShader );
 void RE_BeginFrame( stereoFrame_t stereoFrame );

@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../qcommon/game_profile.h"
 #include "vulkan/vulkan.h"
 
-#define	REF_API_VERSION		27
+#define	REF_API_VERSION		28
 
 //
 // these are the functions exported by the refresh module
@@ -193,6 +193,9 @@ typedef struct {
 	// Elite Force SP's 2D clip rectangle, in framebuffer pixels. Negative x
 	// restores the whole framebuffer. A new 3D/2D transition resets it too.
 	void (*SetSTVEFScissor)( float x, float y, float w, float h );
+	// Opaque SP UI image, modulated by its own brightness rather than the UI color.
+	void (*DrawSTVEFRaw)( int x, int y, int w, int h, int cols, int rows,
+		const byte *data, float lightValue );
 
 
 } refexport_t;
