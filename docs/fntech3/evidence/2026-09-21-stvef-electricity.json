@@ -1,0 +1,1863 @@
+{
+  "dateUTC": "2026-09-21T04:15:35.941869+00:00",
+  "sourceBaselineCommit": "dd1e97ee50e2a8b6383024dc7ef1da7dc2c4f6e6",
+  "branch": "codex/stvef-support",
+  "worktree": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3",
+  "platform": "Windows-10-10.0.26200-SP0",
+  "scope": "Diagnostic electricity jitter comparison and native random-consumption fixture; no production code/binary changes",
+  "productionSourceCommit": "1feffe2227dd6a8175f82d552b3e0003cf45248c",
+  "productionBuild": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "architecture": "x86",
+    "compilers": {
+      "c": {
+        "id": "msvc",
+        "version": "19.44.35222"
+      },
+      "cpp": {
+        "id": "msvc",
+        "version": "19.44.35222"
+      },
+      "nasm": {
+        "id": "nasm",
+        "version": "2.16.01"
+      }
+    },
+    "command": [
+      "meson",
+      "compile",
+      "-C",
+      "meson/build/win32-dev",
+      "-j",
+      "4"
+    ],
+    "result": "pass",
+    "artifacts": [
+      {
+        "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "bytes": 8521728,
+        "sha256": "155289afbe716cb87d95194fdde31a6157017eb6b6cfc76a88d5a16b80528a4e"
+      },
+      {
+        "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_glx_x86.dll",
+        "bytes": 2441216,
+        "sha256": "a53848d4933b9d4ef05b2af48d70d8271207b591ccd0fafcddb759c0de1652a3"
+      },
+      {
+        "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_vk_x86.dll",
+        "bytes": 2611200,
+        "sha256": "0ec7981e682ba3a037109bac0cc16ac151521dee5486100fcacb2df8c4b0cce3"
+      },
+      {
+        "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_rtx_x86.dll",
+        "bytes": 2902016,
+        "sha256": "66c1636ff72b6e350cf5f6ba9316b1ba3ea608d676ffa0944be3ad02c3013dac"
+      },
+      {
+        "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3-pkg.fnz",
+        "bytes": 2972513,
+        "sha256": "758ebd160bb8d8044ce513415f5972f5b48270beb1c9b77eb13ac456cf1d0cf7"
+      }
+    ]
+  },
+  "productionArtifactsRevalidated": true,
+  "sources": [
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\tests\\fixtures\\stvef_surface_retail.json",
+      "bytes": 99065,
+      "sha256": "53a90591f73e004148a12c02e6a3ba6e6353538afca8e66518a48cd8302b01e7"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\tests\\stvef_surface_fixture.c",
+      "bytes": 6550,
+      "sha256": "f8b6e6955cfd0dc5b6ee19c487a75e0b686510ef92a62ded42dafc0d44d8f0b2"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\tests\\stvef_surface_tests.py",
+      "bytes": 4422,
+      "sha256": "9a96ee6cc9c7cbf46e708bd2a12dd19db00f24196e9d893044a3b0509db7be45"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\tests\\stvef_demo_capture.py",
+      "bytes": 3049,
+      "sha256": "0c8ab06a9f8e5e2869afdc27fb6e90f308319ff00d23c11cdcc72deeffabdb7a"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\code\\renderercommon\\tr_stvef_surface.h",
+      "bytes": 15055,
+      "sha256": "75824ec3691e6dd0b7ccc45c0786d7cc4df8c156b2702ccd237d6e55536e2aa8"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\code\\renderer\\tr_surface.c",
+      "bytes": 41015,
+      "sha256": "24f712b47325a61609bb5672bb33c3ae4304f198ffb7ce4622d2d6fc157d7000"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\code\\renderervk\\tr_surface.c",
+      "bytes": 41791,
+      "sha256": "77cd3523fa040e3e00572f649ede92d98138baf5bac5add8aa4fbdbb10698a62"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\code\\rendererrtx\\tr_surface.c",
+      "bytes": 41669,
+      "sha256": "b459a4e767dccb4199eb99fda8203be90d6d8c30de3f15996359c77a16c1e8cb"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\code\\qcommon\\q_shared.h",
+      "bytes": 49364,
+      "sha256": "5ee87a55f70195a8252d9de7fc604bb9969143dcc73f50953525122361860a0e"
+    }
+  ],
+  "retail": {
+    "path": "E:\\Games\\Star Trek Voyager Elite Force\\stvoyHM.exe",
+    "bytes": 925696,
+    "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff"
+  },
+  "material": {
+    "pak": "E:/Games/fnTech3-tests/efassets-retail/baseEF/pak0.pk3",
+    "member": "scripts/effects.shader",
+    "bytes": 18528,
+    "sha256": "76e2dcec9a48da5e461f3b8bf22ed76ba70a392571c74b80b8f13dcf5e625996",
+    "name": "gfx/misc/dnBolt",
+    "observation": "Two additive stages; the second uses vertex color. Texture scrolls use the held material clock."
+  },
+  "trace": {
+    "instrumented": true,
+    "runs": [
+      {
+        "case": "stvef-burst-trace-glx-demo0001",
+        "renderer": "glx",
+        "demo": "demo0001",
+        "exit": 0,
+        "terminated": null,
+        "seconds": 8.422,
+        "privateDesktop": true,
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\burst-trace-bin\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-mp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets-retail",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-burst-trace-glx-demo0001",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "developer",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+exec",
+          "probe.cfg"
+        ],
+        "settings": {
+          "com_gameProfile": "stvef-mp",
+          "fs_basepath": "E:\\Games\\fnTech3-tests\\efassets-retail",
+          "fs_homepath": "E:\\Games\\fnTech3-tests\\stvef-burst-trace-glx-demo0001",
+          "cl_renderer": "glx",
+          "r_fullscreen": 0,
+          "r_mode": 3,
+          "in_mouse": 0,
+          "in_joystick": 0,
+          "in_nograb": 1,
+          "s_initsound": 0,
+          "developer": 0,
+          "logfile": 2,
+          "com_introplayed": 1,
+          "com_hunkMegs": 256,
+          "com_zoneMegs": 128,
+          "r_speeds": 1,
+          "cg_drawSnapshot": 1,
+          "timedemo": 0,
+          "cl_freezeDemo": 1,
+          "com_maxfps": 60,
+          "com_maxfpsUnfocused": 60,
+          "com_maxfpsMinimized": 60,
+          "r_swapInterval": 0,
+          "r_picmip": 1,
+          "r_picmipmin": 1,
+          "r_picmipFilter": 0,
+          "r_gamma": 1,
+          "r_bloom": 0,
+          "r_hdr": 0,
+          "r_overBrightBits": 0,
+          "r_mapOverBrightBits": 1,
+          "r_lodscale": 4,
+          "r_lodbias": 0,
+          "r_dynamiclight": 1,
+          "r_dlightMode": 0,
+          "r_stencilbits": 8,
+          "r_ext_compressed_textures": 0,
+          "r_ext_texture_filter_anisotropic": 0,
+          "r_textureMode": "GL_LINEAR_MIPMAP_LINEAR",
+          "cl_motd": 0,
+          "net_enabled": 0,
+          "cl_drawFPS": 0,
+          "cl_drawSpeed": 0,
+          "con_notifytime": 0
+        },
+        "scripts": {
+          "probe.cfg": "wait 60\nset activeAction \"exec capture.cfg\"\ndemo demo0001\n",
+          "capture.cfg": "wait 120\nset cl_freezeDemo 0\nset timedemo 1\nwait 80\nset timedemo 0\nset cl_freezeDemo 1\nscreenshot frozen_80_a\nwait 1\nscreenshot frozen_80_b\nwait 1\nset cl_freezeDemo 0\nset timedemo 1\nwait 200\nset timedemo 0\nset cl_freezeDemo 1\nscreenshot frozen_280_a\nwait 1\nscreenshot frozen_280_b\nwait 1\nset cl_freezeDemo 0\nset timedemo 1\nwait 180\nset timedemo 0\nset cl_freezeDemo 1\nscreenshot frozen_460_a\nwait 1\nscreenshot frozen_460_b\nwait 1\nrenderer_switch\necho FROZEN_DEMO_COMPLETE\nquit\n"
+        },
+        "executable": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\burst-trace-bin\\fntech3.exe",
+          "bytes": 8521728,
+          "sha256": "155289afbe716cb87d95194fdde31a6157017eb6b6cfc76a88d5a16b80528a4e"
+        },
+        "rendererBinary": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\burst-trace-bin\\fnql_glx_x86.dll",
+          "bytes": 2442240,
+          "sha256": "58a56be1853eccc3269d59ed0232bbc8a1f3153f1a1c6fd8a39bc866e3571d41"
+        },
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-burst-trace-glx-demo0001\\baseEF\\qconsole.log",
+          "bytes": 523773,
+          "sha256": "8273f6a7b7e5188e12fc8477274faea65f999f8056a2d2885c3f6cd5499423f4"
+        },
+        "verifiedRenderer": true,
+        "completed": true,
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-burst-trace-glx-demo0001\\baseEF\\screenshots\\frozen_280_a.png",
+            "bytes": 922218,
+            "sha256": "9a50ace2856c83e7b8f4918349f7f07b9967eb6e1553a8f6194cdca7cbdfbaba"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-burst-trace-glx-demo0001\\baseEF\\screenshots\\frozen_280_b.png",
+            "bytes": 922218,
+            "sha256": "ad5c5adf58c104dd833703b0e60a566c6c684e1aa93699b014685f455e55fc92"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-burst-trace-glx-demo0001\\baseEF\\screenshots\\frozen_460_a.png",
+            "bytes": 922218,
+            "sha256": "d13aa06fa39b5d3a68dd5d0a6ff02edf88d1a86ef004956dfabeaee26d2ce170"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-burst-trace-glx-demo0001\\baseEF\\screenshots\\frozen_460_b.png",
+            "bytes": 922218,
+            "sha256": "cbca9f59fbe37c0822fa415a6913cff55dd546ebe2fa315f53376236268e3ed1"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-burst-trace-glx-demo0001\\baseEF\\screenshots\\frozen_80_a.png",
+            "bytes": 922218,
+            "sha256": "03fb2ecc90a9eead401bd2a5f194b16f88cee00d7ad0f1c43275e84fb998472a"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-burst-trace-glx-demo0001\\baseEF\\screenshots\\frozen_80_b.png",
+            "bytes": 922218,
+            "sha256": "fa02948ffb37a193b2942e4e132343edc86d85ef1a03cc53aa1b73ace1f7612c"
+          }
+        ]
+      }
+    ],
+    "observations": [
+      {
+        "frame": 628,
+        "time": 2218000,
+        "electricityStageDraws": 12,
+        "otherStageDraws": 16,
+        "otherDrawsIdenticalToFirst": true,
+        "electricityGeometryIdenticalToFirst": true
+      },
+      {
+        "frame": 629,
+        "time": 2218000,
+        "electricityStageDraws": 12,
+        "otherStageDraws": 16,
+        "otherDrawsIdenticalToFirst": true,
+        "electricityGeometryIdenticalToFirst": false
+      },
+      {
+        "frame": 630,
+        "time": 2218000,
+        "electricityStageDraws": 12,
+        "otherStageDraws": 16,
+        "otherDrawsIdenticalToFirst": true,
+        "electricityGeometryIdenticalToFirst": false
+      }
+    ]
+  },
+  "fixedJitter": {
+    "instrumented": true,
+    "inputConstant": 16384,
+    "retailPatch": {
+      "scope": "Only six rand call sites inside the copied retail electricity tessellator",
+      "source": {
+        "path": "E:\\Games\\Star Trek Voyager Elite Force\\stvoyHM.exe",
+        "bytes": 925696,
+        "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff"
+      },
+      "instrumented": {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-retail-demo0001\\stvoyHM.exe",
+        "bytes": 925696,
+        "sha256": "ee6a70e662479d2c19e6cb871582672e952d16c403b11d6e55df711074ec8f92"
+      },
+      "observations": [
+        {
+          "address": "0x475ead",
+          "constantResult": 16384
+        },
+        {
+          "address": "0x475edb",
+          "constantResult": 16384
+        },
+        {
+          "address": "0x475f09",
+          "constantResult": 16384
+        },
+        {
+          "address": "0x476029",
+          "constantResult": 16384
+        },
+        {
+          "address": "0x476057",
+          "constantResult": 16384
+        },
+        {
+          "address": "0x476085",
+          "constantResult": 16384
+        }
+      ]
+    },
+    "verifiedOnlySixCallSitesChanged": true,
+    "runs": [
+      {
+        "case": "stvef-burst-fixed-retail-demo0001",
+        "renderer": "retail",
+        "demo": "demo0001",
+        "exit": 0,
+        "terminated": null,
+        "seconds": 5.688,
+        "privateDesktop": true,
+        "command": [
+          "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-retail-demo0001\\stvoyHM.exe",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-retail-demo0001",
+          "+set",
+          "fs_cdpath",
+          "E:\\Games\\fnTech3-tests\\efassets-retail",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "developer",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+exec",
+          "probe.cfg"
+        ],
+        "settings": {
+          "fs_basepath": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-retail-demo0001",
+          "fs_cdpath": "E:\\Games\\fnTech3-tests\\efassets-retail",
+          "r_fullscreen": 0,
+          "r_mode": 3,
+          "in_mouse": 0,
+          "in_joystick": 0,
+          "in_nograb": 1,
+          "s_initsound": 0,
+          "developer": 0,
+          "logfile": 2,
+          "com_introplayed": 1,
+          "com_hunkMegs": 256,
+          "com_zoneMegs": 128,
+          "r_speeds": 1,
+          "cg_drawSnapshot": 1,
+          "timedemo": 0,
+          "cl_freezeDemo": 1,
+          "com_maxfps": 60,
+          "com_maxfpsUnfocused": 60,
+          "com_maxfpsMinimized": 60,
+          "r_swapInterval": 0,
+          "r_picmip": 1,
+          "r_picmipmin": 1,
+          "r_picmipFilter": 0,
+          "r_gamma": 1,
+          "r_bloom": 0,
+          "r_hdr": 0,
+          "r_overBrightBits": 0,
+          "r_mapOverBrightBits": 1,
+          "r_lodscale": 4,
+          "r_lodbias": 0,
+          "r_dynamiclight": 1,
+          "r_dlightMode": 0,
+          "r_stencilbits": 8,
+          "r_ext_compressed_textures": 0,
+          "r_ext_texture_filter_anisotropic": 0,
+          "r_textureMode": "GL_LINEAR_MIPMAP_LINEAR",
+          "cl_motd": 0,
+          "net_enabled": 0,
+          "cl_drawFPS": 0,
+          "cl_drawSpeed": 0,
+          "con_notifytime": 0
+        },
+        "scripts": {
+          "probe.cfg": "wait 60\nset activeAction \"exec capture.cfg\"\ndemo demo0001\n",
+          "capture.cfg": "wait 240\nset cl_freezeDemo 0\nset timedemo 1\nwait 160\nset timedemo 0\nset cl_freezeDemo 1\nwait 2\nscreenshot frozen_80_a\nwait 2\nscreenshot frozen_80_b\nset cl_freezeDemo 0\nset timedemo 1\nwait 400\nset timedemo 0\nset cl_freezeDemo 1\nwait 2\nscreenshot frozen_280_a\nwait 2\nscreenshot frozen_280_b\nset cl_freezeDemo 0\nset timedemo 1\nwait 360\nset timedemo 0\nset cl_freezeDemo 1\nwait 2\nscreenshot frozen_460_a\nwait 2\nscreenshot frozen_460_b\necho FROZEN_DEMO_COMPLETE\nquit\n"
+        },
+        "executable": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-retail-demo0001\\stvoyHM.exe",
+          "bytes": 925696,
+          "sha256": "ee6a70e662479d2c19e6cb871582672e952d16c403b11d6e55df711074ec8f92"
+        },
+        "rendererBinary": null,
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-retail-demo0001\\baseEF\\qconsole.log",
+          "bytes": 57424,
+          "sha256": "e43b2d97639f5b118cbc95b49313507c8bf1f55503c46dad193f17e3b6dd95a4"
+        },
+        "verifiedRenderer": true,
+        "completed": true,
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-retail-demo0001\\baseEF\\screenshots\\frozen_280_a.tga",
+            "bytes": 921618,
+            "sha256": "d8e0411fe3df7d6787d957e7bbe408f763eb6b37a727ad57ee538a45efc37180"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-retail-demo0001\\baseEF\\screenshots\\frozen_280_b.tga",
+            "bytes": 921618,
+            "sha256": "f858ed5588b3bad0132aeb27f667258e53e74910f300dcc0ee956d4502546beb"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-retail-demo0001\\baseEF\\screenshots\\frozen_460_a.tga",
+            "bytes": 921618,
+            "sha256": "96b9df51061f69bf84821f358267a83d8326eed7a247d289023c77add1a20a0d"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-retail-demo0001\\baseEF\\screenshots\\frozen_460_b.tga",
+            "bytes": 921618,
+            "sha256": "b50d31fc9221077c92f73eb6400685a4cd3c6a1abd850ca600bc9b708be9f446"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-retail-demo0001\\baseEF\\screenshots\\frozen_80_a.tga",
+            "bytes": 921618,
+            "sha256": "cf4a887f143b7ed1c5e7320b968f34851ee52c9808eabeac549366d5b4704382"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-retail-demo0001\\baseEF\\screenshots\\frozen_80_b.tga",
+            "bytes": 921618,
+            "sha256": "2d1a1c27dbd1c0c231a0c9bd4121ce4ab74f81699b62515505c8430a5b767bad"
+          }
+        ]
+      },
+      {
+        "case": "stvef-burst-fixed-glx-demo0001",
+        "renderer": "glx",
+        "demo": "demo0001",
+        "exit": 0,
+        "terminated": null,
+        "seconds": 8.812,
+        "privateDesktop": true,
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\burst-fixed-bin\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-mp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets-retail",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-glx-demo0001",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "developer",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+exec",
+          "probe.cfg"
+        ],
+        "settings": {
+          "com_gameProfile": "stvef-mp",
+          "fs_basepath": "E:\\Games\\fnTech3-tests\\efassets-retail",
+          "fs_homepath": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-glx-demo0001",
+          "cl_renderer": "glx",
+          "r_fullscreen": 0,
+          "r_mode": 3,
+          "in_mouse": 0,
+          "in_joystick": 0,
+          "in_nograb": 1,
+          "s_initsound": 0,
+          "developer": 0,
+          "logfile": 2,
+          "com_introplayed": 1,
+          "com_hunkMegs": 256,
+          "com_zoneMegs": 128,
+          "r_speeds": 1,
+          "cg_drawSnapshot": 1,
+          "timedemo": 0,
+          "cl_freezeDemo": 1,
+          "com_maxfps": 60,
+          "com_maxfpsUnfocused": 60,
+          "com_maxfpsMinimized": 60,
+          "r_swapInterval": 0,
+          "r_picmip": 1,
+          "r_picmipmin": 1,
+          "r_picmipFilter": 0,
+          "r_gamma": 1,
+          "r_bloom": 0,
+          "r_hdr": 0,
+          "r_overBrightBits": 0,
+          "r_mapOverBrightBits": 1,
+          "r_lodscale": 4,
+          "r_lodbias": 0,
+          "r_dynamiclight": 1,
+          "r_dlightMode": 0,
+          "r_stencilbits": 8,
+          "r_ext_compressed_textures": 0,
+          "r_ext_texture_filter_anisotropic": 0,
+          "r_textureMode": "GL_LINEAR_MIPMAP_LINEAR",
+          "cl_motd": 0,
+          "net_enabled": 0,
+          "cl_drawFPS": 0,
+          "cl_drawSpeed": 0,
+          "con_notifytime": 0
+        },
+        "scripts": {
+          "probe.cfg": "wait 60\nset activeAction \"exec capture.cfg\"\ndemo demo0001\n",
+          "capture.cfg": "wait 120\nset cl_freezeDemo 0\nset timedemo 1\nwait 80\nset timedemo 0\nset cl_freezeDemo 1\nscreenshot frozen_80_a\nwait 1\nscreenshot frozen_80_b\nwait 1\nset cl_freezeDemo 0\nset timedemo 1\nwait 200\nset timedemo 0\nset cl_freezeDemo 1\nscreenshot frozen_280_a\nwait 1\nscreenshot frozen_280_b\nwait 1\nset cl_freezeDemo 0\nset timedemo 1\nwait 180\nset timedemo 0\nset cl_freezeDemo 1\nscreenshot frozen_460_a\nwait 1\nscreenshot frozen_460_b\nwait 1\nrenderer_switch\necho FROZEN_DEMO_COMPLETE\nquit\n"
+        },
+        "executable": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\burst-fixed-bin\\fntech3.exe",
+          "bytes": 8521728,
+          "sha256": "155289afbe716cb87d95194fdde31a6157017eb6b6cfc76a88d5a16b80528a4e"
+        },
+        "rendererBinary": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\burst-fixed-bin\\fnql_glx_x86.dll",
+          "bytes": 2441216,
+          "sha256": "61699c625179636d76c9320ac364ae2795412be696a3f8bd91d3e6e731a05cc1"
+        },
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-glx-demo0001\\baseEF\\qconsole.log",
+          "bytes": 58098,
+          "sha256": "6a8fa1c5db802026dcca777cbfad23b1a5d49111be5e3a0af815c8e814d86f48"
+        },
+        "verifiedRenderer": true,
+        "completed": true,
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-glx-demo0001\\baseEF\\screenshots\\frozen_280_a.png",
+            "bytes": 922218,
+            "sha256": "9a50ace2856c83e7b8f4918349f7f07b9967eb6e1553a8f6194cdca7cbdfbaba"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-glx-demo0001\\baseEF\\screenshots\\frozen_280_b.png",
+            "bytes": 922218,
+            "sha256": "ad5c5adf58c104dd833703b0e60a566c6c684e1aa93699b014685f455e55fc92"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-glx-demo0001\\baseEF\\screenshots\\frozen_460_a.png",
+            "bytes": 922218,
+            "sha256": "2a0679a604848b07478cb33d1a17e563f89ad5c275592b8add6c9490719062b0"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-glx-demo0001\\baseEF\\screenshots\\frozen_460_b.png",
+            "bytes": 922218,
+            "sha256": "4754d8b5f2d2aa5645745fe0b119a0ce3b5dd3702aea7c0a8710bc098982e330"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-glx-demo0001\\baseEF\\screenshots\\frozen_80_a.png",
+            "bytes": 922218,
+            "sha256": "03fb2ecc90a9eead401bd2a5f194b16f88cee00d7ad0f1c43275e84fb998472a"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-glx-demo0001\\baseEF\\screenshots\\frozen_80_b.png",
+            "bytes": 922218,
+            "sha256": "fa02948ffb37a193b2942e4e132343edc86d85ef1a03cc53aa1b73ace1f7612c"
+          }
+        ]
+      },
+      {
+        "case": "stvef-burst-fixed-vk-demo0001",
+        "renderer": "vk",
+        "demo": "demo0001",
+        "exit": 0,
+        "terminated": null,
+        "seconds": 8.234,
+        "privateDesktop": true,
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\burst-fixed-bin\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-mp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets-retail",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-vk-demo0001",
+          "+set",
+          "cl_renderer",
+          "vk",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "developer",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+exec",
+          "probe.cfg"
+        ],
+        "settings": {
+          "com_gameProfile": "stvef-mp",
+          "fs_basepath": "E:\\Games\\fnTech3-tests\\efassets-retail",
+          "fs_homepath": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-vk-demo0001",
+          "cl_renderer": "vk",
+          "r_fullscreen": 0,
+          "r_mode": 3,
+          "in_mouse": 0,
+          "in_joystick": 0,
+          "in_nograb": 1,
+          "s_initsound": 0,
+          "developer": 0,
+          "logfile": 2,
+          "com_introplayed": 1,
+          "com_hunkMegs": 256,
+          "com_zoneMegs": 128,
+          "r_speeds": 1,
+          "cg_drawSnapshot": 1,
+          "timedemo": 0,
+          "cl_freezeDemo": 1,
+          "com_maxfps": 60,
+          "com_maxfpsUnfocused": 60,
+          "com_maxfpsMinimized": 60,
+          "r_swapInterval": 0,
+          "r_picmip": 1,
+          "r_picmipmin": 1,
+          "r_picmipFilter": 0,
+          "r_gamma": 1,
+          "r_bloom": 0,
+          "r_hdr": 0,
+          "r_overBrightBits": 0,
+          "r_mapOverBrightBits": 1,
+          "r_lodscale": 4,
+          "r_lodbias": 0,
+          "r_dynamiclight": 1,
+          "r_dlightMode": 0,
+          "r_stencilbits": 8,
+          "r_ext_compressed_textures": 0,
+          "r_ext_texture_filter_anisotropic": 0,
+          "r_textureMode": "GL_LINEAR_MIPMAP_LINEAR",
+          "cl_motd": 0,
+          "net_enabled": 0,
+          "cl_drawFPS": 0,
+          "cl_drawSpeed": 0,
+          "con_notifytime": 0
+        },
+        "scripts": {
+          "probe.cfg": "wait 60\nset activeAction \"exec capture.cfg\"\ndemo demo0001\n",
+          "capture.cfg": "wait 120\nset cl_freezeDemo 0\nset timedemo 1\nwait 80\nset timedemo 0\nset cl_freezeDemo 1\nscreenshot frozen_80_a\nwait 1\nscreenshot frozen_80_b\nwait 1\nset cl_freezeDemo 0\nset timedemo 1\nwait 200\nset timedemo 0\nset cl_freezeDemo 1\nscreenshot frozen_280_a\nwait 1\nscreenshot frozen_280_b\nwait 1\nset cl_freezeDemo 0\nset timedemo 1\nwait 180\nset timedemo 0\nset cl_freezeDemo 1\nscreenshot frozen_460_a\nwait 1\nscreenshot frozen_460_b\nwait 1\nrenderer_switch\necho FROZEN_DEMO_COMPLETE\nquit\n"
+        },
+        "executable": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\burst-fixed-bin\\fntech3.exe",
+          "bytes": 8521728,
+          "sha256": "155289afbe716cb87d95194fdde31a6157017eb6b6cfc76a88d5a16b80528a4e"
+        },
+        "rendererBinary": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\burst-fixed-bin\\fnql_vk_x86.dll",
+          "bytes": 2610688,
+          "sha256": "e7673fb6656a6f34d0a092914d9e2c2a1b195d7c9e9ff34bf6b9df9420bbc305"
+        },
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-vk-demo0001\\baseEF\\qconsole.log",
+          "bytes": 51406,
+          "sha256": "73ce48c39799b92a9d918339c8a4a7765f79231ce6fe8707cf0ab38c327aa3f0"
+        },
+        "verifiedRenderer": true,
+        "completed": true,
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-vk-demo0001\\baseEF\\screenshots\\frozen_280_a.png",
+            "bytes": 922218,
+            "sha256": "1cdf908ff3ef13025a6f1014ddbda4de03340a116bdb87d22e33f429b4a4c987"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-vk-demo0001\\baseEF\\screenshots\\frozen_280_b.png",
+            "bytes": 922218,
+            "sha256": "b06fbeaffd37f979f67d803fe0136a5d8c5f621a8f759ebf8db3814eddac15ad"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-vk-demo0001\\baseEF\\screenshots\\frozen_460_a.png",
+            "bytes": 922218,
+            "sha256": "64be61e5e197a8a426dcb9502834c28520b8ac77e50aa8bab21d7982db642746"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-vk-demo0001\\baseEF\\screenshots\\frozen_460_b.png",
+            "bytes": 922218,
+            "sha256": "a6acfedc94a5017084d6d26df30c3d248cb8f04dc4171d803d0acaa939ec3d09"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-vk-demo0001\\baseEF\\screenshots\\frozen_80_a.png",
+            "bytes": 922218,
+            "sha256": "a4e5e325024dcde94341c995cde5a2720a0c39ded0537841e95674f8b908d745"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-vk-demo0001\\baseEF\\screenshots\\frozen_80_b.png",
+            "bytes": 922218,
+            "sha256": "b22f04e3fba338040b7692ed6f4ae70c61443aae4c98ddb5aadfdf74078b069e"
+          }
+        ]
+      },
+      {
+        "case": "stvef-burst-fixed-rtx-demo0001",
+        "renderer": "rtx",
+        "demo": "demo0001",
+        "exit": 0,
+        "terminated": null,
+        "seconds": 7.016,
+        "privateDesktop": true,
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\burst-fixed-bin\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-mp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets-retail",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-rtx-demo0001",
+          "+set",
+          "cl_renderer",
+          "rtx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "developer",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+exec",
+          "probe.cfg"
+        ],
+        "settings": {
+          "com_gameProfile": "stvef-mp",
+          "fs_basepath": "E:\\Games\\fnTech3-tests\\efassets-retail",
+          "fs_homepath": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-rtx-demo0001",
+          "cl_renderer": "rtx",
+          "r_fullscreen": 0,
+          "r_mode": 3,
+          "in_mouse": 0,
+          "in_joystick": 0,
+          "in_nograb": 1,
+          "s_initsound": 0,
+          "developer": 0,
+          "logfile": 2,
+          "com_introplayed": 1,
+          "com_hunkMegs": 256,
+          "com_zoneMegs": 128,
+          "r_speeds": 1,
+          "cg_drawSnapshot": 1,
+          "timedemo": 0,
+          "cl_freezeDemo": 1,
+          "com_maxfps": 60,
+          "com_maxfpsUnfocused": 60,
+          "com_maxfpsMinimized": 60,
+          "r_swapInterval": 0,
+          "r_picmip": 1,
+          "r_picmipmin": 1,
+          "r_picmipFilter": 0,
+          "r_gamma": 1,
+          "r_bloom": 0,
+          "r_hdr": 0,
+          "r_overBrightBits": 0,
+          "r_mapOverBrightBits": 1,
+          "r_lodscale": 4,
+          "r_lodbias": 0,
+          "r_dynamiclight": 1,
+          "r_dlightMode": 0,
+          "r_stencilbits": 8,
+          "r_ext_compressed_textures": 0,
+          "r_ext_texture_filter_anisotropic": 0,
+          "r_textureMode": "GL_LINEAR_MIPMAP_LINEAR",
+          "cl_motd": 0,
+          "net_enabled": 0,
+          "cl_drawFPS": 0,
+          "cl_drawSpeed": 0,
+          "con_notifytime": 0
+        },
+        "scripts": {
+          "probe.cfg": "wait 60\nset activeAction \"exec capture.cfg\"\ndemo demo0001\n",
+          "capture.cfg": "wait 120\nset cl_freezeDemo 0\nset timedemo 1\nwait 80\nset timedemo 0\nset cl_freezeDemo 1\nscreenshot frozen_80_a\nwait 1\nscreenshot frozen_80_b\nwait 1\nset cl_freezeDemo 0\nset timedemo 1\nwait 200\nset timedemo 0\nset cl_freezeDemo 1\nscreenshot frozen_280_a\nwait 1\nscreenshot frozen_280_b\nwait 1\nset cl_freezeDemo 0\nset timedemo 1\nwait 180\nset timedemo 0\nset cl_freezeDemo 1\nscreenshot frozen_460_a\nwait 1\nscreenshot frozen_460_b\nwait 1\nrenderer_switch\necho FROZEN_DEMO_COMPLETE\nquit\n"
+        },
+        "executable": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\burst-fixed-bin\\fntech3.exe",
+          "bytes": 8521728,
+          "sha256": "155289afbe716cb87d95194fdde31a6157017eb6b6cfc76a88d5a16b80528a4e"
+        },
+        "rendererBinary": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\burst-fixed-bin\\fnql_rtx_x86.dll",
+          "bytes": 2900992,
+          "sha256": "1267cb97d7638d49b85357f938a7557802af4b0f335f79d57d2da636336a9712"
+        },
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-rtx-demo0001\\baseEF\\qconsole.log",
+          "bytes": 51776,
+          "sha256": "98550ddf205a1116728c1800cd9c852310db39b6f341d5ae5e252f7d4c64a86b"
+        },
+        "verifiedRenderer": true,
+        "completed": true,
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-rtx-demo0001\\baseEF\\screenshots\\frozen_280_a.png",
+            "bytes": 922218,
+            "sha256": "1cdf908ff3ef13025a6f1014ddbda4de03340a116bdb87d22e33f429b4a4c987"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-rtx-demo0001\\baseEF\\screenshots\\frozen_280_b.png",
+            "bytes": 922218,
+            "sha256": "b06fbeaffd37f979f67d803fe0136a5d8c5f621a8f759ebf8db3814eddac15ad"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-rtx-demo0001\\baseEF\\screenshots\\frozen_460_a.png",
+            "bytes": 922218,
+            "sha256": "64be61e5e197a8a426dcb9502834c28520b8ac77e50aa8bab21d7982db642746"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-rtx-demo0001\\baseEF\\screenshots\\frozen_460_b.png",
+            "bytes": 922218,
+            "sha256": "a6acfedc94a5017084d6d26df30c3d248cb8f04dc4171d803d0acaa939ec3d09"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-rtx-demo0001\\baseEF\\screenshots\\frozen_80_a.png",
+            "bytes": 922218,
+            "sha256": "a4e5e325024dcde94341c995cde5a2720a0c39ded0537841e95674f8b908d745"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-rtx-demo0001\\baseEF\\screenshots\\frozen_80_b.png",
+            "bytes": 922218,
+            "sha256": "b22f04e3fba338040b7692ed6f4ae70c61443aae4c98ddb5aadfdf74078b069e"
+          }
+        ]
+      }
+    ],
+    "metrics": [
+      {
+        "sample": 80,
+        "capture": "a",
+        "renderer": "retail",
+        "meanAbsoluteRGB": 0.0,
+        "maximumChannel": 0
+      },
+      {
+        "sample": 80,
+        "capture": "a",
+        "renderer": "glx",
+        "meanAbsoluteRGB": 0.6445572916666666,
+        "maximumChannel": 111
+      },
+      {
+        "sample": 80,
+        "capture": "a",
+        "renderer": "vk",
+        "meanAbsoluteRGB": 0.6444097222222223,
+        "maximumChannel": 111
+      },
+      {
+        "sample": 80,
+        "capture": "a",
+        "renderer": "rtx",
+        "meanAbsoluteRGB": 0.6444097222222223,
+        "maximumChannel": 111
+      },
+      {
+        "sample": 80,
+        "capture": "b",
+        "renderer": "retail",
+        "meanAbsoluteRGB": 0.0,
+        "maximumChannel": 0
+      },
+      {
+        "sample": 80,
+        "capture": "b",
+        "renderer": "glx",
+        "meanAbsoluteRGB": 0.6446115451388889,
+        "maximumChannel": 111
+      },
+      {
+        "sample": 80,
+        "capture": "b",
+        "renderer": "vk",
+        "meanAbsoluteRGB": 0.6444639756944445,
+        "maximumChannel": 111
+      },
+      {
+        "sample": 80,
+        "capture": "b",
+        "renderer": "rtx",
+        "meanAbsoluteRGB": 0.6444639756944445,
+        "maximumChannel": 111
+      },
+      {
+        "sample": 280,
+        "capture": "a",
+        "renderer": "retail",
+        "meanAbsoluteRGB": 0.0,
+        "maximumChannel": 0
+      },
+      {
+        "sample": 280,
+        "capture": "a",
+        "renderer": "glx",
+        "meanAbsoluteRGB": 0.6517024739583334,
+        "maximumChannel": 179
+      },
+      {
+        "sample": 280,
+        "capture": "a",
+        "renderer": "vk",
+        "meanAbsoluteRGB": 0.6434787326388889,
+        "maximumChannel": 179
+      },
+      {
+        "sample": 280,
+        "capture": "a",
+        "renderer": "rtx",
+        "meanAbsoluteRGB": 0.6434787326388889,
+        "maximumChannel": 179
+      },
+      {
+        "sample": 280,
+        "capture": "b",
+        "renderer": "retail",
+        "meanAbsoluteRGB": 0.0,
+        "maximumChannel": 0
+      },
+      {
+        "sample": 280,
+        "capture": "b",
+        "renderer": "glx",
+        "meanAbsoluteRGB": 0.6504014756944444,
+        "maximumChannel": 165
+      },
+      {
+        "sample": 280,
+        "capture": "b",
+        "renderer": "vk",
+        "meanAbsoluteRGB": 0.6422243923611111,
+        "maximumChannel": 165
+      },
+      {
+        "sample": 280,
+        "capture": "b",
+        "renderer": "rtx",
+        "meanAbsoluteRGB": 0.6422243923611111,
+        "maximumChannel": 165
+      },
+      {
+        "sample": 460,
+        "capture": "a",
+        "renderer": "retail",
+        "meanAbsoluteRGB": 0.0,
+        "maximumChannel": 0
+      },
+      {
+        "sample": 460,
+        "capture": "a",
+        "renderer": "glx",
+        "meanAbsoluteRGB": 0.6670822482638888,
+        "maximumChannel": 240
+      },
+      {
+        "sample": 460,
+        "capture": "a",
+        "renderer": "vk",
+        "meanAbsoluteRGB": 0.6500911458333334,
+        "maximumChannel": 240
+      },
+      {
+        "sample": 460,
+        "capture": "a",
+        "renderer": "rtx",
+        "meanAbsoluteRGB": 0.6500911458333334,
+        "maximumChannel": 240
+      },
+      {
+        "sample": 460,
+        "capture": "b",
+        "renderer": "retail",
+        "meanAbsoluteRGB": 0.0,
+        "maximumChannel": 0
+      },
+      {
+        "sample": 460,
+        "capture": "b",
+        "renderer": "glx",
+        "meanAbsoluteRGB": 0.6668435329861111,
+        "maximumChannel": 240
+      },
+      {
+        "sample": 460,
+        "capture": "b",
+        "renderer": "vk",
+        "meanAbsoluteRGB": 0.6498589409722222,
+        "maximumChannel": 240
+      },
+      {
+        "sample": 460,
+        "capture": "b",
+        "renderer": "rtx",
+        "meanAbsoluteRGB": 0.6498589409722222,
+        "maximumChannel": 240
+      }
+    ],
+    "controls": [
+      {
+        "renderer": "retail",
+        "sample": 80,
+        "capture": "a",
+        "identical": true,
+        "meanAbsoluteRGB": 0.0
+      },
+      {
+        "renderer": "glx",
+        "sample": 80,
+        "capture": "a",
+        "identical": true,
+        "meanAbsoluteRGB": 0.0
+      },
+      {
+        "renderer": "vk",
+        "sample": 80,
+        "capture": "a",
+        "identical": true,
+        "meanAbsoluteRGB": 0.0
+      },
+      {
+        "renderer": "rtx",
+        "sample": 80,
+        "capture": "a",
+        "identical": true,
+        "meanAbsoluteRGB": 0.0
+      },
+      {
+        "renderer": "retail",
+        "sample": 80,
+        "capture": "b",
+        "identical": true,
+        "meanAbsoluteRGB": 0.0
+      },
+      {
+        "renderer": "glx",
+        "sample": 80,
+        "capture": "b",
+        "identical": true,
+        "meanAbsoluteRGB": 0.0
+      },
+      {
+        "renderer": "vk",
+        "sample": 80,
+        "capture": "b",
+        "identical": true,
+        "meanAbsoluteRGB": 0.0
+      },
+      {
+        "renderer": "rtx",
+        "sample": 80,
+        "capture": "b",
+        "identical": true,
+        "meanAbsoluteRGB": 0.0
+      },
+      {
+        "renderer": "retail",
+        "sample": 280,
+        "capture": "a",
+        "identical": true,
+        "meanAbsoluteRGB": 0.0
+      },
+      {
+        "renderer": "glx",
+        "sample": 280,
+        "capture": "a",
+        "identical": true,
+        "meanAbsoluteRGB": 0.0
+      },
+      {
+        "renderer": "vk",
+        "sample": 280,
+        "capture": "a",
+        "identical": true,
+        "meanAbsoluteRGB": 0.0
+      },
+      {
+        "renderer": "rtx",
+        "sample": 280,
+        "capture": "a",
+        "identical": true,
+        "meanAbsoluteRGB": 0.0
+      },
+      {
+        "renderer": "retail",
+        "sample": 280,
+        "capture": "b",
+        "identical": true,
+        "meanAbsoluteRGB": 0.0
+      },
+      {
+        "renderer": "glx",
+        "sample": 280,
+        "capture": "b",
+        "identical": true,
+        "meanAbsoluteRGB": 0.0
+      },
+      {
+        "renderer": "vk",
+        "sample": 280,
+        "capture": "b",
+        "identical": true,
+        "meanAbsoluteRGB": 0.0
+      },
+      {
+        "renderer": "rtx",
+        "sample": 280,
+        "capture": "b",
+        "identical": true,
+        "meanAbsoluteRGB": 0.0
+      },
+      {
+        "renderer": "retail",
+        "sample": 460,
+        "capture": "a",
+        "identical": false,
+        "meanAbsoluteRGB": 0.996162109375
+      },
+      {
+        "renderer": "glx",
+        "sample": 460,
+        "capture": "a",
+        "identical": false,
+        "meanAbsoluteRGB": 0.828369140625
+      },
+      {
+        "renderer": "vk",
+        "sample": 460,
+        "capture": "a",
+        "identical": false,
+        "meanAbsoluteRGB": 0.8236588541666666
+      },
+      {
+        "renderer": "rtx",
+        "sample": 460,
+        "capture": "a",
+        "identical": false,
+        "meanAbsoluteRGB": 0.8236588541666666
+      },
+      {
+        "renderer": "retail",
+        "sample": 460,
+        "capture": "b",
+        "identical": false,
+        "meanAbsoluteRGB": 1.3630620659722221
+      },
+      {
+        "renderer": "glx",
+        "sample": 460,
+        "capture": "b",
+        "identical": false,
+        "meanAbsoluteRGB": 1.2986317274305557
+      },
+      {
+        "renderer": "vk",
+        "sample": 460,
+        "capture": "b",
+        "identical": false,
+        "meanAbsoluteRGB": 1.2862565104166668
+      },
+      {
+        "renderer": "rtx",
+        "sample": 460,
+        "capture": "b",
+        "identical": false,
+        "meanAbsoluteRGB": 1.2862565104166668
+      }
+    ],
+    "comparisonDefinition": "All 640x480 RGB channels, 0..255; no masks, alignment or best-frame selection.",
+    "imageReview": "The complete 24-image contact sheet was inspected. The two burst captures agree closely with controlled retail; 16 non-burst controls are pixel-identical to uninstrumented images."
+  },
+  "uninstrumentedBaseline": {
+    "manifest": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\effect-same-frame-runtime.json",
+      "bytes": 65019,
+      "sha256": "9a1a32e58b6824a8632579578206ed962bcefab04aaa619a6e0e71e855db370a"
+    },
+    "metrics": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\effect-frame-metrics.json",
+      "bytes": 21373,
+      "sha256": "60b19259dbd5d4f302c78ae97038ed96e57fb384928277033a8bce5a9cd4a202"
+    },
+    "evidence": "docs/fntech3/evidence/2026-09-21-stvef-effect-captures.json"
+  },
+  "nativeProbe": {
+    "command": [
+      ".tmp/stvef-gaps/retail_surface_random_probe.exe",
+      "E:\\Games\\Star Trek Voyager Elite Force\\stvoyHM.exe",
+      "geometry",
+      "owned"
+    ],
+    "mappedOnly": true,
+    "gameStartup": false,
+    "deviceAccess": false,
+    "geometryUnchanged": true,
+    "randomCalls": [
+      {
+        "type": 2,
+        "variant": 0,
+        "count": 0
+      },
+      {
+        "type": 2,
+        "variant": 1,
+        "count": 0
+      },
+      {
+        "type": 2,
+        "variant": 2,
+        "count": 0
+      },
+      {
+        "type": 2,
+        "variant": 3,
+        "count": 0
+      },
+      {
+        "type": 2,
+        "variant": 4,
+        "count": 0
+      },
+      {
+        "type": 2,
+        "variant": 5,
+        "count": 0
+      },
+      {
+        "type": 2,
+        "variant": 6,
+        "count": 0
+      },
+      {
+        "type": 3,
+        "variant": 0,
+        "count": 0
+      },
+      {
+        "type": 3,
+        "variant": 1,
+        "count": 0
+      },
+      {
+        "type": 3,
+        "variant": 2,
+        "count": 0
+      },
+      {
+        "type": 3,
+        "variant": 3,
+        "count": 0
+      },
+      {
+        "type": 3,
+        "variant": 4,
+        "count": 0
+      },
+      {
+        "type": 3,
+        "variant": 5,
+        "count": 0
+      },
+      {
+        "type": 3,
+        "variant": 6,
+        "count": 0
+      },
+      {
+        "type": 9,
+        "variant": 0,
+        "count": 0
+      },
+      {
+        "type": 9,
+        "variant": 1,
+        "count": 0
+      },
+      {
+        "type": 9,
+        "variant": 2,
+        "count": 0
+      },
+      {
+        "type": 9,
+        "variant": 3,
+        "count": 0
+      },
+      {
+        "type": 9,
+        "variant": 4,
+        "count": 0
+      },
+      {
+        "type": 9,
+        "variant": 5,
+        "count": 0
+      },
+      {
+        "type": 9,
+        "variant": 6,
+        "count": 0
+      },
+      {
+        "type": 10,
+        "variant": 0,
+        "count": 0
+      },
+      {
+        "type": 10,
+        "variant": 1,
+        "count": 0
+      },
+      {
+        "type": 10,
+        "variant": 2,
+        "count": 0
+      },
+      {
+        "type": 10,
+        "variant": 3,
+        "count": 0
+      },
+      {
+        "type": 10,
+        "variant": 4,
+        "count": 0
+      },
+      {
+        "type": 10,
+        "variant": 5,
+        "count": 0
+      },
+      {
+        "type": 10,
+        "variant": 6,
+        "count": 0
+      },
+      {
+        "type": 11,
+        "variant": 0,
+        "count": 0
+      },
+      {
+        "type": 11,
+        "variant": 1,
+        "count": 0
+      },
+      {
+        "type": 11,
+        "variant": 2,
+        "count": 0
+      },
+      {
+        "type": 11,
+        "variant": 3,
+        "count": 0
+      },
+      {
+        "type": 11,
+        "variant": 4,
+        "count": 0
+      },
+      {
+        "type": 11,
+        "variant": 5,
+        "count": 0
+      },
+      {
+        "type": 11,
+        "variant": 6,
+        "count": 0
+      },
+      {
+        "type": 12,
+        "variant": 0,
+        "count": 0
+      },
+      {
+        "type": 12,
+        "variant": 1,
+        "count": 0
+      },
+      {
+        "type": 12,
+        "variant": 2,
+        "count": 0
+      },
+      {
+        "type": 12,
+        "variant": 3,
+        "count": 0
+      },
+      {
+        "type": 12,
+        "variant": 4,
+        "count": 0
+      },
+      {
+        "type": 12,
+        "variant": 5,
+        "count": 0
+      },
+      {
+        "type": 12,
+        "variant": 6,
+        "count": 0
+      },
+      {
+        "type": 13,
+        "variant": 0,
+        "count": 0
+      },
+      {
+        "type": 13,
+        "variant": 1,
+        "count": 0
+      },
+      {
+        "type": 13,
+        "variant": 2,
+        "count": 0
+      },
+      {
+        "type": 13,
+        "variant": 3,
+        "count": 0
+      },
+      {
+        "type": 13,
+        "variant": 4,
+        "count": 0
+      },
+      {
+        "type": 13,
+        "variant": 5,
+        "count": 0
+      },
+      {
+        "type": 13,
+        "variant": 6,
+        "count": 0
+      },
+      {
+        "type": 14,
+        "variant": 0,
+        "count": 45
+      },
+      {
+        "type": 14,
+        "variant": 1,
+        "count": 45
+      },
+      {
+        "type": 14,
+        "variant": 2,
+        "count": 45
+      },
+      {
+        "type": 14,
+        "variant": 3,
+        "count": 45
+      },
+      {
+        "type": 14,
+        "variant": 4,
+        "count": 45
+      },
+      {
+        "type": 14,
+        "variant": 5,
+        "count": 45
+      },
+      {
+        "type": 14,
+        "variant": 6,
+        "count": 45
+      }
+    ],
+    "buildCommand": [
+      ".tmp/stvef-gaps/run-msvc.ps1",
+      "-TaskCommand",
+      "cl",
+      "-TaskArguments",
+      "/nologo",
+      "/O2",
+      "/MT",
+      ".tmp/stvef-gaps/retail_surface_random_probe.c",
+      "/Fe.tmp/stvef-gaps/retail_surface_random_probe.exe",
+      "/Fo.tmp/stvef-gaps/retail_surface_random_probe.obj",
+      "/link",
+      "/BASE:0x18000000",
+      "/FIXED",
+      "/DYNAMICBASE:NO"
+    ]
+  },
+  "tests": {
+    "comparisonsPerPlatform": 336,
+    "renderersPerPlatform": 3,
+    "batchOffsets": [
+      0,
+      7
+    ],
+    "boundsModes": true,
+    "windows": {
+      "command": [
+        ".tmp/stvef-gaps/run-msvc.ps1",
+        "-TaskCommand",
+        "python",
+        "-TaskArguments",
+        "tests/stvef_surface_tests.py",
+        "-v"
+      ],
+      "architecture": "x86",
+      "seconds": 3.886,
+      "result": "pass",
+      "temporaryPath": ".tmp/w"
+    },
+    "linux": {
+      "command": [
+        "wsl.exe",
+        "-d",
+        "Ubuntu",
+        "--cd",
+        "/mnt/c/Users/djdac/.codex/worktrees/stvef-support/fnTech3",
+        "--exec",
+        "env",
+        "PYTHONDONTWRITEBYTECODE=1",
+        "TMPDIR=/mnt/c/Users/djdac/.codex/worktrees/stvef-support/fnTech3/.tmp/stvef-gaps/linux-test-tmp",
+        "python3",
+        "tests/stvef_surface_tests.py",
+        "-v"
+      ],
+      "architecture": "i686",
+      "compiler": "Ubuntu Clang 18.1.3",
+      "seconds": 15.494,
+      "result": "pass",
+      "sanitizers": [
+        "address",
+        "undefined",
+        "float-cast-overflow"
+      ]
+    },
+    "initialWindowsInvocation": "Outside the configured x86 environment the compiler targeted x64; the existing shared pointer-width guard rejected it. The x86-wrapper rerun passed.",
+    "fullSuiteRerun": false
+  },
+  "evidenceFiles": [
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\build_burst_trace.py",
+      "bytes": 3446,
+      "sha256": "e2714cd1047ad358d92124e30154846337455ef96bd8b8400a7066d6dd7b7445"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\tr_shade_burst_trace.c",
+      "bytes": 86481,
+      "sha256": "53dec8b921868ea7b83ab71729e23827b683ff5032da812bb5ba4bff864eade1"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\burst-trace-build.log",
+      "bytes": 33069,
+      "sha256": "677e503ab74b35b539ed04f3aedb4cda1b8ce668e96864da2c2643c940d045c7"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\burst-trace-link.rsp",
+      "bytes": 3073,
+      "sha256": "08bda9fba453adba8b045043698f22ec1e10e4a85f5c3d538968ee844f3a1d45"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\probe_burst_trace.py",
+      "bytes": 4124,
+      "sha256": "84ed991cade2a665e1483643eb5780346a2281b5762fa134867dcce3ecbeb7b7"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\burst-trace-run.log",
+      "bytes": 145,
+      "sha256": "44f6f7031d9ca68a66ced0807ae9b46bcb7f0863c8221577014687f119183326"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\burst-trace-summary.json",
+      "bytes": 619,
+      "sha256": "3668a8fed459db3818a2906f7d38090e1cf61f2dd78cf0216ac868d27a9260be"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\build_burst_fixed.py",
+      "bytes": 3466,
+      "sha256": "81803a9c5a699ecfe0ad6f64c8b7b7fa444a9751bd2628707ef6598b75f077ee"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\tr_surface_burst_fixed_glx.c",
+      "bytes": 41150,
+      "sha256": "cc82bd0595a5381085f58c34b637197fb894823f451189a88d180ca557f8d367"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\tr_surface_burst_fixed_vk.c",
+      "bytes": 41926,
+      "sha256": "a08b30651716507787f75485c307899db73265fa75dcb375ed5954fb2d0032a8"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\tr_surface_burst_fixed_rtx.c",
+      "bytes": 41804,
+      "sha256": "5b5a5fffaa3a10536f54c08d97d9107b39f57c8d0e983b7ff95538955a516a34"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\burst-fixed-build.log",
+      "bytes": 55461,
+      "sha256": "d5e1069caf28abe9efcce9abcfe69d799661347c2fff2fd26f3499cae6188901"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\burst-fixed-glx-link.rsp",
+      "bytes": 3077,
+      "sha256": "b1f61f93d7f138516de5244b6da827e73fe752a206d6660ef71de3a15be610a4"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\burst-fixed-vk-link.rsp",
+      "bytes": 2458,
+      "sha256": "85a426453ef7817ce64b09b185baf68efef0b2c74d2feb223ab3b87639f85347"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\burst-fixed-rtx-link.rsp",
+      "bytes": 2520,
+      "sha256": "bab5bf3ff42c84bf3fc3b7552dad2bdcc201e364493c10c30caa9321cce1b64e"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\probe_burst_fixed.py",
+      "bytes": 5111,
+      "sha256": "404c3570e15f537f78c5499efc8da5f712d97a3209f3b6e8fab534e21ae8b572"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\burst-fixed-run.log",
+      "bytes": 582,
+      "sha256": "91d24b7b0c4a40025d947457ded2572efffc8c7f71f5da0a703694a5efe965bb"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\burst-fixed-contact.png",
+      "bytes": 1395359,
+      "sha256": "c9d0e71130632c9a8d41894834ddb700128ed84411c008420069f57c514cd360"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\burst-fixed-metrics.json",
+      "bytes": 3435,
+      "sha256": "6b7f00d71868d6dd21d571ac9a75a4c0ea2bf7b37fc45eaee8e5fc1bab8906ef"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\burst-control-comparison.json",
+      "bytes": 3201,
+      "sha256": "b3b40066ee9d07afecbe5ea52baead29396d8a860dae19f801cabc9b20e36725"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\analyze_burst_comparison.py",
+      "bytes": 3019,
+      "sha256": "e428fef28ffbbfb2b027f3201ced0b53bc516bcf398b4e73e26871b2eb418b92"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\retail-electricity-random-disassembly.txt",
+      "bytes": 5131,
+      "sha256": "6cc40abc1a0d831a4774de1aea83cbe946a6509fe2405b51e841212055ab2450"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\retail_surface_random_probe.c",
+      "bytes": 3691,
+      "sha256": "3184983f9ce53e9559c02dd32b00c9985a65d7693a596caa66401875aa206a33"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\retail_surface_random_probe.exe",
+      "bytes": 138752,
+      "sha256": "87640cfb44c04257f5bb8a268c9f4c2e9e60df7802edc7bc862d86506e2ea57d"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\retail_math_probe.c",
+      "bytes": 9474,
+      "sha256": "106f7489a779da41074d83befa9d452e51a2d43be418decaadd1f321c703230c"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\surface-random-native-build.log",
+      "bytes": 31,
+      "sha256": "133b99be22411da45e6386556ff6e470da22cbc9698fb66b89334b1c3c1ec57e"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\surface-random-native.json",
+      "bytes": 96697,
+      "sha256": "418fe5cd54c56a390eda432f0f1c41a9c980a8371f64d45cdca745f4697981ca"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\surface-random-windows.log",
+      "bytes": 5347,
+      "sha256": "f5d117cb304c9f4e125689dbdb620dce0781b02725fce8db4c6b2a62e29e1599"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\surface-random-windows-x86.log",
+      "bytes": 267,
+      "sha256": "e605c88bb10c466c990959b04ed4a12a5e85532fb98c91106aef6ceff06c723d"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\surface-random-linux.log",
+      "bytes": 268,
+      "sha256": "954e5ed50da8b5434a41018e215454b3a2328fe9a53227527b15b1e4dbf38b52"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\record_electricity.py",
+      "bytes": 8031,
+      "sha256": "12bedcd91baf3041a27380621e12f525f0d42b683c3b01f68a8290b446b3af99"
+    },
+    {
+      "path": "E:\\Games\\fnTech3-tests\\stvef-burst-fixed-retail-demo0001\\instrumentation.json",
+      "bytes": 991,
+      "sha256": "5dc638d38678356d83d724f46dee1d74729790cd83e68a3dfb0a0a57a777c0c6"
+    }
+  ],
+  "limits": [
+    "Instrumented constant-jitter results are separate from production image evidence.",
+    "Whole-process PRNG streams are not proven identical; no production random generator or seed changed.",
+    "Windows RTX uses SDR raster output, not native RT.",
+    "Broader SP/campaign, physical input, listening and feedback-device acceptance remain open."
+  ],
+  "cleanup": "Local probes and build outputs retained as evidence in the designated project area; earlier cleanup-rejected files were not touched or retried."
+}

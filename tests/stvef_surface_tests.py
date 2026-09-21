@@ -27,7 +27,11 @@ class STVEFSurfaceTests(unittest.TestCase):
             'float Q_fabs(', 'void RotatePointAroundVector(', 'void ProjectPointOnPlane(',
             'void MakeNormalVectors(', 'vec_t VectorNormalize(', 'void MatrixMultiply(',
             'void PerpendicularVector('))
-        expected = json.loads((ROOT / 'tests/fixtures/stvef_surface_retail.json').read_text())['cases']
+        fixture = json.loads((ROOT / 'tests/fixtures/stvef_surface_retail.json').read_text())
+        expected = fixture['cases']
+        random_calls = {(case['type'], case['variant']): case['count']
+                        for case in fixture['randomCalls']}
+        self.assertEqual(set(random_calls), {(case['type'], case['variant']) for case in expected})
         creation = {'creationflags': subprocess.CREATE_NO_WINDOW} if os.name == 'nt' else {}
         for renderer in RENDERERS:
             with self.subTest(renderer=renderer), tempfile.TemporaryDirectory(
@@ -58,6 +62,7 @@ class STVEFSurfaceTests(unittest.TestCase):
                         with self.subTest(mode=mode, primitive=retail['type'], variant=retail['variant']):
                             self.assertEqual(ours['type'], retail['type'])
                             self.assertEqual(ours['variant'], retail['variant'])
+                            self.assertEqual(ours['randomCalls'], random_calls[(retail['type'], retail['variant'])])
                             self.assertEqual(ours['indexes'], retail['indexes'])
                             self.assertEqual(len(ours['vertices']), len(retail['vertices']))
                             for observed, vertex in zip(retail['vertices'], ours['vertices']):

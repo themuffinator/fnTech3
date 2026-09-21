@@ -1235,6 +1235,15 @@ differences of 0.39–2.20 out of 255. Both successive captures are retained.
 This establishes bounded image evidence, not pixel identity or completion
 of the broader renderer gate.
 
+The [electricity investigation](2026-09-21-stvef-electricity.md) separates
+randomized ribbons from the largest remaining burst-image difference.
+Instrumented retail and fnTech3 copies with the same jitter input reduce
+that scene's difference to 0.65–0.67 on all three renderers; sixteen control
+images remain pixel-identical to their uninstrumented runs. Native counts
+confirm 45 random values per ribbon and are now checked in all renderers on
+Windows x86 and Linux i686. This is separate diagnostic evidence, without
+changing production randomness or closing the broader renderer gate.
+
 The [runtime follow-up](2026-09-21-stvef-runtime-followup.md) adds a complete
 fnTech3-to-retail-to-fnTech3 SP save round trip after a longer retail startup
 wait, plus a 107-frame Linux Holomatch run with the ray-tracing pipeline

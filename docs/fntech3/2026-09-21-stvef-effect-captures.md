@@ -92,6 +92,13 @@ the results are not pixel-identical. Individual channel differences reach
 Those residuals and their complete metrics are retained without attributing
 them to an unproven engine defect.
 
+The [electricity follow-up](2026-09-21-stvef-electricity.md) identifies
+different randomized ribbons as the dominant burst residual. Separate
+instrumented runs with identical constant jitter reduce that burst's
+difference to 0.65–0.67 on every renderer, while all sixteen non-burst
+control images remain unchanged. Native random-call counts also gain
+compiled checks; production effect code remains unchanged.
+
 The checked-in helper's output is compared byte-for-byte with all twelve
 run scripts. Its command-line checks cover both engine choices, invalid or
 unordered sample lists, and refusal to overwrite an existing file. The

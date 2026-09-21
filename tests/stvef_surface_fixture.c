@@ -74,7 +74,7 @@ int main(int argc,char **argv) {
    float *v=tess.xyz[i],*uv=tess.texCoords[0][i];byte *c=tess.vertexColors[i].rgba;
    printf("%s[%.9g,%.9g,%.9g,%.9g,%.9g,%u,%u,%u,%u]",i>base?",":"",v[0],v[1],v[2],uv[0],uv[1],c[0],c[1],c[2],c[3]);
   }
-  printf("],\"indexes\":[");for(i=base;i<tess.numIndexes;++i)printf("%s%u",i>base?",":"",tess.indexes[i]-base);printf("]}");
+  printf("],\"randomCalls\":%u,\"indexes\":[",randomIndex);for(i=base;i<tess.numIndexes;++i)printf("%s%u",i>base?",":"",tess.indexes[i]-base);printf("]}");
  }
  printf("\n]\n");return 0;
 }
