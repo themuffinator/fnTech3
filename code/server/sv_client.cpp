@@ -2395,11 +2395,16 @@ void SV_ClientEnterWorld( client_t *client, const usercmd_t *cmd ) {
 		const int acceptFrom = client->lastUsercmd.serverTime;
 
 		client->lastUsercmd = *cmd;
-		// The command acceptance gate only ever moves forwards, so adopting the
-		// angles can never replay commands from before a gamestate or restart.
-		if ( fnql::net::IsNewerCounter( acceptFrom, cmd->serverTime ) ) {
+		// Timestamp gates only move forwards. SP instead resets its ordinal
+		// below and gives ClientBegin the unmodified entering command.
+		if ( !Com_GameIsSTVEFSP() && fnql::net::IsNewerCounter( acceptFrom, cmd->serverTime ) ) {
 			client->lastUsercmd.serverTime = acceptFrom;
 		}
+	}
+	if ( Com_GameIsSTVEFSP() ) {
+		// A new gamestate restarts the client's command ring (retail 0x424a4b).
+		client->stvefSpCommandNumber = 0;
+		client->stvefSpDroppedCommands = qfalse;
 	}
 
 	// call the game begin function
@@ -3657,7 +3662,44 @@ void SV_ClientThink (client_t *cl, usercmd_t *cmd) {
 		return;		// may have been kicked during the last usercmd
 	}
 
-	VM_Call( gvm, 1, GAME_CLIENT_THINK, SV_ClientIndex( cl ) );
+	if ( Com_GameIsSTVEFSP() ) {
+		// SP's game may adjust this command. Recovery reuses the adjusted
+		// first command, while lastUsercmd retains the pre-call copy.
+		VM_Call( gvm, 2, GAME_CLIENT_THINK, SV_ClientIndex( cl ), reinterpret_cast<intptr_t>( cmd ) );
+	} else {
+		VM_Call( gvm, 1, GAME_CLIENT_THINK, SV_ClientIndex( cl ) );
+	}
+}
+
+/* Retail SP executes new command ordinals regardless of timestamps. If a
+ * packet omits commands, it repeats the first supplied command at most five
+ * times (stvoy.exe 0x424f64..0x425015). Unsigned distances retain that rule
+ * across counter wrap; stale/ambiguous packets cannot rewind the gate. */
+static void SV_ExecuteSTVEFSPCommands( client_t *client, usercmd_t *commands,
+	int count, int newest ) {
+	if ( count < 1 || count > MAX_PACKET_USERCMDS || !commands ||
+		client->state != CS_ACTIVE ||
+		!fnql::net::IsNewerCounter( newest, client->stvefSpCommandNumber ) ) {
+		return;
+	}
+	const std::uint32_t pending = fnql::net::CounterDistance( newest, client->stvefSpCommandNumber );
+	const std::uint32_t supplied = static_cast<std::uint32_t>( count );
+	if ( pending > supplied ) {
+		client->stvefSpDroppedCommands = qtrue;
+		const std::uint32_t repeats = ( std::min )( pending - supplied, 5u );
+		client->stvefSpCommandNumber = fnql::net::CounterSubtract( newest, supplied + repeats );
+		for ( std::uint32_t i = 0; i < repeats; ++i ) {
+			client->stvefSpCommandNumber = fnql::net::NextCounter( client->stvefSpCommandNumber );
+			SV_ClientThink( client, &commands[0] );
+			if ( client->state != CS_ACTIVE ) return;
+		}
+	}
+	const int first = count - static_cast<int>( ( std::min )( pending, supplied ) );
+	for ( int i = first; i < count; ++i ) {
+		SV_ClientThink( client, &commands[i] );
+		if ( client->state != CS_ACTIVE ) return;
+	}
+	client->stvefSpCommandNumber = newest;
 }
 
 
@@ -3688,6 +3730,8 @@ static void SV_UserMove( client_t *cl, msg_t *msg, bool delta ) {
 			cl->netchan.outgoingSequence, PACKET_BACKUP + 1u ); // force delta reset
 	}
 
+	const bool stvefSP = Com_GameIsSTVEFSP();
+	const int newestCommand = stvefSP ? MSG_ReadLong( msg ) : 0;
 	cmdCount = MSG_ReadByte( msg );
 
 	if ( cmdCount < 1 ) {
@@ -3756,6 +3800,10 @@ static void SV_UserMove( client_t *cl, msg_t *msg, bool delta ) {
 	if ( cl->state != CS_ACTIVE ) {
 		cl->deltaMessage = fnql::net::RetreatSequence(
 			cl->netchan.outgoingSequence, PACKET_BACKUP + 1u ); // force delta reset
+		return;
+	}
+	if ( stvefSP ) {
+		SV_ExecuteSTVEFSPCommands( cl, cmds.data(), cmdCount, newestCommand );
 		return;
 	}
 

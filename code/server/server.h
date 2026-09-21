@@ -183,6 +183,8 @@ typedef struct client_s {
 	int				challenge;
 
 	usercmd_t		lastUsercmd;
+	int				stvefSpCommandNumber; // acknowledged ordinal; SP timestamps can repeat or rewind
+	qboolean		stvefSpDroppedCommands;
 	int				lastClientCommand;	// reliable client message sequence
 	char			lastClientCommandString[MAX_STRING_CHARS];
 	void			*gentity;			// opaque SV_GentityNum(clientnum) handle

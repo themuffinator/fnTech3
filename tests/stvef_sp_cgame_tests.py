@@ -11,14 +11,9 @@ the hosted VM, the import coverage, the lifecycle and those rules; the render
 record test covers the rotated picture.
 """
 from pathlib import Path
-import os
 import re
-import shutil
-import subprocess
-import tempfile
 import unittest
 
-from compiler_support import compiler_target_args
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -37,33 +32,6 @@ def sp_cgame_imports():
     return {name: int(sp) for name, sp in
             re.findall(r'FNTECH3_STVEF_MODULE_CALL\(CGAME, IMPORT, (\w+), (-?\d+), -?\d+\)', calls)
             if int(sp) >= 0}
-
-
-LAST_COMMAND = r'''
-#include <cassert>
-#define CMD_BACKUP 64
-#define CMD_MASK ( CMD_BACKUP - 1 )
-struct Command { int serverTime; };
-struct Client { int cmdNumber; Command cmds[CMD_BACKUP]; } cl;
-%s
-int main() {
-	// Nothing sent yet: command 0.
-	assert( CL_STVEFSPLastCommandRun( 0 ) == 0 );
-	// Commands 1-10 sent 16 ms apart from time 1000.
-	for ( int n = 1; n <= 10; ++n ) cl.cmds[n & CMD_MASK].serverTime = 1000 + 16 * n;
-	cl.cmdNumber = 10;
-	assert( CL_STVEFSPLastCommandRun( 1016 + 16 * 4 ) == 5 );
-	assert( CL_STVEFSPLastCommandRun( 1016 + 16 * 4 + 5 ) == 5 );
-	assert( CL_STVEFSPLastCommandRun( 5000 ) == 10 );
-	// Before the first command's time: none was run.
-	assert( CL_STVEFSPLastCommandRun( 1000 ) == 0 );
-	// A full backup whose every command is newer: the one before the oldest.
-	for ( int n = 100; n < 100 + CMD_BACKUP; ++n ) cl.cmds[n & CMD_MASK].serverTime = 9000 + n;
-	cl.cmdNumber = 100 + CMD_BACKUP - 1;
-	assert( CL_STVEFSPLastCommandRun( 100 ) == 99 );
-	assert( CL_STVEFSPLastCommandRun( 9000 + 120 ) == 120 );
-}
-'''
 
 
 class STVEFSPCgameTests(unittest.TestCase):
@@ -141,25 +109,8 @@ class STVEFSPCgameTests(unittest.TestCase):
         # The fields retail leaves alone keep the cgame's values.
         self.assertIn('result = *destination;', snapshot)
         parse = read('code/client/cl_parse.cpp')
-        self.assertIn('newSnap.cmdNum = CL_STVEFSPLastCommandRun( newSnap.ps.commandTime );', parse)
-
-    def test_last_command_run(self):
-        compiler = shutil.which('clang++') or shutil.which('g++')
-        if not compiler:
-            self.skipTest('C++17 compiler unavailable')
-        source = LAST_COMMAND % function(read('code/client/cl_parse.cpp'), 'static int CL_STVEFSPLastCommandRun(')
-        target = compiler_target_args(compiler)
-        (ROOT / '.tmp').mkdir(exist_ok=True)
-        with tempfile.TemporaryDirectory(prefix='stvef-sp-cgame-', dir=ROOT / '.tmp') as folder:
-            cpp = Path(folder) / 'probe.cpp'
-            binary = Path(folder) / ('probe.exe' if os.name == 'nt' else 'probe')
-            cpp.write_text(source, encoding='utf-8')
-            built = subprocess.run([compiler, *target, '-std=c++17', str(cpp), '-o', str(binary)],
-                                   capture_output=True, text=True, timeout=120)
-            self.assertEqual(built.returncode, 0, built.stdout + built.stderr)
-            options = {'creationflags': subprocess.CREATE_NO_WINDOW} if os.name == 'nt' else {}
-            ran = subprocess.run([str(binary)], capture_output=True, text=True, timeout=30, **options)
-            self.assertEqual(ran.returncode, 0, ran.stdout + ran.stderr)
+        self.assertNotIn('CL_STVEFSPLastCommandRun', parse)
+        self.assertIn('newSnap.cmdNum = MSG_ReadLong( msg );', parse)
 
     def test_snapshots_are_seen_from_the_camera_or_the_leaning_eye(self):
         game = read('code/server/sv_game.cpp')

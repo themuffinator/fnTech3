@@ -81,14 +81,14 @@ static void following() { }
             body.index("VM_Call( gvm, 1, GAME_CLIENT_BEGIN, clientNum );"),
         )
 
-    def test_adopting_the_anchor_never_rewinds_the_acceptance_gate(self) -> None:
-        """Angles come from the entering command; the serverTime gate does not,
-        so a lagged client cannot replay commands from before the gamestate."""
+    def test_adopting_the_anchor_preserves_timestamp_acceptance_gates(self) -> None:
+        """Timestamp profiles keep their gate; EF SP acknowledges ordinals and
+        passes the unmodified entering command to its game module."""
         body = function_body(read("code/server/sv_client.cpp"), "SV_ClientEnterWorld")
 
         self.assertIn("const int acceptFrom = client->lastUsercmd.serverTime;", body)
         self.assertIn(
-            "if ( fnql::net::IsNewerCounter( acceptFrom, cmd->serverTime ) ) {",
+            "if ( !Com_GameIsSTVEFSP() && fnql::net::IsNewerCounter( acceptFrom, cmd->serverTime ) ) {",
             body,
         )
         self.assertIn("client->lastUsercmd.serverTime = acceptFrom;", body)

@@ -16,6 +16,7 @@ def source():
 #include <functional>
 #include <string>
 serverStatic_t svs{};
+int Com_GameIsSTVEFSP(){return profile.id==COM_GAME_STVEF_SP;}
 int Com_GameIsRTCWSP(){return profile.id==COM_GAME_RTCW_SP;}
 int Com_GameClientLimit(){return Com_GameIsRTCW()?128:64;}
 static cvar_t timeout{},zombieTime{},quitOnEmpty{},maxclients{};

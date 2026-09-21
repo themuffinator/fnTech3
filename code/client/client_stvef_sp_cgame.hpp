@@ -49,6 +49,9 @@ static qboolean CL_GetSTVEFSPSnapshot( int number, fntech3_stvef_sp_snapshot_t *
 	static fntech3_stvef_sp_snapshot_t result;
 	result = *destination;
 	result.snapFlags = source->snapFlags & SNAPFLAG_RATE_DELAYED;
+	if ( source->snapFlags & SNAPFLAG_STVEF_SP_DROPPED_COMMANDS ) {
+		result.snapFlags |= 2;
+	}
 	result.ping = source->ping;
 	result.serverTime = source->serverTime;
 	static_assert( sizeof( result.areamask ) == sizeof( source->areamask ) );

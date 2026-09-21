@@ -205,6 +205,10 @@ static void SV_WriteSnapshotToClient( const client_t *client, msg_t *msg ) {
 
 	// what we are delta'ing from
 	MSG_WriteByte( msg, lastframe );
+	if ( Com_GameIsSTVEFSP() ) {
+		// The game can clamp/rewind command times; publish the actual ordinal.
+		MSG_WriteLong( msg, client->stvefSpCommandNumber );
+	}
 
 	snapFlags = svs.snapFlagServerBit;
 	if ( client->rateDelayed ) {
@@ -212,6 +216,9 @@ static void SV_WriteSnapshotToClient( const client_t *client, msg_t *msg ) {
 	}
 	if ( client->state != CS_ACTIVE ) {
 		snapFlags |= SNAPFLAG_NOT_ACTIVE;
+	}
+	if ( Com_GameIsSTVEFSP() && client->stvefSpDroppedCommands ) {
+		snapFlags |= SNAPFLAG_STVEF_SP_DROPPED_COMMANDS;
 	}
 
 	MSG_WriteByte (msg, snapFlags);
@@ -1151,6 +1158,9 @@ void SV_SendClientSnapshot( client_t *client ) {
 	// send over all the relevant entityState_t
 	// and the playerState_t
 	SV_WriteSnapshotToClient( client, &msg );
+	if ( Com_GameIsSTVEFSP() ) {
+		client->stvefSpDroppedCommands = qfalse;
+	}
 
 	// check for overflow
 	if ( msg.overflowed ) {
