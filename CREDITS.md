@@ -630,6 +630,11 @@ chapters; the GLSL implementation and synthetic tests are independently written.
   The [map-reload record](docs/fntech3/2026-09-21-stvef-map-reloads.md) pins
   SP command registration and full-map continuations to native observations,
   and documents the independently corrected shared client-storage crash.
+  The [player-snapshot record](docs/fntech3/2026-09-21-stvef-player-snapshots.md)
+  pins SP's visible local-player inclusion to the native executable. The
+  [Elite-Reinforce reference](https://github.com/kugelrund/Elite-Reinforce/tree/526e911c532817b3021aaa564b6b0cf087879827)
+  informed the investigation of shared animation and weapon behavior;
+  its non-GPL implementation text is not incorporated.
   The [texture-compression record](docs/fntech3/2026-09-21-stvef-texture-compression.md)
   pins the menu/configuration control to native registration and runtime facts,
   and separates texture-format differences from renderer comparisons.
