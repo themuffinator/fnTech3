@@ -1217,5 +1217,12 @@ and retain measured image differences instead of claiming image parity.
 | Input / physical devices | Source, Unit; manual acceptance pending | Elite Force key numbers, translated names and press-only UI events have the recorded language/input checks. The staged SP and Holomatch installations pass input-disabled preflight, but physical movement/look/firing, menu rebinding/save/load and listening await user results. SP force-feedback imports currently drive no device; joystick effects are unimplemented ([acceptance boundary](2026-09-21-stvef-sp-clock.md)). |
 | Optional services | Unavailable | No authorize/master success is synthesized. |
 
+The [shader-wave follow-up](2026-09-21-stvef-shader-waves.md) corrects the
+random wave's view clock and both profiles' deterministic noise tables, with
+native SP/MP vectors, compiled checks on both platforms and production runs
+on all three renderers. Two held Holomatch views gain bounded retail image
+comparisons; shield and explosion effects still vary in repeated captures
+from retail itself, so full effect image parity remains open.
+
 Build with `-Dstvef-development=true` only for isolated probes. The option is
 independent of the RTCW and ET options; none of them closes any release gate.

@@ -61,10 +61,10 @@ static float EvalWaveForm( const waveForm_t *wf )
 	float	*table;
 
 	// Elite Force: base + amplitude when a noise value from 0 to 2, chosen by
-	// the millisecond clock plus phase, is at most the frequency; base
-	// otherwise (stvoyHM.exe EvalWaveForm 0x47b5f8).
+	// the view time plus phase, is at most the frequency; base otherwise
+	// (stvoyHM.exe 0x47b5fa, stvoy.exe 0x46431a).
 	if ( wf->func == GF_RANDOM ) {
-		const int clock = (int)( ri.Milliseconds() + wf->phase );
+		const int clock = (int)( (double)backEnd.refdef.time + wf->phase );
 		return R_NoiseRandom( clock ) <= wf->frequency ? wf->base + wf->amplitude : wf->base;
 	}
 	// Elite Force also takes noise as a wave, as in tcMod stretch: base plus

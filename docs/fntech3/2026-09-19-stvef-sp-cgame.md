@@ -1,5 +1,10 @@
 # Elite Force single-player cgame
 
+The [shader-wave follow-up](2026-09-21-stvef-shader-waves.md) adds native
+comparisons and corrections for the random-wave clock and deterministic
+noise initialization in both modes. Accepting `noise` syntax in this slice
+did not by itself establish identical table values or complete image parity.
+
 ## Scope
 
 This record covers running the cgame half of the retail `efgamex86.dll` in

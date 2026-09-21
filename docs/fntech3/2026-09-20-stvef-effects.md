@@ -76,8 +76,12 @@ mouse/joystick input; no operating-system capture is used.
 The early and later images are byte-identical across the three GLx runs.
 The shield image differs between those GLx runs, with mean
 absolute differences of 2.06, 4.16 and 5.04 in its RGB channels. The effect
-waveform uses each process's wall clock; these captures do not synchronize
-that clock and do not establish full image parity.
+waveform then used each process's wall clock; the
+[shader-wave follow-up](2026-09-21-stvef-shader-waves.md) identifies this as
+an implementation error and corrects it to retail's view clock. These older
+captures do not establish full image parity. Repeated retail shield captures
+also vary after snapshot time is held, so the wave fix alone does not close
+the broader effect comparison.
 
 The [evidence manifest](evidence/2026-09-20-stvef-effects.json) records build,
 source, retail and fixture identities, commands, sanitizer observations and
