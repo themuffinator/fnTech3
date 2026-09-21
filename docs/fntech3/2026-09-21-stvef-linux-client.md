@@ -45,6 +45,8 @@ in `.tmp/stvef-gaps/linux-client-*` and `E:\Games\fnTech3-tests\linux-client-*`.
 No passwords, GUIDs, proprietary media or screenshots are committed.
 
 Clients are windowed with mouse and joystick disabled. Only engine screenshot
-commands are used; installations are unchanged. Linux audio, physical input,
+commands are used; installations are unchanged. The
+[audio follow-up](2026-09-21-stvef-linux-audio.md) adds file-rendered output,
+language-path selection and restart measurements. Physical input,
 hardware ray tracing, long-duration gameplay and broader installations remain
 outside this evidence. The Elite Force development gate remains enabled.
