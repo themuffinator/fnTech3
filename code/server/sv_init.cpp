@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <array>
 #include <cstring>
+#include <type_traits>
 
 namespace {
 
@@ -375,10 +376,13 @@ SV_AllocClients
 */
 static void SV_AllocClients( int count )
 {
+	static_assert( std::is_trivial_v<client_t>, "Client storage must support zero initialization" );
 	svs.clients = SV_ZTagMallocArray<client_t>( count, TAG_CLIENTS );
 	sv.maxclients = count;
 	for ( client_t &client : SV_Clients() ) {
-		client = {};
+		// A client is over 500 KiB. MSVC materializes aggregate assignment
+		// on the stack, including in optimized builds; clear storage in place.
+		std::memset( &client, 0, sizeof( client ) );
 	}
 	SV_SetSnapshotParams();
 }
@@ -460,7 +464,9 @@ void SV_ChangeMaxClients( void ) {
 		if ( slot.client.state >= CS_CONNECTED ) {
 			oldClients[slot.index] = slot.client;
 		} else {
-			oldClients[slot.index] = {};
+			// This frame calls SV_AllocClients below. Two client-sized stack
+			// temporaries would exceed the Windows executable's 1 MiB stack.
+			std::memset( &oldClients[slot.index], 0, sizeof( client_t ) );
 		}
 	}
 
