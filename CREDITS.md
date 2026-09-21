@@ -627,6 +627,9 @@ chapters; the GLSL implementation and synthetic tests are independently written.
   retail function outputs; no proprietary implementation is incorporated.
   The [startup/capture follow-up](docs/fntech3/2026-09-21-stvef-sp-startup.md)
   adds independently observed settling-frame clocks and SP screenshot timing.
+  The [texture-compression record](docs/fntech3/2026-09-21-stvef-texture-compression.md)
+  pins the menu/configuration control to native registration and runtime facts,
+  and separates texture-format differences from renderer comparisons.
   Native projection and stencil extrusion observations are documented in the
   [shadow record](docs/fntech3/2026-09-20-stvef-shadows.md).
   The [movie audio record](docs/fntech3/2026-09-20-stvef-movie-audio.md)

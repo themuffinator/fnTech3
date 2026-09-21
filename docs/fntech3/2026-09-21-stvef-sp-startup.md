@@ -124,6 +124,14 @@ measured capture phase. They establish neither pixel identity nor broader
 campaign/renderer parity, and do not change production screenshot or
 filtering behavior. RTX uses SDR raster fallback in these Windows runs.
 
+The later [compression investigation](2026-09-21-stvef-texture-compression.md)
+finds another setting mismatch: these runs disabled Q3's differently named
+compression cvar, leaving retail SP's texture compression enabled. Matching
+that setting reduces the mean difference to 0.074–0.145. The measurements
+above remain the historical observations; they do not isolate renderer error.
+The capture helper now additionally queries `r_ext_compress_textures`, so
+its current output includes one more diagnostic than the scripts recorded here.
+
 All tests use independent writable homes under `E:/Games/fnTech3-tests`.
 Client probes are windowed with mouse, joystick and feedback disabled, on an
 inactive Windows desktop or private Linux display. Images come only from
