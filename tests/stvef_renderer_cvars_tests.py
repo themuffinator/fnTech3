@@ -68,8 +68,37 @@ int main(void) {
             while (cvar_vars) Cvar_Unset(cvar_vars);
             ++cases;
         }
+        /* The method preference belongs only to Elite Force. A foreign
+         * config may contain it, but other renderers must not adopt it. */
+        for (preset = -1; preset <= 2; ++preset) {
+            cvar_t *cv;
+            Cvar_Init();
+            ri.gameId = (comGameId_t)profile; ri.Cvar_Get = Cvar_Get;
+            if (preset >= 0) Seta("r_ext_preferred_tc_method", va("%d", preset));
+            Register();
+            cv = r_ext_preferred_tc_method;
+            if (elite) {
+                CHECK(cv && cv == Cvar_FindVar("r_ext_preferred_tc_method"));
+                CHECK(cv->flags == (CVAR_ARCHIVE | CVAR_LATCH));
+                CHECK(!strcmp(cv->resetString, "0"));
+                CHECK(cv->integer == (preset < 0 ? 0 : preset));
+                Seta(cv->name, "-7");
+                CHECK(cv->latchedString && !strcmp(cv->latchedString, "-7"));
+                Register();
+                CHECK(cv->integer == -7 && !cv->latchedString);
+                Cvar_Reset(cv->name); Register();
+                CHECK(cv->integer == 0 && !cv->latchedString);
+            } else {
+                CHECK(!cv);
+                cv = Cvar_FindVar("r_ext_preferred_tc_method");
+                CHECK(preset < 0 ? !cv : cv && cv->integer == preset &&
+                      !(cv->flags & CVAR_LATCH));
+            }
+            while (cvar_vars) Cvar_Unset(cvar_vars);
+            ++cases;
+        }
     }
-    if (!failures) printf("21 compression config/latch cases passed\n");
+    if (!failures) printf("49 compression config/latch cases passed\n");
     return failures ? 1 : 0;
 }
 '''
@@ -106,7 +135,7 @@ class STVEFRendererCvarTests(unittest.TestCase):
                     ran = subprocess.run([str(executable)], cwd=ROOT, capture_output=True,
                                          text=True, timeout=20, **options)
                     self.assertEqual(ran.returncode, 0, ran.stdout + ran.stderr)
-                    self.assertIn('21 compression config/latch cases passed', ran.stdout)
+                    self.assertIn('49 compression config/latch cases passed', ran.stdout)
 
 
 if __name__ == '__main__':

@@ -422,6 +422,9 @@ static qboolean R_HaveExtension( const char *ext )
 }
 
 
+#include "../renderercommon/tr_stvef_compression.h"
+
+
 /*
 ** R_InitExtensions
 */
@@ -493,34 +496,8 @@ static void R_InitExtensions( void )
 		ri.Printf( PRINT_ALL, S_COLOR_YELLOW "...Degraded texture support likely!\n" );
 	}
 
-	// GL_EXT_texture_compression_s3tc
-	if ( R_HaveExtension( "GL_ARB_texture_compression" ) &&
-		 R_HaveExtension( "GL_EXT_texture_compression_s3tc" ) )
-	{
-		if ( r_ext_compressed_textures->integer ){
-			glConfig.textureCompression = TC_S3TC_ARB;
-			ri.Printf( PRINT_ALL, "...using GL_EXT_texture_compression_s3tc\n" );
-		} else {
-			ri.Printf( PRINT_ALL, "...ignoring GL_EXT_texture_compression_s3tc\n" );
-		}
-	} else {
-		ri.Printf( PRINT_ALL, "...GL_EXT_texture_compression_s3tc not found\n" );
-	}
-
-	// GL_S3_s3tc
-	if ( glConfig.textureCompression == TC_NONE && r_ext_compressed_textures->integer ) {
-		if ( R_HaveExtension( "GL_S3_s3tc" ) ) {
-			if ( r_ext_compressed_textures->integer ) {
-				glConfig.textureCompression = TC_S3TC;
-				ri.Printf( PRINT_ALL, "...using GL_S3_s3tc\n" );
-			} else {
-				glConfig.textureCompression = TC_NONE;
-				ri.Printf( PRINT_ALL, "...ignoring GL_S3_s3tc\n" );
-			}
-		} else {
-			ri.Printf( PRINT_ALL, "...GL_S3_s3tc not found\n" );
-		}
-	}
+	// GL_EXT_texture_compression_s3tc / GL_S3_s3tc
+	R_InitTextureCompression();
 
 	// GL_EXT_texture_env_add
 	if ( R_HaveExtension( "EXT_texture_env_add" ) ) {
