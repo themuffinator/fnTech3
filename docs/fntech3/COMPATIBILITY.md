@@ -1228,9 +1228,12 @@ restarts on Windows/Linux. It also finds that the preceding SP captures had
 different compression settings. With compression disabled in both engines,
 the same tutorial samples have mean RGB differences of 0.074–0.145 out of 255.
 GLx also honors the enabled request; Vulkan/RTX retain their uncompressed
-capability. Native lightmap-compression and method-selection controls,
-DXT5 alpha compression, localized image differences and broader acceptance
-remain open.
+capability. The [alpha-format correction](2026-09-21-stvef-alpha-compression.md)
+then selects native DXT5 for GLx alpha images, with 72 native observations,
+16,128 compiled selections per platform and Windows/Linux restart evidence.
+Disabled-compression and Vulkan/RTX control captures remain pixel-identical.
+Native lightmap-compression and method-selection controls, localized image
+differences and broader acceptance remain open.
 
 The [renderer selection audit](2026-09-21-stvef-renderer-verification.md)
 corrects the September 20 live probes: `r_renderer` did not select a

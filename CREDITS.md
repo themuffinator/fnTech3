@@ -630,6 +630,8 @@ chapters; the GLSL implementation and synthetic tests are independently written.
   The [texture-compression record](docs/fntech3/2026-09-21-stvef-texture-compression.md)
   pins the menu/configuration control to native registration and runtime facts,
   and separates texture-format differences from renderer comparisons.
+  The [alpha-format record](docs/fntech3/2026-09-21-stvef-alpha-compression.md)
+  checks independently authored format selection against both native engines.
   Native projection and stencil extrusion observations are documented in the
   [shadow record](docs/fntech3/2026-09-20-stvef-shadows.md).
   The [movie audio record](docs/fntech3/2026-09-20-stvef-movie-audio.md)

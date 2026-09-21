@@ -98,6 +98,9 @@ compression setting so later comparisons can detect this mismatch.
 Native SP also reports 146 DXT5 alpha images in the enabled capture, while
 GLx reports 146 uncompressed RGBA images. Alpha compression is a separate
 remaining format difference; this control-registration fix does not close it.
+The later [alpha-format follow-up](2026-09-21-stvef-alpha-compression.md)
+corrects that GLx selection with native SP/Holomatch fixtures and live checks;
+the observations above remain the results before that correction.
 
 All writable homes are separate copies under `E:/Games/fnTech3-tests`.
 Windows clients run windowed on inactive private desktops; Linux uses a
