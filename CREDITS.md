@@ -632,6 +632,9 @@ chapters; the GLSL implementation and synthetic tests are independently written.
   and separates texture-format differences from renderer comparisons.
   The [alpha-format record](docs/fntech3/2026-09-21-stvef-alpha-compression.md)
   checks independently authored format selection against both native engines.
+  The [method-selection record](docs/fntech3/2026-09-21-stvef-compression-method.md)
+  adds native compression preferences, floating-point enable behavior and
+  live video-restart validation of the independent implementation.
   Native projection and stencil extrusion observations are documented in the
   [shadow record](docs/fntech3/2026-09-20-stvef-shadows.md).
   The [movie audio record](docs/fntech3/2026-09-20-stvef-movie-audio.md)

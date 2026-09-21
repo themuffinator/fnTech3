@@ -86,8 +86,9 @@ desktops or private Linux Xvfb. Only engine screenshot commands produce the
 images. No user input, original installation or proprietary content is
 modified or committed. Useful local logs, probes and captures are retained.
 
-Native lightmap compression and compression-method selection still need
-their own implementation/validation. Localized image differences, broader
+The subsequent [method-selection correction](2026-09-21-stvef-compression-method.md)
+implements and validates native compression preferences and fractional enable
+values. Native lightmap compression and texture-bit controls remain open. Localized image differences, broader
 campaign behavior, physical input, menu use, listening and feedback hardware
 remain open. Existing asset defects, wider Linux-suite failures and the
 Windows x86 ray-tracing limitation are unchanged. The Linux build repeats

@@ -1232,8 +1232,12 @@ capability. The [alpha-format correction](2026-09-21-stvef-alpha-compression.md)
 then selects native DXT5 for GLx alpha images, with 72 native observations,
 16,128 compiled selections per platform and Windows/Linux restart evidence.
 Disabled-compression and Vulkan/RTX control captures remain pixel-identical.
-Native lightmap-compression and method-selection controls, localized image
-differences and broader acceptance remain open.
+The [method-selection correction](2026-09-21-stvef-compression-method.md)
+also honors the native preference and fractional enable values, with 448
+native observations, seven-profile Windows/Linux checks and seven complete
+restart cycles. The full Windows suite passes 120 targets (two skips),
+including 1,857 Python checks. Native lightmap compression and texture-bit
+controls, localized image differences and broader acceptance remain open.
 
 The [renderer selection audit](2026-09-21-stvef-renderer-verification.md)
 corrects the September 20 live probes: `r_renderer` did not select a
