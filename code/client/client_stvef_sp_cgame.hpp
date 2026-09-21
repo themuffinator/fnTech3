@@ -96,10 +96,16 @@ static intptr_t CL_STVEFSPCgameCommonCall( fntech3::stvef::module::Call call, in
 		// One argument; the sound system registers even while a level loads.
 		return S_RegisterSound( reinterpret_cast<const char *>( args[1] ), qfalse );
 	case Call::CG_FF_STARTFX:
+		CL_STVEFSPFeedbackPlay( static_cast<int>( args[1] ), qfalse );
+		return 0;
 	case Call::CG_FF_ENSUREFX:
+		CL_STVEFSPFeedbackPlay( static_cast<int>( args[1] ), qtrue );
+		return 0;
 	case Call::CG_FF_STOPFX:
+		CL_STVEFSPFeedbackStop( static_cast<int>( args[1] ) );
+		return 0;
 	case Call::CG_FF_STOPALLFX:
-		// Force-feedback joysticks: the engine drives none.
+		CL_STVEFSPFeedbackStopAll();
 		return 0;
 	case Call::CG_S_GETSAMPLELENGTH:
 		return S_STVEFSoundLength( static_cast<sfxHandle_t>( args[1] ) );

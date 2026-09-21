@@ -50,6 +50,8 @@ extern "C" {
 #include <memory>
 #include <string>
 
+#include "client_stvef_sp_feedback.hpp"
+
 using fnql::CloseFile;
 using fnql::FileRead;
 using fnql::FileWrite;
@@ -2432,6 +2434,7 @@ qboolean CL_Disconnect( qboolean showMainMenu ) {
 	}
 
 	cl_disconnecting = true;
+	CL_STVEFSPFeedbackSuspend();
 	const qboolean publishGameEnd =
 		( cls.state >= CA_CONNECTED || clc.demoplaying || clc.demorecording )
 			? qtrue : qfalse;

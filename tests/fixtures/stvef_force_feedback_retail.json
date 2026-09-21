@@ -1,0 +1,4429 @@
+{
+  "gainCvar": "js_ffmult",
+  "rows": [
+    {
+      "gain": 0,
+      "effect": 0,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            95,
+            10000,
+            0,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "77df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            160,
+            10000,
+            9000,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            34,
+            10000,
+            31000,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0,
+      "effect": 1,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            0,
+            2500,
+            0
+          ],
+          "envelope": [
+            20,
+            0,
+            600000,
+            0,
+            750000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 0,
+      "effect": 2,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            18000,
+            150,
+            0
+          ],
+          "envelope": [
+            20,
+            0,
+            40000,
+            0,
+            30000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 0,
+      "effect": 3,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            50,
+            10000,
+            0,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0,
+      "effect": 4,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            60,
+            1000,
+            9000,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            100,
+            1000,
+            18000,
+            4000,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0,
+      "effect": 5,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            60,
+            1000,
+            9000,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            100,
+            1000,
+            18000,
+            5000,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            340,
+            1000,
+            18000,
+            4000,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0,
+      "effect": 6,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "77df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            250,
+            10000,
+            18000,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            125,
+            10000,
+            18000,
+            1500,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0,
+      "effect": 7,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            500,
+            300,
+            18000,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0,
+      "effect": 8,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            750,
+            250,
+            0,
+            0,
+            0
+          ],
+          "envelope": [
+            20,
+            6000,
+            200000,
+            3000,
+            50000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 0,
+      "effect": 9,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            70,
+            1000,
+            0,
+            2500,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0,
+      "effect": 10,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            130,
+            70,
+            0,
+            0,
+            0
+          ],
+          "envelope": [
+            20,
+            0,
+            0,
+            0,
+            50000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 0,
+      "effect": 11,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            18000,
+            400,
+            0
+          ],
+          "envelope": [
+            20,
+            0,
+            200000,
+            0,
+            0
+          ]
+        },
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            0,
+            1000,
+            0
+          ],
+          "envelope": [
+            20,
+            0,
+            300000,
+            0,
+            100000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 0,
+      "effect": 12,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            0,
+            400,
+            0
+          ],
+          "envelope": [
+            20,
+            0,
+            400000,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 0,
+      "effect": 13,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            18000,
+            50,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0,
+      "effect": 14,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            1000,
+            500,
+            18000,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0,
+      "effect": 15,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "77df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            80,
+            2000,
+            0,
+            0,
+            0
+          ],
+          "envelope": [
+            20,
+            0,
+            1500000,
+            0,
+            500000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 0,
+      "effect": 16,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            130,
+            50,
+            0,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0,
+      "effect": 17,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            100,
+            100,
+            18000,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            0,
+            300,
+            0
+          ],
+          "envelope": [
+            20,
+            0,
+            100000,
+            0,
+            100000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 0,
+      "effect": 18,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            25,
+            1000,
+            18000,
+            2000,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0,
+      "effect": 19,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            25,
+            1000,
+            0,
+            3000,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0,
+      "effect": 20,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            25,
+            1000,
+            9000,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0,
+      "effect": 21,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            25,
+            1000,
+            9000,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0,
+      "effect": 22,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            25,
+            1000,
+            0,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0,
+      "effect": 23,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            25,
+            1000,
+            0,
+            2000,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0,
+      "effect": 24,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            18000,
+            10,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0,
+      "effect": 25,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            250,
+            1000,
+            18000,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            50,
+            1000,
+            0,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0,
+      "effect": 26,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            0,
+            250,
+            0
+          ],
+          "envelope": [
+            20,
+            0,
+            500000,
+            0,
+            200000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 0,
+      "effect": 27,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "77df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            100,
+            1000,
+            0,
+            1000,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0,
+      "effect": 28,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            0,
+            250,
+            0
+          ],
+          "envelope": [
+            20,
+            7000,
+            250000,
+            0,
+            0
+          ]
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            30,
+            250,
+            0,
+            0,
+            0
+          ],
+          "envelope": [
+            20,
+            0,
+            0,
+            0,
+            250000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 0,
+      "effect": 29,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            500,
+            400,
+            18000,
+            4294962296,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            30,
+            250,
+            0,
+            0,
+            0
+          ],
+          "envelope": [
+            20,
+            0,
+            250000,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 0,
+      "effect": 30,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            1000,
+            800,
+            18000,
+            4294963296,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            35,
+            500,
+            0,
+            0,
+            0
+          ],
+          "envelope": [
+            20,
+            0,
+            500000,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 0,
+      "effect": 31,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            0,
+            100,
+            100,
+            18000,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            0,
+            300,
+            0
+          ],
+          "envelope": [
+            20,
+            0,
+            100000,
+            0,
+            100000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 0,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            2250,
+            95,
+            10000,
+            0,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "77df59591129d111b0490020af30269a",
+          "args": [
+            2490,
+            160,
+            10000,
+            9000,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            2490,
+            34,
+            10000,
+            31000,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 1,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            0,
+            2500,
+            3000
+          ],
+          "envelope": [
+            20,
+            0,
+            600000,
+            0,
+            750000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 2,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            18000,
+            150,
+            1500
+          ],
+          "envelope": [
+            20,
+            0,
+            40000,
+            0,
+            30000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 3,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            750,
+            50,
+            10000,
+            0,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 4,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            1080,
+            60,
+            1000,
+            9000,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            1200,
+            100,
+            1000,
+            18000,
+            4000,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 5,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            2010,
+            60,
+            1000,
+            9000,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            1500,
+            100,
+            1000,
+            18000,
+            5000,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            3000,
+            340,
+            1000,
+            18000,
+            4000,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 6,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "77df59591129d111b0490020af30269a",
+          "args": [
+            600,
+            250,
+            10000,
+            18000,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            1200,
+            125,
+            10000,
+            18000,
+            1500,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 7,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            1500,
+            500,
+            300,
+            18000,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 8,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            300,
+            750,
+            250,
+            0,
+            0,
+            0
+          ],
+          "envelope": [
+            20,
+            6000,
+            200000,
+            3000,
+            50000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 9,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            1050,
+            70,
+            1000,
+            0,
+            2500,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 10,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            2400,
+            130,
+            70,
+            0,
+            0,
+            0
+          ],
+          "envelope": [
+            20,
+            0,
+            0,
+            0,
+            50000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 11,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            18000,
+            400,
+            3000
+          ],
+          "envelope": [
+            20,
+            0,
+            200000,
+            0,
+            0
+          ]
+        },
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            0,
+            1000,
+            3000
+          ],
+          "envelope": [
+            20,
+            0,
+            300000,
+            0,
+            100000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 12,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            0,
+            400,
+            3000
+          ],
+          "envelope": [
+            20,
+            0,
+            400000,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 13,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            18000,
+            50,
+            2100
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 14,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            1800,
+            1000,
+            500,
+            18000,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 15,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "77df59591129d111b0490020af30269a",
+          "args": [
+            3000,
+            80,
+            2000,
+            0,
+            0,
+            0
+          ],
+          "envelope": [
+            20,
+            0,
+            1500000,
+            0,
+            500000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 16,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            2550,
+            130,
+            50,
+            0,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 17,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            1800,
+            100,
+            100,
+            18000,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            0,
+            300,
+            2100
+          ],
+          "envelope": [
+            20,
+            0,
+            100000,
+            0,
+            100000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 18,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            1800,
+            25,
+            1000,
+            18000,
+            2000,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 19,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            1500,
+            25,
+            1000,
+            0,
+            3000,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 20,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            1500,
+            25,
+            1000,
+            9000,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 21,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            2100,
+            25,
+            1000,
+            9000,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 22,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            1500,
+            25,
+            1000,
+            0,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 23,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            1500,
+            25,
+            1000,
+            0,
+            2000,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 24,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            18000,
+            10,
+            1800
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 25,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            450,
+            250,
+            1000,
+            18000,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            1800,
+            50,
+            1000,
+            0,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 26,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            0,
+            250,
+            3000
+          ],
+          "envelope": [
+            20,
+            0,
+            500000,
+            0,
+            200000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 27,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "77df59591129d111b0490020af30269a",
+          "args": [
+            1800,
+            100,
+            1000,
+            0,
+            1000,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 28,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            0,
+            250,
+            0
+          ],
+          "envelope": [
+            20,
+            7000,
+            250000,
+            0,
+            0
+          ]
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            1500,
+            30,
+            250,
+            0,
+            0,
+            0
+          ],
+          "envelope": [
+            20,
+            0,
+            0,
+            0,
+            250000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 29,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            1500,
+            500,
+            400,
+            18000,
+            4294962296,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            1800,
+            30,
+            250,
+            0,
+            0,
+            0
+          ],
+          "envelope": [
+            20,
+            0,
+            250000,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 30,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            1200,
+            1000,
+            800,
+            18000,
+            4294963296,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            2400,
+            35,
+            500,
+            0,
+            0,
+            0
+          ],
+          "envelope": [
+            20,
+            0,
+            500000,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 0.300000012,
+      "effect": 31,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            2400,
+            100,
+            100,
+            18000,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            0,
+            300,
+            3000
+          ],
+          "envelope": [
+            20,
+            0,
+            100000,
+            0,
+            100000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 0,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            7500,
+            95,
+            10000,
+            0,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "77df59591129d111b0490020af30269a",
+          "args": [
+            8300,
+            160,
+            10000,
+            9000,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            8300,
+            34,
+            10000,
+            31000,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 1,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            0,
+            2500,
+            10000
+          ],
+          "envelope": [
+            20,
+            0,
+            600000,
+            0,
+            750000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 2,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            18000,
+            150,
+            5000
+          ],
+          "envelope": [
+            20,
+            0,
+            40000,
+            0,
+            30000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 3,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            2500,
+            50,
+            10000,
+            0,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 4,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            3600,
+            60,
+            1000,
+            9000,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            4000,
+            100,
+            1000,
+            18000,
+            4000,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 5,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            6700,
+            60,
+            1000,
+            9000,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            5000,
+            100,
+            1000,
+            18000,
+            5000,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            10000,
+            340,
+            1000,
+            18000,
+            4000,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 6,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "77df59591129d111b0490020af30269a",
+          "args": [
+            2000,
+            250,
+            10000,
+            18000,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            4000,
+            125,
+            10000,
+            18000,
+            1500,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 7,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            5000,
+            500,
+            300,
+            18000,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 8,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            1000,
+            750,
+            250,
+            0,
+            0,
+            0
+          ],
+          "envelope": [
+            20,
+            6000,
+            200000,
+            3000,
+            50000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 9,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            3500,
+            70,
+            1000,
+            0,
+            2500,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 10,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            8000,
+            130,
+            70,
+            0,
+            0,
+            0
+          ],
+          "envelope": [
+            20,
+            0,
+            0,
+            0,
+            50000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 11,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            18000,
+            400,
+            10000
+          ],
+          "envelope": [
+            20,
+            0,
+            200000,
+            0,
+            0
+          ]
+        },
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            0,
+            1000,
+            10000
+          ],
+          "envelope": [
+            20,
+            0,
+            300000,
+            0,
+            100000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 12,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            0,
+            400,
+            10000
+          ],
+          "envelope": [
+            20,
+            0,
+            400000,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 13,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            18000,
+            50,
+            7000
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 14,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            6000,
+            1000,
+            500,
+            18000,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 15,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "77df59591129d111b0490020af30269a",
+          "args": [
+            10000,
+            80,
+            2000,
+            0,
+            0,
+            0
+          ],
+          "envelope": [
+            20,
+            0,
+            1500000,
+            0,
+            500000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 16,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            8500,
+            130,
+            50,
+            0,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 17,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            6000,
+            100,
+            100,
+            18000,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            0,
+            300,
+            7000
+          ],
+          "envelope": [
+            20,
+            0,
+            100000,
+            0,
+            100000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 18,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            6000,
+            25,
+            1000,
+            18000,
+            2000,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 19,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            5000,
+            25,
+            1000,
+            0,
+            3000,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 20,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            5000,
+            25,
+            1000,
+            9000,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 21,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            7000,
+            25,
+            1000,
+            9000,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 22,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            5000,
+            25,
+            1000,
+            0,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 23,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            5000,
+            25,
+            1000,
+            0,
+            2000,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 24,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            18000,
+            10,
+            6000
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 25,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            1500,
+            250,
+            1000,
+            18000,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            6000,
+            50,
+            1000,
+            0,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 26,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            0,
+            250,
+            10000
+          ],
+          "envelope": [
+            20,
+            0,
+            500000,
+            0,
+            200000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 27,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "77df59591129d111b0490020af30269a",
+          "args": [
+            6000,
+            100,
+            1000,
+            0,
+            1000,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 28,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            0,
+            250,
+            0
+          ],
+          "envelope": [
+            20,
+            7000,
+            250000,
+            0,
+            0
+          ]
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            5000,
+            30,
+            250,
+            0,
+            0,
+            0
+          ],
+          "envelope": [
+            20,
+            0,
+            0,
+            0,
+            250000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 29,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            5000,
+            500,
+            400,
+            18000,
+            4294962296,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            6000,
+            30,
+            250,
+            0,
+            0,
+            0
+          ],
+          "envelope": [
+            20,
+            0,
+            250000,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 30,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            4000,
+            1000,
+            800,
+            18000,
+            4294963296,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            8000,
+            35,
+            500,
+            0,
+            0,
+            0
+          ],
+          "envelope": [
+            20,
+            0,
+            500000,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 1,
+      "effect": 31,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            8000,
+            100,
+            100,
+            18000,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            0,
+            300,
+            10000
+          ],
+          "envelope": [
+            20,
+            0,
+            100000,
+            0,
+            100000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 0,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            22500,
+            95,
+            10000,
+            0,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "77df59591129d111b0490020af30269a",
+          "args": [
+            24900,
+            160,
+            10000,
+            9000,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            24900,
+            34,
+            10000,
+            31000,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 1,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            0,
+            2500,
+            30000
+          ],
+          "envelope": [
+            20,
+            0,
+            600000,
+            0,
+            750000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 2,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            18000,
+            150,
+            15000
+          ],
+          "envelope": [
+            20,
+            0,
+            40000,
+            0,
+            30000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 3,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            7500,
+            50,
+            10000,
+            0,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 4,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            10800,
+            60,
+            1000,
+            9000,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            12000,
+            100,
+            1000,
+            18000,
+            4000,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 5,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            20100,
+            60,
+            1000,
+            9000,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            15000,
+            100,
+            1000,
+            18000,
+            5000,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            30000,
+            340,
+            1000,
+            18000,
+            4000,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 6,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "77df59591129d111b0490020af30269a",
+          "args": [
+            6000,
+            250,
+            10000,
+            18000,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            12000,
+            125,
+            10000,
+            18000,
+            1500,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 7,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            15000,
+            500,
+            300,
+            18000,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 8,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            3000,
+            750,
+            250,
+            0,
+            0,
+            0
+          ],
+          "envelope": [
+            20,
+            6000,
+            200000,
+            3000,
+            50000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 9,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            10500,
+            70,
+            1000,
+            0,
+            2500,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 10,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            24000,
+            130,
+            70,
+            0,
+            0,
+            0
+          ],
+          "envelope": [
+            20,
+            0,
+            0,
+            0,
+            50000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 11,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            18000,
+            400,
+            30000
+          ],
+          "envelope": [
+            20,
+            0,
+            200000,
+            0,
+            0
+          ]
+        },
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            0,
+            1000,
+            30000
+          ],
+          "envelope": [
+            20,
+            0,
+            300000,
+            0,
+            100000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 12,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            0,
+            400,
+            30000
+          ],
+          "envelope": [
+            20,
+            0,
+            400000,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 13,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            18000,
+            50,
+            21000
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 14,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            18000,
+            1000,
+            500,
+            18000,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 15,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "77df59591129d111b0490020af30269a",
+          "args": [
+            30000,
+            80,
+            2000,
+            0,
+            0,
+            0
+          ],
+          "envelope": [
+            20,
+            0,
+            1500000,
+            0,
+            500000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 16,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            25500,
+            130,
+            50,
+            0,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 17,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            18000,
+            100,
+            100,
+            18000,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            0,
+            300,
+            21000
+          ],
+          "envelope": [
+            20,
+            0,
+            100000,
+            0,
+            100000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 18,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            18000,
+            25,
+            1000,
+            18000,
+            2000,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 19,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            15000,
+            25,
+            1000,
+            0,
+            3000,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 20,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            15000,
+            25,
+            1000,
+            9000,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 21,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            21000,
+            25,
+            1000,
+            9000,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 22,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            15000,
+            25,
+            1000,
+            0,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 23,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            15000,
+            25,
+            1000,
+            0,
+            2000,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 24,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            18000,
+            10,
+            18000
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 25,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            4500,
+            250,
+            1000,
+            18000,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            18000,
+            50,
+            1000,
+            0,
+            0,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 26,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            0,
+            250,
+            30000
+          ],
+          "envelope": [
+            20,
+            0,
+            500000,
+            0,
+            200000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 27,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "77df59591129d111b0490020af30269a",
+          "args": [
+            18000,
+            100,
+            1000,
+            0,
+            1000,
+            0
+          ],
+          "envelope": []
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 28,
+      "success": 1,
+      "components": [
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            0,
+            250,
+            0
+          ],
+          "envelope": [
+            20,
+            7000,
+            250000,
+            0,
+            0
+          ]
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            15000,
+            30,
+            250,
+            0,
+            0,
+            0
+          ],
+          "envelope": [
+            20,
+            0,
+            0,
+            0,
+            250000
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 29,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            15000,
+            500,
+            400,
+            18000,
+            4294962296,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            18000,
+            30,
+            250,
+            0,
+            0,
+            0
+          ],
+          "envelope": [
+            20,
+            0,
+            250000,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 30,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            12000,
+            1000,
+            800,
+            18000,
+            4294963296,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "74df59591129d111b0490020af30269a",
+          "args": [
+            24000,
+            35,
+            500,
+            0,
+            0,
+            0
+          ],
+          "envelope": [
+            20,
+            0,
+            500000,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "gain": 3,
+      "effect": 31,
+      "success": 1,
+      "components": [
+        {
+          "kind": 2,
+          "bytes": 144,
+          "guidBytes": "73df59591129d111b0490020af30269a",
+          "args": [
+            24000,
+            100,
+            100,
+            18000,
+            0,
+            0
+          ],
+          "envelope": []
+        },
+        {
+          "kind": 1,
+          "bytes": 132,
+          "guidBytes": "00000000000000000000000000000000",
+          "args": [
+            0,
+            300,
+            30000
+          ],
+          "envelope": [
+            20,
+            0,
+            100000,
+            0,
+            100000
+          ]
+        }
+      ]
+    }
+  ],
+  "source": {
+    "executable": "stvoy.exe 1.20",
+    "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74",
+    "method": "Mapped native builder and scheduler with owned recording callbacks replacing every reached runtime call; no device initialized",
+    "builder": "0x43e080",
+    "scheduler": "0x43dcb0..0x43df7c",
+    "tension": "0x43e020",
+    "names": "0x496030"
+  },
+  "names": [
+    "RandomNoise",
+    "AircraftCarrierTakeOff",
+    "BasketballDribble",
+    "CarEngineIdle",
+    "ChainsawIdle",
+    "ChainsawInAction",
+    "DieselEngineIdle",
+    "Jump",
+    "Land",
+    "MachineGun",
+    "Punched",
+    "RocketLaunch",
+    "SecretDoor",
+    "SwitchClick",
+    "WindGust",
+    "WindShear",
+    "Pistol",
+    "Shotgun",
+    "Laser1",
+    "Laser2",
+    "Laser3",
+    "Laser4",
+    "Laser5",
+    "Laser6",
+    "OutOfAmmo",
+    "LightningGun",
+    "Missile",
+    "GatlingGun",
+    "ShortPlasma",
+    "PlasmaCannon1",
+    "PlasmaCannon2",
+    "Cannon"
+  ],
+  "steps": [
+    {
+      "action": "play",
+      "effect": 7,
+      "failure": 0,
+      "starts": 1,
+      "stops": 0,
+      "destroyed": 0,
+      "created": 1,
+      "ids": [
+        7,
+        33,
+        33,
+        33
+      ],
+      "playing": [
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "action": "play",
+      "effect": 7,
+      "failure": 0,
+      "starts": 1,
+      "stops": 0,
+      "destroyed": 0,
+      "created": 0,
+      "ids": [
+        7,
+        33,
+        33,
+        33
+      ],
+      "playing": [
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "action": "ensure",
+      "effect": 7,
+      "failure": 0,
+      "starts": 0,
+      "stops": 0,
+      "destroyed": 0,
+      "created": 0,
+      "ids": [
+        7,
+        33,
+        33,
+        33
+      ],
+      "playing": [
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "action": "stop",
+      "effect": 7,
+      "failure": 0,
+      "starts": 0,
+      "stops": 1,
+      "destroyed": 0,
+      "created": 0,
+      "ids": [
+        7,
+        33,
+        33,
+        33
+      ],
+      "playing": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "action": "ensure",
+      "effect": 7,
+      "failure": 0,
+      "starts": 1,
+      "stops": 0,
+      "destroyed": 0,
+      "created": 0,
+      "ids": [
+        7,
+        33,
+        33,
+        33
+      ],
+      "playing": [
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "action": "play",
+      "effect": 8,
+      "failure": 0,
+      "starts": 1,
+      "stops": 0,
+      "destroyed": 0,
+      "created": 1,
+      "ids": [
+        7,
+        8,
+        33,
+        33
+      ],
+      "playing": [
+        1,
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "action": "stop",
+      "effect": 7,
+      "failure": 0,
+      "starts": 0,
+      "stops": 1,
+      "destroyed": 0,
+      "created": 0,
+      "ids": [
+        7,
+        8,
+        33,
+        33
+      ],
+      "playing": [
+        0,
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "action": "play",
+      "effect": 9,
+      "failure": 0,
+      "starts": 1,
+      "stops": 0,
+      "destroyed": 1,
+      "created": 1,
+      "ids": [
+        9,
+        8,
+        33,
+        33
+      ],
+      "playing": [
+        1,
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "action": "play",
+      "effect": 10,
+      "failure": 0,
+      "starts": 1,
+      "stops": 0,
+      "destroyed": 0,
+      "created": 1,
+      "ids": [
+        9,
+        8,
+        10,
+        33
+      ],
+      "playing": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "action": "play",
+      "effect": 11,
+      "failure": 0,
+      "starts": 2,
+      "stops": 0,
+      "destroyed": 0,
+      "created": 2,
+      "ids": [
+        9,
+        8,
+        10,
+        11
+      ],
+      "playing": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "action": "play",
+      "effect": 12,
+      "failure": 0,
+      "starts": 1,
+      "stops": 1,
+      "destroyed": 1,
+      "created": 1,
+      "ids": [
+        9,
+        12,
+        10,
+        11
+      ],
+      "playing": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "action": "play",
+      "effect": 13,
+      "failure": 1,
+      "starts": 0,
+      "stops": 1,
+      "destroyed": 0,
+      "created": 0,
+      "ids": [
+        9,
+        12,
+        10,
+        11
+      ],
+      "playing": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "action": "ensure",
+      "effect": 12,
+      "failure": 0,
+      "starts": 0,
+      "stops": 0,
+      "destroyed": 0,
+      "created": 0,
+      "ids": [
+        9,
+        12,
+        10,
+        11
+      ],
+      "playing": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "action": "stopall",
+      "effect": 0,
+      "failure": 0,
+      "starts": 0,
+      "stops": 5,
+      "destroyed": 0,
+      "created": 0,
+      "ids": [
+        9,
+        12,
+        10,
+        11
+      ],
+      "playing": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "action": "ensure",
+      "effect": 11,
+      "failure": 0,
+      "starts": 2,
+      "stops": 0,
+      "destroyed": 0,
+      "created": 0,
+      "ids": [
+        9,
+        12,
+        10,
+        11
+      ],
+      "playing": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "action": "play",
+      "effect": 14,
+      "failure": 0,
+      "starts": 1,
+      "stops": 0,
+      "destroyed": 1,
+      "created": 1,
+      "ids": [
+        14,
+        12,
+        10,
+        11
+      ],
+      "playing": [
+        1,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "action": "play",
+      "effect": 15,
+      "failure": 2,
+      "starts": 0,
+      "stops": 0,
+      "destroyed": 2,
+      "created": 1,
+      "ids": [
+        14,
+        33,
+        10,
+        11
+      ],
+      "playing": [
+        1,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "action": "play",
+      "effect": 28,
+      "failure": 3,
+      "starts": 0,
+      "stops": 0,
+      "destroyed": 3,
+      "created": 2,
+      "ids": [
+        14,
+        33,
+        33,
+        11
+      ],
+      "playing": [
+        1,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "action": "play",
+      "effect": 28,
+      "failure": 0,
+      "starts": 2,
+      "stops": 0,
+      "destroyed": 0,
+      "created": 2,
+      "ids": [
+        14,
+        28,
+        33,
+        11
+      ],
+      "playing": [
+        1,
+        1,
+        0,
+        1
+      ]
+    },
+    {
+      "action": "ensure",
+      "effect": 28,
+      "failure": 0,
+      "starts": 0,
+      "stops": 0,
+      "destroyed": 0,
+      "created": 0,
+      "ids": [
+        14,
+        28,
+        33,
+        11
+      ],
+      "playing": [
+        1,
+        1,
+        0,
+        1
+      ]
+    },
+    {
+      "action": "play",
+      "effect": -1,
+      "failure": 0,
+      "starts": 0,
+      "stops": 0,
+      "destroyed": 0,
+      "created": 0,
+      "ids": [
+        14,
+        28,
+        33,
+        11
+      ],
+      "playing": [
+        1,
+        1,
+        0,
+        1
+      ]
+    },
+    {
+      "action": "play",
+      "effect": 32,
+      "failure": 0,
+      "starts": 0,
+      "stops": 0,
+      "destroyed": 0,
+      "created": 0,
+      "ids": [
+        14,
+        28,
+        33,
+        11
+      ],
+      "playing": [
+        1,
+        1,
+        0,
+        1
+      ]
+    },
+    {
+      "action": "play",
+      "effect": 33,
+      "failure": 0,
+      "starts": 0,
+      "stops": 0,
+      "destroyed": 0,
+      "created": 0,
+      "ids": [
+        14,
+        28,
+        33,
+        11
+      ],
+      "playing": [
+        1,
+        1,
+        0,
+        1
+      ]
+    },
+    {
+      "action": "ensure",
+      "effect": 2147483647,
+      "failure": 0,
+      "starts": 0,
+      "stops": 0,
+      "destroyed": 0,
+      "created": 0,
+      "ids": [
+        14,
+        28,
+        33,
+        11
+      ],
+      "playing": [
+        1,
+        1,
+        0,
+        1
+      ]
+    },
+    {
+      "action": "stop",
+      "effect": -1,
+      "failure": 0,
+      "starts": 0,
+      "stops": 0,
+      "destroyed": 0,
+      "created": 0,
+      "ids": [
+        14,
+        28,
+        33,
+        11
+      ],
+      "playing": [
+        1,
+        1,
+        0,
+        1
+      ]
+    },
+    {
+      "action": "stopall",
+      "effect": 0,
+      "failure": 0,
+      "starts": 0,
+      "stops": 5,
+      "destroyed": 0,
+      "created": 0,
+      "ids": [
+        14,
+        28,
+        33,
+        11
+      ],
+      "playing": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "action": "ensure",
+      "effect": 28,
+      "failure": 4,
+      "starts": 2,
+      "stops": 0,
+      "destroyed": 0,
+      "created": 0,
+      "ids": [
+        14,
+        28,
+        33,
+        11
+      ],
+      "playing": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "action": "ensure",
+      "effect": 28,
+      "failure": 0,
+      "starts": 2,
+      "stops": 0,
+      "destroyed": 0,
+      "created": 0,
+      "ids": [
+        14,
+        28,
+        33,
+        11
+      ],
+      "playing": [
+        0,
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "action": "disable",
+      "effect": 0,
+      "failure": 0,
+      "starts": 0,
+      "stops": 0,
+      "destroyed": 0,
+      "created": 0,
+      "ids": [
+        14,
+        28,
+        33,
+        11
+      ],
+      "playing": [
+        0,
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "action": "play",
+      "effect": 16,
+      "failure": 0,
+      "starts": 0,
+      "stops": 0,
+      "destroyed": 0,
+      "created": 0,
+      "ids": [
+        14,
+        28,
+        33,
+        11
+      ],
+      "playing": [
+        0,
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "action": "ensure",
+      "effect": 28,
+      "failure": 0,
+      "starts": 0,
+      "stops": 0,
+      "destroyed": 0,
+      "created": 0,
+      "ids": [
+        14,
+        28,
+        33,
+        11
+      ],
+      "playing": [
+        0,
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "action": "stop",
+      "effect": 28,
+      "failure": 0,
+      "starts": 0,
+      "stops": 2,
+      "destroyed": 0,
+      "created": 0,
+      "ids": [
+        14,
+        28,
+        33,
+        11
+      ],
+      "playing": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "action": "enable",
+      "effect": 0,
+      "failure": 0,
+      "starts": 0,
+      "stops": 0,
+      "destroyed": 0,
+      "created": 0,
+      "ids": [
+        14,
+        28,
+        33,
+        11
+      ],
+      "playing": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "action": "ensure",
+      "effect": 28,
+      "failure": 0,
+      "starts": 2,
+      "stops": 0,
+      "destroyed": 0,
+      "created": 0,
+      "ids": [
+        14,
+        28,
+        33,
+        11
+      ],
+      "playing": [
+        0,
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "action": "clear",
+      "effect": 0,
+      "failure": 0,
+      "starts": 0,
+      "stops": 0,
+      "destroyed": 5,
+      "created": 0,
+      "ids": [
+        33,
+        33,
+        33,
+        33
+      ],
+      "playing": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}
