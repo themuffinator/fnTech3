@@ -1195,6 +1195,14 @@ bridge sequences, save-clock checks and staged manual preflights. The
 [extended runtime record](2026-09-21-stvef-runtime-coverage.md) adds full
 Holomatch playback on all three renderers and the observed x86 RT limit.
 
+The [SP cadence correction](2026-09-21-stvef-sp-cadence.md) keeps simulation
+ticks independent of `timescale` and sends local snapshots after new ticks,
+removing the growing fixed-step snapshot lag. Native fixtures, seven-profile
+compiled controls, production scene reruns and another retail save round trip
+cover the change. Startup/capture phase differences and diagonal bands in the
+Vulkan/RTX tutorial corridor remain open; the new images are not synchronized
+retail renderer parity evidence.
+
 The [renderer selection audit](2026-09-21-stvef-renderer-verification.md)
 corrects the September 20 live probes: `r_renderer` did not select a
 backend, so those runs were GLx only. Source and compiled fixtures remain
