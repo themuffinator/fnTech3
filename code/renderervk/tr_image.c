@@ -208,6 +208,12 @@ void R_ImageList_f( void ) {
 				// 64 bits per 16 pixels, so 4 bits per pixel
 				estSize /= 2;
 				break;
+			case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
+				format = "DXT5 ";
+				// Each block occupies 16 bytes, including partial edge blocks.
+				estSize = ( ( image->uploadWidth + 3 ) / 4 ) *
+					( ( image->uploadHeight + 3 ) / 4 ) * 16;
+				break;
 			case GL_RGB4_S3TC:
 				format = "S3TC ";
 				// same as DXT1?
@@ -798,7 +804,16 @@ static GLint RawImage_GetInternalFormat( const byte *scan, int numPixels, qboole
 
 	if ( RawImage_HasAlpha( scan, numPixels ) )
 	{
-		if ( r_texturebits->integer == 16 )
+		/* Elite Force SP/HM compress alpha images with DXT5. The legacy
+		 * S3 extension alone cannot provide this format; retain the ordinary
+		 * RGBA path for it and for other profiles or material opt-outs.
+		 */
+		if ( allowCompression && glConfig.textureCompression == TC_S3TC_ARB &&
+			( ri.gameId == COM_GAME_STVEF_SP || ri.gameId == COM_GAME_STVEF_MP ) )
+		{
+			internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+		}
+		else if ( r_texturebits->integer == 16 )
 		{
 			internalFormat = GL_RGBA4;
 		}
