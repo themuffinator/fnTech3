@@ -15,7 +15,7 @@ Full compatibility is **not yet established for any profile**.
 | Return to Castle Wolfenstein — multiplayer | `rtcw-mp` | Experimental; same build option and executable as SP; multiplayer and broader compatibility gates remain open. |
 | Wolfenstein: Enemy Territory | `wolfet` / `et` | Experimental; `-Dwolfet-development=true` permits dedicated probes only; client startup remains gated in every build. |
 | Star Trek Voyager: Elite Force — single player | `stvef-sp` | Experimental; default startup gated; `-Dstvef-development=true` permits isolated probes; the retail game module runs every single-player map on a developer server, and the retail menus and cgame run in a developer client, which plays the levels with their ambient sound at retail's own distances, saves them and moves between them; the cinematic and renderer gates remain open. |
-| Star Trek Voyager: Elite Force — Holomatch | `stvef-mp` | Experimental; same build option and executable as SP; the retail QVMs run, the retail demos play as retail draws them, and fnTech3 plays with and downloads from Lilium Voyager and the retail game as client and server in a developer build; part of the renderer gate remains open. |
+| Star Trek Voyager: Elite Force — Holomatch | `stvef-mp` | Experimental; same build option and executable as SP; the retail QVMs run, the retail demos play to completion with bounded retail image comparisons, and fnTech3 plays with and downloads from Lilium Voyager and the retail game as client and server in a developer build; part of the renderer gate remains open. |
 
 RTCW is one title with two mode profiles. A mode change relaunches the same
 executable; it does not mutate the running process's profile. Catalog
@@ -1221,8 +1221,19 @@ The [shader-wave follow-up](2026-09-21-stvef-shader-waves.md) corrects the
 random wave's view clock and both profiles' deterministic noise tables, with
 native SP/MP vectors, compiled checks on both platforms and production runs
 on all three renderers. Two held Holomatch views gain bounded retail image
-comparisons; shield and explosion effects still vary in repeated captures
-from retail itself, so full effect image parity remains open.
+comparisons. Its later shield and explosion captures varied within retail
+itself; the following investigation separates this capture-timing limit
+from renderer behavior.
+
+The [effect-capture follow-up](2026-09-21-stvef-effect-captures.md) resolves
+the large portable-shield comparison mismatch: frozen cgame frames kept
+adding shield quads, retail and fnTech3 consumed different wait counts, and
+their screenshot commands captured at different points in the frame.
+Matching those points gives 54 full-frame comparisons across nine states
+in all three retail demos on every renderer, with RGB mean absolute
+differences of 0.39–2.20 out of 255. Both successive captures are retained.
+This establishes bounded image evidence, not pixel identity or completion
+of the broader renderer gate.
 
 The [runtime follow-up](2026-09-21-stvef-runtime-followup.md) adds a complete
 fnTech3-to-retail-to-fnTech3 SP save round trip after a longer retail startup

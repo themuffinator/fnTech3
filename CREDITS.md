@@ -619,6 +619,9 @@ chapters; the GLSL implementation and synthetic tests are independently written.
   the [model and lighting record](docs/fntech3/2026-09-20-stvef-mdr.md).
   Synthetic effect geometry is compared with the installed Holomatch routines
   in the [effect record](docs/fntech3/2026-09-20-stvef-effects.md).
+  The [effect capture method](docs/fntech3/2026-09-21-stvef-effect-captures.md)
+  uses independently observed retail screenshot timing and rendered frames;
+  no retail implementation or shader text is incorporated.
   Native projection and stencil extrusion observations are documented in the
   [shadow record](docs/fntech3/2026-09-20-stvef-shadows.md).
   The [movie audio record](docs/fntech3/2026-09-20-stvef-movie-audio.md)

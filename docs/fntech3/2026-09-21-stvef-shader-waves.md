@@ -92,6 +92,13 @@ The initial `extreme` state also changes in both engines. These are retained
 as comparison limits, not declared pixel-parity passes or attributed entirely
 to the two corrected shader contracts.
 
+The later [effect-capture investigation](2026-09-21-stvef-effect-captures.md)
+identifies continued shield-quad accumulation while frozen, differing wait
+cadence, and immediate retail versus deferred fnTech3 screenshots. Correcting
+the capture method yields close comparisons at these shield states and
+additional beam/burst views in all three demos, without another renderer
+change. The original measurements above remain the historical observations.
+
 The [earlier effects record](2026-09-20-stvef-effects.md) described fnTech3's
 then-current wall-clock behavior. It was not retail's random-wave clock.
 The native vectors here correct that implementation and the deterministic
