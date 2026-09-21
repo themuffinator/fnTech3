@@ -86,6 +86,10 @@ all samples, including larger late differences, remain in the record.
 
 ## Remaining startup differences
 
+The later [command-ordinal correction](2026-09-21-stvef-command-ordinals.md)
+resolves the event and weapon-change timing mismatch below in 69 sampled
+startup snapshots. The observations here describe this earlier revision.
+
 Instrumented runs distinguish weapon selection from the weapon currently in
 playerstate. At snapshot time 1,650, both corrected fnTech3 and retail select
 weapon 6, but their event sequences still differ:

@@ -30,7 +30,7 @@ attaches to is described in the [game host record](2026-09-19-stvef-sp-host.md).
 | Shutdown | The game's `Shutdown`, then any cinematic stopped, then the client's cgame shut down, then the library freed (`SV_ShutdownGameProgs` `0x425450`) | The server calls the client's hook between the game's `Shutdown` and freeing the library, so the cgame never runs from a freed library |
 | Snapshot | 60,004 bytes. Retail writes the flags, ping, server time, area mask, command number, player state, at most 256 entities and the command sequence, and leaves the rest of the cgame's record alone (`CL_GetSnapshot` `0x4026a0`) | The same fields through the state adapter; a snapshot the record cannot express publishes nothing |
 | Gamestate, command, glconfig | 0x4e84, 28 and 0x144c bytes (`0x4025d0`, `0x402610`, `0x4025f0`) | The same records |
-| Command number | The server writes the number of the last command it ran into every snapshot (`SV_WriteSnapshotToClient` `0x428138`) and the client keeps it (`CL_ParseSnapshot` `0x409559`); the cgame replays the commands after it | Loopback snapshots carry that command's time instead, so the client takes the newest command it sent at or before that time |
+| Command number | The server writes the number of the last command it ran into every snapshot (`SV_WriteSnapshotToClient` `0x428138`) and the client keeps it (`CL_ParseSnapshot` `0x409559`); the cgame replays the commands after it | Snapshots now carry the server's actual acknowledged ordinal. The initial timestamp-based inference was incorrect for repeated or adjusted command times and is replaced by the [command-ordinal correction](2026-09-21-stvef-command-ordinals.md) |
 | First snapshot | Single player's snapshot flags are rate-delayed and dropped commands; the client goes active with its first snapshot (`CL_FirstSnapshot` `0x403460`) | This engine marks snapshots from before the player enters the world as inactive and waits for one that is not. The cgame is not shown the inactive ones: the retail cgame stops with "cg.snap->serverTime > cg.time" if its first snapshot is newer than the client's clock, where Quake III 1.32 clamps |
 | Viewpoint | The server asks the cgame for a running camera scene's position (`vmMain(5)`) and otherwise uses the eye, moved by the lean: the roll plus half the lean, then the lean along that right vector (`SV_BuildClientSnapshot` `0x4283a3`) | The same, for the snapshots of the SP profile |
 | Lighting | The light grid at a point; zeros where a map has none (`R_GetLighting` `0x45bf10`). The cgame uses it for the player's light level, which characters can see by | The renderer's `LightForPoint`, with zeros where it has no grid |
@@ -70,8 +70,9 @@ renderer at its panels' noise wave, now drawn as retail draws it.
   VM that owns no library, the export calls and their arguments, the
   client's side lent to the server, the shutdown order, the calls answered
   before the cgame starts, the snapshot record and its inactive-snapshot
-  rule and the viewpoint; its probe checks the command number against sent
-  commands' times.
+  rule and the viewpoint. The obsolete time-inference probe is replaced by
+  native command recovery, mutable game-command and snapshot-header checks
+  in `stvef_sp_user_move_tests.py` ([record](2026-09-21-stvef-command-ordinals.md)).
 - `fntech3_stvef_render_records` turns a picture about its top-right corner
   and refuses non-finite input, and passes the held-frames flag through.
 - The same test file pins held frames and noise waves in all three renderers.

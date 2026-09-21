@@ -635,6 +635,10 @@ chapters; the GLSL implementation and synthetic tests are independently written.
   [Elite-Reinforce reference](https://github.com/kugelrund/Elite-Reinforce/tree/526e911c532817b3021aaa564b6b0cf087879827)
   informed the investigation of shared animation and weapon behavior;
   its non-GPL implementation text is not incorporated.
+  The [command-ordinal record](docs/fntech3/2026-09-21-stvef-command-ordinals.md)
+  pins SP command recovery, mutable game commands and snapshot acknowledgements
+  to 72 owned native-probe cases and runtime observations. The source reference
+  informed the timestamp-clamp investigation; no implementation is incorporated.
   The [texture-compression record](docs/fntech3/2026-09-21-stvef-texture-compression.md)
   pins the menu/configuration control to native registration and runtime facts,
   and separates texture-format differences from renderer comparisons.
