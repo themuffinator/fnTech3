@@ -269,7 +269,8 @@ class LaunchAndTransitionSourceTests(unittest.TestCase):
         self.assertFalse((ROOT / "pkg/games/quakelive/baseq3/fnql-hud.json").exists())
         hud = read_source("code/client/cl_hud.cpp")
         # Quake Live stays out of the whitelist; Elite Force joined it.
-        self.assertIn("hudSupported = Com_GameIsQuake3() || Com_GameIsRTCW() || Com_GameIsSTVEF();", hud)
+        self.assertIn("hudSupported = Com_GameIsQuake3() || Com_GameIsRTCW() || Com_GameIsSTVEF() "
+                      "|| Com_GameIsWolfET();", hud)
         self.assertIn("if ( !hudSupported ) return qtrue;", hud)
         self.assertIn("CL_HudDrawStretchPic", cgame)
         self.assertNotIn("cl_hudAspect", main)

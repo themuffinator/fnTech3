@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "comment": [
+    "Enemy Territory takes the centred uniform 4:3 correction with no per-element",
+    "rules. Its limbo panel, which is the furthest this engine's ET client currently",
+    "reaches, is one full-screen composition: pinning its pieces to different edges",
+    "would pull it apart, exactly as it would Elite Force's loading emblem.",
+    "Rules for the in-game HUD are deliberately absent rather than guessed. Closing",
+    "the limbo panel needs a key press, and the runtime harness injects no input, so",
+    "ET's health, ammunition, compass and stamina draws have never been recorded.",
+    "Author them from a cl_hudDump capture once the client can reach ordinary play."
+  ],
+  "rules": []
+}

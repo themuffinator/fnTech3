@@ -37,6 +37,7 @@ static qhandle_t submittedShader;
 int Com_GameIsQuake3() { return profile == 0; }
 int Com_GameIsRTCW() { return profile == 2 || profile == 3; }
 int Com_GameIsSTVEF() { return profile == 4 || profile == 5; }
+int Com_GameIsWolfET() { return profile == 6; }
 cvar_t *Cvar_Get(const char *name, const char *value, int) {
     ++registrations;
     auto entry = variables.emplace(name, cvar_t{});

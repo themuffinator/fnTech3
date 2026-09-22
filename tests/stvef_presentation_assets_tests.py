@@ -148,12 +148,19 @@ class STVEFHudRuleTests(unittest.TestCase):
 
 class STVEFPresentationWiringTests(unittest.TestCase):
     def test_the_engine_enables_the_hud_path_for_elite_force(self):
+        # The predicate is shared with the other corrected titles, so this pins
+        # Elite Force's place in it rather than the whole line.
         hud = read("code/client/cl_hud.cpp")
-        self.assertIn("hudSupported = Com_GameIsQuake3() || Com_GameIsRTCW() || Com_GameIsSTVEF();", hud)
+        start = hud.index("hudSupported = Com_GameIs")
+        enable = hud[start:hud.index(";", start)]
+        self.assertIn("Com_GameIsSTVEF()", enable)
+        self.assertNotIn("Com_GameIsQuakeLive", enable)
         # The rules only reach the client if the root archive will serve them.
         files = read("code/qcommon/files.c")
-        self.assertIn("( Com_GameIsQuake3() || Com_GameIsRTCW() || Com_GameIsSTVEF() ) &&\n"
-                      "\t\t\t\t( !FS_FilenameCompare( qpath, \"fntech3-hud.json\" ) ||", files)
+        allowed = files[files.index("FS_RootArchiveAllowsFile"):]
+        allowed = allowed[:allowed.index("FS_RootArchiveAllowsMapSidecar( qpath )")]
+        self.assertIn("Com_GameIsSTVEF()", allowed)
+        self.assertIn('!FS_FilenameCompare( qpath, "fntech3-hud.json" )', allowed)
 
     def test_the_zone_compiler_knows_elite_force_is_a_quake3_fork(self):
         tool = read("code/tools/audiozones/audiozonesc.cpp")

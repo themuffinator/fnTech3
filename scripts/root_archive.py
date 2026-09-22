@@ -34,7 +34,10 @@ PROFILE_REQUIRED_ASSETS = {
         )
         for profile, names in STOCK_RTCW_MAPS.items()
     },
-    "wolfet": tuple(f"etmain/maps/{name}.azb" for name in STOCK_WOLFET_MAPS),
+    "wolfet": (
+        "etmain/fntech3-hud.json",
+        *(f"etmain/maps/{name}.azb" for name in STOCK_WOLFET_MAPS),
+    ),
     # Elite Force shares one baseEF game directory between its two profiles,
     # and ten single-player maps live in the maps/tour/ subdirectory.
     **{

@@ -488,8 +488,9 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertEqual(len(fog_destinations), 149)
         # 441 before Enemy Territory added a zone file for each of its six maps,
         # and 447 before Elite Force added a zone file for each of its 99 maps
-        # and one HUD rule file for each of its two profiles.
-        self.assertEqual(len(required_destinations), 548)
+        # and one HUD rule file for each of its two profiles, then 548 before
+        # Enemy Territory gained a HUD rule file of its own.
+        self.assertEqual(len(required_destinations), 549)
         self.assertIn("pkg/games/quakelive/baseq3/maps/campgrounds.azb", sources)
         self.assertIn("games/quakelive/baseq3/maps/campgrounds.azb", audio_destinations)
         self.assertIn("games/quakelive/baseq3/maps/campgrounds.fog", fog_destinations)
@@ -529,10 +530,12 @@ class ReleasePackagingTests(unittest.TestCase):
                 {f"games/{profile}/main/maps/{name}.azb" for name in names}
                 | {f"games/{profile}/main/fntech3-hud.json"},
             )
-        # Enemy Territory ships a zone file for each of its six official maps.
+        # Enemy Territory ships a zone file for each of its six official maps,
+        # and a HUD rule file that deliberately carries no rules.
         self.assertEqual(
             {name for name in packaged if name.startswith("games/wolfet/")},
-            {f"games/wolfet/etmain/maps/{name}.azb" for name in root_archive.STOCK_WOLFET_MAPS},
+            {f"games/wolfet/etmain/maps/{name}.azb" for name in root_archive.STOCK_WOLFET_MAPS}
+            | {"games/wolfet/etmain/fntech3-hud.json"},
         )
         self.assertEqual(len(root_archive.STOCK_WOLFET_MAPS), 6)
         self.assertNotIn("games/quakelive/baseq3/fnql-hud.json", packaged)

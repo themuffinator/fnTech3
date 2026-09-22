@@ -994,14 +994,14 @@ extern "C" void CL_HudReload_f( void ) {
 }
 
 extern "C" void CL_HudInit( void ) {
-	hudSupported = Com_GameIsQuake3() || Com_GameIsRTCW() || Com_GameIsSTVEF();
+	hudSupported = Com_GameIsQuake3() || Com_GameIsRTCW() || Com_GameIsSTVEF() || Com_GameIsWolfET();
 	cl_hudAspect = nullptr;
 	cl_hudDump = nullptr;
 	if ( !hudSupported ) return;
 	cl_hudAspect = Cvar_Get( "cl_hudAspect", "1", CVAR_ARCHIVE );
 	Cvar_CheckRange( cl_hudAspect, "0", "1", CV_INTEGER );
 	Cvar_SetDescription( cl_hudAspect,
-		"Q3/RTCW/Elite Force HUD aspect correction: 0 stretch, 1 uniform 4:3 with optional fntech3-hud.json rules (legacy fnq3-hud.json). Inactive in Quake Live." );
+		"Q3/RTCW/Elite Force/Enemy Territory HUD aspect correction: 0 stretch, 1 uniform 4:3 with optional fntech3-hud.json rules (legacy fnq3-hud.json). Inactive in Quake Live." );
 	cl_hudDump = Cvar_Get( "cl_hudDump", "0", CVAR_ARCHIVE );
 	Cvar_CheckRange( cl_hudDump, "0", "1", CV_INTEGER );
 	Cvar_SetDescription( cl_hudDump, "Write deduplicated cgame HUD groups to fntech3-hud-dump.json in the active writable game directory. Inactive in Quake Live." );
