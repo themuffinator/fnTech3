@@ -65,6 +65,30 @@ cmake --build .tmp/cmake-check --target fnql-audiozonesc --config Release
 .tmp/cmake-check/fnql-audiozonesc.exe --audit --samples 32768 baseq3/maps/q3dm17.azb
 ```
 
+Elite Force is a Quake III fork: its maps are IBSP 46 and its surface flags keep
+Quake's meanings, so `--profile stvef-sp` and `--profile stvef-mp` select the
+Quake interpretation and pin the expected BSP version. Observed across all 99
+official maps, the only flags Elite Force sets are Quake III's own, `SURF_FLESH`
+is never used, and `SURF_METALSTEPS` marks its metal environments as expected.
+
+Generate every official Elite Force single-player and Holomatch map from a
+legitimate installation:
+
+```powershell
+python scripts/generate_stock_stvef_audio_zones.py "E:/Games/Star Trek Voyager Elite Force" --tool meson/build/win32-dev/fnql-audiozonesc.exe
+```
+
+The wrapper reads only `pak0.pk3` through `pak3.pk3`, splits the inventory the
+way the shipped `scripts/arenas.txt` and `scripts/xpack.arena` declare it — 33
+Holomatch maps, leaving 66 single-player and tour maps — checks the complete
+inventory, and audits every result before publishing to
+`pkg/games/{stvef-sp,stvef-mp}/baseEF/maps/`. Ten single-player maps live in the
+`maps/tour/` subdirectory, so sidecar paths keep that directory. Reports live
+under `.tmp/stvef-audio-zones/`; extracted BSPs are temporary and removed
+afterward. Generated sidecars still need listening checks; the
+[stock Elite Force evidence](../../../docs/fntech3/2026-09-22-stvef-presentation-assets.md)
+records the current coverage warnings.
+
 For RTCW, pass `--profile rtcw-sp` or `--profile rtcw-mp` with `--from-bsp`.
 RTCW and QL both use BSP 47, but their material flags differ: `0x40` denotes
 ceramic in RTCW and flesh in Q3/QL. RTCW wood, grass, gravel, snow, and carpet

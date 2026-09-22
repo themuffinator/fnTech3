@@ -2879,8 +2879,8 @@ static int FromBspCommand( int argc, char **argv ) {
 			}
 			profile = argv[++i];
 			if ( profile != "quake3" && profile != "quakelive" && profile != "rtcw-sp" && profile != "rtcw-mp" &&
-				profile != "wolfet" ) {
-				std::cerr << "--profile must be quake3, quakelive, rtcw-sp, rtcw-mp, or wolfet\n";
+				profile != "wolfet" && profile != "stvef-sp" && profile != "stvef-mp" ) {
+				std::cerr << "--profile must be quake3, quakelive, rtcw-sp, rtcw-mp, wolfet, stvef-sp, or stvef-mp\n";
 				return 2;
 			}
 		} else if ( arg == "--max-zones" ) {
@@ -2926,7 +2926,10 @@ static int FromBspCommand( int argc, char **argv ) {
 		std::cerr << input.string() << ": " << error << "\n";
 		return 1;
 	}
-	if ( !profile.empty() && map.version != ( profile == "quake3" ? kBspVersionQ3 : kBspVersionQL ) ) {
+	// Elite Force is a Quake III fork: its maps are IBSP 46 and its surface
+	// flags keep Quake's meanings, so only the expected version differs here.
+	const bool profileIsBsp46 = profile == "quake3" || profile == "stvef-sp" || profile == "stvef-mp";
+	if ( !profile.empty() && map.version != ( profileIsBsp46 ? kBspVersionQ3 : kBspVersionQL ) ) {
 		std::cerr << input.string() << ": BSP version does not match --profile " << profile << "\n";
 		return 1;
 	}
@@ -3564,11 +3567,12 @@ static void PrintUsage( const char *argv0 ) {
 	std::cerr
 		<< "Usage:\n"
 		<< "  " << argv0 << " [-o output.azb] input.audiozones\n"
-		<< "  " << argv0 << " --from-bsp [-o output.azb] [--profile quake3|quakelive|rtcw-sp|rtcw-mp|wolfet] [--merge overrides.audiozones] [--material-map audio-materials.txt] [--max-zones N] input.bsp\n"
+		<< "  " << argv0 << " --from-bsp [-o output.azb] [--profile quake3|quakelive|rtcw-sp|rtcw-mp|wolfet|stvef-sp|stvef-mp] [--merge overrides.audiozones] [--material-map audio-materials.txt] [--max-zones N] input.bsp\n"
 		<< "  " << argv0 << " --dump input.azb\n"
 		<< "  " << argv0 << " --audit [--strict] [--samples N] input.azb\n\n"
 		<< "BSP generation reads IBSP v46/v47 leaves, clusters, areas, surfaces, brushes, and shaders.\n"
 		<< "Specify --profile rtcw-sp or rtcw-mp for RTCW material flags, or wolfet for Enemy Territory's;\n"
+		<< "stvef-sp and stvef-mp are Elite Force, an IBSP 46 fork that keeps Quake's flag meanings;\n"
 		<< "the default retains Q3/QL interpretation.\n"
 		<< "Material maps use: shader/pattern material [preset name] [flag outdoor] [weight N].\n"
 		<< "Generated zones use negative priorities, so merged manual override zones win naturally.\n\n"

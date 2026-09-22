@@ -36,6 +36,7 @@ static std::array<float, 8> submitted;
 static qhandle_t submittedShader;
 int Com_GameIsQuake3() { return profile == 0; }
 int Com_GameIsRTCW() { return profile == 2 || profile == 3; }
+int Com_GameIsSTVEF() { return profile == 4 || profile == 5; }
 cvar_t *Cvar_Get(const char *name, const char *value, int) {
     ++registrations;
     auto entry = variables.emplace(name, cvar_t{});
@@ -280,6 +281,10 @@ class HudAspectTests(unittest.TestCase):
             build = subprocess.run([compiler, *target, "-std=c++17", "-I", str(ROOT),
                 str(fixture), "-o", str(executable)], cwd=ROOT, capture_output=True, text=True, timeout=60)
             self.assertEqual(build.returncode, 0, build.stdout + build.stderr)
+            # 0 Quake III, 1 Quake Live (never corrected), 2/3 RTCW SP/MP. The
+            # sample table below is Quake III's and RTCW's own HUD layout, so
+            # Elite Force's profiles are covered by stvef_presentation_assets_tests
+            # rather than by these expectations.
             for profile in range(4):
                 with self.subTest(profile=profile):
                     output = path / f"dump-{profile}.json"

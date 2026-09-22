@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "name": "crosshair",
+      "match": { "shader": "gfx/2d/crosshair*" },
+      "mode": "uniform",
+      "align": { "x": "center", "y": "center" }
+    },
+    {
+      "name": "health_and_armor_caps",
+      "match": { "shader": "gfx/interface/*cap*", "region": { "x": 0, "y": 415, "w": 200, "h": 65 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "bottom" }
+    },
+    {
+      "name": "ammo_bar",
+      "match": { "shader": "gfx/interface/ammobar", "region": { "x": 0, "y": 415, "w": 200, "h": 65 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "bottom" }
+    },
+    {
+      "name": "status_numbers",
+      "match": { "shader": "gfx/2d/numbers/*", "region": { "x": 0, "y": 415, "w": 200, "h": 65 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "bottom" }
+    },
+    {
+      "name": "upper_left_text",
+      "match": { "shader": "gfx/2d/chars_big*", "region": { "x": 0, "y": 0, "w": 260, "h": 70 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "top" }
+    }
+  ]
+}

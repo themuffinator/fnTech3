@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "name": "crosshair",
+      "match": { "shader": "gfx/2d/crosshair*" },
+      "mode": "uniform",
+      "align": { "x": "center", "y": "center" }
+    },
+    {
+      "name": "health_and_armor_caps",
+      "match": { "shader": "gfx/interface/*cap*", "region": { "x": 0, "y": 415, "w": 200, "h": 65 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "bottom" }
+    },
+    {
+      "name": "health_and_armor_bar",
+      "match": { "shader": "gfx/interface/ammobar", "region": { "x": 0, "y": 415, "w": 200, "h": 65 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "bottom" }
+    },
+    {
+      "name": "health_and_armor_numbers",
+      "match": { "shader": "gfx/2d/numbers/*", "region": { "x": 0, "y": 415, "w": 200, "h": 65 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "bottom" }
+    },
+    {
+      "name": "ammo_caps",
+      "match": { "shader": "gfx/interface/*cap*", "region": { "x": 540, "y": 415, "w": 100, "h": 65 } },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "bottom" }
+    },
+    {
+      "name": "ammo_bar",
+      "match": { "shader": "gfx/interface/ammobar", "region": { "x": 540, "y": 415, "w": 100, "h": 65 } },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "bottom" }
+    },
+    {
+      "name": "ammo_numbers",
+      "match": { "shader": "gfx/2d/numbers/*", "region": { "x": 540, "y": 415, "w": 100, "h": 65 } },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "bottom" }
+    },
+    {
+      "name": "weapon_select_and_bottom_text",
+      "match": { "region": { "x": 290, "y": 420, "w": 140, "h": 60 } },
+      "mode": "uniform",
+      "align": { "x": "center", "y": "bottom" }
+    },
+    {
+      "name": "status_text",
+      "match": { "shader": "gfx/2d/chars_medium*", "region": { "x": 240, "y": 400, "w": 180, "h": 40 } },
+      "mode": "uniform",
+      "align": { "x": "center", "y": "bottom" }
+    },
+    {
+      "name": "lagometer_and_fps",
+      "match": { "region": { "x": 570, "y": 380, "w": 70, "h": 45 } },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "bottom" }
+    },
+    {
+      "name": "pickup_and_weapon_icons",
+      "match": { "region": { "x": 490, "y": 345, "w": 90, "h": 60 } },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "center" }
+    },
+    {
+      "name": "centerprint",
+      "match": { "region": { "x": 240, "y": 90, "w": 170, "h": 80 } },
+      "mode": "uniform",
+      "align": { "x": "center", "y": "top" }
+    },
+    {
+      "name": "upper_left_text",
+      "match": { "shader": "gfx/2d/chars_big*", "region": { "x": 0, "y": 0, "w": 260, "h": 60 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "top" }
+    }
+  ]
+}

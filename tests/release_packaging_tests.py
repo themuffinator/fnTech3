@@ -486,8 +486,10 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertEqual(len(stock_ql_maps.STOCK_QL_MAPS), 149)
         self.assertEqual(len(audio_destinations), 149)
         self.assertEqual(len(fog_destinations), 149)
-        # 441 before Enemy Territory added a zone file for each of its six maps.
-        self.assertEqual(len(required_destinations), 447)
+        # 441 before Enemy Territory added a zone file for each of its six maps,
+        # and 447 before Elite Force added a zone file for each of its 99 maps
+        # and one HUD rule file for each of its two profiles.
+        self.assertEqual(len(required_destinations), 548)
         self.assertIn("pkg/games/quakelive/baseq3/maps/campgrounds.azb", sources)
         self.assertIn("games/quakelive/baseq3/maps/campgrounds.azb", audio_destinations)
         self.assertIn("games/quakelive/baseq3/maps/campgrounds.fog", fog_destinations)

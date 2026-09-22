@@ -3026,7 +3026,7 @@ static qboolean FS_RootArchiveAllowsFile( const char *qpath )
 	return FS_RootArchiveSafePath( qpath, qfalse ) &&
 		( !FS_FilenameCompare( qpath, FNTECH3_ROOT_ARCHIVE_RENDERER_SHADER ) ||
 			!FS_FilenameCompare( qpath, FNTECH3_ROOT_ARCHIVE_WEAPON_SOUNDS ) ||
-			( ( Com_GameIsQuake3() || Com_GameIsRTCW() ) &&
+			( ( Com_GameIsQuake3() || Com_GameIsRTCW() || Com_GameIsSTVEF() ) &&
 				( !FS_FilenameCompare( qpath, "fntech3-hud.json" ) ||
 					!FS_FilenameCompare( qpath, "fnq3-hud.json" ) ) ) ||
 			FS_RootArchiveAllowsMapSidecar( qpath ) );
