@@ -1,0 +1,181 @@
+{
+ "schema": 1,
+ "date": "2026-09-22",
+ "title": "Enemy Territory HUD aspect correction",
+ "sourceCommit": "ddc7b8f850a04a8c3ce01dd94e1bbe23ddbb75d1",
+ "baselineCommit": "f08e52eb247c92f7dc17bee0266e84faeb610974",
+ "status": "PARTIAL; the centred uniform 4:3 correction is enabled and observed, and every official map already had an audio zone sidecar; per-element HUD rules are deliberately absent because ET's in-game HUD cannot yet be recorded; the profile stays development-gated",
+ "sourceFiles": [
+  {
+   "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\code\\client\\cl_hud.cpp",
+   "bytes": 34453,
+   "sha256": "d2d095c77ecf187ac7a0c6894586f3c8f442d8235ca1f7ff95abb329cab70dce"
+  },
+  {
+   "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\code\\qcommon\\files.c",
+   "bytes": 209874,
+   "sha256": "0005e664f9dfb63704a20ad777e8901d4d6d341c6cfb3e675131997fb4fd6690"
+  },
+  {
+   "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\scripts\\root_archive.py",
+   "bytes": 10518,
+   "sha256": "9e134ab14c9f95e3cab48c6f71ee5f492c83f9e87d8ee9c28543c0f86c5f39ee"
+  },
+  {
+   "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\scripts\\probe_wolfet_client.py",
+   "bytes": 9976,
+   "sha256": "a8384400706f074618f59efe70f3ed260f0310ecea66f55c22f9201c5bc7c4c9"
+  },
+  {
+   "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\pkg\\games\\wolfet\\etmain\\fntech3-hud.json",
+   "bytes": 731,
+   "sha256": "9beccb858b96e945baf1b1f74379b2d5a91dfccf32f74bb1997abd2b3c541598"
+  }
+ ],
+ "baselineSourceObjects": {
+  "code/client/cl_hud.cpp": "b818951ee31f62c5ad4209474c1f2f1c2ee728b5",
+  "code/qcommon/files.c": "5ec49efea2ed7c2de4d3f43e2fa36c69ddfc5119",
+  "scripts/root_archive.py": "b48eeffa5e8b1200469565159a2b9daaa2eb759e",
+  "scripts/probe_wolfet_client.py": "b39d725a5fe8917942a829c89691b57b74c5d53e",
+  "pkg/games/wolfet/etmain/fntech3-hud.json": null
+ },
+ "testFiles": [
+  {
+   "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\tests\\wolfet_presentation_assets_tests.py",
+   "bytes": 4557,
+   "sha256": "cba37fac273ac15b76a0c808a2271e322696f024c5d7cd1b434368bc5d6cdb94"
+  }
+ ],
+ "correction": "The HUD aspect system is whitelisted by title in two places: the client enablement in CL_HudInit and the root-archive allowlist in FS_RootArchiveAllowsFile. Enemy Territory reached neither, so its 2D draws stretched with the frame on a non-4:3 display even though its own compat layer already routes them through the HUD path. Both predicates now include ET, which gives it the centred uniform 4:3 correction.",
+ "audioZones": {
+  "alreadyComplete": true,
+  "maps": [
+   "battery",
+   "fueldump",
+   "goldrush",
+   "oasis",
+   "radar",
+   "railgun"
+  ],
+  "installation": "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory",
+  "regeneratedIdentical": true,
+  "regenerationNote": "Every shipped sidecar was regenerated from the retail installation with the current compiler and compared byte for byte; all six match, so the shipped set is current and the Elite Force profiles added to the compiler did not disturb ET output.",
+  "audits": [
+   {
+    "map": "battery",
+    "exit": 0,
+    "zones": 255,
+    "grade": "good",
+    "warnings": [
+     "warning: zones cover more than half of the sidecar bounds; generated volumes may have collapsed",
+     "warning: most lookups resolve to map-scale zones instead of specific volumes"
+    ],
+    "bytes": 70184,
+    "sha256": "1d822a838df18b1f151f41b755f2177f06653abfb657854457dd43014fdccb18"
+   },
+   {
+    "map": "fueldump",
+    "exit": 0,
+    "zones": 417,
+    "grade": "good",
+    "warnings": [
+     "warning: most lookups resolve to map-scale zones instead of specific volumes"
+    ],
+    "bytes": 107827,
+    "sha256": "efb06d45132474813a6216bd72bf7e27276cbc21a7ca0e0c41c1a79a58d2dab5"
+   },
+   {
+    "map": "goldrush",
+    "exit": 0,
+    "zones": 512,
+    "grade": "good",
+    "warnings": [
+     "warning: most lookups resolve to map-scale zones instead of specific volumes"
+    ],
+    "bytes": 99883,
+    "sha256": "8c4f22fda948661525e6530a334a9c8bd9004860ae22cc9f8d27b5e738f42766"
+   },
+   {
+    "map": "oasis",
+    "exit": 0,
+    "zones": 512,
+    "grade": "good",
+    "warnings": [
+     "warning: most lookups resolve to map-scale zones instead of specific volumes"
+    ],
+    "bytes": 115447,
+    "sha256": "3c0d0e9e72e65d925322fb8e3c13defbcc52a71159172bf0aaeb7a1b2d6d2117"
+   },
+   {
+    "map": "radar",
+    "exit": 0,
+    "zones": 318,
+    "grade": "good",
+    "warnings": [
+     "warning: most lookups resolve to map-scale zones instead of specific volumes"
+    ],
+    "bytes": 64512,
+    "sha256": "cd2a3a15714848c1f2cce1491a81285928740cda507505596d6c513fa934e75d"
+   },
+   {
+    "map": "railgun",
+    "exit": 0,
+    "zones": 141,
+    "grade": "good",
+    "warnings": [
+     "warning: zones cover more than half of the sidecar bounds; generated volumes may have collapsed",
+     "warning: most lookups resolve to map-scale zones instead of specific volumes"
+    ],
+    "bytes": 32963,
+    "sha256": "03eee1a998a337c8bccb11305bff11a61eb0e77da83a10ec5beb9a69566c50c5"
+   }
+  ]
+ },
+ "hudRules": {
+  "file": {
+   "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\pkg\\games\\wolfet\\etmain\\fntech3-hud.json",
+   "bytes": 731,
+   "sha256": "9beccb858b96e945baf1b1f74379b2d5a91dfccf32f74bb1997abd2b3c541598"
+  },
+  "rules": 0,
+  "reason": "ET's client reaches the limbo panel and no further. That panel is one full-screen composition, so pinning its pieces to different edges would pull it apart, and the in-game HUD it would make sense to anchor has never been drawn here. Rules are absent rather than guessed."
+ },
+ "hudCapture": {
+  "method": "scripts/probe_wolfet_client.py with cl_hudDump 1, which now preserves the engine's dump alongside its console log and captures.",
+  "map": "oasis",
+  "renderer": "glx",
+  "groups": 161,
+  "distinctShaders": 67,
+  "limboShaders": 59,
+  "reachedGameplay": false,
+  "evidence": "The team command was accepted and the server logged \"entered the game\", but every recorded group is limbo or console art and the capture shows the limbo panel with JOIN A TEAM still offered. Shortening g_redlimbotime and restarting the map did not change the recorded set."
+ },
+ "wideAspectObservation": {
+  "resolution": "1280x720",
+  "map": "oasis",
+  "scene": "limbo panel",
+  "captures": {
+   "0": {
+    "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\wolfet-wide-0.png",
+    "bytes": 2765798,
+    "sha256": "3f4158589b752b5823dc0d0c93a17ae38ce9cf160600341f2d357a7826e58c5a"
+   },
+   "1": {
+    "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\wolfet-wide-1.png",
+    "bytes": 2765798,
+    "sha256": "f5a917333c1c1f0728344a05ebae8bb3aacb2090861be4b86bfac90603dcc12a"
+   }
+  },
+  "finding": "At cl_hudAspect 0 the panel stretches to fill the frame; at 1 it renders centred in 4:3 with pillarbox bars and the composition intact. Both frames show the same mission time, so this pair does isolate the correction, unlike the Elite Force gameplay pair recorded on 2026-09-21.",
+  "note": "Captures stay under .tmp because they are derived from retail assets."
+ },
+ "platforms": [
+  "Windows x86 (MSVC, meson win32-dev)"
+ ],
+ "limits": [
+  "No per-element HUD anchoring is claimed for ET; only the centred uniform correction is enabled and observed.",
+  "The observation is the limbo panel, which is the furthest this engine's ET client reaches; no gameplay HUD, and no gameplay, is claimed.",
+  "Audio zones were already complete and are unchanged by this slice; they remain a first pass with no listening check, as recorded on 2026-09-18.",
+  "Enemy Territory remains development-gated; release builds still refuse the profile."
+ ]
+}
