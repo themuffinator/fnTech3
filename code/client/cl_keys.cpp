@@ -170,9 +170,12 @@ static void Field_VariableSizeDraw( field_t *edit, int x, int y, int width, int 
 		if ( size == smallchar_width ) {
 			SCR_DrawSmallChar( x + ( edit->cursor - prestep - i ) * size, y, cursorChar );
 		} else {
-			// Host TTF text has no glyphs for the charset's control-byte
-			// cursors. Use the retail field cursor shapes explicitly.
-			str[0] = key_overstrikeMode ? '_' : '|';
+			// Quake Live's host TTF text has no glyphs for the charset's
+			// control-byte cursors, so it uses the retail field cursor shapes.
+			// Every other profile draws large text from its charset, and so
+			// draws those cursors as its original engine does.
+			str[0] = Com_GameIsQuakeLive() ? ( key_overstrikeMode ? '_' : '|' )
+				: static_cast<char>( cursorChar );
 			str[1] = '\0';
 			SCR_DrawBigString( x + ( edit->cursor - prestep - i ) * BIGCHAR_WIDTH, y, str.data(), 1.0, qfalse );
 		}

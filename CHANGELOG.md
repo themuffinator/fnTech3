@@ -18,6 +18,20 @@ historical upstream records, not fnTech3 release history. See the
 
 ### Compatibility
 
+- Draw the client's large text in every profile but Quake Live as the
+  original engines draw it. The demo-recording notice, the spatial-audio
+  overlay and big edit fields went through Quake Live's host text. Outside
+  Quake Live that meant a Windows system face, or a stand-in of narrow glyphs
+  above a baseline, with no shadow, and the recording notice sat 420 lines
+  down. They now use Quake III's large string: square cells of the profile's
+  own charset, from the top-left, over a black shadow two pixels right and
+  down. Elite Force's half-width glyphs are included, and a big field's
+  cursor is the charset's own. The recording notice goes where each retail
+  engine puts it. That is centred at the top in Quake III, RTCW single player
+  and Elite Force Holomatch, and in the bottom-left corner in RTCW
+  multiplayer. Enemy Territory's engine draws none, since its cgame draws its
+  own, and Elite Force single player cannot record. Quake Live is unchanged
+  ([record](docs/fntech3/2026-09-23-profile-large-text.md)).
 - Name keys as both retail key tables name them. The keypad star is `KP_STAR`
   again, so a retail config line that binds it loads and is written back
   instead of being refused and lost, and keys 130 and 157-159 are written as

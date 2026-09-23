@@ -397,6 +397,45 @@ void SCR_DrawPic( float x, float y, float width, float height, qhandle_t hShader
 
 
 /*
+** SCR_DrawChar
+** chars are drawn at 640*480 virtual screen size
+*/
+static void SCR_DrawChar( int x, int y, float size, int ch ) {
+	int row, col;
+	float frow, fcol;
+	float ax, ay, aw, ah;
+
+	ch &= 255;
+
+	if ( ch == ' ' ) {
+		return;
+	}
+
+	if ( y < -size ) {
+		return;
+	}
+
+	ax = static_cast<float>( x );
+	ay = static_cast<float>( y );
+	aw = size;
+	ah = size;
+	SCR_AdjustFrom640( &ax, &ay, &aw, &ah );
+
+	row = ch >> 4;
+	col = ch & 15;
+
+	frow = row * 0.0625f;
+	fcol = col * 0.0625f;
+	size = 0.0625f;
+
+	re.DrawStretchPic( ax, ay, aw, ah,
+					   fcol, frow,
+					   fcol + CL_CharsetCellWidth(), frow + size,
+					   cls.charSetShader );
+}
+
+
+/*
 ** SCR_DrawSmallChar
 ** small chars are drawn at native screen resolution
 */
@@ -463,11 +502,69 @@ void SCR_DrawSmallString( int x, int y, const char *s, int len ) {
 
 /*
 ==================
+SCR_DrawCharsetStringExt
+
+Quake III's large string: square size x size cells of the profile's own
+charset from the top-left of (x, y), each advancing size, over a black drop
+shadow two virtual pixels right and down that carries the text's alpha. Color
+escapes are honored and skipped, or drawn literally with noColorEscape.
+Retail quake3.exe 1.32, WolfSP.exe, WolfMP.exe and stvoyHM.exe draw it so;
+Elite Force's cells sample the left half of each charset cell.
+==================
+*/
+static void SCR_DrawCharsetStringExt( int x, int y, float size, const char *string, const float *setColor,
+		qboolean forceColor, qboolean noColorEscape ) {
+	vec4_t		color;
+	const char	*s;
+	int			xx;
+
+	// draw the drop shadow
+	color[0] = color[1] = color[2] = 0.0f;
+	color[3] = setColor[3];
+	ScopedRenderColor scopedColor( color );
+	s = string;
+	xx = x;
+	while ( *s ) {
+		if ( !noColorEscape && Q_IsColorString( s ) ) {
+			s += 2;
+			continue;
+		}
+		SCR_DrawChar( xx + 2, y + 2, size, *s );
+		xx = static_cast<int>( xx + size );
+		s++;
+	}
+
+	// draw the colored text
+	s = string;
+	xx = x;
+	re.SetColor( setColor );
+	while ( *s ) {
+		if ( Q_IsColorString( s ) ) {
+			if ( !forceColor ) {
+				std::copy_n( g_color_table[ ColorIndexFromChar( *(s+1) ) ], 4, color );
+				color[3] = setColor[3];
+				re.SetColor( color );
+			}
+			if ( !noColorEscape ) {
+				s += 2;
+				continue;
+			}
+		}
+		SCR_DrawChar( xx, y, size, *s );
+		xx = static_cast<int>( xx + size );
+		s++;
+	}
+}
+
+
+/*
+==================
 SCR_DrawStringExt
 
-Draws retail client-owned large text through host font 2, optionally forcing
-a fixed color. The deliberately separate small-string API retains the bitmap
-charset contract.
+Draws client-owned large text, optionally forcing a fixed color. Quake Live
+draws it through retail host font 2; the deliberately separate small-string
+API retains the bitmap charset contract. Every other profile draws it as the
+Quake III engine it descends from does.
 
 Coordinates are at 640 by 480 virtual resolution
 ==================
@@ -482,6 +579,11 @@ void SCR_DrawStringExt( int x, int y, float size, const char *string, const floa
 	int screenY;
 
 	if ( !string || !string[ 0 ] || !setColor ) {
+		return;
+	}
+
+	if ( !Com_GameIsQuakeLive() ) {
+		SCR_DrawCharsetStringExt( x, y, size, string, setColor, forceColor, noColorEscape );
 		return;
 	}
 
@@ -816,6 +918,46 @@ void RE_MeasureScaledText( const char *text, const char *end, int fontHandle, fl
 
 //===============================================================================
 
+namespace {
+
+// A demo-recording notice as an engine passes it to its large-string routine:
+// 640x480 virtual coordinates and a square cell size. A centred notice starts
+// half its own width left of 320.
+struct DemoRecordingNotice {
+	bool	drawn;
+	bool	centred;
+	int		x;
+	int		y;
+	int		size;
+};
+
+} // namespace
+
+/*
+=================
+SCR_DemoRecordingNotice
+
+Where each original engine draws its notice, as read from the call in its
+retail executable. Quake Live draws its own two notices and never asks.
+=================
+*/
+static DemoRecordingNotice SCR_DemoRecordingNotice( comGameId_t profile ) {
+	switch ( profile ) {
+	case COM_GAME_RTCW_MP:
+		// WolfMP.exe moved it to the bottom-left corner.
+		return { true, false, 5, 470, 8 };
+	case COM_GAME_WOLFET:
+		// et.exe only sets cl_demooffset here; its cgame draws the notice.
+	case COM_GAME_STVEF_SP:
+		// stvoy.exe cannot record a demo.
+		return { false, false, 0, 0, 0 };
+	default:
+		// quake3.exe 1.32, WolfSP.exe and stvoyHM.exe.
+		return { true, true, 0, 20, 8 };
+	}
+}
+
+
 /*
 =================
 SCR_DrawDemoRecording
@@ -830,6 +972,23 @@ static void SCR_DrawDemoRecording( void ) {
 		return;
 	}
 	if ( clc.spDemoRecording ) {
+		return;
+	}
+
+	if ( !Com_GameIsQuakeLive() ) {
+		const comGameProfile_t *profile = Com_GameProfile();
+		const DemoRecordingNotice notice = SCR_DemoRecordingNotice(
+			profile ? profile->id : COM_GAME_QUAKE3 );
+		int length;
+
+		if ( !messageMode || !notice.drawn ) {
+			return;
+		}
+		pos = FS_FTell( clc.recordfile );
+		Com_sprintf( string.data(), static_cast<int>( string.size() ), "RECORDING %s: %ik", clc.recordNameShort, pos / 1024 );
+		length = static_cast<int>( strlen( string.data() ) );
+		SCR_DrawStringExt( notice.centred ? 320 - length * notice.size / 2 : notice.x, notice.y,
+			static_cast<float>( notice.size ), string.data(), g_color_table[ ColorIndex( COLOR_WHITE ) ], qtrue, qfalse );
 		return;
 	}
 
