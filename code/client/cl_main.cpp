@@ -304,6 +304,27 @@ void CL_RTCWTranslateString( vm_t *vm, intptr_t source, intptr_t destination ) {
 	// and all size checks are complete; the rest of its output buffer is untouched.
 	std::memcpy( output, result.c_str(), result.size() + 1 );
 }
+
+/* WolfMP.exe and et.exe also pass the engine's own strings, such as the chat
+ * prompts, through their modules' catalogue (CL_TranslateString, 0x411070 and
+ * 0x410f90). Every other profile keeps them as written. The result is cut to
+ * the caller's buffer. */
+void CL_TranslateClientString( const char *text, char *buffer, int size ) {
+	if ( !buffer || size <= 0 ) return;
+	if ( !text ) {
+		Q_strncpyz( buffer, "(null)", size );
+		return;
+	}
+	const fntech3::rtcw::translation::Catalog *catalog = Com_GameIsWolfET() ? &wolfetTranslations
+		: Com_GameIsRTCWMP() ? &rtcwTranslations : nullptr;
+	if ( !catalog ) {
+		Q_strncpyz( buffer, text, size );
+		return;
+	}
+	const std::string result = catalog->Translate( text, Cvar_VariableIntegerValue( "cl_language" ),
+		Cvar_VariableIntegerValue( "cl_debugTranslation" ) );
+	Q_strncpyz( buffer, result.c_str(), size );
+}
 namespace {
 
 constexpr const char *LEGACY_DEMOEXT = "dm3";

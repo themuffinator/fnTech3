@@ -32,9 +32,9 @@ def registrations(root: Path, *, current: bool = False) -> dict:
             text = TOKENS.sub(lambda m: re.sub(r'[^\n]', ' ', m[0])
                               if m[0].startswith(('//', '/*')) else m[0], text)
             matches = list(DIRECT.finditer(text))
-            # These two engine-owned registries use tables. Other string tables
+            # These engine-owned registries use tables. Other string tables
             # (key names, shader directives, cvars) are not console commands.
-            if current and path.name in ('cl_input.cpp', 'sv_ccmds.cpp'):
+            if current and path.name in ('cl_console.cpp', 'cl_input.cpp', 'sv_ccmds.cpp'):
                 matches += list(TABLE.finditer(text))
             for match in matches:
                 if match[2] in ('NULL', 'nullptr'):

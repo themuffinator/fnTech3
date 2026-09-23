@@ -712,6 +712,8 @@ int CL_WolfETGetKeyCatcher( void );
 void CL_WolfETSetKeyCatcher( int catcher );
 void CL_WolfETReloadTranslations( void );
 void CL_WolfETTranslateString( vm_t *vm, intptr_t source, intptr_t destination );
+// The engine's own strings, through RTCW MP's or ET's catalogue.
+void CL_TranslateClientString( const char *text, char *buffer, int size );
 void CL_CopyWolfETGlconfig( void *destination, const glconfig_t *source );
 int CL_WolfETReadToken( int handle, void *destination );
 int CL_WolfETSourceFileAndLine( int handle, char *filename, int *line );

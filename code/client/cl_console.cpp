@@ -164,6 +164,7 @@ struct console_t {
 
 extern "C" {
 extern  qboolean    chat_team;
+extern  qboolean    chat_buddy;
 extern  int         chat_playerNum;
 }
 
@@ -174,6 +175,8 @@ cvar_t		*con_autoClear;
 cvar_t		*con_scale;
 cvar_t		*con_scaleUniform;
 cvar_t		*con_screenExtents;
+static cvar_t	*con_notifytime;
+static cvar_t	*con_drawnotify;
 static cvar_t	*con_timestamps;
 static cvar_t	*con_backgroundStyle;
 static cvar_t	*con_backgroundColor;
@@ -4073,6 +4076,101 @@ void Con_ToggleConsole_f( void ) {
 }
 
 
+namespace {
+
+/*
+What each original engine's Con_DrawNotify draws, read from its retail
+executable (docs/fntech3/2026-09-23-profile-notify-lines.md). Every engine
+but Quake Live draws the last NUM_CON_TIMES console lines from the top of the
+screen for con_notifytime seconds, then its chat prompt and field under them.
+The defaults are quake3.exe 1.32's (0x407110); WolfSP.exe (0x407140) is the
+same. Quake Live draws neither and never asks.
+*/
+enum class ChatMode {
+	Say,
+	Team,
+	Tell,		// messagemode3 and messagemode4
+	Buddy		// Enemy Territory's fireteam
+};
+
+struct NotifyContract {
+	const char	*notifyTime = "3";	// con_notifytime's default
+	bool		xOffset = true;		// cl_conXOffset moves the notify lines
+	bool		catchers = true;	// UI and cgame catchers hide the chat line, and the lines but at intermission
+	bool		limbo = false;		// ui_limboMode hides both
+	bool		translated = false;	// the prompt goes through the profile's translation catalogue
+	bool		team = true;		// chat_team draws say_team:
+	bool		buddy = false;		// chat_buddy draws say_fireteam:
+	bool		smallChat = false;	// the chat line is small characters, not the big string
+	int			sayWidth = 30;		// chatField.widthInChars for each chat mode
+	int			teamWidth = 25;
+	int			tellWidth = 30;
+	int			buddyWidth = 30;
+};
+
+struct ChatCommand {
+	const char	*name;
+	xcommand_t	function;
+};
+
+struct ChatCommandSet {
+	const ChatCommand	*commands;
+	int					count;
+};
+
+} // namespace
+
+
+static comGameId_t Con_ProfileId( void ) {
+	const comGameProfile_t *profile = Com_GameProfile();
+
+	return profile ? profile->id : COM_GAME_QUAKE3;
+}
+
+
+static NotifyContract Con_NotifyContract( comGameId_t profile ) {
+	NotifyContract contract;
+
+	switch ( profile ) {
+	case COM_GAME_RTCW_MP:
+		// WolfMP.exe (0x4073b0) draws nothing in limbo and translates its
+		// prompts. Its lines stay up for seven seconds.
+		contract.notifyTime = "7";
+		contract.limbo = true;
+		contract.translated = true;
+		break;
+	case COM_GAME_WOLFET:
+		// et.exe (0x406fb0) translates its prompts too, and has a fireteam
+		// prompt of its own.
+		contract.notifyTime = "7";
+		contract.translated = true;
+		contract.buddy = true;
+		contract.buddyWidth = 26;
+		break;
+	case COM_GAME_STVEF_SP:
+		// stvoy.exe (0x404890) has no cl_conXOffset, tests no catcher and
+		// has one prompt.
+		contract.xOffset = false;
+		contract.catchers = false;
+		contract.team = false;
+		break;
+	case COM_GAME_STVEF_MP:
+		// stvoyHM.exe (0x408590) draws its chat line in small characters,
+		// with fields as wide again.
+		contract.notifyTime = "5";
+		contract.xOffset = false;
+		contract.catchers = false;
+		contract.smallChat = true;
+		contract.sayWidth = 55;
+		contract.teamWidth = 50;
+		break;
+	default:
+		break;
+	}
+	return contract;
+}
+
+
 /*
 ================
 Con_MessageMode_f
@@ -4135,15 +4233,34 @@ static int Con_GetChatFieldWidthInChars( qboolean teamChat ) {
 	return width;
 }
 
-static void Con_ResetChatField( qboolean teamChat ) {
+static int Con_ChatFieldWidth( ChatMode mode ) {
+	if ( Com_GameIsQuakeLive() ) {
+		return Con_GetChatFieldWidthInChars( mode == ChatMode::Team ? qtrue : qfalse );
+	}
+
+	// Each engine's own message modes set these once, as they open the field.
+	const NotifyContract contract = Con_NotifyContract( Con_ProfileId() );
+	switch ( mode ) {
+	case ChatMode::Team:
+		return contract.teamWidth;
+	case ChatMode::Tell:
+		return contract.tellWidth;
+	case ChatMode::Buddy:
+		return contract.buddyWidth;
+	default:
+		return contract.sayWidth;
+	}
+}
+
+static void Con_ResetChatField( ChatMode mode ) {
 	Field_Clear( &chatField );
-	chatField.widthInChars = Con_GetChatFieldWidthInChars( teamChat );
+	chatField.widthInChars = Con_ChatFieldWidth( mode );
 }
 
 static void Con_MessageMode_f( void ) {
 	chat_playerNum = -1;
 	chat_team = qfalse;
-	Con_ResetChatField( qfalse );
+	Con_ResetChatField( ChatMode::Say );
 
 	Con_ToggleMessageCatcher();
 }
@@ -4157,7 +4274,7 @@ Con_MessageMode2_f
 static void Con_MessageMode2_f( void ) {
 	chat_playerNum = -1;
 	chat_team = qtrue;
-	Con_ResetChatField( qtrue );
+	Con_ResetChatField( ChatMode::Team );
 	Con_ToggleMessageCatcher();
 }
 
@@ -4174,7 +4291,7 @@ static void Con_MessageMode3_f( void ) {
 		return;
 	}
 	chat_team = qfalse;
-	Con_ResetChatField( qfalse );
+	Con_ResetChatField( ChatMode::Tell );
 	Con_ToggleMessageCatcher();
 }
 
@@ -4191,8 +4308,93 @@ static void Con_MessageMode4_f( void ) {
 		return;
 	}
 	chat_team = qfalse;
-	Con_ResetChatField( qfalse );
+	Con_ResetChatField( ChatMode::Tell );
 	Con_ToggleMessageCatcher();
+}
+
+
+/*
+================
+Con_WolfETMessageMode_f
+
+et.exe's clMessageMode, clMessageMode2 and clMessageMode3 (0x407910,
+0x4078a0, 0x4078d0). Only the third sets chat_buddy and nothing clears it, so
+after a fireteam chat the other two keep the fireteam prompt, as retail does.
+ET has no tell; clearing the player number keeps Message_Key from sending one.
+================
+*/
+static void Con_WolfETMessageMode_f( void ) {
+	chat_playerNum = -1;
+	chat_team = qfalse;
+	Con_ResetChatField( ChatMode::Say );
+	Con_ToggleMessageCatcher();
+}
+
+static void Con_WolfETMessageMode2_f( void ) {
+	chat_playerNum = -1;
+	chat_team = qtrue;
+	Con_ResetChatField( ChatMode::Team );
+	Con_ToggleMessageCatcher();
+}
+
+static void Con_WolfETMessageMode3_f( void ) {
+	chat_playerNum = -1;
+	chat_team = qfalse;
+	chat_buddy = qtrue;
+	Con_ResetChatField( ChatMode::Buddy );
+	Con_ToggleMessageCatcher();
+}
+
+
+/*
+================
+Con_STVEFSPMessageMode_f
+
+stvoy.exe's messagemode (0x4042b0) clears the chat field and sets its width,
+but leaves the key catcher alone, so it never opens the chat line.
+================
+*/
+static void Con_STVEFSPMessageMode_f( void ) {
+	Con_ResetChatField( ChatMode::Say );
+}
+
+
+/*
+================
+Con_ChatCommands
+
+Each original engine's chat commands. Enemy Territory's engine names its own
+clMessageMode, as its cgame registers messagemode for a chat menu of its own
+(et.exe 0x4077c4). Elite Force's single player has only messagemode. Quake
+Live keeps FnQL's four.
+================
+*/
+static const ChatCommand con_chatCommands[] = {
+	{ "messagemode", Con_MessageMode_f },
+	{ "messagemode2", Con_MessageMode2_f },
+	{ "messagemode3", Con_MessageMode3_f },
+	{ "messagemode4", Con_MessageMode4_f }
+};
+
+static const ChatCommand con_wolfetChatCommands[] = {
+	{ "clMessageMode", Con_WolfETMessageMode_f },
+	{ "clMessageMode2", Con_WolfETMessageMode2_f },
+	{ "clMessageMode3", Con_WolfETMessageMode3_f }
+};
+
+static const ChatCommand con_stvefSPChatCommands[] = {
+	{ "messagemode", Con_STVEFSPMessageMode_f }
+};
+
+static ChatCommandSet Con_ChatCommands( comGameId_t profile ) {
+	switch ( profile ) {
+	case COM_GAME_WOLFET:
+		return { con_wolfetChatCommands, static_cast<int>( ARRAY_LEN( con_wolfetChatCommands ) ) };
+	case COM_GAME_STVEF_SP:
+		return { con_stvefSPChatCommands, static_cast<int>( ARRAY_LEN( con_stvefSPChatCommands ) ) };
+	default:
+		return { con_chatCommands, static_cast<int>( ARRAY_LEN( con_chatCommands ) ) };
+	}
 }
 
 
@@ -4550,6 +4752,18 @@ void Con_Init( void )
 {
 	const char *speedValue;
 
+	// Quake Live registers no con_notifytime and draws no notify lines.
+	if ( !Com_GameIsQuakeLive() ) {
+		con_notifytime = Cvar_Get( "con_notifytime", Con_NotifyContract( Con_ProfileId() ).notifyTime, 0 );
+		Cvar_SetDescription( con_notifytime, "Seconds a console line stays at the top of the screen once printed." );
+	}
+	// Enemy Territory's cgame draws its own chat and notify lines. et.exe
+	// draws the engine's only while this cheat is set (0x42b15f).
+	if ( Com_GameIsWolfET() ) {
+		con_drawnotify = Cvar_Get( "con_drawnotify", "0", CVAR_CHEAT );
+		Cvar_SetDescription( con_drawnotify, "Draw the engine's own notify lines and chat line." );
+	}
+
 	speedValue = Cvar_VariableString( "con_speed" );
 	if ( !speedValue[ 0 ] ) {
 		speedValue = Cvar_VariableString( "scr_conspeed" );
@@ -4639,10 +4853,11 @@ void Con_Init( void )
 	Cmd_AddCommand( "condump", Con_Dump_f );
 	Cmd_SetCommandCompletionFunc( "condump", Cmd_CompleteTxtName );
 	Cmd_AddCommand( "toggleconsole", Con_ToggleConsole_f );
-	Cmd_AddCommand( "messagemode", Con_MessageMode_f );
-	Cmd_AddCommand( "messagemode2", Con_MessageMode2_f );
-	Cmd_AddCommand( "messagemode3", Con_MessageMode3_f );
-	Cmd_AddCommand( "messagemode4", Con_MessageMode4_f );
+
+	const ChatCommandSet chatCommands = Con_ChatCommands( Con_ProfileId() );
+	for ( int i = 0; i < chatCommands.count; i++ ) {
+		Cmd_AddCommand( chatCommands.commands[ i ].name, chatCommands.commands[ i ].function );
+	}
 }
 
 
@@ -4656,10 +4871,11 @@ void Con_Shutdown( void )
 	Cmd_RemoveCommand( "clear" );
 	Cmd_RemoveCommand( "condump" );
 	Cmd_RemoveCommand( "toggleconsole" );
-	Cmd_RemoveCommand( "messagemode" );
-	Cmd_RemoveCommand( "messagemode2" );
-	Cmd_RemoveCommand( "messagemode3" );
-	Cmd_RemoveCommand( "messagemode4" );
+
+	const ChatCommandSet chatCommands = Con_ChatCommands( Con_ProfileId() );
+	for ( int i = 0; i < chatCommands.count; i++ ) {
+		Cmd_RemoveCommand( chatCommands.commands[ i ].name );
+	}
 }
 
 
@@ -4737,17 +4953,36 @@ static void Con_NewLine( void )
 
 /*
 ===============
+Con_NotifyLine
+
+The line the notify ring stamps. Retail moves to a new, empty line at each
+line feed and stamps that line at the end of the print, so its ring always
+ends on the line the next character will go to. This console waits for that
+character before it moves (con.newline), so while it waits that line is one
+past con.current.
+===============
+*/
+static int Con_NotifyLine( void )
+{
+	return con.newline ? con.current + 1 : con.current;
+}
+
+
+/*
+===============
 Con_Linefeed
 ===============
 */
 static void Con_Linefeed( bool skipnotify )
 {
-	// Preserve the retail four-entry print timestamp ring and [skipnotify].
-	if ( con.current >= 0 )	{
+	// Preserve the retail four-entry print timestamp ring and [skipnotify],
+	// on the line retail is on.
+	const int notifyLine = Con_NotifyLine();
+	if ( notifyLine >= 0 )	{
 		if ( skipnotify )
-			con.times[ con.current % NUM_CON_TIMES ] = 0;
+			con.times[ notifyLine % NUM_CON_TIMES ] = 0;
 		else
-			con.times[ con.current % NUM_CON_TIMES ] = cls.realtime;
+			con.times[ notifyLine % NUM_CON_TIMES ] = cls.realtime;
 	}
 
 	if ( con.newline ) {
@@ -4920,15 +5155,18 @@ void CL_ConsolePrint( const char *txt ) {
 		}
 	}
 
-	// Preserve the retail four-entry print timestamp ring and [skipnotify].
-	if ( con.current >= 0 ) {
+	// Preserve the retail four-entry print timestamp ring and [skipnotify],
+	// on the line retail is on. After a line feed that is the empty line
+	// retail has moved to, and [skipnotify] clears the line just printed.
+	const int notifyLine = Con_NotifyLine();
+	if ( notifyLine >= 0 ) {
 		if ( skipnotify ) {
-			prev = con.current % NUM_CON_TIMES - 1;
+			prev = notifyLine % NUM_CON_TIMES - 1;
 			if ( prev < 0 )
 				prev = NUM_CON_TIMES - 1;
 			con.times[ prev ] = 0;
 		} else {
-			con.times[ con.current % NUM_CON_TIMES ] = cls.realtime;
+			con.times[ notifyLine % NUM_CON_TIMES ] = cls.realtime;
 		}
 	}
 }
@@ -5026,15 +5264,180 @@ private:
 
 /*
 ================
+Con_ScopedSmallCharCell
+
+Quake III's small character in the console's own cell. The notify lines and
+Elite Force Holomatch's chat line draw through SCR_DrawSmallChar and its
+callers, which size each character from smallchar_width and smallchar_height.
+Retail drew the console and these lines in one cell, so they borrow the
+console's while they draw.
+================
+*/
+class Con_ScopedSmallCharCell {
+public:
+	Con_ScopedSmallCharCell() :
+		savedWidth( smallchar_width ),
+		savedHeight( smallchar_height ) {
+		smallchar_width = console_char_width;
+		smallchar_height = console_char_height;
+	}
+
+	~Con_ScopedSmallCharCell() {
+		smallchar_width = savedWidth;
+		smallchar_height = savedHeight;
+	}
+
+	Con_ScopedSmallCharCell( const Con_ScopedSmallCharCell& ) = delete;
+	Con_ScopedSmallCharCell& operator=( const Con_ScopedSmallCharCell& ) = delete;
+
+private:
+	int		savedWidth;
+	int		savedHeight;
+};
+
+
+/*
+================
+Con_DrawClassicNotify
+
+Quake III's notify lines and chat line, as each original engine but Quake
+Live draws them (Con_NotifyContract). The lines are the console's own text,
+drawn in its own cell from its left edge. The ring ends on Con_NotifyLine, so
+after a line feed retail's empty line takes a row and three lines show above
+it. The big chat line is placed in 640x480 virtual space, so the height of the
+lines above it is carried into that space first, as FnQuake3 does; retail
+counted their pixels as virtual rows, which only agree at 640x480.
+================
+*/
+static void Con_DrawClassicNotify( void )
+{
+	const NotifyContract contract = Con_NotifyContract( Con_ProfileId() );
+	const int catchers = Key_GetCatcher();
+	const float notifyTime = con_notifytime ? con_notifytime->value * 1000 : 0.0f;
+	const float xOffset = contract.xOffset && cl_conXOffset
+		? static_cast<float>( cl_conXOffset->integer ) : 0.0f;
+	std::array<char, 128> translated;
+	const char *prompt;
+	int currentColorIndex;
+	int skip;
+	int v;
+
+	if ( contract.limbo && Cvar_VariableIntegerValue( "ui_limboMode" ) ) {
+		return;
+	}
+
+	currentColorIndex = ColorIndex( COLOR_WHITE );
+	re.SetColor( g_color_table[ currentColorIndex ] );
+
+	v = 0;
+	{
+		const Con_ScopedSmallCharCell cell;
+		const int last = Con_NotifyLine();
+
+		for ( int i = last - NUM_CON_TIMES + 1; i <= last; i++ ) {
+			if ( i < 0 ) {
+				continue;
+			}
+			const int time = con.times[ i % NUM_CON_TIMES ];
+			if ( time == 0 || cls.realtime - time > notifyTime ) {
+				continue;
+			}
+			if ( contract.catchers && cl.snap.ps.pm_type != PM_INTERMISSION
+				&& ( catchers & ( KEYCATCH_UI | KEYCATCH_CGAME ) ) ) {
+				continue;
+			}
+			// The line a pending line feed opens is empty, as retail's is,
+			// but it still takes its row.
+			if ( i > con.current ) {
+				v += console_char_height;
+				continue;
+			}
+
+			const short *text = con.text.data() + ( i % con.totallines ) * con.linewidth;
+			for ( int x = 0; x < con.linewidth; x++ ) {
+				if ( ( text[ x ] & 0xff ) == ' ' ) {
+					continue;
+				}
+				// The console's own colour index, as its scrollback draws it.
+				const int colorIndex = ( text[ x ] >> 8 ) & 63;
+				if ( colorIndex != currentColorIndex ) {
+					currentColorIndex = colorIndex;
+					re.SetColor( g_color_table[ colorIndex ] );
+				}
+				SCR_DrawSmallChar( static_cast<int>( xOffset + con.xadjust + ( x + 1 ) * console_char_width ),
+					v, text[ x ] & 0xff );
+			}
+			v += console_char_height;
+		}
+	}
+
+	re.SetColor( nullptr );
+
+	if ( contract.catchers && ( catchers & ( KEYCATCH_UI | KEYCATCH_CGAME ) ) ) {
+		return;
+	}
+	if ( !( catchers & KEYCATCH_MESSAGE ) ) {
+		return;
+	}
+
+	// One blank cell follows the prompt, two after the team and fireteam
+	// prompts: 5 and 11 cells in Quake III, counted from the translated prompt
+	// in WolfMP.exe and et.exe.
+	if ( contract.team && chat_team ) {
+		prompt = "say_team:";
+		skip = 2;
+	} else if ( contract.buddy && chat_buddy ) {
+		prompt = "say_fireteam:";
+		skip = 2;
+	} else {
+		prompt = "say:";
+		skip = 1;
+	}
+	if ( contract.translated ) {
+		CL_TranslateClientString( prompt, translated.data(), static_cast<int>( translated.size() ) );
+		prompt = translated.data();
+	}
+	skip += static_cast<int>( strlen( prompt ) );
+
+	if ( contract.smallChat ) {
+		// stvoyHM.exe's prompt is forced white. Its field width is unused, as
+		// every engine's is.
+		const Con_ScopedSmallCharCell cell;
+
+		SCR_DrawSmallStringExt( static_cast<int>( con.xadjust + console_char_width ), v, prompt,
+			g_color_table[ ColorIndex( COLOR_WHITE ) ], qtrue, qfalse );
+		Field_Draw( &chatField, static_cast<int>( con.xadjust + skip * console_char_width ), v,
+			( SCREEN_WIDTH - 1 - skip ) * console_char_width, qtrue, qtrue );
+		return;
+	}
+
+	if ( cls.glconfig.vidHeight > 0 ) {
+		v = static_cast<int>( v / ( cls.glconfig.vidHeight / 480.0 ) );
+	}
+	SCR_DrawBigString( SMALLCHAR_WIDTH, v, prompt, 1.0f, qfalse );
+	Field_BigDraw( &chatField, skip * BIGCHAR_WIDTH, v,
+		SCREEN_WIDTH - ( skip + 1 ) * BIGCHAR_WIDTH, qtrue, qtrue );
+}
+
+
+/*
+================
 Con_DrawNotify
 
-Draws the retail live chat input overlay. Retail Quake Live 1.40.6 registers
-no con_notifytime and does not draw recent console lines here. Keep the
-con.times bookkeeping in the print path because that remains retail behavior.
+Every profile but Quake Live draws its original engine's notify lines and
+chat line. Quake Live draws the retail live chat input overlay: retail Quake
+Live 1.40.6 registers no con_notifytime and does not draw recent console lines
+here. Keep the con.times bookkeeping in the print path because that remains
+retail behavior.
 ================
 */
 static void Con_DrawNotify( void )
 {
+	if ( !Com_GameIsQuakeLive() ) {
+		Con_DrawClassicNotify();
+		return;
+	}
+
 	// Retail suppresses the chat overlay only for a full-screen menu.  A cgame
 	// key catcher must not hide it, because message mode outranks cgame in the
 	// key dispatch and stays typable underneath.  KEYCATCH_BROWSER is FnQL's
@@ -5260,6 +5663,28 @@ static void Con_DrawSolidConsole( float frac ) {
 
 /*
 ==================
+Con_NotifyDrawn
+
+Whether a shut console leaves the notify overlay to draw. Most engines draw it
+only while active. WolfSP.exe (0x407600) switches on the connection state and
+also draws it disconnected under a menu and during a cinematic. et.exe
+(0x406de0) draws it only while the cheat con_drawnotify is set.
+==================
+*/
+static bool Con_NotifyDrawn( void ) {
+	switch ( Con_ProfileId() ) {
+	case COM_GAME_RTCW_SP:
+		return cls.state == CA_DISCONNECTED || cls.state == CA_ACTIVE || cls.state == CA_CINEMATIC;
+	case COM_GAME_WOLFET:
+		return cls.state == CA_ACTIVE && con_drawnotify && con_drawnotify->integer;
+	default:
+		return cls.state == CA_ACTIVE;
+	}
+}
+
+
+/*
+==================
 Con_DrawConsole
 ==================
 */
@@ -5279,8 +5704,9 @@ void Con_DrawConsole( void ) {
 	if ( con.displayFrac ) {
 		Con_DrawSolidConsole( con.displayFrac );
 	} else {
-		// Draw the retail live chat-entry overlay.
-		if ( cls.state == CA_ACTIVE ) {
+		// Draw the notify lines and chat line, or Quake Live's retail live
+		// chat-entry overlay.
+		if ( Con_NotifyDrawn() ) {
 			Con_DrawNotify();
 		}
 	}

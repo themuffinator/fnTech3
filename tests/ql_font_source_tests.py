@@ -233,7 +233,14 @@ class QLFontSourceTests(unittest.TestCase):
         self.assertIn('chat_team ? "say team:" : "say:"', console)
         self.assertIn("con_chatBackgroundColor", console)
         self.assertIn("Con_DrawInputText( &chatField", console)
-        self.assertNotIn("Field_BigDraw( &chatField", console)
+        # Quake Live's chat field is host text. Every other profile draws its
+        # engine's own field, and returns before Quake Live's overlay.
+        classic = console[console.index("static void Con_DrawClassicNotify( void )"):
+                          console.index("static void Con_DrawNotify( void )")]
+        overlay = console[console.index("static void Con_DrawNotify( void )"):
+                          console.index("static void Con_DrawSolidConsole")]
+        self.assertIn("Field_BigDraw( &chatField", classic)
+        self.assertNotIn("Field_BigDraw( &chatField", overlay)
         self.assertIn("key_overstrikeMode ? '_' : '|'", keys)
         self.assertIn("420, 8, string.data()", screen)
         self.assertIn('SCR_DrawStringExt( 9, 477, 8, "REC"', screen)

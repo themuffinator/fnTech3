@@ -608,8 +608,14 @@ class CGameNativeBridgeSourceTests(unittest.TestCase):
         self.assertIn("CG_GET_CHAT_FIELD_PIXEL_WIDTH", cl_console)
         self.assertIn("static int Con_GetChatFieldWidthInChars( qboolean teamChat )", cl_console)
         self.assertIn("CG_GET_CHAT_FIELD_WIDTH_IN_CHARS", cl_console)
-        self.assertIn("static void Con_ResetChatField( qboolean teamChat )", cl_console)
-        self.assertIn("chatField.widthInChars = Con_GetChatFieldWidthInChars( teamChat );", cl_console)
+        # Quake Live sizes its field from the cgame; every other profile uses
+        # its own engine's widths (tests/console_notify_profile_tests.py).
+        self.assertIn("static void Con_ResetChatField( ChatMode mode )", cl_console)
+        self.assertIn("chatField.widthInChars = Con_ChatFieldWidth( mode );", cl_console)
+        self.assertIn(
+            "return Con_GetChatFieldWidthInChars( mode == ChatMode::Team ? qtrue : qfalse );",
+            cl_console,
+        )
         self.assertIn("chatFieldY = Con_GetChatFieldY();", cl_console)
         self.assertIn("chatFieldPixelWidth = Con_GetChatFieldPixelWidth();", cl_console)
 
@@ -633,9 +639,14 @@ class CGameNativeBridgeSourceTests(unittest.TestCase):
             cl_console.index("static void Con_DrawSolidConsole")
         ]
 
-        self.assertNotIn('Cvar_Get( "con_notifytime"', cl_console)
-        self.assertNotIn("*con_notifytime", cl_console)
-        self.assertNotIn("con_notifytime->", cl_console)
+        # Quake Live registers no con_notifytime. Only the other profiles'
+        # notify lines, which return before Quake Live's overlay, read it.
+        init = source_slice(cl_console, "void Con_Init( void )", "void Con_Shutdown( void )")
+        self.assertIn(
+            'if ( !Com_GameIsQuakeLive() ) {\n\t\tcon_notifytime = Cvar_Get( "con_notifytime",',
+            init,
+        )
+        self.assertNotIn("con_notifytime", notify)
         self.assertNotIn("con.times[", notify)
         self.assertNotIn("Con_DrawConsoleLineText", notify)
         self.assertIn("KEYCATCH_MESSAGE", notify)

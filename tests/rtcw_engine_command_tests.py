@@ -166,13 +166,16 @@ enum { MAX_STRING_CHARS=1024, K_ESCAPE=27, K_ENTER=13, K_KP_ENTER=169,
 using qboolean=bool;
 static constexpr bool qfalse=false,qtrue=true;
 static comGameId_t profile;
+static comGameProfile_t selected;
+const comGameProfile_t *Com_GameProfile() { selected.id=profile; return &selected; }
 int Com_GameIsRTCW() { return profile==COM_GAME_RTCW_SP || profile==COM_GAME_RTCW_MP; }
 int Com_GameIsQuakeLive() { return profile==COM_GAME_QUAKELIVE; }
+int Com_GameIsWolfET() { return profile==COM_GAME_WOLFET; }
 static struct { int state; } cls;
 static struct { bool rtcwLimboMode; } cl;
 static struct { bool dllExports=true; } vm, *cgvm=&vm;
 static struct Field { char buffer[128]; int widthInChars; } chatField;
-static bool chat_team;
+static bool chat_team,chat_buddy;
 static int chat_playerNum=-1,catcher,notifications;
 static std::string sent;
 static int Key_GetCatcher() { return catcher; }
@@ -188,19 +191,24 @@ static int VM_Call(void *,int,int call) {
 }
 static void CL_AddReliableCommand(const char *s,bool) { sent=s; }
 static void Com_sprintf(char *out,int len,const char *fmt,...) { va_list ap; va_start(ap,fmt); vsnprintf(out,len,fmt,ap); va_end(ap); }
-''' + function(keys, 'static void Message_Key(') + ''.join(function(console, name) for name in (
+''' + function(keys, 'static void Message_Key(') + ''.join(
+        console[console.index(start):console.index('\n};', console.index(start)) + 3] + '\n'
+        for start in ('enum class ChatMode {', 'struct NotifyContract {')) + ''.join(function(console, name) for name in (
+        'static comGameId_t Con_ProfileId(', 'static NotifyContract Con_NotifyContract(',
         'static void Con_ToggleMessageCatcher(', 'static int Con_GetChatFieldY(',
         'static int Con_GetChatFieldPixelWidth(', 'static int Con_GetChatFieldWidthInChars(',
-        'static void Con_ResetChatField(', 'static void Con_MessageMode_f(', 'static void Con_MessageMode2_f(')) + r'''
+        'static int Con_ChatFieldWidth(', 'static void Con_ResetChatField(',
+        'static void Con_MessageMode_f(', 'static void Con_MessageMode2_f(')) + r'''
 int main() {
  for(auto id:{COM_GAME_QUAKE3,COM_GAME_QUAKELIVE,COM_GAME_RTCW_SP,COM_GAME_RTCW_MP}) {
   profile=id;
   assert(Con_GetChatFieldY()==(Com_GameIsQuakeLive()?410:413));
   assert(Con_GetChatFieldPixelWidth()==(Com_GameIsQuakeLive()?400:640));
+  // Quake Live's cgame sizes its field; Quake III and RTCW open 30 and 25.
   catcher=0; Con_MessageMode_f(); assert(catcher==KEYCATCH_MESSAGE && !chat_team && chat_playerNum==-1);
-  assert(chatField.widthInChars==(Com_GameIsQuakeLive()?45:73));
+  assert(chatField.widthInChars==(Com_GameIsQuakeLive()?45:30));
   catcher=0; Con_MessageMode2_f(); assert(catcher==KEYCATCH_MESSAGE && chat_team);
-  assert(chatField.widthInChars==(Com_GameIsQuakeLive()?40:68));
+  assert(chatField.widthInChars==(Com_GameIsQuakeLive()?40:25));
   for(bool limbo:{false,true}) for(bool team:{false,true}) for(int player:{-1,2}) {
    cl.rtcwLimboMode=limbo; chat_team=team; chat_playerNum=player;
    cls.state=CA_ACTIVE; strcpy(chatField.buffer,"hello"); sent.clear(); catcher=0; notifications=0;

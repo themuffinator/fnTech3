@@ -18,6 +18,24 @@ historical upstream records, not fnTech3 release history. See the
 
 ### Compatibility
 
+- Draw each profile's notify lines and chat line as its own engine does. The
+  console drew Quake Live's chat overlay for every profile: a strip 413 lines
+  down, Quake Live's prompt, a 73-character field, and no recent console
+  lines. Every profile but Quake Live now shows its latest lines at the top of
+  the screen for `con_notifytime` seconds, registered with its engine's
+  default: 3, or 7 in RTCW multiplayer and Enemy Territory, or 5 in Elite
+  Force Holomatch. Its engine's chat line follows under them: Quake III's big
+  `say:` and `say_team:`, the translated prompts of RTCW multiplayer and Enemy
+  Territory, Enemy Territory's fireteam prompt, or Holomatch's small one.
+  Menus hide them only in the engines whose menus did, RTCW multiplayer's
+  limbo menu hides both, and Enemy Territory draws them only with the cheat
+  `con_drawnotify` set. Each profile gets its engine's chat commands and
+  field widths, so Enemy Territory has `clMessageMode` to `clMessageMode3`,
+  and Elite Force single player's `messagemode` opens nothing, as in
+  `stvoy.exe`. As in the retail engines, three lines show after a line feed,
+  with an empty row under them, and `[skipnotify]` no longer hides the line
+  before it. Quake Live's overlay is unchanged
+  ([record](docs/fntech3/2026-09-23-profile-notify-lines.md)).
 - Give Return to Castle Wolfenstein multiplayer's console the art retail
   `WolfMP.exe` uses. Retail writes console text in the HUD font,
   `gfx/2d/hudchars`, over `console-16bit` smoke. Once the console is half

@@ -55,6 +55,7 @@ extern "C" {
 field_t		g_consoleField;
 field_t		chatField;
 qboolean	chat_team;
+qboolean	chat_buddy;		// Enemy Territory's fireteam chat
 
 int			chat_playerNum;
 }
@@ -687,6 +688,8 @@ static void Message_Key( int key ) {
 			else if (chat_team)
 
 				Com_sprintf( buffer.data(), static_cast<int>( buffer.size() ), "say_team \"%s\"\n", chatField.buffer );
+			else if ( Com_GameIsWolfET() && chat_buddy )
+				Com_sprintf( buffer.data(), static_cast<int>( buffer.size() ), "say_buddy \"%s\"\n", chatField.buffer );
 			else if ( Com_GameIsRTCW() && cl.rtcwLimboMode )
 				Com_sprintf( buffer.data(), static_cast<int>( buffer.size() ), "say_limbo \"%s\"\n", chatField.buffer );
 			else

@@ -105,6 +105,22 @@ Console input now exposes live, tab-based completion instead of only dumping a s
 - Completion covers commands, cvars, map names for map-loading commands, and other command-specific argument completions exposed through the existing completion callback path.
 - The completion popup stays tied to the current input line instead of replacing it with a one-shot printout in the log.
 
+## Notify Lines And Chat Line
+
+Once the console is shut, each profile draws what its original engine leaves on screen.
+
+- Quake Live draws its retail live chat overlay while chat is open: a translucent strip near the bottom of the screen, its prompt in the console font, and a field its cgame sizes. It draws no recent console lines and has no `con_notifytime`.
+- Every other profile draws its latest console lines at the top of the screen, in the console's own cell, for `con_notifytime` seconds, then its chat prompt and field under them:
+  - Quake III and RTCW single player: `say:` or `say_team:` in big characters. RTCW single player also draws them over a cinematic.
+  - RTCW multiplayer: the same, with the prompt translated, and nothing at all while the limbo menu is open.
+  - Enemy Territory: the same, with a `say_fireteam:` prompt, but only while the cheat `con_drawnotify` is set; its cgame draws its own chat and messages. Its engine's chat commands are `clMessageMode`, `clMessageMode2` and `clMessageMode3`.
+  - Elite Force Holomatch: `say:` or `say_team:` in small characters.
+  - Elite Force single player: the lines only. Its `messagemode` readies the field but opens nothing, as `stvoy.exe`'s does.
+- `con_notifytime` defaults to each engine's value: 3, or 7 in RTCW multiplayer and Enemy Territory, or 5 in Elite Force Holomatch.
+- `cl_conXOffset` moves the lines in Quake III, RTCW and Enemy Territory, whose engines have it.
+- In Quake III, RTCW and Enemy Territory a menu or the cgame's own input hides the chat line, and the lines except at intermission. Elite Force hides neither.
+- After a line feed three lines show, with an empty row under them, as in the retail engines. Chat fields keep this console's editing keys and show colour codes as typed.
+
 ## Console Chat
 
 When you press `Enter` on plain text in the console while connected, FnQL can either keep the legacy `cmd say` path or send the input more directly as quoted chat.
