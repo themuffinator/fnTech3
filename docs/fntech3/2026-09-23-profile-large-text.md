@@ -134,9 +134,10 @@ The Enemy Territory GPL source agrees with `et.exe`. Its
   `(40 - n) * 8`, `40` in 16-pixel cells, with ESC escapes; no notice for
   `jka-sp`, `jk2-sp` and `alice`. `jka-mp` and `jk2-mp` already get their
   engines' placement, the default.
-- Enemy Territory's cgame draws its own notice from `cl_demorecording`,
-  `cl_demofilename` and `cl_demooffset`. This client sets none of them, so ET
-  shows no notice at all. ET client startup is still blocked.
+- Closed since: Enemy Territory's cgame draws its own notice from
+  `cl_demorecording`, `cl_demofilename` and `cl_demooffset`. This client set
+  none of them, so ET showed no notice at all. It now keeps them as `et.exe`
+  does; see the [recording cvars record](2026-09-23-wolfet-demo-recording-cvars.md).
 - The notice names `demos/<name>`, truncated (`clc.recordNameShort`, from
   Quake3e). The original engines name the demo alone.
 - A notice is hidden during a single-player demo (`ui_recordSPDemo`) in every

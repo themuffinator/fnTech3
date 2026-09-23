@@ -971,6 +971,12 @@ static void SCR_DrawDemoRecording( void ) {
 	if ( !clc.demorecording ) {
 		return;
 	}
+	// Enemy Territory's cgame draws its own notice, with the size et.exe
+	// keeps current here every active frame (0x413d40). Retail asks nothing
+	// else first, so neither does this.
+	if ( cl_demooffset ) {
+		Cvar_SetIntegerValue( cl_demooffset->name, FS_FTell( clc.recordfile ) );
+	}
 	if ( clc.spDemoRecording ) {
 		return;
 	}

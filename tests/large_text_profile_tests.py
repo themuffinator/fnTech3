@@ -136,6 +136,9 @@ static struct {
 static int messageMode;
 static int CL_DemoRecordMessageMode( void ) { return messageMode; }
 static int HarnessFTell( fileHandle_t ) { return 5 * 1024 + 7; }
+// Enemy Territory's size cvar, which demo_recording_cvar_profile_tests.py covers.
+static cvar_t *cl_demooffset;
+static void Cvar_SetIntegerValue( const char *, int ) {}
 
 // Quake Live's host lane, which only Quake Live may reach.
 void RE_DrawScaledText( int x, int y, const char *text, int fontHandle, float scale, int limit,

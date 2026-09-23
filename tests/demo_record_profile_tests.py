@@ -64,6 +64,7 @@ static void FS_Rename(const char *from,const char *to) {
     assert(std::string(from) == "demos/probe.tmp"); finalName = to;
 }
 static void Com_Printf(const char *text) { printed = text; }
+static void CL_SetDemoRecordingCvars(const char *) {}
 '''
         fixture += fallback + "\n" + finalizer
         fixture += "\nstatic void InitializeCompatibility() { " + initializer + " }\n"
@@ -201,6 +202,7 @@ static void Com_RealTime(qtime_t *t) { *t = {126, 8, 18, 9, 0, 0}; }
 static int FS_FOpenFileWrite(const char *name) { opened = name; return 4; }
 static void Com_TruncateLongString(char *out, const char *in) { snprintf(out, 32, "%s", in); }
 static void CL_WebView_PublishGameDemo(const char *, const char *) {}
+static void CL_SetDemoRecordingCvars(const char *) {}
 static void CL_WriteGamestate(qboolean initial) { assert(initial); ++gamestates; }
 '''
         fixture += function("static bool CL_WireProfileKeepsDm68Fallback(")

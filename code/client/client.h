@@ -468,6 +468,7 @@ extern	cvar_t	*cl_freezeDemo;
 extern	cvar_t	*cl_allowConsoleChat;
 extern	cvar_t	*cl_demoRecordMessage;
 extern	cvar_t	*cl_drawRecording;
+extern	cvar_t	*cl_demooffset;	// Enemy Territory's alone; null in other profiles
 extern	cvar_t	*cl_menuAspect;
 extern	cvar_t	*cl_menuBlur;
 extern	cvar_t	*cl_cinematicAspect;

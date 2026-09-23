@@ -18,6 +18,17 @@ historical upstream records, not fnTech3 release history. See the
 
 ### Compatibility
 
+- Show Enemy Territory's demo-recording notice. ET's cgame draws it itself,
+  from three read-only cvars the engine keeps: `cl_demorecording` and
+  `cl_demofilename`, set as a recording starts and stops, and
+  `cl_demooffset`, the size written so far, set every frame. Retail `et.exe`
+  registers and sets all three. This engine had none of them, so ET showed
+  no notice while recording. The client now registers them under Enemy
+  Territory alone and sets them where `et.exe` does, with the name cut to
+  the 63 characters `et.exe` keeps. No other profile gains a cvar. In a
+  developer client, the retail cgame now draws `RECORDING demo probe: 9k`
+  while recording and nothing once recording stops
+  ([record](docs/fntech3/2026-09-23-wolfet-demo-recording-cvars.md)).
 - Draw the client's large text in every profile but Quake Live as the
   original engines draw it. The demo-recording notice, the spatial-audio
   overlay and big edit fields went through Quake Live's host text. Outside

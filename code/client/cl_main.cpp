@@ -436,6 +436,9 @@ cvar_t	*cl_quitOnDemoCompleted;
 cvar_t	*cl_allowConsoleChat;
 cvar_t	*cl_demoRecordMessage;
 cvar_t	*cl_drawRecording;
+static cvar_t *cl_demorecording;
+static cvar_t *cl_demofilename;
+cvar_t	*cl_demooffset;
 static int cl_demoRecordMessageModificationCount;
 static int cl_drawRecordingModificationCount;
 cvar_t	*cl_menuAspect;
@@ -878,6 +881,59 @@ static void CL_WriteDemoMessage( msg_t *msg, int headerBytes ) {
 
 /*
 ====================
+CL_RegisterDemoRecordingCvars
+
+Enemy Territory's cgame draws its own recording notice from three read-only
+cvars that et.exe registers (CL_Init 0x40d7c7) and keeps current. No other
+original engine has them, so no other profile registers them.
+====================
+*/
+static void CL_RegisterDemoRecordingCvars( void ) {
+	if ( !Com_GameIsWolfET() ) {
+		cl_demorecording = nullptr;
+		cl_demofilename = nullptr;
+		cl_demooffset = nullptr;
+		return;
+	}
+
+	cl_demorecording = Cvar_Get( "cl_demorecording", "0", CVAR_ROM );
+	Cvar_SetDescription( cl_demorecording, "1 while a demo is being recorded. Enemy Territory's cgame draws its recording notice from this, cl_demofilename and cl_demooffset." );
+	cl_demofilename = Cvar_Get( "cl_demofilename", "", CVAR_ROM );
+	Cvar_SetDescription( cl_demofilename, "The name of the demo being recorded, without its folder or extension." );
+	cl_demooffset = Cvar_Get( "cl_demooffset", "0", CVAR_ROM );
+	Cvar_SetDescription( cl_demooffset, "How many bytes of the demo being recorded have been written." );
+}
+
+
+/*
+====================
+CL_SetDemoRecordingCvars
+
+Publishes a recording that starts under name, or one that stops when name is
+null, as et.exe does (CL_Record 0x40f310, CL_StopRecord_f 0x410f33). Retail
+first copies the name into its 64-byte clc.demoName, and ET's cgame writes it
+into a 128-byte line, so a longer name is cut to fit as retail cuts it.
+SCR_DrawDemoRecording keeps cl_demooffset current while recording.
+====================
+*/
+static void CL_SetDemoRecordingCvars( const char *name ) {
+	std::array<char, MAX_QPATH> demoName{};
+
+	if ( !cl_demorecording ) {
+		return;
+	}
+
+	if ( name ) {
+		Q_strncpyz( demoName.data(), name, static_cast<int>( demoName.size() ) );
+	}
+	Cvar_Set( cl_demorecording->name, name ? "1" : "0" );
+	Cvar_Set( cl_demofilename->name, demoName.data() );
+	Cvar_Set( cl_demooffset->name, "0" );
+}
+
+
+/*
+====================
 CL_StopRecording_f
 
 stop recording a demo
@@ -940,6 +996,7 @@ void CL_StopRecord_f( void ) {
 	if ( !clc.demorecording ) {
 		Com_Printf( "Not recording a demo.\n" );
 	} else {
+		CL_SetDemoRecordingCvars( nullptr );
 		Com_Printf( "Stopped demo recording.\n" );
 	}
 
@@ -1344,6 +1401,8 @@ static void CL_Record_f( void ) {
 	Com_TruncateLongString( clc.recordNameShort, clc.recordName );
 	clc.demorecording = qtrue;
 	CL_WebView_PublishGameDemo( clc.recordName, clc.recordNameShort );
+	// et.exe's clc.demoName is the name alone, without "demos/".
+	CL_SetDemoRecordingCvars( clc.recordName + std::strlen( "demos/" ) );
 
 	if ( Cvar_VariableIntegerValue( "ui_recordSPDemo" ) ) {
 	  clc.spDemoRecording = qtrue;
@@ -6156,6 +6215,7 @@ void CL_Init( void ) {
 		Cvar_CheckRange( cl_drawRecording, "0", "1", CV_INTEGER );
 		Cvar_SetDescription( cl_drawRecording, "Hide (0) or shorten (1) the RECORDING HUD message when recording a demo." );
 	}
+	CL_RegisterDemoRecordingCvars();
 
 	if ( quakeLive ) {
 		const unsigned menuAspectFlags = Cvar_Flags( "cl_menuAspect" );
