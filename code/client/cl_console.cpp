@@ -26,6 +26,7 @@ extern "C" {
 }
 
 #include "client_cpp.h"
+#include "console_logo.hpp"
 #include "input_compat.hpp"
 #include "ql_font_bridge.hpp"
 
@@ -321,6 +322,26 @@ static void Con_DrawSolidRect( float x, float y, float w, float h, const vec4_t 
 
 	Con_SetScaledColor( color, alphaScale );
 	re.DrawStretchPic( x, y, w, h, 0, 0, 1, 1, cls.whiteShader );
+}
+
+
+/*
+RTCW MP lays a logo over the textured background, under the text, while the
+console is at least half open (WolfMP.exe Con_DrawSolidConsole 0x4075d0, the
+logo at 0x40768c). Retail colours it with twice the open fraction, at least
+1.0 whenever the logo is drawn. Its shader, console2-16bit, takes no vertex
+colour, and this renderer does not clamp one above 1.0, so it is drawn white.
+*/
+static void Con_DrawBackgroundLogo( float frac, float x, float width, float alphaScale ) {
+	fntech3::client::ConsoleLogoRect logo;
+
+	if ( !cls.consoleLogoShader ||
+		!fntech3::client::ConsoleLogoPlacement( frac, x, width, cls.scale, logo ) ) {
+		return;
+	}
+
+	Con_SetScaledColor( colorWhite, alphaScale );
+	re.DrawStretchPic( logo.x, logo.y, logo.width, logo.height, 0, 0, 1, 1, cls.consoleLogoShader );
 }
 
 
@@ -5122,6 +5143,7 @@ static void Con_DrawSolidConsole( float frac ) {
 			re.DrawStretchPic( xf, 0, wf, yf, 0, 0, 1, 1, cls.whiteShader );
 		} else {
 			re.DrawStretchPic( xf, 0, wf, yf, 0, 0, 1, 1, cls.consoleShader );
+			Con_DrawBackgroundLogo( frac, xf, wf, alphaScale );
 		}
 	}
 

@@ -383,6 +383,7 @@ struct clientStatic_t {
 	qhandle_t	recordShader;
 	qhandle_t	whiteShader;
 	qhandle_t	consoleShader;
+	qhandle_t	consoleLogoShader;	// drawn over the background; 0 if none
 	qhandle_t	cursorShader;
 
 	int			lastVidRestart;

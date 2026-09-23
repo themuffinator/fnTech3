@@ -148,5 +148,5 @@ The Enemy Territory GPL source agrees with `et.exe`. Its
   characters do not. Quake III, RTCW and Elite Force wrap with `& 7`. Enemy
   Territory has 32 colors, and its `^*` restores the caller's color; here it
   reads as white.
-- RTCW MP's own charset, `gfx/2d/hudchars`, is still open in the ripple
-  record. This client registers `gfx/2d/bigchars` for it.
+- RTCW MP's own charset, `gfx/2d/hudchars`, is registered since the
+  [console record](2026-09-23-rtcw-mp-console.md), so its large text uses it.

@@ -108,6 +108,9 @@ struct HudDrawCapture {
 	float t2 = 0.0f;
 	qhandle_t shader = 0;
 	std::array<char, MAX_QPATH> shaderName{};
+	// The module's own name for the shader, when shaderName is the client's
+	// alias for it. Points into hudShaderNames; valid for this draw only.
+	const char *moduleShaderName = "";
 	bool textLike = false;
 	bool refdef = false;
 };
@@ -531,7 +534,22 @@ void HudReload() {
 	CL_HudLoadRules( qtrue );
 }
 
-const char *CL_HudLookupShaderName( qhandle_t shader ) {
+const char *CL_HudModuleShaderName( qhandle_t shader ) {
+	for ( int i = 0; i < hudNumShaderNames; i++ ) {
+		if ( hudShaderNames[i].handle == shader ) {
+			return hudShaderNames[i].name.data();
+		}
+	}
+
+	return "";
+}
+
+// The client's own shaders keep fixed names, so "charset" means the console
+// font under every profile. A module that registers one of them by its real
+// name gets the same handle: Q3's cgame registers the client's
+// gfx/2d/bigchars, and RTCW MP's the client's gfx/2d/hudchars. Such a draw is
+// reported by the client's name and matches a rule naming either one.
+const char *CL_HudClientShaderName( qhandle_t shader ) {
 	if ( shader == cls.charSetShader ) {
 		return "charset";
 	}
@@ -542,12 +560,6 @@ const char *CL_HudLookupShaderName( qhandle_t shader ) {
 
 	if ( shader == cls.consoleShader ) {
 		return "console";
-	}
-
-	for ( int i = 0; i < hudNumShaderNames; i++ ) {
-		if ( hudShaderNames[i].handle == shader ) {
-			return hudShaderNames[i].name.data();
-		}
 	}
 
 	return "";
@@ -673,7 +685,8 @@ const HudRule *CL_HudFindRule( const HudDrawCapture *draw ) {
 		const float cx = draw->x + draw->w * 0.5f;
 		const float cy = draw->y + draw->h * 0.5f;
 
-		if ( rule->hasShader && !CL_HudShaderMatches( rule->shader.data(), draw->shaderName.data() ) ) {
+		if ( rule->hasShader && !CL_HudShaderMatches( rule->shader.data(), draw->shaderName.data() )
+			&& !CL_HudShaderMatches( rule->shader.data(), draw->moduleShaderName ) ) {
 			continue;
 		}
 
@@ -1140,7 +1153,12 @@ extern "C" qboolean CL_HudAdjustPic( float *x, float *y, float *w, float *h, qha
 
 	CL_HudUnstretch( *x, *y, *w, *h, &draw.x, &draw.y, &draw.w, &draw.h );
 	draw.shader = shader;
-	Q_strncpyz( draw.shaderName.data(), CL_HudLookupShaderName( shader ), static_cast<int>( draw.shaderName.size() ) );
+	const char *clientName = CL_HudClientShaderName( shader );
+	const char *moduleName = CL_HudModuleShaderName( shader );
+	Q_strncpyz( draw.shaderName.data(), *clientName ? clientName : moduleName, static_cast<int>( draw.shaderName.size() ) );
+	if ( *clientName ) {
+		draw.moduleShaderName = moduleName;
+	}
 	draw.textLike = CL_HudIsTextLike( shader, draw.shaderName.data(), std::fabs( draw.w ), std::fabs( draw.h ) );
 
 	CL_HudCaptureDraw( &draw );

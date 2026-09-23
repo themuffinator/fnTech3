@@ -55,7 +55,7 @@ The first matching rule wins. Supported fields are:
 | Field | Meaning |
 | --- | --- |
 | `name` | Optional rule label. |
-| `match.shader` | Case-insensitive shader name; a trailing `*` matches a prefix. |
+| `match.shader` | Case-insensitive shader name; a trailing `*` matches a prefix. The client's own console font, `white` and console background answer to `charset`, `white` and `console`. When the cgame registers one of them under its own name, as Q3's does with `gfx/2d/bigchars` and RTCW MP's with `gfx/2d/hudchars`, a rule may name either. |
 | `match.textLike` | Boolean or 0/1; approximate glyph classification in 640x480 units. |
 | `match.refdef` | Boolean or 0/1; selects a 3D HUD viewport. |
 | `match.region` | `{ "x": ..., "y": ..., "w": ..., "h": ... }`; tests the draw's center in uncorrected 640x480 coordinates. |
@@ -80,7 +80,8 @@ The first matching rule wins. Supported fields are:
 Set `cl_hudDump 1` to write grouped cgame draw metadata to
 `fntech3-hud-dump.json` in the active writable game directory. It includes
 deduplicated regions, shader names, 3D viewport markers, sample counts, and
-suggested alignments. This records draw metadata, not mouse or keyboard input.
+suggested alignments. A shared shader is dumped as `charset`, `white` or
+`console`. This records draw metadata, not mouse or keyboard input.
 Set it back to `0` after collecting samples, review the suggested rules, and
 save the edited file as `fntech3-hud.json`. Dump files are never loaded
 automatically.

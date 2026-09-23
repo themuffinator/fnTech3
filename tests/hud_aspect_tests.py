@@ -33,7 +33,7 @@ static std::string dump;
 static int profile, reads, writes, registrations, commands, draws, liveFiles;
 static void (*reload)();
 static std::array<float, 8> submitted;
-static qhandle_t submittedShader;
+static qhandle_t submittedShader, pictureShader = 17;
 int Com_GameIsQuake3() { return profile == 0; }
 int Com_GameIsRTCW() { return profile == 2 || profile == 3; }
 cvar_t *Cvar_Get(const char *name, const char *value, int) {
@@ -104,10 +104,10 @@ static void Expect(float x, float y, float w, float h) {
         }
     }
     assert(submitted[4] == 0.1f && submitted[5] == 0.2f && submitted[6] == 0.8f && submitted[7] == 0.9f);
-    assert(submittedShader == 17);
+    assert(submittedShader == pictureShader);
 }
 static void Picture(float x=300, float y=90, float w=120, float h=90) {
-    CL_HudDrawStretchPic(x,y,w,h,0.1f,0.2f,0.8f,0.9f,17);
+    CL_HudDrawStretchPic(x,y,w,h,0.1f,0.2f,0.8f,0.9f,pictureShader);
 }
 static void Rules(const std::string &json) { files["fntech3-hud.json"] = json; reload(); assert(liveFiles == 0); }
 int main(int argc, char **argv) {
@@ -197,10 +197,13 @@ int main(int argc, char **argv) {
         std::ifstream preset(argv[3]); assert(preset);
         Rules(std::string(std::istreambuf_iterator<char>(preset), {}));
         Size(2560,1080);
-        const auto sample = [](const char *shader, float x, float y, float w, float h, float expectedX) {
-            CL_HudRegisterShaderName(17, shader);
+        const auto sample = [](const char *shader, float x, float y, float w, float h, float expectedX,
+            qhandle_t handle = 17) {
+            pictureShader = handle;
+            CL_HudRegisterShaderName(handle, shader);
             Picture(x*4, y*2.25f, w*4, h*2.25f);
             Expect(expectedX, y*2.25f, w*2.25f, h*2.25f);
+            pictureShader = 17;
         };
         sample("gfx/2d/crosshaire",296,216,48,48,1226);
         sample("gfx/2d/hudchars",152,120,16,20,902); // centered warmup/message
@@ -210,6 +213,8 @@ int main(int argc, char **argv) {
             sample("icons/iconf_red1",584,380,32,32,2434);
             sample("icons/iconw_rocket",300,380,32,32,1235);
             sample("icons/iconh_green",8,384,32,32,18);
+            // Q3's cgame registers the client's own charset.
+            sample("gfx/2d/bigchars",600,2,16,16,2470,cls.charSetShader);
         } else if (profile == 2) {
             sample("white",10,400,10,70,22.5f);
             sample("font/health",39.5f,456,15,15,88.875f);
@@ -234,6 +239,9 @@ int main(int argc, char **argv) {
             sample("gfx/2d/compass2.tga",290,420,60,60,1212.5f);
             sample("sprites/medic",310,440,12,12,1257.5f);
             sample("gfx/2d/hudchars",5,48,8,16,11.25f);
+            // The client's charset is the cgame's gfx/2d/hudchars too, one
+            // handle under two names. round_timer names the cgame's.
+            sample("gfx/2d/hudchars",5,48,8,16,11.25f,cls.charSetShader);
             sample("ui_mp/assets/ger_flag.tga",5,68,24,14,11.25f);
             sample("white",4,67,26,1,9);
             sample("lagometer",585,340,48,48,2436.25f);
@@ -253,6 +261,23 @@ int main(int argc, char **argv) {
         CL_HudRegisterShaderName(17,"gfx/2d/crosshaire");
         Picture(296*1.6875f,216*4,48*1.6875f,48*4); Expect(499.5f,919.5f,81,81);
         Size(640,480); Picture(296,216,48,48); Expect(296,216,48,48);
+        if (profile != 2) {
+            // A rule may still name the shared handle by the client's alias,
+            // and a dump keeps reporting the alias, not the module's name.
+            const char *moduleCharset = profile == 0 ? "gfx/2d/bigchars" : "gfx/2d/hudchars";
+            Size(2560,1080); pictureShader = cls.charSetShader;
+            CL_HudRegisterShaderName(cls.charSetShader, moduleCharset);
+            Rules(R"([{"match":{"shader":"charset"},"align":{"x":"left","y":"top"}}])");
+            Picture(300*4,200*2.25f,8*4,16*2.25f); Expect(675,450,18,36);
+            Rules(R"([{"match":{"shader":"GFX/2D/*"},"align":{"x":"right","y":"top"}}])");
+            Picture(300*4,200*2.25f,8*4,16*2.25f); Expect(1795,450,18,36);
+            variables["cl_hudDump"].integer=1; CL_HudResetCGame();
+            CL_HudRegisterShaderName(cls.charSetShader, moduleCharset);
+            CL_HudBeginFrame(); Picture(300*4,200*2.25f,8*4,16*2.25f); CL_HudEndFrame();
+            assert(dump.find("\"shader\": \"charset\"") != std::string::npos);
+            assert(dump.find(moduleCharset) == std::string::npos);
+            variables["cl_hudDump"].integer=0; pictureShader = 17;
+        }
     }
     CL_HudShutdown(); CL_HudShutdown(); assert(commands==0 && liveFiles==0);
 }

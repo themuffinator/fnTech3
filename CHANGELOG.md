@@ -18,6 +18,17 @@ historical upstream records, not fnTech3 release history. See the
 
 ### Compatibility
 
+- Give Return to Castle Wolfenstein multiplayer's console the art retail
+  `WolfMP.exe` uses. Retail writes console text in the HUD font,
+  `gfx/2d/hudchars`, over `console-16bit` smoke. Once the console is half
+  open it also lays a `console2-16bit` logo over the background. This client
+  used Quake III's `gfx/2d/bigchars` and `console`, and the `console` shaders
+  RTCW MP can see name images it does not ship. The logo keeps its shape on
+  any screen and belongs to the textured style, `con_backgroundStyle 0`. RTCW
+  MP's cgame registers `gfx/2d/hudchars` too, so the two share one shader. A
+  HUD aspect rule now matches a shared shader by either the client's name,
+  `charset`, or the cgame's, and the shipped `round_timer` rule keeps its
+  place ([record](docs/fntech3/2026-09-23-rtcw-mp-console.md)).
 - Show Enemy Territory's demo-recording notice. ET's cgame draws it itself,
   from three read-only cvars the engine keeps: `cl_demorecording` and
   `cl_demofilename`, set as a recording starts and stops, and
