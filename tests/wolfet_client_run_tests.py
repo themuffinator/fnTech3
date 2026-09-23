@@ -102,6 +102,16 @@ class WolfETClientRunTests(unittest.TestCase):
                       'installationUnchanged', 'remove_home'):
             self.assertIn(claim, probe)
 
+    def test_the_probe_sees_the_client_become_active(self):
+        # ET's log never names CA_ACTIVE. The client prints this line as it
+        # goes active, and only once it has.
+        cgame = source('code/client/cl_cgame.cpp')
+        first = cgame[cgame.index('static void CL_FirstSnapshot('):]
+        first = first[:first.index('\n}\n')]
+        self.assertLess(first.index('cls.state = CA_ACTIVE;'), first.index('"CL_FirstSnapshot: '))
+        probe = source('scripts/probe_wolfet_client.py')
+        self.assertIn("report['activeObserved'] = 'CL_FirstSnapshot: ' in text", probe)
+
     def test_the_record_states_what_is_and_is_not_claimed(self):
         record = RECORD.read_text(encoding='utf-8')
         self.assertIn('The ET client has now run', record)

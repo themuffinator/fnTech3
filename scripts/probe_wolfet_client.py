@@ -166,7 +166,8 @@ def main():
             r'error:|sys_error|fatal crashed:|not implemented|unsupported .*(cgame|ui) import|'
             r'recursive cl_shutdown|server command overflow|lost reliable commands', line, re.I)]
         report['windowedObserved'] = '640 x 480 windowed' in text
-        report['activeObserved'] = bool(re.search(r'CA_ACTIVE|entered the game', text))
+        # The client's own line as it goes active, after the server's CS_ACTIVE.
+        report['activeObserved'] = 'CL_FirstSnapshot: ' in text
         report['passed'] = (report.get('exitCode') == 0 and not report.get('forcedStop')
                             and len(report['screenshots']) == 1 and report['windowedObserved']
                             and not report['engineErrors'])
