@@ -33,6 +33,7 @@ class LaunchAndTransitionSourceTests(unittest.TestCase):
         self.assertTrue(launch["configurations"])
         combinations = set()
         names = set()
+        wolfet_homes = set()
         for configuration in launch["configurations"]:
             args = configuration["args"]
             profile = args[args.index("com_gameProfile") + 1] if "com_gameProfile" in args else "auto"
@@ -50,18 +51,32 @@ class LaunchAndTransitionSourceTests(unittest.TestCase):
             self.assertIn("meson\\build\\win32-dev\\", configuration["program"])
             self.assertIn("fs_basepath", args)
             self.assertIn("fs_homepath", args)
+            client = configuration["program"].endswith("\\fntech3.exe")
             command = "+spmap" if profile == "rtcw-sp" else "+map"
+            if profile == "wolfet" and client:
+                # ET's client launches start their maps as its client probe does.
+                command = "+devmap"
             map_name = args[args.index(command) + 1] if command in args else None
             if profile == "ql" and map_name:
                 self.assertEqual(args[args.index(command) + 2], "ffa")
+            if profile == "wolfet":
+                # Each ET launch has its own writable home and binds loopback
+                # only; the client, unlike the dedicated server, also opens IPv6.
+                home = args[args.index("fs_homepath") + 1]
+                self.assertTrue(home.startswith("${workspaceFolder}/.tmp/"), configuration["name"])
+                self.assertNotIn(home, wolfet_homes, configuration["name"])
+                wolfet_homes.add(home)
+                self.assertEqual(args[args.index("net_ip") + 1], "127.0.0.1", configuration["name"])
+                if client:
+                    self.assertEqual(args[args.index("net_ip6") + 1], "::1", configuration["name"])
             if "cl_renderer" in args:
                 renderer = args[args.index("cl_renderer") + 1]
                 combinations.add((profile, renderer, bool(map_name)))
-                mode = "SP" if profile == "rtcw-sp" else "MP"
+                mode = {"rtcw-sp": "SP", "wolfet": "ET"}.get(profile, "MP")
                 if map_name:
                     self.assertRegex(configuration["name"], rf"^{mode} {map_name} .+ {renderer}$")
                 else:
-                    title = {"q3": "Q3", "ql": "QL", "rtcw-sp": "RTCW SP", "rtcw-mp": "RTCW MP"}[profile]
+                    title = {"q3": "Q3", "ql": "QL", "rtcw-sp": "RTCW SP", "rtcw-mp": "RTCW MP", "wolfet": "ET"}[profile]
                     self.assertEqual(configuration["name"], f"{title} {renderer}")
                     self.assertFalse(any(arg in args for arg in ("+map", "+spmap", "+devmap", "+spdevmap")))
                     self.assertNotIn("com_introplayed", args)
@@ -73,7 +88,7 @@ class LaunchAndTransitionSourceTests(unittest.TestCase):
             for profile in ("q3", "ql", "rtcw-sp", "rtcw-mp")
             for renderer in ("glx", "vk", "rtx")
             for map_launch in (False, True)
-        })
+        } | {("wolfet", "glx", False), ("wolfet", "glx", True)})
 
     def test_vscode_build_tasks_stage_the_steam_provider(self) -> None:
         tasks = json.loads(read_source(".vscode/tasks.json"))["tasks"]

@@ -148,8 +148,13 @@ The **Wolfenstein: Enemy Territory** launch group contains dedicated launches
 for all six stock maps, with an installation-path prompt, loopback binding and
 a separate writable home per map. They run the existing development binary
 without an implicit rebuild. PunkBuster is disabled and the launches keep
-`sv_pure 0`; ET itself now defaults to retail's `sv_pure 1`. ET client
-launches have not been added yet.
+`sv_pure 0`; ET itself now defaults to retail's `sv_pure 1`. The group's
+client launches run `fntech3.exe` from the same build, again without a
+rebuild: `ET glx` opens ET's menu, and one launch per stock map loads that map
+with `devmap` in a listen server, keeping `sv_pure 0` as well. Each uses the
+same installation prompt, opens a 1024x768 window with the GL renderer, binds
+IPv4 and IPv6 to loopback, turns off Steam integration and the WebUI, and keeps
+its own writable home under `.tmp/vscode/wolfet/client/`.
 
 A bounded, loopback-only dedicated probe with an isolated writable home is:
 

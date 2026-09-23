@@ -352,6 +352,104 @@
       }
     },
     {
+      "name": "ET glx",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "wolfet", "+set", "fs_basepath", "${input:wolfetInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/wolfet/client/ui", "+set", "r_fullscreen", "0", "+set", "r_mode", "-1", "+set", "r_customWidth", "1024", "+set", "r_customHeight", "768", "+set", "cl_renderer", "glx", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "net_ip", "127.0.0.1", "+set", "net_ip6", "::1"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "Wolfenstein: Enemy Territory",
+        "order": -7
+      }
+    },
+    {
+      "name": "ET battery Seawall Battery glx",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "wolfet", "+set", "fs_basepath", "${input:wolfetInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/wolfet/client/battery", "+set", "r_fullscreen", "0", "+set", "r_mode", "-1", "+set", "r_customWidth", "1024", "+set", "r_customHeight", "768", "+set", "cl_renderer", "glx", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "net_ip", "127.0.0.1", "+set", "net_ip6", "::1", "+set", "sv_pure", "0", "+devmap", "battery"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "Wolfenstein: Enemy Territory",
+        "order": -6
+      }
+    },
+    {
+      "name": "ET fueldump Fuel Dump glx",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "wolfet", "+set", "fs_basepath", "${input:wolfetInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/wolfet/client/fueldump", "+set", "r_fullscreen", "0", "+set", "r_mode", "-1", "+set", "r_customWidth", "1024", "+set", "r_customHeight", "768", "+set", "cl_renderer", "glx", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "net_ip", "127.0.0.1", "+set", "net_ip6", "::1", "+set", "sv_pure", "0", "+devmap", "fueldump"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "Wolfenstein: Enemy Territory",
+        "order": -5
+      }
+    },
+    {
+      "name": "ET goldrush Gold Rush glx",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "wolfet", "+set", "fs_basepath", "${input:wolfetInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/wolfet/client/goldrush", "+set", "r_fullscreen", "0", "+set", "r_mode", "-1", "+set", "r_customWidth", "1024", "+set", "r_customHeight", "768", "+set", "cl_renderer", "glx", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "net_ip", "127.0.0.1", "+set", "net_ip6", "::1", "+set", "sv_pure", "0", "+devmap", "goldrush"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "Wolfenstein: Enemy Territory",
+        "order": -4
+      }
+    },
+    {
+      "name": "ET oasis Siwa Oasis glx",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "wolfet", "+set", "fs_basepath", "${input:wolfetInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/wolfet/client/oasis", "+set", "r_fullscreen", "0", "+set", "r_mode", "-1", "+set", "r_customWidth", "1024", "+set", "r_customHeight", "768", "+set", "cl_renderer", "glx", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "net_ip", "127.0.0.1", "+set", "net_ip6", "::1", "+set", "sv_pure", "0", "+devmap", "oasis"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "Wolfenstein: Enemy Territory",
+        "order": -3
+      }
+    },
+    {
+      "name": "ET radar Wurzburg Radar glx",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "wolfet", "+set", "fs_basepath", "${input:wolfetInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/wolfet/client/radar", "+set", "r_fullscreen", "0", "+set", "r_mode", "-1", "+set", "r_customWidth", "1024", "+set", "r_customHeight", "768", "+set", "cl_renderer", "glx", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "net_ip", "127.0.0.1", "+set", "net_ip6", "::1", "+set", "sv_pure", "0", "+devmap", "radar"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "Wolfenstein: Enemy Territory",
+        "order": -2
+      }
+    },
+    {
+      "name": "ET railgun Rail Gun glx",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "wolfet", "+set", "fs_basepath", "${input:wolfetInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/wolfet/client/railgun", "+set", "r_fullscreen", "0", "+set", "r_mode", "-1", "+set", "r_customWidth", "1024", "+set", "r_customHeight", "768", "+set", "cl_renderer", "glx", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "net_ip", "127.0.0.1", "+set", "net_ip6", "::1", "+set", "sv_pure", "0", "+devmap", "railgun"],
+      "cwd": "${workspaceFolder}\\meson\\build\\win32-dev",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "presentation": {
+        "group": "Wolfenstein: Enemy Territory",
+        "order": -1
+      }
+    },
+    {
       "name": "ET battery Seawall Battery ded",
       "type": "cppvsdbg",
       "request": "launch",
