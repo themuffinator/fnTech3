@@ -13,7 +13,7 @@ Full compatibility is **not yet established for any profile**.
 | Quake Live | `ql` / `quakelive` | Enabled; retail client boundary is Windows x86; required gates remain open. |
 | Return to Castle Wolfenstein — single player | `rtcw-sp` | Experimental; default startup gated; `-Drtcw-development=true` permits isolated probes; campaign and broader compatibility gates remain open. |
 | Return to Castle Wolfenstein — multiplayer | `rtcw-mp` | Experimental; same build option and executable as SP; multiplayer and broader compatibility gates remain open. |
-| Wolfenstein: Enemy Territory | `wolfet` / `et` | Experimental; `-Dwolfet-development=true` permits dedicated probes only; client startup remains gated in every build. |
+| Wolfenstein: Enemy Territory | `wolfet` / `et` | Experimental; developer builds (`-Dwolfet-development=true`) run the client and server for isolated probes; release builds still refuse both. |
 | Star Trek Voyager: Elite Force — single player | `stvef-sp` | Experimental; default startup gated; `-Dstvef-development=true` permits isolated probes; the retail game module runs every single-player map on a developer server, and the retail menus and cgame run in a developer client, which plays the levels with their ambient sound at retail's own distances, saves them and moves between them; the lip-sync, cinematic and renderer gates remain open. |
 | Star Trek Voyager: Elite Force — Holomatch | `stvef-mp` | Experimental; same build option and executable as SP; the retail QVMs run, the retail demos play as retail draws them, and fnTech3 plays with and downloads from Lilium Voyager and the retail game as client and server in a developer build; part of the renderer gate remains open. |
 
@@ -1179,7 +1179,8 @@ checks, generated packet fixtures and installed dedicated observations.
 | Demos / bidirectional interoperability | Inbound Interop subset; recording notice Source, Unit and developer-build Live; demos open | Non-pure retail spectator/team admission connects to fnTech3. Recording keeps the three read-only cvars ET's cgame draws its recording notice from, as `et.exe` does, and the retail cgame draws that notice in a developer client; see the [recording cvars record](2026-09-23-wolfet-demo-recording-cvars.md). The reverse direction and ET demo playback remain open. |
 | Optional services | Unavailable | No PunkBuster, authentication or Workshop success is synthesized. |
 
-Build with `-Dwolfet-development=true` only for isolated dedicated probes.
+Build with `-Dwolfet-development=true` only for isolated probes: such a build
+runs the ET client and server, and release builds still refuse both.
 This option is independent of `-Drtcw-development=true`; neither option closes
 any release gate. Q3/QL/RTCW evidence is not ET evidence.
 

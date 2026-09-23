@@ -13,8 +13,8 @@ player (`stvef-sp`) and Holomatch (`stvef-mp`), sharing one installation.
 
 Q3 and QL are enabled; RTCW remains experimental and gated in default builds,
 with `-Drtcw-development=true` enabling isolated development probes. ET is also
-gated; `-Dwolfet-development=true` currently permits dedicated probes only.
-ET client startup remains blocked in all builds. Elite Force is gated too;
+gated; developer builds (`-Dwolfet-development=true`) run its client and server
+for isolated probes; release builds still refuse both. Elite Force is gated too;
 `-Dstvef-development=true` enables its isolated probes. The unified goal is not
 complete until all seven profiles pass their applicable module ABI,
 network, demo, filesystem, asset, renderer, audio/input, gameplay, and
