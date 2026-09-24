@@ -131,7 +131,11 @@ def main():
         startup = dict(fs_basepath=str(installation), fs_homepath=str(home), r_fullscreen='0', r_mode='3',
                        in_mouse='0', in_joystick='0', in_nograb='1', s_initsound='0', logfile='2',
                        com_maxfps='60', cl_punkbuster='0', sv_punkbuster='0', r_ignorehwgamma='1',
-                       com_recommendedSet='1')
+                       com_recommendedSet='1', cl_motd='0')
+        if args.profile == 'rtcw-mp':
+            # Only WolfMP.exe checks for an update, from its main menu, which
+            # then asks for the MOTD too; the startup settings precede that.
+            startup['cl_autoupdate'] = '0'
     else:
         startup = dict(com_gameProfile=args.profile, fs_basepath=str(installation), fs_homepath=str(home),
                        fs_game='', fs_cdpath='', r_fullscreen='0', r_mode='-1', r_customWidth=str(args.width),

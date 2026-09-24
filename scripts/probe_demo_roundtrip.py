@@ -104,10 +104,11 @@ def fntech3_command(client, installation, home, profile, extra):
 def retail_command(client, installation, home, settings, commands):
     # Retail appends activeAction to the command buffer without a newline, so
     # the cgame's next command would join its last word; callers end with ';'.
+    # connect asks an external server for the MOTD unless cl_motd is off.
     values = dict(fs_basepath=str(installation), fs_homepath=str(home), r_fullscreen='0',
                   r_mode='3', in_mouse='0', in_joystick='0', in_nograb='1', logfile='2',
                   com_viewlog='0', s_initsound='0', cl_punkbuster='0', cl_allowDownload='0',
-                  r_ignorehwgamma='1', **settings)
+                  r_ignorehwgamma='1', cl_motd='0', **settings)
     command = [str(client)]
     for name, value in values.items():
         command += ['+set', name, value]
@@ -230,8 +231,9 @@ def mp_retail_in(args, output):
     server_command += ['+map', args.map, '+wait', '100', '+echo', 'RTCW_SERVER_READY',
                        '+wait', '2400', '+quit']
     stem = 'retail-mp-probe'
+    # WolfMP.exe's main menu checks for an update unless cl_autoupdate is off.
     client_command = retail_command(retail, args.installation, client_home, dict(
-        com_maxfps='30', name='fntech3-demo-probe',
+        com_maxfps='30', name='fntech3-demo-probe', cl_autoupdate='0',
         activeAction=f'wait 150; record {stem}; wait 450; stoprecord; wait 10; quit;'),
         ['+connect', f'127.0.0.1:{port}'])
     server_log = server_home / 'main' / 'qconsole.log'
@@ -280,7 +282,7 @@ def mp_retail_out(args, output):
     (home / 'main' / 'demos').mkdir(parents=True)
     shutil.copy2(demo, home / 'main' / 'demos' / demo.name)
     command = retail_command(retail, args.installation, home, dict(
-        com_maxfps='30', nextdemo='quit',
+        com_maxfps='30', nextdemo='quit', cl_autoupdate='0',
         activeAction='wait 30; screenshot; wait 90; screenshot;'), ['+demo', demo.stem])
     code, forced, elapsed, text = run(command, retail.parent, output / 'retail-stdout.log',
                                       home / 'main' / 'rtcwconsole.log', 120)

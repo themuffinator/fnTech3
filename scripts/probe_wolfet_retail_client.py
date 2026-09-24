@@ -95,6 +95,9 @@ def probe(server, installation, output, team_check=False, camera_check=False,
     client_command = command(client, installation, client_home, dict(
         com_maxfps='30', s_initsound='0', r_mode='3', name='fntech3-et-probe',
         cl_punkbuster='0', cl_allowDownload='0', cl_wwwDownload='0',
+        # et.exe's main menu checks au2rtcw2.activision.com for an update and
+        # asks etmaster.idsoftware.com for its MOTD, as connect does.
+        cl_autoupdate='0', cl_motd='0',
         r_ignorehwgamma='1', developer='1', cl_showServerCommands='1' if camera_check else '0'),
         client_actions)
     kind = 'pure' if pure else 'non-pure'

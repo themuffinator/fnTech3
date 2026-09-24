@@ -78,7 +78,10 @@ def probe(server, installation, output, pure=False, team_check=False, map_name='
         client_actions += ['+wait', '750', '+quit']
     client_command = command(client, installation, client_home, dict(
         com_maxfps='30', s_initsound='0', r_mode='3', name='fntech3-rtcw-probe',
-        cl_punkbuster='0', cl_allowDownload='0', r_ignorehwgamma='1', developer='1'),
+        cl_punkbuster='0', cl_allowDownload='0', r_ignorehwgamma='1', developer='1',
+        # WolfMP.exe's main menu checks au2rtcw*.activision.com for an update
+        # and asks wolfmotd.idsoftware.com for its MOTD, as connect does.
+        cl_autoupdate='0', cl_motd='0'),
         client_actions)
     kind = 'pure' if pure else 'non-pure'
     result = dict(evidence=f'Interop: inbound, {kind} '

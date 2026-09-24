@@ -140,7 +140,9 @@ def main():
     command = [str(retail)]
     for key, value in dict(fs_basepath=str(installation), fs_homepath=str(retail_home), r_fullscreen='0', r_mode='3',
                            in_mouse='0', in_joystick='0', in_nograb='1', s_initsound='0', logfile='2',
-                           cl_punkbuster='0', com_introplayed='1', r_ignorehwgamma='1').items():
+                           cl_punkbuster='0', com_introplayed='1', r_ignorehwgamma='1',
+                           # The main menu otherwise checks for an update and asks for the MOTD.
+                           cl_autoupdate='0', cl_motd='0').items():
         command += ['+set', key, value]
     command += ['+exec', 'probe.cfg']
     report['retail'] = run(command, installation, output / 'retail-stdout.log')

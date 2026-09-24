@@ -102,7 +102,7 @@ def main():
     home = output / 'retail-home'
     (home / 'baseq3').mkdir(parents=True)
     command = [str(retail)]
-    for name, value in dict(fs_basepath=str(installation), fs_homepath=str(home), fs_game='',
+    for name, value in dict(fs_basepath=str(installation), fs_homepath=str(home), fs_game='', cl_motd='0',
                             r_fullscreen='0', r_mode='3', in_mouse='0', in_joystick='0', in_nograb='1',
                             s_initsound='0', logfile='2', com_maxfps='60', cg_lagometer='1', con_notifytime='0',
                             nextdemo='quit', activeAction=pause.format(a='screenshot', b='screenshot', c='screenshot')).items():

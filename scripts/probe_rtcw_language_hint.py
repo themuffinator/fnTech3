@@ -90,6 +90,8 @@ def main():
                 values = dict(fs_basepath=str(installation), fs_homepath=str(home), r_fullscreen='0', r_mode='3',
                               in_mouse='0', in_joystick='0', in_nograb='1', s_initsound='0', logfile='2',
                               cl_punkbuster='0', cl_allowDownload='0', r_ignorehwgamma='1', com_introplayed='1',
+                              # No update check from the main menu, and no MOTD request there or on connect.
+                              cl_autoupdate='0', cl_motd='0',
                               cl_language='0' if args.live_switch else str(args.language), name='language-probe',
                               activeAction=(f'wait 300; CloseLimboMenu; wait 60; screenshot; set cl_language {args.language}; '
                                             'wait 120; screenshot; wait 20; quit;') if args.live_switch else
