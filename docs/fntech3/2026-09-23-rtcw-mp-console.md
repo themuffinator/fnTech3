@@ -233,8 +233,9 @@ change:
   should default to the textured style is a presentation choice this record
   does not make.
 - RTCW SP's logo layer. Retail `WolfSP.exe` draws `console2` exactly as MP
-  draws its logo, and this client does not register it. ET's GPL source draws
-  `console2-16bit` the same way; retail `et.exe` was not examined here.
+  draws its logo, and so does retail `et.exe` with its `console2-16bit`. Both
+  are registered and drawn since the
+  [console logo record](2026-09-23-wolfenstein-console-logo.md).
 - Retail's separator bar, version label and 8x16 text cell.
 - On Windows the charset shows only with the water-ripple record's host-font
   change.

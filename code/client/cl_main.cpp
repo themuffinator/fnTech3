@@ -5299,13 +5299,15 @@ static void CL_InitRenderer( void ) {
 	retailStereoModificationCount = r_stereo->modificationCount;
 
 	// load character sets. Enemy Territory ships its own console art under
-	// names of its own: a font sheet for the console, a cloud background and
-	// its UI's cursor. It has no recording icon, so none is registered.
+	// names of its own: a font sheet for the console, a cloud background, the
+	// logo laid over it (et.exe CL_InitRenderer, 0x40e050) and its UI's
+	// cursor. It has no recording icon, so none is registered.
 	const bool wolfet = Com_GameIsWolfET() != 0;
 	// RTCW MP draws its console in the HUD's font, gfx/2d/hudchars, over the
 	// 16-bit console art and its logo layer (WolfMP.exe CL_InitRenderer,
 	// 0x40d910). Its cgame registers hudchars too, so both get one handle
-	// (see CL_HudClientShaderName). SP keeps bigchars and "console".
+	// (see CL_HudClientShaderName). SP keeps bigchars and "console", with
+	// "console2" as its logo layer (WolfSP.exe CL_InitRenderer, 0x40cdc0).
 	const bool rtcwMP = Com_GameIsRTCWMP() != 0;
 	// Elite Force has no bigchars; its console font is a 16x16 grid whose
 	// glyphs fill the left half of each cell (see CL_CharsetCellWidth). It
@@ -5319,7 +5321,8 @@ static void CL_InitRenderer( void ) {
 	// only QL needs the uniquely named sidecar alias for its retail variant.
 	cls.consoleShader = re.RegisterShader( wolfet || rtcwMP ? "console-16bit" :
 		Com_GameProfile()->id == COM_GAME_QUAKELIVE ? "fnql/console" : "console" );
-	cls.consoleLogoShader = rtcwMP ? re.RegisterShader( "console2-16bit" ) : 0;
+	cls.consoleLogoShader = wolfet || rtcwMP ? re.RegisterShader( "console2-16bit" )
+		: Com_GameIsRTCWSP() ? re.RegisterShader( "console2" ) : 0;
 	cls.cursorShader = re.RegisterShaderNoMip( wolfet ? "ui/assets/3_cursor3" : "menu/art/3_cursor2" );
 
 	// Rebuild every client-owned canvas from the renderer's actual drawable

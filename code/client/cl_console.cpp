@@ -329,11 +329,13 @@ static void Con_DrawSolidRect( float x, float y, float w, float h, const vec4_t 
 
 
 /*
-RTCW MP lays a logo over the textured background, under the text, while the
-console is at least half open (WolfMP.exe Con_DrawSolidConsole 0x4075d0, the
-logo at 0x40768c). Retail colours it with twice the open fraction, at least
-1.0 whenever the logo is drawn. Its shader, console2-16bit, takes no vertex
-colour, and this renderer does not clamp one above 1.0, so it is drawn white.
+RTCW and Enemy Territory lay a logo over the textured background, under the
+text, while the console is at least half open (Con_DrawSolidConsole, with the
+logo drawn at: WolfSP.exe 0x407300, 0x4073bc; WolfMP.exe 0x4075d0, 0x40768c;
+et.exe 0x407220, 0x4072f7). Retail colours it with twice the open fraction,
+at least 1.0 whenever the logo is drawn. None of their logo shaders, console2
+and console2-16bit, takes vertex colour, and this renderer does not clamp one
+above 1.0, so it is drawn white.
 */
 static void Con_DrawBackgroundLogo( float frac, float x, float width, float alphaScale ) {
 	fntech3::client::ConsoleLogoRect logo;

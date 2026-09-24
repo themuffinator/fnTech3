@@ -12,14 +12,14 @@ struct ConsoleLogoRect {
 };
 
 /*
- * Where the console's logo layer goes, in screen pixels. Retail RTCW's
- * Con_DrawSolidConsole (WolfMP.exe 0x4075d0, WolfSP.exe 0x407300) draws it
- * only while the console is at least half open, as
- * SCR_DrawPic( 192, 70, 256, 128 ) on the 640x480 screen: centred, 70 units
- * from the top. Retail stretches that screen to the window. This keeps the
- * rectangle at the uniform 640x480 scale and centres it in the console's own
- * width, which is the same place on a 4:3 screen and keeps the logo's shape
- * on any other. False when the logo is not drawn.
+ * Where the console's logo layer goes, in screen pixels. Retail RTCW's and
+ * Enemy Territory's Con_DrawSolidConsole (WolfMP.exe 0x4075d0, WolfSP.exe
+ * 0x407300, et.exe 0x407220) draws it only while the console is at least half
+ * open, as SCR_DrawPic( 192, 70, 256, 128 ) on the 640x480 screen: centred,
+ * 70 units from the top. Retail stretches that screen to the window. This
+ * keeps the rectangle at the uniform 640x480 scale and centres it in the
+ * console's own width, which is the same place on a 4:3 screen and keeps the
+ * logo's shape on any other. False when the logo is not drawn.
  */
 inline bool ConsoleLogoPlacement( float frac, float consoleX, float consoleWidth,
 	float scale, ConsoleLogoRect &logo ) {

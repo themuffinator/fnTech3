@@ -18,6 +18,15 @@ historical upstream records, not fnTech3 release history. See the
 
 ### Compatibility
 
+- Lay the logo that retail Return to Castle Wolfenstein single player and
+  Enemy Territory lay over their console. Once the console is half open,
+  `WolfSP.exe` draws `console2` over its `console` background, and `et.exe`
+  draws `console2-16bit` over `console-16bit`, where `WolfMP.exe` draws its
+  own logo. This client drew only RTCW multiplayer's. Single player and Enemy
+  Territory now register theirs, and the textured style,
+  `con_backgroundStyle 0`, draws them as it draws multiplayer's, keeping the
+  logo's shape on any screen
+  ([record](docs/fntech3/2026-09-23-wolfenstein-console-logo.md)).
 - Draw each profile's notify lines and chat line as its own engine does. The
   console drew Quake Live's chat overlay for every profile: a strip 413 lines
   down, Quake Live's prompt, a 73-character field, and no recent console

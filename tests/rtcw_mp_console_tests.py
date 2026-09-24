@@ -1,5 +1,6 @@
-"""RTCW MP's console art: the charset, background and logo layer that retail
-WolfMP.exe registers, and the logo drawn where retail draws it."""
+"""The Wolfenstein consoles' art: the charset, background and logo layer that
+retail WolfMP.exe registers, the logo layers of WolfSP.exe and et.exe, and the
+logo drawn where retail draws it."""
 from pathlib import Path
 import os
 import shutil
@@ -52,7 +53,8 @@ int main() {
     // 1280x1024 is taller than 4:3.
     Expect(0.5f, 0, 1280, 2, 384, 140, 512, 256);
     // Retail skips the logo below half open, and for an unordered fraction
-    // (fcomp 0.5, WolfMP.exe 0x407657).
+    // (fcomp 0.5 at WolfMP.exe 0x407657 and WolfSP.exe 0x407387, comiss and
+    // jb at et.exe 0x4072c7).
     Hidden(0.49999f, 0, 640, 1);
     Hidden(0.0f, 0, 640, 1);
     Hidden(nan, 0, 640, 1);
@@ -102,7 +104,17 @@ class RTCWMPConsoleArtTests(unittest.TestCase):
                       '"gfx/2d/bigchars" );', body)
         self.assertIn('cls.consoleShader = re.RegisterShader( wolfet || rtcwMP ? "console-16bit" :\n'
                       '\t\tCom_GameProfile()->id == COM_GAME_QUAKELIVE ? "fnql/console" : "console" );', body)
-        self.assertIn('cls.consoleLogoShader = rtcwMP ? re.RegisterShader( "console2-16bit" ) : 0;', body)
+
+    def test_each_wolfenstein_engine_registers_its_retail_logo_layer(self):
+        # Each CL_InitRenderer registers its logo last and keeps the handle:
+        # WolfSP.exe (0x40cdc0) console2 at 0xf00f88, WolfMP.exe (0x40d910)
+        # console2-16bit at 0xfec718, and et.exe (0x40e050) console2-16bit at
+        # 0x156c1f0. Every other profile registers none.
+        body = function_body(read('code/client/cl_main.cpp'), 'static void CL_InitRenderer( void ) {')
+        self.assertIn('const bool wolfet = Com_GameIsWolfET() != 0;', body)
+        self.assertIn('const bool rtcwMP = Com_GameIsRTCWMP() != 0;', body)
+        self.assertIn('cls.consoleLogoShader = wolfet || rtcwMP ? re.RegisterShader( "console2-16bit" )\n'
+                      '\t\t: Com_GameIsRTCWSP() ? re.RegisterShader( "console2" ) : 0;', body)
         self.assertEqual(body.count('consoleLogoShader'), 1)
 
     def test_logo_is_drawn_over_the_textured_background_only(self):

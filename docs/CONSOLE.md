@@ -144,7 +144,7 @@ The console background and accent colors can be customized directly, so you can 
 - `con_versionColor`: Set the version and clock text color with `R G B` values from `0-255`.
 - `con_fade 1`: Fade the console background, text, and accents in and out during open and close transitions.
 
-`con_backgroundStyle 1` is the default in every profile. The textured style draws the profile's own console shader. Under RTCW MP that is retail `WolfMP.exe`'s `console-16bit`, and once the console is at least half open its `console2-16bit` logo is laid over the background, under the text, as retail does. The logo keeps its 4:3 shape, centered in the console's width. RTCW MP also writes console text in its HUD font, `gfx/2d/hudchars`, as retail does.
+`con_backgroundStyle 1` is the default in every profile. The textured style draws the profile's own console shader. Under RTCW and Enemy Territory, once the console is at least half open, the game's logo is laid over that background, under the text, as each retail engine does: RTCW SP's `console2` over `console`, and RTCW MP's and Enemy Territory's `console2-16bit` over `console-16bit`. The logo keeps its 4:3 shape, centered in the console's width. RTCW MP also writes console text in its HUD font, `gfx/2d/hudchars`, as retail does.
 
 Legacy compatibility notes:
 
