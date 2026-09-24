@@ -195,9 +195,17 @@ python scripts/probe_wolfet_models.py --installation "E:\SteamLibrary\steamapps\
 It extracts each MDM and MDX into the output directory, parses it and reports a
 verdict per file. This is asset-decode evidence and makes no rendering claim.
 
-ET's cgame import boundary is source and unit evidence only; the client gate is
-unchanged, so no ET module has called any of it. `meson test` runs both its
-regressions:
+In a developer client the retail UI and cgame modules have called ET's import
+boundaries. The UI drew ET's first-run profile dialog through its font, drawing
+and precompiler imports. The cgame called its trace, per-map fog, decal, corona
+and skin imports, among others, while it loaded oasis and then all six stock
+maps on glx, vk and rtx; see the
+[client run](docs/fntech3/2026-09-18-wolfet-client-run.md) and
+[map load](docs/fntech3/2026-09-18-wolfet-map-load.md) records. Neither record
+lists every import the runs reached, so the per-import counts, 146 of the
+cgame's 147 and 114 of the UI's 121, remain source and unit evidence. The runs
+claim no gameplay, sound playback or interoperability. `meson test` runs both
+of the cgame boundary's regressions:
 
 ```powershell
 meson test -C meson\build\win32-dev fntech3_wolfet_client_boundary
