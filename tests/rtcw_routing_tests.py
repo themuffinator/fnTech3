@@ -27,6 +27,8 @@ def routing_source():
         source += function(route, signature) + '\n'
     source += r'''
 #include "code/botlib/rtcw_routing_init.hpp"
+// Cache regeneration has its own fixture with real tracing and serialization.
+static bool AAS_BuildRTCWRouteCache(){return false;}
 static int legacyContinues,legacyClusters,legacyOptimizes,legacyWrites,legacyRouting,legacyUnlinks,legacyCaches;
 int AAS_ContinueInitReachability(float){++legacyContinues;return 0;}
 void AAS_InitClustering(){++legacyClusters;}void AAS_Optimize(){++legacyOptimizes;}
@@ -107,7 +109,7 @@ int main(){
   end[0]=invalid;assert(!routing::AreaTravelTime(start,end,0,false,false,true,cost)&&cost==73);
  }
  assert(!routing::AreaTravelTime(nullptr,end,0,false,false,true,cost)&&cost==73);
- for(const auto &p:profiles){profile=&p;initialize();aasworld.numareas=aasworld.numareasettings=3;
+ for(const auto &p:profiles){profile=&p;if(!p.bots.navigationWorlds)continue;initialize();aasworld.numareas=aasworld.numareasettings=3;
   aasworld.areasettings=botlib::ClearedAlloc<aas_areasettings_t>(3);
   aasworld.rtcwGroundSteepness=botlib::ClearedAlloc<float>(3);AAS_InitTravelFlagFromType();
   auto &settings=aasworld.areasettings[1];settings.presencetype=PRESENCE_NORMAL;
@@ -154,7 +156,7 @@ static void checkTables(){
  assert(!aasworld.reachabilityareas&&!aasworld.reachabilityareaindex);
 }
 int main(){
- for(const auto &p:profiles){profile=&p;initialize();botimport.Print=checkedPrint;
+ for(const auto &p:profiles){profile=&p;if(!p.bots.navigationWorlds)continue;initialize();botimport.Print=checkedPrint;
   if(!Com_GameIsRTCW()){
    files["maps/q3.aas"]={std::begin(quakeMap),std::end(quakeMap)};assert(AAS_LoadAASFile("maps/q3.aas")==0);
    const int before=legacyRouting;assert(AAS_StartFrame(3)==0&&aasworld.initialized&&aasworld.numframes==1);

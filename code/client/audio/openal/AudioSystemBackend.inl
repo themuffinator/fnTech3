@@ -25,6 +25,7 @@ public:
 	void FadeRTCWBackgroundTrack( float volume, int time );
 	void FadeRTCWAllSounds( float volume, int time );
 	void StopBackgroundTrack();
+	void StartStreamSource( snd_stream_t *stream );
 	void UpdateBackgroundTrack();
 	void RawSamples( int samples, int rate, int width, int channels, const byte *data, float volume );
 	void AddVoiceSamples( int clientNum, int samples, int rate, const short *data );
@@ -58,6 +59,46 @@ public:
 private:
 	struct RTCWMusicOutput;
 	struct RTCWEntityOutput;
+
+	// American McGee's Alice's voices, handed to the engine in
+	// shared/AliceSound.h; they are the world's first 36 one-shot voices.
+	class AliceDevice final : public fntech3::audio::alice::sfx::Device {
+	public:
+		explicit AliceDevice( AudioSystem &system ) : system_( system ) {}
+		bool Sample( int sfx, fntech3::audio::alice::sfx::SampleFacts &facts ) const override {
+			const SoundSample *sample = system_.GetSample( sfx );
+			if ( sample == nullptr ) return false;
+			facts.loaded = sample->Loaded() && !sample->DefaultSample();
+			facts.frames = sample->Frames();
+			facts.rate = sample->Rate();
+			facts.durationMs = sample->Rate() > 0 ? static_cast<float>( sample->Frames() ) * 1000.0f / static_cast<float>( sample->Rate() ) : 0.0f;
+			facts.name = sample->Name();
+			// The buffer keeps the file's own rate, so its frames are the file's.
+			facts.sourceFrames = sample->Frames();
+			facts.frameBytes = sample->SourceFrameBytes();
+			return true;
+		}
+		bool Playing( int voice ) const override { return system_.world_.AlicePlaying( voice ); }
+		bool Prepare( int voice, int sfx ) override {
+			SoundSample *sample = system_.GetSample( sfx );
+			if ( sfx <= 0 || sample == nullptr || !sample->EnsureLoaded( system_.device_, false ) ) return false;
+			return system_.world_.AlicePrepare( voice, sfx, sample );
+		}
+		void LoopBlock( int voice, int startFrame, int endFrame ) override {
+			system_.world_.AliceLoopBlock( voice, startFrame, endFrame );
+		}
+		void Start( int voice, bool loop, int offsetFrames ) override { system_.world_.AliceStart( voice, loop, offsetFrames ); }
+		void Stop( int voice ) override { system_.world_.AliceStop( voice ); }
+		void Pause( int voice ) override { system_.world_.AlicePause( voice ); }
+		void Resume( int voice ) override { system_.world_.AliceResume( voice ); }
+		void Place( int voice, const float *position, float gain, float direct, int ) override {
+			system_.world_.AlicePlace( voice, position, gain, direct );
+		}
+	private:
+		AudioSystem &system_;
+	};
+	bool RefuseAliceStereo( SoundSample &sample );
+	AliceDevice aliceDevice_{ *this };
 	void ClearRTCWEntityStreams();
 	void ServiceRTCWEntityStreams();
 	fntech3::audio::rtcw::SampleTime RTCWClock();
@@ -361,6 +402,7 @@ bool AudioSystem::Init( soundInterface_t *si ) {
 	si->FadeRTCWBackgroundTrack = []( float volume, int time ) { AudioSystem::Get().FadeRTCWBackgroundTrack( volume, time ); };
 	si->FadeRTCWAllSounds = []( float volume, int time ) { AudioSystem::Get().FadeRTCWAllSounds( volume, time ); };
 	si->StopBackgroundTrack = []() { AudioSystem::Get().StopBackgroundTrack(); };
+	si->StartStreamSource = []( snd_stream_t *stream ) { AudioSystem::Get().StartStreamSource( stream ); };
 	si->UpdateBackgroundTrack = []() { AudioSystem::Get().UpdateBackgroundTrack(); };
 	si->RawSamples = []( int samples, int rate, int width, int channels, const byte *data, float volume ) { AudioSystem::Get().RawSamples( samples, rate, width, channels, data, volume ); };
 	si->AddVoiceSamples = []( int clientNum, int samples, int rate, const short *data ) { AudioSystem::Get().AddVoiceSamples( clientNum, samples, rate, data ); };
@@ -385,6 +427,7 @@ bool AudioSystem::Init( soundInterface_t *si ) {
 	si->SoundList = []() { AudioSystem::Get().SoundList(); };
 	si->GetSpatialDebugInfo = []( spatialAudioDebugInfo_t *info ) { return AudioSystem::Get().GetSpatialDebugInfo( info ); };
 	si->DumpSpatialDebug = []() { AudioSystem::Get().DumpSpatialDebug(); };
+	si->AliceDevice = &aliceDevice_;
 
 	return true;
 }
@@ -467,6 +510,13 @@ void AudioSystem::BeginRegistration() {
 	}
 
 	weaponSoundShaders_.EnsureLoaded();
+	if ( Com_GameIsAlice() ) {
+		// American McGee's Alice's handle 0 is ***DEFAULT***, registered at
+		// S_Init and never loaded (alice.exe 0x0044c893).
+		const std::string placeholder = "***DEFAULT***";
+		samples_.emplace_back( placeholder, weaponSoundShaders_.Find( placeholder ) );
+		return;
+	}
 	// Elite Force reserves its silent sound/null.wav as handle 0 (stvoyHM.exe 0x42a296).
 	const std::string feedbackSample = Com_GameIsRTCW() ? fntech3::audio::rtcw::DefaultSoundName
 		: NormalizeSoundName( Com_GameIsSTVEF() ? "sound/null.wav" : "sound/feedback/hit.wav" );
@@ -497,7 +547,7 @@ sfxHandle_t AudioSystem::RegisterSound( const char *sample, qboolean /*compresse
 	const auto existing = sampleLookup_.find( normalized );
 	if ( existing != sampleLookup_.end() ) {
 		SoundSample &found = samples_[static_cast<size_t>( existing->second )];
-		if ( found.EnsureLoaded( device_, existing->second == 0 ) ) {
+		if ( found.EnsureLoaded( device_, existing->second == 0 ) && !RefuseAliceStereo( found ) ) {
 			return existing->second;
 		}
 		return 0;
@@ -514,8 +564,22 @@ sfxHandle_t AudioSystem::RegisterSound( const char *sample, qboolean /*compresse
 		Com_DPrintf( S_COLOR_YELLOW "WARNING: couldn't load sound: %s\n", sample );
 		return 0;
 	}
+	if ( RefuseAliceStereo( samples_.back() ) ) {
+		return 0;
+	}
 
 	return handle;
+}
+
+// American McGee's Alice refuses a stereo WAV outright, and tries it again at
+// the next registration (alice.exe 0x0044e560).
+bool AudioSystem::RefuseAliceStereo( SoundSample &sample ) {
+	if ( !Com_GameIsAlice() || sample.Channels() != 2 || sample.Name().find( ".mp3" ) != std::string::npos ) {
+		return false;
+	}
+	Com_Printf( "%s is a stereo wav file\n", sample.Name().c_str() );
+	sample.Unload( device_ );
+	return true;
 }
 
 void AudioSystem::StartSound( const float *origin, int entnum, int entchannel, sfxHandle_t sfxHandle, float volume ) {
@@ -692,6 +756,18 @@ void AudioSystem::StartBackgroundTrack( const char *intro, const char *loop ) {
 	}
 }
 
+void AudioSystem::StartStreamSource( snd_stream_t *stream ) {
+	if ( !started_ ) {
+		if ( stream ) S_CodecCloseStream( stream );
+		return;
+	}
+	CloseBackgroundStream();
+	musicPlayer_.Clear();
+	backgroundIntro_.clear();
+	backgroundLoop_.clear();
+	backgroundStream_ = stream;
+}
+
 void AudioSystem::StopBackgroundTrack() {
 	if ( Com_GameIsRTCWSP() ) {
 		S_RTCWMusic().Stop();
@@ -708,7 +784,9 @@ void AudioSystem::UpdateBackgroundTrack() {
 		return;
 	}
 	const float musicVolume = ( s_musicVolume != nullptr ) ? s_musicVolume->value : 1.0f;
-	if ( musicVolume > 0.0f || Com_GameIsRTCWSP() ) {
+	// American McGee's Alice's stream goes on being read at volume 0: its
+	// songs keep playing silently, run out and hand over as retail's do.
+	if ( musicVolume > 0.0f || Com_GameIsRTCWSP() || Com_GameIsAlice() ) {
 		ServiceBackgroundTrack();
 	}
 	if ( Com_GameIsRTCWSP() ) {
@@ -981,7 +1059,10 @@ void AudioSystem::Update( int msec ) {
 	const float streamGain = Com_GameIsRTCWSP() ?
 		fntech3::audio::rtcw::PlaybackGain( S_RTCWMasterFade().Value( RTCWClock() ) ) : 1.0f;
 	// SP effects quantize the master fade independently of streamed audio.
-	device_.SetMasterGain( Com_GameIsRTCWSP() ? 1.0f : ( s_volume != nullptr ? s_volume->value : 1.0f ) );
+	// American McGee's Alice's voices carry s_volume in their own gains, as
+	// retail hands it to Miles with each sample, and its music and cinematic
+	// track never take it (alice.exe 0x00472580, 0x00472210).
+	device_.SetMasterGain( Com_GameIsRTCWSP() || Com_GameIsAlice() ? 1.0f : ( s_volume != nullptr ? s_volume->value : 1.0f ) );
 	device_.ApplyDopplerState();
 	const bool deferredUpdates = device_.BeginDeferredUpdates();
 	world_.Update( softMuted );
@@ -996,7 +1077,8 @@ void AudioSystem::Update( int msec ) {
 	const float voiceVolume = ( s_voiceVolume != nullptr ) ? ClampFloat( s_voiceVolume->value, 0.0f, 2.0f ) : 1.0f;
 	voicePlayer_.Update( softMuted ? 0.0f : voiceVolume * streamGain );
 	const float musicVolume = ( s_musicVolume != nullptr ) ? s_musicVolume->value : 1.0f;
-	if ( !Com_GameIsRTCWSP() ) musicPlayer_.Update( softMuted ? 0.0f : musicVolume );
+	// Alice's stream arrives at the volumes Miles would have been handed.
+	if ( !Com_GameIsRTCWSP() ) musicPlayer_.Update( softMuted ? 0.0f : ( Com_GameIsAlice() ? 1.0f : musicVolume ) );
 	UpdateBackgroundTrack();
 }
 

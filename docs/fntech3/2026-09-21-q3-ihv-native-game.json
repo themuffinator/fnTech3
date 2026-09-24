@@ -1,0 +1,866 @@
+{
+  "date": "2026-09-21",
+  "scope": "Native IHV game boundary components and isolated Init/Shutdown/failure observations. Engine startup, gameplay, clients, networking and demos remain open.",
+  "commit": "9e1841de53d79f96cdbbde83a1427d1c7d83f31d",
+  "working_tree": "Uncommitted native-boundary follow-up; earlier IHV and Q3 point-release changes and unrelated RTCW changes remain present.",
+  "reference": {
+    "repository": "https://github.com/themuffinator/Quake3-IHV/tree/d5ce877155904c57f8b28fe0fd0c8aa2e9473337",
+    "engine": {
+      "path": "E:/Repositories/Quake3-IHV/ref/install/quake3.exe",
+      "sha256": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37"
+    },
+    "game": {
+      "path": "E:/Repositories/Quake3-IHV/ref/install/qagamex86.dll",
+      "sha256": "9855d375751272d0b22e9078e827cf7ff3c2e42867f525b7fd84b93967c0eeb6"
+    },
+    "bot_configuration": {
+      "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/scripts/bots.cfg",
+      "sha256": "b8ee6f5ee65e47966ea56dadb58faef52b69912ceccd03acca84cc1fde626143"
+    }
+  },
+  "observations": {
+    "engine_import_setup": "0x419430",
+    "game_getter_rva": "0xfad0",
+    "game_exports_rva": "0x7e2e0",
+    "game_imports_rva": "0x7e360",
+    "game_api": 4,
+    "game_import_words": 35,
+    "game_export_words": 20,
+    "shared_entity_prefix_bytes": 268,
+    "entity_stride": 556,
+    "client_allocation_stride": 1464,
+    "entity_state_bytes": 164,
+    "command_bytes": 14,
+    "cvar": {
+      "get": "0x40de80",
+      "bytes": 32,
+      "offsets": {
+        "name": 0,
+        "string": 4,
+        "resetString": 8,
+        "latchedString": 12,
+        "flags": 16,
+        "modified": 20,
+        "value": 24,
+        "next": 28
+      },
+      "missing_retail_fields": [
+        "modificationCount",
+        "integer"
+      ]
+    },
+    "entity_prefix": {
+      "link": "0x41b970",
+      "client": 164,
+      "inuse": 168,
+      "linked": 172,
+      "linkcount": 176,
+      "svFlags": 180,
+      "bmodel": 184,
+      "mins": 188,
+      "maxs": 200,
+      "contents": 212,
+      "absmin": 216,
+      "absmax": 228,
+      "currentOrigin": 240,
+      "currentAngles": 252,
+      "owner": 264,
+      "index_policy": "World at native array index 0; native client entities at indices 1..maxclients. No retail engine index aliasing."
+    },
+    "trace": {
+      "function": "0x41c110",
+      "return": "56-byte struct by value, x86 hidden result pointer",
+      "pass_entity": "numeric native entity index"
+    },
+    "tagged_memory": {
+      "allocate": "0x40d120",
+      "free_tags": "0x40d0e0",
+      "behavior": "Zero-filled allocation, tag stored as signed 16 bits, FreeTags compares sign-extended tag against full argument"
+    },
+    "lifecycle": {
+      "init_rva": "0xf770",
+      "shutdown_rva": "0xfaa0",
+      "initial_counts": "0 entities, 0 capacity, null pointer",
+      "default_counts": "9 entities, 1024 capacity, 8 clients",
+      "allocations": [
+        [
+          569344,
+          765
+        ],
+        [
+          11712,
+          765
+        ],
+        [
+          5600,
+          765
+        ]
+      ],
+      "shutdown_tags": [
+        766,
+        765
+      ]
+    },
+    "declaration_limits": "Callback names/signatures beyond initialization follow observed binary call sites but are not runtime-verified. Entity state and user commands remain opaque; complete player layout and state conversions remain open."
+  },
+  "implementation": {
+    "files": [
+      "code/compat/q3_ihv_game_abi.h",
+      "code/compat/q3_ihv_native_boundary.hpp"
+    ],
+    "engine_integration": false,
+    "native_pointer_width": 32,
+    "cvar_policy": "Stable owned strings in an external record. Engine still must supply resolved permissions, latching, flags and modification state. x64 rejects native pointer publication.",
+    "allocation_policy": "Host budget includes allocation bookkeeping and zero-byte requests; invalid frees do not dereference unknown pointers; cleanup works after partial init.",
+    "attribution": "Independent implementation from observations; no original implementation, DLL or asset included."
+  },
+  "probe": {
+    "source": "tests/q3_ihv_reference_game_probe.cpp",
+    "platform": "Windows x86",
+    "entry_points_run": true,
+    "commands": {
+      "build_release": "cl /nologo /EHsc /W4 /WX /MD /std:c++17 tests/q3_ihv_reference_game_probe.cpp /Fe:.tmp/q3-ihv/reference-game-probe.exe /Fo:.tmp/q3-ihv/reference-game-probe.obj /link advapi32.lib",
+      "build_debug": "cl /nologo /EHsc /W4 /WX /MDd /Od /RTC1 /std:c++17 tests/q3_ihv_reference_game_probe.cpp /Fe:.tmp/q3-ihv/reference-game-probe-checked.exe /Fo:.tmp/q3-ihv/reference-game-probe-checked.obj /link advapi32.lib",
+      "run_prefix": ".tmp/q3-ihv/reference-game-probe.exe E:/Repositories/Quake3-IHV/ref/install/qagamex86.dll E:/Repositories/Quake3-IHV/ref/install/baseq3",
+      "modes": [
+        "normal",
+        "missing-files",
+        "clamp-clients",
+        "fail-allocation 0",
+        "fail-allocation 1",
+        "fail-allocation 2"
+      ]
+    },
+    "cases": [
+      {
+        "case": "normal",
+        "result": {
+          "scope": "native Init/Shutdown only; no gameplay or engine integration",
+          "mode": "normal",
+          "api": 4,
+          "entity_stride": 556,
+          "clients": 8,
+          "entities": 9,
+          "capacity": 1024,
+          "allocations": [
+            [
+              569344,
+              765
+            ],
+            [
+              11712,
+              765
+            ],
+            [
+              5600,
+              765
+            ]
+          ],
+          "import_calls": [
+            6,
+            0,
+            0,
+            3,
+            0,
+            2,
+            28,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "files": [
+            "scripts/bots.cfg"
+          ],
+          "cvars": [
+            {
+              "name": "cheats",
+              "value": "1",
+              "flags": 40
+            },
+            {
+              "name": "d_bot",
+              "value": "",
+              "flags": 0
+            },
+            {
+              "name": "d_botai",
+              "value": "0",
+              "flags": 0
+            },
+            {
+              "name": "d_botaiming",
+              "value": "0",
+              "flags": 0
+            },
+            {
+              "name": "d_botfreeze",
+              "value": "0",
+              "flags": 0
+            },
+            {
+              "name": "d_break",
+              "value": "0",
+              "flags": 0
+            },
+            {
+              "name": "dedicated",
+              "value": "0",
+              "flags": 16
+            },
+            {
+              "name": "dmflags",
+              "value": "0",
+              "flags": 8
+            },
+            {
+              "name": "fraglimit",
+              "value": "0",
+              "flags": 8
+            },
+            {
+              "name": "g_debugMove",
+              "value": "0",
+              "flags": 0
+            },
+            {
+              "name": "g_fast",
+              "value": "1.125",
+              "flags": 0
+            },
+            {
+              "name": "g_forcerespawn",
+              "value": "10",
+              "flags": 0
+            },
+            {
+              "name": "g_gravity",
+              "value": "800",
+              "flags": 0
+            },
+            {
+              "name": "g_inactivity",
+              "value": "0",
+              "flags": 0
+            },
+            {
+              "name": "g_knockback",
+              "value": "1000",
+              "flags": 0
+            },
+            {
+              "name": "g_quadfactor",
+              "value": "3",
+              "flags": 0
+            },
+            {
+              "name": "g_slow",
+              "value": "0.8",
+              "flags": 0
+            },
+            {
+              "name": "g_speed",
+              "value": "320",
+              "flags": 0
+            },
+            {
+              "name": "g_tough",
+              "value": "0.70",
+              "flags": 0
+            },
+            {
+              "name": "g_weak",
+              "value": "1.25",
+              "flags": 0
+            },
+            {
+              "name": "g_weaponrespawn",
+              "value": "5",
+              "flags": 0
+            },
+            {
+              "name": "gamedate",
+              "value": "Feb 12 1999",
+              "flags": 136
+            },
+            {
+              "name": "gamename",
+              "value": "baseq3",
+              "flags": 136
+            },
+            {
+              "name": "maxclients",
+              "value": "8",
+              "flags": 40
+            },
+            {
+              "name": "maxentities",
+              "value": "1024",
+              "flags": 32
+            },
+            {
+              "name": "password",
+              "value": "",
+              "flags": 4
+            },
+            {
+              "name": "teamflags",
+              "value": "0",
+              "flags": 8
+            },
+            {
+              "name": "timelimit",
+              "value": "0",
+              "flags": 8
+            }
+          ],
+          "shutdown_tags": [
+            766,
+            765
+          ],
+          "remaining_allocations": 0
+        },
+        "debug_report": ".tmp/q3-ihv/native-game-checked-normal.json",
+        "debug_report_sha256": "227400480b52b0b926812c5c98a47bfaf5d6f0cb56ece47890dd027878d09186",
+        "release_report": ".tmp/q3-ihv/native-game-normal.json",
+        "release_matches_debug": true
+      },
+      {
+        "case": "missing-files",
+        "result": {
+          "scope": "native Init/Shutdown only; no gameplay or engine integration",
+          "mode": "missing-files",
+          "api": 4,
+          "entity_stride": 556,
+          "clients": 8,
+          "entities": 9,
+          "capacity": 1024,
+          "allocations": [
+            [
+              569344,
+              765
+            ],
+            [
+              11712,
+              765
+            ],
+            [
+              5600,
+              765
+            ]
+          ],
+          "import_calls": [
+            7,
+            0,
+            0,
+            3,
+            0,
+            2,
+            28,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "files": [
+            "scripts/bots.cfg"
+          ],
+          "cvars": [
+            {
+              "name": "cheats",
+              "value": "1",
+              "flags": 40
+            },
+            {
+              "name": "d_bot",
+              "value": "",
+              "flags": 0
+            },
+            {
+              "name": "d_botai",
+              "value": "0",
+              "flags": 0
+            },
+            {
+              "name": "d_botaiming",
+              "value": "0",
+              "flags": 0
+            },
+            {
+              "name": "d_botfreeze",
+              "value": "0",
+              "flags": 0
+            },
+            {
+              "name": "d_break",
+              "value": "0",
+              "flags": 0
+            },
+            {
+              "name": "dedicated",
+              "value": "0",
+              "flags": 16
+            },
+            {
+              "name": "dmflags",
+              "value": "0",
+              "flags": 8
+            },
+            {
+              "name": "fraglimit",
+              "value": "0",
+              "flags": 8
+            },
+            {
+              "name": "g_debugMove",
+              "value": "0",
+              "flags": 0
+            },
+            {
+              "name": "g_fast",
+              "value": "1.125",
+              "flags": 0
+            },
+            {
+              "name": "g_forcerespawn",
+              "value": "10",
+              "flags": 0
+            },
+            {
+              "name": "g_gravity",
+              "value": "800",
+              "flags": 0
+            },
+            {
+              "name": "g_inactivity",
+              "value": "0",
+              "flags": 0
+            },
+            {
+              "name": "g_knockback",
+              "value": "1000",
+              "flags": 0
+            },
+            {
+              "name": "g_quadfactor",
+              "value": "3",
+              "flags": 0
+            },
+            {
+              "name": "g_slow",
+              "value": "0.8",
+              "flags": 0
+            },
+            {
+              "name": "g_speed",
+              "value": "320",
+              "flags": 0
+            },
+            {
+              "name": "g_tough",
+              "value": "0.70",
+              "flags": 0
+            },
+            {
+              "name": "g_weak",
+              "value": "1.25",
+              "flags": 0
+            },
+            {
+              "name": "g_weaponrespawn",
+              "value": "5",
+              "flags": 0
+            },
+            {
+              "name": "gamedate",
+              "value": "Feb 12 1999",
+              "flags": 136
+            },
+            {
+              "name": "gamename",
+              "value": "baseq3",
+              "flags": 136
+            },
+            {
+              "name": "maxclients",
+              "value": "8",
+              "flags": 40
+            },
+            {
+              "name": "maxentities",
+              "value": "1024",
+              "flags": 32
+            },
+            {
+              "name": "password",
+              "value": "",
+              "flags": 4
+            },
+            {
+              "name": "teamflags",
+              "value": "0",
+              "flags": 8
+            },
+            {
+              "name": "timelimit",
+              "value": "0",
+              "flags": 8
+            }
+          ],
+          "shutdown_tags": [
+            766,
+            765
+          ],
+          "remaining_allocations": 0
+        },
+        "debug_report": ".tmp/q3-ihv/native-game-checked-missing-files.json",
+        "debug_report_sha256": "a5a7ab7136024b6777cc60aa2d39980828f16136d7ebc01657dcd6b2372d1ce2",
+        "release_report": ".tmp/q3-ihv/native-game-missing-files.json",
+        "release_matches_debug": true
+      },
+      {
+        "case": "clamp-clients",
+        "result": {
+          "scope": "native Init/Shutdown only; no gameplay or engine integration",
+          "mode": "clamp-clients",
+          "api": 4,
+          "entity_stride": 556,
+          "clients": 8,
+          "entities": 9,
+          "capacity": 64,
+          "allocations": [
+            [
+              35584,
+              765
+            ],
+            [
+              11712,
+              765
+            ],
+            [
+              5600,
+              765
+            ]
+          ],
+          "import_calls": [
+            6,
+            0,
+            0,
+            3,
+            0,
+            2,
+            28,
+            3,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "files": [
+            "scripts/bots.cfg"
+          ],
+          "cvars": [
+            {
+              "name": "cheats",
+              "value": "1",
+              "flags": 40
+            },
+            {
+              "name": "d_bot",
+              "value": "",
+              "flags": 0
+            },
+            {
+              "name": "d_botai",
+              "value": "0",
+              "flags": 0
+            },
+            {
+              "name": "d_botaiming",
+              "value": "0",
+              "flags": 0
+            },
+            {
+              "name": "d_botfreeze",
+              "value": "0",
+              "flags": 0
+            },
+            {
+              "name": "d_break",
+              "value": "0",
+              "flags": 0
+            },
+            {
+              "name": "dedicated",
+              "value": "0",
+              "flags": 16
+            },
+            {
+              "name": "dmflags",
+              "value": "0",
+              "flags": 8
+            },
+            {
+              "name": "fraglimit",
+              "value": "0",
+              "flags": 8
+            },
+            {
+              "name": "g_debugMove",
+              "value": "0",
+              "flags": 0
+            },
+            {
+              "name": "g_fast",
+              "value": "1.125",
+              "flags": 0
+            },
+            {
+              "name": "g_forcerespawn",
+              "value": "10",
+              "flags": 0
+            },
+            {
+              "name": "g_gravity",
+              "value": "800",
+              "flags": 0
+            },
+            {
+              "name": "g_inactivity",
+              "value": "0",
+              "flags": 0
+            },
+            {
+              "name": "g_knockback",
+              "value": "1000",
+              "flags": 0
+            },
+            {
+              "name": "g_quadfactor",
+              "value": "3",
+              "flags": 0
+            },
+            {
+              "name": "g_slow",
+              "value": "0.8",
+              "flags": 0
+            },
+            {
+              "name": "g_speed",
+              "value": "320",
+              "flags": 0
+            },
+            {
+              "name": "g_tough",
+              "value": "0.70",
+              "flags": 0
+            },
+            {
+              "name": "g_weak",
+              "value": "1.25",
+              "flags": 0
+            },
+            {
+              "name": "g_weaponrespawn",
+              "value": "5",
+              "flags": 0
+            },
+            {
+              "name": "gamedate",
+              "value": "Feb 12 1999",
+              "flags": 136
+            },
+            {
+              "name": "gamename",
+              "value": "baseq3",
+              "flags": 136
+            },
+            {
+              "name": "maxclients",
+              "value": "8",
+              "flags": 40
+            },
+            {
+              "name": "maxentities",
+              "value": "64",
+              "flags": 32
+            },
+            {
+              "name": "password",
+              "value": "",
+              "flags": 4
+            },
+            {
+              "name": "teamflags",
+              "value": "0",
+              "flags": 8
+            },
+            {
+              "name": "timelimit",
+              "value": "0",
+              "flags": 8
+            }
+          ],
+          "shutdown_tags": [
+            766,
+            765
+          ],
+          "remaining_allocations": 0
+        },
+        "debug_report": ".tmp/q3-ihv/native-game-checked-clamp-clients.json",
+        "debug_report_sha256": "f0e0029db76d438a87f5a3051dccf15abe260caa0e5cba696f1c5d69a87154bb",
+        "release_report": ".tmp/q3-ihv/native-game-clamp-clients.json",
+        "release_matches_debug": true
+      },
+      {
+        "case": "fail-allocation-0",
+        "result": {
+          "scope": "native init failure only",
+          "failed_allocation": 0,
+          "cleanup": true
+        },
+        "debug_report": ".tmp/q3-ihv/native-game-checked-fail-allocation-0.json",
+        "debug_report_sha256": "d0ff76ae4bfef96d09cbde50fd6330f681df857e9cb7cd316724549a16a8139f",
+        "release_report": ".tmp/q3-ihv/native-game-fail-allocation-0.json",
+        "release_matches_debug": true
+      },
+      {
+        "case": "fail-allocation-1",
+        "result": {
+          "scope": "native init failure only",
+          "failed_allocation": 1,
+          "cleanup": true
+        },
+        "debug_report": ".tmp/q3-ihv/native-game-checked-fail-allocation-1.json",
+        "debug_report_sha256": "166bac00c85cfc268b73130eb75e8a9e173c1605426989aadeebc0cdfc1c1513",
+        "release_report": ".tmp/q3-ihv/native-game-fail-allocation-1.json",
+        "release_matches_debug": true
+      },
+      {
+        "case": "fail-allocation-2",
+        "result": {
+          "scope": "native init failure only",
+          "failed_allocation": 2,
+          "cleanup": true
+        },
+        "debug_report": ".tmp/q3-ihv/native-game-checked-fail-allocation-2.json",
+        "debug_report_sha256": "7ad2dd50f44a329a769e5c7c7991f5104833350b29de4f063f12829b6c3ee34f",
+        "release_report": ".tmp/q3-ihv/native-game-fail-allocation-2.json",
+        "release_matches_debug": true
+      }
+    ],
+    "wrong_hash_rejection": {
+      "result": "passed before LoadLibrary",
+      "log": ".tmp/q3-ihv/native-game-hash-rejection.log"
+    },
+    "safety": "No window, input, network or filesystem-write callback is provided. File reads are contained in the supplied asset root. Unexpected imports abort explicitly. Partial-init failures unload the module and reclaim host memory without calling Shutdown."
+  },
+  "validation": {
+    "x86_meson": {
+      "passed": 3,
+      "failed": 0,
+      "tests": [
+        "fntech3_q3_ihv_native_boundary",
+        "fntech3_bsp43_contract",
+        "fntech3_stvef_abi_layouts"
+      ],
+      "log": ".tmp/q3-ihv/native-boundary-meson.log"
+    },
+    "x64_asan": {
+      "result": "passed; native cvar-pointer publication rejected on x64",
+      "command": "clang++ -std=c++17 -O1 -g -fsanitize=address -Wall -Wextra -Werror tests/q3_ihv_native_boundary_tests.cpp -o .tmp/q3-ihv/native-boundary-asan.exe",
+      "runtime_path": "C:/Program Files/LLVM/lib/clang/20/lib/windows",
+      "log": ".tmp/q3-ihv/native-boundary-asan.log"
+    },
+    "c_header": "Clang C11 -fsyntax-only -Wall -Wextra -Werror passes",
+    "diff_check": "passed",
+    "full_suite": "Not rerun for these isolated new boundary components; the preceding sky follow-up records the complete shared-engine regression run."
+  },
+  "remaining": [
+    "Coherent immutable IHV startup/filesystem/module profile",
+    "Native game adapter integrated with engine collision, configstrings, clients and bots",
+    "Complete entity/player/usercmd layout and semantic conversion",
+    "Cgame and renderer/audio boundary",
+    "Protocol 33 handshake/netchan/delta codecs and bidirectional interoperability",
+    "IHV demo parsing and playback, malformed recording rejection",
+    "Original collision, portal, clamp sampling, model and lighting parity"
+  ],
+  "unrelated_issues": "No new unrelated repository issue found. Previously recorded host IPv6 bind warning remains; no network probe was run in this follow-up.",
+  "source_sha256": {
+    "code/compat/q3_ihv_game_abi.h": "b57acd30d8d350d0a140c8c275eeeae176e404d41a2106d1a3b3623f992a8ad8",
+    "code/compat/q3_ihv_native_boundary.hpp": "45f57a5266c3b32bfba6fc9de84274b9bc04581a2b9318ab5bed68c9b972b748",
+    "tests/q3_ihv_reference_game_probe.cpp": "8da1e053b563f804b2e24adb06b941ac88967b39a7bfd990af2fbb53e2b5c943",
+    "tests/q3_ihv_native_boundary_tests.cpp": "4c1c836f941dce008c668dd9cb7fc4f6d7a1f7969dc03159d7d2c81b9db450ea"
+  }
+}

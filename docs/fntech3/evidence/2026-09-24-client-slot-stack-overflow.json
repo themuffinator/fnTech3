@@ -1,0 +1,124 @@
+{
+  "utc": "2026-09-24T07:43:39+00:00",
+  "testedSourceCommit": "2d35919d0f6ee62f869f34186a4b11d3e189742f",
+  "sourceChanges": [
+    "code/server/server.h",
+    "code/server/sv_init.cpp",
+    "code/server/sv_client.cpp",
+    "tests/server_client_stack_tests.py"
+  ],
+  "platform": "Windows 11; Windows x86 MSVC 2022 debugoptimized (/O2 /Z7), strict warnings, -Drtcw-development=true -Dwolfet-development=true -Dstvef-development=true; dedicated servers on a private desktop with an isolated fs_homepath, loopback only, no input",
+  "mainThreadStackReserveBytes": 1048576,
+  "clientSize": {
+    "testedSourceCommit": 527320,
+    "testedSourceCommitMembers": {
+      "reliableCommands": 262144,
+      "frames": 188288,
+      "netchan": 65624
+    },
+    "sharedTreeWithUncommittedAliceFields": 627440,
+    "traits": "MSVC x86: is_trivially_copyable, is_trivially_default_constructible, is_trivial and is_standard_layout all true"
+  },
+  "frameBytes": {
+    "columns": ["SV_AllocClients", "SV_ChangeMaxClients", "SV_DirectConnect"],
+    "reportedBuild": {
+      "executable": "meson/build/win32-dev/fntech3.ded.exe",
+      "sha256": "d2c23bd15f0fe2c2bf09b340dfa978e52703a5b2a4502a78cdb2c3b889218d11",
+      "tree": "the shared working tree linked 07:39 local, then 75561b9 plus uncommitted changes",
+      "source": "PDB S_FRAMEPROC",
+      "frames": [627440, 627452, 629316]
+    },
+    "testedCommitExport": {
+      "executable": "fntech3.ded.exe, -Dbuild-client=false, clean git archive export",
+      "sha256": "bd72ab96fa06987113202c0412ea6c385ebf9c114d78da07e49a757c99a00c9d",
+      "source": "PDB S_FRAMEPROC",
+      "frames": [527320, 527332, 529196]
+    },
+    "testedCommitExportWithChange": {
+      "executable": "fntech3.ded.exe, the same export and build directory with this change",
+      "sha256": "4ff08f0ab7e575d6333d97713abd9d036f38d151d9fe57536fe02d0d6dc08768",
+      "source": "PDB S_FRAMEPROC",
+      "frames": [0, 12, 5988],
+      "framesOf256KiBOrMore": 0
+    },
+    "testedCommitExportWithChangeFullBuild": {
+      "fntech3.exe": "9c3c33b56c8dc1a957b79222d6c75faeb6c2ef40062d452df3b85d76b4e546b7",
+      "fntech3.ded.exe": "f43cc12d9a81e56cd48f6baf8b973125bc2951e6b8a94bb291c3652757c7af04",
+      "source": "PDB S_FRAMEPROC of fntech3.exe",
+      "frames": [0, 12, 5988],
+      "framesOf256KiBOrMore": 0
+    },
+    "sharedBuildWithChange": {
+      "executable": "meson/build/win32-dev/fntech3.ded.exe",
+      "sha256": "fb3d555eac0be29ef88df0b5f1562b02b53b5b73847060c5d76b1259215f0264",
+      "tree": "tested commit plus the shared working tree, linked 08:33 local; sha256 of git diff HEAD --binary at build time e5c2200d243a775abd00347bec4204540989135cb17b602ffc26f83b3cc09e86",
+      "source": "PDB S_FRAMEPROC",
+      "frames": [0, 12, 5988]
+    },
+    "msvcOdObjectsOnly": {
+      "note": "win32-dev's compile command with /O2 replaced by /Od; objects compiled, nothing linked or run",
+      "testedCommitSources": [527344, 527436, 1060872],
+      "sharedTreeBeforeChange": [627464, 627556, 1261112],
+      "sharedTreeWithChange": [20, 112, 6228]
+    },
+    "clangO0ObjectsOnly": {
+      "i686SharedTreeBeforeChange": [627500, 627620, 1261140],
+      "x86_64Q3OnlyTestedCommitSources": [658840, 659032, 1324024],
+      "withChange": "no frame over 65536 bytes in any of the three"
+    }
+  },
+  "crash": {
+    "exceptionAddress": "fntech3.ded.exe@1ffbe7",
+    "symbol": "_chkstk, chkstk.asm:99 (llvm-symbolizer with the build's PDB)"
+  },
+  "installations": {
+    "q3": {
+      "basepath": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+      "baseq3/pak0.pk3": "7ce8b3910620cd50a09e4f1100f426e8c6180f68895d589f80e6bd95af54bcae"
+    },
+    "rtcw-mp": {
+      "basepath": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+      "Main/qagame_mp_x86.dll": "d8975b5c4e14488283c5eca7d549005304b04f1690705c13c174a171cc24c387",
+      "WolfMP.exe": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5"
+    },
+    "wolfet": {
+      "basepath": "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory",
+      "etmain/qagame_mp_x86.dll": "160a6218397865ad61071faa6316053713c03b9be80e5d05c7a5be2cab7f630b",
+      "et.exe": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e"
+    }
+  },
+  "serverCommand": "fntech3.ded.exe +set com_gameProfile <profile> +set fs_basepath <installation> +set fs_homepath <isolated home> +set dedicated 1 +set net_ip 127.0.0.1 +set logfile 2 +map <map> +wait 50 +sv_maxclients 12 +wait 5 +map <map> +wait 50 +sv_maxclients +serverinfo +quit",
+  "serverRuns": [
+    {"build": "d2c23bd1", "profile": "q3", "map": "q3dm1", "latched": true, "serverInitializations": 2, "stackOverflow": true, "exceptionAddress": "fntech3.ded.exe@1ffbe7", "outcome": "crashed during the second level spawn; waited in its error console until the driver stopped it", "installationUnchanged": true},
+    {"build": "d2c23bd1", "profile": "rtcw-mp", "map": "mp_beach", "latched": true, "serverInitializations": 2, "stackOverflow": true, "exceptionAddress": "fntech3.ded.exe@1ffbe7", "outcome": "crashed as above", "installationUnchanged": true},
+    {"build": "d2c23bd1", "profile": "wolfet", "map": "goldrush", "latched": true, "serverInitializations": 2, "stackOverflow": true, "exceptionAddress": "fntech3.ded.exe@1ffbe7", "outcome": "crashed as above", "installationUnchanged": true},
+    {"build": "fb3d555e", "profile": "q3", "map": "q3dm1", "latched": true, "serverInitializations": 2, "stackOverflow": false, "printedMaxClients": "12", "serverinfoMaxClients": "12", "exitCode": 0, "seconds": 5.844, "installationUnchanged": true},
+    {"build": "fb3d555e", "profile": "rtcw-mp", "map": "mp_beach", "latched": true, "serverInitializations": 2, "stackOverflow": false, "printedMaxClients": "12", "serverinfoMaxClients": "12", "exitCode": 0, "seconds": 5.813, "installationUnchanged": true},
+    {"build": "fb3d555e", "profile": "wolfet", "map": "goldrush", "latched": true, "serverInitializations": 2, "stackOverflow": false, "printedMaxClients": "12", "serverinfoMaxClients": "12", "exitCode": 0, "seconds": 6.187, "installationUnchanged": true}
+  ],
+  "retailClientRuns": {
+    "probe": "scripts/probe_restart_variable_change.py --plan restarts (another session's uncommitted probe, sha256 e9b749b61d8a810cec42b2e5123e3ee69fd170b70a97453b77ba573016a94e04)",
+    "server": "fb3d555e, windowed retail client on its own private desktop, loopback UDP, rcon-paced steps, no input",
+    "runs": [
+      {
+        "profile": "rtcw-mp", "map": "mp_beach", "client": "WolfMP.exe", "passed": true, "elapsedSeconds": 47.672, "installationUnchanged": true,
+        "maxClientsStep": {"commands": ["sv_maxclients 12", "map_restart"], "restartMessage": "sv_maxclients variable change -- restarting.", "serverInitializations": 1, "gamestatesSent": 1, "gamestatesLoaded": 1, "serverCrashed": false, "disconnected": false, "markerSeenAfterRestart": true, "sv_maxclients": "12"}
+      },
+      {
+        "profile": "wolfet", "map": "goldrush", "client": "et.exe", "passed": true, "elapsedSeconds": 36.547, "installationUnchanged": true,
+        "maxClientsStep": {"commands": ["sv_maxclients 12", "map_restart"], "restartMessage": "sv_maxclients variable change -- restarting.", "serverInitializations": 1, "gamestatesSent": 1, "gamestatesLoaded": 1, "serverCrashed": false, "disconnected": false, "markerSeenAfterRestart": true, "sv_maxclients": "12"}
+      }
+    ]
+  },
+  "tests": {
+    "tests/server_client_stack_tests.py": {
+      "sha256": "177ed20df49cda5eba9071339673449cac9c7774e11dee3010c56acabc860bab",
+      "sharedTreeWithChange": "passed with clang++ i686 (x86 developer shell) and x86_64 -DFNTECH3_Q3_ONLY",
+      "testedCommitSources": "failed both subtests (x86_64 -DFNTECH3_Q3_ONLY)",
+      "testedCommitExportWithChange": "passed"
+    },
+    "testedCommitExportWithChangeFullBuild": "1,200 of 1,200 targets with strict warnings; meson C++ tests 116 ok, 2 skipped (fnql_audio_loopback and fnql_retail_factory_probe, exit status 77), 0 failed",
+    "testedCommitExportWithChangePytest": "python -m pytest tests: 1832 passed, 77 skipped (runtime executables not configured, symlink privilege, fnql-audiozonesc and the Make build absent from that export), 37810 subtests passed, 946 s; changelog, generated-docs, release-packaging and release-workflow tests passed again on the final document text (97 passed, 1 skipped), and scripts/release_workflow.py check agrees",
+    "sharedTreeServerFixtures": "the new test and 19 other server-source pytest files (fixtures that include server.h, source tests that read sv_init.cpp) against the shared working tree: 154 passed, 39 subtests"
+  }
+}

@@ -48,6 +48,7 @@ def fixture():
         function(main, 'static bool CL_WireProfileKeepsDm68Fallback('),
         optional(main, REGISTER, REGISTER + '}\n'),
         optional(main, 'static void CL_SetDemoRecordingCvars( const char *name ) {'),
+        optional(main, 'static void CL_AliceRecordName( char *name, int nameSize ) {'),
         function(main, 'void CL_StopRecord_f( void ) {'),
         function(main, 'static void CL_Record_f( void ) {'),
         block(screen, 'struct DemoRecordingNotice {', '\n};'),
@@ -61,6 +62,7 @@ HARNESS = r'''
 #define _CRT_SECURE_NO_WARNINGS 1
 #include "code/qcommon/game_profile.h"
 #include "code/qcommon/protocol_contract.hpp"
+#include "code/client/client_alice_demo.hpp"
 #include <array>
 #include <cstdarg>
 #include <cstdio>
@@ -148,11 +150,15 @@ static netchanWireProfile_t CL_ActiveWireProfile( void ) {
 	case COM_GAME_RTCW_MP: return NETCHAN_WIRE_RTCW_MP;
 	case COM_GAME_WOLFET: return NETCHAN_WIRE_WOLFET;
 	case COM_GAME_STVEF_MP: return NETCHAN_WIRE_STVEF_HM;
+	case COM_GAME_ALICE: return NETCHAN_WIRE_ALICE;
 	default: return NETCHAN_WIRE_LEGACY_Q3;
 	}
 }
-// Both names this predicate has had.
-static qboolean CL_LegacyFraming( void ) { return ToQboolean( CL_ActiveWireProfile() == NETCHAN_WIRE_STVEF_HM ); }
+// Both names this predicate has had. Alice shares Elite Force's framing.
+static qboolean CL_LegacyFraming( void ) {
+	return ToQboolean( CL_ActiveWireProfile() == NETCHAN_WIRE_STVEF_HM
+		|| CL_ActiveWireProfile() == NETCHAN_WIRE_ALICE );
+}
 static qboolean CL_STVEFFraming( void ) { return CL_LegacyFraming(); }
 
 // The demo file.
@@ -172,9 +178,13 @@ static std::string argument;
 static int recordSPDemo;
 static int Cmd_Argc( void ) { return argument.empty() ? 1 : 2; }
 static const char *Cmd_Argv( int ) { return argument.c_str(); }
+// Set under both spellings: alice.exe asks for "g_syncronousClients".
 static float Cvar_VariableValue( const char *name ) {
-	return std::strcmp( name, "g_synchronousClients" ) ? 0.0f : 1.0f;
+	return std::strcmp( name, "g_synchronousClients" ) && std::strcmp( name, "g_syncronousClients" )
+		? 0.0f : 1.0f;
 }
+struct ScopedFileHandle {};
+static int OpenPureFileRead( const char *, ScopedFileHandle & ) { return -1; }
 static int Cvar_VariableIntegerValue( const char *name ) {
 	if ( !std::strcmp( name, "g_synchronousClients" ) ) return 1;
 	return std::strcmp( name, "ui_recordSPDemo" ) ? 0 : recordSPDemo;
@@ -286,6 +296,8 @@ static void CheckProfile( void ) {
 	// none.
 	Frame( 5 * 1024 + 7 );
 	if ( et ) CHECK( Published( "1", "probe", "5127" ) && notices.empty() );
+	// alice.exe has no "RECORDING" string to draw.
+	if ( current == COM_GAME_ALICE ) CHECK( notices.empty() );
 	messageMode = 0;
 	Frame( 6000 );
 	if ( et ) CHECK( Published( "1", "probe", "6000" ) && notices.empty() );

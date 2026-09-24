@@ -138,7 +138,7 @@ def default_sound():
 #include <map>
 static bool sp=true,rtcw=true,stvef=false;static int audible=0;
 static bool Com_GameIsRTCWSP(){return sp;}static bool Com_GameIsRTCW(){return rtcw;}
-static bool Com_GameIsSTVEF(){return stvef;}
+static bool Com_GameIsSTVEF(){return stvef;}static bool Com_GameIsAlice(){return false;}
 static int Cvar_VariableIntegerValue(const char *name){assert(std::string(name)=="s_defaultsound");return audible;}
 constexpr bool qfalse=false,qtrue=true;
 struct sndBuffer{short sndChunk[1024];sndBuffer *next;};

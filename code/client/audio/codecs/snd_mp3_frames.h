@@ -126,6 +126,37 @@ public:
 		return info;
 	}
 
+	/* The first byte after a leading ID3v2 tag, where decoding begins. */
+	int StartOffset() const noexcept { return start_; }
+
+	/* American McGee's Alice alone: continue at a byte offset into the file
+	 * image, tag included, as Miles's sample position does (MSS 6.0b
+	 * set_sample_position 0x21115200 resyncs its MP3 decoder there). The
+	 * next frame is the first sync at or after `offset`; the first frame's
+	 * size limit is kept. The caller resets the decoder library as well,
+	 * which then resyncs from any byte. */
+	void SeekFileOffset( int offset ) noexcept {
+		position_ = offset < start_ ? start_ : ( offset > length_ ? length_ : offset );
+		frameSamples_ = frameCursor_ = 0;
+	}
+
+	/* The samples per channel in the frames whose sync lies before
+	 * `offset`: the audio a seek there passes over. */
+	std::int64_t SamplesBefore( void *codec, Mp3DecodeFn decode, int offset ) const noexcept {
+		std::int64_t total = 0;
+		if ( !decode ) return total;
+		for ( int position = start_; position < length_; ) {
+			int frameBytes = 0, skipped = 0, channels = 0, rate = 0;
+			const int samples = decode( codec, data_ + position, length_ - position,
+				nullptr, &frameBytes, &skipped, &channels, &rate );
+			if ( frameBytes <= 0 || frameBytes > length_ - position || skipped < 0 || skipped >= frameBytes ) break;
+			if ( position + skipped >= offset ) break;
+			position += frameBytes;
+			if ( samples > 0 && samples <= kMaxFrameSamples / 2 ) total += samples;
+		}
+		return total;
+	}
+
 	/* Copy up to 'bytes' of interleaved 16-bit PCM with 'outputChannels'
 	 * (1 mixes a stereo source down); never a partial sample frame. */
 	int Read( void *codec, Mp3DecodeFn decode, int sourceChannels, int rate,

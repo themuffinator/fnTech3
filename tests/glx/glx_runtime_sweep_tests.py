@@ -7312,9 +7312,9 @@ class GlxPromotionTests(unittest.TestCase):
         check = glx_promotion.check_legacy_coupling_inventory()
 
         self.assertEqual(check["status"], "passed")
-        self.assertEqual(check["remainingLegacyRendererSources"], 24)
-        self.assertEqual(check["ratchetBudget"], 24)
-        self.assertEqual(check["documentedCount"], 24)
+        self.assertEqual(check["remainingLegacyRendererSources"], 25)
+        self.assertEqual(check["ratchetBudget"], 25)
+        self.assertEqual(check["documentedCount"], 25)
         self.assertEqual(check["blockers"], [])
         self.assertIn("code/renderer/tr_arb.c", check["sources"])
         self.assertIn("code/renderer/tr_shade.c", check["sources"])

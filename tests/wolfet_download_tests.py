@@ -30,6 +30,7 @@ const comGameProfile_t *Com_GameProfile() { return &record; }
 int Com_GameIsQuake3() { return active == COM_GAME_QUAKE3; }
 int Com_GameIsQuakeLive() { return active == COM_GAME_QUAKELIVE; }
 int Com_GameIsWolfET() { return active == COM_GAME_WOLFET; }
+int Com_GameIsJKA() { return record.titleId == COM_GAME_TITLE_JKA; }
 
 qboolean FS_FilenameCompare(const char *s1, const char *s2) {
  // Stands in for the engine comparison: case folded, separators equivalent.
@@ -59,8 +60,10 @@ const char *va(const char *format, ...) {
 '''
 
 CHECKS = r'''
-static void select(comGameId_t id, const char *base) {
+static void select(comGameId_t id, const char *base, const char *stem = nullptr,
+                   comGameTitleId_t title = COM_GAME_TITLE_QUAKE3) {
  active = id; record.id = id; record.baseGame = base;
+ record.officialPakStem = stem; record.titleId = title;
 }
 
 static void official(std::initializer_list<const char *> yes,
@@ -103,6 +106,17 @@ int main() {
   select(id, "baseEF");
   official({"baseEF/pak0", "baseEF/pak2", "BASEEF\\PAK3"},
            {"baseEF/pak9", "baseq3/pak0", "missionpack/pak0", "main/pak0"});
+ }
+
+ // Jedi Academy's modes share base/ and Raven's assets0-assets8 naming. Its
+ // own rule refuses that set under missionpack too, and leaves Quake's
+ // numbered names free for a mod to offer.
+ for (auto id : {COM_GAME_JKA_SP, COM_GAME_JKA_MP, COM_GAME_JK2_SP, COM_GAME_JK2_MP}) {
+  select(id, "base", "assets", COM_GAME_TITLE_JKA);
+  official({"base/assets0", "base/assets8", "BASE\\ASSETS3",
+            "missionpack/assets0", "missionpack/assets8"},
+           {"base/assets9", "base/assets00", "base/pak0", "missionpack/pak0",
+            "baseq3/assets0", "japlus/assets0", "base/mymod", ""});
  }
 
  // An empty or absent name is never official, and a profile with no base game
@@ -155,7 +169,9 @@ class WolfETDownloadTests(unittest.TestCase):
         self.assertEqual(_catalog_base_games(), {
             'QUAKE3': 'baseq3', 'QUAKELIVE': 'baseq3', 'RTCW_SP': 'main',
             'RTCW_MP': 'main', 'WOLFET': 'etmain', 'STVEF_SP': 'baseEF',
-            'STVEF_MP': 'baseEF'})
+            'STVEF_MP': 'baseEF', 'QUAKE3_IHV': 'baseq3', 'JKA_SP': 'base',
+            'JKA_MP': 'base', 'JK2_SP': 'base', 'JK2_MP': 'base',
+            'ALICE': 'base'})
 
     def test_download_paths_use_the_profile_policy(self):
         """Neither the server nor the client may fall back to Quake's BASEGAME."""

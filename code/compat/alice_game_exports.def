@@ -1,0 +1,47 @@
+/* Copyright (C) 2026 fnTech3 contributors. GPL-2.0-or-later.
+ *
+ * Alice's 26 game export slots, in the order the module writes them.
+ *
+ * FNTECH3_ALICE_GAME_EXPORT( slot, name, kind, evidence )
+ *
+ * `kind` is FUNCTION for a code pointer, VALUE for a field the module fills
+ * with data. `evidence` is how the slot was identified:
+ *
+ *   IMMEDIATE  the module writes a fixed value the slot's meaning explains
+ *   RUNTIME    the module writes it from a register, matching a data member
+ *   ABSENT     no instruction in the module ever writes it
+ *   ORDER      position between two slots identified another way
+ *   ADDED      Alice's own addition beyond the reference table
+ *
+ * The reference table has 25 members; Alice's has 26, because slot 0 carries
+ * an API version the reference table does not declare. Every other slot is
+ * the reference member one place below it. See
+ * docs/fntech3/2026-09-22-alice-module-abi.md.
+ */
+
+FNTECH3_ALICE_GAME_EXPORT(  0, apiversion,            VALUE,    ADDED     )
+FNTECH3_ALICE_GAME_EXPORT(  1, Init,                  FUNCTION, ORDER     )
+FNTECH3_ALICE_GAME_EXPORT(  2, Shutdown,              FUNCTION, ORDER     )
+FNTECH3_ALICE_GAME_EXPORT(  3, Cleanup,               FUNCTION, ORDER     )
+FNTECH3_ALICE_GAME_EXPORT(  4, SpawnEntities,         FUNCTION, ORDER     )
+FNTECH3_ALICE_GAME_EXPORT(  5, ClientConnect,         FUNCTION, ORDER     )
+FNTECH3_ALICE_GAME_EXPORT(  6, ClientBegin,           FUNCTION, ORDER     )
+FNTECH3_ALICE_GAME_EXPORT(  7, ClientUserinfoChanged, FUNCTION, ORDER     )
+FNTECH3_ALICE_GAME_EXPORT(  8, ClientDisconnect,      FUNCTION, ORDER     )
+FNTECH3_ALICE_GAME_EXPORT(  9, ClientCommand,         FUNCTION, ORDER     )
+FNTECH3_ALICE_GAME_EXPORT( 10, ClientThink,           FUNCTION, ORDER     )
+FNTECH3_ALICE_GAME_EXPORT( 11, BotBegin,              FUNCTION, ABSENT    )
+FNTECH3_ALICE_GAME_EXPORT( 12, BotThink,              FUNCTION, ABSENT    )
+FNTECH3_ALICE_GAME_EXPORT( 13, PrepFrame,             FUNCTION, ABSENT    )
+FNTECH3_ALICE_GAME_EXPORT( 14, RunFrame,              FUNCTION, ORDER     )
+FNTECH3_ALICE_GAME_EXPORT( 15, ConsoleCommand,        FUNCTION, ORDER     )
+FNTECH3_ALICE_GAME_EXPORT( 16, WritePersistant,       FUNCTION, ORDER     )
+FNTECH3_ALICE_GAME_EXPORT( 17, ReadPersistant,        FUNCTION, ORDER     )
+FNTECH3_ALICE_GAME_EXPORT( 18, WriteLevel,            FUNCTION, ORDER     )
+FNTECH3_ALICE_GAME_EXPORT( 19, ReadLevel,             FUNCTION, ORDER     )
+FNTECH3_ALICE_GAME_EXPORT( 20, LevelArchiveValid,     FUNCTION, ORDER     )
+FNTECH3_ALICE_GAME_EXPORT( 21, gentities,             VALUE,    RUNTIME   )
+FNTECH3_ALICE_GAME_EXPORT( 22, gentitySize,           VALUE,    IMMEDIATE )
+FNTECH3_ALICE_GAME_EXPORT( 23, num_entities,          VALUE,    RUNTIME   )
+FNTECH3_ALICE_GAME_EXPORT( 24, max_entities,          VALUE,    RUNTIME   )
+FNTECH3_ALICE_GAME_EXPORT( 25, error_message,         VALUE,    RUNTIME   )

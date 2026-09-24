@@ -22,11 +22,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_init.c -- functions that are not called every frame
 
 #include "tr_local.h"
+#include "../renderercommon/tr_q3_ihv_model.h"
 #include "tr_glx_compat.h"
 #include "../renderercommon/tr_fnq3_bloom_config.h"
 #include "../renderercommon/tr_ql_lighting_config.h"
 #include "../renderercommon/tr_levelshot.h"
+#include "../renderercommon/tr_screenshot_pending.h"
 #include "../renderercommon/tr_stvef_thumbnail.h"
+#include "../compat/alice_saveshot.h"
 
 glconfig_t	glConfig;
 qboolean	nonPowerOfTwoTextures;
@@ -60,6 +63,19 @@ cvar_t	*r_railCoreWidth;
 cvar_t	*r_railSegmentLength;
 
 cvar_t	*r_detailTextures;
+
+// American McGee's Alice only
+cvar_t	*r_shaderlod;
+cvar_t	*r_farplane;
+cvar_t	*r_farplane_color;
+cvar_t	*r_farplane_nocull;
+cvar_t	*r_farplane_nofog;
+cvar_t	*r_farplane_pulse;
+cvar_t	*r_farplane_pulseFrequency;
+cvar_t	*r_skyportal;
+cvar_t	*r_skyportal_origin;
+cvar_t	*r_debuglines_depthmask;
+cvar_t	*r_stipplelines;
 
 cvar_t	*r_znear;
 cvar_t	*r_zproj;
@@ -216,6 +232,7 @@ cvar_t	*r_dlightBacks;
 
 cvar_t	*r_lodbias;
 cvar_t	*r_lodscale;
+cvar_t	*r_lerpmodels;
 
 cvar_t	*r_norefresh;
 cvar_t	*r_drawentities;
@@ -2097,11 +2114,13 @@ void RB_TakeSTVEFThumbnail( void ) {
 	byte	*allsource, *source;
 	byte	*rgba = backEnd.stvefThumbnail;
 	int		side = backEnd.stvefThumbnailSide;
+	const int aliceHeight = backEnd.aliceSaveshotHeight;
 	size_t	offset = 0;
 	int		padlen;
 	int		i;
 
 	backEnd.stvefThumbnail = NULL;
+	backEnd.aliceSaveshotHeight = 0;
 	if ( !rgba || side <= 0 || gls.captureWidth <= 0 || gls.captureHeight <= 0 ) {
 		return;
 	}
@@ -2112,12 +2131,21 @@ void RB_TakeSTVEFThumbnail( void ) {
 		return;
 	}
 	source = allsource + offset;
-	R_STVEFThumbnail( source, gls.captureWidth, gls.captureHeight, padlen, rgba, side );
-	ri.Hunk_FreeTempMemory( allsource );
+	if ( aliceHeight > 0 ) {
+		// American McGee's Alice's saveshot: side by aliceHeight grey pixels
+		// reduced from the frame exactly as it was read, as retail reduces
+		// its own glReadPixels (../compat/alice_saveshot.h).
+		FNTECH3_AliceSaveshot( source, gls.captureWidth, gls.captureHeight,
+			gls.captureWidth * 3 + padlen, rgba, side, aliceHeight );
+		ri.Hunk_FreeTempMemory( allsource );
+	} else {
+		R_STVEFThumbnail( source, gls.captureWidth, gls.captureHeight, padlen, rgba, side );
+		ri.Hunk_FreeTempMemory( allsource );
 
-	// The screen's own gamma, as a screenshot of it keeps.
-	for ( i = 0; i < side * side; i++ ) {
-		R_GammaCorrect( rgba + i * 4, 3 );
+		// The screen's own gamma, as a screenshot of it keeps.
+		for ( i = 0; i < side * side; i++ ) {
+			R_GammaCorrect( rgba + i * 4, 3 );
+		}
 	}
 
 	if ( backEnd.stvefThumbnailDone ) {
@@ -2140,6 +2168,25 @@ static void RE_CaptureSTVEFThumbnail( byte *rgba, int side, qboolean *done ) {
 	backEnd.stvefThumbnail = rgba;
 	backEnd.stvefThumbnailSide = side;
 	backEnd.stvefThumbnailDone = done;
+	backEnd.aliceSaveshotHeight = 0;
+}
+
+
+/*
+==================
+RE_CaptureAliceSaveshot
+
+American McGee's Alice's savegame picture, taken from the next frame drawn
+through the same capture as Elite Force's: width by height pixels of grey RGB,
+the bottom row first, with done set once they are there. A picture of NULL
+withdraws a request that has not been met.
+==================
+*/
+static void RE_CaptureAliceSaveshot( byte *rgb, int width, int height, qboolean *done ) {
+	backEnd.stvefThumbnail = rgb && width > 0 && height > 0 ? rgb : NULL;
+	backEnd.stvefThumbnailSide = width;
+	backEnd.stvefThumbnailDone = backEnd.stvefThumbnail ? done : NULL;
+	backEnd.aliceSaveshotHeight = backEnd.stvefThumbnail ? height : 0;
 }
 
 
@@ -2282,9 +2329,15 @@ static void R_ScreenShot_f( void ) {
 		return;
 	}
 
-	// check if already scheduled
-	if ( backEnd.screenshotMask & typeMask )
+	// check if already scheduled: a request naming the waiting file is
+	// covered by it, and any other says why it is not taken
+	if ( backEnd.screenshotMask & typeMask ) {
+		R_ReportScreenshotAlreadyPending( ri.Cmd_Argv( 0 ), ri.Cmd_Argv( 1 ), ext,
+			typeMask == SCREENSHOT_PNG ? backEnd.screenshotPNG :
+			typeMask == SCREENSHOT_JPG ? backEnd.screenshotJPG :
+			typeMask == SCREENSHOT_BMP ? backEnd.screenshotBMP : backEnd.screenshotTGA );
 		return;
+	}
 
 	if ( !Q_stricmp( ri.Cmd_Argv(1), "silent" ) ) {
 		silent = qtrue;
@@ -2733,8 +2786,39 @@ static void R_Register( void )
 	ri.Cvar_SetDescription( r_roundImagesDown, "When images are scaled, round images down instead of up." );
 	r_colorMipLevels = ri.Cvar_Get ("r_colorMipLevels", "0", CVAR_LATCH );
 	ri.Cvar_SetDescription( r_colorMipLevels, "Debugging tool to artificially color different mipmap levels so that they are more apparent." );
-	r_detailTextures = ri.Cvar_Get( "r_detailtextures", "1", CVAR_ARCHIVE_ND | CVAR_LATCH );
+	// Alice ships detail stages off and switches them while drawing, from its
+	// own menu (alice.exe 0x004750b5 registers "0", archived, not latched;
+	// the stage is skipped at 0x00492a60).
+	r_detailTextures = ri.Cvar_Get( "r_detailtextures", ri.gameId == COM_GAME_ALICE ? "0" : "1",
+		ri.gameId == COM_GAME_ALICE ? CVAR_ARCHIVE_ND : CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_SetDescription( r_detailTextures, "Enables usage of shader stages flagged as detail." );
+	if ( ri.gameId == COM_GAME_ALICE ) {
+		// alice.exe 0x004759ac..0x00475b24: names, defaults and flags as retail
+		// registers them. r_shaderlod is read while shaders are parsed.
+		r_shaderlod = ri.Cvar_Get( "r_shaderlod", "0.5", CVAR_ARCHIVE_ND );
+		ri.Cvar_SetDescription( r_shaderlod, "Shader detail level: an Alice shader's 'if shaderlod <f>' block is kept when this is greater than f. Takes effect when shaders are next loaded." );
+		r_farplane = ri.Cvar_Get( "r_farplane", "0", 0 );
+		ri.Cvar_SetDescription( r_farplane, "Overrides the level's far plane distance when nonzero; r_farplane_color and r_farplane_nocull then apply." );
+		r_farplane_color = ri.Cvar_Get( "r_farplane_color", ".5 .5 .5", 0 );
+		ri.Cvar_SetDescription( r_farplane_color, "Far plane fog colour used with r_farplane." );
+		r_farplane_nocull = ri.Cvar_Get( "r_farplane_nocull", "0", 0 );
+		ri.Cvar_SetDescription( r_farplane_nocull, "With r_farplane, keep drawing what lies beyond the far plane." );
+		r_farplane_nofog = ri.Cvar_Get( "r_farplane_nofog", "0", 0 );
+		ri.Cvar_SetDescription( r_farplane_nofog, "Disables the far plane's distance fog." );
+		r_farplane_pulse = ri.Cvar_Get( "r_farplane_pulse", "0", 0 );
+		ri.Cvar_SetDescription( r_farplane_pulse, "With r_farplane, pulls the far plane in by up to this much along a sine wave." );
+		r_farplane_pulseFrequency = ri.Cvar_Get( "r_farplane_pulseFrequency", "0", 0 );
+		ri.Cvar_SetDescription( r_farplane_pulseFrequency, "Period in seconds of r_farplane_pulse." );
+		r_skyportal = ri.Cvar_Get( "r_skyportal", "0", 0 );
+		ri.Cvar_SetDescription( r_skyportal, "Draws the level's sky portal from r_skyportal_origin instead of its own origin." );
+		r_skyportal_origin = ri.Cvar_Get( "r_skyportal_origin", "0 0 0", 0 );
+		ri.Cvar_SetDescription( r_skyportal_origin, "Sky portal origin used with r_skyportal." );
+		r_debuglines_depthmask = ri.Cvar_Get( "r_debuglines_depthmask", "0", CVAR_ARCHIVE_ND );
+		ri.Cvar_SetDescription( r_debuglines_depthmask, "Draws the game's debug lines over everything, writing depth." );
+		r_stipplelines = ri.Cvar_Get( "r_stipplelines", "1", CVAR_ARCHIVE_ND );
+		ri.Cvar_SetDescription( r_stipplelines, "Applies each game debug line's own stipple and width." );
+		R_AliceRegisterCvars();
+	}
 	r_texturebits = ri.Cvar_Get( "r_texturebits", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_SetDescription( r_texturebits, "Number of texture bits per texture." );
 
@@ -2764,8 +2848,15 @@ static void R_Register( void )
 	r_lodCurveError = ri.Cvar_Get( "r_lodCurveError", "250", CVAR_ARCHIVE_ND );
 	ri.Cvar_CheckRange( r_lodCurveError, "-1", "8192", CV_FLOAT );
 	ri.Cvar_SetDescription( r_lodCurveError, "Level of detail error on curved surface grids. Higher values result in better quality at a distance." );
-	r_lodbias = ri.Cvar_Get( "r_lodbias", "-2", CVAR_ARCHIVE_ND );
-	ri.Cvar_SetDescription( r_lodbias, "Sets the level of detail of in-game models:\n -2: Ultra (further delays LOD transition in the distance)\n -1: Very High (delays LOD transition in the distance)\n 0: High\n 1: Medium\n 2: Low" );
+	// Alice's r_lodbias is a fraction taken off a TIKI model's level of
+	// detail, archived with a default of 0 (alice.exe 0x0047532e); -2 would
+	// hold every model at full detail.
+	r_lodbias = ri.Cvar_Get( "r_lodbias", ri.gameId == COM_GAME_ALICE ? "0" : "-2", CVAR_ARCHIVE_ND );
+	if ( ri.gameId == COM_GAME_ALICE ) {
+		ri.Cvar_SetDescription( r_lodbias, "Lowers the level of detail of models: subtracted from the fraction of each model's vertices drawn (0 to 1); negative raises it." );
+	} else {
+		ri.Cvar_SetDescription( r_lodbias, "Sets the level of detail of in-game models:\n -2: Ultra (further delays LOD transition in the distance)\n -1: Very High (delays LOD transition in the distance)\n 0: High\n 1: Medium\n 2: Low" );
+	}
 	r_znear = ri.Cvar_Get( "r_znear", "4", CVAR_CHEAT );
 	ri.Cvar_CheckRange( r_znear, "0.001", "200", CV_FLOAT );
 	ri.Cvar_SetDescription( r_znear, "Viewport distance from view origin (how close objects can be to the player before they're clipped out of the scene)." );
@@ -3341,7 +3432,10 @@ static void R_Register( void )
 	r_skipBackEnd = ri.Cvar_Get ("r_skipBackEnd", "0", CVAR_CHEAT);
 	ri.Cvar_SetDescription( r_skipBackEnd, "Skips loading rendering backend." );
 
-	r_lodscale = ri.Cvar_Get( "r_lodscale", "5", CVAR_CHEAT );
+	r_lerpmodels = ri.gameId == COM_GAME_QUAKE3_IHV ? ri.Cvar_Get( "r_lerpmodels", "1", 0 ) : NULL;
+	// Alice registers r_lodscale without cheat protection (alice.exe
+	// 0x00475687) and caps it at 20 where it is read.
+	r_lodscale = ri.Cvar_Get( "r_lodscale", "5", ri.gameId == COM_GAME_ALICE ? 0 : CVAR_CHEAT );
 	ri.Cvar_SetDescription( r_lodscale, "Set scale for level of detail adjustment." );
 	r_norefresh = ri.Cvar_Get ("r_norefresh", "0", CVAR_CHEAT);
 	ri.Cvar_SetDescription( r_norefresh, "Bypasses refreshing of the rendered scene." );
@@ -3526,6 +3620,7 @@ void R_Init( void ) {
 	//
 	// init function tables
 	//
+	if ( ri.gameId == COM_GAME_QUAKE3_IHV ) Q3IHV_ModelSines( tr.ihvModelSines );
 	for ( i = 0; i < FUNCTABLE_SIZE; i++ ) {
 		tr.sinTable[i] = sin( DEG2RAD( i * 360.0f / FUNCTABLE_SIZE ) + 0.0001f );
 		tr.squareTable[i] = (i < FUNCTABLE_SIZE / 2) ? 1.0f : -1.0f;
@@ -3581,6 +3676,10 @@ void R_Init( void ) {
 
 	R_InitFreeType();
 
+	if ( ri.gameId == COM_GAME_ALICE ) {
+		R_AliceInitLensFlares();
+	}
+
 	err = qglGetError();
 	if ( err != GL_NO_ERROR )
 		ri.Printf( PRINT_WARNING, "glGetError() = 0x%x\n", err );
@@ -3597,6 +3696,17 @@ RE_Shutdown
 static void RE_Shutdown( refShutdownCode_t code ) {
 
 	ri.Printf( PRINT_ALL, "RE_Shutdown( %i )\n", code );
+
+	// A capture still waiting for its frame will not get one: name it.
+	R_ReportUnwrittenScreenshots( backEnd.screenshotMask, backEnd.screenshotPNG,
+		backEnd.screenshotTGA, backEnd.screenshotJPG, backEnd.screenshotBMP,
+		backEnd.levelshotPending,
+		backEnd.screenshotCubeActive || backEnd.screenshotCubeFrontPending ? qtrue : qfalse,
+		R_SCREENSHOT_LOST_TO_SHUTDOWN );
+	backEnd.screenshotMask = 0;
+	backEnd.levelshotPending = qfalse;
+	backEnd.screenshotCubeActive = qfalse;
+	backEnd.screenshotCubeFrontPending = qfalse;
 
 	ri.Cmd_RemoveCommand( "modellist" );
 	ri.Cmd_RemoveCommand( "advertlist" );
@@ -3769,7 +3879,15 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 	re.ClearWolfETDecals = RE_ClearWolfETDecals;
 	re.RegisterShader3D = RE_RegisterShader3D;
 	re.CaptureSTVEFThumbnail = RE_CaptureSTVEFThumbnail;
+	re.CaptureAliceSaveshot = RE_CaptureAliceSaveshot;
 	re.LoadImagePixels = R_LoadImagePixels;
+	re.AddIHVParticlesToScene = RE_AddIHVParticlesToScene;
+	re.AddIHVEntitiesToScene = RE_AddIHVEntitiesToScene;
+	re.GetAliceTikiHandle = RE_GetAliceTikiHandle;
+	re.GetShaderImageSize = RE_GetShaderImageSize;
+	re.AliceSwipeBegin = RE_AliceSwipeBegin;
+	re.AliceSwipePoint = RE_AliceSwipePoint;
+	re.GetAliceModelRadius = RE_GetAliceModelRadius;
 	re.AddWolfET2DPolys = RE_AddWolfET2DPolys;
 	re.LoadWolfETDynamicShader = RE_LoadWolfETDynamicShader;
 	re.GetWolfETTextureId = RE_GetWolfETTextureId;
@@ -3778,6 +3896,7 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 	re.SetRTCWFog = RE_SetRTCWFog;
 	re.SetWolfETGlobalFog = RE_SetWolfETGlobalFog;
 	re.AddAdditiveLightToScene = RE_AddAdditiveLightToScene;
+	re.AddAliceLightToScene = RE_AddAliceLightToScene;
 	re.AddLinearLightToScene = RE_AddLinearLightToScene;
 	re.AddLiquidInteractionToScene = RE_AddLiquidInteractionToScene;
 	re.SetUnderwaterView = RE_SetUnderwaterView;

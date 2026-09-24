@@ -104,7 +104,7 @@ class RTCWTravelTests(unittest.TestCase):
 
     def test_ground_obstructions_walk_crouch_barriers_and_profile_controls(self):
         self.run_source(r'''
-int main(){for(const auto &p:profiles){profile=&p;auto *ms=travelSetup();bool rtcw=Com_GameIsRTCW(),sp=Com_GameIsRTCWSP();
+int main(){for(const auto &p:profiles){profile=&p;if(!p.bots.navigationWorlds)continue;auto *ms=travelSetup();bool rtcw=Com_GameIsRTCW(),sp=Com_GameIsRTCWSP();
  auto r=link(20,0,1,0,15,1);obstruction=7;auto out=BotTravel_Walk(ms,&r);
  assert(out.blocked==!sp&&out.blockentity==(sp?0:7));assert(bspCalls==!sp);
  assert(near(out.movedir[rtcw?1:0],1));
@@ -128,7 +128,7 @@ int main(){for(const auto &p:profiles){profile=&p;auto *ms=travelSetup();bool rt
 
     def test_ledges_water_air_control_and_jump_pads(self):
         self.run_source(r'''
-int main(){for(const auto &p:profiles){profile=&p;auto *ms=travelSetup();bool rtcw=Com_GameIsRTCW(),sp=Com_GameIsRTCWSP();
+int main(){for(const auto &p:profiles){profile=&p;if(!p.bots.navigationWorlds)continue;auto *ms=travelSetup();bool rtcw=Com_GameIsRTCW(),sp=Com_GameIsRTCWSP();
  ms->origin[0]=10;auto r=link(0,0,100,10,0,0);auto out=BotTravel_WalkOffLedge(ms,&r);
  assert(bool(botinputs[0].actionflags&ACTION_CROUCH)==rtcw);
  assert(near(moveActions.back().speed,sp?200:100));
@@ -150,7 +150,7 @@ int main(){for(const auto &p:profiles){profile=&p;auto *ms=travelSetup();bool rt
 
     def test_ladder_approach_descent_and_single_player_lateral_correction(self):
         self.run_source(r'''
-int main(){for(const auto &p:profiles){profile=&p;auto *ms=travelSetup();bool rtcw=Com_GameIsRTCW(),sp=Com_GameIsRTCWSP();
+int main(){for(const auto &p:profiles){profile=&p;if(!p.bots.navigationWorlds)continue;auto *ms=travelSetup();bool rtcw=Com_GameIsRTCW(),sp=Com_GameIsRTCWSP();
  auto r=link(0,0,80,32,0,0);ms->origin[1]=10;ms->moveflags=MFL_AGAINSTLADDER;
  auto out=BotTravel_Ladder(ms,&r);assert(out.flags&MOVERESULT_MOVEMENTVIEW);
  assert(bool(botinputs[0].actionflags&ACTION_MOVEBACK)==sp);
@@ -167,7 +167,7 @@ int main(){for(const auto &p:profiles){profile=&p;auto *ms=travelSetup();bool rt
 
     def test_movers_grapple_lifecycle_fixed_commands_and_rocket_selection(self):
         self.run_source(r'''
-int main(){for(const auto &p:profiles){profile=&p;auto *ms=travelSetup();bool rtcw=Com_GameIsRTCW();
+int main(){for(const auto &p:profiles){profile=&p;if(!p.bots.navigationWorlds)continue;auto *ms=travelSetup();bool rtcw=Com_GameIsRTCW();
  auto r=link(0,0,1,0,0,100);ms->moveflags=MFL_GRAPPLEPULL;auto &hook=AAS_EntityWorld().entities[2].i;
  hook.valid=qtrue;hook.modelindex=0;VectorCopy(r.end,hook.origin);VectorCopy(hook.origin,hook.lastvisorigin);
  assert(GrappleState(ms,&r)==2);hook.origin[0]=50;assert(GrappleState(ms,&r)==(rtcw?1:2));

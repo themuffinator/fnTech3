@@ -23,11 +23,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "qcommon.h"
 #include "netchan_safety.hpp"
 #include "protocol_contract.hpp"
+#include "q3_demo_protocol.hpp"
 #include "../compat/rtcw_message_codec.hpp"
 #include "../compat/wolfet_message_codec.hpp"
 #include "../compat/wolfet_state_adapter.hpp"
 #include "../compat/rtcw_state_adapter.hpp"
 #include "../compat/stvef_message_codec.hpp"
+#include "../compat/alice_message_codec.hpp"
+#include "../compat/alice_state_adapter.hpp"
 #include "../compat/stvef_state_adapter.hpp"
 
 #include <algorithm>
@@ -187,6 +190,63 @@ bool MSG_IsSTVEFWireProfile( netchanWireProfile_t profile ) {
 	return profile == NETCHAN_WIRE_STVEF_HM || profile == NETCHAN_WIRE_STVEF_SP;
 }
 
+/* Every registered layout has a codec, and this names them rather than
+ * answering yes: a layout added without one falls out of the switch and is
+ * refused, instead of reaching the field-table selectors below and being
+ * handed Quake III's. A codec that did that would turn a snapshot into
+ * plausible-looking nonsense rather than fail where it can be seen. The
+ * switch has no default arm, so adding an enumerator warns here too. */
+bool MSG_LayoutIsServed( fnql::protocol::GameMessageLayout layout ) {
+	using Layout = fnql::protocol::GameMessageLayout;
+	switch ( layout ) {
+	case Layout::Quake3:
+	case Layout::QuakeLive:
+	case Layout::RtcwSinglePlayer:
+	case Layout::RtcwMultiplayer:
+	case Layout::WolfET:
+	case Layout::STVEFHolomatch:
+	case Layout::STVEFSinglePlayer:
+	case Layout::Alice:
+		return true;
+	}
+	return false;
+}
+
+/* Alice's bodies are Ritual's, not id's: its entity state is a 512-byte
+ * record with a seventy-nine field delta table and a thirty-one entry
+ * dictionary of change vectors, and its player state is 1,048 bytes with six
+ * masked arrays. compat/alice_message_codec.hpp writes and reads them; these
+ * move between that external record and this engine's canonical one, the way
+ * the RTCW and Elite Force paths above do. */
+template<class External, class Internal, class Write>
+qboolean MSG_WriteAliceCanonical( msg_t *msg, const Internal *from,
+	const Internal *to, Write write ) {
+	External baseline{}, sent{};
+	if ( ( from && !fntech3::alice::state::FromInternal( *from, baseline ) ) ||
+		( to && !fntech3::alice::state::FromInternal( *to, sent ) ) ) {
+		MSG_SetOverflow( msg );
+		return qfalse;
+	}
+	return write( from ? &baseline : nullptr, to ? &sent : nullptr );
+}
+
+template<class External, class Internal, class Read>
+qboolean MSG_ReadAliceCanonical( msg_t *msg, const Internal *from,
+	Internal *to, Read read ) {
+	External baseline{}, decoded{};
+	if ( !to || ( from && !fntech3::alice::state::FromInternal( *from, baseline ) ) ||
+		!read( from ? &baseline : nullptr, &decoded ) ||
+		!fntech3::alice::state::ToInternal( decoded, *to ) ) {
+		MSG_SetReadPastEnd( msg );
+		return qfalse;
+	}
+	return qtrue;
+}
+
+bool MSG_IsAliceWireProfile( netchanWireProfile_t profile ) {
+	return profile == NETCHAN_WIRE_ALICE;
+}
+
 template<class External, class Internal, class Write>
 qboolean MSG_WriteRTCWCanonical( msg_t *msg, const Internal *from, const Internal *to, Write write ) {
 	External baseline{}, sent{};
@@ -257,6 +317,56 @@ qboolean MSG_ReadWolfETCanonical( msg_t *msg, const Internal *from, Internal *to
 }
 
 } // namespace
+
+/*
+==================
+MSG_WriteAliceSounds / MSG_ReadAliceSounds
+
+The sound block American McGee's Alice's snapshot carries after its packet
+entities; compat/alice_message_codec.hpp holds the layout.
+==================
+*/
+static_assert( ALICE_MAX_SERVER_SOUNDS == fntech3::alice::message::kMaxSnapshotSounds,
+	"a snapshot holds the sounds its wire block can carry" );
+
+void MSG_WriteAliceSounds( msg_t *msg, const aliceServerSound_t *sounds, int count ) {
+	if ( count < 0 || count > ALICE_MAX_SERVER_SOUNDS ) {
+		Com_Error( ERR_DROP, "MSG_WriteAliceSounds: %i sounds", count );
+	}
+	RTCWMessageWriter io( msg );
+	fntech3::alice::message::WriteSounds( io, sounds, count );
+}
+
+qboolean MSG_ReadAliceSounds( msg_t *msg, aliceServerSound_t *sounds, int *count ) {
+	RTCWMessageReader io( msg );
+	int read = 0;
+	const bool good = fntech3::alice::message::ReadSounds( io, sounds, read );
+	*count = good ? read : 0;
+	return good ? qtrue : qfalse;
+}
+
+
+/*
+==================
+MSG_NullEntityStateForWireProfile
+
+The entity a gamestate's baselines are delta-coded from. It is all zero for
+every profile but American McGee's Alice, whose engine fills its own
+(alice.exe 0x00446460; see fntech3::alice::message::InitNullEntity). A
+gamestate's writer and reader must use the same one, so the server, the
+client's parse and the demo recorder all take it from here.
+==================
+*/
+void MSG_NullEntityStateForWireProfile( entityState_t *state,
+	netchanWireProfile_t profile ) {
+	*state = {};
+	if ( MSG_IsAliceWireProfile( profile ) ) {
+		fntech3_alice_entityState_t null{};
+		fntech3::alice::message::InitNullEntity( null );
+		fntech3::alice::state::ToInternal( null, *state );
+	}
+}
+
 
 qboolean MSG_WriteDeltaRTCWSPUsercmdKey( msg_t *msg, int key,
 	const fntech3_rtcw_sp_usercmd_t *from, const fntech3_rtcw_sp_usercmd_t *to ) {
@@ -1259,9 +1369,19 @@ qboolean MSG_WriteDeltaUsercmdKeyForWireProfile( msg_t *msg, int key,
 			? MSG_WriteRTCWCanonical<fntech3_rtcw_sp_usercmd_t>( msg, from, to, write )
 			: MSG_WriteRTCWCanonical<fntech3_rtcw_mp_usercmd_t>( msg, from, to, write );
 	}
+	if ( MSG_IsAliceWireProfile( profile ) ) {
+		/* Alice's command is not keyed: the retail writer takes no key and
+		 * flags each member against the previous command instead. */
+		return MSG_WriteAliceCanonical<fntech3_alice_usercmd_t>( msg, from, to,
+			[&]( const auto *base, const auto *sent ) {
+				RTCWMessageWriter io( msg );
+				return fntech3::alice::message::WriteCommand( io, base, sent )
+					? qtrue : qfalse;
+			} );
+	}
 	const fnql::protocol::Contract *contract =
 		fnql::protocol::TryForWireProfile( profile );
-	if ( !contract ) {
+	if ( !contract || !MSG_LayoutIsServed( contract->gameMessageLayout ) ) {
 		return qfalse;
 	}
 	const bool quakeLive = contract->gameMessageLayout ==
@@ -1345,9 +1465,17 @@ qboolean MSG_ReadDeltaUsercmdKeyForWireProfile( msg_t *msg, int key,
 			? MSG_ReadRTCWCanonical<fntech3_rtcw_sp_usercmd_t>( msg, from, to, read )
 			: MSG_ReadRTCWCanonical<fntech3_rtcw_mp_usercmd_t>( msg, from, to, read );
 	}
+	if ( MSG_IsAliceWireProfile( profile ) ) {
+		return MSG_ReadAliceCanonical<fntech3_alice_usercmd_t>( msg, from, to,
+			[&]( const auto *base, auto *decoded ) {
+				RTCWMessageReader io( msg );
+				return fntech3::alice::message::ReadCommand( io, base, decoded )
+					? qtrue : qfalse;
+			} );
+	}
 	const fnql::protocol::Contract *contract =
 		fnql::protocol::TryForWireProfile( profile );
-	if ( !contract ) {
+	if ( !contract || !MSG_LayoutIsServed( contract->gameMessageLayout ) ) {
 		return qfalse;
 	}
 	const bool quakeLive = contract->gameMessageLayout ==
@@ -1884,6 +2012,14 @@ qboolean MSG_WriteDeltaEntityForWireProfile( msg_t *msg,
 					profile == NETCHAN_WIRE_RTCW_SP ? COM_GAME_RTCW_SP : COM_GAME_RTCW_MP );
 			} );
 	}
+	if ( MSG_IsAliceWireProfile( profile ) ) {
+		return MSG_WriteAliceCanonical<fntech3_alice_entityState_t>( msg, from, to,
+			[&]( const auto *base, const auto *sent ) {
+				RTCWMessageWriter io( msg );
+				return fntech3::alice::message::WriteEntity(
+					io, base, sent, force != qfalse ) ? qtrue : qfalse;
+			} );
+	}
 	int			i, lc;
 	int			numFields;
 	const netField_t *field;
@@ -1894,7 +2030,7 @@ qboolean MSG_WriteDeltaEntityForWireProfile( msg_t *msg,
 
 	const fnql::protocol::Contract *contract =
 		fnql::protocol::TryForWireProfile( profile );
-	if ( !contract ) {
+	if ( !contract || !MSG_LayoutIsServed( contract->gameMessageLayout ) ) {
 		return qfalse;
 	}
 	MSG_EntityFieldsForLayout(
@@ -2039,6 +2175,14 @@ qboolean MSG_ReadDeltaEntityForWireProfile( msg_t *msg,
 					profile == NETCHAN_WIRE_RTCW_SP ? COM_GAME_RTCW_SP : COM_GAME_RTCW_MP );
 			} );
 	}
+	if ( MSG_IsAliceWireProfile( profile ) ) {
+		return MSG_ReadAliceCanonical<fntech3_alice_entityState_t>( msg, from, to,
+			[&]( const auto *base, auto *decoded ) {
+				RTCWMessageReader io( msg );
+				return fntech3::alice::message::ReadEntity(
+					io, base, decoded, number ) ? qtrue : qfalse;
+			} );
+	}
 	int			i, lc;
 	int			numFields;
 	const netField_t *field;
@@ -2049,7 +2193,7 @@ qboolean MSG_ReadDeltaEntityForWireProfile( msg_t *msg,
 	int			startBit, endBit;
 	const fnql::protocol::Contract *contract =
 		fnql::protocol::TryForWireProfile( profile );
-	if ( !contract ) {
+	if ( !contract || !MSG_LayoutIsServed( contract->gameMessageLayout ) ) {
 		return qfalse;
 	}
 	const bool quake3 = contract->gameMessageLayout ==
@@ -2206,6 +2350,13 @@ static qboolean MSG_LegacyChangeVectorHasBit( const legacyChangeVector_t *change
 }
 
 void MSG_ReadDeltaEntityLegacy( msg_t *msg, const entityState_t *from, entityState_t *to, int number, int protocol ) {
+	if ( !msg || !to || !fntech3::q3::RawDemoProtocol( protocol ) ) {
+		Com_Error( ERR_DROP, "Unsupported legacy Q3 entity protocol: %i", protocol );
+		return;
+	}
+	entityState_t *destination = to;
+	entityState_t decoded{};
+	to = &decoded;
 	const netField_t *field;
 	const legacyChangeVector_t *changeVector;
 	legacyChangeVector_t rawChangeVector;
@@ -2228,6 +2379,8 @@ void MSG_ReadDeltaEntityLegacy( msg_t *msg, const entityState_t *from, entitySta
 	if ( MSG_ReadBits( msg, 1 ) == 1 ) {
 		Com_Memset( to, 0, sizeof( *to ) );
 		to->number = MAX_GENTITIES - 1;
+		if ( !MSG_CommitDeltaRead( msg, destination, decoded ) )
+			Com_Error( ERR_DROP, "Truncated legacy Q3 entity removal" );
 		return;
 	}
 
@@ -2235,6 +2388,8 @@ void MSG_ReadDeltaEntityLegacy( msg_t *msg, const entityState_t *from, entitySta
 		*to = *from;
 		to->number = number;
 		to->rtcw = {};
+		if ( !MSG_CommitDeltaRead( msg, destination, decoded ) )
+			Com_Error( ERR_DROP, "Truncated legacy Q3 unchanged entity" );
 		return;
 	}
 
@@ -2245,6 +2400,11 @@ void MSG_ReadDeltaEntityLegacy( msg_t *msg, const entityState_t *from, entitySta
 	MSG_GetLegacyEntityFields( protocol, &field, &numFields );
 
 	changeVectorNum = MSG_ReadBits( msg, 5 );
+	if ( !MSG_ReadSucceeded( msg ) || changeVectorNum < 0 ||
+		changeVectorNum > ARRAY_LEN( legacyEntityStateChangeVectors ) ) {
+		Com_Error( ERR_DROP, "Truncated legacy Q3 entity change vector" );
+		return;
+	}
 	if ( changeVectorNum == ARRAY_LEN( legacyEntityStateChangeVectors ) ) {
 		Com_Memset( &rawChangeVector, 0, sizeof( rawChangeVector ) );
 		for ( i = 0; i < numFields; i++ ) {
@@ -2275,6 +2435,8 @@ void MSG_ReadDeltaEntityLegacy( msg_t *msg, const entityState_t *from, entitySta
 			*toF = MSG_ReadBits( msg, field->bits );
 		}
 	}
+	if ( !MSG_CommitDeltaRead( msg, destination, decoded ) )
+		Com_Error( ERR_DROP, "Truncated legacy Q3 entity delta" );
 }
 
 
@@ -2708,6 +2870,14 @@ qboolean MSG_WriteDeltaPlayerstateForWireProfile( msg_t *msg,
 			? MSG_WriteRTCWCanonical<fntech3_rtcw_sp_playerState_t>( msg, from, to, write )
 			: MSG_WriteRTCWCanonical<fntech3_rtcw_mp_playerState_t>( msg, from, to, write );
 	}
+	if ( MSG_IsAliceWireProfile( profile ) ) {
+		return MSG_WriteAliceCanonical<fntech3_alice_playerState_t>( msg, from, to,
+			[&]( const auto *base, const auto *sent ) {
+				RTCWMessageWriter io( msg );
+				return fntech3::alice::message::WritePlayer( io, base, sent )
+					? qtrue : qfalse;
+			} );
+	}
 	static const playerState_t dummy{};
 	int				i;
 	int				statsbits;
@@ -2722,7 +2892,7 @@ qboolean MSG_WriteDeltaPlayerstateForWireProfile( msg_t *msg,
 	int				trunc, lc;
 	const fnql::protocol::Contract *contract =
 		fnql::protocol::TryForWireProfile( profile );
-	if ( !contract ) {
+	if ( !contract || !MSG_LayoutIsServed( contract->gameMessageLayout ) ) {
 		return qfalse;
 	}
 
@@ -2901,6 +3071,14 @@ qboolean MSG_ReadDeltaPlayerstateForWireProfile( msg_t *msg,
 			? MSG_ReadRTCWCanonical<fntech3_rtcw_sp_playerState_t>( msg, from, to, read )
 			: MSG_ReadRTCWCanonical<fntech3_rtcw_mp_playerState_t>( msg, from, to, read );
 	}
+	if ( MSG_IsAliceWireProfile( profile ) ) {
+		return MSG_ReadAliceCanonical<fntech3_alice_playerState_t>( msg, from, to,
+			[&]( const auto *base, auto *decoded ) {
+				RTCWMessageReader io( msg );
+				return fntech3::alice::message::ReadPlayer( io, base, decoded )
+					? qtrue : qfalse;
+			} );
+	}
 	int			i, lc;
 	int			bits;
 	const netField_t *field;
@@ -2913,7 +3091,7 @@ qboolean MSG_ReadDeltaPlayerstateForWireProfile( msg_t *msg,
 	playerState_t	dummy;
 	const fnql::protocol::Contract *contract =
 		fnql::protocol::TryForWireProfile( profile );
-	if ( !contract ) {
+	if ( !contract || !MSG_LayoutIsServed( contract->gameMessageLayout ) ) {
 		return qfalse;
 	}
 	const bool quake3 = contract->gameMessageLayout ==
@@ -3076,6 +3254,13 @@ void MSG_ReadDeltaPlayerstate( msg_t *msg, const playerState_t *from,
 }
 
 void MSG_ReadDeltaPlayerstateLegacy( msg_t *msg, const playerState_t *from, playerState_t *to, int protocol ) {
+	if ( !msg || !to || !fntech3::q3::RawDemoProtocol( protocol ) ) {
+		Com_Error( ERR_DROP, "Unsupported legacy Q3 player protocol: %i", protocol );
+		return;
+	}
+	playerState_t *destination = to;
+	playerState_t decoded{};
+	to = &decoded;
 	int i;
 	int trunc;
 	int *toF;
@@ -3147,6 +3332,8 @@ void MSG_ReadDeltaPlayerstateLegacy( msg_t *msg, const playerState_t *from, play
 			}
 		}
 	}
+	if ( !MSG_CommitDeltaRead( msg, destination, decoded ) )
+		Com_Error( ERR_DROP, "Truncated legacy Q3 player delta" );
 }
 
 //===========================================================================

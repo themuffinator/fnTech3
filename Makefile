@@ -291,6 +291,7 @@ RTXDIR=$(MOUNT_DIR)/rendererrtx
 SDLDIR=$(MOUNT_DIR)/sdl
 SDLHDIR=$(MOUNT_DIR)/libsdl/include
 FONTSTASHDIR ?= subprojects/fontstash/src
+MINIMP3DIR ?= subprojects/minimp3
 
 CMDIR=$(MOUNT_DIR)/qcommon
 COMPATDIR=$(MOUNT_DIR)/compat
@@ -454,6 +455,14 @@ ifeq ($(BUILD_CLIENT),1)
     BASE_CFLAGS += -DBUILD_FONTSTASH -isystem $(FONTSTASHDIR)
   else ifeq ($(FNQL_REQUIRE_BUILD_INPUTS),1)
     $(error Retail host fonts require $(FONTSTASHDIR)/fontstash.h; run 'meson subprojects download fontstash' before using Make)
+  endif
+  # Elite Force's sounds and music and American McGee's Alice's music are
+  # MP3; minimp3 is header-only and compiled once in snd_codec_mp3.cpp.
+  ifneq ($(wildcard $(MINIMP3DIR)/minimp3.h),)
+    BASE_CFLAGS += -DUSE_CODEC_MP3 -isystem $(MINIMP3DIR)
+    USE_CODEC_MP3 = 1
+  else ifeq ($(FNQL_REQUIRE_BUILD_INPUTS),1)
+    $(error Elite Force and Alice audio require $(MINIMP3DIR)/minimp3.h; run 'meson subprojects download minimp3' before using Make)
   endif
   ifeq ($(FNQL_REQUIRE_BUILD_INPUTS),1)
     ifneq ($(USE_SYSTEM_JPEG),1)
@@ -917,6 +926,16 @@ $(echo_cmd) "RENDRTX_CC $<"
 $(Q)$(CC) $(CFLAGS) $(RENDCFLAGS) $(RTX_RENDCFLAGS) $(RENDERER_FP_CFLAGS) -o $@ -c $<
 endef
 
+define DO_RENDV_CXX
+$(echo_cmd) "RENDV_CXX $<"
+$(Q)$(CXX) $(CXXFLAGS) $(RENDCFLAGS) $(VK_RENDCFLAGS) -o $@ -c $<
+endef
+
+define DO_RENDRTX_CXX
+$(echo_cmd) "RENDRTX_CXX $<"
+$(Q)$(CXX) $(CXXFLAGS) $(RENDCFLAGS) $(RTX_RENDCFLAGS) -o $@ -c $<
+endef
+
 define DO_BOT_CXX
 $(echo_cmd) "BOT_CXX $<"
 $(Q)$(CXX) $(CXXFLAGS) $(BOTCFLAGS) -DBOTLIB -o $@ -c $<
@@ -1044,6 +1063,8 @@ endif
 
 Q3RENDXOBJ = \
   $(B)/rendx/tr_animation.o \
+  $(B)/rendx/tr_alice.o \
+  $(B)/rendx/tr_alice_tiki.o \
   $(B)/rendx/tr_arb.o \
   $(B)/rendx/tr_backend.o \
   $(B)/rendx/tr_bsp.o \
@@ -1058,6 +1079,7 @@ Q3RENDXOBJ = \
   $(B)/rendx/tr_image_bmp.o \
   $(B)/rendx/tr_image_tga.o \
   $(B)/rendx/tr_image_pcx.o \
+  $(B)/rendx/tr_image_ftx.o \
   $(B)/rendx/tr_image_wal.o \
   $(B)/rendx/tr_init.o \
   $(B)/rendx/tr_light.o \
@@ -1097,6 +1119,8 @@ endif
 
 Q3RENDVOBJ = \
   $(B)/rendv/tr_animation.o \
+  $(B)/rendv/tr_alice.o \
+  $(B)/rendv/tr_alice_tiki.o \
   $(B)/rendv/tr_backend.o \
   $(B)/rendv/tr_bsp.o \
   $(B)/rendv/tr_cmds.o \
@@ -1109,6 +1133,7 @@ Q3RENDVOBJ = \
   $(B)/rendv/tr_image_bmp.o \
   $(B)/rendv/tr_image_tga.o \
   $(B)/rendv/tr_image_pcx.o \
+  $(B)/rendv/tr_image_ftx.o \
   $(B)/rendv/tr_image_wal.o \
   $(B)/rendv/tr_init.o \
   $(B)/rendv/tr_light.o \
@@ -1238,6 +1263,13 @@ Q3OBJ = \
   $(B)/client/awesomium_backend_win32.o \
   $(B)/client/cl_avi.o \
   $(B)/client/cl_jpeg.o \
+  $(B)/client/cl_alice.o \
+  $(B)/client/cl_alice_font.o \
+  $(B)/client/cl_alice_hud.o \
+  $(B)/client/cl_alice_loading.o \
+  $(B)/client/cl_alice_saveshot.o \
+  $(B)/client/cl_alice_screen.o \
+  $(B)/client/cl_alice_ui.o \
   \
   $(B)/client/cm_load.o \
   $(B)/client/cm_patch.o \
@@ -1255,6 +1287,12 @@ Q3OBJ = \
   $(B)/client/cvar.o \
   $(B)/client/files.o \
 	$(B)/client/game_profile.o \
+  $(B)/client/alice_alias.o \
+  $(B)/client/alice_lip.o \
+  $(B)/client/alice_runtime.o \
+  $(B)/client/alice_tiki.o \
+  $(B)/client/com_alice_ui.o \
+  $(B)/client/native_seh.o \
   $(B)/client/history.o \
   $(B)/client/keys.o \
   $(B)/client/md4.o \
@@ -1275,6 +1313,7 @@ Q3OBJ = \
   $(B)/client/snd_main.o \
   $(B)/client/snd_codec.o \
   $(B)/client/snd_codec_wav.o \
+  $(B)/client/snd_alice.o \
   \
   $(B)/client/factory_catalog.o \
   $(B)/client/factory_rotation.o \
@@ -1335,6 +1374,10 @@ endif
 ifeq ($(USE_OGG_VORBIS),1)
   Q3OBJ += $(OGGOBJ) $(VORBISOBJ) \
     $(B)/client/snd_codec_ogg.o
+endif
+
+ifeq ($(USE_CODEC_MP3),1)
+  Q3OBJ += $(B)/client/snd_codec_mp3.o
 endif
 
 ifneq ($(USE_RENDERER_DLOPEN),1)
@@ -1481,11 +1524,11 @@ $(B)/$(TARGET_RENDX): $(Q3RENDXOBJ)
 
 $(B)/$(TARGET_RENDV): $(Q3RENDVOBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(CC) -o $@ $(Q3RENDVOBJ) $(SHLIBCFLAGS) $(SHLIBLDFLAGS)
+	$(Q)$(CXX) -o $@ $(Q3RENDVOBJ) $(SHLIBCFLAGS) $(SHLIBLDFLAGS)
 
 $(B)/$(TARGET_RENDRTX): $(Q3RENDRTXOBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(CC) -o $@ $(Q3RENDRTXOBJ) $(SHLIBCFLAGS) $(SHLIBLDFLAGS)
+	$(Q)$(CXX) -o $@ $(Q3RENDRTXOBJ) $(SHLIBCFLAGS) $(SHLIBLDFLAGS)
 
 #############################################################################
 # DEDICATED SERVER
@@ -1523,6 +1566,12 @@ Q3DOBJ = \
   $(B)/ded/cvar.o \
   $(B)/ded/files.o \
 	$(B)/ded/game_profile.o \
+  $(B)/ded/alice_alias.o \
+  $(B)/ded/alice_lip.o \
+  $(B)/ded/alice_runtime.o \
+  $(B)/ded/alice_tiki.o \
+  $(B)/ded/com_alice_ui.o \
+  $(B)/ded/native_seh.o \
   $(B)/ded/history.o \
   $(B)/ded/keys.o \
   $(B)/ded/md4.o \
@@ -1693,6 +1742,9 @@ $(B)/rendx/%.o: $(CMDIR)/%.c
 $(B)/rendx/%.o: $(RXDIR)/%.cpp
 	$(DO_GLX_REND_CXX)
 
+$(B)/rendx/%.o: $(RCDIR)/%.cpp
+	$(DO_GLX_REND_CXX)
+
 $(B)/rendv/%.o: $(RVDIR)/%.c
 	$(DO_RENDV_CC)
 
@@ -1702,6 +1754,9 @@ $(B)/rendv/%.o: $(RCDIR)/%.c
 $(B)/rendv/%.o: $(CMDIR)/%.c
 	$(DO_RENDV_CC)
 
+$(B)/rendv/%.o: $(RCDIR)/%.cpp
+	$(DO_RENDV_CXX)
+
 $(B)/rendrtx/%.o: $(RTXDIR)/%.c
 	$(DO_RENDRTX_CC)
 
@@ -1710,6 +1765,9 @@ $(B)/rendrtx/%.o: $(RCDIR)/%.c
 
 $(B)/rendrtx/%.o: $(CMDIR)/%.c
 	$(DO_RENDRTX_CC)
+
+$(B)/rendrtx/%.o: $(RCDIR)/%.cpp
+	$(DO_RENDRTX_CXX)
 
 $(B)/client/%.o: $(UDIR)/%.c
 	$(DO_CC)

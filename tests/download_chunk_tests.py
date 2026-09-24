@@ -41,7 +41,7 @@ void MSG_ReadData(msg_t*m,void*d,int n){auto*b=static_cast<byte*>(d);for(int i=0
 int profile;
 int CL_ActiveWireProfile(){return profile;}
 bool stvef;
-qboolean CL_STVEFFraming(){return stvef;}
+qboolean CL_LegacyFraming(){return stvef;}
 const char* MSG_ReadStringForWireProfile(msg_t*,int){return "server refusal";}
 struct Connection{char downloadTempName[64]="baseq3/test.pk3.tmp",downloadName[64]="baseq3/test.pk3";int recordfile=0,download=0,downloadBlock=0,downloadSize=0,downloadCount=0;}clc;
 std::vector<std::string> commands;

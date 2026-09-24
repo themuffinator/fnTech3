@@ -756,6 +756,23 @@ cl.snap and saved in cl.snapshots[].  If the snapshot is invalid
 for any reason, no changes to the state will be made at all.
 ================
 */
+/*
+================
+CL_ParseAliceSounds
+
+The sound block American McGee's Alice sends after its packet entities,
+read as retail alice.exe reads it at 0x00446e90: a presence bit, a count in
+six bits that may not pass 32, and each sound as a stop or a start. A start
+carries its origin only when it has one and its volume and minimum distance
+only when they are not the default, which reads back as -1.
+================
+*/
+static void CL_ParseAliceSounds( msg_t *msg, clSnapshot_t *snap ) {
+	if ( !MSG_ReadAliceSounds( msg, snap->aliceSounds, &snap->aliceNumSounds ) ) {
+		Com_Error( ERR_DROP, "CL_ParseSnapshot: an illegible Alice sound block" );
+	}
+}
+
 static void CL_ParseSnapshot( msg_t *msg ) {
 	const clSnapshot_t *old;
 	clSnapshot_t	newSnap{};
@@ -768,7 +785,7 @@ static void CL_ParseSnapshot( msg_t *msg ) {
 	// message before we got to svc_snapshot
 	newSnap.serverCommandNum = clc.serverCommandSequence;
 
-	if ( CL_STVEFFraming() ) {
+	if ( CL_LegacyFraming() ) {
 		CL_ValidateReliableAcknowledge( MSG_ReadLong( msg ) );
 	}
 
@@ -854,6 +871,11 @@ static void CL_ParseSnapshot( msg_t *msg ) {
 	SHOWNET( msg, "packet entities" );
 	CL_ParsePacketEntities( msg, old, &newSnap );
 
+	if ( CL_ActiveWireProfile() == NETCHAN_WIRE_ALICE ) {
+		SHOWNET( msg, "sounds" );
+		CL_ParseAliceSounds( msg, &newSnap );
+	}
+
 	// if not valid, dump the entire thing now that it has
 	// been properly read
 	if ( !newSnap.valid ) {
@@ -904,7 +926,7 @@ static void CL_ParseSnapshot( msg_t *msg ) {
 	cl.newSnapshots = qtrue;
 
 	// Holomatch's gamestate names no client; its cgame reads this instead.
-	if ( CL_STVEFFraming() ) {
+	if ( CL_LegacyFraming() ) {
 		clc.clientNum = cl.snap.ps.clientNum;
 	}
 
@@ -1119,7 +1141,10 @@ static void CL_ParseGamestate( msg_t *msg ) {
 
 	// parse all the configstrings and baselines
 	cl.gameState.dataCount = 1;	// leave a 0 at the beginning for uninitialized configstrings
-	const bool stvef = CL_STVEFFraming() != qfalse;
+	// Baselines are deltas from the profile's null entity, which is not zero
+	// for Alice (alice.exe CL_ParseGamestate 0x0042e0ab).
+	MSG_NullEntityStateForWireProfile( &nullstate, CL_ActiveWireProfile() );
+	const bool stvef = CL_LegacyFraming() != qfalse;
 	while ( 1 ) {
 		cmd = MSG_ReadByte( msg );
 
@@ -1162,8 +1187,9 @@ static void CL_ParseGamestate( msg_t *msg ) {
 
 			if ( CL_IsLegacyDemoMessage() && rawIndex == CS_SERVERINFO ) {
 				const int protocol = std::atoi( Info_ValueForKey( s, "protocol" ) );
-				if ( protocol >= 43 && protocol <= 48 ) {
-					clc.demoLegacyProtocol = protocol;
+				if ( protocol != clc.demoLegacyProtocol ) {
+					Com_Error( ERR_DROP, "Legacy Q3 demo changed protocol inside the stream" );
+					return;
 				}
 			}
 		} else if ( cmd == svc_baseline ) {
@@ -1187,7 +1213,13 @@ static void CL_ParseGamestate( msg_t *msg ) {
 
 	clc.eventMask |= EM_GAMESTATE;
 
-	if ( stvef ) {
+	if ( stvef && CL_ActiveWireProfile() == NETCHAN_WIRE_ALICE ) {
+		// Alice's gamestate ends at its zero byte (alice.exe 0x0042e0e2): no
+		// client number and no checksum feed, so the filesystem keeps the feed
+		// it has rather than restarting for one that never came.
+		clc.clientNum = 0;
+		clc.checksumFeed = FS_ChecksumFeed();
+	} else if ( stvef ) {
 		// No client number follows. A demo's gamestate also lacks the checksum
 		// feed, which then reads as -1, as it does in retail.
 		clc.clientNum = 0;
@@ -1313,7 +1345,7 @@ static void CL_ParseDownload( msg_t *msg ) {
 
 		if (clc.downloadSize < 0)
 		{
-			if ( CL_STVEFFraming() ) {
+			if ( CL_LegacyFraming() ) {
 				// Elite Force sends an empty chunk instead of a reason, and its
 				// client moves on to the next file (stvoyHM.exe 0x4114e0).
 				MSG_ReadShort( msg );
@@ -1542,7 +1574,7 @@ void CL_ParseServerMessage( msg_t *msg ) {
 	// Elite Force Holomatch frames its messages as raw bits with no leading
 	// acknowledgement and no end marker; its snapshots carry the acknowledgement
 	// (stvoyHM.exe CL_ParseServerMessage 0x4116d0, CL_ParseSnapshot 0x410f80).
-	const bool stvef = CL_STVEFFraming() != qfalse;
+	const bool stvef = CL_LegacyFraming() != qfalse;
 	if ( CL_IsLegacyDemoMessage() ) {
 		MSG_RawBitstream( msg );
 	} else if ( stvef ) {
@@ -1573,6 +1605,21 @@ void CL_ParseServerMessage( msg_t *msg ) {
 		if ( stvef ? cmd == -1 : cmd == svc_EOF ) {
 			SHOWNET( msg, "END OF MESSAGE" );
 			break;
+		}
+
+		// American McGee's Alice adds two opcodes past the snapshot, a centre
+		// print and a located print, which its client draws itself (retail
+		// alice.exe parses them at 0x0042dbd0 and 0x0042dbf0).
+		if ( stvef && CL_ActiveWireProfile() == NETCHAN_WIRE_ALICE
+			&& ( cmd == 8 || cmd == 9 ) ) {
+			int x = -1, y = -1;
+			if ( cmd == 9 ) {
+				x = MSG_ReadShort( msg );
+				y = MSG_ReadShort( msg );
+			}
+			CL_AliceCenterPrint( MSG_ReadStringForWireProfile( msg, NETCHAN_WIRE_ALICE ), x, y,
+				cmd == 9 ? qtrue : qfalse );
+			continue;
 		}
 
 		if ( stvef && cmd > svc_snapshot ) {

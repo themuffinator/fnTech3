@@ -30,6 +30,7 @@ class DemoRecordProfileTests(unittest.TestCase):
         fallback = source[start:source.index("\n}", start)+2]
         fixture = r'''
 #include "code/qcommon/protocol_contract.hpp"
+#include "code/client/client_alice_demo.hpp"
 #include <array>
 #include <cassert>
 #include <cstdio>
@@ -50,7 +51,10 @@ static struct {
 static netchanWireProfile_t activeProfile;
 static netchanWireProfile_t CL_ActiveWireProfile() { return activeProfile; }
 constexpr const char *STVEF_DEMOEXT = "efdemo";
-static qboolean CL_STVEFFraming() { return ToQboolean(activeProfile == NETCHAN_WIRE_STVEF_HM); }
+/* Alice shares Elite Force's framing, as the engine's own CL_LegacyFraming says. */
+static qboolean CL_LegacyFraming() {
+    return ToQboolean(activeProfile == NETCHAN_WIRE_STVEF_HM || activeProfile == NETCHAN_WIRE_ALICE);
+}
 static std::vector<int> writes;
 static int closes, removals;
 static std::string finalName, printed;
@@ -84,8 +88,9 @@ static void Check(netchanWireProfile_t profile,bool extended,bool staleCompat,
     if (staleCompat) clc.dm68compat = qtrue;
     writes.clear(); closes = removals = 0; finalName.clear(); printed.clear();
     CL_StopRecord_f();
-    // Elite Force names its demos after the game, not the protocol.
+    // Elite Force and Alice name their demos after the game, not the protocol.
     assert(finalName == (profile == NETCHAN_WIRE_STVEF_HM ? std::string("demos/probe.efdemo")
+        : profile == NETCHAN_WIRE_ALICE ? std::string("demos/probe.dm3")
         : "demos/probe.dm_" + std::to_string(expected)));
     assert(writes == std::vector<int>({-1,-1}) && closes == 1 && removals == 1);
     assert(!clc.demorecording && !clc.spDemoRecording);
@@ -96,6 +101,8 @@ static void Check(netchanWireProfile_t profile,bool extended,bool staleCompat,
 }
 int main() {
     Check(NETCHAN_WIRE_LEGACY_Q3,false,false,false,0,68);
+    Check(NETCHAN_WIRE_Q3_66,false,false,false,0,66);
+    Check(NETCHAN_WIRE_Q3_67,false,true,false,0,67);
     Check(NETCHAN_WIRE_LEGACY_Q3,true,false,false,0,68);
     Check(NETCHAN_WIRE_IOQ3,false,false,false,0,68); /* Q3 without extension messages. */
     Check(NETCHAN_WIRE_IOQ3,true,false,false,0,71);  /* Q3 extension messages require 71. */
@@ -114,6 +121,10 @@ int main() {
     Check(NETCHAN_WIRE_RTCW_MP,false,false,true,0,60);
     Check(NETCHAN_WIRE_STVEF_HM,false,false,false,0,24);
     Check(NETCHAN_WIRE_STVEF_HM,false,true,true,0,24);
+    /* alice.exe writes demos/%s.dm3 (0x0050f314) whatever its framing shares
+       with Elite Force, and no stale compat flag relabels it. */
+    Check(NETCHAN_WIRE_ALICE,false,false,false,0,1);
+    Check(NETCHAN_WIRE_ALICE,false,true,true,0,1);
 }
 '''
         scratch = ROOT / ".tmp"
@@ -147,10 +158,12 @@ int main() {
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
+#include <set>
 #include <string>
+#include "code/client/client_alice_demo.hpp"
 typedef int qboolean;
 enum { qfalse, qtrue, FS_INVALID_HANDLE = -1, MAX_OSPATH = 128, CA_CONNECTED = 5, CA_ACTIVE = 8 };
-enum { COM_GAME_QUAKE3, COM_GAME_RTCW_SP, COM_GAME_RTCW_MP, COM_GAME_STVEF_MP };
+enum { COM_GAME_QUAKE3, COM_GAME_RTCW_SP, COM_GAME_RTCW_MP, COM_GAME_STVEF_MP, COM_GAME_ALICE };
 #define S_COLOR_YELLOW "^3"
 #define Com_sprintf snprintf
 struct qtime_t { int tm_year, tm_mon, tm_mday, tm_hour, tm_min, tm_sec; };
@@ -171,12 +184,15 @@ static int Com_GameIsSTVEFMP() { return game == COM_GAME_STVEF_MP; }
 static netchanWireProfile_t CL_ActiveWireProfile() {
     return game == COM_GAME_RTCW_SP ? NETCHAN_WIRE_RTCW_SP :
         game == COM_GAME_RTCW_MP ? NETCHAN_WIRE_RTCW_MP :
-        game == COM_GAME_STVEF_MP ? NETCHAN_WIRE_STVEF_HM : NETCHAN_WIRE_LEGACY_Q3;
+        game == COM_GAME_STVEF_MP ? NETCHAN_WIRE_STVEF_HM :
+        game == COM_GAME_ALICE ? NETCHAN_WIRE_ALICE : NETCHAN_WIRE_LEGACY_Q3;
 }
 static int Cmd_Argc() { return argument.empty() ? 1 : 2; }
 static const char *Cmd_Argv(int) { return argument.c_str(); }
+/* alice.exe asks for the cvar without the h (0x0050f360); nothing else does. */
 static float Cvar_VariableValue(const char *name) {
-    assert(!std::strcmp(name, "g_synchronousClients")); return synchronous;
+    assert(!std::strcmp(name, game == COM_GAME_ALICE ? "g_syncronousClients" : "g_synchronousClients"));
+    return synchronous;
 }
 static int Cvar_VariableIntegerValue(const char *name) {
     return !std::strcmp(name, "g_synchronousClients") ? static_cast<int>(synchronous) : 0;
@@ -204,8 +220,16 @@ static void Com_TruncateLongString(char *out, const char *in) { snprintf(out, 32
 static void CL_WebView_PublishGameDemo(const char *, const char *) {}
 static void CL_SetDemoRecordingCvars(const char *) {}
 static void CL_WriteGamestate(qboolean initial) { assert(initial); ++gamestates; }
+/* Demo files already on disk, and every name the automatic search probed. */
+struct ScopedFileHandle {};
+static std::set<std::string> existing;
+static std::string probed;
+static int OpenPureFileRead(const char *name, ScopedFileHandle &) {
+    probed += std::string(name) + ";"; return existing.count(name) ? 1234 : -1;
+}
 '''
         fixture += function("static bool CL_WireProfileKeepsDm68Fallback(")
+        fixture += function("static void CL_AliceRecordName( char *name, int nameSize ) {")
         fixture += function("static void CL_Record_f( void ) {")
         fixture += r'''
 static void Record(int profile, float sync, bool local, bool accepted, bool refused, bool advised) {
@@ -240,6 +264,36 @@ int main() {
     // Other preconditions still come first.
     game = COM_GAME_RTCW_SP; synchronous = 0.0f; clc = {}; cls.state = CA_CONNECTED;
     printed.clear(); CL_Record_f();
+    assert(printed == "You must be in a level to record.\n" && !clc.demorecording);
+
+    // alice.exe refuses too, under its own spelling of the cvar and with no
+    // advice (CL_Record_f 0x0042a476).
+    game = COM_GAME_ALICE; synchronous = 0.0f; clc = {}; clc.serverAddress.local = 1;
+    cls.state = CA_ACTIVE; argument = "probe"; printed.clear(); opened.clear(); gamestates = 0;
+    CL_Record_f();
+    assert(!clc.demorecording && opened.empty() && gamestates == 0);
+    assert(printed == "The server must have 'g_syncronousClients 1' set for demos\n");
+    // With it set, a typed name becomes demos/<name>.dm3, written through .tmp.
+    synchronous = 1.0f; printed.clear(); CL_Record_f();
+    assert(clc.demorecording && gamestates == 1 && opened == "demos/probe.tmp");
+    assert(!std::strcmp(clc.recordName, "demos/probe") && clc.explicitRecordName && !clc.dm68compat);
+    assert(printed == "recording to demos/probe.dm3.\n");
+    // Retail strips no extension (0x0042a4c8): `record x.dm3` writes x.dm3.dm3.
+    clc = {}; argument = "probe.dm3"; opened.clear(); printed.clear(); CL_Record_f();
+    assert(opened == "demos/probe.dm3.tmp" && printed == "recording to demos/probe.dm3.dm3.\n");
+    // A typed name is cut to clc.demoName's 64 bytes (0x0042a4be).
+    clc = {}; argument = std::string(70, 'n'); opened.clear(); CL_Record_f();
+    assert(opened == "demos/" + std::string(63, 'n') + ".tmp");
+    // With no name, the first demoNNNN whose file does not read (0x0042a4e1),
+    // kept even when the stop would otherwise add a sequence suffix.
+    clc = {}; argument.clear(); opened.clear(); printed.clear(); probed.clear();
+    existing = {"demos/demo0000.dm3", "demos/demo0001.dm3"};
+    CL_Record_f();
+    assert(probed == "demos/demo0000.dm3;demos/demo0001.dm3;demos/demo0002.dm3;");
+    assert(opened == "demos/demo0002.tmp" && clc.explicitRecordName);
+    assert(printed == "recording to demos/demo0002.dm3.\n");
+    // The level precondition still comes first.
+    clc = {}; cls.state = CA_CONNECTED; printed.clear(); CL_Record_f();
     assert(printed == "You must be in a level to record.\n" && !clc.demorecording);
 }
 '''

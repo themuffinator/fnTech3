@@ -11,6 +11,12 @@ static_assert( !fnql::net::ParsePackedIpv4Host( "-1" ).valid );
 static_assert( !fnql::net::ParsePackedIpv4Host( "" ).valid );
 
 static_assert( Netchan_SelectWireProfile( 68, 1 ) == NETCHAN_WIRE_LEGACY_Q3 );
+static_assert( Netchan_SelectWireProfile( 66, 0 ) == NETCHAN_WIRE_Q3_66 );
+static_assert( Netchan_SelectWireProfile( 67, 1 ) == NETCHAN_WIRE_Q3_67 );
+static_assert( Netchan_WireFeatures( NETCHAN_WIRE_Q3_66 ) == Netchan_WireFeatures( NETCHAN_WIRE_LEGACY_Q3 ) );
+static_assert( Netchan_WireFeatures( NETCHAN_WIRE_Q3_67 ) == Netchan_WireFeatures( NETCHAN_WIRE_LEGACY_Q3 ) );
+static_assert( Netchan_MessageLimit( NETCHAN_WIRE_Q3_66 ) == 16384 );
+static_assert( Netchan_ReliableCommandLimit( NETCHAN_WIRE_Q3_67 ) == 64 );
 // Local Q3 startup skips the challenge exchange and initially has compat=0.
 static_assert( Netchan_SelectWireProfile( 68, 0 ) == NETCHAN_WIRE_LEGACY_Q3 );
 static_assert( Netchan_SelectWireProfile( 71, 0 ) == NETCHAN_WIRE_IOQ3 );
@@ -32,6 +38,21 @@ static_assert( Netchan_WireFeatures( NETCHAN_WIRE_STVEF_HM ) == ( NETCHAN_FEATUR
 static_assert( Netchan_WireFeatures( NETCHAN_WIRE_STVEF_SP ) == NETCHAN_FEATURE_CLIENT_QPORT );
 static_assert( Netchan_MessageLimit( NETCHAN_WIRE_STVEF_HM ) == 16384 );
 static_assert( Netchan_ReliableCommandLimit( NETCHAN_WIRE_STVEF_HM ) == 64 );
+// American McGee's Alice: Holomatch's framing choices on Ritual's engine,
+// with its own message and reliable-command limits. Both compatibility
+// settings resolve it, because protocol 1 is nobody else's.
+static_assert( Netchan_SelectWireProfile( 1, 0 ) == NETCHAN_WIRE_ALICE );
+static_assert( Netchan_SelectWireProfile( 1, 1 ) == NETCHAN_WIRE_ALICE );
+static_assert( Netchan_SelectWireProfile( NETCHAN_ALICE_PROTOCOL_VERSION, 0 ) ==
+	NETCHAN_WIRE_ALICE );
+static_assert( Netchan_WireFeatures( NETCHAN_WIRE_ALICE ) ==
+	Netchan_WireFeatures( NETCHAN_WIRE_STVEF_HM ) );
+static_assert( !Netchan_WireHasFeature( NETCHAN_WIRE_ALICE,
+	NETCHAN_FEATURE_RELIABLE_XOR ) );
+static_assert( !Netchan_WireHasFeature( NETCHAN_WIRE_ALICE,
+	NETCHAN_FEATURE_SEQUENCE_CHECKSUM ) );
+static_assert( Netchan_MessageLimit( NETCHAN_WIRE_ALICE ) == 49152 );
+static_assert( Netchan_ReliableCommandLimit( NETCHAN_WIRE_ALICE ) == 128 );
 static_assert( Netchan_SelectWireProfile( NETCHAN_QL_RETAIL_PROTOCOL_VERSION, 0 ) ==
 	NETCHAN_WIRE_QL_RETAIL );
 static_assert( Netchan_SelectWireProfile( NETCHAN_QL_RETAIL_PROTOCOL_VERSION, 1 ) ==

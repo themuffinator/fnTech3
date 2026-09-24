@@ -35,6 +35,9 @@ int generation,menuGeneration,uiWidth,renderWidth;
 std::vector<std::string> events;
 bool failRenderer=false;
 bool Com_GameIsRTCW(){return profile>=2;}
+bool Com_GameIsAlice(){return false;}
+void S_AliceMusicFreeAll(){}
+void S_AliceMusicSoundtrackAfterRestart(){}
 int Key_GetCatcher(){return catcher;}
 int VM_Call(int*,int count,int call,int arg=0) {
  if(call==UI_GET_ACTIVE_MENU) {assert(profile>=2&&count==0);++queryCalls;return menu;}

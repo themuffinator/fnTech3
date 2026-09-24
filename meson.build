@@ -64,6 +64,22 @@ q3_only = get_option('q3-only')
 rtcw_development = get_option('rtcw-development')
 wolfet_development = get_option('wolfet-development')
 stvef_development = get_option('stvef-development')
+jka_development = get_option('jka-development')
+jk2_development = get_option('jk2-development')
+alice_development = get_option('alice-development')
+q3_ihv_development = get_option('q3-ihv-development')
+if jka_development and q3_only
+  error('Jedi Academy developer probes require the shared x86 executable, not the Q3-only target.')
+endif
+if jk2_development and q3_only
+  error('Jedi Outcast developer probes require the shared x86 executable, not the Q3-only target.')
+endif
+if alice_development and q3_only
+  error('Alice developer probes require the shared x86 executable, not the Q3-only target.')
+endif
+if q3_ihv_development and q3_only
+  error('IHV developer probes require the shared Windows x86 executable.')
+endif
 if wolfet_development and q3_only
   error('WolfET developer probes require the shared executable.')
 endif
@@ -247,6 +263,11 @@ qcommon_src = [
 	'code/platform/fnql_workshop.cpp',
 	'code/platform/process_relaunch.cpp',
 	'code/qcommon/cm_load.c',
+  'code/qcommon/alice_lip.cpp',
+  'code/qcommon/alice_runtime.cpp',
+  'code/qcommon/alice_alias.cpp',
+  'code/qcommon/alice_tiki.cpp',
+  'code/qcommon/com_alice_ui.cpp',
   'code/qcommon/cm_patch.c',
   'code/qcommon/cm_polylib.c',
   'code/qcommon/cm_test.c',
@@ -263,6 +284,7 @@ qcommon_src = [
   'code/qcommon/md4.c',
   'code/qcommon/md5.c',
   'code/qcommon/msg.cpp',
+  'code/qcommon/native_seh.c',
   'code/qcommon/net_chan.cpp',
   'code/qcommon/net_ip.c',
   'code/qcommon/puff.c',
@@ -312,6 +334,13 @@ server_src = [
 ]
 
 client_src = [
+  'code/client/cl_alice.cpp',
+  'code/client/cl_alice_font.cpp',
+  'code/client/cl_alice_hud.cpp',
+  'code/client/cl_alice_loading.cpp',
+  'code/client/cl_alice_saveshot.cpp',
+  'code/client/cl_alice_screen.cpp',
+  'code/client/cl_alice_ui.cpp',
   'code/client/cl_avi.cpp',
   'code/client/cl_cgame.cpp',
   'code/client/cl_cin.cpp',
@@ -330,6 +359,7 @@ client_src = [
   'code/client/cl_webui.cpp',
   'code/client/awesomium_backend_win32.cpp',
   'code/client/audio/snd_main.cpp',
+  'code/client/audio/snd_alice.cpp',
   'code/client/audio/legacy/snd_adpcm.cpp',
   'code/client/audio/legacy/snd_dma.cpp',
   'code/client/audio/legacy/snd_mem.cpp',
@@ -375,6 +405,7 @@ renderer_common_src = [
   'code/renderercommon/tr_font.c',
   'code/renderercommon/tr_font_stash.c',
   'code/renderercommon/tr_image_bmp.c',
+  'code/renderercommon/tr_image_ftx.c',
   'code/renderercommon/tr_image_jpg.c',
   'code/renderercommon/tr_image_pcx.c',
   'code/renderercommon/tr_image_png.c',
@@ -384,6 +415,7 @@ renderer_common_src = [
 ]
 
 renderer_gl_src = [
+  'code/renderer/tr_alice.c',
   'code/renderer/tr_animation.c',
   'code/renderer/tr_arb.c',
   'code/renderer/tr_backend.c',
@@ -411,6 +443,7 @@ renderer_gl_src = [
 ]
 
 renderer_glx_src = [
+  'code/renderercommon/tr_alice_tiki.cpp',
   'code/rendererglx/glx_caps.cpp',
   'code/rendererglx/glx_debug.cpp',
   'code/rendererglx/glx_draw.cpp',
@@ -425,6 +458,8 @@ renderer_glx_src = [
 ]
 
 renderer_vk_src = [
+  'code/renderercommon/tr_alice_tiki.cpp',
+  'code/renderervk/tr_alice.c',
   'code/renderervk/tr_animation.c',
   'code/renderervk/tr_backend.c',
   'code/renderervk/tr_bsp.c',
@@ -673,7 +708,8 @@ else
 endif
 
 if build_client and get_option('mp3')
-  # Elite Force's sounds and music are MPEG-1 Layer III; minimp3 is CC0.
+  # Elite Force's sounds and music and American McGee's Alice's music are
+  # MPEG-1 Layer III; minimp3 is CC0.
   minimp3_dep = dependency('minimp3', required: true, fallback: 'minimp3')
   client_src += 'code/client/audio/codecs/snd_codec_mp3.cpp'
   client_deps += minimp3_dep
@@ -916,6 +952,10 @@ if build_client and not renderer_dlopen
 endif
 
 engine_cpp_args = common_cpp_args
+if q3_ihv_development
+  warning('IHV developer build: isolated dedicated native-module probes only. Client and network integration remain gated.')
+  engine_cpp_args += ['-DFNTECH3_Q3_IHV_DEVELOPMENT=1']
+endif
 if wolfet_development
   warning('WolfET developer build: the ET client and server run with real modules for isolated probes. Release compatibility gates remain open.')
   engine_cpp_args += ['-DFNTECH3_WOLFET_DEVELOPMENT=1']
@@ -927,6 +967,18 @@ endif
 if stvef_development
   warning('Elite Force developer build: incomplete SP/Holomatch adapters are enabled for isolated probes. Release compatibility gates remain open.')
   engine_cpp_args += ['-DFNTECH3_STVEF_DEVELOPMENT=1']
+endif
+if jka_development
+  warning('Jedi Academy developer build: incomplete single-player/multiplayer adapters are enabled for isolated probes. Release compatibility gates remain open.')
+  engine_cpp_args += ['-DFNTECH3_JKA_DEVELOPMENT=1']
+endif
+if jk2_development
+  warning('Jedi Outcast developer build: incomplete single-player/multiplayer adapters are enabled for isolated probes. Release compatibility gates remain open.')
+  engine_cpp_args += ['-DFNTECH3_JK2_DEVELOPMENT=1']
+endif
+if alice_development
+  warning('Alice developer build: incomplete adapters are enabled for isolated probes. Release compatibility gates remain open.')
+  engine_cpp_args += ['-DFNTECH3_ALICE_DEVELOPMENT=1']
 endif
 
 client_c_args = common_c_args
@@ -1150,6 +1202,257 @@ if get_option('audio-tests')
   )
 endif
 
+jka_abi_layout_tests = executable('fntech3_jka_abi_layout_tests',
+  'tests/jka_abi_layout_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_jka_abi_layouts', jka_abi_layout_tests)
+
+jka_roff_tests = executable('fntech3_jka_roff_tests',
+  'tests/jka_roff_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_jka_roff', jka_roff_tests)
+
+jka_icarus_tests = executable('fntech3_jka_icarus_tests',
+  'tests/jka_icarus_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_jka_icarus', jka_icarus_tests)
+
+raven_roff_server_tests = executable('fntech3_raven_roff_server_tests',
+  'tests/raven_roff_server_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_raven_roff_server', raven_roff_server_tests)
+
+jk2_abi_layout_tests = executable('fntech3_jk2_abi_layout_tests',
+  'tests/jk2_abi_layout_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_jk2_abi_layouts', jk2_abi_layout_tests)
+
+nav_graph_tests = executable('fntech3_nav_graph_tests',
+  'tests/nav_graph_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_nav_graph', nav_graph_tests)
+
+raven_ghoul2_server_tests = executable('fntech3_raven_ghoul2_server_tests',
+  'tests/raven_ghoul2_server_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_raven_ghoul2_server', raven_ghoul2_server_tests)
+
+jka_icarus_callback_tests = executable('fntech3_jka_icarus_callback_tests',
+  'tests/jka_icarus_callback_tests.cpp',
+  include_directories: include_directories('code/qcommon'),
+  cpp_args: common_cpp_args,
+)
+test('fntech3_jka_icarus_callbacks', jka_icarus_callback_tests)
+
+jka_icarus_runtime_tests = executable('fntech3_jka_icarus_runtime_tests',
+  'tests/jka_icarus_runtime_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_jka_icarus_runtime', jka_icarus_runtime_tests)
+
+jka_icarus_id_tests = executable('fntech3_jka_icarus_id_tests',
+  'tests/jka_icarus_id_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_jka_icarus_ids', jka_icarus_id_tests)
+
+jka_icarus_value_tests = executable('fntech3_jka_icarus_value_tests',
+  'tests/jka_icarus_value_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_jka_icarus_values', jka_icarus_value_tests)
+
+jka_model_tests = executable('fntech3_jka_model_tests',
+  'tests/jka_model_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_jka_models', jka_model_tests)
+
+jka_module_abi_tests = executable('fntech3_jka_module_abi_tests',
+  ['tests/jka_module_abi_tests.cpp', 'code/qcommon/game_profile.cpp'],
+  include_directories: include_directories('code/qcommon'),
+  cpp_args: common_cpp_args,
+)
+test('fntech3_jka_module_abi', jka_module_abi_tests)
+
+jka_bsp_tests = executable('fntech3_jka_bsp_tests',
+  'tests/jka_bsp_tests.cpp',
+  include_directories: include_directories('code/qcommon'),
+  cpp_args: common_cpp_args,
+)
+test('fntech3_jka_bsp', jka_bsp_tests)
+
+alice_bsp_tests = executable('fntech3_alice_bsp_tests',
+  'tests/alice_bsp_tests.cpp',
+  include_directories: include_directories('code/qcommon'),
+  cpp_args: common_cpp_args,
+)
+test('fntech3_alice_bsp', alice_bsp_tests)
+
+alice_module_abi_tests = executable('fntech3_alice_module_abi_tests',
+  ['tests/alice_module_abi_tests.cpp', 'code/qcommon/game_profile.cpp'],
+  include_directories: include_directories('code/qcommon'),
+  cpp_args: common_cpp_args,
+)
+test('fntech3_alice_module_abi', alice_module_abi_tests)
+
+alice_message_codec_tests = executable('fntech3_alice_message_codec_tests',
+  ['tests/alice_message_codec_tests.cpp'],
+  include_directories: include_directories('code/qcommon', 'code/compat'),
+  cpp_args: common_cpp_args,
+)
+test('fntech3_alice_message_codec', alice_message_codec_tests)
+
+alice_tan_tests = executable('fntech3_alice_tan_tests',
+  'tests/alice_tan_tests.cpp',
+  include_directories: include_directories('code/qcommon'),
+  cpp_args: common_cpp_args,
+)
+test('fntech3_alice_tan', alice_tan_tests)
+
+alice_skb_tests = executable('fntech3_alice_skb_tests',
+  'tests/alice_skb_tests.cpp',
+  include_directories: include_directories('code/qcommon'),
+  cpp_args: common_cpp_args,
+)
+test('fntech3_alice_skb', alice_skb_tests)
+
+alice_tiki_tests = executable('fntech3_alice_tiki_tests',
+  'tests/alice_tiki_tests.cpp',
+  include_directories: include_directories('code/qcommon'),
+  cpp_args: common_cpp_args,
+)
+test('fntech3_alice_tiki', alice_tiki_tests)
+
+alice_alias_tests = executable('fntech3_alice_alias_tests',
+  ['tests/alice_alias_tests.cpp', 'code/qcommon/alice_alias.cpp'],
+  include_directories: include_directories('code/qcommon'),
+  cpp_args: common_cpp_args,
+)
+test('fntech3_alice_alias', alice_alias_tests)
+
+alice_ska_tests = executable('fntech3_alice_ska_tests',
+  'tests/alice_ska_tests.cpp',
+  include_directories: include_directories('code/qcommon'),
+  cpp_args: common_cpp_args,
+)
+test('fntech3_alice_ska', alice_ska_tests)
+
+alice_tiki_pose_tests = executable('fntech3_alice_tiki_pose_tests',
+  'tests/alice_tiki_pose_tests.cpp',
+  include_directories: include_directories('code/qcommon'),
+  cpp_args: common_cpp_args,
+)
+test('fntech3_alice_tiki_pose', alice_tiki_pose_tests)
+
+alice_tiki_lod_tests = executable('fntech3_alice_tiki_lod_tests',
+  'tests/alice_tiki_lod_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_alice_tiki_lod', alice_tiki_lod_tests)
+
+# The renderers' shared TIKI code, linked as each renderer links it: surface
+# lookup and retail's animation and frame corrections.
+alice_tiki_render_tests = executable('fntech3_alice_tiki_render_tests',
+  [
+    'tests/alice_tiki_render_tests.cpp',
+    'code/renderercommon/tr_alice_tiki.cpp',
+    'code/qcommon/q_math.c',
+    'code/qcommon/puff.c',
+  ],
+  include_directories: include_directories('code/qcommon'),
+  c_args: common_c_args,
+  cpp_args: common_cpp_args,
+  dependencies: libm.found() ? [libm] : [],
+)
+test('fntech3_alice_tiki_render', alice_tiki_render_tests)
+
+alice_input_tests = executable('fntech3_alice_input_tests',
+  'tests/alice_input_tests.cpp',
+  include_directories: include_directories('code/qcommon'),
+  cpp_args: common_cpp_args,
+)
+test('fntech3_alice_input', alice_input_tests)
+
+alice_music_tests = executable('fntech3_alice_music_tests',
+  'tests/alice_music_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_alice_music', alice_music_tests)
+
+alice_sound_tests = executable('fntech3_alice_sound_tests',
+  'tests/alice_sound_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_alice_sound', alice_sound_tests)
+
+alice_ritualfont_tests = executable('fntech3_alice_ritualfont_tests',
+  ['tests/alice_ritualfont_tests.cpp', 'code/qcommon/puff.c'],
+  include_directories: include_directories('code/qcommon'),
+  cpp_args: common_cpp_args,
+)
+test('fntech3_alice_ritualfont', alice_ritualfont_tests)
+
+alice_urc_tests = executable('fntech3_alice_urc_tests',
+  ['tests/alice_urc_tests.cpp', 'code/qcommon/puff.c'],
+  include_directories: include_directories('code/qcommon'),
+  cpp_args: common_cpp_args,
+)
+test('fntech3_alice_urc', alice_urc_tests)
+
+alice_menu_tests = executable('fntech3_alice_menu_tests',
+  ['tests/alice_menu_tests.cpp', 'code/qcommon/puff.c'],
+  include_directories: include_directories('code/qcommon'),
+  cpp_args: common_cpp_args,
+)
+test('fntech3_alice_menu', alice_menu_tests)
+
+alice_screen_tests = executable('fntech3_alice_screen_tests',
+  ['tests/alice_screen_tests.cpp', 'code/qcommon/puff.c'],
+  include_directories: include_directories('code/qcommon'),
+  cpp_args: common_cpp_args,
+)
+test('fntech3_alice_screen', alice_screen_tests)
+
+alice_hud_tests = executable('fntech3_alice_hud_tests',
+  ['tests/alice_hud_tests.cpp', 'code/qcommon/puff.c'],
+  include_directories: include_directories('code/qcommon'),
+  cpp_args: common_cpp_args,
+)
+test('fntech3_alice_hud', alice_hud_tests)
+
+alice_noise_tests = executable('fntech3_alice_noise_tests',
+  'tests/alice_noise_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_alice_noise', alice_noise_tests)
+
+alice_savegame_tests = executable('fntech3_alice_savegame_tests',
+  'tests/alice_savegame_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_alice_savegame', alice_savegame_tests)
+
+alice_snapshot_tests = executable('fntech3_alice_snapshot_tests',
+  'tests/alice_snapshot_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_alice_snapshot', alice_snapshot_tests)
+
+jka_identity_tests = executable('fntech3_jka_identity_tests',
+  ['tests/jka_identity_tests.cpp', 'code/qcommon/game_profile.cpp'],
+  include_directories: include_directories('code/qcommon'),
+  cpp_args: common_cpp_args,
+)
+test('fntech3_jka_identity', jka_identity_tests)
+
 game_profile_tests = executable('fntech3_game_profile_tests',
   [
     'tests/game_profile_tests.cpp',
@@ -1194,6 +1497,24 @@ server_game_data_tests = executable('fntech3_server_game_data_tests',
   cpp_args: common_cpp_args,
 )
 test('fntech3_server_game_data', server_game_data_tests)
+
+q3_ihv_game_data_tests = executable('fntech3_q3_ihv_game_data_tests',
+  ['tests/q3_ihv_game_data_tests.cpp', 'code/server/server_game_data.cpp',
+   'code/compat/game_abi_adapter.c'],
+  include_directories: include_directories('code/qcommon', 'code/compat', 'code/server'),
+  c_args: common_c_args,
+  cpp_args: common_cpp_args,
+)
+test('fntech3_q3_ihv_game_data', q3_ihv_game_data_tests)
+
+q3_ihv_game_bridge_tests = executable('fntech3_q3_ihv_game_bridge_tests',
+  ['tests/q3_ihv_game_bridge_tests.cpp', 'code/server/server_game_data.cpp',
+   'code/compat/game_abi_adapter.c'],
+  include_directories: include_directories('code/qcommon', 'code/compat', 'code/server'),
+  c_args: common_c_args,
+  cpp_args: common_cpp_args,
+)
+test('fntech3_q3_ihv_game_bridge', q3_ihv_game_bridge_tests)
 
 wolfet_contract_tests = executable('fntech3_wolfet_contract_tests',
   ['tests/wolfet_contract_tests.cpp', 'code/server/server_game_data.cpp',
@@ -1406,6 +1727,12 @@ test('fntech3_unzip', unzip_tests,
   args: [join_paths(meson.current_build_dir(), 'unzip-test.pk3')],
 )
 
+native_seh_tests = executable('fntech3_native_seh_tests',
+  ['tests/native_seh_tests.c', 'code/qcommon/native_seh.c'],
+  c_args: common_c_args,
+)
+test('fntech3_native_seh', native_seh_tests)
+
 netchan_safety_tests = executable('fnql_netchan_safety_tests',
   'tests/netchan_safety_tests.cpp',
   include_directories: include_directories('code/qcommon'),
@@ -1453,6 +1780,14 @@ test('fnql_message_codec', message_codec_tests)
 
 # Not a test: decodes retail Elite Force demos from a user installation
 # through scripts/probe_stvef_demos.py.
+# Reads a legitimate Jedi Academy installation's maps and models through the
+# engine's own readers; driven by scripts/probe_jka_assets.py.
+jka_asset_probe = executable('fntech3_jka_asset_probe',
+  'tests/fixtures/jka_asset_probe.cpp',
+  include_directories: include_directories('code/qcommon'),
+  cpp_args: common_cpp_args,
+)
+
 stvef_demo_probe = executable('fntech3_stvef_demo_probe',
   'tests/fixtures/stvef_demo_probe.cpp',
   'code/qcommon/msg.cpp',
@@ -1546,6 +1881,75 @@ ql_bsp_contract_tests = executable('fnql_ql_bsp_contract_tests',
   cpp_args: common_cpp_args,
 )
 test('fnql_ql_bsp_contract', ql_bsp_contract_tests)
+
+bsp43_contract_tests = executable('fntech3_bsp43_contract_tests',
+  'tests/bsp43_contract_tests.cpp',
+  include_directories: include_directories('code/qcommon'),
+  cpp_args: common_cpp_args,
+)
+test('fntech3_bsp43_contract', bsp43_contract_tests)
+
+q3_ihv_netchan_tests = executable('fntech3_q3_ihv_netchan_tests',
+  'tests/q3_ihv_netchan_tests.cpp',
+  include_directories: include_directories('code/qcommon', 'code/compat'),
+  c_args: common_c_args,
+  cpp_args: common_cpp_args,
+)
+test('fntech3_q3_ihv_netchan', q3_ihv_netchan_tests)
+
+q3_ihv_native_boundary_tests = executable('fntech3_q3_ihv_native_boundary_tests',
+  'tests/q3_ihv_native_boundary_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_q3_ihv_native_boundary', q3_ihv_native_boundary_tests)
+
+q3_ihv_wire_tests = executable('fntech3_q3_ihv_wire_tests',
+  'tests/q3_ihv_wire_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_q3_ihv_wire', q3_ihv_wire_tests)
+
+q3_ihv_message_tests = executable('fntech3_q3_ihv_message_tests',
+  'tests/q3_ihv_message_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_q3_ihv_message', q3_ihv_message_tests)
+
+q3_ihv_configstrings_tests = executable('fntech3_q3_ihv_configstrings_tests',
+  'tests/q3_ihv_configstrings_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_q3_ihv_configstrings', q3_ihv_configstrings_tests)
+
+q3_ihv_client_data_tests = executable('fntech3_q3_ihv_client_data_tests',
+  'tests/q3_ihv_client_data_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_q3_ihv_client_data', q3_ihv_client_data_tests)
+
+q3_ihv_model_tags_tests = executable('fntech3_q3_ihv_model_tags_tests',
+  'tests/q3_ihv_model_tags_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_q3_ihv_model_tags', q3_ihv_model_tags_tests)
+
+q3_ihv_scene_tests = executable('fntech3_q3_ihv_scene_tests',
+  'tests/q3_ihv_scene_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_q3_ihv_scene', q3_ihv_scene_tests)
+
+q3_ihv_identity_tests = executable('fntech3_q3_ihv_identity_tests',
+  'tests/q3_ihv_identity_tests.cpp', 'code/qcommon/game_profile.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_q3_ihv_identity', q3_ihv_identity_tests)
+
+q3_ihv_collision_tests = executable('fntech3_q3_ihv_collision_tests',
+  'tests/q3_ihv_collision_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_q3_ihv_collision', q3_ihv_collision_tests)
 
 collision_model_parity_tests = executable('fnql_collision_model_parity_tests',
   'tests/collision_model_parity_tests.cpp',

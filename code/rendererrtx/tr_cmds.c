@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 #include "tr_local.h"
+#include "../renderercommon/tr_screenshot_pending.h"
 
 /*
 =====================
@@ -559,6 +560,9 @@ static void R_IssueRenderCommands( void ) {
 	} else {
 #ifdef USE_VULKAN
 		if ( ri.CL_IsMinimized() && !RE_CanMinimize() ) {
+			R_ReportUnwrittenScreenshots( backEnd.screenshotMask, backEnd.screenshotPNG,
+				backEnd.screenshotTGA, backEnd.screenshotJPG, backEnd.screenshotBMP,
+				backEnd.levelshotPending, qfalse, R_SCREENSHOT_LOST_TO_MINIMIZE );
 			backEnd.screenshotMask = 0;
 			backEnd.levelshotPending = qfalse;
 			backEnd.stvefThumbnail = NULL;
@@ -664,6 +668,37 @@ void R_AddDrawSurfCmd( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 		tr.drawSurfCmd = cmd;
 	}
 #endif
+}
+
+/*
+=============
+R_AddAliceDebugLinesCmd
+
+American McGee's Alice: a copy of the game's debug lines, drawn right after
+the view queued before them. The game clears its array every game frame, so
+the copy is what this frame's view is drawn with. A full command buffer drops
+the lines, as it drops any command.
+=============
+*/
+void R_AddAliceDebugLinesCmd( const void *lines, int numLines ) {
+	aliceDebugLinesCommand_t *cmd;
+	int bytes;
+
+	if ( !lines || numLines <= 0 ) {
+		return;
+	}
+	if ( numLines > ALICE_MAX_DEBUG_LINES ) {
+		numLines = ALICE_MAX_DEBUG_LINES;
+	}
+	bytes = PAD( (int)sizeof( *cmd ) + numLines * (int)sizeof( aliceDebugLine_t ), (int)sizeof( void * ) );
+	cmd = R_GetCommandBuffer( bytes );
+	if ( !cmd ) {
+		return;
+	}
+	cmd->commandId = RC_ALICE_DEBUG_LINES;
+	cmd->numLines = numLines;
+	cmd->commandBytes = bytes;
+	Com_Memcpy( cmd + 1, lines, numLines * sizeof( aliceDebugLine_t ) );
 }
 
 
@@ -786,6 +821,12 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 
 	if ( !tr.registered ) {
 		return;
+	}
+
+	// The last frame's Alice poses were drawn with it; a stereo frame's
+	// right eye still draws with the poses its left eye made.
+	if ( stereoFrame != STEREO_RIGHT ) {
+		RA_TikiBeginFrame();
 	}
 
 	glState.finishCalled = qfalse;

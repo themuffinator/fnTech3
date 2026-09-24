@@ -1,0 +1,243 @@
+{
+ "date": "2026-09-21",
+ "scope": "The protocol-33 snapshot message a dedicated IHV server writes for one client: the delta base it selects, the entity baselines it sends from and the entity limit it stops at. Full IHV support remains incomplete.",
+ "commit": "9e1841de53d79f96cdbbde83a1427d1c7d83f31d",
+ "working_tree": "Uncommitted IHV bot client, snapshot and message work; unrelated changes remain present.",
+ "reference": {
+  "repository": "https://github.com/themuffinator/Quake3-IHV/tree/d5ce877155904c57f8b28fe0fd0c8aa2e9473337",
+  "inputs": [
+   {
+    "path": "E:\\Repositories\\Quake3-IHV\\ref\\install\\quake3.exe",
+    "bytes": 725042,
+    "sha256": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37"
+   }
+  ],
+  "note": "The original message writers produce the reference bytes; only its diagnostics are replaced. No original entry point, filesystem, display, input, audio, collision model or network service starts, and no original module or asset is incorporated into fnTech3."
+ },
+ "original_functions": {
+  "SV_WriteSnapshotToClient": "0x41add0..0x41af59",
+  "delta_request_too_old": "0x41addd",
+  "delta_entities_overwritten": "0x41ae40",
+  "SV_EmitPacketEntities": "0x41aca0..0x41adc7",
+  "entity_byte_limit": "0x41ace1",
+  "baseline_read": "0x41ad76",
+  "SV_CreateBaseline": "0x4196a0..0x41970a",
+  "SV_UpdateServerCommandsToClient": "0x41af60",
+  "SV_SendClientSnapshot": "0x41b520",
+  "configstring_sequence": "0x4255298"
+ },
+ "observations": {
+  "header": [
+   "byte 7",
+   "server time",
+   "message number",
+   "delta message",
+   "configstring sequence",
+   "command sequence",
+   "snapshot flags",
+   "area byte count",
+   "area bits"
+  ],
+  "body": [
+   "player state delta",
+   "entity deltas",
+   "ten zero bits"
+  ],
+  "client_fields": {
+   "configSequence": "+0x408",
+   "commandSequence": "+0x40c",
+   "deltaMessage": "+0x440",
+   "snapshotFlags": "+0x450"
+  },
+  "frame_fields": {
+   "messageSent": "+0x140",
+   "messageSize": "+0x148"
+  },
+  "delta_rules": {
+   "nonpositive": "no delta, no report",
+   "too_old": "outgoing sequence minus the request reaches 29",
+   "overwritten": "the frame first entity is at or below the counter minus the ring capacity",
+   "reports": [
+    "Delta request from out of date packet.",
+    "Delta request from out of date entities."
+   ]
+  },
+  "baseline_rule": "in use and carrying a model index, a looping sound or effect flags",
+  "baseline_state_fields": {
+   "effects": 4,
+   "loopSound": 148,
+   "modelIndex": 149
+  },
+  "baseline_timing": "after the three settling frames, before the server state becomes SS_GAME",
+  "entity_byte_limit": 1350,
+  "truncation": "the shorter count is written back into the frame",
+  "message_buffer": 1400
+ },
+ "comparison": {
+  "probe": "tests/q3_ihv_reference_snapshot_message_probe.cpp",
+  "command": "cl /nologo /EHsc /W4 /WX /MD /O2 /std:c++17 tests/q3_ihv_reference_snapshot_message_probe.cpp /Fe:.tmp/q3-ihv/reference-snapshot-message-probe.exe /Fo:.tmp/q3-ihv/reference-snapshot-message-probe.obj /link /BASE:0x400000 /DYNAMICBASE:NO /SECTION:.ihv,ERW /MANIFEST:EMBED \"/MANIFESTUAC:level='asInvoker' uiAccess='false'\" advapi32.lib",
+  "run": ".tmp/q3-ihv/reference-snapshot-message-probe.exe E:/Repositories/Quake3-IHV/ref/install/quake3.exe",
+  "compared": [
+   "every byte of the produced message",
+   "its length",
+   "the number of entities the emitter wrote back into the frame",
+   "the delta rejection reports"
+  ],
+  "scenario_kinds": [
+   "an ordinary frame pair",
+   "a request too many messages old",
+   "a request whose entities the ring overwrote",
+   "a crowded frame the entity limit truncates"
+  ],
+  "result": {
+   "scope": "original SV_WriteSnapshotToClient against fntech3's protocol-33 snapshot message, with identical frames, ring and baselines; no original engine startup",
+   "scenarios": 1536,
+   "delta_messages": 980,
+   "rejected_requests": 366,
+   "truncations": 415,
+   "message_bytes": 750368,
+   "digest": "3e67d3f6510e5e16"
+  },
+  "passed": true
+ },
+ "fntech3_boundaries": [
+  "The running entity counter is unreduced and 64 bits wide, so the staleness rule stays exact and cannot reach the wrap the original's int would.",
+  "A caller supplying no buffer, or one smaller than the message, is refused rather than written past.",
+  "Quake II-style baselines are stored for the q3-ihv profile alone; the other seven keep Quake III's entityState_t baselines."
+ ],
+ "gates": {
+  "default_startup": "blocked",
+  "client_startup": "blocked",
+  "dedicated_developer": "Windows x86 only",
+  "network_dispatch": "blocked before retail parsing",
+  "native_bot_lifecycle": "implemented",
+  "native_snapshot_builder": "implemented",
+  "protocol33_snapshot_writer": "implemented",
+  "protocol33_transport": "open",
+  "gamestate_handshake": "open",
+  "reliable_commands": "open",
+  "native_clients": "open",
+  "original_bsp_visibility_parity": "open",
+  "gameplay": "open",
+  "rendered_native_demos": "open",
+  "audio_input": "open",
+  "bidirectional_interop": "open"
+ },
+ "checks": {
+  "unit_tests": [
+   "fntech3_q3_ihv_game_bridge",
+   "fntech3_q3_ihv_native_boundary",
+   "fntech3_q3_ihv_message",
+   "fntech3_q3_ihv_wire",
+   "fntech3_q3_ihv_game_data",
+   "fntech3_q3_ihv_collision",
+   "fntech3_q3_ihv_configstrings",
+   "fntech3_q3_ihv_client_data",
+   "fntech3_q3_ihv_scene",
+   "fntech3_q3_ihv_model_tags",
+   "fntech3_q3_ihv_identity"
+  ],
+  "unit_tests_passed": true,
+  "default_build": "meson compile -C meson/build/win32 (fntech3.exe and fntech3.ded.exe linked)",
+  "development_build": "meson compile -C meson/build/win32-ihv (-Dq3-ihv-development=true)",
+  "python_regressions": [
+   "Ran 1864 tests in 736.676s",
+   "FAILED (failures=16, errors=7, skipped=72)"
+  ],
+  "python_failures": [
+   "ERROR: test_candidate_packaging_produces_a_complete_verifiable_release_bundle",
+   "ERROR: test_linux_release_tarball_accepts_exact_root_renderer_names",
+   "ERROR: test_linux_release_tarball_is_deterministic_and_executable",
+   "ERROR: test_macos_zip_preserves_code_modes_and_validates_the_app",
+   "ERROR: test_packaged_evidence_links_and_missing_target",
+   "ERROR: test_prebuilt_macos_payload_is_published_byte_for_byte",
+   "ERROR: test_release_archive_keeps_game_dirs_at_archive_root",
+   "FAIL: test_collision_and_all_renderers_obey_the_game_contract",
+   "FAIL: test_engine_only_policy_rejects_nested_proprietary_libraries",
+   "FAIL: test_linux_release_tarball_rejects_misnamed_renderer_modules",
+   "FAIL: test_linux_release_tarball_rejects_nested_renderer_modules",
+   "FAIL: test_linux_release_tarball_requires_client_server_and_renderers",
+   "FAIL: test_payload_uses_the_brilliant_red_highlight_and_release_identity",
+   "FAIL: test_q3_only_and_shared_detection_contracts_execute",
+   "FAIL: test_unsigned_prebuilt_macos_payload_requires_explicit_policy"
+  ],
+  "concurrent_working_tree": "Another session was adding a sixth game title, its module ABI and model tests, and reworking release packaging in this checkout. Its new test sources do not compile yet, so the complete Meson gate could not rebuild; every IHV target was built and run directly instead, and the Python regression target was run on its own. Failures in release packaging, release identity and the new JKA tests belong to that work."
+ },
+ "sources": [
+  {
+   "path": "code\\qcommon\\q3_ihv_message.hpp",
+   "bytes": 18300,
+   "sha256": "dba8c33d745e3973dc0c6b339d92328a50c35097cde075c704d6dc45e3d945d6"
+  },
+  {
+   "path": "code\\qcommon\\q3_ihv_wire.hpp",
+   "bytes": 13264,
+   "sha256": "c4147d508b1d1ee779dc32fd052a91bfaf8f72ba3a78627968f6908909e9357d"
+  },
+  {
+   "path": "code\\compat\\q3_ihv_server_clients.hpp",
+   "bytes": 15761,
+   "sha256": "5f780cd1f99c2048ce3a9a82c895276c30fc733dc37b9a3b65f06877305b37b0"
+  },
+  {
+   "path": "code\\compat\\q3_ihv_game_abi.h",
+   "bytes": 9173,
+   "sha256": "45a20f6f4e9326ca599106ac78af3dace766791ab7a1629e9e3f23c58266bc12"
+  },
+  {
+   "path": "code\\server\\server_q3_ihv_game.hpp",
+   "bytes": 33234,
+   "sha256": "73d9b38c0b4b7dbb2259f0b73f370b8efa1eeb37de33888c639f6f8b6ad0b2d3"
+  },
+  {
+   "path": "code\\server\\sv_init.cpp",
+   "bytes": 48171,
+   "sha256": "9b8095bef8fa6c9f37dc7b12964d876d5cfb2418efb476d62a85cf367e145d95"
+  },
+  {
+   "path": "code\\server\\server.h",
+   "bytes": 33488,
+   "sha256": "04e7c6d0f67e5eee9332fc2f70ee9ca4c4139745370f64499ddd88f7185ee66f"
+  },
+  {
+   "path": "tests\\q3_ihv_game_bridge_tests.cpp",
+   "bytes": 38102,
+   "sha256": "9f2432a8ebf6cfb1263f1066f3be069045eda7f623250b0b68d0e234fd668522"
+  },
+  {
+   "path": "tests\\q3_ihv_native_boundary_tests.cpp",
+   "bytes": 17305,
+   "sha256": "eafaf5d1a6598ee46eb839bd421ae95121d1d47fe63b3243d638bcfc421cd11a"
+  },
+  {
+   "path": "tests\\q3_ihv_message_tests.cpp",
+   "bytes": 27267,
+   "sha256": "1cf656858f8a5930217cd077f2b0f63b7d72b2d3344912a808d9668c57c3a3e3"
+  },
+  {
+   "path": "tests\\q3_ihv_reference_snapshot_message_probe.cpp",
+   "bytes": 16528,
+   "sha256": "4808f8cf9986a9c7af1de7eece10aae5509abf228d8b805b421cd86eec9ed190"
+  }
+ ],
+ "limitations": [
+  "Nothing transmits these messages. The netchan, its fragmenting, the reliable server-command stream, the gamestate handshake and the connected client session are unimplemented, and GAME_CLIENT_CONNECT still refuses a client.",
+  "The comparison uses synthetic frames, rings and baselines. No original engine session, map, game module or network transport is started by this probe.",
+  "A client never acknowledges anything yet, so the delta request, configstring sequence, command sequence and snapshot flags are only ever set by tests."
+ ],
+ "artifacts": [
+  ".tmp/q3-ihv/reference-snapshot-message.json",
+  ".tmp/q3-ihv/reference-snapshot-message-wrong-image.log",
+  ".tmp/q3-ihv/message-default-build.log",
+  ".tmp/q3-ihv/message-development-build.log",
+  ".tmp/q3-ihv/message-python-regressions.log",
+  ".tmp/q3-ihv/native-snapshot-write.txt",
+  ".tmp/q3-ihv/native-snapshot-send.txt"
+ ],
+ "documentation": [
+  "docs/fntech3/Q3_IHV.md",
+  "docs/fntech3/COMPATIBILITY.md",
+  "CHANGELOG.md"
+ ],
+ "follow_up": "docs/fntech3/2026-09-21-q3-ihv-transport.json implements the netchan this record lists as open, so these messages now have an envelope. Nothing opens a channel yet: the connectionless handshake and client session remain unimplemented."
+}

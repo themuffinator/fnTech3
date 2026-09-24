@@ -2657,6 +2657,11 @@ qboolean CL_UIMenusAreVisible( void ) {
 	if ( !uivm ) {
 		return qfalse;
 	}
+	if ( Com_GameIsAlice() ) {
+		// Alice's engine UI keeps its own menu stack, which a menu that takes
+		// no keys -- the credits after the ending -- still occupies.
+		return CL_AliceUIMenuUp();
+	}
 	if ( !uivm->dllExports ) {
 		// Q3's legacy export table has no menu-stack query. Its UI owns
 		// input while a menu is active; never call a retail QL-only ordinal.
@@ -2775,6 +2780,29 @@ static const char *CL_UIModuleLoadFailureMessage( void ) {
 void CL_InitUI( void ) {
 	int		v;
 	vmInterpret_t		interpret;
+
+	/* As with the client game, Jedi Academy's menus speak Raven's own numbers
+	 * and nothing serves them yet. Refuse by name rather than load a retail
+	 * module against an import table it cannot use. */
+	if ( Com_GameIsJKA() ) {
+		Com_Error( ERR_DROP, "%s is not implemented: Jedi Academy's menu module boundary is open.",
+			Com_GameProfile()->key );
+	}
+
+	/* Alice has no menu module to load, which is a contract no other profile
+	 * has: its menus are the engine's own `.urc` resources and the
+	 * installation ships no ui library of any kind. The engine's own UI
+	 * (cl_alice_ui.cpp) stands in the module's place, hosted with no library,
+	 * so the client's uivm call sites reach it as they would a module. */
+	if ( Com_GameIsAlice() ) {
+		uivm = CL_AliceLoadUI();
+		if ( !uivm ) {
+			Com_Error( ERR_FATAL, "Alice's engine UI could not be hosted" );
+		}
+		VM_Call( uivm, 1, UI_INIT, (cls.state >= CA_AUTHORIZING && cls.state < CA_ACTIVE) );
+		return;
+	}
+
 	CL_RTCWReloadTranslations();
 
 	// disallow vl.collapse for UI elements

@@ -24,6 +24,12 @@ HOST = r'''
 static comGameId_t profile;
 int Com_GameIsRTCWSP(){return profile==COM_GAME_RTCW_SP;}
 int Com_GameIsRTCW(){return Com_GameIsRTCWSP()||profile==COM_GAME_RTCW_MP;}
+// Alice's cinematic track is exercised by its own tests.
+int Com_GameIsAlice(){return 0;}
+void S_AliceMusicFreeAll(){}
+qboolean S_AliceMP3Preload(const char *){return qfalse;}
+qboolean S_AliceMP3PlayPreloaded(qboolean){return qfalse;}
+void CL_AliceCinematicPlay(const char *,const char *){assert(false);}
 void QDECL Com_Error(errorParm_t,const char *,...){throw 1;}
 void QDECL Com_DPrintf(const char *,...){}
 int QDECL Com_sprintf(char *out,int size,const char *format,...){
@@ -225,6 +231,9 @@ int main(){
   selected=&profile;played.integer=seen;skip.integer=bypass;
   com_skipIdLogo=bypass<0?nullptr:&skip;writes.clear();queued.clear();
   Com_QueueIntroCinematics();
+  if(profile.id==COM_GAME_QUAKE3_IHV){
+   assert(queued.empty()&&writes.empty()&&played.integer==seen);continue;
+  }
   if(profile.id==COM_GAME_WOLFET){
    assert(queued==(bypass==1?"":"cinematic etintro.roq\n"));
    assert(writes.empty()&&played.integer==seen);continue;
@@ -234,6 +243,12 @@ int main(){
    const bool logo=profile.id==COM_GAME_STVEF_SP&&bypass!=1;
    assert(queued==(logo?"cinematic eflogo\n":""));
    assert(writes.empty()&&played.integer==seen);continue;
+  }
+  if(profile.titleId==COM_GAME_TITLE_JKA||profile.titleId==COM_GAME_TITLE_JK2
+   ||profile.titleId==COM_GAME_TITLE_ALICE){
+   // No Raven mode registers a startup movie with the engine, and
+   // Alice registers none either: its opening movie is the game's own.
+   assert(queued.empty()&&writes.empty()&&played.integer==seen);continue;
   }
   const bool sp=profile.id==COM_GAME_RTCW_SP,mp=profile.id==COM_GAME_RTCW_MP;
   const std::string intro=sp?"cinematic wolfintro.RoQ 3":mp?"cinematic wolfintro.RoQ":"cinematic intro.RoQ";

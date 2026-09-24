@@ -241,21 +241,22 @@ public:
 	}
 };
 template<class Topology>
-Error ValidateTopology(const View &view, const Topology &map) {
+Error IndexTopology(const Topology &map, std::vector<std::size_t> &first,
+	std::vector<std::int32_t> &localAreas) {
 	const auto areas = map.AreaCount(), clusters = map.ClusterCount(), portals = map.PortalCount();
-	if (areas < 2 || areas > 65535 || areas != view.AreaCount() || !clusters
+	if (areas < 2 || areas > 65535 || !clusters
 		|| clusters > areas || !portals || portals > areas) return Error::Map;
 	// Every ordinary area contributes one local index and a portal at most two.
 	// Bound the complete index allocation before using any map-provided count.
 	const auto maxLocals = areas + portals * 2;
-	std::vector<std::size_t> first(clusters + 1);
+	first.assign(clusters + 1, 0);
 	for (std::size_t c = 0; c < clusters; ++c) {
 		const auto cluster = map.GetCluster(c);
 		if (cluster.areas < 0 || cluster.reachable < 0 || cluster.reachable > cluster.areas
 			|| static_cast<std::size_t>(cluster.areas) > maxLocals - first[c]) return Error::Map;
 		first[c + 1] = first[c] + cluster.areas;
 	}
-	std::vector<std::int32_t> localAreas(first.back(), 0);
+	localAreas.assign(first.back(), 0);
 	const auto assign = [&](std::int32_t cluster, std::int32_t local, std::int32_t area) {
 		if (cluster <= 0 || static_cast<std::size_t>(cluster) >= clusters || local < 0
 			|| local >= map.GetCluster(cluster).areas) return false;
@@ -283,6 +284,22 @@ Error ValidateTopology(const View &view, const Topology &map) {
 		if (area <= 0 || static_cast<std::size_t>(area) >= areas
 			|| map.GetArea(area).cluster != -static_cast<std::int32_t>(p)) return Error::Map;
 	}
+	return Error::None;
+}
+template<class Topology>
+Error ValidateTopology(const Topology &map) {
+	std::vector<std::size_t> first;
+	std::vector<std::int32_t> localAreas;
+	return IndexTopology(map, first, localAreas);
+}
+template<class Topology>
+Error ValidateTopology(const View &view, const Topology &map) {
+	const auto areas = map.AreaCount(), clusters = map.ClusterCount(), portals = map.PortalCount();
+	if (areas != view.AreaCount()) return Error::Map;
+	std::vector<std::size_t> first;
+	std::vector<std::int32_t> localAreas;
+	const auto error = IndexTopology(map, first, localAreas);
+	if (error != Error::None) return error;
 	for (const auto cache : view.Caches()) {
 		if (cache.Cluster() <= 0 || static_cast<std::size_t>(cache.Cluster()) >= clusters
 			|| cache.Area() <= 0 || static_cast<std::size_t>(cache.Area()) >= areas) return Error::Cache;

@@ -1,0 +1,180 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-20",
+  "scope": "Partial BSP43 asset support; full IHV compatibility remains open",
+  "platform": "Windows x86 shared engine; Windows x64 standalone AddressSanitizer harness",
+  "checkout": {
+    "commit": "9e1841de53d79f96cdbbde83a1427d1c7d83f31d",
+    "working_tree": "modified; prior Q3 point-release and unrelated RTCW work preserved"
+  },
+  "reference": {
+    "path": "E:/Repositories/Quake3-IHV/ref/install",
+    "repository": "https://github.com/themuffinator/Quake3-IHV",
+    "commit": "d5ce877155904c57f8b28fe0fd0c8aa2e9473337",
+    "note": "Local binaries are ignored by the reference repository; hashes pin supplied files",
+    "files": {
+      "quake3.exe": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37",
+      "qagamex86.dll": "9855d375751272d0b22e9078e827cf7ff3c2e42867f525b7fd84b93967c0eeb6",
+      "cgamex86.dll": "175f94756f994b06235690fdd2d9fe798503f7a797f2e070277a672847593614",
+      "baseq3/maps/ihv_test1.bsp": "874311cffc880f79c1fdd4fc85bed1062baf976835b4402c9de54460af20281b",
+      "baseq3/maps/km_portal.bsp": "33f422e61940929c160fc843fd8f7e3a00d7d237dd0f1887897cd0d3450297c9",
+      "baseq3/maps/test_fog2.bsp": "a5d046cb604aadd4092339a3ce758927ebe53d0333dbdde06f9770f515837126",
+      "baseq3/maps/tim_dm1.bsp": "40621dfd4037116ba3feb7816913f799320a57111c530e2319143706f0b1c2e2",
+      "baseq3/demos/sli.dm3": "fbdc209d1c7fc1075976c9120c79d5e579ed36f4e38062b01248d6b2d807c57b",
+      "baseq3/demos/berj.dm3": "d2ee63df0221c380f0233fac458445217016c3afa7986f300fed2405de61ec78",
+      "baseq3/demos/candy.dm2": "3ce199cf4cfbb18896f61c1adf1ce82c08e7f64de293118da8e1938e16bc5da3"
+    }
+  },
+  "observations": {
+    "version": "4.01 x86 Feb 12 1999 RELEASE",
+    "protocol": 33,
+    "native": {
+      "game_export": "GetGameAPI",
+      "game_api": 4,
+      "game_import_copy_bytes": 140,
+      "game_entity_stride": 556,
+      "game_api_address": "qagamex86.dll VA 0x2000fad0",
+      "cgame_export": "GetCGameAPI",
+      "cgame_callback_count": 8,
+      "cgame_init_import_copy_bytes": 248,
+      "cgame_api_address": "cgamex86.dll VA 0x10009590",
+      "cgame_init_address": "cgamex86.dll VA 0x1000a9a0",
+      "complete_abi": false
+    },
+    "bsp": {
+      "version": 43,
+      "lump_count": 14,
+      "out_of_range_surface_side_identifiers": { "ihv_test1": 49, "tim_dm1": 47 },
+      "original_patch_loader": "quake3.exe VA 0x4083f0..0x4084c0",
+      "original_patch_flags": 0,
+      "file_checksums": { "ihv_test1": 679739108, "km_portal": 425045198, "test_fog2": 1711358739, "tim_dm1": 1733697977 },
+      "checksum_observation": "MD4 word XOR of installed files; km_portal matches the IHV demos' mapChecksum",
+      "translated_bytes": { "ihv_test1": 793108, "km_portal": 4230320, "test_fog2": 128976, "tim_dm1": 799916 },
+      "native_collision_parity": false
+    },
+    "models": { "count": 111, "ident": "IDP3", "version": 15, "evidence": "header inventory only" }
+  },
+  "original_server": {
+    "cwd": "E:/Repositories/fnTech3/.tmp/q3-ihv/original-server",
+    "command": [
+      "E:/Repositories/fnTech3/.tmp/q3-ihv/original-server/quake3.exe",
+      "+set", "dedicated", "1", "+set", "r_fullscreen", "0", "+set", "vid_fullscreen", "0",
+      "+set", "in_mouse", "0", "+set", "in_joystick", "0", "+set", "fs_basepath", ".",
+      "+set", "net_port", "27995", "+set", "port", "27995", "+set", "logfile", "2",
+      "+set", "public", "0", "+map", "tim_dm1"
+    ],
+    "query": "four 0xff bytes followed by getinfo ihvprobe",
+    "reply_after_oob_marker": "info\n33 \"noname\" \"tim_dm1\" 8 91536724\n",
+    "game_initialized": true,
+    "nav_loaded": "tim_dm1.nav; 86 surfaces, 319 neighbors",
+    "forced_termination_after_observation": true,
+    "fntech3_interoperability": false
+  },
+  "original_demo_command": [
+    "E:/Repositories/fnTech3/.tmp/q3-ihv/original-server/quake3.exe",
+    "+set", "dedicated", "0", "+set", "r_fullscreen", "0", "+set", "vid_fullscreen", "0",
+    "+set", "in_mouse", "0", "+set", "in_joystick", "0", "+set", "fs_basepath", ".",
+    "+set", "gl_driver", "opengl32", "+set", "gl_allowExtensions", "0",
+    "+set", "r_nohwgamma", "1", "+set", "logfile", "2", "+set", "public", "0",
+    "+set", "s_initsound", "0", "+exec", "ihvprobe.cfg"
+  ],
+  "demos": [
+    {
+      "file": "sli.dm3", "bytes": 8628, "message_records": 57, "terminator": true,
+      "classification": "IHV protocol 33; length-only records",
+      "probe_config": "set timedemo 1\nset nextdemo quit\ndemo sli\n",
+      "original_exit_code": 0, "original_forced": false,
+      "original_timing": "1875 frames, 2.7 seconds: 707.3 fps",
+      "fntech3_playback": false
+    },
+    {
+      "file": "berj.dm3", "bytes": 883, "message_records": 1, "terminator": false,
+      "classification": "Incomplete IHV configstring block; missing gamestate opener and snapshots",
+      "probe_config": "set timedemo 1\nset nextdemo quit\ndemo berj\n",
+      "original_exit_code": 3221225477, "original_forced": false,
+      "original_exception": "0xC0000005", "fntech3_playback": false
+    },
+    {
+      "file": "candy.dm2", "bytes": 15394,
+      "classification": "Quake II serverdata opcode 12 / protocol 34; outside Q3 IHV codec",
+      "fntech3_playback": false
+    }
+  ],
+  "asset_probe": {
+    "scope": "IHV asset load with retail Q3 QVMs, not IHV gameplay or visual parity",
+    "script": "scripts/probe_q3_ihv.py",
+    "common_arguments": [
+      "--installation", "E:/Repositories/Quake3-IHV/ref/install",
+      "--retail", "C:/Program Files (x86)/Steam/steamapps/common/Quake 3 Arena",
+      "--client", "meson/build/win32/fntech3.exe"
+    ],
+    "run_arguments": [
+      ["--output", ".tmp/q3-ihv/assets-glx", "--renderer", "glx"],
+      ["--output", ".tmp/q3-ihv/assets-vk", "--renderer", "vk"],
+      ["--output", ".tmp/q3-ihv/assets-rtx", "--renderer", "rtx"]
+    ],
+    "client_sha256": {
+      "glx": "40e2c3be0766ef9577fdb33627d41feff789e2bf99a8c8b38c12545d29bbaad4",
+      "vk": "40e2c3be0766ef9577fdb33627d41feff789e2bf99a8c8b38c12545d29bbaad4",
+      "rtx": "eb883bc2e5022ce520399101944d7a8b192c7029a04e63bffe2532957d55dce0"
+    },
+    "retail_paks_sha256": {
+      "pak0.pk3": "7ce8b3910620cd50a09e4f1100f426e8c6180f68895d589f80e6bd95af54bcae",
+      "pak1.pk3": "d4ffd60b4b414c3419499e321b6f5c2e933cf082df85823ad2d6ae2f803e1682",
+      "pak2.pk3": "ccae938a2f13a03b24902d675181d516a431699701ed88023a307f34b5bcd58c",
+      "pak3.pk3": "d03c0a0e06b99f9ecca2be7389f57faed406e85f7c09b9c56afdfa53ba25e312",
+      "pak4.pk3": "af5f6d5c82fe4440ae0bb660f0648d1fa1731a9e8305a9eb652aa243428697f1",
+      "pak5.pk3": "69f87070ca7719e252a3ba97e6483f6663939c987ede550d1268d4d9a07b45bc",
+      "pak6.pk3": "bb4f0ae2bf603b050fb665436d3178ce7c1c20360e67bacf7c14d93daff38daf",
+      "pak7.pk3": "de6283ce23e3486a2622c5dbf73d3721a59f24debd380e90f43a97d952fea283",
+      "pak8.pk3": "812c9e97f231e89cefede3848c6110b7bd34245093af6f22c2cacde3e6b15663"
+    },
+    "all_runs_exit_code": 0,
+    "any_forced_termination": false,
+    "all_completion_markers": true,
+    "engine_screenshot_sha256": {
+      "glx/ihv_test1": "90f679309658fc32721ec26531913936c80e374760dce0c9ec633eca1e885649",
+      "glx/km_portal": "24241b7011b6471b233b53cebe6817e0dc90beac5a4938453ff87426ab474f46",
+      "glx/test_fog2": "b769e9a3e938a14ea55c0c808bdf73217252716293a96e21d601de19d05d0181",
+      "glx/tim_dm1": "4b218647cd2dfb4e4e7cd8cb179e87513defbf53f479db302f1d6a089afa190d",
+      "vk/ihv_test1": "c1fa6a5769ab299eadfba29f94670f61c82dfdd2dc367190eb270dc8c4b835a0",
+      "vk/km_portal": "54cb794deb570aa91d8f972258821a21fb2996c1bee4f790b1315fc66c06773e",
+      "vk/test_fog2": "a1cd2a1ad42ab6869b801e76350f7dd89d1dd7ca2bbf2851c0553a7424764b11",
+      "vk/tim_dm1": "89a16188fa9bff835e69c6090845856e6b9235d267d1533f2fb8ef7fcd48fe7c",
+      "rtx/ihv_test1": "54e2e3428679f178731ee58095702261e5fe9e93ec2f48339b26032f3097192e",
+      "rtx/km_portal": "ec25c1fc1cb07a90d45f6b17bfe554b87511da0377adb2818d6b92862efb860b",
+      "rtx/test_fog2": "5c4311cd96143e405c565b2ff165eaff635a4d527a7d321e9dfb97242c533ba0",
+      "rtx/tim_dm1": "123ab2d7583d9b7b67e3cf5873739cca7b8414e5a6d8664d8b9472939a01c5ff"
+    },
+    "visual_parity": false,
+    "observed_failures": [
+      "Legacy fog/sky/material commands are rejected or produce fallbacks",
+      "No lightgrid exists in BSP43; retail renderer reports a mismatch",
+      "Supplied common.shader has an unterminated final definition"
+    ]
+  },
+  "validation": {
+    "build": "Windows x86 client, dedicated server and GLx/Vulkan/RTX pass",
+    "full_meson": { "pass": 121, "skip": 2, "fail": 0 },
+    "python_suite": { "cases": 1828, "skip": 72, "fail": 0 },
+    "bsp43_synthetic_and_real_files": "pass; MSVC x86 and Clang AddressSanitizer x64 Q3-only diagnostic harness",
+    "loader_controllers": "3 tests pass; Q3/QL/RTCW original-byte checksum and loader lifetime checks",
+    "final_focused": "4 pass: BSP43, QL BSP, message codecs, netchan profiles",
+    "final_checksum_publication": "Client/server rebuilt; 3 loader-controller tests pass including failed conversion",
+    "clean_checkout": false,
+    "retained_evidence": ".tmp/q3-ihv",
+    "cleanup": "Automatic approval review rejected deletion with blocked by policy; disposable copies remain",
+    "retained_directory_bytes": 509936593
+  },
+  "open_gates": [
+    "Coherent IHV startup/filesystem/module selection",
+    "Native game/cgame adapters and frozen record layouts",
+    "Protocol-33 handshake, netchan, delta and usercmd/snapshot codecs",
+    "IHV .dm3 playback and recording",
+    "Bidirectional original-engine interoperability",
+    "Material, fog, sky, portal and renderer parity",
+    "Collision trace-mask/result parity",
+    "IHV gameplay, navigation, bots, audio and input"
+  ],
+  "unrelated_observation": "Host IPv6-loopback bind warning during probes; IPv4/local sessions succeed"
+}

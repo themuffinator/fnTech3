@@ -19,6 +19,7 @@ PRELUDE = r'''
 #include "code/server/server.h"
 #include "code/server/server_game_data.h"
 #include "code/server/server_world_bounds.hpp"
+#include "code/compat/q3_ihv_collision.hpp"
 #include "code/server/sv_collision_model.hpp"
 #include "code/compat/game_abi_adapter.h"
 #include "code/compat/rtcw_module_abi.h"
@@ -37,6 +38,7 @@ const comGameProfile_t *Com_GameProfile() { return &profile; }
 int Com_GameIsRTCW() { return profile.id == COM_GAME_RTCW_SP || profile.id == COM_GAME_RTCW_MP; }
 int Com_GameIsWolfET() { return profile.id == COM_GAME_WOLFET; }
 int Com_GameIsSTVEFMP() { return profile.id == COM_GAME_STVEF_MP; }
+int Com_GameIsQuake3IHV() { return profile.id == COM_GAME_QUAKE3_IHV; }
 static fntech3::server::ServerGameDataView serverGameData;
 struct Drop {};
 void QDECL Com_Error(errorParm_t, const char *, ...) { throw Drop{}; }
@@ -48,7 +50,7 @@ float RadiusFromBounds(const vec3_t mins, const vec3_t maxs) {
 }
 static int leaves=2, boxCalls, portalCalls, contactCalls, lastCapsule;
 static bool connected=true, noMask=false, touch=true;
-static int destinationCluster=1;
+static int destinationCluster=1, topNode=77, clusterModulus=0;
 static byte pvs[4]={2,0,0,0};
 int CM_NumInlineModels(){return 4;}
 int CM_NumClusters(){return 32;}
@@ -63,7 +65,14 @@ int CM_BoxLeafnums(const vec3_t mins,const vec3_t maxs,int *out,int capacity,int
  assert(SV_ValidWorldBounds(mins,maxs));++boxCalls;assert(leaves<=capacity);
  for(int i=0;i<leaves;++i)out[i]=i;*last=31;return leaves;
 }
-int CM_LeafCluster(int leaf){return leaf==100?destinationCluster:leaf;}
+int CM_BoxLeafnumsTopnode(const vec3_t mins,const vec3_t maxs,int *out,int capacity,int *topnode){
+ assert(SV_ValidWorldBounds(mins,maxs));++boxCalls;assert(leaves<=capacity);
+ for(int i=0;i<leaves;++i)out[i]=i;*topnode=topNode;return leaves;
+}
+int CM_LeafCluster(int leaf){
+ if(leaf==100)return destinationCluster;
+ return clusterModulus?leaf%clusterModulus:leaf;
+}
 int CM_LeafArea(int leaf){return leaf==100?1:leaf%2;}
 int CM_PointLeafnum(const vec3_t point){return point[0]>0?100:0;}
 byte *CM_ClusterPVS(int){return noMask?nullptr:pvs;}
@@ -245,9 +254,17 @@ class RTCWServerWorldTests(unittest.TestCase):
             target = compiler_target_args(compiler)
             if os.name == 'nt' and not target:
                 target = ['-DFNTECH3_Q3_ONLY']
+            # run<>() is one very large function instantiated per profile, and
+            # an unoptimised build gives every temporary in it its own slot:
+            # its frame grows about 2 KB for each byte entityState_t grows, so
+            # it sat just under Windows' one-megabyte default. That is a
+            # property of this fixture, not of the engine, whose own frames are
+            # a few kilobytes; give the fixture room rather than hold the
+            # engine's records to the fixture's shape.
+            stack = ['-Wl,/stack:8388608'] if os.name == 'nt' else []
             command = [compiler, *target, '-std=c++17', '-D_CRT_SECURE_NO_WARNINGS', '-I', str(ROOT),
                        str(cpp), str(ROOT / 'code/server/server_game_data.cpp'), '-x', 'c++',
-                       str(ROOT / 'code/compat/game_abi_adapter.c'), '-o', str(exe)]
+                       str(ROOT / 'code/compat/game_abi_adapter.c'), '-o', str(exe), *stack]
             built = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, timeout=60)
             self.assertEqual(built.returncode, 0, built.stdout + built.stderr)
             run = subprocess.run([str(exe)], cwd=ROOT, capture_output=True, text=True, timeout=20)

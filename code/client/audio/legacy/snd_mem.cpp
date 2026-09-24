@@ -258,6 +258,8 @@ extern "C" qboolean S_LoadSound( sfx_t *sfx ) {
 	if ( !data ) {
 		return qfalse;
 	}
+	// The file's own layout, before any downmix below changes it.
+	const int sourceFrameBytes = info.width * info.channels;
 
 	const bool route = fntech3::audio::NeedsSpeakerDownmix( info.speakerMask, info.channels, false );
 	auto routed = route ? fntech3::audio::DownmixSpeakerBuffer( data, info.size, info.dataofs, info.samples,
@@ -308,6 +310,8 @@ extern "C" qboolean S_LoadSound( sfx_t *sfx ) {
 	}
 
 	sfx->soundChannels = info.channels;
+	sfx->sourceFrames = info.samples;
+	sfx->sourceFrameBytes = sourceFrameBytes;
 
 	return qtrue;
 }

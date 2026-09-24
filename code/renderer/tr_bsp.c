@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "tr_local.h"
 #include "../renderercommon/tr_patch_bounds.h"
 #include "../qcommon/bsp_v43.h"
+#include "../qcommon/bsp_fakk.h"
 #include "../qcommon/ql_bsp.h"
 
 /*
@@ -3549,10 +3550,17 @@ static void R_LoadFogs( const lump_t *l, const lump_t *brushesLump, const lump_t
 		}
 
 		out->parms = shader->fogParms;
+		if ( ( ri.gameId == COM_GAME_QUAKE3 || ri.gameId == COM_GAME_QUAKE3_IHV ) && out->parms.ihv.enabled && !s_worldData.q3IHVFog ) {
+			s_worldData.q3IHVFog = qtrue;
+			ri.Printf( PRINT_ALL, "IHV vertex fog: using classic dynamic lighting\n" );
+		}
 
-		out->colorInt.rgba[0] = ( fogColor[0] * tr.identityLight ) * 255.0f;
-		out->colorInt.rgba[1] = ( fogColor[1] * tr.identityLight ) * 255.0f;
-		out->colorInt.rgba[2] = ( fogColor[2] * tr.identityLight ) * 255.0f;
+		{
+			const float scale = ( ri.gameId == COM_GAME_QUAKE3 || ri.gameId == COM_GAME_QUAKE3_IHV ) && out->parms.ihv.enabled ? 1.0f : tr.identityLight;
+			out->colorInt.rgba[0] = ( fogColor[0] * scale ) * 255.0f;
+			out->colorInt.rgba[1] = ( fogColor[1] * scale ) * 255.0f;
+			out->colorInt.rgba[2] = ( fogColor[2] * scale ) * 255.0f;
+		}
 		out->colorInt.rgba[3] = 255;
 
 		for ( n = 0; n < 4; n++ )
@@ -3657,6 +3665,11 @@ static void R_LoadEntities( const lump_t *l ) {
 
 	p = (const char *)(fileBase + l->fileofs);
 
+	// Alice's lens-flare sun belongs to the level that names one
+	if ( ri.gameId == COM_GAME_ALICE ) {
+		R_AliceSetSunFlare( NULL );
+	}
+
 	// store for reference by the cgame
 	w->entityString = ri.Hunk_Alloc( l->filelen + 1, h_low );
 	strcpy( w->entityString, p );
@@ -3711,6 +3724,21 @@ static void R_LoadEntities( const lump_t *l ) {
 			RE_RemapShader(value, s, "0");
 			continue;
 		}
+		// Alice's worldspawn places the sun its lens flare draws, in the
+		// level or seen through its sky portal; the names are matched
+		// exactly (alice.exe 0x004ac53a..0x004ac5f8)
+		if ( ri.gameId == COM_GAME_ALICE && !strcmp( keyname, "sunflare" ) ) {
+			vec3_t sun = { 0.0f, 0.0f, 0.0f };
+			(void)sscanf( value, "%f %f %f", &sun[0], &sun[1], &sun[2] );
+			R_AliceSetSunFlare( sun );
+			continue;
+		}
+		if ( ri.gameId == COM_GAME_ALICE && !strcmp( keyname, "sunflare_inportalsky" ) ) {
+			if ( atof( value ) != 0.0 ) {
+				R_AliceSetSunFlareInPortalSky();
+			}
+			continue;
+		}
 		// check for a different grid size
 		if (!Q_stricmp(keyname, "gridsize")) {
 			//sscanf(value, "%f %f %f", &w->lightGridSize[0], &w->lightGridSize[1], &w->lightGridSize[2] );
@@ -3750,6 +3778,8 @@ RE_LoadWorldMap
 Called directly from cgame
 =================
 */
+#include "../renderercommon/tr_q3_ihv_model_light_bsp.h"
+
 void RE_LoadWorldMap( const char *name ) {
 	int			i;
 	int32_t		size;
@@ -3763,6 +3793,14 @@ void RE_LoadWorldMap( const char *name ) {
 	byte		*startMarker;
 	lump_t		qlAdvertisementsLump = { 0, 0 };
 	comGameBspFormat_t bspFormat;
+
+	// American McGee's Alice's loading screen follows the world load: its
+	// stage setter (alice.exe 0x0040b590) takes 7 as the load starts
+	// (RE_LoadWorldMap 0x0049afe0) and 8 as it ends (0x0049b8f4). No other
+	// profile has one. (Inline, as fixtures slice this function alone.)
+	if ( ri.gameId == COM_GAME_ALICE && ri.AliceLoadingStage ) {
+		ri.AliceLoadingStage( 7 );
+	}
 
 	if ( tr.worldMapLoaded ) {
 		ri.Error( ERR_DROP, "ERROR: attempted to redundantly load world map" );
@@ -3808,6 +3846,25 @@ void RE_LoadWorldMap( const char *name ) {
 			size = translated.length;
 			translatedMap = qtrue;
 		}
+	}
+
+	/* Alice's maps are Ritual's FAKK 42. Its records are Quake III's apart
+	 * from two trailing fields, so the same translation the collision loader
+	 * uses presents it as IBSP 46 -- this time carrying the light grid, whose
+	 * record the retail renderer reads exactly as Quake III's. See
+	 * code/qcommon/bsp_fakk.h and docs/fntech3/2026-09-22-alice-maps.md. */
+	if ( bspFormat == COM_GAME_BSP_FAKK ) {
+		fakk_translation_t fakkTranslated = { 0 };
+		char translateError[128];
+
+		if ( !FAKK_TranslateToV46Ex( buffer.b, size, ri.Malloc, ri.Free, &fakkTranslated,
+			translateError, sizeof( translateError ), FAKK_TRANSLATE_LIGHTGRID ) ) {
+			ri.Error( ERR_DROP, "%s: %s could not translate FAKK v42: %s", __func__, name, translateError );
+		}
+		ri.FS_FreeFile( buffer.v );
+		buffer.v = fakkTranslated.data;
+		size = fakkTranslated.length;
+		translatedMap = qtrue;
 	}
 
 	tr.mapLoading = qtrue;
@@ -3872,12 +3929,20 @@ void RE_LoadWorldMap( const char *name ) {
 	R_LoadSurfaces( &header->lumps[LUMP_SURFACES], &header->lumps[LUMP_DRAWVERTS], &header->lumps[LUMP_DRAWINDEXES] );
 	R_LoadMarksurfaces( &header->lumps[LUMP_LEAFSURFACES] );
 	R_LoadNodesAndLeafs( &header->lumps[LUMP_NODES], &header->lumps[LUMP_LEAFS] );
+	R_LoadQ3IHVModelLighting( &header->lumps[LUMP_SURFACES], &header->lumps[LUMP_DRAWVERTS], &header->lumps[LUMP_LIGHTMAPS] );
 	R_LoadSubmodels( &header->lumps[LUMP_MODELS] );
 	if ( bspFormat == COM_GAME_BSP_QUAKELIVE ) {
 		R_LoadAdvertisements( &qlAdvertisementsLump );
 	}
 	R_LoadVisibility( &header->lumps[LUMP_VISIBILITY] );
 	R_LoadEntities( &header->lumps[LUMP_ENTITIES] );
+	if ( bspFormat == COM_GAME_BSP_FAKK ) {
+		/* Alice reads no gridsize key: its light grid loader writes this
+		 * cell as immediates before it touches the lump. */
+		s_worldData.lightGridSize[0] = FAKK_LIGHTGRID_SIZE_X;
+		s_worldData.lightGridSize[1] = FAKK_LIGHTGRID_SIZE_Y;
+		s_worldData.lightGridSize[2] = FAKK_LIGHTGRID_SIZE_Z;
+	}
 	R_LoadLightGrid( &header->lumps[LUMP_LIGHTGRID] );
 	// Resolve after all material parsing: R_FindShader owns shared parser scratch.
 	if ( tr.rtcwWorld.sunShader[0] )
@@ -3901,5 +3966,9 @@ void RE_LoadWorldMap( const char *name ) {
 		ri.Free( buffer.v );
 	} else {
 		ri.FS_FreeFile( buffer.v );
+	}
+
+	if ( ri.gameId == COM_GAME_ALICE && ri.AliceLoadingStage ) {
+		ri.AliceLoadingStage( 8 );
 	}
 }

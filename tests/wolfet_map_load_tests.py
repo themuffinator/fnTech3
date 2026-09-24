@@ -1,6 +1,7 @@
 """What loading every official Enemy Territory map found, held to its fixes."""
 from pathlib import Path
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -293,12 +294,13 @@ class WolfETMapArithmeticTests(unittest.TestCase):
 
 
 class WolfETRendererWiringTests(unittest.TestCase):
-    def test_new_surface_types_sit_at_the_end_in_every_renderer(self):
+    def test_et_surface_type_ordinals_and_dispatch_order_are_preserved(self):
         for renderer in RENDERERS:
             with self.subTest(renderer=renderer):
                 local = read(f'code/{renderer}/tr_local.h')
-                self.assertIn('\tSF_WOLFET,\n\tSF_WOLFET_FOLIAGE,\n\tSF_WOLFET_DECAL,\n\n\tSF_NUM_SURFACE_TYPES,',
-                              local.replace('\r\n', '\n'))
+                types = local[local.index('SF_BAD'):local.index('SF_NUM_SURFACE_TYPES')]
+                order = re.findall(r'^\s*(SF_\w+)\s*,', types, re.M)
+                self.assertEqual(order[13:16], ['SF_WOLFET', 'SF_WOLFET_FOLIAGE', 'SF_WOLFET_DECAL'])
                 table = read(f'code/{renderer}/tr_surface.c')
                 order = [table.index(entry) for entry in (
                     'RB_SurfaceWolfET,', 'RB_SurfaceWolfETFoliage,', 'RB_SurfaceWolfETDecal')]
@@ -433,8 +435,8 @@ class WolfETEngineWiringTests(unittest.TestCase):
         for name in ('"gfx/2d/consolechars"', '"console-16bit"', '"ui/assets/3_cursor3"'):
             self.assertIn(name, client)
         self.assertIn('cls.recordShader = wolfet || Com_GameIsSTVEF() ? 0 :', client)
-        self.assertIn('Com_GameIsWolfET() ? 0 : re.RegisterShaderNoMip( "ui/assets/backscreen_smoke" )',
-                      read('code/client/cl_scrn.cpp'))
+        self.assertRegex(read('code/client/cl_scrn.cpp'),
+                         r'Com_GameIsWolfET\(\)[^;]*\? 0\s*: re\.RegisterShaderNoMip\( "ui/assets/backscreen_smoke" \)')
         sound = read('code/client/audio/snd_main.cpp')
         volume = sound[sound.index('static int S_WolfETVolume( int volume ) {'):]
         volume = volume[:volume.index('\n}')]

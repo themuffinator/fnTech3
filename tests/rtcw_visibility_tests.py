@@ -67,7 +67,7 @@ class RTCWVisibilityTests(unittest.TestCase):
     def test_cached_rows_bounds_world_ownership_and_fuzzy_search(self):
         self.run_source(r'''
 int main(){
- for(const auto &p:profiles){profile=&p;initialize();
+ for(const auto &p:profiles){profile=&p;if(!p.bots.navigationWorlds)continue;initialize();
   assert(!AAS_AreaVisible(0,0)&&!AAS_AreaVisible(-1,INT_MAX));
   for(int w=0;w<p.bots.navigationWorlds;++w){AAS_SetCurrentWorld(w);graph();slabs();visibility(w+1);
    for(int a=0;a<aasworld.numareas;++a)for(int b=0;b<aasworld.numareas;++b){

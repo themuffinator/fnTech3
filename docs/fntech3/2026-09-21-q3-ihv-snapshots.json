@@ -1,0 +1,242 @@
+{
+ "date": "2026-09-21",
+ "scope": "Native IHV snapshot building: the Quake II-style cluster record, the visibility walk and the frame history its getters read. Full IHV support remains incomplete.",
+ "commit": "9e1841de53d79f96cdbbde83a1427d1c7d83f31d",
+ "working_tree": "Uncommitted IHV bot client and snapshot work; unrelated changes remain present.",
+ "reference": {
+  "repository": "https://github.com/themuffinator/Quake3-IHV/tree/d5ce877155904c57f8b28fe0fd0c8aa2e9473337",
+  "inputs": [
+   {
+    "path": "E:\\Repositories\\Quake3-IHV\\ref\\install\\quake3.exe",
+    "bytes": 725042,
+    "sha256": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37"
+   }
+  ],
+  "note": "Only the entity lookups, the builder with its walk and sort comparator, the shared runtime helpers and the original data sections are mapped. The collision model and diagnostics are replaced by harness stubs, so no original BSP is loaded. No original entry point, filesystem, display, input, audio or network service starts, and no original module or asset is incorporated into fnTech3."
+ },
+ "original_functions": {
+  "SV_AddEntToSnapshot": "0x41b000",
+  "SV_AddEntitiesVisibleFromPoint": "0x41b040..0x41b205",
+  "SV_BuildClientSnapshot": "0x41b210..0x41b368",
+  "snapshot_sort_comparator": "0x41afc0",
+  "SV_SendClientSnapshot": "0x41b520",
+  "bot_send_suppressed": "0x41b544",
+  "SV_SendClientMessages": "0x41b6a0",
+  "server_frame_call_site": "0x41ac87",
+  "SV_LinkEntity_cluster_record": "0x41bce6..0x41bd72",
+  "CM_HeadnodeVisible": "0x40aff0",
+  "SV_SvEntityForGentity": "0x418fc0",
+  "svEntities_array": "0x425729c, stride 0x100"
+ },
+ "observations": {
+  "frame_fields": {
+   "areabytes": "+0x0",
+   "areabits": "+0x4 (32 bytes)",
+   "playerState": "+0x24 (276 bytes)",
+   "num_entities": "+0x138",
+   "first_entity": "+0x13c",
+   "stride": "0x14c",
+   "base": "client + 0x458"
+  },
+  "client_next_snapshot_time": "+0x44c",
+  "view_point": "player state origin plus its integer view height",
+  "player_state": "the first 276 bytes of the game client record, copied whole",
+  "entity_range": "1 upward; the world entity is never selected",
+  "selection_limit": 1024,
+  "svflags": {
+   "noclient": "0x1",
+   "bot": "0x8",
+   "broadcast": "0x20",
+   "portal": "0x40"
+  },
+  "portal_origin": "entity state offset 100",
+  "cluster_record": {
+   "style": "Quake II",
+   "dedupe": "against every earlier leaf cluster, not the stored list",
+   "leaf_threshold": 128,
+   "cluster_limit": 16,
+   "overflow": "numClusters -1 with the first straddled node"
+  },
+  "ring": {
+   "capacity": "maxclients * 2048 native entity states of 164 bytes",
+   "index": "the running counter reduced by the capacity",
+   "frame_first_entity": "the unreduced counter in the original; fnTech3 keeps it reduced, which selects the same slots"
+  },
+  "bot_snapshots": "built like any active client; only the send is skipped"
+ },
+ "comparison": {
+  "probe": "tests/q3_ihv_reference_snapshot_probe.cpp",
+  "command": "cl /nologo /EHsc /W4 /WX /MD /O2 /std:c++17 tests/q3_ihv_reference_snapshot_probe.cpp /Fe:.tmp/q3-ihv/reference-snapshot-probe.exe /Fo:.tmp/q3-ihv/reference-snapshot-probe.obj /link /BASE:0x400000 /DYNAMICBASE:NO /SECTION:.ihv,ERW /MANIFEST:EMBED \"/MANIFESTUAC:level='asInvoker' uiAccess='false'\" advapi32.lib",
+  "run": ".tmp/q3-ihv/reference-snapshot-probe.exe E:/Repositories/Quake3-IHV/ref/install/quake3.exe",
+  "compared": [
+   "every selected entity number, in the original's sorted order",
+   "the frame area byte count and all 32 area bits",
+   "the repaired-number reports",
+   "the frame player state against the game client record"
+  ],
+  "result": {
+   "scope": "original SV_BuildClientSnapshot visibility walk against fntech3's native snapshot selection, with synthetic collision replies; no original engine startup",
+   "scenarios": 2048,
+   "selections": 5850,
+   "portals": 1928,
+   "repaired_numbers": 412,
+   "digest": "c91eb87c13abd929"
+  },
+  "passed": true
+ },
+ "fntech3_boundaries": [
+  "The Quake II-style cluster record is stored for the q3-ihv profile alone; the other seven profiles keep Quake III's cluster list and its overflow cluster, verified in the same test.",
+  "CM_HeadnodeVisible refuses out-of-range nodes, leafs and clusters instead of reading outside the collision model, and the walk skips a cluster outside the supplied visibility vector.",
+  "A dead server builds nothing, and a non-finite view point is refused.",
+  "The ring cursor stays reduced, so a long-lived server cannot wrap its counter negative."
+ ],
+ "gates": {
+  "default_startup": "blocked",
+  "client_startup": "blocked",
+  "dedicated_developer": "Windows x86 only",
+  "network_dispatch": "blocked before retail parsing",
+  "native_bot_lifecycle": "implemented",
+  "native_bot_scheduling": "implemented",
+  "native_snapshot_history": "implemented",
+  "native_snapshot_builder": "implemented",
+  "original_bsp_visibility_parity": "open",
+  "protocol33_snapshot_writer": "open",
+  "native_clients": "open",
+  "gameplay": "open",
+  "rendered_native_demos": "open",
+  "audio_input": "open",
+  "bidirectional_interop": "open"
+ },
+ "checks": {
+  "unit_tests": [
+   "fntech3_q3_ihv_game_bridge",
+   "fntech3_q3_ihv_native_boundary",
+   "fntech3_q3_ihv_game_data",
+   "fntech3_q3_ihv_collision",
+   "q3_ihv_server_world_tests.py",
+   "rtcw_server_world_tests.py",
+   "wolfet_trace_tests.py",
+   "q3_ihv_trace_tests.py"
+  ],
+  "default_build": "meson compile -C meson/build/win32",
+  "development_build": "meson compile -C meson/build/win32-ihv (-Dq3-ihv-development=true)",
+  "suite": [
+   "Ok:                132",
+   "Fail:              1",
+   "Skipped:           2"
+  ],
+  "suite_targets": [
+   "23/135 fnTech3:fntech3_q3_ihv_game_data              OK               2.27s",
+   "24/135 fnTech3:fntech3_q3_ihv_game_bridge            OK               2.27s",
+   "76/135 fnTech3:fntech3_q3_ihv_native_boundary        OK               7.83s",
+   "77/135 fnTech3:fntech3_q3_ihv_wire                   OK               7.76s",
+   "78/135 fnTech3:fntech3_q3_ihv_message                OK               6.81s",
+   "79/135 fnTech3:fntech3_q3_ihv_configstrings          OK               5.41s",
+   "80/135 fnTech3:fntech3_q3_ihv_client_data            OK               4.50s",
+   "81/135 fnTech3:fntech3_q3_ihv_model_tags             OK               3.67s",
+   "82/135 fnTech3:fntech3_q3_ihv_scene                  OK               3.38s",
+   "83/135 fnTech3:fntech3_q3_ihv_identity               OK               2.96s",
+   "84/135 fnTech3:fntech3_q3_ihv_collision              OK               2.80s",
+   "135/135 fnTech3:fnql_python_source_regressions        FAIL           685.46s   exit status 1",
+   "135/135 fnTech3:fnql_python_source_regressions        FAIL           685.46s   exit status 1"
+  ],
+  "concurrent_working_tree": "Another session was adding a sixth game title and reworking release packaging and branding in this checkout during the run. Every fnql_python_source_regressions failure and error belongs to that work (release packaging and release identity). All eleven IHV targets passed."
+ },
+ "sources": [
+  {
+   "path": "code\\compat\\q3_ihv_snapshot_select.hpp",
+   "bytes": 5310,
+   "sha256": "0642e37cf0e3db8f1617d2df20ce4aff8f0cff1f5cfe7211a19e78d8c1bf0305"
+  },
+  {
+   "path": "code\\compat\\q3_ihv_server_clients.hpp",
+   "bytes": 12514,
+   "sha256": "abd4f361869740462aa80f43f70ecbe6b440c353ce31402c2bfa28e4c4ad4b66"
+  },
+  {
+   "path": "code\\compat\\q3_ihv_game_abi.h",
+   "bytes": 8863,
+   "sha256": "da94f0f3e74be9049ec47916e6335825e332aa02c679170589d2109fa22b6966"
+  },
+  {
+   "path": "code\\compat\\q3_ihv_native_boundary.hpp",
+   "bytes": 9724,
+   "sha256": "a7cf388cb3cf4b4a531d9c78d8918ce9555cc14fd6870d47f2a8838264c4f5cb"
+  },
+  {
+   "path": "code\\server\\server_q3_ihv_game.hpp",
+   "bytes": 27329,
+   "sha256": "401daf304d129870440b3eaf0644880fa716dc07942b25b8ad721a7f5bea70e5"
+  },
+  {
+   "path": "code\\server\\sv_world.cpp",
+   "bytes": 26601,
+   "sha256": "fe886bcef5d421727d4cef1da2e110659fb5ac51dcd13be0bccc136c20df6aba"
+  },
+  {
+   "path": "code\\server\\sv_main.cpp",
+   "bytes": 53073,
+   "sha256": "5628486a5842fcf82489dbd0b5e2817e29054dbaece37d0d58f99058d733ad38"
+  },
+  {
+   "path": "code\\server\\server.h",
+   "bytes": 33291,
+   "sha256": "dd9c24b7d342666c243ae2696527e46e29e49a55602d518b560d8acd2e27f4a9"
+  },
+  {
+   "path": "code\\qcommon\\cm_test.c",
+   "bytes": 14310,
+   "sha256": "302d188e2215dbb892d8698301384ee3d7add8946de603ebe12bdee23bfb34d6"
+  },
+  {
+   "path": "code\\qcommon\\cm_public.h",
+   "bytes": 3199,
+   "sha256": "309fd113208729e615a23962df3dcfc614aa8dc077ac75da2ae27dbbaa83aefd"
+  },
+  {
+   "path": "code\\qcommon\\cm_local.h",
+   "bytes": 6736,
+   "sha256": "f1ebc8cfd3944c96dac5365c7d2632ef42abe7ff6ec634fc0042b95a99f40952"
+  },
+  {
+   "path": "tests\\q3_ihv_game_bridge_tests.cpp",
+   "bytes": 32559,
+   "sha256": "84cb91a8e4a97a56f5d7bc01323a8524a52db7106db894c624cbd2638cd0217b"
+  },
+  {
+   "path": "tests\\q3_ihv_server_world_tests.py",
+   "bytes": 12390,
+   "sha256": "41338d73ae3beab19631c831911d4e22b316fa27d478f2ee92fb38060da7992c"
+  },
+  {
+   "path": "tests\\rtcw_server_world_tests.py",
+   "bytes": 16308,
+   "sha256": "536e391f06fe010e0cf79d7be5113484d2d079ca70cf19401b21237459393368"
+  },
+  {
+   "path": "tests\\q3_ihv_reference_snapshot_probe.cpp",
+   "bytes": 17398,
+   "sha256": "4faa0b10c1a162524c6cad6703e59c4ee704fe0537e3c9b0cbfe3a2b5ccca8f2"
+  }
+ ],
+ "limitations": [
+  "Synthetic collision replies establish the selection rules. Matching the original's own leaf, cluster, area and node answers for a real BSP is part of the open collision parity work.",
+  "No protocol-33 message writer consumes these frames, so nothing is transmitted and the delta compression that reads the retained frames is not implemented.",
+  "No original engine session, map, game module or network transport is started by this probe."
+ ],
+ "artifacts": [
+  ".tmp/q3-ihv/reference-snapshot.json",
+  ".tmp/q3-ihv/reference-snapshot-wrong-image.log",
+  ".tmp/q3-ihv/snapshot-default-build.log",
+  ".tmp/q3-ihv/snapshot-development-build.log",
+  ".tmp/q3-ihv/snapshot-full-suite.log",
+  ".tmp/q3-ihv/native-snapshot-builder.txt",
+  ".tmp/q3-ihv/native-snapshot-visible.txt",
+  ".tmp/q3-ihv/native-snapshot-sort.txt"
+ ],
+ "documentation": [
+  "docs/fntech3/Q3_IHV.md",
+  "docs/fntech3/COMPATIBILITY.md",
+  "CHANGELOG.md"
+ ]
+}

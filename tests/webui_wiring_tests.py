@@ -352,7 +352,11 @@ class WebUiWiringTests(unittest.TestCase):
         self.assertIn("if ( sendKeyUp && !Com_GameIsSTVEF() )", keys)
         self.assertIn("VM_Call( uivm, 3, UI_KEY_EVENT, key, qfalse, time );", keys)
         self.assertIn("Key_GetCatcher() & KEYCATCH_BROWSER", keys)
-        self.assertIn('Cmd_AddCommand( "togglemenu", CL_ToggleMenu_f );', client)
+        # Alice's togglemenu names the menu it toggles; every other profile keeps the bridge.
+        self.assertIn(
+            'Cmd_AddCommand( "togglemenu", Com_GameIsAlice() ? CL_AliceToggleMenu_f : CL_ToggleMenu_f );',
+            client,
+        )
 
     def test_key_bind_changes_publish_to_webui_when_client_build(self) -> None:
         keys = (ROOT / "code" / "qcommon" / "keys.c").read_text(encoding="utf-8")

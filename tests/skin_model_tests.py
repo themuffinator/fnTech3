@@ -15,6 +15,7 @@ PRELUDE = r'''
 #define _CRT_SECURE_NO_WARNINGS 1
 #include "code/qcommon/q_shared.h"
 #include "code/qcommon/game_profile.h"
+#include "code/renderercommon/tr_types.h"
 #include <cassert>
 #include <cctype>
 #include <climits>
@@ -31,7 +32,7 @@ enum { LIGHTMAP_NONE = -1, MAX_SKINS = 1024 };
 '''
 
 CALLBACKS = r'''
-static struct { int numSkins; skin_t *skins[MAX_SKINS]; shader_t *defaultShader; } tr;
+static struct { int numSkins; skin_t *skins[MAX_SKINS + 1]; shader_t *defaultShader; } tr;
 static std::vector<std::unique_ptr<unsigned char[]>> allocations;
 static std::map<std::string, std::string> files;
 static std::map<void *, std::unique_ptr<char[]>> buffers;
@@ -93,6 +94,7 @@ def fixture(renderer):
     image = (ROOT / 'code' / renderer / 'tr_image.c').read_text()
     source += function(image, 'static char *CommaParse(')
     source += '#include "code/renderercommon/tr_skin.h"\n'
+    source += '#include "code/renderercommon/tr_mesh_material.h"\n'
     source += function(image, 'void\tR_InitSkins(')
     source += function(image, 'skin_t\t*R_GetSkinByHandle(')
     return source + r'''
@@ -106,7 +108,7 @@ static void Reset(comGameId_t game) {
 
 CHECKS = r'''
 int main() {
-    for (auto game : {COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, COM_GAME_RTCW_SP, COM_GAME_RTCW_MP}) {
+    for (auto game : {COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, COM_GAME_RTCW_SP, COM_GAME_RTCW_MP, COM_GAME_STVEF_SP, COM_GAME_STVEF_MP}) {
         Reset(game); const bool rtcw = game == COM_GAME_RTCW_SP || game == COM_GAME_RTCW_MP;
         assert(!RE_RegisterSkin(nullptr) && !RE_RegisterSkin("") && !RE_RegisterSkin(std::string(64,'x').c_str()));
         for (int count = 1; count < 5; ++count) {
@@ -127,6 +129,8 @@ int main() {
         const auto *skin = tr.skins[handle]; assert(skin->numSurfaces == (rtcw ? 2 : 5) && skin->numModels == (rtcw ? 2 : 0));
         assert(!std::strcmp(skin->surfaces[0].name, "head") && skin->surfaces[0].shader->name == "texture/head");
         assert(!std::strcmp(skin->surfaces[skin->numSurfaces-1].name, "torso"));
+        refEntity_t entity{};
+        for (int ordinal : {0,1,7,99}) assert(R_MeshSkinShaderAt(&entity,skin,"head",ordinal) == skin->surfaces[0].shader);
         const int oldReads = reads, oldLookups = lookups;
         assert(RE_RegisterSkin("BODY.SKIN") == handle && reads == oldReads && lookups == oldLookups);
         char output[MAX_QPATH+2], saved[sizeof(output)]; std::memset(output, 0x55, sizeof(output)); std::memcpy(saved, output, sizeof(output));
@@ -152,6 +156,11 @@ int main() {
         files["bad.scale.skin"] = "head,texture/head\nplayerscale,1e300\n";
         auto badScale = RE_RegisterSkin("bad.scale.skin"); assert((badScale == 0) == rtcw);
         if (rtcw) { assert(!tr.skins[tr.numSkins-1]->registered); assert(R_GetSkinByHandle(tr.numSkins-1) == tr.skins[0]); }
+        if (rtcw) for (const char *value : {"nan","inf","-inf","-1e300"}) {
+            const auto name=std::string(value)+".skin";
+            files[name]="head,texture/head\nplayerscale,"+std::string(value)+"\n";
+            assert(!RE_RegisterSkin(name.c_str()) && !tr.skins[tr.numSkins-1]->registered);
+        }
         assert(buffers.empty());
     }
     // Enemy Territory reads every skin name as a file, recognises a model or
@@ -199,9 +208,83 @@ int main() {
 }
 '''
 
+IHV_CHECKS = r'''
+int main() {
+    Reset(COM_GAME_QUAKE3_IHV);
+    assert(!RE_RegisterSkin(nullptr) && !RE_RegisterSkin("") && !RE_RegisterSkin(std::string(64,'x').c_str()));
+    const auto plain=RE_RegisterSkin("plain"); assert(plain && reads==0 && tr.skins[plain]->numSurfaces==1);
+    assert(tr.skins[plain]->surfaces[0].shader->name=="plain" && RE_RegisterSkin("plain")==plain);
+    assert(RE_RegisterSkin("PLAIN")!=plain && reads==0);
+    assert(RE_RegisterSkin("file.SKIN") && reads==0);
+    const auto missing=RE_RegisterSkin("missing.skin"); assert(missing && tr.skins[missing]->registered && reads==1);
+    assert(tr.skins[missing]->numSurfaces==1 && tr.skins[missing]->surfaces[0].shader==tr.defaultShader);
+    files["missing.skin"]="surface,now-present\n";
+    assert(RE_RegisterSkin("missing.skin")==missing && reads==1);
+    assert(RE_RegisterSkin("MISSING.skin")!=missing && reads==2);
+    files["empty.skin"]="tag_head,ignored\nno-comma";
+    const auto empty=RE_RegisterSkin("empty.skin"); assert(empty && tr.skins[empty]->surfaces[0].shader==tr.defaultShader);
+    files["ordered.skin"]="tag_head,ignored\nthird,shader/first\nfirst,shader/second\n";
+    const auto ordered=RE_RegisterSkin("ordered.skin"); auto *skin=tr.skins[ordered];
+    assert(ordered && skin->numSurfaces==2 && !skin->numModels && !skin->surfaces[0].name[0]);
+    assert(skin->surfaces[0].shader->name=="shader/first" && skin->surfaces[1].shader->name=="shader/second");
+    refEntity_t entity{}; entity.skinNum=99;
+    for(int ordinal=0;ordinal<100;++ordinal)assert(R_MeshSkinShaderAt(&entity,skin,"unused-name",ordinal)==skin->surfaces[ordinal%2].shader);
+    assert(R_MeshSkinShaderAt(&entity,skin,"first",-1)==tr.defaultShader);
+    const auto count=skin->numSurfaces; skin->numSurfaces=0;
+    assert(R_MeshSkinShaderAt(&entity,skin,"first",0)==tr.defaultShader); skin->numSurfaces=count;
+    auto *surfaces=skin->surfaces; skin->surfaces=nullptr;
+    assert(R_MeshSkinShaderAt(&entity,skin,"first",0)==tr.defaultShader); skin->surfaces=surfaces;
+    files["literal.skin"]="// comment,retained\nbody,  spaces  \nhead,\"quoted\"\n";
+    const auto literal=RE_RegisterSkin("literal.skin");
+    assert(tr.skins[literal]->numSurfaces==3 && tr.skins[literal]->surfaces[0].shader->name=="retained");
+    assert(tr.skins[literal]->surfaces[1].shader->name=="  spaces  " && tr.skins[literal]->surfaces[2].shader->name=="\"quoted\"");
+    files["tag-cursor.skin"]="body,one\ntag_tail,two\n";
+    const auto tags=RE_RegisterSkin("tag-cursor.skin"); assert(tr.skins[tags]->numSurfaces==2);
+    files["crlf.skin"]="tag_ignored,skip\r\nbody,\r\n\r\nhead,one\r\nhead,two\r";
+    const auto crlf=RE_RegisterSkin("crlf.skin"); assert(tr.skins[crlf]->numSurfaces==2);
+    files["zero.skin"]=std::string("body,first\0head,ignored",23);
+    const auto zero=RE_RegisterSkin("zero.skin"); assert(tr.skins[zero]->numSurfaces==1 && tr.skins[zero]->surfaces[0].shader->name=="first");
+    files["tail.skin"]="body,"; const auto tail=RE_RegisterSkin("tail.skin"); assert(tr.skins[tail]->surfaces[0].shader->name.empty());
+    for(int n=1;n<=32;++n) {
+        std::string text; for(int i=0;i<n;++i)text+="unused,"+std::to_string(i)+"\n";
+        const auto name="count"+std::to_string(n)+".skin"; files[name]=text;
+        const auto handle=RE_RegisterSkin(name.c_str()); assert(handle && tr.skins[handle]->numSurfaces==n);
+        for(int i=0;i<n*3;++i)assert(R_MeshSkinShaderAt(&entity,tr.skins[handle],"ignored",i)->name==std::to_string(i%n));
+    }
+    const int lookupsBefore=lookups;
+    files["too-many.skin"]="";for(int i=0;i<33;++i)files["too-many.skin"]+="body,one\n";
+    assert(!RE_RegisterSkin("too-many.skin") && lookups==lookupsBefore && buffers.empty());
+    assert(!tr.skins[tr.numSkins-1]->registered && R_GetSkinByHandle(tr.numSkins-1)==tr.skins[0]);
+    const int failedReads=reads; assert(!RE_RegisterSkin("too-many.skin") && reads==failedReads);
+    files["max-token.skin"]="body,"+std::string(1023,'a');assert(RE_RegisterSkin("max-token.skin"));
+    files["bad-token.skin"]="body,"+std::string(1024,'a');assert(!RE_RegisterSkin("bad-token.skin") && buffers.empty());
+    fntech3IhvSkinNames_t output, saved; std::memset(&saved,0x55,sizeof(saved)); output=saved;
+    assert(!FnQ3IHV_ParseSkin(nullptr,0,&output) && !std::memcmp(&output,&saved,sizeof(output)));
+    assert(!FnQ3IHV_ParseSkin("",0,nullptr));
+    assert(!FnQ3IHV_ParseSkin(files["bad-token.skin"].data(),files["bad-token.skin"].size(),&output) && !std::memcmp(&output,&saved,sizeof(output)));
+    const std::string fixture="tag_head,\nbody,first\r\nbody,second\nbody,third";
+    for(size_t size=0;size<=fixture.size();++size){
+        auto bytes=std::make_unique<char[]>(size?size:1);std::memcpy(bytes.get(),fixture.data(),size);
+        assert(FnQ3IHV_ParseSkin(bytes.get(),size,&output) && output.count<=3);
+    }
+    assert(buffers.empty());
+    Reset(COM_GAME_QUAKE3_IHV);
+    for(int i=0;i<MAX_SKINS;++i){const auto name="capacity/"+std::to_string(i);assert(RE_RegisterSkin(name.c_str())==i+1);}
+    assert(tr.numSkins==MAX_SKINS+1 && !RE_RegisterSkin("overflow") && warnings==1);
+    assert(RE_RegisterSkin("capacity/0")==1 && RE_RegisterSkin("capacity/1023")==1024);
+    assert(buffers.empty());
+}
+'''
+
 
 class SkinModelTests(unittest.TestCase):
     def test_profile_skin_registration_metadata_and_bounds(self):
+        self.compile_and_run(CHECKS)
+
+    def test_ihv_ordered_skins_parser_cache_limits_and_selection(self):
+        self.compile_and_run(IHV_CHECKS)
+
+    def compile_and_run(self, checks):
         compiler = shutil.which('clang++') or shutil.which('g++')
         if not compiler:
             self.skipTest('C++17 compiler unavailable')
@@ -215,7 +298,7 @@ class SkinModelTests(unittest.TestCase):
             with self.subTest(renderer=renderer), tempfile.TemporaryDirectory(prefix='skin-model-', dir=ROOT / '.tmp') as temp:
                 folder = Path(temp)
                 source, executable = folder / 'probe.cpp', folder / ('probe.exe' if os.name == 'nt' else 'probe')
-                source.write_text(fixture(renderer) + CHECKS, encoding='utf-8')
+                source.write_text(fixture(renderer) + checks, encoding='utf-8')
                 build = subprocess.run([compiler, *target, '-std=c++17', '-I', str(ROOT), str(source), '-o', str(executable)],
                     cwd=ROOT, capture_output=True, text=True, timeout=90)
                 self.assertEqual(build.returncode, 0, build.stdout + build.stderr)

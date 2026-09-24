@@ -278,7 +278,7 @@
       <div class="stats">
         <article class="card">
           <strong>Compatibility targets</strong>
-          <p>Quake III Arena, Quake Live, Return to Castle Wolfenstein (SP/MP), Wolfenstein: Enemy Territory, and Star Trek Voyager: Elite Force (SP/Holomatch)</p>
+          <p>Quake III Arena, Quake Live, Return to Castle Wolfenstein (SP/MP), Wolfenstein: Enemy Territory, Star Trek Voyager: Elite Force (SP/Holomatch), Star Wars Jedi Knight: Jedi Academy (SP/MP), and American McGee's Alice</p>
         </article>
         <article class="card">
           <strong>Base version</strong>
@@ -320,7 +320,9 @@
       </div>
       <p class="lead"><strong>Wolfenstein: Enemy Territory</strong>: <code>wolfet</code> (alias <code>et</code>) is experimental and gated in default builds. <code>-Dwolfet-development=true</code> permits isolated client and server probes. See the <a href="docs/fntech3/2026-09-17-wolfet-contracts.md">ET implementation record</a>.</p>
       <p class="lead"><strong>Star Trek Voyager: Elite Force</strong>: <code>stvef-sp</code> (single player) and <code>stvef-mp</code> (Holomatch) are experimental modes of one title. <code>-Dstvef-development=true</code> permits isolated probes. See the <a href="docs/fntech3/2026-09-18-stvef-contracts.md">Elite Force foundation record</a>.</p>
-      <p class="lead">These five games and seven profiles define the current project scope. <strong>Full compatibility is not yet established for any profile.</strong> Build and unit results do not replace runtime and retail-interoperability evidence. The <a href="docs/fntech3/COMPATIBILITY.md">compatibility ledger</a> records open gates and observed results.</p>
+      <p class="lead"><strong>Star Wars Jedi Knight: Jedi Academy</strong>: <code>jka-sp</code> (single player) and <code>jka-mp</code> (multiplayer) are registered modes of one title. <code>-Djka-development=true</code> permits isolated probes; no module, wire, asset or renderer boundary exists yet. See the <a href="docs/fntech3/2026-09-21-jka-contracts.md">Jedi Academy foundation record</a>.</p>
+      <p class="lead"><strong>American McGee's Alice</strong>: <code>alice</code> is experimental and has one mode. <code>-Dalice-development=true</code> permits isolated probes; a developer server mounts a real installation and loads every one of its maps, and no module, wire, savegame or renderer boundary exists yet. Alice runs Ritual's Heavy Metal: F.A.K.K.2 engine rather than a Quake III one. See the <a href="docs/fntech3/2026-09-22-alice-contracts.md">Alice foundation record</a>.</p>
+      <p class="lead">These eight games and thirteen profiles define the current project scope. <strong>Full compatibility is not yet established for any profile.</strong> Build and unit results do not replace runtime and retail-interoperability evidence. The <a href="docs/fntech3/COMPATIBILITY.md">compatibility ledger</a> records open gates and observed results.</p>
       <p class="lead">RTCW SP and MP are modes of one title. Switching modes relaunches the same executable with a new profile. Development builds have menu, map, and save/load evidence, with remaining limits recorded in the <a href="docs/fntech3/COMPATIBILITY.md#rtcw-gate-matrix">RTCW gate matrix</a>.</p>
       <p class="footer">Supply your own legitimate installation. Retail modules, assets, and proprietary runtimes remain there. Release packages exclude the optional proprietary Steam provider and Valve Steam runtimes. Steam services require a separately supplied compatible provider; unavailable services are reported honestly.</p>
     </section>
@@ -333,7 +335,7 @@
       <div class="feature-grid">
         <article class="feature-group">
           <h3>Unified game compatibility</h3>
-          <p>Profile-owned installation, module ABI, protocol, demo, filesystem, asset, and optional-service contracts for Q3, QL, RTCW SP/MP, Enemy Territory, and Elite Force SP/Holomatch, including RTCW campaign and savegame boundaries.</p>
+          <p>Profile-owned installation, module ABI, protocol, demo, filesystem, asset, and optional-service contracts for Q3, QL, RTCW SP/MP, Enemy Territory, Elite Force SP/Holomatch, Jedi Academy SP/MP and Alice, including RTCW campaign and savegame boundaries.</p>
         </article>
         <article class="feature-group">
           <h3>Fast, modern hardware rendering</h3>

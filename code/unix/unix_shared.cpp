@@ -385,7 +385,10 @@ qboolean Sys_IsDirectory( const char *ospath ) {
 ==============
 Sys_ReplaceFile
 
-POSIX rename atomically replaces a file within the same filesystem.
+POSIX rename atomically replaces a file within the same filesystem. It needs
+no retry: unlike the Windows path, an open handle on the destination does not
+deny the replacement, so there is no transient denial for a scanner or an
+indexer to cause.
 ==============
 */
 qboolean Sys_ReplaceFile( const char *from, const char *to ) {

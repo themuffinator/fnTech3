@@ -2,6 +2,8 @@
 #ifndef FNTECH3_RTCW_ROUTING_INIT_HPP
 #define FNTECH3_RTCW_ROUTING_INIT_HPP
 
+static bool AAS_BuildRTCWRouteCache();
+
 // Included by be_aas_route.cpp. These are engine-owned tables, never module PODs.
 namespace fntech3::rtcw::navigation {
 constexpr std::size_t MaxRoutingBytes = 256 * 1024 * 1024;
@@ -88,10 +90,14 @@ bool AAS_InitRTCWRouting(void) {
 		return false;
 	}
 	AAS_FreeRoutingCaches();
-	// This also validates the map's cluster/portal topology before graph access.
-	if (!AAS_ReadRTCWRouteCache()) {
-		botimport.Print(PRT_ERROR, "RTCW routing cache missing or invalid for %s; cache generation is not implemented\n", aasworld.mapname);
-		return false;
+	// Topology must be valid even when there is no cache to validate against.
+	try {
+		if (routecache::ValidateTopology(navigation::RouteTopology(aasworld)) != routecache::Error::None) return false;
+	} catch (const std::bad_alloc &) { return false; }
+	const bool loadedCache = AAS_ReadRTCWRouteCache() != 0;
+	if (!loadedCache) {
+		AAS_InitClusterAreaCache();
+		AAS_InitPortalCache();
 	}
 	AAS_InitTravelFlagFromType();
 	AAS_InitAreaContentsTravelFlags();
@@ -109,6 +115,10 @@ bool AAS_InitRTCWRouting(void) {
 #ifdef ROUTING_DEBUG
 	numareacacheupdates = numportalcacheupdates = 0;
 #endif
+	if (!loadedCache) {
+		botimport.Print(PRT_MESSAGE, "Generating RTCW routing cache: %s\n", aasworld.mapname);
+		if (!AAS_BuildRTCWRouteCache()) return false;
+	}
 	return true;
 }
 #endif

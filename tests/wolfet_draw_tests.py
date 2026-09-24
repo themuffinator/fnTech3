@@ -148,8 +148,8 @@ class WolfETDrawTests(unittest.TestCase):
             order = [t.strip().rstrip(',') for t in types.split('\n')]
             order = [t.split('//')[0].strip().rstrip(',') for t in order]
             order = [t for t in order if t.startswith('SF_')]
-            # ET's foliage and decals were added after its models.
-            self.assertEqual(order[-3:], ['SF_WOLFET', 'SF_WOLFET_FOLIAGE', 'SF_WOLFET_DECAL'], name)
+            # Later surface types may be appended; ET's ordinals must stay put.
+            self.assertEqual(order[13:16], ['SF_WOLFET', 'SF_WOLFET_FOLIAGE', 'SF_WOLFET_DECAL'], name)
             table = source('code/%s/tr_surface.c' % name)
             table = table[table.index('rb_surfaceTable'):]
             table = table[:table.index('};')]

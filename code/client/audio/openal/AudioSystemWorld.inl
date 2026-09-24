@@ -366,11 +366,21 @@ public:
 	float Peak() const { return peak_; }
 	short STVEFSample( int frame ) const { return stvefTopBytes_.At(frame); }
 	const SoundShaderSettings &Shader() const { return shader_; }
+	// The bytes a frame takes in the file (its sample width times its
+	// channels), or 0 for a sample that did not come from one.
+	int SourceFrameBytes() const { return sourceFrameBytes_; }
+	// American McGee's Alice's loop block: the same samples again in a
+	// buffer of their own whose loop points are the block, so one voice can
+	// repeat the block while another loops the whole sample. Made on first
+	// use, once per load; 0 when the runtime has no AL_SOFT_loop_points or
+	// the block is not the one the buffer was made with.
+	ALuint AliceLoopBuffer( OpenALDevice &device, int startFrame, int endFrame );
 
 private:
 	static std::vector<short> ConvertToPCM16( const snd_info_t &info, const AudioSampleFormat &format, const byte *data );
 	bool UploadPCM( OpenALDevice &device, const std::vector<short> &pcm, const AudioSampleFormat &format, int rate );
 	bool GenerateFallbackTone( OpenALDevice &device );
+	void ReleaseAliceLoopBuffer( OpenALDevice &device );
 
 	std::string name_;
 	bool loadAttempted_ = false;
@@ -387,6 +397,11 @@ private:
 	fntech3::audio::stvef::lipsync::TopBytes stvefTopBytes_;
 	float peak_ = 0.0f;
 	SoundShaderSettings shader_;
+	int sourceFrameBytes_ = 0;
+	ALuint aliceLoopBuffer_ = 0;
+	int aliceLoopStart_ = 0;
+	int aliceLoopEnd_ = 0;
+	bool aliceLoopTried_ = false;
 };
 
 std::vector<short> SoundSample::ConvertToPCM16( const snd_info_t &info, const AudioSampleFormat &format, const byte *data ) {
@@ -517,6 +532,8 @@ bool SoundSample::EnsureLoaded( OpenALDevice &device, bool allowToneFallback ) {
 		}
 		return false;
 	}
+	// The file's own layout, before any downmix below changes it.
+	const int fileFrameBytes = info.width * info.channels;
 
 	const bool route = fntech3::audio::NeedsSpeakerDownmix( info.speakerMask, info.channels );
 	const auto routed = route ? fntech3::audio::DownmixSpeakerBuffer( static_cast<const byte *>( data.get() ), info.size, info.dataofs,
@@ -562,6 +579,7 @@ bool SoundSample::EnsureLoaded( OpenALDevice &device, bool allowToneFallback ) {
 		const std::vector<short> stereoPCM = DownmixPCM16ToStereo( pcm, info.channels );
 		loaded_ = UploadPCM( device, stereoPCM, { AudioSampleEncoding::PCM, kDefaultStreamChannels }, info.rate );
 	}
+	sourceFrameBytes_ = loaded_ ? fileFrameBytes : 0;
 
 	if ( !loaded_ ) {
 		missing_ = true;
@@ -577,6 +595,8 @@ void SoundSample::Unload( OpenALDevice &device ) {
 		device.AL().alDeleteBuffers( 1, &buffer_ );
 		buffer_ = 0;
 	}
+	ReleaseAliceLoopBuffer( device );
+	sourceFrameBytes_ = 0;
 	loadAttempted_ = false;
 	loaded_ = false;
 	missing_ = false;
@@ -589,6 +609,63 @@ void SoundSample::Unload( OpenALDevice &device ) {
 	speech_.Clear();
 	stvefTopBytes_.Clear();
 	peak_ = 0.0f;
+}
+
+void SoundSample::ReleaseAliceLoopBuffer( OpenALDevice &device ) {
+	if ( aliceLoopBuffer_ != 0 ) {
+		device.AL().alDeleteBuffers( 1, &aliceLoopBuffer_ );
+		aliceLoopBuffer_ = 0;
+	}
+	aliceLoopStart_ = aliceLoopEnd_ = 0;
+	aliceLoopTried_ = false;
+}
+
+// The loop points are the buffer's, and a buffer's points cannot change while
+// any source holds it (AL_INVALID_OPERATION), so they are set on a buffer of
+// their own before any voice takes it. The samples are read again from the
+// file rather than kept for every sample that never loops a block.
+ALuint SoundSample::AliceLoopBuffer( OpenALDevice &device, int startFrame, int endFrame ) {
+	if ( aliceLoopBuffer_ != 0 ) {
+		return startFrame == aliceLoopStart_ && endFrame == aliceLoopEnd_ ? aliceLoopBuffer_ : 0;
+	}
+	if ( aliceLoopTried_ || !loaded_ || defaultSample_ || buffer_ == 0 || startFrame < 0 || endFrame <= startFrame
+		|| endFrame > frames_ ) {
+		return 0;
+	}
+	aliceLoopTried_ = true;
+	if ( !device.SupportsLoopPoints() ) {
+		Com_DPrintf( S_COLOR_YELLOW "WARNING: %s loops whole: the OpenAL runtime has no AL_SOFT_loop_points for its loop block\n",
+			name_.c_str() );
+		return 0;
+	}
+	snd_info_t info = {};
+	fnql::ScopedTempMemory data( S_CodecLoad( name_.c_str(), &info ) );
+	const ALenum alFormat = device.PCM16FormatForSampleFormat( format_ );
+	std::vector<short> pcm;
+	if ( data.get() != nullptr && !fntech3::audio::NeedsSpeakerDownmix( info.speakerMask, info.channels ) && info.rate == rate_ ) {
+		pcm = ConvertToPCM16( info, format_, static_cast<const byte *>( data.get() ) );
+	}
+	if ( alFormat == 0 || pcm.empty() || pcm.size() != static_cast<size_t>( frames_ ) * static_cast<size_t>( channels_ )
+		|| !PCMByteCountFitsALsizei( pcm.size() ) ) {
+		Com_DPrintf( S_COLOR_YELLOW "WARNING: %s loops whole: its loop block's buffer could not be made\n", name_.c_str() );
+		return 0;
+	}
+	ALuint buffer = 0;
+	device.AL().alGetError();
+	device.AL().alGenBuffers( 1, &buffer );
+	if ( device.AL().alGetError() != AL_NO_ERROR || buffer == 0 ) {
+		return 0;
+	}
+	device.AL().alBufferData( buffer, alFormat, pcm.data(), static_cast<ALsizei>( pcm.size() * sizeof( short ) ), rate_ );
+	if ( device.AL().alGetError() != AL_NO_ERROR || !device.SetBufferLoopPoints( buffer, startFrame, endFrame ) ) {
+		device.AL().alDeleteBuffers( 1, &buffer );
+		Com_DPrintf( S_COLOR_YELLOW "WARNING: %s loops whole: the OpenAL runtime refused its loop block\n", name_.c_str() );
+		return 0;
+	}
+	aliceLoopBuffer_ = buffer;
+	aliceLoopStart_ = startFrame;
+	aliceLoopEnd_ = endFrame;
+	return aliceLoopBuffer_;
 }
 
 enum class VoiceKind {
@@ -624,6 +701,12 @@ public:
 	// has faded to and are spatialized the way retail spatializes them.
 	bool stvefAmbient = false;
 	int stvefVolume = 0;
+	// American McGee's Alice's voices are placed by the engine in
+	// shared/AliceSound.h, which measures their distance itself: the gain
+	// includes it, and `aliceDirect` is the obstruction of the direct path.
+	bool alice = false;
+	float aliceGain = 0.0f;
+	float aliceDirect = 1.0f;
 	bool liquidBoundary = false;
 	float occlusion = 0.0f;
 	float occlusionTarget = 0.0f;
@@ -678,6 +761,9 @@ public:
 		rtcwLoopData = {};
 		stvefAmbient = false;
 		stvefVolume = 0;
+		alice = false;
+		aliceGain = 0.0f;
+		aliceDirect = 1.0f;
 		liquidBoundary = false;
 		occlusion = 0.0f;
 		occlusionTarget = 0.0f;
@@ -966,6 +1052,15 @@ public:
 	void UpdateEntityPosition( int entityNum, const float *origin );
 	void Respatialize( int entityNum, const float *origin, float axis[3][3] );
 	void Update( qboolean softMuted );
+	// American McGee's Alice's 36 voices are the first 36 one-shot voices.
+	bool AlicePlaying( int voice ) const;
+	bool AlicePrepare( int voice, sfxHandle_t handle, SoundSample *sample );
+	void AliceLoopBlock( int voice, int startFrame, int endFrame );
+	void AliceStart( int voice, bool loop, int offsetFrames );
+	void AliceStop( int voice );
+	void AlicePause( int voice );
+	void AliceResume( int voice );
+	void AlicePlace( int voice, const float *position, float gain, float direct );
 	qboolean GetSpatialDebugInfo( spatialAudioDebugInfo_t *info, const OpenALDevice &device, int preferredEntity, int overlayMode ) const;
 	void DumpSpatialDebug( const OpenALDevice &device, int preferredEntity ) const;
 	void PrintAudioZoneInfo() const;
@@ -979,6 +1074,9 @@ public:
 
 private:
 	void ApplyVoice( SoundVoice &voice, qboolean softMuted );
+	void ApplyAliceVoice( SoundVoice &voice, qboolean softMuted );
+	SoundVoice *AliceVoice( int voice );
+	const SoundVoice *AliceVoice( int voice ) const;
 	void PlayOneShot( SoundVoice *voice, int entityNum, int entchannel, sfxHandle_t handle,
 		SoundSample *sample, const float *origin, float volume, int startTime );
 	void CleanupFinishedVoices();
@@ -1018,6 +1116,7 @@ private:
 	int environmentTransitionEndTime_ = 0;
 	int lastListenerUpdateTime_ = 0;
 	bool loopFrameClearPending_ = false;
+	bool lastSoftMuted_ = false;
 	float listenerAxis_[3][3] = {
 		{ 1.0f, 0.0f, 0.0f },
 		{ 0.0f, 1.0f, 0.0f },
@@ -1557,6 +1656,32 @@ bool Q3SoundWorld::RefreshAudioZonesForCurrentMap() {
 }
 
 EnvironmentState Q3SoundWorld::EvaluateCurrentListenerEnvironment() const {
+	if ( Com_GameIsAlice() ) {
+		// American McGee's Alice has no reverb but the room its client game
+		// names, and none at all unless s_reverb is 1 (alice.exe 0x00471000),
+		// which it ships at 0. The room is played with the nearest of the
+		// presets here, sent at retail's software-provider level
+		// (0x00470f50); an environment outside retail's 26 changes nothing.
+		int type = 0;
+		float level = 0.0f;
+		if ( !S_AliceReverb( &type, &level ) ) {
+			return EnvironmentState();
+		}
+		const char *preset = fntech3::audio::alice::sfx::NearestReverbPreset( type );
+		if ( preset == nullptr ) {
+			return targetEnvironment_;
+		}
+		EnvironmentState state;
+		for ( int i = 0; i < static_cast<int>( sizeof( kReverbPresets ) / sizeof( kReverbPresets[0] ) ); ++i ) {
+			if ( !std::strcmp( kReverbPresets[i].name, preset ) ) {
+				SetEnvironmentPreset( state, i );
+				break;
+			}
+		}
+		const float reverbGain = ( s_alReverbGain != nullptr ) ? s_alReverbGain->value : 1.0f;
+		state.baseWet = ClampFloat( fntech3::audio::alice::sfx::ReverbLevel( type, level ) * reverbGain, 0.0f, 1.0f );
+		return state;
+	}
 	if ( audioZones_.Loaded() ) {
 		EnvironmentState zoneEnvironment;
 		if ( audioZones_.EvaluateEnvironment( listenerOrigin_.Data(), zoneEnvironment ) ) {
@@ -1654,6 +1779,10 @@ void Q3SoundWorld::UpdateVoiceEnvironment( SoundVoice &voice, const float *voice
 
 void Q3SoundWorld::ApplyVoice( SoundVoice &voice, qboolean softMuted ) {
 	if ( !voice.active || voice.source == 0 || voice.sample == nullptr ) {
+		return;
+	}
+	if ( voice.alice ) {
+		ApplyAliceVoice( voice, softMuted );
 		return;
 	}
 
@@ -2151,7 +2280,8 @@ void Q3SoundWorld::PrintAudioZoneInfo() const {
 
 void Q3SoundWorld::CleanupFinishedVoices() {
 	for ( SoundVoice &voice : oneShots_ ) {
-		if ( !voice.active || voice.source == 0 ) {
+		// Alice's engine keeps its own voices, pending ones included.
+		if ( !voice.active || voice.source == 0 || voice.alice ) {
 			continue;
 		}
 		ALint state = 0;
@@ -2162,6 +2292,186 @@ void Q3SoundWorld::CleanupFinishedVoices() {
 			voice.Release( *device_ );
 		}
 	}
+}
+
+/*
+American McGee's Alice's voices. The engine in shared/AliceSound.h has
+measured each voice's distance and folded it into the gain, as the
+single-player Elite Force voices are measured, so the device attenuates
+nothing more; the voice stays positional, so HRTF and the panning of the
+active output mode still place it. A voice heard at the listener's own
+position sits on the listener. Alice sends to the room reverb only when
+s_reverb asks it to, and takes none of the engine's own occlusion or tone
+shaping: retail's single obstruction step is in the direct gain.
+*/
+SoundVoice *Q3SoundWorld::AliceVoice( int voice ) {
+	return voice >= 0 && voice < fntech3::audio::alice::sfx::AllVoices ? &oneShots_[static_cast<size_t>( voice )] : nullptr;
+}
+
+const SoundVoice *Q3SoundWorld::AliceVoice( int voice ) const {
+	return voice >= 0 && voice < fntech3::audio::alice::sfx::AllVoices ? &oneShots_[static_cast<size_t>( voice )] : nullptr;
+}
+
+bool Q3SoundWorld::AlicePlaying( int voice ) const {
+	const SoundVoice *v = AliceVoice( voice );
+	if ( v == nullptr || !v->active || !v->alice || v->source == 0 || device_ == nullptr ) {
+		return false;
+	}
+	ALint state = 0;
+	device_->AL().alGetSourcei( v->source, AL_SOURCE_STATE, &state );
+	return state == AL_PLAYING;
+}
+
+bool Q3SoundWorld::AlicePrepare( int voice, sfxHandle_t handle, SoundSample *sample ) {
+	SoundVoice *v = AliceVoice( voice );
+	if ( v == nullptr || sample == nullptr || !sample->Loaded() || device_ == nullptr ) {
+		return false;
+	}
+	if ( v->active && !v->alice ) {
+		v->Release( *device_ );
+	}
+	if ( v->source == 0 ) {
+		v->source = device_->AcquireVoiceSource();
+		if ( v->source == 0 ) {
+			v->Release( *device_ );
+			return false;
+		}
+		device_->CreateVoiceFilters( v->directFilter, v->sendFilter );
+		v->routeCache = VoiceRouteCache();
+	}
+	device_->AL().alSourceStop( v->source );
+	device_->AL().alSourcei( v->source, AL_BUFFER, sample->Buffer() );
+	device_->AL().alSourcei( v->source, AL_LOOPING, AL_FALSE );
+	v->kind = VoiceKind::OneShot;
+	v->active = true;
+	v->alice = true;
+	v->sample = sample;
+	v->handle = handle;
+	v->entnum = ENTITYNUM_NONE;
+	v->entchannel = CHAN_AUTO;
+	v->allocTime = Sys_Milliseconds();
+	v->fixedOrigin = true;
+	v->origin = listenerOrigin_;
+	v->velocity = Vec3f();
+	v->volumeScale = 1.0f;
+	v->doppler = false;
+	v->looping = false;
+	v->aliceGain = 0.0f;
+	v->aliceDirect = 1.0f;
+	ResetVoiceOcclusion( *v, 0.0f, Sys_Milliseconds() );
+	return true;
+}
+
+// A record's loop block (alice.exe 0x0046fd8f): the prepared voice takes the
+// sample's loop buffer, whose loop points are the block, and once started
+// looping plays to the block's end and then repeats the block. Where the
+// runtime has no AL_SOFT_loop_points it keeps the sample's own buffer and
+// loops the whole sample. The next AlicePrepare gives it that buffer back.
+void Q3SoundWorld::AliceLoopBlock( int voice, int startFrame, int endFrame ) {
+	SoundVoice *v = AliceVoice( voice );
+	if ( v == nullptr || !v->alice || v->source == 0 || v->sample == nullptr || device_ == nullptr ) {
+		return;
+	}
+	const ALuint buffer = v->sample->AliceLoopBuffer( *device_, startFrame, endFrame );
+	if ( buffer != 0 ) {
+		device_->AL().alSourceStop( v->source );
+		device_->AL().alSourcei( v->source, AL_BUFFER, buffer );
+	}
+}
+
+void Q3SoundWorld::AliceStart( int voice, bool loop, int offsetFrames ) {
+	SoundVoice *v = AliceVoice( voice );
+	if ( v == nullptr || !v->alice || v->source == 0 || v->sample == nullptr ) {
+		return;
+	}
+	v->looping = loop;
+	device_->AL().alSourcei( v->source, AL_LOOPING, loop ? AL_TRUE : AL_FALSE );
+	ApplyAliceVoice( *v, lastSoftMuted_ ? qtrue : qfalse );
+	if ( offsetFrames > 0 && v->sample->Frames() > 0 ) {
+		device_->AL().alSourcei( v->source, AL_SAMPLE_OFFSET, offsetFrames % v->sample->Frames() );
+	}
+	device_->AL().alSourcePlay( v->source );
+}
+
+void Q3SoundWorld::AliceStop( int voice ) {
+	SoundVoice *v = AliceVoice( voice );
+	if ( v == nullptr || !v->alice || device_ == nullptr ) {
+		return;
+	}
+	if ( v->source != 0 ) {
+		device_->AL().alSourceStop( v->source );
+	}
+	v->Release( *device_ );
+	v->kind = VoiceKind::OneShot;
+}
+
+void Q3SoundWorld::AlicePause( int voice ) {
+	if ( AlicePlaying( voice ) ) {
+		device_->AL().alSourcePause( AliceVoice( voice )->source );
+	}
+}
+
+void Q3SoundWorld::AliceResume( int voice ) {
+	SoundVoice *v = AliceVoice( voice );
+	if ( v == nullptr || !v->alice || v->source == 0 || device_ == nullptr ) {
+		return;
+	}
+	ALint state = 0;
+	device_->AL().alGetSourcei( v->source, AL_SOURCE_STATE, &state );
+	if ( state == AL_PAUSED ) {
+		device_->AL().alSourcePlay( v->source );
+	}
+}
+
+void Q3SoundWorld::AlicePlace( int voice, const float *position, float gain, float direct ) {
+	SoundVoice *v = AliceVoice( voice );
+	if ( v == nullptr || !v->alice || position == nullptr ) {
+		return;
+	}
+	v->origin.Set( position );
+	v->aliceGain = gain;
+	v->aliceDirect = direct;
+	if ( v->source != 0 ) {
+		ApplyAliceVoice( *v, lastSoftMuted_ ? qtrue : qfalse );
+	}
+}
+
+void Q3SoundWorld::ApplyAliceVoice( SoundVoice &voice, qboolean softMuted ) {
+	if ( voice.source == 0 || device_ == nullptr ) {
+		return;
+	}
+	// Each frame's update passes the focus mute through here; a voice placed
+	// between updates takes the last one.
+	lastSoftMuted_ = softMuted != qfalse;
+	const float *position = voice.origin.Data();
+	int reverbType = 0;
+	float reverbLevel = 0.0f;
+	const bool reverb = S_AliceReverb( &reverbType, &reverbLevel );
+	const float gain = softMuted ? 0.0f : voice.aliceGain;
+	const float wet = ( reverb && !softMuted ) ? ClampFloat( environment_.baseWet, 0.0f, 1.0f ) : 0.0f;
+	const AudioFilterSettings sendTone = wet > 0.001f ? LowPassFilter( wet, environment_.wetHF ) : NoFilter();
+
+	voice.debugGain = gain;
+	voice.debugPan = 0.0f;
+	voice.debugDryGain = voice.aliceDirect;
+	voice.debugWetGain = wet;
+	voice.debugPitch = 1.0f;
+	voice.debugDistance = DistanceBetweenPoints( position, listenerOrigin_.Data() );
+	voice.debugPositional = true;
+	voice.debugDirect = false;
+	voice.debugToneClass = "alice";
+	voice.debugDirectTone = AudioFilterKindName( AudioFilterKind::None );
+	voice.debugSendTone = AudioFilterKindName( sendTone.kind );
+
+	device_->AL().alSourcef( voice.source, AL_PITCH, 1.0f );
+	device_->SetSourceSpatialize( voice.source, true );
+	device_->SetSourceDirectChannels( voice.source, false );
+	device_->AL().alSourcei( voice.source, AL_SOURCE_RELATIVE, AL_FALSE );
+	device_->ConfigureSourceDistance( voice.source, false, kDefaultSoundShaderScale, kDefaultSoundShaderScale );
+	device_->AL().alSource3f( voice.source, AL_POSITION, position[0], position[1], position[2] );
+	device_->AL().alSource3f( voice.source, AL_VELOCITY, 0.0f, 0.0f, 0.0f );
+	device_->ApplyVoiceRouting( voice.source, voice.directFilter, voice.sendFilter, gain, voice.aliceDirect,
+		NoFilter(), sendTone, voice.routeCache );
 }
 
 void Q3SoundWorld::Update( qboolean softMuted ) {

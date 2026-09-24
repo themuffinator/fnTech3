@@ -548,7 +548,7 @@ int CheckTruncatedDeltaReads( const msg_t &writer, const State &sent,
 }
 
 int TestTruncatedDeltaReads() {
-	for ( const auto profile : { NETCHAN_WIRE_LEGACY_Q3,
+	for ( const auto profile : { NETCHAN_WIRE_Q3_66, NETCHAN_WIRE_Q3_67, NETCHAN_WIRE_LEGACY_Q3,
 		NETCHAN_WIRE_IOQ3, NETCHAN_WIRE_QL_RETAIL } ) {
 		for ( const bool raw : { false, true } ) {
 			std::array<byte, 1024> storage{};
@@ -635,8 +635,80 @@ int CheckMalformedDeltaDrop( const State &baseline, ReadDelta readDelta ) {
 	return 0;
 }
 
+int TestLegacyDeltaBounds() {
+	for ( const int protocol : { 43, 45, 46, 48 } ) {
+		entityState_t entityBase{};
+		entityBase.number = 17;
+		entityBase.pos.trTime = 123456;
+		for ( const byte value : { byte( 0 ), byte( 126 ), byte( 128 ) } ) {
+			std::array<byte, 1> bytes{ value };
+			msg_t reader{};
+			MSG_Init( &reader, bytes.data(), static_cast<int>( bytes.size() ) );
+			MSG_RawBitstream( &reader );
+			// Empty body, truncated explicit vector, or a dictionary index
+			// starting beyond the last byte. None may publish partial state.
+			reader.cursize = value ? 1 : 0;
+			reader.bit = value == 128 ? 6 : 0;
+			if ( const int result = CheckMalformedDeltaDrop( entityBase,
+				[&]( entityState_t *out ) {
+					MSG_ReadDeltaEntityLegacy( &reader, &entityBase, out, 17, protocol );
+				} ) ) return result;
+		}
+		for ( const bool removed : { false, true } ) {
+			std::array<byte, 1> bytes{ static_cast<byte>( removed ) };
+			msg_t reader{};
+			MSG_Init( &reader, bytes.data(), static_cast<int>( bytes.size() ) );
+			MSG_RawBitstream( &reader );
+			reader.cursize = 1;
+			entityState_t received = entityBase;
+			MSG_ReadDeltaEntityLegacy( &reader, &received, &received, 17, protocol );
+			CHECK( received.number == ( removed ? MAX_GENTITIES - 1 : 17 ) );
+			CHECK( received.pos.trTime == ( removed ? 0 : 123456 ) );
+		}
+
+		// Unchanged fields and four unchanged arrays: 49, 51, or 52 raw
+		// bits depending on the release, with every byte truncation checked.
+		std::array<byte, 7> bytes{};
+		playerState_t playerBase{};
+		playerBase.commandTime = 424242;
+		playerBase.stats[3] = 200;
+		for ( int length = 0; length < static_cast<int>( bytes.size() ); ++length ) {
+			msg_t reader{};
+			MSG_Init( &reader, bytes.data(), static_cast<int>( bytes.size() ) );
+			MSG_RawBitstream( &reader );
+			reader.cursize = length;
+			if ( const int result = CheckMalformedDeltaDrop( playerBase,
+				[&]( playerState_t *out ) {
+					MSG_ReadDeltaPlayerstateLegacy( &reader, &playerBase, out, protocol );
+				} ) ) return result;
+		}
+		msg_t reader{};
+		MSG_Init( &reader, bytes.data(), static_cast<int>( bytes.size() ) );
+		MSG_RawBitstream( &reader );
+		reader.cursize = static_cast<int>( bytes.size() );
+		playerState_t received = playerBase;
+		MSG_ReadDeltaPlayerstateLegacy( &reader, &received, &received, protocol );
+		CHECK( std::memcmp( &received, &playerBase, sizeof( received ) ) == 0 );
+		CHECK( reader.bit == ( protocol < 46 ? 49 : protocol == 46 ? 51 : 52 ) );
+	}
+	for ( const int protocol : { 0, 36, 38, 40, 44, 47, 66, 68, 91 } ) {
+		msg_t reader{};
+		entityState_t entity{};
+		playerState_t player{};
+		if ( const int result = CheckMalformedDeltaDrop( entity,
+			[&]( entityState_t *out ) {
+				MSG_ReadDeltaEntityLegacy( &reader, &entity, out, 17, protocol );
+			} ) ) return result;
+		if ( const int result = CheckMalformedDeltaDrop( player,
+			[&]( playerState_t *out ) {
+				MSG_ReadDeltaPlayerstateLegacy( &reader, &player, out, protocol );
+			} ) ) return result;
+	}
+	return 0;
+}
+
 int TestMalformedDeltaFieldCounts() {
-	for ( const auto profile : { NETCHAN_WIRE_LEGACY_Q3,
+	for ( const auto profile : { NETCHAN_WIRE_Q3_66, NETCHAN_WIRE_Q3_67, NETCHAN_WIRE_LEGACY_Q3,
 		NETCHAN_WIRE_IOQ3, NETCHAN_WIRE_QL_RETAIL } ) {
 		const int entityFields = profile == NETCHAN_WIRE_QL_RETAIL ? 58 : 51;
 		const int playerFields = profile == NETCHAN_WIRE_QL_RETAIL ? 58 : 48;
@@ -727,7 +799,7 @@ int TestFloatDeltaBitPatterns() {
 		{ 0xffc54321u, false, 0 },      // negative quiet NaN payload
 		{ 0x7f800001u, false, 0 }       // signaling NaN payload
 	};
-	for ( const auto profile : { NETCHAN_WIRE_LEGACY_Q3,
+	for ( const auto profile : { NETCHAN_WIRE_Q3_66, NETCHAN_WIRE_Q3_67, NETCHAN_WIRE_LEGACY_Q3,
 		NETCHAN_WIRE_IOQ3, NETCHAN_WIRE_QL_RETAIL } ) {
 		for ( const bool raw : { false, true } ) {
 			for ( const FloatCase &sample : cases ) {
@@ -968,7 +1040,7 @@ int TestPlayerStateRoundTrip() {
 }
 
 int TestUserCommandProfileKeyMask() {
-	for ( const auto profile : { NETCHAN_WIRE_LEGACY_Q3,
+	for ( const auto profile : { NETCHAN_WIRE_Q3_66, NETCHAN_WIRE_Q3_67, NETCHAN_WIRE_LEGACY_Q3,
 		NETCHAN_WIRE_IOQ3, NETCHAN_WIRE_QL_RETAIL } ) {
 		for ( const int key : { 0, 0x10000 } ) {
 			for ( const int time : { 1, 0x10000 } ) {
@@ -1024,7 +1096,7 @@ int TestUserCommandProfileKeyMask() {
 }
 
 int TestUserCommandMovementMinimum() {
-	for ( const auto profile : { NETCHAN_WIRE_LEGACY_Q3,
+	for ( const auto profile : { NETCHAN_WIRE_Q3_66, NETCHAN_WIRE_Q3_67, NETCHAN_WIRE_LEGACY_Q3,
 		NETCHAN_WIRE_IOQ3, NETCHAN_WIRE_QL_RETAIL } ) {
 		for ( const bool inherited : { false, true } ) {
 			usercmd_t baseline{};
@@ -1233,6 +1305,7 @@ int main() {
 	if ( const int result = TestPinnedQuake3RawVectors() ) return result;
 	if ( const int result = TestInvalidDeltaWireProfile() ) return result;
 	if ( const int result = TestTruncatedDeltaReads() ) return result;
+	if ( const int result = TestLegacyDeltaBounds() ) return result;
 	if ( const int result = TestMalformedDeltaFieldCounts() ) return result;
 	if ( const int result = TestFloatDeltaBitPatterns() ) return result;
 	if ( const int result = TestUserCommandRoundTrip() ) return result;

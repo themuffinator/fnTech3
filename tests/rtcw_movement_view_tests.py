@@ -75,7 +75,7 @@ class RTCWMovementViewTests(unittest.TestCase):
         self.run_source(r'''
 int main(){
  const int flags=TFL_WALK|TFL_AIR;
- for(const auto &p:profiles){profile=&p;const bool rtcw=Com_GameIsRTCW();int state=prepare();
+ for(const auto &p:profiles){profile=&p;if(!p.bots.navigationWorlds)continue;const bool rtcw=Com_GameIsRTCW();int state=prepare();
   bot_goal_t goal{};goal.areanum=2;goal.origin[0]=50;
   auto view=[&](float look,int travel,int expected,int success=1){vec3_t out{-11,-13,-17};
    aasworld.reachability[5].traveltype=travel;aasworld.frameroutingupdates=0;

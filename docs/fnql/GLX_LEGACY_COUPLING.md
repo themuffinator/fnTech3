@@ -13,7 +13,9 @@ added.
 
 ## Ratchet Rules
 
-- The current ratchet budget is 24 legacy renderer C sources.
+- The current ratchet budget is 25 legacy renderer C sources. It rose from 24
+  on 2026-09-24 for `tr_alice.c`, American McGee's Alice's front end, whose
+  Vulkan and RTX copies must keep its text (`tests/alice_renderer_parity_tests.py`).
 - New GLx work must not add another `code/renderer/*.c` source to the GLx module
   without updating this ledger and intentionally raising or rebalancing the
   budget.
@@ -26,6 +28,7 @@ added.
 
 | Source | Compatibility role | Extraction target |
 |---|---|---|
+| `code/renderer/tr_alice.c` | American McGee's Alice's TIKI models, sprites, swipes, LOD, shadows, view filter and lens flares, entered through the legacy front end. | Keep text-identical with the Vulkan and RTX copies; move with the front end when GLx owns model submission. |
 | `code/renderer/tr_animation.c` | Legacy model animation and tag interpolation shared by renderer modules. | Keep behind model/animation data API until GLx owns model submission. |
 | `code/renderer/tr_arb.c` | ARB program, FBO, bloom, postprocess, render-scale, and final output substrate. | Continue moving post/output decisions into GLx-owned plans, then split FBO execution. |
 | `code/renderer/tr_backend.c` | Backend command execution, screenshot/capture flow, swap, and frame finalization. | Narrow command ABI and move GLx-owned backend commands out of legacy swap flow. |

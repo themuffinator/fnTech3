@@ -44,6 +44,7 @@ extern "C" {
 #include "../shared/RTCWStreamFiles.h"
 #include "../shared/STVEFAmbient.h"
 #include "../shared/STVEFLipSync.h"
+#include "../shared/AliceSound.h"
 
 #include <algorithm>
 #include <array>
@@ -428,9 +429,12 @@ static channel_t* S_ChannelMalloc( int allocTime ) {
 }
 
 
+static void S_ResetAliceVoices( void );
+
 static void S_ChannelSetup( void ) {
 	channel_t *p, *q;
 	rtcwOneShots.Reset();
+	S_ResetAliceVoices();
 
 	// clear all the sounds
 	std::fill_n( s_channels, MAX_CHANNELS, channel_t{} );
@@ -594,8 +598,26 @@ static sfxHandle_t S_Base_RegisterSound( const char *name, qboolean compressed )
 
 	sfx->inMemory = qfalse;
 	sfx->soundCompressed = compressed;
+	if ( Com_GameIsAlice() ) {
+		// Alice tries a sound that failed again at every registration.
+		sfx->defaultSound = qfalse;
+	}
 
 	S_memoryLoad( sfx );
+
+	if ( Com_GameIsAlice() && !sfx->defaultSound && sfx->soundChannels == 2
+		&& !std::strstr( sfx->soundName, ".mp3" ) ) {
+		// American McGee's Alice refuses a stereo WAV outright and tries it
+		// again at the next registration (alice.exe 0x0044e560).
+		Com_Printf( "%s is a stereo wav file\n", sfx->soundName );
+		for ( sndBuffer *buffer = sfx->soundData; buffer != nullptr; ) {
+			sndBuffer *next = buffer->next;
+			SND_free( buffer );
+			buffer = next;
+		}
+		sfx->soundData = nullptr;
+		sfx->defaultSound = qtrue;
+	}
 
 	if ( sfx->defaultSound ) {
 		Com_DPrintf( S_COLOR_YELLOW "WARNING: could not find %s - using default\n", sfx->soundName );
@@ -641,6 +663,14 @@ static void S_Base_BeginRegistration( void ) {
 		auto *sample = S_KnownSfxAt(s_numSfx++);
 		Q_strncpyz(sample->soundName, fntech3::audio::rtcw::DefaultSoundName, sizeof(sample->soundName));
 		S_Base_LoadRTCWDefaultSound(sample);
+	} else if ( Com_GameIsAlice() ) {
+		// American McGee's Alice's handle 0 is ***DEFAULT***, registered at
+		// S_Init and never loaded (alice.exe 0x0044c893): a sound handed 0
+		// plays nothing.
+		auto *sample = S_KnownSfxAt( s_numSfx++ );
+		Q_strncpyz( sample->soundName, "***DEFAULT***", sizeof( sample->soundName ) );
+		sample->defaultSound = qtrue;
+		sample->inMemory = qtrue;
 	} else {
 		// Elite Force reserves its silent sound/null.wav as handle 0, so a
 		// sound that cannot be loaded plays nothing (stvoyHM.exe 0x42a296).
@@ -1011,6 +1041,202 @@ static void S_Base_StartLocalSound( sfxHandle_t sfxHandle, int channelNum, float
 	}
 
 	S_Base_StartSound( nullptr, listener_number, channelNum, sfxHandle, volume );
+}
+
+
+/*
+====================================================================
+
+American McGee's Alice
+
+The engine in shared/AliceSound.h decides what Alice's 36 voices play, where
+and how loud; here each is the s_channels entry of its own number, painted as
+any sound is. A looping voice is painted as a loop channel instead, rebuilt
+before each mix from where it started and with its loop block, if it has one.
+Every other start is turned into an Alice one under this profile, so no other
+code takes these channels.
+
+Retail placed its voices through Miles, which panned them itself; this mixer
+spreads each voice between the two channels evenly, as it spreads any sound,
+and plays one heard at the listener's own position on both at full.
+
+====================================================================
+*/
+
+namespace {
+
+namespace alicesfx = fntech3::audio::alice::sfx;
+
+struct AliceLegacyVoice {
+	sfx_t *sample = nullptr;
+	bool started = false;
+	bool loop = false;
+	bool paused = false;
+	// Samples already played when the voice was paused.
+	int played = 0;
+	// The painted time a looping voice counts its phase from.
+	int loopStart = 0;
+	// Its loop block in the sample's frames, or none while the end is 0.
+	int blockStart = 0;
+	int blockEnd = 0;
+	int left = 0;
+	int right = 0;
+};
+
+static_assert( alicesfx::AllVoices <= MAX_CHANNELS, "Alice's voices are channels of their own number" );
+static std::array<AliceLegacyVoice, alicesfx::AllVoices> aliceVoices;
+
+class LegacyAliceDevice final : public alicesfx::Device {
+public:
+	bool Sample( int sfx, alicesfx::SampleFacts &facts ) const override {
+		if ( sfx < 0 || sfx >= s_numSfx ) return false;
+		const sfx_t *sample = S_KnownSfxAt( sfx );
+		facts.loaded = !sample->defaultSound && sample->soundLength > 0;
+		facts.frames = sample->soundLength;
+		facts.rate = dma.speed;
+		facts.durationMs = dma.speed > 0 ? static_cast<float>( sample->soundLength ) * 1000.0f / static_cast<float>( dma.speed ) : 0.0f;
+		facts.name = sample->soundName;
+		facts.sourceFrames = sample->sourceFrames;
+		facts.frameBytes = sample->sourceFrameBytes;
+		return true;
+	}
+
+	bool Playing( int voice ) const override {
+		if ( voice < 0 || voice >= alicesfx::AllVoices ) return false;
+		const AliceLegacyVoice &v = aliceVoices[voice];
+		if ( !v.started || v.paused || !v.sample ) return false;
+		return v.loop || s_channels[voice].thesfx == v.sample;
+	}
+
+	bool Prepare( int voice, int sfx ) override {
+		if ( voice < 0 || voice >= alicesfx::AllVoices || sfx <= 0 || sfx >= s_numSfx ) return false;
+		Stop( voice );
+		sfx_t *sample = S_KnownSfxAt( sfx );
+		if ( !sample->inMemory ) S_memoryLoad( sample );
+		if ( sample->defaultSound || !sample->soundData || sample->soundLength <= 0 ) return false;
+		sample->lastTimeUsed = s_soundtime;
+		aliceVoices[voice].sample = sample;
+		return true;
+	}
+
+	// The block, already in the mixer's frames, is painted by the loop
+	// channel the voice becomes once it starts looping; Prepare's Stop
+	// forgets it, as a new sample file resets Miles's.
+	void LoopBlock( int voice, int startFrame, int endFrame ) override {
+		if ( voice < 0 || voice >= alicesfx::AllVoices ) return;
+		AliceLegacyVoice &v = aliceVoices[voice];
+		if ( !v.sample || startFrame < 0 || endFrame <= startFrame || endFrame > v.sample->soundLength ) return;
+		v.blockStart = startFrame;
+		v.blockEnd = endFrame;
+	}
+
+	void Start( int voice, bool loop, int offsetFrames ) override {
+		if ( voice < 0 || voice >= alicesfx::AllVoices ) return;
+		AliceLegacyVoice &v = aliceVoices[voice];
+		if ( !v.sample ) return;
+		v.started = true;
+		v.loop = loop;
+		v.paused = false;
+		if ( loop ) {
+			v.loopStart = s_paintedtime - offsetFrames;
+			s_channels[voice].thesfx = nullptr;
+			return;
+		}
+		channel_t &channel = s_channels[voice];
+		channel = channel_t{};
+		channel.allocTime = s_soundtime;
+		channel.entnum = ENTITYNUM_NONE;
+		channel.thesfx = v.sample;
+		channel.master_vol = kMasterVolume;
+		channel.leftvol = v.left;
+		channel.rightvol = v.right;
+		channel.fixed_origin = qtrue;
+		channel.startSample = offsetFrames > 0 ? s_paintedtime - offsetFrames : START_SAMPLE_IMMEDIATE;
+	}
+
+	void Stop( int voice ) override {
+		if ( voice < 0 || voice >= alicesfx::AllVoices ) return;
+		aliceVoices[voice] = AliceLegacyVoice{};
+		s_channels[voice].thesfx = nullptr;
+	}
+
+	void Pause( int voice ) override {
+		if ( !Playing( voice ) ) return;
+		AliceLegacyVoice &v = aliceVoices[voice];
+		if ( v.loop ) {
+			v.played = s_paintedtime - v.loopStart;
+		} else {
+			const int start = s_channels[voice].startSample;
+			v.played = start == START_SAMPLE_IMMEDIATE ? 0 : ( std::max )( 0, s_paintedtime - start );
+			s_channels[voice].thesfx = nullptr;
+		}
+		v.paused = true;
+	}
+
+	void Resume( int voice ) override {
+		if ( voice < 0 || voice >= alicesfx::AllVoices ) return;
+		AliceLegacyVoice &v = aliceVoices[voice];
+		if ( !v.paused || !v.sample ) return;
+		v.paused = false;
+		if ( v.loop ) {
+			v.loopStart = s_paintedtime - v.played;
+			return;
+		}
+		Start( voice, false, v.played );
+	}
+
+	void Place( int voice, const float *position, float gain, float direct, int pan ) override {
+		if ( voice < 0 || voice >= alicesfx::AllVoices || !position ) return;
+		AliceLegacyVoice &v = aliceVoices[voice];
+		const float level = ( std::max )( 0.0f, gain * direct );
+		float leftScale = 1.0f, rightScale = 1.0f;
+		if ( pan >= 0 ) {
+			// A dialog's 2-D pan, 64 at the centre, taken as a balance.
+			rightScale = ( std::min )( 1.0f, static_cast<float>( pan ) / 64.0f );
+			leftScale = ( std::min )( 1.0f, static_cast<float>( 127 - pan ) / 63.0f );
+		} else if ( dma.channels > 1 && !VectorCompare( position, listener_origin ) ) {
+			vec3_t direction, rotated;
+			VectorSubtract( position, listener_origin, direction );
+			VectorNormalize( direction );
+			VectorRotate( direction, listener_axis.data(), rotated );
+			const float dot = -rotated[1];
+			rightScale = ( std::max )( 0.0f, 0.5f * ( 1.0f + dot ) );
+			leftScale = ( std::max )( 0.0f, 0.5f * ( 1.0f - dot ) );
+		}
+		v.left = std::clamp( static_cast<int>( static_cast<float>( kMasterVolume ) * level * leftScale ), 0, 255 );
+		v.right = std::clamp( static_cast<int>( static_cast<float>( kMasterVolume ) * level * rightScale ), 0, 255 );
+		if ( v.sample ) v.sample->lastTimeUsed = s_soundtime;
+		if ( !v.loop && v.started && !v.paused && s_channels[voice].thesfx == v.sample ) {
+			s_channels[voice].leftvol = v.left;
+			s_channels[voice].rightvol = v.right;
+		}
+	}
+};
+
+static LegacyAliceDevice legacyAliceDevice;
+
+// Alice's looping voices, as loop channels for the mix about to run.
+static void S_AddAliceLoopSounds( void ) {
+	numLoopChannels = 0;
+	for ( const AliceLegacyVoice &v : aliceVoices ) {
+		if ( !v.loop || !v.started || v.paused || !v.sample || numLoopChannels >= MAX_CHANNELS ) continue;
+		if ( !v.left && !v.right ) continue;
+		channel_t &channel = loop_channels[numLoopChannels++];
+		channel = channel_t{};
+		channel.master_vol = kMasterVolume;
+		channel.leftvol = v.left;
+		channel.rightvol = v.right;
+		channel.thesfx = v.sample;
+		channel.startSample = v.loopStart;
+		channel.loopBlockStart = v.blockStart;
+		channel.loopBlockEnd = v.blockEnd;
+	}
+}
+
+} // namespace
+
+static void S_ResetAliceVoices( void ) {
+	aliceVoices.fill( AliceLegacyVoice{} );
 }
 
 
@@ -1598,6 +1824,11 @@ static void S_Base_Respatialize( int entityNum, const vec3_t head, vec3_t axis[3
 	VectorCopy(axis[1], listener_axis[1]);
 	VectorCopy(axis[2], listener_axis[2]);
 
+	if ( Com_GameIsAlice() ) {
+		// Alice's engine places its own voices once the listener is known.
+		return;
+	}
+
 	// update spatialization for dynamic sounds	
 	ch = s_channels;
 	for ( i = 0 ; i < MAX_CHANNELS ; i++, ch++ ) {
@@ -1820,6 +2051,10 @@ static void S_Update_( int msec ) {
 	S_Base_UpdateBackgroundTrack();
 	S_Base_UpdateRTCWEntityStreams();
 
+	if ( Com_GameIsAlice() ) {
+		S_AddAliceLoopSounds();
+	}
+
 	const bool traceTiming = s_debugTiming != nullptr && s_debugTiming->integer;
 	const int paintStarted = traceTiming ? Sys_Milliseconds() : 0;
 	const int paintStartFrame = s_paintedtime;
@@ -1951,6 +2186,14 @@ static int S_Base_WolfETCurrentSoundTime( void ) {
 	return s_soundtime + dma.speed;
 }
 
+static void S_Base_StartStreamSource( snd_stream_t *stream ) {
+	if ( s_backgroundStream ) {
+		S_CodecCloseStream( s_backgroundStream );
+	}
+	s_backgroundStream = stream;
+	s_backgroundLoop[0] = '\0';
+}
+
 static void S_Base_StartBackgroundTrack( const char *intro, const char *loop ){
 	if ( Com_GameIsRTCWSP() ) {
 		S_Base_StartRTCWBackgroundTrack( intro, loop, 0 );
@@ -1996,8 +2239,11 @@ static void S_Base_UpdateBackgroundTrack( void ) {
 		return;
 	}
 
-	// don't bother playing anything if musicvolume is 0
-	if ( s_musicVolume->value == 0.0f ) {
+	// don't bother playing anything if musicvolume is 0. American McGee's
+	// Alice's stream goes on being read: its songs keep playing at volume 0,
+	// run out and hand over as retail's do.
+	const bool alice = Com_GameIsAlice() != 0;
+	if ( s_musicVolume->value == 0.0f && !alice ) {
 		return;
 	}
 
@@ -2041,8 +2287,10 @@ static void S_Base_UpdateBackgroundTrack( void ) {
 			const auto routed = route ? fntech3::audio::DownmixSpeakers( raw.data(), fileSamples,
 				info.width, info.channels, info.speakerMask ) : std::vector<short>{};
 			if ( route && routed.empty() ) { S_Base_StopBackgroundTrack(); return; }
+			// Alice's stream arrives at the volumes Miles would have been
+			// handed, s_musicVolume already in them.
 			S_Base_RawSamplesToBuffer( rawEnd, Com_GameIsRTCWSP() ? s_rtcwMusicRawSamples.data() : s_rawsamples, fileSamples, info.rate, route ? 2 : info.width, route ? 2 : info.channels,
-				route ? reinterpret_cast<const byte *>( routed.data() ) : raw.data(), s_musicVolume->value *
+				route ? reinterpret_cast<const byte *>( routed.data() ) : raw.data(), alice ? 1.0f : s_musicVolume->value *
 				( Com_GameIsRTCWSP() ? std::clamp( S_RTCWMusic().Gain( s_soundtime ), 0.0f, 16.0f ) : 1.0f ) );
 		}
 		else
@@ -2266,6 +2514,7 @@ extern "C" qboolean S_Base_Init( soundInterface_t *si ) {
 	si->FadeRTCWBackgroundTrack = S_Base_FadeRTCWBackgroundTrack;
 	si->FadeRTCWAllSounds = S_Base_FadeRTCWAllSounds;
 	si->StopBackgroundTrack = S_Base_StopBackgroundTrack;
+	si->StartStreamSource = S_Base_StartStreamSource;
 	si->UpdateBackgroundTrack = S_Base_UpdateBackgroundTrack;
 	si->RawSamples = S_Base_RawSamples;
 	si->AddVoiceSamples = S_Base_AddVoiceSamples;
@@ -2288,6 +2537,7 @@ extern "C" qboolean S_Base_Init( soundInterface_t *si ) {
 	si->ClearSoundBuffer = S_Base_ClearSoundBuffer;
 	si->SoundInfo = S_Base_SoundInfo;
 	si->SoundList = S_Base_SoundList;
+	si->AliceDevice = &legacyAliceDevice;
 
 	return qtrue;
 }

@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PRELUDE = r'''
 #include "code/compat/rtcw_match_state.hpp"
 #include <cassert>
+#include <array>
 #include <climits>
 #include <cstdarg>
 #include <cstdio>
@@ -20,7 +21,7 @@ PRELUDE = r'''
 struct { int restartedServerId, restartTime, time; } sv;
 struct Cvar { int integer; } running;
 static Cvar *com_sv_running=&running;
-static int com_frameTime=99, profile=3, configIndex, restoreCalls;
+static int com_frameTime=99, profile=3, configIndex, restoreCalls, nativeSpawns;
 static std::map<std::string,int> cvars;
 static std::vector<std::string> args;
 static std::string configValue;
@@ -30,6 +31,12 @@ int Com_GameIsRTCWMP(){return profile==3;}
 int Com_GameIsRTCW(){return profile==2||profile==3;}
 int Com_GameIsQuakeLive(){return profile==1;}
 int Com_GameIsWolfET(){return profile==4;}
+int Com_GameIsQuake3IHV(){return profile==5;}
+static constexpr int MAX_QPATH=64,qfalse=0;
+template<typename T,size_t N>int SV_ArraySize(const std::array<T,N>&){return static_cast<int>(N);}
+void Q_strncpyz(char *out,const char *in,int capacity){std::snprintf(out,capacity,"%s",in);}
+const char *Cvar_VariableString(const char *){return "test";}
+void SV_SpawnServer(const char *map,int flag){assert(std::string(map)=="test"&&!flag);++nativeSpawns;}
 // ET's gameinfo.dat names game type 0 single-player and 1 cooperative.
 static Cvar gametype;
 static Cvar *sv_gametype=&gametype;
@@ -56,7 +63,7 @@ bool SV_HandleQuitOnExitLevel(const char*){return false;}
 bool SV_RTCWRestoreSaveTime(){++restoreCalls;return true;}
 const char *va(const char *fmt,...){static char b[64];va_list a;va_start(a,fmt);vsnprintf(b,sizeof(b),fmt,a);va_end(a);return b;}
 void SV_SetConfigstring(int i,const char *s){configIndex=i;configValue=s;}
-static void reset(int p){profile=p;sv={0,0,10000};running.integer=1;gametype.integer=4;cvars.clear();cvars["gamestate"]=1;args={"map_restart"};restoreCalls=0;configValue.clear();}
+static void reset(int p){profile=p;sv={0,0,10000};running.integer=1;gametype.integer=4;cvars.clear();cvars["gamestate"]=1;args={"map_restart"};nativeSpawns=restoreCalls=0;configValue.clear();}
 '''
 CLIENTS = r'''
 enum { CS_FREE, CS_ZOMBIE, CS_CONNECTED, CS_PRIMED, CS_ACTIVE };
@@ -159,6 +166,9 @@ int main(){
  sv.restartTime=20000;for(int s=0;s<5;++s)slots[s]={s,777};SV_PrimeRestartClocks();
  for(int s=0;s<5;++s)assert(slots[s].oldServerTime==(s==CS_PRIMED?0:777));
  reset(2);cvars["savegame_loading"]=2;args={"map_restart","5"};SV_MapRestart_f();assert(!sv.restartTime&&restoreCalls==1);
+ // Native IHV uses a full level spawn and never publishes a retail warmup CS.
+ reset(5);SV_MapRestart_f();assert(nativeSpawns==1&&!restoreCalls&&configValue.empty());
+ reset(5);args={"map_restart","3"};SV_MapRestart_f();assert(!nativeSpawns&&sv.restartTime==13000&&configValue.empty());
 }
 '''
 

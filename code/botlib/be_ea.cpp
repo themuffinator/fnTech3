@@ -487,6 +487,8 @@ void EA_ResetInput(int client)
 //===========================================================================
 int EA_Setup(void)
 {
+	if ( !BotLibClientCapacity() || botlibglobals.maxclients < 1
+		|| botlibglobals.maxclients > MAX_GAME_CLIENTS ) return BLERR_LIBRARYNOTSETUP;
 	//initialize the bot inputs
 	botinputs = botlib::ClearedHunkAlloc<bot_input_t>(botlibglobals.maxclients);
 	std::memset(actionExtras, 0, sizeof(actionExtras));

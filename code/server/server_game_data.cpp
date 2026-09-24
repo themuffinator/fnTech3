@@ -9,9 +9,16 @@ General Public License, version 2 or (at your option) any later version.
 
 #include "server_game_data.h"
 
+#include "../compat/alice_module_abi.h"
+#include "../compat/alice_state_adapter.hpp"
 #include "../compat/game_abi_adapter.h"
 #include "../compat/q3_game_abi.h"
 #include "../compat/ql_game_abi.h"
+#include "../compat/jk2_game_abi.h"
+#include "../compat/jka_game_abi.h"
+#include "../compat/jka_state_adapter.hpp"
+#include "../compat/jk2_state_adapter.hpp"
+#include "../compat/q3_ihv_state_adapter.hpp"
 #include "../compat/rtcw_state_adapter.hpp"
 #include "../compat/stvef_state_adapter.hpp"
 #include "../compat/wolfet_state_adapter.hpp"
@@ -51,6 +58,8 @@ struct ServerGameDataView::Layout {
 	// player state through its gentity's client pointer.
 	bool ownerIsPointer = false;
 	std::size_t clientPointerOffset = kNoField;
+	std::int32_t firstClientEntity = 0;
+	std::size_t entityNumberBytes = sizeof(std::int32_t);
 };
 
 namespace {
@@ -379,7 +388,78 @@ const ServerGameDataView::Layout *ServerGameDataView::FindLayout(
 	};
 #undef EFSP
 
+	// Jedi Academy's shared entity carries Raven's own ROFF flag and broadcast
+	// mask in the engine's half, and the ICARUS and navigation fields the engine
+	// also reads after it, so the whole 864-byte record is the shared prefix.
+#define JKA_R(member) offsetof(fntech3_jka_sharedEntity_t, r.member)
+	static const Layout jkaLayout{
+		COM_GAME_JKA_MP, sizeof(fntech3_jka_sharedEntity_t),
+		sizeof(fntech3_jka_entityState_t), sizeof(fntech3_jka_playerState_t),
+		JKA_R(linked), JKA_R(linkcount), JKA_R(svFlags), JKA_R(singleClient),
+		JKA_R(bmodel), JKA_R(mins), JKA_R(maxs), JKA_R(contents), JKA_R(absmin), JKA_R(absmax),
+		JKA_R(currentOrigin), JKA_R(currentAngles), JKA_R(ownerNum),
+		offsetof(fntech3_jka_sharedEntity_t, s.origin2),
+		offsetof(fntech3_jka_playerState_t, ping), FNTECH3_JKA_MAX_CLIENTS
+	};
+#undef JKA_R
+
+	// Jedi Outcast's records were measured rather than read: no multiplayer
+	// source was released for it. Its entity carries the engine's hundred-byte
+	// half at 296, after a 296-byte state, inside an 828-byte record the module
+	// states for itself. Its ping sits at 484, read out of the place the retail
+	// engine writes it rather than guessed from Quake III's field order.
+	static const Layout jk2Layout{
+		COM_GAME_JK2_MP, FNTECH3_JK2_SHARED_ENTITY_BYTES,
+		FNTECH3_JK2_ENTITY_STATE_BYTES, FNTECH3_JK2_PLAYER_STATE_BYTES,
+		FNTECH3_JK2_R_LINKED, FNTECH3_JK2_R_LINKCOUNT, FNTECH3_JK2_R_SVFLAGS,
+		FNTECH3_JK2_R_SINGLECLIENT, FNTECH3_JK2_R_BMODEL, FNTECH3_JK2_R_MINS,
+		FNTECH3_JK2_R_MAXS, FNTECH3_JK2_R_CONTENTS, FNTECH3_JK2_R_ABSMIN,
+		FNTECH3_JK2_R_ABSMAX, FNTECH3_JK2_R_CURRENTORIGIN,
+		FNTECH3_JK2_R_CURRENTANGLES, FNTECH3_JK2_R_OWNERNUM,
+		FNTECH3_JK2_S_ORIGIN2, FNTECH3_JK2_PS_PING, FNTECH3_JK2_MAX_CLIENTS
+	};
+
+#define IHV(member) offsetof(fntech3_q3_ihv_entity_t, member)
+	static const Layout ihvLayout{
+		COM_GAME_QUAKE3_IHV, sizeof(fntech3_q3_ihv_entity_t),
+		FNTECH3_Q3_IHV_ENTITY_STATE_BYTES, FNTECH3_Q3_IHV_PLAYER_STATE_BYTES,
+		IHV(linked), IHV(linkcount), IHV(svFlags), kNoField,
+		IHV(bmodel), IHV(mins), IHV(maxs), IHV(contents), IHV(absmin), IHV(absmax),
+		IHV(currentOrigin), IHV(currentAngles), IHV(owner), 100,
+		FNTECH3_Q3_IHV_PLAYER_PING_OFFSET, 256, true, IHV(client), 1, 2
+	};
+#undef IHV
+
+	/* American McGee's Alice's entity record, which has no declaration
+	 * anywhere: every offset was read out of an instruction in retail
+	 * alice.exe that touches it, and the two halves of the record meet
+	 * exactly -- the delta field table ends at 456 and the snapshot walk's
+	 * first engine-owned read is at 456. See code/compat/alice_module_abi.h.
+	 *
+	 * Three members this view expects are not in the record at all, and each
+	 * is marked absent rather than pointed at a plausible offset. Neither the
+	 * linker nor the unlinker touches a link count, so the view keeps its own
+	 * as it does for Elite Force's single player. Nothing in the snapshot
+	 * walk restricts an entity to one client, so there is no single-client
+	 * member to read; that is measured by absence, from a walk whose every
+	 * flag test is accounted for. The whole 732-byte record is the readable
+	 * prefix because the module owns all of it and publishes nothing past it. */
+	static const Layout aliceLayout{
+		COM_GAME_ALICE, FNTECH3_ALICE_GENTITY_SIZE,
+		FNTECH3_ALICE_ENTITY_STATE_BYTES,
+		FNTECH3_ALICE_PLAYER_STATE_BYTES,
+		FNTECH3_ALICE_R_LINKED, kNoField, FNTECH3_ALICE_R_SVFLAGS, kNoField,
+		FNTECH3_ALICE_R_BMODEL, FNTECH3_ALICE_R_MINS, FNTECH3_ALICE_R_MAXS,
+		FNTECH3_ALICE_R_CONTENTS, FNTECH3_ALICE_R_ABSMIN,
+		FNTECH3_ALICE_R_ABSMAX, FNTECH3_ALICE_R_CURRENTORIGIN,
+		FNTECH3_ALICE_R_CURRENTANGLES, FNTECH3_ALICE_S_OWNERNUM,
+		FNTECH3_ALICE_S_ORIGIN2, FNTECH3_ALICE_PS_PING,
+		FNTECH3_ALICE_MAX_CLIENTS
+	};
+
 	switch ( profile ) {
+	case COM_GAME_ALICE:
+		return &aliceLayout;
 	case COM_GAME_QUAKE3:
 		return &q3Layout;
 	case COM_GAME_QUAKELIVE:
@@ -394,6 +474,12 @@ const ServerGameDataView::Layout *ServerGameDataView::FindLayout(
 		return &stvefLayout;
 	case COM_GAME_STVEF_SP:
 		return &stvefSpLayout;
+	case COM_GAME_QUAKE3_IHV:
+		return &ihvLayout;
+	case COM_GAME_JKA_MP:
+		return &jkaLayout;
+	case COM_GAME_JK2_MP:
+		return &jk2Layout;
 	default:
 		return nullptr;
 	}
@@ -420,6 +506,7 @@ const char *GameDataBindErrorName( GameDataBindError error )
 	case GameDataBindError::ClientSpanOverflow: return "client span overflow";
 	case GameDataBindError::ClientSpanTooSmall: return "client span too small";
 	case GameDataBindError::ClientAddressOverflow: return "client address overflow";
+	case GameDataBindError::MissingClientValidation: return "missing native client allocation validator";
 	}
 	return "unknown";
 }
@@ -430,7 +517,7 @@ GameDataBindError ServerGameDataView::BindNative( comGameId_t profile,
 	AdvanceGeneration();
 	ClearBinding();
 	const Layout *candidateLayout = FindLayout( profile );
-	if ( !candidateLayout ) {
+	if ( !candidateLayout || (profile == COM_GAME_QUAKE3_IHV && sizeof(void *) != 4) ) {
 		return GameDataBindError::UnsupportedProfile;
 	}
 	if ( binding.entityCount <= 0
@@ -438,9 +525,16 @@ GameDataBindError ServerGameDataView::BindNative( comGameId_t profile,
 		return GameDataBindError::InvalidEntityCount;
 	}
 	const int entityCapacity = binding.entityCapacity ? binding.entityCapacity : binding.entityCount;
+	// Alice joins the profiles whose published count is a high-water mark
+	// rather than the array's bound: its LocateGameData reports the entities
+	// in use at the moment it is called and the module then spawns a level's
+	// worth past that, so the arena to bind is the capacity it publishes
+	// separately. RTCW MP and ET join for the world record past the mark,
+	// which their settled explosives take as owner and trace with.
 	if ( entityCapacity < binding.entityCount || entityCapacity > FNTECH3_Q3_MAX_GENTITIES
-		|| ( profile != COM_GAME_RTCW_SP && profile != COM_GAME_STVEF_SP
-			&& entityCapacity != binding.entityCount ) )
+		|| ( profile != COM_GAME_RTCW_SP && profile != COM_GAME_RTCW_MP && profile != COM_GAME_WOLFET
+			&& profile != COM_GAME_STVEF_SP && profile != COM_GAME_QUAKE3_IHV
+			&& profile != COM_GAME_ALICE && entityCapacity != binding.entityCount ) )
 		return GameDataBindError::InvalidEntityCount;
 	if ( !binding.entityBase ) {
 		return GameDataBindError::NullEntityBase;
@@ -472,9 +566,12 @@ GameDataBindError ServerGameDataView::BindNative( comGameId_t profile,
 		return GameDataBindError::InvalidClientCount;
 	}
 	if ( candidateLayout->clientPointerOffset != kNoField ) {
-		// Client n is gentity n, so every client needs its gentity.
-		if ( binding.clientCount > entityCapacity ) {
+		// IHV reserves entity zero for the world; EF SP starts at entity zero.
+		if ( binding.clientCount > entityCapacity - candidateLayout->firstClientEntity ) {
 			return GameDataBindError::InvalidClientCount;
+		}
+		if ( profile == COM_GAME_QUAKE3_IHV && !binding.validateClientRecord ) {
+			return GameDataBindError::MissingClientValidation;
 		}
 		layout_ = candidateLayout;
 		entityBase_ = static_cast<unsigned char *>( binding.entityBase );
@@ -483,6 +580,8 @@ GameDataBindError ServerGameDataView::BindNative( comGameId_t profile,
 		entityCapacity_ = entityCapacity;
 		entityStride_ = binding.entityStride;
 		clientCount_ = binding.clientCount;
+		validateClientRecord_ = binding.validateClientRecord;
+		clientValidationContext_ = binding.clientValidationContext;
 		return GameDataBindError::None;
 	}
 	if ( !binding.clientBase ) {
@@ -545,6 +644,8 @@ void ServerGameDataView::ClearBinding()
 	clientSpanBytes_ = 0;
 	clientCount_ = 0;
 	clientStride_ = 0;
+	validateClientRecord_ = nullptr;
+	clientValidationContext_ = nullptr;
 }
 
 void ServerGameDataView::Invalidate()
@@ -647,12 +748,15 @@ unsigned char *ServerGameDataView::ClientRecord( std::int32_t clientIndex ) cons
 	if ( layout_->clientPointerOffset == kNoField ) {
 		return clientBase_ + static_cast<std::size_t>( clientIndex ) * clientStride_;
 	}
-	// Client n is gentity n; its client pointer is null until the game
-	// connects it.
+	// The selected native layout owns the entity-to-client index mapping.
 	void *pointer = nullptr;
-	std::memcpy( &pointer, entityBase_ + static_cast<std::size_t>( clientIndex ) * entityStride_
+	std::memcpy( &pointer, entityBase_ + static_cast<std::size_t>( clientIndex + layout_->firstClientEntity ) * entityStride_
 		+ layout_->clientPointerOffset, sizeof( pointer ) );
 	if ( reinterpret_cast<std::uintptr_t>( pointer ) % kAbiAlignment != 0 ) {
+		return nullptr;
+	}
+	if ( layout_->profile == COM_GAME_QUAKE3_IHV && (!pointer || !validateClientRecord_
+		|| !validateClientRecord_(clientValidationContext_, pointer, clientIndex, layout_->playerStateBytes)) ) {
 		return nullptr;
 	}
 	return static_cast<unsigned char *>( pointer );
@@ -738,6 +842,15 @@ bool ServerGameDataView::ReadEntityState( const GameEntityRef &reference,
 		FnTech3_InternalEntityStateFromQ3( &destination, &external );
 		return true;
 	}
+	if ( layout_->profile == COM_GAME_QUAKE3_IHV ) {
+		fntech3_q3_ihv_entityState_t external{};
+		return ReadEntityState(reference, external) && q3ihv::state::ToInternal(external, destination);
+	}
+	if ( layout_->profile == COM_GAME_ALICE ) {
+		fntech3_alice_entityState_t external{};
+		return ReadEntityBytes( reference, 0, &external, sizeof( external ) ) &&
+			alice::state::ToInternal( external, destination );
+	}
 	if ( layout_->profile == COM_GAME_RTCW_SP || layout_->profile == COM_GAME_RTCW_MP ) {
 		fntech3_rtcw_entityState_t external{};
 		return ReadEntityState( reference, external ) && rtcw::state::ToInternal( external, destination );
@@ -745,6 +858,16 @@ bool ServerGameDataView::ReadEntityState( const GameEntityRef &reference,
 	if (layout_->profile == COM_GAME_WOLFET) {
 		fntech3_wolfet_entityState_t external{};
 		return ReadEntityBytes(reference, 0, &external, sizeof(external)) && wolfet::state::ToInternal(external, destination);
+	}
+	if ( layout_->profile == COM_GAME_JK2_MP ) {
+		fntech3_jk2_entityState_t external{};
+		return ReadEntityBytes( reference, 0, &external, sizeof( external ) ) &&
+			jk2::state::ToInternal( external, destination );
+	}
+	if ( layout_->profile == COM_GAME_JKA_MP ) {
+		fntech3_jka_entityState_t external{};
+		return ReadEntityBytes( reference, 0, &external, sizeof( external ) ) &&
+			jka::state::ToInternal( external, destination );
 	}
 	if ( layout_->profile == COM_GAME_STVEF_MP ) {
 		fntech3_stvef_mp_entityState_t external{};
@@ -771,6 +894,20 @@ bool ServerGameDataView::WriteEntityState( const GameEntityRef &reference,
 	if ( !layout_ ) {
 		return false;
 	}
+	if ( layout_->profile == COM_GAME_QUAKE3_IHV ) {
+		fntech3_q3_ihv_entityState_t external{};
+		return ReadEntityState(reference, external) && q3ihv::state::FromInternal(source, external)
+			&& WriteEntityState(reference, external);
+	}
+	if ( layout_->profile == COM_GAME_ALICE ) {
+		/* Read first, then put back only the members this engine owns: the
+		 * forty-nine Ritual members it has nowhere to keep stay exactly as
+		 * the module left them. */
+		fntech3_alice_entityState_t external{};
+		return ReadEntityBytes( reference, 0, &external, sizeof( external ) ) &&
+			alice::state::FromInternal( source, external ) &&
+			WriteEntityBytes( reference, 0, &external, sizeof( external ) );
+	}
 	if ( layout_->profile == COM_GAME_QUAKE3 ) {
 		fntech3_q3_entityState_t external{};
 		FnTech3_Q3EntityStateFromInternal( &external, &source );
@@ -783,6 +920,16 @@ bool ServerGameDataView::WriteEntityState( const GameEntityRef &reference,
 	if (layout_->profile == COM_GAME_WOLFET) {
 		fntech3_wolfet_entityState_t external{};
 		return wolfet::state::FromInternal(source, external) && WriteEntityBytes(reference, 0, &external, sizeof(external));
+	}
+	if ( layout_->profile == COM_GAME_JK2_MP ) {
+		fntech3_jk2_entityState_t external{};
+		return jk2::state::FromInternal( source, external ) &&
+			WriteEntityBytes( reference, 0, &external, sizeof( external ) );
+	}
+	if ( layout_->profile == COM_GAME_JKA_MP ) {
+		fntech3_jka_entityState_t external{};
+		return jka::state::FromInternal( source, external ) &&
+			WriteEntityBytes( reference, 0, &external, sizeof( external ) );
 	}
 	if ( layout_->profile == COM_GAME_STVEF_MP ) {
 		fntech3_stvef_mp_entityState_t external{};
@@ -812,6 +959,21 @@ bool ServerGameDataView::WriteEntityState( const GameEntityRef &reference,
 {
 	return layout_ && ( layout_->profile == COM_GAME_RTCW_SP || layout_->profile == COM_GAME_RTCW_MP ) &&
 		WriteEntityBytes( reference, 0, &source, sizeof( source ) );
+}
+
+bool ServerGameDataView::ReadEntityState(const GameEntityRef &reference,
+	fntech3_q3_ihv_entityState_t &destination) const {
+	return layout_ && layout_->profile == COM_GAME_QUAKE3_IHV
+		&& ReadEntityBytes(reference, 0, &destination, sizeof(destination));
+}
+bool ServerGameDataView::WriteEntityState(const GameEntityRef &reference,
+	const fntech3_q3_ihv_entityState_t &source) {
+	return layout_ && layout_->profile == COM_GAME_QUAKE3_IHV
+		&& WriteEntityBytes(reference, 0, &source, sizeof(source));
+}
+bool ServerGameDataView::GetInuse(const GameEntityRef &reference, std::int32_t &destination) const {
+	return layout_ && layout_->profile == COM_GAME_QUAKE3_IHV
+		&& ReadEntityBytes(reference, offsetof(fntech3_q3_ihv_entity_t,inuse), &destination, sizeof(destination));
 }
 
 #define DEFINE_SCALAR_ACCESSORS( Name, layoutMember ) \
@@ -882,9 +1044,10 @@ bool ServerGameDataView::SetSingleClient( const GameEntityRef &reference,
 		&value, sizeof( value ) );
 }
 
-/* Elite Force SP's owner is a gentity pointer. The engine sees its number;
- * a null pointer, or one that names no gentity, is ENTITYNUM_NONE. Writing
- * back the number the engine read leaves the pointer untouched. */
+/* Native pointer owners project to checked arena indices. IHV uses -1 for a
+ * null owner because its entity 1023 is valid; malformed nonnull pointers fail.
+ * Elite Force SP retains ENTITYNUM_NONE for null/unrecognized pointers. Writing
+ * back the index the engine read leaves the original pointer untouched. */
 bool ServerGameDataView::GetOwnerNum( const GameEntityRef &reference,
 	std::int32_t &destination ) const
 {
@@ -898,7 +1061,9 @@ bool ServerGameDataView::GetOwnerNum( const GameEntityRef &reference,
 		return false;
 	}
 	GameEntityRef target;
-	destination = owner && EntityRefForPointer( owner, target ) ? target.index : ENTITYNUM_NONE;
+	if (layout_->profile == COM_GAME_QUAKE3_IHV && owner && !EntityRefForPointer(owner,target)) return false;
+	const int noOwner = layout_->profile == COM_GAME_QUAKE3_IHV ? -1 : ENTITYNUM_NONE;
+	destination = owner && EntityRefForPointer( owner, target ) ? target.index : noOwner;
 	return true;
 }
 
@@ -914,7 +1079,8 @@ bool ServerGameDataView::SetOwnerNum( const GameEntityRef &reference,
 	if ( !GetOwnerNum( reference, current ) ) return false;
 	if ( value == current ) return true;
 	void *owner = nullptr;
-	if ( value != ENTITYNUM_NONE ) {
+	const int noOwner = layout_->profile == COM_GAME_QUAKE3_IHV ? -1 : ENTITYNUM_NONE;
+	if ( value != noOwner ) {
 		if ( value < 0 || value >= entityCapacity_ ) return false;
 		owner = entityBase_ + static_cast<std::size_t>( value ) * entityStride_;
 	}
@@ -940,12 +1106,22 @@ bool ServerGameDataView::GetRTCWMPWorldflags( const GameEntityRef &reference,
 bool ServerGameDataView::GetNumber( const GameEntityRef &reference,
 	std::int32_t &destination ) const
 {
+	if (layout_ && layout_->entityNumberBytes == 2) {
+		std::int16_t value;
+		if(!ReadEntityBytes(reference,0,&value,sizeof(value)))return false;
+		destination=value;return true;
+	}
 	return ReadEntityBytes( reference, 0, &destination, sizeof( destination ) );
 }
 
 bool ServerGameDataView::SetNumber( const GameEntityRef &reference,
 	std::int32_t value )
 {
+	if (layout_ && layout_->entityNumberBytes == 2) {
+		if(value < -32768 || value > 32767)return false;
+		const auto native=static_cast<std::int16_t>(value);
+		return WriteEntityBytes(reference,0,&native,sizeof(native));
+	}
 	return WriteEntityBytes( reference, 0, &value, sizeof( value ) );
 }
 
@@ -999,6 +1175,16 @@ bool ServerGameDataView::ReadPlayerState( std::int32_t clientIndex,
 		fntech3_wolfet_playerState_t external{};
 		return ReadClientBytes(clientIndex, 0, &external, sizeof(external)) && wolfet::state::ToInternal(external, destination);
 	}
+	if ( layout_->profile == COM_GAME_JK2_MP ) {
+		fntech3_jk2_playerState_t external{};
+		return ReadClientBytes( clientIndex, 0, &external, sizeof( external ) ) &&
+			jk2::state::ToInternal( external, destination );
+	}
+	if ( layout_->profile == COM_GAME_JKA_MP ) {
+		fntech3_jka_playerState_t external{};
+		return ReadClientBytes( clientIndex, 0, &external, sizeof( external ) ) &&
+			jka::state::ToInternal( external, destination );
+	}
 	if ( layout_->profile == COM_GAME_STVEF_MP ) {
 		fntech3_stvef_mp_playerState_t external{};
 		return ReadClientBytes( clientIndex, 0, &external, sizeof( external ) ) &&
@@ -1008,6 +1194,11 @@ bool ServerGameDataView::ReadPlayerState( std::int32_t clientIndex,
 		fntech3_stvef_sp_playerState_t external{};
 		return ReadClientBytes( clientIndex, 0, &external, sizeof( external ) ) &&
 			stvef::state::ToInternal( external, destination );
+	}
+	if ( layout_->profile == COM_GAME_ALICE ) {
+		fntech3_alice_playerState_t external{};
+		return ReadClientBytes( clientIndex, 0, &external, sizeof( external ) ) &&
+			alice::state::ToInternal( external, destination );
 	}
 	if ( layout_->profile != COM_GAME_QUAKELIVE ) return false;
 	fntech3_ql_playerState_t external{};
@@ -1039,10 +1230,19 @@ bool ServerGameDataView::GetPlayerPing( std::int32_t clientIndex,
 		&destination, sizeof( destination ) );
 }
 
+bool ServerGameDataView::ReadPlayerState(std::int32_t clientIndex,
+	fntech3_q3_ihv_playerState_t &destination) const {
+	return layout_ && layout_->profile == COM_GAME_QUAKE3_IHV
+		&& ReadClientBytes(clientIndex,0,&destination,sizeof(destination));
+}
+
 bool ServerGameDataView::SetPlayerPing( std::int32_t clientIndex,
 	std::int32_t value )
 {
-	return layout_ && WriteClientBytes( clientIndex, layout_->playerPingOffset,
+	/* A profile whose player record has no measured ping refuses to write one
+	 * rather than putting it wherever the field would be in another game. */
+	if ( !layout_ || layout_->playerPingOffset == kNoField ) return false;
+	return WriteClientBytes( clientIndex, layout_->playerPingOffset,
 		&value, sizeof( value ) );
 }
 

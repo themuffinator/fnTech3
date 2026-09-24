@@ -27,6 +27,7 @@ extern "C" {
 
 #include "client_cpp.h"
 #include "input_compat.hpp"
+#include "alice_input.hpp"
 #include "../compat/rtcw_game_abi.h"
 #include "../compat/stvef_game_abi.h"
 #include "../qcommon/netchan_safety.hpp"
@@ -45,6 +46,9 @@ struct InputCommandBinding {
 	xcommand_t handler;
 	bool rtcwOnly = false;
 	comGameId_t profile = COM_GAME_AUTO;
+	// Alice registers a narrower set than Quake III (alice.exe CL_InitInput
+	// 0x00428d60): no +attack and nothing past +button6.
+	bool notAlice = false;
 };
 
 } // namespace
@@ -84,6 +88,9 @@ static kbutton_t in_left, in_right, in_forward, in_back;
 static kbutton_t in_lookup, in_lookdown, in_moveleft, in_moveright;
 static kbutton_t in_strafe, in_speed;
 static kbutton_t in_up, in_down, in_mlook;
+// Alice's +cameralook (in_cameralook at 0x00dceec0): while held, mouse motion
+// turns only the client game's camera, which reads it through import 47.
+static kbutton_t in_cameralook;
 static std::array<kbutton_t, kInputButtonCount> in_buttons;
 // RTCW has a separate eight-bit weapon-button field and a kick byte.
 static std::array<kbutton_t, 9> in_rtcwButtons;
@@ -118,10 +125,32 @@ static cvar_t *m_forward;
 static cvar_t *m_side;
 static cvar_t *m_filter;
 static cvar_t *m_cpi;
+static cvar_t *m_up;	// Alice's alone: mouse Y into upmove under +strafe
 
 static fnql::input::RetailViewAngleFilter retailMouseFilter;
 static ScopedFileHandle mouseAccelDebugLog;
 static bool mouseAccelDebugOpenFailed;
+
+/*
+American McGee's Alice's engine-side view state.
+
+The camera accumulators are retail's float[3] at 0x00532a88: CL_MouseMove adds
+every scaled mouse sample into the first two, whether or not the view turns,
+and the client game reads all three through its import 47. The engine never
+resets them, so they live for the process like retail's and are not part of
+the per-connection state CL_ClearState wipes. The third is never written.
+
+The reset flag is retail's 0x00dcc420, set by centerview and cleared when the
+client game reads it. Cursor mode is 0x00dced18; while it is on, mouse motion
+moves the cursor at 0x00c35d80/0x00c35d84 instead of the view, and MOUSE1 to
+MOUSE5 stop at the button mask at 0x00c35d88 instead of reaching bindings.
+*/
+static float aliceCameraOffset[3];
+static bool aliceCameraReset;
+static bool aliceCursorMode;
+static int aliceCursorX;
+static int aliceCursorY;
+static int aliceMouseButtons;
 
 
 /*
@@ -168,11 +197,12 @@ int CL_ValidateInputCommandSource( void ) {
 }
 
 
-static std::array<kbutton_t *, 13> IN_CommandButtons( void ) {
+static std::array<kbutton_t *, 14> IN_CommandButtons( void ) {
 	return {
 		&in_left, &in_right, &in_forward, &in_back,
 		&in_lookup, &in_lookdown, &in_moveleft, &in_moveright,
 		&in_strafe, &in_speed, &in_up, &in_down, &in_mlook,
+		&in_cameralook,
 	};
 }
 
@@ -274,6 +304,11 @@ static void CL_AddViewAngleDelta( int axis, float delta ) {
 
 
 static void IN_CenterView( void ) {
+	// Alice's centerview (0x00428080) also raises the flag import 47 reports,
+	// on which the client game resynchronises its copy of the camera offset.
+	if ( Com_GameIsAlice() ) {
+		aliceCameraReset = true;
+	}
 	cl.viewangles[PITCH] = -SHORT2ANGLE(cl.snap.ps.delta_angles[PITCH]);
 }
 
@@ -479,6 +514,8 @@ static void IN_SpeedDown() { IN_KeyDown( &in_speed ); }
 static void IN_SpeedUp() { IN_KeyUp( &in_speed ); }
 static void IN_StrafeDown() { IN_KeyDown( &in_strafe ); }
 static void IN_StrafeUp() { IN_KeyUp( &in_strafe ); }
+static void IN_CameraLookDown() { IN_KeyDown( &in_cameralook ); }
+static void IN_CameraLookUp() { IN_KeyUp( &in_cameralook ); }
 
 template <std::size_t Index>
 static void IN_ButtonDown( void ) {
@@ -508,9 +545,11 @@ static void IN_RTCWButtonUp( void ) {
 
 static bool IN_CommandBindingEnabled( const InputCommandBinding& binding ) {
 	if ( binding.rtcwOnly && !Com_GameIsRTCW() ) return false;
+	if ( binding.notAlice && Com_GameIsAlice() ) return false;
 	if ( binding.profile == COM_GAME_RTCW_SP ) return Com_GameIsRTCWSP();
 	if ( binding.profile == COM_GAME_RTCW_MP ) return Com_GameIsRTCWMP();
 	if ( binding.profile == COM_GAME_STVEF_MP ) return Com_GameIsSTVEFMP();
+	if ( binding.profile == COM_GAME_ALICE ) return Com_GameIsAlice();
 	return true;
 }
 
@@ -540,8 +579,8 @@ static constexpr std::array kInputCommandBindings{
 	InputCommandBinding{ "-moveright", IN_MoverightUp },
 	InputCommandBinding{ "+speed", IN_SpeedDown },
 	InputCommandBinding{ "-speed", IN_SpeedUp },
-	InputCommandBinding{ "+attack", IN_ButtonDown<0> },
-	InputCommandBinding{ "-attack", IN_ButtonUp<0> },
+	InputCommandBinding{ "+attack", IN_ButtonDown<0>, false, COM_GAME_AUTO, true },
+	InputCommandBinding{ "-attack", IN_ButtonUp<0>, false, COM_GAME_AUTO, true },
 	InputCommandBinding{ "+button0", IN_ButtonDown<0> },
 	InputCommandBinding{ "-button0", IN_ButtonUp<0> },
 	InputCommandBinding{ "+button1", IN_ButtonDown<1> },
@@ -556,24 +595,24 @@ static constexpr std::array kInputCommandBindings{
 	InputCommandBinding{ "-button5", IN_ButtonUp<5> },
 	InputCommandBinding{ "+button6", IN_ButtonDown<6> },
 	InputCommandBinding{ "-button6", IN_ButtonUp<6> },
-	InputCommandBinding{ "+button7", IN_ButtonDown<7> },
-	InputCommandBinding{ "-button7", IN_ButtonUp<7> },
-	InputCommandBinding{ "+button8", IN_ButtonDown<8> },
-	InputCommandBinding{ "-button8", IN_ButtonUp<8> },
-	InputCommandBinding{ "+button9", IN_ButtonDown<9> },
-	InputCommandBinding{ "-button9", IN_ButtonUp<9> },
-	InputCommandBinding{ "+button10", IN_ButtonDown<10> },
-	InputCommandBinding{ "-button10", IN_ButtonUp<10> },
-	InputCommandBinding{ "+button11", IN_ButtonDown<11> },
-	InputCommandBinding{ "-button11", IN_ButtonUp<11> },
-	InputCommandBinding{ "+button12", IN_ButtonDown<12> },
-	InputCommandBinding{ "-button12", IN_ButtonUp<12> },
-	InputCommandBinding{ "+button13", IN_ButtonDown<13> },
-	InputCommandBinding{ "-button13", IN_ButtonUp<13> },
-	InputCommandBinding{ "+button14", IN_ButtonDown<14> },
-	InputCommandBinding{ "-button14", IN_ButtonUp<14> },
-	InputCommandBinding{ "+button15", IN_ButtonDown<15> },
-	InputCommandBinding{ "-button15", IN_ButtonUp<15> },
+	InputCommandBinding{ "+button7", IN_ButtonDown<7>, false, COM_GAME_AUTO, true },
+	InputCommandBinding{ "-button7", IN_ButtonUp<7>, false, COM_GAME_AUTO, true },
+	InputCommandBinding{ "+button8", IN_ButtonDown<8>, false, COM_GAME_AUTO, true },
+	InputCommandBinding{ "-button8", IN_ButtonUp<8>, false, COM_GAME_AUTO, true },
+	InputCommandBinding{ "+button9", IN_ButtonDown<9>, false, COM_GAME_AUTO, true },
+	InputCommandBinding{ "-button9", IN_ButtonUp<9>, false, COM_GAME_AUTO, true },
+	InputCommandBinding{ "+button10", IN_ButtonDown<10>, false, COM_GAME_AUTO, true },
+	InputCommandBinding{ "-button10", IN_ButtonUp<10>, false, COM_GAME_AUTO, true },
+	InputCommandBinding{ "+button11", IN_ButtonDown<11>, false, COM_GAME_AUTO, true },
+	InputCommandBinding{ "-button11", IN_ButtonUp<11>, false, COM_GAME_AUTO, true },
+	InputCommandBinding{ "+button12", IN_ButtonDown<12>, false, COM_GAME_AUTO, true },
+	InputCommandBinding{ "-button12", IN_ButtonUp<12>, false, COM_GAME_AUTO, true },
+	InputCommandBinding{ "+button13", IN_ButtonDown<13>, false, COM_GAME_AUTO, true },
+	InputCommandBinding{ "-button13", IN_ButtonUp<13>, false, COM_GAME_AUTO, true },
+	InputCommandBinding{ "+button14", IN_ButtonDown<14>, false, COM_GAME_AUTO, true },
+	InputCommandBinding{ "-button14", IN_ButtonUp<14>, false, COM_GAME_AUTO, true },
+	InputCommandBinding{ "+button15", IN_ButtonDown<15>, false, COM_GAME_AUTO, true },
+	InputCommandBinding{ "-button15", IN_ButtonUp<15>, false, COM_GAME_AUTO, true },
 	InputCommandBinding{ "+activate", IN_ButtonDown<6>, true },
 	InputCommandBinding{ "-activate", IN_ButtonUp<6>, true },
 	InputCommandBinding{ "+useitem", IN_ButtonDown<2>, true },
@@ -608,6 +647,24 @@ static constexpr std::array kInputCommandBindings{
 	InputCommandBinding{ "-altattack", IN_ButtonUp<5>, false, COM_GAME_STVEF_MP },
 	InputCommandBinding{ "+use", IN_ButtonDown<6>, false, COM_GAME_STVEF_MP },
 	InputCommandBinding{ "-use", IN_ButtonUp<6>, false, COM_GAME_STVEF_MP },
+	// Alice's own buttons (alice.exe CL_InitInput 0x00428d60), each a two-line
+	// stub around IN_KeyDown or IN_KeyUp: attackright and attackleft on buttons
+	// 0 and 1 (0x00427e80..0x00427eb0), sneak on 2 (0x00427f00), holster on 4
+	// (0x00427ec0) and use on 5 (0x00427ee0), and cameralook on a button of its
+	// own (0x00427f60). Its +togglemouse has no release half and holds no state,
+	// so it is registered beside this table rather than in it.
+	InputCommandBinding{ "+attackright", IN_ButtonDown<0>, false, COM_GAME_ALICE },
+	InputCommandBinding{ "-attackright", IN_ButtonUp<0>, false, COM_GAME_ALICE },
+	InputCommandBinding{ "+attackleft", IN_ButtonDown<1>, false, COM_GAME_ALICE },
+	InputCommandBinding{ "-attackleft", IN_ButtonUp<1>, false, COM_GAME_ALICE },
+	InputCommandBinding{ "+sneak", IN_ButtonDown<2>, false, COM_GAME_ALICE },
+	InputCommandBinding{ "-sneak", IN_ButtonUp<2>, false, COM_GAME_ALICE },
+	InputCommandBinding{ "+holster", IN_ButtonDown<4>, false, COM_GAME_ALICE },
+	InputCommandBinding{ "-holster", IN_ButtonUp<4>, false, COM_GAME_ALICE },
+	InputCommandBinding{ "+use", IN_ButtonDown<5>, false, COM_GAME_ALICE },
+	InputCommandBinding{ "-use", IN_ButtonUp<5>, false, COM_GAME_ALICE },
+	InputCommandBinding{ "+cameralook", IN_CameraLookDown, false, COM_GAME_ALICE },
+	InputCommandBinding{ "-cameralook", IN_CameraLookUp, false, COM_GAME_ALICE },
 	InputCommandBinding{ "+mlook", IN_MLookDown },
 	InputCommandBinding{ "-mlook", IN_MLookUp },
 };
@@ -740,6 +797,56 @@ static void CL_KeyMove( usercmd_t *cmd ) {
 
 
 /*
+================
+CL_AliceKeyMove
+
+Alice's CL_KeyMove (0x00428170): every term at 127, whatever +speed and cl_run
+say, truncated as it is added and clamped to -128..127 at the store. +speed
+only sets the run bit (CL_AliceCmdButtons); there is no walking bit.
+
++right and +left are read here only under +strafe, as CL_AdjustAngles reads
+them otherwise, so no key's fraction is consumed twice.
+================
+*/
+static void CL_AliceKeyMove( usercmd_t *cmd ) {
+	fntech3::alice::input::KeyFractions held;
+
+	held.strafe = in_strafe.active;
+	if ( held.strafe ) {
+		held.right = CL_KeyState( &in_right );
+		held.left = CL_KeyState( &in_left );
+	}
+	held.moveRight = CL_KeyState( &in_moveright );
+	held.moveLeft = CL_KeyState( &in_moveleft );
+	held.up = CL_KeyState( &in_up );
+	held.down = CL_KeyState( &in_down );
+	held.forward = CL_KeyState( &in_forward );
+	held.back = CL_KeyState( &in_back );
+
+	const fntech3::alice::input::Move move = fntech3::alice::input::KeyMove( held );
+	cmd->forwardmove = static_cast<signed char>( move.forward );
+	cmd->rightmove = static_cast<signed char>( move.right );
+	cmd->upmove = static_cast<signed char>( move.up );
+}
+
+
+/*
+=================
+CL_AliceMoveCursor
+
+Alice's cursor mode (CL_MouseEvent 0x00428343): motion moves a cursor held to
+the video size instead of reaching the view.
+=================
+*/
+static void CL_AliceMoveCursor( int dx, int dy ) {
+	aliceCursorX = fntech3::alice::input::CursorStep(
+		aliceCursorX, dx, cls.glconfig.vidWidth );
+	aliceCursorY = fntech3::alice::input::CursorStep(
+		aliceCursorY, dy, cls.glconfig.vidHeight );
+}
+
+
+/*
 =================
 CL_MouseEvent
 =================
@@ -752,6 +859,11 @@ void CL_MouseEvent( int dx, int dy /*, int time*/ ) {
 		// selected by an earlier queued key event (for example Escape) after the
 		// platform already queued this delta; never reinterpret it as a position.
 		return;
+	} else if ( Com_GameIsAlice() && aliceCursorMode ) {
+		// Retail tests no catcher here. This engine's console keeps its own
+		// mouse above: retail's console is one of its menus, which run with the
+		// cursor on, so there the two never compete.
+		CL_AliceMoveCursor( dx, dy );
 	} else if ( !CL_AdvertisementBridge_IsDelayElapsed() ) {
 		return;
 	} else if ( Cvar_VariableIntegerValue( "cg_ignoreMouseInput" ) ) {
@@ -879,10 +991,20 @@ CL_JoystickMove
 static void CL_JoystickMove( usercmd_t *cmd ) {
 	//int		movespeed;
 	float	anglespeed;
+	// Retail Alice never posts a joystick axis (its Win32 layer queues none),
+	// so this path is a capability beyond it. Its command has no walking bit
+	// -- bit 4 is holster -- and its move bytes clamp at -128, so a mouse move
+	// that reached -128 must not be pulled to -127 on the way through here.
+	const bool alice = Com_GameIsAlice() != 0;
+	const auto clampMove = [alice]( int value ) -> signed char {
+		return alice
+			? static_cast<signed char>( fntech3::alice::input::ClampChar( value ) )
+			: ClampCharMove( value );
+	};
 
 	if ( in_speed.active != ( cl_run->integer != 0 ) ) {
 		//movespeed = 2;
-	} else {
+	} else if ( !alice ) {
 		//movespeed = 1;
 		cmd->buttons |= BUTTON_WALKING;
 	}
@@ -898,7 +1020,7 @@ static void CL_JoystickMove( usercmd_t *cmd ) {
 			anglespeed * cl_yawspeed->value *
 			cl.joystickAxis[AXIS_SIDE] );
 	} else {
-		cmd->rightmove = ClampCharMove( CL_SafeMoveValue(
+		cmd->rightmove = clampMove( CL_SafeMoveValue(
 			cmd->rightmove, static_cast<float>(
 				cl.joystickAxis[AXIS_SIDE] ) ) );
 	}
@@ -908,12 +1030,12 @@ static void CL_JoystickMove( usercmd_t *cmd ) {
 			anglespeed * cl_pitchspeed->value *
 			cl.joystickAxis[AXIS_FORWARD] );
 	} else {
-		cmd->forwardmove = ClampCharMove( CL_SafeMoveValue(
+		cmd->forwardmove = clampMove( CL_SafeMoveValue(
 			cmd->forwardmove, static_cast<float>(
 				cl.joystickAxis[AXIS_FORWARD] ) ) );
 	}
 
-	cmd->upmove = ClampCharMove( CL_SafeMoveValue(
+	cmd->upmove = clampMove( CL_SafeMoveValue(
 		cmd->upmove, static_cast<float>( cl.joystickAxis[AXIS_UP] ) ) );
 }
 
@@ -1152,6 +1274,73 @@ static void CL_MouseMove( usercmd_t *cmd )
 
 
 /*
+=================
+CL_AliceMouseMove
+
+Alice's CL_MouseMove (0x004284c0), unconditionally: cl_mouseAccelStyle does
+not apply to this title, and nothing scales the result by a client-game
+sensitivity, because Alice's client game has no SetUserCmdValue import to set
+one. The transform itself is fntech3::alice::input::MouseMove.
+
+Every scaled sample also feeds the camera accumulators the client game reads
+through import 47, including while +cameralook keeps the view still.
+=================
+*/
+static void CL_AliceMouseMove( usercmd_t *cmd ) {
+	CL_UpdateMouseAccelDebugLog( false );
+	retailMouseFilter.Reset( { cl.viewangles[YAW], cl.viewangles[PITCH] } );
+
+	fntech3::alice::input::MouseParams params;
+	params.mx = fntech3::alice::input::SampleCount(
+		cl.mouseDx, cl.mouseIndex, m_filter->integer != 0 );
+	params.my = fntech3::alice::input::SampleCount(
+		cl.mouseDy, cl.mouseIndex, m_filter->integer != 0 );
+
+	cl.mouseIndex ^= 1;
+	cl.mouseDx[cl.mouseIndex] = 0;
+	cl.mouseDy[cl.mouseIndex] = 0;
+
+	params.frameMsec = frame_msec;
+	params.sensitivity = cl_sensitivity->value;
+	params.acceleration = cl_mouseAccel->value;
+	params.pitch = m_pitch->value;
+	params.yaw = m_yaw->value;
+	params.forward = m_forward->value;
+	params.side = m_side->value;
+	params.up = m_up ? m_up->value : 0.0f;
+	params.cameraLook = in_cameralook.active;
+	params.strafe = in_strafe.active;
+	params.mlook = in_mlook.active;
+	params.freelook = cl_freelook->integer != 0;
+
+	const fntech3::alice::input::Move current{
+		cmd->forwardmove, cmd->rightmove, cmd->upmove
+	};
+	const fntech3::alice::input::MouseResult result =
+		fntech3::alice::input::MouseMove( params, current );
+
+	// Retail prints both whenever the rate is not zero (string 0x0050e5f4).
+	if ( result.rate != 0.0f && cl_showMouseRate->integer ) {
+		Com_Printf( "%f : %f\n", result.rate, result.accel );
+	}
+	if ( !result.moved ) {
+		return;
+	}
+
+	aliceCameraOffset[0] = fnql::input::FiniteOr(
+		aliceCameraOffset[0] + result.cameraPitch, aliceCameraOffset[0] );
+	aliceCameraOffset[1] = fnql::input::FiniteOr(
+		aliceCameraOffset[1] + result.cameraYaw, aliceCameraOffset[1] );
+
+	CL_AddViewAngleDelta( YAW, result.yaw );
+	CL_AddViewAngleDelta( PITCH, result.pitch );
+	cmd->forwardmove = static_cast<signed char>( result.move.forward );
+	cmd->rightmove = static_cast<signed char>( result.move.right );
+	cmd->upmove = static_cast<signed char>( result.move.up );
+}
+
+
+/*
 ==============
 CL_CmdButtons
 ==============
@@ -1196,6 +1385,38 @@ static void CL_CmdButtons( usercmd_t *cmd ) {
 		cmd->buttons |= Com_GameIsRTCW() ? FNTECH3_RTCW_BUTTON_ANY :
 			Com_GameIsSTVEFMP() ? FNTECH3_STVEF_MP_BUTTON_ANY : BUTTON_ANY;
 	}
+}
+
+
+/*
+==============
+CL_AliceCmdButtons
+
+Alice's CL_CmdButtons (0x00428750): its seven buttons, the run bit from +speed
+against cl_run, and the any-key bit while nothing captures input -- and
+nothing else. Its game reads bit 6 as a movement lockout and bit 4 as holster,
+so no Quake III talk or walking bit may be added here, and bit 7 is the game's
+intermission exit rather than a sixteen-bit "any" flag.
+==============
+*/
+static void CL_AliceCmdButtons( usercmd_t *cmd ) {
+	const bool gameplayInputCaptured = fnql::input::CatcherBlocksGameplayInput(
+		Key_GetCatcher(), KEYCATCH_RETAIL_MOUSEPASS );
+	std::uint8_t pressed = 0;
+
+	// Retail reads and clears the seven it has. The rest cannot be pressed
+	// here, because +button7 and above are not registered for this title.
+	for ( std::size_t i = 0; i < in_buttons.size(); i++ ) {
+		if ( i < static_cast<std::size_t>( fntech3::alice::input::kCommandButtons )
+			&& ( in_buttons[i].active || in_buttons[i].wasPressed ) ) {
+			pressed = static_cast<std::uint8_t>( pressed | ( 1u << i ) );
+		}
+		in_buttons[i].wasPressed = false;
+	}
+
+	cmd->buttons = fntech3::alice::input::CommandButtons( pressed,
+		in_speed.active, cl_run->integer != 0, anykeydown != 0,
+		gameplayInputCaptured );
 }
 
 
@@ -1273,6 +1494,127 @@ void CL_ResetMouseInputState( unsigned int auxiliaryKeyMask ) {
 
 
 /*
+=================
+CL_AliceReleaseMouseButtons
+
+Release MOUSE1 to MOUSE5 while they can still reach their bindings. Retail does
+this before cursor mode goes on (0x00427ac5..0x00427ae1), because once it is on
+their releases stop at the button mask and a held +attackright would stay held.
+=================
+*/
+static void CL_AliceReleaseMouseButtons( void ) {
+	for ( int key = K_MOUSE1; key <= K_MOUSE5; ++key ) {
+		if ( keys[key].down ) {
+			CL_KeyEvent( key, qfalse, 0 );
+		}
+	}
+}
+
+
+/*
+=================
+CL_AliceSetCursorMode
+
+Alice's menus turn cursor mode on with 0x00427b00 (when a menu is pushed or
+the console opens) and off with 0x00427b50 (when the last menu closes or the
+in-game view activates). While it is on, a menu reads the cursor through
+CL_AliceGetMouseState rather than taking relative motion.
+=================
+*/
+void CL_AliceSetCursorMode( qboolean on ) {
+	if ( on && !aliceCursorMode ) {
+		CL_AliceReleaseMouseButtons();
+	}
+	aliceCursorMode = on != qfalse;
+}
+
+
+qboolean CL_AliceCursorMode( void ) {
+	return Com_GameIsAlice() && aliceCursorMode ? qtrue : qfalse;
+}
+
+
+/*
+=================
+CL_AliceGetMouseState
+
+Retail's 0x004282b0: the cursor position, and the button mask only while
+cursor mode is on. Each output may be null.
+=================
+*/
+void CL_AliceGetMouseState( int *x, int *y, int *buttons ) {
+	if ( x ) {
+		*x = aliceCursorX;
+	}
+	if ( y ) {
+		*y = aliceCursorY;
+	}
+	if ( buttons ) {
+		*buttons = aliceCursorMode ? aliceMouseButtons : 0;
+	}
+}
+
+
+/*
+=================
+CL_AliceMouseButtonEvent
+
+MOUSE1 to MOUSE5 always update the button mask (CL_KeyEvent
+0x00429cf6..0x00429d2b). Returns true when cursor mode is on, in which case
+the event stops there, for a press and a release alike (0x00429d31..0x00429d47).
+=================
+*/
+qboolean CL_AliceMouseButtonEvent( int key, qboolean down ) {
+	if ( key < K_MOUSE1 || key > K_MOUSE5 ) {
+		return qfalse;
+	}
+	aliceMouseButtons = fntech3::alice::input::MouseButtonMask(
+		aliceMouseButtons, key - K_MOUSE1, down != qfalse );
+	return aliceCursorMode ? qtrue : qfalse;
+}
+
+
+/*
+=================
+IN_AliceToggleMouse
+
++togglemouse (0x00427ab0). It has no release half: retail registers no
+-togglemouse, so a key bound to it forwards its release to the server as an
+unknown command, as retail's does.
+=================
+*/
+static void IN_AliceToggleMouse( void ) {
+	if ( !aliceCursorMode ) {
+		CL_AliceReleaseMouseButtons();
+	}
+	aliceCursorMode = !aliceCursorMode;
+}
+
+
+/*
+=================
+CL_AliceGetCameraOffset
+
+Alice's client-game import 47 (0x0042a1f0). It reports whether +cameralook is
+held and whether centerview asked for a reset since the last call, clears that
+request, and returns the camera accumulators, which the client game keeps its
+own previous copy of and differences. Retail writes both outputs without a
+null check; this checks each.
+=================
+*/
+float *QDECL CL_AliceGetCameraOffset( qboolean *lookActive, qboolean *resetView ) {
+	if ( lookActive ) {
+		*lookActive = in_cameralook.active ? qtrue : qfalse;
+	}
+	if ( resetView ) {
+		*resetView = aliceCameraReset ? qtrue : qfalse;
+	}
+	aliceCameraReset = false;
+	return aliceCameraOffset;
+}
+
+
+/*
 ==============
 CL_FinishMove
 ==============
@@ -1327,13 +1669,21 @@ static usercmd_t CL_CreateCmd( void ) {
 	// keyboard angle adjustment
 	CL_AdjustAngles ();
 
-	CL_CmdButtons( &cmd );
+	if ( Com_GameIsAlice() ) {
+		// Alice's builder (CL_CreateCmd 0x00428800) runs the same steps in
+		// the same order, each with rules of its own.
+		CL_AliceCmdButtons( &cmd );
+		CL_AliceKeyMove( &cmd );
+		CL_AliceMouseMove( &cmd );
+	} else {
+		CL_CmdButtons( &cmd );
 
-	// get basic movement from keyboard
-	CL_KeyMove( &cmd );
+		// get basic movement from keyboard
+		CL_KeyMove( &cmd );
 
-	// get basic movement from mouse
-	CL_MouseMove( &cmd );
+		// get basic movement from mouse
+		CL_MouseMove( &cmd );
+	}
 
 	// get basic movement from joystick
 	CL_JoystickMove( &cmd );
@@ -1558,7 +1908,7 @@ void CL_WritePacket( int repeat ) {
 
 	// Elite Force Holomatch writes raw bits and ends where its data ends
 	// (stvoyHM.exe CL_WritePacket 0x40a660).
-	const bool stvef = CL_STVEFFraming() != qfalse;
+	const bool stvef = CL_LegacyFraming() != qfalse;
 	if ( stvef ) {
 		MSG_STVEFBitstream( &buf );
 	} else {
@@ -1729,7 +2079,16 @@ CL_InitInput
 ============
 */
 void CL_InitInput( void ) {
+	// American McGee's Alice registers its input cvars under its own names,
+	// defaults and flags (alice.exe CL_Init 0x0042c8a5..0x0042ca99); every
+	// other profile keeps the registrations below unchanged.
+	const bool alice = Com_GameIsAlice() != 0;
+
 	IN_AddCommandBindings();
+	if ( alice ) {
+		Cmd_AddCommand( "+togglemouse", IN_AliceToggleMouse );
+		CL_AliceInitKeyCommands();
+	}
 
 	cl_nodelta = Cvar_Get( "cl_nodelta", "0", 0 );
 	Cvar_SetDescription( cl_nodelta, "Flag server to disable delta compression on server snapshots." );
@@ -1740,23 +2099,39 @@ void CL_InitInput( void ) {
 	cl_showSend = Cvar_Get( "cl_showSend", "0", CVAR_TEMP );
 	Cvar_SetDescription( cl_showSend, "Prints client to server packet information." );
 
-	cl_yawspeed = Cvar_Get( "cl_yawspeed", "140", CVAR_ARCHIVE_ND | CVAR_CHEAT );
+	// Alice archives both turning speeds and gives the speed key no flags.
+	cl_yawspeed = Cvar_Get( "cl_yawspeed", "140",
+		alice ? CVAR_ARCHIVE : CVAR_ARCHIVE_ND | CVAR_CHEAT );
 	Cvar_SetDescription( cl_yawspeed, "Side-to-side turning speed using keys (+left and +right)." );
-	cl_pitchspeed = Cvar_Get( "cl_pitchspeed", "140", CVAR_ARCHIVE_ND | CVAR_CHEAT );
+	cl_pitchspeed = Cvar_Get( "cl_pitchspeed", "140",
+		alice ? CVAR_ARCHIVE : CVAR_ARCHIVE_ND | CVAR_CHEAT );
 	Cvar_SetDescription( cl_pitchspeed, "Up and down pitching speed using keys (+lookup and +lookdown)." );
-	cl_anglespeedkey = Cvar_Get( "cl_anglespeedkey", "1.5", CVAR_CHEAT );
+	cl_anglespeedkey = Cvar_Get( "cl_anglespeedkey", "1.5", alice ? 0 : CVAR_CHEAT );
 	Cvar_SetDescription( cl_anglespeedkey, "Set the speed that the direction keys (not mouse) change the view angle." );
 
-	cl_maxpackets = Cvar_Get( "cl_maxpackets", "125", CVAR_ARCHIVE | CVAR_CHEAT );
-	Cvar_CheckRange( cl_maxpackets, "15", "125", CV_INTEGER );
+	if ( alice ) {
+		// Alice defaults to 30 and holds it to 15..100 where it sends
+		// (CL_ReadyToSendPacket 0x004289c0).
+		cl_maxpackets = Cvar_Get( "cl_maxpackets", "30", CVAR_ARCHIVE );
+		Cvar_CheckRange( cl_maxpackets, "15", "100", CV_INTEGER );
+	} else {
+		cl_maxpackets = Cvar_Get( "cl_maxpackets", "125", CVAR_ARCHIVE | CVAR_CHEAT );
+		Cvar_CheckRange( cl_maxpackets, "15", "125", CV_INTEGER );
+	}
 	Cvar_SetDescription( cl_maxpackets, "Set how many client packets are sent to the server per second, can't exceed \\com_maxFPS." );
 	cl_packetdup = Cvar_Get( "cl_packetdup", "1", CVAR_ARCHIVE_ND | CVAR_CLOUD );
 	Cvar_CheckRange( cl_packetdup, "0", "5", CV_INTEGER );
 	Cvar_SetDescription( cl_packetdup, "Limits the number of previous client commands added in packet, helps in packet loss mitigation, increases client command packets size a bit." );
 
-	cl_run = Cvar_Get( "cl_run", "1", CVAR_ARCHIVE_ND );
+	if ( alice ) {
+		// Alice registers 0 and its default.cfg sets 1; its sensitivity is 5.
+		cl_run = Cvar_Get( "cl_run", "0", CVAR_ARCHIVE );
+		cl_sensitivity = Cvar_Get( "sensitivity", "5", CVAR_ARCHIVE );
+	} else {
+		cl_run = Cvar_Get( "cl_run", "1", CVAR_ARCHIVE_ND );
+		cl_sensitivity = Cvar_Get( "sensitivity", "2", CVAR_ARCHIVE );
+	}
 	Cvar_SetDescription( cl_run, "Persistent player running movement." );
-	cl_sensitivity = Cvar_Get( "sensitivity", "2", CVAR_ARCHIVE );
 	// Unbounded like every retail engine: player configs shipped with all four
 	// games use values from 10 to 40.
 	Cvar_CheckRange( cl_sensitivity, nullptr, nullptr, CV_FLOAT );
@@ -1767,8 +2142,13 @@ void CL_InitInput( void ) {
 	Cvar_SetDescription( cl_mouseAccel, "Mouse acceleration amount. Negative values select Quake Live deceleration when the retail input style is active." );
 	cl_mouseAccelDebug = Cvar_Get( "cl_mouseAccelDebug", "0", CVAR_TEMP );
 	Cvar_SetDescription( cl_mouseAccelDebug, "Write bounded Quake Live mouse-transform diagnostics to mouse.log." );
-	cl_freelook = Cvar_Get( "cl_freelook", "1",
-		CVAR_ARCHIVE_ND | CVAR_PROTECTED | CVAR_CLOUD );
+	if ( alice ) {
+		// Alice's name for it is plain `freelook`, which its default.cfg sets.
+		cl_freelook = Cvar_Get( "freelook", "1", CVAR_ARCHIVE );
+	} else {
+		cl_freelook = Cvar_Get( "cl_freelook", "1",
+			CVAR_ARCHIVE_ND | CVAR_PROTECTED | CVAR_CLOUD );
+	}
 	Cvar_SetDescription( cl_freelook, "Allow pitching or up/down look with mouse." );
 
 	// 0: legacy mouse acceleration
@@ -1809,6 +2189,15 @@ void CL_InitInput( void ) {
 	Cvar_SetDescription( m_forward, "Set the back and forth movement distance of the player in relation to how much the mouse moves." );
 	m_side = Cvar_Get( "m_side", "0.25", CVAR_ARCHIVE_ND );
 	Cvar_SetDescription( m_side, "Set the strafe movement distance of the player in relation to how much the mouse moves." );
+	if ( alice ) {
+		m_up = Cvar_Get( "m_up", "0", CVAR_ARCHIVE );
+		Cvar_SetDescription( m_up, "Set the up and down movement of the player in relation to how much the mouse moves while strafing." );
+		// Retail sets this from m_pitch as it stands when the client starts,
+		// without registering it (0x0042ca70..0x0042ca99).
+		Cvar_Set( "m_invert_pitch", m_pitch->value < 0.0f ? "1" : "0" );
+	} else {
+		m_up = nullptr;
+	}
 #ifdef MACOS_X
 	// Input is jittery on OS X w/o this
 	m_filter = Cvar_Get( "m_filter", "1", CVAR_ARCHIVE_ND );
@@ -1833,4 +2222,13 @@ void CL_ClearInput( void ) {
 	mouseAccelDebugOpenFailed = false;
 	retailMouseFilter.Reset();
 	IN_RemoveCommandBindings();
+	if ( Com_GameIsAlice() ) {
+		Cmd_RemoveCommand( "+togglemouse" );
+		CL_AliceShutdownKeyCommands();
+		// The cursor belongs to the menus a restarted client will open again.
+		// The camera accumulators are left alone: like retail's, they live for
+		// the process, and the client game differences them itself.
+		aliceCursorMode = false;
+		aliceMouseButtons = 0;
+	}
 }

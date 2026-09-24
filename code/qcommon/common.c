@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../compat/game_abi_adapter.h"
 #include "../platform/fnql_steam.h"
 #include "../platform/process_relaunch.h"
+#include "native_seh.h"
 #include <setjmp.h>
 #ifndef _WIN32
 #include <netinet/in.h>
@@ -47,6 +48,10 @@ const int demo_protocols[] = {
 	67,
 	OLD_PROTOCOL_VERSION,
 	NEW_PROTOCOL_VERSION,
+	43,
+	45,
+	46,
+	48,
 	QL_RETAIL_PROTOCOL_VERSION,
 	NETCHAN_RTCW_SP_PROTOCOL_VERSION,
 	NETCHAN_RTCW_MP_PROTOCOL_VERSION,
@@ -381,6 +386,21 @@ void NORETURN FORMAT_PRINTF(2, 3) QDECL Com_Error( errorParm_t code, const char 
 		}
 	}
 
+	/* Every code below unloads the modules and none returns to the frames it
+	 * interrupted. A native module's exception registrations must leave this
+	 * thread's handler list before its image does, or the unwind in Q_longjmp
+	 * -- or any later exception -- walks into unmapped handlers and the process
+	 * dies with STATUS_BAD_STACK. Nothing is unlinked unless a native module
+	 * has a registration on this stack. */
+	{
+		const int unlinked = VM_UnlinkNativeExceptionRecords();
+
+		if ( unlinked > 0 ) {
+			Com_DPrintf( "Com_Error: unlinked %i exception registration%s of native module frames "
+				"the error abandons\n", unlinked, unlinked == 1 ? "" : "s" );
+		}
+	}
+
 	Cbuf_Init();
 
 	if ( Com_GameIsSTVEFSP() ) {
@@ -390,6 +410,9 @@ void NORETURN FORMAT_PRINTF(2, 3) QDECL Com_Error( errorParm_t code, const char 
 		if ( code == ERR_DROP ) {
 			SV_STVEFSPSaveAbort();
 		}
+	}
+	if ( Com_GameIsAlice() ) {
+		SV_AliceSaveAbort();
 	}
 
 	if ( code == ERR_DISCONNECT || code == ERR_SERVERDISCONNECT ) {
@@ -2389,13 +2412,13 @@ Hunk_Clear
 The server calls this before shutting down or loading a new map
 =================
 */
-void Hunk_Clear( void ) {
+static void Hunk_ClearInternal( qboolean preserveGame ) {
 
 #ifndef DEDICATED
 	CL_ShutdownCGame();
 	CL_ShutdownUI();
 #endif
-	SV_ShutdownGameProgs();
+	if ( !preserveGame ) SV_ShutdownGameProgs();
 #ifndef DEDICATED
 	CIN_CloseAllVideos();
 #endif
@@ -2413,10 +2436,18 @@ void Hunk_Clear( void ) {
 	hunk_temp = &hunk_high;
 
 	Com_Printf( "Hunk_Clear: reset the hunk ok\n" );
-	VM_Clear();
+	VM_ClearExcept( preserveGame ? VM_GAME : VM_COUNT );
 #ifdef HUNK_DEBUG
 	hunkblocks = NULL;
 #endif
+}
+
+void Hunk_Clear( void ) {
+	Hunk_ClearInternal( qfalse );
+}
+
+void Hunk_ClearForMap( void ) {
+	Hunk_ClearInternal( Com_GameIsQuake3IHV() ? qtrue : qfalse );
 }
 
 
@@ -4107,12 +4138,38 @@ static void Com_InitGameProfile( void ) {
 	detection = Com_DetectGameProfile( &inputs );
 
 	if ( detection.status != COM_GAME_DETECTION_OK || !detection.profile ) {
+		/* Name the profiles this build can actually activate. A fixed list
+		 * goes stale every time a title is added or a gate moves, and then
+		 * tells the player to select a profile that is not there. */
+		char selectable[512];
+		unsigned length = 0;
+
+		selectable[0] = '\0';
+		for ( unsigned i = 0; i < Com_GameManagerProfileCount(); ++i ) {
+			const comGameProfile_t *candidate = Com_GameManagerProfileAt( i );
+			unsigned keyLength;
+
+			if ( !Com_GameManagerCanActivate( candidate ) ) {
+				continue;
+			}
+			keyLength = (unsigned)strlen( candidate->key );
+			if ( length + keyLength + 2 >= sizeof( selectable ) ) {
+				break;
+			}
+			if ( length ) {
+				selectable[length++] = '|';
+			}
+			memcpy( selectable + length, candidate->key, keyLength );
+			length += keyLength;
+			selectable[length] = '\0';
+		}
 		Com_Error( ERR_FATAL,
 			"fnTech3 game profile detection failed (%s, evidence: %s). "
 			"Set fs_basepath to the game's installation and select "
-			"+set com_gameProfile quake3|quakelive|rtcw-sp|rtcw-mp|wolfet.",
+			"+set com_gameProfile %s.",
 			Com_GameDetectionStatusName( detection.status ),
-			Com_GameDetectionEvidenceName( detection.evidence ) );
+			Com_GameDetectionEvidenceName( detection.evidence ),
+			selectable[0] ? selectable : "a profile this build enables" );
 	}
 
 	if ( !Com_ActivateGameProfile( detection.profile->id ) ) {
@@ -4133,7 +4190,7 @@ static void Com_InitGameProfile( void ) {
 	com_gameProfile->flags &= ~CVAR_USER_CREATED;
 	com_gameProfile->flags |= CVAR_INIT | CVAR_PROTECTED | CVAR_ROM;
 	Cvar_SetDescription( com_gameProfile,
-		"Immutable compatibility profile selected at startup. Use auto, quake3, quakelive, rtcw-sp, rtcw-mp, wolfet, stvef-sp, or stvef-mp on the command line." );
+		"Immutable compatibility profile selected at startup. Use auto, quake3, quakelive, rtcw-sp, rtcw-mp, wolfet, stvef-sp, stvef-mp, q3-ihv, jka-sp, or jka-mp on the command line." );
 
 	Com_Printf( "Game profile: %s (%s, detected from %s)\n",
 		detection.profile->displayName, detection.profile->key,
@@ -4143,6 +4200,8 @@ static void Com_InitGameProfile( void ) {
 			? "EXPERIMENTAL WOLFET DEVELOPMENT BUILD: %s. Compatibility gates remain open.\n"
 			: Com_GameIsSTVEF()
 			? "EXPERIMENTAL ELITE FORCE DEVELOPMENT BUILD: %s. Compatibility gates remain open.\n"
+			: Com_GameIsJKA()
+			? "EXPERIMENTAL JEDI ACADEMY DEVELOPMENT BUILD: %s. Compatibility gates remain open.\n"
 			: "EXPERIMENTAL RTCW DEVELOPMENT BUILD: %s. Compatibility gates remain open.\n",
 			detection.profile->runtimeBlocker );
 	}
@@ -4849,6 +4908,8 @@ void Com_Frame( qboolean noDelay ) {
 	com_frameTime = Com_EventLoop();
 	realMsec = com_frameTime - lastTime;
 
+	// Alice's first pass counts no wait down (alice.exe Com_Frame 0x0043a0b6
+	// passes 0); its client pass below does.
 	Cbuf_Execute();
 	if ( Com_GameProfile()->usesSteam ) {
 		FNQL_Steam_Pump();
@@ -4925,6 +4986,11 @@ void Com_Frame( qboolean noDelay ) {
 		}
 		Com_EventLoop();
 
+		// Alice counts its millisecond waits down here, by the frame time the
+		// server has just run (alice.exe 0x0043a183, after SV_Frame); a
+		// dedicated server never makes this pass, so there only a one-frame
+		// wait ever ends. Only Alice reads the time.
+		Cbuf_SetFrameMsec( gameMsec );
 		Cbuf_Execute();
 
 		if ( Com_GameIsQuakeLive() ) {

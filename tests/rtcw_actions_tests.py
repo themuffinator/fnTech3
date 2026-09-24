@@ -47,6 +47,13 @@ static void setup(){
 CHECKS = r'''
 static void checkBoundary(bool native){
  for(const auto &p:profiles){profile=&p;const bool rtcw=Com_GameIsRTCW();
+  if(!p.bots.navigationWorlds){
+   assert(p.id==COM_GAME_QUAKE3_IHV||p.id==COM_GAME_JKA_SP||p.id==COM_GAME_JK2_SP
+    ||p.id==COM_GAME_ALICE);
+   for(int count:{8,128,256}){botlibglobals.maxclients=count;
+    assert(EA_Setup()==BLERR_LIBRARYNOTSETUP&&allocations.empty());}
+   EA_Shutdown();assert(allocations.empty());continue;
+  }
   botlibglobals.maxclients=p.maxClients;EA_Setup();assert(allocations.size()==1);
   std::array<byte,1400> memory;memory.fill(0xa5);
   vm_t vm{};vm.dataBase=memory.data();vm.exactDataLength=int(memory.size());

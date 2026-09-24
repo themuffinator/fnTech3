@@ -1,0 +1,1476 @@
+{
+  "utc": "2026-09-24T10:24:48+00:00",
+  "testedSourceCommit": "2d35919d0f6ee62f869f34186a4b11d3e189742f",
+  "testedSource": "a snapshot of the shared working tree at 2026-09-24T09:57Z (HEAD 2d35919 plus every session's uncommitted work, including the Enemy Territory settle changes this builds on)",
+  "sourceChanges": [
+    "code/server/sv_ccmds.cpp: SV_MapRestart_f runs each settling frame and its last frame at sv.time and advances the time after it, in every profile; ET keeps six frames",
+    "code/server/sv_init.cpp: SV_SpawnServer does the same in the branch every profile but ET and Alice takes, with the bot frame after each game frame at the same time; the IHV test keeps no last frame",
+    "tests/wolfet_restart_settle_tests.py, tests/wolfet_map_load_settle_tests.py, tests/alice_savegame_source_tests.py: expectations and mutations for the retail order",
+    "scripts/probe_settle_frame_order.py: the RTCW MP and SP probe"
+  ],
+  "platform": "Windows 11; Windows x86 MSVC debugoptimized, strict warnings, dedicated server only (-Dbuild-client=false -Drtcw-development=true -Dwolfet-development=true -Dstvef-development=true)",
+  "builds": {
+    "baseline": {
+      "source": "working-tree snapshot without this change",
+      "path": ".tmp/runtime/settle-order-baseline/fntech3.ded.exe",
+      "sha256": "26ae2e6a5cd053ed5c2cd02f40ba60d12e2ec2515245cfb29c52ff76ad93178b"
+    },
+    "candidate": {
+      "source": "the same snapshot with this change; its sv_ccmds.cpp and sv_init.cpp equal the working tree byte for byte",
+      "path": ".tmp/runtime/settle-order-candidate/fntech3.ded.exe",
+      "sha256": "2fa48e5e8fb112bc33bc62b672942ff8c95f45f62f3c68b9397c1084ead9f256"
+    }
+  },
+  "retail": {
+    "quake3.exe": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+    "quakelive_steam.exe": "c926fe9f6c851e00b3b9332e88903ad01f28fdd60454873891c0158f5ded1299",
+    "WolfSP.exe": "07d206f61da5c80562ff60d68c645bca349b31adb5d7e0e7f186d61ad46683c7",
+    "WolfMP.exe": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+    "stvoyHM.exe": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+    "stvoy.exe": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74",
+    "jamp.exe": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+    "jasp.exe": "9351a8de230fcd577e2b474889d08f38982450306767a6823dd659482566d6ce",
+    "jk2mp.exe": "2f08dcf9a089cb66062766f4922fda63a9e553de893c174b497dfefeb7a1577a",
+    "jk2sp.exe": "0d3c635ee5b20ac32fc957e00cf21e65ebc1584112b11f6ae026706dcc0d0e0c"
+  },
+  "retailAddresses": {
+    "quake3.exe": {
+      "mapRestart": "0x432990",
+      "restartGameProgs": "0x438480",
+      "gameInitWithSvsTime": "0x438514",
+      "restartSettleFrames": "0x432ab1..0x432add",
+      "restartClientEntry": "state CS_ACTIVE 0x432b6f, SV_ClientEnterWorld 0x432b75",
+      "restartLastFrame": "0x432b9e..0x432bbf",
+      "spawnServer": "0x438ae0",
+      "spawnSettleFrames": "0x438d8d..0x438dc5",
+      "spawnLastFrame": "0x438f02..0x438f31",
+      "clock": "svs.time 0x96d184"
+    },
+    "quakelive_steam.exe": {
+      "mapRestart": "0x4de670",
+      "initGameVM": "0x4e2a80",
+      "gameInitWithSvTime": "0x4e2b82",
+      "restartSettleFrames": "0x4de8ae..0x4de8e7",
+      "restartClientEntry": "state CS_ACTIVE 0x4de9b6, SV_ClientEnterWorld 0x4de9bc",
+      "restartLastFrame": "0x4de9f2..0x4dea0e",
+      "delayedRestartFromSvsTime": "0x4de71b..0x4de734",
+      "spawnServer": "0x4e3510",
+      "spawnSettleFrames": "0x4e3766..0x4e37a1",
+      "spawnLastFrame": "0x4e388b..0x4e38b4",
+      "clock": "sv.time 0x1333780; svs.time 0x13337a4 advances with it"
+    },
+    "WolfSP.exe": {
+      "mapRestart": "0x4307f0",
+      "defaultDelay": "0x4308a8..0x4308b4 (5 s unless g_gametype 2), g_doWarmup 0x430859..0x430871",
+      "saveTimeOnRestart": "0x4308d3..0x430941, store 0x430936",
+      "saveTimeOnMap": "SV_Map_f 0x430b00, store 0x430de1",
+      "restartGameProgs": "0x435f60",
+      "gameInitWithSvsTime": "0x435fd5",
+      "restartSettleFrames": "0x430993..0x4309bf",
+      "restartClientEntry": "state CS_ACTIVE 0x430a4f, SV_ClientEnterWorld 0x430a57",
+      "restartLastFrame": "0x430a80..0x430aa1",
+      "restartBotFrame": "none",
+      "spawnServer": "0x436cf0",
+      "spawnSettleFrames": "0x436f98..0x436fd7 (bot frame 0x4301c0 after each)",
+      "spawnLastFrame": "0x437103..0x43712f",
+      "clock": "svs.time 0xb99e64"
+    },
+    "WolfMP.exe": {
+      "mapRestart": "0x432eb0",
+      "restartGameProgs": "0x438930",
+      "gameInitWithSvsTime": "0x4389d7",
+      "restartSettleFrames": "0x4330ad..0x4330da",
+      "restartClientEntry": "state CS_ACTIVE 0x43316c, SV_ClientEnterWorld 0x433174",
+      "restartLastFrame": "0x433192..0x4331b9",
+      "spawnServer": "0x439260",
+      "spawnServerRestarting": "set 1 0x43942c..0x439440, set 0 0x439707..0x439711",
+      "spawnSettleFrames": "0x439453..0x43948e (bot frame 0x432910 after each)",
+      "spawnLastFrame": "0x4395b1..0x4395e2",
+      "clock": "svs.time 0xae8fa4"
+    },
+    "stvoyHM.exe": {
+      "mapRestart": "0x42e640",
+      "restartGameProgs": "0x433220",
+      "gameInitWithSvsTime": "0x433268",
+      "restartSettleFrames": "0x42e796..0x42e7c2",
+      "restartClientEntry": "state CS_ACTIVE 0x42e83c, SV_ClientEnterWorld 0x42e842",
+      "restartLastFrame": "0x42e85f..0x42e880",
+      "spawnServer": "0x4337a0",
+      "spawnSettleFrames": "0x433a9d..0x433ad5 (bot frame 0x42dc90 after each)",
+      "spawnLastFrame": "0x433c32..0x433c60",
+      "clock": "svs.time 0x6b5044"
+    },
+    "stvoy.exe": {
+      "mapRestart": "none: no map_restart string",
+      "spawnServer": "0x4259c0",
+      "gameInitWithSvTime": "0x4256d3",
+      "spawnSettleFrames": "0x425b43..0x425b6e",
+      "spawnLastFrame": "0x425be2..0x425bfb",
+      "clock": "sv.time 0xa41c3c"
+    },
+    "jamp.exe": {
+      "restartSettleFrames": "0x456396..0x4563c6",
+      "restartLastFrame": "0x4564ae..0x4564cf",
+      "gameInit": "0x45dd5f",
+      "spawnSettleFrames": "0x45eaee..0x45eb62 (bot frame after each when enabled)",
+      "spawnLastFrame": "0x45eca7..0x45eceb",
+      "clock": "0xc317c4"
+    },
+    "jasp.exe": {
+      "mapRestart": "none: no map_restart string",
+      "gameInitWithSvTime": "0x4398e4",
+      "spawnSettleFrames": "0x439dbd..0x439de6",
+      "spawnLastFrame": "0x439e69..0x439e83",
+      "clock": "sv.time 0xc2a19c"
+    },
+    "jk2mp.exe": {
+      "restartSettleFrames": "0x447c03..0x447c2f",
+      "restartLastFrame": "0x447cf2..0x447d14",
+      "gameInit": "0x44cf65",
+      "spawnSettleFrames": "0x44da5c..0x44da94 (bot frame 0x447300 after each)",
+      "spawnLastFrame": "0x44db99..0x44dbc8",
+      "clock": "0xb0d674"
+    },
+    "jk2sp.exe": {
+      "mapRestart": "none: no map_restart string",
+      "gameInitWithSvTime": "0x436da2",
+      "spawnSettleFrames": "0x4372d8..0x437308",
+      "spawnLastFrame": "0x43736c..0x437386",
+      "clock": "sv.time 0x126bb24"
+    }
+  },
+  "installations": {
+    "quake3.exe": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+    "quakelive_steam.exe": "E:\\SteamLibrary\\steamapps\\common\\Quake Live",
+    "WolfSP.exe, WolfMP.exe": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+    "stvoy.exe, stvoyHM.exe": "E:\\Games\\Star Trek Voyager Elite Force",
+    "jasp.exe, jamp.exe": "E:\\Games\\Jedi Academy",
+    "jk2sp.exe, jk2mp.exe": "E:\\Games\\Jedi Outcast"
+  },
+  "assets": {
+    "Main/qagame_mp_x86.dll": "d8975b5c4e14488283c5eca7d549005304b04f1690705c13c174a171cc24c387",
+    "qagamex86.dll": "085346769622cbf19c085accd055bf8b59f3c773aca503711ea0f95e5288e7d1",
+    "Main/mp_pakmaps6.pk3 (mp_rocket)": "fcdb3754ca4e9f60b3086c8461b26160dd8de7f5e94c04100a2eb6f9519abca2",
+    "Main/pak0.pk3 (rocket)": "1dfcfc3187ba09fe32cd8a7921a09cd15dd789816186c89b11e5e0d954c55e6c"
+  },
+  "probe": "scripts/probe_settle_frame_order.py",
+  "horizonMs": 2500,
+  "modes": {
+    "rtcw-mp": {
+      "summary": {
+        "profile": "rtcw-mp",
+        "map": "mp_rocket",
+        "passed": true,
+        "retailSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+        "moduleSha256": "d8975b5c4e14488283c5eca7d549005304b04f1690705c13c174a171cc24c387",
+        "servers": {
+          "baseline": "26ae2e6a5cd053ed5c2cd02f40ba60d12e2ec2515245cfb29c52ff76ad93178b",
+          "candidate": "2fa48e5e8fb112bc33bc62b672942ff8c95f45f62f3c68b9397c1084ead9f256"
+        },
+        "clean": {
+          "retail": true,
+          "baseline": true,
+          "candidate": true
+        },
+        "matchesRetail": {
+          "baseline": {
+            "loaded": false,
+            "first-restart": false,
+            "second-restart": false
+          },
+          "candidate": {
+            "loaded": true,
+            "first-restart": true,
+            "second-restart": true
+          }
+        },
+        "levelSpans": {
+          "retail": [
+            6800,
+            6100
+          ],
+          "baseline": [
+            7550,
+            7650
+          ],
+          "candidate": [
+            7600,
+            7600
+          ]
+        },
+        "lineCounts": {
+          "loaded": {
+            "retail": 88,
+            "baseline": 74,
+            "candidate": 88
+          },
+          "first-restart": {
+            "retail": 88,
+            "baseline": 74,
+            "candidate": 88
+          },
+          "second-restart": {
+            "retail": 88,
+            "baseline": 74,
+            "candidate": 88
+          }
+        },
+        "linesAtStart": {
+          "loaded": {
+            "retail": 68,
+            "baseline": 54,
+            "candidate": 68
+          },
+          "first-restart": {
+            "retail": 68,
+            "baseline": 54,
+            "candidate": 68
+          },
+          "second-restart": {
+            "retail": 68,
+            "baseline": 54,
+            "candidate": 68
+          }
+        },
+        "digests": {
+          "loaded": {
+            "retail": "e9dcd6b9d19d3998b4bb3620e367814a3ba074771d2dda0ffedfadb1d63d8f3e",
+            "baseline": "eb1cd6ecc8f1a3278031af019121c5ec32ef735da4b1234dd64047bf258cd67d",
+            "candidate": "e9dcd6b9d19d3998b4bb3620e367814a3ba074771d2dda0ffedfadb1d63d8f3e"
+          },
+          "first-restart": {
+            "retail": "e9dcd6b9d19d3998b4bb3620e367814a3ba074771d2dda0ffedfadb1d63d8f3e",
+            "baseline": "eb1cd6ecc8f1a3278031af019121c5ec32ef735da4b1234dd64047bf258cd67d",
+            "candidate": "e9dcd6b9d19d3998b4bb3620e367814a3ba074771d2dda0ffedfadb1d63d8f3e"
+          },
+          "second-restart": {
+            "retail": "e9dcd6b9d19d3998b4bb3620e367814a3ba074771d2dda0ffedfadb1d63d8f3e",
+            "baseline": "eb1cd6ecc8f1a3278031af019121c5ec32ef735da4b1234dd64047bf258cd67d",
+            "candidate": "e9dcd6b9d19d3998b4bb3620e367814a3ba074771d2dda0ffedfadb1d63d8f3e"
+          }
+        },
+        "firstDivergence": {
+          "baseline": {
+            "loaded": {
+              "index": 54,
+              "retailOffset": 0,
+              "fntech3Offset": 200
+            },
+            "first-restart": {
+              "index": 54,
+              "retailOffset": 0,
+              "fntech3Offset": 200
+            },
+            "second-restart": {
+              "index": 54,
+              "retailOffset": 0,
+              "fntech3Offset": 200
+            }
+          },
+          "candidate": {
+            "loaded": null,
+            "first-restart": null,
+            "second-restart": null
+          }
+        },
+        "gamestate": {
+          "retail": [
+            "1",
+            "0",
+            "0"
+          ],
+          "baseline": [
+            "1",
+            "0",
+            "0"
+          ],
+          "candidate": [
+            "1",
+            "0",
+            "0"
+          ]
+        },
+        "gametype": {
+          "retail": [
+            "5",
+            "5",
+            "5"
+          ],
+          "baseline": [
+            "5",
+            "5",
+            "5"
+          ],
+          "candidate": [
+            "5",
+            "5",
+            "5"
+          ]
+        }
+      },
+      "baselineDifference": {
+        "loaded": {
+          "retailExtraAtStart": 14,
+          "baselineAtStartMissingFromRetail": 0,
+          "extraRepeatInitLines": true,
+          "laterLinesEqual": true
+        },
+        "first-restart": {
+          "retailExtraAtStart": 14,
+          "baselineAtStartMissingFromRetail": 0,
+          "extraRepeatInitLines": true,
+          "laterLinesEqual": true
+        },
+        "second-restart": {
+          "retailExtraAtStart": 14,
+          "baselineAtStartMissingFromRetail": 0,
+          "extraRepeatInitLines": true,
+          "laterLinesEqual": true
+        }
+      },
+      "runs": {
+        "retail": {
+          "evidence": "Live: retail WolfMP.exe dedicated server",
+          "command": [
+            "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\WolfMP.exe",
+            "+set",
+            "fs_basepath",
+            "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\settle-frame-order\\final-mp\\retail\\home",
+            "+set",
+            "dedicated",
+            "1",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "net_ip",
+            "127.0.0.1",
+            "+set",
+            "net_port",
+            "51341",
+            "+set",
+            "sv_pure",
+            "0",
+            "+set",
+            "sv_fps",
+            "20",
+            "+set",
+            "g_scriptDebug",
+            "1",
+            "+set",
+            "rconpassword",
+            "<random>",
+            "+set",
+            "sv_punkbuster",
+            "0",
+            "+set",
+            "bot_enable",
+            "0",
+            "+set",
+            "g_gametype",
+            "5",
+            "+set",
+            "sv_master1",
+            "",
+            "+set",
+            "sv_master2",
+            "",
+            "+set",
+            "sv_master3",
+            "",
+            "+set",
+            "sv_master4",
+            "",
+            "+set",
+            "sv_master5",
+            "",
+            "+exec",
+            "fntech3-settle-order.cfg"
+          ],
+          "serverSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+          "moduleSha256": "d8975b5c4e14488283c5eca7d549005304b04f1690705c13c174a171cc24c387",
+          "exitCode": 0,
+          "timedOut": false,
+          "error": null,
+          "elapsedSeconds": 14.406,
+          "errors": [],
+          "networkLookups": [],
+          "variableChangeRestarts": 0,
+          "rconAccepted": 6,
+          "rconRan": 5,
+          "installationUnchanged": true,
+          "clean": true,
+          "levels": {
+            "loaded": {
+              "commands": [],
+              "levelStarts": 1,
+              "gamestate": "1",
+              "gametype": "5",
+              "levelStart": 0,
+              "lineCount": 88,
+              "linesAtStart": 68,
+              "digest": "e9dcd6b9d19d3998b4bb3620e367814a3ba074771d2dda0ffedfadb1d63d8f3e",
+              "frameOffsets": [
+                0,
+                200,
+                300,
+                550,
+                650
+              ]
+            },
+            "first-restart": {
+              "commands": [
+                "map_restart 0"
+              ],
+              "levelStarts": 1,
+              "gamestate": "0",
+              "gametype": "5",
+              "levelStart": 6800,
+              "lineCount": 88,
+              "linesAtStart": 68,
+              "digest": "e9dcd6b9d19d3998b4bb3620e367814a3ba074771d2dda0ffedfadb1d63d8f3e",
+              "frameOffsets": [
+                0,
+                200,
+                300,
+                550,
+                650
+              ]
+            },
+            "second-restart": {
+              "commands": [
+                "map_restart 0"
+              ],
+              "levelStarts": 1,
+              "gamestate": "0",
+              "gametype": "5",
+              "levelStart": 12900,
+              "lineCount": 88,
+              "linesAtStart": 68,
+              "digest": "e9dcd6b9d19d3998b4bb3620e367814a3ba074771d2dda0ffedfadb1d63d8f3e",
+              "frameOffsets": [
+                0,
+                200,
+                300,
+                550,
+                650
+              ]
+            }
+          },
+          "configs": {
+            "fntech3-settle-order.cfg": [
+              "set fntech3_settle_mark_loaded 1",
+              "set fntech3_settle_mark_first_restart 1",
+              "set fntech3_settle_mark_second_restart 1",
+              "map mp_rocket"
+            ],
+            "fntech3-settle-order-mark0.cfg": [
+              "fntech3_settle_mark_loaded",
+              "gamestate",
+              "g_gametype"
+            ],
+            "fntech3-settle-order-step1.cfg": [
+              "map_restart 0"
+            ],
+            "fntech3-settle-order-mark1.cfg": [
+              "fntech3_settle_mark_first_restart",
+              "gamestate",
+              "g_gametype"
+            ],
+            "fntech3-settle-order-step2.cfg": [
+              "map_restart 0"
+            ],
+            "fntech3-settle-order-mark2.cfg": [
+              "fntech3_settle_mark_second_restart",
+              "gamestate",
+              "g_gametype"
+            ]
+          }
+        },
+        "baseline": {
+          "evidence": "Live: fnTech3 dedicated server",
+          "command": [
+            "E:\\Repositories\\fnTech3\\.tmp\\runtime\\settle-order-baseline\\fntech3.ded.exe",
+            "+set",
+            "com_gameProfile",
+            "rtcw-mp",
+            "+set",
+            "fs_basepath",
+            "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\settle-frame-order\\final-mp\\baseline\\home",
+            "+set",
+            "dedicated",
+            "1",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "net_ip",
+            "127.0.0.1",
+            "+set",
+            "net_port",
+            "64444",
+            "+set",
+            "sv_pure",
+            "0",
+            "+set",
+            "sv_fps",
+            "20",
+            "+set",
+            "g_scriptDebug",
+            "1",
+            "+set",
+            "rconpassword",
+            "<random>",
+            "+set",
+            "sv_punkbuster",
+            "0",
+            "+set",
+            "bot_enable",
+            "0",
+            "+set",
+            "g_gametype",
+            "5",
+            "+set",
+            "sv_master1",
+            "",
+            "+set",
+            "sv_master2",
+            "",
+            "+set",
+            "sv_master3",
+            "",
+            "+set",
+            "sv_master4",
+            "",
+            "+set",
+            "sv_master5",
+            "",
+            "+exec",
+            "fntech3-settle-order.cfg"
+          ],
+          "serverSha256": "26ae2e6a5cd053ed5c2cd02f40ba60d12e2ec2515245cfb29c52ff76ad93178b",
+          "moduleSha256": "d8975b5c4e14488283c5eca7d549005304b04f1690705c13c174a171cc24c387",
+          "exitCode": 0,
+          "timedOut": false,
+          "error": null,
+          "elapsedSeconds": 21.125,
+          "errors": [],
+          "networkLookups": [],
+          "variableChangeRestarts": 0,
+          "rconAccepted": 6,
+          "rconRan": 5,
+          "installationUnchanged": true,
+          "clean": true,
+          "levels": {
+            "loaded": {
+              "commands": [],
+              "levelStarts": 1,
+              "gamestate": "1",
+              "gametype": "5",
+              "levelStart": 0,
+              "lineCount": 74,
+              "linesAtStart": 54,
+              "digest": "eb1cd6ecc8f1a3278031af019121c5ec32ef735da4b1234dd64047bf258cd67d",
+              "frameOffsets": [
+                0,
+                200,
+                300,
+                550,
+                650
+              ]
+            },
+            "first-restart": {
+              "commands": [
+                "map_restart 0"
+              ],
+              "levelStarts": 1,
+              "gamestate": "0",
+              "gametype": "5",
+              "levelStart": 7550,
+              "lineCount": 74,
+              "linesAtStart": 54,
+              "digest": "eb1cd6ecc8f1a3278031af019121c5ec32ef735da4b1234dd64047bf258cd67d",
+              "frameOffsets": [
+                0,
+                200,
+                300,
+                550,
+                650
+              ]
+            },
+            "second-restart": {
+              "commands": [
+                "map_restart 0"
+              ],
+              "levelStarts": 1,
+              "gamestate": "0",
+              "gametype": "5",
+              "levelStart": 15200,
+              "lineCount": 74,
+              "linesAtStart": 54,
+              "digest": "eb1cd6ecc8f1a3278031af019121c5ec32ef735da4b1234dd64047bf258cd67d",
+              "frameOffsets": [
+                0,
+                200,
+                300,
+                550,
+                650
+              ]
+            }
+          },
+          "configs": {
+            "fntech3-settle-order.cfg": [
+              "set fntech3_settle_mark_loaded 1",
+              "set fntech3_settle_mark_first_restart 1",
+              "set fntech3_settle_mark_second_restart 1",
+              "map mp_rocket"
+            ],
+            "fntech3-settle-order-mark0.cfg": [
+              "fntech3_settle_mark_loaded",
+              "gamestate",
+              "g_gametype"
+            ],
+            "fntech3-settle-order-step1.cfg": [
+              "map_restart 0"
+            ],
+            "fntech3-settle-order-mark1.cfg": [
+              "fntech3_settle_mark_first_restart",
+              "gamestate",
+              "g_gametype"
+            ],
+            "fntech3-settle-order-step2.cfg": [
+              "map_restart 0"
+            ],
+            "fntech3-settle-order-mark2.cfg": [
+              "fntech3_settle_mark_second_restart",
+              "gamestate",
+              "g_gametype"
+            ]
+          }
+        },
+        "candidate": {
+          "evidence": "Live: fnTech3 dedicated server",
+          "command": [
+            "E:\\Repositories\\fnTech3\\.tmp\\runtime\\settle-order-candidate\\fntech3.ded.exe",
+            "+set",
+            "com_gameProfile",
+            "rtcw-mp",
+            "+set",
+            "fs_basepath",
+            "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\settle-frame-order\\final-mp\\candidate\\home",
+            "+set",
+            "dedicated",
+            "1",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "net_ip",
+            "127.0.0.1",
+            "+set",
+            "net_port",
+            "55015",
+            "+set",
+            "sv_pure",
+            "0",
+            "+set",
+            "sv_fps",
+            "20",
+            "+set",
+            "g_scriptDebug",
+            "1",
+            "+set",
+            "rconpassword",
+            "<random>",
+            "+set",
+            "sv_punkbuster",
+            "0",
+            "+set",
+            "bot_enable",
+            "0",
+            "+set",
+            "g_gametype",
+            "5",
+            "+set",
+            "sv_master1",
+            "",
+            "+set",
+            "sv_master2",
+            "",
+            "+set",
+            "sv_master3",
+            "",
+            "+set",
+            "sv_master4",
+            "",
+            "+set",
+            "sv_master5",
+            "",
+            "+exec",
+            "fntech3-settle-order.cfg"
+          ],
+          "serverSha256": "2fa48e5e8fb112bc33bc62b672942ff8c95f45f62f3c68b9397c1084ead9f256",
+          "moduleSha256": "d8975b5c4e14488283c5eca7d549005304b04f1690705c13c174a171cc24c387",
+          "exitCode": 0,
+          "timedOut": false,
+          "error": null,
+          "elapsedSeconds": 21.703,
+          "errors": [],
+          "networkLookups": [],
+          "variableChangeRestarts": 0,
+          "rconAccepted": 6,
+          "rconRan": 5,
+          "installationUnchanged": true,
+          "clean": true,
+          "levels": {
+            "loaded": {
+              "commands": [],
+              "levelStarts": 1,
+              "gamestate": "1",
+              "gametype": "5",
+              "levelStart": 0,
+              "lineCount": 88,
+              "linesAtStart": 68,
+              "digest": "e9dcd6b9d19d3998b4bb3620e367814a3ba074771d2dda0ffedfadb1d63d8f3e",
+              "frameOffsets": [
+                0,
+                200,
+                300,
+                550,
+                650
+              ]
+            },
+            "first-restart": {
+              "commands": [
+                "map_restart 0"
+              ],
+              "levelStarts": 1,
+              "gamestate": "0",
+              "gametype": "5",
+              "levelStart": 7600,
+              "lineCount": 88,
+              "linesAtStart": 68,
+              "digest": "e9dcd6b9d19d3998b4bb3620e367814a3ba074771d2dda0ffedfadb1d63d8f3e",
+              "frameOffsets": [
+                0,
+                200,
+                300,
+                550,
+                650
+              ]
+            },
+            "second-restart": {
+              "commands": [
+                "map_restart 0"
+              ],
+              "levelStarts": 1,
+              "gamestate": "0",
+              "gametype": "5",
+              "levelStart": 15200,
+              "lineCount": 88,
+              "linesAtStart": 68,
+              "digest": "e9dcd6b9d19d3998b4bb3620e367814a3ba074771d2dda0ffedfadb1d63d8f3e",
+              "frameOffsets": [
+                0,
+                200,
+                300,
+                550,
+                650
+              ]
+            }
+          },
+          "configs": {
+            "fntech3-settle-order.cfg": [
+              "set fntech3_settle_mark_loaded 1",
+              "set fntech3_settle_mark_first_restart 1",
+              "set fntech3_settle_mark_second_restart 1",
+              "map mp_rocket"
+            ],
+            "fntech3-settle-order-mark0.cfg": [
+              "fntech3_settle_mark_loaded",
+              "gamestate",
+              "g_gametype"
+            ],
+            "fntech3-settle-order-step1.cfg": [
+              "map_restart 0"
+            ],
+            "fntech3-settle-order-mark1.cfg": [
+              "fntech3_settle_mark_first_restart",
+              "gamestate",
+              "g_gametype"
+            ],
+            "fntech3-settle-order-step2.cfg": [
+              "map_restart 0"
+            ],
+            "fntech3-settle-order-mark2.cfg": [
+              "fntech3_settle_mark_second_restart",
+              "gamestate",
+              "g_gametype"
+            ]
+          }
+        }
+      }
+    },
+    "rtcw-sp": {
+      "summary": {
+        "profile": "rtcw-sp",
+        "map": "rocket",
+        "passed": true,
+        "retailSha256": "07d206f61da5c80562ff60d68c645bca349b31adb5d7e0e7f186d61ad46683c7",
+        "moduleSha256": "085346769622cbf19c085accd055bf8b59f3c773aca503711ea0f95e5288e7d1",
+        "servers": {
+          "baseline": "26ae2e6a5cd053ed5c2cd02f40ba60d12e2ec2515245cfb29c52ff76ad93178b",
+          "candidate": "2fa48e5e8fb112bc33bc62b672942ff8c95f45f62f3c68b9397c1084ead9f256"
+        },
+        "clean": {
+          "retail": true,
+          "baseline": true,
+          "candidate": true
+        },
+        "matchesRetail": {
+          "baseline": {
+            "loaded": false,
+            "first-restart": false,
+            "second-restart": false
+          },
+          "candidate": {
+            "loaded": true,
+            "first-restart": true,
+            "second-restart": true
+          }
+        },
+        "levelSpans": {
+          "retail": [
+            7950,
+            2550
+          ],
+          "baseline": [
+            6550,
+            11000
+          ],
+          "candidate": [
+            6500,
+            11100
+          ]
+        },
+        "lineCounts": {
+          "loaded": {
+            "retail": 167,
+            "baseline": 137,
+            "candidate": 167
+          },
+          "first-restart": {
+            "retail": 167,
+            "baseline": 137,
+            "candidate": 167
+          },
+          "second-restart": {
+            "retail": 167,
+            "baseline": 137,
+            "candidate": 167
+          }
+        },
+        "linesAtStart": {
+          "loaded": {
+            "retail": 126,
+            "baseline": 96,
+            "candidate": 126
+          },
+          "first-restart": {
+            "retail": 126,
+            "baseline": 96,
+            "candidate": 126
+          },
+          "second-restart": {
+            "retail": 126,
+            "baseline": 96,
+            "candidate": 126
+          }
+        },
+        "digests": {
+          "loaded": {
+            "retail": "b396397b80e3f6781964c2bcfa3ae70517f47ee7b6209f081717769dcc81f6fd",
+            "baseline": "4ad284281a9dda2bc23e99ca7527867ea7383dab4d0c691a8038d9f21e4537cc",
+            "candidate": "b396397b80e3f6781964c2bcfa3ae70517f47ee7b6209f081717769dcc81f6fd"
+          },
+          "first-restart": {
+            "retail": "b396397b80e3f6781964c2bcfa3ae70517f47ee7b6209f081717769dcc81f6fd",
+            "baseline": "4ad284281a9dda2bc23e99ca7527867ea7383dab4d0c691a8038d9f21e4537cc",
+            "candidate": "b396397b80e3f6781964c2bcfa3ae70517f47ee7b6209f081717769dcc81f6fd"
+          },
+          "second-restart": {
+            "retail": "b396397b80e3f6781964c2bcfa3ae70517f47ee7b6209f081717769dcc81f6fd",
+            "baseline": "4ad284281a9dda2bc23e99ca7527867ea7383dab4d0c691a8038d9f21e4537cc",
+            "candidate": "b396397b80e3f6781964c2bcfa3ae70517f47ee7b6209f081717769dcc81f6fd"
+          }
+        },
+        "firstDivergence": {
+          "baseline": {
+            "loaded": {
+              "index": 96,
+              "retailOffset": 0,
+              "fntech3Offset": 100
+            },
+            "first-restart": {
+              "index": 96,
+              "retailOffset": 0,
+              "fntech3Offset": 100
+            },
+            "second-restart": {
+              "index": 96,
+              "retailOffset": 0,
+              "fntech3Offset": 100
+            }
+          },
+          "candidate": {
+            "loaded": null,
+            "first-restart": null,
+            "second-restart": null
+          }
+        },
+        "gamestate": {
+          "retail": [
+            null,
+            null,
+            null
+          ],
+          "baseline": [
+            null,
+            null,
+            null
+          ],
+          "candidate": [
+            null,
+            null,
+            null
+          ]
+        },
+        "gametype": {
+          "retail": [
+            "0",
+            "0",
+            "0"
+          ],
+          "baseline": [
+            "0",
+            "0",
+            "0"
+          ],
+          "candidate": [
+            "0",
+            "0",
+            "0"
+          ]
+        }
+      },
+      "baselineDifference": {
+        "loaded": {
+          "retailExtraAtStart": 30,
+          "baselineAtStartMissingFromRetail": 0,
+          "extraRepeatInitLines": true,
+          "laterLinesEqual": true
+        },
+        "first-restart": {
+          "retailExtraAtStart": 30,
+          "baselineAtStartMissingFromRetail": 0,
+          "extraRepeatInitLines": true,
+          "laterLinesEqual": true
+        },
+        "second-restart": {
+          "retailExtraAtStart": 30,
+          "baselineAtStartMissingFromRetail": 0,
+          "extraRepeatInitLines": true,
+          "laterLinesEqual": true
+        }
+      },
+      "runs": {
+        "retail": {
+          "evidence": "Live: retail WolfSP.exe dedicated server",
+          "command": [
+            "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\WolfSP.exe",
+            "+set",
+            "fs_basepath",
+            "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\settle-frame-order\\final-sp\\retail\\home",
+            "+set",
+            "dedicated",
+            "1",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "net_ip",
+            "127.0.0.1",
+            "+set",
+            "net_port",
+            "58536",
+            "+set",
+            "sv_pure",
+            "0",
+            "+set",
+            "sv_fps",
+            "20",
+            "+set",
+            "g_scriptDebug",
+            "1",
+            "+set",
+            "rconpassword",
+            "<random>",
+            "+set",
+            "com_recommendedSet",
+            "1",
+            "+set",
+            "sv_master1",
+            "",
+            "+set",
+            "sv_master2",
+            "",
+            "+set",
+            "sv_master3",
+            "",
+            "+set",
+            "sv_master4",
+            "",
+            "+set",
+            "sv_master5",
+            "",
+            "+exec",
+            "fntech3-settle-order.cfg"
+          ],
+          "serverSha256": "07d206f61da5c80562ff60d68c645bca349b31adb5d7e0e7f186d61ad46683c7",
+          "moduleSha256": "085346769622cbf19c085accd055bf8b59f3c773aca503711ea0f95e5288e7d1",
+          "exitCode": 0,
+          "timedOut": false,
+          "error": null,
+          "elapsedSeconds": 7.39,
+          "errors": [],
+          "networkLookups": [],
+          "variableChangeRestarts": 0,
+          "rconAccepted": 0,
+          "rconRan": 0,
+          "installationUnchanged": true,
+          "clean": true,
+          "levels": {
+            "loaded": {
+              "commands": [],
+              "levelStarts": 1,
+              "gamestate": null,
+              "gametype": "0",
+              "levelStart": 0,
+              "lineCount": 167,
+              "linesAtStart": 126,
+              "digest": "b396397b80e3f6781964c2bcfa3ae70517f47ee7b6209f081717769dcc81f6fd",
+              "frameOffsets": [
+                0,
+                100,
+                200,
+                550
+              ]
+            },
+            "first-restart": {
+              "commands": [
+                "map_restart 0"
+              ],
+              "levelStarts": 1,
+              "gamestate": null,
+              "gametype": "0",
+              "levelStart": 7950,
+              "lineCount": 167,
+              "linesAtStart": 126,
+              "digest": "b396397b80e3f6781964c2bcfa3ae70517f47ee7b6209f081717769dcc81f6fd",
+              "frameOffsets": [
+                0,
+                100,
+                200,
+                550
+              ]
+            },
+            "second-restart": {
+              "commands": [
+                "map_restart 0"
+              ],
+              "levelStarts": 1,
+              "gamestate": null,
+              "gametype": "0",
+              "levelStart": 10500,
+              "lineCount": 167,
+              "linesAtStart": 126,
+              "digest": "b396397b80e3f6781964c2bcfa3ae70517f47ee7b6209f081717769dcc81f6fd",
+              "frameOffsets": [
+                0,
+                100,
+                200,
+                550
+              ]
+            }
+          },
+          "configs": {
+            "fntech3-settle-order.cfg": [
+              "set fntech3_settle_mark_loaded 1",
+              "set fntech3_settle_mark_first_restart 1",
+              "set fntech3_settle_mark_second_restart 1",
+              "map rocket",
+              "wait 300",
+              "fntech3_settle_mark_loaded",
+              "gamestate",
+              "g_gametype",
+              "map_restart 0",
+              "wait 300",
+              "fntech3_settle_mark_first_restart",
+              "gamestate",
+              "g_gametype",
+              "map_restart 0",
+              "wait 300",
+              "fntech3_settle_mark_second_restart",
+              "gamestate",
+              "g_gametype",
+              "quit"
+            ]
+          }
+        },
+        "baseline": {
+          "evidence": "Live: fnTech3 dedicated server",
+          "command": [
+            "E:\\Repositories\\fnTech3\\.tmp\\runtime\\settle-order-baseline\\fntech3.ded.exe",
+            "+set",
+            "com_gameProfile",
+            "rtcw-sp",
+            "+set",
+            "fs_basepath",
+            "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\settle-frame-order\\final-sp\\baseline\\home",
+            "+set",
+            "dedicated",
+            "1",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "net_ip",
+            "127.0.0.1",
+            "+set",
+            "net_port",
+            "55308",
+            "+set",
+            "sv_pure",
+            "0",
+            "+set",
+            "sv_fps",
+            "20",
+            "+set",
+            "g_scriptDebug",
+            "1",
+            "+set",
+            "rconpassword",
+            "<random>",
+            "+set",
+            "com_recommendedSet",
+            "1",
+            "+set",
+            "sv_master1",
+            "",
+            "+set",
+            "sv_master2",
+            "",
+            "+set",
+            "sv_master3",
+            "",
+            "+set",
+            "sv_master4",
+            "",
+            "+set",
+            "sv_master5",
+            "",
+            "+exec",
+            "fntech3-settle-order.cfg"
+          ],
+          "serverSha256": "26ae2e6a5cd053ed5c2cd02f40ba60d12e2ec2515245cfb29c52ff76ad93178b",
+          "moduleSha256": "085346769622cbf19c085accd055bf8b59f3c773aca503711ea0f95e5288e7d1",
+          "exitCode": 0,
+          "timedOut": false,
+          "error": null,
+          "elapsedSeconds": 28.094,
+          "errors": [],
+          "networkLookups": [],
+          "variableChangeRestarts": 0,
+          "rconAccepted": 6,
+          "rconRan": 5,
+          "installationUnchanged": true,
+          "clean": true,
+          "levels": {
+            "loaded": {
+              "commands": [],
+              "levelStarts": 1,
+              "gamestate": null,
+              "gametype": "0",
+              "levelStart": 0,
+              "lineCount": 137,
+              "linesAtStart": 96,
+              "digest": "4ad284281a9dda2bc23e99ca7527867ea7383dab4d0c691a8038d9f21e4537cc",
+              "frameOffsets": [
+                0,
+                100,
+                200,
+                550
+              ]
+            },
+            "first-restart": {
+              "commands": [
+                "map_restart 0"
+              ],
+              "levelStarts": 1,
+              "gamestate": null,
+              "gametype": "0",
+              "levelStart": 6550,
+              "lineCount": 137,
+              "linesAtStart": 96,
+              "digest": "4ad284281a9dda2bc23e99ca7527867ea7383dab4d0c691a8038d9f21e4537cc",
+              "frameOffsets": [
+                0,
+                100,
+                200,
+                550
+              ]
+            },
+            "second-restart": {
+              "commands": [
+                "map_restart 0"
+              ],
+              "levelStarts": 1,
+              "gamestate": null,
+              "gametype": "0",
+              "levelStart": 17550,
+              "lineCount": 137,
+              "linesAtStart": 96,
+              "digest": "4ad284281a9dda2bc23e99ca7527867ea7383dab4d0c691a8038d9f21e4537cc",
+              "frameOffsets": [
+                0,
+                100,
+                200,
+                550
+              ]
+            }
+          },
+          "configs": {
+            "fntech3-settle-order.cfg": [
+              "set fntech3_settle_mark_loaded 1",
+              "set fntech3_settle_mark_first_restart 1",
+              "set fntech3_settle_mark_second_restart 1",
+              "map rocket"
+            ],
+            "fntech3-settle-order-mark0.cfg": [
+              "fntech3_settle_mark_loaded",
+              "gamestate",
+              "g_gametype"
+            ],
+            "fntech3-settle-order-step1.cfg": [
+              "map_restart 0"
+            ],
+            "fntech3-settle-order-mark1.cfg": [
+              "fntech3_settle_mark_first_restart",
+              "gamestate",
+              "g_gametype"
+            ],
+            "fntech3-settle-order-step2.cfg": [
+              "map_restart 0"
+            ],
+            "fntech3-settle-order-mark2.cfg": [
+              "fntech3_settle_mark_second_restart",
+              "gamestate",
+              "g_gametype"
+            ]
+          }
+        },
+        "candidate": {
+          "evidence": "Live: fnTech3 dedicated server",
+          "command": [
+            "E:\\Repositories\\fnTech3\\.tmp\\runtime\\settle-order-candidate\\fntech3.ded.exe",
+            "+set",
+            "com_gameProfile",
+            "rtcw-sp",
+            "+set",
+            "fs_basepath",
+            "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\settle-frame-order\\final-sp\\candidate\\home",
+            "+set",
+            "dedicated",
+            "1",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "net_ip",
+            "127.0.0.1",
+            "+set",
+            "net_port",
+            "55896",
+            "+set",
+            "sv_pure",
+            "0",
+            "+set",
+            "sv_fps",
+            "20",
+            "+set",
+            "g_scriptDebug",
+            "1",
+            "+set",
+            "rconpassword",
+            "<random>",
+            "+set",
+            "com_recommendedSet",
+            "1",
+            "+set",
+            "sv_master1",
+            "",
+            "+set",
+            "sv_master2",
+            "",
+            "+set",
+            "sv_master3",
+            "",
+            "+set",
+            "sv_master4",
+            "",
+            "+set",
+            "sv_master5",
+            "",
+            "+exec",
+            "fntech3-settle-order.cfg"
+          ],
+          "serverSha256": "2fa48e5e8fb112bc33bc62b672942ff8c95f45f62f3c68b9397c1084ead9f256",
+          "moduleSha256": "085346769622cbf19c085accd055bf8b59f3c773aca503711ea0f95e5288e7d1",
+          "exitCode": 0,
+          "timedOut": false,
+          "error": null,
+          "elapsedSeconds": 28.157,
+          "errors": [],
+          "networkLookups": [],
+          "variableChangeRestarts": 0,
+          "rconAccepted": 6,
+          "rconRan": 5,
+          "installationUnchanged": true,
+          "clean": true,
+          "levels": {
+            "loaded": {
+              "commands": [],
+              "levelStarts": 1,
+              "gamestate": null,
+              "gametype": "0",
+              "levelStart": 0,
+              "lineCount": 167,
+              "linesAtStart": 126,
+              "digest": "b396397b80e3f6781964c2bcfa3ae70517f47ee7b6209f081717769dcc81f6fd",
+              "frameOffsets": [
+                0,
+                100,
+                200,
+                550
+              ]
+            },
+            "first-restart": {
+              "commands": [
+                "map_restart 0"
+              ],
+              "levelStarts": 1,
+              "gamestate": null,
+              "gametype": "0",
+              "levelStart": 6500,
+              "lineCount": 167,
+              "linesAtStart": 126,
+              "digest": "b396397b80e3f6781964c2bcfa3ae70517f47ee7b6209f081717769dcc81f6fd",
+              "frameOffsets": [
+                0,
+                100,
+                200,
+                550
+              ]
+            },
+            "second-restart": {
+              "commands": [
+                "map_restart 0"
+              ],
+              "levelStarts": 1,
+              "gamestate": null,
+              "gametype": "0",
+              "levelStart": 17600,
+              "lineCount": 167,
+              "linesAtStart": 126,
+              "digest": "b396397b80e3f6781964c2bcfa3ae70517f47ee7b6209f081717769dcc81f6fd",
+              "frameOffsets": [
+                0,
+                100,
+                200,
+                550
+              ]
+            }
+          },
+          "configs": {
+            "fntech3-settle-order.cfg": [
+              "set fntech3_settle_mark_loaded 1",
+              "set fntech3_settle_mark_first_restart 1",
+              "set fntech3_settle_mark_second_restart 1",
+              "map rocket"
+            ],
+            "fntech3-settle-order-mark0.cfg": [
+              "fntech3_settle_mark_loaded",
+              "gamestate",
+              "g_gametype"
+            ],
+            "fntech3-settle-order-step1.cfg": [
+              "map_restart 0"
+            ],
+            "fntech3-settle-order-mark1.cfg": [
+              "fntech3_settle_mark_first_restart",
+              "gamestate",
+              "g_gametype"
+            ],
+            "fntech3-settle-order-step2.cfg": [
+              "map_restart 0"
+            ],
+            "fntech3-settle-order-mark2.cfg": [
+              "fntech3_settle_mark_second_restart",
+              "gamestate",
+              "g_gametype"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "unitFixtures": {
+    "tests": [
+      "tests/wolfet_restart_settle_tests.py",
+      "tests/wolfet_map_load_settle_tests.py",
+      "tests/alice_savegame_source_tests.py"
+    ],
+    "result": "pass on the working tree; 11 restart and 17 map-load mutations each fail",
+    "alsoPassing": [
+      "tests/rtcw_match_restart_tests.py",
+      "tests/spawn_view_angle_source_tests.py",
+      "tests/factory_runtime_source_tests.py",
+      "tests/restart_variable_change_tests.py",
+      "tests/rtcw_savegame_tests.py",
+      "tests/rtcw_server_policy_tests.py",
+      "tests/wolfet_map_load_tests.py",
+      "tests/ql_cvar_configstring_source_tests.py",
+      "tests/workshop_source_tests.py",
+      "tests/stvef_sp_savegame_tests.py",
+      "tests/q3_ihv_game_lifecycle_tests.py"
+    ]
+  }
+}

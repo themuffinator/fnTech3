@@ -43,7 +43,7 @@ static bot_entitystate_t box(){
  s.eventParm=1;s.powerups=17;s.weapon=3;s.legsAnim=6;s.torsoAnim=5;return s;
 }
 static void checkRecordsAndWorldOwnership(){
- for(const auto &p:profiles){profile=&p;const int worlds=p.bots.navigationWorlds;
+ for(const auto &p:profiles){profile=&p;if(!p.bots.navigationWorlds)continue;const int worlds=p.bots.navigationWorlds;
   const bool rtcw=Com_GameIsRTCW();botimport.BSPModelMinsMaxsOrigin=modelBounds;
   assert(AAS_Setup()==0);auto *records=aasworld.entities;
   auto s=box();assert(AAS_UpdateEntity(1,&s)==BLERR_NOAASFILE);

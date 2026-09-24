@@ -32,6 +32,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <cstring>
 #include <limits>
 
+/* Netchan_Process refuses a channel whose message limit does not fit the
+ * assembly buffer, which would make a profile unusable without saying why.
+ * Every registered profile has to fit, so the largest is checked here where
+ * adding one is the thing that could break it. Alice's 48 KB is the largest;
+ * the others are 16 or 32. */
+static_assert( Netchan_MessageLimit( NETCHAN_WIRE_ALICE ) <= MAX_GAME_MSGLEN,
+	"MAX_GAME_MSGLEN must cover the largest registered wire profile" );
+static_assert( Netchan_MessageLimit( NETCHAN_WIRE_RTCW_SP ) <= MAX_GAME_MSGLEN,
+	"MAX_GAME_MSGLEN must cover the largest registered wire profile" );
+
 /*
 
 packet header

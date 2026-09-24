@@ -84,7 +84,7 @@ class RTCWPredictionTests(unittest.TestCase):
     def test_profile_physics_events_geometry_and_work_limits(self):
         self.run_source(r'''
 int main(){
- for(const auto &p:profiles){profile=&p;setup();bool rtcw=Com_GameIsRTCW()!=0,sp=Com_GameIsRTCWSP()!=0;
+ for(const auto &p:profiles){profile=&p;if(!p.bots.navigationWorlds)continue;setup();bool rtcw=Com_GameIsRTCW()!=0,sp=Com_GameIsRTCWSP()!=0;
   assert(aassettings.phys_maxwalkvelocity==(rtcw?300:320));
   assert(aassettings.phys_maxstep==(rtcw?18:19));
   assert(aassettings.phys_maxwaterjump==(rtcw?17:18));

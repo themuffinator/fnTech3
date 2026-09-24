@@ -28,6 +28,7 @@ constexpr int CVAR_CHEAT=512;
 const comGameProfile_t *profile;
 const comGameProfile_t *Com_GameProfile(){return profile;}
 int Com_GameIsQuakeLive(){return profile->id==COM_GAME_QUAKELIVE;}
+int Com_GameIsWolfET(){return profile->id==COM_GAME_WOLFET;}
 std::map<std::string,std::string> values,defaults;
 void Cvar_Get(const char *name,const char *value,int){
  defaults[name]=value;
@@ -36,10 +37,12 @@ void Cvar_Get(const char *name,const char *value,int){
 ''' + catalog + function + r'''
 int main(){
  for(const auto &p:profiles){
-  profile=&p;bool ql=Com_GameIsQuakeLive(),disabled=p.id==COM_GAME_RTCW_MP||p.id==COM_GAME_WOLFET||p.id==COM_GAME_STVEF_SP;
+  profile=&p;bool ql=Com_GameIsQuakeLive(),disabled=p.id==COM_GAME_QUAKE3_IHV||p.id==COM_GAME_RTCW_MP||p.id==COM_GAME_WOLFET||p.id==COM_GAME_STVEF_SP||p.id==COM_GAME_JKA_SP||p.id==COM_GAME_JK2_SP||p.id==COM_GAME_ALICE;
   values.clear();defaults.clear();SV_BotInitCvars();
   assert(values.at("bot_grapple")== (ql?"1":"0"));
   assert(values.at("bot_rocketjump")=="1");
+  // etded.exe and et.exe register 50; every other profile keeps Quake III's 100.
+  assert(defaults.at("bot_thinktime")==(p.id==COM_GAME_WOLFET?"50":"100"));
   assert(values.at("bot_enable")== (disabled?"0":"1"));
   values["bot_enable"]=disabled?"1":"0";
   values["bot_grapple"]=ql?"0":"1";SV_BotInitCvars();

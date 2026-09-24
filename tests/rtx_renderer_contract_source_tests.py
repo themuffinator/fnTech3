@@ -113,7 +113,7 @@ class RtxRendererContractSourceTests(unittest.TestCase):
         common_font = read("code/renderercommon/tr_font.c")
         stash = read("code/renderercommon/tr_font_stash.c")
 
-        self.assertIn("#define\tREF_API_VERSION\t\t26", public)
+        self.assertIn("#define\tREF_API_VERSION\t\t29", public)
         self.assertIn("Com_Memset( &re, 0, sizeof( re ) );", init)
         exports = (
             "re.AdvertisementBridge_UpdateLoadingViewParameters = AdvertisementBridge_UpdateLoadingViewParameters;",

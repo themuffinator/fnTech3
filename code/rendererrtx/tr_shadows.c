@@ -770,6 +770,24 @@ void RB_ShadowFinish( void ) {
 #ifdef USE_VULKAN
 	GL_Bind( tr.whiteImage );
 
+	/* The multiply would otherwise draw with whatever uniform the view's last
+	 * stage pushed. Every generated fragment shader fogs by that uniform's
+	 * RTCW fog block (tr_rtcw_fog_vk.h), which RTCW's global fog and Alice's
+	 * far plane fill for their stages, and scales by its texFactors, which a
+	 * stage sets to r_intensity; the quad -- nowhere near that stage's eye --
+	 * then multiplies by a fogged or brightened colour. GL switches its fog
+	 * off after every surface and draws the finish untextured, so its
+	 * shadowed pixels are 0.6 of their colour in every profile; give the
+	 * quad an unfogged, unscaled uniform to match. */
+	{
+		vkUniform_t finishUniform;
+		Com_Memset( &finishUniform, 0, sizeof( finishUniform ) );
+		finishUniform.texFactors[0] = 1.0f;
+		if ( VK_PushUniform( &finishUniform ) == ~0U ) {
+			return;
+		}
+	}
+
 	for ( i = 0; i < 4; i++ )
 	{
 		VectorCopy( verts[i], tess.xyz[i] );

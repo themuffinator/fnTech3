@@ -39,6 +39,9 @@ typedef struct {
 } cmd_t;
 
 static int   cmd_wait;
+// American McGee's Alice counts `wait` in milliseconds: the time the frame
+// that runs the buffer took, handed over once a frame.
+static int   cmd_frameMsec;
 static int   cmd_aliasExpansions;
 static cmd_t cmd_text;
 static byte  cmd_text_buf[MAX_CMD_BUFFER];
@@ -58,7 +61,9 @@ bind g "cmd use rocket ; +attack ; wait ; -attack ; cmd use blaster"
 static void Cmd_Wait_f( void ) {
 	if ( Cmd_Argc() == 2 ) {
 		cmd_wait = atoi( Cmd_Argv( 1 ) );
-		if ( cmd_wait < 0 )
+		// Alice keeps a negative count, which its Cbuf_Execute treats as no
+		// wait at all (alice.exe 0x00437a12..0x00437a1a).
+		if ( cmd_wait < 0 && !Com_GameIsAlice() )
 			cmd_wait = 1; // ignore the argument
 	} else {
 		cmd_wait = 1;
@@ -272,6 +277,16 @@ void Cbuf_ExecuteText( cbufExec_t exec_when, const char *text )
 	switch (exec_when)
 	{
 	case EXEC_NOW:
+		if ( Com_GameIsAlice() ) {
+			// Alice's runs the one line and nothing else: a pending wait and
+			// the rest of the buffer stay as they were (alice.exe
+			// Cbuf_ExecuteText 0x00437b6b).
+			if ( text && text[0] != '\0' ) {
+				Com_DPrintf( S_COLOR_YELLOW "EXEC_NOW %s\n", text );
+				Cmd_ExecuteString( text );
+			}
+			break;
+		}
 		cmd_wait = 0; // discard any pending waiting
 		if ( text && text[0] != '\0' ) {
 			Com_DPrintf(S_COLOR_YELLOW "EXEC_NOW %s\n", text);
@@ -298,16 +313,67 @@ void Cbuf_ExecuteText( cbufExec_t exec_when, const char *text )
 Cbuf_Execute
 ============
 */
+/*
+============
+Cbuf_SetFrameMsec
+
+The frame's own time, for the next Cbuf_Execute alone. Only American McGee's
+Alice reads it.
+============
+*/
+void Cbuf_SetFrameMsec( int msec )
+{
+	cmd_frameMsec = msec > 0 ? msec : 0;
+}
+
+
+/*
+============
+Cbuf_AliceWaiting
+
+Retail alice.exe's Cbuf_Execute (0x00437b80) takes the frame's milliseconds
+and counts `wait N` down by them, checking before every line: a count of one
+is a single frame's wait (0x00437bb0), anything larger is held until the
+frame times have used it up (0x00437bb6), and zero or less runs on. Only the
+client's pass in the frame loop passes its time; every other call passes
+nothing, and a wait counts no time down there.
+============
+*/
+static qboolean Cbuf_AliceWaiting( int msec )
+{
+	if ( !cmd_wait ) {
+		return qfalse;
+	}
+	if ( cmd_wait == 1 ) {
+		cmd_wait = 0;
+		return qtrue;
+	}
+	cmd_wait -= msec;
+	if ( cmd_wait > 0 ) {
+		return qtrue;
+	}
+	cmd_wait = 0;
+	return qfalse;
+}
+
+
 void Cbuf_Execute( void )
 {
 	char line[MAX_CMD_LINE], *text;
 	int i, n, quotes;
 	qboolean in_star_comment;
 	qboolean in_slash_comment;
+	const qboolean aliceWait = Com_GameIsAlice() ? qtrue : qfalse;
+	const int frameMsec = cmd_frameMsec;
 
+	cmd_frameMsec = 0;
 	cmd_aliasExpansions = 0;
 
-	if ( cmd_wait > 0 ) {
+	if ( aliceWait ) {
+		if ( cmd_text.cursize <= 0 ) {
+			return;
+		}
+	} else if ( cmd_wait > 0 ) {
 		// delay command buffer execution
 		return;
 	}
@@ -320,6 +386,10 @@ void Cbuf_Execute( void )
 
 	while ( cmd_text.cursize > 0 )
 	{
+		if ( aliceWait && Cbuf_AliceWaiting( frameMsec ) ) {
+			break;
+		}
+
 		// find a \n or ; line break or comment: // or /* */
 		text = (char *)cmd_text.data;
 
@@ -392,8 +462,8 @@ void Cbuf_Execute( void )
 		// execute the command line
 		Cmd_ExecuteString( line );
 
-		// break on wait command
-		if ( cmd_wait > 0 ) {
+		// break on wait command; Alice counts it down at the top of the loop
+		if ( cmd_wait > 0 && !aliceWait ) {
 			break;
 		}
 	}
@@ -407,7 +477,8 @@ Cbuf_Wait
 */
 void Cbuf_Wait( void )
 {
-	if ( cmd_wait > 0 ) {
+	// Alice's wait is measured in milliseconds by Cbuf_Execute itself.
+	if ( cmd_wait > 0 && !Com_GameIsAlice() ) {
 		--cmd_wait;
 	}
 }

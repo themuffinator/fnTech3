@@ -26,6 +26,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #ifndef DEDICATED
 void CL_WebView_PublishBindChanged( const char *name, const char *value );
+// American McGee's Alice's alt and ctrl binding lines (client/cl_keys.cpp).
+void Key_AliceWriteModifierBindings( fileHandle_t f, int keynum );
 #endif
 
 int		 anykeydown;
@@ -587,6 +589,10 @@ void Key_WriteBindings( fileHandle_t f ) {
 		if ( keys[i].binding && keys[i].binding[0] ) {
 			FS_Printf( f, "bind %s \"%s\"" Q_NEWLINE, Key_KeynumToString(i), keys[i].binding );
 		}
+#ifndef DEDICATED
+		// Writes nothing unless the profile is Alice and the key has one.
+		Key_AliceWriteModifierBindings( f, i );
+#endif
 	}
 }
 

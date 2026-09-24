@@ -72,6 +72,13 @@ int SV_WolfETDefaultSinglePlayerGameType(){return 0;}
 CHECKS = r'''
 int main(){
  for(const auto &p:profiles){profile=&p;
+  if(p.id==COM_GAME_QUAKE3_IHV){
+   values.clear();auto *mode=SV_RegisterPureMode();
+   assert(mode->integer==0&&!(mode->flags&CVAR_LATCH));
+   SV_TestServerDefaults();assert(sv_maxclients->integer==8&&p.maxClients==256);
+   assert(sv_gametype->integer==0&&values["fraglimit"].cvar.integer==0);
+   continue; // Native IHV map startup remains gated.
+  }
   if(p.id==COM_GAME_WOLFET){
    // Retail ET starts pure and does not latch the cvar.
    values.clear();auto *mode=SV_RegisterPureMode();
@@ -108,6 +115,37 @@ int main(){
    assert(mode->integer==0&&!(mode->flags&CVAR_LATCH)&&(mode->flags&CVAR_SYSTEMINFO));
    SV_TestServerDefaults();assert(sv_gametype->integer==0&&sv_maxclients->integer==1);
    assert(values["fraglimit"].cvar.integer==0&&!(values["fraglimit"].cvar.flags&CVAR_SERVERINFO));
+   continue;
+  }
+  if(p.titleId==COM_GAME_TITLE_JKA||p.titleId==COM_GAME_TITLE_JK2){
+   // Raven's own defaults, shared by both titles: no mode starts pure or
+   // latches the cvar, and none owns a skill cvar. Map startup stays gated.
+   const bool single=p.id==COM_GAME_JKA_SP||p.id==COM_GAME_JK2_SP;
+   values.clear();auto *mode=SV_RegisterPureMode();
+   assert(mode->integer==0&&!(mode->flags&CVAR_LATCH)&&(mode->flags&CVAR_SYSTEMINFO));
+   Cvar_Set("sv_pure","1");assert(SV_RegisterPureMode()->integer==1);
+   values.clear();SV_TestServerDefaults();
+   assert(sv_gametype->integer==0&&sv_maxclients->integer==(single?1:8));
+   assert(values["fraglimit"].cvar.integer==(single?0:20));
+   assert(bool(values["fraglimit"].cvar.flags&CVAR_SERVERINFO)==!single);
+   assert(values["timelimit"].cvar.flags&CVAR_SERVERINFO);
+   assert(!values.count("g_gameskill"));
+   continue;
+  }
+  if(p.titleId==COM_GAME_TITLE_ALICE){
+   // No sv_pure registration was found in the retail binary, so the
+   // profile claims none: the cvar starts at zero and unlatched. Its one
+   // mode takes the one slot retail's SV_Init registers (0x0045567c) and
+   // Quake's frag limit, and the engine owns no skill cvar here.
+   values.clear();auto *mode=SV_RegisterPureMode();
+   assert(mode->integer==0&&!(mode->flags&CVAR_LATCH)&&(mode->flags&CVAR_SYSTEMINFO));
+   Cvar_Set("sv_pure","1");assert(SV_RegisterPureMode()->integer==1);
+   values.clear();SV_TestServerDefaults();
+   assert(sv_gametype->integer==0&&sv_maxclients->integer==1);
+   assert(values["fraglimit"].cvar.integer==20);
+   assert(values["fraglimit"].cvar.flags&CVAR_SERVERINFO);
+   assert(values["timelimit"].cvar.flags&CVAR_SERVERINFO);
+   assert(!values.count("g_gameskill"));
    continue;
   }
   const bool sp=p.id==COM_GAME_RTCW_SP,mp=p.id==COM_GAME_RTCW_MP,ql=p.id==COM_GAME_QUAKELIVE;

@@ -140,6 +140,7 @@ int Com_GameIsRTCW(){return profile==COM_GAME_RTCW_SP || profile==COM_GAME_RTCW_
 int Com_GameIsRTCWSP(){return profile==COM_GAME_RTCW_SP;}
 // These probes drive RTCW only; ET's own fade is exercised by its own tests.
 int Com_GameIsWolfET(){return 0;}
+int Com_GameIsAlice(){return 0;}
 constexpr int ERR_DROP=1;
 static void Com_Error(int,const char *){throw 1;}
 struct vm_t { bool native; unsigned char bytes[256]; };

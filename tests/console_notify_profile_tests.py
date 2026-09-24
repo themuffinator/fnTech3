@@ -917,6 +917,10 @@ static void CheckDrawGate( void ) {
 			bool expected = state == CA_ACTIVE;
 			if ( current == COM_GAME_RTCW_SP ) expected = state != CA_LOADING;
 			if ( current == COM_GAME_WOLFET ) expected = expected && drawNotify;
+			// alice.exe has no overlay at all: no con_notifytime and no chat
+			// prompt; its console text shows only in the console itself and
+			// the mini console (UI_PrintConsole 0x0040c220).
+			if ( current == COM_GAME_ALICE ) expected = false;
 			CHECK( solidConsoles == 0 );
 			CHECK( !calls.empty() == expected );
 		}

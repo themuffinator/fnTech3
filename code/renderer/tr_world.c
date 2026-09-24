@@ -590,6 +590,11 @@ static void R_AddWorldSurface( msurface_t *surf, int dlightBits, unsigned int pm
 		return;
 	}
 
+	// an Alice `portalsky` surface is a window onto the sky portal, not drawn
+	if ( R_AliceCollectSkyPortalSurface( surf->shader ) ) {
+		return;
+	}
+
 	// Enemy Territory presses the scene's decals onto each world surface a
 	// view adds; a brush model takes its own in R_AddBrushModelSurfaces.
 	if ( tr.numWolfETDecalProjectors && tr.currentEntityNum == REFENTITYNUM_WORLD ) {
@@ -1171,6 +1176,17 @@ static void R_RecursiveWorldNode( mnode_t *node, unsigned int planeBits, unsigne
 				}
 			}
 
+			// American McGee's Alice's far plane (alice.exe 0x004a11ee)
+			if ( planeBits & 16 ) {
+				r = BoxOnPlaneSide(node->mins, node->maxs, &tr.viewParms.aliceFarPlane);
+				if (r == 2) {
+					return;						// culled
+				}
+				if ( r == 1 ) {
+					planeBits &= ~16;			// all descendants will also be in front
+				}
+			}
+
 		}
 
 		// Refine active dlight masks against the current node bounds before
@@ -1676,7 +1692,7 @@ void R_AddWorldSurfaces( void ) {
 		}
 #endif
 	}
-	R_RecursiveWorldNode( tr.world->nodes, 15, dlightBits,
+	R_RecursiveWorldNode( tr.world->nodes, tr.viewParms.aliceFarCull ? 31 : 15, dlightBits,
 #ifdef USE_PMLIGHT
 		r_worldPMLightMask
 #else
@@ -1684,7 +1700,7 @@ void R_AddWorldSurfaces( void ) {
 #endif
 	);
 #else
-	R_RecursiveWorldNode( tr.world->nodes, 15, 0,
+	R_RecursiveWorldNode( tr.world->nodes, tr.viewParms.aliceFarCull ? 31 : 15, 0,
 #ifdef USE_PMLIGHT
 		r_worldPMLightMask
 #else

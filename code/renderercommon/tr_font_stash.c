@@ -575,6 +575,10 @@ void R_InitHostFonts( void ) {
 	Com_Memset( &qlHostFonts, 0, sizeof( qlHostFonts ) );
 	for ( i = 0; i < QL_HOST_FACE_COUNT; ++i ) qlHostFonts.faceIds[i] = FONS_INVALID;
 	for ( i = 0; i < QL_HOST_FALLBACK_COUNT; ++i ) qlHostFonts.fallbackIds[i] = FONS_INVALID;
+	// Only Quake Live ships these faces and asks for host text. Every other
+	// profile draws its console and client text with its own charset, so it
+	// must not read QL's font names or substitute a system face for them.
+	if ( ri.gameId != COM_GAME_QUAKELIVE ) return;
 	Com_Memset( &params, 0, sizeof( params ) );
 	params.width = QL_HOST_ATLAS_INITIAL_WIDTH;
 	params.height = QL_HOST_ATLAS_INITIAL_HEIGHT;

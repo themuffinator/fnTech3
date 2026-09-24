@@ -986,10 +986,12 @@ static constexpr int RCVERSION = 2;
 //void AAS_DecompressVis(byte *in, int numareas, byte *decompressed);
 //int AAS_CompressVis(byte *vis, int numareas, byte *dest);
 
+static bool AAS_WriteRTCWRouteCache();
+
 void AAS_WriteRouteCache(void)
 {
 	if (Com_GameIsRTCW()) {
-		botimport.Print(PRT_ERROR, "Writing RTCW routing caches is not implemented\n");
+		AAS_WriteRTCWRouteCache();
 		return;
 	}
 	int i, j, numportalcache, numareacache, totalsize;
@@ -1109,6 +1111,7 @@ static aas_routingcache_t *AAS_ReadCache(fileHandle_t fp)
 #include <vector>
 #include <cstddef>
 #include "rtcw_routecache_loader.hpp"
+#include "rtcw_routecache_writer.hpp"
 #include "wolfet_navigation.h"
 #include "wolfet_visibility.hpp"
 
@@ -1262,6 +1265,7 @@ static void AAS_InitReachabilityAreas(void)
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
+#include "rtcw_routecache_build.hpp"
 #include "rtcw_routing_init.hpp"
 
 void AAS_InitRouting(void)
@@ -1306,23 +1310,35 @@ void AAS_InitRouting(void)
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
-void AAS_FreeRoutingCaches(void)
+void AAS_FreeRTCWVisibility(void)
 {
-	if (aasworld.rtcwTacticalNodes) FreeMemory(aasworld.rtcwTacticalNodes);
-	aasworld.rtcwTacticalNodes = nullptr;
-	aasworld.rtcwTacticalCapacity = 0;
-	aasworld.rtcwTacticalToken = 0;
+	if (aasworld.rtcwVisibilityOwnedRows && aasworld.rtcwVisibility)
+		for (int area = 0; area < aasworld.numareas; ++area)
+			if (aasworld.rtcwVisibility[area].data) FreeMemory(aasworld.rtcwVisibility[area].data);
 	if (aasworld.rtcwVisibility) FreeMemory(aasworld.rtcwVisibility);
 	aasworld.rtcwVisibility = nullptr;
 	if (aasworld.rtcwVisibilityData) FreeMemory(aasworld.rtcwVisibilityData);
 	aasworld.rtcwVisibilityData = nullptr;
 	if (aasworld.rtcwDecodedVisibility) FreeMemory(aasworld.rtcwDecodedVisibility);
 	aasworld.rtcwDecodedVisibility = nullptr;
-	AAS_WolfETFreeVisibility();
+	if (aasworld.rtcwVisibilityScratch) FreeMemory(aasworld.rtcwVisibilityScratch);
+	aasworld.rtcwVisibilityScratch = nullptr;
 	if (aasworld.rtcwWaypoints) FreeMemory(aasworld.rtcwWaypoints);
 	aasworld.rtcwWaypoints = nullptr;
 	aasworld.rtcwVisibilityArea = -1;
 	aasworld.rtcwRouteCacheLoaded = qfalse;
+	aasworld.rtcwVisibilityOwnedRows = qfalse;
+	aasworld.rtcwRoutingBuilding = qfalse;
+}
+
+void AAS_FreeRoutingCaches(void)
+{
+	if (aasworld.rtcwTacticalNodes) FreeMemory(aasworld.rtcwTacticalNodes);
+	aasworld.rtcwTacticalNodes = nullptr;
+	aasworld.rtcwTacticalCapacity = 0;
+	aasworld.rtcwTacticalToken = 0;
+	AAS_FreeRTCWVisibility();
+	AAS_WolfETFreeVisibility();
 	if (aasworld.hidetraveltimes) FreeMemory(aasworld.hidetraveltimes);
 	aasworld.hidetraveltimes = nullptr;
 	// free all the existing cluster area cache
@@ -1674,7 +1690,7 @@ static int AAS_AreaRouteToGoalArea(int areanum, vec3_t origin, int goalareanum, 
 	aas_routingcache_t *areacache, *portalcache;
 	aas_reachability_t *reach;
 
-	if (!aasworld.initialized) return qfalse;
+	if (!aasworld.initialized && !(Com_GameIsRTCW() && aasworld.rtcwRoutingBuilding)) return qfalse;
 
 	if (areanum == goalareanum)
 	{

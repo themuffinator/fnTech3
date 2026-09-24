@@ -1,0 +1,1038 @@
+{
+  "date": "2026-09-21",
+  "recorded_utc": "2026-09-21T02:37:47.539725+00:00",
+  "scope": "Native server game-data binding, exact IHV state transfers, allocation-checked player access, and the actual server link path through native records. Original DLL Init/ClientConnect/Shutdown are exercised in a bounded callback host; engine startup, levels, gameplay, cgame, live sessions and demo playback remain open.",
+  "profile": "q3-ihv; startup remains blocked in every build.",
+  "commit": "9e1841de53d79f96cdbbde83a1427d1c7d83f31d",
+  "working_tree": "Uncommitted IHV game-data follow-up. Earlier Q3/IHV work and unrelated RTCW changes remain present.",
+  "platform": "Windows x86 MSVC 14.44.35222.0, Meson win32 preset. Portable state/ownership and x86-only binding rejection also checked with Clang 20.1.7 x64 AddressSanitizer, -O2 -ffast-math -DFNTECH3_Q3_ONLY.",
+  "reference": {
+    "repository": "https://github.com/themuffinator/Quake3-IHV/tree/d5ce877155904c57f8b28fe0fd0c8aa2e9473337",
+    "files": [
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/quake3.exe",
+        "sha256": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37",
+        "bytes": 725042
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/qagamex86.dll",
+        "sha256": "9855d375751272d0b22e9078e827cf7ff3c2e42867f525b7fd84b93967c0eeb6",
+        "bytes": 229429
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/scripts/bots.cfg",
+        "sha256": "b8ee6f5ee65e47966ea56dadb58faef52b69912ceccd03acca84cc1fde626143",
+        "bytes": 1067
+      }
+    ],
+    "use": "Read-only instruction observations and a hash-pinned native DLL callback probe using independently authored imports. No game window, input control, renderer, level, live network or original engine process is started by these probes.",
+    "incorporation": "No reference implementation, module or asset is incorporated. Committed tests use synthetic records; the optional original-DLL host requires a user-supplied local installation."
+  },
+  "observed_contract": {
+    "entity_prefix_bytes": 268,
+    "original_game_entity_stride": 556,
+    "entity_state_bytes": 164,
+    "player_prefix_bytes": 276,
+    "original_game_client_allocation_stride": 1464,
+    "entity_number": "Signed 16-bit word at offset 0; eType is the adjacent byte at offset 2.",
+    "client_index": "Client slot n uses entity n + 1. World is entity 0. The entity client pointer at +164 is null after Init and is published by accepted ClientConnect callbacks.",
+    "ping": "Original engine 0x41a9a5 reads entity->client at +0xa4; 0x41a9ab stores the ping word at client +0x110 (272).",
+    "snapshot_copy": "Original engine 0x41b27a..0x41b288 reads the entity client pointer and copies 0x45 dwords (276 bytes) to the frame player record.",
+    "eye_origin": "Original engine 0x41b28a..0x41b2a9 reads client origin at +8/+12/+16 and loads signed integer viewheight at +0x5c (92) for eye-height addition.",
+    "score": "Original engine 0x417bdd and 0x41a170 read the signed 16-bit score at client +0x84 (132).",
+    "private_stride_limit": "The 1464-byte client allocation is observed in the supplied game, not an exported arbitrary-module stride. The engine adapter requires a host allocation validator and does not infer that private layout itself."
+  },
+  "implementation": {
+    "binding": "Checks x86 host, entity count/stride/span/capacity and client count before publication. Each native client access requires host validation of ownership, slot and the complete 276-byte prefix. Failed binds invalidate prior references.",
+    "state": "Raw overloads preserve the exact native records for protocol 33. Shared entity transfers preserve padding and float payload bits and reject narrowing before mutation. Other-profile fields in the shared view start at zero.",
+    "player_projection": "The generic playerState_t overload still rejects IHV. Remaining shared semantic projections and native client/entity index handling must be completed before snapshot assembly uses them.",
+    "owners": "Native owner pointers must resolve to exact records in the checked bound arena. A malformed nonnull IHV owner fails without changing the destination or dereferencing the pointer.",
+    "cross_profile": "Existing seven profile layouts are unchanged. Raw IHV overloads reject retail Q3/RTCW bindings; native IHV binding is rejected on non-32-bit hosts."
+  },
+  "validation": {
+    "all_target_build": "PASS: meson compile -C meson/build/win32",
+    "focused_meson": {
+      "result": "PASS",
+      "targets": [
+        "fntech3_server_game_data",
+        "fntech3_q3_ihv_game_data",
+        "fntech3_q3_ihv_native_boundary"
+      ],
+      "passed": 3
+    },
+    "native_game_data": "257 complete native entity-byte patterns and all narrow-field rejection bounds; pointer ownership, wrong slot, interior/unowned/freed records, ping-only writes, owner conversion, failed rebinding, cross-profile rejection and arena guards.",
+    "server_world": {
+      "result": "PASS",
+      "python_cases": 3,
+      "seconds": 5.662,
+      "native_geometry_vectors": 2740,
+      "fnv1a64": "7c40185466a69dbd",
+      "scope": "The actual SV_LinkEntity and server read/write helpers use ServerGameDataView on synthetic 268-byte native entity prefixes at stride 556. Complete arena comparisons include private tails, the world and guards. BSP/PVS queries are test stubs, so full original world/PVS behavior is not established."
+    },
+    "original_dll_adapter": {
+      "scope": "engine native game-data adapter with original Init/ClientConnect/Shutdown; no level or network",
+      "clients": [
+        {
+          "slot": 0,
+          "entity": 1,
+          "ping": 37,
+          "configstring": "n\\Probe0\u001b7\\t\\f\\snd\\\\model\\xian\\sex\\m"
+        },
+        {
+          "slot": 7,
+          "entity": 8,
+          "ping": 44,
+          "configstring": "n\\Probe7\u001b7\\t\\f\\snd\\\\model\\xian\\sex\\m"
+        }
+      ],
+      "entity_bytes": 164,
+      "player_bytes": 276,
+      "remaining_allocations": 0,
+      "result": "PASS"
+    },
+    "original_lifecycle_regression": [
+      {
+        "scope": "native Init/Shutdown only; no gameplay or engine integration",
+        "mode": "normal",
+        "api": 4,
+        "entity_stride": 556,
+        "clients": 8,
+        "entities": 9,
+        "capacity": 1024,
+        "allocations": [
+          [
+            569344,
+            765
+          ],
+          [
+            11712,
+            765
+          ],
+          [
+            5600,
+            765
+          ]
+        ],
+        "import_calls": [
+          6,
+          0,
+          0,
+          3,
+          0,
+          2,
+          28,
+          0,
+          0,
+          0,
+          1,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "files": [
+          "scripts/bots.cfg"
+        ],
+        "cvars": [
+          {
+            "name": "cheats",
+            "value": "1",
+            "flags": 40
+          },
+          {
+            "name": "d_bot",
+            "value": "",
+            "flags": 0
+          },
+          {
+            "name": "d_botai",
+            "value": "0",
+            "flags": 0
+          },
+          {
+            "name": "d_botaiming",
+            "value": "0",
+            "flags": 0
+          },
+          {
+            "name": "d_botfreeze",
+            "value": "0",
+            "flags": 0
+          },
+          {
+            "name": "d_break",
+            "value": "0",
+            "flags": 0
+          },
+          {
+            "name": "dedicated",
+            "value": "0",
+            "flags": 16
+          },
+          {
+            "name": "dmflags",
+            "value": "0",
+            "flags": 8
+          },
+          {
+            "name": "fraglimit",
+            "value": "0",
+            "flags": 8
+          },
+          {
+            "name": "g_debugMove",
+            "value": "0",
+            "flags": 0
+          },
+          {
+            "name": "g_fast",
+            "value": "1.125",
+            "flags": 0
+          },
+          {
+            "name": "g_forcerespawn",
+            "value": "10",
+            "flags": 0
+          },
+          {
+            "name": "g_gravity",
+            "value": "800",
+            "flags": 0
+          },
+          {
+            "name": "g_inactivity",
+            "value": "0",
+            "flags": 0
+          },
+          {
+            "name": "g_knockback",
+            "value": "1000",
+            "flags": 0
+          },
+          {
+            "name": "g_quadfactor",
+            "value": "3",
+            "flags": 0
+          },
+          {
+            "name": "g_slow",
+            "value": "0.8",
+            "flags": 0
+          },
+          {
+            "name": "g_speed",
+            "value": "320",
+            "flags": 0
+          },
+          {
+            "name": "g_tough",
+            "value": "0.70",
+            "flags": 0
+          },
+          {
+            "name": "g_weak",
+            "value": "1.25",
+            "flags": 0
+          },
+          {
+            "name": "g_weaponrespawn",
+            "value": "5",
+            "flags": 0
+          },
+          {
+            "name": "gamedate",
+            "value": "Feb 12 1999",
+            "flags": 136
+          },
+          {
+            "name": "gamename",
+            "value": "baseq3",
+            "flags": 136
+          },
+          {
+            "name": "maxclients",
+            "value": "8",
+            "flags": 40
+          },
+          {
+            "name": "maxentities",
+            "value": "1024",
+            "flags": 32
+          },
+          {
+            "name": "password",
+            "value": "",
+            "flags": 4
+          },
+          {
+            "name": "teamflags",
+            "value": "0",
+            "flags": 8
+          },
+          {
+            "name": "timelimit",
+            "value": "0",
+            "flags": 8
+          }
+        ],
+        "shutdown_tags": [
+          766,
+          765
+        ],
+        "remaining_allocations": 0
+      },
+      {
+        "scope": "native Init/Shutdown only; no gameplay or engine integration",
+        "mode": "missing-files",
+        "api": 4,
+        "entity_stride": 556,
+        "clients": 8,
+        "entities": 9,
+        "capacity": 1024,
+        "allocations": [
+          [
+            569344,
+            765
+          ],
+          [
+            11712,
+            765
+          ],
+          [
+            5600,
+            765
+          ]
+        ],
+        "import_calls": [
+          7,
+          0,
+          0,
+          3,
+          0,
+          2,
+          28,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "files": [
+          "scripts/bots.cfg"
+        ],
+        "cvars": [
+          {
+            "name": "cheats",
+            "value": "1",
+            "flags": 40
+          },
+          {
+            "name": "d_bot",
+            "value": "",
+            "flags": 0
+          },
+          {
+            "name": "d_botai",
+            "value": "0",
+            "flags": 0
+          },
+          {
+            "name": "d_botaiming",
+            "value": "0",
+            "flags": 0
+          },
+          {
+            "name": "d_botfreeze",
+            "value": "0",
+            "flags": 0
+          },
+          {
+            "name": "d_break",
+            "value": "0",
+            "flags": 0
+          },
+          {
+            "name": "dedicated",
+            "value": "0",
+            "flags": 16
+          },
+          {
+            "name": "dmflags",
+            "value": "0",
+            "flags": 8
+          },
+          {
+            "name": "fraglimit",
+            "value": "0",
+            "flags": 8
+          },
+          {
+            "name": "g_debugMove",
+            "value": "0",
+            "flags": 0
+          },
+          {
+            "name": "g_fast",
+            "value": "1.125",
+            "flags": 0
+          },
+          {
+            "name": "g_forcerespawn",
+            "value": "10",
+            "flags": 0
+          },
+          {
+            "name": "g_gravity",
+            "value": "800",
+            "flags": 0
+          },
+          {
+            "name": "g_inactivity",
+            "value": "0",
+            "flags": 0
+          },
+          {
+            "name": "g_knockback",
+            "value": "1000",
+            "flags": 0
+          },
+          {
+            "name": "g_quadfactor",
+            "value": "3",
+            "flags": 0
+          },
+          {
+            "name": "g_slow",
+            "value": "0.8",
+            "flags": 0
+          },
+          {
+            "name": "g_speed",
+            "value": "320",
+            "flags": 0
+          },
+          {
+            "name": "g_tough",
+            "value": "0.70",
+            "flags": 0
+          },
+          {
+            "name": "g_weak",
+            "value": "1.25",
+            "flags": 0
+          },
+          {
+            "name": "g_weaponrespawn",
+            "value": "5",
+            "flags": 0
+          },
+          {
+            "name": "gamedate",
+            "value": "Feb 12 1999",
+            "flags": 136
+          },
+          {
+            "name": "gamename",
+            "value": "baseq3",
+            "flags": 136
+          },
+          {
+            "name": "maxclients",
+            "value": "8",
+            "flags": 40
+          },
+          {
+            "name": "maxentities",
+            "value": "1024",
+            "flags": 32
+          },
+          {
+            "name": "password",
+            "value": "",
+            "flags": 4
+          },
+          {
+            "name": "teamflags",
+            "value": "0",
+            "flags": 8
+          },
+          {
+            "name": "timelimit",
+            "value": "0",
+            "flags": 8
+          }
+        ],
+        "shutdown_tags": [
+          766,
+          765
+        ],
+        "remaining_allocations": 0
+      },
+      {
+        "scope": "native Init/Shutdown only; no gameplay or engine integration",
+        "mode": "clamp-clients",
+        "api": 4,
+        "entity_stride": 556,
+        "clients": 8,
+        "entities": 9,
+        "capacity": 64,
+        "allocations": [
+          [
+            35584,
+            765
+          ],
+          [
+            11712,
+            765
+          ],
+          [
+            5600,
+            765
+          ]
+        ],
+        "import_calls": [
+          6,
+          0,
+          0,
+          3,
+          0,
+          2,
+          28,
+          3,
+          0,
+          0,
+          1,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "files": [
+          "scripts/bots.cfg"
+        ],
+        "cvars": [
+          {
+            "name": "cheats",
+            "value": "1",
+            "flags": 40
+          },
+          {
+            "name": "d_bot",
+            "value": "",
+            "flags": 0
+          },
+          {
+            "name": "d_botai",
+            "value": "0",
+            "flags": 0
+          },
+          {
+            "name": "d_botaiming",
+            "value": "0",
+            "flags": 0
+          },
+          {
+            "name": "d_botfreeze",
+            "value": "0",
+            "flags": 0
+          },
+          {
+            "name": "d_break",
+            "value": "0",
+            "flags": 0
+          },
+          {
+            "name": "dedicated",
+            "value": "0",
+            "flags": 16
+          },
+          {
+            "name": "dmflags",
+            "value": "0",
+            "flags": 8
+          },
+          {
+            "name": "fraglimit",
+            "value": "0",
+            "flags": 8
+          },
+          {
+            "name": "g_debugMove",
+            "value": "0",
+            "flags": 0
+          },
+          {
+            "name": "g_fast",
+            "value": "1.125",
+            "flags": 0
+          },
+          {
+            "name": "g_forcerespawn",
+            "value": "10",
+            "flags": 0
+          },
+          {
+            "name": "g_gravity",
+            "value": "800",
+            "flags": 0
+          },
+          {
+            "name": "g_inactivity",
+            "value": "0",
+            "flags": 0
+          },
+          {
+            "name": "g_knockback",
+            "value": "1000",
+            "flags": 0
+          },
+          {
+            "name": "g_quadfactor",
+            "value": "3",
+            "flags": 0
+          },
+          {
+            "name": "g_slow",
+            "value": "0.8",
+            "flags": 0
+          },
+          {
+            "name": "g_speed",
+            "value": "320",
+            "flags": 0
+          },
+          {
+            "name": "g_tough",
+            "value": "0.70",
+            "flags": 0
+          },
+          {
+            "name": "g_weak",
+            "value": "1.25",
+            "flags": 0
+          },
+          {
+            "name": "g_weaponrespawn",
+            "value": "5",
+            "flags": 0
+          },
+          {
+            "name": "gamedate",
+            "value": "Feb 12 1999",
+            "flags": 136
+          },
+          {
+            "name": "gamename",
+            "value": "baseq3",
+            "flags": 136
+          },
+          {
+            "name": "maxclients",
+            "value": "8",
+            "flags": 40
+          },
+          {
+            "name": "maxentities",
+            "value": "64",
+            "flags": 32
+          },
+          {
+            "name": "password",
+            "value": "",
+            "flags": 4
+          },
+          {
+            "name": "teamflags",
+            "value": "0",
+            "flags": 8
+          },
+          {
+            "name": "timelimit",
+            "value": "0",
+            "flags": 8
+          }
+        ],
+        "shutdown_tags": [
+          766,
+          765
+        ],
+        "remaining_allocations": 0
+      }
+    ],
+    "original_allocation_failures": [
+      {
+        "scope": "native init failure only",
+        "failed_allocation": 0,
+        "cleanup": true
+      },
+      {
+        "scope": "native init failure only",
+        "failed_allocation": 1,
+        "cleanup": true
+      },
+      {
+        "scope": "native init failure only",
+        "failed_allocation": 2,
+        "cleanup": true
+      }
+    ],
+    "x64_asan": {
+      "result": "PASS",
+      "scope": "Portable state and allocation tests plus native x64 binding rejection; no original x86 DLL loading."
+    },
+    "full_suite": {
+      "result": "PASS",
+      "targets": 129,
+      "meson_results": {
+        "OK": 127,
+        "SKIP": 2
+      },
+      "python": {
+        "result": "OK",
+        "cases": 1838,
+        "skipped": 72,
+        "seconds": 782.592
+      }
+    }
+  },
+  "commands": [
+    "Set TEMP and TMP to E:/Repositories/fnTech3/.tmp/q3-ihv; use E:/Repositories/fnTech3 as cwd. Source .tmp/rtcw-manager/x86_environment.ps1 for MSVC/Meson x86 commands.",
+    "meson setup --reconfigure meson/build/win32",
+    "meson compile -C meson/build/win32",
+    "meson test -C meson/build/win32 --no-rebuild --print-errorlogs fntech3_server_game_data fntech3_q3_ihv_game_data fntech3_q3_ihv_native_boundary",
+    "python -m unittest discover -s tests -p q3_ihv_server_world_tests.py; python -m unittest discover -s tests -p rtcw_server_world_tests.py",
+    "cl /nologo /EHsc /W4 /WX /MD /O2 /std:c++17 /D_CRT_SECURE_NO_WARNINGS /TP tests/q3_ihv_reference_adapter_probe.cpp code/server/server_game_data.cpp code/compat/game_abi_adapter.c /Fe:.tmp/q3-ihv/reference-adapter-probe.exe /Fo:.tmp/q3-ihv/adapter-probe-objects/ /link /MANIFEST:EMBED \"/MANIFESTUAC:level='asInvoker' uiAccess='false'\" advapi32.lib",
+    ".tmp/q3-ihv/reference-adapter-probe.exe E:/Repositories/Quake3-IHV/ref/install/qagamex86.dll E:/Repositories/Quake3-IHV/ref/install/baseq3",
+    "clang++ -std=c++17 -DFNTECH3_Q3_ONLY -O2 -ffast-math -fsanitize=address -g -Wno-deprecated -Wno-deprecated-declarations -Wno-unused-command-line-argument -x c++ tests/q3_ihv_game_data_tests.cpp code/server/server_game_data.cpp code/compat/game_abi_adapter.c -o .tmp/q3-ihv/native-game-data-asan.exe",
+    "meson test -C meson/build/win32 --no-rebuild --print-errorlogs"
+  ],
+  "remaining": [
+    "Native engine module lifecycle/import dispatch, game callbacks beyond connection, and complete cgame API/render/audio/input integration.",
+    "Shared player-state projections and coherent native client/entity index use; original-game 256-client/2048-entity storage remains outside the current core 128-client/1024-entity limits.",
+    "Original trace merge/entity-zero semantics, world/unused link early-outs, PVS/leaf limits, brush model and collision contracts.",
+    "Protocol-33 engine session integration, packet negotiation and bidirectional original-engine interoperability; real native demo playback and recording.",
+    "IHV loose/pak filesystem behavior, profile-aware IHV renderer eligibility and remaining materials/portal/lighting gates.",
+    "Broader Q3Test, demo and point-release compatibility gates recorded in Q3_POINT_RELEASES.md remain open."
+  ],
+  "artifacts": [
+    {
+      "path": "code/compat/q3_ihv_game_abi.h",
+      "sha256": "f4b08bd5ce2ab335a932557e6fcb937978c1cf41ee9c58d9edb7c69e595797c4",
+      "bytes": 7888
+    },
+    {
+      "path": "code/compat/q3_ihv_native_boundary.hpp",
+      "sha256": "29fdaf0264b9a5ad2449768828584209da54e376d08f9cf14d7c8b7daa47d528",
+      "bytes": 9194
+    },
+    {
+      "path": "code/compat/q3_ihv_state_adapter.hpp",
+      "sha256": "25a5fe491801d1b1729951c44c9b889728a5cc3d9540c6283bb9ed96a5313c40",
+      "bytes": 4457
+    },
+    {
+      "path": "code/compat/game_abi_adapter.c",
+      "sha256": "272856101bb7d8bc47ac04d4536493cb5267614342741b40a177a94af32d1e90",
+      "bytes": 23348
+    },
+    {
+      "path": "code/server/server_game_data.h",
+      "sha256": "4185a2c43cca7f37ab5f7e906803fb7122032f32ee5ca595fe81051cb3198fcb",
+      "bytes": 9979
+    },
+    {
+      "path": "code/server/server_game_data.cpp",
+      "sha256": "17f7400537e06ba8949cf0142dce61b5dc498ccebca42aa9a5ad6b8e3dfc6799",
+      "bytes": 42709
+    },
+    {
+      "path": "code/server/sv_world.cpp",
+      "sha256": "b9509fcf007acd075baabe2672d4b9649e31dafcdd30405705e2115c255dded0",
+      "bytes": 22264
+    },
+    {
+      "path": "tests/q3_ihv_game_data_tests.cpp",
+      "sha256": "fcc2803b8ccab5e7865c8fb03b5e74d08c494e24593bec5530bae800c7bcb02e",
+      "bytes": 9674
+    },
+    {
+      "path": "tests/q3_ihv_server_world_tests.py",
+      "sha256": "3c0af0516d1411fb07a0760b890a9f05bc9a79e5408188bca6dd5a9e96c898c6",
+      "bytes": 11072
+    },
+    {
+      "path": "tests/q3_ihv_reference_game_probe.cpp",
+      "sha256": "0f22e3fecef502351a2fc821cd4ffea5216ffa6c1670c3433a5abc75e3e6a772",
+      "bytes": 13653
+    },
+    {
+      "path": "tests/q3_ihv_reference_adapter_probe.cpp",
+      "sha256": "aca5be1a7f40169278cd63bec58e55cdbca17bf1c3b8d165cc967a401086fce8",
+      "bytes": 6204
+    },
+    {
+      "path": "tests/q3_ihv_collision_cases.hpp",
+      "sha256": "cfc2dbfad7adfb7d1060bcc68c72a04e6bf8f47891fff3b66c5dbea9ec2c368a",
+      "bytes": 2867
+    },
+    {
+      "path": "tests/rtcw_server_world_tests.py",
+      "sha256": "1c9f723b5bcf11bbfd6e2e113c98a2e7c75c198fdedbc38b3a00de63ac88a301",
+      "bytes": 15644
+    },
+    {
+      "path": "meson.build",
+      "sha256": "68783ea76e1988e713e48a5086beeea2ff9a0e6be502b2973675c816d81f9dfb",
+      "bytes": 64021
+    },
+    {
+      "path": "meson/build/win32/fntech3.exe",
+      "sha256": "184dd9228ee6f341dbf22277af78325a4deb576f08147f269789929780e10d6a",
+      "bytes": 8514048
+    },
+    {
+      "path": "meson/build/win32/fntech3.ded.exe",
+      "sha256": "e0953fe4303c0b4bb9c64d5a57775d380f606cfb4c200b7d557be217c7b0c6b1",
+      "bytes": 2683904
+    },
+    {
+      "path": "meson/build/win32/fnql_glx_x86.dll",
+      "sha256": "f4f2f188c419d6680c31d2b8e94924aa9a6307a69ffa13f204a2e1175d28cbcb",
+      "bytes": 2443264
+    },
+    {
+      "path": "meson/build/win32/fnql_vk_x86.dll",
+      "sha256": "e7509d3ef528239026c627c39d525a3144ff6f2ace9863e3924c7945123aebbd",
+      "bytes": 2615296
+    },
+    {
+      "path": "meson/build/win32/fnql_rtx_x86.dll",
+      "sha256": "3e93f032666501afd73e130ff1332f6cc4d2e66cc0c925b73fff2f681aee12ec",
+      "bytes": 2905088
+    },
+    {
+      "path": "meson/build/win32/fntech3_q3_ihv_game_data_tests.exe",
+      "sha256": "5ae7ed1a4d3bca5d7daee7e286cefa6c7af82ea7282eb788c5c5a2b7970a4918",
+      "bytes": 447488
+    },
+    {
+      "path": "meson/build/win32/fntech3_server_game_data_tests.exe",
+      "sha256": "bfb7ee5bb1b25e34ff1986a1fd70d11cb328e0b794d930e240d336e8c127992b",
+      "bytes": 859648
+    },
+    {
+      "path": ".tmp/q3-ihv/native-game-data-configure.log",
+      "sha256": "bb92d48857ce5b3f2c962275992185e811c3a74887c598134754af126c891602",
+      "bytes": 33735
+    },
+    {
+      "path": ".tmp/q3-ihv/native-game-data-build-all.log",
+      "sha256": "b3960454799e178ee5806037cc830bdfd800e63be2a4de329b84a311f004d586",
+      "bytes": 1767
+    },
+    {
+      "path": ".tmp/q3-ihv/native-game-data-final-focused.log",
+      "sha256": "9e726dde1b5e03dd23469f7607e6008a8f7ccd11a986a0f143c1ed56782d18da",
+      "bytes": 338
+    },
+    {
+      "path": ".tmp/q3-ihv/native-game-data-world.log",
+      "sha256": "95338eddf2b8a0a8fa132676a60928dedd3a8821731a1b2bc417517a6f5dac2d",
+      "bytes": 106
+    },
+    {
+      "path": ".tmp/q3-ihv/native-game-data-asan-build.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": ".tmp/q3-ihv/native-game-data-asan.log",
+      "sha256": "017ad2c303185d06344aa6b1dcdcd6ba0a1a083a982d5f9f6e59ff53fc8ddc54",
+      "bytes": 144
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-adapter-build.log",
+      "sha256": "a13207380fb8d28dbd0f8e05d4817ba6c13cfd47e2997451774d3966fc738cbc",
+      "bytes": 98
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-adapter.json",
+      "sha256": "289595782949c9d6d05a70edcb54955e001ac62f5bfac18a2fe7fa14e18e6af4",
+      "bytes": 400
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-adapter.log",
+      "sha256": "13b80483de7189b8e4599639acebe575e21011bc6c613225a0a8cdeaa62e53dc",
+      "bytes": 165
+    },
+    {
+      "path": ".tmp/q3-ihv/native-game-data-lifecycle-build.log",
+      "sha256": "64a7a0ec8d8495834051be9af4b0a91bd0b5ea85b1de6409189e8e23625b62b5",
+      "bytes": 33
+    },
+    {
+      "path": ".tmp/q3-ihv/server-client-pointer-uses.txt",
+      "sha256": "0437f79a4c766c54987e4bc3c5b4d2accb98b8660d5f577e125e8d47ac387683",
+      "bytes": 2636
+    },
+    {
+      "path": ".tmp/q3-ihv/adapter-lifecycle-normal.json",
+      "sha256": "227400480b52b0b926812c5c98a47bfaf5d6f0cb56ece47890dd027878d09186",
+      "bytes": 1637
+    },
+    {
+      "path": ".tmp/q3-ihv/adapter-lifecycle-normal.log",
+      "sha256": "13b80483de7189b8e4599639acebe575e21011bc6c613225a0a8cdeaa62e53dc",
+      "bytes": 165
+    },
+    {
+      "path": ".tmp/q3-ihv/adapter-lifecycle-missing-files.json",
+      "sha256": "a5a7ab7136024b6777cc60aa2d39980828f16136d7ebc01657dcd6b2372d1ce2",
+      "bytes": 1644
+    },
+    {
+      "path": ".tmp/q3-ihv/adapter-lifecycle-missing-files.log",
+      "sha256": "d26a4476e6d5bf2942dfbfe96abe67c068e5279d791869fd46c0a6da75471ba0",
+      "bytes": 181
+    },
+    {
+      "path": ".tmp/q3-ihv/adapter-lifecycle-clamp-clients.json",
+      "sha256": "f0e0029db76d438a87f5a3051dccf15abe260caa0e5cba696f1c5d69a87154bb",
+      "bytes": 1639
+    },
+    {
+      "path": ".tmp/q3-ihv/adapter-lifecycle-clamp-clients.log",
+      "sha256": "13b80483de7189b8e4599639acebe575e21011bc6c613225a0a8cdeaa62e53dc",
+      "bytes": 165
+    },
+    {
+      "path": ".tmp/q3-ihv/adapter-lifecycle-failure-0.json",
+      "sha256": "d0ff76ae4bfef96d09cbde50fd6330f681df857e9cb7cd316724549a16a8139f",
+      "bytes": 75
+    },
+    {
+      "path": ".tmp/q3-ihv/adapter-lifecycle-failure-0.log",
+      "sha256": "f42af5aafa8fd45749cc76c8e5e3700033730cb6741855013dc8671da9699a9c",
+      "bytes": 78
+    },
+    {
+      "path": ".tmp/q3-ihv/adapter-lifecycle-failure-1.json",
+      "sha256": "166bac00c85cfc268b73130eb75e8a9e173c1605426989aadeebc0cdfc1c1513",
+      "bytes": 75
+    },
+    {
+      "path": ".tmp/q3-ihv/adapter-lifecycle-failure-1.log",
+      "sha256": "f42af5aafa8fd45749cc76c8e5e3700033730cb6741855013dc8671da9699a9c",
+      "bytes": 78
+    },
+    {
+      "path": ".tmp/q3-ihv/adapter-lifecycle-failure-2.json",
+      "sha256": "7ad2dd50f44a329a769e5c7c7991f5104833350b29de4f063f12829b6c3ee34f",
+      "bytes": 75
+    },
+    {
+      "path": ".tmp/q3-ihv/adapter-lifecycle-failure-2.log",
+      "sha256": "f42af5aafa8fd45749cc76c8e5e3700033730cb6741855013dc8671da9699a9c",
+      "bytes": 78
+    },
+    {
+      "path": ".tmp/q3-ihv/native-game-data-suite.log",
+      "sha256": "c104d3993a0e0799af70b1153bf310822d3379004db841a56c761037e0469658",
+      "bytes": 10261
+    },
+    {
+      "path": ".tmp/q3-ihv/native-game-data-suite-testlog.txt",
+      "sha256": "098f31185d92c7c0fee19f2f04ee2749b96e1c55200fb6461af60ed449ff345d",
+      "bytes": 135619
+    },
+    {
+      "path": ".tmp/q3-ihv/native-game-data-suite-testlog.json",
+      "sha256": "f0487e9052216344d07ac498b22e90ed08d19331687c3b2e8eaa113aae16ea36",
+      "bytes": 2442476
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-adapter-probe.exe",
+      "sha256": "197ce2dc80861f1579a01fc41b514dac137305d28837eca59bf2ffd3ca3b38e8",
+      "bytes": 100864
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-game-regression.exe",
+      "sha256": "39e0e7f089f1c78ac2f6b02be7e83ef9fb0dd4dcc7ce7ec11be70494460fe14e",
+      "bytes": 86528
+    },
+    {
+      "path": ".tmp/q3-ihv/native-game-data-asan.exe",
+      "sha256": "461ef2f298e433d712f14ead4b91968567296eb95961d0fc5ee07e5b86bddbdf",
+      "bytes": 757248
+    },
+    {
+      "path": ".tmp/q3-ihv/record_game_data.py",
+      "sha256": "528932f93c3ac3145b2e812e63e1407a822ebb576172b96444eb379108bbf4ba",
+      "bytes": 12683
+    }
+  ],
+  "unrelated_issues": "No new unrelated issue found in this slice. The previously recorded IPv6 loopback WSAEADDRNOTAVAIL warning and policy-blocked cleanup of an older copied-asset scratch directory remain separate from this work."
+}

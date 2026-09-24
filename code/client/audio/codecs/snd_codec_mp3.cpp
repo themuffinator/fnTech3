@@ -13,8 +13,9 @@ General Public License, version 2 or (at your option) any later version.
 // docs/fntech3/2026-09-18-stvef-contracts.md. Raven's "#UNCOMP" byte count
 // includes every MPEG frame, so this codec decodes frame by frame with
 // minimp3 (CC0) and never drops a leading Xing/Info frame as tag metadata.
-// The codec is registered only for Elite Force profiles, so other games keep
-// their retail extension fallback behaviour.
+// The codec is registered only for Elite Force profiles and American McGee's
+// Alice, whose music and cinematic tracks are MP3, so other games keep their
+// retail extension fallback behaviour.
 
 #ifdef USE_CODEC_MP3
 
@@ -283,6 +284,88 @@ void *S_MP3_CodecLoad( const char *filename, snd_info_t *info )
 	decodedInfo.peak = Mp3RavenPeak( compressed.as<std::uint8_t>(), length );
 	*info = decodedInfo;
 	return buffer.release();
+}
+
+/*
+=================
+In-memory decoders
+
+American McGee's Alice reads every song of a soundtrack once, when the
+soundtrack loads, and keeps the file images (alice.exe 0x0044fad0); Miles then
+starts and loops each song at a byte offset into its image (0x00472147,
+0x00472170). The decoder here reads such an image in place and never owns it.
+Elite Force never reaches these.
+=================
+*/
+struct snd_mp3_memory_t {
+	MiniMp3 codec;
+	Mp3FrameDecoder frames;
+	snd_info_t info;
+};
+
+snd_mp3_memory_t *S_MP3_OpenMemory( const byte *image, int length, snd_info_t *info )
+{
+	if ( !image || length <= 0 ) {
+		return nullptr;
+	}
+	auto *memory = new ( std::nothrow ) snd_mp3_memory_t{};
+	if ( !memory ) {
+		return nullptr;
+	}
+	mp3dec_init( &memory->codec.decoder );
+	memory->frames.Reset( reinterpret_cast<const std::uint8_t *>( image ), length );
+	const Mp3StreamInfo scan = memory->frames.Scan( &memory->codec, &MiniMp3::Decode );
+	if ( !S_MP3_Info( scan, scan.channels, &memory->info ) ) {
+		delete memory;
+		return nullptr;
+	}
+	mp3dec_init( &memory->codec.decoder );
+	memory->frames.Reset( reinterpret_cast<const std::uint8_t *>( image ), length );
+	if ( info ) {
+		*info = memory->info;
+	}
+	return memory;
+}
+
+int S_MP3_SeekFileOffset( snd_mp3_memory_t *memory, int offset )
+{
+	if ( !memory ) {
+		return 0;
+	}
+	mp3dec_init( &memory->codec.decoder );
+	const std::int64_t skipped = memory->frames.SamplesBefore( &memory->codec, &MiniMp3::Decode, offset );
+	// minimp3 resyncs from any byte once its state is reset.
+	mp3dec_init( &memory->codec.decoder );
+	memory->frames.SeekFileOffset( offset );
+	return skipped > ( std::numeric_limits<int>::max )() ? ( std::numeric_limits<int>::max )()
+		: static_cast<int>( skipped );
+}
+
+int S_MP3_MemoryStartOffset( const snd_mp3_memory_t *memory )
+{
+	return memory ? memory->frames.StartOffset() : 0;
+}
+
+int S_MP3_ReadMemory( snd_mp3_memory_t *memory, int bytes, void *pcm )
+{
+	if ( !memory || !pcm || bytes <= 0 ) {
+		return 0;
+	}
+	const int read = memory->frames.Read( &memory->codec, &MiniMp3::Decode,
+		memory->info.channels, memory->info.rate, memory->info.channels,
+		static_cast<short *>( pcm ), bytes );
+#ifdef Q3_BIG_ENDIAN
+	auto *samples = static_cast<short *>( pcm );
+	for ( int i = 0; i < read / 2; ++i ) {
+		samples[i] = LittleShort( samples[i] );
+	}
+#endif
+	return read;
+}
+
+void S_MP3_CloseMemory( snd_mp3_memory_t *memory )
+{
+	delete memory;
 }
 
 #endif // USE_CODEC_MP3

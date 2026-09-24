@@ -73,7 +73,7 @@ static void loadMap(){
  if(!Com_GameIsRTCWSP())files["maps/probe.rcd"][4]=12;
 }
 int main(){
- for(const auto &p:profiles){profile=&p;initialize();
+ for(const auto &p:profiles){profile=&p;if(!p.bots.navigationWorlds)continue;initialize();
   assert(!AAS_ReadRTCWRouteCache()&&opened.empty());
   if(!Com_GameIsRTCW()){shutdown();continue;}
   for(int world=0;world<2;++world){assert(AAS_SetCurrentWorld(world));loadMap();

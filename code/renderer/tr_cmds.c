@@ -657,6 +657,37 @@ void R_AddDrawSurfCmd( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 
 /*
 =============
+R_AddAliceDebugLinesCmd
+
+American McGee's Alice: a copy of the game's debug lines, drawn right after
+the view queued before them. The game clears its array every game frame, so
+the copy is what this frame's view is drawn with. A full command buffer drops
+the lines, as it drops any command.
+=============
+*/
+void R_AddAliceDebugLinesCmd( const void *lines, int numLines ) {
+	aliceDebugLinesCommand_t *cmd;
+	int bytes;
+
+	if ( !lines || numLines <= 0 ) {
+		return;
+	}
+	if ( numLines > ALICE_MAX_DEBUG_LINES ) {
+		numLines = ALICE_MAX_DEBUG_LINES;
+	}
+	bytes = PAD( (int)sizeof( *cmd ) + numLines * (int)sizeof( aliceDebugLine_t ), (int)sizeof( void * ) );
+	cmd = R_GetCommandBuffer( bytes );
+	if ( !cmd ) {
+		return;
+	}
+	cmd->commandId = RC_ALICE_DEBUG_LINES;
+	cmd->numLines = numLines;
+	cmd->commandBytes = bytes;
+	Com_Memcpy( cmd + 1, lines, numLines * sizeof( aliceDebugLine_t ) );
+}
+
+/*
+=============
 R_AddAdvertisementQueryCmd
 =============
 */
@@ -824,6 +855,12 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 	clearColorCommand_t *clrcmd = NULL;
 	if ( !tr.registered ) {
 		return;
+	}
+
+	// The last frame's Alice poses were drawn with it; a stereo frame's
+	// right eye still draws with the poses its left eye made.
+	if ( stereoFrame != STEREO_RIGHT ) {
+		RA_TikiBeginFrame();
 	}
 
 	glState.finishCalled = qfalse;

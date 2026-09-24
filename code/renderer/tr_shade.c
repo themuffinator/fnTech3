@@ -77,6 +77,7 @@ static qboolean GLX_StreamDrawStageMaterialAllowed( const shaderStage_t *pStage,
 	int materialFlags, GLint multitextureEnv )
 {
 	if ( pStage->alphaGen == AGEN_RTCW_NORMALZFADE ) return qfalse; // Upload the computed vertex alpha.
+	if ( pStage->aliceDynamic ) return qfalse; // Alice's own sources, alpha test and per-draw skips.
 	return GLX_CompatStreamDrawAllowsMaterial( materialFlags, pStage->stateBits,
 		pStage->rgbGen, pStage->alphaGen, pStage->bundle[0].tcGen,
 		pStage->bundle[1].tcGen,
@@ -647,8 +648,17 @@ void R_BindAnimatedImage( const textureBundle_t *bundle ) {
 	v = tess.shaderTime * bundle->imageAnimationSpeed; // fix for frameloss bug -EC-
 	index = v;
 
+	// American McGee's Alice: `frameFromEntity` takes the frame from the
+	// entity's frame number as a short (alice.exe 0x004931e5), and
+	// `animMapOnce` holds the last frame instead of wrapping (0x00493216).
+	if ( bundle->aliceFrameFromEntity && backEnd.currentEntity ) {
+		index = (short)backEnd.currentEntity->e.alice.frame;
+	}
 	if ( index < 0 ) {
 		index = 0;	// may happen with shader time offsets
+	}
+	if ( bundle->aliceAnimMapOnce && index >= bundle->numImageAnimations ) {
+		index = bundle->numImageAnimations - 1;
 	}
 	index %= bundle->numImageAnimations;
 
@@ -835,7 +845,7 @@ void RB_BeginSurface( shader_t *shader, int fogNum ) {
 
 	/* Existing CPU tessellation retains the per-stage RTCW fog contract.
 	 * The static ARB VBO programs do not carry scene-fog parameters yet. */
-	if ( RB_RTCWHasFog() ) tess.allowVBO = qfalse;
+	if ( RB_RTCWHasFog() || RB_Q3IHVFog( fogNum ) ) tess.allowVBO = qfalse;
 	/* Authored RTCW light materials project their own UVs and vertex colors. */
 #ifdef USE_PMLIGHT
 	if ( tess.dlightPass && tess.light && tess.light->rtcwShader ) tess.allowVBO = qfalse;
@@ -866,6 +876,7 @@ void RB_BeginSurface( shader_t *shader, int fogNum ) {
 
 	tess.numIndexes = 0;
 	tess.numVertexes = 0;
+	tess.ihvSkyActive = qfalse;
 	tess.shader = state;
 	tess.liquidContentFlags = shader->contentFlags | state->contentFlags;
 	tess.liquidSort = shader->sort;
@@ -1416,11 +1427,15 @@ static void RB_FogPass( void ) {
 	int i;
 	qboolean glxStreamedDraw = qfalse;
 
-	for ( i = 0; i < tess.numVertexes; i++ ) {
-		tess.svars.colors[i] = fog->colorInt;
+	const qboolean ihv = RB_Q3IHVFog( tess.fogNum );
+	if ( ihv ) {
+		RB_Q3IHVFogColors( tess.svars.colors[0].rgba, tess.svars.texcoords[0][0] );
+	} else {
+		for ( i = 0; i < tess.numVertexes; i++ ) {
+			tess.svars.colors[i] = fog->colorInt;
+		}
+		RB_CalcFogTexCoords( ( float * ) tess.svars.texcoords[0] );
 	}
-
-	RB_CalcFogTexCoords( ( float * ) tess.svars.texcoords[0] );
 
 	GL_ClientState( 1, CLS_NONE );
 	GL_ClientState( 0, CLS_TEXCOORD_ARRAY | CLS_COLOR_ARRAY );
@@ -1429,7 +1444,7 @@ static void RB_FogPass( void ) {
 	qglTexCoordPointer( 2, GL_FLOAT, 0, tess.svars.texcoords[0] );
 
 	GL_SelectTexture( 0 );
-	GL_Bind( tr.fogImage );
+	GL_Bind( ihv ? tr.whiteImage : tr.fogImage );
 
 	if ( tess.shader->fogPass == FP_EQUAL ) {
 		GL_State( GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA | GLS_DEPTHFUNC_EQUAL );
@@ -1457,6 +1472,8 @@ void R_ComputeColors( const shaderStage_t *pStage )
 
 	if ( tess.numVertexes == 0 )
 		return;
+
+	if ( RB_Q3IHVSkyColors( pStage, tess.svars.colors[0].rgba ) ) return;
 
 	//
 	// rgbGen
@@ -1537,6 +1554,12 @@ void R_ComputeColors( const shaderStage_t *pStage )
 		case CGEN_ONE_MINUS_ENTITY:
 			RB_CalcColorFromOneMinusEntity( tess.svars.colors[0].rgba );
 			break;
+		case CGEN_ALICE_GLOBAL:
+			RB_AliceCalcGlobalColor( tess.svars.colors[0].rgba );
+			break;
+		case CGEN_ALICE_COLORWAVE:
+			RB_AliceCalcColorWave( &pStage->rgbWave, pStage->constantColor, tess.svars.colors[0].rgba );
+			break;
 	}
 
 	//
@@ -1563,7 +1586,23 @@ void R_ComputeColors( const shaderStage_t *pStage )
 		RB_CalcWaveAlpha( &pStage->alphaWave, tess.svars.colors[0].rgba );
 		break;
 	case AGEN_LIGHTING_SPECULAR:
-		RB_CalcSpecularAlpha( tess.svars.colors[0].rgba );
+		if ( pStage->aliceSpecularCustom ) {
+			RB_AliceCalcSpecularAlpha( pStage, tess.svars.colors[0].rgba );
+		} else {
+			RB_CalcSpecularAlpha( tess.svars.colors[0].rgba );
+		}
+		break;
+	case AGEN_ALICE_DOT:
+	case AGEN_ALICE_ONE_MINUS_DOT:
+		RB_AliceCalcDotAlpha( pStage, tess.svars.colors[0].rgba );
+		break;
+	case AGEN_ALICE_GLOBAL:
+		RB_AliceCalcGlobalAlpha( tess.svars.colors[0].rgba );
+		break;
+	case AGEN_ALICE_SKY_ALPHA:
+	case AGEN_ALICE_ONE_MINUS_SKY_ALPHA:
+		RB_AliceCalcSkyAlpha( pStage->alphaGen == AGEN_ALICE_ONE_MINUS_SKY_ALPHA ? qtrue : qfalse,
+			tess.svars.colors[0].rgba );
 		break;
 	case AGEN_ENTITY:
 		RB_CalcAlphaFromEntity( tess.svars.colors[0].rgba );
@@ -1753,6 +1792,15 @@ void R_ComputeTexCoords( const int b, const textureBundle_t *bundle ) {
 			src = dst;
 			break;
 
+		case TMOD_ALICE_SCROLL:
+		case TMOD_ALICE_ROTATE:
+		case TMOD_ALICE_OFFSET:
+		case TMOD_ALICE_MACRO:
+		case TMOD_ALICE_PARALLAX:
+			RB_AliceCalcTexMod( &bundle->texMods[tm], (float *) src, (float *) dst );
+			src = dst;
+			break;
+
 		default:
 			ri.Error( ERR_DROP, "ERROR: unknown texmod '%d' in shader '%s'", bundle->texMods[tm].type, tess.shader->name );
 			break;
@@ -1760,6 +1808,31 @@ void R_ComputeTexCoords( const int b, const textureBundle_t *bundle ) {
 	}
 
 	tess.svars.texcoordPtr[ b ] = src;
+}
+
+
+/*
+** RB_AliceSkipStage
+**
+** American McGee's Alice skips a detail stage while r_detailtextures is off,
+** a skyAlpha stage below 0.01 and a oneMinusSkyAlpha stage above 0.99
+** (alice.exe RB_StageIteratorGeneric 0x00492a60..0x00492ab2).
+*/
+qboolean RB_AliceSkipStage( const shaderStage_t *stage )
+{
+	if ( ri.gameId != COM_GAME_ALICE ) {
+		return qfalse;
+	}
+	if ( stage->isDetail && !r_detailTextures->integer ) {
+		return qtrue;
+	}
+	if ( stage->alphaGen == AGEN_ALICE_SKY_ALPHA && backEnd.refdef.alice.skyAlpha < 0.01f ) {
+		return qtrue;
+	}
+	if ( stage->alphaGen == AGEN_ALICE_ONE_MINUS_SKY_ALPHA && backEnd.refdef.alice.skyAlpha > 0.99f ) {
+		return qtrue;
+	}
+	return qfalse;
 }
 
 
@@ -1776,6 +1849,9 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 		pStage = tess.xstages[ stage ];
 		if ( !pStage )
 			break;
+
+		if ( RB_AliceSkipStage( pStage ) )
+			continue;
 
 		RB_RTCWStageFog( pStage );
 

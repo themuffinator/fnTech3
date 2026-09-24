@@ -206,6 +206,7 @@ typedef struct {
 		byte rgb;
 		byte alpha;
 	} color;
+	int alice_debug_line; // Alice's debug lines: 1 dynamic width, 2 also dynamic stipple
 } Vk_Pipeline_Def;
 
 typedef struct VK_Pipeline {
@@ -324,6 +325,8 @@ void vk_update_attachment_descriptors( void );
 void vk_destroy_samplers( void );
 
 uint32_t vk_find_pipeline_ext( uint32_t base, const Vk_Pipeline_Def *def, qboolean use );
+uint32_t vk_alice_debug_line_pipeline( qboolean depthMask, qboolean stipple );
+void vk_set_alice_debug_line_state( float width, int factor, unsigned short pattern, qboolean stipple );
 void vk_get_pipeline_def( uint32_t pipeline, Vk_Pipeline_Def *def );
 void vk_material_init( vk_material_t *material );
 void vk_material_set_descriptor( vk_material_t *material, int index, VkDescriptorSet descriptor );
@@ -855,6 +858,11 @@ typedef struct {
 	uint32_t frame_count;
 	qboolean active;
 	qboolean wideLines;
+	// American McGee's Alice's debug lines: stippled through
+	// VK_EXT_line_rasterization, enabled for that profile alone
+	qboolean lineStipple;
+	VkLineRasterizationModeEXT lineStippleMode;
+	float lineWidthRange[2];
 	qboolean samplerAnisotropy;
 	qboolean fragmentStores;
 	qboolean dedicatedAllocation;

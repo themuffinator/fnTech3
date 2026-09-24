@@ -1,0 +1,582 @@
+{
+  "date": "2026-09-21",
+  "recorded_utc": "2026-09-21T09:29:11.365202+00:00",
+  "commit": "9e1841de53d79f96cdbbde83a1427d1c7d83f31d",
+  "working_tree": "Uncommitted native MD3 animation/culling slice on top of earlier IHV and unrelated RTCW work; source and build identities below.",
+  "profile": "q3-ihv remains gated; renderer API 28 unchanged. All other profile branches retain existing math.",
+  "scope": "Private sine samples, native packed vertex/normal interpolation, original origin-expanded model bounds; actual GLx/Vulkan/RTX raster and RTX ray dispatch. Unit/Build/Fixture evidence; no native engine/display/input/audio/network startup.",
+  "platform": "Windows x86 MSVC 19.44.35222 /O2 and Meson win32; Windows x64 Clang 20.1.7 -O2 -ffast-math AddressSanitizer fixtures.",
+  "reference": {
+    "repository": "https://github.com/themuffinator/Quake3-IHV/tree/d5ce877155904c57f8b28fe0fd0c8aa2e9473337",
+    "executable": {
+      "path": "E:/Repositories/Quake3-IHV/ref/install/quake3.exe",
+      "bytes": 725042,
+      "sha256": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37"
+    },
+    "models": {
+      "count": 111,
+      "identities": ".tmp/q3-ihv/animation-asset-identities.json"
+    },
+    "execution": "Hash-pinned selected functions in a CPU host based at 0x3f0000: 0x42a685 trig initialization, 0x445020 scalar MD3 interpolation, 0x4420b0 culling. Original sphere/box callbacks replaced with recording stubs. Earlier entity/beam observations also execute first. No original entry point is called.",
+    "incorporation": "Independent implementation from numeric observations; no original code, module or asset bytes incorporated."
+  },
+  "contracts": {
+    "sines": "Private 1024 entries using binary32(360/1023), double pi and reciprocal 180; retail phase-offset table unchanged.",
+    "vertices": "Unclamped binary32 weights, double packed-coordinate terms and origin move before final float store. Zero fraction ignores move. Same frames select zero.",
+    "normals": "Native packed angle indices; retained double X and spilled binary32 Y products, then original double-length normalization only with a nonzero fraction.",
+    "culling": "Normalized axes use one/equal-frame or two/different-frame sphere calls; matching IN/OUT decides. Otherwise merged old/new bounds expand by binary32(origin-oldorigin) for flag 0x40, independent of fraction/axes. Valid bounds also supplied to lighting/caster consumers.",
+    "publication": "Frame/span/count checks before indexing; entire surface numeric staging before raster or ray vertex publication; unchanged published geometry on numeric failure. Float[4] fourth components remain untouched. Loader retains allocation ownership.",
+    "profile_isolation": "Only q3-ihv entities submitted through the native entry point use these paths. Existing modern sine tables/interpolation retained. Obsolete post-interpolation move helper removed."
+  },
+  "validation": {
+    "focused": {
+      "result": "PASS",
+      "cases": 10,
+      "seconds": 44.242
+    },
+    "docs": {
+      "result": "PASS",
+      "cases": 5,
+      "seconds": 5.402
+    },
+    "native_generated": {
+      "animation_batches": 14336,
+      "components": 451584,
+      "fnv1a64": "fd2298c8d50fd698",
+      "separately_rounded_xyz_differences": 17928
+    },
+    "native_assets": {
+      "models": 111,
+      "surfaces": 439,
+      "batches": 6804,
+      "components": 5408046,
+      "fnv1a64": "d00a4c31b3506226"
+    },
+    "native_sines": {
+      "entries": 1024,
+      "different_float_bits": 0,
+      "fnv1a64": "6685f509b8dc9008"
+    },
+    "native_culling": {
+      "cases": 165888,
+      "box_calls": 129024,
+      "fnv1a64": "69adefd497b482bd"
+    },
+    "asan": {
+      "result": "PASS",
+      "fixtures": [
+        "numeric",
+        "ray",
+        "glx",
+        "glx-cull",
+        "vk",
+        "vk-cull",
+        "rtx",
+        "rtx-cull"
+      ]
+    },
+    "complete_suite": {
+      "result": "PASS",
+      "targets": 133,
+      "results": {
+        "OK": 131,
+        "SKIP": 2
+      },
+      "python": {
+        "cases": 1854,
+        "seconds": 762.002,
+        "skips": 72
+      }
+    }
+  },
+  "commands": {
+    "native_build": "cl /nologo /EHsc /W4 /WX /MD /O2 /std:c++17 /I. tests/q3_ihv_reference_model_animation_probe.cpp /Fe:.tmp/q3-ihv/animation-native.exe /Fo:.tmp/q3-ihv/animation-native.obj /link advapi32.lib /BASE:0x3f0000 /FIXED /DYNAMICBASE:NO",
+    "native_run": ".tmp/q3-ihv/animation-native.exe E:/Repositories/Quake3-IHV/ref/install/quake3.exe E:/Repositories/Quake3-IHV/ref/install/baseq3",
+    "asan": "C:/Python311/python.exe .tmp/q3-ihv/animation_asan.py",
+    "suite": "meson test -C meson/build/win32 --no-rebuild --print-errorlogs"
+  },
+  "remaining": [
+    "Native engine game/cgame lifecycle and scene-import integration.",
+    "Animation controls (including r_lerpmodels), original map/dynamic lighting, sorted flag-0x80 transform/lighting retention, native portals and clamp sampling.",
+    "Actual BSP collision/PVS, audio/gameplay, rendered native demos and bidirectional protocol-33 engine sessions.",
+    "Q3Test and all point-release requirements remain separate open items in Q3_POINT_RELEASES.md."
+  ],
+  "next_observations_only": {
+    "animation_control_cases": 86016,
+    "control_fnv1a64": "cdae50c20e1398f5",
+    "dynamic_model_light_cases": 24576,
+    "dynamic_fnv1a64": "0349e9b926854cfd",
+    "surface_light_cases": 960,
+    "surface_light_hits": 150,
+    "surface_fnv1a64": "e3c9b7700ac668f1",
+    "scope": "Scratch generated original-function observations only; not integrated. Native BSP traversal and full map lighting remain unproven. See .tmp/q3-ihv/animation-next.md."
+  },
+  "unrelated_issues": "No new unrelated issues found in this slice.",
+  "artifacts": [
+    {
+      "path": "code/renderercommon/tr_q3_ihv_entities.h",
+      "bytes": 3120,
+      "sha256": "4a4f73c573db639172de89f28e7fc0425246c5f78785771150e48fe808b643c5"
+    },
+    {
+      "path": "code/renderercommon/tr_q3_ihv_model.h",
+      "bytes": 5745,
+      "sha256": "7ef50b185da6055a32469dfc8695444dd47ffe6285da4918511801693d7f3731"
+    },
+    {
+      "path": "code/renderercommon/tr_q3_ihv_model_surface.h",
+      "bytes": 1608,
+      "sha256": "75a0e260703cd86e62201065a0ffb712d64326d554244221eea0c359190d9976"
+    },
+    {
+      "path": "code/renderercommon/tr_q3_ihv_model_render.h",
+      "bytes": 946,
+      "sha256": "eeb955d257fab55d30ea1c10d6e754a6e04bda732928cfbffaff31cb30bdad59"
+    },
+    {
+      "path": "code/renderer/tr_init.c",
+      "bytes": 155160,
+      "sha256": "03edc651099e8a179e7131be6ab3a4e08ede6d6aa427934f6b5dc46b265f9933"
+    },
+    {
+      "path": "code/renderer/tr_local.h",
+      "bytes": 100380,
+      "sha256": "da861e5e5ace275a1b1f5ff89059bdffbb8aa394d6d214f14489025ed3e8c661"
+    },
+    {
+      "path": "code/renderer/tr_mesh.c",
+      "bytes": 13883,
+      "sha256": "af06318255b14251ae5631da5e211cb60e161d35d352022e2182161b2bd2a0af"
+    },
+    {
+      "path": "code/renderer/tr_surface.c",
+      "bytes": 41765,
+      "sha256": "3c6d193344cb17c14e1026e593653c9d0a676798225e711028145517020c26a1"
+    },
+    {
+      "path": "code/renderervk/tr_init.c",
+      "bytes": 158728,
+      "sha256": "07a8898e7f41337bb562a1775bbfe42c6718cb36710743ee3af83010d2d532ec"
+    },
+    {
+      "path": "code/renderervk/tr_local.h",
+      "bytes": 94905,
+      "sha256": "6a40b7d3d46965c4ba660f7300a1f8f0f4d8576d764f7923dc1995dd4182161c"
+    },
+    {
+      "path": "code/renderervk/tr_mesh.c",
+      "bytes": 14175,
+      "sha256": "7c19220c82716b94adbdc1af2346e8db6cf7d8eb6a1e8e2acdd04b9695a735a3"
+    },
+    {
+      "path": "code/renderervk/tr_surface.c",
+      "bytes": 42541,
+      "sha256": "dd4269ef2a42b597e1401bf3d2bccec8ea53a656d9f99aadea869aa857a2823d"
+    },
+    {
+      "path": "code/rendererrtx/tr_init.c",
+      "bytes": 183365,
+      "sha256": "38b8559246050da8de8c8d33853d6c92f7db0780b8ca0fb210aa83cf85a48a27"
+    },
+    {
+      "path": "code/rendererrtx/tr_local.h",
+      "bytes": 97934,
+      "sha256": "4d1fc176dcf5af501147e855325da82abdaf15ecb78add826f77627743f292e6"
+    },
+    {
+      "path": "code/rendererrtx/tr_mesh.c",
+      "bytes": 13895,
+      "sha256": "42cea2933189ef5eb93cf8a6965d2821d1e47deb5308e16fc19f161fb1acf83a"
+    },
+    {
+      "path": "code/rendererrtx/tr_surface.c",
+      "bytes": 42419,
+      "sha256": "6853b8ddfdff82f566957f0ed6777c8550af4377c5ca50ee7fe4cab8c80ab9f2"
+    },
+    {
+      "path": "code/rendererrtx/vk.c",
+      "bytes": 788412,
+      "sha256": "7bb2747d0429372aa22657ec23cffb14663491b79df564898df73d42771b0e11"
+    },
+    {
+      "path": "tests/q3_ihv_model_animation_tests.py",
+      "bytes": 11832,
+      "sha256": "286801e5e04361a05e467a4fa667300e97ab6f9505eb61a6e98820cf0d89609b"
+    },
+    {
+      "path": "tests/q3_ihv_model_animation_cases.hpp",
+      "bytes": 3630,
+      "sha256": "840f08964f34768e6c160868f677ef1dcbee9e761f8b8a5e2d6f8ae629d50ac9"
+    },
+    {
+      "path": "tests/q3_ihv_reference_model_animation_probe.cpp",
+      "bytes": 29543,
+      "sha256": "ea763687718efa30f512fa1c3da76351d1ad63c866b380392de1b04c558157f4"
+    },
+    {
+      "path": "tests/q3_ihv_entity_renderer_tests.py",
+      "bytes": 27571,
+      "sha256": "88311f336c649d093a339745c8146297c79d5968092b6a0359e32dc73f850a73"
+    },
+    {
+      "path": "tests/rtcw_mesh_blink_tests.py",
+      "bytes": 10011,
+      "sha256": "902e3116498a0f6a7968e7d70946b932f545deda364cf243bd10a0f04aa8ce30"
+    },
+    {
+      "path": "tests/q3_ihv_particles_tests.py",
+      "bytes": 19859,
+      "sha256": "1d7b3423a9159eaa55300b83f296bee8015ef70d8671d22a94e291340232c64e"
+    },
+    {
+      "path": "meson.build",
+      "bytes": 64824,
+      "sha256": "65eb91cc7c91a75b7c5095ab950d250865aa75e279d46cc83cb605a79356fd63"
+    },
+    {
+      "path": "docs/fntech3/Q3_IHV.md",
+      "bytes": 83355,
+      "sha256": "0d1c1cbebb8af0aa320b460c70acf719f6a8489ee0fbad46422424287deb9236"
+    },
+    {
+      "path": "docs/fntech3/COMPATIBILITY.md",
+      "bytes": 148137,
+      "sha256": "0ce4be232364d524a17d69f25e410d5797bdb3c71043f290085cc2dfcc5d57b7"
+    },
+    {
+      "path": "CREDITS.md",
+      "bytes": 51639,
+      "sha256": "3df29691812e1ea28878056559067f86c3f516738ed2c0108ac96d9024b29f36"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "bytes": 9879,
+      "sha256": "8bc71c54429ddd22355f3d3800df8ae4ef51df8d7c834bf3a84eeb493449380e"
+    },
+    {
+      "path": ".tmp/q3-ihv/record_animation.py",
+      "bytes": 9785,
+      "sha256": "ef1e59f6967e1a6ea8eb1af00e6dbc572bf42a79a7049fc5ecfb279f64e71753"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation_asan.py",
+      "bytes": 1632,
+      "sha256": "a3fa93f780aa4118d802f0d5ca2adbfded94265f31495625f7f4cf183b72300f"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-suite-sources.json",
+      "bytes": 2905,
+      "sha256": "ba4f26c989500bfdd1f2f447b9cba5b430285509030adaaba208c0f6617e258d"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asset-identities.json",
+      "bytes": 23334,
+      "sha256": "72b0eee574eca3c6b9fa84cfe12d8e9877eeb0702d88cbc875c58cc77d4e8ec0"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-native-build.log",
+      "bytes": 44,
+      "sha256": "83c87c54d6bc59abef85028704979c8b4c135faa7fabbf0ca2b91aa8b8727068"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-native.log",
+      "bytes": 337,
+      "sha256": "9b64257a392d4cbd1f2ac1ee3aeb569447731d34a09fe275575ededf7b7d566d"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-native-wrong-image.log",
+      "bytes": 32,
+      "sha256": "acddf4d9ae5ce415e391752e877595f1834528f70702406eb9256f71f9b99be8"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-focused.log",
+      "bytes": 115,
+      "sha256": "5249363b0004eab79f54a891d0a98d547f8fcd1bee8a14d715c43e2f73a59a09"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan.log",
+      "bytes": 233,
+      "sha256": "cab3c69462c80d920f9f0f3a9a5a1a68511f5cf803bd6dc6351ad494b7cd9aaa"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-numeric.cpp",
+      "bytes": 51,
+      "sha256": "5218b19086b5d1bdb4b3feb9f09bb1299184a9e77dbd7b90597c54edc164d405"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-numeric-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-numeric.log",
+      "bytes": 103,
+      "sha256": "ac438edfc3bd0f35539f4eb6deb7e98cf1a9e7458e8cfea89a7532d268ae401c"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-ray.cpp",
+      "bytes": 30857,
+      "sha256": "a8a2693bbed57ba45d2efac38685d0db2ffa57c6e9b56816a40924a0d9c742bc"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-ray-build.log",
+      "bytes": 571,
+      "sha256": "82f53200f7a194ace3b306276f286b3a2a66864c8b9c7cf6318e4b75cdfb1c38"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-ray.log",
+      "bytes": 27,
+      "sha256": "81289aa803c2133a313205e1200fa8fd9f49ace9139a09855a62b7e0eabb0efd"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-glx.cpp",
+      "bytes": 36483,
+      "sha256": "257349b54ab838fd05ac0f934350dd17c24c2d8112ba670c6fc9c4644a44924a"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-glx-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-glx.log",
+      "bytes": 27,
+      "sha256": "5198f5358f5d948640fb3d6d751bd2790e7eda901807026f30dd841761dac8d2"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-glx-cull.cpp",
+      "bytes": 6661,
+      "sha256": "61f06334c055324ba02a2c407288453fffdab2a62490ccbe49abd4ed25ea003d"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-glx-cull-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-glx-cull.log",
+      "bytes": 32,
+      "sha256": "bce2b63eecbab7b0a0a3417b02a08face5ec33580ef08d496c093777692f89dc"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-vk.cpp",
+      "bytes": 36546,
+      "sha256": "123c91ee906cf7a241f087429cb1ce6ac17538b1e764d76cc468c61bd3780c1a"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-vk-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-vk.log",
+      "bytes": 26,
+      "sha256": "f4a39a9224813ee9ef15a83848481b8f9ee1a8098520f80f3f0785ae358c3d64"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-vk-cull.cpp",
+      "bytes": 6765,
+      "sha256": "a14dd1ced509758a43d255baf3c97cc09ed9bc063956a591bc0a542ddae0484a"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-vk-cull-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-vk-cull.log",
+      "bytes": 31,
+      "sha256": "5c79571292fe23161f1e4afbbd77a09f2aad82c7f482621af2fe58b0f6374367"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-rtx.cpp",
+      "bytes": 36647,
+      "sha256": "6624396d05d3bbbab80d657fb509c2c0644f194fdd090caed752fd16e81bf33d"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-rtx-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-rtx.log",
+      "bytes": 27,
+      "sha256": "6a1e250c4b0a97778c1d8936e9e1181839443f55f13274a074cb52ce0015d154"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-rtx-cull.cpp",
+      "bytes": 6794,
+      "sha256": "133254e6545e4b5e499d0b5a1b318fc8f41539513f66973eb304a77a3786fa98"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-rtx-cull-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-rtx-cull.log",
+      "bytes": 32,
+      "sha256": "f965c0ce79dd050e85ae3d95cf184a1c4f55fff53868132ad875e887b1b715e0"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-next.md",
+      "bytes": 5440,
+      "sha256": "f6aba1a98c00fb500027fb267696ba3c4b01077db1a3b737599d0fa2745799e9"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-next-probe.cpp",
+      "bytes": 36723,
+      "sha256": "fb85e7443430f52736782878cd27050ba457a5daac5b66bf839ff904ae0cd38d"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-next-probe-build.log",
+      "bytes": 26,
+      "sha256": "36ea43a71e4682fa441b92e6209416f8af7924edc7d95203e49ffd8e6245b719"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-next-probe.log",
+      "bytes": 419,
+      "sha256": "143ebe30f5c5e1c391bbf9d51eba952018bd56665ad89406208203f51a848a45"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-next-disassembly.txt",
+      "bytes": 17968,
+      "sha256": "26213d5ddf1ae6e0bc05bb96e7ed2fe6240ac6b9d15b668ea5d52444d3d0712b"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-light-surface-contract.txt",
+      "bytes": 5395,
+      "sha256": "941e92e3008b5c6f702de7239d444ce97a920c81235c96622e1d31c37b456c6a"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-light-rounding-contract.txt",
+      "bytes": 1474,
+      "sha256": "a05e37e2b8a1220ff5638e74dbefa8d890c79ec8c798adc3335bc15718aafeba"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-control-registration.txt",
+      "bytes": 247,
+      "sha256": "eb8c620f060715c64c9b307989f0d8766742edf3627d1e368e3e6c01cebc866e"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-build.log",
+      "bytes": 6248,
+      "sha256": "b9de891dee8c6a20fb74e8ef0728a4b8efba076378049148a171f8c5ed2e671f"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-build-final.log",
+      "bytes": 13388,
+      "sha256": "7d39e0cd701d320fa60c149991aecd07025b348f617b081042c543a9e34f6200"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-suite.log",
+      "bytes": 10573,
+      "sha256": "770ca7de1d57b0b45abb09b8743d4b9523361a33d8b3032ba2e44dfdb2f5e0b7"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-suite-testlog.json",
+      "bytes": 2514337,
+      "sha256": "40cfe77f083ef9541b7112a14456aad4fe74c8e5324d6e726e505b75af60ae88"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-suite-testlog.txt",
+      "bytes": 139102,
+      "sha256": "4558e26c25945a98f6edf93b3d0c660c5005505b302991b4eb0f42b6289e6d19"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-docs.log",
+      "bytes": 919,
+      "sha256": "5106f66daf68a4650de8705407db2ceb24ad06399b404a1a331510fd05e110fa"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-diff-check.log",
+      "bytes": 8013,
+      "sha256": "cebc8bbc8fa0d8ec1ac35c533cd122e3543ffb80867081f56f221606b4abd4d0"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-native.exe",
+      "bytes": 89600,
+      "sha256": "efbc90864bdf5f29489d4aa17bf082381b45c186a7107eae05106abfe7cb781b"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-native.obj",
+      "bytes": 490007,
+      "sha256": "6927772a93703e0062cc61e157cdf7ddd8d89e38cab0be83bae91e015783998b"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-next-probe.exe",
+      "bytes": 97792,
+      "sha256": "6e8bae7f90cceba054469f2f4360510323d1c49d434191ca01be984f3eb4c3fc"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-next-probe.obj",
+      "bytes": 508525,
+      "sha256": "d5461cdc3526a79ee401249aab20eafa5a8f5f2b218b87933e5b659ababd09dd"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-numeric.exe",
+      "bytes": 542208,
+      "sha256": "a99658c952c134d3594b5175442cca2327093107c5c1e2ce4c0cacd4d28ad081"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-ray.exe",
+      "bytes": 872960,
+      "sha256": "46a7821da3b984c4d7bcae551b6bf822e0bdb947279fa2487ff6af2d85d0cd84"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-glx.exe",
+      "bytes": 594944,
+      "sha256": "27385ece954d5e77abb863a2dd515fb4b5b29a468b7c5c63417d0da0b150cd32"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-glx-cull.exe",
+      "bytes": 534016,
+      "sha256": "a95c1333efbd2c866c59b0aaee6acc2bb564134e294363bbaeb6f061d1829922"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-vk.exe",
+      "bytes": 594944,
+      "sha256": "51ec94878a6f0105dd340c4a96dfc857ded7ecbd91c60aeff853a0b766ff6f30"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-vk-cull.exe",
+      "bytes": 534016,
+      "sha256": "86c3ba3b7e085d3ebfca94d22f6be2c1637d72fbdd33d1658c481c163d4b3dba"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-rtx.exe",
+      "bytes": 594944,
+      "sha256": "7a95f78575ea6311e4d1621bc57d8de080f0ea2508ff83d9953968fdfd54eb08"
+    },
+    {
+      "path": ".tmp/q3-ihv/animation-asan-rtx-cull.exe",
+      "bytes": 534016,
+      "sha256": "bb52f55e2942a13769225b1aaa9dbaedf690c3b8545a452d92ed5346910700d7"
+    },
+    {
+      "path": "meson/build/win32/fntech3.exe",
+      "bytes": 8516096,
+      "sha256": "e937db8266581a218cc98ec3917cc66829b4eb064787471be209f3e307f47927"
+    },
+    {
+      "path": "meson/build/win32/fntech3.ded.exe",
+      "bytes": 2685440,
+      "sha256": "354ff18e6595abdbbedac36761c38e5002d47e2e89c04cd8fba19a31647e6094"
+    },
+    {
+      "path": "meson/build/win32/fnql_glx_x86.dll",
+      "bytes": 2458624,
+      "sha256": "ba853656e6e59bdf153878f6ad8b9a280660349b2e22bb877447ddf2be01e16e"
+    },
+    {
+      "path": "meson/build/win32/fnql_vk_x86.dll",
+      "bytes": 2631680,
+      "sha256": "e0afb53da1440fed00afce6c672e4ebc71ef7c9121dd44fcc7cef138fbb7d21d"
+    },
+    {
+      "path": "meson/build/win32/fnql_rtx_x86.dll",
+      "bytes": 2932224,
+      "sha256": "847a4b3eef9e4dde08393f1f0a354b74676da81723869fd2ab665d9479e501c9"
+    }
+  ]
+}

@@ -22,7 +22,7 @@ class DemoProfileSelectionTests(unittest.TestCase):
         table = re.search(r"const int demo_protocols\[\] = \{([^}]*)\};", common, re.S)
         demo_protocols = ", ".join(entry.strip() for entry in
             re.sub(r"/\*.*?\*/", "", table.group(1), flags=re.S).split(",") if entry.strip())
-        self.assertEqual(demo_protocols, "66, 67, OLD_PROTOCOL_VERSION, NEW_PROTOCOL_VERSION, "
+        self.assertEqual(demo_protocols, "66, 67, OLD_PROTOCOL_VERSION, NEW_PROTOCOL_VERSION, 43, 45, 46, 48, "
             "QL_RETAIL_PROTOCOL_VERSION, NETCHAN_RTCW_SP_PROTOCOL_VERSION, "
             "NETCHAN_RTCW_MP_PROTOCOL_VERSION, 0")
         def function(signature):
@@ -38,14 +38,18 @@ class DemoProfileSelectionTests(unittest.TestCase):
 #include <set>
 #include <string>
 #include <vector>
+#include "code/qcommon/q3_demo_protocol.hpp"
+#include "code/client/client_alice_demo.hpp"
 enum { COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, COM_GAME_RTCW_SP, COM_GAME_RTCW_MP,
-       COM_GAME_WOLFET, COM_GAME_STVEF_MP, OLD_PROTOCOL_VERSION = 68, NEW_PROTOCOL_VERSION = 71,
+       COM_GAME_WOLFET, COM_GAME_STVEF_MP, COM_GAME_ALICE, OLD_PROTOCOL_VERSION = 68, NEW_PROTOCOL_VERSION = 71,
        QL_RETAIL_PROTOCOL_VERSION = 91, NETCHAN_RTCW_SP_PROTOCOL_VERSION = 49,
-       NETCHAN_RTCW_MP_PROTOCOL_VERSION = 60, NETCHAN_STVEF_HM_PROTOCOL_VERSION = 24 };
+       NETCHAN_RTCW_MP_PROTOCOL_VERSION = 60, NETCHAN_STVEF_HM_PROTOCOL_VERSION = 24,
+       NETCHAN_ALICE_PROTOCOL_VERSION = 1 };
 struct Profile { int id; const char *displayName = "fixture"; } profile;
 Profile *Com_GameProfile() { return &profile; }
 int Com_GameIsRTCWSP() { return profile.id == COM_GAME_RTCW_SP; }
 int Com_GameIsSTVEFMP() { return profile.id == COM_GAME_STVEF_MP; }
+int Com_GameIsAlice() { return profile.id == COM_GAME_ALICE; }
 const int demo_protocols[] = {''' + demo_protocols + r'''};
 bool Com_DemoProtocolSupported(int p) {
     for (int value : demo_protocols) if (value && value == p) return true;
@@ -53,11 +57,14 @@ bool Com_DemoProtocolSupported(int p) {
 }
 struct ScopedFileHandle {
     bool open = false;
+    int get() const { return 1; }
     void reset() { open = false; }
     explicit operator bool() const { return open; }
 };
 std::set<std::string> files;
 std::vector<std::string> attempts;
+int detectedProtocol = 43;
+int CL_DetectLegacyDemoProtocol(int) { return detectedProtocol; }
 void OpenPureFileRead(const char *name, ScopedFileHandle &h) {
     attempts.emplace_back(name); h.open = files.count(name) != 0;
 }
@@ -111,6 +118,14 @@ int main() {
     files.insert("demos/mixed.dm_68"); files.insert("demos/mixed.dm_66");
     assert(CL_WalkDemoExt("mixed", name, sizeof(name), handle) == 66);
     assert(!CL_DemoProtocolSupported(91) && !CL_DemoProtocolSupported(999));
+    for (int protocol : {43, 45, 46, 48}) {
+        files = {"demos/early.dm_" + std::to_string(protocol)}; attempts.clear();
+        assert(CL_WalkDemoExt("early", name, sizeof(name), handle) == protocol);
+        assert(CL_DemoNameCallback_f(("x.DM_" + std::to_string(protocol)).c_str(), 7));
+    }
+    for (int protocol : {34, 35, 36, 38, 39, 40, 44, 47})
+        assert(!CL_DemoProtocolSupported(protocol));
+    files = {"demos/mixed.dm_91"};
     profile.id = COM_GAME_QUAKELIVE;
     assert(CL_WalkDemoExt("mixed", name, sizeof(name), handle) == 91);
     files = {"demos/mixed.dm_68", "demos/mixed.dm3"}; attempts.clear();
@@ -206,13 +221,42 @@ int main() {
     profile.id = COM_GAME_QUAKE3; before = transitions; attempts.clear();
     CL_PlayDemo_f(); assert(transitions == before && attempts.empty());
     assert(!CL_DemoNameCallback_f("x.efdemo", 8));
+
+    // Alice plays its own .dm3 only, found as alice.exe finds it: the name as
+    // given when it contains ".dm3", else with ".dm3" added (CL_PlayDemo_f
+    // 0x0042a8d7). Another profile's file is never opened as Alice's.
+    profile.id = COM_GAME_ALICE;
+    files = std::set<std::string>(everything.begin(), everything.end());
+    files.insert("demos/mixed.efdemo");
+    before = transitions;
+    for (const char *other : {"mixed.dm_68", "mixed.dm_91", "mixed.efdemo", "mixed.dm_49"}) {
+        argument = other; attempts.clear(); CL_PlayDemo_f();
+        assert(transitions == before);
+        assert(attempts == std::vector<std::string>{"demos/" + std::string(other) + ".dm3"});
+    }
+    argument = "mixed"; attempts.clear(); CL_PlayDemo_f();
+    assert(transitions == before + 1 && attempts == std::vector<std::string>{"demos/mixed.dm3"});
+    argument = "mixed.dm3"; attempts.clear(); CL_PlayDemo_f();
+    assert(transitions == before + 2 && attempts == std::vector<std::string>{"demos/mixed.dm3"});
+    // strstr is case sensitive, so .DM3 gains the extension.
+    argument = "mixed.DM3"; attempts.clear(); CL_PlayDemo_f();
+    assert(transitions == before + 2 && attempts == std::vector<std::string>{"demos/mixed.DM3.dm3"});
+    assert(CL_DemoNameCallback_f("x.DM3", 5) && CL_DemoNameCallback_f("x.dm3", 5));
+    assert(!CL_DemoNameCallback_f("x.dm_68", 7) && !CL_DemoNameCallback_f("x.efdemo", 8));
+    for (int protocol : {1, 24, 49, 60, 66, 67, 68, 71, 91}) assert(!CL_DemoProtocolSupported(protocol));
+    // Quake III's pre-1.27 .dm3 is not Alice's, and no other profile takes either.
+    for (int id : {COM_GAME_QUAKELIVE, COM_GAME_RTCW_MP, COM_GAME_STVEF_MP}) {
+        profile.id = id; before = transitions; argument = "mixed.dm3"; attempts.clear();
+        CL_PlayDemo_f(); assert(transitions == before && attempts.empty());
+        assert(!CL_DemoNameCallback_f("x.dm3", 5));
+    }
 }
 '''
         with tempfile.TemporaryDirectory() as tmp:
             cpp, exe = Path(tmp)/"probe.cpp", Path(tmp)/"probe.exe"
             cpp.write_text(harness, encoding="utf-8")
             subprocess.run([compiler, *compiler_target_args(compiler), "-std=c++17",
-                            str(cpp), "-o", str(exe)], check=True,
+                            "-I", str(ROOT), str(cpp), "-o", str(exe)], check=True,
                            capture_output=True, text=True)
             subprocess.run([str(exe)], check=True, capture_output=True, text=True)
 

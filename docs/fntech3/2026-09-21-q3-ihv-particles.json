@@ -1,0 +1,552 @@
+{
+  "date": "2026-09-21",
+  "recorded_utc": "2026-09-21T07:43:27.906751+00:00",
+  "commit": "9e1841de53d79f96cdbbde83a1427d1c7d83f31d",
+  "working_tree": "Uncommitted particle and native asset-profile slice; earlier IHV and unrelated RTCW work retained.",
+  "scope": "Renderer-owned IHV particle submission, per-view raster and RTX ray triangles, original procedural texture/material, native asset profile dispatch. No native engine/cgame integration or rendered IHV session.",
+  "profile": "q3-ihv remains gated. Retail Q3 retains legacy IHV asset loading; the other six profiles preserve their existing paths.",
+  "platform": "Windows x86 MSVC 19.44.35222 (toolset 14.44.35207), Meson win32; x64 Clang 20.1.7 -O2 -ffast-math AddressSanitizer.",
+  "reference": {
+    "repository": "https://github.com/themuffinator/Quake3-IHV/tree/d5ce877155904c57f8b28fe0fd0c8aa2e9473337",
+    "inputs": [
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/quake3.exe",
+        "bytes": 725042,
+        "sha256": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/scripts/common.shader",
+        "bytes": 8672,
+        "sha256": "c6852afe9450c1882865adcbf617574b7b90f1370e74f9d983b59af64de119f4"
+      }
+    ],
+    "execution": "Hash-pinned numeric host at 0x3f0000. Original particles 0x4428a0, built-in images 0x439650, shader creation 0x43c570 and GL_State 0x42aac0. Replaced image, formatting, shader-finalization and GL callbacks; no original entry point or graphics/input/audio/network startup.",
+    "incorporation": "Independent implementation from generated numeric and ABI observations. No original implementation, module or image/asset bytes incorporated."
+  },
+  "contracts": {
+    "particle_bytes": 16,
+    "renderer_api": 27,
+    "surface_type": "SF_IHV_PARTICLES uses frame-owned point storage; each view expands independent triangles.",
+    "geometry": "1.5-scaled up/right axes; mirror reverses right sign. Depth accumulated z,x,y. Scale=1 below 20, otherwise 1+depth*.004. Vertex UVs (0,0),(1.125,0),(0,1.125); unchanged RGBA.",
+    "image": "16x16 binary RGBA; all channels 255 where (x-5)^2+(y-5)^2<=20, else zero; no mipmaps.",
+    "material": "Original shader sort 6, rgb/alpha generator 3, state 0x62. GL callbacks verify ONE/ONE_MINUS_SRC_ALPHA and no depth writes; modern shader uses exact vertex RGBA and normal depth testing.",
+    "lifetime": "Copy input synchronously; retain until existing frame storage is reset. Invalid batches and capacity failures do not advance pending scene cursors. No native module pointer retained.",
+    "ray": "RTX expands the same per-view triangles through existing material/geometry services and hashes exact camera/mirror state for particle geometry. Ordinary polygon signatures unchanged.",
+    "asset_profile_correction": "Prior shader/fog/sky/text-repair/classic-light checks accepted retail Q3 only. They now admit the separate native IHV profile without changing module/network contracts."
+  },
+  "validation": {
+    "original": {
+      "particle_shaders": 1,
+      "image_calls": 6,
+      "image_bytes": 1024,
+      "blend_src": 1,
+      "blend_dst": 771,
+      "depth_write": false,
+      "cases": 144,
+      "batches": 448,
+      "float_components": 1130688,
+      "different_float_bits": 0,
+      "maximum_absolute_difference": 0,
+      "fnv1a64": "c4df4de645bbaffb"
+    },
+    "standalone": {
+      "result": "PASS",
+      "cases": 3,
+      "seconds": 4.892
+    },
+    "focused": {
+      "result": "PASS",
+      "cases": 80,
+      "seconds": 21.646
+    },
+    "source_snapshot": "45 source/test/documentation hashes pinned before full suite.",
+    "asan": "PASS: five generated probes (geometry, GLx, Vulkan, RTX, RTX ray) with checks enabled, -O2 -ffast-math and AddressSanitizer.",
+    "build": "PASS: complete incremental win32 client/renderers build with renderer API 27; runtime asset archive regenerated. This is not a release archive.",
+    "et_dispatch_regression": {
+      "result": "PASS",
+      "cases": 23,
+      "seconds": 1.115
+    },
+    "initial_suite": "130 OK, 1 FAIL, 2 SKIP. Python ran 1,846 cases with 72 skips and four assertion failures in two ET tests that assumed ET surface types were the final enum entries. Tests now pin unchanged ET ordinals 13-15 and continue verifying complete enum/dispatch-table alignment, allowing later surface types to be appended. No production change was needed after this run.",
+    "full_suite": {
+      "result": "PASS",
+      "targets": 133,
+      "results": {
+        "OK": 131,
+        "SKIP": 2
+      },
+      "python": {
+        "cases": 1846,
+        "seconds": 643.71,
+        "skipped": 72
+      }
+    },
+    "documentation_packaging": {
+      "result": "PASS",
+      "cases": 5,
+      "seconds": 5.723
+    }
+  },
+  "commands": [
+    "cwd E:/Repositories/fnTech3; TEMP/TMP=.tmp/q3-ihv; MSVC x86 environment from .tmp/rtcw-manager/x86_environment.ps1",
+    "cl /nologo /EHsc /W4 /WX /MD /O2 /std:c++17 tests/q3_ihv_reference_particles_probe.cpp /Fe:.tmp/q3-ihv/particles-native.exe /Fo:.tmp/q3-ihv/particles-native.obj /link advapi32.lib /BASE:0x3f0000 /FIXED /DYNAMICBASE:NO",
+    ".tmp/q3-ihv/particles-native.exe E:/Repositories/Quake3-IHV/ref/install/quake3.exe (wrong-image rejection uses cgamex86.dll)",
+    "python -m unittest discover -s tests -p q3_ihv_particles_tests.py -v",
+    "Focused unittest modules q3_ihv_particles_tests, q3_ihv_shader_tests, q3_ihv_fog_tests, q3_ihv_sky_tests, surface_geometry_limits_source_tests, bsp_profile_loader_tests, ql_font_source_tests, rtx_renderer_contract_source_tests, underwater_view_source_tests, mdc_ray_geometry_tests, mds_ray_geometry_tests; FNTECH3_IHV_SHADER_DIRECTORY=E:/Repositories/Quake3-IHV/ref/install/baseq3/scripts",
+    "clang++ -std=c++17 -fno-operator-names -O2 -ffast-math -fsanitize=address -g -DFNTECH3_Q3_ONLY -I . .tmp/q3-ihv/particles-asan-NAME.cpp -o .tmp/q3-ihv/particles-asan-NAME.exe; run NAME=geometry,glx,vk,rtx,ray",
+    "meson compile -C meson/build/win32",
+    "meson test -C meson/build/win32 --no-rebuild --print-errorlogs; same supplied shader-directory environment",
+    "python -m unittest wolfet_draw_tests wolfet_map_load_tests -v; PYTHONPATH=E:/Repositories/fnTech3/tests",
+    "Python unittest generate_docs_tests and release_packaging_tests.ReleasePackagingTests.test_packaged_evidence_links_and_missing_target"
+  ],
+  "remaining": [
+    "Native lifecycle and renderer scene-adapter calls, then original rendered demos",
+    "Entity effects, portals, clamp and model lighting parity",
+    "Actual BSP collision/PVS, sound, gameplay and live protocol-33 sessions",
+    "Q3Test and early point-release ABI/live protocols remain separately tracked"
+  ],
+  "unrelated_issues": "No new unrelated issue found. Earlier IPv6 and Windows ASAN-unwinding observations remain separate.",
+  "cleanup": "Useful probes, generated sanitizer sources and logs retained under .tmp/q3-ihv. Earlier automatically rejected cleanup targets remain untouched; no alternate deletion attempted.",
+  "artifacts": [
+    {
+      "path": "code/renderercommon/tr_public.h",
+      "bytes": 16252,
+      "sha256": "b327556c7b25642e2c15d115d4d829e618710f20b1966349deb3d93bc12270a1"
+    },
+    {
+      "path": "code/renderercommon/tr_q3_ihv_particles.h",
+      "bytes": 3347,
+      "sha256": "d74771e2e6b37b5177d36e3212c0de4351f5e95630bbfdeff592013452bb4c74"
+    },
+    {
+      "path": "code/renderercommon/tr_q3_ihv_particle_scene.h",
+      "bytes": 1602,
+      "sha256": "b987f8a3a23566cf545bc06f65e88f734068b82c5b2b364299a264cc9c468b31"
+    },
+    {
+      "path": "code/renderercommon/tr_q3_ihv_particle_surface.h",
+      "bytes": 1497,
+      "sha256": "7bbc01f2da29265a6bd04c1f869e7eaaf096bb1254605818d7c3135ce0e2dd07"
+    },
+    {
+      "path": "code/renderercommon/tr_q3_ihv_particle_shader.h",
+      "bytes": 1077,
+      "sha256": "ea27895df2e662e586118542f7d4972c6392ef997fd22025c3e246fca4aa293e"
+    },
+    {
+      "path": "code/renderercommon/tr_q3_ihv_particle_ray.h",
+      "bytes": 1396,
+      "sha256": "6ba1ff0866a18775d1ff2c7d2545d6baa67d7b260cee4bcf6d42e3699a7a5631"
+    },
+    {
+      "path": "code/renderercommon/tr_q3_ihv_shader.h",
+      "bytes": 3861,
+      "sha256": "be878bea478c0700cc5e504ef266c3ff7a482c72c939a12fc313c166fb1b932b"
+    },
+    {
+      "path": "code/renderercommon/tr_q3_ihv_shader_text.h",
+      "bytes": 1237,
+      "sha256": "936729cf7d83faa480761ef63a8873cc4a54155d9571858cb437c2ede309ee6e"
+    },
+    {
+      "path": "code/renderercommon/tr_q3_ihv_fog_parser.h",
+      "bytes": 2390,
+      "sha256": "47bdb0a61e8f851cade7137ec3cd2bfb9ad7bca206d6b4beceb054dbc6cc8c34"
+    },
+    {
+      "path": "code/renderercommon/tr_q3_ihv_fog_render.h",
+      "bytes": 1592,
+      "sha256": "e16fff1675a6850d927054d6dca97b780de3b3dc244a578f4ad8c6ed6ab1717b"
+    },
+    {
+      "path": "code/renderercommon/tr_q3_ihv_sky_render.h",
+      "bytes": 1607,
+      "sha256": "24d982068226fd6ed7404604892b34f927f7b3f742be83de084a6985551ba885"
+    },
+    {
+      "path": "code/renderer/tr_local.h",
+      "bytes": 100177,
+      "sha256": "8b809e86b9946abe40fe7c08c8f5cb12153a4e85788ff5123c4909c29633b081"
+    },
+    {
+      "path": "code/renderer/tr_init.c",
+      "bytes": 154976,
+      "sha256": "4ab6bcc77ff876824e13810a87c0b80b9fdd8a2c4ddec96910d647e42c8c4006"
+    },
+    {
+      "path": "code/renderer/tr_scene.c",
+      "bytes": 47998,
+      "sha256": "28c85ce1c973eded55d8d73c8930ece74f0b7cc31dd4531d0ca1f54706331348"
+    },
+    {
+      "path": "code/renderer/tr_surface.c",
+      "bytes": 39643,
+      "sha256": "cd90357c7ef629bf1694cbffeee20077b942baa33c638e8aceca07a0306c1c3d"
+    },
+    {
+      "path": "code/renderer/tr_shader.c",
+      "bytes": 131559,
+      "sha256": "ee2be4a5432fba75a8500f855037dd7d9f382b10a0a0c40429f7ab572f8a183a"
+    },
+    {
+      "path": "code/renderer/tr_bsp.c",
+      "bytes": 118652,
+      "sha256": "8d57c19564b1de145b8d9d7489e2c50786dc9210e344d70b15839075f0b190f7"
+    },
+    {
+      "path": "code/renderervk/tr_local.h",
+      "bytes": 94702,
+      "sha256": "4697f362978ba10739727e2098be9a09f8df31ea5494b78d3f898aeb40bcc9f0"
+    },
+    {
+      "path": "code/renderervk/tr_init.c",
+      "bytes": 158544,
+      "sha256": "2d5fd8b166c0c0bc2face6d29c505c2d74e7e14bdb01c854718088b9bef14053"
+    },
+    {
+      "path": "code/renderervk/tr_scene.c",
+      "bytes": 48126,
+      "sha256": "b4db2ee1fc03a8f3a10f409976f6fc1efe83b99cc8b7ac17ce392672bb8a86b2"
+    },
+    {
+      "path": "code/renderervk/tr_surface.c",
+      "bytes": 40365,
+      "sha256": "fcedbcbde8a0c124e1772ebc29a3978d69b9cbbc206556e38006d7dc7c2224ba"
+    },
+    {
+      "path": "code/renderervk/tr_shader.c",
+      "bytes": 153318,
+      "sha256": "537d6e9799e32f57010c886e44f2a2e46ae01edfc059917f97741a4cf70825e3"
+    },
+    {
+      "path": "code/renderervk/tr_bsp.c",
+      "bytes": 119687,
+      "sha256": "0362e81d950b20716a7b9ce4c7fd7cbd91af000310699aa5e92e94edc66d7906"
+    },
+    {
+      "path": "code/rendererrtx/tr_local.h",
+      "bytes": 97731,
+      "sha256": "c44a4fedd13c335fddc06ab67e6982906b93829c8f0a2347bf8d626a0099f448"
+    },
+    {
+      "path": "code/rendererrtx/tr_init.c",
+      "bytes": 183181,
+      "sha256": "009932c5a86409ea8218d11fc3da27f324dd641f362376f1de15fccbf916e014"
+    },
+    {
+      "path": "code/rendererrtx/tr_scene.c",
+      "bytes": 43869,
+      "sha256": "2119b8dbab60ac30ad1c8eed374399b7e3e1af20b072fe804ae709e79d4f1d6d"
+    },
+    {
+      "path": "code/rendererrtx/tr_surface.c",
+      "bytes": 40247,
+      "sha256": "865c14f1cf87e70a9599d8f3286b2fb161436f725b8f0593cd21d139d9ef1665"
+    },
+    {
+      "path": "code/rendererrtx/tr_shader.c",
+      "bytes": 155060,
+      "sha256": "fe846402d15b4dd6f5691c26ad85556b2557680e0cbddedadd8f10578cf2476f"
+    },
+    {
+      "path": "code/rendererrtx/tr_bsp.c",
+      "bytes": 124755,
+      "sha256": "8cc4197724d492a5ed500d82378612c3386974a21243c9e3c265669255d1e4f4"
+    },
+    {
+      "path": "code/renderer/tr_light.c",
+      "bytes": 15798,
+      "sha256": "f33a0322b353ca0cad07f4f2655b88e3321f7108b7d1dc92ec31a2bebba56719"
+    },
+    {
+      "path": "code/rendererrtx/vk.c",
+      "bytes": 785884,
+      "sha256": "f9a551df294c7256b3584c51c8fd0b5e14b23e06dfbbbad641990cdb83a69521"
+    },
+    {
+      "path": "tests/q3_ihv_particles_tests.py",
+      "bytes": 19556,
+      "sha256": "59009b4a58411a679a8599ddb870f7d30e3f21a744b4c8394f6a16c52e12dd5e"
+    },
+    {
+      "path": "tests/q3_ihv_reference_particles_probe.cpp",
+      "bytes": 10570,
+      "sha256": "05f0b8b983fdbcc761de19f3d9ac049ccb3537ce12e099b8c16b97d8fcc0daa2"
+    },
+    {
+      "path": "tests/q3_ihv_fog_tests.py",
+      "bytes": 18725,
+      "sha256": "c9a4df9eb4455dda8fb02b5b8efd6c06611faa62500f6f638aa8d20bad7fc0b9"
+    },
+    {
+      "path": "tests/q3_ihv_shader_tests.py",
+      "bytes": 11919,
+      "sha256": "5cd05db3e644126cb4511b6e18a22fd00b669a6a3f237246a531738256baaecd"
+    },
+    {
+      "path": "tests/q3_ihv_sky_tests.py",
+      "bytes": 12074,
+      "sha256": "8671304ccf36ff32d5900c613e7b14c01b82e3143e2500aa5b52948fd4b17622"
+    },
+    {
+      "path": "tests/ql_font_source_tests.py",
+      "bytes": 16466,
+      "sha256": "0f3f825a3dfca88de5b6867e77f08e273b53f882cdf58a9090d1422de940630b"
+    },
+    {
+      "path": "tests/rtx_renderer_contract_source_tests.py",
+      "bytes": 33839,
+      "sha256": "64a2d12e5fafda8997b9fde993600c0a4550a00dc00a03baed6148a7b685bffd"
+    },
+    {
+      "path": "tests/underwater_view_source_tests.py",
+      "bytes": 26078,
+      "sha256": "b087cd8d9398746706b1879bcd0eebfe42198177f7e6aca854b3d81bfc93b366"
+    },
+    {
+      "path": "tests/wolfet_draw_tests.py",
+      "bytes": 9847,
+      "sha256": "cad6daab07deeb8df9d42e5be30e3b75e32102c159143aca11064ee653d13047"
+    },
+    {
+      "path": "tests/wolfet_map_load_tests.py",
+      "bytes": 27719,
+      "sha256": "0a122cef1f4f37928a9e68c8df9b40bc29903518c49387379dbb1e88aa246639"
+    },
+    {
+      "path": "docs/fntech3/Q3_IHV.md",
+      "bytes": 73936,
+      "sha256": "d55546ab877ff29a195f9556c2030b7adc9d7d3afc04102b29da32c435bea57f"
+    },
+    {
+      "path": "docs/fntech3/COMPATIBILITY.md",
+      "bytes": 146452,
+      "sha256": "9aa96e3e80761e9d7c6664147fa94423a90a8b595f130443b57a1d3b2f7d7251"
+    },
+    {
+      "path": "CREDITS.md",
+      "bytes": 50742,
+      "sha256": "9520d790169662d62dd02e2eb632a50865136c51dc5deabe70c1035994bf4c0b"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "bytes": 9032,
+      "sha256": "7ce32742b2135f1c201bb4d207511a4e960958ff64c9335c392bfd7f7a7afe8d"
+    },
+    {
+      "path": ".tmp/q3-ihv/record_particles.py",
+      "bytes": 10842,
+      "sha256": "e20d4d11f5280e9787d31a7f6b5f4f21c37fa48a72ae73a5904b1bef30afd7e8"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-suite-sources.json",
+      "bytes": 4740,
+      "sha256": "a0b36295e04d239f250d52bc18dd76ae28e642f64f4491b0852c66b53ee5f250"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-native-build.log",
+      "bytes": 38,
+      "sha256": "a8bf2f63499d60be7dd3fe657f4fbc73db36f59285ff796495dac97ba1237535"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-native.log",
+      "bytes": 248,
+      "sha256": "2f2d7d80af4e43f001e2dbaeb9a1421859507326f04ef0a7c7249aad196bf733"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-native-wrong-image.log",
+      "bytes": 32,
+      "sha256": "acddf4d9ae5ce415e391752e877595f1834528f70702406eb9256f71f9b99be8"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-profile-focus.log",
+      "bytes": 1069,
+      "sha256": "bd18b98f9c90f2891ae5274ad8b98d5742e439cdbbdfc9b57242700ea0b0dabc"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-unit.log",
+      "bytes": 590,
+      "sha256": "88d4985e6decfeebcbcde4853e4a09b70a9371d3df14f2c07f1bb8ada82b136a"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-focused.log",
+      "bytes": 14384,
+      "sha256": "0fa2b7173cf9fc050f8258c264933e1db1b85deb362b01a5b8720c15fd4f0e75"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-build-all.log",
+      "bytes": 1134,
+      "sha256": "2d414cf298b249fc8a3db3fd4cc01e609ec800435bf095103684dac9ec279f58"
+    },
+    {
+      "path": ".tmp/q3-ihv/inspect_particle_contract.py",
+      "bytes": 654,
+      "sha256": "25ff2b8499448d1a8d3de1d1f46e5d53838fb9613e4f3c5010760de06e5b61a9"
+    },
+    {
+      "path": ".tmp/q3-ihv/particle-original-contract.txt",
+      "bytes": 22944,
+      "sha256": "eef5040b7cff36e5eda503adcc54ee292c4f1ab2914c8f876d74cb5a7aac673a"
+    },
+    {
+      "path": ".tmp/q3-ihv/particle-material-contract.txt",
+      "bytes": 7309,
+      "sha256": "48d89c091687fc3e406540ad179ead60090c0b684183951d5069386287094659"
+    },
+    {
+      "path": ".tmp/q3-ihv/particle-state-contract.txt",
+      "bytes": 12590,
+      "sha256": "24bcb45b41d76da58074f225a763444efba82fff491572c1b6284fc65f3d8d8d"
+    },
+    {
+      "path": ".tmp/q3-ihv/particle-world-contract.txt",
+      "bytes": 8316,
+      "sha256": "27984f331090611670d329dc25d41b1124ae9ec18ae85c37364b9a077446690f"
+    },
+    {
+      "path": ".tmp/q3-ihv/particle-view-references.txt",
+      "bytes": 11488,
+      "sha256": "f22a9de1d2ebbe7031957eb30619cd4af49e639303bb995a3af2cfdb45885e1c"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-et-focus.log",
+      "bytes": 3672,
+      "sha256": "39a2afd317a1e6b4b00b907282b554f967da09bd66fc726ca4fad78c6e7fdf71"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-suite-initial.log",
+      "bytes": 325621,
+      "sha256": "b02e6505f3847ce1741f17d992651ca7cf0fbc83edfcff6c668642d4d2fd68dd"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-suite-initial-testlog.json",
+      "bytes": 2863177,
+      "sha256": "5649b5687025c39b0903454472bdf47dd19a2d644f21f1baec749ad994e66c30"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-suite-initial-testlog.txt",
+      "bytes": 450792,
+      "sha256": "c32f5c4f52adcaf337f62e91ec3b4c7ed4d6382297f1fe33a8f244601572c5e1"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-suite-initial-sources.json",
+      "bytes": 4534,
+      "sha256": "9ae546fa300035040e3bed80b98f5349393acfa940185dae12fe58d0571f070a"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-asan-geometry.cpp",
+      "bytes": 3558,
+      "sha256": "7f6ea5f1c4904b8c84bdfda19b7ced4d9b6b4c286281c7c31c0c7a751ca9c8d8"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-asan-geometry-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-asan-geometry.log",
+      "bytes": 38,
+      "sha256": "0371b4e111f18b79015386cbdcccfe99469a5a8adb57754d149be1cea544496c"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-asan-glx.cpp",
+      "bytes": 13907,
+      "sha256": "293ec7d5ba54f199fb8601fa153c1e26a91b364ceb021820d5d556e3d9f59a9b"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-asan-glx-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-asan-glx.log",
+      "bytes": 33,
+      "sha256": "56257197b714c677f8d86cf9f30cea2ec28d66bf109b81c46646ec7c4d944972"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-asan-vk.cpp",
+      "bytes": 13905,
+      "sha256": "a51ca7a729d5c2a7d47867519ada7a3914e10de59a66fce89f089b9643921cde"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-asan-vk-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-asan-vk.log",
+      "bytes": 32,
+      "sha256": "437bd8b42c91c6a94cbd331aca20647ccba856d15427ba64636cb2a6c40adf39"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-asan-rtx.cpp",
+      "bytes": 13990,
+      "sha256": "534383d060dfc9b6567fdd2847376caca47f9396da4b4620241200f7aacd68d1"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-asan-rtx-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-asan-rtx.log",
+      "bytes": 33,
+      "sha256": "bd76093cf5711b6c83a4ebff5070fe91766edcf9c1df471fc9209ae426941a72"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-asan-ray.cpp",
+      "bytes": 24993,
+      "sha256": "43952a3fe44f773a892a98994750f8646c67720a2f4f235779111940948d86f9"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-asan-ray-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-asan-ray.log",
+      "bytes": 33,
+      "sha256": "5f2b987d78cf8b3efe04dd37ee97c0b2390c974281742e67844a823e3b940d70"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-suite.log",
+      "bytes": 10573,
+      "sha256": "d4dc379192d0a7da8c62c4aa6b16b9e6e0266e6d40b53d4e8569b5ab4287a481"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-suite-testlog.json",
+      "bytes": 2526189,
+      "sha256": "6855b42927a8e79b77bf3a851e435d030ecfcbaa83ccde888ec3d73a24327de3"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-suite-testlog.txt",
+      "bytes": 139184,
+      "sha256": "9ffa69da7be5540aaaf601cccb1eb577d36fb399b561bbc094fd1abbcf0a6386"
+    },
+    {
+      "path": ".tmp/q3-ihv/particles-docs.log",
+      "bytes": 108,
+      "sha256": "7657b84af381e0217287fd95c4d4057b7c5473b470ebe57a4fa5bcf38dd14812"
+    },
+    {
+      "path": "meson/build/win32/fntech3.exe",
+      "bytes": 8516096,
+      "sha256": "8c16093f947b04176395004b90b004f491a299d74b1c5b06e57b9c09568f0969"
+    },
+    {
+      "path": "meson/build/win32/fnql_glx_x86.dll",
+      "bytes": 2447360,
+      "sha256": "3f999eb798d7f9ad9fdbfc503b4cb053b3fbd05e02d27b03d519ce65ab2c3ca5"
+    },
+    {
+      "path": "meson/build/win32/fnql_vk_x86.dll",
+      "bytes": 2619904,
+      "sha256": "f9c63826741d81d71c32eed804b131d4014db79d2aa3c85075b413ef134c4352"
+    },
+    {
+      "path": "meson/build/win32/fnql_rtx_x86.dll",
+      "bytes": 2912768,
+      "sha256": "822770d4dc2fae5b4fdbd1ff2967e1b09ceba1c00fb5ee140fbdd085b1f8b50f"
+    }
+  ]
+}

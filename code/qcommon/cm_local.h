@@ -216,6 +216,7 @@ typedef struct leafList_s {
 	int		*list;
 	vec3_t	bounds[2];
 	int		lastLeaf;		// for overflows where each leaf can't be stored individually
+	int		topnode;		// first node the box straddles; -1 until one is crossed
 	void	(*storeLeafs)( struct leafList_s *ll, int nodenum );
 } leafList_t;
 
@@ -233,7 +234,7 @@ qboolean CM_BoundsIntersectPoint( const vec3_t mins, const vec3_t maxs, const ve
 
 // cm_patch.c
 
-struct patchCollide_s	*CM_GeneratePatchCollide( int width, int height, vec3_t *points );
+struct patchCollide_s	*CM_GeneratePatchCollide( int width, int height, vec3_t *points, float subdivisions );
 void CM_TraceThroughPatchCollide( traceWork_t *tw, const struct patchCollide_s *pc );
 qboolean CM_PositionTestInPatchCollide( traceWork_t *tw, const struct patchCollide_s *pc );
 void CM_ClearLevelPatches( void );

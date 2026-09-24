@@ -4,6 +4,8 @@
 #include "../compat/rtcw_routecache_format.hpp"
 #include <new>
 
+void AAS_FreeRTCWVisibility(void);
+
 // Included by be_aas_route.cpp after its cache allocation/link helpers.
 namespace fntech3::rtcw::navigation {
 class RouteTopology {
@@ -58,15 +60,7 @@ inline void ReplaceRouteRecords(const routecache::View &view) {
 		*head = cache;
 		AAS_LinkCache(cache);
 	}
-	if (aasworld.rtcwVisibility) FreeMemory(aasworld.rtcwVisibility);
-	aasworld.rtcwVisibility = nullptr;
-	if (aasworld.rtcwVisibilityData) FreeMemory(aasworld.rtcwVisibilityData);
-	aasworld.rtcwVisibilityData = nullptr;
-	if (aasworld.rtcwDecodedVisibility) FreeMemory(aasworld.rtcwDecodedVisibility);
-	aasworld.rtcwDecodedVisibility = nullptr;
-	if (aasworld.rtcwWaypoints) FreeMemory(aasworld.rtcwWaypoints);
-	aasworld.rtcwWaypoints = nullptr;
-	aasworld.rtcwVisibilityArea = -1;
+	AAS_FreeRTCWVisibility();
 	aasworld.rtcwVisibility = botlib::ClearedAlloc<aas_rtcw_visibility_t>(view.AreaCount());
 	std::size_t bytes = 0;
 	for (const auto row : view.Visibility()) bytes += row.bytes;
@@ -96,7 +90,7 @@ static int AAS_ReadRTCWRouteCache() {
 	if (!aasworld.rtcwLoadFile) return qfalse;
 	if (bytes < static_cast<int>(routecache::HeaderBytes) || bytes > static_cast<int>(routecache::MaxFileBytes)) {
 		navigation::CloseRouteInput();
-		botimport.Print(PRT_ERROR, "Invalid RTCW route cache size: %s\n", filename);
+		botimport.Print(PRT_WARNING, "Invalid RTCW route cache size: %s\n", filename);
 		return qfalse;
 	}
 	aasworld.rtcwLoadBytes = botlib::Alloc<byte>(bytes);
@@ -119,7 +113,7 @@ static int AAS_ReadRTCWRouteCache() {
 	}
 	if (error != routecache::Error::None) {
 		navigation::CloseRouteInput();
-		botimport.Print(PRT_ERROR, "Invalid RTCW route cache %s: %s\n", filename, routecache::ErrorName(error));
+		botimport.Print(PRT_WARNING, "Invalid RTCW route cache %s: %s\n", filename, routecache::ErrorName(error));
 		return qfalse;
 	}
 	aasworld.rtcwRouteCacheLoaded = qfalse;

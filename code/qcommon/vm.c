@@ -36,6 +36,7 @@ and one exported function: Perform
 
 #include "vm_local.h"
 #include "vm_header_bounds.h"
+#include "native_seh.h"
 #include "../compat/rtcw_module_abi.h"
 #include "../compat/wolfet_module_abi.h"
 #include "../compat/rtcw_game_abi.h"
@@ -247,6 +248,15 @@ static const char *vmName[ VM_COUNT ] = {
 	"cgame",
 	"ui"
 };
+
+/* Jedi Outcast's multiplayer is the one title here whose modules are Quake
+ * III's own bytecode under a name of Raven's choosing: base/assets0.pk3
+ * carries vm/jk2mpgame.qvm beside vm/cgame.qvm and vm/ui.qvm, so only the game
+ * module is named differently. */
+static const char *VM_ProfileName( vmIndex_t index ) {
+	if ( index == VM_GAME && Com_GameIsJK2MP() ) return "jk2mpgame";
+	return vmName[ index ];
+}
 
 static void VM_VmInfo_f( void );
 static void VM_VmProfile_f( void );
@@ -2251,7 +2261,7 @@ vm_t *VM_CreateHosted( vmIndex_t index, vmMainFunc_t dispatcher ) {
 		Com_Error( ERR_DROP, "VM_CreateHosted: %s is already loaded", vm->name );
 		return NULL;
 	}
-	vm->name = vmName[ index ];
+	vm->name = VM_ProfileName( index );
 	vm->index = index;
 	vm->entryPoint = dispatcher;
 	vm->privateFlag = 0; // allow reading private cvars
@@ -2294,7 +2304,7 @@ vm_t *VM_CreateTable( vmIndex_t index, const char *symbolName, vmMainFunc_t disp
 	}
 
 	filename[0] = '\0';
-	for ( candidate = 0; Com_GameManagerNativeModuleCandidate( Com_GameProfile(), vmName[ index ],
+	for ( candidate = 0; Com_GameManagerNativeModuleCandidate( Com_GameProfile(), VM_ProfileName( index ),
 		ARCH_STRING, DLL_EXT, candidate, filename, sizeof( filename ), &installationRoot ); ++candidate ) {
 		libHandle = VM_OpenNativeModule( index, filename, qfalse, installationRoot ? qtrue : qfalse );
 		if ( libHandle ) {
@@ -2314,7 +2324,7 @@ vm_t *VM_CreateTable( vmIndex_t index, const char *symbolName, vmMainFunc_t disp
 	}
 	Com_Printf( "VM_CreateTable '%s' ok\n", filename );
 
-	vm->name = vmName[ index ];
+	vm->name = VM_ProfileName( index );
 	vm->index = index;
 	vm->dllHandle = libHandle;
 	vm->entryPoint = dispatcher;
@@ -2365,7 +2375,7 @@ vm_t *VM_CreateNative( vmIndex_t index, syscall_t systemCalls, dllSyscall_t dllS
 		return vm;
 	}
 
-	name = vmName[ index ];
+	name = VM_ProfileName( index );
 
 	vm->name = name;
 	vm->index = index;
@@ -2525,11 +2535,17 @@ void VM_Free( vm_t *vm ) {
 }
 
 
-void VM_Clear( void ) {
+void VM_ClearExcept( vmIndex_t preserve ) {
 	int i;
 	for ( i = 0; i < VM_COUNT; i++ ) {
+		// A table-driven native game owns no hunk-backed VM memory.
+		if ( i == preserve && vmTable[i].dllHandle && vmTable[i].entryPoint ) continue;
 		VM_Free( &vmTable[ i ] );
 	}
+}
+
+void VM_Clear( void ) {
+	VM_ClearExcept( VM_COUNT );
 }
 
 
@@ -2540,6 +2556,35 @@ void VM_Forced_Unload_Start(void) {
 
 void VM_Forced_Unload_Done(void) {
 	forced_unload = 0;
+}
+
+
+/*
+==============
+VM_UnlinkNativeExceptionRecords
+
+Com_Error is about to shut down and unload every module, then longjmp past
+whatever native module frames are on this stack. On x86 Windows those frames
+may have exception registrations whose handlers are inside the modules, and
+the CRT's longjmp would unwind through them after the images are gone. Unlink
+them first; see native_seh.h. Any native module can be on the stack, not only
+the one that raised the error, and a table-driven module's exports are also
+called outside VM_Call, so the whole chain is checked against every loaded
+module rather than against a recorded call boundary.
+==============
+*/
+int VM_UnlinkNativeExceptionRecords( void ) {
+	void *modules[ VM_COUNT ];
+	int count = 0;
+	int i;
+
+	for ( i = 0; i < VM_COUNT; i++ ) {
+		if ( vmTable[ i ].dllHandle ) {
+			modules[ count++ ] = vmTable[ i ].dllHandle;
+		}
+	}
+
+	return count ? Sys_UnlinkModuleExceptionRecords( modules, count ) : 0;
 }
 
 

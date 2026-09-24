@@ -142,7 +142,7 @@ int BotAllocMoveState(void)
 {
 	int i;
 
-	for (i = 1; i <= Com_GameProfile()->maxClients; i++)
+	for (i = 1; i <= BotLibClientCapacity(); i++)
 	{
 		if (!botmovestates[i])
 		{
@@ -160,7 +160,7 @@ int BotAllocMoveState(void)
 //========================================================================
 void BotFreeMoveState(int handle)
 {
-	if (handle <= 0 || handle > Com_GameProfile()->maxClients)
+	if (handle <= 0 || handle > BotLibClientCapacity())
 	{
 		botimport.Print(PRT_FATAL, "move state handle %d out of range\n", handle);
 		return;
@@ -181,7 +181,7 @@ void BotFreeMoveState(int handle)
 //========================================================================
 static bot_movestate_t *BotMoveStateFromHandle(int handle)
 {
-	if (handle <= 0 || handle > Com_GameProfile()->maxClients)
+	if (handle <= 0 || handle > BotLibClientCapacity())
 	{
 		botimport.Print(PRT_FATAL, "move state handle %d out of range\n", handle);
 		return nullptr;
@@ -1329,7 +1329,7 @@ int BotMoveInDirection(int movestate, vec3_t dir, float speed, int type)
 			|| !aasworld.planes || aasworld.numplanes < 1 || !aasworld.areasettings
 			|| aasworld.numareas < 2 || aasworld.numareasettings != aasworld.numareas
 			|| !aasworld.arealinkedentities || !botimport.EntityTrace || !botimport.PointContents
-			|| !EA_ClientInputAvailable(ms->client) || ms->client >= Com_GameProfile()->maxClients
+			|| !EA_ClientInputAvailable(ms->client) || ms->client >= BotLibClientCapacity()
 			|| ms->entitynum < 0 || ms->entitynum >= (1 << FNTECH3_RTCW_GENTITYNUM_BITS)
 			|| !Position(ms->origin) || !Position(ms->velocity) || !Position(dir)
 			|| !fntech3::rtcw::routing::Coordinate(speed) || !fntech3::rtcw::routing::Coordinate(ms->thinktime)
@@ -3279,7 +3279,7 @@ static bool BotRTCWMoveToGoalReady(const bot_movestate_t *ms, const bot_goal_t *
 		|| !entities.entities || entities.maxentities <= 0
 		|| !botimport.Trace || !botimport.EntityTrace || !botimport.PointContents
 		|| !botimport.BotClientCommand || !botimport.BSPModelMinsMaxsOrigin
-		|| !EA_ClientInputAvailable(ms->client) || ms->client >= Com_GameProfile()->maxClients
+		|| !EA_ClientInputAvailable(ms->client) || ms->client >= BotLibClientCapacity()
 		|| ms->entitynum < 0 || ms->entitynum >= (1 << FNTECH3_RTCW_GENTITYNUM_BITS)
 		|| !Position(ms->origin) || !Position(ms->velocity) || !Position(ms->viewoffset)
 		|| !Position(ms->viewangles) || !Position(ms->lastorigin)
@@ -3915,7 +3915,7 @@ void BotShutdownMoveAI(void)
 {
 	int i;
 
-	for (i = 1; i <= Com_GameProfile()->maxClients; i++)
+	for (i = 1; i <= BotLibClientCapacity(); i++)
 	{
 		if (botmovestates[i])
 		{

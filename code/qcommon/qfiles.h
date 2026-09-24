@@ -398,9 +398,10 @@ typedef struct {
 
 IBSP v43
 
-The IHV / q3test branch uses an older 14-lump layout with Quake II style
+The February 1999 IHV build uses an older 14-lump layout with Quake II style
 planes and models, direct brush contents / side flags, and draw surfaces that
 embed shader names instead of using a separate shader lump.
+Public Q3Test releases use BSP 44/45, not this format.
 
 =============================================================================
 */

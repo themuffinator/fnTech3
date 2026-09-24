@@ -117,7 +117,7 @@ class RTCWRouteQueryTests(unittest.TestCase):
         source = route_source() + GRAPH + r'''
 int main(){
  const int flags=TFL_WALK|TFL_AIR;
- for(const auto &p:profiles){profile=&p;initialize();graph(0,2,1);
+ for(const auto &p:profiles){profile=&p;if(!p.bots.navigationWorlds)continue;initialize();graph(0,2,1);
   assert(AAS_AreaTravelTimeToGoalArea(1,nullptr,2,flags)==(Com_GameIsRTCW()?12:11));
   assert(aasworld.frameroutingupdates==(Com_GameIsRTCW()?2:1));cacheLinks();
   aasworld.frameroutingupdates=101;auto *hit=AAS_GetAreaRoutingCache(1,2,flags);

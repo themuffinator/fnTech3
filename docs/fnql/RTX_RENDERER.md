@@ -98,7 +98,7 @@ against the existing renderers.
 | `r_fogMode` | `0` | Preserve the legacy BSP fog lookup unless analytic fog is selected explicitly. |
 | `r_liquid` | `0` | Preserve authored liquid stages without the enhanced screen-space layer by default. |
 | `r_underwater` | `0` | Keep the classic dry presentation while submerged unless the submerged-view compositor is requested. |
-| `r_hdr` | `0` | Preserve the SDR presentation path by default. |
+| `r_hdr` | `1` | Use high-precision scene storage that stays display-referred, as in GLx and Vulkan. Scene-linear colour (sRGB texture decode and linear blending) needs `r_srgbTextures 1` and a non-legacy tone mapper, colour grading or an active HDR presentation. |
 | `r_surfaceLightProxies` | `0` | Do not infer analytic emitters from compiled surface-light metadata by default. |
 
 `rtx_rt_mode 1` is a capability-development mode that requests ray-query

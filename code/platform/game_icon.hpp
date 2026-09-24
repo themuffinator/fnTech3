@@ -12,27 +12,32 @@ enum class Source { Executable, Png, Bundle };
 // Presentation metadata only: never changes the selected profile or loads code.
 inline const char *Candidate(comGameId_t profile, Source source, unsigned index)
 {
-    // One row per profile, in catalogue order. Enemy Territory's and Elite
-    // Force's installations carry their executables; no PNG or bundle name is
-    // guessed for them.
+    // One row per profile, in catalogue order. Enemy Territory's, Elite
+    // Force's, Jedi Academy's, Jedi Outcast's and Alice's installations
+    // carry their executables; no PNG or bundle name is guessed for them.
     static const char *const executables[][3] = {
         {nullptr}, {"quake3.exe", nullptr},
         {"quakelive_steam.exe", "quakelive.exe", nullptr},
         {"WolfSP.exe", nullptr}, {"WolfMP.exe", nullptr},
         {"et.exe", nullptr},
-        {"stvoy.exe", nullptr}, {"stvoyHM.exe", nullptr}
+        {"stvoy.exe", nullptr}, {"stvoyHM.exe", nullptr}, {"quake3.exe", nullptr},
+        {"jasp.exe", nullptr}, {"jamp.exe", nullptr},
+        {"jk2sp.exe", nullptr}, {"jk2mp.exe", nullptr},
+        {"alice.exe", nullptr}
     };
     static const char *const pngs[][3] = {
         {nullptr}, {"quake3.png", nullptr}, {"quakelive.png", nullptr},
         {"wolfsp.png", "wolfenstein.png", nullptr},
         {"wolfmp.png", "wolfenstein.png", nullptr},
-        {nullptr}, {nullptr}, {nullptr}
+        {nullptr}, {nullptr}, {nullptr}, {nullptr},
+        {nullptr}, {nullptr}, {nullptr}, {nullptr}, {nullptr}
     };
     static const char *const bundles[][3] = {
         {nullptr}, {"Quake3.app", "Quake III Arena.app", nullptr}, {nullptr},
         {"Wolfenstein SP.app", "Return to Castle Wolfenstein.app", nullptr},
         {"Wolfenstein MP.app", nullptr},
-        {nullptr}, {nullptr}, {nullptr}
+        {nullptr}, {nullptr}, {nullptr}, {nullptr},
+        {nullptr}, {nullptr}, {nullptr}, {nullptr}, {nullptr}
     };
     // A profile without a row would index past these tables and hand a stray
     // pointer to the path constructor, which is how Enemy Territory's first

@@ -23,6 +23,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef __TR_TYPES_H
 #define __TR_TYPES_H
 
+#include "tr_q3_ihv_entities.h"
+
 #define MAX_VIDEO_HANDLES	16
 
 #define	MAX_DLIGHTS			32			// can't be increased, because bit flags are used on surfaces
@@ -99,6 +101,8 @@ typedef enum {
 	RT_STVEF_BEZIER,
 	RT_STVEF_CYLINDER,
 	RT_STVEF_ELECTRICITY,
+	// American McGee's Alice's sprite model: a shader quad in world space.
+	RT_ALICE_SPRITE,
 
 	RT_MAX_REF_ENTITY_TYPE
 } refEntityType_t;
@@ -148,6 +152,38 @@ typedef struct {
 	qboolean highlight, blink, forceNoLod;
 } wolfetRenderEntity_t;
 
+// Engine-owned American McGee's Alice animation state. Its client game's
+// 460-byte record is translated into this before it reaches the renderer; a
+// TIKI model is posed from these, not from the Quake III frame fields.
+typedef struct {
+	int bone;			// -1 for an unused controller
+	float quat[4];
+	float scale;
+} aliceBoneController_t;
+
+typedef struct {
+	int anim, oldanim;
+	int frame, oldframe;
+	float backlerp;
+	int torsoAnim, torsoOldanim;
+	int torsoFrame, torsoOldframe;
+	float torsoBacklerp;
+	int crossblendAnim, crossblendFrame;
+	float crossblendLerp;		// negative when there is no cross-blend
+	int torsoCrossblendAnim, torsoCrossblendFrame;
+	float torsoCrossblendLerp;
+	qboolean useLegs, useTorso;
+	qboolean useControllers;	// retail applies them only when useAngles is set
+	qboolean customShaderPass;	// draw the skins, not the custom shader (RF 0x10000)
+	int renderfx;				// Alice's own render flags, at its own bit positions
+								// (code/compat/alice_render_abi.h FNTECH3_ALICE_RF_*)
+	float scale;
+	byte surfaces[32];			// per-surface state: skin offset and hidden bit
+	short shaderData[2];
+	aliceBoneController_t controllers[5];
+	const void *bones;			// renderer scratch: this frame's posed skeleton
+} aliceRenderEntity_t;
+
 typedef struct {
 	refEntityType_t	reType;
 	int			renderfx;
@@ -186,6 +222,8 @@ typedef struct {
 	rtcwRenderEntity_t rtcw;
 	wolfetRenderEntity_t wolfet;
 	stvefRenderEntity_t stvef;
+	fnQ3IHVEntityState_t q3IHV;
+	aliceRenderEntity_t alice;
 } refEntity_t;
 
 
@@ -223,6 +261,22 @@ typedef struct {
 	wolfetRenderFog_t fog;
 } wolfetRenderView_t;
 
+// Engine-owned American McGee's Alice view state: Ritual's far plane -- a
+// distance at which the view fogs out to a colour and, optionally, stops
+// drawing -- and its sky portal, a second view drawn behind the sky from its
+// own origin and axis, with an alpha shaders read. keepDepth asks the renderer
+// not to clear the depth buffer first.
+typedef struct {
+	float farplaneDistance;
+	vec3_t farplaneColor;
+	qboolean farplaneCull;
+	qboolean skyPortal;
+	float skyAlpha;
+	vec3_t skyOrigin;
+	vec3_t skyAxis[3];
+	qboolean keepDepth;
+} aliceRenderView_t;
+
 typedef struct {
 	int			x, y, width, height;
 	float		fov_x, fov_y;
@@ -241,6 +295,7 @@ typedef struct {
 	char		text[MAX_RENDER_STRINGS][MAX_RENDER_STRING_LENGTH];
 	rtcwRenderView_t rtcw;
 	wolfetRenderView_t wolfet;
+	aliceRenderView_t alice;
 } refdef_t;
 
 /*

@@ -35,6 +35,7 @@ static void QDECL Warn(int level, const char *format, ...) {
     warnings.emplace_back(text);
 }
 static int s_extendedShader;
+static qboolean R_AliceShaderDialect() { return ri.gameId == COM_GAME_ALICE ? qtrue : qfalse; }
 static cvar_t compression{};
 static cvar_t *r_ext_compressed_textures = &compression;
 static struct {
@@ -65,12 +66,14 @@ static std::string Animation(int count) {
 }
 int main() {
     ri.Printf = Warn;
-    for (auto profile : {COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, COM_GAME_RTCW_SP, COM_GAME_RTCW_MP}) {
+    for (auto profile : {COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, COM_GAME_RTCW_SP, COM_GAME_RTCW_MP, COM_GAME_ALICE}) {
         ri.gameId = profile;
         const bool rtcw = profile == COM_GAME_RTCW_SP || profile == COM_GAME_RTCW_MP;
         for (int extended : {0, 1}) {
             s_extendedShader = extended;
-            const int limit = extended ? 24 : rtcw ? 16 : 8;
+            // Alice keeps as many frames as the engine can (retail keeps 64)
+            // in a renderer that carries its dialect.
+            const int limit = extended ? 24 : rtcw ? 16 : profile == COM_GAME_ALICE ? ALICE_ANIMATION_LIMIT : 8;
             for (int count : {0, 1, 8, 9, 15, 16, 17, 24, 25, 64}) {
                 Reset(); shaderStage_t stage{};
                 auto input = Animation(count); const char *text = input.c_str();
@@ -145,6 +148,7 @@ class ShaderAnimationTests(unittest.TestCase):
                     parser = '''static qboolean ParseAnimation(shaderStage_t *stage, const char **text) {
                         const char *token = COM_ParseExt(text, qtrue);
                     ''' + branch + 'else return qfalse; return qtrue;}\n'
+                    defines += '\n#define ALICE_ANIMATION_LIMIT %d\n' % (24 if 'R_AliceShaderDialect()' in branch else 8)
                     fixture = common(renderer) + '\n#include <cstdlib>\n' + defines + '\n' + HOST + tokenizer()
                     fixture += '\n#include "code/renderercommon/tr_rtcw_shader_material.h"\n' + records + parser + CHECKS
                     cpp = Path(temp) / f'{renderer}.cpp'

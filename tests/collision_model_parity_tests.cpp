@@ -72,6 +72,21 @@ void TestRetailEntityShapeSelection()
 	}
 }
 
+void TestRetailEntityBoxContents()
+{
+	using fnql::server::collision::UseEntityBoxContents;
+
+	// Quake III's box brush is CONTENTS_BODY whatever the entity is.
+	CHECK( !UseEntityBoxContents( COM_ENTITY_BOX_CONTENTS_BODY, true ) );
+	CHECK( !UseEntityBoxContents( COM_ENTITY_BOX_CONTENTS_BODY, false ) );
+	// RTCW MP and ET give it the entity's contents, but only when the entity's
+	// handle is the box: capsules and inline models are left alone.
+	CHECK( UseEntityBoxContents( COM_ENTITY_BOX_CONTENTS_ENTITY, true ) );
+	CHECK( !UseEntityBoxContents( COM_ENTITY_BOX_CONTENTS_ENTITY, false ) );
+	// A zeroed profile record keeps Quake III's box.
+	static_assert( COM_ENTITY_BOX_CONTENTS_BODY == 0 );
+}
+
 void TestCapsuleTraceProfile()
 {
 	// Retail QL player hull swept by an identically sized capsule.
@@ -172,6 +187,7 @@ int main()
 {
 	TestReservedHandleContract();
 	TestRetailEntityShapeSelection();
+	TestRetailEntityBoxContents();
 	TestCapsuleTraceProfile();
 	TestTracePlaneContract();
 	return failures == 0 ? EXIT_SUCCESS : EXIT_FAILURE;

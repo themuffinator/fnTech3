@@ -157,6 +157,9 @@ void CM_BoxLeafnums_r( leafList_t *ll, int nodenum ) {
 			nodenum = node->children[1];
 		} else {
 			// go down both
+			if ( ll->topnode == -1 ) {
+				ll->topnode = nodenum;
+			}
 			CM_BoxLeafnums_r( ll, node->children[0] );
 			nodenum = node->children[1];
 		}
@@ -181,12 +184,87 @@ int	CM_BoxLeafnums( const vec3_t mins, const vec3_t maxs, int *list, int listsiz
 	ll.list = list;
 	ll.storeLeafs = CM_StoreLeafs;
 	ll.lastLeaf = 0;
+	ll.topnode = -1;
 	ll.overflowed = qfalse;
 
 	CM_BoxLeafnums_r( &ll, 0 );
 
 	*lastLeaf = ll.lastLeaf;
 	return ll.count;
+}
+
+/*
+==================
+CM_BoxLeafnumsTopnode
+
+Quake III IHV records an entity's clusters the way Quake II does: when a box
+covers too many leafs the engine keeps the first node the box straddles instead
+of a cluster list, and tests visibility from that node. Retail callers keep
+CM_BoxLeafnums and its last-leaf result.
+==================
+*/
+int	CM_BoxLeafnumsTopnode( const vec3_t mins, const vec3_t maxs, int *list, int listsize, int *topnode ) {
+	leafList_t	ll;
+	int			ignoredLastLeaf;
+
+	if ( !topnode ) {
+		return CM_BoxLeafnums( mins, maxs, list, listsize, &ignoredLastLeaf );
+	}
+
+	cm.checkcount++;
+
+	VectorCopy( mins, ll.bounds[0] );
+	VectorCopy( maxs, ll.bounds[1] );
+	ll.count = 0;
+	ll.maxcount = listsize;
+	ll.list = list;
+	ll.storeLeafs = CM_StoreLeafs;
+	ll.lastLeaf = 0;
+	ll.topnode = -1;
+	ll.overflowed = qfalse;
+
+	CM_BoxLeafnums_r( &ll, 0 );
+
+	*topnode = ll.topnode;
+	return ll.count;
+}
+
+/*
+==================
+CM_HeadnodeVisible
+
+True when any leaf below this node is in the supplied cluster bit vector. IHV
+uses it for entities whose cluster list overflowed. Out-of-range nodes, leafs
+and clusters report "not visible" rather than reading outside the model.
+==================
+*/
+qboolean CM_HeadnodeVisible( int nodenum, const byte *visbits ) {
+	int			leafnum;
+	int			cluster;
+	const cNode_t	*node;
+
+	if ( !visbits ) {
+		return qfalse;
+	}
+	if ( nodenum < 0 ) {
+		leafnum = -1 - nodenum;
+		if ( leafnum >= cm.numLeafs ) {
+			return qfalse;
+		}
+		cluster = cm.leafs[leafnum].cluster;
+		if ( cluster < 0 || cluster >= cm.numClusters ) {
+			return qfalse;
+		}
+		return ( visbits[cluster >> 3] & ( 1 << ( cluster & 7 ) ) ) ? qtrue : qfalse;
+	}
+	if ( nodenum >= cm.numNodes ) {
+		return qfalse;
+	}
+	node = &cm.nodes[nodenum];
+	if ( CM_HeadnodeVisible( node->children[0], visbits ) ) {
+		return qtrue;
+	}
+	return CM_HeadnodeVisible( node->children[1], visbits );
 }
 
 /*
@@ -206,6 +284,7 @@ int CM_BoxBrushes( const vec3_t mins, const vec3_t maxs, cbrush_t **list, int li
 	ll.list = (void *)list;
 	ll.storeLeafs = CM_StoreBrushes;
 	ll.lastLeaf = 0;
+	ll.topnode = -1;
 	ll.overflowed = qfalse;
 	
 	CM_BoxLeafnums_r( &ll, 0 );
@@ -313,6 +392,12 @@ PVS
 ===============================================================================
 */
 
+/* The length of one cluster's visibility vector: a caller that tests cluster
+ * bits needs it to stay inside the model's own storage. */
+int	CM_ClusterBytes( void ) {
+	return cm.clusterBytes;
+}
+
 byte	*CM_ClusterPVS (int cluster) {
 	if (cluster < 0 || cluster >= cm.numClusters || !cm.vised ) {
 		return cm.visibility;
@@ -394,6 +479,19 @@ int *CM_AreaPortalCounts( int *count ) {
 		*count = cm.numAreas * cm.numAreas;
 	}
 	return cm.areaPortals;
+}
+
+/*
+====================
+CM_NumAreas
+
+The loaded map's area count, which American McGee's Alice's savegames write
+ahead of the portal counts and check on load (CM_WritePortalState and
+CM_ReadPortalState, alice.exe 0x004362a0 and 0x004362e0).
+====================
+*/
+int CM_NumAreas( void ) {
+	return cm.numAreas;
 }
 
 

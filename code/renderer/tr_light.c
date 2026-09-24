@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_light.c
 
 #include "tr_local.h"
+#include "../compat/alice_render_abi.h"
 
 #define	DLIGHT_AT_RADIUS		16
 // at the edge of a dlight's influence, this amount of light will be added
@@ -343,6 +344,8 @@ Calculates all the lighting values that will be used
 by the Calc_* functions
 =================
 */
+#include "../renderercommon/tr_q3_ihv_model_light_render.h"
+
 void R_SetupEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent ) {
 	int				i;
 	const dlight_t		*dl;
@@ -360,6 +363,10 @@ void R_SetupEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent ) {
 		return;
 	}
 	ent->lightingCalculated = qtrue;
+	if ( ri.gameId == COM_GAME_QUAKE3_IHV && ent->e.q3IHV.active ) {
+		R_SetupQ3IHVEntityLighting( refdef, ent );
+		return;
+	}
 
 	//
 	// trace a sample point down to find ambient light
@@ -488,6 +495,151 @@ void R_SetupEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent ) {
 
 /*
 =================
+R_SetupAliceEntityLighting
+
+American McGee's Alice's entity light, from retail's R_SetupEntityLighting
+(alice.exe 0x004ac7e0) where it differs from Quake III's:
+
+- the light grid is sampled at a point the caller works out -- for a TIKI
+  model the middle of its current frame, moved by its model's origin and
+  `lightoffset`, turned by its axis and added to its lighting origin
+  (0x004aaac0) -- not at the entity's origin;
+- an entity flagged full bright passes over the grid for the flat light a
+  level without one gets (0x004ac825);
+- in a scene without a world an entity starts from no light at all, dynamic
+  lights aside (0x004acbfc..0x004acc26), not from that flat light;
+- only an entity flagged minlight gets the minimum add (0x004acc66); Quake III
+  gives it to everything.
+
+Dynamic lights, the clamp and the rest are this renderer's, as for every
+other profile; retail's own dynamic-light falloff and its rescaling of an
+over-bright directed light are not reproduced.
+=================
+*/
+void R_SetupAliceEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent, const vec3_t lightOrigin ) {
+	int				i;
+	const dlight_t		*dl;
+	float			power;
+	vec3_t			dir;
+	float			d;
+	vec3_t			lightDir;
+#ifdef USE_PMLIGHT
+	vec3_t			shadowLightDir;
+#endif
+
+	if ( ent->lightingCalculated ) {
+		return;
+	}
+	ent->lightingCalculated = qtrue;
+
+	if ( !( refdef->rdflags & RDF_NOWORLDMODEL ) && tr.world->lightGridData
+		&& !( ent->e.alice.renderfx & FNTECH3_ALICE_RF_FULLBRIGHT ) ) {
+		// the grid samples at the entity's lighting origin
+		const int renderfx = ent->e.renderfx;
+		vec3_t lightingOrigin;
+		VectorCopy( ent->e.lightingOrigin, lightingOrigin );
+		VectorCopy( lightOrigin, ent->e.lightingOrigin );
+		ent->e.renderfx |= RF_LIGHTING_ORIGIN;
+		R_SetupEntityLightingGrid( ent );
+		ent->e.renderfx = renderfx;
+		VectorCopy( lightingOrigin, ent->e.lightingOrigin );
+	} else if ( refdef->rdflags & RDF_NOWORLDMODEL ) {
+		VectorClear( ent->ambientLight );
+		VectorClear( ent->directedLight );
+		VectorClear( ent->lightDir );
+	} else {
+		ent->ambientLight[0] = ent->ambientLight[1] =
+			ent->ambientLight[2] = tr.identityLight * 150;
+		ent->directedLight[0] = ent->directedLight[1] =
+			ent->directedLight[2] = tr.identityLight * 150;
+		VectorCopy( tr.sunDirection, ent->lightDir );
+	}
+
+	if ( ent->e.alice.renderfx & FNTECH3_ALICE_RF_MINLIGHT ) {
+		ent->ambientLight[0] += tr.identityLight * 32;
+		ent->ambientLight[1] += tr.identityLight * 32;
+		ent->ambientLight[2] += tr.identityLight * 32;
+	}
+
+	//
+	// modify the light by dynamic lights
+	//
+	d = VectorLength( ent->directedLight );
+	VectorScale( ent->lightDir, d, lightDir );
+#ifdef USE_PMLIGHT
+	if ( R_GetDlightMode() == 2 ) {
+		// only direct lights
+		// but we need to deal with shadow light direction
+		VectorCopy( lightDir, shadowLightDir );
+		if ( r_shadows->integer == 2 ) {
+			for ( i = 0 ; i < refdef->num_dlights ; i++ ) {
+				dl = &refdef->dlights[i];
+				if ( dl->linear ) // no support for linear lights atm
+					continue;
+				VectorSubtract( dl->origin, lightOrigin, dir );
+				d = VectorNormalize( dir );
+				power = DLIGHT_AT_RADIUS * ( dl->radius * dl->radius );
+				if ( d < DLIGHT_MINIMUM_RADIUS ) {
+					d = DLIGHT_MINIMUM_RADIUS;
+				}
+				d = power / ( d * d );
+				VectorMA( shadowLightDir, d, dir, shadowLightDir );
+			}
+		}
+	}
+	else
+#endif
+	for ( i = 0 ; i < refdef->num_dlights ; i++ ) {
+		dl = &refdef->dlights[i];
+		if ( dl->rtcwShader ) continue;
+		VectorSubtract( dl->origin, lightOrigin, dir );
+		d = VectorNormalize( dir );
+
+		power = DLIGHT_AT_RADIUS * ( dl->radius * dl->radius );
+		if ( d < DLIGHT_MINIMUM_RADIUS ) {
+			d = DLIGHT_MINIMUM_RADIUS;
+		}
+		d = power / ( d * d );
+
+		VectorMA( ent->directedLight, d, dl->color, ent->directedLight );
+		VectorMA( lightDir, d, dir, lightDir );
+	}
+
+	// clamp ambient
+	for ( i = 0 ; i < 3 ; i++ ) {
+		if ( ent->ambientLight[i] > tr.identityLightByte ) {
+			ent->ambientLight[i] = tr.identityLightByte;
+		}
+	}
+
+	if ( r_debugLight->integer ) {
+		LogLight( ent );
+	}
+
+	((byte *)&ent->ambientLightInt)[0] = myftol( ent->ambientLight[0] );
+	((byte *)&ent->ambientLightInt)[1] = myftol( ent->ambientLight[1] );
+	((byte *)&ent->ambientLightInt)[2] = myftol( ent->ambientLight[2] );
+	((byte *)&ent->ambientLightInt)[3] = 0xff;
+
+	// transform the direction to local space
+	VectorNormalize( lightDir );
+	ent->lightDir[0] = DotProduct( lightDir, ent->e.axis[0] );
+	ent->lightDir[1] = DotProduct( lightDir, ent->e.axis[1] );
+	ent->lightDir[2] = DotProduct( lightDir, ent->e.axis[2] );
+
+#ifdef USE_PMLIGHT
+	if ( r_shadows->integer == 2 && R_GetDlightMode() == 2 ) {
+		VectorNormalize( shadowLightDir );
+		ent->shadowLightDir[0] = DotProduct( shadowLightDir, ent->e.axis[0] );
+		ent->shadowLightDir[1] = DotProduct( shadowLightDir, ent->e.axis[1] );
+		ent->shadowLightDir[2] = DotProduct( shadowLightDir, ent->e.axis[2] );
+	}
+#endif
+}
+
+
+/*
+=================
 R_LightForPoint
 =================
 */
@@ -523,6 +675,10 @@ Return 0 for legacy vertex lighting
 int R_GetDlightMode( void )
 {
 #ifdef USE_PMLIGHT
+#ifdef USE_LEGACY_DLIGHTS
+	/* Classic lights are composited before IHV's per-vertex fog overlay. */
+	if ( ( ri.gameId == COM_GAME_QUAKE3 || ri.gameId == COM_GAME_QUAKE3_IHV ) && tr.world && tr.world->q3IHVFog ) return 0;
+#endif
 	if (!qglGenProgramsARB) {
 		return 0;
 	} else {

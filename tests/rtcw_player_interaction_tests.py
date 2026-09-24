@@ -29,6 +29,7 @@ int Com_GameIsRTCW() { return profile==COM_GAME_RTCW_SP || profile==COM_GAME_RTC
 int Com_GameIsRTCWSP() { return profile==COM_GAME_RTCW_SP; }
 int Com_GameIsRTCWMP() { return profile==COM_GAME_RTCW_MP; }
 int Com_GameIsSTVEFMP() { return profile==COM_GAME_STVEF_MP; }
+int Com_GameIsAlice() { return profile==COM_GAME_ALICE; }
 static int catcher, anykeydown, com_frameTime=100;
 static unsigned frame_msec=16;
 static int Key_GetCatcher() { return catcher; }
@@ -50,7 +51,7 @@ signed char ClampCharMove(int value) { return value < -127 ? -127 : value > 127 
     source += re.search(r'struct InputCommandBinding\s*\{.*?\n};', client, re.S)[0] + '\n'
     start = client.index('struct kbutton_t {')
     source += client[start:client.index('static cvar_t *cl_nodelta;', start)]
-    for signature in ('int CL_ValidateInputCommandSource(', 'static std::array<kbutton_t *, 13> IN_CommandButtons(',
+    for signature in ('int CL_ValidateInputCommandSource(', 'static std::array<kbutton_t *, 14> IN_CommandButtons(',
                       'static void IN_ClearCommandInputState(', 'static void IN_RemoveCommandInputSource(',
                       'static void IN_KeyDown( kbutton_t *b ) {', 'static void IN_KeyUp( kbutton_t *b ) {',
                       'static float CL_KeyState(', 'static int CL_SafeMoveValue('):

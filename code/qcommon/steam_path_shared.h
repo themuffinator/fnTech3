@@ -103,6 +103,7 @@ static qboolean Sys_SteamInstallIsValid( const comGameProfile_t *profile, const 
 	char basePath[MAX_OSPATH];
 	char assetPath[MAX_OSPATH];
 
+	if ( !profile || !profile->baseGame || !profile->basePakName || !installPath || !installPath[0] ) return qfalse;
 	Sys_SteamJoinPath( basePath, sizeof( basePath ), installPath, profile->baseGame );
 	Sys_SteamJoinPath( assetPath, sizeof( assetPath ), basePath, profile->basePakName );
 
@@ -467,7 +468,8 @@ static qboolean Sys_SteamAppPathFromRoot( const comGameProfile_t *profile,
 		return qfalse;
 	}
 	out[0] = '\0';
-	if ( !profile || !steamRoot || !steamRoot[0] ) {
+	if ( !profile || !profile->steamAppId || !profile->steamInstallName || !profile->basePakName
+		|| !steamRoot || !steamRoot[0] ) {
 		return qfalse;
 	}
 	return Sys_SteamAppPathFromLibraryFolders( profile, steamRoot, out, outSize )

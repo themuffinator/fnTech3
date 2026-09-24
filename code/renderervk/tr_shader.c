@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "tr_local.h"
 #include "../renderercommon/tr_rtcw_shader_text.h"
+#include "../renderercommon/tr_q3_ihv_shader_text.h"
 #include "../renderercommon/tr_rtcw_shader_material.h"
 #include "../renderercommon/tr_rtcw_normal_fade_parser.h"
 #include <float.h>
@@ -43,6 +44,13 @@ static	texModInfo_t	texMods[MAX_SHADER_STAGES][TR_MAX_TEXMODS+1]; // reserve one
 static image_t *R_FindShaderImage( const char *name, imgFlags_t flags ) {
 	return R_FindImageFile( name, R_RTCWShaderImageFlags( name, flags, shader.rtcwCompression, shader.rtcwCharacterMip ? qtrue : qfalse ) );
 }
+
+#include "../renderercommon/tr_q3_ihv_shader.h"
+#include "../renderercommon/tr_q3_ihv_fog_parser.h"
+// The Vulkan family keeps rgbGen, alphaGen, constantColor and rgbWave on each
+// texture bundle; a parsed stage writes bundle 0.
+#define R_ALICE_GEN( stage ) ( &( stage )->bundle[0] )
+#include "../renderercommon/tr_alice_shader.h"
 
 static void ParseDepthFade( const char **text );
 static void ProcessDepthFade( void );
@@ -389,7 +397,7 @@ static void ParseWaveForm( const char **text, waveForm_t *wave )
 		ri.Printf( PRINT_WARNING, "WARNING: missing waveform parm in shader '%s'\n", shader.name );
 		return;
 	}
-	wave->base = Q_atof( token );
+	wave->base = R_ShaderWaveParm( token, qfalse );
 
 	token = COM_ParseExt( text, qfalse );
 	if ( token[0] == 0 )
@@ -397,7 +405,7 @@ static void ParseWaveForm( const char **text, waveForm_t *wave )
 		ri.Printf( PRINT_WARNING, "WARNING: missing waveform parm in shader '%s'\n", shader.name );
 		return;
 	}
-	wave->amplitude = Q_atof( token );
+	wave->amplitude = R_ShaderWaveParm( token, qfalse );
 
 	token = COM_ParseExt( text, qfalse );
 	if ( token[0] == 0 )
@@ -405,7 +413,7 @@ static void ParseWaveForm( const char **text, waveForm_t *wave )
 		ri.Printf( PRINT_WARNING, "WARNING: missing waveform parm in shader '%s'\n", shader.name );
 		return;
 	}
-	wave->phase = Q_atof( token );
+	wave->phase = R_ShaderWaveParm( token, qtrue );
 
 	token = COM_ParseExt( text, qfalse );
 	if ( token[0] == 0 )
@@ -413,7 +421,7 @@ static void ParseWaveForm( const char **text, waveForm_t *wave )
 		ri.Printf( PRINT_WARNING, "WARNING: missing waveform parm in shader '%s'\n", shader.name );
 		return;
 	}
-	wave->frequency = Q_atof( token );
+	wave->frequency = R_ShaderWaveParm( token, qfalse );
 }
 
 
@@ -438,6 +446,11 @@ static void ParseTexMod( const char *_text, shaderStage_t *stage )
 
 	token = COM_ParseExt( text, qfalse );
 
+	// American McGee's Alice: offset, macro, parallax and fromEntity speeds
+	if ( R_AliceParseTexMod( token, text, tmi ) )
+	{
+		return;
+	}
 	//
 	// turb
 	//
@@ -657,8 +670,11 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 	const char *token;
 	int i, depthMaskBits = GLS_DEPTHMASK_TRUE, blendSrcBits = 0, blendDstBits = 0, atestBits = 0, depthFuncBits = 0;
 	qboolean depthMaskExplicit = qfalse;
+	aliceStageParse_t aliceStage;
+	char aliceKeyword[MAX_TOKEN_CHARS];
 
 	stage->active = qfalse;
+	R_AliceBeginStage( &aliceStage );
 
 	while ( 1 )
 	{
@@ -672,6 +688,24 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 		if ( token[0] == '}' )
 		{
 			break;
+		}
+		// American McGee's Alice's stage keywords and values. They look ahead
+		// at a value, so the keyword is kept out of COM's token buffer.
+		if ( R_AliceShaderDialect() )
+		{
+			int alice;
+			Q_strncpyz( aliceKeyword, token, sizeof( aliceKeyword ) );
+			token = aliceKeyword;
+			alice = R_AliceStageDirective( stage, token, text, &aliceStage,
+				&depthMaskBits, &depthMaskExplicit, &atestBits );
+			if ( alice < 0 )
+			{
+				return qfalse;
+			}
+			if ( alice )
+			{
+				continue;
+			}
 		}
 		{
 			const rtcwMapDirective_t map = R_RTCWMapDirective( token, glConfig.colorBits,
@@ -830,7 +864,9 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 		else if ( !Q_stricmp( token, "animMap" ) )
 		{
 			int	totalImages = 0;
-			int maxAnimations = s_extendedShader ? MAX_IMAGE_ANIMATIONS :
+			// Alice keeps 64 frames (alice.exe 0x0048c5bc); the engine keeps
+			// MAX_IMAGE_ANIMATIONS, three times the most any shipped script uses.
+			int maxAnimations = s_extendedShader || R_AliceShaderDialect() ? MAX_IMAGE_ANIMATIONS :
 				R_WolfensteinShaderDialect() ?
 				MAX_IMAGE_ANIMATIONS_RTCW : MAX_IMAGE_ANIMATIONS_VQ3;
 
@@ -1040,7 +1076,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 			{
 				stage->bundle[0].rgbGen = CGEN_IDENTITY_LIGHTING;
 			}
-			else if ( !Q_stricmp( token, "entity" ) )
+			else if ( !Q_stricmp( token, "entity" ) || R_Q3IHVFromClient( token ) )
 			{
 				stage->bundle[0].rgbGen = CGEN_ENTITY;
 			}
@@ -1100,7 +1136,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 			{
 				stage->bundle[0].alphaGen = AGEN_IDENTITY;
 			}
-			else if ( !Q_stricmp( token, "entity" ) )
+			else if ( !Q_stricmp( token, "entity" ) || R_Q3IHVFromClient( token ) )
 			{
 				stage->bundle[0].alphaGen = AGEN_ENTITY;
 			}
@@ -1222,7 +1258,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 		//
 		// depthmask
 		//
-		else if ( !Q_stricmp( token, "depthwrite" ) )
+		else if ( !Q_stricmp( token, "depthwrite" ) || R_Q3IHVDepthMask( token ) )
 		{
 			depthMaskBits = GLS_DEPTHMASK_TRUE;
 			depthMaskExplicit = qtrue;
@@ -1274,7 +1310,9 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 		}
 	}
 
-	if ( depthMaskExplicit && shader.sort == SS_BAD ) {
+	// Alice sorts a blended, depth-writing stage as see-through in FinishShader
+	// (alice.exe 0x0048e569), without Quake III's map-specific decal fix-up.
+	if ( depthMaskExplicit && shader.sort == SS_BAD && !R_AliceShaderDialect() ) {
 		// fix decals on q3wcp18 and other maps
 		if ( blendSrcBits == GLS_SRCBLEND_SRC_ALPHA && blendDstBits == GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA /*&& stage->rgbGen == CGEN_VERTEX*/ ) {
 			if ( stage->bundle[0].alphaGen != AGEN_SKIP ) {
@@ -1310,10 +1348,15 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 	//
 	// compute state bits
 	//
-	stage->stateBits = depthMaskBits |
-		blendSrcBits | blendDstBits |
-		atestBits |
-		depthFuncBits;
+	{
+		const unsigned aliceBits = R_AliceStageStateBits( &aliceStage, &depthMaskBits );
+		stage->stateBits = depthMaskBits |
+			blendSrcBits | blendDstBits |
+			atestBits |
+			depthFuncBits |
+			aliceBits;
+	}
+	R_AliceEndStage( &aliceStage );
 
 	stage->active = qtrue;
 
@@ -1353,6 +1396,10 @@ static void ParseDeform( const char **text ) {
 
 	ds = &shader.deforms[ shader.numDeforms ];
 	shader.numDeforms++;
+
+	if ( R_AliceParseDeform( token, text, ds ) ) {
+		return;
+	}
 
 	if ( !Q_stricmp( token, "projectionShadow" ) ) {
 		ds->deformation = DEFORM_PROJECTION_SHADOW;
@@ -1475,6 +1522,11 @@ static void ParseDeform( const char **text ) {
 	}
 
 	ri.Printf( PRINT_WARNING, "WARNING: unknown deformVertexes subtype '%s' found in shader '%s'\n", token, shader.name );
+	// An Alice script's unknown deform keeps its arguments off the next
+	// general keyword (retail would fail the shader; no shipped script has one).
+	if ( R_AliceShaderDialect() ) {
+		SkipRestOfLine( text );
+	}
 }
 
 
@@ -1585,6 +1637,10 @@ static void ParseSort( const char **text ) {
 		shader.sort = SS_UNDERWATER;
 	} else {
 		shader.sort = Q_atof( token );
+		// a number on Alice's own sort scale (alice.exe 0x0048ad7d)
+		if ( R_AliceShaderDialect() ) {
+			shader.sort = R_AliceSortValue( shader.sort );
+		}
 	}
 }
 
@@ -2126,10 +2182,12 @@ static qboolean ParseShader( const char **text )
 	vec3_t skySunDirection = { 0.0f, 0.0f, 0.0f };
 	vec3_t skySunLight = { 0.0f, 0.0f, 0.0f };
 	float skySunIntensity;
+	int aliceIfDepth;
 
 	numStages = 0;
 	skySunValid = qfalse;
 	skySunIntensity = 0.0f;
+	aliceIfDepth = 0;
 
 	s_extendedShader = (*text >= s_extensionOffset);
 
@@ -2151,6 +2209,18 @@ static qboolean ParseShader( const char **text )
 			ri.Printf( PRINT_WARNING, "WARNING: no concluding '}' in shader %s\n", shader.name );
 			return qfalse;
 		}
+		rtcwFogDirective = R_Q3IHVSkyDirective( token, text );
+		if ( rtcwFogDirective < 0 ) {
+			ri.Printf( PRINT_WARNING, "WARNING: invalid Q3 IHV sky directive in shader %s\n", shader.name );
+			return qfalse;
+		}
+		if ( rtcwFogDirective ) continue;
+		rtcwFogDirective = R_Q3IHVFogDirective( token, text );
+		if ( rtcwFogDirective < 0 ) {
+			ri.Printf( PRINT_WARNING, "WARNING: invalid Q3 IHV fog directive in shader %s\n", shader.name );
+			return qfalse;
+		}
+		if ( rtcwFogDirective ) continue;
 		rtcwFogDirective = R_RTCWShaderFogDirective( token, text );
 		if ( rtcwFogDirective < 0 ) {
 			ri.Printf( PRINT_WARNING, "WARNING: invalid RTCW fog directive in shader %s\n", shader.name );
@@ -2160,6 +2230,12 @@ static qboolean ParseShader( const char **text )
 		rtcwFogDirective = FnRTCWWorldShaderDirective( ri.gameId, token, text, &shader.rtcwWorld );
 		if ( rtcwFogDirective < 0 ) {
 			ri.Printf( PRINT_WARNING, "WARNING: invalid RTCW world directive in shader %s\n", shader.name );
+			return qfalse;
+		}
+		if ( rtcwFogDirective ) continue;
+		// American McGee's Alice's general keywords and `if`/`endif`
+		rtcwFogDirective = R_AliceShaderDirective( token, text, &aliceIfDepth, s_extendedShader ? qtrue : qfalse );
+		if ( rtcwFogDirective < 0 ) {
 			return qfalse;
 		}
 		if ( rtcwFogDirective ) continue;
@@ -2298,6 +2374,13 @@ static qboolean ParseShader( const char **text )
 		// fogParms
 		else if ( !Q_stricmp( token, "fogParms" ) )
 		{
+			int ihv = R_Q3IHVFogParms( text );
+			if ( ihv < 0 ) {
+				ri.Printf( PRINT_WARNING, "WARNING: invalid Q3 IHV fogParms in shader %s\n", shader.name );
+				return qfalse;
+			}
+			if ( ihv ) continue;
+			Com_Memset( &shader.fogParms.ihv, 0, sizeof( shader.fogParms.ihv ) );
 			if ( !ParseVector( text, 3, shader.fogParms.color ) ) {
 				return qfalse;
 			}
@@ -2385,6 +2468,40 @@ static qboolean ParseShader( const char **text )
 		else if ( !Q_stricmp( token, "sort" ) )
 		{
 			ParseSort( text );
+			continue;
+		}
+		// American McGee's Alice: how a sprite drawn with this shader faces
+		// (retail's parser at 0x0048cb82 also resets its scale to one) and how
+		// large it is against its image
+		else if ( ri.gameId == COM_GAME_ALICE && !Q_stricmp( token, "spritegen" ) )
+		{
+			token = COM_ParseExt( text, qfalse );
+			if ( !token[0] ) {
+				ri.Printf( PRINT_WARNING, "WARNING: missing spritegen parm in shader '%s'\n", shader.name );
+				continue;
+			}
+			if ( !Q_stricmp( token, "parallel" ) ) {
+				shader.aliceSpriteGen = ALICE_SPRITEGEN_PARALLEL;
+			} else if ( !Q_stricmp( token, "parallel_oriented" ) ) {
+				shader.aliceSpriteGen = ALICE_SPRITEGEN_PARALLEL_ORIENTED;
+			} else if ( !Q_stricmp( token, "parallel_upright" ) ) {
+				shader.aliceSpriteGen = ALICE_SPRITEGEN_PARALLEL_UPRIGHT;
+			} else if ( !Q_stricmp( token, "oriented" ) ) {
+				shader.aliceSpriteGen = ALICE_SPRITEGEN_ORIENTED;
+			} else {
+				ri.Printf( PRINT_WARNING, "WARNING: invalid spritegen parm '%s' in shader '%s'\n", token, shader.name );
+			}
+			shader.aliceSpriteScale = 1.0f;
+			continue;
+		}
+		else if ( ri.gameId == COM_GAME_ALICE && !Q_stricmp( token, "spritescale" ) )
+		{
+			token = COM_ParseExt( text, qfalse );
+			if ( !token[0] ) {
+				ri.Printf( PRINT_WARNING, "WARNING: missing spritescale parm in shader '%s'\n", shader.name );
+				continue;
+			}
+			shader.aliceSpriteScale = Q_atof( token );
 			continue;
 		}
 		// conditional stage definition
@@ -2567,6 +2684,8 @@ static int CollapseMultitexture( unsigned int st0bits, shaderStage_t *st0, shade
 	qboolean nonIdenticalColors;
 	qboolean swapLightmap;
 
+	if ( R_Q3IHVSeparateSkyStages() ) return 0;
+
 #ifndef USE_VULKAN
 	if ( !qglActiveTextureARB ) {
 		return 0;
@@ -2575,12 +2694,15 @@ static int CollapseMultitexture( unsigned int st0bits, shaderStage_t *st0, shade
 
 	if ( shader.rtcwNoFog && st0->rtcwFog != st1->rtcwFog ) return 0;
 
+	if ( !R_AliceStageCollapses( st0 ) || !R_AliceStageCollapses( st1 ) ) return 0;
+
 	// make sure both stages are active
 	if ( !st0->active || !st1->active ) {
 		return 0;
 	}
 
-	if ( st0->depthFragment || (st0->stateBits & GLS_ATEST_BITS) ) {
+	// the multitexture pipelines have no alpha test (Alice's included)
+	if ( st0->depthFragment || (st0->stateBits & ( GLS_ATEST_BITS | GLS_ALICE_ATEST_BITS )) ) {
 		return 0;
 	}
 
@@ -3057,6 +3179,12 @@ static qboolean EqualRGBgen( const shaderStage_t *st1, const shaderStage_t *st2 
 		return qfalse;
 	}
 
+	// An Alice stage computes its own colours: its sources' parameters are
+	// not compared here, and it may be skipped while drawing (RB_AliceSkipStage).
+	if ( st1->aliceDynamic || st2->aliceDynamic ) {
+		return qfalse;
+	}
+
 	if ( st1->bundle[0].rgbGen != st2->bundle[0].rgbGen || st1->active != st2->active ) {
 		return qfalse;
 	}
@@ -3105,6 +3233,11 @@ static qboolean EqualTCgen( int bundle, const shaderStage_t *st1, const shaderSt
 	int tm;
 
 	if ( st1 == NULL || st2 == NULL )
+		return qfalse;
+
+	// ... and its own texture coordinates (Alice's texture modifiers carry
+	// parameters this does not compare)
+	if ( st1->aliceDynamic || st2->aliceDynamic )
 		return qfalse;
 
 	if ( st1->active != st2->active )
@@ -3447,6 +3580,10 @@ static void DetectNeeds( void )
 				shader.needsNormal = qtrue;
 			}
 		}
+		if ( R_AliceStageNeedsNormal( &stages[i] ) )
+		{
+			shader.needsNormal = qtrue;
+		}
 #if 0
 		t1 = stages[i].bundle[0].tcGen;
 		t2 = stages[i].bundle[1].tcGen;
@@ -3475,6 +3612,9 @@ static void DetectNeeds( void )
 			shader.needsNormal = qtrue;
 		}
 		if ( shader.deforms[i].deformation >= DEFORM_TEXT0 && shader.deforms[i].deformation <= DEFORM_TEXT7 ) {
+			shader.needsNormal = qtrue;
+		}
+		if ( shader.deforms[i].deformation == DEFORM_ALICE_WAVENORMAL ) {
 			shader.needsNormal = qtrue;
 		}
 	}
@@ -3676,6 +3816,9 @@ static shader_t *FinishShader( void ) {
 	depthMask = qfalse;
 	fogCollapse = qfalse;
 
+	// Alice's portal-sky and fog-only sorts; a sky shader still sorts as sky
+	R_AliceFinishShaderSort();
+
 	//
 	// set sky stuff appropriate
 	//
@@ -3711,7 +3854,7 @@ static shader_t *FinishShader( void ) {
 		//
 		// ditch this stage if it's detail and detail textures are disabled
 		//
-		if ( pStage->isDetail && !r_detailTextures->integer )
+		if ( pStage->isDetail && !r_detailTextures->integer && !R_AliceKeepsDetailStage() )
 		{
 			int index;
 
@@ -3831,8 +3974,11 @@ static shader_t *FinishShader( void ) {
 	// vertex lighting is active, including when r_fullbright is also set.
 	vertexLightMode = r_vertexLight->integer && !qlRendererCvars.uiFullscreen->integer;
 
+	// Native model samples use the material before renderer stage collapse.
+	shader.ihvModelLightmap = ri.gameId == COM_GAME_QUAKE3_IHV && hasLightmapStage;
+
 	// if we are in r_vertexLight mode, never use a lightmap texture
-	if ( stage > 1 && vertexLightMode && !shader.noVLcollapse &&
+	if ( stage > 1 && vertexLightMode && !shader.noVLcollapse && !R_Q3IHVSeparateSkyStages() &&
 		( !shader.rtcwLightMaterial || ri.gameId != COM_GAME_RTCW_MP ) ) {
 		VertexLightingCollapse();
 		stage = 1;
@@ -3840,7 +3986,7 @@ static shader_t *FinishShader( void ) {
 	}
 
 	// whiteimage + "filter" texture == texture
-	if ( !shader.rtcwLightMaterial && !vertexLightMode && stage > 1 && stages[0].bundle[0].image[0] == tr.whiteImage && stages[0].bundle[0].numImageAnimations <= 1 && stages[0].bundle[0].rgbGen == CGEN_IDENTITY && stages[0].bundle[0].alphaGen == AGEN_SKIP ) {
+	if ( !shader.rtcwLightMaterial && !R_Q3IHVSeparateSkyStages() && !vertexLightMode && stage > 1 && stages[0].bundle[0].image[0] == tr.whiteImage && stages[0].bundle[0].numImageAnimations <= 1 && stages[0].bundle[0].rgbGen == CGEN_IDENTITY && stages[0].bundle[0].alphaGen == AGEN_SKIP ) {
 		if ( stages[1].stateBits == ( GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ZERO ) ) {
 			stages[1].stateBits = stages[0].stateBits & ( GLS_DEPTHMASK_TRUE | GLS_DEPTHTEST_DISABLE | GLS_DEPTHFUNC_EQUAL );
 #ifdef USE_PMLIGHT
@@ -3853,7 +3999,7 @@ static shader_t *FinishShader( void ) {
 	}
 
 	// identity texture + "filter" whiteimage rgbGen == texture + rgbGen
-	if ( !shader.rtcwLightMaterial && !vertexLightMode && stage > 1 ) {
+	if ( !shader.rtcwLightMaterial && !R_Q3IHVSeparateSkyStages() && !vertexLightMode && stage > 1 ) {
 		if ( stages[0].bundle[0].rgbGen == CGEN_IDENTITY && stages[0].bundle[0].alphaGen == AGEN_SKIP && stages[1].bundle[0].alphaGen == AGEN_SKIP ) {
 			if ( ( stages[1].stateBits & GLS_BLEND_BITS ) == ( GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ZERO ) ) {
 				if ( stages[1].bundle[0].image[0] == tr.whiteImage && !stages[1].bundle[0].dlight ) {
@@ -3886,11 +4032,15 @@ static shader_t *FinishShader( void ) {
 	//
 	// look for multitexture potential
 	//
-	if ( !shader.rtcwLightMaterial && r_ext_multitexture->integer ) {
+	if ( !shader.rtcwLightMaterial && !R_Q3IHVSeparateSkyStages() && r_ext_multitexture->integer ) {
 		for ( i = 0; i < stage-1; i++ ) {
 			stage -= CollapseMultitexture( stages[i+0].stateBits,  &stages[i+0], &stages[i+1], stage-i );
 		}
 	}
+
+	// Alice stages the static world buffers cannot draw, and whose colours and
+	// texture coordinates no later stage may borrow
+	R_AliceFinishShaderStages( stage );
 
 	if ( shader.lightmapIndex >= 0 && !hasLightmapStage ) {
 		if ( vertexLightmap ) {
@@ -4163,6 +4313,12 @@ static shader_t *FinishShader( void ) {
 				}
 			} // switch mtEnv3 / mtEnv
 
+			if ( R_Q3IHVSeparateSkyStages() ) {
+				/* Cloud RGB changes per original stage; constant-color pipelines cannot carry it. */
+				pStage->tessFlags = TESS_RGBA0 | TESS_ST0;
+				def.shader_type = TYPE_SIGNLE_TEXTURE;
+			}
+
 			for ( env_mask = 0, n = 0; n < pStage->numTexBundles; n++ ) {
 				if ( pStage->bundle[n].numTexMods ) {
 					continue;
@@ -4240,7 +4396,7 @@ static shader_t *FinishShader( void ) {
 			if ( EqualTCgen( n, lastStage[ n ], &stages[ i+1 ] ) && (lastStage[n]->tessFlags & (TESS_ST0 << n) ) ) {
 				stages[ i+1 ].tessFlags &= ~(TESS_ST0 << n);
 			}
-			if ( EqualRGBgen( lastStage[n], &stages[ i+1 ] ) && EqualACgen( lastStage[n], &stages[ i+1 ] ) && (lastStage[n]->tessFlags & (TESS_RGBA0 << n) ) ) {
+			if ( !R_Q3IHVSeparateSkyStages() && EqualRGBgen( lastStage[n], &stages[ i+1 ] ) && EqualACgen( lastStage[n], &stages[ i+1 ] ) && (lastStage[n]->tessFlags & (TESS_RGBA0 << n) ) ) {
 				stages[ i+1 ].tessFlags &= ~(TESS_RGBA0 << n);
 			}
 		}
@@ -4476,7 +4632,7 @@ most world construction surfaces.
 ===============
 */
 static shader_t *R_FindShaderInternal( const char *name, int lightmapIndex,
-	qboolean mipRawImage, qboolean modelDiffuse, qboolean lightMaterial ) {
+	qboolean mipRawImage, qboolean modelDiffuse, qboolean lightMaterial, int rawImageFlags ) {
 	char		strippedName[MAX_QPATH];
 	unsigned long hash;
 	const char	*shaderText;
@@ -4576,6 +4732,11 @@ static shader_t *R_FindShaderInternal( const char *name, int lightmapIndex,
 			if ( !mipRawImage )
 				flags |= IMGFLAG_CLAMPTOEDGE;
 		}
+		else if ( rawImageFlags >= 0 )
+		{
+			// the caller chose the image's flags (R_FindAliceSurfaceShader)
+			flags = (imgFlags_t)rawImageFlags;
+		}
 		else if (mipRawImage)
 		{
 			flags |= IMGFLAG_MIPMAP;
@@ -4609,15 +4770,33 @@ static shader_t *R_FindShaderInternal( const char *name, int lightmapIndex,
 
 
 shader_t *R_FindShader( const char *name, int lightmapIndex, qboolean mipRawImage ) {
-	return R_FindShaderInternal( name, lightmapIndex, mipRawImage, qfalse, qfalse );
+	return R_FindShaderInternal( name, lightmapIndex, mipRawImage, qfalse, qfalse, -1 );
+}
+
+/*
+===============
+R_FindAliceSurfaceShader
+
+The shader for a surface of an American McGee's Alice model. A surface's
+`nomipmaps` and `nopicmip` flags each turn off their own half of a raw
+image's treatment, and the image always repeats: retail's model loader
+passes both to its R_FindShader with wrapping on (alice.exe
+0x0048989a..0x004898be into 0x0048afe0), whose image lookup is the only
+part that reads them (0x0048b2ad..0x0048b2d8). A shader with a script
+ignores them, as it does there.
+===============
+*/
+shader_t *R_FindAliceSurfaceShader( const char *name, qboolean mipmaps, qboolean picmip ) {
+	return R_FindShaderInternal( name, LIGHTMAP_NONE, qtrue, qfalse, qfalse,
+		( mipmaps ? IMGFLAG_MIPMAP : 0 ) | ( picmip ? IMGFLAG_PICMIP : 0 ) );
 }
 
 shader_t *R_FindRTCWLightShader( const char *name ) {
-	return R_FindShaderInternal( name, LIGHTMAP_2D, qtrue, qfalse, qtrue );
+	return R_FindShaderInternal( name, LIGHTMAP_2D, qtrue, qfalse, qtrue, -1 );
 }
 
 shader_t *R_FindModelShader( const char *name, qboolean mipRawImage ) {
-	return R_FindShaderInternal( name, LIGHTMAP_NONE, mipRawImage, qtrue, qfalse );
+	return R_FindShaderInternal( name, LIGHTMAP_NONE, mipRawImage, qtrue, qfalse, -1 );
 }
 
 qhandle_t RE_RegisterShaderFromImage(const char *name, int lightmapIndex, image_t *image, qboolean mipRawImage) {
@@ -4918,6 +5097,8 @@ static int loadShaderBuffers( char **shaderFiles, const int numShaderFiles, char
 			continue;
 		}
 
+		R_Q3IHVRepairShaderText( buffers[i], summand, filename );
+
 		// comment some buggy shaders from pak0
 		if ( summand == 35910 && strcmp( shaderFiles[i], "sky.shader" ) == 0 )
 		{
@@ -5138,6 +5319,9 @@ static void ScanAndLoadShaderFiles( void )
 CreateInternalShaders
 ====================
 */
+#include "../renderercommon/tr_q3_ihv_particle_shader.h"
+#include "../renderercommon/tr_q3_ihv_beam_shader.h"
+
 static void CreateInternalShaders( void ) {
 	tr.numShaders = 0;
 
@@ -5189,6 +5373,8 @@ static void CreateInternalShaders( void ) {
 	stages[0].bundle[0].rgbGen = CGEN_IDENTITY_LIGHTING;
 	stages[0].stateBits = GLS_DEPTHTEST_DISABLE;
 	tr.cinematicShader = FinishShader();
+	R_CreateIHVParticleShader();
+	R_CreateIHVBeamShader();
 }
 
 

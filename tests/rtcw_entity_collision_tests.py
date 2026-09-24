@@ -134,7 +134,7 @@ static void links(){
  for(int entity:{1,2,3})assert(AAS_AASLinkEntity(lo,hi,entity));
 }
 int main(){
- for(const auto &p:profiles){profile=&p;setup();links();botimport.EntityTrace=entityTrace;
+ for(const auto &p:profiles){profile=&p;if(!p.bots.navigationWorlds)continue;setup();links();botimport.EntityTrace=entityTrace;
   vec3_t start{0,0,64},end{100,0,64};fractions={1,.75f,.25f,.25f};solidEntity=0;
   for(int presence:{PRESENCE_NORMAL,PRESENCE_CROUCH}){expectedPresence=presence;
    for(int pass:{0,1,2,3}){aas_trace_t out{};out.fraction=.875f;out.lastarea=77;visited.clear();

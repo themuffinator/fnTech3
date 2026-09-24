@@ -8,6 +8,7 @@ General Public License, version 2 or (at your option) any later version.
 */
 
 #include "game_manager.h"
+#include "q3_ihv_install.hpp"
 
 #include <cctype>
 #include <cstring>
@@ -29,7 +30,12 @@ const comGameTitle_t titles[] = {
 	{ COM_GAME_TITLE_QUAKELIVE, "quakelive", "Quake Live" },
 	{ COM_GAME_TITLE_RTCW, "rtcw", "Return to Castle Wolfenstein" },
 	{ COM_GAME_TITLE_WOLFET, "wolfet", "Wolfenstein: Enemy Territory" },
-	{ COM_GAME_TITLE_STVEF, "stvef", "Star Trek: Voyager - Elite Force" }
+	{ COM_GAME_TITLE_STVEF, "stvef", "Star Trek: Voyager - Elite Force" },
+	{ COM_GAME_TITLE_JKA, "jka", "Star Wars Jedi Knight: Jedi Academy" },
+	{ COM_GAME_TITLE_JK2, "jk2", "Star Wars Jedi Knight II: Jedi Outcast" },
+	/* One title, one mode: the key names the profile directly, and profile
+	 * lookup answers it before the mode question is ever asked. */
+	{ COM_GAME_TITLE_ALICE, "alice", "American McGee's Alice" }
 };
 
 /* One catalog owns title identity, aliases and startup contracts. RTCW facts
@@ -44,7 +50,7 @@ const comGameProfile_t profiles[] = { {
 	"pak0.pk3",
 	68,
 	68,
-	COM_PROTOCOL_FAMILY_LEGACY_QUAKE3 | COM_PROTOCOL_FAMILY_IOQUAKE3,
+	COM_PROTOCOL_FAMILY_LEGACY_QUAKE3 | COM_PROTOCOL_FAMILY_IOQUAKE3 | COM_PROTOCOL_FAMILY_Q3_POINT_RELEASES,
 	COM_MODULE_API_QVM | COM_MODULE_API_LEGACY_NATIVE,
 	COM_MODULE_API_QVM,
 	0,
@@ -59,7 +65,7 @@ const comGameProfile_t profiles[] = { {
 	nullptr,
 	nullptr,
 	nullptr,
-	64, 1024, 544, 256, COM_ENTITY_HULL_TRACE_SHAPE, "servercache.dat",
+	64, 1024, 544, 256, COM_ENTITY_HULL_TRACE_SHAPE, COM_ENTITY_BOX_CONTENTS_BODY, "servercache.dat",
 	{ "0", "20", "8", "8", nullptr, nullptr, 1, "1", 1 },
 	{ "1", "64", "1024", 1024, COM_BOT_AI_QUAKE, 1, 0, 0, 1, 64 },
 	COM_PURE_PROOF_QVM,
@@ -90,7 +96,7 @@ const comGameProfile_t profiles[] = { {
 	nullptr,
 	nullptr,
 	nullptr,
-	64, 1024, 544, 256, COM_ENTITY_HULL_TRACE_SHAPE, "servercache.dat",
+	64, 1024, 544, 256, COM_ENTITY_HULL_TRACE_SHAPE, COM_ENTITY_BOX_CONTENTS_BODY, "servercache.dat",
 	{ "0", "50", "8", "8", nullptr, nullptr, 1, "1", 1 },
 	{ "1", "64", "1024", 1024, COM_BOT_AI_QUAKE, 1, 0, 0, 1, 64 },
 	COM_PURE_PROOF_QL_NATIVE,
@@ -119,11 +125,13 @@ const comGameProfile_t profiles[] = { {
 	"sp_",
 	"mp_",
 	"RTCW SP module, wire, savegame and renderer adapters are not yet complete",
-	128, 2048, 544, 512, COM_ENTITY_HULL_ENTITY_FLAG, nullptr,
+	128, 2048, 544, 512, COM_ENTITY_HULL_ENTITY_FLAG, COM_ENTITY_BOX_CONTENTS_BODY, nullptr,
 	{ "0", "20", "8", "32", "1", "64", 1, "0", 0 },
 	{ "1", "128", "2048", 2048, COM_BOT_AI_MOVEMENT, 2, 1, 16384, 0, 256 },
 	COM_PURE_PROOF_UNAVAILABLE,
-	{ "bj2", "head", "default", nullptr, "color", nullptr, 0, 1 },
+	/* WolfSP.exe registers name as "Player". */
+	{ "bj2", "head", "default", nullptr, "color", nullptr, 0, 1,
+		nullptr, nullptr, nullptr, "Player" },
 	{ nullptr, "cinematic wolfintro.RoQ 3", 1 }
 }, {
 	COM_GAME_RTCW_MP,
@@ -148,11 +156,13 @@ const comGameProfile_t profiles[] = { {
 	"mp_",
 	"sp_",
 	"RTCW MP module, wire and renderer adapters are not yet complete",
-	64, 2048, 576, 512, COM_ENTITY_HULL_ENTITY_FLAG, "fntech3-rtcw-mp-servercache.dat",
+	64, 2048, 576, 512, COM_ENTITY_HULL_ENTITY_FLAG, COM_ENTITY_BOX_CONTENTS_ENTITY, "fntech3-rtcw-mp-servercache.dat",
 	{ "5", "0", "20", "32", "3", nullptr, 0, "1", 0 },
 	{ "0", "128", "1024", 1024, 0, 2, 1, 16384, 0, 256 },
 	COM_PURE_PROOF_RTCW_NATIVE,
-	{ "multi", "head", "default", nullptr, "color", nullptr, 0, 1 },
+	/* WolfMP.exe registers name as "WolfPlayer"; a fresh retail home joins as it. */
+	{ "multi", "head", "default", nullptr, "color", nullptr, 0, 1,
+		nullptr, nullptr, nullptr, "WolfPlayer" },
 	{ "cinematic gmlogo.RoQ", "cinematic wolfintro.RoQ", 0 }
 }, {
 	COM_GAME_WOLFET,
@@ -177,11 +187,18 @@ const comGameProfile_t profiles[] = { {
 	nullptr,
 	nullptr,
 	"Wolfenstein: Enemy Territory module, wire and renderer adapters are not yet complete",
-	64, 1024, 689, 512, COM_ENTITY_HULL_ENTITY_FLAG, "fntech3-wolfet-servercache.dat",
+	64, 1024, 689, 512, COM_ENTITY_HULL_ENTITY_FLAG, COM_ENTITY_BOX_CONTENTS_ENTITY, "fntech3-wolfet-servercache.dat",
 	{ "4", "0", "20", "20", nullptr, nullptr, 0, "1", 0 },
-	{ "0", "64", "1024", 1024, 0, 1, 1, 16384, 0, 256 },
+	/* ET sets up Quake III's four configured subsystems after AAS and actions:
+	 * etded.exe's Export_BotLibSetup (0x436ed0) loads weapons.c, items.c,
+	 * syn.c, rnd.c, match.c and rchat.c from botfiles and sets the movement
+	 * variables, and et.exe's (0x46c570) does the same. Its game
+	 * then loads each bot's item weights, weapon weights and chat file. */
+	{ "0", "64", "1024", 1024, COM_BOT_AI_QUAKE, 1, 1, 16384, 0, 256 },
 	COM_PURE_PROOF_WOLFET_NATIVE,
-	{ "multi", "head", "default", nullptr, "color", nullptr, 0, 1 },
+	/* et.exe registers name as "ETPlayer". */
+	{ "multi", "head", "default", nullptr, "color", nullptr, 0, 1,
+		nullptr, nullptr, nullptr, "ETPlayer" },
 	{ "cinematic etintro.roq", nullptr, 0 }
 }, {
 	/* Retail stvoy.exe 1.20 (2001-04-16): loopback protocol 40, efconfig.cfg,
@@ -209,7 +226,7 @@ const comGameProfile_t profiles[] = { {
 	nullptr,
 	nullptr,
 	"Elite Force SP module, savegame, cinematic and renderer adapters are not yet complete",
-	1, 1024, 522, 256, COM_ENTITY_HULL_TRACE_SHAPE, nullptr,
+	1, 1024, 522, 256, COM_ENTITY_HULL_TRACE_SHAPE, COM_ENTITY_BOX_CONTENTS_BODY, nullptr,
 	{ "0", "0", "1", "1", nullptr, nullptr, 0, "0", 0 },
 	{ "0", "1", "1024", 1024, 0, 1, 0, 0, 0, 64 },
 	COM_PURE_PROOF_UNAVAILABLE,
@@ -241,13 +258,265 @@ const comGameProfile_t profiles[] = { {
 	nullptr,
 	nullptr,
 	"Elite Force Holomatch module, wire and renderer adapters are not yet complete",
-	64, 1024, 544, 256, COM_ENTITY_HULL_TRACE_SHAPE, "fntech3-stvef-servercache.dat",
+	64, 1024, 544, 256, COM_ENTITY_HULL_TRACE_SHAPE, COM_ENTITY_BOX_CONTENTS_BODY, "fntech3-stvef-servercache.dat",
 	{ "0", "20", "8", "8", nullptr, nullptr, 1, "1", 1 },
 	{ "1", "64", "1024", 1024, COM_BOT_AI_QUAKE, 1, 0, 0, 1, 64 },
 	COM_PURE_PROOF_QVM,
 	{ "munro/red", nullptr, nullptr, nullptr, "color", nullptr, 0, 1,
 		nullptr, nullptr, nullptr, "RedShirt" },
 	{ nullptr, nullptr, 0 }
+}, {
+	/* February 1999 IHV: independent native API 4, protocol 33 and BSP43.
+	 * This shares Q3's title identity, not its installation or active ABI. */
+	COM_GAME_QUAKE3_IHV,
+	"q3-ihv",
+	"Quake III Arena (IHV Test)",
+	"baseq3",
+	nullptr,
+	33,
+	33,
+	COM_PROTOCOL_FAMILY_QUAKE3_IHV,
+	COM_MODULE_API_QUAKE3_IHV_NATIVE,
+	COM_MODULE_API_QUAKE3_IHV_NATIVE,
+	0, 0, nullptr, nullptr,
+	COM_GAME_TITLE_QUAKE3,
+	COM_GAME_MARKER_QUAKE3_IHV,
+	{ "quake3-ihv", "q3ihv", "ihv", nullptr },
+	"q3config.cfg",
+	"q3config_server.cfg",
+	nullptr, nullptr,
+	"IHV native game/client, transport and playback integration is not yet complete",
+	// Original SV startup clamps sv_maxclients to 1..256 (default 8).
+	// Native game maxclients is separate and is capped by maxentities / 8.
+	256, 1024, 544, 256, COM_ENTITY_HULL_TRACE_SHAPE, COM_ENTITY_BOX_CONTENTS_BODY, nullptr,
+	{ "0", "0", "8", "8", nullptr, nullptr, 1, "0", 0 },
+	// Navigation and bot AI belong to the native game, not the retail AAS library.
+	{ "0", "8", "1024", 1024, 0, 0, 0, 0, 0, 0 },
+	COM_PURE_PROOF_UNAVAILABLE,
+	{ "xian", nullptr, nullptr, nullptr, nullptr, nullptr, 0, 1,
+		nullptr, nullptr, nullptr, "Player" },
+	{ nullptr, nullptr, 0 }
+}, {
+	/* Retail jasp.exe: loopback protocol 40, jaconfig.cfg, and one
+	 * base/jagamex86.dll holding both the game and the client game. Jedi
+	 * Academy's single player has no separate menu module and no bot library.
+	 * See docs/fntech3/2026-09-21-jka-contracts.md. */
+	COM_GAME_JKA_SP,
+	"jka-sp",
+	"Star Wars Jedi Knight: Jedi Academy (Single Player)",
+	"base",
+	"assets2.pk3",
+	40,
+	40,
+	COM_PROTOCOL_FAMILY_JKA_SP,
+	COM_MODULE_API_JKA_SP_NATIVE,
+	COM_MODULE_API_JKA_SP_NATIVE,
+	0,
+	0,
+	nullptr,
+	nullptr,
+	COM_GAME_TITLE_JKA,
+	COM_GAME_MARKER_JKA_SP,
+	{ "jasp", "jediacademy-sp", "jedi-academy-sp", nullptr },
+	"jaconfig.cfg",
+	"jaconfig_server.cfg",
+	nullptr,
+	nullptr,
+	"Jedi Academy single-player module, wire, savegame, asset and renderer adapters are not yet complete",
+	1, 1300, 743, 512, COM_ENTITY_HULL_TRACE_SHAPE, COM_ENTITY_BOX_CONTENTS_BODY, nullptr,
+	{ "0", "0", "1", "1", nullptr, nullptr, 0, "0", 0 },
+	{ "0", "1", "1024", 1024, 0, 0, 0, 0, 0, 64 },
+	COM_PURE_PROOF_UNAVAILABLE,
+	/* Retail single player publishes no model key: its player is chosen from
+	 * the menus and carried in the savegame. Only the name is an engine
+	 * default here; sex, sound set and handicap belong to the SP client. */
+	{ nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 0, 1,
+		nullptr, nullptr, nullptr, "Jaden" },
+	{ nullptr, nullptr, 0 },
+	"assets"
+}, {
+	/* Retail jamp.exe: protocol 26 with native modules only -- Raven shipped
+	 * no QVM for Jedi Academy -- and jampconfig.cfg. Its game types are not
+	 * Quake III's numbers, and its 1,700 configstrings put the players at
+	 * 1,131. See docs/fntech3/2026-09-21-jka-contracts.md. */
+	COM_GAME_JKA_MP,
+	"jka-mp",
+	"Star Wars Jedi Knight: Jedi Academy (Multiplayer)",
+	"base",
+	"assets2.pk3",
+	26,
+	26,
+	COM_PROTOCOL_FAMILY_JKA_MP,
+	COM_MODULE_API_LEGACY_NATIVE,
+	COM_MODULE_API_LEGACY_NATIVE,
+	0,
+	0,
+	nullptr,
+	nullptr,
+	COM_GAME_TITLE_JKA,
+	COM_GAME_MARKER_JKA_MP,
+	{ "jamp", "jediacademy-mp", "jedi-academy-mp", nullptr },
+	"jampconfig.cfg",
+	"jampconfig_server.cfg",
+	nullptr,
+	nullptr,
+	"Jedi Academy multiplayer module, wire, asset and renderer adapters are not yet complete",
+	32, 1700, 1131, 512, COM_ENTITY_HULL_TRACE_SHAPE, COM_ENTITY_BOX_CONTENTS_BODY, "fntech3-jka-mp-servercache.dat",
+	{ "0", "20", "8", "8", nullptr, nullptr, 1, "0", 0 },
+	/* Academy carries bots but not Quake III's configured AI. Measured from
+	 * the retail module: it has a call thunk for 150 of the 796 imports and
+	 * not one is in the AAS block at 300-318, so it never routes on area
+	 * awareness; and the installation ships botfiles/*.jkb and bots.txt but
+	 * none of Quake III's items.c, weapons.c, syn.c, rnd.c or match.c, so
+	 * none of the four configured subsystems has a file to read. It does
+	 * allocate goal, move and weapon states and drives them through the
+	 * elementary-action block, which is what is left once the configuration
+	 * is taken away. */
+	{ "1", "32", "1024", 1024, 0, 1, 0, 16384, 0, 128 },
+	COM_PURE_PROOF_JKA_NATIVE,
+	{ "kyle/default", nullptr, nullptr, nullptr, "color1", "4", 0, 1,
+		nullptr, nullptr, nullptr, "Padawan" },
+	{ nullptr, nullptr, 0 },
+	"assets"
+}, {
+	/* Retail jk2sp.exe 1.02a: loopback protocol 40 and jk2config.cfg, with one
+	 * jk2gamex86.dll in the installation root holding the game and the client
+	 * game, as Jedi Academy's single player does. Its 1,024 configstrings and
+	 * 512 submodels are the engine's own bounds checks.
+	 * See docs/fntech3/2026-09-22-jk2-contracts.md. */
+	COM_GAME_JK2_SP,
+	"jk2-sp",
+	"Star Wars Jedi Knight II: Jedi Outcast (Single Player)",
+	"base",
+	"assets0.pk3",
+	40,
+	40,
+	COM_PROTOCOL_FAMILY_JK2_SP,
+	COM_MODULE_API_JK2_SP_NATIVE,
+	COM_MODULE_API_JK2_SP_NATIVE,
+	0,
+	0,
+	nullptr,
+	nullptr,
+	COM_GAME_TITLE_JK2,
+	COM_GAME_MARKER_JK2_SP,
+	{ "jk2sp", "jedioutcast-sp", "jedi-outcast-sp", nullptr },
+	"jk2config.cfg",
+	"jk2config_server.cfg",
+	nullptr,
+	nullptr,
+	"Jedi Outcast single-player module, wire, savegame, asset and renderer adapters are not yet complete",
+	1, 1024, 0, 512, COM_ENTITY_HULL_TRACE_SHAPE, COM_ENTITY_BOX_CONTENTS_BODY, nullptr,
+	{ "0", "0", "1", "1", nullptr, nullptr, 0, "0", 0 },
+	{ "0", "1", "1024", 1024, 0, 0, 0, 0, 0, 64 },
+	COM_PURE_PROOF_UNAVAILABLE,
+	/* Single player publishes no model key, as Jedi Academy's does not. Its
+	 * player name default is not pinned, so none is claimed. */
+	{ nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 0, 1,
+		nullptr, nullptr, nullptr, nullptr },
+	{ nullptr, nullptr, 0 },
+	"assets"
+}, {
+	/* Retail jk2mp.exe 1.02a: protocol 15 and jk2mpconfig.cfg. Unlike Jedi
+	 * Academy, its three modules are QVMs, shipped as vm/jk2mpgame.qvm,
+	 * vm/cgame.qvm and vm/ui.qvm inside assets0.pk3, so its module boundary is
+	 * the interpreter fnTech3 already has. Its 1,400 configstrings, 256
+	 * submodels and 32-client clamp are the engine's own.
+	 * See docs/fntech3/2026-09-22-jk2-contracts.md. */
+	COM_GAME_JK2_MP,
+	"jk2-mp",
+	"Star Wars Jedi Knight II: Jedi Outcast (Multiplayer)",
+	"base",
+	"assets0.pk3",
+	15,
+	15,
+	COM_PROTOCOL_FAMILY_JK2_MP,
+	COM_MODULE_API_QVM,
+	COM_MODULE_API_QVM,
+	0,
+	0,
+	nullptr,
+	nullptr,
+	COM_GAME_TITLE_JK2,
+	COM_GAME_MARKER_JK2_MP,
+	{ "jk2mp", "jedioutcast-mp", "jedi-outcast-mp", nullptr },
+	"jk2mpconfig.cfg",
+	"jk2mpconfig_server.cfg",
+	nullptr,
+	nullptr,
+	"Jedi Outcast multiplayer module, wire, asset and renderer adapters are not yet complete",
+	32, 1400, 0, 256, COM_ENTITY_HULL_TRACE_SHAPE, COM_ENTITY_BOX_CONTENTS_BODY, "fntech3-jk2-mp-servercache.dat",
+	{ "0", "20", "8", "8", nullptr, nullptr, 1, "0", 0 },
+	/* jk2mp.exe carries Quake III's bot library whole: bot_enable defaults to
+	 * 1 and bot_minplayers to 0 in its own registrations, and it reads .aas
+	 * navigation beside the botfiles the installation ships. */
+	/* Outcast carries bots and, like Academy, not Quake III's configured AI.
+	 * Its installation ships botfiles/*.jkb and bots.txt -- Raven's own bot
+	 * characters -- and none of Quake III's items.c, weapons.c, syn.c, rnd.c
+	 * or match.c, so none of the four subsystems has a file to read, and no
+	 * map in it has an .aas file, so area awareness has nothing to load. Its
+	 * module asks for the state machinery and the elementary-action block,
+	 * which is what is left once the configuration is taken away. */
+	{ "1", "32", "1024", 1024, 0, 1, 0, 16384, 0, 128 },
+	COM_PURE_PROOF_QVM,
+	/* Multiplayer's userinfo defaults are not pinned, so none is claimed. */
+	{ nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 0, 1,
+		nullptr, nullptr, nullptr, nullptr },
+	{ nullptr, nullptr, 0 },
+	"assets"
+}, {
+	/* Retail alice.exe: protocol 1, config.cfg, and two libraries in base/
+	 * rather than one -- fgamex86.dll for the game and cgamex86.dll for the
+	 * client game -- each exporting its own function-table entry point. The
+	 * menus are the engine's own .urc resources, so no UI module is loaded.
+	 * Alice is a Ritual F.A.K.K.2-lineage engine, not a Quake III one: its
+	 * maps are FAKK 42, its models TIKI, and its demos a fixed .dm3.
+	 * See docs/fntech3/2026-09-22-alice-contracts.md. */
+	COM_GAME_ALICE,
+	"alice",
+	"American McGee's Alice",
+	"base",
+	"pak0.pk3",
+	1,
+	1,
+	COM_PROTOCOL_FAMILY_ALICE,
+	COM_MODULE_API_ALICE_NATIVE,
+	COM_MODULE_API_ALICE_NATIVE,
+	0,
+	0,
+	nullptr,
+	nullptr,
+	COM_GAME_TITLE_ALICE,
+	COM_GAME_MARKER_ALICE,
+	{ "americanmcgeesalice", "mcgee-alice", "alice2000", nullptr },
+	"config.cfg",
+	"config_server.cfg",
+	nullptr,
+	nullptr,
+	"Alice module, wire, savegame, asset and renderer adapters are not yet complete",
+	/* sv_maxclients clamps to 128 in retail; MAX_CONFIGSTRINGS is 1,328 and
+	 * MAX_SUBMODELS 512, both read from the engine's own bounds checks. The
+	 * configstring index the players start at is not pinned yet. */
+	128, 1328, 0, 512, COM_ENTITY_HULL_TRACE_SHAPE, COM_ENTITY_BOX_CONTENTS_BODY, nullptr,
+	/* Retail's SV_Init registers sv_maxclients at "1", SERVERINFO and
+	 * LATCH (0x0045566b..0x0045567c), and that first registration is the
+	 * default: the "8" SV_BoundMaxClients passes (0x00454e0c) applies only to
+	 * a cvar not yet registered. loadgame refuses above one. Retail has no
+	 * spmap: its only map commands are map, gamemap and devmap, so the
+	 * single-player command leaves the slot count where the profile puts it. */
+	{ "0", "20", "1", "1", nullptr, nullptr, 1, "0", 0 },
+	/* Ritual's engine carries no Quake bot library: it has no bot_enable,
+	 * no .aas navigation and no botfiles in any retail pak. */
+	{ "0", "1", "1024", 1024, 0, 0, 0, 0, 0, 128 },
+	COM_PURE_PROOF_UNAVAILABLE,
+	/* Retail registers name as UnnamedPlayer, which is the engine default a
+	 * NULL here already means; its own default.cfg then setas it to "Player".
+	 * Alice's player is the game's own character, so no model, head or
+	 * colour key is published. */
+	{ nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 0, 1,
+		nullptr, nullptr, nullptr, nullptr },
+	{ nullptr, nullptr, 0 },
+	nullptr
 } };
 
 static_assert( sizeof( profiles ) / sizeof( profiles[0] ) == COM_GAME_COUNT - 1,
@@ -278,6 +547,27 @@ bool EqualsIgnoreCase( const char *left, const char *right )
 
 bool RuntimeBlocked( const comGameProfile_t *profile )
 {
+#if defined(FNTECH3_Q3_IHV_DEVELOPMENT) && defined(DEDICATED) && defined(_WIN32) && (defined(_M_IX86) || defined(__i386__))
+	if ( profile && profile->id == COM_GAME_QUAKE3_IHV ) return false;
+#endif
+#if defined( FNTECH3_JKA_DEVELOPMENT )
+	/* Developer builds exercise Jedi Academy's single-player and multiplayer
+	 * adapters with the retail modules. Neither mode's release gate moves. */
+	if ( profile && profile->titleId == COM_GAME_TITLE_JKA ) return false;
+#endif
+#if defined( FNTECH3_JK2_DEVELOPMENT )
+	/* The same for Jedi Outcast, whose two modes share this title's formats
+	 * and differ from Jedi Academy chiefly in shipping QVMs. */
+	if ( profile && profile->titleId == COM_GAME_TITLE_JK2 ) return false;
+#endif
+#if defined( FNTECH3_ALICE_DEVELOPMENT )
+	/* The same for Alice, whose engine lineage differs from every other
+	 * profile's. A developer server now loads a retail level and runs its
+	 * frame loop, but 25 of the game's 111 imports are still unserved, no
+	 * client can connect and nothing is rendered, so the release gate below
+	 * does not move. */
+	if ( profile && profile->titleId == COM_GAME_TITLE_ALICE ) return false;
+#endif
 #if defined( FNTECH3_STVEF_DEVELOPMENT )
 	/* Developer builds exercise Elite Force's SP and Holomatch adapters with
 	 * the retail modules. Neither mode's release gate is lifted by this. */
@@ -332,7 +622,8 @@ comGameDetectionResult_t DetectCandidate( unsigned markers,
 		if ( !( markers & profile.installMarker ) ) continue;
 		if ( candidate ) {
 			multiple = true;
-			mixedTitles |= candidate->titleId != profile.titleId;
+			mixedTitles |= candidate->titleId != profile.titleId
+				|| candidate->titleId == COM_GAME_TITLE_QUAKE3;
 		}
 		candidate = &profile;
 	}
@@ -369,11 +660,14 @@ unsigned LE16( const unsigned char *p )
 	return p[0] | (unsigned( p[1] ) << 8);
 }
 
+/* A pak is named by its default.cfg and one companion file, usually a map.
+ * Jedi Academy keeps its maps in a different pak from its configuration, so
+ * its companion is the multiplayer configuration beside it. */
 struct PakIdentity {
 	unsigned marker;
 	std::uint32_t configSize, configCrc;
-	const char *map;
-	std::uint32_t mapSize, mapCrc;
+	const char *companion;
+	std::uint32_t companionSize, companionCrc;
 };
 
 const PakIdentity pakIdentities[] = {
@@ -393,7 +687,26 @@ const PakIdentity pakIdentities[] = {
 	{ COM_GAME_MARKER_STVEF_SP, 2330, 0xd7ab74a1u,
 		"maps/borg1.bsp", 8142016, 0x4e7d14d6u },
 	{ COM_GAME_MARKER_STVEF_MP, 2330, 0xd7ab74a1u,
-		"maps/borg1.bsp", 8142016, 0x4e7d14d6u }
+		"maps/borg1.bsp", 8142016, 0x4e7d14d6u },
+	// Retail Jedi Academy keeps both configurations in base/assets2.pk3 and
+	// its maps in assets0.pk3, so the two configurations name the pak. One
+	// installation carries both modes, as Elite Force's does.
+	{ COM_GAME_MARKER_JKA_SP, 2178, 0xfb11a25bu,
+		"mpdefault.cfg", 2845, 0x4999454au },
+	{ COM_GAME_MARKER_JKA_MP, 2178, 0xfb11a25bu,
+		"mpdefault.cfg", 2845, 0x4999454au },
+	// Retail Jedi Outcast 1.02a keeps both configurations in base/assets0.pk3,
+	// alongside its maps and its three multiplayer QVMs. One installation
+	// carries both modes here as well.
+	{ COM_GAME_MARKER_JK2_SP, 3048, 0xf62886cau,
+		"mpdefault.cfg", 3442, 0x5c12b170u },
+	{ COM_GAME_MARKER_JK2_MP, 3048, 0xf62886cau,
+		"mpdefault.cfg", 3442, 0x5c12b170u },
+	// Retail Alice keeps default.cfg at the root of base/pak0.pk3 and its
+	// thirty-six maps beside it. garden1 is the first level the campaign
+	// reaches and appears in no other supported title's paks.
+	{ COM_GAME_MARKER_ALICE, 1322, 0x3781148bu,
+		"maps/garden1.bsp", 6323368, 0xcb85fdaeu }
 };
 
 std::uint32_t LE32( const unsigned char *p )
@@ -446,8 +759,8 @@ bool RecognizedPak( const std::filesystem::path &path, unsigned expected )
 	std::vector<unsigned char> directory( bytes );
 	file.seekg( offset );
 	if ( !file.read( reinterpret_cast<char *>( directory.data() ), bytes ) ) return false;
-	unsigned defaultSeen = 0, mapSeen = 0;
-	bool defaultMatches = false, mapMatches = false, foreignMapSeen = false;
+	unsigned defaultSeen = 0, companionSeen = 0;
+	bool defaultMatches = false, companionMatches = false, foreignMapSeen = false;
 	std::size_t pos = 0;
 	for ( unsigned i = 0; i < count; ++i ) {
 		if ( bytes - pos < 46 ) return false;
@@ -465,18 +778,19 @@ bool RecognizedPak( const std::filesystem::path &path, unsigned expected )
 		if ( name == "default.cfg" ) {
 			++defaultSeen;
 			defaultMatches = length == identity->configSize && crc == identity->configCrc;
-		} else if ( name == identity->map ) {
-			++mapSeen;
-			mapMatches = length == identity->mapSize && crc == identity->mapCrc;
+		} else if ( name == identity->companion ) {
+			++companionSeen;
+			companionMatches = length == identity->companionSize
+				&& crc == identity->companionCrc;
 		} else {
 			for ( const auto &other : pakIdentities ) {
-				if ( name == other.map ) foreignMapSeen = true;
+				if ( name == other.companion ) foreignMapSeen = true;
 			}
 		}
 		pos += recordSize;
 	}
 	return pos == bytes && defaultSeen == 1 && defaultMatches
-		&& mapSeen == 1 && mapMatches && !foreignMapSeen;
+		&& companionSeen == 1 && companionMatches && !foreignMapSeen;
 }
 
 } // namespace
@@ -557,6 +871,8 @@ comGameBspFormat_t Com_GameManagerBspFormat( const comGameProfile_t *profile,
 {
 	if ( !profile || Com_GameProfileById( profile->id ) != profile )
 		return COM_GAME_BSP_UNSUPPORTED;
+	if ( profile->id == COM_GAME_QUAKE3_IHV )
+		return version == 43 ? COM_GAME_BSP_QUAKE3_IHV : COM_GAME_BSP_UNSUPPORTED;
 	if ( profile->titleId == COM_GAME_TITLE_RTCW )
 		return version == 47 ? COM_GAME_BSP_RTCW : COM_GAME_BSP_UNSUPPORTED;
 	if ( profile->titleId == COM_GAME_TITLE_WOLFET )
@@ -565,6 +881,14 @@ comGameBspFormat_t Com_GameManagerBspFormat( const comGameProfile_t *profile,
 	 * Raven's changes are surface/content flag meanings owned by the modules. */
 	if ( profile->titleId == COM_GAME_TITLE_STVEF )
 		return version == 46 ? COM_GAME_BSP_QUAKE3 : COM_GAME_BSP_UNSUPPORTED;
+	/* Both Raven titles read only their own "RBSP" 1 maps, whose ident the
+	 * caller checks separately: an IBSP 46 map is not one of theirs. */
+	if ( profile->titleId == COM_GAME_TITLE_JKA || profile->titleId == COM_GAME_TITLE_JK2 )
+		return version == 1 ? COM_GAME_BSP_RBSP : COM_GAME_BSP_UNSUPPORTED;
+	/* Every retail Alice map is "FAKK" 42; the ident is checked separately,
+	 * because F.A.K.K.2's own 12 and Medal of Honor's share that ident. */
+	if ( profile->titleId == COM_GAME_TITLE_ALICE )
+		return version == 42 ? COM_GAME_BSP_FAKK : COM_GAME_BSP_UNSUPPORTED;
 	if ( profile->titleId != COM_GAME_TITLE_QUAKE3 && profile->titleId != COM_GAME_TITLE_QUAKELIVE )
 		return COM_GAME_BSP_UNSUPPORTED;
 	/* Preserve the existing Q3/QL asset set, including IHV translation. RTCW's
@@ -656,6 +980,12 @@ int Com_GameManagerIsConfigFile( const char *filename )
 	if ( EqualsIgnoreCase( filename, "autoexec.cfg" )
 		|| EqualsIgnoreCase( filename, "repconfig.cfg" ) ) return 1;
 	for ( const auto &profile : profiles ) {
+		/* Every other profile's configuration is named after its own title, so
+		 * banning all of them from every pak costs nothing. Alice's retail name
+		 * is the generic config.cfg, and banning that everywhere would silently
+		 * hide a file another game's pak may legitimately carry, so Alice's two
+		 * names are protected only while Alice is the selected profile. */
+		if ( profile.titleId == COM_GAME_TITLE_ALICE && activeProfile != &profile ) continue;
 		if ( EqualsIgnoreCase( filename, profile.clientConfig )
 			|| EqualsIgnoreCase( filename, profile.serverConfig ) ) return 1;
 	}
@@ -679,6 +1009,59 @@ int Com_GameManagerNativeModuleFilename( const comGameProfile_t *profile,
 	const bool windows = !std::strcmp( extension, ".dll" );
 	if ( !windows && std::strcmp( extension, ".so" )
 		&& std::strcmp( extension, ".dylib" ) ) return 0;
+	if ( profile->id == COM_GAME_QUAKE3_IHV ) {
+		// The supplied IHV build has two Win32 x86 function-table libraries
+		// and no separate UI module.
+		if ( candidate || !windows || std::strcmp( architecture, "x86" )
+			|| !std::strcmp( module, "ui" ) ) return 0;
+		const char *leaf = !std::strcmp( module, "qagame" ) ? "qagamex86.dll" : "cgamex86.dll";
+		const auto length = std::strlen( leaf ); if ( length >= capacity ) return 0;
+		std::memcpy( destination, leaf, length + 1 ); return 1;
+	}
+	if ( profile->titleId == COM_GAME_TITLE_JKA ) {
+		/* Raven shipped Win32 x86 modules only. Single player loads one
+		 * jagamex86.dll, beside jasp.exe in the installation root, for both
+		 * its game and its client game, and has no menu module. Multiplayer's
+		 * three modules ship inside base/assets2.pk3 and assets3.pk3, so they
+		 * are read through the filesystem like any other pak member. */
+		if ( candidate || !windows || std::strcmp( architecture, "x86" ) ) return 0;
+		const bool singlePlayer = profile->id == COM_GAME_JKA_SP;
+		if ( singlePlayer && !std::strcmp( module, "ui" ) ) return 0;
+		const char *leaf;
+		if ( !std::strcmp( module, "ui" ) ) leaf = "uix86.dll";
+		else if ( !std::strcmp( module, "cgame" ) ) leaf = singlePlayer ? "jagamex86.dll" : "cgamex86.dll";
+		else leaf = singlePlayer ? "jagamex86.dll" : "jampgamex86.dll";
+		const auto length = std::strlen( leaf );
+		if ( length >= capacity ) return 0;
+		std::memcpy( destination, leaf, length + 1 );
+		return 1;
+	}
+	if ( profile->id == COM_GAME_JK2_SP ) {
+		/* Retail jk2sp.exe loads one jk2gamex86.dll from the installation root
+		 * for both its game and its client game, as Jedi Academy's single
+		 * player does, and has no menu module of its own. Its multiplayer is
+		 * not here at all: Raven shipped that as QVMs inside assets0.pk3. */
+		if ( candidate || !windows || std::strcmp( architecture, "x86" ) ) return 0;
+		if ( !std::strcmp( module, "ui" ) ) return 0;
+		const char *leaf = "jk2gamex86.dll";
+		const auto length = std::strlen( leaf );
+		if ( length >= capacity ) return 0;
+		std::memcpy( destination, leaf, length + 1 );
+		return 1;
+	}
+	if ( profile->titleId == COM_GAME_TITLE_ALICE ) {
+		/* Ritual shipped Win32 x86 libraries only, and both sit in base/
+		 * beside the paks rather than in the installation root. The game is
+		 * fgamex86.dll, not a qagame; the client game keeps Quake III's
+		 * cgamex86.dll name but exports GetCGameAPI instead of vmMain. */
+		if ( candidate || !windows || std::strcmp( architecture, "x86" )
+			|| !std::strcmp( module, "ui" ) ) return 0;
+		const char *leaf = std::strcmp( module, "cgame" ) ? "fgamex86.dll" : "cgamex86.dll";
+		const auto length = std::strlen( leaf );
+		if ( length >= capacity ) return 0;
+		std::memcpy( destination, leaf, length + 1 );
+		return 1;
+	}
 	if ( profile->id == COM_GAME_STVEF_SP ) {
 		/* Retail stvoy.exe loads the game and cgame from one efgamex86.dll and
 		 * the menus from efuix86.dll. Raven shipped only Win32 x86 modules. */
@@ -734,6 +1117,7 @@ int Com_GameManagerPureModuleFilename( const comGameProfile_t *profile,
 		break;
 	case COM_PURE_PROOF_RTCW_NATIVE:
 	case COM_PURE_PROOF_WOLFET_NATIVE:
+	case COM_PURE_PROOF_JKA_NATIVE:
 		if ( slot > 1 ) return 0;
 		return Com_GameManagerNativeModuleFilename( profile, slot ? "ui" : "cgame",
 			architecture, extension, 0, destination, capacity );
@@ -750,9 +1134,13 @@ int Com_GameManagerNativeModuleCandidate( const comGameProfile_t *profile,
 	unsigned candidate, char *destination, unsigned capacity, int *installationRoot )
 {
 	if ( !installationRoot ) return 0;
-	if ( profile && profile == Com_GameProfileById( COM_GAME_STVEF_SP ) ) {
-		/* The retail SP engine never reads its modules from paks or mod
-		 * directories; they are installed beside stvoy.exe. */
+	if ( profile && ( profile == Com_GameProfileById( COM_GAME_STVEF_SP )
+		|| profile == Com_GameProfileById( COM_GAME_JKA_SP )
+		|| profile == Com_GameProfileById( COM_GAME_JK2_SP )
+		|| profile == Com_GameProfileById( COM_GAME_QUAKE3_IHV ) ) ) {
+		/* These single-player engines never read their modules from paks or
+		 * mod directories; they are installed beside the executable, where a
+		 * retail Jedi Academy keeps jagamex86.dll beside jasp.exe. */
 		if ( !Com_GameManagerNativeModuleFilename( profile, module, architecture,
 			extension, candidate, destination, capacity ) ) return 0;
 		*installationRoot = 1;
@@ -770,7 +1158,10 @@ int Com_GameManagerResolveRootModule( const comGameProfile_t *profile,
 	const char *extension, char *destination, unsigned capacity )
 {
 	if ( !profile || ( profile != Com_GameProfileById( COM_GAME_RTCW_SP )
-			&& profile != Com_GameProfileById( COM_GAME_STVEF_SP ) )
+			&& profile != Com_GameProfileById( COM_GAME_STVEF_SP )
+			&& profile != Com_GameProfileById( COM_GAME_JKA_SP )
+			&& profile != Com_GameProfileById( COM_GAME_JK2_SP )
+			&& profile != Com_GameProfileById( COM_GAME_QUAKE3_IHV ) )
 		|| !root || !root[0] || !filename || !destination || !capacity ) return 0;
 	bool known = false;
 	for ( const char *module : { "cgame", "qagame", "ui" } ) {
@@ -800,6 +1191,8 @@ int Com_GameManagerInstallationMatches( const comGameProfile_t *profile,
 	unsigned markers )
 {
 	if ( !profile || !( markers & profile->installMarker ) ) return 0;
+	// Retail Q3 and IHV use separate installations even though they share a title.
+	if ( profile->titleId == COM_GAME_TITLE_QUAKE3 ) return markers == profile->installMarker;
 	unsigned titleMarkers = 0;
 	for ( const auto &candidate : profiles ) {
 		if ( candidate.titleId == profile->titleId ) titleMarkers |= candidate.installMarker;
@@ -897,12 +1290,14 @@ unsigned Com_ProbeGameProfileMarkers( const char *rootPath )
 	try {
 		const auto root = std::filesystem::u8path( rootPath );
 		for ( const auto &profile : profiles ) {
+			if ( !profile.basePakName ) continue;
 			const auto pak = root / profile.baseGame / profile.basePakName;
 			if ( IsRegularFile( pak ) ) {
 				markers |= RecognizedPak( pak, profile.installMarker )
 					? profile.installMarker : COM_GAME_MARKER_UNRECOGNIZED_PAK;
 			}
 		}
+		if ( fntech3::q3ihv::install::Recognizes( root ) ) markers |= COM_GAME_MARKER_QUAKE3_IHV;
 	} catch ( const std::system_error & ) {
 		// Windows path conversion can fail before the error-code filesystem
 		// queries below. An unrepresentable candidate supplies no evidence;
@@ -989,6 +1384,11 @@ int Com_GameIsQuake3( void )
 	return activeProfile && activeProfile->id == COM_GAME_QUAKE3;
 }
 
+int Com_GameIsQuake3IHV( void )
+{
+	return activeProfile && activeProfile->id == COM_GAME_QUAKE3_IHV;
+}
+
 int Com_GameIsQuakeLive( void )
 {
 	return activeProfile && activeProfile->id == COM_GAME_QUAKELIVE;
@@ -1029,22 +1429,71 @@ int Com_GameIsSTVEFMP( void )
 	return activeProfile && activeProfile->id == COM_GAME_STVEF_MP;
 }
 
+int Com_GameIsJKA( void )
+{
+	return activeProfile && activeProfile->titleId == COM_GAME_TITLE_JKA;
+}
+
+int Com_GameIsJKASP( void )
+{
+	return activeProfile && activeProfile->id == COM_GAME_JKA_SP;
+}
+
+int Com_GameIsJKAMP( void )
+{
+	return activeProfile && activeProfile->id == COM_GAME_JKA_MP;
+}
+
+int Com_GameIsJK2( void )
+{
+	return activeProfile && activeProfile->titleId == COM_GAME_TITLE_JK2;
+}
+
+int Com_GameIsJK2SP( void )
+{
+	return activeProfile && activeProfile->id == COM_GAME_JK2_SP;
+}
+
+int Com_GameIsJK2MP( void )
+{
+	return activeProfile && activeProfile->id == COM_GAME_JK2_MP;
+}
+
+int Com_GameIsAlice( void )
+{
+	return activeProfile && activeProfile->titleId == COM_GAME_TITLE_ALICE;
+}
+
 int Com_PureProofIsNativeModulePair( const comGameProfile_t *profile )
 {
 	return profile && ( profile->pureProof == COM_PURE_PROOF_RTCW_NATIVE
-		|| profile->pureProof == COM_PURE_PROOF_WOLFET_NATIVE );
+		|| profile->pureProof == COM_PURE_PROOF_WOLFET_NATIVE
+		|| profile->pureProof == COM_PURE_PROOF_JKA_NATIVE );
 }
 
 
 unsigned Com_ProtocolFamilyForVersion( int protocol )
 {
 	switch ( protocol ) {
+		case 1:
+			return COM_PROTOCOL_FAMILY_ALICE;
+		case 33:
+			return COM_PROTOCOL_FAMILY_QUAKE3_IHV;
 		case 24:
 			return COM_PROTOCOL_FAMILY_STVEF_HM;
 		case 26:
-			return COM_PROTOCOL_FAMILY_IOEF;
+			/* ioEF and Jedi Academy multiplayer both speak 26, as Elite
+			 * Force's single player and Jedi Academy's both speak 40. A
+			 * version names every family that uses it; a profile admits
+			 * only the family it was registered with. */
+			return COM_PROTOCOL_FAMILY_IOEF | COM_PROTOCOL_FAMILY_JKA_MP;
+		case 15:
+			return COM_PROTOCOL_FAMILY_JK2_MP;
 		case 40:
-			return COM_PROTOCOL_FAMILY_STVEF_SP;
+			/* Three single players speak 40: Elite Force's, Jedi Academy's
+			 * and Jedi Outcast's. */
+			return COM_PROTOCOL_FAMILY_STVEF_SP | COM_PROTOCOL_FAMILY_JKA_SP
+				| COM_PROTOCOL_FAMILY_JK2_SP;
 		case 49:
 			return COM_PROTOCOL_FAMILY_RTCW_SP;
 		case 50:
@@ -1053,6 +1502,9 @@ unsigned Com_ProtocolFamilyForVersion( int protocol )
 			return COM_PROTOCOL_FAMILY_RTCW_MP;
 		case 61:
 			return COM_PROTOCOL_FAMILY_IORTCW_MP;
+		case 66:
+		case 67:
+			return COM_PROTOCOL_FAMILY_Q3_POINT_RELEASES;
 		case 68:
 			return COM_PROTOCOL_FAMILY_LEGACY_QUAKE3;
 		case 71:
@@ -1080,7 +1532,11 @@ int Com_GameProfileAllowsModuleApi( const comGameProfile_t *profile,
 	const unsigned knownApis = COM_MODULE_API_QVM
 		| COM_MODULE_API_LEGACY_NATIVE
 		| COM_MODULE_API_STRUCTURED_NATIVE
-		| COM_MODULE_API_STVEF_SP_NATIVE;
+		| COM_MODULE_API_STVEF_SP_NATIVE
+		| COM_MODULE_API_QUAKE3_IHV_NATIVE
+		| COM_MODULE_API_JKA_SP_NATIVE
+		| COM_MODULE_API_JK2_SP_NATIVE
+		| COM_MODULE_API_ALICE_NATIVE;
 	return profile && moduleApi != 0
 		&& ( moduleApi & ( moduleApi - 1 ) ) == 0
 		&& ( moduleApi & knownApis ) != 0
@@ -1103,7 +1559,7 @@ const char *Com_GameDetectionStatusName( comGameDetectionStatus_t status )
 		case COM_GAME_DETECTION_UNRECOGNIZED_PAK:
 			return "unrecognized base pak identity; verify the installation or select its profile explicitly";
 		case COM_GAME_DETECTION_MODE_REQUIRED:
-			return "choose the game mode explicitly with +set com_gameProfile rtcw-sp, rtcw-mp, stvef-sp or stvef-mp";
+			return "choose the game mode explicitly with +set com_gameProfile rtcw-sp, rtcw-mp, stvef-sp, stvef-mp, jka-sp, jka-mp, jk2-sp or jk2-mp";
 		case COM_GAME_DETECTION_INCOMPLETE_ENGINE:
 			return "the game is recognized, but its engine adapters are not yet complete; see docs/fntech3/COMPATIBILITY.md";
 		default:

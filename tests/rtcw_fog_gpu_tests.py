@@ -71,7 +71,9 @@ static struct{comGameId_t gameId;}ri;
 struct shaderStage_t{qboolean rtcwFog;unsigned stateBits;};
 struct shader_t{qboolean isSky,rtcwNoFog;};
 static struct{shader_t *shader;}tess;
-static struct{qboolean projection2D;struct{fnRTCWFogFrame_t rtcwFog;struct{qboolean snooperView;}rtcw;}refdef;}backEnd;
+static struct{qboolean projection2D;struct{fnRTCWFogFrame_t rtcwFog;struct{qboolean snooperView;}rtcw;}refdef;
+ struct{float aliceFarDistance;float aliceFarColor[3];qboolean aliceFarFog,aliceFarCull;}viewParms;}backEnd;
+static struct{float identityLight;}tr={1.0f};
 static qboolean rtcwRadialFogAvailable;
 static bool enabled;static int calls;static float fogColor[4],glslColor[4],glslParams[4];
 static std::map<int,float> parameters;
@@ -110,6 +112,28 @@ int main(){
   assert(parameters[GL_FOG_END]==(profile==COM_GAME_RTCW_SP?1110:110));
   shader.isSky=qtrue;RB_RTCWStageFog(&stage);assert(enabled&&glslColor[3]==2&&parameters[GL_FOG_DENSITY]==0.125f);
   backEnd.projection2D=qtrue;RB_RTCWStageFog(&stage);RB_RTCWFogToggle(qtrue);assert(!enabled&&glslColor[3]==0);
+ }
+ // American McGee's Alice's far plane: linear from the eye to the distance in
+ // its colour times identityLight; a sky only when the plane culls; no 2D.
+ ri.gameId=COM_GAME_ALICE;shader={};stage={};backEnd.projection2D=qfalse;rtcwRadialFogAvailable=qtrue;
+ RB_RTCWStageFog(&stage);assert(!enabled&&glslColor[3]==0&&!RB_RTCWHasFog());
+ backEnd.viewParms.aliceFarFog=qtrue;backEnd.viewParms.aliceFarDistance=1500;tr.identityLight=0.5f;
+ backEnd.viewParms.aliceFarColor[0]=0;backEnd.viewParms.aliceFarColor[1]=0.2f;backEnd.viewParms.aliceFarColor[2]=4;
+ parameters.clear();RB_RTCWStageFog(&stage);
+ assert(RB_RTCWHasFog()&&enabled&&glslColor[3]==1&&parameters[GL_FOG_MODE]==GL_LINEAR);
+ assert(parameters[GL_FOG_START]==0&&parameters[GL_FOG_END]==1500&&glslParams[3]==1);
+ assert(fogColor[0]==0&&fogColor[1]==0.1f&&fogColor[2]==1&&fogColor[3]==1);
+ stage.stateBits=GLS_SRCBLEND_ONE|GLS_DSTBLEND_ONE;RB_RTCWStageFog(&stage);
+ assert(enabled&&fogColor[1]==0&&fogColor[2]==0);stage={};
+ shader.isSky=qtrue;RB_RTCWStageFog(&stage);assert(!enabled);
+ backEnd.viewParms.aliceFarCull=qtrue;RB_RTCWStageFog(&stage);assert(enabled);shader.isSky=qfalse;
+ backEnd.projection2D=qtrue;RB_RTCWStageFog(&stage);assert(!enabled);backEnd.projection2D=qfalse;
+ backEnd.viewParms.aliceFarFog=qfalse;RB_RTCWStageFog(&stage);assert(!enabled&&!RB_RTCWHasFog());
+ RB_RTCWFogToggle(qfalse);assert(!enabled);
+ // The far-plane state is Alice's alone.
+ backEnd.viewParms.aliceFarFog=qtrue;
+ for(auto profile:{COM_GAME_QUAKE3,COM_GAME_QUAKELIVE}){
+  ri.gameId=profile;calls=0;RB_RTCWStageFog(&stage);RB_RTCWFogToggle(qfalse);assert(calls==0);
  }
 }
 '''

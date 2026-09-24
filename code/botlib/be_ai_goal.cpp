@@ -202,7 +202,7 @@ static libvar_t *droppedweight = nullptr;
 //========================================================================
 bot_goalstate_t *BotGoalStateFromHandle(int handle)
 {
-	if (handle <= 0 || handle > Com_GameProfile()->maxClients)
+	if (handle <= 0 || handle > BotLibClientCapacity())
 	{
 		botimport.Print(PRT_FATAL, "goal state handle %d out of range\n", handle);
 		return nullptr;
@@ -1902,7 +1902,7 @@ int BotAllocGoalState(int client)
 {
 	int i;
 
-	for (i = 1; i <= Com_GameProfile()->maxClients; i++)
+	for (i = 1; i <= BotLibClientCapacity(); i++)
 	{
 		if (!botgoalstates[i])
 		{
@@ -1921,7 +1921,7 @@ int BotAllocGoalState(int client)
 //========================================================================
 void BotFreeGoalState(int handle)
 {
-	if (handle <= 0 || handle > Com_GameProfile()->maxClients)
+	if (handle <= 0 || handle > BotLibClientCapacity())
 	{
 		botimport.Print(PRT_FATAL, "goal state handle %d out of range\n", handle);
 		return;
@@ -1981,7 +1981,7 @@ void BotShutdownGoalAI(void)
 
 	BotFreeInfoEntities();
 
-	for (i = 1; i <= Com_GameProfile()->maxClients; i++)
+	for (i = 1; i <= BotLibClientCapacity(); i++)
 	{
 		if (botgoalstates[i])
 		{

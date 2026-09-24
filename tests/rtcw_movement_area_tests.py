@@ -74,7 +74,7 @@ class RTCWMovementAreaTests(unittest.TestCase):
     def test_ground_movers_fuzzy_fall_disabled_areas_and_world_lifetime(self):
         self.run_source(r'''
 int main(){
- for(const auto &p:profiles){profile=&p;setup();geometry();vec3_t origin{5,7,500};
+ for(const auto &p:profiles){profile=&p;if(!p.bots.navigationWorlds)continue;setup();geometry();vec3_t origin{5,7,500};
   ground.ent=ENTITYNUM_WORLD;assert(BotReachabilityArea(origin,-1)==2);
   ground.ent=ENTITYNUM_NONE;assert(BotReachabilityArea(origin,-1)==2);
   ground.ent=1;ground.fraction=1;assert(BotReachabilityArea(origin,-1)==2);

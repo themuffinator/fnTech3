@@ -32,6 +32,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "q_shared.h"
 #include "qcommon.h"
 #include "filesystem_write_bounds.h"
+#include "q3_pak_contract.h"
 #include "unzip.h"
 #include "quakelive_pk3_xor.h"
 
@@ -2192,7 +2193,11 @@ void FS_RestorePure( void )
 
 
 static int FS_ModuleReferenceFlag( const char *filename ) {
-	if ( Com_GameProfile()->pureProof == COM_PURE_PROOF_RTCW_NATIVE ) {
+	const comGamePureProof_t proof = Com_GameProfile()->pureProof;
+	/* Jedi Academy proves admission with the same native pair, and its own
+	 * rule marks both those names and Quake's QVM names, so it falls through
+	 * to the QVM comparison below instead of returning here. */
+	if ( proof == COM_PURE_PROOF_RTCW_NATIVE || proof == COM_PURE_PROOF_JKA_NATIVE ) {
 		unsigned slot;
 		char name[MAX_QPATH];
 		for ( slot = 0; slot < 2; ++slot ) {
@@ -2200,7 +2205,7 @@ static int FS_ModuleReferenceFlag( const char *filename ) {
 				DLL_EXT, name, sizeof( name ) ) && !FS_FilenameCompare( name, filename ) )
 				return slot ? FS_UI_REF : FS_CGAME_REF;
 		}
-		return 0;
+		if ( proof == COM_PURE_PROOF_RTCW_NATIVE ) return 0;
 	}
 	if ( !strcmp( filename, "vm/cgame.qvm" ) ) return FS_CGAME_REF;
 	if ( !strcmp( filename, "vm/ui.qvm" ) ) return FS_UI_REF;
@@ -3660,13 +3665,27 @@ void FS_FreeFile( void *buffer ) {
 }
 
 
-/*
-============
-FS_WriteFile
+/* Resolve a native module's writable qpath without opening/truncating its file.
+ * Bound both intermediate FS_BuildOSPath buffers before it can truncate. */
+qboolean FS_NativeWritePath( const char *qpath, char *destination, size_t capacity ) {
+	const char *path;
+	size_t baseLength, gameLength, qpathLength, suffixLength;
+	if ( !fs_searchpaths || !destination || !capacity || !FS_WriteQpathIsValid( qpath ) ) return qfalse;
+	baseLength = strlen( fs_homepath->string );
+	gameLength = strlen( fs_gamedir );
+	qpathLength = strlen( qpath );
+	if ( baseLength >= MAX_OSPATH || gameLength >= MAX_OSPATH || qpathLength >= MAX_OSPATH * 2 ) return qfalse;
+	suffixLength = gameLength + qpathLength + 2;
+	if ( suffixLength > MAX_OSPATH * 2 || baseLength + suffixLength >= capacity ) return qfalse;
+	path = FS_BuildOSPath( fs_homepath->string, fs_gamedir, qpath );
+	if ( strlen( path ) >= capacity ) return qfalse;
+	FS_CheckFilenameIsNotAllowed( path, __func__, qfalse );
+	if ( FS_CreatePath( path ) ) return qfalse;
+	memcpy( destination, path, strlen( path ) + 1 );
+	return qtrue;
+}
 
-Filename are relative to the quake search path
-============
-*/
+/* Write a complete file relative to the active game directory. */
 void FS_WriteFile( const char *qpath, const void *buffer, int size ) {
 	fileHandle_t f;
 
@@ -6310,6 +6329,10 @@ ships its client modules in etmain/mp_bin and refuses that by name, and QL's
 two-digit pak00 is refused only under QL so a Q3 add-on of that name stays
 downloadable.
 
+Jedi Academy numbers its own retail paks assets0-assets8 rather than pak0-pak8,
+and its own rule refuses that same set under a missionpack directory, which it
+inherited from Quake.
+
 FS_idPak compares against the compile-time BASEGAME, which is Quake's directory.
 Profiles whose base game is named differently need this instead, or they would
 offer the game's own retail paks for download.
@@ -6319,6 +6342,7 @@ qboolean FS_OfficialPak( const char *pak )
 {
 	const comGameProfile_t *profile;
 	const char *base;
+	const char *stem;
 	int i;
 
 	if ( pak == NULL || *pak == '\0' ) {
@@ -6327,6 +6351,8 @@ qboolean FS_OfficialPak( const char *pak )
 
 	profile = Com_GameProfile();
 	base = profile != NULL ? profile->baseGame : BASEGAME;
+	stem = profile != NULL && profile->officialPakStem != NULL
+		? profile->officialPakStem : "pak";
 
 	if ( Com_GameIsWolfET() && !FS_FilenameCompare( pak, va( "%s/mp_bin", base ) ) ) {
 		return qtrue;
@@ -6337,7 +6363,7 @@ qboolean FS_OfficialPak( const char *pak )
 	}
 
 	for ( i = 0; i < NUM_ID_PAKS; i++ ) {
-		if ( !FS_FilenameCompare( pak, va( "%s/pak%d", base, i ) ) ) {
+		if ( !FS_FilenameCompare( pak, va( "%s/%s%d", base, stem, i ) ) ) {
 			return qtrue;
 		}
 	}
@@ -6347,6 +6373,16 @@ qboolean FS_OfficialPak( const char *pak )
 	if ( !Q_stricmp( base, BASEGAME ) ) {
 		for ( i = 0; i < NUM_TA_PAKS; i++ ) {
 			if ( !FS_FilenameCompare( pak, va( "%s/pak%d", BASETA, i ) ) ) {
+				return qtrue;
+			}
+		}
+	}
+
+	/* Jedi Academy ships no mission pack, but its own rule refuses the same
+	 * nine names there, so a server cannot offer them under that directory. */
+	if ( Com_GameIsJKA() ) {
+		for ( i = 0; i < NUM_ID_PAKS; i++ ) {
+			if ( !FS_FilenameCompare( pak, va( "%s/%s%d", BASETA, stem, i ) ) ) {
 				return qtrue;
 			}
 		}
@@ -6986,6 +7022,18 @@ static void FS_CheckIdPaks( void )
 	const char* pakBasename;
 	qboolean founddemo = qfalse;
 	unsigned foundPak = 0;
+	const unsigned requiredPaks = Com_Q3RequiredPakMask( com_protocol->integer );
+
+	if ( Com_GameIsQuake3IHV() ) {
+		/* IHV ships loose BSP43 data and root-level API 4 libraries. Its
+		 * installation evidence cannot be replaced by a retail pak checksum. */
+		if ( !Com_GameManagerInstallationMatches( Com_GameProfile(),
+			Com_ProbeGameProfileMarkers( fs_basepath->string ) ) ) {
+			Com_Error( ERR_FATAL, "Invalid IHV installation in %s: expected its native modules, default.cfg and BSP43 maps",
+				fs_basepath->string );
+		}
+		return;
+	}
 
 	if ( Com_GameIsQuakeLive() ) {
 		if ( FS_HasQuakeLiveBasePak() ) {
@@ -7026,7 +7074,8 @@ static void FS_CheckIdPaks( void )
 			&& strlen(pakBasename) == 4 && !Q_stricmpn( pakBasename, "pak", 3 )
 			&& pakBasename[3] >= '0' && pakBasename[3] <= '8')
 		{
-			if( (unsigned int)path->pack->checksum != pak_checksums[pakBasename[3]-'0'] )
+			if( (unsigned int)path->pack->checksum != pak_checksums[pakBasename[3]-'0'] &&
+				!Com_Q3PointPakChecksum( com_protocol->integer, pakBasename[3]-'0', path->pack->checksum ) )
 			{
 				FS_PrintSearchPaths();
 
@@ -7057,11 +7106,11 @@ static void FS_CheckIdPaks( void )
 		}
 	}
 
-	if(!founddemo && (foundPak & 0x1ff) != 0x1ff )
+	if(!founddemo && (foundPak & requiredPaks) != requiredPaks )
 	{
 		FS_PrintSearchPaths();
 
-		if( (foundPak & 0x1ff) != 0x1ff )
+		if( (foundPak & requiredPaks) != requiredPaks )
 		{
 			Com_Printf("\n\n"
 			"Legacy Quake III Point Release files are missing.\n");
@@ -7754,6 +7803,19 @@ FS_Reload
 void FS_Reload( void ) 
 {
 	FS_Restart( fs_checksumFeed );
+}
+
+
+/*
+=================
+FS_ChecksumFeed
+
+The feed the filesystem last restarted with, for a gamestate that carries none.
+=================
+*/
+int FS_ChecksumFeed( void )
+{
+	return fs_checksumFeed;
 }
 
 

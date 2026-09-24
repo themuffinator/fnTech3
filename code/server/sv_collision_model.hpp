@@ -32,6 +32,24 @@ namespace fnql::server::collision {
 		&& ( traceUsesCapsule || policy == COM_ENTITY_HULL_ENTITY_FLAG );
 }
 
+/*
+ * Retail WolfMP.exe and et.exe give the temporary box brush a traced entity's
+ * own r.contents when the entity's clip handle is that box, so the trace mask
+ * tests the entity by those contents and the trace reports them. Their
+ * SV_ClipMoveToEntities sets them just before the sweep and puts CONTENTS_BODY
+ * back after it (0x43d339..0x43d3f0 and 0x449e61..0x449f1c), and nothing else
+ * in either engine changes them, so SV_ClipToEntity, SV_PointContents and the
+ * client game always see CONTENTS_BODY. Capsule and inline-model handles are
+ * left alone. WolfSP.exe, Quake III and Quake Live never change the box's
+ * CONTENTS_BODY. A Com_Error longjmp may skip the server's restore, but it also
+ * stops the server, and the next map load builds the box again.
+ */
+[[nodiscard]] constexpr bool UseEntityBoxContents(
+	comGameEntityBoxContentsPolicy_t policy, bool clipsTemporaryBox ) noexcept
+{
+	return clipsTemporaryBox && policy == COM_ENTITY_BOX_CONTENTS_ENTITY;
+}
+
 } // namespace fnql::server::collision
 
 #endif

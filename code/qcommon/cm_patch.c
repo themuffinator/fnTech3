@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 This file does not reference any globals, and has these entry points:
 
 void CM_ClearLevelPatches( void );
-struct patchCollide_s	*CM_GeneratePatchCollide( int width, int height, const vec3_t *points );
+struct patchCollide_s	*CM_GeneratePatchCollide( int width, int height, const vec3_t *points, float subdivisions );
 void CM_TraceThroughPatchCollide( traceWork_t *tw, const struct patchCollide_s *pc );
 qboolean CM_PositionTestInPatchCollide( traceWork_t *tw, const struct patchCollide_s *pc );
 void CM_DrawDebugSurface( void (*drawPoly)(int color, int numPoints, flaot *points) );
@@ -151,10 +151,11 @@ GRID SUBDIVISION
 CM_NeedsSubdivision
 
 Returns true if the given quadratic curve is not flat enough for our
-collision detection purposes
+collision detection purposes. Quake III's limit is SUBDIVIDE_DISTANCE;
+Alice's is the patch shader's own (alice.exe 0x00432877).
 =================
 */
-static qboolean	CM_NeedsSubdivision( const vec3_t a, const vec3_t b, const vec3_t c ) {
+static qboolean	CM_NeedsSubdivision( const vec3_t a, const vec3_t b, const vec3_t c, float subdivisions ) {
 	vec3_t		cmid;
 	vec3_t		lmid;
 	vec3_t		delta;
@@ -175,7 +176,7 @@ static qboolean	CM_NeedsSubdivision( const vec3_t a, const vec3_t b, const vec3_
 	VectorSubtract( cmid, lmid, delta );
 	dist = VectorLength( delta );
 
-	return dist >= SUBDIVIDE_DISTANCE;
+	return dist >= subdivisions;
 }
 
 
@@ -285,11 +286,11 @@ static void CM_SetGridWrapWidth( cGrid_t *grid ) {
 CM_SubdivideGridColumns
 
 Adds columns as necessary to the grid until
-all the approximating points are within SUBDIVIDE_DISTANCE
-from the true curve
+all the approximating points are within `subdivisions`
+(SUBDIVIDE_DISTANCE outside Alice) from the true curve
 =================
 */
-static void CM_SubdivideGridColumns( cGrid_t *grid ) {
+static void CM_SubdivideGridColumns( cGrid_t *grid, float subdivisions ) {
 	int		i, j, k;
 
 	for ( i = 0 ; i < grid->width - 2 ;  ) {
@@ -301,7 +302,7 @@ static void CM_SubdivideGridColumns( cGrid_t *grid ) {
 		// first see if we can collapse the approximating column away
 		//
 		for ( j = 0 ; j < grid->height ; j++ ) {
-			if ( CM_NeedsSubdivision( grid->points[i][j], grid->points[i+1][j], grid->points[i+2][j] ) ) {
+			if ( CM_NeedsSubdivision( grid->points[i][j], grid->points[i+1][j], grid->points[i+2][j], subdivisions ) ) {
 				break;
 			}
 		}
@@ -983,7 +984,11 @@ static void CM_AddFacetBevels( facet_t *facet ) {
 					if (!w2) {
 						// Enemy Territory drops this report: its maps make many
 						if ( !Com_GameIsWolfET() ) {
-							Com_DPrintf("WARNING: CM_AddFacetBevels... invalid bevel\n");
+							// Alice's engine makes it only at developer 2
+							// (alice.exe 0x004320b4..0x004320c4)
+							if ( !Com_GameIsAlice() || ( com_developer && com_developer->integer == 2 ) ) {
+								Com_DPrintf("WARNING: CM_AddFacetBevels... invalid bevel\n");
+							}
 						}
 						continue;
 					}
@@ -1191,10 +1196,12 @@ CM_GeneratePatchCollide
 Creates an internal structure that will be used to perform
 collision detection with a patch mesh.
 
-Points are packed as concatenated rows.
+Points are packed as concatenated rows. The curve is subdivided until no
+approximating point is `subdivisions` or more from it: SUBDIVIDE_DISTANCE
+for Quake III's maps, the patch shader's own count for Alice's.
 ===================
 */
-struct patchCollide_s *CM_GeneratePatchCollide( int width, int height, vec3_t *points ) {
+struct patchCollide_s *CM_GeneratePatchCollide( int width, int height, vec3_t *points, float subdivisions ) {
 	patchCollide_t	*pf;
 	cGrid_t			grid;
 	int				i, j;
@@ -1225,13 +1232,13 @@ struct patchCollide_s *CM_GeneratePatchCollide( int width, int height, vec3_t *p
 
 	// subdivide the grid
 	CM_SetGridWrapWidth( &grid );
-	CM_SubdivideGridColumns( &grid );
+	CM_SubdivideGridColumns( &grid, subdivisions );
 	CM_RemoveDegenerateColumns( &grid );
 
 	CM_TransposeGrid( &grid );
 
 	CM_SetGridWrapWidth( &grid );
-	CM_SubdivideGridColumns( &grid );
+	CM_SubdivideGridColumns( &grid, subdivisions );
 	CM_RemoveDegenerateColumns( &grid );
 
 	// we now have a grid of points exactly on the curve

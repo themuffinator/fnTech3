@@ -25,10 +25,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "tr_types.h"
 #include "tr_rtcw_marks.h"
 #include "tr_rtcw_corona.h"
+#include "tr_q3_ihv_particles.h"
 #include "../qcommon/game_profile.h"
 #include "vulkan/vulkan.h"
 
-#define	REF_API_VERSION		26
+// 29: the IHV and Alice members were appended to both tables after a commit on
+// another branch (b66b036) had already used 28 for a shorter layout.
+#define	REF_API_VERSION		29
 
 //
 // these are the functions exported by the refresh module
@@ -190,6 +193,33 @@ typedef struct {
 	// An image file's pixels as RGBA, its top row first, or NULL. The caller
 	// frees them with Z_Free.
 	byte *(*LoadImagePixels)( const char *name, int *width, int *height );
+	// Points are copied synchronously; each rendered view constructs its own
+	// IHV triangles. A rejected batch leaves the pending scene unchanged.
+	qboolean (*AddIHVParticlesToScene)( int count, const fnQ3IHVParticle_t *particles );
+	qboolean (*AddIHVEntitiesToScene)( int count, const fnQ3IHVEntity_t *entities );
+	// American McGee's Alice: the model definition a registered model draws,
+	// or -1 for a model that is not one; and the size of a shader's first
+	// image, which its client game asks for to lay out its 2D art.
+	int (*GetAliceTikiHandle)( qhandle_t model );
+	void (*GetShaderImageSize)( qhandle_t shader, int *width, int *height );
+	// Alice's swipes, the trails a swung weapon leaves: a swipe begins with its
+	// time, lifetime and shader, and its points follow, each a pair of ends
+	// and the time it was made.
+	void (*AliceSwipeBegin)( float thistime, float life, qhandle_t shader );
+	void (*AliceSwipePoint)( const vec3_t p1, const vec3_t p2, float time );
+	// Alice's model radius: a definition's own, or half a sprite's larger side
+	// times its scale; negative for a model that is neither.
+	float (*GetAliceModelRadius)( qhandle_t model );
+	// Alice's dynamic light with its client game's type bits: 1 a lens flare,
+	// 2 a view lens flare (retail draws both as the light's flare), 4 an
+	// additive light. NULL in a renderer that draws no Alice lens flares.
+	void (*AddAliceLightToScene)( const vec3_t org, float intensity, float r, float g, float b, int type );
+	// Alice's savegame picture, taken from the next frame drawn as retail's
+	// `screenshot <path> <width> <height>` reduces its own read of the frame
+	// (code/compat/alice_saveshot.h): width by height grey RGB pixels, the
+	// bottom row first, with done set once they are there. A picture of NULL
+	// withdraws a request that has not been met.
+	void (*CaptureAliceSaveshot)( byte *rgb, int width, int height, qboolean *done );
 
 
 } refexport_t;
@@ -314,6 +344,29 @@ typedef struct refimport_s {
 	comGameBspFormat_t (*GameBspFormat)( int version );
 	// Snapshot of the immutable selection, supplied before renderer startup.
 	comGameId_t gameId;
+
+	// American McGee's Alice keeps one cache of model definitions for its
+	// game, its client game and its renderer (code/qcommon/alice_tiki.h). The
+	// renderer registers through it and reads the definition it hands back --
+	// a const AliceTikiModel -- without ever freeing or changing it.
+	int		(*AliceTikiRegister)( const char *name );
+	const void *(*AliceTikiGet)( int handle );
+	// Alice's debug lines: the game module's array of 48-byte records
+	// (code/compat/alice_render_abi.h fntech3_alice_debugline_t) and its
+	// count this frame, or null when the game has published none.
+	const void *(*AliceDebugLines)( int *count );
+	// Alice's client-game trace, the one its CG_Init leaves in the shared
+	// block at +0x1c, as retail's renderer calls it for lens-flare occlusion
+	// (alice.exe 0x004a78c6): a point trace from start to end that clips the
+	// client game's entities, skipping none. Fills the fraction, surface flags
+	// and contents; qfalse when there is no client game to ask, in which case
+	// the renderer traces the world alone. May be NULL.
+	qboolean (*AliceTrace)( const vec3_t start, const vec3_t end, int mask,
+		float *fraction, int *surfaceFlags, int *contents );
+	// Alice's loading-screen stage (alice.exe 0x0040b590), which the world
+	// load sets to 7 as it starts and 8 as it ends (RE_LoadWorldMap
+	// 0x0049afe0, 0x0049b8f4). May be NULL.
+	void	(*AliceLoadingStage)( int stage );
 
 } refimport_t;
 

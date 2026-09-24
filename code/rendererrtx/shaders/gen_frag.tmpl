@@ -522,6 +522,14 @@ void main() {
 		if (color0.a >= alpha_test_value) discard;
 	} else if (alpha_test_func == 3) {
 		if (color0.a < alpha_test_value) discard;
+	// American McGee's Alice's `alphatest` passes equal, greater and lequal
+	// too; the pipeline selects these for its shaders alone (vk.c)
+	} else if (alpha_test_func == 4) {
+		if (color0.a != alpha_test_value) discard;
+	} else if (alpha_test_func == 5) {
+		if (color0.a <= alpha_test_value) discard;
+	} else if (alpha_test_func == 6) {
+		if (color0.a > alpha_test_value) discard;
 	}
 #endif
 

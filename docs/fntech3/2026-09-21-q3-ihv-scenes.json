@@ -1,0 +1,430 @@
+{
+  "date": "2026-09-21",
+  "recorded_utc": "2026-09-21T06:13:25.658909+00:00",
+  "commit": "9e1841de53d79f96cdbbde83a1427d1c7d83f31d",
+  "scope": "Owned native IHV scene boundary. Read-only original cgame callbacks with synthetic resource/collision services, generated original area-visibility and entity-color numeric probes. No renderer, display, input, audio or network session.",
+  "profile": "q3-ihv; native startup remains gated",
+  "platform": "Windows x86 MSVC toolset 14.44.35207 / Meson win32 preset; Windows x64 Clang 20.1.7 ASAN with -O2 -ffast-math",
+  "working_tree": "Uncommitted Q3/IHV changes; unrelated RTCW work retained.",
+  "reference": {
+    "repository": "https://github.com/themuffinator/Quake3-IHV/tree/d5ce877155904c57f8b28fe0fd0c8aa2e9473337",
+    "inputs": [
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/quake3.exe",
+        "bytes": 725042,
+        "sha256": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/cgamex86.dll",
+        "bytes": 192570,
+        "sha256": "175f94756f994b06235690fdd2d9fe798503f7a797f2e070277a672847593614"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/demos/sli.dm3",
+        "bytes": 8628,
+        "sha256": "fbdc209d1c7fc1075976c9120c79d5e579ed36f4e38062b01248d6b2d807c57b"
+      }
+    ],
+    "model_input_record": "2026-09-21-q3-ihv-cgame-runtime.json; same supplied 111 MD3 inputs and metadata path",
+    "incorporation": "Independent implementation from ABI and numeric observations; no external implementation, proprietary module, recording or asset incorporated.",
+    "numeric_execution": "Hash-pinned original R_MarkLeaves 0x441a90 with replaced point-leaf/cluster-PVS services and generated world/leaf records. Original entity-color functions 0x444e40/0x444e70. Numeric host at 0x3f0000; original entry point never called."
+  },
+  "contracts": {
+    "scene_bytes": 152,
+    "entity_bytes": 100,
+    "light_bytes": 28,
+    "particle_bytes": 16,
+    "polygon_bytes": 16,
+    "vertex_bytes": 24,
+    "entity_color": "RGBA bytes at 96 confirmed by original normal and inverse color writers.",
+    "area_mask": "32 visible-area bytes, null means all visible. BlockedAreas complements each byte for the retail renderer convention. Original 0x441ad7 and 0x441bf3.",
+    "polygon_next": "Renderer-written grouping link at byte 12, ignored rather than followed. Original 0x42d1e6/0x42d208.",
+    "resource_policy": "Resolve non-null model/skin/shader tokens by kind within the current registration lifetime; no native pointers retained in published output. Portal entity flag 0x800 permits no model. Skin resolution must preserve ordinal-surface semantics.",
+    "publication": "Stage and validate every array before replacing output; failures and callback exceptions preserve previous output, which callers must not submit after failure.",
+    "limits": "Host submission policy: 2048 entities, 32 lights, 4096 particles, 256 polygons, 1024 vertices per polygon, 65536 total vertices; not a claim of original maxima.",
+    "retained_native_fields": "Reserved scene word, raw effect flags and overlay geometry retained without a guessed retail mapping."
+  },
+  "validation": {
+    "unit": "PASS: every truncated fixture record/array; 62 nonfinite scalar positions; 7 memory-read and 5 resource-resolution failures/exception positions; address wrap, null/empty/unaligned inputs, kind/ownership, cumulative budgets and source lifetime.",
+    "asan": "PASS: all unit cases under x64 Clang -O2 -ffast-math ASAN; no disabled checks.",
+    "build": "PASS: complete incremental Meson win32 preset build, new standalone target plus existing package.",
+    "focused_meson": {
+      "result": "PASS",
+      "targets": 6
+    },
+    "documentation_packaging": "PASS: 5 documentation generation and evidence-link/package tests",
+    "original_numeric": {
+      "area_cases": 1024,
+      "area_checks": 262144,
+      "color_components": 147456,
+      "fnv1a64": "ac3de553280a283f"
+    },
+    "original_cgame": {
+      "scope": "original cgame Init, unpatched snapshots and optional frame/draw callbacks; real read-only MD3 tags, synthetic collision/resource services, captured scenes; no engine/display/input/audio/network session",
+      "snapshots": 56,
+      "frame_callbacks": 56,
+      "ready_frames": 56,
+      "packet_graph_count": 154,
+      "files": 14,
+      "tag_models": 11,
+      "tag_matches": 472,
+      "resources": 173,
+      "calls": [
+        0,
+        1,
+        0,
+        0,
+        59,
+        0,
+        0,
+        0,
+        0,
+        14,
+        11,
+        0,
+        0,
+        0,
+        0,
+        112,
+        1,
+        472,
+        1,
+        56,
+        0,
+        26,
+        1,
+        56,
+        0,
+        314,
+        112,
+        14,
+        0,
+        56,
+        0,
+        56,
+        1,
+        75,
+        75,
+        1,
+        1,
+        0,
+        0,
+        1,
+        66,
+        15,
+        47,
+        124,
+        387,
+        359,
+        0,
+        0,
+        15,
+        50,
+        0,
+        136,
+        0,
+        288,
+        22,
+        72,
+        1,
+        0,
+        736,
+        90,
+        0,
+        0
+      ],
+      "scenes": 124,
+      "scene_entities": 818,
+      "scene_lights": 0,
+      "scene_particles": 42696,
+      "scene_polys": 1,
+      "scene_fnv1a64": "a1f3252c1dfd6fe0",
+      "view_fields": [
+        "9fa66592e7b859e5",
+        "5a43d43ae2ceb921",
+        "4f5c3df14e967945",
+        "6c4ea7ff0f5f3e55",
+        "a688bbe2238362ad",
+        "e942225a0c595285",
+        "293f480182669c45",
+        "abbc3540384f3b15",
+        "8b390ecc29522f87",
+        "1438e25866e1898d",
+        "ba797c34f630b00f",
+        "fdb2145cabbe1b66",
+        "380d4ba55279dc73",
+        "70e4c79d998ddfd0",
+        "8118c36ddb25ec8f",
+        "a574f1f917c8de4f",
+        "51ca70e7fa2f0ee0",
+        "58ca01bb82df0c59",
+        "5401da248ed997ec",
+        "9fa66592e7b859e5",
+        "9fa66592e7b859e5",
+        "9fa66592e7b859e5",
+        "9fa66592e7b859e5",
+        "9fa66592e7b859e5",
+        "9fa66592e7b859e5",
+        "9fa66592e7b859e5",
+        "9fa66592e7b859e5",
+        "295866a251cea299",
+        "2e61bcde484f29c5"
+      ],
+      "entity_fields": [
+        "5e7091c957901949",
+        "92d1ba5a2fe2d6c1",
+        "91093aaa86aa5e3d",
+        "94ce22a132754f1c",
+        "51134706382e918c",
+        "7ae28751e2ee35fa",
+        "56a3c3369ce8cd94",
+        "f9e73b03a41ebf85",
+        "26e659e14e440598",
+        "f46dd747067218cb",
+        "51fc9b74d7bebbc3",
+        "242d843f0bb11da1",
+        "79c7263f22ab7911",
+        "619eb3e2037e2021",
+        "335ba81069c0fd02",
+        "4818c97f350f863d",
+        "4eb6ddce5c33aee0",
+        "b5aad2cdbf785543",
+        "173b122cd5504d96",
+        "f5a6210897220145",
+        "cd25763426bf6ba5",
+        "763e3e97a1c6b8c5",
+        "740cebb7d389ea05",
+        "763e3e97a1c6b8c5",
+        "40edb8c86b4757fd"
+      ],
+      "owned_scene": {
+        "scenes": 124,
+        "entities": 818,
+        "particles": 42696,
+        "polygons": 1,
+        "fnv1a64": "43981fe999dd3fd8"
+      }
+    },
+    "repeat_identical": true,
+    "callback_failures": [
+      {
+        "injected_import": 17,
+        "failure_cleanup": true
+      },
+      {
+        "injected_import": 43,
+        "failure_cleanup": true
+      }
+    ],
+    "prior_full_suite": {
+      "record": "2026-09-21-q3-ihv-cgame-runtime.json",
+      "result": {
+        "result": "PASS",
+        "targets": 132,
+        "results": {
+          "OK": 130,
+          "SKIP": 2
+        },
+        "python": {
+          "cases": 1840,
+          "seconds": 792.6,
+          "skipped": 72
+        }
+      },
+      "scope": "Full suite completed before this separate scene-boundary slice. This slice uses focused affected-boundary and packaging checks; the prior full result is not a new full-suite run."
+    }
+  },
+  "commands": [
+    "cwd E:/Repositories/fnTech3; TEMP/TMP=.tmp/q3-ihv; MSVC environment from .tmp/rtcw-manager/x86_environment.ps1",
+    "cl /nologo /EHsc /W4 /WX /MD /O2 /std:c++17 tests/q3_ihv_scene_tests.cpp /Fe:.tmp/q3-ihv/scene-tests.exe /Fo:.tmp/q3-ihv/scene-tests.obj",
+    ".tmp/q3-ihv/scene-tests.exe",
+    "clang++ -std=c++17 -O2 -ffast-math -fsanitize=address -g tests/q3_ihv_scene_tests.cpp -o .tmp/q3-ihv/scene-tests-asan.exe",
+    ".tmp/q3-ihv/scene-tests-asan.exe",
+    "cl /nologo /EHsc /W4 /WX /MD /O2 /std:c++17 tests/q3_ihv_reference_scene_probe.cpp /Fe:.tmp/q3-ihv/reference-scene-probe.exe /Fo:.tmp/q3-ihv/reference-scene-probe.obj /link advapi32.lib /BASE:0x3f0000 /FIXED /DYNAMICBASE:NO",
+    ".tmp/q3-ihv/reference-scene-probe.exe E:/Repositories/Quake3-IHV/ref/install/quake3.exe",
+    "cl /nologo /EHsc /W4 /WX /MD /O2 /std:c++17 tests/q3_ihv_reference_cgame_runtime_probe.cpp /Fe:.tmp/q3-ihv/scene-cgame-probe.exe /Fo:.tmp/q3-ihv/scene-cgame-probe.obj /link advapi32.lib",
+    ".tmp/q3-ihv/scene-cgame-probe.exe E:/Repositories/Quake3-IHV/ref/install/cgamex86.dll E:/Repositories/Quake3-IHV/ref/install/baseq3 E:/Repositories/Quake3-IHV/ref/install/baseq3/demos/sli.dm3 frames (two fresh processes; also fail-tag, fail-scene and synthetic Init with no demo arguments)",
+    "meson compile -C meson/build/win32",
+    "meson test -C meson/build/win32 --no-rebuild --print-errorlogs fntech3_q3_ihv_scene fntech3_q3_ihv_model_tags fntech3_q3_ihv_client_data fntech3_q3_ihv_configstrings fntech3_q3_ihv_message fntech3_q3_ihv_native_boundary"
+  ],
+  "remaining": [
+    "Actual IHV skin/material/effect/particle/overlay and backend rendering adapters, then rendered native demos",
+    "Engine native lifecycle, actual BSP collision/PVS, sound and gameplay",
+    "Protocol 33 bidirectional live interoperability",
+    "Q3Test/early point-release ABI and live protocols tracked separately"
+  ],
+  "unrelated": "No new unrelated issue discovered. Previously recorded IPv6 bind and LLVM Windows ASAN exception-unwinding issues remain separate.",
+  "cleanup": "Three disposable scene-distribution probe source/binary/object files removed after exact-path and no-link checks. Earlier automatically rejected cleanup remains untouched. Useful retained probe binaries/logs/evidence are under .tmp/q3-ihv.",
+  "artifacts": [
+    {
+      "path": "code/compat/q3_ihv_render_abi.h",
+      "bytes": 1485,
+      "sha256": "62afe6900dfc35e4b31bec518bb02495c7977dffc2e2764211ea89965105aad0"
+    },
+    {
+      "path": "code/compat/q3_ihv_scene.hpp",
+      "bytes": 10776,
+      "sha256": "b731286aff41d59ce3ea2285db1392e6333c6542a7af929c5b4256563845187d"
+    },
+    {
+      "path": "tests/q3_ihv_scene_tests.cpp",
+      "bytes": 13680,
+      "sha256": "0b4a243943307ea55f08a29dd8ac0fa52c5eb47afdfbcaab261bf34fbe30d7cf"
+    },
+    {
+      "path": "tests/q3_ihv_reference_scene_probe.cpp",
+      "bytes": 8125,
+      "sha256": "cc50e49ffe4b23eafec40568bae612d592378fffcae6055d52c9c3cfde63d36e"
+    },
+    {
+      "path": "tests/q3_ihv_reference_cgame_runtime_probe.cpp",
+      "bytes": 26522,
+      "sha256": "c6b932dc0d6aa50bc89f0368e729006fbb19a8442c6f6f03513701e8ec1a2b64"
+    },
+    {
+      "path": "meson.build",
+      "bytes": 64824,
+      "sha256": "65eb91cc7c91a75b7c5095ab950d250865aa75e279d46cc83cb605a79356fd63"
+    },
+    {
+      "path": "docs/fntech3/Q3_IHV.md",
+      "bytes": 66739,
+      "sha256": "d6f0b9dc1756c8edd2373db9fa57ad308bf2a5afc1cea4d4d7f72c62580d29e3"
+    },
+    {
+      "path": "docs/fntech3/COMPATIBILITY.md",
+      "bytes": 145198,
+      "sha256": "4ad3d42becc0db285a2e684d377c0cf40356ea1609ade8fa7fb944a5161faa79"
+    },
+    {
+      "path": "CREDITS.md",
+      "bytes": 50053,
+      "sha256": "a3d7c6d259b45a7a0d0a917b0ab971af12c365aa575bb38d807785a1abd30f34"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "bytes": 8213,
+      "sha256": "13046540978e1866287473b5e50504a307ae7ca6511c723208ca45f3a4d1420d"
+    },
+    {
+      "path": ".tmp/q3-ihv/record_scenes.py",
+      "bytes": 8928,
+      "sha256": "6b5ef2a885ce9958da6e4ea0bf6cb3c79d0e813d540873c61d69c7144d5ba812"
+    },
+    {
+      "path": ".tmp/q3-ihv/scene-unit-build.log",
+      "bytes": 24,
+      "sha256": "f3f608def3a9cd46f6154b371fc2d5bf40dad4b3b35740fca60218d3cf847426"
+    },
+    {
+      "path": ".tmp/q3-ihv/scene-unit.log",
+      "bytes": 134,
+      "sha256": "400196bba9854005d16670c2d64eee485968e2ee34523103430c690b4f7082f4"
+    },
+    {
+      "path": ".tmp/q3-ihv/scene-asan-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/scene-asan.log",
+      "bytes": 134,
+      "sha256": "400196bba9854005d16670c2d64eee485968e2ee34523103430c690b4f7082f4"
+    },
+    {
+      "path": ".tmp/q3-ihv/scene-cgame-build.log",
+      "bytes": 42,
+      "sha256": "4400b7c0d2b327861a3f5ffebf1878bc2c03330cd9388d017035450aca730b40"
+    },
+    {
+      "path": ".tmp/q3-ihv/scene-cgame.log",
+      "bytes": 1855,
+      "sha256": "3d1e779eb5dbfb6f0bbd56db0e1503ebf6a10d88043431088a4d772e59866982"
+    },
+    {
+      "path": ".tmp/q3-ihv/scene-cgame-repeat.log",
+      "bytes": 1855,
+      "sha256": "3d1e779eb5dbfb6f0bbd56db0e1503ebf6a10d88043431088a4d772e59866982"
+    },
+    {
+      "path": ".tmp/q3-ihv/scene-cgame-fail-tag.log",
+      "bytes": 47,
+      "sha256": "981cd7c301f5b5430f5230e8fc59698f9f66f56b2b8baaa0751cd182e3ae14c8"
+    },
+    {
+      "path": ".tmp/q3-ihv/scene-cgame-fail-scene.log",
+      "bytes": 47,
+      "sha256": "461ef0eb9ee32834a881e8fd52274e27a3a6034076c14dce9f88b56aa0afa85d"
+    },
+    {
+      "path": ".tmp/q3-ihv/scene-cgame-synthetic.log",
+      "bytes": 1758,
+      "sha256": "6ff3e23ef9923bf0b5aa5152c98cea6697d9cff73edc86eaa7831eef7d9038b7"
+    },
+    {
+      "path": ".tmp/q3-ihv/scene-reference-build.log",
+      "bytes": 34,
+      "sha256": "b7e08a50c68f67a3607f69274746d5ca789ea8fd2cbc127b88f807a69d88aa25"
+    },
+    {
+      "path": ".tmp/q3-ihv/scene-reference.log",
+      "bytes": 97,
+      "sha256": "dafd414ab44d8cea6cde6f4ece22517dd8cd3b55cfd8150022ba0a206a2c20b6"
+    },
+    {
+      "path": ".tmp/q3-ihv/scene-reference-wrong-image.log",
+      "bytes": 32,
+      "sha256": "acddf4d9ae5ce415e391752e877595f1834528f70702406eb9256f71f9b99be8"
+    },
+    {
+      "path": ".tmp/q3-ihv/scene-build-all.log",
+      "bytes": 34488,
+      "sha256": "5095b92303540e2a9c364658528cd5dcafbd88d02b848391675582c75b59047b"
+    },
+    {
+      "path": ".tmp/q3-ihv/scene-distribution.log",
+      "bytes": 1972,
+      "sha256": "22085c44011cb1871dd881ca590692b7f98e1739489e18817b756a4ad8d2696e"
+    },
+    {
+      "path": ".tmp/q3-ihv/scene-field-consumers.txt",
+      "bytes": 13446,
+      "sha256": "7e7d1593a763218eaa1ee51955fec3f98123f44a0fb9e93aac7fb2632505edaf"
+    },
+    {
+      "path": ".tmp/q3-ihv/scene-pose-detail.txt",
+      "bytes": 31009,
+      "sha256": "8c7c625b7f80f6286db4e5cfa304428ca1cb9954195075be044892b4b45c35b2"
+    },
+    {
+      "path": ".tmp/q3-ihv/scene-visibility-depth.txt",
+      "bytes": 16658,
+      "sha256": "ef8e319ba5980981d43c39a2787abb6ac77ede3bb8ab1025064ed96aace51b8a"
+    },
+    {
+      "path": ".tmp/q3-ihv/inspect_scene_fields.py",
+      "bytes": 1011,
+      "sha256": "705e9c2cdfb609b604a9ff4ab27557c4542d486c35ac90a0b74d41745b92d984"
+    },
+    {
+      "path": ".tmp/q3-ihv/inspect_scene_detail.py",
+      "bytes": 1064,
+      "sha256": "32875c37ff1b9deb6b8a32fd59610e643e6050ef8666122a95b693dd09cb9814"
+    },
+    {
+      "path": ".tmp/q3-ihv/inspect_scene_visibility.py",
+      "bytes": 484,
+      "sha256": "0d2418f5fb04dd5f9baccf2fa536691cc47e4ec181a31c7a0895a93dd95891ce"
+    },
+    {
+      "path": ".tmp/q3-ihv/scene-focused.log",
+      "bytes": 536,
+      "sha256": "568c70f034e20400f912bb45b8831c3ff6657a63adb1bad4d60ece6bc6331b61"
+    },
+    {
+      "path": ".tmp/q3-ihv/scene-docs.log",
+      "bytes": 109,
+      "sha256": "f4bd0d34c2d579e850de6282fa226311cf694fc0e22eeffc7975be7ad566620d"
+    }
+  ]
+}

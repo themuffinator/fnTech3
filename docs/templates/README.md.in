@@ -4,7 +4,7 @@
   <img src="assets/logos/fntech3-readme-banner.png" alt="${project_name_short} — Unified source port for id Tech 3" width="720">
 </h1>
 
-### One engine for Quake III Arena, Quake Live, RTCW, Enemy Territory, and Elite Force
+### One engine for Quake III Arena, Quake Live, RTCW, Enemy Territory, Elite Force, Jedi Knight, and Alice
 
 <p>
   <a href="docs/fntech3/COMPATIBILITY.md"><img alt="Compatibility Status" src="https://img.shields.io/badge/Compatibility-In%20Progress-2563eb?style=for-the-badge"></a>
@@ -25,7 +25,9 @@ is one engine distribution and shared executable set for **Quake III Arena**,
 **Quake Live**, **Return to Castle Wolfenstein**, including RTCW's single
 player and multiplayer modes, **Wolfenstein: Enemy Territory**, and
 **Star Trek Voyager: Elite Force**, including its single player and Holomatch
-modes.
+modes, **Star Wars Jedi Knight: Jedi Academy**, including its single-player
+and multiplayer modes, and **American McGee's Alice**, which runs Ritual's
+Heavy Metal: F.A.K.K.2 engine rather than a Quake III one.
 It builds on FnQuake3 modernization and the FnQL
 compatibility baseline.
 
@@ -39,14 +41,18 @@ game's own module, asset, network, demo, and gameplay contracts.
 | Game / mode | Startup profile | Current availability |
 | --- | --- | --- |
 | Quake III Arena | `q3` (canonical `quake3`) | Enabled; compatibility validation remains in progress. |
+| Quake III Arena — IHV Test | `q3-ihv` | Gated by default; `-Dq3-ihv-development=true` permits Windows x86 dedicated native-game probes. Client and network integration remain blocked. |
 | Quake Live | `ql` (canonical `quakelive`) | Enabled; retail client modules require Windows x86; compatibility validation remains in progress. |
 | Return to Castle Wolfenstein — single player | `rtcw-sp` | Experimental; requires a build with `-Drtcw-development=true`; gated in default builds. |
 | Return to Castle Wolfenstein — multiplayer | `rtcw-mp` | Experimental; requires the same development option; gated in default builds. |
 | Wolfenstein: Enemy Territory | `wolfet` (alias `et`) | Experimental; requires a build with `-Dwolfet-development=true`; gated in default builds. |
 | Star Trek Voyager: Elite Force — single player | `stvef-sp` | Experimental; requires a build with `-Dstvef-development=true`; gated in default builds. |
 | Star Trek Voyager: Elite Force — Holomatch | `stvef-mp` | Experimental; requires the same development option; gated in default builds. |
+| Star Wars Jedi Knight: Jedi Academy — single player | `jka-sp` | Experimental; requires a build with `-Djka-development=true`; gated in default builds. A developer server mounts a real installation and loads its maps; no module runs yet. |
+| Star Wars Jedi Knight: Jedi Academy — multiplayer | `jka-mp` | Experimental; requires the same development option; gated in default builds. Its modules ship inside the retail paks and are not run yet. |
+| American McGee's Alice | `alice` | Experimental; requires a build with `-Dalice-development=true`; gated in default builds. A developer server mounts a real installation and loads all of its maps; no module runs yet. |
 
-These five games and seven profiles define the current project scope.
+These eight games and thirteen profiles define the current project scope.
 **Full compatibility is not yet established for any profile.** Track observed
 build, unit, fixture, live, and interoperability evidence in the
 [compatibility ledger](docs/fntech3/COMPATIBILITY.md). A successful build or an

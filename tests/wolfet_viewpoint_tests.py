@@ -21,6 +21,9 @@ qboolean SV_ReadGameClient(int client,playerState_t *out){assert(client>=0&&clie
 static void SV_AddAudioReachableEntities(const vec3_t origin,int,clientSnapshot_t*,SnapshotEntityNumbers&){
  audioOrigin={origin[0],origin[1],origin[2]};
 }
+// Alice builds its own snapshots; none of the profiles driven here reaches it.
+int Com_GameIsAlice(){return profile==COM_GAME_ALICE;}
+static void SV_BuildAliceClientSnapshot(client_t*,clientSnapshot_t*){assert(!"Alice's snapshot path");}
 template<class F> void rejected(F f){bool dropped=false;try{f();}catch(Drop&){dropped=true;}assert(dropped);}
 static bool close(float a,float b){return std::abs(a-b)<0.0001f;}
 static std::vector<int> collect(int viewer=0){

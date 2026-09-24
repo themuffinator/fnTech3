@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_mesh.c: triangle model functions
 
 #include "tr_local.h"
+#include "../renderercommon/tr_q3_ihv_model.h"
 #include "../renderercommon/tr_mesh_view.h"
 #include "../renderercommon/tr_mds_entity.h"
 #include "../renderercommon/tr_mds_material.h"
@@ -106,6 +107,12 @@ static int R_CullModel( const model_t *model, int lod, const trRefEntity_t *ent,
 	// calculate a bounding box in the current coordinate system
 	R_MD3FrameBounds( oldFrame, newFrame, bounds );
 
+	/* Keep bounds available to lighting/caster callers even on a sphere return.
+	 * Native 0x4420b0 expands by origin-oldorigin, independently of backlerp. */
+	if ( ri.gameId == COM_GAME_QUAKE3_IHV && ent->e.q3IHV.active &&
+		!Q3IHV_ModelBounds( ent->e.q3IHV.flags, oldFrame->bounds, newFrame->bounds,
+			ent->e.origin, ent->e.oldorigin, bounds ) ) return CULL_OUT;
+
 	// cull bounding sphere ONLY if this is not an upscaled entity
 	if ( !ent->e.nonNormalizedAxes )
 	{
@@ -131,7 +138,7 @@ static int R_CullModel( const model_t *model, int lod, const trRefEntity_t *ent,
 			int sphereCull, sphereCullB;
 
 			sphereCull  = R_CullLocalPointAndRadius( newFrame->localOrigin, newFrame->radius );
-			if ( newFrame == oldFrame ) {
+			if ( newFrame == oldFrame && !( ri.gameId == COM_GAME_QUAKE3_IHV && ent->e.q3IHV.active ) ) {
 				sphereCullB = sphereCull;
 			} else {
 				sphereCullB = R_CullLocalPointAndRadius( oldFrame->localOrigin, oldFrame->radius );
@@ -361,6 +368,9 @@ void R_AddMD3Surfaces( trRefEntity_t *ent,
 		const md3Frame_t *oldFrame = R_MeshFrame( tr.currentModel, lod, ent->e.oldframe );
 
 		R_MD3FrameBounds( oldFrame, newFrame, bounds );
+		if ( ri.gameId == COM_GAME_QUAKE3_IHV && ent->e.q3IHV.active &&
+			!Q3IHV_ModelBounds( ent->e.q3IHV.flags, oldFrame->bounds, newFrame->bounds,
+				ent->e.origin, ent->e.oldorigin, bounds ) ) return;
 		if ( R_DlightShadowEntityBoundsCulled( casterContext, ent,
 			bounds[0], bounds[1] ) ) {
 			return;
@@ -427,7 +437,7 @@ void R_AddMD3Surfaces( trRefEntity_t *ent,
 
 			skin = R_GetSkinByHandle( ent->e.customSkin );
 
-			shader = R_MeshSkinShader( &ent->e, skin, surface.name );
+			shader = R_MeshSkinShaderAt( &ent->e, skin, surface.name, i );
 			if ( !casterContext && shader == tr.defaultShader ) {
 				ri.Printf( PRINT_DEVELOPER, "WARNING: no shader for surface %s in skin %s\n", surface.name, skin->name);
 			}

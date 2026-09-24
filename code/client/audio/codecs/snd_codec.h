@@ -95,13 +95,26 @@ void S_OGG_CodecCloseStream(snd_stream_t *stream);
 int S_OGG_CodecReadStream(snd_stream_t *stream, int bytes, void *buffer);
 #endif // USE_OGG_VORBIS
 
-// MP3 codec: registered only for Star Trek Voyager: Elite Force profiles.
+// MP3 codec: registered only for Star Trek Voyager: Elite Force profiles and
+// American McGee's Alice.
 #ifdef USE_CODEC_MP3
 extern snd_codec_t mp3_codec;
 void *S_MP3_CodecLoad(const char *filename, snd_info_t *info);
 snd_stream_t *S_MP3_CodecOpenStream(const char *filename);
 void S_MP3_CodecCloseStream(snd_stream_t *stream);
 int S_MP3_CodecReadStream(snd_stream_t *stream, int bytes, void *buffer);
+
+// American McGee's Alice decodes its songs and cinematic tracks from file
+// images it reads once and keeps, and starts or loops them at a byte offset
+// into the image, as Miles does for it. The image stays the caller's.
+struct snd_mp3_memory_t;
+snd_mp3_memory_t *S_MP3_OpenMemory( const byte *image, int length, snd_info_t *info );
+// Continue at the first frame at or after `offset` bytes into the image;
+// returns the samples per channel of the frames passed over.
+int S_MP3_SeekFileOffset( snd_mp3_memory_t *memory, int offset );
+int S_MP3_MemoryStartOffset( const snd_mp3_memory_t *memory );
+int S_MP3_ReadMemory( snd_mp3_memory_t *memory, int bytes, void *pcm );
+void S_MP3_CloseMemory( snd_mp3_memory_t *memory );
 #endif // USE_CODEC_MP3
 
 #endif // !_SND_CODEC_H_

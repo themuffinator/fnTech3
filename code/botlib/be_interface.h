@@ -29,6 +29,18 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  *****************************************************************************/
 
+#include "../qcommon/game_profile.h"
+
+// Some native games own their navigation and never use these retail pools.
+// Keep their server limits out of the fixed-size goal/movement arrays.
+inline int BotLibClientCapacity()
+{
+	const auto *profile = Com_GameProfile();
+	return profile && profile->bots.navigationWorlds > 0
+		&& profile->maxClients > 0 && profile->maxClients <= MAX_GAME_CLIENTS
+		? profile->maxClients : 0;
+}
+
 //#define DEBUG			//debug code
 #define RANDOMIZE		//randomize bot behaviour
 

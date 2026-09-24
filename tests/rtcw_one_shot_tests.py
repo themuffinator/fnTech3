@@ -142,6 +142,7 @@ static sfx_t *S_KnownSfxAt(int index){return samples+index;}static void S_memory
 struct channel_t {int allocTime,startSample,entnum,entchannel,leftvol,rightvol,master_vol;bool fixed_origin;float origin[3];sfx_t *thesfx;};
 static channel_t s_channels[MAX_CHANNELS],*freelist=nullptr;
 static void SetChannelFreeLink(channel_t *channel,channel_t *next){memcpy(channel,&next,sizeof(next));}
+static void S_ResetAliceVoices(){}
 static OneShots rtcwOneShots;
 static struct {struct {void StopChannel(int,int){}}policy;} rtcwStreams;
 static std::array<vec3_t,MAX_GENTITIES> rtcwEntityPositions;
@@ -187,7 +188,7 @@ using sfxHandle_t=int;using ALint=int;constexpr int kMaxVoices=96,AL_NO_ERROR=0,
 struct SoundSample{};
 struct Device {unsigned next=1;bool fail=false;int state=AL_PLAYING;unsigned AcquireVoiceSource(){return fail?0:next++;}void CreateVoiceFilters(unsigned &,unsigned &){};
  Device &AL(){return *this;}int alGetError(){return 0;}void alGetSourcei(unsigned,int,int *out){*out=state;}};
-struct SoundVoice{unsigned source=0,directFilter=0,sendFilter=0;bool rtcwOneShot=false,active=false;int releaseCount=0;void Release(Device &){source=0;active=false;rtcwOneShot=false;++releaseCount;}};
+struct SoundVoice{unsigned source=0,directFilter=0,sendFilter=0;bool rtcwOneShot=false,active=false,alice=false;int releaseCount=0;void Release(Device &){source=0;active=false;rtcwOneShot=false;++releaseCount;}};
 struct Q3SoundWorld {
  Device device;Device *device_=&device;std::array<SoundVoice,96> oneShots_;OneShots rtcwOneShots_;int listenerNumber_=0,plays=0,slot=-1,age=0;
  void StartRTCWSound(int,int,int,SoundSample *,const float *,int);

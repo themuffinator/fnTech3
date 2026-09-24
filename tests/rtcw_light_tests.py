@@ -294,6 +294,7 @@ def entity_fixture(renderer):
     source=(ROOT/'code'/renderer/'tr_light.c').read_text()
     fixture=COMMON+r'''
 #include <cmath>
+#include "code/renderercommon/tr_q3_ihv_model_light.h"
 #define DLIGHT_AT_RADIUS 16
 #define DLIGHT_MINIMUM_RADIUS 16
 enum { RF_MINLIGHT=1, RF_LIGHTING_ORIGIN=2, RDF_NOWORLDMODEL=1, RDF_SNOOPERVIEW=4 };
@@ -307,11 +308,12 @@ struct trRefEntity_t {
         int renderfx; vec3_t origin,lightingOrigin,axis[3];
         struct { float hilightIntensity; int entityNum; } rtcw;
         struct { qboolean fullbright, darken; } stvef;
+        fnQ3IHVEntityState_t q3IHV;
         float hilightIntensity; int entityNum; // Original-reference view, fixture only.
     } e;
     qboolean lightingCalculated; vec3_t ambientLight,directedLight,lightDir,shadowLightDir; int ambientLightInt;
 };
-static struct { const void *lightGridData; } world;
+static struct { const void *lightGridData; q3IHVModelLightNode_t *q3IHVModelLight; } world;
 static struct { decltype(world) *world; float identityLight; int identityLightByte; vec3_t sunDirection; } tr{&world,1,255,{0,0,1}};
 static struct { comGameId_t gameId; } ri;
 static cvar_t mode{},shadow{},debug{};
@@ -328,6 +330,7 @@ float VectorNormalize(vec3_t v) {
     return length;
 }
 #define myftol(x) ((int)(x))
+#include "code/renderercommon/tr_q3_ihv_model_light_render.h"
 '''
     fixture+=function(header,'static ID_INLINE qboolean R_UsesRTCWLighting(')+'\n'
     fixture+=function(source if renderer=='renderer' else header,
@@ -401,7 +404,7 @@ def material_fixture(renderer):
     start=source.index('\tvertexLightMode =',source.index('// Vertex-light mode must consume'))
     end=source.index('\n\t/* RTCW asks for a diffuse-lit copy',start)
     collapse=source[start:end]
-    multi_start=source.index('\tif ( !shader.rtcwLightMaterial && r_ext_multitexture->integer )')
+    multi_start=source.index('\tif ( !shader.rtcwLightMaterial && !R_Q3IHVSeparateSkyStages() && r_ext_multitexture->integer )')
     multitexture=source[multi_start:source.index('\n\t}',multi_start)+3]
     color='rgbGen' if renderer=='renderer' else 'bundle[0].rgbGen'
     alpha='alphaGen' if renderer=='renderer' else 'bundle[0].alphaGen'
@@ -413,7 +416,10 @@ struct shaderStage_t {
     struct { image_t *image[1]; int numImageAnimations,rgbGen,alphaGen,dlight; } bundle[1];
 };
 static shaderStage_t stages[4];
-static struct { qboolean noVLcollapse,rtcwLightMaterial; } shader;
+static struct { qboolean noVLcollapse,rtcwLightMaterial; bool ihvModelLightmap;
+    struct {int ihvClouds,ihvLightning;} sky; } shader;
+'''+function((ROOT/'code/renderercommon/tr_q3_ihv_shader.h').read_text(), 'static qboolean R_Q3IHVSeparateSkyStages(')+r'''
+
 static image_t white{}; static struct { image_t *whiteImage; } tr{&white};
 static struct { int hardwareType; } glConfig;
 static cvar_t vertex{},fullscreen{},multi{};
@@ -442,6 +448,22 @@ int main() {
         shader.noVLcollapse=qtrue; vertexCollapses=0; assert(Finish(3)==3 && !vertexCollapses); shader.noVLcollapse=qfalse;
         fullscreen.integer=1; assert(Finish(3)==3); fullscreen.integer=0;
     }
+    // IHV cloud colors belong to separate authored stages, even when their
+    // generic color generators would allow a retail optimization.
+    ri.gameId=COM_GAME_QUAKE3; shader.rtcwLightMaterial=qfalse;
+    for(int mode:{1,2,3}) {
+        shader.sky.ihvClouds=mode&1; shader.sky.ihvLightning=mode&2;
+        for(int lighting:{0,1}) {
+            vertex.integer=lighting; multi.integer=1; vertexCollapses=multiCollapses=0;
+            stages[0]={}; stages[1]={}; stages[2]={};
+            stages[0].bundle[0].image[0]=tr.whiteImage; RGB(stages[0])=CGEN_IDENTITY; ALPHA(stages[0])=AGEN_SKIP;
+            stages[1].stateBits=GLS_SRCBLEND_DST_COLOR|GLS_DSTBLEND_ZERO;
+            assert(Finish(2)==2 && !vertexCollapses && !multiCollapses);
+            std::swap(stages[0],stages[1]);
+            assert(Finish(2)==2 && !vertexCollapses && !multiCollapses);
+        }
+    }
+    shader.sky={};
     // Ordinary Q3/QL shader optimization remains active.
     for(auto profile:{COM_GAME_QUAKE3,COM_GAME_QUAKELIVE}) {
         ri.gameId=profile; shader.rtcwLightMaterial=qfalse;

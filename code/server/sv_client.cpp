@@ -747,13 +747,24 @@ static void SV_WritePureAwareConfigstring( msg_t &msg, int index,
 }
 
 
+void SV_ErrorForWireProfile( const char *where, netchanWireProfile_t profile ) {
+	if ( fnql::protocol::TryForWireProfile( profile ) ) {
+		Com_Error( ERR_DROP, "%s: the %s profile's message layout has no delta "
+			"field tables in this engine, so its entities and player states "
+			"cannot be encoded. Its wire framing is registered; its message "
+			"bodies are not.", where, Com_GameProfile()->displayName );
+		return;
+	}
+	Com_Error( ERR_DROP, "%s: invalid wire profile %i",
+		where, static_cast<int>( profile ) );
+}
+
 static void SV_WriteBaselineMessage( msg_t &msg, const entityState_t &nullstate,
 	int entityNum, netchanWireProfile_t profile ) {
 	MSG_WriteByte( &msg, svc_baseline );
 	if ( !MSG_WriteDeltaEntityForWireProfile( &msg, &nullstate,
 		&sv.svEntities[ entityNum ].baseline, qtrue, profile ) ) {
-		Com_Error( ERR_DROP, "%s: invalid wire profile %i",
-			__func__, static_cast<int>( profile ) );
+		SV_ErrorForWireProfile( __func__, profile );
 	}
 }
 
@@ -769,6 +780,7 @@ static void SV_WriteDemoGamestate( client_t *client )
 	}
 
 	MSG_Init( &msg, msgBuffer.data(), Netchan_MessageLimit( client->netchan.wireProfile ) );
+	MSG_NullEntityStateForWireProfile( &nullstate, client->netchan.wireProfile );
 
 	MSG_WriteLong( &msg, client->lastClientCommand );
 	SV_UpdateServerCommandsToClient( client, &msg );
@@ -1899,7 +1911,7 @@ gotnewcl:
 	// accept the new client
 	// this is the only place a client_t is ever initialized
 	// we got a newcl, so reset the reliableSequence and reliableAcknowledge
-	*newcl = {};
+	SV_ClearClient( *newcl );
 	clientNum = SV_ClientIndex( newcl );
 	clientStatsSessions[clientNum].Reset();
 #if 0 // skip this until CS_PRIMED
@@ -1953,7 +1965,7 @@ gotnewcl:
 		NET_OutOfBandPrint( NS_SERVER, from, "print\n%s\n", str );
 		Com_DPrintf( "Game rejected a connection: %s.\n", str );
 		SV_FreeClient( newcl );
-		*newcl = {};
+		SV_ClearClient( *newcl );
 		return;
 	}
 
@@ -2171,11 +2183,14 @@ int SV_RemainingGameState( void )
 	// message. RTCW sends the gamestate in one message of its own, twice that
 	// size, with its own tables; original RTCW publishes sv_paks unconditionally,
 	// so estimating it as Q3 wrongly dropped big maps to degraded pure.
-	const bool ownWire = Com_GameIsRTCW() || Com_GameIsSTVEFMP();
+	// Alice's gamestate is its own encoding too, with baselines from its own
+	// null entity.
+	const bool ownWire = Com_GameIsRTCW() || Com_GameIsSTVEFMP() || Com_GameIsAlice();
 	const netchanWireProfile_t wire = ownWire
 		? Netchan_SelectWireProfile( Com_GameProfile()->preferredProtocol, 0 )
 		: NETCHAN_WIRE_QL_RETAIL;
 	const int limit = ownWire ? Netchan_MessageLimit( wire ) : MAX_MSGLEN;
+	MSG_NullEntityStateForWireProfile( &nullstate, wire );
 
 	MSG_Init( &msg, msgBuffer.data(), limit );
 	if ( Netchan_WireHasFeature( wire, NETCHAN_FEATURE_RAW_MESSAGES ) ) {
@@ -2284,6 +2299,9 @@ static void SV_SendClientGameState( client_t *client ) {
 		fnql::net::CounterSubtract( sv.time, 1u );
 
 	MSG_Init( &msg, msgBuffer.data(), Netchan_MessageLimit( client->netchan.wireProfile ) );
+	// Baselines are deltas from the profile's null entity, which is not zero
+	// for Alice (alice.exe SV_SendClientGameState 0x00452b6f).
+	MSG_NullEntityStateForWireProfile( &nullstate, client->netchan.wireProfile );
 
 	if ( SV_LegacyFraming( client ) ) {
 		// Holomatch acknowledges reliable commands only in snapshots.
@@ -2348,8 +2366,12 @@ static void SV_SendClientGameState( client_t *client ) {
 		MSG_WriteLong( &msg, SV_ClientIndex( client ) );
 	}
 
-	// write the checksum feed
-	MSG_WriteLong( &msg, sv.checksumFeed );
+	// write the checksum feed, which Alice's gamestate does not carry: retail
+	// sends the message straight after the closing zero byte (alice.exe
+	// 0x00452bbd), and its client reads nothing more (0x0042e0e2).
+	if ( client->netchan.wireProfile != NETCHAN_WIRE_ALICE ) {
+		MSG_WriteLong( &msg, sv.checksumFeed );
+	}
 
 	// it is important to handle gamestate overflow
 	// but at this stage client can't process any reliable commands
@@ -3124,10 +3146,11 @@ static void SV_VerifyPaks_f( client_t *cl ) {
 		// start at arg 2 ( skip serverId cl_paks )
 		nCurArg = 1;
 
-		// Holomatch clients send no serverId: "cp cgame ui @ refs... mixed".
-		const bool legacyFraming = SV_LegacyFraming( cl );
+		// Q3 66/67 and Holomatch omit serverId: cp cgame ui @ refs... mixed.
+		const bool noServerId = SV_LegacyFraming( cl ) ||
+			fnql::protocol::Q3PureChecksumsOmitServerId( cl->netchan.wireProfile );
 		int incomingServerId = sv.serverId;
-		if ( legacyFraming ) {
+		if ( noServerId ) {
 			// Nothing to skip or compare.
 		}
 		else if ( !SV_ParsePureChecksum( Cmd_Argv(nCurArg++), incomingServerId ) ) {
@@ -3150,7 +3173,7 @@ static void SV_VerifyPaks_f( client_t *cl ) {
 			// Q3/RTCW MP: cp serverId cgame ui @ refs... mixedChecksum (zero refs allowed).
 			// QL: cp serverId bin @ firstref refs... mixedChecksum.
 			// Holomatch: cp cgame ui @ refs... mixedChecksum.
-			if (nClientPaks < ( legacyFraming ? 5 : 6 )) {
+			if (nClientPaks < ( noServerId ? 5 : 6 )) {
 				bGood = false;
 				break;
 			}
@@ -3555,6 +3578,13 @@ static const ucmd_t *SV_FindClientCommand( const char *name )
 		if ( !strcmp( ucmd.name, "wwwdl" ) && !Com_GameIsWolfET() ) {
 			return nullptr;
 		}
+		// American McGee's Alice has no download: retail alice.exe's engine
+		// knows two client commands, userinfo and disconnect (its table at
+		// 0x0051a398), so these names reach the game module as they do there.
+		if ( Com_GameIsAlice() && ( ucmd.func == SV_BeginDownload_f || ucmd.func == SV_NextDownload_f
+			|| ucmd.func == SV_StopDownload_f || ucmd.func == SV_DoneDownload_f ) ) {
+			return nullptr;
+		}
 		return &ucmd;
 	}
 	return nullptr;
@@ -3817,7 +3847,14 @@ static void SV_UserMove( client_t *cl, msg_t *msg, bool delta ) {
 		// don't execute if this is an old cmd which is already executed
 		// these old cmds are included when cl_packetdup > 0
 		//if ( cmds[i].serverTime <= cl->lastUsercmd.serverTime ) {
-		if ( !Com_GameIsRTCWSP() && !fnql::net::IsNewerCounter(
+		// American McGee's Alice's server has no such filter either
+		// (alice.exe SV_UserMove 0x004532f7..0x0045331d): its game drops a
+		// command no newer than the player state's own time itself
+		// (fgamex86.dll 0x100fea44). Only Alice's protocol negotiates this
+		// wire profile, so it is what identifies Alice's clients here.
+		if ( !Com_GameIsRTCWSP() &&
+			cl->netchan.wireProfile != NETCHAN_WIRE_ALICE &&
+			!fnql::net::IsNewerCounter(
 			cmds[i].serverTime, cl->lastUsercmd.serverTime ) ) {
 			continue;
 		}

@@ -1,0 +1,29 @@
+/* Copyright (C) 2026 fnTech3 contributors. GPL-2.0-or-later. */
+/* Jedi Academy's trajectory types, in the module's own numbering, paired with
+ * the canonical meaning each one carries.
+ *
+ * Measured, not assumed. Academy's BG_EvaluateTrajectory begins at RVA 0x4ac70
+ * of base/assets3.pk3's jampgamex86.dll, bounds its switch with `cmp eax, 6`
+ * and dispatches through the table at RVA 0x4ae9c, so the type has exactly
+ * seven values. Each case was read for the arithmetic it does:
+ *
+ *   0, 1 -> the same body, which copies trBase (stationary, interpolated)
+ *   2    -> base + delta * t, with t in seconds (linear)
+ *   3    -> the same after clamping t to trDuration and to zero (linear stop)
+ *   4    -> t scaled to ninety degrees through pi/180 and passed to sine
+ *   5    -> a phase built from two pi and passed to sine
+ *   6    -> base + delta * t, then result[2] -= 400 * t * t
+ *
+ * Raven inserted its own type at 4, so Academy's sine and gravity are 5 and 6
+ * rather than Quake III's 4 and 5. A record converted on the assumption that
+ * the first six coincide would make every falling object oscillate. */
+#ifndef FNTECH3_JKA_TRAJECTORY
+#define FNTECH3_JKA_TRAJECTORY(reference, canonical, ordinal)
+#endif
+FNTECH3_JKA_TRAJECTORY(TR_STATIONARY, TR_STATIONARY, 0)
+FNTECH3_JKA_TRAJECTORY(TR_INTERPOLATE, TR_INTERPOLATE, 1)
+FNTECH3_JKA_TRAJECTORY(TR_LINEAR, TR_LINEAR, 2)
+FNTECH3_JKA_TRAJECTORY(TR_LINEAR_STOP, TR_LINEAR_STOP, 3)
+FNTECH3_JKA_TRAJECTORY(TR_NONLINEAR_STOP, TR_JKA_NONLINEAR_STOP, 4)
+FNTECH3_JKA_TRAJECTORY(TR_SINE, TR_SINE, 5)
+FNTECH3_JKA_TRAJECTORY(TR_GRAVITY, TR_GRAVITY, 6)

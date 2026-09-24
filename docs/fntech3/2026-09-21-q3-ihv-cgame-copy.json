@@ -1,0 +1,445 @@
+{
+  "scope": "Read-only cgame callback/import observations and an isolated original snapshot-copy probe. No cgame Init, renderer, prediction or engine session is established.",
+  "engine_sha256": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37",
+  "cgame_sha256": "175f94756f994b06235690fdd2d9fe798503f7a797f2e070277a672847593614",
+  "getter_rva": "0x9590",
+  "export_table_rva": "0x2b020",
+  "engine_export_pointer": "0x43039a0",
+  "import_copy": {
+    "rva": "0xa9a6..0xa9bc",
+    "words": 62,
+    "destination_rva": "0xa0f80"
+  },
+  "import_slots": [
+    {
+      "slot": 0,
+      "value": 0,
+      "source": "zeroed at 0x405e64"
+    },
+    {
+      "slot": 1,
+      "source": "0x405ed6",
+      "value": "0x40cae0"
+    },
+    {
+      "slot": 2,
+      "source": "0x405ede",
+      "value": "0x40cca0"
+    },
+    {
+      "slot": 3,
+      "source": "0x405ee6",
+      "value": "0x40d730"
+    },
+    {
+      "slot": 4,
+      "source": "0x405eee",
+      "value": "0x40de80"
+    },
+    {
+      "slot": 5,
+      "source": "0x405ef6",
+      "value": "0x40e2b0"
+    },
+    {
+      "slot": 6,
+      "source": "0x405efe",
+      "value": "0x40c570"
+    },
+    {
+      "slot": 7,
+      "source": "0x405f06",
+      "value": "0x40c580"
+    },
+    {
+      "slot": 8,
+      "source": "0x405f0e",
+      "value": "0x40c5a0"
+    },
+    {
+      "slot": 9,
+      "source": "0x405f16",
+      "value": "0x40f000"
+    },
+    {
+      "slot": 10,
+      "source": "0x405f1e",
+      "value": "0x40f080"
+    },
+    {
+      "slot": 11,
+      "source": "0x405f26",
+      "value": "0x40f090"
+    },
+    {
+      "slot": 12,
+      "source": "0x405f2e",
+      "value": "0x40c240"
+    },
+    {
+      "slot": 13,
+      "source": "0x405f36",
+      "value": "0x407720"
+    },
+    {
+      "slot": 14,
+      "source": "0x405f3e",
+      "value": "0x404aa0"
+    },
+    {
+      "slot": 15,
+      "source": "0x405f9e",
+      "value": "0x408a10"
+    },
+    {
+      "slot": 16,
+      "source": "0x405fa6",
+      "value": "0x40aa90"
+    },
+    {
+      "slot": 17,
+      "source": "0x405fae",
+      "value": "0x40a570"
+    },
+    {
+      "slot": 18,
+      "source": "0x405fb6",
+      "value": "0x408550"
+    },
+    {
+      "slot": 19,
+      "source": "0x405fbe",
+      "value": "0x408500"
+    },
+    {
+      "slot": 20,
+      "source": "0x405fc6",
+      "value": "0x4087c0"
+    },
+    {
+      "slot": 21,
+      "source": "0x405fd6",
+      "value": "0x40a140"
+    },
+    {
+      "slot": 22,
+      "source": "0x405fce",
+      "value": "0x408810"
+    },
+    {
+      "slot": 23,
+      "source": "0x405fde",
+      "value": "0x40ab20"
+    },
+    {
+      "slot": 24,
+      "source": "0x405fe6",
+      "value": "0x40abe0"
+    },
+    {
+      "slot": 25,
+      "source": "0x405fee",
+      "value": "0x40ba80"
+    },
+    {
+      "slot": 26,
+      "source": "0x405ff6",
+      "value": "0x40be20"
+    },
+    {
+      "slot": 27,
+      "source": "0x405ffe",
+      "value": "0x415b60"
+    },
+    {
+      "slot": 28,
+      "source": "0x406006",
+      "value": "0x415c10"
+    },
+    {
+      "slot": 29,
+      "source": "0x40600e",
+      "value": "0x415d00"
+    },
+    {
+      "slot": 30,
+      "source": "0x406016",
+      "value": "0x415d10"
+    },
+    {
+      "slot": 31,
+      "source": "0x40601e",
+      "value": "0x416200"
+    },
+    {
+      "slot": 32,
+      "source": "0x406029",
+      "value": "0x4157f0"
+    },
+    {
+      "slot": 33,
+      "source": "0x406034",
+      "value": "0x415860"
+    },
+    {
+      "slot": 34,
+      "source": "0x40603f",
+      "value": "0x4158c0"
+    },
+    {
+      "slot": 35,
+      "source": "0x40604a",
+      "value": "0x415910"
+    },
+    {
+      "slot": 36,
+      "source": "0x406055",
+      "value": "0x416790"
+    },
+    {
+      "slot": 37,
+      "source": "0x405e71",
+      "indirect_address": "0x4369c80"
+    },
+    {
+      "slot": 38,
+      "source": "0x405e7d",
+      "indirect_address": "0x4369c84"
+    },
+    {
+      "slot": 39,
+      "source": "0x40606e",
+      "indirect_address": "0x4369ca4"
+    },
+    {
+      "slot": 40,
+      "source": "0x405e8a",
+      "unresolved": "dword ptr [esp + 0xa4], edx"
+    },
+    {
+      "slot": 41,
+      "source": "0x405e97",
+      "indirect_address": "0x4369c9c"
+    },
+    {
+      "slot": 42,
+      "source": "0x405ea3",
+      "indirect_address": "0x4369ca0"
+    },
+    {
+      "slot": 43,
+      "source": "0x405eb0",
+      "indirect_address": "0x4369ca8"
+    },
+    {
+      "slot": 44,
+      "source": "0x405ebd",
+      "indirect_address": "0x4369cac"
+    },
+    {
+      "slot": 45,
+      "source": "0x405ec9",
+      "indirect_address": "0x4369cb0"
+    },
+    {
+      "slot": 46,
+      "source": "0x406060",
+      "indirect_address": "0x4369cb8"
+    },
+    {
+      "slot": 47,
+      "source": "0x406067",
+      "indirect_address": "0x4369cbc"
+    },
+    {
+      "slot": 48,
+      "source": "0x405f46",
+      "value": "0x407a90"
+    },
+    {
+      "slot": 49,
+      "source": "0x405f51",
+      "value": "0x407620"
+    },
+    {
+      "slot": 50,
+      "source": "0x405f5c",
+      "value": "0x407670"
+    },
+    {
+      "slot": 51,
+      "source": "0x405f67",
+      "value": "0x4071b0"
+    },
+    {
+      "slot": 52,
+      "source": "0x405f72",
+      "value": "0x407250"
+    },
+    {
+      "slot": 53,
+      "source": "0x405f7d",
+      "value": "0x4072b0"
+    },
+    {
+      "slot": 54,
+      "source": "0x405f88",
+      "value": "0x4075b0"
+    },
+    {
+      "slot": 55,
+      "source": "0x405f93",
+      "value": "0x407600"
+    },
+    {
+      "slot": 56,
+      "source": "0x406075",
+      "value": "0x405d40"
+    },
+    {
+      "slot": 57,
+      "value": 0,
+      "source": "zeroed at 0x405e64"
+    },
+    {
+      "slot": 58,
+      "source": "0x406096",
+      "value": "0x405dd0"
+    },
+    {
+      "slot": 59,
+      "source": "0x40608b",
+      "value": "0x405dc0"
+    },
+    {
+      "slot": 60,
+      "source": "0x406080",
+      "value": "0x405d60"
+    },
+    {
+      "slot": 61,
+      "source": "0x4060a1",
+      "value": "0x43039a8"
+    }
+  ],
+  "exports": [
+    {
+      "slot": 0,
+      "rva": "0xa9a0",
+      "observed": "one import-table pointer, copies 62 dwords; cvar registration; engine call 0x4060cc"
+    },
+    {
+      "slot": 1,
+      "rva": "0xaf30",
+      "observed": "one record pointer; copies 87 dwords (348 bytes) into a 32-entry ring; engine passes 0x430fc6c at 0x406c2a"
+    },
+    {
+      "slot": 2,
+      "rva": "0xa820",
+      "observed": "one integer; engine configstring parser passes index at 0x406f4c; callback branches on 2, 32..287 models, 288..543 sounds, 544..799 players"
+    },
+    {
+      "slot": 3,
+      "rva": "0x98e0",
+      "observed": "no arguments; engine tokenizes command then calls at 0x40705f; callback reads import Argv"
+    },
+    {
+      "slot": 4,
+      "rva": "0x9a90",
+      "observed": "engine wrapper 0x4060e0 returns 0 unless connection state is 7, otherwise tail-calls this export; full return semantics still unpinned"
+    },
+    {
+      "slot": 5,
+      "rva": "0x10d40",
+      "observed": "engine calls with [0x430fc10] integer and 0 or 1 at 0x4059f4/0x405a4e; latter path consumes EAX as a completion condition"
+    },
+    {
+      "slot": 6,
+      "rva": "0x59a0",
+      "observed": "one float; engine stereo path supplies zero or scaled [0x4369cd0]->value at 0x407a11/0x407a1e"
+    },
+    {
+      "slot": 7,
+      "rva": "0x8a90",
+      "observed": "no arguments; engine render loop calls 0x4079c6 then draws console/UI; full callback semantics still unpinned"
+    }
+  ],
+  "caution": "The eight entries are callbacks, with no leading API version word. Slot 1 is a snapshot recipient, not a shutdown callback. Do not import the retail cgame lifecycle by ordinal. Import slots 0 and 57 remain zero in the observed construction; their intended roles must not be guessed.",
+  "files": [
+    ".tmp/q3-ihv/cgame-boundary-disassembly.txt",
+    ".tmp/q3-ihv/cgame-export-disassembly.txt",
+    ".tmp/q3-ihv/cgame-callback-sites.txt"
+  ],
+  "snapshot_copy_probe": {
+    "scope": "original cgame snapshot copy only; post-copy prediction helper stubbed, no cgame Init or engine session",
+    "callback_rva": "0xaf30",
+    "stubbed_helper_rva": "0x4b90",
+    "snapshot_bytes": 348,
+    "ring_records": 32,
+    "cases": 36,
+    "guarded_input": true,
+    "fnv1a64": "3db7ed59387ed22b",
+    "source": "tests/q3_ihv_reference_cgame_snapshot_probe.cpp",
+    "source_sha256": "1faf2be1d5f63eacdf68d011b01fec0f20b399bcf8c005500ad541c57b40cb4f"
+  },
+  "date": "2026-09-21",
+  "profile": "q3-ihv; startup remains blocked; no engine implementation is enabled by this observation.",
+  "reference": "https://github.com/themuffinator/Quake3-IHV/tree/d5ce877155904c57f8b28fe0fd0c8aa2e9473337",
+  "record_transfer_observations": {
+    "gamestate": "Engine 0x405d46..0x405d50 copies 0x13a1 dwords (20100 bytes) from 0x4312948.",
+    "usercmd": "Engine 0x405d60 checks a 64-entry command history and copies 14 bytes at 0x405d92..0x405dab; it rejects future and expired commands."
+  },
+  "commands": [
+    "cl /nologo /EHsc /W4 /WX /MD /O2 /std:c++17 tests/q3_ihv_reference_cgame_snapshot_probe.cpp /Fe:.tmp/q3-ihv/reference-cgame-snapshot-probe.exe /Fo:.tmp/q3-ihv/reference-cgame-snapshot-probe.obj /link /MANIFEST:EMBED \"/MANIFESTUAC:level='asInvoker' uiAccess='false'\" advapi32.lib",
+    ".tmp/q3-ihv/reference-cgame-snapshot-probe.exe E:/Repositories/Quake3-IHV/ref/install/cgamex86.dll"
+  ],
+  "artifacts": [
+    {
+      "path": "tests/q3_ihv_reference_cgame_snapshot_probe.cpp",
+      "bytes": 5414,
+      "sha256": "1faf2be1d5f63eacdf68d011b01fec0f20b399bcf8c005500ad541c57b40cb4f"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-cgame-snapshot-build.log",
+      "bytes": 43,
+      "sha256": "a25985c944fc6583696201768d5e70507a5730df9fea8e650c05b3bc3dbac840"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-cgame-snapshot.json",
+      "bytes": 271,
+      "sha256": "d65af75b46b671bb07fd5c5959a92472d48d576a5aa746393b3dbc44428721a6"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-cgame-snapshot.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-boundary-disassembly.txt",
+      "bytes": 11660,
+      "sha256": "7158ccbd7fab4d2aa1bfa28a53ef087434743e23830fe2cd2922cbe91c9d6277"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-export-disassembly.txt",
+      "bytes": 23164,
+      "sha256": "35818b22024c976b837e09c064f5218ea5300c68831e21c30ed851dd14ab58ca"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-callback-sites.txt",
+      "bytes": 9135,
+      "sha256": "b665b00a4df3163065f8372966444f42211c3fb4196a14cffa1afa41190263d7"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-input-records.txt",
+      "bytes": 9099,
+      "sha256": "ad6ed42f62f6d6fb0e6295ee2a969652a91064878a0e01143ce5fa2bf8cab8ef"
+    }
+  ],
+  "validation": {
+    "result": "PASS",
+    "source": "tests/q3_ihv_reference_cgame_snapshot_probe.cpp",
+    "cases": 36,
+    "fnv1a64": "3db7ed59387ed22b",
+    "build": "MSVC Windows x86 /O2 /W4 /WX; rebuilt from the retained tests source."
+  }
+}

@@ -53,7 +53,23 @@ template<class T> bool cleared(const T &v){
 }
 static void checkPools(){
  for(const auto &p:profiles){profile=&p;const int count=p.maxClients;
-  assert(count==(p.id==COM_GAME_RTCW_SP?128:p.id==COM_GAME_STVEF_SP?1:64));
+  if(!p.bots.navigationWorlds){
+   // A profile with no navigation storage still keeps its own client
+   // limit: Alice allocates Ritual's 128 and runs no bot at all.
+   assert((p.id==COM_GAME_QUAKE3_IHV&&count==256)
+    ||((p.id==COM_GAME_JKA_SP||p.id==COM_GAME_JK2_SP)&&count==1)
+    ||(p.id==COM_GAME_ALICE&&count==128));
+   assert(!BotLibClientCapacity());
+   assert(!BotAllocGoalState(0)&&!BotAllocMoveState());
+   for(int handle:{-1,0,1,MAX_GAME_CLIENTS,MAX_GAME_CLIENTS+1,count,INT_MAX}){
+    assert(!BotGoalStateFromHandle(handle)&&!BotMoveStateFromHandle(handle));
+    BotFreeGoalState(handle);BotFreeMoveState(handle);
+    BotResetGoalState(handle);BotResetMoveState(handle);
+   }
+   BotShutdownGoalAI();BotShutdownMoveAI();assert(allocations.empty());continue;
+  }
+  // Jedi Academy multiplayer seats 32 clients, single player exactly one.
+  assert(count==(p.id==COM_GAME_RTCW_SP?128:p.id==COM_GAME_STVEF_SP?1:(p.id==COM_GAME_JKA_MP||p.id==COM_GAME_JK2_MP)?32:64));
   for(int invalid:{-1,0,count+1,INT_MAX}){
    assert(!BotGoalStateFromHandle(invalid)&&!BotMoveStateFromHandle(invalid));
    BotFreeGoalState(invalid);BotFreeMoveState(invalid);BotResetGoalState(invalid);BotResetMoveState(invalid);
@@ -92,6 +108,7 @@ static void checkPools(){
 }
 static void checkInitFlags(){
  for(const auto &p:profiles){profile=&p;const bool rtcw=Com_GameIsRTCW();
+  if(!p.bots.navigationWorlds)continue; // Native IHV rejection is checked above.
   const int h=BotAllocMoveState();auto *ms=botmovestates[h];
   for(unsigned flags=0;flags<2048;++flags){
    ms->moveflags=static_cast<int>(flags^0x500007ffu);const auto original=ms->moveflags;

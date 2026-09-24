@@ -199,8 +199,19 @@ list(APPEND CLIENT_SRCS
 	code/client/audio/codecs/snd_codec.cpp
 	code/client/audio/codecs/snd_codec_ogg.cpp
 	code/client/audio/codecs/snd_codec_wav.cpp
+	code/client/audio/snd_alice.cpp
 	code/client/audio/openal/AudioSystem.cpp
 	${CLIENT_ASM_SRCS})
+# Elite Force's sounds and music and American McGee's Alice's music are MP3;
+# minimp3 is header-only and compiled once in snd_codec_mp3.cpp.
+set(FNQL_MINIMP3_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/subprojects/minimp3")
+if(NOT EXISTS "${FNQL_MINIMP3_INCLUDE_DIR}/minimp3.h")
+	message(FATAL_ERROR
+		"Elite Force and Alice audio require the pinned minimp3 wrap. Run 'meson subprojects download minimp3' before configuring CMake.")
+endif()
+list(APPEND CLIENT_SRCS code/client/audio/codecs/snd_codec_mp3.cpp)
+ADD_COMPILE_DEFINITIONS(USE_CODEC_MP3)
+INCLUDE_DIRECTORIES(SYSTEM "${FNQL_MINIMP3_INCLUDE_DIR}")
 IF(NOT USE_CURL)
 	list(REMOVE_ITEM CLIENT_SRCS code/client/cl_curl.cpp)
 ENDIF()

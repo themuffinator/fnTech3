@@ -1,0 +1,415 @@
+{
+  "date": "2026-09-21",
+  "recorded_utc": "2026-09-21T03:41:50.567067+00:00",
+  "scope": "Protocol-33 configstring updates, ordered decoded events, and exact native string storage. No native cgame initialization/dispatch, engine playback or live interoperability is enabled.",
+  "profile": "q3-ihv; native startup remains blocked in every build.",
+  "commit": "9e1841de53d79f96cdbbde83a1427d1c7d83f31d",
+  "working_tree": "Uncommitted IHV configstring follow-up; preceding Q3/IHV and unrelated RTCW changes retained.",
+  "platform": "Windows x86 MSVC 14.44.35222.0 and Meson win32 preset; separate Windows x64 Clang 20.1.7 AddressSanitizer tests with -O2 -ffast-math.",
+  "reference": {
+    "repository": "https://github.com/themuffinator/Quake3-IHV/tree/d5ce877155904c57f8b28fe0fd0c8aa2e9473337",
+    "executable": {
+      "path": "E:/Repositories/Quake3-IHV/ref/install/quake3.exe",
+      "bytes": 725042,
+      "sha256": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37"
+    },
+    "cgame": {
+      "path": "E:/Repositories/Quake3-IHV/ref/install/cgamex86.dll",
+      "bytes": 192570,
+      "sha256": "175f94756f994b06235690fdd2d9fe798503f7a797f2e070277a672847593614"
+    },
+    "incorporation": "Independently authored implementation from observed behavior. No original implementation text, executable, module or asset incorporated.",
+    "execution": "Original configstring parser at 0x406df0 in a reserved x86 numeric host; original executable entry point never runs. The original stack probe at 0x448020 is also used. There is no display, input, cgame initialization, filesystem or network session.",
+    "substitutions": {
+      "0x410e10": "synthetic short index",
+      "0x410ea0": "synthetic bounded string",
+      "0x40cc40": "ignored debug text",
+      "0x40cca0": "explicit failure",
+      "cgame export slot 2": "check index and count change notification"
+    }
+  },
+  "observations": {
+    "native_record": "0x405d46 copies 0x13a1 dwords = 20100 bytes: 1024 offset dwords, 16000 data bytes and dataCount at 20096.",
+    "initial_append": "0x406c61 sets dataCount=1. 0x406cb2..0x406d1d appends each received configstring including empty and repeated indices, retaining older bytes.",
+    "changed_update": "0x406df0 returns without notification when value is unchanged. Otherwise it clears/rebuilds nonempty strings in index order, with capacity 16000, then calls export slot 2 at 0x406f4d.",
+    "opcode": "Original outer opcode table at 0x407188 dispatches opcode 3 through 0x407143 to 0x406df0.",
+    "snapshot_storage": "The separate 348-byte snapshot byte record uses the guarded cgame copy observations from 2026-09-21-q3-ihv-cgame-copy.json; complete field projection remains open.",
+    "cgame_configstrings": "Original cgame callback RVA 0xa820 copies the native record using import 56, starts background music via import 36 for index 2, registers models via import 40 for indices 32..287, and registers sounds via import 33 for indices 288..543 except values beginning with an asterisk. Native player/config callbacks and actual asset/audio registration remain outside this probe.",
+    "history": {
+      "scope": "Next native client boundary work; original getter observations only, no engine implementation yet.",
+      "native_snapshot": {
+        "bytes": 348,
+        "fields": {
+          "0": "valid int32",
+          "4": "flags expanded dword",
+          "8": "serverTime",
+          "12": "commandSequence",
+          "16": "messageNumber",
+          "20": "deltaNumber",
+          "24": "ping",
+          "28": "32-byte area mask",
+          "60": "276-byte raw player state",
+          "336": "configSequence",
+          "340": "entityCount",
+          "344": "first parse entity sequence"
+        }
+      },
+      "native_histories": {
+        "command": "64 records of 14 bytes at 0x43697d8; latest command counter 0x4369b58",
+        "entity": "1024 records of 164 bytes at 0x43407cc; next entity counter 0x43697cc"
+      },
+      "commands": "Original 0x405d60 returns false when signed(request)>signed(current) or signed(request)<=signed(current-64 modulo 2^32). Otherwise it copies exactly 14 bytes from request&63.",
+      "entities": "Original 0x405dd0 calls Error(level=1) before copying when signed(request)>=signed(next). Otherwise it returns false when signed(request)<=signed(next-1024 modulo 2^32), or copies 164 bytes from request&1023.",
+      "wrap": "These are original signed comparisons, including their discontinuity at 0x80000000. Avoid C++ signed-overflow UB; a modular unsigned subtraction followed by explicit signed interpretation reproduces the predicates.",
+      "observed": {
+        "scope": "original client getters on synthetic history; no engine session",
+        "cases": 33152,
+        "accepted_commands": 986,
+        "accepted_entities": 14355,
+        "future_entity_errors": 1141,
+        "gamestate_bytes": 20100,
+        "fnv1a64": "07a29d1335968916"
+      },
+      "projection_next": "Keep command/entity history storage and all external snapshot bytes separate from retail cl.snap, gameState_t and usercmd_t. Feed from decoded protocol-33 state; bind native imports only with the coherent IHV profile. Preserve caller output on invalid history and partial-message rejection.",
+      "proof_limits": "Synthetic getter inputs do not establish prediction, interpolation, input generation, protocol netchan, engine demo playback or full native cgame initialization."
+    }
+  },
+  "validation": {
+    "original_parser": {
+      "scope": "original configstring parser with synthetic message reads and cgame callback; no engine session",
+      "cases": 512,
+      "changes": 384,
+      "gamestate_bytes": 20100,
+      "fnv1a64": "06594df1f7ec01c4"
+    },
+    "original_cgame_recipient": {
+      "scope": "original cgame configstring copy and model/sound/music routing with synthetic registration imports; no Init or engine session",
+      "cases": 36,
+      "models": 9,
+      "sounds": 6,
+      "music": 3,
+      "fnv1a64": "e968cf303dae0568"
+    },
+    "original_history_getters": {
+      "scope": "original client getters on synthetic history; no engine session",
+      "cases": 33152,
+      "accepted_commands": 986,
+      "accepted_entities": 14355,
+      "future_entity_errors": 1141,
+      "gamestate_bytes": 20100,
+      "fnv1a64": "07a29d1335968916"
+    },
+    "native_storage": "PASS: exact offsets/extent, duplicate/empty initial records, no-op byte preservation, sorted rebuild, deletions, aliased views, 16000-byte limit, malformed strings and atomic overflow/recovery.",
+    "messages": "PASS: standalone updates require a gamestate; malformed/truncated/out-of-range/profile-changing/overflowing updates preserve prior state and output, including an invalid later opcode. Immutable prior gamestate remains unchanged. Ordered events retain unchanged updates, commands, nops and snapshots; generated bytes and replay order are checked.",
+    "asan": "PASS: configstring and complete message/container tests, plus both supplied demo inputs, under Clang x64 AddressSanitizer and fast math.",
+    "supplied_demo": "PASS: sli.dm3 still yields 57 messages, 56 snapshots and 680 entity states; 55/57 messages regenerate byte-identically. berj.dm3 now fails specifically with MissingGamestate before publication.",
+    "focused_meson": {
+      "result": "PASS",
+      "passed": 4
+    },
+    "build": "PASS: complete Meson win32 build. Initial explicit-target invocation preceded Meson regeneration and failed to find the new target; the normal full build regenerated successfully.",
+    "full_suite": {
+      "result": "PASS",
+      "targets": 130,
+      "meson_results": {
+        "OK": 128,
+        "SKIP": 2
+      },
+      "python": {
+        "result": "OK",
+        "cases": 1840,
+        "seconds": 777.806,
+        "skipped": 72
+      }
+    },
+    "post_suite": "Production code is unchanged after the full suite. The optional cgame recipient and client history hosts were retained in tests and rebuilt/run separately from their final sources; numeric digests match the preceding scratch probes. Documentation/evidence metadata was finalized afterward.",
+    "final_document_checks": "PASS: five documentation generation and packaged evidence-link tests after the evidence update."
+  },
+  "commands": [
+    "Use E:/Repositories/fnTech3 as cwd, TEMP/TMP=.tmp/q3-ihv, and .tmp/rtcw-manager/x86_environment.ps1 for MSVC/Meson.",
+    "cl /nologo /EHsc /W4 /WX /MD /O2 /std:c++17 tests/q3_ihv_reference_configstrings_probe.cpp /Fe:.tmp/q3-ihv/reference-configstrings-probe.exe /Fo:.tmp/q3-ihv/reference-configstrings-probe.obj /link /BASE:0x400000 /DYNAMICBASE:NO /SECTION:.ihv,ERW /MANIFEST:EMBED \"/MANIFESTUAC:level='asInvoker' uiAccess='false'\" advapi32.lib",
+    ".tmp/q3-ihv/reference-configstrings-probe.exe E:/Repositories/Quake3-IHV/ref/install/quake3.exe",
+    "cl /nologo /EHsc /W4 /WX /MD /O2 /std:c++17 tests/q3_ihv_reference_cgame_configstrings_probe.cpp /Fe:.tmp/q3-ihv/reference-cgame-configstrings-probe.exe /Fo:.tmp/q3-ihv/reference-cgame-configstrings-probe.obj /link /MANIFEST:EMBED \"/MANIFESTUAC:level='asInvoker' uiAccess='false'\" advapi32.lib",
+    ".tmp/q3-ihv/reference-cgame-configstrings-probe.exe E:/Repositories/Quake3-IHV/ref/install/cgamex86.dll",
+    "cl /nologo /EHsc /W4 /WX /MD /O2 /std:c++17 tests/q3_ihv_reference_client_history_probe.cpp /Fe:.tmp/q3-ihv/reference-client-history-probe.exe /Fo:.tmp/q3-ihv/reference-client-history-probe.obj /link /BASE:0x3f0000 /DYNAMICBASE:NO /SECTION:.ihv,ERW /MANIFEST:EMBED \"/MANIFESTUAC:level='asInvoker' uiAccess='false'\" advapi32.lib",
+    ".tmp/q3-ihv/reference-client-history-probe.exe E:/Repositories/Quake3-IHV/ref/install/quake3.exe",
+    "meson compile -C meson/build/win32",
+    "meson test -C meson/build/win32 --no-rebuild --print-errorlogs",
+    "meson/build/win32/fntech3_q3_ihv_message_tests.exe E:/Repositories/Quake3-IHV/ref/install/baseq3/demos/sli.dm3 E:/Repositories/Quake3-IHV/ref/install/baseq3/demos/berj.dm3",
+    "clang++ -std=c++17 -O2 -ffast-math -fsanitize=address -g tests/q3_ihv_configstrings_tests.cpp -o .tmp/q3-ihv/configstrings-asan.exe",
+    "clang++ -std=c++17 -O2 -ffast-math -fsanitize=address -g tests/q3_ihv_message_tests.cpp -o .tmp/q3-ihv/configstrings-message-asan.exe"
+  ],
+  "remaining": [
+    "Native cgame callback signatures, renderer/sound records, cvars and engine dispatch.",
+    "Snapshot/client entity-history projections and complete native game lifecycle/import dispatch.",
+    "Original BSP/PVS/collision parity, live protocol-33 transport/handshake, native demo playback/recording and broader Q3Test/point-release gates."
+  ],
+  "artifacts": [
+    {
+      "path": "code/compat/q3_ihv_client_abi.h",
+      "bytes": 990,
+      "sha256": "25a4426b3e2597ce181de623eb3fc4cf515f2dfb2bcbe5911171c89ab7e14f4a"
+    },
+    {
+      "path": "code/compat/q3_ihv_configstrings.hpp",
+      "bytes": 2999,
+      "sha256": "64d6d2eb3011b5e5e8abd6889ce76845e57cfe8c5c13cc9d91900ab506d13bb2"
+    },
+    {
+      "path": "code/qcommon/q3_ihv_message.hpp",
+      "bytes": 17423,
+      "sha256": "74c3f3878439539778cb53f5bdd3853a69dbfad985e30bc2cb10909e47fc53cf"
+    },
+    {
+      "path": "tests/q3_ihv_configstring_cases.hpp",
+      "bytes": 1705,
+      "sha256": "1738a842462140ef05b4d85fee5fcf0e8c95969756819b14ce13283cd5339762"
+    },
+    {
+      "path": "tests/q3_ihv_configstrings_tests.cpp",
+      "bytes": 3340,
+      "sha256": "69e6079381f2b3b33549b6b8c482d204965b9479ea580d8d68893f8db61dc36c"
+    },
+    {
+      "path": "tests/q3_ihv_message_tests.cpp",
+      "bytes": 27267,
+      "sha256": "1cf656858f8a5930217cd077f2b0f63b7d72b2d3344912a808d9668c57c3a3e3"
+    },
+    {
+      "path": "tests/q3_ihv_reference_configstrings_probe.cpp",
+      "bytes": 6271,
+      "sha256": "e704796deb37bcc35b81e27811db58c9ddf7a5ec29fef9843c45a54f4ca60f94"
+    },
+    {
+      "path": "meson.build",
+      "bytes": 64238,
+      "sha256": "5d3cc3c635748ba742d8fcd3502e6294a644abf774be6257c28375368b601092"
+    },
+    {
+      "path": "tests/q3_ihv_reference_cgame_configstrings_probe.cpp",
+      "bytes": 6042,
+      "sha256": "089315e5363e3f34eb87e0033fd915c7a5e7117a1979cba0df36d6b1d74f14a7"
+    },
+    {
+      "path": "tests/q3_ihv_reference_client_history_probe.cpp",
+      "bytes": 7103,
+      "sha256": "1f0c5246786a3500e6fc50a4118e57ea58df2caf763278844977e55506c0ea75"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-configstrings-build.log",
+      "bytes": 42,
+      "sha256": "dec1715956724d7d3cac5b69aa6f3f10b173bbd31098d62c6c6621bcc0248bc0"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-configstrings.json",
+      "bytes": 188,
+      "sha256": "688b6d946a62e5cf37e763787aa6fe28f42d3414437d690617636ab81de14d51"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-configstrings.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-configstrings-wrong-image.log",
+      "bytes": 32,
+      "sha256": "acddf4d9ae5ce415e391752e877595f1834528f70702406eb9256f71f9b99be8"
+    },
+    {
+      "path": ".tmp/q3-ihv/configstrings-build.log",
+      "bytes": 123,
+      "sha256": "9a10532e540725134ccb0236cfda54f8d38e09205cbeb0ac86f73ed0da1ba95b"
+    },
+    {
+      "path": ".tmp/q3-ihv/configstrings-build-all.log",
+      "bytes": 34405,
+      "sha256": "c776e16fa88d9689c9614a4a3e783d1b6953cdc12cf6c4a8fa747b34585fb1b7"
+    },
+    {
+      "path": ".tmp/q3-ihv/configstrings-build-final.log",
+      "bytes": 503,
+      "sha256": "964799205dee2ad95e552708f7e0fdf6d7ca3d22c2d231c049dedfe84384096b"
+    },
+    {
+      "path": ".tmp/q3-ihv/configstrings-meson-focused.log",
+      "bytes": 404,
+      "sha256": "ee6c8a4a511b88dc132a074592509bab1a5dd3a44b19de5944ef697d1c63827b"
+    },
+    {
+      "path": ".tmp/q3-ihv/configstrings-demo.log",
+      "bytes": 510,
+      "sha256": "35730fa3c75db845812ccbb3a959c3a1d9b34b573536d303f6a7fd5350293223"
+    },
+    {
+      "path": ".tmp/q3-ihv/configstrings-asan-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/configstrings-asan.log",
+      "bytes": 138,
+      "sha256": "39e4aff00cf4aca9a1d51ba8287af054e094cdd9fd658d471ff4fafde35475e6"
+    },
+    {
+      "path": ".tmp/q3-ihv/configstrings-message-asan-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/configstrings-message-asan.log",
+      "bytes": 510,
+      "sha256": "35730fa3c75db845812ccbb3a959c3a1d9b34b573536d303f6a7fd5350293223"
+    },
+    {
+      "path": ".tmp/q3-ihv/client-data-disassembly.txt",
+      "bytes": 7317,
+      "sha256": "129e363e9b688af4b47b8d35816411079259f34712a9aa942a09762094cf296c"
+    },
+    {
+      "path": ".tmp/q3-ihv/client-data-disassembly-2.txt",
+      "bytes": 4598,
+      "sha256": "6d0d100760f30cbc707997ed8077674ad0c07d8d92b6e0ef40047f6f403c8209"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-input-records.txt",
+      "bytes": 9099,
+      "sha256": "ad6ed42f62f6d6fb0e6295ee2a969652a91064878a0e01143ce5fa2bf8cab8ef"
+    },
+    {
+      "path": ".tmp/q3-ihv/record_configstrings.py",
+      "bytes": 12617,
+      "sha256": "44bc5efee0a9b65adf065c91b2864f71e353a0e0f6322f9f3e4eaad935561455"
+    },
+    {
+      "path": ".tmp/q3-ihv/configstrings-docs-focused.log",
+      "bytes": 108,
+      "sha256": "f68464c2f81c4a2d0ba82c2be432fd00c166be7b1b39bcec8c377664f7f95312"
+    },
+    {
+      "path": ".tmp/q3-ihv/configstrings-build-package.log",
+      "bytes": 350,
+      "sha256": "da0f76374818dfc274482d83cb9f978e446498c60737903e35a6825edc340951"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-cgame-configstrings-build.log",
+      "bytes": 48,
+      "sha256": "ff122606ce3ae1c0e19fc711e0d24e600d3df1fcbcf35ffd539ae0b33bd2a7ce"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-cgame-configstrings.json",
+      "bytes": 211,
+      "sha256": "03a330552f9664852733b8ad8ee84f0f90b0d7c340c31a03b2235cf5a5cb156c"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-cgame-configstrings.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-client-history-build.log",
+      "bytes": 43,
+      "sha256": "8747ad9a254db7af59d59e7b238fb12ec55a6d50c84c79496b0789e442532b65"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-client-history.json",
+      "bytes": 222,
+      "sha256": "fa47ce06e0673b7ac8661c92d59334a19ce4d0680d9d90d58f5323842277fe1f"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-client-history.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/native-client-data-next.json",
+      "bytes": 2219,
+      "sha256": "f02f231caca03a9939f8318ed60ef6e64cda747779ea9d55fc181b71cd781423"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-configstrings-disassembly.txt",
+      "bytes": 2033,
+      "sha256": "86c34c7f4a5aef0d43958eb5245a641e6760ba3c679bdaf7776a7b302e19c84a"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-init-full.txt",
+      "bytes": 10597,
+      "sha256": "2cb4b1ce8ab73ac364f97d5e4ce5a379652e51336cf1de82dcb3a1755dd125c3"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-init-helpers.txt",
+      "bytes": 3045,
+      "sha256": "8e6a0f0eb7d2ea1e54a5ae562c0811d56176e1573f13d1207eb1efef4bf06f94"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-init-next.json",
+      "bytes": 1236,
+      "sha256": "5ec579dbfb630fd4030e1b95c213891fa6007ce7eb03c99621c149244fa256a7"
+    },
+    {
+      "path": ".tmp/q3-ihv/configstrings-docs-final.log",
+      "bytes": 109,
+      "sha256": "f98f159a6f57edf85eecd72f6a86a9bd9e86ea58d1cdcdac1604673875eeec82"
+    },
+    {
+      "path": ".tmp/q3-ihv/configstrings-suite.log",
+      "bytes": 10339,
+      "sha256": "a9dd2031eb4543602b11d95f35c41aa2438c1cb54a3fcde886cfe319803504fa"
+    },
+    {
+      "path": ".tmp/q3-ihv/configstrings-suite-testlog.txt",
+      "bytes": 136503,
+      "sha256": "2db149be0cd0a9dfc60b78ce3591d893f72d32bc16cb9997613c1ae562dd96e6"
+    },
+    {
+      "path": ".tmp/q3-ihv/configstrings-suite-testlog.json",
+      "bytes": 2461420,
+      "sha256": "9591594cedc7062fc87a922d1059591939bbe958995844cbe94abbf452de7389"
+    },
+    {
+      "path": "meson/build/win32/fntech3.exe",
+      "bytes": 8516096,
+      "sha256": "70524caf4696ba61000a0241dcbca27e5ebc911c887be13a5ffd823de5f32a22"
+    },
+    {
+      "path": "meson/build/win32/fntech3.ded.exe",
+      "bytes": 2685440,
+      "sha256": "72ef9cf580a2e8c0cb4adf6d8fab0e9617b0cd1682d435904514d595532436d7"
+    },
+    {
+      "path": "meson/build/win32/fntech3_q3_ihv_message_tests.exe",
+      "bytes": 902656,
+      "sha256": "76896b9d7387a56baf2ccb53659d83e6679541228d0e718031a2db4a0e49e358"
+    },
+    {
+      "path": "meson/build/win32/fntech3_q3_ihv_configstrings_tests.exe",
+      "bytes": 407040,
+      "sha256": "eff2b163465dd2c8c7cb1e13108148ce3e22d4c39dc3a5e0e18d18d85691eea4"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-configstrings-probe.exe",
+      "bytes": 33280,
+      "sha256": "f57d81acf932fcd76fda952ae4bad63d8c52f651bef108e22228eaa0cbaabc59"
+    },
+    {
+      "path": ".tmp/q3-ihv/configstrings-asan.exe",
+      "bytes": 572928,
+      "sha256": "13800fff0ffc0b9e95f7d690c2a63e28468f14347452de08e00f81309b04fede"
+    },
+    {
+      "path": ".tmp/q3-ihv/configstrings-message-asan.exe",
+      "bytes": 1503232,
+      "sha256": "4cf1907c1349239473d7f76d5922226e4798f90fb05ed12e45a4cd6419b03f6c"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-cgame-configstrings-probe.exe",
+      "bytes": 29696,
+      "sha256": "2bba21c74d8e2eb845472754f2d807741a0f46027b4538ee8bcb23c46782759a"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-client-history-probe.exe",
+      "bytes": 29696,
+      "sha256": "4ce82100ee1d6ca6715819d492c0efb147294c9d747e627aa7936a4f229028e9"
+    }
+  ],
+  "unrelated_issues": "No new unrelated code defect. Existing IPv6-loopback WSAEADDRNOTAVAIL remains. Automatic approval review previously rejected cleanup of seven trace-fixture intermediates and older copied-asset scratch as blocked by policy; those files remain in .tmp/q3-ihv, without an alternate deletion attempt."
+}

@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "server_game_data.h"
 
 #include "../botlib/botlib.h"
+#include "../compat/alice_module_abi.h"
 #include "../compat/game_abi_adapter.h"
 #include "../compat/rtcw_module_abi.h"
 #include "../compat/rtcw_state_adapter.hpp"
@@ -94,6 +95,32 @@ constexpr ServerFlagMapping stvefSpServerFlags[] = {
 	{ FNTECH3_STVEF_SP_SVF_BROADCAST, SVF_BROADCAST },
 	{ FNTECH3_STVEF_SP_SVF_PORTAL, SVF_PORTAL }
 };
+/* Alice's bits are not Quake III's. Its "do not send" happens to be bit 0 as
+ * well, but its bot, broadcast and portal bits are 1, 2 and 3 where Quake
+ * III's are 3, 5 and 6, so a record passed through untranslated would read as
+ * a different set of flags entirely.
+ *
+ * Each of these is what the retail engine does with the bit rather than what
+ * a neighbouring engine calls it. The snapshot walk at 0x004571e0 skips an
+ * entity on bit 0, sends it past the visibility test on bit 2, and on bit 3
+ * runs a second visibility pass from the entity's own `s.origin2`, which is
+ * what a portal is; the ping loop at 0x00456550 forces a ping of zero on bit
+ * 1, which is what this lineage does for a bot.
+ *
+ * Two tested bits are deliberately absent from this table. Bit 4 lets an
+ * entity past the walk's requirement to carry a model index or a looping
+ * sound, and this engine has no flag meaning that. Bit 14 reaches the same
+ * unconditional-send arm as bit 2, so it could be folded into SVF_BROADCAST
+ * on the way in -- but then the way out would set bit 2 on an entity whose
+ * module had only ever set bit 14, which is a bit the module never wrote.
+ * Leaving both unmapped drops them on the way in, where an unmapped bit only
+ * makes an entity ordinary, and preserves them untouched on the way out. */
+constexpr ServerFlagMapping aliceServerFlags[] = {
+	{ FNTECH3_ALICE_SVF_NOCLIENT, SVF_NOCLIENT },
+	{ FNTECH3_ALICE_SVF_BOT, SVF_BOT },
+	{ FNTECH3_ALICE_SVF_BROADCAST, SVF_BROADCAST },
+	{ FNTECH3_ALICE_SVF_PORTAL, SVF_PORTAL }
+};
 constexpr ServerFlagMapping wolfetServerFlags[] = {
 	{ FNTECH3_WOLFET_SVF_IGNOREBMODELEXTENTS, SVF_WOLFET_ORIGIN_ONLY },
 	{ FNTECH3_WOLFET_SVF_SELF_PORTAL, SVF_WOLFET_SELF_PORTAL },
@@ -110,6 +137,12 @@ int ServerFlagsToInternal( comGameId_t profile, int flags ) {
 	if ( profile == COM_GAME_STVEF_SP ) {
 		uint32_t result = 0;
 		for ( const auto &bit : stvefSpServerFlags )
+			if ( static_cast<uint32_t>( flags ) & bit.external ) result |= bit.internal;
+		return static_cast<int>( result );
+	}
+	if ( profile == COM_GAME_ALICE ) {
+		uint32_t result = 0;
+		for ( const auto &bit : aliceServerFlags )
 			if ( static_cast<uint32_t>( flags ) & bit.external ) result |= bit.internal;
 		return static_cast<int>( result );
 	}
@@ -141,6 +174,17 @@ int ServerFlagsFromInternal( comGameId_t profile, int flags, int previous ) {
 		else apply( stvefServerFlags );
 		int output;
 		std::memcpy( &output, &result, sizeof( output ) );
+		return output;
+	}
+	if ( profile == COM_GAME_ALICE ) {
+		// Every bit this engine does not map stays exactly as the module left it.
+		uint32_t kept = static_cast<uint32_t>( previous );
+		for ( const auto &bit : aliceServerFlags ) {
+			kept &= ~bit.external;
+			if ( static_cast<uint32_t>( flags ) & bit.internal ) kept |= bit.external;
+		}
+		int output;
+		std::memcpy( &output, &kept, sizeof( output ) );
 		return output;
 	}
 	if ( profile != COM_GAME_RTCW_SP && profile != COM_GAME_RTCW_MP && profile != COM_GAME_WOLFET ) return flags;
@@ -265,6 +309,19 @@ int	SV_NumForGentity( sharedEntity_t *ent ) {
 sharedEntity_t *SV_GentityNum( int num ) {
 	fntech3::server::GameEntityRef reference;
 	if ( !serverGameData.EntityRefAt( num, reference ) ) {
+		/* An out-of-range number and an unbound view both land here, and they
+		 * are different problems: the first is a bad index, the second is a
+		 * profile whose entity record this engine has no layout for, so no
+		 * index would have worked. Saying which saves reading the number for
+		 * a fault that was never about the number. */
+		if ( !serverGameData.IsBound() ) {
+			Com_Error( ERR_DROP, "%s: the %s profile has no entity layout bound, "
+				"so entity %i cannot be reached at all. The game module "
+				"published where its entities live, but this engine has no "
+				"record of what one of this title's entities contains.",
+				__func__, Com_GameProfile()->displayName, num );
+			return nullptr;
+		}
 		Com_Error( ERR_DROP, "%s: bad entity number %i", __func__, num );
 		return nullptr;
 	}
@@ -651,6 +708,33 @@ static void SV_GetServerinfo( char *buffer, int bufferSize ) {
 
 /*
 ===============
+SV_GameEntityArena
+
+How many records the located entity array holds when the module publishes
+fewer, or zero when the published count is the array's bound.
+
+Original RTCW and ET modules own a fixed g_entities[MAX_GENTITIES] arena and
+publish only its high-water mark, which starts at MAX_CLIENTS. Two records
+past that mark are reached anyway. SP's G_LoadGame links restored camera and
+mover entities before its final LocateGameData call. In MP and ET, dynamite
+that stops moving takes the world, ENTITYNUM_WORLD, as its owner, and the
+missile's next trace passes that owner as the pass entity, whose own owner
+the server then reads. In ET, landmines, satchels, tripmines and smoke do
+the same. Retail qagame_mp_x86.dll (RTCW MP) clears 1024 records of 1352
+bytes (0x20041d3f), stores the world owner at 0x20047d7c and traces with it
+at 0x20048b0d. ET 2.60b's clears 1024 of 1404 (0x20051ff7) and stores it at
+0x20057a4e and 0x2005a385.
+===============
+*/
+static int SV_GameEntityArena( void ) {
+	if ( Com_GameIsRTCW() ) return 1 << FNTECH3_RTCW_GENTITYNUM_BITS;
+	if ( Com_GameIsWolfET() ) return 1 << FNTECH3_WOLFET_GENTITYNUM_BITS;
+	return 0;
+}
+
+
+/*
+===============
 SV_LocateGameData
 
 ===============
@@ -660,10 +744,8 @@ static void SV_LocateGameData( intptr_t entityAddress, int numGEntities, int siz
 	InvalidateServerGameData();
 	fntech3::server::NativeGameDataBinding binding;
 	binding.entityCount = numGEntities;
-	// Original SP owns a fixed g_entities[MAX_GENTITIES] arena. G_LoadGame
-	// links restored camera/mover entities before its final LocateGameData call.
-	// Keep the active count for snapshots, but admit handles within that arena.
-	if ( Com_GameIsRTCWSP() ) binding.entityCapacity = 1 << FNTECH3_RTCW_GENTITYNUM_BITS;
+	// Keep the active count for snapshots, but admit handles within the arena.
+	binding.entityCapacity = SV_GameEntityArena();
 	binding.entityStride = sizeofGEntity_t > 0
 		? static_cast<std::size_t>( sizeofGEntity_t ) : 0;
 	binding.clientCount = Com_GameClientLimit();
@@ -1004,9 +1086,13 @@ static intptr_t SV_RTCWGameSharedCall( fntech3::rtcw::module::Call call ) {
 }
 
 #include "server_wolfet_game.hpp"
+#include "server_jk2_game.hpp"
+#include "server_jka_game.hpp"
 #include "server_stvef_game.hpp"
 #include "server_stvef_sp_game.hpp"
 #include "server_stvef_sp_save.hpp"
+#include "server_q3_ihv_game.hpp"
+#include "server_alice_game.hpp"
 
 static intptr_t SV_GameSystemCalls( intptr_t *args ) {
 
@@ -1031,6 +1117,14 @@ static intptr_t SV_GameSystemCalls( intptr_t *args ) {
 	if ( Com_GameIsSTVEFMP() ) {
 		intptr_t result = 0;
 		if ( SV_STVEFGameCall( args, operation, result ) ) return result;
+	}
+	if ( Com_GameIsJKAMP() ) {
+		intptr_t result = 0;
+		if ( SV_JKAGameCall( args, operation, result ) ) return result;
+	}
+	if ( Com_GameIsJK2MP() ) {
+		intptr_t result = 0;
+		if ( SV_JK2GameCall( args, operation, result ) ) return result;
 	}
 	if ( Com_GameIsRTCW() ) {
 		using namespace fntech3::rtcw::module;
@@ -2994,7 +3088,9 @@ Called every time a map changes
 ===============
 */
 void SV_ShutdownGameProgs( void ) {
+	SV_JKAClearGame();
 	if ( !gvm ) {
+		if ( Com_GameIsQuake3IHV() ) SV_IHVClearGame();
 		wolfETTagFiles.clear();
 		InvalidateServerGameData();
 		serverEntityOverride.clear();
@@ -3092,6 +3188,12 @@ void SV_RestartGameProgs( void ) {
 	if ( !gvm ) {
 		InvalidateServerGameData();
 		SV_ResetGameCvarRegistration();
+		return;
+	}
+	if ( Com_GameIsQuake3IHV() ) {
+		SV_ClearWorld();
+		sv.time = 1000;
+		SV_InitGameVM( true );
 		return;
 	}
 	VM_Call( gvm, 1, GAME_SHUTDOWN, qtrue );
@@ -3222,9 +3324,26 @@ void SV_InitGameProgs( void ) {
 		bot_enable = 0;
 	}
 
-	// load the dll or bytecode; Elite Force SP's game is a function table
-	gvm = Com_GameIsSTVEFSP() ? SV_STVEFSPLoadGame()
-		: SV_LoadGameModule( static_cast<vmInterpret_t>( Cvar_VariableIntegerValue( "vm_game" ) ) );
+	/* Jedi Academy's single player hands the engine a function table rather
+	 * than numbering its calls, and no side of that boundary exists yet.
+	 * Multiplayer's numbered boundary is served as far as it reaches, and
+	 * refuses the first import it has not built by name; see
+	 * docs/fntech3/COMPATIBILITY.md#jedi-academy-gate-matrix. */
+	if ( Com_GameIsJKASP() ) {
+		Com_Error( ERR_DROP, "%s is not implemented: Jedi Academy's single-player module "
+			"boundary is open. The profile loads its installation and maps, but no module runs yet.",
+			Com_GameProfile()->key );
+	}
+
+	// load the dll or bytecode; Elite Force SP's and Alice's games are
+	// function tables rather than a vmMain
+	if ( Com_GameIsQuake3IHV() ) {
+		if ( !gvm ) gvm = SV_IHVLoadGame();
+	} else {
+		gvm = Com_GameIsSTVEFSP() ? SV_STVEFSPLoadGame()
+			: Com_GameIsAlice() ? SV_AliceLoadGame()
+			: SV_LoadGameModule( static_cast<vmInterpret_t>( Cvar_VariableIntegerValue( "vm_game" ) ) );
+	}
 	if ( !gvm ) {
 		Com_Error( ERR_DROP, "VM_Create on game failed" );
 	}

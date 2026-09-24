@@ -28,10 +28,13 @@ extern "C" {
 #include "client_cpp.h"
 #include "canvas_geometry.hpp"
 #include "client_cvar_compat.hpp"
+#include "client_alice_demo.hpp"
+#include "demo_auto_record.hpp"
 #include "demo_stream.hpp"
 #include "retail_challenge.hpp"
 #include "window_resize.hpp"
 #include "../qcommon/protocol_contract.hpp"
+#include "../qcommon/q3_demo_protocol.hpp"
 #include "../qcommon/netchan_safety.hpp"
 #include "../qcommon/rtcw_handshake.hpp"
 #include "../qcommon/stvef_handshake.hpp"
@@ -39,6 +42,9 @@ extern "C" {
 #include "../platform/fnql_steam.h"
 #include "../compat/rtcw_translation.hpp"
 #include "../compat/rtcw_limbo_chat.hpp"
+#include "../qcommon/alice_tiki.h"
+#include "../qcommon/alice_runtime.h"
+#include "../compat/alice_render_abi.h"
 
 #include <algorithm>
 #include <array>
@@ -626,9 +632,7 @@ static bool CL_DemoProtocolSupported( int protocol )
 	}
 	switch ( Com_GameProfile()->id ) {
 	case COM_GAME_QUAKE3:
-		return protocol != QL_RETAIL_PROTOCOL_VERSION &&
-			protocol != NETCHAN_RTCW_SP_PROTOCOL_VERSION &&
-			protocol != NETCHAN_RTCW_MP_PROTOCOL_VERSION;
+		return fntech3::q3::DemoProtocol( protocol );
 	case COM_GAME_QUAKELIVE:
 		return protocol == QL_RETAIL_PROTOCOL_VERSION;
 	case COM_GAME_RTCW_SP:
@@ -642,6 +646,8 @@ static bool CL_DemoProtocolSupported( int protocol )
 
 static netchanWireProfile_t CL_DemoWireProfileForProtocol( int protocol )
 {
+	if ( protocol == 66 ) return NETCHAN_WIRE_Q3_66;
+	if ( protocol == 67 ) return NETCHAN_WIRE_Q3_67;
 	if ( protocol == QL_RETAIL_PROTOCOL_VERSION ) {
 		return NETCHAN_WIRE_QL_RETAIL;
 	}
@@ -679,35 +685,43 @@ netchanWireProfile_t CL_ActiveWireProfile( void )
 	return clc.netchan.wireProfile;
 }
 
-qboolean CL_STVEFFraming( void )
+/* Elite Force Holomatch frames its messages as raw bits with no leading
+ * acknowledgement and no end-of-message opcode, and American McGee's Alice
+ * does the same: both engines are from before Quake III grew a Huffman stage
+ * and an end marker, and each says so through the same wire feature. The
+ * server sides with that feature too (SV_LegacyFraming), so naming a profile
+ * here rather than the feature would have left the two halves of a loopback
+ * session writing and reading different shapes.
+ *
+ * Quake III's own 1999 build shares the feature and is excluded: it has a
+ * codec of its own and never reaches this path. */
+qboolean CL_LegacyFraming( void )
 {
-	return ToQboolean( CL_ActiveWireProfile() == NETCHAN_WIRE_STVEF_HM );
+	const netchanWireProfile_t profile = CL_ActiveWireProfile();
+	return ToQboolean( profile != NETCHAN_WIRE_Q3_IHV &&
+		Netchan_WireHasFeature( profile, NETCHAN_FEATURE_RAW_MESSAGES ) != 0 );
 }
 
 /*
 ====================
 CL_DetectLegacyDemoProtocol
 
-Pre-1.27 demos store an uncompressed gamestate in the first message. Scan that
-message for the literal `protocol\NN` key so the parser can pick the correct
-43/46/48-era field tables before playback starts.
+Early Q3 demos store a raw gamestate in the first message. Read its serverinfo
+protocol key before choosing the 43/46/48-era decoder.
 ====================
 */
 static int CL_DetectLegacyDemoProtocol( fileHandle_t handle )
 {
 	std::array<byte, MAX_MSGLEN> buffer;
 	fnql::demo::EnvelopeResult envelope;
-	int length;
-	int protocol;
-	int i;
 
 	ScopedFilePosition restorePosition( handle );
 	if ( !restorePosition.valid() ) {
-		return 43;
+		return 0;
 	}
 
 	if ( FS_Seek( handle, 0, FS_SEEK_SET ) < 0 ) {
-		return 43;
+		return 0;
 	}
 
 	envelope = fnql::demo::ReadEnvelope(
@@ -716,28 +730,9 @@ static int CL_DetectLegacyDemoProtocol( fileHandle_t handle )
 		}, buffer.data(), buffer.size() );
 	if ( envelope.status != fnql::demo::EnvelopeStatus::Message ||
 		envelope.payloadLength <= 0 ) {
-		return 43;
+		return 0;
 	}
-	length = envelope.payloadLength;
-
-	for ( i = 0; i + 10 < length; i++ ) {
-		const char *scan = reinterpret_cast<const char *>( &buffer[i] );
-
-		if ( Q_strncmp( scan, "protocol\\", 9 ) != 0 ) {
-			continue;
-		}
-
-		if ( scan[9] < '0' || scan[9] > '9' || scan[10] < '0' || scan[10] > '9' ) {
-			continue;
-		}
-
-		protocol = ( scan[9] - '0' ) * 10 + ( scan[10] - '0' );
-		if ( protocol >= 43 && protocol <= 48 ) {
-			return protocol;
-		}
-	}
-
-	return 43;
+	return fntech3::q3::DetectRawDemoProtocol( buffer.data(), envelope.payloadLength );
 }
 
 #ifdef USE_CURL
@@ -987,10 +982,14 @@ void CL_StopRecord_f( void ) {
 
 		Com_sprintf( tempName.data(), static_cast<int>( tempName.size() ), "%s.tmp", clc.recordName );
 
-		// Elite Force demos carry the game's own extension, not a protocol.
-		const bool stvef = CL_STVEFFraming() != qfalse;
-		if ( stvef ) {
-			Com_sprintf( finalName.data(), static_cast<int>( finalName.size() ), "%s.%s", clc.recordName, STVEF_DEMOEXT );
+		// Elite Force and Alice demos carry the game's own extension, not a
+		// protocol: stvoyHM.exe's .efdemo and alice.exe's .dm3 (0x0050f314).
+		// Alice shares Elite Force's framing, so it is asked first.
+		const char *const gameExt = CL_ActiveWireProfile() == NETCHAN_WIRE_ALICE
+			? fntech3::alice::demo::kExtension
+			: CL_LegacyFraming() ? STVEF_DEMOEXT : nullptr;
+		if ( gameExt ) {
+			Com_sprintf( finalName.data(), static_cast<int>( finalName.size() ), "%s.%s", clc.recordName, gameExt );
 		} else {
 			Com_sprintf( finalName.data(), static_cast<int>( finalName.size() ), "%s.%s%d", clc.recordName, DEMOEXT, protocol );
 		}
@@ -1001,9 +1000,9 @@ void CL_StopRecord_f( void ) {
 			// add sequence suffix to avoid overwrite
 			sequence = 0;
 			while ( FS_FileExists( finalName.data() ) && ++sequence < 1000 ) {
-				if ( stvef ) {
+				if ( gameExt ) {
 					Com_sprintf( finalName.data(), static_cast<int>( finalName.size() ), "%s-%02d.%s",
-						clc.recordName, sequence, STVEF_DEMOEXT );
+						clc.recordName, sequence, gameExt );
 				} else {
 					Com_sprintf( finalName.data(), static_cast<int>( finalName.size() ), "%s-%02d.%s%d",
 						clc.recordName, sequence, DEMOEXT, protocol );
@@ -1090,7 +1089,7 @@ static void CL_WriteGamestate( qboolean initial )
 	MSG_Init( &msg, bufData.data(), Netchan_MessageLimit( CL_ActiveWireProfile() ) );
 	// Elite Force records retail's layout: raw bits, no acknowledgement, and a
 	// zero byte with nothing after it (stvoyHM.exe CL_Record_f 0x40c1e0).
-	const bool stvef = CL_STVEFFraming() != qfalse;
+	const bool stvef = CL_LegacyFraming() != qfalse;
 	if ( stvef ) {
 		MSG_STVEFBitstream( &msg );
 	} else {
@@ -1124,7 +1123,9 @@ static void CL_WriteGamestate( qboolean initial )
 			&msg, s, CL_ActiveWireProfile() );
 	}
 
-	// baselines
+	// baselines, as deltas from the profile's null entity (alice.exe
+	// CL_Record_f 0x0042a60b fills Alice's own)
+	MSG_NullEntityStateForWireProfile( &nullstate, CL_ActiveWireProfile() );
 	for ( i = 0; i < MAX_GENTITIES ; i++ ) {
 		if ( !cl.baselineUsed[ i ] )
 			continue;
@@ -1264,7 +1265,7 @@ static void CL_WriteSnapshot( void ) {
 
 	MSG_Init( &msg, bufData.data(), Netchan_MessageLimit( CL_ActiveWireProfile() ) );
 	// Elite Force acknowledges inside the snapshot and has no end marker.
-	const bool stvef = CL_STVEFFraming() != qfalse;
+	const bool stvef = CL_LegacyFraming() != qfalse;
 	if ( stvef ) {
 		MSG_STVEFBitstream( &msg );
 	} else {
@@ -1334,6 +1335,31 @@ static void CL_WriteSnapshot( void ) {
 
 /*
 ====================
+CL_AliceRecordName
+
+The name alice.exe's `record` gives a demo (CL_Record_f 0x0042a410), as its
+path without the extension: the argument as typed, or the first free
+demoNNNN (client_alice_demo.hpp holds the rules).
+====================
+*/
+static void CL_AliceRecordName( char *name, int nameSize ) {
+	std::array<char, fntech3::alice::demo::kNameBytes> demoName{};
+	std::array<char, fntech3::alice::demo::kPathBytes> path{};
+
+	if ( Cmd_Argc() == 2 ) {
+		fntech3::alice::demo::ExplicitName( Cmd_Argv( 1 ), demoName.data() );
+	} else {
+		fntech3::alice::demo::AutomaticRecordName( []( const char *candidate ) {
+			ScopedFileHandle file;
+			return OpenPureFileRead( candidate, file );
+		}, demoName.data(), path.data(), path.size() );
+	}
+	Com_sprintf( name, nameSize, "demos/%s", demoName.data() );
+}
+
+
+/*
+====================
 CL_Record_f
 
 record <demoname>
@@ -1372,12 +1398,25 @@ static void CL_Record_f( void ) {
 		return;
 	}
 
+	// Alice refuses as well, under its own spelling of the cvar (alice.exe
+	// CL_Record_f 0x0042a476), and names its demos by its own rules.
+	const bool alice = CL_ActiveWireProfile() == NETCHAN_WIRE_ALICE;
+	if ( alice && !Cvar_VariableValue( fntech3::alice::demo::kSynchronousClientsCvar ) ) {
+		Com_Printf( "%s", fntech3::alice::demo::kSynchronousClientsRefusal );
+		return;
+	}
+
 	// sync 0 doesn't prevent recording, so not forcing it off .. everyone does g_sync 1 ; record ; g_sync 0 ..
-	if ( NET_IsLocalAddress( &clc.serverAddress ) && !Cvar_VariableIntegerValue( "g_synchronousClients" ) ) {
+	if ( !alice && NET_IsLocalAddress( &clc.serverAddress ) && !Cvar_VariableIntegerValue( "g_synchronousClients" ) ) {
 		Com_Printf (S_COLOR_YELLOW "WARNING: You should set 'g_synchronousClients 1' for smoother demo recording\n");
 	}
 
-	if ( Cmd_Argc() == 2 ) {
+	if ( alice ) {
+		CL_AliceRecordName( name.data(), static_cast<int>( name.size() ) );
+		// Retail overwrites whatever it names, demo9999 included once every
+		// number is taken, so no sequence suffix is added on stopping.
+		clc.explicitRecordName = qtrue;
+	} else if ( Cmd_Argc() == 2 ) {
 		// explicit demo name specified
 		Q_strncpyz( demoName.data(), Cmd_Argv( 1 ), static_cast<int>( demoName.size() ) );
 		ext = COM_GetExtension( demoName.data() );
@@ -1406,7 +1445,12 @@ static void CL_Record_f( void ) {
 	// save desired filename without extension
 	Q_strncpyz( clc.recordName, name.data(), sizeof( clc.recordName ) );
 
-	Com_Printf( "recording to %s.\n", name.data() );
+	if ( alice ) {
+		// alice.exe names the file it is about to write (0x0042a52c).
+		Com_Printf( "recording to %s.%s.\n", name.data(), fntech3::alice::demo::kExtension );
+	} else {
+		Com_Printf( "recording to %s.\n", name.data() );
+	}
 
 	// start new record with temporary extension
 	Q_strcat( name.data(), static_cast<int>( name.size() ), ".tmp" );
@@ -1448,6 +1492,29 @@ static void CL_Record_f( void ) {
 
 /*
 ====================
+CL_RecordRefusedForSynchronousClients
+
+Whether CL_Record_f would refuse right now for its profile's
+synchronous-clients cvar: RTCW SP and Elite Force Holomatch without
+g_synchronousClients, Alice without g_syncronousClients. The conditions are
+CL_Record_f's own; every other profile only warns, and gets false.
+====================
+*/
+static bool CL_RecordRefusedForSynchronousClients( void ) {
+	if ( ( Com_GameIsRTCWSP() || Com_GameIsSTVEFMP() ) && !Cvar_VariableValue( "g_synchronousClients" ) ) {
+		return true;
+	}
+	return CL_ActiveWireProfile() == NETCHAN_WIRE_ALICE
+		&& !Cvar_VariableValue( fntech3::alice::demo::kSynchronousClientsCvar );
+}
+
+// An automatic `record` refused this level or connection (demo_auto_record.hpp);
+// CL_ClearState clears it with every gamestate and every disconnect.
+static bool cl_autoRecordRefused = false;
+
+
+/*
+====================
 CL_CompleteRecordName
 ====================
 */
@@ -1459,6 +1526,8 @@ static void CL_CompleteRecordName(const char *args, int argNum )
 
 		if ( Com_GameIsSTVEFMP() ) {
 			Com_sprintf( demoExt.data(), static_cast<int>( demoExt.size() ), ".%s", STVEF_DEMOEXT );
+		} else if ( Com_GameIsAlice() ) {
+			Com_sprintf( demoExt.data(), static_cast<int>( demoExt.size() ), ".%s", fntech3::alice::demo::kExtension );
 		} else {
 			Com_sprintf( demoExt.data(), static_cast<int>( demoExt.size() ), "." DEMOEXT "%d", com_protocol->integer );
 		}
@@ -1582,7 +1651,11 @@ void CL_ReadDemoMessage( void ) {
 
 	CL_ParseServerMessage( &buf );
 
-	if ( clc.demorecording ) {
+	// Re-recording a demo while it plays writes Quake III's snapshot, which
+	// has no room for Alice's sound block. alice.exe never re-records: its
+	// reader copies nothing to a recording (CL_ReadDemoMessage 0x0042a760),
+	// so a demo recorded during playback keeps only its gamestate there too.
+	if ( clc.demorecording && CL_ActiveWireProfile() != NETCHAN_WIRE_ALICE ) {
 		// track changes and write new message
 		if ( clc.eventMask & EM_GAMESTATE ) {
 			CL_WriteGamestate( qfalse );
@@ -1690,7 +1763,9 @@ static qboolean CL_DemoNameCallback_f( const char *filename, int length )
 
 	if ( length >= legacy_ext_len && filename[ length - legacy_ext_len ] == '.' &&
 		!Q_stricmp( filename + length - static_cast<int>( strlen( LEGACY_DEMOEXT ) ), LEGACY_DEMOEXT ) )
-		return ToQboolean( Com_GameProfile()->id == COM_GAME_QUAKE3 );
+		// Quake III's pre-1.27 demos and every Alice demo share the extension;
+		// the profile says whose they are.
+		return ToQboolean( Com_GameProfile()->id == COM_GAME_QUAKE3 || Com_GameIsAlice() );
 
 	extension = COM_GetExtension( filename );
 	if ( CL_IsSTVEFDemoExt( extension ) )
@@ -1760,7 +1835,17 @@ static void CL_PlayDemo_f( void ) {
 
 	// check for an explicit demo extension first
 	ext_test = strrchr(arg, '.');
-	if ( ext_test && CL_IsSTVEFDemoExt( ext_test + 1 ) )
+	const bool alice = Com_GameIsAlice() != 0;
+	if ( alice )
+	{
+		// Alice has one demo format under one extension, and finds the file
+		// the way alice.exe does (CL_PlayDemo_f 0x0042a8d7). Its .dm3 is not
+		// Quake III's pre-1.27 .dm3, which the q3 profile keeps below.
+		protocol = NETCHAN_ALICE_PROTOCOL_VERSION;
+		fntech3::alice::demo::PlaybackPath( arg, name.data(), name.size() );
+		OpenPureFileRead( name.data(), hFile );
+	}
+	else if ( ext_test && CL_IsSTVEFDemoExt( ext_test + 1 ) )
 	{
 		if ( !Com_GameIsSTVEFMP() ) {
 			Com_Printf( "Elite Force .efdemo demos require the stvef-mp profile.\n" );
@@ -1833,6 +1918,15 @@ static void CL_PlayDemo_f( void ) {
 		Com_Printf( "RTCW single-player demos cannot be replayed: its cgame needs animation data from a running game module.\n" );
 		return;
 	}
+	const bool legacyFormat = !alice && ( CL_IsLegacyDemoExt( COM_GetExtension( name.data() ) ) ||
+		fntech3::q3::RawDemoProtocol( protocol ) );
+	const int legacyProtocol = legacyFormat ? CL_DetectLegacyDemoProtocol( hFile.get() ) : 0;
+	if ( legacyFormat && !fntech3::q3::RawDemoContainer(
+		CL_IsLegacyDemoExt( COM_GetExtension( name.data() ) ) ? 0 : protocol, legacyProtocol ) ) {
+		Com_Printf( "Legacy Q3 demo has an unsupported, missing or mismatched protocol in its gamestate. "
+			"Q3Test protocols before 43 require a separate decoder.\n" );
+		return;
+	}
 
 	hFile.reset();
 
@@ -1855,9 +1949,11 @@ static void CL_PlayDemo_f( void ) {
 	else
 		shortname = name.data();
 
-	clc.demoLegacyFormat = CL_IsLegacyDemoExt( COM_GetExtension( name.data() ) );
-	clc.demoLegacyProtocol = clc.demoLegacyFormat ? CL_DetectLegacyDemoProtocol( clc.demofile ) : 0;
-	clc.demoWireProfile = CL_DemoWireProfileForProtocol( protocol );
+	clc.demoLegacyFormat = ToQboolean( legacyFormat );
+	clc.demoLegacyProtocol = legacyProtocol;
+	// Alice's protocol number is 1, which names nothing on its own; the
+	// profile does.
+	clc.demoWireProfile = alice ? NETCHAN_WIRE_ALICE : CL_DemoWireProfileForProtocol( protocol );
 	Q_strncpyz( clc.demoName, shortname, sizeof( clc.demoName ) );
 
 	Con_Close();
@@ -1868,7 +1964,8 @@ static void CL_PlayDemo_f( void ) {
 
 	// Same rule as a live connection: only Q3 legacy framing is compat. RTCW's
 	// lower protocol numbers are not Q3 legacy protocols.
-	clc.compat = ToQboolean( clc.demoWireProfile == NETCHAN_WIRE_LEGACY_Q3 );
+	clc.compat = ToQboolean( fnql::protocol::ForWireProfile( clc.demoWireProfile ).family ==
+		fnql::protocol::Family::LegacyQuake3 );
 
 	// read demo messages until connected
 #ifdef USE_CURL
@@ -1942,6 +2039,12 @@ void CL_ShutdownAll( void ) {
 	// clear and mute all sounds until next registration
 	S_DisableSounds();
 	CL_WebHost_NotifySoundsStopped();
+	if ( Com_GameIsAlice() ) {
+		// Alice's client flush frees the music and ends any sound fade
+		// (alice.exe 0x0042aa67, 0x0042aa6f).
+		S_AliceMusicFreeAll();
+		S_AliceFadeSound( 0.0f );
+	}
 
 	// shutdown VMs
 	CL_ShutdownVMs();
@@ -2029,6 +2132,10 @@ void CL_MapLoading( void ) {
 	CL_WebHost_HideForGameTransition();
 	Con_Close();
 	Key_SetCatcher( 0 );
+	// Alice's engine UI raises its loading screen and forces its menus away.
+	if ( Com_GameIsAlice() ) {
+		CL_AliceMapLoading();
+	}
 
 	// if we are already connected to the local host, stay connected
 	if ( cls.state >= CA_CONNECTED && !Q_stricmp( cls.servername, "localhost" ) ) {
@@ -2074,11 +2181,20 @@ Called before parsing a gamestate
 void CL_ClearState( void ) {
 
 //	S_StopAllSounds();
+	if ( Com_GameIsAlice() ) {
+		// Alice's own state clear still frees the music and ends any sound
+		// fade (alice.exe 0x0042ab88, 0x0042ab90).
+		S_AliceMusicFreeAll();
+		S_AliceFadeSound( 0.0f );
+	}
 
 	// clientActive_t is larger than the default Windows thread stack once QL's
 	// snapshot/entity limits are represented. Aggregate assignment materializes
 	// a full temporary on MSVC, so clear the POD state directly in place.
 	Com_Memset( &cl, 0, sizeof( cl ) );
+
+	// A new level or connection gets one automatic `record` attempt again.
+	cl_autoRecordRefused = false;
 }
 
 /*
@@ -2555,6 +2671,12 @@ qboolean CL_Disconnect( qboolean showMainMenu ) {
 	SCR_StopCinematic();
 	S_StopAllSounds();
 	CL_WebHost_NotifySoundsStopped();
+	if ( Com_GameIsAlice() ) {
+		// Alice's disconnect flushes the client as a map load does
+		// (alice.exe 0x0042ab6f to 0x0042aa60).
+		S_AliceMusicFreeAll();
+		S_AliceFadeSound( 0.0f );
+	}
 	Key_ClearStates();
 	// Ordinary catcher changes preserve an explicitly started voice session,
 	// but disconnect is a session boundary and must stop it unconditionally.
@@ -2981,6 +3103,7 @@ static void CL_Connect_f( void ) {
 		// Set a client challenge number that ideally is mirrored back by the server.
 		//clc.challenge = ((rand() << 16) ^ rand()) ^ Com_Milliseconds();
 		Com_RandomBytes( reinterpret_cast<byte *>( &clc.challenge ), sizeof( clc.challenge ) );
+		clc.q3ProtocolChallenge = clc.challenge;
 	}
 
 	Key_SetCatcher( 0 );
@@ -3086,7 +3209,8 @@ static void CL_SendPureChecksums( void ) {
 	// Q3, RTCW and ET have distinct cgame/UI slots in the filesystem proof.
 	// Retail QL prefixes one native-module pak before its general references.
 	// Elite Force Holomatch names no server id (stvoyHM.exe 0x40df30).
-	if ( CL_STVEFFraming() ) {
+	if ( CL_LegacyFraming() ||
+		fnql::protocol::Q3PureChecksumsOmitServerId( CL_ActiveWireProfile() ) ) {
 		len = Com_sprintf( cMsg.data(), static_cast<int>( cMsg.size() ), "cp " );
 	} else if ( Com_GameProfile()->pureProof == COM_PURE_PROOF_QVM ||
 		Com_PureProofIsNativeModulePair( Com_GameProfile() ) ) {
@@ -3263,6 +3387,10 @@ static void CL_Vid_Restart( refShutdownCode_t shutdownCode ) {
 	// clear and mute all sounds until next registration
 	S_DisableSounds();
 	CL_WebHost_NotifySoundsStopped();
+	if ( Com_GameIsAlice() ) {
+		// Alice's vid_restart frees the music first (alice.exe 0x0042b592).
+		S_AliceMusicFreeAll();
+	}
 
 	// shutdown VMs
 	CL_ShutdownVMs();
@@ -3311,6 +3439,10 @@ static void CL_Vid_Restart( refShutdownCode_t shutdownCode ) {
 	// public cvars. Refresh the retained WebUI schema once after that lifecycle
 	// boundary instead of rediscovering every cvar on a frame timer.
 	CL_WebHost_InvalidateConfigSnapshot();
+	if ( Com_GameIsAlice() ) {
+		// Outside a level Alice names "music/intro" last (alice.exe 0x0042b5d8).
+		S_AliceMusicSoundtrackAfterRestart();
+	}
 }
 
 
@@ -3406,6 +3538,11 @@ static void CL_Snd_Restart_f( void )
 
 	// sound will be reinitialized by vid_restart
 	CL_Vid_Restart( REF_KEEP_CONTEXT /*REF_KEEP_WINDOW*/ );
+	if ( Com_GameIsAlice() ) {
+		// Alice's snd_restart ends by naming "music/intro" outside a level
+		// (alice.exe 0x0042b62b); after the restart above it names nothing new.
+		S_AliceMusicSoundtrackAfterRestart();
+	}
 }
 
 
@@ -3743,6 +3880,14 @@ and determine if we need to download them
 */
 static void CL_InitLegacyDownloads( void ) {
 
+	// American McGee's Alice's client downloads nothing: retail alice.exe
+	// has no download command, and its server no download to answer one
+	// (the engine's client commands are userinfo and disconnect, 0x0051a398).
+	if ( Com_GameIsAlice() ) {
+		CL_DownloadsComplete();
+		return;
+	}
+
 	if ( !(cl_allowDownload->integer & DLF_ENABLE) )
 	{
 		std::array<char, MAXPRINTMSG> missingfiles;
@@ -3848,6 +3993,13 @@ static void CL_CheckForResend( void ) {
 	clc.connectTime = cls.realtime;	// for retransmit requests
 	clc.connectPacketCount++;
 	CL_STVEFSPConnectionText( va( "(%i)", clc.connectPacketCount ), qfalse );
+	// Original Q3 challengeResponse packets do not name their protocol. Ask
+	// the same endpoint with a separate nonce, retaining it after the server
+	// replaces clc.challenge. A lost version reply is retried while connecting.
+	if ( Com_GameIsQuake3() && !clc.q3ServerProtocol &&
+		!NET_IsLocalAddress( &clc.serverAddress ) ) {
+		NET_OutOfBandPrint( NS_CLIENT, &clc.serverAddress, "getinfo %i", clc.q3ProtocolChallenge );
+	}
 
 	switch ( cls.state ) {
 	case CA_CONNECTING:
@@ -3912,7 +4064,9 @@ static void CL_CheckForResend( void ) {
 			notOverflowed = true;
 		}
 
-		connectProtocol = clc.compat ? OLD_PROTOCOL_VERSION :
+		connectProtocol = clc.compat ?
+			( Com_GameIsQuake3() && ( clc.handshakeProtocol == 66 || clc.handshakeProtocol == 67 )
+				? clc.handshakeProtocol : OLD_PROTOCOL_VERSION ) :
 			( clc.handshakeProtocol > 0 ? clc.handshakeProtocol : com_protocol->integer );
 		notOverflowed = notOverflowed &&
 			Info_SetValueForKey_s( info.data(), MAX_USERINFO_LENGTH, "protocol",
@@ -4382,6 +4536,11 @@ static bool CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 		clc.handshakeProtocol = fnql::client::auth::SelectHandshakeProtocol(
 			requestMode, serverProtocol, QL_RETAIL_PROTOCOL_VERSION,
 			OLD_PROTOCOL_VERSION );
+		if ( Com_GameIsQuake3() ) {
+			const int q3Protocol = serverProtocol > 0 ? serverProtocol :
+				( clc.q3ServerProtocol ? clc.q3ServerProtocol : com_protocol->integer );
+			if ( q3Protocol == 66 || q3Protocol == 67 ) clc.handshakeProtocol = q3Protocol;
+		}
 		cls.state = CA_CHALLENGING;
 		clc.connectPacketCount = 0;
 		clc.connectTime = -99999;
@@ -4417,7 +4576,9 @@ static bool CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 		// connectionless diagnostics are matched against the active port too.
 		clc.serverAddress = *from;
 
-		negotiatedProtocol = clc.compat ? OLD_PROTOCOL_VERSION :
+		negotiatedProtocol = clc.compat ?
+			( Com_GameIsQuake3() && ( clc.handshakeProtocol == 66 || clc.handshakeProtocol == 67 )
+				? clc.handshakeProtocol : OLD_PROTOCOL_VERSION ) :
 			( clc.handshakeProtocol > OLD_PROTOCOL_VERSION ? clc.handshakeProtocol :
 				com_protocol->integer );
 
@@ -4520,7 +4681,7 @@ static bool CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 			Netchan_SelectWireProfile( negotiatedProtocol, clc.compat ) );
 		// Loopback skips challenge negotiation. Derive the legacy policy from
 		// the accepted framing contract instead of its zero-initialized flag.
-		clc.compat = ToQboolean( clc.netchan.wireProfile == NETCHAN_WIRE_LEGACY_Q3 );
+		clc.compat = ToQboolean( contract->family == fnql::protocol::Family::LegacyQuake3 );
 
 		cls.state = CA_CONNECTED;
 		clc.lastPacketSentTime = cls.realtime - 9999; // send first packet immediately
@@ -5078,7 +5239,11 @@ void CL_Frame( int msec, int realMsec ) {
 	}
 
 	if ( cl_autoRecordDemo->integer && !clc.demoplaying ) {
-		if ( cls.state == CA_ACTIVE && !clc.demorecording ) {
+		// A profile whose `record` refuses without its synchronous-clients
+		// cvar is asked once per level or connection, not every frame.
+		if ( cls.state == CA_ACTIVE && !clc.demorecording
+			&& fntech3::client::demo::AutoRecordAttempt(
+				CL_RecordRefusedForSynchronousClients(), cl_autoRecordRefused ) ) {
 			// If not recording a demo, and we should be, start one
 			qtime_t	now;
 			const char	*nowString;
@@ -5202,6 +5367,19 @@ static void FORMAT_PRINTF(2, 3) QDECL CL_RefPrintf( printParm_t level, const cha
 	Q_vsnprintf( msg.data(), static_cast<int>( msg.size() ), fmt, argptr );
 	va_end( argptr );
 
+	if ( Com_GameIsAlice() ) {
+		// Alice's renderer speaks to developers only: its warnings print at
+		// developer 2 alone, and its errors and developer lines go through
+		// the developer print (alice.exe CL_RefPrintf 0x0042c2d0..0x0042c366,
+		// testing developer at 0x0042c343).
+		if ( level == PRINT_ALL ) {
+			Com_Printf( "%s", msg.data() );
+		} else if ( level != PRINT_WARNING || ( com_developer && com_developer->integer == 2 ) ) {
+			Com_DPrintf( "%s", msg.data() );
+		}
+		return;
+	}
+
 	switch ( level ) {
 		default: Com_Printf( "%s", msg.data() ); break;
 		case PRINT_DEVELOPER: Com_DPrintf( "%s", msg.data() ); break;
@@ -5311,7 +5489,11 @@ static void CL_InitRenderer( void ) {
 	const bool rtcwMP = Com_GameIsRTCWMP() != 0;
 	// Elite Force has no bigchars; its console font is a 16x16 grid whose
 	// glyphs fill the left half of each cell (see CL_CharsetCellWidth). It
-	// has no recording icon either.
+	// has no recording icon either. American McGee's Alice ships none of these
+	// names and registers its own (cl_alice.cpp).
+	if ( Com_GameIsAlice() ) {
+		CL_AliceRegisterClientArt();
+	} else {
 	cls.charSetShader = Com_GameIsSTVEF() ? re.RegisterShaderNoMip( "gfx/2d/charsgrid_med" )
 		: re.RegisterShader( wolfet ? "gfx/2d/consolechars" : rtcwMP ? "gfx/2d/hudchars" : "gfx/2d/bigchars" );
 	cls.recordShader = wolfet || Com_GameIsSTVEF() ? 0 : re.RegisterShaderNoMip( "icons/record" );
@@ -5324,6 +5506,7 @@ static void CL_InitRenderer( void ) {
 	cls.consoleLogoShader = wolfet || rtcwMP ? re.RegisterShader( "console2-16bit" )
 		: Com_GameIsRTCWSP() ? re.RegisterShader( "console2" ) : 0;
 	cls.cursorShader = re.RegisterShaderNoMip( wolfet ? "ui/assets/3_cursor3" : "menu/art/3_cursor2" );
+	}
 
 	// Rebuild every client-owned canvas from the renderer's actual drawable
 	// dimensions. This must precede console reflow: centred console extents use
@@ -5481,6 +5664,45 @@ static bool CL_RendererLoadFailureIsFatal( const char *rendererName )
 	return false;
 }
 #endif
+
+
+/*
+============
+CL_AliceRendererTrace
+
+Lens-flare occlusion asks Alice's client game for its own trace, the one its
+CG_Init leaves in the shared block at +0x1c (cgamex86.dll 0x30024118), and
+calls it as retail's renderer does (alice.exe 0x004a78c6): no box, no entity
+skipped, cylinder off, entities clipped. Only an x86 build can hold the
+module, and without a client game there is nothing to ask.
+============
+*/
+static qboolean CL_AliceRendererTrace( const vec3_t start, const vec3_t end, int mask,
+	float *fraction, int *surfaceFlags, int *contents ) {
+#if defined( _M_IX86 ) || defined( __i386__ )
+	using traceFunction = void ( QDECL * )( fntech3_alice_trace_t *result, const float *start,
+		const float *mins, const float *maxs, const float *end, int passEntityNum,
+		int contentMask, int cylinder, int clipEntities, const char *description );
+	if ( !Com_GameIsAlice() || !cgvm || !start || !end ) {
+		return qfalse;
+	}
+	uint32_t address;
+	std::memcpy( &address, static_cast<const byte *>( Alice_SharedBlock() ) + 0x1c, sizeof( address ) );
+	if ( !address ) {
+		return qfalse;
+	}
+	fntech3_alice_trace_t trace{};
+	reinterpret_cast<traceFunction>( static_cast<uintptr_t>( address ) )( &trace, start, nullptr,
+		nullptr, end, -1, mask, 0, 1, "lens_flare::CheckRay" );
+	if ( fraction ) *fraction = trace.fraction;
+	if ( surfaceFlags ) *surfaceFlags = trace.surfaceFlags;
+	if ( contents ) *contents = trace.contents;
+	return qtrue;
+#else
+	(void)start; (void)end; (void)mask; (void)fraction; (void)surfaceFlags; (void)contents;
+	return qfalse;
+#endif
+}
 
 
 /*
@@ -5657,6 +5879,12 @@ static void CL_InitRef( void ) {
 
 	rimp.GameBspFormat = Com_GameBspFormat;
 	rimp.gameId = Com_GameProfile()->id;
+	// Alice's renderer reads the engine's own model definitions.
+	rimp.AliceTikiRegister = AliceTiki_Register;
+	rimp.AliceTikiGet = []( int handle ) -> const void * { return AliceTiki_Get( handle ); };
+	rimp.AliceDebugLines = []( int *count ) -> const void * { *count = *Alice_DebugLineCount(); return *Alice_DebugLineArray(); };
+	rimp.AliceTrace = CL_AliceRendererTrace;
+	rimp.AliceLoadingStage = Com_AliceLoadingStage;
 	ret = GetRefAPI( REF_API_VERSION, &rimp );
 
 	Com_Printf( "-------------------------------\n");
@@ -5679,8 +5907,11 @@ static void CL_RegisterAppearanceCvars( void ) {
 	const auto &appearance = Com_GameProfile()->appearance;
 	const int flags = CVAR_USERINFO | (appearance.archiveDefaults ? CVAR_ARCHIVE : CVAR_ARCHIVE_ND);
 	// Elite Force SP publishes legsModel/torsoModel/headModel; Holomatch has
-	// only "model" and no head-model key.
-	Cvar_Get(appearance.bodyKey ? appearance.bodyKey : "model", appearance.bodyModel, flags);
+	// only "model" and no head-model key. Jedi Academy's single player
+	// publishes no model key at all: its player comes from the menus and the
+	// savegame, so a profile without a body model registers none.
+	if (appearance.bodyModel)
+		Cvar_Get(appearance.bodyKey ? appearance.bodyKey : "model", appearance.bodyModel, flags);
 	if (appearance.torsoKey) Cvar_Get(appearance.torsoKey, appearance.torsoModel, flags);
 	if (appearance.headKey) Cvar_Get(appearance.headKey, appearance.headModel, flags);
 	if (appearance.teamModel) {
@@ -6518,7 +6749,14 @@ void CL_Init( void ) {
 	Cmd_AddCommand ("renderer_switch", CL_RendererSwitch_f);
 #endif
 	Cmd_AddCommand ("disconnect", CL_Disconnect_f);
-	Cmd_AddCommand( "togglemenu", CL_ToggleMenu_f );
+	// Alice's togglemenu names the menu it toggles (0x0040cbb0).
+	Cmd_AddCommand( "togglemenu", Com_GameIsAlice() ? CL_AliceToggleMenu_f : CL_ToggleMenu_f );
+	if ( Com_GameIsAlice() ) {
+		// Alice's client registers aliasdump beside its own commands
+		// (0x0042ccaa): the global alias list, made if it does not exist yet
+		// (0x00423ac0), printed under developer.
+		Cmd_AddCommand( "aliasdump", []() { AliceAlias_Dump( -1 ); } );
+	}
 	Cmd_AddCommand ("record", CL_Record_f);
 	Cmd_SetCommandCompletionFunc( "record", CL_CompleteRecordName );
 	Cmd_AddCommand ("demo", CL_PlayDemo_f);
@@ -6621,6 +6859,9 @@ void CL_Shutdown( const char *finalmsg, qboolean quit ) {
 	Cmd_RemoveCommand ("renderer_switch");
 #endif
 	Cmd_RemoveCommand ("disconnect");
+	if ( Com_GameIsAlice() ) {
+		Cmd_RemoveCommand( "aliasdump" ); // 0x0042ce23
+	}
 	Cmd_RemoveCommand ("record");
 	Cmd_RemoveCommand ("demo");
 	Cmd_RemoveCommand ("cinematic");
@@ -6722,6 +6963,22 @@ static void CL_SetServerInfoByAddress(const netadr_t *from, const char *info, in
 CL_ServerInfoPacket
 ===================
 */
+static void CL_Q3ProtocolInfo( const netadr_t *from, const char *info ) {
+	// Bind version negotiation to both the requested endpoint and our nonce.
+	// Browser queries and stale responses must not change a connection.
+	if ( !Com_GameIsQuake3() || ( cls.state != CA_CONNECTING && cls.state != CA_CHALLENGING ) ||
+		!NET_CompareAdr( from, &clc.serverAddress ) ||
+		std::strcmp( Info_ValueForKey( info, "challenge" ), va( "%i", clc.q3ProtocolChallenge ) ) ) return;
+	const char *value = Info_ValueForKey( info, "protocol" );
+	int reported = 0;
+	const char *end = value + std::strlen( value );
+	const auto parsed = std::from_chars( value, end, reported );
+	if ( parsed.ec != std::errc() || parsed.ptr != end ||
+		!Com_GameProfileAllowsProtocol( Com_GameProfile(), reported ) ) return;
+	clc.q3ServerProtocol = reported;
+	if ( reported == 66 || reported == 67 || reported == 68 ) clc.handshakeProtocol = reported;
+}
+
 static void CL_ServerInfoPacket( const netadr_t *from, msg_t *msg ) {
 	int		i, type, len;
 	std::array<char, MAX_INFO_STRING> info;
@@ -6729,10 +6986,11 @@ static void CL_ServerInfoPacket( const netadr_t *from, msg_t *msg ) {
 	int		prot;
 
 	infoString = MSG_ReadString( msg );
+	CL_Q3ProtocolInfo( from, infoString );
 
 	// if this isn't the correct protocol version, ignore it
 	prot = std::atoi( Info_ValueForKey( infoString, "protocol" ) );
-	if ( prot != OLD_PROTOCOL_VERSION && prot != NEW_PROTOCOL_VERSION && prot != com_protocol->integer ) {
+	if ( !Com_GameProfileAllowsProtocol( Com_GameProfile(), prot ) ) {
 		Com_DPrintf( "Different protocol info packet: %s\n", infoString );
 		return;
 	}

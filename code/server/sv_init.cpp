@@ -44,6 +44,18 @@ constexpr std::array<QLCvarConfigstringChannel, 4> kQLCvarConfigstringChannels{{
 
 }
 
+void SV_UpdateSysteminfoConfigstring() {
+	if ( Com_GameIsQuake3IHV() ) {
+		// Original 0x41986e..0x4198bd publishes these two keys before SpawnEntities.
+		// API 4 clients do not consume the retail sv_* systeminfo contract.
+		SV_SetConfigstring( 1, va( "\\serverid\\%i\\mapChecksum\\%s", sv.serverId,
+			Cvar_VariableString( "sv_mapChecksum" ) ) );
+	} else {
+		SV_SetConfigstring( CS_SYSTEMINFO, Cvar_InfoString_Big( CVAR_SYSTEMINFO, nullptr ) );
+	}
+	cvar_modifiedFlags &= ~CVAR_SYSTEMINFO;
+}
+
 /*
 ===============
 SV_SendConfigstring
@@ -158,6 +170,10 @@ void SV_SetConfigstring (int index, const char *val) {
 	// change the string in sv
 	SV_ZFree( sv.configstrings[index] );
 	sv.configstrings[index] = CopyString( val );
+
+	// IHV carries one sequence for every configstring change in each snapshot
+	// header, so a client can tell which updates it has already seen.
+	sv.configstringSequence++;
 
 	// send it to all the clients if we aren't
 	// spawning a new server
@@ -311,6 +327,13 @@ baseline will be transmitted
 static void SV_CreateBaseline( void ) {
 	sharedEntity_t entity;
 
+	// IHV keeps native entity states as its baselines, and takes Quake II's
+	// rule for which entities get one (server_q3_ihv_game.hpp).
+	if ( Com_GameIsQuake3IHV() ) {
+		SV_IHVServerBaselines();
+		return;
+	}
+
 	for ( int entnum : SV_Indices( sv.num_entities ) ) {
 		if ( !SV_ReadGameEntityByNum( entnum, &entity ) ) {
 			Com_Error( ERR_DROP, "%s: invalid gentity %i", __func__, entnum );
@@ -378,7 +401,7 @@ static void SV_AllocClients( int count )
 	svs.clients = SV_ZTagMallocArray<client_t>( count, TAG_CLIENTS );
 	sv.maxclients = count;
 	for ( client_t &client : SV_Clients() ) {
-		client = {};
+		SV_ClearClient( client );
 	}
 	SV_SetSnapshotParams();
 }
@@ -460,7 +483,7 @@ void SV_ChangeMaxClients( void ) {
 		if ( slot.client.state >= CS_CONNECTED ) {
 			oldClients[slot.index] = slot.client;
 		} else {
-			oldClients[slot.index] = {};
+			SV_ClearClient( oldClients[slot.index] );
 		}
 	}
 
@@ -623,8 +646,17 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	SV_PrepareRTCWCampaign();
 	SV_PrepareSTVEFModes();
 
+	// American McGee's Alice names a spawn target after a `$`: the BSP is the
+	// part before it, and the whole string is the level's name, which `mapname`
+	// carries and `nextmap` repeats (server_alice_save.hpp).
+	char aliceBsp[MAX_QPATH];
+	const char *bspName = mapname;
+	if ( Com_GameIsAlice() ) {
+		bspName = SV_AlicePrepareSpawn( mapname, aliceBsp, sizeof( aliceBsp ) );
+	}
+
 	// shut down the existing game if it is running
-	SV_ShutdownGameProgs();
+	if ( !Com_GameIsQuake3IHV() ) SV_ShutdownGameProgs();
 
 	Com_Printf( "------ Server Initialization ------\n" );
 	Com_Printf( "Server: %s\n", mapname );
@@ -640,8 +672,14 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	CL_ShutdownAll();
 #endif
 
+	// With the old game, the client game and the renderer all shut down,
+	// nothing holds a handle into Alice's model definition cache.
+	if ( Com_GameIsAlice() ) {
+		SV_AliceFlushModels();
+	}
+
 	// clear the whole hunk because we're (re)loading the server
-	Hunk_Clear();
+	Hunk_ClearForMap();
 
 	// clear collision map data
 	CM_ClearMap();
@@ -682,7 +720,10 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 
 	// set nextmap to the same map, but it may be overridden
 	// by the game startup or another console command
-	Cvar_Set( "nextmap", "map_restart 0" );
+	// Alice's already names this map, as `map <whole argument>`.
+	if ( !Com_GameIsAlice() ) {
+		Cvar_Set( "nextmap", "map_restart 0" );
+	}
 //	Cvar_Set( "nextmap", va("map %s", server) );
 
 	// try to reset level time if server is empty
@@ -701,7 +742,10 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 
 	for ( client_t &client : SV_Clients() ) {
 		// save when the server started for each client already connected
-		if ( client.state >= CS_CONNECTED && sv_levelTimeReset->integer ) {
+		// Alice's level clock restarts with every level (at zero, or at a
+		// save's time), so its connected clients carry the old one until they
+		// acknowledge the new gamestate, as they do when sv_levelTimeReset is set.
+		if ( client.state >= CS_CONNECTED && ( sv_levelTimeReset->integer || Com_GameIsAlice() ) ) {
 			client.oldServerTime = sv.time;
 		} else {
 			client.oldServerTime = 0;
@@ -715,6 +759,12 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	sv.maxclients = preservedMaxClients;
 	for ( int index : SV_Indices( Com_GameConfigstringLimit() ) ) {
 		sv.configstrings[index] = CopyString("");
+	}
+	// Alice's load of the level it is running keeps that level's
+	// configstrings, as retail's spawn keeps its server state for one
+	// (server_alice_save.hpp).
+	if ( Com_GameIsAlice() ) {
+		SV_AliceRestoreConfigstrings();
 	}
 
 	// make sure we are not paused
@@ -737,7 +787,7 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	}
 
 	Sys_SetStatus( "Loading map %s", mapname );
-	CM_LoadMap( va( "maps/%s.bsp", mapname ), qfalse, &checksum );
+	CM_LoadMap( va( "maps/%s.bsp", bspName ), qfalse, &checksum );
 
 	// set serverinfo visible name
 	Cvar_Set( "mapname", mapname );
@@ -762,8 +812,16 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	//sv.time = sv.time ? sv.time : 8;
 
 	// load and spawn all other entities
+	if ( Com_GameIsQuake3IHV() ) {
+		sv.time = 1000;
+		SV_UpdateSysteminfoConfigstring();
+		SV_SetConfigstring( CS_SERVERINFO, Cvar_InfoString( CVAR_SERVERINFO, nullptr ) );
+	}
 	if ( !SV_RTCWRestoreSaveTime() ) {
 		Com_Error(ERR_DROP, "Cannot restore RTCW save time");
+	}
+	if ( Com_GameIsAlice() ) {
+		SV_AliceRestoreLevelTime();
 	}
 	Cmd_TokenizeString( spawnCommand );
 	// Enemy Territory's game is told when it starts inside a map load.
@@ -771,6 +829,10 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 		Cvar_Set( "sv_serverRestarting", "1" );
 	}
 	SV_InitGameProgs();
+
+	// Alice's game spawns its level, or reads it back from a save, as a step
+	// of its own after Init.
+	const qboolean aliceRestored = Com_GameIsAlice() ? SV_AliceSpawnLevel() : qfalse;
 
 	// don't allow a map_restart if game is modified
 	if ( sv_ammoPack ) {
@@ -781,7 +843,11 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	sv_pure->modified = qfalse;
 
 	// run a few frames to allow everything to settle
-	if ( Com_GameIsWolfET() ) {
+	if ( Com_GameIsAlice() ) {
+		// Alice's three run at 0, 100 and 200, and none follow a level read
+		// back from a save.
+		SV_AliceSettle( aliceRestored );
+	} else if ( Com_GameIsWolfET() ) {
 		// Enemy Territory runs six, each with its bots at the current time
 		// before advancing it (et.exe 0x4469e1..0x446a12, etded.exe
 		// 0x42d111..0x42d142), as its map_restart does: the game's first frame
@@ -794,12 +860,20 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 			sv.time += 100;
 		}
 	} else {
+		// Every other retail engine runs three, each at the current time
+		// before advancing it, as the IHV test does, not after advancing it as
+		// Quake3e does: quake3.exe 1.32 0x438d8d..0x438dc5, quakelive_steam.exe
+		// 0x4e3766..0x4e37a1, WolfSP.exe 0x436f98..0x436fd7, WolfMP.exe
+		// 0x439453..0x43948e, stvoy.exe 0x425b43..0x425b6e, stvoyHM.exe
+		// 0x433a9d..0x433ad5, jasp.exe 0x439dbd..0x439de6, jamp.exe
+		// 0x45eaee..0x45eb62, jk2sp.exe 0x4372d8..0x437308 and jk2mp.exe
+		// 0x44da5c..0x44da94.
 		for ( int ignored : SV_Indices( 3 ) ) {
 			(void)ignored;
 			Cbuf_Wait();
-			sv.time += 100;
 			VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );
 			SV_BotFrame( sv.time );
+			sv.time += 100;
 		}
 	}
 
@@ -849,7 +923,8 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 		}
 	}
 
-	// run another frame to allow things to look at all the players
+	// run another frame to allow things to look at all the players; Alice's
+	// spawn has no such frame (0x00455363 onwards)
 	Cbuf_Wait();
 	if ( Com_GameIsWolfET() ) {
 		// Enemy Territory's runs at the current time too (et.exe
@@ -858,10 +933,16 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 		SV_BotFrame( sv.time );
 		sv.time += 100;
 		svs.time += 100;
-	} else {
-		sv.time += 100;
+	} else if ( !Com_GameIsQuake3IHV() && !Com_GameIsAlice() ) {
+		// So does every other retail engine's (quake3.exe 0x438f02..0x438f31,
+		// quakelive_steam.exe 0x4e388b..0x4e38b4, WolfSP.exe 0x437103..0x43712f,
+		// WolfMP.exe 0x4395b1..0x4395e2, stvoy.exe 0x425be2..0x425bfb,
+		// stvoyHM.exe 0x433c32..0x433c60, jasp.exe 0x439e69..0x439e83, jamp.exe
+		// 0x45eca7..0x45eceb, jk2sp.exe 0x43736c..0x437386, jk2mp.exe
+		// 0x44db99..0x44dbc8).
 		VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );
 		SV_BotFrame( sv.time );
+		sv.time += 100;
 		svs.time += 100;
 	}
 
@@ -938,8 +1019,7 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	}
 
 	// save systeminfo and serverinfo strings
-	SV_SetConfigstring( CS_SYSTEMINFO, Cvar_InfoString_Big( CVAR_SYSTEMINFO, nullptr ) );
-	cvar_modifiedFlags &= ~CVAR_SYSTEMINFO;
+	SV_UpdateSysteminfoConfigstring();
 
 	SV_SetConfigstring( CS_SERVERINFO, Cvar_InfoString( CVAR_SERVERINFO, nullptr ) );
 	cvar_modifiedFlags &= ~CVAR_SERVERINFO;
@@ -975,6 +1055,10 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	Sys_SetStatus( "Running map %s", mapname );
 	if ( Com_GameIsQuakeLive() ) {
 		SV_MapPoolRefreshCvars();
+	}
+
+	if ( Com_GameIsAlice() ) {
+		SV_AliceSpawnDone();
 	}
 
 	// suppress hitch warning
@@ -1021,6 +1105,13 @@ void SV_Init( void )
 	}
 	Cvar_Get ("sv_keywords", "", CVAR_SERVERINFO);
 	//Cvar_Get ("protocol", va("%i", PROTOCOL_VERSION), CVAR_SERVERINFO | CVAR_ROM);
+	if ( Com_GameIsQuake3IHV() ) {
+		// IHV's first configstring is the serverinfo, and its protocol-33
+		// clients refuse a gamestate or snapshot whose serverinfo does not
+		// name that protocol. The other profiles keep their own serverinfo.
+		Cvar_Get( "protocol", va( "%i", Com_GameProfile()->preferredProtocol ),
+			CVAR_SERVERINFO | CVAR_ROM );
+	}
 	sv_mapname = Cvar_Get ("mapname", "nomap", CVAR_SERVERINFO | CVAR_ROM);
 	Cvar_SetDescription( sv_mapname, "Display the name of the current map being used on a server." );
 	if ( !quakeLive ) {

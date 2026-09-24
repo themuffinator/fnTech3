@@ -1,0 +1,800 @@
+{
+  "date": "2026-09-21",
+  "recorded_utc": "2026-09-21T10:56:04.981677+00:00",
+  "commit": "9e1841de53d79f96cdbbde83a1427d1c7d83f31d",
+  "working_tree": "Uncommitted IHV model lighting and animation-control slice on top of recorded IHV work and unrelated RTCW work.",
+  "profile": "q3-ihv remains gated; renderer API 28 unchanged. Shared renderer internal types rebuilt together.",
+  "scope": "Unit/Build/Fixture: raw map-light metadata, BSP model-light traversal, dynamic-light contribution, fixed direction, diffuse vertex colors in all three raster renderers; native r_lerpmodels in raster/ray animation and ray geometry signatures.",
+  "platform": "Windows x86 MSVC 19.44.35222 /O2 and Meson win32; Windows x64 Clang 20.1.7 -O2 -ffast-math AddressSanitizer fixtures.",
+  "reference": {
+    "repository": "https://github.com/themuffinator/Quake3-IHV/tree/d5ce877155904c57f8b28fe0fd0c8aa2e9473337",
+    "executable": {
+      "path": "E:/Repositories/Quake3-IHV/ref/install/quake3.exe",
+      "bytes": 725042,
+      "sha256": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37"
+    },
+    "maps": [
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/maps/ihv_test1.bsp",
+        "bytes": 759672,
+        "sha256": "874311cffc880f79c1fdd4fc85bed1062baf976835b4402c9de54460af20281b"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/maps/km_portal.bsp",
+        "bytes": 3259316,
+        "sha256": "33f422e61940929c160fc843fd8f7e3a00d7d237dd0f1887897cd0d3450297c9"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/maps/test_fog2.bsp",
+        "bytes": 118720,
+        "sha256": "a5d046cb604aadd4092339a3ce758927ebe53d0333dbdde06f9770f515837126"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/maps/tim_dm1.bsp",
+        "bytes": 618916,
+        "sha256": "40621dfd4037116ba3feb7816913f799320a57111c530e2319143706f0b1c2e2"
+      }
+    ],
+    "execution": "Selected hash-pinned original functions in a CPU host at 0x3f0000. 0x440180 raw lightmap copy, 0x440700 planar face metadata, 0x441140 planes, 0x4410c0 marksurfaces, 0x440e30 nodes/leaves, 0x43d990 sampling, 0x43ddf0 tree traversal, 0x43dba0 model lighting, 0x42b452 fixed direction suffix, 0x444d40 diffuse color, 0x442280 animation control. Shader/image/allocation callbacks replaced by CPU services. No original entry point, window, input, audio or network startup.",
+    "incorporation": "Independent implementation from observations. No original implementation, module, map, model or texture bytes incorporated.",
+    "models": {
+      "count": 111,
+      "identities": ".tmp/q3-ihv/model-light-model-identities.json"
+    }
+  },
+  "contracts": {
+    "world": "World-hunk-owned raw RGB, faces and tree views; samples unaffected by atlas packing, overbright or stage collapse. Planar faces use the first vertex normal, double plane distance and twice-normalized texture axes. Patches and non-lightmapped materials do not sample.",
+    "traversal": "Original mutable-segment front-to-back walk; 2048-unit downward ray, 128-pixel RGB pitch, floored binary32 texture coordinates, equal-distance replacement and nearest split pruning. Iterative stack bounded to validated BSP43 depth.",
+    "dynamic": "Radius-inclusive contribution with double length, squared-radius power and minimum distance 16; any nonzero native flags add 32; common maximum-channel normalization; identical ambient/directed RGB.",
+    "diffuse": "Fixed original direction projected on entity axes without normalization. Double dot/lighting expression, original low-word signed-integer truncation, negative byte wrap and upper clamp.",
+    "animation_control": "IHV-only r_lerpmodels default 1, flags 0. Float signed zero and NaN disable; other nonzero values enable; same frame forces zero. Exact raw-bit control read by address, raster/ray dispatch and native-model ray-cache signature.",
+    "precision": "Scoped precise math and explicit binary32/double spills; byte-level integer-conversion guards accept original indefinite outcomes without unsafe casts. Fast-math compiler behavior verified with sanitizer fixtures.",
+    "isolation": "Legacy entities and every other profile retain their existing paths. RTX optional ray transport/material lighting is unchanged; raster evidence does not establish ray-lighting visual parity."
+  },
+  "validation": {
+    "native": {
+      "dynamic_cases": 24576,
+      "dynamic_fnv1a64": "0349e9b926854cfd",
+      "diffuse_vertices": 34816,
+      "direction_cases": 2048,
+      "diffuse_fnv1a64": "fdd6653145e344f2",
+      "surface_cases": 960,
+      "surface_hits": 150,
+      "surface_fnv1a64": "e3c9b7700ac668f1",
+      "generated_trees": 32,
+      "tree_cases": 32768,
+      "tree_fnv1a64": "e913a0fd97554969",
+      "map_faces": 4280,
+      "map_lit_faces": 4108,
+      "map_metadata_fnv1a64": "d28ee6d399d8ceea",
+      "map_traces": 32768,
+      "map_hits": 8528,
+      "map_trace_fnv1a64": "1a9be97f02802995",
+      "animation_control_cases": 86016,
+      "control_fnv1a64": "cdae50c20e1398f5"
+    },
+    "focused": {
+      "result": "PASS",
+      "cases": 23,
+      "seconds": 69.359
+    },
+    "docs": {
+      "result": "PASS",
+      "cases": 5,
+      "seconds": 5.494
+    },
+    "particles_regression": {
+      "result": "PASS",
+      "cases": 3,
+      "seconds": 5.093
+    },
+    "asan": {
+      "fixtures": [
+        "numeric",
+        "bsp",
+        "ray",
+        "glx",
+        "glx-animation",
+        "vk",
+        "vk-animation",
+        "rtx",
+        "rtx-animation"
+      ],
+      "result": "PASS"
+    },
+    "complete_suite": {
+      "result": "PASS",
+      "targets": 133,
+      "results": {
+        "OK": 131,
+        "SKIP": 2
+      },
+      "python": {
+        "cases": 1860,
+        "seconds": 704.013,
+        "skips": 72
+      }
+    }
+  },
+  "commands": {
+    "native_build": "cl /nologo /EHsc /W4 /WX /MD /O2 /std:c++17 /I. tests/q3_ihv_reference_model_lighting_probe.cpp /Fe:.tmp/q3-ihv/model-light-native.exe /Fo:.tmp/q3-ihv/model-light-native.obj /link advapi32.lib /BASE:0x3f0000 /FIXED /DYNAMICBASE:NO",
+    "native_run": ".tmp/q3-ihv/model-light-native.exe E:/Repositories/Quake3-IHV/ref/install/quake3.exe E:/Repositories/Quake3-IHV/ref/install/baseq3 E:/Repositories/Quake3-IHV/ref/install/baseq3/maps",
+    "asan": "C:/Python311/python.exe .tmp/q3-ihv/model_light_asan.py",
+    "validation": ".tmp/q3-ihv/validate_model_light.ps1",
+    "suite": "meson test -C meson/build/win32 --no-rebuild --timeout-multiplier 2 --print-errorlogs"
+  },
+  "remaining": [
+    "Native game/cgame engine lifecycle and scene-import integration.",
+    "Sorted flag-0x80 transform/lighting retention, native portals and clamp semantics, rendered map/model/light parity.",
+    "Protocol-33 handshake/netchan/envelopes/downloads, demo commands and bidirectional engine sessions.",
+    "Actual BSP collision/PVS, audio/input/gameplay and navigation.",
+    "Q3Test and all point-release requirements remain open in Q3_POINT_RELEASES.md."
+  ],
+  "validation_restart": "The first full-suite attempt was stopped after identifying a missing sub-loader stub in the controller harness. The second reached its 900-second timeout and had a particle ray fixture compile failure due to its missing model-control declaration. Both fixtures were corrected and focused checks passed. The complete suite then ran with timeout-multiplier 2 and unchanged production sources. Earlier logs and source snapshots are retained.",
+  "cleanup": {
+    "result": "REJECTED by automatic approval review: blocked by policy",
+    "files": [
+      ".tmp/q3-ihv/model-light-zero.cpp",
+      ".tmp/q3-ihv/model-light-zero.exe",
+      ".tmp/q3-ihv/model-light-malformed-debug.cpp",
+      ".tmp/q3-ihv/model-light-malformed-debug.exe",
+      ".tmp/q3-ihv/model-light-malformed-debug-noasan.exe",
+      ".tmp/q3-ihv/model-light-malformed-debug.ll",
+      ".tmp/q3-ihv/model-light-malformed-debug-o0.ll"
+    ],
+    "action": "No alternate deletion mechanism attempted; disposable diagnostics remain in the designated project scratch area."
+  },
+  "unrelated_issues": "No new unrelated repository issues found. Intermediate probe/compiler failures were corrected before final validation; historical LLVM Windows ASAN limitations remain previously recorded.",
+  "artifacts": [
+    {
+      "path": "code/renderercommon/tr_q3_ihv_model.h",
+      "bytes": 6311,
+      "sha256": "6a89aad3c1b88d23433815d80025889f866b8ebc228206c7e0e17b76cac79f0f"
+    },
+    {
+      "path": "code/renderercommon/tr_q3_ihv_model_light.h",
+      "bytes": 11232,
+      "sha256": "0352d1bfc481159a21d6a512ebb29c37459115367d82a5b19a237c0248a569ae"
+    },
+    {
+      "path": "code/renderercommon/tr_q3_ihv_model_light_bsp.h",
+      "bytes": 5529,
+      "sha256": "3b7c040f4323053b0fce7ab344784047adad623c892712c18e690ae1637b30bc"
+    },
+    {
+      "path": "code/renderercommon/tr_q3_ihv_model_light_render.h",
+      "bytes": 1312,
+      "sha256": "2af8a999563d7f1a0f352bd4dbf2dc04e747721384270b5ef5f2439efe64b680"
+    },
+    {
+      "path": "code/renderer/tr_init.c",
+      "bytes": 155281,
+      "sha256": "dc4bfff76a632980a141e74e7c1cad8a378380455151bddc787f6cef73580849"
+    },
+    {
+      "path": "code/renderer/tr_local.h",
+      "bytes": 100583,
+      "sha256": "10d06b2a3609247c9a29ecaa83c0ba70d98f80bdc944cac5d3602bdff39c858d"
+    },
+    {
+      "path": "code/renderer/tr_surface.c",
+      "bytes": 42050,
+      "sha256": "f68b56c72611dd4635cb9cc0edebb534b5de72d683d3d66d4a9f09582afdbbc3"
+    },
+    {
+      "path": "code/renderer/tr_bsp.c",
+      "bytes": 118842,
+      "sha256": "40cf9c53cae22e54875b439514330e882d48c186fa77ef2b87f58d9ef3dac2b3"
+    },
+    {
+      "path": "code/renderer/tr_light.c",
+      "bytes": 15997,
+      "sha256": "201efcd7658e3c833e55b9a2a6da871133311d80a66869d7224a60d8a0f26380"
+    },
+    {
+      "path": "code/renderer/tr_shade_calc.c",
+      "bytes": 33719,
+      "sha256": "e1525a6dc04f3a5eb6de7d7f0a0c9c11ea2ec23d2486c842aa484f95d1a3ce16"
+    },
+    {
+      "path": "code/renderer/tr_shader.c",
+      "bytes": 131802,
+      "sha256": "23d5a655bb307151231b008f6651d803a65f16a3df9c04075422da7fac11f3f6"
+    },
+    {
+      "path": "code/renderervk/tr_init.c",
+      "bytes": 158849,
+      "sha256": "6ff06cc25b133b89c807528e73ab0887c477d01c5b595fb151ed21ecde4233b5"
+    },
+    {
+      "path": "code/renderervk/tr_local.h",
+      "bytes": 95108,
+      "sha256": "613404e3d089a3a5cf3416976f159dda770b6cb997371248d8eed96dfdf03d0d"
+    },
+    {
+      "path": "code/renderervk/tr_surface.c",
+      "bytes": 42826,
+      "sha256": "5634f73075fd6f74713e666f40a47eb98d32cf853afa8125d19dc7960dce7009"
+    },
+    {
+      "path": "code/renderervk/tr_bsp.c",
+      "bytes": 119877,
+      "sha256": "2684649b470945fca77f0002215438f0bc4d2a4eb4caa52495e2a21782b2b74e"
+    },
+    {
+      "path": "code/renderervk/tr_light.c",
+      "bytes": 13618,
+      "sha256": "2f3958fe488f733c1e678908b7ad7e92c1ec8747f272e1a1a62100c81d406a54"
+    },
+    {
+      "path": "code/renderervk/tr_shade_calc.c",
+      "bytes": 33436,
+      "sha256": "3fe926ef1b69b36729e254efd65f47887a62e5feeb67e887c433ba821fd70aaa"
+    },
+    {
+      "path": "code/renderervk/tr_shader.c",
+      "bytes": 153561,
+      "sha256": "e6d23ca8a09eee8a11bf4d82639e5454761c4ae7d4f5ef7cea4500d5e32acd39"
+    },
+    {
+      "path": "code/rendererrtx/tr_init.c",
+      "bytes": 183486,
+      "sha256": "eb685a4c16b47d3c4fc5eb57b3168865c0b62164802e7147ad39db95b2f1fd00"
+    },
+    {
+      "path": "code/rendererrtx/tr_local.h",
+      "bytes": 98137,
+      "sha256": "5a3d8ef04fd4cf961ba09129de88eabbc9eb7979cd79e9ec2694a75313ba392d"
+    },
+    {
+      "path": "code/rendererrtx/tr_surface.c",
+      "bytes": 42704,
+      "sha256": "8be8d516f3134314d0707c9d3badcac706c0197b225cb06453585dd48955ff3e"
+    },
+    {
+      "path": "code/rendererrtx/tr_bsp.c",
+      "bytes": 124945,
+      "sha256": "29a65524491f059f30e2364c3a676b9b417772ff974d1d9fdc511166525fc769"
+    },
+    {
+      "path": "code/rendererrtx/tr_light.c",
+      "bytes": 13618,
+      "sha256": "2f3958fe488f733c1e678908b7ad7e92c1ec8747f272e1a1a62100c81d406a54"
+    },
+    {
+      "path": "code/rendererrtx/tr_shade_calc.c",
+      "bytes": 33437,
+      "sha256": "bb9aeaae216bd527437d48b1a4127980d65a75fa934d38b9c4f7e1d031bbfe0f"
+    },
+    {
+      "path": "code/rendererrtx/tr_shader.c",
+      "bytes": 155303,
+      "sha256": "11f0b7c1d2fd4dd1feca9388e5d2809637a47574363939b5c178ced2c83d947c"
+    },
+    {
+      "path": "code/rendererrtx/vk.c",
+      "bytes": 788682,
+      "sha256": "2a51241d1c7c1b4817a00bc3bb80c4eaec3ac6e533444c9ffeea6b3bbddc4cf1"
+    },
+    {
+      "path": "tests/q3_ihv_reference_model_lighting_probe.cpp",
+      "bytes": 51792,
+      "sha256": "ed2e096d845c2c422ae7053fd2c12bfec3c0f2251609cad5070998ec6bdc01da"
+    },
+    {
+      "path": "tests/q3_ihv_model_light_cases.hpp",
+      "bytes": 7768,
+      "sha256": "ae77fb3b19a78e05d70a3fcaf139463f299818c133a1d6eeab93f3e8456d257f"
+    },
+    {
+      "path": "tests/q3_ihv_model_light_bsp_fixture.hpp",
+      "bytes": 4823,
+      "sha256": "aad452da6aefc0e1023b89cfc484aa8d6d39410fa02970b3f8aab85d626f6f51"
+    },
+    {
+      "path": "tests/q3_ihv_model_lighting_tests.py",
+      "bytes": 9946,
+      "sha256": "9541ab8c2fa0b25fe3ce33697ae8bd55736240883ae8f6d9715a78047ffdcb22"
+    },
+    {
+      "path": "tests/q3_ihv_model_animation_tests.py",
+      "bytes": 15474,
+      "sha256": "8b07c0a0d558fe45a43b202f850b885aa392d312de9a52dfe97f17d2d736e0ff"
+    },
+    {
+      "path": "tests/q3_ihv_entity_renderer_tests.py",
+      "bytes": 27601,
+      "sha256": "43c7be118ec0c591dafb1b799c71dce15ab0eb6ff0b6e7491004e6e085c55c61"
+    },
+    {
+      "path": "tests/q3_ihv_particles_tests.py",
+      "bytes": 19934,
+      "sha256": "67977fbdcedc632036b36dee24aec2b152ec32b3ea39ab23915ddbdf41ca9d67"
+    },
+    {
+      "path": "tests/rtcw_light_tests.py",
+      "bytes": 33820,
+      "sha256": "65536966610ce55bbaf8141d04dc73b69765639213dccace190d78c44977ce62"
+    },
+    {
+      "path": "tests/rtcw_mesh_blink_tests.py",
+      "bytes": 10041,
+      "sha256": "9a0b463c5d0cac641fcb75b4814afd8bdc1ff4ebcc04598b08a7726ec117a3cc"
+    },
+    {
+      "path": "tests/bsp_profile_loader_tests.py",
+      "bytes": 17510,
+      "sha256": "d14bf89f9e612595161b75a0548332d511d5a024b45f13dedafa089cb84e4e4d"
+    },
+    {
+      "path": "docs/fntech3/Q3_IHV.md",
+      "bytes": 87195,
+      "sha256": "d6dc52378c7ff6fe97cd21514efdd033b7a6429b3e96ed32243f9bf08e99c417"
+    },
+    {
+      "path": "docs/fntech3/COMPATIBILITY.md",
+      "bytes": 148761,
+      "sha256": "c93fa6332463e1c37ead9aa792684e6336fc4ca4d28fc2aaecd6e2e6225e6412"
+    },
+    {
+      "path": "CREDITS.md",
+      "bytes": 52107,
+      "sha256": "a0b0efa69717ea8e4612e620daf2fdf0d5dfd0788e1c86de1e3f488a7614eefa"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "bytes": 10213,
+      "sha256": "0c4d87a5f9175df03a19d58248e37630b0c0dd25e32072bc4164a1135483563e"
+    },
+    {
+      "path": ".tmp/q3-ihv/disassemble_model_light.py",
+      "bytes": 554,
+      "sha256": "eba5866cfe3b18ca0f40b736a4c66ae2ba231b9c15fcf5500092f89ab443cb24"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-bsp-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-bsp.cpp",
+      "bytes": 2980,
+      "sha256": "236fe084c51171ab421c83cf5d26dee3a4e489d3157da164541f441e1c1a22be"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-bsp.log",
+      "bytes": 29,
+      "sha256": "c15c2fbfa428c1803ac9d71b52478e7473d3918754dee7a8e56c3a36a1410675"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-glx-animation-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-glx-animation.cpp",
+      "bytes": 37178,
+      "sha256": "2a0507e396b58bc2fc958e668fc0f9eba5f8795a450bb69b1889574144707ecc"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-glx-animation.log",
+      "bytes": 39,
+      "sha256": "44c492f53213efbe4590c6c7196af5ad73b9d6cb08994ddfc0dad73bd5e2f633"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-glx-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-glx.cpp",
+      "bytes": 14114,
+      "sha256": "d1a62a1da216d258a5fb1e3a38684456c9901da75eeff221b61c0d6d93ab7d26"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-glx.log",
+      "bytes": 29,
+      "sha256": "cc266008dac4aaca2b606805c07f8b016097877c166bef593032559fbc01f2c0"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-numeric-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-numeric.cpp",
+      "bytes": 642,
+      "sha256": "5e8ed59ec14168d66083fdd55c623d0b72e4f874cca02fc5504b8bcd2aa16877"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-numeric.log",
+      "bytes": 33,
+      "sha256": "b143430bcae9bf4a908fb99dc4a75207de59ea7aac610266c4cd636f00b286c9"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-ray-build.log",
+      "bytes": 573,
+      "sha256": "60485a3fc944d020e8cfde6b97c5b2c7e1255e66c7a2a3f852dd8de6f91ede0c"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-ray.cpp",
+      "bytes": 31341,
+      "sha256": "e21297abe535753a96c4a7f243e32dd8121d40153e497c09175ddcbc5db9ff21"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-ray.log",
+      "bytes": 29,
+      "sha256": "58e84a1ca0a45e659abd2e8eea7892b618841d51f6bfec2555e8f216969b30a9"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-rtx-animation-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-rtx-animation.cpp",
+      "bytes": 37342,
+      "sha256": "77f0f4383cad2a59167d6adecae6f4632d40acf9c99b1fde81ef9ae14f7b2890"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-rtx-animation.log",
+      "bytes": 39,
+      "sha256": "f3b6127cd96222709b7ed003cda6a1b2c0f82e6f818748960320be5f8949eeea"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-rtx-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-rtx.cpp",
+      "bytes": 13826,
+      "sha256": "a95c51fa9f279e141231647292290f1521cf28b7900256da72a95a6fb7824c05"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-rtx.log",
+      "bytes": 29,
+      "sha256": "9959563cf1078ea56117e35730e85dff6e0651b27367df58af6507d7c525f4ba"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-vk-animation-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-vk-animation.cpp",
+      "bytes": 37241,
+      "sha256": "c6d8d0dfd05aaa8108f9052b29bbb12cb0c5366182e201902ee53d2a3582363f"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-vk-animation.log",
+      "bytes": 38,
+      "sha256": "51e1e61e7483c8ea1a8a383932454721f55c100e8f7eb970d35fbc58a57e0e35"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-vk-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-vk.cpp",
+      "bytes": 13826,
+      "sha256": "a95c51fa9f279e141231647292290f1521cf28b7900256da72a95a6fb7824c05"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-vk.log",
+      "bytes": 28,
+      "sha256": "8366f568dd959bbfec47b1b79f42f99246c672c066937fa6f758c6777d9c4fd4"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan.log",
+      "bytes": 293,
+      "sha256": "6aa587a9fc1d1abcda45c01be1f2059dde9252bb1d7c27bd87c1a17d797770ff"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-build-final.log",
+      "bytes": 6248,
+      "sha256": "a303eac9b2f6d36ca9e402c85c12f5dfbc505477cdb20e5891027885c57eac2b"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-build.log",
+      "bytes": 6248,
+      "sha256": "1801df9b911973dfd14ea3f0b8641a39a75ab75c3e33e48838bcb813eaf178dd"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-cleanup-rejected.txt",
+      "bytes": 458,
+      "sha256": "9d26b8dcbee089448f05a1b368037c7ac2bcc4b15992dcdcc0c2048e9c3baef7"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-color-refs.txt",
+      "bytes": 1643,
+      "sha256": "b8c3289f14528e6936e7d8698b291bcbd09c8e8970301abdd0b9c2ff0f77a436"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-create-face.txt",
+      "bytes": 10221,
+      "sha256": "cef28836865dfbc2570fb529ddc0cc671ee93645372323ce987009ddfe5e8c14"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-diff-check.log",
+      "bytes": 8112,
+      "sha256": "5a2a63790c6edbe68547120b8be3538fe76c04a38d27efa789c22f83f7cf8eb8"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-diffuse-contract.txt",
+      "bytes": 2486,
+      "sha256": "a6ca8ba11b3d0ef1d342ec0a0a39933c4356b73165903fe0fba8c308ee88eb82"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-direction-contract.txt",
+      "bytes": 2662,
+      "sha256": "68b2d5911afe5c5d5244c52482c1e05c60f2567b82c4d03eb4c6bdbafa89ca2e"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-docs.log",
+      "bytes": 919,
+      "sha256": "333964cb1c533d529f90710546a160badc424934bde8b38f5f63ac2d261e5e4d"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-focused-final.log",
+      "bytes": 128,
+      "sha256": "57bcebf4f601bb8927594c75e4230e157611e499775e2fca2d01c1e50d2f94b1"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-focused-first.log",
+      "bytes": 7277,
+      "sha256": "33be92ff184ec81c0acbb1c67a015d1d88b796f9bd3abcf5601bf31b2f069fb5"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-focused-second.log",
+      "bytes": 116,
+      "sha256": "60037de47eb7363373d430b1de1749ca066630b0517218703159a72d755b4e1d"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-focused.log",
+      "bytes": 128,
+      "sha256": "6261b785ddd6f64f1c195d814841e78252d239325cdc85616ab45035cb84817b"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-load-surfaces.txt",
+      "bytes": 3469,
+      "sha256": "eb6c9b1c4f72740c5d0cfa9dc5461e4d45be0d6d0b7be01ef5b096431cc57c65"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-load-world.txt",
+      "bytes": 9095,
+      "sha256": "26133ac94ca9de06d13e0c2cb115c37a49c5337a19c7b2bd4a51ae34bd4490fa"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-loader-controller.log",
+      "bytes": 106,
+      "sha256": "0a5d71d2151115406af1827ea3af4337533ae74defb667fa272a7d59734640e8"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-map-identities.json",
+      "bytes": 788,
+      "sha256": "ca2aac41a0416ece90ff1f0d2160fabf8839d870e7a6303998b2db965abcf3d8"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-model-identities.json",
+      "bytes": 23334,
+      "sha256": "72b0eee574eca3c6b9fa84cfe12d8e9877eeb0702d88cbc875c58cc77d4e8ec0"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-native-build.log",
+      "bytes": 43,
+      "sha256": "0c74e2de25db8a1408d4d9bbff43239065555dbc88cf118258e5d4186d0e4723"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-native-wrong-image.log",
+      "bytes": 32,
+      "sha256": "acddf4d9ae5ce415e391752e877595f1834528f70702406eb9256f71f9b99be8"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-native.log",
+      "bytes": 811,
+      "sha256": "58bf1d6d5f1ec07f296365aadd0a227e5cf4bf13516f01649036748bbaf550b9"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-parse-face.txt",
+      "bytes": 8361,
+      "sha256": "cc67d890cede09233bf0196c778c5742a3d354a83cac5faa714a5c363b6abdee"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-particles-final.log",
+      "bytes": 590,
+      "sha256": "5a7c119e99c3367e1506780bc097c9f19a3db99410c60914e2f8eea4e3c2de9a"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-q3-wide.log",
+      "bytes": 7995,
+      "sha256": "1d75fc00533ac2c0be3e6c8a82e6210a46fe96300b9a4aa1bec35586bc2f5bf7"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-shared-source-check.log",
+      "bytes": 122,
+      "sha256": "2ab1fc890e649ac14b000c63cbbfead24705da32308b03a09bfa77aea7e568ba"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-simple-face.txt",
+      "bytes": 5532,
+      "sha256": "e9ff87f9b97e822a0c9d1fc4d4c1d9a08837797ede0c280259ea4d018763ac7c"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-suite-initial-sources.json",
+      "bytes": 3966,
+      "sha256": "725eb7f47b8ce77de47529758ed8e91b38169a13ef6d7420058a03d750dd1d3b"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-suite-initial-testlog.json",
+      "bytes": 2519223,
+      "sha256": "39caa42bf20fc1e89709b3bc3be4b0a96eee8f0cd4a3a5454c95bb8ae1727108"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-suite-initial-testlog.txt",
+      "bytes": 137523,
+      "sha256": "8501bd5e59c7e46a8b2e378d31e4dd927779fb1219dffa77fffce6c36139990c"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-suite-initial.log",
+      "bytes": 12397,
+      "sha256": "48c70f8c127efe4e24b034ff37dd9c9d595252f3cc0a7b4d55a79d7ff15ad96f"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-suite-restart.txt",
+      "bytes": 241,
+      "sha256": "748786f0326de7008e25deb0915d0e260cd8cd1afb872e7cdfbb8537a37ca750"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-suite-sources.json",
+      "bytes": 4180,
+      "sha256": "53100e956ddfcac066e0e8ee9afe988277d1fbdcb9f94e5dded82a95e083fc7a"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-suite-testlog.json",
+      "bytes": 2520902,
+      "sha256": "0d0fef9cd9169d8737f316decee94f19cff34878ba7fe8f93826311067251682"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-suite-testlog.txt",
+      "bytes": 139158,
+      "sha256": "5f90b7bea335141ec6971fcc90cdd563d04a0f146c4c4ef3c04313bdb37005a6"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-suite-timeout-sources.json",
+      "bytes": 4074,
+      "sha256": "29ee1a23914d5068ca20d59cb5d8e24bc18af249138eb90e79aa76ce814d8dcc"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-suite-timeout-testlog.json",
+      "bytes": 2520226,
+      "sha256": "c6e7e6a96cc81b47bcf01fcd6eaf6c3d3a797a9c5f48eaff7f511c6f13c230ea"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-suite-timeout-testlog.txt",
+      "bytes": 138508,
+      "sha256": "f84311ff4c9ce28bc08fe6dd2242ee5802100894ed832fc94437be294d4baa1f"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-suite-timeout.log",
+      "bytes": 13641,
+      "sha256": "5b35719c0e235dc8e8cea93a5986d8c9ccce1dab82e25d082950f22365e0f2ba"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-suite.log",
+      "bytes": 10706,
+      "sha256": "e58f6b8e902526da9d1e62ffc8c575074368e062148d5898ce289ce20fa46f0e"
+    },
+    {
+      "path": ".tmp/q3-ihv/model_light_asan.py",
+      "bytes": 1987,
+      "sha256": "e26d710054ff7d04a8153e56737aa8d3869e0d2820c4eafd42098f6eeae6ea7b"
+    },
+    {
+      "path": ".tmp/q3-ihv/native-integration-audit.json",
+      "bytes": 10440,
+      "sha256": "4ba4b33b2fab9d3042ab21f007f6404afee621d03fc3ebb4f65249ee51a2be36"
+    },
+    {
+      "path": ".tmp/q3-ihv/native-integration-audit.md",
+      "bytes": 5411,
+      "sha256": "a33eb56bffed004b5f30075cc0b80a27d51724244d49350e9c0d582ccad64af1"
+    },
+    {
+      "path": ".tmp/q3-ihv/record_model_light.py",
+      "bytes": 13183,
+      "sha256": "798a7340d2fe8e93e4b4f60720e8fa00b5e60180e6197e5dd7b557ed7d731329"
+    },
+    {
+      "path": ".tmp/q3-ihv/validate_model_light.ps1",
+      "bytes": 2490,
+      "sha256": "32793c7e68bed122831ab51ecd471c8bf679c1f058681c010d608354eb02e431"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-native.exe",
+      "bytes": 147456,
+      "sha256": "a72fe6a58fa60708cf75e87a1551ca9f6cef64efd3d6bedd88a8b2f2222cea62"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-native.obj",
+      "bytes": 790593,
+      "sha256": "47981e82ef38950250260d14379d101b8a52287565061a52ba2ef2de6860fca7"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-numeric.exe",
+      "bytes": 550912,
+      "sha256": "32c14e0a96be6d72d4ff4ea3542d98a1cc6cffe35f4ebec013d880827ab04b0e"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-bsp.exe",
+      "bytes": 566784,
+      "sha256": "ba6db0bfcdad490a76ccd55cf103e7494263e521b2e76d7f24883db898fb0b36"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-ray.exe",
+      "bytes": 826368,
+      "sha256": "c4462b77110688b1e7f0251c020e92a0518cbc8bb5fdcdab5f396b69134049d4"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-glx.exe",
+      "bytes": 552960,
+      "sha256": "4212294c9b492abfebe90a05a072f75023a5355c7d9f0b19826ab67ac4f78e2e"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-glx-animation.exe",
+      "bytes": 599040,
+      "sha256": "0221668ae66dc17cbe3a13be85b25a94dd927fd38338d422f7b901f420553936"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-vk.exe",
+      "bytes": 552960,
+      "sha256": "eb4da11832d938a9ca7ca4e228049caca50b14a51d7dcfcc20579da63fbd8241"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-vk-animation.exe",
+      "bytes": 599040,
+      "sha256": "bd34ed1879aac84745f11d3a184660b84c27ec6faa54af3338f59b4fb64e51a6"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-rtx.exe",
+      "bytes": 552960,
+      "sha256": "c2b59604538425c9ee45fe07c84c36b27acced13d9105d71797318b278d71c04"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-light-asan-rtx-animation.exe",
+      "bytes": 599040,
+      "sha256": "f3a617dc37d8e8cbd231c2f8692f4ca35a6dfb3ad26391d833ac41a22635f5c0"
+    },
+    {
+      "path": "meson/build/win32/fntech3.exe",
+      "bytes": 8516096,
+      "sha256": "e937db8266581a218cc98ec3917cc66829b4eb064787471be209f3e307f47927"
+    },
+    {
+      "path": "meson/build/win32/fntech3.ded.exe",
+      "bytes": 2685440,
+      "sha256": "354ff18e6595abdbbedac36761c38e5002d47e2e89c04cd8fba19a31647e6094"
+    },
+    {
+      "path": "meson/build/win32/fnql_glx_x86.dll",
+      "bytes": 2470400,
+      "sha256": "6ce6b2f9ef7a2351d324c920bc5c8da27c97f23558a2b8cb0328e688e60c282e"
+    },
+    {
+      "path": "meson/build/win32/fnql_vk_x86.dll",
+      "bytes": 2642432,
+      "sha256": "b8a06608068d131c007a32bdfc55c382ecc517c6391d0c96cbe18d85855a8582"
+    },
+    {
+      "path": "meson/build/win32/fnql_rtx_x86.dll",
+      "bytes": 2943488,
+      "sha256": "0718ffda7e681d288bb9e6a8015367db0bec69da727c2c4ba457e69ed07abab3"
+    }
+  ],
+  "next_observations_only": {
+    "record": ".tmp/q3-ihv/native-integration-audit.json",
+    "scope": "Separate CPU investigation during the suite wait: two synthetic empty-world spawns, six frame callbacks, and four partial-level allocation failures in the original DLL. All five cases match /O2 and /RTC1 hosts. No engine integration or original map/gameplay/network claim.",
+    "next_step": ".tmp/q3-ihv/native-integration-audit.md"
+  }
+}

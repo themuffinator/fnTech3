@@ -31,6 +31,9 @@ int main(int argc, char **argv)
     CHECK(!Candidate(COM_GAME_AUTO, Source::Executable, 0));
     CHECK(!Candidate(COM_GAME_COUNT, Source::Executable, 0));
     CHECK(!Candidate(COM_GAME_QUAKE3, Source::Executable, 999));
+    CHECK(!std::strcmp(Candidate(COM_GAME_QUAKE3_IHV, Source::Executable, 0), "quake3.exe"));
+    CHECK(!Candidate(COM_GAME_QUAKE3_IHV, Source::Png, 0));
+    CHECK(!Candidate(COM_GAME_QUAKE3_IHV, Source::Bundle, 0));
     CHECK(Resolve(nullptr, COM_GAME_QUAKE3, Source::Executable, 0).empty());
     CHECK(Resolve("", COM_GAME_QUAKE3, Source::Executable, 0).empty());
     CHECK(Resolve(rootName.c_str(), COM_GAME_QUAKE3, Source::Executable, 0).empty());

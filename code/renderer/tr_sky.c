@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 // tr_sky.c
 #include "tr_local.h"
+#include "../renderercommon/tr_q3_ihv_sky_render.h"
 
 #define SKY_SUBDIVISIONS		8
 #define HALF_SKY_SUBDIVISIONS	(SKY_SUBDIVISIONS/2)
@@ -531,7 +532,7 @@ static void DrawSkyBox( const shader_t *shader )
 }
 
 
-static void FillCloudBox( void )
+static void FillCloudBox( const shader_t *shader )
 {
 	int i;
 
@@ -541,7 +542,7 @@ static void FillCloudBox( void )
 		int s, t;
 		float MIN_T;
 
-		if ( 1 ) // FIXME? shader->sky.fullClouds )
+		if ( shader->sky.ihvClouds != 2 )
 		{
 			MIN_T = -HALF_SKY_SUBDIVISIONS;
 
@@ -642,7 +643,7 @@ static void R_BuildCloudData( const shaderCommands_t *input )
 	{
 		if ( tess.xstages[0] )
 		{
-			FillCloudBox();
+			FillCloudBox( shader );
 		}
 	}
 }
@@ -858,12 +859,14 @@ void RB_StageIteratorSky( void ) {
 
 	// generate the vertexes for all the clouds, which will be drawn
 	// by the generic shader routine
+	RB_PrepareQ3IHVSky();
 	R_BuildCloudData( &tess );
 
 	// draw the inner skybox
 	if ( tess.numVertexes ) {
 		RB_StageIteratorGeneric();
 	}
+	tess.ihvSkyActive = qfalse;
 
 	// back to normal depth range
 	qglDepthRange( 0.0, 1.0 );

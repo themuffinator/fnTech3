@@ -1,0 +1,294 @@
+{
+  "date": "2026-09-21",
+  "recorded_utc": "2026-09-21T06:48:27.333027+00:00",
+  "commit": "9e1841de53d79f96cdbbde83a1427d1c7d83f31d",
+  "working_tree": "Uncommitted IHV renderer-skin slice; preceding IHV and unrelated RTCW work retained.",
+  "platform": "Windows x86 MSVC toolset 14.44.35207 / Meson win32 preset; Windows x64 Clang 20.1.7 ASAN with -O2 -ffast-math",
+  "scope": "IHV skin registration/parsing and model surface shader selection integrated into all three renderers and RTX ray geometry; generated CPU probes and original numeric reference comparisons. No native rendered cgame/demo/game session.",
+  "profile": "q3-ihv remains gated; other profiles retain named-surface skins and their prior registration limits",
+  "reference": {
+    "repository": "https://github.com/themuffinator/Quake3-IHV/tree/d5ce877155904c57f8b28fe0fd0c8aa2e9473337",
+    "inputs": [
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/quake3.exe",
+        "bytes": 725042,
+        "sha256": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/players/sarge/head_default.skin",
+        "bytes": 56,
+        "sha256": "f9c8310358be53dd9d0706d493351b86af7f8fd1063221a4f07000c1533f6117"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/players/sarge/lower_default.skin",
+        "bytes": 70,
+        "sha256": "e405ff0651f7cfb40ef8fdc9fd3bf3b9238c787ba87dc4f3d7573a564a0d819f"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/players/sarge/upper_default.skin",
+        "bytes": 132,
+        "sha256": "6bb15403e63a3a74d18cde230ac8486b34b7e5cd38f400cc6c554aebc13f31d6"
+      }
+    ],
+    "execution": "R_RegisterSkin 0x439930 in hash-pinned numeric host at 0x3f0000; read-only generated/supplied files and substituted file/shader/CRT callbacks. Original entry point never called.",
+    "incorporation": "Independent implementation from numeric/ABI observations; no external implementation, module or asset contents incorporated."
+  },
+  "contracts": {
+    "native_record": {
+      "bytes": 196,
+      "name": 0,
+      "count": 64,
+      "shader_pointers": 68,
+      "pointer_capacity": 32
+    },
+    "registration_capacity": 1024,
+    "cache": "Exact case-sensitive names; exact .skin extension; non-file name registers one shader. Missing/empty files cache a successful single default shader.",
+    "parser": "Shader strings after commas, preserving whitespace/quotes/comment-looking text. tag_ at current cursor skips through LF. Empty shaders followed by CR/LF skipped. Embedded NUL ends parsing.",
+    "selection": "customShader overrides customSkin. IHV customSkin selects surface ordinal modulo count (original 0x441f56..0x441f67); named-surface selection remains for other profiles.",
+    "safety": "Reject overlong registration names, more than 32 parsed shaders and shader tokens exceeding 1023 bytes without publishing a successful skin; file buffers freed before shader callbacks. Malformed names stay cached as failed until renderer restart."
+  },
+  "validation": {
+    "original": {
+      "registrations_compared": 54,
+      "supplied_skins": 3,
+      "parsed_shader_names": 553,
+      "native_capacity": 1024,
+      "reads": 52,
+      "frees": 51,
+      "fnv1a64": "aec31f68665977a9"
+    },
+    "asan": "PASS: x64 Clang 20.1.7 -O2 -ffast-math AddressSanitizer on IHV and other-profile registration/parser fixtures; all checks enabled.",
+    "focused": {
+      "result": "PASS",
+      "cases": 10,
+      "seconds": 26.176
+    },
+    "documentation_packaging": {
+      "result": "PASS",
+      "cases": 5,
+      "seconds": 7.687
+    },
+    "build": "PASS: complete incremental Meson win32 preset build including GLx, Vulkan, RTX and package; skin-build-all.log.",
+    "source_snapshot": "All 18 implementation/test/documentation hashes unchanged since full-suite dispatch; skin-suite-sources.json.",
+    "full_suite": {
+      "result": "PASS",
+      "targets": 133,
+      "results": {
+        "OK": 131,
+        "SKIP": 2
+      },
+      "python": {
+        "cases": 1843,
+        "seconds": 668.178,
+        "skipped": 72
+      }
+    }
+  },
+  "commands": [
+    "cwd E:/Repositories/fnTech3; TEMP/TMP=.tmp/q3-ihv; MSVC x86 environment from .tmp/rtcw-manager/x86_environment.ps1",
+    "cl /nologo /EHsc /W4 /WX /MD /O2 /std:c++17 tests/q3_ihv_reference_skin_probe.cpp /Fe:.tmp/q3-ihv/reference-skin-probe.exe /Fo:.tmp/q3-ihv/reference-skin-probe.obj /link advapi32.lib /BASE:0x3f0000 /FIXED /DYNAMICBASE:NO",
+    ".tmp/q3-ihv/reference-skin-probe.exe E:/Repositories/Quake3-IHV/ref/install/quake3.exe E:/Repositories/Quake3-IHV/ref/install/baseq3",
+    "Generate ASAN inputs from skin_model_tests.fixture(renderer) plus IHV_CHECKS or CHECKS; generated sources retained.",
+    "clang++ -std=c++17 -O2 -ffast-math -fsanitize=address -g -DFNTECH3_Q3_ONLY -I . .tmp/q3-ihv/skin-asan-ihv.cpp -o .tmp/q3-ihv/skin-asan-ihv.exe (repeat for profiles)",
+    ".tmp/q3-ihv/skin-asan-ihv.exe; .tmp/q3-ihv/skin-asan-profiles.exe",
+    "Python unittest modules q3_ihv_skin_tests, skin_model_tests, rtcw_mesh_blink_tests, mdc_ray_geometry_tests, mds_renderer_tests, model_shader_tests",
+    "meson compile -C meson/build/win32",
+    "meson test -C meson/build/win32 --no-rebuild --print-errorlogs",
+    "Python unittest generate_docs_tests and release_packaging_tests.ReleasePackagingTests.test_packaged_evidence_links_and_missing_target"
+  ],
+  "remaining": [
+    "Native engine module lifecycle and scene submission",
+    "IHV effects/particles/lighting/portals and rendered demo comparisons",
+    "Actual collision/PVS, audio, gameplay and protocol-33 bidirectional sessions",
+    "Full Q3Test and early point-release scope remains separately tracked"
+  ],
+  "unrelated_issues": "Found and fixed existing RTCW player-scale finite check removed by fast-math and RTX negative embedded MD3 shader indexing. Previous IPv6 warning and earlier cleanup rejection remain separate.",
+  "cleanup": "Useful probe sources, executables and logs retained under .tmp/q3-ihv. Automatic approval review rejected deletion of reference-skin-probe.obj and reference-particles-probe.obj with reason blocked by policy; both objects remain. No retry or alternate deletion attempted. Earlier rejected cleanup remains untouched.",
+  "artifacts": [
+    {
+      "path": "code/renderercommon/tr_q3_ihv_skin.h",
+      "bytes": 1877,
+      "sha256": "e5d54195a35c0fa877612c4cdc8139e3743d7b51c83fae5bf318e039b1e237c1"
+    },
+    {
+      "path": "code/renderercommon/tr_q3_ihv_skin_register.h",
+      "bytes": 2185,
+      "sha256": "af94ff56fe74a3620921f0cb376f50d604bb784bb440d1f48f458de942cfbf3c"
+    },
+    {
+      "path": "code/renderercommon/tr_skin.h",
+      "bytes": 7372,
+      "sha256": "ba093e4d7ac31155c0288ff66a62f0db959da5cdcd93d1170976044561320019"
+    },
+    {
+      "path": "code/renderercommon/tr_mesh_material.h",
+      "bytes": 1641,
+      "sha256": "52c642e100a6435a8ce7b480a286e9b7c1ec86340de11528e6a736030efa53fe"
+    },
+    {
+      "path": "code/rendererrtx/vk.c",
+      "bytes": 784984,
+      "sha256": "0d0a38b81394c4fdf64994a8af8f39bb3931ae0fbfcec21e55ce6a5fbc2f1b43"
+    },
+    {
+      "path": "tests/q3_ihv_skin_tests.py",
+      "bytes": 4086,
+      "sha256": "08dfb85f5cac885d3b73977dc66f3a8620cc097446e6753fb086f0be2f958b2e"
+    },
+    {
+      "path": "tests/skin_model_tests.py",
+      "bytes": 19030,
+      "sha256": "00d98903bd3b3bfd9f3769226c6d04ad344ae81f04f5b998b0882b16098733f9"
+    },
+    {
+      "path": "tests/q3_ihv_reference_skin_probe.cpp",
+      "bytes": 10498,
+      "sha256": "2196c1a560fbaba946e3baf05fc4277c32e651a7bb12d79dc6f80f448e12dfd9"
+    },
+    {
+      "path": "docs/fntech3/Q3_IHV.md",
+      "bytes": 70124,
+      "sha256": "9c90bd90b8f709317aabc208ace72b946d6e7fcae83f2d38559aaf58ae8c2f23"
+    },
+    {
+      "path": "docs/fntech3/COMPATIBILITY.md",
+      "bytes": 145819,
+      "sha256": "b8ba8109ccd6671ab37f86f17a905e660c5f37bf4a834fa14255ee472d890dea"
+    },
+    {
+      "path": "CREDITS.md",
+      "bytes": 50351,
+      "sha256": "f5906a4c1005c73789937b6aac446ee3f57db64c019ad613504bb525e46f4fc8"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "bytes": 8609,
+      "sha256": "a369e49056a9ca55879dba66756b1f7dae73ba2907ea573386c816e7da0855bb"
+    },
+    {
+      "path": "code/renderer/tr_local.h",
+      "bytes": 100040,
+      "sha256": "5cc655498790bceebdd2cf5100dd17fc56932c164fa25ec8635c7f0edb9808e1"
+    },
+    {
+      "path": "code/renderer/tr_mesh.c",
+      "bytes": 13206,
+      "sha256": "52d8447ad2831dfde97c711c3941d9583a5dda424660b7664d307e32e2b8492c"
+    },
+    {
+      "path": "code/renderervk/tr_local.h",
+      "bytes": 94525,
+      "sha256": "ce05f5b23d034cf3dd0dd1563e711c8ddcd83c8c837ea95abd94cacceb9879e0"
+    },
+    {
+      "path": "code/renderervk/tr_mesh.c",
+      "bytes": 13331,
+      "sha256": "7dce6ee4e6d7f6d0b80052b65e8f5ad6883bc485b30891d4003fc1514948ade6"
+    },
+    {
+      "path": "code/rendererrtx/tr_local.h",
+      "bytes": 97554,
+      "sha256": "0cbecf80b358b4cafda5eb55a439bde267402ae31d0564794f6656885f6c9bef"
+    },
+    {
+      "path": "code/rendererrtx/tr_mesh.c",
+      "bytes": 13051,
+      "sha256": "740585d795dd8ca5325d62aa2c72fca31c48c59cbde1f6f89cba4b631af252be"
+    },
+    {
+      "path": ".tmp/q3-ihv/record_skins.py",
+      "bytes": 8546,
+      "sha256": "5ebe000893bddc481d889600124775eca0abac8d9af160d2c2f881e42eb8a943"
+    },
+    {
+      "path": ".tmp/q3-ihv/inspect_skin_contract.py",
+      "bytes": 464,
+      "sha256": "27989a82a963343e46eb3557c1daeab8ac96f9ee5847c87c1fe74ef7f84a80b9"
+    },
+    {
+      "path": ".tmp/q3-ihv/skin-original-contract.txt",
+      "bytes": 10575,
+      "sha256": "7acbca7a164e61bd7797b3c7671332bdbf8e17ef6161d22780e0f52b326c3bf4"
+    },
+    {
+      "path": ".tmp/q3-ihv/skin-reference-build.log",
+      "bytes": 33,
+      "sha256": "908c49ac362e3823eda2dc263f9a91f655755c6b0e2dc4b6e8df0d37375b27f8"
+    },
+    {
+      "path": ".tmp/q3-ihv/skin-reference.log",
+      "bytes": 150,
+      "sha256": "90f86249d8b53cdd35975ef712162daa5a4400094ddd4f1aa8a8fa521d57a678"
+    },
+    {
+      "path": ".tmp/q3-ihv/skin-reference-wrong-image.log",
+      "bytes": 32,
+      "sha256": "acddf4d9ae5ce415e391752e877595f1834528f70702406eb9256f71f9b99be8"
+    },
+    {
+      "path": ".tmp/q3-ihv/skin-asan-ihv.cpp",
+      "bytes": 11761,
+      "sha256": "0463f9a0c91a8d67425eb8f88fd0656085204d4a69c1473c14c8dc63b8c131bf"
+    },
+    {
+      "path": ".tmp/q3-ihv/skin-asan-ihv-build.log",
+      "bytes": 229,
+      "sha256": "66803e736f5afa083a41de05c52d97d933b0f7846b0c18854aeeb7546df33f9d"
+    },
+    {
+      "path": ".tmp/q3-ihv/skin-asan-ihv.log",
+      "bytes": 25,
+      "sha256": "f3411adae3e4aea011cd45ace43b9c90fafd0a2e1f91f71c50537fe3297983ba"
+    },
+    {
+      "path": ".tmp/q3-ihv/skin-asan-profiles.cpp",
+      "bytes": 13921,
+      "sha256": "8e9c8181c808332ee14c824ee48ecd896098ec1db1e6194bb3a4c346b7649a3b"
+    },
+    {
+      "path": ".tmp/q3-ihv/skin-asan-profiles-build.log",
+      "bytes": 234,
+      "sha256": "de8fb30c7204f2ccc402c9ad618f52fcdedefa5fb1ef8c62ec53c48656b13412"
+    },
+    {
+      "path": ".tmp/q3-ihv/skin-asan-profiles.log",
+      "bytes": 25,
+      "sha256": "f3411adae3e4aea011cd45ace43b9c90fafd0a2e1f91f71c50537fe3297983ba"
+    },
+    {
+      "path": ".tmp/q3-ihv/skin-suite-sources.json",
+      "bytes": 1836,
+      "sha256": "6934f48584e20aa65ccb4312b8f861b62bda84626f65f6f2d215d826735eebfa"
+    },
+    {
+      "path": ".tmp/q3-ihv/skin-build-all.log",
+      "bytes": 959,
+      "sha256": "cc1d05be34a10b15062cd90cb16e9f1539d82ddfec98de255b72fa733e7693e4"
+    },
+    {
+      "path": ".tmp/q3-ihv/skin-focused.log",
+      "bytes": 1644,
+      "sha256": "7fcb778d4d66f901f2c6009655d3956df808d5de375a031f494047c8634b92ca"
+    },
+    {
+      "path": ".tmp/q3-ihv/skin-docs.log",
+      "bytes": 108,
+      "sha256": "ba50273a426818b539e0295e0f3d42c3623d85776edf40ac7dda62b0a37862a0"
+    },
+    {
+      "path": ".tmp/q3-ihv/skin-suite.log",
+      "bytes": 10573,
+      "sha256": "6da36cf111223638b883de09fa6d3256d38212e767de600972f01f6733a090ce"
+    },
+    {
+      "path": ".tmp/q3-ihv/skin-suite-testlog.json",
+      "bytes": 2514232,
+      "sha256": "6d162798446228b352b5f66c6c5b4c05ce00718d1518a634d7aabdb5d18e1e61"
+    },
+    {
+      "path": ".tmp/q3-ihv/skin-suite-testlog.txt",
+      "bytes": 139110,
+      "sha256": "93728026ab64d2a5189c683c51e83dabcc7473f4b1bd81c4f0a7a4d4080b6009"
+    }
+  ]
+}

@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "server.h"
 #include "server_world_bounds.hpp"
+#include "server_alice_snapshot.hpp"
 #include "../qcommon/netchan_safety.hpp"
 
 #include <array>
@@ -96,8 +97,7 @@ static void SV_EmitPacketEntities( const clientSnapshot_t *from,
 			// in any bytes being emitted if the entity has not changed at all
 			if ( !MSG_WriteDeltaEntityForWireProfile(
 				msg, oldent, newent, qfalse, profile ) ) {
-				Com_Error( ERR_DROP, "%s: invalid wire profile %i",
-					__func__, static_cast<int>( profile ) );
+				SV_ErrorForWireProfile( __func__, profile );
 				return;
 			}
 			oldindex++;
@@ -109,8 +109,7 @@ static void SV_EmitPacketEntities( const clientSnapshot_t *from,
 			// this is a new entity, send it from the baseline
 			if ( !MSG_WriteDeltaEntityForWireProfile( msg,
 				&sv.svEntities[newnum].baseline, newent, qtrue, profile ) ) {
-				Com_Error( ERR_DROP, "%s: invalid wire profile %i",
-					__func__, static_cast<int>( profile ) );
+				SV_ErrorForWireProfile( __func__, profile );
 				return;
 			}
 			newindex++;
@@ -121,8 +120,7 @@ static void SV_EmitPacketEntities( const clientSnapshot_t *from,
 			// the old entity isn't present in the new message
 			if ( !MSG_WriteDeltaEntityForWireProfile(
 				msg, oldent, nullptr, qtrue, profile ) ) {
-				Com_Error( ERR_DROP, "%s: invalid wire profile %i",
-					__func__, static_cast<int>( profile ) );
+				SV_ErrorForWireProfile( __func__, profile );
 				return;
 			}
 			oldindex++;
@@ -133,6 +131,38 @@ static void SV_EmitPacketEntities( const clientSnapshot_t *from,
 	MSG_WriteBits( msg, (MAX_GENTITIES-1), GENTITYNUM_BITS );	// end of packetentities
 }
 
+
+/*
+==================
+SV_WriteAliceSnapshotTail
+
+What American McGee's Alice sends after its packet entities, as retail
+alice.exe does at 0x00456cff: the sounds the game queued, in the block its
+writer at 0x00446d00 produces, and then a pending centre or located print as
+its own opcode.
+
+The sound block is a presence bit, a six-bit count, and for each sound either
+a stop -- one bit, the entity in ten bits and the channel in six -- or a start:
+one bit, an origin only when it is not all zero, the entity and channel, the
+sound index in eight bits, and the volume and minimum distance each only when
+it is not -1.
+==================
+*/
+static void SV_WriteAliceSnapshotTail( const client_t *client, msg_t *msg ) {
+	MSG_WriteAliceSounds( msg, client->aliceSounds, client->aliceNumSounds );
+
+	if ( client->aliceCenterPrint[0] ) {
+		if ( client->aliceLocationPrint ) {
+			MSG_WriteByte( msg, 9 );	// svc_locprint
+			MSG_WriteShort( msg, client->aliceLocationX );
+			MSG_WriteShort( msg, client->aliceLocationY );
+		} else {
+			MSG_WriteByte( msg, 8 );	// svc_centerprint
+		}
+		MSG_WriteStringForWireProfile( msg, client->aliceCenterPrint,
+			client->netchan.wireProfile );
+	}
+}
 
 /*
 ==================
@@ -235,6 +265,12 @@ static void SV_WriteSnapshotToClient( const client_t *client, msg_t *msg ) {
 		}
 		// packet entities
 		MSG_WriteBits( msg, (MAX_GENTITIES-1), GENTITYNUM_BITS );
+		// Alice's client reads its sound block after every snapshot's
+		// entities; retail's writer has no shortcut for a zombie and always
+		// ends with it (SV_WriteSnapshotToClient 0x00456cff).
+		if ( client->netchan.wireProfile == NETCHAN_WIRE_ALICE ) {
+			SV_WriteAliceSnapshotTail( client, msg );
+		}
 		return;
 	}
 
@@ -242,14 +278,17 @@ static void SV_WriteSnapshotToClient( const client_t *client, msg_t *msg ) {
 	const playerState_t *oldPlayerState = oldframe ? &oldframe->ps : nullptr;
 	if ( !MSG_WriteDeltaPlayerstateForWireProfile( msg, oldPlayerState,
 		&frame->ps, client->netchan.wireProfile ) ) {
-		Com_Error( ERR_DROP, "%s: invalid wire profile %i",
-			__func__, static_cast<int>( client->netchan.wireProfile ) );
+		SV_ErrorForWireProfile( __func__, client->netchan.wireProfile );
 		return;
 	}
 
 	// delta encode the entities
 	SV_EmitPacketEntities(
 		oldframe, frame, msg, client->netchan.wireProfile );
+
+	if ( client->netchan.wireProfile == NETCHAN_WIRE_ALICE ) {
+		SV_WriteAliceSnapshotTail( client, msg );
+	}
 
 	// padding for rate debugging
 	if ( sv_padPackets->integer ) {
@@ -288,6 +327,12 @@ void SV_WriteLegacyDownloadSnapshot( const client_t *client, msg_t *msg ) {
 	MSG_WriteData( msg, nullptr, 0 );
 	MSG_WriteDeltaPlayerstateForWireProfile( msg, &empty, &empty, client->netchan.wireProfile );
 	MSG_WriteBits( msg, MAX_GENTITIES - 1, GENTITYNUM_BITS );
+	// Alice's client reads a sound block after every snapshot's entities
+	// (retail 0x00456cff); an empty one is its single zero bit. The client's
+	// queued sounds stay for its next real snapshot.
+	if ( client->netchan.wireProfile == NETCHAN_WIRE_ALICE ) {
+		MSG_WriteAliceSounds( msg, nullptr, 0 );
+	}
 }
 
 
@@ -976,6 +1021,159 @@ static void SV_SnapshotViewOrigin( const client_t *client, const playerState_t &
 }
 
 /*
+=============================================================================
+
+American McGee's Alice
+
+Retail alice.exe builds a snapshot from its game's own records rather than
+from a frame shared by every client: its walk rewrites each entity's render
+flags for the view it was reached from, and the states are copied only once
+the walk is done. See server_alice_snapshot.hpp.
+
+=============================================================================
+*/
+
+namespace {
+
+// The walk's view of this server: the server state, the collision map and
+// the module's records, as server_alice_snapshot.hpp describes each member.
+struct AliceSnapshotWorld {
+	using SvEntity = svEntity_t;
+	clientSnapshot_t *frame;
+
+	bool Dead() const { return sv.state == SS_DEAD; }
+	void View( const float origin[3], int &area, const std::uint8_t *&pvs ) {
+		const int leaf = CM_PointLeafnum( origin );
+		area = CM_LeafArea( leaf );
+		const int cluster = CM_LeafCluster( leaf );
+		frame->areabytes = CM_WriteAreaBits( frame->areabits, area );
+		pvs = CM_ClusterPVS( cluster );
+	}
+	int NumEntities() const { return sv.num_entities; }
+	std::uint8_t *Entity( int number ) { return SV_AliceGameEntity( number ); }
+	svEntity_t &Sv( int number ) { return sv.svEntities[ number ]; }
+	int Counter() const { return sv.snapshotCounter; }
+	bool AreasConnected( int area1, int area2 ) const { return CM_AreasConnected( area1, area2 ) != 0; }
+	int FarPlane() const { return sv.aliceFarPlane; }
+	bool SkyPortal() const { return sv.aliceSkyPortal != qfalse; }
+	void Fatal( const char *message ) { Com_Error( ERR_DROP, "%s", message ); }
+	void FixedNumber( int ) { Com_DPrintf( "FIXING ENT->S.NUMBER!!!\n" ); }
+};
+
+}
+
+/*
+===============
+SV_StoreAliceSnapshotFrame
+
+A frame of storage holding exactly the states one client's walk chose, read
+from the game after the walk as retail copies them (0x0045709d..0x004570f9),
+so each carries the render flags that walk wrote. The ring and its release
+rule are SV_BuildCommonSnapshot's.
+===============
+*/
+static void SV_StoreAliceSnapshotFrame( clientSnapshot_t *frame,
+	const fntech3::alice::snapshot::Numbers &numbers ) {
+	const int count = numbers.count;
+	snapshotFrame_t *sf = &svs.snapFrames[ svs.snapshotFrame % NUM_SNAPSHOT_FRAMES ];
+
+	if ( svs.snapshotFrame - svs.lastValidFrame > ( NUM_SNAPSHOT_FRAMES - 1 ) ) {
+		svs.lastValidFrame = svs.snapshotFrame - ( NUM_SNAPSHOT_FRAMES - 1 );
+		svs.freeStorageEntities += sf->count;
+		sf->count = 0;
+	}
+	while ( svs.freeStorageEntities < count && svs.lastValidFrame != svs.snapshotFrame ) {
+		snapshotFrame_t *oldest = &svs.snapFrames[ svs.lastValidFrame % NUM_SNAPSHOT_FRAMES ];
+		svs.lastValidFrame++;
+		svs.freeStorageEntities += oldest->count;
+		oldest->count = 0;
+	}
+	if ( svs.freeStorageEntities < count ) {
+		Com_Error( ERR_DROP, "Not enough snapshot storage: %i < %i", svs.freeStorageEntities, count );
+		return;
+	}
+
+	sf->count = count;
+	svs.freeStorageEntities -= count;
+	sf->start = svs.currentStoragePosition;
+	svs.currentStoragePosition = ( svs.currentStoragePosition + count ) % svs.numSnapshotEntities;
+	sf->frameNum = svs.snapshotFrame;
+	svs.snapshotFrame++;
+
+	int index = sf->start;
+	for ( int i : SV_Indices( count ) ) {
+		sharedEntity_t entity;
+		if ( !SV_ReadGameEntityByNum( numbers.numbers[ i ], &entity ) ) {
+			Com_Error( ERR_DROP, "%s: invalid entity %i", __func__, numbers.numbers[ i ] );
+			return;
+		}
+		svs.snapshotEntities[ index ] = entity.s;
+		sf->ents[ i ] = &svs.snapshotEntities[ index ];
+		frame->ents[ i ] = sf->ents[ i ];
+		index = ( index + 1 ) % svs.numSnapshotEntities;
+	}
+	frame->num_entities = count;
+	frame->frameNum = sf->frameNum;
+}
+
+/*
+=============
+SV_BuildAliceClientSnapshot
+
+Retail's SV_BuildClientSnapshot (0x00456f20) past its client checks. The
+counter goes up first (0x00456f2b); the client's own entity is added before
+anything is tested, because Alice is seen in the third person and carries her
+weapons and effects (0x00457024..0x00457037); then everything visible from a
+camera's origin or the eye (0x00456fbb), which takes in the sky portal's view
+and any portal's; the numbers are sorted with a duplicate refused
+(0x0045705f), the area bits inverted, and the states copied last.
+
+One client's snapshot differs from another's by the render flags its own walk
+wrote, so each Alice client stores a frame of its own instead of the frame
+the other profiles share, which is also what retail's copy after each walk
+amounts to. The flags themselves stay on the game's entities as retail leaves
+them, so the game sees the last walk's. The profile runs one client and a
+loaded game refuses more; a second is still served this way, not refused.
+=============
+*/
+static void SV_BuildAliceClientSnapshot( client_t *client, clientSnapshot_t *frame ) {
+	namespace snapshot = fntech3::alice::snapshot;
+
+	sv.snapshotCounter++;
+
+	vec3_t origin;
+	snapshot::ViewOrigin( frame->ps.pm_flags, frame->ps.origin, frame->ps.viewheight,
+		frame->ps.alice.camera_origin, origin );
+
+	AliceSnapshotWorld world{ frame };
+	snapshot::Numbers numbers;
+	const int self = SV_ClientIndex( client );
+	std::uint8_t *own = world.Entity( self );
+	if ( !own ) {
+		Com_Error( ERR_DROP, "%s: client %i has no entity", __func__, self );
+		return;
+	}
+	svEntity_t *ownEntity = snapshot::SvEntityFor( world, own );
+	if ( !ownEntity ) {
+		return;
+	}
+	snapshot::AddEntToSnapshot( *ownEntity, own, numbers, sv.snapshotCounter, false, false );
+	snapshot::AddEntitiesVisibleFromPoint( world, origin, numbers, nullptr, false );
+
+	if ( !snapshot::SortNumbers( numbers ) ) {
+		Com_Error( ERR_DROP, "SV_QsortEntityStates: duplicated entity" );
+		return;
+	}
+
+	int *areaWords = reinterpret_cast<int *>( frame->areabits );
+	for ( int areaWord : SV_Indices( MAX_MAP_AREA_BYTES / static_cast<int>( sizeof( int ) ) ) ) {
+		areaWords[areaWord] ^= -1;
+	}
+
+	SV_StoreAliceSnapshotFrame( frame, numbers );
+}
+
+/*
 =============
 SV_BuildClientSnapshot
 
@@ -1033,6 +1231,13 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 	// so don't send any packetentities changes until CS_PRIMED
 	// because new gamestate will invalidate them anyway
 	if ( !client->gentity ) {
+		return;
+	}
+
+	// American McGee's Alice walks the game's own records and stores what
+	// each client's walk chose (SV_BuildAliceClientSnapshot).
+	if ( Com_GameIsAlice() ) {
+		SV_BuildAliceClientSnapshot( client, frame );
 		return;
 	}
 
@@ -1148,6 +1353,12 @@ void SV_SendClientSnapshot( client_t *client ) {
 	// send over all the relevant entityState_t
 	// and the playerState_t
 	SV_WriteSnapshotToClient( client, &msg );
+
+	// Alice's queued sounds and print went with this snapshot (retail clears
+	// the list at 0x00457730 once it is sent).
+	client->aliceNumSounds = 0;
+	client->aliceCenterPrint[0] = '\0';
+	client->aliceLocationPrint = qfalse;
 
 	// check for overflow
 	if ( msg.overflowed ) {

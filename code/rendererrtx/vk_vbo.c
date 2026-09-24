@@ -209,6 +209,11 @@ static qboolean isStaticShader( shader_t *shader )
 	if ( shader->isSky || shader->remappedShader )
 		return qfalse;
 
+	// American McGee's Alice's own colour, alpha and texture sources, its
+	// alpha test and its per-draw stage skips are computed on the CPU
+	if ( shader->aliceNoStatic )
+		return qfalse;
+
 	if ( shader->numDeforms || shader->numUnfoggedPasses > MAX_VBO_STAGES )
 		return qfalse;
 

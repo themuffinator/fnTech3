@@ -1,0 +1,903 @@
+{
+  "date": "2026-09-21",
+  "scope": "Dedicated Windows x86 IHV native game lifecycle and imports; full IHV support remains incomplete",
+  "commit": "9e1841de53d79f96cdbbde83a1427d1c7d83f31d",
+  "working_tree": "Uncommitted game bridge; earlier IHV/Q3 changes and unrelated RTCW work remain present.",
+  "reference": {
+    "repository": "https://github.com/themuffinator/Quake3-IHV/tree/d5ce877155904c57f8b28fe0fd0c8aa2e9473337",
+    "inputs": [
+      {
+        "path": "E:\\Repositories\\Quake3-IHV\\ref\\install\\quake3.exe",
+        "bytes": 725042,
+        "sha256": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37"
+      },
+      {
+        "path": "E:\\Repositories\\Quake3-IHV\\ref\\install\\qagamex86.dll",
+        "bytes": 229429,
+        "sha256": "9855d375751272d0b22e9078e827cf7ff3c2e42867f525b7fd84b93967c0eeb6"
+      },
+      {
+        "path": "E:\\Repositories\\Quake3-IHV\\ref\\install\\cgamex86.dll",
+        "bytes": 192570,
+        "sha256": "175f94756f994b06235690fdd2d9fe798503f7a797f2e070277a672847593614"
+      },
+      {
+        "path": "E:\\Repositories\\Quake3-IHV\\ref\\install\\baseq3\\default.cfg",
+        "bytes": 2529,
+        "sha256": "e07daa1869aad4f5e7aed4822dbc3b32c1688922585a3862bc62a4b475b72c20"
+      },
+      {
+        "path": "E:\\Repositories\\Quake3-IHV\\ref\\install\\baseq3\\scripts\\bots.cfg",
+        "bytes": 1067,
+        "sha256": "b8ee6f5ee65e47966ea56dadb58faef52b69912ceccd03acca84cc1fde626143"
+      },
+      {
+        "path": "E:\\Repositories\\Quake3-IHV\\ref\\install\\baseq3\\maps\\tim_dm1.nav",
+        "bytes": 17836,
+        "sha256": "b263e556c4883dd1f619e3d2a130c7472ee307bd53bc9f66c4129c4ab34c8b0d"
+      },
+      {
+        "path": "E:\\Repositories\\Quake3-IHV\\ref\\install\\baseq3\\maps\\ihv_test1.bsp",
+        "bytes": 759672,
+        "sha256": "874311cffc880f79c1fdd4fc85bed1062baf976835b4402c9de54460af20281b"
+      },
+      {
+        "path": "E:\\Repositories\\Quake3-IHV\\ref\\install\\baseq3\\maps\\km_portal.bsp",
+        "bytes": 3259316,
+        "sha256": "33f422e61940929c160fc843fd8f7e3a00d7d237dd0f1887897cd0d3450297c9"
+      },
+      {
+        "path": "E:\\Repositories\\Quake3-IHV\\ref\\install\\baseq3\\maps\\test_fog2.bsp",
+        "bytes": 118720,
+        "sha256": "a5d046cb604aadd4092339a3ce758927ebe53d0333dbdde06f9770f515837126"
+      },
+      {
+        "path": "E:\\Repositories\\Quake3-IHV\\ref\\install\\baseq3\\maps\\tim_dm1.bsp",
+        "bytes": 618916,
+        "sha256": "40621dfd4037116ba3feb7816913f799320a57111c530e2319143706f0b1c2e2"
+      }
+    ],
+    "unchanged_after_runtime": true
+  },
+  "runtime": {
+    "scope": "Dedicated original-DLL map lifecycle and error cleanup; no clients, bots or network",
+    "commit": "9e1841de53d79f96cdbbde83a1427d1c7d83f31d",
+    "server": {
+      "path": "E:\\Repositories\\fnTech3\\.tmp\\q3-ihv\\development-build\\fntech3.ded.exe",
+      "bytes": 2698240,
+      "sha256": "9744df3b7d57d09aad5044def63de217ac232739f4c4f827c78f2a7319ab4dcf"
+    },
+    "inputs": [
+      {
+        "path": "E:\\Repositories\\Quake3-IHV\\ref\\install\\quake3.exe",
+        "bytes": 725042,
+        "sha256": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37"
+      },
+      {
+        "path": "E:\\Repositories\\Quake3-IHV\\ref\\install\\qagamex86.dll",
+        "bytes": 229429,
+        "sha256": "9855d375751272d0b22e9078e827cf7ff3c2e42867f525b7fd84b93967c0eeb6"
+      },
+      {
+        "path": "E:\\Repositories\\Quake3-IHV\\ref\\install\\cgamex86.dll",
+        "bytes": 192570,
+        "sha256": "175f94756f994b06235690fdd2d9fe798503f7a797f2e070277a672847593614"
+      },
+      {
+        "path": "E:\\Repositories\\Quake3-IHV\\ref\\install\\baseq3\\default.cfg",
+        "bytes": 2529,
+        "sha256": "e07daa1869aad4f5e7aed4822dbc3b32c1688922585a3862bc62a4b475b72c20"
+      },
+      {
+        "path": "E:\\Repositories\\Quake3-IHV\\ref\\install\\baseq3\\scripts\\bots.cfg",
+        "bytes": 1067,
+        "sha256": "b8ee6f5ee65e47966ea56dadb58faef52b69912ceccd03acca84cc1fde626143"
+      },
+      {
+        "path": "E:\\Repositories\\Quake3-IHV\\ref\\install\\baseq3\\maps\\tim_dm1.nav",
+        "bytes": 17836,
+        "sha256": "b263e556c4883dd1f619e3d2a130c7472ee307bd53bc9f66c4129c4ab34c8b0d"
+      },
+      {
+        "path": "E:\\Repositories\\Quake3-IHV\\ref\\install\\baseq3\\maps\\ihv_test1.bsp",
+        "bytes": 759672,
+        "sha256": "874311cffc880f79c1fdd4fc85bed1062baf976835b4402c9de54460af20281b"
+      },
+      {
+        "path": "E:\\Repositories\\Quake3-IHV\\ref\\install\\baseq3\\maps\\km_portal.bsp",
+        "bytes": 3259316,
+        "sha256": "33f422e61940929c160fc843fd8f7e3a00d7d237dd0f1887897cd0d3450297c9"
+      },
+      {
+        "path": "E:\\Repositories\\Quake3-IHV\\ref\\install\\baseq3\\maps\\test_fog2.bsp",
+        "bytes": 118720,
+        "sha256": "a5d046cb604aadd4092339a3ce758927ebe53d0333dbdde06f9770f515837126"
+      },
+      {
+        "path": "E:\\Repositories\\Quake3-IHV\\ref\\install\\baseq3\\maps\\tim_dm1.bsp",
+        "bytes": 618916,
+        "sha256": "40621dfd4037116ba3feb7816913f799320a57111c530e2319143706f0b1c2e2"
+      }
+    ],
+    "runs": [
+      {
+        "name": "lifecycle",
+        "command": [
+          "E:\\Repositories\\fnTech3\\.tmp\\q3-ihv\\development-build\\fntech3.ded.exe",
+          "+set",
+          "com_gameProfile",
+          "q3-ihv",
+          "+set",
+          "fs_basepath",
+          "E:\\Repositories\\Quake3-IHV\\ref\\install",
+          "+set",
+          "fs_homepath",
+          "E:\\Repositories\\fnTech3\\.tmp\\q3-ihv\\game-bridge-bounds-runtime\\lifecycle\\home",
+          "+set",
+          "fs_game",
+          "",
+          "+set",
+          "fs_cdpath",
+          "",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "-1",
+          "+set",
+          "r_customWidth",
+          "800",
+          "+set",
+          "r_customHeight",
+          "600",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "com_steamIntegration",
+          "0",
+          "+set",
+          "fs_skipWorkshop",
+          "1",
+          "+set",
+          "cl_webuiEnable",
+          "0",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "net_ip",
+          "127.0.0.1",
+          "+set",
+          "net_port",
+          "0",
+          "+set",
+          "net_ip6",
+          "::1",
+          "+set",
+          "net_port6",
+          "0",
+          "+set",
+          "dedicated",
+          "1",
+          "+set",
+          "net_enabled",
+          "0",
+          "+set",
+          "com_viewlog",
+          "0",
+          "+set",
+          "viewlog",
+          "0",
+          "+set",
+          "developer",
+          "1",
+          "+set",
+          "com_buildScript",
+          "1",
+          "+exec",
+          "probe.cfg"
+        ],
+        "exit_code": 0,
+        "forced": false,
+        "seconds": 10.015,
+        "initializations": 2,
+        "shutdown_callbacks": 2,
+        "spawns": [
+          {
+            "map": "ihv_test1",
+            "time": "1000",
+            "entities": "19",
+            "capacity": "1024",
+            "stride": "556",
+            "base": "033C4020",
+            "allocations": "56",
+            "bytes": "588047"
+          },
+          {
+            "map": "km_portal",
+            "time": "1000",
+            "entities": "94",
+            "capacity": "1024",
+            "stride": "556",
+            "base": "033C4020",
+            "allocations": "350",
+            "bytes": "590338"
+          },
+          {
+            "map": "test_fog2",
+            "time": "1000",
+            "entities": "94",
+            "capacity": "1024",
+            "stride": "556",
+            "base": "033C4020",
+            "allocations": "11",
+            "bytes": "587777"
+          },
+          {
+            "map": "tim_dm1",
+            "time": "1000",
+            "entities": "94",
+            "capacity": "1024",
+            "stride": "556",
+            "base": "033C4020",
+            "allocations": "70",
+            "bytes": "607318"
+          },
+          {
+            "map": "tim_dm1",
+            "time": "1000",
+            "entities": "94",
+            "capacity": "1024",
+            "stride": "556",
+            "base": "033C4020",
+            "allocations": "70",
+            "bytes": "607318"
+          },
+          {
+            "map": "ihv_test1",
+            "time": "1000",
+            "entities": "19",
+            "capacity": "1024",
+            "stride": "556",
+            "base": "0C470020",
+            "allocations": "56",
+            "bytes": "588047"
+          }
+        ],
+        "shutdown_allocations": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "warnings": {
+          "WARNING: CM_AddFacetBevels... invalid bevel": 277,
+          "WARNING: CM_SetBorderInward: mixed plane sides": 2,
+          "WARNING: no navigation data": 4
+        },
+        "passed": true
+      },
+      {
+        "name": "init-rejection",
+        "command": [
+          "E:\\Repositories\\fnTech3\\.tmp\\q3-ihv\\development-build\\fntech3.ded.exe",
+          "+set",
+          "com_gameProfile",
+          "q3-ihv",
+          "+set",
+          "fs_basepath",
+          "E:\\Repositories\\Quake3-IHV\\ref\\install",
+          "+set",
+          "fs_homepath",
+          "E:\\Repositories\\fnTech3\\.tmp\\q3-ihv\\game-bridge-bounds-runtime\\init-rejection\\home",
+          "+set",
+          "fs_game",
+          "",
+          "+set",
+          "fs_cdpath",
+          "",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "-1",
+          "+set",
+          "r_customWidth",
+          "800",
+          "+set",
+          "r_customHeight",
+          "600",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "com_steamIntegration",
+          "0",
+          "+set",
+          "fs_skipWorkshop",
+          "1",
+          "+set",
+          "cl_webuiEnable",
+          "0",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "net_ip",
+          "127.0.0.1",
+          "+set",
+          "net_port",
+          "0",
+          "+set",
+          "net_ip6",
+          "::1",
+          "+set",
+          "net_port6",
+          "0",
+          "+set",
+          "dedicated",
+          "1",
+          "+set",
+          "net_enabled",
+          "0",
+          "+set",
+          "com_viewlog",
+          "0",
+          "+set",
+          "viewlog",
+          "0",
+          "+set",
+          "developer",
+          "1",
+          "+set",
+          "com_buildScript",
+          "1",
+          "+exec",
+          "probe.cfg"
+        ],
+        "exit_code": 1,
+        "forced": false,
+        "seconds": 0.407,
+        "initializations": 1,
+        "shutdown_callbacks": 0,
+        "spawns": [],
+        "shutdown_allocations": [
+          [
+            0,
+            0
+          ]
+        ],
+        "warnings": {
+          "WARNING: CM_AddFacetBevels... invalid bevel": 122
+        },
+        "expected_error": "IHV game allocation rejected",
+        "passed": true
+      },
+      {
+        "name": "capacity-rejection",
+        "command": [
+          "E:\\Repositories\\fnTech3\\.tmp\\q3-ihv\\development-build\\fntech3.ded.exe",
+          "+set",
+          "com_gameProfile",
+          "q3-ihv",
+          "+set",
+          "fs_basepath",
+          "E:\\Repositories\\Quake3-IHV\\ref\\install",
+          "+set",
+          "fs_homepath",
+          "E:\\Repositories\\fnTech3\\.tmp\\q3-ihv\\game-bridge-bounds-runtime\\capacity-rejection\\home",
+          "+set",
+          "fs_game",
+          "",
+          "+set",
+          "fs_cdpath",
+          "",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "-1",
+          "+set",
+          "r_customWidth",
+          "800",
+          "+set",
+          "r_customHeight",
+          "600",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "com_steamIntegration",
+          "0",
+          "+set",
+          "fs_skipWorkshop",
+          "1",
+          "+set",
+          "cl_webuiEnable",
+          "0",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "net_ip",
+          "127.0.0.1",
+          "+set",
+          "net_port",
+          "0",
+          "+set",
+          "net_ip6",
+          "::1",
+          "+set",
+          "net_port6",
+          "0",
+          "+set",
+          "dedicated",
+          "1",
+          "+set",
+          "net_enabled",
+          "0",
+          "+set",
+          "com_viewlog",
+          "0",
+          "+set",
+          "viewlog",
+          "0",
+          "+set",
+          "developer",
+          "1",
+          "+set",
+          "com_buildScript",
+          "1",
+          "+exec",
+          "probe.cfg"
+        ],
+        "exit_code": 1,
+        "forced": false,
+        "seconds": 0.406,
+        "initializations": 1,
+        "shutdown_callbacks": 1,
+        "spawns": [],
+        "shutdown_allocations": [
+          [
+            0,
+            0
+          ]
+        ],
+        "warnings": {
+          "WARNING: CM_AddFacetBevels... invalid bevel": 122
+        },
+        "expected_error": "exceeds native maxclients",
+        "passed": true
+      }
+    ],
+    "inputs_unchanged": true,
+    "passed": true,
+    "artifacts": [
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\q3-ihv\\game-bridge-bounds-runtime\\capacity-rejection\\console.log",
+        "bytes": 7026,
+        "sha256": "1c840cdf3ad83c021895d09ae1e5f8016b76e974dcd0dd2a4c315c5970bff0eb"
+      },
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\q3-ihv\\game-bridge-bounds-runtime\\capacity-rejection\\home\\.tmp\\native\\cbde55d9886ad5f9757cc2a40dfa1bee\\qagamex86.dll",
+        "bytes": 229429,
+        "sha256": "9855d375751272d0b22e9078e827cf7ff3c2e42867f525b7fd84b93967c0eeb6"
+      },
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\q3-ihv\\game-bridge-bounds-runtime\\capacity-rejection\\home\\baseq3\\autoexec.cfg",
+        "bytes": 34,
+        "sha256": "a89c27759d25251dd52a22fb512f2042675b6c4f4dfeb54b3df9df63fbcc958d"
+      },
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\q3-ihv\\game-bridge-bounds-runtime\\capacity-rejection\\home\\baseq3\\probe.cfg",
+        "bytes": 54,
+        "sha256": "05c8f58e4d1c12d722d23f7d11101fe794a1f320ac7fb6d0c823d5622fdade33"
+      },
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\q3-ihv\\game-bridge-bounds-runtime\\capacity-rejection\\home\\baseq3\\q3config_server.cfg",
+        "bytes": 403,
+        "sha256": "c3f551a9b30513566467e498ba34dcb8efa239d879ea9af6196404e1df80dd04"
+      },
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\q3-ihv\\game-bridge-bounds-runtime\\capacity-rejection\\home\\baseq3\\qconsole.log",
+        "bytes": 6869,
+        "sha256": "a3a2972acd2b4fcdeadd90aa00348fe33d4763964211ac7d8e1a73c8f10e054a"
+      },
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\q3-ihv\\game-bridge-bounds-runtime\\capacity-rejection\\home\\pk3cache.dat",
+        "bytes": 4,
+        "sha256": "5539186debe4eeade92e86fd810fdfc36f0e800cac6f23eee83ec01c0b5544f3"
+      },
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\q3-ihv\\game-bridge-bounds-runtime\\capacity-rejection\\stdout.log",
+        "bytes": 64,
+        "sha256": "4fa7e7c697b04d49131fb56e5d3e00723aa6e70c287729a307b5e9f3af907140"
+      },
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\q3-ihv\\game-bridge-bounds-runtime\\init-rejection\\console.log",
+        "bytes": 6938,
+        "sha256": "f46e01f2f8270ed398e65e65e69bf0e23d3984b66a09e36d2e20736385d11f37"
+      },
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\q3-ihv\\game-bridge-bounds-runtime\\init-rejection\\home\\.tmp\\native\\fb632364f4112b8e91ab12d074812bdf\\qagamex86.dll",
+        "bytes": 229429,
+        "sha256": "9855d375751272d0b22e9078e827cf7ff3c2e42867f525b7fd84b93967c0eeb6"
+      },
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\q3-ihv\\game-bridge-bounds-runtime\\init-rejection\\home\\baseq3\\autoexec.cfg",
+        "bytes": 34,
+        "sha256": "a89c27759d25251dd52a22fb512f2042675b6c4f4dfeb54b3df9df63fbcc958d"
+      },
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\q3-ihv\\game-bridge-bounds-runtime\\init-rejection\\home\\baseq3\\probe.cfg",
+        "bytes": 40,
+        "sha256": "539a1b148f425424be0c47ddfc533697ec75a37993bc02911f4d807229b67617"
+      },
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\q3-ihv\\game-bridge-bounds-runtime\\init-rejection\\home\\baseq3\\q3config_server.cfg",
+        "bytes": 403,
+        "sha256": "c3f551a9b30513566467e498ba34dcb8efa239d879ea9af6196404e1df80dd04"
+      },
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\q3-ihv\\game-bridge-bounds-runtime\\init-rejection\\home\\baseq3\\qconsole.log",
+        "bytes": 6784,
+        "sha256": "5c6823615809253d5fbff2afc21a8a2219a374cffa4ff49cabd2f26f35c58217"
+      },
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\q3-ihv\\game-bridge-bounds-runtime\\init-rejection\\home\\pk3cache.dat",
+        "bytes": 4,
+        "sha256": "5539186debe4eeade92e86fd810fdfc36f0e800cac6f23eee83ec01c0b5544f3"
+      },
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\q3-ihv\\game-bridge-bounds-runtime\\init-rejection\\stdout.log",
+        "bytes": 67,
+        "sha256": "285920098ed1f94fefdeb63c7cb8540e3827d79a99b54ada22d3243c249f849d"
+      },
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\q3-ihv\\game-bridge-bounds-runtime\\lifecycle\\console.log",
+        "bytes": 17679,
+        "sha256": "6cce7e569c5fee7cec7ee43e257f8ecc96d76b49c40212194a63db5db3b537d4"
+      },
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\q3-ihv\\game-bridge-bounds-runtime\\lifecycle\\home\\.tmp\\native\\73236537269718c899d1c123ed0d5ee1\\qagamex86.dll",
+        "bytes": 229429,
+        "sha256": "9855d375751272d0b22e9078e827cf7ff3c2e42867f525b7fd84b93967c0eeb6"
+      },
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\q3-ihv\\game-bridge-bounds-runtime\\lifecycle\\home\\baseq3\\autoexec.cfg",
+        "bytes": 34,
+        "sha256": "a89c27759d25251dd52a22fb512f2042675b6c4f4dfeb54b3df9df63fbcc958d"
+      },
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\q3-ihv\\game-bridge-bounds-runtime\\lifecycle\\home\\baseq3\\probe.cfg",
+        "bytes": 347,
+        "sha256": "c7bea309b2a7da9462823a3eae959fc64257e3d2df1a86146e6c89d9262c3108"
+      },
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\q3-ihv\\game-bridge-bounds-runtime\\lifecycle\\home\\baseq3\\q3config_server.cfg",
+        "bytes": 403,
+        "sha256": "c3f551a9b30513566467e498ba34dcb8efa239d879ea9af6196404e1df80dd04"
+      },
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\q3-ihv\\game-bridge-bounds-runtime\\lifecycle\\home\\baseq3\\qconsole.log",
+        "bytes": 17270,
+        "sha256": "f0e26b93f61da0c1f7ad8956e9187246fabb19560fe58c779964036c307622b8"
+      },
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\q3-ihv\\game-bridge-bounds-runtime\\lifecycle\\home\\pk3cache.dat",
+        "bytes": 4,
+        "sha256": "5539186debe4eeade92e86fd810fdfc36f0e800cac6f23eee83ec01c0b5544f3"
+      },
+      {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\q3-ihv\\game-bridge-bounds-runtime\\lifecycle\\stdout.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  },
+  "observations": {
+    "api": 4,
+    "import_slots": 35,
+    "initial_time": 1000,
+    "settling_frame_times": [
+      1000,
+      1100,
+      1200
+    ],
+    "initialization": "once per server lifetime; retained across maps",
+    "entity_stride": 556,
+    "systeminfo": {
+      "index": 1,
+      "keys": [
+        "serverid",
+        "mapChecksum"
+      ],
+      "original_range": "0x41986e..0x4198bd",
+      "available_before_spawn": true
+    },
+    "explicit_unimplemented_imports": [
+      "SnapshotEntityCount",
+      "SnapshotEntityNumber",
+      "BotAllocateClient",
+      "BotFreeClient",
+      "BotSetUserinfo"
+    ]
+  },
+  "gates": {
+    "default_startup": "blocked",
+    "client_startup": "blocked",
+    "dedicated_developer": "Windows x86 only",
+    "network_dispatch": "blocked before retail parsing",
+    "native_clients": "open",
+    "native_bots": "open",
+    "snapshots": "open",
+    "full_collision_and_pvs_parity": "open",
+    "gameplay": "open",
+    "rendered_native_demos": "open",
+    "audio_input": "open",
+    "bidirectional_interop": "open"
+  },
+  "checks": {
+    "runtime": true,
+    "regressions": "pending final source build and suite"
+  },
+  "sources": [
+    {
+      "path": "code\\server\\server_q3_ihv_game.hpp",
+      "bytes": 15507,
+      "sha256": "d329547321ff6bbd7995eb3270d68f564ea91c74ffd0aeb83c26033595f7478e"
+    },
+    {
+      "path": "code\\compat\\q3_ihv_cvars.hpp",
+      "bytes": 1044,
+      "sha256": "d99969467749fd0f906f0da48d0446bf93a73e1a0c5d7484caf219ec41cc5bf1"
+    },
+    {
+      "path": "code\\compat\\q3_ihv_game_abi.h",
+      "bytes": 7888,
+      "sha256": "f4b08bd5ce2ab335a932557e6fcb937978c1cf41ee9c58d9edb7c69e595797c4"
+    },
+    {
+      "path": "code\\compat\\q3_ihv_native_boundary.hpp",
+      "bytes": 9194,
+      "sha256": "29fdaf0264b9a5ad2449768828584209da54e376d08f9cf14d7c8b7daa47d528"
+    },
+    {
+      "path": "code\\server\\server_game_data.h",
+      "bytes": 10126,
+      "sha256": "276e23f4434f32de67db9c8c5170dbbf8df242377ec873c75627e7cf6ef8fb1f"
+    },
+    {
+      "path": "code\\server\\server_game_data.cpp",
+      "bytes": 42954,
+      "sha256": "7422d0fa0d3c56b086b4980d0db5210443826dc09388222c007f42bb2061f098"
+    },
+    {
+      "path": "code\\server\\server.h",
+      "bytes": 33110,
+      "sha256": "58727c0deef9fe64e9975ba5deb94ec1678e8493320aa1bf7503c209a439b9e0"
+    },
+    {
+      "path": "code\\server\\sv_game.cpp",
+      "bytes": 137088,
+      "sha256": "66f299ba38d647771e924aafe38b0b14b83abf92917df86278f4e571d65a513e"
+    },
+    {
+      "path": "code\\server\\sv_init.cpp",
+      "bytes": 47379,
+      "sha256": "c174190f9464fd6980b5e46dbe73eeedaf5e9b31bfa381b21be09d412e91f47a"
+    },
+    {
+      "path": "code\\server\\sv_main.cpp",
+      "bytes": 52849,
+      "sha256": "c247f5fefedf4c5b48409546e488464225be8b2cd6a10b51c5f9879c3e39d3fb"
+    },
+    {
+      "path": "code\\server\\sv_ccmds.cpp",
+      "bytes": 49599,
+      "sha256": "40527586630dd6c0600a04f365ecca0e98c47ea121bd831e0f7c04e7d11c6956"
+    },
+    {
+      "path": "code\\server\\sv_world.cpp",
+      "bytes": 24849,
+      "sha256": "b2e088385c72e61ef360d13cc631087048eef49e3b0b3ed52d4fdb6e6dce5632"
+    },
+    {
+      "path": "code\\qcommon\\common.c",
+      "bytes": 146525,
+      "sha256": "e5e8c00f614c71f32ebf8dc14c004ac0e996905c62837c648135d851bf4f5e1e"
+    },
+    {
+      "path": "code\\qcommon\\files.c",
+      "bytes": 210678,
+      "sha256": "b063ddd9b054368626839967e8acb14e54123dc72619c4c96ca6d1a24a1581c3"
+    },
+    {
+      "path": "code\\qcommon\\qcommon.h",
+      "bytes": 59679,
+      "sha256": "3dd39f7be43f859cd5b79e3ba23e468bc2ce2c8c90523b7650f8e89586d711b8"
+    },
+    {
+      "path": "code\\qcommon\\vm.c",
+      "bytes": 97588,
+      "sha256": "31dab90c7105973414fc9280c183d33ede3d2feca4bc3c2f7e0550eb2616608e"
+    },
+    {
+      "path": "code\\qcommon\\game_profile.cpp",
+      "bytes": 41417,
+      "sha256": "77e9826f9b358b11e5c81097495bfb2893f8606de588fae74305ca8e934f5676"
+    },
+    {
+      "path": "code\\qcommon\\game_profile.h",
+      "bytes": 9949,
+      "sha256": "6b7fbb74bfc27a43f865329a095d766e2c994b8b514b907e4dcfe3497db57e93"
+    },
+    {
+      "path": "code\\qcommon\\filesystem_write_bounds.h",
+      "bytes": 2099,
+      "sha256": "7c04f07b9bc5d501f414e08b8fbbf81366a40b441ad7127be1d74ff40b91bc02"
+    },
+    {
+      "path": "code\\qcommon\\q3_ihv_install.hpp",
+      "bytes": 6267,
+      "sha256": "3a3053ca410d7243aed9821f9517275987e3f6babac1228c873d9abbb49a0683"
+    },
+    {
+      "path": "meson.build",
+      "bytes": 65597,
+      "sha256": "b52f702fb6b3c81f1e30c84d6bef06e7f5fa8be85c5925446c75dd73318596be"
+    },
+    {
+      "path": "meson_options.txt",
+      "bytes": 3313,
+      "sha256": "f595298102d5dbd89419a4837c1490e501fd31bc4b0d8a72c1c5119ade85179a"
+    },
+    {
+      "path": "tests\\q3_ihv_game_bridge_tests.cpp",
+      "bytes": 17798,
+      "sha256": "eda282aa8e8ede4b7300135af866ab9ad0f628e494ac387c8e3b9f7ae57b05a5"
+    },
+    {
+      "path": "tests\\q3_ihv_game_lifecycle_tests.py",
+      "bytes": 8769,
+      "sha256": "aa840962492f41c7e0c0360a1ab733914aa7d7cc393b6ff384932a98eff12873"
+    },
+    {
+      "path": "tests\\rtcw_match_restart_tests.py",
+      "bytes": 7435,
+      "sha256": "7cf7c009d21d74ab49aca9b499018165f3f704b4187fb1dcc5cb95cacd7fba57"
+    },
+    {
+      "path": "scripts\\probe_q3_ihv_game.py",
+      "bytes": 6975,
+      "sha256": "5203588714c2402baec83f52994de08239682044ddde3a23ac3c99cc110f440f"
+    }
+  ],
+  "limitations": [
+    "Empty-server maps, not connected gameplay.",
+    "Three maps have no navigation data; tim_dm1 loads 86 surfaces and 319 neighbors.",
+    "Collision facet/bevel warnings remain visible and do not establish original BSP/PVS parity.",
+    "No proprietary inputs are incorporated. No input control or screenshots were used."
+  ],
+  "unrelated_findings": [
+    "Inherited dedicated wait commands do not advance after killserver without an active server. The first probe timed out there; the final probe queues the next map directly."
+  ],
+  "artifacts": [
+    {
+      "path": ".tmp\\q3-ihv\\game-bridge-bounds-runtime\\report.json",
+      "bytes": 17124,
+      "sha256": "7ebcd28e5a462007959432eb9b4723f18b58605c9c52577971e8e62a050ed314"
+    },
+    {
+      "path": ".tmp\\q3-ihv\\native-integration-audit.json",
+      "bytes": 10440,
+      "sha256": "4ba4b33b2fab9d3042ab21f007f6404afee621d03fc3ebb4f65249ee51a2be36"
+    },
+    {
+      "path": ".tmp\\q3-ihv\\native-integration-engine-lifecycle.txt",
+      "bytes": 12106,
+      "sha256": "e9831ef80dff4329d3fd95dbff24862ef49b2778c89c849d3c3783f7a0360f63"
+    },
+    {
+      "path": ".tmp\\q3-ihv\\game-engine-brush.txt",
+      "bytes": 1289,
+      "sha256": "3ae29309313b62646a0def62c0edb2c0dbd2435b90f10da6f1741d223861ee42"
+    },
+    {
+      "path": ".tmp\\q3-ihv\\game-engine-contact.txt",
+      "bytes": 2537,
+      "sha256": "672610c64032d3503133951374ea08102e2fcd7677509a08d27fe90de7e41638"
+    },
+    {
+      "path": ".tmp\\q3-ihv\\game-engine-bot-imports.txt",
+      "bytes": 4524,
+      "sha256": "fa51e82b27a62f6036fc6fb049ece9736f1a0e19197dc87b9681b894f8152dd6"
+    },
+    {
+      "path": ".tmp\\q3-ihv\\game-engine-snapshot-imports.txt",
+      "bytes": 1477,
+      "sha256": "5feb8e621bba5b52818b7850a41feea7b7f7b582368835af444259874e80004b"
+    }
+  ],
+  "documentation": [
+    {
+      "path": "AGENTS.md",
+      "bytes": 10143,
+      "sha256": "d84d1144cc5bbf127fde0e0955dd573a8039877ede7878141aedfa8b9e6bba33"
+    },
+    {
+      "path": "README.md",
+      "bytes": 13770,
+      "sha256": "8417869aed1cb5fa3df286a8fb20dd4e1690d4c93247aa8c4344518a80c20d77"
+    },
+    {
+      "path": "docs\\templates\\README.md.in",
+      "bytes": 13780,
+      "sha256": "c9e122c69637806119120be181781cb7bfefb433e4a517b5fd1557c667069b00"
+    },
+    {
+      "path": "CREDITS.md",
+      "bytes": 52569,
+      "sha256": "083e66e60a4e615b38d657063f5a25c25c92f4126ecaa56c3bf21f8a0c30d03b"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "bytes": 10622,
+      "sha256": "e4c55c186fc2f187edd2c3aca6313964c96df8a21def8ac8011bcee7e8df12f1"
+    },
+    {
+      "path": "docs\\fntech3\\Q3_IHV.md",
+      "bytes": 90013,
+      "sha256": "2177a24fbe5d2d2999d2147bdcba91a59f750b1690e1b31cefb54a049549b14f"
+    },
+    {
+      "path": "docs\\fntech3\\COMPATIBILITY.md",
+      "bytes": 149524,
+      "sha256": "4cb20c7fba908832ce42cf518af5722cd67b28985683f11d069e459b30da3c97"
+    }
+  ]
+}

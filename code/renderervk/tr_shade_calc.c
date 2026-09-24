@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_shade_calc.c
 
 #include "tr_local.h"
+#include "../renderercommon/tr_q3_ihv_fog_render.h"
 #include "../renderercommon/tr_stvef_env.h"
 // -EC-: avoid using ri.ftol
 #define	WAVEVALUE( table, base, amplitude, phase, freq )  ((base) + table[ (int64_t)( ( ( (phase) + tess.shaderTime * (freq) ) * FUNCTABLE_SIZE ) ) & FUNCTABLE_MASK ] * (amplitude))
@@ -51,6 +52,33 @@ static float *TableForFunc( genFunc_t func )
 
 
 /*
+** R_AliceWave
+**
+** American McGee's Alice: a waveform parameter written `fromEntity` comes
+** from the entity's first four surface-state bytes -- base b0/16-8,
+** amplitude b1/16, phase b2/16-8, frequency b3/16 (alice.exe
+** 0x0049d122..0x0049d1b1, and the deform copy at 0x0049d21a).
+*/
+static const waveForm_t *R_AliceWave( const waveForm_t *wf, waveForm_t *resolved )
+{
+	const byte *bytes;
+
+	if ( ri.gameId != COM_GAME_ALICE ||
+		( wf->base != ALICE_SHADER_FROM_ENTITY && wf->amplitude != ALICE_SHADER_FROM_ENTITY &&
+		  wf->phase != ALICE_SHADER_FROM_ENTITY && wf->frequency != ALICE_SHADER_FROM_ENTITY ) ) {
+		return wf;
+	}
+	*resolved = *wf;
+	bytes = backEnd.currentEntity ? backEnd.currentEntity->e.alice.surfaces : NULL;
+	if ( resolved->base == ALICE_SHADER_FROM_ENTITY ) resolved->base = bytes ? bytes[0] / 16.0f - 8.0f : 0.0f;
+	if ( resolved->amplitude == ALICE_SHADER_FROM_ENTITY ) resolved->amplitude = bytes ? bytes[1] / 16.0f : 0.0f;
+	if ( resolved->phase == ALICE_SHADER_FROM_ENTITY ) resolved->phase = bytes ? bytes[2] / 16.0f - 8.0f : 0.0f;
+	if ( resolved->frequency == ALICE_SHADER_FROM_ENTITY ) resolved->frequency = bytes ? bytes[3] / 16.0f : 0.0f;
+	return resolved;
+}
+
+
+/*
 ** EvalWaveForm
 **
 ** Evaluates a given waveForm_t, referencing backEnd.refdef.time directly
@@ -58,6 +86,9 @@ static float *TableForFunc( genFunc_t func )
 static float EvalWaveForm( const waveForm_t *wf ) 
 {
 	float	*table;
+	waveForm_t	aliceWave;
+
+	wf = R_AliceWave( wf, &aliceWave );
 
 	// Elite Force: base + amplitude when a noise value from 0 to 2, chosen by
 	// the millisecond clock plus phase, is at most the frequency; base
@@ -266,6 +297,48 @@ static void RB_CalcMoveVertexes( deformStage_t *ds ) {
 	xyz = ( float * ) tess.xyz;
 	for ( i = 0; i < tess.numVertexes; i++, xyz += 4 ) {
 		VectorAdd( xyz, offset, xyz );
+	}
+}
+
+
+/*
+========================
+RB_AliceCalcWaveNormals
+
+American McGee's Alice's `deformVertexes wavenormal` (alice.exe 0x0049d580):
+each normal is pushed along the move vector by the wave at the vertex's
+spread phase, then renormalized (0x0049d6dc); positions do not move. Only
+the table functions drive it: retail's noise has no table there and moves
+nothing here.
+========================
+*/
+static void RB_AliceCalcWaveNormals( const deformStage_t *ds ) {
+	const float	*table;
+	const float	*xyz = ( const float * ) tess.xyz;
+	float		*normal = ( float * ) tess.normal;
+	int			i;
+
+	switch ( ds->deformationWave.func ) {
+	case GF_SIN:
+	case GF_SQUARE:
+	case GF_TRIANGLE:
+	case GF_SAWTOOTH:
+	case GF_INVERSE_SAWTOOTH:
+		table = TableForFunc( ds->deformationWave.func );
+		break;
+	default:
+		return;
+	}
+
+	for ( i = 0; i < tess.numVertexes; i++, xyz += 4, normal += 4 ) {
+		const float off = ( xyz[0] + xyz[1] + xyz[2] ) * ds->deformationSpread;
+		const float scale = WAVEVALUE( table, ds->deformationWave.base,
+			ds->deformationWave.amplitude,
+			ds->deformationWave.phase + off,
+			ds->deformationWave.frequency );
+
+		VectorMA( normal, scale, ds->moveVector, normal );
+		VectorNormalize( normal );
 	}
 }
 
@@ -558,12 +631,24 @@ RB_DeformTessGeometry
 void RB_DeformTessGeometry( void ) {
 	int		i;
 	deformStage_t	*ds;
+	deformStage_t	aliceDeform;
+	waveForm_t		aliceWave;
 
 	for ( i = 0 ; i < tess.shader->numDeforms ; i++ ) {
 		ds = &tess.shader->deforms[ i ];
 
+		// Alice: `fromEntity` wave parameters resolved for this entity
+		if ( ri.gameId == COM_GAME_ALICE ) {
+			aliceDeform = *ds;
+			aliceDeform.deformationWave = *R_AliceWave( &ds->deformationWave, &aliceWave );
+			ds = &aliceDeform;
+		}
+
 		switch ( ds->deformation ) {
 		case DEFORM_NONE:
+			break;
+		case DEFORM_ALICE_WAVENORMAL:
+			RB_AliceCalcWaveNormals( ds );
 			break;
 		case DEFORM_NORMALS:
 			RB_CalcDeformNormals( ds );
@@ -739,6 +824,11 @@ void RB_CalcWaveAlpha( const waveForm_t *wf, unsigned char *dstColors )
 	// every other profile's renderer refused outright.
 	if ( wf->func == GF_NOISE ) {
 		glow = wf->base + R_NoiseGet4f( 0, 0, 0, ( tess.shaderTime + wf->phase ) * wf->frequency ) * wf->amplitude;
+		// American McGee's Alice clamps a noise alpha as it clamps any other
+		// (alice.exe 0x0049e6d0); 21 of its shipped stages use one.
+		if ( ri.gameId == COM_GAME_ALICE ) {
+			glow = glow < 0.0f ? 0.0f : glow > 1.0f ? 1.0f : glow;
+		}
 	} else {
 		glow = EvalWaveFormClamped( wf );
 	}
@@ -757,15 +847,12 @@ void RB_CalcWaveAlpha( const waveForm_t *wf, unsigned char *dstColors )
 */
 void RB_CalcModulateColorsByFog( unsigned char *colors ) {
 	int		i;
-	float	texCoords[SHADER_MAX_VERTEXES][2];
+	float	factors[SHADER_MAX_VERTEXES];
 
-	// calculate texcoords so we can derive density
-	// this is not wasted, because it would only have
-	// been previously called if the surface was opaque
-	RB_CalcFogTexCoords( texCoords[0] );
+	RB_CalcFogFactors( factors );
 
 	for ( i = 0; i < tess.numVertexes; i++, colors += 4 ) {
-		float f = 1.0 - R_FogFactor( texCoords[i][0], texCoords[i][1] );
+		float f = 1.0 - factors[i];
 		colors[0] *= f;
 		colors[1] *= f;
 		colors[2] *= f;
@@ -778,15 +865,12 @@ void RB_CalcModulateColorsByFog( unsigned char *colors ) {
 */
 void RB_CalcModulateAlphasByFog( unsigned char *colors ) {
 	int		i;
-	float	texCoords[SHADER_MAX_VERTEXES][2];
+	float	factors[SHADER_MAX_VERTEXES];
 
-	// calculate texcoords so we can derive density
-	// this is not wasted, because it would only have
-	// been previously called if the surface was opaque
-	RB_CalcFogTexCoords( texCoords[0] );
+	RB_CalcFogFactors( factors );
 
 	for ( i = 0; i < tess.numVertexes; i++, colors += 4 ) {
-		float f = 1.0 - R_FogFactor( texCoords[i][0], texCoords[i][1] );
+		float f = 1.0 - factors[i];
 		colors[3] *= f;
 	}
 }
@@ -797,15 +881,12 @@ void RB_CalcModulateAlphasByFog( unsigned char *colors ) {
 */
 void RB_CalcModulateRGBAsByFog( unsigned char *colors ) {
 	int		i;
-	float	texCoords[SHADER_MAX_VERTEXES][2];
+	float	factors[SHADER_MAX_VERTEXES];
 
-	// calculate texcoords so we can derive density
-	// this is not wasted, because it would only have
-	// been previously called if the surface was opaque
-	RB_CalcFogTexCoords( texCoords[0] );
+	RB_CalcFogFactors( factors );
 
 	for ( i = 0; i < tess.numVertexes; i++, colors += 4 ) {
-		float f = 1.0 - R_FogFactor( texCoords[i][0], texCoords[i][1] );
+		float f = 1.0 - factors[i];
 		colors[0] *= f;
 		colors[1] *= f;
 		colors[2] *= f;
@@ -1277,6 +1358,11 @@ static void RB_CalcDiffuseColor_scalar( unsigned char *colors )
 	vec3_t			directedLight;
 	int				numVertexes;
 	ent = backEnd.currentEntity;
+	if ( ri.gameId == COM_GAME_QUAKE3_IHV && ent->e.q3IHV.active ) {
+		for ( i = 0; i < tess.numVertexes; ++i )
+			Q3IHV_LightDiffuse( tess.normal[i], ent->lightDir, ent->ambientLight, ent->directedLight, colors + i * 4 );
+		return;
+	}
 	ambientLightInt = ent->ambientLightInt;
 	VectorCopy( ent->ambientLight, ambientLight );
 	VectorCopy( ent->directedLight, directedLight );
@@ -1319,4 +1405,262 @@ static void RB_CalcDiffuseColor_scalar( unsigned char *colors )
 void RB_CalcDiffuseColor( unsigned char *colors )
 {
 	RB_CalcDiffuseColor_scalar( colors );
+}
+
+
+/*
+====================================================================
+
+AMERICAN MCGEE'S ALICE
+
+Colour, alpha and texture-coordinate sources of Alice's shader dialect
+(see code/renderercommon/tr_alice_shader.h), with the retail alice.exe
+back-end routines they follow.
+
+====================================================================
+*/
+
+static byte RB_AliceByte( float value ) {
+	if ( !( value > 0.0f ) ) return 0;
+	if ( value >= 255.0f ) return 255;
+	return (byte)value;
+}
+
+/*
+** RB_AliceCalcGlobalColor
+**
+** `rgbGen global`: the last SetColor's colour, its red, green and blue
+** scaled by identityLight (alice.exe ComputeColors 0x00493680, rgbGen 15;
+** R_SetColor 0x00498b80 stores them times identityLightByte).
+*/
+void RB_AliceCalcGlobalColor( unsigned char *dstColors ) {
+	color4ub_t color;
+	uint32_t *colors = ( uint32_t * ) dstColors;
+	int i;
+
+	color.rgba[0] = RB_AliceByte( backEnd.color2D.rgba[0] * tr.identityLight );
+	color.rgba[1] = RB_AliceByte( backEnd.color2D.rgba[1] * tr.identityLight );
+	color.rgba[2] = RB_AliceByte( backEnd.color2D.rgba[2] * tr.identityLight );
+	color.rgba[3] = backEnd.color2D.rgba[3];
+	for ( i = 0; i < tess.numVertexes; i++ ) {
+		colors[i] = color.u32;
+	}
+}
+
+/*
+** RB_AliceCalcGlobalAlpha
+**
+** `alphaGen global`: the last SetColor's alpha (the byte at 0x00e9ce13).
+*/
+void RB_AliceCalcGlobalAlpha( unsigned char *dstColors ) {
+	int i;
+
+	for ( i = 0; i < tess.numVertexes; i++, dstColors += 4 ) {
+		dstColors[3] = backEnd.color2D.rgba[3];
+	}
+}
+
+/*
+** RB_AliceCalcColorWave
+**
+** `rgbGen colorwave r g b <wave>`: the wave's value, as rgbGen wave computes
+** it and clamped to one, times the constant colour; alpha 255 (alice.exe
+** 0x0049392a passes the stage's constant colour to 0x0049e5c0).
+*/
+void RB_AliceCalcColorWave( const waveForm_t *wf, const color4ub_t constant, unsigned char *dstColors ) {
+	uint32_t *colors = ( uint32_t * ) dstColors;
+	color4ub_t color;
+	float glow;
+	int i;
+
+	if ( wf->func == GF_NOISE ) {
+		glow = wf->base + R_NoiseGet4f( 0, 0, 0, ( tess.shaderTime + wf->phase ) * wf->frequency ) * wf->amplitude;
+	} else {
+		glow = EvalWaveForm( wf ) * tr.identityLight;
+	}
+	glow = glow < 0.0f ? 0.0f : glow > 1.0f ? 1.0f : glow;
+
+	color.rgba[0] = RB_AliceByte( glow * constant.rgba[0] );
+	color.rgba[1] = RB_AliceByte( glow * constant.rgba[1] );
+	color.rgba[2] = RB_AliceByte( glow * constant.rgba[2] );
+	color.rgba[3] = 255;
+	for ( i = 0; i < tess.numVertexes; i++ ) {
+		colors[i] = color.u32;
+	}
+}
+
+/*
+** RB_AliceCalcDotAlpha
+**
+** `alphaGen dot [min [max]]` and `oneMinusDot`: with v the unit vector from
+** the vertex to the viewer and n its normal, dot scales max( n.v, 0 ) and
+** oneMinusDot min( ( 1 - n.v )^2, 1 ) into [min, max] (alice.exe 0x0049e370,
+** 0x0049e450). Retail stores the low byte unclamped; this clamps, which no
+** shipped range reaches.
+*/
+void RB_AliceCalcDotAlpha( const shaderStage_t *stage, unsigned char *dstColors ) {
+	const float *xyz = tess.xyz[0];
+	const float *normal = tess.normal[0];
+	const float lo = stage->aliceDotRange[0];
+	const float hi = stage->aliceDotRange[1];
+	// the Vulkan family keeps a stage's alpha source on its bundle 0
+	const qboolean oneMinus = stage->bundle[0].alphaGen == AGEN_ALICE_ONE_MINUS_DOT ? qtrue : qfalse;
+	int i;
+
+	for ( i = 0; i < tess.numVertexes; i++, xyz += 4, normal += 4, dstColors += 4 ) {
+		vec3_t viewer;
+		float d, x;
+
+		VectorSubtract( backEnd.or.viewOrigin, xyz, viewer );
+		VectorNormalize( viewer );
+		d = DotProduct( normal, viewer );
+		if ( oneMinus ) {
+			x = ( 1.0f - d ) * ( 1.0f - d );
+			if ( x > 1.0f ) {
+				x = 1.0f;
+			}
+		} else {
+			x = d > 0.0f ? d : 0.0f;
+		}
+		dstColors[3] = RB_AliceByte( ( lo + x * ( hi - lo ) ) * 255.0f );
+	}
+}
+
+/*
+** RB_AliceCalcSkyAlpha
+**
+** `alphaGen skyAlpha` and `oneMinusSkyAlpha`: the scene's sky alpha
+** (alice.exe 0x00493b82, refdef +0x188).
+*/
+void RB_AliceCalcSkyAlpha( qboolean oneMinus, unsigned char *dstColors ) {
+	float alpha = backEnd.refdef.alice.skyAlpha;
+	byte value;
+	int i;
+
+	alpha = alpha < 0.0f ? 0.0f : alpha > 1.0f ? 1.0f : alpha;
+	value = RB_AliceByte( ( oneMinus ? 1.0f - alpha : alpha ) * 255.0f );
+	for ( i = 0; i < tess.numVertexes; i++, dstColors += 4 ) {
+		dstColors[3] = value;
+	}
+}
+
+/*
+** RB_AliceCalcSpecularAlpha
+**
+** `alphaGen lightingSpecular <scale> <x> <y> <z>`: Quake III's reflection
+** term with the stage's own light origin, ( r.v )^4 times the scale, capped
+** at the scale (alice.exe 0x004a0520).
+*/
+void RB_AliceCalcSpecularAlpha( const shaderStage_t *stage, unsigned char *dstColors ) {
+	const float *xyz = tess.xyz[0];
+	const float *normal = tess.normal[0];
+	const float scale = stage->aliceSpecular[0];
+	int i;
+
+	for ( i = 0; i < tess.numVertexes; i++, xyz += 4, normal += 4, dstColors += 4 ) {
+		vec3_t lightDir, reflected, viewer;
+		float d, l;
+
+		VectorSubtract( &stage->aliceSpecular[1], xyz, lightDir );
+		VectorNormalizeFast( lightDir );
+		d = DotProduct( normal, lightDir );
+		reflected[0] = normal[0] * 2 * d - lightDir[0];
+		reflected[1] = normal[1] * 2 * d - lightDir[1];
+		reflected[2] = normal[2] * 2 * d - lightDir[2];
+		VectorSubtract( backEnd.or.viewOrigin, xyz, viewer );
+		l = DotProduct( reflected, viewer ) * Q_rsqrt( DotProduct( viewer, viewer ) );
+		if ( l < 0.0f ) {
+			l = 0.0f;
+		}
+		l = l * l;
+		l = l * l;
+		l *= scale;
+		dstColors[3] = RB_AliceByte( l < scale ? l : scale );
+	}
+}
+
+/*
+** RB_AliceCalcTexMod
+**
+** Alice's texture modifiers (alice.exe ComputeTexCoords 0x00493d10):
+** `fromEntity` scroll, rotate and offset read the entity's two shader-data
+** shorts as speed / 2048, degrees per second / 64 and offset / 16384
+** (0x0049f720, 0x0049f850, 0x0049f410); parallax shifts s and t by the
+** viewer's x and y times its rates (0x0049f490); macro projects the vertex
+** onto the base axes Quake III's map compiler picks for its normal, over the
+** first stage's first image (0x0049f620, table 0x00528b60).
+*/
+static const vec3_t aliceBaseAxis[18] = {
+	{ 0, 0, 1 }, { 1, 0, 0 }, { 0, -1, 0 },		// floor
+	{ 0, 0, -1 }, { 1, 0, 0 }, { 0, -1, 0 },	// ceiling
+	{ 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, -1 },		// west wall
+	{ -1, 0, 0 }, { 0, 1, 0 }, { 0, 0, -1 },	// east wall
+	{ 0, 1, 0 }, { 1, 0, 0 }, { 0, 0, -1 },		// south wall
+	{ 0, -1, 0 }, { 1, 0, 0 }, { 0, 0, -1 }		// north wall
+};
+
+static float RB_AliceEntityShaderData( int index, float scale ) {
+	if ( !backEnd.currentEntity ) {
+		return 0.0f;
+	}
+	return backEnd.currentEntity->e.alice.shaderData[index] / scale;
+}
+
+void RB_AliceCalcTexMod( const texModInfo_t *tmi, float *src, float *dst ) {
+	int i;
+
+	switch ( tmi->type ) {
+	case TMOD_ALICE_SCROLL: {
+		float speed[2];
+		speed[0] = tmi->scroll[0] == ALICE_SHADER_FROM_ENTITY ? RB_AliceEntityShaderData( 0, 2048.0f ) : tmi->scroll[0];
+		speed[1] = tmi->scroll[1] == ALICE_SHADER_FROM_ENTITY ? RB_AliceEntityShaderData( 1, 2048.0f ) : tmi->scroll[1];
+		RB_CalcScrollTexCoords( speed, src, dst );
+		break;
+	}
+	case TMOD_ALICE_ROTATE:
+		RB_CalcRotateTexCoords( RB_AliceEntityShaderData( 0, 64.0f ), src, dst );
+		break;
+	case TMOD_ALICE_OFFSET: {
+		const float s = tmi->offset[0] == ALICE_SHADER_FROM_ENTITY ? RB_AliceEntityShaderData( 0, 16384.0f ) : tmi->offset[0];
+		const float t = tmi->offset[1] == ALICE_SHADER_FROM_ENTITY ? RB_AliceEntityShaderData( 1, 16384.0f ) : tmi->offset[1];
+		for ( i = 0; i < tess.numVertexes; i++ ) {
+			dst[i * 2 + 0] = src[i * 2 + 0] + s;
+			dst[i * 2 + 1] = src[i * 2 + 1] + t;
+		}
+		break;
+	}
+	case TMOD_ALICE_PARALLAX: {
+		const float s = tmi->scale[0] * backEnd.refdef.vieworg[0];
+		const float t = tmi->scale[1] * backEnd.refdef.vieworg[1];
+		for ( i = 0; i < tess.numVertexes; i++ ) {
+			dst[i * 2 + 0] = src[i * 2 + 0] + s;
+			dst[i * 2 + 1] = src[i * 2 + 1] + t;
+		}
+		break;
+	}
+	case TMOD_ALICE_MACRO: {
+		const image_t *image = tess.shader && tess.shader->numUnfoggedPasses > 0 && tess.shader->stages[0] ?
+			tess.shader->stages[0]->bundle[0].image[0] : NULL;
+		const float width = image && image->uploadWidth > 0 ? (float)image->uploadWidth : 1.0f;
+		const float height = image && image->uploadHeight > 0 ? (float)image->uploadHeight : 1.0f;
+		const float *xyz = tess.xyz[0];
+		const float *normal = tess.normal[0];
+		for ( i = 0; i < tess.numVertexes; i++, xyz += 4, normal += 4 ) {
+			float best = -2.0f;
+			int axis = 0, j;
+			for ( j = 0; j < 6; j++ ) {
+				const float d = DotProduct( normal, aliceBaseAxis[j * 3] );
+				if ( d > best ) {
+					best = d;
+					axis = j;
+				}
+			}
+			dst[i * 2 + 0] = DotProduct( xyz, aliceBaseAxis[axis * 3 + 1] ) * tmi->scale[0] / width;
+			dst[i * 2 + 1] = DotProduct( xyz, aliceBaseAxis[axis * 3 + 2] ) * tmi->scale[1] / height;
+		}
+		break;
+	}
+	default:
+		break;
+	}
 }

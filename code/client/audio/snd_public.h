@@ -103,6 +103,50 @@ void S_UpdateEntityPosition( int entityNum, const vec3_t origin );
 
 void S_Update( int msec );
 
+// American McGee's Alice's sound effects, with the semantics of its client
+// game's imports 30 to 41 (alice.exe CL_InitCGameImport 0x00424400). Each
+// raises ERR_DROP outside the Alice profile and does nothing while no sound
+// backend runs.
+void S_AliceStartSound( const vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx,
+	float volume, float minDist );                                      // 30
+void S_AliceStartLocalSound( const char *name );                        // 31
+void S_AliceStopSound( int entnum, int channel );                       // 32
+void S_AliceClearLoopingSounds( void );                                 // 33
+void S_AliceAddLoopingSound( const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx,
+	float volume, float minDist );                                      // 34
+void S_AliceRespatialize( int entnum, const vec3_t origin, vec3_t axis[3] ); // 35
+void S_AliceBeginRegistration( void );                                  // 36
+sfxHandle_t S_AliceRegisterSound( const char *name );                   // 37
+void S_AliceEndRegistration( void );                                    // 38
+void S_AliceUpdateEntity( int entnum, const vec3_t origin, const vec3_t velocity,
+	qboolean useListener );                                             // 39
+void S_AliceSetReverb( int type, float level );                         // 40
+void S_AliceSetGlobalAmbientVolumeLevel( float volume );                // 41
+// The `fadesound <ms>` server command, and 0 to cancel a fade.
+void S_AliceFadeSound( float ms );
+
+// American McGee's Alice's soundtrack manager (client-game imports 42 to 44).
+void S_AliceMusicNewSoundtrack( const char *name );
+void S_AliceMusicUpdateMood( int current, int fallback );
+void S_AliceMusicUpdateVolume( float volume, float fadeTime );
+void S_AliceMusicUpdate( void );
+// Where retail's S_StopAllSounds(1) frees the music (0x0044fa40).
+void S_AliceMusicFreeAll( void );
+// "music/intro" after a video or sound restart outside a level.
+void S_AliceMusicSoundtrackAfterRestart( void );
+
+// The MP3 track retail plays beside a cinematic.
+qboolean S_AliceMP3Preload( const char *name );
+qboolean S_AliceMP3PlayPreloaded( qboolean loop );
+void S_AliceMP3Free( void );
+
+// The sound system's own hooks for the Alice profile.
+void S_AliceSoundInit( void );
+void S_AliceRegisterCommands( void );
+void S_AliceSoundUpdate( void );
+void S_AliceSoundStopAll( void );
+void S_AliceSoundShutdown( void );
+
 void S_DisableSounds( void );
 
 void S_BeginRegistration( void );

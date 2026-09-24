@@ -34,6 +34,9 @@ PRELUDE = r'''
 #include <string>
 #include <vector>
 #include "code/qcommon/game_profile.h"
+#include "code/qcommon/protocol_contract.hpp"
+static netchanWireProfile_t wireProfile = NETCHAN_WIRE_LEGACY_Q3;
+static netchanWireProfile_t CL_ActiveWireProfile() { return wireProfile; }
 typedef int qboolean;
 enum {qfalse, qtrue, ERR_FATAL, ERR_DROP, CS_ZOMBIE, CS_ACTIVE};
 #define MAX_STRING_CHARS 1024
@@ -50,7 +53,8 @@ static struct { int serverId; } cl = {17};
 static struct { bool demoplaying; } clc;
 static struct { int pure, serverId, checksumFeed, checksumFeedServerId; } sv = {1,17,7,17};
 static struct { int time; } svs = {10000};
-struct client_t { int gotCP, pureAuthentic, lastSnapshotTime, state; const char *name; };
+struct client_t { int gotCP, pureAuthentic, lastSnapshotTime, state; const char *name;
+    struct { netchanWireProfile_t wireProfile; } netchan; };
 struct pack_t { int referenced, pure_checksum; };
 struct searchpath_t { pack_t *pack; const searchpath_t *next; };
 static pack_t packs[] = {{FS_CGAME_REF|FS_GENERAL_REF,11}, {FS_UI_REF|FS_GENERAL_REF,22}, {FS_GENERAL_REF,99}};
@@ -120,7 +124,7 @@ static void SV_SendClientSnapshot(client_t *client) { assert(client->state == CS
 static void SV_DropClient(client_t *,const char *) { ++drops; }
 static bool legacyFraming; // Elite Force Holomatch: its cp names no server id.
 static bool SV_LegacyFraming(const client_t *) { return legacyFraming; }
-static qboolean CL_STVEFFraming() { return legacyFraming ? qtrue : qfalse; }
+static qboolean CL_LegacyFraming() { return legacyFraming ? qtrue : qfalse; }
 '''
 
 
@@ -130,7 +134,7 @@ static client_t Verify(const std::string &command) {
     arguments.clear();
     while(input >> token) arguments.push_back(token);
     drops = snapshots = 0;
-    client_t client = {0,0,0,CS_ACTIVE,"fixture"};
+    client_t client = {0,0,0,CS_ACTIVE,"fixture",{wireProfile}};
     SV_VerifyPaks_f(&client);
     return client;
 }
@@ -169,6 +173,19 @@ int main() {
     Reject("cp 17 11 22 @ 11 22 99 122");
     Reject("cp 11 22 @");
     legacyFraming = false;
+    for (const auto selected : {NETCHAN_WIRE_Q3_66, NETCHAN_WIRE_Q3_67}) {
+        wireProfile = selected;
+        CL_SendPureChecksums();
+        assert(sent == "cp 11 22 @ 11 22 99 122 ");
+        assert(Verify(sent).pureAuthentic && !drops);
+        Reject("cp 17 11 22 @ 11 22 99 122");
+        Reject("cp 11 22 @ 11 11 5");
+        Reject("cp 11 22 @ 55 49");
+        Reject("cp 11 22 @ 11 22 99 123");
+        Reject("cp 11 23 @ 11 22 99 122");
+        Reject("cp 11 22 @");
+    }
+    wireProfile = NETCHAN_WIRE_LEGACY_Q3;
     CL_SendPureChecksums();
     assert(sent == "cp 17 11 22 @ 11 22 99 122 ");
     missingUi = true;

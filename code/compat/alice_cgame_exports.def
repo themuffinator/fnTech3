@@ -1,0 +1,29 @@
+/* Copyright (C) 2026 fnTech3 contributors. GPL-2.0-or-later.
+ *
+ * Alice's seven client-game export slots, in the order `GetCGameAPI` at
+ * 0x300241b0 writes them into 0x30272420.
+ *
+ * FNTECH3_ALICE_CGAME_EXPORT( slot, name, args, evidence )
+ *
+ * Every slot is a function; the table has no version member. `args` is the
+ * number of stack arguments the export's own body reads, walked with esp
+ * tracked. `evidence` is how the slot was identified:
+ *
+ *   BEHAVIOUR  the body's own work names it: slot 0 copies the 125 imports
+ *              and stores its second and third arguments; slot 4 calls the
+ *              graphics-configuration import and scales the result
+ *   ORDER      the reference table's member at that position, and the body
+ *              is consistent with it
+ *   ADDED      Alice's own addition past the reference table's six
+ *
+ * The reference is the client-game export table in Ritual's F.A.K.K.2 v1.02
+ * SDK. See docs/fntech3/2026-09-23-alice-cgame.md.
+ */
+
+FNTECH3_ALICE_CGAME_EXPORT( 0, Init,              3, BEHAVIOUR )
+FNTECH3_ALICE_CGAME_EXPORT( 1, Shutdown,          0, ORDER     )
+FNTECH3_ALICE_CGAME_EXPORT( 2, DrawActiveFrame,   3, ORDER     )
+FNTECH3_ALICE_CGAME_EXPORT( 3, ConsoleCommand,    0, ORDER     )
+FNTECH3_ALICE_CGAME_EXPORT( 4, GetRendererConfig, 0, BEHAVIOUR )
+FNTECH3_ALICE_CGAME_EXPORT( 5, Draw2D,            0, ORDER     )
+FNTECH3_ALICE_CGAME_EXPORT( 6, EntityOrientation, 3, ADDED     )

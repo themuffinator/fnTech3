@@ -35,12 +35,13 @@ enum class Family : std::uint8_t {
 	RtcwMultiplayer,
 	WolfET,
 	STVEFHolomatch,
-	STVEFSinglePlayer
+	STVEFSinglePlayer,
+	Alice
 };
 
 /*
  * Netchan framing and game-message bodies are independent compatibility
- * choices.  Protocols 68 and 71 differ at the transport layer, but both use
+ * choices.  Protocols 66/67/68 and 71 differ at the transport layer, but all use
  * the original Quake III usercmd/entity/playerstate delta layouts.  Protocol
  * 91 uses the extended Quake Live layouts.
  */
@@ -51,7 +52,13 @@ enum class GameMessageLayout : std::uint8_t {
 	RtcwMultiplayer,
 	WolfET,
 	STVEFHolomatch,
-	STVEFSinglePlayer
+	STVEFSinglePlayer,
+	/* Ritual's, not id's. Alice's entityState is 732 bytes of its own fields
+	 * and its server opcodes stop at nine, with two Ritual additions and no
+	 * end-of-message opcode, so no Quake III field table describes it. No
+	 * reader or writer serves this layout yet; the ones that dispatch on it
+	 * name it and refuse rather than fall back to Quake III's tables. */
+	Alice
 };
 
 enum class Capability : std::uint32_t {
@@ -143,6 +150,38 @@ inline constexpr InfoKeys QuakeInfoKeys{
 	"fs_game", "sv_pure"
 };
 
+/* Alice's out-of-band vocabulary, read out of retail alice.exe rather than
+ * inherited. The connectionless dispatcher at 0x00456250 answers exactly
+ * getstatus, getinfo, getchallenge, connect, ipAuthorize, rcon and disconnect;
+ * the client's at 0x0042bc90 answers challengeResponse, connectResponse,
+ * infoResponse, print, echo, keyAuthorize, motd and getserversResponse.
+ * Six Quake III names have no counterpart at all and are left empty
+ * rather than guessed:
+ *
+ *   download, nextdl, stopdl, donedl -- Alice has the svc_download opcode but
+ *   no parse arm for it. Its client dispatcher's jump table at 0x0042e278
+ *   sends opcode six to the same address as an unknown opcode, the one that
+ *   reports an illegible server message, so nothing can arrive over it.
+ *
+ *   cp, vdr -- the server's client-command table at 0x0051a398 holds two
+ *   entries, userinfo and disconnect, and then a null pair. There is no pure
+ *   checksum exchange to name, which is the same finding the profile already
+ *   records as no pure proof being available for this title. */
+inline constexpr Commands AliceCommands{
+	"getchallenge", "challengeResponse", "connect", "connectResponse",
+	"getinfo", "infoResponse", "getstatus", "statusResponse",
+	"disconnect", "print", "echo", "rcon", "", "",
+	"", "", "", "", "userinfo"
+};
+
+/* The same three keys Quake III reads out of a connect string, and a
+ * systeminfo that predates the pak-name triplet: sv_pakNames,
+ * sv_referencedPaks and sv_referencedPakNames appear nowhere in the image. */
+inline constexpr InfoKeys AliceInfoKeys{
+	"protocol", "qport", "challenge", "sv_serverid", "sv_paks",
+	"", "", "", "fs_game", "sv_pure"
+};
+
 inline constexpr Limits ModernizedQ3Limits{
 	1'400u, Netchan_MessageLimit( NETCHAN_WIRE_LEGACY_Q3 ), 48u, 1'024u,
 	Netchan_ReliableCommandLimit( NETCHAN_WIRE_LEGACY_Q3 ), 32u
@@ -178,6 +217,28 @@ inline constexpr Contract Ioquake3{
 		Bit( Capability::CompressedConnect ),
 	QuakeCommands, QuakeInfoKeys, ModernizedQ3Limits
 };
+
+// 1.29/1.30 (66) and 1.31 (67) use the same Huffman/delta and reliable-XOR
+// framing as 68. Keep identities separate for negotiation and demo recording.
+// Original executables and the remaining pure/interop gates are identified in
+// docs/fntech3/Q3_POINT_RELEASES.md.
+inline constexpr Contract Quake3_66{
+	Family::LegacyQuake3, 66, 66, NETCHAN_WIRE_Q3_66,
+	GameMessageLayout::Quake3, LegacyQuake3.capabilities,
+	QuakeCommands, QuakeInfoKeys, ModernizedQ3Limits
+};
+inline constexpr Contract Quake3_67{
+	Family::LegacyQuake3, 67, 67, NETCHAN_WIRE_Q3_67,
+	GameMessageLayout::Quake3, LegacyQuake3.capabilities,
+	QuakeCommands, QuakeInfoKeys, ModernizedQ3Limits
+};
+
+// Original 1.30/1.31 client transcripts: cp cgame ui @ refs... mixed.
+// Protocol 68 added the serverId. Do not disable any checksum validation.
+[[nodiscard]] constexpr bool Q3PureChecksumsOmitServerId(
+	netchanWireProfile_t profile ) noexcept {
+	return profile == NETCHAN_WIRE_Q3_66 || profile == NETCHAN_WIRE_Q3_67;
+}
 
 inline constexpr Contract QuakeLive{
 	Family::QuakeLive, NETCHAN_QL_RETAIL_PROTOCOL_VERSION,
@@ -230,6 +291,22 @@ inline constexpr Contract STVEFHolomatch{
 		Netchan_ReliableCommandLimit( NETCHAN_WIRE_STVEF_HM ), 32u }
 };
 
+/* Retail alice.exe: 48 KB messages, 128 reliable commands of 1,024 bytes and
+ * 32 packet backups -- the client's outgoing ring is indexed with `and 0x1f`
+ * at 0x00428bba. The download pair is zero because this engine has no
+ * download path to size; see AliceCommands above. Alice ships no multiplayer,
+ * so no retail client joins this and none is invited to. */
+inline constexpr Contract Alice{
+	Family::Alice, NETCHAN_ALICE_PROTOCOL_VERSION,
+	NETCHAN_ALICE_PROTOCOL_VERSION, NETCHAN_WIRE_ALICE,
+	GameMessageLayout::Alice,
+	Bit( Capability::ClientQport ) | Bit( Capability::PacketScramble ) |
+		Bit( Capability::RawMessages ),
+	AliceCommands, AliceInfoKeys,
+	{ 1'400u, Netchan_MessageLimit( NETCHAN_WIRE_ALICE ), 0u, 0u,
+		Netchan_ReliableCommandLimit( NETCHAN_WIRE_ALICE ), 32u }
+};
+
 // Single player never leaves the loopback channel.
 inline constexpr Contract STVEFSinglePlayer{
 	Family::STVEFSinglePlayer, NETCHAN_STVEF_SP_PROTOCOL_VERSION,
@@ -243,8 +320,11 @@ inline constexpr Contract STVEFSinglePlayer{
 
 [[nodiscard]] constexpr const Contract *Find( int protocol,
 	bool legacyCompatibility = false ) noexcept {
+	if ( protocol == 66 ) return &Quake3_66;
+	if ( protocol == 67 ) return &Quake3_67;
 	if ( protocol == STVEFHolomatch.protocol ) return &STVEFHolomatch;
 	if ( protocol == STVEFSinglePlayer.protocol ) return &STVEFSinglePlayer;
+	if ( protocol == Alice.protocol ) return &Alice;
 	if ( protocol == RtcwSinglePlayer.protocol ) return &RtcwSinglePlayer;
 	if ( protocol == RtcwMultiplayer.protocol ) return &RtcwMultiplayer;
 	if ( protocol == WolfET.protocol ) return &WolfET;
@@ -266,10 +346,16 @@ inline constexpr Contract STVEFSinglePlayer{
 [[nodiscard]] constexpr const Contract *TryForWireProfile(
 	netchanWireProfile_t profile ) noexcept {
 	switch ( profile ) {
+	case NETCHAN_WIRE_Q3_66:
+		return &Quake3_66;
+	case NETCHAN_WIRE_Q3_67:
+		return &Quake3_67;
 	case NETCHAN_WIRE_STVEF_HM:
 		return &STVEFHolomatch;
 	case NETCHAN_WIRE_STVEF_SP:
 		return &STVEFSinglePlayer;
+	case NETCHAN_WIRE_ALICE:
+		return &Alice;
 	case NETCHAN_WIRE_WOLFET:
 		return &WolfET;
 	case NETCHAN_WIRE_RTCW_SP:

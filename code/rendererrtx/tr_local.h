@@ -47,6 +47,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../qcommon/qfiles.h"
 #include "../qcommon/qcommon.h"
 #include "../renderercommon/tr_public.h"
+#include "../renderercommon/tr_q3_ihv_fog.h"
+#include "../renderercommon/tr_q3_ihv_model_light.h"
 #include "../renderercommon/tr_dlight_shadow.h"
 #include "../renderercommon/tr_ql_cvars.h"
 #include "../renderercommon/tr_global_fog.h"
@@ -125,6 +127,11 @@ typedef struct dlight_s {
 	vec3_t	transformed2;		// origin2 in local coordinate system
 	int		additive;			// texture detail is lost tho when the lightmap is dark
 	qboolean linear;
+	// American McGee's Alice: the lens flare its client game asked for (type
+	// bits 1 and 2), drawn from the light's own origin and colour
+	int		aliceFlare;
+	vec3_t	aliceFlareOrigin;
+	vec3_t	aliceFlareColor;
 	qboolean castsRtShadows;	// RT visibility policy; raster lighting remains unchanged
 	unsigned int sourceFlags;	// DLIGHT_SOURCE_* provenance; sources may participate in multiple paths
 #ifdef USE_PMLIGHT
@@ -207,6 +214,10 @@ typedef struct {
 	vec3_t		shadowLightDir;	// normalized direction towards light
 #endif
 	qboolean	intShaderTime;
+	// American McGee's Alice: a TIKI model's level of detail, one for the
+	// main view and one for portal views, as retail keeps (entity +0x200,
+	// +0x204); set by R_AddAliceTikiSurfaces for the view that draws it
+	float		aliceLod[2];
 } trRefEntity_t;
 
 
@@ -280,7 +291,10 @@ typedef enum {
 	DEFORM_TEXT4,
 	DEFORM_TEXT5,
 	DEFORM_TEXT6,
-	DEFORM_TEXT7
+	DEFORM_TEXT7,
+	// American McGee's Alice: waves the normals, not the positions
+	// (`deformVertexes wavenormal`, retail type 16, alice.exe 0x0048dfee)
+	DEFORM_ALICE_WAVENORMAL
 } deform_t;
 
 typedef enum {
@@ -294,7 +308,13 @@ typedef enum {
 	AGEN_WAVEFORM,
 	AGEN_PORTAL,
 	AGEN_CONST,
-	AGEN_RTCW_NORMALZFADE
+	AGEN_RTCW_NORMALZFADE,
+	// American McGee's Alice (see code/renderercommon/tr_alice_shader.h)
+	AGEN_ALICE_DOT,					// facing the viewer, scaled into a range
+	AGEN_ALICE_ONE_MINUS_DOT,		// grazing the viewer, scaled into a range
+	AGEN_ALICE_GLOBAL,				// the last SetColor's alpha
+	AGEN_ALICE_SKY_ALPHA,			// the view's sky alpha
+	AGEN_ALICE_ONE_MINUS_SKY_ALPHA
 } alphaGen_t;
 
 typedef enum {
@@ -309,7 +329,10 @@ typedef enum {
 	CGEN_WAVEFORM,			// programmatically generated
 	CGEN_LIGHTING_DIFFUSE,
 	CGEN_FOG,				// standard fog
-	CGEN_CONST				// fixed color
+	CGEN_CONST,				// fixed color
+	// American McGee's Alice (see code/renderercommon/tr_alice_shader.h)
+	CGEN_ALICE_GLOBAL,		// the last SetColor's colour
+	CGEN_ALICE_COLORWAVE	// a waveform times a fixed colour
 } colorGen_t;
 
 typedef enum {
@@ -353,6 +376,12 @@ typedef enum {
 	TMOD_OFFSET,
 	TMOD_SCALE_OFFSET,
 	TMOD_OFFSET_SCALE,
+	// American McGee's Alice (see code/renderercommon/tr_alice_shader.h)
+	TMOD_ALICE_SCROLL,		// scroll whose speeds may come from the entity
+	TMOD_ALICE_ROTATE,		// rotate whose speed comes from the entity
+	TMOD_ALICE_OFFSET,		// offset whose components may come from the entity
+	TMOD_ALICE_MACRO,		// planar projection by the normal's base axis
+	TMOD_ALICE_PARALLAX,	// shifted by the viewer's position
 } texMod_t;
 
 #define	MAX_SHADER_DEFORMS	3
@@ -436,6 +465,11 @@ typedef struct {
 	qboolean		vertexLightmap;			// vertex-lit replacement for a world lightmap
 	qboolean		isVideoMap;
 	qboolean		isScreenMap;
+	// American McGee's Alice: `animMapOnce` stops on its last frame, and
+	// `frameFromEntity` takes the frame from the entity (retail bundle
+	// +0x138 bit 0 and +0x134)
+	unsigned int	aliceAnimMapOnce : 1;
+	unsigned int	aliceFrameFromEntity : 1;
 } textureBundle_t;
 
 #ifdef USE_VULKAN
@@ -456,6 +490,17 @@ typedef struct {
 	qboolean		isDetail;
 	qboolean		rtcwFog; // Explicit fog-on stage inside an RTCW nofog material.
 	qboolean		depthFragment;
+
+	// American McGee's Alice: the range `alphaGen dot`/`oneMinusDot` scale
+	// into, `alphaGen lightingSpecular`'s optional scale and light origin,
+	// and whether the stage needs the CPU path (no static VBO, colours and
+	// texture coordinates computed per draw) -- see
+	// code/renderercommon/tr_alice_shader.h. The colour and alpha sources
+	// these serve stay on bundle 0: such a stage is never collapsed.
+	float			aliceDotRange[2];
+	float			aliceSpecular[4];
+	qboolean		aliceSpecularCustom;
+	qboolean		aliceDynamic;
 
 #ifdef USE_VULKAN
 	uint32_t		tessFlags;
@@ -497,15 +542,20 @@ extern const byte r_depthFadeScaleAndBias[DFT_COUNT];
 
 typedef struct {
 	float		cloudHeight;
+	int		ihvClouds; // 0: later dialect, 1: IHV full, 2: IHV half
+	int		ihvLightning;
+	float		ihvLastFlash;
 	image_t		*outerbox[6], *innerbox[6];
 } skyParms_t;
 
 typedef struct {
 	vec3_t	color;
 	float	depthForOpaque;
+	q3IHVFogParms_t ihv;
 } fogParms_t;
 
 typedef struct shader_s {
+	qboolean ihvModelLightmap; // Native model sampling, before stage collapse
 	char		name[MAX_QPATH];		// game path, including extension
 	int			lightmapSearchIndex;	// for a shader to match, both name and lightmapIndex must match
 	qboolean rtcwLightMaterial;		// preserve authored projected-light passes
@@ -611,8 +661,37 @@ typedef struct shader_s {
 
 	struct shader_s *remappedShader;		// current shader this one is remapped too
 
+	// American McGee's Alice: how a sprite drawn with this shader faces, and
+	// how large it is against its image (`spritegen`, `spritescale`).
+	int		aliceSpriteGen;
+	float	aliceSpriteScale;
+	// Alice's shader-script dialect (code/renderercommon/tr_alice_shader.h):
+	// `portalsky` surfaces are windows onto the sky portal, not drawn;
+	// `fogonly` volumes draw the fog pass alone; `foggen` and `subdivisions`
+	// are kept as parsed; any stage needing the CPU path keeps the whole
+	// shader out of the static world buffers.
+	qboolean	alicePortalSky;
+	qboolean	aliceFogOnly;
+	waveForm_t	aliceFogGen;
+	float		aliceSubdivisions;
+	qboolean	aliceNoStatic;
+
 	struct	shader_s	*next;
 } shader_t;
+
+// Alice's four sprite orientations, numbered as retail's shader parser
+// numbers them (0x0048cb82).
+#define ALICE_SPRITEGEN_PARALLEL			0
+#define ALICE_SPRITEGEN_PARALLEL_ORIENTED	1
+#define ALICE_SPRITEGEN_ORIENTED			2
+#define ALICE_SPRITEGEN_PARALLEL_UPRIGHT	3
+
+// Alice's own sort slot for `portalsky`, retail 2.0, between a portal and
+// the sky (alice.exe 0x0048e41e); see R_AliceSortValue.
+#define ALICE_SORT_PORTALSKY				1.5f
+// Alice marks a waveform or texture-modifier parameter taken from the entity
+// with this value (alice.exe 0x0048d542, 0x0048d882).
+#define ALICE_SHADER_FROM_ENTITY			1234567.0f
 
 #define MAX_SURFACELIGHT_PROXIES 256
 #define MAX_RT_SURFACELIGHT_LIGHTS 16
@@ -665,6 +744,7 @@ typedef struct {
 	// text messages for deform text shaders
 	char		text[MAX_RENDER_STRINGS][MAX_RENDER_STRING_LENGTH];
 	rtcwRenderView_t rtcw;
+	aliceRenderView_t alice;
 	fnRTCWFogFrame_t rtcwFog;
 	int numRTCWCoronas;
 	fnRTCWCorona_t rtcwCoronas[FN_RTCW_MAX_CORONAS];
@@ -796,7 +876,8 @@ typedef enum {
 	VPF_SCISSOR = 0x04,
 	VPF_CLEAR_DEPTH = 0x08,
 	VPF_CLEAR_STENCIL = 0x10,
-	VPF_DLIGHT_SHADOW = 0x20
+	VPF_DLIGHT_SHADOW = 0x20,
+	VPF_ALICE_SKY_PORTAL = 0x40	// Alice's sky portal: a portal pass without a portal plane
 } viewPassFlags_t;
 
 typedef struct {
@@ -821,6 +902,16 @@ typedef struct {
 	unsigned int num_dlights;
 	struct dlight_s	*dlights;
 #endif
+	// American McGee's Alice's far plane for this view (alice.exe
+	// 0x004777d2): a distance at which everything is fogged to a colour, an
+	// optional culling plane there, and whether this view drew its sky
+	// portal first (then the colour clear is skipped, 0x004863b5).
+	float		aliceFarDistance;
+	vec3_t		aliceFarColor;
+	qboolean	aliceFarFog;
+	qboolean	aliceFarCull;
+	cplane_t	aliceFarPlane;
+	qboolean	aliceSkyPortalDrawn;
 } viewParms_t;
 
 #define CSM_MAX_CASCADES 4
@@ -975,6 +1066,9 @@ typedef enum {
 	SF_WOLFET,
 	SF_WOLFET_FOLIAGE,
 	SF_WOLFET_DECAL,
+	SF_IHV_PARTICLES,
+	SF_ALICE_TIKI,
+	SF_ALICE_SWIPE,
 
 	SF_NUM_SURFACE_TYPES,
 	SF_MAX = 0x7fffffff			// ensures that sizeof( surfaceType_t ) == sizeof( int )
@@ -1269,6 +1363,8 @@ typedef struct {
 	msurface_t	**marksurfaces;
 
 	int			numfogs;
+	qboolean	q3IHVFog;
+	q3IHVModelLightNode_t *q3IHVModelLight;
 	fog_t		*fogs;
 	globalFog_t	globalFog;
 	fnWolfETGlobalFog_t	wolfetGlobalFog;	// ET's brushless world fog
@@ -1727,8 +1823,35 @@ typedef enum {
 	MOD_MDC,
 	MOD_MDS,
 	MOD_WOLFET_MESH,
-	MOD_WOLFET_SKELETON
+	MOD_WOLFET_SKELETON,
+	MOD_IHV_BEAM,
+	MOD_ALICE_TIKI,
+	MOD_ALICE_SPRITE
 } modtype_t;
+
+// American McGee's Alice's definition surface flags the renderer reads.
+#define ALICE_SURFACE_NODRAW		0x04
+#define ALICE_SURFACE_NOMIPMAPS		0x100
+#define ALICE_SURFACE_NOPICMIP		0x200
+
+// One surface of an Alice TIKI model, drawn with the pose its entity gets
+// this frame; see tr_alice.c.
+typedef struct aliceSurface_s {
+	surfaceType_t	surfaceType;
+	struct model_s	*model;
+	int				index;
+	int				flags;
+	int				numVerts;
+	int				numIndexes;
+	int				numSkins;
+	struct shader_s	*shaders[4];
+} aliceSurface_t;
+
+typedef struct aliceSprite_s {
+	float			width, height;
+	float			originX, originY;
+	struct shader_s	*shader;
+} aliceSprite_t;
 
 #include "../renderercommon/tr_mdc_model_types.h"
 #include "../renderercommon/tr_mds_model_types.h"
@@ -1747,6 +1870,11 @@ typedef struct model_s {
 	wolfetMeshModel_t	*wolfetMesh;		// only if type == MOD_WOLFET_MESH
 	wolfetSkeletonModel_t	*wolfetSkeleton;	// only if type == MOD_WOLFET_SKELETON
 	void	*modelData;			// only if type == (MOD_MDR | MOD_IQM)
+	int		aliceTiki;				// only if type == MOD_ALICE_TIKI: the engine's handle
+	const void	*aliceModel;		// ... and the definition it names
+	struct aliceSurface_s	*aliceSurfaces;
+	int		numAliceSurfaces;
+	struct aliceSprite_s	*aliceSprite;	// only if type == MOD_ALICE_SPRITE
 
 	int			 numLods;
 } model_t;
@@ -1970,6 +2098,7 @@ typedef struct {
 	byte	*stvefThumbnail;
 	int		stvefThumbnailSide;
 	qboolean *stvefThumbnailDone;
+	int		aliceSaveshotHeight;	// non-zero: the capture above is Alice's saveshot, this tall
 	qboolean screenShotTGAsilent;
 	qboolean screenShotJPGsilent;
 	qboolean screenShotBMPsilent;
@@ -2017,6 +2146,10 @@ typedef struct {
 	qboolean				worldMapLoaded;
 	fnRTCWFogState_t		rtcwFog;
 	qboolean				rtcwSkyPortal;
+	// Alice: the `portalsky` surfaces the current view found instead of
+	// drawing them, and whether this scene has drawn its sky portal
+	int						numAliceSkyPortalSurfaces;
+	qboolean				aliceSkyPortalRendered;
 	world_t					*world;
 
 	const byte				*externalVisData;	// from RE_SetWorldVisData, shared with CM_Load
@@ -2034,6 +2167,8 @@ typedef struct {
 
 	shader_t				*defaultShader;
 	shader_t				*whiteShader;
+	shader_t				*ihvParticleShader;
+	shader_t *ihvBeamShader;
 	shader_t				*cinematicShader;
 	shader_t				*shadowShader;
 	shader_t				*projectionShadowShader;
@@ -2108,9 +2243,10 @@ typedef struct {
 	shader_t				*sortedShaders[MAX_SHADERS];
 
 	int						numSkins;
-	skin_t					*skins[MAX_SKINS];
+	skin_t					*skins[MAX_SKINS + 1]; /* IHV has no reserved native fallback slot. */
 
 	float					sinTable[FUNCTABLE_SIZE];
+	float					ihvModelSines[1024]; // private native IHV MD3 normal samples
 	float					squareTable[FUNCTABLE_SIZE];
 	float					triangleTable[FUNCTABLE_SIZE];
 	float					sawToothTable[FUNCTABLE_SIZE];
@@ -2169,6 +2305,7 @@ extern cvar_t	*r_stereoSeparation;			// separation of cameras for stereo renderi
 
 extern cvar_t	*r_lodbias;				// push/pull LOD transitions
 extern cvar_t	*r_lodscale;
+extern cvar_t	*r_lerpmodels;
 
 extern cvar_t	*r_teleporterFlash;		// teleport hyperspace visual
 
@@ -2314,6 +2451,18 @@ extern	cvar_t	*r_drawentities;		// disable/enable entity rendering
 extern	cvar_t	*r_drawworld;			// disable/enable world rendering
 extern	cvar_t	*r_speeds;				// various levels of information display
 extern  cvar_t	*r_detailTextures;		// enables/disables detail texturing stages
+// American McGee's Alice only (registered for that profile, null otherwise)
+extern	cvar_t	*r_shaderlod;			// `if shaderlod <f>` passes when this exceeds f
+extern	cvar_t	*r_farplane;			// overrides the far plane distance when nonzero
+extern	cvar_t	*r_farplane_color;
+extern	cvar_t	*r_farplane_nocull;
+extern	cvar_t	*r_farplane_nofog;
+extern	cvar_t	*r_farplane_pulse;
+extern	cvar_t	*r_farplane_pulseFrequency;
+extern	cvar_t	*r_skyportal;			// place the sky portal at r_skyportal_origin
+extern	cvar_t	*r_skyportal_origin;
+extern	cvar_t	*r_debuglines_depthmask;
+extern	cvar_t	*r_stipplelines;
 extern	cvar_t	*r_novis;				// disable/enable usage of PVS
 extern	cvar_t	*r_nocull;
 extern	cvar_t	*r_facePlaneCull;		// enables culling of planar surfaces with back side test
@@ -2475,6 +2624,34 @@ void R_RenderView( const viewParms_t *parms );
 
 void R_AddMD3Surfaces( trRefEntity_t *e, dlightShadowCasterContext_t *shadowCtx );
 void R_AddWolfETSurfaces( trRefEntity_t *e );
+qboolean R_LoadAliceTiki( model_t *mod, const char *name );
+qboolean R_LoadAliceSprite( model_t *mod, const char *name );
+void R_AliceModelBounds( const model_t *mod, vec3_t mins, vec3_t maxs );
+void R_AddAliceTikiSurfaces( trRefEntity_t *ent );
+void RB_SurfaceAliceTiki( void *data );
+void RB_SurfaceAliceSprite( void );
+int RE_GetAliceTikiHandle( qhandle_t handle );
+void RE_GetShaderImageSize( qhandle_t handle, int *width, int *height );
+void RE_AliceSwipeBegin( float thistime, float life, qhandle_t shader );
+void RE_AliceSwipePoint( const vec3_t p1, const vec3_t p2, float time );
+void R_AddAliceSwipeSurfaces( void );
+void RB_SurfaceAliceSwipe( void *data );
+float RE_GetAliceModelRadius( qhandle_t handle );
+// Alice's view features (tr_main.c front end, tr_backend.c back end)
+qboolean R_AliceCollectSkyPortalSurface( const shader_t *shader );
+void R_AliceQueueDebugLines( void );
+const void *RB_AliceDebugLines( const void *data );
+qboolean RB_AliceSkipStage( const shaderStage_t *stage );
+void RA_TikiBeginFrame( void );
+// Alice's view filter, lens flares, dynamic-light types and lighting (tr_alice.c)
+qboolean R_AliceEntityInView( const trRefEntity_t *ent );
+void R_AliceRegisterCvars( void );
+void R_AliceInitLensFlares( void );
+void R_AliceSetSunFlare( const vec3_t origin );
+void R_AliceSetSunFlareInPortalSky( void );
+void RB_AliceLensFlares( void );
+void RE_AddAliceLightToScene( const vec3_t org, float intensity, float r, float g, float b, int type );
+void R_SetupAliceEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent, const vec3_t lightOrigin );
 void R_AddNullModelSurfaces( trRefEntity_t *e );
 void R_AddBeamSurfaces( trRefEntity_t *e );
 void R_AddRailSurfaces( trRefEntity_t *e, qboolean isUnderwater );
@@ -2556,6 +2733,16 @@ void	GL_Cull( cullType_t cullType );
 #define GLS_ATEST_GE_80							0x00003000
 #define GLS_ATEST_BITS							0x00003000
 
+// American McGee's Alice's `alphatest <func> <ref>` keeps its own reference
+// (0..255, applied as ref / 256) and comparison (1 equal .. 6 lequal) where
+// retail's GL_State does, bits 16-23 and 24-27 (alice.exe 0x00485dd7). The
+// pipeline turns them into its fragment shader's discard (vk.c).
+#define GLS_ALICE_ATEST_REF_SHIFT				16
+#define GLS_ALICE_ATEST_REF_BITS				0x00ff0000
+#define GLS_ALICE_ATEST_FUNC_SHIFT				24
+#define GLS_ALICE_ATEST_FUNC_BITS				0x0f000000
+#define GLS_ALICE_ATEST_BITS					( GLS_ALICE_ATEST_REF_BITS | GLS_ALICE_ATEST_FUNC_BITS )
+
 #define GLS_DEFAULT								GLS_DEPTHMASK_TRUE
 
 // vertex array states
@@ -2613,6 +2800,7 @@ byte	*R_LoadImagePixels( const char *name, int *width, int *height );
 //
 shader_t	*R_FindShader( const char *name, int lightmapIndex, qboolean mipRawImage );
 shader_t *R_FindModelShader( const char *name, qboolean mipRawImage );
+shader_t *R_FindAliceSurfaceShader( const char *name, qboolean mipmaps, qboolean picmip );
 shader_t	*R_GetShaderByHandle( qhandle_t hShader );
 shader_t	*R_GetShaderByState( int index, long *cycleTime );
 shader_t	*R_FindShaderByName( const char *name );
@@ -2700,6 +2888,8 @@ typedef struct shaderCommands_s
 #endif
 
 	int			numPasses;
+	qboolean	ihvSkyActive;
+	byte		ihvSkyColors[MAX_SHADER_STAGES];
 	shaderStage_t **xstages;
 
 } shaderCommands_t;
@@ -2713,6 +2903,7 @@ void RB_CheckOverflow( int verts, int indexes );
 
 void RB_StageIteratorGeneric( void );
 void RB_StageIteratorSky( void );
+qboolean RB_Q3IHVSkyColors( const shaderStage_t *stage, byte *colors );
 
 void RB_AddQuadStamp( const vec3_t origin, const vec3_t left, const vec3_t up, color4ub_t color );
 void RB_AddQuadStampExt( const vec3_t origin, const vec3_t left, const vec3_t up, color4ub_t color, float s1, float t1, float s2, float t2 );
@@ -2866,6 +3057,8 @@ void R_InitNextFrame( void );
 void RE_ClearScene( void );
 void RE_AddRefEntityToScene( const refEntity_t *ent, qboolean intShaderTime );
 void RE_AddPolyToScene( qhandle_t hShader , int numVerts, const polyVert_t *verts, int num );
+qboolean RE_AddIHVParticlesToScene( int count, const fnQ3IHVParticle_t *particles );
+qboolean RE_AddIHVEntitiesToScene( int count, const fnQ3IHVEntity_t *entities );
 void RE_AddRTCWLightToScene( const vec3_t origin, float intensity, float r, float g, float b, int flags );
 void RE_ProjectWolfETDecal( qhandle_t hShader, int numPoints, const vec3_t *points,
 	const vec4_t projection, const vec4_t color, int lifeTime, int fadeTime );
@@ -2942,6 +3135,9 @@ void	RB_DeformTessGeometry( void );
 void	RB_CalcEnvironmentTexCoords( float *dstTexCoords );
 void	RB_CalcEnvironmentTexCoordsFP( float *dstTexCoords, int screenMap );
 void	RB_CalcFogTexCoords( float *dstTexCoords );
+qboolean RB_Q3IHVFog( int fogNum );
+void RB_CalcFogFactors( float *factors );
+void RB_Q3IHVFogColors( byte *colors, float *texCoords );
 const fogProgramParms_t *RB_CalcFogProgramParms( void );
 void	RB_CalcScrollTexCoords( const float scroll[2], float *srcTexCoords, float *dstTexCoords );
 void	RB_CalcRotateTexCoords( float rotSpeed, float *srcTexCoords, float *dstTexCoords );
@@ -2960,6 +3156,14 @@ void	RB_CalcColorFromEntity( unsigned char *dstColors );
 void	RB_CalcColorFromOneMinusEntity( unsigned char *dstColors );
 void	RB_CalcSpecularAlpha( unsigned char *alphas );
 void	RB_CalcDiffuseColor( unsigned char *colors );
+// American McGee's Alice's colour, alpha and texture-coordinate sources
+void	RB_AliceCalcGlobalColor( unsigned char *dstColors );
+void	RB_AliceCalcGlobalAlpha( unsigned char *dstColors );
+void	RB_AliceCalcColorWave( const waveForm_t *wf, const color4ub_t constant, unsigned char *dstColors );
+void	RB_AliceCalcDotAlpha( const shaderStage_t *stage, unsigned char *dstColors );
+void	RB_AliceCalcSkyAlpha( qboolean oneMinus, unsigned char *dstColors );
+void	RB_AliceCalcSpecularAlpha( const shaderStage_t *stage, unsigned char *dstColors );
+void	RB_AliceCalcTexMod( const texModInfo_t *tmi, float *src, float *dst );
 
 /*
 =============================================================
@@ -3080,8 +3284,31 @@ typedef enum {
 	RC_CLEARDEPTH,
 	RC_CLEARCOLOR,
 	RC_DRAW_QUAD,
-	RC_WOLFET_2D_POLYS
+	RC_WOLFET_2D_POLYS,
+	RC_ALICE_DEBUG_LINES
 } renderCommand_t;
+
+// Alice's debug lines for the view just queued, copied out of the game
+// module's array; numLines 48-byte records follow the command. A record is
+// code/compat/alice_render_abi.h's fntech3_alice_debugline_t, the layout
+// retail's R_DebugLine writes (alice.exe 0x004766f0) and R_DrawDebugLines
+// reads (0x004767a0).
+#define ALICE_MAX_DEBUG_LINES	4096
+typedef struct {
+	float			start[3];		// 0x00
+	float			end[3];			// 0x0c
+	float			color[3];		// 0x18
+	float			alpha;			// 0x24
+	float			width;			// 0x28
+	unsigned short	factor;			// 0x2c
+	unsigned short	pattern;		// 0x2e
+} aliceDebugLine_t;
+typedef char aliceDebugLineIs48Bytes[ sizeof( aliceDebugLine_t ) == 48 ? 1 : -1 ];
+typedef struct {
+	int		commandId;
+	int		numLines;
+	int		commandBytes;
+} aliceDebugLinesCommand_t;
 
 
 // these are sort of arbitrary limits.
@@ -3121,6 +3348,7 @@ void RB_TakeLevelShot( void );
 void RB_TakeSTVEFThumbnail( void );
 
 void R_AddDrawSurfCmd( drawSurf_t *drawSurfs, int numDrawSurfs );
+void R_AddAliceDebugLinesCmd( const void *lines, int numLines );
 
 void RE_SetColor( const float *rgba );
 void RE_DrawQuad( const refDrawQuad_t *quad );
@@ -3167,6 +3395,10 @@ static ID_INLINE qboolean R_UsesRTCWLighting( void ) {
 
 static ID_INLINE int R_GetDlightMode( void ) {
 #ifdef USE_PMLIGHT
+#ifdef USE_LEGACY_DLIGHTS
+	/* Classic lights are composited before IHV's per-vertex fog overlay. */
+	if ( ( ri.gameId == COM_GAME_QUAKE3 || ri.gameId == COM_GAME_QUAKE3_IHV ) && tr.world && tr.world->q3IHVFog ) return 0;
+#endif
 	return r_dlightMode ? r_dlightMode->integer : 0;
 #else
 	return 0;

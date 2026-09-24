@@ -1974,6 +1974,7 @@ private:
 #include "client_wolfet_audio_compat.hpp"
 #include "client_stvef_cgame.hpp"
 #include "client_stvef_sp_cgame.hpp"
+#include "client_alice_cgame.hpp"
 
 static intptr_t CL_CGameTrapForProfile( intptr_t trap ) {
 	if ( !Com_GameIsQuake3() ) {
@@ -3837,6 +3838,15 @@ void CL_InitCGame( void ) {
 	int					t1, t2;
 	vmInterpret_t		interpret;
 
+	/* Jedi Academy's client modules speak Raven's own numbers, and no engine
+	 * side of that boundary exists yet, so refuse rather than hand a retail
+	 * module an import table it cannot use. The server refuses its own module
+	 * the same way; see docs/fntech3/COMPATIBILITY.md#jedi-academy-gate-matrix. */
+	if ( Com_GameIsJKA() ) {
+		Com_Error( ERR_DROP, "%s is not implemented: Jedi Academy's client module boundary is open.",
+			Com_GameProfile()->key );
+	}
+
 	Cbuf_NestedReset();
 	CL_ClearEnemyHighlightState();
 	CL_ClearLiquidInteractionState();
@@ -3875,6 +3885,10 @@ void CL_InitCGame( void ) {
 			Com_Error( ERR_DROP, "Elite Force SP's cgame needs its game running on the local server" );
 		}
 		cgvm = VM_CreateHosted( VM_CGAME, CL_STVEFSPCgameEntry );
+	} else if ( Com_GameIsAlice() ) {
+		/* Alice's client game is a function table whose entry point takes no
+		 * argument: the imports go to its first export instead. */
+		cgvm = CL_AliceLoadCGame();
 	} else {
 		cgvm = CL_LoadCGameVM( interpret );
 	}
@@ -4054,6 +4068,9 @@ static void CL_FirstSnapshot( void ) {
 		return;
 	}
 	cls.state = CA_ACTIVE;
+	if ( Com_GameIsAlice() ) {
+		CL_AliceFirstSnapshot();
+	}
 	Com_Printf( "CL_FirstSnapshot: %s, cgame %d ms, snapshot wait %d ms\n",
 		cl.mapname, cl_cgameLoadDuration, Sys_Milliseconds() - cl_cgameLoadFinished );
 

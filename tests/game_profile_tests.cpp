@@ -35,6 +35,13 @@ static void TestPureModuleNames()
 	assert( sp->pureProof == COM_PURE_PROOF_UNAVAILABLE && mp->pureProof == COM_PURE_PROOF_RTCW_NATIVE );
 	assert( q3->entityHullPolicy == COM_ENTITY_HULL_TRACE_SHAPE && ql->entityHullPolicy == COM_ENTITY_HULL_TRACE_SHAPE );
 	assert( sp->entityHullPolicy == COM_ENTITY_HULL_ENTITY_FLAG && mp->entityHullPolicy == COM_ENTITY_HULL_ENTITY_FLAG );
+	// Only WolfMP.exe and et.exe sweep a box entity as its own contents.
+	for ( int id = COM_GAME_AUTO + 1; id < COM_GAME_COUNT; ++id ) {
+		const auto *profile = Com_GameProfileById( static_cast<comGameId_t>( id ) );
+		const bool entityContents = id == COM_GAME_RTCW_MP || id == COM_GAME_WOLFET;
+		assert( profile && profile->entityBoxContentsPolicy == ( entityContents
+			? COM_ENTITY_BOX_CONTENTS_ENTITY : COM_ENTITY_BOX_CONTENTS_BODY ) );
+	}
 	for ( const auto *profile : { q3, ql, sp, mp } ) {
 		for ( const char *extension : { ".dll", ".so", ".dylib" } ) {
 			for ( unsigned slot = 0; slot < 4; ++slot ) {
@@ -73,6 +80,39 @@ static void TestNativeModuleNames()
 			const auto *profile = Com_GameManagerProfileAt( p );
 			for ( const char *module : { "cgame", "qagame", "ui" } ) {
 				char name[64];
+				if ( profile->id == COM_GAME_QUAKE3_IHV ) {
+					const bool available = !std::strcmp( host.arch, "x86" ) && !std::strcmp( host.ext, ".dll" ) && std::strcmp( module, "ui" );
+					std::memset( name, 0x5a, sizeof( name ) );
+					assert( !!Com_GameManagerNativeModuleFilename( profile, module, host.arch, host.ext, 0, name, sizeof( name ) ) == available );
+					if ( available ) assert( name == std::string( module ) + "x86.dll" );
+					else for ( char byte : name ) assert( byte == 0x5a );
+					assert( !Com_GameManagerNativeModuleFilename( profile, module, host.arch, host.ext, 1, name, sizeof( name ) ) );
+					continue;
+				}
+				if ( profile->titleId == COM_GAME_TITLE_ALICE ) {
+					// Ritual shipped Win32 x86 libraries only: fgamex86.dll for
+					// the game and cgamex86.dll for the client game, both in
+					// base/. The menus are the engine's, so there is no UI module.
+					const char *leaf = !std::strcmp( module, "ui" ) ? nullptr
+						: !std::strcmp( module, "cgame" ) ? "cgamex86.dll" : "fgamex86.dll";
+					const bool retail = leaf && !std::strcmp( host.arch, "x86" )
+						&& !std::strcmp( host.ext, ".dll" );
+					std::memset( name, 0x5a, sizeof( name ) );
+					assert( !!Com_GameManagerNativeModuleFilename( profile, module, host.arch,
+						host.ext, 0, name, sizeof( name ) ) == retail );
+					if ( retail ) assert( !std::strcmp( name, leaf ) );
+					else for ( char byte : name ) assert( byte == 0x5a );
+					assert( !Com_GameManagerNativeModuleFilename( profile, module, host.arch,
+						host.ext, 1, name, sizeof( name ) ) );
+					if ( leaf ) {
+						const unsigned length = static_cast<unsigned>( std::strlen( leaf ) );
+						assert( !Com_GameManagerNativeModuleFilename( profile, module, "x86",
+							".dll", 0, name, length ) );
+						assert( Com_GameManagerNativeModuleFilename( profile, module, "x86",
+							".dll", 0, name, length + 1 ) && std::strlen( name ) == length );
+					}
+					continue;
+				}
 				if ( profile->id == COM_GAME_STVEF_SP ) {
 					// Raven shipped one Win32 x86 game/cgame library and one UI library.
 					const bool retail = !std::strcmp( host.arch, "x86" ) && !std::strcmp( host.ext, ".dll" );
@@ -89,6 +129,57 @@ static void TestNativeModuleNames()
 						".dll", 0, name, leaf ) );
 					assert( Com_GameManagerNativeModuleFilename( profile, module, "x86",
 						".dll", 0, name, leaf + 1 ) && std::strlen( name ) == leaf );
+					continue;
+				}
+				if ( profile->id == COM_GAME_JK2_SP ) {
+					// One jk2gamex86.dll in the installation root serves the
+					// game and the client game, and there is no menu module.
+					// Multiplayer is absent here: Raven shipped it as QVMs.
+					const char *leaf = std::strcmp( module, "ui" ) ? "jk2gamex86.dll" : nullptr;
+					const bool retail = leaf && !std::strcmp( host.arch, "x86" )
+						&& !std::strcmp( host.ext, ".dll" );
+					std::memset( name, 0x5a, sizeof( name ) );
+					assert( !!Com_GameManagerNativeModuleFilename( profile, module, host.arch,
+						host.ext, 0, name, sizeof( name ) ) == retail );
+					if ( retail ) assert( !std::strcmp( name, leaf ) );
+					else for ( char byte : name ) assert( byte == 0x5a );
+					assert( !Com_GameManagerNativeModuleFilename( profile, module, host.arch,
+						host.ext, 1, name, sizeof( name ) ) );
+					if ( leaf ) {
+						const unsigned length = static_cast<unsigned>( std::strlen( leaf ) );
+						assert( !Com_GameManagerNativeModuleFilename( profile, module, "x86",
+							".dll", 0, name, length ) );
+						assert( Com_GameManagerNativeModuleFilename( profile, module, "x86",
+							".dll", 0, name, length + 1 ) && std::strlen( name ) == length );
+					}
+					continue;
+				}
+				if ( profile->titleId == COM_GAME_TITLE_JKA ) {
+					// Raven shipped Win32 x86 modules only: one jagamex86.dll
+					// for single player's game and client game with no menu
+					// module of its own, and three for multiplayer.
+					const bool single = profile->id == COM_GAME_JKA_SP;
+					const char *leaf = !std::strcmp( module, "ui" )
+						? ( single ? nullptr : "uix86.dll" )
+						: !std::strcmp( module, "cgame" )
+						? ( single ? "jagamex86.dll" : "cgamex86.dll" )
+						: ( single ? "jagamex86.dll" : "jampgamex86.dll" );
+					const bool retail = leaf && !std::strcmp( host.arch, "x86" )
+						&& !std::strcmp( host.ext, ".dll" );
+					std::memset( name, 0x5a, sizeof( name ) );
+					assert( !!Com_GameManagerNativeModuleFilename( profile, module, host.arch,
+						host.ext, 0, name, sizeof( name ) ) == retail );
+					if ( retail ) assert( !std::strcmp( name, leaf ) );
+					else for ( char byte : name ) assert( byte == 0x5a );
+					assert( !Com_GameManagerNativeModuleFilename( profile, module, host.arch,
+						host.ext, 1, name, sizeof( name ) ) );
+					if ( leaf ) {
+						const unsigned length = static_cast<unsigned>( std::strlen( leaf ) );
+						assert( !Com_GameManagerNativeModuleFilename( profile, module, "x86",
+							".dll", 0, name, length ) );
+						assert( Com_GameManagerNativeModuleFilename( profile, module, "x86",
+							".dll", 0, name, length + 1 ) && std::strlen( name ) == length );
+					}
 					continue;
 				}
 				const bool rtcw = profile->titleId == COM_GAME_TITLE_RTCW || profile->id == COM_GAME_WOLFET;
@@ -159,6 +250,20 @@ static void TestNativeModuleNames()
 			assert( ( result != 0 ) == present );
 			if ( present && profile->id == COM_GAME_STVEF_SP ) {
 				assert( root == 1 && !std::strcmp( output, "efgamex86.dll" ) );
+			} else if ( present && profile->id == COM_GAME_QUAKE3_IHV ) {
+				assert( root == 1 && !std::strcmp( output, "cgamex86.dll" ) );
+			} else if ( present && profile->titleId == COM_GAME_TITLE_JKA ) {
+				// Jedi Academy's single player takes its client game from the
+				// one library beside the executable; multiplayer's modules
+				// ship inside the paks, so they come through the filesystem.
+				const bool single = profile->id == COM_GAME_JKA_SP;
+				assert( root == ( single ? 1 : 0 ) );
+				assert( !std::strcmp( output, single ? "jagamex86.dll" : "cgamex86.dll" ) );
+			} else if ( present && profile->id == COM_GAME_JK2_SP ) {
+				// Jedi Outcast's single player does the same, from the one
+				// library beside jk2sp.exe. Its multiplayer ships QVMs, so it
+				// takes the ordinary filesystem path.
+				assert( root == 1 && !std::strcmp( output, "jk2gamex86.dll" ) );
 			} else if ( present ) {
 				assert( root == ( index >= 2 ? 1 : 0 ) );
 				const char *expected = profile == sp
@@ -229,8 +334,8 @@ static void TestNativeModuleCalls()
 
 static void TestManager()
 {
-	assert( Com_GameManagerTitleCount() == 5 );
-	assert( Com_GameManagerProfileCount() == 7 );
+	assert( Com_GameManagerTitleCount() == 8 );
+	assert( Com_GameManagerProfileCount() == 13 );
 	assert( !Com_GameManagerTitleAt( UINT_MAX ) );
 	assert( !Com_GameManagerProfileAt( UINT_MAX ) );
 	assert( !Com_GameManagerProfileAt( Com_GameManagerProfileCount() ) );
@@ -242,6 +347,7 @@ static void TestManager()
 	assert( !Com_GameManagerFindProfile( nullptr ) );
 	assert( !Com_GameManagerFindProfile( "" ) );
 	assert( !Com_GameManagerFindProfile( "rtcw" ) );
+	assert( !Com_GameManagerFindProfile( "jka" ) );
 	assert( !Com_GameManagerFindProfile( "rtcw-sp-extra" ) );
 	assert( !Com_GameManagerFindProfile( " q3" ) );
 	assert( !Com_GameManagerCanActivate( nullptr ) );
@@ -251,8 +357,9 @@ static void TestManager()
 		const auto *title = Com_GameManagerTitleAt( t );
 		assert( title == Com_GameManagerTitleById( title->id ) );
 		const auto count = Com_GameManagerTitleProfileCount( title->id );
-		assert( count == ( title->id == COM_GAME_TITLE_RTCW
-			|| title->id == COM_GAME_TITLE_STVEF ? 2u : 1u ) );
+		assert( count == ( title->id == COM_GAME_TITLE_QUAKE3 || title->id == COM_GAME_TITLE_RTCW
+			|| title->id == COM_GAME_TITLE_STVEF || title->id == COM_GAME_TITLE_JKA
+			|| title->id == COM_GAME_TITLE_JK2 ? 2u : 1u ) );
 		for ( unsigned i = 0; i < count; ++i ) {
 			const auto *profile = Com_GameManagerTitleProfileAt( title->id, i );
 			assert( profile && profile->titleId == title->id );
@@ -274,7 +381,22 @@ static void TestManager()
 	}
 	assert( seen == ( COM_GAME_MARKER_QUAKE3 | COM_GAME_MARKER_QUAKELIVE
 		| COM_GAME_MARKER_RTCW_SP | COM_GAME_MARKER_RTCW_MP | COM_GAME_MARKER_WOLFET
-		| COM_GAME_MARKER_STVEF_SP | COM_GAME_MARKER_STVEF_MP ) );
+		| COM_GAME_MARKER_STVEF_SP | COM_GAME_MARKER_STVEF_MP | COM_GAME_MARKER_QUAKE3_IHV
+		| COM_GAME_MARKER_JKA_SP | COM_GAME_MARKER_JKA_MP
+		| COM_GAME_MARKER_JK2_SP | COM_GAME_MARKER_JK2_MP
+		| COM_GAME_MARKER_ALICE ) );
+	// Jedi Academy's two modes share one installation, as RTCW's and Elite
+	// Force's do, so each mode matches an installation carrying both.
+	const auto *jkaSp = Com_GameProfileById( COM_GAME_JKA_SP );
+	const auto *jkaMp = Com_GameProfileById( COM_GAME_JKA_MP );
+	const unsigned jkaMarkers = COM_GAME_MARKER_JKA_SP | COM_GAME_MARKER_JKA_MP;
+	assert( Com_GameManagerInstallationMatches( jkaSp, jkaMarkers ) );
+	assert( Com_GameManagerInstallationMatches( jkaMp, jkaMarkers ) );
+	assert( !Com_GameManagerInstallationMatches( jkaSp, jkaMarkers | COM_GAME_MARKER_QUAKE3 ) );
+	assert( !Com_GameManagerInstallationMatches( jkaSp, COM_GAME_MARKER_JKA_MP ) );
+	assert( !std::strcmp( Com_GameManagerConfigFile( jkaSp, 0 ), "jaconfig.cfg" ) );
+	assert( !std::strcmp( Com_GameManagerConfigFile( jkaSp, 1 ), "jaconfig_server.cfg" ) );
+	assert( !std::strcmp( Com_GameManagerConfigFile( jkaMp, 0 ), "jampconfig.cfg" ) );
 	const auto *sp = Com_GameProfileById( COM_GAME_RTCW_SP );
 	const auto *mp = Com_GameProfileById( COM_GAME_RTCW_MP );
 	assert( sp == Com_GameManagerFindProfile( "RTCW-SP" ) );
@@ -297,6 +419,11 @@ static void TestManager()
 		"efconfig.cfg", "efconfig_server.cfg", "HMCONFIG.CFG", "hmconfig_server.cfg" } ) {
 		assert( Com_GameManagerIsConfigFile( filename ) );
 	}
+	/* Alice's retail configuration names are generic words rather than a title
+	 * stem. With no profile selected, and under every profile but Alice, they
+	 * are ordinary filenames that a pak may carry. */
+	assert( !Com_GameManagerIsConfigFile( "config.cfg" ) );
+	assert( !Com_GameManagerIsConfigFile( "config_server.cfg" ) );
 	assert( !Com_GameManagerIsConfigFile( "default.cfg" ) );
 	assert( !Com_GameManagerIsConfigFile( "scripts/wolfconfig.cfg" ) );
 	assert( !Com_GameManagerIsConfigFile( nullptr ) );
@@ -406,15 +533,27 @@ static void TestBspFormats()
 {
 	static_assert( sizeof( comGameBspFormat_t ) == 4 );
 	assert( !Com_GameProfile() );
-	for ( int version : { INT_MIN, -1, 0, 42, 43, 44, 45, 46, 47, 48, INT_MAX } ) {
+	for ( int version : { INT_MIN, -1, 0, 1, 42, 43, 44, 45, 46, 47, 48, INT_MAX } ) {
 		assert( Com_GameBspFormat( version ) == COM_GAME_BSP_UNSUPPORTED );
 		assert( Com_GameManagerBspFormat( nullptr, version ) == COM_GAME_BSP_UNSUPPORTED );
 		for ( unsigned p = 0; p < Com_GameManagerProfileCount(); ++p ) {
 			const auto *profile = Com_GameManagerProfileAt( p );
 			const bool rtcw = profile->titleId == COM_GAME_TITLE_RTCW || profile->id == COM_GAME_WOLFET;
-			assert( profile->collisionModelHandleCount == ( rtcw ? 512 : 256 ) );
+			const bool jka = profile->titleId == COM_GAME_TITLE_JKA;
+			// Jedi Outcast's two engines disagree with each other: its single
+			// player admits 512 submodels and its multiplayer 256, each read
+			// from that binary's own bounds check.
+			const bool rbsp = jka || profile->titleId == COM_GAME_TITLE_JK2;
+			// Alice is a Ritual F.A.K.K.2 engine: "FAKK" 42 and nothing else,
+			// with the same 512 submodels its own bounds check admits.
+			const bool fakk = profile->titleId == COM_GAME_TITLE_ALICE;
+			const bool wide = rtcw || jka || fakk || profile->id == COM_GAME_JK2_SP;
+			assert( profile->collisionModelHandleCount == ( wide ? 512 : 256 ) );
 			const bool stvef = profile->titleId == COM_GAME_TITLE_STVEF;
-			const auto expected = stvef ? ( version == 46 ? COM_GAME_BSP_QUAKE3 : COM_GAME_BSP_UNSUPPORTED )
+			const auto expected = profile->id == COM_GAME_QUAKE3_IHV ? ( version == 43 ? COM_GAME_BSP_QUAKE3_IHV : COM_GAME_BSP_UNSUPPORTED )
+				: fakk ? ( version == 42 ? COM_GAME_BSP_FAKK : COM_GAME_BSP_UNSUPPORTED )
+				: rbsp ? ( version == 1 ? COM_GAME_BSP_RBSP : COM_GAME_BSP_UNSUPPORTED )
+				: stvef ? ( version == 46 ? COM_GAME_BSP_QUAKE3 : COM_GAME_BSP_UNSUPPORTED )
 				: version == 47
 				? ( profile->id == COM_GAME_WOLFET ? COM_GAME_BSP_WOLFET : rtcw ? COM_GAME_BSP_RTCW : COM_GAME_BSP_QUAKELIVE )
 				: !rtcw && version == 46 ? COM_GAME_BSP_QUAKE3
@@ -619,6 +758,24 @@ int main()
 	assert( Com_ProtocolFamilyForVersion( 91 ) ==
 		COM_PROTOCOL_FAMILY_QUAKELIVE );
 	assert( Com_ProtocolFamilyForVersion( 69 ) == 0 );
+	// Alice's protocol 1 belongs to Alice alone, and no other profile
+	// admits it.
+	assert( Com_ProtocolFamilyForVersion( 1 ) == COM_PROTOCOL_FAMILY_ALICE );
+	{
+		const auto *alice = Com_GameProfileById( COM_GAME_ALICE );
+		assert( alice && Com_GameProfileAllowsProtocol( alice, 1 ) );
+		for ( unsigned p = 0; p < Com_GameManagerProfileCount(); ++p ) {
+			const auto *other = Com_GameManagerProfileAt( p );
+			if ( other != alice ) assert( !Com_GameProfileAllowsProtocol( other, 1 ) );
+			else assert( !Com_GameProfileAllowsProtocol( other, 68 ) );
+		}
+	}
+	for ( int protocol : { 66, 67 } ) {
+		assert( Com_GameProfileAllowsProtocol( Com_GameProfileById( COM_GAME_QUAKE3 ), protocol ) );
+		for ( auto other : { COM_GAME_QUAKELIVE, COM_GAME_RTCW_SP, COM_GAME_RTCW_MP,
+			COM_GAME_WOLFET, COM_GAME_STVEF_SP, COM_GAME_STVEF_MP } )
+			assert( !Com_GameProfileAllowsProtocol( Com_GameProfileById( other ), protocol ) );
+	}
 	assert( Com_GameProfileAllowsProtocol(
 		Com_GameProfileById( COM_GAME_QUAKE3 ), 68 ) );
 	assert( Com_GameProfileAllowsProtocol(

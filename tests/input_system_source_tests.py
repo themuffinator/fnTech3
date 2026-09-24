@@ -262,7 +262,7 @@ class ClientInputStateTests(unittest.TestCase):
         mlook_up = function_body(client, "IN_MLookUp")
         command_buttons = section(
             client,
-            "static std::array<kbutton_t *, 13> IN_CommandButtons",
+            "static std::array<kbutton_t *, 14> IN_CommandButtons",
             "static void IN_CenterView",
         )
         clear_commands = function_body(client, "IN_ClearCommandInputState")
@@ -378,6 +378,7 @@ class ClientInputStateTests(unittest.TestCase):
             "in_up",
             "in_down",
             "in_mlook",
+            "in_cameralook",
         ):
             self.assertIn(f"&{button}", command_buttons)
         self.assertIn("*button = kbutton_t{};", clear_commands)
@@ -3342,6 +3343,314 @@ class KeypadStarProducerTests(unittest.TestCase):
         )
         self.assertIn(
             "SE_CHAR", function_body(self.sdl, "IN_QueueTextInput")
+        )
+
+
+class AliceInputSourceTests(unittest.TestCase):
+    """American McGee's Alice's command builder and key routing, each behind
+    its profile. The rules themselves are exercised by
+    tests/alice_input_tests.cpp; these pin where the engine applies them."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.client = read_text("code/client/cl_input.cpp")
+        cls.keys = read_text("code/client/cl_keys.cpp")
+        cls.header = read_text("code/client/client.h")
+
+    def bindings(self) -> dict[str, list[str]]:
+        table = section(
+            self.client,
+            "static constexpr std::array kInputCommandBindings{",
+            "\n};",
+        )
+        found: dict[str, list[str]] = {}
+        for name, rest in re.findall(
+            r'InputCommandBinding\{ "([^"]+)", ([^}]*)\}', table
+        ):
+            found.setdefault(name, []).append(rest)
+        return found
+
+    def test_alice_commands_are_registered_only_for_alice(self) -> None:
+        bindings = self.bindings()
+        enabled = function_body(self.client, "IN_CommandBindingEnabled")
+        self.assertIn(
+            "if ( binding.profile == COM_GAME_ALICE ) return Com_GameIsAlice();",
+            enabled,
+        )
+        self.assertIn(
+            "if ( binding.notAlice && Com_GameIsAlice() ) return false;",
+            enabled,
+        )
+
+        for name, button in (
+            ("attackright", "<0>"),
+            ("attackleft", "<1>"),
+            ("sneak", "<2>"),
+            ("holster", "<4>"),
+        ):
+            for sign in "+-":
+                with self.subTest(command=sign + name):
+                    (entry,) = bindings[sign + name]
+                    self.assertIn(button, entry)
+                    self.assertIn("COM_GAME_ALICE", entry)
+        for sign in "+-":
+            (entry,) = bindings[sign + "cameralook"]
+            self.assertIn("COM_GAME_ALICE", entry)
+            self.assertIn("IN_CameraLook", entry)
+            # Elite Force's +use is button 6 and Alice's button 5; each is gated.
+            uses = bindings[sign + "use"]
+            self.assertEqual(len(uses), 2)
+            self.assertTrue(
+                any("<6>" in u and "COM_GAME_STVEF_MP" in u for u in uses)
+            )
+            self.assertTrue(
+                any("<5>" in u and "COM_GAME_ALICE" in u for u in uses)
+            )
+
+        # Retail registers no +attack and nothing past +button6.
+        for name in ["attack"] + [f"button{i}" for i in range(7, 16)]:
+            for sign in "+-":
+                with self.subTest(command=sign + name):
+                    (entry,) = bindings[sign + name]
+                    self.assertTrue(entry.rstrip().endswith("true"), entry)
+        for i in range(7):
+            (entry,) = bindings[f"+button{i}"]
+            self.assertNotIn("true", entry)
+
+        # +togglemouse holds no state and has no release half.
+        init = function_body(self.client, "CL_InitInput")
+        assert_order(
+            self,
+            init,
+            "if ( alice ) {",
+            'Cmd_AddCommand( "+togglemouse", IN_AliceToggleMouse );',
+            "CL_AliceInitKeyCommands();",
+        )
+        self.assertNotIn("+togglemouse", bindings)
+        self.assertNotIn('"-togglemouse"', self.client)
+
+    def test_alice_builder_adds_no_quake_iii_button_or_sensitivity(self) -> None:
+        buttons = function_body(self.client, "CL_AliceCmdButtons")
+        for forbidden in ("BUTTON_TALK", "BUTTON_ANY", "BUTTON_WALKING"):
+            self.assertNotIn(forbidden, buttons)
+        self.assertIn("fntech3::alice::input::CommandButtons(", buttons)
+        self.assertIn("in_speed.active, cl_run->integer != 0", buttons)
+
+        keys = function_body(self.client, "CL_AliceKeyMove")
+        self.assertNotIn("BUTTON_WALKING", keys)
+        self.assertIn("fntech3::alice::input::KeyMove(", keys)
+
+        mouse = function_body(self.client, "CL_AliceMouseMove")
+        self.assertNotIn("cgameSensitivity", mouse)
+        self.assertNotIn("cl_mouseAccelStyle", mouse)
+        self.assertIn("fntech3::alice::input::MouseMove(", mouse)
+        assert_order(
+            self,
+            mouse,
+            "if ( !result.moved )",
+            "aliceCameraOffset[0]",
+            "aliceCameraOffset[1]",
+            "CL_AddViewAngleDelta( YAW, result.yaw );",
+        )
+
+        create = function_body(self.client, "CL_CreateCmd")
+        assert_order(
+            self,
+            create,
+            "CL_AdjustAngles ();",
+            "if ( Com_GameIsAlice() ) {",
+            "CL_AliceCmdButtons( &cmd );",
+            "CL_AliceKeyMove( &cmd );",
+            "CL_AliceMouseMove( &cmd );",
+            "} else {",
+            "CL_CmdButtons( &cmd );",
+            "CL_JoystickMove( &cmd );",
+            "CL_FinishMove( &cmd );",
+        )
+
+        joystick = function_body(self.client, "CL_JoystickMove")
+        self.assertIn("} else if ( !alice ) {", joystick)
+        assert_order(
+            self, joystick, "} else if ( !alice ) {", "BUTTON_WALKING"
+        )
+
+    def test_alice_cvars_and_camera_import(self) -> None:
+        init = function_body(self.client, "CL_InitInput")
+        self.assertIn("const bool alice = Com_GameIsAlice() != 0;", init)
+        self.assertIn('Cvar_Get( "freelook", "1", CVAR_ARCHIVE )', init)
+        self.assertIn('Cvar_Get( "cl_maxpackets", "30", CVAR_ARCHIVE )', init)
+        self.assertIn(
+            'Cvar_CheckRange( cl_maxpackets, "15", "100", CV_INTEGER );', init
+        )
+        self.assertIn('Cvar_Get( "sensitivity", "5", CVAR_ARCHIVE )', init)
+        self.assertIn('Cvar_Get( "cl_run", "0", CVAR_ARCHIVE )', init)
+        self.assertIn('Cvar_Get( "m_up", "0", CVAR_ARCHIVE )', init)
+        self.assertIn('Cvar_Set( "m_invert_pitch"', init)
+
+        self.assertIn(
+            "float *QDECL CL_AliceGetCameraOffset( qboolean *lookActive, "
+            "qboolean *resetView );",
+            self.header,
+        )
+        camera = function_body(self.client, "CL_AliceGetCameraOffset")
+        assert_order(
+            self,
+            camera,
+            "if ( lookActive )",
+            "in_cameralook.active",
+            "if ( resetView )",
+            "aliceCameraReset = false;",
+            "return aliceCameraOffset;",
+        )
+        center = function_body(self.client, "IN_CenterView")
+        assert_order(
+            self, center, "Com_GameIsAlice()", "aliceCameraReset = true;"
+        )
+
+        mouse = function_body(self.client, "CL_MouseEvent")
+        assert_order(
+            self,
+            mouse,
+            "KEYCATCH_CONSOLE",
+            "KEYCATCH_BROWSER",
+            "Com_GameIsAlice() && aliceCursorMode",
+            "CL_AliceMoveCursor( dx, dy );",
+            "cl.mouseDx[cl.mouseIndex]",
+        )
+
+    def test_alice_key_routing_is_gated(self) -> None:
+        key_down = function_body(self.keys, "CL_KeyDownEvent")
+        assert_order(
+            self,
+            key_down,
+            "anykeydown++;",
+            "Com_GameIsAlice() && CL_AliceKeyFilter( key, qtrue )",
+            "key == K_CONSOLE",
+            "!CL_AliceMenuBoundKey( key )",
+            "cls.state == CA_DISCONNECTED",
+            "CL_AliceMenuBoundKey( key )",
+            "CL_KeyDownBinding( key, time );",
+        )
+        key_up = function_body(self.keys, "CL_KeyUpEvent")
+        assert_order(
+            self,
+            key_up,
+            "if ( wasDown )",
+            "Com_GameIsAlice() && CL_AliceKeyFilter( key, qfalse )",
+            "CL_AliceModifierKeyUp( key, time );",
+            "Key_ParseBinding( key, qfalse, time );",
+        )
+
+        filter_body = function_body(self.keys, "CL_AliceKeyFilter")
+        assert_order(
+            self,
+            filter_body,
+            "key == K_ALT",
+            "cl_altbindings->integer",
+            "key == K_CTRL",
+            "cl_ctrlbindings->integer",
+            "key == '`' || key == '~'",
+            "Con_ToggleConsole_f();",
+            "return true;",
+            "aliceAltKeys[key].pressed = true;",
+            "CL_AliceMouseButtonEvent( key, down )",
+        )
+        self.assertIn(
+            "key >= K_F1 && key <= K_F12",
+            function_body(self.keys, "CL_AliceMenuBoundKey"),
+        )
+        char_event = function_body(self.keys, "CL_CharEvent")
+        self.assertIn(
+            "Com_GameIsAlice() && ( *codepoint == '`' || *codepoint == '~' )",
+            char_event,
+        )
+
+        toggle = function_body(self.keys, "CL_ToggleMenuInternal")
+        assert_order(
+            self,
+            toggle,
+            "KEYCATCH_CONSOLE",
+            "Com_GameIsAlice() && !( Key_GetCatcher( ) & KEYCATCH_UI )",
+            "CL_AliceEscape();",
+            "if ( !uivm )",
+        )
+        # The scripted cinematic's skip is the engine UI's, after the intro's
+        # refusal, the double press and a menu that is up, so a second press
+        # still reaches the menus (CL_KeyEvent 0x00429dbe..0x00429e3c).
+        self.assertNotIn('Cbuf_AddText( "skipcinematic', toggle)
+        assert_order(
+            self,
+            function_body(read_text("code/client/cl_alice_ui.cpp"), "EscapeKey"),
+            "if ( EscapeBlockedByIntro() ) return;",
+            "Now() - lastEscapeTime < 1000 && cls.state != CA_CINEMATIC",
+            "if ( !menuStack.empty() ) {",
+            "cls.state == CA_ACTIVE && ( cl.snap.ps.alice.block[0][5] & 1 )",
+            'Cbuf_AddText( "skipcinematic\\n" );',
+            "cls.state <= CA_DISCONNECTED || cls.state == CA_ACTIVE",
+        )
+
+        init = function_body(self.keys, "CL_AliceInitKeyCommands")
+        for command in (
+            "altbind", "unaltbind", "ctrlbind", "unctrlbind",
+            "altbindlist", "ctrlbindlist",
+        ):
+            self.assertIn(f'Cmd_AddCommand( "{command}",', init)
+        self.assertIn('Cvar_Get( "cl_altbindings", "0", CVAR_ARCHIVE )', init)
+        self.assertIn('Cvar_Get( "cl_ctrlbindings", "0", CVAR_ARCHIVE )', init)
+        writer = function_body(self.keys, "Key_AliceWriteModifierBindings")
+        assert_order(
+            self,
+            writer,
+            '"altbind %s \\"%s\\"" Q_NEWLINE',
+            '"ctrlbind %s \\"%s\\"" Q_NEWLINE',
+        )
+
+    def test_alice_command_movement_crosses_as_forward_right_up(self) -> None:
+        adapter = read_text("code/compat/alice_state_adapter.hpp")
+        shared = read_text("code/qcommon/q_shared.h")
+        for line in (
+            "destination.forwardmove = static_cast<signed char>( source.move[0] );",
+            "destination.rightmove = static_cast<signed char>( source.move[1] );",
+            "destination.upmove = static_cast<signed char>( source.move[2] );",
+            "destination.move[0] = static_cast<std::int8_t>( source.forwardmove );",
+            "destination.move[1] = static_cast<std::int8_t>( source.rightmove );",
+            "destination.move[2] = static_cast<std::int8_t>( source.upmove );",
+        ):
+            self.assertIn(line, adapter)
+        self.assertNotIn("alice.move", adapter)
+        self.assertIn("struct { unsigned char unnamed; } alice;", shared)
+
+    def test_alice_server_thinks_with_the_entity_and_drops_on_error(self) -> None:
+        game = read_text("code/server/server_alice_game.hpp")
+        think = section(game, "case GAME_CLIENT_THINK: {", "return 0;")
+        assert_order(
+            self,
+            think,
+            'SV_AliceClientEntity( clientNum, "ClientThink" )',
+            "FNTECH3_ALICE_EXPORT_ClientThink",
+            "think( entity, SV_AliceClientCommand( clientNum ) );",
+            "SV_AliceCheckErrorMessage();",
+        )
+        check = function_body(game, "SV_AliceCheckErrorMessage")
+        assert_order(
+            self,
+            check,
+            "FNTECH3_ALICE_EXPORT_error_message",
+            "slot = 0;",
+            "Q_strncpyz( text, message",
+            'Com_Error( ERR_DROP, "%s", text );',
+        )
+        begin = section(game, "case GAME_CLIENT_BEGIN: {", "return 0;")
+        self.assertIn("begin( entity, SV_AliceClientCommand( clientNum ) );", begin)
+        self.assertNotIn("begin( clientNum", begin)
+
+        user_move = section(
+            read_text("code/server/sv_client.cpp"),
+            "static void SV_UserMove",
+            "SV_ExecuteClientMessage",
+        )
+        self.assertIn(
+            "cl->netchan.wireProfile != NETCHAN_WIRE_ALICE", user_move
         )
 
 

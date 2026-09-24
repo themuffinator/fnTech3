@@ -1,0 +1,217 @@
+{
+ "date": "2026-09-21",
+ "scope": "Native IHV server client records: bot lifecycle, bot scheduling, userinfo update and snapshot history getters. Full IHV support remains incomplete.",
+ "commit": "9e1841de53d79f96cdbbde83a1427d1c7d83f31d",
+ "working_tree": "Uncommitted bot client records; earlier IHV/Q3 changes and unrelated work remain present.",
+ "reference": {
+  "repository": "https://github.com/themuffinator/Quake3-IHV/tree/d5ce877155904c57f8b28fe0fd0c8aa2e9473337",
+  "inputs": [
+   {
+    "path": "E:\\Repositories\\Quake3-IHV\\ref\\install\\quake3.exe",
+    "bytes": 725042,
+    "sha256": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37"
+   }
+  ],
+  "note": "Only the observed code pages plus the original read-only and initialized data sections are mapped. No original entry point, filesystem, display, input, audio or network service starts, and no original module or asset is incorporated into fnTech3."
+ },
+ "original_functions": {
+  "BotAllocateClient": "0x417640",
+  "BotFreeClient": "0x4176e0",
+  "BotSetUserinfo": "0x417720",
+  "BotClientStep": "0x417780",
+  "BotFrame": "0x4177e0",
+  "SV_UserinfoChanged": "0x418ab0",
+  "SnapshotEntityCount": "0x41b370",
+  "SnapshotEntityNumber": "0x41b3b0",
+  "bot_frame_call_site": "0x41ac3d",
+  "client_array_allocation": "0x419710",
+  "snapshot_ring_allocation": "0x419737",
+  "snapshot_builder": "0x41b210..0x41b368"
+ },
+ "observations": {
+  "client_states": {
+   "free": 0,
+   "zombie": 1,
+   "connected": 2,
+   "active": 4
+  },
+  "client_stride": "0xee18",
+  "client_fields": {
+   "state": "0x0",
+   "userinfo": "0x4",
+   "gentity": "0x410",
+   "name": "0x414",
+   "last_packet_time": "0x444",
+   "frames": "0x458",
+   "frame_stride": "0x14c",
+   "frame_count": "0x590",
+   "frame_first_entity": "0x594",
+   "outgoing_sequence": "0x2e18",
+   "rate": "0x2ddc",
+   "snapshot_msec": "0x2de0",
+   "message": "0x6e18",
+   "message_data": "0x6e34",
+   "message_capacity": "0x3ff0"
+  },
+  "entity_for_slot": "slot + 1",
+  "snapshot_frames": 32,
+  "snapshot_ring_capacity": "maxclients * 2048 native entity states of 164 bytes",
+  "snapshot_ring_index": "signed remainder of the frame first entity plus the index",
+  "userinfo_copy_limit": 1023,
+  "name_copy_limit": 31,
+  "copy_routine": "strncpy: pads with NUL and leaves a full-length value unterminated",
+  "rate": {
+   "empty": 5000,
+   "minimum": 100,
+   "maximum": 15000
+  },
+  "snaps": {
+   "empty": 50,
+   "divisor": 1000,
+   "minimum": 1,
+   "maximum": 30
+  },
+  "bot_flag": "svFlags 0x8",
+  "scheduler_order": "server time advances, then the bot scheduler with that step, then RunFrame",
+  "scheduler_selection": "every slot holding an entity association whose entity carries the bot flag",
+  "released_bot": "zombie state and cleared name; the entity association and userinfo remain"
+ },
+ "comparison": {
+  "probe": "tests/q3_ihv_reference_bot_client_probe.cpp",
+  "command": "cl /nologo /EHsc /W4 /WX /MD /O2 /std:c++17 tests/q3_ihv_reference_bot_client_probe.cpp /Fe:.tmp/q3-ihv/reference-bot-client-probe.exe /Fo:.tmp/q3-ihv/reference-bot-client-probe.obj /link /BASE:0x400000 /DYNAMICBASE:NO /SECTION:.ihv,ERW /MANIFEST:EMBED \"/MANIFESTUAC:level='asInvoker' uiAccess='false'\" advapi32.lib",
+  "run": ".tmp/q3-ihv/reference-bot-client-probe.exe E:/Repositories/Quake3-IHV/ref/install/quake3.exe",
+  "result": {
+   "scope": "original bot imports, scheduler, userinfo update and snapshot getters against fntech3 native client records; no original engine startup",
+   "allocations": 11,
+   "frame_steps": 33,
+   "userinfo_cases": 12,
+   "snapshot_getters": 6528,
+   "digest": "35b3b922bb1be73c"
+  },
+  "passed": true
+ },
+ "fntech3_boundaries": [
+  "The slot comes from the bounded entity array; a module whose published entity number contradicts its position is rejected instead of indexing the client array with it.",
+  "A snapshot index outside the frame count, and a ring remainder that would address below the ring, are refused rather than read.",
+  "Stored userinfo and names keep the original characters and are always terminated.",
+  "A missing BotBegin, BotThink or ClientUserinfoChanged export fails explicitly."
+ ],
+ "gates": {
+  "default_startup": "blocked",
+  "client_startup": "blocked",
+  "dedicated_developer": "Windows x86 only",
+  "network_dispatch": "blocked before retail parsing",
+  "native_bot_lifecycle": "implemented",
+  "native_bot_scheduling": "implemented",
+  "native_snapshot_history": "implemented",
+  "native_snapshot_builder": "open",
+  "native_clients": "open",
+  "gameplay": "open",
+  "rendered_native_demos": "open",
+  "audio_input": "open",
+  "bidirectional_interop": "open"
+ },
+ "checks": {
+  "unit_tests": [
+   "fntech3_q3_ihv_game_bridge",
+   "fntech3_q3_ihv_native_boundary"
+  ],
+  "default_build": "meson compile -C meson/build/win32",
+  "development_build": "meson setup meson/build/win32-ihv -Dq3-ihv-development=true; meson compile",
+  "suite": [
+   "Ok:                131",
+   "Fail:              1",
+   "Skipped:           2"
+  ],
+  "suite_targets": [
+   "22/134 fnTech3:fntech3_q3_ihv_game_data              OK               2.56s",
+   "23/134 fnTech3:fntech3_q3_ihv_game_bridge            OK               2.39s",
+   "75/134 fnTech3:fntech3_q3_ihv_native_boundary        OK               9.54s",
+   "76/134 fnTech3:fntech3_q3_ihv_wire                   OK               9.53s",
+   "77/134 fnTech3:fntech3_q3_ihv_message                OK               8.81s",
+   "78/134 fnTech3:fntech3_q3_ihv_configstrings          OK               7.41s",
+   "79/134 fnTech3:fntech3_q3_ihv_client_data            OK               6.25s",
+   "80/134 fnTech3:fntech3_q3_ihv_model_tags             OK               5.11s",
+   "81/134 fnTech3:fntech3_q3_ihv_scene                  OK               4.68s",
+   "82/134 fnTech3:fntech3_q3_ihv_identity               OK               3.96s",
+   "83/134 fnTech3:fntech3_q3_ihv_collision              OK               3.78s",
+   "134/134 fnTech3:fnql_python_source_regressions        FAIL           800.99s   exit status 1",
+   "134/134 fnTech3:fnql_python_source_regressions        FAIL           800.99s   exit status 1"
+  ],
+  "concurrent_working_tree": "Another session was adding a sixth game title (COM_GAME_TITLE_JKA) to code/qcommon/game_profile.{h,cpp}, code/qcommon/jka_install.hpp, code/client/cl_main.cpp, code/platform/game_icon.hpp, code/qcommon/common.c and meson.build during this run, without updating tests/game_profile_tests.cpp, whose TestManager still asserts five titles. Every fnql_python_source_regressions failure and error in this run belongs to that work (release packaging, x86 build constraints, server cache, WolfET downloads, RTCW collision model and RTCW development profile). No IHV test failed, and the immediately preceding run of the same suite, before these bot client changes, passed 132 targets with no failures."
+ },
+ "sources": [
+  {
+   "path": "code\\compat\\q3_ihv_server_clients.hpp",
+   "bytes": 10362,
+   "sha256": "3c5d9f68cb76b40a009fdd4c43dcd9988e4fb98eac47a60fdf2d467506962ee8"
+  },
+  {
+   "path": "code\\compat\\q3_ihv_native_boundary.hpp",
+   "bytes": 9724,
+   "sha256": "a7cf388cb3cf4b4a531d9c78d8918ce9555cc14fd6870d47f2a8838264c4f5cb"
+  },
+  {
+   "path": "code\\compat\\q3_ihv_game_abi.h",
+   "bytes": 8088,
+   "sha256": "4f0ee04d49a3b5a3c95e001362f4ba629f39a5915feab61266b905ef623c6028"
+  },
+  {
+   "path": "code\\server\\server_q3_ihv_game.hpp",
+   "bytes": 20458,
+   "sha256": "c2020e11fe4d4bf41fe5374d93e3eb48b2d8af7550a28a18fa1c5cdf40ef70b0"
+  },
+  {
+   "path": "code\\server\\sv_bot.cpp",
+   "bytes": 20061,
+   "sha256": "41569bd3d5bd2528099cdca1792bae2762868e9e4702d23ce2352f8197c663be"
+  },
+  {
+   "path": "code\\server\\sv_main.cpp",
+   "bytes": 52849,
+   "sha256": "c247f5fefedf4c5b48409546e488464225be8b2cd6a10b51c5f9879c3e39d3fb"
+  },
+  {
+   "path": "code\\qcommon\\game_profile.cpp",
+   "bytes": 46511,
+   "sha256": "129b3a079529f46608f5bb6179893619f6f4c2b30ae75805e953aef7e5f4060b"
+  },
+  {
+   "path": "tests\\q3_ihv_game_bridge_tests.cpp",
+   "bytes": 24595,
+   "sha256": "82b79671cdcff7f898394aeba8580df537480267711139a839a67a1804d8ebf5"
+  },
+  {
+   "path": "tests\\q3_ihv_native_boundary_tests.cpp",
+   "bytes": 16023,
+   "sha256": "221c45bf04f9a8dd1ff565e808cf68803be49829ca817e2bfe0732b457e75957"
+  },
+  {
+   "path": "tests\\q3_ihv_reference_bot_client_probe.cpp",
+   "bytes": 16034,
+   "sha256": "d21e523003e2f720ca35a1a87acc31654b29a1c3b28e3a37c426ddeb6470b8c3"
+  },
+  {
+   "path": "meson.build",
+   "bytes": 66306,
+   "sha256": "fa940e5668f4eac57ffd481345ecb2633c6ab9e30e04077096923bff7e47b90e"
+  }
+ ],
+ "limitations": [
+  "No native snapshot builder fills the history, so every frame count is zero on a dedicated IHV server and a bot observes no entities.",
+  "These comparisons use synthetic client arrays and rings. No original engine session, map, game module or network transport is started by this probe.",
+  "Connected native clients, ClientBegin, ClientThink, the handshake and bidirectional sessions remain unimplemented."
+ ],
+ "artifacts": [
+  ".tmp/q3-ihv/reference-bot-clients.json",
+  ".tmp/q3-ihv/bot-clients-default-build.log",
+  ".tmp/q3-ihv/bot-clients-development-build.log",
+  ".tmp/q3-ihv/bot-clients-full-suite.log"
+ ],
+ "documentation": [
+  "docs/fntech3/Q3_IHV.md",
+  "docs/fntech3/COMPATIBILITY.md",
+  "CHANGELOG.md"
+ ],
+ "follow_up": "docs/fntech3/2026-09-21-q3-ihv-snapshots.json implements the native snapshot builder this record lists as open, so the frame counts it describes as always zero are now filled for active clients."
+}

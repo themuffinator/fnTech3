@@ -709,7 +709,10 @@ static void RB_BeginDrawingView( void ) {
 	SetViewportAndScissor();
 
 #ifdef USE_VULKAN
-	vk_clear_depth( qtrue );
+	// Alice's keepDepth leaves the depth buffer as it is (0x00486366).
+	if ( !( ri.gameId == COM_GAME_ALICE && backEnd.refdef.alice.keepDepth ) ) {
+		vk_clear_depth( qtrue );
+	}
 	{
 		vec4_t color;
 		if ( RB_WolfETGlobalFogClearColor( color ) ) {
@@ -720,6 +723,16 @@ static void RB_BeginDrawingView( void ) {
 			for ( channel = 0; channel < 3; ++channel )
 				color[channel] = Com_Clamp( 0, 1, backEnd.refdef.rtcwFog.fog.color[channel] );
 			color[3] = 1;
+			vk_clear_color( color );
+		} else if ( ri.gameId == COM_GAME_ALICE && backEnd.viewParms.aliceFarDistance != 0.0f &&
+			!backEnd.viewParms.aliceSkyPortalDrawn && !( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) ) {
+			// Alice clears a world view with a far plane to its fog colour,
+			// unless its sky portal was drawn into the frame first (alice.exe
+			// 0x00486396..0x004863ff)
+			int channel;
+			for ( channel = 0; channel < 3; ++channel )
+				color[channel] = Com_Clamp( 0, 1, backEnd.viewParms.aliceFarColor[channel] * tr.identityLight );
+			color[3] = 0;
 			vk_clear_color( color );
 		}
 	}
@@ -4099,6 +4112,10 @@ static const void *RB_DrawSurfs( const void *data ) {
 	// add light flares on lights that aren't obscured
 	RB_RenderFlares();
 
+	// Alice's lens flares follow Quake III's at the end of each view
+	// (alice.exe 0x00486888)
+	RB_AliceLensFlares();
+
 #ifdef USE_PMLIGHT
 	if ( backEnd.refdef.numLitSurfs && backEnd.viewParms.num_dlights ) {
 		RB_BeginDrawingLitSurfs();
@@ -4557,6 +4574,110 @@ static const void *RB_SwapBuffers( const void *data ) {
 
 
 /*
+=============
+RB_AliceDebugLines
+
+American McGee's Alice's R_DrawDebugLines (alice.exe 0x004767a0), run right
+after the world view the lines were queued with: world-space lines in that
+view's matrices, each in its own colour over white. r_debuglines_depthmask
+writes depth and pulls them to the front of the depth range (GL state 0x300
+and glDepthRange( 0, 0 )); otherwise they are depth tested without writing
+(0x200). r_stipplelines applies each line's stipple and width, switching
+only when they change (0x004768ad..0x004768fe). A width needs the device's
+wideLines feature and a stipple its stippled VK_EXT_line_rasterization lines;
+without them the lines are one pixel wide or solid (vk.c says which).
+=============
+*/
+const void *RB_AliceDebugLines( const void *data ) {
+	const aliceDebugLinesCommand_t *cmd = (const aliceDebugLinesCommand_t *)data;
+	const aliceDebugLine_t *lines = (const aliceDebugLine_t *)( cmd + 1 );
+	const void *next = (const void *)( (const byte *)data + cmd->commandBytes );
+	const qboolean depthMask = r_debuglines_depthmask && r_debuglines_depthmask->integer ? qtrue : qfalse;
+	const qboolean stipple = r_stipplelines && r_stipplelines->integer ? qtrue : qfalse;
+	const int maxLines = SHADER_MAX_VERTEXES / 2;
+	vkUniform_t lineUniform;
+	uint32_t pipeline;
+	int first, i;
+
+	RB_EndSurface();
+#ifdef USE_VBO
+	VBO_UnBind();
+#endif
+	if ( cmd->numLines <= 0 || cmd->numLines > ALICE_MAX_DEBUG_LINES || !vk.active ||
+		( vk.renderPassIndex != RENDER_PASS_MAIN && vk.renderPassIndex != RENDER_PASS_POST_BLOOM ) ) {
+		return next;
+	}
+
+	backEnd.projection2D = qfalse;
+	backEnd.currentEntity = &tr.worldEntity;
+	backEnd.or = backEnd.viewParms.world;
+	SetViewportAndScissor();
+	Com_Memcpy( vk_world.modelview_transform, backEnd.or.modelMatrix, 64 );
+	vk_update_mvp( NULL );
+
+	// white texture, no fog of any kind
+	Com_Memset( &lineUniform, 0, sizeof( lineUniform ) );
+	lineUniform.texFactors[0] = 1.0f;
+	if ( VK_PushUniform( &lineUniform ) == ~0U ) {
+		return next;
+	}
+	GL_SelectTexture( 0 );
+	GL_Bind( tr.whiteImage );
+	pipeline = vk_alice_debug_line_pipeline( depthMask, stipple );
+
+	for ( first = 0; first < cmd->numLines; ) {
+		int count = 1;
+		if ( stipple ) {
+			// a run of lines sharing one width and stipple
+			while ( first + count < cmd->numLines && count < maxLines &&
+				lines[first + count].width == lines[first].width &&
+				lines[first + count].factor == lines[first].factor &&
+				lines[first + count].pattern == lines[first].pattern ) {
+				count++;
+			}
+		} else {
+			count = cmd->numLines - first;
+			if ( count > maxLines ) {
+				count = maxLines;
+			}
+		}
+		for ( i = 0; i < count; i++ ) {
+			const aliceDebugLine_t *line = &lines[first + i];
+			color4ub_t color;
+			int channel;
+			for ( channel = 0; channel < 3; channel++ ) {
+				const float value = line->color[channel] * 255.0f;
+				color.rgba[channel] = !( value > 0.0f ) ? 0 : value >= 255.0f ? 255 : (byte)value;
+			}
+			{
+				const float value = line->alpha * 255.0f;
+				color.rgba[3] = !( value > 0.0f ) ? 0 : value >= 255.0f ? 255 : (byte)value;
+			}
+			VectorCopy( line->start, tess.xyz[i * 2] );
+			VectorCopy( line->end, tess.xyz[i * 2 + 1] );
+			tess.svars.colors[0][i * 2] = color;
+			tess.svars.colors[0][i * 2 + 1] = color;
+			tess.svars.texcoords[0][i * 2][0] = tess.svars.texcoords[0][i * 2][1] = 0.0f;
+			tess.svars.texcoords[0][i * 2 + 1][0] = tess.svars.texcoords[0][i * 2 + 1][1] = 0.0f;
+		}
+		tess.numVertexes = count * 2;
+		tess.numIndexes = 0;
+		tess.svars.texcoordPtr[0] = tess.svars.texcoords[0];
+
+		vk_bind_pipeline( pipeline );
+		vk_set_alice_debug_line_state( stipple ? lines[first].width : 1.0f,
+			lines[first].factor, lines[first].pattern, stipple );
+		vk_bind_geometry( TESS_XYZ | TESS_RGBA0 | TESS_ST0 );
+		vk_draw_geometry( depthMask ? DEPTH_RANGE_ZERO : DEPTH_RANGE_NORMAL, qfalse );
+		first += count;
+	}
+	tess.numVertexes = 0;
+
+	return next;
+}
+
+
+/*
 ====================
 RB_ExecuteRenderCommands
 ====================
@@ -4604,6 +4725,9 @@ void RB_ExecuteRenderCommands( const void *data ) {
 			break;
 		case RC_CLEARCOLOR:
 			data = RB_ClearColor(data);
+			break;
+		case RC_ALICE_DEBUG_LINES:
+			data = RB_AliceDebugLines( data );
 			break;
 		case RC_END_OF_LIST:
 		default:

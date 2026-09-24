@@ -30,6 +30,7 @@ int main(){
   for(int capacity:{0,-1,INT_MIN})assert(AAS_TraceAreas(nullptr,nullptr,nullptr,nullptr,capacity)==0);
   if(!Com_GameIsRTCW()){
    intptr_t result=79;assert(!SV_RTCWAASQueryCall(nullptr,Call::BOTLIB_AAS_TRACE_AREAS,nullptr,result)&&result==79);
+   if(!p.bots.navigationWorlds)continue; // IHV has no retail AAS world.
    loadWorld(0,0);vec3_t start{-20,3,7},end{20,9,11},points[3]{};int areas[3]{-1,-1,-1};
    assert(AAS_TraceAreas(start,end,areas,points,3)==2&&areas[0]==2&&areas[1]==1&&areas[2]==-1);
    assert(points[0][0]==-20&&points[1][0]==0&&points[1][1]==6&&points[1][2]==9);

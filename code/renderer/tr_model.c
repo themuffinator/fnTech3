@@ -316,6 +316,11 @@ qhandle_t RE_RegisterModel( const char *name ) {
 
 	mod->type = MOD_BAD;
 	mod->numLods = 0;
+	/* Original 0x43c810 recognizes this exact special name before inline models. */
+	if ( ri.gameId == COM_GAME_QUAKE3_IHV && !strcmp( name, "*beam" ) ) {
+		mod->type = MOD_IHV_BEAM;
+		return mod->index;
+	}
 
 	//
 	// load the files
@@ -335,6 +340,18 @@ qhandle_t RE_RegisterModel( const char *name ) {
 		COM_StripExtension( name, altName, sizeof( altName ) );
 		Q_strcat( altName, sizeof( altName ), ".md3" );
 		return R_RegisterMD3( altName, mod );
+	}
+
+	/* American McGee's Alice names two kinds of model Quake III has no
+	 * loader for: a model definition, which the engine loads and shares, and
+	 * a sprite, which is a shader of the same name. */
+	if ( ri.gameId == COM_GAME_ALICE ) {
+		if ( !Q_stricmp( ext, "tik" ) ) {
+			return R_LoadAliceTiki( mod, name ) ? mod->index : 0;
+		}
+		if ( !Q_stricmp( ext, "spr" ) ) {
+			return R_LoadAliceSprite( mod, name ) ? mod->index : 0;
+		}
 	}
 
 	if( *ext )
@@ -1212,6 +1229,9 @@ void R_ModelBounds( qhandle_t handle, vec3_t mins, vec3_t maxs ) {
 		VectorCopy( model->bmodel->bounds[0], mins );
 		VectorCopy( model->bmodel->bounds[1], maxs );
 		
+		return;
+	} else if ( model->type == MOD_ALICE_TIKI || model->type == MOD_ALICE_SPRITE ) {
+		R_AliceModelBounds( model, mins, maxs );
 		return;
 	} else if ( model->type == MOD_MDS ) {
 		VectorCopy( model->mds->frames[0].bounds[0], mins );

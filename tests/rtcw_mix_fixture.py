@@ -11,6 +11,8 @@ def mixer():
         'static void S_PaintChannelFromMuLaw(', 'extern "C" void S_PaintChannels('))
     return COMMON + r'''
 #include <climits>
+// The painter reads American McGee's Alice's loop blocks; these probes never set one.
+#include "code/client/audio/shared/AliceSound.h"
 constexpr int PAINTBUFFER_SIZE=8,MAX_CHANNELS=96,SND_CHUNK_SIZE=8,SND_CHUNK_SIZE_FLOAT=4;
 struct portable_samplepair_t {int left=0,right=0;};
 static void S_PaintRTCWEntityStreams(int,int,portable_samplepair_t *){}
@@ -25,7 +27,7 @@ static byte hardware[128],secondary[128];static byte *dma_buffer2=secondary;
 static struct {byte *buffer=hardware;int samples=64,samplebits=16,speed=48000;} dma;
 struct sndBuffer {short sndChunk[SND_CHUNK_SIZE]{};sndBuffer *next=nullptr;};
 struct sfx_t {sndBuffer *soundData=nullptr;int soundLength=0,soundChannels=1,soundCompressionMethod=0;};
-struct channel_t {int leftvol=0,rightvol=0,startSample=0;bool doppler=false;float dopplerScale=1,oldDopplerScale=1;sfx_t *thesfx=nullptr;};
+struct channel_t {int leftvol=0,rightvol=0,startSample=0;bool doppler=false;float dopplerScale=1,oldDopplerScale=1;sfx_t *thesfx=nullptr;int loopBlockStart=0,loopBlockEnd=0;};
 static channel_t s_channels[MAX_CHANNELS],loop_channels[MAX_CHANNELS];static int numLoopChannels=0;
 static short sfxScratchBuffer[SND_CHUNK_SIZE*4],mulawToShort[256];
 static int sfxScratchIndex=-1;static sfx_t *sfxScratchPointer=nullptr;

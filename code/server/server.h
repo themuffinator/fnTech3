@@ -64,7 +64,8 @@ typedef enum {
 #define NUM_SNAPSHOT_FRAMES (PACKET_BACKUP*4)
 
 // ET's server can select every entity; its separate cgame snapshot POD has 512
-// slots. Other profiles retain their existing 256-entity selection limit.
+// slots. Alice's selects up to 1,024, as retail's does (server_alice_snapshot.hpp).
+// Other profiles retain their existing 256-entity selection limit.
 #define MAX_SERVER_SNAPSHOT_ENTITIES MAX_GENTITIES
 
 typedef struct snapshotFrame_s {
@@ -84,6 +85,7 @@ typedef struct {
 	int				checksumFeed;		// the feed key that we use to compute the pure checksum strings
 	int				checksumFeedServerId; // RTCW MP retains this across fast map restarts
 	int				snapshotCounter;	// incremented for each snapshot built
+	int				configstringSequence;	// IHV: bumped by every configstring change (0x41964a)
 	int				timeResidual;		// <= 1000 / sv_frame->value
 	char			*configstrings[MAX_GAME_CONFIGSTRINGS];
 	svEntity_t		svEntities[MAX_GENTITIES];
@@ -102,6 +104,14 @@ typedef struct {
 	int				time;
 
 	byte			baselineUsed[ MAX_GENTITIES ];
+
+	// American McGee's Alice's far plane as its SetFarPlane import stores it
+	// (0x004537d0: the distance plus 32, squared, or zero) and its sky portal
+	// switch (SetSkyPortal, 0x00453800). Retail keeps both in its server
+	// state, which every spawn clears (0x00455190), and its snapshot walk
+	// reads them (server_alice_snapshot.hpp).
+	int				aliceFarPlane;
+	qboolean		aliceSkyPortal;
 } server_t;
 
 typedef struct {
@@ -253,6 +263,14 @@ typedef struct client_s {
 	char			demoRecordName[MAX_OSPATH]; // without extension
 	qboolean		demoRecordHasSnapshot;
 	int				demoRecordServerId;
+
+	// American McGee's Alice: what the game queued for this client since its
+	// last snapshot -- sounds, and one centre or located print.
+	aliceServerSound_t	aliceSounds[ALICE_MAX_SERVER_SOUNDS];
+	int				aliceNumSounds;
+	char			aliceCenterPrint[256];
+	qboolean		aliceLocationPrint;
+	int				aliceLocationX, aliceLocationY;
 
 } client_t;
 
@@ -445,6 +463,7 @@ qboolean Zmq_RconActive( void );
 // sv_init.cpp
 //
 void SV_SetConfigstring( int index, const char *val );
+void SV_UpdateSysteminfoConfigstring( void );
 void SV_GetConfigstring( int index, char *buffer, int bufferSize );
 void SV_UpdateConfigstrings( client_t *client );
 void SV_UpdateQLCvarConfigstrings( qboolean force );
@@ -497,6 +516,30 @@ void SV_ClientEnterWorld( client_t *client, const usercmd_t *cmd );
 void SV_STVEFSPAddCommands( void );
 void SV_STVEFSPEnteredWorld( void );
 void SV_STVEFSPTestSave( void );
+/* American McGee's Alice's map, level-change and savegame commands, and the
+ * steps of its level spawn that differ from Quake III's
+ * (server_alice_save.hpp): the `$` split and `nextmap`, the model cache
+ * flush, a load's level clock, the level read back or spawned fresh, the
+ * three settle frames, and the archive name reset at the end. */
+void SV_AliceAddCommands( void );
+const char *SV_AlicePrepareSpawn( const char *server, char *bsp, int size );
+void SV_AliceFlushModels( void );
+void SV_AliceRestoreLevelTime( void );
+qboolean SV_AliceSpawnLevel( void );
+void SV_AliceSettle( qboolean restored );
+void SV_AliceSpawnDone( void );
+/* The configstrings a load of the running level keeps across its spawn,
+ * put back once the spawn has cleared the server state. */
+void SV_AliceRestoreConfigstrings( void );
+/* The raw 732-byte record of one of Alice's entities, bounded by the arena
+ * its game module published, or null (server_alice_game.hpp); the snapshot
+ * walk reads and writes it as retail's does. */
+unsigned char *SV_AliceGameEntity( int number );
+/* Quake III IHV builds its own native snapshots for its own client
+ * records (server_q3_ihv_game.hpp); its clients are not retail clients. */
+void SV_IHVServerFrame( void );
+void SV_IHVServerBaselines( void );
+int SV_IHVServerSnapshotMessage( int slot, void *buffer, int capacity );
 void SV_FreeClient( client_t *client );
 void SV_DropClient( client_t *drop, const char *reason );
 void SV_StartDemoRecord( client_t *client );
@@ -629,6 +672,10 @@ void SV_LinkEntity( sharedEntity_t *ent );
 // sets ent->leafnums[] for pvs determination even if the entity
 // is not solid
 
+int SV_LinkEntityClusters( svEntity_t *ent, const vec3_t absmin, const vec3_t absmax, int number );
+// the areas and PVS clusters an absolute box touches, as linking records
+// them for the snapshot walk; returns the leafs reached, zero outside the world
+
 
 clipHandle_t SV_ClipHandleForEntity( const sharedEntity_t *ent, qboolean capsule );
 
@@ -687,7 +734,9 @@ void SV_AddFilterCmd_f( void );
 #include <array>
 #include <cstddef>
 #include <cstdlib>
+#include <cstring>
 #include <limits>
+#include <type_traits>
 #include <utility>
 
 static inline qboolean SV_QBool( bool value ) {
@@ -705,6 +754,14 @@ static inline int SV_ClientIndex( const client_t *client ) {
 static inline int SV_SvEntityIndex( const svEntity_t *entity ) {
 	return static_cast<int>( entity - sv.svEntities );
 }
+
+/* A delta writer or reader refuses a wire profile for two different reasons,
+ * and they want different answers. Either the profile is not registered at
+ * all, which is a bad number; or it is registered and this engine has no
+ * field tables for the game-message layout its contract names, which is a gap
+ * and has nothing to do with the number. Saying which saves the next reader
+ * from checking a number that was never wrong. */
+void SV_ErrorForWireProfile( const char *where, netchanWireProfile_t profile );
 
 /* Elite Force Holomatch frames messages as Quake III 1.17 did: raw bits from
  * the first byte, the reliable acknowledgement inside each snapshot, a zero
@@ -756,6 +813,17 @@ static inline SV_IndexRange SV_Indices( int first, int last ) {
 
 static inline client_t &SV_ClientForIndex( int clientNum ) {
 	return svs.clients[clientNum];
+}
+
+// Clear a client slot in place. client_t is over 500 KB, and MSVC builds
+// `client = {}` as a whole temporary on the caller's stack, even at /O2; two
+// such frames nested (SV_ChangeMaxClients calling SV_AllocClients) overran
+// the 1 MB main thread stack. For a trivial type, zeroing every byte gives
+// the value `{}` does.
+static inline void SV_ClearClient( client_t &client ) {
+	static_assert( std::is_trivial<client_t>::value,
+		"client_t must stay trivial for SV_ClearClient to value-initialize it" );
+	std::memset( &client, 0, sizeof( client ) );
 }
 
 static inline client_t *SV_ClientBegin( void ) {

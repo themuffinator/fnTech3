@@ -36,7 +36,7 @@ class RTCWJumpRunstartTests(unittest.TestCase):
 
     def test_normalization_slime_water_lava_fall_damage_and_profile_controls(self):
         self.run_source(r'''
-int main(){for(const auto &p:profiles){profile=&p;travelSetup();const bool rtcw=Com_GameIsRTCW();
+int main(){for(const auto &p:profiles){profile=&p;if(!p.bots.navigationWorlds)continue;travelSetup();const bool rtcw=Com_GameIsRTCW();
  auto reach=link(3,4,7,6,8,20);vec3_t out{};predicted={};VectorSet(predicted.endpos,70,80,90);
  for(int event:{0,SE_ENTERWATER,SE_ENTERSLIME,SE_ENTERLAVA,SE_HITGROUNDDAMAGE,SE_GAP,SE_ENTERSLIME|SE_ENTERLAVA}){
   predicted.stopevent=event;predictionCalls=0;AAS_JumpReachRunStart(&reach,out);
@@ -51,7 +51,7 @@ int main(){for(const auto &p:profiles){profile=&p;travelSetup();const bool rtcw=
 
     def test_failure_preserves_private_output_and_stops_jump_actions(self):
         self.run_source(r'''
-int main(){for(const auto &p:profiles){profile=&p;auto *ms=travelSetup();if(!Com_GameIsRTCW()){travelFinish();continue;}
+int main(){for(const auto &p:profiles){profile=&p;if(!p.bots.navigationWorlds)continue;auto *ms=travelSetup();if(!Com_GameIsRTCW()){travelFinish();continue;}
  auto reach=link(3,4,7,6,8,20);predicted={};VectorSet(predicted.endpos,70,80,90);predictionResult=0;
  vec3_t out{11,13,17},before{11,13,17};predictionCalls=0;
  assert(!AAS_RTCWJumpReachRunStart(reach.start,reach.end,out)&&!memcmp(out,before,12)&&predictionCalls==1);
@@ -75,7 +75,7 @@ int main(){for(const auto &p:profiles){profile=&p;auto *ms=travelSetup();if(!Com
 
     def test_real_prediction_partial_shutdown_and_horizontal_velocity(self):
         self.run_source(r'''
-int main(){for(const auto &p:profiles){profile=&p;travelSetup();auto reach=link(3,4,1,40,80,1);vec3_t out{7,8,9};
+int main(){for(const auto &p:profiles){profile=&p;if(!p.bots.navigationWorlds)continue;travelSetup();auto reach=link(3,4,1,40,80,1);vec3_t out{7,8,9};
  if(Com_GameIsRTCW()){
   assert(AAS_RTCWJumpReachRunStart(reach.start,reach.end,out));
   assert(fntech3::rtcw::movement::Position(out)&&out[0]<reach.start[0]&&out[1]<reach.start[1]);

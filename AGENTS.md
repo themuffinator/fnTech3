@@ -10,14 +10,36 @@ RTCW is one title with two mode profiles using the same executable.
 Wolfenstein: Enemy Territory (`wolfet`) is a fourth title and fifth profile.
 Star Trek Voyager: Elite Force is a fifth title with two mode profiles, single
 player (`stvef-sp`) and Holomatch (`stvef-mp`), sharing one installation.
+The February 1999 Quake III IHV Test has a separate eighth profile (`q3-ihv`)
+under the Quake III title; its native modules and protocol 33 are not retail Q3.
+Star Wars Jedi Knight: Jedi Academy is a sixth title with the ninth and tenth
+profiles, single player (`jka-sp`) and multiplayer (`jka-mp`), sharing one
+`base/` installation. Star Wars Jedi Knight II: Jedi Outcast is a seventh
+title with the eleventh and twelfth profiles, `jk2-sp` and `jk2-mp`, sharing
+one `base/` installation as well. American McGee's Alice is an eighth title
+with the thirteenth profile, `alice`, and one mode. Alice is the only title
+outside the Quake III line: it runs Ritual Entertainment's Heavy Metal:
+F.A.K.K.2 engine, so its map, model, module, wire and audio contracts are
+Ritual's rather than id's and almost nothing shared applies to it unchanged.
 
 Q3 and QL are enabled; RTCW remains experimental and gated in default builds,
 with `-Drtcw-development=true` enabling isolated development probes. ET is also
 gated; developer builds (`-Dwolfet-development=true`) run its client and server
 for isolated probes; release builds still refuse both. Elite Force is gated too;
-`-Dstvef-development=true` enables its isolated probes. The unified goal is not
-complete until all seven profiles pass their applicable module ABI,
-network, demo, filesystem, asset, renderer, audio/input, gameplay, and
+`-Dstvef-development=true` enables its isolated probes.
+IHV remains gated by default; `-Dq3-ihv-development=true` permits Windows x86
+dedicated native-game probes only. Its client and network paths remain blocked.
+Jedi Academy is gated too: `-Djka-development=true` enables its isolated
+probes, as `-Djk2-development=true` enables Jedi Outcast's. For each of these,
+a developer server activates the profile on a legitimate installation, mounts
+its paks and loads a retail map's collision, then refuses the module boundary
+by name. Neither has a module, wire, savegame or renderer boundary yet.
+Alice is gated as well: developer builds (`-Dalice-development=true`) run its
+retail game and client modules, wire, demos, savegames, audio and renderers
+for isolated probes, while its compatibility gates remain open and default
+builds refuse it.
+The unified goal is not complete until all thirteen profiles pass their applicable
+module ABI, network, demo, filesystem, asset, renderer, audio/input, gameplay, and
 live-interoperability gates, including RTCW SP campaign/savegame behavior, in
 [`docs/fntech3/COMPATIBILITY.md`](docs/fntech3/COMPATIBILITY.md).
 
@@ -98,10 +120,26 @@ evidence.
 - `E:\Repositories\QuakeLive-SRP` — QLSRP behavior/ABI evidence only. Anything
   informed by it must be independently designed for fnTech3; do not perform a
   mechanical or cosmetic source port.
-- `E:\_SOURCE\_CODE\` — additional id Tech source references.
+- `E:\_SOURCE\_CODE\` — additional id Tech source references, including
+  `OpenJK`, the Jedi Academy reference, pinned at
+  `1a6a643427aa347553e9073dac5570b33337c4d9`. It is a maintained port, not
+  the retail engine: separate its format and layout facts, which are
+  contract-bound, from engine default values it may have retuned.
+- `E:\Repositories\OpenAlice` — an independent Alice engine reconstruction
+  with a checked-in Ghidra corpus for `alice.exe`, `fgamex86.dll` and
+  `cgamex86.dll`, and a copy of Ritual's F.A.K.K.2 v1.02 SDK. Reference
+  observation only: it is GPLv3 and this tree is GPLv2, so no text from it
+  may be incorporated, and the retail binary outranks it wherever they
+  disagree.
+- A legitimate retail American McGee's Alice installation is at
+  `E:\Games\Alice`. Read it, never write to it.
 - `E:\_SOURCE\_ASSETS\` — locally extracted assets used only as references.
 - A legitimate retail Quake Live installation is normally under
   `C:\Program Files (x86)\Steam\steamapps\common\Quake Live`.
+- A legitimate retail Jedi Academy 1.01 installation is at
+  `E:\Games\Jedi Academy`. Read it, never write to it.
+- A legitimate retail Jedi Outcast 1.02a installation is at
+  `E:\Games\Jedi Outcast`. Read it, never write to it.
 
 The FnQuake3 reference worktree contained local uncommitted work at merger
 time. fnTech3 records the pinned committed baseline lineage; those dirty changes
@@ -139,6 +177,35 @@ as part of that commit.
 - Update `version/fntech3_version.h` first for fnTech3 version changes. Legacy
   FnQL metadata may remain temporarily during the migration but is not a second
   source of truth.
+- `README.md` and `.install/README.html` are generated. Edit
+  `docs/templates/README.md.in` and `docs/templates/install-readme.html.in`,
+  and the supported-game line in `version/fntech3_version.h`, then run
+  `python scripts/generate_docs.py`. Editing either output directly is
+  overwritten by the next run and fails `tests/generate_docs_tests.py`.
+
+## Stable test executable paths
+
+- Reuse executable paths across runtime tests so Windows Firewall permissions
+  remain useful. Rebuild in place; do not create a new executable name or launch
+  directory for each task, timestamp, game profile, or run.
+- Use the existing build presets and launch paths, normally
+  `meson/build/win32-dev/fntech3.exe` and
+  `meson/build/win32-dev/fntech3.ded.exe` on Windows. Package validation uses the
+  corresponding freshly staged `.install/` binaries. Keep runtime modules
+  matched to the tested build and select games through the supported profiles.
+- Isolate each test's writable configuration, saves, logs, and captures under
+  `.tmp/<task>/` using supported home-path options; test-data isolation must not
+  require copying the executable. Keep retail installations read-only.
+- When a comparison, architecture, or build configuration genuinely requires a
+  separate runtime, reuse existing preset paths or a small set of fixed
+  project-local locations, such as `.tmp/runtime/baseline/` and
+  `.tmp/runtime/candidate/`. Record the tested build identity and coordinate use
+  so another task cannot replace a runtime during a test. Retain these reusable
+  locations across tasks; clean disposable test data separately.
+- Apply the same convention when adding or updating test harnesses. Resolve
+  recurring firewall prompts through stable launch paths; do not disable the
+  firewall or its notifications, add broad exceptions, or modify firewall rules
+  without the user's explicit instruction.
 
 ## Runtime-test safety
 

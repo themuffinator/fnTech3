@@ -1,0 +1,338 @@
+{
+  "date": "2026-09-21",
+  "recorded_utc": "2026-09-21T00:20:35.446616+00:00",
+  "scope": "Independent IHV protocol-33 state codecs, transactional server-message readers/writers and length-only demo containers. These components are not integrated into engine startup, client/server sessions or demo commands.",
+  "profile": "Q3 IHV external contracts; no engine IHV profile is selected by these tests.",
+  "commit": "9e1841de53d79f96cdbbde83a1427d1c7d83f31d",
+  "working_tree": "Uncommitted IHV wire follow-up. Earlier IHV/Q3 release work and unrelated RTCW changes remain present.",
+  "reference": {
+    "repository": "https://github.com/themuffinator/Quake3-IHV/tree/d5ce877155904c57f8b28fe0fd0c8aa2e9473337",
+    "engine": {
+      "path": "E:/Repositories/Quake3-IHV/ref/install/quake3.exe",
+      "sha256": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37",
+      "bytes": 725042
+    },
+    "sli": {
+      "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/demos/sli.dm3",
+      "sha256": "fbdc209d1c7fc1075976c9120c79d5e579ed36f4e38062b01248d6b2d807c57b",
+      "bytes": 8628
+    },
+    "berj": {
+      "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/demos/berj.dm3",
+      "sha256": "d2ee63df0221c380f0233fac458445217016c3afa7986f300fed2405de61ec78",
+      "bytes": 883
+    },
+    "use": "Read-only binary observations and direct calls of hash-pinned message functions. No original executable entry point, platform initialization, game windows, input or network sessions run in this probe.",
+    "incorporation": "No reference implementation, module, recording or asset incorporated. CI inputs are synthetic; fixtures are numeric results."
+  },
+  "observations": {
+    "functions": {
+      "write_bits": "0x410b40",
+      "read_bits": "0x410be0",
+      "write_entity": "0x411090",
+      "read_entity": "0x411530",
+      "write_command": "0x411910",
+      "read_command": "0x411a50",
+      "write_player": "0x411b20",
+      "read_player": "0x412180",
+      "angle_integer_conversion": "0x448050",
+      "client_gamestate": "0x406c40",
+      "client_snapshot": "0x406a30",
+      "client_packet_entities": "0x4067b0",
+      "discard_zero_entity": "0x40677b",
+      "client_server_command": "0x406f60",
+      "client_server_message": "0x407070",
+      "server_snapshot_header": "0x41aebb",
+      "demo_record_length": "0x4047ff"
+    },
+    "external_bytes": {
+      "entity": 164,
+      "player": 276,
+      "command": 14,
+      "original_message": 28
+    },
+    "state_encoding": {
+      "bits": "LSB first, arbitrary bit alignment, no retail Huffman or keyed usercmd coding.",
+      "entity": "10-bit number, removal/changed bits, 50 ordered change-bit fields with byte/short/integer/float storage.",
+      "player": "Grouped 16-bit mask with optional upper 16 bits, grouped scalar encodings and four masked arrays.",
+      "command": "Eight-bit mask, changed short angles/byte movement/buttons/weapon, then unconditional duration byte.",
+      "untransmitted_storage": "The independent codecs retain baseline padding and other untransmitted bytes. Original decoder comparisons initialize the destination from that baseline."
+    },
+    "quirks": [
+      "Entity writer compares new constantLight at offset 144 against the old loopSound BYTE at 148; reader uses the old constantLight field.",
+      "Player color group compares only byte 96 and, when changed, sends bytes 96..99.",
+      "x87 unordered float comparisons suppress a change; positive/negative zero compare equal. Float reads through x87 quiet signaling NaNs.",
+      "Angle scale is binary32 182.0444488525390625; _ftol truncates to signed int64 before the low 16 bits are retained. Nonfinite/out-of-int64 results have low 16 bits zero.",
+      "An unchanged entity delta copies its baseline including number zero; the original packet-entity reader discards a resulting number zero."
+    ],
+    "message_limits": {
+      "bytes": 16384,
+      "configstrings": 1024,
+      "appended_configstring_bytes": 16000,
+      "string_characters": 1023,
+      "area_bytes": 32,
+      "snapshot_entities": 1023,
+      "history_frames": 32,
+      "parse_entity_delta_age": 896
+    },
+    "snapshot_header": [
+      "serverTime:u32",
+      "messageNumber:u32",
+      "deltaNumber:u32",
+      "configSequence:u32",
+      "commandSequence:u32",
+      "flags:u8",
+      "areaBytes:u8",
+      "areaMask",
+      "playerDelta",
+      "packetEntities"
+    ],
+    "server_commands": "Opcode 5 plus string only; returned as data, never executed by the codec.",
+    "outer_termination": "Byte extent with zero unused bits, no retail svc_EOF byte.",
+    "download_opcode": "6: explicitly UnsupportedDownload, without publishing partial state or writing files.",
+    "demo_container": "Signed little-endian length followed by message bytes, terminated by -1. No per-record message sequence word."
+  },
+  "validation": {
+    "original_function_comparisons": {
+      "vectors": {
+        "entity": {
+          "kind": "entity",
+          "cases": 1690,
+          "alignments": 8,
+          "fnv1a64": "ebfa8e3a99a505de"
+        },
+        "command": {
+          "kind": "command",
+          "cases": 241,
+          "alignments": 8,
+          "fnv1a64": "b70fc23d1e6092e0"
+        },
+        "player": {
+          "kind": "player",
+          "cases": 2593,
+          "alignments": 8,
+          "fnv1a64": "7c77f151d62c6a03"
+        }
+      },
+      "alignments": 8,
+      "encode_decode_cases": 36192,
+      "compares": [
+        "encoded bit count",
+        "encoded bytes",
+        "decoded external record",
+        "consumed bit count"
+      ],
+      "input_generation": "Every storage bit including padding, deterministic random states, special float pairs, entity-number boundaries, forced/omitted records, removal and observed quirks.",
+      "fixture": "tests/fixtures/q3_ihv_wire_vectors.h"
+    },
+    "wrong_hash": {
+      "argument": "LICENSE",
+      "exit_code": 1,
+      "diagnostic": "Unexpected original executable",
+      "before_original_execution": true
+    },
+    "x86": {
+      "preset": "meson/build/win32",
+      "toolchain_product_version": "14.44.35222.0",
+      "meson_passed": 7,
+      "meson_failed": 0,
+      "targets": [
+        "fntech3_q3_ihv_native_boundary",
+        "fntech3_q3_ihv_wire",
+        "fntech3_q3_ihv_message",
+        "fnql_message_codec",
+        "fnql_netchan_profiles",
+        "fnql_protocol_contract",
+        "fntech3_bsp43_contract"
+      ],
+      "additional_message_compile_flags": "/EHsc /W4 /WX /MD /O2 /std:c++17",
+      "complete_suite_rerun": false
+    },
+    "x64": {
+      "compiler": "Clang 20.1.7, x86_64-pc-windows-msvc",
+      "flags": "-std=c++17 -O1 -g -fsanitize=address -ffast-math -Wall -Wextra -Werror",
+      "targets": [
+        "q3_ihv_wire_tests.cpp",
+        "q3_ihv_message_tests.cpp"
+      ],
+      "result": "PASS; no sanitizer diagnostics; supplied demo parse/regeneration and rejection also pass."
+    },
+    "malformed_and_recovery": [
+      "Bit widths, null/overflowing extents, arbitrary alignment, truncated state records and unchanged output on capacity failure.",
+      "Unknown player flags/opcodes, missing gamestate/delta, bad protocol/config index, duplicate entities/snapshots, area bounds, frame eviction and parse-entity age.",
+      "All byte truncations of representative gamestate/snapshot messages and demo containers; every bit mutation of three representative messages; 4096 deterministic random packets.",
+      "Message rollback preserves prior gamestate, history and caller output. Writer failures preserve prior command bytes and permit later valid appends.",
+      "Container lengths, absent terminators, trailing bytes, zero/oversized messages, write/finish capacity failure, repeated finish and overlapping input/output."
+    ],
+    "sli": {
+      "records": 57,
+      "snapshots": 56,
+      "retained_entity_states": 680,
+      "first_server_time": 1398225,
+      "last_server_time": 1400975,
+      "decoded_state_fnv1a64": "21768873b0a37c0b",
+      "regenerated_decoded_states_and_metadata": "identical",
+      "byte_identical_messages": 55,
+      "original_bytes": 8628,
+      "regenerated_bytes": 8610,
+      "different_messages": [
+        1,
+        2
+      ],
+      "original_message_bytes": 407,
+      "regenerated_message_bytes": 398,
+      "difference": "Each initial full snapshot contains unchanged records for absent baselines 47,65,66,73,74,75. They decode to number zero and are discarded, so canonical regeneration omits six 12-bit no-op records per snapshot.",
+      "regenerated_file": "In-memory test only; no proprietary recording committed.",
+      "rendered_playback": "Not exercised by these codecs."
+    },
+    "berj": {
+      "result": "Malformed configstring-only block rejected before gamestate publication in both x86 and x64 tests."
+    }
+  },
+  "commands": {
+    "reference_build": "cl /nologo /EHsc /W4 /WX /MD /O2 /std:c++17 tests/q3_ihv_reference_wire_probe.cpp /Fe:.tmp/q3-ihv/reference-wire-probe.exe /Fo:.tmp/q3-ihv/reference-wire-probe.obj /link /BASE:0x400000 /DYNAMICBASE:NO advapi32.lib",
+    "reference_run": ".tmp/q3-ihv/reference-wire-probe.exe E:/Repositories/Quake3-IHV/ref/install/quake3.exe",
+    "demo_run": "meson/build/win32/fntech3_q3_ihv_message_tests.exe E:/Repositories/Quake3-IHV/ref/install/baseq3/demos/sli.dm3 E:/Repositories/Quake3-IHV/ref/install/baseq3/demos/berj.dm3",
+    "temporary_environment": "TEMP and TMP set to E:/Repositories/fnTech3/.tmp/q3-ihv; commands run from E:/Repositories/fnTech3."
+  },
+  "source_artifacts": [
+    {
+      "path": "code/qcommon/q3_ihv_wire.hpp",
+      "sha256": "c4147d508b1d1ee779dc32fd052a91bfaf8f72ba3a78627968f6908909e9357d",
+      "bytes": 13264
+    },
+    {
+      "path": "code/qcommon/q3_ihv_message.hpp",
+      "sha256": "bbe24a1bf6bc6ccdf352256436b3ad7a9352b5c6718ddb83775d90c01f495bdc",
+      "bytes": 15273
+    },
+    {
+      "path": "code/compat/q3_ihv_game_abi.h",
+      "sha256": "f2dcfb7c2cdfcba8a56ee9420f467f072ff88c7fefe09486622bc29f6a97e24a",
+      "bytes": 7444
+    },
+    {
+      "path": "tests/q3_ihv_wire_tests.cpp",
+      "sha256": "122ec45680f03a61e7dae2eb9ec9567b0f8766ecfbab95c269095aa65969abf2",
+      "bytes": 6915
+    },
+    {
+      "path": "tests/q3_ihv_message_tests.cpp",
+      "sha256": "9359f89dc0bd426547a79c3f189d7af3628489f218e45d1e2c7bd5236d1cdcbb",
+      "bytes": 20932
+    },
+    {
+      "path": "tests/q3_ihv_wire_cases.hpp",
+      "sha256": "424aa196e3c21dbda69ddd3c9874c2a035db187203906caa358b4b354597cc30",
+      "bytes": 3223
+    },
+    {
+      "path": "tests/q3_ihv_reference_wire_probe.cpp",
+      "sha256": "d9e4ec75067aa0e258d720ac7dfee2fbfd341d19104c56e88c5d0ae9cbbd7b65",
+      "bytes": 7289
+    },
+    {
+      "path": "tests/fixtures/q3_ihv_wire_vectors.h",
+      "sha256": "326047e16c66825a1ff826d37b79f59561182f321e9c8df9848fd03dff4add8b",
+      "bytes": 804
+    },
+    {
+      "path": "meson.build",
+      "sha256": "3043cb8d9d13638e5cf127846977a6600cec6ad5ac18d0abfdf9ad21b63e0377",
+      "bytes": 63213
+    }
+  ],
+  "test_executables": [
+    {
+      "path": "meson/build/win32/fntech3_q3_ihv_wire_tests.exe",
+      "sha256": "e37d7707d8eb2f1dc7c239456a1e148d11addd92b8f2de277a92e59069cf4edf",
+      "bytes": 401408
+    },
+    {
+      "path": "meson/build/win32/fntech3_q3_ihv_message_tests.exe",
+      "sha256": "1ee26882dd27e08b5543b787e445f142f9ab2770621bd1d08ee0a48f7e10ad97",
+      "bytes": 875008
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-wire-probe.exe",
+      "sha256": "3742235947de48ac68f126a22c138d8fca350e6c460b8c589387a52716b6ff3b",
+      "bytes": 45056
+    },
+    {
+      "path": ".tmp/q3-ihv/message-tests-x86.exe",
+      "sha256": "d8b2c80d209c68a7a59068b690c4e2d712baa89ba0a210c2bf79028b349aaed0",
+      "bytes": 106496
+    },
+    {
+      "path": ".tmp/q3-ihv/wire-tests-asan.exe",
+      "sha256": "f3c6ac24ff93a5729b0e223e3f1ba95277b49219fa764c44d45f9bdeabb670d8",
+      "bytes": 565248
+    },
+    {
+      "path": ".tmp/q3-ihv/message-tests-asan.exe",
+      "sha256": "c98b2a184cb1883870c70da2bfa1678d6f04d108acdbc31673e855060f8098cf",
+      "bytes": 1415168
+    }
+  ],
+  "logs": [
+    {
+      "path": ".tmp/q3-ihv/wire-meson-build.log",
+      "sha256": "a29da5209863e3a91bb3cf3546ece0de4b94c43f5990d11ee767545ebc64ba59",
+      "bytes": 664
+    },
+    {
+      "path": ".tmp/q3-ihv/wire-meson-tests.log",
+      "sha256": "56dd74303ac71c1d207d78cdb6ad10fd6d00f2954a53c3d38088543f2ad10907",
+      "bytes": 602
+    },
+    {
+      "path": ".tmp/q3-ihv/wire-tests-x86.log",
+      "sha256": "989dd8fa1d1204bf7fd146dba3f2d06303526c28276f6d100ef33cd62694d189",
+      "bytes": 69
+    },
+    {
+      "path": ".tmp/q3-ihv/message-tests-x86.log",
+      "sha256": "9bea4b1e0361beda845996dafcdc02836a3b230650a7e69f8c80a85ab55e6727",
+      "bytes": 476
+    },
+    {
+      "path": ".tmp/q3-ihv/wire-tests-asan.log",
+      "sha256": "989dd8fa1d1204bf7fd146dba3f2d06303526c28276f6d100ef33cd62694d189",
+      "bytes": 69
+    },
+    {
+      "path": ".tmp/q3-ihv/message-tests-asan.log",
+      "sha256": "9bea4b1e0361beda845996dafcdc02836a3b230650a7e69f8c80a85ab55e6727",
+      "bytes": 476
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-wire-vectors.json",
+      "sha256": "ac541cc2132481bed08a585c847a5b1e481ac1140235948e8914938af86601c5",
+      "bytes": 256
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-wire-probe.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": ".tmp/q3-ihv/wire-wrong-hash.log",
+      "sha256": "acddf4d9ae5ce415e391752e877595f1834528f70702406eb9256f71f9b99be8",
+      "bytes": 32
+    },
+    {
+      "path": ".tmp/q3-ihv/message-differences.log",
+      "sha256": "cdfafa1d367337cea8899ed2e122b49140967a55258c8650db047970738ced50",
+      "bytes": 566
+    }
+  ],
+  "remaining": [
+    "Coherent IHV startup identity and filesystem policy.",
+    "Native game/cgame integration, complete callback behavior and conversion between external and engine state.",
+    "Protocol-33 handshake, netchan, client message envelopes, downloads and bidirectional interoperability.",
+    "Engine demo playback/recording command integration and rendered native IHV playback.",
+    "Native collision, portal, clamp sampling, model/entity lighting, gameplay/navigation, audio and input parity.",
+    "Earlier Q3Test/release gaps remain separately tracked in Q3_POINT_RELEASES.md."
+  ],
+  "unrelated_issues": "No new unrelated repository issue discovered in this follow-up. Existing dirty RTCW work was preserved."
+}

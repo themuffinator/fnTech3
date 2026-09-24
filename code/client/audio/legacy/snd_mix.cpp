@@ -32,6 +32,7 @@ extern "C" {
 #include <limits>
 #include "../shared/RTCWMix.h"
 #include "../shared/AudioMix.h"
+#include "../shared/AliceSound.h"
 
 namespace {
 
@@ -697,6 +698,10 @@ extern "C" void S_PaintChannels( int endtime ) {
 	const bool wolfensteinFade = rtcwSP || Com_GameIsWolfET() != 0;
 	const float masterGain = wolfensteinFade ? S_Base_RTCWMasterGain() : 1.0f;
 	snd_vol = wolfensteinFade ? fntech3::audio::rtcw::EffectsMixVolume( s_volume->value, masterGain ) : s_volume->value * 255;
+	// American McGee's Alice's voices carry s_volume in their own volumes, as
+	// retail hands it to Miles with each sample (alice.exe 0x00472580).
+	const bool alice = Com_GameIsAlice() != 0;
+	if ( alice ) snd_vol = 255;
 
 	if ( (!gw_active && !gw_minimized && s_muteWhenUnfocused->integer) || (gw_minimized && s_muteWhenMinimized->integer) ) {
 		buffer = dma_buffer2;
@@ -791,20 +796,32 @@ extern "C" void S_PaintChannels( int endtime ) {
 			if (sc->soundData==nullptr || sc->soundLength==0) {
 				continue;
 			}
+			// American McGee's Alice's loop block (alice.exe 0x0046fd8f): the
+			// sample plays from its start to the block's end, then repeats the
+			// block. No other profile sets one.
+			const bool block = alice && ch->loopBlockStart >= 0 && ch->loopBlockEnd > ch->loopBlockStart
+				&& ch->loopBlockEnd <= sc->soundLength;
 			// we might have to make two passes if it
 			// is a looping sound effect and the end of
 			// the sample is hit
 			do {
-				// A loop with a submitted start time keeps its phase relative to
-				// that time; RTCW submits none and stays on the mixer's clock.
-				sampleOffset = ch->startSample ?
-					static_cast<int>( ( static_cast<unsigned>( ltime ) -
-						static_cast<unsigned>( ch->startSample ) ) % static_cast<unsigned>( sc->soundLength ) ) :
-					(ltime % sc->soundLength);
+				int limit = sc->soundLength;
+				if ( block ) {
+					sampleOffset = fntech3::audio::alice::sfx::LoopBlockOffset( static_cast<unsigned>( ltime ) -
+						static_cast<unsigned>( ch->startSample ), ch->loopBlockStart, ch->loopBlockEnd );
+					limit = ch->loopBlockEnd;
+				} else {
+					// A loop with a submitted start time keeps its phase relative to
+					// that time; RTCW submits none and stays on the mixer's clock.
+					sampleOffset = ch->startSample ?
+						static_cast<int>( ( static_cast<unsigned>( ltime ) -
+							static_cast<unsigned>( ch->startSample ) ) % static_cast<unsigned>( sc->soundLength ) ) :
+						(ltime % sc->soundLength);
+				}
 
 				count = end - ltime;
-				if ( sampleOffset + count > sc->soundLength ) {
-					count = sc->soundLength - sampleOffset;
+				if ( sampleOffset + count > limit ) {
+					count = limit - sampleOffset;
 				}
 
 				if ( count > 0 ) {

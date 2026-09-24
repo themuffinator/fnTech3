@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_shade.c
 
 #include "tr_local.h"
+#include "../renderercommon/tr_q3_ihv_fog_vk.h"
 #include "../renderercommon/tr_rtcw_normal_fade.h"
 #include "../renderercommon/tr_stvef_alpha.h"
 
@@ -100,8 +101,17 @@ static VkDescriptorSet R_AnimatedImageDescriptor( const textureBundle_t *bundle 
 	v = tess.shaderTime * bundle->imageAnimationSpeed;
 	index = v;
 
+	// American McGee's Alice: `frameFromEntity` takes the frame from the
+	// entity's frame number as a short (alice.exe 0x004931e5), and
+	// `animMapOnce` holds the last frame instead of wrapping (0x00493216).
+	if ( bundle->aliceFrameFromEntity && backEnd.currentEntity ) {
+		index = (short)backEnd.currentEntity->e.alice.frame;
+	}
 	if ( index < 0 ) {
 		index = 0;
+	}
+	if ( bundle->aliceAnimMapOnce && index >= bundle->numImageAnimations ) {
+		index = bundle->numImageAnimations - 1;
 	}
 	index %= bundle->numImageAnimations;
 
@@ -314,7 +324,7 @@ void RB_BeginSurface( shader_t *shader, int fogNum ) {
 #endif
 
 #ifdef USE_VBO
-	if ( shader->isStaticShader && !shader->remappedShader ) {
+	if ( shader->isStaticShader && !shader->remappedShader && !RB_Q3IHVFog( fogNum ) ) {
 		tess.allowVBO = qtrue;
 	} else {
 		tess.allowVBO = qfalse;
@@ -364,6 +374,7 @@ void RB_BeginSurface( shader_t *shader, int fogNum ) {
 
 	tess.numIndexes = 0;
 	tess.numVertexes = 0;
+	tess.ihvSkyActive = qfalse;
 	tess.shader = state;
 	tess.liquidContentFlags = shader->contentFlags | state->contentFlags;
 	tess.liquidSort = shader->sort;
@@ -725,6 +736,8 @@ static void ProjectDlightTexture( void ) {
 uint32_t VK_PushUniform( const vkUniform_t *uniformData );
 void VK_SetFogParams( vkUniform_t *uniformData, int *fogStage );
 static vkUniform_t uniform;
+// the view's far plane fogs American McGee's Alice's draws (tr_main.c)
+#define FN_RTCW_FOG_VK_ALICE
 #include "../renderercommon/tr_rtcw_fog_vk.h"
 
 static float VK_ComputeTextureIntensityScale( const image_t *image )
@@ -773,6 +786,10 @@ Blends a fog texture on top of everything else
 */
 #ifdef USE_VULKAN
 static void RB_FogPass( qboolean rebindIndex ) {
+	if ( RB_Q3IHVFog( tess.fogNum ) ) {
+		RB_Q3IHVFogPass( rebindIndex );
+		return;
+	}
 	uint32_t pipeline = vk.fog_pipelines[tess.shader->fogPass - 1][tess.shader->cullType][tess.shader->polygonOffset];
 #ifdef USE_FOG_ONLY
 	int fog_stage;
@@ -856,6 +873,8 @@ void R_ComputeColors( const int b, color4ub_t *dest, const shaderStage_t *pStage
 	if ( tess.numVertexes == 0 )
 		return;
 
+	if ( RB_Q3IHVSkyColors( pStage, dest->rgba ) ) return;
+
 	//
 	// rgbGen
 	//
@@ -933,6 +952,12 @@ void R_ComputeColors( const int b, color4ub_t *dest, const shaderStage_t *pStage
 		case CGEN_ONE_MINUS_ENTITY:
 			RB_CalcColorFromOneMinusEntity( dest->rgba );
 			break;
+		case CGEN_ALICE_GLOBAL:
+			RB_AliceCalcGlobalColor( dest->rgba );
+			break;
+		case CGEN_ALICE_COLORWAVE:
+			RB_AliceCalcColorWave( &pStage->bundle[b].rgbWave, pStage->bundle[b].constantColor, dest->rgba );
+			break;
 	}
 
 	//
@@ -959,7 +984,26 @@ void R_ComputeColors( const int b, color4ub_t *dest, const shaderStage_t *pStage
 		RB_CalcWaveAlpha( &pStage->bundle[b].alphaWave, dest->rgba );
 		break;
 	case AGEN_LIGHTING_SPECULAR:
-		RB_CalcSpecularAlpha( dest->rgba );
+		if ( pStage->aliceSpecularCustom ) {
+			RB_AliceCalcSpecularAlpha( pStage, dest->rgba );
+		} else {
+			RB_CalcSpecularAlpha( dest->rgba );
+		}
+		break;
+	// American McGee's Alice's sources are bundle 0's: a stage using one is
+	// never collapsed (tr_alice_shader.h), so its range and specular origin
+	// are the stage's own
+	case AGEN_ALICE_DOT:
+	case AGEN_ALICE_ONE_MINUS_DOT:
+		RB_AliceCalcDotAlpha( pStage, dest->rgba );
+		break;
+	case AGEN_ALICE_GLOBAL:
+		RB_AliceCalcGlobalAlpha( dest->rgba );
+		break;
+	case AGEN_ALICE_SKY_ALPHA:
+	case AGEN_ALICE_ONE_MINUS_SKY_ALPHA:
+		RB_AliceCalcSkyAlpha( pStage->bundle[b].alphaGen == AGEN_ALICE_ONE_MINUS_SKY_ALPHA ? qtrue : qfalse,
+			dest->rgba );
 		break;
 	case AGEN_ENTITY:
 		RB_CalcAlphaFromEntity( dest->rgba );
@@ -1149,6 +1193,15 @@ void R_ComputeTexCoords( const int b, const textureBundle_t *bundle ) {
 			src = dst;
 			break;
 
+		case TMOD_ALICE_SCROLL:
+		case TMOD_ALICE_ROTATE:
+		case TMOD_ALICE_OFFSET:
+		case TMOD_ALICE_MACRO:
+		case TMOD_ALICE_PARALLAX:
+			RB_AliceCalcTexMod( &bundle->texMods[tm], (float *) src, (float *) dst );
+			src = dst;
+			break;
+
 		default:
 			ri.Error( ERR_DROP, "ERROR: unknown texmod '%d' in shader '%s'", bundle->texMods[tm].type, tess.shader->name );
 			break;
@@ -1156,6 +1209,31 @@ void R_ComputeTexCoords( const int b, const textureBundle_t *bundle ) {
 	}
 
 	tess.svars.texcoordPtr[ b ] = src;
+}
+
+
+/*
+** RB_AliceSkipStage
+**
+** American McGee's Alice skips a detail stage while r_detailtextures is off,
+** a skyAlpha stage below 0.01 and a oneMinusSkyAlpha stage above 0.99
+** (alice.exe RB_StageIteratorGeneric 0x00492a60..0x00492ab2).
+*/
+qboolean RB_AliceSkipStage( const shaderStage_t *stage )
+{
+	if ( ri.gameId != COM_GAME_ALICE ) {
+		return qfalse;
+	}
+	if ( stage->isDetail && !r_detailTextures->integer ) {
+		return qtrue;
+	}
+	if ( stage->bundle[0].alphaGen == AGEN_ALICE_SKY_ALPHA && backEnd.refdef.alice.skyAlpha < 0.01f ) {
+		return qtrue;
+	}
+	if ( stage->bundle[0].alphaGen == AGEN_ALICE_ONE_MINUS_SKY_ALPHA && backEnd.refdef.alice.skyAlpha > 0.99f ) {
+		return qtrue;
+	}
+	return qfalse;
 }
 
 
@@ -1311,6 +1389,10 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 		pStage = tess.xstages[ stage ];
 		if ( !pStage )
 			break;
+
+		// Alice's per-draw skips; the stage adds no tessellation flags
+		if ( RB_AliceSkipStage( pStage ) )
+			continue;
 
 #ifdef USE_VBO
 		tess.vboStage = stage;
@@ -2080,7 +2162,7 @@ void RB_StageIteratorGeneric( void )
 #endif
 
 #ifdef USE_FOG_COLLAPSE
-	fogCollapse = tess.fogNum && tess.shader->fogPass && tess.shader->fogCollapse;
+	fogCollapse = tess.fogNum && tess.shader->fogPass && tess.shader->fogCollapse && !RB_Q3IHVFog( tess.fogNum );
 	if ( VK_LiquidEffectActive( &tess ) ) {
 		fogCollapse = qfalse;
 	}

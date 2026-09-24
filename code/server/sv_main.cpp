@@ -1234,6 +1234,9 @@ SV_PacketEvent
 =================
 */
 void SV_PacketEvent( const netadr_t *from, msg_t *msg ) {
+	// Dedicated IHV developer probes exercise native game imports only. Its
+	// protocol-33 envelopes must never enter the retail packet dispatcher.
+	if ( Com_GameIsQuake3IHV() ) return;
 	int			qport;
 	SV_SteamHandleIncomingPacket( from, msg );
 
@@ -1682,8 +1685,7 @@ void SV_Frame( int msec, int realMsec ) {
 		cvar_modifiedFlags &= ~CVAR_SERVERINFO;
 	}
 	if ( cvar_modifiedFlags & CVAR_SYSTEMINFO ) {
-		SV_SetConfigstring( CS_SYSTEMINFO, Cvar_InfoString_Big( CVAR_SYSTEMINFO, nullptr ) );
-		cvar_modifiedFlags &= ~CVAR_SYSTEMINFO;
+		SV_UpdateSysteminfoConfigstring();
 	}
 	SV_UpdateQLCvarConfigstrings( qfalse );
 	SV_UpdateRTCWCvarConfigstrings( qfalse );
@@ -1723,6 +1725,12 @@ void SV_Frame( int msec, int realMsec ) {
 
 	// reset current and build new snapshot on first query
 	SV_IssueNewSnapshot();
+
+	// IHV's native clients keep their own snapshot history, built here in the
+	// original's position (0x41ac87) rather than by the retail snapshot pass.
+	if ( Com_GameIsQuake3IHV() ) {
+		SV_IHVServerFrame();
+	}
 
 	// send messages back to the clients
 	SV_SendClientMessages();

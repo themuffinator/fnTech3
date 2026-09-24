@@ -22,7 +22,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // cmodel.c -- model loading
 
 #include "cm_local.h"
+#include "cm_patch.h"
 #include "cm_game_contract.h"
+#include "bsp_rbsp.h"
+#include "bsp_fakk.h"
 #include "bsp_v43.h"
 #include "ql_bsp.h"
 
@@ -550,10 +553,14 @@ static void CMod_LoadVisibility( const lump_t *l ) {
 /*
 =================
 CMod_LoadPatches
+
+`fakk` is an Alice map's translation, NULL for every other map. Alice's
+engine builds no collision for a patch whose shader is neither solid nor a
+clip, and subdivides the rest by their shader's own count (see bsp_fakk.h).
 =================
 */
 #define	MAX_PATCH_VERTS		1024
-static void CMod_LoadPatches( const lump_t *surfs, const lump_t *verts ) {
+static void CMod_LoadPatches( const lump_t *surfs, const lump_t *verts, const fakk_translation_t *fakk ) {
 	drawVert_t	*dv, *dv_p;
 	dsurface_t	*in;
 	int			count;
@@ -565,6 +572,7 @@ static void CMod_LoadPatches( const lump_t *surfs, const lump_t *verts ) {
 	int			shaderNum;
 	int			firstVert;
 	int			numDrawVerts;
+	int			subdivisions;
 
 	in = (void *)(cmod_base + surfs->fileofs);
 	if (surfs->filelen % sizeof(*in))
@@ -585,7 +593,16 @@ static void CMod_LoadPatches( const lump_t *surfs, const lump_t *verts ) {
 		if ( LittleLong( in->surfaceType ) != MST_PATCH ) {
 			continue;		// ignore other surfaces
 		}
+
+		shaderNum = LittleLong( in->shaderNum );
+		if ( shaderNum < 0 || shaderNum >= cm.numShaders ) {
+			Com_Error( ERR_DROP, "%s: bad shaderNum: %i", __func__, shaderNum );
+		}
 		// FIXME: check for non-colliding patches
+		// (Alice's engine does: alice.exe 0x004306a1..0x004306bc)
+		if ( fakk && !( cm.shaders[shaderNum].contentFlags & FAKK_PATCH_COLLISION_CONTENTS ) ) {
+			continue;
+		}
 
 		cm.surfaces[ i ] = patch = Hunk_Alloc( sizeof( *patch ), h_high );
 
@@ -611,15 +628,21 @@ static void CMod_LoadPatches( const lump_t *surfs, const lump_t *verts ) {
 			points[j][2] = LittleFloat( dv_p->xyz[2] );
 		}
 
-		shaderNum = LittleLong( in->shaderNum );
-		if ( shaderNum < 0 || shaderNum >= cm.numShaders ) {
-			Com_Error( ERR_DROP, "%s: bad shaderNum: %i", __func__, shaderNum );
-		}
 		patch->contents = cm.shaders[shaderNum].contentFlags;
 		patch->surfaceFlags = cm.shaders[shaderNum].surfaceFlags;
 
+		subdivisions = SUBDIVIDE_DISTANCE;
+		if ( fakk ) {
+			// alice.exe 0x00430780..0x0043078c
+			subdivisions = fakk->shaderSubdivisions && shaderNum < fakk->numShaderSubdivisions
+				? fakk->shaderSubdivisions[shaderNum] : 0;
+			if ( subdivisions < FAKK_PATCH_MIN_SUBDIVISIONS ) {
+				subdivisions = FAKK_PATCH_MIN_SUBDIVISIONS;
+			}
+		}
+
 		// create the internal facet structure
-		patch->pc = CM_GeneratePatchCollide( width, height, points );
+		patch->pc = CM_GeneratePatchCollide( width, height, points, (float)subdivisions );
 	}
 }
 
@@ -674,7 +697,10 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 	lump_t			qlAdvertisementsLump;
 	comGameBspFormat_t bspFormat;
 	int				length;
+	unsigned int sourceChecksum;
 	bsp43_translation_t translated = { 0 };
+	rbsp_translation_t rbspTranslated = { 0 };
+	fakk_translation_t fakkTranslated = { 0 };
 
 	if ( !name || !name[0] ) {
 		Com_Error( ERR_DROP, "%s: NULL name", __func__ );
@@ -740,6 +766,14 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 		Com_Error( ERR_DROP, "%s: %s has BSP version %i unsupported by the selected game",
 			__func__, name, (int32_t)QLBSP_ReadLE32( (byte *)buf + 4 ) );
 	}
+	/* Peers advertise the checksum of the installed file. Translation is an
+	 * internal representation and must not change that identity. */
+	if ( length < (int)( bspFormat == COM_GAME_BSP_QUAKE3_IHV ? sizeof( dheader43_t )
+		: bspFormat == COM_GAME_BSP_RBSP ? sizeof( dheaderRBSP_t )
+		: bspFormat == COM_GAME_BSP_FAKK ? sizeof( dheaderFAKK_t ) : sizeof( dheader_t ) ) ) {
+		Com_Error( ERR_DROP, "%s: %s has truncated header", __func__, name );
+	}
+	sourceChecksum = LittleLong( Com_BlockChecksum( buf, length ) );
 	if ( length >= (int)sizeof( dheader43_t ) ) {
 		const dheader43_t *rawHeader = (const dheader43_t *)buf;
 
@@ -755,12 +789,40 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 			length = translated.length;
 		}
 	}
+	/* Jedi Academy's own maps reach the shared collision loader through the
+	 * same translation the IHV maps use, and share its hunk allocator. */
+	if ( bspFormat == COM_GAME_BSP_RBSP ) {
+		char translateError[128];
+
+		if ( !RBSP_TranslateToV46( buf, length, CM_BSP43Alloc, CM_BSP43Free,
+			&rbspTranslated, translateError, sizeof( translateError ) ) ) {
+			Com_Error( ERR_DROP, "%s: %s could not translate RBSP v1: %s", __func__, name, translateError );
+		}
+
+		FS_FreeFile( buf );
+		buf = rbspTranslated.data;
+		length = rbspTranslated.length;
+	}
+	/* Alice's maps reach the shared collision loader the same way. Its
+	 * ident is Ritual's rather than id's, so an untranslated FAKK map
+	 * would otherwise be read as a Quake III header that is not there. */
+	if ( bspFormat == COM_GAME_BSP_FAKK ) {
+		char translateError[128];
+
+		if ( !FAKK_TranslateToV46( buf, length, CM_BSP43Alloc, CM_BSP43Free,
+			&fakkTranslated, translateError, sizeof( translateError ) ) ) {
+			Com_Error( ERR_DROP, "%s: %s could not translate FAKK v42: %s", __func__, name, translateError );
+		}
+
+		FS_FreeFile( buf );
+		buf = fakkTranslated.data;
+		length = fakkTranslated.length;
+	}
 	if ( length < sizeof( dheader_t ) ) {
 		Com_Error( ERR_DROP, "%s: %s has truncated header", __func__, name );
 	}
 
-	*checksum = cm.checksum = LittleLong( Com_BlockChecksum( buf, length ) );
-
+	*checksum = cm.checksum = sourceChecksum;
 	header = *(dheader_t *)buf;
 	for ( i = 0; i < sizeof( dheader_t ) / sizeof( int32_t ); i++ ) {
 		( (int32_t *)&header )[i] = LittleLong( ( (int32_t *)&header )[i] );
@@ -784,6 +846,13 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 
 	// load into heap
 	CMod_LoadShaders( &header.lumps[LUMP_SHADERS] );
+#ifndef BSPC
+	/* Alice's loading screen is at stage 0 once the shaders are in, and at
+	 * stage 1 once the map is (alice.exe CM_LoadMap 0x00430a6b, 0x00430cdb). */
+	if ( Com_GameIsAlice() ) {
+		Com_AliceLoadingStage( 0 );
+	}
+#endif
 	CMod_LoadLeafs (&header.lumps[LUMP_LEAFS]);
 	CMod_LoadLeafBrushes (&header.lumps[LUMP_LEAFBRUSHES]);
 	CMod_LoadLeafSurfaces (&header.lumps[LUMP_LEAFSURFACES]);
@@ -794,7 +863,8 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 	CMod_LoadNodes (&header.lumps[LUMP_NODES]);
 	CMod_LoadEntityString (&header.lumps[LUMP_ENTITIES]);
 	CMod_LoadVisibility( &header.lumps[LUMP_VISIBILITY] );
-	CMod_LoadPatches( &header.lumps[LUMP_SURFACES], &header.lumps[LUMP_DRAWVERTS] );
+	CMod_LoadPatches( &header.lumps[LUMP_SURFACES], &header.lumps[LUMP_DRAWVERTS],
+		bspFormat == COM_GAME_BSP_FAKK ? &fakkTranslated : NULL );
 
 	CMod_CheckLeafBrushes();
 
@@ -813,6 +883,10 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 
 	if ( translated.data ) {
 		Z_Free( translated.data );
+	} else if ( rbspTranslated.data ) {
+		Z_Free( rbspTranslated.data );
+	} else if ( fakkTranslated.data ) {
+		Z_Free( fakkTranslated.data );
 	} else {
 		// we are NOT freeing the file, because it is cached for the ref
 		FS_FreeFile( buf );
@@ -826,6 +900,11 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 	if ( !clientload ) {
 		Q_strncpyz( cm.name, name, sizeof( cm.name ) );
 	}
+#ifndef BSPC
+	if ( Com_GameIsAlice() ) {
+		Com_AliceLoadingStage( 1 );
+	}
+#endif
 }
 
 
@@ -1000,6 +1079,21 @@ clipHandle_t CM_TempBoxModel( const vec3_t mins, const vec3_t maxs, int capsule 
 	VectorCopy( maxs, box_brush->bounds[1] );
 
 	return CM_TemporaryModelHandle( qfalse );
+}
+
+
+/*
+===================
+CM_SetTempBoxModelContents
+
+RTCW MP and ET trace a box entity as its own contents: their server sets the
+temporary box brush's contents before the sweep and puts CONTENTS_BODY back
+after it (retail WolfMP.exe 0x4164a0, et.exe 0x420f00). CM_TempBoxModel leaves
+them alone, as the originals do.
+===================
+*/
+void CM_SetTempBoxModelContents( int contents ) {
+	box_brush->contents = contents;
 }
 
 

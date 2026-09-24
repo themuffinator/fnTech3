@@ -423,6 +423,7 @@ static void CM_PositionTest( traceWork_t *tw ) {
 	ll.list = leafs;
 	ll.storeLeafs = CM_StoreLeafs;
 	ll.lastLeaf = 0;
+	ll.topnode = -1;
 	ll.overflowed = qfalse;
 
 	cm.checkcount++;

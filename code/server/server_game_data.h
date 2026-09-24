@@ -12,7 +12,9 @@ General Public License, version 2 or (at your option) any later version.
 
 #include "../qcommon/game_profile.h"
 #include "../qcommon/q_shared.h"
+#include "../compat/alice_module_abi.h"
 #include "../compat/rtcw_game_abi.h"
+#include "../compat/q3_ihv_game_abi.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -44,6 +46,12 @@ struct NativeGameDataBinding {
 	// Elite Force SP publishes no client array: each player state is reached
 	// through its gentity's client pointer, so clientBase and clientStride are
 	// unused and only clientCount is checked.
+	// IHV publishes client pointers only after connecting/spawning a client.
+	// Its x86 host must validate each pointer against module allocation ownership
+	// on every access, including the client slot and requested byte extent.
+	bool (*validateClientRecord)(void *context, const void *record,
+		std::int32_t clientIndex, std::size_t bytes) = nullptr;
+	void *clientValidationContext = nullptr;
 };
 
 enum class GameDataBindError {
@@ -64,7 +72,8 @@ enum class GameDataBindError {
 	MisalignedClientStride,
 	ClientSpanOverflow,
 	ClientSpanTooSmall,
-	ClientAddressOverflow
+	ClientAddressOverflow,
+	MissingClientValidation
 };
 
 const char *GameDataBindErrorName( GameDataBindError error );
@@ -119,6 +128,11 @@ public:
 		fntech3_rtcw_entityState_t &destination ) const;
 	bool WriteEntityState( const GameEntityRef &reference,
 		const fntech3_rtcw_entityState_t &source );
+	bool ReadEntityState( const GameEntityRef &reference,
+		fntech3_q3_ihv_entityState_t &destination ) const;
+	bool WriteEntityState( const GameEntityRef &reference,
+		const fntech3_q3_ihv_entityState_t &source );
+	bool GetInuse( const GameEntityRef &reference, std::int32_t &destination ) const;
 	bool GetNumber( const GameEntityRef &reference,
 		std::int32_t &destination ) const;
 	bool SetNumber( const GameEntityRef &reference, std::int32_t value );
@@ -147,6 +161,8 @@ public:
 	bool GetContents( const GameEntityRef &reference,
 		std::int32_t &destination ) const;
 	bool SetContents( const GameEntityRef &reference, std::int32_t value );
+	// IHV's native null owner projects to -1. Entity 1023 is valid there,
+	// so the retail ENTITYNUM_NONE sentinel cannot represent its null pointer.
 	bool GetOwnerNum( const GameEntityRef &reference,
 		std::int32_t &destination ) const;
 	bool SetOwnerNum( const GameEntityRef &reference, std::int32_t value );
@@ -178,6 +194,10 @@ public:
 		fntech3_rtcw_sp_playerState_t &destination ) const;
 	bool ReadPlayerState( std::int32_t clientIndex,
 		fntech3_rtcw_mp_playerState_t &destination ) const;
+	// IHV player snapshots use the exact native record. The generic playerState_t
+	// overload remains unavailable for IHV until its shared projections are pinned.
+	bool ReadPlayerState( std::int32_t clientIndex,
+		fntech3_q3_ihv_playerState_t &destination ) const;
 	bool GetPlayerPing( std::int32_t clientIndex,
 		std::int32_t &destination ) const;
 	bool SetPlayerPing( std::int32_t clientIndex, std::int32_t value );
@@ -210,6 +230,8 @@ private:
 	std::size_t clientSpanBytes_ = 0;
 	std::int32_t clientCount_ = 0;
 	std::size_t clientStride_ = 0;
+	bool (*validateClientRecord_)(void *, const void *, std::int32_t, std::size_t) = nullptr;
+	void *clientValidationContext_ = nullptr;
 	std::uint64_t generation_ = 0;
 	// Elite Force SP's gentity has no linkcount; the engine keeps its own.
 	std::int32_t engineLinkcounts_[MAX_GENTITIES] = {};

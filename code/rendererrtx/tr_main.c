@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_main.c -- main control flow for each frame
 
 #include "tr_local.h"
+#include "../renderercommon/tr_q3_ihv_entity_view.h"
 
 #include <string.h> // memcpy
 
@@ -100,6 +101,23 @@ int R_CullLocalBox( const vec3_t bounds[2] ) {
 		anyBack |= back;
 	}
 
+	// American McGee's Alice's far plane culls as a fifth frustum plane
+	if ( tr.viewParms.aliceFarCull ) {
+		frust = &tr.viewParms.aliceFarPlane;
+		front = back = 0;
+		for ( j = 0; j < 8; j++ ) {
+			if ( DotProduct( transformed[j], frust->normal ) > frust->dist ) {
+				front = 1;
+			} else {
+				back = 1;
+			}
+		}
+		if ( !front ) {
+			return CULL_OUT;
+		}
+		anyBack |= back;
+	}
+
 	if ( !anyBack ) {
 		return CULL_IN;		// completely inside frustum
 	}
@@ -146,6 +164,22 @@ int R_CullPointAndRadius( const vec3_t pt, float radius )
 			return CULL_OUT;
 		}
 		else if ( dist <= radius ) 
+		{
+			mightBeClipped = qtrue;
+		}
+	}
+
+	// American McGee's Alice's far plane culls as a fifth frustum plane
+	// (alice.exe 0x00476ab2 loops 4 + cull planes)
+	if ( tr.viewParms.aliceFarCull )
+	{
+		frust = &tr.viewParms.aliceFarPlane;
+		dist = DotProduct( pt, frust->normal ) - frust->dist;
+		if ( dist < -radius )
+		{
+			return CULL_OUT;
+		}
+		else if ( dist <= radius )
 		{
 			mightBeClipped = qtrue;
 		}
@@ -337,7 +371,7 @@ void R_RotateForEntity( const trRefEntity_t *ent, const viewParms_t *viewParms,
 	vec3_t	delta;
 	float	axisLength;
 
-	if ( ent->e.reType != RT_MODEL ) {
+	if ( ent->e.reType != RT_MODEL && !( ri.gameId == COM_GAME_QUAKE3_IHV && ent->e.q3IHV.active ) ) {
 		*or = viewParms->world;
 		return;
 	}
@@ -642,7 +676,8 @@ static void R_SetupProjectionZ( viewParms_t *dest )
 	dest->projectionMatrix[14] = -2 * zFar * zNear / depth;
 #endif
 
-	if ( dest->portalView != PV_NONE )
+	// Alice's sky portal is a portal pass with no portal plane to clip to
+	if ( dest->portalView != PV_NONE && !( dest->passFlags & VPF_ALICE_SKY_PORTAL ) )
 	{
 		float	plane[4];
 		float	plane2[4];
@@ -3197,6 +3232,7 @@ static void R_AddEntitySurfaces( void ) {
 			tr.currentEntityNum < tr.refdef.num_entities;
 			tr.currentEntityNum++ ) {
 		ent = tr.currentEntity = &tr.refdef.entities[tr.currentEntityNum];
+		if ( !R_Q3IHVEntityView( ent, R_ViewPassIsPortal( &tr.viewParms ), tr.refdef.viewaxis ) ) continue;
 #ifdef USE_LEGACY_DLIGHTS
 		ent->needDlights = 0;
 #endif
@@ -3213,14 +3249,22 @@ static void R_AddEntitySurfaces( void ) {
 			continue;
 		}
 
+		// Alice draws a sky entity only in its sky portal's view, and a portal
+		// view only the entities flagged for one (R_AliceEntityInView)
+		if ( ri.gameId == COM_GAME_ALICE && !R_AliceEntityInView( ent ) ) {
+			continue;
+		}
+
 		// simple generated models, like sprites and beams, are not culled
 		switch ( ent->e.reType ) {
 		case RT_PORTALSURFACE:
 			break;		// don't draw anything
 		case RT_SPRITE:
+		case RT_SPLASH:
 		case RT_BEAM:
 		case RT_LIGHTNING:
 		case RT_RAIL_CORE:
+		case RT_RAIL_CORE_TAPER:
 		case RT_RAIL_RINGS:
 		case RT_STVEF_ORIENTEDSPRITE:
 		case RT_STVEF_ALPHAVERTPOLY:
@@ -3237,8 +3281,23 @@ static void R_AddEntitySurfaces( void ) {
 				continue;
 			}
 			shader = R_GetShaderByHandle( ent->e.customShader );
+			R_AddDrawSurf( &entitySurface, shader,
+				( ri.gameId == COM_GAME_QUAKE3_IHV && ent->e.q3IHV.active && ent->e.reType == RT_BEAM ) ?
+				0 : R_SpriteFogNum( ent ), 0 );
+			break;
+
+		case RT_ALICE_SPRITE: {
+			// An Alice sprite is drawn with its own model's shader, the one
+			// named like the `.spr` (retail 0x004895f0), not a custom one.
+			const model_t *sprite = R_GetModelByHandle( ent->e.hModel );
+			if ( (ent->e.renderfx & RF_THIRD_PERSON) && (tr.viewParms.portalView == PV_NONE) ) {
+				continue;
+			}
+			shader = ( sprite && sprite->type == MOD_ALICE_SPRITE && sprite->aliceSprite )
+				? sprite->aliceSprite->shader : tr.defaultShader;
 			R_AddDrawSurf( &entitySurface, shader, R_SpriteFogNum( ent ), 0 );
 			break;
+		}
 
 		case RT_MODEL:
 			// we must set up parts of tr.or for model culling
@@ -3269,6 +3328,13 @@ static void R_AddEntitySurfaces( void ) {
 				case MOD_BRUSH:
 					R_AddBrushModelSurfaces( ent, NULL );
 					break;
+				case MOD_ALICE_TIKI:
+					R_AddAliceTikiSurfaces( ent );
+					break;
+				case MOD_ALICE_SPRITE:
+					// Retail's model table skips a sprite submitted as a
+					// plain model (0x00478f78 sends type 6 to 0x00478f34).
+					break;
 				case MOD_BAD:		// null model axis
 					if ( (ent->e.renderfx & RF_THIRD_PERSON) && (tr.viewParms.portalView == PV_NONE) ) {
 						break;
@@ -3290,6 +3356,207 @@ static void R_AddEntitySurfaces( void ) {
 
 
 /*
+=============================================================
+
+AMERICAN MCGEE'S ALICE: FAR PLANE, SKY PORTAL, DEBUG LINES
+
+=============================================================
+*/
+
+/*
+=================
+R_AliceFarPlaneIndex
+
+The r_farplane_pulse phase: retail converts ( time / frequency ) * 1024 with
+ftol and masks it (alice.exe 0x00477821..0x00477853); a value ftol cannot
+represent (a zero frequency) comes back as 0x80000000, index 0.
+=================
+*/
+static int R_AliceFarPlaneIndex( double time, double frequency ) {
+	double phase;
+	if ( frequency == 0.0 ) {
+		return 0;
+	}
+	phase = time / frequency * FUNCTABLE_SIZE;
+	if ( !( phase > -2147483648.0 && phase < 2147483648.0 ) ) {
+		return 0;
+	}
+	return (int)phase & FUNCTABLE_MASK;
+}
+
+/*
+=================
+R_AliceSetupFarPlane
+
+The view's far plane (alice.exe 0x004777d2..0x00477a5c): off in a portal
+view. r_farplane, when set, replaces the distance -- pulled in along a sine
+by r_farplane_pulse -- and the colour and cull flag come from
+r_farplane_color and r_farplane_nocull. A nonzero distance fogs the view to
+the colour (unless r_farplane_nofog) and, with cull, adds a culling plane
+facing the viewer at that distance. The pulse reads the view's time where
+retail reads the last batch's shader time.
+=================
+*/
+static void R_AliceSetupFarPlane( void ) {
+	viewParms_t *view = &tr.viewParms;
+	float distance;
+	qboolean cull;
+	vec3_t point;
+
+	view->aliceFarDistance = 0.0f;
+	view->aliceFarFog = qfalse;
+	view->aliceFarCull = qfalse;
+	view->aliceSkyPortalDrawn = qfalse;
+	if ( ri.gameId != COM_GAME_ALICE || R_ViewPassIsPortal( view ) ) {
+		return;
+	}
+
+	distance = tr.refdef.alice.farplaneDistance;
+	VectorCopy( tr.refdef.alice.farplaneColor, view->aliceFarColor );
+	cull = tr.refdef.alice.farplaneCull;
+	if ( r_farplane && r_farplane->integer ) {
+		distance = r_farplane->value;
+		if ( r_farplane_pulse->value != 0.0f ) {
+			const int index = R_AliceFarPlaneIndex( tr.refdef.floatTime, r_farplane_pulseFrequency->value );
+			distance -= ( tr.sinTable[index] + 1.0f ) * 0.5f * r_farplane_pulse->value;
+		}
+		(void)sscanf( r_farplane_color->string, "%f %f %f",
+			&view->aliceFarColor[0], &view->aliceFarColor[1], &view->aliceFarColor[2] );
+		cull = r_farplane_nocull->integer ? qfalse : qtrue;
+	}
+	if ( distance == 0.0f ) {
+		return;
+	}
+
+	view->aliceFarDistance = distance;
+	view->aliceFarFog = r_farplane_nofog->integer ? qfalse : qtrue;
+	view->aliceFarCull = cull;
+	VectorNegate( view->or.axis[0], view->aliceFarPlane.normal );
+	VectorMA( view->or.origin, distance, view->or.axis[0], point );
+	view->aliceFarPlane.dist = DotProduct( point, view->aliceFarPlane.normal );
+	view->aliceFarPlane.type = PLANE_NON_AXIAL;
+	SetPlaneSignbits( &view->aliceFarPlane );
+}
+
+/*
+=================
+R_AliceCollectSkyPortalSurface
+
+A world or brush-model surface whose shader is `portalsky` is a window onto
+the sky portal: retail counts it instead of adding it (alice.exe 0x00491dc0,
+0x004a0ca5). Returns qtrue when the surface was taken.
+=================
+*/
+qboolean R_AliceCollectSkyPortalSurface( const shader_t *shader ) {
+	if ( ri.gameId != COM_GAME_ALICE || !shader || !shader->alicePortalSky ) {
+		return qfalse;
+	}
+	tr.numAliceSkyPortalSurfaces++;
+	return qtrue;
+}
+
+/*
+=================
+R_AliceRenderSkyPortal
+
+After a view has found its `portalsky` surfaces, and before its own draw is
+queued, the sky portal is drawn as a view of its own (alice.exe 0x00492160):
+once a scene, never from inside a portal view, from the scene's sky origin
+with the view's axis turned by the sky axis -- or from r_skyportal_origin
+with the view's own axis -- and with no far plane. The view it was drawn for
+then keeps its colour buffer. Retail's further test that one collected
+surface is on screen (0x00478150) is left out: the surfaces have already
+passed the view's culling, and an off-screen portal only costs a pass.
+=================
+*/
+static void R_AliceRenderSkyPortal( void ) {
+#ifdef USE_PMLIGHT
+	static shadowManager_t parentShadowManager;
+	static csmPlan_t parentCsm, parentCsmDebugPlan;
+	static shadowCorrectnessDebug_t parentCorrectnessDebug;
+#endif
+	viewParms_t saved, sky;
+	vec3_t origin;
+
+	if ( ri.gameId != COM_GAME_ALICE || !tr.numAliceSkyPortalSurfaces ||
+		!tr.refdef.alice.skyPortal || tr.aliceSkyPortalRendered ) {
+		return;
+	}
+	if ( R_ViewPassIsPortal( &tr.viewParms ) ) {
+		ri.Printf( PRINT_DEVELOPER, "WARNING: Recursive skies found!  Make that not happen!\n" );
+		return;
+	}
+
+	tr.aliceSkyPortalRendered = qtrue;
+	saved = tr.viewParms;
+	sky = tr.viewParms;
+	if ( r_skyportal && r_skyportal->integer ) {
+		if ( sscanf( r_skyportal_origin->string, "%f %f %f", &origin[0], &origin[1], &origin[2] ) != 3 ) {
+			ri.Printf( PRINT_DEVELOPER, "WARNING: Invalid sky portal origin: %s\n", r_skyportal_origin->string );
+			return;
+		}
+	} else {
+		VectorCopy( tr.refdef.alice.skyOrigin, origin );
+		MatrixMultiply( saved.or.axis, tr.refdef.alice.skyAxis, sky.or.axis );
+	}
+	VectorCopy( origin, sky.or.origin );
+	VectorCopy( origin, sky.pvsOrigin );
+	sky.portalView = PV_PORTAL;
+	sky.passFlags = VPF_PORTAL | VPF_ALICE_SKY_PORTAL;
+#ifdef USE_PMLIGHT
+	// the scene's dynamic lights stay with the view that found them
+	sky.num_dlights = 0;
+	sky.dlights = NULL;
+#endif
+
+	// the view's own shadow plans travel with its draw, not the sky's, as a
+	// portal child's do (R_RenderPortalViewQueue)
+#ifdef USE_PMLIGHT
+	parentShadowManager = tr.shadowManager;
+	parentCsm = tr.csm;
+	parentCsmDebugPlan = tr.csmDebugPlan;
+	parentCorrectnessDebug = tr.shadowCorrectnessDebug;
+#endif
+	R_RenderView( &sky );
+#ifdef USE_PMLIGHT
+	tr.shadowManager = parentShadowManager;
+	tr.csm = parentCsm;
+	tr.csmDebugPlan = parentCsmDebugPlan;
+	tr.shadowCorrectnessDebug = parentCorrectnessDebug;
+#endif
+
+	tr.viewParms = saved;
+	tr.viewParms.aliceSkyPortalDrawn = qtrue;
+	tr.or = tr.viewParms.world;
+}
+
+/*
+=================
+R_AliceQueueDebugLines
+
+The game's debug lines are drawn after a world view's surfaces, never in a
+portal view (alice.exe 0x004767c4..0x004767d8, called at 0x0047864b). The
+Vulkan renderers queue them from RE_RenderScene once the scene's view
+commands are final: a scene that needs the screen map has its views
+duplicated there, and the lines follow the copy that is drawn to the screen.
+=================
+*/
+void R_AliceQueueDebugLines( void ) {
+	const void *lines;
+	int count = 0;
+
+	if ( ri.gameId != COM_GAME_ALICE || !ri.AliceDebugLines ||
+		( tr.refdef.rdflags & RDF_NOWORLDMODEL ) || R_ViewPassIsPortal( &tr.viewParms ) ) {
+		return;
+	}
+	lines = ri.AliceDebugLines( &count );
+	if ( lines && count > 0 ) {
+		R_AddAliceDebugLinesCmd( lines, count );
+	}
+}
+
+
+/*
 ====================
 R_GenerateDrawSurfs
 ====================
@@ -3305,11 +3572,16 @@ static void R_GenerateDrawSurfs( void ) {
 	}
 #endif
 
+	tr.numAliceSkyPortalSurfaces = 0;
 	R_AddWorldSurfaces ();
 
 	R_UpdateAdvertisements();
 
 	R_AddPolygonSurfaces();
+
+	if ( ri.gameId == COM_GAME_ALICE && !( tr.refdef.rdflags & RDF_NOWORLDMODEL ) ) {
+		R_AddAliceSwipeSurfaces();
+	}
 
 	// set the projection matrix with the minimum zfar
 	// now that we have the world bounded
@@ -3360,6 +3632,9 @@ void R_RenderView( const viewParms_t *parms ) {
 
 	R_SetupProjection( &tr.viewParms, r_zproj->value, qtrue );
 
+	// Alice's far plane culls with the frustum, so it is set up with it
+	R_AliceSetupFarPlane();
+
 	R_GenerateDrawSurfs();
 
 	// if we overflowed MAX_DRAWSURFS, the drawsurfs
@@ -3369,6 +3644,9 @@ void R_RenderView( const viewParms_t *parms ) {
 	if ( numDrawSurfs > MAX_DRAWSURFS ) {
 		numDrawSurfs = MAX_DRAWSURFS;
 	}
+
+	// Alice's sky portal is queued ahead of the view that looks into it
+	R_AliceRenderSkyPortal();
 
 	R_SortDrawSurfs( tr.refdef.drawSurfs + firstDrawSurf, numDrawSurfs - firstDrawSurf );
 }

@@ -981,10 +981,18 @@ static const imageExtToLoaderMap_t imageLoaders[] =
 	{ "jpeg", R_LoadJPG },
 	{ "pcx",  R_LoadPCX },
 	{ "bmp",  R_LoadBMP },
-	{ "wal",  R_LoadWAL }
+	{ "wal",  R_LoadWAL },
+	{ "ftx",  R_LoadFTX }
 };
 
 static const int numImageLoaders = ARRAY_LEN( imageLoaders );
+
+/* Ritual's FTX is American McGee's Alice's texture format and no other
+ * title's: another profile never looks for an .ftx beside a missing image. */
+static qboolean R_ImageLoaderEnabled( int i )
+{
+	return imageLoaders[ i ].ImageLoader != R_LoadFTX || ri.gameId == COM_GAME_ALICE ? qtrue : qfalse;
+}
 
 /*
 =================
@@ -1009,12 +1017,28 @@ static const char *R_LoadImage( const char *name, byte **pic, int *width, int *h
 	Q_strncpyz( localName, name, sizeof( localName ) );
 
 	ext = COM_GetExtension( localName );
+
+	/* Alice's own loader tries a `.tga` name as FTX first, with the
+	 * extension replaced, and only falls back to the named file when no
+	 * FTX is there (retail alice.exe 0x00483e80). Its paks carry 5,893 FTX
+	 * images and 284 TGA ones, so the order decides which one is drawn. */
+	if ( ri.gameId == COM_GAME_ALICE && !Q_stricmp( ext, "tga" ) ) {
+		char ftxName[ MAX_QPATH ];
+
+		COM_StripExtension( localName, ftxName, sizeof( ftxName ) );
+		Q_strcat( ftxName, sizeof( ftxName ), ".ftx" );
+		R_LoadFTX( ftxName, pic, width, height );
+		if ( *pic ) {
+			Q_strncpyz( localName, ftxName, sizeof( localName ) );
+			return localName;
+		}
+	}
 	if ( *ext )
 	{
 		// Look for the correct loader and use it
 		for ( i = 0; i < numImageLoaders; i++ )
 		{
-			if ( !Q_stricmp( ext, imageLoaders[ i ].ext ) )
+			if ( R_ImageLoaderEnabled( i ) && !Q_stricmp( ext, imageLoaders[ i ].ext ) )
 			{
 				// Load
 				imageLoaders[ i ].ImageLoader( localName, pic, width, height );
@@ -1045,7 +1069,7 @@ static const char *R_LoadImage( const char *name, byte **pic, int *width, int *h
 	// the image formats supported
 	for ( i = 0; i < numImageLoaders; i++ )
 	{
-		if ( i == orgLoader )
+		if ( i == orgLoader || !R_ImageLoaderEnabled( i ) )
 			continue;
 
 		altName = va( "%s.%s", localName, imageLoaders[ i ].ext );

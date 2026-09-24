@@ -1218,6 +1218,8 @@ typedef struct {
 // from it.
 #include "rtcw_state.h"
 #include "stvef_state.h"
+#include "raven_state.h"
+#include "alice_state.h"
 
 typedef struct playerState_s {
 	int			commandTime;	// cmd->serverTime of last executed command
@@ -1307,6 +1309,8 @@ typedef struct playerState_s {
 	rtcwPlayerStateExtension_t rtcw;
 	struct { int nextWeapon, identifyClientHealth; } wolfet;
 	stvefPlayerStateExtension_t stvef;
+	ravenPlayerStateExtension_t raven;
+	alicePlayerStateExtension_t alice;
 } playerState_t;
 
 
@@ -1351,6 +1355,16 @@ typedef struct usercmd_s {
 	unsigned short reserved;	// retain the existing 28-byte canonical prefix
 	rtcwUsercmdExtension_t rtcw;
 	struct { unsigned char flags, doubleTap, identClient; } wolfet;
+	/* Raven's two Jedi titles put a force power, an inventory item and a
+	 * general command where Quake III keeps a second weapon and a field of
+	 * view. The engine carries them and reads none of them. */
+	struct { unsigned char forcesel, invensel, generic_cmd; } raven;
+	/* Alice's three movement bytes are forward, right and up, stored at +14,
+	 * +15 and +16 of its command (0x00428287, 0x00428290, 0x0042829b), so
+	 * they cross as forwardmove, rightmove and upmove above. Its command
+	 * carries one more byte, at +6, which its own builder never writes; that
+	 * one is carried here as it is. */
+	struct { unsigned char unnamed; } alice;
 } usercmd_t;
 
 //===================================================================
@@ -1374,7 +1388,10 @@ typedef enum {
 	TR_RTCW_DECELERATE,
 	TR_RTCW_GRAVITY_PAUSED,
 	TR_WOLFET_SPLINE,
-	TR_WOLFET_LINEAR_PATH
+	TR_WOLFET_LINEAR_PATH,
+	// Jedi Academy inserts its own type at 4, so its sine and gravity are
+	// 5 and 6. See compat/jka_trajectory_types.def for the measurement.
+	TR_JKA_NONLINEAR_STOP
 } trType_t;
 
 typedef struct {
@@ -1443,6 +1460,8 @@ typedef struct entityState_s {
 	rtcwEntityStateExtension_t rtcw;
 	struct { int nextWeapon; } wolfet;
 	stvefEntityStateExtension_t stvef;
+	ravenEntityStateExtension_t raven;
+	aliceEntityStateExtension_t alice;
 } entityState_t;
 
 typedef enum {

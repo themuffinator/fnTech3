@@ -98,6 +98,9 @@ int main(int argc, char **argv) {
     assert(Discover(ql, library) == qlpath.generic_string());
     assert(Discover(q3, root / "missing").empty());
     assert(Discover(nullptr, library).empty());
+    const auto *ihv = Com_GameProfileById(COM_GAME_QUAKE3_IHV);
+    assert(Discover(ihv, library).empty());
+    assert(!Sys_SteamInstallIsValid(ihv, q3path.string().c_str()));
     const fs::path folders = primary / "steamapps/libraryfolders.vdf";
     for (const auto &data : std::initializer_list<std::string>{
         "\"libraryfolders\" { \"1\" \"" + library.generic_string() + "\" }",

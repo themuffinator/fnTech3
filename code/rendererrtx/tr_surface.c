@@ -297,6 +297,30 @@ static void RB_SurfaceSprite( void ) {
 
 
 /*
+==============
+RB_SurfaceSplash
+
+RTCW and Enemy Territory's water ripple: a quad lying flat in the world's
+x/y plane instead of facing the viewer (WolfMP.exe 0x4851de).
+==============
+*/
+static void RB_SurfaceSplash( void ) {
+	vec3_t		left, up;
+	float		radius;
+
+	radius = backEnd.currentEntity->e.radius;
+	VectorSet( left, -radius, 0, 0 );
+	VectorSet( up, 0, radius, 0 );
+
+	if ( backEnd.viewParms.portalView == PV_MIRROR ) {
+		VectorSubtract( vec3_origin, left, left );
+	}
+
+	RB_AddQuadStamp( backEnd.currentEntity->e.origin, left, up, backEnd.currentEntity->e.shader );
+}
+
+
+/*
 =============
 RB_SurfacePolychain
 =============
@@ -469,6 +493,9 @@ static void RB_SurfaceTriangles( const srfTriangles_t *srf ) {
 RB_SurfaceBeam
 ==============
 */
+
+#include "../renderercommon/tr_q3_ihv_beam_surface.h"
+
 static void RB_SurfaceBeam( void )
 {
 #define NUM_BEAM_SEGS 6
@@ -480,6 +507,7 @@ static void RB_SurfaceBeam( void )
 	vec3_t oldorigin, origin;
 
 	e = &backEnd.currentEntity->e;
+	if ( ri.gameId == COM_GAME_QUAKE3_IHV && e->q3IHV.active ) { RB_SurfaceIHVBeam(); return; }
 
 	oldorigin[0] = e->oldorigin[0];
 	oldorigin[1] = e->oldorigin[1];
@@ -897,6 +925,8 @@ static void LerpMeshVertexes(md3Surface_t *surf, float backlerp)
 RB_SurfaceMesh
 =============
 */
+#include "../renderercommon/tr_q3_ihv_model_render.h"
+
 static void RB_SurfaceMesh(md3Surface_t *surface) {
 	int				j;
 	float			backlerp;
@@ -910,19 +940,31 @@ static void RB_SurfaceMesh(md3Surface_t *surface) {
 	VBO_Flush();
 #endif
 
+	if ( ri.gameId == COM_GAME_QUAKE3_IHV && backEnd.currentEntity->e.q3IHV.active &&
+		( surface->numVerts < 0 || surface->numVerts >= SHADER_MAX_VERTEXES ||
+		  surface->numTriangles < 0 || surface->numTriangles > ( SHADER_MAX_INDEXES - 1 ) / 3 ) ) return;
+
 	RB_CHECKOVERFLOW( surface->numVerts, surface->numTriangles * 3 );
 
 #ifdef USE_VBO
 	tess.surfType = SF_MD3;
 #endif
 
-	if (  backEnd.currentEntity->e.oldframe == backEnd.currentEntity->e.frame ) {
+	if ( ri.gameId == COM_GAME_QUAKE3_IHV && backEnd.currentEntity->e.q3IHV.active ) {
+		const refEntity_t *entity = &backEnd.currentEntity->e;
+		backlerp = Q3IHV_ModelFraction( entity->frame, entity->oldframe, entity->backlerp,
+			r_lerpmodels ? &r_lerpmodels->value : NULL );
+	} else if ( backEnd.currentEntity->e.oldframe == backEnd.currentEntity->e.frame ) {
 		backlerp = 0;
 	} else  {
 		backlerp = backEnd.currentEntity->e.backlerp;
 	}
 
-	LerpMeshVertexes (surface, backlerp);
+	if ( ri.gameId == COM_GAME_QUAKE3_IHV && backEnd.currentEntity->e.q3IHV.active ) {
+		if ( !RB_LerpIHVModel( surface, backlerp ) ) return;
+	} else {
+		LerpMeshVertexes( surface, backlerp );
+	}
 
 	triangles = (int *) ((byte *)surface + surface->ofsTriangles);
 	indexes = surface->numTriangles * 3;
@@ -1469,6 +1511,9 @@ static void RB_SurfaceEntity( const surfaceType_t *surfType ) {
 	case RT_SPRITE:
 		RB_SurfaceSprite();
 		break;
+	case RT_SPLASH:
+		RB_SurfaceSplash();
+		break;
 	case RT_BEAM:
 		RB_SurfaceBeam();
 		break;
@@ -1481,7 +1526,11 @@ static void RB_SurfaceEntity( const surfaceType_t *surfType ) {
 	case RT_LIGHTNING:
 		RB_SurfaceLightningBolt();
 		break;
+	case RT_ALICE_SPRITE:
+		RB_SurfaceAliceSprite();
+		break;
 	default:
+		// RTCW and ET draw a tapered rail core as this debug axis too.
 		if ( !RB_SurfaceSTVEF() ) {
 			RB_SurfaceAxis();
 		}
@@ -1520,6 +1569,7 @@ static void RB_SurfaceSkip( void *surf ) {
 #include "../renderercommon/tr_wolfet_surface.h"
 #include "../renderercommon/tr_wolfet_foliage_surface.h"
 #include "../renderercommon/tr_wolfet_decal_surface.h"
+#include "../renderercommon/tr_q3_ihv_particle_surface.h"
 
 void (*rb_surfaceTable[SF_NUM_SURFACE_TYPES])( void *) = {
 	(void(*)(void*))RB_SurfaceBad,			// SF_BAD, 
@@ -1537,5 +1587,8 @@ void (*rb_surfaceTable[SF_NUM_SURFACE_TYPES])( void *) = {
 	(void(*)(void*))RB_SurfaceMDS,			// SF_MDS
 	(void(*)(void*))RB_SurfaceWolfET,		// SF_WOLFET
 	(void(*)(void*))RB_SurfaceWolfETFoliage,	// SF_WOLFET_FOLIAGE
-	(void(*)(void*))RB_SurfaceWolfETDecal	// SF_WOLFET_DECAL
+	(void(*)(void*))RB_SurfaceWolfETDecal,	// SF_WOLFET_DECAL
+	(void(*)(void*))RB_SurfaceIHVParticles,	// SF_IHV_PARTICLES
+	(void(*)(void*))RB_SurfaceAliceTiki,		// SF_ALICE_TIKI
+	(void(*)(void*))RB_SurfaceAliceSwipe		// SF_ALICE_SWIPE
 };

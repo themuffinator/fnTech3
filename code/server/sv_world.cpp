@@ -22,8 +22,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // sv_world.cpp -- world query functions
 
 #include "server.h"
+#include "../qcommon/cm_model_handles.h"
 #include "sv_collision_model.hpp"
 #include "server_world_bounds.hpp"
+#include "../compat/q3_ihv_collision.hpp"
 #include "../compat/stvef_game_abi.h"
 
 #include <algorithm>
@@ -235,14 +237,138 @@ SV_LinkEntity
 ===============
 */
 static constexpr int MAX_TOTAL_ENT_LEAFS = 128;
-void SV_LinkEntity( sharedEntity_t *gEnt ) {
-	worldSector_t	*node;
+
+/*
+===============
+SV_LinkQuake3IHVClusters
+
+Quake III IHV records an entity's clusters the way Quake II does: deduplicated
+cluster numbers, or the first node the box straddles once it reaches
+MAX_TOTAL_ENT_LEAFS leafs or more than MAX_ENT_CLUSTERS clusters. The other
+profiles keep Quake III's list plus its overflow cluster. Original
+0x41bce6..0x41bd72.
+===============
+*/
+static void SV_LinkQuake3IHVClusters( svEntity_t *ent, const int *leafs, int num_leafs, int topnode ) {
+	std::array<int, MAX_TOTAL_ENT_LEAFS> clusters{};
+	int i, j;
+
+	if ( num_leafs >= MAX_TOTAL_ENT_LEAFS ) {
+		ent->numClusters = -1;
+		ent->lastCluster = topnode;
+		return;
+	}
+	for ( i = 0; i < num_leafs; i++ ) {
+		clusters[i] = CM_LeafCluster( leafs[i] );
+	}
+	ent->numClusters = 0;
+	for ( i = 0; i < num_leafs; i++ ) {
+		if ( clusters[i] == -1 ) {
+			continue;
+		}
+		// The original compares against every earlier leaf's cluster, not
+		// against the clusters it has already stored.
+		for ( j = 0; j < i; j++ ) {
+			if ( clusters[j] == clusters[i] ) {
+				break;
+			}
+		}
+		if ( j != i ) {
+			continue;
+		}
+		if ( ent->numClusters == MAX_ENT_CLUSTERS ) {
+			ent->numClusters = -1;
+			ent->lastCluster = topnode;
+			return;
+		}
+		ent->clusternums[ent->numClusters++] = clusters[i];
+	}
+}
+
+/*
+===============
+SV_LinkEntityClusters
+
+The part of linking the snapshot walk reads: which areas and which PVS
+clusters an absolute box touches. The entity's record is cleared and filled
+from the leafs the box reaches; the return is how many leafs that was, and
+zero means the box lies outside the world. SV_LinkEntity uses it, and so does
+American McGee's Alice's linker, whose entity record is not a sharedEntity_t.
+===============
+*/
+int SV_LinkEntityClusters( svEntity_t *ent, const vec3_t absmin, const vec3_t absmax, int number ) {
 	std::array<int, MAX_TOTAL_ENT_LEAFS> leafs{};
 	int			cluster;
 	int			num_leafs;
-	int			i, j, k;
+	int			i;
 	int			area;
-	int			lastLeaf;
+	int			lastLeaf = 0;
+	int			topnode = -1;
+
+	ent->numClusters = 0;
+	ent->lastCluster = 0;
+	ent->areanum = -1;
+	ent->areanum2 = -1;
+
+	//get all leafs, including solids
+	num_leafs = Com_GameIsQuake3IHV()
+		? CM_BoxLeafnumsTopnode( absmin, absmax,
+			leafs.data(), SV_ArraySize(leafs), &topnode )
+		: CM_BoxLeafnums( absmin, absmax,
+			leafs.data(), SV_ArraySize(leafs), &lastLeaf );
+
+	// if none of the leafs were inside the map, the
+	// entity is outside the world and can be considered unlinked
+	if ( !num_leafs ) {
+		return 0;
+	}
+
+	// set areas, even from clusters that don't fit in the entity array
+	for (i=0 ; i<num_leafs ; i++) {
+		area = CM_LeafArea (leafs[i]);
+		if (area != -1) {
+			// doors may legally straggle two areas,
+			// but nothing should ever need more than that
+			if (ent->areanum != -1 && ent->areanum != area) {
+				if (ent->areanum2 != -1 && ent->areanum2 != area && sv.state == SS_LOADING) {
+					Com_DPrintf ("Object %i touching 3 areas at %f %f %f\n",
+					number,
+					absmin[0], absmin[1], absmin[2]);
+				}
+				ent->areanum2 = area;
+			} else {
+				ent->areanum = area;
+			}
+		}
+	}
+
+	if ( Com_GameIsQuake3IHV() ) {
+		SV_LinkQuake3IHVClusters( ent, leafs.data(), num_leafs, topnode );
+	} else {
+		// store as many explicit clusters as we can
+		ent->numClusters = 0;
+		for (i=0 ; i < num_leafs ; i++) {
+			cluster = CM_LeafCluster( leafs[i] );
+			if ( cluster != -1 ) {
+				ent->clusternums[ent->numClusters++] = cluster;
+				if ( ent->numClusters == MAX_ENT_CLUSTERS ) {
+					break;
+				}
+			}
+		}
+
+		// store off a last cluster if we need to
+		if ( i != num_leafs ) {
+			ent->lastCluster = CM_LeafCluster( lastLeaf );
+		}
+	}
+	return num_leafs;
+}
+
+void SV_LinkEntity( sharedEntity_t *gEnt ) {
+	worldSector_t	*node;
+	int			num_leafs;
+	int			i, j, k;
 	float		*origin, *angles;
 	svEntity_t	*ent;
 	sharedEntity_t entity;
@@ -253,15 +379,30 @@ void SV_LinkEntity( sharedEntity_t *gEnt ) {
 		Com_Error( ERR_DROP, "%s: bad gEnt", __func__ );
 		return;
 	}
+	const bool ihv = Com_GameProfile()->id == COM_GAME_QUAKE3_IHV;
+	origin = entity.r.currentOrigin;
+	angles = entity.r.currentAngles;
+	if ( ihv && !( entity.r.svFlags & SVF_USE_CURRENT_ORIGIN ) ) {
+		origin = entity.s.origin;
+		angles = entity.s.angles;
+	}
 	if ( !SV_ValidWorldBounds( entity.r.mins, entity.r.maxs )
-		|| !SV_FiniteWorldVector( entity.r.currentOrigin )
-		|| !SV_FiniteWorldVector( entity.r.currentAngles ) ) {
+		|| !SV_FiniteWorldVector( origin )
+		|| !SV_FiniteWorldVector( angles ) ) {
 		Com_Error( ERR_DROP, "%s: invalid entity bounds", __func__ );
+		return;
+	}
+	fntech3::q3ihv::LinkBounds ihvBounds;
+	if ( ihv && !fntech3::q3ihv::CalculateLinkBounds( entity.r.mins, entity.r.maxs,
+		origin, angles, entity.r.bmodel != 0, static_cast<uint32_t>( entity.r.contents ), ihvBounds ) ) {
+		Com_Error( ERR_DROP, "%s: IHV entity bounds overflow", __func__ );
 		return;
 	}
 
 	// encode the size into the entityState_t for client prediction
-	if ( entity.r.bmodel ) {
+	if ( ihv ) {
+		entity.s.solid = ihvBounds.solid;
+	} else if ( entity.r.bmodel ) {
 		entity.s.solid = SOLID_BMODEL;		// a solid_box will never create this value
 	} else if ( Com_GameIsSTVEFMP() && ( entity.r.svFlags & SVF_STVEF_SHIELD_BBOX ) ) {
 		// Elite Force shields are thin boxes: s.solid carries the half-width
@@ -288,12 +429,11 @@ void SV_LinkEntity( sharedEntity_t *gEnt ) {
 		entity.s.solid = 0;
 	}
 
-	// get the position
-	origin = entity.r.currentOrigin;
-	angles = entity.r.currentAngles;
-
 	// set the abs box
-	if ( entity.r.bmodel && (angles[0] || angles[1] || angles[2]) ) {
+	if ( ihv ) {
+		VectorCopy( ihvBounds.mins, entity.r.absmin );
+		VectorCopy( ihvBounds.maxs, entity.r.absmax );
+	} else if ( entity.r.bmodel && (angles[0] || angles[1] || angles[2]) ) {
 		// expand for rotation
 		float		max;
 
@@ -310,12 +450,14 @@ void SV_LinkEntity( sharedEntity_t *gEnt ) {
 
 	// because movement is clipped an epsilon away from an actual edge,
 	// we must fully check even when bounding boxes don't quite touch
-	entity.r.absmin[0] -= 1;
-	entity.r.absmin[1] -= 1;
-	entity.r.absmin[2] -= 1;
-	entity.r.absmax[0] += 1;
-	entity.r.absmax[1] += 1;
-	entity.r.absmax[2] += 1;
+	if ( !ihv ) {
+		entity.r.absmin[0] -= 1;
+		entity.r.absmin[1] -= 1;
+		entity.r.absmin[2] -= 1;
+		entity.r.absmax[0] += 1;
+		entity.r.absmax[1] += 1;
+		entity.r.absmax[2] += 1;
+	}
 	if ( !SV_ValidWorldBounds( entity.r.absmin, entity.r.absmax ) ) {
 		Com_Error( ERR_DROP, "%s: entity bounds overflow", __func__ );
 		return;
@@ -324,17 +466,11 @@ void SV_LinkEntity( sharedEntity_t *gEnt ) {
 	if ( ent->worldSector ) SV_UnlinkEntity( gEnt );
 	entity.r.linked = qfalse;
 
-	// link to PVS leafs
-	ent->numClusters = 0;
-	ent->lastCluster = 0;
-	ent->areanum = -1;
-	ent->areanum2 = -1;
 	ent->wolfetOriginCluster = Com_GameIsWolfET() && entity.r.bmodel
 		? CM_LeafCluster( CM_PointLeafnum( entity.r.currentOrigin ) ) : -1;
 
-	//get all leafs, including solids
-	num_leafs = CM_BoxLeafnums( entity.r.absmin, entity.r.absmax,
-		leafs.data(), SV_ArraySize(leafs), &lastLeaf );
+	// link to PVS leafs
+	num_leafs = SV_LinkEntityClusters( ent, entity.r.absmin, entity.r.absmax, entity.s.number );
 
 	// if none of the leafs were inside the map, the
 	// entity is outside the world and can be considered unlinked
@@ -343,42 +479,6 @@ void SV_LinkEntity( sharedEntity_t *gEnt ) {
 			Com_Error( ERR_DROP, "%s: game-data write failed", __func__ );
 		}
 		return;
-	}
-
-	// set areas, even from clusters that don't fit in the entity array
-	for (i=0 ; i<num_leafs ; i++) {
-		area = CM_LeafArea (leafs[i]);
-		if (area != -1) {
-			// doors may legally straggle two areas,
-			// but nothing should ever need more than that
-			if (ent->areanum != -1 && ent->areanum != area) {
-				if (ent->areanum2 != -1 && ent->areanum2 != area && sv.state == SS_LOADING) {
-					Com_DPrintf ("Object %i touching 3 areas at %f %f %f\n",
-					entity.s.number,
-					entity.r.absmin[0], entity.r.absmin[1], entity.r.absmin[2]);
-				}
-				ent->areanum2 = area;
-			} else {
-				ent->areanum = area;
-			}
-		}
-	}
-
-	// store as many explicit clusters as we can
-	ent->numClusters = 0;
-	for (i=0 ; i < num_leafs ; i++) {
-		cluster = CM_LeafCluster( leafs[i] );
-		if ( cluster != -1 ) {
-			ent->clusternums[ent->numClusters++] = cluster;
-			if ( ent->numClusters == MAX_ENT_CLUSTERS ) {
-				break;
-			}
-		}
-	}
-
-	// store off a last cluster if we need to
-	if ( i != num_leafs ) {
-		ent->lastCluster = CM_LeafCluster( lastLeaf );
 	}
 
 	entity.r.linkcount = entity.r.linkcount == ( std::numeric_limits<int>::max )()
@@ -576,17 +676,19 @@ static void SV_ClipMoveToEntities( moveclip_t &clip ) {
 	clipHandle_t	clipHandle;
 	float		*origin;
 	const float *angles;
+	const bool ihv = Com_GameProfile()->id == COM_GAME_QUAKE3_IHV;
+	const bool checkOwner = ihv ? clip.passEntityNum > 0 : clip.passEntityNum != ENTITYNUM_NONE;
 
 	num = SV_AreaEntities( clip.boxmins, clip.boxmaxs, touchlist.data(), SV_ArraySize(touchlist) );
 
-	if ( clip.passEntityNum != ENTITYNUM_NONE ) {
+	if ( checkOwner ) {
 		if ( !SV_ReadGameEntityByNum( clip.passEntityNum, &entity ) ) {
 			Com_Error( ERR_DROP, "%s: invalid pass entity %i", __func__,
 				clip.passEntityNum );
 			return;
 		}
 		passOwnerNum = entity.r.ownerNum;
-		if ( passOwnerNum == ENTITYNUM_NONE ) {
+		if ( !ihv && passOwnerNum == ENTITYNUM_NONE ) {
 			passOwnerNum = -1;
 		}
 	} else {
@@ -605,7 +707,23 @@ static void SV_ClipMoveToEntities( moveclip_t &clip ) {
 		}
 
 		// see if we should ignore this entity
-		if ( clip.passEntityNum != ENTITYNUM_NONE ) {
+		if ( ihv ) {
+			// Original 0x41c002 compares the native state's signed number.
+			// Positive pass values also exclude its owner and entities owned
+			// by it; unlike retail Q3, siblings sharing an owner still collide.
+			if ( entity.s.number == clip.passEntityNum ) continue;
+			if ( checkOwner ) {
+				if ( entity.r.ownerNum >= 0 ) {
+					sharedEntity_t owner;
+					if ( !SV_ReadGameEntityByNum( entity.r.ownerNum, &owner ) ) {
+						Com_Error( ERR_DROP, "%s: invalid IHV owner %i", __func__, entity.r.ownerNum );
+						return;
+					}
+					if ( owner.s.number == clip.passEntityNum ) continue;
+				}
+				if ( touchlist[i] == passOwnerNum ) continue;
+			}
+		} else if ( checkOwner ) {
 			if ( touchlist[i] == clip.passEntityNum ) {
 				continue;	// don't clip against the pass entity
 			}
@@ -623,20 +741,52 @@ static void SV_ClipMoveToEntities( moveclip_t &clip ) {
 			continue;
 		}
 
-		// might intersect, so do an exact clip
-		clipHandle = SV_ClipHandleForEntity( touch, SV_QBool( clip.capsule ) );
-
 		origin = entity.r.currentOrigin;
 		angles = entity.r.currentAngles;
-
-
+		if ( ihv && !( entity.r.svFlags & SVF_USE_CURRENT_ORIGIN ) ) {
+			origin = entity.s.origin;
+			angles = entity.s.angles;
+		}
 		if ( !entity.r.bmodel ) {
 			angles = vec3_origin;	// boxes don't rotate
 		}
+		if ( ihv && ( !SV_ValidWorldBounds( entity.r.mins, entity.r.maxs )
+			|| !SV_FiniteWorldVector( origin ) || !SV_FiniteWorldVector( angles ) ) ) {
+			Com_Error( ERR_DROP, "%s: invalid IHV entity geometry", __func__ );
+			return;
+		}
+
+		// might intersect, so do an exact clip
+		clipHandle = SV_ClipHandleForEntity( touch, SV_QBool( clip.capsule ) );
+
+		// RTCW MP and ET sweep a box entity as its own contents. The box gets
+		// CONTENTS_BODY back once this entity's result is merged, as in retail,
+		// on every way out of this iteration.
+		const bool entityBoxContents = fnql::server::collision::UseEntityBoxContents(
+			Com_GameProfile()->entityBoxContentsPolicy,
+			clipHandle == CM_TemporaryModelHandle( qfalse ) );
+		if ( entityBoxContents ) {
+			CM_SetTempBoxModelContents( entity.r.contents );
+		}
+		const auto restoreBoxContents = SV_MakeScopeExit( [entityBoxContents]() {
+			if ( entityBoxContents ) {
+				CM_SetTempBoxModelContents( CONTENTS_BODY );
+			}
+		} );
 
 		CM_TransformedBoxTrace ( &trace, clip.start, clip.end,
 			clip.mins, clip.maxs, clipHandle,  clip.contentmask,
 			origin, angles, SV_QBool( clip.capsule ) );
+
+		if ( ihv ) {
+			// Original 0x41c0aa..0x41c0dc replaces the whole record, including
+			// startsolid, end position and plane, on any of these conditions.
+			if ( trace.allsolid || trace.startsolid || trace.fraction < clip.trace.fraction ) {
+				trace.entityNum = entity.s.number;
+				clip.trace = trace;
+			}
+			continue;
+		}
 
 		if ( trace.allsolid ) {
 			clip.trace.allsolid = qtrue;
@@ -671,6 +821,7 @@ passEntityNum and entities owned by passEntityNum are explicitly not checked.
 void SV_Trace( trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask, qboolean capsule ) {
 	moveclip_t	clip{};
 	int			i;
+	const bool ihv = Com_GameProfile()->id == COM_GAME_QUAKE3_IHV;
 
 	if ( !mins ) {
 		mins = vec3_origin;
@@ -678,10 +829,19 @@ void SV_Trace( trace_t *results, const vec3_t start, const vec3_t mins, const ve
 	if ( !maxs ) {
 		maxs = vec3_origin;
 	}
+	if ( ihv ) {
+		fntech3::q3ihv::SweepBounds bounds;
+		if ( !results || !fntech3::q3ihv::CalculateSweepBounds( start, mins, maxs, end, bounds ) ) {
+			Com_Error( ERR_DROP, "%s: invalid IHV sweep bounds", __func__ );
+			return;
+		}
+		VectorCopy( bounds.mins, clip.boxmins );
+		VectorCopy( bounds.maxs, clip.boxmaxs );
+	}
 
 	// clip to world
 	CM_BoxTrace( &clip.trace, start, end, mins, maxs, 0, contentmask, capsule );
-	clip.trace.entityNum = clip.trace.fraction != 1.0 ? ENTITYNUM_WORLD : ENTITYNUM_NONE;
+	clip.trace.entityNum = ihv ? 0 : clip.trace.fraction != 1.0 ? ENTITYNUM_WORLD : ENTITYNUM_NONE;
 	// ET uses -2 for world-only traces (original server/sv_world.c).
 	if ( clip.trace.fraction == 0 || ( Com_GameIsWolfET() && passEntityNum == -2 ) ) {
 		*results = clip.trace;
@@ -701,7 +861,7 @@ void SV_Trace( trace_t *results, const vec3_t start, const vec3_t mins, const ve
 	// we can limit it to the part of the move not
 	// already clipped off by the world, which can be
 	// a significant savings for line of sight and shot traces
-	for ( i=0 ; i<3 ; i++ ) {
+	for ( i=0 ; !ihv && i<3 ; i++ ) {
 		if ( end[i] > start[i] ) {
 			clip.boxmins[i] = clip.start[i] + clip.mins[i] - 1;
 			clip.boxmaxs[i] = clip.end[i] + clip.maxs[i] + 1;
@@ -733,6 +893,12 @@ int SV_PointContents( const vec3_t p, int passEntityNum ) {
 	int			contents, c2;
 	clipHandle_t	clipHandle;
 	const float		*angles;
+	const float		*origin;
+	const bool ihv = Com_GameProfile()->id == COM_GAME_QUAKE3_IHV;
+	if ( ihv && !SV_FiniteWorldVector( p ) ) {
+		Com_Error( ERR_DROP, "%s: invalid IHV point", __func__ );
+		return 0;
+	}
 
 	// get base contents from world
 	contents = CM_PointContents( p, 0 );
@@ -741,7 +907,7 @@ int SV_PointContents( const vec3_t p, int passEntityNum ) {
 	num = SV_AreaEntities( p, p, touch.data(), SV_ArraySize(touch) );
 
 	for ( i=0 ; i<num ; i++ ) {
-		if ( touch[i] == passEntityNum ) {
+		if ( !ihv && touch[i] == passEntityNum ) {
 			continue;
 		}
 		hit = SV_GentityNum( touch[i] );
@@ -749,15 +915,25 @@ int SV_PointContents( const vec3_t p, int passEntityNum ) {
 			Com_Error( ERR_DROP, "%s: invalid gentity %i", __func__, touch[i] );
 			return contents;
 		}
-		// might intersect, so do an exact clip
-		clipHandle = SV_ClipHandleForEntity( hit, qfalse );
-		angles = entity.r.currentAngles;
-		if ( !entity.r.bmodel ) {
+		if ( ihv && entity.s.number == passEntityNum ) continue;
+		// Original point queries always use state.origin/state.angles,
+		// including boxes and entities with SVF_USE_CURRENT_ORIGIN set.
+		origin = ihv ? entity.s.origin : entity.r.currentOrigin;
+		angles = ihv ? entity.s.angles : entity.r.currentAngles;
+		if ( !ihv && !entity.r.bmodel ) {
 			angles = vec3_origin;	// boxes don't rotate
 		}
+		if ( ihv && ( !SV_ValidWorldBounds( entity.r.mins, entity.r.maxs )
+			|| !SV_FiniteWorldVector( origin )
+			|| ( entity.r.bmodel && !SV_FiniteWorldVector( angles ) ) ) ) {
+			Com_Error( ERR_DROP, "%s: invalid IHV entity geometry", __func__ );
+			return contents;
+		}
+		// might intersect, so do an exact clip
+		clipHandle = SV_ClipHandleForEntity( hit, qfalse );
 
 		c2 = CM_TransformedPointContents (p, clipHandle,
-			entity.r.currentOrigin, angles);
+			origin, angles);
 
 		contents |= c2;
 	}

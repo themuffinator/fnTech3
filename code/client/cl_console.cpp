@@ -74,6 +74,27 @@ static int RoundToInt( float value )
 	return static_cast<int>( value + 0.5f );
 }
 
+/*
+The console's character cell belongs to the profile. Quake Live draws its
+console on retail's 12x24 cell at half size, scaled from a 768-pixel reference
+height. Quake III and every title built on it -- RTCW, Enemy Territory, Elite
+Force -- draw theirs with the 8x16 small character, which FnQuake3 scales with
+the 640x480 virtual screen. con_scale 1 is each profile's own cell.
+*/
+struct ConsoleCell {
+	float width, height;	// the cell at con_scale 1, before uniform scaling
+	float unit;				// what con_scale 1 multiplies the cell by
+	bool heightReference;	// uniform scaling from 768 rows, not the virtual screen
+};
+
+static ConsoleCell Con_ProfileCell( void )
+{
+	if ( Com_GameIsQuakeLive() ) {
+		return { RETAIL_CONSOLE_CHAR_WIDTH, RETAIL_CONSOLE_CHAR_HEIGHT, RETAIL_CONSOLE_SCALE_UNIT, true };
+	}
+	return { static_cast<float>( SMALLCHAR_WIDTH ), static_cast<float>( SMALLCHAR_HEIGHT ), 1.0f, false };
+}
+
 } // namespace
 
 enum class ConFocus {
@@ -4558,17 +4579,20 @@ void Con_CheckResize( void )
 	showClockModified = con_showClock && con_showClock->modified;
 	showVersionModified = con_showVersion && con_showVersion->modified;
 
-	charScale = scale * RETAIL_CONSOLE_SCALE_UNIT * cls.con_factor;
-	if ( uniformScale && cls.glconfig.vidHeight > 0 ) {
+	const ConsoleCell cell = Con_ProfileCell();
+	charScale = scale * cell.unit * cls.con_factor;
+	if ( uniformScale && cell.heightReference && cls.glconfig.vidHeight > 0 ) {
 		charScale *= cls.glconfig.vidHeight / RETAIL_CONSOLE_REFERENCE_HEIGHT;
+	} else if ( uniformScale && !cell.heightReference && cls.scale > 0.0f ) {
+		charScale *= cls.scale;
 	}
-	con_ttfCellWidth = RETAIL_CONSOLE_CHAR_WIDTH * charScale;
+	con_ttfCellWidth = cell.width * charScale;
 	if ( con_ttfCellWidth <= 0.0f ) {
-		con_ttfCellWidth = RETAIL_CONSOLE_CHAR_WIDTH;
+		con_ttfCellWidth = cell.width;
 	}
 
-	console_char_width = RoundToInt( RETAIL_CONSOLE_CHAR_WIDTH * charScale );
-	console_char_height = RoundToInt( RETAIL_CONSOLE_CHAR_HEIGHT * charScale );
+	console_char_width = RoundToInt( cell.width * charScale );
+	console_char_height = RoundToInt( cell.height * charScale );
 	// Retail con_scale is console-owned. Keep FnQ3's capture-resolution factor
 	// for legacy bitmap overlays without leaking console sizing into them.
 	legacyCharScale = cls.con_factor;
@@ -4784,7 +4808,9 @@ void Con_Init( void )
 	Cvar_SetDescription( con_scale, "Console font size scale." );
 	con_scaleUniform = Cvar_Get( "con_scaleUniform", "1", CVAR_ARCHIVE_ND );
 	Cvar_CheckRange( con_scaleUniform, "0", "1", CV_INTEGER );
-	Cvar_SetDescription( con_scaleUniform, "Use retail height-derived 768-reference scaling for console font metrics instead of native pixel sizing." );
+	Cvar_SetDescription( con_scaleUniform, Com_GameIsQuakeLive()
+		? "Use retail height-derived 768-reference scaling for console font metrics instead of native pixel sizing."
+		: "Scale the console's 8x16 characters with the 640x480 virtual screen instead of native pixel sizing." );
 	con_screenExtents = Cvar_Get( "con_screenExtents", "0", CVAR_ARCHIVE_ND );
 	Cvar_CheckRange( con_screenExtents, "0", "1", CV_INTEGER );
 	Cvar_SetDescription( con_screenExtents,
@@ -5679,6 +5705,11 @@ static bool Con_NotifyDrawn( void ) {
 		return cls.state == CA_DISCONNECTED || cls.state == CA_ACTIVE || cls.state == CA_CINEMATIC;
 	case COM_GAME_WOLFET:
 		return cls.state == CA_ACTIVE && con_drawnotify && con_drawnotify->integer;
+	case COM_GAME_ALICE:
+		// alice.exe has no notify lines; its console text reaches the screen
+		// only in the console window and the optional mini console
+		// (UI_PrintConsole 0x0040c220).
+		return false;
 	default:
 		return cls.state == CA_ACTIVE;
 	}

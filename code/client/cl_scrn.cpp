@@ -950,6 +950,8 @@ static DemoRecordingNotice SCR_DemoRecordingNotice( comGameId_t profile ) {
 		// et.exe only sets cl_demooffset here; its cgame draws the notice.
 	case COM_GAME_STVEF_SP:
 		// stvoy.exe cannot record a demo.
+	case COM_GAME_ALICE:
+		// alice.exe records without one: it has no "RECORDING" string.
 		return { false, false, 0, 0, 0 };
 	default:
 		// quake3.exe 1.32, WolfSP.exe and stvoyHM.exe.
@@ -1203,7 +1205,9 @@ void SCR_Init( void ) {
 	cl_graphshift = Cvar_Get ("graphshift", "0", CVAR_CHEAT);
 	r_debugFontAtlas = Cvar_Get( "r_debugFontAtlas", "0", CVAR_TEMP );
 	// Enemy Territory's UI draws its own connect screen and ships no such art.
-	scr_connectBackground = Com_GameIsWolfET() ? 0 : re.RegisterShaderNoMip( "ui/assets/backscreen_smoke" );
+	// Alice has none either: its loading screen is the world map.
+	scr_connectBackground = Com_GameIsWolfET() || Com_GameIsAlice() ? 0
+		: re.RegisterShaderNoMip( "ui/assets/backscreen_smoke" );
 
 	scr_initialized = true;
 }
@@ -1280,6 +1284,14 @@ static void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 	// screen, and they draw only while they hold the keys (stvoy.exe
 	// SCR_DrawScreenField 0x40a130).
 	const bool refreshEveryFrame = Com_GameIsSTVEFSP();
+
+	// American McGee's Alice's engine draws its whole frame itself, view,
+	// menus and all (cl_alice_screen.cpp).
+	if ( Com_GameIsAlice() ) {
+		re.BeginFrame( stereoFrame );
+		CL_AliceUpdateScreenField( stereoFrame );
+		return;
+	}
 
 	re.BeginFrame( stereoFrame );
 	const int beginEnded = traceField ? Sys_Milliseconds() : 0;

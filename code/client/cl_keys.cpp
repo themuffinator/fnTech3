@@ -25,6 +25,7 @@ extern "C" {
 
 #include "client_cpp.h"
 #include "input_compat.hpp"
+#include "alice_input.hpp"
 #include "../compat/q3_key_adapter.h"
 #include "../compat/rtcw_key_adapter.h"
 #include "../compat/rtcw_key_names.hpp"
@@ -35,13 +36,37 @@ extern "C" {
 
 #include <algorithm>
 #include <array>
+#include <cctype>
 #include <cstring>
+#include <initializer_list>
 
 using fnql::ScopedZoneMemory;
 
 namespace {
 
 fnql::input::Utf16Decoder textInputDecoder;
+
+/*
+American McGee's Alice's alt and ctrl binding tables (0x00dcd440 and
+0x00dce060 in alice.exe, twelve bytes a key). Each key has a binding of its own
+under each modifier and a flag recording that it went down while that modifier
+was held; the flag decides which binding a press runs and which releases a
+release sends. A binding that was set and then cleared is an empty string, not
+null, and retail tells the two apart: an empty alt binding still claims the
+press. The modifiers themselves follow the ALT and CTRL keys only while
+cl_altbindings or cl_ctrlbindings is set (0x00429c7f..0x00429cb2).
+*/
+struct AliceModifierKey {
+	bool pressed;
+	char *binding;
+};
+
+std::array<AliceModifierKey, MAX_KEYS> aliceAltKeys;
+std::array<AliceModifierKey, MAX_KEYS> aliceCtrlKeys;
+bool aliceAltHeld;
+bool aliceCtrlHeld;
+cvar_t *cl_altbindings;
+cvar_t *cl_ctrlbindings;
 
 } // namespace
 
@@ -835,6 +860,169 @@ static void CL_CGameKeyEvent( int key, qboolean down ) {
 
 /*
 =============
+CL_AliceMenuBoundKey
+
+Alice marks F1 to F12 "menubound" in Key_Init (0x00429bfa..0x00429c1a): they
+run their bindings while a menu holds the keys and while disconnected, which
+is how its default.cfg's F1 quickload and F4 quicksave work from a menu.
+=============
+*/
+static bool CL_AliceMenuBoundKey( int key ) {
+	return Com_GameIsAlice() && key >= K_F1 && key <= K_F12;
+}
+
+
+/*
+=============
+CL_AliceRunModifierBinding
+
+Runs an alt or ctrl binding the way Key_ParseBinding runs a key's own, so the
+two tables behave alike: each ';'-separated command in turn, '+' commands
+with the key and time (and the engine's source generation when the engine
+owns the command) on a press and as '-' on a release, anything else on a
+press only. Retail sends the whole string in one piece; splitting it is this
+engine's behaviour for every binding.
+=============
+*/
+static void CL_AliceRunModifierBinding( const char *binding, int key,
+	qboolean down, unsigned time ) {
+	std::array<char, MAX_STRING_CHARS> text;
+	std::array<char, 1024> command;
+	char *p = text.data();
+
+	Q_strncpyz( text.data(), binding, static_cast<int>( text.size() ) );
+	while ( true ) {
+		while ( *p && isspace( static_cast<unsigned char>( *p ) ) ) {
+			p++;
+		}
+		char *end = strchr( p, ';' );
+		if ( end ) {
+			*end = '\0';
+		}
+		if ( *p == '+' ) {
+			if ( CL_IsEngineStatefulInputCommand( p ) ) {
+				Com_sprintf( command.data(), static_cast<int>( command.size() ),
+					"%c%s %d %u fnql-gen:%u\n", down ? '+' : '-', p + 1, key,
+					time, Key_GetBindingGeneration( key ) );
+				Cbuf_AddInputText( command.data() );
+			} else {
+				Com_sprintf( command.data(), static_cast<int>( command.size() ),
+					"%c%s %d %d\n", down ? '+' : '-', p + 1, key, (int)time );
+				Cbuf_AddText( command.data() );
+			}
+		} else if ( down && *p ) {
+			Cbuf_AddText( p );
+			Cbuf_AddText( "\n" );
+		}
+		if ( !end ) {
+			break;
+		}
+		p = end + 1;
+	}
+}
+
+
+/*
+=============
+CL_AliceModifierKeyDown
+
+Which binding a press runs (0x00429fbe..0x0042a028): the alt binding when the
+key went down under alt and one was ever set, else the ctrl binding on the
+same terms. Returns false when the key's own binding should run.
+=============
+*/
+static bool CL_AliceModifierKeyDown( int key, unsigned time ) {
+	const AliceModifierKey &alt = aliceAltKeys[key];
+	const AliceModifierKey &ctrl = aliceCtrlKeys[key];
+
+	switch ( fntech3::alice::input::PressBinding( alt.pressed, alt.binding != nullptr,
+		ctrl.pressed, ctrl.binding != nullptr ) ) {
+	case fntech3::alice::input::BindingTable::Alt:
+		CL_AliceRunModifierBinding( alt.binding, key, qtrue, time );
+		return true;
+	case fntech3::alice::input::BindingTable::Ctrl:
+		CL_AliceRunModifierBinding( ctrl.binding, key, qtrue, time );
+		return true;
+	case fntech3::alice::input::BindingTable::Normal:
+		break;
+	}
+	return false;
+}
+
+
+/*
+=============
+CL_AliceModifierKeyUp
+
+A release sends the alt and then the ctrl binding's release for a key that
+went down under either, clearing its flag, before the key's own release
+(0x00429e81..0x00429f12). Retail does this with no catcher test at all.
+=============
+*/
+static void CL_AliceModifierKeyUp( int key, unsigned time ) {
+	for ( auto *table : { &aliceAltKeys, &aliceCtrlKeys } ) {
+		AliceModifierKey &entry = ( *table )[key];
+		if ( !entry.pressed ) {
+			continue;
+		}
+		entry.pressed = false;
+		if ( entry.binding ) {
+			CL_AliceRunModifierBinding( entry.binding, key, qfalse, time );
+		}
+	}
+}
+
+
+/*
+=============
+CL_AliceKeyFilter
+
+What Alice's CL_KeyEvent does before it routes a key, in its order
+(0x00429c7f..0x00429d47), for a press and a release alike:
+
+  ALT and CTRL follow their modifier while cl_altbindings or cl_ctrlbindings
+  is set; ` and ~ toggle the console on a press and do nothing on a release,
+  whatever they are bound to; a press under a held modifier is recorded for
+  the key; and MOUSE1 to MOUSE5 update the cursor's button mask and, in
+  cursor mode, stop there.
+
+Returns true when the key stops here. The key's own down state and the
+any-key count were already updated by the caller, as retail updates them
+first.
+=============
+*/
+static bool CL_AliceKeyFilter( int key, qboolean down ) {
+	if ( key == K_ALT ) {
+		if ( cl_altbindings && cl_altbindings->integer ) {
+			aliceAltHeld = down != qfalse;
+		}
+	} else if ( key == K_CTRL ) {
+		if ( cl_ctrlbindings && cl_ctrlbindings->integer ) {
+			aliceCtrlHeld = down != qfalse;
+		}
+	} else if ( key == '`' || key == '~' ) {
+		if ( down ) {
+			Con_ToggleConsole_f();
+			Key_ClearStates();
+		}
+		return true;
+	}
+
+	if ( down ) {
+		if ( aliceAltHeld && key != K_ALT ) {
+			aliceAltKeys[key].pressed = true;
+		}
+		if ( aliceCtrlHeld && key != K_CTRL ) {
+			aliceCtrlKeys[key].pressed = true;
+		}
+	}
+
+	return CL_AliceMouseButtonEvent( key, down ) != qfalse;
+}
+
+
+/*
+=============
 CL_ToggleMenuInternal
 
 Routes Quake Live-style menu toggles through the same path as the hard-coded
@@ -889,6 +1077,15 @@ static void CL_ToggleMenuInternal( int key, qboolean sendKeyUp, unsigned time ) 
 
 	Com_DPrintf( "CL_ToggleMenuInternal: catcher 0x%04x state %i\n",
 		Key_GetCatcher(), (int)cls.state );
+
+	// Alice's Escape is its engine UI's (cl_alice_ui.cpp EscapeKey), in
+	// retail's order: the intro's refusal, the double press, the menus, the
+	// scripted cinematic's `skipcinematic` and the cinematic stop
+	// (CL_KeyEvent 0x00429d9d..0x00429e63).
+	if ( Com_GameIsAlice() && !( Key_GetCatcher( ) & KEYCATCH_UI ) ) {
+		CL_AliceEscape();
+		return;
+	}
 
 	if ( !( Key_GetCatcher( ) & KEYCATCH_UI ) ) {
 		if ( !uivm ) {
@@ -984,6 +1181,23 @@ static qboolean CL_HandleDemoPlaybackKeyEvent( int key ) {
 
 /*
 ===================
+CL_KeyDownBinding
+
+Runs a pressed key's binding: under Alice its alt or ctrl binding when the key
+went down under that modifier, and otherwise its own.
+===================
+*/
+static void CL_KeyDownBinding( int key, unsigned time )
+{
+	if ( Com_GameIsAlice() && CL_AliceModifierKeyDown( key, time ) ) {
+		return;
+	}
+	Key_ParseBinding( key, qtrue, time );
+}
+
+
+/*
+===================
 CL_KeyDownEvent
 
 Called by CL_KeyEvent to handle a keypress
@@ -997,6 +1211,12 @@ static void CL_KeyDownEvent( int key, unsigned time )
 
 	if ( keys[key].repeats == 1 ) {
 		anykeydown++;
+	}
+
+	// Alice's modifiers, console keys and cursor-mode mouse buttons are
+	// settled before anything routes the key.
+	if ( Com_GameIsAlice() && CL_AliceKeyFilter( key, qtrue ) ) {
+		return;
 	}
 
 #ifndef _WIN32
@@ -1023,7 +1243,12 @@ static void CL_KeyDownEvent( int key, unsigned time )
 	}
 
 	// keys can still be used for bound actions
-	if ( ( key < 128 || key == K_MOUSE1 ) && cls.state == CA_CINEMATIC && Key_GetCatcher() == 0 ) {
+	// Alice also ends a playing demo this way, as Quake III 1.32 did: any
+	// such key clears nextdemo and becomes Escape (alice.exe 0x00429d56..
+	// 0x00429d8d, which tests clc.demoplaying beside the cinematic state).
+	if ( ( key < 128 || key == K_MOUSE1 )
+		&& ( cls.state == CA_CINEMATIC || ( Com_GameIsAlice() && clc.demoplaying ) )
+		&& Key_GetCatcher() == 0 ) {
 		if ( Cvar_VariableIntegerValue( "com_cameraMode" ) == 0 ) {
 			Cvar_Set ("nextdemo","");
 			key = K_ESCAPE;
@@ -1048,7 +1273,7 @@ static void CL_KeyDownEvent( int key, unsigned time )
 		Console_Key( key );
 	} else if ( Key_GetCatcher( ) & KEYCATCH_BROWSER ) {
 		CL_DispatchBrowserKeyEvent( key, qtrue );
-	} else if ( Key_GetCatcher( ) & KEYCATCH_UI ) {
+	} else if ( ( Key_GetCatcher( ) & KEYCATCH_UI ) && !CL_AliceMenuBoundKey( key ) ) {
 		if ( uivm ) {
 			CL_UIKeyDownEvent( key, time );
 		}
@@ -1059,10 +1284,14 @@ static void CL_KeyDownEvent( int key, unsigned time )
 			CL_CGameKeyEvent( key, qtrue );
 		}
 	} else if ( cls.state == CA_DISCONNECTED ) {
-		Console_Key( key );
+		if ( CL_AliceMenuBoundKey( key ) ) {
+			CL_KeyDownBinding( key, time );
+		} else {
+			Console_Key( key );
+		}
 	} else {
 		// send the bound action
-		Key_ParseBinding( key, qtrue, time );
+		CL_KeyDownBinding( key, time );
 	}
 }
 
@@ -1095,12 +1324,20 @@ static void CL_KeyUpEvent( int key, unsigned time )
 		return;
 	}
 
+	if ( Com_GameIsAlice() && CL_AliceKeyFilter( key, qfalse ) ) {
+		return;
+	}
+
 	// don't process key-up events for the console key
 	if ( key == K_CONSOLE || ( key == K_ESCAPE && keys[K_SHIFT].down ) ) {
 		return;
 	}
 	if (CL_RTCWCameraKeyAction(Com_GameIsRTCWSP(), cl.rtcwCameraMode,
 		Key_GetCatcher(), key, false) != rtcwCameraKeyAction::Pass) return;
+
+	if ( Com_GameIsAlice() ) {
+		CL_AliceModifierKeyUp( key, time );
+	}
 
 	//
 	// key up events only perform actions if the game key binding is
@@ -1181,6 +1418,12 @@ void CL_CharEvent( int key )
 		return;
 	}
 
+	// Alice's two console keys never type (CL_CharEvent 0x0042a140 drops
+	// both before anything sees them).
+	if ( Com_GameIsAlice() && ( *codepoint == '`' || *codepoint == '~' ) ) {
+		return;
+	}
+
 	// The browser takes composed characters, not the UTF-8 byte stream the
 	// legacy consumers below want, so it is served before the encoding split.
 	if ( !( Key_GetCatcher( ) & KEYCATCH_CONSOLE )
@@ -1245,6 +1488,15 @@ void Key_ClearStates( void )
 		keys[i].down = qfalse;
 		keys[i].bound = qfalse;
 		keys[i].repeats = 0;
+	}
+
+	// Alice's Key_ClearStates (0x0042a170) clears each key's alt and ctrl
+	// flags too; the releases above have already sent what they owed.
+	if ( Com_GameIsAlice() ) {
+		for ( int key = 0; key < MAX_KEYS; ++key ) {
+			aliceAltKeys[key].pressed = false;
+			aliceCtrlKeys[key].pressed = false;
+		}
 	}
 
 	// Release commands above carry the old per-source generation. Invalidate
@@ -1497,4 +1749,156 @@ void CL_WolfETSetKeyCatcher( int catcher ) {
 	WOLFET_CATCHER(KEYCATCH_CGAME)
 #undef WOLFET_CATCHER
 	Key_SetCatcher( internal );
+}
+
+/*
+=============================================================================
+
+AMERICAN McGEE'S ALICE: ALT AND CTRL BINDINGS
+
+Alice's Key_Init (0x00429b60) registers altbind, unaltbind, ctrlbind,
+unctrlbind, altbindlist and ctrlbindlist beside Quake III's four, and its
+configuration writer puts an altbind and a ctrlbind line after each key's
+bind line. unbindall clears only the plain table (0x004295d0), as here.
+
+=============================================================================
+*/
+
+namespace {
+
+using AliceModifierTable = std::array<AliceModifierKey, MAX_KEYS>;
+
+/* Both tables' setters (0x00429340, 0x00429390) free the old string, keep a
+ * copy of the new one and mark the configuration for writing, as a bind
+ * does. */
+void CL_AliceSetModifierBinding( AliceModifierKey &entry, const char *binding ) {
+	if ( entry.binding ) {
+		Z_Free( entry.binding );
+	}
+	entry.binding = CopyString( binding );
+	cvar_modifiedFlags |= CVAR_ARCHIVE;
+}
+
+int CL_AliceModifierKeyArgument( void ) {
+	const int key = Key_StringToKeynum( Cmd_Argv( 1 ) );
+	if ( key < 0 || key >= MAX_KEYS ) {
+		Com_Printf( "\"%s\" isn't a valid key\n", Cmd_Argv( 1 ) );
+		return -1;
+	}
+	return key;
+}
+
+/* altbind and ctrlbind (0x00429750, 0x004298a0): a key alone prints what it
+ * holds, which retail reports for any binding ever set, even an empty one. */
+void CL_AliceBindCommand( AliceModifierTable &table, const char *name ) {
+	const int argc = Cmd_Argc();
+	if ( argc < 2 ) {
+		Com_Printf( "%s <key> [command] : attach a command to a key\n", name );
+		return;
+	}
+	const int key = CL_AliceModifierKeyArgument();
+	if ( key < 0 ) {
+		return;
+	}
+	if ( argc == 2 ) {
+		if ( table[key].binding ) {
+			Com_Printf( "\"%s\" = \"%s\"\n", Cmd_Argv( 1 ), table[key].binding );
+		} else {
+			Com_Printf( "\"%s\" is not bound\n", Cmd_Argv( 1 ) );
+		}
+		return;
+	}
+	CL_AliceSetModifierBinding( table[key], Cmd_ArgsFrom( 2 ) );
+}
+
+/* unaltbind and unctrlbind (0x00429510, 0x00429570) set an empty binding. */
+void CL_AliceUnbindCommand( AliceModifierTable &table, const char *name ) {
+	if ( Cmd_Argc() != 2 ) {
+		Com_Printf( "%s <key> : remove commands from a key\n", name );
+		return;
+	}
+	const int key = CL_AliceModifierKeyArgument();
+	if ( key < 0 ) {
+		return;
+	}
+	CL_AliceSetModifierBinding( table[key], "" );
+}
+
+/* altbindlist and ctrlbindlist (0x00429ae0, 0x00429b20). */
+void CL_AliceBindListCommand( const AliceModifierTable &table ) {
+	for ( int key = 0; key < MAX_KEYS; ++key ) {
+		if ( table[key].binding && table[key].binding[0] ) {
+			Com_Printf( "%s \"%s\"\n", Key_KeynumToString( key ), table[key].binding );
+		}
+	}
+}
+
+void CL_AliceAltBind_f( void ) { CL_AliceBindCommand( aliceAltKeys, "altbind" ); }
+void CL_AliceUnaltBind_f( void ) { CL_AliceUnbindCommand( aliceAltKeys, "unaltbind" ); }
+void CL_AliceCtrlBind_f( void ) { CL_AliceBindCommand( aliceCtrlKeys, "ctrlbind" ); }
+void CL_AliceUnctrlBind_f( void ) { CL_AliceUnbindCommand( aliceCtrlKeys, "unctrlbind" ); }
+void CL_AliceAltBindList_f( void ) { CL_AliceBindListCommand( aliceAltKeys ); }
+void CL_AliceCtrlBindList_f( void ) { CL_AliceBindListCommand( aliceCtrlKeys ); }
+
+} // namespace
+
+
+/*
+===================
+CL_AliceInitKeyCommands
+
+The two modifier switches are archived and off by default (cl_altbindings at
+0x00dc8144, cl_ctrlbindings at 0x00bd7640), so an Alice configuration that
+never turned them on keeps ALT and CTRL as ordinary keys.
+===================
+*/
+void CL_AliceInitKeyCommands( void ) {
+	cl_altbindings = Cvar_Get( "cl_altbindings", "0", CVAR_ARCHIVE );
+	Cvar_SetDescription( cl_altbindings, "Run a key's altbind binding when it is pressed while ALT is held." );
+	cl_ctrlbindings = Cvar_Get( "cl_ctrlbindings", "0", CVAR_ARCHIVE );
+	Cvar_SetDescription( cl_ctrlbindings, "Run a key's ctrlbind binding when it is pressed while CTRL is held." );
+
+	Cmd_AddCommand( "altbind", CL_AliceAltBind_f );
+	Cmd_AddCommand( "unaltbind", CL_AliceUnaltBind_f );
+	Cmd_AddCommand( "ctrlbind", CL_AliceCtrlBind_f );
+	Cmd_AddCommand( "unctrlbind", CL_AliceUnctrlBind_f );
+	Cmd_AddCommand( "altbindlist", CL_AliceAltBindList_f );
+	Cmd_AddCommand( "ctrlbindlist", CL_AliceCtrlBindList_f );
+}
+
+
+void CL_AliceShutdownKeyCommands( void ) {
+	Cmd_RemoveCommand( "altbind" );
+	Cmd_RemoveCommand( "unaltbind" );
+	Cmd_RemoveCommand( "ctrlbind" );
+	Cmd_RemoveCommand( "unctrlbind" );
+	Cmd_RemoveCommand( "altbindlist" );
+	Cmd_RemoveCommand( "ctrlbindlist" );
+	aliceAltHeld = false;
+	aliceCtrlHeld = false;
+}
+
+
+/*
+===================
+Key_AliceWriteModifierBindings
+
+The two lines retail's configuration writer puts after a key's bind line
+(0x00429a31..0x00429a7e), in its format, for a key whose alt or ctrl binding
+is not empty. Key_WriteBindings calls it for each key, right after that key's
+bind line.
+===================
+*/
+void Key_AliceWriteModifierBindings( fileHandle_t f, int keynum ) {
+	if ( !Com_GameIsAlice() || keynum < 0 || keynum >= MAX_KEYS ) {
+		return;
+	}
+	const char *alt = aliceAltKeys[keynum].binding;
+	if ( alt && alt[0] ) {
+		FS_Printf( f, "altbind %s \"%s\"" Q_NEWLINE, Key_KeynumToString( keynum ), alt );
+	}
+	const char *ctrl = aliceCtrlKeys[keynum].binding;
+	if ( ctrl && ctrl[0] ) {
+		FS_Printf( f, "ctrlbind %s \"%s\"" Q_NEWLINE, Key_KeynumToString( keynum ), ctrl );
+	}
 }

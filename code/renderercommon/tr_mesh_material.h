@@ -24,4 +24,15 @@ static shader_t *R_MeshSkinShader( const refEntity_t *entity, const skin_t *skin
 	return tr.defaultShader;
 }
 
+/* IHV's skin is an ordered shader list, selected by model surface ordinal.
+ * Names and entity skinNum do not participate (original 0x441f56..0x441f67).
+ * Native resource pointers are resolved to this owned skin before rendering. */
+static shader_t *R_MeshSkinShaderAt( const refEntity_t *entity, const skin_t *skin, const char *name, int ordinal ) {
+	if ( ri.gameId == COM_GAME_QUAKE3_IHV ) {
+		if ( ordinal < 0 || skin->numSurfaces <= 0 || !skin->surfaces ) return tr.defaultShader;
+		return skin->surfaces[ordinal % skin->numSurfaces].shader;
+	}
+	return R_MeshSkinShader( entity, skin, name );
+}
+
 #endif

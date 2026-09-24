@@ -37,6 +37,7 @@ extern "C" {
 }
 
 #include "client_cpp.h"
+#include "client_alice_cinematic.hpp"
 
 #include <algorithm>
 #include <array>
@@ -98,6 +99,7 @@ extern	int		s_rawend;
 
 static qboolean RoQ_init( void );
 static void CIN_SetLooping (int handle, qboolean loop);
+static void CL_AliceCinematicEnd( void );
 
 static const char *CL_CinematicBasename( const char *path )
 {
@@ -149,6 +151,13 @@ static qboolean CL_ShouldSkipIdLogoCinematic( const char *arg )
 static void CL_RunCinematicNextmap( void )
 {
 	const char *s;
+
+	// Alice's end prefixes `map`, stops at a leading ';' and resumes its
+	// engine UI's intro (CIN_Finish 0x004257a0).
+	if ( Com_GameIsAlice() ) {
+		CL_AliceCinematicEnd();
+		return;
+	}
 
 	s = Cvar_VariableString( "nextmap" );
 	if ( s[0] ) {
@@ -1396,7 +1405,9 @@ static void RoQInterrupt()
 				break;
 			}
 			case	ZA_SOUND_MONO:
-				if (!cinTable[currentHandle].silent) {
+				// Alice decodes a movie's own sound and plays none of it
+				// (alice.exe 0x00425ac1, 0x00425ae5); its sound is the MP3.
+				if (!cinTable[currentHandle].silent && !Com_GameIsAlice()) {
 					// two output shorts per input byte
 					unsigned int decodeBytes = cinTable[currentHandle].RoQFrameSize;
 					if ( decodeBytes > sbuf.size() / 2 )
@@ -1410,7 +1421,7 @@ static void RoQInterrupt()
 					RoQReject( "incomplete stereo sample" );
 					return;
 				}
-				if (!cinTable[currentHandle].silent) {
+				if (!cinTable[currentHandle].silent && !Com_GameIsAlice()) {
 					if (cinTable[currentHandle].numQuads == -1) {
 						S_Update( 333 );
 						s_rawend = s_soundtime;
@@ -1527,6 +1538,10 @@ static qboolean RoQ_init( void )
 
 static void RoQShutdown( void ) {
 	if ( currentHandle < 0 ) return;
+	if ( Com_GameIsAlice() && currentHandle == CL_handle ) {
+		// The cinematic's MP3 goes with it (alice.exe 0x004257f4).
+		S_AliceMP3Free();
+	}
 	Com_DPrintf("finished cinematic\n");
 	cinTable[currentHandle].status = FMV_IDLE;
 
@@ -1925,13 +1940,143 @@ void CIN_DrawCinematicUI( int handle ) {
 }
 
 
+/*
+=============================================================================
+
+American McGee's Alice's cinematic player (client_alice_cinematic.hpp holds
+its steps and their retail addresses). Its movies are the system cinematic:
+the intro's logos and New Game's opening. It never loops one; the end runs
+`nextmap` as a map and resumes the engine UI's intro.
+
+=============================================================================
+*/
+
+// client_alice_ui.hpp's, which cannot follow client.h into this file.
+bool CL_AliceLoadingActive( void );
+void CL_AliceCinematicPlay( const char *name, const char *flags );
+
+// The movie playing now: whether its end resumes the intro, and where.
+static fntech3::alice::cinematic::Record aliceCinematic;
+
+struct AliceCinematicHost {
+	bool Playing() const { return cls.state == CA_CINEMATIC; }
+	void StartHunkUsers() { CL_StartHunkUsers(); }
+	void StopAllSounds() {
+		S_StopAllSounds();
+		// Alice's cinematic start frees the music (alice.exe 0x00427303).
+		S_AliceMusicFreeAll();
+	}
+	int VideoLength( const char *path ) { return FS_FOpenFileRead( path, nullptr, qfalse ); }
+	void MissingVideo( const char *name ) { Com_DPrintf( "play(%s), ROQSize<=0\n", name ); }
+	/* Retail's SV_Shutdown (0x00455910) never disconnects the local client. It
+	 * sends the final `print` and `disconnect` (SV_FinalMessage 0x004558a0),
+	 * shuts the game down and clears the server; the client keeps its cgame
+	 * and its connection state until CIN_Play puts it at CA_CINEMATIC
+	 * (0x0042750d) and the movie's end at CA_DISCONNECTED (CIN_Finish
+	 * 0x004257fe). The stale connection goes with the next CL_Disconnect
+	 * (0x0042abb0), which the next map load runs first (0x0042ab26). This
+	 * engine's SV_Shutdown disconnects the local client unless sv_killserver
+	 * is 2, the request CL_PlayDemo_f makes for the same reason. */
+	void ShutdownServer() {
+		Cvar_Set( "sv_killserver", "2" );
+		SV_Shutdown( "" );
+		Cvar_Set( "sv_killserver", "0" );
+	}
+	// The MP3 is read before the movie's header (alice.exe 0x0042745d).
+	bool PreloadSound( const char *path ) { return S_AliceMP3Preload( path ) != qfalse; }
+	void SoundNotPreloaded( const char *path ) {
+		Com_Printf( "ERROR: Could not preload mp3 file %s.\n", path );
+	}
+	bool Open( const char *path, bool holdAtEnd ) {
+		// The system cinematic, held at its end or not, and never looped.
+		const int bits = CIN_system | ( holdAtEnd ? CIN_hold : 0 );
+		CL_handle = CIN_PlayCinematic( path, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, bits );
+		return CL_handle >= 0;
+	}
+	void BadHeader( const char *name ) {
+		Com_DPrintf( "trFMV::play(), invalid RoQ ID\n" );
+		(void)name;
+		// The preloaded sound is not kept for a movie that never started.
+		S_AliceMP3Free();
+	}
+	void Opened( const char *name ) { Com_Printf( "trFMV::play(), playing %s\n", name ); }
+	void ClearSoundBuffer() { S_ClearSoundBuffer(); }
+	void DecodeFirstFrame() {
+		// A malformed movie may close its handle before producing a first frame.
+		do {
+			SCR_RunCinematic();
+		} while ( CL_handle >= 0 && CL_handle < MAX_VIDEO_HANDLES &&
+			cinTable[CL_handle].buf == nullptr && cinTable[CL_handle].status == FMV_PLAY );
+	}
+	// Once its first frame is decoded, for a single pass (0x00427569).
+	bool PlaySound() { return S_AliceMP3PlayPreloaded( qfalse ) != qfalse; }
+	void SoundNotPlayed() { Com_Printf( "ERROR: Could not play preloaded MP3.\n" ); }
+
+	std::string NextMap() const { return Cvar_VariableString( "nextmap" ); }
+	void Append( const char *text ) { Cbuf_ExecuteText( EXEC_APPEND, text ); }
+	void ClearNextMap() { Cvar_Set( "nextmap", "" ); }
+	bool MapLoading() const { return CL_AliceLoadingActive(); }
+	void SetIntroState( int state ) { CL_AliceUISetIntroState( state ); }
+};
+
+/*
+====================
+CL_AliceCinematicPlay
+
+CIN_Play (alice.exe 0x004272e0), from the `cinematic` command and from the
+engine UI's intro.
+====================
+*/
+void CL_AliceCinematicPlay( const char *name, const char *flags ) {
+	AliceCinematicHost host;
+	fntech3::alice::cinematic::Play( host, aliceCinematic, name, flags );
+}
+
+/*
+====================
+CL_AliceStopCinematic
+
+CIN_Stop (alice.exe 0x00425770) as the server's `map`, `loadgame` and
+`loadbrokengame` call it before they spawn (0x00451118, 0x00451c53,
+0x00451b09): nothing unless a cinematic plays.
+====================
+*/
+void CL_AliceStopCinematic( void ) {
+	if ( cls.state == CA_CINEMATIC ) {
+		SCR_StopCinematic();
+	}
+}
+
+/*
+====================
+CL_AliceCinematicEnd
+
+The end of Alice's system cinematic, at EOF or when stopped: RoQShutdown has
+closed it and put the client back at CA_DISCONNECTED (CIN_Finish 0x004257a0).
+====================
+*/
+static void CL_AliceCinematicEnd( void ) {
+	AliceCinematicHost host;
+	fntech3::alice::cinematic::End( host, aliceCinematic );
+}
+
 void CL_PlayCinematic_f( void ) {
 	const char	*arg, *s;
 	int bits = CIN_system;
 
-	Com_DPrintf("CL_PlayCinematic_f\n");
 	arg = Cmd_Argv( 1 );
 	s = Cmd_Argv(2);
+
+	// Alice's `cinematic` (0x004276c0) ignores a request while one plays.
+	if ( Com_GameIsAlice() ) {
+		if ( cls.state != CA_CINEMATIC ) {
+			Com_DPrintf( "SCR_PlayCinematic( %s )\n", arg );
+			CL_AliceCinematicPlay( arg, s );
+		}
+		return;
+	}
+
+	Com_DPrintf("CL_PlayCinematic_f\n");
 
 	if ( CL_ShouldSkipIdLogoCinematic( arg ) ) {
 		CL_RunCinematicNextmap();
@@ -1984,6 +2129,12 @@ void SCR_RunCinematic( void ) {
 
 
 void SCR_StopCinematic( void ) {
+	// Alice's CIN_Stop (0x00425770): a movie stopped while it plays ends
+	// without resuming the intro where its flags said; the intro goes to its
+	// main menu instead.
+	if ( Com_GameIsAlice() ) {
+		fntech3::alice::cinematic::Stop( cls.state == CA_CINEMATIC, aliceCinematic );
+	}
 	if (CL_handle >= 0 && CL_handle < MAX_VIDEO_HANDLES) {
 		CIN_StopCinematic(CL_handle);
 		S_StopAllSounds ();

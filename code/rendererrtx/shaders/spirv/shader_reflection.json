@@ -2030,7 +2030,7 @@
       "defines": [
         "USE_ATEST"
       ],
-      "byte_size": 9572,
+      "byte_size": 10208,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -2069,7 +2069,7 @@
         "USE_ATEST",
         "USE_FOG"
       ],
-      "byte_size": 11988,
+      "byte_size": 12608,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -2116,7 +2116,7 @@
         "USE_CLX_IDENT",
         "USE_ATEST"
       ],
-      "byte_size": 9480,
+      "byte_size": 10116,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -2156,7 +2156,7 @@
         "USE_ATEST",
         "USE_FOG"
       ],
-      "byte_size": 11896,
+      "byte_size": 12516,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -2203,7 +2203,7 @@
         "USE_FIXED_COLOR",
         "USE_ATEST"
       ],
-      "byte_size": 9660,
+      "byte_size": 10296,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -2243,7 +2243,7 @@
         "USE_ATEST",
         "USE_FOG"
       ],
-      "byte_size": 12076,
+      "byte_size": 12696,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -2290,7 +2290,7 @@
         "USE_ENT_COLOR",
         "USE_ATEST"
       ],
-      "byte_size": 9536,
+      "byte_size": 10172,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -2330,7 +2330,7 @@
         "USE_ATEST",
         "USE_FOG"
       ],
-      "byte_size": 11952,
+      "byte_size": 12572,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -2378,7 +2378,7 @@
         "USE_ATEST",
         "USE_DF"
       ],
-      "byte_size": 5944,
+      "byte_size": 6580,
       "reflection": {
         "descriptor_bindings": [
           {

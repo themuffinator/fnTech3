@@ -5,6 +5,7 @@
 #include <stdlib.h>
 
 #include "tr_local.h"
+#include "../renderercommon/tr_q3_ihv_model_surface.h"
 #include "../renderercommon/tr_mesh_material.h"
 #include "../renderercommon/tr_rtcw_fog_gpu.h"
 #include "vk.h"
@@ -86,6 +87,8 @@ static PFN_vkCmdPushConstants							qvkCmdPushConstants;
 static PFN_vkCmdResetQueryPool							qvkCmdResetQueryPool;
 static PFN_vkCmdSetDepthBias							qvkCmdSetDepthBias;
 static PFN_vkCmdSetScissor								qvkCmdSetScissor;
+static PFN_vkCmdSetLineWidth							qvkCmdSetLineWidth;
+static PFN_vkCmdSetLineStippleEXT						qvkCmdSetLineStippleEXT;
 static PFN_vkCmdSetViewport								qvkCmdSetViewport;
 static PFN_vkCmdWriteTimestamp							qvkCmdWriteTimestamp;
 static PFN_vkCreateBuffer								qvkCreateBuffer;
@@ -637,7 +640,7 @@ static void vk_rt_fill_push_constants( rtxRtPushConstants_t *push );
 static qboolean vk_rt_update_temporal_state( void );
 static void vk_rt_reset_temporal_history( const char *reason );
 static void vk_rt_destroy_output_image( void );
-static const shader_t *vk_rt_resolve_md3_shader( const trRefEntity_t *ent, const md3Surface_t *surface );
+static const shader_t *vk_rt_resolve_md3_shader( const trRefEntity_t *ent, const md3Surface_t *surface, int ordinal );
 static const shader_t *vk_rt_resolve_iqm_shader( const trRefEntity_t *ent, const srfIQModel_t *surface );
 static void vk_rt_decode_md3_normal( short packedNormal, vec3_t outNormal );
 static void vk_rt_transform_point( const trRefEntity_t *ent, const vec3_t local, vec3_t world );
@@ -932,6 +935,9 @@ static qboolean vk_rt_entity_visible_in_current_view( const trRefEntity_t *ent )
 		return qfalse;
 	}
 
+	if ( ri.gameId == COM_GAME_QUAKE3_IHV && ent->e.q3IHV.active &&
+		!Q3IHV_EntityVisible( ent->e.q3IHV.flags, backEnd.viewParms.portalView != PV_NONE ) ) return qfalse;
+
 	// Match legacy visibility behavior for first/third-person entities.
 	if ( ( ent->e.renderfx & RF_FIRST_PERSON ) &&
 		( backEnd.viewParms.portalView != PV_NONE ||
@@ -954,6 +960,8 @@ static qboolean vk_rt_model_casts_in_current_view( const trRefEntity_t *ent )
 		( ent->e.renderfx & ( RF_NOSHADOW | RF_DEPTHHACK | RF_FIRST_PERSON ) ) ) {
 		return qfalse;
 	}
+	if ( ri.gameId == COM_GAME_QUAKE3_IHV && ent->e.q3IHV.active &&
+		!vk_rt_entity_visible_in_current_view( ent ) ) return qfalse;
 	return qtrue;
 }
 
@@ -1046,6 +1054,22 @@ static uint32_t vk_rt_estimate_dynamic_scene_signature( vec3_t outCentroid, uint
 			continue;
 		}
 
+		if ( ri.gameId == COM_GAME_QUAKE3_IHV && ref->q3IHV.active ) {
+			int row, column;
+			uint32_t bits;
+			const vec3_t *axes = ( ref->q3IHV.flags & Q3IHV_ENTITY_FACE_VIEW ) ? backEnd.refdef.viewaxis : ref->axis;
+			hash = vk_rt_hash_mix_u32( hash, ref->q3IHV.flags );
+			if ( ref->reType == RT_MODEL ) hash = vk_rt_hash_mix_u32( hash,
+				(uint32_t)Q3IHV_ModelLerpEnabled( r_lerpmodels ? &r_lerpmodels->value : NULL ) );
+			for ( row = 0; row < 3; ++row ) {
+				memcpy( &bits, &ref->origin[row], 4 ); hash = vk_rt_hash_mix_u32( hash, bits );
+				memcpy( &bits, &ref->oldorigin[row], 4 ); hash = vk_rt_hash_mix_u32( hash, bits );
+				for ( column = 0; column < 3; ++column ) {
+					memcpy( &bits, &axes[row][column], 4 ); hash = vk_rt_hash_mix_u32( hash, bits );
+				}
+			}
+			memcpy( &bits, &ref->backlerp, 4 ); hash = vk_rt_hash_mix_u32( hash, bits );
+		}
 		hash = vk_rt_hash_mix_u32( hash, (uint32_t)ref->reType );
 		hash = vk_rt_hash_mix_u32( hash, modelHandle );
 		hash = vk_rt_hash_mix_u32( hash, (uint32_t)ref->renderfx );
@@ -1067,6 +1091,22 @@ static uint32_t vk_rt_estimate_dynamic_scene_signature( vec3_t outCentroid, uint
 		int v;
 		hash = vk_rt_hash_mix_u32( hash, (uint32_t)poly->hShader );
 		hash = vk_rt_hash_mix_u32( hash, (uint32_t)poly->numVerts );
+		if ( poly->surfaceType == SF_IHV_PARTICLES ) {
+			int axis;
+			hash = vk_rt_hash_mix_u32( hash, SF_IHV_PARTICLES );
+			hash = vk_rt_hash_mix_u32( hash, R_ViewPassIsMirror( &backEnd.viewParms ) );
+			/* Particle depth scaling and orientation change with this view.
+			 * Exact bits also preserve the discontinuity at depth 20. */
+			for ( axis = 0; axis < 3; ++axis ) {
+				uint32_t bits;
+				memcpy( &bits, &backEnd.viewParms.or.origin[axis], sizeof( bits ) );
+				hash = vk_rt_hash_mix_u32( hash, bits );
+				for ( v = 0; v < 3; ++v ) {
+					memcpy( &bits, &backEnd.viewParms.or.axis[axis][v], sizeof( bits ) );
+					hash = vk_rt_hash_mix_u32( hash, bits );
+				}
+			}
+		}
 		for ( v = 0; poly->verts && v < poly->numVerts; v++ ) {
 			const polyVert_t *vertex = &poly->verts[v];
 			hash = vk_rt_hash_quantized_float( hash, vertex->xyz[0], originQuant );
@@ -3525,8 +3565,30 @@ static qboolean vk_rt_material_name_contains_token( const char *name, const char
 	return strstr( loweredName, loweredToken ) ? qtrue : qfalse;
 }
 
+/*
+ * American McGee's Alice's `alphatest <func> <ref>` (tr_alice_shader.h), as
+ * the any-hit shader's one comparison against ref / 256: greater and gequal
+ * keep alpha at or above it, less and lequal below it (RTX_RT_MATFLAG_ALPHA_LT).
+ * Equal and notequal have no such cutoff and the surface stays unmasked; no
+ * shipped script uses them.
+ */
+static qboolean vk_rt_alice_alpha_below( unsigned stateBits )
+{
+	const unsigned func = ( stateBits & GLS_ALICE_ATEST_FUNC_BITS ) >> GLS_ALICE_ATEST_FUNC_SHIFT;
+	return ( func == 4 || func == 6 ) ? qtrue : qfalse;
+}
+
 static float vk_rt_material_alpha_cutoff_from_state_bits( unsigned stateBits )
 {
+	switch ( ( stateBits & GLS_ALICE_ATEST_FUNC_BITS ) >> GLS_ALICE_ATEST_FUNC_SHIFT ) {
+	case 3:	/* greater */
+	case 4:	/* less */
+	case 5:	/* gequal */
+	case 6:	/* lequal */
+		return (float)( ( stateBits & GLS_ALICE_ATEST_REF_BITS ) >> GLS_ALICE_ATEST_REF_SHIFT ) * ( 1.0f / 256.0f );
+	default:
+		break;
+	}
 	switch ( stateBits & GLS_ATEST_BITS ) {
 	case GLS_ATEST_GT_0:
 		return 1.0f / 255.0f;
@@ -3800,7 +3862,8 @@ static void vk_rt_translate_shader_to_material( const shader_t *shader, rtxRtMat
 		if ( stageCutoff > 0.0f ) {
 			material->flags |= RTX_RT_MATFLAG_MASKED;
 			material->alphaCutoff = MAX( material->alphaCutoff, stageCutoff );
-			if ( ( stage->stateBits & GLS_ATEST_BITS ) == GLS_ATEST_LT_80 ) {
+			if ( ( stage->stateBits & GLS_ATEST_BITS ) == GLS_ATEST_LT_80 ||
+				vk_rt_alice_alpha_below( stage->stateBits ) ) {
 				material->flags |= RTX_RT_MATFLAG_ALPHA_LT;
 			}
 		}
@@ -4924,17 +4987,21 @@ static qboolean vk_rt_build_triangles_blas( rtxVkRtAccelerationStructure_t *outA
 
 static void vk_rt_transform_point( const trRefEntity_t *ent, const vec3_t local, vec3_t world )
 {
+	const vec3_t *axis = ( ri.gameId == COM_GAME_QUAKE3_IHV && ent->e.q3IHV.active &&
+		( ent->e.q3IHV.flags & Q3IHV_ENTITY_FACE_VIEW ) ) ? backEnd.refdef.viewaxis : ent->e.axis;
 	VectorCopy( ent->e.origin, world );
-	VectorMA( world, local[0], ent->e.axis[0], world );
-	VectorMA( world, local[1], ent->e.axis[1], world );
-	VectorMA( world, local[2], ent->e.axis[2], world );
+	VectorMA( world, local[0], axis[0], world );
+	VectorMA( world, local[1], axis[1], world );
+	VectorMA( world, local[2], axis[2], world );
 }
 
 static void vk_rt_transform_direction( const trRefEntity_t *ent, const vec3_t local, vec3_t world )
 {
-	world[0] = local[0] * ent->e.axis[0][0] + local[1] * ent->e.axis[1][0] + local[2] * ent->e.axis[2][0];
-	world[1] = local[0] * ent->e.axis[0][1] + local[1] * ent->e.axis[1][1] + local[2] * ent->e.axis[2][1];
-	world[2] = local[0] * ent->e.axis[0][2] + local[1] * ent->e.axis[1][2] + local[2] * ent->e.axis[2][2];
+	const vec3_t *axis = ( ri.gameId == COM_GAME_QUAKE3_IHV && ent->e.q3IHV.active &&
+		( ent->e.q3IHV.flags & Q3IHV_ENTITY_FACE_VIEW ) ) ? backEnd.refdef.viewaxis : ent->e.axis;
+	world[0] = local[0] * axis[0][0] + local[1] * axis[1][0] + local[2] * axis[2][0];
+	world[1] = local[0] * axis[0][1] + local[1] * axis[1][1] + local[2] * axis[2][1];
+	world[2] = local[0] * axis[0][2] + local[1] * axis[1][2] + local[2] * axis[2][2];
 	if ( VectorNormalize( world ) == 0.0f ) {
 		world[0] = 0.0f;
 		world[1] = 0.0f;
@@ -5084,7 +5151,7 @@ static void vk_rt_decode_md3_normal( short packedNormal, vec3_t outNormal )
 	outNormal[2] = cosf( lngRad );
 }
 
-static const shader_t *vk_rt_resolve_md3_shader( const trRefEntity_t *ent, const md3Surface_t *surface )
+static const shader_t *vk_rt_resolve_md3_shader( const trRefEntity_t *ent, const md3Surface_t *surface, int ordinal )
 {
 	const shader_t *shader = tr.defaultShader;
 
@@ -5092,10 +5159,10 @@ static const shader_t *vk_rt_resolve_md3_shader( const trRefEntity_t *ent, const
 		shader = R_GetShaderByHandle( ent->e.customShader );
 	} else if ( ent->e.customSkin > 0 && ent->e.customSkin < tr.numSkins ) {
 		const skin_t *skin = R_GetSkinByHandle( ent->e.customSkin );
-		shader = R_MeshSkinShader( &ent->e, skin, surface->name );
+		shader = R_MeshSkinShaderAt( &ent->e, skin, surface->name, ordinal );
 	} else if ( surface->numShaders > 0 ) {
 		const md3Shader_t *md3Shader = (const md3Shader_t *)( (const byte *)surface + surface->ofsShaders );
-		const int shaderIndex = ent->e.skinNum % surface->numShaders;
+		const int shaderIndex = ent->e.skinNum < 0 ? 0 : ent->e.skinNum % surface->numShaders;
 		md3Shader += shaderIndex;
 		if ( md3Shader->shaderIndex >= 0 && md3Shader->shaderIndex < tr.numShaders ) {
 			shader = tr.shaders[ md3Shader->shaderIndex ];
@@ -5214,6 +5281,8 @@ static qboolean vk_rt_append_sprite_entity_geometry( rtxRtCpuGeometry_t *geometr
 	return qtrue;
 }
 
+#include "../renderercommon/tr_q3_ihv_beam_ray.h"
+
 static qboolean vk_rt_append_beam_entity_geometry( rtxRtCpuGeometry_t *geometry, const trRefEntity_t *ent )
 {
 	const shader_t *shader;
@@ -5234,6 +5303,8 @@ static qboolean vk_rt_append_beam_entity_geometry( rtxRtCpuGeometry_t *geometry,
 	uint32_t color;
 	int i;
 
+	if ( ri.gameId == COM_GAME_QUAKE3_IHV && ent->e.q3IHV.active )
+		return vk_rt_append_ihv_beam_geometry( geometry, ent );
 	VectorCopy( ent->e.origin, start );
 	VectorCopy( ent->e.oldorigin, end );
 	VectorSubtract( end, start, direction );
@@ -5307,6 +5378,8 @@ static qboolean vk_rt_append_beam_entity_geometry( rtxRtCpuGeometry_t *geometry,
 	return qtrue;
 }
 
+#include "../renderercommon/tr_q3_ihv_particle_ray.h"
+
 static qboolean vk_rt_append_poly_geometry( rtxRtCpuGeometry_t *geometry, const srfPoly_t *poly )
 {
 	const shader_t *shader;
@@ -5320,9 +5393,11 @@ static qboolean vk_rt_append_poly_geometry( rtxRtCpuGeometry_t *geometry, const 
 	uint32_t indexCount;
 	int i;
 
-	if ( !poly || !poly->verts || poly->numVerts < 3 ) {
+	if ( !poly || !poly->verts || poly->numVerts <= 0 ) {
 		return qtrue;
 	}
+	if ( poly->surfaceType == SF_IHV_PARTICLES ) return vk_rt_append_ihv_particle_geometry( geometry, poly );
+	if ( poly->numVerts < 3 ) return qtrue;
 	triangleCount = (uint32_t)poly->numVerts - 2u;
 	if ( !vk_rt_checked_u32_multiply( triangleCount, 3u, &indexCount ) ) {
 		ri.Printf( PRINT_WARNING, "RTX RT: refusing overflowing polygon geometry\n" );
@@ -5488,6 +5563,9 @@ static qboolean vk_rt_append_md3_entity_geometry( rtxRtCpuGeometry_t *geometry, 
 	int frame;
 	int oldFrame;
 	float backlerp;
+	vec3_t ihvMove = { 0, 0, 0 };
+	vec3_t ihvXYZ[SHADER_MAX_VERTEXES], ihvNormal[SHADER_MAX_VERTEXES];
+	const qboolean ihv = ( ri.gameId == COM_GAME_QUAKE3_IHV && ent->e.q3IHV.active ) ? qtrue : qfalse;
 	const md3Surface_t *surface;
 	int i;
 
@@ -5504,7 +5582,9 @@ static qboolean vk_rt_append_md3_entity_geometry( rtxRtCpuGeometry_t *geometry, 
 
 	frame = ent->e.frame;
 	oldFrame = ent->e.oldframe;
-	if ( header->numFrames > 0 ) {
+	if ( ihv && ( frame < 0 || oldFrame < 0 || frame >= header->numFrames || oldFrame >= header->numFrames ) ) {
+		frame = oldFrame = 0;
+	} else if ( header->numFrames > 0 ) {
 		if ( frame < 0 ) {
 			frame = 0;
 		}
@@ -5516,11 +5596,16 @@ static qboolean vk_rt_append_md3_entity_geometry( rtxRtCpuGeometry_t *geometry, 
 	}
 
 	backlerp = ( oldFrame == frame ) ? 0.0f : ent->e.backlerp;
-	backlerp = Com_Clamp( 0.0f, 1.0f, backlerp );
+	if ( !ihv ) backlerp = Com_Clamp( 0.0f, 1.0f, backlerp );
+	else {
+		const vec3_t *axis = ( ent->e.q3IHV.flags & Q3IHV_ENTITY_FACE_VIEW ) ? backEnd.refdef.viewaxis : ent->e.axis;
+		backlerp = Q3IHV_ModelFraction( frame, oldFrame, ent->e.backlerp, r_lerpmodels ? &r_lerpmodels->value : NULL );
+		if ( !Q3IHV_EntityOriginLerp( ent->e.q3IHV.flags, ent->e.origin, ent->e.oldorigin, axis, backlerp, ihvMove ) ) return qfalse;
+	}
 
 	surface = (const md3Surface_t *)( (const byte *)header + header->ofsSurfaces );
 	for ( i = 0; i < header->numSurfaces; i++ ) {
-		const shader_t *shader = vk_rt_resolve_md3_shader( ent, surface );
+		const shader_t *shader = vk_rt_resolve_md3_shader( ent, surface, i );
 		uint32_t materialIndex = 0;
 		const md3XyzNormal_t *newVerts;
 		const md3XyzNormal_t *oldVerts;
@@ -5537,6 +5622,10 @@ static qboolean vk_rt_append_md3_entity_geometry( rtxRtCpuGeometry_t *geometry, 
 			surface = (const md3Surface_t *)( (const byte *)surface + surface->ofsEnd );
 			continue;
 		}
+
+		/* Stage native animation before this surface publishes any ray vertices. */
+		if ( ihv && !Q3IHV_ModelSurface( surface, oldFrame, frame, backlerp, ihvMove,
+			tr.ihvModelSines, ihvXYZ, ihvNormal, SHADER_MAX_VERTEXES ) ) return qfalse;
 
 		if ( !vk_rt_cpu_geometry_find_or_add_material( geometry, shader, &materialIndex ) ) {
 			return qfalse;
@@ -5570,31 +5659,35 @@ static qboolean vk_rt_append_md3_entity_geometry( rtxRtCpuGeometry_t *geometry, 
 			vec2_t uv;
 			const float invScale = (float)MD3_XYZ_SCALE;
 
-			localPos[0] = newVerts[v].xyz[0] * invScale;
-			localPos[1] = newVerts[v].xyz[1] * invScale;
-			localPos[2] = newVerts[v].xyz[2] * invScale;
-
-			vk_rt_decode_md3_normal( newVerts[v].normal, normalNew );
-
-			if ( backlerp > 0.0f ) {
-				vec3_t oldPos;
-				const float frontlerp = 1.0f - backlerp;
-				oldPos[0] = oldVerts[v].xyz[0] * invScale;
-				oldPos[1] = oldVerts[v].xyz[1] * invScale;
-				oldPos[2] = oldVerts[v].xyz[2] * invScale;
-				vk_rt_decode_md3_normal( oldVerts[v].normal, normalOld );
-
-				localPos[0] = localPos[0] * frontlerp + oldPos[0] * backlerp;
-				localPos[1] = localPos[1] * frontlerp + oldPos[1] * backlerp;
-				localPos[2] = localPos[2] * frontlerp + oldPos[2] * backlerp;
-				normalLocal[0] = normalNew[0] * frontlerp + normalOld[0] * backlerp;
-				normalLocal[1] = normalNew[1] * frontlerp + normalOld[1] * backlerp;
-				normalLocal[2] = normalNew[2] * frontlerp + normalOld[2] * backlerp;
-				VectorNormalize( normalLocal );
+			if ( ihv ) {
+				VectorCopy( ihvXYZ[v], localPos );
+				VectorCopy( ihvNormal[v], normalLocal );
 			} else {
-				VectorCopy( normalNew, normalLocal );
-			}
+				localPos[0] = newVerts[v].xyz[0] * invScale;
+				localPos[1] = newVerts[v].xyz[1] * invScale;
+				localPos[2] = newVerts[v].xyz[2] * invScale;
 
+				vk_rt_decode_md3_normal( newVerts[v].normal, normalNew );
+
+				if ( backlerp > 0.0f ) {
+					vec3_t oldPos;
+					const float frontlerp = 1.0f - backlerp;
+					oldPos[0] = oldVerts[v].xyz[0] * invScale;
+					oldPos[1] = oldVerts[v].xyz[1] * invScale;
+					oldPos[2] = oldVerts[v].xyz[2] * invScale;
+					vk_rt_decode_md3_normal( oldVerts[v].normal, normalOld );
+
+					localPos[0] = localPos[0] * frontlerp + oldPos[0] * backlerp;
+					localPos[1] = localPos[1] * frontlerp + oldPos[1] * backlerp;
+					localPos[2] = localPos[2] * frontlerp + oldPos[2] * backlerp;
+					normalLocal[0] = normalNew[0] * frontlerp + normalOld[0] * backlerp;
+					normalLocal[1] = normalNew[1] * frontlerp + normalOld[1] * backlerp;
+					normalLocal[2] = normalNew[2] * frontlerp + normalOld[2] * backlerp;
+					VectorNormalize( normalLocal );
+				} else {
+					VectorCopy( normalNew, normalLocal );
+				}
+			}
 			vk_rt_transform_point( ent, localPos, worldPos );
 			vk_rt_transform_direction( ent, normalLocal, normalWorld );
 
@@ -11240,11 +11333,24 @@ static VkFormat get_hdr_format( VkPhysicalDevice physical_device,
 }
 
 
+/*
+ * r_hdr 1 on its own is the high-precision display-referred path, as it is in
+ * GLx and Vulkan (docs/DISPLAY.md): textures, blending and lighting stay in
+ * the space Quake III authored them for. Scene-linear colour is the opt-in
+ * GLx's FBO_HdrSceneLinearColorMode makes it -- sRGB texture decode plus a
+ * non-legacy tone mapper, colour grading or an active HDR presentation -- so
+ * default translucent effects and 2D edges blend as they do everywhere else.
+ */
 qboolean vk_scene_linear_enabled( void )
 {
-	return ( r_fbo && r_fbo->integer &&
-		r_hdr && r_hdr->integer > 0 &&
-		vk.color_format == VK_FORMAT_R16G16B16A16_SFLOAT ) ? qtrue : qfalse;
+	if ( !r_fbo || !r_fbo->integer || !r_hdr || r_hdr->integer <= 0 ||
+		!r_srgbTextures || !r_srgbTextures->integer ||
+		vk.color_format != VK_FORMAT_R16G16B16A16_SFLOAT ) {
+		return qfalse;
+	}
+	return ( ( r_tonemap && r_tonemap->integer > 0 ) ||
+		( r_colorGrade && r_colorGrade->integer > 0 ) ||
+		vk.hdrDisplayActive ) ? qtrue : qfalse;
 }
 
 
@@ -11622,6 +11728,80 @@ static qboolean vk_query_rt_device_features(
 	*accelerationStructure = accelerationStructureFeatures.accelerationStructure ? qtrue : qfalse;
 	*rayQuery = rayQueryFeatures.rayQuery ? qtrue : qfalse;
 	*rayTracingPipeline = rayTracingPipelineFeatures.rayTracingPipeline ? qtrue : qfalse;
+	return qtrue;
+}
+
+
+/*
+=================
+vk_alice_line_rasterization
+
+American McGee's Alice draws its game's debug lines with each line's own
+stipple and width (alice.exe 0x004768ad..0x004768fe). Vulkan stipples only
+through VK_EXT_line_rasterization's stippled Bresenham lines, or stippled
+rectangular lines on a device with strict lines; this finds which, for the
+Alice profile alone, and names the features to enable. Without them the
+lines are drawn solid, and without wideLines one pixel wide.
+=================
+*/
+static VkPhysicalDeviceLineRasterizationFeaturesEXT vk_alice_line_features;
+
+static qboolean vk_alice_line_rasterization( VkPhysicalDevice physical_device )
+{
+	VkPhysicalDeviceFeatures2 features2;
+	VkPhysicalDeviceLineRasterizationFeaturesEXT supported;
+	VkPhysicalDeviceProperties props;
+	VkExtensionProperties *extensions;
+	uint32_t count = 0, i;
+	qboolean found = qfalse;
+
+	vk.lineStipple = qfalse;
+	Com_Memset( &vk_alice_line_features, 0, sizeof( vk_alice_line_features ) );
+	if ( ri.gameId != COM_GAME_ALICE ||
+		( qvkGetPhysicalDeviceFeatures2 == NULL && qvkGetPhysicalDeviceFeatures2KHR == NULL ) ) {
+		return qfalse;
+	}
+	if ( qvkEnumerateDeviceExtensionProperties( physical_device, NULL, &count, NULL ) != VK_SUCCESS || !count ) {
+		return qfalse;
+	}
+	extensions = (VkExtensionProperties *)ri.Malloc( count * sizeof( *extensions ) );
+	if ( qvkEnumerateDeviceExtensionProperties( physical_device, NULL, &count, extensions ) == VK_SUCCESS ) {
+		for ( i = 0; i < count; i++ ) {
+			if ( !strcmp( extensions[i].extensionName, VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME ) ) {
+				found = qtrue;
+				break;
+			}
+		}
+	}
+	ri.Free( extensions );
+	if ( !found ) {
+		return qfalse;
+	}
+
+	Com_Memset( &features2, 0, sizeof( features2 ) );
+	Com_Memset( &supported, 0, sizeof( supported ) );
+	features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+	features2.pNext = &supported;
+	supported.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_EXT;
+	if ( qvkGetPhysicalDeviceFeatures2 != NULL ) {
+		qvkGetPhysicalDeviceFeatures2( physical_device, &features2 );
+	} else {
+		qvkGetPhysicalDeviceFeatures2KHR( physical_device, &features2 );
+	}
+	qvkGetPhysicalDeviceProperties( physical_device, &props );
+
+	vk_alice_line_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_EXT;
+	if ( supported.bresenhamLines && supported.stippledBresenhamLines ) {
+		vk_alice_line_features.bresenhamLines = VK_TRUE;
+		vk_alice_line_features.stippledBresenhamLines = VK_TRUE;
+		vk.lineStippleMode = VK_LINE_RASTERIZATION_MODE_BRESENHAM_EXT;
+	} else if ( supported.rectangularLines && supported.stippledRectangularLines && props.limits.strictLines ) {
+		vk_alice_line_features.rectangularLines = VK_TRUE;
+		vk_alice_line_features.stippledRectangularLines = VK_TRUE;
+		vk.lineStippleMode = VK_LINE_RASTERIZATION_MODE_RECTANGULAR_EXT;
+	} else {
+		return qfalse;
+	}
 	return qtrue;
 }
 
@@ -12225,6 +12405,19 @@ static qboolean vk_create_device( VkPhysicalDevice physical_device, int device_i
 			pNextPtr = (const void **)&storage_8bit_features.pNext;
 		}
 #endif
+		// Alice's stippled debug lines, where the device draws them
+		if ( vk_alice_line_rasterization( physical_device ) &&
+			device_extension_count < ARRAY_LEN( device_extension_list ) ) {
+			device_extension_list[ device_extension_count++ ] = VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME;
+			device_desc.enabledExtensionCount = device_extension_count;
+			*pNextPtr = &vk_alice_line_features;
+			vk_alice_line_features.pNext = NULL;
+			pNextPtr = (const void **)&vk_alice_line_features.pNext;
+			vk.lineStipple = qtrue;
+		} else {
+			vk.lineStipple = qfalse;
+		}
+
 		res = qvkCreateDevice( physical_device, &device_desc, NULL, &vk.device );
 		if ( res < 0 ) {
 			ri.Printf( PRINT_ERROR, "vkCreateDevice returned %s\n", vk_result_string( res ) );
@@ -12470,6 +12663,18 @@ static void init_vulkan_library( void )
 	INIT_DEVICE_FUNCTION(vkCmdResetQueryPool)
 	INIT_DEVICE_FUNCTION(vkCmdSetDepthBias)
 	INIT_DEVICE_FUNCTION(vkCmdSetScissor)
+	INIT_DEVICE_FUNCTION(vkCmdSetLineWidth)
+	if ( vk.lineStipple ) {
+		INIT_DEVICE_FUNCTION_EXT(vkCmdSetLineStippleEXT)
+		if ( !qvkCmdSetLineStippleEXT ) {
+			vk.lineStipple = qfalse;
+		}
+	}
+	if ( ri.gameId == COM_GAME_ALICE ) {
+		ri.Printf( PRINT_ALL, "...Alice debug lines: %s, %s\n",
+			vk.wideLines ? "each line's width" : "one pixel wide (no wideLines)",
+			vk.lineStipple ? "stippled (VK_EXT_line_rasterization)" : "solid (no stippled VK_EXT_line_rasterization lines)" );
+	}
 	INIT_DEVICE_FUNCTION(vkCmdSetViewport)
 	INIT_DEVICE_FUNCTION(vkCmdWriteTimestamp)
 	INIT_DEVICE_FUNCTION(vkCreateBuffer)
@@ -12652,6 +12857,8 @@ static void deinit_device_functions( void )
 	qvkCmdResetQueryPool						= NULL;
 	qvkCmdSetDepthBias							= NULL;
 	qvkCmdSetScissor							= NULL;
+	qvkCmdSetLineWidth							= NULL;
+	qvkCmdSetLineStippleEXT						= NULL;
 	qvkCmdSetViewport							= NULL;
 	qvkCmdWriteTimestamp						= NULL;
 	qvkCreateBuffer								= NULL;
@@ -15959,6 +16166,8 @@ void vk_initialize( void )
 	vk.storage_alignment = MAX( props.limits.minStorageBufferOffsetAlignment, sizeof( uint32_t ) );
 
 	vk.maxAnisotropy = props.limits.maxSamplerAnisotropy;
+	vk.lineWidthRange[0] = props.limits.lineWidthRange[0];
+	vk.lineWidthRange[1] = props.limits.lineWidthRange[1];
 
 	vk.blitFilter = GL_NEAREST;
 	vk.windowAdjusted = qfalse;
@@ -18050,6 +18259,8 @@ VkPipeline create_pipeline( const Vk_Pipeline_Def *def, renderPass_t renderPassI
 	VkPipeline pipeline;
 	VkPipelineShaderStageCreateInfo shader_stages[2];
 	VkBool32 alphaToCoverage = VK_FALSE;
+	VkPipelineRasterizationLineStateCreateInfoEXT alice_line_state;
+	VkDynamicState alice_line_dynamic_states[4];
 	unsigned int atest_bits;
 	unsigned int state_bits = def->state_bits;
 
@@ -18287,6 +18498,19 @@ VkPipeline create_pipeline( const Vk_Pipeline_Def *def, renderPass_t renderPassI
 			frag_spec_data[1].f = 0.0f;
 			break;
 	};
+
+	// American McGee's Alice's `alphatest <func> <ref>`: the reference is
+	// ref / 256 (alice.exe 0x00485dd7), and each comparison it passes is the
+	// discard of its opposite -- equal, notequal, greater, less, gequal and
+	// lequal as gen_frag.tmpl's functions 4, 1, 5, 2, 3 and 6. Only Alice
+	// shaders set these bits, and never with GLS_ATEST_BITS.
+	if ( state_bits & GLS_ALICE_ATEST_FUNC_BITS ) {
+		static const int aliceDiscard[7] = { 0, 4, 1, 5, 2, 3, 6 };
+		const unsigned func = ( state_bits & GLS_ALICE_ATEST_FUNC_BITS ) >> GLS_ALICE_ATEST_FUNC_SHIFT;
+		const unsigned ref = ( state_bits & GLS_ALICE_ATEST_REF_BITS ) >> GLS_ALICE_ATEST_REF_SHIFT;
+		frag_spec_data[0].i = func < ARRAY_LEN( aliceDiscard ) ? aliceDiscard[func] : 0;
+		frag_spec_data[1].f = (float)ref * ( 1.0f / 256.0f );
+	}
 
 	// depth fragment threshold
 	frag_spec_data[2].f = 0.85f;
@@ -18832,6 +19056,17 @@ VkPipeline create_pipeline( const Vk_Pipeline_Def *def, renderPass_t renderPassI
 	else
 		rasterization_state.lineWidth = 1.0f;
 
+	// Alice's stippled debug lines (vk_alice_line_rasterization)
+	if ( def->alice_debug_line == 2 && vk.lineStipple ) {
+		Com_Memset( &alice_line_state, 0, sizeof( alice_line_state ) );
+		alice_line_state.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_EXT;
+		alice_line_state.lineRasterizationMode = vk.lineStippleMode;
+		alice_line_state.stippledLineEnable = VK_TRUE;
+		alice_line_state.lineStippleFactor = 1;
+		alice_line_state.lineStipplePattern = 0xffff;
+		rasterization_state.pNext = &alice_line_state;
+	}
+
 	multisample_state.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 	multisample_state.pNext = NULL;
 	multisample_state.flags = 0;
@@ -19049,6 +19284,20 @@ VkPipeline create_pipeline( const Vk_Pipeline_Def *def, renderPass_t renderPassI
 		  renderPassIndex == RENDER_PASS_CSM_SHADOW ) ?
 			ARRAY_LEN( dynamic_state_array ) : 2;
 	dynamic_state.pDynamicStates = dynamic_state_array;
+	// Alice's debug lines set each run's width and stipple while drawing
+	if ( def->alice_debug_line ) {
+		uint32_t count = 0;
+		alice_line_dynamic_states[count++] = VK_DYNAMIC_STATE_VIEWPORT;
+		alice_line_dynamic_states[count++] = VK_DYNAMIC_STATE_SCISSOR;
+		if ( vk.wideLines ) {
+			alice_line_dynamic_states[count++] = VK_DYNAMIC_STATE_LINE_WIDTH;
+		}
+		if ( def->alice_debug_line == 2 && vk.lineStipple ) {
+			alice_line_dynamic_states[count++] = VK_DYNAMIC_STATE_LINE_STIPPLE_EXT;
+		}
+		dynamic_state.dynamicStateCount = count;
+		dynamic_state.pDynamicStates = alice_line_dynamic_states;
+	}
 
 	create_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 	create_info.pNext = NULL;
@@ -19143,6 +19392,59 @@ found:
 		vk_gen_pipeline( index );
 
 	return index;
+}
+
+
+/*
+=================
+vk_alice_debug_line_pipeline
+
+The pipeline for a run of Alice debug lines (tr_backend.c RB_AliceDebugLines):
+world-space lines over white, depth tested, writing depth when asked. Their
+width, and with stipple their stipple, are dynamic state set per run.
+=================
+*/
+uint32_t vk_alice_debug_line_pipeline( qboolean depthMask, qboolean stipple )
+{
+	Vk_Pipeline_Def def;
+
+	Com_Memset( &def, 0, sizeof( def ) );
+	def.shader_type = TYPE_SIGNLE_TEXTURE;
+	def.state_bits = depthMask ? GLS_DEPTHMASK_TRUE : 0;
+	def.face_culling = CT_TWO_SIDED;
+	def.primitives = LINE_LIST;
+	def.alice_debug_line = ( stipple && vk.lineStipple ) ? 2 : 1;
+	return vk_find_pipeline_ext( 0, &def, qfalse );
+}
+
+
+/*
+=================
+vk_set_alice_debug_line_state
+
+After binding vk_alice_debug_line_pipeline: the run's width, within the
+device's range, when it draws wide lines, and its stipple (factor 1..256, as
+glLineStipple clamps it) when it stipples.
+=================
+*/
+void vk_set_alice_debug_line_state( float width, int factor, unsigned short pattern, qboolean stipple )
+{
+	if ( vk.wideLines && qvkCmdSetLineWidth ) {
+		if ( !( width >= 1.0f ) ) {
+			width = 1.0f;
+		}
+		if ( width < vk.lineWidthRange[0] ) {
+			width = vk.lineWidthRange[0];
+		}
+		if ( vk.lineWidthRange[1] >= 1.0f && width > vk.lineWidthRange[1] ) {
+			width = vk.lineWidthRange[1];
+		}
+		qvkCmdSetLineWidth( vk.cmd->command_buffer, width );
+	}
+	if ( stipple && vk.lineStipple && qvkCmdSetLineStippleEXT ) {
+		factor = factor < 1 ? 1 : factor > 256 ? 256 : factor;
+		qvkCmdSetLineStippleEXT( vk.cmd->command_buffer, (uint32_t)factor, (uint16_t)pattern );
+	}
 }
 
 
@@ -20550,7 +20852,7 @@ void vk_draw_global_fog( void )
 
 	/* Match the gamma pipeline's obScale/tone-map exposure so the authored
 	 * color survives the output transform unchanged. */
-	sceneLinear = ( r_hdr && r_hdr->integer > 0 ) ? qtrue : qfalse;
+	sceneLinear = vk_scene_linear_enabled();
 	outputScale = (float)( 1 << tr.overbrightBits );
 	if ( sceneLinear && r_tonemapExposure ) {
 		outputScale *= Com_Clamp( 0.1f, 8.0f, r_tonemapExposure->value );
@@ -21461,7 +21763,7 @@ qboolean vk_draw_underwater( void )
 
 	/* Match the gamma pipeline's obScale/tone-map exposure so the authored
 	 * medium color survives the output transform unchanged. */
-	sceneLinear = ( r_hdr && r_hdr->integer > 0 ) ? qtrue : qfalse;
+	sceneLinear = vk_scene_linear_enabled();
 	outputScale = (float)( 1 << tr.overbrightBits );
 	if ( sceneLinear && r_tonemapExposure ) {
 		outputScale *= Com_Clamp( 0.1f, 8.0f, r_tonemapExposure->value );

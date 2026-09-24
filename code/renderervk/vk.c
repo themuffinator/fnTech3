@@ -120,6 +120,8 @@ static PFN_vkCmdPushConstants							qvkCmdPushConstants;
 static PFN_vkCmdResetQueryPool							qvkCmdResetQueryPool;
 static PFN_vkCmdSetDepthBias							qvkCmdSetDepthBias;
 static PFN_vkCmdSetScissor								qvkCmdSetScissor;
+static PFN_vkCmdSetLineWidth							qvkCmdSetLineWidth;
+static PFN_vkCmdSetLineStippleEXT						qvkCmdSetLineStippleEXT;
 static PFN_vkCmdSetViewport								qvkCmdSetViewport;
 static PFN_vkCmdWriteTimestamp							qvkCmdWriteTimestamp;
 static PFN_vkCreateBuffer								qvkCreateBuffer;
@@ -3076,6 +3078,80 @@ static const char *renderer_name( const VkPhysicalDeviceProperties *props ) {
 }
 
 
+/*
+=================
+vk_alice_line_rasterization
+
+American McGee's Alice draws its game's debug lines with each line's own
+stipple and width (alice.exe 0x004768ad..0x004768fe). Vulkan stipples only
+through VK_EXT_line_rasterization's stippled Bresenham lines, or stippled
+rectangular lines on a device with strict lines; this finds which, for the
+Alice profile alone, and names the features to enable. Without them the
+lines are drawn solid, and without wideLines one pixel wide.
+=================
+*/
+static VkPhysicalDeviceLineRasterizationFeaturesEXT vk_alice_line_features;
+
+static qboolean vk_alice_line_rasterization( VkPhysicalDevice physical_device )
+{
+	VkPhysicalDeviceFeatures2 features2;
+	VkPhysicalDeviceLineRasterizationFeaturesEXT supported;
+	VkPhysicalDeviceProperties props;
+	VkExtensionProperties *extensions;
+	uint32_t count = 0, i;
+	qboolean found = qfalse;
+
+	vk.lineStipple = qfalse;
+	Com_Memset( &vk_alice_line_features, 0, sizeof( vk_alice_line_features ) );
+	if ( ri.gameId != COM_GAME_ALICE ||
+		( qvkGetPhysicalDeviceFeatures2 == NULL && qvkGetPhysicalDeviceFeatures2KHR == NULL ) ) {
+		return qfalse;
+	}
+	if ( qvkEnumerateDeviceExtensionProperties( physical_device, NULL, &count, NULL ) != VK_SUCCESS || !count ) {
+		return qfalse;
+	}
+	extensions = (VkExtensionProperties *)ri.Malloc( count * sizeof( *extensions ) );
+	if ( qvkEnumerateDeviceExtensionProperties( physical_device, NULL, &count, extensions ) == VK_SUCCESS ) {
+		for ( i = 0; i < count; i++ ) {
+			if ( !strcmp( extensions[i].extensionName, VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME ) ) {
+				found = qtrue;
+				break;
+			}
+		}
+	}
+	ri.Free( extensions );
+	if ( !found ) {
+		return qfalse;
+	}
+
+	Com_Memset( &features2, 0, sizeof( features2 ) );
+	Com_Memset( &supported, 0, sizeof( supported ) );
+	features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+	features2.pNext = &supported;
+	supported.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_EXT;
+	if ( qvkGetPhysicalDeviceFeatures2 != NULL ) {
+		qvkGetPhysicalDeviceFeatures2( physical_device, &features2 );
+	} else {
+		qvkGetPhysicalDeviceFeatures2KHR( physical_device, &features2 );
+	}
+	qvkGetPhysicalDeviceProperties( physical_device, &props );
+
+	vk_alice_line_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_EXT;
+	if ( supported.bresenhamLines && supported.stippledBresenhamLines ) {
+		vk_alice_line_features.bresenhamLines = VK_TRUE;
+		vk_alice_line_features.stippledBresenhamLines = VK_TRUE;
+		vk.lineStippleMode = VK_LINE_RASTERIZATION_MODE_BRESENHAM_EXT;
+	} else if ( supported.rectangularLines && supported.stippledRectangularLines && props.limits.strictLines ) {
+		vk_alice_line_features.rectangularLines = VK_TRUE;
+		vk_alice_line_features.stippledRectangularLines = VK_TRUE;
+		vk.lineStippleMode = VK_LINE_RASTERIZATION_MODE_RECTANGULAR_EXT;
+	} else {
+		return qfalse;
+	}
+	return qtrue;
+}
+
+
 static qboolean vk_create_device( VkPhysicalDevice physical_device, int device_index ) {
 
 	VkPhysicalDeviceSynchronization2Features synchronization2_features;
@@ -3415,6 +3491,19 @@ static qboolean vk_create_device( VkPhysicalDevice physical_device, int device_i
 			pNextPtr = (const void **)&storage_8bit_features.pNext;
 		}
 #endif
+		// Alice's stippled debug lines, where the device draws them
+		if ( vk_alice_line_rasterization( physical_device ) &&
+			device_extension_count < ARRAY_LEN( device_extension_list ) ) {
+			device_extension_list[ device_extension_count++ ] = VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME;
+			device_desc.enabledExtensionCount = device_extension_count;
+			*pNextPtr = &vk_alice_line_features;
+			vk_alice_line_features.pNext = NULL;
+			pNextPtr = (const void **)&vk_alice_line_features.pNext;
+			vk.lineStipple = qtrue;
+		} else {
+			vk.lineStipple = qfalse;
+		}
+
 		res = qvkCreateDevice( physical_device, &device_desc, NULL, &vk.device );
 		if ( res < 0 ) {
 			ri.Printf( PRINT_ERROR, "vkCreateDevice returned %s\n", vk_result_string( res ) );
@@ -3677,6 +3766,18 @@ static void init_vulkan_library( void )
 	INIT_DEVICE_FUNCTION(vkCmdResetQueryPool)
 	INIT_DEVICE_FUNCTION(vkCmdSetDepthBias)
 	INIT_DEVICE_FUNCTION(vkCmdSetScissor)
+	INIT_DEVICE_FUNCTION(vkCmdSetLineWidth)
+	if ( vk.lineStipple ) {
+		INIT_DEVICE_FUNCTION_EXT(vkCmdSetLineStippleEXT)
+		if ( !qvkCmdSetLineStippleEXT ) {
+			vk.lineStipple = qfalse;
+		}
+	}
+	if ( ri.gameId == COM_GAME_ALICE ) {
+		ri.Printf( PRINT_ALL, "...Alice debug lines: %s, %s\n",
+			vk.wideLines ? "each line's width" : "one pixel wide (no wideLines)",
+			vk.lineStipple ? "stippled (VK_EXT_line_rasterization)" : "solid (no stippled VK_EXT_line_rasterization lines)" );
+	}
 	INIT_DEVICE_FUNCTION(vkCmdSetViewport)
 	INIT_DEVICE_FUNCTION(vkCmdWriteTimestamp)
 	INIT_DEVICE_FUNCTION(vkCreateBuffer)
@@ -3862,6 +3963,8 @@ static void deinit_device_functions( void )
 	qvkCmdResetQueryPool						= NULL;
 	qvkCmdSetDepthBias							= NULL;
 	qvkCmdSetScissor							= NULL;
+	qvkCmdSetLineWidth							= NULL;
+	qvkCmdSetLineStippleEXT						= NULL;
 	qvkCmdSetViewport							= NULL;
 	qvkCmdWriteTimestamp						= NULL;
 	qvkCreateBuffer								= NULL;
@@ -6974,6 +7077,8 @@ void vk_initialize( void )
 	vk.storage_alignment = MAX( props.limits.minStorageBufferOffsetAlignment, sizeof( uint32_t ) );
 
 	vk.maxAnisotropy = props.limits.maxSamplerAnisotropy;
+	vk.lineWidthRange[0] = props.limits.lineWidthRange[0];
+	vk.lineWidthRange[1] = props.limits.lineWidthRange[1];
 
 	vk.blitFilter = GL_NEAREST;
 	vk.windowAdjusted = qfalse;
@@ -9151,6 +9256,8 @@ VkPipeline create_pipeline( const Vk_Pipeline_Def *def, renderPass_t renderPassI
 	VkPipeline pipeline;
 	VkPipelineShaderStageCreateInfo shader_stages[2];
 	VkBool32 alphaToCoverage = VK_FALSE;
+	VkPipelineRasterizationLineStateCreateInfoEXT alice_line_state;
+	VkDynamicState alice_line_dynamic_states[4];
 	unsigned int atest_bits;
 	unsigned int state_bits = def->state_bits;
 
@@ -9389,11 +9496,27 @@ VkPipeline create_pipeline( const Vk_Pipeline_Def *def, renderPass_t renderPassI
 			break;
 	};
 
+	// American McGee's Alice's `alphatest <func> <ref>`: the reference is
+	// ref / 256 (alice.exe 0x00485dd7), and each comparison it passes is the
+	// discard of its opposite -- equal, notequal, greater, less, gequal and
+	// lequal as gen_frag.tmpl's functions 4, 1, 5, 2, 3 and 6. Only Alice
+	// shaders set these bits, and never with GLS_ATEST_BITS.
+	if ( state_bits & GLS_ALICE_ATEST_FUNC_BITS ) {
+		static const int aliceDiscard[7] = { 0, 4, 1, 5, 2, 3, 6 };
+		const unsigned func = ( state_bits & GLS_ALICE_ATEST_FUNC_BITS ) >> GLS_ALICE_ATEST_FUNC_SHIFT;
+		const unsigned ref = ( state_bits & GLS_ALICE_ATEST_REF_BITS ) >> GLS_ALICE_ATEST_REF_SHIFT;
+		frag_spec_data[0].i = func < ARRAY_LEN( aliceDiscard ) ? aliceDiscard[func] : 0;
+		frag_spec_data[1].f = (float)ref * ( 1.0f / 256.0f );
+	}
+
 	// depth fragment threshold
 	frag_spec_data[2].f = 0.85f;
 
+	// (Alice's alphatest keeps coverage only for its gequal, the one
+	// comparison gen_frag.tmpl's coverage path reads as a threshold)
 	if ( r_ext_alpha_to_coverage && r_ext_alpha_to_coverage->integer &&
-		vkSamples != VK_SAMPLE_COUNT_1_BIT && frag_spec_data[0].i ) {
+		vkSamples != VK_SAMPLE_COUNT_1_BIT && frag_spec_data[0].i &&
+		( !( state_bits & GLS_ALICE_ATEST_FUNC_BITS ) || frag_spec_data[0].i == 3 ) ) {
 		frag_spec_data[3].i = 1;
 		alphaToCoverage = VK_TRUE;
 	}
@@ -9931,6 +10054,17 @@ VkPipeline create_pipeline( const Vk_Pipeline_Def *def, renderPass_t renderPassI
 	else
 		rasterization_state.lineWidth = 1.0f;
 
+	// Alice's stippled debug lines (vk_alice_line_rasterization)
+	if ( def->alice_debug_line == 2 && vk.lineStipple ) {
+		Com_Memset( &alice_line_state, 0, sizeof( alice_line_state ) );
+		alice_line_state.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_EXT;
+		alice_line_state.lineRasterizationMode = vk.lineStippleMode;
+		alice_line_state.stippledLineEnable = VK_TRUE;
+		alice_line_state.lineStippleFactor = 1;
+		alice_line_state.lineStipplePattern = 0xffff;
+		rasterization_state.pNext = &alice_line_state;
+	}
+
 	multisample_state.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 	multisample_state.pNext = NULL;
 	multisample_state.flags = 0;
@@ -10142,6 +10276,20 @@ VkPipeline create_pipeline( const Vk_Pipeline_Def *def, renderPass_t renderPassI
 		renderPassIndex == RENDER_PASS_SPOT_SHADOW ||
 		renderPassIndex == RENDER_PASS_CSM_SHADOW ) ? ARRAY_LEN( dynamic_state_array ) : 2;
 	dynamic_state.pDynamicStates = dynamic_state_array;
+	// Alice's debug lines set each run's width and stipple while drawing
+	if ( def->alice_debug_line ) {
+		uint32_t count = 0;
+		alice_line_dynamic_states[count++] = VK_DYNAMIC_STATE_VIEWPORT;
+		alice_line_dynamic_states[count++] = VK_DYNAMIC_STATE_SCISSOR;
+		if ( vk.wideLines ) {
+			alice_line_dynamic_states[count++] = VK_DYNAMIC_STATE_LINE_WIDTH;
+		}
+		if ( def->alice_debug_line == 2 && vk.lineStipple ) {
+			alice_line_dynamic_states[count++] = VK_DYNAMIC_STATE_LINE_STIPPLE_EXT;
+		}
+		dynamic_state.dynamicStateCount = count;
+		dynamic_state.pDynamicStates = alice_line_dynamic_states;
+	}
 
 	create_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 	create_info.pNext = NULL;
@@ -10238,6 +10386,59 @@ found:
 		vk_gen_pipeline( index );
 
 	return index;
+}
+
+
+/*
+=================
+vk_alice_debug_line_pipeline
+
+The pipeline for a run of Alice debug lines (tr_backend.c RB_AliceDebugLines):
+world-space lines over white, depth tested, writing depth when asked. Their
+width, and with stipple their stipple, are dynamic state set per run.
+=================
+*/
+uint32_t vk_alice_debug_line_pipeline( qboolean depthMask, qboolean stipple )
+{
+	Vk_Pipeline_Def def;
+
+	Com_Memset( &def, 0, sizeof( def ) );
+	def.shader_type = TYPE_SIGNLE_TEXTURE;
+	def.state_bits = depthMask ? GLS_DEPTHMASK_TRUE : 0;
+	def.face_culling = CT_TWO_SIDED;
+	def.primitives = LINE_LIST;
+	def.alice_debug_line = ( stipple && vk.lineStipple ) ? 2 : 1;
+	return vk_find_pipeline_ext( 0, &def, qfalse );
+}
+
+
+/*
+=================
+vk_set_alice_debug_line_state
+
+After binding vk_alice_debug_line_pipeline: the run's width, within the
+device's range, when it draws wide lines, and its stipple (factor 1..256, as
+glLineStipple clamps it) when it stipples.
+=================
+*/
+void vk_set_alice_debug_line_state( float width, int factor, unsigned short pattern, qboolean stipple )
+{
+	if ( vk.wideLines && qvkCmdSetLineWidth ) {
+		if ( !( width >= 1.0f ) ) {
+			width = 1.0f;
+		}
+		if ( width < vk.lineWidthRange[0] ) {
+			width = vk.lineWidthRange[0];
+		}
+		if ( vk.lineWidthRange[1] >= 1.0f && width > vk.lineWidthRange[1] ) {
+			width = vk.lineWidthRange[1];
+		}
+		qvkCmdSetLineWidth( vk.cmd->command_buffer, width );
+	}
+	if ( stipple && vk.lineStipple && qvkCmdSetLineStippleEXT ) {
+		factor = factor < 1 ? 1 : factor > 256 ? 256 : factor;
+		qvkCmdSetLineStippleEXT( vk.cmd->command_buffer, (uint32_t)factor, (uint16_t)pattern );
+	}
 }
 
 

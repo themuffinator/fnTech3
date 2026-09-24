@@ -143,8 +143,26 @@ static bool S_ValidSoundInterface( const soundInterface_t *s )
 	if( !s->ClearSoundBuffer ) return false;
 	if( !s->SoundInfo ) return false;
 	if( !s->SoundList ) return false;
+	if( !s->AliceDevice ) return false;
 
 	return true;
+}
+
+/*
+=================
+S_AliceDevice
+
+The running backend's American McGee's Alice voices.
+=================
+*/
+fntech3::audio::alice::sfx::Device *S_AliceDevice( void )
+{
+	return si.Shutdown ? si.AliceDevice : nullptr;
+}
+
+bool S_AliceBackendStarted( void )
+{
+	return si.Shutdown != nullptr;
 }
 
 
@@ -167,6 +185,11 @@ S_StartSoundVolume
 */
 extern "C" void S_StartSoundVolume( vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx, float volume )
 {
+	if ( Com_GameIsAlice() ) {
+		// Alice's 32 voices are the engine's own; nothing else may take one.
+		S_AliceStartSound( origin, entnum, entchannel, sfx, volume, -1.0f );
+		return;
+	}
 	if( si.StartSound ) {
 		si.StartSound( origin, entnum, entchannel, sfx, volume );
 	}
@@ -327,6 +350,11 @@ S_StartLocalSoundVolume
 */
 extern "C" void S_StartLocalSoundVolume( sfxHandle_t sfx, int channelNum, float volume )
 {
+	if ( Com_GameIsAlice() ) {
+		// A local sound is Alice's menu channel at the listener (0x0044ce10).
+		S_AliceStartSound( nullptr, S_AliceListenerNumber(), 9, sfx, volume, -1.0f );
+		return;
+	}
 	if( si.StartLocalSound ) {
 		si.StartLocalSound( sfx, channelNum, volume );
 	}
@@ -370,6 +398,28 @@ extern "C" void S_FadeRTCWAllSounds( float volume, int time ) {
 	if ( !Com_GameIsRTCWSP() || !fntech3::audio::rtcw::ValidFadeVolume( volume ) )
 		Com_Error( ERR_DROP, "Invalid RTCW master fade" );
 	if ( si.FadeRTCWAllSounds ) si.FadeRTCWAllSounds( volume, time );
+}
+
+
+/*
+=================
+S_StartStreamSource
+
+Hands the backend a music stream built by the caller rather than a file to
+open. False, with the stream closed, when the backend cannot take one.
+=================
+*/
+extern "C" qboolean S_StartStreamSource( snd_stream_t *stream )
+{
+	if ( !stream ) {
+		return qfalse;
+	}
+	if ( !si.StartStreamSource ) {
+		S_CodecCloseStream( stream );
+		return qfalse;
+	}
+	si.StartStreamSource( stream );
+	return qtrue;
 }
 
 
@@ -420,6 +470,7 @@ S_StopAllSounds
 */
 extern "C" void S_StopAllSounds( void )
 {
+	S_AliceSoundStopAll();
 	if( si.StopAllSounds ) {
 		si.StopAllSounds();
 	}
@@ -552,6 +603,8 @@ S_Update
 */
 extern "C" void S_Update( int msec )
 {
+	// Alice's pause, fade, s_volume and loop reaping come before the mix.
+	S_AliceSoundUpdate();
 	if ( si.Update ) {
 		si.Update( msec );
 	}
@@ -559,6 +612,9 @@ extern "C" void S_Update( int msec )
 		// Elite Force SP's game reads how wide a mouth each entity holds from
 		// an array the engine fills as it plays (stvoy.exe 0x421480).
 		SV_STVEFSPVoiceVolumes( S_STVEFSPMouths() );
+	}
+	if ( Com_GameIsAlice() ) {
+		S_AliceMusicUpdate();
 	}
 }
 
@@ -570,6 +626,7 @@ S_DisableSounds
 */
 extern "C" void S_DisableSounds( void )
 {
+	S_AliceSoundStopAll();
 	if( si.DisableSounds ) {
 		si.DisableSounds();
 	}
@@ -899,10 +956,13 @@ extern "C" void S_Init( void )
 	rtcwMasterFade = {};
 	wolfetMasterFade = {};
 
-	s_volume = Cvar_Get( "s_volume", "0.8", CVAR_ARCHIVE );
+	// American McGee's Alice ships full volume and music at 0.60
+	// (alice.exe S_Init 0x0044c6f0); the other games keep the tree's own.
+	const bool alice = Com_GameIsAlice() != 0;
+	s_volume = Cvar_Get( "s_volume", alice ? "1.0" : "0.8", CVAR_ARCHIVE );
 	Cvar_CheckRange( s_volume, "0", "2", CV_FLOAT );
 	Cvar_SetDescription( s_volume, "Sets master volume for all game audio." );
-	s_musicVolume = Cvar_Get( "s_musicVolume", "0.25", CVAR_ARCHIVE );
+	s_musicVolume = Cvar_Get( "s_musicVolume", alice ? "0.60" : "0.25", CVAR_ARCHIVE );
 	Cvar_CheckRange( s_musicVolume, "0", "2", CV_FLOAT );
 	Cvar_SetDescription( s_musicVolume, "Sets volume for in-game music only." );
 	s_voiceVolume = Cvar_Get( "s_voiceVolume", "1.0", CVAR_ARCHIVE );
@@ -945,6 +1005,15 @@ extern "C" void S_Init( void )
 		Cvar_SetDescription( s_separation, "How far apart Elite Force places the left and right channels:\n"
 			"  0 - a sound is heard only on the side it comes from\n"
 			"  0.5 - default, the engine's own spread\n"
+			"  1 - both channels hear every sound alike" );
+	}
+	if ( alice ) {
+		// Retail registers it at 0.3 and spreads only its two-dimensional
+		// dialog voices by it (alice.exe 0x0044c756, 0x004724a0).
+		s_separation = Cvar_Get( "s_separation", "0.3", CVAR_ARCHIVE );
+		Cvar_SetDescription( s_separation, "How far apart American McGee's Alice places the left and right channels of its two-dimensional dialog sounds:\n"
+			"  0 - a sound is heard only on the side it comes from\n"
+			"  0.3 - default\n"
 			"  1 - both channels hear every sound alike" );
 	}
 	if ( Com_GameIsSTVEFSP() ) {
@@ -1005,10 +1074,13 @@ extern "C" void S_Init( void )
 
 		S_CodecInit();
 
-		Cmd_AddCommand( "play", S_Play_f );
-		Cmd_AddCommand( "music", S_Music_f );
+		// Alice has its own `play`, and no music or stopmusic command at all.
+		if ( !alice ) {
+			Cmd_AddCommand( "play", S_Play_f );
+			Cmd_AddCommand( "music", S_Music_f );
+			Cmd_AddCommand( "stopmusic", S_StopMusic_f );
+		}
 		if ( Com_GameIsRTCWSP() ) Cmd_AddCommand( "queuemusic", S_QueueMusic_f );
-		Cmd_AddCommand( "stopmusic", S_StopMusic_f );
 		if ( Com_GameIsRTCW() ) Cmd_AddCommand( "streamingsound", S_StreamingSound_f );
 		if ( Com_GameIsRTCWSP() ) Cmd_AddCommand( "stopstreamingsound", S_StopStreamingSound_f );
 		Cmd_AddCommand( "s_list", S_SoundList );
@@ -1044,6 +1116,8 @@ extern "C" void S_Init( void )
 			}
 
 			S_SoundInfo();
+			S_AliceSoundInit();
+			S_AliceRegisterCommands();
 			if ( s_volume != nullptr && s_volume->value <= 0.0f ) {
 				Com_Printf( S_COLOR_YELLOW "WARNING: s_volume is 0; the backend is active but all game audio is silent.\n" );
 			}
@@ -1076,6 +1150,9 @@ extern "C" void S_Shutdown( void )
 	Cmd_RemoveCommand( "streamingsound" );
 	Cmd_RemoveCommand( "queuemusic" );
 	Cmd_RemoveCommand( "stopstreamingsound" );
+	// Alice's voices, song players and cinematic track let go of the backend
+	// going away; the soundtrack itself stays, as retail's does.
+	S_AliceSoundShutdown();
 	if ( si.StopAllSounds ) {
 		si.StopAllSounds();
 	}

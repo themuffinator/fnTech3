@@ -333,13 +333,35 @@ Sys_ReplaceFile
 Atomically replaces an existing destination when the filesystem supports it.
 MOVEFILE_WRITE_THROUGH keeps managed profile updates durable across a sudden
 shutdown after the replacement succeeds.
+
+A virus scanner or the search indexer routinely opens a file moments after the
+engine writes it, and Windows refuses to replace a destination somebody else
+holds open. That refusal clears on its own once the handle closes, so absorb
+it: eleven attempts spread over 1,023 ms, pausing 1, 2, 4 ... 512 ms between
+them. The alternative is a failure the caller cannot recover from, because
+unpacking a native module drops the game. Only the three denials another
+process can cause are retried; a missing source, an unusable path, or any
+other error still fails on the first attempt.
 ==============
 */
 qboolean Sys_ReplaceFile( const char *from, const char *to ) {
 	const fntech3::win::Path source( from ), destination( to );
 	if ( !source || !destination ) return qfalse;
-	return MoveFileExW( source.c_str(), destination.c_str(),
-		MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH ) ? qtrue : qfalse;
+	for ( DWORD pause = 1; ; pause *= 2 ) {
+		if ( MoveFileExW( source.c_str(), destination.c_str(),
+			MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH ) ) {
+			return qtrue;
+		}
+		const DWORD error = GetLastError();
+		if ( error != ERROR_SHARING_VIOLATION && error != ERROR_ACCESS_DENIED
+			&& error != ERROR_LOCK_VIOLATION ) {
+			return qfalse;
+		}
+		if ( pause > 512 ) {
+			return qfalse;
+		}
+		Sleep( pause );
+	}
 }
 
 

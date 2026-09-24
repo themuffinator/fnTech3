@@ -40,6 +40,10 @@ static bool Com_GameIsQuake3() { return q3; }
 static bool Com_GameIsRTCW() { return rtcw; }
 static bool Com_GameIsSTVEFMP() { return stvef; }
 static bool Com_GameIsSTVEFSP() { return stvefSp; }
+static bool alice;
+static bool aliceMenus;
+static bool Com_GameIsAlice() { return alice; }
+static qboolean CL_AliceUIMenuUp() { return aliceMenus ? qtrue : qfalse; }
 static int Key_GetCatcher() { return catcher; }
 static int VM_Call(vm_t *vm, int count, int ordinal) {
     assert(vm == &structured && count == 0 && ordinal == UI_MENUS_ANY_VISIBLE);
@@ -76,6 +80,21 @@ int main() {
     assert(CL_UIMenusAreVisible() == qfalse && vmCalls == 1);
     vmResult = 7; catcher = 0;
     assert(CL_UIMenusAreVisible() == qtrue && vmCalls == 2);
+
+    // Alice's engine UI answers from its own menu stack, keys held or not,
+    // and is never asked through an export ordinal.
+    alice = true;
+    vm_t *hosts[] = {&legacy, &structured};
+    for (vm_t *vm : hosts) {
+        uivm = vm;
+        aliceMenus = false; catcher = KEYCATCH_UI;
+        assert(CL_UIMenusAreVisible() == qfalse && vmCalls == 2);
+        aliceMenus = true; catcher = 0;
+        assert(CL_UIMenusAreVisible() == qtrue && vmCalls == 2);
+    }
+    uivm = nullptr; aliceMenus = true;
+    assert(CL_UIMenusAreVisible() == qfalse && vmCalls == 2);
+    alice = false; aliceMenus = false;
 
     q3 = true;
     for (int version = 0; version <= 10; ++version) {

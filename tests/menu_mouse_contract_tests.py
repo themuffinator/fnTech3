@@ -30,6 +30,10 @@ comGameId_t profile;
 int catcher, calls, lane, outX, outY;
 bool delayElapsed=true, ignoreMouse=false;
 int Com_GameIsQuakeLive() { return profile==COM_GAME_QUAKELIVE; }
+int Com_GameIsAlice() { return profile==COM_GAME_ALICE; }
+bool aliceCursorMode;
+int cursorCalls;
+void CL_AliceMoveCursor(int,int) { ++cursorCalls; }
 int Key_GetCatcher() { return catcher; }
 bool IN_ConsoleUsesAbsolutePointer() { return !glw_state.cdsFullscreen; }
 bool CL_AdvertisementBridge_IsDelayElapsed() { return delayElapsed; }
@@ -101,6 +105,19 @@ int main() {
   CL_MouseAbsoluteEvent(100,200); assert(!calls);
   CL_MouseEvent(-4,7); assert(cl.mouseDx[0]==-4 && cl.mouseDy[0]==7);
   cl.mouseDx[0]=cl.mouseDy[0]=0;
+ }
+ // Alice's cursor mode takes relative motion before gameplay does, and only
+ // under Alice; the console keeps its own mouse even then.
+ for(auto id:{COM_GAME_QUAKE3,COM_GAME_ALICE}) {
+  profile=id; catcher=0; aliceCursorMode=true; cursorCalls=0; calls=0;
+  CL_MouseEvent(5,6);
+  const bool alice=id==COM_GAME_ALICE;
+  assert(cursorCalls==(alice?1:0));
+  assert(cl.mouseDx[0]==(alice?0:5) && cl.mouseDy[0]==(alice?0:6));
+  cl.mouseDx[0]=cl.mouseDy[0]=0;
+  catcher=KEYCATCH_CONSOLE; cursorCalls=0;
+  CL_MouseEvent(1,1); assert(!cursorCalls && calls==1 && lane==1);
+  aliceCursorMode=false;
  }
 }
 '''

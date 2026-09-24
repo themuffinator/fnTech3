@@ -41,7 +41,7 @@ PRELUDE = r'''
 static const comGameProfile_t *profile;
 static std::vector<byte> input;
 static std::set<void *> files, allocations;
-static int lengthOverride = INT_MAX, formatCalls, translations, lumpLoads, advertisements;
+static int lengthOverride = INT_MAX, formatCalls, translations, rbspTranslations, fakkTranslations, lumpLoads, advertisements;
 static int fileReleases, allocationReleases, checksumCalls;
 static bool missing, failTranslation;
 static std::string diagnostic;
@@ -55,7 +55,13 @@ void QDECL Com_Error(errorParm_t, const char *format, ...) {
     diagnostic = message; throw 7;
 }
 static void Com_DPrintf(const char *, ...) {}
-static unsigned Com_BlockChecksum(const void *, int) { ++checksumCalls; return 12345; }
+static unsigned Com_BlockChecksum(const void *data, int length) {
+    // An IHV conversion changes both the header and length; peers identify
+    // the original installed bytes, never the transient retail layout.
+    assert(length == int(input.size()));
+    assert(!std::memcmp(data, input.data(), input.size()));
+    ++checksumCalls; return 12345;
+}
 static cvar_t variable, *cm_noAreas, *cm_noCurves, *cm_playerCurveClip;
 static cvar_t *Cvar_Get(const char *, const char *, int) { return &variable; }
 static void Cvar_SetDescription(cvar_t *, const char *) {}
@@ -93,6 +99,54 @@ static qboolean BSP43_TranslateToV46(const void *data, int length,
     header->ident = BSP_IDENT; header->version = 46;
     out->data = header; out->length = sizeof(*header); return qtrue;
 }
+/* Jedi Academy's maps arrive through their own translator, which the RBSP
+   codec tests cover; here it only has to be reached and released. */
+struct dheaderRBSP_t { int ident; int version; lump_t lumps[18]; };
+struct rbsp_translation_t { void *data; int length; };
+static qboolean RBSP_TranslateToV46(const void *data, int length,
+        void *(*alloc)(int), void (*)(void *), rbsp_translation_t *out,
+        char *error, size_t capacity) {
+    ++rbspTranslations;
+    assert(length >= int(sizeof(dheaderRBSP_t)));
+    assert(QLBSP_ReadLE32((const byte *)data + 4) == 1);
+    if (failTranslation) {
+        Q_strncpyz(error, "fixture translation rejected", int(capacity)); return qfalse;
+    }
+    auto *header = (dheader_t *)alloc(sizeof(dheader_t)); std::memset(header, 0, sizeof(*header));
+    header->ident = BSP_IDENT; header->version = 46;
+    out->data = header; out->length = sizeof(*header); return qtrue;
+}
+/* Alice's maps arrive through their own translator, which the FAKK codec
+   tests cover; here it only has to be reached and released. */
+struct dheaderFAKK_t { int ident; int version; int checksum; lump_t lumps[20]; };
+struct fakk_translation_t { void *data; int length; };
+/* The renderers ask the translator to carry the light grid too, and take its
+   192x192x320 cell. */
+#define FAKK_TRANSLATE_LIGHTGRID 0x0001
+#define FAKK_LIGHTGRID_SIZE_X 192.0f
+#define FAKK_LIGHTGRID_SIZE_Y 192.0f
+#define FAKK_LIGHTGRID_SIZE_Z 320.0f
+static qboolean FAKK_TranslateToV46(const void *data, int length,
+        void *(*alloc)(int), void (*)(void *), fakk_translation_t *out,
+        char *error, size_t capacity);
+static qboolean FAKK_TranslateToV46Ex(const void *data, int length,
+        void *(*alloc)(int), void (*release)(void *), fakk_translation_t *out,
+        char *error, size_t capacity, int) {
+    return FAKK_TranslateToV46(data, length, alloc, release, out, error, capacity);
+}
+static qboolean FAKK_TranslateToV46(const void *data, int length,
+        void *(*alloc)(int), void (*)(void *), fakk_translation_t *out,
+        char *error, size_t capacity) {
+    ++fakkTranslations;
+    assert(length >= int(sizeof(dheaderFAKK_t)));
+    assert(QLBSP_ReadLE32((const byte *)data + 4) == 42);
+    if (failTranslation) {
+        Q_strncpyz(error, "fixture translation rejected", int(capacity)); return qfalse;
+    }
+    auto *header = (dheader_t *)alloc(sizeof(dheader_t)); std::memset(header, 0, sizeof(*header));
+    header->ident = BSP_IDENT; header->version = 46;
+    out->data = header; out->length = sizeof(*header); return qtrue;
+}
 static byte *cmod_base, *fileBase;
 static int c_gridVerts;
 static struct { char name[MAX_QPATH]; int checksum; } cm;
@@ -100,6 +154,10 @@ static void CM_ClearMap() { std::memset(&cm, 0, sizeof(cm)); }
 static void CM_InitBoxHull() {}
 static void CM_FloodAreaConnections() {}
 static void CMod_CheckLeafBrushes() {}
+/* Alice's loading stages. No profile loaded here is Alice's, so neither the
+   collision loader nor a renderer's world load may report one. */
+static std::vector<int> aliceStages;
+static void Com_AliceLoadingStage(int stage) { aliceStages.push_back(stage); }
 #define LUMP_SERVICE(name) template<class... Args> static void name(Args...) { ++lumpLoads; }
 LUMP_SERVICE(CMod_LoadShaders) LUMP_SERVICE(CMod_LoadLeafs) LUMP_SERVICE(CMod_LoadLeafBrushes)
 LUMP_SERVICE(CMod_LoadLeafSurfaces) LUMP_SERVICE(CMod_LoadPlanes) LUMP_SERVICE(CMod_LoadBrushSides)
@@ -110,6 +168,9 @@ LUMP_SERVICE(R_LoadFogs) LUMP_SERVICE(R_LoadSurfaces) LUMP_SERVICE(R_LoadMarksur
 LUMP_SERVICE(R_LoadNodesAndLeafs) LUMP_SERVICE(R_LoadSubmodels) LUMP_SERVICE(R_LoadVisibility)
 LUMP_SERVICE(R_LoadEntities) LUMP_SERVICE(R_LoadLightGrid)
 #undef LUMP_SERVICE
+// This controller fixture stubs sub-loaders. Native lighting data/ownership
+// are exercised by q3_ihv_model_lighting_tests, including the actual loader.
+static void R_LoadQ3IHVModelLighting(const lump_t *, const lump_t *, const lump_t *) {}
 static void R_PreLoadFogs(const lump_t *) {}
 static void R_ClearWorldSun() {}
 static void R_ClearStaticMapLights() {}
@@ -139,8 +200,9 @@ static struct {
     decltype(&HunkAlloc) Hunk_Alloc;
     decltype(&Format) GameBspFormat;
     comGameId_t gameId;
+    decltype(&Com_AliceLoadingStage) AliceLoadingStage;
 } ri{Com_Error, FS_ReadFile, FS_FreeFile, Allocate, Z_Free, HunkAlloc, Format};
-static struct World { char name[MAX_QPATH], baseName[MAX_QPATH]; int dataSize; } s_worldData;
+static struct World { char name[MAX_QPATH], baseName[MAX_QPATH]; int dataSize; float lightGridSize[3]; } s_worldData;
 static struct { qboolean worldMapLoaded, mapLoading; World *world;
     fnRTCWWorldShader_t rtcwWorld; void *sunShader; } tr;
 constexpr int LIGHTMAP_NONE = -1;
@@ -154,7 +216,7 @@ static void Reset() {
     for (void *p : files) std::free(p);
     for (void *p : allocations) std::free(p);
     files.clear(); allocations.clear(); diagnostic.clear();
-    formatCalls = translations = lumpLoads = advertisements = 0;
+    formatCalls = translations = rbspTranslations = fakkTranslations = lumpLoads = advertisements = 0;
     fileReleases = allocationReleases = checksumCalls = 0;
     missing = failTranslation = false; lengthOverride = INT_MAX;
     cm = {}; tr = {}; s_worldData = {}; ri.GameBspFormat = Format;
@@ -189,6 +251,7 @@ static void Load(Loader loader, bool success, const char *error = nullptr) {
     }
 }
 int main() {
+    ri.AliceLoadingStage = Com_AliceLoadingStage;
     for (auto loader : {Collision, RE_LoadWorldMap_GLx, RE_LoadWorldMap_VK, RE_LoadWorldMap_RTX}) {
         for (auto id : {COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, COM_GAME_RTCW_SP, COM_GAME_RTCW_MP}) {
             profile = Com_GameProfileById(id);
@@ -207,6 +270,7 @@ int main() {
                 assert(translations == 1 && allocationReleases == 1 && !advertisements);
                 Reset(); Map(43); failTranslation = true;
                 Load(loader, false, "fixture translation rejected"); assert(!lumpLoads && translations == 1);
+                if (loader == Collision) assert(cm.checksum == 0);
                 Reset(); Map(47); Load(loader, false, "advertisement lump");
                 Reset(); input.assign(144, 0); Word(0, BSP_IDENT); Word(4, 47);
                 Load(loader, false, "truncated QL extra lump header");
@@ -243,6 +307,7 @@ int main() {
         }
     }
     Reset(); assert(!Com_GameProfile());
+    assert(aliceStages.empty());
 }
 '''
 

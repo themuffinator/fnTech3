@@ -1,0 +1,914 @@
+{
+  "date": "2026-09-21",
+  "recorded_utc": "2026-09-21T01:52:02.911538+00:00",
+  "scope": "Separate gated IHV profile, read-only metadata identity, rejection of retail bot-library startup and original link-geometry calculations used by the server link branch. Native module state binding, startup, traces and live sessions remain incomplete.",
+  "profile": "q3-ihv (new eighth profile under the existing Quake III title); startup blocked in every build.",
+  "commit": "9e1841de53d79f96cdbbde83a1427d1c7d83f31d",
+  "working_tree": "Uncommitted IHV identity/link follow-up; earlier IHV and Q3 release changes and unrelated RTCW work are retained.",
+  "platform": "Windows x86 MSVC 14.44.35222.0, Meson win32 preset; separate Clang 20.1.7 x64 AddressSanitizer tests.",
+  "reference": {
+    "repository": "https://github.com/themuffinator/Quake3-IHV/tree/d5ce877155904c57f8b28fe0fd0c8aa2e9473337",
+    "files": [
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/quake3.exe",
+        "sha256": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37",
+        "bytes": 725042
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/qagamex86.dll",
+        "sha256": "9855d375751272d0b22e9078e827cf7ff3c2e42867f525b7fd84b93967c0eeb6",
+        "bytes": 229429
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/cgamex86.dll",
+        "sha256": "175f94756f994b06235690fdd2d9fe798503f7a797f2e070277a672847593614",
+        "bytes": 192570
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/default.cfg",
+        "sha256": "e07daa1869aad4f5e7aed4822dbc3b32c1688922585a3862bc62a4b475b72c20",
+        "bytes": 2529
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/maps/ihv_test1.bsp",
+        "sha256": "874311cffc880f79c1fdd4fc85bed1062baf976835b4402c9de54460af20281b",
+        "bytes": 759672
+      }
+    ],
+    "metadata_specification": "https://learn.microsoft.com/en-us/windows/win32/debug/pe-format",
+    "use": "Asset/metadata reads and hash-pinned original-function numeric observations. Installation detection executes no DLL. Separate isolated native game hosts inspect Init/Shutdown, client allocation and password/ClientConnect callbacks; no original engine session is launched.",
+    "incorporation": "No original implementation, module or asset incorporated; new logic is independently authored from observations. CI fixtures contain synthetic input and numeric results."
+  },
+  "identity": {
+    "marker": 256,
+    "protocol": 33,
+    "module_api": "IHV native API 4 only; not a retail Q3 vmMain/dllEntry ABI",
+    "modules": [
+      "qagamex86.dll:GetGameAPI",
+      "cgamex86.dll:GetCGameAPI"
+    ],
+    "module_location": "selected installation root, Windows x86 only; no UI DLL or alternate-architecture fallback",
+    "limits": {
+      "clients": 256,
+      "default_server_clients": 8,
+      "configstrings": 1024,
+      "player_configstring_base": 544,
+      "inline_models": 256
+    },
+    "client_limit_observations": {
+      "engine": "0x419acb registers sv_maxclients=8 with flags 0x28; 0x419c71..0x419cc1 resets values <= 1 (also unordered NaN) to 8 and values > float 0x45b4a0 (256.0) to 256. Fifteen calls to the original suffix verify equality boundaries, infinities and NaN. The suffix receives ECX pointing to the 32-byte cvar; only CvarSet and integer formatting are hooked.",
+      "original_clamp_results": {
+        "scope": "original server clamp suffix; CvarSet/format hooks only",
+        "cases": [
+          {
+            "input_bits": "ff800000",
+            "set_calls": 1,
+            "set_value": 8
+          },
+          {
+            "input_bits": "bf800000",
+            "set_calls": 1,
+            "set_value": 8
+          },
+          {
+            "input_bits": "80000000",
+            "set_calls": 1,
+            "set_value": 8
+          },
+          {
+            "input_bits": "00000000",
+            "set_calls": 1,
+            "set_value": 8
+          },
+          {
+            "input_bits": "3f7fffff",
+            "set_calls": 1,
+            "set_value": 8
+          },
+          {
+            "input_bits": "3f800000",
+            "set_calls": 1,
+            "set_value": 8
+          },
+          {
+            "input_bits": "3f800001",
+            "set_calls": 0,
+            "set_value": 0
+          },
+          {
+            "input_bits": "40000000",
+            "set_calls": 0,
+            "set_value": 0
+          },
+          {
+            "input_bits": "41000000",
+            "set_calls": 0,
+            "set_value": 0
+          },
+          {
+            "input_bits": "437f0000",
+            "set_calls": 0,
+            "set_value": 0
+          },
+          {
+            "input_bits": "43800000",
+            "set_calls": 0,
+            "set_value": 0
+          },
+          {
+            "input_bits": "43800001",
+            "set_calls": 1,
+            "set_value": 256
+          },
+          {
+            "input_bits": "43808000",
+            "set_calls": 1,
+            "set_value": 256
+          },
+          {
+            "input_bits": "7f800000",
+            "set_calls": 1,
+            "set_value": 256
+          },
+          {
+            "input_bits": "7fc00001",
+            "set_calls": 1,
+            "set_value": 8
+          }
+        ]
+      },
+      "game": "The distinct maxclients cvar is capped at maxentities / 8 by qagame Init RVA 0xf9ba..0xfa03. The earlier 128-client/64-entity probe clamped it to 8 because of entity capacity, not a fixed 8-client contract.",
+      "remaining": "Synchronize the separate native cvars with engine allocation and audit the current MAX_GAME_CLIENTS=128 storage before enabling startup."
+    },
+    "player_configstring_observation": "qagame ClientUserinfoChanged at RVA 0xc4c3 adds 0x220 to the zero-based client slot.",
+    "recognition": "Nonempty default.cfg, one known BSP43 header with bounded lumps, and bounded PE32 x86 DLL export metadata for both native modules. Paths must remain inside the canonical installation root.",
+    "metadata_validation_scope": "Identity hint, not executable authentication or full PE/BSP validation. Automatic recognition currently covers the supplied loose installation; original pak%i.pk3 lookup is also observed and still needs its full filesystem contract.",
+    "mixed_markers": "Retail Q3 + IHV (257) is ambiguous; either profile rejects a mixed installation.",
+    "services": "No Steam AppID, Workshop or retail pure-proof contract. Steam discovery returns no installation for q3-ihv.",
+    "activation": "Both detection/activation and game-manager availability keep IHV startup blocked.",
+    "retail_bot_boundary": "No retail AAS worlds; native game owns navigation/bots. Botlib bootstrap, AAS setup/map load, actions and fixed goal/movement pools reject the IHV profile without allocating. Positive AAS fixtures retain all seven profiles that own that subsystem; negative IHV cases verify rejection and cleanup."
+  },
+  "link_geometry": {
+    "original_function": "SV_LinkEntity 0x41b970",
+    "radius_function": "0x414360",
+    "integer_conversion": "_ftol 0x448050, signed int64 truncation then low signed dword",
+    "constants": {
+      "0x45b4bc": 0.125,
+      "0x45b4b8": 32.0,
+      "0x45b374": 1.0
+    },
+    "solid": "16-bit x | down<<5 | up<<10, quantized by 8, clamped to 1..31 / 1..31 / 1..63; upper Z bias +32; brush sentinel 31.",
+    "solid_contents_mask": "0xbbffffff",
+    "transform": "Native svFlags 0x80 selects currentOrigin/currentAngles; otherwise state bytes 88..99 and 112..123.",
+    "bounds": "Rotated brush uses radius from maximum absolute extents; float bounds are stored before the one-unit pad.",
+    "comparison": {
+      "scope": "link geometry only; BSP query stubbed empty",
+      "cases": 2740,
+      "x87_precision": 53,
+      "fnv1a64": "7c40185466a69dbd"
+    },
+    "reference_limit": "Only the BSP leaf query is replaced, returning zero leaves. Original link arithmetic, radius and integer conversion run unchanged; x87 precision is explicitly set to 53. No original BSP/collision/PVS parity is claimed.",
+    "engine_test_limit": "Actual SV_LinkEntity runs against synthetic engine-owned records. The native IHV entity adapter and original world/unused-entity early-outs are not established by that test.",
+    "invalid_input": "Null/nonfinite/inverted inputs and overflowing output bounds fail before output publication or removal of previous engine world membership.",
+    "other_profiles": "Synthetic checks retain retail Q3, QL, RTCW SP/MP, ET and Elite Force SP/MP solid packing and current-origin behavior; the existing world suite also passes."
+  },
+  "native_init_followup": {
+    "scope": "Separate optional original DLL Init/Shutdown observation, not installation detection or gameplay.",
+    "entities_after_init": 9,
+    "entity_numbers": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "client_pointers": [
+      "null",
+      "null",
+      "null",
+      "null",
+      "null",
+      "null",
+      "null",
+      "null",
+      "null"
+    ],
+    "shutdown": "PASS; all tagged/file allocations released.",
+    "implication": "The engine adapter must not assume published entity numbers or dereference client pointers immediately after Init. Spawn/connection establishes those records later.",
+    "source": ".tmp/q3-ihv/native-client-init-observation.cpp"
+  },
+  "native_client_limit_followup": {
+    "scope": "Original game DLL Init/Shutdown under four requested client/entity capacities, without SpawnEntities or engine/network startup.",
+    "results": [
+      {
+        "mode": "clients-16",
+        "clients": 16,
+        "capacity": 1024,
+        "allocations": [
+          [
+            569344,
+            765
+          ],
+          [
+            23424,
+            765
+          ],
+          [
+            11200,
+            765
+          ]
+        ],
+        "remaining_allocations": 0
+      },
+      {
+        "mode": "clients-128",
+        "clients": 128,
+        "capacity": 1024,
+        "allocations": [
+          [
+            569344,
+            765
+          ],
+          [
+            187392,
+            765
+          ],
+          [
+            89600,
+            765
+          ]
+        ],
+        "remaining_allocations": 0
+      },
+      {
+        "mode": "clients-256-small",
+        "clients": 128,
+        "capacity": 1024,
+        "allocations": [
+          [
+            569344,
+            765
+          ],
+          [
+            187392,
+            765
+          ],
+          [
+            89600,
+            765
+          ]
+        ],
+        "remaining_allocations": 0
+      },
+      {
+        "mode": "clients-256",
+        "clients": 256,
+        "capacity": 2048,
+        "allocations": [
+          [
+            1138688,
+            765
+          ],
+          [
+            374784,
+            765
+          ],
+          [
+            179200,
+            765
+          ]
+        ],
+        "remaining_allocations": 0
+      }
+    ],
+    "source": ".tmp/q3-ihv/reference-client-limit-probe.cpp"
+  },
+  "native_connection_followup": {
+    "scope": "Original ClientConnect callbacks after Init, using host-owned cvar/configstring/command stand-ins. No map spawn, client begin/think, server handshake or packet session is exercised.",
+    "observation": {
+      "rejected": "Invalid password",
+      "clients": [
+        {
+          "slot": 0,
+          "entity_index": 1,
+          "client_byte_offset": 0,
+          "connection_state": 1,
+          "configstring": "n\\Probe0\u001b7\\t\\f\\snd\\\\model\\xian\\sex\\m"
+        },
+        {
+          "slot": 7,
+          "entity_index": 8,
+          "client_byte_offset": 10248,
+          "connection_state": 1,
+          "configstring": "n\\Probe7\u001b7\\t\\f\\snd\\\\model\\xian\\sex\\m"
+        }
+      ],
+      "commands": [
+        "print \"Probe0\u001b7 connected\n\"",
+        "print \"Probe7\u001b7 connected\n\""
+      ]
+    },
+    "boundary": "Wrong password returns before publishing a client pointer, configstring or broadcast. Accepted slots 0/7 use entities 1/8, the original client allocation at offsets 0/10248, connecting state 1 at client+276, and configstrings 544/551.",
+    "shutdown": "PASS; original Shutdown releases every tagged and file allocation.",
+    "source": ".tmp/q3-ihv/reference-client-connect-probe.cpp"
+  },
+  "validation": {
+    "status": "PASS",
+    "build": {
+      "preset": "meson/build/win32",
+      "command": "meson compile -C meson/build/win32",
+      "result": "PASS for client, dedicated server, renderers and all test targets; incremental build in existing preset, not a clean-room release proof."
+    },
+    "full_meson_suite": {
+      "counts": {
+        "OK": 126,
+        "SKIP": 2
+      },
+      "total": 128,
+      "command": "meson test -C meson/build/win32 --no-rebuild --print-errorlogs"
+    },
+    "python_suite": {
+      "tests": 1837,
+      "seconds": 666.241,
+      "skipped": 72,
+      "result": "PASS"
+    },
+    "initial_full_suite": {
+      "meson": {
+        "OK": 125,
+        "FAIL": 1,
+        "SKIP": 2
+      },
+      "python": {
+        "tests": 1837,
+        "failures": 48,
+        "errors": 7,
+        "skipped": 72,
+        "seconds": 732.249
+      },
+      "causes": "The new zero-AAS-world profile exposed retail fixture assumptions and fixed bot pool bounds; catalog expectations, the generated README template and the not-yet-written linked evidence document also failed. These are regressions from this profile addition, not established unrelated RTCW product defects.",
+      "logs": [
+        ".tmp/q3-ihv/identity-collision-suite.log",
+        ".tmp/q3-ihv/identity-collision-suite-testlog.json"
+      ]
+    },
+    "focused_python": {
+      "tests": [
+        "q3_ihv_profile_tests",
+        "q3_ihv_server_world_tests",
+        "rtcw_server_world_tests"
+      ],
+      "result": "PASS"
+    },
+    "navigation_followup": {
+      "tests": 44,
+      "seconds": 82.123,
+      "result": "PASS"
+    },
+    "final_documents": {
+      "command": "python -m unittest release_packaging_tests generate_docs_tests",
+      "tests": 53,
+      "seconds": 245.035,
+      "skipped": 1,
+      "result": "PASS"
+    },
+    "original_installation_detection": "PASS with the supplied installation, x86 Meson target and x64 AddressSanitizer harness; no DLL execution by detection.",
+    "x64_asan": {
+      "targets": [
+        "q3_ihv_identity_tests.cpp",
+        "q3_ihv_collision_tests.cpp"
+      ],
+      "result": "PASS without sanitizer reports; collision compiled with -ffast-math."
+    },
+    "wrong_reference_image": {
+      "argument": "meson/build/win32/fntech3.exe",
+      "exit_code": 1,
+      "diagnostic": "Unexpected original executable",
+      "before_mapping": true
+    },
+    "runtime_safety": "No game window, mouse/keyboard control, OS screenshot or game client/server network session was started in this follow-up. Reference files stayed read-only."
+  },
+  "commands": {
+    "reference_build": "cl /nologo /EHsc /W4 /WX /MD /O2 /std:c++17 tests/q3_ihv_reference_collision_probe.cpp /Fe:.tmp/q3-ihv/reference-collision-probe.exe /Fo:.tmp/q3-ihv/reference-collision-probe.obj /link /BASE:0x400000 /DYNAMICBASE:NO /MANIFEST:EMBED '/MANIFESTUAC:level=''asInvoker'' uiAccess=''false''' advapi32.lib",
+    "reference_run": ".tmp/q3-ihv/reference-collision-probe.exe E:/Repositories/Quake3-IHV/ref/install/quake3.exe",
+    "identity_run": "meson/build/win32/fntech3_q3_ihv_identity_tests.exe E:/Repositories/Quake3-IHV/ref/install",
+    "identity_asan_build": "clang++ -std=c++17 -O1 -g -fsanitize=address -Wall -Wextra -Werror -Wno-missing-field-initializers tests/q3_ihv_identity_tests.cpp code/qcommon/game_profile.cpp -o .tmp/q3-ihv/identity-tests-asan.exe",
+    "collision_asan_build": "clang++ -std=c++17 -O1 -g -fsanitize=address -ffast-math -Wall -Wextra -Werror tests/q3_ihv_collision_tests.cpp -o .tmp/q3-ihv/collision-tests-asan.exe",
+    "temporary_environment": "TEMP/TMP = E:/Repositories/fnTech3/.tmp/q3-ihv; explicit cwd E:/Repositories/fnTech3. Reference host uses embedded asInvoker manifest.",
+    "native_followup_build": "cl /nologo /EHsc /W4 /WX /MD /O2 /std:c++17 .tmp/q3-ihv/reference-client-{limit|connect}-probe.cpp /Fe:.tmp/q3-ihv/reference-client-{limit|connect}-probe.exe /Fo:.tmp/q3-ihv/reference-client-{limit|connect}-probe.obj /link /MANIFEST:EMBED '/MANIFESTUAC:level=''asInvoker'' uiAccess=''false''' advapi32.lib (two separate invocations)",
+    "native_limit_runs": "reference-client-limit-probe.exe <qagamex86.dll> <baseq3> [clients-16 | clients-128 | clients-256-small | clients-256]",
+    "native_connection_run": "reference-client-connect-probe.exe <qagamex86.dll> <baseq3>",
+    "server_limit_build": "cl /nologo /EHsc /W4 /WX /MD /O2 /std:c++17 .tmp/q3-ihv/reference-server-limit-probe.cpp /Fe:.tmp/q3-ihv/reference-server-limit-probe.exe /Fo:.tmp/q3-ihv/reference-server-limit-probe.obj /link /BASE:0x400000 /DYNAMICBASE:NO /MANIFEST:EMBED '/MANIFESTUAC:level=''asInvoker'' uiAccess=''false''' advapi32.lib",
+    "server_limit_run": "reference-server-limit-probe.exe E:/Repositories/Quake3-IHV/ref/install/quake3.exe"
+  },
+  "artifacts": [
+    {
+      "path": "code/qcommon/q3_ihv_install.hpp",
+      "sha256": "3a3053ca410d7243aed9821f9517275987e3f6babac1228c873d9abbb49a0683",
+      "bytes": 6267
+    },
+    {
+      "path": "code/qcommon/game_profile.cpp",
+      "sha256": "d53e528096fdbabfde4185df6d1875345a75ed1bec965384e2a3ad8724b5b7a1",
+      "bytes": 41220
+    },
+    {
+      "path": "code/qcommon/game_profile.h",
+      "sha256": "6b7fbb74bfc27a43f865329a095d766e2c994b8b514b907e4dcfe3497db57e93",
+      "bytes": 9949
+    },
+    {
+      "path": "code/qcommon/common.c",
+      "sha256": "d333fba2cfa114bf6b7e8142b1fd4b9a296f92cb894c74e489fa0d1944bd3ca9",
+      "bytes": 146277
+    },
+    {
+      "path": "code/qcommon/steam_path_shared.h",
+      "sha256": "fcff5c0801b3e400c9c13257f54d8bf00d65c74657af8e9af9f9911985399b52",
+      "bytes": 13704
+    },
+    {
+      "path": "code/platform/game_icon.hpp",
+      "sha256": "025ffa26fee344fd7994704c705e00ed48411fe20c21cb38679cdd4c5ca46152",
+      "bytes": 4427
+    },
+    {
+      "path": "code/compat/q3_ihv_collision.hpp",
+      "sha256": "694b1f517d90b6354cd8b877498110c33ec83f0806a6adba52c6ce02aecf17d0",
+      "bytes": 3870
+    },
+    {
+      "path": "code/server/sv_world.cpp",
+      "sha256": "b9509fcf007acd075baabe2672d4b9649e31dafcdd30405705e2115c255dded0",
+      "bytes": 22264
+    },
+    {
+      "path": "tests/q3_ihv_identity_tests.cpp",
+      "sha256": "60f19839caa96c92934f42c839a3470900077e5e79d5e8c9fbdccd90a43dec6f",
+      "bytes": 6040
+    },
+    {
+      "path": "tests/q3_ihv_profile_tests.py",
+      "sha256": "a99ce6c0bb50ed87ee8c2f438e381ddba67bcf1cf3dca8a440ec9b9948779c9b",
+      "bytes": 5264
+    },
+    {
+      "path": "tests/q3_ihv_collision_cases.hpp",
+      "sha256": "cfc2dbfad7adfb7d1060bcc68c72a04e6bf8f47891fff3b66c5dbea9ec2c368a",
+      "bytes": 2867
+    },
+    {
+      "path": "tests/q3_ihv_collision_tests.cpp",
+      "sha256": "2383bc1b491e5cf48eb5ba48530a93038cf915920d28dd51c4f87563442413c0",
+      "bytes": 2503
+    },
+    {
+      "path": "tests/q3_ihv_reference_collision_probe.cpp",
+      "sha256": "4505bbd500aa13c17efd23aa45574016e606e99db580657eea6c7d0a1af11034",
+      "bytes": 6318
+    },
+    {
+      "path": "tests/q3_ihv_server_world_tests.py",
+      "sha256": "c16ba2fb722272c2cba2eeebda121d3905418a1a24a68188e6e79285c6170feb",
+      "bytes": 5722
+    },
+    {
+      "path": "tests/rtcw_server_world_tests.py",
+      "sha256": "1c9f723b5bcf11bbfd6e2e113c98a2e7c75c198fdedbc38b3a00de63ac88a301",
+      "bytes": 15644
+    },
+    {
+      "path": "tests/game_profile_tests.cpp",
+      "sha256": "7716a6c2264d728327441dd473c3f51a422d5b999541eed13917b9d61c71571f",
+      "bytes": 36634
+    },
+    {
+      "path": "tests/application_icon_tests.cpp",
+      "sha256": "56ec081e16cd0f719c008930f2d3d7d3c3188532f4b8d16143ad45fabef5bf8e",
+      "bytes": 7513
+    },
+    {
+      "path": "tests/steam_path_tests.cpp",
+      "sha256": "54052858945d2fd2aff6976097bd63c6ccd49ebfaa31583479a0a29c2cb7ad4f",
+      "bytes": 9152
+    },
+    {
+      "path": "meson.build",
+      "sha256": "a74a2552f51f875cfe06b5957354687d46d5c6bb2472ec12a515c38f107c70ca",
+      "bytes": 63635
+    },
+    {
+      "path": "code/botlib/be_interface.h",
+      "sha256": "a5be4a285ce665950bfff3e0ae225899ac58fd3477a3b29b348d6e76684cd5b4",
+      "bytes": 2401
+    },
+    {
+      "path": "code/botlib/be_interface.cpp",
+      "sha256": "5651c7425cebd034e229823d7abcc814ac19f7de349a1a41042e67ebd0097e8c",
+      "bytes": 33980
+    },
+    {
+      "path": "code/botlib/be_aas_main.cpp",
+      "sha256": "c1d234bc6b4850839a6adf82c7539696267f145912d0eaf02b2ed6e582f95cda",
+      "bytes": 18973
+    },
+    {
+      "path": "code/botlib/be_ai_goal.cpp",
+      "sha256": "2383df24627e49a9b9a6c4b3f449869b045556b7d4c57df1f1e677ecc13a3db5",
+      "bytes": 61302
+    },
+    {
+      "path": "code/botlib/be_ai_move.cpp",
+      "sha256": "d0f78601a2fc9268785ec439b8d0fb241e13c62d9c73236790c5e42c6c36ca19",
+      "bytes": 133151
+    },
+    {
+      "path": "code/botlib/be_ea.cpp",
+      "sha256": "28df949d3e2134f68deb15428ab69bb7f3ae2004a27d9820308be0fad4692d05",
+      "bytes": 15803
+    },
+    {
+      "path": "tests/bot_profile_defaults_tests.py",
+      "sha256": "d5981d3b98c82d23581c47439b09affc1f7f3eb91a468288cdaf8e707e424c59",
+      "bytes": 2895
+    },
+    {
+      "path": "tests/wolfet_download_tests.py",
+      "sha256": "4d9565ea22de99d32c2e751ce6d56bbe684d8d398299da041d4b967446ae6f0e",
+      "bytes": 7417
+    },
+    {
+      "path": "docs/templates/README.md.in",
+      "sha256": "bf1ea3acc43b828120062d3868e3e887d9e0e082bf8e914bb023bf8c2b4a8be7",
+      "bytes": 13733
+    },
+    {
+      "path": "tests/rtcw_botlib_tests.py",
+      "sha256": "1f2410c2e324c762318caec0b17f82cb048cee379de698c2b2a675898203617c",
+      "bytes": 20004
+    },
+    {
+      "path": "tests/rtcw_navigation_tests.py",
+      "sha256": "569e36b4a46c43b558ba6cef6242732a02af6b7acd85c444a7a382bce8375382",
+      "bytes": 11046
+    },
+    {
+      "path": "tests/rtcw_ai_state_tests.py",
+      "sha256": "67602b5d8997a6643046d2631d86439d207a4da497e56f3559b4b27cb9dd87ea",
+      "bytes": 12796
+    },
+    {
+      "path": "tests/rtcw_actions_tests.py",
+      "sha256": "fae70a15b65c44d11824171e46d0506024c8d00f4ccea3f933edd80089b9765c",
+      "bytes": 10321
+    },
+    {
+      "path": "tests/rtcw_aas_load_tests.py",
+      "sha256": "41afcc394a67ef2c0c6bcf8237bc1d0cc56cf2a0444b5ff277700bf72551a8a4",
+      "bytes": 12295
+    },
+    {
+      "path": "tests/rtcw_server_policy_tests.py",
+      "sha256": "3f7e93b7d15ec7d14f1114f5207ae05a6a1c0598bb4461111664dc65a7825432",
+      "bytes": 12620
+    },
+    {
+      "path": "tests/rtcw_cinematic_presentation_tests.py",
+      "sha256": "6350702633837d138f8f04b59d628352ff7ce495d142a30968d1bcbd4cd73309",
+      "bytes": 20427
+    },
+    {
+      "path": "tests/rtcw_bot_entity_tests.py",
+      "sha256": "ebc8db326c543627783cfbf3db5f112e476c88a5529cfeeab1363608bbee206f",
+      "bytes": 10867
+    },
+    {
+      "path": "tests/rtcw_aas_trace_tests.py",
+      "sha256": "33ee5cf8b95ff8a7e6409fe0c2962656e6be19dbffb69459a20f2e06ed1af63a",
+      "bytes": 8619
+    },
+    {
+      "path": "tests/rtcw_direction_tests.py",
+      "sha256": "d527ac00a421c910ca727a72eaf414282674be6e401932e6dad3169502ea3e2c",
+      "bytes": 12890
+    },
+    {
+      "path": "tests/rtcw_entity_collision_tests.py",
+      "sha256": "348013446cba0856e55c999a02657ee2a829a189800f1526619a534ca908a5a3",
+      "bytes": 10156
+    },
+    {
+      "path": "tests/rtcw_goal_route_tests.py",
+      "sha256": "616106f78fd1fb943692bcb5bbde9cb478c45856b6aa0a680633f540d84b49dd",
+      "bytes": 6939
+    },
+    {
+      "path": "tests/rtcw_movement_view_tests.py",
+      "sha256": "8c550efefefeb8c0d851e466753374397100d146f5d6587130e0ba8c2e164834",
+      "bytes": 12164
+    },
+    {
+      "path": "tests/rtcw_movement_area_tests.py",
+      "sha256": "55479e99fec8a1419613abf16aaade39cd15033ca9da18966da85fe0929728bf",
+      "bytes": 9805
+    },
+    {
+      "path": "tests/rtcw_jump_runstart_tests.py",
+      "sha256": "4a8d9844d65abda9563ca5a012993ce01cc8e6c362fc39cea6a5ed730abb2dd8",
+      "bytes": 5675
+    },
+    {
+      "path": "tests/rtcw_move_goal_tests.py",
+      "sha256": "d0268bf664f6a8fefbd302465769e40bd2d892ebcf489223fab64938f69b2417",
+      "bytes": 20070
+    },
+    {
+      "path": "tests/rtcw_prediction_tests.py",
+      "sha256": "004f5e36e3476976f9ec7ba9cab9cf59c1363493f291cca2d41de59b51653e13",
+      "bytes": 12043
+    },
+    {
+      "path": "tests/rtcw_routecache_load_tests.py",
+      "sha256": "8a4a47b27d44533694f6ebfeccb62eff462fb29eb8bb496ee45f9c728f307e51",
+      "bytes": 7339
+    },
+    {
+      "path": "tests/rtcw_route_query_tests.py",
+      "sha256": "9aa1c6666390deeb517e0b0a1f7f09a7357975a9537d838e9ebdded14d2f37c8",
+      "bytes": 13621
+    },
+    {
+      "path": "tests/rtcw_routing_tests.py",
+      "sha256": "a428dad381e2bedd1010d98a178b6704b5a419be3b9044c58f411345b6786a54",
+      "bytes": 13578
+    },
+    {
+      "path": "tests/rtcw_tactical_tests.py",
+      "sha256": "4715f360edade30cc5c826e1236189484cef785317dc5a01328b1fc879430222",
+      "bytes": 15585
+    },
+    {
+      "path": "tests/rtcw_visibility_tests.py",
+      "sha256": "465015cabaa4dbed09bb11e9915089bbc15f6da4d5e1219cc3ef252baf6fd5f6",
+      "bytes": 13143
+    },
+    {
+      "path": "tests/rtcw_travel_tests.py",
+      "sha256": "d440e20dcb236d82ee415d8ed9f3d252fe6e5edd46f53f256d34543739df482f",
+      "bytes": 12230
+    },
+    {
+      "path": "meson/build/win32/fntech3.exe",
+      "sha256": "d82f794c04b512eded3a72162abc2f4686642ae0863662dcbc151830e6e6c531",
+      "bytes": 8510464
+    },
+    {
+      "path": "meson/build/win32/fntech3.ded.exe",
+      "sha256": "e036c370a3ee7f53fc8f2647270ef82dfa515b0ca26757d2ae6008192da0b903",
+      "bytes": 2680320
+    },
+    {
+      "path": "meson/build/win32/fnql_glx_x86.dll",
+      "sha256": "f4f2f188c419d6680c31d2b8e94924aa9a6307a69ffa13f204a2e1175d28cbcb",
+      "bytes": 2443264
+    },
+    {
+      "path": "meson/build/win32/fnql_vk_x86.dll",
+      "sha256": "e7509d3ef528239026c627c39d525a3144ff6f2ace9863e3924c7945123aebbd",
+      "bytes": 2615296
+    },
+    {
+      "path": "meson/build/win32/fnql_rtx_x86.dll",
+      "sha256": "3e93f032666501afd73e130ff1332f6cc4d2e66cc0c925b73fff2f681aee12ec",
+      "bytes": 2905088
+    },
+    {
+      "path": "meson/build/win32/fntech3_q3_ihv_identity_tests.exe",
+      "sha256": "a78391d1d2a06fcadd22d8d2113862686a23902f412325935320b6c67ea99a51",
+      "bytes": 850944
+    },
+    {
+      "path": "meson/build/win32/fntech3_q3_ihv_collision_tests.exe",
+      "sha256": "72b58c5352862f10047ac9ac529c974d2de825438acf2434549c68b7ec9704f2",
+      "bytes": 394752
+    },
+    {
+      "path": ".tmp/q3-ihv/identity-collision-build-verified.log",
+      "sha256": "265c1773b87fe724e26be57c17863fb1c12eeb8dff686f69b673516c72da398e",
+      "bytes": 2966
+    },
+    {
+      "path": ".tmp/q3-ihv/identity-collision-suite.log",
+      "sha256": "5941d1bdf98b39e49e3ec5f84ff90cdd5255210deffd9a3d033ef2c27de1d248",
+      "bytes": 17891
+    },
+    {
+      "path": ".tmp/q3-ihv/identity-collision-suite-testlog.txt",
+      "sha256": "0a5223dcc8648d76cb7f934c78d67977986fb89817bd4ce4b5d0da80f612893c",
+      "bytes": 187501
+    },
+    {
+      "path": ".tmp/q3-ihv/identity-collision-suite-testlog.json",
+      "sha256": "e49d97a936c3e03b54654507b1ae8abe4e3c369777a27f130d23cebe55d262ce",
+      "bytes": 2477063
+    },
+    {
+      "path": ".tmp/q3-ihv/identity-reference-verified.log",
+      "sha256": "91ecdbbc7172cfcf3e75baa0ac0a0b0632f937b57e15b40eeae08615870bb78d",
+      "bytes": 133
+    },
+    {
+      "path": ".tmp/q3-ihv/identity-asan-verified.log",
+      "sha256": "91ecdbbc7172cfcf3e75baa0ac0a0b0632f937b57e15b40eeae08615870bb78d",
+      "bytes": 133
+    },
+    {
+      "path": ".tmp/q3-ihv/identity-asan-build-verified.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": ".tmp/q3-ihv/identity-boundary-focused.log",
+      "sha256": "e81e4b65d7b1f907385eda3de0dc2cf4610247021f5c80d63806b7aa7973c948",
+      "bytes": 2046
+    },
+    {
+      "path": ".tmp/q3-ihv/identity-boundary-followup.log",
+      "sha256": "9218e59c695b1c16892d0416079c82eebc62fbf3cf5a4758f170360687b2e509",
+      "bytes": 108
+    },
+    {
+      "path": ".tmp/q3-ihv/identity-docs-final.log",
+      "sha256": "1683321df2c86e0927eccd28540a87723b344925cce2a1a26548f72bcc10f135",
+      "bytes": 447
+    },
+    {
+      "path": ".tmp/q3-ihv/identity-world-python.log",
+      "sha256": "788676da6f8e54097d4944e94eba91d77c166d16ef50d90f82ef35e52a9588d4",
+      "bytes": 563
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-collision.log",
+      "sha256": "a70f3e1b22edd1ad5a776285fe1df49a110e982b0b56cb848e5572671a945949",
+      "bytes": 118
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-collision-wrong-image.log",
+      "sha256": "acddf4d9ae5ce415e391752e877595f1834528f70702406eb9256f71f9b99be8",
+      "bytes": 32
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-collision-build.log",
+      "sha256": "33981f8fcf37962ef8a4fc03b487b1741537204017d5415ff569fba76cf7cc17",
+      "bytes": 38
+    },
+    {
+      "path": ".tmp/q3-ihv/collision-asan.log",
+      "sha256": "b83e9ccfc744b417e2af760625783e38d9b88f3a8634f66af005ff72a418c06f",
+      "bytes": 78
+    },
+    {
+      "path": ".tmp/q3-ihv/server-world-tests.log",
+      "sha256": "ec482f56bf8cceefc44c4f9efe44f566724979e7fc51b9e24719536a69949f0b",
+      "bytes": 240
+    },
+    {
+      "path": ".tmp/q3-ihv/native-client-init.json",
+      "sha256": "227400480b52b0b926812c5c98a47bfaf5d6f0cb56ece47890dd027878d09186",
+      "bytes": 1637
+    },
+    {
+      "path": ".tmp/q3-ihv/native-client-init.log",
+      "sha256": "5a0446ea3143b7480cf511ff10134060609dacd21451272187435019056959d6",
+      "bytes": 456
+    },
+    {
+      "path": ".tmp/q3-ihv/native-client-init-observation.cpp",
+      "sha256": "f8c58841ca7e23391358c96395be164d6c732297dfdffc1c93cf16e8348a4ac3",
+      "bytes": 14119
+    },
+    {
+      "path": ".tmp/q3-ihv/client-limit-binary-observations.json",
+      "sha256": "6b8df00c319949755e7d699da4493377a2b49a46de85013969ceb17dc0d824f7",
+      "bytes": 3338
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-client-limit-probe.cpp",
+      "sha256": "b14db1c47942c1e10e0292531b745c88c280e777e7745ff1b287dc5cd54c0c0d",
+      "bytes": 14229
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-client-limit-build.log",
+      "sha256": "3bc3323c0aaa9a787d370cfaffb3cd46cb97cacbe0b6aa8688d79082125c0e6a",
+      "bytes": 34
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-server-limit-probe.cpp",
+      "sha256": "8e5226118bbba908dc72ad34441d4095be54061ae4ce89d15021ab321ccad5e7",
+      "bytes": 5607
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-server-limit-build.log",
+      "sha256": "dc53c5980757810122c8a093871db55b4fce70b664b775f36391664e9993a9d8",
+      "bytes": 34
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-server-limit.log",
+      "sha256": "babac9071e68f132507a49693607051101b128422ec3dddd89d3e6d386f7c0d1",
+      "bytes": 895
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-client-connect-probe.cpp",
+      "sha256": "46271d73b06de6aac55fc5b399c3fb054b348042913bb6629d5574f265548da0",
+      "bytes": 16695
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-client-connect-build.log",
+      "sha256": "e32c5d2baedd137483fef1b76bf53a69168590669f6c386ee3ff4d62a90c2cc2",
+      "bytes": 36
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-client-connect.jsonl",
+      "sha256": "dc3422af229fa01f20a404853657c24d75591dde350583be1621c623b0017767",
+      "bytes": 2069
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-client-connect.log",
+      "sha256": "13b80483de7189b8e4599639acebe575e21011bc6c613225a0a8cdeaa62e53dc",
+      "bytes": 165
+    },
+    {
+      "path": ".tmp/q3-ihv/clients-16.json",
+      "sha256": "ee91bef973e66006e84b0a6f001d6b93f5c6b4203af986490e7a29127dc6b82c",
+      "bytes": 1645
+    },
+    {
+      "path": ".tmp/q3-ihv/clients-16.log",
+      "sha256": "13b80483de7189b8e4599639acebe575e21011bc6c613225a0a8cdeaa62e53dc",
+      "bytes": 165
+    },
+    {
+      "path": ".tmp/q3-ihv/clients-128.json",
+      "sha256": "06e9b9dfd6cf0568b0b639956c6a8189d9970590469ad764db9cb842f8f2ce45",
+      "bytes": 1650
+    },
+    {
+      "path": ".tmp/q3-ihv/clients-128.log",
+      "sha256": "13b80483de7189b8e4599639acebe575e21011bc6c613225a0a8cdeaa62e53dc",
+      "bytes": 165
+    },
+    {
+      "path": ".tmp/q3-ihv/clients-256-small.json",
+      "sha256": "acba03d443a8c9220923fa088965aec971bf5e8567c5669d2d3443e92ad16264",
+      "bytes": 1656
+    },
+    {
+      "path": ".tmp/q3-ihv/clients-256-small.log",
+      "sha256": "13b80483de7189b8e4599639acebe575e21011bc6c613225a0a8cdeaa62e53dc",
+      "bytes": 165
+    },
+    {
+      "path": ".tmp/q3-ihv/clients-256.json",
+      "sha256": "ca157050bf7b691990f09ca41bfcdc900218aaa0e4752002a342e88e1650af49",
+      "bytes": 1652
+    },
+    {
+      "path": ".tmp/q3-ihv/clients-256.log",
+      "sha256": "13b80483de7189b8e4599639acebe575e21011bc6c613225a0a8cdeaa62e53dc",
+      "bytes": 165
+    },
+    {
+      "path": ".tmp/q3-ihv/identity-collision-suite-verified.log",
+      "sha256": "e61c8e009304211e75dabd45455703ad98a14ed6035d86966041831609d2f555",
+      "bytes": 10183
+    },
+    {
+      "path": ".tmp/q3-ihv/identity-collision-suite-verified-testlog.txt",
+      "sha256": "1f0819057b577cfba138ef3033e08e832ad84df9f3e9585822356ba9369d6614",
+      "bytes": 134820
+    },
+    {
+      "path": ".tmp/q3-ihv/identity-collision-suite-verified-testlog.json",
+      "sha256": "1fe90c751889b10753341bf517122125f8e0416756e0e01631da82b53e82554a",
+      "bytes": 2423494
+    },
+    {
+      "path": ".tmp/q3-ihv/identity-navigation-focused.log",
+      "sha256": "319dafafa4c5f4170fd2f1c4fa83cf8dce96261ef7e2d727b900a0efb7733b9f",
+      "bytes": 149
+    }
+  ],
+  "remaining": [
+    "Native entity/player/client state adapters, import semantics and game/cgame lifecycle integration.",
+    "Coherent filesystem/pak startup and renderer eligibility for the IHV profile.",
+    "Original world/link membership, ownership, trace-result behavior and native gameplay/navigation.",
+    "Protocol-33 handshake/netchan/client envelopes/downloads and bidirectional sessions.",
+    "Engine demo command, rendered playback and recording integration.",
+    "Original native portal, clamp, lighting, audio and input behavior."
+  ],
+  "unrelated_issues": "No new unrelated product issue found. Earlier IPv6-loopback warning and policy-blocked scratch cleanup remain recorded in the preceding IHV evidence."
+}

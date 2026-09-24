@@ -39,7 +39,7 @@ class RTCWGoalRouteTests(unittest.TestCase):
         self.run_source(r'''
 int main(){
  const int flags=TFL_WALK|TFL_AIR;
- for(const auto &p:profiles){profile=&p;initialize();graph(0,4,1);
+ for(const auto &p:profiles){profile=&p;if(!p.bots.navigationWorlds)continue;initialize();graph(0,4,1);
   if(!Com_GameIsRTCW()){
    assert(!AAS_RTCWMovementRoutingReady());vec3_t origin{};
    assert(!AAS_RTCWMovementReachability(origin,2,4,0,4,flags,flags));shutdown();continue;

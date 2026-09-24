@@ -61,6 +61,12 @@ static bool SV_WolfETGameCall(const intptr_t *, intptr_t &, intptr_t &) { assert
 // Nor does Elite Force's game boundary: its fixture profiles are RTCW's.
 int Com_GameIsSTVEFMP(void) { return profile.id == COM_GAME_STVEF_MP; }
 static bool SV_STVEFGameCall(const intptr_t *, intptr_t &, intptr_t &) { assert(false); return false; }
+// Nor Jedi Academy's, whose served imports have their own source checks.
+int Com_GameIsJKAMP(void) { return profile.id == COM_GAME_JKA_MP; }
+static bool SV_JKAGameCall(const intptr_t *, intptr_t &, intptr_t &) { assert(false); return false; }
+// Nor Jedi Outcast multiplayer's, which is a QVM and has its own checks.
+int Com_GameIsJK2MP(void) { return profile.id == COM_GAME_JK2_MP; }
+static bool SV_JK2GameCall(const intptr_t *, intptr_t &, intptr_t &) { assert(false); return false; }
 static bool CL_WolfETUICall(intptr_t *, intptr_t &, intptr_t &) { assert(false); return false; }
 // Elite Force's UI dispatcher has its own probe.
 static bool CL_STVEFUICall(intptr_t *, intptr_t &, intptr_t &) { assert(false); return false; }

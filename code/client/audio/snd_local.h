@@ -30,6 +30,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // one is C++ of its own.
 extern "C++" {
 #include "shared/STVEFLipSync.h"
+// American McGee's Alice's voices: shared/AliceSound.h decides, a backend plays.
+namespace fntech3::audio::alice::sfx { class Device; }
 }
 #endif
 
@@ -52,6 +54,7 @@ typedef struct loopSound_t loopSound_t;
 typedef struct channel_t channel_t;
 typedef struct wavinfo_t wavinfo_t;
 typedef struct soundInterface_t soundInterface_t;
+struct snd_stream_t;
 
 struct portable_samplepair_t {
 	int			left;	// the final values will be clamped to +/- 0x00ffff00 and shifted down
@@ -82,6 +85,10 @@ struct sfx_t {
 	char 			soundName[MAX_QPATH];
 	int				lastTimeUsed;
 	sfx_t			*next;
+	// The file's own frames and the bytes each takes in it, before the
+	// resampling above; American McGee's Alice's loop blocks count in them.
+	int				sourceFrames;
+	int				sourceFrameBytes;
 };
 
 struct dma_t {
@@ -129,6 +136,12 @@ struct channel_t {
 	qboolean	fixed_origin;	// use origin instead of fetching entnum's origin
 	sfx_t		*thesfx;		// sfx structure
 	qboolean	doppler;
+	// American McGee's Alice's loop block, in the sample's frames: a loop
+	// channel whose end is set plays to that end and then repeats
+	// [loopBlockStart, loopBlockEnd). Only Alice's voices set it; an end of 0
+	// loops the whole sample.
+	int			loopBlockStart;
+	int			loopBlockEnd;
 };
 
 
@@ -165,6 +178,10 @@ struct soundInterface_t {
 	int (*WolfETSoundLength)( sfxHandle_t handle );
 	int (*WolfETCurrentSoundTime)( void );
 	void (*StopBackgroundTrack)( void );
+	// A music source the caller built rather than a file to open: American
+	// McGee's Alice mixes its own two song players into one stream. The
+	// backend owns the stream from here and closes it as it closes a track.
+	void (*StartStreamSource)( struct snd_stream_t *stream );
 	void (*UpdateBackgroundTrack)( void );
 	void (*RawSamples)(int samples, int rate, int width, int channels, const byte *data, float volume);
 	void (*AddVoiceSamples)( int clientNum, int samples, int rate, const short *data );
@@ -191,6 +208,14 @@ struct soundInterface_t {
 	void (*SoundList)( void );
 	qboolean (*GetSpatialDebugInfo)( spatialAudioDebugInfo_t *info );
 	void (*DumpSpatialDebug)( void );
+	// American McGee's Alice's 32 3-D voices and 4 dialog voices, which the
+	// engine in shared/AliceSound.h drives for every profile's backend alike;
+	// only the Alice profile ever calls it.
+#ifdef __cplusplus
+	fntech3::audio::alice::sfx::Device *AliceDevice;
+#else
+	void *AliceDevice;
+#endif
 };
 
 
@@ -239,12 +264,14 @@ extern	portable_samplepair_t	s_rawsamples[MAX_RAW_SAMPLES];
 
 extern cvar_t *s_volume;
 extern cvar_t *s_musicVolume;
+qboolean S_StartStreamSource( struct snd_stream_t *stream );
 extern cvar_t *s_voiceVolume;
 extern cvar_t *s_voiceStep;
 extern cvar_t *s_doppler;
 extern cvar_t *s_pvs;
-// Elite Force alone registers this one; the games that do not leave it
-// null and are spread evenly, which is this cvar's own default.
+// Elite Force registers this one, and American McGee's Alice, which spreads
+// only its two-dimensional dialog voices by it; the other games leave it null
+// and are spread evenly, which is Elite Force's default for it.
 extern cvar_t *s_separation;
 static ID_INLINE float S_STVEFSeparation( void ) {
 	if ( s_separation == NULL ) return 0.5f;
@@ -331,6 +358,20 @@ void S_OpenAL_ListDevices( void );
 void S_OpenAL_ListHrtfs( void );
 void S_OpenAL_ConfigHints( void );
 qboolean S_OpenAL_RecoverDevice( qboolean force );
+
+#ifdef __cplusplus
+extern "C++" {
+// The running backend's Alice voices, or null while no backend runs.
+fntech3::audio::alice::sfx::Device *S_AliceDevice( void );
+// Whether a backend runs: retail's "sound started" (0x00b84eac).
+bool S_AliceBackendStarted( void );
+// The entity the last Alice respatialize named the listener (0x0069ffb4).
+int S_AliceListenerNumber( void );
+// Whether Alice's room reverb is on (s_reverb 1), and the environment and
+// level the client game last set (import 40).
+bool S_AliceReverb( int *type, float *level );
+}
+#endif
 
 #ifdef __cplusplus
 }

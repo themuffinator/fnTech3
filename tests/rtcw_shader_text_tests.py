@@ -113,7 +113,7 @@ class RTCWShaderTextTests(unittest.TestCase):
         if not compiler: self.skipTest('C++ compiler unavailable')
         flags = compiler_target_args(compiler)
         if os.name == 'nt' and not flags: flags += ['-DFNTECH3_Q3_ONLY']
-        base = PRELUDE + tokenizer() + '\n#include "code/renderercommon/tr_rtcw_shader_text.h"\n'
+        base = PRELUDE + tokenizer() + '\n#include "code/renderercommon/tr_rtcw_shader_text.h"\n#include "code/renderercommon/tr_q3_ihv_shader_text.h"\n'
         (ROOT / '.tmp').mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='rtcw-shaders-', dir=ROOT / '.tmp') as temporary:
             for renderer in ('renderer', 'renderervk', 'rendererrtx'):

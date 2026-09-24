@@ -27,6 +27,12 @@ typedef enum comGameId_e
 	COM_GAME_WOLFET,
 	COM_GAME_STVEF_SP,
 	COM_GAME_STVEF_MP,
+	COM_GAME_QUAKE3_IHV,
+	COM_GAME_JKA_SP,
+	COM_GAME_JKA_MP,
+	COM_GAME_JK2_SP,
+	COM_GAME_JK2_MP,
+	COM_GAME_ALICE,
 	COM_GAME_COUNT
 } comGameId_t;
 
@@ -39,7 +45,10 @@ typedef enum comGameTitleId_e
 	COM_GAME_TITLE_QUAKELIVE,
 	COM_GAME_TITLE_RTCW,
 	COM_GAME_TITLE_WOLFET,
-	COM_GAME_TITLE_STVEF
+	COM_GAME_TITLE_STVEF,
+	COM_GAME_TITLE_JKA,
+	COM_GAME_TITLE_JK2,
+	COM_GAME_TITLE_ALICE
 } comGameTitleId_t;
 
 /* BSP version 47 is ambiguous without a title: RTCW has 17 lumps, while
@@ -55,7 +64,18 @@ typedef enum comGameBspFormat_e
 	COM_GAME_BSP_QUAKE3,
 	COM_GAME_BSP_QUAKELIVE,
 	COM_GAME_BSP_RTCW,
-	COM_GAME_BSP_WOLFET
+	COM_GAME_BSP_WOLFET,
+	/* Raven's own ident: "RBSP" version 1, with the lightmap-style arrays and
+	 * the light-array lump Quake III's IBSP 46 does not have. Jedi Outcast and
+	 * Jedi Academy both use it, and every map either ships reads through the
+	 * one translator: 41 of Outcast's and 57 of Academy's. */
+	COM_GAME_BSP_RBSP,
+	/* Ritual's own ident: "FAKK" version 42, the Alice revision of the
+	 * Heavy Metal: F.A.K.K.2 format. Its header carries a checksum Quake
+	 * III's does not, and its twenty lumps are in a different order and
+	 * include side equations, light definitions and terrain, for which
+	 * IBSP 46 has no counterpart. */
+	COM_GAME_BSP_FAKK
 } comGameBspFormat_t;
 
 typedef enum comGameDetectionStatus_e {
@@ -88,7 +108,20 @@ enum {
 	/* Elite Force's single player and Holomatch modes share baseEF/pak0.pk3.
 	 * The one pak sets both marks, so the user must choose the mode. */
 	COM_GAME_MARKER_STVEF_SP = 1 << 6,
-	COM_GAME_MARKER_STVEF_MP = 1 << 7
+	COM_GAME_MARKER_STVEF_MP = 1 << 7,
+	COM_GAME_MARKER_QUAKE3_IHV = 1 << 8,
+	/* Jedi Academy's single player and multiplayer share one base/ directory
+	 * and its assets; each mode is marked by its own game module beside them. */
+	COM_GAME_MARKER_JKA_SP = 1 << 9,
+	COM_GAME_MARKER_JKA_MP = 1 << 10,
+	/* Jedi Outcast shares one base/ directory between its modes as well, and
+	 * both of its configurations sit in the same pak, so the same mode choice
+	 * applies. Its multiplayer modules are QVMs rather than libraries. */
+	COM_GAME_MARKER_JK2_SP = 1 << 11,
+	COM_GAME_MARKER_JK2_MP = 1 << 12,
+	/* Alice is one title with one mode, so its base/pak0.pk3 sets a
+	 * single mark and no mode choice is asked of the player. */
+	COM_GAME_MARKER_ALICE = 1 << 13
 };
 
 enum {
@@ -103,7 +136,23 @@ enum {
 	/* Elite Force: SP loopback 40, retail Holomatch 24, ioEF/Lilium 26. */
 	COM_PROTOCOL_FAMILY_STVEF_SP = 1 << 8,
 	COM_PROTOCOL_FAMILY_STVEF_HM = 1 << 9,
-	COM_PROTOCOL_FAMILY_IOEF = 1 << 10
+	COM_PROTOCOL_FAMILY_IOEF = 1 << 10,
+	COM_PROTOCOL_FAMILY_Q3_POINT_RELEASES = 1 << 11,
+	COM_PROTOCOL_FAMILY_QUAKE3_IHV = 1 << 12,
+	/* Jedi Academy: SP loopback 40 and multiplayer 26. Both numbers are also
+	 * spoken by another title, so a version maps to every family that uses it
+	 * and each profile admits only its own. */
+	COM_PROTOCOL_FAMILY_JKA_SP = 1 << 13,
+	COM_PROTOCOL_FAMILY_JKA_MP = 1 << 14,
+	/* Jedi Outcast 1.02a: single player's loopback 40, which Elite Force and
+	 * Jedi Academy also speak, and multiplayer's 15. Both numbers are read
+	 * from the retail binaries' own cvar registrations. */
+	COM_PROTOCOL_FAMILY_JK2_SP = 1 << 15,
+	COM_PROTOCOL_FAMILY_JK2_MP = 1 << 16,
+	/* Alice speaks protocol 1, read from retail alice.exe's own cvar
+	 * registration and from the connect userinfo it writes. No other
+	 * supported title uses that number. */
+	COM_PROTOCOL_FAMILY_ALICE = 1 << 17
 };
 
 enum {
@@ -112,7 +161,20 @@ enum {
 	COM_MODULE_API_STRUCTURED_NATIVE = 1 << 2,
 	/* Elite Force SP: GetGameAPI/GetUIAPI function tables, with the cgame's
 	 * dllEntry/vmMain taken from the same loaded game library. */
-	COM_MODULE_API_STVEF_SP_NATIVE = 1 << 3
+	COM_MODULE_API_STVEF_SP_NATIVE = 1 << 3,
+	COM_MODULE_API_QUAKE3_IHV_NATIVE = 1 << 4,
+	/* Jedi Academy SP: a GetGameAPI function table, with the cgame's
+	 * dllEntry/vmMain taken from the same library and no separate UI module. */
+	COM_MODULE_API_JKA_SP_NATIVE = 1 << 5,
+	/* Jedi Outcast SP: the same shape as Jedi Academy's, a GetGameAPI table
+	 * from a library in the installation root. Its multiplayer needs no entry
+	 * of its own, because its modules are ordinary QVMs. */
+	COM_MODULE_API_JK2_SP_NATIVE = 1 << 6,
+	/* Alice: two libraries in base/, fgamex86.dll exporting GetGameAPI
+	 * and cgamex86.dll exporting GetCGameAPI, each a function table
+	 * rather than Quake III's dllEntry/vmMain pair. Its menus are the
+	 * engine's own .urc resources, so there is no UI module. */
+	COM_MODULE_API_ALICE_NATIVE = 1 << 7
 };
 
 /* Engine defaults are separate from limits and module-owned game rules.
@@ -189,13 +251,22 @@ typedef enum comGamePureProof_e {
 	COM_PURE_PROOF_QVM,
 	COM_PURE_PROOF_QL_NATIVE,
 	COM_PURE_PROOF_RTCW_NATIVE,
-	COM_PURE_PROOF_WOLFET_NATIVE
+	COM_PURE_PROOF_WOLFET_NATIVE,
+	COM_PURE_PROOF_JKA_NATIVE
 } comGamePureProof_t;
 
 typedef enum comGameEntityHullPolicy_e {
 	COM_ENTITY_HULL_TRACE_SHAPE,
 	COM_ENTITY_HULL_ENTITY_FLAG
 } comGameEntityHullPolicy_t;
+
+/* The contents a server sweep tests a box entity as. Quake III's temporary box
+ * brush is always CONTENTS_BODY; RTCW MP and ET give it the traced entity's own
+ * contents for that sweep, then put CONTENTS_BODY back. */
+typedef enum comGameEntityBoxContentsPolicy_e {
+	COM_ENTITY_BOX_CONTENTS_BODY,
+	COM_ENTITY_BOX_CONTENTS_ENTITY
+} comGameEntityBoxContentsPolicy_t;
 
 typedef struct comGameCinematicPolicy_s {
 	/* Trusted catalog commands, without a trailing newline; NULL omits a movie. */
@@ -209,7 +280,7 @@ typedef struct comGameProfile_s {
 	const char *key;
 	const char *displayName;
 	const char *baseGame;
-	const char *basePakName;
+	const char *basePakName;          /* NULL for loose asset/module identity. */
 	int preferredProtocol;
 	int preferredDemoProtocol;
 	unsigned allowedProtocolFamilies;
@@ -234,6 +305,7 @@ typedef struct comGameProfile_s {
 	/* Includes the two reserved temporary hull handles at the end. */
 	int collisionModelHandleCount;
 	comGameEntityHullPolicy_t entityHullPolicy;
+	comGameEntityBoxContentsPolicy_t entityBoxContentsPolicy;
 	/* Private engine cache; NULL means this profile never reads or writes it. */
 	const char *serverCacheFile;
 	comGameServerPolicy_t server;
@@ -241,6 +313,9 @@ typedef struct comGameProfile_s {
 	comGamePureProof_t pureProof;
 	comGameAppearancePolicy_t appearance;
 	comGameCinematicPolicy_t cinematics;
+	/* Stem of the retail paks a profile refuses to download, numbered 0-8 in
+	 * its own base directory. NULL keeps Quake's pak0-pak8 naming. */
+	const char *officialPakStem;
 } comGameProfile_t;
 
 typedef struct comGameMarkerInputs_s {
@@ -280,6 +355,7 @@ int Com_ActivateGameProfile( comGameId_t id );
 const comGameProfile_t *Com_GameProfile( void );
 const comGameProfile_t *Com_GameProfileById( comGameId_t id );
 int Com_GameIsQuake3( void );
+int Com_GameIsQuake3IHV( void );
 int Com_GameIsQuakeLive( void );
 int Com_GameIsRTCW( void );
 int Com_GameIsRTCWSP( void );
@@ -288,8 +364,15 @@ int Com_GameIsWolfET( void );
 int Com_GameIsSTVEF( void );
 int Com_GameIsSTVEFSP( void );
 int Com_GameIsSTVEFMP( void );
-/* RTCW SP/MP and ET all prove pure admission with their native cgame and UI
- * module files rather than QVMs or a single retail binary. */
+int Com_GameIsJKA( void );
+int Com_GameIsJKASP( void );
+int Com_GameIsJKAMP( void );
+int Com_GameIsJK2( void );
+int Com_GameIsJK2SP( void );
+int Com_GameIsJK2MP( void );
+int Com_GameIsAlice( void );
+/* RTCW SP/MP, ET and Jedi Academy multiplayer all prove pure admission with
+ * their native cgame and UI module files rather than QVMs or one retail binary. */
 int Com_PureProofIsNativeModulePair( const comGameProfile_t *profile );
 
 /* Map exact supported protocol versions to profile capability bits. */

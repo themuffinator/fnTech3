@@ -384,7 +384,7 @@ static void SV_MapRestart_f( void ) {
 	if ( Cmd_Argc() > 1 ) {
 		delay = SV_ParseInt( Cmd_Argv(1) );
 	} else {
-		delay = Com_GameIsRTCW() || Com_GameIsWolfET() ? 0 : 5;
+		delay = Com_GameIsRTCW() || Com_GameIsWolfET() || Com_GameIsQuake3IHV() ? 0 : 5;
 	}
 	if ( Com_GameIsRTCWSP() && Cvar_VariableIntegerValue("savegame_loading") ) delay = 0;
 
@@ -393,7 +393,16 @@ static void SV_MapRestart_f( void ) {
 		if ( sv.restartTime == 0 ) {
 			sv.restartTime = 1;
 		}
-		SV_SetConfigstring( CS_WARMUP, va( "%i", sv.restartTime ) );
+		if ( !Com_GameIsQuake3IHV() ) SV_SetConfigstring( CS_WARMUP, va( "%i", sv.restartTime ) );
+		return;
+	}
+
+	if ( Com_GameIsQuake3IHV() ) {
+		// Native IHV has one level-spawn path. Reset its configstrings and
+		// world links while retaining the game DLL and its game allocation.
+		std::array<char, MAX_QPATH> mapname{};
+		Q_strncpyz( mapname.data(), Cvar_VariableString( "mapname" ), SV_ArraySize(mapname) );
+		SV_SpawnServer( mapname.data(), qfalse );
 		return;
 	}
 
@@ -416,12 +425,17 @@ static void SV_MapRestart_f( void ) {
 	}
 
 	// Holomatch also reloads the map when an Expansion Pack mode changed.
+	// RTCW MP and Enemy Territory reload it only for a new client count, as
+	// WolfMP.exe (0x433016) and et.exe (0x43faf6) do. Their game restarts in
+	// place in a new game type or pure mode.
+	const bool clientCountOnly = Com_GameIsRTCWMP() || Com_GameIsWolfET();
 	if ( !Com_GameIsQuakeLive()
-		&& ( sv_maxclients->modified || sv_gametype->modified
-			|| sv_pure->modified || SV_STVEFModesModified() ) ) {
+		&& ( sv_maxclients->modified || ( !clientCountOnly && ( sv_gametype->modified
+			|| sv_pure->modified || SV_STVEFModesModified() ) ) ) ) {
 		std::array<char, MAX_QPATH> mapname{};
 
-		Com_Printf( "variable change -- restarting.\n" );
+		Com_Printf( clientCountOnly ? "sv_maxclients variable change -- restarting.\n"
+			: "variable change -- restarting.\n" );
 		Q_strncpyz( mapname.data(), Cvar_VariableString( "mapname" ),
 			SV_ArraySize(mapname) );
 		SV_SpawnServer( mapname.data(), qfalse );
@@ -482,12 +496,24 @@ static void SV_MapRestart_f( void ) {
 	if ( Com_GameIsRTCWSP() ) SV_BotFrame(sv.time);
 
 	// run a few frames to allow everything to settle
-	for ( int ignored : SV_Indices( 3 ) )
+	// Each runs at the current time before the time advances, as in every
+	// retail engine, not after advancing it as in Quake3e: the game's first
+	// frame runs at the time GAME_INIT was given. Quake III 1.32 (quake3.exe
+	// 0x432ab1..0x432add), Quake Live (quakelive_steam.exe 0x4de8ae..0x4de8e7),
+	// RTCW (WolfSP.exe 0x430993..0x4309bf, WolfMP.exe 0x4330ad..0x4330da),
+	// Holomatch (stvoyHM.exe 0x42e796..0x42e7c2) and the Jedi multiplayer
+	// engines (jamp.exe 0x456396..0x4563c6, jk2mp.exe 0x447c03..0x447c2f) run
+	// three and begin the clients below 200 ms after the level's start. Enemy
+	// Territory runs six (et.exe 0x43fc3b..0x43fc63, etded.exe
+	// 0x4260bd..0x4260e5) and begins them 500 ms after it. The single-player
+	// engines have no map_restart; their map loads settle the same way.
+	const bool wolfETFrames = Com_GameIsWolfET();
+	for ( int ignored : SV_Indices( wolfETFrames ? 6 : 3 ) )
 	{
 		(void)ignored;
 		Cbuf_Wait();
-		sv.time += 100;
 		VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );
+		sv.time += 100;
 	}
 
 	sv.state = SS_GAME;
@@ -502,6 +528,14 @@ static void SV_MapRestart_f( void ) {
 
 		const bool isBot = slot.client.netchan.remoteAddress.type == NA_BOT;
 
+		// Enemy Territory carries no bot across a restart in a single-player
+		// or co-op game type (et.exe 0x43fca1..0x43fcbe, etded.exe
+		// 0x426121..0x42613e): no command, no reconnection, no entry.
+		if ( isBot && Com_GameIsWolfET() && ( SV_GameTypeIsSinglePlayer( sv_gametype->integer )
+			|| SV_WolfETGameTypeIsCoop( sv_gametype->integer ) ) ) {
+			continue;
+		}
+
 		// add the map_restart command
 		SV_AddServerCommand( &slot.client, "map_restart\n" );
 
@@ -515,6 +549,12 @@ static void SV_MapRestart_f( void ) {
 			continue;
 		}
 
+		// et.exe also makes a connected or loading client active and enters
+		// it here (0x43fd1f..0x43fd2d), relying on its serverId check to send
+		// a gamestate to any client still on an older one. This server sends
+		// or resends a gamestate only before a client enters, and entering
+		// marks it acknowledged, so such a client still enters on its first
+		// command.
 		if ( slot.client.state == CS_ACTIVE ) {
 			// A restart brings the client back with no new command of its own,
 			// so the last command it sent stays the spawn's view-angle anchor.
@@ -522,10 +562,15 @@ static void SV_MapRestart_f( void ) {
 		}
 	}
 
-	// run another frame to allow things to look at all the players
+	// run another frame to allow things to look at all the players, at the
+	// current time too (quake3.exe 0x432b9e..0x432bbf, quakelive_steam.exe
+	// 0x4de9f2..0x4dea0e, WolfSP.exe 0x430a80..0x430aa1, WolfMP.exe
+	// 0x433192..0x4331b9, stvoyHM.exe 0x42e85f..0x42e880, jamp.exe
+	// 0x4564ae..0x4564cf, jk2mp.exe 0x447cf2..0x447d14, et.exe
+	// 0x43fd57..0x43fd65)
 	Cbuf_Wait();
-	sv.time += 100;
 	VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );
+	sv.time += 100;
 	svs.time += 100;
 	if ( Com_GameIsRTCWMP() || Com_GameIsWolfET() ) Cvar_Set("sv_serverRestarting", "0");
 
@@ -1911,6 +1956,16 @@ void SV_AddOperatorCommands( void ) {
 		Cmd_SetCommandCompletionFunc( "devmap", SV_CompleteMapName );
 		Cmd_SetCommandCompletionFunc( "maptransition", SV_CompleteMapName );
 		Cmd_SetCommandCompletionFunc( "loadtransition", SV_CompleteMapName );
+		return;
+	}
+	if ( Com_GameIsAlice() ) {
+		// American McGee's Alice's map, devmap, gamemap, restart, pause and
+		// savegame commands take the place of the Quake III map set, which it
+		// does not have (server_alice_save.hpp).
+		SV_AliceAddCommands();
+		Cmd_SetCommandCompletionFunc( "map", SV_CompleteMapName );
+		Cmd_SetCommandCompletionFunc( "devmap", SV_CompleteMapName );
+		Cmd_SetCommandCompletionFunc( "gamemap", SV_CompleteMapName );
 		return;
 	}
 	SV_AddCommandSet( mapCommands );

@@ -77,6 +77,13 @@ The Windows-only fallback probes `arialuni.ttf`, `segoeui.ttf`, then
 `l_10646.ttf`. Reads are capped at 32 MiB. Other platforms use the retail
 bundled fallback without assuming a system font layout.
 
+In fnTech3 the whole host lane belongs to the `ql` profile. Every other
+profile skips it before reading a face, the Windows fallback included, so the
+console and client-owned large text use that profile's own bitmap charset.
+Before this, on Windows, a non-QL profile loaded `segoeui.ttf` as its only face
+and drew its console in it. See the
+[ripple and host-font record](../fntech3/2026-09-23-rtcw-water-ripples.md).
+
 ## Regression gates
 
 - `fnql_ql_font_text` validates bounded UTF-8 decoding, retail color controls,

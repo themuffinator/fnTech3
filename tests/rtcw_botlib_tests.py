@@ -121,17 +121,42 @@ static void reset(){
 }
 static void checkLifecycle(){
  for(const auto &p:profiles){profile=&p;reset();
-  const bool sp=p.id==COM_GAME_RTCW_SP,mp=p.id==COM_GAME_RTCW_MP,et=p.id==COM_GAME_WOLFET;
+  if(!p.bots.navigationWorlds){
+   // Jedi Academy's and Jedi Outcast's single players have no bot library
+   // either, and Alice's engine carries none at all.
+   assert((p.id==COM_GAME_QUAKE3_IHV||p.id==COM_GAME_JKA_SP||p.id==COM_GAME_JK2_SP
+    ||p.id==COM_GAME_ALICE)&&!BotLibClientCapacity());
+   const auto opened=logOpen,closed=logClose;const auto previousMap=loadedMap;
+   for(int attempt=0;attempt<2;++attempt){
+    assert(Export_BotLibSetup()==BLERR_LIBRARYNOTSETUP);
+    assert(Export_BotLibShutdown()==BLERR_LIBRARYNOTSETUP);
+    assert(Export_BotLibLoadMap("synthetic")==BLERR_LIBRARYNOTSETUP);
+    assert(Export_BotLibUpdateEntity(0,nullptr)==BLERR_LIBRARYNOTSETUP);
+    assert(Export_BotLibStartFrame(0)==BLERR_LIBRARYNOTSETUP);
+    assert(botlibPhase==BotLibPhase::Inactive&&!botlibsetup&&!botlibglobals.botlibsetup);
+    assert(starts.empty()&&stops.empty()&&allocations.empty());
+    assert(logOpen==opened&&logClose==closed&&loadedMap==previousMap);
+   }
+   continue;
+  }
+  // ET starts all six, as etded.exe's Export_BotLibSetup (0x436ed0) does.
+  const bool sp=p.id==COM_GAME_RTCW_SP,mp=p.id==COM_GAME_RTCW_MP;
   // Elite Force SP's game has its own NPC AI and starts no Quake AI system.
   const bool efsp=p.id==COM_GAME_STVEF_SP;
-  std::vector<int> expected=sp?std::vector<int>{1,2,6}:(mp||et||efsp)?std::vector<int>{1,2}:std::vector<int>{1,2,3,4,5,6};
+  // Both Jedi titles ship Raven's own .jkb bot characters and no .aas file,
+  // and none of Quake III's bot configuration sources, so none of the four
+  // configured subsystems has anything to read.
+  const bool jedi=p.id==COM_GAME_JKA_MP||p.id==COM_GAME_JK2_MP;
+  std::vector<int> expected=sp?std::vector<int>{1,2,6}:(mp||efsp||jedi)?std::vector<int>{1,2}:std::vector<int>{1,2,3,4,5,6};
   assert(Export_BotLibShutdown()==BLERR_LIBRARYNOTSETUP);
   assert(Export_BotLibUpdateEntity(0,nullptr)==BLERR_LIBRARYNOTSETUP);
   assert(Export_BotLibStartFrame(0)==BLERR_LIBRARYNOTSETUP);
   assert(Export_BotLibSetup()==0&&starts==expected&&botlibsetup&&botlibglobals.botlibsetup);
-  assert(botlibglobals.maxclients==(sp||mp?128:efsp?1:64)&&botlibglobals.maxentities==(sp?2048:1024));
+  // Jedi Academy multiplayer stores 32 client slots, Raven's own limit.
+  const bool jka=p.id==COM_GAME_JKA_MP||p.id==COM_GAME_JK2_MP;
+  assert(botlibglobals.maxclients==(sp||mp?128:efsp?1:jka?32:64)&&botlibglobals.maxentities==(sp?2048:1024));
   assert(Export_BotLibSetup()==0&&starts==expected);
-  assert(Export_BotLibLoadMap("synthetic")==0&&levelItems==(!sp&&!mp&&!et&&!efsp)&&brushTypes==1);
+  assert(Export_BotLibLoadMap("synthetic")==0&&levelItems==(!sp&&!mp&&!efsp&&!jedi)&&brushTypes==1);
   mapResult=37;assert(Export_BotLibLoadMap("invalid")==37&&brushTypes==1);
   assert(Export_BotLibUpdateEntity(-1,nullptr)==BLERR_INVALIDENTITYNUMBER);
   assert(Export_BotLibUpdateEntity(botlibglobals.maxentities,nullptr)==BLERR_INVALIDENTITYNUMBER);
@@ -290,7 +315,13 @@ int main(){
         source += function(actions, 'int EA_Setup(void)') + '\n' + function(actions, 'void EA_Shutdown(void)')
         source += r'''
 int main(){
- EA_Shutdown();botlibglobals.maxclients=128;EA_Setup();assert(botinputs&&allocations.size()==1);
+ EA_Shutdown();assert(!BotLibClientCapacity()&&EA_Setup()==BLERR_LIBRARYNOTSETUP);
+ comGameProfile_t selected{};profile=&selected;selected.maxClients=64;selected.bots.navigationWorlds=1;
+ for(int count:{-1,0,MAX_GAME_CLIENTS+1,256}){botlibglobals.maxclients=count;
+  assert(EA_Setup()==BLERR_LIBRARYNOTSETUP&&!botinputs&&allocations.empty());}
+ selected.maxClients=MAX_GAME_CLIENTS+1;assert(!BotLibClientCapacity());
+ selected.maxClients=0;assert(!BotLibClientCapacity());selected.maxClients=64;
+ botlibglobals.maxclients=128;assert(EA_Setup()==0&&botinputs&&allocations.size()==1);
  EA_Shutdown();EA_Shutdown();assert(allocations.empty());
  const std::pair<const char*,float> values[]={{"0",0},{"1",1},{"1.",1},{".5",.5f},{"18.25",18.25f},
   {"-1",0},{"+2",0},{" 3",0},{"3 ",0},{"1e3",0},{"nan",0},{"inf",0},{"1..2",0},{"1.a",0}};

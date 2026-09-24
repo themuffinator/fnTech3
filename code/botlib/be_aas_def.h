@@ -320,9 +320,11 @@ struct aas_s
 	// RTCW visibility and waypoints are independent of Q3 routing structures.
 	aas_rtcw_visibility_t *rtcwVisibility;
 	byte *rtcwVisibilityData, *rtcwDecodedVisibility;
+	byte *rtcwVisibilityScratch;
 	vec3_t *rtcwWaypoints;
 	int rtcwVisibilityArea;
 	qboolean rtcwRouteCacheLoaded;
+	qboolean rtcwVisibilityOwnedRows, rtcwRoutingBuilding;
 	// ET derives its own waypoints and visibility from the loaded world; the
 	// bit matrix is engine storage, never a module or file contract.
 	vec3_t *wolfetWaypoints;

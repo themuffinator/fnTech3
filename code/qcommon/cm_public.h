@@ -27,6 +27,9 @@ void		CM_LoadMap( const char *name, qboolean clientload, int *checksum);
 void		CM_ClearMap( void );
 clipHandle_t CM_InlineModel( int index );		// 0 = world, 1 + are bmodels
 clipHandle_t CM_TempBoxModel( const vec3_t mins, const vec3_t maxs, int capsule );
+// Gives the temporary box brush the contents of the entity one trace tests;
+// the caller puts CONTENTS_BODY back after that trace.
+void		CM_SetTempBoxModelContents( int contents );
 
 void		CM_ModelBounds( clipHandle_t model, vec3_t mins, vec3_t maxs );
 
@@ -47,6 +50,7 @@ void		CM_TransformedBoxTrace( trace_t *results, const vec3_t start, const vec3_t
 						const vec3_t origin, const vec3_t angles, qboolean capsule );
 
 byte		*CM_ClusterPVS (int cluster);
+int			CM_ClusterBytes( void );
 
 int			CM_PointLeafnum( const vec3_t p );
 
@@ -55,11 +59,18 @@ int			CM_PointLeafnum( const vec3_t p );
 int			CM_BoxLeafnums( const vec3_t mins, const vec3_t maxs, int *list,
 		 					int listsize, int *lastLeaf );
 
+// Quake III IHV's Quake II-style record: the first node the box straddles,
+// or -1 when the box stays on one side of every node it reaches.
+int			CM_BoxLeafnumsTopnode( const vec3_t mins, const vec3_t maxs, int *list,
+								int listsize, int *topnode );
+qboolean	CM_HeadnodeVisible( int nodenum, const byte *visbits );
+
 int			CM_LeafCluster (int leafnum);
 int			CM_LeafArea (int leafnum);
 
 void		CM_AdjustAreaPortalState( int area1, int area2, qboolean open );
 int			*CM_AreaPortalCounts( int *count );
+int			CM_NumAreas( void );
 void		CM_FloodAreaConnections( void );
 qboolean	CM_AreasConnected( int area1, int area2 );
 

@@ -68,6 +68,11 @@ struct clSnapshot_t {
 
 	int				serverCommandNum;		// execute all commands up to this before
 											// making the snapshot current
+
+	// American McGee's Alice: the sounds the server started or stopped with
+	// this snapshot, read from the block that follows its packet entities.
+	int				aliceNumSounds;
+	aliceServerSound_t	aliceSounds[ALICE_MAX_SERVER_SOUNDS];
 };
 #ifndef __cplusplus
 #define clSnapshot_t struct clSnapshot_t
@@ -201,6 +206,8 @@ struct clientConnection_t {
 
 	int			challenge;					// from the server to use for connecting
 	int			handshakeProtocol;			// protocol selected by challengeResponse
+	int			q3ProtocolChallenge;			// nonce for the Q3 version query
+	int			q3ServerProtocol;			// exact-address, nonce-checked infoResponse
 	int			rtcwOnlyVisibleClients;		// RTCW MP server asks to hide unseen players
 	int			checksumFeed;				// from the server for checksum calculations
 
@@ -515,6 +522,35 @@ extern	cvar_t	*cl_drawBuffer;
 //
 void CL_AddReliableCommand( const char *cmd, qboolean isDisconnectCmd );
 
+// cl_alice.cpp: American McGee's Alice's engine-owned client state
+void CL_AliceCenterPrint( const char *text, int x, int y, qboolean located );
+void CL_AliceClearState( void );
+void CL_AliceLoadingScreenRefresh( void );
+void CL_AliceRegisterClientArt( void );
+void CL_AliceMapLoading( void );
+void CL_AliceFirstSnapshot( void );
+void CL_AliceWidgetPrint( const char *widget, const char *text );
+// cl_alice_saveshot.cpp: the savegame picture. The `saveshot <path> <w> <h>`
+// command's body, and the capture it makes: one frame drawn and kept as a
+// width by height grey TGA at path.
+void CL_AliceSaveshotCommand( void );
+qboolean CL_AliceWriteSaveshot( const char *path, int width, int height );
+// cl_alice_screen.cpp and cl_alice_ui.cpp: Alice's engine-drawn frame and its
+// engine-side menus, hosted as the UI module.
+void CL_AliceUpdateScreenField( stereoFrame_t stereo );
+vm_t *CL_AliceLoadUI( void );
+void CL_AliceToggleMenu_f( void );
+qboolean CL_AliceUIMenuUp( void );
+// Escape when no menu holds the keys (retail CL_KeyEvent 0x00429d9d).
+void CL_AliceEscape( void );
+// The intro's state (retail 0x005315f8): the cinematic player's end of an
+// intro logo sets the state its flag resumes at, and -1 means a map loaded.
+void CL_AliceUISetIntroState( int state );
+int CL_AliceUIGetIntroState( void );
+// client_alice_cgame.hpp: the client game's 2D layer (its export 5), which the
+// in-game view draws over the 3D view.
+void CL_AliceCGameDraw2D( void );
+
 void CL_StartHunkUsers( void );
 
 void CL_Disconnect_f( void );
@@ -522,7 +558,7 @@ void CL_ReadDemoMessage( void );
 void CL_StopRecord_f( void );
 netchanWireProfile_t CL_ActiveWireProfile( void );
 // Elite Force Holomatch's retail protocol-24 framing, live or from a demo.
-qboolean CL_STVEFFraming( void );
+qboolean CL_LegacyFraming( void );
 // The texture width of one character in the console font. Elite Force's
 // charsgrid_med draws each glyph in the left half of its cell.
 static inline float CL_CharsetCellWidth( void ) {
@@ -592,6 +628,15 @@ void CL_RemoveVoiceInputSource( int sourceKey );
 void CL_SetRetailClientMessageViewangleDeltaFlag( void );
 void CL_SetRetailClientMessageCGameImportGuardFlag( void );
 void CL_SetRetailClientMessageRendererNodeCount( int nodeCount );
+// American McGee's Alice: client-game import 47, which reports +cameralook and
+// a pending centerview reset and returns the engine's camera accumulators.
+float *QDECL CL_AliceGetCameraOffset( qboolean *lookActive, qboolean *resetView );
+// Alice's cursor mode, which its menus switch; while it is on, mouse motion
+// moves a cursor and MOUSE1-MOUSE5 stop at a button mask.
+void CL_AliceSetCursorMode( qboolean on );
+qboolean CL_AliceCursorMode( void );
+void CL_AliceGetMouseState( int *x, int *y, int *buttons );
+qboolean CL_AliceMouseButtonEvent( int key, qboolean down );
 
 //
 // cl_keys.cpp
@@ -602,6 +647,10 @@ extern  field_t     g_consoleField;
 void Field_Draw( field_t *edit, int x, int y, int width, qboolean showCursor, qboolean noColorEscape );
 void Field_BigDraw( field_t *edit, int x, int y, int width, qboolean showCursor, qboolean noColorEscape );
 void CL_ToggleMenu_f( void );
+// Alice's alt and ctrl binding tables and their commands.
+void CL_AliceInitKeyCommands( void );
+void CL_AliceShutdownKeyCommands( void );
+void Key_AliceWriteModifierBindings( fileHandle_t f, int keynum );
 
 //
 // cl_parse.cpp

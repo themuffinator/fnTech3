@@ -105,7 +105,14 @@ static void checkDecoded(){
  assert(aasworld.planes[1].normal[0]==-1&&aasworld.bboxes[0].mins[2]==-24);
 }
 static void checkMaps(){
- for(const auto &p:profiles){profile=&p;initialize();
+ for(const auto &p:profiles){profile=&p;
+  if(!p.bots.navigationWorlds){
+   assert(p.id==COM_GAME_QUAKE3_IHV||p.id==COM_GAME_JKA_SP||p.id==COM_GAME_JK2_SP
+    ||p.id==COM_GAME_ALICE);
+   for(const char *map:{static_cast<const char*>(nullptr),"test"})assert(AAS_LoadMap(map)==BLERR_LIBRARYNOTSETUP);
+   assert(opened.empty()&&allocations.empty()&&!fileOpen);continue;
+  }
+  initialize();
   if(!Com_GameIsRTCW()){
    files["maps/test.aas"]={std::begin(quake),std::end(quake)};
    assert(AAS_LoadMap("test")==0&&aasworld.loaded&&legacyReachability==1&&bspLoads==1);

@@ -426,6 +426,11 @@ public:
 	bool QuerySourceLatency( ALuint source, double &offsetSeconds, double &latencyMilliseconds ) const;
 	bool SupportsPCMChannels( int channels ) const;
 	bool SupportsSampleFormat( const AudioSampleFormat &format ) const;
+	// AL_SOFT_loop_points, which only American McGee's Alice's loop blocks
+	// use: whether the runtime has it, and setting a buffer's points while no
+	// source holds the buffer.
+	bool SupportsLoopPoints() const;
+	bool SetBufferLoopPoints( ALuint buffer, int startFrame, int endFrame ) const;
 	ALenum PCM16FormatForChannels( int channels ) const;
 	ALenum PCM16FormatForSampleFormat( const AudioSampleFormat &format ) const;
 	const char *PCMChannelSupportDescription() const;
@@ -737,6 +742,23 @@ void *OpenALDevice::GetALProcAddress( const char *name ) const {
 		proc = loader_.alcGetProcAddress( device_, name );
 	}
 	return proc;
+}
+
+// alBufferiv is OpenAL 1.1 but not one of the entry points the loader
+// requires, so a runtime without it still starts; it is looked up when used.
+bool OpenALDevice::SupportsLoopPoints() const {
+	return Ready() && HasALExtension( "AL_SOFT_loop_points" ) && GetALProcAddress( "alBufferiv" ) != nullptr;
+}
+
+bool OpenALDevice::SetBufferLoopPoints( ALuint buffer, int startFrame, int endFrame ) const {
+	if ( buffer == 0 || startFrame < 0 || endFrame <= startFrame || !SupportsLoopPoints() ) {
+		return false;
+	}
+	const auto bufferiv = reinterpret_cast<decltype( &::alBufferiv )>( GetALProcAddress( "alBufferiv" ) );
+	const ALint points[2] = { startFrame, endFrame };
+	loader_.alGetError();
+	bufferiv( buffer, AL_LOOP_POINTS_SOFT, points );
+	return loader_.alGetError() == AL_NO_ERROR;
 }
 
 void OpenALDevice::DiscoverHrtfSpecifiers() {

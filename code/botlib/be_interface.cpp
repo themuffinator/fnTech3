@@ -141,6 +141,7 @@ static qboolean BotLibSetup(const char *str)
 //===========================================================================
 static int Export_BotLibSetup( void )
 {
+	if ( !BotLibClientCapacity() ) return BLERR_LIBRARYNOTSETUP;
 	if ( botlibPhase == BotLibPhase::Ready ) return BLERR_NOERROR;
 	if ( botlibPhase != BotLibPhase::Inactive ) return BLERR_LIBRARYNOTSETUP;
 	botlibPhase = BotLibPhase::Initializing;

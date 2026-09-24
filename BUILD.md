@@ -81,6 +81,10 @@ Project Meson options:
 
 `-Dstvef-development=true|false` - enable incomplete Star Trek Voyager: Elite Force single player (`stvef-sp`) and Holomatch (`stvef-mp`) adapters for isolated probes; disabled by default. The Windows helper exposes it as `-STVEFDevelopment`
 
+`-Djka-development=true|false` - enable the registered Star Wars Jedi Knight: Jedi Academy single-player (`jka-sp`) and multiplayer (`jka-mp`) profiles for isolated probes; disabled by default. The Windows helper exposes it as `-JKADevelopment`. No module, wire, asset or renderer boundary exists yet
+
+`-Dalice-development=true|false` - enable the registered American McGee's Alice profile (`alice`) for isolated probes; disabled by default. The Windows helper exposes it as `-AliceDevelopment`. A developer server mounts a real installation and loads its maps' collision; no module, wire, savegame, asset or renderer boundary exists yet
+
 `-Dmp3=true|false` - build the MP3 sound codec (minimp3 through `subprojects/minimp3.wrap`) that Elite Force needs for its sounds and music, enabled by default; it is registered only for Elite Force profiles
 
 `-Drenderer-dlopen=true|false` - build external renderer modules and one unified client executable, enabled by default

@@ -1,0 +1,109 @@
+/* Copyright (C) 2026 fnTech3 contributors. GPL-2.0-or-later.
+ *
+ * Jedi Academy ICARUS block and token numbers, recorded as interoperability
+ * facts: FNTECH3_JKA_ICARUS_TOKEN(name, number) for the values a member number
+ * or a type tag can take, FNTECH3_JKA_ICARUS_BLOCK(name, number) for the ones a
+ * block number can take, and FNTECH3_JKA_ICARUS_TYPE(name, number) for the
+ * kinds a block chooses between.
+ *
+ * The numbers are positions in four enumerations that continue one another.
+ * Read from Raven's released sources as carried by OpenJK at
+ * 1a6a643427aa347553e9073dac5570b33337c4d9:
+ *
+ *   codemp/icarus/tokenizer.h:70-83    the base tokens, TK_EOF at -1
+ *   codemp/icarus/interpreter.h:36-50  the user tokens, from TK_USERDEF
+ *   codemp/icarus/interpreter.h:53-89  the block ids, from NUM_USER_TOKENS
+ *   codemp/icarus/interpreter.h:92-126 the types, from NUM_IDS
+ *
+ * Names are facts, not an implementation: no engine-side behaviour for any of
+ * these exists yet, and nothing here runs a block. Every number this table
+ * gives was also derived independently from a retail installation's 1,011
+ * compiled scripts before it was read here, and the two agree throughout; see
+ * docs/fntech3/2026-09-21-jka-icarus.md.
+ *
+ * Intentionally no include guard: consumed as a table.
+ */
+
+/* Base tokens. TK_EOF is -1 and is not a member number, so it is not listed.
+ * TK_INTEGER is another name for TK_INT and is not listed either. */
+FNTECH3_JKA_ICARUS_TOKEN(TK_UNDEFINED, 0)
+FNTECH3_JKA_ICARUS_TOKEN(TK_COMMENT, 1)
+FNTECH3_JKA_ICARUS_TOKEN(TK_EOL, 2)
+FNTECH3_JKA_ICARUS_TOKEN(TK_CHAR, 3)
+FNTECH3_JKA_ICARUS_TOKEN(TK_STRING, 4)
+FNTECH3_JKA_ICARUS_TOKEN(TK_INT, 5)
+FNTECH3_JKA_ICARUS_TOKEN(TK_FLOAT, 6)
+FNTECH3_JKA_ICARUS_TOKEN(TK_IDENTIFIER, 7)
+
+/* User tokens, which begin where TK_USERDEF sits. */
+FNTECH3_JKA_ICARUS_TOKEN(TK_BLOCK_START, 8)
+FNTECH3_JKA_ICARUS_TOKEN(TK_BLOCK_END, 9)
+FNTECH3_JKA_ICARUS_TOKEN(TK_VECTOR_START, 10)
+FNTECH3_JKA_ICARUS_TOKEN(TK_VECTOR_END, 11)
+FNTECH3_JKA_ICARUS_TOKEN(TK_OPEN_PARENTHESIS, 12)
+FNTECH3_JKA_ICARUS_TOKEN(TK_CLOSED_PARENTHESIS, 13)
+FNTECH3_JKA_ICARUS_TOKEN(TK_VECTOR, 14)
+FNTECH3_JKA_ICARUS_TOKEN(TK_GREATER_THAN, 15)
+FNTECH3_JKA_ICARUS_TOKEN(TK_LESS_THAN, 16)
+FNTECH3_JKA_ICARUS_TOKEN(TK_EQUALS, 17)
+FNTECH3_JKA_ICARUS_TOKEN(TK_NOT, 18)
+
+/* Block ids, which begin where the user tokens end. ID_GET, ID_RANDOM and
+ * ID_TAG are both block ids and things a member can be, because a block may
+ * be given one of them in place of a plain value. */
+FNTECH3_JKA_ICARUS_BLOCK(ID_AFFECT, 19)
+FNTECH3_JKA_ICARUS_BLOCK(ID_SOUND, 20)
+FNTECH3_JKA_ICARUS_BLOCK(ID_MOVE, 21)
+FNTECH3_JKA_ICARUS_BLOCK(ID_ROTATE, 22)
+FNTECH3_JKA_ICARUS_BLOCK(ID_WAIT, 23)
+FNTECH3_JKA_ICARUS_BLOCK(ID_BLOCK_START, 24)
+FNTECH3_JKA_ICARUS_BLOCK(ID_BLOCK_END, 25)
+FNTECH3_JKA_ICARUS_BLOCK(ID_SET, 26)
+FNTECH3_JKA_ICARUS_BLOCK(ID_LOOP, 27)
+FNTECH3_JKA_ICARUS_BLOCK(ID_LOOPEND, 28)
+FNTECH3_JKA_ICARUS_BLOCK(ID_PRINT, 29)
+FNTECH3_JKA_ICARUS_BLOCK(ID_USE, 30)
+FNTECH3_JKA_ICARUS_BLOCK(ID_FLUSH, 31)
+FNTECH3_JKA_ICARUS_BLOCK(ID_RUN, 32)
+FNTECH3_JKA_ICARUS_BLOCK(ID_KILL, 33)
+FNTECH3_JKA_ICARUS_BLOCK(ID_REMOVE, 34)
+FNTECH3_JKA_ICARUS_BLOCK(ID_CAMERA, 35)
+FNTECH3_JKA_ICARUS_BLOCK(ID_GET, 36)
+FNTECH3_JKA_ICARUS_BLOCK(ID_RANDOM, 37)
+FNTECH3_JKA_ICARUS_BLOCK(ID_IF, 38)
+FNTECH3_JKA_ICARUS_BLOCK(ID_ELSE, 39)
+FNTECH3_JKA_ICARUS_BLOCK(ID_REM, 40)
+FNTECH3_JKA_ICARUS_BLOCK(ID_TASK, 41)
+FNTECH3_JKA_ICARUS_BLOCK(ID_DO, 42)
+FNTECH3_JKA_ICARUS_BLOCK(ID_DECLARE, 43)
+FNTECH3_JKA_ICARUS_BLOCK(ID_FREE, 44)
+FNTECH3_JKA_ICARUS_BLOCK(ID_DOWAIT, 45)
+FNTECH3_JKA_ICARUS_BLOCK(ID_SIGNAL, 46)
+FNTECH3_JKA_ICARUS_BLOCK(ID_WAITSIGNAL, 47)
+FNTECH3_JKA_ICARUS_BLOCK(ID_PLAY, 48)
+FNTECH3_JKA_ICARUS_BLOCK(ID_TAG, 49)
+FNTECH3_JKA_ICARUS_BLOCK(ID_EOF, 50)
+
+/* Types, which begin where the block ids end. A block is given one of these in
+ * place of a plain number when it has a kind to choose: which way an affect
+ * reaches its entity, what a set is setting, what a camera is doing. */
+FNTECH3_JKA_ICARUS_TYPE(TYPE_WAIT_COMPLETE, 51)
+FNTECH3_JKA_ICARUS_TYPE(TYPE_WAIT_TRIGGERED, 52)
+FNTECH3_JKA_ICARUS_TYPE(TYPE_ANGLES, 53)
+FNTECH3_JKA_ICARUS_TYPE(TYPE_ORIGIN, 54)
+FNTECH3_JKA_ICARUS_TYPE(TYPE_INSERT, 55)
+FNTECH3_JKA_ICARUS_TYPE(TYPE_FLUSH, 56)
+FNTECH3_JKA_ICARUS_TYPE(TYPE_PAN, 57)
+FNTECH3_JKA_ICARUS_TYPE(TYPE_ZOOM, 58)
+FNTECH3_JKA_ICARUS_TYPE(TYPE_MOVE, 59)
+FNTECH3_JKA_ICARUS_TYPE(TYPE_FADE, 60)
+FNTECH3_JKA_ICARUS_TYPE(TYPE_PATH, 61)
+FNTECH3_JKA_ICARUS_TYPE(TYPE_ENABLE, 62)
+FNTECH3_JKA_ICARUS_TYPE(TYPE_DISABLE, 63)
+FNTECH3_JKA_ICARUS_TYPE(TYPE_SHAKE, 64)
+FNTECH3_JKA_ICARUS_TYPE(TYPE_ROLL, 65)
+FNTECH3_JKA_ICARUS_TYPE(TYPE_TRACK, 66)
+FNTECH3_JKA_ICARUS_TYPE(TYPE_DISTANCE, 67)
+FNTECH3_JKA_ICARUS_TYPE(TYPE_FOLLOW, 68)
+FNTECH3_JKA_ICARUS_TYPE(TYPE_VARIABLE, 69)
+FNTECH3_JKA_ICARUS_TYPE(TYPE_EOF, 70)

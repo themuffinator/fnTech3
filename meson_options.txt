@@ -8,6 +8,11 @@ option('rtcw-development',
   value: false,
   description: 'Enable incomplete RTCW SP/MP profiles for isolated developer probes; not a compatibility claim')
 
+option('q3-ihv-development',
+  type: 'boolean',
+  value: false,
+  description: 'Enable IHV dedicated native-module probes; client and network integration remain gated')
+
 option('build-client',
   type: 'boolean',
   value: true,
@@ -17,6 +22,21 @@ option('stvef-development',
   type: 'boolean',
   value: false,
   description: 'Enable incomplete Star Trek Voyager: Elite Force SP/Holomatch profiles for isolated developer probes; not a compatibility claim')
+
+option('jka-development',
+  type: 'boolean',
+  value: false,
+  description: 'Enable incomplete Star Wars Jedi Knight: Jedi Academy single-player/multiplayer profiles for isolated developer probes; not a compatibility claim')
+
+option('jk2-development',
+  type: 'boolean',
+  value: false,
+  description: 'Enable incomplete Star Wars Jedi Knight II: Jedi Outcast single-player/multiplayer profiles for isolated developer probes; not a compatibility claim')
+
+option('alice-development',
+  type: 'boolean',
+  value: false,
+  description: '''Enable the incomplete American McGee's Alice profile for isolated developer probes; not a compatibility claim''')
 
 option('wolfet-development',
   type: 'boolean',

@@ -38,6 +38,8 @@ struct Movie{
 };
 static std::array<Movie,MAX_VIDEO_HANDLES> cinTable;
 static int currentHandle=-1,CL_handle=-1;
+static int Com_GameIsAlice(){return 0;}
+static void S_AliceMP3Free(){}
 static struct{int currentHandle=-1;}cin;
 static struct{int state=CA_ACTIVE;}cls;
 static e_status CIN_StopCinematic(int);

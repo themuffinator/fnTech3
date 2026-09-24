@@ -23,6 +23,7 @@ class ServerGameFlagsTests(unittest.TestCase):
 #include "code/qcommon/qcommon.h"
 #include "code/qcommon/game_profile.h"
 #include "code/game/g_public.h"
+#include "code/compat/alice_module_abi.h"
 #include "code/compat/rtcw_game_abi.h"
 #include "code/compat/stvef_game_abi.h"
 #include <cassert>
@@ -93,6 +94,39 @@ int main() {
     for (const auto &bit : stvefServerFlags) {
         assert(bit.external && !(bit.external & (bit.external - 1)));
         assert(bit.internal && !(bit.internal & (bit.internal - 1)));
+    }
+    // Alice: its bits are its own, and the two the engine tests but does not
+    // map -- 0x10 (past the walk's model/sound requirement) and 0x4000 (a
+    // second unconditional send) -- must drop on the way in and survive
+    // untouched on the way out, so a round trip never writes a bit the
+    // module did not set.
+    constexpr uint32_t aliceKnown = 0xfu;
+    assert(ServerFlagsToInternal(COM_GAME_ALICE, FNTECH3_ALICE_SVF_NOCLIENT) == SVF_NOCLIENT);
+    assert(ServerFlagsToInternal(COM_GAME_ALICE, FNTECH3_ALICE_SVF_BOT) == SVF_BOT);
+    assert(ServerFlagsToInternal(COM_GAME_ALICE, FNTECH3_ALICE_SVF_BROADCAST) == SVF_BROADCAST);
+    assert(ServerFlagsToInternal(COM_GAME_ALICE, FNTECH3_ALICE_SVF_PORTAL) == SVF_PORTAL);
+    assert(ServerFlagsToInternal(COM_GAME_ALICE, FNTECH3_ALICE_SVF_ALWAYS_RELEVANT) == 0);
+    assert(ServerFlagsToInternal(COM_GAME_ALICE, FNTECH3_ALICE_SVF_BROADCAST_ALT) == 0);
+    assert(ServerFlagsToInternal(COM_GAME_ALICE, FNTECH3_ALICE_SVF_ENGINE_VISITED) == 0);
+    // Quake III's own bit positions must not survive this boundary.
+    assert(ServerFlagsToInternal(COM_GAME_ALICE, SVF_BROADCAST) == 0);
+    assert(ServerFlagsToInternal(COM_GAME_ALICE, SVF_PORTAL) == 0);
+    for (uint32_t subset = 0; subset <= 0xffffu; ++subset) {
+        const int canonical = ServerFlagsToInternal(COM_GAME_ALICE, subset);
+        assert(!(canonical & (SVF_CLIENTMASK | SVF_SELF_PORTAL2)));
+        for (uint32_t previous : {0u, 0x80004010u, 0xffffffffu}) {
+            const uint32_t encoded = ServerFlagsFromInternal(COM_GAME_ALICE, canonical, signedBits(previous));
+            assert((encoded & aliceKnown) == (subset & aliceKnown));
+            assert((encoded & ~aliceKnown) == (previous & ~aliceKnown));
+            assert(ServerFlagsToInternal(COM_GAME_ALICE, signedBits(encoded)) == canonical);
+        }
+    }
+    for (const auto &bit : aliceServerFlags) {
+        assert(bit.external && !(bit.external & (bit.external - 1)));
+        assert(bit.internal && !(bit.internal & (bit.internal - 1)));
+        for (const auto &other : aliceServerFlags) {
+            if (&bit != &other) assert(!(bit.external & other.external) && !(bit.internal & other.internal));
+        }
     }
     constexpr uint32_t etKnown = (known & ~0x90u) | 0x1c000u;
     assert(ServerFlagsToInternal(COM_GAME_WOLFET, 0x4000) == SVF_WOLFET_ORIGIN_ONLY);

@@ -1,0 +1,942 @@
+{
+  "date": "2026-09-21",
+  "recorded_utc": "2026-09-21T04:42:48.094425+00:00",
+  "scope": "Exact native client histories/snapshot projection and ordered transactional packet delivery, compared with original engine and cgame data callbacks; a separate original Init prefix/failure probe. No completed cgame initialization, prediction, rendered playback or live session.",
+  "profile": "q3-ihv; startup remains blocked in all builds.",
+  "commit": "9e1841de53d79f96cdbbde83a1427d1c7d83f31d",
+  "working_tree": "Uncommitted client-data follow-up; preceding Q3/IHV and unrelated RTCW changes retained.",
+  "platform": "Windows x86 MSVC 14.44.35222.0 / Meson win32 preset; Windows x64 Clang 20.1.7 AddressSanitizer diagnostic with -O2 -ffast-math.",
+  "reference": {
+    "repository": "https://github.com/themuffinator/Quake3-IHV/tree/d5ce877155904c57f8b28fe0fd0c8aa2e9473337",
+    "inputs": [
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/quake3.exe",
+        "bytes": 725042,
+        "sha256": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/cgamex86.dll",
+        "bytes": 192570,
+        "sha256": "175f94756f994b06235690fdd2d9fe798503f7a797f2e070277a672847593614"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/demos/sli.dm3",
+        "bytes": 8628,
+        "sha256": "fbdc209d1c7fc1075976c9120c79d5e579ed36f4e38062b01248d6b2d807c57b"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/demos/berj.dm3",
+        "bytes": 883,
+        "sha256": "d2ee63df0221c380f0233fac458445217016c3afa7986f300fed2405de61ec78"
+      }
+    ],
+    "incorporation": "Independently authored implementation and probes from observed behavior. No original code, executable, module or asset incorporated.",
+    "history_execution": "Hash-pinned original getters in an x86 numeric host based at 0x3f0000; no original entry point.",
+    "snapshot_execution": "Hash-pinned original parser 0x406a30, delta codecs and entity getter 0x405dd0 in an x86 numeric host based at 0x300000. Synthetic or decoder-supplied baselines, synthetic timing and a capture callback; print/error/packet-debug imports replaced. Original entry point and gamestate initialization never run.",
+    "cgame_execution": "Hash-pinned DLL mapped with DONT_RESOLVE_DLL_REFERENCES; GetCGameAPI supplies the original table. Import table primed by the data probe. Configstring slot 2 and snapshot slot 1 run, with prediction helper RVA 0x4b90 patched to return and restored at cleanup. Native data getters use ClientSession; model/sound/music registrations are stubs; server commands are recorded only. Init does not run in this data probe.",
+    "init_prefix_execution": "Separate hash-pinned original Init call through the ClientSession gamestate event and CvarMirror, with synthetic gamestate and service callbacks. Stop at collision-map import 18, or give a synthetic collision reply and stop at renderer map import 39 after sound-begin import 32. Also inject failure at each of 59 cvar requests. No completed Init, actual map/asset registration, renderer/audio/input/network session, or original DLL entry point."
+  },
+  "observations": {
+    "histories": "Command records 64 x 14, latest counter; parsed entities 1024 x 164, next counter. Getters compare signed dwords including wrap. Entity requests >= next raise an error; requests <= next-1024 are unavailable. Commands outside (latest-64, latest] are unavailable. Failure preserves output.",
+    "gamestate_clear": "Original 0x404ac0 clears state from 0x430fc60 for 0x16804 dwords, covering both histories. The new adapter clears them on gamestate replacement.",
+    "snapshot": {
+      "bytes": 348,
+      "dword_fields": {
+        "0": "valid",
+        "4": "flags",
+        "8": "serverTime",
+        "12": "commandSequence",
+        "16": "messageNumber",
+        "20": "deltaNumber",
+        "24": "ping",
+        "336": "configSequence",
+        "340": "entityCount",
+        "344": "firstEntity"
+      },
+      "area_mask": {
+        "offset": 28,
+        "bytes": 32
+      },
+      "player": {
+        "offset": 60,
+        "bytes": 276
+      }
+    },
+    "cgame_storage": {
+      "gamestate_rva": "0xa1104",
+      "ring_rva": "0xa5f8c",
+      "ring_records": 32,
+      "counter_rva": "0xa8b0c",
+      "pending_flag_rva": "0xa8b10",
+      "first_snapshot_flag_rva": "0xa1100"
+    },
+    "init_prefix": {
+      "cvars": 59,
+      "request_fnv1a64": "4995ca0b04c29cc7",
+      "parameters": {
+        "scope": "Observed original cgame Init registration requests; engine cvar flag translation and permission semantics still need validation. Static extraction digest matches original module callback probe.",
+        "cgame_sha256": "175f94756f994b06235690fdd2d9fe798503f7a797f2e070277a672847593614",
+        "count": 59,
+        "fnv1a64": "4995ca0b04c29cc7",
+        "cvars": [
+          {
+            "name": "cg_autoswitch",
+            "value": "1",
+            "flags": 1,
+            "call_rva": "0xa9be"
+          },
+          {
+            "name": "cg_gun",
+            "value": "1",
+            "flags": 1,
+            "call_rva": "0xa9d5"
+          },
+          {
+            "name": "crosshair",
+            "value": "1",
+            "flags": 1,
+            "call_rva": "0xa9ec"
+          },
+          {
+            "name": "crosshairsize",
+            "value": "24",
+            "flags": 1,
+            "call_rva": "0xaa03"
+          },
+          {
+            "name": "crosshairhealth",
+            "value": "1",
+            "flags": 1,
+            "call_rva": "0xaa1a"
+          },
+          {
+            "name": "crosshairnames",
+            "value": "1",
+            "flags": 1,
+            "call_rva": "0xaa31"
+          },
+          {
+            "name": "zoomsensitivity",
+            "value": "1",
+            "flags": 1,
+            "call_rva": "0xaa4b"
+          },
+          {
+            "name": "zoomfov",
+            "value": "22.5",
+            "flags": 1,
+            "call_rva": "0xaa5d"
+          },
+          {
+            "name": "fov",
+            "value": "90",
+            "flags": 1,
+            "call_rva": "0xaa74"
+          },
+          {
+            "name": "viewsize",
+            "value": "100",
+            "flags": 1,
+            "call_rva": "0xaa8b"
+          },
+          {
+            "name": "gun_frame",
+            "value": "0",
+            "flags": 0,
+            "call_rva": "0xaaa2"
+          },
+          {
+            "name": "gun_x",
+            "value": "0",
+            "flags": 0,
+            "call_rva": "0xaab9"
+          },
+          {
+            "name": "gun_y",
+            "value": "0",
+            "flags": 0,
+            "call_rva": "0xaad3"
+          },
+          {
+            "name": "gun_z",
+            "value": "0",
+            "flags": 0,
+            "call_rva": "0xaaea"
+          },
+          {
+            "name": "cg_testblend",
+            "value": "0",
+            "flags": 0,
+            "call_rva": "0xab01"
+          },
+          {
+            "name": "cg_testparticles",
+            "value": "0",
+            "flags": 0,
+            "call_rva": "0xab18"
+          },
+          {
+            "name": "cg_testentities",
+            "value": "0",
+            "flags": 0,
+            "call_rva": "0xab2f"
+          },
+          {
+            "name": "cg_testlights",
+            "value": "0",
+            "flags": 64,
+            "call_rva": "0xab46"
+          },
+          {
+            "name": "cg_stats",
+            "value": "0",
+            "flags": 0,
+            "call_rva": "0xab60"
+          },
+          {
+            "name": "cg_centertime",
+            "value": "3",
+            "flags": 0,
+            "call_rva": "0xab77"
+          },
+          {
+            "name": "cg_runpitch",
+            "value": "0.002",
+            "flags": 0,
+            "call_rva": "0xab8e"
+          },
+          {
+            "name": "cg_runroll",
+            "value": "0.005",
+            "flags": 0,
+            "call_rva": "0xaba5"
+          },
+          {
+            "name": "cg_bobup",
+            "value": "0.005",
+            "flags": 0,
+            "call_rva": "0xabbc"
+          },
+          {
+            "name": "cg_bobpitch",
+            "value": "0.002",
+            "flags": 0,
+            "call_rva": "0xabd3"
+          },
+          {
+            "name": "cg_bobroll",
+            "value": "0.002",
+            "flags": 0,
+            "call_rva": "0xabed"
+          },
+          {
+            "name": "cg_swingSpeed",
+            "value": "0.3",
+            "flags": 0,
+            "call_rva": "0xac04"
+          },
+          {
+            "name": "cg_shadows",
+            "value": "1",
+            "flags": 0,
+            "call_rva": "0xac1b"
+          },
+          {
+            "name": "cg_extrapolate",
+            "value": "1",
+            "flags": 0,
+            "call_rva": "0xac32"
+          },
+          {
+            "name": "cg_nostatus",
+            "value": "0",
+            "flags": 0,
+            "call_rva": "0xac49"
+          },
+          {
+            "name": "cg_waveamplitude",
+            "value": "1",
+            "flags": 0,
+            "call_rva": "0xac60"
+          },
+          {
+            "name": "cg_wavefrequency1",
+            "value": "0.4",
+            "flags": 0,
+            "call_rva": "0xac7a"
+          },
+          {
+            "name": "cg_animspeed",
+            "value": "1",
+            "flags": 0,
+            "call_rva": "0xac91"
+          },
+          {
+            "name": "cg_debuganim",
+            "value": "0",
+            "flags": 0,
+            "call_rva": "0xaca8"
+          },
+          {
+            "name": "cg_debugposition",
+            "value": "0",
+            "flags": 0,
+            "call_rva": "0xacbf"
+          },
+          {
+            "name": "cg_debugevents",
+            "value": "0",
+            "flags": 0,
+            "call_rva": "0xacd6"
+          },
+          {
+            "name": "cg_timenudge",
+            "value": "0",
+            "flags": 0,
+            "call_rva": "0xaced"
+          },
+          {
+            "name": "cg_errordecay",
+            "value": "100",
+            "flags": 0,
+            "call_rva": "0xad07"
+          },
+          {
+            "name": "cg_nopredict",
+            "value": "0",
+            "flags": 0,
+            "call_rva": "0xad1e"
+          },
+          {
+            "name": "cg_noplayeranims",
+            "value": "0",
+            "flags": 0,
+            "call_rva": "0xad35"
+          },
+          {
+            "name": "cg_showmiss",
+            "value": "0",
+            "flags": 0,
+            "call_rva": "0xad4c"
+          },
+          {
+            "name": "cg_showclamp",
+            "value": "0",
+            "flags": 0,
+            "call_rva": "0xad63"
+          },
+          {
+            "name": "cg_footsteps",
+            "value": "1",
+            "flags": 0,
+            "call_rva": "0xad7a"
+          },
+          {
+            "name": "cg_marks",
+            "value": "1",
+            "flags": 0,
+            "call_rva": "0xad94"
+          },
+          {
+            "name": "cg_blend",
+            "value": "1",
+            "flags": 0,
+            "call_rva": "0xadab"
+          },
+          {
+            "name": "cg_lights",
+            "value": "1",
+            "flags": 0,
+            "call_rva": "0xadc2"
+          },
+          {
+            "name": "cg_particles",
+            "value": "1",
+            "flags": 0,
+            "call_rva": "0xadd9"
+          },
+          {
+            "name": "cg_entities",
+            "value": "1",
+            "flags": 0,
+            "call_rva": "0xadf0"
+          },
+          {
+            "name": "cg_markoffset",
+            "value": "1",
+            "flags": 0,
+            "call_rva": "0xae07"
+          },
+          {
+            "name": "cg_tracerchance",
+            "value": "0.4",
+            "flags": 0,
+            "call_rva": "0xae21"
+          },
+          {
+            "name": "cg_tracerwidth",
+            "value": "1",
+            "flags": 0,
+            "call_rva": "0xae38"
+          },
+          {
+            "name": "cg_tracerlength",
+            "value": "100",
+            "flags": 0,
+            "call_rva": "0xae4f"
+          },
+          {
+            "name": "cg_showaxis",
+            "value": "0",
+            "flags": 0,
+            "call_rva": "0xae66"
+          },
+          {
+            "name": "cg_showtimedelta",
+            "value": "0",
+            "flags": 0,
+            "call_rva": "0xae7d"
+          },
+          {
+            "name": "cg_scannerx",
+            "value": "512",
+            "flags": 0,
+            "call_rva": "0xae94"
+          },
+          {
+            "name": "cg_scannery",
+            "value": "128",
+            "flags": 0,
+            "call_rva": "0xaeae"
+          },
+          {
+            "name": "cg_scannersize",
+            "value": "128",
+            "flags": 0,
+            "call_rva": "0xaec5"
+          },
+          {
+            "name": "cg_scannerrange",
+            "value": "1500",
+            "flags": 0,
+            "call_rva": "0xaedc"
+          },
+          {
+            "name": "cg_scanneralpha",
+            "value": "0.2",
+            "flags": 0,
+            "call_rva": "0xaef3"
+          },
+          {
+            "name": "cg_simpleItems",
+            "value": "0",
+            "flags": 0,
+            "call_rva": "0xaf0a"
+          }
+        ]
+      },
+      "mutable_client_state_import": 61,
+      "observed_loading_value": 2,
+      "loading_callback_import": 48,
+      "collision_map_import": 18,
+      "sound_begin_import": 32,
+      "renderer_map_import": 39
+    },
+    "next_renderer_contracts": "Read-only observations: import words 37 and 38 are scalar viewport width/height (original cgame reads at RVAs 0x3c60 and 0x101dc/0x101e9); original scene recipient 0x42cd57..0x42cd64 copies 0x26 dwords = 152 bytes. Complete scene/entity field adapters and drawing semantics remain open."
+  },
+  "implementation": {
+    "ClientData": "Separate raw native records, bounded guarded copies, exact signed history predicates, atomic snapshot publication, gamestate/reset ownership. No input capture or native module calls.",
+    "ClientSession": "Decode and validate all packet events on private state before callbacks; apply to stable native data in wire order. Unchanged configstrings do not notify. Reject recursive delivery; clear on callback exceptions; stop after callback Clear. Future engine error adapters must unwind Feed before invoking Com_Error/longjmp; a non-C++ jump must not cross its object lifetimes.",
+    "cleanup": "Scope guard propagates callback exceptions naturally while invalidating the session. Clear uses bounded in-place storage reset, avoiding large aggregate temporaries."
+  },
+  "validation": {
+    "original_histories": {
+      "scope": "original client getters compared with the native history adapter on synthetic records; no engine session",
+      "cases": 33152,
+      "accepted_commands": 986,
+      "accepted_entities": 14355,
+      "future_entity_errors": 1141,
+      "gamestate_bytes": 20100,
+      "history_fnv1a64": "b009f6ef775c6672",
+      "fnv1a64": "07a29d1335968916"
+    },
+    "original_snapshots": [
+      {
+        "scope": "original snapshot parser, player/entity deltas and history getters compared with native client adapter; synthetic packets/baselines/timing and capture callback, no engine session",
+        "frames": 40,
+        "entities": 4583,
+        "snapshot_bytes": 348,
+        "fnv1a64": "5179d02fca70b215"
+      },
+      {
+        "scope": "hash-pinned sli.dm3 snapshot packets through original parser; decoded baselines, zero ping, capture callback, no Init or engine playback",
+        "messages": 57,
+        "snapshots": 56,
+        "entities": 680,
+        "fnv1a64": "4582fb032c471ba6"
+      }
+    ],
+    "original_cgame_session": [
+      {
+        "scope": "protocol packets through ClientSession to original cgame data callbacks; no Init, prediction, real asset/audio registration or game session",
+        "gamestates": 1,
+        "snapshots": 40,
+        "entity_reads": 4583,
+        "recorded_commands": 40,
+        "models": 1,
+        "sounds": 1,
+        "music": 1,
+        "malformed_packet_no_callbacks": true,
+        "native_callback_failure_cleanup": true,
+        "fnv1a64": "c021ed36375e74b7"
+      },
+      {
+        "scope": "hash-pinned sli.dm3 through ClientSession and original cgame data callbacks; no Init, prediction, asset registration or rendered playback",
+        "messages": 57,
+        "gamestates": 1,
+        "snapshots": 56,
+        "entity_reads": 680,
+        "fnv1a64": "619dd6e47f869fd7"
+      },
+      {
+        "scope": "hash-pinned berj.dm3 through ClientSession",
+        "missing_gamestate": true,
+        "callbacks": 0
+      }
+    ],
+    "original_init_prefix": {
+      "result": "PASS",
+      "cases": 61,
+      "registration_boundaries": [
+        {
+          "scope": "original cgame Init prefix through ClientSession and native cvar/data adapters; stops at collision or renderer map import, with synthetic collision reply for the latter; no completed Init or game session",
+          "stop_cvar": -1,
+          "cvars": 59,
+          "loading_callbacks": 1,
+          "map_callbacks": 1,
+          "sound_begin_callbacks": 0,
+          "world_callbacks": 0,
+          "mutable_client_state": 2,
+          "failure_cleanup": true,
+          "cvar_fnv1a64": "4995ca0b04c29cc7"
+        },
+        {
+          "scope": "original cgame Init prefix through ClientSession and native cvar/data adapters; stops at collision or renderer map import, with synthetic collision reply for the latter; no completed Init or game session",
+          "stop_cvar": -2,
+          "cvars": 59,
+          "loading_callbacks": 1,
+          "map_callbacks": 1,
+          "sound_begin_callbacks": 1,
+          "world_callbacks": 1,
+          "mutable_client_state": 2,
+          "failure_cleanup": true,
+          "cvar_fnv1a64": "4995ca0b04c29cc7"
+        }
+      ],
+      "injected_cvar_failures": 59
+    },
+    "unit": "PASS: original numeric digests, guard bytes, null/short outputs, aliasing, sorted entity bounds, maximum snapshots, malformed publication rollback, combined gamestate/configstring/snapshot order, invalid late opcode, no-op notification suppression, reentrant rejection, callback command append, exception cleanup, callback Clear and recovery.",
+    "asan": "PASS: complete client-data tests and both supplied demos with AddressSanitizer and -O2 -ffast-math. No sanitizer checks disabled.",
+    "identity": "PASS: both original hosts reject an incorrect input image before mapping original code.",
+    "focused_meson": {
+      "result": "PASS",
+      "targets": 5
+    },
+    "build": "PASS: normal complete incremental build of the Meson win32 preset; no engine integration was enabled.",
+    "full_suite": {
+      "result": "PASS",
+      "targets": 131,
+      "meson_results": {
+        "OK": 129,
+        "SKIP": 2
+      },
+      "python": {
+        "result": "OK",
+        "cases": 1840,
+        "seconds": 699.16,
+        "skipped": 72
+      }
+    },
+    "full_suite_source_policy": "Production sources and documentation remained unchanged during the full suite.",
+    "post_suite": "Retained and rebuilt the separate optional Init-prefix host and ran its 61 cases plus wrong-image refusal. Production behavior is unchanged after the suite; a session header comment and documentation clarify that longjmp must not cross Feed. Evidence metadata and packaged documentation were finalized afterward.",
+    "final_checks": "PASS: rebuilt client-data target after the comment clarification, plus five documentation generation and packaged evidence-link checks."
+  },
+  "commands": [
+    "Use E:/Repositories/fnTech3 as cwd, TEMP/TMP=.tmp/q3-ihv, .tmp/rtcw-manager/x86_environment.ps1 for MSVC/Meson.",
+    "pwsh -File .tmp/q3-ihv/run_client_data_probes.ps1 (retained script contains exact compiler flags, bases, supplied inputs and negative identity checks)",
+    "meson compile -C meson/build/win32",
+    "meson test -C meson/build/win32 --no-rebuild --print-errorlogs fntech3_q3_ihv_client_data fntech3_q3_ihv_configstrings fntech3_q3_ihv_message fntech3_q3_ihv_wire fntech3_q3_ihv_native_boundary",
+    "meson test -C meson/build/win32 --no-rebuild --print-errorlogs",
+    "clang++ -std=c++17 -O2 -ffast-math -fsanitize=address -g tests/q3_ihv_client_data_tests.cpp -o .tmp/q3-ihv/client-data-asan.exe",
+    ".tmp/q3-ihv/client-data-asan.exe E:/Repositories/Quake3-IHV/ref/install/baseq3/demos/sli.dm3 E:/Repositories/Quake3-IHV/ref/install/baseq3/demos/berj.dm3",
+    "cl /nologo /EHsc /W4 /WX /MD /O2 /std:c++17 tests/q3_ihv_reference_cgame_init_probe.cpp /Fe:.tmp/q3-ihv/reference-cgame-init-probe.exe /Fo:.tmp/q3-ihv/reference-cgame-init-probe.obj /link advapi32.lib",
+    ".tmp/q3-ihv/reference-cgame-init-probe.exe E:/Repositories/Quake3-IHV/ref/install/cgamex86.dll BOUNDARY (run -1 for collision import, -2 for renderer import with synthetic collision, then 0..58 for each cvar failure)"
+  ],
+  "remaining": [
+    "Full native cgame import/export signatures, renderer/sound records, cvar flag/permission mapping and completed module initialization/lifecycle; prediction, engine error bridge and actual dispatcher.",
+    "Complete native game lifecycle/import dispatch, player projections and server capacity integration.",
+    "Original BSP/PVS/collision parity, live protocol-33 handshake/netchan/client transport, engine demo playback/recording and bidirectional interoperability.",
+    "Broader Q3Test, demo and point-release gates remain in Q3_POINT_RELEASES.md."
+  ],
+  "unrelated_issues": {
+    "asan_toolchain": {
+      "observation": "Windows Clang 20.1.7 ASAN crashed during a catch-and-rethrow, reproduced by a tiny independent program. Scope-guard cleanup passes the same tests without disabling sanitizer options.",
+      "inference": "The failure is consistent with the reported Windows ASAN exception-unwinding issue.",
+      "reference": "https://github.com/llvm/llvm-project/issues/215376"
+    },
+    "ipv6": "Existing host IPv6-loopback WSAEADDRNOTAVAIL remains; earlier IPv4/local probes succeeded.",
+    "cleanup": "Automatic approval review previously rejected deletion of seven trace intermediates and older copied-asset scratch as blocked by policy. They remain under .tmp/q3-ihv; no alternate deletion mechanism was attempted."
+  },
+  "artifacts": [
+    {
+      "path": "code/compat/q3_ihv_client_abi.h",
+      "bytes": 990,
+      "sha256": "25a4426b3e2597ce181de623eb3fc4cf515f2dfb2bcbe5911171c89ab7e14f4a"
+    },
+    {
+      "path": "code/compat/q3_ihv_client_data.hpp",
+      "bytes": 6291,
+      "sha256": "8f12fa29fdcad90fae582162126b6f10a52467eb960d15627ba1f2b02f3b7490"
+    },
+    {
+      "path": "code/compat/q3_ihv_configstrings.hpp",
+      "bytes": 3116,
+      "sha256": "9a7f14e548ea0965db918c1d7953b123bbcf10394b2834b4f9a671f61ff0475f"
+    },
+    {
+      "path": "code/client/client_ihv_session.hpp",
+      "bytes": 4726,
+      "sha256": "398fdeceda49832323f3bf0c9c07068c08ad0f1e52f11977f837ddfb57d45a13"
+    },
+    {
+      "path": "code/qcommon/q3_ihv_message.hpp",
+      "bytes": 17444,
+      "sha256": "4a645dcf50e1c2905999a394ec6278d701c8e2df9179438be94b4cfb3972332b"
+    },
+    {
+      "path": "tests/q3_ihv_client_cases.hpp",
+      "bytes": 2209,
+      "sha256": "27f18f2545cfa7d034788bd4d3158a4418f9f348793c8d3f572d1414af9efe4e"
+    },
+    {
+      "path": "tests/q3_ihv_client_data_tests.cpp",
+      "bytes": 14540,
+      "sha256": "6ec267c0831d6687a1594f326238789d3d1e361e4f4c2494fcf81ba5a6132bbf"
+    },
+    {
+      "path": "tests/q3_ihv_reference_client_history_probe.cpp",
+      "bytes": 8240,
+      "sha256": "7439d77fb06afceb2ecce9e91a88b8626878804ebacead466c9bf773acec658a"
+    },
+    {
+      "path": "tests/q3_ihv_reference_client_snapshot_probe.cpp",
+      "bytes": 12348,
+      "sha256": "e90dab5286809cb3bc5d1cb88fe6ddcae392aec959f5c7e6acd6bf050793206e"
+    },
+    {
+      "path": "tests/q3_ihv_reference_client_session_probe.cpp",
+      "bytes": 14735,
+      "sha256": "e404daf61389a232ee13b4b07a93f8dfbbef3cf42a511a8208bec4c243a437bc"
+    },
+    {
+      "path": "tests/q3_ihv_reference_cgame_init_probe.cpp",
+      "bytes": 8103,
+      "sha256": "6acdbe5bbd6e7e20594fdf69d58fe4c243c208c860e3a035fb6fa26ad988c5d4"
+    },
+    {
+      "path": "meson.build",
+      "bytes": 64445,
+      "sha256": "a18fc7cbcf5aa069448065d9797ada434142d0f192f19cc2d04a3164135cbf73"
+    },
+    {
+      "path": "docs/fntech3/Q3_IHV.md",
+      "bytes": 58307,
+      "sha256": "845b588222736be3d4dfe3eaee80bb3e97d47a91e55e7b683071474cb1f8fa39"
+    },
+    {
+      "path": "docs/fntech3/COMPATIBILITY.md",
+      "bytes": 143788,
+      "sha256": "9c5a6755d90fbce4fb918235d59cc24b5b17cded1205a629221618a0c56739eb"
+    },
+    {
+      "path": "CREDITS.md",
+      "bytes": 49152,
+      "sha256": "b2336add85cee3c7d58088490ebd26599dc17469fb494ca13822369bf7a22f62"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "bytes": 7536,
+      "sha256": "34e9b49ab8e805b85ec10a222f9c909622a4a632d3835f2ed796bd9ab8361519"
+    },
+    {
+      "path": ".tmp/q3-ihv/run_client_data_probes.ps1",
+      "bytes": 2662,
+      "sha256": "9093c18eccccc1f5ad11a45ca22a292cde4dd9c64e4e309c6271e8ac9978d810"
+    },
+    {
+      "path": ".tmp/q3-ihv/record_client_data.py",
+      "bytes": 16203,
+      "sha256": "22a2ef457cddb633ab42546bc2b89b87a0bd5c1647c08bde2835adce27d016bf"
+    },
+    {
+      "path": ".tmp/q3-ihv/client-data-build-all.log",
+      "bytes": 34562,
+      "sha256": "07e648834892645b7cefe8bce08ed123e37328e8025998d71e988f0e80700590"
+    },
+    {
+      "path": ".tmp/q3-ihv/client-data-build.log",
+      "bytes": 30,
+      "sha256": "b83feee39ae5d68656aa70b4844afc0e99466e442f2f45379a70ea44c0f2639e"
+    },
+    {
+      "path": ".tmp/q3-ihv/client-data-supplied.log",
+      "bytes": 348,
+      "sha256": "2d6608b38288bf8badce3bb2c9e6dc85efbcd6694dac9edd79136698611e7b54"
+    },
+    {
+      "path": ".tmp/q3-ihv/client-data-meson-focused.log",
+      "bytes": 470,
+      "sha256": "0a06d9d128951418244733fe8f9811aaf9ee07a67767eb49190fcc376ce52f90"
+    },
+    {
+      "path": ".tmp/q3-ihv/client-data-asan-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/client-data-asan.log",
+      "bytes": 348,
+      "sha256": "2d6608b38288bf8badce3bb2c9e6dc85efbcd6694dac9edd79136698611e7b54"
+    },
+    {
+      "path": ".tmp/q3-ihv/client-data-asan-first-failure.log",
+      "bytes": 2449,
+      "sha256": "d6b621cb634839dab9283b4116e6a73bcfc82ab4a9fb8315d613ba118aa18a2f"
+    },
+    {
+      "path": ".tmp/q3-ihv/asan-rethrow-minimal.cpp",
+      "bytes": 331,
+      "sha256": "6543cbde0b3c1c380c5cdb411a6a6d10581889b0d7f72daa51a83fc838cb10ec"
+    },
+    {
+      "path": ".tmp/q3-ihv/asan-rethrow-minimal-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/asan-rethrow-minimal.log",
+      "bytes": 2410,
+      "sha256": "199080aa6302b1501f9b52471797f844c8aa0c1f6a79bf1b1f5c72cae80c9899"
+    },
+    {
+      "path": ".tmp/q3-ihv/adapter-history-build.log",
+      "bytes": 43,
+      "sha256": "8747ad9a254db7af59d59e7b238fb12ec55a6d50c84c79496b0789e442532b65"
+    },
+    {
+      "path": ".tmp/q3-ihv/adapter-history.json",
+      "bytes": 300,
+      "sha256": "8fd167689e27244f150e1d1a49932cb7c78916ae337220ee3a24964647d23ecc"
+    },
+    {
+      "path": ".tmp/q3-ihv/adapter-history.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-client-snapshot-build.log",
+      "bytes": 44,
+      "sha256": "3c74672583cc522b508b79561aab1a48bb76625dc622e1c09a87e51c32f67d25"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-client-snapshot.json",
+      "bytes": 493,
+      "sha256": "70fd314e6177d4703a8fe4239c035cdc17ba4f7533f4d5f7661b0a20e34e7bce"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-client-snapshot.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-client-session-build.log",
+      "bytes": 43,
+      "sha256": "6aba3889b8f57ab721c6af3f3cf04df055c2ba48bcee1fb550f3ef4572e50736"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-client-session.json",
+      "bytes": 701,
+      "sha256": "17646873be9e1ba5bb274bb8b6fe9a3dd888ebbfb1d52b2588a9a34f7a6224eb"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-client-session.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/client-snapshot-wrong-image.log",
+      "bytes": 23,
+      "sha256": "c37b2d2d3389c2083a98795579b03cc64be6fce4ef342378e9d5b3eb2e930d94"
+    },
+    {
+      "path": ".tmp/q3-ihv/client-session-wrong-image.log",
+      "bytes": 23,
+      "sha256": "c37b2d2d3389c2083a98795579b03cc64be6fce4ef342378e9d5b3eb2e930d94"
+    },
+    {
+      "path": ".tmp/q3-ihv/client-snapshot-disassembly.txt",
+      "bytes": 5347,
+      "sha256": "20a5946dc89c04d04eb218a7c3d55b4d0ccaaa4ac3d9e4376db790fdca775aac"
+    },
+    {
+      "path": ".tmp/q3-ihv/native-client-data-next.json",
+      "bytes": 2219,
+      "sha256": "f02f231caca03a9939f8318ed60ef6e64cda747779ea9d55fc181b71cd781423"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-init-next.json",
+      "bytes": 1236,
+      "sha256": "5ec579dbfb630fd4030e1b95c213891fa6007ce7eb03c99621c149244fa256a7"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-cgame-init-build.log",
+      "bytes": 39,
+      "sha256": "3a36ca4a4f5f1cd098f3f59c2d11b86daba50c0f3fa50688b52fd227267c507e"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-cgame-init.jsonl",
+      "bytes": 25051,
+      "sha256": "1c13cd99dcf9cc80818c8e6b79322730c4e9c161429902bedf50889cf185bce1"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-init-wrong-image.log",
+      "bytes": 23,
+      "sha256": "c37b2d2d3389c2083a98795579b03cc64be6fce4ef342378e9d5b3eb2e930d94"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-cvar-observations.json",
+      "bytes": 7126,
+      "sha256": "26625251d600ea191a6c80c1daa19e53fadfd1d8723db4bfe9272d4414bc0519"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-viewport-imports.txt",
+      "bytes": 1445,
+      "sha256": "0d66bee4f4ea1e6ae9569e189923093c3e10fa5aa32c865631d7fb8a58411036"
+    },
+    {
+      "path": ".tmp/q3-ihv/original-cgame-render-records.txt",
+      "bytes": 8026,
+      "sha256": "bc73c5ada8c4740975020186746afaf473ba9f94112067a8792407da44506d22"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-registration-disassembly.txt",
+      "bytes": 51319,
+      "sha256": "d0a1671742f920bbec710296af30039488b6c451baa6f80d943447c68c9682a9"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-render-import-sites.txt",
+      "bytes": 8193,
+      "sha256": "2af8263c284b49d254176655b8c7c58ca55f45c76ced4f436343038a90b8ba67"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-scene-records.txt",
+      "bytes": 8547,
+      "sha256": "7b45fb05225cd170a7323392c0a898c533cea126774110ca45bbcf65b831bef9"
+    },
+    {
+      "path": ".tmp/q3-ihv/engine-cgame-screen-imports.txt",
+      "bytes": 8038,
+      "sha256": "36a4d5fd7acb38dc074fdb47451424bdb1d3b2e83504357067c1531165c3fbb9"
+    },
+    {
+      "path": ".tmp/q3-ihv/inspect_cgame_init.py",
+      "bytes": 1981,
+      "sha256": "42d0db57e1aa0de931fdba6cdadd9d328a3c0dd5b6f589a45b959b05e24a1858"
+    },
+    {
+      "path": ".tmp/q3-ihv/client-data-suite.log",
+      "bytes": 10417,
+      "sha256": "4d5219435fd03f0c5c4c1f4f0789955c1e3b492729d42160d626345baf804970"
+    },
+    {
+      "path": ".tmp/q3-ihv/client-data-suite-testlog.txt",
+      "bytes": 137434,
+      "sha256": "5d77f3b595dc8cd6e8491fcc6659706b740afa9892681b2ccad7c16d6959b7a7"
+    },
+    {
+      "path": ".tmp/q3-ihv/client-data-suite-testlog.json",
+      "bytes": 2480278,
+      "sha256": "7fdd4a3bf9f50059d3ad7337d752d8d2edae006b58d7f40c6870a3d1dfd34f00"
+    },
+    {
+      "path": ".tmp/q3-ihv/client-data-docs-focused.log",
+      "bytes": 109,
+      "sha256": "76b4d0cdf9d3051c16f99c5b6237b0739f7ff3b8590c066408860f2ba8f2ac67"
+    },
+    {
+      "path": ".tmp/q3-ihv/client-data-docs-final.log",
+      "bytes": 108,
+      "sha256": "350485b19c94802a87ae5e4bc1d30f4c81b0d350178fa113715b494f41402c8b"
+    },
+    {
+      "path": ".tmp/q3-ihv/client-data-build-package.log",
+      "bytes": 515,
+      "sha256": "589111b044162360f1f54153c720a23b3122f05cc429c8228c747b6c7656a3ed"
+    },
+    {
+      "path": ".tmp/q3-ihv/client-data-final-target.log",
+      "bytes": 202,
+      "sha256": "64e7b901a58256ea90bb67b0719cb705e260840d82f83b6ccdef7ea8fb0ca68c"
+    },
+    {
+      "path": "meson/build/win32/fntech3.exe",
+      "bytes": 8516096,
+      "sha256": "70524caf4696ba61000a0241dcbca27e5ebc911c887be13a5ffd823de5f32a22"
+    },
+    {
+      "path": "meson/build/win32/fntech3.ded.exe",
+      "bytes": 2685440,
+      "sha256": "72ef9cf580a2e8c0cb4adf6d8fab0e9617b0cd1682d435904514d595532436d7"
+    },
+    {
+      "path": "meson/build/win32/fntech3_q3_ihv_client_data_tests.exe",
+      "bytes": 879616,
+      "sha256": "547718fee20e4fe686ec43c537aaaf853b192c135720036b09db86dc39c9ae2e"
+    },
+    {
+      "path": "meson/build/win32/fntech3_q3_ihv_message_tests.exe",
+      "bytes": 903168,
+      "sha256": "ca64364d511800f10d3c92c0960694f7ffffbf0ca536d0766c74065aa901895c"
+    },
+    {
+      "path": ".tmp/q3-ihv/adapter-history-probe.exe",
+      "bytes": 30208,
+      "sha256": "162b968cb8415b74e5cee7edd4b67c5bd1d88d4d7b3fd26cb9e20442a52932fa"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-client-snapshot-probe.exe",
+      "bytes": 71168,
+      "sha256": "31bc6f715a1881a8ee7853659e6c50edce2c0f80c27eab41d8a99d98b300819f"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-client-session-probe.exe",
+      "bytes": 84480,
+      "sha256": "e8485a09004cf79801f68cde1f4e3ff37e28dc28184a459cdbf274b7c43256e4"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-cgame-init-probe.exe",
+      "bytes": 68608,
+      "sha256": "0192e02f30ee0809fc9831428c794ba6994178dbcea55df53075b31c98de866c"
+    },
+    {
+      "path": ".tmp/q3-ihv/client-data-tests.exe",
+      "bytes": 102400,
+      "sha256": "68990b983f4f6eb982fd8f6292b9316862667607a273465a928cb66dd6505345"
+    },
+    {
+      "path": ".tmp/q3-ihv/client-data-asan.exe",
+      "bytes": 1393152,
+      "sha256": "22eba5585049dea2f109a10d4b2ff65cd13f86892974d3287937b08f16ac0422"
+    }
+  ]
+}

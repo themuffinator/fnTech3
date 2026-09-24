@@ -75,7 +75,7 @@ class RTCWMoveGoalTests(unittest.TestCase):
 
     def test_reuse_stuck_detection_goal_speed_future_view_and_quake_controls(self):
         self.run_source(r'''
-int main(){for(const auto &p:profiles){profile=&p;auto *ms=goalSetup();bool rtcw=Com_GameIsRTCW();
+int main(){for(const auto &p:profiles){profile=&p;if(!p.bots.navigationWorlds)continue;auto *ms=goalSetup();bool rtcw=Com_GameIsRTCW();
  auto goal=destination();bot_moveresult_t result{};BotMoveToGoal(&result,1,&goal,TFL_WALK);
  assert(!result.failure&&!selectionCalls&&ms->lastreachnum==1);
  assert(result.traveltype==(rtcw?0:TRAVEL_WALK));assert(bool(result.flags&MOVERESULT_FUTUREVIEW)==rtcw);
@@ -103,7 +103,7 @@ int main(){for(const auto &p:profiles){profile=&p;auto *ms=goalSetup();bool rtcw
 
     def test_movers_obstacles_jump_pad_recovery_and_raw_travel_types(self):
         self.run_source(r'''
-int main(){for(const auto &p:profiles){profile=&p;bool rtcw=Com_GameIsRTCW();
+int main(){for(const auto &p:profiles){profile=&p;if(!p.bots.navigationWorlds)continue;bool rtcw=Com_GameIsRTCW();
  for(int modelType:{MODELTYPE_FUNC_PLAT,MODELTYPE_FUNC_BOB}){
   auto *ms=goalSetup();auto goal=destination();bot_moveresult_t result{};
   modeltypes[3]=modelType;obstruction=1;auto &r=aasworld.reachability[1];
@@ -167,7 +167,7 @@ int main(){for(const auto &p:profiles){profile=&p;if(!Com_GameIsRTCW())continue;
     def test_future_route_horizon_equal_cost_cycles_and_real_caches(self):
         future=function((ROOT/'code/botlib/be_aas_route.cpp').read_text(),'bool AAS_RTCWMovementFuturePosition(')
         source=goals.goal_route_source(True)+'\n'+future+routes.GRAPH+r'''
-int main(){for(const auto &p:profiles){profile=&p;initialize();graph(0,4,1);
+int main(){for(const auto &p:profiles){profile=&p;if(!p.bots.navigationWorlds)continue;initialize();graph(0,4,1);
  vec3_t goal{777,88,99},out{7,8,9};const int flags=TFL_WALK|TFL_AIR;
  for(int i=1;i<=4;++i){auto &r=aasworld.reachability[i];r.areanum=i;VectorSet(r.end,10*i,0,0);}
  auto reset=[&](){for(int i=1;i<=4;++i){costs[i]=300;nextLinks[i]=i+1;}
@@ -270,7 +270,7 @@ int main(){using namespace fntech3::rtcw::module;
 
     def test_ladder_fallback_geometry_bounds_and_partial_shutdown(self):
         self.run_source(r'''
-int main(){for(const auto &p:profiles){profile=&p;auto *ms=goalSetup();bool rtcw=Com_GameIsRTCW();
+int main(){for(const auto &p:profiles){profile=&p;if(!p.bots.navigationWorlds)continue;auto *ms=goalSetup();bool rtcw=Com_GameIsRTCW();
  aasworld.faceindexsize=1;aasworld.faceindex=botlib::ClearedAlloc<int>(1);aasworld.faceindex[0]=1;
  aasworld.numfaces=2;aasworld.faces=botlib::ClearedAlloc<aas_face_t>(2);
  aasworld.edgeindexsize=4;aasworld.edgeindex=botlib::ClearedAlloc<int>(4);

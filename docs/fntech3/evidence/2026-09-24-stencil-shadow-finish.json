@@ -1,0 +1,1400 @@
+{
+  "utc": "2026-09-24T08:34:37.449300+00:00",
+  "testedSourceCommit": "2d35919d0f6ee62f869f34186a4b11d3e189742f",
+  "testedTree": "export of the shared working tree at HEAD plus its uncommitted state, 2026-09-24 about 08:58 UTC+1",
+  "sourceChanges": [
+    "code/renderervk/tr_shadows.c",
+    "code/rendererrtx/tr_shadows.c",
+    "scripts/probe_shadow_finish.py",
+    "tests/alice_renderer_parity_tests.py"
+  ],
+  "platform": "Windows 11; Windows x86 MSVC debugoptimized, strict warnings, -Drenderers=glx,vk,rtx -Drenderer-dlopen=true -Drtcw-development=true; windowed 800x600 on a private desktop, loopback only, no input; engine screenshotPNG captures",
+  "runtimes": {
+    "before": ".tmp/runtime/shadowfinish-before (tr_shadows.c as at HEAD in renderervk and rendererrtx)",
+    "after": ".tmp/runtime/shadowfinish-after (the change)"
+  },
+  "command": "python scripts/probe_shadow_finish.py --profile P --installation I --output O --demo D --runtime before=.tmp/runtime/shadowfinish-before/fntech3.exe --runtime after=.tmp/runtime/shadowfinish-after/fntech3.exe",
+  "method": "Replay one demo with timedemo 1 at cg_shadows 2 and 0 in each renderer and runtime; capture at replay frames 40 and 80; the multiplier is shadowed / unshadowed over the pixels the shadows changed with every unshadowed channel >= 48.",
+  "profiles": {
+    "rtcw-mp": {
+      "installation": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+      "map": [
+        "mp_ice"
+      ],
+      "frames": [
+        40,
+        80
+      ],
+      "demoSha256": "fb5b4693cfc2d491ae0ca7cd0963f3763e1574d08b05631911478b5b8353abd4",
+      "executableSha256": [
+        "9939695b255f1df805a08bdd7a3c820ab3637f054a4e5b7c74b0a6c50bce2d26"
+      ],
+      "rendererSha256": {
+        "before-glx": "d8ef2136518677686ff6998aa7509501b3e4c0b7235c719fd5abba9a5f958cb2",
+        "before-vk": "fe82e716b9d727e9bba6d94ead7670ee9caaff1a6ee7d9f9c772db9da2319311",
+        "before-rtx": "8ac632a59a01762b6d910d9f059df4b0aa0dd0876235c9af9d4bc904d01ab2dd",
+        "after-glx": "d8ef2136518677686ff6998aa7509501b3e4c0b7235c719fd5abba9a5f958cb2",
+        "after-vk": "586efcebc0d80b5f5d27f55e6fcfcf8d59f778b08e02a7b6f653838ae2e49e85",
+        "after-rtx": "6a1fab19bc665cf180cc72245fbe4b28a614a5914e318f984fd5391566535a61"
+      },
+      "replaysPassed": true,
+      "replayErrors": [],
+      "installationUnchanged": true,
+      "multiplier": [
+        {
+          "runtime": "before",
+          "renderer": "glx",
+          "frame": 40,
+          "median": [
+            0.6,
+            0.6,
+            0.6
+          ],
+          "mean": [
+            0.5993,
+            0.6,
+            0.6
+          ],
+          "measuredPixels": 1181,
+          "changedPixels": 17012,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "before",
+          "renderer": "glx",
+          "frame": 80,
+          "median": [
+            0.6,
+            0.6,
+            0.6
+          ],
+          "mean": [
+            0.5994,
+            0.6002,
+            0.5999
+          ],
+          "measuredPixels": 1178,
+          "changedPixels": 17547,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "before",
+          "renderer": "vk",
+          "frame": 40,
+          "median": [
+            0.4869,
+            0.4872,
+            0.5208
+          ],
+          "mean": [
+            0.4868,
+            0.487,
+            0.521
+          ],
+          "measuredPixels": 1172,
+          "changedPixels": 17225,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "before",
+          "renderer": "vk",
+          "frame": 80,
+          "median": [
+            0.4867,
+            0.4872,
+            0.5208
+          ],
+          "mean": [
+            0.4867,
+            0.487,
+            0.521
+          ],
+          "measuredPixels": 1166,
+          "changedPixels": 17768,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "before",
+          "renderer": "rtx",
+          "frame": 40,
+          "median": [
+            0.4867,
+            0.487,
+            0.5205
+          ],
+          "mean": [
+            0.4866,
+            0.4869,
+            0.5206
+          ],
+          "measuredPixels": 1172,
+          "changedPixels": 17225,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "before",
+          "renderer": "rtx",
+          "frame": 80,
+          "median": [
+            0.4865,
+            0.4868,
+            0.5205
+          ],
+          "mean": [
+            0.4865,
+            0.4869,
+            0.5206
+          ],
+          "measuredPixels": 1166,
+          "changedPixels": 17768,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "after",
+          "renderer": "glx",
+          "frame": 40,
+          "median": [
+            0.6,
+            0.6,
+            0.6
+          ],
+          "mean": [
+            0.5993,
+            0.6,
+            0.6
+          ],
+          "measuredPixels": 1181,
+          "changedPixels": 17012,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "after",
+          "renderer": "glx",
+          "frame": 80,
+          "median": [
+            0.6,
+            0.6,
+            0.6
+          ],
+          "mean": [
+            0.5994,
+            0.6002,
+            0.5999
+          ],
+          "measuredPixels": 1178,
+          "changedPixels": 17547,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "after",
+          "renderer": "vk",
+          "frame": 40,
+          "median": [
+            0.6,
+            0.6,
+            0.6
+          ],
+          "mean": [
+            0.5998,
+            0.6,
+            0.6
+          ],
+          "measuredPixels": 1172,
+          "changedPixels": 17059,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "after",
+          "renderer": "vk",
+          "frame": 80,
+          "median": [
+            0.6,
+            0.6,
+            0.6
+          ],
+          "mean": [
+            0.5998,
+            0.6,
+            0.5998
+          ],
+          "measuredPixels": 1166,
+          "changedPixels": 17598,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "after",
+          "renderer": "rtx",
+          "frame": 40,
+          "median": [
+            0.6,
+            0.6,
+            0.6
+          ],
+          "mean": [
+            0.5994,
+            0.5996,
+            0.5996
+          ],
+          "measuredPixels": 1172,
+          "changedPixels": 17059,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "after",
+          "renderer": "rtx",
+          "frame": 80,
+          "median": [
+            0.6,
+            0.6,
+            0.6
+          ],
+          "mean": [
+            0.5994,
+            0.5996,
+            0.5994
+          ],
+          "measuredPixels": 1166,
+          "changedPixels": 17598,
+          "brightenedPixels": 0
+        }
+      ],
+      "againstGlx": [
+        {
+          "runtime": "before",
+          "renderer": "vk",
+          "shadows": 2,
+          "frame": 40,
+          "meanAbsDiff": 0.7251,
+          "meanAbsDiffInGlxShadow": 2.4512
+        },
+        {
+          "runtime": "before",
+          "renderer": "vk",
+          "shadows": 2,
+          "frame": 80,
+          "meanAbsDiff": 0.731,
+          "meanAbsDiffInGlxShadow": 2.4368
+        },
+        {
+          "runtime": "before",
+          "renderer": "vk",
+          "shadows": 0,
+          "frame": 40,
+          "meanAbsDiff": 0.6684,
+          "meanAbsDiffInGlxShadow": 0.8499
+        },
+        {
+          "runtime": "before",
+          "renderer": "vk",
+          "shadows": 0,
+          "frame": 80,
+          "meanAbsDiff": 0.6726,
+          "meanAbsDiffInGlxShadow": 0.8393
+        },
+        {
+          "runtime": "before",
+          "renderer": "rtx",
+          "shadows": 2,
+          "frame": 40,
+          "meanAbsDiff": 0.7253,
+          "meanAbsDiffInGlxShadow": 2.4584
+        },
+        {
+          "runtime": "before",
+          "renderer": "rtx",
+          "shadows": 2,
+          "frame": 80,
+          "meanAbsDiff": 0.7312,
+          "meanAbsDiffInGlxShadow": 2.4442
+        },
+        {
+          "runtime": "before",
+          "renderer": "rtx",
+          "shadows": 0,
+          "frame": 40,
+          "meanAbsDiff": 0.6684,
+          "meanAbsDiffInGlxShadow": 0.85
+        },
+        {
+          "runtime": "before",
+          "renderer": "rtx",
+          "shadows": 0,
+          "frame": 80,
+          "meanAbsDiff": 0.6726,
+          "meanAbsDiffInGlxShadow": 0.8393
+        },
+        {
+          "runtime": "after",
+          "renderer": "glx",
+          "shadows": 2,
+          "frame": 40,
+          "meanAbsDiff": 0.0,
+          "meanAbsDiffInGlxShadow": 0.0
+        },
+        {
+          "runtime": "after",
+          "renderer": "glx",
+          "shadows": 2,
+          "frame": 80,
+          "meanAbsDiff": 0.0,
+          "meanAbsDiffInGlxShadow": 0.0
+        },
+        {
+          "runtime": "after",
+          "renderer": "glx",
+          "shadows": 0,
+          "frame": 40,
+          "meanAbsDiff": 0.0,
+          "meanAbsDiffInGlxShadow": 0.0
+        },
+        {
+          "runtime": "after",
+          "renderer": "glx",
+          "shadows": 0,
+          "frame": 80,
+          "meanAbsDiff": 0.0,
+          "meanAbsDiffInGlxShadow": 0.0
+        },
+        {
+          "runtime": "after",
+          "renderer": "vk",
+          "shadows": 2,
+          "frame": 40,
+          "meanAbsDiff": 0.6626,
+          "meanAbsDiffInGlxShadow": 0.693
+        },
+        {
+          "runtime": "after",
+          "renderer": "vk",
+          "shadows": 2,
+          "frame": 80,
+          "meanAbsDiff": 0.6666,
+          "meanAbsDiffInGlxShadow": 0.6835
+        },
+        {
+          "runtime": "after",
+          "renderer": "vk",
+          "shadows": 0,
+          "frame": 40,
+          "meanAbsDiff": 0.6684,
+          "meanAbsDiffInGlxShadow": 0.8499
+        },
+        {
+          "runtime": "after",
+          "renderer": "vk",
+          "shadows": 0,
+          "frame": 80,
+          "meanAbsDiff": 0.6726,
+          "meanAbsDiffInGlxShadow": 0.8393
+        },
+        {
+          "runtime": "after",
+          "renderer": "rtx",
+          "shadows": 2,
+          "frame": 40,
+          "meanAbsDiff": 0.6625,
+          "meanAbsDiffInGlxShadow": 0.6936
+        },
+        {
+          "runtime": "after",
+          "renderer": "rtx",
+          "shadows": 2,
+          "frame": 80,
+          "meanAbsDiff": 0.6666,
+          "meanAbsDiffInGlxShadow": 0.6839
+        },
+        {
+          "runtime": "after",
+          "renderer": "rtx",
+          "shadows": 0,
+          "frame": 40,
+          "meanAbsDiff": 0.6684,
+          "meanAbsDiffInGlxShadow": 0.85
+        },
+        {
+          "runtime": "after",
+          "renderer": "rtx",
+          "shadows": 0,
+          "frame": 80,
+          "meanAbsDiff": 0.6726,
+          "meanAbsDiffInGlxShadow": 0.8393
+        }
+      ],
+      "afterAgainstBefore": [
+        {
+          "renderer": "glx",
+          "shadows": 2,
+          "frame": 40,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        },
+        {
+          "renderer": "glx",
+          "shadows": 2,
+          "frame": 80,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        },
+        {
+          "renderer": "glx",
+          "shadows": 0,
+          "frame": 40,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        },
+        {
+          "renderer": "glx",
+          "shadows": 0,
+          "frame": 80,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        },
+        {
+          "renderer": "vk",
+          "shadows": 2,
+          "frame": 40,
+          "identical": false,
+          "meanAbsDiff": 0.0845
+        },
+        {
+          "renderer": "vk",
+          "shadows": 2,
+          "frame": 80,
+          "identical": false,
+          "meanAbsDiff": 0.0866
+        },
+        {
+          "renderer": "vk",
+          "shadows": 0,
+          "frame": 40,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        },
+        {
+          "renderer": "vk",
+          "shadows": 0,
+          "frame": 80,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        },
+        {
+          "renderer": "rtx",
+          "shadows": 2,
+          "frame": 40,
+          "identical": false,
+          "meanAbsDiff": 0.0844
+        },
+        {
+          "renderer": "rtx",
+          "shadows": 2,
+          "frame": 80,
+          "identical": false,
+          "meanAbsDiff": 0.0864
+        },
+        {
+          "renderer": "rtx",
+          "shadows": 0,
+          "frame": 40,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        },
+        {
+          "renderer": "rtx",
+          "shadows": 0,
+          "frame": 80,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        }
+      ],
+      "repeatRun": "an earlier complete run (.tmp/shadowfinish/rtcw-mp-final) produced the same 24 captures byte for byte"
+    },
+    "q3": {
+      "installation": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+      "map": [
+        "q3dm17"
+      ],
+      "frames": [
+        40,
+        80
+      ],
+      "demoSha256": "bfa87d5a616169ff19236d6d4493d918ac13ebe93716d7c6b52f43cf5c14424b",
+      "executableSha256": [
+        "9939695b255f1df805a08bdd7a3c820ab3637f054a4e5b7c74b0a6c50bce2d26"
+      ],
+      "rendererSha256": {
+        "before-glx": "d8ef2136518677686ff6998aa7509501b3e4c0b7235c719fd5abba9a5f958cb2",
+        "before-vk": "fe82e716b9d727e9bba6d94ead7670ee9caaff1a6ee7d9f9c772db9da2319311",
+        "before-rtx": "8ac632a59a01762b6d910d9f059df4b0aa0dd0876235c9af9d4bc904d01ab2dd",
+        "after-glx": "d8ef2136518677686ff6998aa7509501b3e4c0b7235c719fd5abba9a5f958cb2",
+        "after-vk": "586efcebc0d80b5f5d27f55e6fcfcf8d59f778b08e02a7b6f653838ae2e49e85",
+        "after-rtx": "6a1fab19bc665cf180cc72245fbe4b28a614a5914e318f984fd5391566535a61"
+      },
+      "replaysPassed": true,
+      "replayErrors": [],
+      "installationUnchanged": true,
+      "multiplier": [
+        {
+          "runtime": "before",
+          "renderer": "glx",
+          "frame": 40,
+          "median": [
+            0.6,
+            0.6,
+            0.6
+          ],
+          "mean": [
+            0.6155,
+            0.6162,
+            0.6173
+          ],
+          "measuredPixels": 1339,
+          "changedPixels": 24398,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "before",
+          "renderer": "glx",
+          "frame": 80,
+          "median": [
+            0.6,
+            0.6,
+            0.6
+          ],
+          "mean": [
+            0.6212,
+            0.623,
+            0.624
+          ],
+          "measuredPixels": 1241,
+          "changedPixels": 23969,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "before",
+          "renderer": "vk",
+          "frame": 40,
+          "median": [
+            0.6,
+            0.6,
+            0.6
+          ],
+          "mean": [
+            0.6153,
+            0.6161,
+            0.617
+          ],
+          "measuredPixels": 1293,
+          "changedPixels": 24371,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "before",
+          "renderer": "vk",
+          "frame": 80,
+          "median": [
+            0.6,
+            0.6,
+            0.6
+          ],
+          "mean": [
+            0.6202,
+            0.6218,
+            0.6239
+          ],
+          "measuredPixels": 1201,
+          "changedPixels": 23936,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "before",
+          "renderer": "rtx",
+          "frame": 40,
+          "median": [
+            0.6,
+            0.6,
+            0.6
+          ],
+          "mean": [
+            0.6151,
+            0.6157,
+            0.6166
+          ],
+          "measuredPixels": 1293,
+          "changedPixels": 24373,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "before",
+          "renderer": "rtx",
+          "frame": 80,
+          "median": [
+            0.6,
+            0.6,
+            0.6
+          ],
+          "mean": [
+            0.6198,
+            0.6215,
+            0.6233
+          ],
+          "measuredPixels": 1201,
+          "changedPixels": 23937,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "after",
+          "renderer": "glx",
+          "frame": 40,
+          "median": [
+            0.6,
+            0.6,
+            0.6
+          ],
+          "mean": [
+            0.6155,
+            0.6162,
+            0.6173
+          ],
+          "measuredPixels": 1339,
+          "changedPixels": 24398,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "after",
+          "renderer": "glx",
+          "frame": 80,
+          "median": [
+            0.6,
+            0.6,
+            0.6
+          ],
+          "mean": [
+            0.6212,
+            0.623,
+            0.624
+          ],
+          "measuredPixels": 1241,
+          "changedPixels": 23969,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "after",
+          "renderer": "vk",
+          "frame": 40,
+          "median": [
+            0.6,
+            0.6,
+            0.6
+          ],
+          "mean": [
+            0.6153,
+            0.6161,
+            0.617
+          ],
+          "measuredPixels": 1293,
+          "changedPixels": 24371,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "after",
+          "renderer": "vk",
+          "frame": 80,
+          "median": [
+            0.6,
+            0.6,
+            0.6
+          ],
+          "mean": [
+            0.6202,
+            0.6218,
+            0.6239
+          ],
+          "measuredPixels": 1201,
+          "changedPixels": 23936,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "after",
+          "renderer": "rtx",
+          "frame": 40,
+          "median": [
+            0.6,
+            0.6,
+            0.6
+          ],
+          "mean": [
+            0.6151,
+            0.6157,
+            0.6166
+          ],
+          "measuredPixels": 1293,
+          "changedPixels": 24373,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "after",
+          "renderer": "rtx",
+          "frame": 80,
+          "median": [
+            0.6,
+            0.6,
+            0.6
+          ],
+          "mean": [
+            0.6198,
+            0.6215,
+            0.6233
+          ],
+          "measuredPixels": 1201,
+          "changedPixels": 23937,
+          "brightenedPixels": 0
+        }
+      ],
+      "againstGlx": [
+        {
+          "runtime": "before",
+          "renderer": "vk",
+          "shadows": 2,
+          "frame": 40,
+          "meanAbsDiff": 0.7161,
+          "meanAbsDiffInGlxShadow": 0.8261
+        },
+        {
+          "runtime": "before",
+          "renderer": "vk",
+          "shadows": 2,
+          "frame": 80,
+          "meanAbsDiff": 0.6977,
+          "meanAbsDiffInGlxShadow": 0.7826
+        },
+        {
+          "runtime": "before",
+          "renderer": "vk",
+          "shadows": 0,
+          "frame": 40,
+          "meanAbsDiff": 0.7285,
+          "meanAbsDiffInGlxShadow": 1.0648
+        },
+        {
+          "runtime": "before",
+          "renderer": "vk",
+          "shadows": 0,
+          "frame": 80,
+          "meanAbsDiff": 0.7089,
+          "meanAbsDiffInGlxShadow": 1.0016
+        },
+        {
+          "runtime": "before",
+          "renderer": "rtx",
+          "shadows": 2,
+          "frame": 40,
+          "meanAbsDiff": 0.7161,
+          "meanAbsDiffInGlxShadow": 0.826
+        },
+        {
+          "runtime": "before",
+          "renderer": "rtx",
+          "shadows": 2,
+          "frame": 80,
+          "meanAbsDiff": 0.6977,
+          "meanAbsDiffInGlxShadow": 0.7825
+        },
+        {
+          "runtime": "before",
+          "renderer": "rtx",
+          "shadows": 0,
+          "frame": 40,
+          "meanAbsDiff": 0.7285,
+          "meanAbsDiffInGlxShadow": 1.0647
+        },
+        {
+          "runtime": "before",
+          "renderer": "rtx",
+          "shadows": 0,
+          "frame": 80,
+          "meanAbsDiff": 0.7089,
+          "meanAbsDiffInGlxShadow": 1.0017
+        },
+        {
+          "runtime": "after",
+          "renderer": "glx",
+          "shadows": 2,
+          "frame": 40,
+          "meanAbsDiff": 0.0,
+          "meanAbsDiffInGlxShadow": 0.0
+        },
+        {
+          "runtime": "after",
+          "renderer": "glx",
+          "shadows": 2,
+          "frame": 80,
+          "meanAbsDiff": 0.0,
+          "meanAbsDiffInGlxShadow": 0.0
+        },
+        {
+          "runtime": "after",
+          "renderer": "glx",
+          "shadows": 0,
+          "frame": 40,
+          "meanAbsDiff": 0.0,
+          "meanAbsDiffInGlxShadow": 0.0
+        },
+        {
+          "runtime": "after",
+          "renderer": "glx",
+          "shadows": 0,
+          "frame": 80,
+          "meanAbsDiff": 0.0,
+          "meanAbsDiffInGlxShadow": 0.0
+        },
+        {
+          "runtime": "after",
+          "renderer": "vk",
+          "shadows": 2,
+          "frame": 40,
+          "meanAbsDiff": 0.7161,
+          "meanAbsDiffInGlxShadow": 0.8261
+        },
+        {
+          "runtime": "after",
+          "renderer": "vk",
+          "shadows": 2,
+          "frame": 80,
+          "meanAbsDiff": 0.6977,
+          "meanAbsDiffInGlxShadow": 0.7826
+        },
+        {
+          "runtime": "after",
+          "renderer": "vk",
+          "shadows": 0,
+          "frame": 40,
+          "meanAbsDiff": 0.7285,
+          "meanAbsDiffInGlxShadow": 1.0648
+        },
+        {
+          "runtime": "after",
+          "renderer": "vk",
+          "shadows": 0,
+          "frame": 80,
+          "meanAbsDiff": 0.7089,
+          "meanAbsDiffInGlxShadow": 1.0016
+        },
+        {
+          "runtime": "after",
+          "renderer": "rtx",
+          "shadows": 2,
+          "frame": 40,
+          "meanAbsDiff": 0.7161,
+          "meanAbsDiffInGlxShadow": 0.826
+        },
+        {
+          "runtime": "after",
+          "renderer": "rtx",
+          "shadows": 2,
+          "frame": 80,
+          "meanAbsDiff": 0.6977,
+          "meanAbsDiffInGlxShadow": 0.7825
+        },
+        {
+          "runtime": "after",
+          "renderer": "rtx",
+          "shadows": 0,
+          "frame": 40,
+          "meanAbsDiff": 0.7285,
+          "meanAbsDiffInGlxShadow": 1.0647
+        },
+        {
+          "runtime": "after",
+          "renderer": "rtx",
+          "shadows": 0,
+          "frame": 80,
+          "meanAbsDiff": 0.7089,
+          "meanAbsDiffInGlxShadow": 1.0017
+        }
+      ],
+      "afterAgainstBefore": [
+        {
+          "renderer": "glx",
+          "shadows": 2,
+          "frame": 40,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        },
+        {
+          "renderer": "glx",
+          "shadows": 2,
+          "frame": 80,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        },
+        {
+          "renderer": "glx",
+          "shadows": 0,
+          "frame": 40,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        },
+        {
+          "renderer": "glx",
+          "shadows": 0,
+          "frame": 80,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        },
+        {
+          "renderer": "vk",
+          "shadows": 2,
+          "frame": 40,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        },
+        {
+          "renderer": "vk",
+          "shadows": 2,
+          "frame": 80,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        },
+        {
+          "renderer": "vk",
+          "shadows": 0,
+          "frame": 40,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        },
+        {
+          "renderer": "vk",
+          "shadows": 0,
+          "frame": 80,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        },
+        {
+          "renderer": "rtx",
+          "shadows": 2,
+          "frame": 40,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        },
+        {
+          "renderer": "rtx",
+          "shadows": 2,
+          "frame": 80,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        },
+        {
+          "renderer": "rtx",
+          "shadows": 0,
+          "frame": 40,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        },
+        {
+          "renderer": "rtx",
+          "shadows": 0,
+          "frame": 80,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        }
+      ]
+    },
+    "ql": {
+      "installation": "E:\\SteamLibrary\\steamapps\\common\\Quake Live",
+      "map": [
+        "campgrounds",
+        "ffa"
+      ],
+      "frames": [
+        40,
+        80
+      ],
+      "demoSha256": "3973b6f7e0ecad441e3d3a11de326c5d2ec7907e5b5168a1c7ed4b74bb96d218",
+      "executableSha256": [
+        "9939695b255f1df805a08bdd7a3c820ab3637f054a4e5b7c74b0a6c50bce2d26"
+      ],
+      "rendererSha256": {
+        "before-glx": "d8ef2136518677686ff6998aa7509501b3e4c0b7235c719fd5abba9a5f958cb2",
+        "before-vk": "fe82e716b9d727e9bba6d94ead7670ee9caaff1a6ee7d9f9c772db9da2319311",
+        "before-rtx": "8ac632a59a01762b6d910d9f059df4b0aa0dd0876235c9af9d4bc904d01ab2dd",
+        "after-glx": "d8ef2136518677686ff6998aa7509501b3e4c0b7235c719fd5abba9a5f958cb2",
+        "after-vk": "586efcebc0d80b5f5d27f55e6fcfcf8d59f778b08e02a7b6f653838ae2e49e85",
+        "after-rtx": "6a1fab19bc665cf180cc72245fbe4b28a614a5914e318f984fd5391566535a61"
+      },
+      "replaysPassed": true,
+      "replayErrors": [],
+      "installationUnchanged": true,
+      "multiplier": [
+        {
+          "runtime": "before",
+          "renderer": "glx",
+          "frame": 40,
+          "median": null,
+          "mean": null,
+          "measuredPixels": 0,
+          "changedPixels": 0,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "before",
+          "renderer": "glx",
+          "frame": 80,
+          "median": null,
+          "mean": null,
+          "measuredPixels": 0,
+          "changedPixels": 0,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "before",
+          "renderer": "vk",
+          "frame": 40,
+          "median": null,
+          "mean": null,
+          "measuredPixels": 0,
+          "changedPixels": 0,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "before",
+          "renderer": "vk",
+          "frame": 80,
+          "median": null,
+          "mean": null,
+          "measuredPixels": 0,
+          "changedPixels": 0,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "before",
+          "renderer": "rtx",
+          "frame": 40,
+          "median": null,
+          "mean": null,
+          "measuredPixels": 0,
+          "changedPixels": 0,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "before",
+          "renderer": "rtx",
+          "frame": 80,
+          "median": null,
+          "mean": null,
+          "measuredPixels": 0,
+          "changedPixels": 0,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "after",
+          "renderer": "glx",
+          "frame": 40,
+          "median": null,
+          "mean": null,
+          "measuredPixels": 0,
+          "changedPixels": 0,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "after",
+          "renderer": "glx",
+          "frame": 80,
+          "median": null,
+          "mean": null,
+          "measuredPixels": 0,
+          "changedPixels": 0,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "after",
+          "renderer": "vk",
+          "frame": 40,
+          "median": null,
+          "mean": null,
+          "measuredPixels": 0,
+          "changedPixels": 0,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "after",
+          "renderer": "vk",
+          "frame": 80,
+          "median": null,
+          "mean": null,
+          "measuredPixels": 0,
+          "changedPixels": 0,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "after",
+          "renderer": "rtx",
+          "frame": 40,
+          "median": null,
+          "mean": null,
+          "measuredPixels": 0,
+          "changedPixels": 0,
+          "brightenedPixels": 0
+        },
+        {
+          "runtime": "after",
+          "renderer": "rtx",
+          "frame": 80,
+          "median": null,
+          "mean": null,
+          "measuredPixels": 0,
+          "changedPixels": 0,
+          "brightenedPixels": 0
+        }
+      ],
+      "againstGlx": [
+        {
+          "runtime": "before",
+          "renderer": "vk",
+          "shadows": 2,
+          "frame": 40,
+          "meanAbsDiff": 1.2164,
+          "meanAbsDiffInGlxShadow": null
+        },
+        {
+          "runtime": "before",
+          "renderer": "vk",
+          "shadows": 2,
+          "frame": 80,
+          "meanAbsDiff": 1.2152,
+          "meanAbsDiffInGlxShadow": null
+        },
+        {
+          "runtime": "before",
+          "renderer": "vk",
+          "shadows": 0,
+          "frame": 40,
+          "meanAbsDiff": 1.2164,
+          "meanAbsDiffInGlxShadow": null
+        },
+        {
+          "runtime": "before",
+          "renderer": "vk",
+          "shadows": 0,
+          "frame": 80,
+          "meanAbsDiff": 1.2152,
+          "meanAbsDiffInGlxShadow": null
+        },
+        {
+          "runtime": "before",
+          "renderer": "rtx",
+          "shadows": 2,
+          "frame": 40,
+          "meanAbsDiff": 1.2417,
+          "meanAbsDiffInGlxShadow": null
+        },
+        {
+          "runtime": "before",
+          "renderer": "rtx",
+          "shadows": 2,
+          "frame": 80,
+          "meanAbsDiff": 1.24,
+          "meanAbsDiffInGlxShadow": null
+        },
+        {
+          "runtime": "before",
+          "renderer": "rtx",
+          "shadows": 0,
+          "frame": 40,
+          "meanAbsDiff": 1.2417,
+          "meanAbsDiffInGlxShadow": null
+        },
+        {
+          "runtime": "before",
+          "renderer": "rtx",
+          "shadows": 0,
+          "frame": 80,
+          "meanAbsDiff": 1.24,
+          "meanAbsDiffInGlxShadow": null
+        },
+        {
+          "runtime": "after",
+          "renderer": "glx",
+          "shadows": 2,
+          "frame": 40,
+          "meanAbsDiff": 0.0,
+          "meanAbsDiffInGlxShadow": null
+        },
+        {
+          "runtime": "after",
+          "renderer": "glx",
+          "shadows": 2,
+          "frame": 80,
+          "meanAbsDiff": 0.0,
+          "meanAbsDiffInGlxShadow": null
+        },
+        {
+          "runtime": "after",
+          "renderer": "glx",
+          "shadows": 0,
+          "frame": 40,
+          "meanAbsDiff": 0.0,
+          "meanAbsDiffInGlxShadow": null
+        },
+        {
+          "runtime": "after",
+          "renderer": "glx",
+          "shadows": 0,
+          "frame": 80,
+          "meanAbsDiff": 0.0,
+          "meanAbsDiffInGlxShadow": null
+        },
+        {
+          "runtime": "after",
+          "renderer": "vk",
+          "shadows": 2,
+          "frame": 40,
+          "meanAbsDiff": 1.2164,
+          "meanAbsDiffInGlxShadow": null
+        },
+        {
+          "runtime": "after",
+          "renderer": "vk",
+          "shadows": 2,
+          "frame": 80,
+          "meanAbsDiff": 1.2152,
+          "meanAbsDiffInGlxShadow": null
+        },
+        {
+          "runtime": "after",
+          "renderer": "vk",
+          "shadows": 0,
+          "frame": 40,
+          "meanAbsDiff": 1.2164,
+          "meanAbsDiffInGlxShadow": null
+        },
+        {
+          "runtime": "after",
+          "renderer": "vk",
+          "shadows": 0,
+          "frame": 80,
+          "meanAbsDiff": 1.2152,
+          "meanAbsDiffInGlxShadow": null
+        },
+        {
+          "runtime": "after",
+          "renderer": "rtx",
+          "shadows": 2,
+          "frame": 40,
+          "meanAbsDiff": 1.2417,
+          "meanAbsDiffInGlxShadow": null
+        },
+        {
+          "runtime": "after",
+          "renderer": "rtx",
+          "shadows": 2,
+          "frame": 80,
+          "meanAbsDiff": 1.24,
+          "meanAbsDiffInGlxShadow": null
+        },
+        {
+          "runtime": "after",
+          "renderer": "rtx",
+          "shadows": 0,
+          "frame": 40,
+          "meanAbsDiff": 1.2417,
+          "meanAbsDiffInGlxShadow": null
+        },
+        {
+          "runtime": "after",
+          "renderer": "rtx",
+          "shadows": 0,
+          "frame": 80,
+          "meanAbsDiff": 1.24,
+          "meanAbsDiffInGlxShadow": null
+        }
+      ],
+      "afterAgainstBefore": [
+        {
+          "renderer": "glx",
+          "shadows": 2,
+          "frame": 40,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        },
+        {
+          "renderer": "glx",
+          "shadows": 2,
+          "frame": 80,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        },
+        {
+          "renderer": "glx",
+          "shadows": 0,
+          "frame": 40,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        },
+        {
+          "renderer": "glx",
+          "shadows": 0,
+          "frame": 80,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        },
+        {
+          "renderer": "vk",
+          "shadows": 2,
+          "frame": 40,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        },
+        {
+          "renderer": "vk",
+          "shadows": 2,
+          "frame": 80,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        },
+        {
+          "renderer": "vk",
+          "shadows": 0,
+          "frame": 40,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        },
+        {
+          "renderer": "vk",
+          "shadows": 0,
+          "frame": 80,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        },
+        {
+          "renderer": "rtx",
+          "shadows": 2,
+          "frame": 40,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        },
+        {
+          "renderer": "rtx",
+          "shadows": 2,
+          "frame": 80,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        },
+        {
+          "renderer": "rtx",
+          "shadows": 0,
+          "frame": 40,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        },
+        {
+          "renderer": "rtx",
+          "shadows": 0,
+          "frame": 80,
+          "identical": true,
+          "meanAbsDiff": 0.0
+        }
+      ],
+      "note": "Quake Live's cgame clamps cg_shadows to 1 before the renderer starts (\"cvar 'cg_shadows' is out of range (max '1'), setting to '1'\"), so RB_ShadowFinish returns before the pass"
+    }
+  }
+}

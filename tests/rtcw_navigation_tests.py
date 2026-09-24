@@ -58,7 +58,7 @@ struct aas_linkstack_t{int nodenum;};
             'void AAS_FreeRoutingCache(', 'static void AAS_RemoveRoutingCacheInCluster(',
             'static void AAS_RemoveRoutingCacheUsingArea(', 'int AAS_EnableRoutingArea(',
             'void AAS_FreeAllClusterAreaCache(', 'void AAS_FreeAllPortalCache(',
-            'void AAS_FreeRoutingCaches('),
+            'void AAS_FreeRTCWVisibility(', 'void AAS_FreeRoutingCaches('),
         'be_aas_routealt.cpp': ('void AAS_InitAlternativeRouting(', 'void AAS_ShutdownAlternativeRouting('),
         'be_aas_main.cpp': ('int AAS_Setup(', 'static void AAS_ShutdownWorld(', 'void AAS_Shutdown('),
     }
@@ -89,6 +89,14 @@ static bool enabled(int world,int area){
 }
 static void checkWorlds(){
  for(const auto &p:profiles){profile=&p;const int count=p.bots.navigationWorlds;
+  if(!count){
+   assert(p.id==COM_GAME_QUAKE3_IHV||p.id==COM_GAME_JKA_SP||p.id==COM_GAME_JK2_SP
+    ||p.id==COM_GAME_ALICE);auto *previous=aas_currentWorld;
+   for(int index:{-1,0,1,2})assert(!AAS_SetCurrentWorld(index)&&aas_currentWorld==previous);
+   assert(AAS_Setup()==BLERR_LIBRARYNOTSETUP&&allocations.empty());
+   assert(aas_currentWorld==previous&&!aasworld.entities);
+   AAS_Shutdown();AAS_Shutdown();assert(allocations.empty());continue;
+  }
   assert(count==(Com_GameIsRTCW()?2:1));assert(AAS_SetCurrentWorld(0));auto *primary=aas_currentWorld;
   assert(!AAS_SetCurrentWorld(-1)&&!AAS_SetCurrentWorld(count)&&aas_currentWorld==primary);
   vec3_t lo={1,-2,-3},hi={2,2,3},zero={};

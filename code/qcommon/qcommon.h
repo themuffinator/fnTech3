@@ -111,6 +111,9 @@ void MSG_WriteStringForWireProfile( msg_t *sb, const char *s,
 void MSG_WriteBigStringForWireProfile( msg_t *sb, const char *s,
 	netchanWireProfile_t profile );
 void MSG_WriteAngle16 (msg_t *sb, float f);
+// American McGee's Alice's per-snapshot sound block.
+void MSG_WriteAliceSounds( msg_t *msg, const aliceServerSound_t *sounds, int count );
+qboolean MSG_ReadAliceSounds( msg_t *msg, aliceServerSound_t *sounds, int *count );
 int MSG_HashKey(const char *string, int maxlen);
 int MSG_HashKeyForWireProfile( netchanWireProfile_t profile,
 	const char *string, int maxlen );
@@ -154,6 +157,9 @@ qboolean MSG_ReadDeltaEntityForWireProfile( msg_t *msg,
 	const entityState_t *from, entityState_t *to, int number,
 	netchanWireProfile_t profile );
 void MSG_ReadDeltaEntityLegacy( msg_t *msg, const entityState_t *from, entityState_t *to, int number, int protocol );
+// The entity a gamestate's baselines are delta-coded from: zero, except Alice's.
+void MSG_NullEntityStateForWireProfile( entityState_t *state,
+	netchanWireProfile_t profile );
 
 void MSG_WriteDeltaPlayerstate( msg_t *msg, const playerState_t *from, const playerState_t *to );
 void MSG_ReadDeltaPlayerstate( msg_t *msg, const playerState_t *from, playerState_t *to );
@@ -306,7 +312,12 @@ qboolean	NET_Sleep( int timeout );
 								// be fragmented into multiple packets
 
 #define	MAX_MSGLEN_BUF	(MAX_MSGLEN+8)	// real buffer size that we need to allocate
-#define MAX_GAME_MSGLEN 32768
+/* The largest game message any active profile may send. Alice's is the
+ * largest: 49,152 bytes, measured from retail alice.exe rather than
+ * assumed from Quake III. Netchan refuses a profile whose message limit
+ * does not fit the buffers below, so this tracks the maximum of
+ * Netchan_MessageLimit over every registered wire profile. */
+#define MAX_GAME_MSGLEN 49152
 #define MAX_GAME_MSGLEN_BUF (MAX_GAME_MSGLEN + 8)
 										// to safely handle overflows
 
@@ -513,6 +524,7 @@ qboolean VM_HasPinnedNativeModule( vmIndex_t index );
 
 void	VM_Free( vm_t *vm );
 void	VM_Clear(void);
+void VM_ClearExcept( vmIndex_t preserve );
 void	VM_Forced_Unload_Start(void);
 void	VM_Forced_Unload_Done(void);
 vm_t	*VM_Restart( vm_t *vm );
@@ -597,6 +609,10 @@ void Cbuf_Execute( void );
 
 void Cbuf_Wait( void );
 // Checks if wait command timeout remaining
+
+void Cbuf_SetFrameMsec( int msec );
+// American McGee's Alice alone: the frame's time the next Cbuf_Execute counts
+// a `wait` down by, since its waits are milliseconds rather than frames.
 
 //===========================================================================
 
@@ -864,6 +880,7 @@ void	FS_InitFilesystem ( void );
 void	FS_Shutdown( qboolean closemfp );
 
 qboolean	FS_ConditionalRestart( int checksumFeed, qboolean clientRestart );
+int		FS_ChecksumFeed( void );
 
 void	FS_Restart( int checksumFeed );
 // shutdown and restart the filesystem so changes to fs_gamedir can take effect
@@ -967,6 +984,8 @@ void	FS_FreeFile( void *buffer );
 
 void	FS_WriteFile( const char *qpath, const void *buffer, int size );
 // writes a complete file, creating any subdirectories needed
+qboolean FS_NativeWritePath( const char *qpath, char *destination, size_t capacity );
+// resolves a contained home/game path and creates parent directories, without opening the file
 
 int		FS_filelength( fileHandle_t f );
 // doesn't work for files that are opened from a pack file
@@ -1299,6 +1318,7 @@ int Z_AvailableMemory( void );
 void Z_LogHeap( void );
 
 void Hunk_Clear( void );
+void Hunk_ClearForMap( void );
 void Hunk_ClearToMark( void );
 void Hunk_SetMark( void );
 qboolean Hunk_CheckMark( void );
@@ -1373,6 +1393,21 @@ void CL_MapLoading( void );
 // when the server is going to load a new map, the entire hunk
 // will be cleared, so the client must shutdown cgame, ui, and
 // the renderer
+
+// American McGee's Alice's engine UI, which its game module reaches through
+// imports 106 (WidgetPrintf: a widget's name and the formatted text), 108
+// (the loading screen's stage) and 109 (UpdateLoadingScreen). They do
+// nothing on a dedicated server, as retail skips them there.
+void Com_AliceWidgetPrint( const char *widget, const char *text );
+void Com_AliceLoadingStage( int stage );
+void Com_AliceUpdateLoadingScreen( void );
+// Alice's savegames (server_alice_save.hpp): the load/save menu reads the last
+// save's error (0 none, 1 disk full, 2 deathmatch, 3 not in a game, 4 dead,
+// 5 bad name) and clears it once shown, and names archives, "*" to list them;
+// the error unwind drops a load in progress.
+int SV_AliceSaveError( qboolean clear );
+qboolean SV_AliceArchiveFileName( const char *name, const char *extension, char *path, int size );
+void SV_AliceSaveAbort( void );
 
 void	CL_ForwardCommandToServer( const char *string );
 // adds the current command line as a clc_clientCommand to the client message.

@@ -5,10 +5,12 @@ Retail Enemy Territory 2.60b's SV_SpawnServer (et.exe 0x4467f0, etded.exe
 current time before advancing it (et.exe 0x4469e1..0x446a12), and its last
 frame the same way (0x446b14..0x446b3a). Between them it drops every bot from a
 single-player or co-op game type, with no reason (0x446a3f..0x446a7b). Every
-other profile keeps the frames it had: Quake III's three and its last, each run
-after advancing the time, and the IHV test's and Alice's own where this tree
-has them. This compiles the production block of SV_SpawnServer, from the
-settling frames to the last frame, and runs it for all thirteen profiles.
+other retail engine runs three frames and its last one the same way, each at
+the current time before advancing it (2026-09-24-settle-frame-order.md), and
+so does every other profile here, but for the IHV test's frames and Alice's
+own where this tree has them. This compiles the production block of
+SV_SpawnServer, from the settling frames to the last frame, and runs it for
+all thirteen profiles.
 """
 from pathlib import Path
 import shutil
@@ -101,15 +103,14 @@ static std::vector<Event> Expected(int p,int type,bool killBots){
  if(alice){
   want.push_back({"alice",1,0,start,""});
  }else{
-  // ET and the IHV test run each frame at the current time, then advance it;
-  // the others advance it first. Either way the frame and the bots are given
-  // the time sv.time holds.
+  // Every profile runs each frame at the current time, then advances it, as
+  // every retail engine does, so the first frame and its bots are given the
+  // level's start.
   for(int i=0;i<(et?6:3);++i){
-   if(!et&&!ihv)time+=100;
    want.push_back({"frame",time,0,time,""});
    want.push_back({"botframe",time,0,time,""});
    game=time;
-   if(et||ihv)time+=100;
+   time+=100;
   }
  }
  want.push_back({"baseline",0,0,time,""});
@@ -126,7 +127,6 @@ static std::vector<Event> Expected(int p,int type,bool killBots){
   else if(bot)want.push_back({"enter",slot,game-start,time,""});
  }
  if(!ihv&&!alice){
-  if(!et)time+=100;
   want.push_back({"frame",time,0,time,""});
   want.push_back({"botframe",time,0,time,""});
  }
@@ -166,26 +166,44 @@ int main(){
  return 0;
 }
 '''
-# Each mutation must make the checks fail.
-ET_FRAME = ('\t\t\tVM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );\n\t\t\tSV_BotFrame( sv.time );\n'
-            '\t\t\tsv.time += 100;\n')
-ET_LAST_FRAME = ('\t\tVM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );\n\t\tSV_BotFrame( sv.time );\n'
-                 '\t\tsv.time += 100;\n\t\tsvs.time += 100;')
+# Each mutation must make the checks fail. ET's frames and every other
+# profile's now read alike, so each anchor starts with text only one of them has.
+FRAME = ('\t\t\tVM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );\n\t\t\tSV_BotFrame( sv.time );\n'
+         '\t\t\tsv.time += 100;\n')
+LAST_FRAME = ('\t\tVM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );\n\t\tSV_BotFrame( sv.time );\n'
+              '\t\tsv.time += 100;\n\t\tsvs.time += 100;')
+ET_LOOP = 'SV_Indices( 6 ) ) {\n\t\t\t(void)ignored;\n\t\t\tCbuf_Wait();\n'
+OTHER_LOOP = 'SV_Indices( 3 ) ) {\n\t\t\t(void)ignored;\n\t\t\tCbuf_Wait();\n'
+ET_LAST = 'etded.exe 0x42d244..0x42d26a).\n'
+OTHER_LAST = 'jk2mp.exe\n\t\t// 0x44db99..0x44dbc8).\n'
 MUTATIONS = {
     'ET settles in three frames': ('SV_Indices( 6 )', 'SV_Indices( 3 )'),
     'ET advances the time before each settling frame': (
-        ET_FRAME, '\t\t\tsv.time += 100;\n\t\t\tVM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );\n'
-                  '\t\t\tSV_BotFrame( sv.time );\n'),
+        ET_LOOP + FRAME, ET_LOOP + '\t\t\tsv.time += 100;\n\t\t\tVM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );\n'
+                                   '\t\t\tSV_BotFrame( sv.time );\n'),
     'ET runs its bots before its game': (
-        ET_FRAME, '\t\t\tSV_BotFrame( sv.time );\n\t\t\tVM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );\n'
-                  '\t\t\tsv.time += 100;\n'),
+        ET_LOOP + FRAME, ET_LOOP + '\t\t\tSV_BotFrame( sv.time );\n\t\t\tVM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );\n'
+                                   '\t\t\tsv.time += 100;\n'),
     'ET settles without its bots': (
-        ET_FRAME, '\t\t\tVM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );\n\t\t\tsv.time += 100;\n'),
+        ET_LOOP + FRAME, ET_LOOP + '\t\t\tVM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );\n\t\t\tsv.time += 100;\n'),
     'every profile settles as ET does': (
         'Com_GameIsWolfET() ) {\n\t\t// Enemy Territory runs six', 'true ) {\n\t\t// Enemy Territory runs six'),
     'ET advances the time before its last frame': (
-        ET_LAST_FRAME, '\t\tsv.time += 100;\n\t\tVM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );\n'
-                       '\t\tSV_BotFrame( sv.time );\n\t\tsvs.time += 100;'),
+        ET_LAST + LAST_FRAME, ET_LAST + '\t\tsv.time += 100;\n\t\tVM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );\n'
+                                        '\t\tSV_BotFrame( sv.time );\n\t\tsvs.time += 100;'),
+    # Quake3e advanced the time before each frame, and so did every profile
+    # but ET and the IHV test here until the retail order was read in every
+    # other engine.
+    'the others advance the time before each settling frame, as in Quake3e': (
+        OTHER_LOOP + FRAME, OTHER_LOOP + '\t\t\tsv.time += 100;\n\t\t\tVM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );\n'
+                                         '\t\t\tSV_BotFrame( sv.time );\n'),
+    'only the IHV test runs its three at the current time, as before': (
+        OTHER_LOOP + FRAME, OTHER_LOOP + '\t\t\tif ( !Com_GameIsQuake3IHV() ) sv.time += 100;\n'
+                                         '\t\t\tVM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );\n\t\t\tSV_BotFrame( sv.time );\n'
+                                         '\t\t\tif ( Com_GameIsQuake3IHV() ) sv.time += 100;\n'),
+    'the others advance the time before their last frame, as in Quake3e': (
+        OTHER_LAST + LAST_FRAME, OTHER_LAST + '\t\tsv.time += 100;\n\t\tVM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );\n'
+                                              '\t\tSV_BotFrame( sv.time );\n\t\tsvs.time += 100;'),
     'every profile runs its last frame as ET does': (
         "if ( Com_GameIsWolfET() ) {\n\t\t// Enemy Territory's runs", "if ( true ) {\n\t\t// Enemy Territory's runs"),
     'ET keeps its single-player and co-op bots': ('( wolfET && (', '( false && ('),

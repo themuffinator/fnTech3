@@ -272,6 +272,9 @@ RE_AddPolyToScene
 
 =====================
 */
+#include "../renderercommon/tr_q3_ihv_particle_scene.h"
+#include "../renderercommon/tr_q3_ihv_entity_scene.h"
+
 void RE_AddPolyToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts, int numPolys ) {
 	srfPoly_t	*poly;
 	int			i, j;
@@ -485,6 +488,7 @@ void RE_AddRefEntityToScene( const refEntity_t *ent, qboolean intShaderTime ) {
 
 	R_TrackMuzzleFlashLightEntity( ent );
 	backEndData->entities[r_numentities].e = *ent;
+	memset( &backEndData->entities[r_numentities].e.q3IHV, 0, sizeof( ent->q3IHV ) );
 	backEndData->entities[r_numentities].lightingCalculated = qfalse;
 	backEndData->entities[r_numentities].intShaderTime = intShaderTime;
 
@@ -545,6 +549,7 @@ static void RE_AddDynamicLightToSceneWithShadowEligibility( const vec3_t org,
 	dl->color[2] = b;
 	dl->additive = additive;
 	dl->linear = qfalse;
+	dl->aliceFlare = 0;
 #ifdef USE_PMLIGHT
 	dl->shadowEligible = shadowEligible;
 	dl->shadowPlanned = qfalse;
@@ -614,6 +619,7 @@ void RE_AddLinearLightToScene( const vec3_t start, const vec3_t end, float inten
 	dl->color[2] = b;
 	dl->additive = 0;
 	dl->linear = qtrue;
+	dl->aliceFlare = 0;
 #ifdef USE_PMLIGHT
 	dl->shadowEligible = qtrue;
 	dl->shadowPlanned = qfalse;
@@ -1273,6 +1279,36 @@ void RE_AddAdditiveLightToScene( const vec3_t org, float intensity, float r, flo
 		R_MuzzleFlashLightShadowEligible( muzzleFlash ) );
 }
 
+
+/*
+=====================
+RE_AddAliceLightToScene
+
+American McGee's Alice's dynamic light carries its client game's type (slot
+59's last argument): bit 4 makes it additive, and bits 1 and 2 give it the
+dynamic light's lens flare, drawn from the light's own origin and colour
+(alice.exe 0x004917e0 keeps the type beside the light; 0x004a8808 draws the
+flare). A light the scene refuses has no flare.
+=====================
+*/
+void RE_AddAliceLightToScene( const vec3_t org, float intensity, float r, float g, float b, int type ) {
+	const int before = r_numdlights;
+	dlight_t *dl;
+
+	if ( type & 4 ) {
+		RE_AddAdditiveLightToScene( org, intensity, r, g, b );
+	} else {
+		RE_AddLightToScene( org, intensity, r, g, b );
+	}
+	if ( ri.gameId != COM_GAME_ALICE || r_numdlights == before ) {
+		return;
+	}
+	dl = &backEndData->dlights[r_numdlights - 1];
+	dl->aliceFlare = type & 3;
+	VectorCopy( org, dl->aliceFlareOrigin );
+	VectorSet( dl->aliceFlareColor, r, g, b );
+}
+
 /*
 =====================
 AdvertisementBridge_UpdateLoadingViewParameters
@@ -1463,6 +1499,14 @@ void RE_RenderScene( const refdef_t *fd ) {
 	tr.refdef.time = fd->time;
 	tr.refdef.rdflags = fd->rdflags;
 	tr.refdef.rtcw = fd->rtcw;
+	// American McGee's Alice: far plane, sky portal and keepDepth, as its
+	// RE_RenderScene copies them (alice.exe 0x00491870); one sky portal a scene
+	if ( ri.gameId == COM_GAME_ALICE ) {
+		tr.refdef.alice = fd->alice;
+	} else {
+		Com_Memset( &tr.refdef.alice, 0, sizeof( tr.refdef.alice ) );
+	}
+	tr.aliceSkyPortalRendered = qfalse;
 	R_CopyRTCWFogToScene( fd );
 	R_WolfETAdvanceGlobalFog();
 	R_CopyRTCWCoronasToScene();

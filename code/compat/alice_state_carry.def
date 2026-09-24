@@ -1,0 +1,123 @@
+/* Copyright (C) 2026 fnTech3 contributors. GPL-2.0-or-later. */
+/* How every networked member of Alice's two records crosses into this
+ * engine's, generated alongside qcommon/alice_state.h so the two cannot
+ * disagree. A member is either mapped onto one this engine already has, or
+ * carried in the extension under its own name; the generator will not emit
+ * this file unless the two sets cover a delta table exactly.
+ *
+ *   FNTECH3_ALICE_ENTITY_MAP( external, internal )
+ *   FNTECH3_ALICE_ENTITY_CARRY( member )
+ *   FNTECH3_ALICE_ENTITY_CARRY_ARRAY( member, count )
+ *
+ * and the same three for the player state. The bone modifiers and the two
+ * masked blocks are moved by hand in the adapter, because each is a record
+ * rather than a member. Intentionally no include guard: consumed as a table.
+ */
+
+#ifdef FNTECH3_ALICE_ENTITY_MAP
+FNTECH3_ALICE_ENTITY_MAP( eType, eType )
+FNTECH3_ALICE_ENTITY_MAP( eFlags, eFlags )
+FNTECH3_ALICE_ENTITY_MAP( pos.trType, pos.trType )
+FNTECH3_ALICE_ENTITY_MAP( pos.trTime, pos.trTime )
+FNTECH3_ALICE_ENTITY_MAP( pos.trDuration, pos.trDuration )
+FNTECH3_ALICE_ENTITY_MAP( pos.trBase[0], pos.trBase[0] )
+FNTECH3_ALICE_ENTITY_MAP( pos.trBase[1], pos.trBase[1] )
+FNTECH3_ALICE_ENTITY_MAP( pos.trBase[2], pos.trBase[2] )
+FNTECH3_ALICE_ENTITY_MAP( pos.trDelta[0], pos.trDelta[0] )
+FNTECH3_ALICE_ENTITY_MAP( pos.trDelta[1], pos.trDelta[1] )
+FNTECH3_ALICE_ENTITY_MAP( pos.trDelta[2], pos.trDelta[2] )
+FNTECH3_ALICE_ENTITY_MAP( apos.trType, apos.trType )
+FNTECH3_ALICE_ENTITY_MAP( apos.trTime, apos.trTime )
+FNTECH3_ALICE_ENTITY_MAP( apos.trDuration, apos.trDuration )
+FNTECH3_ALICE_ENTITY_MAP( apos.trBase[0], apos.trBase[0] )
+FNTECH3_ALICE_ENTITY_MAP( apos.trBase[1], apos.trBase[1] )
+FNTECH3_ALICE_ENTITY_MAP( apos.trBase[2], apos.trBase[2] )
+FNTECH3_ALICE_ENTITY_MAP( apos.trDelta[0], apos.trDelta[0] )
+FNTECH3_ALICE_ENTITY_MAP( apos.trDelta[1], apos.trDelta[1] )
+FNTECH3_ALICE_ENTITY_MAP( apos.trDelta[2], apos.trDelta[2] )
+FNTECH3_ALICE_ENTITY_MAP( netorigin[0], origin[0] )
+FNTECH3_ALICE_ENTITY_MAP( netorigin[1], origin[1] )
+FNTECH3_ALICE_ENTITY_MAP( netorigin[2], origin[2] )
+FNTECH3_ALICE_ENTITY_MAP( origin2[0], origin2[0] )
+FNTECH3_ALICE_ENTITY_MAP( origin2[1], origin2[1] )
+FNTECH3_ALICE_ENTITY_MAP( origin2[2], origin2[2] )
+FNTECH3_ALICE_ENTITY_MAP( netangles[0], angles[0] )
+FNTECH3_ALICE_ENTITY_MAP( netangles[1], angles[1] )
+FNTECH3_ALICE_ENTITY_MAP( netangles[2], angles[2] )
+FNTECH3_ALICE_ENTITY_MAP( constantLight, constantLight )
+FNTECH3_ALICE_ENTITY_MAP( loopSound, loopSound )
+FNTECH3_ALICE_ENTITY_MAP( modelindex, modelindex )
+FNTECH3_ALICE_ENTITY_MAP( frame, frame )
+FNTECH3_ALICE_ENTITY_MAP( clientNum, clientNum )
+FNTECH3_ALICE_ENTITY_MAP( groundEntityNum, groundEntityNum )
+FNTECH3_ALICE_ENTITY_MAP( solid, solid )
+#endif
+
+#ifdef FNTECH3_ALICE_ENTITY_CARRY
+FNTECH3_ALICE_ENTITY_CARRY( loopSoundVolume )
+FNTECH3_ALICE_ENTITY_CARRY( loopSoundMinDist )
+FNTECH3_ALICE_ENTITY_CARRY( parent )
+FNTECH3_ALICE_ENTITY_CARRY( tag_num )
+FNTECH3_ALICE_ENTITY_CARRY( attach_use_angles )
+FNTECH3_ALICE_ENTITY_CARRY( skinNum )
+FNTECH3_ALICE_ENTITY_CARRY( anim )
+FNTECH3_ALICE_ENTITY_CARRY( crossblend_time )
+FNTECH3_ALICE_ENTITY_CARRY( torso_anim )
+FNTECH3_ALICE_ENTITY_CARRY( torso_frame )
+FNTECH3_ALICE_ENTITY_CARRY( torso_crossblend_time )
+FNTECH3_ALICE_ENTITY_CARRY( scale )
+FNTECH3_ALICE_ENTITY_CARRY( alpha )
+FNTECH3_ALICE_ENTITY_CARRY( renderfx )
+FNTECH3_ALICE_ENTITY_CARRY( renderfx2 )
+#endif
+
+#ifdef FNTECH3_ALICE_ENTITY_CARRY_ARRAY
+FNTECH3_ALICE_ENTITY_CARRY_ARRAY( attach_offset, 3 )
+#endif
+
+#ifdef FNTECH3_ALICE_PLAYER_MAP
+FNTECH3_ALICE_PLAYER_MAP( commandTime, commandTime )
+FNTECH3_ALICE_PLAYER_MAP( pm_type, pm_type )
+FNTECH3_ALICE_PLAYER_MAP( bobCycle, bobCycle )
+FNTECH3_ALICE_PLAYER_MAP( pm_flags, pm_flags )
+FNTECH3_ALICE_PLAYER_MAP( pm_time, pm_time )
+FNTECH3_ALICE_PLAYER_MAP( origin[0], origin[0] )
+FNTECH3_ALICE_PLAYER_MAP( origin[1], origin[1] )
+FNTECH3_ALICE_PLAYER_MAP( origin[2], origin[2] )
+FNTECH3_ALICE_PLAYER_MAP( velocity[0], velocity[0] )
+FNTECH3_ALICE_PLAYER_MAP( velocity[1], velocity[1] )
+FNTECH3_ALICE_PLAYER_MAP( velocity[2], velocity[2] )
+FNTECH3_ALICE_PLAYER_MAP( gravity, gravity )
+FNTECH3_ALICE_PLAYER_MAP( speed, speed )
+FNTECH3_ALICE_PLAYER_MAP( delta_angles[0], delta_angles[0] )
+FNTECH3_ALICE_PLAYER_MAP( delta_angles[1], delta_angles[1] )
+FNTECH3_ALICE_PLAYER_MAP( delta_angles[2], delta_angles[2] )
+FNTECH3_ALICE_PLAYER_MAP( groundEntityNum, groundEntityNum )
+FNTECH3_ALICE_PLAYER_MAP( clientNum, clientNum )
+FNTECH3_ALICE_PLAYER_MAP( viewangles[0], viewangles[0] )
+FNTECH3_ALICE_PLAYER_MAP( viewangles[1], viewangles[1] )
+FNTECH3_ALICE_PLAYER_MAP( viewangles[2], viewangles[2] )
+FNTECH3_ALICE_PLAYER_MAP( viewheight, viewheight )
+#endif
+
+#ifdef FNTECH3_ALICE_PLAYER_CARRY
+FNTECH3_ALICE_PLAYER_CARRY( pm_runtime )
+FNTECH3_ALICE_PLAYER_CARRY( feetfalling )
+FNTECH3_ALICE_PLAYER_CARRY( current_music_mood )
+FNTECH3_ALICE_PLAYER_CARRY( fallback_music_mood )
+FNTECH3_ALICE_PLAYER_CARRY( music_volume )
+FNTECH3_ALICE_PLAYER_CARRY( music_volume_fade_time )
+FNTECH3_ALICE_PLAYER_CARRY( reverb_type )
+FNTECH3_ALICE_PLAYER_CARRY( reverb_level )
+FNTECH3_ALICE_PLAYER_CARRY( fov )
+FNTECH3_ALICE_PLAYER_CARRY( camera_time )
+FNTECH3_ALICE_PLAYER_CARRY( camera_flags )
+#endif
+
+#ifdef FNTECH3_ALICE_PLAYER_CARRY_ARRAY
+FNTECH3_ALICE_PLAYER_CARRY_ARRAY( blend, 4 )
+FNTECH3_ALICE_PLAYER_CARRY_ARRAY( camera_angles, 3 )
+FNTECH3_ALICE_PLAYER_CARRY_ARRAY( camera_origin, 3 )
+FNTECH3_ALICE_PLAYER_CARRY_ARRAY( camera_offset, 3 )
+FNTECH3_ALICE_PLAYER_CARRY_ARRAY( damage_angles, 3 )
+#endif

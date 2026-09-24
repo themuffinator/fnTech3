@@ -93,7 +93,7 @@ class RTCWDirectionTests(unittest.TestCase):
     def test_real_prediction_ground_flag_liquids_snapshot_settings_and_shutdown(self):
         self.run_source(r'''
 int main(){
- for(const auto &p:profiles){profile=&p;const bool rtcw=Com_GameIsRTCW();int state=prepare();auto *ms=botmovestates[state];
+ for(const auto &p:profiles){profile=&p;if(!p.bots.navigationWorlds)continue;const bool rtcw=Com_GameIsRTCW();int state=prepare();auto *ms=botmovestates[state];
   vec3_t direction{1,0,0};assert(BotMoveInDirection(state,direction,200,MOVE_WALK)==1);
   assert(botinputs[0].speed==(rtcw?0:200));assert(bool(ms->moveflags&MFL_ONGROUND)==!rtcw);
   EA_ResetInput(0);ms->moveflags=MFL_ONGROUND;
@@ -145,7 +145,7 @@ int main(){
     def test_prediction_stop_events_failed_prediction_and_partial_actions(self):
         self.run_source(r'''
 int main(){
- for(const auto &p:profiles){profile=&p;const bool rtcw=Com_GameIsRTCW();int state=prepare();auto *ms=botmovestates[state];
+ for(const auto &p:profiles){profile=&p;if(!p.bots.navigationWorlds)continue;const bool rtcw=Com_GameIsRTCW();int state=prepare();auto *ms=botmovestates[state];
   vec3_t direction{1,0,0};
   for(int event:{0,SE_ENTERSLIME,SE_ENTERLAVA,SE_HITGROUNDDAMAGE,SE_HITGROUND}){
    ms->moveflags=MFL_ONGROUND;EA_ResetInput(0);predictedMove={};predictedMove.endpos[0]=100;

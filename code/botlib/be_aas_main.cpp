@@ -459,6 +459,7 @@ static int AAS_LoadRTCWMap(const char *mapname)
 int AAS_LoadMap(const char *mapname)
 {
 	int	errnum;
+	if ( !Com_GameProfile()->bots.navigationWorlds ) return BLERR_LIBRARYNOTSETUP;
 
 	//if no mapname is provided then the string indexes are updated
 	if (!mapname)
@@ -501,7 +502,7 @@ int AAS_LoadMap(const char *mapname)
 //===========================================================================
 int AAS_Setup(void)
 {
-	AAS_SetCurrentWorld( 0 );
+	if ( !AAS_SetCurrentWorld( 0 ) ) return BLERR_LIBRARYNOTSETUP;
 	aasworld.maxclients = (int) LibVarValue("maxclients", "128");
 	aasworld.maxentities = (int) LibVarValue("maxentities", "1024");
 	// as soon as it's set to 1 the routing cache will be saved

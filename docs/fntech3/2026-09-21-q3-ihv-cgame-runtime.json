@@ -1,0 +1,1288 @@
+{
+  "date": "2026-09-21",
+  "recorded_utc": "2026-09-21T05:51:24.878030+00:00",
+  "scope": "Bounded native IHV MD3 frame/tag metadata and model mirrors; original cgame Init, unpatched snapshot/frame/draw callbacks in an isolated CPU host with synthetic collision/resources and captured scenes. No rendered engine playback or live session.",
+  "profile": "q3-ihv; native startup remains blocked in all builds",
+  "commit": "9e1841de53d79f96cdbbde83a1427d1c7d83f31d",
+  "working_tree": "Uncommitted model/cgame follow-up; previous Q3/IHV and unrelated RTCW changes retained.",
+  "platform": "Windows x86 MSVC 14.44.35207 / Meson win32 preset; Windows x64 Clang 20.1.7 ASAN diagnostic with -O2 -ffast-math.",
+  "reference": {
+    "repository": "https://github.com/themuffinator/Quake3-IHV/tree/d5ce877155904c57f8b28fe0fd0c8aa2e9473337",
+    "inputs": [
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/quake3.exe",
+        "bytes": 725042,
+        "sha256": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/cgamex86.dll",
+        "bytes": 192570,
+        "sha256": "175f94756f994b06235690fdd2d9fe798503f7a797f2e070277a672847593614"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/demos/sli.dm3",
+        "bytes": 8628,
+        "sha256": "fbdc209d1c7fc1075976c9120c79d5e579ed36f4e38062b01248d6b2d807c57b"
+      }
+    ],
+    "model_inputs": [
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/ammo/grenade1.md3",
+        "bytes": 1604,
+        "sha256": "48d2351ec649c903460f5eb34cf63ce35cee6178213a16f52374556c7436f488"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/ammo/rocket/rocket.md3",
+        "bytes": 3196,
+        "sha256": "357ccc76cd99a731c0007f3d2eff469e05789796601c051d7200582246bbc603"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/flags/b_flag.md3",
+        "bytes": 932,
+        "sha256": "3adf1abcc5d3ac23ef5514981f9306148aa3a7f3e55009d2c8d0cee34e330c9e"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/flags/r_flag.md3",
+        "bytes": 932,
+        "sha256": "350394a2de60253d8830b5afe03382752f040558b544cddb8723643c71c683e8"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/gibs/abdomen.md3",
+        "bytes": 2076,
+        "sha256": "cef82be67f9f287f203ca65ca0786964e17af231a5c5bdba11686cb4a7678e22"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/gibs/arm.md3",
+        "bytes": 2452,
+        "sha256": "647a96fb98ba0e16d3d2412167d5d374989d4100d933514476c50155569e4410"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/gibs/chest.md3",
+        "bytes": 3996,
+        "sha256": "b5c0e80f0f7634e2a4f085439ac8d858fd8aa0041b7e072f2975463f7f329120"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/gibs/fist.md3",
+        "bytes": 1124,
+        "sha256": "807e7ae1fc11afe1cbbc39b494b02f244ef1d8fc3c5f50e7468e8675e8187904"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/gibs/foot.md3",
+        "bytes": 1100,
+        "sha256": "c05bfaa803f298e1318714830574d513f1964fd0ac858a1a1d92540f51612d0a"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/gibs/forearm.md3",
+        "bytes": 2252,
+        "sha256": "ba1ad78b1437161e30406adb33584f5981aacc6c4c842d33ab1dd7822b304e53"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/gibs/intestine.md3",
+        "bytes": 1932,
+        "sha256": "8824369d7e9121b6dcc6d6e1f5aea6fb0b55303e17f2ade615b5a0c63286329f"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/gibs/leg.md3",
+        "bytes": 2580,
+        "sha256": "a93392f7722b5d6535f4e1599536e51be1da56d3493659c43762ba12017cdc48"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/gibs/skull.md3",
+        "bytes": 4316,
+        "sha256": "b434c745ae651abfce6023386d5445786ad62bead553aa90fed67bb00f438bd9"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/mapobjects/arenalogo.md3",
+        "bytes": 8292,
+        "sha256": "4a99c07dff123e63f6307a01aa49e0581bc2ac09accaaa56c1b8ce094d0b756b"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/objects/dmspot.md3",
+        "bytes": 3604,
+        "sha256": "1cddcb06f4af75c588c3002c208ac6273ee78c17489fb48ee3a020a8b482d2e0"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/players/sarge/head.md3",
+        "bytes": 2636,
+        "sha256": "18d0c2dbd57b2db56d30a3094b9346cb6cb6c2756b74a9de77024c262f8faa30"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/players/sarge/lower.md3",
+        "bytes": 596260,
+        "sha256": "fe9751d0aab3b1f7cdfade15c8cfe957ed2529adeab2ffcc600dd38a5f023bb9"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/players/sarge/upper.md3",
+        "bytes": 468636,
+        "sha256": "0024825137b021931a49463e86adb4fa2185fa851b385010b3087d9ac4d3a405"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/powerups/ammo/bfgam.md3",
+        "bytes": 7444,
+        "sha256": "fbe40f846b190737457efdc272a96d361ffc993b757c0346479bb5f4c3e33a4a"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/powerups/ammo/bfgam_1.md3",
+        "bytes": 1572,
+        "sha256": "608da5b4b043a98ac1468db823bb84b697f328a3518264395294eb93d5c61075"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/powerups/ammo/flameam.md3",
+        "bytes": 7444,
+        "sha256": "f472906081db6023cd5cba2568ba4ca7b336f61aacdb993ad72a74d47b2bb0c5"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/powerups/ammo/flameam_1.md3",
+        "bytes": 1572,
+        "sha256": "60de3e7ed2dc03915f7475b11e9a2a1f909b0e2777751da5060f9a6d2f9bac00"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/powerups/ammo/grenadeam.md3",
+        "bytes": 7444,
+        "sha256": "accd203480ea7b08509043082b29bd3946eb6894878a83d3a9c1120ce724256c"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/powerups/ammo/grenadeam_1.md3",
+        "bytes": 1572,
+        "sha256": "1fa0041ae7f77ab926af1e851c35d38ab4f7e7fa20e5c65c95b82eecc5279eab"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/powerups/ammo/lightningam.md3",
+        "bytes": 7444,
+        "sha256": "d92ec5766408468db694b534347deac95c018e19f3aed9bc4cbcd46d53d7521f"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/powerups/ammo/lightningam_1.md3",
+        "bytes": 1572,
+        "sha256": "5a6c3fd1cfdd63854cecda3f56d822025abb6f279088b1c60efe1144547c19d5"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/powerups/ammo/machinegunam.md3",
+        "bytes": 7444,
+        "sha256": "16df9f238d718781f9621b7081e16a1a237cc147c4d15a500360ca3313d65b94"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/powerups/ammo/machinegunam_1.md3",
+        "bytes": 1572,
+        "sha256": "41186932917eff8127770a995685a767dc06344f55e071ac8bd907cea40e902f"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/powerups/ammo/plasmaam.md3",
+        "bytes": 7444,
+        "sha256": "4664fa64b31924557453482057910a9eb7994119500337d2a6598bbde5b3d044"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/powerups/ammo/plasmaam_1.md3",
+        "bytes": 1572,
+        "sha256": "294ccc6efc24e7e23368fe239806b60d5583af51d72d0c33e340faf5d069b94a"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/powerups/ammo/railgunam.md3",
+        "bytes": 7444,
+        "sha256": "7f4828c83f4fa19ea5592ab1693554c0dda688e630166c20620416020fd8e157"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/powerups/ammo/railgunam_1.md3",
+        "bytes": 1572,
+        "sha256": "c8e3bfb146348ec93a38723c420e60da4b0ac66d136c3f492d0d67385f922e5e"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/powerups/ammo/rocketam.md3",
+        "bytes": 7444,
+        "sha256": "5cf2c3e9825f993001c3da87818fcf158405936318ebd1cbb610ab544abab4bd"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/powerups/ammo/rocketam_1.md3",
+        "bytes": 1572,
+        "sha256": "9472a497d207000b8e9248437fa7ca9d2c2475ac81a9c7be8e8a0e8d8ef2c22c"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/powerups/ammo/shotgunam.md3",
+        "bytes": 7444,
+        "sha256": "91fb5c4fd4eec66874f12d17671e778d615f58cfb04ed24f86cd809b1ea1512f"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/powerups/ammo/shotgunam_1.md3",
+        "bytes": 1572,
+        "sha256": "ab66b48e6fd7ad11ea42fa57cc1ba255653cb5c931f558670a9032beb16d6333"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/powerups/armor/armor_yel.md3",
+        "bytes": 6092,
+        "sha256": "d39b4a63bb591084b4ebf1e3ffa532aa8bef463740098970fc349c9d5b22ebc7"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/powerups/health/large_cross.md3",
+        "bytes": 1252,
+        "sha256": "0674a871cbcca2baa62864524dc5e0fc1c96a4b1e93ffe955cdaeff95071f16b"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/powerups/health/large_sphere.md3",
+        "bytes": 2196,
+        "sha256": "b3279bb70dac560a1c4669c321d4cb055965c010ae8b2d5f65f8b92919bc9cee"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/powerups/health/large_sphere_1.md3",
+        "bytes": 1156,
+        "sha256": "6332c63410c35e252857875159a9182b2e881c0eab565af6ce9edb33f87c0f12"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/powerups/health/medium_sphere.md3",
+        "bytes": 2196,
+        "sha256": "58cc4ec8041e0a88022e662f94cf6b7bec32ad66338343eb51418d35d98f0713"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/powerups/health/medium_sphere_1.md3",
+        "bytes": 1156,
+        "sha256": "dedbfdb10571a3e6fb4d1389144c100165700beb863fc7f92da4a76206c06667"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/powerups/holdable/medkit.md3",
+        "bytes": 9804,
+        "sha256": "e6d414508bac8e57f1a923735c78f511720ec481fd0f1878c196d71a436e4bfe"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/powerups/instant/quad.md3",
+        "bytes": 6132,
+        "sha256": "d8b6567d730af9d9c3844b13ec77fb02146ddab27156159182782e996a9cd0de"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/powerups/instant/quad_1.md3",
+        "bytes": 3492,
+        "sha256": "4dd8accf73ea215cf287ab9c3849c87f77e17dd93d61854ba85081d321857693"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/powerups/instant/quad_ring.md3",
+        "bytes": 3388,
+        "sha256": "39c7eb43783df76a9dbc2daa4a299f40608c58281d31c543b7bc1a2b8497f852"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/powerups/instant/quad_ring_1.md3",
+        "bytes": 1948,
+        "sha256": "9df9f80ba32d65f9854a105cca95908ba8c09fcd8fc116d942c8cf06e9d1bfa5"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weaphits/blood.md3",
+        "bytes": 700,
+        "sha256": "4cb68bbe4e0c35d7ddd2e2bc492e81561c47c3df02fe110f0533889b78ab43a1"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weaphits/boom01.md3",
+        "bytes": 3036,
+        "sha256": "f073878b987c0eb0c5db44afe4f32b17c14eb2cbadb5cca01be4fbaf04888a49"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weaphits/boom02.md3",
+        "bytes": 3036,
+        "sha256": "c29bf2724ed884080f56960ccc96c2ae28005f264f32c2455665ce3417743f47"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weaphits/boom03.md3",
+        "bytes": 3036,
+        "sha256": "8fc650fdfe5773faedbed8df52e932ae0cf010d04695960e28b502da851a6975"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weaphits/boom04.md3",
+        "bytes": 3036,
+        "sha256": "62d90606421805dfee5bebf1f427b4bd014d225a666e42bdace2f4c808bf2055"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weaphits/boom05.md3",
+        "bytes": 3036,
+        "sha256": "b7b9437c28f344b6269c4561056224115a27173dc850e8665704d4b4a226e8e6"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weaphits/boomgra.md3",
+        "bytes": 1916,
+        "sha256": "84fe18464028d8b59601871379fe8771b3a340fdb9be9dd122b7fb8121b6fd2e"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weaphits/bullet.md3",
+        "bytes": 1916,
+        "sha256": "743a1fef8a92f5fadfc676820fae0be140a36f329d93923abf632599c16ae35d"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weaphits/ring01.md3",
+        "bytes": 1916,
+        "sha256": "162724d4f306578eb9ab63e5c0687f95a05b0d282e8ed2f4490b449a0495b4b4"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weaphits/ring02.md3",
+        "bytes": 1916,
+        "sha256": "a231fd363ae28203657a5851ba61c0384d83c57af6fee7d0f96baa8d7a07c852"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/bfg/bfg.md3",
+        "bytes": 15480,
+        "sha256": "72b8d489f07fa770e6e5aca89e6b774f3a7f6f79cb77f6118f78b386c942148d"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/bfg/bfg_1.md3",
+        "bytes": 6688,
+        "sha256": "baf254d4af31ef36c26831594ec1fb8bfaf7effa3688918a9a583b31f4bb10e7"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/bfg/bfg_2.md3",
+        "bytes": 2972,
+        "sha256": "c28459b16a53c54e4be7b233219b5ecbb663c4c0a949fb21f636ff9f1f48dfcf"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/bfg/bfg_flash.md3",
+        "bytes": 1156,
+        "sha256": "aba3492dcfadf0030519dd1e6277c319fb9ffa02f4d0ad684316d7d71ef79c19"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/bfg/bfg_hand.md3",
+        "bytes": 4308,
+        "sha256": "93f9966c718f5a5124cc435fd57d1be68e98bf6565f4c366e07bbaf22c94bf83"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/chainsaw/chainsaw.md3",
+        "bytes": 7276,
+        "sha256": "b6c297f84957a22da8f2864ae9885e7576124f2a43599de8ae8b9008adb8d7d3"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/chainsaw/chainsaw_1.md3",
+        "bytes": 4560,
+        "sha256": "6f47f713b6eadf632822de2571fe9e719f57e142f4e2278f04a714392233eeaa"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/chainsaw/chainsaw_2.md3",
+        "bytes": 2432,
+        "sha256": "69c9b02f14f1c0cae58e91c8c62dbf05b2f0516875bbf9ece168b8d2bb4e1bbd"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/chainsaw/chainsaw_flash.md3",
+        "bytes": 1616,
+        "sha256": "7f86d54c1e67a212496c495f509084a0fc406ad193be7f080b49456e4f0eb4da"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/chainsaw/chainsaw_hand.md3",
+        "bytes": 4308,
+        "sha256": "ca802163a59df80555f7cdeb10605ed2b4f81d900c941d84475eef99c8f3d805"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/flamethrower/flamethrower.md3",
+        "bytes": 12352,
+        "sha256": "9dc353e573e75e44e6d27cd794bc3a86172629e1ed0dbd5e09cfeb1af9e331ed"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/flamethrower/flamethrower_flash.md3",
+        "bytes": 1156,
+        "sha256": "510b7209ab03785e68dbece082704a3f2d56806fac66e3e0f425d546dc45c614"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/flamethrower/flamethrower_hand.md3",
+        "bytes": 4308,
+        "sha256": "21452a14e2e33361cc69d6b803d7ad4a33539bca32aae850d60836759adffed5"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/grapple/grapple.md3",
+        "bytes": 13176,
+        "sha256": "c454cb44ccdb4e4127fd2aa64bfa90bc55d211b7d60c52c96b57d10de75c57d5"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/grapple/grapple_1.md3",
+        "bytes": 7156,
+        "sha256": "0cb009d29e8f121bd190b1d8edfa4830082a55f7b271aeaf0d851d48233343f3"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/grapple/grapple_2.md3",
+        "bytes": 4060,
+        "sha256": "25b42cabdac839969b3eed324572b440c07faf781ad48e308b340c595b184ad8"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/grapple/grapple_flash.md3",
+        "bytes": 1156,
+        "sha256": "daf28688213516b4f0d3cc6d2b95b9dee6eea87e3214d9bf5989fb3998c11ac6"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/grapple/grapple_hand.md3",
+        "bytes": 4308,
+        "sha256": "ee139d8a74e56c596330d9db389c0ecb030e5ec8d308a27aeecce3124339fe0b"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/grenadel/grenadel.md3",
+        "bytes": 13668,
+        "sha256": "61d352e345e387031cdc7a26b94dae09efa0f5adf91524773dd0b6196b0bcff0"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/grenadel/grenadel_1.md3",
+        "bytes": 4376,
+        "sha256": "0fca35e205aeac71ff60eafa00017f565303e0f5693fbb5e240e4bc1680b399d"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/grenadel/grenadel_2.md3",
+        "bytes": 2392,
+        "sha256": "b40eb2806dbb7b69bf071235e819bf4e67070d1b7aa4bdb74a49a3255061f5b3"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/grenadel/grenadel_flash.md3",
+        "bytes": 1156,
+        "sha256": "73141d1a7d354b6e847d8dc4ac9a8e347d88d403bd9ab3af64c6ba1a86330d39"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/grenadel/grenadel_hand.md3",
+        "bytes": 4308,
+        "sha256": "d8c84c58633ff20f3205822d82f01aab30418aebf4d9a0f8b8902a062621e15b"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/lightning/lightning.md3",
+        "bytes": 12436,
+        "sha256": "38cd0dab739b4f70571c205633ae16e9d0ac4a247067f29e4322ed9a66f03f2a"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/lightning/lightning_1.md3",
+        "bytes": 8844,
+        "sha256": "17bdf05c8a861b7f56493bc74bb9d4eb38d9d4f4e27401c2fa58fd4ccbcf42d7"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/lightning/lightning_2.md3",
+        "bytes": 6512,
+        "sha256": "ff577e96da4318226789a9156e223e742555b3c4c1a3f6739f0055f65dfce666"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/lightning/lightning_flash.md3",
+        "bytes": 1156,
+        "sha256": "4153cf8da8893e291aa7cc2d072cec6361fd30410f7e0123338ebe8283c3b269"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/lightning/lightning_hand.md3",
+        "bytes": 4308,
+        "sha256": "75ee8034c6b7efb830f2ad221a3cdec8e2cd1370a60ca21ea2b30326f4ba8dfc"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/machinegun/machinegun.md3",
+        "bytes": 9872,
+        "sha256": "d25ece437380f7673c74d31649bc978072b81c339baa77e410b6a54180bbc7a2"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/machinegun/machinegun_1.md3",
+        "bytes": 5268,
+        "sha256": "70bdc2ae5d53f8ed4e8409d55e04f27e6f5cafe9e1874fa8d36a7952833c4e07"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/machinegun/machinegun_2.md3",
+        "bytes": 2400,
+        "sha256": "79dd2612e017464d771bbc1f00daafe6aeee8cbf90819439ca3c772efe46ab60"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/machinegun/machinegun_flash.md3",
+        "bytes": 1268,
+        "sha256": "7dd665d02028e4a6facddd0b7a3f116f46a39257a617fcec864ed98fa9740793"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/machinegun/machinegun_hand.md3",
+        "bytes": 5988,
+        "sha256": "ebbdc581c7b999caff63f5d111ddeae05ae8edd0ca8f5831c5cb41e71d10e578"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/plasma/plasma.md3",
+        "bytes": 13240,
+        "sha256": "08bcf6ec30954b8929af145a0ce7ef46ca11b243400af1128863941ed3c89029"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/plasma/plasma_flash.md3",
+        "bytes": 1156,
+        "sha256": "64988b5a86149da069849b95248628655544b773912c7f26fd175b85e8f3a91f"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/plasma/plasma_hand.md3",
+        "bytes": 4308,
+        "sha256": "3e265fa00ff9aef2279abac2158200600205dcf88efb57b67e53c92194acc0e9"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/railgun/railgun.md3",
+        "bytes": 14800,
+        "sha256": "270ba4a8fc9889cd395f861d9c841b7b2d4281ef0b73be31a7c5a812785db494"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/railgun/railgun_1.md3",
+        "bytes": 9140,
+        "sha256": "142dbcb6c7899c02838e4fe3b70d0e50c5cdf3affc78176ee1791523aefd1272"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/railgun/railgun_2.md3",
+        "bytes": 5308,
+        "sha256": "bdfef4b2a39157c607a80ce09de9ab2c57200a69539c3d878a50e5d8fb9f84df"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/railgun/railgun_flash.md3",
+        "bytes": 1156,
+        "sha256": "253325277e93d4cb93a653dd6b2b12161651803b5942a1d26c77ee7e83834e67"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/railgun/railgun_hand.md3",
+        "bytes": 4308,
+        "sha256": "05cc48a469d7abe18d700c6d10f9cec351b9395cb1b6c7d62167a8246a888135"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/rocketl/rocketl.md3",
+        "bytes": 15604,
+        "sha256": "150ef725968458a9fdff1e2d5a20f97c9a90ee5c3c0d50cbab1cb1ef66314ece"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/rocketl/rocketl_1.md3",
+        "bytes": 7736,
+        "sha256": "d012997055d5497250858f83b405b78bd2d386c030f6729cba064527f4888000"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/rocketl/rocketl_2.md3",
+        "bytes": 2844,
+        "sha256": "967e179949e460bf4c3bad60efe99ae0e7207d442c7619a9863fc66061df8f2a"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/rocketl/rocketl_flash.md3",
+        "bytes": 1156,
+        "sha256": "9b1fc9c4bc12d073a1925a976a85cc24ab4f4e076b24aaee022963c82ca07118"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/rocketl/rocketl_hand.md3",
+        "bytes": 4308,
+        "sha256": "14eb32a809f7893740014e32b4af3f61eeaa85fd9d41e16d70ee50cc64d838aa"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/shotgun/shotgun.md3",
+        "bytes": 13160,
+        "sha256": "b2c42f724fc0ee1d321c53b1f2fb3d1b3e00973beabe00c9cb042bc5be1098b4"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/shotgun/shotgun_1.md3",
+        "bytes": 5148,
+        "sha256": "cd6641c37910376060bedaa2795666c09698a58426c57e4fe2f706becd10935a"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/shotgun/shotgun_2.md3",
+        "bytes": 3108,
+        "sha256": "083df829849d7e7064312e50a930605ce4bbee5e1712219441d2db16c74c5472"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/shotgun/shotgun_flash.md3",
+        "bytes": 1156,
+        "sha256": "1080de4ed9c45385a2c32f386fdefbd55510ff6b162e5acfa3ca935b8155991e"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/models/weapons2/shotgun/shotgun_hand.md3",
+        "bytes": 4308,
+        "sha256": "f0a0701adc91f00c0fd02110893158e204e16910100c243dec0e47c63b5132f9"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/sprites/balloon.md3",
+        "bytes": 428,
+        "sha256": "71e71d2552058c596aec4782865fe51f711d7de2029687c7aa51b75b7a7bcec8"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/sprites/connection.md3",
+        "bytes": 428,
+        "sha256": "0d5095ae253d7e98f142cecf247478cf442fcdfb14a47d6ca81d882262256f2a"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/baseq3/sprites/plasma.md3",
+        "bytes": 496,
+        "sha256": "ec2d1d35dbe8e28d80235f71cad6ecf14f38c8ba2488468187ddbd70845e96df"
+      }
+    ],
+    "incorporation": "Independent implementation from numeric and ABI observations. No external implementation, original module, recording or asset incorporated.",
+    "tag_execution": "Original CM_GetTag/CM_LerpTag and vector normalization in a hash-pinned numeric executable host at base 0x3f0000. Generated native descriptors refer to supplied raw MD3 tag tables. x87 precision 53, round-nearest; no original entry point or filesystem runtime.",
+    "cgame_execution": "Normal LoadLibraryEx initializes the supplied cgame DLL and its CRT. No original code patched. Services are scoped callbacks: CvarMirror, ClientSession records, real NativeModelMetadata, empty collision replies, synthetic registration tokens, captured drawing/audio. Original engine is not loaded."
+  },
+  "observations": {
+    "model_descriptor": {
+      "bytes": 112,
+      "name": 28,
+      "is_md3": 92,
+      "frame_count": 96,
+      "tag_count": 100,
+      "frame_pointer": 104,
+      "tag_pointer": 108
+    },
+    "frame_record": {
+      "bytes": 56,
+      "mins": 0,
+      "maxs": 12,
+      "local_origin": 24,
+      "radius": 36,
+      "name": 40
+    },
+    "tag_record": {
+      "bytes": 112,
+      "name": 0,
+      "origin": 64,
+      "axes": 76
+    },
+    "tag_semantics": "High frames clamp, exact case-sensitive lookup per frame, fraction is end weight, independently normalize each axis, leave output name bytes unchanged. Negative/nonfinite/overflowing inputs are rejected safely by the adapter.",
+    "native_frame_read": "Cgame RVAs 0x42cb/0x42de/0x42f5 follow collision-model offset 104 for HUD model positioning. An opaque C++ metadata pointer was incompatible; the owned native mirror fixes exploratory process-dependent origins.",
+    "scene_records": {
+      "scene_bytes": 152,
+      "entities": {
+        "count_offset": 120,
+        "pointer_offset": 124,
+        "stride": 100
+      },
+      "lights": {
+        "count_offset": 128,
+        "pointer_offset": 132,
+        "stride": 28
+      },
+      "particles": {
+        "count_offset": 136,
+        "pointer_offset": 140,
+        "stride": 16
+      },
+      "polys": {
+        "count_offset": 144,
+        "pointer_offset": 148,
+        "stride": 16
+      },
+      "poly_vertex_stride": 24
+    },
+    "correction": "Cgame helper RVA 0x4b90 is packet-loss/ping graph history, not prediction. Earlier cgame-copy/client-data JSON records retain historical wording and hashes; this observation supersedes that label. New runtime host does not patch it."
+  },
+  "validation": {
+    "original_tags": {
+      "scope": "original CM_LerpTag with generated model descriptors, synthetic and optional read-only MD3 metadata; no engine session",
+      "models": 111,
+      "tagged_models": 54,
+      "cases": 79625,
+      "found": 20300,
+      "components": 243600,
+      "different_float_bits": 0,
+      "max_absolute_error": 0,
+      "fnv1a64": "c8cd2bc9eb0e1ad7"
+    },
+    "original_cgame": {
+      "scope": "original cgame Init, unpatched snapshots and optional frame/draw callbacks; real read-only MD3 tags, synthetic collision/resource services, captured scenes; no engine/display/input/audio/network session",
+      "snapshots": 56,
+      "frame_callbacks": 56,
+      "ready_frames": 56,
+      "packet_graph_count": 154,
+      "files": 14,
+      "tag_models": 11,
+      "tag_matches": 472,
+      "resources": 173,
+      "calls": [
+        0,
+        1,
+        0,
+        0,
+        59,
+        0,
+        0,
+        0,
+        0,
+        14,
+        11,
+        0,
+        0,
+        0,
+        0,
+        112,
+        1,
+        472,
+        1,
+        56,
+        0,
+        26,
+        1,
+        56,
+        0,
+        314,
+        112,
+        14,
+        0,
+        56,
+        0,
+        56,
+        1,
+        75,
+        75,
+        1,
+        1,
+        0,
+        0,
+        1,
+        66,
+        15,
+        47,
+        124,
+        387,
+        359,
+        0,
+        0,
+        15,
+        50,
+        0,
+        136,
+        0,
+        288,
+        22,
+        72,
+        1,
+        0,
+        736,
+        90,
+        0,
+        0
+      ],
+      "scenes": 124,
+      "scene_entities": 818,
+      "scene_lights": 0,
+      "scene_particles": 42696,
+      "scene_polys": 1,
+      "scene_fnv1a64": "a1f3252c1dfd6fe0",
+      "view_fields": [
+        "9fa66592e7b859e5",
+        "5a43d43ae2ceb921",
+        "4f5c3df14e967945",
+        "6c4ea7ff0f5f3e55",
+        "a688bbe2238362ad",
+        "e942225a0c595285",
+        "293f480182669c45",
+        "abbc3540384f3b15",
+        "8b390ecc29522f87",
+        "1438e25866e1898d",
+        "ba797c34f630b00f",
+        "fdb2145cabbe1b66",
+        "380d4ba55279dc73",
+        "70e4c79d998ddfd0",
+        "8118c36ddb25ec8f",
+        "a574f1f917c8de4f",
+        "51ca70e7fa2f0ee0",
+        "58ca01bb82df0c59",
+        "5401da248ed997ec",
+        "9fa66592e7b859e5",
+        "9fa66592e7b859e5",
+        "9fa66592e7b859e5",
+        "9fa66592e7b859e5",
+        "9fa66592e7b859e5",
+        "9fa66592e7b859e5",
+        "9fa66592e7b859e5",
+        "9fa66592e7b859e5",
+        "295866a251cea299",
+        "2e61bcde484f29c5"
+      ],
+      "entity_fields": [
+        "5e7091c957901949",
+        "92d1ba5a2fe2d6c1",
+        "91093aaa86aa5e3d",
+        "94ce22a132754f1c",
+        "51134706382e918c",
+        "7ae28751e2ee35fa",
+        "56a3c3369ce8cd94",
+        "f9e73b03a41ebf85",
+        "26e659e14e440598",
+        "f46dd747067218cb",
+        "51fc9b74d7bebbc3",
+        "242d843f0bb11da1",
+        "79c7263f22ab7911",
+        "619eb3e2037e2021",
+        "335ba81069c0fd02",
+        "4818c97f350f863d",
+        "4eb6ddce5c33aee0",
+        "b5aad2cdbf785543",
+        "173b122cd5504d96",
+        "f5a6210897220145",
+        "cd25763426bf6ba5",
+        "763e3e97a1c6b8c5",
+        "740cebb7d389ea05",
+        "763e3e97a1c6b8c5",
+        "40edb8c86b4757fd"
+      ]
+    },
+    "repeat_identical": true,
+    "build": "PASS: complete incremental Meson win32 preset build",
+    "focused_meson": "PASS: model tags, client data, configstrings, message and native boundary targets",
+    "synthetic_init": {
+      "scope": "original cgame Init, unpatched snapshots and optional frame/draw callbacks; real read-only MD3 tags, synthetic collision/resource services, captured scenes; no engine/display/input/audio/network session",
+      "snapshots": 0,
+      "frame_callbacks": 0,
+      "ready_frames": 0,
+      "packet_graph_count": 0,
+      "files": 0,
+      "tag_models": 0,
+      "tag_matches": 0,
+      "resources": 97,
+      "calls": [
+        0,
+        0,
+        0,
+        0,
+        59,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        39,
+        0,
+        1,
+        1,
+        0,
+        0,
+        1,
+        26,
+        0,
+        34,
+        0,
+        0,
+        0,
+        0,
+        0,
+        5,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "scenes": 0,
+      "scene_entities": 0,
+      "scene_lights": 0,
+      "scene_particles": 0,
+      "scene_polys": 0,
+      "scene_fnv1a64": "cbf29ce484222325",
+      "view_fields": [
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325"
+      ],
+      "entity_fields": [
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325",
+        "cbf29ce484222325"
+      ]
+    },
+    "callback_failures": [
+      {
+        "injected_import": 17,
+        "failure_cleanup": true
+      },
+      {
+        "injected_import": 43,
+        "failure_cleanup": true
+      }
+    ],
+    "identity": "PASS: incorrect original EXE/DLL identities rejected before load/mapping",
+    "unit": "PASS: 882 interpolation cases; truncation, malformed ranges/counts/overlap/nonfinite data, output preservation, native frame reads/pointers, failed reload, name bounds and architecture guard",
+    "asan": "PASS: x64 Clang 20.1.7 -O2 -ffast-math AddressSanitizer, checks enabled; stored-bit fraction validation avoids finite-math assumptions on a by-value float parameter",
+    "original_registration": {
+      "models": 111,
+      "opens": 111,
+      "reads": 333,
+      "seeks": 222,
+      "frame_bytes": 36176,
+      "tag_bytes": 141008,
+      "fnv1a64": "cf8a750e588d4289"
+    },
+    "registration_execution": "Original CM_RegisterModel 0x40a140 with replaced read-only file open/read/seek/close, allocation, string-copy, diagnostic and little-endian services. Compare 104 descriptor bytes excluding pointers plus complete frame/tag arrays. Duplicate registration returns the original cache address; all host allocations released. No engine entry point or native filesystem initialized.",
+    "full_suite": {
+      "result": "PASS",
+      "targets": 132,
+      "results": {
+        "OK": 130,
+        "SKIP": 2
+      },
+      "python": {
+        "cases": 1840,
+        "seconds": 792.6,
+        "skipped": 72
+      }
+    },
+    "source_policy": "No production, retained-test or documentation changes during the full suite. The independent registration probe was developed in scratch during the suite and retained/recompiled afterward; no production behavior changed afterward."
+  },
+  "commands": [
+    "Use E:/Repositories/fnTech3 as cwd; TEMP/TMP=.tmp/q3-ihv; import .tmp/rtcw-manager/x86_environment.ps1 for MSVC.",
+    "pwsh -File .tmp/q3-ihv/run_model_tags_probes.ps1 (exact compiler/linker flags and all original inputs/modes retained)",
+    "clang++ -std=c++17 -O2 -ffast-math -fsanitize=address -g tests/q3_ihv_model_tags_tests.cpp -o .tmp/q3-ihv/model-tags-asan.exe",
+    ".tmp/q3-ihv/model-tags-asan.exe",
+    "meson compile -C meson/build/win32",
+    "meson test -C meson/build/win32 --no-rebuild --print-errorlogs",
+    "cl /nologo /EHsc /W4 /WX /MD /O2 /std:c++17 tests/q3_ihv_reference_model_registration_probe.cpp /Fe:.tmp/q3-ihv/reference-model-registration-probe.exe /Fo:.tmp/q3-ihv/reference-model-registration-probe.obj /link advapi32.lib /BASE:0x3f0000 /FIXED /DYNAMICBASE:NO",
+    ".tmp/q3-ihv/reference-model-registration-probe.exe E:/Repositories/Quake3-IHV/ref/install/quake3.exe E:/Repositories/Quake3-IHV/ref/install/baseq3"
+  ],
+  "remaining": [
+    "Native engine game/cgame lifecycle and complete import/renderer/audio adapters",
+    "Actual BSP collision, PVS and native gameplay/prediction",
+    "Rendered native demo playback, protocol-33 networking and bidirectional interop",
+    "IHV menus/input, filesystem/pak, full model/skin/material/portal parity",
+    "Q3Test and early point-release ABI/live protocols remain in the separate release ledger"
+  ],
+  "unrelated": "No new unrelated engine issue found. Earlier host IPv6 bind warning and Windows LLVM ASAN exception-unwinding limitation remain recorded separately.",
+  "cleanup": "Earlier automatic approval review rejected deletion of disposable probe artifacts with blocked by policy. No alternate cleanup of those files attempted. Useful logs remain in .tmp/q3-ihv.",
+  "artifacts": [
+    {
+      "path": "code/compat/q3_ihv_model_tags.hpp",
+      "bytes": 8344,
+      "sha256": "0dbe0e10b58fcc996c1670bc453285afe23bc5032fd772a962fba6afa1f9f1b3"
+    },
+    {
+      "path": "code/compat/q3_ihv_client_abi.h",
+      "bytes": 1834,
+      "sha256": "182bfd0992ff8539b6c460194b2d181e85b60bbea80fdf6d6a13ba42384f542e"
+    },
+    {
+      "path": "code/compat/q3_ihv_native_boundary.hpp",
+      "bytes": 9194,
+      "sha256": "29fdaf0264b9a5ad2449768828584209da54e376d08f9cf14d7c8b7daa47d528"
+    },
+    {
+      "path": "code/compat/q3_ihv_client_data.hpp",
+      "bytes": 6291,
+      "sha256": "8f12fa29fdcad90fae582162126b6f10a52467eb960d15627ba1f2b02f3b7490"
+    },
+    {
+      "path": "code/client/client_ihv_session.hpp",
+      "bytes": 4726,
+      "sha256": "398fdeceda49832323f3bf0c9c07068c08ad0f1e52f11977f837ddfb57d45a13"
+    },
+    {
+      "path": "code/qcommon/q3_ihv_message.hpp",
+      "bytes": 17444,
+      "sha256": "4a645dcf50e1c2905999a394ec6278d701c8e2df9179438be94b4cfb3972332b"
+    },
+    {
+      "path": "tests/q3_ihv_model_tag_cases.hpp",
+      "bytes": 2046,
+      "sha256": "09a5662a0829d9023fd3133291d64a3953ee37a715e61ee8a00a986c4f624b75"
+    },
+    {
+      "path": "tests/q3_ihv_model_tags_tests.cpp",
+      "bytes": 6397,
+      "sha256": "a3b58972a175d24c14ace4cdbe82ba91e513798f2992e21123dbe209fae7da78"
+    },
+    {
+      "path": "tests/q3_ihv_reference_model_tags_probe.cpp",
+      "bytes": 7268,
+      "sha256": "bffb2b30b6ddd77d726d974e054d917c43dd27f98510acbd6ac8dbc36788bc4c"
+    },
+    {
+      "path": "tests/q3_ihv_reference_cgame_runtime_probe.cpp",
+      "bytes": 21596,
+      "sha256": "45fd628b6c57824b2d626af7b8feb4fec6dace5447a8ab361cf2811f81cf5264"
+    },
+    {
+      "path": "tests/q3_ihv_reference_client_session_probe.cpp",
+      "bytes": 14752,
+      "sha256": "583523d2dba331d397180319338da8cf7944401116e947efbd4e255d0b480ee3"
+    },
+    {
+      "path": "tests/q3_ihv_reference_cgame_snapshot_probe.cpp",
+      "bytes": 5422,
+      "sha256": "a8cb2f6ad053afeaafb46d2b0a1b634e8e4b8ee7339ce16df19ec8ab7adf81f8"
+    },
+    {
+      "path": "meson.build",
+      "bytes": 64647,
+      "sha256": "1049b424e47170dc756f4c0432a261a19bbbcee107b0b15a5644338a9fc37f42"
+    },
+    {
+      "path": "docs/fntech3/Q3_IHV.md",
+      "bytes": 62990,
+      "sha256": "2ce662e7825b87bb524bb15d93c878613089152f203e5f45b86d60405e6eead5"
+    },
+    {
+      "path": "docs/fntech3/COMPATIBILITY.md",
+      "bytes": 144627,
+      "sha256": "4400517b8ef2812a05fa0da8fbebd3ed5ed8e35828daeef4eed5d78c6d894c09"
+    },
+    {
+      "path": "CREDITS.md",
+      "bytes": 49698,
+      "sha256": "36adebf359fe4c5cf3f7dd1bf3ae2e61160bb861414dbdb51fd7fe9960c8a508"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "bytes": 7902,
+      "sha256": "5afed357a568903822815d4a97dd5306567eed8673435b87984806fcb291cb98"
+    },
+    {
+      "path": "tests/q3_ihv_reference_model_registration_probe.cpp",
+      "bytes": 8737,
+      "sha256": "5c86e87c99117d4b4708a9ea57c0ef52e7e499394e8eb182b676cc2082ec5cea"
+    },
+    {
+      "path": ".tmp/q3-ihv/record_cgame_runtime.py",
+      "bytes": 12079,
+      "sha256": "e1a7f20ce48b1b5afd52c523d3e4892ac9a27b157811531b261808e28d47db80"
+    },
+    {
+      "path": ".tmp/q3-ihv/run_model_tags_probes.ps1",
+      "bytes": 2468,
+      "sha256": "8ecb7299cc81670369b50bce01270f2af51c8ed07822288e74f7b3a59e44f998"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-tags-probes.log",
+      "bytes": 2226,
+      "sha256": "b2c73bf7bb91c036276b5b7fb159dda18664824346d9e247c4a6f61d975b44af"
+    },
+    {
+      "path": ".tmp/q3-ihv/model_tags_tests-build.log",
+      "bytes": 29,
+      "sha256": "28fba7bf1e581d9f46235395a99dab175f7722948e230e09a72f606354ad2df6"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference_model_tags_probe-build.log",
+      "bytes": 39,
+      "sha256": "3296ef4f060c9dbbd4856dec1c9fe8b8e672fc70ea98ea7f772ece1652665b71"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference_cgame_runtime_probe-build.log",
+      "bytes": 42,
+      "sha256": "4400b7c0d2b327861a3f5ffebf1878bc2c03330cd9388d017035450aca730b40"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-tags-unit.log",
+      "bytes": 92,
+      "sha256": "ef10c78694fae7acd47c0f6da9dcffe38b3b2a9890d795b3032a95c1972d9da3"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-tags-original.log",
+      "bytes": 289,
+      "sha256": "09e12bfc442c210cd1e08b3751044a0c9021c84903c92eeab8ce8882d2fc4aa4"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-tags-wrong-image.log",
+      "bytes": 32,
+      "sha256": "acddf4d9ae5ce415e391752e877595f1834528f70702406eb9256f71f9b99be8"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-tags-asan-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-tags-asan.log",
+      "bytes": 92,
+      "sha256": "ef10c78694fae7acd47c0f6da9dcffe38b3b2a9890d795b3032a95c1972d9da3"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-tags-asan-first-failure.log",
+      "bytes": 1869,
+      "sha256": "1ecfd51c030cbd9ca89cdd140ea1b5265751fa8b364e33c568cb9eea937d9453"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-runtime-synthetic.log",
+      "bytes": 1662,
+      "sha256": "98a38017edfe99a7db6bb5a9c2c578f6365a79bc748a97aa8386b9fbd92b43b7"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-runtime-frames.log",
+      "bytes": 1751,
+      "sha256": "6c06b854e6b48cce084335d72dadbc793835cf9b6f10933d0fcfef74c9fd5875"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-runtime-repeat.log",
+      "bytes": 1751,
+      "sha256": "6c06b854e6b48cce084335d72dadbc793835cf9b6f10933d0fcfef74c9fd5875"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-runtime-fail-tag.log",
+      "bytes": 47,
+      "sha256": "981cd7c301f5b5430f5230e8fc59698f9f66f56b2b8baaa0751cd182e3ae14c8"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-runtime-fail-scene.log",
+      "bytes": 47,
+      "sha256": "461ef0eb9ee32834a881e8fd52274e27a3a6034076c14dce9f88b56aa0afa85d"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-runtime-wrong-image.log",
+      "bytes": 23,
+      "sha256": "c37b2d2d3389c2083a98795579b03cc64be6fce4ef342378e9d5b3eb2e930d94"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-tag-details.txt",
+      "bytes": 23910,
+      "sha256": "ffbb8eb592ce54b994ea3378bc4538ba356748c4be199e1b7dc2c4bf7e99cd92"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-scene-details.txt",
+      "bytes": 19864,
+      "sha256": "1e799e5a814c7d01634e4c73da547fdd660e79d31ab605d25b1715cd12508c34"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-cmodel-reads.txt",
+      "bytes": 8367,
+      "sha256": "0d3ac91e2e33599282b5e40c7a1d2761ab7c958f54bf22a9250b240ac0c40eba"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-collision-model-contracts.txt",
+      "bytes": 8009,
+      "sha256": "8e72fe34b2397409af239e87f23adbaef1b67579f6186cce212c1746e91374d6"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-sound-contracts.txt",
+      "bytes": 7487,
+      "sha256": "1addd3ce82a4f2d10229d1181f520e6bc967a8a6b2a6b1ec1d9253dc447dab41"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-frame-flow.txt",
+      "bytes": 7502,
+      "sha256": "0f0fa29af3568a3b7891a1b4d3ffe888989021c041a9713cebdbd728d98062b5"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-frame-timing.txt",
+      "bytes": 4163,
+      "sha256": "d35d61d7fc6fbf0f16f03a5ae6c8d71112be8fd98dc4c91f1f5706f3091bf77e"
+    },
+    {
+      "path": ".tmp/q3-ihv/engine-cgame-screen-imports.txt",
+      "bytes": 8038,
+      "sha256": "36a4d5fd7acb38dc074fdb47451424bdb1d3b2e83504357067c1531165c3fbb9"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-runtime-suite.log",
+      "bytes": 10495,
+      "sha256": "cfa5f5c2ad98d34a1ca48b5c80a3475b738c1eb59befbc2d9c69dd09305e3742"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-runtime-suite-testlog.json",
+      "bytes": 2499175,
+      "sha256": "ac1bad4c7a9f885235edca6915371a2eed0c249dbe27fd2e4294c04703e95804"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-runtime-suite-testlog.txt",
+      "bytes": 138265,
+      "sha256": "17b4c72f7bcdfc0e6eb75f39002ff299123622f2a13c88e7108c8d9e180737a5"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-runtime-build-all.log",
+      "bytes": 512,
+      "sha256": "c2319e60aad67070602d7adae89f8e4a138024d851b2fc23c4435f0f6a261ed6"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-runtime-focused.log",
+      "bytes": 470,
+      "sha256": "603ea84b417875de51ac349e9fcdb94b1b8db919611053f01da2bff0aee83244"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-runtime-package.log",
+      "bytes": 350,
+      "sha256": "da0f76374818dfc274482d83cb9f978e446498c60737903e35a6825edc340951"
+    },
+    {
+      "path": ".tmp/q3-ihv/cgame-runtime-docs.log",
+      "bytes": 108,
+      "sha256": "1aa912d436b532dd5dada9ef9a1af712d5fc39c9ac20fed71cfc876fabbf2419"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-model-registration-build.log",
+      "bytes": 47,
+      "sha256": "fa053cc655075f0df339cfebfc15fe8cb31c50d7d3a221afe8d8e913e31cb55d"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-model-registration.log",
+      "bytes": 120,
+      "sha256": "bf766b0d9a38d63970009f4388c99590039c25c607e14809817a2710e0ede7c0"
+    },
+    {
+      "path": ".tmp/q3-ihv/model-registration-wrong-image.log",
+      "bytes": 32,
+      "sha256": "acddf4d9ae5ce415e391752e877595f1834528f70702406eb9256f71f9b99be8"
+    },
+    {
+      "path": ".tmp/q3-ihv/renderer-entity-consumers.txt",
+      "bytes": 7976,
+      "sha256": "7712713ebe48f16671ebf3da9e1dce8cef519eb77f9ec18e78957def91d1b58f"
+    },
+    {
+      "path": ".tmp/q3-ihv/renderer-entity-fields.txt",
+      "bytes": 44588,
+      "sha256": "c04299565bcc6cad8c55a8dae7743834aed7e652c36445ff100f0a9f380ae950"
+    },
+    {
+      "path": ".tmp/q3-ihv/inspect_renderer_entities.py",
+      "bytes": 873,
+      "sha256": "be86668d6e1b005532a30237455763755f1441f93edb6f70ae5a763d5c5bca17"
+    },
+    {
+      "path": ".tmp/q3-ihv/inspect_renderer_fields.py",
+      "bytes": 1131,
+      "sha256": "3af4f6ddf742d50a491b95f96e49a042890363ca25c654b9af51e9cf7a896574"
+    },
+    {
+      "path": ".tmp/q3-ihv/ihv_renderer_next.json",
+      "bytes": 2605,
+      "sha256": "d3491dda12d94f63231531c03d5dfadabcf35acb24c0e7c2c019cd72ae3a0eca"
+    }
+  ]
+}

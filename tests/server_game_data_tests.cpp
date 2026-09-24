@@ -9,9 +9,13 @@ General Public License, version 2 or (at your option) any later version.
 
 #include "../code/server/server_game_data.h"
 
+#include "../code/compat/alice_game_abi.h"
+#include "../code/compat/alice_state_adapter.hpp"
 #include "../code/compat/q3_game_abi.h"
 #include "../code/compat/ql_game_abi.h"
+#include "../code/compat/jka_game_abi.h"
 #include "../code/compat/stvef_game_abi.h"
+#include "../code/compat/wolfet_game_abi.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -120,8 +124,11 @@ void ExpectOnlyRangeChanged( const std::vector<unsigned char> &before,
 	}
 }
 
+/* `storesSingleClient` is false for a record that has no such member: the
+ * view answers zero for it and writes nothing, which is the contract, not a
+ * failure. */
 void CheckFieldAccessors( ServerGameDataView &view,
-	const GameEntityRef &reference )
+	const GameEntityRef &reference, bool storesSingleClient = true )
 {
 	std::int32_t scalar = 0;
 	Expect( view.SetNumber( reference, 41 ), "set state number" );
@@ -136,8 +143,8 @@ void CheckFieldAccessors( ServerGameDataView &view,
 	Expect( view.GetSvFlags( reference, scalar ) && scalar == 3,
 		"get svFlags" );
 	Expect( view.SetSingleClient( reference, 4 ), "set singleClient" );
-	Expect( view.GetSingleClient( reference, scalar ) && scalar == 4,
-		"get singleClient" );
+	Expect( view.GetSingleClient( reference, scalar )
+		&& scalar == ( storesSingleClient ? 4 : 0 ), "get singleClient" );
 	Expect( view.SetBmodel( reference, 1 ), "set bmodel" );
 	Expect( view.GetBmodel( reference, scalar ) && scalar == 1, "get bmodel" );
 	Expect( view.SetContents( reference, 5 ), "set contents" );
@@ -739,6 +746,143 @@ void TestRTCWRecords( comGameId_t profile, std::int32_t maxClients )
 
 // Holomatch's shared entity is 204 bytes of state then 100 of r, with no
 // leading state in r; its 468-byte player state carries four events.
+// Jedi Academy's shared entity puts Raven's own ROFF flag and broadcast mask
+// inside the engine's half and its ICARUS and navigation fields after it, so
+// the engine's fields sit 560 bytes into an 864-byte record rather than at the
+// end of one. Nothing converts its entity state yet, and the view says so
+// rather than reading a Quake III state out of a Jedi Academy record.
+void TestJKARecords()
+{
+	Expect( ServerGameDataView::EntityPrefixBytesForProfile( COM_GAME_JKA_MP ) == 864 &&
+		ServerGameDataView::PlayerStateBytesForProfile( COM_GAME_JKA_MP ) == 1552,
+		"Jedi Academy exposes its exact record prefixes" );
+	Expect( ServerGameDataView::EntityPrefixBytesForProfile( COM_GAME_JKA_SP ) == 0,
+		"Jedi Academy single player has no game-data layout yet" );
+
+	Storage storage( sizeof( fntech3_jka_sharedEntity_t ) + 16,
+		sizeof( fntech3_jka_playerState_t ) + 24 );
+	ServerGameDataView view;
+	Expect( view.BindNative( COM_GAME_JKA_MP, storage.Binding() ) == GameDataBindError::None,
+		"bind Jedi Academy entity and player records with game-private tails" );
+	Expect( view.EntityStride() == sizeof( fntech3_jka_sharedEntity_t ) + 16,
+		"Jedi Academy keeps the stride its module published" );
+
+	GameEntityRef reference;
+	Expect( view.EntityRefAt( 1, reference ), "resolve a Jedi Academy entity reference" );
+	CheckFieldAccessors( view, reference );
+
+	fntech3_jka_sharedEntity_t external{};
+	std::memcpy( &external, storage.EntityBase() + storage.entityStride, sizeof( external ) );
+	Expect( external.r.linked == 1 && external.r.linkcount == 2 && external.r.contents == 5
+		&& external.r.ownerNum == 6 && external.s.number == 41,
+		"Jedi Academy shared accessors address r at offset 560" );
+	// Raven's own shared fields still hold the fill this record was made with,
+	// so nothing the engine writes has strayed into them.
+	const std::uint32_t untouched = 0xa5a5a5a5u;
+	Expect( external.r.mIsRoffing == static_cast<std::int32_t>( untouched )
+		&& external.r.broadcastClients[0] == untouched
+		&& external.r.broadcastClients[1] == untouched
+		&& external.next_roff_time == static_cast<std::int32_t>( untouched ),
+		"Raven's own shared fields are left to the game" );
+
+	fntech3_jka_playerState_t player{};
+	player.commandTime = 4321;
+	player.clientNum = 9;
+	std::memcpy( storage.ClientBase() + storage.clientStride, &player, sizeof( player ) );
+	const auto before = storage.clients;
+	Expect( view.SetPlayerPing( 1, 61 ), "write the Jedi Academy ping" );
+	ExpectOnlyRangeChanged( before, storage.clients, kGuardBytes + storage.clientStride +
+		offsetof( fntech3_jka_playerState_t, ping ), 4, "ping lands at offset 524" );
+
+	// Every one of Academy's ninety-four entity fields is carried, and the
+	// accounting is checked rather than claimed: a record with a distinct
+	// value in every byte must come back byte for byte after a trip through
+	// the engine's own state. A field left unmapped would come back zero.
+	fntech3_jka_entityState_t filled{};
+	unsigned char *fill = reinterpret_cast<unsigned char *>( &filled );
+	for ( std::size_t at = 0; at < sizeof( filled ); ++at ) {
+		fill[at] = static_cast<unsigned char>( 0x11 + ( at * 7 ) % 0xd7 );
+	}
+	filled.pos.trType = 6;     // Academy's gravity, which is Quake III's five
+	filled.apos.trType = 4;    // Academy's own eased stop, which Quake III lacks
+	filled.torsoAnim = 21;
+	filled.saberMove = 33;
+	filled.boneAngles4[2] = 45.0f;
+	filled.userVec2[0] = -1.5f;
+	std::memcpy( storage.EntityBase() + storage.entityStride, &filled, sizeof( filled ) );
+
+	entityState_t state{};
+	Expect( view.ReadEntityState( reference, state ),
+		"read a Jedi Academy entity state through its adapter" );
+	Expect( state.pos.trType == TR_GRAVITY && state.apos.trType == TR_JKA_NONLINEAR_STOP,
+		"Academy's renumbered trajectory types arrive with their own meanings" );
+	Expect( state.number == filled.number && state.torsoAnim == 21
+		&& state.raven.saberMove == 33 && state.raven.boneAngles4[2] == 45.0f
+		&& state.raven.userVec2[0] == -1.5f,
+		"Quake III's fields and Academy's own each land where they belong" );
+
+	auto entitiesBefore = storage.entities;
+	Expect( view.WriteEntityState( reference, state ),
+		"write the Jedi Academy entity state" );
+	ExpectOnlyRangeChanged( entitiesBefore, storage.entities, kGuardBytes + storage.entityStride,
+		sizeof( fntech3_jka_entityState_t ),
+		"Academy state writes preserve r and game-private data" );
+	fntech3_jka_entityState_t returned{};
+	std::memcpy( &returned, storage.EntityBase() + storage.entityStride, sizeof( returned ) );
+	Expect( std::memcmp( &returned, &filled, sizeof( filled ) ) == 0,
+		"all ninety-four Academy entity fields survive the round trip" );
+
+	// A trajectory this title does not have is refused in both directions
+	// rather than converted into a meaning Academy would not mean.
+	entitiesBefore = storage.entities;
+	state.pos.trType = TR_QL_ACCEL;
+	Expect( !view.WriteEntityState( reference, state ) && storage.entities == entitiesBefore,
+		"Academy refuses a trajectory type it does not have" );
+	state.pos.trType = TR_GRAVITY;
+	state.pos.gravity = 2.0f;
+	Expect( !view.WriteEntityState( reference, state ) && storage.entities == entitiesBefore,
+		"Academy refuses a trajectory acceleration it cannot carry" );
+	filled.pos.trType = 7;
+	std::memcpy( storage.EntityBase() + storage.entityStride, &filled, sizeof( filled ) );
+	Expect( !view.ReadEntityState( reference, state ),
+		"a trajectory type past Academy's seven is refused, not guessed" );
+
+	// The player state is accounted for the same way as the entity state, and
+	// it is the larger record: 168 fields, of which 43 are Quake III's and the
+	// rest are Raven's. A record with a distinct value in every one of its
+	// 1,552 bytes must come back byte for byte, so a field left unmapped comes
+	// back zero and fails here.
+	fntech3_jka_playerState_t filledPlayer{};
+	{
+		unsigned char *bytes = reinterpret_cast<unsigned char *>( &filledPlayer );
+		for ( std::size_t at = 0; at < sizeof( filledPlayer ); ++at ) {
+			bytes[at] = static_cast<unsigned char>( 0x23 + ( at * 11 ) % 0xc9 );
+		}
+	}
+	filledPlayer.clientNum = 5;
+	filledPlayer.saberMove = 17;
+	filledPlayer.ammo[18] = 99;          /* the nineteenth slot, past Quake III's */
+	std::memcpy( storage.ClientBase() + storage.clientStride, &filledPlayer,
+		sizeof( filledPlayer ) );
+
+	playerState_t canonical{};
+	Expect( view.ReadPlayerState( 1, canonical ),
+		"read a Jedi Academy player state through its adapter" );
+	Expect( canonical.clientNum == 5 && canonical.raven.saberMove == 17
+		&& canonical.raven.ammoExtra[2] == 99,
+		"Quake III's fields and Raven's each land where they belong" );
+
+	Expect( view.SetPlayerPing( 1, 61 ), "write the Jedi Academy ping again" );
+	fntech3_jka_playerState_t returnedPlayer{};
+	std::memcpy( &returnedPlayer, storage.ClientBase() + storage.clientStride,
+		sizeof( returnedPlayer ) );
+	returnedPlayer.ping = filledPlayer.ping;   /* the one field just written */
+	Expect( std::memcmp( &returnedPlayer, &filledPlayer, sizeof( filledPlayer ) ) == 0,
+		"nothing but the ping is disturbed by writing it" );
+
+	ExpectGuardsIntact( storage, "Jedi Academy access preserves record-array guards" );
+}
+
 void TestSTVEFRecords()
 {
 	Expect( ServerGameDataView::EntityPrefixBytesForProfile( COM_GAME_STVEF_MP ) == 304 &&
@@ -808,6 +952,163 @@ void TestSTVEFRecords()
 		"single player refuses Holomatch's records" );
 }
 
+/* American McGee's Alice's record has no declaration anywhere: its layout is
+ * read out of the retail engine's own delta table and its own entity code.
+ * What is checked here is that the view addresses it where those readings
+ * say, and -- the part that matters most -- that the forty-nine members this
+ * engine has nowhere to keep survive a round trip through it untouched. */
+void TestAliceRecords()
+{
+	Expect( ServerGameDataView::EntityPrefixBytesForProfile( COM_GAME_ALICE )
+			== FNTECH3_ALICE_GENTITY_SIZE &&
+		ServerGameDataView::PlayerStateBytesForProfile( COM_GAME_ALICE )
+			== FNTECH3_ALICE_PLAYER_STATE_BYTES,
+		"Alice exposes its 732-byte entity and 1,048-byte player prefixes" );
+
+	Storage storage( FNTECH3_ALICE_GENTITY_SIZE, FNTECH3_ALICE_GCLIENT_SIZE );
+	ServerGameDataView view;
+	auto binding = storage.Binding();
+	Expect( view.BindNative( COM_GAME_ALICE, binding ) == GameDataBindError::None,
+		"bind Alice's entity and client arrays" );
+
+	/* The count Alice publishes is a high-water mark, so a capacity larger
+	 * than it is accepted where other profiles require the two to agree. */
+	Storage arena( FNTECH3_ALICE_GENTITY_SIZE, FNTECH3_ALICE_GCLIENT_SIZE, 64, 8 );
+	auto grown = arena.Binding();
+	grown.entityCount = 8;
+	Expect( view.BindNative( COM_GAME_ALICE, grown ) == GameDataBindError::None,
+		"Alice binds an arena larger than the count in use" );
+	grown.entityCapacity = 65;
+	Expect( view.BindNative( COM_GAME_ALICE, grown ) == GameDataBindError::EntitySpanTooSmall,
+		"Alice refuses a capacity its span does not cover" );
+	Expect( view.BindNative( COM_GAME_ALICE, binding ) == GameDataBindError::None,
+		"rebind the two-entity arena" );
+
+	unsigned char *record = storage.EntityBase() + storage.entityStride;
+	fntech3_alice_entityState_t external{};
+	external.number = 7;
+	external.eType = 3;
+	external.pos.trType = 5;
+	external.pos.trBase[2] = 64.0f;
+	external.netorigin[1] = 128.0f;
+	external.netangles[0] = 90.0f;
+	external.origin2[2] = 12.0f;
+	external.modelindex = 31;
+	external.clientNum = 2;
+	external.frame = 11;
+	external.groundEntityNum = 1022;
+	external.constantLight = 0x01020304;
+	external.loopSound = 9;
+	external.solid = 0xffffff;
+	/* Ritual's own, which this engine has no member for. */
+	external.skinNum = 4;
+	external.anim = 77;
+	external.torso_anim = 88;
+	external.parent = 13;
+	external.tag_num = 5;
+	external.scale = 2.5f;
+	external.alpha = 0.5f;
+	external.renderfx = 0x80;
+	external.renderfx2 = 0x40;
+	external.bonemod[3].tag = 6;
+	external.bonemod[3].scale = 1.5f;
+	external.loopSoundMinDist = 30000.0f;
+	std::memcpy( record, &external, sizeof( external ) );
+
+	GameEntityRef reference;
+	Expect( view.EntityRefAt( 1, reference ), "resolve an Alice entity reference" );
+	entityState_t state{};
+	Expect( view.ReadEntityState( reference, state ) && state.number == 7 &&
+		state.eType == 3 && state.pos.trType == TR_GRAVITY &&
+		state.pos.trBase[2] == 64.0f && state.origin[1] == 128.0f &&
+		state.angles[0] == 90.0f && state.origin2[2] == 12.0f &&
+		state.modelindex == 31 && state.clientNum == 2 && state.frame == 11 &&
+		state.groundEntityNum == 1022 && state.constantLight == 0x01020304 &&
+		state.loopSound == 9 && state.solid == 0xffffff,
+		"read the thirty Alice members that have a counterpart" );
+	/* Members Alice does not have must not arrive holding anything. */
+	Expect( state.weapon == 0 && state.legsAnim == 0 && state.torsoAnim == 0 &&
+		state.event == 0 && state.eventParm == 0 && state.powerups == 0 &&
+		state.otherEntityNum == 0 && state.generic1 == 0 &&
+		state.modelindex2 == 0 && state.time == 0 && state.time2 == 0,
+		"members Alice has no field for read as zero" );
+
+	CheckFieldAccessors( view, reference, false );
+	std::memcpy( &external, record, sizeof( external ) );
+	Expect( external.origin2[0] == 13.0f && external.origin2[1] == 14.0f &&
+		external.origin2[2] == 15.0f,
+		"the portal origin the view writes is the delta table's origin2 at 108" );
+
+	/* A link count and a single-client member are absent from the record, so
+	 * the view keeps the first itself and answers zero for the second --
+	 * without touching the module's bytes for either. */
+	auto before = storage.entities;
+	Expect( view.SetLinkcount( reference, 9 ), "Alice link count is the view's own" );
+	std::int32_t scalar = 0;
+	Expect( view.GetLinkcount( reference, scalar ) && scalar == 9,
+		"the view reads back the link count it kept" );
+	Expect( view.SetSingleClient( reference, 3 ), "Alice has no single-client member" );
+	Expect( view.GetSingleClient( reference, scalar ) && scalar == 0,
+		"an absent single-client member answers zero" );
+	Expect( before == storage.entities,
+		"neither absent member writes into the module's record" );
+
+	/* The round trip that matters: change one member this engine owns and
+	 * every Ritual member must come back exactly as it was. */
+	state.eFlags = 0x4000;
+	before = storage.entities;
+	Expect( view.WriteEntityState( reference, state ), "write the Alice entity state" );
+	fntech3_alice_entityState_t after{};
+	std::memcpy( &after, record, sizeof( after ) );
+	Expect( after.eFlags == 0x4000, "the changed member lands" );
+	Expect( after.skinNum == 4 && after.anim == 77 && after.torso_anim == 88 &&
+		after.parent == 13 && after.tag_num == 5 && after.scale == 2.5f &&
+		after.alpha == 0.5f && after.renderfx == 0x80 && after.renderfx2 == 0x40 &&
+		after.bonemod[3].tag == 6 && after.bonemod[3].scale == 1.5f &&
+		after.loopSoundMinDist == 30000.0f,
+		"every Ritual member survives a write untouched" );
+	ExpectOnlyRangeChanged( before, storage.entities,
+		kGuardBytes + storage.entityStride,
+		FNTECH3_ALICE_ENTITY_STATE_BYTES,
+		"a state write stays inside the entity state" );
+
+	/* The ping is the first word past that half. */
+	before = storage.clients;
+	Expect( view.SetPlayerPing( 1, 57 ), "write an Alice ping" );
+	ExpectOnlyRangeChanged( before, storage.clients,
+		kGuardBytes + storage.clientStride + FNTECH3_ALICE_PS_PING, 4,
+		"the ping lands at 1,044, where the retail engine writes it" );
+	ExpectGuardsIntact( storage, "Alice access preserves record-array guards" );
+
+	/* The player state crosses too: twenty-two of its forty-nine networked
+	 * members are this engine's own and the rest are carried, so a read
+	 * brings the whole record over rather than only the part that happens
+	 * to have a counterpart. */
+	fntech3_alice_playerState_t player{};
+	player.commandTime = 4321;
+	player.origin[1] = 64.0f;
+	player.viewheight = -8;
+	player.clientNum = 1;
+	player.reverb_type = 17;
+	player.camera_flags = 9;
+	player.blend[2] = 0.25f;
+	player.block[4][11] = 777;
+	player.ping = 61;
+	std::memcpy( storage.ClientBase() + storage.clientStride, &player,
+		sizeof( player ) );
+	playerState_t canonical{};
+	Expect( view.ReadPlayerState( 1, canonical ) &&
+		canonical.commandTime == 4321 && canonical.origin[1] == 64.0f &&
+		canonical.viewheight == -8 && canonical.clientNum == 1,
+		"the mapped part of an Alice player state crosses" );
+	Expect( canonical.alice.reverb_type == 17 &&
+		canonical.alice.camera_flags == 9 &&
+		canonical.alice.blend[2] == 0.25f &&
+		canonical.alice.block[4][11] == 777,
+		"and the part this engine has no member for is carried" );
+	Expect( canonical.ping == 61, "the ping crosses with it" );
+}
+
 void TestRTCWSaveEntityCapacity()
 {
 	Storage storage( sizeof(fntech3_rtcw_sp_sharedEntity_t) + 16,
@@ -835,10 +1136,53 @@ void TestRTCWSaveEntityCapacity()
 	Expect( view.BindNative(COM_GAME_RTCW_SP, binding) == GameDataBindError::EntitySpanTooSmall,
 		"capacity requires a complete native/QVM memory span" );
 	++binding.entitySpanBytes;
-	for ( auto profile : {COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, COM_GAME_RTCW_MP} )
+	for ( auto profile : {COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, COM_GAME_STVEF_MP,
+		COM_GAME_JK2_MP, COM_GAME_JKA_MP} )
 		Expect( view.BindNative(profile, binding) == GameDataBindError::InvalidEntityCount,
 			"other profiles do not broaden their entity contracts" );
 	ExpectGuardsIntact(storage, "SP save capacity preserves array guards");
+}
+
+/* RTCW MP's and ET's modules own a fixed 1024-record entity arena too and
+ * publish only the count in use, which starts at 64. Dynamite that stops
+ * moving takes the world, ENTITYNUM_WORLD, as its owner and traces with it as
+ * the pass entity, so the server reads the world's record past that count.
+ * The strides are the retail modules' own: 1352 bytes in RTCW MP's
+ * qagame_mp_x86.dll and 1404 in ET 2.60b's. */
+template<typename Entity, typename Player>
+void TestWorldEntityArena( comGameId_t profile, std::size_t stride, const char *name )
+{
+	Storage storage( stride, sizeof(Player), 1024, 1 );
+	Entity world{};
+	world.s.number = ENTITYNUM_WORLD;
+	std::memcpy( storage.EntityBase() + ENTITYNUM_WORLD * stride, &world, sizeof(world) );
+	const auto check = [name]( bool condition, const char *message ) {
+		if ( !condition ) std::cerr << name << ": ";
+		Expect( condition, message );
+	};
+	ServerGameDataView view;
+	auto binding = storage.Binding(); binding.entityCount = 64; binding.entityCapacity = 1024;
+	check( view.BindNative(profile, binding) == GameDataBindError::None,
+		"binds the module's whole entity arena" );
+	check( view.EntityCount() == 64, "the arena leaves the active entity count alone" );
+	GameEntityRef ref;
+	std::int32_t number = -1, owner = -1;
+	// Retail SP_worldspawn never sets the world's owner, so it keeps the zero
+	// G_InitGame cleared the arena to; the server must read it, not assume it.
+	check( view.EntityRefAt(ENTITYNUM_WORLD, ref) && view.GetNumber(ref, number)
+		&& number == ENTITYNUM_WORLD && view.GetOwnerNum(ref, owner) && owner == 0,
+		"the world's record past the published count is readable" );
+	check( view.EntityRefForPointer(storage.EntityBase() + ENTITYNUM_WORLD * stride, ref)
+		&& ref.index == ENTITYNUM_WORLD, "the world's record resolves by checked pointer" );
+	check( !view.EntityRefAt(1024, ref) && !view.EntityRefForPointer(
+		storage.EntityBase() + 1024 * stride, ref), "the arena endpoint is still rejected" );
+	binding.entityCapacity = 1025;
+	check( view.BindNative(profile, binding) == GameDataBindError::InvalidEntityCount,
+		"a capacity past MAX_GENTITIES is rejected" );
+	binding.entityCapacity = 1024; --binding.entitySpanBytes;
+	check( view.BindNative(profile, binding) == GameDataBindError::EntitySpanTooSmall,
+		"the arena requires a complete native/QVM memory span" );
+	ExpectGuardsIntact( storage, "the world arena preserves array guards" );
 }
 
 } // namespace
@@ -863,11 +1207,17 @@ int main()
 	TestPointerConversionsAndGenerations();
 	TestBindingValidation();
 	TestQvmOffsetsAndArrayBounds();
+	TestAliceRecords();
 	TestRTCWSaveEntityCapacity();
+	TestWorldEntityArena<fntech3_rtcw_mp_sharedEntity_t, fntech3_rtcw_mp_playerState_t>(
+		COM_GAME_RTCW_MP, 1352, "RTCW MP" );
+	TestWorldEntityArena<fntech3_wolfet_sharedEntity_t, fntech3_wolfet_playerState_t>(
+		COM_GAME_WOLFET, 1404, "ET" );
 	TestRTCWRecords<fntech3_rtcw_sp_sharedEntity_t, fntech3_rtcw_sp_playerState_t>( COM_GAME_RTCW_SP, 128 );
 	TestRTCWRecords<fntech3_rtcw_mp_sharedEntity_t, fntech3_rtcw_mp_playerState_t>( COM_GAME_RTCW_MP, 64 );
 	TestRTCWMPWorldflags();
 	TestSTVEFRecords();
+	TestJKARecords();
 
 	if ( failures != 0 ) {
 		std::cerr << failures << " server game-data checks failed\n";

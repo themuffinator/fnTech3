@@ -1,0 +1,375 @@
+{
+  "date": "2026-09-21",
+  "recorded_utc": "2026-09-21T03:11:37.258085+00:00",
+  "scope": "Original IHV server trace/point aggregation and query geometry reach the actual engine SV_Trace, SV_ClipMoveToEntities and SV_PointContents through checked native records. Contact enumeration, model lookup and CM results are synthetic; full BSP collision, native import dispatch, gameplay and live sessions remain open.",
+  "profile": "q3-ihv; native startup remains blocked in every build.",
+  "commit": "9e1841de53d79f96cdbbde83a1427d1c7d83f31d",
+  "working_tree": "Uncommitted IHV trace/owner follow-up; earlier Q3/IHV changes and unrelated RTCW changes retained.",
+  "platform": "Windows x86 MSVC 14.44.35222.0, Meson win32 preset. The shared-record trace fixture also passes Clang 20.1.7 x64 AddressSanitizer with -O2 -ffast-math -DFNTECH3_Q3_ONLY.",
+  "reference": {
+    "repository": "https://github.com/themuffinator/Quake3-IHV/tree/d5ce877155904c57f8b28fe0fd0c8aa2e9473337",
+    "files": [
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/quake3.exe",
+        "bytes": 725042,
+        "sha256": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37"
+      },
+      {
+        "path": "E:/Repositories/Quake3-IHV/ref/install/qagamex86.dll",
+        "bytes": 229429,
+        "sha256": "9855d375751272d0b22e9078e827cf7ff3c2e42867f525b7fd84b93967c0eeb6"
+      }
+    ],
+    "use": "Hash-pinned original numeric functions loaded into a reserved x86 host image. The original executable entry point, filesystem, renderer, input and network are not initialized. A separate original-game DLL host rechecks Init/ClientConnect/Shutdown through the updated real engine data adapter.",
+    "incorporation": "No original code, module or asset is incorporated. Tests and fixtures are independently authored from observed behavior; ordinary CI uses synthetic records only.",
+    "numeric_functions": {
+      "trace": "0x41c110",
+      "entity_clip": "0x41bf80",
+      "point_contents": "0x41c280"
+    },
+    "substituted_functions": {
+      "0x418fa0": "checked synthetic gentity lookup",
+      "0x41bee0": "synthetic contact enumeration; verifies maximum 1024 and records query bounds",
+      "0x41bf30": "synthetic model identifier",
+      "0x40ba80": "synthetic world box-trace reply; records complete arguments",
+      "0x40be20": "synthetic transformed box-trace reply; records complete arguments",
+      "0x40ab20": "synthetic world point contents",
+      "0x40abe0": "synthetic transformed point contents; records complete arguments"
+    },
+    "x87_precision": 53
+  },
+  "observations": {
+    "world_result": "0x41c1a5 stores entity 0 for both a world hit and a clear trace; a zero world fraction returns immediately.",
+    "replacement": "0x41c0aa..0x41c0dc copies the entire candidate trace when allsolid, startsolid, or a smaller fraction is present. A previous startsolid is not retained across replacement. The corpus uses finite fractions 0, 0.25, 0.5 and 1 with all combinations of solid flags.",
+    "owners": "0x41bfbc..0x41bfd7 reads a pass owner only for a positive pass value. 0x41c002 compares the candidate signed state number with passEntityNum. 0x41c012..0x41c02b excludes a candidate whose owner state number equals the pass value, or whose pointer equals the pass entity owner. Sharing an owner alone does not exclude a candidate.",
+    "trace_transform": "0x41c048..0x41c074 uses native flag 0x80 to choose current origin/angles or state offsets 88/112. Box angles are replaced with zero.",
+    "point_transform": "0x41c2c8 compares the signed state number; 0x41c2d5..0x41c2df always passes state offsets 88/112, without the current-origin flag or a box-angle override.",
+    "sweep_bounds": "0x41c1f1..0x41c24c keeps position + extent and the one-unit query pad in x87 PC53 precision until the float store. Forty large-coordinate cases cover rounding differences from binary32 reassociation.",
+    "owner_projection_correction": "The earlier game-data slice used retail ENTITYNUM_NONE=1023 for an IHV null owner. IHV permits entity number 1023, so the internal projection now uses -1 for null. The native owner remains a pointer; there is no external ABI change."
+  },
+  "validation": {
+    "original_numeric": {
+      "scope": "original server trace/point aggregation with synthetic contacts and CM replies; no BSP or engine session",
+      "trace_cases": 4737,
+      "point_cases": 641,
+      "world_calls": 4737,
+      "contact_calls": 4350,
+      "entity_trace_calls": 4231,
+      "entity_point_calls": 2605,
+      "trace_fnv1a64": "5ad43e76c7086a58",
+      "point_fnv1a64": "640534dde0569e69"
+    },
+    "engine_numeric": {
+      "trace_cases": 4737,
+      "point_cases": 641,
+      "world_calls": 4737,
+      "contact_calls": 4350,
+      "entity_trace_calls": 4231,
+      "entity_point_calls": 2605,
+      "trace_fnv1a64": "5ad43e76c7086a58",
+      "point_fnv1a64": "640534dde0569e69"
+    },
+    "actual_native_fixture": "PASS: actual server functions and ServerGameDataView on eight native prefixes at stride 556. Complete native arena comparisons protect private tails, neighbors and guards. Owner identity and state numbers are varied independently.",
+    "shared_fixture": "PASS: the same original digests through shared records, on x86 and x64 AddressSanitizer. Seven later profiles retain their existing world/no-hit sentinels, sticky startsolid, owner/sibling filtering and current transforms. ET retains its -2 world-only trace.",
+    "invalid_and_aliasing": "PASS: null/NaN/infinite input, inverted and overflowing bounds reject before world query/output publication; invalid native owner pointers, geometry, pass indices and invalidated records reject without changing native bytes or the output trace. Aliased start/output storage is supported.",
+    "last_owner": "PASS: native owner assignment, reading and clearing for entity 1023, world owner 0, and null -1. Out-of-capacity and other negative indices reject.",
+    "focused_python": {
+      "result": "PASS",
+      "trace_cases": 2,
+      "trace_seconds": 6.368,
+      "et_trace_cases": 1,
+      "et_trace_seconds": 0.461
+    },
+    "focused_meson": {
+      "result": "PASS",
+      "passed": 4,
+      "targets": [
+        "fntech3_server_game_data",
+        "fntech3_q3_ihv_game_data",
+        "fntech3_q3_ihv_native_boundary",
+        "fntech3_q3_ihv_collision"
+      ]
+    },
+    "original_dll_adapter": {
+      "scope": "engine native game-data adapter with original Init/ClientConnect/Shutdown; no level or network",
+      "clients": [
+        {
+          "slot": 0,
+          "entity": 1,
+          "ping": 37,
+          "configstring": "n\\Probe0\u001b7\\t\\f\\snd\\\\model\\xian\\sex\\m"
+        },
+        {
+          "slot": 7,
+          "entity": 8,
+          "ping": 44,
+          "configstring": "n\\Probe7\u001b7\\t\\f\\snd\\\\model\\xian\\sex\\m"
+        }
+      ],
+      "entity_bytes": 164,
+      "player_bytes": 276,
+      "remaining_allocations": 0,
+      "result": "PASS"
+    },
+    "wrong_reference_image": "PASS: qagamex86.dll supplied as the executable is rejected by SHA-256 before any original function can execute.",
+    "build": "PASS: meson compile -C meson/build/win32, all targets.",
+    "full_suite": {
+      "result": "PASS",
+      "targets": 129,
+      "meson_results": {
+        "OK": 127,
+        "SKIP": 2
+      },
+      "python": {
+        "result": "OK",
+        "cases": 1840,
+        "skipped": 72,
+        "seconds": 692.589
+      }
+    },
+    "post_suite": {
+      "full_suite_trace_harness_sha256": "f914119b738f0492d505c404f7d193b16f7b17601e51ec1e3391c83289fb66dc",
+      "changes": [
+        "The standalone Linux trace fixture now requests the project x86 target explicitly; the Windows command and generated C++ are unchanged.",
+        "The optional cgame snapshot-copy host is retained in tests and is verified separately; it is not part of ordinary CI discovery.",
+        "Documentation/evidence metadata finalized after the complete suite."
+      ],
+      "focused_result": "PASS",
+      "focused_cases": 7,
+      "focused_seconds": 12.306
+    },
+    "initial_engine_failure": "The new native trace fixture reproduced an engine rejection at case 4096, its first negative pass-entity case. The unchanged retail trace branch attempted to resolve that negative value as a gentity. The corrected branch matches both original digests."
+  },
+  "commands": [
+    "Use E:/Repositories/fnTech3 as cwd, TEMP and TMP under .tmp/q3-ihv, and .tmp/rtcw-manager/x86_environment.ps1 for x86 MSVC/Meson commands.",
+    "cl /nologo /EHsc /W4 /WX /MD /O2 /std:c++17 tests/q3_ihv_reference_trace_probe.cpp /Fe:.tmp/q3-ihv/reference-trace-probe.exe /Fo:.tmp/q3-ihv/reference-trace-probe.obj /link /BASE:0x400000 /DYNAMICBASE:NO /SECTION:.ihv,ERW /MANIFEST:EMBED \"/MANIFESTUAC:level='asInvoker' uiAccess='false'\" advapi32.lib",
+    ".tmp/q3-ihv/reference-trace-probe.exe E:/Repositories/Quake3-IHV/ref/install/quake3.exe",
+    "python -m unittest discover -s tests -p q3_ihv_trace_tests.py",
+    "python -m unittest discover -s tests -p wolfet_trace_tests.py",
+    "Generate .tmp/q3-ihv/trace-asan.cpp from q3_ihv_trace_tests.build_source(False), then compile with clang++ -std=c++17 -DFNTECH3_Q3_ONLY -O2 -ffast-math -fsanitize=address -g -I. .tmp/q3-ihv/trace-asan.cpp -o .tmp/q3-ihv/trace-asan.exe",
+    "Rebuild tests/q3_ihv_reference_adapter_probe.cpp with code/server/server_game_data.cpp and code/compat/game_abi_adapter.c as documented in 2026-09-21-q3-ihv-game-data.json; run against the supplied original game DLL and baseq3.",
+    "meson compile -C meson/build/win32",
+    "meson test -C meson/build/win32 --no-rebuild --print-errorlogs"
+  ],
+  "remaining": [
+    "Actual original BSP collision: model lookup, hull construction, contact enumeration, trace geometry and area/PVS semantics are not established by synthetic CM replies.",
+    "Original world/unused-entity link early-outs, PVS/link membership and complete native brush-model contracts.",
+    "Native engine game lifecycle/import dispatch and complete cgame ABI integration; no native game level/session has been started in fnTech3 by these probes.",
+    "Shared native player projections, protocol-33 engine envelopes/netchan and bidirectional live interoperability, rendered native demo playback/recording.",
+    "Coherent 256-client/2048-entity allocation and all core entity/client sentinel uses; the owner fix only removes one confirmed collision with entity 1023.",
+    "Filesystem/pak, portal, clamp, lighting, audio/input and broader Q3Test/point-release gates remain as recorded in the ledgers."
+  ],
+  "artifacts": [
+    {
+      "path": "code/compat/q3_ihv_collision.hpp",
+      "bytes": 5086,
+      "sha256": "78bfc793e74f5722ea7490498973b0f7eb130b54d9e2538a8270c892dbbe1d64"
+    },
+    {
+      "path": "code/compat/q3_ihv_game_abi.h",
+      "bytes": 7888,
+      "sha256": "f4b08bd5ce2ab335a932557e6fcb937978c1cf41ee9c58d9edb7c69e595797c4"
+    },
+    {
+      "path": "code/compat/q3_ihv_state_adapter.hpp",
+      "bytes": 4457,
+      "sha256": "25a5fe491801d1b1729951c44c9b889728a5cc3d9540c6283bb9ed96a5313c40"
+    },
+    {
+      "path": "code/server/server_game_data.h",
+      "bytes": 10126,
+      "sha256": "276e23f4434f32de67db9c8c5170dbbf8df242377ec873c75627e7cf6ef8fb1f"
+    },
+    {
+      "path": "code/server/server_game_data.cpp",
+      "bytes": 42954,
+      "sha256": "7422d0fa0d3c56b086b4980d0db5210443826dc09388222c007f42bb2061f098"
+    },
+    {
+      "path": "code/server/sv_world.cpp",
+      "bytes": 24849,
+      "sha256": "b2e088385c72e61ef360d13cc631087048eef49e3b0b3ed52d4fdb6e6dce5632"
+    },
+    {
+      "path": "tests/q3_ihv_trace_cases.hpp",
+      "bytes": 5168,
+      "sha256": "be42bfc137878950b735c8c760d183e129a1d81f025ec70956147ebee71446b6"
+    },
+    {
+      "path": "tests/q3_ihv_trace_tests.py",
+      "bytes": 15593,
+      "sha256": "9dcc62430e47e110f6170059b12b43174eee0f387c75537233e025c226073a63"
+    },
+    {
+      "path": "tests/q3_ihv_reference_trace_probe.cpp",
+      "bytes": 7984,
+      "sha256": "28dec7ed28236047869879b5c24f019feccc42197e0515683d195141c90ddcd6"
+    },
+    {
+      "path": "tests/q3_ihv_game_data_tests.cpp",
+      "bytes": 10998,
+      "sha256": "85af8f03d129a9efba960a750d673ea5db936f49b0fc27bb8a8da6ac9058e40c"
+    },
+    {
+      "path": "tests/q3_ihv_reference_adapter_probe.cpp",
+      "bytes": 6204,
+      "sha256": "aca5be1a7f40169278cd63bec58e55cdbca17bf1c3b8d165cc967a401086fce8"
+    },
+    {
+      "path": "tests/wolfet_trace_tests.py",
+      "bytes": 3519,
+      "sha256": "07cc784a995c4d768b25b67541f23430badca757cef6036060295d0c689d0d42"
+    },
+    {
+      "path": "meson/build/win32/fntech3.exe",
+      "bytes": 8516096,
+      "sha256": "70524caf4696ba61000a0241dcbca27e5ebc911c887be13a5ffd823de5f32a22"
+    },
+    {
+      "path": "meson/build/win32/fntech3.ded.exe",
+      "bytes": 2685440,
+      "sha256": "72ef9cf580a2e8c0cb4adf6d8fab0e9617b0cd1682d435904514d595532436d7"
+    },
+    {
+      "path": "meson/build/win32/fntech3_q3_ihv_game_data_tests.exe",
+      "bytes": 449536,
+      "sha256": "3065d5c141ea598e36da0893a14c7032bab253fa2dfaf7746b2d7f32883fbe39"
+    },
+    {
+      "path": "meson/build/win32/fntech3_q3_ihv_collision_tests.exe",
+      "bytes": 394752,
+      "sha256": "885a03c0c1241980c57e0a83d35e0532e21564d36925a29fde51c186f427be30"
+    },
+    {
+      "path": ".tmp/q3-ihv/trace-build-all.log",
+      "bytes": 1128,
+      "sha256": "a34898f8d1072a418c4c6ab602b55db8d3ded86e3b643f699b5eca2c9543b860"
+    },
+    {
+      "path": ".tmp/q3-ihv/trace-meson-focused.log",
+      "bytes": 404,
+      "sha256": "64cd40469004398281049acf739f8251c94206ef26451313a34551cfaa9ab963"
+    },
+    {
+      "path": ".tmp/q3-ihv/trace-engine-focused.log",
+      "bytes": 105,
+      "sha256": "5b3ae5e5789ede8e2d3084ae98797050ad35fe163242133f6d684eea86430d8e"
+    },
+    {
+      "path": ".tmp/q3-ihv/trace-wolfet-focused.log",
+      "bytes": 103,
+      "sha256": "834e513327b3176548eea837bb43dad56396b325016172aacc385497746a8772"
+    },
+    {
+      "path": ".tmp/q3-ihv/engine-trace-before.log",
+      "bytes": 42,
+      "sha256": "9295bb36c01780cf1a4cb43238098b2fd131abfaa4074ef125de53f5bfc970dc"
+    },
+    {
+      "path": ".tmp/q3-ihv/engine-trace-after.log",
+      "bytes": 202,
+      "sha256": "89beefa73a5b8c35b2e9ad2b260c5f18d35ca3432ff279b53901b62bc6a5a644"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-trace-build.log",
+      "bytes": 34,
+      "sha256": "95d853770ce7e6bd2d36931350d9c634cf553d14bbc4d69815f9a52fcd1bd3f4"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-trace.json",
+      "bytes": 317,
+      "sha256": "b52705b48755d3f932dad984ecc8dbd5eadf7684399161b446778069e0d465d5"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-trace.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-trace-wrong-image.log",
+      "bytes": 32,
+      "sha256": "acddf4d9ae5ce415e391752e877595f1834528f70702406eb9256f71f9b99be8"
+    },
+    {
+      "path": ".tmp/q3-ihv/trace-asan-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/q3-ihv/trace-asan.log",
+      "bytes": 138,
+      "sha256": "174472e66b78bea86b59ec26fdcba6a5c07af2990eaad431c8837abac608a905"
+    },
+    {
+      "path": ".tmp/q3-ihv/trace-adapter-build.log",
+      "bytes": 98,
+      "sha256": "a13207380fb8d28dbd0f8e05d4817ba6c13cfd47e2997451774d3966fc738cbc"
+    },
+    {
+      "path": ".tmp/q3-ihv/trace-adapter.json",
+      "bytes": 400,
+      "sha256": "289595782949c9d6d05a70edcb54955e001ac62f5bfac18a2fe7fa14e18e6af4"
+    },
+    {
+      "path": ".tmp/q3-ihv/trace-adapter.log",
+      "bytes": 165,
+      "sha256": "13b80483de7189b8e4599639acebe575e21011bc6c613225a0a8cdeaa62e53dc"
+    },
+    {
+      "path": ".tmp/q3-ihv/native-world-disassembly.txt",
+      "bytes": 19837,
+      "sha256": "da2aa20cb1d5edf5a8dad5ee5d3b6d9842e2b7dbcee65acf50d2a026fd6206b3"
+    },
+    {
+      "path": ".tmp/q3-ihv/trace-post-suite.json",
+      "bytes": 570,
+      "sha256": "efdcd795dd6d7ca9076f61d05ba41aef8d44e1b8ea636017f1391ea4d56db24c"
+    },
+    {
+      "path": ".tmp/q3-ihv/trace-post-suite-focused.log",
+      "bytes": 111,
+      "sha256": "f9c69cbbc5cecfea740b3ab8a85795e6b6396bd6d5eac6e2ef390696c7cb0abd"
+    },
+    {
+      "path": ".tmp/q3-ihv/server-trace-suite.log",
+      "bytes": 10261,
+      "sha256": "41cd0043f62b82b3cfc74e2327ed077e6bf8f6e92babea211abf02e825c99d63"
+    },
+    {
+      "path": ".tmp/q3-ihv/server-trace-suite-testlog.txt",
+      "bytes": 135635,
+      "sha256": "c37c1a01980456722bcddfd781bfe64bb8e5c31dfa4eb741412f955fd8c79b69"
+    },
+    {
+      "path": ".tmp/q3-ihv/server-trace-suite-testlog.json",
+      "bytes": 2442506,
+      "sha256": "8d8367a0f2f71995db600e108a8cbaf8b1cd1a10832efd249daa68bfe48952cc"
+    },
+    {
+      "path": ".tmp/q3-ihv/reference-trace-probe.exe",
+      "bytes": 34816,
+      "sha256": "c7812707cf6ca07e945524f52a180d24edfc4b1657990fcd39e2b71280ce6182"
+    },
+    {
+      "path": ".tmp/q3-ihv/trace-adapter-probe.exe",
+      "bytes": 100864,
+      "sha256": "82c385927ed68a239498ac4f2bae8eb125e8597035794502d44a323b82eefbd5"
+    },
+    {
+      "path": ".tmp/q3-ihv/trace-asan.exe",
+      "bytes": 590848,
+      "sha256": "ab1b545d8d5bdff14c9ee6cc18849d77fdc8a8e5117a1947e668342129de9d3b"
+    },
+    {
+      "path": ".tmp/q3-ihv/trace-asan.cpp",
+      "bytes": 20905,
+      "sha256": "3060811faa4141a15b89a47930f9ca6c135c27364193569aaefdc05c6d73dfb9"
+    },
+    {
+      "path": ".tmp/q3-ihv/record_server_trace.py",
+      "bytes": 13264,
+      "sha256": "4ed5e9cd3351b9888e68da1d90ac02d90dd8a2edb8c9204eaf50e1129004e52d"
+    }
+  ],
+  "unrelated_issues": "No new unrelated code defect found. Previously recorded IPv6-loopback WSAEADDRNOTAVAIL remains. Automatic approval review rejected guarded PowerShell deletion of seven disposable trace-fixture intermediates as blocked by policy; they remain in .tmp/q3-ihv alongside the older copied-asset scratch whose cleanup was also rejected. No alternative deletion mechanism was attempted."
+}

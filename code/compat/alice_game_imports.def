@@ -1,0 +1,156 @@
+/* Copyright (C) 2026 fnTech3 contributors. GPL-2.0-or-later.
+ *
+ * Alice's 111 game import slots, in the order the engine writes them.
+ *
+ * FNTECH3_ALICE_GAME_IMPORT( slot, name, evidence )
+ *
+ * `evidence` records how the slot was identified, and is part of the claim:
+ *
+ *   LITERAL    the target's own string literal names it
+ *   BEHAVIOUR  a distinctive constant or operation in the target's body
+ *   ARITY      the stack arguments the target reads match one declared member
+ *   ORDER      position alone, between two slots identified another way
+ *   ADDED      Alice's own addition beyond the reference table; unnamed
+ *   UNNAMED    the engine writes a function here and this tree has not
+ *              identified it. Unlike ADDED it is a reference table member:
+ *              the slot is accounted for, only its name is not.
+ *   ABSENT     no engine function; the slot is left null
+ *
+ * A name here is the name of the declared interface member the slot carries,
+ * not a claim about its signature: no argument type, calling convention or
+ * return value is frozen by this file. Argument counts, where the module's
+ * own call sites establish them, are in alice_game_import_calls.def.
+ *
+ * The table decomposes exactly: the reference table's 105 members in order,
+ * one null Alice inserted at slot 100 -- between the CRC call and the two
+ * debug-line data members -- and five Alice slots appended at 106-110.
+ *
+ * An earlier reading put an Alice insertion at slot 48 and named 45 to 47
+ * one slot early. The configstring blocks their bodies index settle it: 45
+ * finds-or-adds at 0x320 over 64 entries, 46 at 0x400 over 64, 47 at 0x220
+ * over 256, and 48 at 0x20 over 512 and registers the model definition when
+ * the name ends in `tik` -- which is the reference's imageindex, itemindex,
+ * soundindex and modelindex over its own images, items, sounds and models,
+ * in the reference's order. Slot 50 returns the game directory buffer the
+ * client-game loader also reads, which is GameDir, and 85 and 86 are the
+ * reference's Alias_GetList and Alias_UpdateDialog, the latter at the five
+ * arguments the module's call site pushes.
+ *
+ * Every name belongs to an engine function address, because that is what was
+ * fingerprinted to establish it. The slot numbers come from the engine's own
+ * table build, which fills the table on its stack; reading that build without
+ * tracking esp across an unmatched push attributes every later store one slot
+ * too high. See docs/fntech3/2026-09-22-alice-module-abi.md.
+ */
+
+FNTECH3_ALICE_GAME_IMPORT(   0, Printf,                 BEHAVIOUR )
+FNTECH3_ALICE_GAME_IMPORT(   1, DPrintf,                BEHAVIOUR )
+FNTECH3_ALICE_GAME_IMPORT(   2, DebugPrintf,            ORDER     )
+FNTECH3_ALICE_GAME_IMPORT(   3, Error,                  LITERAL   )
+FNTECH3_ALICE_GAME_IMPORT(   4, Milliseconds,           ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(   5, Malloc,                 ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(   6, Free,                   LITERAL   )
+FNTECH3_ALICE_GAME_IMPORT(   7, cvar,                   LITERAL   )
+FNTECH3_ALICE_GAME_IMPORT(   8, cvar_set,               ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(   9, argc,                   ORDER     )
+FNTECH3_ALICE_GAME_IMPORT(  10, argv,                   ORDER     )
+FNTECH3_ALICE_GAME_IMPORT(  11, args,                   ORDER     )
+FNTECH3_ALICE_GAME_IMPORT(  12, AddCommand,             ORDER     )
+FNTECH3_ALICE_GAME_IMPORT(  13, FS_ReadFile,            ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  14, FS_FreeFile,            LITERAL   )
+FNTECH3_ALICE_GAME_IMPORT(  15, FS_WriteFile,           LITERAL   )
+FNTECH3_ALICE_GAME_IMPORT(  16, FS_FOpenFileWrite,      BEHAVIOUR )
+FNTECH3_ALICE_GAME_IMPORT(  17, FS_FOpenFileAppend,     BEHAVIOUR )
+FNTECH3_ALICE_GAME_IMPORT(  18, FS_PrepFileWrite,       LITERAL   )
+FNTECH3_ALICE_GAME_IMPORT(  19, FS_Write,               ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  20, FS_Read,                ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  21, FS_FCloseFile,          ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  22, FS_FTell,               ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  23, FS_FSeek,               ORDER     )
+FNTECH3_ALICE_GAME_IMPORT(  24, FS_Flush,               LITERAL   )
+FNTECH3_ALICE_GAME_IMPORT(  25, GetArchiveFileName,     LITERAL   )
+FNTECH3_ALICE_GAME_IMPORT(  26, SendConsoleCommand,     ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  27, DebugGraph,             ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  28, SendServerCommand,      BEHAVIOUR )
+FNTECH3_ALICE_GAME_IMPORT(  29, setConfigstring,        BEHAVIOUR )
+FNTECH3_ALICE_GAME_IMPORT(  30, getConfigstring,        BEHAVIOUR )
+FNTECH3_ALICE_GAME_IMPORT(  31, setUserinfo,            BEHAVIOUR )
+FNTECH3_ALICE_GAME_IMPORT(  32, getUserinfo,            LITERAL   )
+FNTECH3_ALICE_GAME_IMPORT(  33, SetBrushModel,          LITERAL   )
+FNTECH3_ALICE_GAME_IMPORT(  34, trace,                  ORDER     )
+FNTECH3_ALICE_GAME_IMPORT(  35, pointcontents,          ORDER     )
+FNTECH3_ALICE_GAME_IMPORT(  36, pointbrushnum,          LITERAL   )
+FNTECH3_ALICE_GAME_IMPORT(  37, inPVS,                  LITERAL   )
+FNTECH3_ALICE_GAME_IMPORT(  38, inPVSIgnorePortals,     LITERAL   )
+FNTECH3_ALICE_GAME_IMPORT(  39, AdjustAreaPortalState,  LITERAL   )
+FNTECH3_ALICE_GAME_IMPORT(  40, AreasConnected,         ORDER     )
+FNTECH3_ALICE_GAME_IMPORT(  41, linkentity,             LITERAL   )
+FNTECH3_ALICE_GAME_IMPORT(  42, unlinkentity,           LITERAL   )
+FNTECH3_ALICE_GAME_IMPORT(  43, AreaEntities,           ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  44, ClipToEntity,           ORDER     )
+FNTECH3_ALICE_GAME_IMPORT(  45, imageindex,             BEHAVIOUR )
+FNTECH3_ALICE_GAME_IMPORT(  46, itemindex,              BEHAVIOUR )
+FNTECH3_ALICE_GAME_IMPORT(  47, soundindex,             BEHAVIOUR )
+FNTECH3_ALICE_GAME_IMPORT(  48, modelindex,             BEHAVIOUR )
+FNTECH3_ALICE_GAME_IMPORT(  49, SetLightStyle,          BEHAVIOUR )
+FNTECH3_ALICE_GAME_IMPORT(  50, GameDir,                BEHAVIOUR )
+FNTECH3_ALICE_GAME_IMPORT(  51, IsModel,                BEHAVIOUR )
+FNTECH3_ALICE_GAME_IMPORT(  52, setmodel,               LITERAL   )
+FNTECH3_ALICE_GAME_IMPORT(  53, NumAnims,               ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  54, NumSkins,               BEHAVIOUR )
+FNTECH3_ALICE_GAME_IMPORT(  55, NumSurfaces,            ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  56, NumTags,                ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  57, InitCommands,           ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  58, CalculateBounds,        ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  59, Anim_NameForNum,        ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  60, Anim_NumForName,        ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  61, Anim_Random,            ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  62, Anim_NumFrames,         ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  63, Anim_Time,              ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  64, Anim_Delta,             ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  65, Anim_AbsoluteDelta,     ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  66, Anim_Flags,             ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  67, Anim_HasCommands,       ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  68, Frame_Commands,         ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  69, Frame_Delta,            ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  70, Frame_Time,             ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  71, Frame_Bounds,           ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  72, Surface_NameToNum,      ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  73, Surface_NumToName,      ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  74, Surface_Flags,          ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  75, Surface_NumSkins,       ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  76, Tag_NumForName,         ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  77, Tag_NameForNum,         ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  78, Tag_Orientation,        ORDER     )
+FNTECH3_ALICE_GAME_IMPORT(  79, Tag_OrientationEx,      ORDER     )
+FNTECH3_ALICE_GAME_IMPORT(  80, Alias_Add,              ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  81, Alias_FindRandom,       ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  82, Alias_Dump,             ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  83, Alias_Clear,            ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  84, Alias_FindDialog,       ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  85, Alias_GetList,          ORDER     )
+FNTECH3_ALICE_GAME_IMPORT(  86, Alias_UpdateDialog,     ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  87, Alias_AddActorDialog,   ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  88, NameForNum,             ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  89, GlobalAlias_Add,        LITERAL   )
+FNTECH3_ALICE_GAME_IMPORT(  90, GlobalAlias_FindRandom, LITERAL   )
+FNTECH3_ALICE_GAME_IMPORT(  91, GlobalAlias_Dump,       LITERAL   )
+FNTECH3_ALICE_GAME_IMPORT(  92, GlobalAlias_Clear,      LITERAL   )
+FNTECH3_ALICE_GAME_IMPORT(  93, centerprintf,           ORDER     )
+FNTECH3_ALICE_GAME_IMPORT(  94, locationprintf,         ORDER     )
+FNTECH3_ALICE_GAME_IMPORT(  95, Sound,                  ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  96, StopSound,              ORDER     )
+FNTECH3_ALICE_GAME_IMPORT(  97, SoundLength,            ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  98, SoundAmplitudes,        ARITY     )
+FNTECH3_ALICE_GAME_IMPORT(  99, CalcCRC,                BEHAVIOUR )
+FNTECH3_ALICE_GAME_IMPORT( 100, AliceAbsent100,         ABSENT    )
+FNTECH3_ALICE_GAME_IMPORT( 101, DebugLines,             BEHAVIOUR )
+FNTECH3_ALICE_GAME_IMPORT( 102, numDebugLines,          BEHAVIOUR )
+FNTECH3_ALICE_GAME_IMPORT( 103, LocateGameData,         ARITY     )
+FNTECH3_ALICE_GAME_IMPORT( 104, SetFarPlane,            ARITY     )
+FNTECH3_ALICE_GAME_IMPORT( 105, SetSkyPortal,           ARITY     )
+FNTECH3_ALICE_GAME_IMPORT( 106, AliceImport106,         ADDED     )
+FNTECH3_ALICE_GAME_IMPORT( 107, AliceImport107,         ADDED     )
+FNTECH3_ALICE_GAME_IMPORT( 108, AliceImport108,         ADDED     )
+FNTECH3_ALICE_GAME_IMPORT( 109, AliceImport109,         ADDED     )
+FNTECH3_ALICE_GAME_IMPORT( 110, Cbuf_ExecuteText,       LITERAL   )

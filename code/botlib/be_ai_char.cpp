@@ -30,6 +30,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *****************************************************************************/
 
 #include "../qcommon/q_shared.h"
+#include "../qcommon/game_profile.h"
 #include "l_log.h"
 #include "l_memory.h"
 #include "l_utils.h"
@@ -300,6 +301,12 @@ static bot_character_t *BotLoadCharacterFromFile(const char *charfile, int skill
 	//a bot character is parsed in two phases
 	PC_SetBaseFolder(BOTFILESBASEFOLDER);
 	source = LoadSourceFile(charfile);
+	// ET opens a character below botfiles but reads its #include lines from
+	// the game root: etded.exe's loader (0x45f5d0) clears the folder between
+	// opening the file and parsing it, and ET's bots/default_c.c includes
+	// "botfiles/chars.h". Its other loaders keep the folder while parsing, as
+	// Quake III's all do.
+	if (Com_GameIsWolfET()) PC_SetBaseFolder("");
 	if (!source)
 	{
 		botimport.Print(PRT_ERROR, "couldn't load %s\n", charfile);

@@ -1,0 +1,90 @@
+/* Copyright (C) 2026 fnTech3 contributors. GPL-2.0-or-later. */
+/* Jedi Outcast multiplayer, measured. Every row below was read out of the
+ * retail engine's own tables and writers, never from a source release:
+ *
+ *   entityState_t   from jk2mp.exe's entity delta table at file offset
+ *                   0xf5ab0, which names every four-byte slot from 4 to
+ *                   292 with no gap and gives the width each is sent at.
+ *                   A member sent at zero bits is a float.
+ *   trajectory_t    the six members the table names inside pos and apos.
+ *
+ * FNTECH3_JK2_WIRE_RECORD(record, size) and
+ * FNTECH3_JK2_WIRE_FIELD(record, member, offset, size, kind), with kind
+ * 0 integer, 1 floating point, 2 a nested record. */
+#ifndef FNTECH3_JK2_WIRE_RECORD
+#define FNTECH3_JK2_WIRE_RECORD(record, size)
+#endif
+#ifndef FNTECH3_JK2_WIRE_FIELD
+#define FNTECH3_JK2_WIRE_FIELD(record, member, offset, size, kind)
+#endif
+
+FNTECH3_JK2_WIRE_RECORD(usercmd_t, 28)
+FNTECH3_JK2_WIRE_FIELD(usercmd_t, serverTime, 0, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(usercmd_t, angles, 4, 12, 0)
+FNTECH3_JK2_WIRE_FIELD(usercmd_t, buttons, 16, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(usercmd_t, weapon, 20, 1, 0)
+FNTECH3_JK2_WIRE_FIELD(usercmd_t, forcesel, 21, 1, 0)
+FNTECH3_JK2_WIRE_FIELD(usercmd_t, invensel, 22, 1, 0)
+FNTECH3_JK2_WIRE_FIELD(usercmd_t, generic_cmd, 23, 1, 0)
+FNTECH3_JK2_WIRE_FIELD(usercmd_t, forwardmove, 24, 1, 0)
+FNTECH3_JK2_WIRE_FIELD(usercmd_t, rightmove, 25, 1, 0)
+FNTECH3_JK2_WIRE_FIELD(usercmd_t, upmove, 26, 1, 0)
+
+FNTECH3_JK2_WIRE_RECORD(trajectory_t, 36)
+FNTECH3_JK2_WIRE_FIELD(trajectory_t, trType, 0, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(trajectory_t, trTime, 4, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(trajectory_t, trDuration, 8, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(trajectory_t, trBase, 12, 12, 1)
+FNTECH3_JK2_WIRE_FIELD(trajectory_t, trDelta, 24, 12, 1)
+
+FNTECH3_JK2_WIRE_RECORD(entityState_t, 296)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, number, 0, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, eType, 4, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, eFlags, 8, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, pos, 12, 36, 2)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, apos, 48, 36, 2)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, time, 84, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, time2, 88, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, origin, 92, 12, 1)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, origin2, 104, 12, 1)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, angles, 116, 12, 1)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, angles2, 128, 12, 1)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, bolt1, 140, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, bolt2, 144, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, trickedentindex, 148, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, trickedentindex2, 152, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, trickedentindex3, 156, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, trickedentindex4, 160, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, speed, 164, 4, 1)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, fireflag, 168, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, genericenemyindex, 172, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, activeForcePass, 176, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, emplacedOwner, 180, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, otherEntityNum, 184, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, otherEntityNum2, 188, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, groundEntityNum, 192, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, constantLight, 196, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, loopSound, 200, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, modelGhoul2, 204, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, g2radius, 208, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, modelindex, 212, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, modelindex2, 216, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, clientNum, 220, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, frame, 224, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, saberInFlight, 228, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, saberEntityNum, 232, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, saberMove, 236, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, forcePowersActive, 240, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, isJediMaster, 244, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, solid, 248, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, event, 252, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, eventParm, 256, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, owner, 260, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, teamowner, 264, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, shouldtarget, 268, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, powerups, 272, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, weapon, 276, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, legsAnim, 280, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, torsoAnim, 284, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, forceFrame, 288, 4, 0)
+FNTECH3_JK2_WIRE_FIELD(entityState_t, generic1, 292, 4, 0)

@@ -37,12 +37,14 @@ constexpr bool qtrue=true,qfalse=false;
 #define NUM_TA_PAKS 4
 #define MAX_OSPATH 256
 #define MAX_ZPATH 256
-bool ql,localExists;
+bool ql,localExists,jka;
 bool Com_GameIsQuakeLive(){return ql;}
 bool Com_GameIsQuake3(){return !ql;}
 bool Com_GameIsWolfET(){return false;}
-struct comGameProfile_t{const char*baseGame;};
-const comGameProfile_t*Com_GameProfile(){static comGameProfile_t p{BASEGAME};return &p;}
+bool Com_GameIsJKA(){return jka;}
+struct comGameProfile_t{const char*baseGame;const char*officialPakStem;};
+comGameProfile_t activeProfile{BASEGAME,nullptr};
+const comGameProfile_t*Com_GameProfile(){return &activeProfile;}
 int Q_stricmp(const char*a,const char*b){
  std::string x(a),y(b);
  for(auto&c:x)c=std::tolower(static_cast<unsigned char>(c));
@@ -123,6 +125,25 @@ int main(){
   char tiny[8];assert(!FS_ComparePaks(tiny,sizeof(tiny),true)&&tiny[0]==0);
   if(ql)break;
  }
+ // Jedi Academy names its own retail paks assets0-assets8 in base/, and its
+ // own rule refuses that set under missionpack as well. Quake's numbered
+ // names are not its paks, so a mod may still offer them.
+ ql=false;jka=true;activeProfile={"base","assets"};
+ for(int i=0;i<9;++i){
+  assert(FS_OfficialPak(("base/assets"+std::to_string(i)).c_str()));
+  assert(FS_OfficialPak(("missionpack/assets"+std::to_string(i)).c_str()));
+  assert(!FS_OfficialPak(("base/pak"+std::to_string(i)).c_str()));
+ }
+ for(const char*name:{"BASE/ASSETS0","base\\assets8"})assert(FS_OfficialPak(name));
+ for(const char*name:{"base/assets9","base/assets00","base/assets0extra","mods/assets0",
+  "base/assets0.pk3","japlus/assets1","missionpack/pak0",""})
+  assert(!FS_OfficialPak(name));
+ // A server's own asset pak is refused before any download plan is made.
+ fs_serverReferencedPakNames[0]="base/assets3.pk3";char jkaOutput[1024];
+ assert(!FS_ComparePaks(jkaOutput,sizeof(jkaOutput),true));
+ fs_serverReferencedPakNames[0]="japlus/assets3.pk3";
+ assert(FS_ComparePaks(jkaOutput,sizeof(jkaOutput),true));
+ activeProfile={BASEGAME,nullptr};jka=false;
 }
 '''
         with tempfile.TemporaryDirectory() as folder:

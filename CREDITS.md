@@ -39,6 +39,105 @@ remain authoritative.
 
 ## Compatibility references and adapted work
 
+- The IHV audit uses the user-supplied February 1999 reference in
+  [Quake3-IHV](https://github.com/themuffinator/Quake3-IHV/tree/d5ce877155904c57f8b28fe0fd0c8aa2e9473337).
+  New BSP validation, model-membership, checksum, legacy material, fog, sky,
+  native-boundary, identity, link/trace and protocol-codec components are
+  independently authored from asset/binary observations. The
+  optional fog and sky probes call a hash-pinned user-supplied executable to record
+  numeric facts. The optional native game probe loads the hash-pinned supplied
+  game DLL to observe initialization, shutdown and failure cleanup. Isolated
+  follow-up hosts observe original client-allocation, password/ClientConnect
+  callbacks and the server's client-limit clamp; they do not run a game session.
+  The optional wire probe compares original state codecs using synthetic
+  inputs; retained fixtures contain numeric observations only.
+  The optional collision probe compares original link bounds and solid packing
+  with the BSP leaf query replaced by an empty result; it does not establish
+  original collision-trace parity. The subsequent trace probe compares original
+  server sweep/point decisions with synthetic contacts and CM replies; it does
+  not establish BSP collision or gameplay parity. A guarded cgame probe observes
+  its original snapshot-ring copy with the following packet-graph helper stubbed;
+  it does not initialize cgame or rendering. A separate original configstring
+  parser probe compares complete native string records using synthetic message
+  reads and a notification callback; no native client session is started.
+  Client data follow-ups compare original history getters and complete snapshot
+  records, then pass synthetic packets and the supplied recording through the
+  new session component to original cgame data callbacks. These probes use
+  synthetic timing, bypass cgame initialization, stub packet-graph history and record
+  server commands without executing them. Native game integration remains open.
+  A separate Init-prefix probe observes original cvar requests and map import
+  order, stopping at registration boundaries and checking injected failures;
+  it does not complete cgame initialization or load assets.
+  The subsequent model-metadata implementation compares tag interpolation
+  directly with the original executable and supplies separate native model,
+  frame and tag records. A later cgame host completes original Init and frame/draw
+  callbacks with read-only model metadata, synthetic collision/resources and
+  captured drawing calls. It starts no engine/display/audio/input/network
+  session. Earlier references to a stubbed "prediction helper" describe packet
+  graph history instead; the newer host leaves that helper unmodified.
+  The independently authored scene boundary copies native submissions into
+  owned arrays and validates resource kinds. Original numeric area-visibility
+  and entity-color routines establish the mask polarity and RGBA fields using
+  generated inputs; these probes start no graphics session and do not establish
+  real BSP/PVS or rendered native playback.
+  The independent IHV skin parser, registration and renderer selection follow
+  original numeric cache/parsing observations and the original surface-ordinal
+  shader lookup. Supplied skin files are read-only comparison inputs; their
+  contents and the original implementation are not incorporated.
+  The particle path is independently authored from original geometry, generated
+  image, shader-record and GL-state observations. Its optional reference probe
+  supplies generated points and replaces image/GL services without creating a
+  graphics context. No original particle implementation or image bytes are
+  incorporated; the procedural texture is generated from the observed formula.
+  Entity visibility, origin interpolation and beam geometry are independently
+  authored from generated original-executable observations. The optional entity
+  probe replaces renderer/GL services, checks special model registration and
+  captures numeric transform, lighting and beam behavior without starting a
+  graphics session. Lighting observations remain distinct from implemented
+  behavior; no original code or model/texture bytes are incorporated.
+  Native MD3 sine samples, interpolation, normal arithmetic and culling are
+  independently authored from numeric observations of that same executable.
+  The optional animation host reads user-supplied models and compares every
+  frame without starting the engine; no model or original implementation bytes
+  are incorporated. Generated vectors and digests are retained as tests.
+  Model-light sampling, BSP traversal, dynamic-light arithmetic, fixed light
+  direction, diffuse colors and the animation toggle are independently authored
+  from selected original-executable observations. The optional lighting host
+  compares the actual translator/renderer light loader against all four supplied
+  maps, with image/shader/allocation services replaced by CPU stubs. It preserves
+  raw inputs read-only and incorporates no original code or asset bytes.
+  The native dedicated-game adapter is independently authored from observed
+  API 4 lifecycle, cvar flags, import behavior and original module execution.
+  Its optional engine probe loads user-supplied maps and the original DLL,
+  retains game allocations across levels, and exercises error cleanup. These
+  observations do not establish native clients, bots or network compatibility;
+  no original implementation, DLL, navigation or map bytes are incorporated.
+  The metadata reader follows Microsoft's
+  [PE format specification](https://learn.microsoft.com/en-us/windows/win32/debug/pe-format).
+  No reference implementation, module or
+  asset is incorporated. The inherited Spearmint translator attribution remains
+  below; the [IHV ledger](docs/fntech3/Q3_IHV.md) records the limited runtime scope.
+
+- The Quake III point-release audit uses official binaries and recording
+  fixtures preserved by Jason Brownlee's
+  [Quake3OfficialArchive](https://github.com/Jason2Brownlee/Quake3OfficialArchive/tree/960182ae296be8cbcd6b59db78b31aaa9d28ed9f).
+  [Lilium Arena Classic](https://github.com/clover-moe/lilium-arena-classic/tree/2fc883cbd244fa58046542a63518e51a7e01479f)
+  (GPL-2.0-or-later) was inspected to distinguish the older QVM and protocol-43
+  contracts. The new negotiation, validation and pak policies are independently
+  authored from observations; no implementation text was incorporated from
+  that reference. See the [release ledger](docs/fntech3/Q3_POINT_RELEASES.md).
+
+- RTCW routing-cache recovery is independently implemented from the disk and
+  generation contracts observed in the original
+  [SP routing code](https://github.com/id-Software/RTCW-SP/blob/master/src/botlib/be_aas_route.c),
+  [MP routing code](https://github.com/id-Software/RTCW-MP/blob/master/src/botlib/be_aas_route.c),
+  [iortcw](https://github.com/iortcw/iortcw), and retail `WolfSP.exe` cache
+  generation. These GPLv3 references supply behavior observations only;
+  their functions and notices appear solely in disposable comparison fixtures.
+  No reference implementation text or retail assets are incorporated.
+  The [recovery record](docs/fntech3/2026-09-20-rtcw-cache-recovery.md) separates
+  cache interoperability from remaining collision and route-cost differences.
+
 - [FnQuake3's HUD implementation](https://github.com/themuffinator/FnQ3/blob/7d8c9629cdc7979f09697266470359101ffd9eda/code/client/cl_hud.cpp)
   supplies the restored layout rules, 3D HUD viewport placement, shader-name
   matching, and grouped draw diagnostics under GPL-2.0-or-later, compatible
@@ -613,6 +712,46 @@ chapters; the GLSL implementation and synthetic tests are independently written.
   as a second single-player host. No implementation text from any of them is
   incorporated. See the [Elite Force foundation record](docs/fntech3/2026-09-18-stvef-contracts.md).
 
+- The Star Wars Jedi Knight: Jedi Academy profiles use interoperability facts
+  from the user's legitimate retail 1.01 installation -- its pak identity,
+  module locations and export tables, and every map and model it ships -- and
+  from [OpenJK](https://github.com/JACoders/OpenJK/tree/1a6a643427aa347553e9073dac5570b33337c4d9)
+  at `1a6a643427aa347553e9073dac5570b33337c4d9` (GPL-2.0-or-later), which
+  carries Raven Software's released single-player and multiplayer sources. It
+  is reference material only: protocol numbers, module names and entry points,
+  configstring layouts, limits, the RBSP identity and the ICARUS script
+  numbers are cited by file and line, and no implementation text is
+  incorporated. The ICARUS numbers were derived from the installation's own
+  scripts first and read from those sources afterwards; the two agree. No Jedi Academy module or asset
+  is redistributed or shipped, and none is needed to build fnTech3: the
+  installed evidence comes from the user's own copy. See the
+  [Jedi Academy foundation record](docs/fntech3/2026-09-21-jka-contracts.md).
+
+- The American McGee's Alice profile uses facts from the user's legitimate
+  retail installation -- its pak identity, its module export tables, and every
+  map it ships -- and from the retail `alice.exe` itself, whose cvar
+  registrations and bounds checks supply every constant the profile claims.
+  Two references are kept distinct from implementation. Ritual
+  Entertainment's Heavy Metal: F.A.K.K.2 v1.02 SDK supplies the `FAKK` lump
+  order and record layout, the `TAN ` model records, and the game module's
+  import and export table member names and ordering, under its own non-free
+  SDK licence, so it is used for names and layouts only. Every one of those
+  was re-measured against Alice's own binaries and assets before being
+  written here -- the maps against all thirty-six, the models against all
+  694, and each module slot against the engine's own table build -- and no
+  implementation text is incorporated.
+  [OpenAlice](https://github.com/themuffinator/OpenAlice), an independent
+  reconstruction of this engine, supplies a Ghidra corpus for the retail
+  binaries; it is GPLv3 while fnTech3 is GPLv2, so nothing from it may be
+  incorporated in any case, and the retail binary outranks it wherever they
+  disagree. No Alice module or asset is redistributed or shipped, and none is
+  needed to build fnTech3. See the
+  [Alice foundation record](docs/fntech3/2026-09-22-alice-contracts.md),
+  [map record](docs/fntech3/2026-09-22-alice-maps.md),
+  [module record](docs/fntech3/2026-09-22-alice-module-abi.md),
+  [model record](docs/fntech3/2026-09-22-alice-models.md) and
+  [wire record](docs/fntech3/2026-09-22-alice-wire.md).
+
 - Elite Force's MP3 sounds and music are decoded by
   [minimp3](https://github.com/lieff/minimp3/tree/ea99364f61c14656440e8d77e9c233ccf3124633)
   by Lion (lieff), released under CC0 1.0 and consumed through
@@ -631,7 +770,8 @@ from a legitimate local installation, with source/output identities and limits
 in the [generation record](docs/fntech3/2026-09-17-rtcw-audio-zones.md).
 
 fnTech3 does not redistribute Quake III Arena, Quake Live, Return to Castle
-Wolfenstein, Enemy Territory or Elite Force data, retail game modules, Bink or
+Wolfenstein, Enemy Territory, Elite Force or Jedi Academy data, retail game
+modules, Bink or
 other proprietary runtimes, Steam SDK/runtime binaries, Awesomium,
 credentials, captured private traffic, or other proprietary content. Runtime
 validation uses the user's
@@ -639,8 +779,8 @@ legitimate local installations and records only non-proprietary evidence.
 
 ## Project thanks
 
-Thanks to the Quake, Quake III, Quake Live, Return to Castle Wolfenstein and
-Star Trek Voyager: Elite Force communities: players, server administrators, mod authors, mappers, tool authors,
+Thanks to the Quake, Quake III, Quake Live, Return to Castle Wolfenstein,
+Star Trek Voyager: Elite Force and Jedi Knight communities: players, server administrators, mod authors, mappers, tool authors,
 testers, reverse engineers, and maintainers who keep these games understandable
 and playable.
 

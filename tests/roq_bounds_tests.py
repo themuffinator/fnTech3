@@ -41,6 +41,7 @@ static int CL_ScaledMilliseconds(){return 100;}
 void QDECL Com_Printf(const char *,...){++diagnostics;}
 void QDECL Com_DPrintf(const char *,...){++diagnostics;}
 static void S_Update(int){}
+static int Com_GameIsAlice(){return 0;}
 static int s_rawend=0,s_soundtime=0;
 static cvar_t volume{};static cvar_t *s_volume=&volume;
 static void S_RawSamples(int count,int,int,int,byte *,float){assert(count>=0);++audio;}

@@ -74,7 +74,7 @@ class RTCWTacticalTests(unittest.TestCase):
     def test_search_policies_callbacks_nested_routing_and_world_ownership(self):
         self.run_source(r'''
 int main(){
- for(const auto &p:profiles){profile=&p;initialize();
+ for(const auto &p:profiles){profile=&p;if(!p.bots.navigationWorlds)continue;initialize();
   if(!Com_GameIsRTCW()){
    assert(!AAS_RTCWHidePosition(nullptr,-1,-1,nullptr,-1,-1,nullptr));
    assert(!AAS_RTCWAttackPosition(-1,-1,-1,0,-1,nullptr));shutdown();continue;

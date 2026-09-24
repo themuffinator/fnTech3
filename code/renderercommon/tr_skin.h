@@ -23,6 +23,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef FNTECH3_TR_SKIN_H
 #define FNTECH3_TR_SKIN_H
 
+#include "tr_q3_ihv_skin_register.h"
+
 qhandle_t RE_RegisterSkin( const char *name ) {
 	skinSurface_t parseSurfaces[MAX_SKIN_SURFACES];
 	skinModel_t parseModels[MAX_SKIN_MODELS];
@@ -55,6 +57,7 @@ qhandle_t RE_RegisterSkin( const char *name ) {
 		ri.Printf( PRINT_DEVELOPER, "Skin name exceeds MAX_QPATH\n" );
 		return 0;
 	}
+	if ( ri.gameId == COM_GAME_QUAKE3_IHV ) return R_RegisterIHVSkin( name, nameLength );
 
 
 	/* Enemy Territory reads every skin name as a file; only Quake 3 made a
@@ -138,15 +141,17 @@ qhandle_t RE_RegisterSkin( const char *name ) {
 			continue;
 		}
 		if ( rtcw && strstr( token, "playerscale" ) ) {
-			float scale;
+			volatile floatint_t scale;
 			token = CommaParse( &text_p );
-			scale = (float)atof( token );
-			if ( !isfinite( scale ) ) {
+			/* Force a stored-bit check: finite-math assumptions can otherwise
+			 * remove both isfinite and a memcpy bit test of the atof result. */
+			scale.f = (float)atof( token );
+			if ( ( scale.u & 0x7f800000u ) == 0x7f800000u ) {
 				ri.FS_FreeFile( text.v );
 				ri.Printf( PRINT_WARNING, "Invalid player scale in skin '%s'\n", name );
 				return 0;
 			}
-			skin->scale[0] = skin->scale[1] = skin->scale[2] = scale;
+			skin->scale[0] = skin->scale[1] = skin->scale[2] = scale.f;
 			continue;
 		}
 

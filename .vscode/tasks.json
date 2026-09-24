@@ -27,6 +27,8 @@
         "-RTCWDevelopment",
         "-WolfETDevelopment",
         "-STVEFDevelopment",
+        "-JKADevelopment",
+        "-AliceDevelopment",
         "-Archive",
         "-SetupOnly"
       ],
@@ -59,6 +61,8 @@
         "-RTCWDevelopment",
         "-WolfETDevelopment",
         "-STVEFDevelopment",
+        "-JKADevelopment",
+        "-AliceDevelopment",
         "-Archive"
       ],
       "problemMatcher": [
@@ -94,6 +98,8 @@
         "-RTCWDevelopment",
         "-WolfETDevelopment",
         "-STVEFDevelopment",
+        "-JKADevelopment",
+        "-AliceDevelopment",
         "-Archive",
         "-WithSteam"
       ],

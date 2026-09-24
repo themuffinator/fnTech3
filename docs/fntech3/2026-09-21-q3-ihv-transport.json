@@ -1,0 +1,213 @@
+{
+ "date": "2026-09-21",
+ "scope": "The protocol-33 network channel: its sequence words, reliable slot, fragmenting and payload scrambler. Full IHV support remains incomplete.",
+ "commit": "9e1841de53d79f96cdbbde83a1427d1c7d83f31d",
+ "working_tree": "Uncommitted IHV bot client, snapshot, message and transport work; unrelated changes remain present.",
+ "reference": {
+  "repository": "https://github.com/themuffinator/Quake3-IHV/tree/d5ce877155904c57f8b28fe0fd0c8aa2e9473337",
+  "inputs": [
+   {
+    "path": "E:\\Repositories\\Quake3-IHV\\ref\\install\\quake3.exe",
+    "bytes": 725042,
+    "sha256": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37"
+   }
+  ],
+  "note": "The original writers, readers and scrambler produce the reference bytes. Only the diagnostics, the address formatter and the sending routine are replaced, so no socket is opened. No original entry point, filesystem, display, input, audio or collision service starts, and no original module or asset is incorporated into fnTech3."
+ },
+ "original_functions": {
+  "Netchan_Encode": "0x412690..0x412723",
+  "Netchan_NeedReliable": "0x412730..0x4127af",
+  "Netchan_Transmit": "0x4127b0..0x412b2c",
+  "Netchan_Process": "0x412b30..0x412e5c",
+  "sequence_words": "0x41285d..0x41286e",
+  "client_qport_write": "0x41288d",
+  "server_qport_read": "0x412b82",
+  "fragment_split": "0x4128bb",
+  "trailing_empty_fragment": "0x41297b",
+  "dumped_unreliable": "0x412a74",
+  "out_of_order_packet": "0x412c20",
+  "dropped_packet_count": "0x412c7e",
+  "reliable_slot_cleared": "0x412ce6",
+  "dropped_fragment": "0x412d15",
+  "complete_reliable_block": "0x412d71",
+  "fragment_reassembly": "0x412e25"
+ },
+ "observations": {
+  "header": [
+   "outgoing sequence with a reliable bit",
+   "last received sequence with the receiver reliable bit",
+   "client qport"
+  ],
+  "reliable_block": "always framed as a start offset, a length and its bytes",
+  "reliable_delivery": "one slot retransmitted verbatim until the peer reliable bit matches; a pending message waits until the slot is free",
+  "need_reliable": "returns as soon as it decides to retransmit, so unlike Quake II it never promotes a pending message in the same call",
+  "fragment_bytes": 1300,
+  "packet_bytes": 1400,
+  "buffer_bytes": 16368,
+  "trailing_fragment": "an exactly full last fragment is followed by an empty one",
+  "fragmented_packet": "carries no unreliable payload",
+  "unreliable_payload": "appended after the reliable block, or dropped with a report when it no longer fits",
+  "scramble": {
+   "offset": 10,
+   "seed": "the first sequence word",
+   "advance": "x = 69069x + 1, one word per four payload bytes, low byte first",
+   "symmetric": true
+  },
+  "receive": {
+   "out_of_order": "a sequence at or behind the last accepted one is refused",
+   "dropped": "the gap is counted",
+   "reliable_ack": "clears the slot when the peer reliable bit matches",
+   "reassembly": "fragments are ordered by their start offsets"
+  },
+  "netchan_fields": {
+   "fatalError": "0x0",
+   "sock": "0x4",
+   "dropped": "0x8",
+   "remoteAddress": "0xc",
+   "qport": "0x20",
+   "incomingSequence": "0x24",
+   "incomingAcknowledged": "0x28",
+   "incomingReliableAcknowledged": "0x2c",
+   "incomingReliableSequence": "0x30",
+   "outgoingSequence": "0x34",
+   "reliableSequence": "0x38",
+   "lastReliableSequence": "0x3c",
+   "fragmentLength": "0x40",
+   "fragmentBuffer": "0x44",
+   "message": "0x4034",
+   "messageBuffer": "0x4050",
+   "reliableLength": "0x8040",
+   "reliableBuffer": "0x8044",
+   "size": "0xc034"
+  }
+ },
+ "comparison": {
+  "probe": "tests/q3_ihv_reference_netchan_probe.cpp",
+  "command": "cl /nologo /EHsc /W4 /WX /MD /O2 /std:c++17 tests/q3_ihv_reference_netchan_probe.cpp /Fe:.tmp/q3-ihv/reference-netchan-probe.exe /Fo:.tmp/q3-ihv/reference-netchan-probe.obj /link /BASE:0x400000 /DYNAMICBASE:NO /SECTION:.ihv,ERW /MANIFEST:EMBED \"/MANIFESTUAC:level='asInvoker' uiAccess='false'\" advapi32.lib",
+  "run": ".tmp/q3-ihv/reference-netchan-probe.exe E:/Repositories/Quake3-IHV/ref/install/quake3.exe",
+  "compared": [
+   "every scrambled byte of a packet",
+   "every byte of every transmitted packet",
+   "the packet count of each transmission",
+   "the outgoing, reliable and last-reliable sequences after each transmission",
+   "the reliable slot length",
+   "whether a received packet is accepted, and the message it delivers"
+  ],
+  "result": {
+   "scope": "original Netchan_Transmit, Netchan_Process and packet scrambler against fntech3's protocol-33 netchan; only the sending routine is replaced",
+   "scenarios": 1536,
+   "scrambled": 512,
+   "packets": 5202,
+   "fragmented_transmissions": 598,
+   "delivered": 512,
+   "packet_bytes": 3467972,
+   "digest": "c25b7812f8c406f6"
+  },
+  "passed": true
+ },
+ "fntech3_boundaries": [
+  "The original drops an out-of-order fragment while keeping the offset it expected, so one loss stops every later reassembly on that channel. fnTech3 forgets the partial message instead, which lets the peer retransmission start over.",
+  "Protocol 33 selects its own wire profile, so it can never fall back to a Quake III contract through the legacy-compat path.",
+  "A packet shorter than its two sequence words, a truncated qport or fragment header, and a reassembly larger than the caller buffer are refused rather than read past."
+ ],
+ "gates": {
+  "default_startup": "blocked",
+  "client_startup": "blocked",
+  "dedicated_developer": "Windows x86 only",
+  "network_dispatch": "blocked before retail parsing",
+  "protocol33_snapshot_writer": "implemented",
+  "protocol33_netchan": "implemented",
+  "connectionless_handshake": "open",
+  "client_sessions": "open",
+  "gamestate_transmission": "open",
+  "reliable_commands": "open",
+  "usercmd_path": "open",
+  "downloads": "open",
+  "gameplay": "open",
+  "rendered_native_demos": "open",
+  "audio_input": "open",
+  "bidirectional_interop": "open"
+ },
+ "checks": {
+  "unit_tests": [
+   "fntech3_q3_ihv_netchan",
+   "fntech3_q3_ihv_game_bridge",
+   "fntech3_q3_ihv_native_boundary",
+   "fntech3_q3_ihv_message",
+   "fntech3_q3_ihv_wire",
+   "fntech3_q3_ihv_game_data",
+   "fntech3_q3_ihv_collision",
+   "fntech3_q3_ihv_configstrings",
+   "fntech3_q3_ihv_client_data",
+   "fntech3_q3_ihv_scene",
+   "fntech3_q3_ihv_model_tags",
+   "fntech3_q3_ihv_identity"
+  ],
+  "unit_tests_passed": true,
+  "default_build": "meson compile -C meson/build/win32 (fntech3.exe and fntech3.ded.exe linked)",
+  "python_regressions": [
+   "Ran 1866 tests in 832.050s",
+   "FAILED (failures=12, errors=7, skipped=72)"
+  ],
+  "python_failures": [
+   "ERROR: test_candidate_packaging_produces_a_complete_verifiable_release_bundle",
+   "ERROR: test_linux_release_tarball_accepts_exact_root_renderer_names",
+   "ERROR: test_linux_release_tarball_is_deterministic_and_executable",
+   "ERROR: test_macos_zip_preserves_code_modes_and_validates_the_app",
+   "ERROR: test_packaged_evidence_links_and_missing_target",
+   "ERROR: test_prebuilt_macos_payload_is_published_byte_for_byte",
+   "ERROR: test_release_archive_keeps_game_dirs_at_archive_root",
+   "FAIL: test_engine_only_policy_rejects_nested_proprietary_libraries",
+   "FAIL: test_linux_release_tarball_rejects_misnamed_renderer_modules",
+   "FAIL: test_linux_release_tarball_rejects_nested_renderer_modules",
+   "FAIL: test_linux_release_tarball_requires_client_server_and_renderers",
+   "FAIL: test_unsigned_prebuilt_macos_payload_requires_explicit_policy"
+  ],
+  "concurrent_working_tree": "Another session was adding a sixth game title, its module ABI, model and RBSP tests, and reworking release packaging in this checkout. Its new test sources do not compile yet, so the complete Meson gate could not rebuild; every IHV target was built and run directly instead, and the Python regression target was run on its own. Failures in release packaging, release identity and the new JKA tests belong to that work."
+ },
+ "sources": [
+  {
+   "path": "code\\compat\\q3_ihv_netchan.hpp",
+   "bytes": 13163,
+   "sha256": "c222206b620ccd2536a0218e08a5bd5b330a4f5592aa4a525184d438c8bd2ae9"
+  },
+  {
+   "path": "code\\qcommon\\netchan_profile.h",
+   "bytes": 6724,
+   "sha256": "59d44da122bf087503b47f14038ae0aa5d619585c826a04898c2c6dd3eaa9691"
+  },
+  {
+   "path": "tests\\q3_ihv_netchan_tests.cpp",
+   "bytes": 12785,
+   "sha256": "51db4b38e40a8c27e9e0b10cd7bd1eda53ea86f3c4db0da64ec39db27ddbd87f"
+  },
+  {
+   "path": "tests\\q3_ihv_reference_netchan_probe.cpp",
+   "bytes": 16280,
+   "sha256": "08f39ff286fab788eb2dab1296469e0a444205e7df8c140f1f8a1aa88776e5e1"
+  },
+  {
+   "path": "meson.build",
+   "bytes": 67874,
+   "sha256": "ac7d86ce4dbe41af30e6d80570ffd62a8dae4d3acc51f5fa3b1568c04cbd4d2a"
+  }
+ ],
+ "limitations": [
+  "Nothing in the engine opens one of these channels. The connectionless handshake, the challenge and connect exchange, client slots, gamestate transmission, the reliable server-command stream and the usercmd path back from a client are unimplemented, and GAME_CLIENT_CONNECT still refuses a client.",
+  "The comparison drives both channels directly. No original engine session, socket, map or game module is started by this probe.",
+  "Rate limiting, timeouts and the loopback shortcut that follow a transmission in the original server frame are not implemented."
+ ],
+ "artifacts": [
+  ".tmp/q3-ihv/reference-netchan.json",
+  ".tmp/q3-ihv/reference-netchan-wrong-image.log",
+  ".tmp/q3-ihv/netchan-default-build.log",
+  ".tmp/q3-ihv/netchan-python-regressions.log",
+  ".tmp/q3-ihv/native-netchan-transmit.txt",
+  ".tmp/q3-ihv/native-netchan-process.txt"
+ ],
+ "documentation": [
+  "docs/fntech3/Q3_IHV.md",
+  "docs/fntech3/COMPATIBILITY.md",
+  "CHANGELOG.md"
+ ]
+}
