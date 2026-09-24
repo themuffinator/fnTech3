@@ -231,6 +231,7 @@ class MeshTagTests(unittest.TestCase):
                 target = ['-DFNTECH3_Q3_ONLY']
             elif os.name != 'nt':
                 target = ['-m32']
+            (ROOT / '.tmp').mkdir(parents=True, exist_ok=True)
             for renderer in ('renderer', 'renderervk', 'rendererrtx'):
                 with self.subTest(language=language, renderer=renderer), tempfile.TemporaryDirectory(prefix='mesh-tags-', dir=ROOT / '.tmp') as temp:
                     path = Path(temp)

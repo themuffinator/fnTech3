@@ -2032,6 +2032,39 @@ void SV_FreeClient(client_t *client)
 
 /*
 =====================
+SV_AnnouncesDrop
+
+Whether everyone hears why a client left. RTCW single player says nothing when
+a cast AI leaves. Enemy Territory says nothing when a bot leaves a
+single-player game type (et.exe 0x441892..0x44192d, etded.exe
+0x427eb2..0x427f4d), and a client is a bot there by its entity's SVF_BOT or by
+its address.
+=====================
+*/
+static bool SV_AnnouncesDrop( const client_t *drop, bool addressIsBot ) {
+	if ( Com_GameIsRTCWSP() ) {
+		return !SV_ClientIsRTCWCastAI( drop );
+	}
+	if ( !Com_GameIsWolfET() || !SV_GameTypeIsSinglePlayer( sv_gametype->integer ) ) {
+		return true;
+	}
+	if ( addressIsBot ) {
+		return false;
+	}
+	if ( !drop->gentity ) {
+		return true;
+	}
+	sharedEntity_t entity;
+	if ( !SV_ReadGameEntity( drop->gentity, &entity ) ) {
+		Com_Error( ERR_DROP, "%s: invalid client gentity", __func__ );
+		return false;
+	}
+	return ( entity.r.svFlags & SVF_BOT ) == 0;
+}
+
+
+/*
+=====================
 SV_DropClient
 
 Called when the player is totally leaving the server, either willingly
@@ -2054,9 +2087,20 @@ void SV_DropClient( client_t *drop, const char *reason ) {
 	// Free all allocated data on the client structure
 	SV_FreeClient( drop );
 
-	// tell everyone why they got dropped
-	if ( reason && !( Com_GameIsRTCWSP() && SV_ClientIsRTCWCastAI( drop ) ) ) {
-		SV_SendServerCommand( nullptr, "print \"%s" S_COLOR_WHITE " %s\n\"", name.data(), reason );
+	// tell everyone why they got dropped, in the words of the profile's engine
+	if ( reason && SV_AnnouncesDrop( drop, isBot ) ) {
+		if ( Com_GameIsRTCWMP() ) {
+			// RTCW MP's client game translates a print unless told not to:
+			// [lof] keeps the name as it is and [lon] translates the reason
+			// (WolfMP.exe pushes this format, 0x4eeea4, at 0x434f3d).
+			SV_SendServerCommand( nullptr, "print \"[lof]%s" S_COLOR_WHITE " [lon]%s\n\"", name.data(), reason );
+		} else if ( Com_GameIsWolfET() ) {
+			// Enemy Territory pops the notice up instead of printing it
+			// (et.exe 0x441937, etded.exe 0x427f57).
+			SV_SendServerCommand( nullptr, "cpm \"%s" S_COLOR_WHITE " %s\n\"", name.data(), reason );
+		} else {
+			SV_SendServerCommand( nullptr, "print \"%s" S_COLOR_WHITE " %s\n\"", name.data(), reason );
+		}
 	}
 
 	// call the prog function for removing a client

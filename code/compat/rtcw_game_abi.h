@@ -54,6 +54,20 @@ enum {
 	FNTECH3_RTCW_MP_GS_RESET = 5
 };
 
+/* RTCW MP's own g_gametype values, and the worldspawn spawnflags a map sets
+ * to forbid them, which its game copies into the world record's worldflags
+ * (original bg_public.h and g_local.h). Retail WolfMP.exe's map_restart
+ * tests these numbers and bits at 0x432f22..0x432f4b. */
+enum {
+	FNTECH3_RTCW_MP_GT_WOLF = 5,
+	FNTECH3_RTCW_MP_GT_WOLF_STOPWATCH = 6,
+	FNTECH3_RTCW_MP_GT_WOLF_CP = 7,
+	FNTECH3_RTCW_MP_GT_WOLF_CPH = 8,
+	FNTECH3_RTCW_MP_WORLD_NO_GT_WOLF = 1,
+	FNTECH3_RTCW_MP_WORLD_NO_STOPWATCH = 2,
+	FNTECH3_RTCW_MP_WORLD_NO_CHECKPOINT = 4
+};
+
 /* SP and MP BOTLIB_UPDATENTITY share this 112-byte input record. */
 typedef struct {
 	int32_t type, flags;

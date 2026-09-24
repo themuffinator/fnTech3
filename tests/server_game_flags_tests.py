@@ -122,6 +122,7 @@ int main() {
             target = ["-DFNTECH3_Q3_ONLY"]
         elif os.name != "nt":
             target = ["-m32"]
+        (ROOT / ".tmp").mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix="server-game-flags-", dir=ROOT / ".tmp") as temp:
             folder = Path(temp)
             cpp = folder / "probe.cpp"

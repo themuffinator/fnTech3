@@ -150,6 +150,7 @@ class RTCWFogTests(unittest.TestCase):
                 target = ['-DFNTECH3_Q3_ONLY']
             elif os.name != 'nt':
                 target = ['-m32']
+            (ROOT / '.tmp').mkdir(parents=True, exist_ok=True)
             with self.subTest(language=language), tempfile.TemporaryDirectory(prefix='rtcw-fog-', dir=ROOT / '.tmp') as temp:
                 folder = Path(temp)
                 source = folder / ('probe.c' if language == 'c' else 'probe.cpp')

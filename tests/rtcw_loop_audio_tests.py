@@ -297,6 +297,7 @@ class RTCWLoopAudioTests(unittest.TestCase):
             target = ['-DFNTECH3_Q3_ONLY']
         elif os.name != 'nt':
             target = ['-m32']
+        (ROOT / '.tmp').mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='rtcw-loops-', dir=ROOT / '.tmp') as temp:
             folder = Path(temp); source = folder / 'probe.cpp'; executable = folder / 'probe.exe'
             source.write_text(code, encoding='utf-8')

@@ -495,6 +495,7 @@ class RTCWModuleCvarTests(unittest.TestCase):
         self.assertIn("SV_UpdateRTCWCvarConfigstrings( qtrue );", function(init, "void SV_SpawnServer("))
         main = (ROOT / "code/server/sv_main.cpp").read_text(encoding="utf-8")
         self.assertIn("SV_UpdateRTCWCvarConfigstrings( qfalse );", function(main, "void SV_Frame("))
+        (ROOT / ".tmp").mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix="rtcw-module-cvar-", dir=ROOT / ".tmp") as temp:
             folder = Path(temp)
             fixture = folder / "probe.cpp"

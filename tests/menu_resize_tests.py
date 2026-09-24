@@ -109,6 +109,7 @@ class MenuResizeTests(unittest.TestCase):
         body += function(client, 'static void CL_ResetWindowResizeState( void ) {')
         body += function(client, 'static void CL_FinishUIMenuRestart( void ) {')
         body += function(client, 'static void CL_Vid_Restart( refShutdownCode_t shutdownCode ) {') + CHECKS
+        (ROOT / '.tmp').mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='menu-resize-', dir=ROOT / '.tmp') as tmp:
             source = Path(tmp) / 'probe.cpp'
             exe = Path(tmp) / 'probe.exe'

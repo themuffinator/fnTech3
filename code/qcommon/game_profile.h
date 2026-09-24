@@ -151,6 +151,16 @@ typedef struct comGameBotPolicy_s {
 	int firstClientSlot;
 	int clientRate;
 	int setSnapshotInterval;
+	/* The reliable-command window of such a slot. Each retail engine rings
+	 * one fixed count for all its clients, bots included, but a bot sets up
+	 * no channel, so no wire profile can supply it: 64 in quake3.exe 1.32,
+	 * quakelive_steam.exe, stvoyHM.exe and the three single-player engines,
+	 * 128 in jamp.exe, jk2mp.exe and alice.exe, and 256 in WolfSP.exe,
+	 * WolfMP.exe, et.exe and etded.exe. Zero where the engine rings no
+	 * commands at all, as the IHV test does, and then no bot takes a client
+	 * slot. docs/fntech3/2026-09-24-bot-reliable-windows.md has the
+	 * addresses. */
+	int reliableCommands;
 } comGameBotPolicy_t;
 
 /* Userinfo appearance keys are part of the selected game's client contract.

@@ -225,6 +225,7 @@ class RTCWFogGPUTests(unittest.TestCase):
             flags = ['-DFNTECH3_Q3_ONLY']
         elif os.name != 'nt':
             flags = ['-m32']
+        (ROOT / '.tmp').mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='rtcw-fog-gpu-', dir=ROOT / '.tmp') as tmp:
             source = Path(tmp) / 'probe.cpp'; exe = Path(tmp) / 'probe.exe'
             source.write_text(PREFIX + body)

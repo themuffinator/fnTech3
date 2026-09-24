@@ -72,6 +72,7 @@ class RTCWDevelopmentProfileTests(unittest.TestCase):
         target = compiler_target_args(compiler)
         if os.name != 'nt':
             target = ['-m32']
+        (ROOT / '.tmp').mkdir(parents=True, exist_ok=True)
         for macros in ([], ['-DFNTECH3_RTCW_DEVELOPMENT=1'], ['-DFNTECH3_RTCW_DEVELOPMENT=1', '-DFNTECH3_Q3_ONLY=1']):
             with self.subTest(macros=macros), tempfile.TemporaryDirectory(prefix='rtcw-development-', dir=ROOT / '.tmp') as temp:
                 folder = Path(temp); source = folder / 'probe.cpp'

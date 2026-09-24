@@ -35,17 +35,34 @@ static Cvar gametype;
 static Cvar *sv_gametype=&gametype;
 bool SV_GameTypeIsSinglePlayer(int type){return type==0;}
 bool SV_WolfETGameTypeIsCoop(int type){return type==1;}
+// RTCW MP reads its world record's worldflags, and getting g_gametype takes a
+// type the console latched.
+static int worldFlags, worldReads, gameTypeGets, gameTypeSets, latchedGameType;
+static bool latched;
+static constexpr int CVAR_SERVERINFO=4, CVAR_LATCH=32;
+struct GameProfile { struct { const char *gameType; } server; };
+const GameProfile *Com_GameProfile(){static const GameProfile rtcwMp{{"5"}};return &rtcwMp;}
+int SV_RTCWMPWorldflags(){++worldReads;return worldFlags;}
+Cvar *Cvar_Get(const char *name,const char *value,int flags){
+ assert(std::string(name)=="g_gametype"&&std::string(value)=="5"&&flags==(CVAR_SERVERINFO|CVAR_LATCH));
+ ++gameTypeGets;if(latched)gametype.integer=latchedGameType;latched=false;return &gametype;}
 int Cmd_Argc(){return int(args.size());}
 const char *Cmd_Argv(int index){return args.at(index).c_str();}
 int SV_ParseInt(const char *s){return std::stoi(s);}
 int Cvar_VariableIntegerValue(const char *s){return cvars[s];}
-void Cvar_SetIntegerValue(const char *s,int v){cvars[s]=v;}
+void Cvar_SetIntegerValue(const char *s,int v){cvars[s]=v;if(std::string(s)=="g_gametype"){gametype.integer=v;++gameTypeSets;}}
 void Com_Printf(const char*,...){}
 bool SV_HandleQuitOnExitLevel(const char*){return false;}
 bool SV_RTCWRestoreSaveTime(){++restoreCalls;return true;}
 const char *va(const char *fmt,...){static char b[64];va_list a;va_start(a,fmt);vsnprintf(b,sizeof(b),fmt,a);va_end(a);return b;}
 void SV_SetConfigstring(int i,const char *s){configIndex=i;configValue=s;}
 static void reset(int p){profile=p;sv={0,0,10000};running.integer=1;gametype.integer=4;cvars.clear();cvars["gamestate"]=1;args={"map_restart"};restoreCalls=0;configValue.clear();}
+'''
+CLIENTS = r'''
+enum { CS_FREE, CS_ZOMBIE, CS_CONNECTED, CS_PRIMED, CS_ACTIVE };
+struct client_t { int state, oldServerTime; };
+static client_t slots[5];
+client_t (&SV_Clients())[5]{return slots;}
 '''
 CHECKS = r'''
 int main(){
@@ -80,6 +97,39 @@ int main(){
   args={"map_restart","0","2"};SV_MapRestart_f();
   assert(!sv.restartTime&&cvars["gamestate"]==(old<=2?0:old));
  }
+ // RTCW MP keeps g_gametype to a type the map allows, before any delay. Rows
+ // are types 5 to 8 and columns worldflags 0 to 7, as WolfMP.exe sets them;
+ // higher bits change nothing, and no other type is ever replaced.
+ constexpr int kept[4][8]={{5,7,5,7,5,7,5,7},{6,6,5,7,6,6,5,7},{7,7,7,7,5,7,5,7},{8,8,8,8,5,7,5,7}};
+ constexpr int replaced[4][8]={{0,1,0,1,0,1,0,1},{0,0,1,1,0,0,1,1},{0,0,0,0,1,1,1,1},{0,0,0,0,1,1,1,1}};
+ for(int type=-1;type<=9;++type)for(int flags:{0,1,2,3,4,5,6,7,8,9,12,15,-8,-1})
+ for(bool pending:{false,true})for(const char *delay:{"0","3"}){
+  const bool wolf=type>=5&&type<=8, set=wolf&&replaced[type-5][flags&7];
+  reset(3);worldFlags=flags;worldReads=gameTypeGets=gameTypeSets=0;
+  gametype.integer=pending?4:type;latched=pending;latchedGameType=type;
+  args={"map_restart",delay};SV_MapRestart_f();
+  assert(gametype.integer==(wolf?kept[type-5][flags&7]:type)&&!latched&&worldReads==1);
+  assert(gameTypeSets==set&&gameTypeGets==(set?2:1)&&sv_gametype==&gametype);
+  assert(sv.restartTime==(delay[0]=='3'?13000:0)&&cvars["gamestate"]==(delay[0]=='3'?1:0));
+ }
+ // The replacement stands even when the match state then refuses the restart.
+ reset(3);worldFlags=1;gametype.integer=5;cvars["gamestate"]=4;args={"map_restart","0","0"};
+ SV_MapRestart_f();assert(gametype.integer==7&&cvars["gamestate"]==4);
+ // The same-frame, stopped-server and pending-restart refusals come first, and
+ // no other profile reads the world record or replaces a type.
+ for(int refusal=0;refusal<3;++refusal){
+  reset(3);worldFlags=1;worldReads=gameTypeGets=gameTypeSets=0;gametype.integer=5;latched=true;latchedGameType=6;
+  if(refusal==0)sv.restartedServerId=com_frameTime;
+  if(refusal==1)running.integer=0;
+  if(refusal==2)sv.restartTime=20000;
+  SV_MapRestart_f();assert(!worldReads&&!gameTypeGets&&!gameTypeSets&&gametype.integer==5&&latched);
+ }
+ for(int p:{0,1,2,4}){
+  reset(p);worldFlags=7;worldReads=gameTypeGets=gameTypeSets=0;gametype.integer=5;latched=true;latchedGameType=6;
+  args={"map_restart","0"};SV_MapRestart_f();
+  assert(!worldReads&&!gameTypeGets&&!gameTypeSets&&gametype.integer==5&&latched);
+ }
+ worldFlags=0;latched=false;
  for(int invalid:{INT_MIN,-2,6,INT_MAX}){
   int result=777;assert(!fntech3::rtcw::RestartMatchState(invalid,0,false,result)&&result==777);
   assert(!fntech3::rtcw::RestartMatchState(0,invalid,false,result)&&result==777);
@@ -93,8 +143,21 @@ int main(){
   reset(p);args={"map_restart","0"};SV_MapRestart_f();assert(!sv.restartTime&&restoreCalls==1);
   reset(p);sv.restartedServerId=com_frameTime;SV_MapRestart_f();assert(!sv.restartTime&&!restoreCalls);
   reset(p);running.integer=0;SV_MapRestart_f();assert(!sv.restartTime&&!restoreCalls);
-  reset(p);sv.restartTime=20000;SV_MapRestart_f();assert(sv.restartTime==20000&&!restoreCalls);
+  // Only ET lets a restart through while a delayed one is pending, as et.exe
+  // does. An immediate one leaves the pending time to fire later, and a new
+  // delay replaces it, earlier or later, and CS_WARMUP with it.
+  reset(p);sv.restartTime=20000;SV_MapRestart_f();
+  assert(sv.restartTime==20000&&restoreCalls==(p==4)&&cvars["gamestate"]==(p==4?0:1)&&configValue.empty());
+  for(int pending:{12000,20000}){
+   reset(p);sv.restartTime=pending;args={"map_restart","3"};SV_MapRestart_f();
+   assert(sv.restartTime==(p==4?13000:pending)&&!restoreCalls&&cvars["gamestate"]==1);
+   assert(p==4?configValue=="13000"&&configIndex==5:configValue.empty());
+  }
  }
+ // The level restart then gives a loading client no clock offset, though
+ // ET's pending restart time is still set.
+ sv.restartTime=20000;for(int s=0;s<5;++s)slots[s]={s,777};SV_PrimeRestartClocks();
+ for(int s=0;s<5;++s)assert(slots[s].oldServerTime==(s==CS_PRIMED?0:777));
  reset(2);cvars["savegame_loading"]=2;args={"map_restart","5"};SV_MapRestart_f();assert(!sv.restartTime&&restoreCalls==1);
 }
 '''
@@ -108,7 +171,11 @@ class RTCWMatchRestartTests(unittest.TestCase):
         command = function((ROOT / 'code/server/sv_ccmds.cpp').read_text(), 'static void SV_MapRestart_f(')
         # Compile the actual command up to its first VM/full-map restart branch.
         prefix = command[:command.index('\n\tif ( !Com_GameIsQuakeLive()')]
-        source = PRELUDE + prefix + '\n}\n' + CHECKS
+        # And the loop that sets a loading client's clock offset at the restart.
+        start = command.index('\tfor ( client_t &client : SV_Clients() ) {\n\t\tif ( client.state == CS_PRIMED')
+        primed = command[start:command.index('\n\t}\n', start) + 4]
+        source = (PRELUDE + prefix + '\n}\n' + CLIENTS + 'static void SV_PrimeRestartClocks(){\n' + primed + '}\n'
+                  + CHECKS)
         scratch = ROOT / '.tmp/rtcw-campaign/tests'; scratch.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='restart-', dir=scratch) as directory:
             folder = Path(directory); cpp = folder / 'test.cpp'; exe = folder / 'test.exe'

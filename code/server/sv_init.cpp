@@ -781,12 +781,26 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	sv_pure->modified = qfalse;
 
 	// run a few frames to allow everything to settle
-	for ( int ignored : SV_Indices( 3 ) ) {
-		(void)ignored;
-		Cbuf_Wait();
-		sv.time += 100;
-		VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );
-		SV_BotFrame( sv.time );
+	if ( Com_GameIsWolfET() ) {
+		// Enemy Territory runs six, each with its bots at the current time
+		// before advancing it (et.exe 0x4469e1..0x446a12, etded.exe
+		// 0x42d111..0x42d142), as its map_restart does: the game's first frame
+		// runs at the time GAME_INIT was given.
+		for ( int ignored : SV_Indices( 6 ) ) {
+			(void)ignored;
+			Cbuf_Wait();
+			VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );
+			SV_BotFrame( sv.time );
+			sv.time += 100;
+		}
+	} else {
+		for ( int ignored : SV_Indices( 3 ) ) {
+			(void)ignored;
+			Cbuf_Wait();
+			sv.time += 100;
+			VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );
+			SV_BotFrame( sv.time );
+		}
 	}
 
 	// create a baseline for more efficient communications
@@ -798,8 +812,13 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 			const char *denied;
 
 			if ( slot.client.netchan.remoteAddress.type == NA_BOT ) {
-				if ( killBots ) {
-					SV_DropClient( &slot.client, "was kicked" );
+				// Enemy Territory also drops every bot from a single-player or
+				// co-op game type, and gives no reason (et.exe
+				// 0x446a3f..0x446a7b, etded.exe 0x42d16f..0x42d1ab).
+				const bool wolfET = Com_GameIsWolfET();
+				if ( killBots || ( wolfET && ( SV_GameTypeIsSinglePlayer( sv_gametype->integer )
+					|| SV_WolfETGameTypeIsCoop( sv_gametype->integer ) ) ) ) {
+					SV_DropClient( &slot.client, wolfET ? "" : "was kicked" );
 					continue;
 				}
 				isBot = true;
@@ -832,10 +851,19 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 
 	// run another frame to allow things to look at all the players
 	Cbuf_Wait();
-	sv.time += 100;
-	VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );
-	SV_BotFrame( sv.time );
-	svs.time += 100;
+	if ( Com_GameIsWolfET() ) {
+		// Enemy Territory's runs at the current time too (et.exe
+		// 0x446b14..0x446b3a, etded.exe 0x42d244..0x42d26a).
+		VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );
+		SV_BotFrame( sv.time );
+		sv.time += 100;
+		svs.time += 100;
+	} else {
+		sv.time += 100;
+		VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );
+		SV_BotFrame( sv.time );
+		svs.time += 100;
+	}
 
 	// Publish the selected profile's native module paks for download/proof.
 	// Q3 retains its original implicit-reference behavior.

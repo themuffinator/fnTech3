@@ -128,6 +128,7 @@ class ShaderAnimationTests(unittest.TestCase):
         target = compiler_target_args(compiler)
         if os.name == 'nt' and not target:
             target = ['-DFNTECH3_Q3_ONLY']
+        (ROOT / '.tmp').mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='shader-animation-', dir=ROOT / '.tmp') as temp:
             for renderer in RENDERERS:
                 with self.subTest(renderer=renderer):

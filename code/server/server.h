@@ -256,7 +256,14 @@ typedef struct client_s {
 
 } client_t;
 
+/* A network client rings the window its wire negotiated. A bot never sets up
+ * a channel, so its slot's wire profile is the last network client's there,
+ * or Quake III's in a slot none has used; it rings its profile's own window
+ * instead, the one fixed count that each retail engine gives every client. */
 static inline int SV_ReliableCommandLimit( const client_t *client ) {
+	if ( client->netchan.remoteAddress.type == NA_BOT ) {
+		return Com_GameProfile()->bots.reliableCommands;
+	}
 	return Netchan_ReliableCommandLimit( client->netchan.wireProfile );
 }
 
@@ -533,9 +540,11 @@ int	SV_NumForGentity( sharedEntity_t *ent );
 sharedEntity_t *SV_GentityNum( int num );
 qboolean	SV_ReadGameEntity( const void *entity, sharedEntity_t *destination );
 qboolean	SV_ClientIsRTCWCastAI( const client_t *client );
+qboolean	SV_ClientIsWolfETBot( const client_t *client );
 qboolean	SV_WriteGameEntity( void *entity, const sharedEntity_t *source );
 qboolean	SV_ReadGameEntityByNum( int num, sharedEntity_t *destination );
 bool SV_WolfETSnapshotCallback( int entityNum, int clientNum );
+int SV_RTCWMPWorldflags( void );
 qboolean	SV_WriteGameEntityByNum( int num, const sharedEntity_t *source );
 qboolean	SV_ReadGameClient( int num, playerState_t *destination );
 qboolean	SV_STVEFSPCameraOrigin( vec3_t origin );

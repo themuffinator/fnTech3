@@ -67,6 +67,7 @@ class MdsLodTests(unittest.TestCase):
             target = compiler_target_args(compiler)
             if os.name != 'nt':
                 target = ['-m32']
+            (ROOT / '.tmp').mkdir(parents=True, exist_ok=True)
             with self.subTest(language=language), tempfile.TemporaryDirectory(prefix='mds-lod-', dir=ROOT / '.tmp') as temp:
                 folder = Path(temp)
                 source, executable = folder / ('probe.' + language), folder / ('probe.exe' if os.name == 'nt' else 'probe')

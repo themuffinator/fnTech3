@@ -82,6 +82,7 @@ class RTCWLimboChatTests(unittest.TestCase):
             target = ['-m32']
         source = (ROOT / 'code/client/cl_main.cpp').read_text()
         body = function(source, 'void CL_RTCWLimboChat(') + '\n' + function(source, 'qboolean CL_RTCWGetLimboString(')
+        (ROOT / '.tmp').mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='rtcw-limbo-', dir=ROOT / '.tmp') as temp:
             folder = Path(temp); cpp = folder / 'probe.cpp'; exe = folder / 'probe.exe'
             cpp.write_text(PRELUDE + body + CHECKS, encoding='utf-8')

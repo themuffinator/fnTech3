@@ -215,6 +215,7 @@ class NativeModuleFilesystemTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_root_modules_are_profile_specific_and_contained(self):
+        (ROOT / ".tmp").mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix="native-root-", dir=ROOT / ".tmp") as temp:
             folder = Path(temp)
             executable = self.build(self.compiler(), folder, PATH_CHECKS)
@@ -254,6 +255,7 @@ class NativeModuleFilesystemTests(unittest.TestCase):
         body = function(source, "int FS_ReadNativeModuleFile(")
         # The production TU is C; make its allocator assignment explicit for this C++ fixture.
         body = body.replace("data = Hunk_AllocateTempMemory", "data = (byte *)Hunk_AllocateTempMemory")
+        (ROOT / ".tmp").mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix="native-read-", dir=ROOT / ".tmp") as temp:
             folder = Path(temp)
             module = folder / "retail.fixture"

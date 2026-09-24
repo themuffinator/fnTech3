@@ -70,6 +70,7 @@ class RTCWVoiceTests(unittest.TestCase):
         dispatch = (ROOT / 'code/client/cl_cgame.cpp').read_text()
         self.assertIn('case Call::CG_S_GETVOICEAMPLITUDE:\n\t\t\treturn S_RTCWVoiceAmplitude( args[1] );', dispatch)
         body = function(sound, 'extern "C" int S_RTCWVoiceAmplitude(')
+        (ROOT / '.tmp').mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='rtcw-voice-', dir=ROOT / '.tmp') as tmp:
             source = Path(tmp) / 'probe.cpp'; exe = Path(tmp) / 'probe.exe'
             source.write_text(PRELUDE + body + CHECKS)

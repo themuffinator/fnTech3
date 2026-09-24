@@ -157,6 +157,7 @@ class RTCWModelInfoTests(unittest.TestCase):
         helpers = '\nnamespace fntech3::server {\n' + function(data, 'bool AddressRangeFits(')
         helpers += '\n' + function(data, 'bool ResolveQvmGameDataPointer(') + '\n}\n'
         body = PRELUDE + helpers + vm[start:end] + function(game, 'intptr_t SV_RTCWGetModelInfo(') + CHECKS
+        (ROOT / '.tmp').mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='rtcw-model-info-', dir=ROOT / '.tmp') as temp:
             folder = Path(temp); fixture = folder / 'probe.cpp'
             fixture.write_text(body, encoding='utf-8')

@@ -106,6 +106,7 @@ class RTCWSpatialAudioTests(unittest.TestCase):
             target = ['-DFNTECH3_Q3_ONLY']
         elif os.name != 'nt':
             target = ['-m32']
+        (ROOT / '.tmp').mkdir(parents=True, exist_ok=True)
         for optimize in ([], ['-O2', '-ffast-math']):
             with self.subTest(flags=optimize), tempfile.TemporaryDirectory(prefix='rtcw-spatial-audio-', dir=ROOT / '.tmp') as temp:
                 folder = Path(temp); source = folder / 'probe.cpp'; executable = folder / 'probe.exe'

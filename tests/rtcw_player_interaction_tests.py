@@ -174,6 +174,7 @@ class RTCWPlayerInteractionTests(unittest.TestCase):
             target = ['-DFNTECH3_Q3_ONLY']
         elif os.name != 'nt':
             target = ['-m32']
+        (ROOT / '.tmp').mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='rtcw-interaction-', dir=ROOT / '.tmp') as temp:
             cpp, exe = Path(temp) / 'probe.cpp', Path(temp) / 'probe.exe'
             cpp.write_text(source, encoding='utf-8')

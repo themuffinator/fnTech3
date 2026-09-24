@@ -132,6 +132,7 @@ class RTCWCoronaTests(unittest.TestCase):
         flags=compiler_target_args(compiler)
         if os.name=='nt' and not flags:flags=['-DFNTECH3_Q3_ONLY']
         elif os.name!='nt':flags=['-m32']
+        (ROOT/'.tmp').mkdir(parents=True,exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='rtcw-corona-',dir=ROOT/'.tmp') as tmp:
             source=Path(tmp)/'probe.cpp';exe=Path(tmp)/'probe.exe';source.write_text(HOST+body)
             built=subprocess.run([compiler,*flags,'-std=c++17','-fno-operator-names','-I',str(ROOT),str(source),'-o',str(exe)],cwd=ROOT,capture_output=True,text=True,timeout=60)

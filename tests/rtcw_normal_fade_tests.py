@@ -96,6 +96,7 @@ class RTCWNormalFadeTests(unittest.TestCase):
             target = ['-DFNTECH3_Q3_ONLY']
         elif os.name != 'nt':
             target = ['-m32']
+        (ROOT / '.tmp').mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='rtcw-normal-fade-', dir=ROOT / '.tmp') as temporary:
             for renderer in RENDERERS:
                 with self.subTest(renderer=renderer):

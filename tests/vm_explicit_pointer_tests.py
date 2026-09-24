@@ -93,6 +93,7 @@ int main() {
     }
 }
 '''
+        (ROOT / '.tmp').mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='vm-explicit-', dir=ROOT / '.tmp') as temporary:
             folder = Path(temporary)
             sources = [folder / name for name in ['a.cpp', 'b.cpp', 'main.cpp']]

@@ -188,6 +188,7 @@ class RoQBoundsTests(unittest.TestCase):
             target = ['-DFNTECH3_Q3_ONLY']
         elif os.name != 'nt':
             target = ['-m32', '-fsanitize=address,undefined', '-fno-sanitize-recover=all']
+        (ROOT / '.tmp').mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='roq-', dir=ROOT / '.tmp') as temp:
             folder = Path(temp); cpp = folder / 'probe.cpp'; exe = folder / 'probe.exe'
             cpp.write_text(HOST + constants + '\n' + declarations + '\nstatic qboolean RoQ_init();\n' + decode + CHECKS)

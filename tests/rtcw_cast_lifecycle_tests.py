@@ -17,9 +17,13 @@ def source():
 #include <string>
 serverStatic_t svs{};
 int Com_GameIsRTCWSP(){return profile.id==COM_GAME_RTCW_SP;}
+int Com_GameIsRTCWMP(){return profile.id==COM_GAME_RTCW_MP;}
 int Com_GameClientLimit(){return Com_GameIsRTCW()?128:64;}
-static cvar_t timeout{},zombieTime{},quitOnEmpty{},maxclients{};
+static cvar_t timeout{},zombieTime{},quitOnEmpty{},maxclients{},gametype{};
 cvar_t *sv_timeout=&timeout,*sv_zombietime=&zombieTime,*sv_quitOnEmpty=&quitOnEmpty,*sv_maxclients=&maxclients;
+cvar_t *sv_gametype=&gametype;
+// Only Enemy Territory's drop notice asks about the game type.
+qboolean SV_GameTypeIsSinglePlayer(int){assert(false);return qfalse;}
 static fnql::server::cvars::InactivityTimer emptyServerTimer;
 static std::vector<std::string> events;
 static std::function<void()> onDisconnect;
@@ -63,7 +67,7 @@ void SV_SendMessageToClient(msg_t*,client_t*){events.emplace_back("send");}
     for signature in ('qboolean SV_ReadGameEntity(', 'qboolean SV_ClientIsRTCWCastAI('):
         result += '\n' + function(game, signature)
     client = (ROOT / 'code/server/sv_client.cpp').read_text()
-    for signature in ('void SV_FreeClient(', 'void SV_DropClient('):
+    for signature in ('void SV_FreeClient(', 'static bool SV_AnnouncesDrop(', 'void SV_DropClient('):
         result += '\n' + function(client, signature)
     main = (ROOT / 'code/server/sv_main.cpp').read_text()
     for signature in ('bool SV_HasHumanClients()', 'static void SV_CheckTimeouts('):
@@ -134,7 +138,9 @@ template<class F> void disconnects(F &f){
   const int finalFlags=after==-2?flags:after;auto before=f.memory;
   SV_DropClient(&c,reason?"removed":nullptr);
   std::vector<std::string> expected{"stats","resetStats","p2p","auth","demo","queue","download"};
-  if(reason&&!(sp&&(flags&16)))expected.emplace_back("print \"soldier^7 removed\n\"");
+  // RTCW MP leaves the name untranslated and lets the reason translate.
+  if(reason&&!(sp&&(flags&16)))expected.emplace_back(Com_GameIsRTCWMP()
+   ?"print \"[lof]soldier^7 [lon]removed\n\"":"print \"soldier^7 removed\n\"");
   expected.emplace_back("gameDisconnect");
   if(reason&&!(sp&&after!=-1&&(finalFlags&16)))expected.emplace_back("disconnect \"removed\"");
   if(bot)expected.emplace_back("botFree");expected.emplace_back("userinfo");

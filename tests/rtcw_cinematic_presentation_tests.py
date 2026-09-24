@@ -350,6 +350,7 @@ class RTCWCinematicPresentationTests(unittest.TestCase):
             target = ['-DFNTECH3_Q3_ONLY']
         elif os.name != 'nt':
             target = ['-m32']
+        (ROOT / '.tmp').mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='rtcw-cinematic-presentation-', dir=ROOT / '.tmp') as temp:
             folder = Path(temp); cpp = folder / 'probe.cpp'; exe = folder / 'probe.exe'
             cpp.write_text(body, encoding='utf-8')

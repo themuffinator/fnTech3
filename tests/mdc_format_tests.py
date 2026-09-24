@@ -234,6 +234,7 @@ class MdcFormatTests(unittest.TestCase):
         target = compiler_target_args(compiler)
         if os.name != 'nt':
             target = ['-m32']
+        (ROOT / '.tmp').mkdir(parents=True, exist_ok=True)
         for language, standard in (('c', 'c11'), ('cpp', 'c++17')):
             with self.subTest(language=language), tempfile.TemporaryDirectory(prefix='mdc-format-', dir=ROOT / '.tmp') as temp:
                 folder = Path(temp)

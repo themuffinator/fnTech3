@@ -677,6 +677,7 @@ class RTCWRenderImportTests(unittest.TestCase):
             prefix = source[start:end]
             self.assertIn('CL_RTCWRenderCall(', prefix)
             bodies.append(prefix + '\t}\nreturn 10000 + operation;\n}\n')
+        (ROOT / '.tmp').mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='rtcw-render-', dir=ROOT / '.tmp') as temp:
             folder = Path(temp)
             source = folder / 'probe.cpp'

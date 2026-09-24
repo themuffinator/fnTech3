@@ -236,6 +236,7 @@ class MdsRendererTests(unittest.TestCase):
             target = ['-DFNTECH3_Q3_ONLY']
         elif os.name != 'nt':
             target = ['-m32']
+        (ROOT / '.tmp').mkdir(parents=True, exist_ok=True)
         for renderer in ('renderer', 'renderervk', 'rendererrtx'):
             with self.subTest(renderer=renderer), tempfile.TemporaryDirectory(prefix='mds-render-', dir=ROOT / '.tmp') as temp:
                 folder = Path(temp)

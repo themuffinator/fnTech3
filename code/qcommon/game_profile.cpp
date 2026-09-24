@@ -61,7 +61,7 @@ const comGameProfile_t profiles[] = { {
 	nullptr,
 	64, 1024, 544, 256, COM_ENTITY_HULL_TRACE_SHAPE, "servercache.dat",
 	{ "0", "20", "8", "8", nullptr, nullptr, 1, "1", 1 },
-	{ "1", "64", "1024", 1024, COM_BOT_AI_QUAKE, 1, 0, 0, 1 },
+	{ "1", "64", "1024", 1024, COM_BOT_AI_QUAKE, 1, 0, 0, 1, 64 },
 	COM_PURE_PROOF_QVM,
 	{ "sarge", "headmodel", "sarge", "sarge", "color1", "5", 1, 0 },
 	{ "cinematic idlogo.RoQ", "cinematic intro.RoQ", 0 }
@@ -92,7 +92,7 @@ const comGameProfile_t profiles[] = { {
 	nullptr,
 	64, 1024, 544, 256, COM_ENTITY_HULL_TRACE_SHAPE, "servercache.dat",
 	{ "0", "50", "8", "8", nullptr, nullptr, 1, "1", 1 },
-	{ "1", "64", "1024", 1024, COM_BOT_AI_QUAKE, 1, 0, 0, 1 },
+	{ "1", "64", "1024", 1024, COM_BOT_AI_QUAKE, 1, 0, 0, 1, 64 },
 	COM_PURE_PROOF_QL_NATIVE,
 	{ "sarge", "headmodel", "sarge", "sarge", "color1", "5", 1, 0 },
 	{ "cinematic idlogo.RoQ", "cinematic intro.RoQ", 0 }
@@ -121,7 +121,7 @@ const comGameProfile_t profiles[] = { {
 	"RTCW SP module, wire, savegame and renderer adapters are not yet complete",
 	128, 2048, 544, 512, COM_ENTITY_HULL_ENTITY_FLAG, nullptr,
 	{ "0", "20", "8", "32", "1", "64", 1, "0", 0 },
-	{ "1", "128", "2048", 2048, COM_BOT_AI_MOVEMENT, 2, 1, 16384, 0 },
+	{ "1", "128", "2048", 2048, COM_BOT_AI_MOVEMENT, 2, 1, 16384, 0, 256 },
 	COM_PURE_PROOF_UNAVAILABLE,
 	{ "bj2", "head", "default", nullptr, "color", nullptr, 0, 1 },
 	{ nullptr, "cinematic wolfintro.RoQ 3", 1 }
@@ -150,7 +150,7 @@ const comGameProfile_t profiles[] = { {
 	"RTCW MP module, wire and renderer adapters are not yet complete",
 	64, 2048, 576, 512, COM_ENTITY_HULL_ENTITY_FLAG, "fntech3-rtcw-mp-servercache.dat",
 	{ "5", "0", "20", "32", "3", nullptr, 0, "1", 0 },
-	{ "0", "128", "1024", 1024, 0, 2, 1, 16384, 0 },
+	{ "0", "128", "1024", 1024, 0, 2, 1, 16384, 0, 256 },
 	COM_PURE_PROOF_RTCW_NATIVE,
 	{ "multi", "head", "default", nullptr, "color", nullptr, 0, 1 },
 	{ "cinematic gmlogo.RoQ", "cinematic wolfintro.RoQ", 0 }
@@ -179,7 +179,7 @@ const comGameProfile_t profiles[] = { {
 	"Wolfenstein: Enemy Territory module, wire and renderer adapters are not yet complete",
 	64, 1024, 689, 512, COM_ENTITY_HULL_ENTITY_FLAG, "fntech3-wolfet-servercache.dat",
 	{ "4", "0", "20", "20", nullptr, nullptr, 0, "1", 0 },
-	{ "0", "64", "1024", 1024, 0, 1, 1, 16384, 0 },
+	{ "0", "64", "1024", 1024, 0, 1, 1, 16384, 0, 256 },
 	COM_PURE_PROOF_WOLFET_NATIVE,
 	{ "multi", "head", "default", nullptr, "color", nullptr, 0, 1 },
 	{ "cinematic etintro.roq", nullptr, 0 }
@@ -211,7 +211,7 @@ const comGameProfile_t profiles[] = { {
 	"Elite Force SP module, savegame, cinematic and renderer adapters are not yet complete",
 	1, 1024, 522, 256, COM_ENTITY_HULL_TRACE_SHAPE, nullptr,
 	{ "0", "0", "1", "1", nullptr, nullptr, 0, "0", 0 },
-	{ "0", "1", "1024", 1024, 0, 1, 0, 0, 0 },
+	{ "0", "1", "1024", 1024, 0, 1, 0, 0, 0, 64 },
 	COM_PURE_PROOF_UNAVAILABLE,
 	{ "hazard/default", "headModel", "munro/default", nullptr, nullptr, nullptr, 0, 1,
 		"legsModel", "torsoModel", "hazard/default", "Munro" },
@@ -243,7 +243,7 @@ const comGameProfile_t profiles[] = { {
 	"Elite Force Holomatch module, wire and renderer adapters are not yet complete",
 	64, 1024, 544, 256, COM_ENTITY_HULL_TRACE_SHAPE, "fntech3-stvef-servercache.dat",
 	{ "0", "20", "8", "8", nullptr, nullptr, 1, "1", 1 },
-	{ "1", "64", "1024", 1024, COM_BOT_AI_QUAKE, 1, 0, 0, 1 },
+	{ "1", "64", "1024", 1024, COM_BOT_AI_QUAKE, 1, 0, 0, 1, 64 },
 	COM_PURE_PROOF_QVM,
 	{ "munro/red", nullptr, nullptr, nullptr, "color", nullptr, 0, 1,
 		nullptr, nullptr, nullptr, "RedShirt" },

@@ -431,6 +431,7 @@ class RTCWClientStateTests(unittest.TestCase):
         bodies += "\n" + function(input_source, "static void CL_FinishMove(")
         dispatch = function(source, "static intptr_t CL_CgameSystemCalls(")
         dispatch = dispatch[:dispatch.index("\tswitch( operation )")] + "\treturn 10000 + operation;\n}\n"
+        (ROOT / ".tmp").mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix="rtcw-client-state-", dir=ROOT / ".tmp") as temp:
             folder = Path(temp)
             fixture = folder / "probe.cpp"

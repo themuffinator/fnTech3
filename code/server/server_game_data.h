@@ -134,6 +134,10 @@ public:
 	bool SetSvFlags( const GameEntityRef &reference, std::int32_t value );
 	bool GetWolfETSnapshotCallback( const GameEntityRef &reference,
 		std::int32_t &destination ) const;
+	// RTCW MP's record keeps the map's worldspawn spawnflags after r; SP's has
+	// no such member, and ET's map_restart never reads its own.
+	bool GetRTCWMPWorldflags( const GameEntityRef &reference,
+		std::int32_t &destination ) const;
 	bool GetSingleClient( const GameEntityRef &reference,
 		std::int32_t &destination ) const;
 	bool SetSingleClient( const GameEntityRef &reference, std::int32_t value );

@@ -90,6 +90,7 @@ class RTCWFogSceneTests(unittest.TestCase):
             flags = ['-DFNTECH3_Q3_ONLY']
         elif os.name != 'nt':
             flags = ['-m32']
+        (ROOT / '.tmp').mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='rtcw-fog-scene-', dir=ROOT / '.tmp') as temp:
             folder = Path(temp); source = folder / 'probe.cpp'; executable = folder / 'probe.exe'
             source.write_text(SOURCE, encoding='utf-8')

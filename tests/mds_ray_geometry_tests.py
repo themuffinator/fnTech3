@@ -80,6 +80,7 @@ class MdsRayGeometryTests(unittest.TestCase):
             target = ['-DFNTECH3_Q3_ONLY']
         elif os.name != 'nt':
             target = ['-m32']
+        (ROOT / '.tmp').mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='mds-ray-', dir=ROOT / '.tmp') as temp:
             folder = Path(temp)
             source, executable = folder / 'probe.cpp', folder / ('probe.exe' if os.name == 'nt' else 'probe')

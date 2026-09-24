@@ -355,13 +355,30 @@ static void SV_MapRestart_f( void ) {
 		return;
 	}
 
-	if ( sv.restartTime != 0 ) {
+	// Enemy Territory lets a restart through while a delayed one is pending:
+	// et.exe parses the delay (0x43fa53) straight after its running check,
+	// where WolfMP.exe refuses (0x432eea). A new delay replaces the pending
+	// time and CS_WARMUP; an immediate restart leaves it to fire later.
+	if ( sv.restartTime != 0 && !Com_GameIsWolfET() ) {
 		return;
 	}
 
 	if ( Com_GameIsQuakeLive()
 		&& SV_HandleQuitOnExitLevel( "map_restart" ) ) {
 		return;
+	}
+
+	// RTCW MP keeps g_gametype to a type the map allows, before any delay, as
+	// WolfMP.exe does at 0x432ef6..0x432f7c. Getting the cvar takes a type the
+	// console latched; retail gets it again after forcing the replacement.
+	if ( Com_GameIsRTCWMP() ) {
+		const char *defaultType = Com_GameProfile()->server.gameType;
+		sv_gametype = Cvar_Get( "g_gametype", defaultType, CVAR_SERVERINFO | CVAR_LATCH );
+		int allowed;
+		if ( fntech3::rtcw::MapForbidsGameType( sv_gametype->integer, SV_RTCWMPWorldflags(), allowed ) ) {
+			Cvar_SetIntegerValue( "g_gametype", allowed );
+			sv_gametype = Cvar_Get( "g_gametype", defaultType, CVAR_SERVERINFO | CVAR_LATCH );
+		}
 	}
 
 	if ( Cmd_Argc() > 1 ) {
@@ -440,9 +457,11 @@ static void SV_MapRestart_f( void ) {
 	// if a map_restart occurs while a client is changing maps, we need
 	// to give them the correct time so that when they finish loading
 	// they don't violate the backwards time check in cl_cgame.c
+	// Q3 stored sv.restartTime, which its refusal above kept zero. ET's can be
+	// a pending restart's time, and snapshots add this offset to sv.time.
 	for ( client_t &client : SV_Clients() ) {
 		if ( client.state == CS_PRIMED ) {
-			client.oldServerTime = sv.restartTime;
+			client.oldServerTime = 0;
 		}
 	}
 

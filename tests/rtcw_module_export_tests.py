@@ -374,6 +374,7 @@ class RTCWModuleExportTests(unittest.TestCase):
         shared = (ROOT / "code/qcommon/q_shared.c").read_text(encoding="utf-8")
         popup = "\n#ifndef USE_DEDICATED\n" + function(shared, "int Q_stricmp(")
         popup += "\n" + function(ui, "void CL_RTCWPopup(") + "\n#endif\n"
+        (ROOT / ".tmp").mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix="rtcw-exports-", dir=ROOT / ".tmp") as temp:
             folder = Path(temp)
             fixture = folder / "probe.c"

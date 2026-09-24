@@ -181,6 +181,7 @@ class RTCWPureModuleTests(unittest.TestCase):
         body = constants + PRELUDE + function(files, 'static int FS_ModuleReferenceFlag(')
         body += function(files, 'qboolean FS_VerifyNativeModulePak(')
         body += function(vm, 'static void *VM_LoadPinnedDll(') + CHECKS
+        (ROOT / '.tmp').mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='rtcw-pure-', dir=ROOT / '.tmp') as temp:
             folder = Path(temp)
             fixture = folder / 'probe.cpp'

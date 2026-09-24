@@ -328,6 +328,20 @@ qboolean SV_ClientIsRTCWCastAI( const client_t *client ) {
 	return SV_QBool( ( entity.r.svFlags & SVF_RTCW_CASTAI ) != 0 );
 }
 
+/* ET 2.60b leaves a client out of broadcast commands when its entity carries
+ * SVF_BOT (8 in r.svFlags, +0x128 in the record): et.exe tests it at 0x448884
+ * and etded.exe at 0x42f0ef. The entity's flag decides, not the client's
+ * address type, as in retail. */
+qboolean SV_ClientIsWolfETBot( const client_t *client ) {
+	if ( !Com_GameIsWolfET() || !client->gentity ) return qfalse;
+	sharedEntity_t entity;
+	if ( !SV_ReadGameEntity( client->gentity, &entity ) ) {
+		Com_Error( ERR_DROP, "%s: invalid client gentity", __func__ );
+		return qfalse;
+	}
+	return SV_QBool( ( entity.r.svFlags & SVF_BOT ) != 0 );
+}
+
 bool SV_WolfETSnapshotCallback( int entityNum, int clientNum ) {
 	if ( !Com_GameIsWolfET() ) return true;
 	fntech3::server::GameEntityRef reference;
@@ -344,6 +358,23 @@ bool SV_WolfETSnapshotCallback( int entityNum, int clientNum ) {
 		return false;
 	}
 	return VM_Call( gvm, 2, GAME_SNAPSHOT_CALLBACK, entityNum, clientNum ) != 0;
+}
+
+/* RTCW MP's SP_worldspawn copies the map's worldspawn spawnflags into the world
+ * record's r.worldflags, which map_restart reads to keep g_gametype to a type
+ * the map allows. Retail WolfMP.exe reads them at 0x432f0f..0x432f19, from a
+ * record past the published entity count that SV_GameEntityArena binds. */
+int SV_RTCWMPWorldflags( void ) {
+	fntech3::server::GameEntityRef world;
+	int flags = 0;
+	if ( !serverGameData.EntityRefAt( ENTITYNUM_WORLD, world )
+		|| !serverGameData.GetRTCWMPWorldflags( world, flags ) ) {
+		Com_Error( ERR_DROP, "%s: the world record, entity %i, is not readable as "
+			"RTCW MP's, so map_restart cannot check the game types the map allows",
+			__func__, ENTITYNUM_WORLD );
+		return 0;
+	}
+	return flags;
 }
 
 

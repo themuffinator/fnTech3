@@ -1,0 +1,499 @@
+{
+  "utc": "2026-09-24T06:53:10+00:00",
+  "testedSourceCommit": "1074fe38890827c1cca03c7e29564c43ff33da00",
+  "sourceChanges": [
+    "code/server/sv_ccmds.cpp",
+    "tests/rtcw_match_restart_tests.py",
+    "scripts/probe_wolfet_pending_restart.py"
+  ],
+  "platform": "Windows 11; Windows x86 MSVC debugoptimized, strict warnings, dedicated server only (-Dbuild-client=false -Dwolfet-development=true -Drtcw-development=true -Dstvef-development=true), built from a clean git archive export of the tested commit; private desktop, loopback only, no clients, no input",
+  "installation": "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory",
+  "retail": {
+    "et.exe": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e",
+    "etded.exe": "7eb606913a56d6901e358a598fb0079120b2730e113a10fc963f90b777580cdf",
+    "WolfMP.exe": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5"
+  },
+  "retailAddresses": {
+    "et.exe": {
+      "SV_MapRestart_f": "0x43fa20",
+      "sameFrameTest": "0x43fa2b",
+      "runningTest": "0x43fa3c",
+      "delayParse": "0x43fa53",
+      "restartTimeStore": "0x43fa83",
+      "warmupConfigstring": "0x43fa90",
+      "immediateRestart": "0x43fa9c",
+      "SV_Frame": "0x447da0",
+      "SV_FrameRestartTimer": "0x447f16",
+      "sv.restartTime": "0x11e72dc",
+      "svs.time": "0x11ef5c4"
+    },
+    "etded.exe": {
+      "SV_MapRestart_f": "0x425e70",
+      "sameFrameTest": "0x425e85",
+      "runningTest": "0x425e96",
+      "delayParse": "0x425eb7",
+      "restartTimeStore": "0x425ee7",
+      "warmupConfigstring": "0x425ef4",
+      "SV_FrameRestartTimer": "0x42e748",
+      "SVC_RemoteCommand": "0x42dc30",
+      "rconWithin500msDropped": "0x42dc5a..0x42dc73",
+      "sv.restartTime": "0xc5dc1c",
+      "svs.time": "0xc65f04"
+    },
+    "WolfMP.exe": {
+      "SV_MapRestart_f": "0x432eb0",
+      "pendingRestartTest": "0x432eea",
+      "refusalReturn": "0x4331c8",
+      "restartTimeStore": "0x432fb4",
+      "warmupConfigstring": "0x432fc1",
+      "sv.restartTime": "0xb5543c"
+    }
+  },
+  "assets": {
+    "etmain/qagame_mp_x86.dll": "160a6218397865ad61071faa6316053713c03b9be80e5d05c7a5be2cab7f630b",
+    "etmain/pak0.pk3": "712966b20e06523fe81419516500e499c86b2b4fec823856ddbd333fcb3d26e5"
+  },
+  "map": "goldrush",
+  "configs": {
+    "fntech3-pending-restart.cfg": [
+      "set fntech3_restart_mark_loaded 1",
+      "set fntech3_restart_mark_delayed_an_hour 1",
+      "set fntech3_restart_mark_immediate_while_pending 1",
+      "set fntech3_restart_mark_delayed_two_seconds_while_pending 1",
+      "set fntech3_restart_mark_immediate_then_pending_fires 1",
+      "map goldrush"
+    ],
+    "fntech3-pending-restart-mark0.cfg": [
+      "fntech3_restart_mark_loaded",
+      "gamestate"
+    ],
+    "fntech3-pending-restart-step1.cfg": [
+      "map_restart 3600"
+    ],
+    "fntech3-pending-restart-mark1.cfg": [
+      "fntech3_restart_mark_delayed_an_hour",
+      "gamestate"
+    ],
+    "fntech3-pending-restart-step2.cfg": [
+      "map_restart 0"
+    ],
+    "fntech3-pending-restart-mark2.cfg": [
+      "fntech3_restart_mark_immediate_while_pending",
+      "gamestate"
+    ],
+    "fntech3-pending-restart-step3.cfg": [
+      "map_restart 2"
+    ],
+    "fntech3-pending-restart-mark3.cfg": [
+      "fntech3_restart_mark_delayed_two_seconds_while_pending",
+      "gamestate"
+    ],
+    "fntech3-pending-restart-step4.cfg": [
+      "map_restart 2",
+      "wait 5",
+      "map_restart 0"
+    ],
+    "fntech3-pending-restart-mark4.cfg": [
+      "fntech3_restart_mark_immediate_then_pending_fires",
+      "gamestate"
+    ]
+  },
+  "runs": {
+    "retailEtded": {
+      "evidence": "Live: retail etded.exe dedicated server",
+      "serverSha256": "7eb606913a56d6901e358a598fb0079120b2730e113a10fc963f90b777580cdf",
+      "command": [
+        "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory\\etded.exe",
+        "+set",
+        "fs_basepath",
+        "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory",
+        "+set",
+        "fs_homepath",
+        "<output>\\home",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "57142",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "sv_punkbuster",
+        "0",
+        "+set",
+        "g_gametype",
+        "2",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "rconpassword",
+        "<random>",
+        "+set",
+        "sv_master1",
+        "",
+        "+set",
+        "sv_master2",
+        "",
+        "+set",
+        "sv_master3",
+        "",
+        "+set",
+        "sv_master4",
+        "",
+        "+set",
+        "sv_master5",
+        "",
+        "+exec",
+        "fntech3-pending-restart.cfg"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 17.922,
+      "steps": [
+        {
+          "step": "loaded",
+          "commands": [],
+          "waitSeconds": 0.0,
+          "restarts": 1,
+          "retailRestarts": 1,
+          "gamestate": "1",
+          "markedAtSeconds": 0.563
+        },
+        {
+          "step": "delayed-an-hour",
+          "commands": [
+            "map_restart 3600"
+          ],
+          "waitSeconds": 1.5,
+          "restarts": 0,
+          "retailRestarts": 0,
+          "gamestate": "1",
+          "markedAtSeconds": 3.063
+        },
+        {
+          "step": "immediate-while-pending",
+          "commands": [
+            "map_restart 0"
+          ],
+          "waitSeconds": 1.5,
+          "restarts": 1,
+          "retailRestarts": 1,
+          "gamestate": "0",
+          "markedAtSeconds": 5.578
+        },
+        {
+          "step": "delayed-two-seconds-while-pending",
+          "commands": [
+            "map_restart 2"
+          ],
+          "waitSeconds": 4.5,
+          "restarts": 1,
+          "retailRestarts": 1,
+          "gamestate": "0",
+          "markedAtSeconds": 11.11
+        },
+        {
+          "step": "immediate-then-pending-fires",
+          "commands": [
+            "map_restart 2",
+            "wait 5",
+            "map_restart 0"
+          ],
+          "waitSeconds": 4.5,
+          "restarts": 2,
+          "retailRestarts": 2,
+          "gamestate": "0",
+          "markedAtSeconds": 16.61
+        }
+      ],
+      "rconAccepted": 10,
+      "rconRan": 9,
+      "variableChangeRestarts": 0,
+      "networkLookups": [],
+      "errors": [],
+      "installationUnchanged": true,
+      "matchesRetail": true
+    },
+    "fnTech3Baseline": {
+      "build": "tested commit",
+      "evidence": "Live: fnTech3 dedicated server",
+      "serverSha256": "3765ce1e2b870a5a0edae6c98291020aaa318a206f3dea158eb1d85c3e1fe5b1",
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\baseline\\fntech3.ded.exe",
+        "+set",
+        "com_gameProfile",
+        "wolfet",
+        "+set",
+        "fs_basepath",
+        "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory",
+        "+set",
+        "fs_homepath",
+        "<output>\\home",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "60293",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "sv_punkbuster",
+        "0",
+        "+set",
+        "g_gametype",
+        "2",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "rconpassword",
+        "<random>",
+        "+set",
+        "sv_master1",
+        "",
+        "+set",
+        "sv_master2",
+        "",
+        "+set",
+        "sv_master3",
+        "",
+        "+set",
+        "sv_master4",
+        "",
+        "+set",
+        "sv_master5",
+        "",
+        "+exec",
+        "fntech3-pending-restart.cfg"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 17.594,
+      "steps": [
+        {
+          "step": "loaded",
+          "commands": [],
+          "waitSeconds": 0.0,
+          "restarts": 1,
+          "retailRestarts": 1,
+          "gamestate": "1",
+          "markedAtSeconds": 0.344
+        },
+        {
+          "step": "delayed-an-hour",
+          "commands": [
+            "map_restart 3600"
+          ],
+          "waitSeconds": 1.5,
+          "restarts": 0,
+          "retailRestarts": 0,
+          "gamestate": "1",
+          "markedAtSeconds": 2.844
+        },
+        {
+          "step": "immediate-while-pending",
+          "commands": [
+            "map_restart 0"
+          ],
+          "waitSeconds": 1.5,
+          "restarts": 0,
+          "retailRestarts": 1,
+          "gamestate": "1",
+          "markedAtSeconds": 5.359
+        },
+        {
+          "step": "delayed-two-seconds-while-pending",
+          "commands": [
+            "map_restart 2"
+          ],
+          "waitSeconds": 4.5,
+          "restarts": 0,
+          "retailRestarts": 1,
+          "gamestate": "1",
+          "markedAtSeconds": 10.844
+        },
+        {
+          "step": "immediate-then-pending-fires",
+          "commands": [
+            "map_restart 2",
+            "wait 5",
+            "map_restart 0"
+          ],
+          "waitSeconds": 4.5,
+          "restarts": 0,
+          "retailRestarts": 2,
+          "gamestate": "1",
+          "markedAtSeconds": 16.359
+        }
+      ],
+      "rconAccepted": 10,
+      "rconRan": 9,
+      "variableChangeRestarts": 0,
+      "networkLookups": [],
+      "errors": [],
+      "installationUnchanged": true,
+      "matchesRetail": false
+    },
+    "fnTech3Candidate": {
+      "build": "tested commit plus this change",
+      "evidence": "Live: fnTech3 dedicated server",
+      "serverSha256": "4e2dcb736eeb545070b2092eb7ac8d3eb917675635e9f08a8117323e04754fcb",
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\candidate\\fntech3.ded.exe",
+        "+set",
+        "com_gameProfile",
+        "wolfet",
+        "+set",
+        "fs_basepath",
+        "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory",
+        "+set",
+        "fs_homepath",
+        "<output>\\home",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "64148",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "sv_punkbuster",
+        "0",
+        "+set",
+        "g_gametype",
+        "2",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "rconpassword",
+        "<random>",
+        "+set",
+        "sv_master1",
+        "",
+        "+set",
+        "sv_master2",
+        "",
+        "+set",
+        "sv_master3",
+        "",
+        "+set",
+        "sv_master4",
+        "",
+        "+set",
+        "sv_master5",
+        "",
+        "+exec",
+        "fntech3-pending-restart.cfg"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 17.719,
+      "steps": [
+        {
+          "step": "loaded",
+          "commands": [],
+          "waitSeconds": 0.0,
+          "restarts": 1,
+          "retailRestarts": 1,
+          "gamestate": "1",
+          "markedAtSeconds": 0.422
+        },
+        {
+          "step": "delayed-an-hour",
+          "commands": [
+            "map_restart 3600"
+          ],
+          "waitSeconds": 1.5,
+          "restarts": 0,
+          "retailRestarts": 0,
+          "gamestate": "1",
+          "markedAtSeconds": 2.938
+        },
+        {
+          "step": "immediate-while-pending",
+          "commands": [
+            "map_restart 0"
+          ],
+          "waitSeconds": 1.5,
+          "restarts": 1,
+          "retailRestarts": 1,
+          "gamestate": "0",
+          "markedAtSeconds": 5.453
+        },
+        {
+          "step": "delayed-two-seconds-while-pending",
+          "commands": [
+            "map_restart 2"
+          ],
+          "waitSeconds": 4.5,
+          "restarts": 1,
+          "retailRestarts": 1,
+          "gamestate": "0",
+          "markedAtSeconds": 10.953
+        },
+        {
+          "step": "immediate-then-pending-fires",
+          "commands": [
+            "map_restart 2",
+            "wait 5",
+            "map_restart 0"
+          ],
+          "waitSeconds": 4.5,
+          "restarts": 2,
+          "retailRestarts": 2,
+          "gamestate": "0",
+          "markedAtSeconds": 16.406
+        }
+      ],
+      "rconAccepted": 10,
+      "rconRan": 9,
+      "variableChangeRestarts": 0,
+      "networkLookups": [],
+      "errors": [],
+      "installationUnchanged": true,
+      "matchesRetail": true
+    }
+  },
+  "harness": {
+    "test": "tests/rtcw_match_restart_tests.py",
+    "passedOn": [
+      "shared working tree",
+      "tested commit plus this change",
+      "staged index at the time plus this change"
+    ],
+    "mutationsCaught": [
+      "no ET exemption",
+      "no refusal for any profile",
+      "RTCW MP exempted instead of ET",
+      "ET clears the pending restart",
+      "a re-arm keeps the pending time",
+      "a re-arm keeps the earlier time",
+      "a re-arm leaves CS_WARMUP",
+      "primed clients take the pending time",
+      "primed clients skipped while a restart is pending"
+    ]
+  }
+}

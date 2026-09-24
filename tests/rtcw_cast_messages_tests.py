@@ -32,7 +32,7 @@ int Q_vsnprintf(char *s,size_t n,const char *format,va_list args){return vsnprin
     game = (ROOT / 'code/server/sv_game.cpp').read_text()
     result += game[game.index('struct ServerFlagMapping'):game.index('\nvoid InvalidateServerGameData()')]
     for sig in ('qboolean SV_ReadGameEntity(', 'qboolean SV_ReadGameEntityByNum(',
-                'qboolean SV_ClientIsRTCWCastAI('):
+                'qboolean SV_ClientIsRTCWCastAI(', 'qboolean SV_ClientIsWolfETBot('):
         result += '\n' + function(game, sig)
     main = (ROOT / 'code/server/sv_main.cpp').read_text()
     for sig in ('static const char *SV_ExpandNewlines(', 'void SV_AddServerCommand(',
@@ -49,6 +49,8 @@ CHECKS = r'''
 template<class F> void rejected(F f){try{f();assert(false);}catch(Drop&) {}}
 template<class Entity,class Player> void run(comGameId_t id){
  profile.id=id;const bool rtcw=Com_GameIsRTCW(),sp=Com_GameIsRTCWSP(),mp=Com_GameIsRTCWMP();
+ // A bot rings its profile's window, as bot_reliable_window_tests.py pins it.
+ profile.bots.reliableCommands=rtcw?256:64;
  constexpr size_t count=6,base=128,stride=sizeof(Entity)+48;
  std::vector<byte> memory(base+count*stride+128,0xa5),players(count*sizeof(Player));
  std::vector<client_t> clients(count);svs.clients=clients.data();sv.maxclients=count;

@@ -222,15 +222,16 @@ static void SV_WriteSnapshotToClient( const client_t *client, msg_t *msg ) {
 
 	// don't send any changes to zombies
 	if ( client->state <= CS_ZOMBIE ) {
-		// playerstate
-		if ( SV_LegacyFraming( client ) ) {
-			// Every field and array block flagged unchanged.
-			static const playerState_t unchanged{};
-			MSG_WriteDeltaPlayerstateForWireProfile( msg, &unchanged, &unchanged,
-				client->netchan.wireProfile );
-		} else {
-			MSG_WriteByte( msg, 0 ); // # of changes
-			MSG_WriteBits( msg, 0, 1 ); // no array changes
+		// playerstate: every field and array flagged unchanged, in the
+		// client's own encoding. Quake III's zero count and one zero bit are
+		// not enough for RTCW or ET, whose readers take a bit for ammo and
+		// four for ammo in the clip after them. SV_FinalMessage sends every
+		// client this snapshot too.
+		static const playerState_t unchanged{};
+		if ( !MSG_WriteDeltaPlayerstateForWireProfile( msg, &unchanged, &unchanged,
+			client->netchan.wireProfile ) ) {
+			Com_Error( ERR_DROP, "%s: invalid wire profile %i",
+				__func__, static_cast<int>( client->netchan.wireProfile ) );
 		}
 		// packet entities
 		MSG_WriteBits( msg, (MAX_GENTITIES-1), GENTITYNUM_BITS );

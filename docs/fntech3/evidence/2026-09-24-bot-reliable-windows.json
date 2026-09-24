@@ -1,0 +1,1280 @@
+{
+  "record": "docs/fntech3/2026-09-24-bot-reliable-windows.md",
+  "commit": "2d35919d0f6ee62f869f34186a4b11d3e189742f",
+  "platform": "Windows x86, MSVC debugoptimized with strict warnings; dedicated server only, with the RTCW, Elite Force and ET development options on",
+  "probe": "scripts/probe_bot_reliable_window.py",
+  "test": "tests/bot_reliable_window_tests.py",
+  "snapshot": {
+    "head": "2d35919d0f6ee62f869f34186a4b11d3e189742f",
+    "files": 2760,
+    "treeSha256": "9b0444b34f9882a7d3a24b687c34bb8e28a0bd2956e545eb83d9dcd256cac28f",
+    "taken": "2026-09-24, about 11:05 local time",
+    "description": "Every tracked and untracked file of the shared working tree, with the extracted subprojects. It carried other sessions' uncommitted work, including the bot-library changes of docs/fntech3/2026-09-24-wolfet-bot-characters.md that let spawnbot make an ET bot."
+  },
+  "servers": {
+    "baseline": {
+      "sha256": "d15e9ebffe5b97bd6c6e8950aad0a57e0912d5796b61ed7b7f7a8c6d0e8aaad9",
+      "description": "The snapshot with this change's hunks removed from code/server/server.h, code/server/sv_bot.cpp, code/qcommon/game_profile.h and code/qcommon/game_profile.cpp, and nothing else"
+    },
+    "candidate": {
+      "sha256": "0315261c763b2776dad5d2c1f6cf6726ace08c95dab92ea4366744e7d93d8861",
+      "description": "The snapshot as taken"
+    }
+  },
+  "installation": {
+    "quake3 baseq3/pak0.pk3": "7ce8b3910620cd50a09e4f1100f426e8c6180f68895d589f80e6bd95af54bcae",
+    "wolfet etmain/qagame_mp_x86.dll": "160a6218397865ad61071faa6316053713c03b9be80e5d05c7a5be2cab7f630b"
+  },
+  "retail": [
+    {
+      "engine": "quake3.exe",
+      "build": "Q3 1.32",
+      "sha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+      "addServerCommand": "0x4395b0",
+      "overflowTest": "cmp ecx, 0x41 at 0x4395c7",
+      "index": "and 0x3f",
+      "window": 64,
+      "botReader": "0x432620",
+      "botAllocator": "0x4318c0",
+      "allocatorWrites": [
+        "+0x1083c gentity",
+        "+0x0 state 4",
+        "+0x10908 lastPacketTime",
+        "+0x14ab8 address type 0",
+        "+0x14aa0 rate 0x4000"
+      ],
+      "counters": [
+        "+0x10404 sequence",
+        "+0x10408 acknowledge"
+      ]
+    },
+    {
+      "engine": "quakelive_steam.exe",
+      "sha256": "c926fe9f6c851e00b3b9332e88903ad01f28fdd60454873891c0158f5ded1299",
+      "addServerCommand": "0x4e40c0",
+      "overflowTest": "cmp ecx, 0x41 at 0x4e40db",
+      "index": "and 0x3f",
+      "window": 64,
+      "botReader": "0x4dda50",
+      "botAllocator": "0x4dcd30",
+      "store": "Q_strncpyz 0x4d8f40, called at 0x4e415f",
+      "counters": [
+        "+0x10404 sequence",
+        "+0x10408 acknowledge"
+      ]
+    },
+    {
+      "engine": "WolfSP.exe",
+      "build": "Wolf 1.32",
+      "sha256": "07d206f61da5c80562ff60d68c645bca349b31adb5d7e0e7f186d61ad46683c7",
+      "addServerCommand": "0x437770",
+      "overflowTest": "cmp ecx, 0x101 at 0x43778d",
+      "index": "and 0xff (store 0x4366a0)",
+      "window": 256,
+      "botReader": "0x430480",
+      "botAllocator": "0x42f850",
+      "counters": [
+        "+0x418 sequence",
+        "+0x41c acknowledge"
+      ]
+    },
+    {
+      "engine": "WolfMP.exe",
+      "build": "Wolf 1.4-MP",
+      "sha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+      "addServerCommand": "0x439e80",
+      "overflowTest": "cmp ecx, 0x101 at 0x439e9d",
+      "index": "and 0xff",
+      "window": 256,
+      "botReader": "0x432be0",
+      "botAllocator": "0x431fc0",
+      "counters": [
+        "+0x40404 sequence",
+        "+0x40408 acknowledge"
+      ]
+    },
+    {
+      "engine": "et.exe",
+      "build": "ET 2.60b",
+      "sha256": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e",
+      "addServerCommand": "0x447820",
+      "overflowTest": "cmp eax, 0x101 at 0x44783b",
+      "index": "movzx eax, cl",
+      "window": 256,
+      "botReader": "0x43f050",
+      "botAllocator": "0x43ef20",
+      "counters": [
+        "+0x40404 sequence",
+        "+0x40408 acknowledge"
+      ]
+    },
+    {
+      "engine": "etded.exe",
+      "build": "ET 2.60b",
+      "sha256": "7eb606913a56d6901e358a598fb0079120b2730e113a10fc963f90b777580cdf",
+      "addServerCommand": "0x42e010",
+      "overflowTest": "cmp eax, 0x101 at 0x42e02b",
+      "index": "movzx eax, cl",
+      "window": 256,
+      "botReader": "0x425420",
+      "botAllocator": "0x4252f0",
+      "allocatorWrites": [
+        "+0x48848 gentity",
+        "+0x0 state 4",
+        "+0x48a28 lastPacketTime",
+        "+0x546d8 address type 0",
+        "+0x546c0 rate 0x4000"
+      ],
+      "counters": [
+        "+0x40404 sequence",
+        "+0x40408 acknowledge"
+      ]
+    },
+    {
+      "engine": "stvoyHM.exe",
+      "build": "1.20",
+      "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+      "addServerCommand": "0x434280",
+      "overflowTest": "cmp edx, 0x41 at 0x434296",
+      "index": "and 0x3f",
+      "window": 64,
+      "botReader": "0x42e070",
+      "botAllocator": "0x42d330",
+      "counters": [
+        "+0x10404 sequence",
+        "+0x10408 acknowledge"
+      ]
+    },
+    {
+      "engine": "jamp.exe",
+      "build": "1.01",
+      "sha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+      "addServerCommand": "0x45f490",
+      "overflowTest": "cmp ecx, 0x81 at 0x45f4a2",
+      "index": "and 0x7f",
+      "window": 128,
+      "botReader": "0x455db0",
+      "botAllocator": "0x455050",
+      "counters": [
+        "+0x20408 sequence",
+        "+0x2040c acknowledge"
+      ]
+    },
+    {
+      "engine": "jk2mp.exe",
+      "build": "1.02a",
+      "sha256": "2f08dcf9a089cb66062766f4922fda63a9e553de893c174b497dfefeb7a1577a",
+      "addServerCommand": "0x44e2e0",
+      "overflowTest": "cmp ecx, 0x81 at 0x44e2f7",
+      "index": "and 0x7f",
+      "window": 128,
+      "botReader": "0x4476e0",
+      "botAllocator": "0x4469c0",
+      "counters": [
+        "+0x20404 sequence",
+        "+0x20408 acknowledge"
+      ]
+    },
+    {
+      "engine": "stvoy.exe",
+      "build": "1.20",
+      "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74",
+      "addServerCommand": "0x425eb0",
+      "overflowTest": "cmp ecx, 0x40 at 0x425ec6, jle, before counting",
+      "index": "and 0x3f",
+      "window": 64,
+      "botReader": null,
+      "botAllocator": null
+    },
+    {
+      "engine": "jasp.exe",
+      "sha256": "9351a8de230fcd577e2b474889d08f38982450306767a6823dd659482566d6ce",
+      "addServerCommand": "0x43a200",
+      "overflowTest": "cmp ecx, 0x40 at 0x43a214, jle, before counting",
+      "index": "and 0x3f",
+      "window": 64,
+      "botReader": null,
+      "botAllocator": null
+    },
+    {
+      "engine": "jk2sp.exe",
+      "build": "1.02a",
+      "sha256": "0d3c635ee5b20ac32fc957e00cf21e65ebc1584112b11f6ae026706dcc0d0e0c",
+      "addServerCommand": "0x437700",
+      "overflowTest": "cmp ecx, 0x40 at 0x437716, jle, before counting",
+      "index": "and 0x3f",
+      "window": 64,
+      "botReader": null,
+      "botAllocator": null
+    },
+    {
+      "engine": "alice.exe",
+      "sha256": "8aa22917b7707f0e1a7c4dbe9a3c38332b1873ae2059174ac5329de26921fc18",
+      "addServerCommand": "0x455a10",
+      "overflowTest": "cmp edx, 0x81 at 0x455a2d",
+      "index": "and 0x7f",
+      "window": 128,
+      "botReader": null,
+      "botAllocator": null
+    },
+    {
+      "engine": "quake3.exe",
+      "build": "IHV test, February 1999",
+      "sha256": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37",
+      "addServerCommand": null,
+      "note": "no \"Server command overflow\" string; one reliable block at a time",
+      "window": 0,
+      "botReader": null,
+      "botAllocator": null
+    }
+  ],
+  "runs": [
+    {
+      "build": "baseline",
+      "evidence": "Live: fnTech3 dedicated server",
+      "profile": "wolfet",
+      "map": "goldrush",
+      "bot": "spawnbot",
+      "slot": 1,
+      "burst": 300,
+      "command": [
+        "<server>",
+        "+set",
+        "com_gameProfile",
+        "wolfet",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "fs_basepath",
+        "<installation>",
+        "+set",
+        "fs_homepath",
+        "<home>",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "60668",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "bot_enable",
+        "1",
+        "+set",
+        "sv_master1",
+        "",
+        "+set",
+        "sv_master2",
+        "",
+        "+set",
+        "sv_master3",
+        "",
+        "+set",
+        "sv_master4",
+        "",
+        "+set",
+        "sv_master5",
+        "",
+        "+exec",
+        "fntech3-bot-window.cfg"
+      ],
+      "serverSha256": "d15e9ebffe5b97bd6c6e8950aad0a57e0912d5796b61ed7b7f7a8c6d0e8aaad9",
+      "moduleSha256": "160a6218397865ad61071faa6316053713c03b9be80e5d05c7a5be2cab7f630b",
+      "retailWindow": 256,
+      "passed": false,
+      "exitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 7.218,
+      "serverUnchanged": true,
+      "log": "<home>\\etmain\\qconsole.log",
+      "markers": [
+        "\"fntech3_bot_window\" is:\"burst^7\" default:\"burst^7\"",
+        "\"fntech3_bot_window\" is:\"done^7\" default:\"burst^7\""
+      ],
+      "botBefore": [
+        " 1     0    0 Dominator^7 bot     16384 0"
+      ],
+      "botAfter": [],
+      "overflows": 1,
+      "window": 64,
+      "heldTells": 55,
+      "heldGameCommands": {
+        "cs": 7,
+        "aftc": 1,
+        "tinfo": 1
+      },
+      "overflowingCommand": "chat \"^6console: flood55\"",
+      "tellsDelivered": 56,
+      "tellsRefused": 244,
+      "errors": [],
+      "installationUnchanged": true,
+      "matchesRetail": false
+    },
+    {
+      "build": "baseline",
+      "evidence": "Live: fnTech3 dedicated server",
+      "profile": "quake3",
+      "map": "q3dm1",
+      "bot": "addbot sarge 1",
+      "slot": 0,
+      "burst": 300,
+      "command": [
+        "<server>",
+        "+set",
+        "com_gameProfile",
+        "quake3",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "fs_basepath",
+        "<installation>",
+        "+set",
+        "fs_homepath",
+        "<home>",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "63860",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "bot_enable",
+        "1",
+        "+set",
+        "sv_master1",
+        "",
+        "+set",
+        "sv_master2",
+        "",
+        "+set",
+        "sv_master3",
+        "",
+        "+set",
+        "sv_master4",
+        "",
+        "+set",
+        "sv_master5",
+        "",
+        "+exec",
+        "fntech3-bot-window.cfg"
+      ],
+      "serverSha256": "d15e9ebffe5b97bd6c6e8950aad0a57e0912d5796b61ed7b7f7a8c6d0e8aaad9",
+      "moduleSha256": "7ce8b3910620cd50a09e4f1100f426e8c6180f68895d589f80e6bd95af54bcae",
+      "retailWindow": 64,
+      "passed": true,
+      "exitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 7.172,
+      "serverUnchanged": true,
+      "log": "<home>\\baseq3\\qconsole.log",
+      "markers": [
+        "\"fntech3_bot_window\" is:\"burst^7\" default:\"burst^7\"",
+        "\"fntech3_bot_window\" is:\"done^7\" default:\"burst^7\""
+      ],
+      "botBefore": [
+        " 0     0    0 Sarge^7 bot         0 0"
+      ],
+      "botAfter": [],
+      "overflows": 1,
+      "window": 64,
+      "heldTells": 64,
+      "heldGameCommands": {},
+      "overflowingCommand": "chat \"^6console: flood64\"",
+      "tellsDelivered": 65,
+      "tellsRefused": 235,
+      "errors": [],
+      "installationUnchanged": true,
+      "matchesRetail": true
+    },
+    {
+      "build": "candidate",
+      "evidence": "Live: fnTech3 dedicated server",
+      "profile": "wolfet",
+      "map": "goldrush",
+      "bot": "spawnbot",
+      "slot": 1,
+      "burst": 300,
+      "command": [
+        "<server>",
+        "+set",
+        "com_gameProfile",
+        "wolfet",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "fs_basepath",
+        "<installation>",
+        "+set",
+        "fs_homepath",
+        "<home>",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "62844",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "bot_enable",
+        "1",
+        "+set",
+        "sv_master1",
+        "",
+        "+set",
+        "sv_master2",
+        "",
+        "+set",
+        "sv_master3",
+        "",
+        "+set",
+        "sv_master4",
+        "",
+        "+set",
+        "sv_master5",
+        "",
+        "+exec",
+        "fntech3-bot-window.cfg"
+      ],
+      "serverSha256": "0315261c763b2776dad5d2c1f6cf6726ace08c95dab92ea4366744e7d93d8861",
+      "moduleSha256": "160a6218397865ad61071faa6316053713c03b9be80e5d05c7a5be2cab7f630b",
+      "retailWindow": 256,
+      "passed": true,
+      "exitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 7.156,
+      "serverUnchanged": true,
+      "log": "<home>\\etmain\\qconsole.log",
+      "markers": [
+        "\"fntech3_bot_window\" is:\"burst^7\" default:\"burst^7\"",
+        "\"fntech3_bot_window\" is:\"done^7\" default:\"burst^7\""
+      ],
+      "botBefore": [
+        " 1     0    0 Noogie^7 bot     16384 0"
+      ],
+      "botAfter": [],
+      "overflows": 1,
+      "window": 256,
+      "heldTells": 247,
+      "heldGameCommands": {
+        "cs": 7,
+        "aftc": 1,
+        "tinfo": 1
+      },
+      "overflowingCommand": "chat \"^6console: flood247\"",
+      "tellsDelivered": 248,
+      "tellsRefused": 52,
+      "errors": [],
+      "installationUnchanged": true,
+      "matchesRetail": true
+    },
+    {
+      "build": "candidate",
+      "evidence": "Live: fnTech3 dedicated server",
+      "profile": "quake3",
+      "map": "q3dm1",
+      "bot": "addbot sarge 1",
+      "slot": 0,
+      "burst": 300,
+      "command": [
+        "<server>",
+        "+set",
+        "com_gameProfile",
+        "quake3",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "fs_basepath",
+        "<installation>",
+        "+set",
+        "fs_homepath",
+        "<home>",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "64262",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "bot_enable",
+        "1",
+        "+set",
+        "sv_master1",
+        "",
+        "+set",
+        "sv_master2",
+        "",
+        "+set",
+        "sv_master3",
+        "",
+        "+set",
+        "sv_master4",
+        "",
+        "+set",
+        "sv_master5",
+        "",
+        "+exec",
+        "fntech3-bot-window.cfg"
+      ],
+      "serverSha256": "0315261c763b2776dad5d2c1f6cf6726ace08c95dab92ea4366744e7d93d8861",
+      "moduleSha256": "7ce8b3910620cd50a09e4f1100f426e8c6180f68895d589f80e6bd95af54bcae",
+      "retailWindow": 64,
+      "passed": true,
+      "exitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 6.828,
+      "serverUnchanged": true,
+      "log": "<home>\\baseq3\\qconsole.log",
+      "markers": [
+        "\"fntech3_bot_window\" is:\"burst^7\" default:\"burst^7\"",
+        "\"fntech3_bot_window\" is:\"done^7\" default:\"burst^7\""
+      ],
+      "botBefore": [
+        " 0     0    0 Sarge^7 bot         0 0"
+      ],
+      "botAfter": [],
+      "overflows": 1,
+      "window": 64,
+      "heldTells": 64,
+      "heldGameCommands": {},
+      "overflowingCommand": "chat \"^6console: flood64\"",
+      "tellsDelivered": 65,
+      "tellsRefused": 235,
+      "errors": [],
+      "installationUnchanged": true,
+      "matchesRetail": true
+    }
+  ],
+  "harness": {
+    "description": "Production SV_ReliableCommandLimit, the profile catalog, SV_BotAllocateClientSlot, SV_BotAllocateClient, SV_BotFreeClient, SV_BotGetConsoleMessage, SV_ExpandNewlines, SV_AddServerCommand and SV_SendServerCommand, compiled with clang for i686 against the shared tree, before and after this change. Each count is the addressed commands a bot held before \"Server command overflow\", in a fresh slot and in a slot a network client of each ringed wire left with nothing pending; -1 means no bot was seated. The before-state is the change's three production edits reverted in the compiled text; its catalog keeps the new values, which nothing before this change read.",
+    "results": [
+      {
+        "profile": "quake3",
+        "catalogWindow": 64,
+        "freshSlot": {
+          "before": 64,
+          "after": 64
+        },
+        "afterNetworkClient": {
+          "NETCHAN_WIRE_LEGACY_Q3": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_IOQ3": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_QL_RETAIL": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_RTCW_SP": {
+            "before": 256,
+            "after": 64
+          },
+          "NETCHAN_WIRE_RTCW_MP": {
+            "before": 256,
+            "after": 64
+          },
+          "NETCHAN_WIRE_WOLFET": {
+            "before": 256,
+            "after": 64
+          },
+          "NETCHAN_WIRE_STVEF_HM": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_STVEF_SP": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_Q3_66": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_Q3_67": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_ALICE": {
+            "before": 128,
+            "after": 64
+          }
+        }
+      },
+      {
+        "profile": "quakelive",
+        "catalogWindow": 64,
+        "freshSlot": {
+          "before": 64,
+          "after": 64
+        },
+        "afterNetworkClient": {
+          "NETCHAN_WIRE_LEGACY_Q3": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_IOQ3": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_QL_RETAIL": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_RTCW_SP": {
+            "before": 256,
+            "after": 64
+          },
+          "NETCHAN_WIRE_RTCW_MP": {
+            "before": 256,
+            "after": 64
+          },
+          "NETCHAN_WIRE_WOLFET": {
+            "before": 256,
+            "after": 64
+          },
+          "NETCHAN_WIRE_STVEF_HM": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_STVEF_SP": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_Q3_66": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_Q3_67": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_ALICE": {
+            "before": 128,
+            "after": 64
+          }
+        }
+      },
+      {
+        "profile": "rtcw-sp",
+        "catalogWindow": 256,
+        "freshSlot": {
+          "before": 64,
+          "after": 256
+        },
+        "afterNetworkClient": {
+          "NETCHAN_WIRE_LEGACY_Q3": {
+            "before": 64,
+            "after": 256
+          },
+          "NETCHAN_WIRE_IOQ3": {
+            "before": 64,
+            "after": 256
+          },
+          "NETCHAN_WIRE_QL_RETAIL": {
+            "before": 64,
+            "after": 256
+          },
+          "NETCHAN_WIRE_RTCW_SP": {
+            "before": 256,
+            "after": 256
+          },
+          "NETCHAN_WIRE_RTCW_MP": {
+            "before": 256,
+            "after": 256
+          },
+          "NETCHAN_WIRE_WOLFET": {
+            "before": 256,
+            "after": 256
+          },
+          "NETCHAN_WIRE_STVEF_HM": {
+            "before": 64,
+            "after": 256
+          },
+          "NETCHAN_WIRE_STVEF_SP": {
+            "before": 64,
+            "after": 256
+          },
+          "NETCHAN_WIRE_Q3_66": {
+            "before": 64,
+            "after": 256
+          },
+          "NETCHAN_WIRE_Q3_67": {
+            "before": 64,
+            "after": 256
+          },
+          "NETCHAN_WIRE_ALICE": {
+            "before": 128,
+            "after": 256
+          }
+        }
+      },
+      {
+        "profile": "rtcw-mp",
+        "catalogWindow": 256,
+        "freshSlot": {
+          "before": 64,
+          "after": 256
+        },
+        "afterNetworkClient": {
+          "NETCHAN_WIRE_LEGACY_Q3": {
+            "before": 64,
+            "after": 256
+          },
+          "NETCHAN_WIRE_IOQ3": {
+            "before": 64,
+            "after": 256
+          },
+          "NETCHAN_WIRE_QL_RETAIL": {
+            "before": 64,
+            "after": 256
+          },
+          "NETCHAN_WIRE_RTCW_SP": {
+            "before": 256,
+            "after": 256
+          },
+          "NETCHAN_WIRE_RTCW_MP": {
+            "before": 256,
+            "after": 256
+          },
+          "NETCHAN_WIRE_WOLFET": {
+            "before": 256,
+            "after": 256
+          },
+          "NETCHAN_WIRE_STVEF_HM": {
+            "before": 64,
+            "after": 256
+          },
+          "NETCHAN_WIRE_STVEF_SP": {
+            "before": 64,
+            "after": 256
+          },
+          "NETCHAN_WIRE_Q3_66": {
+            "before": 64,
+            "after": 256
+          },
+          "NETCHAN_WIRE_Q3_67": {
+            "before": 64,
+            "after": 256
+          },
+          "NETCHAN_WIRE_ALICE": {
+            "before": 128,
+            "after": 256
+          }
+        }
+      },
+      {
+        "profile": "wolfet",
+        "catalogWindow": 256,
+        "freshSlot": {
+          "before": 64,
+          "after": 256
+        },
+        "afterNetworkClient": {
+          "NETCHAN_WIRE_LEGACY_Q3": {
+            "before": 64,
+            "after": 256
+          },
+          "NETCHAN_WIRE_IOQ3": {
+            "before": 64,
+            "after": 256
+          },
+          "NETCHAN_WIRE_QL_RETAIL": {
+            "before": 64,
+            "after": 256
+          },
+          "NETCHAN_WIRE_RTCW_SP": {
+            "before": 256,
+            "after": 256
+          },
+          "NETCHAN_WIRE_RTCW_MP": {
+            "before": 256,
+            "after": 256
+          },
+          "NETCHAN_WIRE_WOLFET": {
+            "before": 256,
+            "after": 256
+          },
+          "NETCHAN_WIRE_STVEF_HM": {
+            "before": 64,
+            "after": 256
+          },
+          "NETCHAN_WIRE_STVEF_SP": {
+            "before": 64,
+            "after": 256
+          },
+          "NETCHAN_WIRE_Q3_66": {
+            "before": 64,
+            "after": 256
+          },
+          "NETCHAN_WIRE_Q3_67": {
+            "before": 64,
+            "after": 256
+          },
+          "NETCHAN_WIRE_ALICE": {
+            "before": 128,
+            "after": 256
+          }
+        }
+      },
+      {
+        "profile": "stvef-sp",
+        "catalogWindow": 64,
+        "freshSlot": {
+          "before": 64,
+          "after": 64
+        },
+        "afterNetworkClient": {
+          "NETCHAN_WIRE_LEGACY_Q3": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_IOQ3": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_QL_RETAIL": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_RTCW_SP": {
+            "before": 256,
+            "after": 64
+          },
+          "NETCHAN_WIRE_RTCW_MP": {
+            "before": 256,
+            "after": 64
+          },
+          "NETCHAN_WIRE_WOLFET": {
+            "before": 256,
+            "after": 64
+          },
+          "NETCHAN_WIRE_STVEF_HM": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_STVEF_SP": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_Q3_66": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_Q3_67": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_ALICE": {
+            "before": 128,
+            "after": 64
+          }
+        }
+      },
+      {
+        "profile": "stvef-mp",
+        "catalogWindow": 64,
+        "freshSlot": {
+          "before": 64,
+          "after": 64
+        },
+        "afterNetworkClient": {
+          "NETCHAN_WIRE_LEGACY_Q3": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_IOQ3": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_QL_RETAIL": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_RTCW_SP": {
+            "before": 256,
+            "after": 64
+          },
+          "NETCHAN_WIRE_RTCW_MP": {
+            "before": 256,
+            "after": 64
+          },
+          "NETCHAN_WIRE_WOLFET": {
+            "before": 256,
+            "after": 64
+          },
+          "NETCHAN_WIRE_STVEF_HM": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_STVEF_SP": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_Q3_66": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_Q3_67": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_ALICE": {
+            "before": 128,
+            "after": 64
+          }
+        }
+      },
+      {
+        "profile": "q3-ihv",
+        "catalogWindow": 0,
+        "freshSlot": {
+          "before": 64,
+          "after": -1
+        },
+        "afterNetworkClient": {
+          "NETCHAN_WIRE_LEGACY_Q3": {
+            "before": 64,
+            "after": -1
+          },
+          "NETCHAN_WIRE_IOQ3": {
+            "before": 64,
+            "after": -1
+          },
+          "NETCHAN_WIRE_QL_RETAIL": {
+            "before": 64,
+            "after": -1
+          },
+          "NETCHAN_WIRE_RTCW_SP": {
+            "before": 256,
+            "after": -1
+          },
+          "NETCHAN_WIRE_RTCW_MP": {
+            "before": 256,
+            "after": -1
+          },
+          "NETCHAN_WIRE_WOLFET": {
+            "before": 256,
+            "after": -1
+          },
+          "NETCHAN_WIRE_STVEF_HM": {
+            "before": 64,
+            "after": -1
+          },
+          "NETCHAN_WIRE_STVEF_SP": {
+            "before": 64,
+            "after": -1
+          },
+          "NETCHAN_WIRE_Q3_66": {
+            "before": 64,
+            "after": -1
+          },
+          "NETCHAN_WIRE_Q3_67": {
+            "before": 64,
+            "after": -1
+          },
+          "NETCHAN_WIRE_ALICE": {
+            "before": 128,
+            "after": -1
+          }
+        }
+      },
+      {
+        "profile": "jka-sp",
+        "catalogWindow": 64,
+        "freshSlot": {
+          "before": 64,
+          "after": 64
+        },
+        "afterNetworkClient": {
+          "NETCHAN_WIRE_LEGACY_Q3": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_IOQ3": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_QL_RETAIL": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_RTCW_SP": {
+            "before": 256,
+            "after": 64
+          },
+          "NETCHAN_WIRE_RTCW_MP": {
+            "before": 256,
+            "after": 64
+          },
+          "NETCHAN_WIRE_WOLFET": {
+            "before": 256,
+            "after": 64
+          },
+          "NETCHAN_WIRE_STVEF_HM": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_STVEF_SP": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_Q3_66": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_Q3_67": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_ALICE": {
+            "before": 128,
+            "after": 64
+          }
+        }
+      },
+      {
+        "profile": "jka-mp",
+        "catalogWindow": 128,
+        "freshSlot": {
+          "before": 64,
+          "after": 128
+        },
+        "afterNetworkClient": {
+          "NETCHAN_WIRE_LEGACY_Q3": {
+            "before": 64,
+            "after": 128
+          },
+          "NETCHAN_WIRE_IOQ3": {
+            "before": 64,
+            "after": 128
+          },
+          "NETCHAN_WIRE_QL_RETAIL": {
+            "before": 64,
+            "after": 128
+          },
+          "NETCHAN_WIRE_RTCW_SP": {
+            "before": 256,
+            "after": 128
+          },
+          "NETCHAN_WIRE_RTCW_MP": {
+            "before": 256,
+            "after": 128
+          },
+          "NETCHAN_WIRE_WOLFET": {
+            "before": 256,
+            "after": 128
+          },
+          "NETCHAN_WIRE_STVEF_HM": {
+            "before": 64,
+            "after": 128
+          },
+          "NETCHAN_WIRE_STVEF_SP": {
+            "before": 64,
+            "after": 128
+          },
+          "NETCHAN_WIRE_Q3_66": {
+            "before": 64,
+            "after": 128
+          },
+          "NETCHAN_WIRE_Q3_67": {
+            "before": 64,
+            "after": 128
+          },
+          "NETCHAN_WIRE_ALICE": {
+            "before": 128,
+            "after": 128
+          }
+        }
+      },
+      {
+        "profile": "jk2-sp",
+        "catalogWindow": 64,
+        "freshSlot": {
+          "before": 64,
+          "after": 64
+        },
+        "afterNetworkClient": {
+          "NETCHAN_WIRE_LEGACY_Q3": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_IOQ3": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_QL_RETAIL": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_RTCW_SP": {
+            "before": 256,
+            "after": 64
+          },
+          "NETCHAN_WIRE_RTCW_MP": {
+            "before": 256,
+            "after": 64
+          },
+          "NETCHAN_WIRE_WOLFET": {
+            "before": 256,
+            "after": 64
+          },
+          "NETCHAN_WIRE_STVEF_HM": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_STVEF_SP": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_Q3_66": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_Q3_67": {
+            "before": 64,
+            "after": 64
+          },
+          "NETCHAN_WIRE_ALICE": {
+            "before": 128,
+            "after": 64
+          }
+        }
+      },
+      {
+        "profile": "jk2-mp",
+        "catalogWindow": 128,
+        "freshSlot": {
+          "before": 64,
+          "after": 128
+        },
+        "afterNetworkClient": {
+          "NETCHAN_WIRE_LEGACY_Q3": {
+            "before": 64,
+            "after": 128
+          },
+          "NETCHAN_WIRE_IOQ3": {
+            "before": 64,
+            "after": 128
+          },
+          "NETCHAN_WIRE_QL_RETAIL": {
+            "before": 64,
+            "after": 128
+          },
+          "NETCHAN_WIRE_RTCW_SP": {
+            "before": 256,
+            "after": 128
+          },
+          "NETCHAN_WIRE_RTCW_MP": {
+            "before": 256,
+            "after": 128
+          },
+          "NETCHAN_WIRE_WOLFET": {
+            "before": 256,
+            "after": 128
+          },
+          "NETCHAN_WIRE_STVEF_HM": {
+            "before": 64,
+            "after": 128
+          },
+          "NETCHAN_WIRE_STVEF_SP": {
+            "before": 64,
+            "after": 128
+          },
+          "NETCHAN_WIRE_Q3_66": {
+            "before": 64,
+            "after": 128
+          },
+          "NETCHAN_WIRE_Q3_67": {
+            "before": 64,
+            "after": 128
+          },
+          "NETCHAN_WIRE_ALICE": {
+            "before": 128,
+            "after": 128
+          }
+        }
+      },
+      {
+        "profile": "alice",
+        "catalogWindow": 128,
+        "freshSlot": {
+          "before": 64,
+          "after": 128
+        },
+        "afterNetworkClient": {
+          "NETCHAN_WIRE_LEGACY_Q3": {
+            "before": 64,
+            "after": 128
+          },
+          "NETCHAN_WIRE_IOQ3": {
+            "before": 64,
+            "after": 128
+          },
+          "NETCHAN_WIRE_QL_RETAIL": {
+            "before": 64,
+            "after": 128
+          },
+          "NETCHAN_WIRE_RTCW_SP": {
+            "before": 256,
+            "after": 128
+          },
+          "NETCHAN_WIRE_RTCW_MP": {
+            "before": 256,
+            "after": 128
+          },
+          "NETCHAN_WIRE_WOLFET": {
+            "before": 256,
+            "after": 128
+          },
+          "NETCHAN_WIRE_STVEF_HM": {
+            "before": 64,
+            "after": 128
+          },
+          "NETCHAN_WIRE_STVEF_SP": {
+            "before": 64,
+            "after": 128
+          },
+          "NETCHAN_WIRE_Q3_66": {
+            "before": 64,
+            "after": 128
+          },
+          "NETCHAN_WIRE_Q3_67": {
+            "before": 64,
+            "after": 128
+          },
+          "NETCHAN_WIRE_ALICE": {
+            "before": 128,
+            "after": 128
+          }
+        }
+      }
+    ]
+  }
+}

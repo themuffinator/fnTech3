@@ -18,6 +18,101 @@ historical upstream records, not fnTech3 release history. See the
 
 ### Compatibility
 
+- Announce a client's drop as RTCW multiplayer and Enemy Territory do.
+  `WolfMP.exe` broadcasts `print "[lof]%s^7 [lon]%s\n"`, so RTCW MP's client
+  game translates the reason and leaves the name as it is. fnTech3 sent
+  Quake III's `print "%s^7 %s\n"`, whose reason a client in another language
+  could not translate. ET 2.60b pops the notice up with `cpm "%s^7 %s\n"`
+  instead, and announces no bot leaving a single-player game type. A retail
+  observer on a fnTech3 server now receives both in retail's form. The
+  `disconnect` command sent to the client that left, and the notice in
+  every other profile, are unchanged. The record lists the other drop-path
+  differences found in the retail engines
+  ([record](docs/fntech3/2026-09-24-rtcw-et-drop-notices.md)).
+- Send a client that is dropped, and every client of a server that quits, a
+  last snapshot its own engine can read. That snapshot carries no changes,
+  and brings the drop notice, the `disconnect` command and a quitting
+  server's last words. fnTech3 wrote Quake III's empty player state into it
+  in every profile but Elite Force Holomatch, and RTCW's and ET's readers
+  take five more bits. Retail `WolfMP.exe` and `et.exe` clients therefore
+  failed with `CL_ParsePacketEntities: end of message`: the client that was
+  kicked never learned why, and every client failed when the server quit.
+  Each profile now gets its own empty player state, and retail RTCW MP and
+  ET clients run those commands. Quake III and Quake Live clients get the
+  same bytes as before. RTCW and Elite Force single player, which only
+  fnTech3's client reads, get their own forms too
+  ([record](docs/fntech3/2026-09-24-zombie-snapshots.md)).
+- Leave Enemy Territory bots out of broadcast server commands, as `et.exe`
+  and `etded.exe` do: retail passes over any client whose entity carries
+  `SVF_BOT`, and fnTech3 queued every broadcast for a bot too. Only the
+  game's bot AI acknowledges a bot's commands, and on a stock dedicated
+  server it never thinks, so the broadcasts only filled the bot's window. A
+  bot in a fresh slot would have been dropped with "Server command overflow"
+  on the 65th. Commands addressed to a bot, RTCW's cast-AI rule and every
+  other profile are unchanged. No ET bot survives `spawnbot` under fnTech3
+  yet: the bot library cannot find the `botfiles/chars.h` that ET's character
+  files include, and the retail game then faults. The change is therefore
+  shown by unit tests and by a retail `etded.exe` run
+  ([record](docs/fntech3/2026-09-24-wolfet-bot-broadcasts.md)).
+- Give every bot its profile's reliable-command window, as each retail engine
+  gives every client one fixed window. A bot sets up no channel, so fnTech3
+  took its window from whatever wire profile its slot last held: Quake III's
+  64 in a slot no player had used. There an RTCW or ET bot that nothing
+  acknowledged was dropped with "Server command overflow" on its 65th
+  command, where `WolfSP.exe`, `WolfMP.exe`, `et.exe` and `etded.exe` allow 256,
+  and a Jedi Academy or Jedi Outcast multiplayer bot on its 65th, where
+  `jamp.exe` and `jk2mp.exe` allow 128. Now RTCW and ET bots hold 256 in every
+  slot and Jedi bots 128; an ET bot on a fnTech3 server was dropped on its
+  257th, as retail's is. A bot that takes a slot from a player of another
+  window no longer reads that player's unacknowledged commands from the wrong
+  indices: they are dropped. Quake III, Quake Live and Elite Force bots keep
+  64, network clients are unchanged, and the IHV test, which rings no
+  commands, seats no bot in a client slot
+  ([record](docs/fntech3/2026-09-24-bot-reliable-windows.md)).
+- Settle Enemy Territory's newly loaded level as `et.exe` and `etded.exe` do.
+  A map load now runs six frames, with its bots, before it brings the clients
+  back, not three. Each runs at the current time before the time advances,
+  and so does its last frame. The game's first frame now runs at the time the
+  level started, and a load leaves the level 700 ms on, not 400. On goldrush
+  the retail game's map script timeline for the first 2.5 s after a load now
+  matches retail `etded.exe`'s line for line. A load also drops the bots of a
+  single-player or co-op game type, and gives every bot it drops an empty
+  reason, as retail does, where fnTech3 gave Quake3e's `was kicked`. The
+  retail game refuses both game types, so that part rests on the disassembly
+  and unit tests. Every other profile keeps its bots and its reason, and this
+  change leaves its frames as they were
+  ([record](docs/fntech3/2026-09-24-wolfet-map-load-settle.md)).
+- Let Enemy Territory's `map_restart` run while a delayed restart is pending,
+  as `et.exe` and `etded.exe` do. fnTech3 refused every `map_restart` until a
+  pending delay fired, as Quake III and `WolfMP.exe` do. Retail ET replaces
+  the pending delay with a new one, earlier or later, and publishes the new
+  time in `CS_WARMUP`. Without a delay it restarts at once, and the pending
+  restart still fires when it falls due. On `goldrush` one console sequence
+  now makes the same restarts, and leaves the same match state, as on a retail
+  `etded.exe`, where the previous build refused every restart once a one-hour
+  delay was pending. Quake III, Quake Live, both RTCW modes and the other
+  profiles still refuse
+  ([record](docs/fntech3/2026-09-24-wolfet-pending-map-restart.md)).
+- Echo broadcast messages on Return to Castle Wolfenstein multiplayer and
+  Enemy Territory dedicated servers without their `[lon]` and `[lof]`
+  localization tokens, as `WolfMP.exe` and ET 2.60b do. The games use them to
+  tell a client which parts of a message to translate, and fnTech3's console
+  printed them raw: `broadcast: print "Server:[lof] timelimit [lon]changed to[lof] 10\n"`
+  where retail logs `broadcast: print "Server: timelimit changed to 10\n"`.
+  Only the console line changes. Clients still receive the tokens, and Quake
+  III, Quake Live, RTCW single player and the other profiles are unchanged
+  ([record](docs/fntech3/2026-09-24-rtcw-et-broadcast-echo.md)).
+- Keep Return to Castle Wolfenstein multiplayer's `map_restart` to a game type
+  the map allows, as `WolfMP.exe` does. A map can forbid objective, stopwatch
+  or checkpoint play, and the game copies those flags into the world's entity
+  record. Retail reads them before any delay and replaces a forbidden
+  `g_gametype`, including one just typed at the console, with objective, or
+  with checkpoint when the map forbids objective too. fnTech3 restarted in the
+  forbidden type, and the game then broadcast `Invalid gametype was specified,
+  Restarting` and restarted again ten seconds later. On `mp_destruction` and
+  `mp_beach` the same console sequence now leaves the same game type as retail
+  at every step. Enemy Territory's `map_restart` has no such check and is
+  unchanged ([record](docs/fntech3/2026-09-23-rtcw-mp-restart-game-type.md)).
 - Lay the logo that retail Return to Castle Wolfenstein single player and
   Enemy Territory lay over their console. Once the console is half open,
   `WolfSP.exe` draws `console2` over its `console` background, and `et.exe`

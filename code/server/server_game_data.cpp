@@ -929,6 +929,14 @@ bool ServerGameDataView::GetWolfETSnapshotCallback( const GameEntityRef &referen
 			&destination, sizeof( destination ) );
 }
 
+bool ServerGameDataView::GetRTCWMPWorldflags( const GameEntityRef &reference,
+	std::int32_t &destination ) const
+{
+	return layout_ && layout_->profile == COM_GAME_RTCW_MP &&
+		ReadEntityBytes( reference, offsetof( fntech3_rtcw_mp_sharedEntity_t, worldflags ),
+			&destination, sizeof( destination ) );
+}
+
 bool ServerGameDataView::GetNumber( const GameEntityRef &reference,
 	std::int32_t &destination ) const
 {

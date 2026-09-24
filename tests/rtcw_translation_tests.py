@@ -234,6 +234,7 @@ class RTCWTranslationTests(unittest.TestCase):
         compiler = shutil.which('clang++') or shutil.which('g++')
         if not compiler:
             self.skipTest('C++ compiler unavailable')
+        (ROOT/'.tmp').mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='rtcw-translation-', dir=ROOT/'.tmp') as temporary:
             source=Path(temporary)/'probe.cpp'; source.write_text(body)
             executable=Path(temporary)/('probe.exe' if os.name=='nt' else 'probe')

@@ -228,6 +228,7 @@ class RTCWMusicTests(unittest.TestCase):
         if not compiler: self.skipTest('C++ compiler unavailable')
         flags = compiler_target_args(compiler)
         if os.name == 'nt' and not flags: flags += ['-DFNTECH3_Q3_ONLY']
+        (ROOT / '.tmp').mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='rtcw-music-', dir=ROOT / '.tmp') as temporary:
             path = Path(temporary) / 'probe.cpp'; path.write_text(source)
             executable = Path(temporary) / ('probe.exe' if os.name == 'nt' else 'probe')

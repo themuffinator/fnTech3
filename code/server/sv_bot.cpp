@@ -70,6 +70,12 @@ static int SV_BotAllocateClientSlot( int preferred ) {
 	sharedEntity_t entity;
 	const auto &policy = Com_GameProfile()->bots;
 
+	// A bot rings its profile's window. An engine that rings no commands
+	// keeps its bots in its game's own table, so none takes a client slot.
+	if ( policy.reliableCommands <= 0 ) {
+		return -1;
+	}
+
 	if ( preferred > 0 ) {
 		// ET lets the module request one slot; a taken slot is not reassigned.
 		if ( !SV_IsClientIndex( preferred ) || preferred >= Com_GameProfile()->maxClients ) {
@@ -110,7 +116,17 @@ static int SV_BotAllocateClientSlot( int preferred ) {
 	cl->state = CS_ACTIVE;
 	cl->lastPacketTime = svs.time;
 	if ( policy.setSnapshotInterval ) cl->snapshotMsec = 1000 / sv_fps->integer;
+	// The slot keeps its last occupant's reliable counters, as every retail
+	// allocator does (quake3.exe 1.32 0x4318c0, etded.exe 0x4252f0), so a bot
+	// is handed what a bot before it left unacknowledged. Those commands sit
+	// where that occupant's window put them. A network client that rang a
+	// different window left them at other indices, so they are dropped
+	// rather than read from the wrong ones or counted against this window.
+	const int previousWindow = SV_ReliableCommandLimit( cl );
 	cl->netchan.remoteAddress.type = NA_BOT;
+	if ( SV_ReliableCommandLimit( cl ) != previousWindow ) {
+		cl->reliableAcknowledge = cl->reliableSequence;
+	}
 	cl->rate = policy.clientRate;
 	cl->platformSteamId[0] = '\0';
 

@@ -124,6 +124,7 @@ class RendererPolygonSubmissionTests(unittest.TestCase):
             target = ['-DFNTECH3_Q3_ONLY']
         elif os.name != 'nt':
             target = ['-m32']
+        (ROOT / '.tmp').mkdir(parents=True, exist_ok=True)
         for renderer in ('renderer', 'renderervk', 'rendererrtx'):
             with self.subTest(renderer=renderer), tempfile.TemporaryDirectory(prefix='render-polys-', dir=ROOT / '.tmp') as temp:
                 source = (ROOT / 'code' / renderer / 'tr_scene.c').read_text(encoding='utf-8')

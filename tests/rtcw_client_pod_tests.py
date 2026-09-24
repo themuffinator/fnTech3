@@ -283,6 +283,7 @@ class RTCWClientPODTests(unittest.TestCase):
         bodies += "\n" + function(ui, "static void GetRTCWClientState(")
         parser = (ROOT / "code/botlib/l_precomp.cpp").read_text(encoding="utf-8")
         bodies += "\n#define BOTLIB\n" + function(parser, "int PC_SourceFileAndLine(") + "\n#undef BOTLIB\n"
+        (ROOT / ".tmp").mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix="rtcw-client-pods-", dir=ROOT / ".tmp") as temp:
             folder = Path(temp)
             fixture = folder / "probe.cpp"

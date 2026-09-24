@@ -576,6 +576,49 @@ void TestQvmOffsetsAndArrayBounds()
 		"QVM binding validation does not modify module memory" );
 }
 
+/* RTCW MP's SP_worldspawn copies the map's worldspawn spawnflags into the world
+ * record's worldflags, which map_restart reads at +0x2a8 of retail's 1352-byte
+ * record, just past the part r shares with SP. No other profile answers, even
+ * where its own record reaches that far: SP's record has no such member, and
+ * ET's map_restart never reads its own. */
+void TestRTCWMPWorldflags()
+{
+	constexpr std::size_t stride = 1352, worldflags = 0x2a8;
+	static_assert( offsetof( fntech3_rtcw_mp_sharedEntity_t, worldflags ) == worldflags );
+	const std::size_t players = sizeof( fntech3_rtcw_sp_playerState_t );
+	Storage storage( stride, players, 1024, 1 );
+	const std::int32_t flags = 3;
+	std::memcpy( storage.EntityBase() + ENTITYNUM_WORLD * stride + worldflags, &flags, sizeof( flags ) );
+	const auto unchanged = storage.entities;
+	ServerGameDataView view;
+	GameEntityRef world;
+	std::int32_t read = -1;
+	Expect( view.BindNative( COM_GAME_RTCW_MP, storage.Binding() ) == GameDataBindError::None
+		&& view.EntityRefAt( ENTITYNUM_WORLD, world ) && view.GetRTCWMPWorldflags( world, read )
+		&& read == flags, "RTCW MP reads the world record's worldflags at byte 680" );
+	view.Invalidate();
+	read = -1;
+	Expect( !view.GetRTCWMPWorldflags( world, read ) && read == -1,
+		"an expired world reference reads no worldflags" );
+	int others = 0;
+	for ( int id = COM_GAME_QUAKE3; id < COM_GAME_COUNT; ++id ) {
+		const auto profile = static_cast<comGameId_t>( id );
+		const std::size_t prefix = ServerGameDataView::EntityPrefixBytesForProfile( profile );
+		if ( profile == COM_GAME_RTCW_MP || prefix == 0 ) continue;
+		const std::size_t player = ServerGameDataView::PlayerStateBytesForProfile( profile );
+		Storage other( prefix > stride ? prefix : stride, player > players ? player : players, 1024, 1 );
+		// A profile this plain binding cannot satisfy has no view to ask.
+		if ( view.BindNative( profile, other.Binding() ) != GameDataBindError::None ) continue;
+		++others;
+		Expect( view.EntityRefAt( ENTITYNUM_WORLD, world ) && !view.GetRTCWMPWorldflags( world, read )
+			&& read == -1, "no other profile reads RTCW MP's worldflags" );
+		ExpectGuardsIntact( other, "refused worldflags reads preserve array guards" );
+	}
+	Expect( others >= 6, "Quake III, Quake Live, RTCW SP, ET and both Elite Force modes are asked" );
+	Expect( storage.entities == unchanged, "reading worldflags changes no module memory" );
+	ExpectGuardsIntact( storage, "worldflags reads preserve array guards" );
+}
+
 template<class Shared, class Player>
 void TestRTCWRecords( comGameId_t profile, std::int32_t maxClients )
 {
@@ -823,6 +866,7 @@ int main()
 	TestRTCWSaveEntityCapacity();
 	TestRTCWRecords<fntech3_rtcw_sp_sharedEntity_t, fntech3_rtcw_sp_playerState_t>( COM_GAME_RTCW_SP, 128 );
 	TestRTCWRecords<fntech3_rtcw_mp_sharedEntity_t, fntech3_rtcw_mp_playerState_t>( COM_GAME_RTCW_MP, 64 );
+	TestRTCWMPWorldflags();
 	TestSTVEFRecords();
 
 	if ( failures != 0 ) {

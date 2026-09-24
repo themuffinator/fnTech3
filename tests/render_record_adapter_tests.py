@@ -385,6 +385,7 @@ class RenderRecordAdapterTests(unittest.TestCase):
                 '#define FNTECH3_RENDER_TYPE(name, value)',
                 '#include "code/compat/legacy_render_layout.def"',
                 '#undef ABI', '#undef FNTECH3_RENDER_RECORD', '#undef FNTECH3_RENDER_FIELD', '#undef FNTECH3_RENDER_TYPE']
+        (ROOT / '.tmp').mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='render-records-', dir=ROOT / '.tmp') as temp:
             folder = Path(temp)
             source = folder / 'probe.cpp'

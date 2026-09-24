@@ -171,6 +171,7 @@ class RTCWAnimationHandoffTests(unittest.TestCase):
         helpers = '\nnamespace fntech3::server {\n' + function(data, 'bool AddressRangeFits(')
         helpers += '\n' + function(data, 'bool ResolveQvmGameDataPointer(') + '\n}\n'
         body = PRELUDE + helpers + source[start:end] + function(game, 'void SV_RTCWSendMoveSpeeds(') + CHECKS
+        (ROOT / '.tmp').mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='rtcw-animation-', dir=ROOT / '.tmp') as temp:
             folder = Path(temp)
             fixture = folder / 'probe.cpp'

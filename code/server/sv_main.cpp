@@ -166,10 +166,15 @@ EVENT MESSAGES
 SV_ExpandNewlines
 
 Converts newlines to "\n" so a line prints nicer
+
+RTCW MP and ET also leave out their "[lon]" and "[lof]" localization tokens,
+as WolfMP.exe (0x439e00) and ET 2.60b's et.exe (0x447ce0) do. Only the
+console echo changes: clients still receive the tokens.
 ===============
 */
 static const char *SV_ExpandNewlines( const char *in ) {
 	static std::array<char, MAX_STRING_CHARS * 2> string{};
+	const bool stripLocalization = Com_GameIsRTCWMP() || Com_GameIsWolfET();
 	int		l;
 
 	l = 0;
@@ -177,6 +182,10 @@ static const char *SV_ExpandNewlines( const char *in ) {
 		if ( *in == '\n' ) {
 			string[l++] = '\\';
 			string[l++] = 'n';
+		} else if ( stripLocalization &&
+			( !strncmp( in, "[lon]", 5 ) || !strncmp( in, "[lof]", 5 ) ) ) {
+			in += 5;
+			continue;
 		} else {
 			string[l++] = *in;
 		}
@@ -323,9 +332,12 @@ void QDECL SV_SendServerCommand( client_t *cl, const char *fmt, ... ) {
 
 	// send the data to all relevant clients
 	for ( client_t &client : SV_Clients() ) {
-		// RTCW cast AI do not consume the broadcast command stream. Ordinary
-		// bots still receive it, and explicitly addressed commands stay intact.
-		if ( client.state >= CS_PRIMED && SV_ClientIsRTCWCastAI( &client ) ) {
+		// RTCW cast AI and ET bots do not consume the broadcast command
+		// stream: WolfMP.exe and WolfSP.exe skip SVF_CASTAI, et.exe and
+		// etded.exe SVF_BOT. Other profiles' bots still receive it, and
+		// explicitly addressed commands stay intact.
+		if ( client.state >= CS_PRIMED && ( SV_ClientIsRTCWCastAI( &client )
+			|| SV_ClientIsWolfETBot( &client ) ) ) {
 			continue;
 		}
 		if ( len <= 1022 || client.longstr ) {
