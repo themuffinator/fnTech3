@@ -72,7 +72,9 @@ class AliceRendererParityTests(unittest.TestCase):
                 alice = read(renderer, 'tr_alice.c')
                 add = function(alice, 'void R_AddAliceTikiSurfaces(')
                 self.assertIn('\tR_AliceTikiLod( ent, mod );\n', add)
-                self.assertIn('R_SetupAliceEntityLighting( &tr.refdef, ent, lightOrigin );', add)
+                self.assertIn('R_SetupAliceEntityLighting( &tr.refdef, ent, lightOrigin, lightPoint, 0.5f * radius );',
+                              add)
+                self.assertIn('R_SetupAliceEntityLighting( &tr.refdef, ent, lightOrigin, NULL, 0.0f );', add)
                 self.assertNotIn('R_SetupEntityLighting(', add)
                 self.assertIn(gl_shadows, add)
                 tess = function(alice, 'void RB_SurfaceAliceTiki(')

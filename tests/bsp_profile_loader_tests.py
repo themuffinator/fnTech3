@@ -171,6 +171,8 @@ LUMP_SERVICE(R_LoadEntities) LUMP_SERVICE(R_LoadLightGrid)
 // This controller fixture stubs sub-loaders. Native lighting data/ownership
 // are exercised by q3_ihv_model_lighting_tests, including the actual loader.
 static void R_LoadQ3IHVModelLighting(const lump_t *, const lump_t *, const lump_t *) {}
+static void R_RitualModelLightsRead(const byte *, int, const char *) {}
+static void R_RitualModelLightsKeep() {}
 static void R_PreLoadFogs(const lump_t *) {}
 static void R_ClearWorldSun() {}
 static void R_ClearStaticMapLights() {}

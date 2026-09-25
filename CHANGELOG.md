@@ -24,10 +24,23 @@ historical upstream records, not fnTech3 release history. See the
   it. Under this engine's usual one bit over two, `garden1`, `utemple` and
   `centipede1` drew two to nearly three times as bright, and Alice herself
   about three times. A lightmap stage that names no colour now takes
-  retail's identity; every stage Alice ships already did. Models, lit only by
-  the light grid and not by retail's compiled lights, may now look darker
-  than retail's. Other profiles are unchanged
-  ([record](docs/fntech3/2026-09-25-alice-overbright.md)).
+  retail's identity; every stage Alice ships already did. Characters and
+  weapons take retail's compiled lights (next entry). Other profiles are
+  unchanged ([record](docs/fntech3/2026-09-25-alice-overbright.md)).
+- Light Alice's characters and weapons from the map's compiled lights, as
+  `alice.exe` does. Its game module flags every sentient and weapon
+  `RF_EXTRALIGHT`, and retail lights such a model from the map's own light
+  list rather than the light grid: the lights each leaf around it lists and
+  its view can see, each falling off with the square of its distance.
+  fnTech3 now reads the list from the map and that law from the executable,
+  and fits the light to the ambient and directed light all three renderers
+  shade models with; dynamic and static lights, shadows and bloom stay the
+  engine's own. Alice's dress is 1.7 to 5.9 times as bright on the opening
+  views, and on `utemple`, where the grid had drawn her black, she is lit.
+  `r_ritualModelLights 0` lights every model from the grid again, and the
+  same code reads F.A.K.K.2's maps with `fakk2.exe`'s own constants. Other
+  profiles are unchanged
+  ([record](docs/fntech3/2026-09-25-ritual-model-lights.md)).
 - Let an Enemy Territory dedicated server make bots, as `etded.exe` does.
   `spawnbot` with `bot_enable 1` failed in the bot library, which looked
   below `botfiles` for the `botfiles/chars.h` that ET's character includes,

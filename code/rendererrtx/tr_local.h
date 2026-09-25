@@ -49,6 +49,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderercommon/tr_public.h"
 #include "../renderercommon/tr_q3_ihv_fog.h"
 #include "../renderercommon/tr_q3_ihv_model_light.h"
+#include "../renderercommon/tr_ritual_model_light.h"
 #include "../renderercommon/tr_dlight_shadow.h"
 #include "../renderercommon/tr_ql_cvars.h"
 #include "../renderercommon/tr_global_fog.h"
@@ -1365,6 +1366,8 @@ typedef struct {
 	int			numfogs;
 	qboolean	q3IHVFog;
 	q3IHVModelLightNode_t *q3IHVModelLight;
+	// Alice's and F.A.K.K.2's compiled lights, for model light
+	const ritualModelLights_t *ritualModelLights;
 	fog_t		*fogs;
 	globalFog_t	globalFog;
 	fnWolfETGlobalFog_t	wolfetGlobalFog;	// ET's brushless world fog
@@ -2651,7 +2654,8 @@ void R_AliceSetSunFlare( const vec3_t origin );
 void R_AliceSetSunFlareInPortalSky( void );
 void RB_AliceLensFlares( void );
 void RE_AddAliceLightToScene( const vec3_t org, float intensity, float r, float g, float b, int type );
-void R_SetupAliceEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent, const vec3_t lightOrigin );
+void R_SetupAliceEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent, const vec3_t lightOrigin,
+	const float *localPoint, float reach );
 void R_AddNullModelSurfaces( trRefEntity_t *e );
 void R_AddBeamSurfaces( trRefEntity_t *e );
 void R_AddRailSurfaces( trRefEntity_t *e, qboolean isUnderwater );

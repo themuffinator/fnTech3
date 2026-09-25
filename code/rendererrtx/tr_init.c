@@ -157,6 +157,8 @@ cvar_t	*r_staticLightMaxLights;
 cvar_t	*r_staticLightShadows;
 cvar_t	*r_staticLightShadowMaxLights;
 cvar_t	*r_staticLightDebug;
+cvar_t	*r_ritualModelLights;
+cvar_t	*r_ritualModelLightsDebug;
 cvar_t	*r_surfaceLightProxies;
 cvar_t	*r_surfaceLightProxyMaxLights;
 cvar_t	*rtx_rt_surface_light_max;
@@ -2489,6 +2491,21 @@ static void R_Register( void )
 	ri.Cvar_CheckRange( r_staticLightDebug, "0", "1", CV_INTEGER );
 	ri.Cvar_SetDescription( r_staticLightDebug, "Prints static sidecar light loading and promotion counters." );
 	ri.Cvar_SetGroup( r_staticLightDebug, CVG_RENDERER );
+	// Alice and F.A.K.K.2 light the models their game modules flag from the
+	// map's compiled lights (code/renderercommon/tr_ritual_model_light.h)
+	if ( RITUAL_ML_PROFILE( ri.gameId ) ) {
+		r_ritualModelLights = ri.Cvar_Get( "r_ritualModelLights", "1", CVAR_ARCHIVE_ND );
+		ri.Cvar_CheckRange( r_ritualModelLights, "0", "1", CV_INTEGER );
+		ri.Cvar_SetDescription( r_ritualModelLights, "Lights the models the game flags -- its "
+			"characters and weapons -- from the map's compiled lights, as the retail game does. "
+			"0 lights every model from the light grid." );
+		ri.Cvar_SetGroup( r_ritualModelLights, CVG_RENDERER );
+		r_ritualModelLightsDebug = ri.Cvar_Get( "r_ritualModelLightsDebug", "0", CVAR_CHEAT );
+		ri.Cvar_CheckRange( r_ritualModelLightsDebug, "0", "1", CV_INTEGER );
+		ri.Cvar_SetDescription( r_ritualModelLightsDebug, "Prints each flagged model's compiled light, "
+			"and the light grid's at the same point, once a second." );
+		ri.Cvar_SetGroup( r_ritualModelLightsDebug, CVG_RENDERER );
+	}
 	r_surfaceLightProxies = ri.Cvar_Get( "r_surfaceLightProxies", "0", CVAR_ARCHIVE_ND );
 	ri.Cvar_CheckRange( r_surfaceLightProxies, "0", "1", CV_INTEGER );
 	ri.Cvar_SetDescription( r_surfaceLightProxies, "Promotes non-sky q3map_surfaceLight world surfaces into renderer-only proxy lights." );

@@ -285,10 +285,11 @@ R_AliceTikiLightOrigin
 Where retail samples a TIKI entity's light (alice.exe 0x004aaac0): the middle
 of its current frame, moved by its model's origin and `lightoffset`, scaled,
 turned by its axis, and added to its lighting origin, or to its origin.
+local keeps the point in the entity's own frame.
 ==================
 */
-static qboolean R_AliceTikiLightOrigin( const trRefEntity_t *ent, const model_t *mod, vec3_t out ) {
-	vec3_t local;
+static qboolean R_AliceTikiLightOrigin( const trRefEntity_t *ent, const model_t *mod, vec3_t out,
+	vec3_t local ) {
 	int k;
 
 	if ( !RA_TikiLightingPoint( mod->aliceModel, &ent->e.alice, local ) ) {
@@ -364,11 +365,19 @@ void R_AddAliceTikiSurfaces( trRefEntity_t *ent ) {
 	R_AliceTikiLod( ent, mod );
 
 	if ( !personalModel || r_shadows->integer > 1 ) {
-		vec3_t lightOrigin;
-		if ( !R_AliceTikiLightOrigin( ent, mod, lightOrigin ) ) {
+		vec3_t lightOrigin, lightPoint, center;
+		float radius;
+		if ( R_AliceTikiLightOrigin( ent, mod, lightOrigin, lightPoint ) ) {
+			// compiled lights are gathered half the frame's radius around
+			// that point (alice.exe 0x004aaae5..0x004aab06)
+			if ( !RA_TikiLodSphere( mod->aliceModel, &ent->e.alice, center, &radius ) ) {
+				radius = 0.0f;
+			}
+			R_SetupAliceEntityLighting( &tr.refdef, ent, lightOrigin, lightPoint, 0.5f * radius );
+		} else {
 			VectorCopy( ( ent->e.renderfx & RF_LIGHTING_ORIGIN ) ? ent->e.lightingOrigin : ent->e.origin, lightOrigin );
+			R_SetupAliceEntityLighting( &tr.refdef, ent, lightOrigin, NULL, 0.0f );
 		}
-		R_SetupAliceEntityLighting( &tr.refdef, ent, lightOrigin );
 	}
 
 #ifdef USE_PMLIGHT

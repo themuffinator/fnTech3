@@ -493,6 +493,8 @@ void R_SetupEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent ) {
 }
 
 
+#include "../renderercommon/tr_ritual_model_light_render.h"
+
 /*
 =================
 R_SetupAliceEntityLighting
@@ -500,6 +502,12 @@ R_SetupAliceEntityLighting
 American McGee's Alice's entity light, from retail's R_SetupEntityLighting
 (alice.exe 0x004ac7e0) where it differs from Quake III's:
 
+- an entity its game module flags RF_EXTRALIGHT or RF_INVISIBLE -- every
+  sentient and every weapon -- is lit from the map's compiled lights, never
+  from the grid, when the caller gives where in its own frame it is lit and
+  half its frame's radius (0x004abc50; R_RitualModelLight,
+  code/renderercommon/tr_ritual_model_light.h); its minimum light is part
+  of that;
 - the light grid is sampled at a point the caller works out -- for a TIKI
   model the middle of its current frame, moved by its model's origin and
   `lightoffset`, turned by its axis and added to its lighting origin
@@ -516,7 +524,9 @@ other profile; retail's own dynamic-light falloff and its rescaling of an
 over-bright directed light are not reproduced.
 =================
 */
-void R_SetupAliceEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent, const vec3_t lightOrigin ) {
+void R_SetupAliceEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent, const vec3_t lightOrigin,
+	const float *localPoint, float reach ) {
+	qboolean		ritual = qfalse;
 	int				i;
 	const dlight_t		*dl;
 	float			power;
@@ -532,7 +542,10 @@ void R_SetupAliceEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent, c
 	}
 	ent->lightingCalculated = qtrue;
 
-	if ( !( refdef->rdflags & RDF_NOWORLDMODEL ) && tr.world->lightGridData
+	if ( R_RitualModelLight( refdef, ent, lightOrigin, localPoint, reach ) ) {
+		// the map's compiled lights, its added light included
+		ritual = qtrue;
+	} else if ( !( refdef->rdflags & RDF_NOWORLDMODEL ) && tr.world->lightGridData
 		&& !( ent->e.alice.renderfx & FNTECH3_ALICE_RF_FULLBRIGHT ) ) {
 		// the grid samples at the entity's lighting origin
 		const int renderfx = ent->e.renderfx;
@@ -555,7 +568,7 @@ void R_SetupAliceEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent, c
 		VectorCopy( tr.sunDirection, ent->lightDir );
 	}
 
-	if ( ent->e.alice.renderfx & FNTECH3_ALICE_RF_MINLIGHT ) {
+	if ( !ritual && ( ent->e.alice.renderfx & FNTECH3_ALICE_RF_MINLIGHT ) ) {
 		ent->ambientLight[0] += tr.identityLight * 32;
 		ent->ambientLight[1] += tr.identityLight * 32;
 		ent->ambientLight[2] += tr.identityLight * 32;

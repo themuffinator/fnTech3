@@ -36,7 +36,9 @@ It was read with capstone; addresses are virtual addresses in the image.
 So at retail's default nothing is shifted, `identityLight` is 1 and no bit is
 added on output. A lightmapped surface draws lightmap times texture, a
 vertex-lit one its vertex colours times texture, and a model its light-grid
-light, each as the map holds it.
+light, each as the map holds it. That last holds for a model the game does
+not flag: characters and weapons are lit from the map's compiled lights
+instead, shifted the same way ([model light record](2026-09-25-ritual-model-lights.md)).
 
 Quake III's colour shift is by `r_mapOverBrightBits - r_overBrightBits`, and
 fnTech3's renderers keep it. With Alice's two defaults at 0 it shifts by
@@ -162,15 +164,17 @@ look. No retail-exact option is added.
 - **No retail frame.** `alice.exe` cannot run here, so retail's brightness is
   read from its code, not seen. No fnTech3 frame has been set beside
   retail's.
-- **Models are now darker.** Before, Alice drew 2.9 to 3.2 times as bright
-  as now, more than the world around her, since the grid was shifted up a bit
-  and then doubled on output. Models now take the light grid as the map holds
-  it, as retail's grid reading does. Retail also
-  lights a model from the map's compiled light list (`0x004ab850`), which
-  fnTech3 does not. fnTech3 gives only the static lights' per-pixel supplement,
-  at most eight lights from each map's 128. So models may now be darker than
-  retail's wherever the compiled lights carry them. On `garden1` Alice's dress
-  and back average 18, 15, 14.
+- **Models were darker; settled.** Before, Alice drew 2.9 to 3.2 times as
+  bright as now, more than the world around her, since the grid was shifted
+  up a bit and then doubled on output. On `garden1` her dress and back then
+  averaged 18, 15, 14 with the grid as the map holds it. But retail lights no
+  character or weapon from the grid: the models its game module flags
+  `RF_EXTRALIGHT` take the map's compiled lights (`0x004abc50`, `0x004ab850`).
+  fnTech3 now does the same in all three renderers. Alice's dress is 1.7
+  times as bright on `garden1` as with the grid, 2.2 on `centipede1` and 5.9
+  on `utemple`, where the grid had drawn her black; still short of the old
+  defaults' 2.9 to 3.2 on the first two maps
+  ([model light record](2026-09-25-ritual-model-lights.md)).
 - **A non-default `r_overBrightBits`.** Raised to 1, retail shifts every light
   up a bit and doubles the output, brightening the world. fnTech3's Quake III
   shift moves the bit into the output instead: lightmapped surfaces keep their

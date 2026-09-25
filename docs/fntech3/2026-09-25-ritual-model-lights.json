@@ -1,0 +1,3425 @@
+{
+ "record": "docs/fntech3/2026-09-25-ritual-model-lights.md",
+ "date": "2026-09-25",
+ "base": "d1d98ba8fa23363355472eab5cb2b2860a857f40",
+ "treeNote": "Probe builds were made from the shared working tree, which also held other sessions' uncommitted work, the F.A.K.K.2 profile among it.",
+ "retail": {
+  "alice.exe": {
+   "bytes": 2209835,
+   "sha256": "8aa22917b7707f0e1a7c4dbe9a3c38332b1873ae2059174ac5329de26921fc18",
+   "note": "SafeDisc-wrapped; its code section read with capstone, never run"
+  },
+  "alice fgamex86.dll": {
+   "sha256": "ae5a572728fbb2cbf8935d633ef9e23f023edad986d7dd9ee506d589eb261aea"
+  },
+  "alice base/pak0.pk3": {
+   "sha256": "6a63b59cd627902660bd4261461f904bf984e05891eb749d47bcc7fc8cedda62"
+  },
+  "fakk2.exe 1.02": {
+   "bytes": 1318912,
+   "sha256": "681bc51c3343d01d772c5ae4aae7523ae4547350b243c875156e138043335785"
+  },
+  "fakk2 gamex86.dll": {
+   "sha256": "f7f54f7239718c2cd534e05d4243a6acfdbe1531b2ba7c5ba59bf31c4bc25637"
+  },
+  "fakk2 fakk/pak0.pk3": {
+   "sha256": "c9777e42a32853048d4cc11916d8a5785a56f3533aef41ed84a46916af8da414"
+  }
+ },
+ "probe": {
+  "buildDir": "meson/build/win32-alice-client (alice-development, later fakk2-development)",
+  "before": {
+   "fnql_glx_x86.dll": "e05aad3914d899f518c1165880175bafea0c52e81c23f7aa4f16dca93017375a",
+   "fnql_rtx_x86.dll": "776262ded7b28436052967c4d2b27242ca0a3aaec51068ac83d3473ed2836412",
+   "fnql_vk_x86.dll": "be89ed0dcefbdfa4e9788475afbd67e6eae20b186a022847304df14ec2ac104c",
+   "fntech3.exe": "0ff579fcf21c3b445d0515d3b0d0810be6908f8177adf5023119da9c11c99bd7"
+  },
+  "window": "800x600 windowed, private desktop, isolated home with an empty base/config.cfg overlay, ui_subtitles 0, net_enabled 1; no input sent",
+  "aliceSteps": "wait 12000\nskipcinematic\nwait 4000\nscreenshotPNG compiled\nwait 300\nset r_ritualModelLights 0\nwait 300\nscreenshotPNG grid\nwait 300\nset r_ritualModelLights 1\nwait 300\nscreenshotPNG compiled2\nwait 1000\nwhatis 0\nviewpos\nwait 500\n"
+ },
+ "alice": {
+  "glx/garden1": {
+   "onOff": {
+    "run": "onoff-glx-garden1-debug",
+    "exeSha256": "41b44f23c52c5e5980ae7a3fe54f8e649c204cb0142951856c2b69ccac162140",
+    "rendererSha256": "bb8a5812e0f9e8ade1e2b9bf53e0abb892a7ee8068cd70b36f37a218e79e97a8",
+    "exitCode": 0,
+    "forcedStop": false,
+    "installationUnchanged": true,
+    "screenshots": [
+     "compiled.png",
+     "compiled2.png",
+     "grid.png"
+    ],
+    "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\onoff-glx-garden1-debug\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLightsDebug 1 +exec ritual-probe.cfg",
+    "aliceBox": {
+     "compiled": [
+      [
+       30.6,
+       25.2,
+       23.9
+      ],
+      26.7
+     ],
+     "grid": [
+      [
+       17.8,
+       14.7,
+       13.8
+      ],
+      15.5
+     ],
+     "compiledAgain": [
+      [
+       30.6,
+       25.2,
+       24.0
+      ],
+      26.7
+     ]
+    },
+    "boxRatio": 1.723,
+    "boxRatioAgain": 1.723,
+    "frameMeanLuma": {
+     "compiled": 27.3,
+     "grid": 27.1,
+     "compiledAgain": 27.3
+    },
+    "identicalPixelsCompiledAgainPercent": 87.52
+   },
+   "onOffNoStaticLights": {
+    "run": "onoff-glx-garden1-debug-nostatic",
+    "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+    "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+    "exitCode": 0,
+    "forcedStop": false,
+    "installationUnchanged": true,
+    "screenshots": [
+     "compiled.png",
+     "compiled2.png",
+     "grid.png"
+    ],
+    "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\onoff-glx-garden1-debug-nostatic\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLightsDebug 1 +set r_staticLights 0 +exec ritual-probe.cfg",
+    "aliceBox": {
+     "compiled": [
+      [
+       29.9,
+       24.7,
+       23.3
+      ],
+      26.1
+     ],
+     "grid": [
+      [
+       17.0,
+       14.2,
+       13.1
+      ],
+      14.9
+     ],
+     "compiledAgain": [
+      [
+       29.9,
+       24.7,
+       23.4
+      ],
+      26.1
+     ]
+    },
+    "boxRatio": 1.752,
+    "boxRatioAgain": 1.752,
+    "frameMeanLuma": {
+     "compiled": 27.0,
+     "grid": 26.8,
+     "compiledAgain": 27.1
+    },
+    "identicalPixelsCompiledAgainPercent": 87.58
+   },
+   "onOffRepeat": {
+    "run": "onoff2-glx-garden1-debug",
+    "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+    "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+    "exitCode": 0,
+    "forcedStop": false,
+    "installationUnchanged": true,
+    "screenshots": [
+     "compiled.png",
+     "compiled2.png",
+     "grid.png"
+    ],
+    "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\onoff2-glx-garden1-debug\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLightsDebug 1 +exec ritual-probe.cfg",
+    "aliceBox": {
+     "compiled": [
+      [
+       30.6,
+       25.2,
+       23.9
+      ],
+      26.7
+     ],
+     "grid": [
+      [
+       17.8,
+       14.7,
+       13.8
+      ],
+      15.5
+     ],
+     "compiledAgain": [
+      [
+       30.6,
+       25.2,
+       24.0
+      ],
+      26.7
+     ]
+    },
+    "boxRatio": 1.723,
+    "boxRatioAgain": 1.723,
+    "frameMeanLuma": {
+     "compiled": 27.3,
+     "grid": 27.1,
+     "compiledAgain": 27.3
+    },
+    "identicalPixelsCompiledAgainPercent": 87.52
+   },
+   "oldBuildAgainstGridOption": {
+    "oldBuild": {
+     "exeSha256": "0ff579fcf21c3b445d0515d3b0d0810be6908f8177adf5023119da9c11c99bd7",
+     "rendererSha256": "e05aad3914d899f518c1165880175bafea0c52e81c23f7aa4f16dca93017375a",
+     "exitCode": 0,
+     "forcedStop": false,
+     "installationUnchanged": true,
+     "screenshots": [
+      "shot.png"
+     ],
+     "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\before-glx-garden1-default\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +exec ritual-probe.cfg"
+    },
+    "gridOption": {
+     "exeSha256": "41b44f23c52c5e5980ae7a3fe54f8e649c204cb0142951856c2b69ccac162140",
+     "rendererSha256": "bb8a5812e0f9e8ade1e2b9bf53e0abb892a7ee8068cd70b36f37a218e79e97a8",
+     "exitCode": 0,
+     "forcedStop": false,
+     "installationUnchanged": true,
+     "screenshots": [
+      "shot.png"
+     ],
+     "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\after-glx-garden1-grid\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLights 0 +exec ritual-probe.cfg"
+    },
+    "aliceBox": {
+     "oldBuild": [
+      [
+       17.6,
+       14.6,
+       13.6
+      ],
+      15.4
+     ],
+     "gridOption": [
+      [
+       17.6,
+       14.6,
+       13.6
+      ],
+      15.4
+     ]
+    },
+    "identicalPixelsPercent": 98.87,
+    "frameMeanLuma": {
+     "oldBuild": 27.1,
+     "gridOption": 27.1
+    }
+   },
+   "aliceLight": {
+    "renderfx": "0x4800a10",
+    "lightingPoint": [
+     -1367.6,
+     -2472.1,
+     -399.6
+    ],
+    "reach": 34.6,
+    "source": "compiled lights",
+    "leaves": 2,
+    "lit": 25,
+    "candidates": 29,
+    "sun": 0,
+    "cube": {
+     "+x": [
+      83.0,
+      67.0,
+      52.0
+     ],
+     "-x": [
+      53.0,
+      44.0,
+      34.0
+     ],
+     "+y": [
+      60.0,
+      53.0,
+      41.0
+     ],
+     "-y": [
+      29.0,
+      24.0,
+      19.0
+     ],
+     "+z": [
+      160.0,
+      139.0,
+      116.0
+     ],
+     "-z": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    "compiled": {
+     "ambient": [
+      61.0,
+      51.0,
+      39.0
+     ],
+     "directed": [
+      142.0,
+      124.0,
+      104.0
+     ],
+     "toward": [
+      0.17,
+      0.19,
+      0.97
+     ]
+    },
+    "grid": {
+     "ambient": [
+      22.0,
+      19.0,
+      16.0
+     ],
+     "directed": [
+      101.0,
+      89.0,
+      78.0
+     ],
+     "toward": [
+      0.11,
+      -0.06,
+      0.99
+     ]
+    }
+   }
+  },
+  "glx/utemple": {
+   "onOff": {
+    "run": "onoff-glx-utemple-debug",
+    "exeSha256": "41b44f23c52c5e5980ae7a3fe54f8e649c204cb0142951856c2b69ccac162140",
+    "rendererSha256": "bb8a5812e0f9e8ade1e2b9bf53e0abb892a7ee8068cd70b36f37a218e79e97a8",
+    "exitCode": 0,
+    "forcedStop": false,
+    "installationUnchanged": true,
+    "screenshots": [
+     "compiled.png",
+     "compiled2.png",
+     "grid.png"
+    ],
+    "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\onoff-glx-utemple-debug\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLightsDebug 1 +exec ritual-probe.cfg",
+    "aliceBox": {
+     "compiled": [
+      [
+       52.2,
+       73.0,
+       105.1
+      ],
+      70.5
+     ],
+     "grid": [
+      [
+       5.0,
+       14.3,
+       18.5
+      ],
+      12.0
+     ],
+     "compiledAgain": [
+      [
+       55.9,
+       77.6,
+       107.8
+      ],
+      74.5
+     ]
+    },
+    "boxRatio": 5.875,
+    "boxRatioAgain": 6.208,
+    "frameMeanLuma": {
+     "compiled": 31.6,
+     "grid": 30.5,
+     "compiledAgain": 31.6
+    },
+    "identicalPixelsCompiledAgainPercent": 6.89
+   },
+   "onOffNoStaticLights": {
+    "run": "onoff-glx-utemple-debug-nostatic",
+    "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+    "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+    "exitCode": 0,
+    "forcedStop": false,
+    "installationUnchanged": true,
+    "screenshots": [
+     "compiled.png",
+     "compiled2.png",
+     "grid.png"
+    ],
+    "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\onoff-glx-utemple-debug-nostatic\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLightsDebug 1 +set r_staticLights 0 +exec ritual-probe.cfg",
+    "aliceBox": {
+     "compiled": [
+      [
+       54.1,
+       74.8,
+       106.3
+      ],
+      72.2
+     ],
+     "grid": [
+      [
+       4.8,
+       14.0,
+       18.6
+      ],
+      11.8
+     ],
+     "compiledAgain": [
+      [
+       55.7,
+       77.6,
+       107.5
+      ],
+      74.4
+     ]
+    },
+    "boxRatio": 6.119,
+    "boxRatioAgain": 6.305,
+    "frameMeanLuma": {
+     "compiled": 31.3,
+     "grid": 30.1,
+     "compiledAgain": 31.2
+    },
+    "identicalPixelsCompiledAgainPercent": 7.62
+   },
+   "onOffRepeat": {
+    "run": "onoff2-glx-utemple-debug",
+    "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+    "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+    "exitCode": 0,
+    "forcedStop": false,
+    "installationUnchanged": true,
+    "screenshots": [
+     "compiled.png",
+     "compiled2.png",
+     "grid.png"
+    ],
+    "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\onoff2-glx-utemple-debug\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLightsDebug 1 +exec ritual-probe.cfg",
+    "aliceBox": {
+     "compiled": [
+      [
+       52.2,
+       73.0,
+       105.1
+      ],
+      70.5
+     ],
+     "grid": [
+      [
+       4.9,
+       14.1,
+       18.7
+      ],
+      11.9
+     ],
+     "compiledAgain": [
+      [
+       55.8,
+       77.6,
+       107.6
+      ],
+      74.5
+     ]
+    },
+    "boxRatio": 5.924,
+    "boxRatioAgain": 6.261,
+    "frameMeanLuma": {
+     "compiled": 31.7,
+     "grid": 30.5,
+     "compiledAgain": 31.6
+    },
+    "identicalPixelsCompiledAgainPercent": 6.89
+   },
+   "oldBuildAgainstGridOption": {
+    "oldBuild": {
+     "exeSha256": "0ff579fcf21c3b445d0515d3b0d0810be6908f8177adf5023119da9c11c99bd7",
+     "rendererSha256": "e05aad3914d899f518c1165880175bafea0c52e81c23f7aa4f16dca93017375a",
+     "exitCode": 0,
+     "forcedStop": false,
+     "installationUnchanged": true,
+     "screenshots": [
+      "shot.png"
+     ],
+     "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\before-glx-utemple-default\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +exec ritual-probe.cfg"
+    },
+    "gridOption": {
+     "exeSha256": "41b44f23c52c5e5980ae7a3fe54f8e649c204cb0142951856c2b69ccac162140",
+     "rendererSha256": "bb8a5812e0f9e8ade1e2b9bf53e0abb892a7ee8068cd70b36f37a218e79e97a8",
+     "exitCode": 0,
+     "forcedStop": false,
+     "installationUnchanged": true,
+     "screenshots": [
+      "shot.png"
+     ],
+     "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\after-glx-utemple-grid\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLights 0 +exec ritual-probe.cfg"
+    },
+    "aliceBox": {
+     "oldBuild": [
+      [
+       5.3,
+       14.9,
+       19.0
+      ],
+      12.5
+     ],
+     "gridOption": [
+      [
+       5.3,
+       14.9,
+       19.0
+      ],
+      12.5
+     ]
+    },
+    "identicalPixelsPercent": 69.54,
+    "frameMeanLuma": {
+     "oldBuild": 30.6,
+     "gridOption": 30.6
+    }
+   },
+   "aliceLight": {
+    "renderfx": "0x4800a10",
+    "lightingPoint": [
+     -63.5,
+     -5592.2,
+     1265.4
+    ],
+    "reach": 35.9,
+    "source": "compiled lights",
+    "leaves": 3,
+    "lit": 12,
+    "candidates": 12,
+    "sun": 0,
+    "cube": {
+     "+x": [
+      148.0,
+      214.0,
+      255.0
+     ],
+     "-x": [
+      150.0,
+      204.0,
+      255.0
+     ],
+     "+y": [
+      101.0,
+      137.0,
+      172.0
+     ],
+     "-y": [
+      149.0,
+      207.0,
+      255.0
+     ],
+     "+z": [
+      149.0,
+      208.0,
+      255.0
+     ],
+     "-z": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    "compiled": {
+     "ambient": [
+      148.0,
+      205.0,
+      252.0
+     ],
+     "directed": [
+      107.0,
+      149.0,
+      183.0
+     ],
+     "toward": [
+      -0.31,
+      -0.01,
+      0.95
+     ]
+    },
+    "grid": {
+     "ambient": [
+      15.0,
+      25.0,
+      27.0
+     ],
+     "directed": [
+      88.0,
+      143.0,
+      157.0
+     ],
+     "toward": [
+      -0.73,
+      -0.63,
+      -0.28
+     ]
+    }
+   }
+  },
+  "glx/centipede1": {
+   "onOff": {
+    "run": "onoff-glx-centipede1-debug",
+    "exeSha256": "41b44f23c52c5e5980ae7a3fe54f8e649c204cb0142951856c2b69ccac162140",
+    "rendererSha256": "bb8a5812e0f9e8ade1e2b9bf53e0abb892a7ee8068cd70b36f37a218e79e97a8",
+    "exitCode": 0,
+    "forcedStop": false,
+    "installationUnchanged": true,
+    "screenshots": [
+     "compiled.png",
+     "compiled2.png",
+     "grid.png"
+    ],
+    "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\onoff-glx-centipede1-debug\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLightsDebug 1 +exec ritual-probe.cfg",
+    "aliceBox": {
+     "compiled": [
+      [
+       86.4,
+       75.3,
+       101.2
+      ],
+      81.6
+     ],
+     "grid": [
+      [
+       40.8,
+       33.8,
+       44.4
+      ],
+      37.1
+     ],
+     "compiledAgain": [
+      [
+       86.2,
+       75.1,
+       100.6
+      ],
+      81.3
+     ]
+    },
+    "boxRatio": 2.199,
+    "boxRatioAgain": 2.191,
+    "frameMeanLuma": {
+     "compiled": 27.2,
+     "grid": 26.0,
+     "compiledAgain": 27.2
+    },
+    "identicalPixelsCompiledAgainPercent": 94.45
+   },
+   "onOffNoStaticLights": {
+    "run": "onoff-glx-centipede1-debug-nostatic",
+    "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+    "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+    "exitCode": 0,
+    "forcedStop": false,
+    "installationUnchanged": true,
+    "screenshots": [
+     "compiled.png",
+     "compiled2.png",
+     "grid.png"
+    ],
+    "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\onoff-glx-centipede1-debug-nostatic\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLightsDebug 1 +set r_staticLights 0 +exec ritual-probe.cfg",
+    "aliceBox": {
+     "compiled": [
+      [
+       71.5,
+       66.7,
+       93.2
+      ],
+      71.2
+     ],
+     "grid": [
+      [
+       26.1,
+       25.3,
+       36.5
+      ],
+      26.8
+     ],
+     "compiledAgain": [
+      [
+       71.1,
+       66.4,
+       92.6
+      ],
+      70.8
+     ]
+    },
+    "boxRatio": 2.657,
+    "boxRatioAgain": 2.642,
+    "frameMeanLuma": {
+     "compiled": 24.3,
+     "grid": 23.1,
+     "compiledAgain": 24.3
+    },
+    "identicalPixelsCompiledAgainPercent": 94.52
+   },
+   "onOffRepeat": {
+    "run": "onoff2-glx-centipede1-debug",
+    "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+    "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+    "exitCode": 0,
+    "forcedStop": false,
+    "installationUnchanged": true,
+    "screenshots": [
+     "compiled.png",
+     "compiled2.png",
+     "grid.png"
+    ],
+    "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\onoff2-glx-centipede1-debug\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLightsDebug 1 +exec ritual-probe.cfg",
+    "aliceBox": {
+     "compiled": [
+      [
+       86.4,
+       75.3,
+       101.1
+      ],
+      81.6
+     ],
+     "grid": [
+      [
+       40.9,
+       33.8,
+       44.4
+      ],
+      37.1
+     ],
+     "compiledAgain": [
+      [
+       86.2,
+       75.1,
+       100.6
+      ],
+      81.3
+     ]
+    },
+    "boxRatio": 2.199,
+    "boxRatioAgain": 2.191,
+    "frameMeanLuma": {
+     "compiled": 27.2,
+     "grid": 26.0,
+     "compiledAgain": 27.2
+    },
+    "identicalPixelsCompiledAgainPercent": 95.04
+   },
+   "oldBuildAgainstGridOption": {
+    "oldBuild": {
+     "exeSha256": "0ff579fcf21c3b445d0515d3b0d0810be6908f8177adf5023119da9c11c99bd7",
+     "rendererSha256": "e05aad3914d899f518c1165880175bafea0c52e81c23f7aa4f16dca93017375a",
+     "exitCode": 0,
+     "forcedStop": false,
+     "installationUnchanged": true,
+     "screenshots": [
+      "shot.png"
+     ],
+     "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\before-glx-centipede1-default\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +exec ritual-probe.cfg"
+    },
+    "gridOption": {
+     "exeSha256": "41b44f23c52c5e5980ae7a3fe54f8e649c204cb0142951856c2b69ccac162140",
+     "rendererSha256": "bb8a5812e0f9e8ade1e2b9bf53e0abb892a7ee8068cd70b36f37a218e79e97a8",
+     "exitCode": 0,
+     "forcedStop": false,
+     "installationUnchanged": true,
+     "screenshots": [
+      "shot.png"
+     ],
+     "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\after-glx-centipede1-grid\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLights 0 +exec ritual-probe.cfg"
+    },
+    "aliceBox": {
+     "oldBuild": [
+      [
+       41.3,
+       34.1,
+       44.8
+      ],
+      37.5
+     ],
+     "gridOption": [
+      [
+       41.3,
+       34.1,
+       44.8
+      ],
+      37.5
+     ]
+    },
+    "identicalPixelsPercent": 99.79,
+    "frameMeanLuma": {
+     "oldBuild": 26.0,
+     "gridOption": 26.0
+    }
+   },
+   "aliceLight": {
+    "renderfx": "0x4800a10",
+    "lightingPoint": [
+     1135.8,
+     -1711.5,
+     -406.3
+    ],
+    "reach": 34.7,
+    "source": "compiled lights",
+    "leaves": 2,
+    "lit": 15,
+    "candidates": 16,
+    "sun": 0,
+    "cube": {
+     "+x": [
+      180.0,
+      211.0,
+      255.0
+     ],
+     "-x": [
+      182.0,
+      91.0,
+      46.0
+     ],
+     "+y": [
+      199.0,
+      219.0,
+      255.0
+     ],
+     "-y": [
+      244.0,
+      234.0,
+      255.0
+     ],
+     "+z": [
+      171.0,
+      210.0,
+      255.0
+     ],
+     "-z": [
+      18.0,
+      13.0,
+      12.0
+     ]
+    },
+    "compiled": {
+     "ambient": [
+      228.0,
+      204.0,
+      213.0
+     ],
+     "directed": [
+      82.0,
+      161.0,
+      225.0
+     ],
+     "toward": [
+      0.08,
+      0.44,
+      0.9
+     ]
+    },
+    "grid": {
+     "ambient": [
+      69.0,
+      61.0,
+      65.0
+     ],
+     "directed": [
+      232.0,
+      224.0,
+      247.0
+     ],
+     "toward": [
+      -0.66,
+      0.07,
+      -0.75
+     ]
+    }
+   }
+  },
+  "glx/jlair2": {
+   "onOff": {
+    "run": "onoff-glx-jlair2-debug",
+    "exeSha256": "41b44f23c52c5e5980ae7a3fe54f8e649c204cb0142951856c2b69ccac162140",
+    "rendererSha256": "bb8a5812e0f9e8ade1e2b9bf53e0abb892a7ee8068cd70b36f37a218e79e97a8",
+    "exitCode": 0,
+    "forcedStop": false,
+    "installationUnchanged": true,
+    "screenshots": [
+     "compiled.png",
+     "compiled2.png",
+     "grid.png"
+    ],
+    "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\onoff-glx-jlair2-debug\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLightsDebug 1 +exec ritual-probe.cfg",
+    "aliceBox": {
+     "compiled": [
+      [
+       94.1,
+       90.8,
+       92.5
+      ],
+      92.0
+     ],
+     "grid": [
+      [
+       99.6,
+       61.9,
+       72.2
+      ],
+      74.3
+     ],
+     "compiledAgain": [
+      [
+       113.1,
+       72.0,
+       71.7
+      ],
+      84.2
+     ]
+    },
+    "boxRatio": 1.238,
+    "boxRatioAgain": 1.133,
+    "frameMeanLuma": {
+     "compiled": 19.9,
+     "grid": 41.6,
+     "compiledAgain": 49.3
+    },
+    "identicalPixelsCompiledAgainPercent": 2.29
+   },
+   "onOffNoStaticLights": {
+    "run": "onoff-glx-jlair2-debug-nostatic",
+    "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+    "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+    "exitCode": 0,
+    "forcedStop": false,
+    "installationUnchanged": true,
+    "screenshots": [
+     "compiled.png",
+     "compiled2.png",
+     "grid.png"
+    ],
+    "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\onoff-glx-jlair2-debug-nostatic\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLightsDebug 1 +set r_staticLights 0 +exec ritual-probe.cfg",
+    "aliceBox": {
+     "compiled": [
+      [
+       81.9,
+       78.5,
+       75.7
+      ],
+      79.2
+     ],
+     "grid": [
+      [
+       76.6,
+       71.5,
+       76.2
+      ],
+      73.5
+     ],
+     "compiledAgain": [
+      [
+       82.2,
+       78.4,
+       75.6
+      ],
+      79.2
+     ]
+    },
+    "boxRatio": 1.078,
+    "boxRatioAgain": 1.078,
+    "frameMeanLuma": {
+     "compiled": 16.5,
+     "grid": 15.4,
+     "compiledAgain": 16.6
+    },
+    "identicalPixelsCompiledAgainPercent": 83.18
+   },
+   "onOffRepeat": {
+    "run": "onoff2-glx-jlair2-debug",
+    "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+    "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+    "exitCode": 0,
+    "forcedStop": false,
+    "installationUnchanged": true,
+    "screenshots": [
+     "compiled.png",
+     "compiled2.png",
+     "grid.png"
+    ],
+    "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\onoff2-glx-jlair2-debug\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLightsDebug 1 +exec ritual-probe.cfg",
+    "aliceBox": {
+     "compiled": [
+      [
+       119.8,
+       77.7,
+       74.2
+      ],
+      89.9
+     ],
+     "grid": [
+      [
+       101.7,
+       62.4,
+       70.5
+      ],
+      75.0
+     ],
+     "compiledAgain": [
+      [
+       108.3,
+       69.2,
+       67.9
+      ],
+      80.8
+     ]
+    },
+    "boxRatio": 1.199,
+    "boxRatioAgain": 1.077,
+    "frameMeanLuma": {
+     "compiled": 46.5,
+     "grid": 42.5,
+     "compiledAgain": 46.7
+    },
+    "identicalPixelsCompiledAgainPercent": 18.65
+   },
+   "oldBuildAgainstGridOption": {
+    "oldBuild": {
+     "exeSha256": "0ff579fcf21c3b445d0515d3b0d0810be6908f8177adf5023119da9c11c99bd7",
+     "rendererSha256": "e05aad3914d899f518c1165880175bafea0c52e81c23f7aa4f16dca93017375a",
+     "exitCode": 0,
+     "forcedStop": false,
+     "installationUnchanged": true,
+     "screenshots": [
+      "shot.png"
+     ],
+     "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\before-glx-jlair2-default\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +exec ritual-probe.cfg"
+    },
+    "gridOption": {
+     "exeSha256": "41b44f23c52c5e5980ae7a3fe54f8e649c204cb0142951856c2b69ccac162140",
+     "rendererSha256": "bb8a5812e0f9e8ade1e2b9bf53e0abb892a7ee8068cd70b36f37a218e79e97a8",
+     "exitCode": 0,
+     "forcedStop": false,
+     "installationUnchanged": true,
+     "screenshots": [
+      "shot.png"
+     ],
+     "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\after-glx-jlair2-grid\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLights 0 +exec ritual-probe.cfg"
+    },
+    "aliceBox": {
+     "oldBuild": [
+      [
+       88.9,
+       84.6,
+       93.7
+      ],
+      86.9
+     ],
+     "gridOption": [
+      [
+       88.9,
+       84.6,
+       93.7
+      ],
+      86.9
+     ]
+    },
+    "identicalPixelsPercent": 96.48,
+    "frameMeanLuma": {
+     "oldBuild": 16.8,
+     "gridOption": 16.8
+    }
+   },
+   "aliceLight": {
+    "renderfx": "0x4800a10",
+    "lightingPoint": [
+     -847.5,
+     416.2,
+     97.7
+    ],
+    "reach": 34.7,
+    "source": "compiled lights",
+    "leaves": 1,
+    "lit": 10,
+    "candidates": 10,
+    "sun": 0,
+    "cube": {
+     "+x": [
+      255.0,
+      225.0,
+      180.0
+     ],
+     "-x": [
+      255.0,
+      199.0,
+      114.0
+     ],
+     "+y": [
+      255.0,
+      218.0,
+      162.0
+     ],
+     "-y": [
+      255.0,
+      206.0,
+      130.0
+     ],
+     "+z": [
+      255.0,
+      206.0,
+      131.0
+     ],
+     "-z": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    "compiled": {
+     "ambient": [
+      278.0,
+      231.0,
+      158.0
+     ],
+     "directed": [
+      161.0,
+      131.0,
+      85.0
+     ],
+     "toward": [
+      0.12,
+      0.06,
+      0.99
+     ]
+    },
+    "grid": {
+     "ambient": [
+      153.0,
+      130.0,
+      96.0
+     ],
+     "directed": [
+      255.0,
+      217.0,
+      161.0
+     ],
+     "toward": [
+      -0.48,
+      -0.54,
+      0.69
+     ]
+    }
+   }
+  },
+  "vk/garden1": {
+   "onOff": {
+    "run": "onoff-vk-garden1-debug",
+    "exeSha256": "41b44f23c52c5e5980ae7a3fe54f8e649c204cb0142951856c2b69ccac162140",
+    "rendererSha256": "dde5c8d9ca5347367d6b3a5a42f15a9ee4ae19ec3010ad10a5bfb57fd9fc9ec8",
+    "exitCode": 0,
+    "forcedStop": false,
+    "installationUnchanged": true,
+    "screenshots": [
+     "compiled.png",
+     "compiled2.png",
+     "grid.png"
+    ],
+    "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\onoff-vk-garden1-debug\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer vk +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLightsDebug 1 +exec ritual-probe.cfg",
+    "aliceBox": {
+     "compiled": [
+      [
+       31.0,
+       25.5,
+       24.1
+      ],
+      27.0
+     ],
+     "grid": [
+      [
+       18.1,
+       14.9,
+       13.8
+      ],
+      15.7
+     ],
+     "compiledAgain": [
+      [
+       31.0,
+       25.4,
+       24.1
+      ],
+      27.0
+     ]
+    },
+    "boxRatio": 1.72,
+    "boxRatioAgain": 1.72,
+    "frameMeanLuma": {
+     "compiled": 27.7,
+     "grid": 27.5,
+     "compiledAgain": 27.7
+    },
+    "identicalPixelsCompiledAgainPercent": 87.6
+   },
+   "onOffNoBloom": {
+    "run": "onoff-vk-garden1-debug-nobloom",
+    "exeSha256": "41b44f23c52c5e5980ae7a3fe54f8e649c204cb0142951856c2b69ccac162140",
+    "rendererSha256": "dde5c8d9ca5347367d6b3a5a42f15a9ee4ae19ec3010ad10a5bfb57fd9fc9ec8",
+    "exitCode": 0,
+    "forcedStop": false,
+    "installationUnchanged": true,
+    "screenshots": [
+     "compiled.png",
+     "compiled2.png",
+     "grid.png"
+    ],
+    "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\onoff-vk-garden1-debug-nobloom\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer vk +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLightsDebug 1 +set r_bloom 0 +exec ritual-probe.cfg",
+    "aliceBox": {
+     "compiled": [
+      [
+       31.0,
+       25.5,
+       24.1
+      ],
+      27.0
+     ],
+     "grid": [
+      [
+       18.1,
+       14.9,
+       13.8
+      ],
+      15.7
+     ],
+     "compiledAgain": [
+      [
+       31.0,
+       25.4,
+       24.1
+      ],
+      27.0
+     ]
+    },
+    "boxRatio": 1.72,
+    "boxRatioAgain": 1.72,
+    "frameMeanLuma": {
+     "compiled": 27.7,
+     "grid": 27.5,
+     "compiledAgain": 27.7
+    },
+    "identicalPixelsCompiledAgainPercent": 87.63
+   },
+   "oldBuildAgainstGridOption": {
+    "oldBuild": {
+     "exeSha256": "0ff579fcf21c3b445d0515d3b0d0810be6908f8177adf5023119da9c11c99bd7",
+     "rendererSha256": "be89ed0dcefbdfa4e9788475afbd67e6eae20b186a022847304df14ec2ac104c",
+     "exitCode": 0,
+     "forcedStop": false,
+     "installationUnchanged": true,
+     "screenshots": [
+      "shot.png"
+     ],
+     "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\before-vk-garden1-default\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer vk +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +exec ritual-probe.cfg"
+    },
+    "gridOption": {
+     "exeSha256": "41b44f23c52c5e5980ae7a3fe54f8e649c204cb0142951856c2b69ccac162140",
+     "rendererSha256": "dde5c8d9ca5347367d6b3a5a42f15a9ee4ae19ec3010ad10a5bfb57fd9fc9ec8",
+     "exitCode": 0,
+     "forcedStop": false,
+     "installationUnchanged": true,
+     "screenshots": [
+      "shot.png"
+     ],
+     "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\after-vk-garden1-grid\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer vk +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLights 0 +exec ritual-probe.cfg"
+    },
+    "aliceBox": {
+     "oldBuild": [
+      [
+       18.0,
+       14.7,
+       13.6
+      ],
+      15.6
+     ],
+     "gridOption": [
+      [
+       18.0,
+       14.7,
+       13.6
+      ],
+      15.6
+     ]
+    },
+    "identicalPixelsPercent": 98.95,
+    "frameMeanLuma": {
+     "oldBuild": 27.5,
+     "gridOption": 27.5
+    }
+   },
+   "aliceLight": {
+    "renderfx": "0x4800a10",
+    "lightingPoint": [
+     -1367.6,
+     -2472.1,
+     -399.6
+    ],
+    "reach": 34.6,
+    "source": "compiled lights",
+    "leaves": 2,
+    "lit": 25,
+    "candidates": 29,
+    "sun": 0,
+    "cube": {
+     "+x": [
+      83.0,
+      67.0,
+      52.0
+     ],
+     "-x": [
+      53.0,
+      44.0,
+      34.0
+     ],
+     "+y": [
+      60.0,
+      53.0,
+      41.0
+     ],
+     "-y": [
+      29.0,
+      24.0,
+      19.0
+     ],
+     "+z": [
+      160.0,
+      139.0,
+      116.0
+     ],
+     "-z": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    "compiled": {
+     "ambient": [
+      61.0,
+      51.0,
+      39.0
+     ],
+     "directed": [
+      142.0,
+      124.0,
+      104.0
+     ],
+     "toward": [
+      0.17,
+      0.19,
+      0.97
+     ]
+    },
+    "grid": {
+     "ambient": [
+      22.0,
+      19.0,
+      16.0
+     ],
+     "directed": [
+      101.0,
+      89.0,
+      78.0
+     ],
+     "toward": [
+      0.11,
+      -0.06,
+      0.99
+     ]
+    }
+   }
+  },
+  "vk/utemple": {
+   "onOff": {
+    "run": "onoff-vk-utemple-debug",
+    "exeSha256": "41b44f23c52c5e5980ae7a3fe54f8e649c204cb0142951856c2b69ccac162140",
+    "rendererSha256": "dde5c8d9ca5347367d6b3a5a42f15a9ee4ae19ec3010ad10a5bfb57fd9fc9ec8",
+    "exitCode": 0,
+    "forcedStop": false,
+    "installationUnchanged": true,
+    "screenshots": [
+     "compiled.png",
+     "compiled2.png",
+     "grid.png"
+    ],
+    "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\onoff-vk-utemple-debug\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer vk +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLightsDebug 1 +exec ritual-probe.cfg",
+    "aliceBox": {
+     "compiled": [
+      [
+       55.6,
+       77.0,
+       109.1
+      ],
+      74.3
+     ],
+     "grid": [
+      [
+       5.0,
+       14.2,
+       18.6
+      ],
+      12.0
+     ],
+     "compiledAgain": [
+      [
+       61.5,
+       84.6,
+       115.0
+      ],
+      81.1
+     ]
+    },
+    "boxRatio": 6.192,
+    "boxRatioAgain": 6.758,
+    "frameMeanLuma": {
+     "compiled": 32.2,
+     "grid": 31.0,
+     "compiledAgain": 32.2
+    },
+    "identicalPixelsCompiledAgainPercent": 6.7
+   },
+   "onOffNoBloom": {
+    "run": "onoff-vk-utemple-debug-nobloom",
+    "exeSha256": "41b44f23c52c5e5980ae7a3fe54f8e649c204cb0142951856c2b69ccac162140",
+    "rendererSha256": "dde5c8d9ca5347367d6b3a5a42f15a9ee4ae19ec3010ad10a5bfb57fd9fc9ec8",
+    "exitCode": 0,
+    "forcedStop": false,
+    "installationUnchanged": true,
+    "screenshots": [
+     "compiled.png",
+     "compiled2.png",
+     "grid.png"
+    ],
+    "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\onoff-vk-utemple-debug-nobloom\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer vk +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLightsDebug 1 +set r_bloom 0 +exec ritual-probe.cfg",
+    "aliceBox": {
+     "compiled": [
+      [
+       52.8,
+       73.4,
+       105.1
+      ],
+      70.8
+     ],
+     "grid": [
+      [
+       5.0,
+       14.2,
+       18.6
+      ],
+      12.0
+     ],
+     "compiledAgain": [
+      [
+       56.4,
+       77.8,
+       107.6
+      ],
+      74.8
+     ]
+    },
+    "boxRatio": 5.9,
+    "boxRatioAgain": 6.233,
+    "frameMeanLuma": {
+     "compiled": 32.1,
+     "grid": 31.1,
+     "compiledAgain": 32.2
+    },
+    "identicalPixelsCompiledAgainPercent": 6.84
+   },
+   "oldBuildAgainstGridOption": {
+    "oldBuild": {
+     "exeSha256": "0ff579fcf21c3b445d0515d3b0d0810be6908f8177adf5023119da9c11c99bd7",
+     "rendererSha256": "be89ed0dcefbdfa4e9788475afbd67e6eae20b186a022847304df14ec2ac104c",
+     "exitCode": 0,
+     "forcedStop": false,
+     "installationUnchanged": true,
+     "screenshots": [
+      "shot.png"
+     ],
+     "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\before-vk-utemple-default\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer vk +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +exec ritual-probe.cfg"
+    },
+    "gridOption": {
+     "exeSha256": "41b44f23c52c5e5980ae7a3fe54f8e649c204cb0142951856c2b69ccac162140",
+     "rendererSha256": "dde5c8d9ca5347367d6b3a5a42f15a9ee4ae19ec3010ad10a5bfb57fd9fc9ec8",
+     "exitCode": 0,
+     "forcedStop": false,
+     "installationUnchanged": true,
+     "screenshots": [
+      "shot.png"
+     ],
+     "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\after-vk-utemple-grid\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer vk +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLights 0 +exec ritual-probe.cfg"
+    },
+    "aliceBox": {
+     "oldBuild": [
+      [
+       5.3,
+       14.8,
+       19.1
+      ],
+      12.4
+     ],
+     "gridOption": [
+      [
+       5.3,
+       14.8,
+       19.1
+      ],
+      12.4
+     ]
+    },
+    "identicalPixelsPercent": 98.76,
+    "frameMeanLuma": {
+     "oldBuild": 31.1,
+     "gridOption": 31.1
+    }
+   },
+   "aliceLight": {
+    "renderfx": "0x4800a10",
+    "lightingPoint": [
+     -63.5,
+     -5592.2,
+     1265.4
+    ],
+    "reach": 35.9,
+    "source": "compiled lights",
+    "leaves": 3,
+    "lit": 12,
+    "candidates": 12,
+    "sun": 0,
+    "cube": {
+     "+x": [
+      148.0,
+      214.0,
+      255.0
+     ],
+     "-x": [
+      150.0,
+      204.0,
+      255.0
+     ],
+     "+y": [
+      101.0,
+      137.0,
+      172.0
+     ],
+     "-y": [
+      149.0,
+      207.0,
+      255.0
+     ],
+     "+z": [
+      149.0,
+      208.0,
+      255.0
+     ],
+     "-z": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    "compiled": {
+     "ambient": [
+      148.0,
+      205.0,
+      252.0
+     ],
+     "directed": [
+      107.0,
+      149.0,
+      183.0
+     ],
+     "toward": [
+      -0.31,
+      -0.01,
+      0.95
+     ]
+    },
+    "grid": {
+     "ambient": [
+      15.0,
+      25.0,
+      27.0
+     ],
+     "directed": [
+      88.0,
+      143.0,
+      157.0
+     ],
+     "toward": [
+      -0.73,
+      -0.63,
+      -0.28
+     ]
+    }
+   }
+  },
+  "vk/centipede1": {
+   "onOff": {
+    "run": "onoff-vk-centipede1-debug",
+    "exeSha256": "41b44f23c52c5e5980ae7a3fe54f8e649c204cb0142951856c2b69ccac162140",
+    "rendererSha256": "dde5c8d9ca5347367d6b3a5a42f15a9ee4ae19ec3010ad10a5bfb57fd9fc9ec8",
+    "exitCode": 0,
+    "forcedStop": false,
+    "installationUnchanged": true,
+    "screenshots": [
+     "compiled.png",
+     "compiled2.png",
+     "grid.png"
+    ],
+    "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\onoff-vk-centipede1-debug\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer vk +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLightsDebug 1 +exec ritual-probe.cfg",
+    "aliceBox": {
+     "compiled": [
+      [
+       119.6,
+       106.7,
+       132.5
+      ],
+      113.5
+     ],
+     "grid": [
+      [
+       41.5,
+       34.1,
+       44.5
+      ],
+      37.5
+     ],
+     "compiledAgain": [
+      [
+       119.3,
+       106.6,
+       131.9
+      ],
+      113.3
+     ]
+    },
+    "boxRatio": 3.027,
+    "boxRatioAgain": 3.021,
+    "frameMeanLuma": {
+     "compiled": 28.4,
+     "grid": 26.6,
+     "compiledAgain": 28.4
+    },
+    "identicalPixelsCompiledAgainPercent": 94.23
+   },
+   "onOffNoBloom": {
+    "run": "onoff-vk-centipede1-debug-nobloom",
+    "exeSha256": "41b44f23c52c5e5980ae7a3fe54f8e649c204cb0142951856c2b69ccac162140",
+    "rendererSha256": "dde5c8d9ca5347367d6b3a5a42f15a9ee4ae19ec3010ad10a5bfb57fd9fc9ec8",
+    "exitCode": 0,
+    "forcedStop": false,
+    "installationUnchanged": true,
+    "screenshots": [
+     "compiled.png",
+     "compiled2.png",
+     "grid.png"
+    ],
+    "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\onoff-vk-centipede1-debug-nobloom\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer vk +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLightsDebug 1 +set r_bloom 0 +exec ritual-probe.cfg",
+    "aliceBox": {
+     "compiled": [
+      [
+       87.3,
+       75.6,
+       101.2
+      ],
+      82.0
+     ],
+     "grid": [
+      [
+       41.5,
+       34.1,
+       44.6
+      ],
+      37.5
+     ],
+     "compiledAgain": [
+      [
+       86.8,
+       75.2,
+       100.5
+      ],
+      81.5
+     ]
+    },
+    "boxRatio": 2.187,
+    "boxRatioAgain": 2.173,
+    "frameMeanLuma": {
+     "compiled": 27.9,
+     "grid": 26.6,
+     "compiledAgain": 27.9
+    },
+    "identicalPixelsCompiledAgainPercent": 95.05
+   },
+   "oldBuildAgainstGridOption": {
+    "oldBuild": {
+     "exeSha256": "0ff579fcf21c3b445d0515d3b0d0810be6908f8177adf5023119da9c11c99bd7",
+     "rendererSha256": "be89ed0dcefbdfa4e9788475afbd67e6eae20b186a022847304df14ec2ac104c",
+     "exitCode": 0,
+     "forcedStop": false,
+     "installationUnchanged": true,
+     "screenshots": [
+      "shot.png"
+     ],
+     "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\before-vk-centipede1-default\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer vk +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +exec ritual-probe.cfg"
+    },
+    "gridOption": {
+     "exeSha256": "41b44f23c52c5e5980ae7a3fe54f8e649c204cb0142951856c2b69ccac162140",
+     "rendererSha256": "dde5c8d9ca5347367d6b3a5a42f15a9ee4ae19ec3010ad10a5bfb57fd9fc9ec8",
+     "exitCode": 0,
+     "forcedStop": false,
+     "installationUnchanged": true,
+     "screenshots": [
+      "shot.png"
+     ],
+     "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\after-vk-centipede1-grid\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer vk +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLights 0 +exec ritual-probe.cfg"
+    },
+    "aliceBox": {
+     "oldBuild": [
+      [
+       41.9,
+       34.4,
+       44.9
+      ],
+      37.8
+     ],
+     "gridOption": [
+      [
+       41.9,
+       34.4,
+       44.9
+      ],
+      37.8
+     ]
+    },
+    "identicalPixelsPercent": 99.35,
+    "frameMeanLuma": {
+     "oldBuild": 26.6,
+     "gridOption": 26.6
+    }
+   },
+   "aliceLight": {
+    "renderfx": "0x4800a10",
+    "lightingPoint": [
+     1135.8,
+     -1711.5,
+     -406.3
+    ],
+    "reach": 34.7,
+    "source": "compiled lights",
+    "leaves": 2,
+    "lit": 15,
+    "candidates": 16,
+    "sun": 0,
+    "cube": {
+     "+x": [
+      180.0,
+      211.0,
+      255.0
+     ],
+     "-x": [
+      182.0,
+      91.0,
+      46.0
+     ],
+     "+y": [
+      199.0,
+      219.0,
+      255.0
+     ],
+     "-y": [
+      244.0,
+      234.0,
+      255.0
+     ],
+     "+z": [
+      171.0,
+      210.0,
+      255.0
+     ],
+     "-z": [
+      18.0,
+      13.0,
+      12.0
+     ]
+    },
+    "compiled": {
+     "ambient": [
+      228.0,
+      204.0,
+      213.0
+     ],
+     "directed": [
+      82.0,
+      161.0,
+      225.0
+     ],
+     "toward": [
+      0.08,
+      0.44,
+      0.9
+     ]
+    },
+    "grid": {
+     "ambient": [
+      69.0,
+      61.0,
+      65.0
+     ],
+     "directed": [
+      232.0,
+      224.0,
+      247.0
+     ],
+     "toward": [
+      -0.66,
+      0.07,
+      -0.75
+     ]
+    }
+   }
+  },
+  "vk/jlair2": {
+   "onOff": {
+    "run": "onoff-vk-jlair2-debug",
+    "exeSha256": "41b44f23c52c5e5980ae7a3fe54f8e649c204cb0142951856c2b69ccac162140",
+    "rendererSha256": "dde5c8d9ca5347367d6b3a5a42f15a9ee4ae19ec3010ad10a5bfb57fd9fc9ec8",
+    "exitCode": 0,
+    "forcedStop": false,
+    "installationUnchanged": true,
+    "screenshots": [
+     "compiled.png",
+     "compiled2.png",
+     "grid.png"
+    ],
+    "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\onoff-vk-jlair2-debug\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer vk +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLightsDebug 1 +exec ritual-probe.cfg",
+    "aliceBox": {
+     "compiled": [
+      [
+       184.4,
+       166.8,
+       153.2
+      ],
+      170.5
+     ],
+     "grid": [
+      [
+       160.5,
+       118.9,
+       121.9
+      ],
+      131.7
+     ],
+     "compiledAgain": [
+      [
+       154.5,
+       113.2,
+       108.3
+      ],
+      125.0
+     ]
+    },
+    "boxRatio": 1.295,
+    "boxRatioAgain": 0.949,
+    "frameMeanLuma": {
+     "compiled": 49.3,
+     "grid": 50.4,
+     "compiledAgain": 38.3
+    },
+    "identicalPixelsCompiledAgainPercent": 2.5
+   },
+   "oldBuildAgainstGridOption": {
+    "oldBuild": {
+     "exeSha256": "0ff579fcf21c3b445d0515d3b0d0810be6908f8177adf5023119da9c11c99bd7",
+     "rendererSha256": "be89ed0dcefbdfa4e9788475afbd67e6eae20b186a022847304df14ec2ac104c",
+     "exitCode": 0,
+     "forcedStop": false,
+     "installationUnchanged": true,
+     "screenshots": [
+      "shot.png"
+     ],
+     "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\before-vk-jlair2-default\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer vk +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +exec ritual-probe.cfg"
+    },
+    "gridOption": {
+     "exeSha256": "41b44f23c52c5e5980ae7a3fe54f8e649c204cb0142951856c2b69ccac162140",
+     "rendererSha256": "dde5c8d9ca5347367d6b3a5a42f15a9ee4ae19ec3010ad10a5bfb57fd9fc9ec8",
+     "exitCode": 0,
+     "forcedStop": false,
+     "installationUnchanged": true,
+     "screenshots": [
+      "shot.png"
+     ],
+     "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\after-vk-jlair2-grid\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer vk +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLights 0 +exec ritual-probe.cfg"
+    },
+    "aliceBox": {
+     "oldBuild": [
+      [
+       151.0,
+       144.1,
+       149.9
+      ],
+      146.8
+     ],
+     "gridOption": [
+      [
+       136.1,
+       132.1,
+       140.6
+      ],
+      134.3
+     ]
+    },
+    "identicalPixelsPercent": 15.82,
+    "frameMeanLuma": {
+     "oldBuild": 43.8,
+     "gridOption": 20.2
+    }
+   },
+   "aliceLight": {
+    "renderfx": "0x4800a10",
+    "lightingPoint": [
+     -859.3,
+     409.5,
+     97.7
+    ],
+    "reach": 34.7,
+    "source": "compiled lights",
+    "leaves": 1,
+    "lit": 10,
+    "candidates": 10,
+    "sun": 0,
+    "cube": {
+     "+x": [
+      255.0,
+      220.0,
+      165.0
+     ],
+     "-x": [
+      255.0,
+      200.0,
+      116.0
+     ],
+     "+y": [
+      255.0,
+      214.0,
+      151.0
+     ],
+     "-y": [
+      255.0,
+      206.0,
+      132.0
+     ],
+     "+z": [
+      255.0,
+      205.0,
+      129.0
+     ],
+     "-z": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    "compiled": {
+     "ambient": [
+      278.0,
+      229.0,
+      153.0
+     ],
+     "directed": [
+      162.0,
+      130.0,
+      82.0
+     ],
+     "toward": [
+      0.09,
+      0.03,
+      1.0
+     ]
+    },
+    "grid": {
+     "ambient": [
+      153.0,
+      130.0,
+      96.0
+     ],
+     "directed": [
+      255.0,
+      217.0,
+      159.0
+     ],
+     "toward": [
+      -0.45,
+      -0.55,
+      0.7
+     ]
+    }
+   }
+  },
+  "rtx/garden1": {
+   "onOff": {
+    "run": "onoff-rtx-garden1-debug",
+    "exeSha256": "41b44f23c52c5e5980ae7a3fe54f8e649c204cb0142951856c2b69ccac162140",
+    "rendererSha256": "519493cc957e5ede7263f86c13eba4eb957e62d517a3fc8f2f7e77a306c50a15",
+    "exitCode": 0,
+    "forcedStop": false,
+    "installationUnchanged": true,
+    "screenshots": [
+     "compiled.png",
+     "compiled2.png",
+     "grid.png"
+    ],
+    "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\onoff-rtx-garden1-debug\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer rtx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLightsDebug 1 +exec ritual-probe.cfg",
+    "aliceBox": {
+     "compiled": [
+      [
+       31.0,
+       25.5,
+       24.1
+      ],
+      27.0
+     ],
+     "grid": [
+      [
+       18.1,
+       14.9,
+       13.8
+      ],
+      15.7
+     ],
+     "compiledAgain": [
+      [
+       31.0,
+       25.4,
+       24.1
+      ],
+      27.0
+     ]
+    },
+    "boxRatio": 1.72,
+    "boxRatioAgain": 1.72,
+    "frameMeanLuma": {
+     "compiled": 27.7,
+     "grid": 27.5,
+     "compiledAgain": 27.7
+    },
+    "identicalPixelsCompiledAgainPercent": 87.6
+   },
+   "onOffNoBloom": {
+    "run": "onoff-rtx-garden1-debug-nobloom",
+    "exeSha256": "41b44f23c52c5e5980ae7a3fe54f8e649c204cb0142951856c2b69ccac162140",
+    "rendererSha256": "519493cc957e5ede7263f86c13eba4eb957e62d517a3fc8f2f7e77a306c50a15",
+    "exitCode": 0,
+    "forcedStop": false,
+    "installationUnchanged": true,
+    "screenshots": [
+     "compiled.png",
+     "compiled2.png",
+     "grid.png"
+    ],
+    "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\onoff-rtx-garden1-debug-nobloom\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer rtx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLightsDebug 1 +set r_bloom 0 +exec ritual-probe.cfg",
+    "aliceBox": {
+     "compiled": [
+      [
+       31.0,
+       25.5,
+       24.1
+      ],
+      27.0
+     ],
+     "grid": [
+      [
+       18.1,
+       14.9,
+       13.8
+      ],
+      15.7
+     ],
+     "compiledAgain": [
+      [
+       31.0,
+       25.5,
+       24.1
+      ],
+      27.0
+     ]
+    },
+    "boxRatio": 1.72,
+    "boxRatioAgain": 1.72,
+    "frameMeanLuma": {
+     "compiled": 27.7,
+     "grid": 27.5,
+     "compiledAgain": 27.7
+    },
+    "identicalPixelsCompiledAgainPercent": 87.64
+   },
+   "oldBuildAgainstGridOption": {
+    "oldBuild": {
+     "exeSha256": "0ff579fcf21c3b445d0515d3b0d0810be6908f8177adf5023119da9c11c99bd7",
+     "rendererSha256": "776262ded7b28436052967c4d2b27242ca0a3aaec51068ac83d3473ed2836412",
+     "exitCode": 0,
+     "forcedStop": false,
+     "installationUnchanged": true,
+     "screenshots": [
+      "shot.png"
+     ],
+     "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\before-rtx-garden1-default\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer rtx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +exec ritual-probe.cfg"
+    },
+    "gridOption": {
+     "exeSha256": "41b44f23c52c5e5980ae7a3fe54f8e649c204cb0142951856c2b69ccac162140",
+     "rendererSha256": "519493cc957e5ede7263f86c13eba4eb957e62d517a3fc8f2f7e77a306c50a15",
+     "exitCode": 0,
+     "forcedStop": false,
+     "installationUnchanged": true,
+     "screenshots": [
+      "shot.png"
+     ],
+     "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\after-rtx-garden1-grid\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer rtx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLights 0 +exec ritual-probe.cfg"
+    },
+    "aliceBox": {
+     "oldBuild": [
+      [
+       18.0,
+       14.7,
+       13.6
+      ],
+      15.6
+     ],
+     "gridOption": [
+      [
+       18.3,
+       15.0,
+       14.0
+      ],
+      15.9
+     ]
+    },
+    "identicalPixelsPercent": 96.09,
+    "frameMeanLuma": {
+     "oldBuild": 27.5,
+     "gridOption": 27.5
+    }
+   },
+   "aliceLight": {
+    "renderfx": "0x4800a10",
+    "lightingPoint": [
+     -1367.6,
+     -2472.1,
+     -399.6
+    ],
+    "reach": 34.6,
+    "source": "compiled lights",
+    "leaves": 2,
+    "lit": 25,
+    "candidates": 29,
+    "sun": 0,
+    "cube": {
+     "+x": [
+      83.0,
+      67.0,
+      52.0
+     ],
+     "-x": [
+      53.0,
+      44.0,
+      34.0
+     ],
+     "+y": [
+      60.0,
+      53.0,
+      41.0
+     ],
+     "-y": [
+      29.0,
+      24.0,
+      19.0
+     ],
+     "+z": [
+      160.0,
+      139.0,
+      116.0
+     ],
+     "-z": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    "compiled": {
+     "ambient": [
+      61.0,
+      51.0,
+      39.0
+     ],
+     "directed": [
+      142.0,
+      124.0,
+      104.0
+     ],
+     "toward": [
+      0.17,
+      0.19,
+      0.97
+     ]
+    },
+    "grid": {
+     "ambient": [
+      22.0,
+      19.0,
+      16.0
+     ],
+     "directed": [
+      101.0,
+      89.0,
+      78.0
+     ],
+     "toward": [
+      0.11,
+      -0.06,
+      0.99
+     ]
+    }
+   }
+  },
+  "rtx/utemple": {
+   "onOff": {
+    "run": "onoff-rtx-utemple-debug",
+    "exeSha256": "41b44f23c52c5e5980ae7a3fe54f8e649c204cb0142951856c2b69ccac162140",
+    "rendererSha256": "519493cc957e5ede7263f86c13eba4eb957e62d517a3fc8f2f7e77a306c50a15",
+    "exitCode": 0,
+    "forcedStop": false,
+    "installationUnchanged": true,
+    "screenshots": [
+     "compiled.png",
+     "compiled2.png",
+     "grid.png"
+    ],
+    "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\onoff-rtx-utemple-debug\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer rtx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLightsDebug 1 +exec ritual-probe.cfg",
+    "aliceBox": {
+     "compiled": [
+      [
+       55.5,
+       76.9,
+       109.0
+      ],
+      74.2
+     ],
+     "grid": [
+      [
+       5.0,
+       14.2,
+       18.6
+      ],
+      12.0
+     ],
+     "compiledAgain": [
+      [
+       61.5,
+       84.6,
+       115.0
+      ],
+      81.1
+     ]
+    },
+    "boxRatio": 6.183,
+    "boxRatioAgain": 6.758,
+    "frameMeanLuma": {
+     "compiled": 32.2,
+     "grid": 31.1,
+     "compiledAgain": 32.2
+    },
+    "identicalPixelsCompiledAgainPercent": 6.63
+   },
+   "onOffNoBloom": {
+    "run": "onoff-rtx-utemple-debug-nobloom",
+    "exeSha256": "41b44f23c52c5e5980ae7a3fe54f8e649c204cb0142951856c2b69ccac162140",
+    "rendererSha256": "519493cc957e5ede7263f86c13eba4eb957e62d517a3fc8f2f7e77a306c50a15",
+    "exitCode": 0,
+    "forcedStop": false,
+    "installationUnchanged": true,
+    "screenshots": [
+     "compiled.png",
+     "compiled2.png",
+     "grid.png"
+    ],
+    "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\onoff-rtx-utemple-debug-nobloom\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer rtx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLightsDebug 1 +set r_bloom 0 +exec ritual-probe.cfg",
+    "aliceBox": {
+     "compiled": [
+      [
+       52.8,
+       73.3,
+       105.0
+      ],
+      70.8
+     ],
+     "grid": [
+      [
+       5.0,
+       14.2,
+       18.6
+      ],
+      12.0
+     ],
+     "compiledAgain": [
+      [
+       56.4,
+       77.8,
+       107.6
+      ],
+      74.8
+     ]
+    },
+    "boxRatio": 5.9,
+    "boxRatioAgain": 6.233,
+    "frameMeanLuma": {
+     "compiled": 32.1,
+     "grid": 31.0,
+     "compiledAgain": 32.2
+    },
+    "identicalPixelsCompiledAgainPercent": 6.83
+   },
+   "oldBuildAgainstGridOption": {
+    "oldBuild": {
+     "exeSha256": "0ff579fcf21c3b445d0515d3b0d0810be6908f8177adf5023119da9c11c99bd7",
+     "rendererSha256": "776262ded7b28436052967c4d2b27242ca0a3aaec51068ac83d3473ed2836412",
+     "exitCode": 0,
+     "forcedStop": false,
+     "installationUnchanged": true,
+     "screenshots": [
+      "shot.png"
+     ],
+     "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\before-rtx-utemple-default\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer rtx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +exec ritual-probe.cfg"
+    },
+    "gridOption": {
+     "exeSha256": "41b44f23c52c5e5980ae7a3fe54f8e649c204cb0142951856c2b69ccac162140",
+     "rendererSha256": "519493cc957e5ede7263f86c13eba4eb957e62d517a3fc8f2f7e77a306c50a15",
+     "exitCode": 0,
+     "forcedStop": false,
+     "installationUnchanged": true,
+     "screenshots": [
+      "shot.png"
+     ],
+     "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\after-rtx-utemple-grid\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer rtx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLights 0 +exec ritual-probe.cfg"
+    },
+    "aliceBox": {
+     "oldBuild": [
+      [
+       5.3,
+       14.8,
+       19.1
+      ],
+      12.4
+     ],
+     "gridOption": [
+      [
+       5.3,
+       14.8,
+       19.1
+      ],
+      12.4
+     ]
+    },
+    "identicalPixelsPercent": 98.98,
+    "frameMeanLuma": {
+     "oldBuild": 31.1,
+     "gridOption": 31.1
+    }
+   },
+   "aliceLight": {
+    "renderfx": "0x4800a10",
+    "lightingPoint": [
+     -63.5,
+     -5592.2,
+     1265.4
+    ],
+    "reach": 35.9,
+    "source": "compiled lights",
+    "leaves": 3,
+    "lit": 12,
+    "candidates": 12,
+    "sun": 0,
+    "cube": {
+     "+x": [
+      148.0,
+      214.0,
+      255.0
+     ],
+     "-x": [
+      150.0,
+      204.0,
+      255.0
+     ],
+     "+y": [
+      101.0,
+      137.0,
+      171.0
+     ],
+     "-y": [
+      149.0,
+      207.0,
+      255.0
+     ],
+     "+z": [
+      149.0,
+      208.0,
+      255.0
+     ],
+     "-z": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    "compiled": {
+     "ambient": [
+      148.0,
+      205.0,
+      252.0
+     ],
+     "directed": [
+      107.0,
+      149.0,
+      183.0
+     ],
+     "toward": [
+      -0.31,
+      -0.01,
+      0.95
+     ]
+    },
+    "grid": {
+     "ambient": [
+      15.0,
+      25.0,
+      27.0
+     ],
+     "directed": [
+      88.0,
+      143.0,
+      157.0
+     ],
+     "toward": [
+      -0.73,
+      -0.63,
+      -0.28
+     ]
+    }
+   }
+  },
+  "rtx/centipede1": {
+   "onOff": {
+    "run": "onoff-rtx-centipede1-debug",
+    "exeSha256": "41b44f23c52c5e5980ae7a3fe54f8e649c204cb0142951856c2b69ccac162140",
+    "rendererSha256": "519493cc957e5ede7263f86c13eba4eb957e62d517a3fc8f2f7e77a306c50a15",
+    "exitCode": 0,
+    "forcedStop": false,
+    "installationUnchanged": true,
+    "screenshots": [
+     "compiled.png",
+     "compiled2.png",
+     "grid.png"
+    ],
+    "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\onoff-rtx-centipede1-debug\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer rtx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLightsDebug 1 +exec ritual-probe.cfg",
+    "aliceBox": {
+     "compiled": [
+      [
+       119.5,
+       106.6,
+       132.5
+      ],
+      113.4
+     ],
+     "grid": [
+      [
+       41.5,
+       34.1,
+       44.6
+      ],
+      37.5
+     ],
+     "compiledAgain": [
+      [
+       119.9,
+       107.3,
+       132.7
+      ],
+      113.9
+     ]
+    },
+    "boxRatio": 3.024,
+    "boxRatioAgain": 3.037,
+    "frameMeanLuma": {
+     "compiled": 28.4,
+     "grid": 26.6,
+     "compiledAgain": 28.4
+    },
+    "identicalPixelsCompiledAgainPercent": 93.72
+   },
+   "onOffNoBloom": {
+    "run": "onoff-rtx-centipede1-debug-nobloom",
+    "exeSha256": "41b44f23c52c5e5980ae7a3fe54f8e649c204cb0142951856c2b69ccac162140",
+    "rendererSha256": "519493cc957e5ede7263f86c13eba4eb957e62d517a3fc8f2f7e77a306c50a15",
+    "exitCode": 0,
+    "forcedStop": false,
+    "installationUnchanged": true,
+    "screenshots": [
+     "compiled.png",
+     "compiled2.png",
+     "grid.png"
+    ],
+    "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\onoff-rtx-centipede1-debug-nobloom\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer rtx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLightsDebug 1 +set r_bloom 0 +exec ritual-probe.cfg",
+    "aliceBox": {
+     "compiled": [
+      [
+       87.3,
+       75.6,
+       101.2
+      ],
+      82.0
+     ],
+     "grid": [
+      [
+       41.5,
+       34.1,
+       44.6
+      ],
+      37.5
+     ],
+     "compiledAgain": [
+      [
+       87.1,
+       75.5,
+       100.7
+      ],
+      81.8
+     ]
+    },
+    "boxRatio": 2.187,
+    "boxRatioAgain": 2.181,
+    "frameMeanLuma": {
+     "compiled": 27.9,
+     "grid": 26.6,
+     "compiledAgain": 27.9
+    },
+    "identicalPixelsCompiledAgainPercent": 94.8
+   },
+   "oldBuildAgainstGridOption": {
+    "oldBuild": {
+     "exeSha256": "0ff579fcf21c3b445d0515d3b0d0810be6908f8177adf5023119da9c11c99bd7",
+     "rendererSha256": "776262ded7b28436052967c4d2b27242ca0a3aaec51068ac83d3473ed2836412",
+     "exitCode": 0,
+     "forcedStop": false,
+     "installationUnchanged": true,
+     "screenshots": [
+      "shot.png"
+     ],
+     "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\before-rtx-centipede1-default\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer rtx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +exec ritual-probe.cfg"
+    },
+    "gridOption": {
+     "exeSha256": "41b44f23c52c5e5980ae7a3fe54f8e649c204cb0142951856c2b69ccac162140",
+     "rendererSha256": "519493cc957e5ede7263f86c13eba4eb957e62d517a3fc8f2f7e77a306c50a15",
+     "exitCode": 0,
+     "forcedStop": false,
+     "installationUnchanged": true,
+     "screenshots": [
+      "shot.png"
+     ],
+     "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\after-rtx-centipede1-grid\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer rtx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLights 0 +exec ritual-probe.cfg"
+    },
+    "aliceBox": {
+     "oldBuild": [
+      [
+       41.9,
+       34.4,
+       44.9
+      ],
+      37.8
+     ],
+     "gridOption": [
+      [
+       41.9,
+       34.4,
+       44.9
+      ],
+      37.8
+     ]
+    },
+    "identicalPixelsPercent": 100.0,
+    "frameMeanLuma": {
+     "oldBuild": 26.6,
+     "gridOption": 26.6
+    }
+   },
+   "aliceLight": {
+    "renderfx": "0x4800a10",
+    "lightingPoint": [
+     1135.8,
+     -1711.5,
+     -406.3
+    ],
+    "reach": 34.7,
+    "source": "compiled lights",
+    "leaves": 2,
+    "lit": 15,
+    "candidates": 16,
+    "sun": 0,
+    "cube": {
+     "+x": [
+      180.0,
+      211.0,
+      255.0
+     ],
+     "-x": [
+      182.0,
+      91.0,
+      46.0
+     ],
+     "+y": [
+      199.0,
+      219.0,
+      255.0
+     ],
+     "-y": [
+      244.0,
+      234.0,
+      255.0
+     ],
+     "+z": [
+      171.0,
+      210.0,
+      255.0
+     ],
+     "-z": [
+      18.0,
+      13.0,
+      12.0
+     ]
+    },
+    "compiled": {
+     "ambient": [
+      228.0,
+      204.0,
+      213.0
+     ],
+     "directed": [
+      82.0,
+      161.0,
+      225.0
+     ],
+     "toward": [
+      0.08,
+      0.44,
+      0.9
+     ]
+    },
+    "grid": {
+     "ambient": [
+      69.0,
+      61.0,
+      65.0
+     ],
+     "directed": [
+      232.0,
+      224.0,
+      247.0
+     ],
+     "toward": [
+      -0.66,
+      0.07,
+      -0.75
+     ]
+    }
+   }
+  },
+  "rtx/jlair2": {
+   "onOff": {
+    "run": "onoff-rtx-jlair2-debug",
+    "exeSha256": "41b44f23c52c5e5980ae7a3fe54f8e649c204cb0142951856c2b69ccac162140",
+    "rendererSha256": "519493cc957e5ede7263f86c13eba4eb957e62d517a3fc8f2f7e77a306c50a15",
+    "exitCode": 0,
+    "forcedStop": false,
+    "installationUnchanged": true,
+    "screenshots": [
+     "compiled.png",
+     "compiled2.png",
+     "grid.png"
+    ],
+    "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\onoff-rtx-jlair2-debug\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer rtx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLightsDebug 1 +exec ritual-probe.cfg",
+    "aliceBox": {
+     "compiled": [
+      [
+       143.2,
+       140.2,
+       142.4
+      ],
+      141.4
+     ],
+     "grid": [
+      [
+       135.9,
+       131.1,
+       139.6
+      ],
+      133.5
+     ],
+     "compiledAgain": [
+      [
+       144.0,
+       140.7,
+       142.9
+      ],
+      141.9
+     ]
+    },
+    "boxRatio": 1.059,
+    "boxRatioAgain": 1.063,
+    "frameMeanLuma": {
+     "compiled": 23.1,
+     "grid": 21.3,
+     "compiledAgain": 23.3
+    },
+    "identicalPixelsCompiledAgainPercent": 72.5
+   },
+   "oldBuildAgainstGridOption": {
+    "oldBuild": {
+     "exeSha256": "0ff579fcf21c3b445d0515d3b0d0810be6908f8177adf5023119da9c11c99bd7",
+     "rendererSha256": "776262ded7b28436052967c4d2b27242ca0a3aaec51068ac83d3473ed2836412",
+     "exitCode": 0,
+     "forcedStop": false,
+     "installationUnchanged": true,
+     "screenshots": [
+      "shot.png"
+     ],
+     "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\before-rtx-jlair2-default\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer rtx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +exec ritual-probe.cfg"
+    },
+    "gridOption": {
+     "exeSha256": "41b44f23c52c5e5980ae7a3fe54f8e649c204cb0142951856c2b69ccac162140",
+     "rendererSha256": "519493cc957e5ede7263f86c13eba4eb957e62d517a3fc8f2f7e77a306c50a15",
+     "exitCode": 0,
+     "forcedStop": false,
+     "installationUnchanged": true,
+     "screenshots": [
+      "shot.png"
+     ],
+     "command": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\after-rtx-jlair2-grid\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer rtx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLights 0 +exec ritual-probe.cfg"
+    },
+    "aliceBox": {
+     "oldBuild": [
+      [
+       203.9,
+       160.3,
+       201.5
+      ],
+      178.0
+     ],
+     "gridOption": [
+      [
+       136.1,
+       132.1,
+       140.6
+      ],
+      134.3
+     ]
+    },
+    "identicalPixelsPercent": 3.19,
+    "frameMeanLuma": {
+     "oldBuild": 32.6,
+     "gridOption": 21.6
+    }
+   },
+   "aliceLight": {
+    "renderfx": "0x4800a10",
+    "lightingPoint": [
+     -847.5,
+     416.2,
+     97.7
+    ],
+    "reach": 34.7,
+    "source": "compiled lights",
+    "leaves": 1,
+    "lit": 10,
+    "candidates": 10,
+    "sun": 0,
+    "cube": {
+     "+x": [
+      255.0,
+      225.0,
+      180.0
+     ],
+     "-x": [
+      255.0,
+      199.0,
+      114.0
+     ],
+     "+y": [
+      255.0,
+      218.0,
+      162.0
+     ],
+     "-y": [
+      255.0,
+      206.0,
+      130.0
+     ],
+     "+z": [
+      255.0,
+      206.0,
+      131.0
+     ],
+     "-z": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    "compiled": {
+     "ambient": [
+      278.0,
+      231.0,
+      158.0
+     ],
+     "directed": [
+      161.0,
+      131.0,
+      85.0
+     ],
+     "toward": [
+      0.12,
+      0.06,
+      0.99
+     ]
+    },
+    "grid": {
+     "ambient": [
+      153.0,
+      130.0,
+      96.0
+     ],
+     "directed": [
+      255.0,
+      217.0,
+      161.0
+     ],
+     "toward": [
+      -0.48,
+      -0.54,
+      0.69
+     ]
+    }
+   }
+  }
+ },
+ "fakk2": {
+  "fakk2-glx": {
+   "water": {
+    "pixels": 9426,
+    "retailShift": [
+     0,
+     0
+    ],
+    "retailMatch": 0.687,
+    "retail": {
+     "luma": 81.1,
+     "rgb": [
+      93.8,
+      76.8,
+      69.8
+     ]
+    },
+    "grid": {
+     "luma": 26.6,
+     "rgb": [
+      15.5,
+      30.9,
+      34.2
+     ]
+    },
+    "compiled": {
+     "luma": 88.5,
+     "rgb": [
+      100.1,
+      84.7,
+      77.4
+     ]
+    },
+    "compiledAgain": {
+     "luma": 89.3,
+     "rgb": [
+      100.6,
+      85.6,
+      78.5
+     ]
+    },
+    "frames": {
+     "retail": 47.6,
+     "grid": 45.0,
+     "compiled": 45.1
+    }
+   },
+   "otto": {
+    "pixels": 3847,
+    "retailShift": [
+     6,
+     -22
+    ],
+    "retailMatch": 0.413,
+    "retail": {
+     "luma": 28.3,
+     "rgb": [
+      23.0,
+      30.2,
+      32.4
+     ]
+    },
+    "grid": {
+     "luma": 30.9,
+     "rgb": [
+      33.6,
+      29.3,
+      32.1
+     ]
+    },
+    "compiled": {
+     "luma": 44.3,
+     "rgb": [
+      36.1,
+      44.6,
+      63.8
+     ]
+    },
+    "compiledAgain": {
+     "luma": 44.1,
+     "rgb": [
+      35.9,
+      44.5,
+      63.7
+     ]
+    },
+    "frames": {
+     "retail": 24.7,
+     "grid": 24.2,
+     "compiled": 24.5
+    }
+   },
+   "over": {
+    "pixels": 6046,
+    "retailShift": [
+     0,
+     0
+    ],
+    "retailMatch": 0.75,
+    "retail": {
+     "luma": 45.3,
+     "rgb": [
+      43.4,
+      48.5,
+      33.7
+     ]
+    },
+    "grid": {
+     "luma": 43.1,
+     "rgb": [
+      35.8,
+      47.7,
+      38.1
+     ]
+    },
+    "compiled": {
+     "luma": 55.8,
+     "rgb": [
+      51.9,
+      59.3,
+      47.5
+     ]
+    },
+    "compiledAgain": {
+     "luma": 55.8,
+     "rgb": [
+      52.2,
+      59.2,
+      47.4
+     ]
+    },
+    "frames": {
+     "retail": 35.6,
+     "grid": 42.4,
+     "compiled": 42.5
+    }
+   }
+  },
+  "fakk2-glx-nostatic": {
+   "water": {
+    "pixels": 10976,
+    "retailShift": [
+     0,
+     0
+    ],
+    "retailMatch": 0.818,
+    "retail": {
+     "luma": 82.5,
+     "rgb": [
+      97.4,
+      77.3,
+      69.5
+     ]
+    },
+    "grid": {
+     "luma": 21.5,
+     "rgb": [
+      12.3,
+      25.1,
+      27.4
+     ]
+    },
+    "compiled": {
+     "luma": 88.0,
+     "rgb": [
+      102.1,
+      83.2,
+      75.3
+     ]
+    },
+    "compiledAgain": {
+     "luma": 88.7,
+     "rgb": [
+      102.5,
+      84.1,
+      76.2
+     ]
+    },
+    "frames": {
+     "retail": 47.6,
+     "grid": 45.0,
+     "compiled": 45.1
+    }
+   },
+   "otto": {
+    "pixels": 3719,
+    "retailShift": [
+     -30,
+     -10
+    ],
+    "retailMatch": 0.536,
+    "retail": {
+     "luma": 24.3,
+     "rgb": [
+      12.9,
+      29.3,
+      28.6
+     ]
+    },
+    "grid": {
+     "luma": 30.7,
+     "rgb": [
+      28.4,
+      31.0,
+      35.1
+     ]
+    },
+    "compiled": {
+     "luma": 24.5,
+     "rgb": [
+      12.6,
+      30.0,
+      27.7
+     ]
+    },
+    "compiledAgain": {
+     "luma": 24.5,
+     "rgb": [
+      12.6,
+      30.0,
+      27.7
+     ]
+    },
+    "frames": {
+     "retail": 24.7,
+     "grid": 24.2,
+     "compiled": 24.5
+    }
+   },
+   "over": {
+    "pixels": 7264,
+    "retailShift": [
+     0,
+     0
+    ],
+    "retailMatch": 0.719,
+    "retail": {
+     "luma": 44.0,
+     "rgb": [
+      39.0,
+      48.5,
+      34.1
+     ]
+    },
+    "grid": {
+     "luma": 45.6,
+     "rgb": [
+      33.8,
+      51.8,
+      44.4
+     ]
+    },
+    "compiled": {
+     "luma": 51.5,
+     "rgb": [
+      44.0,
+      56.1,
+      47.5
+     ]
+    },
+    "compiledAgain": {
+     "luma": 51.4,
+     "rgb": [
+      44.8,
+      55.6,
+      47.2
+     ]
+    },
+    "frames": {
+     "retail": 35.6,
+     "grid": 38.8,
+     "compiled": 38.8
+    }
+   }
+  },
+  "fakk2-vk": {
+   "water": {
+    "pixels": 8172,
+    "retailShift": [
+     0,
+     0
+    ],
+    "retailMatch": 0.89,
+    "retail": {
+     "luma": 65.4,
+     "rgb": [
+      78.7,
+      60.7,
+      54.3
+     ]
+    },
+    "grid": {
+     "luma": 7.8,
+     "rgb": [
+      2.1,
+      9.8,
+      12.3
+     ]
+    },
+    "compiled": {
+     "luma": 89.0,
+     "rgb": [
+      103.3,
+      84.6,
+      74.3
+     ]
+    },
+    "compiledAgain": {
+     "luma": 89.1,
+     "rgb": [
+      103.4,
+      84.7,
+      74.7
+     ]
+    },
+    "frames": {
+     "retail": 47.6,
+     "grid": 46.9,
+     "compiled": 47.6
+    }
+   }
+  },
+  "fakk2-rtx": {
+   "water": {
+    "pixels": 8120,
+    "retailShift": [
+     0,
+     0
+    ],
+    "retailMatch": 0.861,
+    "retail": {
+     "luma": 67.3,
+     "rgb": [
+      86.0,
+      60.7,
+      51.8
+     ]
+    },
+    "grid": {
+     "luma": 3.3,
+     "rgb": [
+      1.7,
+      3.8,
+      5.1
+     ]
+    },
+    "compiled": {
+     "luma": 93.3,
+     "rgb": [
+      112.9,
+      87.0,
+      74.0
+     ]
+    },
+    "compiledAgain": {
+     "luma": 93.3,
+     "rgb": [
+      112.8,
+      87.1,
+      74.1
+     ]
+    },
+    "frames": {
+     "retail": 47.6,
+     "grid": 47.0,
+     "compiled": 48.5
+    }
+   }
+  },
+  "runs": {
+   "otto-glx": {
+    "level": "otto",
+    "renderer": "glx",
+    "binaries": {
+     "fntech3.exe": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+     "fntech3.ded.exe": "f3c444db6703efcdcff67a22e98ae5ddfb3eddffb68b26a1dc7a53b9a45be8ab",
+     "fnql_glx_x86.dll": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609"
+    },
+    "unchanged": true,
+    "retail": "E:\\Repositories\\fnTech3\\.tmp\\fakk2\\sweep\\otto\\frames\\retail\\fakk\\screenshots\\shot0000.tga",
+    "retailSha256": "722d271afd287fbc10a374523ed36a81d1c8bc25aa06a8d3d83ce299487b1b8e",
+    "probe": "{\n  \"exitCode\": 0,\n  \"forcedStop\": false,\n  \"seconds\": 32.6,\n  \"screenshots\": [\n    \"compiled.png\",\n    \"compiled2.png\",\n    \"grid.png\"\n  ],\n  \"installationUnchanged\": true\n}"
+   },
+   "otto-glx-nostatic": {
+    "level": "otto",
+    "renderer": "glx",
+    "binaries": {
+     "fntech3.exe": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+     "fntech3.ded.exe": "f3c444db6703efcdcff67a22e98ae5ddfb3eddffb68b26a1dc7a53b9a45be8ab",
+     "fnql_glx_x86.dll": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609"
+    },
+    "unchanged": true,
+    "retail": "E:\\Repositories\\fnTech3\\.tmp\\fakk2\\sweep\\otto\\frames\\retail\\fakk\\screenshots\\shot0000.tga",
+    "retailSha256": "722d271afd287fbc10a374523ed36a81d1c8bc25aa06a8d3d83ce299487b1b8e",
+    "probe": "{\n  \"exitCode\": 0,\n  \"forcedStop\": false,\n  \"seconds\": 32.6,\n  \"screenshots\": [\n    \"compiled.png\",\n    \"compiled2.png\",\n    \"grid.png\"\n  ],\n  \"installationUnchanged\": true\n}"
+   },
+   "over-glx": {
+    "level": "over",
+    "renderer": "glx",
+    "binaries": {
+     "fntech3.exe": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+     "fntech3.ded.exe": "f3c444db6703efcdcff67a22e98ae5ddfb3eddffb68b26a1dc7a53b9a45be8ab",
+     "fnql_glx_x86.dll": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609"
+    },
+    "unchanged": true,
+    "retail": "E:\\Repositories\\fnTech3\\.tmp\\fakk2\\sweep\\over\\frames\\retail\\fakk\\screenshots\\shot0000.tga",
+    "retailSha256": "d836e0b004f02031329e395d2993a27f2b90fb84afeb6d518cade5ca03bf4b86",
+    "probe": "{\n  \"exitCode\": 0,\n  \"forcedStop\": false,\n  \"seconds\": 32.6,\n  \"screenshots\": [\n    \"compiled.png\",\n    \"compiled2.png\",\n    \"grid.png\"\n  ],\n  \"installationUnchanged\": true\n}"
+   },
+   "over-glx-nostatic": {
+    "level": "over",
+    "renderer": "glx",
+    "binaries": {
+     "fntech3.exe": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+     "fntech3.ded.exe": "f3c444db6703efcdcff67a22e98ae5ddfb3eddffb68b26a1dc7a53b9a45be8ab",
+     "fnql_glx_x86.dll": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609"
+    },
+    "unchanged": true,
+    "retail": "E:\\Repositories\\fnTech3\\.tmp\\fakk2\\sweep\\over\\frames\\retail\\fakk\\screenshots\\shot0000.tga",
+    "retailSha256": "d836e0b004f02031329e395d2993a27f2b90fb84afeb6d518cade5ca03bf4b86",
+    "probe": "{\n  \"exitCode\": 0,\n  \"forcedStop\": false,\n  \"seconds\": 32.6,\n  \"screenshots\": [\n    \"compiled.png\",\n    \"compiled2.png\",\n    \"grid.png\"\n  ],\n  \"installationUnchanged\": true\n}"
+   },
+   "water-glx": {
+    "level": "water",
+    "renderer": "glx",
+    "binaries": {
+     "fntech3.exe": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+     "fntech3.ded.exe": "f3c444db6703efcdcff67a22e98ae5ddfb3eddffb68b26a1dc7a53b9a45be8ab",
+     "fnql_glx_x86.dll": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609"
+    },
+    "unchanged": true,
+    "retail": "E:\\Repositories\\fnTech3\\.tmp\\fakk2\\sweep\\water\\frames\\retail\\fakk\\screenshots\\shot0000.tga",
+    "retailSha256": "7c05852e96a40bd5b48a4e890fcf94b76653431526c513a22e8be83530e2426a",
+    "probe": "{\n  \"exitCode\": 0,\n  \"forcedStop\": false,\n  \"seconds\": 32.6,\n  \"screenshots\": [\n    \"compiled.png\",\n    \"compiled2.png\",\n    \"grid.png\"\n  ],\n  \"installationUnchanged\": true\n}"
+   },
+   "water-glx-nostatic": {
+    "level": "water",
+    "renderer": "glx",
+    "binaries": {
+     "fntech3.exe": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+     "fntech3.ded.exe": "f3c444db6703efcdcff67a22e98ae5ddfb3eddffb68b26a1dc7a53b9a45be8ab",
+     "fnql_glx_x86.dll": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609"
+    },
+    "unchanged": true,
+    "retail": "E:\\Repositories\\fnTech3\\.tmp\\fakk2\\sweep\\water\\frames\\retail\\fakk\\screenshots\\shot0000.tga",
+    "retailSha256": "7c05852e96a40bd5b48a4e890fcf94b76653431526c513a22e8be83530e2426a",
+    "probe": "{\n  \"exitCode\": 0,\n  \"forcedStop\": false,\n  \"seconds\": 32.6,\n  \"screenshots\": [\n    \"compiled.png\",\n    \"compiled2.png\",\n    \"grid.png\"\n  ],\n  \"installationUnchanged\": true\n}"
+   },
+   "water-rtx": {
+    "level": "water",
+    "renderer": "rtx",
+    "binaries": {
+     "fntech3.exe": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+     "fntech3.ded.exe": "f3c444db6703efcdcff67a22e98ae5ddfb3eddffb68b26a1dc7a53b9a45be8ab",
+     "fnql_rtx_x86.dll": "d5b004c77904c265aff39735b3b2c937bda5b3c09609b8dbc69a8a7f344ea765"
+    },
+    "unchanged": true,
+    "retail": "E:\\Repositories\\fnTech3\\.tmp\\fakk2\\sweep\\water\\frames\\retail\\fakk\\screenshots\\shot0000.tga",
+    "retailSha256": "7c05852e96a40bd5b48a4e890fcf94b76653431526c513a22e8be83530e2426a",
+    "probe": "{\n  \"exitCode\": 0,\n  \"forcedStop\": false,\n  \"seconds\": 32.9,\n  \"screenshots\": [\n    \"compiled.png\",\n    \"compiled2.png\",\n    \"grid.png\"\n  ],\n  \"installationUnchanged\": true\n}"
+   },
+   "water-vk": {
+    "level": "water",
+    "renderer": "vk",
+    "binaries": {
+     "fntech3.exe": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+     "fntech3.ded.exe": "f3c444db6703efcdcff67a22e98ae5ddfb3eddffb68b26a1dc7a53b9a45be8ab",
+     "fnql_vk_x86.dll": "304b472634aebee3e486bdb73fa8b32915334f39066b7635739f4c0c51cfe7e3"
+    },
+    "unchanged": true,
+    "retail": "E:\\Repositories\\fnTech3\\.tmp\\fakk2\\sweep\\water\\frames\\retail\\fakk\\screenshots\\shot0000.tga",
+    "retailSha256": "7c05852e96a40bd5b48a4e890fcf94b76653431526c513a22e8be83530e2426a",
+    "probe": "{\n  \"exitCode\": 0,\n  \"forcedStop\": false,\n  \"seconds\": 33.0,\n  \"screenshots\": [\n    \"compiled.png\",\n    \"compiled2.png\",\n    \"grid.png\"\n  ],\n  \"installationUnchanged\": true\n}"
+   }
+  }
+ },
+ "builtAlone": {
+  "base": "d1d98ba",
+  "testedTree": "b2539562ed91b968a97d366430f94cfa1f9a1fa7",
+  "firstRun": "the first full run, before two existing tests were updated for this change, failed 3 of their checks: 3 failed, 2004 passed, 76 skipped, 45189 subtests passed in 1047.14s (0:17:27)",
+  "options": "win32-dev options plus alice-development, strict warnings, --wrap-mode=nodownload",
+  "binaries": {
+   "fntech3.exe": "00cfc8e947f6aff4f14874c0125ac79a7b63ee6e1c1e991b885d8ff79b43cc75",
+   "fnql_glx_x86.dll": "808139d107618370ac86c040802176d15277e9a4b4495b4792b844d4ba4933f7",
+   "fnql_vk_x86.dll": "776af13a464aa972655b8a4543ec89fc8e1a92db653ea200e7d24641b977c958",
+   "fnql_rtx_x86.dll": "578cebc887eed0fcc631c743545369f70c58843e5832dae2757efc633c840ee6"
+  },
+  "mesonTests": [
+   "Ok:                167",
+   "Fail:              0",
+   "Skipped:           2"
+  ],
+  "pytest": "2005 passed, 76 skipped, 45191 subtests passed in 960.89s (0:16:00)",
+  "clientRun": {
+   "exeSha256": "00cfc8e947f6aff4f14874c0125ac79a7b63ee6e1c1e991b885d8ff79b43cc75",
+   "rendererSha256": "e0f910d996f9e3f015e05f2da18f3f1c2396341af03f63e5616a9373b58c3bf9",
+   "exitCode": 0,
+   "forcedStop": false,
+   "installationUnchanged": true,
+   "screenshots": [
+    "compiled.png",
+    "compiled2.png",
+    "grid.png"
+   ],
+   "command": "E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\export\\build\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\ritual-model-lights\\runs\\export-glx-garden1-debug\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set net_enabled 1 +set developer 1 +set ui_subtitles 0 +set net_enabled 1 +set r_ritualModelLightsDebug 1 +exec ritual-probe.cfg",
+   "aliceLight": {
+    "renderfx": "0x4800a10",
+    "lightingPoint": [
+     -1367.6,
+     -2472.1,
+     -399.6
+    ],
+    "reach": 34.6,
+    "source": "compiled lights",
+    "leaves": 2,
+    "lit": 25,
+    "candidates": 29,
+    "sun": 0,
+    "cube": {
+     "+x": [
+      83.0,
+      67.0,
+      52.0
+     ],
+     "-x": [
+      53.0,
+      44.0,
+      34.0
+     ],
+     "+y": [
+      60.0,
+      53.0,
+      41.0
+     ],
+     "-y": [
+      29.0,
+      24.0,
+      19.0
+     ],
+     "+z": [
+      160.0,
+      139.0,
+      116.0
+     ],
+     "-z": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    "compiled": {
+     "ambient": [
+      61.0,
+      51.0,
+      39.0
+     ],
+     "directed": [
+      142.0,
+      124.0,
+      104.0
+     ],
+     "toward": [
+      0.17,
+      0.19,
+      0.97
+     ]
+    },
+    "grid": {
+     "ambient": [
+      22.0,
+      19.0,
+      16.0
+     ],
+     "directed": [
+      101.0,
+      89.0,
+      78.0
+     ],
+     "toward": [
+      0.11,
+      -0.06,
+      0.99
+     ]
+    }
+   }
+  }
+ }
+}

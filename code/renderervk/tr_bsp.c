@@ -3832,6 +3832,7 @@ Called directly from cgame
 =================
 */
 #include "../renderercommon/tr_q3_ihv_model_light_bsp.h"
+#include "../renderercommon/tr_ritual_model_light_bsp.h"
 
 void RE_LoadWorldMap( const char *name ) {
 	int			i;
@@ -3914,6 +3915,9 @@ void RE_LoadWorldMap( const char *name ) {
 			translateError, sizeof( translateError ), FAKK_TRANSLATE_LIGHTGRID ) ) {
 			ri.Error( ERR_DROP, "%s: %s could not translate FAKK v42: %s", __func__, name, translateError );
 		}
+		/* The compiled lights, for model light: the translation drops them
+		 * (code/renderercommon/tr_ritual_model_light_bsp.h). */
+		R_RitualModelLightsRead( buffer.b, size, name );
 		ri.FS_FreeFile( buffer.v );
 		buffer.v = fakkTranslated.data;
 		size = fakkTranslated.length;
@@ -3997,6 +4001,9 @@ void RE_LoadWorldMap( const char *name ) {
 		s_worldData.lightGridSize[2] = FAKK_LIGHTGRID_SIZE_Z;
 	}
 	R_LoadLightGrid( &header->lumps[LUMP_LIGHTGRID] );
+	if ( bspFormat == COM_GAME_BSP_FAKK ) {
+		R_RitualModelLightsKeep();
+	}
 	// Resolve after all material parsing: R_FindShader owns shared parser scratch.
 	if ( tr.rtcwWorld.sunShader[0] )
 		tr.sunShader = R_FindShader( tr.rtcwWorld.sunShader, LIGHTMAP_NONE, qtrue );
