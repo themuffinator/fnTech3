@@ -36,6 +36,8 @@ static const char *Com_GameConfigFile(void) {
     return profile==2 ? "wolfconfig.cfg" : profile==3 ? "wolfconfig_mp.cfg" : "q3config.cfg";
 #endif
 }
+/* Only a Ritual profile names another file; the Ritual test below covers it. */
+static const char *Com_ConfigFile(void) { return Com_GameConfigFile(); }
 static void Com_WriteConfigToFile(const char *name) {
     assert(!strcmp(name, Com_GameConfigFile())); ++q3writes;
 }
@@ -189,7 +191,7 @@ int main(void) {
 #define QL_CONFIG_HARDWARE_FILE "qzconfig.cfg"
 #define QL_CONFIG_REPLICATE_FILE "repconfig.cfg"
 typedef int qboolean;
-static int quake3, rtcw, profile, safe, hardware, probes, count, executions, moduleResets;
+static int quake3, rtcw, ritual, profile, safe, hardware, probes, count, executions, moduleResets;
 static void Cvar_Set(const char *name, const char *value) {
     assert(!quake3 && !safe && !hardware);
     assert(executions == 2); // Only after the legacy config has executed.
@@ -203,11 +205,17 @@ static void Cvar_Set(const char *name, const char *value) {
     ++moduleResets;
 }
 static const char *commands[8];
-static int Com_GameIsQuakeLive(void) { return !quake3 && !rtcw; }
+static int Com_GameIsQuakeLive(void) { return !quake3 && !rtcw && !ritual; }
 static int Com_GameIsRTCW(void) { return rtcw; }
+static int Com_GameIsRitual(void) { return ritual; }
 static const char *Com_GameConfigFile(void) {
     return rtcw==1 ? "wolfconfig.cfg" : rtcw==2 ? "wolfconfig_mp.cfg" : "q3config.cfg";
 }
+/* The Ritual selection has its own test; here it must run for Ritual alone,
+ * safe mode or not, before the configuration is executed. */
+static int selections;
+static void Com_SelectRitualConfig(void) { assert(ritual && count == 2); ++selections; }
+static const char *Com_ConfigFile(void) { return ritual ? "named.cfg" : Com_GameConfigFile(); }
 static const char *va(const char *format, const char *name) {
     static char text[128]; snprintf(text,sizeof(text),format,name); return text;
 }
@@ -222,20 +230,34 @@ static void Cbuf_ExecuteText(int mode, const char *command) {
 static void Cbuf_Execute(void) { ++executions; }
 ''' + body + r'''
 int main(void) {
-    for (profile = 0; profile < 4; ++profile)
+    for (profile = 0; profile < 5; ++profile)
     for (safe = 0; safe <= 1; ++safe)
     for (hardware = 0; hardware <= 1; ++hardware) {
-        quake3=profile==1; rtcw=profile>=2 ? profile-1 : 0;
-        count = executions = probes = moduleResets = 0;
+        quake3=profile==1; rtcw=profile>=2 && profile<=3 ? profile-1 : 0; ritual=profile==4;
+        count = executions = probes = moduleResets = selections = 0;
         Com_ExecuteCfg();
         assert(count == executions);
+        assert(selections == ritual);
 #ifdef DEDICATED
-        assert(moduleResets == (!quake3 && !rtcw && !safe && !hardware ? 1 : 0));
+        assert(moduleResets == (!quake3 && !rtcw && !ritual && !safe && !hardware ? 1 : 0));
 #else
-        assert(moduleResets == (!quake3 && !rtcw && !safe && !hardware ? 3 : 0));
+        assert(moduleResets == (!quake3 && !rtcw && !ritual && !safe && !hardware ? 3 : 0));
 #endif
         assert(!strcmp(commands[0], "exec default.cfg\n"));
-        if (quake3 || rtcw) {
+        if (ritual) {
+            /* Ritual's Com_Init: menu.cfg, the saved configuration unless in
+             * safe mode, localized.cfg, autoexec.cfg (alice.exe 0x004398eb..
+             * 0x00439a13). */
+            assert(probes == 0);
+            assert(count == (safe ? 4 : 5));
+            assert(!strcmp(commands[1], "exec menu.cfg\n"));
+            if (!safe) {
+                /* The file the `config` cvar names (Com_ConfigFile). */
+                assert(!strcmp(commands[2], "exec named.cfg\n"));
+            }
+            assert(!strcmp(commands[count-2], "exec localized.cfg\n"));
+            assert(!strcmp(commands[count-1], "exec autoexec.cfg\n"));
+        } else if (quake3 || rtcw) {
             assert(probes == 0);
             assert(count == (safe ? (rtcw ? 2 : 1) : 3));
             if (!safe) {
@@ -277,6 +299,114 @@ int main(void) {
                     self.assertEqual(build.returncode, 0, build.stdout + build.stderr)
                     run = subprocess.run([str(executable)], text=True, capture_output=True, timeout=15)
                     self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+
+    def test_ritual_config_cvar_names_the_configuration_file(self) -> None:
+        """Alice's and F.A.K.K.2's `config` cvar names the file read and written.
+
+        Both retail Com_Inits take a command line's name longer than one
+        character, else config.cfg (alice.exe 0x004398ff, fakk2.exe 1.02
+        0x0042e15f), and both write the configuration back to the file the cvar
+        names (alice.exe 0x00439eb0, fakk2.exe 0x0042e710).
+        """
+        compiler = next((path for name in ("clang", "gcc", "cc")
+                         if (path := shutil.which(name))), None)
+        if compiler is None:
+            self.skipTest("requires a C11 compiler")
+
+        def sliced(path: str, signature: str) -> str:
+            source = (ROOT / path).read_text(encoding="utf-8")
+            start = source.index(signature)
+            return source[start:source.index("\n}", start) + 2]
+
+        fixture = r'''
+#define _CRT_SECURE_NO_WARNINGS
+#include <assert.h>
+#include <ctype.h>
+#include <stdio.h>
+#include <string.h>
+#define MAX_QPATH 64
+#define ARRAY_LEN(x) (sizeof(x) / sizeof(*(x)))
+typedef int qboolean;
+#define qtrue 1
+#define qfalse 0
+typedef struct { char string[128]; } cvar_t;
+typedef struct { const char *clientConfig; } comGameProfile_t;
+static const comGameProfile_t ritualProfile = { "config.cfg" };
+static int ritual, dedicated, gets;
+static cvar_t config;
+static const char *commandLine;
+static int Q_stricmp(const char *a, const char *b) {
+    while (*a && tolower((unsigned char)*a) == tolower((unsigned char)*b)) { ++a; ++b; }
+    return tolower((unsigned char)*a) - tolower((unsigned char)*b);
+}
+static void Q_strncpyz(char *out, const char *in, int size) { snprintf(out, (size_t)size, "%s", in); }
+static void Q_strcat(char *out, int size, const char *in) {
+    const size_t length = strlen(out); snprintf(out + length, (size_t)size - length, "%s", in);
+}
+static int Com_GameIsRitual(void) { return ritual; }
+static const comGameProfile_t *Com_GameProfile(void) { return &ritualProfile; }
+static const char *Com_GameConfigFile(void) {
+    return !ritual ? "q3config.cfg" : dedicated ? "config_server.cfg" : "config.cfg";
+}
+static void Com_StartupVariable(const char *match) {
+    assert(!strcmp(match, "config"));
+    if (commandLine) snprintf(config.string, sizeof(config.string), "%s", commandLine);
+}
+static cvar_t *Cvar_Get(const char *name, const char *value, int flags) {
+    assert(!strcmp(name, "config") && !value[0] && !flags); ++gets; return &config;
+}
+static void Cvar_Set(const char *name, const char *value) {
+    assert(!strcmp(name, "config")); snprintf(config.string, sizeof(config.string), "%s", value);
+}
+static const char *Cvar_VariableString(const char *name) {
+    assert(!strcmp(name, "config")); return config.string;
+}
+''' + "\n".join((sliced("code/qcommon/q_shared.c", "void COM_DefaultExtension( char *path, int maxSize, const char *extension )"),
+                  sliced("code/qcommon/files.c", "qboolean FS_AllowedExtension( const char *fileName, qboolean allowPk3s, const char **ext )"),
+                  sliced("code/qcommon/common.c", "static void Com_SelectRitualConfig( void )"),
+                  sliced("code/qcommon/common.c", "const char *Com_ConfigFile( void )"))) + r'''
+static const char *start(const char *line) {
+    commandLine = line; config.string[0] = 0; gets = 0;
+    Com_SelectRitualConfig();
+    assert(gets == 1);
+    return config.string;
+}
+int main(void) {
+    for (dedicated = 0; dedicated <= 1; ++dedicated) {
+        const char *own = dedicated ? "config_server.cfg" : "config.cfg";
+        ritual = 1;
+        /* No name, or a name of one character: retail's config.cfg, which
+         * is the profile's own file and the saves' config_ prefix. */
+        assert(!strcmp(start(NULL), "config.cfg") && !strcmp(Com_ConfigFile(), own));
+        assert(!strcmp(start("x"), "config.cfg") && !strcmp(Com_ConfigFile(), own));
+        /* A name from the command line is the file, and is kept as given. */
+        assert(!strcmp(start("julie.cfg"), "julie.cfg") && !strcmp(Com_ConfigFile(), "julie.cfg"));
+        assert(!strcmp(start("julie"), "julie") && !strcmp(Com_ConfigFile(), "julie.cfg"));
+        /* A later `set config` is followed, as retail's write follows it. */
+        strcpy(config.string, "later.cfg"); assert(!strcmp(Com_ConfigFile(), "later.cfg"));
+        /* Retail's default name in any case is the profile's own file. */
+        strcpy(config.string, "CONFIG.CFG"); assert(!strcmp(Com_ConfigFile(), own));
+        /* A name no file may carry keeps the profile's own, as writeconfig does. */
+        strcpy(config.string, "evil.dll"); assert(!strcmp(Com_ConfigFile(), own));
+        strcpy(config.string, "pak9.pk3"); assert(!strcmp(Com_ConfigFile(), own));
+        config.string[0] = 0; assert(!strcmp(Com_ConfigFile(), own));
+        /* No other profile reads the cvar. */
+        ritual = 0; strcpy(config.string, "julie.cfg"); assert(!strcmp(Com_ConfigFile(), "q3config.cfg"));
+    }
+    return 0;
+}
+'''
+        scratch = ROOT / ".tmp"
+        scratch.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix="ritual-config-", dir=scratch) as folder:
+            cfile = Path(folder) / "ritual-config.c"
+            executable = Path(folder) / ("ritual-config.exe" if os.name == "nt" else "ritual-config")
+            cfile.write_text(fixture, encoding="utf-8")
+            build = subprocess.run([compiler, *compiler_target_args(compiler), "-std=c11", "-Wall", "-Wextra", "-Werror",
+                                    str(cfile), "-o", str(executable)], capture_output=True, text=True, timeout=60)
+            self.assertEqual(build.returncode, 0, build.stdout + build.stderr)
+            run = subprocess.run([str(executable)], capture_output=True, text=True, timeout=15)
+            self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
 
 
 if __name__ == "__main__":

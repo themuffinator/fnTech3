@@ -2997,7 +2997,8 @@ static qboolean FS_RootArchiveAllowsMapSidecar( const char *qpath )
 	}
 
 	return COM_CompareExtension( qpath, ".azb" ) ||
-		COM_CompareExtension( qpath, ".fog" );
+		COM_CompareExtension( qpath, ".fog" ) ||
+		COM_CompareExtension( qpath, ".lights.json" );
 }
 
 
@@ -3006,7 +3007,8 @@ static qboolean FS_RootArchiveAllowsFile( const char *qpath )
 	return FS_RootArchiveSafePath( qpath, qfalse ) &&
 		( !FS_FilenameCompare( qpath, FNTECH3_ROOT_ARCHIVE_RENDERER_SHADER ) ||
 			!FS_FilenameCompare( qpath, FNTECH3_ROOT_ARCHIVE_WEAPON_SOUNDS ) ||
-			( ( Com_GameIsQuake3() || Com_GameIsRTCW() ) &&
+			( ( Com_GameIsQuake3() || Com_GameIsRTCW() || Com_GameIsWolfET() || Com_GameIsSTVEF()
+				|| Com_GameIsRitual() ) &&
 				( !FS_FilenameCompare( qpath, "fntech3-hud.json" ) ||
 					!FS_FilenameCompare( qpath, "fnq3-hud.json" ) ) ) ||
 			FS_RootArchiveAllowsMapSidecar( qpath ) );
@@ -3729,14 +3731,50 @@ static int FS_PakHashSize( const int filecount )
 
 /*
 ============
-FS_BannedPakFile
+FS_InstallationArchive
 
-Check if file should NOT be added to hash search table
+Whether an archive lies directly in the base game's folder under fs_basepath:
+one of the installation's own, not a download or a mod under the home path.
 ============
 */
-static qboolean FS_BannedPakFile( const char *filename )
+static qboolean FS_InstallationArchive( const char *archive )
 {
-	return Com_GameManagerIsConfigFile( filename ) ? qtrue : qfalse;
+	const comGameProfile_t *profile = Com_GameProfile();
+	const char *folder;
+	size_t length;
+
+	if ( !archive || !fs_basepath || !fs_basepath->string[0] || !profile || !profile->baseGame
+		|| !profile->baseGame[0] ) {
+		return qfalse;
+	}
+	folder = FS_BuildOSPath( fs_basepath->string, profile->baseGame, NULL );
+	length = strlen( folder );
+	if ( Q_stricmpn( archive, folder, (int)length ) || ( archive[length] != '/' && archive[length] != '\\' ) ) {
+		return qfalse;
+	}
+	return strchr( archive + length + 1, '/' ) || strchr( archive + length + 1, '\\' ) ? qfalse : qtrue;
+}
+
+
+/*
+============
+FS_BannedPakFile
+
+Check if file should NOT be added to hash search table. Medal of Honor's
+autoexec.cfg is the game's own, in its Pak0.pk3: it binds the keys it wants
+bound, sets the startup intro's cvars and runs custom.cfg, the player's own
+settings. Retail reads it from any pak; here only from the installation's.
+============
+*/
+static qboolean FS_BannedPakFile( const char *archive, const char *filename )
+{
+	if ( !Com_GameManagerIsConfigFile( filename ) ) {
+		return qfalse;
+	}
+	if ( Com_GameIsMOHAA() && !Q_stricmp( filename, "autoexec.cfg" ) && FS_InstallationArchive( archive ) ) {
+		return qfalse;
+	}
+	return qtrue;
 }
 
 
@@ -4338,7 +4376,7 @@ static qboolean FS_LoadPakFromFile( FILE *f )
 
 		filename_inzip = namePtr + it.name;
 		FS_ConvertFilename( filename_inzip );
-		if ( !FS_BannedPakFile( filename_inzip ) ) {
+		if ( !FS_BannedPakFile( pakName, filename_inzip ) ) {
 			// store the file position in the zip
 			curFile->name = filename_inzip;
 			curFile->size = it.size;
@@ -4685,7 +4723,7 @@ static pack_t *FS_LoadZipFile( const char *zipfile )
 		}
 
 		FS_ConvertFilename( filename_inzip );
-		if ( !FS_BannedPakFile( filename_inzip ) ) {
+		if ( !FS_BannedPakFile( zipfile, filename_inzip ) ) {
 			// store the file position in the zip
 			unzGetCurrentFileInfoPosition( uf, &curFile->pos );
 			curFile->size = file_info.uncompressed_size;
@@ -4841,7 +4879,7 @@ static pack_t *FS_LoadPakFile( const char *pakfile )
 		filename_inpak[ sizeof( directory[ i ].name ) - 1 ] = '\0';
 		FS_ConvertFilename( filename_inpak );
 
-		if ( FS_BannedPakFile( filename_inpak ) ) {
+		if ( FS_BannedPakFile( pakfile, filename_inpak ) ) {
 			continue;
 		}
 
@@ -4888,7 +4926,7 @@ static pack_t *FS_LoadPakFile( const char *pakfile )
 		filename_inpak[ sizeof( directory[ i ].name ) - 1 ] = '\0';
 		FS_ConvertFilename( filename_inpak );
 
-		if ( FS_BannedPakFile( filename_inpak ) ) {
+		if ( FS_BannedPakFile( pakfile, filename_inpak ) ) {
 			continue;
 		}
 
@@ -7035,6 +7073,16 @@ static void FS_CheckIdPaks( void )
 		return;
 	}
 
+	if ( Com_GameIsQ3Test() ) {
+		/* The release was pinned from this same evidence before startup; it
+		 * must still be there, not replaced by another release's. */
+		if ( Com_Q3TestDetectRelease( fs_basepath->string ) != Com_Q3TestRelease()->id ) {
+			Com_Error( ERR_FATAL, "Invalid Q3Test %s installation in %s: expected its native modules and demoq3/pak0.pk3",
+				Com_Q3TestRelease()->version, fs_basepath->string );
+		}
+		return;
+	}
+
 	if ( Com_GameIsQuakeLive() ) {
 		if ( FS_HasQuakeLiveBasePak() ) {
 			return;
@@ -7395,6 +7443,7 @@ const char *FS_ReferencedPakPureChecksums( int maxlen ) {
 	char *s, *max;
 	const searchpath_t	*search;
 	int nFlags, numPaks, checksum;
+	qboolean referencesOnly;
 
 	if ( maxlen < 0 ) {
 		maxlen = 0;
@@ -7411,9 +7460,11 @@ const char *FS_ReferencedPakPureChecksums( int maxlen ) {
 
 	checksum = fs_checksumFeed;
 	numPaks = 0;
-	for ( nFlags = Com_GameProfile()->pureProof == COM_PURE_PROOF_QL_NATIVE ? FS_GENERAL_REF : FS_CGAME_REF;
-		nFlags; nFlags = nFlags >> 1 ) {
-		if ( nFlags & FS_GENERAL_REF ) {
+	// Medal of Honor sends its general references with no delimiter
+	referencesOnly = Com_GameProfile()->pureProof == COM_PURE_PROOF_MOHAA_REFERENCES ? qtrue : qfalse;
+	for ( nFlags = Com_GameProfile()->pureProof == COM_PURE_PROOF_QL_NATIVE || referencesOnly ?
+		FS_GENERAL_REF : FS_CGAME_REF; nFlags; nFlags = nFlags >> 1 ) {
+		if ( ( nFlags & FS_GENERAL_REF ) && !referencesOnly ) {
 			// add a delimiter between must haves and general refs
 			s = FS_AddPureChecksumToken( s, max, "@ " );
 			if ( !s ) {
@@ -7767,7 +7818,7 @@ void FS_Restart( int checksumFeed ) {
 		if ( !Com_GameIsQuakeLive() ) {
 			// Local-config profiles reload their selected mod's own config.
 			if ( !Com_SafeMode() ) {
-				Cbuf_AddText( va( "exec %s\n", Com_GameConfigFile() ) );
+				Cbuf_AddText( va( "exec %s\n", Com_ConfigFile() ) );
 			}
 		} else {
 			// QL reapplies profile-global settings after a mod transition.

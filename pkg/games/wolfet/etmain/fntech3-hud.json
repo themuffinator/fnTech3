@@ -1,0 +1,113 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "name": "crosshair",
+      "match": { "shader": "gfx/2d/crosshair*" },
+      "mode": "uniform",
+      "align": { "x": "center", "y": "center" }
+    },
+    {
+      "name": "compass",
+      "match": { "shader": "gfx/2d/compass*" },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "top" }
+    },
+    {
+      "name": "minimap",
+      "match": { "shader": "levelshots/*", "region": { "x": 500, "y": 0, "w": 140, "h": 140 } },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "top" }
+    },
+    {
+      "name": "minimap_markers",
+      "match": { "region": { "x": 504, "y": 4, "w": 132, "h": 132 } },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "top" }
+    },
+    {
+      "name": "timer_fps_and_reinforcement_boxes",
+      "match": { "region": { "x": 560, "y": 146, "w": 80, "h": 78 } },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "top" }
+    },
+    {
+      "name": "lagometer",
+      "match": { "shader": "lagometer" },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "bottom" }
+    },
+    {
+      "name": "lagometer_disconnected",
+      "match": { "shader": "gfx/2d/net" },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "bottom" }
+    },
+    {
+      "name": "lagometer_samples",
+      "match": { "shader": "white", "region": { "x": 592, "y": 280, "w": 48, "h": 48 } },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "bottom" }
+    },
+    {
+      "name": "objective_and_disguise_icon",
+      "match": { "region": { "x": 596, "y": 336, "w": 44, "h": 44 } },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "bottom" }
+    },
+    {
+      "name": "weapon_ammo_heat_and_charge",
+      "match": { "region": { "x": 540, "y": 380, "w": 100, "h": 100 } },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "bottom" }
+    },
+    {
+      "name": "stamina_health_head_skills_and_xp",
+      "match": { "region": { "x": 0, "y": 380, "w": 162, "h": 100 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "bottom" }
+    },
+    {
+      "name": "lives_axis",
+      "match": { "shader": "AxisHelmet", "region": { "x": 0, "y": 350, "w": 100, "h": 40 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "bottom" }
+    },
+    {
+      "name": "lives_allied",
+      "match": { "shader": "AlliedHelmet", "region": { "x": 0, "y": 350, "w": 100, "h": 40 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "bottom" }
+    },
+    {
+      "name": "lives_count",
+      "match": { "shader": "gfx/2d/numbers/*", "region": { "x": 40, "y": 354, "w": 50, "h": 30 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "bottom" }
+    },
+    {
+      "name": "fireteam_overlay",
+      "match": { "region": { "x": 0, "y": 0, "w": 220, "h": 102 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "top" }
+    },
+    {
+      "name": "weapon_stability",
+      "match": { "shader": "white", "region": { "x": 50, "y": 200, "w": 10, "h": 80 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "center" }
+    },
+    {
+      "name": "scope_mask_left",
+      "match": { "shader": "white", "region": { "x": 30, "y": 230, "w": 20, "h": 20 } },
+      "mode": "extend",
+      "align": { "x": "center", "y": "center" }
+    },
+    {
+      "name": "scope_mask_right",
+      "match": { "shader": "white", "region": { "x": 590, "y": 230, "w": 20, "h": 20 } },
+      "mode": "extend",
+      "align": { "x": "center", "y": "center" }
+    }
+  ]
+}

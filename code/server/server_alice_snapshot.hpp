@@ -49,6 +49,7 @@
 #include "../compat/alice_game_abi.h"
 #include "../compat/alice_module_abi.h"
 #include "../compat/alice_render_abi.h"
+#include "../compat/fakk2_module_abi.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -99,6 +100,37 @@ static_assert( kOrigin == 0x60 && kOrigin2 == 0x6c && kParent == 0xa0
 static_assert( kCentroid + 12 <= FNTECH3_ALICE_R_CURRENTORIGIN,
 	"the sphere sits between the absolute bounds and the current origin" );
 
+/* The same members in the running title's record. Heavy Metal: F.A.K.K.2's
+ * walk reads its own entity, whose state is 24 bytes shorter than Alice's:
+ * everything up to the model index is at Alice's offsets, and the render
+ * flags, the bind parent and the engine's half each sit earlier. The walk
+ * itself is taken to be Alice's, whose engine descends from F.A.K.K.2's --
+ * F.A.K.K.2's own engine is encrypted on disk and could not be read. Every
+ * function below takes the offsets last and defaults to Alice's. */
+struct Offsets {
+	std::size_t number, origin, origin2, loopSound, loopSoundMinDist, parent,
+		modelIndex, renderfx, bindParent, inuse, linked, svFlags, radius, centroid;
+};
+
+inline constexpr Offsets kAliceOffsets{ kNumber, kOrigin, kOrigin2, kLoopSound,
+	kLoopSoundMinDist, kParent, kModelIndex, kRenderfx, kBindParent, kInuse, kLinked,
+	kSvFlags, kRadius, kCentroid };
+
+inline constexpr Offsets kFAKK2Offsets{ FNTECH3_FAKK2_S_NUMBER, FNTECH3_FAKK2_S_ORIGIN,
+	FNTECH3_FAKK2_S_ORIGIN2, FNTECH3_FAKK2_S_LOOPSOUND, FNTECH3_FAKK2_S_LOOPSOUNDMINDIST,
+	FNTECH3_FAKK2_S_PARENT, FNTECH3_FAKK2_S_MODELINDEX, FNTECH3_FAKK2_S_RENDERFX,
+	FNTECH3_FAKK2_S_BINDPARENT, FNTECH3_FAKK2_R_INUSE, FNTECH3_FAKK2_R_LINKED,
+	FNTECH3_FAKK2_R_SVFLAGS, FNTECH3_FAKK2_R_RADIUS, FNTECH3_FAKK2_R_CENTROID };
+
+static_assert( kFAKK2Offsets.origin == kAliceOffsets.origin && kFAKK2Offsets.parent == kAliceOffsets.parent
+	&& kFAKK2Offsets.modelIndex == kAliceOffsets.modelIndex,
+	"the members before the controllers are at the same offsets" );
+static_assert( kFAKK2Offsets.renderfx + 20 == kAliceOffsets.renderfx
+	&& kFAKK2Offsets.bindParent + 24 == kAliceOffsets.bindParent
+	&& kFAKK2Offsets.inuse + 24 == kAliceOffsets.inuse
+	&& kFAKK2Offsets.centroid + 24 == kAliceOffsets.centroid,
+	"and the rest are 20 or 24 bytes earlier" );
+
 enum : std::uint32_t {
 	/* 30,000.0f, compared as bits at 0x004573ba. */
 	kGlobalLoopSoundBits = 0x46ea6000u,
@@ -145,9 +177,9 @@ struct Numbers {
 /* An entity already in this snapshot is seen again: from a portal, from the
  * sky, or from the main view after being added first. It is then drawn both
  * in a portal and outside it (0x00457162 and 0x00457536). */
-inline void MarkDual( std::uint8_t *entity ) {
-	const std::uint32_t renderfx = ReadBits( entity, kRenderfx );
-	WriteInt( entity, kRenderfx, static_cast<std::int32_t>(
+inline void MarkDual( std::uint8_t *entity, const Offsets &o = kAliceOffsets ) {
+	const std::uint32_t renderfx = ReadBits( entity, o.renderfx );
+	WriteInt( entity, o.renderfx, static_cast<std::int32_t>(
 		( renderfx & ~static_cast<std::uint32_t>( FNTECH3_ALICE_RF_PORTALENTITY ) )
 		| FNTECH3_ALICE_RF_DUALENTITY ) );
 }
@@ -158,30 +190,31 @@ checked, and a full snapshot leaves the flags alone, as retail does.
 */
 template<class SvEntity>
 void AddEntToSnapshot( SvEntity &svEntity, std::uint8_t *entity, Numbers &numbers,
-	int counter, bool portal, bool sky ) {
+	int counter, bool portal, bool sky, const Offsets &o = kAliceOffsets ) {
 	if ( svEntity.snapshotCounter == counter ) {
-		MarkDual( entity );
+		MarkDual( entity, o );
 		return;
 	}
 	svEntity.snapshotCounter = counter;
 	if ( numbers.count == kEntityLimit ) {
 		return;
 	}
-	std::uint32_t renderfx = ReadBits( entity, kRenderfx ) & ~kViewFlags;
+	std::uint32_t renderfx = ReadBits( entity, o.renderfx ) & ~kViewFlags;
 	if ( portal ) {
 		renderfx |= FNTECH3_ALICE_RF_PORTALENTITY;
 	} else if ( sky ) {
 		renderfx |= FNTECH3_ALICE_RF_SKYENTITY;
 	}
-	WriteInt( entity, kRenderfx, static_cast<std::int32_t>( renderfx ) );
-	numbers.numbers[numbers.count++] = ReadInt( entity, kNumber );
+	WriteInt( entity, o.renderfx, static_cast<std::int32_t>( renderfx ) );
+	numbers.numbers[numbers.count++] = ReadInt( entity, o.number );
 }
 
 /* SV_SvEntityForGentity (0x004533d0): by the record's own number, refused
  * outside the server's entity table. */
 template<class World>
-typename World::SvEntity *SvEntityFor( World &world, const std::uint8_t *entity ) {
-	const int number = ReadInt( entity, kNumber );
+typename World::SvEntity *SvEntityFor( World &world, const std::uint8_t *entity,
+	const Offsets &o = kAliceOffsets ) {
+	const int number = ReadInt( entity, o.number );
 	if ( number < 0 || number >= kSvEntities ) {
 		world.Fatal( "SV_SvEntityForGentity: bad gEnt" );
 		return nullptr;
@@ -227,11 +260,12 @@ bool PvsVisible( const std::uint8_t *pvs, const SvEntity &visibility, const SvEn
  * x87 code runs at: the squared distance from the view to the centroid, less
  * the squared radius, against the squared plane distance the SetFarPlane
  * import stored. An entity is culled only when it is beyond it. */
-inline bool BeyondFarPlane( const std::uint8_t *sphere, const float origin[3], int farPlane ) {
-	const double dx = static_cast<double>( ReadFloat( sphere, kCentroid ) ) - origin[0];
-	const double dy = static_cast<double>( ReadFloat( sphere, kCentroid + 4 ) ) - origin[1];
-	const double dz = static_cast<double>( ReadFloat( sphere, kCentroid + 8 ) ) - origin[2];
-	const double radius = ReadFloat( sphere, kRadius );
+inline bool BeyondFarPlane( const std::uint8_t *sphere, const float origin[3], int farPlane,
+	const Offsets &o = kAliceOffsets ) {
+	const double dx = static_cast<double>( ReadFloat( sphere, o.centroid ) ) - origin[0];
+	const double dy = static_cast<double>( ReadFloat( sphere, o.centroid + 4 ) ) - origin[1];
+	const double dz = static_cast<double>( ReadFloat( sphere, o.centroid + 8 ) ) - origin[2];
+	const double radius = ReadFloat( sphere, o.radius );
 	const double reach = ( dz * dz + dy * dy + dx * dx ) - radius * radius;
 	return reach > static_cast<double>( farPlane );
 }
@@ -270,7 +304,7 @@ World supplies:
 */
 template<class World>
 void AddEntitiesVisibleFromPoint( World &world, const float viewOrigin[3], Numbers &numbers,
-	const typename World::SvEntity *portal, bool sky ) {
+	const typename World::SvEntity *portal, bool sky, const Offsets &o = kAliceOffsets ) {
 	using SvEntity = typename World::SvEntity;
 
 	float origin[3] = { viewOrigin[0], viewOrigin[1], viewOrigin[2] };
@@ -291,23 +325,23 @@ void AddEntitiesVisibleFromPoint( World &world, const float viewOrigin[3], Numbe
 				world.Fatal( "SV_AddEntitiesVisibleFromPoint: entity outside the game's arena" );
 				return;
 			}
-			if ( !ReadInt( entity, kInuse ) ) {
+			if ( !ReadInt( entity, o.inuse ) ) {
 				continue;
 			}
-			if ( ReadInt( entity, kNumber ) != e ) {
+			if ( ReadInt( entity, o.number ) != e ) {
 				world.FixedNumber( e );
-				WriteInt( entity, kNumber, e );
+				WriteInt( entity, o.number, e );
 			}
-			const std::uint32_t svFlags = ReadBits( entity, kSvFlags )
+			const std::uint32_t svFlags = ReadBits( entity, o.svFlags )
 				| FNTECH3_ALICE_SVF_ENGINE_VISITED;
-			WriteInt( entity, kSvFlags, static_cast<std::int32_t>( svFlags ) );
-			if ( !ReadInt( entity, kLinked ) || ( svFlags & FNTECH3_ALICE_SVF_NOCLIENT ) ) {
+			WriteInt( entity, o.svFlags, static_cast<std::int32_t>( svFlags ) );
+			if ( !ReadInt( entity, o.linked ) || ( svFlags & FNTECH3_ALICE_SVF_NOCLIENT ) ) {
 				continue;
 			}
 
-			int parentNumber = ReadInt( entity, kParent );
+			int parentNumber = ReadInt( entity, o.parent );
 			if ( parentNumber == kNoEntity ) {
-				parentNumber = ReadInt( entity, kBindParent );
+				parentNumber = ReadInt( entity, o.bindParent );
 			}
 			const std::uint8_t *parent = nullptr;
 			if ( parentNumber != kNoEntity ) {
@@ -316,20 +350,20 @@ void AddEntitiesVisibleFromPoint( World &world, const float viewOrigin[3], Numbe
 					world.Fatal( "SV_AddEntitiesVisibleFromPoint: parent outside the game's arena" );
 					return;
 				}
-				if ( ReadBits( parent, kSvFlags ) & FNTECH3_ALICE_SVF_NOCLIENT ) {
+				if ( ReadBits( parent, o.svFlags ) & FNTECH3_ALICE_SVF_NOCLIENT ) {
 					continue;
 				}
-				if ( ReadBits( parent, kRenderfx ) & FNTECH3_ALICE_RF_DONTDRAW ) {
+				if ( ReadBits( parent, o.renderfx ) & FNTECH3_ALICE_RF_DONTDRAW ) {
 					continue;
 				}
 			}
 
-			SvEntity *svEntity = SvEntityFor( world, entity );
+			SvEntity *svEntity = SvEntityFor( world, entity, o );
 			if ( !svEntity ) {
 				return;
 			}
 
-			if ( ReadBits( entity, kRenderfx ) & FNTECH3_ALICE_RF_SKYORIGIN ) {
+			if ( ReadBits( entity, o.renderfx ) & FNTECH3_ALICE_RF_SKYORIGIN ) {
 				if ( !world.SkyPortal() || sky || portal ) {
 					continue;
 				}
@@ -338,35 +372,35 @@ void AddEntitiesVisibleFromPoint( World &world, const float viewOrigin[3], Numbe
 					return;
 				}
 				skyEntity = entity;
-				AddEntToSnapshot( *svEntity, entity, numbers, counter, false, false );
+				AddEntToSnapshot( *svEntity, entity, numbers, counter, false, false, o );
 				continue;
 			}
 
 			if ( svFlags & ( FNTECH3_ALICE_SVF_BROADCAST | FNTECH3_ALICE_SVF_BROADCAST_ALT ) ) {
-				AddEntToSnapshot( *svEntity, entity, numbers, counter, portal != nullptr, sky );
+				AddEntToSnapshot( *svEntity, entity, numbers, counter, portal != nullptr, sky, o );
 				continue;
 			}
 
 			const SvEntity *visibility = svEntity;
 			if ( parent ) {
-				const SvEntity *parentEntity = SvEntityFor( world, parent );
+				const SvEntity *parentEntity = SvEntityFor( world, parent, o );
 				if ( !parentEntity ) {
 					return;
 				}
 				if ( parentEntity->snapshotCounter == counter ) {
-					AddEntToSnapshot( *svEntity, entity, numbers, counter, portal != nullptr, sky );
+					AddEntToSnapshot( *svEntity, entity, numbers, counter, portal != nullptr, sky, o );
 					continue;
 				}
 				visibility = parentEntity;
 			}
 
-			const std::int32_t loopSound = ReadInt( entity, kLoopSound );
+			const std::int32_t loopSound = ReadInt( entity, o.loopSound );
 			if ( !( svFlags & FNTECH3_ALICE_SVF_ALWAYS_RELEVANT )
-				&& !ReadInt( entity, kModelIndex ) && !loopSound ) {
+				&& !ReadInt( entity, o.modelIndex ) && !loopSound ) {
 				continue;
 			}
-			if ( loopSound && ReadBits( entity, kLoopSoundMinDist ) == kGlobalLoopSoundBits ) {
-				AddEntToSnapshot( *svEntity, entity, numbers, counter, portal != nullptr, sky );
+			if ( loopSound && ReadBits( entity, o.loopSoundMinDist ) == kGlobalLoopSoundBits ) {
+				AddEntToSnapshot( *svEntity, entity, numbers, counter, portal != nullptr, sky, o );
 				continue;
 			}
 
@@ -376,7 +410,7 @@ void AddEntitiesVisibleFromPoint( World &world, const float viewOrigin[3], Numbe
 			}
 
 			const int farPlane = world.FarPlane();
-			if ( farPlane && BeyondFarPlane( parent ? parent : entity, origin, farPlane ) ) {
+			if ( farPlane && BeyondFarPlane( parent ? parent : entity, origin, farPlane, o ) ) {
 				continue;
 			}
 
@@ -385,23 +419,23 @@ void AddEntitiesVisibleFromPoint( World &world, const float viewOrigin[3], Numbe
 			}
 
 			if ( svEntity->snapshotCounter == counter ) {
-				MarkDual( entity );
+				MarkDual( entity, o );
 				continue;
 			}
 
-			AddEntToSnapshot( *svEntity, entity, numbers, counter, portal != nullptr, sky );
+			AddEntToSnapshot( *svEntity, entity, numbers, counter, portal != nullptr, sky, o );
 
-			if ( ( ReadBits( entity, kSvFlags ) & FNTECH3_ALICE_SVF_PORTAL ) && svEntity != portal ) {
+			if ( ( ReadBits( entity, o.svFlags ) & FNTECH3_ALICE_SVF_PORTAL ) && svEntity != portal ) {
 				float portalOrigin[3];
-				ReadVector( entity, kOrigin2, portalOrigin );
-				AddEntitiesVisibleFromPoint( world, portalOrigin, numbers, svEntity, false );
+				ReadVector( entity, o.origin2, portalOrigin );
+				AddEntitiesVisibleFromPoint( world, portalOrigin, numbers, svEntity, false, o );
 			}
 		}
 
 		if ( sky || !skyEntity || portal ) {
 			return;
 		}
-		ReadVector( skyEntity, kOrigin, origin );
+		ReadVector( skyEntity, o.origin, origin );
 		sky = true;
 		portal = nullptr;
 		skyEntity = nullptr;

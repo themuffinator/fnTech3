@@ -1,11 +1,17 @@
 from __future__ import annotations
 
+import json
+import math
 import os
+import re
 import zipfile
 from pathlib import Path
 from typing import Iterable
 
 from fntech3_meta import ROOT
+from stock_alice_maps import SIDECAR_SUFFIXES as ALICE_SIDECAR_SUFFIXES, STOCK_ALICE_MAPS
+from stock_fakk2_maps import SIDECAR_SUFFIXES as FAKK2_SIDECAR_SUFFIXES, STOCK_FAKK2_MAPS
+from stock_mohaa_maps import SIDECAR_SUFFIXES as MOHAA_SIDECAR_SUFFIXES, STOCK_MOHAA_MAPS
 from stock_q3_assets import Q3_PACKAGE_ASSETS
 from stock_ql_maps import STOCK_QL_MAPS
 from stock_rtcw_maps import STOCK_RTCW_MAPS
@@ -15,7 +21,8 @@ from stock_wolfet_maps import STOCK_WOLFET_MAPS
 ROOT_ARCHIVE_NAME = "fntech3-pkg.fnz"
 PKG_ROOT = ROOT / "pkg"
 # Canonical Com_GameProfile()->key values, never startup aliases or title IDs.
-GAME_PROFILES = ("quake3", "quakelive", "rtcw-sp", "rtcw-mp", "wolfet")
+GAME_PROFILES = ("quake3", "quakelive", "rtcw-sp", "rtcw-mp", "wolfet", "stvef-sp", "stvef-mp", "alice", "fakk2",
+                 "mohaa")
 # These paths are relative to games/<canonical profile>/. A title can have
 # multiple game directories (for example quake3/baseq3 and quake3/missionpack).
 PROFILE_REQUIRED_ASSETS = {
@@ -30,10 +37,34 @@ PROFILE_REQUIRED_ASSETS = {
         profile: (
             "main/fntech3-hud.json",
             *(f"main/maps/{name}.azb" for name in names),
+            # Each official map's static lights, converted for its own mode.
+            *(f"main/maps/{name}.lights.json" for name in names),
         )
         for profile, names in STOCK_RTCW_MAPS.items()
     },
-    "wolfet": tuple(f"etmain/maps/{name}.azb" for name in STOCK_WOLFET_MAPS),
+    # Enemy Territory ships a zone file for each official map, and the HUD rules.
+    "wolfet": ("etmain/fntech3-hud.json", *(f"etmain/maps/{name}.azb" for name in STOCK_WOLFET_MAPS)),
+    # Elite Force ships each mode's HUD rules.
+    "stvef-sp": ("baseEF/fntech3-hud.json",),
+    "stvef-mp": ("baseEF/fntech3-hud.json",),
+    # Alice ships an audio zone file and a static light file for every official map,
+    # and the HUD rules that place its HUD.
+    "alice": (
+        "base/fntech3-hud.json",
+        *(f"base/maps/{name}{suffix}" for name in STOCK_ALICE_MAPS
+          for suffix in ALICE_SIDECAR_SUFFIXES),
+    ),
+    # Heavy Metal: F.A.K.K.2 ships the same two files for every official map,
+    # and the HUD rules that place its HUD menus.
+    "fakk2": (
+        "fakk/fntech3-hud.json",
+        *(f"fakk/maps/{name}{suffix}" for name in STOCK_FAKK2_MAPS
+          for suffix in FAKK2_SIDECAR_SUFFIXES),
+    ),
+    # Medal of Honor: Allied Assault ships the same two files for every official
+    # map, each beside its map in the map's own folder.
+    "mohaa": tuple(f"main/maps/{name}{suffix}" for name in STOCK_MOHAA_MAPS
+                   for suffix in MOHAA_SIDECAR_SUFFIXES),
 }
 DEFAULT_ROOT_ARCHIVE_REQUIRED_ASSETS = [
     (PKG_ROOT / "games" / profile / name, Path("games") / profile / name)
@@ -44,6 +75,8 @@ DEFAULT_AUDIO_ZONE_ASSETS = [asset for asset in DEFAULT_ROOT_ARCHIVE_REQUIRED_AS
 DEFAULT_GLOBAL_FOG_ASSETS = [asset for asset in DEFAULT_ROOT_ARCHIVE_REQUIRED_ASSETS if asset[1].suffix == ".fog"]
 DEFAULT_WEAPON_SOUND_SHADER_ASSETS = [asset for asset in DEFAULT_ROOT_ARCHIVE_REQUIRED_ASSETS if asset[1].suffix == ".sndshd"]
 DEFAULT_RENDERER_SHADER_ASSETS = [asset for asset in DEFAULT_ROOT_ARCHIVE_REQUIRED_ASSETS if asset[1].suffix == ".shader"]
+DEFAULT_STATIC_LIGHT_ASSETS = [asset for asset in DEFAULT_ROOT_ARCHIVE_REQUIRED_ASSETS
+                               if asset[1].name.endswith(".lights.json")]
 
 
 def iter_package_assets(package_root: Path = PKG_ROOT) -> list[tuple[Path, Path]]:
@@ -176,6 +209,64 @@ def validate_root_archive_names(
         )
 
 
+# What every renderer's static light parser accepts: RTX's refuses a file
+# over 256 KB or 65,536 tokens and a repeated key, all keep 128 lights a map
+# and draw nothing without a positive radius or intensity (each stands in for
+# the other), and none is trusted with an exponent.
+STATIC_LIGHT_MAX_BYTES = 256 * 1024
+STATIC_LIGHT_MAX_TOKENS = 65536
+STATIC_LIGHT_MAX_LIGHTS = 128
+
+
+def validate_static_light_file(name: str, payload: bytes) -> None:
+    """Refuse a packaged maps/<map>.lights.json that a renderer would reject or cut short."""
+    def fail(reason: str) -> None:
+        raise ValueError(f"{name}: {reason}")
+
+    def unique(pairs):
+        keys = [key for key, _value in pairs]
+        if len(keys) != len(set(keys)):
+            fail("repeats a key")
+        return dict(pairs)
+
+    def refuse_constant(constant: str):
+        fail(f"has a non-finite number {constant}")
+
+    if len(payload) > STATIC_LIGHT_MAX_BYTES:
+        fail(f"is over {STATIC_LIGHT_MAX_BYTES} bytes")
+    if b"\0" in payload:
+        fail("contains a NUL byte")
+    if len(re.findall(rb'"[^"]*"|[{}\[\],:]|[^\s{}\[\],:"]+', payload)) >= STATIC_LIGHT_MAX_TOKENS:
+        fail(f"has {STATIC_LIGHT_MAX_TOKENS} tokens or more")
+    if re.search(rb"\d[eE][-+]?\d", re.sub(rb'"[^"]*"', b'""', payload)):
+        fail("writes a number with an exponent")
+    try:
+        document = json.loads(payload.decode("utf-8"), object_pairs_hook=unique,
+                              parse_constant=refuse_constant)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        fail(f"is not JSON ({exc})")
+    if not isinstance(document, dict) or document.get("version") != 1:
+        fail("is not a version 1 light file")
+    entries = document.get("lights")
+    if not isinstance(entries, list) or len(entries) > STATIC_LIGHT_MAX_LIGHTS:
+        fail(f"does not hold a list of at most {STATIC_LIGHT_MAX_LIGHTS} lights")
+
+    def numbers(value, count: int) -> bool:
+        return (isinstance(value, list) and len(value) == count and
+                all(isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) for v in value))
+
+    for index, entry in enumerate(entries):
+        if not isinstance(entry, dict) or entry.get("type") not in ("point", "spot"):
+            fail(f"light {index} is not a point or spot light")
+        if not numbers(entry.get("origin"), 3) or not numbers(entry.get("color", [1, 1, 1]), 3):
+            fail(f"light {index} has no origin or a malformed colour")
+        if entry["type"] == "spot" and not (numbers(entry.get("direction"), 3) and any(entry["direction"])):
+            fail(f"light {index} is a spot without a direction")
+        sizes = [entry.get("radius", 0), entry.get("intensity", 0)]
+        if not numbers(sizes, 2) or max(sizes) <= 0:
+            fail(f"light {index} has neither a positive radius nor a positive intensity")
+
+
 def validate_root_archive(archive_path: Path) -> None:
     with zipfile.ZipFile(archive_path) as archive:
         archived_names = [
@@ -183,7 +274,10 @@ def validate_root_archive(archive_path: Path) -> None:
             for info in archive.infolist()
             if not info.is_dir()
         ]
+        light_files = {name: archive.read(name) for name in archived_names if name.endswith(".lights.json")}
     validate_root_archive_names(archived_names, archive_name=archive_path.name)
+    for name, payload in light_files.items():
+        validate_static_light_file(name, payload)
 
 
 def write_root_archive(

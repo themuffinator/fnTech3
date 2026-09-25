@@ -197,6 +197,7 @@ static float VectorLengthSquared(const float *v){return v[0]*v[0]+v[1]*v[1]+v[2]
 static std::int64_t micros=250000;
 static auto Sys_Microseconds(){return micros;}
 static bool Com_GameIsRTCW(){return true;}
+static bool Com_GameIsSTVEFSP(){return false;}
 struct Device{
  struct Caps{std::int64_t deviceClockValue=0;} caps;
  struct Api{std::vector<int> offsets;void alSourcei(unsigned,int what,int value){if(what==AL_SAMPLE_OFFSET)offsets.push_back(value);}} api;
@@ -244,8 +245,11 @@ struct AudioSystem{
  void AddRTCWLoopingSound(const float *,const float *,int,int,int);
 };
 '''
+    # Update keeps Elite Force single player's loops by that profile's law.
     for signature in ('void Q3SoundWorld::AddLoopingSound(', 'void Q3SoundWorld::AddRTCWLoopingSound(',
-                      'void Q3SoundWorld::ClearLoopingSoundsFrame(', 'void Q3SoundWorld::Update('):
+                      'void Q3SoundWorld::ClearLoopingSoundsFrame(',
+                      'static fntech3::audio::stvef::Span STVEFVoiceSpan(', 'static bool STVEFHeardAtListener(',
+                      'static bool STVEFLoopSilent(', 'void Q3SoundWorld::Update('):
         prelude += function(world, signature) + '\n'
     prelude += function(backend, 'void AudioSystem::AddRTCWLoopingSound(') + '\n'
     return prelude + r'''

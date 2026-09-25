@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "name": "health_gauge",
+      "match": { "refdef": true, "region": { "x": -32, "y": 160, "w": 80, "h": 160 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "center" }
+    },
+    {
+      "name": "mana_gauge",
+      "match": { "refdef": true, "region": { "x": 592, "y": 160, "w": 80, "h": 160 } },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "center" }
+    },
+    {
+      "name": "weapon_card",
+      "match": { "refdef": true, "region": { "x": 0, "y": 376, "w": 96, "h": 96 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "bottom" }
+    },
+    {
+      "name": "powerup_card",
+      "match": { "refdef": true, "region": { "x": 544, "y": 376, "w": 96, "h": 96 } },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "bottom" }
+    }
+  ]
+}

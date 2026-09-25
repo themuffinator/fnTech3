@@ -38,6 +38,21 @@ option('alice-development',
   value: false,
   description: '''Enable the incomplete American McGee's Alice profile for isolated developer probes; not a compatibility claim''')
 
+option('fakk2-development',
+  type: 'boolean',
+  value: false,
+  description: 'Enable the incomplete Heavy Metal: F.A.K.K.2 profile for isolated developer probes; not a compatibility claim')
+
+option('mohaa-development',
+  type: 'boolean',
+  value: false,
+  description: 'Enable the incomplete Medal of Honor: Allied Assault profile for isolated developer probes; not a compatibility claim')
+
+option('q3test-development',
+  type: 'boolean',
+  value: false,
+  description: 'Enable the incomplete Quake III Q3Test 1.02-1.08 profile for isolated Windows x86 developer probes; not a compatibility claim')
+
 option('wolfet-development',
   type: 'boolean',
   value: false,

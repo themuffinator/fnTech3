@@ -11,14 +11,17 @@ General Public License, version 2 or (at your option) any later version.
 
 #include "../compat/alice_module_abi.h"
 #include "../compat/alice_state_adapter.hpp"
+#include "../compat/fakk2_convert.hpp"
 #include "../compat/game_abi_adapter.h"
 #include "../compat/q3_game_abi.h"
 #include "../compat/ql_game_abi.h"
 #include "../compat/jk2_game_abi.h"
 #include "../compat/jka_game_abi.h"
+#include "../compat/mohaa_game_abi.h"
 #include "../compat/jka_state_adapter.hpp"
 #include "../compat/jk2_state_adapter.hpp"
 #include "../compat/q3_ihv_state_adapter.hpp"
+#include "../compat/q3test_state_adapter.hpp"
 #include "../compat/rtcw_state_adapter.hpp"
 #include "../compat/stvef_state_adapter.hpp"
 #include "../compat/wolfet_state_adapter.hpp"
@@ -272,6 +275,26 @@ bool ResolveQvmGameDataPointer( void *dataBase, std::size_t dataSpanBytes,
 	return true;
 }
 
+namespace {
+/* Set once by the Q3Test game loader from its pinned release. */
+int q3testProtocol = 0;
+}
+
+bool ServerGameDataView::SelectQ3TestProtocol( int protocol )
+{
+	switch ( protocol ) {
+	case 35: case 36: case 38: case 39: case 40:
+		break;
+	default:
+		return false;
+	}
+	if ( q3testProtocol && q3testProtocol != protocol ) {
+		return false;
+	}
+	q3testProtocol = protocol;
+	return true;
+}
+
 const ServerGameDataView::Layout *ServerGameDataView::FindLayout(
 	comGameId_t profile )
 {
@@ -457,9 +480,87 @@ const ServerGameDataView::Layout *ServerGameDataView::FindLayout(
 		FNTECH3_ALICE_MAX_CLIENTS
 	};
 
+	/* Heavy Metal: F.A.K.K.2's, measured in its retail modules: Alice's engine
+	 * half in Alice's order, 24 bytes earlier, after F.A.K.K.2's shorter
+	 * entity state. The same three members are absent for the same reasons. */
+	static const Layout fakk2Layout{
+		COM_GAME_FAKK2, FNTECH3_FAKK2_GENTITY_SIZE,
+		FNTECH3_FAKK2_ENTITY_STATE_BYTES,
+		FNTECH3_FAKK2_PLAYER_STATE_BYTES,
+		FNTECH3_FAKK2_R_LINKED, kNoField, FNTECH3_FAKK2_R_SVFLAGS, kNoField,
+		FNTECH3_FAKK2_R_BMODEL, FNTECH3_FAKK2_R_MINS, FNTECH3_FAKK2_R_MAXS,
+		FNTECH3_FAKK2_R_CONTENTS, FNTECH3_FAKK2_R_ABSMIN,
+		FNTECH3_FAKK2_R_ABSMAX, FNTECH3_FAKK2_R_CURRENTORIGIN,
+		FNTECH3_FAKK2_R_CURRENTANGLES, FNTECH3_FAKK2_S_BINDPARENT,
+		FNTECH3_FAKK2_S_ORIGIN2, FNTECH3_FAKK2_PS_PING,
+		FNTECH3_FAKK2_MAX_CLIENTS
+	};
+
+	/* Medal of Honor: Allied Assault's entity record, measured in its retail
+	 * modules (code/compat/mohaa_game_abi.h). 2015's shared half has no
+	 * current origin: its engine links and sends an entity at its state's
+	 * origin, so that is the member named here. The whole 852-byte record is
+	 * the readable prefix, as for Alice, and the player state is the first
+	 * 660 bytes of each 2,272-byte client. */
+#define MOHAA_E(member) offsetof(fntech3::mohaa::GEntity, member)
+	static const Layout mohaaLayout{
+		COM_GAME_MOHAA, FNTECH3_MOHAA_GENTITY_BYTES,
+		FNTECH3_MOHAA_ENTITY_STATE_BYTES, FNTECH3_MOHAA_PLAYER_STATE_BYTES,
+		MOHAA_E(r.linked), MOHAA_E(r.linkcount), MOHAA_E(r.svFlags), MOHAA_E(r.singleClient),
+		MOHAA_E(r.bmodel), MOHAA_E(r.mins), MOHAA_E(r.maxs), MOHAA_E(r.contents),
+		MOHAA_E(r.absmin), MOHAA_E(r.absmax), MOHAA_E(s.origin), MOHAA_E(r.currentAngles),
+		MOHAA_E(r.ownerNum), MOHAA_E(s.origin2),
+		offsetof(fntech3::mohaa::PlayerState, ping), FNTECH3_MOHAA_MAX_CLIENTS
+	};
+#undef MOHAA_E
+
+	/* Q3Test's entity is IHV's shape around a 204-byte state: the engine half
+	 * follows at 0xcc, the client and owner are pointers, and the release
+	 * decides the player record's size, its ping and where clients start:
+	 * entity n + 1 up to 1.05, entity n from 1.06 (ABI record 5.1, 5.4, 6.1). */
+#define Q3T(member) offsetof(fntech3_q3test_entity_t, member)
+	static const Layout q3test35Layout{
+		COM_GAME_Q3TEST, sizeof(fntech3_q3test_entity_t), FNTECH3_Q3TEST_ENTITY_STATE_BYTES, 276,
+		Q3T(linked), Q3T(linkcount), Q3T(svFlags), kNoField, Q3T(bmodel), Q3T(mins), Q3T(maxs),
+		Q3T(contents), Q3T(absmin), Q3T(absmax), Q3T(currentOrigin), Q3T(currentAngles), Q3T(owner),
+		Q3T(s.origin2), 0x110, FNTECH3_Q3TEST_MAX_CLIENTS, true, Q3T(client), 1
+	};
+	static const Layout q3test36Layout{
+		COM_GAME_Q3TEST, sizeof(fntech3_q3test_entity_t), FNTECH3_Q3TEST_ENTITY_STATE_BYTES, 416,
+		Q3T(linked), Q3T(linkcount), Q3T(svFlags), kNoField, Q3T(bmodel), Q3T(mins), Q3T(maxs),
+		Q3T(contents), Q3T(absmin), Q3T(absmax), Q3T(currentOrigin), Q3T(currentAngles), Q3T(owner),
+		Q3T(s.origin2), 0x19c, FNTECH3_Q3TEST_MAX_CLIENTS, true, Q3T(client), 1
+	};
+	static const Layout q3test38Layout{
+		COM_GAME_Q3TEST, sizeof(fntech3_q3test_entity_t), FNTECH3_Q3TEST_ENTITY_STATE_BYTES, 432,
+		Q3T(linked), Q3T(linkcount), Q3T(svFlags), kNoField, Q3T(bmodel), Q3T(mins), Q3T(maxs),
+		Q3T(contents), Q3T(absmin), Q3T(absmax), Q3T(currentOrigin), Q3T(currentAngles), Q3T(owner),
+		Q3T(s.origin2), 0x1ac, FNTECH3_Q3TEST_MAX_CLIENTS, true, Q3T(client), 0
+	};
+	static const Layout q3test40Layout{
+		COM_GAME_Q3TEST, sizeof(fntech3_q3test_entity_t), FNTECH3_Q3TEST_ENTITY_STATE_BYTES, 440,
+		Q3T(linked), Q3T(linkcount), Q3T(svFlags), kNoField, Q3T(bmodel), Q3T(mins), Q3T(maxs),
+		Q3T(contents), Q3T(absmin), Q3T(absmax), Q3T(currentOrigin), Q3T(currentAngles), Q3T(owner),
+		Q3T(s.origin2), 0x1b4, FNTECH3_Q3TEST_MAX_CLIENTS, true, Q3T(client), 0
+	};
+#undef Q3T
+
 	switch ( profile ) {
+	case COM_GAME_Q3TEST: {
+		switch ( q3testProtocol ) {
+		case 35: return &q3test35Layout;
+		case 36: return &q3test36Layout;
+		case 38: case 39: return &q3test38Layout;
+		case 40: return &q3test40Layout;
+		default: return nullptr;
+		}
+	}
+	case COM_GAME_MOHAA:
+		return &mohaaLayout;
 	case COM_GAME_ALICE:
 		return &aliceLayout;
+	case COM_GAME_FAKK2:
+		return &fakk2Layout;
 	case COM_GAME_QUAKE3:
 		return &q3Layout;
 	case COM_GAME_QUAKELIVE:
@@ -517,7 +618,7 @@ GameDataBindError ServerGameDataView::BindNative( comGameId_t profile,
 	AdvanceGeneration();
 	ClearBinding();
 	const Layout *candidateLayout = FindLayout( profile );
-	if ( !candidateLayout || (profile == COM_GAME_QUAKE3_IHV && sizeof(void *) != 4) ) {
+	if ( !candidateLayout || ((profile == COM_GAME_QUAKE3_IHV || profile == COM_GAME_Q3TEST) && sizeof(void *) != 4) ) {
 		return GameDataBindError::UnsupportedProfile;
 	}
 	if ( binding.entityCount <= 0
@@ -534,7 +635,8 @@ GameDataBindError ServerGameDataView::BindNative( comGameId_t profile,
 	if ( entityCapacity < binding.entityCount || entityCapacity > FNTECH3_Q3_MAX_GENTITIES
 		|| ( profile != COM_GAME_RTCW_SP && profile != COM_GAME_RTCW_MP && profile != COM_GAME_WOLFET
 			&& profile != COM_GAME_STVEF_SP && profile != COM_GAME_QUAKE3_IHV
-			&& profile != COM_GAME_ALICE && entityCapacity != binding.entityCount ) )
+			&& profile != COM_GAME_ALICE && profile != COM_GAME_FAKK2 && profile != COM_GAME_MOHAA
+			&& profile != COM_GAME_Q3TEST && entityCapacity != binding.entityCount ) )
 		return GameDataBindError::InvalidEntityCount;
 	if ( !binding.entityBase ) {
 		return GameDataBindError::NullEntityBase;
@@ -846,10 +948,24 @@ bool ServerGameDataView::ReadEntityState( const GameEntityRef &reference,
 		fntech3_q3_ihv_entityState_t external{};
 		return ReadEntityState(reference, external) && q3ihv::state::ToInternal(external, destination);
 	}
+	if ( layout_->profile == COM_GAME_Q3TEST ) {
+		fntech3_q3test_entityState_t external{};
+		return ReadEntityBytes( reference, 0, &external, sizeof( external ) ) &&
+			q3test::state::ToInternal( external, destination );
+	}
 	if ( layout_->profile == COM_GAME_ALICE ) {
 		fntech3_alice_entityState_t external{};
 		return ReadEntityBytes( reference, 0, &external, sizeof( external ) ) &&
 			alice::state::ToInternal( external, destination );
+	}
+	if ( layout_->profile == COM_GAME_FAKK2 ) {
+		/* F.A.K.K.2's record crosses into Alice's and from there into this
+		 * engine's, losing nothing on the way (code/compat/fakk2_convert.hpp). */
+		fntech3_fakk2_entityState_t external{};
+		fntech3_alice_entityState_t alice{};
+		if ( !ReadEntityBytes( reference, 0, &external, sizeof( external ) ) ) return false;
+		fakk2::convert::EntityToAlice( external, alice );
+		return alice::state::ToInternal( alice, destination );
 	}
 	if ( layout_->profile == COM_GAME_RTCW_SP || layout_->profile == COM_GAME_RTCW_MP ) {
 		fntech3_rtcw_entityState_t external{};
@@ -899,6 +1015,11 @@ bool ServerGameDataView::WriteEntityState( const GameEntityRef &reference,
 		return ReadEntityState(reference, external) && q3ihv::state::FromInternal(source, external)
 			&& WriteEntityState(reference, external);
 	}
+	if ( layout_->profile == COM_GAME_Q3TEST ) {
+		fntech3_q3test_entityState_t external{};
+		return q3test::state::FromInternal( source, external ) &&
+			WriteEntityBytes( reference, 0, &external, sizeof( external ) );
+	}
 	if ( layout_->profile == COM_GAME_ALICE ) {
 		/* Read first, then put back only the members this engine owns: the
 		 * forty-nine Ritual members it has nowhere to keep stay exactly as
@@ -907,6 +1028,17 @@ bool ServerGameDataView::WriteEntityState( const GameEntityRef &reference,
 		return ReadEntityBytes( reference, 0, &external, sizeof( external ) ) &&
 			alice::state::FromInternal( source, external ) &&
 			WriteEntityBytes( reference, 0, &external, sizeof( external ) );
+	}
+	if ( layout_->profile == COM_GAME_FAKK2 ) {
+		/* The same, through Alice's record: every F.A.K.K.2 member has a home
+		 * there, so the ones this engine does not own come back unchanged. */
+		fntech3_fakk2_entityState_t external{};
+		fntech3_alice_entityState_t alice{};
+		if ( !ReadEntityBytes( reference, 0, &external, sizeof( external ) ) ) return false;
+		fakk2::convert::EntityToAlice( external, alice );
+		if ( !alice::state::FromInternal( source, alice ) ) return false;
+		fakk2::convert::EntityFromAlice( alice, external );
+		return WriteEntityBytes( reference, 0, &external, sizeof( external ) );
 	}
 	if ( layout_->profile == COM_GAME_QUAKE3 ) {
 		fntech3_q3_entityState_t external{};
@@ -972,6 +1104,8 @@ bool ServerGameDataView::WriteEntityState(const GameEntityRef &reference,
 		&& WriteEntityBytes(reference, 0, &source, sizeof(source));
 }
 bool ServerGameDataView::GetInuse(const GameEntityRef &reference, std::int32_t &destination) const {
+	if (layout_ && layout_->profile == COM_GAME_Q3TEST)
+		return ReadEntityBytes(reference, offsetof(fntech3_q3test_entity_t,inuse), &destination, sizeof(destination));
 	return layout_ && layout_->profile == COM_GAME_QUAKE3_IHV
 		&& ReadEntityBytes(reference, offsetof(fntech3_q3_ihv_entity_t,inuse), &destination, sizeof(destination));
 }
@@ -1061,8 +1195,10 @@ bool ServerGameDataView::GetOwnerNum( const GameEntityRef &reference,
 		return false;
 	}
 	GameEntityRef target;
-	if (layout_->profile == COM_GAME_QUAKE3_IHV && owner && !EntityRefForPointer(owner,target)) return false;
-	const int noOwner = layout_->profile == COM_GAME_QUAKE3_IHV ? -1 : ENTITYNUM_NONE;
+	// Q3Test's owner is a pointer too, and its A/B entity 1023 is valid.
+	const bool nativeOwner = layout_->profile == COM_GAME_QUAKE3_IHV || layout_->profile == COM_GAME_Q3TEST;
+	if (nativeOwner && owner && !EntityRefForPointer(owner,target)) return false;
+	const int noOwner = nativeOwner ? -1 : ENTITYNUM_NONE;
 	destination = owner && EntityRefForPointer( owner, target ) ? target.index : noOwner;
 	return true;
 }
@@ -1079,7 +1215,7 @@ bool ServerGameDataView::SetOwnerNum( const GameEntityRef &reference,
 	if ( !GetOwnerNum( reference, current ) ) return false;
 	if ( value == current ) return true;
 	void *owner = nullptr;
-	const int noOwner = layout_->profile == COM_GAME_QUAKE3_IHV ? -1 : ENTITYNUM_NONE;
+	const int noOwner = layout_->profile == COM_GAME_QUAKE3_IHV || layout_->profile == COM_GAME_Q3TEST ? -1 : ENTITYNUM_NONE;
 	if ( value != noOwner ) {
 		if ( value < 0 || value >= entityCapacity_ ) return false;
 		owner = entityBase_ + static_cast<std::size_t>( value ) * entityStride_;
@@ -1195,10 +1331,43 @@ bool ServerGameDataView::ReadPlayerState( std::int32_t clientIndex,
 		return ReadClientBytes( clientIndex, 0, &external, sizeof( external ) ) &&
 			stvef::state::ToInternal( external, destination );
 	}
-	if ( layout_->profile == COM_GAME_ALICE ) {
+	if ( layout_->profile == COM_GAME_Q3TEST ) {
+		const auto *player = q3test::state::PlayerLayoutForProtocol( q3testProtocol );
+		std::uint8_t external[440];
+		return player && player->bytes <= sizeof( external )
+			&& ReadClientBytes( clientIndex, 0, external, player->bytes )
+			&& q3test::state::PlayerToInternal( *player, external, destination );
+	}
+	/* F.A.K.K.2's player state is Alice's record, member for member. */
+	if ( layout_->profile == COM_GAME_ALICE || layout_->profile == COM_GAME_FAKK2 ) {
 		fntech3_alice_playerState_t external{};
 		return ReadClientBytes( clientIndex, 0, &external, sizeof( external ) ) &&
 			alice::state::ToInternal( external, destination );
+	}
+	/* Medal of Honor's record (mohaa_game_abi.h) keeps no persistant scores:
+	 * a client's score is its kills stat, as 2015's status prints it (OpenMoHAA
+	 * sv_ccmds.c). Only the members that mean the same are carried over. */
+	if ( layout_->profile == COM_GAME_MOHAA ) {
+		fntech3::mohaa::PlayerState external{};
+		if ( !ReadClientBytes( clientIndex, 0, &external, sizeof( external ) ) ) {
+			return false;
+		}
+		destination = playerState_t{};
+		destination.commandTime = external.commandTime;
+		destination.clientNum = external.clientNum;
+		destination.ping = external.ping;
+		for ( int i = 0; i < 3; i++ ) {
+			destination.origin[i] = external.origin[i];
+			destination.velocity[i] = external.velocity[i];
+			destination.viewangles[i] = external.viewangles[i];
+		}
+		for ( int i = 0; i < MAX_STATS; i++ ) {
+			destination.stats[i] = external.stats[i];
+		}
+		/* persistant[0] is PERS_SCORE, which the engine's status and
+		 * getstatus read (game/bg_public.h: it must not change). */
+		destination.persistant[0] = external.stats[fntech3::mohaa::kStatKills];
+		return true;
 	}
 	if ( layout_->profile != COM_GAME_QUAKELIVE ) return false;
 	fntech3_ql_playerState_t external{};
@@ -1234,6 +1403,20 @@ bool ServerGameDataView::ReadPlayerState(std::int32_t clientIndex,
 	fntech3_q3_ihv_playerState_t &destination) const {
 	return layout_ && layout_->profile == COM_GAME_QUAKE3_IHV
 		&& ReadClientBytes(clientIndex,0,&destination,sizeof(destination));
+}
+
+bool ServerGameDataView::ReadQ3TestEntityState( const GameEntityRef &reference,
+	void *destination, std::size_t bytes ) const
+{
+	return layout_ && layout_->profile == COM_GAME_Q3TEST && bytes == layout_->entityStateBytes
+		&& ReadEntityBytes( reference, 0, destination, bytes );
+}
+
+bool ServerGameDataView::ReadQ3TestPlayerState( std::int32_t clientIndex,
+	void *destination, std::size_t bytes ) const
+{
+	return layout_ && layout_->profile == COM_GAME_Q3TEST && bytes == layout_->playerStateBytes
+		&& ReadClientBytes( clientIndex, 0, destination, bytes );
 }
 
 bool ServerGameDataView::SetPlayerPing( std::int32_t clientIndex,

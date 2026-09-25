@@ -1,6 +1,6 @@
 # GLx Renderer Guide
 
-GLx is FnQL's canonical OpenGL-lineage renderer and the client default. It is the renderer path where OpenGL-family work lands: capability tiers, static-world acceleration, dynamic streaming, material execution, postprocess, output transforms, and GLx-specific diagnostics.
+GLx is fnTech3's canonical OpenGL-lineage renderer and the client default in every game. It is the renderer path where OpenGL-family work lands: capability tiers, static-world acceleration, dynamic streaming, material execution, postprocess, output transforms, and GLx-specific diagnostics. Each game's own formats -- RTCW's and Enemy Territory's models, fog and coronas, Elite Force's effects, and the TIKI models, shaders and far plane of Alice and F.A.K.K.2 -- are drawn through it as through the other two renderers.
 
 GLx is built in normal modular builds and can be selected explicitly with:
 
@@ -49,8 +49,8 @@ make BUILD_SERVER=0 USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=glx
 Use the runtime sweep for structured evidence:
 
 ```sh
-python scripts/glx_runtime_sweep.py --gate rc-parity --exe path/to/fnql --basepath path/to/game
-python scripts/glx_runtime_sweep.py --gate rc-proof --exe path/to/fnql --basepath path/to/game --proof-dir .tmp/glx-proof/windows-x86
+python scripts/glx_runtime_sweep.py --gate rc-parity --exe path/to/fntech3 --basepath path/to/game
+python scripts/glx_runtime_sweep.py --gate rc-proof --exe path/to/fntech3 --basepath path/to/game --proof-dir .tmp/glx-proof/windows-x86
 ```
 
 Inside the game, these commands are the first things to capture in a renderer bug report:
@@ -74,3 +74,5 @@ If the screen is black or the image differs from `vk`, collect `glxinfo`, `glxpo
 If performance regresses, run `rc-parity` or `rc-proof` and compare the generated performance aggregate. Useful counters include draw count, stream upload volume, material binds, static packet misses, same-frame stream wrap rejects, and GPU frame time.
 
 If a driver-specific GLx issue blocks play, set `cl_renderer vk` and run `vid_restart` to use the Vulkan raster renderer.
+
+The runtime sweep's proof corpus uses stock `baseq3` scenes such as `q3dm1` and `q3dm17`; see the [GLx proof corpus](fnql/GLX_PROOF_CORPUS.md). A problem that appears in only one game is best reported with that game's profile, map and an engine `screenshot` from both `glx` and `vk`.

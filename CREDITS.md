@@ -153,6 +153,22 @@ remain authoritative.
   coordinate/shader contracts. This is reference-only use: no GPLv3 source
   implementation or retail menu text is incorporated in the JSON presets.
 
+- Heavy Metal: F.A.K.K.2's HUD preset is independently authored from the
+  sizes, alignments and art names of its four retail HUD menus, read from a
+  legitimate installation's `ui/*.urc`, and from the engine's own HUD draw
+  dump. This is reference-only use: no retail menu text or assets are
+  incorporated.
+
+- The Enemy Territory, Elite Force and Alice HUD presets are independently
+  authored from the engine's own HUD draw dumps and from layout facts read in
+  the [Enemy Territory GPL source](https://github.com/id-Software/Enemy-Territory),
+  Raven's Elite Force single-player SDK and the
+  [Elite-Reinforce](https://github.com/kugelrund/Elite-Reinforce) port.
+  Giving Elite Force single player's client game the 4:3 frame follows
+  [Lilium Voyager](https://github.com/zturtleman/lilium-voyager)'s handling
+  of its Holomatch interface. All of this is reference-only use: no source
+  text is incorporated.
+
 - The reviewed [FnQuake3 package assets](https://github.com/themuffinator/FnQ3/tree/7d8c9629cdc7979f09697266470359101ffd9eda/pkg)
   supply Q3 and Team Arena audio-zone, fog, and sound-tuning data, plus the
   retained legacy HUD preset, under `pkg/games/quake3/`. The package subtree
@@ -519,6 +535,57 @@ were checked against *Physically Based Rendering*'s
 and [dielectric reflection/transmission](https://www.pbr-book.org/4ed/Reflection_Models/Specular_Reflection_and_Transmission)
 chapters; the GLSL implementation and synthetic tests are independently written.
 
+The path tracer (`code/rendererrtx/rt`, `code/rendererrtx/shaders/rt_*`) is
+independently written. Its methods follow published work, used as method
+references only:
+
+- light selection by resampled importance sampling: Talbot, Cline and Egbert,
+  [*Importance Resampling for Global Illumination*](https://diglib.eg.org/handle/10.2312/EGWR.EGSR05.139-146)
+  (EGSR 2005);
+- reflections sharing surface lights with light sampling by the balance
+  heuristic: Veach and Guibas,
+  [*Optimally Combining Sampling Techniques for Monte Carlo Rendering*](https://graphics.stanford.edu/papers/combine/)
+  (SIGGRAPH 1995);
+- the denoiser's variance-guided temporal and a-trous filtering: Schied et al.,
+  [*Spatiotemporal Variance-Guided Filtering*](https://research.nvidia.com/publication/2017-07_spatiotemporal-variance-guided-filtering-real-time-reconstruction-path-traced)
+  (HPG 2017), and Dammertz et al.,
+  [*Edge-Avoiding A-Trous Wavelet Transform for fast Global Illumination Filtering*](https://jo.dreggn.org/home/2010_atrous.pdf)
+  (HPG 2010);
+- the specular lobe: Walter et al.,
+  [*Microfacet Models for Refraction through Rough Surfaces*](https://www.graphics.cornell.edu/~bjw/microfacetbsdf.pdf)
+  (EGSR 2007), and Duff et al.,
+  [*Building an Orthonormal Basis, Revisited*](https://jcgt.org/published/0006/01/01/)
+  (JCGT 2017);
+- texture filtering from ray differentials: Igehy,
+  [*Tracing Ray Differentials*](https://graphics.stanford.edu/papers/trd/)
+  (SIGGRAPH 1999);
+- the compute backend's hierarchies and intersections: Wald,
+  *On fast Construction of SAH-based Bounding Volume Hierarchies* (IEEE
+  Symposium on Interactive Ray Tracing 2007), and Möller and Trumbore,
+  *Fast, Minimum Storage Ray-Triangle Intersection* (Journal of Graphics
+  Tools 1997);
+- the normal maps' tangent frame: Lengyel,
+  [*Computing Tangent Space Basis Vectors for an Arbitrary Mesh*](http://www.terathon.com/code/tangent.html)
+  (2001).
+
+Its map lighting reproduces the light models of the map compilers as
+behaviour: id Software's q3map in the
+[Quake III Arena source release](https://github.com/id-Software/Quake-III-Arena)
+(GPL-2.0) and q3map2 in
+[NetRadiant](https://gitlab.com/xonotic/netradiant) (GPL-2.0), consulted for
+their point, spot, linear, area, sun and ambient rules, their choice and
+normalisation of the sun, their backsplash, `alphashadow` and `lightfilter`
+rules, which surfaces cast shadows, q3map2's `q3map_sunExt` spread and
+`q3map_skyLight` dome of suns, the worldspawn keys only q3map2 reads, and
+q3map2's Wolfenstein light model for RTCW and Enemy Territory maps. No
+compiler source text is incorporated. The
+material maps a texture pack may supply take the companion image names,
+channel layouts and normal-map axes of the rend2 renderer in
+[OpenJK](https://github.com/JACoders/OpenJK/tree/1a6a643427aa347553e9073dac5570b33337c4d9)
+(GPL-2.0-or-later, `codemp/rd-rend2`), as reference observation only; no
+implementation text is incorporated. The renderer's waveform and colour-generator behaviour
+is matched against fnTech3's own inherited renderer code.
+
 - The shared skin loader extends the inherited GPL-2.0-or-later Q3 loader,
   retaining its notice. RTCW model-key and player-scale behavior is independently
   implemented from observations of the original [SP](https://github.com/id-Software/RTCW-SP),
@@ -752,6 +819,35 @@ chapters; the GLSL implementation and synthetic tests are independently written.
   [model record](docs/fntech3/2026-09-22-alice-models.md) and
   [wire record](docs/fntech3/2026-09-22-alice-wire.md).
 
+- The Medal of Honor: Allied Assault profile uses facts from the user's
+  legitimate retail 1.00 installation -- its pak identity, every map it ships,
+  and the two retail game libraries, plain PEs whose tables, records and call
+  sites are measured directly. Its `MOHAA.exe` is SafeDisc-encrypted and was
+  never read or run.
+  [OpenMoHAA](https://github.com/openmoh/openmohaa/tree/ab43a0def6c4feccedae36fdb58c2e007d7e4c35)
+  at `ab43a0def6c4feccedae36fdb58c2e007d7e4c35` (GPL-2.0-or-later), an
+  independent reconstruction of 2015's engine, is used in two ways that are
+  kept apart. Its implementation text is incorporated, each file keeping its
+  original licence header, in the TIKI, skeletor, script-container and alias
+  code under `code/mohaa/` (see its [README](code/mohaa/README.md)), the
+  protocol-6 message tables in `code/qcommon/mohaa_msg.cpp`, the protocol-6
+  client parse in `code/client/cl_mohaa.cpp`, the snapshot walk and module
+  queues in `code/server/server_mohaa_net.hpp`, the world and hit-location
+  traces in `code/server/server_mohaa_world.hpp`, and the terrain collision in
+  `code/qcommon/cm_mohaa_terrain.c` with the reading of the terrain's variance
+  tree it shares with the renderers in `code/qcommon/mohaa_terrain_squares.h`,
+  whose source is copyright 2008 Leszek Godlewski. Everywhere else -- the
+  engine menus, HUD, music, savegames, loading and sound rules, the permanent
+  decals with their editor, the decal cutter for terrain and brush models, the
+  lights its client game's shadows ask for, and the level-of-detail tool -- it
+  is reference observation, cited by file, and
+  none of its text is used. The retail libraries outrank it wherever they
+  disagree. No Medal of Honor module or asset is redistributed or shipped;
+  `system86.dll`, the modules' allocator, is loaded from the user's own
+  installation. See the
+  [contracts record](docs/fntech3/2026-09-24-mohaa-contracts.md) and
+  [map record](docs/fntech3/2026-09-24-mohaa-maps.md).
+
 - Elite Force's MP3 sounds and music are decoded by
   [minimp3](https://github.com/lieff/minimp3/tree/ea99364f61c14656440e8d77e9c233ccf3124633)
   by Lion (lieff), released under CC0 1.0 and consumed through
@@ -769,6 +865,18 @@ text is incorporated. The 47 stock sidecars are generated acoustic metadata
 from a legitimate local installation, with source/output identities and limits
 in the [generation record](docs/fntech3/2026-09-17-rtcw-audio-zones.md).
 
+The 47 RTCW static light files are generated from the maps' own `light`
+entities. The entity keys and spawnflags were observed in the original
+`QUAKED light` comments ([SP](https://github.com/id-Software/RTCW-SP/blob/master/src/game/g_misc.c),
+[MP](https://github.com/id-Software/RTCW-MP/blob/master/src/game/g_misc.c)) and
+the `dlight` entity's radius in the [SP cgame](https://github.com/id-Software/RTCW-SP/blob/master/src/cgame/cg_ents.c);
+the falloff constants in the Wolf lighting model of q3map2
+([NetRadiant](https://gitlab.com/xonotic/netradiant), `tools/quake3/q3map2`,
+GPL-2.0-or-later), checked against the maps' baked lightmaps. All three were
+read as reference observation only; no implementation text is incorporated.
+Identities, rules and limits are in the
+[generation record](docs/fntech3/2026-09-24-rtcw-map-lights.md).
+
 fnTech3 does not redistribute Quake III Arena, Quake Live, Return to Castle
 Wolfenstein, Enemy Territory, Elite Force or Jedi Academy data, retail game
 modules, Bink or
@@ -776,6 +884,22 @@ other proprietary runtimes, Steam SDK/runtime binaries, Awesomium,
 credentials, captured private traffic, or other proprietary content. Runtime
 validation uses the user's
 legitimate local installations and records only non-proprietary evidence.
+
+## Game icon artwork
+
+Thirteen [game application icons](assets/icons/games/README.md) are imagegen
+remakes of the original games' executable icons; standalone MOHAA artwork is
+also remade with imagegen. RTCW single-player retains
+the previous artwork pending its blocked remake. Retail icons, Alice's menu portrait
+and the F.A.K.K.2 installer splash were visual references; extracted reference
+artwork is not included. The [generation record](assets/icons/games/PROMPTS.md)
+documents the prompts. Game names, characters, logos and symbols remain the
+work of their respective creators and owners.
+
+The [social banner and README silhouette strip](assets/logos/README.md) use
+these generated remakes as visual references for new imagegen raster artwork,
+with one icon per title. Their [generation record](assets/logos/PROMPTS.md)
+documents the ten-icon rows.
 
 ## Project thanks
 

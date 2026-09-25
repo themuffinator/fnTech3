@@ -9,6 +9,7 @@ import unittest
 
 from mesh_tag_tests import function
 import q3_ihv_particles_tests as particles
+import rtx_surface_owner_tests
 
 ROOT = Path(__file__).resolve().parents[1]
 RENDERERS = particles.RENDERERS
@@ -157,6 +158,9 @@ static qboolean R_LoadAliceSprite(model_t*,const char*){assert(0);return qfalse;
 static void R_AddAliceTikiSurfaces(trRefEntity_t*){assert(0);}
 static qboolean R_AliceEntityInView(const trRefEntity_t*){assert(0);return qtrue;}
 static void RB_SurfaceAliceSprite(){assert(0);}
+// Medal of Honor's model kind and sky-entity view test, unreachable here too.
+static void R_AddMOHAATikiSurfaces(trRefEntity_t*){assert(0);}
+static qboolean R_MOHAAEntityInView(const trRefEntity_t*){assert(0);return qtrue;}
 static void myGlMultMatrix(const float a[16],const float b[16],float out[16]){for(int row=0;row<4;++row)for(int col=0;col<4;++col){out[col*4+row]=0;for(int k=0;k<4;++k)out[col*4+row]+=a[k*4+row]*b[col*4+k];}}
 static void RB_SurfaceSprite(){assert(0);}static void RB_SurfaceSplash(){assert(0);}static void RB_SurfaceRailCore(){assert(0);}static void RB_SurfaceRailRings(){assert(0);}static void RB_SurfaceLightningBolt(){assert(0);}static void RB_SurfaceAxis(){assert(0);}
 static qboolean RB_SurfaceSTVEF(){assert(0);return qfalse;}
@@ -251,59 +255,40 @@ int main(){
 '''
 
 
-RAY_HOST = r'''
-#include "code/rendererrtx/rtx_scene_signature.h"
-enum {RTX_RT_MATFLAG_MASKED=1,RTX_RT_MAX_LIGHT_COORDINATE=1048576};
-struct rtxRtCpuGeometry_t {uint32_t numVertices=0,sourceTriangleCount=0,maskedTriangleCount=0,sourceEffectCount=0;struct {unsigned flags=1;} materials[1];std::vector<Vertex> vertices;std::vector<unsigned> indices;};
-static int failure;
-static float vk_rt_effect_radius_scale(){return 1;}
-static qboolean vk_rt_cpu_geometry_find_or_add_material(rtxRtCpuGeometry_t*,const shader_t *material,uint32_t *out){assert(material==&shader);*out=0;return failure==1?qfalse:qtrue;}
-static void vk_rt_apply_effect_material_tuning(rtxRtCpuGeometry_t*,uint32_t material,qboolean blend,qboolean decal){assert(!material&&blend&&!decal);}
-static qboolean vk_rt_cpu_geometry_reserve(rtxRtCpuGeometry_t*,uint32_t vertices,uint32_t indices){assert((vertices==12&&indices==36)||(vertices==4&&indices==6));return failure==2?qfalse:qtrue;}
-static qboolean vk_rt_cpu_geometry_add_vertex(rtxRtCpuGeometry_t *g,const vec3_t xyz,const vec3_t,const vec4_t,const vec2_t uv,uint32_t color,uint32_t,void*){if(failure==3)return qfalse;g->vertices.push_back({{xyz[0],xyz[1],xyz[2]},{uv[0],uv[1]},color});++g->numVertices;return qtrue;}
-static qboolean vk_rt_cpu_geometry_add_index(rtxRtCpuGeometry_t *g,uint32_t i){if(failure==4)return qfalse;g->indices.push_back(i);return qtrue;}
-static qboolean vk_rt_cpu_geometry_add_triangle(rtxRtCpuGeometry_t *g,uint32_t a,uint32_t b,uint32_t c){return vk_rt_cpu_geometry_add_index(g,a)&&vk_rt_cpu_geometry_add_index(g,b)&&vk_rt_cpu_geometry_add_index(g,c)?qtrue:qfalse;}
-'''
-
-
-def ray_fixture():
-    source = fixture('rendererrtx') + RAY_HOST
-    vk = (ROOT / 'code/rendererrtx/vk.c').read_text()
-    for signature in ['static void vk_rt_transform_point(', 'static void vk_rt_transform_direction(',
-                      'static uint32_t vk_rt_color_u32_from_bytes(',
-                      'static uint32_t vk_rt_hash_mix_u32(', 'static uint32_t vk_rt_hash_quantized_float(',
-                      'static qboolean vk_rt_float_in_finite_range(', 'static qboolean vk_rt_vec3_in_finite_range(',
-                      'static qboolean vk_rt_entity_visible_in_current_view(', 'static qboolean vk_rt_model_casts_in_current_view(',
-                      'static uint32_t vk_rt_estimate_dynamic_scene_signature(']:
-        source += function(vk[vk.rindex(signature):], signature)
-    source += '#include "code/renderercommon/tr_q3_ihv_beam_ray.h"\n'
-    signature = 'static qboolean vk_rt_append_beam_entity_geometry('
-    return source + function(vk[vk.rindex(signature):], signature)
-
-
 RAY_CHECKS = r'''
-int main(){
- R_CreateIHVBeamShader();trRefEntity_t value{};auto &e=value.e;backEnd.currentEntity=&value;
- e.reType=RT_BEAM;e.q3IHV.active=1;e.origin[0]=10;e.oldorigin[0]=10;e.oldorigin[2]=20;
- for(int i=0;i<3;++i){e.axis[i][i]=1;backEnd.refdef.viewaxis[i][i]=1;backEnd.viewParms.or.axis[i][i]=1;}
- for(unsigned flags:{0u,1u,0x400u})for(int portal:{0,1}){
-  e.q3IHV.flags=flags;backEnd.viewParms.portalView=portal;backEnd.refdef.viewaxis[0][0]=0;backEnd.refdef.viewaxis[0][1]=1;backEnd.refdef.viewaxis[1][0]=-1;backEnd.refdef.viewaxis[1][1]=0;
-  rtxRtCpuGeometry_t geometry;tess={};RB_SurfaceBeam();assert(vk_rt_append_beam_entity_geometry(&geometry,&value));
-  assert(geometry.numVertices==12&&geometry.sourceTriangleCount==12&&geometry.maskedTriangleCount==12&&geometry.sourceEffectCount==1&&geometry.indices.size()==36);
-  for(int i=0;i<12;++i){float expected[3];vk_rt_transform_point(&value,tess.xyz[i],expected);assert(!memcmp(expected,geometry.vertices[i].xyz.data(),12));assert(geometry.vertices[i].color==0xff0000ffu&&!geometry.vertices[i].uv[0]&&!geometry.vertices[i].uv[1]);
-   if(flags&0x400)assert(expected[0]==10-tess.xyz[i][1]&&expected[1]==tess.xyz[i][0]);else assert(expected[0]==10+tess.xyz[i][0]&&expected[1]==tess.xyz[i][1]);}
-  for(int i=0;i<36;++i)assert(geometry.indices[i]==tess.indexes[i]);
- }
- for(failure=1;failure<=4;++failure){rtxRtCpuGeometry_t g;assert(!vk_rt_append_beam_entity_geometry(&g,&value));}failure=0;
- for(int portal:{0,1})for(unsigned flags=0;flags<4096;++flags){e.q3IHV.flags=flags;backEnd.viewParms.portalView=portal;assert(bool(vk_rt_entity_visible_in_current_view(&value))==bool(Q3IHV_EntityVisible(flags,portal)));}
- backEnd.viewParms.portalView=0;e.q3IHV.flags=0;backEnd.refdef.entities=&value;backEnd.refdef.num_entities=1;float centroid[3];
- const auto baseline=vk_rt_estimate_dynamic_scene_signature(centroid,nullptr,nullptr,1);
- for(int row=0;row<3;++row)for(int col=0;col<3;++col){const float saved=e.axis[row][col];e.axis[row][col]+=.001f;assert(vk_rt_estimate_dynamic_scene_signature(centroid,nullptr,nullptr,1)!=baseline);e.axis[row][col]=saved;}
- for(int a=0;a<3;++a){float saved=e.origin[a];e.origin[a]+=.001f;assert(vk_rt_estimate_dynamic_scene_signature(centroid,nullptr,nullptr,1)!=baseline);e.origin[a]=saved;saved=e.oldorigin[a];e.oldorigin[a]+=.001f;assert(vk_rt_estimate_dynamic_scene_signature(centroid,nullptr,nullptr,1)!=baseline);e.oldorigin[a]=saved;}
- e.backlerp=.001f;assert(vk_rt_estimate_dynamic_scene_signature(centroid,nullptr,nullptr,1)!=baseline);e.backlerp=0;
- e.q3IHV.flags=0x400;const auto facing=vk_rt_estimate_dynamic_scene_signature(centroid,nullptr,nullptr,1);assert(facing!=baseline);backEnd.refdef.viewaxis[2][0]+=.001f;assert(vk_rt_estimate_dynamic_scene_signature(centroid,nullptr,nullptr,1)!=facing);
- for(auto profile:{COM_GAME_QUAKE3,COM_GAME_QUAKELIVE}){ri.gameId=profile;rtxRtCpuGeometry_t g;assert(vk_rt_append_beam_entity_geometry(&g,&value)&&g.numVertices==4&&g.sourceTriangleCount==2);const auto previous=vk_rt_estimate_dynamic_scene_signature(centroid,nullptr,nullptr,1);backEnd.refdef.viewaxis[0][0]+=4;assert(vk_rt_estimate_dynamic_scene_signature(centroid,nullptr,nullptr,1)==previous);}
- ri.gameId=COM_GAME_QUAKE3_IHV;memcpy(e.oldorigin,e.origin,12);rtxRtCpuGeometry_t empty;assert(vk_rt_append_beam_entity_geometry(&empty,&value)&&empty.vertices.empty());
+int main() {
+    /* The path tracer leaves IHV beams, whatever entity carries them, to the
+     * raster overlay, which draws the geometry RB_SurfaceBeam builds. */
+    ri.gameId = COM_GAME_QUAKE3_IHV;
+    Model( MOD_IHV_BEAM )->e.q3IHV.active = 1;
+    assert( RT_EntityClass( &entities[0] ) < 0 );
+    assert( vk_rt_surface_owner( 0, &tracedShader, 0, SF_ENTITY ) == RT_SURFACE_RASTER );
+    Model( MOD_MESH )->e.reType = RT_BEAM;
+    entities[0].e.q3IHV.active = 1;
+    assert( RT_EntityClass( &entities[0] ) < 0 );
+    assert( vk_rt_surface_owner( 0, &tracedShader, 0, SF_ENTITY ) == RT_SURFACE_RASTER );
+    /* Its models are traced exactly when raster draws them in the primary
+     * view (Q3IHV_EntityVisible); a hidden body is kept for its shadow, and a
+     * portal marker never enters the scene. */
+    for ( uint32_t flags = 0; flags < 4096; ++flags ) {
+        Model( MOD_MESH )->e.q3IHV.active = 1;
+        entities[0].e.q3IHV.flags = flags;
+        const int cls = RT_EntityClass( &entities[0] );
+        assert( ( cls == 0 || cls == 1 ) == ( Q3IHV_EntityVisible( flags, PV_NONE ) != 0 ) );
+        if ( flags & Q3IHV_ENTITY_PORTAL ) assert( cls < 0 );
+        else if ( flags & Q3IHV_ENTITY_THIRD_PERSON ) assert( cls == 2 );
+        else if ( flags & Q3IHV_ENTITY_FIRST_PERSON ) assert( cls == 1 && !Q3IHV_EntityVisible( flags, PV_PORTAL ) );
+        else assert( cls == 0 );
+        assert( vk_rt_surface_owner( 0, &tracedShader, 0, SF_MD3 ) ==
+            ( cls < 0 ? RT_SURFACE_RASTER : RT_SURFACE_TRACED ) );
+        /* the record means nothing to other profiles, or unmarked entities */
+        ri.gameId = COM_GAME_QUAKE3;
+        assert( RT_EntityClass( &entities[0] ) == 0 );
+        ri.gameId = COM_GAME_QUAKE3_IHV;
+        entities[0].e.q3IHV.active = 0;
+        assert( RT_EntityClass( &entities[0] ) == 0 );
+    }
+    return 0;
 }
 '''
 
@@ -320,8 +305,8 @@ class Q3IHVEntityRendererTests(unittest.TestCase):
             with self.subTest(renderer=renderer):
                 self.compile_run(fixture(renderer) + CHECKS)
 
-    def test_ray_beams_match_raster_and_exact_pose_invalidates_cache(self):
-        self.compile_run(ray_fixture() + RAY_CHECKS)
+    def test_ray_leaves_beams_to_raster_and_traces_models_raster_draws(self):
+        rtx_surface_owner_tests.compile_run(self, rtx_surface_owner_tests.host() + RAY_CHECKS)
 
     def test_every_renderer_wires_owned_entry_and_view_selection(self):
         for renderer in RENDERERS:

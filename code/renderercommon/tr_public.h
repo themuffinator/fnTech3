@@ -31,7 +31,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 // 29: the IHV and Alice members were appended to both tables after a commit on
 // another branch (b66b036) had already used 28 for a shorter layout.
-#define	REF_API_VERSION		29
+// 30: Medal of Honor's model registration and the engine's TIKI table.
+#define	REF_API_VERSION		30
 
 //
 // these are the functions exported by the refresh module
@@ -216,10 +217,24 @@ typedef struct {
 	void (*AddAliceLightToScene)( const vec3_t org, float intensity, float r, float g, float b, int type );
 	// Alice's savegame picture, taken from the next frame drawn as retail's
 	// `screenshot <path> <width> <height>` reduces its own read of the frame
-	// (code/compat/alice_saveshot.h): width by height grey RGB pixels, the
-	// bottom row first, with done set once they are there. A picture of NULL
-	// withdraws a request that has not been met.
+	// (code/compat/alice_saveshot.h): width by height grey RGB pixels, or
+	// Heavy Metal: F.A.K.K.2's in colour as blue, green, red, the bottom row
+	// first, with done set once they are there. A picture of NULL withdraws a
+	// request that has not been met.
 	void (*CaptureAliceSaveshot)( byte *rgb, int width, int height, qboolean *done );
+	// Medal of Honor: a model for one of the engine's TIKI definitions,
+	// posed and skinned through the engine's table (ri.MOHAARender). NULL in
+	// a renderer that draws none.
+	qhandle_t (*RegisterMOHAATiki)( const char *name, const void *tiki );
+	// Medal of Honor's decal fragments (tr_mohaa_marks_surface.h): model 0
+	// cuts the world with its terrain, writing each fragment's terrain patch
+	// plus one, or 0, to patches (which may be NULL); another model is a
+	// brush model, cut in its own space, the decal given in the world's and
+	// taken into it by angles and origin. radiusSquared, the decal's squared
+	// size, keeps small decals off terrain. NULL in a renderer that cuts none.
+	int (*MarkMOHAAFragments)( int model, const vec3_t angles, const vec3_t origin, int numPoints,
+		const vec3_t *points, const vec3_t projection, int maxPoints, vec3_t pointBuffer, int maxFragments,
+		markFragment_t *fragments, int *patches, float radiusSquared );
 
 
 } refexport_t;
@@ -367,6 +382,11 @@ typedef struct refimport_s {
 	// load sets to 7 as it starts and 8 as it ends (RE_LoadWorldMap
 	// 0x0049afe0, 0x0049b8f4). May be NULL.
 	void	(*AliceLoadingStage)( int stage );
+
+	// Medal of Honor's TIKI definitions: their surfaces, an entity's pose and
+	// a surface skinned by it (code/renderercommon/tr_mohaa_render.h). May be
+	// NULL.
+	const struct mohaaRenderImport_s *MOHAARender;
 
 } refimport_t;
 

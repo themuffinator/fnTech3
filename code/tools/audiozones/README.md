@@ -5,7 +5,11 @@ environment system. The game ignores missing or invalid sidecars and keeps the
 generic trace-based OpenAL environment heuristics.
 
 Sidecars can be written by hand as `maps/<map>.audiozones`, or generated from an
-existing Quake III, Quake Live, or RTCW `maps/<map>.bsp`. Generated zones are intended as a solid
+existing `maps/<map>.bsp`: Quake III's and Quake Live's IBSP 46 and 47, RTCW's
+and Enemy Territory's IBSP 47, the FAKK maps of American McGee's Alice and
+Heavy Metal: F.A.K.K.2, and Medal of Honor: Allied Assault's "2015" 19 maps.
+Raven's RBSP maps (Jedi Academy, Jedi Outcast) are not
+read, and Elite Force has no generator yet. Generated zones are intended as a solid
 first pass: they are derived from BSP leaves, clusters, areas, surfaces, brushes,
 shader contents, and surface flags, then can be merged with small manual
 overrides for places that need art-directed tuning.
@@ -87,6 +91,75 @@ complete inventory, and audits every result before publishing to
 `--strict` rejects audit warnings as well as structural failures. Generated
 sidecars still need listening checks; the [stock RTCW evidence](../../../docs/fntech3/2026-09-17-rtcw-audio-zones.md)
 records the current coverage warnings.
+
+For Wolfenstein: Enemy Territory, pass `--profile wolfet`. ET's maps are IBSP 47
+too and keep RTCW's material bits, except that `0x40` marks a water splash,
+which votes liquid. Generate the six stock maps from a legitimate installation:
+
+```powershell
+python scripts/generate_stock_wolfet_audio_zones.py "E:/SteamLibrary/steamapps/common/Wolfenstein Enemy Territory" --tool meson/build/win32-dev/fnql-audiozonesc.exe
+```
+
+It publishes to `pkg/games/wolfet/etmain/maps/` only after every map passes; the
+[stock ET evidence](../../../docs/fntech3/2026-09-18-wolfet-audio-zones.md)
+records the results and warnings.
+
+For American McGee's Alice, pass `--profile alice`. Alice's maps are Ritual's
+FAKK 42 rather than IBSP: the compiler reads their twenty-lump directory and
+their one-field-longer shader and surface records, and refuses a FAKK map
+without `--profile alice` or an IBSP map with it. Alice's surface flags are
+Ritual's, taken from `alice.exe`'s own `surfaceparm` table: wood, dirt,
+organic and squishy vote soft, rock votes stone, and metal and grill vote
+metal; Quake III's flesh and metal-steps bits mean something else there and
+do not vote, and hint brush sides are bit 24, not bit 8. Alice's maps carry
+almost no material flags, so the generator also passes
+`scripts/alice-audio-materials.txt`, name rules for Alice's own textures:
+
+```powershell
+python scripts/generate_stock_alice_audio_zones.py "E:/Games/Alice" --tool meson/build/win32-dev/fnql-audiozonesc.exe
+```
+
+It publishes to `pkg/games/alice/base/maps/`; the
+[stock Alice evidence](../../../docs/fntech3/2026-09-24-alice-map-sidecars.md)
+records the results and warnings. Alice's OpenAL backend plays their rooms
+as it does every profile's; a room Alice's client game names replaces them
+while it is named.
+
+For Heavy Metal: F.A.K.K.2, pass `--profile fakk2`. Its maps are FAKK 12, with
+the same header, lumps and records as Alice's FAKK 42, and each Ritual profile
+reads only its own version. F.A.K.K.2's surface flags are the same Ritual bits,
+so the same rules read them, and like Alice's its maps carry almost no material
+flags; its generator passes `scripts/fakk2-audio-materials.txt`:
+
+```powershell
+python scripts/generate_stock_fakk2_audio_zones.py "<F.A.K.K.2 installation>" --tool meson/build/win32-dev/fnql-audiozonesc.exe
+```
+
+It publishes to `pkg/games/fakk2/fakk/maps/`; the
+[stock F.A.K.K.2 evidence](../../../docs/fntech3/2026-09-24-fakk2-map-sidecars.md)
+records the results and warnings.
+
+For Medal of Honor: Allied Assault, pass `--profile mohaa`. Its maps are 2015's
+own format: ident `2015`, version 19 and 28 lumps, with shader, surface, leaf
+and brush side records that add fields after Quake III's. The compiler also
+reads each leaf's terrain patches as drawn ground, and it refuses a 2015 map
+without `--profile mohaa`, or any other map with it. 2015 numbers fifteen
+materials from bit 13 (OpenMoHAA's `surfaceflags.h`, reference only). Metal
+and grill vote metal; rock and glass vote stone; puddle votes liquid; paper,
+wood, dirt, grass, mud, gravel, sand, foliage, snow and carpet vote soft.
+Hint sides are bit 30. The invisible shadow casters its compiler keeps as
+surfaces (`nodraw`) do not vote. Every face of the retail maps carries exactly
+one material flag, so on a 2015 map the flag decides and the shader-name tokens
+are not consulted, and the generator passes no material map:
+
+```powershell
+python scripts/generate_stock_mohaa_audio_zones.py "E:/Games/Medal of Honor Allied Assault" --tool meson/build/win32-dev/fnql-audiozonesc.exe
+```
+
+It publishes to `pkg/games/mohaa/main/maps/`, each map's zones beside it in
+the folder the pak keeps it in (`DM/`, `obj/`, `briefing/`); the
+[stock Medal of Honor evidence](../../../docs/fntech3/2026-09-25-mohaa-map-sidecars.md)
+records the results and warnings.
 
 Supported environment names are `small-room`, `room`, `stone-room`, `hallway`,
 `hall`, `outdoors`, and `underwater`. Supported material names are `unknown`,
@@ -246,6 +319,6 @@ python scripts/generate_standard_audio_zones.py `
 
 The helper reads only official `pak0.pk3` through `pak8.pk3` style archives,
 derives the map set from shipped arena metadata, extracts BSPs into `.tmp/`,
-and writes the compiled sidecars back to `pkg/games/quakelive/baseq3/maps/`. Its default
+and writes the compiled sidecars back to `pkg/games/quake3/baseq3/maps/`. Its default
 `--max-zones 512` keeps generated lookup cost bounded while preserving detailed
 coverage for maps that stay below the cap.

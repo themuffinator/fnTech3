@@ -174,6 +174,38 @@ void TestIntro() {
 	CHECK( Near( IntroPlateAlpha( 0, 1, 1000, 1500 ), 1 ) );
 	CHECK( Near( IntroPlateAlpha( 1, 0, 1000, -10 ), 1 ) );
 	CHECK( Near( IntroPlateAlpha( 1, 0, 0, 5000 ), 1 ) );  // no length: full
+	CHECK( Intro( 1 ).plateScale == 1.8f && !std::strcmp( Intro( 2 ).plateImage, IntroPlateImage ) );
+	CHECK( Intro( -1 ).soundtrack && Intro( 6 ).soundtrack && !Intro( 0 ).soundtrack );
+}
+
+// Heavy Metal: F.A.K.K.2's (fakk2.exe 1.02 _intro 0x0040e0b0).
+void TestFakk2Intro() {
+	IntroStep step = Fakk2Intro( 0 );
+	CHECK( step.action == IntroAction::Soundtrack && step.soundtrack && step.nextState == 1 && step.waitMs == 3000 );
+	const char *plates[] = { "textures/menu/ritual", "textures/menu/gathering" };
+	for ( int plate = 0; plate < 2; ++plate ) {
+		const int first = 1 + plate * 3;
+		step = Fakk2Intro( first );
+		CHECK( step.action == IntroAction::PlateIn && step.nextState == first + 1 && step.waitMs == 1000 );
+		CHECK( step.plateFrom == 0 && step.plateTo == 1 && step.plateMs == 1000 && step.plateScale == 1.5f );
+		CHECK( !std::strcmp( step.plateImage, plates[plate] ) );
+		step = Fakk2Intro( first + 1 );
+		CHECK( step.action == IntroAction::PlateHold && step.waitMs == 3000 && step.plateMs == 0 );
+		CHECK( !std::strcmp( step.plateImage, plates[plate] ) );
+		step = Fakk2Intro( first + 2 );
+		CHECK( step.action == IntroAction::PlateOut && step.waitMs == 1000 && step.plateTo == 0 );
+		CHECK( step.nextState == first + 3 && !std::strcmp( step.plateImage, plates[plate] ) );
+	}
+	// The menu, with the soundtrack already playing, and nothing queued after.
+	step = Fakk2Intro( 7 );
+	CHECK( step.action == IntroAction::MainMenu && step.nextState == 0 && step.waitMs == -1 && !step.soundtrack );
+	// A map loaded only puts the plate away.
+	step = Fakk2Intro( -1 );
+	CHECK( step.action == IntroAction::End && step.nextState == 0 && step.waitMs == -1 && !step.soundtrack );
+	step = Fakk2Intro( 8 );
+	CHECK( step.action == IntroAction::Skip && step.nextState == 9 && step.waitMs == 0 );
+	CHECK( Fakk2Intro( -2 ).nextState == -1 && Fakk2Intro( 2147483647 ).action == IntroAction::Skip );
+	for ( int state = 0; state < 8; ++state ) CHECK( Fakk2Intro( state ).video == nullptr );
 }
 
 void TestLoadingTables() {
@@ -251,6 +283,7 @@ int main() {
 	TestView();
 	TestDialog();
 	TestIntro();
+	TestFakk2Intro();
 	TestLoadingTables();
 	TestMapList();
 	TestRetailMapList();

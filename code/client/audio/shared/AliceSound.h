@@ -440,6 +440,42 @@ inline int LoopBlockOffset( unsigned elapsed, int blockStart, int blockEnd ) {
 	return blockStart + static_cast<int>( ( elapsed - end ) % static_cast<unsigned>( blockEnd - blockStart ) );
 }
 
+/* What a voice is to the listener: a sound in the world, one heard at the
+ * listener (a local sound, or an entity marked for the listener), an
+ * interface sound on the menu channel, or a dialog line. */
+enum class Role { World = 0, Listener = 1, Interface = 2, Dialog = 3 };
+
+/* Where and how a voice is heard, as the engine knows it.
+ *
+ * `gain` and `direct` are retail's: the master volume, the voice's volume
+ * and its distance folded together, and the obstruction step of the direct
+ * path. `pan` is a dialog's 2-D pan (0 to 127), or -1. A backend that has no
+ * spatial model of its own plays these.
+ *
+ * The rest describe the same voice to a backend that measures the world
+ * itself -- a distance model, occlusion, room reverb and tone -- so that it
+ * can apply its own to Alice's data rather than to the retail result:
+ * `volume` is `gain` without the distance; `minDist` the distance inside
+ * which the voice is at full volume, and `maxDist` where it has fallen
+ * silent (0 for no limit); a `minDist` of 0 means the distance is already in
+ * `volume`, as it is for a merged loop group. `source` is where the sound
+ * comes from, for occlusion: a merged group is heard from a point near the
+ * listener but comes from its loudest member. `channel` is the entity
+ * channel the voice plays on. */
+struct Placement {
+	Vec3 position{};
+	Vec3 source{};
+	Vec3 velocity{};
+	float gain = 0.0f;
+	float direct = 1.0f;
+	int pan = -1;
+	float volume = 0.0f;
+	float minDist = 0.0f;
+	float maxDist = 0.0f;
+	Role role = Role::World;
+	int channel = 0;
+};
+
 /* What a backend does for the engine. Voices 0 to 31 are the 3-D ones and 32
  * to 35 the dialog ones. */
 class Device {
@@ -461,10 +497,8 @@ public:
 	virtual void Stop( int voice ) = 0;
 	virtual void Pause( int voice ) = 0;
 	virtual void Resume( int voice ) = 0;
-	/* Where a voice is heard and how loud: `gain` includes the master volume
-	 * and the distance, `direct` is the obstruction of the direct path, and
-	 * `pan` is a dialog's 2-D pan (0 to 127) or -1 for a 3-D voice. */
-	virtual void Place( int voice, const float *position, float gain, float direct, int pan ) = 0;
+	/* Where a voice is heard and how loud; see Placement. */
+	virtual void Place( int voice, const Placement &placement ) = 0;
 };
 
 /* The one trace the engine makes: from a sound to the listener, a point, the
@@ -674,7 +708,7 @@ public:
 			voice.state = VoiceState::Started;
 			voice.heard = listenerOrigin_;
 			voice.gain = voice.applied;
-			device.Place( channel, voice.heard.data(), voice.gain, 1.0f, -1 );
+			device.Place( channel, VoicePlacement( voice, true ) );
 			device.Start( channel, voice.looping, 0 );
 			voice.endTime = frame.serverTime + static_cast<int>( voice.durationMs ) + EndMarginMs;
 		}
@@ -780,10 +814,12 @@ public:
 			if ( !device.Playing( i ) && voice.state != VoiceState::Pending ) continue;
 			if ( voice.loopOwned ) continue;
 			Vec3 heard;
+			bool atListener = false;
 			if ( voice.fixed ) {
 				heard = voice.position;
 			} else if ( voice.local ) {
 				heard = at;
+				atListener = true;
 			} else {
 				const EntitySound *entity = voice.entnum >= 0 && voice.entnum < Entities
 					? &entities_[static_cast<std::size_t>( voice.entnum )] : nullptr;
@@ -796,9 +832,13 @@ public:
 					device.Stop( i );
 					continue;
 				}
-				heard = entity && entity->useListener ? at : voice.position;
+				atListener = entity && entity->useListener;
+				heard = atListener ? at : voice.position;
 			}
-			if ( SnapToListener( voice.entnum, listener_, heard, at ) ) heard = at;
+			if ( SnapToListener( voice.entnum, listener_, heard, at ) ) {
+				heard = at;
+				atListener = true;
+			}
 			/* At most once a whole second of server time (0x00470cc0). */
 			const float seconds = static_cast<float>( frame.serverTime / 1000 );
 			if ( seconds > voice.nextOcclusion ) {
@@ -815,12 +855,12 @@ public:
 					continue;
 				}
 				voice.state = VoiceState::Started;
-				device.Place( i, heard.data(), voice.gain, voice.obstructed ? ObstructionGain : 1.0f, -1 );
+				device.Place( i, VoicePlacement( voice, atListener ) );
 				device.Start( i, voice.looping, 0 );
 				voice.endTime = frame.serverTime + static_cast<int>( voice.durationMs ) + EndMarginMs;
 				continue;
 			}
-			device.Place( i, heard.data(), voice.gain, voice.obstructed ? ObstructionGain : 1.0f, -1 );
+			device.Place( i, VoicePlacement( voice, atListener ) );
 		}
 
 		const float right[3] = { -axis[1][0], -axis[1][1], -axis[1][2] };
@@ -834,7 +874,8 @@ public:
 			float gain = frame.master * dialog.volume;
 			const float distance = Distance( position, at );
 			if ( !dialog.local && distance > dialog.minDist ) gain *= dialog.minDist / distance;
-			device.Place( voice, dialog.local ? at.data() : position.data(), MilesVolume( gain ), 1.0f, pan );
+			device.Place( voice, DialogPlacement( dialog, dialog.local ? at : position, MilesVolume( gain ),
+				MilesVolume( frame.master * dialog.volume ), pan ) );
 			if ( dialog.state == VoiceState::Pending ) {
 				dialog.state = VoiceState::Started;
 				device.Start( voice, false, 0 );
@@ -1023,11 +1064,18 @@ private:
 			log.Print( "Could not setup dialog file!\n" );
 			return;
 		}
-		device.Place( voice, listenerOrigin_.data(), MilesVolume( startVolume ), 1.0f, CentrePan );
+		dialog.entchannel = entchannel;
+		{
+			/* Held at the listener until its first respatialize places it. */
+			Placement placement = DialogPlacement( dialog, listenerOrigin_, MilesVolume( startVolume ),
+				MilesVolume( startVolume ), CentrePan );
+			if ( placement.role == Role::Dialog ) placement.role = Role::Listener;
+			placement.minDist = 0.0f;
+			device.Place( voice, placement );
+		}
 		dialog.state = VoiceState::Pending;
 		dialog.sfx = sfx;
 		dialog.entnum = entnum;
-		dialog.entchannel = entchannel;
 		if ( entchannel == MenuChannel ) {
 			dialog.state = VoiceState::Started;
 			device.Start( voice, false, 0 );
@@ -1054,6 +1102,8 @@ private:
 			const float volume = frame.ambient * ResolveLoop( leader.volume, info.volume );
 			float sum = 0.0f, loudest = 0.0f;
 			Vec3 direction{};
+			/* Where the group's sound comes from, for a backend's occlusion. */
+			Vec3 source = leader.origin;
 			if ( leader.stationary ) {
 				/* Every record of the sound, stale ones included, at the
 				 * leader's volume and distance. */
@@ -1064,6 +1114,7 @@ private:
 					gains[static_cast<std::size_t>( j )] = Gain( Distance( member.origin, at ), minDist, volume );
 					member.processed = true;
 					sum += gains[static_cast<std::size_t>( j )];
+					if ( gains[static_cast<std::size_t>( j )] > loudest ) source = member.origin;
 					loudest = ( std::max )( loudest, gains[static_cast<std::size_t>( j )] );
 				}
 				if ( sum > 0.0f ) {
@@ -1100,24 +1151,31 @@ private:
 				}
 				continue;
 			}
-			Vec3 position;
-			float gain;
+			Placement placement;
+			placement.source = source;
 			if ( leader.stationary ) {
 				const float length = std::sqrt( direction[0] * direction[0] + direction[1] * direction[1] + direction[2] * direction[2] );
 				if ( length > 0.0f ) {
 					for ( float &c : direction ) c /= length;
 				}
 				/* Half the min distance away: inside it, so the provider
-				 * only pans. */
-				for ( std::size_t c = 0; c < 3; ++c ) position[c] = at[c] + direction[c] * minDist * 0.5f;
-				gain = MilesVolume( frame.master * ( std::min )( sum, 1.0f ) );
+				 * only pans. The members' distances are in the sum. */
+				for ( std::size_t c = 0; c < 3; ++c ) placement.position[c] = at[c] + direction[c] * minDist * 0.5f;
+				placement.gain = MilesVolume( frame.master * ( std::min )( sum, 1.0f ) );
+				placement.volume = placement.gain;
 			} else {
 				/* A moving loop plays at the master volume from its own
 				 * origin, and the provider attenuates it; its own volume and
 				 * the ambient level go unused. No shipped loop moves. */
-				position = leader.origin;
-				gain = MilesVolume( frame.master ) * Gain( Distance( leader.origin, at ), minDist, 1.0f );
+				placement.position = leader.origin;
+				placement.velocity = leader.velocity;
+				placement.gain = MilesVolume( frame.master ) * Gain( Distance( leader.origin, at ), minDist, 1.0f );
+				placement.volume = MilesVolume( frame.master );
+				placement.minDist = minDist;
+				placement.maxDist = minDist * MaxDistanceScale;
 			}
+			const Vec3 &position = placement.position;
+			const float gain = placement.gain;
 			if ( !leader.playing ) {
 				const int channel = Pick( device, 0, 0 );
 				if ( channel < 0 ) {
@@ -1139,7 +1197,7 @@ private:
 				voice.state = VoiceState::Started;
 				voice.heard = position;
 				voice.gain = gain;
-				device.Place( channel, position.data(), gain, 1.0f, -1 );
+				device.Place( channel, placement );
 				device.Start( channel, true, LoopPhase( frame.realtime - leader.time, facts.rate, facts.frames ) );
 				leader.playing = true;
 				leader.voice = channel;
@@ -1154,8 +1212,48 @@ private:
 			Voice &voice = voices_[static_cast<std::size_t>( leader.voice )];
 			voice.heard = position;
 			voice.gain = gain;
-			device.Place( leader.voice, position.data(), gain, 1.0f, -1 );
+			device.Place( leader.voice, placement );
 		}
+	}
+
+	/* A 3-D voice as the respatialize last heard it. */
+	static Placement VoicePlacement( const Voice &voice, bool atListener ) {
+		Placement placement;
+		placement.position = voice.heard;
+		placement.source = voice.heard;
+		placement.gain = voice.gain;
+		placement.direct = voice.obstructed ? ObstructionGain : 1.0f;
+		placement.volume = voice.applied;
+		placement.channel = voice.entchannel;
+		if ( voice.entchannel == MenuChannel ) {
+			placement.role = Role::Interface;
+		} else if ( voice.local || atListener ) {
+			placement.role = Role::Listener;
+		} else {
+			placement.minDist = voice.maxDist / MaxDistanceScale;
+			placement.maxDist = voice.maxDist;
+		}
+		return placement;
+	}
+
+	/* A dialog voice: min over distance with no far limit (0x00470e00). */
+	static Placement DialogPlacement( const DialogVoice &dialog, const Vec3 &position, float gain, float volume, int pan ) {
+		Placement placement;
+		placement.position = position;
+		placement.source = position;
+		placement.gain = gain;
+		placement.pan = pan;
+		placement.volume = volume;
+		placement.channel = dialog.entchannel;
+		if ( dialog.entchannel == MenuChannel ) {
+			placement.role = Role::Interface;
+		} else if ( dialog.local ) {
+			placement.role = Role::Listener;
+		} else {
+			placement.role = Role::Dialog;
+			placement.minDist = dialog.minDist;
+		}
+		return placement;
 	}
 
 	void SetGroupPlaying( int sfx, bool playing, int voice ) {

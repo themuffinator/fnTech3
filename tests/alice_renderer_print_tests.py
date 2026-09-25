@@ -12,7 +12,7 @@ class AliceRendererPrintTests(unittest.TestCase):
         self.body = source[start:source.index('\n}\n', start)]
 
     def test_alice_prints_warnings_only_at_developer_two(self):
-        alice = self.body.index('if ( Com_GameIsAlice() ) {')
+        alice = self.body.index('if ( Com_GameIsRitual() ) {')
         switch = self.body.index('switch ( level ) {')
         self.assertLess(alice, switch)
         branch = self.body[alice:switch]

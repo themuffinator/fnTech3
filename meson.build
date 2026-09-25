@@ -67,7 +67,13 @@ stvef_development = get_option('stvef-development')
 jka_development = get_option('jka-development')
 jk2_development = get_option('jk2-development')
 alice_development = get_option('alice-development')
+fakk2_development = get_option('fakk2-development')
+mohaa_development = get_option('mohaa-development')
 q3_ihv_development = get_option('q3-ihv-development')
+q3test_development = get_option('q3test-development')
+if q3test_development and q3_only
+  error('Q3Test developer probes require the shared Windows x86 executable, not the Q3-only target.')
+endif
 if jka_development and q3_only
   error('Jedi Academy developer probes require the shared x86 executable, not the Q3-only target.')
 endif
@@ -76,6 +82,12 @@ if jk2_development and q3_only
 endif
 if alice_development and q3_only
   error('Alice developer probes require the shared x86 executable, not the Q3-only target.')
+endif
+if fakk2_development and q3_only
+  error('F.A.K.K.2 developer probes require the shared x86 executable, not the Q3-only target.')
+endif
+if mohaa_development and q3_only
+  error('Medal of Honor developer probes require the shared x86 executable, not the Q3-only target.')
 endif
 if q3_ihv_development and q3_only
   error('IHV developer probes require the shared Windows x86 executable.')
@@ -268,6 +280,9 @@ qcommon_src = [
   'code/qcommon/alice_alias.cpp',
   'code/qcommon/alice_tiki.cpp',
   'code/qcommon/com_alice_ui.cpp',
+  'code/qcommon/cm_mohaa_terrain.c',
+  'code/qcommon/cm_mohaa_lights.c',
+  'code/qcommon/mohaa_msg.cpp',
   'code/qcommon/cm_patch.c',
   'code/qcommon/cm_polylib.c',
   'code/qcommon/cm_test.c',
@@ -345,14 +360,24 @@ client_src = [
   'code/client/cl_cgame.cpp',
   'code/client/cl_cin.cpp',
   'code/client/cl_console.cpp',
+  'code/client/cl_fakk2_inventory.cpp',
   'code/client/cl_hud.cpp',
   'code/client/cl_input.cpp',
   'code/client/cl_jpeg.cpp',
   'code/client/cl_keys.cpp',
   'code/client/cl_main.cpp',
+  'code/client/cl_mohaa.cpp',
+  'code/client/cl_mohaa_cgame.cpp',
+  'code/client/cl_mohaa_decals.cpp',
+  'code/client/cl_mohaa_sound.cpp',
+  'code/client/cl_mohaa_ui.cpp',
   'code/client/cl_workshop.cpp',
   'code/client/cl_net_chan.cpp',
   'code/client/cl_parse.cpp',
+  'code/client/cl_q3test.cpp',
+  'code/client/cl_q3test_cgame.cpp',
+  'code/client/cl_q3test_menus.cpp',
+  'code/client/cl_q3test_ui.cpp',
   'code/client/cl_scrn.cpp',
   'code/client/cl_ui.cpp',
   'code/client/cl_webpak.cpp',
@@ -412,10 +437,12 @@ renderer_common_src = [
   'code/renderercommon/tr_image_tga.c',
   'code/renderercommon/tr_image_wal.c',
   'code/renderercommon/tr_noise.c',
+  'code/renderercommon/tr_mohaa_world.c',
 ]
 
 renderer_gl_src = [
   'code/renderer/tr_alice.c',
+  'code/renderer/tr_mohaa.c',
   'code/renderer/tr_animation.c',
   'code/renderer/tr_arb.c',
   'code/renderer/tr_backend.c',
@@ -460,6 +487,7 @@ renderer_glx_src = [
 renderer_vk_src = [
   'code/renderercommon/tr_alice_tiki.cpp',
   'code/renderervk/tr_alice.c',
+  'code/renderervk/tr_mohaa.c',
   'code/renderervk/tr_animation.c',
   'code/renderervk/tr_backend.c',
   'code/renderervk/tr_bsp.c',
@@ -720,8 +748,15 @@ else
   mp3_source = 'disabled'
 endif
 
+# Profiles with a built-in icon remake under assets/icons/games, in the order
+# scripts/generate_game_icons.py assigns their Windows resource ids.
+game_icon_keys = ['quake3', 'quakelive', 'rtcw-sp', 'rtcw-mp', 'wolfet', 'stvef-sp',
+  'stvef-mp', 'q3-ihv', 'jka-sp', 'jka-mp', 'jk2-sp', 'jk2-mp', 'alice', 'fakk2', 'mohaa',
+  'q3test']
+
 if win32
   win_resource = []
+  win_client_resource = []
   if cc.get_argument_syntax() == 'gcc'
     rc_prog = find_program('windres', 'rc', 'llvm-rc', required: false)
   else
@@ -738,6 +773,15 @@ if win32
     'version/fnql_version.h',
     'version/fntech3_version.h',
   )
+  # The client's script wraps win_resource.rc and adds every game's icon; one
+  # script keeps the compiler's RT_ICON numbering unique across all groups.
+  win_client_resource_deps = win_resource_deps + files(
+    'code/win32/win_resource.rc',
+    'code/win32/win_game_icons.rc',
+  )
+  foreach game_icon : game_icon_keys
+    win_client_resource_deps += files('assets/icons/games' / game_icon / game_icon + '.ico')
+  endforeach
   if rc_prog.found()
     if rc_prog.full_path().to_lower().contains('windres')
       win_resource = custom_target('win_resource',
@@ -746,11 +790,23 @@ if win32
         depend_files: win_resource_deps,
         command: [rc_prog, '-i', '@INPUT@', '-o', '@OUTPUT@', '--include-dir', meson.project_source_root()],
       )
+      win_client_resource = custom_target('win_client_resource',
+        input: 'code/win32/win_client_resource.rc',
+        output: 'win_client_resource.o',
+        depend_files: win_client_resource_deps,
+        command: [rc_prog, '-i', '@INPUT@', '-o', '@OUTPUT@', '--include-dir', meson.project_source_root()],
+      )
     else
       win_resource = custom_target('win_resource',
         input: 'code/win32/win_resource.rc',
         output: 'win_resource.res',
         depend_files: win_resource_deps,
+        command: [rc_prog, '/fo', '@OUTPUT@', '/I', meson.project_source_root(), '@INPUT@'],
+      )
+      win_client_resource = custom_target('win_client_resource',
+        input: 'code/win32/win_client_resource.rc',
+        output: 'win_client_resource.res',
+        depend_files: win_client_resource_deps,
         command: [rc_prog, '/fo', '@OUTPUT@', '/I', meson.project_source_root(), '@INPUT@'],
       )
     endif
@@ -761,7 +817,11 @@ if win32
     'code/win32/win_main.cpp',
     'code/win32/win_shared.cpp',
     'code/win32/win_syscon.cpp',
-  ] + win_resource
+  ]
+  # Only the client carries the game icons; the dedicated server keeps the
+  # engine resources alone.
+  client_resource_src = win_client_resource
+  server_resource_src = win_resource
   if build_client and use_sdl
     q3_ui_src = [
       'code/sdl/sdl_gamma.cpp',
@@ -793,6 +853,9 @@ else
     'code/unix/unix_syscon.cpp',
     'code/unix/linux_signals.cpp',
   ]
+  # Without Windows resources the client links the game icons' PNG frames.
+  client_resource_src = ['code/platform/game_icon_data.cpp']
+  server_resource_src = []
   if build_client and use_sdl
     q3_ui_src = [
       'code/sdl/sdl_gamma.cpp',
@@ -841,6 +904,73 @@ botlib = static_library('botlib', botlib_src,
   install: false,
 )
 botlib_objects = [botlib.extract_all_objects(recursive: false)]
+
+# Medal of Honor: Allied Assault's model definitions (TIKI), skeletal models
+# and alias lists: OpenMoHAA's code (GPL-2.0-or-later), kept under code/mohaa
+# with its upstream names and headers; see code/mohaa/README.md. Its sources
+# include "q_shared.h" and "qcommon.h" by bare name, so code/mohaa/qcommon
+# comes first on their include path. The warnings silenced here are the
+# upstream code's own style (shadowed members, sign comparisons, unused
+# locals), not defects fnTech3 introduced.
+mohaa_src = [
+  'code/mohaa/corepp/con_set.cpp',
+  'code/mohaa/corepp/mem_blockalloc.cpp',
+  'code/mohaa/corepp/mem_tempalloc.cpp',
+  'code/mohaa/corepp/str.cpp',
+  'code/mohaa/corepp/tiki_main.cpp',
+  'code/mohaa/corepp/tiki_script.cpp',
+  'code/mohaa/qcommon/alias.c',
+  'code/mohaa/qcommon/mohaa_q_shared.c',
+  'code/mohaa/skeletor/bonetable.cpp',
+  'code/mohaa/skeletor/skeletor.cpp',
+  'code/mohaa/skeletor/skeletor_imports.cpp',
+  'code/mohaa/skeletor/skeletor_loadanimation.cpp',
+  'code/mohaa/skeletor/skeletor_model_files.cpp',
+  'code/mohaa/skeletor/skeletor_utilities.cpp',
+  'code/mohaa/skeletor/skeletorbones.cpp',
+  'code/mohaa/skeletor/tokenizer.cpp',
+  'code/mohaa/tiki/tiki_anim.cpp',
+  'code/mohaa/tiki/tiki_cache.cpp',
+  'code/mohaa/tiki/tiki_commands.cpp',
+  'code/mohaa/tiki/tiki_files.cpp',
+  'code/mohaa/tiki/tiki_frame.cpp',
+  'code/mohaa/tiki/tiki_imports.cpp',
+  'code/mohaa/tiki/tiki_mesh.cpp',
+  'code/mohaa/tiki/tiki_parse.cpp',
+  'code/mohaa/tiki/tiki_skel.cpp',
+  'code/mohaa/tiki/tiki_surface.cpp',
+  'code/mohaa/tiki/tiki_tag.cpp',
+  'code/mohaa/tiki/tiki_utility.cpp',
+  'code/mohaa/mohaa_engine.cpp',
+  'code/mohaa/mohaa_system86.cpp',
+  'code/mohaa/mohaa_render_api.cpp',
+  'code/mohaa/mohaa_tiki_api.cpp',
+]
+if cc.get_id() == 'msvc'
+  mohaa_quiet = ['/wd4018', '/wd4101', '/wd4189', '/wd4305', '/wd4389', '/wd4456', '/wd4457',
+    '/wd4458', '/wd4459', '/wd4701']
+  mohaa_c_quiet = mohaa_quiet
+else
+  mohaa_quiet = cpp.get_supported_arguments(['-Wno-shadow', '-Wno-sign-compare',
+    '-Wno-unused-variable', '-Wno-unused-but-set-variable', '-Wno-unused-parameter',
+    '-Wno-maybe-uninitialized', '-Wno-class-memaccess', '-Wno-missing-field-initializers',
+    '-Wno-implicit-fallthrough', '-Wno-unused-function', '-Wno-deprecated-copy',
+    '-Wno-parentheses', '-Wno-misleading-indentation', '-Wno-format-truncation',
+    '-Wno-stringop-truncation', '-Wno-type-limits', '-Wno-empty-body', '-Wno-unused-value',
+    '-Wno-reorder', '-Wno-char-subscripts', '-Wno-extra', '-Wno-pedantic'])
+  mohaa_c_quiet = cc.get_supported_arguments(['-Wno-shadow', '-Wno-sign-compare',
+    '-Wno-unused-variable', '-Wno-unused-but-set-variable', '-Wno-unused-parameter',
+    '-Wno-maybe-uninitialized', '-Wno-missing-field-initializers', '-Wno-implicit-fallthrough',
+    '-Wno-unused-function', '-Wno-parentheses', '-Wno-format-truncation',
+    '-Wno-stringop-truncation', '-Wno-strict-prototypes', '-Wno-pointer-sign'])
+endif
+mohaa_lib = static_library('mohaa_tiki', mohaa_src,
+  include_directories: include_directories('code/mohaa/qcommon', 'code'),
+  c_args: common_c_args + mohaa_c_quiet,
+  cpp_args: common_cpp_args + mohaa_quiet,
+  install: false,
+)
+mohaa_objects = [mohaa_lib.extract_all_objects(recursive: false)]
 
 renderer_base_src = renderer_common_src + ['code/qcommon/q_shared.c', 'code/qcommon/puff.c', 'code/qcommon/q_math.c'] + platform_asm_src
 renderer_targets = []
@@ -980,6 +1110,18 @@ if alice_development
   warning('Alice developer build: incomplete adapters are enabled for isolated probes. Release compatibility gates remain open.')
   engine_cpp_args += ['-DFNTECH3_ALICE_DEVELOPMENT=1']
 endif
+if fakk2_development
+  warning('F.A.K.K.2 developer build: incomplete adapters are enabled for isolated probes. Release compatibility gates remain open.')
+  engine_cpp_args += ['-DFNTECH3_FAKK2_DEVELOPMENT=1']
+endif
+if mohaa_development
+  warning('Medal of Honor developer build: incomplete adapters are enabled for isolated probes. Release compatibility gates remain open.')
+  engine_cpp_args += ['-DFNTECH3_MOHAA_DEVELOPMENT=1']
+endif
+if q3test_development
+  warning('Q3Test developer build: incomplete 1.02-1.08 adapters are enabled for isolated Windows x86 probes. Release compatibility gates remain open.')
+  engine_cpp_args += ['-DFNTECH3_Q3TEST_DEVELOPMENT=1']
+endif
 
 client_c_args = common_c_args
 client_cpp_args = engine_cpp_args
@@ -1002,14 +1144,26 @@ if build_client and linux
   # This portable distribution needs the user's installation/profile arguments;
   # provide a launcher template without registering an unconfigured launcher.
   install_data('assets/icons/fntech3.desktop', install_dir: get_option('datadir') / 'fntech3')
+  # Each game's icon is themed as fntech3-<profile>; its launcher template sets
+  # the matching application id and, like the engine's, is not registered.
+  foreach game_icon : game_icon_keys
+    foreach icon_size : ['16', '22', '24', '32', '48', '64', '96', '128', '256', '512']
+      install_data('assets/icons/games' / game_icon / game_icon + '-' + icon_size + '.png',
+        install_dir: get_option('datadir') / 'icons/hicolor' / (icon_size + 'x' + icon_size) / 'apps',
+        rename: 'fntech3-' + game_icon + '.png',
+      )
+    endforeach
+    install_data('assets/icons/games' / game_icon / 'fntech3-' + game_icon + '.desktop',
+      install_dir: get_option('datadir') / 'fntech3' / 'applications')
+  endforeach
 endif
 
 if build_client
   client_exe = executable(client_binary_name,
-    q3_platform_src + q3_ui_src + qcommon_src + server_src + client_src + platform_asm_src + client_asm_src,
+    q3_platform_src + client_resource_src + q3_ui_src + qcommon_src + server_src + client_src + platform_asm_src + client_asm_src,
     include_directories: include_dirs,
     dependencies: client_deps,
-    objects: botlib_objects + static_renderer_objects,
+    objects: botlib_objects + mohaa_objects + static_renderer_objects,
     c_args: client_c_args,
     cpp_args: client_cpp_args,
     link_args: link_args,
@@ -1022,10 +1176,10 @@ endif
 
 if build_server
   server_exe = executable(server_binary_name,
-    q3_platform_src + qcommon_src + server_src + platform_asm_src,
+    q3_platform_src + server_resource_src + qcommon_src + server_src + platform_asm_src,
     include_directories: include_dirs,
     dependencies: server_deps,
-    objects: botlib_objects,
+    objects: botlib_objects + mohaa_objects,
     c_args: common_c_args + ['-DDEDICATED'],
     cpp_args: engine_cpp_args + ['-DDEDICATED'],
     link_args: link_args,
@@ -1062,6 +1216,11 @@ root_package_assets = stock_audio_zone_sidecars + stock_global_fog_sidecars + fi
   'pkg/games/quakelive/baseq3/sound/fnql-weapon-sounds.sndshd',
   'pkg/games/rtcw-sp/main/fntech3-hud.json',
   'pkg/games/rtcw-mp/main/fntech3-hud.json',
+  'pkg/games/fakk2/fakk/fntech3-hud.json',
+  'pkg/games/alice/base/fntech3-hud.json',
+  'pkg/games/wolfet/etmain/fntech3-hud.json',
+  'pkg/games/stvef-sp/baseEF/fntech3-hud.json',
+  'pkg/games/stvef-mp/baseEF/fntech3-hud.json',
 )
 stock_q3_assets_result = run_command(python, files('scripts/stock_q3_assets.py'), check: true)
 foreach asset : stock_q3_assets_result.stdout().strip().split('\n')
@@ -1075,12 +1234,27 @@ stock_wolfet_assets_result = run_command(python, files('scripts/stock_wolfet_map
 foreach asset : stock_wolfet_assets_result.stdout().strip().split('\n')
   root_package_assets += files('pkg/games/' + asset)
 endforeach
+stock_alice_assets_result = run_command(python, files('scripts/stock_alice_maps.py'), check: true)
+foreach asset : stock_alice_assets_result.stdout().strip().split('\n')
+  root_package_assets += files('pkg/games/' + asset)
+endforeach
+stock_fakk2_assets_result = run_command(python, files('scripts/stock_fakk2_maps.py'), check: true)
+foreach asset : stock_fakk2_assets_result.stdout().strip().split('\n')
+  root_package_assets += files('pkg/games/' + asset)
+endforeach
+stock_mohaa_assets_result = run_command(python, files('scripts/stock_mohaa_maps.py'), check: true)
+foreach asset : stock_mohaa_assets_result.stdout().strip().split('\n')
+  root_package_assets += files('pkg/games/' + asset)
+endforeach
 
 custom_target('fntech3-pkg.fnz',
   input: root_package_assets + files(
     'scripts/build_root_archive.py',
     'scripts/fntech3_meta.py',
     'scripts/root_archive.py',
+    'scripts/stock_alice_maps.py',
+    'scripts/stock_fakk2_maps.py',
+    'scripts/stock_mohaa_maps.py',
     'scripts/stock_q3_assets.py',
     'scripts/stock_ql_maps.py',
     'scripts/stock_rtcw_maps.py',
@@ -1310,6 +1484,13 @@ alice_message_codec_tests = executable('fntech3_alice_message_codec_tests',
 )
 test('fntech3_alice_message_codec', alice_message_codec_tests)
 
+fakk2_message_codec_tests = executable('fntech3_fakk2_message_codec_tests',
+  ['tests/fakk2_message_codec_tests.cpp'],
+  include_directories: include_directories('code/qcommon', 'code/compat'),
+  cpp_args: common_cpp_args,
+)
+test('fntech3_fakk2_message_codec', fakk2_message_codec_tests)
+
 alice_tan_tests = executable('fntech3_alice_tan_tests',
   'tests/alice_tan_tests.cpp',
   include_directories: include_directories('code/qcommon'),
@@ -1445,6 +1626,39 @@ alice_snapshot_tests = executable('fntech3_alice_snapshot_tests',
   cpp_args: common_cpp_args,
 )
 test('fntech3_alice_snapshot', alice_snapshot_tests)
+
+fakk2_module_abi_tests = executable('fntech3_fakk2_module_abi_tests',
+  'tests/fakk2_module_abi_tests.cpp',
+  include_directories: include_directories('code/qcommon', 'code/compat'),
+  cpp_args: common_cpp_args,
+)
+test('fntech3_fakk2_module_abi', fakk2_module_abi_tests)
+
+fakk2_hud_tests = executable('fntech3_fakk2_hud_tests',
+  ['tests/fakk2_hud_tests.cpp', 'code/qcommon/puff.c'],
+  include_directories: include_directories('code/qcommon'),
+  cpp_args: common_cpp_args,
+)
+test('fntech3_fakk2_hud', fakk2_hud_tests)
+
+mohaa_module_abi_tests = executable('fntech3_mohaa_module_abi_tests',
+  'tests/mohaa_module_abi_tests.cpp',
+  include_directories: include_directories('code/compat'),
+  cpp_args: common_cpp_args,
+)
+test('fntech3_mohaa_module_abi', mohaa_module_abi_tests)
+
+mohaa_savegame_tests = executable('fntech3_mohaa_savegame_tests',
+  'tests/mohaa_savegame_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_mohaa_savegame', mohaa_savegame_tests)
+
+mohaa_load_record_tests = executable('fntech3_mohaa_load_record_tests',
+  'tests/mohaa_load_record_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_mohaa_load_record', mohaa_load_record_tests)
 
 jka_identity_tests = executable('fntech3_jka_identity_tests',
   ['tests/jka_identity_tests.cpp', 'code/qcommon/game_profile.cpp'],
@@ -1592,11 +1806,14 @@ window_placement_tests = executable('fnql_window_placement_tests',
 )
 test('fnql_window_placement', window_placement_tests)
 
-icon_test_sources = ['tests/application_icon_tests.cpp']
+# The generated frames compile on every platform so the test can check them
+# against the committed PNGs; Windows also links the client's icon resources.
+icon_test_sources = ['tests/application_icon_tests.cpp', 'code/qcommon/puff.c',
+  'code/platform/game_icon_data.cpp']
 icon_test_deps = []
 icon_test_args = common_cpp_args
 if win32
-  icon_test_sources += win_resource
+  icon_test_sources += win_client_resource
   icon_test_args += '-DNOMINMAX'
   foreach lib : ['shell32', 'user32', 'gdi32']
     icon_test_deps += cpp.find_library(lib)
@@ -1611,12 +1828,14 @@ if use_sdl
   endif
 endif
 application_icon_tests = executable('fntech3_application_icon_tests',
-  icon_test_sources,
+  icon_test_sources + ['code/qcommon/game_profile.cpp'],
+  include_directories: include_directories('code/qcommon'),
   dependencies: icon_test_deps,
   cpp_args: icon_test_args,
 )
 test('fntech3_application_icons', application_icon_tests,
-  args: [meson.current_build_dir(), meson.current_source_dir() / 'assets/icons/fntech3-128.png'],
+  args: [meson.current_build_dir(), meson.current_source_dir() / 'assets/icons/fntech3-128.png',
+    meson.current_source_dir() / 'assets/icons/games'],
 )
 
 test('fnql_ql_font_source', python,
@@ -1788,6 +2007,14 @@ jka_asset_probe = executable('fntech3_jka_asset_probe',
   cpp_args: common_cpp_args,
 )
 
+# A headless Q3Test client for server interoperability probes
+# (scripts/probe_q3test.py protocol-client).
+q3test_client_probe = executable('fntech3_q3test_client_probe',
+  'tests/fixtures/q3test_client_probe.cpp',
+  cpp_args: common_cpp_args,
+  dependencies: host_machine.system() == 'windows' ? [cc.find_library('ws2_32')] : [],
+)
+
 stvef_demo_probe = executable('fntech3_stvef_demo_probe',
   'tests/fixtures/stvef_demo_probe.cpp',
   'code/qcommon/msg.cpp',
@@ -1945,6 +2172,25 @@ q3_ihv_identity_tests = executable('fntech3_q3_ihv_identity_tests',
 )
 test('fntech3_q3_ihv_identity', q3_ihv_identity_tests)
 
+q3test_identity_tests = executable('fntech3_q3test_identity_tests',
+  'tests/q3test_identity_tests.cpp', 'code/qcommon/game_profile.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_q3test_identity', q3test_identity_tests)
+
+q3test_wire_tests = executable('fntech3_q3test_wire_tests',
+  'tests/q3test_wire_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_q3test_wire', q3test_wire_tests)
+
+q3test_bsp_tests = executable('fntech3_q3test_bsp_tests',
+  'tests/q3test_bsp_tests.cpp',
+  include_directories: include_directories('code/qcommon'),
+  cpp_args: common_cpp_args,
+)
+test('fntech3_q3test_bsp', q3test_bsp_tests)
+
 q3_ihv_collision_tests = executable('fntech3_q3_ihv_collision_tests',
   'tests/q3_ihv_collision_tests.cpp',
   cpp_args: common_cpp_args,
@@ -2063,12 +2309,6 @@ rtx_mdr_geometry_tests = executable('fntech3_rtx_mdr_geometry_tests',
   dependencies: [cc.find_library('m', required: false)],
 )
 test('fntech3_rtx_mdr_geometry', rtx_mdr_geometry_tests)
-rtx_scene_signature_tests = executable('fntech3_rtx_scene_signature_tests',
-  files('tests/rtx_scene_signature_tests.c'),
-  c_args: common_c_args,
-  dependencies: [cc.find_library('m', required: false)],
-)
-test('fntech3_rtx_scene_signature', rtx_scene_signature_tests)
 test('fnql_cvar_factory_snapshot_source', python,
   args: files('tests/cvar_factory_snapshot_tests.py'),
 )

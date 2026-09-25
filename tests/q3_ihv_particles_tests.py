@@ -10,6 +10,7 @@ import unittest
 from compiler_support import compiler_target_args
 from mesh_tag_tests import function
 from model_shader_tests import PRELUDE
+import rtx_surface_owner_tests
 
 ROOT = Path(__file__).resolve().parents[1]
 RENDERERS = ('renderer', 'renderervk', 'rendererrtx')
@@ -97,7 +98,7 @@ static shader_t *R_GetShaderByHandle(int handle){assert(handle==7);return &shade
 static srfPoly_t polygons[16];static polyVert_t points[8192];
 static struct { srfPoly_t *polys=polygons;polyVert_t *polyVerts=points;struct {int used;} commands; } data,*backEndData=&data;
 static int max_polys=16,max_polyverts=8192,r_numpolys,r_numpolyverts,r_firstScenePoly;
-static int r_numdlights,r_firstSceneDlight,r_numentities,r_firstSceneEntity,r_firstSceneDrawSurf,rtcwCoronaCount,rtcwCoronaFirst;
+static int r_numdlights,r_numModuleDlights,r_firstSceneDlight,r_numentities,r_firstSceneEntity,r_firstSceneDrawSurf,rtcwCoronaCount,rtcwCoronaFirst;
 static void R_ResetWolfETDecalRequests(){}static void R_ResetWolfETDecalSurfaces(){}static void R_ClearMuzzleFlashLightCandidate(){}
 static void R_ResetStaticMapLightFrameCounters(){}static void R_ResetSurfaceLightProxyFrameCounters(){}
 static std::vector<const srfPoly_t*> submitted;
@@ -184,71 +185,20 @@ def fixture(renderer):
     return source + table + '\n'
 
 
-RAY_HOST = r'''
-#include "code/rendererrtx/rtx_scene_signature.h"
-#include "code/renderercommon/tr_q3_ihv_model.h"
-static cvar_t *r_lerpmodels;
-enum { RTX_RT_MATFLAG_MASKED=1,RTX_RT_MAX_LIGHT_COORDINATE=1048576 };
-static struct {struct {float dynamic_centroid_prev[3];} rt;} vk;
-struct rtxRtCpuGeometry_t {
- uint32_t numVertices=0,sourceTriangleCount=0,maskedTriangleCount=0,sourceEffectCount=0;
- struct {unsigned flags=1;} materials[1];std::vector<Vertex> vertices;std::vector<unsigned> indices;
-};
-static int failure;
-static qboolean vk_rt_checked_u32_multiply(uint32_t a,uint32_t b,uint32_t *out){if(b&&a>UINT32_MAX/b)return qfalse;*out=a*b;return qtrue;}
-static qboolean vk_rt_cpu_geometry_find_or_add_material(rtxRtCpuGeometry_t*,const shader_t *material,uint32_t *out){assert(material==&shader);*out=0;return failure==1?qfalse:qtrue;}
-static void vk_rt_apply_effect_material_tuning(rtxRtCpuGeometry_t*,uint32_t material,qboolean blend,qboolean decal){assert(!material&&blend&&!decal);}
-static qboolean vk_rt_cpu_geometry_reserve(rtxRtCpuGeometry_t*,uint32_t vertices,uint32_t indices){assert(vertices==3&&indices==3);return failure==2?qfalse:qtrue;}
-static qboolean vk_rt_cpu_geometry_add_vertex(rtxRtCpuGeometry_t *geometry,const vec3_t xyz,const vec3_t,const vec4_t,const vec2_t uv,uint32_t color,uint32_t,void*){
- if(failure==3)return qfalse;geometry->vertices.push_back({{xyz[0],xyz[1],xyz[2]},{uv[0],uv[1]},color});++geometry->numVertices;return qtrue;
-}
-static qboolean vk_rt_cpu_geometry_add_index(rtxRtCpuGeometry_t *geometry,uint32_t index){if(failure==4)return qfalse;geometry->indices.push_back(index);return qtrue;}
-static qboolean vk_rt_entity_visible_in_current_view(const trRefEntity_t*){return qtrue;}
-static qboolean vk_rt_model_casts_in_current_view(const trRefEntity_t*){return qtrue;}
-static qboolean vk_rt_append_poly_geometry(rtxRtCpuGeometry_t*,const srfPoly_t*);
-#include "code/renderercommon/tr_q3_ihv_particle_ray.h"
-'''
-
 RAY_CHECKS = r'''
-int main(){
- R_CreateIHVParticleShader();for(int a=0;a<3;++a)backEnd.viewParms.or.axis[a][a]=1;
- std::vector<fnQ3IHVParticle_t> input(4096);for(size_t i=0;i<input.size();++i){input[i].origin[0]=float(i)-100;input[i].origin[1]=3;input[i].origin[2]=7;for(int c=0;c<4;++c)input[i].rgba[c]=(byte)(i+c);}
- for(int count:{0,1,2,340,341,342,4096})for(int mirror:{0,1}){
-  R_InitNextFrame();assert(RE_AddIHVParticlesToScene(count,input.data()));
-  if(!count){rtxRtCpuGeometry_t empty;assert(vk_rt_append_poly_geometry(&empty,nullptr)&&empty.vertices.empty());continue;}
-  auto *poly=polygons;backEnd.viewParms.mirror=mirror;drawn.clear();rb_surfaceTable[SF_IHV_PARTICLES](poly);Flush();
-  rtxRtCpuGeometry_t geometry;assert(vk_rt_append_poly_geometry(&geometry,poly));assert(geometry.numVertices==count*3u&&geometry.sourceTriangleCount==(unsigned)count&&geometry.maskedTriangleCount==(unsigned)count);
-  assert(geometry.vertices.size()==drawn.size()&&geometry.indices.size()==drawn.size());
-  for(size_t i=0;i<drawn.size();++i){assert(geometry.indices[i]==i);assert(geometry.vertices[i].xyz==drawn[i].xyz&&geometry.vertices[i].uv==drawn[i].uv&&geometry.vertices[i].color==drawn[i].color);}
- }
- for(failure=1;failure<=4;++failure){rtxRtCpuGeometry_t geometry;assert(!vk_rt_append_poly_geometry(&geometry,polygons));}failure=0;
- ri.gameId=COM_GAME_QUAKE3;rtxRtCpuGeometry_t wrong;assert(!vk_rt_append_poly_geometry(&wrong,polygons));ri.gameId=COM_GAME_QUAKE3_IHV;
- backEnd.refdef.numPolys=1;backEnd.refdef.polys=polygons;float centroid[3];
- const auto baseline=vk_rt_estimate_dynamic_scene_signature(centroid,nullptr,nullptr,1);
- assert(vk_rt_estimate_dynamic_scene_signature(centroid,nullptr,nullptr,1)==baseline);
- for(int a=0;a<3;++a){backEnd.viewParms.or.origin[a]+=.001f;assert(vk_rt_estimate_dynamic_scene_signature(centroid,nullptr,nullptr,1)!=baseline);backEnd.viewParms.or.origin[a]-=.001f;}
- for(int a=0;a<3;++a)for(int b=0;b<3;++b){const float old=backEnd.viewParms.or.axis[a][b];backEnd.viewParms.or.axis[a][b]+=.001f;assert(vk_rt_estimate_dynamic_scene_signature(centroid,nullptr,nullptr,1)!=baseline);backEnd.viewParms.or.axis[a][b]=old;}
- backEnd.viewParms.mirror=!backEnd.viewParms.mirror;assert(vk_rt_estimate_dynamic_scene_signature(centroid,nullptr,nullptr,1)!=baseline);
- // Ordinary world-space polygons keep their existing view-independent signature.
- polygons[0].surfaceType=SF_POLY;const auto regular=vk_rt_estimate_dynamic_scene_signature(centroid,nullptr,nullptr,1);backEnd.viewParms.or.origin[0]+=100;
- assert(vk_rt_estimate_dynamic_scene_signature(centroid,nullptr,nullptr,1)==regular);
+int main() {
+    /* IHV particles are a world poly surface the path tracer never owns: the
+     * raster overlay draws them with RB_SurfaceIHVParticles after the trace,
+     * the geometry the raster renderers draw. */
+    ri.gameId = COM_GAME_QUAKE3_IHV;
+    for ( const shader_t *shader : { &rasterShader, &tracedShader, &skyShader } ) {
+        for ( int fog : { 0, 1 } ) {
+            assert( vk_rt_surface_owner( REFENTITYNUM_WORLD, shader, fog, SF_IHV_PARTICLES ) == RT_SURFACE_RASTER );
+        }
+    }
+    return 0;
 }
 '''
-
-
-def ray_fixture():
-    source = fixture('rendererrtx')
-    source = source.replace('static struct { View viewParms; } backEnd;',
-                            'struct trRefEntity_t {refEntity_t e;};\nstatic struct {View viewParms;struct {int num_entities,numPolys;trRefEntity_t *entities;srfPoly_t *polys;float viewaxis[3][3];} refdef;} backEnd;')
-    source += RAY_HOST
-    source += function((ROOT / 'code/qcommon/q_math.c').read_text(), 'vec_t VectorNormalize(')
-    vk = (ROOT / 'code/rendererrtx/vk.c').read_text()
-    for signature in ['static qboolean vk_rt_append_poly_geometry(',
-                      'static uint32_t vk_rt_hash_mix_u32(', 'static uint32_t vk_rt_hash_quantized_float(',
-                      'static qboolean vk_rt_float_in_finite_range(', 'static qboolean vk_rt_vec3_in_finite_range(',
-                      'static uint32_t vk_rt_estimate_dynamic_scene_signature(']:
-        source += function(vk[vk.rindex(signature):], signature)
-    return source
 
 
 class Q3IHVParticlesTests(unittest.TestCase):
@@ -277,8 +227,8 @@ class Q3IHVParticlesTests(unittest.TestCase):
             with self.subTest(renderer=renderer):
                 self.compile_run(fixture(renderer) + CHECKS)
 
-    def test_ray_geometry_matches_raster_and_tracks_view_changes(self):
-        self.compile_run(ray_fixture() + RAY_CHECKS)
+    def test_ray_leaves_particles_to_the_raster_overlay(self):
+        rtx_surface_owner_tests.compile_run(self, rtx_surface_owner_tests.host() + RAY_CHECKS)
 
 
 if __name__ == '__main__':

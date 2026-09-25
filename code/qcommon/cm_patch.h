@@ -61,7 +61,8 @@ properly.
 
 
 #define	MAX_FACETS			1024
-// q3test / IHV map ihv_test1 expands one patch to 4337 collision planes.
+// The February 1999 IHV test's map ihv_test1 (the q3-ihv profile, not
+// q3test) expands one patch to 4337 collision planes.
 #define	MAX_PATCH_PLANES	(4096+1024)
 
 typedef struct {

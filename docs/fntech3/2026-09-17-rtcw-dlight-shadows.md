@@ -18,6 +18,11 @@ negative/flame light materials retain their separate contracts. Those special
 materials keep their projected texture/blend passes and do not become ordinary
 positive shadow lights.
 
+The engine's own scene lights -- static map lights, surface-light proxies and
+`r_dlightTest` -- joined RTCW's scenes later, in modes one and two only, with
+the module lights keeping their 32 slots a frame and drawn after the engine's;
+see the [engine scene lights record](2026-09-24-rtcw-engine-lights.md).
+
 ## Torch observations and implementation
 
 The local retail `escape1.bsp` entity lump contains 18 `dlight` entities, including

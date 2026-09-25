@@ -12,6 +12,7 @@ def metadata_pak(profile, comment=b''):
         'ql': [('default.cfg',1580,0xc6c9f233),('maps/campgrounds.bsp',2924532,0x0ddc0f1d)],
         'rtcw-sp': [('default.cfg',2237,0x844222c3),('maps/escape1.bsp',12366352,0x5f08b87c)],
         'rtcw-mp': [('default.cfg',1372,0x91dfaca0),('maps/mp_beach.bsp',7343512,0x77533d56)],
+        'mohaa': [('default.cfg',1856,0xde36f158),('ubersound/ubersound.scr',173320,0xf462d126)],
     }[profile]
     local=bytearray();directory=bytearray()
     for name,length,crc in entries:
@@ -100,6 +101,15 @@ int main(int argc,char **argv) {
             mp.unlink()
             sp.write_bytes(metadata_pak('rtcw-mp'));check(4)
             sp.write_bytes(metadata_pak('rtcw-sp',b'comment'));check(8)
+            # Medal of Honor's base pak is main/Pak0.pk3, which is RTCW's
+            # main/pak0.pk3 on a case-insensitive filesystem. Only the contents
+            # decide: each title's pak is recognized by its own identity, and one
+            # title's probe does not condemn the other's installation.
+            sp.unlink()
+            moh=main/'Pak0.pk3'
+            moh.write_bytes(metadata_pak('mohaa'));check(1<<15)
+            moh.write_bytes(metadata_pak('q3'));check(4)
+            moh.unlink()
 
 
 if __name__=='__main__':unittest.main()

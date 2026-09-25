@@ -141,6 +141,8 @@ def fixture(renderer):
     float_parser = function((ROOT / 'code/renderercommon/tr_q3_ihv_shader.h').read_text(), 'static qboolean R_Q3IHVShaderFloat(')
     source = common(renderer) + HOST + records(local, ('fogParms_t', 'fog_t')) + tokenizer() + float_parser
     source += RENDER_HOST + '#include "code/renderercommon/tr_q3_ihv_fog_parser.h"\n'
+    # The fogParms branch also reads Q3Test's five-value form.
+    source += '#include "code/renderercommon/tr_q3test_shader_dialect.h"\n'
     source += parse + '#include "code/renderercommon/tr_q3_ihv_fog_render.h"\n'
     for name in ('RB_CalcModulateColorsByFog', 'RB_CalcModulateAlphasByFog', 'RB_CalcModulateRGBAsByFog'):
         source += function(calc, 'void ' + name + '(')

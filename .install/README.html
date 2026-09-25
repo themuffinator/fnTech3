@@ -266,7 +266,7 @@
       <h1>fnTech3</h1>
       <p class="tagline">Unified source port for id Tech 3</p>
       <p class="subtitle">
-        <strong>fnTech3</strong> targets one engine distribution for <em>Quake III Arena</em>, <em>Quake Live</em>, and <em>Return to Castle Wolfenstein</em> single player and multiplayer, building on FnQuake3 modernization and the FnQL compatibility baseline.
+        <strong>fnTech3</strong> is one engine distribution -- one client, one dedicated server and three renderer modules -- for <em>Quake III Arena</em>, <em>Quake Live</em>, <em>Return to Castle Wolfenstein</em>, <em>Wolfenstein: Enemy Territory</em>, <em>Star Trek Voyager: Elite Force</em>, <em>Star Wars Jedi Knight: Jedi Academy</em>, <em>Star Wars Jedi Knight II: Jedi Outcast</em>, <em>American McGee's Alice</em>, <em>Heavy Metal: F.A.K.K.2</em> and <em>Medal of Honor: Allied Assault</em>.
       </p>
       <div class="buttons">
         <a class="button button-primary" href="docs/fntech3/COMPATIBILITY.md">Compatibility status</a>
@@ -278,7 +278,7 @@
       <div class="stats">
         <article class="card">
           <strong>Compatibility targets</strong>
-          <p>Quake III Arena, Quake Live, Return to Castle Wolfenstein (SP/MP), Wolfenstein: Enemy Territory, Star Trek Voyager: Elite Force (SP/Holomatch), Star Wars Jedi Knight: Jedi Academy (SP/MP), and American McGee's Alice</p>
+          <p>Quake III Arena, Quake Live, Return to Castle Wolfenstein (SP/MP), Wolfenstein: Enemy Territory, Star Trek Voyager: Elite Force (SP/Holomatch), Star Wars Jedi Knight: Jedi Academy (SP/MP), Star Wars Jedi Knight II: Jedi Outcast (SP/MP), American McGee's Alice, Heavy Metal: F.A.K.K.2, and Medal of Honor: Allied Assault</p>
         </article>
         <article class="card">
           <strong>Base version</strong>
@@ -298,60 +298,75 @@
     <section class="section" id="introduction">
       <div class="section-header">
         <h2>1. Introduction</h2>
-        <p class="lead"><strong>fnTech3</strong> selects one immutable profile before compatibility-sensitive startup. The unified goal is shared client, dedicated-server, and renderer binaries that preserve each game's module, asset, network, demo, and gameplay contracts.</p>
+        <p class="lead"><strong>fnTech3</strong> selects one immutable <strong>game profile</strong> -- the contracts of one game or game mode -- before the filesystem, network, game modules, renderer or any optional service starts. Each game keeps its own module interfaces, protocol, demos, saves, file formats and gameplay. How the engine presents it -- renderers, spatial audio, input, console and screenshots -- is fnTech3's own, fed with that game's data.</p>
       </div>
       <div class="feature-grid">
         <article class="feature-group">
           <h3>Quake III Arena</h3>
-          <p><code>q3</code> (canonical <code>quake3</code>): enabled; compatibility validation remains in progress.</p>
+          <p><code>quake3</code> (<code>q3</code>): enabled in every build. One profile spans the releases: 1.32 (protocol 68) and ioquake3 (71) play, host and record; original 1.29 to 1.31 servers and clients (66, 67) connect in both directions; recordings from 1.11 on play back. The February 1999 IHV Test is a separate <code>q3-ihv</code> profile for Windows x86 dedicated-server probes in builds with <code>-Dq3-ihv-development=true</code>, and the public Q3Test releases of 1999, 1.02 to 1.08, are the <code>q3test</code> profile for Windows x86 developer builds with <code>-Dq3test-development=true</code>.</p>
         </article>
         <article class="feature-group">
           <h3>Quake Live</h3>
-          <p><code>ql</code> (canonical <code>quakelive</code>): enabled; retail client modules require Windows x86; compatibility validation remains in progress.</p>
+          <p><code>quakelive</code> (<code>ql</code>): enabled in every build. The retail client modules are 32-bit Windows libraries, so the client runs on Windows x86.</p>
         </article>
         <article class="feature-group">
-          <h3>RTCW single player</h3>
-          <p><code>rtcw-sp</code>: experimental; requires <code>-Drtcw-development=true</code>; gated in default builds. Campaign and savegame gates remain open.</p>
+          <h3>Return to Castle Wolfenstein</h3>
+          <p><code>rtcw-sp</code> and <code>rtcw-mp</code>: experimental; developer builds with <code>-Drtcw-development=true</code>. Both modes share one installation and one executable.</p>
         </article>
         <article class="feature-group">
-          <h3>RTCW multiplayer</h3>
-          <p><code>rtcw-mp</code>: experimental; uses the same executable and development option as SP; gated in default builds. Multiplayer interoperability remains open.</p>
+          <h3>Wolfenstein: Enemy Territory</h3>
+          <p><code>wolfet</code> (<code>et</code>): experimental; developer builds with <code>-Dwolfet-development=true</code> run its client and server.</p>
+        </article>
+        <article class="feature-group">
+          <h3>Star Trek Voyager: Elite Force</h3>
+          <p><code>stvef-sp</code> and <code>stvef-mp</code> (Holomatch): experimental; developer builds with <code>-Dstvef-development=true</code>.</p>
+        </article>
+        <article class="feature-group">
+          <h3>Jedi Academy and Jedi Outcast</h3>
+          <p><code>jka-sp</code>, <code>jka-mp</code>, <code>jk2-sp</code> and <code>jk2-mp</code>: experimental and dedicated server only; developer builds with <code>-Djka-development=true</code> or <code>-Djk2-development=true</code>.</p>
+        </article>
+        <article class="feature-group">
+          <h3>American McGee's Alice</h3>
+          <p><code>alice</code>: experimental; Windows x86 developer builds with <code>-Dalice-development=true</code>. Alice runs Ritual's engine rather than a Quake III one.</p>
+        </article>
+        <article class="feature-group">
+          <h3>Heavy Metal: F.A.K.K.2</h3>
+          <p><code>fakk2</code>: experimental; Windows x86 developer builds with <code>-Dfakk2-development=true</code>. Point <code>fs_basepath</code> at an installed game, not a copy of the disc.</p>
+        </article>
+        <article class="feature-group">
+          <h3>Medal of Honor: Allied Assault</h3>
+          <p><code>mohaa</code>: experimental; Windows x86 developer builds with <code>-Dmohaa-development=true</code>. Version 1.00, with <code>system86.dll</code> beside <code>MOHAA.exe</code>; fnTech3 loads the installation's copy.</p>
         </article>
       </div>
-      <p class="lead"><strong>Wolfenstein: Enemy Territory</strong>: <code>wolfet</code> (alias <code>et</code>) is experimental and gated in default builds. <code>-Dwolfet-development=true</code> permits isolated client and server probes. See the <a href="docs/fntech3/2026-09-17-wolfet-contracts.md">ET implementation record</a>.</p>
-      <p class="lead"><strong>Star Trek Voyager: Elite Force</strong>: <code>stvef-sp</code> (single player) and <code>stvef-mp</code> (Holomatch) are experimental modes of one title. <code>-Dstvef-development=true</code> permits isolated probes. See the <a href="docs/fntech3/2026-09-18-stvef-contracts.md">Elite Force foundation record</a>.</p>
-      <p class="lead"><strong>Star Wars Jedi Knight: Jedi Academy</strong>: <code>jka-sp</code> (single player) and <code>jka-mp</code> (multiplayer) are registered modes of one title. <code>-Djka-development=true</code> permits isolated probes; no module, wire, asset or renderer boundary exists yet. See the <a href="docs/fntech3/2026-09-21-jka-contracts.md">Jedi Academy foundation record</a>.</p>
-      <p class="lead"><strong>American McGee's Alice</strong>: <code>alice</code> is experimental and has one mode. <code>-Dalice-development=true</code> permits isolated probes; a developer server mounts a real installation and loads every one of its maps, and no module, wire, savegame or renderer boundary exists yet. Alice runs Ritual's Heavy Metal: F.A.K.K.2 engine rather than a Quake III one. See the <a href="docs/fntech3/2026-09-22-alice-contracts.md">Alice foundation record</a>.</p>
-      <p class="lead">These eight games and thirteen profiles define the current project scope. <strong>Full compatibility is not yet established for any profile.</strong> Build and unit results do not replace runtime and retail-interoperability evidence. The <a href="docs/fntech3/COMPATIBILITY.md">compatibility ledger</a> records open gates and observed results.</p>
-      <p class="lead">RTCW SP and MP are modes of one title. Switching modes relaunches the same executable with a new profile. Development builds have menu, map, and save/load evidence, with remaining limits recorded in the <a href="docs/fntech3/COMPATIBILITY.md#rtcw-gate-matrix">RTCW gate matrix</a>.</p>
-      <p class="footer">Supply your own legitimate installation. Retail modules, assets, and proprietary runtimes remain there. Release packages exclude the optional proprietary Steam provider and Valve Steam runtimes. Steam services require a separately supplied compatible provider; unavailable services are reported honestly.</p>
+      <p class="lead">These ten games and sixteen profiles define the project scope. <strong>Full compatibility is not yet established for any profile.</strong> Build and unit results do not replace runtime and retail-interoperability evidence. The <a href="docs/fntech3/COMPATIBILITY.md">compatibility ledger</a> records the observed results and open gates, and the <a href="https://github.com/themuffinator/fnTech3/blob/main/docs/GAMES.md">Games Guide</a> summarizes what each game does today.</p>
+      <p class="footer">This package is engine-only and starts Quake III Arena and Quake Live; the experimental games need a developer build. Supply your own legitimate installation. Retail modules, assets and proprietary runtimes remain there. Release packages exclude the optional proprietary Steam provider and Valve Steam runtimes. Steam services require a separately supplied compatible provider; unavailable services are reported honestly.</p>
     </section>
 
     <section class="section" id="features">
       <div class="section-header">
         <h2>2. Features</h2>
-        <p class="lead">Capabilities inherited from the engine baselines and ongoing compatibility work require validation for each applicable profile. QL-specific WebUI, Steam, and Workshop services remain part of the QL profile.</p>
+        <p class="lead">Capabilities from the engine baselines and fnTech3's own work apply to a game where its guide says so, and must be validated for each profile. Quake Live's WebUI, Steam and Workshop services belong to the Quake Live profile alone.</p>
       </div>
       <div class="feature-grid">
         <article class="feature-group">
           <h3>Unified game compatibility</h3>
-          <p>Profile-owned installation, module ABI, protocol, demo, filesystem, asset, and optional-service contracts for Q3, QL, RTCW SP/MP, Enemy Territory, Elite Force SP/Holomatch, Jedi Academy SP/MP and Alice, including RTCW campaign and savegame boundaries.</p>
+          <p>One immutable profile per process owns the game's installation rules, module interfaces, protocol, demos, saves, file formats and optional services. Adapters convert at every boundary, so one game's structures never reach another's modules or packets.</p>
         </article>
         <article class="feature-group">
           <h3>Fast, modern hardware rendering</h3>
-          <p>Choose between optimized <strong>GLx</strong>, <strong>Vulkan raster</strong> and <strong>Vulkan RTX</strong> renderers, with GPU-cached world geometry, optimized lightmaps, reduced rendering overhead, improved depth precision and better performance on large or demanding maps.</p>
+          <p>Choose between optimized <strong>GLx</strong>, <strong>Vulkan raster</strong> and <strong>Vulkan RTX</strong> renderers in every game with a client, with GPU-cached world geometry, merged lightmaps, reduced rendering overhead and improved depth precision. RTX path traces each map with its own lights.</p>
         </article>
         <article class="feature-group">
           <h3>Modern visual upgrades</h3>
-          <p>Optional HDR rendering and output, MSAA, supersampling, render scaling, anisotropic filtering, bloom, tone mapping, colour grading, high-quality dynamic lighting and shadows, motion blur, lens flares, soft particles, enhanced liquids and per-map fog.</p>
+          <p>Optional HDR rendering and output, MSAA, supersampling, render scaling, anisotropic filtering, bloom, tone mapping, colour grading, per-pixel and shadowed dynamic lights, static map lights, motion blur, lens flares, soft particles, enhanced liquids, an underwater view and per-map fog.</p>
         </article>
         <article class="feature-group">
           <h3>Improved player visibility</h3>
-          <p>Optional player rim lighting, stencil outlines or both, with configurable enemy, teammate, team and free-for-all colours, intensity and outline thickness. Cel shading, model outlines and world-edge outlines are also available.</p>
+          <p>Optional player rim lighting, stencil outlines or both in Quake III Arena and Quake Live, with configurable enemy, teammate, team and free-for-all colours, intensity and outline thickness. Cel shading, model outlines and world-edge outlines are also available.</p>
         </article>
         <article class="feature-group">
           <h3>Better modern hardware and OS support</h3>
-          <p>SDL3-based video and input, OpenAL audio, modern graphics APIs, high-resolution and high-refresh displays, borderless/windowed/fullscreen modes, fast Alt+Enter switching, controller hotplugging and improved compatibility with current desktop systems.</p>
+          <p>SDL3 video, input and audio, OpenAL, modern graphics APIs, high-resolution and high-refresh displays, borderless/windowed/fullscreen modes, fast Alt+Enter switching, controller hotplugging and each game's own application icon.</p>
         </article>
         <article class="feature-group">
           <h3>Low-latency, configurable controls</h3>
@@ -359,23 +374,23 @@
         </article>
         <article class="feature-group">
           <h3>Modern spatial audio</h3>
-          <p>OpenAL and HRTF headphone positioning, surround output, reverb, geometry-based occlusion, output-device selection, live device recovery and automatic fallback to the classic software mixer.</p>
+          <p>OpenAL and HRTF headphone positioning, surround output, reverb, geometry-based occlusion, shipped audio zones, output-device selection, live device recovery and fallback to the classic software mixer, fed with each game's own sound data.</p>
         </article>
         <article class="feature-group">
           <h3>Major quality-of-life improvements</h3>
-          <p>Scalable TTF console text, smooth scrolling, mouse selection, clipboard support, drag-and-drop editing, live command/CVar/map completion, minimize hotkeys, focus muting, lower background CPU usage and more flexible player configuration.</p>
+          <p>A scalable console in each game's own font, smooth scrolling, mouse selection, clipboard support, drag-and-drop editing, live command/cvar/map completion, widescreen FOV and HUD correction for every game written for 4:3 screens, minimize hotkeys, focus muting and lower background CPU usage.</p>
         </article>
         <article class="feature-group">
           <h3>Better screenshots, video and streaming tools</h3>
-          <p>PNG, TGA, JPEG and BMP capture, clipboard screenshots, custom filenames, camera metadata, configurable levelshots, watermarks, cubemap capture, arbitrary-resolution output and FFmpeg video piping.</p>
+          <p>PNG, TGA, JPEG and BMP capture, clipboard screenshots, custom filenames, camera metadata, configurable levelshots, watermarks, cube-map capture, arbitrary-resolution output and FFmpeg video piping.</p>
         </article>
         <article class="feature-group">
           <h3>Faster content handling</h3>
-          <p>Quicker startup and map restarts with large PK3 libraries, raised filesystem and map limits, fast redirected downloads and automatic handling of server-required Workshop content.</p>
+          <p>Quicker startup and map restarts with large PK3 libraries, raised filesystem and map limits, fast redirected downloads and, in Quake Live, automatic handling of server-required Workshop content.</p>
         </article>
         <article class="feature-group">
           <h3>Greater stability and security</h3>
-          <p>Extensive Quake3e and FnQ3 bug fixes, improved memory management, lower memory usage, stronger network protection and graceful fallbacks when optional rendering, audio, WebUI or Steam functionality is unavailable.</p>
+          <p>Extensive Quake3e and FnQuake3 fixes, bounded parsing of every game's files, demos and packets, lower memory usage, stronger network protection and graceful fallbacks when optional rendering, audio, WebUI or Steam functionality is unavailable.</p>
         </article>
       </div>
     </section>
@@ -383,56 +398,60 @@
     <section class="section" id="getting-started">
       <div class="section-header">
         <h2>3. Getting Started</h2>
-        <p class="lead">Build the shared Windows x86 client or Linux i686 dedicated server and supply the legitimate installation for your chosen profile.</p>
+        <p class="lead">Unpack this package into a folder of its own and point it at your legitimate installation of the game you want to run.</p>
       </div>
-      <p>Keep <code>fntech3-pkg.fnz</code>, <code>fnql-web.pak</code>, <code>fnql_&lt;renderer&gt;_x86</code> modules, and required redistributable libraries beside <code>fntech3.exe</code> and <code>fntech3.ded.exe</code>. The engine package separates games and mods under <code>games/&lt;profile&gt;/&lt;gamedir&gt;/</code>. Upgrade it with the executable; the old <code>FnQL-pkg.fnz</code> layout is no longer read.</p>
+      <p>Keep <code>fntech3-pkg.fnz</code>, <code>fnql-web.pak</code>, the <code>fnql_&lt;renderer&gt;_x86</code> modules and the redistributable libraries beside <code>fntech3.exe</code> and <code>fntech3.ded.exe</code>. The engine package keeps each game's data under its own <code>games/&lt;profile&gt;/&lt;gamedir&gt;/</code> folder. Upgrade it with the executable; the old <code>FnQL-pkg.fnz</code> layout is no longer read.</p>
       <div class="feature-grid">
         <article class="feature-group">
-          <h3>Windows client profile selection</h3>
-          <p>Use <code>+set com_gameProfile q3</code> or <code>+set com_gameProfile ql</code>, <code>+set fs_basepath "&lt;game installation&gt;"</code>, a separate writable <code>fs_homepath</code>, and <code>+set r_fullscreen 0</code> for windowed testing.</p>
+          <h3>Choose the game</h3>
+          <p>Start with <code>+set com_gameProfile quake3</code> or <code>+set com_gameProfile quakelive</code>, <code>+set fs_basepath "&lt;game installation&gt;"</code> and a separate writable <code>fs_homepath</code> for each game. Add <code>+set r_fullscreen 0</code> to start windowed. <code>gameList</code> in the console lists every profile and whether this build can start it.</p>
         </article>
         <article class="feature-group">
-          <h3>Native Linux dedicated server</h3>
-          <p>Run <code>./fntech3.ded</code> with the same explicit profile and isolated home-path options. The QL server loads retail <code>qagamei386.so</code>; native Linux clients cannot load Win32-only QL client/UI modules.</p>
+          <h3>Automatic detection</h3>
+          <p>Without a profile, the engine looks for exactly one recognized installation in <code>fs_basepath</code>, beside the executable, then in the Steam libraries. Two games in one place, or a game whose modes share one installation, need the profile named.</p>
         </article>
         <article class="feature-group">
-          <h3>Experimental RTCW profiles</h3>
-          <p>First enable <code>-Drtcw-development=true</code> as described in the <a href="https://github.com/themuffinator/fnTech3/blob/main/BUILD.md#rtcw-development-profiles">build guide</a>. Use the same Windows x86 client with <code>+set com_gameProfile rtcw-sp</code> or <code>+set com_gameProfile rtcw-mp</code>, the legitimate RTCW installation, a separate writable home, and <code>+set r_fullscreen 0</code>. Default builds reject these incomplete profiles.</p>
+          <h3>Dedicated servers</h3>
+          <p>Run <code>fntech3.ded</code> with the same explicit profile and a separate home. On Linux the Quake Live server loads the retail <code>qagamei386.so</code>; native Linux clients cannot load Quake Live's Win32-only client and UI modules.</p>
+        </article>
+        <article class="feature-group">
+          <h3>Experimental games</h3>
+          <p>RTCW, Enemy Territory, Elite Force, Jedi Academy, Jedi Outcast, Alice, F.A.K.K.2, Medal of Honor, the IHV Test and Q3Test need a developer build with their option, as the <a href="https://github.com/themuffinator/fnTech3/blob/main/BUILD.md#game-development-builds">build guide</a> describes. This package refuses them with an explanation.</p>
         </article>
       </div>
-      <p class="footer">Automatic selection needs unambiguous installation evidence; an RTCW installation containing both modes requires an explicit SP or MP choice. The selected profile is immutable. Startup, module loading, demos, play, and retail interoperability must pass the profile-specific gates before release compatibility is claimed.</p>
+      <p class="footer">The selected profile cannot change while the process runs; a mode change relaunches the executable. Startup, module loading, demos, play and retail interoperability must pass each profile's gates before compatibility is claimed.</p>
     </section>
 
     <section class="section" id="documentation">
       <div class="section-header">
         <h2>4. Documentation</h2>
-        <p class="lead">Start with the player guides for setup and tuning. Build, compatibility, and implementation details live in the technical references.</p>
+        <p class="lead">Start with the player guides for setup and tuning. Build, compatibility and implementation details live in the technical references; the ones marked as included ship in this package.</p>
       </div>
       <div class="doc-grid">
         <article class="doc-column">
           <h3>Player guides</h3>
           <ul>
-            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/DISPLAY.md">Display Guide</a> for renderers, display modes, HDR, scaling, anti-aliasing, bloom, lighting, shadows, fog, liquids, lens flares, and motion blur.</li>
-            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/RTX.md">RTX Renderer Guide</a> for requirements, renderer selection, fallback behavior, safe settings, and troubleshooting.</li>
-            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/VISUALS.md">Visuals Guide</a> for player highlighting, colours, cel shading, and outlines.</li>
-            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/ASPECT_CORRECTION.md">Aspect Handling Guide</a> for the retail WebUI, menus, and cinematics.</li>
-            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/AUDIO.md">Audio Guide</a> for devices, HRTF, spatial effects, fallback behavior, and troubleshooting.</li>
-            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/CONSOLE.md">Console Guide</a> for layout, scaling, completion, clipboard use, and mouse interaction.</li>
-            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/SCREENSHOTS.md">Screenshot Guide</a> for formats, filenames, metadata, levelshots, watermarks, and cubemaps.</li>
-            <li><a href="https://github.com/themuffinator/FnQL/releases">FnQL baseline release history</a> for historical changelogs and downloads; these are not fnTech3 releases.</li>
+            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/GAMES.md">Games Guide</a> for the supported games and modes, profiles, installations, writable homes and each game's status.</li>
+            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/DISPLAY.md">Display Guide</a> for renderers, display modes, HDR, scaling, anti-aliasing, bloom, lighting, shadows, fog, liquids, lens flares and motion blur.</li>
+            <li><a href="docs/RTX.md">RTX Renderer Guide</a> (included) for requirements, path tracing, fallback behavior, safe settings and troubleshooting.</li>
+            <li><a href="docs/GLX.md">GLx Renderer Guide</a> (included) for the default OpenGL-lineage renderer, diagnostics and troubleshooting.</li>
+            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/VISUALS.md">Visuals Guide</a> for player highlighting, colours and outlines.</li>
+            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/ASPECT_CORRECTION.md">Aspect Handling Guide</a> for widescreen FOV, HUD layout, menus and cinematics.</li>
+            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/AUDIO.md">Audio Guide</a> for devices, HRTF, spatial effects, audio zones, each game's sound and troubleshooting.</li>
+            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/CONSOLE.md">Console Guide</a> for layout, fonts, completion, clipboard use and mouse interaction.</li>
+            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/SCREENSHOTS.md">Screenshot Guide</a> for formats, filenames, metadata, levelshots, watermarks and cube maps.</li>
           </ul>
         </article>
         <article class="doc-column">
           <h3>Technical and build docs</h3>
           <ul>
-            <li><a href="docs/fntech3/COMPATIBILITY.md">Compatibility ledger</a> for all five profiles, observed evidence, open gates, and unified release sign-off.</li>
-            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/BUILD.md">Build Guide</a> for compiling fnTech3 locally and enabling experimental RTCW profiles.</li>
-            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/GLX.md">GLx Renderer Guide</a> for the default OpenGL-lineage renderer, diagnostics, and troubleshooting.</li>
-            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/fnql/INPUT_COMPATIBILITY.md">Input Compatibility Notes</a> for retail mouse math, text input, controllers, and legacy profiles.</li>
-            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/fnql/WEBUI_BACKEND.md">WebUI Backend Notes</a> for retail resources, platform boundaries, overlay order, and fallbacks.</li>
-            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/fnql/STEAM_PROVIDER.md">Steam Provider Notes</a> for the open loader ABI, provider distribution, and runtime policy.</li>
-            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/fnql/RTX_RENDERER.md">RTX Renderer Contract</a> for the Quake Live ABI boundary, conservative defaults, and runtime validation.</li>
-            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/fnql/TECHNICAL.md">FnQL baseline technical notes</a> for inherited subsystem history and QL reference contracts; current scope and release requirements are defined by the fnTech3 ledger.</li>
+            <li><a href="docs/fntech3/COMPATIBILITY.md">Compatibility ledger</a> (included) for all sixteen profiles, observed evidence, open gates and unified release sign-off.</li>
+            <li><a href="docs/fntech3/ARCHITECTURE.md">Architecture overview</a> (included) for how profiles, adapters and the shared subsystems fit together.</li>
+            <li><a href="docs/fntech3/PACKAGES.md">Engine package</a> (included) for <code>fntech3-pkg.fnz</code> and its per-game sidecars.</li>
+            <li><a href="CHANGELOG.md">Changelog</a> (included) and <a href="docs/fntech3/RELEASING.md">release guide</a> (included).</li>
+            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/BUILD.md">Build Guide</a> for compiling fnTech3 and enabling each game's development option.</li>
+            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/fnql/RTX_RENDERER.md">RTX Renderer Contract</a> for the renderer's module boundary, conservative defaults and runtime validation.</li>
+            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/fnql/README.md">FnQL baseline documents</a> for the Quake Live profile's WebUI, Steam provider, input and font contracts, and the inherited renderer and audio design notes.</li>
           </ul>
         </article>
       </div>
@@ -441,10 +460,10 @@
     <section class="section" id="credits">
       <div class="section-header">
         <h2>5. Credits</h2>
-        <p class="lead">fnTech3 combines FnQuake3 and FnQL with the id Software, ioquake3, and Quake3e engine lineage. QLSRP provides behavioral and ABI evidence for independently written implementation work.</p>
+        <p class="lead">fnTech3 combines FnQuake3 and FnQL with the id Software, ioquake3 and Quake3e engine lineage. QLSRP, OpenJK, OpenAlice, iortcw, Lilium Voyager and other projects supply behavioral and format evidence for independently written implementation work.</p>
       </div>
       <p class="lead">Additional compatibility and feature work draws from projects and references such as <a href="https://bitbucket.org/CPMADevs/cnq3">CNQ3</a>, <a href="https://github.com/zturtleman/spearmint">Spearmint</a>, <a href="https://github.com/brugal/wolfcamql">WolfcamQL</a>, Luigi Auriemma's <a href="https://aluigi.altervista.org/papers.htm#qldec">qldec</a>, and <a href="https://github.com/Paril/DarkMatter-Q2">DarkMatter-Q2</a>.</p>
-      <p class="footer">See the full upstream chain and acknowledgements in <a href="CREDITS.md">CREDITS.md</a>.</p>
+      <p class="footer">See the full upstream chain, acknowledgements and trademark notices in <a href="CREDITS.md">CREDITS.md</a> and <a href="THIRD_PARTY_NOTICES.md">THIRD_PARTY_NOTICES.md</a>.</p>
     </section>
   </main>
 </body>

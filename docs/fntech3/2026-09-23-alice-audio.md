@@ -215,9 +215,9 @@ command; `S_Shutdown` removes a `music` command nothing adds.
 | Fade | `fadesound <ms>` fades every new sound and the loops to silence over that time and holds it; 0 cancels, which the client flush and state clear do (`0x00472530`, `0x0040eed0`). While it is on, `S_Update` has the music apply its volumes every frame (`0x0047112c`) | `S_AliceFadeSound`, and the same cancels and music request |
 | `s_volume` | A change rescales what plays by the master volume against the last one used (`0x00471145`), and has the music apply its volumes (`0x0047113f`); the fade alone rescales nothing | The same |
 | Pause | The `paused` cvar stops what plays where it is and resumes it (`0x0046f6c0`, `0x0046f740`) | The same, on `cl_paused` |
-| Obstruction | Once a second of server time, a point trace from the sound to the listener against `CONTENTS_SOLID`; blocked and not the listener's own entity sets 0.5 (`0x00470c84`) | The same test, one 0.5 step on the direct path; see below |
-| Reverb (40) | Kept; applied only with `s_reverb 1`, which ships at 0 (`0x00471000`) | The same; see below |
-| Dialog voices | A sound whose name says `.mp3` plays in 2-D: panned by `s_separation` (0.3), scaled by min over distance with no far limit (`0x0046f860`, `0x00470e00`) | The same, on the dialog voices; no shipped sound reaches them |
+| Obstruction | Once a second of server time, a point trace from the sound to the listener against `CONTENTS_SOLID`; blocked and not the listener's own entity sets 0.5 (`0x00470c84`) | The same test on the legacy mixer; the OpenAL backend traces its own occlusion instead; see below |
+| Reverb (40) | Kept; applied only with `s_reverb 1`, which ships at 0 (`0x00471000`) | Kept; the OpenAL backend plays its own room, and a room named here replaces it while `s_reverb` is 1, its default; see below |
+| Dialog voices | A sound whose name says `.mp3` plays in 2-D: panned by `s_separation` (0.3), scaled by min over distance with no far limit (`0x0046f860`, `0x00470e00`) | The same bookkeeping on the dialog voices; the legacy mixer pans them in 2-D and the OpenAL backend places a line at its speaker; no shipped sound reaches them |
 | Defaults | `s_volume 1.0`, `s_musicvolume 0.60` (`0x0044c6f0`) | The same for this profile; the other profiles keep 0.8 and 0.25 |
 
 ### Inferences
@@ -239,24 +239,64 @@ Retail's `CM_BoxTrace` (`0x00437130`) clears its work area (`0x0043716b`) and
 nothing in it sets the trace's entity number, so the number is 0; the
 respatialize then asks that it is not the listener (`0x00470cad`). In single
 player the listener is entity 0, so **retail never obstructs a sound**.
-fnTech3's own `CM_BoxTrace` clears the same way, and the test is kept, so
-the obstruction is implemented and does nothing for Alice's listener, as in
-retail. The maintainer asked for the obstruction to be reset for each new
-sound rather than stick to the handle as retail's does; that is done, and it
-only matters for a listener that is not entity 0.
+fnTech3's engine keeps that test, and its one 0.5 step is what the legacy
+mixer plays. The OpenAL backend does not use it: it traces its own
+occlusion, as for every profile (below). The maintainer asked for the
+obstruction to be reset for each new sound rather than stick to the handle as
+retail's does; that is done, and it only matters for a listener that is not
+entity 0.
 
 ### Reverb
 
-With `s_reverb 0`, as retail ships it, Alice has no reverb: the OpenAL
-backend's own environment reverb is off for the profile. With `s_reverb 1`
-the environment the client game names -- the EAX 1.0 environment index, 0 to
-25, whose volumes are the 26 floats at `0x0051f944` -- is played with the
-nearest of the seven presets the OpenAL backend already carries, chosen by
-the kind of space, and sent at retail's software-provider level: the level
-the client game names times that environment's volume (`0x00470f50`). This
-is an approximation: EAX's 26 environments are not in the tree. An
-environment outside the 26 changes nothing. The legacy mixer has no reverb,
-as retail's own DMA path had none.
+Retail has no reverb unless `s_reverb` is 1, which it ships at 0, and then
+only the room its client game names: the EAX 1.0 environment index, 0 to 25,
+whose volumes are the 26 floats at `0x0051f944`, sent at the level the client
+game names times that environment's volume (`0x00470f50`). The client game
+takes the room from its player state; no shipped map raises it, because the
+`TriggerReverbs` section of each of the thirty-six `maps/*.snd` files is
+empty.
+
+fnTech3 does not copy that. The OpenAL backend plays the room it plays for
+every profile -- the map's audio zones, which every official Alice map now
+ships ([sidecar record](2026-09-24-alice-map-sidecars.md)), or the traced room
+where a map has none -- under `s_alReverb`. A room the client game names, at
+a level above 0, is authored, so it replaces that room while it is named, as
+an authored zone outranks a generated one; it plays with the nearest of the
+backend's presets at retail's software-provider level. `s_reverb` keeps its
+name and now chooses only that: 1, the default here, lets a named room in,
+and 0 keeps the backend's own. The legacy mixer has no reverb, as retail's
+own DMA path had none.
+
+### The engine's own features
+
+Under the project's rule that every profile runs on fnTech3's own features
+(invariant 11 of `AGENTS.md`), the engine above keeps retail's bookkeeping --
+which voice a sound takes, when it starts, how the loops merge, a sound's
+min distance, volume and `maxnumber` from its record -- and the OpenAL
+backend renders what it decides as it renders any profile's sounds
+(`ApplyAliceVoice`, `code/client/audio/openal/AudioSystemWorld.inl`). Each
+voice arrives with its placement (`Placement` in `shared/AliceSound.h`):
+where it is heard, where it comes from, its volume with and without its
+distance, its min distance and the distance where it falls silent, its
+motion, its role and its channel.
+
+| Feature | Alice's voices |
+| --- | --- |
+| Distance model | OpenAL's, with the sound's min distance as the reference and 64 times it as the far end; the clamped inverse model is retail's own law, full inside the min distance and min over distance beyond, and it is faded out toward the far end as for every profile. A dialog line has no far end, as retail's has none. Where the device has no distance model, the engine's measured gain plays instead |
+| Air absorption | `s_alAirAbsorption`, beyond the min distance |
+| HRTF and output modes | Every positional voice |
+| Occlusion | The backend's traced occlusion and liquid boundaries, on the direct and wet paths, under `s_alOcclusion`. A merged loop group is heard from near the listener, so its occlusion is traced from its loudest member |
+| Room reverb | The audio zones or the traced room, with the backend's per-voice sends; a named room replaces it (above) |
+| Tone classes | By channel: Ritual's weapon and weapon-idle channels are weapon, its voice and two dialog channels are voice, item and body keep theirs. Ritual's 6 and 7 are dialog where Quake III has its local and announcer channels, so the channel is mapped before it reaches the backend's rules |
+| Doppler | A moving loop's motion, under `s_doppler`. No shipped loop moves |
+| `s_pvs` | Honoured; off by default for every profile |
+| Interface sounds | The menu channel is dry and head-relative, as the backend plays any interface sound |
+| Sounds at the listener | A local sound, or one from an entity marked for the listener, takes the room but no occlusion |
+
+Left out: the weapon sound shaders (`sound/fnql-weapon-sounds.sndshd`), which
+tune Quake III's and Quake Live's weapon samples by name and have no Alice
+rules, so there is nothing for them to apply. Retail's 2-D dialog pan is kept
+only where a line cannot be placed, a stereo one, and by the legacy mixer.
 
 ### Loop blocks
 
@@ -351,10 +391,9 @@ retail arithmetic and bookkeeping, with no file, device or cvar access.
   a voice on the channel of its own number, a looping one as a loop channel
   counted from where it started, and spreads each between the two channels
   evenly, as it spreads any sound; a voice heard at the listener's own
-  position is played on both at full. The OpenAL backend keeps each voice
-  positional, with the device's distance attenuation off because the engine
-  has already measured it, as it does for Elite Force's single-player
-  voices. Loop blocks are described above. Every other start is turned into
+  position is played on both at full. The OpenAL backend renders each voice
+  with its own distance model, occlusion, room and tone, described above.
+  Loop blocks are described above. Every other start is turned into
   an Alice one under this profile, so no other code takes an Alice voice.
 - **Freeing.** `S_AliceMusicFreeAll` is called where retail passes 1 to
   `S_StopAllSounds`: `CL_ShutdownAll`, `CL_Disconnect`, `CL_ClearState`,
@@ -368,7 +407,7 @@ retail arithmetic and bookkeeping, with no file, device or cvar access.
   while no backend runs.
 - **Commands.** `play` (a name without a dot gains `.wav`, then plays as
   import 31 plays it), `sounddump`, `playsong`, `loadsoundtrack`, `playmp3`
-  and `stopmp3`; no `music` or `stopmusic`. `s_reverb` (0) and
+  and `stopmp3`; no `music` or `stopmusic`. `s_reverb` (1; see Reverb) and
   `s_show_sounds` are registered, and `s_separation` at 0.3.
 
 ### Entry points
@@ -395,6 +434,12 @@ outside the profile and does nothing while no backend runs:
 
 ### Where fnTech3 differs, and why
 
+- **The presentation is fnTech3's, not Miles's.** On the OpenAL backend every
+  voice gets the engine's distance model, air absorption, traced occlusion,
+  room reverb from the audio zones or the traced room, tone classes and
+  HRTF, with Alice's own min distances, volumes and channels; see The
+  engine's own features. Reverb is on by default, where retail's is off.
+  The legacy mixer keeps retail's measured gain, obstruction step and pan.
 - The obstruction is reset for each new sound (the maintainer's choice); in
   retail it sticks to the handle. For Alice's listener neither ever applies.
 - A menu sound is placed at the listener as it starts; retail starts it
@@ -450,8 +495,9 @@ outside the profile and does nothing while no backend runs:
 - Retail also cancels the fade when the server count changes
   (`CL_SetCGameTime` `0x00424bb2` to `0x0042d89f`), with an
   `S_StopAllSounds(0)` that keeps the music.
-- The dialog path, the obstruction, the reverb and the pause have unit
-  evidence only. Loop blocks, which no shipped record has, have unit and
+- The dialog path, the obstruction, a named room and the pause have unit
+  evidence only; the zone reverb, occlusion and tone classes have the fourth
+  run below and no listening test. Loop blocks, which no shipped record has, have unit and
   fixture evidence and a runtime start (see Results); `AL_SOFT_loop_points`
   was not available to run, so the OpenAL block path has none.
 - The music's reapplication has unit evidence only. A song's kept place
@@ -507,6 +553,35 @@ two-song `sound/music/probe.mus` of shipped songs whose second is
   background stream held). Both clients quit cleanly.
 - The installation was left unchanged.
 
+A fourth run on 2026-09-24, after the backend began rendering Alice's voices
+as it renders every profile's: a developer client from
+`meson/build/win32-alice-content`, windowed on a private desktop, `+devmap
+garden1`, `skipcinematic`, then `s_info` and `s_alDebugDump` with
+`s_alSourceClassDebug 1`. The same steps on an earlier build
+(`meson/build/win32-alice-vk`) show the difference (`.tmp/alice-audio-fnql/`):
+
+- **Before:** no audio zones (that package had none), the environment
+  unused, every voice `mode=3d tone=alice/none` with no occlusion, and the
+  class summary `class=alice ... wet=0.00`.
+- **After:** `Audio zones: 512 loaded from maps/garden1.azb, active
+  auto-a1-hall-511->auto-a1-underwater-499 0.45, material soft`; the
+  environment a hall blending toward an underwater zone (`wet 0.58`); the
+  ambient loops in the `world` tone class and the creatures' and Mock
+  Turtle's lines in `voice`; occlusion traced on the sounds behind geometry
+  (`occ=0.55` on `uwater2.wav`, `occ=0.96` on `army_ant/idle1.wav` 2,296
+  units away); and the Mock Turtle's line, heard at the listener, played
+  head-relative (`mode=relative`). Run again with `s_muteWhenUnfocused 0`
+  at `s_volume 0.02`, so that the unfocused window did not mute it and
+  nothing was loud, the sends show: `class=world voices=4 ... wet=2.11` and
+  `class=voice voices=2 ... wet=1.23`, the Mock Turtle's line `dry=1.00
+  wet=0.32`.
+- No `Alice room` line was printed: the client game named no room, so the
+  zones stood.
+- The legacy mixer (`s_backend legacy`) still starts the level's sounds on
+  its own channels (`sounddump`).
+
+No listening test has been made.
+
 ## Tests
 
 - `tests/alice_music_tests.cpp`: Ritual's tokenizer (a comment's line tail,
@@ -530,7 +605,11 @@ two-song `sound/music/probe.mus` of shipped songs whose second is
   to frames (rounding, -1 and out-of-range ends, negative starts, empty and
   inverted blocks, 8-bit files, resampled devices), the offset round a block,
   and the engine handing a block to a voice before it starts, dropping it
-  with a new sample, and never to a loop group.
+  with a new sample, and never to a loop group; and each voice's placement
+  -- a world sound's volume, min distance and far end, a sound at the
+  listener, an interface sound, a merged loop group's summed volume and its
+  loudest member as its source, a moving loop's min distance and motion, and
+  a dialog line with no far end.
 - `tests/alice_audio_backend_tests.py`: the legacy mixer's own painter
   (sliced from `snd_mix.cpp`) repeating a block across paint-buffer passes,
   refusing one past the sample's end and ignoring it under another profile;

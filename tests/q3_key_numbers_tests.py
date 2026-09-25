@@ -83,9 +83,17 @@ struct vm_t { int id; };
 static vm_t ui{ 1 }, cgame{ 2 };
 static vm_t *uivm = &ui, *cgvm = &cgame;
 enum { UI_KEY_EVENT = 3, CG_KEY_EVENT = 6 };
-enum Game { QUAKE3, QUAKELIVE, RTCW, WOLFET, STVEF_MP, STVEF_SP } game;
+enum Game { QUAKE3, QUAKELIVE, RTCW, WOLFET, STVEF_MP, STVEF_SP, Q3TEST_1_05, Q3TEST_1_06 } game;
 static bool Com_GameIsQuake3() { return game == QUAKE3; }
 static bool Com_GameIsSTVEF() { return game == STVEF_MP || game == STVEF_SP; }
+static bool Com_GameIsQ3Test() { return game == Q3TEST_1_05 || game == Q3TEST_1_06; }
+enum { Q3TEST_RELEASE_1_05 = 2, Q3TEST_RELEASE_1_06 };
+struct Q3TestRelease { int id; };
+static const Q3TestRelease *Com_Q3TestRelease() {
+	static Q3TestRelease release;
+	release.id = game == Q3TEST_1_06 ? Q3TEST_RELEASE_1_06 : Q3TEST_RELEASE_1_05;
+	return &release;
+}
 struct Call { vm_t *vm; int count, call; std::vector<int> args; };
 static std::vector<Call> calls;
 static intptr_t VM_Call( vm_t *vm, int count, int call, ... ) {
@@ -150,6 +158,14 @@ int main() {
 		Every( K_MOUSE6, -1 );
 		Every( K_PAD0_SOUTH, -1 );
 	}
+	// Q3Test's menu modules, 1.06 to 1.08, take Quake III's numbers too;
+	// 1.05's menus are this engine's own, and so are their numbers.
+	game = Q3TEST_1_06;
+	Every( K_MWHEELDOWN, 183 );
+	Every( K_AUX16, 232 );
+	Every( K_MOUSE6, -1 );
+	game = Q3TEST_1_05;
+	for ( int key : { K_MOUSE6, K_MWHEELDOWN, K_AUX16, K_ESCAPE } ) Every( key, key );
 }
 '''
 

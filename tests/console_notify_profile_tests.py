@@ -7,7 +7,8 @@ Quake Live registers no con_notifytime. Quake III, RTCW, Enemy Territory and
 Elite Force draw the last four console lines at the top of the screen for
 con_notifytime seconds, then a chat prompt and field under them. Each engine
 does that its own way; docs/fntech3/2026-09-23-profile-notify-lines.md has
-the retail reads.
+the retail reads. Medal of Honor keeps Quake III's chat line but starts its
+lines switched off, with a con_notifytime of 0 that hides every one.
 
 These tests compile the console's own notify, chat-mode, registration and
 draw-gate code with the screen, field and renderer calls recorded. They run
@@ -115,6 +116,8 @@ static void UnregisterChat( void ) {
         optional_block(console, 'static const ChatCommand con_wolfetChatCommands[] = {', '\n};'),
         optional_block(console, 'static const ChatCommand con_stvefSPChatCommands[] = {', '\n};'),
         optional(console, 'static ChatCommandSet Con_ChatCommands( comGameId_t profile ) {'),
+        optional(console, 'void Con_OpenChat( qboolean team ) {'),
+        optional(console, 'void Con_CloseChat( void ) {'),
         registration,
         optional(console, 'static int Con_NotifyLine( void )'),
         block(console, 'class Con_ScopedChatCell {', '\n};'),
@@ -161,6 +164,7 @@ int Com_GameIsQuakeLive( void ) { return Is( COM_GAME_QUAKELIVE ); }
 int Com_GameIsWolfET( void ) { return Is( COM_GAME_WOLFET ); }
 int Com_GameIsRTCW( void ) { return Is( COM_GAME_RTCW_SP ) || Is( COM_GAME_RTCW_MP ); }
 int Com_GameIsSTVEF( void ) { return Is( COM_GAME_STVEF_SP ) || Is( COM_GAME_STVEF_MP ); }
+int Com_GameIsMOHAA( void ) { return Is( COM_GAME_MOHAA ); }
 
 // The client, its connection and its console.
 static struct {
@@ -249,6 +253,7 @@ static field_t chatField;
 static qboolean chat_team;
 static qboolean chat_buddy;
 static int chat_playerNum;
+static int chat_dmTarget;
 static void Field_Clear( field_t *edit ) { edit->buffer[0] = '\0'; edit->cursor = 0; edit->scroll = 0; }
 static void Field_KeyDownEvent( field_t *, int ) {}
 static std::string sent;
@@ -497,6 +502,8 @@ static Profile Expected( comGameId_t id ) {
 	case COM_GAME_WOLFET: return { 3, 3, true, false, true, true, true, "7" };
 	case COM_GAME_STVEF_SP: return { 2, 0, false, false, false, false, false, "3" };
 	case COM_GAME_STVEF_MP: return { 3, 0, false, true, true, false, false, "5" };
+	// Medal of Honor's lines start switched off (CheckMOHAA).
+	case COM_GAME_MOHAA: return { 0, 3, true, false, true, false, false, "0" };
 	default: return { 2, 3, true, false, true, false, false, "3" };
 	}
 }
@@ -825,6 +832,9 @@ static void CheckRegistration( void ) {
 		CHECK( ( names == std::vector<std::string>{ "clMessageMode", "clMessageMode2", "clMessageMode3" } ) );
 	} else if ( current == COM_GAME_STVEF_SP ) {
 		CHECK( ( names == std::vector<std::string>{ "messagemode" } ) );
+	} else if ( current == COM_GAME_MOHAA ) {
+		// Medal of Honor's client game registers its own chat commands.
+		CHECK( names.empty() );
 	} else {
 		CHECK( ( names == std::vector<std::string>{ "messagemode", "messagemode2", "messagemode3", "messagemode4" } ) );
 	}
@@ -862,6 +872,22 @@ static void CheckChatModes( void ) {
 		CHECK( Invoke( "messagemode" ) && catcher == 0 && !chatField.buffer[0] && chatField.widthInChars == 30 );
 		CHECK( !chat_team && !chat_buddy );
 		break;
+	case COM_GAME_MOHAA: {
+		// Its client game opens the chat line (cl_mohaa_cgame.cpp), to all or
+		// to the team, and closes it.
+		catcher = 0;
+		std::strcpy( chatField.buffer, "stale" );
+		chat_buddy = qtrue;
+		Con_OpenChat( qfalse );
+		CHECK( catcher == KEYCATCH_MESSAGE && !chatField.buffer[0] && chatField.widthInChars == 30 );
+		CHECK( chat_playerNum == -1 && !chat_team && !chat_buddy );
+		Con_OpenChat( qtrue );
+		CHECK( catcher == KEYCATCH_MESSAGE && chatField.widthInChars == 25 && chat_team );
+		std::strcpy( chatField.buffer, "words" );
+		Con_CloseChat();
+		CHECK( catcher == 0 && !chatField.buffer[0] );
+		break;
+	}
 	case COM_GAME_QUAKELIVE:
 		Open( "messagemode", 73, -1, false, false );
 		Open( "messagemode2", 68, -1, true, false );
@@ -882,23 +908,64 @@ static void CheckChatModes( void ) {
 	}
 	}
 
-	// Message_Key sends what the prompt says. Only ET has a fireteam.
+	// Message_Key sends what the prompt says. Only ET has a fireteam, and
+	// Medal of Honor's game reads only its own dmmessage, to its target.
 	for ( int buddy = 0; buddy < 2; ++buddy ) {
 		cls.state = CA_ACTIVE;
 		catcher = KEYCATCH_MESSAGE;
 		chat_playerNum = -1;
 		chat_team = qfalse;
 		chat_buddy = buddy ? qtrue : qfalse;
+		chat_dmTarget = buddy ? -1 : 0;
 		std::strcpy( chatField.buffer, "hi" );
 		sent.clear();
 		Message_Key( K_ENTER );
-		CHECK( sent == ( buddy && current == COM_GAME_WOLFET ? "say_buddy \"hi\"\n" : "say \"hi\"\n" ) );
+		if ( current == COM_GAME_MOHAA ) {
+			CHECK( sent == ( buddy ? "dmmessage -1 hi\n" : "dmmessage 0 hi\n" ) );
+		} else {
+			CHECK( sent == ( buddy && current == COM_GAME_WOLFET ? "say_buddy \"hi\"\n" : "say \"hi\"\n" ) );
+		}
 		CHECK( !( catcher & KEYCATCH_MESSAGE ) );
 	}
 }
 
+// Medal of Honor starts its lines switched off, as its engine UI shows the
+// game's messages in message boxes of its own: con_notifytime 0 hides every
+// line, even one printed this frame, which Quake III's 0 would still draw.
+// Its chat line is Quake III's, two thirds of the way down where 2015's
+// one-message chat window sat, and a raised con_notifytime draws Quake III's
+// lines.
+static void CheckMOHAA( void ) {
+	CHECK( con_notifytime && con_notifytime->value == 0.0f );
+	if ( !con_notifytime ) return;
+	for ( int chat = 0; chat < 2; ++chat ) {
+		Lines();
+		con.times = { cls.realtime, cls.realtime, cls.realtime, cls.realtime };
+		catcher = chat ? KEYCATCH_MESSAGE : 0;
+		Draw();
+		CHECK( Only( Kind::SmallChar ).empty() && calls.size() == ( chat ? 2u : 0u ) );
+		if ( !chat ) continue;
+		const std::vector<Call> strings = Only( Kind::BigString );
+		const std::vector<Call> fields = Only( Kind::BigField );
+		CHECK( strings.size() == 1 && fields.size() == 1 );
+		if ( strings.size() == 1 && fields.size() == 1 ) {
+			CHECK( strings[0].x == 8 && strings[0].y == 316 && strings[0].text == "say:" );
+			CHECK( fields[0].field == &chatField && fields[0].x == 5 * 16 && fields[0].y == 316 );
+		}
+	}
+	con_notifytime->value = 3.0f;
+	Lines();
+	Draw();
+	CheckLines( Expected( COM_GAME_QUAKE3 ), 2 );
+	con_notifytime->value = 0.0f;
+}
+
 // Whether a shut console leaves the overlay to draw, by connection state.
 static void CheckDrawGate( void ) {
+	// Medal of Honor draws nothing at its default (CheckMOHAA), so its gate is
+	// seen with its lines raised.
+	const float notifyTime = con_notifytime ? con_notifytime->value : 0.0f;
+	if ( current == COM_GAME_MOHAA && con_notifytime ) con_notifytime->value = 3.0f;
 	const int states[] = { CA_DISCONNECTED, CA_LOADING, CA_ACTIVE, CA_CINEMATIC };
 	for ( int drawNotify = 0; drawNotify < 2; ++drawNotify ) {
 		if ( con_drawnotify ) con_drawnotify->integer = drawNotify;
@@ -919,8 +986,9 @@ static void CheckDrawGate( void ) {
 			if ( current == COM_GAME_WOLFET ) expected = expected && drawNotify;
 			// alice.exe has no overlay at all: no con_notifytime and no chat
 			// prompt; its console text shows only in the console itself and
-			// the mini console (UI_PrintConsole 0x0040c220).
-			if ( current == COM_GAME_ALICE ) expected = false;
+			// the mini console (UI_PrintConsole 0x0040c220). F.A.K.K.2's SDK
+			// documents the same console window and mini console.
+			if ( current == COM_GAME_ALICE || current == COM_GAME_FAKK2 ) expected = false;
 			CHECK( solidConsoles == 0 );
 			CHECK( !calls.empty() == expected );
 		}
@@ -933,6 +1001,7 @@ static void CheckDrawGate( void ) {
 	Reset();
 	Con_DrawConsole();
 	CHECK( solidConsoles == 1 && calls.empty() );
+	if ( con_notifytime ) con_notifytime->value = notifyTime;
 }
 
 int main() {
@@ -945,6 +1014,8 @@ int main() {
 		} else if ( id <= COM_GAME_STVEF_MP ) {
 			CheckClassic();
 			CheckRing();
+		} else if ( id == COM_GAME_MOHAA ) {
+			CheckMOHAA();
 		} else {
 			// A later profile with no row of its own draws Quake III's lines.
 			Lines();

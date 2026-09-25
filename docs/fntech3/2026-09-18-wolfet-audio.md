@@ -75,10 +75,68 @@ extra argument, that every ET entry point refuses a profile that is not ET, that
 both audio backends implement the surface, and that the two profiles keep
 separate master fades.
 
+## The engine's own features (2026-09-24)
+
+Under invariant 11 of `AGENTS.md`, the OpenAL backend no longer pans ET's
+voices as retail's mixer does. It renders ET's data through the engine's own
+audio, as it renders every profile's sounds. The [Wolfenstein OpenAL voices
+record](2026-09-24-wolfenstein-openal-voices.md) has the design, tests and
+runtime evidence.
+
+Kept from retail, as above:
+
+- the one-shot's submitted volume and the shared allocation;
+- the loop's start time and the virtualization by retail's gains;
+- ET's own master fade, as each loop's submitted volume captures it;
+- retail's span for how far a sound carries: full volume to 6.4% of its
+  range, silent the range beyond, 1,250 for a one-shot and the submitted
+  range for a loop;
+- the loops' retail level, 90 over 256 of their volume.
+
+Used:
+
+- **Positional rendering, with HRTF and the output mode**, for every voice
+  away from the listener.
+- **The OpenAL distance model** across that span, faded out toward its end,
+  with air absorption.
+- **Traced occlusion and liquid boundaries**, on the direct and wet paths.
+- **The room reverb** from the six stock maps' audio zone sidecars or the
+  traced room.
+- **Tone classes** by channel. ET's channels 0 to 7 are Quake III's numbers.
+- **`s_pvs`**, when it is asked for.
+
+At the listener:
+
+- A one-shot takes the room but no occlusion.
+- A local channel there is a dry interface sound.
+
+Left out:
+
+- **Retail's left/right balance.** It stays in the legacy mixer
+  (`s_backend legacy`), the explicit retail-exact option.
+- **Loop Doppler.** ET's retail mixer pitches a moving loop, but fnTech3's ET
+  loop path has never carried a loop's motion. It stays disabled and is open.
+- **The weapon sound shaders.** They have no ET rules.
+
+Found while reading ET's mixer, and open in both backends; none of it is new
+with this change:
+
+- ET merges same-sample, same-phase loops into one channel;
+- ET accepts a loop volume up to 65,535 before its 255 channel cap;
+- ET honours the one-shot flag `SND_NO_ATTENUATION`.
+
+On `oasis`:
+
+- the 512-zone sidecar sets a hall;
+- the loops play positionally at 0.70 with sends;
+- two map one-shots were placed as `item` sounds and were silent past the
+  span.
+
 ## Remaining gates
 
-- **Nothing here runs.** The ET client stays gated, so no ET module has played a
-  sound. No listening test has been performed and no audio claim is made.
+- **No listening test.** The ET client has since loaded every stock map in a
+  developer build, and its voices reach the OpenAL backend (above). No
+  listening test has been performed.
 - The renderer still has no MDM/MDX model type, so ET players would have no
   bodies even with sound carried.
 - ET's remaining open imports are the decals, polygon buffer, dynamic light,

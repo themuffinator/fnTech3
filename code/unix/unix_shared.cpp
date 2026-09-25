@@ -654,6 +654,32 @@ void Sys_UnloadLibrary( void *handle )
 
 /*
 =================
+Sys_UnloadLibraryHeld
+
+Holds no address range here: the reservation that keeps a 32-bit Windows
+client's module reloadable (win_main.cpp) has no counterpart in dlopen.
+=================
+*/
+void *Sys_UnloadLibraryHeld( void *handle )
+{
+	Sys_UnloadLibrary( handle );
+	return NULL;
+}
+
+
+/*
+=================
+Sys_ReleaseLibraryHold
+=================
+*/
+void Sys_ReleaseLibraryHold( void *hold )
+{
+	(void)hold;
+}
+
+
+/*
+=================
 Sys_LoadFunction
 =================
 */

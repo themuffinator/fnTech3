@@ -330,9 +330,12 @@ class AliceDemoTests(unittest.TestCase):
     def test_playback_never_rerecords_an_alice_demo(self):
         # Quake III's snapshot writer has no room for Alice's sound block, and
         # alice.exe's reader copies nothing to a recording (0x0042a760).
+        # Medal of Honor's snapshots are its game's records, which that
+        # writer cannot carry either.
         main = (ROOT / 'code/client/cl_main.cpp').read_text(encoding='utf-8')
         body = function(main, 'void CL_ReadDemoMessage( void )')
-        self.assertIn('if ( clc.demorecording && CL_ActiveWireProfile() != NETCHAN_WIRE_ALICE ) {', body)
+        self.assertIn('if ( clc.demorecording && CL_ActiveWireProfile() != NETCHAN_WIRE_ALICE\n'
+                      '\t\t&& CL_ActiveWireProfile() != NETCHAN_WIRE_MOHAA ) {', body)
 
     def test_constants_match_retail_alice_exe(self):
         exe = ALICE_ROOT / 'alice.exe'

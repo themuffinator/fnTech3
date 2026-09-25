@@ -31,6 +31,8 @@ int Q_stricmp(const char*a,const char*b){return strcmp(a,b);}
 void Q_strncpyz(char*d,const char*s,int n){snprintf(d,n,"%s",s);}
 bool Com_GameIsQuakeLive(){return !q3 && !rtcw;}
 const char *Com_GameConfigFile(){return rtcw==1?"wolfconfig.cfg":rtcw==2?"wolfconfig_mp.cfg":"q3config.cfg";}
+// Only a Ritual profile names another file; none is run here.
+const char *Com_ConfigFile(){return Com_GameConfigFile();}
 const char *va(const char *format,const char *name){static char text[128];snprintf(text,sizeof(text),format,name);return text;}
 bool Com_SafeMode(){return safe;}
 bool FS_ProfileFileExists(const char*n){assert(!q3&&!strcmp(n,QL_CONFIG_HARDWARE_FILE));return hardware;}

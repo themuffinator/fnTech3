@@ -29,6 +29,9 @@
 #include "../compat/alice_module_abi.h"
 #include "../compat/alice_savegame.hpp"
 #include "../compat/alice_state_adapter.hpp"
+#include "../compat/fakk2_convert.hpp"
+#include "../compat/ritual_layout.hpp"
+#include "../compat/ritual_solid.hpp"
 #include "server_alice_snapshot.hpp"
 #include "../qcommon/alice_runtime.h"
 #include "../qcommon/alice_tiki.h"
@@ -45,7 +48,35 @@ using fntech3::alice::module::SlotKind;
 using fntech3::alice::module::kGameExports;
 using fntech3::alice::module::kGameImports;
 
+/* Heavy Metal: F.A.K.K.2's game module is the parent of Alice's, and this file
+ * serves both. The table below is kept in Alice's slot order, the order both
+ * titles' reference members share; F.A.K.K.2's module is handed that table
+ * without the null Alice's engine leaves at slot 100 and without the five slots
+ * Alice appended (code/compat/fakk2_module_abi.h). Every record offset and
+ * configstring block the engine uses comes from the running title's layout
+ * (code/compat/ritual_layout.hpp). */
+const fntech3::ritual::ServerLayout *ritualLayout = &fntech3::ritual::AliceServerLayout();
+
+const fntech3::ritual::ServerLayout &SV_RitualLayout() {
+	return *ritualLayout;
+}
+
+/* "Alice's" or "F.A.K.K.2's", and the title alone, for the messages below. */
+const char *SV_RitualTitle() {
+	return ritualLayout->title;
+}
+
+const char *SV_RitualName() {
+	return ritualLayout->profile == COM_GAME_FAKK2 ? "F.A.K.K.2" : "Alice";
+}
+
+bool SV_RitualIsFAKK2() {
+	return ritualLayout->profile == COM_GAME_FAKK2;
+}
+
 GameImportTable aliceImport;
+/* What F.A.K.K.2's module is handed: the same services, in its own 105 slots. */
+std::intptr_t fakk2Import[FNTECH3_FAKK2_GAME_IMPORT_SLOTS];
 const std::intptr_t *aliceGameExports;
 
 /*
@@ -60,9 +91,9 @@ it needed rather than faulting inside the module on a null.
 template<int Slot>
 intptr_t QDECL SV_AliceUnservedImport() {
 	Com_Error( ERR_DROP,
-		"Alice's game module called import %i (%s), which fnTech3 does not "
+		"%s game module called import %i (%s), which fnTech3 does not "
 		"serve. The module ran to this point; this call is the next thing it "
-		"needs. See docs/fntech3/COMPATIBILITY.md#alice-gate-matrix.",
+		"needs. See docs/fntech3/COMPATIBILITY.md.", SV_RitualTitle(),
 		Slot, kGameImports[Slot].name );
 	return 0;
 }
@@ -139,7 +170,7 @@ void QDECL SV_AliceError( int level, const char *fmt, ... ) {
 	va_start( argptr, fmt );
 	Q_vsnprintf( text, sizeof( text ), fmt, argptr );
 	va_end( argptr );
-	Com_Error( ERR_DROP, "Alice game error (level %i): %s", level, text );
+	Com_Error( ERR_DROP, "%s game error (level %i): %s", SV_RitualName(), level, text );
 }
 
 /* Slot 4, measured at no arguments across twelve call sites. */
@@ -151,7 +182,7 @@ int QDECL SV_AliceMilliseconds() {
  * both go through the same allocator. */
 void *QDECL SV_AliceMalloc( int size ) {
 	if ( size < 0 ) {
-		Com_Error( ERR_DROP, "Alice's game module asked for %i bytes", size );
+		Com_Error( ERR_DROP, "%s game module asked for %i bytes", SV_RitualTitle(), size );
 		return nullptr;
 	}
 	return Z_TagMalloc( size ? size : 1, TAG_GENERAL );
@@ -200,7 +231,7 @@ const char *QDECL SV_AliceArgs() {
  * Alice's bit values are Quake III's is not established. */
 cvar_t *QDECL SV_AliceCvar( const char *name, const char *value, int flags ) {
 	if ( !name || !value ) {
-		Com_Error( ERR_DROP, "Alice's game module asked for a cvar with no name" );
+		Com_Error( ERR_DROP, "%s game module asked for a cvar with no name", SV_RitualTitle() );
 		return nullptr;
 	}
 	return Cvar_Get( name, value, flags );
@@ -267,7 +298,7 @@ void QDECL SV_AliceAddCommand( const char *name ) {
 int QDECL SV_AliceReadFile( const char *path, void **buffer, int unestablished ) {
 	const int length = FS_ReadFile( path, buffer );
 
-	Com_DPrintf( "Alice ReadFile: \"%s\" third=%i -> %i bytes at %p\n",
+	Com_DPrintf( "%s ReadFile: \"%s\" third=%i -> %i bytes at %p\n", SV_RitualName(),
 		path ? path : "(null)", unestablished, length,
 		buffer ? *buffer : nullptr );
 	return length;
@@ -358,7 +389,7 @@ const char *QDECL SV_AliceGetArchiveFileName( const char *name, const char *exte
 	static char path[fntech3::alice::savegame::PathBytes];
 
 	if ( !SV_AliceArchivePath( name, extension, path ) ) {
-		Com_DPrintf( "Alice's game module asked for archive \"%s\" \"%s\", which is refused\n",
+		Com_DPrintf( "%s game module asked for archive \"%s\" \"%s\", which is refused\n", SV_RitualTitle(),
 			name ? name : "(null)", extension ? extension : "(null)" );
 		path[0] = '\0';
 	}
@@ -455,8 +486,8 @@ void SV_AliceBindEntities() {
 	const std::intptr_t capacity =
 		aliceGameExports[FNTECH3_ALICE_EXPORT_max_entities];
 	if ( capacity <= 0 || capacity > MAX_GENTITIES ) {
-		Com_Error( ERR_DROP, "Alice's game module published a %i-entity arena, "
-			"which is outside the %i this engine carries",
+		Com_Error( ERR_DROP, "%s game module published a %i-entity arena, "
+			"which is outside the %i this engine carries", SV_RitualTitle(),
 			(int)capacity, MAX_GENTITIES );
 		return;
 	}
@@ -493,9 +524,9 @@ void SV_AliceBindEntities() {
 	binding.clientSpanBytes = binding.clientStride * (std::size_t)clients;
 
 	const fntech3::server::GameDataBindError error =
-		serverGameData.BindNative( COM_GAME_ALICE, binding );
+		serverGameData.BindNative( SV_RitualLayout().profile, binding );
 	if ( error != fntech3::server::GameDataBindError::None ) {
-		Com_Error( ERR_DROP, "Alice's game data cannot be bound: %s",
+		Com_Error( ERR_DROP, "%s game data cannot be bound: %s", SV_RitualTitle(),
 			fntech3::server::GameDataBindErrorName( error ) );
 		return;
 	}
@@ -513,8 +544,8 @@ void SV_AliceBindEntities() {
 	 * every spawn, so reporting the count here would bury a level's startup
 	 * under several hundred lines that all say the same thing. */
 	if ( moved ) {
-		Com_DPrintf( "Alice bound its entity arena at %p: %i slots of %i bytes, "
-			"and %i clients of %i bytes at %p\n", aliceGameData.entities,
+		Com_DPrintf( "%s bound its entity arena at %p: %i slots of %i bytes, "
+			"and %i clients of %i bytes at %p\n", SV_RitualName(), aliceGameData.entities,
 			(int)capacity, aliceGameData.entityBytes, clients,
 			aliceGameData.clientBytes, aliceGameData.clients );
 	}
@@ -522,26 +553,31 @@ void SV_AliceBindEntities() {
 
 void QDECL SV_AliceLocateGameData( void *entities, int entityCount,
 	int entityBytes, void *clients, int clientBytes ) {
-	if ( entityBytes != FNTECH3_ALICE_GENTITY_SIZE ) {
-		Com_Error( ERR_DROP, "Alice's game module located its entities at %i "
-			"bytes each, but publishes a %i-byte entity record",
-			entityBytes, FNTECH3_ALICE_GENTITY_SIZE );
+	if ( entityBytes != SV_RitualLayout().gentitySize ) {
+		Com_Error( ERR_DROP, "%s game module located its entities at %i "
+			"bytes each, but publishes a %i-byte entity record", SV_RitualTitle(),
+			entityBytes, SV_RitualLayout().gentitySize );
 		return;
 	}
-	if ( clientBytes != FNTECH3_ALICE_GCLIENT_SIZE ) {
-		Com_Error( ERR_DROP, "Alice's game module located its clients at %i "
-			"bytes each, where every retail map reports %i",
-			clientBytes, FNTECH3_ALICE_GCLIENT_SIZE );
+	if ( clientBytes != SV_RitualLayout().gclientSize ) {
+		Com_Error( ERR_DROP, "%s game module located its clients at %i "
+			"bytes each, where every retail map reports %i", SV_RitualTitle(),
+			clientBytes, SV_RitualLayout().gclientSize );
 		return;
 	}
+	/* The module calls this again whenever its entity count grows; only a
+	 * moved arena is worth a line. */
+	const bool moved = entities != aliceGameData.entities || clients != aliceGameData.clients;
 	aliceGameData.entities = entities;
 	aliceGameData.entityCount = entityCount;
 	aliceGameData.entityBytes = entityBytes;
 	aliceGameData.clients = clients;
 	aliceGameData.clientBytes = clientBytes;
-	Com_DPrintf( "Alice located game data: %i entities of %i bytes at %p, "
-		"clients of %i bytes at %p\n", entityCount, entityBytes, entities,
-		clientBytes, clients );
+	if ( moved ) {
+		Com_DPrintf( "%s located game data: %i entities of %i bytes at %p, "
+			"clients of %i bytes at %p\n", SV_RitualName(), entityCount, entityBytes, entities,
+			clientBytes, clients );
+	}
 	SV_AliceBindEntities();
 }
 
@@ -553,8 +589,8 @@ void QDECL SV_AliceLocateGameData( void *entities, int entityCount,
  * sides. */
 void QDECL SV_AliceSetConfigstring( int index, const char *value ) {
 	if ( index < 0 || index >= MAX_GAME_CONFIGSTRINGS ) {
-		Com_Error( ERR_DROP, "Alice's game module set configstring %i, outside "
-			"the %i this engine carries", index, MAX_GAME_CONFIGSTRINGS );
+		Com_Error( ERR_DROP, "%s game module set configstring %i, outside "
+			"the %i this engine carries", SV_RitualTitle(), index, MAX_GAME_CONFIGSTRINGS );
 		return;
 	}
 	SV_SetConfigstring( index, value ? value : "" );
@@ -562,8 +598,8 @@ void QDECL SV_AliceSetConfigstring( int index, const char *value ) {
 
 const char *QDECL SV_AliceGetConfigstring( int index ) {
 	if ( index < 0 || index >= MAX_GAME_CONFIGSTRINGS ) {
-		Com_Error( ERR_DROP, "Alice's game module read configstring %i, outside "
-			"the %i this engine carries", index, MAX_GAME_CONFIGSTRINGS );
+		Com_Error( ERR_DROP, "%s game module read configstring %i, outside "
+			"the %i this engine carries", SV_RitualTitle(), index, MAX_GAME_CONFIGSTRINGS );
 		return "";
 	}
 	/* The module takes a pointer rather than filling a buffer, so it gets the
@@ -612,8 +648,8 @@ int SV_AliceFindIndex( const char *name, int base, int count, const char *what )
 			return i;
 		}
 	}
-	Com_Error( ERR_DROP, "Alice's game module ran out of %s slots: %i is all "
-		"this block holds", what, count );
+	Com_Error( ERR_DROP, "%s game module ran out of %s slots: %i is all "
+		"this block holds", SV_RitualTitle(), what, count );
 	return 0;
 }
 
@@ -622,27 +658,31 @@ int SV_AliceFindIndex( const char *name, int base, int count, const char *what )
  * of this table named these one slot early; the block each body indexes is
  * what settles which is which. */
 int QDECL SV_AliceImageIndex( const char *name ) {
-	return SV_AliceFindIndex( name, 0x320, 0x40, "image" );
+	return SV_AliceFindIndex( name, SV_RitualLayout().csImages, SV_RitualLayout().maxImages, "image" );
 }
 
 int QDECL SV_AliceItemIndex( const char *name ) {
-	return SV_AliceFindIndex( name, 0x400, 0x40, "item" );
+	return SV_AliceFindIndex( name, SV_RitualLayout().csItems, SV_RitualLayout().maxItems, "item" );
 }
 
 int QDECL SV_AliceSoundIndex( const char *name ) {
-	return SV_AliceFindIndex( name, 0x220, 0x100, "sound" );
+	return SV_AliceFindIndex( name, SV_RitualLayout().csSounds, SV_RitualLayout().maxSounds, "sound" );
 }
 
 /* The model definition each model index holds, as its handle plus one so that
- * zero means none -- retail's own table at 0x006a0070 holds it that way. */
+ * zero means none -- retail's own table at 0x006a0070 holds it that way. The
+ * array holds Alice's 512; F.A.K.K.2's block is 384, and its layout bounds it. */
 enum { FNTECH3_ALICE_MAX_MODELS = 0x200 };
+static_assert( FNTECH3_FAKK2_MAX_MODELS <= FNTECH3_ALICE_MAX_MODELS,
+	"one table serves both titles' model blocks" );
 int aliceModelTiki[FNTECH3_ALICE_MAX_MODELS];
 
 /* Slot 48. Retail's body at 0x00454110 finds or adds the name in the model
  * block, and when the name ends in `tik` and the index holds no definition yet
  * it loads one and records it. */
 int QDECL SV_AliceModelIndex( const char *name ) {
-	const int index = SV_AliceFindIndex( name, 0x20, FNTECH3_ALICE_MAX_MODELS, "model" );
+	const int index = SV_AliceFindIndex( name, SV_RitualLayout().csModels,
+		SV_RitualLayout().maxModels, "model" );
 	if ( index <= 0 || !name ) {
 		return index;
 	}
@@ -651,6 +691,22 @@ int QDECL SV_AliceModelIndex( const char *name ) {
 		aliceModelTiki[index] = AliceTiki_Register( name ) + 1;
 	}
 	return index;
+}
+
+/* Retail's SV_ClearWorld (alice.exe 0x00457960) ends by naming every inline
+ * model but the world's -- `*1` up to the last (0x004579a9..0x004579d2) --
+ * through the model block's find-or-add (0x00454c00), in order. Each brush
+ * model's index is then its own number, and the module's model definitions
+ * are indexed after them. Without it a definition takes the index of a brush
+ * model: the module finds a model definition behind a brush entity's index
+ * (IsModel) and runs that definition's init commands on it -- F.A.K.K.2's
+ * fakkhouse lost its sky origin to fx_plantseeds.tik's that way. A level
+ * whose configstrings a load kept already holds the names. */
+void SV_AliceNameInlineModels() {
+	const int count = CM_NumInlineModels();
+	for ( int i = 1; i < count; i++ ) {
+		SV_AliceFindIndex( va( "*%i", i ), SV_RitualLayout().csModels, SV_RitualLayout().maxModels, "model" );
+	}
 }
 
 /* Set when a load kept the running level's configstrings (server_alice_save.hpp,
@@ -668,8 +724,8 @@ void SV_AliceRegisterKeptModels() {
 		return;
 	}
 	aliceModelTableKept = false;
-	for ( int index = 1; index < FNTECH3_ALICE_MAX_MODELS; ++index ) {
-		const char *name = sv.configstrings[0x20 + index];
+	for ( int index = 1; index < SV_RitualLayout().maxModels; ++index ) {
+		const char *name = sv.configstrings[SV_RitualLayout().csModels + index];
 		const std::size_t length = name ? strlen( name ) : 0;
 		if ( length >= 3 && !Q_stricmp( name + length - 3, "tik" ) ) {
 			aliceModelTiki[index] = AliceTiki_Register( name ) + 1;
@@ -681,11 +737,11 @@ void SV_AliceRegisterKeptModels() {
  * -1 for an index that never had one and loads the definition again when the
  * index's configstring has changed name since (0x0045c960). */
 int SV_AliceTikiForIndex( int index ) {
-	if ( index <= 0 || index >= FNTECH3_ALICE_MAX_MODELS || !aliceModelTiki[index] ) {
+	if ( index <= 0 || index >= SV_RitualLayout().maxModels || !aliceModelTiki[index] ) {
 		return -1;
 	}
 	const int handle = aliceModelTiki[index] - 1;
-	const char *name = sv.configstrings[0x20 + index];
+	const char *name = sv.configstrings[SV_RitualLayout().csModels + index];
 	const char *loaded = AliceTiki_Get( handle ) ? AliceTiki_Get( handle )->name : nullptr;
 	if ( name && loaded && Q_stricmp( name, loaded ) ) {
 		aliceModelTiki[index] = AliceTiki_Register( name ) + 1;
@@ -933,6 +989,64 @@ AliceOrientation *QDECL SV_AliceTagOrientationEx( AliceOrientation *out, int ind
 	return out;
 }
 
+/* F.A.K.K.2's slots 78 and 79: the same queries, with the entity's bone tags
+ * and bone quaternions handed over as the two arrays its entity state keeps
+ * them in -- eight pushes at every site of 78 (0x100cee55 pushes the module's
+ * own `s + 0xd8` and `s + 0x128`), where Alice's module pushes seven. They
+ * cross into Alice's controller records with a scale of one, which is what an
+ * engine without a controller scale applies. */
+AliceOrientation *QDECL SV_FAKK2TagOrientation( AliceOrientation *out, int index, int anim,
+	int frame, int tag, float scale, const int32_t *boneTag, const float ( *boneQuat )[4] ) {
+	fntech3_alice_bonectrl_t controllers[FNTECH3_ALICE_BONE_CONTROLLERS];
+	fntech3::fakk2::convert::ControllersToAlice( boneTag, boneQuat, controllers );
+	return SV_AliceTagOrientation( out, index, anim, frame, tag, scale, controllers );
+}
+
+AliceOrientation *QDECL SV_FAKK2TagOrientationEx( AliceOrientation *out, int index, int anim,
+	int frame, int tag, float scale, const int32_t *boneTag, const float ( *boneQuat )[4],
+	int crossblendAnim, int crossblendFrame, float crossblendLerp, int useLegs, int useTorso,
+	int torsoAnim, int torsoFrame, int torsoCrossblendAnim, int torsoCrossblendFrame,
+	float torsoCrossblendLerp ) {
+	fntech3_alice_bonectrl_t controllers[FNTECH3_ALICE_BONE_CONTROLLERS];
+	fntech3::fakk2::convert::ControllersToAlice( boneTag, boneQuat, controllers );
+	return SV_AliceTagOrientationEx( out, index, anim, frame, tag, scale, controllers,
+		crossblendAnim, crossblendFrame, crossblendLerp, useLegs, useTorso, torsoAnim,
+		torsoFrame, torsoCrossblendAnim, torsoCrossblendFrame, torsoCrossblendLerp );
+}
+
+/* F.A.K.K.2's slots 57 and 68 fill the smaller command list its module keeps
+ * (code/compat/fakk2_game_abi.h). The definition answers into Alice's record
+ * first, which is large enough to hold any list the runtime builds. */
+fntech3_alice_tiki_cmd_t fakk2CommandScratch;
+
+qboolean SV_FAKK2Commands( qboolean found, fntech3_fakk2_tiki_cmd_t *commands, const char *call ) {
+	if ( !commands ) {
+		return qfalse;
+	}
+	if ( !found ) {
+		commands->num_cmds = 0;
+		return qfalse;
+	}
+	if ( !fntech3::fakk2::convert::CommandsFromAlice( fakk2CommandScratch, *commands ) ) {
+		Com_DPrintf( "%s: a command list longer than F.A.K.K.2's 128 commands of ten "
+			"arguments was cut short\n", call );
+	}
+	return qtrue;
+}
+
+qboolean QDECL SV_FAKK2InitCommands( int index, fntech3_fakk2_tiki_cmd_t *commands ) {
+	std::memset( &fakk2CommandScratch, 0, sizeof( fakk2CommandScratch ) );
+	return SV_FAKK2Commands( SV_AliceInitCommands( index, &fakk2CommandScratch ),
+		commands, "InitCommands" );
+}
+
+qboolean QDECL SV_FAKK2FrameCommands( int index, int anim, int frame,
+	fntech3_fakk2_tiki_cmd_t *commands ) {
+	std::memset( &fakk2CommandScratch, 0, sizeof( fakk2CommandScratch ) );
+	return SV_FAKK2Commands( SV_AliceFrameCommands( index, anim, frame, &fakk2CommandScratch ),
+		commands, "Frame_Commands" );
+}
+
 /* Slots 80 to 88, a definition's own alias list. Retail's clear wrapper calls
  * the dump routine (0x0045cc60) rather than clearing, which is kept. */
 /* Retail's wrappers (0x00453f9f, 0x00453fcf) answer nothing for an index with
@@ -987,13 +1101,16 @@ const char *QDECL SV_AliceNameForNum( int index ) {
 }
 
 /* Slot 49, which is not an index call at all: its body writes a configstring
- * at base 0x360 directly, which is where the block after the item one starts. */
+ * at base 0x360 directly, which is where the block after the image one starts.
+ * F.A.K.K.2's client game reads its light styles from 736, the same block after
+ * its own image block. */
 void QDECL SV_AliceSetLightStyle( int style, const char *value ) {
-	if ( style < 0 || 0x360 + style >= MAX_GAME_CONFIGSTRINGS ) {
-		Com_Error( ERR_DROP, "Alice's game module set light style %i", style );
+	const int base = SV_RitualLayout().csLightStyles;
+	if ( style < 0 || base + style >= MAX_GAME_CONFIGSTRINGS ) {
+		Com_Error( ERR_DROP, "%s game module set light style %i", SV_RitualTitle(), style );
 		return;
 	}
-	SV_SetConfigstring( 0x360 + style, value ? value : "" );
+	SV_SetConfigstring( base + style, value ? value : "" );
 }
 
 /* Slots 108, 109 and 110, three of the five Alice appends past the reference
@@ -1030,8 +1147,8 @@ void QDECL SV_AliceExecuteText( int when, const char *text ) {
 		return;
 	}
 	if ( when != EXEC_NOW && when != EXEC_INSERT && when != EXEC_APPEND ) {
-		Com_Error( ERR_DROP, "Alice's game module asked to execute text with "
-			"exec_when %i, which is not one this engine has", when );
+		Com_Error( ERR_DROP, "%s game module asked to execute text with "
+			"exec_when %i, which is not one this engine has", SV_RitualTitle(), when );
 		return;
 	}
 	Cbuf_ExecuteText( static_cast<cbufExec_t>( when ), text );
@@ -1055,7 +1172,7 @@ void QDECL SV_AliceSendServerCommand( int clientNum, const char *fmt, ... ) {
 		return;
 	}
 	if ( clientNum >= sv_maxclients->integer ) {
-		Com_DPrintf( "Alice's game sent a command to client %i of %i\n",
+		Com_DPrintf( "%s game sent a command to client %i of %i\n", SV_RitualTitle(),
 			clientNum, sv_maxclients->integer );
 		return;
 	}
@@ -1225,7 +1342,8 @@ void QDECL SV_AliceNothing() {
  * only part of that record is established -- the part the retail engine's own
  * linking code dereferences, at 0x00457a40 and 0x004579e0:
  *
- *     +0x1b4  written with the handle a temporary box model returns
+ *     +0x1b4  the state's solid: a bounding box packed by 0x0044a000, the
+ *             brush-model marker 0xffffff, or zero (ritual_solid.hpp)
  *     +0x204  compared against zero; zero means do not link
  *     +0x218  the low bound, passed as a vector
  *     +0x224  the high bound, passed as a vector
@@ -1241,8 +1359,10 @@ void QDECL SV_AliceNothing() {
  * box model and write the handle back. The entity is not put into any world,
  * so nothing can trace against it or find it by area yet -- this is the module
  * being allowed to continue, not a working link. */
-enum {
-	FNTECH3_ALICE_ENT_CLIPHANDLE = FNTECH3_ALICE_S_SOLID,
+/* Where the engine reads and writes the running title's entity record in place;
+ * Alice's offsets are retail alice.exe's own, F.A.K.K.2's the same members 24
+ * bytes earlier (code/compat/ritual_layout.hpp). */
+#define FNTECH3_RITUAL_ENT_CLIPHANDLE ( SV_RitualLayout().sSolid )
 	/* Two separate fields, and only one of them is `linked`.
 	 *
 	 * The retail linker returns immediately when `+0x204` is zero, and the
@@ -1252,15 +1372,15 @@ enum {
 	 * `+0x208` is the linked flag. The linker's last act is to set it to one
 	 * (`0x00457ef7`) and the unlinker's first is to clear it (`0x004579eb`),
 	 * and the snapshot walk requires it as well. */
-	FNTECH3_ALICE_ENT_LINKGATE = FNTECH3_ALICE_R_INUSE,
-	FNTECH3_ALICE_ENT_LINKED = FNTECH3_ALICE_R_LINKED,
-	FNTECH3_ALICE_ENT_MODELINDEX = FNTECH3_ALICE_S_MODELINDEX,
-	FNTECH3_ALICE_ENT_BMODEL = FNTECH3_ALICE_R_BMODEL,
-	FNTECH3_ALICE_ENT_MINS = FNTECH3_ALICE_R_MINS,
-	FNTECH3_ALICE_ENT_MAXS = FNTECH3_ALICE_R_MAXS,
-	FNTECH3_ALICE_ENT_CONTENTS = FNTECH3_ALICE_R_CONTENTS,
-	FNTECH3_ALICE_ENT_ABSMIN = FNTECH3_ALICE_R_ABSMIN,
-	FNTECH3_ALICE_ENT_ABSMAX = FNTECH3_ALICE_R_ABSMAX,
+#define FNTECH3_RITUAL_ENT_LINKGATE ( SV_RitualLayout().rInuse )
+#define FNTECH3_RITUAL_ENT_LINKED ( SV_RitualLayout().rLinked )
+#define FNTECH3_RITUAL_ENT_MODELINDEX ( SV_RitualLayout().sModelIndex )
+#define FNTECH3_RITUAL_ENT_BMODEL ( SV_RitualLayout().rBmodel )
+#define FNTECH3_RITUAL_ENT_MINS ( SV_RitualLayout().rMins )
+#define FNTECH3_RITUAL_ENT_MAXS ( SV_RitualLayout().rMaxs )
+#define FNTECH3_RITUAL_ENT_CONTENTS ( SV_RitualLayout().rContents )
+#define FNTECH3_RITUAL_ENT_ABSMIN ( SV_RitualLayout().rAbsmin )
+#define FNTECH3_RITUAL_ENT_ABSMAX ( SV_RitualLayout().rAbsmax )
 	/* The world origin, and the angles immediately after it, which is the
 	 * pairing every engine of this lineage keeps. The retail linker reads
 	 * it at 0x00457c01 to build absmin -- `absmin[i] = mins[i] + origin[i]`
@@ -1273,10 +1393,9 @@ enum {
 	 * bounds transform that walks the box's eight corners, so it is what
 	 * turns a box rather than where the box is. An entity linked with it
 	 * was linked in the wrong place. */
-	FNTECH3_ALICE_ENT_ORIGIN = FNTECH3_ALICE_R_CURRENTORIGIN,
-	FNTECH3_ALICE_ENT_ANGLES = FNTECH3_ALICE_R_CURRENTANGLES,
-	FNTECH3_ALICE_ENT_SOLID = FNTECH3_ALICE_R_SOLIDTYPE
-};
+#define FNTECH3_RITUAL_ENT_ORIGIN ( SV_RitualLayout().rCurrentOrigin )
+#define FNTECH3_RITUAL_ENT_ANGLES ( SV_RitualLayout().rCurrentAngles )
+#define FNTECH3_RITUAL_ENT_SOLID ( SV_RitualLayout().rSolidType )
 
 /* An entity pointer is only usable if it lies on a record boundary inside the
  * module's own array. Where that array is and how long it is comes from the
@@ -1335,31 +1454,31 @@ T *SV_AliceEntityField( void *entity, int offset ) {
  * because every field they touch is one those bodies name. */
 void QDECL SV_AliceSetBrushModel( void *entity, const char *name ) {
 	if ( SV_AliceEntityNumber( entity ) < 0 ) {
-		Com_Error( ERR_DROP, "Alice's game module gave a brush model to an "
-			"entity that is not in the array it published" );
+		Com_Error( ERR_DROP, "%s game module gave a brush model to an "
+			"entity that is not in the array it published", SV_RitualTitle() );
 		return;
 	}
 	if ( !name || !name[0] ) {
-		Com_Error( ERR_DROP, "Alice's game module set a brush model with no name" );
+		Com_Error( ERR_DROP, "%s game module set a brush model with no name", SV_RitualTitle() );
 		return;
 	}
 	if ( name[0] != '*' ) {
-		Com_Error( ERR_DROP, "Alice's game module set brush model \"%s\", which "
-			"is not a brush model name", name );
+		Com_Error( ERR_DROP, "%s game module set brush model \"%s\", which "
+			"is not a brush model name", SV_RitualTitle(), name );
 		return;
 	}
 
 	const int number = atoi( name + 1 );
-	*SV_AliceEntityField<int>( entity, FNTECH3_ALICE_ENT_MODELINDEX ) = number;
+	*SV_AliceEntityField<int>( entity, FNTECH3_RITUAL_ENT_MODELINDEX ) = number;
 
 	const clipHandle_t handle = CM_InlineModel( number );
-	float *mins = SV_AliceEntityField<float>( entity, FNTECH3_ALICE_ENT_MINS );
-	float *maxs = SV_AliceEntityField<float>( entity, FNTECH3_ALICE_ENT_MAXS );
+	float *mins = SV_AliceEntityField<float>( entity, FNTECH3_RITUAL_ENT_MINS );
+	float *maxs = SV_AliceEntityField<float>( entity, FNTECH3_RITUAL_ENT_MAXS );
 	CM_ModelBounds( handle, mins, maxs );
 
-	*SV_AliceEntityField<int>( entity, FNTECH3_ALICE_ENT_BMODEL ) = 1;
+	*SV_AliceEntityField<int>( entity, FNTECH3_RITUAL_ENT_BMODEL ) = 1;
 
-	int *contents = SV_AliceEntityField<int>( entity, FNTECH3_ALICE_ENT_CONTENTS );
+	int *contents = SV_AliceEntityField<int>( entity, FNTECH3_RITUAL_ENT_CONTENTS );
 	if ( !*contents ) {
 		*contents = -1;
 	}
@@ -1367,12 +1486,12 @@ void QDECL SV_AliceSetBrushModel( void *entity, const char *name ) {
 
 void QDECL SV_AliceSetModel( void *entity, const char *name ) {
 	if ( SV_AliceEntityNumber( entity ) < 0 ) {
-		Com_Error( ERR_DROP, "Alice's game module set a model on an entity that "
-			"is not in the array it published" );
+		Com_Error( ERR_DROP, "%s game module set a model on an entity that "
+			"is not in the array it published", SV_RitualTitle() );
 		return;
 	}
 	if ( !name ) {
-		Com_Error( ERR_DROP, "Alice's game module set a model with no name" );
+		Com_Error( ERR_DROP, "%s game module set a model with no name", SV_RitualTitle() );
 		return;
 	}
 	if ( name[0] == '*' ) {
@@ -1381,9 +1500,9 @@ void QDECL SV_AliceSetModel( void *entity, const char *name ) {
 	}
 	/* Retail's body at 0x00454190 is the model index call -- which loads the
 	 * definition behind a `tik` name -- and a store into the entity. */
-	*SV_AliceEntityField<int>( entity, FNTECH3_ALICE_ENT_MODELINDEX ) =
+	*SV_AliceEntityField<int>( entity, FNTECH3_RITUAL_ENT_MODELINDEX ) =
 		SV_AliceModelIndex( name );
-	*SV_AliceEntityField<int>( entity, FNTECH3_ALICE_ENT_BMODEL ) = 0;
+	*SV_AliceEntityField<int>( entity, FNTECH3_RITUAL_ENT_BMODEL ) = 0;
 }
 
 /* Which entities are currently linked. Alice's own record carries a gate at
@@ -1450,9 +1569,9 @@ int QDECL SV_AliceAreaEntities( const float *mins, const float *maxs,
 			continue;
 		}
 		const float *absmin =
-			SV_AliceEntityField<float>( entity, FNTECH3_ALICE_ENT_ABSMIN );
+			SV_AliceEntityField<float>( entity, FNTECH3_RITUAL_ENT_ABSMIN );
 		const float *absmax =
-			SV_AliceEntityField<float>( entity, FNTECH3_ALICE_ENT_ABSMAX );
+			SV_AliceEntityField<float>( entity, FNTECH3_RITUAL_ENT_ABSMAX );
 
 		if ( SV_AliceBoundsOverlap( mins, maxs, absmin, absmax ) ) {
 			list[count++] = i;
@@ -1470,6 +1589,33 @@ int QDECL SV_AliceAreaEntities( const float *mins, const float *maxs,
  * The capsule flag is the trace's: retail's entity clip (0x00458130) hands the
  * clip record's copy of it to the transformed trace at 0x00458267. Slot 44
  * itself has no such argument, so it clips as a box. */
+/* Whether an entity clips as its own brushes: a brush model that is not a
+ * bounding box (the test at 0x004577b4..0x004577c5). */
+bool SV_AliceClipsAsBrushes( void *entity ) {
+	return *SV_AliceEntityField<int>( entity, FNTECH3_RITUAL_ENT_BMODEL ) != 0
+		&& *SV_AliceEntityField<int>( entity, FNTECH3_RITUAL_ENT_SOLID ) != 2;
+}
+
+/* SV_ClipHandleForEntity (0x004577b0), which retail asks at every clip -- the
+ * trace's entity pass at 0x0045821b and the single-entity clip at 0x00453709
+ * -- rather than keeping an answer: a brush model traces against its own
+ * inline model, and anything else against the temporary box, built again from
+ * its own bounds and contents. Ritual's CM_TempBoxModel takes the contents and
+ * writes them into the box brush (0x00430f50). The box is one model that every
+ * build overwrites, so a handle kept from linking would name whichever entity
+ * was built last; and linking writes none for a brush model. */
+clipHandle_t SV_AliceClipHandleForEntity( void *entity ) {
+	if ( SV_AliceClipsAsBrushes( entity ) ) {
+		const int model = *SV_AliceEntityField<int>( entity, FNTECH3_RITUAL_ENT_MODELINDEX );
+		return model > 0 && model < CM_NumInlineModels() ? CM_InlineModel( model ) : 0;
+	}
+	const clipHandle_t box = CM_TempBoxModel(
+		SV_AliceEntityField<float>( entity, FNTECH3_RITUAL_ENT_MINS ),
+		SV_AliceEntityField<float>( entity, FNTECH3_RITUAL_ENT_MAXS ), qfalse );
+	CM_SetTempBoxModelContents( *SV_AliceEntityField<int>( entity, FNTECH3_RITUAL_ENT_CONTENTS ) );
+	return box;
+}
+
 void SV_AliceClipEntity( trace_t *trace, const float *start, const float *end,
 	const float *mins, const float *maxs, int number, int contentMask,
 	qboolean capsule ) {
@@ -1482,22 +1628,19 @@ void SV_AliceClipEntity( trace_t *trace, const float *start, const float *end,
 		return;
 	}
 
-	const int handle =
-		*SV_AliceEntityField<int>( entity, FNTECH3_ALICE_ENT_CLIPHANDLE );
+	const clipHandle_t handle = SV_AliceClipHandleForEntity( entity );
 	if ( !handle ) {
 		return;
 	}
 	const float *origin =
-		SV_AliceEntityField<float>( entity, FNTECH3_ALICE_ENT_ORIGIN );
+		SV_AliceEntityField<float>( entity, FNTECH3_RITUAL_ENT_ORIGIN );
 	const float *angles =
-		SV_AliceEntityField<float>( entity, FNTECH3_ALICE_ENT_ANGLES );
-	const bool brush =
-		*SV_AliceEntityField<int>( entity, FNTECH3_ALICE_ENT_BMODEL ) != 0;
+		SV_AliceEntityField<float>( entity, FNTECH3_RITUAL_ENT_ANGLES );
 
-	CM_TransformedBoxTrace( trace, start, end, mins, maxs,
-		(clipHandle_t)handle, contentMask, origin,
-		brush ? angles : zero, capsule );
-	if ( trace->fraction < 1.0f ) {
+	/* Only brushes turn with the entity; a box never does (0x00458229..0x00458242). */
+	CM_TransformedBoxTrace( trace, start, end, mins, maxs, handle, contentMask,
+		origin, SV_AliceClipsAsBrushes( entity ) ? angles : zero, capsule );
+	if ( trace->fraction < 1.0f || trace->startsolid || trace->allsolid ) {
 		trace->entityNum = number;
 	}
 }
@@ -1553,9 +1696,10 @@ void QDECL SV_AliceClipToEntity( void *results, const float *start,
  * or stick in the air, and the maps that stopped at this import either run
  * afterwards or they do not.
  *
- * The trace is against the world only. Nothing is linked into a world yet, so
- * no entity can be hit, and the entity number reports the world or nothing
- * accordingly rather than claiming a contact that has no entity behind it.
+ * The world is traced first, then every linked entity the sweep could reach,
+ * as retail's entity pass (0x00458130) clips them: each one's clip model is
+ * built at that moment (SV_AliceClipHandleForEntity), and the entity number
+ * names the world, the entity hit, or nothing.
  *
  * The eighth argument is the capsule flag. Retail's body (0x004582f0) pushes
  * it straight through as CM_BoxTrace's last argument at 0x00458340, the one
@@ -1611,8 +1755,37 @@ void QDECL SV_AliceTrace( void *results, const float *start, const float *mins,
 
 		const int count = SV_AliceAreaEntities( sweepMin, sweepMax, touched,
 			MAX_GENTITIES );
-		for ( int i = 0; i < count; i++ ) {
-			if ( touched[i] == passEntityNum ) {
+		/* Retail's entity pass (0x00458130..0x004582e5), which is Quake III's:
+		 * nothing that is not solid, and -- when something is passing -- not
+		 * the passing entity, its owner, its own missiles or its owner's
+		 * other missiles (0x004581d2..0x00458203, the owner at +0x278, just
+		 * after the current angles); nothing whose contents the mask does not
+		 * take (0x00458209). The nearest hit wins, and a solid start or an
+		 * entirely solid trace is kept whatever its fraction, the latter
+		 * ending the pass (0x0045826c..0x004582ca). */
+		const int ownerOffset = SV_RitualLayout().rCurrentAngles + 12;
+		void *passing = passEntityNum != ENTITYNUM_NONE ? SV_AliceEntityByNumber( passEntityNum ) : nullptr;
+		int passOwner = passing ? *SV_AliceEntityField<int>( passing, ownerOffset ) : ENTITYNUM_NONE;
+		if ( passOwner == ENTITYNUM_NONE ) {
+			passOwner = -1;
+		}
+		for ( int i = 0; i < count && !trace.allsolid; i++ ) {
+			void *touch = SV_AliceEntityByNumber( touched[i] );
+			if ( !touch ) {
+				continue;
+			}
+			const int solid = *SV_AliceEntityField<int>( touch, FNTECH3_RITUAL_ENT_SOLID );
+			if ( solid == 0 || solid == 1 ) {
+				continue;
+			}
+			if ( passEntityNum != ENTITYNUM_NONE ) {
+				const int touchOwner = *SV_AliceEntityField<int>( touch, ownerOffset );
+				if ( touched[i] == passEntityNum || touched[i] == passOwner
+					|| touchOwner == passEntityNum || touchOwner == passOwner ) {
+					continue;
+				}
+			}
+			if ( !( *SV_AliceEntityField<int>( touch, FNTECH3_RITUAL_ENT_CONTENTS ) & contentMask ) ) {
 				continue;
 			}
 			trace_t hit;
@@ -1620,14 +1793,19 @@ void QDECL SV_AliceTrace( void *results, const float *start, const float *mins,
 			Com_Memset( &hit, 0, sizeof( hit ) );
 			SV_AliceClipEntity( &hit, start, end, mins ? mins : zero,
 				maxs ? maxs : zero, touched[i], contentMask, capsule );
-			if ( hit.fraction < trace.fraction ) {
-				const int number = hit.entityNum;
-
-				hit.entityNum = number;
-				trace = hit;
+			if ( hit.allsolid ) {
+				trace.allsolid = qtrue;
+				trace.entityNum = touched[i];
+			} else if ( hit.startsolid ) {
+				trace.startsolid = qtrue;
+				trace.entityNum = touched[i];
 			}
-			if ( trace.fraction <= 0.0f ) {
-				break;
+			if ( hit.fraction < trace.fraction ) {
+				const qboolean startedSolid = trace.startsolid;
+
+				trace = hit;
+				trace.startsolid = static_cast<qboolean>( trace.startsolid | startedSolid );
+				trace.entityNum = touched[i];
 			}
 		}
 	}
@@ -1646,8 +1824,8 @@ void QDECL SV_AliceAdjustAreaPortalState( void *entity, int open ) {
 	const int number = SV_AliceEntityNumber( entity );
 
 	if ( number < 0 ) {
-		Com_Error( ERR_DROP, "Alice's game module adjusted the portal of an entity "
-			"that is not in the array it published" );
+		Com_Error( ERR_DROP, "%s game module adjusted the portal of an entity "
+			"that is not in the array it published", SV_RitualTitle() );
 		return;
 	}
 	const svEntity_t &record = sv.svEntities[number];
@@ -1661,24 +1839,26 @@ void QDECL SV_AliceLinkEntity( void *entity ) {
 	const int number = SV_AliceEntityNumber( entity );
 
 	if ( number < 0 ) {
-		Com_Error( ERR_DROP, "Alice's game module linked an entity that is not "
-			"in the array it published" );
+		Com_Error( ERR_DROP, "%s game module linked an entity that is not "
+			"in the array it published", SV_RitualTitle() );
 		return;
 	}
-	if ( !*SV_AliceEntityField<int>( entity, FNTECH3_ALICE_ENT_LINKGATE ) ) {
+	if ( !*SV_AliceEntityField<int>( entity, FNTECH3_RITUAL_ENT_LINKGATE ) ) {
 		return;
 	}
 
-	const int solid = *SV_AliceEntityField<int>( entity, FNTECH3_ALICE_ENT_SOLID );
-	int *handle = SV_AliceEntityField<int>( entity, FNTECH3_ALICE_ENT_CLIPHANDLE );
-	const float *mins = SV_AliceEntityField<float>( entity, FNTECH3_ALICE_ENT_MINS );
-	const float *maxs = SV_AliceEntityField<float>( entity, FNTECH3_ALICE_ENT_MAXS );
+	const int solid = *SV_AliceEntityField<int>( entity, FNTECH3_RITUAL_ENT_SOLID );
+	const float *mins = SV_AliceEntityField<float>( entity, FNTECH3_RITUAL_ENT_MINS );
+	const float *maxs = SV_AliceEntityField<float>( entity, FNTECH3_RITUAL_ENT_MAXS );
 
-	if ( solid == 2 ) {
-		*handle = (int)CM_TempBoxModel( mins, maxs, qfalse );
-	} else if ( solid == 1 ) {
-		*handle = 0;
-	}
+	/* The state's solid, which the client game unpacks to clip against the
+	 * entity: a bounding box packed by BoundingBoxToInteger (0x0044a000), the
+	 * brush-model marker, or zero (0x00457a78..0x00457bfc; ritual_solid.hpp).
+	 * This link once wrote the temporary box's handle here, which clients read
+	 * as a box 511 units wide and none high. Traces build their clip model
+	 * when they clip (SV_AliceClipHandleForEntity), as retail's do. */
+	*SV_AliceEntityField<int>( entity, FNTECH3_RITUAL_ENT_CLIPHANDLE ) = fntech3::ritual::StateSolid( solid,
+		*SV_AliceEntityField<int>( entity, FNTECH3_RITUAL_ENT_CONTENTS ), mins, maxs );
 
 	/* The absolute bounds, which the engine computes here and the module reads
 	 * back. It copies the local bounds into the absolute pair and offsets them
@@ -1690,10 +1870,10 @@ void QDECL SV_AliceLinkEntity( void *entity ) {
 	 * it -- take the largest extent in any direction and make a cube of it,
 	 * which is larger than the true bounds but never smaller, so nothing is
 	 * missed by a query that uses it. */
-	const float *origin = SV_AliceEntityField<float>( entity, FNTECH3_ALICE_ENT_ORIGIN );
-	const float *angles = SV_AliceEntityField<float>( entity, FNTECH3_ALICE_ENT_ANGLES );
-	float *absmin = SV_AliceEntityField<float>( entity, FNTECH3_ALICE_ENT_ABSMIN );
-	float *absmax = SV_AliceEntityField<float>( entity, FNTECH3_ALICE_ENT_ABSMAX );
+	const float *origin = SV_AliceEntityField<float>( entity, FNTECH3_RITUAL_ENT_ORIGIN );
+	const float *angles = SV_AliceEntityField<float>( entity, FNTECH3_RITUAL_ENT_ANGLES );
+	float *absmin = SV_AliceEntityField<float>( entity, FNTECH3_RITUAL_ENT_ABSMIN );
+	float *absmax = SV_AliceEntityField<float>( entity, FNTECH3_RITUAL_ENT_ABSMAX );
 	const bool rotated = ( solid == 3 ) &&
 		( angles[0] || angles[1] || angles[2] );
 
@@ -1740,7 +1920,7 @@ void QDECL SV_AliceLinkEntity( void *entity ) {
 	 * own array as well, because that is what its world is indexed by, but
 	 * leaving the module's field clear would have told the module the
 	 * opposite of what just happened. */
-	*SV_AliceEntityField<int>( entity, FNTECH3_ALICE_ENT_LINKED ) = 1;
+	*SV_AliceEntityField<int>( entity, FNTECH3_RITUAL_ENT_LINKED ) = 1;
 	aliceLinked[number] = 1;
 }
 
@@ -1751,7 +1931,7 @@ void QDECL SV_AliceUnlinkEntity( void *entity ) {
 		return;
 	}
 	aliceLinked[number] = 0;
-	*SV_AliceEntityField<int>( entity, FNTECH3_ALICE_ENT_LINKED ) = 0;
+	*SV_AliceEntityField<int>( entity, FNTECH3_RITUAL_ENT_LINKED ) = 0;
 
 	/* An unlinked entity touches no area and no cluster. */
 	svEntity_t &record = sv.svEntities[number];
@@ -2096,8 +2276,8 @@ void *SV_AliceClientEntity( int clientNum, const char *call ) {
 		entity = SV_AliceEntityByNumber( clientNum );
 	}
 	if ( !entity ) {
-		Com_Error( ERR_DROP, "Alice's %s was asked for client %i, which has no "
-			"entity in the module's array", call, clientNum );
+		Com_Error( ERR_DROP, "%s %s was asked for client %i, which has no "
+			"entity in the module's array", SV_RitualTitle(), call, clientNum );
 	}
 	return entity;
 }
@@ -2127,7 +2307,7 @@ void SV_AliceConsoleCommandHandler() {
 	const auto consoleCommand = reinterpret_cast<AliceConsoleCommand_t>(
 		aliceGameExports[FNTECH3_ALICE_EXPORT_ConsoleCommand] );
 	if ( consoleCommand && !consoleCommand() ) {
-		Com_Printf( "Alice's game module did not handle \"%s\"\n", Cmd_Argv( 0 ) );
+		Com_Printf( "%s game module did not handle \"%s\"\n", SV_RitualTitle(), Cmd_Argv( 0 ) );
 	}
 }
 
@@ -2156,7 +2336,7 @@ template<typename T>
 T SV_AliceExport( int slot, const char *name ) {
 	const T call = aliceGameExports ? reinterpret_cast<T>( aliceGameExports[slot] ) : nullptr;
 	if ( !call ) {
-		Com_Error( ERR_DROP, "Alice's game module is not loaded to answer %s", name );
+		Com_Error( ERR_DROP, "%s game module is not loaded to answer %s", SV_RitualTitle(), name );
 	}
 	return call;
 }
@@ -2174,7 +2354,7 @@ void SV_AliceCallSpawnEntities() {
 		FNTECH3_ALICE_EXPORT_SpawnEntities, "SpawnEntities" );
 	const char *name = sv_mapname ? sv_mapname->string : "";
 	const char *entities = SV_AliceEntityText();
-	Com_DPrintf( "Alice SpawnEntities: \"%s\", %i bytes of entity text\n",
+	Com_DPrintf( "%s SpawnEntities: \"%s\", %i bytes of entity text\n", SV_RitualName(),
 		name, (int)strlen( entities ) );
 	spawnEntities( name, entities, 0 );
 	SV_AliceCheckErrorMessage();
@@ -2237,7 +2417,7 @@ intptr_t QDECL SV_AliceGameEntry( int command, ... ) {
 		return 0;
 	}
 	if ( !aliceGameExports ) {
-		Com_Error( ERR_DROP, "Alice's game module was called before it loaded" );
+		Com_Error( ERR_DROP, "%s game module was called before it loaded", SV_RitualTitle() );
 		return 0;
 	}
 
@@ -2250,7 +2430,7 @@ intptr_t QDECL SV_AliceGameEntry( int command, ... ) {
 
 		const auto init = reinterpret_cast<AliceInit_t>(
 			aliceGameExports[FNTECH3_ALICE_EXPORT_Init] );
-		Com_DPrintf( "Alice GAME_INIT: levelTime %i, randomSeed %i\n",
+		Com_DPrintf( "%s GAME_INIT: levelTime %i, randomSeed %i\n", SV_RitualName(),
 			levelTime, randomSeed );
 		aliceLastLevelTime = levelTime;
 		Com_Memset( aliceLinked, 0, sizeof( aliceLinked ) );
@@ -2302,7 +2482,7 @@ intptr_t QDECL SV_AliceGameEntry( int command, ... ) {
 		const char *refusal = connect( clientNum, firstTime );
 		SV_AliceCheckErrorMessage();
 
-		Com_DPrintf( "Alice ClientConnect: client %i, firstTime %i -> %s\n",
+		Com_DPrintf( "%s ClientConnect: client %i, firstTime %i -> %s\n", SV_RitualName(),
 			clientNum, firstTime, refusal ? refusal : "accepted" );
 		return reinterpret_cast<intptr_t>( refusal );
 	}
@@ -2317,7 +2497,7 @@ intptr_t QDECL SV_AliceGameEntry( int command, ... ) {
 		void *entity = SV_AliceClientEntity( clientNum, "ClientBegin" );
 		const auto begin = reinterpret_cast<AliceClientBegin_t>(
 			aliceGameExports[FNTECH3_ALICE_EXPORT_ClientBegin] );
-		Com_DPrintf( "Alice ClientBegin: client %i\n", clientNum );
+		Com_DPrintf( "%s ClientBegin: client %i\n", SV_RitualName(), clientNum );
 		begin( entity, SV_AliceClientCommand( clientNum ) );
 		SV_AliceCheckErrorMessage();
 		return 0;
@@ -2347,7 +2527,7 @@ intptr_t QDECL SV_AliceGameEntry( int command, ... ) {
 		void *entity = clientNum >= 0 && clientNum < sv.maxclients
 			? SV_AliceEntityByNumber( clientNum ) : nullptr;
 		if ( !entity ) {
-			Com_DPrintf( "Alice ClientDisconnect: client %i has no entity\n",
+			Com_DPrintf( "%s ClientDisconnect: client %i has no entity\n", SV_RitualName(),
 				clientNum );
 			return 0;
 		}
@@ -2400,12 +2580,12 @@ intptr_t QDECL SV_AliceGameEntry( int command, ... ) {
 
 	default:
 		Com_Error( ERR_DROP,
-			"Alice's game module is loaded, but fnTech3 dispatches only "
+			"%s game module is loaded, but fnTech3 dispatches only "
 			"GAME_INIT, GAME_SHUTDOWN, GAME_RUN_FRAME, GAME_CONSOLE_COMMAND "
 			"and the six client exports: the engine asked "
 			"for %s (%i). "
 			"Calling an export whose argument count is not measured would "
-			"corrupt the module's stack rather than fail here.",
+			"corrupt the module's stack rather than fail here.", SV_RitualTitle(),
 			SV_AliceEngineCallName( command ), command );
 		return 0;
 	}
@@ -2420,38 +2600,81 @@ against the frozen shape rather than trusting it.
 ==================
 */
 vm_t *SV_AliceLoadGame() {
+	const fntech3::ritual::ServerLayout *layout =
+		fntech3::ritual::ServerLayoutFor( Com_GameProfile() ? Com_GameProfile()->id : COM_GAME_AUTO );
+	if ( !layout ) {
+		Com_Error( ERR_DROP, "the Ritual game adapter was asked to load outside Alice and F.A.K.K.2" );
+		return nullptr;
+	}
+	ritualLayout = layout;
+
 	void *symbol = nullptr;
 	vm_t *vm = VM_CreateTable( VM_GAME, "GetGameAPI", SV_AliceGameEntry, &symbol );
 	if ( !vm ) {
+		/* A copy of F.A.K.K.2's disc lays pak0.pk3 out loose but keeps both
+		 * libraries inside its InstallShield cabinets, which data1.hdr
+		 * describes; only an installation has fakk/gamex86.dll. */
+		const char *base = Cvar_VariableString( "fs_basepath" );
+		fileOffset_t size;
+		fileTime_t modified, created;
+		if ( SV_RitualIsFAKK2() && base[0] &&
+			Sys_GetFileStats( va( "%s%cdata1.hdr", base, PATH_SEP ), &size, &modified, &created ) ) {
+			Com_Error( ERR_DROP, "%s game module fakk/gamex86.dll is missing: %s is a copy of the "
+				"retail disc, which keeps its libraries inside the data*.cab cabinets. Install the "
+				"game with its own setup and point fs_basepath at the installed folder.",
+				SV_RitualTitle(), base );
+		}
 		return nullptr;
 	}
 
-	typedef void *( QDECL *AliceGetGameAPI_t )( GameImportTable *import );
+	typedef void *( QDECL *AliceGetGameAPI_t )( void *import );
 	auto getGameAPI = reinterpret_cast<AliceGetGameAPI_t>( symbol );
 	SV_AliceFillImports();
 
+	/* F.A.K.K.2's module takes its 105 slots from the same services: every
+	 * slot is the member Alice's table keeps at the mapped position, except the
+	 * two tag queries, whose argument lists are F.A.K.K.2's own. */
+	void *importTable = &aliceImport;
+	if ( SV_RitualIsFAKK2() ) {
+		for ( int slot = 0; slot < FNTECH3_FAKK2_GAME_IMPORT_SLOTS; ++slot ) {
+			fakk2Import[slot] = aliceImport.slot[fntech3::fakk2::module::AliceGameSlot( slot )];
+		}
+		fakk2Import[FNTECH3_FAKK2_IMPORT_Tag_Orientation] =
+			reinterpret_cast<std::intptr_t>( &SV_FAKK2TagOrientation );
+		fakk2Import[FNTECH3_FAKK2_IMPORT_Tag_OrientationEx] =
+			reinterpret_cast<std::intptr_t>( &SV_FAKK2TagOrientationEx );
+		fakk2Import[FNTECH3_FAKK2_IMPORT_InitCommands] =
+			reinterpret_cast<std::intptr_t>( &SV_FAKK2InitCommands );
+		fakk2Import[FNTECH3_FAKK2_IMPORT_Frame_Commands] =
+			reinterpret_cast<std::intptr_t>( &SV_FAKK2FrameCommands );
+		importTable = fakk2Import;
+	}
+
 	const std::intptr_t *game =
-		static_cast<const std::intptr_t *>( getGameAPI( &aliceImport ) );
+		static_cast<const std::intptr_t *>( getGameAPI( importTable ) );
 	if ( !game ) {
 		VM_Free( vm );
-		Com_Error( ERR_DROP, "Alice's game module published no export table" );
+		Com_Error( ERR_DROP, "%s game module published no export table", SV_RitualTitle() );
 		return nullptr;
 	}
 
+	/* Both titles' exports share one shape, so the same slots are read; the
+	 * version and the record size are each title's own. An Alice module under
+	 * the F.A.K.K.2 profile, or the reverse, stops here by its record size. */
 	const std::intptr_t version = game[FNTECH3_ALICE_EXPORT_apiversion];
-	if ( version != FNTECH3_ALICE_GAME_API_VERSION ) {
+	if ( version != SV_RitualLayout().gameApiVersion ) {
 		VM_Free( vm );
-		Com_Error( ERR_DROP, "Alice's game module is API version %i, not %i",
-			(int)version, FNTECH3_ALICE_GAME_API_VERSION );
+		Com_Error( ERR_DROP, "%s game module is API version %i, not %i", SV_RitualTitle(),
+			(int)version, SV_RitualLayout().gameApiVersion );
 		return nullptr;
 	}
 	const std::intptr_t entitySize = game[FNTECH3_ALICE_EXPORT_gentitySize];
-	if ( entitySize != FNTECH3_ALICE_GENTITY_SIZE ) {
+	if ( entitySize != SV_RitualLayout().gentitySize ) {
 		/* The record size is what every entity marshal would be sized by, so a
 		 * module that disagrees is a build this tree has not measured. */
 		VM_Free( vm );
-		Com_Error( ERR_DROP, "Alice's game module has a %i-byte entity record, not %i",
-			(int)entitySize, FNTECH3_ALICE_GENTITY_SIZE );
+		Com_Error( ERR_DROP, "%s game module has a %i-byte entity record, not %i", SV_RitualTitle(),
+			(int)entitySize, SV_RitualLayout().gentitySize );
 		return nullptr;
 	}
 
@@ -2460,28 +2683,44 @@ vm_t *SV_AliceLoadGame() {
 	for ( const auto &row : kGameExports ) {
 		if ( row.evidence == ExportEvidence::ABSENT && game[row.slot] ) {
 			VM_Free( vm );
-			Com_Error( ERR_DROP, "Alice's game module publishes %s, which this "
-				"build is not measured to provide", row.name );
+			Com_Error( ERR_DROP, "%s game module publishes %s, which this "
+				"build is not measured to provide", SV_RitualTitle(), row.name );
 			return nullptr;
 		}
 	}
 
 	aliceGameExports = game;
-	Com_Printf( "Alice game module loaded: API version %i, %i-byte entity record, "
-		"table at %p\n", (int)version, (int)entitySize, (const void *)game );
-	Com_Printf( "  %i of %i imports are served; the rest drop by name when called.\n",
-		SV_AliceServedImports(), FNTECH3_ALICE_GAME_IMPORT_SLOTS );
+	Com_Printf( "%s game module loaded: API version %i, %i-byte entity record, "
+		"table at %p\n", SV_RitualName(), (int)version, (int)entitySize, (const void *)game );
+	if ( SV_RitualIsFAKK2() ) {
+		/* Alice's null and her five appends are not in this table, so every
+		 * slot it has is one fnTech3 serves or one that drops by name. */
+		int served = 0;
+		for ( int slot = 0; slot < FNTECH3_FAKK2_GAME_IMPORT_SLOTS; ++slot ) {
+			served += fakk2Import[slot]
+				!= aliceUnserved.slot[fntech3::fakk2::module::AliceGameSlot( slot )];
+		}
+		Com_Printf( "  %i of %i imports are served; the rest drop by name when called.\n",
+			served, FNTECH3_FAKK2_GAME_IMPORT_SLOTS );
+	} else {
+		Com_Printf( "  %i of %i imports are served; the rest drop by name when called.\n",
+			SV_AliceServedImports(), FNTECH3_ALICE_GAME_IMPORT_SLOTS );
+	}
 	return vm;
 }
 
 } // namespace
+
+void SV_AliceRegisterInlineModels( void ) {
+	SV_AliceNameInlineModels();
+}
 
 /* Retail's SV_GentityNum (0x00453390) is the arena base plus the number times
  * the record size, unchecked; this one refuses a number past the arena the
  * module published. */
 unsigned char *SV_AliceGameEntity( int number ) {
 	fntech3::server::GameEntityRef reference;
-	if ( !Com_GameIsAlice() || !serverGameData.EntityRefAt( number, reference ) ) {
+	if ( !Com_GameIsRitual() || !serverGameData.EntityRefAt( number, reference ) ) {
 		return nullptr;
 	}
 	return static_cast<unsigned char *>( serverGameData.EntityPointer( reference ) );

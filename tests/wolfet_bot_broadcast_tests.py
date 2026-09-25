@@ -35,6 +35,10 @@ serverStatic_t svs{};
 static cvar_t dedicated{};
 cvar_t *com_dedicated=&dedicated;
 int Com_GameIsRTCWMP(){return profile.id==COM_GAME_RTCW_MP;}
+// Q3Test's broadcasts take its own sessions (server_q3test_net.hpp); the
+// shared path stands in for its catalog entry here.
+int Com_GameIsQ3Test(){return 0;}
+void SV_Q3TestSendServerCommand(client_t*,const char*){assert(false);}
 static std::vector<int> dropped;
 void SV_DropClient(client_t *client,const char *){dropped.push_back(SV_ClientIndex(client));client->state=CS_ZOMBIE;}
 void Q_strncpyz(char *out,const char *in,int size){assert(size>0);std::strncpy(out,in,size);out[size-1]=0;}

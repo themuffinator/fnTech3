@@ -354,7 +354,7 @@ class WebUiWiringTests(unittest.TestCase):
         self.assertIn("Key_GetCatcher() & KEYCATCH_BROWSER", keys)
         # Alice's togglemenu names the menu it toggles; every other profile keeps the bridge.
         self.assertIn(
-            'Cmd_AddCommand( "togglemenu", Com_GameIsAlice() ? CL_AliceToggleMenu_f : CL_ToggleMenu_f );',
+            'Cmd_AddCommand( "togglemenu", Com_GameIsRitual() ? CL_AliceToggleMenu_f : CL_ToggleMenu_f );',
             client,
         )
 

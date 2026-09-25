@@ -55,10 +55,13 @@ static void checkPools(){
  for(const auto &p:profiles){profile=&p;const int count=p.maxClients;
   if(!p.bots.navigationWorlds){
    // A profile with no navigation storage still keeps its own client
-   // limit: Alice allocates Ritual's 128 and runs no bot at all.
+   // limit: Alice and F.A.K.K.2 allocate Ritual's 128 and run no bot at all,
+   // and Medal of Honor keeps its client game's 64 with no bot library.
+   // Q3Test, which shipped none either, keeps its releases' 128.
    assert((p.id==COM_GAME_QUAKE3_IHV&&count==256)
     ||((p.id==COM_GAME_JKA_SP||p.id==COM_GAME_JK2_SP)&&count==1)
-    ||(p.id==COM_GAME_ALICE&&count==128));
+    ||((p.id==COM_GAME_ALICE||p.id==COM_GAME_FAKK2||p.id==COM_GAME_Q3TEST)&&count==128)
+    ||(p.id==COM_GAME_MOHAA&&count==64));
    assert(!BotLibClientCapacity());
    assert(!BotAllocGoalState(0)&&!BotAllocMoveState());
    for(int handle:{-1,0,1,MAX_GAME_CLIENTS,MAX_GAME_CLIENTS+1,count,INT_MAX}){

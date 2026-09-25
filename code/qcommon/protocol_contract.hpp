@@ -36,7 +36,8 @@ enum class Family : std::uint8_t {
 	WolfET,
 	STVEFHolomatch,
 	STVEFSinglePlayer,
-	Alice
+	Alice,
+	MOHAA
 };
 
 /*
@@ -58,7 +59,12 @@ enum class GameMessageLayout : std::uint8_t {
 	 * end-of-message opcode, so no Quake III field table describes it. No
 	 * reader or writer serves this layout yet; the ones that dispatch on it
 	 * name it and refuse rather than fall back to Quake III's tables. */
-	Alice
+	Alice,
+	/* 2015's protocol 6: Medal of Honor's 596-byte entity and 660-byte
+	 * player records under their own field tables, a sound block after each
+	 * snapshot's entities, and three opcodes past svc_snapshot
+	 * (code/compat/mohaa_message_codec.hpp). */
+	MOHAA
 };
 
 enum class Capability : std::uint32_t {
@@ -307,6 +313,22 @@ inline constexpr Contract Alice{
 		Netchan_ReliableCommandLimit( NETCHAN_WIRE_ALICE ), 32u }
 };
 
+/* Medal of Honor: Allied Assault 1.00: Quake III's out-of-band and client
+ * command vocabulary (OpenMoHAA's server answers userinfo, disconnect, cp,
+ * vdr and the four download commands), a compressed connect string, and
+ * 2015's netchan (NETCHAN_WIRE_MOHAA). The limits are OpenMoHAA's: 48 KB
+ * messages and 32 packet backups. */
+inline constexpr Contract MOHAA{
+	Family::MOHAA, NETCHAN_MOHAA_PROTOCOL_VERSION,
+	NETCHAN_MOHAA_PROTOCOL_VERSION, NETCHAN_WIRE_MOHAA,
+	GameMessageLayout::MOHAA,
+	Bit( Capability::ClientQport ) | Bit( Capability::ReliableXor ) |
+		Bit( Capability::CompressedConnect ),
+	QuakeCommands, QuakeInfoKeys,
+	{ 1'400u, Netchan_MessageLimit( NETCHAN_WIRE_MOHAA ), 48u, 1'024u,
+		Netchan_ReliableCommandLimit( NETCHAN_WIRE_MOHAA ), 32u }
+};
+
 // Single player never leaves the loopback channel.
 inline constexpr Contract STVEFSinglePlayer{
 	Family::STVEFSinglePlayer, NETCHAN_STVEF_SP_PROTOCOL_VERSION,
@@ -325,6 +347,7 @@ inline constexpr Contract STVEFSinglePlayer{
 	if ( protocol == STVEFHolomatch.protocol ) return &STVEFHolomatch;
 	if ( protocol == STVEFSinglePlayer.protocol ) return &STVEFSinglePlayer;
 	if ( protocol == Alice.protocol ) return &Alice;
+	if ( protocol == MOHAA.protocol ) return &MOHAA;
 	if ( protocol == RtcwSinglePlayer.protocol ) return &RtcwSinglePlayer;
 	if ( protocol == RtcwMultiplayer.protocol ) return &RtcwMultiplayer;
 	if ( protocol == WolfET.protocol ) return &WolfET;
@@ -356,6 +379,8 @@ inline constexpr Contract STVEFSinglePlayer{
 		return &STVEFSinglePlayer;
 	case NETCHAN_WIRE_ALICE:
 		return &Alice;
+	case NETCHAN_WIRE_MOHAA:
+		return &MOHAA;
 	case NETCHAN_WIRE_WOLFET:
 		return &WolfET;
 	case NETCHAN_WIRE_RTCW_SP:

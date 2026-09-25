@@ -6,8 +6,9 @@ Retail's Cbuf_Execute (0x00437b80) takes a frame time and counts a pending
 SV_Frame (0x0043a183). Cmd_Wait_f stores atoi() unchanged (0x00437a12..
 0x00437a1a), and Cbuf_ExecuteText's EXEC_NOW runs the one line and nothing
 else (0x00437b6b). These tests compile cmd.c's own functions against a small
-harness and run them under the Alice profile and under one other profile,
-which must keep the frame-counted wait it always had.
+harness and run them under the Alice profile, under Medal of Honor's, whose
+wait is Alice's, and under one other profile, which must keep the
+frame-counted wait it always had.
 """
 from pathlib import Path
 import os
@@ -43,12 +44,15 @@ typedef struct { byte *data; int maxsize; int cursize; } cmd_t;
 static int cmd_wait, cmd_frameMsec, cmd_aliasExpansions, nestedCmdOffset;
 static cmd_t cmd_text;
 static byte cmd_text_buf[MAX_CMD_BUFFER];
-static bool alice;
+static bool alice, mohaa;
+static int echoes;
 static std::vector<std::string> ran;
 static std::vector<std::string> argv;
 
 static int Com_GameIsAlice( void ) { return alice ? 1 : 0; }
-static void Com_DPrintf( const char *, ... ) {}
+static int Com_GameIsRitual( void ) { return alice ? 1 : 0; }
+static int Com_GameIsMOHAA( void ) { return mohaa ? 1 : 0; }
+static void Com_DPrintf( const char *, ... ) { ++echoes; }
 void QDECL Com_Error( errorParm_t, const char *, ... ) { std::abort(); }
 static int Cmd_Argc( void ) { return static_cast<int>( argv.size() ); }
 static const char *Cmd_Argv( int i ) { return i < Cmd_Argc() ? argv[i].c_str() : ""; }
@@ -81,10 +85,11 @@ static void Cmd_ExecuteString( const char *text ) {
 HARNESS = r'''
 static void Reset( bool profile ) {
     alice = profile;
+    mohaa = false;
     cmd_text.data = cmd_text_buf;
     cmd_text.maxsize = MAX_CMD_BUFFER;
     cmd_text.cursize = 0;
-    cmd_wait = cmd_frameMsec = 0;
+    cmd_wait = cmd_frameMsec = echoes = 0;
     ran.clear();
 }
 
@@ -130,12 +135,13 @@ int main() {
     Cbuf_Execute();
     assert( ran.size() == 1 && ran[0] == "e" );
 
-    // EXEC_NOW runs its line and leaves the pending wait and the buffer alone.
+    // EXEC_NOW runs its line, echoes nothing and leaves the pending wait and
+    // the buffer alone.
     Reset( true );
     Cbuf_AddText( "wait 2000; f\n" );
     Cbuf_Execute();
     Cbuf_ExecuteText( EXEC_NOW, "g" );
-    assert( ran.size() == 1 && ran[0] == "g" );
+    assert( ran.size() == 1 && ran[0] == "g" && echoes == 0 );
     Cbuf_ExecuteText( EXEC_NOW, "" );
     assert( ran.size() == 1 && cmd_wait == 2000 );
     Frame( 1999 );
@@ -143,8 +149,27 @@ int main() {
     Frame( 1 );
     assert( ran.size() == 2 && ran[1] == "f" );
 
+    // Medal of Honor's wait is Alice's (OpenMoHAA cmd.c): milliseconds, a
+    // negative count is none, and EXEC_NOW keeps the pending wait. Its
+    // EXEC_NOW echoes nothing: the client game runs one every frame.
+    Reset( false );
+    mohaa = true;
+    Cbuf_AddText( "k; wait 100; l\n" );
+    Cbuf_Execute();
+    assert( ran.size() == 1 && ran[0] == "k" );
+    Frame( 60 );
+    Cbuf_ExecuteText( EXEC_NOW, "m" );
+    assert( ran.size() == 2 && ran[1] == "m" && cmd_wait == 40 && echoes == 0 );
+    Frame( 40 );
+    assert( ran.size() == 3 && ran[2] == "l" );
+    Reset( false );
+    mohaa = true;
+    Cbuf_AddText( "wait -5; n\n" );
+    Cbuf_Execute();
+    assert( ran.size() == 1 && ran[0] == "n" );
+
     // Any other profile keeps the frame-counted wait: a negative count is a
-    // single frame, and EXEC_NOW discards the wait.
+    // single frame, and EXEC_NOW discards the wait and echoes its line.
     Reset( false );
     Cbuf_AddText( "wait -5; h\n" );
     Cbuf_Execute();
@@ -156,7 +181,7 @@ int main() {
     Cbuf_AddText( "wait 3; i\n" );
     Cbuf_Execute();
     Cbuf_ExecuteText( EXEC_NOW, "j" );
-    assert( cmd_wait == 0 && ran.size() == 1 && ran[0] == "j" );
+    assert( cmd_wait == 0 && ran.size() == 1 && ran[0] == "j" && echoes == 1 );
     Cbuf_Execute();
     assert( ran.size() == 2 && ran[1] == "i" );
     std::puts( "ok" );

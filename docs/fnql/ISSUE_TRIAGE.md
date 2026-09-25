@@ -11,7 +11,7 @@ The script:
 1. reads the new Issue title, body, author, and current labels
 2. fetches the repository's existing labels
 3. fetches open Issues for duplicate comparison
-4. reads repository context from `README.md`, `BUILD.md`, `docs/fnql/TECHNICAL.md`, and issue-relevant docs such as `docs/GLX.md`, `docs/AUDIO.md`, `docs/SCREENSHOTS.md`, and `docs/CONSOLE.md`
+4. reads repository context from `README.md`, `BUILD.md`, `docs/fntech3/ARCHITECTURE.md`, `docs/GAMES.md`, and issue-relevant docs such as `docs/GLX.md`, `docs/AUDIO.md`, `docs/SCREENSHOTS.md`, and `docs/CONSOLE.md`
 5. sends a constrained JSON-only triage prompt to GitHub Models
 6. validates the returned classification before applying labels, posting a comment, or closing anything
 7. closes an Issue only when the model marks it as a full duplicate and the confidence still passes the code-side close threshold

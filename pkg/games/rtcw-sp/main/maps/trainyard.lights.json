@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "generator": "fnTech3 scripts/generate_stock_rtcw_lights.py",
+  "map": "trainyard",
+  "profile": "rtcw-sp",
+  "source": "IBSP 47 entity lump, the map's compiled light entities",
+  "dlightScale": 1,
+  "lights": [
+    {"name": "trainyard-light-0500", "type": "point", "origin": [-1000, 1032, -184], "color": [0.7383, 0.3706, 0], "intensity": 197.9, "radius": 197.9, "castsShadows": true},
+    {"name": "trainyard-light-0584", "type": "point", "origin": [-1280, 512, 160], "color": [0.0493, 0.0456, 0.0379], "intensity": 461.5, "radius": 461.5, "castsShadows": true},
+    {"name": "trainyard-light-0585", "type": "point", "origin": [-896, 512, 160], "color": [0.0493, 0.0456, 0.0379], "intensity": 461.5, "radius": 461.5, "castsShadows": true},
+    {"name": "trainyard-light-0586", "type": "point", "origin": [-1536, -192, 160], "color": [0.0493, 0.0456, 0.0379], "intensity": 461.5, "radius": 461.5, "castsShadows": true},
+    {"name": "trainyard-light-0587", "type": "point", "origin": [-1536, 192, 160], "color": [0.0493, 0.0456, 0.0379], "intensity": 461.5, "radius": 461.5, "castsShadows": true}
+  ]
+}

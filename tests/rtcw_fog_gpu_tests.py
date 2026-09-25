@@ -83,6 +83,10 @@ static void qglFogf(int key,float value){parameters[key]=value;++calls;}
 static void qglFogfv(int key,const float *value){assert(key==GL_FOG_COLOR);memcpy(fogColor,value,16);++calls;}
 static void qglHint(int target,int mode){assert(target==GL_FOG_HINT&&mode==GL_DONT_CARE);++calls;}
 static void GLX_Renderer_SetRTCWFog(const float *color,const float *params){memcpy(glslColor,color,16);memcpy(glslParams,params,16);++calls;}
+// tr_ritual_far_fog_render.h's surface test, tested there: whether the
+// surface takes the Ritual far-fog pass, its stages then unfogged.
+static qboolean ritualPass;
+static qboolean RB_RitualFarFogTakesPass(const shader_t *){return ritualPass;}
 #include "code/renderer/tr_rtcw_fog_gl.h"
 int main(){
  shader_t shader{};shaderStage_t stage{};tess.shader=&shader;
@@ -123,6 +127,10 @@ int main(){
  assert(RB_RTCWHasFog()&&enabled&&glslColor[3]==1&&parameters[GL_FOG_MODE]==GL_LINEAR);
  assert(parameters[GL_FOG_START]==0&&parameters[GL_FOG_END]==1500&&glslParams[3]==1);
  assert(fogColor[0]==0&&fogColor[1]==0.1f&&fogColor[2]==1&&fogColor[3]==1);
+ // A surface taking the far-fog pass draws its stages unfogged; the view
+ // keeps its fog for the rest.
+ ritualPass=qtrue;RB_RTCWStageFog(&stage);assert(!enabled&&glslColor[3]==0&&RB_RTCWHasFog());
+ ritualPass=qfalse;RB_RTCWStageFog(&stage);assert(enabled&&glslColor[3]==1);
  stage.stateBits=GLS_SRCBLEND_ONE|GLS_DSTBLEND_ONE;RB_RTCWStageFog(&stage);
  assert(enabled&&fogColor[1]==0&&fogColor[2]==0);stage={};
  shader.isSky=qtrue;RB_RTCWStageFog(&stage);assert(!enabled);

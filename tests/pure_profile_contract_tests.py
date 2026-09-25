@@ -46,7 +46,7 @@ enum {qfalse, qtrue, ERR_FATAL, ERR_DROP, CS_ZOMBIE, CS_ACTIVE};
 #define S_COLOR_YELLOW ""
 #define QL_NATIVE_CGAME_DLL "cgamex86.dll"
 #define Com_sprintf snprintf
-static bool q3, mp, unavailable, missingUi;
+static bool q3, mp, unavailable, missingUi, mohaa;
 static int uiChecksum = 22;
 static bool cl_connectedToPureServer = true;
 static struct { int serverId; } cl = {17};
@@ -68,7 +68,7 @@ int Com_GameIsQuake3() { return q3; }
 const comGameProfile_t *Com_GameProfile() {
     static comGameProfile_t profile{};
     profile.pureProof = unavailable ? COM_PURE_PROOF_UNAVAILABLE : q3 ? COM_PURE_PROOF_QVM :
-        mp ? COM_PURE_PROOF_RTCW_NATIVE : COM_PURE_PROOF_QL_NATIVE;
+        mp ? COM_PURE_PROOF_RTCW_NATIVE : mohaa ? COM_PURE_PROOF_MOHAA_REFERENCES : COM_PURE_PROOF_QL_NATIVE;
     profile.key = "fixture";
     return &profile;
 }
@@ -236,6 +236,22 @@ int main() {
     CL_SendPureChecksums();
     assert(sent == "cp 17 11 11 @ 11 99 109 " && Verify(sent).pureAuthentic);
     packs[0].referenced &= ~FS_UI_REF; packs[1].referenced = FS_UI_REF | FS_GENERAL_REF; uiChecksum = 22;
+    mp = false; mohaa = true; /* Medal of Honor: cp refs... mixed, no server id, module or @. */
+    const int mohaaLookups = binaryLookups;
+    assert(std::string(FS_ReferencedPakPureChecksums(1023)) == "11 22 99 122 ");
+    CL_SendPureChecksums();
+    assert(sent == "cp 11 22 99 122 " && binaryLookups == mohaaLookups);
+    assert(Verify(sent).pureAuthentic && !drops && !snapshots);
+    assert(Verify("cp 99 11 22 122").pureAuthentic); /* The order is not part of the proof. */
+    assert(Verify("cp 7").pureAuthentic); /* No general references. */
+    Reject("cp 17 11 22 99 122"); /* A server id is not a loaded pak. */
+    Reject("cp 11 22 @ 11 22 99 122"); /* Quake III's shape. */
+    Reject("cp 11 11 5");
+    Reject("cp 55 49");
+    Reject("cp 11 22 99 123");
+    Reject("cp 11x 22 99 122");
+    Reject("cp");
+    mohaa = false; mp = true;
     unavailable = true;
     const auto prior = sent;
     try { CL_SendPureChecksums(); assert(false); } catch(const std::runtime_error &) {}

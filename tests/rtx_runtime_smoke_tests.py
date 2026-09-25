@@ -242,8 +242,6 @@ class RtxRuntimeSmokeTests(unittest.TestCase):
             "r_liquid": "0",
             "r_surfaceLightProxies": "0",
             "rtx_rt_async_overlap": "0",
-            "rtx_rt_dynamic_blas": "0",
-            "rtx_rt_material_heuristics": "0",
         }
         raster = rtx_runtime_smoke.profile_cvars("raster", 960, 540)
         native = rtx_runtime_smoke.profile_cvars("native", 960, 540)

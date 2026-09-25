@@ -37,7 +37,7 @@ void Cvar_Get(const char *name,const char *value,int){
 ''' + catalog + function + r'''
 int main(){
  for(const auto &p:profiles){
-  profile=&p;bool ql=Com_GameIsQuakeLive(),disabled=p.id==COM_GAME_QUAKE3_IHV||p.id==COM_GAME_RTCW_MP||p.id==COM_GAME_WOLFET||p.id==COM_GAME_STVEF_SP||p.id==COM_GAME_JKA_SP||p.id==COM_GAME_JK2_SP||p.id==COM_GAME_ALICE;
+  profile=&p;bool ql=Com_GameIsQuakeLive(),disabled=p.id==COM_GAME_QUAKE3_IHV||p.id==COM_GAME_RTCW_MP||p.id==COM_GAME_WOLFET||p.id==COM_GAME_STVEF_SP||p.id==COM_GAME_JKA_SP||p.id==COM_GAME_JK2_SP||p.id==COM_GAME_ALICE||p.id==COM_GAME_FAKK2||p.id==COM_GAME_MOHAA||p.id==COM_GAME_Q3TEST;
   values.clear();defaults.clear();SV_BotInitCvars();
   assert(values.at("bot_grapple")== (ql?"1":"0"));
   assert(values.at("bot_rocketjump")=="1");

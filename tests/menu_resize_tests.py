@@ -36,6 +36,7 @@ std::vector<std::string> events;
 bool failRenderer=false;
 bool Com_GameIsRTCW(){return profile>=2;}
 bool Com_GameIsAlice(){return false;}
+bool Com_GameIsRitual(){return false;}
 void S_AliceMusicFreeAll(){}
 void S_AliceMusicSoundtrackAfterRestart(){}
 int Key_GetCatcher(){return catcher;}

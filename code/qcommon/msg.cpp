@@ -31,6 +31,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../compat/stvef_message_codec.hpp"
 #include "../compat/alice_message_codec.hpp"
 #include "../compat/alice_state_adapter.hpp"
+#include "../compat/fakk2_convert.hpp"
+#include "../compat/fakk2_message_codec.hpp"
 #include "../compat/stvef_state_adapter.hpp"
 
 #include <algorithm>
@@ -208,6 +210,11 @@ bool MSG_LayoutIsServed( fnql::protocol::GameMessageLayout layout ) {
 	case Layout::STVEFSinglePlayer:
 	case Layout::Alice:
 		return true;
+	/* Medal of Honor's records never reach these canonical codecs: its
+	 * clients are sent the game's own states by compat/mohaa_message_codec.hpp,
+	 * so a canonical encode for it refuses rather than guess. */
+	case Layout::MOHAA:
+		return false;
 	}
 	return false;
 }
@@ -245,6 +252,39 @@ qboolean MSG_ReadAliceCanonical( msg_t *msg, const Internal *from,
 
 bool MSG_IsAliceWireProfile( netchanWireProfile_t profile ) {
 	return profile == NETCHAN_WIRE_ALICE;
+}
+
+/* Heavy Metal: F.A.K.K.2 frames its messages as Alice does and codes their
+ * bodies with Alice's algorithm, but over its own entity record, table and
+ * dictionary, and with two player fields in sixteen bits (retail fakk2.exe
+ * 1.02; compat/fakk2_message_codec.hpp). Both titles share the Alice wire
+ * profile, so the engine chooses F.A.K.K.2's bodies once, when its game
+ * profile is selected (MSG_UseFAKK2Bodies), and this layer stays free of
+ * profile queries. */
+bool msg_fakk2Bodies;
+
+/* The engine keeps Alice's records for both titles; an entity crosses to
+ * F.A.K.K.2's record here and back, losing nothing it has
+ * (compat/fakk2_convert.hpp). */
+template<class Writer>
+bool MSG_WriteFAKK2Entity( Writer &io, const fntech3_alice_entityState_t *from,
+	const fntech3_alice_entityState_t *to, bool force ) {
+	fntech3_fakk2_entityState_t base{}, sent{};
+	if ( from ) fntech3::fakk2::convert::EntityFromAlice( *from, base );
+	if ( to ) fntech3::fakk2::convert::EntityFromAlice( *to, sent );
+	return fntech3::fakk2::message::WriteEntity( io, from ? &base : nullptr, to ? &sent : nullptr, force );
+}
+
+template<class Reader>
+bool MSG_ReadFAKK2Entity( Reader &io, const fntech3_alice_entityState_t *from,
+	fntech3_alice_entityState_t *to, int number ) {
+	fntech3_fakk2_entityState_t base{}, decoded{};
+	if ( from ) fntech3::fakk2::convert::EntityFromAlice( *from, base );
+	if ( !fntech3::fakk2::message::ReadEntity( io, from ? &base : nullptr, &decoded, number ) ) {
+		return false;
+	}
+	fntech3::fakk2::convert::EntityToAlice( decoded, *to );
+	return true;
 }
 
 template<class External, class Internal, class Write>
@@ -354,9 +394,15 @@ The entity a gamestate's baselines are delta-coded from. It is all zero for
 every profile but American McGee's Alice, whose engine fills its own
 (alice.exe 0x00446460; see fntech3::alice::message::InitNullEntity). A
 gamestate's writer and reader must use the same one, so the server, the
-client's parse and the demo recorder all take it from here.
+client's parse and the demo recorder all take it from here. Heavy Metal:
+F.A.K.K.2's engine fills the same values into its own record (fakk2.exe
+0x0043a220), which converts to exactly this one.
 ==================
 */
+void MSG_UseFAKK2Bodies( qboolean fakk2 ) {
+	msg_fakk2Bodies = fakk2 != qfalse;
+}
+
 void MSG_NullEntityStateForWireProfile( entityState_t *state,
 	netchanWireProfile_t profile ) {
 	*state = {};
@@ -738,6 +784,14 @@ void MSG_WriteBits( msg_t *msg, int value, int bits ) {
 	}
 }
 
+
+static int MSG_ReadBits( msg_t *msg, int bits );
+
+/* The same bit reader, bounds and all, for a codec kept outside this file
+ * (Medal of Honor's, code/qcommon/mohaa_msg.cpp). */
+int MSG_ReadBitsExternal( msg_t *msg, int bits ) {
+	return MSG_ReadBits( msg, bits );
+}
 
 static int MSG_ReadBits( msg_t *msg, int bits ) {
 	bool isSigned;
@@ -1140,8 +1194,11 @@ const char *MSG_ReadString( msg_t *msg ) {
 const char *MSG_ReadStringForWireProfile( msg_t *msg,
 	netchanWireProfile_t profile ) {
 	static char string[MAX_STRING_CHARS];
+	// Medal of Honor's reader keeps high bytes as well (OpenMoHAA
+	// MSG_ReadString): its localised text reaches the client that way.
 	return MSG_ReadStringInto( msg, string, sizeof( string ),
-		profile == NETCHAN_WIRE_QL_RETAIL || MSG_IsSTVEFWireProfile( profile ),
+		profile == NETCHAN_WIRE_QL_RETAIL || MSG_IsSTVEFWireProfile( profile )
+			|| profile == NETCHAN_WIRE_MOHAA,
 		true, false );
 }
 
@@ -1168,7 +1225,7 @@ const char *MSG_ReadBigStringForWireProfile( msg_t *msg,
 	static char string[BIG_INFO_STRING];
 	return MSG_ReadStringInto( msg, string, sizeof( string ),
 		profile == NETCHAN_WIRE_QL_RETAIL || MSG_IsRTCWWireProfile( profile ) ||
-		MSG_IsSTVEFWireProfile( profile ), true, false );
+		MSG_IsSTVEFWireProfile( profile ) || profile == NETCHAN_WIRE_MOHAA, true, false );
 }
 
 
@@ -2016,6 +2073,9 @@ qboolean MSG_WriteDeltaEntityForWireProfile( msg_t *msg,
 		return MSG_WriteAliceCanonical<fntech3_alice_entityState_t>( msg, from, to,
 			[&]( const auto *base, const auto *sent ) {
 				RTCWMessageWriter io( msg );
+				if ( msg_fakk2Bodies ) {
+					return MSG_WriteFAKK2Entity( io, base, sent, force != qfalse ) ? qtrue : qfalse;
+				}
 				return fntech3::alice::message::WriteEntity(
 					io, base, sent, force != qfalse ) ? qtrue : qfalse;
 			} );
@@ -2179,6 +2239,9 @@ qboolean MSG_ReadDeltaEntityForWireProfile( msg_t *msg,
 		return MSG_ReadAliceCanonical<fntech3_alice_entityState_t>( msg, from, to,
 			[&]( const auto *base, auto *decoded ) {
 				RTCWMessageReader io( msg );
+				if ( msg_fakk2Bodies ) {
+					return MSG_ReadFAKK2Entity( io, base, decoded, number ) ? qtrue : qfalse;
+				}
 				return fntech3::alice::message::ReadEntity(
 					io, base, decoded, number ) ? qtrue : qfalse;
 			} );
@@ -2874,6 +2937,9 @@ qboolean MSG_WriteDeltaPlayerstateForWireProfile( msg_t *msg,
 		return MSG_WriteAliceCanonical<fntech3_alice_playerState_t>( msg, from, to,
 			[&]( const auto *base, const auto *sent ) {
 				RTCWMessageWriter io( msg );
+				if ( msg_fakk2Bodies ) {
+					return fntech3::fakk2::message::WritePlayer( io, base, sent ) ? qtrue : qfalse;
+				}
 				return fntech3::alice::message::WritePlayer( io, base, sent )
 					? qtrue : qfalse;
 			} );
@@ -3075,6 +3141,9 @@ qboolean MSG_ReadDeltaPlayerstateForWireProfile( msg_t *msg,
 		return MSG_ReadAliceCanonical<fntech3_alice_playerState_t>( msg, from, to,
 			[&]( const auto *base, auto *decoded ) {
 				RTCWMessageReader io( msg );
+				if ( msg_fakk2Bodies ) {
+					return fntech3::fakk2::message::ReadPlayer( io, base, decoded ) ? qtrue : qfalse;
+				}
 				return fntech3::alice::message::ReadPlayer( io, base, decoded )
 					? qtrue : qfalse;
 			} );

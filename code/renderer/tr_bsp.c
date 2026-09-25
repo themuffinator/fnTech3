@@ -25,6 +25,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderercommon/tr_patch_bounds.h"
 #include "../qcommon/bsp_v43.h"
 #include "../qcommon/bsp_fakk.h"
+#include "../qcommon/bsp_q3test.h"
+#include "../qcommon/bsp_mohaa.h"
+#include "../renderercommon/tr_mohaa_world.h"
 #include "../qcommon/ql_bsp.h"
 
 /*
@@ -1065,6 +1068,21 @@ static qboolean R_ParseStaticMapLights( const char *text )
 	return qtrue;
 }
 
+/* A map in a folder of maps/ -- Medal of Honor's DM/, obj/ and briefing/ --
+ * keeps its lights beside it, as its audio zones are kept; the base name
+ * alone, the lookup every other map uses, is taken when that file is absent. */
+static void R_StaticMapLightsFilename( char *filename, int size )
+{
+	char nested[MAX_QPATH];
+
+	Com_sprintf( filename, size, "maps/%s.lights.json", s_worldData.baseName );
+	COM_StripExtension( s_worldData.name, nested, sizeof( nested ) );
+	Q_strcat( nested, sizeof( nested ), ".lights.json" );
+	if ( Q_stricmp( nested, filename ) && ri.FS_ReadFile( nested, NULL ) > 0 ) {
+		Q_strncpyz( filename, nested, size );
+	}
+}
+
 static void R_LoadStaticMapLightsForWorld( void )
 {
 	union {
@@ -1075,7 +1093,7 @@ static void R_LoadStaticMapLightsForWorld( void )
 	char filename[MAX_QPATH];
 
 	buffer.v = NULL;
-	Com_sprintf( filename, sizeof( filename ), "maps/%s.lights.json", s_worldData.baseName );
+	R_StaticMapLightsFilename( filename, sizeof( filename ) );
 	R_ClearStaticMapLights();
 	Q_strncpyz( tr.staticMapLights.filename, filename, sizeof( tr.staticMapLights.filename ) );
 
@@ -2207,9 +2225,12 @@ static void ParseTriSurf( const dsurface_t *ds, const drawVert_t *verts, msurfac
 	tr.lightmapOffset[1] = lightmapY;
 
 	// get shader; Enemy Territory lights a triangle surface with its own
-	// lightmap when its compiler gave it one
+	// lightmap when its compiler gave it one, and so does Medal of Honor,
+	// whose only triangle surfaces are the ones its world is built with:
+	// terrain, with its patch's lightmap, and vertex-lit static models
+	// (tr_mohaa_world.c)
 	surf->shader = ShaderForShaderNum( LittleLong( ds->shaderNum ),
-		ri.gameId == COM_GAME_WOLFET ? lightmapNum : LIGHTMAP_BY_VERTEX );
+		ri.gameId == COM_GAME_WOLFET || ri.gameId == COM_GAME_MOHAA ? lightmapNum : LIGHTMAP_BY_VERTEX );
 
 	numVerts = LittleLong( ds->numVerts );
 	numIndexes = LittleLong( ds->numIndexes );
@@ -2238,7 +2259,13 @@ static void ParseTriSurf( const dsurface_t *ds, const drawVert_t *verts, msurfac
 			tri->verts[i].lightmap[j] = LittleFloat( verts[i].lightmap[j] );
 		}
 
-		R_ColorShiftLightingBytes( verts[i].color.rgba, tri->verts[i].color.rgba, qtrue );
+		// Medal of Honor's permanent decals keep their colours as the
+		// scene's polygons do (tr_mohaa_world.c)
+		if ( R_MOHAAStaticDecal( &s_worldData, surf ) ) {
+			Com_Memcpy( tri->verts[i].color.rgba, verts[i].color.rgba, 4 );
+		} else {
+			R_ColorShiftLightingBytes( verts[i].color.rgba, tri->verts[i].color.rgba, qtrue );
+		}
 		if ( lightmapNum >= 0 && tr.mergeLightmaps ) {
 			// adjust lightmap coords
 			tri->verts[i].lightmap[0] = tri->verts[i].lightmap[0] * tr.lightmapScale[0] + lightmapX;
@@ -3579,6 +3606,11 @@ static void R_LoadFogs( const lump_t *l, const lump_t *brushesLump, const lump_t
 
 		// set the gradient vector
 		sideNum = LittleLong( fogs->visibleSide );
+		// Q3Test's fog shader names the visible face: +z (5) above zero, -z
+		// (4) below and none at zero (fogParms' fifth value, 1.02 0x442f90).
+		if ( ri.gameId == COM_GAME_Q3TEST ) {
+			sideNum = shader->fogParms.q3testType > 0 ? 5 : shader->fogParms.q3testType < 0 ? 4 : -1;
+		}
 
 		if ( sideNum == -1 ) {
 			out->hasSurface = qfalse;
@@ -3630,6 +3662,12 @@ static void R_LoadLightGrid( const lump_t *l ) {
 
 	numGridPoints = w->lightGridBounds[0] * w->lightGridBounds[1] * w->lightGridBounds[2];
 
+	// BSP 44 (Q3Test 1.02-1.05) has no light grid; its entities take the
+	// no-grid light, as 1.06-1.08 do without one (docs/fntech3/Q3TEST.md).
+	if ( l->filelen == 0 && ri.gameId == COM_GAME_Q3TEST ) {
+		w->lightGridData = NULL;
+		return;
+	}
 	if ( l->filelen != numGridPoints * 8 ) {
 		ri.Printf( PRINT_WARNING, "WARNING: light grid mismatch\n" );
 		w->lightGridData = NULL;
@@ -3666,8 +3704,12 @@ static void R_LoadEntities( const lump_t *l ) {
 	p = (const char *)(fileBase + l->fileofs);
 
 	// Alice's lens-flare sun belongs to the level that names one
-	if ( ri.gameId == COM_GAME_ALICE ) {
+	if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) ) {
 		R_AliceSetSunFlare( NULL );
+	}
+	// and so does Medal of Honor's, whose worldspawn gives a direction
+	if ( ri.gameId == COM_GAME_MOHAA ) {
+		R_MOHAABeginSunKeys();
 	}
 
 	// store for reference by the cgame
@@ -3727,16 +3769,19 @@ static void R_LoadEntities( const lump_t *l ) {
 		// Alice's worldspawn places the sun its lens flare draws, in the
 		// level or seen through its sky portal; the names are matched
 		// exactly (alice.exe 0x004ac53a..0x004ac5f8)
-		if ( ri.gameId == COM_GAME_ALICE && !strcmp( keyname, "sunflare" ) ) {
+		if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) && !strcmp( keyname, "sunflare" ) ) {
 			vec3_t sun = { 0.0f, 0.0f, 0.0f };
 			(void)sscanf( value, "%f %f %f", &sun[0], &sun[1], &sun[2] );
 			R_AliceSetSunFlare( sun );
 			continue;
 		}
-		if ( ri.gameId == COM_GAME_ALICE && !strcmp( keyname, "sunflare_inportalsky" ) ) {
+		if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) && !strcmp( keyname, "sunflare_inportalsky" ) ) {
 			if ( atof( value ) != 0.0 ) {
 				R_AliceSetSunFlareInPortalSky();
 			}
+			continue;
+		}
+		if ( ri.gameId == COM_GAME_MOHAA && R_MOHAASunKey( keyname, value ) ) {
 			continue;
 		}
 		// check for a different grid size
@@ -3748,6 +3793,10 @@ static void R_LoadEntities( const lump_t *l ) {
 			w->lightGridSize[2] = Q_atof( v[2] );
 			continue;
 		}
+	}
+
+	if ( ri.gameId == COM_GAME_MOHAA ) {
+		R_MOHAAEndSunKeys();
 	}
 }
 
@@ -3794,12 +3843,13 @@ void RE_LoadWorldMap( const char *name ) {
 	byte		*startMarker;
 	lump_t		qlAdvertisementsLump = { 0, 0 };
 	comGameBspFormat_t bspFormat;
+	mohaaBuiltSurfaces_t	mohaaBuilt = { 0, 0, 0, 0 };
 
 	// American McGee's Alice's loading screen follows the world load: its
 	// stage setter (alice.exe 0x0040b590) takes 7 as the load starts
 	// (RE_LoadWorldMap 0x0049afe0) and 8 as it ends (0x0049b8f4). No other
 	// profile has one. (Inline, as fixtures slice this function alone.)
-	if ( ri.gameId == COM_GAME_ALICE && ri.AliceLoadingStage ) {
+	if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) && ri.AliceLoadingStage ) {
 		ri.AliceLoadingStage( 7 );
 	}
 
@@ -3858,9 +3908,14 @@ void RE_LoadWorldMap( const char *name ) {
 		fakk_translation_t fakkTranslated = { 0 };
 		char translateError[128];
 
+		const qboolean fakk2 = ri.gameId == COM_GAME_FAKK2 ? qtrue : qfalse;
+
+		/* F.A.K.K.2's own maps are version 12 of the same records. */
 		if ( !FAKK_TranslateToV46Ex( buffer.b, size, ri.Malloc, ri.Free, &fakkTranslated,
-			translateError, sizeof( translateError ), FAKK_TRANSLATE_LIGHTGRID ) ) {
-			ri.Error( ERR_DROP, "%s: %s could not translate FAKK v42: %s", __func__, name, translateError );
+			translateError, sizeof( translateError ),
+			FAKK_TRANSLATE_LIGHTGRID | ( fakk2 ? FAKK_TRANSLATE_VERSION_FAKK2 : 0 ) ) ) {
+			ri.Error( ERR_DROP, "%s: %s could not translate FAKK v%i: %s", __func__, name,
+				fakk2 ? FAKK_VERSION_FAKK2 : FAKK_VERSION_ALICE, translateError );
 		}
 		/* The compiled lights, for model light: the translation drops them
 		 * (code/renderercommon/tr_ritual_model_light_bsp.h). */
@@ -3868,6 +3923,56 @@ void RE_LoadWorldMap( const char *name ) {
 		ri.FS_FreeFile( buffer.v );
 		buffer.v = fakkTranslated.data;
 		size = fakkTranslated.length;
+		translatedMap = qtrue;
+	}
+
+	/* Medal of Honor's maps are 2015's version 19. Their brush surfaces,
+	 * lightmaps, visibility and models are Quake III's records, so the
+	 * collision loader's translation (code/qcommon/bsp_mohaa.h) presents
+	 * them as IBSP 46 here too; the terrain, the static models, the sphere
+	 * lights and 2015's light grid are carried past the last lump and not
+	 * drawn from there. See docs/fntech3/2026-09-24-mohaa-maps.md. */
+	if ( bspFormat == COM_GAME_BSP_MOHAA ) {
+		mohaa_translation_t mohaaTranslated;
+		char translateError[128];
+
+		if ( !MOHAA_TranslateToV46( buffer.b, size, ri.Malloc, ri.Free, &mohaaTranslated,
+			translateError, sizeof( translateError ) ) ) {
+			ri.Error( ERR_DROP, "%s: %s could not translate 2015 v19: %s", __func__, name, translateError );
+		}
+		ri.FS_FreeFile( buffer.v );
+		buffer.v = mohaaTranslated.data;
+		size = mohaaTranslated.length;
+		translatedMap = qtrue;
+		/* Its terrain and static models join the world as its own surfaces
+		 * (code/renderercommon/tr_mohaa_world.c). */
+		{
+			void *world = NULL;
+			int worldLength = 0;
+			if ( R_MOHAABuildWorld( &mohaaTranslated, name, &world, &worldLength, &mohaaBuilt ) ) {
+				ri.Free( buffer.v );
+				buffer.v = world;
+				size = worldLength;
+			}
+		}
+	}
+
+	/* Q3Test's maps are IBSP 44 (1.02 to 1.05) and 45 (1.06 to 1.08); the
+	 * collision loader's translation (code/qcommon/bsp_q3test.h) presents
+	 * them as IBSP 46 here too. */
+	if ( bspFormat == COM_GAME_BSP_Q3TEST ) {
+		q3tBspTranslation_t q3testTranslated;
+		char translateError[128];
+		const int version = (int32_t)QLBSP_ReadLE32( buffer.b + 4 );
+
+		if ( !Q3TestBSP_TranslateToV46( buffer.b, size, ri.Malloc, ri.Free, &q3testTranslated,
+			translateError, sizeof( translateError ) ) ) {
+			ri.Error( ERR_DROP, "%s: %s could not translate Q3Test IBSP v%i: %s", __func__, name,
+				version, translateError );
+		}
+		ri.FS_FreeFile( buffer.v );
+		buffer.v = q3testTranslated.data;
+		size = q3testTranslated.length;
 		translatedMap = qtrue;
 	}
 
@@ -3880,6 +3985,10 @@ void RE_LoadWorldMap( const char *name ) {
 
 	Com_Memset( &s_worldData, 0, sizeof( s_worldData ) );
 	Q_strncpyz( s_worldData.name, name, sizeof( s_worldData.name ) );
+	s_worldData.mohaaFirstDecal = mohaaBuilt.firstDecal;
+	s_worldData.mohaaNumDecals = mohaaBuilt.numDecals;
+	s_worldData.mohaaFirstTerrain = mohaaBuilt.firstTerrain;
+	s_worldData.mohaaNumTerrain = mohaaBuilt.numTerrain;
 
 	Q_strncpyz( s_worldData.baseName, COM_SkipPath( s_worldData.name ), sizeof( s_worldData.name ) );
 	COM_StripExtension(s_worldData.baseName, s_worldData.baseName, sizeof(s_worldData.baseName));
@@ -3942,7 +4051,9 @@ void RE_LoadWorldMap( const char *name ) {
 	R_LoadEntities( &header->lumps[LUMP_ENTITIES] );
 	if ( bspFormat == COM_GAME_BSP_FAKK ) {
 		/* Alice reads no gridsize key: its light grid loader writes this
-		 * cell as immediates before it touches the lump. */
+		 * cell as immediates before it touches the lump. F.A.K.K.2's maps
+		 * need the same cell: with it every one of the thirty reproduces
+		 * its lump's point count exactly. */
 		s_worldData.lightGridSize[0] = FAKK_LIGHTGRID_SIZE_X;
 		s_worldData.lightGridSize[1] = FAKK_LIGHTGRID_SIZE_Y;
 		s_worldData.lightGridSize[2] = FAKK_LIGHTGRID_SIZE_Z;
@@ -3975,7 +4086,7 @@ void RE_LoadWorldMap( const char *name ) {
 		ri.FS_FreeFile( buffer.v );
 	}
 
-	if ( ri.gameId == COM_GAME_ALICE && ri.AliceLoadingStage ) {
+	if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) && ri.AliceLoadingStage ) {
 		ri.AliceLoadingStage( 8 );
 	}
 }

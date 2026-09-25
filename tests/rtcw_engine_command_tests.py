@@ -171,12 +171,13 @@ const comGameProfile_t *Com_GameProfile() { selected.id=profile; return &selecte
 int Com_GameIsRTCW() { return profile==COM_GAME_RTCW_SP || profile==COM_GAME_RTCW_MP; }
 int Com_GameIsQuakeLive() { return profile==COM_GAME_QUAKELIVE; }
 int Com_GameIsWolfET() { return profile==COM_GAME_WOLFET; }
+int Com_GameIsMOHAA() { return profile==COM_GAME_MOHAA; }
 static struct { int state; } cls;
 static struct { bool rtcwLimboMode; } cl;
 static struct { bool dllExports=true; } vm, *cgvm=&vm;
 static struct Field { char buffer[128]; int widthInChars; } chatField;
 static bool chat_team,chat_buddy;
-static int chat_playerNum=-1,catcher,notifications;
+static int chat_playerNum=-1,chat_dmTarget,catcher,notifications;
 static std::string sent;
 static int Key_GetCatcher() { return catcher; }
 static void Key_SetCatcher(int x) { catcher=x; }

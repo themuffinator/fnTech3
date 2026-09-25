@@ -1,0 +1,228 @@
+/* Copyright (C) 2026 fnTech3 contributors. GPL-2.0-or-later.
+ *
+ * Medal of Honor: Allied Assault 1.00's 168 client-game import slots, in the
+ * order the engine hands them to main/cgamex86.dll's first export (CG_Init,
+ * 0x30023662), which copies them to 0x302a5880 with one `rep movsd` of 0xa8
+ * dwords.
+ *
+ * FNTECH3_MOHAA_CGAME_IMPORT( slot, name, args, evidence, sites )
+ *
+ * The retail client game was built without optimisation: every call is
+ * followed by its own `add esp`, so `args` is the argument count each call
+ * site pops, exactly; two counts mean the sites disagree because one shares
+ * its cleanup with a neighbour. VARARGS marks a format call, DATA a pointer
+ * the module reads rather than calls, and `-` a slot no instruction reads.
+ * `sites` is how many instructions read the slot. `evidence` is:
+ *
+ *   LITERAL       a pushed string or constant names it: 'StatsScreen' for the
+ *                 menu pair, 'ripple.spr' and 'gfx/2d/blank' for the two
+ *                 shader registrations, 1023 as the parent for
+ *                 R_AddRefEntityToScene, the music moods out of the player
+ *                 state for MUSIC_UpdateMood, 300 and 100 for
+ *                 UI_ToggleDMMessageConsole, a 2,228-byte stride for
+ *                 HudDrawElements
+ *   ARITY         the argument count matches the member at that position
+ *   DATA          a pointer to engine data, read and never called
+ *   UNREFERENCED  never read; the reference member at the position the slots
+ *                 around it fix
+ *
+ * The names are OpenMoHAA's client-game import members (GPL-2.0-or-later),
+ * which describe the later modules. 1.00 has fourteen fewer and one it does
+ * not know; the call sites place them:
+ *
+ *   Cvar_Find, Cvar_CheckRange  slot 10 is Cvar_Set (two arguments, 297 sites)
+ *                     and 11 is Argc, so neither is present.
+ *   the file group    between FS_WriteTextFile (21) and MSG_ReadBits (23,
+ *                     called with 6) the reference has six members; 1.00 has
+ *                     one, slot 22, which nothing reads and this file does
+ *                     not name.
+ *   R_GetModelName, R_GetShaderName
+ *                     slot 84 unregisters a server model and clears its table
+ *                     entry, 86 registers 'ripple.spr', 87 registers
+ *                     'gfx/2d/blank' and 88 is R_AddRefEntityToScene. Slot 85,
+ *                     never read, is unnamed here.
+ *   UI_FontStringWidth, the two 2.0 UI members and the three Key members
+ *                     slot 129 hides 'StatsScreen' and 130 is R_Model_GetHandle
+ *                     at twenty sites.
+ *   CL_InitRadar and the three members after FS_CanonicalFilename
+ *                     Team Assault's and 2.0's; 159 to 162 are four one-argument
+ *                     calls, then data.
+ *
+ * Slot 167 is 1.00's own: a pointer to the force-feedback interface
+ * main/ffx86.dll exports as GetFFAPI. The client game tests it for null
+ * before every use and calls through its fourth member with effect names
+ * such as 'fffx/general/screenshake1' (0x30047e23..0x30047e43). The engine
+ * serves no force feedback and hands it null.
+ *
+ * A name is the declared member the slot carries, not a signature. See
+ * docs/fntech3/2026-09-24-mohaa-contracts.md.
+ */
+
+FNTECH3_MOHAA_CGAME_IMPORT(   0, apiversion,                    DATA,    DATA,           0 )
+FNTECH3_MOHAA_CGAME_IMPORT(   1, Printf,                        VARARGS, LITERAL,       94 )
+FNTECH3_MOHAA_CGAME_IMPORT(   2, DPrintf,                       VARARGS, LITERAL,       53 )
+FNTECH3_MOHAA_CGAME_IMPORT(   3, DebugPrintf,                   VARARGS, LITERAL,        1 )
+FNTECH3_MOHAA_CGAME_IMPORT(   4, Malloc,                        1,       ARITY,         13 )
+FNTECH3_MOHAA_CGAME_IMPORT(   5, Free,                          1,       ARITY,         11 )
+FNTECH3_MOHAA_CGAME_IMPORT(   6, Error,                         VARARGS, LITERAL,       17 )
+FNTECH3_MOHAA_CGAME_IMPORT(   7, Milliseconds,                  0,       ARITY,          6 )
+FNTECH3_MOHAA_CGAME_IMPORT(   8, LV_ConvertString,              1,       LITERAL,        1 )
+FNTECH3_MOHAA_CGAME_IMPORT(   9, Cvar_Get,                      3,       LITERAL,      199 )
+FNTECH3_MOHAA_CGAME_IMPORT(  10, Cvar_Set,                      2,       LITERAL,      297 )
+FNTECH3_MOHAA_CGAME_IMPORT(  11, Argc,                          0,       ARITY,         13 )
+FNTECH3_MOHAA_CGAME_IMPORT(  12, Argv,                          0/1,     ARITY,         55 )
+FNTECH3_MOHAA_CGAME_IMPORT(  13, Args,                          0,       ARITY,          2 )
+FNTECH3_MOHAA_CGAME_IMPORT(  14, AddCommand,                    1,       ARITY,          2 )
+FNTECH3_MOHAA_CGAME_IMPORT(  15, Cmd_Stuff,                     1,       ARITY,          2 )
+FNTECH3_MOHAA_CGAME_IMPORT(  16, Cmd_Execute,                   2,       LITERAL,       16 )
+FNTECH3_MOHAA_CGAME_IMPORT(  17, Cmd_TokenizeString,            1,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT(  18, FS_ReadFile,                   3,       ARITY,          5 )
+FNTECH3_MOHAA_CGAME_IMPORT(  19, FS_FreeFile,                   1,       ARITY,         14 )
+FNTECH3_MOHAA_CGAME_IMPORT(  20, FS_WriteFile,                  3,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT(  21, FS_WriteTextFile,              3,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT(  22, UNNAMED_FILE_SLOT,             -,       UNREFERENCED,   0 )
+FNTECH3_MOHAA_CGAME_IMPORT(  23, MSG_ReadBits,                  1,       LITERAL,       14 )
+FNTECH3_MOHAA_CGAME_IMPORT(  24, MSG_ReadChar,                  -,       UNREFERENCED,   0 )
+FNTECH3_MOHAA_CGAME_IMPORT(  25, MSG_ReadByte,                  0,       ARITY,         13 )
+FNTECH3_MOHAA_CGAME_IMPORT(  26, MSG_ReadSVC,                   -,       UNREFERENCED,   0 )
+FNTECH3_MOHAA_CGAME_IMPORT(  27, MSG_ReadShort,                 0,       ARITY,          4 )
+FNTECH3_MOHAA_CGAME_IMPORT(  28, MSG_ReadLong,                  -,       UNREFERENCED,   0 )
+FNTECH3_MOHAA_CGAME_IMPORT(  29, MSG_ReadFloat,                 -,       UNREFERENCED,   0 )
+FNTECH3_MOHAA_CGAME_IMPORT(  30, MSG_ReadString,                0,       ARITY,          4 )
+FNTECH3_MOHAA_CGAME_IMPORT(  31, MSG_ReadStringLine,            -,       UNREFERENCED,   0 )
+FNTECH3_MOHAA_CGAME_IMPORT(  32, MSG_ReadAngle8,                -,       UNREFERENCED,   0 )
+FNTECH3_MOHAA_CGAME_IMPORT(  33, MSG_ReadAngle16,               -,       UNREFERENCED,   0 )
+FNTECH3_MOHAA_CGAME_IMPORT(  34, MSG_ReadData,                  -,       UNREFERENCED,   0 )
+FNTECH3_MOHAA_CGAME_IMPORT(  35, MSG_ReadCoord,                 0,       ARITY,         54 )
+FNTECH3_MOHAA_CGAME_IMPORT(  36, MSG_ReadDir,                   1,       ARITY,          2 )
+FNTECH3_MOHAA_CGAME_IMPORT(  37, SendClientCommand,             1,       LITERAL,        6 )
+FNTECH3_MOHAA_CGAME_IMPORT(  38, CM_LoadMap,                    1,       LITERAL,        1 )
+FNTECH3_MOHAA_CGAME_IMPORT(  39, CM_InlineModel,                1,       ARITY,          6 )
+FNTECH3_MOHAA_CGAME_IMPORT(  40, CM_NumInlineModels,            0,       ARITY,          2 )
+FNTECH3_MOHAA_CGAME_IMPORT(  41, CM_PointContents,              2,       ARITY,          7 )
+FNTECH3_MOHAA_CGAME_IMPORT(  42, CM_TransformedPointContents,   4,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT(  43, CM_BoxTrace,                   8,       ARITY,          4 )
+FNTECH3_MOHAA_CGAME_IMPORT(  44, CM_TransformedBoxTrace,        10,      ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT(  45, CM_TempBoxModel,               3,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT(  46, CM_PrintBSPFileSizes,          0,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT(  47, CM_LeafInPVS,                  2,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT(  48, CM_PointLeafnum,               1,       ARITY,          4 )
+FNTECH3_MOHAA_CGAME_IMPORT(  49, R_MarkFragments,               8,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT(  50, R_MarkFragmentsForInlineModel, 11,      ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT(  51, R_GetInlineModelBounds,        3,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT(  52, R_GetLightingForDecal,         3,       ARITY,          5 )
+FNTECH3_MOHAA_CGAME_IMPORT(  53, R_GetLightingForSmoke,         2,       ARITY,          4 )
+FNTECH3_MOHAA_CGAME_IMPORT(  54, R_GatherLightSources,          4,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT(  55, S_StartSound,                  9,       ARITY,          2 )
+FNTECH3_MOHAA_CGAME_IMPORT(  56, S_StartLocalSound,             -,       UNREFERENCED,   0 )
+FNTECH3_MOHAA_CGAME_IMPORT(  57, S_StopSound,                   2,       ARITY,          3 )
+FNTECH3_MOHAA_CGAME_IMPORT(  58, S_ClearLoopingSounds,          0,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT(  59, S_AddLoopingSound,             8,       ARITY,          6 )
+FNTECH3_MOHAA_CGAME_IMPORT(  60, S_Respatialize,                3,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT(  61, S_BeginRegistration,           -,       UNREFERENCED,   0 )
+FNTECH3_MOHAA_CGAME_IMPORT(  62, S_RegisterSound,               2,       ARITY,          5 )
+FNTECH3_MOHAA_CGAME_IMPORT(  63, S_EndRegistration,             -,       UNREFERENCED,   0 )
+FNTECH3_MOHAA_CGAME_IMPORT(  64, S_UpdateEntity,                4,       ARITY,          3 )
+FNTECH3_MOHAA_CGAME_IMPORT(  65, S_SetReverb,                   2,       ARITY,          2 )
+FNTECH3_MOHAA_CGAME_IMPORT(  66, S_SetGlobalAmbientVolumeLevel, -,       UNREFERENCED,   0 )
+FNTECH3_MOHAA_CGAME_IMPORT(  67, S_GetSoundTime,                -,       UNREFERENCED,   0 )
+FNTECH3_MOHAA_CGAME_IMPORT(  68, S_ChannelNameToNum,            1,       ARITY,          2 )
+FNTECH3_MOHAA_CGAME_IMPORT(  69, S_ChannelNumToName,            -,       UNREFERENCED,   0 )
+FNTECH3_MOHAA_CGAME_IMPORT(  70, S_IsSoundPlaying,              -,       UNREFERENCED,   0 )
+FNTECH3_MOHAA_CGAME_IMPORT(  71, MUSIC_NewSoundtrack,           1,       LITERAL,        1 )
+FNTECH3_MOHAA_CGAME_IMPORT(  72, MUSIC_UpdateMood,              2,       LITERAL,        2 )
+FNTECH3_MOHAA_CGAME_IMPORT(  73, MUSIC_UpdateVolume,            2,       ARITY,          2 )
+FNTECH3_MOHAA_CGAME_IMPORT(  74, get_camera_offset,             2,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT(  75, R_ClearScene,                  0,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT(  76, R_RenderScene,                 1,       LITERAL,        1 )
+FNTECH3_MOHAA_CGAME_IMPORT(  77, R_LoadWorldMap,                1,       LITERAL,        1 )
+FNTECH3_MOHAA_CGAME_IMPORT(  78, R_PrintBSPFileSizes,           0,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT(  79, MapVersion,                    -,       UNREFERENCED,   0 )
+FNTECH3_MOHAA_CGAME_IMPORT(  80, R_MapVersion,                  -,       UNREFERENCED,   0 )
+FNTECH3_MOHAA_CGAME_IMPORT(  81, R_RegisterModel,               1,       LITERAL,       17 )
+FNTECH3_MOHAA_CGAME_IMPORT(  82, R_SpawnEffectModel,            3,       ARITY,          2 )
+FNTECH3_MOHAA_CGAME_IMPORT(  83, R_RegisterServerModel,         1,       ARITY,          2 )
+FNTECH3_MOHAA_CGAME_IMPORT(  84, R_UnregisterServerModel,       1,       LITERAL,        2 )
+FNTECH3_MOHAA_CGAME_IMPORT(  85, UNNAMED_MODEL_SLOT,            -,       UNREFERENCED,   0 )
+FNTECH3_MOHAA_CGAME_IMPORT(  86, R_RegisterShader,              1,       LITERAL,       28 )
+FNTECH3_MOHAA_CGAME_IMPORT(  87, R_RegisterShaderNoMip,         1,       LITERAL,       12 )
+FNTECH3_MOHAA_CGAME_IMPORT(  88, R_AddRefEntityToScene,         2,       LITERAL,        6 )
+FNTECH3_MOHAA_CGAME_IMPORT(  89, R_AddRefSpriteToScene,         1,       ARITY,          4 )
+FNTECH3_MOHAA_CGAME_IMPORT(  90, R_AddLightToScene,             6,       ARITY,          4 )
+FNTECH3_MOHAA_CGAME_IMPORT(  91, R_AddPolyToScene,              4,       ARITY,          9 )
+FNTECH3_MOHAA_CGAME_IMPORT(  92, R_AddTerrainMarkToScene,       5,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT(  93, R_SetColor,                    1,       ARITY,         23 )
+FNTECH3_MOHAA_CGAME_IMPORT(  94, R_DrawStretchPic,              9,       ARITY,         27 )
+FNTECH3_MOHAA_CGAME_IMPORT(  95, R_LoadFont,                    1,       ARITY,          5 )
+FNTECH3_MOHAA_CGAME_IMPORT(  96, R_DrawString,                  6,       ARITY,          8 )
+FNTECH3_MOHAA_CGAME_IMPORT(  97, R_GetRenderEntity,             1,       ARITY,          6 )
+FNTECH3_MOHAA_CGAME_IMPORT(  98, R_ModelBounds,                 3,       ARITY,          4 )
+FNTECH3_MOHAA_CGAME_IMPORT(  99, R_ModelRadius,                 1,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT( 100, R_Noise,                       4,       ARITY,          3 )
+FNTECH3_MOHAA_CGAME_IMPORT( 101, R_DebugLine,                   6,       ARITY,         13 )
+FNTECH3_MOHAA_CGAME_IMPORT( 102, GetShader,                     1,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT( 103, R_SwipeBegin,                  3,       ARITY,          2 )
+FNTECH3_MOHAA_CGAME_IMPORT( 104, R_SwipePoint,                  3,       ARITY,          2 )
+FNTECH3_MOHAA_CGAME_IMPORT( 105, R_SwipeEnd,                    0,       ARITY,          2 )
+FNTECH3_MOHAA_CGAME_IMPORT( 106, R_GetShaderWidth,              1,       ARITY,          4 )
+FNTECH3_MOHAA_CGAME_IMPORT( 107, R_GetShaderHeight,             1,       ARITY,          4 )
+FNTECH3_MOHAA_CGAME_IMPORT( 108, R_DrawBox,                     4,       ARITY,          4 )
+FNTECH3_MOHAA_CGAME_IMPORT( 109, GetGameState,                  1,       LITERAL,        2 )
+FNTECH3_MOHAA_CGAME_IMPORT( 110, GetSnapshot,                   2,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT( 111, GetServerStartTime,            0,       ARITY,          2 )
+FNTECH3_MOHAA_CGAME_IMPORT( 112, SetTime,                       1,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT( 113, GetCurrentSnapshotNumber,      2,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT( 114, GetGlconfig,                   1,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT( 115, GetParseEntityState,           -,       UNREFERENCED,   0 )
+FNTECH3_MOHAA_CGAME_IMPORT( 116, GetCurrentCmdNumber,           0,       ARITY,          3 )
+FNTECH3_MOHAA_CGAME_IMPORT( 117, GetUserCmd,                    2,       ARITY,          4 )
+FNTECH3_MOHAA_CGAME_IMPORT( 118, GetServerCommand,              2,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT( 119, Alias_Add,                     3,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT( 120, Alias_ListAdd,                 4,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT( 121, Alias_FindRandom,              2,       ARITY,          3 )
+FNTECH3_MOHAA_CGAME_IMPORT( 122, Alias_ListFindRandom,          3,       ARITY,          3 )
+FNTECH3_MOHAA_CGAME_IMPORT( 123, Alias_Dump,                    -,       UNREFERENCED,   0 )
+FNTECH3_MOHAA_CGAME_IMPORT( 124, Alias_Clear,                   -,       UNREFERENCED,   0 )
+FNTECH3_MOHAA_CGAME_IMPORT( 125, AliasList_New,                 1,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT( 126, Alias_ListFindRandomRange,     5,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT( 127, Alias_GetGlobalList,           0,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT( 128, UI_ShowMenu,                   2,       LITERAL,        2 )
+FNTECH3_MOHAA_CGAME_IMPORT( 129, UI_HideMenu,                   2,       LITERAL,        4 )
+FNTECH3_MOHAA_CGAME_IMPORT( 130, R_Model_GetHandle,             1,       ARITY,         20 )
+FNTECH3_MOHAA_CGAME_IMPORT( 131, TIKI_NumAnims,                 -,       UNREFERENCED,   0 )
+FNTECH3_MOHAA_CGAME_IMPORT( 132, TIKI_CalculateBounds,          4,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT( 133, TIKI_Name,                     1,       ARITY,          6 )
+FNTECH3_MOHAA_CGAME_IMPORT( 134, TIKI_GetSkeletor,              -,       UNREFERENCED,   0 )
+FNTECH3_MOHAA_CGAME_IMPORT( 135, TIKI_SetEyeTargetPos,          3,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT( 136, Anim_NameForNum,               2,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT( 137, Anim_NumForName,               2,       LITERAL,        7 )
+FNTECH3_MOHAA_CGAME_IMPORT( 138, Anim_Random,                   -,       UNREFERENCED,   0 )
+FNTECH3_MOHAA_CGAME_IMPORT( 139, Anim_NumFrames,                2,       ARITY,          3 )
+FNTECH3_MOHAA_CGAME_IMPORT( 140, Anim_Time,                     2,       ARITY,          6 )
+FNTECH3_MOHAA_CGAME_IMPORT( 141, Anim_Frametime,                2,       ARITY,          2 )
+FNTECH3_MOHAA_CGAME_IMPORT( 142, Anim_Delta,                    -,       UNREFERENCED,   0 )
+FNTECH3_MOHAA_CGAME_IMPORT( 143, Anim_Flags,                    2,       ARITY,          2 )
+FNTECH3_MOHAA_CGAME_IMPORT( 144, Anim_FlagsSkel,                -,       UNREFERENCED,   0 )
+FNTECH3_MOHAA_CGAME_IMPORT( 145, Anim_CrossblendTime,           2,       ARITY,          3 )
+FNTECH3_MOHAA_CGAME_IMPORT( 146, Anim_HasCommands,              2,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT( 147, Frame_Commands,                4,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT( 148, Frame_CommandsTime,            5,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT( 149, Surface_NameToNum,             2,       LITERAL,        4 )
+FNTECH3_MOHAA_CGAME_IMPORT( 150, Tag_NumForName,                2,       ARITY,         20 )
+FNTECH3_MOHAA_CGAME_IMPORT( 151, Tag_NameForNum,                2,       ARITY,          3 )
+FNTECH3_MOHAA_CGAME_IMPORT( 152, ForceUpdatePose,               1,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT( 153, TIKI_Orientation,              3,       ARITY,         14 )
+FNTECH3_MOHAA_CGAME_IMPORT( 154, TIKI_IsOnGround,               3,       ARITY,          4 )
+FNTECH3_MOHAA_CGAME_IMPORT( 155, UI_ShowScoreBoard,             1,       ARITY,          2 )
+FNTECH3_MOHAA_CGAME_IMPORT( 156, UI_HideScoreBoard,             0,       ARITY,          3 )
+FNTECH3_MOHAA_CGAME_IMPORT( 157, UI_SetScoreBoardItem,          12,      LITERAL,        1 )
+FNTECH3_MOHAA_CGAME_IMPORT( 158, UI_DeleteScoreBoardItems,      1,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT( 159, UI_ToggleDMMessageConsole,     1,       LITERAL,        7 )
+FNTECH3_MOHAA_CGAME_IMPORT( 160, TIKI_FindTiki,                 1,       ARITY,          1 )
+FNTECH3_MOHAA_CGAME_IMPORT( 161, LoadResource,                  1,       LITERAL,        2 )
+FNTECH3_MOHAA_CGAME_IMPORT( 162, FS_CanonicalFilename,          1,       ARITY,          3 )
+FNTECH3_MOHAA_CGAME_IMPORT( 163, fsDebug,                       DATA,    LITERAL,        3 )
+FNTECH3_MOHAA_CGAME_IMPORT( 164, HudDrawElements,               DATA,    LITERAL,       49 )
+FNTECH3_MOHAA_CGAME_IMPORT( 165, anim,                          DATA,    DATA,          94 )
+FNTECH3_MOHAA_CGAME_IMPORT( 166, stopWatch,                     DATA,    LITERAL,        8 )
+FNTECH3_MOHAA_CGAME_IMPORT( 167, forceFeedback,                 DATA,    LITERAL,        4 )

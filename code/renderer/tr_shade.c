@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_shade.c
 
 #include "tr_local.h"
+#include "../renderercommon/tr_mohaa_shade.h"
 #include "../renderercommon/tr_rtcw_normal_fade.h"
 #include "../renderercommon/tr_stvef_alpha.h"
 #include "tr_glx_compat.h"
@@ -70,6 +71,7 @@ SURFACE SHADERS
 
 shaderCommands_t	tess;
 static qboolean	setArraysOnce;
+#include "../renderercommon/tr_ritual_far_fog_render.h"
 #include "tr_rtcw_fog_gl.h"
 
 #ifdef RENDERER_GLX
@@ -634,6 +636,14 @@ void R_BindAnimatedImage( const textureBundle_t *bundle ) {
 	}
 #endif
 
+	// RTCW SP's snooper scope shows the world with every lightmap white (its
+	// renderer's R_BindAnimatedImage binds tr.whiteImage for them)
+	if ( bundle->lightmap != LIGHTMAP_INDEX_NONE && ri.gameId == COM_GAME_RTCW_SP &&
+		backEnd.refdef.rtcw.snooperView ) {
+		GL_Bind( tr.whiteImage );
+		return;
+	}
+
 	if ( bundle->numImageAnimations <= 1 ) {
 		GL_Bind( bundle->image[0] );
 		return;
@@ -645,7 +655,9 @@ void R_BindAnimatedImage( const textureBundle_t *bundle ) {
 	//index = v;
 	//index >>= FUNCTABLE_SIZE2;
 
-	v = tess.shaderTime * bundle->imageAnimationSpeed; // fix for frameloss bug -EC-
+	// fix for frameloss bug -EC-; Medal of Honor's `animMapPhase` starts
+	// its frames later by its phase
+	v = ( tess.shaderTime + bundle->mohaaAnimPhase ) * bundle->imageAnimationSpeed;
 	index = v;
 
 	// American McGee's Alice: `frameFromEntity` takes the frame from the
@@ -804,6 +816,8 @@ void RB_BeginSurface( shader_t *shader, int fogNum ) {
 #ifdef USE_TESS_NEEDS_NORMAL
 	qboolean liquidNeedsNormal;
 #endif
+
+	fogNum = RB_RitualSurfaceFogNum( shader, fogNum );
 
 	if ( shader->remappedShader ) {
 		state = shader->remappedShader;
@@ -1462,6 +1476,40 @@ static void RB_FogPass( void ) {
 
 
 /*
+===================
+RB_RitualFarFogPass
+
+Alice's and F.A.K.K.2's far-plane fog over an opaque surface's unfogged
+stages (tr_ritual_far_fog.h). The far fog keeps surfaces out of VBOs here
+(RB_RTCWHasFog), so tess.xyz holds them.
+===================
+*/
+static void RB_RitualFarFogPass( void ) {
+	qboolean glxStreamedDraw = qfalse;
+
+	RB_RTCWFogToggle( qfalse );
+	RB_RitualFarFogColors( tess.svars.colors[0].rgba, tess.svars.texcoords[0][0] );
+
+	GL_ClientState( 1, CLS_NONE );
+	GL_ClientState( 0, CLS_TEXCOORD_ARRAY | CLS_COLOR_ARRAY );
+
+	qglColorPointer( 4, GL_UNSIGNED_BYTE, 0, tess.svars.colors[0].rgba );
+	qglTexCoordPointer( 2, GL_FLOAT, 0, tess.svars.texcoords[0] );
+
+	GL_SelectTexture( 0 );
+	GL_Bind( tr.whiteImage );
+	GL_State( FnRitualFarFogState( tess.shader->stages[0]->stateBits ) );
+
+#ifdef RENDERER_GLX
+	glxStreamedDraw = GLX_TryStreamDrawFogPass( &tess );
+#endif
+	if ( !glxStreamedDraw ) {
+		R_DrawElements( tess.numIndexes, tess.indexes );
+	}
+}
+
+
+/*
 ===============
 R_ComputeColors
 ===============
@@ -1489,6 +1537,9 @@ void R_ComputeColors( const shaderStage_t *pStage )
 			break;
 		case CGEN_LIGHTING_DIFFUSE:
 			RB_CalcDiffuseColor( ( unsigned char * ) tess.svars.colors );
+			break;
+		case CGEN_MOHAA_LIGHTING:
+			RB_MOHAACalcLightingColor( ( unsigned char * ) tess.svars.colors );
 			break;
 		case CGEN_EXACT_VERTEX:
 			Com_Memcpy( tess.svars.colors, tess.vertexColors, tess.numVertexes * sizeof( tess.vertexColors[0] ) );
@@ -1560,6 +1611,16 @@ void R_ComputeColors( const shaderStage_t *pStage )
 		case CGEN_ALICE_COLORWAVE:
 			RB_AliceCalcColorWave( &pStage->rgbWave, pStage->constantColor, tess.svars.colors[0].rgba );
 			break;
+		case CGEN_MOHAA_DOT:
+		case CGEN_MOHAA_ONE_MINUS_DOT:
+			RB_MOHAACalcDotColor( pStage, pStage->rgbGen == CGEN_MOHAA_ONE_MINUS_DOT ? qtrue : qfalse,
+				tess.svars.colors[0].rgba );
+			break;
+		case CGEN_MOHAA_SCOORD:
+		case CGEN_MOHAA_TCOORD:
+			RB_MOHAACalcCoordColors( pStage, pStage->rgbGen == CGEN_MOHAA_TCOORD ? qtrue : qfalse, qfalse,
+				tess.svars.colors[0].rgba );
+			break;
 	}
 
 	//
@@ -1603,6 +1664,26 @@ void R_ComputeColors( const shaderStage_t *pStage )
 	case AGEN_ALICE_ONE_MINUS_SKY_ALPHA:
 		RB_AliceCalcSkyAlpha( pStage->alphaGen == AGEN_ALICE_ONE_MINUS_SKY_ALPHA ? qtrue : qfalse,
 			tess.svars.colors[0].rgba );
+		break;
+	case AGEN_MOHAA_DIST_FADE:
+	case AGEN_MOHAA_ONE_MINUS_DIST_FADE:
+		RB_MOHAACalcDistFadeAlpha( pStage->alphaGen == AGEN_MOHAA_ONE_MINUS_DIST_FADE ? qtrue : qfalse,
+			tess.svars.colors[0].rgba );
+		break;
+	case AGEN_MOHAA_SCOORD:
+	case AGEN_MOHAA_TCOORD:
+		RB_MOHAACalcCoordColors( pStage, pStage->alphaGen == AGEN_MOHAA_TCOORD ? qtrue : qfalse, qtrue,
+			tess.svars.colors[0].rgba );
+		break;
+	case AGEN_MOHAA_COLOR_PASS:
+		/* Ritual's renderer has no alpha of its own for `oneMinusVertex`
+		 * (alice.exe 0x00493cc4): the colour pass's stands, identity
+		 * lighting's at full as under retail's identity light of one. */
+		if ( pStage->rgbGen == CGEN_IDENTITY_LIGHTING ) {
+			for ( i = 0; i < tess.numVertexes; i++ ) {
+				tess.svars.colors[i].rgba[3] = 0xff;
+			}
+		}
 		break;
 	case AGEN_ENTITY:
 		RB_CalcAlphaFromEntity( tess.svars.colors[0].rgba );
@@ -1719,6 +1800,9 @@ void R_ComputeTexCoords( const int b, const textureBundle_t *bundle ) {
 	case TCGEN_ENVIRONMENT_MAPPED_FP:
 		RB_CalcEnvironmentTexCoordsFP( ( float * ) dst, bundle->isScreenMap );
 		break;
+	case TCGEN_MOHAA_ENVIRONMENT_MODEL:
+		RB_MOHAACalcEnvironmentModelTexCoords( ( float * ) dst );
+		break;
 	case TCGEN_BAD:
 		return;
 	}
@@ -1801,6 +1885,13 @@ void R_ComputeTexCoords( const int b, const textureBundle_t *bundle ) {
 			src = dst;
 			break;
 
+		case TMOD_MOHAA_WAVETRANS:
+		case TMOD_MOHAA_WAVETRANT:
+		case TMOD_MOHAA_BULGE:
+			RB_MOHAACalcTexMod( &bundle->texMods[tm], (const float *) src, (float *) dst );
+			src = dst;
+			break;
+
 		default:
 			ri.Error( ERR_DROP, "ERROR: unknown texmod '%d' in shader '%s'", bundle->texMods[tm].type, tess.shader->name );
 			break;
@@ -1820,7 +1911,7 @@ void R_ComputeTexCoords( const int b, const textureBundle_t *bundle ) {
 */
 qboolean RB_AliceSkipStage( const shaderStage_t *stage )
 {
-	if ( ri.gameId != COM_GAME_ALICE ) {
+	if ( !COM_GAME_ID_IS_RITUAL( ri.gameId ) ) {
 		return qfalse;
 	}
 	if ( stage->isDetail && !r_detailTextures->integer ) {
@@ -2576,6 +2667,10 @@ void RB_StageIteratorGeneric( void )
 	if ( tess.fogNum && tess.shader->fogPass )
 	{
 		RB_FogPass();
+	}
+	if ( RB_RitualFarFogTakesPass( tess.shader ) )
+	{
+		RB_RitualFarFogPass();
 	}
 
 	//

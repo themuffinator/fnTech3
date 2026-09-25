@@ -1174,7 +1174,9 @@ typedef enum {
 
 
 #define	MAX_CONFIGSTRINGS	1024
-#define MAX_GAME_CONFIGSTRINGS 2048
+// Engine storage for the largest profile: Medal of Honor: Allied Assault's
+// client game bounds its configstrings at 2,736 (cgamex86 0x300234dd).
+#define MAX_GAME_CONFIGSTRINGS 2736
 
 // Engine-owned configstrings. Retail Quake Live publishes native-module cvar
 // groups through the high slots below; qagame does not build those payloads.
@@ -1187,7 +1189,11 @@ typedef enum {
 
 #define	RESERVED_CONFIGSTRINGS	2	// game can't modify below this, only the system can
 
-#define	MAX_GAMESTATE_CHARS	16000
+// Engine storage for the largest profile's gamestate text: Medal of Honor
+// 1.00's 32,000 bytes (its client game's cgs.gameState, see
+// code/compat/mohaa_cgame_abi.h). Each profile's parser still enforces its own
+// limit, Com_GameStateCharLimit(), which is 16000 everywhere else.
+#define	MAX_GAMESTATE_CHARS	32000
 typedef struct {
 	int			stringOffsets[MAX_GAME_CONFIGSTRINGS];
 	char		stringData[MAX_GAMESTATE_CHARS];

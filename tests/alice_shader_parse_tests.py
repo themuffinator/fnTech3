@@ -13,11 +13,14 @@ Two things run through it:
 
 * an independently written mini-corpus of Ritual's dialect, checking the
   parsed fields keyword by keyword and that no other profile accepts the
-  Alice-only syntax; and
+  Alice-only syntax -- Medal of Honor's scripts are written in it too, and
+  its own keywords are no other profile's; and
 * when a legitimate retail installation is present, every shader in
   base/pak0.pk3's scripts/*.shader, read in memory and piped to the host (no
   retail text is written to disk), counting the definitions the parser
-  rejects. Set FNTECH3_ALICE_ROOT to point at another installation.
+  rejects. Set FNTECH3_ALICE_ROOT to point at another installation. Heavy
+  Metal: F.A.K.K.2's fakk/pak0.pk3 runs the same way under its own profile;
+  set FNTECH3_FAKK2_ROOT to an installed copy.
 """
 import os
 from pathlib import Path
@@ -31,6 +34,8 @@ from compiler_support import compiler_target_args
 
 ROOT = Path(__file__).resolve().parents[1]
 ALICE_ROOT = Path(os.environ.get('FNTECH3_ALICE_ROOT', r'E:\Games\Alice'))
+# An installed Heavy Metal: F.A.K.K.2: the folder holding fakk/pak0.pk3.
+FAKK2_ROOT = Path(os.environ.get('FNTECH3_FAKK2_ROOT', str(ROOT / '.tmp' / 'fakk2-install' / 'game')))
 
 HOST = r'''
 #define _CRT_SECURE_NO_WARNINGS 1
@@ -145,10 +150,12 @@ static void HostDigest( const char *name ) {
 	}
 	for ( i = 0; i < MAX_SHADER_STAGES && stages[i].active; i++ ) {
 		const shaderStage_t *st = &stages[i];
-		printf( " [%x r%d a%d c%02x%02x%02x%02x det%d", st->stateBits, (int)R_ALICE_GEN( st )->rgbGen,
+		/* (the Vulkan family numbers its texture environments its own way) */
+		printf( " [%x r%d a%d c%02x%02x%02x%02x det%d mt%s", st->stateBits, (int)R_ALICE_GEN( st )->rgbGen,
 			(int)R_ALICE_GEN( st )->alphaGen, R_ALICE_GEN( st )->constantColor.rgba[0],
 			R_ALICE_GEN( st )->constantColor.rgba[1], R_ALICE_GEN( st )->constantColor.rgba[2],
-			R_ALICE_GEN( st )->constantColor.rgba[3], (int)st->isDetail );
+			R_ALICE_GEN( st )->constantColor.rgba[3], (int)st->isDetail,
+			!st->mtEnv ? "0" : st->mtEnv == GL_MODULATE ? "modulate" : "other" );
 		/* the first two bundles: the Vulkan family's third is never parsed */
 		for ( b = 0; b < NUM_TEXTURE_BUNDLES && b < 2; b++ ) {
 			printf( " t%d:%d:%d", (int)st->bundle[b].tcGen, st->bundle[b].numImageAnimations, st->bundle[b].numTexMods );
@@ -383,6 +390,49 @@ static int HostChecks( void ) {
 		stages[0].bundle[0].aliceFrameFromEntity && stages[0].bundle[0].imageAnimationSpeed == 10 );
 	CHECK( stages[0].bundle[0].tcGen == TCGEN_VECTOR && Near( stages[0].bundle[0].tcGenVectors[1][1], 1 ) );
 
+	/* nextBundle: the images, texture coordinates and modifiers after it fill
+	 * bundle 1, drawn with GL_MODULATE; colour and alpha stay the stage's */
+	CHECK( HostParseText( COM_GAME_ALICE, "{\n{\nmap a.tga\nblendFunc GL_ONE GL_ONE\nrgbGen const 1 0 0\ntcMod scale 2 2\n"
+		"nextBundle\nmap b.tga\ntcMod scroll 1 0\ntcMod scale 3 3\nframeFromEntity\nalphaGen global\n}\n}\n" ) );
+	CHECK( stages[0].bundle[0].numTexMods == 1 && stages[0].bundle[1].numTexMods == 2 &&
+		stages[0].bundle[1].texMods[0].type == TMOD_SCROLL && stages[0].bundle[1].image[0] != NULL &&
+		stages[0].bundle[1].aliceFrameFromEntity && !stages[0].bundle[0].aliceFrameFromEntity );
+	CHECK( stages[0].mtEnv == GL_MODULATE && shader.multitextureEnv && R_AliceStageHasNextBundle( &stages[0] ) &&
+		R_AliceStageBundles( &stages[0] ) == 2 && !R_AliceStageCollapses( &stages[0] ) );
+	CHECK( R_ALICE_GEN( &stages[0] )->rgbGen == CGEN_CONST && R_ALICE_GEN( &stages[0] )->alphaGen == AGEN_ALICE_GLOBAL &&
+		stages[0].bundle[1].tcGen == TCGEN_TEXTURE );
+	CHECK( HostParseText( COM_GAME_FAKK2, "{\n{\nmap a.tga\nnextbundle\nmap b.tga\ntcGen environment\n}\n}\n" ) );
+	CHECK( stages[0].bundle[1].tcGen == TCGEN_ENVIRONMENT_MAPPED && stages[0].bundle[0].tcGen == TCGEN_TEXTURE &&
+		stages[0].mtEnv == GL_MODULATE );
+	/* a third bundle is refused; one left without an image is dropped */
+	CHECK( !HostParseText( COM_GAME_ALICE, "{\n{\nmap a.tga\nnextBundle\nmap b.tga\nnextBundle\nmap c.tga\n}\n}\n" ) );
+	CHECK( HostParseText( COM_GAME_ALICE, "{\n{\nmap a.tga\nnextBundle\n}\n}\n" ) && !stages[0].bundle[1].image[0] &&
+		!stages[0].mtEnv && R_AliceStageBundles( &stages[0] ) == 1 );
+	/* without multitexture the shader is refused */
+	{
+		static const char *text = "{\n{\nmap a.tga\nnextBundle\nmap b.tga\n}\n}\n";
+		HostInit( COM_GAME_ALICE );
+		glConfig.numTextureUnits = 1;
+		CHECK( !HostParse( "test/alice", text, text + strlen( text ) ) );
+		glConfig.numTextureUnits = 2;
+	}
+	/* a collapse still fills bundle 1 of two single-bundle stages */
+	CHECK( HostParseText( COM_GAME_ALICE, "{\n{\nmap a.tga\n}\n}\n" ) && R_AliceStageCollapses( &stages[0] ) &&
+		!R_AliceStageHasNextBundle( &stages[0] ) );
+
+	/* F.A.K.K.2: a stage ending on a first bundle of `$lightmap` with no rgbGen
+	 * takes identity, as the texture filtering it does, so the two stages'
+	 * colours match and collapse as fakk2.exe's do (0x00476e8c, 0x00478fa8) */
+	CHECK( HostParseText( COM_GAME_FAKK2, "{\n{\nmap $lightmap\n}\n{\nmap a.tga\nblendFunc GL_DST_COLOR GL_ZERO\n}\n}\n" ) );
+	CHECK( R_ALICE_GEN( &stages[0] )->rgbGen == CGEN_IDENTITY && R_ALICE_GEN( &stages[1] )->rgbGen == CGEN_IDENTITY &&
+		R_ALICE_GEN( &stages[0] )->alphaGen == R_ALICE_GEN( &stages[1] )->alphaGen );
+	/* not after nextBundle, nor over a named rgbGen */
+	CHECK( HostParseText( COM_GAME_FAKK2, "{\n{\nmap $lightmap\nnextBundle\nmap a.tga\n}\n}\n" ) &&
+		R_ALICE_GEN( &stages[0] )->rgbGen == CGEN_IDENTITY_LIGHTING );
+	CHECK( HostParseText( COM_GAME_FAKK2, "{\n{\nmap $lightmap\nrgbGen identityLighting\n}\n}\n" ) &&
+		R_ALICE_GEN( &stages[0] )->rgbGen == CGEN_IDENTITY_LIGHTING );
+	CHECK( HostParseText( COM_GAME_FAKK2, "{\n{\nmap a.tga\n}\n}\n" ) &&
+		R_ALICE_GEN( &stages[0] )->rgbGen == CGEN_IDENTITY_LIGHTING );
 	/* Alice: a stage ending on a first bundle of `$lightmap` with no rgbGen
 	 * takes identity whatever its blend, as alice.exe's parser gives it
 	 * (0x0048c648..0x0048c678); Alice draws with no overbright bits, as
@@ -398,7 +448,7 @@ static int HostChecks( void ) {
 		R_ALICE_GEN( &stages[0] )->rgbGen == CGEN_IDENTITY_LIGHTING );
 	/* every other profile keeps Quake III's rule */
 	for ( game = COM_GAME_QUAKE3; game < COM_GAME_COUNT; game = (comGameId_t)( game + 1 ) ) {
-		if ( game == COM_GAME_ALICE ) continue;
+		if ( COM_GAME_ID_IS_RITUAL( game ) ) continue;
 		CHECK( HostParseText( game, "{\n{\nmap $lightmap\n}\n}\n" ) &&
 			R_ALICE_GEN( &stages[0] )->rgbGen == CGEN_IDENTITY_LIGHTING );
 		CHECK( HostParseText( game, "{\n{\nmap $lightmap\nblendFunc add\n}\n}\n" ) &&
@@ -413,7 +463,9 @@ static int HostChecks( void ) {
 
 	/* no other profile takes the dialect */
 	for ( game = COM_GAME_QUAKE3; game < COM_GAME_COUNT; game = (comGameId_t)( game + 1 ) ) {
-		if ( game == COM_GAME_ALICE ) continue;
+		/* Heavy Metal: F.A.K.K.2's scripts are the same dialect, and so are
+		 * Medal of Honor's (R_AliceShaderDialect) */
+		if ( COM_GAME_ID_IS_RITUAL( game ) || game == COM_GAME_MOHAA ) continue;
 		CHECK( !HostParseText( game, "{\n{\nmap a.tga\nnoDepthTest\n}\n}\n" ) );
 		CHECK( !HostParseText( game, "{\n{\nmap a.tga\nalphaGen dot 0 1\n}\n}\n" ) );
 		CHECK( !HostParseText( game, "{\n{\nmap a.tga\nalphatest greaterequal .3\n}\n}\n" ) );
@@ -428,6 +480,18 @@ static int HostChecks( void ) {
 		CHECK( HostParseText( game, "{\n{\nmap a.tga\ntcMod scroll 1 2\n}\n}\n" ) &&
 			stages[0].bundle[0].texMods[0].type == TMOD_SCROLL );
 		CHECK( !shader.alicePortalSky && !shader.aliceFogOnly && !stages[0].aliceDynamic );
+	}
+	/* Medal of Honor takes it, sort scale and all; its own keywords are no
+	 * other profile's, Ritual or not */
+	CHECK( HostParseText( COM_GAME_MOHAA, "{\n{\nmap a.tga\nnoDepthTest\n}\n}\n" ) );
+	CHECK( HostParseText( COM_GAME_MOHAA, "{\nsort 5\n{\nmap a.tga\n}\n}\n" ) && Near( shader.sort, 4 ) );
+	CHECK( HostParseText( COM_GAME_MOHAA, "{\nnoMerge\n{\nmap a.tga\nalphaGen distFade\n}\n}\n" ) &&
+		R_ALICE_GEN( &stages[0] )->alphaGen == AGEN_MOHAA_DIST_FADE );
+	for ( game = COM_GAME_QUAKE3; game < COM_GAME_COUNT; game = (comGameId_t)( game + 1 ) ) {
+		if ( game == COM_GAME_MOHAA ) continue;
+		CHECK( !HostParseText( game, "{\nnoMerge\n{\nmap a.tga\n}\n}\n" ) );
+		HostParseText( game, "{\n{\nmap a.tga\nalphaGen distFade\n}\n}\n" );
+		CHECK( R_ALICE_GEN( &stages[0] )->alphaGen != AGEN_MOHAA_DIST_FADE );
 	}
 
 	/* the retail sort translation and waveform parameter reader */
@@ -506,9 +570,9 @@ def build_host(folder, name, checks=NO_CHECKS, shader_source=None, renderer='ren
     return exe
 
 
-def retail_scripts(root=ALICE_ROOT):
-    """The concatenated scripts/*.shader text of base/pak0.pk3, in memory."""
-    pak = root / 'base' / 'pak0.pk3'
+def retail_scripts(root=ALICE_ROOT, game='base'):
+    """The concatenated scripts/*.shader text of <game>/pak0.pk3, in memory."""
+    pak = root / game / 'pak0.pk3'
     if not pak.is_file():
         return None
     parts = []
@@ -731,6 +795,33 @@ class AliceShaderParseTests(unittest.TestCase):
             self.assertEqual(len(digests[renderer]), 2162, renderer)
             self.assertFalse(differ, renderer + ': ' + repr(differ[:3]))
 
+    def test_fakk2_retail_scripts_parse(self):
+        """Heavy Metal: F.A.K.K.2's scripts, the same dialect with 59
+        `nextBundle` stages, through every parser. Besides the stageless
+        compiler shaders only two definitions are refused, as retail refuses
+        them: `crank` lost its stage's opening brace and `textures/aldiewater`
+        says `deform`, and an unknown general keyword fails a shader
+        (alice.exe 0x0048d141)."""
+        text = retail_scripts(FAKK2_ROOT, 'fakk')
+        if text is None:
+            self.skipTest('no Heavy Metal: F.A.K.K.2 installation at ' + str(FAKK2_ROOT))
+        digests = {}
+        for renderer in RENDERERS:
+            with self.subTest(renderer=renderer), work_folder(f'fakk2-shader-corpus-{renderer}-') as temp:
+                exe = build_host(Path(temp), 'corpus', renderer=renderer)
+                total, failed, fails = run_corpus(exe, text, 14)
+                self.assertEqual(total, 1347)
+                refused = sorted(line[5:line.index(' | ')] for line in fails if not line.endswith('| '))
+                self.assertEqual(refused, ['crank', 'textures/aldiewater'], '\n'.join(fails))
+                self.assertEqual(failed, 17, '\n'.join(fails))
+                digests[renderer] = run_corpus(exe, text, 14, digest=True)
+        # every `nextBundle` stage is a GL_MODULATE pair, alike in every parser:
+        # 59 in the text, one inside textures/phook/volumetric_fade's `if 0`
+        self.assertEqual(sum(line.count(' mtmodulate ') for line in digests['renderer']), 58)
+        for renderer in ('renderervk', 'rendererrtx'):
+            differ = [(gl, vk) for gl, vk in zip(digests['renderer'], digests[renderer]) if gl != vk]
+            self.assertFalse(differ, renderer + ': ' + repr(differ[:3]))
+
     def test_vulkan_back_end_matches_the_tested_formulas(self):
         """The Vulkan family's Alice sources and view features are GL's, which
         test_back_end_formulas measures; only where a stage keeps its alpha
@@ -775,12 +866,12 @@ class AliceShaderParseTests(unittest.TestCase):
                              'R_AliceStageNeedsNormal(', 'R_ShaderWaveParm('):
                     self.assertIn(call, shader)
                 init = (code / 'tr_init.c').read_text()
-                start = init.index('if ( ri.gameId == COM_GAME_ALICE ) {\n\t\t// alice.exe 0x004759ac')
+                start = init.index('if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) ) {\n\t\t// alice.exe 0x004759ac')
                 block = init[start:init.index('\n\t}\n', start)]
                 for name in ('r_shaderlod", "0.5"', 'r_farplane", "0"', 'r_farplane_color", ".5 .5 .5"',
                              'r_skyportal_origin", "0 0 0"', 'r_debuglines_depthmask", "0"', 'r_stipplelines", "1"'):
                     self.assertIn(name, block)
-                self.assertIn('ri.gameId == COM_GAME_ALICE ? "0" : "1"', init)
+                self.assertIn('COM_GAME_ID_IS_RITUAL( ri.gameId ) ? "0" : "1"', init)
                 self.assertIn('if ( shader->aliceNoStatic )', (code / 'vk_vbo.c').read_text())
                 shade = (code / 'tr_shade.c').read_text()
                 self.assertIn('if ( RB_AliceSkipStage( pStage ) )', shade)
@@ -797,8 +888,11 @@ class AliceShaderParseTests(unittest.TestCase):
                 frag = (code / 'shaders' / 'gen_frag.tmpl').read_text()
                 self.assertIn('if (color0.a != alpha_test_value) discard;', frag)
         fog = (ROOT / 'code/renderercommon/tr_rtcw_fog_vk.h').read_text()
-        self.assertIn('#ifdef FN_RTCW_FOG_VK_ALICE\n\tif ( ri.gameId == COM_GAME_ALICE ) {\n'
+        self.assertIn('#ifdef FN_RTCW_FOG_VK_ALICE\n\tif ( R_GAME_HAS_RITUAL_VIEW( ri.gameId ) ) {\n'
                       '\t\tdraw = VK_AliceFarFogDraw();', fog)
+        # the Ritual profiles' view, and Medal of Honor's, which inherits it
+        self.assertIn('#define R_GAME_HAS_RITUAL_VIEW( id ) ( COM_GAME_ID_IS_RITUAL( id ) || ( id ) == COM_GAME_MOHAA )',
+                      (ROOT / 'code/renderercommon/tr_types.h').read_text())
         for renderer in ('renderervk', 'rendererrtx'):
             self.assertIn('#define FN_RTCW_FOG_VK_ALICE\n#include "../renderercommon/tr_rtcw_fog_vk.h"',
                           (ROOT / 'code' / renderer / 'tr_shade.c').read_text())
@@ -811,12 +905,12 @@ class AliceShaderParseTests(unittest.TestCase):
                      'R_AliceStageCollapses(', 'R_AliceKeepsDetailStage(', 'R_AliceSortValue('):
             self.assertIn(call, shader)
         init = (ROOT / 'code/renderer/tr_init.c').read_text()
-        start = init.index('if ( ri.gameId == COM_GAME_ALICE ) {\n\t\t// alice.exe 0x004759ac')
+        start = init.index('if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) ) {\n\t\t// alice.exe 0x004759ac')
         block = init[start:init.index('\n\t}\n', start)]
         for name in ('r_shaderlod", "0.5"', 'r_farplane", "0"', 'r_farplane_color", ".5 .5 .5"',
                      'r_skyportal_origin", "0 0 0"', 'r_debuglines_depthmask", "0"', 'r_stipplelines", "1"'):
             self.assertIn(name, block)
-        self.assertIn('ri.gameId == COM_GAME_ALICE ? "0" : "1"', init)
+        self.assertIn('COM_GAME_ID_IS_RITUAL( ri.gameId ) ? "0" : "1"', init)
         vbo = (ROOT / 'code/renderer/tr_vbo.c').read_text()
         self.assertIn('if ( shader->aliceNoStatic )', vbo)
         public = (ROOT / 'code/renderercommon/tr_public.h').read_text()

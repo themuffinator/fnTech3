@@ -486,8 +486,15 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertEqual(len(stock_ql_maps.STOCK_QL_MAPS), 149)
         self.assertEqual(len(audio_destinations), 149)
         self.assertEqual(len(fog_destinations), 149)
-        # 441 before Enemy Territory added a zone file for each of its six maps.
-        self.assertEqual(len(required_destinations), 447)
+        # 441 before Enemy Territory added a zone file for each of its six maps,
+        # 447 before Alice added a zone and a static light file for its 36,
+        # 519 before Heavy Metal: F.A.K.K.2 added the same for its 30,
+        # 579 before RTCW added a static light file for each of its 47,
+        # 626 before F.A.K.K.2 added its HUD rules, 627 before Medal of
+        # Honor: Allied Assault added a zone and a static light file for its 54,
+        # and 735 before Alice, Enemy Territory and both Elite Force modes added
+        # their HUD rules.
+        self.assertEqual(len(required_destinations), 739)
         self.assertIn("pkg/games/quakelive/baseq3/maps/campgrounds.azb", sources)
         self.assertIn("games/quakelive/baseq3/maps/campgrounds.azb", audio_destinations)
         self.assertIn("games/quakelive/baseq3/maps/campgrounds.fog", fog_destinations)
@@ -524,15 +531,49 @@ class ReleasePackagingTests(unittest.TestCase):
         for profile, names in root_archive.STOCK_RTCW_MAPS.items():
             self.assertEqual(
                 {name for name in packaged if name.startswith(f"games/{profile}/")},
-                {f"games/{profile}/main/maps/{name}.azb" for name in names}
+                {f"games/{profile}/main/maps/{name}{suffix}" for name in names
+                 for suffix in (".azb", ".lights.json")}
                 | {f"games/{profile}/main/fntech3-hud.json"},
             )
         # Enemy Territory ships a zone file for each of its six official maps.
         self.assertEqual(
             {name for name in packaged if name.startswith("games/wolfet/")},
-            {f"games/wolfet/etmain/maps/{name}.azb" for name in root_archive.STOCK_WOLFET_MAPS},
+            {f"games/wolfet/etmain/maps/{name}.azb" for name in root_archive.STOCK_WOLFET_MAPS}
+            | {"games/wolfet/etmain/fntech3-hud.json"},
         )
+        # Elite Force ships each mode's HUD rules and nothing else.
+        for mode in ("stvef-sp", "stvef-mp"):
+            self.assertEqual({name for name in packaged if name.startswith(f"games/{mode}/")},
+                             {f"games/{mode}/baseEF/fntech3-hud.json"})
         self.assertEqual(len(root_archive.STOCK_WOLFET_MAPS), 6)
+        # Alice ships a zone file and a static light file for each of its 36 maps.
+        self.assertEqual(
+            {name for name in packaged if name.startswith("games/alice/")},
+            {f"games/alice/base/maps/{name}{suffix}" for name in root_archive.STOCK_ALICE_MAPS
+             for suffix in (".azb", ".lights.json")}
+            | {"games/alice/base/fntech3-hud.json"},
+        )
+        self.assertEqual(len(root_archive.STOCK_ALICE_MAPS), 36)
+        # Heavy Metal: F.A.K.K.2 ships the same two files for each of its 30,
+        # and the HUD rules that place its HUD menus.
+        self.assertEqual(
+            {name for name in packaged if name.startswith("games/fakk2/")},
+            {f"games/fakk2/fakk/maps/{name}{suffix}" for name in root_archive.STOCK_FAKK2_MAPS
+             for suffix in (".azb", ".lights.json")}
+            | {"games/fakk2/fakk/fntech3-hud.json"},
+        )
+        self.assertEqual(len(root_archive.STOCK_FAKK2_MAPS), 30)
+        # Medal of Honor ships the same two files for each of its 54, beside
+        # each map in the folder the pak keeps it in.
+        self.assertEqual(
+            {name for name in packaged if name.startswith("games/mohaa/")},
+            {f"games/mohaa/main/maps/{name}{suffix}" for name in root_archive.STOCK_MOHAA_MAPS
+             for suffix in (".azb", ".lights.json")},
+        )
+        self.assertEqual(len(root_archive.STOCK_MOHAA_MAPS), 54)
+        self.assertIn("games/mohaa/main/maps/DM/mohdm1.azb", packaged)
+        self.assertIn("games/mohaa/main/maps/obj/obj_team2.lights.json", packaged)
+        self.assertEqual(len(root_archive.DEFAULT_STATIC_LIGHT_ASSETS), 167)
         self.assertNotIn("games/quakelive/baseq3/fnql-hud.json", packaged)
 
     def test_meson_root_archive_inputs_include_non_map_pkg_assets(self) -> None:
@@ -549,8 +590,16 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertIn("files('scripts/stock_rtcw_maps.py')", meson_build)
         self.assertIn("files('scripts/stock_wolfet_maps.py')", meson_build)
         self.assertIn("'scripts/stock_wolfet_maps.py',", meson_build)
+        self.assertIn("files('scripts/stock_alice_maps.py')", meson_build)
+        self.assertIn("'scripts/stock_alice_maps.py',", meson_build)
+        self.assertIn("files('scripts/stock_fakk2_maps.py')", meson_build)
+        self.assertIn("'scripts/stock_fakk2_maps.py',", meson_build)
+        self.assertIn("files('scripts/stock_mohaa_maps.py')", meson_build)
+        self.assertIn("'scripts/stock_mohaa_maps.py',", meson_build)
         for profile in ("rtcw-sp", "rtcw-mp"):
             self.assertIn(f"'pkg/games/{profile}/main/fntech3-hud.json'", meson_build)
+        for preset in ("fakk2/fakk", "alice/base", "wolfet/etmain", "stvef-sp/baseEF", "stvef-mp/baseEF"):
+            self.assertIn(f"'pkg/games/{preset}/fntech3-hud.json'", meson_build)
         self.assertNotIn("pkg/missionpack/", meson_build)
 
     def test_root_archive_rejects_unsafe_custom_archive_names(self) -> None:

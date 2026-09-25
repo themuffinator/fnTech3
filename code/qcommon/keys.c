@@ -28,6 +28,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 void CL_WebView_PublishBindChanged( const char *name, const char *value );
 // American McGee's Alice's alt and ctrl binding lines (client/cl_keys.cpp).
 void Key_AliceWriteModifierBindings( fileHandle_t f, int keynum );
+// And the commands that set them.
+void CL_AliceInitKeyCommands( void );
+// A probe's synthetic input (client/cl_keys.cpp).
+void CL_InitSyntheticInput( void );
 #endif
 
 int		 anykeydown;
@@ -275,6 +279,18 @@ static const keyname_t keyaliases[] =
 	{NULL,0}
 };
 
+// Medal of Honor: Allied Assault's default.cfg binds the left modifiers by
+// these names; its engine reads them as the modifier keys themselves
+// (OpenMoHAA cl_keys.cpp).
+static const keyname_t keyaliasesMOHAA[] =
+{
+	{"LALT", K_ALT},
+	{"LCTRL", K_CTRL},
+	{"LSHIFT", K_SHIFT},
+
+	{NULL,0}
+};
+
 
 /*
 ===================
@@ -371,6 +387,12 @@ int Key_StringToKeynum( const char *str ) {
 	for ( kn = keyaliases ; kn->name ; kn++ ) {
 		if ( !Q_stricmp( str, kn->name ) )
 			return kn->keynum;
+	}
+	if ( Com_GameIsMOHAA() ) {
+		for ( kn = keyaliasesMOHAA ; kn->name ; kn++ ) {
+			if ( !Q_stricmp( str, kn->name ) )
+				return kn->keynum;
+		}
 	}
 
 	return -1;
@@ -792,4 +814,16 @@ void Com_InitKeyCommands( void )
 	Cmd_SetCommandCompletionFunc( "unbind", Key_CompleteUnbind );
 	Cmd_AddCommand( "unbindall", Key_Unbindall_f );
 	Cmd_AddCommand( "bindlist", Key_Bindlist_f );
+#ifndef DEDICATED
+	// Ritual's Key_Init registers its alt and ctrl binding commands beside
+	// bind (alice.exe 0x00429b60), so they exist before default.cfg runs;
+	// Heavy Metal: F.A.K.K.2's default.cfg binds with both.
+	if ( Com_GameIsRitual() ) {
+		CL_AliceInitKeyCommands();
+	}
+	// The profiles whose probes play without a keyboard or mouse.
+	if ( Com_GameIsRitual() || Com_GameIsMOHAA() ) {
+		CL_InitSyntheticInput();
+	}
+#endif
 }

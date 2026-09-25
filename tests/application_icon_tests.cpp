@@ -1,10 +1,14 @@
 // Copyright (C) 2026 fnTech3 contributors. GPL-2.0-or-later.
 #include "../code/platform/game_icon.hpp"
+#include "../code/platform/game_icon_builtin.hpp"
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
 #include <cstring>
+#include <iterator>
+#include <set>
+#include <string>
 #include <vector>
 #ifdef _WIN32
 #include "../code/win32/win_game_icon.h"
@@ -20,9 +24,105 @@ static void Com_DPrintf(const char *, ...) {}
 namespace fs = std::filesystem;
 using namespace fntech3::icon;
 
+static std::vector<unsigned char> ReadFile(const fs::path &path)
+{
+    std::ifstream file(path, std::ios::binary);
+    return std::vector<unsigned char>(std::istreambuf_iterator<char>(file), {});
+}
+
+// Every profile in the catalogue has a remake; its embedded frames decode and
+// are byte-identical to the committed PNGs they were generated from.
+static void CheckBuiltinCatalogue(const fs::path &games)
+{
+    std::set<std::string> keys;
+    std::set<unsigned> resources;
+    for (const BuiltinIcon &icon : kBuiltinIcons) {
+        CHECK(keys.insert(icon.profile).second);
+        CHECK(resources.insert(icon.resource).second);
+        CHECK(icon.resource > 100 && icon.resource < 200);
+        CHECK(FindBuiltinIcon(icon.profile) == &icon);
+    }
+    for (unsigned id = COM_GAME_AUTO + 1; id < COM_GAME_COUNT; ++id) {
+        const comGameProfile_t *profile = Com_GameProfileById(static_cast<comGameId_t>(id));
+        CHECK(profile && profile->key);
+        CHECK(FindBuiltinIcon(profile->key));
+        CHECK(ApplicationId(profile->key, Mode::BuiltIn) == std::string("fntech3-") + profile->key);
+        CHECK(ApplicationId(profile->key, Mode::Installation) == std::string("fntech3-") + profile->key);
+        CHECK(ApplicationId(profile->key, Mode::Engine) == "fntech3");
+    }
+    CHECK(!FindBuiltinIcon(nullptr) && !FindBuiltinIcon("") && !FindBuiltinIcon("quake"));
+    CHECK(ApplicationId(nullptr, Mode::BuiltIn) == "fntech3");
+    CHECK(ApplicationId("../quake3", Mode::BuiltIn) == "fntech3");
+
+    size_t count = 0;
+    const EncodedImage *embedded = EmbeddedImages(count);
+    const size_t sizes = sizeof(kEmbeddedIconSizes) / sizeof(kEmbeddedIconSizes[0]);
+    CHECK(embedded && count == keys.size() * sizes);
+    for (size_t i = 0; i < count; ++i) {
+        const EncodedImage &frame = embedded[i];
+        CHECK(keys.count(frame.profile));
+        const fs::path png = games / frame.profile / (std::string(frame.profile) + "-" +
+            std::to_string(frame.size) + ".png");
+        const std::vector<unsigned char> committed = ReadFile(png);
+        CHECK(committed.size() == frame.length && !std::memcmp(committed.data(), frame.png, frame.length));
+        Image image;
+        CHECK(DecodePng(frame.png, frame.length, image));
+        CHECK(image.width == frame.size && image.height == frame.size);
+        CHECK(image.rgba.size() == size_t(frame.size) * frame.size * 4);
+        unsigned minAlpha = 255, maxAlpha = 0;
+        for (size_t p = 3; p < image.rgba.size(); p += 4) {
+            if (image.rgba[p] < minAlpha) minAlpha = image.rgba[p];
+            if (image.rgba[p] > maxAlpha) maxAlpha = image.rgba[p];
+        }
+        // Thin strokes and subpixel margins need not hit exact 0/255 after
+        // downsampling. Cutouts still have clear space and strong coverage;
+        // the original square background designs may instead be all opaque.
+        CHECK(maxAlpha >= 224 && (minAlpha <= 32 || minAlpha == 255));
+    }
+#ifndef _WIN32
+    for (const BuiltinIcon &icon : kBuiltinIcons) {
+        const std::vector<Image> decoded = DecodeBuiltinImages(icon.profile);
+        CHECK(decoded.size() == sizes);
+        for (size_t i = 0; i < decoded.size(); ++i) CHECK(decoded[i].width == kEmbeddedIconSizes[i]);
+    }
+#endif
+}
+
+static void CheckPngDecoder(const fs::path &games)
+{
+    std::vector<unsigned char> png = ReadFile(games / "quake3" / "quake3-32.png");
+    Image image;
+    CHECK(DecodePng(png.data(), png.size(), image) && image.width == 32);
+    CHECK(!DecodePng(nullptr, 0, image) && image.rgba.empty());
+    CHECK(!DecodePng(png.data(), 7, image));
+    for (size_t cut : {size_t(16), size_t(40), png.size() / 2, png.size() - 13})
+        CHECK(!DecodePng(png.data(), cut, image) && image.width == 0);
+    std::vector<unsigned char> damaged = png;
+    damaged[25] = 2; // colour type: RGB is not what the generator writes
+    CHECK(!DecodePng(damaged.data(), damaged.size(), image));
+    damaged = png;
+    damaged[16] = 0x7f; // width far beyond the icon limit
+    CHECK(!DecodePng(damaged.data(), damaged.size(), image));
+    // The generator writes IDAT straight after IHDR: its data starts at 41.
+    const size_t idat = 8 + 12 + 13;
+    CHECK(!std::memcmp(png.data() + idat + 4, "IDAT", 4));
+    damaged = png;
+    damaged[idat + 8 + 28] ^= 0x55; // inside the compressed image data
+    CHECK(!DecodePng(damaged.data(), damaged.size(), image));
+    damaged = png;
+    damaged[idat + 8 + 1] ^= 0x01; // zlib check bits
+    CHECK(!DecodePng(damaged.data(), damaged.size(), image));
+    CHECK(ModeFromCvar(0) == Mode::Engine && ModeFromCvar(-3) == Mode::Engine);
+    CHECK(ModeFromCvar(1) == Mode::BuiltIn && ModeFromCvar(7) == Mode::BuiltIn);
+    CHECK(ModeFromCvar(2) == Mode::Installation);
+}
+
 int main(int argc, char **argv)
 {
-    CHECK(argc == 3);
+    CHECK(argc == 4);
+    const fs::path games = fs::u8path(argv[3]);
+    CheckBuiltinCatalogue(games);
+    CheckPngDecoder(games);
     const auto work = fs::path(argv[1]) / ("icon-test-" + std::to_string(
         std::chrono::steady_clock::now().time_since_epoch().count()));
     const auto root = work / fs::u8path("game-\xc3\xa9");
@@ -70,6 +170,23 @@ int main(int argc, char **argv)
     CHECK(!ReasonablePng(png, sizeof(png)));
 
 #ifdef _WIN32
+    // The client's resources carry every remake as exact PNG frames.
+    for (const BuiltinIcon &icon : kBuiltinIcons) {
+        const std::vector<EncodedImage> frames = BuiltinImages(icon.profile);
+        CHECK(frames.size() == 10);
+        std::set<unsigned> seen;
+        for (const EncodedImage &frame : frames) {
+            Image image;
+            CHECK(DecodePng(frame.png, frame.length, image) && image.width == frame.size);
+            seen.insert(frame.size);
+        }
+        CHECK(seen == std::set<unsigned>({16, 20, 24, 32, 40, 48, 64, 96, 128, 256}));
+        HICON largeIcon = nullptr, smallIcon = nullptr;
+        CHECK(LoadResourceIcons(nullptr, icon.resource, largeIcon, smallIcon));
+        CHECK(largeIcon && smallIcon);
+    }
+    CHECK(BuiltinImages("unknown").empty());
+
     HICON largeIcon = nullptr, smallIcon = nullptr;
     ExtractGameIcons(rootName.c_str(), COM_GAME_QUAKE3, largeIcon, smallIcon);
     CHECK(!largeIcon && !smallIcon); // corrupt executable must fall back
@@ -102,24 +219,41 @@ int main(int argc, char **argv)
     {
         WindowIcons icons;
         // Warm the process-wide LR_SHARED resource cache before counting.
-        CHECK(!icons.Apply(window, rootName.c_str(), COM_GAME_QUAKE3, false));
-        CHECK(icons.Apply(window, rootName.c_str(), COM_GAME_QUAKE3, true));
+        CHECK(icons.Apply(window, rootName.c_str(), COM_GAME_QUAKE3, "quake3", Mode::Engine) == Shown::Engine);
+        CHECK(icons.Apply(window, rootName.c_str(), COM_GAME_QUAKE3, "quake3", Mode::BuiltIn) == Shown::BuiltIn);
+        CHECK(icons.Apply(window, rootName.c_str(), COM_GAME_QUAKE3, "quake3", Mode::Installation) ==
+              Shown::Installation);
         CHECK(SendMessageW(window, WM_GETICON, ICON_BIG, 0));
         CHECK(SendMessageW(window, WM_GETICON, ICON_SMALL, 0));
         const DWORD baseline = GetGuiResources(GetCurrentProcess(), GR_USEROBJECTS);
         for (int i = 0; i < 30; ++i) {
-            CHECK(!icons.Apply(window, rootName.c_str(), COM_GAME_QUAKE3, false));
-            CHECK(icons.Apply(window, rootName.c_str(), COM_GAME_QUAKE3, true));
+            CHECK(icons.Apply(window, rootName.c_str(), COM_GAME_QUAKE3, "quake3", Mode::Engine) == Shown::Engine);
+            CHECK(icons.Apply(window, rootName.c_str(), COM_GAME_QUAKE3, "quake3", Mode::Installation) ==
+                  Shown::Installation);
+            CHECK(icons.Apply(window, rootName.c_str(), COM_GAME_QUAKE3, "quake3", Mode::BuiltIn) == Shown::BuiltIn);
         }
         CHECK(GetGuiResources(GetCurrentProcess(), GR_USEROBJECTS) <= baseline + 1);
-        CHECK(!icons.Apply(window, rootName.c_str(), COM_GAME_QUAKELIVE, true));
+        // No Quake Live executable here: the installation mode falls back to
+        // the remake, and an unknown profile to the fnTech3 icon.
+        CHECK(icons.Apply(window, rootName.c_str(), COM_GAME_QUAKELIVE, "quakelive", Mode::Installation) ==
+              Shown::BuiltIn);
+        CHECK(icons.Apply(window, rootName.c_str(), COM_GAME_AUTO, nullptr, Mode::BuiltIn) == Shown::Engine);
         CHECK(SendMessageW(window, WM_GETICON, ICON_BIG, 0)); // embedded fallback
-        CHECK(!icons.Apply(nullptr, rootName.c_str(), COM_GAME_QUAKE3, true));
+        CHECK(icons.Apply(nullptr, rootName.c_str(), COM_GAME_QUAKE3, "quake3", Mode::BuiltIn) == Shown::None);
         DestroyWindow(window);
     }
 #endif
 
 #ifdef FNTECH3_ICON_TEST_SDL
+    {
+        auto builtin = LoadBuiltinIcon("rtcw-sp");
+        CHECK(builtin && builtin->w == 128 && builtin->h == 128);
+        int images = 0;
+        SDL_Surface **all = SDL_GetSurfaceImages(builtin.get(), &images);
+        CHECK(all && images >= 4);
+        SDL_free(all);
+        CHECK(!LoadBuiltinIcon("unknown"));
+    }
 #if SDL_VERSION_ATLEAST(3, 4, 0)
     fs::copy_file(fs::u8path(argv[2]), root / "quake3.png");
     auto image = LoadGamePng(rootName.c_str(), COM_GAME_QUAKE3);
@@ -134,12 +268,19 @@ int main(int argc, char **argv)
     SDL_Window *sdlWindow = SDL_CreateWindow("fnTech3 icon test", 32, 32, SDL_WINDOW_HIDDEN);
     CHECK(sdlWindow);
     for (int i = 0; i < 10; ++i) {
-        SetWindowIcon(sdlWindow, rootName.c_str(), COM_GAME_QUAKE3, true);
+        CHECK(SetWindowIcon(sdlWindow, rootName.c_str(), COM_GAME_QUAKE3, "quake3", Mode::Installation) ==
+              Shown::Installation);
         HWND native = static_cast<HWND>(SDL_GetPointerProperty(SDL_GetWindowProperties(sdlWindow),
             SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr));
         CHECK(native && !IsWindowVisible(native));
         CHECK(SendMessageW(native, WM_GETICON, ICON_BIG, 0));
-        SetWindowIcon(sdlWindow, rootName.c_str(), COM_GAME_QUAKE3, false);
+        CHECK(SetWindowIcon(sdlWindow, rootName.c_str(), COM_GAME_QUAKE3, "quake3", Mode::BuiltIn) == Shown::BuiltIn);
+        // The exact resource icons replace SDL's single rescaled bitmap.
+        HICON expected = nullptr, expectedSmall = nullptr;
+        CHECK(LoadResourceIcons(native, FindBuiltinIcon("quake3")->resource, expected, expectedSmall));
+        CHECK(reinterpret_cast<HICON>(SendMessageW(native, WM_GETICON, ICON_BIG, 0)) == expected);
+        CHECK(reinterpret_cast<HICON>(SendMessageW(native, WM_GETICON, ICON_SMALL, 0)) == expectedSmall);
+        CHECK(SetWindowIcon(sdlWindow, rootName.c_str(), COM_GAME_QUAKE3, "quake3", Mode::Engine) == Shown::Engine);
         CHECK(SendMessageW(native, WM_GETICON, ICON_BIG, 0));
     }
     SDL_DestroyWindow(sdlWindow);

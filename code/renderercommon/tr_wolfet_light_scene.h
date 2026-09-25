@@ -2,6 +2,7 @@
 #ifndef FNTECH3_WOLFET_LIGHT_SCENE_H
 #define FNTECH3_WOLFET_LIGHT_SCENE_H
 #include "tr_rtcw_light_math.h"
+#include "tr_rtcw_engine_lights.h"
 
 /* Enemy Territory's dynamic light is its own contract. It names a radius and a
  * brightness separately, where every other profile sends one magnitude, and it
@@ -27,18 +28,24 @@ void RE_AddWolfETLightToScene( const vec3_t origin, float radius, float intensit
 		ri.Error( ERR_DROP, "ET light submitted outside its game profile" );
 		return;
 	}
-	if ( !tr.registered || r_numdlights < 0 || r_numdlights >= 32 ||
-		r_numdlights >= ARRAY_LEN( backEndData->dlights ) ) return;
+	/* Retail's 32 a frame count module lights alone: the engine's own and a
+	 * portal view's copies never take one (tr_rtcw_engine_lights.h). */
+	if ( !tr.registered || r_numModuleDlights < 0 || r_numModuleDlights >= RTCW_FRAME_MODULE_LIGHTS ||
+		r_numdlights < 0 || r_numdlights >= ARRAY_LEN( backEndData->dlights ) ) return;
+	/* The original's own refusals, in its order: a light with no radius or no
+	 * brightness, these cards, and an unforced light while dynamic lights are
+	 * off. A forced light ignores that setting, exactly as ET's does. */
+	if ( radius <= 0 || intensity <= 0 ) return;
 	if ( glConfig.hardwareType == GLHW_RIVA128 || glConfig.hardwareType == GLHW_PERMEDIA2 ) return;
-	/* The original discards a light with no radius or no brightness before it
-	 * reads anything else, and never publishes an unrepresentable position. */
-	if ( !RTCW_LightFinite( radius ) || radius <= 0 ) return;
-	if ( !RTCW_LightFinite( intensity ) || intensity <= 0 ) return;
+	if ( !( bits & FNTECH3_WOLFET_REF_FORCE_DLIGHT ) && r_dynamiclight->integer == 0 ) return;
+	/* The original stores every light past them, so each takes one of the
+	 * frame's 32 whether or not this renderer draws it. */
+	r_numModuleDlights++;
+	/* An unrepresentable magnitude, position or colour is never published. */
+	if ( !RTCW_LightFinite( radius ) || !RTCW_LightFinite( intensity ) ) return;
 	if ( !origin || !RTCW_LightFinite( origin[0] ) || !RTCW_LightFinite( origin[1] ) ||
 		!RTCW_LightFinite( origin[2] ) ) return;
 	if ( !RTCW_LightFinite( r ) || !RTCW_LightFinite( g ) || !RTCW_LightFinite( b ) ) return;
-	/* A forced light ignores the dynamic-light setting, exactly as ET's does. */
-	if ( !( bits & FNTECH3_WOLFET_REF_FORCE_DLIGHT ) && r_dynamiclight->integer == 0 ) return;
 	/* A directed light asks for a global directional source whose origin is a
 	 * direction, and a junior light asks to affect only the light grid. This
 	 * renderer has neither, so those lights are skipped and said to be skipped

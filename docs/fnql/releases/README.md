@@ -1,5 +1,10 @@
 # Curated FnQL Release Notes
 
+> Historical FnQL record. fnTech3 does not use this file: its changes are
+> kept in the root [CHANGELOG.md](../../../CHANGELOG.md) and released as described
+> in [RELEASING.md](../../fntech3/RELEASING.md). See the
+> [FnQL baseline documents](../README.md).
+
 Use this directory only when a release needs reviewed prose beyond the normal
 generated highlights. Name the file either `<release-tag>.md` (preferred) or
 `<version>.md`, for example `0.1.0.58-20260728-f35445c9.md` or `0.1.0.58.md`.

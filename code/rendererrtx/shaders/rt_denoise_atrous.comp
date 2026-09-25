@@ -1,0 +1,127 @@
+#version 460
+#extension GL_GOOGLE_include_directive : require
+
+// Denoiser, step 2: one iteration of the edge-avoiding a-trous wavelet
+// filter (Dammertz et al. 2010), with SVGF's variance-guided luminance stop.
+// Each iteration doubles its tap spacing; the first one's output becomes the
+// next frame's history.
+
+#include "rt_common.glsl"
+#include "rt_denoise_common.glsl"
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+const float kernel[3] = float[3](3.0 / 8.0, 1.0 / 4.0, 1.0 / 16.0);
+
+float blurred_variance(uint src, ivec2 p, bool specular)
+{
+	// 3x3 Gaussian over the variance, for a steadier edge stop
+	const float g[2] = float[2](1.0 / 4.0, 1.0 / 8.0);
+	float sum = 0.0;
+	float wsum = 0.0;
+	for (int dy = -1; dy <= 1; dy++) {
+		for (int dx = -1; dx <= 1; dx++) {
+			ivec2 q = p + ivec2(dx, dy);
+			if (!in_trace(q)) {
+				continue;
+			}
+			float w = g[abs(dx)] * g[abs(dy)];
+			float v = specular ? imageLoad(u_filterSpecular[src], q).a : imageLoad(u_filterDiffuse[src], q).a;
+			sum += v * w;
+			wsum += w;
+		}
+	}
+	return sum / max(wsum, 1e-6);
+}
+
+void main()
+{
+	ivec2 p = ivec2(gl_GlobalInvocationID.xy);
+	if (!in_trace(p)) {
+		return;
+	}
+	uint cur = pc.state.x & 1u;
+	uint iteration = pc.state.y;
+	int stepSize = int(pc.state.z);
+	uint src = iteration & 1u;
+	uint dst = src ^ 1u;
+	uint info = imageLoad(u_info[cur], p).r;
+
+	vec4 cD = imageLoad(u_filterDiffuse[src], p);
+	vec4 cS = imageLoad(u_filterSpecular[src], p);
+	if ((info & RT_PIXEL_OWNED) == 0u) {
+		imageStore(u_filterDiffuse[dst], p, cD);
+		imageStore(u_filterSpecular[dst], p, cS);
+		return;
+	}
+
+	vec4 nd = imageLoad(u_normalDepth[cur], p);
+	vec3 n = oct_decode(nd.xy);
+	float z = nd.z;
+	float lD = denoise_luminance(cD.rgb);
+	float lS = denoise_luminance(cS.rgb);
+	float sigmaL = pc.params.y;
+	float phiD = sigmaL * sqrt(max(blurred_variance(src, p, false), 1e-10));
+	float phiS = sigmaL * sqrt(max(blurred_variance(src, p, true), 1e-10));
+	float normalPower = pc.params.z;
+	float depthScale = pc.params.w * float(stepSize) * max(abs(z), 1.0) * 0.01 + 1e-3;
+	uint material = info >> 8u;
+
+	float k0 = kernel[0] * kernel[0];
+	vec3 sumD = cD.rgb * k0;
+	vec3 sumS = cS.rgb * k0;
+	float varD = cD.a * k0 * k0;
+	float varS = cS.a * k0 * k0;
+	float wD = k0;
+	float wS = k0;
+
+	for (int dy = -2; dy <= 2; dy++) {
+		for (int dx = -2; dx <= 2; dx++) {
+			if (dx == 0 && dy == 0) {
+				continue;
+			}
+			ivec2 q = p + ivec2(dx, dy) * stepSize;
+			if (!in_trace(q)) {
+				continue;
+			}
+			uint qinfo = imageLoad(u_info[cur], q).r;
+			if ((qinfo & RT_PIXEL_OWNED) == 0u) {
+				continue;
+			}
+			vec4 qnd = imageLoad(u_normalDepth[cur], q);
+			float wn = pow(max(dot(n, oct_decode(qnd.xy)), 0.0), normalPower);
+			float wz = exp(-abs(z - qnd.z) / depthScale);
+			float k = kernel[abs(dx)] * kernel[abs(dy)];
+			float wGeom = k * wn * wz;
+			if (wGeom <= 1e-6) {
+				continue;
+			}
+
+			vec4 qD = imageLoad(u_filterDiffuse[src], q);
+			vec4 qS = imageLoad(u_filterSpecular[src], q);
+			float w1 = wGeom * exp(-abs(lD - denoise_luminance(qD.rgb)) / (phiD + 1e-6));
+			// specular also stops at material boundaries: glossiness differs
+			float w2 = ((qinfo >> 8u) == material ? wGeom : 0.0) *
+				exp(-abs(lS - denoise_luminance(qS.rgb)) / (phiS + 1e-6));
+
+			sumD += qD.rgb * w1;
+			varD += qD.a * w1 * w1;
+			wD += w1;
+			sumS += qS.rgb * w2;
+			varS += qS.a * w2 * w2;
+			wS += w2;
+		}
+	}
+
+	vec4 outD = vec4(sumD / wD, varD / (wD * wD));
+	vec4 outS = vec4(sumS / wS, varS / (wS * wS));
+	imageStore(u_filterDiffuse[dst], p, outD);
+	imageStore(u_filterSpecular[dst], p, outS);
+
+	if (iteration == 0u && (pc.state.w & RT_DENOISE_FLAG_WRITE_HISTORY) != 0u) {
+		// SVGF keeps the first filtered result as history
+		float len = imageLoad(u_histDiffuse[cur], p).a;
+		imageStore(u_histDiffuse[cur], p, vec4(outD.rgb, len));
+		imageStore(u_histSpecular[cur], p, vec4(outS.rgb, len));
+	}
+}

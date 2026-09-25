@@ -6,9 +6,11 @@ leaves the name as it is and translates the reason. Enemy Territory 2.60b pops
 the notice up with `cpm "%s^7 %s\n"` instead (et.exe 0x441937, etded.exe
 0x427f57), and says nothing when a bot leaves a single-player game type: a
 client is a bot there by its entity's SVF_BOT (8) at +0x128, or by its
-address (et.exe 0x441892..0x44192d, etded.exe 0x427eb2..0x427f4d). Quake III
-1.32 and every other profile keep `print "%s^7 %s\n"`, and the `disconnect`
-command addressed to the client that left is the same in every profile.
+address (et.exe 0x441892..0x44192d, etded.exe 0x427eb2..0x427f4d). Alice's
+and F.A.K.K.2's engines print `print "%s %s\n"`, with no colour reset, and
+send the client that left a bare `disconnect` (alice.exe 0x004529fb and
+0x00452a6b, fakk2.exe 1.02 0x00443abb and 0x00443b2b). Quake III 1.32 and
+every other profile keep `print "%s^7 %s\n"` and address `disconnect "%s"`.
 
 This compiles the production SV_AnnouncesDrop and SV_DropClient with the real
 game-data view, entity readers and ET game-type rules, binds frozen module
@@ -38,6 +40,11 @@ PRELUDE = world.PRELUDE[:world.PRELUDE.index('const vec3_t vec3_origin')] + r'''
 serverStatic_t svs{};
 int Com_GameIsRTCWSP(){return profile.id==COM_GAME_RTCW_SP;}
 int Com_GameIsRTCWMP(){return profile.id==COM_GAME_RTCW_MP;}
+int Com_GameIsRitual(){return profile.id==COM_GAME_ALICE||profile.id==COM_GAME_FAKK2;}
+// Q3Test drops a client each release's way (server_q3test_net.hpp); the
+// shared path stands in for its catalog entry here.
+int Com_GameIsQ3Test(){return 0;}
+void SV_Q3TestDropClient(client_t*,const char*){assert(false);}
 static cvar_t gametype{};
 cvar_t *sv_gametype=&gametype;
 vm_t *gvm=reinterpret_cast<vm_t*>(1);
@@ -120,14 +127,18 @@ static void drop(bool bot,sharedEntity_t *gentity,const char *reason,const char 
 static std::string notice(unsigned id,const std::string &name,const std::string &reason){
  if(id==COM_GAME_RTCW_MP)return "print \"[lof]"+name+"^7 [lon]"+reason+"\n\"";
  if(id==COM_GAME_WOLFET)return "cpm \""+name+"^7 "+reason+"\n\"";
+ if(id==COM_GAME_ALICE||id==COM_GAME_FAKK2)return "print \""+name+" "+reason+"\n\"";
  return "print \""+name+"^7 "+reason+"\n\"";
 }
 static std::vector<std::string> sequence(bool bot,const std::string *announced,const char *reason){
  std::vector<std::string> result{"free"};
  if(announced)result.push_back("to everyone: "+*announced);
  result.emplace_back("game");
- // The addressed command is Quake III's in every profile.
- if(reason)result.push_back(std::string("to the client: disconnect \"")+reason+"\"");
+ // The addressed command is Quake III's in every profile but the Ritual
+ // ones, whose engines send it bare.
+ const bool ritual=profile.id==COM_GAME_ALICE||profile.id==COM_GAME_FAKK2;
+ if(reason)result.push_back(ritual?std::string("to the client: disconnect")
+  :std::string("to the client: disconnect \"")+reason+"\"");
  if(bot)result.emplace_back("bot freed");
  return result;
 }
@@ -142,6 +153,9 @@ static void formats(){
  assert(notice(COM_GAME_RTCW_MP,"Player","was kicked")=="print \"[lof]Player^7 [lon]was kicked\n\"");
  assert(notice(COM_GAME_WOLFET,"Player","was kicked")=="cpm \"Player^7 was kicked\n\"");
  assert(notice(COM_GAME_QUAKE3,"Player","was kicked")=="print \"Player^7 was kicked\n\"");
+ // alice.exe 0x0051a688 and fakk2.exe 1.02 0x004ed088.
+ assert(notice(COM_GAME_FAKK2,"Player","was kicked")=="print \"Player was kicked\n\"");
+ assert(notice(COM_GAME_ALICE,"Player","was kicked")=="print \"Player was kicked\n\"");
 }
 
 // Every profile, with no module bound: a player and a bot leave, with a
@@ -296,6 +310,12 @@ MUTATIONS = {
         'return true;'),
     'RTCW MP keeps quiet about its cast AI': (
         'static bool SV_AnnouncesDrop(', 'if ( Com_GameIsRTCWSP() ) {', 'if ( Com_GameIsRTCW() ) {'),
+    "the Ritual profiles print Quake III's notice": (
+        'void SV_DropClient(', 'SV_SendServerCommand( nullptr, "print \\"%s %s\\n\\"", name.data(), reason );',
+        'SV_SendServerCommand( nullptr, "print \\"%s" S_COLOR_WHITE " %s\\n\\"", name.data(), reason );'),
+    "the Ritual profiles give the reason to the client": (
+        'void SV_DropClient(', 'SV_SendServerCommand( drop, "disconnect" );',
+        'SV_SendServerCommand( drop, "disconnect \\"%s\\"", reason );'),
 }
 
 

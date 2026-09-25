@@ -146,6 +146,13 @@ void R_AliceModelBounds( const model_t *mod, vec3_t mins, vec3_t maxs ) {
 		const shader_t *shader = mod->aliceSprite->shader;
 		const float scale = shader && shader->aliceSpriteScale > 0.0f ? shader->aliceSpriteScale : 1.0f;
 		const float r = MAX( mod->aliceSprite->originX, mod->aliceSprite->originY ) * scale;
+		if ( ri.gameId == COM_GAME_MOHAA ) {
+			/* Medal of Honor's are flat: half the sprite's width and
+			 * height either way, no depth (OpenMoHAA's R_ModelBounds). */
+			VectorSet( mins, -mod->aliceSprite->originX * scale, -mod->aliceSprite->originY * scale, 0.0f );
+			VectorSet( maxs, mod->aliceSprite->originX * scale, mod->aliceSprite->originY * scale, 0.0f );
+			return;
+		}
 		VectorSet( mins, -r, -r, -r );
 		VectorSet( maxs, r, r, r );
 		return;
@@ -518,8 +525,14 @@ void RB_SurfaceAliceSprite( void ) {
 	sprite = mod->aliceSprite;
 	/* A shader that never names a `spritegen` or `spritescale` draws at its
 	 * image's own size, which is the scale retail's parser starts from. */
-	scale = ( sprite->shader->aliceSpriteScale > 0.0f ? sprite->shader->aliceSpriteScale : 1.0f )
-		* ( ent->e.alice.scale > 0.0f ? ent->e.alice.scale : 1.0f );
+	scale = ( sprite->shader->aliceSpriteScale > 0.0f ? sprite->shader->aliceSpriteScale : 1.0f );
+	if ( ri.gameId == COM_GAME_MOHAA ) {
+		/* Medal of Honor takes the entity's scale as the client game gives
+		 * it, with no default (OpenMoHAA's RB_DrawSprite). */
+		scale *= ent->e.mohaa.scale;
+	} else {
+		scale *= ent->e.alice.scale > 0.0f ? ent->e.alice.scale : 1.0f;
+	}
 
 	switch ( sprite->shader->aliceSpriteGen ) {
 	case ALICE_SPRITEGEN_ORIENTED:
@@ -542,6 +555,11 @@ void RB_SurfaceAliceSprite( void ) {
 		for ( k = 0; k < 3; k++ ) {
 			left[k] = c * backEnd.viewParms.or.axis[1][k] + s * backEnd.viewParms.or.axis[2][k];
 			up[k] = c * backEnd.viewParms.or.axis[2][k] - s * backEnd.viewParms.or.axis[1][k];
+		}
+		if ( ri.gameId == COM_GAME_MOHAA ) {
+			/* Medal of Honor lays this one's image the other way across,
+			 * its right the view's left (OpenMoHAA's RB_DrawSprite). */
+			VectorNegate( left, left );
 		}
 		break;
 	}
@@ -821,6 +839,8 @@ typedef struct {
 static aliceLensFlare_t	aliceSunFlare, aliceEntityFlare, aliceDlightFlare;
 static vec3_t			aliceSunOrigin;
 static qboolean			aliceSunSet;
+static vec3_t			mohaaSunDirection;	// Medal of Honor's sun is a direction
+static char				mohaaSunSection[MAX_QPATH];
 
 static cvar_t	*r_sunflare;
 static cvar_t	*r_place_sunflare;
@@ -837,6 +857,13 @@ void R_AliceRegisterCvars( void ) {
 	ri.Cvar_SetDescription( r_sunflare_inportalsky, "Treats r_sunflare as a point seen through the sky portal." );
 	r_lightcoronasize = ri.Cvar_Get( "r_lightcoronasize", ".1", CVAR_ARCHIVE_ND );
 	ri.Cvar_SetDescription( r_lightcoronasize, "Half-size, as a fraction of the view, of a flaring dynamic light's corona." );
+}
+
+/* The file the sections are read from. Medal of Honor keeps the same
+ * sections, read the same way, in global/lensflaredefs.txt (OpenMoHAA's
+ * lens_flare::Init [O]). */
+static const char *R_AliceLensFlareFile( void ) {
+	return ri.gameId == COM_GAME_MOHAA ? "global/lensflaredefs.txt" : "scripts/lensflare2.txt";
 }
 
 /*
@@ -856,7 +883,7 @@ static void R_AliceLoadLensFlare( aliceLensFlare_t *flare, const char *section )
 	qboolean found = qfalse;
 
 	flare->loaded = qfalse;
-	if ( ri.FS_ReadFile( "scripts/lensflare2.txt", (void **)&buffer ) < 0 || !buffer ) {
+	if ( ri.FS_ReadFile( R_AliceLensFlareFile(), (void **)&buffer ) < 0 || !buffer ) {
 		ri.Printf( PRINT_DEVELOPER, "WARNING: Could not open lens flare info file!\n" );
 		return;
 	}
@@ -980,8 +1007,12 @@ void R_AliceInitLensFlares( void ) {
 	Vector4Copy( white, aliceEntityFlare.color );
 	Vector4Copy( white, aliceDlightFlare.color );
 	aliceSunSet = qfalse;
+	mohaaSunSection[0] = '\0';
 
-	R_AliceLoadLensFlare( &aliceSunFlare, "sun" );
+	/* Medal of Honor's level names its sun's section (R_MOHAASetSunFlare). */
+	if ( ri.gameId != COM_GAME_MOHAA ) {
+		R_AliceLoadLensFlare( &aliceSunFlare, "sun" );
+	}
 	R_AliceLoadLensFlare( &aliceEntityFlare, "entity" );
 	R_AliceLoadLensFlare( &aliceDlightFlare, "dlight" );
 	aliceDlightFlare.corona = R_FindShader( "textures/sprites/corona", LIGHTMAP_NONE, qfalse );
@@ -1000,6 +1031,97 @@ void R_AliceSetSunFlare( const vec3_t origin ) {
 
 void R_AliceSetSunFlareInPortalSky( void ) {
 	aliceSunFlare.inPortalSky = qtrue;
+}
+
+/*
+==================
+R_MOHAASetSunFlare
+
+Medal of Honor's sun is a direction rather than a point, and its level names
+the section its flare is read from; NULL, no section or "none" leaves the
+level without one. The section is read when the level names it, the
+entity's and the dynamic light's with the rest at start-up.
+==================
+*/
+void R_MOHAASetSunFlare( const vec3_t direction, const char *section ) {
+	aliceSunSet = qfalse;
+	aliceSunFlare.inPortalSky = qfalse;
+	aliceSunFlare.fullActive = qfalse;
+	if ( !direction || !section || !section[0] || !Q_stricmp( section, "none" )
+		|| VectorNormalize2( direction, mohaaSunDirection ) == 0.0f ) {
+		return;
+	}
+	if ( !aliceSunFlare.loaded || Q_stricmp( section, mohaaSunSection ) ) {
+		Q_strncpyz( mohaaSunSection, section, sizeof( mohaaSunSection ) );
+		R_AliceLoadLensFlare( &aliceSunFlare, section );
+	}
+	aliceSunSet = aliceSunFlare.loaded;
+}
+
+/*
+==================
+R_MOHAASunKey
+
+The worldspawn's sun, gathered as R_LoadEntities reads its keys (OpenMoHAA's
+R_Sphere_InitLights [O]): `suncolor` or `sunlight` gives the level a sun,
+`sundirection` its direction as angles, `sunflaredirection` another direction
+for its flare alone, and `sunflarename` the flare's section, "sun" when a
+level with a sun names none. Names are matched exactly. True for a key the
+sun takes.
+==================
+*/
+static struct {
+	qboolean	sun;
+	qboolean	flareDirectionSet;
+	vec3_t		direction;
+	vec3_t		flareDirection;
+	char		section[MAX_QPATH];
+} mohaaSunKeys;
+
+void R_MOHAABeginSunKeys( void ) {
+	Com_Memset( &mohaaSunKeys, 0, sizeof( mohaaSunKeys ) );
+	R_MOHAASetSunFlare( NULL, NULL );
+}
+
+qboolean R_MOHAASunKey( const char *key, const char *value ) {
+	vec3_t angles = { 0.0f, 0.0f, 0.0f };
+
+	if ( !strcmp( key, "suncolor" ) || !strcmp( key, "sunlight" ) ) {
+		mohaaSunKeys.sun = qtrue;
+		return qtrue;
+	}
+	if ( !strcmp( key, "sundirection" ) ) {
+		(void)sscanf( value, "%f %f %f", &angles[0], &angles[1], &angles[2] );
+		AngleVectors( angles, mohaaSunKeys.direction, NULL, NULL );
+		mohaaSunKeys.sun = qtrue;
+		return qtrue;
+	}
+	if ( !strcmp( key, "sunflaredirection" ) ) {
+		(void)sscanf( value, "%f %f %f", &angles[0], &angles[1], &angles[2] );
+		AngleVectors( angles, mohaaSunKeys.flareDirection, NULL, NULL );
+		mohaaSunKeys.flareDirectionSet = qtrue;
+		return qtrue;
+	}
+	if ( !strcmp( key, "sunflarename" ) ) {
+		Q_strncpyz( mohaaSunKeys.section, value, sizeof( mohaaSunKeys.section ) );
+		return qtrue;
+	}
+	return qfalse;
+}
+
+void R_MOHAAEndSunKeys( void ) {
+	if ( !mohaaSunKeys.sun ) {
+		return;
+	}
+	R_MOHAASetSunFlare( mohaaSunKeys.flareDirectionSet ? mohaaSunKeys.flareDirection : mohaaSunKeys.direction,
+		mohaaSunKeys.section[0] ? mohaaSunKeys.section : "sun" );
+}
+
+/* Medal of Honor keeps a flaring light's corona size under the same name
+ * (OpenMoHAA's renderer [O]). */
+void R_MOHAARegisterLensFlareCvars( void ) {
+	r_lightcoronasize = ri.Cvar_Get( "r_lightcoronasize", ".1", CVAR_ARCHIVE_ND );
+	ri.Cvar_SetDescription( r_lightcoronasize, "Half-size, as a fraction of the view, of a flaring dynamic light's corona." );
 }
 
 /*
@@ -1182,6 +1304,67 @@ static void RB_AliceFlareShaderColor( aliceLensFlare_t *flare, const color4ub_t 
 
 /*
 ==================
+RB_MOHAASunFlare
+
+Medal of Honor's sun flare (OpenMoHAA's sun_flare_class::SunTry [O]): the
+source sits 128 units from the eye along the sun's direction and its trace
+aims 16,384 units along it. Facing it more closely than the section's
+dot_min, the sun is seen when a solid trace ends on sky -- 2015's sky flag is
+Quake III's. Unlike Alice's, its flares are drawn with the sun off the
+screen's edge, and when it is lost they fade out with the full-screen blend
+over the section's fullfade.
+==================
+*/
+static void RB_MOHAASunFlare( void ) {
+	aliceLensFlare_t *flare = &aliceSunFlare;
+	trace_t trace;
+	float dot, intensity;
+	qboolean fading = qfalse;
+	int i;
+
+	if ( !aliceSunSet || !flare->numFlares ) {
+		return;
+	}
+	VectorMA( backEnd.viewParms.or.origin, 128.0f, mohaaSunDirection, flare->position );
+	VectorMA( backEnd.viewParms.or.origin, 16384.0f, mohaaSunDirection, flare->farPoint );
+	dot = R_AliceFlareDot( flare );
+	if ( dot <= flare->dotMin ) {
+		return;
+	}
+	ri.CM_BoxTrace( &trace, backEnd.viewParms.or.origin, flare->farPoint, NULL, NULL, 0, CONTENTS_SOLID, qfalse );
+	if ( trace.surfaceFlags & SURF_SKY ) {
+		intensity = flare->dotMin < 1.0f ? ( dot - flare->dotMin ) / ( 1.0f - flare->dotMin ) : 1.0f;
+	} else {
+		int elapsed = backEnd.refdef.time - flare->fullTime;
+		if ( !flare->fullscreen || !flare->fullActive || flare->fullFade <= 0 ) {
+			return;
+		}
+		if ( elapsed < 0 ) {
+			elapsed = 0;
+		}
+		intensity = (float)( flare->fullFade - elapsed ) / (float)flare->fullFade * flare->fullAlpha;
+		if ( !( intensity > 0.0001f ) ) {
+			return;
+		}
+		fading = qtrue;
+	}
+	flare->screen[0] = flare->screen[1] = 0.0f;
+	(void)R_AliceFlareProject( flare );
+	for ( i = 0; i < flare->numFlares; i++ ) {
+		const aliceFlareElement_t *e = &flare->flares[i];
+		const float x = flare->screen[0] - 2.0f * flare->screen[0] * e->where;
+		const float y = flare->screen[1] - 2.0f * flare->screen[1] * e->where;
+		RB_AliceFlareQuad( e->shader, x, y, e->size, flare->color, intensity * e->alphaScale * flare->color[3] );
+	}
+	if ( !fading ) {
+		flare->fullActive = qtrue;
+		flare->fullTime = backEnd.refdef.time;
+		flare->fullAlpha = intensity * intensity * intensity * intensity * flare->fullScale;
+	}
+}
+
+/*
+==================
 R_AlicePlaceSunFlare
 
 r_place_sunflare: the sun goes where the view's line meets the world, just
@@ -1211,18 +1394,21 @@ static const float aliceFlareNDC[16] = {
 void RB_AliceLensFlares( void ) {
 	const trRefEntity_t *ent;
 	const dlight_t *dl;
+	const qboolean mohaa = ri.gameId == COM_GAME_MOHAA ? qtrue : qfalse;
 	int i;
 
 	/* (A scene that samples the screen draws its views twice, the first
-	 * time into the screen map; the flares go on the copy that is shown.) */
-	if ( ri.gameId != COM_GAME_ALICE || !aliceSunFlare.loaded || !aliceSunFlare.numFlares
+	 * time into the screen map; the flares go on the copy that is shown.)
+	 * Medal of Honor draws its lights' flares whether or not it has a sun. */
+	if ( !( COM_GAME_ID_IS_RITUAL( ri.gameId ) || mohaa )
+		|| ( !mohaa && ( !aliceSunFlare.loaded || !aliceSunFlare.numFlares || !r_sunflare ) )
 		|| ( backEnd.viewParms.passFlags & VPF_ALICE_SKY_PORTAL ) || backEnd.isHyperspace
-		|| ( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) || !r_sunflare
+		|| ( backEnd.refdef.rdflags & RDF_NOWORLDMODEL )
 		|| vk.renderPassIndex == RENDER_PASS_SCREENMAP ) {
 		return;
 	}
 
-	if ( r_place_sunflare->integer ) {
+	if ( !mohaa && r_place_sunflare->integer ) {
 		R_AlicePlaceSunFlare();
 	}
 
@@ -1241,7 +1427,9 @@ void RB_AliceLensFlares( void ) {
 	tess.depthRange = DEPTH_RANGE_NORMAL;
 	vk_update_mvp( aliceFlareNDC );
 
-	if ( Q_stricmp( r_sunflare->string, "0" ) ) {
+	if ( mohaa ) {
+		RB_MOHAASunFlare();
+	} else if ( Q_stricmp( r_sunflare->string, "0" ) ) {
 		vec3_t sun = { 0.0f, 0.0f, 0.0f };
 		aliceSunFlare.inPortalSky = r_sunflare_inportalsky->integer ? qtrue : qfalse;
 		if ( sscanf( r_sunflare->string, "%f %f %f", &sun[0], &sun[1], &sun[2] ) > 0 ) {
@@ -1254,7 +1442,9 @@ void RB_AliceLensFlares( void ) {
 	}
 
 	for ( i = 0, ent = backEnd.refdef.entities; i < backEnd.refdef.num_entities; i++, ent++ ) {
-		const int fx = ent->e.alice.renderfx;
+		/* 2015 keeps these three flags at Alice's places (OpenMoHAA's
+		 * q_shared.h [O]). */
+		const int fx = mohaa ? ent->e.mohaa.renderfx : ent->e.alice.renderfx;
 		if ( fx & FNTECH3_ALICE_RF_SKYENTITY ) {
 			continue;
 		}
@@ -1282,7 +1472,7 @@ void RB_AliceLensFlares( void ) {
 		RB_AliceFlareLight( &aliceDlightFlare );
 	}
 
-	if ( !r_place_sunflare->integer ) {
+	if ( mohaa ? aliceSunSet : !r_place_sunflare->integer ) {
 		RB_AliceFlareFullscreen( &aliceSunFlare );
 	}
 

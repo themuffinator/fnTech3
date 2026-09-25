@@ -10,10 +10,12 @@ static fnRTCWFogDraw_t rtcwStageFog;
  * min( |v - eye| / distance, 1 ) per vertex (alice.exe 0x0049ebb0, colour
  * 0x0049eb40), and its GL fog path is linear from 0 to the distance
  * (0x00474a8d, 0x004779f5). A sky is fogged only when the far plane culls
- * (RB_BeginSurface 0x004927d3..0x004927ff). The pass reuses RTCW's per-stage
- * GL fog, including its neutral colour for blended stages. */
+ * (RB_BeginSurface 0x004927d3..0x004927ff). An opaque surface's stages draw
+ * unfogged and take that pass (RB_RitualFarFogPass, tr_ritual_far_fog.h); a
+ * blended one's, and every Medal of Honor stage, take RTCW's per-stage GL fog
+ * with its neutral colours for blended stages. */
 static qboolean RB_AliceFarFogActive( void ) {
-	return ri.gameId == COM_GAME_ALICE && backEnd.viewParms.aliceFarFog &&
+	return R_GAME_HAS_RITUAL_VIEW( ri.gameId ) && backEnd.viewParms.aliceFarFog &&
 		backEnd.viewParms.aliceFarDistance > 0.0f ? qtrue : qfalse;
 }
 
@@ -40,7 +42,7 @@ static fnRTCWFogDraw_t RB_AliceFarFogDraw( void ) {
 void RB_RTCWFogToggle( qboolean enabled ) {
 	fnRTCWFogDraw_t draw = rtcwStageFog;
 	vec4_t color;
-	if ( ri.gameId != COM_GAME_RTCW_SP && ri.gameId != COM_GAME_RTCW_MP && ri.gameId != COM_GAME_ALICE ) return;
+	if ( ri.gameId != COM_GAME_RTCW_SP && ri.gameId != COM_GAME_RTCW_MP && !R_GAME_HAS_RITUAL_VIEW( ri.gameId ) ) return;
 	if ( !enabled || backEnd.projection2D ) draw.color[3] = 0;
 #ifdef RENDERER_GLX
 	GLX_Renderer_SetRTCWFog( draw.color, draw.params );
@@ -64,9 +66,13 @@ void RB_RTCWFogToggle( qboolean enabled ) {
 }
 
 void RB_RTCWStageFog( const shaderStage_t *stage ) {
-	if ( ri.gameId == COM_GAME_ALICE ) {
+	if ( R_GAME_HAS_RITUAL_VIEW( ri.gameId ) ) {
 		rtcwStageFog = RB_AliceFarFogDraw();
-		FnRTCWFogBlendColor( &rtcwStageFog, stage ? stage->stateBits : 0 );
+		if ( RB_RitualFarFogTakesPass( tess.shader ) ) {
+			rtcwStageFog.color[3] = 0;	/* RB_RitualFarFogPass fogs the surface once */
+		} else {
+			FnRTCWFogBlendColor( &rtcwStageFog, stage ? stage->stateBits : 0 );
+		}
 		RB_RTCWFogToggle( qtrue );
 		return;
 	}
@@ -82,7 +88,7 @@ void RB_RTCWStageFog( const shaderStage_t *stage ) {
 }
 
 qboolean RB_RTCWHasFog( void ) {
-	if ( ri.gameId == COM_GAME_ALICE ) {
+	if ( R_GAME_HAS_RITUAL_VIEW( ri.gameId ) ) {
 		return RB_AliceFarFogActive();
 	}
 	return backEnd.refdef.rtcwFog.fogEnabled || backEnd.refdef.rtcwFog.skyEnabled ? qtrue : qfalse;

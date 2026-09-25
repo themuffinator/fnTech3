@@ -54,6 +54,11 @@ int main(){
         if not compiler:
             self.skipTest('C++ compiler unavailable')
         source = (ROOT / 'code/client/audio/codecs/snd_codec_wav.cpp').read_text()
+        # The format tags, the source and stream records and Medal of Honor's
+        # IMA ADPCM decoder are production's.
+        formats = source[source.index('constexpr int kWavFormatPCM'):
+                         source.index('};', source.index('struct WavStreamState {')) + 2]
+        decoder = source[source.index('constexpr int kImaIndexTable'):source.index('unsigned int WavLittleLong')]
         swap = source[source.index('void S_ByteSwapRawSamples'):source.index('short ConvertWavSampleToPCM16')]
         conversion = source[source.index('short ConvertWavSampleToPCM16'):source.index('/*\n=================\nS_ReadRIFFHeader')]
         load = source[source.index('extern "C" void *S_WAV_CodecLoad'):source.index('/*\n=================\nS_WAV_CodecOpenStream')]
@@ -63,14 +68,14 @@ int main(){
 #include <array>
 #include <cassert>
 #include <climits>
+#include <cstdint>
 #include <cstring>
 #include <cstdlib>
 #include <vector>
 using byte=unsigned char;
-constexpr int kWavFormatPCM=1,kWavFormatIEEEFloat=3,qtrue=1;
+constexpr int qtrue=1;
 #define S_COLOR_RED ""
-struct WavSourceFormat {int format=kWavFormatPCM,width=0;bool needsConversion=false;};
-struct WavStreamState {int format,width;};
+''' + formats + '\n' + decoder + r'''
 struct snd_info_t {int rate=44100,width=0,channels=1,samples=0,size=0,dataofs=0;unsigned int speakerMask=0;};
 struct snd_stream_t {int file=1;snd_info_t info;int pos=0;void*ptr=nullptr;};
 std::vector<byte> payload;
@@ -92,9 +97,10 @@ struct ScopedFileHandle {
  int get()const{return 1;}
 };
 int OpenFileRead(const char*,ScopedFileHandle&f,int){f.opened=true;++openHandles;return static_cast<int>(payload.size());}
+// Each block carries 16 guard bytes past its size, filled like the rest.
 struct ScopedTempMemory {
  void*p;
- explicit ScopedTempMemory(int n):p(std::malloc(n?n:1)){++allocations;std::memset(p,0xa5,n);}
+ explicit ScopedTempMemory(int n):p(std::malloc(n+16)){++allocations;std::memset(p,0xa5,n+16);}
  ScopedTempMemory(const ScopedTempMemory&)=delete;
  ~ScopedTempMemory(){if(p){std::free(p);--allocations;}}
  static ScopedTempMemory Allocate(int n){assert(n>=0&&n<100000);return ScopedTempMemory(n);}
@@ -112,6 +118,50 @@ short LittleShort(short value){
 }
 ''' + swap + conversion + load + stream + r'''
 void reset(){cursor=0;readCalls=0;readLimit=INT_MAX;assert(allocations==0&&openHandles==0);}
+bool guarded(const byte *block,int size){return std::all_of(block+size,block+size+16,[](byte v){return v==0xa5;});}
+// An independent reading of the IMA ADPCM block for the checks below: each
+// channel's 4-byte header (its first sample and step index), then 4-byte runs
+// of each channel in turn, two samples a byte, low nibble first.
+std::vector<short> ImaReference(const std::vector<byte> &data,int blockAlign,int channels,int frames){
+ static const int steps[89]={7,8,9,10,11,12,13,14,16,17,19,21,23,25,28,31,34,37,41,45,
+  50,55,60,66,73,80,88,97,107,118,130,143,157,173,190,209,230,253,279,307,
+  337,371,408,449,494,544,598,658,724,796,876,963,1060,1166,1282,1411,1552,1707,
+  1878,2066,2272,2499,2749,3024,3327,3660,4026,4428,4871,5358,5894,6484,7132,7845,
+  8630,9493,10442,11487,12635,13899,15289,16818,18500,20350,22385,24623,27086,29794,32767};
+ static const int shift[8]={-1,-1,-1,-1,2,4,6,8};
+ std::vector<short> out(static_cast<std::size_t>(frames)*channels,0);
+ int done=0;
+ for(std::size_t start=0;start<data.size()&&done<frames;start+=blockAlign){
+  const int bytes=static_cast<int>(std::min<std::size_t>(blockAlign,data.size()-start));
+  if(bytes<4*channels)break;
+  // Each channel's data bytes, counted one at a time: the channels take four
+  // bytes in turn, so in a short block a later channel can hold fewer, and a
+  // frame is only whole where every channel has its sample.
+  int least=INT_MAX;
+  for(int c=0;c<channels;++c){
+   int held=0;
+   for(int at=4*channels;at<bytes;++at)if((at-4*channels)/4%channels==c)++held;
+   least=std::min(least,held);
+  }
+  const int count=std::min(1+2*least,frames-done);
+  for(int c=0;c<channels;++c){
+   const byte *h=data.data()+start+4*c;
+   int sample=static_cast<short>(h[0]|(h[1]<<8)),index=std::min<int>(h[2],88);
+   out[static_cast<std::size_t>(done)*channels+c]=static_cast<short>(sample);
+   for(int n=0;n+1<count;++n){
+    const std::size_t at=start+4*channels+(n/8)*4*channels+4*c+(n%8)/2;
+    assert(at<start+bytes);
+    const int code=n%2?data[at]>>4:data[at]&15,step=steps[index];
+    int delta=step>>3;if(code&1)delta+=step>>2;if(code&2)delta+=step>>1;if(code&4)delta+=step;
+    sample=std::max(-32768,std::min(32767,code&8?sample-delta:sample+delta));
+    index=std::max(0,std::min(88,index+shift[code&7]));
+    out[static_cast<std::size_t>(done+1+n)*channels+c]=static_cast<short>(sample);
+   }
+  }
+  done+=count;
+ }
+ return out;
+}
 int main(){
  // 20-bit PCM in a 24-bit container is left-aligned, with four zero low bits.
  WavSourceFormat pcm20{kWavFormatPCM,3,true};
@@ -132,7 +182,7 @@ int main(){
    else full[i+width-1]=0x40;
   }
   payload=full;reset();snd_info_t info;
-  auto*loaded=static_cast<byte*>(S_WAV_CodecLoad("fixture.wav",&info));assert(loaded);
+  auto*loaded=static_cast<byte*>(S_WAV_CodecLoad("fixture.wav",&info));assert(loaded&&guarded(loaded,info.size));
   std::vector<byte> expected(loaded,loaded+info.size);std::free(loaded);
   assert(cursor==full.size()&&allocations==0&&openHandles==0);
   if(!selected.needsConversion)assert(expected==full);
@@ -201,6 +251,59 @@ int main(){
    assert(S_WAV_CodecReadStream(&s,request,out.data())==request);
    for(int i=0;i<request;i+=2)assert(out[i]==0x34&&out[i+1]==0x12);
    for(int i=request;i<128;++i)assert(out[i]==0xa5);
+  }
+ }
+ bigEndian=false;
+
+ // Medal of Honor's IMA ADPCM: a load decodes every block it reads, whole or
+ // short; a truncated or failed read loads nothing; frames the header counts
+ // past the data are silence; and nothing lands past the buffer. Two 36-byte
+ // mono blocks and a 10-byte tail are 143 frames; two 72-byte stereo blocks
+ // and a tail of their two headers are 131. Stereo tails of 14 and 20 data
+ // bytes give the second channel 6 and 8 bytes to the first's 8 and 12, so
+ // they end at the second channel's last sample: 143 and 147 frames.
+ std::uint32_t seed=0x2468ace1;
+ auto nextRandom=[&seed](){seed^=seed<<13;seed^=seed>>17;seed^=seed<<5;return seed;};
+ struct Ima {int channels,blockAlign,frames;std::size_t bytes;};
+ for(const Ima &ima:{Ima{1,36,143,82},Ima{2,72,131,152},Ima{2,72,143,166},Ima{2,72,147,172}}){
+  std::vector<byte> data(ima.bytes);for(byte &b:data)b=static_cast<byte>(nextRandom());
+  const int perBlock=1+(ima.blockAlign-4*ima.channels)*2/ima.channels;
+  for(int missing:{0,5}){
+   selected={kWavFormatIMAADPCM,0,true,ima.blockAlign,perBlock,ima.channels,static_cast<int>(ima.bytes)};
+   const int frames=ima.frames+missing;
+   description={22050,2,ima.channels,frames,frames*2*ima.channels,0};
+   const std::vector<short> reference=ImaReference(data,ima.blockAlign,ima.channels,frames);
+   payload=data;reset();snd_info_t info;
+   auto*loaded=static_cast<byte*>(S_WAV_CodecLoad("adpcm.wav",&info));
+   assert(loaded&&info.size==description.size&&guarded(loaded,info.size));
+   assert(cursor==data.size()&&allocations==0&&openHandles==0);
+   assert(std::memcmp(loaded,reference.data(),info.size)==0);
+   std::free(loaded);
+   for(std::size_t n=0;n<data.size();++n){
+    payload.assign(data.begin(),data.begin()+n);reset();
+    assert(S_WAV_CodecLoad("truncated.wav",&info)==nullptr);
+    assert(allocations==0&&openHandles==0);
+   }
+   payload=data;reset();readLimit=-1;
+   assert(S_WAV_CodecLoad("error.wav",&info)==nullptr);assert(allocations==0&&openHandles==0);
+
+   // The stream reads the decode made when it opened, as far as it goes and
+   // never from the file.
+   std::vector<short> decoded=reference;
+   for(int available:{description.size,description.size-6})for(int request:{2,6,38,128}){
+    WavStreamState state{kWavFormatIMAADPCM,0,decoded.data(),available};
+    reset();snd_stream_t s;s.info=description;s.ptr=&state;std::vector<byte> actual;
+    for(;;){
+     std::array<byte,128> part;part.fill(0xa5);
+     const int got=S_WAV_CodecReadStream(&s,request,part.data());
+     if(!got)break;
+     assert(got>0&&got<=request&&got%2==0);
+     actual.insert(actual.end(),part.begin(),part.begin()+got);
+     assert(std::all_of(part.begin()+got,part.end(),[](byte v){return v==0xa5;}));
+    }
+    assert(static_cast<int>(actual.size())==available&&s.pos==available&&readCalls==0);
+    assert(std::memcmp(actual.data(),decoded.data(),available)==0);
+   }
   }
  }
 }

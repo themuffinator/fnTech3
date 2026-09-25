@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "generator": "fnTech3 scripts/generate_stock_rtcw_lights.py",
+  "map": "norway",
+  "profile": "rtcw-sp",
+  "source": "IBSP 47 entity lump, the map's compiled light entities",
+  "dlightScale": 1,
+  "lights": [
+    {"name": "norway-light-0012", "type": "point", "origin": [-4398, -2008, 551], "color": [0.169, 0, 0], "intensity": 38.6, "radius": 38.6, "castsShadows": true},
+    {"name": "norway-light-0258", "type": "spot", "origin": [-1012, 3548, 492], "direction": [-0.9874, -0.15634, 0.02468], "color": [0.8086, 0.8086, 0.8086], "intensity": 151.1, "radius": 151.1, "outerAngle": 9.35, "castsShadows": true},
+    {"name": "norway-light-0260", "type": "point", "origin": [-1018, 3548, 448], "color": [0.0985, 0.1056, 0.1126], "intensity": 106.4, "radius": 106.4, "castsShadows": true},
+    {"name": "norway-light-0263", "type": "spot", "origin": [-1248, 3708, 488], "direction": [0.99099, 0.02202, -0.13213], "color": [0.8086, 0.8086, 0.8086], "intensity": 151.1, "radius": 151.1, "outerAngle": 23.77, "castsShadows": true},
+    {"name": "norway-light-0265", "type": "point", "origin": [-1242, 3708, 444], "color": [0.0985, 0.1056, 0.1126], "intensity": 106.4, "radius": 106.4, "castsShadows": true},
+    {"name": "norway-light-0542", "type": "point", "origin": [3200, -3520, 1132], "color": [0.335, 0.3034, 0.2706], "intensity": 65.2, "radius": 65.2, "castsShadows": true},
+    {"name": "norway-light-0543", "type": "point", "origin": [3200, -3520, 1180], "color": [0.271, 0.2444, 0.2179], "intensity": 253.8, "radius": 253.8, "castsShadows": true},
+    {"name": "norway-light-0563", "type": "point", "origin": [-2320, -1552, 868], "color": [0.335, 0.3034, 0.2706], "intensity": 65.2, "radius": 65.2, "castsShadows": true},
+    {"name": "norway-light-0564", "type": "point", "origin": [-2320, -1552, 916], "color": [0.271, 0.2455, 0.2189], "intensity": 253.8, "radius": 253.8, "castsShadows": true},
+    {"name": "norway-light-0600", "type": "spot", "origin": [-3270, -1238, 524], "direction": [-0.98295, 0.02378, 0.18232], "color": [0.8086, 0.4059, 0], "intensity": 160.3, "radius": 160.3, "outerAngle": 17.59, "castsShadows": true},
+    {"name": "norway-light-0602", "type": "point", "origin": [-3270, -1248, 602], "color": [0.1226, 0.0615, 0], "intensity": 115.5, "radius": 115.5, "castsShadows": true},
+    {"name": "norway-light-0604", "type": "point", "origin": [3352, -1299, 544], "color": [0.078, 0.0869, 0.0984], "intensity": 184.7, "radius": 184.7, "castsShadows": true},
+    {"name": "norway-light-0605", "type": "point", "origin": [3352, -1403, 544], "color": [0.078, 0.0869, 0.0984], "intensity": 184.7, "radius": 184.7, "castsShadows": true},
+    {"name": "norway-light-0608", "type": "point", "origin": [3352, -1547, 544], "color": [0.078, 0.0869, 0.0984], "intensity": 184.7, "radius": 184.7, "castsShadows": true},
+    {"name": "norway-light-0609", "type": "point", "origin": [3352, -1651, 544], "color": [0.078, 0.0869, 0.0984], "intensity": 184.7, "radius": 184.7, "castsShadows": true},
+    {"name": "norway-light-0668", "type": "point", "origin": [-3330, -1344, 602], "color": [0.1226, 0.0615, 0], "intensity": 115.5, "radius": 115.5, "castsShadows": true},
+    {"name": "norway-light-0669", "type": "point", "origin": [-3486, -1372, 570], "color": [0.1226, 0.0615, 0], "intensity": 115.5, "radius": 115.5, "castsShadows": true},
+    {"name": "norway-light-0670", "type": "point", "origin": [-3638, -1260, 570], "color": [0.1226, 0.0615, 0], "intensity": 115.5, "radius": 115.5, "castsShadows": true},
+    {"name": "norway-light-0671", "type": "point", "origin": [1327, 37, 488], "color": [0.147, 0.0329, 0], "intensity": 111, "radius": 111, "castsShadows": true}
+  ]
+}

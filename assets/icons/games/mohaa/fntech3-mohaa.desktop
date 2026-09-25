@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Medal of Honor: Allied Assault
+GenericName=fnTech3 game profile
+Comment=Play Medal of Honor: Allied Assault with fnTech3
+Exec=fntech3 +set com_gameProfile mohaa
+Icon=fntech3-mohaa
+Terminal=false
+Categories=Game;ActionGame;
+StartupWMClass=fntech3-mohaa

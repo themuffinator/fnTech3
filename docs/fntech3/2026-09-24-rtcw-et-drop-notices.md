@@ -80,6 +80,7 @@ The other supported engines, which this change leaves alone:
 | `jk2-sp` | `jk2sp.exe`, `0d3c635ee5b20ac32fc957e00cf21e65ebc1584112b11f6ae026706dcc0d0e0c` | `0x435b80` | `print "%s %s\n"`, `0x435bde` | `disconnect`, `0x435bea` |
 | `jk2-mp` | `jk2mp.exe`, `2f08dcf9a089cb66062766f4922fda63a9e553de893c174b497dfefeb7a1577a` | `0x449260` | `print "%s^7 %s\n"`, `0x4492eb` | `disconnect`, `0x449354` |
 | `alice` | `alice.exe`, `8aa22917b7707f0e1a7c4dbe9a3c38332b1873ae2059174ac5329de26921fc18` | `0x4529e0` | `print "%s %s\n"`, `0x4529fb` | `disconnect`, `0x452a6b` |
+| `fakk2` | `fakk2.exe` 1.02, `681bc51c3343d01d772c5ae4aae7523ae4547350b243c875156e138043335785` | `0x443aa0` | `print "%s %s\n"`, `0x443abb` | `disconnect`, `0x443b2b` |
 
 Addresses in the Notice and Addressed columns are where each string's address
 is pushed. The [evidence file](evidence/2026-09-24-rtcw-et-drop-notices.json)
@@ -126,6 +127,13 @@ tables:
   `SV_ClientIsRTCWCastAI` does.
 - Unchanged: the addressed `disconnect "%s"` in every profile, and fnTech3's
   silent drop with no reason, which sends neither command.
+- 2026-09-25: the two Ritual profiles follow their engines, which drop a
+  client alike. `alice` and `fakk2` broadcast `print "%s %s\n"`, with no
+  colour reset after the name, and address a bare `disconnect` to the client
+  that left (`alice.exe` `0x004529fb` and `0x00452a6b`, `fakk2.exe` 1.02
+  `0x00443abb` and `0x00443b2b`). Their clients print no reason, and
+  fnTech3's shows `Server disconnected` for a bare command.
+  `tests/server_drop_notice_tests.py` expects both, with a mutation for each.
 
 The RTCW, ET and Quake III sources, the qagame module and the retail
 executables were read as reference observations. No text from them is
@@ -247,12 +255,13 @@ runs above show both on the baseline as well.
 
 ## Open
 
-- The IHV test, Elite Force SP, Jedi Academy SP, Jedi Outcast SP and Alice
+- The IHV test, Elite Force SP, Jedi Academy SP and Jedi Outcast SP
   broadcast `print "%s %s\n"`, and fnTech3 still sends them `^7` after the
-  name. Elite Force SP and both Jedi single players also send the notice
+  name. Alice and F.A.K.K.2 now get their engines' notice and bare
+  `disconnect` (2026-09-25, under Change). Elite Force SP and both Jedi single players also send the notice
   after the game's `ClientDisconnect`, where fnTech3 sends it before.
 - The addressed command. `WolfSP.exe`, the IHV test, Elite Force SP, both
-  Jedi single players, Jedi Outcast MP and Alice send a bare `disconnect`.
+  Jedi single players and Jedi Outcast MP send a bare `disconnect`.
   `stvoyHM.exe` sends `disconnect %s`, unquoted. ET adds a newline after the
   closing quote, which its client's tokenizer drops: the retail client above
   showed `Server Disconnected - player kicked`. Jedi Academy MP formats the

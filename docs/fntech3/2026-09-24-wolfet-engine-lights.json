@@ -1,0 +1,1944 @@
+{
+ "record": "2026-09-24-wolfet-engine-lights",
+ "date": "2026-09-24",
+ "baseCommit": "b68782bfe41eeff02097ec2b2eaeed3eb0a1b4db",
+ "baseTree": {
+  "note": "The staged index of the shared tree: HEAD plus other sessions' staged work, among it the RTCW engine scene lights this change generalizes. Exported with git checkout-index; the before and after renderers are that export without and with this change's hunks.",
+  "indexTree": "b0bd26fe2fc1a0501e67f0f00020b0b89b9be1a5"
+ },
+ "platform": "Windows 11 Home 10.0.26200, x86 builds (MSVC, debugoptimized, /W4 /WX)",
+ "installations": {
+  "wolfet": {
+   "root": "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory",
+   "executable": {
+    "file": "et.exe",
+    "version": "ET 2.60b",
+    "sha256": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e"
+   },
+   "paks": {
+    "pak0.pk3": {
+     "bytes": 228138631,
+     "sha256": "712966b20e06523fe81419516500e499c86b2b4fec823856ddbd333fcb3d26e5"
+    },
+    "pak1.pk3": {
+     "bytes": 51616,
+     "sha256": "5610fd749024405b4425a7ce6397e58187b941d22092ef11d4844b427df53e5d"
+    },
+    "pak2.pk3": {
+     "bytes": 89910,
+     "sha256": "a48ab749a1a12ab4d9137286b1f23d642c29da59845b2bafc8f64e052cf06f3e"
+    },
+    "mp_bin.pk3": {
+     "bytes": 1638102,
+     "sha256": "cf0a7ce662421c766f93cc196841849eb66905b047d209dd5f3ed0b1396cd42e"
+    }
+   },
+   "maps": {
+    "oasis": "pak0.pk3",
+    "battery": "pak0.pk3"
+   }
+  },
+  "rtcw": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+  "q3": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+  "ql": "E:\\SteamLibrary\\steamapps\\common\\Quake Live"
+ },
+ "runtimes": {
+  "wolfet-lights-before": {
+   "fntech3.exe": "6cce62cddab5069847fcadfe8e0fa8b07c2b27a788faf892995a21f8dcb5c095",
+   "fnql_glx_x86.dll": "94f8d9840deca4b560e835d97cfb8dd5309b5c700fa62445696d614b36069fbd",
+   "fnql_vk_x86.dll": "a233f9ebf38c861d9a2f31bf1b4c16d34491209bc937626e7fa00581684e77a2",
+   "fnql_rtx_x86.dll": "4945a76b2ab93b7bece2e9a42cce559281ae017fa8280a0724de196f55748fe6",
+   "fntech3-pkg.fnz": "758ebd160bb8d8044ce513415f5972f5b48270beb1c9b77eb13ac456cf1d0cf7",
+   "fnql-web.pak": "6c210165880fff668900fd3e4e3c90137623043e1b5315f24b693f367f756382"
+  },
+  "wolfet-lights-after": {
+   "fntech3.exe": "6cce62cddab5069847fcadfe8e0fa8b07c2b27a788faf892995a21f8dcb5c095",
+   "fnql_glx_x86.dll": "fb71e20a71c294cecd9274fb9b018878ffb033438e9c9a180ba74ba269354d34",
+   "fnql_vk_x86.dll": "a77383ce291197f3b479838b113baeeb8292035be3f788de4c5398858d736e23",
+   "fnql_rtx_x86.dll": "0d4ddddba79f12f6f7dae28448ad141aa6c1780f336291d66ad2976de147ca1c",
+   "fntech3-pkg.fnz": "758ebd160bb8d8044ce513415f5972f5b48270beb1c9b77eb13ac456cf1d0cf7",
+   "fnql-web.pak": "6c210165880fff668900fd3e4e3c90137623043e1b5315f24b693f367f756382"
+  },
+  "note": "One executable (win32-dev, built 17:52 from the shared tree) with each renderer set."
+ },
+ "unitTests": {
+  "file": "tests/wolfet_light_tests.py",
+  "passed": 3,
+  "subtests": 5,
+  "frameSimulation": {
+   "frames": 20000,
+   "scenes": "1 to 4",
+   "moduleLights": "0 to 40 a scene: 3% with no radius, 5% directed, 2% junior, a quarter forced",
+   "engineLights": "0 to 32 a scene",
+   "portalViews": "0 to 3 a scene, sibling or nested, in a third of the frames",
+   "dynamicLightZero": "a quarter of the frames",
+   "counts": {
+    "portalFrames": 6629,
+    "engineFrames": 14613,
+    "skippedFrames": 14956,
+    "limitedFrames": 1522,
+    "oldDrawnPastRetail": 5259
+   }
+  },
+  "affectedFilesExport": {
+   "files": 47,
+   "passed": 308,
+   "subtests": 22051,
+   "where": "export of the staged index with this change"
+  },
+  "affectedFilesSharedTree": {
+   "files": 49,
+   "passed": 314,
+   "failed": 1,
+   "subtests": 24811,
+   "failure": "tests/alice_savegame_source_tests.py::test_the_spawn_is_alice_only_where_it_differs, reading another session's unfinished SV_SpawnServer in code/server/sv_init.cpp"
+  },
+  "rtcwReferenceProbe": {
+   "script": "scripts/probe_rtcw_lights.py",
+   "comparisons": 22,
+   "passed": 22,
+   "report": ".tmp/wolfet-engine-lights/rtcw-reference/report.json"
+  },
+  "releasePackaging": {
+   "file": "tests/release_packaging_tests.py",
+   "passed": 48,
+   "skipped": 1,
+   "where": "the export with this change and its records, committed in a throwaway repository"
+  }
+ },
+ "mutations": {
+  "cap-counts-every-slot": {
+   "caught": true,
+   "summary": "3 failed, 2 passed, 3 subtests passed in 11.26s"
+  },
+  "undrawn-lights-take-no-slot": {
+   "caught": true,
+   "summary": "3 failed, 2 passed, 3 subtests passed in 11.70s"
+  },
+  "et-reserves-nothing": {
+   "caught": true,
+   "summary": "3 failed, 3 passed, 2 subtests passed in 12.26s"
+  },
+  "et-engine-lights-at-dynamiclight-0": {
+   "caught": true,
+   "summary": "3 failed, 3 passed, 2 subtests passed in 13.79s"
+  },
+  "et-forced-lights-cleared-at-0": {
+   "caught": true,
+   "summary": "3 failed, 3 passed, 2 subtests passed in 12.92s"
+  },
+  "portal-copies-unbounded-for-et": {
+   "caught": true,
+   "summary": "2 failed, 3 passed, 3 subtests passed in 10.58s"
+  },
+  "rtx-mirror-unbounded-for-et": {
+   "caught": true,
+   "summary": "1 failed, 2 passed, 5 subtests passed in 6.28s"
+  },
+  "vk-ignores-et-bound": {
+   "caught": true,
+   "summary": "1 failed, 3 passed, 4 subtests passed in 8.55s"
+  },
+  "et-scene-not-bounded-to-32": {
+   "caught": true,
+   "summary": "4 failed, 2 passed, 2 subtests passed in 15.82s"
+  },
+  "restored": {
+   "passed": true,
+   "summary": "3 passed, 5 subtests passed in 6.45s"
+  }
+ },
+ "runtime": {
+  "wolfetLightsBefore": {
+   "report": ".tmp/wolfet-engine-lights/lights-before/report.json",
+   "passed": true,
+   "installationUnchanged": true,
+   "view": [
+    [
+     760,
+     2728,
+     -478,
+     0
+    ]
+   ],
+   "lights": {
+    "version": 1,
+    "generator": "fnTech3 scripts/probe_wolfet_engine_lights.py (test fixture)",
+    "map": "oasis",
+    "lights": [
+     {
+      "name": "probe-red",
+      "type": "point",
+      "origin": [
+       900.0,
+       2798.0,
+       -502
+      ],
+      "color": [
+       1,
+       0.15,
+       0.1
+      ],
+      "intensity": 260,
+      "radius": 260,
+      "castsShadows": false
+     },
+     {
+      "name": "probe-blue",
+      "type": "point",
+      "origin": [
+       960.0,
+       2638.0,
+       -486
+      ],
+      "color": [
+       0.15,
+       0.3,
+       1
+      ],
+      "intensity": 240,
+      "radius": 240,
+      "castsShadows": true
+     },
+     {
+      "name": "probe-green-spot",
+      "type": "spot",
+      "origin": [
+       850.0,
+       2728.0,
+       -418
+      ],
+      "direction": [
+       0.6,
+       0.0,
+       -0.8
+      ],
+      "color": [
+       0.2,
+       1,
+       0.25
+      ],
+      "intensity": 420,
+      "radius": 420,
+      "innerAngle": 20,
+      "outerAngle": 40,
+      "castsShadows": false
+     }
+    ]
+   },
+   "runs": {
+    "glx": {
+     "passed": true,
+     "exitCode": 0,
+     "views": [
+      [
+       760,
+       2728,
+       -478,
+       0
+      ]
+     ],
+     "command": [
+      "E:\\Repositories\\fnTech3\\.tmp\\runtime\\wolfet-lights-before\\fntech3.exe",
+      "+set",
+      "com_gameProfile",
+      "wolfet",
+      "+set",
+      "fs_basepath",
+      "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory",
+      "+set",
+      "fs_homepath",
+      "E:\\Repositories\\fnTech3\\.tmp\\wolfet-engine-lights\\lights-before\\glx-lights\\home",
+      "+set",
+      "fs_game",
+      "",
+      "+set",
+      "fs_cdpath",
+      "",
+      "+set",
+      "r_fullscreen",
+      "0",
+      "+set",
+      "r_mode",
+      "-1",
+      "+set",
+      "r_customWidth",
+      "800",
+      "+set",
+      "r_customHeight",
+      "600",
+      "+set",
+      "in_mouse",
+      "0",
+      "+set",
+      "in_joystick",
+      "0",
+      "+set",
+      "in_nograb",
+      "1",
+      "+set",
+      "s_initsound",
+      "0",
+      "+set",
+      "com_steamIntegration",
+      "0",
+      "+set",
+      "fs_skipWorkshop",
+      "1",
+      "+set",
+      "cl_webuiEnable",
+      "0",
+      "+set",
+      "cl_renderer",
+      "glx",
+      "+set",
+      "logfile",
+      "2",
+      "+set",
+      "net_ip",
+      "127.0.0.1",
+      "+set",
+      "net_port",
+      "0",
+      "+set",
+      "net_ip6",
+      "::1",
+      "+set",
+      "net_port6",
+      "0",
+      "+set",
+      "rtx_rt_mode",
+      "0",
+      "+set",
+      "rtx_rt_require",
+      "0",
+      "+set",
+      "com_maxfps",
+      "60",
+      "+set",
+      "com_recommendedSet",
+      "1",
+      "+set",
+      "com_hunkMegs",
+      "256",
+      "+set",
+      "cl_motd",
+      "0",
+      "+set",
+      "cl_autoupdate",
+      "0",
+      "+set",
+      "net_enabled",
+      "0",
+      "+exec",
+      "probe.cfg",
+      "+devmap",
+      "oasis"
+     ],
+     "rendererSha256": "94f8d9840deca4b560e835d97cfb8dd5309b5c700fa62445696d614b36069fbd",
+     "counters": {
+      "on": {
+       "promoted:3 skipDisabled:0 skipPVS:0 skipBudget:0": 22
+      },
+      "off": {
+       "promoted:0 skipDisabled:3 skipPVS:0 skipBudget:0": 22
+      },
+      "again": {
+       "promoted:3 skipDisabled:0 skipPVS:0 skipBudget:0": 22
+      },
+      "nodyn-on": {
+       "promoted:3 skipDisabled:0 skipPVS:0 skipBudget:0": 22
+      },
+      "nodyn-off": {
+       "promoted:0 skipDisabled:3 skipPVS:0 skipBudget:0": 22
+      },
+      "fill-on": {
+       "promoted:3 skipDisabled:0 skipPVS:0 skipBudget:0": 22
+      },
+      "fill-off": {
+       "promoted:0 skipDisabled:3 skipPVS:0 skipBudget:0": 32
+      }
+     },
+     "comparisons": {
+      "off-vs-on": {
+       "identical": false,
+       "changedPixels": 213525,
+       "meanAbsDiff": 10.6533,
+       "meanDeltaInChanged": [
+        -13.47,
+        -20.93,
+        -37.12
+       ]
+      },
+      "again-vs-on": {
+       "identical": false,
+       "changedPixels": 2276,
+       "meanAbsDiff": 0.0834,
+       "meanDeltaInChanged": [
+        -1.2,
+        -0.78,
+        -1.08
+       ]
+      },
+      "nodyn-off-vs-nodyn-on": {
+       "identical": false,
+       "changedPixels": 968,
+       "meanAbsDiff": 0.0408,
+       "meanDeltaInChanged": [
+        -0.81,
+        -0.49,
+        -1.35
+       ]
+      },
+      "nodyn-on-vs-again": {
+       "identical": false,
+       "changedPixels": 213411,
+       "meanAbsDiff": 10.6509,
+       "meanDeltaInChanged": [
+        -13.48,
+        -20.94,
+        -37.14
+       ]
+      },
+      "fill-off-vs-fill-on": {
+       "identical": false,
+       "changedPixels": 2095,
+       "meanAbsDiff": 0.0557,
+       "meanDeltaInChanged": [
+        1.66,
+        0.32,
+        3.09
+       ]
+      }
+     },
+     "captures": {
+      "on": "677e8c94197e99b54598035bbde6b93eeaa09e25dab5ef7c52597187d98934a9",
+      "off": "f1e10f701bec9b980ea30cef2220996d88a5d39947579627c32b3eda21d7702e",
+      "again": "5e75bd14870e4cbacc107579a91c58034e9b82fbe883bbbc21badfbe6b726375",
+      "nodyn-on": "c35b44dde595fbb374ea5f5111f4e70b57e8ecc42363355ced32c35f2a40af25",
+      "nodyn-off": "498641d68b3899e6ffeb40867ac1267b8d0bb3be98d4d9e4d2d8ff29cebb1225",
+      "fill-on": "e6a28967e28f33e4503ed47511e605c9a55b547fd0defacd62da0d004e0e92b9",
+      "fill-off": "7cbe399dd99ef55ca8b12f14e74a44b2a2809d25b3edc5c6d14b6c16dd7ffec7"
+     }
+    },
+    "vk": {
+     "passed": true,
+     "exitCode": 0,
+     "views": [
+      [
+       760,
+       2728,
+       -478,
+       0
+      ]
+     ],
+     "command": [
+      "E:\\Repositories\\fnTech3\\.tmp\\runtime\\wolfet-lights-before\\fntech3.exe",
+      "+set",
+      "com_gameProfile",
+      "wolfet",
+      "+set",
+      "fs_basepath",
+      "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory",
+      "+set",
+      "fs_homepath",
+      "E:\\Repositories\\fnTech3\\.tmp\\wolfet-engine-lights\\lights-before\\vk-lights\\home",
+      "+set",
+      "fs_game",
+      "",
+      "+set",
+      "fs_cdpath",
+      "",
+      "+set",
+      "r_fullscreen",
+      "0",
+      "+set",
+      "r_mode",
+      "-1",
+      "+set",
+      "r_customWidth",
+      "800",
+      "+set",
+      "r_customHeight",
+      "600",
+      "+set",
+      "in_mouse",
+      "0",
+      "+set",
+      "in_joystick",
+      "0",
+      "+set",
+      "in_nograb",
+      "1",
+      "+set",
+      "s_initsound",
+      "0",
+      "+set",
+      "com_steamIntegration",
+      "0",
+      "+set",
+      "fs_skipWorkshop",
+      "1",
+      "+set",
+      "cl_webuiEnable",
+      "0",
+      "+set",
+      "cl_renderer",
+      "vk",
+      "+set",
+      "logfile",
+      "2",
+      "+set",
+      "net_ip",
+      "127.0.0.1",
+      "+set",
+      "net_port",
+      "0",
+      "+set",
+      "net_ip6",
+      "::1",
+      "+set",
+      "net_port6",
+      "0",
+      "+set",
+      "rtx_rt_mode",
+      "0",
+      "+set",
+      "rtx_rt_require",
+      "0",
+      "+set",
+      "com_maxfps",
+      "60",
+      "+set",
+      "com_recommendedSet",
+      "1",
+      "+set",
+      "com_hunkMegs",
+      "256",
+      "+set",
+      "cl_motd",
+      "0",
+      "+set",
+      "cl_autoupdate",
+      "0",
+      "+set",
+      "net_enabled",
+      "0",
+      "+exec",
+      "probe.cfg",
+      "+devmap",
+      "oasis"
+     ],
+     "rendererSha256": "a233f9ebf38c861d9a2f31bf1b4c16d34491209bc937626e7fa00581684e77a2",
+     "counters": {
+      "on": {
+       "promoted:3 skipDisabled:0 skipPVS:0 skipBudget:0": 22
+      },
+      "off": {
+       "promoted:0 skipDisabled:3 skipPVS:0 skipBudget:0": 22
+      },
+      "again": {
+       "promoted:3 skipDisabled:0 skipPVS:0 skipBudget:0": 22
+      },
+      "nodyn-on": {
+       "promoted:3 skipDisabled:0 skipPVS:0 skipBudget:0": 22
+      },
+      "nodyn-off": {
+       "promoted:0 skipDisabled:3 skipPVS:0 skipBudget:0": 22
+      },
+      "fill-on": {
+       "promoted:3 skipDisabled:0 skipPVS:0 skipBudget:0": 22
+      },
+      "fill-off": {
+       "promoted:0 skipDisabled:3 skipPVS:0 skipBudget:0": 32
+      }
+     },
+     "comparisons": {
+      "off-vs-on": {
+       "identical": false,
+       "changedPixels": 214468,
+       "meanAbsDiff": 14.3733,
+       "meanDeltaInChanged": [
+        -13.89,
+        -23.33,
+        -59.01
+       ]
+      },
+      "again-vs-on": {
+       "identical": false,
+       "changedPixels": 1513,
+       "meanAbsDiff": 0.0733,
+       "meanDeltaInChanged": [
+        -1.95,
+        -1.41,
+        -2.4
+       ]
+      },
+      "nodyn-off-vs-nodyn-on": {
+       "identical": false,
+       "changedPixels": 529,
+       "meanAbsDiff": 0.0334,
+       "meanDeltaInChanged": [
+        0.42,
+        0.87,
+        -0.89
+       ]
+      },
+      "nodyn-on-vs-again": {
+       "identical": false,
+       "changedPixels": 214438,
+       "meanAbsDiff": 14.371,
+       "meanDeltaInChanged": [
+        -13.88,
+        -23.33,
+        -59.01
+       ]
+      },
+      "fill-off-vs-fill-on": {
+       "identical": false,
+       "changedPixels": 1306,
+       "meanAbsDiff": 0.0542,
+       "meanDeltaInChanged": [
+        2.52,
+        2.05,
+        2.64
+       ]
+      }
+     },
+     "captures": {
+      "on": "03cc95378e8eb58f7e63fd9ab526c509f4ab384f6acb1d2b61281d5b98bb4d16",
+      "off": "fdcd674294b56eb76ddc94673fc7d4c1b2df8a78ddbe0bf0a2d388d1071845cb",
+      "again": "989bc38401270cd7327e93dcb4c7b60c2201d99de33ae0a905a14927ac70abe1",
+      "nodyn-on": "24041d25afeb7738c3bd0835f38a6d92996d8255c7b02fccf3233caba10ff733",
+      "nodyn-off": "76e4ee8c1bf622f69c06a0d66da2704a385995da0545a622ec935e9a51903e3c",
+      "fill-on": "0c4ed87cc9009c13374bce38ec80c3c4a4bf4a2e7fe1f6d0369e96f5b25c01ab",
+      "fill-off": "06be78fdf9fefb1e349441385eef71dd8cc5d987c5f2475f11557dd9fefa7f2f"
+     }
+    },
+    "rtx": {
+     "passed": true,
+     "exitCode": 0,
+     "views": [
+      [
+       760,
+       2728,
+       -478,
+       0
+      ]
+     ],
+     "command": [
+      "E:\\Repositories\\fnTech3\\.tmp\\runtime\\wolfet-lights-before\\fntech3.exe",
+      "+set",
+      "com_gameProfile",
+      "wolfet",
+      "+set",
+      "fs_basepath",
+      "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory",
+      "+set",
+      "fs_homepath",
+      "E:\\Repositories\\fnTech3\\.tmp\\wolfet-engine-lights\\lights-before\\rtx-lights\\home",
+      "+set",
+      "fs_game",
+      "",
+      "+set",
+      "fs_cdpath",
+      "",
+      "+set",
+      "r_fullscreen",
+      "0",
+      "+set",
+      "r_mode",
+      "-1",
+      "+set",
+      "r_customWidth",
+      "800",
+      "+set",
+      "r_customHeight",
+      "600",
+      "+set",
+      "in_mouse",
+      "0",
+      "+set",
+      "in_joystick",
+      "0",
+      "+set",
+      "in_nograb",
+      "1",
+      "+set",
+      "s_initsound",
+      "0",
+      "+set",
+      "com_steamIntegration",
+      "0",
+      "+set",
+      "fs_skipWorkshop",
+      "1",
+      "+set",
+      "cl_webuiEnable",
+      "0",
+      "+set",
+      "cl_renderer",
+      "rtx",
+      "+set",
+      "logfile",
+      "2",
+      "+set",
+      "net_ip",
+      "127.0.0.1",
+      "+set",
+      "net_port",
+      "0",
+      "+set",
+      "net_ip6",
+      "::1",
+      "+set",
+      "net_port6",
+      "0",
+      "+set",
+      "rtx_rt_mode",
+      "0",
+      "+set",
+      "rtx_rt_require",
+      "0",
+      "+set",
+      "com_maxfps",
+      "60",
+      "+set",
+      "com_recommendedSet",
+      "1",
+      "+set",
+      "com_hunkMegs",
+      "256",
+      "+set",
+      "cl_motd",
+      "0",
+      "+set",
+      "cl_autoupdate",
+      "0",
+      "+set",
+      "net_enabled",
+      "0",
+      "+exec",
+      "probe.cfg",
+      "+devmap",
+      "oasis"
+     ],
+     "rendererSha256": "4945a76b2ab93b7bece2e9a42cce559281ae017fa8280a0724de196f55748fe6",
+     "counters": {
+      "on": {
+       "promoted:3 skipDisabled:0 skipPVS:0 skipBudget:0": 22
+      },
+      "off": {
+       "promoted:0 skipDisabled:3 skipPVS:0 skipBudget:0": 22
+      },
+      "again": {
+       "promoted:3 skipDisabled:0 skipPVS:0 skipBudget:0": 22
+      },
+      "nodyn-on": {
+       "promoted:3 skipDisabled:0 skipPVS:0 skipBudget:0": 22
+      },
+      "nodyn-off": {
+       "promoted:0 skipDisabled:3 skipPVS:0 skipBudget:0": 22,
+       "promoted:3 skipDisabled:0 skipPVS:0 skipBudget:0": 10
+      }
+     },
+     "comparisons": {
+      "off-vs-on": {
+       "identical": false,
+       "changedPixels": 214456,
+       "meanAbsDiff": 14.3918,
+       "meanDeltaInChanged": [
+        -13.92,
+        -23.38,
+        -59.03
+       ]
+      },
+      "again-vs-on": {
+       "identical": false,
+       "changedPixels": 1482,
+       "meanAbsDiff": 0.072,
+       "meanDeltaInChanged": [
+        -1.11,
+        -0.64,
+        -1.9
+       ]
+      },
+      "nodyn-off-vs-nodyn-on": {
+       "identical": false,
+       "changedPixels": 528,
+       "meanAbsDiff": 0.0343,
+       "meanDeltaInChanged": [
+        0.26,
+        0.72,
+        -1.31
+       ]
+      },
+      "nodyn-on-vs-again": {
+       "identical": false,
+       "changedPixels": 214432,
+       "meanAbsDiff": 14.3901,
+       "meanDeltaInChanged": [
+        -13.93,
+        -23.39,
+        -59.04
+       ]
+      }
+     },
+     "captures": {
+      "on": "2ff714bd1cab97969d791b8d4b1add19e13b6e06d16f8e4dd7dfc98a0c951d5b",
+      "off": "f3ed0bf9264060672468f992a2c819fadde9b975c6be45e8415a63ba5f9a63c9",
+      "again": "03cdd4796aee7476aa891d7204f9187a8bc01522abcddc29f18cb5484e4526c0",
+      "nodyn-on": "ce82c0171cc031fa5724c9f718d8b8e557fa4d0e33cfe2457baceda11a403060",
+      "nodyn-off": "83dd5bf24f9263d22440c26ba8e981f89c3bf42a0abcc3ba5714a6ea0af3dee8"
+     }
+    }
+   }
+  },
+  "wolfetLightsAfter": {
+   "report": ".tmp/wolfet-engine-lights/lights-after/report.json",
+   "passed": true,
+   "installationUnchanged": true,
+   "view": [
+    [
+     760,
+     2728,
+     -478,
+     0
+    ]
+   ],
+   "lights": {
+    "version": 1,
+    "generator": "fnTech3 scripts/probe_wolfet_engine_lights.py (test fixture)",
+    "map": "oasis",
+    "lights": [
+     {
+      "name": "probe-red",
+      "type": "point",
+      "origin": [
+       900.0,
+       2798.0,
+       -502
+      ],
+      "color": [
+       1,
+       0.15,
+       0.1
+      ],
+      "intensity": 260,
+      "radius": 260,
+      "castsShadows": false
+     },
+     {
+      "name": "probe-blue",
+      "type": "point",
+      "origin": [
+       960.0,
+       2638.0,
+       -486
+      ],
+      "color": [
+       0.15,
+       0.3,
+       1
+      ],
+      "intensity": 240,
+      "radius": 240,
+      "castsShadows": true
+     },
+     {
+      "name": "probe-green-spot",
+      "type": "spot",
+      "origin": [
+       850.0,
+       2728.0,
+       -418
+      ],
+      "direction": [
+       0.6,
+       0.0,
+       -0.8
+      ],
+      "color": [
+       0.2,
+       1,
+       0.25
+      ],
+      "intensity": 420,
+      "radius": 420,
+      "innerAngle": 20,
+      "outerAngle": 40,
+      "castsShadows": false
+     }
+    ]
+   },
+   "runs": {
+    "glx": {
+     "passed": true,
+     "exitCode": 0,
+     "views": [
+      [
+       762,
+       2754,
+       -479,
+       0
+      ]
+     ],
+     "command": [
+      "E:\\Repositories\\fnTech3\\.tmp\\runtime\\wolfet-lights-after\\fntech3.exe",
+      "+set",
+      "com_gameProfile",
+      "wolfet",
+      "+set",
+      "fs_basepath",
+      "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory",
+      "+set",
+      "fs_homepath",
+      "E:\\Repositories\\fnTech3\\.tmp\\wolfet-engine-lights\\lights-after\\glx-lights\\home",
+      "+set",
+      "fs_game",
+      "",
+      "+set",
+      "fs_cdpath",
+      "",
+      "+set",
+      "r_fullscreen",
+      "0",
+      "+set",
+      "r_mode",
+      "-1",
+      "+set",
+      "r_customWidth",
+      "800",
+      "+set",
+      "r_customHeight",
+      "600",
+      "+set",
+      "in_mouse",
+      "0",
+      "+set",
+      "in_joystick",
+      "0",
+      "+set",
+      "in_nograb",
+      "1",
+      "+set",
+      "s_initsound",
+      "0",
+      "+set",
+      "com_steamIntegration",
+      "0",
+      "+set",
+      "fs_skipWorkshop",
+      "1",
+      "+set",
+      "cl_webuiEnable",
+      "0",
+      "+set",
+      "cl_renderer",
+      "glx",
+      "+set",
+      "logfile",
+      "2",
+      "+set",
+      "net_ip",
+      "127.0.0.1",
+      "+set",
+      "net_port",
+      "0",
+      "+set",
+      "net_ip6",
+      "::1",
+      "+set",
+      "net_port6",
+      "0",
+      "+set",
+      "rtx_rt_mode",
+      "0",
+      "+set",
+      "rtx_rt_require",
+      "0",
+      "+set",
+      "com_maxfps",
+      "60",
+      "+set",
+      "com_recommendedSet",
+      "1",
+      "+set",
+      "com_hunkMegs",
+      "256",
+      "+set",
+      "cl_motd",
+      "0",
+      "+set",
+      "cl_autoupdate",
+      "0",
+      "+set",
+      "net_enabled",
+      "0",
+      "+exec",
+      "probe.cfg",
+      "+devmap",
+      "oasis"
+     ],
+     "rendererSha256": "fb71e20a71c294cecd9274fb9b018878ffb033438e9c9a180ba74ba269354d34",
+     "counters": {
+      "on": {
+       "promoted:3 skipDisabled:0 skipPVS:0 skipBudget:0": 22
+      },
+      "off": {
+       "promoted:0 skipDisabled:3 skipPVS:0 skipBudget:0": 22
+      },
+      "again": {
+       "promoted:3 skipDisabled:0 skipPVS:0 skipBudget:0": 22
+      },
+      "nodyn-on": {
+       "promoted:0 skipDisabled:3 skipPVS:0 skipBudget:0": 22
+      },
+      "nodyn-off": {
+       "promoted:0 skipDisabled:3 skipPVS:0 skipBudget:0": 22
+      },
+      "fill-on": {
+       "promoted:0 skipDisabled:0 skipPVS:0 skipBudget:3": 22
+      },
+      "fill-off": {
+       "promoted:0 skipDisabled:3 skipPVS:0 skipBudget:0": 32
+      }
+     },
+     "comparisons": {
+      "off-vs-on": {
+       "identical": false,
+       "changedPixels": 209044,
+       "meanAbsDiff": 10.8517,
+       "meanDeltaInChanged": [
+        -15.87,
+        -21.13,
+        -37.39
+       ]
+      },
+      "again-vs-on": {
+       "identical": false,
+       "changedPixels": 2192,
+       "meanAbsDiff": 0.0779,
+       "meanDeltaInChanged": [
+        -0.3,
+        -0.27,
+        -0.72
+       ]
+      },
+      "nodyn-off-vs-nodyn-on": {
+       "identical": false,
+       "changedPixels": 950,
+       "meanAbsDiff": 0.0398,
+       "meanDeltaInChanged": [
+        -0.97,
+        -0.77,
+        -0.84
+       ]
+      },
+      "nodyn-on-vs-again": {
+       "identical": false,
+       "changedPixels": 209002,
+       "meanAbsDiff": 10.85,
+       "meanDeltaInChanged": [
+        -15.88,
+        -21.14,
+        -37.4
+       ]
+      },
+      "fill-off-vs-fill-on": {
+       "identical": false,
+       "changedPixels": 1939,
+       "meanAbsDiff": 0.0567,
+       "meanDeltaInChanged": [
+        -0.48,
+        -0.55,
+        1.27
+       ]
+      }
+     },
+     "captures": {
+      "on": "c42443d59b1ca21418dbafaaeb8b4b709c31b70a026479151cbf5afd9ccc7e7f",
+      "off": "ed04d7d2e2eec34ff418cd76ca65b4855cc2d03ff1e76788234649f2c6872e64",
+      "again": "426746f1ad6753d283f2eb28e236934e1f72cdaa7dd30cb88b23e1d97857aee0",
+      "nodyn-on": "d6d0614d1a496be78235ae4a4c328b90bfffceea6ef0a61bc8879c45e29bb96d",
+      "nodyn-off": "fce23e0e39c76dc6e70c1feb2cedd46ddec065116029e4a80347b43586a46b14",
+      "fill-on": "c0c4f098b4a4e794da6ebe5493aa8b04b332bfd43fa3986be3416214ef437f6c",
+      "fill-off": "97a323bd06cd927e3a81fd98740b23473bab1502d1d764a22272204447e9d9df"
+     }
+    },
+    "vk": {
+     "passed": true,
+     "exitCode": 0,
+     "views": [
+      [
+       760,
+       2728,
+       -478,
+       0
+      ]
+     ],
+     "command": [
+      "E:\\Repositories\\fnTech3\\.tmp\\runtime\\wolfet-lights-after\\fntech3.exe",
+      "+set",
+      "com_gameProfile",
+      "wolfet",
+      "+set",
+      "fs_basepath",
+      "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory",
+      "+set",
+      "fs_homepath",
+      "E:\\Repositories\\fnTech3\\.tmp\\wolfet-engine-lights\\lights-after\\vk-lights\\home",
+      "+set",
+      "fs_game",
+      "",
+      "+set",
+      "fs_cdpath",
+      "",
+      "+set",
+      "r_fullscreen",
+      "0",
+      "+set",
+      "r_mode",
+      "-1",
+      "+set",
+      "r_customWidth",
+      "800",
+      "+set",
+      "r_customHeight",
+      "600",
+      "+set",
+      "in_mouse",
+      "0",
+      "+set",
+      "in_joystick",
+      "0",
+      "+set",
+      "in_nograb",
+      "1",
+      "+set",
+      "s_initsound",
+      "0",
+      "+set",
+      "com_steamIntegration",
+      "0",
+      "+set",
+      "fs_skipWorkshop",
+      "1",
+      "+set",
+      "cl_webuiEnable",
+      "0",
+      "+set",
+      "cl_renderer",
+      "vk",
+      "+set",
+      "logfile",
+      "2",
+      "+set",
+      "net_ip",
+      "127.0.0.1",
+      "+set",
+      "net_port",
+      "0",
+      "+set",
+      "net_ip6",
+      "::1",
+      "+set",
+      "net_port6",
+      "0",
+      "+set",
+      "rtx_rt_mode",
+      "0",
+      "+set",
+      "rtx_rt_require",
+      "0",
+      "+set",
+      "com_maxfps",
+      "60",
+      "+set",
+      "com_recommendedSet",
+      "1",
+      "+set",
+      "com_hunkMegs",
+      "256",
+      "+set",
+      "cl_motd",
+      "0",
+      "+set",
+      "cl_autoupdate",
+      "0",
+      "+set",
+      "net_enabled",
+      "0",
+      "+exec",
+      "probe.cfg",
+      "+devmap",
+      "oasis"
+     ],
+     "rendererSha256": "a77383ce291197f3b479838b113baeeb8292035be3f788de4c5398858d736e23",
+     "counters": {
+      "on": {
+       "promoted:3 skipDisabled:0 skipPVS:0 skipBudget:0": 22
+      },
+      "off": {
+       "promoted:0 skipDisabled:3 skipPVS:0 skipBudget:0": 22
+      },
+      "again": {
+       "promoted:3 skipDisabled:0 skipPVS:0 skipBudget:0": 22
+      },
+      "nodyn-on": {
+       "promoted:0 skipDisabled:3 skipPVS:0 skipBudget:0": 22
+      },
+      "nodyn-off": {
+       "promoted:0 skipDisabled:3 skipPVS:0 skipBudget:0": 22
+      },
+      "fill-on": {
+       "promoted:0 skipDisabled:0 skipPVS:0 skipBudget:3": 22
+      },
+      "fill-off": {
+       "promoted:0 skipDisabled:3 skipPVS:0 skipBudget:0": 32
+      }
+     },
+     "comparisons": {
+      "off-vs-on": {
+       "identical": false,
+       "changedPixels": 214468,
+       "meanAbsDiff": 14.3732,
+       "meanDeltaInChanged": [
+        -13.89,
+        -23.33,
+        -59.01
+       ]
+      },
+      "again-vs-on": {
+       "identical": false,
+       "changedPixels": 1505,
+       "meanAbsDiff": 0.0729,
+       "meanDeltaInChanged": [
+        -1.83,
+        -1.3,
+        -2.34
+       ]
+      },
+      "nodyn-off-vs-nodyn-on": {
+       "identical": false,
+       "changedPixels": 510,
+       "meanAbsDiff": 0.0326,
+       "meanDeltaInChanged": [
+        0.47,
+        0.9,
+        -0.98
+       ]
+      },
+      "nodyn-on-vs-again": {
+       "identical": false,
+       "changedPixels": 214441,
+       "meanAbsDiff": 14.3713,
+       "meanDeltaInChanged": [
+        -13.89,
+        -23.33,
+        -59.01
+       ]
+      },
+      "fill-off-vs-fill-on": {
+       "identical": false,
+       "changedPixels": 1425,
+       "meanAbsDiff": 0.0561,
+       "meanDeltaInChanged": [
+        2.86,
+        2.37,
+        3.3
+       ]
+      }
+     },
+     "captures": {
+      "on": "464c4166d86a021c9f75d1a2813760f616bbb3159e0cb7245a3488b31a3b4930",
+      "off": "fdcd674294b56eb76ddc94673fc7d4c1b2df8a78ddbe0bf0a2d388d1071845cb",
+      "again": "de16539d7e59fe9d96875ce10a0b0698205bb48eb78b6956b8e111e7fab35d6f",
+      "nodyn-on": "916a48c74b898e6844c33fb158922ff64a04cf76137a4adf5a09e72c96ebbbc5",
+      "nodyn-off": "bba2799f58829e915a09f36967f4a8f0d48a9d10b18e6184165fdf19167b4cb2",
+      "fill-on": "95fdd3ffd11cc87cec312b3487fb6e72e387c9776423c8355193d3aa050e8abc",
+      "fill-off": "2f4639c9fa1cb6ae356305237d0d9124df8150d8e6e7dc68864efacd1d8f1154"
+     }
+    },
+    "rtx": {
+     "passed": true,
+     "exitCode": 0,
+     "views": [
+      [
+       760,
+       2728,
+       -478,
+       0
+      ]
+     ],
+     "command": [
+      "E:\\Repositories\\fnTech3\\.tmp\\runtime\\wolfet-lights-after\\fntech3.exe",
+      "+set",
+      "com_gameProfile",
+      "wolfet",
+      "+set",
+      "fs_basepath",
+      "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory",
+      "+set",
+      "fs_homepath",
+      "E:\\Repositories\\fnTech3\\.tmp\\wolfet-engine-lights\\lights-after\\rtx-lights\\home",
+      "+set",
+      "fs_game",
+      "",
+      "+set",
+      "fs_cdpath",
+      "",
+      "+set",
+      "r_fullscreen",
+      "0",
+      "+set",
+      "r_mode",
+      "-1",
+      "+set",
+      "r_customWidth",
+      "800",
+      "+set",
+      "r_customHeight",
+      "600",
+      "+set",
+      "in_mouse",
+      "0",
+      "+set",
+      "in_joystick",
+      "0",
+      "+set",
+      "in_nograb",
+      "1",
+      "+set",
+      "s_initsound",
+      "0",
+      "+set",
+      "com_steamIntegration",
+      "0",
+      "+set",
+      "fs_skipWorkshop",
+      "1",
+      "+set",
+      "cl_webuiEnable",
+      "0",
+      "+set",
+      "cl_renderer",
+      "rtx",
+      "+set",
+      "logfile",
+      "2",
+      "+set",
+      "net_ip",
+      "127.0.0.1",
+      "+set",
+      "net_port",
+      "0",
+      "+set",
+      "net_ip6",
+      "::1",
+      "+set",
+      "net_port6",
+      "0",
+      "+set",
+      "rtx_rt_mode",
+      "0",
+      "+set",
+      "rtx_rt_require",
+      "0",
+      "+set",
+      "com_maxfps",
+      "60",
+      "+set",
+      "com_recommendedSet",
+      "1",
+      "+set",
+      "com_hunkMegs",
+      "256",
+      "+set",
+      "cl_motd",
+      "0",
+      "+set",
+      "cl_autoupdate",
+      "0",
+      "+set",
+      "net_enabled",
+      "0",
+      "+exec",
+      "probe.cfg",
+      "+devmap",
+      "oasis"
+     ],
+     "rendererSha256": "0d4ddddba79f12f6f7dae28448ad141aa6c1780f336291d66ad2976de147ca1c",
+     "counters": {
+      "on": {
+       "promoted:3 skipDisabled:0 skipPVS:0 skipBudget:0": 22
+      },
+      "off": {
+       "promoted:0 skipDisabled:3 skipPVS:0 skipBudget:0": 22
+      },
+      "again": {
+       "promoted:3 skipDisabled:0 skipPVS:0 skipBudget:0": 22
+      },
+      "nodyn-on": {
+       "promoted:0 skipDisabled:3 skipPVS:0 skipBudget:0": 22
+      },
+      "nodyn-off": {
+       "promoted:0 skipDisabled:3 skipPVS:0 skipBudget:0": 22,
+       "promoted:3 skipDisabled:0 skipPVS:0 skipBudget:0": 10
+      }
+     },
+     "comparisons": {
+      "off-vs-on": {
+       "identical": false,
+       "changedPixels": 214477,
+       "meanAbsDiff": 14.39,
+       "meanDeltaInChanged": [
+        -13.92,
+        -23.39,
+        -59.02
+       ]
+      },
+      "again-vs-on": {
+       "identical": false,
+       "changedPixels": 1506,
+       "meanAbsDiff": 0.0729,
+       "meanDeltaInChanged": [
+        -1.82,
+        -1.3,
+        -2.33
+       ]
+      },
+      "nodyn-off-vs-nodyn-on": {
+       "identical": false,
+       "changedPixels": 511,
+       "meanAbsDiff": 0.0326,
+       "meanDeltaInChanged": [
+        0.66,
+        0.94,
+        -0.96
+       ]
+      },
+      "nodyn-on-vs-again": {
+       "identical": false,
+       "changedPixels": 214455,
+       "meanAbsDiff": 14.388,
+       "meanDeltaInChanged": [
+        -13.92,
+        -23.39,
+        -59.02
+       ]
+      }
+     },
+     "captures": {
+      "on": "ab322fce9a87276435fff0c699eb89f7a3131c0f2e257d050bf12da278934895",
+      "off": "c24abc809028e4dd8a63b73fa0093cc07dc7f6e96296ec4e5e7f66d6e41aeb50",
+      "again": "9fcb737888cebcea91a4a37c05354869bb3e52efa3a6cf7ad2b99808dde47cef",
+      "nodyn-on": "1c0ca57438a19acdd651e6c333b981aa981488971c1b7a18de597fd7aba74ed5",
+      "nodyn-off": "0a5737c09841a7f06ad2ced523e3f8ad318f443d5a5c1ed4979bdcd6afd95b3b"
+     }
+    }
+   }
+  },
+  "wolfetThrowAfter": {
+   "report": ".tmp/wolfet-engine-lights/throw-after/report.json",
+   "passed": true,
+   "installationUnchanged": true,
+   "fired": true,
+   "renderer": "glx",
+   "views": [
+    [
+     760,
+     2728,
+     -478,
+     0
+    ]
+   ],
+   "script": "wait 60; team b 2 8 7; wait 150; openlimbomenu; wait 30; cg_drawGun 0; set probe_step ready; probe_step; wait 20; screenshotPNG ready; wait 2; cg_draw2D 0; weaponbank 6; wait 60; +lookdown; wait 20; -lookdown; wait 30; +attack; wait 30; -attack; viewpos; set probe_step glow; probe_step; wait 40; screenshotPNG glow; wait 2; r_dynamiclight 0; set probe_step glow-nodyn; probe_step; wait 20; screenshotPNG glow-nodyn; wait 2; r_dynamiclight 1; set probe_step glow-again; probe_step; wait 20; screenshotPNG glow-again; wait 2; wait 1200; set probe_step faded; probe_step; wait 20; screenshotPNG faded; wait 2; r_dynamiclight 0; set probe_step faded-nodyn; probe_step; wait 20; screenshotPNG faded-nodyn; wait 2; r_dynamiclight 1; wait 10; quit",
+   "command": [
+    "E:\\Repositories\\fnTech3\\.tmp\\runtime\\wolfet-lights-after\\fntech3.exe",
+    "+set",
+    "com_gameProfile",
+    "wolfet",
+    "+set",
+    "fs_basepath",
+    "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory",
+    "+set",
+    "fs_homepath",
+    "E:\\Repositories\\fnTech3\\.tmp\\wolfet-engine-lights\\throw-after\\glx-throw\\home",
+    "+set",
+    "fs_game",
+    "",
+    "+set",
+    "fs_cdpath",
+    "",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "-1",
+    "+set",
+    "r_customWidth",
+    "800",
+    "+set",
+    "r_customHeight",
+    "600",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "in_joystick",
+    "0",
+    "+set",
+    "in_nograb",
+    "1",
+    "+set",
+    "s_initsound",
+    "0",
+    "+set",
+    "com_steamIntegration",
+    "0",
+    "+set",
+    "fs_skipWorkshop",
+    "1",
+    "+set",
+    "cl_webuiEnable",
+    "0",
+    "+set",
+    "cl_renderer",
+    "glx",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "net_ip",
+    "127.0.0.1",
+    "+set",
+    "net_port",
+    "0",
+    "+set",
+    "net_ip6",
+    "::1",
+    "+set",
+    "net_port6",
+    "0",
+    "+set",
+    "rtx_rt_mode",
+    "0",
+    "+set",
+    "rtx_rt_require",
+    "0",
+    "+set",
+    "com_maxfps",
+    "60",
+    "+set",
+    "com_recommendedSet",
+    "1",
+    "+set",
+    "com_hunkMegs",
+    "256",
+    "+set",
+    "cl_motd",
+    "0",
+    "+set",
+    "cl_autoupdate",
+    "0",
+    "+set",
+    "net_enabled",
+    "0",
+    "+exec",
+    "probe.cfg",
+    "+devmap",
+    "oasis"
+   ],
+   "rendererSha256": "fb71e20a71c294cecd9274fb9b018878ffb033438e9c9a180ba74ba269354d34",
+   "comparisons": {
+    "glow-vs-faded": {
+     "identical": false,
+     "changedPixels": 431573,
+     "meanAbsDiff": 19.3568,
+     "meanDeltaInChanged": [
+      6.56,
+      14.05,
+      9.02
+     ],
+     "changedBox": [
+      1,
+      1,
+      798,
+      598
+     ]
+    },
+    "glow-nodyn-vs-faded-nodyn": {
+     "identical": false,
+     "changedPixels": 290107,
+     "meanAbsDiff": 12.7773,
+     "meanDeltaInChanged": [
+      4.1,
+      9.59,
+      4.72
+     ],
+     "changedBox": [
+      1,
+      1,
+      798,
+      598
+     ]
+    },
+    "glow-nodyn-vs-glow": {
+     "identical": false,
+     "changedPixels": 330843,
+     "meanAbsDiff": 10.8823,
+     "meanDeltaInChanged": [
+      -4.81,
+      -9.63,
+      -6.98
+     ],
+     "changedBox": [
+      1,
+      1,
+      798,
+      598
+     ]
+    },
+    "glow-again-vs-glow": {
+     "identical": false,
+     "changedPixels": 340190,
+     "meanAbsDiff": 11.0318,
+     "meanDeltaInChanged": [
+      -4.89,
+      -9.63,
+      -6.93
+     ],
+     "changedBox": [
+      1,
+      1,
+      798,
+      598
+     ]
+    },
+    "faded-nodyn-vs-faded": {
+     "identical": false,
+     "changedPixels": 147,
+     "meanAbsDiff": 0.0045,
+     "meanDeltaInChanged": [
+      1.88,
+      1.92,
+      1.92
+     ],
+     "changedBox": [
+      298,
+      529,
+      510,
+      598
+     ]
+    }
+   },
+   "captures": {
+    "ready": "b92931b24ccef53c9adaa1dc1d0ec37eb7f2036243cbcc2a66563808e64bf9dd",
+    "glow": "7f6ec9ed1ef676751f864afb5d65922a310bb359c0943c607445597c214695bd",
+    "glow-nodyn": "9347f06d58bdffc8b3fa21ee76533335c8dc1276a3be93bd35e684c18c53e797",
+    "glow-again": "c23ec77d1c78fbc0333cd3068d2013fe7fabf7357a8cf1ac46a072b303206f41",
+    "faded": "3f8752e24e896b8e2621bdd904c82e8b13c4b966d40888136202acfe479c5fb8",
+    "faded-nodyn": "46397c19fc78ddc84e98605e0af7d7c0532547f65f7d1d9cf899ff81da8dcece"
+   },
+   "glowOutsideCharge": {
+    "chargeBox": [
+     427,
+     383,
+     631,
+     541
+    ],
+    "changedPixels": 290107,
+    "changedOutsideBox": 261456,
+    "meanDeltaOutsideBox": [
+     13.11,
+     18.68,
+     11.04
+    ],
+    "method": "model pixels: darker than the faded view by more than 60 summed levels; box padded by 10"
+   }
+  },
+  "wolfetDryBefore": {
+   "report": ".tmp/wolfet-engine-lights/dry-before/report.json",
+   "passed": true,
+   "installationUnchanged": true,
+   "fired": false,
+   "renderer": "glx",
+   "views": [
+    [
+     760,
+     2728,
+     -478,
+     0
+    ]
+   ],
+   "script": "wait 60; team b 2 8 7; wait 150; openlimbomenu; wait 30; cg_drawGun 0; set probe_step ready; probe_step; wait 20; screenshotPNG ready; wait 2; cg_draw2D 0; weaponbank 6; wait 60; +lookdown; wait 20; -lookdown; wait 30; wait 30; viewpos; set probe_step glow; probe_step; wait 40; screenshotPNG glow; wait 2; r_dynamiclight 0; set probe_step glow-nodyn; probe_step; wait 20; screenshotPNG glow-nodyn; wait 2; r_dynamiclight 1; set probe_step glow-again; probe_step; wait 20; screenshotPNG glow-again; wait 2; wait 1200; set probe_step faded; probe_step; wait 20; screenshotPNG faded; wait 2; r_dynamiclight 0; set probe_step faded-nodyn; probe_step; wait 20; screenshotPNG faded-nodyn; wait 2; r_dynamiclight 1; wait 10; quit",
+   "command": [
+    "E:\\Repositories\\fnTech3\\.tmp\\runtime\\wolfet-lights-before\\fntech3.exe",
+    "+set",
+    "com_gameProfile",
+    "wolfet",
+    "+set",
+    "fs_basepath",
+    "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory",
+    "+set",
+    "fs_homepath",
+    "E:\\Repositories\\fnTech3\\.tmp\\wolfet-engine-lights\\dry-before\\glx-dry\\home",
+    "+set",
+    "fs_game",
+    "",
+    "+set",
+    "fs_cdpath",
+    "",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "-1",
+    "+set",
+    "r_customWidth",
+    "800",
+    "+set",
+    "r_customHeight",
+    "600",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "in_joystick",
+    "0",
+    "+set",
+    "in_nograb",
+    "1",
+    "+set",
+    "s_initsound",
+    "0",
+    "+set",
+    "com_steamIntegration",
+    "0",
+    "+set",
+    "fs_skipWorkshop",
+    "1",
+    "+set",
+    "cl_webuiEnable",
+    "0",
+    "+set",
+    "cl_renderer",
+    "glx",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "net_ip",
+    "127.0.0.1",
+    "+set",
+    "net_port",
+    "0",
+    "+set",
+    "net_ip6",
+    "::1",
+    "+set",
+    "net_port6",
+    "0",
+    "+set",
+    "rtx_rt_mode",
+    "0",
+    "+set",
+    "rtx_rt_require",
+    "0",
+    "+set",
+    "com_maxfps",
+    "60",
+    "+set",
+    "com_recommendedSet",
+    "1",
+    "+set",
+    "com_hunkMegs",
+    "256",
+    "+set",
+    "cl_motd",
+    "0",
+    "+set",
+    "cl_autoupdate",
+    "0",
+    "+set",
+    "net_enabled",
+    "0",
+    "+exec",
+    "probe.cfg",
+    "+devmap",
+    "oasis"
+   ],
+   "rendererSha256": "933ecf24ff93fd89a42951f4cee43bfc6aaf3d41ccf76179ebd1f7c4ceb81a50",
+   "comparisons": {
+    "glow-vs-faded": {
+     "identical": false,
+     "changedPixels": 3838,
+     "meanAbsDiff": 0.0284,
+     "meanDeltaInChanged": [
+      -0.72,
+      -0.88,
+      -0.66
+     ],
+     "changedBox": [
+      290,
+      534,
+      502,
+      598
+     ]
+    },
+    "glow-nodyn-vs-faded-nodyn": {
+     "identical": false,
+     "changedPixels": 6271,
+     "meanAbsDiff": 0.0534,
+     "meanDeltaInChanged": [
+      0.65,
+      0.8,
+      0.66
+     ],
+     "changedBox": [
+      290,
+      534,
+      506,
+      598
+     ]
+    },
+    "glow-nodyn-vs-glow": {
+     "identical": false,
+     "changedPixels": 356,
+     "meanAbsDiff": 0.0081,
+     "meanDeltaInChanged": [
+      1.69,
+      1.66,
+      1.66
+     ],
+     "changedBox": [
+      291,
+      534,
+      498,
+      598
+     ]
+    },
+    "glow-again-vs-glow": {
+     "identical": false,
+     "changedPixels": 1989,
+     "meanAbsDiff": 0.0208,
+     "meanDeltaInChanged": [
+      2.08,
+      2.03,
+      1.98
+     ],
+     "changedBox": [
+      292,
+      534,
+      498,
+      598
+     ]
+    },
+    "faded-nodyn-vs-faded": {
+     "identical": false,
+     "changedPixels": 2222,
+     "meanAbsDiff": 0.0197,
+     "meanDeltaInChanged": [
+      -1.5,
+      -1.61,
+      -1.29
+     ],
+     "changedBox": [
+      295,
+      536,
+      506,
+      598
+     ]
+    }
+   },
+   "captures": {
+    "ready": "28c62fcdfb8631d981a64e3a9f77c4a14692c7fcf4b208c5703edc7562b44880",
+    "glow": "ccf5b6048f14284335bd7e74c1be5038ad04afab6874537e46b25d3c999774cd",
+    "glow-nodyn": "8202585a31e2b4a8ebcecea23552764d875aa8c832ca7c66afb4b6aa8ef21453",
+    "glow-again": "8d1259e1e167c05002be335a9a046ac1012ef4933f6dafd05f8570acd30fcca1",
+    "faded": "1fb22245c559a060e11ef61cc59ec83d8223bd7b1efbb658d596be43a9ec7e34",
+    "faded-nodyn": "ec34e40ed342c7f1fdbed57e372850cb74f25b96ca377ac1d242a98313fe4b15"
+   }
+  },
+  "rtcwMpAfterAgainstBefore": {
+   "report": ".tmp/wolfet-engine-lights/rtcw-after/report.json",
+   "passed": true,
+   "runs": 23,
+   "demo": {
+    "path": "E:\\Repositories\\fnTech3\\.tmp\\rtcw-engine-lights\\matrix\\enginelights.dm_60",
+    "sha256": "9bde8876a0b4a24e5d3ada12569245f42f7b53378230ce5d888c33b1ce646989",
+    "bytes": 14008
+   },
+   "reusedFrom": ".tmp/rtcw-engine-lights/matrix/report.json",
+   "comparisons": 46,
+   "identical": 46,
+   "identicalWhereExcluded": true,
+   "installationUnchanged": true,
+   "cases": [
+    "mode0-off",
+    "mode0-static",
+    "nodynamic-off",
+    "nodynamic-static",
+    "off",
+    "proxies",
+    "static",
+    "test"
+   ],
+   "renderers": [
+    "glx",
+    "rtx",
+    "vk"
+   ]
+  },
+  "q3AfterAgainstBefore": {
+   "report": ".tmp/wolfet-engine-lights/q3-after/report.json",
+   "passed": true,
+   "runs": 23,
+   "demo": {
+    "path": "E:\\Repositories\\fnTech3\\.tmp\\rtcw-engine-lights\\q3-record\\enginelights.dm_68",
+    "sha256": "8ec0ceec2d9cafd6e33c9f553151794ab0fe1302c1ed0ac4db18332bfc08af14",
+    "bytes": 4374
+   },
+   "reusedFrom": ".tmp/rtcw-engine-lights/q3-record/report.json",
+   "comparisons": 46,
+   "identical": 46,
+   "identicalWhereExcluded": true,
+   "installationUnchanged": true,
+   "cases": [
+    "mode0-off",
+    "mode0-static",
+    "nodynamic-off",
+    "nodynamic-static",
+    "off",
+    "proxies",
+    "static",
+    "test"
+   ],
+   "renderers": [
+    "glx",
+    "rtx",
+    "vk"
+   ]
+  },
+  "qlAcrossRuntimes": {
+   "report": ".tmp/wolfet-engine-lights/ql/manifest.json",
+   "demo": {
+    "path": "E:\\Repositories\\fnTech3\\.tmp\\shadowfinish\\evidence\\ql-campgrounds.dm_91",
+    "sha256": "3973b6f7e0ecad441e3d3a11de326c5d2ec7907e5b5168a1c7ed4b74bb96d218"
+   },
+   "replays": 12,
+   "passed": true,
+   "comparisons": 12,
+   "identical": 12,
+   "installationUnchanged": true
+  }
+ },
+ "firstApprovedFiringRun": {
+  "map": "battery",
+  "outcome": "nothing thrown",
+  "reason": "The server restarted on the gametype change and came up with the match running, so the joined engineer waited in limbo for a 30-second reinforcement wave and +attack reached limbo."
+ }
+}

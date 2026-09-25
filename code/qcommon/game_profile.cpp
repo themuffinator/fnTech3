@@ -9,6 +9,7 @@ General Public License, version 2 or (at your option) any later version.
 
 #include "game_manager.h"
 #include "q3_ihv_install.hpp"
+#include "q3test_install.hpp"
 
 #include <cctype>
 #include <cstring>
@@ -35,7 +36,13 @@ const comGameTitle_t titles[] = {
 	{ COM_GAME_TITLE_JK2, "jk2", "Star Wars Jedi Knight II: Jedi Outcast" },
 	/* One title, one mode: the key names the profile directly, and profile
 	 * lookup answers it before the mode question is ever asked. */
-	{ COM_GAME_TITLE_ALICE, "alice", "American McGee's Alice" }
+	{ COM_GAME_TITLE_ALICE, "alice", "American McGee's Alice" },
+	/* The same for Heavy Metal: F.A.K.K.2, the title Alice's engine came from. */
+	{ COM_GAME_TITLE_FAKK2, "fakk2", "Heavy Metal: F.A.K.K.2" },
+	/* Medal of Honor: Allied Assault's single player and multiplayer are one
+	 * executable and one installation with no mode switch, so it is one
+	 * profile whose key the title shares. */
+	{ COM_GAME_TITLE_MOHAA, "mohaa", "Medal of Honor: Allied Assault" }
 };
 
 /* One catalog owns title identity, aliases and startup contracts. RTCW facts
@@ -517,12 +524,166 @@ const comGameProfile_t profiles[] = { {
 		nullptr, nullptr, nullptr, nullptr },
 	{ nullptr, nullptr, 0 },
 	nullptr
+}, {
+	/* Retail Heavy Metal: F.A.K.K.2 1.0 (fakk2.exe 1.0.0.1, linked
+	 * 2000-07-31): the engine Alice's descends from, with fakk/ as its game
+	 * directory and gamex86.dll and cgamex86.dll beside the paks. The disc's
+	 * fakk2.exe is LaserLock-wrapped -- its code and data sections are
+	 * encrypted on disk -- but the 1.02 patch's is plain, and it sends
+	 * protocol 1 (0x0042161d). The module tables, the entity record and the
+	 * configstring bounds are measured in the two retail libraries, which are
+	 * plain; config.cfg (0x0042e16a), the 48 KB messages (0x00443bad) and the
+	 * submodel and reliable-command bounds below are read from the 1.02
+	 * engine. See docs/fntech3/2026-09-24-fakk2-contracts.md. */
+	COM_GAME_FAKK2,
+	"fakk2",
+	"Heavy Metal: F.A.K.K.2",
+	"fakk",
+	"pak0.pk3",
+	1,
+	1,
+	COM_PROTOCOL_FAMILY_FAKK2,
+	COM_MODULE_API_FAKK2_NATIVE,
+	COM_MODULE_API_FAKK2_NATIVE,
+	0,
+	0,
+	nullptr,
+	nullptr,
+	COM_GAME_TITLE_FAKK2,
+	COM_GAME_MARKER_FAKK2,
+	{ "heavymetal-fakk2", "heavymetalfakk2", "hmfakk2", nullptr },
+	"config.cfg",
+	"config_server.cfg",
+	nullptr,
+	nullptr,
+	"F.A.K.K.2 module, wire, savegame, asset and renderer adapters are not yet complete",
+	/* The client game bounds a configstring at 1,200 (0x300222be) and
+	 * registers models over [32, 416), sounds over [416, 672) and light
+	 * styles over [736, 768) (0x30022057..0x3002211e), which is the SDK
+	 * header's layout; the players start where the light styles end. The
+	 * 128-client bound is that header's MAX_CLIENTS. fakk2.exe 1.02 refuses
+	 * a map of more than 384 submodels (0x0042575f) and answers handle 383
+	 * with its temporary box (0x00426702), where Alice's engine admits 512;
+	 * no retail map has more than 201. */
+	128, 1200, 768, 384, COM_ENTITY_HULL_TRACE_SHAPE, COM_ENTITY_BOX_CONTENTS_BODY, nullptr,
+	{ "0", "20", "1", "1", nullptr, nullptr, 1, "0", 0 },
+	/* No Quake bot library, as in Alice. fakk2.exe 1.02 rings 64 reliable
+	 * commands, where Alice's engine rings 128: its server drops a client
+	 * at the 65th unacknowledged one (0x004468dd). */
+	{ "0", "1", "1024", 1024, 0, 0, 0, 0, 0, 64 },
+	COM_PURE_PROOF_UNAVAILABLE,
+	/* Julie is the game's own character: no model, head or colour key. */
+	{ nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 0, 1,
+		nullptr, nullptr, nullptr, nullptr },
+	{ nullptr, nullptr, 0 },
+	nullptr
+}, {
+	/* Retail Medal of Honor: Allied Assault 1.00 (MOHAA.exe linked
+	 * 2001-12-06): 2015's descendant of Ritual's engine, with main/ as its
+	 * game directory, gamex86.dll and cgamex86.dll beside six paks whose
+	 * names are capitalised, and the allocator both libraries import in
+	 * system86.dll beside the executable. MOHAA.exe is SafeDisc-wrapped -- its
+	 * code and data are encrypted on disk -- so no number here is read from
+	 * the engine itself. The module tables, record sizes and configstring
+	 * blocks are measured in the two plain retail libraries; the protocol,
+	 * the configuration's name and the defaults the modules do not bound are
+	 * OpenMoHAA's readings of the engine, and are marked so in
+	 * docs/fntech3/2026-09-24-mohaa-contracts.md. */
+	COM_GAME_MOHAA,
+	"mohaa",
+	"Medal of Honor: Allied Assault",
+	"main",
+	"Pak0.pk3",
+	6,
+	6,
+	COM_PROTOCOL_FAMILY_MOHAA,
+	COM_MODULE_API_MOHAA_NATIVE,
+	COM_MODULE_API_MOHAA_NATIVE,
+	0,
+	0,
+	nullptr,
+	nullptr,
+	COM_GAME_TITLE_MOHAA,
+	COM_GAME_MARKER_MOHAA,
+	{ "medalofhonor", "moh-aa", "alliedassault", nullptr },
+	/* The engine keeps its configuration under configs/, named for the
+	 * profile the player chose, and unnamedsoldier.cfg is the default one. */
+	"configs/unnamedsoldier.cfg",
+	"configs/unnamedsoldier_server.cfg",
+	nullptr,
+	nullptr,
+	"Medal of Honor module, wire, savegame, asset and renderer adapters are not yet complete",
+	/* The client game bounds a configstring at 2,736 (0x300234dd) and
+	 * dispatches light styles over [1652, 1684) (0x3002324e..0x30023267), so
+	 * the players' block starts at 1,684; it is 64 long, the client bound.
+	 * 1,024 submodels is the maps' own ceiling. */
+	64, 2736, 1684, 1024, COM_ENTITY_HULL_TRACE_SHAPE, COM_ENTITY_BOX_CONTENTS_BODY, nullptr,
+	/* g_gametype 0 is single player; the engine registers it, and a
+	 * listen server starts with one slot. */
+	{ "0", "20", "1", "1", nullptr, nullptr, 1, "0", 0 },
+	/* 1.00 has no bot library and its game exports no bot entry points (the
+	 * two slots are null), so no bot ever takes a client slot. */
+	{ "0", "1", "1024", 1024, 0, 0, 0, 0, 0, 0 },
+	/* OpenMoHAA's CL_SendPureChecksums and SV_VerifyPaks_f; sv_pure is off
+	 * by default, as the server policy above has it. */
+	COM_PURE_PROOF_MOHAA_REFERENCES,
+	/* Multiplayer publishes an Allied and a German model; the second rides
+	 * in the torso slot, which is only a second key and default here. */
+	{ "american_army", nullptr, nullptr, nullptr, nullptr, nullptr, 0, 1,
+		"dm_playermodel", "dm_playergermanmodel", "german_wehrmacht_soldier", "UnnamedSoldier" },
+	/* The intro is a staged sequence -- EA's logo movie, the title and legal
+	 * pictures, 2015's logo movie and the intro movie -- that the menu system
+	 * runs (cl_mohaa_ui.cpp); its command starts it each run, as the game's
+	 * autoexec.cfg sets cl_playintro every time. */
+	{ nullptr, "ui_startintro", 1 },
+	nullptr
+}, {
+	/* The public Q3Test builds of 1999: GetGameAPI modules beside the
+	 * executable, demoq3/ paks and each release's own protocol (35 to 40) and
+	 * map format (IBSP 44 or 45). One release is pinned at startup from the
+	 * installation (q3test_install.hpp); its protocol then replaces the one
+	 * named here. docs/fntech3/Q3TEST.md records every value below. */
+	COM_GAME_Q3TEST,
+	"q3test",
+	"Quake III Arena (Q3Test)",
+	"demoq3",
+	nullptr,
+	40,
+	40,
+	COM_PROTOCOL_FAMILY_Q3TEST,
+	COM_MODULE_API_Q3TEST_NATIVE,
+	COM_MODULE_API_Q3TEST_NATIVE,
+	0, 0, nullptr, nullptr,
+	COM_GAME_TITLE_QUAKE3,
+	COM_GAME_MARKER_Q3TEST,
+	{ "q3t", "quake3-test", nullptr, nullptr },
+	"q3config.cfg",
+	"q3config_server.cfg",
+	nullptr, nullptr,
+	"Q3Test native module, transport, demo and renderer adapters are not yet complete",
+	/* Every release clamps sv_maxclients to 128 (SV_Init, 1.02 0x41c126; 1.06
+	 * SV_BoundMaxClients 0x41cb30), and its games size their clients to
+	 * match. Players' configstrings start at 544 in 1.06-1.08 and at 672 in
+	 * 1.05, whose own client path reads them. */
+	128, 1024, 544, 256, COM_ENTITY_HULL_TRACE_SHAPE, COM_ENTITY_BOX_CONTENTS_BODY, nullptr,
+	/* SV_Init in each executable: fraglimit 20, sv_maxclients 8 latched into
+	 * serverinfo, and no sv_pure (1.08 0x0041d8f0). */
+	{ "0", "20", "8", "8", nullptr, nullptr, 1, "0", 0 },
+	/* 1.06 to 1.08 ring 64 reliable commands per client, bots included
+	 * (SV_AddServerCommand 0x0041d3a0 in 1.06, 0x0041dd10 in 1.08). */
+	{ "0", "8", "1024", 1024, 0, 0, 0, 0, 0, 64 },
+	COM_PURE_PROOF_UNAVAILABLE,
+	{ "visor", nullptr, nullptr, nullptr, "color", nullptr, 0, 1 },
+	{ nullptr, nullptr, 0 },
+	nullptr
 } };
 
 static_assert( sizeof( profiles ) / sizeof( profiles[0] ) == COM_GAME_COUNT - 1,
 	"Each concrete game ID needs one catalog entry" );
 
 const comGameProfile_t *activeProfile;
+/* Pinned once, with the q3test profile, before the filesystem starts. */
+const q3testRelease_t *activeQ3TestRelease;
 
 bool EqualsIgnoreCase( const char *left, const char *right )
 {
@@ -567,6 +728,21 @@ bool RuntimeBlocked( const comGameProfile_t *profile )
 	 * client can connect and nothing is rendered, so the release gate below
 	 * does not move. */
 	if ( profile && profile->titleId == COM_GAME_TITLE_ALICE ) return false;
+#endif
+#if defined( FNTECH3_FAKK2_DEVELOPMENT )
+	/* The same for Heavy Metal: F.A.K.K.2, which runs on the Alice adapters
+	 * where the two engines agree. Its release gate does not move either. */
+	if ( profile && profile->titleId == COM_GAME_TITLE_FAKK2 ) return false;
+#endif
+#if defined( FNTECH3_MOHAA_DEVELOPMENT )
+	/* The same for Medal of Honor: Allied Assault, whose modules speak 2015's
+	 * own tables. Its release gate does not move either. */
+	if ( profile && profile->titleId == COM_GAME_TITLE_MOHAA ) return false;
+#endif
+#if defined( FNTECH3_Q3TEST_DEVELOPMENT ) && defined( _WIN32 ) && ( defined( _M_IX86 ) || defined( __i386__ ) )
+	/* Q3Test's retail modules are Win32 x86 libraries, so only that build
+	 * runs them, and only for isolated probes; the release gate stays shut. */
+	if ( profile && profile->id == COM_GAME_Q3TEST ) return false;
 #endif
 #if defined( FNTECH3_STVEF_DEVELOPMENT )
 	/* Developer builds exercise Elite Force's SP and Holomatch adapters with
@@ -662,12 +838,16 @@ unsigned LE16( const unsigned char *p )
 
 /* A pak is named by its default.cfg and one companion file, usually a map.
  * Jedi Academy keeps its maps in a different pak from its configuration, so
- * its companion is the multiplayer configuration beside it. */
+ * its companion is the multiplayer configuration beside it. F.A.K.K.2's
+ * default.cfg ships loose beside its paks rather than in one, so its pak is
+ * named by the menu configuration it does carry. */
 struct PakIdentity {
 	unsigned marker;
 	std::uint32_t configSize, configCrc;
 	const char *companion;
 	std::uint32_t companionSize, companionCrc;
+	/* NULL means default.cfg. */
+	const char *config;
 };
 
 const PakIdentity pakIdentities[] = {
@@ -706,7 +886,18 @@ const PakIdentity pakIdentities[] = {
 	// thirty-six maps beside it. garden1 is the first level the campaign
 	// reaches and appears in no other supported title's paks.
 	{ COM_GAME_MARKER_ALICE, 1322, 0x3781148bu,
-		"maps/garden1.bsp", 6323368, 0xcb85fdaeu }
+		"maps/garden1.bsp", 6323368, 0xcb85fdaeu },
+	// Retail F.A.K.K.2 1.0 keeps menu.cfg at the root of fakk/pak0.pk3 and all
+	// thirty of its maps beside it; fakkhouse is the first level the campaign
+	// reaches after the intro. The pak carries no default.cfg at all.
+	{ COM_GAME_MARKER_FAKK2, 413, 0x609b5da3u,
+		"maps/fakkhouse.bsp", 4700748, 0xb72ef3a6u, "menu.cfg" },
+	// Retail Medal of Honor: Allied Assault 1.00 keeps default.cfg in
+	// main/Pak0.pk3 and all fifty-four maps in Pak5.pk3, so its companion is
+	// the sound alias script beside the configuration, which no other
+	// supported title ships.
+	{ COM_GAME_MARKER_MOHAA, 1856, 0xde36f158u,
+		"ubersound/ubersound.scr", 173320, 0xf462d126u }
 };
 
 std::uint32_t LE32( const unsigned char *p )
@@ -775,7 +966,7 @@ bool RecognizedPak( const std::filesystem::path &path, unsigned expected )
 		}
 		const std::string name( reinterpret_cast<const char *>( h + 46 ), nameLength );
 		const auto length = LE32( h + 24 ), crc = LE32( h + 16 );
-		if ( name == "default.cfg" ) {
+		if ( name == ( identity->config ? identity->config : "default.cfg" ) ) {
 			++defaultSeen;
 			defaultMatches = length == identity->configSize && crc == identity->configCrc;
 		} else if ( name == identity->companion ) {
@@ -873,6 +1064,13 @@ comGameBspFormat_t Com_GameManagerBspFormat( const comGameProfile_t *profile,
 		return COM_GAME_BSP_UNSUPPORTED;
 	if ( profile->id == COM_GAME_QUAKE3_IHV )
 		return version == 43 ? COM_GAME_BSP_QUAKE3_IHV : COM_GAME_BSP_UNSUPPORTED;
+	/* A Q3Test release reads its own maps' version only: 44 up to 1.05 and
+	 * 45 from 1.06. Before a release is pinned both are the profile's. */
+	if ( profile->id == COM_GAME_Q3TEST ) {
+		const q3testRelease_t *release = profile == activeProfile ? Com_Q3TestRelease() : nullptr;
+		const bool known = release ? version == release->bspVersion : version == 44 || version == 45;
+		return known ? COM_GAME_BSP_Q3TEST : COM_GAME_BSP_UNSUPPORTED;
+	}
 	if ( profile->titleId == COM_GAME_TITLE_RTCW )
 		return version == 47 ? COM_GAME_BSP_RTCW : COM_GAME_BSP_UNSUPPORTED;
 	if ( profile->titleId == COM_GAME_TITLE_WOLFET )
@@ -889,6 +1087,15 @@ comGameBspFormat_t Com_GameManagerBspFormat( const comGameProfile_t *profile,
 	 * because F.A.K.K.2's own 12 and Medal of Honor's share that ident. */
 	if ( profile->titleId == COM_GAME_TITLE_ALICE )
 		return version == 42 ? COM_GAME_BSP_FAKK : COM_GAME_BSP_UNSUPPORTED;
+	/* And every retail F.A.K.K.2 map is "FAKK" 12, the version Ritual's SDK
+	 * header names; its records are the ones Alice's 42 kept. */
+	if ( profile->titleId == COM_GAME_TITLE_FAKK2 )
+		return version == 12 ? COM_GAME_BSP_FAKK : COM_GAME_BSP_UNSUPPORTED;
+	/* Every retail Medal of Honor 1.00 map is "2015" 19, and its ident is
+	 * checked separately. The beta's 17 and 18 and the expansions' 20 and 21
+	 * move lumps and grow records, and none ships with this installation. */
+	if ( profile->titleId == COM_GAME_TITLE_MOHAA )
+		return version == 19 ? COM_GAME_BSP_MOHAA : COM_GAME_BSP_UNSUPPORTED;
 	if ( profile->titleId != COM_GAME_TITLE_QUAKE3 && profile->titleId != COM_GAME_TITLE_QUAKELIVE )
 		return COM_GAME_BSP_UNSUPPORTED;
 	/* Preserve the existing Q3/QL asset set, including IHV translation. RTCW's
@@ -984,8 +1191,10 @@ int Com_GameManagerIsConfigFile( const char *filename )
 		 * banning all of them from every pak costs nothing. Alice's retail name
 		 * is the generic config.cfg, and banning that everywhere would silently
 		 * hide a file another game's pak may legitimately carry, so Alice's two
-		 * names are protected only while Alice is the selected profile. */
-		if ( profile.titleId == COM_GAME_TITLE_ALICE && activeProfile != &profile ) continue;
+		 * names are protected only while Alice is the selected profile.
+		 * F.A.K.K.2 shares the names and the rule. */
+		if ( ( profile.titleId == COM_GAME_TITLE_ALICE || profile.titleId == COM_GAME_TITLE_FAKK2 )
+			&& activeProfile != &profile ) continue;
 		if ( EqualsIgnoreCase( filename, profile.clientConfig )
 			|| EqualsIgnoreCase( filename, profile.serverConfig ) ) return 1;
 	}
@@ -1015,6 +1224,16 @@ int Com_GameManagerNativeModuleFilename( const comGameProfile_t *profile,
 		if ( candidate || !windows || std::strcmp( architecture, "x86" )
 			|| !std::strcmp( module, "ui" ) ) return 0;
 		const char *leaf = !std::strcmp( module, "qagame" ) ? "qagamex86.dll" : "cgamex86.dll";
+		const auto length = std::strlen( leaf ); if ( length >= capacity ) return 0;
+		std::memcpy( destination, leaf, length + 1 ); return 1;
+	}
+	if ( profile->id == COM_GAME_Q3TEST ) {
+		/* Every Q3Test installer put its Win32 x86 libraries beside
+		 * quake3.exe: qagamex86.dll, cgamex86.dll from 1.05 and uix86.dll
+		 * from 1.06. There is no pak-borne module and no other platform's. */
+		if ( candidate || !windows || std::strcmp( architecture, "x86" ) ) return 0;
+		const char *leaf = !std::strcmp( module, "qagame" ) ? "qagamex86.dll"
+			: !std::strcmp( module, "cgame" ) ? "cgamex86.dll" : "uix86.dll";
 		const auto length = std::strlen( leaf ); if ( length >= capacity ) return 0;
 		std::memcpy( destination, leaf, length + 1 ); return 1;
 	}
@@ -1057,6 +1276,32 @@ int Com_GameManagerNativeModuleFilename( const comGameProfile_t *profile,
 		if ( candidate || !windows || std::strcmp( architecture, "x86" )
 			|| !std::strcmp( module, "ui" ) ) return 0;
 		const char *leaf = std::strcmp( module, "cgame" ) ? "fgamex86.dll" : "cgamex86.dll";
+		const auto length = std::strlen( leaf );
+		if ( length >= capacity ) return 0;
+		std::memcpy( destination, leaf, length + 1 );
+		return 1;
+	}
+	if ( profile->titleId == COM_GAME_TITLE_FAKK2 ) {
+		/* The installer's "Game DLLs" group puts both libraries in fakk/:
+		 * gamex86.dll, which is neither Quake III's qagamex86.dll nor Alice's
+		 * fgamex86.dll, and cgamex86.dll exporting GetCGameAPI. Win32 x86
+		 * only, and no menu module. */
+		if ( candidate || !windows || std::strcmp( architecture, "x86" )
+			|| !std::strcmp( module, "ui" ) ) return 0;
+		const char *leaf = std::strcmp( module, "cgame" ) ? "gamex86.dll" : "cgamex86.dll";
+		const auto length = std::strlen( leaf );
+		if ( length >= capacity ) return 0;
+		std::memcpy( destination, leaf, length + 1 );
+		return 1;
+	}
+	if ( profile->titleId == COM_GAME_TITLE_MOHAA ) {
+		/* The installer puts both libraries in main/ beside the paks:
+		 * gamex86.dll exporting GetGameAPI and cgamex86.dll exporting
+		 * GetCGameAPI. 2015 shipped Win32 x86 libraries only, and the menus are
+		 * the engine's own .urc resources, so there is no menu module. */
+		if ( candidate || !windows || std::strcmp( architecture, "x86" )
+			|| !std::strcmp( module, "ui" ) ) return 0;
+		const char *leaf = std::strcmp( module, "cgame" ) ? "gamex86.dll" : "cgamex86.dll";
 		const auto length = std::strlen( leaf );
 		if ( length >= capacity ) return 0;
 		std::memcpy( destination, leaf, length + 1 );
@@ -1137,7 +1382,8 @@ int Com_GameManagerNativeModuleCandidate( const comGameProfile_t *profile,
 	if ( profile && ( profile == Com_GameProfileById( COM_GAME_STVEF_SP )
 		|| profile == Com_GameProfileById( COM_GAME_JKA_SP )
 		|| profile == Com_GameProfileById( COM_GAME_JK2_SP )
-		|| profile == Com_GameProfileById( COM_GAME_QUAKE3_IHV ) ) ) {
+		|| profile == Com_GameProfileById( COM_GAME_QUAKE3_IHV )
+		|| profile == Com_GameProfileById( COM_GAME_Q3TEST ) ) ) {
 		/* These single-player engines never read their modules from paks or
 		 * mod directories; they are installed beside the executable, where a
 		 * retail Jedi Academy keeps jagamex86.dll beside jasp.exe. */
@@ -1161,7 +1407,8 @@ int Com_GameManagerResolveRootModule( const comGameProfile_t *profile,
 			&& profile != Com_GameProfileById( COM_GAME_STVEF_SP )
 			&& profile != Com_GameProfileById( COM_GAME_JKA_SP )
 			&& profile != Com_GameProfileById( COM_GAME_JK2_SP )
-			&& profile != Com_GameProfileById( COM_GAME_QUAKE3_IHV ) )
+			&& profile != Com_GameProfileById( COM_GAME_QUAKE3_IHV )
+			&& profile != Com_GameProfileById( COM_GAME_Q3TEST ) )
 		|| !root || !root[0] || !filename || !destination || !capacity ) return 0;
 	bool known = false;
 	for ( const char *module : { "cgame", "qagame", "ui" } ) {
@@ -1289,15 +1536,41 @@ unsigned Com_ProbeGameProfileMarkers( const char *rootPath )
 
 	try {
 		const auto root = std::filesystem::u8path( rootPath );
+		/* Two titles can name the same file: Return to Castle Wolfenstein's
+		 * main/pak0.pk3 and Medal of Honor's main/Pak0.pk3 are one file on a
+		 * case-insensitive filesystem. A pak is unrecognized only when no
+		 * profile that probes that file recognizes it; one title's probe must
+		 * not condemn the other's installation. */
+		struct ProbedPak {
+			std::filesystem::path path;
+			unsigned recognized;
+		};
+		std::vector<ProbedPak> probed;
 		for ( const auto &profile : profiles ) {
 			if ( !profile.basePakName ) continue;
 			const auto pak = root / profile.baseGame / profile.basePakName;
-			if ( IsRegularFile( pak ) ) {
-				markers |= RecognizedPak( pak, profile.installMarker )
-					? profile.installMarker : COM_GAME_MARKER_UNRECOGNIZED_PAK;
+			if ( !IsRegularFile( pak ) ) continue;
+			ProbedPak *entry = nullptr;
+			for ( auto &candidate : probed ) {
+				std::error_code error;
+				if ( std::filesystem::equivalent( candidate.path, pak, error ) && !error ) {
+					entry = &candidate;
+					break;
+				}
+			}
+			if ( !entry ) {
+				probed.push_back( { pak, 0 } );
+				entry = &probed.back();
+			}
+			if ( RecognizedPak( pak, profile.installMarker ) ) {
+				entry->recognized |= profile.installMarker;
 			}
 		}
+		for ( const auto &entry : probed ) {
+			markers |= entry.recognized ? entry.recognized : COM_GAME_MARKER_UNRECOGNIZED_PAK;
+		}
 		if ( fntech3::q3ihv::install::Recognizes( root ) ) markers |= COM_GAME_MARKER_QUAKE3_IHV;
+		if ( fntech3::q3test::install::Recognize( root ) != Q3TEST_RELEASE_NONE ) markers |= COM_GAME_MARKER_Q3TEST;
 	} catch ( const std::system_error & ) {
 		// Windows path conversion can fail before the error-code filesystem
 		// queries below. An unrepresentable candidate supplies no evidence;
@@ -1464,6 +1737,85 @@ int Com_GameIsAlice( void )
 	return activeProfile && activeProfile->titleId == COM_GAME_TITLE_ALICE;
 }
 
+int Com_GameIsFAKK2( void )
+{
+	return activeProfile && activeProfile->titleId == COM_GAME_TITLE_FAKK2;
+}
+
+int Com_GameIsRitual( void )
+{
+	return Com_GameIsAlice() || Com_GameIsFAKK2();
+}
+
+int Com_GameIsMOHAA( void )
+{
+	return activeProfile && activeProfile->titleId == COM_GAME_TITLE_MOHAA;
+}
+
+int Com_GameIsQ3Test( void )
+{
+	return activeProfile && activeProfile->id == COM_GAME_Q3TEST;
+}
+
+int Com_GamePreferredProtocol( void )
+{
+	const q3testRelease_t *release = Com_Q3TestRelease();
+	return release ? release->protocol : activeProfile ? activeProfile->preferredProtocol : 0;
+}
+
+int Com_GamePreferredDemoProtocol( void )
+{
+	const q3testRelease_t *release = Com_Q3TestRelease();
+	return release ? release->protocol : activeProfile ? activeProfile->preferredDemoProtocol : 0;
+}
+
+const q3testRelease_t *Com_Q3TestReleaseById( q3testReleaseId_t id )
+{
+	return fntech3::q3test::install::ById( id );
+}
+
+const q3testRelease_t *Com_Q3TestRelease( void )
+{
+	return Com_GameIsQ3Test() ? activeQ3TestRelease : nullptr;
+}
+
+int Com_Q3TestActivateRelease( q3testReleaseId_t id )
+{
+	const q3testRelease_t *release = Com_Q3TestReleaseById( id );
+	if ( !release || !Com_GameIsQ3Test() ) return 0;
+	if ( activeQ3TestRelease && activeQ3TestRelease != release ) return 0;
+	activeQ3TestRelease = release;
+	return 1;
+}
+
+q3testReleaseId_t Com_Q3TestDetectRelease( const char *rootPath )
+{
+	if ( !rootPath || !rootPath[0] ) return Q3TEST_RELEASE_NONE;
+	try {
+		return fntech3::q3test::install::Recognize( std::filesystem::u8path( rootPath ) );
+	} catch ( const std::exception & ) {
+		return Q3TEST_RELEASE_NONE;
+	}
+}
+
+int Com_GameDefaultServerPort( void )
+{
+	/* Medal of Honor's engine listens on 12203 (OpenMoHAA's PORT_SERVER, and
+	 * the port its retail servers are known by); every other profile keeps
+	 * Quake III's 27960 (qcommon.h PORT_SERVER). */
+	return Com_GameIsMOHAA() ? 12203 : 27960;
+}
+
+int Com_GameStateCharLimit( void )
+{
+	/* Medal of Honor 1.00's gamestate text is 32,000 bytes: its client game
+	 * keeps 2,736 offsets, then the text, then the count, and the graphics
+	 * configuration follows 32,000 bytes after the text begins (cgamex86.dll
+	 * 0x30023504, 0x3002350e). OpenMoHAA's 41,952 is its later protocol's.
+	 * Every other profile's is Quake III's 16,000. */
+	return Com_GameIsMOHAA() ? 32000 : 16000;
+}
+
 int Com_PureProofIsNativeModulePair( const comGameProfile_t *profile )
 {
 	return profile && ( profile->pureProof == COM_PURE_PROOF_RTCW_NATIVE
@@ -1476,9 +1828,18 @@ unsigned Com_ProtocolFamilyForVersion( int protocol )
 {
 	switch ( protocol ) {
 		case 1:
-			return COM_PROTOCOL_FAMILY_ALICE;
+			/* Alice's and F.A.K.K.2's engines both speak 1. */
+			return COM_PROTOCOL_FAMILY_ALICE | COM_PROTOCOL_FAMILY_FAKK2;
+		case 6:
+			return COM_PROTOCOL_FAMILY_MOHAA;
 		case 33:
 			return COM_PROTOCOL_FAMILY_QUAKE3_IHV;
+		case 35:
+		case 36:
+		case 38:
+		case 39:
+			/* Q3Test 1.02/1.03, 1.05, 1.06 and 1.07; 1.08's 40 is below. */
+			return COM_PROTOCOL_FAMILY_Q3TEST;
 		case 24:
 			return COM_PROTOCOL_FAMILY_STVEF_HM;
 		case 26:
@@ -1491,9 +1852,9 @@ unsigned Com_ProtocolFamilyForVersion( int protocol )
 			return COM_PROTOCOL_FAMILY_JK2_MP;
 		case 40:
 			/* Three single players speak 40: Elite Force's, Jedi Academy's
-			 * and Jedi Outcast's. */
+			 * and Jedi Outcast's. So does Q3Test 1.08, a year before them. */
 			return COM_PROTOCOL_FAMILY_STVEF_SP | COM_PROTOCOL_FAMILY_JKA_SP
-				| COM_PROTOCOL_FAMILY_JK2_SP;
+				| COM_PROTOCOL_FAMILY_JK2_SP | COM_PROTOCOL_FAMILY_Q3TEST;
 		case 49:
 			return COM_PROTOCOL_FAMILY_RTCW_SP;
 		case 50:
@@ -1522,6 +1883,11 @@ int Com_GameProfileAllowsProtocol( const comGameProfile_t *profile,
 	int protocol )
 {
 	const unsigned family = Com_ProtocolFamilyForVersion( protocol );
+	/* Once Q3Test has pinned a release, that release's number is its only
+	 * protocol: the family spans five incompatible contracts. */
+	if ( profile && profile == activeProfile && activeQ3TestRelease && profile->id == COM_GAME_Q3TEST ) {
+		return protocol == activeQ3TestRelease->protocol;
+	}
 	return profile && family != 0
 		&& ( profile->allowedProtocolFamilies & family ) != 0;
 }
@@ -1536,7 +1902,10 @@ int Com_GameProfileAllowsModuleApi( const comGameProfile_t *profile,
 		| COM_MODULE_API_QUAKE3_IHV_NATIVE
 		| COM_MODULE_API_JKA_SP_NATIVE
 		| COM_MODULE_API_JK2_SP_NATIVE
-		| COM_MODULE_API_ALICE_NATIVE;
+		| COM_MODULE_API_ALICE_NATIVE
+		| COM_MODULE_API_FAKK2_NATIVE
+		| COM_MODULE_API_MOHAA_NATIVE
+		| COM_MODULE_API_Q3TEST_NATIVE;
 	return profile && moduleApi != 0
 		&& ( moduleApi & ( moduleApi - 1 ) ) == 0
 		&& ( moduleApi & knownApis ) != 0

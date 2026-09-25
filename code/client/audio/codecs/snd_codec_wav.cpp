@@ -45,20 +45,118 @@ namespace {
 // are converted to 16-bit here.
 constexpr int kWavFormatPCM = 0x0001;
 constexpr int kWavFormatIEEEFloat = 0x0003;
+// IMA (DVI) ADPCM, which Medal of Honor: Allied Assault ships a few sounds in
+// and its Miles-based engine plays; accepted for that profile only.
+constexpr int kWavFormatIMAADPCM = 0x0011;
 constexpr int kWavFormatExtensible = 0xFFFE;
 
 struct WavSourceFormat {
 	int format = kWavFormatPCM;		// resolved format tag (extensible unwrapped)
 	int width = 0;					// bytes per sample as stored in the file
 	bool needsConversion = false;	// decoded to 16-bit PCM on read
+	// IMA ADPCM: its block size, the samples each block decodes to, the
+	// channel count and the compressed data's size
+	int blockAlign = 0;
+	int samplesPerBlock = 0;
+	int channels = 0;
+	int dataSize = 0;
 };
 
 // Stream-side conversion state stashed in snd_stream_t::ptr; the field stays
-// null for sources that can be read straight through.
+// null for sources that can be read straight through. An ADPCM stream is
+// decoded whole when it opens and read from `decoded`.
 struct WavStreamState {
 	int format;
 	int width;
+	short *decoded;
+	int decodedBytes;
 };
+
+/*
+=================
+DecodeImaAdpcm
+
+The standard IMA ADPCM block: for each channel a header of its first sample
+(a little-endian short) and its step index; then four bytes of each channel
+in turn, two samples a byte, low nibble first. A short final block decodes
+as far as its bytes go.
+=================
+*/
+constexpr int kImaIndexTable[16] = { -1, -1, -1, -1, 2, 4, 6, 8, -1, -1, -1, -1, 2, 4, 6, 8 };
+constexpr int kImaStepTable[89] = {
+	7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 19, 21, 23, 25, 28, 31, 34, 37, 41, 45,
+	50, 55, 60, 66, 73, 80, 88, 97, 107, 118, 130, 143, 157, 173, 190, 209, 230, 253, 279, 307,
+	337, 371, 408, 449, 494, 544, 598, 658, 724, 796, 876, 963, 1060, 1166, 1282, 1411, 1552, 1707,
+	1878, 2066, 2272, 2499, 2749, 3024, 3327, 3660, 4026, 4428, 4871, 5358, 5894, 6484, 7132, 7845,
+	8630, 9493, 10442, 11487, 12635, 13899, 15289, 16818, 18500, 20350, 22385, 24623, 27086, 29794, 32767
+};
+
+short ImaAdpcmNibble( int nibble, int &predictor, int &index ) {
+	const int step = kImaStepTable[index];
+	int diff = step >> 3;
+	if ( nibble & 1 ) diff += step >> 2;
+	if ( nibble & 2 ) diff += step >> 1;
+	if ( nibble & 4 ) diff += step;
+	predictor += ( nibble & 8 ) ? -diff : diff;
+	if ( predictor > 32767 ) predictor = 32767;
+	if ( predictor < -32768 ) predictor = -32768;
+	index += kImaIndexTable[nibble];
+	if ( index < 0 ) index = 0;
+	if ( index > 88 ) index = 88;
+	return static_cast<short>( predictor );
+}
+
+// The frames a block of `bytes` decodes to: those every channel holds. The
+// channels' bytes come four at a time in turn, so in a short final block the
+// last channel can hold up to four bytes fewer than the first.
+int ImaAdpcmBlockFrames( int bytes, int channels ) {
+	const int header = 4 * channels;
+	if ( channels <= 0 || bytes < header ) {
+		return 0;
+	}
+	const int data = bytes - header;
+	const int round = 4 * channels;
+	const int lastExtra = data % round - 4 * ( channels - 1 );
+	const int lastBytes = data / round * 4 + ( lastExtra > 0 ? ( std::min )( lastExtra, 4 ) : 0 );
+	return lastBytes * 2 + 1;
+}
+
+int DecodeImaAdpcm( const byte *src, int srcBytes, const WavSourceFormat &source, short *dst, int dstFrames ) {
+	const int channels = source.channels;
+	int frames = 0;
+	for ( int blockStart = 0; blockStart < srcBytes && frames < dstFrames; blockStart += source.blockAlign ) {
+		const int bytes = ( std::min )( source.blockAlign, srcBytes - blockStart );
+		const byte *block = src + blockStart;
+		const int blockFrames = ( std::min )( ImaAdpcmBlockFrames( bytes, channels ), dstFrames - frames );
+		if ( blockFrames <= 0 ) {
+			break;
+		}
+		for ( int c = 0; c < channels; c++ ) {
+			const byte *header = block + 4 * c;
+			int predictor = static_cast<short>( header[0] | ( header[1] << 8 ) );
+			int index = header[2] > 88 ? 88 : header[2];
+			short *out = dst + static_cast<size_t>( frames ) * channels + c;
+			const byte *data = block + 4 * channels + 4 * c;
+			int frame = 1;
+			out[0] = static_cast<short>( predictor );
+			// each channel's bytes come four at a time, eight samples a turn
+			for ( ; frame < blockFrames; data += 4 * channels ) {
+				for ( int k = 0; k < 4 && frame < blockFrames; k++ ) {
+					if ( data + k >= block + bytes ) {
+						frame = blockFrames;
+						break;
+					}
+					out[static_cast<size_t>( frame++ ) * channels] = ImaAdpcmNibble( data[k] & 15, predictor, index );
+					if ( frame < blockFrames ) {
+						out[static_cast<size_t>( frame++ ) * channels] = ImaAdpcmNibble( data[k] >> 4, predictor, index );
+					}
+				}
+			}
+		}
+		frames += blockFrames;
+	}
+	return frames;
+}
 
 // File lengths and filesystem read/seek counts use signed int. Keep each
 // chunk within both the physical file and its declared RIFF container.
@@ -249,12 +347,27 @@ qboolean S_ReadRIFFHeader( fileHandle_t file, int fileLength, snd_info_t *info, 
 		speakerMask = WavLittleLong( fmt.data() + 20 );
 		consumed = 40;
 	}
+	// IMA ADPCM's extra: its extension size, then the frames a block holds
+	int samplesPerBlock = 0;
+	const int blockAlign = WavLittleShort( fmt.data() + 12 );
+	if ( format == kWavFormatIMAADPCM && Com_GameIsMOHAA() ) {
+		if ( fmtlen < 20 || !reader.Read( fmt.data() + 16, 4 ) ) {
+			return qfalse;
+		}
+		samplesPerBlock = WavLittleShort( fmt.data() + 18 );
+		consumed = 20;
+	}
 	if ( !reader.Skip( fmtlen - consumed + ( fmtlen & 1 ) ) ) {
 		return qfalse;
 	}
+	// A whole block's data is whole four-byte turns of every channel.
+	const bool adpcm = format == kWavFormatIMAADPCM && samplesPerBlock > 0 && bits == 4 &&
+		channels >= 1 && channels <= 2 && blockAlign > 4 * channels &&
+		blockAlign % ( 4 * channels ) == 0 &&
+		samplesPerBlock == ImaAdpcmBlockFrames( blockAlign, channels );
 	if ( ( format == kWavFormatPCM && bits != 8 && bits != 16 && bits != 24 ) ||
 		( format == kWavFormatIEEEFloat && bits != 32 ) ||
-		( format != kWavFormatPCM && format != kWavFormatIEEEFloat ) ||
+		( format != kWavFormatPCM && format != kWavFormatIEEEFloat && !adpcm ) ||
 		channels <= 0 || channels > 32767 || rate == 0 || rate > 0x7fffffffu ) {
 		return qfalse;
 	}
@@ -262,6 +375,30 @@ qboolean S_ReadRIFFHeader( fileHandle_t file, int fileLength, snd_info_t *info, 
 	const int dataSize = S_FindRIFFChunk( reader, "data" );
 	if ( dataSize < 0 ) {
 		return qfalse;
+	}
+	if ( adpcm ) {
+		WavSourceFormat parsedSource;
+		parsedSource.format = format;
+		parsedSource.width = 0;
+		parsedSource.needsConversion = true;
+		parsedSource.blockAlign = blockAlign;
+		parsedSource.samplesPerBlock = samplesPerBlock;
+		parsedSource.channels = channels;
+		parsedSource.dataSize = dataSize;
+		const long long frames = static_cast<long long>( dataSize / blockAlign ) * samplesPerBlock
+			+ ImaAdpcmBlockFrames( dataSize % blockAlign, channels );
+		if ( frames <= 0 || frames * 2 * channels > 0x7fffffff ) {
+			return qfalse;
+		}
+		snd_info_t parsed{};
+		parsed.channels = channels;
+		parsed.rate = static_cast<int>( rate );
+		parsed.samples = static_cast<int>( frames );
+		parsed.width = 2;
+		parsed.size = parsed.samples * 2 * channels;
+		*info = parsed;
+		*source = parsedSource;
+		return qtrue;
 	}
 	WavSourceFormat parsedSource;
 	parsedSource.format = format;
@@ -335,6 +472,26 @@ extern "C" void *S_WAV_CodecLoad( const char *filename, snd_info_t *info ) {
 		return bufferStorage.release();
 	}
 
+	if ( source.format == kWavFormatIMAADPCM ) {
+		auto adpcmStorage = ScopedTempMemory::Allocate( source.dataSize );
+		byte *adpcm = adpcmStorage.as<byte>();
+		if ( !adpcm ) {
+			Com_Printf( S_COLOR_RED "ERROR: Out of memory reading \"%s\"\n",
+				filename );
+			return nullptr;
+		}
+		if ( FileRead( file.get(), adpcm, source.dataSize ) != source.dataSize ) {
+			return nullptr;
+		}
+		const int frames = DecodeImaAdpcm( adpcm, source.dataSize, source, reinterpret_cast<short *>( buffer ),
+			info->samples );
+		if ( frames < info->samples ) {
+			std::memset( buffer + static_cast<size_t>( frames ) * 2 * info->channels, 0,
+				static_cast<size_t>( info->samples - frames ) * 2 * info->channels );
+		}
+		return bufferStorage.release();
+	}
+
 	const int sampleCount = info->samples * info->channels;
 	const int sourceBytes = sampleCount * source.width;
 	auto sourceStorage = ScopedTempMemory::Allocate( sourceBytes );
@@ -380,6 +537,22 @@ extern "C" snd_stream_t *S_WAV_CodecOpenStream( const char *filename ) {
 		}
 		state->format = source.format;
 		state->width = source.width;
+		state->decoded = nullptr;
+		state->decodedBytes = 0;
+		if ( source.format == kWavFormatIMAADPCM ) {
+			// decoded whole now; the stream reads the samples from memory
+			ScopedZoneMemory adpcmStorage = AllocateZoneMemory( source.dataSize, "WavAdpcm", __FILE__, __LINE__ );
+			ScopedZoneMemory decodedStorage = AllocateZoneMemory( rv->info.size, "WavAdpcmDecoded", __FILE__, __LINE__ );
+			byte *adpcm = adpcmStorage.as<byte>();
+			auto *decoded = decodedStorage.as<short>();
+			if ( !adpcm || !decoded || FileRead( rv->file, adpcm, source.dataSize ) != source.dataSize ) {
+				S_CodecUtilClose( &rv );
+				return nullptr;
+			}
+			const int frames = DecodeImaAdpcm( adpcm, source.dataSize, source, decoded, rv->info.samples );
+			state->decodedBytes = frames * 2 * rv->info.channels;
+			state->decoded = static_cast<short *>( decodedStorage.release() );
+		}
 		rv->ptr = stateStorage.release();
 	}
 
@@ -393,6 +566,10 @@ S_WAV_CodecCloseStream
 */
 extern "C" void S_WAV_CodecCloseStream( snd_stream_t *stream ) {
 	if ( stream->ptr != nullptr ) {
+		auto *state = static_cast<WavStreamState *>( stream->ptr );
+		if ( state->decoded ) {
+			Z_Free( state->decoded );
+		}
 		Z_Free( stream->ptr );
 		stream->ptr = nullptr;
 	}
@@ -439,6 +616,14 @@ extern "C" int S_WAV_CodecReadStream( snd_stream_t *stream, int bytes, void *buf
 		const int samples = bytesRead / stream->info.width;
 		S_ByteSwapRawSamples( samples, stream->info.width, 1, static_cast<byte *>( buffer ) );
 		return bytesRead;
+	}
+
+	if ( state->decoded ) {
+		const int available = state->decodedBytes - stream->pos;
+		const int copied = available < bytes ? ( available > 0 ? available : 0 ) : bytes;
+		std::memcpy( buffer, reinterpret_cast<const byte *>( state->decoded ) + stream->pos, copied );
+		stream->pos += copied;
+		return copied;
 	}
 
 	// Decode converted source samples to 16-bit through a bounded

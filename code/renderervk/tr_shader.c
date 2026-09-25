@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "tr_local.h"
 #include "../renderercommon/tr_rtcw_shader_text.h"
 #include "../renderercommon/tr_q3_ihv_shader_text.h"
+#include "../renderercommon/tr_q3test_shader_text.h"
 #include "../renderercommon/tr_rtcw_shader_material.h"
 #include "../renderercommon/tr_rtcw_normal_fade_parser.h"
 #include <float.h>
@@ -47,6 +48,7 @@ static image_t *R_FindShaderImage( const char *name, imgFlags_t flags ) {
 
 #include "../renderercommon/tr_q3_ihv_shader.h"
 #include "../renderercommon/tr_q3_ihv_fog_parser.h"
+#include "../renderercommon/tr_q3test_shader_dialect.h"
 // The Vulkan family keeps rgbGen, alphaGen, constantColor and rgbWave on each
 // texture bundle; a parsed stage writes bundle 0.
 #define R_ALICE_GEN( stage ) ( &( stage )->bundle[0] )
@@ -430,19 +432,19 @@ static void ParseWaveForm( const char **text, waveForm_t *wave )
 ParseTexMod
 ===================
 */
-static void ParseTexMod( const char *_text, shaderStage_t *stage )
+static void ParseTexMod( const char *_text, textureBundle_t *bundle )
 {
 	const char *token;
 	const char **text = &_text;
 	texModInfo_t *tmi;
 
-	if ( stage->bundle[0].numTexMods == TR_MAX_TEXMODS ) {
+	if ( bundle->numTexMods == TR_MAX_TEXMODS ) {
 		ri.Error( ERR_DROP, "ERROR: too many tcMod stages in shader '%s'", shader.name );
 		return;
 	}
 
-	tmi = &stage->bundle[0].texMods[stage->bundle[0].numTexMods];
-	stage->bundle[0].numTexMods++;
+	tmi = &bundle->texMods[bundle->numTexMods];
+	bundle->numTexMods++;
 
 	token = COM_ParseExt( text, qfalse );
 
@@ -671,10 +673,12 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 	int i, depthMaskBits = GLS_DEPTHMASK_TRUE, blendSrcBits = 0, blendDstBits = 0, atestBits = 0, depthFuncBits = 0;
 	qboolean depthMaskExplicit = qfalse;
 	aliceStageParse_t aliceStage;
+	qboolean q3testClamp;
 	char aliceKeyword[MAX_TOKEN_CHARS];
 
 	stage->active = qfalse;
 	R_AliceBeginStage( &aliceStage );
+	q3testClamp = R_Q3TestShaderDialect() && R_Q3TestStageClamps( *text ) ? qtrue : qfalse;
 
 	while ( 1 )
 	{
@@ -750,6 +754,15 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 				continue;
 			}
 		}
+		// Q3Test's clampTexCoords clamps the stage's map (tr_q3test_shader_dialect.h).
+		if ( R_Q3TestShaderDialect() && !Q_stricmp( token, "clampTexCoords" ) )
+		{
+			continue;
+		}
+		if ( q3testClamp && !Q_stricmp( token, "map" ) && R_Q3TestImageFollows( *text ) )
+		{
+			token = "clampmap";
+		}
 		//
 		// map <name>
 		//
@@ -764,16 +777,16 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 
 			if ( !Q_stricmp( token, "$whiteimage" ) )
 			{
-				stage->bundle[0].image[0] = tr.whiteImage;
+				stage->bundle[aliceStage.bundle].image[0] = tr.whiteImage;
 				continue;
 			}
 			else if ( !Q_stricmp( token, "$lightmap" ) )
 			{
-				stage->bundle[0].lightmap = LIGHTMAP_INDEX_SHADER; // regular lightmap
+				stage->bundle[aliceStage.bundle].lightmap = LIGHTMAP_INDEX_SHADER; // regular lightmap
 				if ( shader.lightmapIndex < 0 || !tr.lightmaps ) {
-					stage->bundle[0].image[0] = tr.whiteImage;
+					stage->bundle[aliceStage.bundle].image[0] = tr.whiteImage;
 				} else {
-					stage->bundle[0].image[0] = tr.lightmaps[shader.lightmapIndex];
+					stage->bundle[aliceStage.bundle].image[0] = tr.lightmaps[shader.lightmapIndex];
 				}
 				continue;
 			}
@@ -788,10 +801,10 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 				// not merged, so the modulo was the identity).
 				const int page = tr.mergeLightmaps ? ( lightmapIndex / tr.lightmapMod ) : lightmapIndex;
 				if ( lightmapIndex < 0 || tr.lightmaps == NULL || page >= tr.numLightmaps ) {
-					stage->bundle[0].image[0] = tr.whiteImage;
+					stage->bundle[aliceStage.bundle].image[0] = tr.whiteImage;
 				} else {
-					stage->bundle[0].lightmap = LIGHTMAP_INDEX_OFFSET + lightmapIndex; //custom index
-					stage->bundle[0].image[0] = tr.lightmaps[page];
+					stage->bundle[aliceStage.bundle].lightmap = LIGHTMAP_INDEX_OFFSET + lightmapIndex; //custom index
+					stage->bundle[aliceStage.bundle].image[0] = tr.lightmaps[page];
 				}
 				continue;
 			}
@@ -808,9 +821,9 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 				if (shader.noLightScale)
 					flags |= IMGFLAG_NOLIGHTSCALE;
 
-				stage->bundle[0].image[0] = R_FindShaderImage( token, flags );
+				stage->bundle[aliceStage.bundle].image[0] = R_FindShaderImage( token, flags );
 
-				if ( !stage->bundle[0].image[0] )
+				if ( !stage->bundle[aliceStage.bundle].image[0] )
 				{
 					ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
 					return qfalse;
@@ -827,7 +840,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 			if ( !Q_stricmp( token, "screenMap" ) ) {
 				flags = IMGFLAG_NONE;
 				if ( vk.fboActive ) {
-					stage->bundle[0].isScreenMap = 1;
+					stage->bundle[aliceStage.bundle].isScreenMap = 1;
 					shader.hasScreenMap = 1;
 				}
 			} else {
@@ -838,7 +851,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 			if ( !token[0] )
 			{
 				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for '%s' keyword in shader '%s'\n",
-					stage->bundle[0].isScreenMap ? "screenMap" : "clampMap", shader.name );
+					stage->bundle[aliceStage.bundle].isScreenMap ? "screenMap" : "clampMap", shader.name );
 				return qfalse;
 			}
 
@@ -851,8 +864,8 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 			if (shader.noLightScale)
 				flags |= IMGFLAG_NOLIGHTSCALE;
 
-			stage->bundle[0].image[0] = R_FindShaderImage( token, flags );
-			if ( !stage->bundle[0].image[0] )
+			stage->bundle[aliceStage.bundle].image[0] = R_FindShaderImage( token, flags );
+			if ( !stage->bundle[aliceStage.bundle].image[0] )
 			{
 				ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
 				return qfalse;
@@ -864,8 +877,8 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 		else if ( !Q_stricmp( token, "animMap" ) )
 		{
 			int	totalImages = 0;
-			// Alice keeps 64 frames (alice.exe 0x0048c5bc); the engine keeps
-			// MAX_IMAGE_ANIMATIONS, three times the most any shipped script uses.
+			// Ritual's engines keep 64 frames (alice.exe 0x0048c5bc, fakk2.exe
+			// 1.02 0x00476e00), and so does this one: F.A.K.K.2's caustics use 47.
 			int maxAnimations = s_extendedShader || R_AliceShaderDialect() ? MAX_IMAGE_ANIMATIONS :
 				R_WolfensteinShaderDialect() ?
 				MAX_IMAGE_ANIMATIONS_RTCW : MAX_IMAGE_ANIMATIONS_VQ3;
@@ -876,7 +889,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'animMap' keyword in shader '%s'\n", shader.name );
 				return qfalse;
 			}
-			stage->bundle[0].imageAnimationSpeed = Q_atof( token );
+			stage->bundle[aliceStage.bundle].imageAnimationSpeed = Q_atof( token );
 
 			// parse up to MAX_IMAGE_ANIMATIONS animations
 			while ( 1 ) {
@@ -886,7 +899,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 				if ( !token[0] ) {
 					break;
 				}
-				num = stage->bundle[0].numImageAnimations;
+				num = stage->bundle[aliceStage.bundle].numImageAnimations;
 				if ( num < maxAnimations ) {
 					imgFlags_t flags = IMGFLAG_NONE;
 
@@ -899,13 +912,13 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 					if (shader.noLightScale)
 						flags |= IMGFLAG_NOLIGHTSCALE;
 
-					stage->bundle[0].image[num] = R_FindShaderImage( token, flags );
-					if ( !stage->bundle[0].image[num] )
+					stage->bundle[aliceStage.bundle].image[num] = R_FindShaderImage( token, flags );
+					if ( !stage->bundle[aliceStage.bundle].image[num] )
 					{
 						ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
 						return qfalse;
 					}
-					stage->bundle[0].numImageAnimations++;
+					stage->bundle[aliceStage.bundle].numImageAnimations++;
 				}
 				totalImages++;
 			}
@@ -929,9 +942,9 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 				if ( !tr.scratchImage[ handle ] ) {
 					tr.scratchImage[ handle ] = R_CreateImage( va( "*scratch%i", handle ), NULL, NULL, 256, 256, IMGFLAG_CLAMPTOEDGE | IMGFLAG_RGB | IMGFLAG_NOSCALE );
 				}
-				stage->bundle[0].isVideoMap = qtrue;
-				stage->bundle[0].videoMapHandle = handle;
-				stage->bundle[0].image[0] = tr.scratchImage[ handle ];
+				stage->bundle[aliceStage.bundle].isVideoMap = qtrue;
+				stage->bundle[aliceStage.bundle].videoMapHandle = handle;
+				stage->bundle[aliceStage.bundle].image[0] = tr.scratchImage[ handle ];
 			} else {
 				ri.Printf( PRINT_WARNING, "WARNING: could not load '%s' for 'videoMap' keyword in shader '%s'\n", token, shader.name );
 			}
@@ -1018,6 +1031,10 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 			} else if ( !Q_stricmp( token, "blend" ) ) {
 				blendSrcBits = GLS_SRCBLEND_SRC_ALPHA;
 				blendDstBits = GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA;
+			} else if ( ri.gameId == COM_GAME_MOHAA && !Q_stricmp( token, "alphaadd" ) ) {
+				// Medal of Honor: added in proportion to its alpha
+				blendSrcBits = GLS_SRCBLEND_SRC_ALPHA;
+				blendDstBits = GLS_DSTBLEND_ONE;
 			} else {
 				// complex double blends
 				blendSrcBits = NameToSrcBlendMode( token );
@@ -1204,11 +1221,11 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 			if ( !Q_stricmp( token, "environment" ) )
 			{
 				const char *t = *text;
-				stage->bundle[0].tcGen = TCGEN_ENVIRONMENT_MAPPED;
+				stage->bundle[aliceStage.bundle].tcGen = TCGEN_ENVIRONMENT_MAPPED;
 				token = COM_ParseExt( text, qfalse );
 				if ( Q_stricmp( token, "firstPerson" ) == 0 )
 				{
-					stage->bundle[0].tcGen = TCGEN_ENVIRONMENT_MAPPED_FP;
+					stage->bundle[aliceStage.bundle].tcGen = TCGEN_ENVIRONMENT_MAPPED_FP;
 				}
 				else
 				{
@@ -1217,18 +1234,18 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 			}
 			else if ( !Q_stricmp( token, "lightmap" ) )
 			{
-				stage->bundle[0].tcGen = TCGEN_LIGHTMAP;
+				stage->bundle[aliceStage.bundle].tcGen = TCGEN_LIGHTMAP;
 			}
 			else if ( !Q_stricmp( token, "texture" ) || !Q_stricmp( token, "base" ) )
 			{
-				stage->bundle[0].tcGen = TCGEN_TEXTURE;
+				stage->bundle[aliceStage.bundle].tcGen = TCGEN_TEXTURE;
 			}
 			else if ( !Q_stricmp( token, "vector" ) )
 			{
-				ParseVector( text, 3, stage->bundle[0].tcGenVectors[0] );
-				ParseVector( text, 3, stage->bundle[0].tcGenVectors[1] );
+				ParseVector( text, 3, stage->bundle[aliceStage.bundle].tcGenVectors[0] );
+				ParseVector( text, 3, stage->bundle[aliceStage.bundle].tcGenVectors[1] );
 
-				stage->bundle[0].tcGen = TCGEN_VECTOR;
+				stage->bundle[aliceStage.bundle].tcGen = TCGEN_VECTOR;
 			}
 			else
 			{
@@ -1251,7 +1268,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 				Q_strcat( buffer, sizeof (buffer), " " );
 			}
 
-			ParseTexMod( buffer, stage );
+			ParseTexMod( buffer, &stage->bundle[aliceStage.bundle] );
 
 			continue;
 		}
@@ -1358,7 +1375,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 			depthFuncBits |
 			aliceBits;
 	}
-	R_AliceEndStage( &aliceStage );
+	R_AliceEndStage( stage, &aliceStage );
 
 	stage->active = qtrue;
 
@@ -2223,6 +2240,7 @@ static qboolean ParseShader( const char **text )
 			return qfalse;
 		}
 		if ( rtcwFogDirective ) continue;
+		if ( R_Q3TestFogDirective( token, text ) ) continue;
 		rtcwFogDirective = R_RTCWShaderFogDirective( token, text );
 		if ( rtcwFogDirective < 0 ) {
 			ri.Printf( PRINT_WARNING, "WARNING: invalid RTCW fog directive in shader %s\n", shader.name );
@@ -2382,6 +2400,7 @@ static qboolean ParseShader( const char **text )
 				return qfalse;
 			}
 			if ( ihv ) continue;
+			if ( R_Q3TestFogParms( text ) ) continue;
 			Com_Memset( &shader.fogParms.ihv, 0, sizeof( shader.fogParms.ihv ) );
 			if ( !ParseVector( text, 3, shader.fogParms.color ) ) {
 				return qfalse;
@@ -2475,7 +2494,7 @@ static qboolean ParseShader( const char **text )
 		// American McGee's Alice: how a sprite drawn with this shader faces
 		// (retail's parser at 0x0048cb82 also resets its scale to one) and how
 		// large it is against its image
-		else if ( ri.gameId == COM_GAME_ALICE && !Q_stricmp( token, "spritegen" ) )
+		else if ( R_AliceShaderDialect() && !Q_stricmp( token, "spritegen" ) )
 		{
 			token = COM_ParseExt( text, qfalse );
 			if ( !token[0] ) {
@@ -2496,7 +2515,7 @@ static qboolean ParseShader( const char **text )
 			shader.aliceSpriteScale = 1.0f;
 			continue;
 		}
-		else if ( ri.gameId == COM_GAME_ALICE && !Q_stricmp( token, "spritescale" ) )
+		else if ( R_AliceShaderDialect() && !Q_stricmp( token, "spritescale" ) )
 		{
 			token = COM_ParseExt( text, qfalse );
 			if ( !token[0] ) {
@@ -2557,6 +2576,14 @@ static qboolean ParseShader( const char **text )
 		{
 			ri.Printf( PRINT_WARNING, "WARNING: unknown general shader parameter '%s' in '%s'\n", token, shader.name );
 			return qfalse;
+		}
+	}
+
+	if ( numStages == 0 && R_Q3TestStagelessSky( shader.surfaceFlags, shader.isSky ) ) {
+		const char *black = R_Q3TestBlackStage;
+		if ( ParseStage( &stages[0], &black ) ) {
+			FinishStage( &stages[0] );
+			numStages = 1;
 		}
 	}
 
@@ -2703,7 +2730,8 @@ static int CollapseMultitexture( unsigned int st0bits, shaderStage_t *st0, shade
 		return 0;
 	}
 
-	// the multitexture pipelines have no alpha test (Alice's included)
+	// a collapsed pass alpha-tests its first bundle alone (gen_frag.tmpl), so
+	// alpha-tested stages (Alice's included) are left to draw separately
 	if ( st0->depthFragment || (st0->stateBits & ( GLS_ATEST_BITS | GLS_ALICE_ATEST_BITS )) ) {
 		return 0;
 	}
@@ -3616,7 +3644,9 @@ static void DetectNeeds( void )
 		if ( shader.deforms[i].deformation >= DEFORM_TEXT0 && shader.deforms[i].deformation <= DEFORM_TEXT7 ) {
 			shader.needsNormal = qtrue;
 		}
-		if ( shader.deforms[i].deformation == DEFORM_ALICE_WAVENORMAL ) {
+		if ( shader.deforms[i].deformation == DEFORM_ALICE_WAVENORMAL
+			|| shader.deforms[i].deformation == DEFORM_MOHAA_FLAP_S
+			|| shader.deforms[i].deformation == DEFORM_MOHAA_FLAP_T ) {
 			shader.needsNormal = qtrue;
 		}
 	}
@@ -3892,6 +3922,12 @@ static shader_t *FinishShader( void ) {
 				pStage->bundle[0].tcGen = TCGEN_TEXTURE;
 			}
 		}
+		// Medal of Honor's world shaders mostly put the lightmap in a
+		// `nextbundle`, which its engine counts as the lightmap stage too
+		// (OpenMoHAA's FinishShader)
+		if ( ri.gameId == COM_GAME_MOHAA && pStage->bundle[1].lightmap != LIGHTMAP_INDEX_NONE ) {
+			hasLightmapStage = qtrue;
+		}
 
 		// not a true lightmap but we want to leave existing
 		// behaviour in place and not print out a warning
@@ -4024,7 +4060,7 @@ static shader_t *FinishShader( void ) {
 	}
 
 	for ( i = 0; i < stage; i++ ) {
-		stages[ i ].numTexBundles = 1;
+		stages[ i ].numTexBundles = R_AliceStageBundles( &stages[ i ] );
 	}
 
 #ifdef USE_PMLIGHT
@@ -5100,6 +5136,7 @@ static int loadShaderBuffers( char **shaderFiles, const int numShaderFiles, char
 		}
 
 		R_Q3IHVRepairShaderText( buffers[i], summand, filename );
+		R_Q3TestRepairShaderText( buffers[i], summand, filename );
 
 		// comment some buggy shaders from pak0
 		if ( summand == 35910 && strcmp( shaderFiles[i], "sky.shader" ) == 0 )

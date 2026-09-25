@@ -49,6 +49,7 @@ using byte=unsigned char;
 constexpr int PAINTBUFFER_SIZE=16,MAX_CHANNELS=96,SND_CHUNK_SIZE=8,SND_CHUNK_SIZE_FLOAT=4,MAX_RAW_SAMPLES=64;
 static int aliceProfile=1;
 static int Com_GameIsAlice(){return aliceProfile;}
+static int Com_GameIsRitual(){return aliceProfile;}
 static int Com_GameIsRTCWSP(){return 0;}
 static int Com_GameIsWolfET(){return 0;}
 struct cvar_t {float value;int integer;};
@@ -59,7 +60,7 @@ struct portable_samplepair_t {int left=0,right=0;};
 static std::array<portable_samplepair_t,PAINTBUFFER_SIZE> paintbuffer;
 static portable_samplepair_t s_rawsamples[MAX_RAW_SAMPLES];
 static int s_rawend=0,s_paintedtime=0,snd_vol=0;
-static bool gw_active=true,gw_minimized=false;
+static bool gw_active=true,gw_minimized=false,gw_offscreen=false;
 static byte hardware[256],secondary[256];static byte *dma_buffer2=secondary;
 static struct {byte *buffer=hardware;int samples=64,samplebits=16,speed=22050;} dma;
 struct sndBuffer {short sndChunk[SND_CHUNK_SIZE]{};sndBuffer *next=nullptr;};

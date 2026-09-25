@@ -47,6 +47,22 @@
  *   AutoScroll         draw 0x004c0a40, resetscroll 0x004c0490
  *   Alice3D            draw 0x004d3310, animation 0x004d27c0
  *
+ * and those Heavy Metal: F.A.K.K.2's menus add, on the same engine UI:
+ *
+ *   FakkLabel          what every Label is (the loader's remap 0x0040e240): a
+ *                      stat as a number or a bar with its flash, or the item
+ *                      in a hand as its name or its model (Draw 0x0041ef00,
+ *                      the bar 0x0041eb90) -- F.A.K.K.2's HUD menus, shown by
+ *                      its engine's rule (fakk2.exe 1.02 0x0040b29b..0x0040b326;
+ *                      code/compat/fakk2_hud.hpp)
+ *   PulldownMenuContainer  an arrow whose list opens on the press and runs the
+ *                      row let go over (0x004e2940, 0x004e2ad0, 0x004e2960;
+ *                      the list's draw 0x004e58c0 and choice 0x004e5b40)
+ *   MultiLineEdit      its lines, selection and keys (draw 0x004dc4f0, keys
+ *                      0x004dd180, characters 0x004dd810)
+ *   linkstring         a linked label's value shown as words (0x004d5810)
+ *   aliascache         a hover sound's aliases (0x004baa30)
+ *
  * with a menu's cvars saved when it is pushed and put back by Escape or
  * ui_restorecvars (0x004c4540, 0x004c4830), ui_setcvars' restart check
  * (0x004c4910), border colours made from the background (0x004bc700) and the
@@ -61,6 +77,8 @@
 #include "../compat/alice_noise.hpp"
 #include "../compat/alice_savegame.hpp"
 #include "../compat/alice_urc.hpp"
+#include "../compat/fakk2_hud.hpp"
+#include "../compat/fakk2_inventory.hpp"
 #include "../qcommon/alice_tiki.h"
 
 #include <algorithm>
@@ -68,6 +86,7 @@
 #include <cstdarg>
 #include <ctime>
 #include <iterator>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -79,8 +98,12 @@ namespace font = fntech3::alice::ritualfont;
 namespace mw = fntech3::alice::menu;
 namespace noise = fntech3::alice::noise;
 namespace alicesave = fntech3::alice::savegame;
+namespace fakkhud = fntech3::fakk2::hud;
+namespace fakkinv = fntech3::fakk2::inventory;
 
-enum class WidgetKind { Label, Button, CheckBox, Slider, Field, List, BindList, LoadGame, AutoScroll, Alice3D };
+enum class WidgetKind {
+	Label, Button, CheckBox, Slider, Field, List, BindList, LoadGame, AutoScroll, Alice3D, Pulldown, MultiLineEdit
+};
 
 enum class Motion { None, In, Out };
 
@@ -118,6 +141,52 @@ struct BindState {
 	int model = -1;       // the menu's `alice3d` widget (+0x200)
 };
 
+/* UIPulldownMenuContainer (0x004d62a0) and the UIPulldownMenu it makes
+ * (0x004e18c0). Each entry is a uipull_describe (0x004e1d70), made on the
+ * first mention of its name, with its list's colours, its arrows and its
+ * items (uipopup_describe 0x004cb8f0), which keep the .urc's order. */
+struct PopupItem {
+	std::string title;
+	int type = 0;          // UI_PopupTypeStringToInt (0x004e6350)
+	std::string data;
+};
+
+struct PulldownEntry {
+	std::string name;
+	float highlightFg[4] = { 1, 1, 1, 1 };          // +0x04, white (0x004e1eab..0x004e1f3a)
+	float highlightBg[4] = { 0, 0, 1, 1 };          // +0x14, blue
+	float fg[4] = { 0, 0, 0, 1 };                   // +0x24, black
+	float bg[4] = { 0.75f, 0.75f, 0.75f, 1 };       // +0x34, grey
+	std::string shader, selectedShader;             // +0x44, +0x48
+	std::vector<PopupItem> items;                   // +0x4c
+};
+
+struct PulldownState {
+	std::vector<PulldownEntry> entries;
+	float highlightBg[4] = { 0, 0, 1, 1 };   // the closed menu's +0x1e8
+	float highlightFg[4] = { 1, 1, 1, 1 };   // +0x1f8
+	int open = -1;                           // the open entry (+0x1e0), from 0
+};
+
+/* UIMultiLineEdit (0x004db980): its lines, the selection's two ends, its
+ * scrollbar's top line, and whether it takes typing (+0x205). */
+struct EditPoint {
+	int line = 0, column = 0;
+};
+
+struct EditState {
+	std::vector<std::string> lines = { std::string() };
+	EditPoint begin, end;     // +0x1d0..+0x1dc
+	int top = 0;              // the scrollbar's top line
+	bool editable = true;     // `edit`
+	bool changed = false;     // +0x206
+	bool dragging = false;    // +0x200
+	int dragRepeatAt = -1;    // the drag timer's next scroll (0x004dd080)
+	int scrollPart = 0;       // the scrollbar's pressed arrow: 1 up, 2 down
+	bool thumbDrag = false;
+	float thumbGrab = 0.0f;
+};
+
 /* UIAlice3D (constructor 0x004d2ca0) over UIWidget3D (0x004d22d0). */
 struct ModelState {
 	std::string model;             // +0x1d4
@@ -136,19 +205,24 @@ struct ModelState {
 struct Widget {
 	WidgetKind kind = WidgetKind::Label;
 	std::string name;
-	/* InitFrame's defaults (0x004cc2a1): 10, 10, 100 by 64, courier-14. */
+	/* InitFrame's defaults (0x004cc2a1): 10, 10, 100 by 64, courier-14 --
+	 * verdana-12 under F.A.K.K.2 (CL_RitualDefaultFont). */
 	float x = 10, y = 10, w = 100, h = 64;
 	/* UIWidget's colours (0x004bb01e): light grey behind, white in front. */
 	float fg[4] = { 1, 1, 1, 1 };
 	float bg[4] = { 0.75f, 0.75f, 0.75f, 1 };
 	int border = 2;
 	std::string title;
-	std::string fontName = "courier-14";
+	std::string fontName = CL_RitualDefaultFont();
 	int font = -1;
 	int justifyH = 0, justifyV = 1;
 	float fontScale = 1.0f, charSpacing = 0.0f, lineSpacing = 0.0f, fontAngle = 0.0f;
 	float fontPosX = -1.0f, fontPosY = -1.0f;
 	std::string shader, hoverShader, staticImage;
+	/* `tileshader` sets the shader and the flag (8) that draws it tiled
+	 * (0x004ba610; Display 0x004bd9e7 -> 0x004bcfe0) rather than stretched;
+	 * `shader` sets it and clears the flag (0x004ba4b0). */
+	bool tileShader = false;
 	float fadeIn = 0.0f;
 	bool inverseAlpha = false;
 	urc::Direction direction = urc::Direction::None;
@@ -157,6 +231,9 @@ struct Widget {
 	std::vector<Wait> waits;
 	std::string stuffCommand, mouseEnterCommand, mouseExitCommand, clickSound, hoverSound, linkCvar, groupId;
 	int orderNumber = 0;
+	/* The flag F.A.K.K.2 draws a widget's hover picture by (UIWidget +0x120,
+	 * Display 0x0049f103..0x0049f135); see LightsFollowKeys. */
+	bool lit = false;
 	std::vector<KeyCommand> keyCommands;
 	bool enabled = true, neverDraw = false, noInput = false;
 	/* forcescissor (0x004b94a0): drawn clipped to its own rectangle (0x004bd560). */
@@ -181,6 +258,10 @@ struct Widget {
 		bool leftPressed = false, rightPressed = false, dragging = false;
 		float dragFrom = 0.0f;   // +0x1ec, put back when a drag leaves the widget
 		int repeatAt = -1;       // when autoinc/autodec (0x004daa10, 0x004daae0) runs
+		/* F.A.K.K.2's pictures and their lit forms (fakk2.exe 1.02
+		 * 0x004b4aa0), which `thumbshader`, `leftshader` and `rightshader`
+		 * replace (0x004b4ec0, 0x004b5160, 0x004b5400). */
+		std::string thumb, thumbSel, left, leftSel, right, rightSel;
 	} slider;
 	/* UIField (0x004df730). */
 	mw::EditLine field;
@@ -195,6 +276,11 @@ struct Widget {
 	struct {
 		mw::SavePage page;
 		std::vector<mw::SaveRow> rows;
+		int current = 0;   // the drawn list's chosen row, 1-based, 0 for none
+		int top = 0;       // its first row shown
+		/* The last click (UIListCtrl +0x188..+0x194): its time, row and place. */
+		int clickTime = -100000, clickRow = 0;
+		float clickX = 0.0f, clickY = 0.0f;
 	} load;
 	/* UIAutoScroll (0x004c0340). */
 	struct {
@@ -204,6 +290,24 @@ struct Widget {
 		float position = 0.0f;
 	} scroll;
 	ModelState model;
+	/* UIFakkLabel (0x0041e0c0): the nine keywords, the bar's two materials
+	 * (+0x214, +0x218), its flash, and the item a model label last found (a
+	 * safe pointer in retail, +0x1e0; its name here). */
+	struct {
+		fakkhud::Label label;
+		std::string barShader, flashShader;
+		fakkhud::Flash flash;
+		std::string item;
+	} fakk;
+	/* UILabel's linkstrings (0x004d54a0): a value and the words it shows. */
+	std::vector<std::pair<std::string, std::string>> linkStrings;
+	/* aliascache (0x004baa30): each alias, its sound and its parameters. */
+	struct AliasCache {
+		std::string name, path, parameters;
+	};
+	std::vector<AliasCache> aliases;
+	PulldownState pulldown;
+	EditState edit;
 
 	/* Runtime. */
 	bool shown = false;
@@ -223,6 +327,9 @@ struct Menu {
 	mw::BorderColor border3d = mw::MakeBorderColor( { 0.75f, 0.75f, 0.75f, 1.0f } );
 	bool fullscreen = false;
 	float fadeOverlay = 0.0f;
+	/* `fadein` on the menu's own container (0x004b8120): the whole menu fades
+	 * in over it, each widget taking its alpha (Display 0x004bd8b0). */
+	float fadeIn = 0.0f;
 	int align = 0;
 	std::vector<std::string> showCommands, hideCommands;
 	std::vector<KeyCommand> keyCommands;
@@ -230,11 +337,16 @@ struct Menu {
 
 	/* Runtime. */
 	bool visible = false;
+	/* Shown as one of F.A.K.K.2's HUD menus rather than pushed. */
+	bool hud = false;
 	bool hiding = false;
 	int showStart = 0;
 	int hideStart = 0;
 	int hideEnd = 0;
 	int focus = -1;
+	/* The order number of the widget that last took the keys, which the menu
+	 * gives them back to when it comes up again (UIWidget +0x178). */
+	int currentOrder = 0;
 	int hovered = -1;
 	int pressed = -1;
 };
@@ -270,6 +382,8 @@ struct {
 } introPlate;
 
 cvar_t *ui_hud, *ui_subtitles, *ui_console;
+/* F.A.K.K.2's retail-exact menu dissolve (MenuCarry), off by default. */
+cvar_t *ui_menuDissolve;
 
 /* keybind.scr's translations (UI_LoadTransTable 0x004d1810) and maplist.scr's
  * titles (UI_LoadMapList 0x0040b5a0), read as the UI starts. */
@@ -288,6 +402,15 @@ struct {
 /* The cursor in menu units as the last frame saw it, for the drag events
  * the window manager sends (0x004b3bab). */
 float lastVirtualX = -1.0f, lastVirtualY = -1.0f;
+/* A pulldown's open list (UIPopupMenu 0x004e53f0): a top-level window over
+ * every menu. Its owner, its rectangle in the menus' units and the row under
+ * the cursor (+0x1d4), from 0. The pulldown holds the mouse while it is open
+ * (the window manager's first responder, 0x004b3e70). */
+struct {
+	int menu = -1, widget = -1;
+	float x = 0.0f, y = 0.0f, w = 0.0f, h = 0.0f;
+	int selected = -1;
+} popup;
 
 /* ---- small helpers -------------------------------------------------------- */
 
@@ -316,9 +439,28 @@ void ExecuteLine( const std::string &command ) {
 	if ( command.back() != '\n' ) Cbuf_AddText( "\n" );
 }
 
+/* The UI's local sound (0x0044ce10): a name the global alias list holds plays
+ * one of its sounds, chosen as the list chooses (Alias_FindRandom
+ * 0x004236c0); any other name is a sound's path. */
 void PlayLocalSound( const std::string &name ) {
 	if ( name.empty() ) return;
-	S_StartLocalSound( S_RegisterSound( name.c_str(), qfalse ), CHAN_LOCAL_SOUND );
+	const char *alias = AliceAlias_FindRandom( -1, name.c_str() );
+	S_StartLocalSound( S_RegisterSound( alias ? alias : name.c_str(), qfalse ), CHAN_LOCAL_SOUND );
+}
+
+/* aliascache (0x004baa30): the alias into the global list, its sound cached
+ * when its path names a .wav or an .mp3 (0x004bacd6..0x004bad0b). The level's
+ * modules clear that list and this client's menus outlive a level, so each
+ * menu adds its aliases again as it shows; adding one twice keeps the first. */
+void AddAlias( const Widget::AliasCache &alias ) {
+	AliceAlias_Add( -1, alias.name.c_str(), alias.path.c_str(), alias.parameters.c_str() );
+	if ( strstr( alias.path.c_str(), ".wav" ) || strstr( alias.path.c_str(), ".mp3" ) ) {
+		S_RegisterSound( alias.path.c_str(), qfalse );
+	}
+}
+
+void AddAliases( const Widget &widget ) {
+	for ( const Widget::AliasCache &alias : widget.aliases ) AddAlias( alias );
 }
 
 int Now() { return cls.realtime; }
@@ -358,11 +500,13 @@ bool CvarExists( const char *name ) {
 	return name && name[0] && !( Cvar_Flags( name ) & CVAR_NONEXISTENT );
 }
 
-/* The value a latched cvar waits to take, when it differs from its value. */
+/* The value a latched cvar waits to take, when it differs from its value. The
+ * buffer holds one character less than its size, so a longer value -- the
+ * graphics report in r_gfxinfo -- that begins with it is the value itself. */
 bool CvarLatched( const char *name, std::string &latched ) {
 	char buffer[MAX_CVAR_VALUE_STRING];
 	Cvar_LatchedVariableStringBufferSafe( name, buffer, sizeof( buffer ), 0 );
-	if ( !strcmp( buffer, Cvar_VariableString( name ) ) ) return false;
+	if ( !strncmp( buffer, Cvar_VariableString( name ), sizeof( buffer ) - 1 ) ) return false;
 	latched = buffer;
 	return true;
 }
@@ -414,7 +558,7 @@ void VirtualPic( float x, float y, float w, float h, const float *rgba, qhandle_
 	if ( !shader ) return;
 	const float sx = ScaleX(), sy = ScaleY();
 	re.SetColor( rgba );
-	re.DrawStretchPic( x * sx, y * sy, w * sx, h * sy, s0, t0, s1, t1, shader );
+	CL_RitualStretchPic( x * sx, y * sy, w * sx, h * sy, s0, t0, s1, t1, shader );
 	re.SetColor( nullptr );
 }
 
@@ -445,6 +589,31 @@ void Box3D( float x, float y, float w, float h, bool indent, const mw::BorderCol
 		const float rgba[4] = { c.r, c.g, c.b, c.a * alpha };
 		VirtualFill( edge.x, edge.y, edge.w, edge.h, rgba );
 	}
+}
+
+/* F.A.K.K.2's DrawBox with a one-unit edge (fakk2.exe 1.02 0x0049a650, flags
+ * 3): the inside filled, then the left, top, right and bottom strips, here in
+ * the black its scrollbars and list edges use (0x009b2a98). */
+void EdgedBox( float x, float y, float w, float h, const float *fill, const float *edge = nullptr ) {
+	static const float black[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	const float *line = edge ? edge : black;
+	VirtualFill( x + 1.0f, y + 1.0f, w - 2.0f, h - 2.0f, fill );
+	VirtualFill( x, y, 1.0f, h - 1.0f, line );
+	VirtualFill( x + 1.0f, y, w - 1.0f, 1.0f, line );
+	VirtualFill( x + w - 1.0f, y + 1.0f, 1.0f, h - 1.0f, line );
+	VirtualFill( x, y + h - 1.0f, w - 1.0f, 1.0f, line );
+}
+
+/* The one-unit bevel F.A.K.K.2 draws inside a raised scrollbar part
+ * (fakk2.exe 1.02 0x0049a4b0): light along the top and left, then dark along
+ * the right and bottom. */
+void Bevel( float x, float y, float w, float h, const mw::BorderColor &border ) {
+	const float light[4] = { border.light.r, border.light.g, border.light.b, border.light.a };
+	const float dark[4] = { border.dark.r, border.dark.g, border.dark.b, border.dark.a };
+	VirtualFill( x, y, w, 1.0f, light );
+	VirtualFill( x, y, 1.0f, h - 1.0f, light );
+	VirtualFill( x + w - 1.0f, y + 1.0f, 1.0f, h - 1.0f, dark );
+	VirtualFill( x, y + h - 1.0f, w, 1.0f, dark );
 }
 
 /* A widget's font at its scale (the widget prints 0x004bd3c0, 0x004bd480
@@ -479,6 +648,8 @@ WidgetKind KindFor( const std::string &canonical ) {
 	if ( canonical == "UIFAKKLoadGameClass" ) return WidgetKind::LoadGame;
 	if ( canonical == "UIAutoScroll" ) return WidgetKind::AutoScroll;
 	if ( canonical == "UIAlice3D" ) return WidgetKind::Alice3D;
+	if ( canonical == "UIPulldownMenuContainer" ) return WidgetKind::Pulldown;
+	if ( canonical == "UIMultiLineEdit" ) return WidgetKind::MultiLineEdit;
 	return WidgetKind::Label;
 }
 
@@ -486,14 +657,59 @@ WidgetKind KindFor( const std::string &canonical ) {
  * only a keyword no class knows is reported. */
 bool IsQuietKeyword( const std::string &name ) {
 	static const char *const kKeywords[] = {
-		"allowactivate", "thumbshader", "leftshader", "rightshader", "loadfile", "stretch", "tileshader",
-		"aliascache", "norescale", "noparentclip", "noparentadjust", "motiondelay", "stopsound",
+		"allowactivate", "thumbshader", "leftshader", "rightshader", "loadfile", "stretch",
+		"norescale", "noparentclip", "noparentadjust", "motiondelay", "stopsound",
 		"bordercolor", "size", "align", "showcvar",
 	};
 	for ( const char *keyword : kKeywords ) {
 		if ( urc::EqualsNoCase( name, keyword ) ) return true;
 	}
 	return false;
+}
+
+/* UI_PopupTypeStringToInt (0x004e6350): exact words; anything else is 0, and
+ * a static event (1) or a submenu (3) cannot come from a .urc. */
+enum PopupType { PopupNone = 0, PopupEventString = 2, PopupCommand = 4, PopupCvar = 5, PopupSeparator = 6 };
+
+int PopupTypeFor( const std::string &word ) {
+	if ( word == "event_string" ) return PopupEventString;
+	if ( word == "command" ) return PopupCommand;
+	if ( word == "cvar" ) return PopupCvar;
+	if ( word == "separator" ) return PopupSeparator;
+	return PopupNone;
+}
+
+/* A pulldown's entry by its exact name (getPulldown 0x004e1c50), made on its
+ * first mention by addpopup, menushader or selmenushader (0x004e1d70,
+ * 0x004e2070, 0x004e2370); the colour keywords name only an existing one
+ * (0x004e31c8). */
+PulldownEntry *FindPulldown( PulldownState &state, const std::string &name, bool create ) {
+	for ( PulldownEntry &entry : state.entries ) {
+		if ( entry.name == name ) return &entry;
+	}
+	if ( !create ) return nullptr;
+	state.entries.emplace_back();
+	state.entries.back().name = name;
+	return &state.entries.back();
+}
+
+/* The words after the first as a colour, missing ones read as 0 (Event's
+ * accessors); `from` is the first colour word. */
+void ReadColorFrom( const std::vector<std::string> &args, std::size_t from, float *out ) {
+	for ( std::size_t i = 0; i < 4; ++i ) out[i] = from + i < args.size() ? ToFloat( args[from + i] ) : 0.0f;
+}
+
+/* UIMultiLineEdit::setData (0x004dbd70): a line for each '\n', '\r' dropped,
+ * no wrapping; the selection, the scrollbar and the changed flag start over. */
+void EditSetText( EditState &edit, const char *text ) {
+	edit.lines.assign( 1, std::string() );
+	for ( const char *c = text ? text : ""; *c; ++c ) {
+		if ( *c == '\n' ) edit.lines.emplace_back();
+		else if ( *c != '\r' ) edit.lines.back().push_back( *c );
+	}
+	edit.begin = edit.end = EditPoint();
+	edit.top = 0;
+	edit.changed = false;
 }
 
 void ApplyWidgetProperty( Widget &widget, const urc::Property &property, const char *file ) {
@@ -528,7 +744,8 @@ void ApplyWidgetProperty( Widget &widget, const urc::Property &property, const c
 	else if ( is( "fontpos" ) ) {
 		if ( args.size() >= 2 ) { widget.fontPosX = ToFloat( args[0] ); widget.fontPosY = ToFloat( args[1] ); }
 	}
-	else if ( is( "shader" ) ) { if ( !args.empty() ) widget.shader = first; }
+	else if ( is( "shader" ) ) { if ( !args.empty() ) { widget.shader = first; widget.tileShader = false; } }
+	else if ( is( "tileshader" ) ) { if ( !args.empty() ) { widget.shader = first; widget.tileShader = true; } }
 	else if ( is( "hovershader" ) ) { if ( !args.empty() ) widget.hoverShader = first; }
 	else if ( is( "staticshader" ) ) { if ( args.size() >= 2 ) widget.staticImage = args[1]; }
 	else if ( is( "fadein" ) ) {
@@ -578,6 +795,17 @@ void ApplyWidgetProperty( Widget &widget, const urc::Property &property, const c
 	}
 	else if ( is( "slidertype" ) ) mw::SetSliderType( widget.slider.s, first );
 	else if ( is( "stepsize" ) ) widget.slider.s.step = args.empty() ? 0.0f : ToFloat( first );
+	/* F.A.K.K.2's picture and its lit form; a lone name serves as both. */
+	else if ( Com_GameIsFAKK2() && ( is( "thumbshader" ) || is( "leftshader" ) || is( "rightshader" ) ) ) {
+		if ( !args.empty() ) {
+			std::string &normal = is( "thumbshader" ) ? widget.slider.thumb : is( "leftshader" ) ? widget.slider.left
+				: widget.slider.right;
+			std::string &lit = is( "thumbshader" ) ? widget.slider.thumbSel : is( "leftshader" ) ? widget.slider.leftSel
+				: widget.slider.rightSel;
+			normal = first;
+			lit = args.size() > 1 ? args[1] : first;
+		}
+	}
 	/* UIList (0x004de170). */
 	else if ( is( "additem" ) ) {
 		if ( !args.empty() ) widget.list.items.push_back( { first, args.size() > 1 ? args[1] : std::string() } );
@@ -600,6 +828,83 @@ void ApplyWidgetProperty( Widget &widget, const urc::Property &property, const c
 	}
 	else if ( is( "scrollspeed" ) ) { if ( !args.empty() ) widget.scroll.speed = ToFloat( first ); }
 	else if ( is( "clearlist" ) ) widget.scroll.lines.clear();
+	/* aliascache alias realPath [parameters] (0x004baa30), a UIWidget's. */
+	else if ( is( "aliascache" ) ) {
+		if ( args.size() >= 2 ) {
+			widget.aliases.push_back( { args[0], args[1], urc::Join( args, 2 ) } );
+			AddAlias( widget.aliases.back() );
+		}
+	}
+	/* UIFakkLabel's (responses 0x0050d820), which only a Label is. A missing
+	 * number reads as 0 and a missing shader as "", as Event's accessors give
+	 * them (0x0041e243). */
+	else if ( widget.kind == WidgetKind::Label && is( "playerstat" ) ) widget.fakk.label.stat = atoi( first.c_str() );
+	else if ( widget.kind == WidgetKind::Label && is( "maxplayerstat" ) ) widget.fakk.label.maxStat = atoi( first.c_str() );
+	else if ( widget.kind == WidgetKind::Label && is( "itemstat" ) ) widget.fakk.label.item = atoi( first.c_str() );
+	else if ( widget.kind == WidgetKind::Label && is( "invmodelrender" ) ) widget.fakk.label.model = atoi( first.c_str() );
+	else if ( widget.kind == WidgetKind::Label && is( "statbar" ) ) {
+		// 0x0041e830: the range is kept before the orientation is read, and an
+		// orientation it does not know leaves the one it had.
+		if ( args.size() > 1 ) {
+			widget.fakk.label.min = ToFloat( args[1] );
+			widget.fakk.label.max = args.size() > 2 ? ToFloat( args[2] ) : 0.0f;
+		}
+		if ( urc::EqualsNoCase( first, "horizontal" ) ) widget.fakk.label.orientation = fakkhud::Orientation::Horizontal;
+		else if ( urc::EqualsNoCase( first, "vertical" ) ) widget.fakk.label.orientation = fakkhud::Orientation::Vertical;
+		else Com_DPrintf( "UIFakkLabel::LayoutPlayerStat: Invalid statbar orientation: \"%s\"\n", first.c_str() );
+	}
+	/* The tile variants set the widget's own tile flag, which `shader` clears
+	 * (0x0041e3fe, 0x0041e6ae). */
+	else if ( widget.kind == WidgetKind::Label && is( "statbar_shader" ) ) widget.fakk.barShader = first;
+	else if ( widget.kind == WidgetKind::Label && is( "statbar_tileshader" ) ) {
+		widget.fakk.barShader = first;
+		widget.tileShader = true;
+	}
+	else if ( widget.kind == WidgetKind::Label && is( "statbar_shader_flash" ) ) widget.fakk.flashShader = first;
+	else if ( widget.kind == WidgetKind::Label && is( "statbar_tileshader_flash" ) ) {
+		widget.fakk.flashShader = first;
+		widget.tileShader = true;
+	}
+	/* UILabel's linkstring value words (0x004d54a0): both read as text. */
+	else if ( widget.kind == WidgetKind::Label && is( "linkstring" ) ) {
+		widget.linkStrings.emplace_back( first, args.size() > 1 ? args[1] : std::string() );
+	}
+	/* UIPulldownMenuContainer's (responses 0x0052c228). */
+	else if ( widget.kind == WidgetKind::Pulldown && is( "addpopup" ) ) {
+		// menuname title type string (0x004d6630)
+		PopupItem item;
+		item.title = args.size() > 1 ? args[1] : std::string();
+		item.type = PopupTypeFor( args.size() > 2 ? args[2] : std::string() );
+		item.data = args.size() > 3 ? args[3] : std::string();
+		FindPulldown( widget.pulldown, first, true )->items.push_back( std::move( item ) );
+	}
+	else if ( widget.kind == WidgetKind::Pulldown && is( "menushader" ) ) {
+		FindPulldown( widget.pulldown, first, true )->shader = args.size() > 1 ? args[1] : std::string();
+	}
+	else if ( widget.kind == WidgetKind::Pulldown && is( "selmenushader" ) ) {
+		FindPulldown( widget.pulldown, first, true )->selectedShader = args.size() > 1 ? args[1] : std::string();
+	}
+	else if ( widget.kind == WidgetKind::Pulldown && ( is( "popup_highlight_fgcolor" ) || is( "popup_highlight_bgcolor" )
+		|| is( "popup_fgcolor" ) || is( "popup_bgcolor" ) ) ) {
+		/* menu r g b a, by the handlers: the binary's documentation for the
+		 * four is crossed (0x0052c4ec). */
+		if ( PulldownEntry *entry = FindPulldown( widget.pulldown, first, false ) ) {
+			float *color = is( "popup_highlight_fgcolor" ) ? entry->highlightFg
+				: is( "popup_highlight_bgcolor" ) ? entry->highlightBg : is( "popup_fgcolor" ) ? entry->fg : entry->bg;
+			ReadColorFrom( args, 1, color );
+		}
+	}
+	else if ( widget.kind == WidgetKind::Pulldown && ( is( "highlight_fgcolor" ) || is( "highlight_bgcolor" ) ) ) {
+		/* Declared `menu r g b a` but read from the first word
+		 * (0x004d7446..0x004d755d), so the menu's name is the red. */
+		ReadColorFrom( args, 0, is( "highlight_fgcolor" ) ? widget.pulldown.highlightFg : widget.pulldown.highlightBg );
+	}
+	/* UIMultiLineEdit's (responses 0x0052cc68). */
+	else if ( widget.kind == WidgetKind::MultiLineEdit && is( "edit" ) ) widget.edit.editable = atoi( first.c_str() ) != 0;
+	else if ( widget.kind == WidgetKind::MultiLineEdit && is( "updatecvar" ) ) {
+		// 0x004dc4b0: the linked cvar's text, once, as the line is read.
+		if ( !widget.linkCvar.empty() ) EditSetText( widget.edit, UiCvarString( widget.linkCvar.c_str() ).c_str() );
+	}
 	else if ( !IsQuietKeyword( key ) ) {
 		Com_DPrintf( "UI: Invalid token '%s' on line %d of %s\n", key.c_str(), property.line, file );
 	}
@@ -630,6 +935,7 @@ void ApplyMenuEvent( Menu &menu, const urc::Property &event ) {
 	else if ( is( "bgfill" ) ) menu.hasBgFill = ReadColor( args, menu.bgFill );
 	else if ( is( "fullscreen" ) ) menu.fullscreen = !args.empty() && atoi( args[0].c_str() ) != 0;
 	else if ( is( "fadeoverlay" ) ) { if ( !args.empty() ) menu.fadeOverlay = ToFloat( args[0] ); }
+	else if ( is( "fadein" ) ) { if ( !args.empty() ) menu.fadeIn = ToFloat( args[0] ); }
 	else if ( is( "align" ) ) menu.align = ReadAlign( args );
 	else if ( is( "showcommand" ) ) menu.showCommands.push_back( urc::Join( args ) );
 	else if ( is( "hidecommand" ) ) menu.hideCommands.push_back( urc::Join( args ) );
@@ -687,6 +993,17 @@ void LoadMenuFile( const char *path ) {
 			}
 			Widget widget;
 			widget.kind = KindFor( canonical );
+			if ( widget.kind == WidgetKind::Slider && Com_GameIsFAKK2() ) {
+				// UISlider's constructor (fakk2.exe 1.02 0x004b4b3f, 0x004b4b5d, 0x004b4ac9..0x004b4e73).
+				widget.slider.s.arrowWidth = 15;
+				widget.slider.s.thumbWidth = 10.0f;
+				widget.slider.thumb = "textures/menu/slider_thumb";
+				widget.slider.thumbSel = "textures/menu/slider_thumb_sel";
+				widget.slider.left = "textures/menu/arrow_left";
+				widget.slider.leftSel = "textures/menu/arrow_left_sel";
+				widget.slider.right = "textures/menu/arrow_right";
+				widget.slider.rightSel = "textures/menu/arrow_right_sel";
+			}
 			for ( const urc::Property &property : sourceWidget.properties ) {
 				ApplyWidgetProperty( widget, property, path );
 			}
@@ -767,9 +1084,22 @@ float MenuOriginY( const Menu &menu ) {
 int MotionMs( float seconds ) { return static_cast<int>( seconds * 1000.0f ); }
 
 int LongestMotionMs( const Menu &menu ) {
-	int longest = MotionMs( menu.motionTime );
+	int longest = std::max( MotionMs( menu.motionTime ), MotionMs( menu.fadeIn ) );
 	for ( const Widget &widget : menu.widgets ) longest = std::max( longest, MotionMs( widget.motionTime ) );
 	return longest;
+}
+
+/* The menu's own fade (a menu-level `fadein`), which its widgets multiply
+ * into theirs: in as it shows and back out as it hides, as a widget's fade
+ * runs. fakk2.exe 1.02's hide moves every item of the menu out, its
+ * container among them (0x004a4120), and a fade runs out as it runs in
+ * (0x0049de30). */
+float MenuFade( const Menu &menu ) {
+	if ( menu.fadeIn <= 0.0f ) return 1.0f;
+	const int start = menu.hiding ? menu.hideStart : menu.showStart;
+	float t = ( Now() - start ) / ( menu.fadeIn * 1000.0f );
+	t = t < 0.0f ? 0.0f : t > 1.0f ? 1.0f : t;
+	return menu.hiding ? 1.0f - t : t;
 }
 
 /* How far into its motion a widget is, 0 at its start, 1 at its end. */
@@ -779,11 +1109,36 @@ float MotionFraction( const Widget &widget, float seconds ) {
 	return frac < 0.0f ? 0.0f : frac > 1.0f ? 1.0f : frac;
 }
 
+/* The menu's place: home, or on its way in from the edge its header names as
+ * it shows and back as it hides, carrying its widgets (the container's own
+ * motion, 0x004bb990) [I: as a widget's]. Only F.A.K.K.2's menus name one --
+ * bosshud comes in from the left over a second. */
+void MenuPosition( const Menu &menu, float &x, float &y ) {
+	x = MenuOriginX( menu );
+	y = MenuOriginY( menu );
+	if ( menu.motionTime <= 0.0f || !menu.visible ) return;
+	float offX = x, offY = y;
+	switch ( menu.direction ) {
+	case urc::Direction::FromLeft: offX = -menu.w; break;
+	case urc::Direction::FromRight: offX = static_cast<float>( cls.glconfig.vidWidth ); break;
+	case urc::Direction::FromBottom: offY = static_cast<float>( cls.glconfig.vidHeight ); break;
+	case urc::Direction::FromTop: offY = -menu.h; break;
+	default: return;
+	}
+	const int start = menu.hiding ? menu.hideStart : menu.showStart;
+	float frac = ( Now() - start ) / ( menu.motionTime * 1000.0f );
+	frac = frac < 0.0f ? 0.0f : frac > 1.0f ? 1.0f : frac;
+	if ( menu.hiding ) frac = 1.0f - frac;
+	x = offX + ( x - offX ) * frac;
+	y = offY + ( y - offY ) * frac;
+}
+
 /* The widget's position: home, or on its way between home and the edge it
  * enters from. Retail measures the far edges in the real screen's size while
  * the widget is in 640x480 units; kept. */
 void WidgetPosition( const Menu &menu, const Widget &widget, float &x, float &y ) {
-	const float originX = MenuOriginX( menu ), originY = MenuOriginY( menu );
+	float originX, originY;
+	MenuPosition( menu, originX, originY );
 	x = originX + widget.x;
 	y = originY + widget.y;
 	if ( widget.direction == urc::Direction::None || widget.motion == Motion::None || widget.motionTime <= 0.0f ) {
@@ -1077,7 +1432,10 @@ void KeysForCommand( const std::string &command, int &first, int &second ) {
 
 bool BoundTo( int key, const std::string &command ) {
 	const char *binding = key >= 0 ? Key_GetBinding( key ) : nullptr;
-	return binding && !Q_stricmp( binding, command.c_str() );
+	if ( !binding ) return false;
+	/* F.A.K.K.2 checks a kept key case-sensitively (fakk2.exe 1.02 0x004997a0),
+	 * so a binding in another case shows as None there. */
+	return Com_GameIsFAKK2() ? !strcmp( binding, command.c_str() ) : !Q_stricmp( binding, command.c_str() );
 }
 
 /* The window manager's key table for a row, refreshed and checked as its key
@@ -1112,10 +1470,30 @@ void BindRowKey( BindState &bind, int row, int key ) {
 	Key_SetBinding( key, command.c_str() );
 }
 
-/* A key button's clear (0x004d1700): the first key loses the command. */
-void ClearRowKey( BindState &bind, int row ) {
+/* F.A.K.K.2's alternate key (fakk2.exe 1.02 BindKeyToCommand 0x00499cc0 for a
+ * cell marked alternate, 0x004bbf00): the second key takes the command, unless
+ * it is already the first key, which only clears the second. */
+void BindRowAlternate( BindState &bind, int row, int key ) {
 	RowKeys( bind, row );
-	if ( bind.key1[row] > 0 ) Key_SetBinding( bind.key1[row], "" );
+	const std::string &command = bind.layout.items[row].command;
+	int &first = bind.key1[row];
+	int &second = bind.key2[row];
+	if ( second == key ) return;
+	if ( second >= 0 ) Key_SetBinding( second, "" );
+	if ( first == key ) {
+		second = -1;
+		return;
+	}
+	second = key;
+	Key_SetBinding( key, command.c_str() );
+}
+
+/* A key button's clear (0x004d1700): the first key loses the command, or in
+ * F.A.K.K.2's alternate cell the second (0x004bc300). */
+void ClearRowKey( BindState &bind, int row, bool alternate = false ) {
+	RowKeys( bind, row );
+	const int key = alternate ? bind.key2[row] : bind.key1[row];
+	if ( key > 0 ) Key_SetBinding( key, "" );
 }
 
 void BuildBindList( Menu &menu, int index ) {
@@ -1134,6 +1512,8 @@ void BuildBindList( Menu &menu, int index ) {
 	bind.key1.assign( rows, -1 );
 	bind.key2.assign( rows, -1 );
 	bind.page = mw::BindPageSize( widget.h, bind.layout.commandHeight );
+	// F.A.K.K.2's list starts on the first key cell (fakk2.exe 1.02 0x004c00e0).
+	if ( Com_GameIsFAKK2() ) bind.column = 2;
 	bind.built = true;
 	/* The menu's model, which the rows' animations play on (0x004e3c60..
 	 * 0x004e3d47): Alice, at half scale, standing idle. */
@@ -1160,7 +1540,8 @@ void PlayRowAnim( Menu &menu, Widget &widget ) {
  * its own size (0x004e4690). */
 void DrawPressAnyKey( const Widget &widget ) {
 	if ( !widget.bind.capturing ) return;
-	const qhandle_t shader = CL_AliceShader( "ui/control/press_any_key.tga" );
+	// F.A.K.K.2's is its own 128 by 64 picture (fakk2.exe 1.02 0x004c10e0).
+	const qhandle_t shader = CL_AliceShader( Com_GameIsFAKK2() ? "textures/menu/presskey" : "ui/control/press_any_key.tga" );
 	int w = 0, h = 0;
 	CL_AliceShaderSize( shader, &w, &h );
 	static const float white[4] = { 1, 1, 1, 1 };
@@ -1199,7 +1580,8 @@ void CaptureKey( int key ) {
 	Widget &widget = menus[captureMenu].widgets[captureWidget];
 	BindState &bind = widget.bind;
 	if ( key != K_ESCAPE && key != 0 && bind.row >= 0 && bind.row < static_cast<int>( bind.layout.items.size() ) ) {
-		BindRowKey( bind, bind.row, key );
+		if ( Com_GameIsFAKK2() && bind.column == 3 ) BindRowAlternate( bind, bind.row, key );
+		else BindRowKey( bind, bind.row, key );
 	}
 	EndCapture();
 	PlayLocalSound( bind.layout.enterSound );
@@ -1220,15 +1602,19 @@ bool BindListKey( Menu &menu, int index, int key ) {
 	const int count = static_cast<int>( bind.layout.items.size() );
 	if ( !bind.built || !count ) return false;
 	const std::string &change = bind.layout.changeSound;
+	/* F.A.K.K.2's list (fakk2.exe 1.02 KeyEvent 0x004c0de0) has the name in
+	 * column 1 and two key cells in columns 2 and 3; only a key cell waits for
+	 * a key or clears, and the arrows move between the key cells. */
+	const bool fakk2 = Com_GameIsFAKK2() != 0;
 	switch ( key ) {
 	case K_ENTER:
 		// The chosen cell's key button, or the name's, waits for a key.
-		StartCapture( menu, index );
+		if ( !fakk2 || bind.column >= 2 ) StartCapture( menu, index );
 		return true;
 	case K_BACKSPACE:
 	case K_DEL:
-		if ( bind.column == 2 ) {
-			ClearRowKey( bind, bind.row );
+		if ( bind.column == 2 || ( fakk2 && bind.column == 3 ) ) {
+			ClearRowKey( bind, bind.row, bind.column == 3 );
 			PlayLocalSound( bind.layout.activeSound );
 		}
 		return true;
@@ -1241,11 +1627,11 @@ bool BindListKey( Menu &menu, int index, int key ) {
 		PlayLocalSound( change );
 		return true;
 	case K_RIGHTARROW:
-		bind.column = bind.column + 1 > 2 ? 2 : bind.column + 1;
+		bind.column = bind.column + 1 > ( fakk2 ? 3 : 2 ) ? ( fakk2 ? 3 : 2 ) : bind.column + 1;
 		PlayLocalSound( change );
 		return true;
 	case K_LEFTARROW:
-		bind.column = bind.column - 1 < 1 ? 1 : bind.column - 1;
+		bind.column = bind.column - 1 < ( fakk2 ? 2 : 1 ) ? ( fakk2 ? 2 : 1 ) : bind.column - 1;
 		PlayLocalSound( change );
 		return true;
 	case K_UPARROW:
@@ -1273,6 +1659,11 @@ bool BindListKey( Menu &menu, int index, int key ) {
 }
 
 /* ---- UIFAKKLoadGameClass ------------------------------------------------- */
+
+void FollowSavePage( Widget &list );
+void ChooseSaveRow( Widget &list, int row );
+int SaveRowsPage( const Widget &list );
+void SaveListDown( Menu &menu, Widget &list, float mx, float my );
 
 /* The archive path of one of a save's files, or empty. */
 std::string SavePath( const std::string &name, const char *extension ) {
@@ -1325,6 +1716,19 @@ void ShowSaves( Menu &menu, Widget &list ) {
 			date->title = used ? SaveDate( list.load.rows[index - 1].saveTime ) : "";
 		}
 	}
+	/* F.A.K.K.2's load menu has one picture, `LoadSaveShot`, beside its list:
+	 * the chosen save's shot, or its localized pak's no_saved_games picture
+	 * while none is chosen (fakk2.exe 1.02 0x00415390..0x00415431). A save
+	 * whose shot this client has not written yet shows nothing. */
+	if ( Widget *picture = FindWidget( menu, "LoadSaveShot" ) ) {
+		const int chosen = page.Selected();
+		std::string shot = Com_GameIsFAKK2() ? "textures/menu/no_saved_games.tga" : "";
+		if ( count > 0 && chosen >= 1 && chosen <= count ) {
+			const std::string path = SavePath( list.load.rows[chosen - 1].name, alicesave::ShotExtension );
+			shot = !path.empty() && FS_ReadFile( path.c_str(), nullptr ) > 0 ? path : std::string();
+		}
+		picture->staticImage = shot;
+	}
 	if ( SV_AliceSaveError( qfalse ) == 0 ) {
 		SetWidgetShown( menu, "MsgBackground", false );
 		SetWidgetShown( menu, "DiskFull", false );
@@ -1356,6 +1760,7 @@ void RefreshSaves( Menu &menu, Widget &list ) {
 			if ( !mw::ListsSave( header.saveName ) ) continue;
 			mw::SaveRow row;
 			row.map = header.mapName;
+			row.comment = header.comment;
 			row.name = header.saveName;
 			row.saveTime = header.saveTime;
 			row.levelTime = header.levelTime;
@@ -1364,7 +1769,17 @@ void RefreshSaves( Menu &menu, Widget &list ) {
 		FS_FreeFileList( files );
 	}
 	mw::SortSaves( list.load.rows );
+	if ( Com_GameIsFAKK2() ) {
+		/* fakk2.exe 1.02 sorts by the date column, which is numeric and
+		 * reversed, and then chooses the first row, the newest save
+		 * (0x004147a0, 0x00414d01..0x00414d0e). */
+		std::reverse( list.load.rows.begin(), list.load.rows.end() );
+		list.load.page = mw::SavePage();
+		list.load.page.lastCount = static_cast<int>( list.load.rows.size() );   // ShowSaves keeps the choice
+		list.load.page.Select( 1, static_cast<int>( list.load.rows.size() ) );
+	}
 	ShowSaves( menu, list );
+	FollowSavePage( list );
 }
 
 /* CheckErrorState (0x00419ff0): a full disk is shown, then forgotten. */
@@ -1427,6 +1842,7 @@ void SaveFinished() {
 			list.load.page.page = ( count - 1 ) / mw::ShotsPerPage;
 			list.load.page.tab = ( count - 1 ) % mw::ShotsPerPage + 1;
 		}
+		FollowSavePage( list );
 		ClearMenus( true );
 	} else if ( error == static_cast<int>( alicesave::SaveError::DiskFull ) ) {
 		SetWidgetShown( menu, "MsgBackground", true );
@@ -1436,8 +1852,15 @@ void SaveFinished() {
 }
 
 /* UIFAKKLoadGameClass::KeyEvent (0x0041c090). Up and Down move the list
- * control's own selection, which the pictures do not follow. */
+ * control's own selection, which Alice's pictures do not follow. F.A.K.K.2's
+ * (fakk2.exe 1.02 0x00415710) is the same: Delete removes the chosen save,
+ * Enter loads it, and Up and Down step the choice, whose every change shows
+ * its save (listbase_item_selected -> 0x00415390). There the choice is the
+ * save the buttons take (0x004155b0, 0x00415660), and the other keys are the
+ * list control's. */
 bool LoadGameKey( Menu &menu, Widget &list, int key ) {
+	const int page = SaveRowsPage( list );
+	const int count = static_cast<int>( list.load.rows.size() );
 	switch ( key ) {
 	case K_DEL:
 		RemoveChosenSave( menu, list );
@@ -1447,7 +1870,36 @@ bool LoadGameKey( Menu &menu, Widget &list, int key ) {
 		return true;
 	case K_UPARROW:
 	case K_DOWNARROW:
+		if ( !list.neverDraw ) ChooseSaveRow( list, list.load.current + ( key == K_UPARROW ? -1 : 1 ) );
 		ShowSaves( menu, list );
+		return true;
+	case K_LEFTARROW:
+	case K_RIGHTARROW:
+	case K_PGUP:
+	case K_PGDN:
+	case K_HOME:
+	case K_END: {
+		if ( list.neverDraw ) return false;
+		/* The rest are the list control's (fakk2.exe 1.02 UIListCtrl::KeyEvent
+		 * 0x004af9a0): Left and Right step as Up and Down do; Page Up and
+		 * Page Down go to the shown page's first or last row, and a page on
+		 * from there; Home and End to the first and last. */
+		const int top = list.load.top;
+		int row = list.load.current;
+		if ( key == K_LEFTARROW ) row -= 1;
+		else if ( key == K_RIGHTARROW ) row += 1;
+		else if ( key == K_PGUP ) row = row - 1 != top ? top + 1 : row - page;
+		else if ( key == K_PGDN ) row = row != top + page ? top + page : row + page;
+		else row = key == K_HOME ? 1 : count;
+		ChooseSaveRow( list, row );
+		ShowSaves( menu, list );
+		return true;
+	}
+	case K_MWHEELUP:
+	case K_MWHEELDOWN:
+		// The wheel scrolls two rows and leaves the choice (0x004af9e3, 0x004afa05).
+		if ( list.neverDraw ) return false;
+		list.load.top = std::clamp( list.load.top + ( key == K_MWHEELUP ? -2 : 2 ), 0, std::max( count - page, 0 ) );
 		return true;
 	default:
 		return false;
@@ -1498,12 +1950,247 @@ void FieldChar( Widget &widget, int ch ) {
 
 /* UISlider's arrows (0x004da8b0, 0x004da940): a step and the write. */
 void SliderStep( Widget &widget, int direction ) {
-	widget.slider.s.value = mw::Stepped( widget.slider.s, direction );
+	widget.slider.s.value = Com_GameIsFAKK2() ? mw::SteppedFakk2( widget.slider.s, direction )
+		: mw::Stepped( widget.slider.s, direction );
 	SliderWrite( widget );
 }
 
 /* The keys a widget's class takes before the menu's own (the window
  * manager's KeyEvent 0x004b3382 asks the active control first). */
+/* ---- UIMultiLineEdit ------------------------------------------------------- */
+
+int EditPage( const Widget &widget ) {
+	const int h = FontHeight( widget );
+	return h > 0 ? static_cast<int>( widget.h / static_cast<float>( h ) ) : 0;
+}
+
+/* Bound (0x004dd120): the line into the text, the column into its line. */
+void EditBound( const EditState &edit, EditPoint &p ) {
+	const int count = static_cast<int>( edit.lines.size() );
+	if ( p.line < 0 ) p.line = 0;
+	if ( p.line > count - 1 ) p.line = count - 1;
+	const int length = static_cast<int>( edit.lines[p.line].size() );
+	if ( p.column < 0 ) p.column = 0;
+	if ( p.column > length ) p.column = length;
+}
+
+/* EnsureSelectionPointVisible (0x004dd0e0). Returns whether it scrolled. */
+bool EditEnsureVisible( const Widget &widget, EditState &edit, const EditPoint &p ) {
+	const int page = EditPage( widget );
+	if ( p.line >= edit.top && p.line < edit.top + page ) return false;
+	edit.top = p.line < edit.top ? p.line : std::max( 0, p.line - page + 1 );
+	return true;
+}
+
+/* The selection's ends in order (0x004dc450). */
+void EditOrdered( const EditState &edit, EditPoint &from, EditPoint &to ) {
+	from = edit.begin;
+	to = edit.end;
+	if ( to.line < from.line || ( to.line == from.line && to.column < from.column ) ) std::swap( from, to );
+}
+
+bool EditHasSelection( const EditState &edit ) {
+	return edit.begin.line != edit.end.line || edit.begin.column != edit.end.column;
+}
+
+/* PointToSelectionPoint (0x004dce60), from a point in the widget. */
+EditPoint EditPointAt( const Widget &widget, const EditState &edit, float px, float py ) {
+	EditPoint p;
+	const int fontH = FontHeight( widget );
+	const int line = fontH > 0 ? static_cast<int>( py / static_cast<float>( fontH ) + static_cast<float>( edit.top ) ) : 0;
+	if ( line < 0 ) return p;
+	p.line = std::min( line, static_cast<int>( edit.lines.size() ) - 1 );
+	const std::string &text = edit.lines[p.line];
+	const font::Font *metrics = CL_AliceFontMetrics( widget.font );
+	float sum = 0.0f;
+	int column = 0;
+	float width = 0.0f;
+	while ( column < static_cast<int>( text.size() ) && sum < px ) {
+		width = static_cast<float>( font::CharWidth( metrics, text[column] ) );
+		sum += width;
+		++column;
+	}
+	if ( column < static_cast<int>( text.size() ) && column > 0 && sum - width * 0.5f >= px ) --column;
+	p.column = column;
+	return p;
+}
+
+void EditDeleteSelection( EditState &edit ) {
+	if ( !EditHasSelection( edit ) ) return;
+	EditPoint from, to;
+	EditOrdered( edit, from, to );
+	std::string &first = edit.lines[from.line];
+	const std::string tail = edit.lines[to.line].substr( std::min<std::size_t>( to.column, edit.lines[to.line].size() ) );
+	first = first.substr( 0, from.column ) + tail;
+	edit.lines.erase( edit.lines.begin() + from.line + 1, edit.lines.begin() + to.line + 1 );
+	edit.begin = edit.end = from;
+	edit.changed = true;
+}
+
+std::string EditSelectedText( const EditState &edit ) {
+	EditPoint from, to;
+	EditOrdered( edit, from, to );
+	std::string text;
+	for ( int line = from.line; line <= to.line; ++line ) {
+		const std::string &source = edit.lines[line];
+		const int length = static_cast<int>( source.size() );
+		const int start = std::min( line == from.line ? from.column : 0, length );
+		const int end = std::min( line == to.line ? to.column : length, length );
+		if ( end > start ) text += source.substr( start, end - start );
+		if ( line != to.line ) text += '\n';
+	}
+	return text;
+}
+
+/* AttemptScrollTo (0x004d8b70): the top line held to the text. */
+void EditScrollTo( const Widget &widget, EditState &edit, int top ) {
+	const int last = std::max( 0, static_cast<int>( edit.lines.size() ) - EditPage( widget ) );
+	edit.top = std::min( std::max( top, 0 ), last );
+}
+
+/* Copy (0x004ddc00) to the clipboard. */
+void EditCopy( const EditState &edit ) {
+	const std::string text = EditSelectedText( edit );
+	Sys_SetClipboardData( text.c_str() );
+}
+
+bool EditChar( Widget &widget, int ch );
+
+/* Paste (0x004ddeb0): the selection goes, then the clipboard's bytes are
+ * typed, a newline as a return -- none of them when the box takes no typing,
+ * though the selection has gone all the same. */
+void EditPaste( Widget &widget ) {
+	char *clip = Sys_GetClipboardData();
+	EditDeleteSelection( widget.edit );
+	if ( !clip ) return;
+	for ( const char *c = clip; *c; ++c ) EditChar( widget, *c == '\n' ? 13 : static_cast<unsigned char>( *c ) );
+	Z_Free( clip );
+}
+
+/* UIMultiLineEdit::KeyEvent (0x004dd180): the selection's end moves and is
+ * held to the text; the start follows unless Shift is down; the end is
+ * brought into view. It answers only the keys it knows. */
+bool EditKey( Widget &widget, int key ) {
+	EditState &edit = widget.edit;
+	const int page = EditPage( widget );
+	const int count = static_cast<int>( edit.lines.size() );
+	const bool ctrl = keys[K_CTRL].down != qfalse;
+	bool shift = keys[K_SHIFT].down != qfalse;
+	EditPoint &end = edit.end;
+	switch ( key ) {
+	case K_UPARROW:
+		--end.line;
+		break;
+	case K_DOWNARROW:
+		++end.line;
+		break;
+	case K_LEFTARROW:
+		if ( --end.column < 0 ) {
+			--end.line;
+			end.column = end.line < 0 ? 0 : 999999;
+		}
+		break;
+	case K_RIGHTARROW: {
+		const EditPoint before = end;
+		++end.column;
+		EditBound( edit, end );
+		if ( end.line == before.line && end.column == before.column ) {
+			if ( end.line < count - 1 ) {
+				++end.line;
+				end.column = 0;
+			} else {
+				end.column = 999999;
+			}
+		}
+		break;
+	}
+	case K_HOME:
+		end.column = 0;
+		if ( ctrl ) end.line = 0;
+		break;
+	case K_END:
+		end.column = 999999;
+		if ( ctrl ) end.line = count;
+		break;
+	case K_PGUP:
+		end.line = end.line == edit.top ? end.line - page : edit.top;
+		break;
+	case K_PGDN:
+		end.line = end.line == edit.top + page - 1 ? end.line + page : edit.top + page - 1;
+		break;
+	case K_MWHEELDOWN:
+		EditScrollTo( widget, edit, edit.top + 2 );
+		return true;
+	case K_MWHEELUP:
+		EditScrollTo( widget, edit, edit.top - 2 );
+		return true;
+	case K_INS:
+		// Only with a selection: Ctrl copies, Shift pastes.
+		if ( !EditHasSelection( edit ) ) return true;
+		if ( ctrl ) EditCopy( edit );
+		else if ( shift ) EditPaste( widget );
+		return true;
+	case K_DEL:
+		if ( !EditHasSelection( edit ) ) {
+			// A forced-shift Right: the selection grows by one and nothing goes.
+			shift = true;
+			++end.column;
+			EditBound( edit, end );
+			break;
+		}
+		if ( shift ) EditCopy( edit );
+		EditDeleteSelection( edit );
+		EditEnsureVisible( widget, edit, edit.end );
+		return true;
+	default:
+		return false;
+	}
+	EditBound( edit, end );
+	if ( !shift ) edit.begin = end;
+	EditEnsureVisible( widget, edit, end );
+	return true;
+}
+
+/* UIMultiLineEdit::CharEvent (0x004dd810), the only thing `edit 0` stops:
+ * a printable character or a tab replaces the selection, Backspace takes the
+ * selection or the character before, and Return splits the line. */
+bool EditChar( Widget &widget, int ch ) {
+	EditState &edit = widget.edit;
+	if ( !edit.editable ) return false;
+	if ( ( ch >= 0x20 && ch <= 0x7e ) || ch == '\t' ) {
+		EditDeleteSelection( edit );
+		std::string &line = edit.lines[edit.begin.line];
+		line.insert( line.begin() + std::min<std::size_t>( edit.begin.column, line.size() ), static_cast<char>( ch ) );
+		++edit.begin.column;
+		edit.end = edit.begin;
+		edit.changed = true;
+	} else if ( ch == 8 ) {
+		if ( !EditHasSelection( edit ) ) {
+			if ( --edit.end.column < 0 ) {
+				--edit.end.line;
+				edit.end.column = edit.end.line < 0 ? 0 : 999999;
+			}
+			EditBound( edit, edit.end );
+		}
+		EditDeleteSelection( edit );
+	} else if ( ch == 13 ) {
+		EditDeleteSelection( edit );
+		std::string &line = edit.lines[edit.begin.line];
+		const std::size_t at = std::min<std::size_t>( edit.begin.column, line.size() );
+		const std::string rest = line.substr( at );
+		line.erase( at );
+		edit.lines.insert( edit.lines.begin() + edit.begin.line + 1, rest );
+		++edit.begin.line;
+		edit.begin.column = 0;
+		edit.end = edit.begin;
+		edit.changed = true;
+	} else {
+		return false;
+	}
+	EditEnsureVisible( widget, edit, edit.end );
+	return true;
+}
+
 bool WidgetKey( Menu &menu, int index, int key ) {
 	Widget &widget = menu.widgets[index];
 	switch ( widget.kind ) {
@@ -1531,6 +2218,8 @@ bool WidgetKey( Menu &menu, int index, int key ) {
 		return BindListKey( menu, index, key );
 	case WidgetKind::LoadGame:
 		return LoadGameKey( menu, widget, key );
+	case WidgetKind::MultiLineEdit:
+		return EditKey( widget, key );
 	default:
 		return false;
 	}
@@ -1541,6 +2230,9 @@ void WidgetChar( Menu &menu, int index, int ch ) {
 	switch ( widget.kind ) {
 	case WidgetKind::Field:
 		FieldChar( widget, ch );
+		break;
+	case WidgetKind::MultiLineEdit:
+		EditChar( widget, ch );
 		break;
 	case WidgetKind::CheckBox:
 		// 0x004e0c90: the space bar ticks it, without the checked commands.
@@ -1604,6 +2296,52 @@ void CheckRestart( Menu &menu ) {
 	if ( sound ) Cbuf_AddText( "snd_restart; in_restart\n" );   // 0x0052b5b0
 }
 
+void ClosePulldown();
+bool PulldownOpen();
+void OpenPulldown( Menu &menu, int index, float mx, float my );
+void PulldownDragged( float mx, float my );
+void ReleasePulldown( float mx, float my );
+
+/* F.A.K.K.2's buttons light their hover picture when the mouse comes onto
+ * them or presses them, and keep it when the mouse goes: UIButtonBase's
+ * mouse-exit response is empty (fakk2.exe 1.02 0x004fd438 -> 0x00404200).
+ * The window manager puts it out on the control it takes the keys from
+ * (0x00498c7a..0x00498c90), so the picture stays with the button that has
+ * the keys. Alice's buttons put it out when the mouse leaves (alice.exe
+ * 0x004cfc60), and this UI draws Alice's under the mouse. */
+bool LightsFollowKeys( const Widget &widget ) {
+	return Com_GameIsFAKK2() && widget.kind == WidgetKind::Button;
+}
+
+/* The window manager's ActivateControl (0x00498c10): the widget takes the
+ * keys and is lit, the one before is put out, and its menu remembers its
+ * order number (0x00498cb0 -> 0x0049f5f0 -> 0x0049f970). */
+void Activate( Menu &menu, int index ) {
+	if ( menu.focus == index ) return;
+	if ( menu.focus >= 0 ) menu.widgets[menu.focus].lit = false;
+	menu.focus = index;
+	if ( index < 0 ) return;
+	menu.widgets[index].lit = true;
+	menu.currentOrder = menu.widgets[index].orderNumber;
+}
+
+/* After every change of menus F.A.K.K.2 gives the keys to the top menu's
+ * current order, 1 until a widget with an order number has had them
+ * (0x0040abcb -> 0x004a40d0 -> 0x0049f8d0), and puts out every other widget
+ * (0x0049f900). The main menu opens with NEW GAME lit. */
+void ActivateCurrentOrder( Menu &menu ) {
+	if ( !menu.currentOrder ) menu.currentOrder = 1;
+	const int order = menu.currentOrder;
+	for ( std::size_t i = 0; i < menu.widgets.size(); ++i ) {
+		Widget &widget = menu.widgets[i];
+		if ( widget.orderNumber == order && widget.shown && widget.enabled ) {
+			Activate( menu, static_cast<int>( i ) );
+		} else {
+			widget.lit = false;
+		}
+	}
+}
+
 void ShowMenu( Menu &menu, int delayMs ) {
 	menu.visible = true;
 	menu.hiding = false;
@@ -1619,6 +2357,11 @@ void ShowMenu( Menu &menu, int delayMs ) {
 		widget.slider.leftPressed = widget.slider.rightPressed = widget.slider.dragging = false;
 		widget.slider.repeatAt = -1;
 		widget.list.previousPressed = widget.list.nextPressed = false;
+		widget.pulldown.open = -1;
+		widget.edit.dragging = false;
+		widget.edit.scrollPart = 0;
+		widget.edit.thumbDrag = false;
+		AddAliases( widget );
 	}
 	for ( const std::string &command : menu.showCommands ) ExecuteLine( command );
 	/* Each enabled widget reads its cvar and writes what it holds (the menu's
@@ -1628,16 +2371,20 @@ void ShowMenu( Menu &menu, int delayMs ) {
 		UpdateUIElement( menu, static_cast<int>( i ) );
 		UpdateData( menu, static_cast<int>( i ) );
 	}
+	if ( Com_GameIsFAKK2() ) ActivateCurrentOrder( menu );
 }
 
 void FinishHide( Menu &menu ) {
 	menu.visible = false;
 	menu.hiding = false;
+	menu.hud = false;
+	if ( popup.menu == MenuIndex( menu ) ) ClosePulldown();
 	for ( const std::string &command : menu.hideCommands ) ExecuteLine( command );
 }
 
 void HideMenu( Menu &menu, bool force ) {
 	if ( captureMenu == MenuIndex( menu ) ) EndCapture();
+	if ( popup.menu == MenuIndex( menu ) ) ClosePulldown();
 	if ( !menu.visible ) return;
 	if ( force ) {
 		FinishHide( menu );
@@ -1720,6 +2467,12 @@ bool PlayerDead() {
 /* UI_MenuEscape (0x0040d470): refused while a key is awaited (0x0040d460). */
 void MenuEscape( const char *name ) {
 	if ( CL_AliceLoadingActive() || Capturing() ) return;
+	// An open inventory is closed first, and that is all (0x0040d4e1..0x0040d4e8).
+	if ( CL_Fakk2InventoryClose() ) return;
+	if ( PulldownOpen() ) {
+		ClosePulldown();
+		return;
+	}
 	Menu *current = CurrentMenu();
 	if ( current && !Q_stricmp( current->name.c_str(), name ) ) {
 		if ( cls.state <= CA_DISCONNECTED || PlayerDead() ) return;
@@ -1728,6 +2481,13 @@ void MenuEscape( const char *name ) {
 		if ( Now() >= inputLockUntil ) PopMenu( true );
 	} else {
 		PushMenu( name, false );
+	}
+	/* F.A.K.K.2's escape then offers BACK TO GAME only in a game: its main
+	 * menu's `backtogame` is disabled outside one and enabled in one
+	 * (fakk2.exe 1.02 0x0040c032..0x0040c0e9). Alice's main menu sees to its
+	 * own, from its show command. */
+	if ( Com_GameIsFAKK2() && CurrentMenu() && !Q_stricmp( name, "main" ) ) {
+		SetWidgetShown( *CurrentMenu(), "backtogame", cls.state >= CA_ACTIVE );
 	}
 }
 
@@ -1768,8 +2528,9 @@ void ScheduleIntro( int delayMs ) {
 
 void RunIntroStep() {
 	introNextStep = -1;
-	const screen::IntroStep step = screen::Intro( introState );
-	Com_DPrintf( "Alice intro: state %d\n", introState );
+	// Heavy Metal: F.A.K.K.2's own steps: two plates and no movie (alice_screen.hpp).
+	const screen::IntroStep step = Com_GameIsFAKK2() ? screen::Fakk2Intro( introState ) : screen::Intro( introState );
+	Com_DPrintf( "Ritual intro: state %d\n", introState );
 	switch ( step.action ) {
 	case screen::IntroAction::Nothing:
 		return;
@@ -1781,8 +2542,8 @@ void RunIntroStep() {
 	case screen::IntroAction::PlateIn:
 	case screen::IntroAction::PlateHold:
 	case screen::IntroAction::PlateOut:
-		introPlate.image = screen::IntroPlateImage;
-		introPlate.scale = screen::IntroPlateScale;
+		introPlate.image = step.plateImage;
+		introPlate.scale = step.plateScale;
 		introPlate.from = step.plateFrom;
 		introPlate.to = step.plateTo;
 		introPlate.lengthMs = step.plateMs;
@@ -1807,19 +2568,30 @@ void RunIntroStep() {
 	case screen::IntroAction::MainMenu:
 		if ( uiInitialized ) {
 			PushMenu( "main", true );
+			/* F.A.K.K.2's last step disables BACK TO GAME outside a game
+			 * (0x0040e295..0x0040e2eb). */
+			if ( Com_GameIsFAKK2() && cls.state < CA_ACTIVE && CurrentMenu() ) {
+				SetWidgetShown( *CurrentMenu(), "backtogame", false );
+			}
 		} else {
 			// Between this client's UI restarts: opened when it is back.
 			savedStack.assign( 1, "main" );
 		}
-		S_AliceMusicNewSoundtrack( screen::IntroSoundtrack );
+		if ( step.soundtrack ) S_AliceMusicNewSoundtrack( CL_RitualMenuSoundtrack() );
 		introPlate = {};
 		introState = step.nextState;
 		return;
 	case screen::IntroAction::Soundtrack:
-		/* State -1, a map loaded: the main menu's case without its push
-		 * (0x0040fdd2). The movie that ends into a map load appends
-		 * `_intro` after the map, so this runs then. */
-		S_AliceMusicNewSoundtrack( screen::IntroSoundtrack );
+		/* Alice's state -1, a map loaded: the main menu's case without its
+		 * push (0x0040fdd2). The movie that ends into a map load appends
+		 * `_intro` after the map, so this runs then. F.A.K.K.2's state 0
+		 * starts the soundtrack and waits before its first plate. */
+		S_AliceMusicNewSoundtrack( CL_RitualMenuSoundtrack() );
+		introPlate = {};
+		introState = step.nextState;
+		if ( step.waitMs >= 0 ) ScheduleIntro( step.waitMs );
+		return;
+	case screen::IntroAction::End:
 		introPlate = {};
 		introState = step.nextState;
 		return;
@@ -2035,6 +2807,14 @@ void UiSetCvars_f() {
 void UiHideMouse_f() { if ( CurrentMenu() ) viewHasMouse = true; }
 void UiShowMouse_f() { viewHasMouse = false; }
 
+/* ui_checkrestart (0x0040eee0), F.A.K.K.2's Apply buttons: the current menu's
+ * restart check (0x004c5340 -> 0x004c4910). Retail first opens or closes its
+ * floating and mini consoles by ui_console and ui_minicon; this client's
+ * console is its own. */
+void UiCheckRestart_f() {
+	if ( Menu *menu = CurrentMenu() ) CheckRestart( *menu );
+}
+
 /* The engine UI's commands (UI_Init 0x004105fc..0x0041080b). Retail registers
  * them once and never shuts that UI down. This client restarts the hosted
  * module with every map load and video restart, so every one of them is
@@ -2045,12 +2825,12 @@ void UiShowMouse_f() { viewHasMouse = false; }
 const char *const kCommands[] = {
 	"pushmenu", "forcemenu", "popmenu", "showmenu", "widgetcommand", "listmenus",
 	"centerprint", "locationprint", "ui_resetcvars", "ui_restorecvars", "ui_setcvars",
-	"ui_showmouse", "ui_hidemouse",
+	"ui_showmouse", "ui_hidemouse", "ui_checkrestart",
 };
 const xcommand_t kCommandHandlers[] = {
 	PushMenu_f, ForceMenu_f, PopMenu_f, ShowMenu_f, WidgetCommand_f, ListMenus_f,
 	CenterPrint_f, LocationPrint_f, UiResetCvars_f, UiRestoreCvars_f, UiSetCvars_f,
-	UiShowMouse_f, UiHideMouse_f,
+	UiShowMouse_f, UiHideMouse_f, UiCheckRestart_f,
 };
 static_assert( std::size( kCommands ) == std::size( kCommandHandlers ), "one handler for each command" );
 
@@ -2077,12 +2857,62 @@ void RegisterCvars() {
 	Cvar_Get( "ui_inventoryfile", "global/inventory.scr", 0 );
 	ui_console = Cvar_Get( "ui_console", "0", CVAR_ARCHIVE );
 	Cvar_Get( "ui_newvidmode", "-1", 0 );
-	ui_hud = Cvar_Get( "ui_hud", "1", CVAR_ARCHIVE );
-	ui_subtitles = Cvar_Get( "ui_subtitles", "1", CVAR_ARCHIVE );
-	Cvar_Get( "ui_skipDepthClear", "1", 0 );
-	Cvar_Get( "ui_crosshair", "1", CVAR_ARCHIVE );
-	Cvar_Get( "ui_jumpreticle", "1", CVAR_ARCHIVE );
+	ui_hud = Cvar_Get( "ui_hud", "1", CL_RitualUiHudFlags() );
+	if ( !Com_GameIsFAKK2() ) {
+		// fakk2.exe 1.02 has none of these (UI_Init 0x0040e9df..0x0040ea63).
+		ui_subtitles = Cvar_Get( "ui_subtitles", "1", CVAR_ARCHIVE );
+		Cvar_Get( "ui_skipDepthClear", "1", 0 );
+		Cvar_Get( "ui_crosshair", "1", CVAR_ARCHIVE );
+		Cvar_Get( "ui_jumpreticle", "1", CVAR_ARCHIVE );
+	} else {
+		// fnTech3's own: an option, not retail's.
+		ui_menuDissolve = Cvar_Get( "ui_menuDissolve", "0", CVAR_ARCHIVE );
+		Cvar_SetDescription( ui_menuDissolve,
+			"1 dissolves the full-screen menus over the screen's last image, as retail F.A.K.K.2's uncleared "
+			"screen leaves them; 0 fades them over black." );
+	}
 	Cvar_Get( "dlg_badsave", "This save game is invalid", 0 );
+}
+
+/* r_gfxinfo: the renderer's report, which Ritual's renderer writes at its
+ * start and at each `gfxinfo` (0x00474b40, 0x00475d77, 0x00476028) and
+ * F.A.K.K.2's graphics menu shows. This client's renderers print their own
+ * report and write no cvar, so the UI writes it as it starts -- after the
+ * renderer, as retail's does -- in retail's lines, those this engine has an
+ * answer for. */
+void SetGfxInfo() {
+	const glconfig_t &gl = cls.glconfig;
+	std::string report;
+	report += va( "\nGL_VENDOR: %s\n", gl.vendor_string );
+	report += va( "GL_RENDERER: %s\n", gl.renderer_string );
+	report += va( "GL_VERSION: %s\n", gl.version_string );
+	/* One line an extension, as F.A.K.K.2's renderer writes the report
+	 * (fakk2.exe 1.02 0x00460813..0x00460868): the string cut at its spaces,
+	 * each word longer than one character. */
+	for ( const char *word = gl.extensions_string; *word; ) {
+		const char *end = strchr( word, ' ' );
+		const std::size_t length = end ? static_cast<std::size_t>( end - word ) : strlen( word );
+		if ( length > 1 ) report += "GL_EXTENSIONS: " + std::string( word, length ) + "\n";
+		word += length;
+		while ( *word == ' ' ) ++word;
+	}
+	report += va( "GL_MAX_TEXTURE_SIZE: %d\n", gl.maxTextureSize );
+	report += va( "GL_MAX_ACTIVE_TEXTURES_ARB: %d\n", gl.numTextureUnits );
+	report += va( "\nPIXELFORMAT: color(%d-bits) Z(%d-bit) stencil(%d-bits)\n", gl.colorBits, gl.depthBits, gl.stencilBits );
+	report += va( "MODE: %d, %d x %d %s hz:", Cvar_VariableIntegerValue( "r_mode" ), gl.vidWidth, gl.vidHeight,
+		gl.isFullscreen ? "fullscreen" : "windowed" );
+	report += gl.displayFrequency ? va( "%d\n", gl.displayFrequency ) : "N/A\n";
+	report += va( gl.deviceSupportsGamma ? "GAMMA: hardware w/ %d overbright bits\n" : "GAMMA: software w/ %d overbright bits\n",
+		Cvar_VariableIntegerValue( "r_overBrightBits" ) );
+	report += va( "CPU: %s\n", Cvar_VariableString( "sys_cpustring" ) );
+	report += va( "texturemode: %s\n", Cvar_VariableString( "r_textureMode" ) );
+	report += va( "picmip: %d\n", Cvar_VariableIntegerValue( "r_picmip" ) );
+	report += va( "texture bits: %d\n", Cvar_VariableIntegerValue( "r_texturebits" ) );
+	report += va( "multitexture: %s\n", gl.numTextureUnits > 1 ? "enabled" : "disabled" );
+	report += va( "texenv add: %s\n", gl.textureEnvAddAvailable ? "enabled" : "disabled" );
+	report += va( "compressed textures: %s\n", gl.textureCompression != TC_NONE ? "enabled" : "disabled" );
+	Cvar_Get( "r_gfxinfo", "", 0 );
+	Cvar_Set( "r_gfxinfo", report.c_str() );
 }
 
 /* ---- input ---------------------------------------------------------------- */
@@ -2100,8 +2930,10 @@ bool Hoverable( const Widget &widget ) {
 		return !widget.hoverShader.empty() || !widget.mouseEnterCommand.empty();
 	case WidgetKind::AutoScroll:
 	case WidgetKind::Alice3D:
-	case WidgetKind::LoadGame:
 		return false;
+	case WidgetKind::LoadGame:
+		// Only a list the menu shows (F.A.K.K.2's) takes the mouse.
+		return !widget.neverDraw;
 	default:
 		return true;
 	}
@@ -2212,6 +3044,24 @@ void ListDown( const Menu &menu, Widget &widget, float mx, float my ) {
 inline constexpr float ScrollbarWidth = 16.0f;   // 0x004ff498
 
 /* The row and column under the cursor, false for none. */
+/* F.A.K.K.2's columns (fakk2.exe 1.02 0x004c0390): the name, then after a
+ * fill strip the primary key, then after another the alternate key. Index 1
+ * to 3; each column's x in the list, width and height. */
+void Fakk2BindColumns( const mw::BindLayout &layout, float xs[4], float ws[4], float hs[4] ) {
+	const float cw = static_cast<float>( layout.commandWidth ), fw = static_cast<float>( layout.fillWidth );
+	const float pw = static_cast<float>( layout.primaryKeyWidth );
+	xs[0] = ws[0] = hs[0] = 0.0f;
+	xs[1] = 0.0f;
+	ws[1] = cw;
+	hs[1] = static_cast<float>( layout.commandHeight );
+	xs[2] = cw + fw;
+	ws[2] = pw;
+	hs[2] = static_cast<float>( layout.primaryKeyHeight );
+	xs[3] = cw + 2.0f * fw + pw;
+	ws[3] = static_cast<float>( layout.alternateKeyWidth );
+	hs[3] = static_cast<float>( layout.alternateKeyHeight );
+}
+
 bool BindCellAt( const Menu &menu, const Widget &widget, float mx, float my, int &row, int &column ) {
 	const BindState &bind = widget.bind;
 	const mw::BindLayout &layout = bind.layout;
@@ -2220,6 +3070,18 @@ bool BindCellAt( const Menu &menu, const Widget &widget, float mx, float my, int
 	for ( int r = 0; r < static_cast<int>( layout.items.size() ); ++r ) {
 		if ( !mw::RowVisible( r, bind.top, layout.commandHeight, widget.h ) ) continue;
 		const float ry = y + static_cast<float>( mw::VisibleRowTop( r, bind.top, layout.commandHeight ) );
+		if ( Com_GameIsFAKK2() ) {
+			float xs[4], ws[4], hs[4];
+			Fakk2BindColumns( layout, xs, ws, hs );
+			for ( int c = 1; c <= 3; ++c ) {
+				if ( Inside( mx, my, x + xs[c], ry, ws[c], hs[c] ) ) {
+					row = r;
+					column = c;
+					return true;
+				}
+			}
+			continue;
+		}
 		// The key button is drawn over the right end of the row's label.
 		if ( Inside( mx, my, x + layout.commandWidth, ry, static_cast<float>( layout.primaryKeyWidth ),
 			static_cast<float>( layout.primaryKeyHeight ) ) ) {
@@ -2239,15 +3101,19 @@ bool BindCellAt( const Menu &menu, const Widget &widget, float mx, float my, int
 
 /* The scrollbar's thumb: its length for the page, at least 6 units, and its
  * place for the position, below the 16-unit arrow (0x004d8670). */
-void ThumbFor( const Widget &widget, float &offset, float &length ) {
-	const BindState &bind = widget.bind;
-	const float track = widget.h - 32.0f;
-	const float count = static_cast<float>( bind.layout.items.size() );
-	length = count > 0.0f ? static_cast<float>( bind.page ) * track / count : track;
+void ScrollThumb( float height, int top, int page, int count, float &offset, float &length ) {
+	const float track = height - 32.0f;
+	const float n = static_cast<float>( count );
+	length = n > 0.0f ? static_cast<float>( page ) * track / n : track;
 	if ( length < 6.0f ) length = 6.0f;
-	offset = count > 0.0f ? static_cast<float>( bind.top ) * track / count : 0.0f;
+	offset = n > 0.0f ? static_cast<float>( top ) * track / n : 0.0f;
 	if ( offset + length - track > 0.0f ) offset -= offset + length - track;
 	offset += ScrollbarWidth;
+}
+
+void ThumbFor( const Widget &widget, float &offset, float &length ) {
+	ScrollThumb( widget.h, widget.bind.top, widget.bind.page, static_cast<int>( widget.bind.layout.items.size() ),
+		offset, length );
 }
 
 void BindListDown( Menu &menu, int index, float mx, float my ) {
@@ -2276,6 +3142,22 @@ void BindListDown( Menu &menu, int index, float mx, float my ) {
 	}
 	int row = 0, column = 1;
 	if ( !BindCellAt( menu, widget, mx, my, row, column ) ) return;
+	if ( Com_GameIsFAKK2() ) {
+		/* A name chooses its row with the change sound (fakk2.exe 1.02
+		 * 0x004c1b50 -> 0x004c11c0); a key cell is chosen silently, and waits
+		 * for a key only if it was the chosen one already (0x004bc140). */
+		if ( column == 1 ) {
+			bind.row = row;
+			bind.column = 1;
+			PlayLocalSound( bind.layout.changeSound );
+		} else if ( row == bind.row && column == bind.column ) {
+			StartCapture( menu, index );
+		} else {
+			bind.row = row;
+			bind.column = column;
+		}
+		return;
+	}
 	/* A cell clicked again waits for a key; either way it is the chosen one
 	 * (0x004e47f0, 0x004e4740). */
 	if ( row == bind.row && column == bind.column ) StartCapture( menu, index );
@@ -2296,6 +3178,75 @@ void BindListDragged( const Menu &menu, Widget &widget, float my ) {
 	ScrollTo( bind, static_cast<int>( offset * count / track + 0.5f ) );
 }
 
+/* ---- UIMultiLineEdit's mouse (0x004dcf60 down, 0x004dd020 dragged,
+ * 0x004dd080 the drag timer, 0x004dcfd0 up) and its scrollbar -------------- */
+
+void EditDown( Menu &menu, int index, float mx, float my ) {
+	Widget &widget = menu.widgets[index];
+	EditState &edit = widget.edit;
+	float x, y;
+	WidgetPosition( menu, widget, x, y );
+	if ( mx >= x + widget.w - ScrollbarWidth ) {
+		const float local = my - y;
+		const int page = EditPage( widget );
+		if ( local < ScrollbarWidth ) {
+			edit.scrollPart = 1;
+			EditScrollTo( widget, edit, edit.top - 1 );
+		} else if ( local >= widget.h - ScrollbarWidth ) {
+			edit.scrollPart = 2;
+			EditScrollTo( widget, edit, edit.top + 1 );
+		} else {
+			float offset, length;
+			ScrollThumb( widget.h, edit.top, page, static_cast<int>( edit.lines.size() ), offset, length );
+			if ( local < offset ) EditScrollTo( widget, edit, edit.top - page );
+			else if ( local >= offset + length ) EditScrollTo( widget, edit, edit.top + page );
+			else {
+				edit.thumbDrag = true;
+				edit.thumbGrab = local - offset;
+			}
+		}
+		return;
+	}
+	// The selection starts and ends at the point, which is brought into view.
+	edit.begin = edit.end = EditPointAt( widget, edit, mx - x, my - y );
+	EditEnsureVisible( widget, edit, edit.end );
+	edit.dragging = true;
+	edit.dragRepeatAt = -1;
+}
+
+void EditDragged( const Menu &menu, Widget &widget, float mx, float my ) {
+	EditState &edit = widget.edit;
+	float x, y;
+	WidgetPosition( menu, widget, x, y );
+	if ( edit.thumbDrag ) {
+		const float track = widget.h - 32.0f;
+		if ( track <= 0.0f ) return;
+		const float offset = my - y - edit.thumbGrab - ScrollbarWidth;
+		EditScrollTo( widget, edit, static_cast<int>( offset * static_cast<float>( edit.lines.size() ) / track + 0.5f ) );
+		return;
+	}
+	if ( !edit.dragging ) return;
+	edit.end = EditPointAt( widget, edit, mx - x, my - y );
+	// A drag past an edge scrolls, and scrolls again every 0.25 s (0x3e800000).
+	if ( EditEnsureVisible( widget, edit, edit.end ) && edit.dragRepeatAt < 0 ) edit.dragRepeatAt = Now() + 250;
+}
+
+void EditRepeat( const Menu &menu, Widget &widget ) {
+	EditState &edit = widget.edit;
+	if ( !edit.dragging || edit.dragRepeatAt < 0 || Now() < edit.dragRepeatAt ) return;
+	float x, y;
+	WidgetPosition( menu, widget, x, y );
+	edit.end = EditPointAt( widget, edit, VirtualCursorX() - x, VirtualCursorY() - y );
+	edit.dragRepeatAt = EditEnsureVisible( widget, edit, edit.end ) ? Now() + 250 : -1;
+}
+
+void EditUp( Widget &widget ) {
+	widget.edit.dragging = false;
+	widget.edit.dragRepeatAt = -1;
+	widget.edit.scrollPart = 0;
+	widget.edit.thumbDrag = false;
+}
+
 /* ---- the window manager's mouse (0x004b3a50) ------------------------------ */
 
 void MouseEnter( Menu &menu, int index ) {
@@ -2303,16 +3254,18 @@ void MouseEnter( Menu &menu, int index ) {
 	if ( !widget.mouseEnterCommand.empty() ) ExecuteLine( widget.mouseEnterCommand );
 	switch ( widget.kind ) {
 	case WidgetKind::Button:
+		// Lit even if it has the keys already (0x004ae409).
+		widget.lit = true;
 		PlayLocalSound( widget.hoverSound );
-		menu.focus = index;
+		Activate( menu, index );
 		break;
 	case WidgetKind::CheckBox:
 		// 0x004e07e0: the control takes the keys; a held button presses it.
-		menu.focus = index;
+		Activate( menu, index );
 		if ( cursorButtons & 1 ) widget.check.depressed = true;
 		break;
 	case WidgetKind::Slider:
-		menu.focus = index;
+		Activate( menu, index );
 		if ( cursorButtons & 1 ) SliderDown( menu, widget, VirtualCursorX(), VirtualCursorY() );
 		break;
 	default:
@@ -2345,6 +3298,13 @@ void UpdateHover() {
 	if ( !menu ) return;
 	const int hovered = Now() < menu->showStart || cursorX < 0 || viewHasMouse
 		? -1 : WidgetAt( *menu, VirtualCursorX(), VirtualCursorY() );
+	// A held F.A.K.K.2 button is lit while the cursor is on it (0x004ae0c0).
+	if ( menu->pressed >= 0 && LightsFollowKeys( menu->widgets[menu->pressed] ) ) {
+		Widget &held = menu->widgets[menu->pressed];
+		float x, y;
+		WidgetPosition( *menu, held, x, y );
+		held.lit = Inside( VirtualCursorX(), VirtualCursorY(), x, y, held.w, held.h );
+	}
 	if ( hovered == menu->hovered ) return;
 	if ( menu->hovered >= 0 ) MouseExit( *menu, menu->hovered );
 	menu->hovered = hovered;
@@ -2358,11 +3318,12 @@ void MouseDown( Menu &menu ) {
 	const int index = menu.hovered;
 	if ( index < 0 ) return;
 	Widget &widget = menu.widgets[index];
-	menu.focus = index;
+	Activate( menu, index );
 	const float mx = VirtualCursorX(), my = VirtualCursorY();
 	switch ( widget.kind ) {
 	case WidgetKind::Button:
 		menu.pressed = index;
+		widget.lit = true;   // 0x004ae0a0
 		break;
 	case WidgetKind::CheckBox:
 		widget.check.depressed = true;   // 0x004e0770
@@ -2376,6 +3337,16 @@ void MouseDown( Menu &menu ) {
 	case WidgetKind::BindList:
 		BindListDown( menu, index, mx, my );
 		break;
+	case WidgetKind::LoadGame:
+		SaveListDown( menu, widget, mx, my );
+		break;
+	case WidgetKind::Pulldown:
+		// The press opens the entry under it at once (0x004e2940 -> 0x004e2ad0).
+		OpenPulldown( menu, index, mx, my );
+		break;
+	case WidgetKind::MultiLineEdit:
+		EditDown( menu, index, mx, my );
+		break;
 	default:
 		break;
 	}
@@ -2387,12 +3358,20 @@ void Click( Widget &widget ) {
 }
 
 void MouseUp( Menu &menu ) {
+	// A text box lets the mouse go wherever the button comes up (0x004dcfd0).
+	for ( Widget &widget : menu.widgets ) {
+		if ( widget.kind == WidgetKind::MultiLineEdit ) EditUp( widget );
+	}
 	if ( menu.pressed >= 0 ) {
 		Widget &widget = menu.widgets[menu.pressed];
 		const int under = WidgetAt( menu, VirtualCursorX(), VirtualCursorY() );
 		const int pressed = menu.pressed;
 		menu.pressed = -1;
-		if ( under == pressed ) Click( widget );
+		if ( under == pressed ) {
+			Click( widget );
+		} else if ( LightsFollowKeys( widget ) ) {
+			widget.lit = false;   // let go off it (0x004ae2d3)
+		}
 		return;
 	}
 	const int index = menu.hovered;
@@ -2423,6 +3402,13 @@ void MouseUp( Menu &menu ) {
 }
 
 void MouseDragged( Menu &menu ) {
+	// A text box being dragged across keeps the mouse, as its first responder does.
+	for ( Widget &widget : menu.widgets ) {
+		if ( widget.kind == WidgetKind::MultiLineEdit && ( widget.edit.dragging || widget.edit.thumbDrag ) ) {
+			EditDragged( menu, widget, VirtualCursorX(), VirtualCursorY() );
+			return;
+		}
+	}
 	const int index = menu.pressed >= 0 ? menu.pressed : menu.hovered;
 	if ( index < 0 ) return;
 	Widget &widget = menu.widgets[index];
@@ -2436,6 +3422,12 @@ void MouseDragged( Menu &menu ) {
 bool CaptureMouse( int key ) {
 	Menu &menu = menus[captureMenu];
 	const Widget &widget = menu.widgets[captureWidget];
+	/* F.A.K.K.2's window manager gives a waiting cell every mouse event, so a
+	 * button binds wherever the cursor is (fakk2.exe 1.02 0x0049873e). */
+	if ( Com_GameIsFAKK2() ) {
+		CaptureKey( key );
+		return true;
+	}
 	int row = 0, column = 1;
 	if ( !BindCellAt( menu, widget, VirtualCursorX(), VirtualCursorY(), row, column ) || row != widget.bind.row
 		|| column != 2 ) {
@@ -2451,12 +3443,15 @@ bool CaptureMouse( int key ) {
  * menu up takes it, a scripted in-game cinematic is skipped, the menus take
  * it while disconnected or in the game, and a cinematic with no mouse button
  * held is stopped. The modal test (0x0040c7e0) is read here as "a menu is
- * up" [inferred]. */
+ * up" [inferred]. F.A.K.K.2's (fakk2.exe 1.02 0x0041fb3d..0x0041fbf0) tests
+ * "a menu is up" (0x0040ab40) in that order too, but blocks nothing during
+ * its intro, takes a second press even in a movie, and stops no movie. */
 int lastEscapeTime = -100000;
 
 void EscapeKey() {
-	if ( EscapeBlockedByIntro() ) return;
-	if ( Now() - lastEscapeTime < 1000 && cls.state != CA_CINEMATIC ) {
+	const bool fakk2 = Com_GameIsFAKK2() != 0;
+	if ( !fakk2 && EscapeBlockedByIntro() ) return;
+	if ( Now() - lastEscapeTime < 1000 && ( fakk2 || cls.state != CA_CINEMATIC ) ) {
 		MenuEscape( "main" );
 		return;
 	}
@@ -2465,7 +3460,7 @@ void EscapeKey() {
 		MenuEscape( "main" );
 		return;
 	}
-	if ( cls.state == CA_ACTIVE && ( cl.snap.ps.alice.block[0][5] & 1 ) ) {
+	if ( cls.state == CA_ACTIVE && CL_RitualInCinematic() ) {
 		Cbuf_AddText( "skipcinematic\n" );
 		return;
 	}
@@ -2473,7 +3468,7 @@ void EscapeKey() {
 		MenuEscape( "main" );
 		return;
 	}
-	if ( cls.state == CA_CINEMATIC ) {
+	if ( cls.state == CA_CINEMATIC && !fakk2 ) {
 		for ( int mouse = K_MOUSE1; mouse <= K_MOUSE5; ++mouse ) {
 			if ( keys[mouse].down ) return;
 		}
@@ -2508,10 +3503,23 @@ void MoveFocus( Menu &menu, int step ) {
 	auto at = std::find( ordered.begin(), ordered.end(), menu.focus );
 	int position = at == ordered.end() ? ( step > 0 ? -1 : 0 ) : static_cast<int>( at - ordered.begin() );
 	position = ( position + step + static_cast<int>( ordered.size() ) ) % static_cast<int>( ordered.size() );
-	menu.focus = ordered[position];
+	Activate( menu, ordered[position] );
 }
 
 void KeyEvent( int key, bool down ) {
+	/* F.A.K.K.2's open inventory takes the presses while no menu is up (its
+	 * KeyEvent 0x004091b0, as the window manager's active control); with the
+	 * cursor on, its buttons come through the cursor instead. */
+	if ( menuStack.empty() && CL_Fakk2InventoryIsOpen() ) {
+		if ( !down || ( key & K_CHAR_FLAG ) ) return;
+		if ( key == K_ESCAPE ) {
+			EscapeKey();
+			return;
+		}
+		if ( key >= K_MOUSE1 && key <= K_MOUSE5 && CL_Fakk2InventoryWantsCursor() ) return;
+		CL_Fakk2InventoryKey( key );
+		return;
+	}
 	Menu *menu = CurrentMenu();
 	if ( key & K_CHAR_FLAG ) {
 		// Characters go to the control that has the keys (CharEvent, slot 13).
@@ -2586,7 +3594,16 @@ void DrawBorder( float x, float y, float w, float h, int style, const mw::Border
 void DrawWidgetText( const Menu &menu, const Widget &widget, float x, float y, float alpha, bool pressed ) {
 	std::string text;
 	if ( widget.kind == WidgetKind::Label && !widget.linkCvar.empty() ) {
-		text = Cvar_VariableString( widget.linkCvar.c_str() );
+		/* UILabel::Draw (0x004d5910): the cvar's waiting value when it has one
+		 * (0x0040e1a0), shown as the words of the first linkstring whose value
+		 * it is, compared without regard to case (0x004d5810), else as it is. */
+		text = UiCvarString( widget.linkCvar.c_str() );
+		for ( const auto &link : widget.linkStrings ) {
+			if ( !Q_stricmp( link.first.c_str(), text.c_str() ) ) {
+				text = link.second;
+				break;
+			}
+		}
 	} else {
 		text = widget.title;
 	}
@@ -2609,38 +3626,66 @@ void DrawWidgetText( const Menu &menu, const Widget &widget, float x, float y, f
 /* The class draws, each at the widget's place in menu units and its alpha. */
 
 /* UICheckBox::Draw (0x004e0af0): a raised box unless pressed, the checked or
- * unchecked picture (blue or black without one) at the left, centred, and the
- * title after it. */
+ * unchecked picture (blue or black without one) at its indent, centred, and
+ * the title after it. F.A.K.K.2's box is indented and Alice's is not. */
 void DrawCheckBox( Menu &menu, int index, float x, float y, float alpha ) {
 	Widget &widget = menu.widgets[index];
 	UpdateData( menu, index );
 	if ( !widget.check.depressed ) Box3D( x, y, widget.w, widget.h, false, widget.border3d, alpha );
 	const float color[4] = { widget.fg[0], widget.fg[1], widget.fg[2], widget.fg[3] * alpha };
+	const float indent = Com_GameIsFAKK2() ? mw::Fakk2CheckIndent : 0.0f;
 	const float boxY = y + ( widget.h - mw::CheckSize ) * 0.5f;
 	const std::string &shader = widget.check.checked ? widget.check.checkedShader : widget.check.uncheckedShader;
 	if ( !shader.empty() ) {
-		VirtualPic( x, boxY, mw::CheckSize, mw::CheckSize, color, CL_AliceShader( shader.c_str() ) );
+		VirtualPic( x + indent, boxY, mw::CheckSize, mw::CheckSize, color, CL_AliceShader( shader.c_str() ) );
 	} else {
 		// UBlue (0x00aa6fd0) or UBlack (0x00aa7010).
 		const float fill[4] = { 0.0f, 0.0f, widget.check.checked ? 1.0f : 0.0f, alpha };
-		VirtualFill( x, boxY, mw::CheckSize, mw::CheckSize, fill );
+		VirtualFill( x + indent, boxY, mw::CheckSize, mw::CheckSize, fill );
 	}
 	if ( !widget.title.empty() ) {
 		const float titleY = ( widget.h - static_cast<float>( FontHeight( widget ) ) ) * 0.5f - 1.0f;
-		WidgetPrint( widget, widget.fg, x + mw::CheckSize, y + titleY, widget.title.c_str(), widget.fontAngle,
+		WidgetPrint( widget, widget.fg, x + mw::CheckTitleX( indent ), y + titleY, widget.title.c_str(), widget.fontAngle,
 			widget.charSpacing, widget.lineSpacing );
 	}
 }
 
 /* UISlider::Draw (0x004db440), always opaque: the bar between the arrows, the
  * thumb on it, and the two arrows, pressed or not. */
-void DrawSlider( Menu &menu, int index, float x, float y ) {
+void DrawSlider( Menu &menu, int index, float x, float y, const float *inherited, float alpha ) {
 	Widget &widget = menu.widgets[index];
 	UpdateUIElement( menu, index );
 	static const float white[4] = { 1, 1, 1, 1 };
 	const mw::Slider &s = widget.slider.s;
 	const float arrow = static_cast<float>( s.arrowWidth );
 	const float centre = mw::ThumbCenter( s, mw::TrackFor( s, x, widget.w ) );
+	if ( Com_GameIsFAKK2() ) {
+		/* fakk2.exe 1.02 0x004b64e0: the track is the widget's shader. The
+		 * thumb, lit while dragged, then each arrow, lit while held, take the
+		 * colour the widget's own draw left set. An arrow whose picture and
+		 * lit picture are one name is a button: a 3D box, sunk while held,
+		 * and the picture 2 units inside it in the box's last, light shade
+		 * (0x004b660b, 0x004b66df). */
+		float pen[4] = { inherited[0], inherited[1], inherited[2], inherited[3] };
+		VirtualPic( x + centre - s.thumbWidth * 0.5f, y, s.thumbWidth, widget.h, pen,
+			CL_AliceShader( ( widget.slider.dragging ? widget.slider.thumbSel : widget.slider.thumb ).c_str() ) );
+		const auto drawArrow = [&]( float ax, bool held, const std::string &normal, const std::string &lit ) {
+			if ( normal != lit ) {
+				VirtualPic( ax, y, arrow, widget.h, pen, CL_AliceShader( ( held ? lit : normal ).c_str() ) );
+				return;
+			}
+			Box3D( ax, y, arrow, widget.h, held, widget.border3d, alpha );
+			const mw::Rgba &light = widget.border3d.light;
+			pen[0] = light.r;
+			pen[1] = light.g;
+			pen[2] = light.b;
+			pen[3] = light.a * alpha;
+			VirtualPic( ax + 2.0f, y + 2.0f, arrow - 4.0f, widget.h - 4.0f, pen, CL_AliceShader( normal.c_str() ) );
+		};
+		drawArrow( x, widget.slider.leftPressed, widget.slider.left, widget.slider.leftSel );
+		drawArrow( x + widget.w - arrow, widget.slider.rightPressed, widget.slider.right, widget.slider.rightSel );
+		return;
+	}
 	VirtualPic( x + arrow, y, widget.w - 2.0f * arrow, widget.h, white, CL_AliceShader( "ui/control/hslider_bar" ) );
 	VirtualPic( x + centre - s.thumbWidth * 0.5f, y, s.thumbWidth, widget.h, white,
 		CL_AliceShader( "ui/control/hslider_indicator" ) );
@@ -2736,6 +3781,52 @@ void DrawBindCell( const Widget &list, float x, float y, float w, float h, const
 	}
 }
 
+/* UIVertScroll::Draw (alice.exe 0x004d87b0): its bar, its arrows (the lower
+ * one flipped) and, with more rows than a page, its thumb, in Alice's art.
+ * F.A.K.K.2 ships none of that art and draws its own below. */
+void DrawScrollbar( float barX, float y, float height, int top, int page, int count ) {
+	static const float white[4] = { 1, 1, 1, 1 };
+	const qhandle_t bar = CL_AliceShader( "ui/control/slider2_bar.tga" );
+	const qhandle_t arrow = CL_AliceShader( "ui/control/slider2_top.tga" );
+	float offset = 0.0f, length = 0.0f;
+	const bool thumb = count > page;
+	if ( thumb ) ScrollThumb( height, top, page, count, offset, length );
+	if ( bar && arrow ) {
+		VirtualPic( barX, y + ScrollbarWidth, ScrollbarWidth, height - 32.0f, white, bar );
+		VirtualPic( barX, y, ScrollbarWidth, ScrollbarWidth, white, arrow );
+		VirtualPic( barX, y + height - ScrollbarWidth, ScrollbarWidth, ScrollbarWidth, white, arrow, 0.0f, 1.0f, 1.0f, 0.0f );
+		if ( thumb ) {
+			VirtualPic( barX, y + offset, ScrollbarWidth, length, white, CL_AliceShader( "ui/control/slider2_indicator.tga" ) );
+		}
+		return;
+	}
+	/* F.A.K.K.2's UIVertScroll (fakk2.exe 1.02 Draw 0x004b3ab0), in its
+	 * widget's light grey with a black edge (0x009b2a98, constructor
+	 * 0x004b341d). Its two 16-unit arrow buttons are bevelled only while there
+	 * is something to scroll (0x004b366c), their marlett glyphs white then and
+	 * in the grey's dark shade otherwise (0x004b355f..0x004b3588). The thumb
+	 * is 0.5 grey (0x009b2a78), bevelled in its own shades (0x004b36b0). */
+	static const float grey[4] = { 0.75f, 0.75f, 0.75f, 1.0f };
+	static const float thumbGrey[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
+	static const mw::BorderColor bevel = mw::MakeBorderColor( { 0.75f, 0.75f, 0.75f, 1.0f } );
+	static const mw::BorderColor thumbBevel = mw::MakeBorderColor( { 0.5f, 0.5f, 0.5f, 1.0f } );
+	static const int marlett = CL_AliceFontRegister( "marlett" );
+	const float greyed[4] = { bevel.dark.r, bevel.dark.g, bevel.dark.b, bevel.dark.a };
+	EdgedBox( barX, y, ScrollbarWidth, height, grey );
+	for ( int end = 0; end < 2; ++end ) {
+		const float ay = end ? y + height - ScrollbarWidth : y;
+		EdgedBox( barX, ay, ScrollbarWidth, ScrollbarWidth, grey );
+		if ( thumb ) Bevel( barX + 1.0f, ay + 1.0f, ScrollbarWidth - 2.0f, ScrollbarWidth - 2.0f, bevel );
+		const font::Rect rect{ barX, ay, ScrollbarWidth, ScrollbarWidth };
+		CL_AliceFontPrintJustified( marlett, thumb ? white : greyed, false, rect, 0, 1, end ? "6" : "5", 0.0f, 0.0f,
+			0.0f, 1.0f, 1.0f );
+	}
+	if ( thumb ) {
+		EdgedBox( barX, y + offset, ScrollbarWidth, length, thumbGrey );
+		Bevel( barX + 1.0f, y + offset + 1.0f, ScrollbarWidth - 2.0f, length - 2.0f, thumbBevel );
+	}
+}
+
 /* UIFakkBindList::Draw (0x004e4960) with its cells and its scrollbar
  * (UIVertScroll::Draw 0x004d87b0). */
 void DrawBindList( Menu &menu, Widget &widget, float x, float y, float alpha ) {
@@ -2799,27 +3890,620 @@ void DrawBindList( Menu &menu, Widget &widget, float x, float y, float alpha ) {
 			}
 		}
 	}
-	// The scrollbar: its bar, its arrows (the lower one flipped) and its thumb.
-	static const float white[4] = { 1, 1, 1, 1 };
-	const float barX = x + widget.w - ScrollbarWidth;
-	VirtualPic( barX, y + ScrollbarWidth, ScrollbarWidth, widget.h - 32.0f, white,
-		CL_AliceShader( "ui/control/slider2_bar.tga" ) );
-	const qhandle_t arrow = CL_AliceShader( "ui/control/slider2_top.tga" );
-	VirtualPic( barX, y, ScrollbarWidth, ScrollbarWidth, white, arrow );
-	VirtualPic( barX, y + widget.h - ScrollbarWidth, ScrollbarWidth, ScrollbarWidth, white, arrow, 0.0f, 1.0f, 1.0f, 0.0f );
-	if ( static_cast<int>( layout.items.size() ) > bind.page ) {
-		float offset, length;
-		ThumbFor( widget, offset, length );
-		VirtualPic( barX, y + offset, ScrollbarWidth, length, white, CL_AliceShader( "ui/control/slider2_indicator.tga" ) );
+	DrawScrollbar( x + widget.w - ScrollbarWidth, y, widget.h, bind.top, bind.page,
+		static_cast<int>( layout.items.size() ) );
+}
+
+/* Whether the paks hold textures/bind/<name>: F.A.K.K.2's key cell registers
+ * that picture for its key and falls back to textures/bind/emptykey with the
+ * name printed over it (fakk2.exe 1.02 0x004bc56d..0x004bc6a2). */
+bool BindKeyPicture( const char *name ) {
+	static std::map<std::string, bool> known;
+	std::string key = name;
+	for ( char &c : key ) c = static_cast<char>( tolower( static_cast<unsigned char>( c ) ) );
+	const auto found = known.find( key );
+	if ( found != known.end() ) return found->second;
+	bool exists = false;
+	for ( const char *extension : { "ftx", "tga", "jpg" } ) {
+		if ( FS_ReadFile( va( "textures/bind/%s.%s", key.c_str(), extension ), nullptr ) > 0 ) {
+			exists = true;
+			break;
+		}
 	}
+	known[key] = exists;
+	return exists;
+}
+
+/* One of F.A.K.K.2's list cells as UIWidget::Display draws it (0x0049ef30):
+ * its background, then its picture in its foreground colour. */
+void Fakk2BindPicture( float x, float y, float w, float h, const mw::Rgba &fg, const mw::Rgba &bg,
+	const std::string &picture, float alpha ) {
+	if ( bg.a != 0.0f ) {
+		const float fill[4] = { bg.r, bg.g, bg.b, bg.a * bg.a * alpha };
+		VirtualFill( x, y, w, h, fill );
+	}
+	if ( !picture.empty() ) {
+		const float tint[4] = { fg.r, fg.g, fg.b, fg.a * alpha };
+		VirtualPic( x, y, w, h, tint, CL_AliceShader( picture.c_str() ) );
+	}
+}
+
+/* A cell's text, centred, as far as it fits: a name wider than the cell is
+ * cut at the right, as retail's clip shows `MWHEELDOW` (0x004bc6ac..0x004bc767). */
+void Fakk2BindText( int font, float x, float y, float w, float h, const mw::Rgba &fg, const char *text, float alpha ) {
+	const fntech3::alice::ritualfont::Font *metrics = CL_AliceFontMetrics( font );
+	std::string shown = text;
+	if ( metrics ) {
+		while ( shown.size() > 1 && fntech3::alice::ritualfont::StringWidth( metrics, shown.c_str() ) > w ) shown.pop_back();
+	}
+	const float color[4] = { fg.r, fg.g, fg.b, fg.a * alpha };
+	const font::Rect rect{ x, y, w, h };
+	CL_AliceFontPrintJustified( font, color, false, rect, 0, 1, shown.c_str(), 0.0f, 0.0f, 0.0f, 1.0f, 1.0f );
+}
+
+/* UIFakkBindList as fakk2.exe 1.02 builds and draws it (children 0x004c0390,
+ * Draw 0x004c1360): three header labels in the title colours; fill strips the
+ * list's height between and after the columns, 0.75 grey behind the tiled
+ * fill picture; a row an item from the scrollbar's position, its name picture,
+ * or name, then its first and second key's picture or name over emptykey, in
+ * the highlight colours for the chosen row and the select (or, waiting, the
+ * active) colours for the chosen cell; a waiting cell's 2-unit active border;
+ * and the scrollbar at the list's right edge. Every cell is in verdana-12. */
+void DrawFakk2BindList( Widget &widget, float x, float y, float alpha ) {
+	BindState &bind = widget.bind;
+	if ( !bind.built ) return;
+	const mw::BindLayout &layout = bind.layout;
+	static const int cellFont = CL_AliceFontRegister( "verdana-12" );
+	float xs[4], ws[4], hs[4];
+	Fakk2BindColumns( layout, xs, ws, hs );
+	const float ch = static_cast<float>( layout.commandHeight );
+	for ( int c = 1; c <= 3; ++c ) {
+		const std::string &picture = layout.headerMaterials[c - 1];
+		Fakk2BindPicture( x + xs[c], y, ws[c], ch, layout.titleForeground, layout.titleBackground, picture, alpha );
+		if ( picture.empty() && !layout.headers[c - 1].empty() ) {
+			Fakk2BindText( cellFont, x + xs[c], y, ws[c], ch, layout.titleForeground, layout.headers[c - 1].c_str(), alpha );
+		}
+	}
+	if ( layout.fillWidth > 0 ) {
+		static const mw::Rgba grey{ 0.75f, 0.75f, 0.75f, 1.0f };
+		static const mw::Rgba white{ 1.0f, 1.0f, 1.0f, 1.0f };
+		const float fw = static_cast<float>( layout.fillWidth );
+		const qhandle_t fill = layout.fillMaterial.empty() ? 0 : CL_AliceShader( layout.fillMaterial.c_str() );
+		int imageW = 0, imageH = 0;
+		if ( fill && re.GetShaderImageSize ) re.GetShaderImageSize( fill, &imageW, &imageH );
+		for ( int c = 1; c <= 3; ++c ) {
+			const float fx = x + xs[c] + ws[c];
+			Fakk2BindPicture( fx, y, fw, widget.h, white, grey, std::string(), alpha );
+			if ( fill && imageW > 0 && imageH > 0 ) {
+				// Tiled from its corner (the label's tile flag 8, Display 0x0049f0cb).
+				const float tint[4] = { 1.0f, 1.0f, 1.0f, alpha };
+				VirtualPic( fx, y, fw, widget.h, tint, fill, 0.0f, 0.0f, fw / imageW, widget.h / imageH );
+			}
+		}
+	}
+	const int count = static_cast<int>( layout.items.size() );
+	for ( int row = bind.top; row < count; ++row ) {
+		const float rowY = ch * static_cast<float>( row - bind.top + 1 );
+		if ( rowY >= widget.h ) break;
+		RowKeys( bind, row );
+		const mw::BindItem &item = layout.items[row];
+		for ( int c = 1; c <= 3; ++c ) {
+			mw::Rgba fg = layout.inactiveForeground, bg = layout.inactiveBackground;
+			if ( row == bind.row ) {
+				fg = layout.highlightForeground;
+				bg = layout.highlightBackground;
+				if ( c == bind.column ) {
+					fg = bind.capturing ? layout.activeForeground : layout.selectForeground;
+					bg = bind.capturing ? layout.activeBackground : layout.selectBackground;
+				}
+			}
+			const float cx = x + xs[c], cy = y + rowY, cw = ws[c], cellH = hs[c];
+			if ( c == 1 ) {
+				Fakk2BindPicture( cx, cy, cw, cellH, fg, bg, item.material, alpha );
+				if ( item.material.empty() ) Fakk2BindText( cellFont, cx, cy, cw, cellH, fg, item.name.c_str(), alpha );
+				continue;
+			}
+			const int key = c == 2 ? bind.key1[row] : bind.key2[row];
+			const char *name = key >= 0 ? Key_KeynumToString( key ) : "None";
+			const bool picture = BindKeyPicture( name );
+			Fakk2BindPicture( cx, cy, cw, cellH, fg, bg,
+				picture ? std::string( "textures/bind/" ) + name : std::string( "textures/bind/emptykey" ), alpha );
+			if ( !picture ) Fakk2BindText( cellFont, cx + 1.0f, cy + 1.0f, cw, cellH, fg, name, alpha );
+			if ( bind.capturing && row == bind.row && c == bind.column ) {
+				// The waiting cell's 2-unit border, at full alpha (0x004bc47d..0x004bc496).
+				const float edge[4] = { layout.activeBorder.r, layout.activeBorder.g, layout.activeBorder.b,
+					layout.activeBorder.a };
+				VirtualFill( cx, cy, cw, 2.0f, edge );
+				VirtualFill( cx, cy + cellH - 2.0f, cw, 2.0f, edge );
+				VirtualFill( cx, cy, 2.0f, cellH, edge );
+				VirtualFill( cx + cw - 2.0f, cy, 2.0f, cellH, edge );
+			}
+		}
+	}
+	DrawScrollbar( x + widget.w - ScrollbarWidth, y, widget.h, bind.top, bind.page, count );
+}
+
+/* ---- UIFAKKLoadGameClass drawn: the list control ------------------------- */
+
+int SaveRowsPage( const Widget &list ) {
+	return mw::SaveRowsPerPage( list.h, FontHeight( list ) );
+}
+
+/* UIListCtrl::Draw over the saves, as F.A.K.K.2's load menu shows them;
+ * Alice's list is `neverdraw`. fakk2.exe 1.02 (0x004ac8e0) boxes each
+ * column's header 0.3 grey with a one-unit white edge through its DrawBox
+ * (0x004ac941..0x004aca0f), prints its title in white two units in (0x009b2ad8,
+ * 0x009b2ae8), and boxes the width the columns leave the same; alice.exe's
+ * headers are raised grey with black titles (0x004cde00). Then a line a save
+ * in the widget's own colours, the chosen one yellow on blue (alice.exe
+ * 0x004cd920, 0x004cd8e0), each cell filled and its text at its corner, from
+ * the first row shown until a row's top passes the list (0x004ce010). The
+ * list's scrollbar is always there, its arrows greyed while the saves fit a
+ * page. */
+void DrawSaveList( Widget &list, float x, float y, float alpha ) {
+	const int line = FontHeight( list );
+	const float lineF = static_cast<float>( line );
+	const float header = static_cast<float>( mw::SaveHeaderHeight( line ) );
+	const float headerFill[4] = { 0.3f, 0.3f, 0.3f, alpha };
+	const float white[4] = { 1.0f, 1.0f, 1.0f, alpha };
+	float cx = 0.0f;
+	for ( int column = 0; column <= mw::SaveColumns; ++column ) {
+		const float w = column < mw::SaveColumns ? static_cast<float>( mw::SaveColumnWidth( column, list.w ) )
+			: list.w - cx;
+		if ( w <= 0.0f ) break;
+		EdgedBox( x + cx, y, w, header, headerFill, white );
+		if ( column < mw::SaveColumns ) {
+			CL_AliceFontPrint( list.font, white, false, x + cx + 2.0f, y + 2.0f, mw::SaveColumnTitles[column], -1,
+				0.0f, 0.0f, 0.0f, 1.0f, 1.0f );
+		}
+		cx += w;
+	}
+	const int count = static_cast<int>( list.load.rows.size() );
+	for ( int row = list.load.top; row < count; ++row ) {
+		const float rowY = header + static_cast<float>( row - list.load.top ) * lineF;
+		if ( rowY > list.h ) break;
+		const float cellH = std::min( lineF, list.h - rowY );
+		/* fakk2.exe 1.02's rows (0x004acb04..0x004acbfe): the chosen one black
+		 * on white, the rest in the widget's colours, each at the widget's own
+		 * alpha rather than its colours' (alice.exe's chosen row is yellow on
+		 * blue, 0x004cd920, 0x004cd8e0). The first column is the header's
+		 * comment, the level's title. */
+		const bool chosen = row + 1 == list.load.current;
+		static const float black[4] = { 0.0f, 0.0f, 0.0f, 1.0f }, whiteRow[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+		const float *fg = chosen ? black : list.fg;
+		const float *bg = chosen ? whiteRow : list.bg;
+		const float fill[4] = { bg[0], bg[1], bg[2], alpha };
+		const float text[4] = { fg[0], fg[1], fg[2], alpha };
+		const mw::SaveRow &save = list.load.rows[row];
+		const std::string cells[mw::SaveColumns] = { save.comment, mw::ElapsedText( save.levelTime ),
+			SaveDate( save.saveTime ) };
+		cx = 0.0f;
+		for ( int column = 0; column <= mw::SaveColumns; ++column ) {
+			const float w = column < mw::SaveColumns ? static_cast<float>( mw::SaveColumnWidth( column, list.w ) )
+				: list.w - cx;
+			if ( w <= 0.0f ) break;
+			if ( fill[3] > 0.0f && cellH > 0.0f ) VirtualFill( x + cx, y + rowY, w, cellH, fill );
+			// A row the list's edge cuts keeps its fill; its text would overrun the list.
+			if ( column < mw::SaveColumns && cellH >= lineF ) {
+				CL_AliceFontPrint( list.font, text, false, x + cx, y + rowY, cells[column].c_str(), -1, 0.0f, 0.0f,
+					0.0f, 1.0f, 1.0f );
+			}
+			cx += w;
+		}
+	}
+	const int page = SaveRowsPage( list );
+	DrawScrollbar( x + list.w - ScrollbarWidth, y, list.h, list.load.top, page, count );
+}
+
+/* A drawn list follows the page's choice -- the newest save after a refresh
+ * whose count changed (SavePage::Refreshed) -- and keeps it in view. */
+void FollowSavePage( Widget &list ) {
+	if ( list.neverDraw ) return;
+	const int count = static_cast<int>( list.load.rows.size() );
+	const int chosen = list.load.page.Selected();
+	list.load.current = count > 0 && chosen >= 1 && chosen <= count ? chosen : 0;
+	list.load.top = mw::SaveTopFor( list.load.current, list.load.top, SaveRowsPage( list ), count );
+}
+
+/* A row chosen in a drawn list is the save the buttons take: the page and
+ * picture `loadgame` and `removegame` read (0x0041bcb0) follow it, as
+ * fakk2.exe 1.02's load and delete read the list's chosen row (+0x160,
+ * 0x00415660 and 0x004155b0). */
+void ChooseSaveRow( Widget &list, int row ) {
+	const int count = static_cast<int>( list.load.rows.size() );
+	if ( count <= 0 ) return;
+	row = std::clamp( row, 1, count );
+	list.load.current = row;
+	mw::SelectSaveRow( list.load.page, row );
+	list.load.top = mw::SaveTopFor( row, list.load.top, SaveRowsPage( list ), count );
+}
+
+/* A press in a drawn list: a row chooses it, one below the last choosing the
+ * last as the list's setter holds it (fakk2.exe 1.02 0x004af7a8); on the
+ * scrollbar the arrows step and the track pages. The same row pressed again
+ * within half a second and two units of the last press is a double click,
+ * which loads its save (UIListCtrl 0x004ad497..0x004ad4fe, 2.0 at
+ * 0x004d61d8; listbase_item_doubleclicked -> loadgame 0x00415660), and every
+ * press is kept for the next (0x004ad729..0x004ad749). */
+void SaveListDown( Menu &menu, Widget &list, float mx, float my ) {
+	if ( list.neverDraw ) return;
+	float x, y;
+	WidgetPosition( menu, list, x, y );
+	const int line = FontHeight( list );
+	const int count = static_cast<int>( list.load.rows.size() );
+	const int page = SaveRowsPage( list );
+	if ( count > page && mx >= x + list.w - ScrollbarWidth ) {
+		const float local = my - y;
+		int top = list.load.top;
+		if ( local < ScrollbarWidth ) top -= 1;
+		else if ( local >= list.h - ScrollbarWidth ) top += 1;
+		else top += local < list.h * 0.5f ? -page : page;
+		list.load.top = std::clamp( top, 0, count - page );
+		return;
+	}
+	const float local = my - y - static_cast<float>( mw::SaveHeaderHeight( line ) );
+	if ( local < 0.0f || line <= 0 ) return;
+	const int row = list.load.top + static_cast<int>( local / static_cast<float>( line ) ) + 1;
+	if ( count <= 0 ) return;
+	ChooseSaveRow( list, row );
+	ShowSaves( menu, list );
+	const bool twice = Now() < list.load.clickTime + 500 && list.load.current == list.load.clickRow
+		&& std::fabs( list.load.clickX - mx ) <= 2.0f && std::fabs( list.load.clickY - my ) <= 2.0f;
+	list.load.clickTime = Now();
+	list.load.clickRow = list.load.current;
+	list.load.clickX = mx;
+	list.load.clickY = my;
+	if ( twice ) LoadChosenSave( list );
+}
+
+/* ---- UIFakkLabel (Draw 0x0041ef00) ----------------------------------------- */
+
+/* The label's number or item name (0x0041efcb..0x0041f041): centred both ways
+ * in its rectangle, in its font at the foreground colour as it stands -- no
+ * justification, scale, spacing or fade of the widget's (0x0041eff3). */
+void FakkLabelPrint( const Widget &widget, float x, float y, const char *text ) {
+	const font::Rect rect{ x, y, widget.w, widget.h };
+	CL_AliceFontPrintJustified( widget.font, widget.fg, false, rect, 0, 1, text, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f );
+}
+
+/* One of the bar's two pictures over the quad the orientation, the tile
+ * flag and the fraction make, its texture coordinates from its own image. */
+void FakkBarPicture( const Widget &widget, float x, float y, float frac, qhandle_t shader, const float *rgba ) {
+	if ( !shader ) return;
+	int imageW = 0, imageH = 0;
+	if ( re.GetShaderImageSize ) re.GetShaderImageSize( shader, &imageW, &imageH );
+	const fakkhud::Quad q = fakkhud::BarQuad( widget.fakk.label.orientation, widget.tileShader, frac, widget.w, widget.h,
+		static_cast<float>( imageW ), static_cast<float>( imageH ) );
+	if ( q.draw ) VirtualPic( x + q.x, y + q.y, q.w, q.h, rgba, shader, q.s0, q.t0, q.s1, q.t1 );
+}
+
+/* DrawStatbar (0x0041eb90): an empty bar draws nothing; otherwise the bar, in
+ * whatever colour the widget's draw left (the shipped bars ignore it), then
+ * the flash over it at its strength. Without a bar picture, a box in the
+ * foreground colour and no flash. */
+void FakkStatBar( Widget &widget, float x, float y, float frac ) {
+	if ( !( frac > 0.0f ) ) return;
+	const float a = fakkhud::StepFlash( widget.fakk.flash, frac, static_cast<float>( Now() ) );
+	if ( widget.fakk.barShader.empty() ) {
+		const fakkhud::Quad box = fakkhud::FallbackBox( frac, widget.w, widget.h );
+		if ( box.draw ) VirtualFill( x + box.x, y + box.y, box.w, box.h, widget.fg );
+		return;
+	}
+	static const float white[4] = { 1, 1, 1, 1 };
+	FakkBarPicture( widget, x, y, frac, CL_AliceShader( widget.fakk.barShader.c_str() ), white );
+	if ( a == 0.0f || widget.fakk.flashShader.empty() ) return;
+	const float flash[4] = { a, a, a, a };
+	FakkBarPicture( widget, x, y, frac, CL_AliceShader( widget.fakk.flashShader.c_str() ), flash );
+}
+
+/* A model label: the item in its hand slot, looked up again only in the
+ * second half of each second (0x0041f0d5..0x0041f111), drawn by its hud*
+ * placement, always moving, at its first animation's first frame. */
+void FakkItemModel( Widget &widget, float x, float y ) {
+	if ( fakkhud::ItemLookupWindow( cls.realtime ) ) {
+		const int slot = fakkhud::ReadSlot( cl.snap.ps.alice.block[1], widget.fakk.label.model );
+		const char *name = CL_RitualItemName( slot );
+		const fakkinv::Item *found = name ? CL_Fakk2FindInventoryItem( name ) : nullptr;
+		widget.fakk.item = found ? found->name : std::string();
+	}
+	if ( widget.fakk.item.empty() ) return;
+	const fakkinv::Item *item = CL_Fakk2FindInventoryItem( widget.fakk.item.c_str() );
+	if ( item ) CL_Fakk2RenderModel( x, y, widget.w, widget.h, item->hudModel.c_str(), "", item->hud, true );
+}
+
+/* Whether the label is one of UIFakkLabel's, drawn so: a stat, else an item's
+ * name, else its model; the title is then never drawn. */
+bool DrawFakkLabel( Widget &widget, float x, float y ) {
+	const fakkhud::Label &label = widget.fakk.label;
+	if ( label.stat != -1 ) {
+		if ( label.orientation != fakkhud::Orientation::None ) {
+			FakkStatBar( widget, x, y, fakkhud::StatFraction( label, cl.snap.ps.alice.block[0] ) );
+		} else {
+			FakkLabelPrint( widget, x, y, va( "%d", fakkhud::ReadSlot( cl.snap.ps.alice.block[0], label.stat ) ) );
+		}
+		return true;
+	}
+	if ( label.item != -1 ) {
+		// A slot below -1 draws nothing (0x0041f04e).
+		if ( label.item >= 0 ) {
+			const char *name = CL_RitualItemName( fakkhud::ReadSlot( cl.snap.ps.alice.block[1], label.item ) );
+			if ( name ) FakkLabelPrint( widget, x, y, name );
+		}
+		return true;
+	}
+	if ( label.model != -1 ) {
+		FakkItemModel( widget, x, y );
+		return true;
+	}
+	return false;
+}
+
+/* ---- UIPulldownMenuContainer ------------------------------------------------ */
+
+/* The closed menu's frame (0x004e1b60): the container's width by the tallest
+ * of the font and the entries' pictures, plus 4. */
+float PulldownHeight( const Widget &widget ) {
+	float height = static_cast<float>( FontHeight( widget ) );
+	for ( const PulldownEntry &entry : widget.pulldown.entries ) {
+		if ( entry.shader.empty() ) continue;
+		int w = 0, h = 0;
+		CL_AliceShaderSize( CL_AliceShader( entry.shader.c_str() ), &w, &h );
+		height = std::max( height, static_cast<float>( h ) );
+	}
+	return height + 4.0f;
+}
+
+/* An entry's width (0x004e2e80): its picture's, else its title's plus 8. */
+float PulldownEntryWidth( const Widget &widget, const PulldownEntry &entry ) {
+	if ( !entry.shader.empty() ) {
+		int w = 0, h = 0;
+		CL_AliceShaderSize( CL_AliceShader( entry.shader.c_str() ), &w, &h );
+		return static_cast<float>( w );
+	}
+	return static_cast<float>( font::StringWidth( CL_AliceFontMetrics( widget.font ), entry.name.c_str() ) ) + 8.0f;
+}
+
+float PulldownEntryHeight( const Widget &widget, const PulldownEntry &entry ) {
+	if ( !entry.shader.empty() ) {
+		int w = 0, h = 0;
+		CL_AliceShaderSize( CL_AliceShader( entry.shader.c_str() ), &w, &h );
+		return static_cast<float>( h );
+	}
+	return static_cast<float>( FontHeight( widget ) );
+}
+
+/* UIPulldownMenu::Draw (0x004e2770): the entries left to right; the open one
+ * on its highlight box, or its selected picture instead of its own. */
+void DrawPulldown( const Widget &widget, float x, float y, float alpha ) {
+	const PulldownState &state = widget.pulldown;
+	const float frameH = PulldownHeight( widget );
+	// The menu is its own widget, with the container's colours (0x004d6590).
+	if ( widget.bg[3] != 0.0f ) {
+		const float bg[4] = { widget.bg[0], widget.bg[1], widget.bg[2], widget.bg[3] * widget.bg[3] * alpha };
+		VirtualFill( x, y, widget.w, frameH, bg );
+	}
+	const float shade[4] = { 1.0f, 1.0f, 1.0f, alpha };
+	float atx = 0.0f;
+	for ( std::size_t i = 0; i < state.entries.size(); ++i ) {
+		const PulldownEntry &entry = state.entries[i];
+		const float w = PulldownEntryWidth( widget, entry ), h = PulldownEntryHeight( widget, entry );
+		const bool open = static_cast<int>( i ) == state.open;
+		const float *color = open ? state.highlightFg : widget.fg;
+		if ( open ) {
+			if ( !entry.selectedShader.empty() ) {
+				VirtualPic( x + atx, y, w, h, shade, CL_AliceShader( entry.selectedShader.c_str() ) );
+			} else {
+				VirtualFill( x + atx, y, w, frameH, state.highlightBg );
+			}
+		}
+		if ( !entry.shader.empty() ) {
+			if ( !open ) VirtualPic( x + atx, y, w, h, shade, CL_AliceShader( entry.shader.c_str() ) );
+		} else {
+			WidgetPrint( widget, color, x + atx + 4.0f, y + 2.0f, entry.name.c_str() );
+		}
+		atx += w;
+	}
+}
+
+/* The open list's rows (UIPopupMenu's heights and widths, 0x004e5f20,
+ * 0x004e5f50): 8 units for a separator, a font height otherwise. */
+float PopupRowHeight( const Widget &widget, const PopupItem &item ) {
+	return item.type == PopupSeparator ? 8.0f : static_cast<float>( FontHeight( widget ) );
+}
+
+const PulldownEntry *PopupEntry() {
+	if ( popup.menu < 0 || popup.menu >= static_cast<int>( menus.size() ) ) return nullptr;
+	const Menu &menu = menus[popup.menu];
+	if ( popup.widget < 0 || popup.widget >= static_cast<int>( menu.widgets.size() ) ) return nullptr;
+	const Widget &widget = menu.widgets[popup.widget];
+	const int open = widget.pulldown.open;
+	return open >= 0 && open < static_cast<int>( widget.pulldown.entries.size() ) ? &widget.pulldown.entries[open] : nullptr;
+}
+
+/* The row under a point (0x004e5ce0), from 0: none above its first row or
+ * in its side margins, and its last row for anything below the rows. */
+int PopupRowAt( float px, float py ) {
+	const PulldownEntry *entry = PopupEntry();
+	if ( !entry || entry->items.empty() ) return -1;
+	const Widget &widget = menus[popup.menu].widgets[popup.widget];
+	const float lx = px - popup.x, ly = py - popup.y;
+	if ( ly < 4.0f || lx < 2.0f || lx >= popup.w - 2.0f ) return -1;
+	float top = 4.0f;
+	for ( std::size_t i = 0; i < entry->items.size(); ++i ) {
+		const float h = PopupRowHeight( widget, entry->items[i] );
+		if ( ly >= top && ly < top + h ) return static_cast<int>( i );
+		top += h;
+	}
+	return static_cast<int>( entry->items.size() ) - 1;
+}
+
+/* A press opens the entry under it at once (the drag handler 0x004e2ad0):
+ * the list below it, 24 wider than its widest title and 8 taller than its
+ * rows, held on the screen (UIPopupMenu::Create 0x004e5600). */
+void OpenPulldown( Menu &menu, int index, float mx, float my ) {
+	Widget &widget = menu.widgets[index];
+	float x, y;
+	WidgetPosition( menu, widget, x, y );
+	const float frameH = PulldownHeight( widget );
+	const float px = mx - x, py = my - y;
+	if ( !( px >= 0.0f && px < widget.w && py >= 0.0f && py < frameH ) ) return;
+	float atx = 2.0f;   // hit-testing starts 2 units in (0x004e2b94)
+	for ( std::size_t i = 0; i < widget.pulldown.entries.size(); ++i ) {
+		const PulldownEntry &entry = widget.pulldown.entries[i];
+		const float w = PulldownEntryWidth( widget, entry );
+		if ( px >= atx && px < atx + w ) {
+			if ( static_cast<int>( i ) == widget.pulldown.open ) return;
+			widget.pulldown.open = static_cast<int>( i );
+			float listW = 0.0f, listH = 0.0f;
+			for ( const PopupItem &item : entry.items ) {
+				listH += PopupRowHeight( widget, item );
+				if ( item.type != PopupSeparator ) {
+					listW = std::max( listW, static_cast<float>( font::StringWidth( CL_AliceFontMetrics( widget.font ),
+						item.title.c_str() ) ) );
+				}
+			}
+			if ( listW == 0.0f || listH == 0.0f ) {
+				popup = {};
+				popup.menu = MenuIndex( menu );
+				popup.widget = index;
+				return;
+			}
+			listW += 24.0f;
+			listH += 8.0f;
+			float lx = x + atx, ly = y + frameH;
+			if ( lx + listW > 640.0f ) lx = x + atx + w < listW ? std::max( 0.0f, 640.0f - listW ) : x + atx + w - listW;
+			if ( ly + listH > 480.0f ) ly = y < listH ? std::max( 0.0f, 480.0f - listH ) : y - listH;
+			popup.menu = MenuIndex( menu );
+			popup.widget = index;
+			popup.x = lx;
+			popup.y = ly;
+			popup.w = listW;
+			popup.h = listH;
+			popup.selected = -1;
+			return;
+		}
+		atx += w;
+	}
+}
+
+void ClosePulldown() {
+	if ( popup.menu >= 0 && popup.menu < static_cast<int>( menus.size() ) ) {
+		Menu &menu = menus[popup.menu];
+		if ( popup.widget >= 0 && popup.widget < static_cast<int>( menu.widgets.size() ) ) {
+			menu.widgets[popup.widget].pulldown.open = -1;
+		}
+	}
+	popup = {};
+}
+
+bool PulldownOpen() {
+	return popup.menu >= 0;
+}
+
+/* A drag while the list is open (0x004e2ad0): another entry under the cursor
+ * opens instead, and the list's row under it is picked -- none beside the
+ * list or above its rows, its last row anywhere below them (0x004e5e90). */
+void PulldownDragged( float mx, float my ) {
+	if ( !PulldownOpen() ) return;
+	OpenPulldown( menus[popup.menu], popup.widget, mx, my );
+	popup.selected = PopupRowAt( mx, my );
+}
+
+/* Let go (0x004e2960, then the list's 0x004e5b40): over the list, the list
+ * goes first and then the picked row's command runs -- `command` and `cvar`
+ * both as a line of console text; elsewhere the list just closes. */
+void ReleasePulldown( float mx, float my ) {
+	const PulldownEntry *entry = PopupEntry();
+	const bool over = entry && Inside( mx, my, popup.x, popup.y, popup.w, popup.h );
+	const int row = over ? popup.selected : -1;
+	const PopupItem item = row >= 0 && row < static_cast<int>( entry->items.size() ) ? entry->items[row] : PopupItem();
+	ClosePulldown();
+	if ( item.type == PopupCommand || item.type == PopupCvar ) ExecuteLine( item.data );
+}
+
+/* UIPopupMenu::Draw (0x004e58c0), over every menu: its background and raised
+ * border in the entry's list colours, each row's title 4 units in, the row
+ * under the cursor on the highlight, a separator as a line. */
+void DrawPopup() {
+	const PulldownEntry *entry = PopupEntry();
+	if ( !entry || popup.w <= 0.0f ) return;
+	const Widget &widget = menus[popup.menu].widgets[popup.widget];
+	const float bg[4] = { entry->bg[0], entry->bg[1], entry->bg[2], entry->bg[3] * entry->bg[3] };
+	VirtualFill( popup.x, popup.y, popup.w, popup.h, bg );
+	Box3D( popup.x, popup.y, popup.w, popup.h, false, mw::MakeBorderColor( ToRgba( entry->bg ) ), 1.0f );
+	float top = 4.0f;
+	for ( std::size_t i = 0; i < entry->items.size(); ++i ) {
+		const PopupItem &item = entry->items[i];
+		const float h = PopupRowHeight( widget, item );
+		if ( item.type == PopupSeparator ) {
+			VirtualFill( popup.x + 8.0f, popup.y + top + 4.0f, popup.w - 16.0f, 1.0f, entry->fg );
+		} else {
+			const float *color = entry->fg;
+			if ( static_cast<int>( i ) == popup.selected ) {
+				VirtualFill( popup.x + 2.0f, popup.y + top, popup.w - 4.0f, static_cast<float>( FontHeight( widget ) ),
+					entry->highlightBg );
+				color = entry->highlightFg;
+			}
+			WidgetPrint( widget, color, popup.x + 4.0f, popup.y + top, item.title.c_str() );
+		}
+		top += h;
+	}
+}
+
+/* UIMultiLineEdit::Draw (0x004dc4f0): the lines from the scrollbar's top in the
+ * foreground colour, the selection white on a dark blue box, and a black
+ * caret on the selection's end line every other 375 ms while it has the keys. */
+void DrawMultiLineEdit( Menu &menu, int index, float x, float y ) {
+	Widget &widget = menu.widgets[index];
+	EditState &edit = widget.edit;
+	const font::Font *metrics = CL_AliceFontMetrics( widget.font );
+	const float fontH = static_cast<float>( FontHeight( widget ) );
+	static const float white[4] = { 1, 1, 1, 1 };
+	static const float selection[4] = { 0.0f, 0.0f, 0.5f, 1.0f };
+	static const float black[4] = { 0, 0, 0, 1 };
+	EditPoint from, to;
+	EditOrdered( edit, from, to );
+	const bool selecting = EditHasSelection( edit );
+	float aty = 0.0f;
+	for ( int line = edit.top; line < static_cast<int>( edit.lines.size() ) && aty < widget.h; ++line, aty += fontH ) {
+		/* Each line whole, from any line whose top is in the box (fakk2.exe
+		 * 1.02 0x004b760b, 0x004b76df); the widget's clip cuts what runs past
+		 * the box (DrawWidget). */
+		const std::string &text = edit.lines[line];
+		if ( !selecting || line < from.line || line > to.line ) {
+			WidgetPrint( widget, widget.fg, x, y + aty, text.c_str() );
+		} else {
+			const int length = static_cast<int>( text.size() );
+			const int start = std::min( line == from.line ? from.column : 0, length );
+			const int end = std::min( line == to.line ? to.column : length, length );
+			const std::string before = text.substr( 0, start );
+			const std::string inside = text.substr( start, std::max( 0, end - start ) );
+			const std::string after = text.substr( std::max( start, end ) );
+			const float beforeW = static_cast<float>( font::StringWidth( metrics, before.c_str() ) );
+			const float insideW = static_cast<float>( font::StringWidth( metrics, inside.c_str() ) );
+			WidgetPrint( widget, widget.fg, x, y + aty, before.c_str() );
+			VirtualFill( x + beforeW, y + aty, insideW, fontH, selection );
+			WidgetPrint( widget, white, x + beforeW, y + aty, inside.c_str() );
+			WidgetPrint( widget, widget.fg, x + beforeW + insideW, y + aty, after.c_str() );
+		}
+		if ( line == edit.end.line && menu.focus == index && Now() % 750 >= 375 ) {
+			const std::string upTo = text.substr( 0, std::min<std::size_t>( edit.end.column, text.size() ) );
+			VirtualFill( x + static_cast<float>( font::StringWidth( metrics, upTo.c_str() ) ), y + aty, 2.0f, fontH, black );
+		}
+	}
+	// Its scrollbar, 16 units at its right edge, over the text (0x004d9370).
+	DrawScrollbar( x + widget.w - ScrollbarWidth, y, widget.h, edit.top, EditPage( widget ),
+		static_cast<int>( edit.lines.size() ) );
 }
 
 void DrawWidget( Menu &menu, int index, float parentAlpha ) {
 	Widget &widget = menu.widgets[index];
 	if ( !widget.shown ) return;
-	// Waits fire only while their widget is drawn (0x004bd740).
+	// Waits fire only while their widget is drawn (0x004bd740), and a gone
+	// menu's kept image is not drawn by its menu (MenuCarry).
+	const bool showing = menu.visible && Now() >= menu.showStart;
 	for ( Wait &wait : widget.waits ) {
-		if ( wait.fireAt >= 0 && Now() >= wait.fireAt ) {
+		if ( showing && wait.fireAt >= 0 && Now() >= wait.fireAt ) {
 			wait.fireAt = -1;
 			ExecuteLine( wait.command );
 		}
@@ -2831,32 +4515,107 @@ void DrawWidget( Menu &menu, int index, float parentAlpha ) {
 	WidgetPosition( menu, widget, vx, vy );
 	const bool hovered = menu.hovered == index;
 	const bool pressed = menu.pressed == index && hovered;
+	/* Heavy Metal: F.A.K.K.2 draws each widget in a 2D window of its own and
+	 * scissors it to the widget cut to its menu and the screen (fakk2.exe 1.02
+	 * 0x0049ee80; the cut 0x0049ec21..0x0049eceb), so nothing a widget draws
+	 * runs past it: a report's last line stops at its box. */
+	struct ClipScope {
+		bool on = false;
+		~ClipScope() { if ( on ) CL_RitualSetClip( nullptr ); }
+	} clipScope;
+	if ( Com_GameIsFAKK2() ) {
+		float mx, my;
+		MenuPosition( menu, mx, my );
+		const float left = std::max( { vx, mx, 0.0f } ), top = std::max( { vy, my, 0.0f } );
+		const float right = std::min( { vx + widget.w, mx + menu.w, 640.0f } );
+		const float bottom = std::min( { vy + widget.h, my + menu.h, 480.0f } );
+		const float clip[4] = { left * ScaleX(), top * ScaleY(), std::max( right - left, 0.0f ) * ScaleX(),
+			std::max( bottom - top, 0.0f ) * ScaleY() };
+		CL_RitualSetClip( clip );
+		clipScope.on = true;
+	}
 
+	/* F.A.K.K.2's slider draws in the colour this draw last set (fakk2.exe
+	 * 1.02 UIWidget::Display 0x0049ef30): white at the widget's alpha
+	 * (0x0049efb0), the fill's, a 3D border's last strip, which is its light
+	 * shade (0x0049a260), then the foreground under a shader (0x0049f0a2). */
+	float inherited[4] = { 1.0f, 1.0f, 1.0f, alpha };
 	// The background fill takes its alpha twice (0x004bd8ea, then DrawBox's 0x004b59a0).
 	if ( widget.bg[3] != 0.0f ) {
 		const float bg[4] = { widget.bg[0], widget.bg[1], widget.bg[2], widget.bg[3] * widget.bg[3] * alpha };
 		VirtualFill( vx, vy, widget.w, widget.h, bg );
+		std::copy( bg, bg + 4, inherited );
 	}
 	// A pressed button's border sinks; one drawn with none stays without.
-	DrawBorder( vx, vy, widget.w, widget.h, pressed && widget.border != 0 ? 2 : widget.border, widget.border3d, alpha );
-	const float shade[4] = { 1, 1, 1, widget.fg[3] * alpha };
-	if ( !widget.shader.empty() ) VirtualPic( vx, vy, widget.w, widget.h, shade, CL_AliceShader( widget.shader.c_str() ) );
+	const int borderStyle = pressed && widget.border != 0 ? 2 : widget.border;
+	DrawBorder( vx, vy, widget.w, widget.h, borderStyle, widget.border3d, alpha );
+	if ( borderStyle == 1 || borderStyle == 2 ) {
+		const mw::Rgba &light = widget.border3d.light;
+		inherited[0] = light.r;
+		inherited[1] = light.g;
+		inherited[2] = light.b;
+		inherited[3] = light.a * alpha;
+	}
+	/* Alice draws a widget's pictures white at its foreground alpha
+	 * (0x004bd9ab..0x004bd9d8). Heavy Metal: F.A.K.K.2 draws them in the
+	 * whole foreground colour (fakk2.exe 1.02 0x0049f078..0x0049f0a2): its
+	 * menus' cloud layer is two additive `rgbGen global` passes under a 0.2
+	 * grey foreground, which white would wash across the whole menu. */
+	const bool tinted = Com_GameIsFAKK2() != 0;
+	const float shade[4] = { tinted ? widget.fg[0] : 1.0f, tinted ? widget.fg[1] : 1.0f, tinted ? widget.fg[2] : 1.0f,
+		widget.fg[3] * alpha };
+	if ( !widget.shader.empty() && widget.tileShader ) {
+		/* Retail hands the rectangle to the renderer's tile draw (0x004bcfe0),
+		 * whose texture coordinates are position over the image's size
+		 * (0x00498de0..0x00498e7a). Alice draws its menus over the whole screen
+		 * in pixels, so its tiles are a texel a pixel from the screen's corner.
+		 * F.A.K.K.2's UI draws each widget in a 2D window of its own, its corner
+		 * the origin (fakk2.exe 1.02 0x0049ee80), and tiles from (0, 0) there
+		 * (0x0049f0b5..0x0049f0cb), a texel a unit of its 640 by 480:
+		 * what its frame edges are drawn to, a 512 by 16 strip of a 32 by 16
+		 * image once across its height. */
+		const qhandle_t handle = CL_AliceShader( widget.shader.c_str() );
+		int imageW = 0, imageH = 0;
+		if ( re.GetShaderImageSize ) re.GetShaderImageSize( handle, &imageW, &imageH );
+		const float iw = imageW > 0 ? static_cast<float>( imageW ) : 0.0f;
+		const float ih = imageH > 0 ? static_cast<float>( imageH ) : 0.0f;
+		if ( Com_GameIsFAKK2() ) {
+			VirtualPic( vx, vy, widget.w, widget.h, shade, handle, 0.0f, 0.0f, iw > 0.0f ? widget.w / iw : 1.0f,
+				ih > 0.0f ? widget.h / ih : 1.0f );
+		} else {
+			const float px = vx * ScaleX(), py = vy * ScaleY(), pw = widget.w * ScaleX(), ph = widget.h * ScaleY();
+			VirtualPic( vx, vy, widget.w, widget.h, shade, handle, iw > 0.0f ? px / iw : 0.0f, ih > 0.0f ? py / ih : 0.0f,
+				iw > 0.0f ? ( px + pw ) / iw : 1.0f, ih > 0.0f ? ( py + ph ) / ih : 1.0f );
+		}
+	} else if ( !widget.shader.empty() ) {
+		VirtualPic( vx, vy, widget.w, widget.h, shade, CL_AliceShader( widget.shader.c_str() ) );
+	}
+	if ( !widget.shader.empty() ) std::copy( shade, shade + 4, inherited );
 	if ( !widget.staticImage.empty() ) {
 		VirtualPic( vx, vy, widget.w, widget.h, shade, CL_AliceShader( widget.staticImage.c_str() ) );
 	}
-	if ( hovered && !widget.hoverShader.empty() ) {
+	if ( ( LightsFollowKeys( widget ) ? widget.lit : hovered ) && !widget.hoverShader.empty() ) {
 		VirtualPic( vx, vy, widget.w, widget.h, shade, CL_AliceShader( widget.hoverShader.c_str() ) );
 	}
 	switch ( widget.kind ) {
 	case WidgetKind::Label:
+		// Every Label is a UIFakkLabel, whose draw is UILabel's without its keywords.
+		if ( !DrawFakkLabel( widget, vx, vy ) ) DrawWidgetText( menu, widget, vx, vy, alpha, pressed );
+		break;
 	case WidgetKind::Button:
 		DrawWidgetText( menu, widget, vx, vy, alpha, pressed );
+		break;
+	case WidgetKind::Pulldown:
+		DrawPulldown( widget, vx, vy, alpha );
+		break;
+	case WidgetKind::MultiLineEdit:
+		DrawMultiLineEdit( menu, index, vx, vy );
 		break;
 	case WidgetKind::CheckBox:
 		DrawCheckBox( menu, index, vx, vy, alpha );
 		break;
 	case WidgetKind::Slider:
-		DrawSlider( menu, index, vx, vy );
+		DrawSlider( menu, index, vx, vy, inherited, alpha );
 		break;
 	case WidgetKind::List:
 		DrawList( menu, index, vx, vy );
@@ -2868,31 +4627,38 @@ void DrawWidget( Menu &menu, int index, float parentAlpha ) {
 		DrawAutoScroll( widget, vx, vy );
 		break;
 	case WidgetKind::BindList:
-		DrawBindList( menu, widget, vx, vy, alpha );
+		if ( Com_GameIsFAKK2() ) DrawFakk2BindList( widget, vx, vy, alpha );
+		else DrawBindList( menu, widget, vx, vy, alpha );
 		break;
 	case WidgetKind::Alice3D:
 		DrawAlice3D( widget );
 		break;
 	case WidgetKind::LoadGame:
+		DrawSaveList( widget, vx, vy, alpha );
 		break;
 	}
 }
 
-void DrawMenu( Menu &menu ) {
-	if ( !menu.visible || Now() < menu.showStart ) return;
-	if ( menu.hasBgFill && menu.bgFill[3] != 0.0f ) {
+/* A menu at its own fade; or, for the image a full-screen menu leaves
+ * (MenuCarry), its pictures alone at `keptAlpha`, whether it shows or not. */
+void DrawMenu( Menu &menu, float keptAlpha = -1.0f, bool kept = false ) {
+	if ( !kept && ( !menu.visible || Now() < menu.showStart ) ) return;
+	if ( !kept && menu.hasBgFill && menu.bgFill[3] != 0.0f ) {
 		CL_AliceFill( 0, 0, static_cast<float>( cls.glconfig.vidWidth ), static_cast<float>( cls.glconfig.vidHeight ),
 			menu.bgFill );
 	}
-	const float x = MenuOriginX( menu ), y = MenuOriginY( menu );
-	if ( menu.bg[3] != 0.0f ) {
-		const float bg[4] = { menu.bg[0], menu.bg[1], menu.bg[2], menu.bg[3] * menu.bg[3] };
+	float x, y;
+	MenuPosition( menu, x, y );
+	const float fade = kept ? keptAlpha : MenuFade( menu );
+	if ( !kept && menu.bg[3] != 0.0f ) {
+		const float bg[4] = { menu.bg[0], menu.bg[1], menu.bg[2], menu.bg[3] * menu.bg[3] * fade };
 		VirtualFill( x, y, menu.w, menu.h, bg );
 	}
-	DrawBorder( x, y, menu.w, menu.h, menu.border, menu.border3d, 1.0f );
+	DrawBorder( x, y, menu.w, menu.h, menu.border, menu.border3d, fade );
 	for ( std::size_t i = 0; i < menu.widgets.size(); ++i ) {
-		DrawWidget( menu, static_cast<int>( i ), 1.0f );
+		DrawWidget( menu, static_cast<int>( i ), fade );
 	}
+	if ( kept ) return;
 	if ( menu.fadeOverlay > 0.0f ) {
 		// The menu's colour over it, fading from opaque to clear as it opens
 		// and back as it closes (0x004bdb0c..0x004bdb9c).
@@ -2911,6 +4677,87 @@ void DrawMenu( Menu &menu ) {
 	}
 }
 
+/* ---- what F.A.K.K.2's screen keeps under its full-screen menus -------------- */
+
+/* fakk2.exe 1.02's UI update clears nothing while a full-screen menu is up
+ * (0x0040b0cf..0x0040b296 blacks the screen only for loading, before a game
+ * and after one), so each frame's menus are drawn over the last frame's
+ * image. Every full-screen menu fades (`fadein 0.5`) and fills itself white
+ * (`bgcolor 1 1 1 1`) under its pictures, both at the fade's alpha, so a
+ * menu going hazes to white over its own image, and the next comes through
+ * that haze. A retail capture of the main menu giving way to the options
+ * shows both, where this engine had faded them through black.
+ *
+ * That is the retail engine's presentation, so here it is an option,
+ * `ui_menuDissolve 1` (AGENTS.md invariant 11); by default this engine
+ * blacks the screen under the menus, and they fade over black.
+ *
+ * This engine's frames keep no image, so the kept image is held as shares of
+ * what was drawn into it: black or the game's view it started from, and each
+ * menu's fill and pictures. Drawing a layer at alpha a leaves every share
+ * 1 - a of itself and adds a to the layer's own, as drawing over the kept
+ * image does. The shares are drawn back each frame, the lowest first, each at
+ * the alpha that leaves it its share. A menu keeps its shares once it has
+ * gone, until others cover them. */
+enum Kept { KeptBlack, KeptView, KeptFill, KeptArt };
+
+struct MenuCarry {
+	bool active = false;
+	std::vector<mw::KeptLayer> layers;   // the lowest first
+	int frame = -1;                      // the cls.framecount the shares last moved in
+};
+MenuCarry carry;
+
+bool CarryDraws( const Menu &menu ) {
+	return !menu.hud && menu.fullscreen && menu.visible && Now() >= menu.showStart;
+}
+
+/* The frame's draws into the kept image, once a frame whatever the stereo
+ * passes, in the menus' draw order: each full-screen menu's fill, then its
+ * pictures (DrawMenu). */
+void PlanCarry( bool viewShown ) {
+	if ( !carry.active ) {
+		carry = MenuCarry();
+		carry.active = true;
+		mw::KeptLayer start;
+		start.kind = viewShown ? KeptView : KeptBlack;
+		start.share = 1.0f;
+		carry.layers.push_back( start );
+	}
+	if ( carry.frame == cls.framecount ) return;
+	carry.frame = cls.framecount;
+	for ( std::size_t i = 0; i < menus.size(); ++i ) {
+		const Menu &menu = menus[i];
+		if ( !CarryDraws( menu ) ) continue;
+		const int index = static_cast<int>( i );
+		const float fade = MenuFade( menu );
+		if ( menu.bg[3] != 0.0f ) mw::KeepDraw( carry.layers, KeptFill, index, menu.bg[3] * menu.bg[3] * fade );
+		mw::KeepDraw( carry.layers, KeptArt, index, fade );
+	}
+	mw::DropFaintLayers( carry.layers );
+}
+
+/* The kept image drawn back over the black or the view the screen code has
+ * drawn, which is always its lowest layer. */
+void DrawKept() {
+	const std::vector<float> alpha = mw::KeptAlphas( carry.layers );
+	for ( std::size_t i = 0; i < carry.layers.size(); ++i ) {
+		const mw::KeptLayer &layer = carry.layers[i];
+		if ( !( alpha[i] > 0.0f ) ) continue;
+		if ( layer.kind == KeptBlack || layer.kind == KeptView ) continue;
+		if ( layer.menu < 0 || layer.menu >= static_cast<int>( menus.size() ) ) continue;
+		Menu &menu = menus[layer.menu];
+		if ( layer.kind == KeptFill ) {
+			float x, y;
+			MenuPosition( menu, x, y );
+			const float fill[4] = { menu.bg[0], menu.bg[1], menu.bg[2], alpha[i] };
+			VirtualFill( x, y, menu.w, menu.h, fill );
+		} else {
+			DrawMenu( menu, alpha[i], true );
+		}
+	}
+}
+
 /* ---- the hosted module ---------------------------------------------------- */
 
 void Init() {
@@ -2922,8 +4769,13 @@ void Init() {
 	cursorShader = CL_AliceShader( "gfx/2d/mouse_arrow" );
 	menus.clear();
 	menuStack.clear();
+	carry = MenuCarry();
 	captureMenu = captureWidget = -1;
 	pendingSave.active = false;
+	popup = {};
+	SetGfxInfo();
+	// F.A.K.K.2's inventory script, read as its UI starts (0x004105f2).
+	CL_Fakk2InventoryInit();
 	LoadTables();
 	LoadMenus();
 	uiInitialized = true;
@@ -2961,6 +4813,8 @@ void Shutdown() {
 	EndCapture();
 	pendingSave.active = false;
 	viewHasMouse = false;
+	popup = {};
+	CL_Fakk2InventoryShutdown();
 	CL_AliceScreenShutdown();
 	CL_AliceHudShutdown();
 	/* Retail's UI never goes down with vid_restart and nothing but UI_Update
@@ -2975,6 +4829,7 @@ void Shutdown() {
 	cursorButtons = 0;
 	menus.clear();
 	menuStack.clear();
+	carry = MenuCarry();
 	uiInitialized = false;
 }
 
@@ -3081,12 +4936,17 @@ void CL_AliceUIFrame( void ) {
 
 	SaveFinished();
 
+	// F.A.K.K.2's inventory's timeout, and its closing in a cinematic.
+	CL_Fakk2InventoryFrame();
+
 	/* Cursor mode: on while a menu is up (the push path's 0x00427b00), off
 	 * once none remains or ui_hidemouse gives the view the mouse (0x00427b50).
 	 * While it is on the pointer moves only the cursor and the mouse buttons
 	 * stop at its mask, so the menus read both from there (0x004282b0) and
-	 * the window manager's events follow from them (0x004b3a50). */
-	const bool wantCursor = !menuStack.empty() && !viewHasMouse;
+	 * the window manager's events follow from them (0x004b3a50). F.A.K.K.2's
+	 * inventory opened by `inventory` turns it on too (0x00408570). */
+	const bool inventoryCursor = menuStack.empty() && CL_Fakk2InventoryWantsCursor();
+	const bool wantCursor = ( !menuStack.empty() && !viewHasMouse ) || inventoryCursor;
 	if ( wantCursor != cursorModeOn ) {
 		CL_AliceSetCursorMode( wantCursor ? qtrue : qfalse );
 		cursorModeOn = wantCursor;
@@ -3097,21 +4957,35 @@ void CL_AliceUIFrame( void ) {
 		CL_AliceGetMouseState( &x, &y, &buttons );
 		cursorX = static_cast<float>( x );
 		cursorY = static_cast<float>( y );
-		UpdateHover();
 		const float vx = VirtualCursorX(), vy = VirtualCursorY();
-		Menu *menu = CurrentMenu();
-		if ( menu && ( buttons & cursorButtons & 1 ) && ( vx != lastVirtualX || vy != lastVirtualY ) ) {
-			MouseDragged( *menu );
+		const bool moved = vx != lastVirtualX || vy != lastVirtualY;
+		if ( inventoryCursor ) {
+			if ( moved ) CL_Fakk2InventoryMouseMoved( vx, vy );
+			for ( int button = 0; button < 2; ++button ) {
+				if ( buttons & ~cursorButtons & ( 1 << button ) ) CL_Fakk2InventoryMouseDown( K_MOUSE1 + button, vx, vy );
+			}
+		} else if ( PulldownOpen() ) {
+			/* An open pulldown holds the mouse (its first responder): the
+			 * motion tracks the list, and letting go chooses (0x004e2960). */
+			if ( moved ) PulldownDragged( vx, vy );
+			if ( ( cursorButtons & 1 ) && !( buttons & 1 ) ) ReleasePulldown( vx, vy );
+			if ( !PulldownOpen() ) UpdateHover();
+		} else {
+			UpdateHover();
+			Menu *menu = CurrentMenu();
+			if ( menu && ( buttons & cursorButtons & 1 ) && moved ) {
+				MouseDragged( *menu );
+			}
+			if ( ( buttons ^ cursorButtons ) & 1 ) {
+				KeyEvent( K_MOUSE1, ( buttons & 1 ) != 0 );
+			}
+			// The other buttons matter only to a key button waiting for a key.
+			for ( int button = 1; button < 5; ++button ) {
+				if ( ( buttons & ~cursorButtons & ( 1 << button ) ) && Capturing() ) CaptureMouse( K_MOUSE1 + button );
+			}
 		}
 		lastVirtualX = vx;
 		lastVirtualY = vy;
-		if ( ( buttons ^ cursorButtons ) & 1 ) {
-			KeyEvent( K_MOUSE1, ( buttons & 1 ) != 0 );
-		}
-		// The other buttons matter only to a key button waiting for a key.
-		for ( int button = 1; button < 5; ++button ) {
-			if ( ( buttons & ~cursorButtons & ( 1 << button ) ) && Capturing() ) CaptureMouse( K_MOUSE1 + button );
-		}
 		cursorButtons = buttons;
 	} else {
 		UpdateHover();
@@ -3119,7 +4993,17 @@ void CL_AliceUIFrame( void ) {
 	if ( Menu *menu = CurrentMenu() ) {
 		for ( Widget &widget : menu->widgets ) {
 			if ( widget.kind == WidgetKind::Slider ) SliderRepeat( *menu, widget );
+			else if ( widget.kind == WidgetKind::MultiLineEdit ) EditRepeat( *menu, widget );
 		}
+	}
+
+	/* ui_newvidmode follows r_mode while a menu is up, for the video menu's
+	 * pending resolution: -1 with no menu, r_mode once one shows (0x0040c3f0,
+	 * after each change of the menus). */
+	if ( menuStack.empty() ) {
+		if ( Cvar_VariableIntegerValue( "ui_newvidmode" ) != -1 ) Cvar_Set( "ui_newvidmode", "-1" );
+	} else if ( Cvar_VariableIntegerValue( "ui_newvidmode" ) == -1 && Cvar_VariableIntegerValue( "r_mode" ) != -1 ) {
+		Cvar_Set( "ui_newvidmode", Cvar_VariableString( "r_mode" ) );
 	}
 
 	/* A full-screen menu pauses the game once and remembers whether it took
@@ -3160,7 +5044,8 @@ void CL_AliceUIFrame( void ) {
 	// the intro and the menus are all there is. A movie with no menu up
 	// leaves them free, so any key becomes Escape (CL_KeyEvent 0x00429d66),
 	// whose rules then refuse it during the intro's logos with developer off.
-	const bool wantKeys = ( !menuStack.empty() && !viewHasMouse ) || cls.state == CA_DISCONNECTED;
+	const bool wantKeys = ( !menuStack.empty() && !viewHasMouse ) || cls.state == CA_DISCONNECTED
+		|| CL_Fakk2InventoryIsOpen();
 	const int catcher = Key_GetCatcher();
 	if ( wantKeys && !( catcher & KEYCATCH_UI ) ) {
 		Key_SetCatcher( catcher | KEYCATCH_UI );
@@ -3182,8 +5067,95 @@ qboolean CL_AliceUIMenuUp( void ) {
 	return CL_AliceUIMenuIsUp() ? qtrue : qfalse;
 }
 
+/* The desktop's windows in their order (0x004bdac1..0x004bdb0a, later ones on
+ * top): F.A.K.K.2's HUD menus, which show only with no menu up, under its
+ * inventory, under the menus, under a pulldown's open list.
+ *
+ * Every menu is drawn in its 640 by 480 units stretched to the screen, but the
+ * HUD menus are the game's HUD: with cl_hudAspect on, the HUD's rules keep
+ * each uniform and anchored where its fntech3-hud.json rule says, as they do
+ * Quake III's and RTCW's HUDs (AGENTS.md invariant 11). */
 void CL_AliceUIDrawMenus( void ) {
-	for ( Menu &menu : menus ) DrawMenu( menu );
+	CL_HudBeginFrame();
+	CL_RitualSetHudLayout( true );
+	for ( Menu &menu : menus ) {
+		if ( menu.hud ) DrawMenu( menu );
+	}
+	CL_RitualSetHudLayout( false );
+	CL_HudEndFrame();
+	CL_Fakk2InventoryDraw();
+	// F.A.K.K.2's full-screen menus are in the image its screen keeps.
+	if ( carry.active ) DrawKept();
+	for ( Menu &menu : menus ) {
+		if ( menu.hud ) continue;
+		if ( carry.active && menu.fullscreen ) {
+			if ( CarryDraws( menu ) ) {
+				for ( const Widget &widget : menu.widgets ) {
+					if ( widget.kind == WidgetKind::BindList && widget.shown ) DrawPressAnyKey( widget );
+				}
+			}
+			continue;
+		}
+		DrawMenu( menu );
+	}
+	DrawPopup();
+}
+
+bool CL_RitualMenuCarry( bool viewShown ) {
+	if ( !Com_GameIsFAKK2() || !uiInitialized || !ui_menuDissolve || !ui_menuDissolve->integer ) {
+		carry.active = false;
+		return false;
+	}
+	PlanCarry( viewShown );
+	for ( const mw::KeptLayer &layer : carry.layers ) {
+		if ( layer.kind == KeptView ) return true;
+	}
+	return false;
+}
+
+void CL_RitualEndMenuCarry( void ) {
+	carry.active = false;
+}
+
+/*
+====================
+CL_RitualHudMenusFrame
+
+Heavy Metal: F.A.K.K.2's HUD is four of its menus, shown rather than pushed,
+by its engine's rule (fntech3::fakk2::hud::Select) whenever its gate is open
+(CL_AliceHudFrame: ui_hud, in the game, no letterbox or menu), at once:
+fakk2.exe 1.02's UI update (0x0040b29b..0x0040b326) has no delay, where
+Alice's HUD waits 550 ms. A menu the rule drops moves out as a menu hides;
+the gate's closing takes them all at once (0x0040b59c).
+====================
+*/
+void CL_RitualHudMenusFrame( bool allowed ) {
+	if ( !uiInitialized ) return;
+	auto set = []( const char *name, bool show, bool force ) {
+		const int index = FindMenu( name );
+		if ( index < 0 ) return;
+		Menu &menu = menus[index];
+		if ( show ) {
+			if ( !menu.hud || !menu.visible || menu.hiding ) {
+				menu.hud = true;
+				ShowMenu( menu, 0 );
+			}
+		} else if ( menu.hud && menu.visible && ( force || !menu.hiding ) ) {
+			HideMenu( menu, force );
+		}
+	};
+	if ( !allowed ) {
+		set( fakkhud::HealthHud, false, true );
+		set( fakkhud::WeaponHud, false, true );
+		set( fakkhud::DualWeaponHud, false, true );
+		set( fakkhud::BossHud, false, true );
+		return;
+	}
+	const fakkhud::Selection shown = fakkhud::Select( cl.snap.ps.alice.block[0], cl.snap.ps.alice.block[1] );
+	set( fakkhud::HealthHud, shown.health, false );
+	set( fakkhud::WeaponHud, shown.weapon, false );
+	set( fakkhud::DualWeaponHud, shown.dualWeapon, false );
+	set( fakkhud::BossHud, shown.boss, false );
 }
 
 void CL_AliceUIDrawIntroPlate( void ) {
@@ -3202,7 +5174,8 @@ void CL_AliceUIDrawIntroPlate( void ) {
 }
 
 void CL_AliceUIDrawCursor( void ) {
-	if ( menuStack.empty() || !cursorShader || cursorX < 0 ) return;
+	const bool inventoryCursor = menuStack.empty() && CL_Fakk2InventoryWantsCursor();
+	if ( ( menuStack.empty() && !inventoryCursor ) || !cursorShader || cursorX < 0 ) return;
 	int w = 0, h = 0;
 	CL_AliceShaderSize( cursorShader, &w, &h );
 	static const float white[4] = { 1, 1, 1, 1 };

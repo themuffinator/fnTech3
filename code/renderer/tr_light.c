@@ -515,7 +515,10 @@ American McGee's Alice's entity light, from retail's R_SetupEntityLighting
 - an entity flagged full bright passes over the grid for the flat light a
   level without one gets (0x004ac825);
 - in a scene without a world an entity starts from no light at all, dynamic
-  lights aside (0x004acbfc..0x004acc26), not from that flat light;
+  lights aside (0x004acbfc..0x004acc26), not from that flat light. [I]
+  Heavy Metal: F.A.K.K.2's renderer kept the flat light there: its HUD and
+  inventory draw its lit weapon models in such scenes and add no light of
+  their own (UI_Render3DModel 0x00408210 is passed none);
 - only an entity flagged minlight gets the minimum add (0x004acc66); Quake III
   gives it to everything.
 
@@ -556,7 +559,7 @@ void R_SetupAliceEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent, c
 		R_SetupEntityLightingGrid( ent );
 		ent->e.renderfx = renderfx;
 		VectorCopy( lightingOrigin, ent->e.lightingOrigin );
-	} else if ( refdef->rdflags & RDF_NOWORLDMODEL ) {
+	} else if ( ( refdef->rdflags & RDF_NOWORLDMODEL ) && ri.gameId != COM_GAME_FAKK2 ) {
 		VectorClear( ent->ambientLight );
 		VectorClear( ent->directedLight );
 		VectorClear( ent->lightDir );

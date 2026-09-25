@@ -27,21 +27,25 @@ from rtcw_light_tests import SCENE, BACKEND, entity_fixture
 
 SCENE_CHECKS = r'''
 int main() {
-    const vec3_t origin={1,2,3}, color={0.25f,0.5f,1};
+    const vec3_t finite={1,2,3}, infinite={std::numeric_limits<float>::infinity(),2,3}, color={0.25f,0.5f,1};
     unsigned cases=0, accepted=0;
     ri.gameId=REFERENCE_SP ? COM_GAME_RTCW_SP : COM_GAME_RTCW_MP;
+    // An infinite origin (retail MP's empty player preview) is stored and
+    // counted by the original; fnTech3 counts it among the 32 but draws nothing.
+    for(const float *origin:{finite,infinite})
     for(bool registered:{false,true}) for(int count:{0,1,31,32})
     for(int hardware:{GLHW_GENERIC,GLHW_RIVA128,GLHW_PERMEDIA2})
     for(int dynamicMode:{-1,0,1,2,3}) for(float scale:{-1.f,0.f,0.125f,1.f,2.f})
     for(float radius:{-1.f,0.f,0.01f,1.f,250.f,1000.f})
     for(uint32_t flags:{0u,1u,2u,10u,11u,64u,0x80000000u,0x8000000au,0x40000000u,0xc0000002u}) {
         tr.registered=reference::tr.registered=registered;
-        r_numdlights=reference::r_numdlights=count;
+        r_numdlights=r_numModuleDlights=reference::r_numdlights=count;
         glConfig.hardwareType=hardware; dynamic.integer=dynamicMode; radiusScale.value=scale;
         data={}; reference::data={}; // Never exercise the original stale-slot bug as a desired behavior.
         RE_AddRTCWLightToScene(origin,radius,color[0],color[1],color[2],int(flags));
         reference::RE_AddLightToScene(origin,radius,color[0],color[1],color[2],int(flags));
-        assert(r_numdlights==reference::r_numdlights);
+        assert(r_numModuleDlights==reference::r_numdlights);
+        assert(r_numdlights==(origin==finite ? reference::r_numdlights : count));
         if(r_numdlights>count) {
             const auto &a=data.dlights[count]; const auto &b=reference::data.dlights[count];
             assert(a.radius==b.radius && a.rtcwOverdraw==b.overdraw && a.rtcwShader==b.dlshader);

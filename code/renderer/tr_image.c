@@ -991,7 +991,7 @@ static const int numImageLoaders = ARRAY_LEN( imageLoaders );
  * title's: another profile never looks for an .ftx beside a missing image. */
 static qboolean R_ImageLoaderEnabled( int i )
 {
-	return imageLoaders[ i ].ImageLoader != R_LoadFTX || ri.gameId == COM_GAME_ALICE ? qtrue : qfalse;
+	return imageLoaders[ i ].ImageLoader != R_LoadFTX || COM_GAME_ID_IS_RITUAL( ri.gameId ) ? qtrue : qfalse;
 }
 
 /*
@@ -1022,7 +1022,7 @@ static const char *R_LoadImage( const char *name, byte **pic, int *width, int *h
 	 * extension replaced, and only falls back to the named file when no
 	 * FTX is there (retail alice.exe 0x00483e80). Its paks carry 5,893 FTX
 	 * images and 284 TGA ones, so the order decides which one is drawn. */
-	if ( ri.gameId == COM_GAME_ALICE && !Q_stricmp( ext, "tga" ) ) {
+	if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) && !Q_stricmp( ext, "tga" ) ) {
 		char ftxName[ MAX_QPATH ];
 
 		COM_StripExtension( localName, ftxName, sizeof( ftxName ) );

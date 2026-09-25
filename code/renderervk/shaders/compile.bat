@@ -213,26 +213,26 @@ for %%f in (*.frag) do (
 
 @rem double-texture fragment
 
-"%cl%" -S frag -V -o "%tmpf%" gen_frag.tmpl -DUSE_TX1
+"%cl%" -S frag -V -o "%tmpf%" gen_frag.tmpl -DUSE_ATEST -DUSE_TX1
 "%bh%" "%tmpf%" %outf% frag_tx1
 
-"%cl%" -S frag -V -o "%tmpf%" gen_frag.tmpl -DUSE_TX1 -DUSE_FOG
+"%cl%" -S frag -V -o "%tmpf%" gen_frag.tmpl -DUSE_ATEST -DUSE_TX1 -DUSE_FOG
 "%bh%" "%tmpf%" %outf% frag_tx1_fog
 
 @rem double-texture fragment, identity colors (1.0)
 
-"%cl%" -S frag -V -o "%tmpf%" gen_frag.tmpl -DUSE_CLX_IDENT -DUSE_TX1
+"%cl%" -S frag -V -o "%tmpf%" gen_frag.tmpl -DUSE_ATEST -DUSE_CLX_IDENT -DUSE_TX1
 "%bh%" "%tmpf%" %outf% frag_tx1_ident1
 
-"%cl%" -S frag -V -o "%tmpf%" gen_frag.tmpl -DUSE_CLX_IDENT -DUSE_TX1 -DUSE_FOG
+"%cl%" -S frag -V -o "%tmpf%" gen_frag.tmpl -DUSE_ATEST -DUSE_CLX_IDENT -DUSE_TX1 -DUSE_FOG
 "%bh%" "%tmpf%" %outf% frag_tx1_ident1_fog
 
 @rem double-texture fragment, fixed (rgb+a) colors
 
-"%cl%" -S frag -V -o "%tmpf%" gen_frag.tmpl -DUSE_FIXED_COLOR -DUSE_TX1
+"%cl%" -S frag -V -o "%tmpf%" gen_frag.tmpl -DUSE_ATEST -DUSE_FIXED_COLOR -DUSE_TX1
 "%bh%" "%tmpf%" %outf% frag_tx1_fixed
 
-"%cl%" -S frag -V -o "%tmpf%" gen_frag.tmpl -DUSE_FIXED_COLOR -DUSE_TX1 -DUSE_FOG
+"%cl%" -S frag -V -o "%tmpf%" gen_frag.tmpl -DUSE_ATEST -DUSE_FIXED_COLOR -DUSE_TX1 -DUSE_FOG
 "%bh%" "%tmpf%" %outf% frag_tx1_fixed_fog
 
 @rem double-texture fragment, entity colors
@@ -245,26 +245,26 @@ for %%f in (*.frag) do (
 
 @rem double-texture fragment, non-identical colors
 
-"%cl%" -S frag -V -o "%tmpf%" gen_frag.tmpl -DUSE_CL1 -DUSE_TX1
+"%cl%" -S frag -V -o "%tmpf%" gen_frag.tmpl -DUSE_ATEST -DUSE_CL1 -DUSE_TX1
 "%bh%" "%tmpf%" %outf% frag_tx1_cl
 
-"%cl%" -S frag -V -o "%tmpf%" gen_frag.tmpl -DUSE_CL1 -DUSE_TX1 -DUSE_FOG
+"%cl%" -S frag -V -o "%tmpf%" gen_frag.tmpl -DUSE_ATEST -DUSE_CL1 -DUSE_TX1 -DUSE_FOG
 "%bh%" "%tmpf%" %outf% frag_tx1_cl_fog
 
 @rem triple-texture fragment
 
-"%cl%" -S frag -V -o "%tmpf%" gen_frag.tmpl -DUSE_TX2
+"%cl%" -S frag -V -o "%tmpf%" gen_frag.tmpl -DUSE_ATEST -DUSE_TX2
 "%bh%" "%tmpf%" %outf% frag_tx2
 
-"%cl%" -S frag -V -o "%tmpf%" gen_frag.tmpl -DUSE_TX2 -DUSE_FOG
+"%cl%" -S frag -V -o "%tmpf%" gen_frag.tmpl -DUSE_ATEST -DUSE_TX2 -DUSE_FOG
 "%bh%" "%tmpf%" %outf% frag_tx2_fog
 
 @rem triple-texture fragment, non-identical colors
 
-"%cl%" -S frag -V -o "%tmpf%" gen_frag.tmpl -DUSE_CL2 -DUSE_TX2
+"%cl%" -S frag -V -o "%tmpf%" gen_frag.tmpl -DUSE_ATEST -DUSE_CL2 -DUSE_TX2
 "%bh%" "%tmpf%" %outf% frag_tx2_cl
 
-"%cl%" -S frag -V -o "%tmpf%" gen_frag.tmpl -DUSE_CL2 -DUSE_TX2 -DUSE_FOG
+"%cl%" -S frag -V -o "%tmpf%" gen_frag.tmpl -DUSE_ATEST -DUSE_CL2 -DUSE_TX2 -DUSE_FOG
 "%bh%" "%tmpf%" %outf% frag_tx2_cl_fog
 
 del /Q "%tmpf%"

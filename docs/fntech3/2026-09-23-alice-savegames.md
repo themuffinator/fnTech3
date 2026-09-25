@@ -371,7 +371,17 @@ cinematic only while one plays, and a dedicated build compiles it out.
   negative count is refused. Retail reads on regardless.
 - `gamemap` refuses a map that does not exist before leaving the level;
   retail has no such test and would drop inside the spawn.
-- The `config` cvar is not kept in the registry.
+- The `config` cvar is not kept in the registry. As in retail, it also names
+  the configuration file (2026-09-25): a name the command line gives it, if
+  longer than one character, is executed at startup and written back
+  (`0x004398ff..0x004399c8`, `0x00439eb0`), where fnTech3 had always used
+  `config.cfg` and followed the cvar for the saves alone. That name holds for
+  its launch only. A name without an extension is given `.cfg`, which retail
+  left off when it wrote the file and added when it read it. A name no file
+  may carry, such as a library's, keeps the profile's own, as `writeconfig`
+  does. The default keeps the profile's own file, so fnTech3's dedicated
+  server still writes `config_server.cfg`, which retail's single executable
+  does not have.
 - The reuse path is reproduced only in its server state: retail keeps the
   module and its clients when a load or a `restart` names the map already
   running; fnTech3 always reloads, which is retail's full path, but a load of

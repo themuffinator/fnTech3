@@ -1,0 +1,266 @@
+{
+  "date": "2026-09-24",
+  "tool": "built-in image_gen.imagegen",
+  "status": "13 engine-profile imagegen remakes plus standalone MOHAA artwork; rtcw-sp generation blocked by imagegen safety filter",
+  "assets": {
+    "quake3": {
+      "source": "quake3.png",
+      "sha256": "70b152a2b99a368fb87d352ad5fbcbd01cfa265dac9d07b6ae8dcc4f770caecc",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "status": "imagegen",
+      "generated_file": "exec-a34b2d0e-089a-46fd-9ed9-2dec5563faa5.png",
+      "reference_executable": "E:\\Games\\Quake III Arena\\quake3.exe",
+      "reference_sha256": "819567982a248d08c6f51acca0dec826c9717277eee0b5196471c00b31129ad1",
+      "reference_group": "1",
+      "reference_size": 48
+    },
+    "quakelive": {
+      "source": "quakelive.png",
+      "sha256": "bb6addd79370474f42f649ddca0cbb1d5794b3a6ce51a9c930b5f88dfad79fa8",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "status": "imagegen",
+      "generated_file": "exec-70e90961-fb3f-46c8-acfc-eaa025166651.png",
+      "reference_executable": "E:\\SteamLibrary\\steamapps\\common\\Quake Live\\quakelive_steam.exe",
+      "reference_sha256": "c926fe9f6c851e00b3b9332e88903ad01f28fdd60454873891c0158f5ded1299",
+      "reference_group": "101",
+      "reference_size": 256
+    },
+    "rtcw-sp": {
+      "source": "rtcw-sp.png",
+      "sha256": "07d9fafe0176a02fce540caf776c1e1b03efeb9517621f086867a08ccdf75b9d",
+      "size": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "status": "previous-vector-fallback",
+      "generated_file": null,
+      "reference_executable": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\WolfSP.exe",
+      "reference_sha256": "07d206f61da5c80562ff60d68c645bca349b31adb5d7e0e7f186d61ad46683c7",
+      "reference_group": "1",
+      "reference_size": 128
+    },
+    "rtcw-mp": {
+      "source": "rtcw-mp.png",
+      "sha256": "8c17244a7e434ab75e14c475687bb7369e5faeeb3074f4d56fe12a5cf7a43a57",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "status": "imagegen",
+      "generated_file": "exec-6b6df5d5-4452-42ce-94b9-de4edd4f6770.png",
+      "reference_executable": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\WolfMP.exe",
+      "reference_sha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+      "reference_group": "1",
+      "reference_size": 32
+    },
+    "wolfet": {
+      "source": "wolfet.png",
+      "sha256": "706405703a37aa95e7d6ff9479da6d97823f05a99403c544f9e1dc23523120e5",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "status": "imagegen",
+      "generated_file": "exec-b2c51506-b9cf-42ef-b7c9-a9eb4e8ca0a2.png",
+      "reference_executable": "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory\\et.exe",
+      "reference_sha256": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e",
+      "reference_group": "1",
+      "reference_size": 32
+    },
+    "stvef-sp": {
+      "source": "stvef-sp.png",
+      "sha256": "77a216645b9b3fa60dc00eadabcb6f081844d3d8286626691d72080ddaf4e505",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "status": "imagegen",
+      "generated_file": "exec-438e00b4-794b-41fb-995f-f792515a7c2a.png",
+      "reference_executable": "E:\\Games\\Star Trek Voyager Elite Force\\stvoy.exe",
+      "reference_sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74",
+      "reference_group": "1",
+      "reference_size": 32
+    },
+    "stvef-mp": {
+      "source": "stvef-mp.png",
+      "sha256": "42174957f7322e8fe5d6d6ba3a2895d08aafb0db1dce70cf224163886275e0bf",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "status": "imagegen",
+      "generated_file": "exec-049485c9-3878-4e9d-a4a2-10d6196f11d0.png",
+      "reference_executable": "E:\\Games\\Star Trek Voyager Elite Force\\stvoyHM.exe",
+      "reference_sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+      "reference_group": "1",
+      "reference_size": 32
+    },
+    "q3-ihv": {
+      "source": "q3-ihv.png",
+      "sha256": "44c734392d2de50c633f1ab925090711ba033038f6d99fa002462c9af17c9478",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "status": "imagegen",
+      "generated_file": "exec-904ee2a9-9632-4007-aa5b-ca0eb0912a63.png",
+      "reference_executable": "E:\\Games\\Quake 3 IHV\\quake3.exe",
+      "reference_sha256": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37",
+      "reference_group": "1",
+      "reference_size": 32,
+      "revision": "Three plain strokes corrected to nails with wider heads and pointed tips, at user request."
+    },
+    "jka-sp": {
+      "source": "jka-sp.png",
+      "sha256": "1d5e499f16d79d3fb79afe4a644bb02118c5d2d98c8f0bc6121df88bae20ef8f",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "status": "imagegen",
+      "generated_file": "exec-c381a97c-4362-429b-b59f-10d90c6f7f1d.png",
+      "reference_executable": "E:\\Games\\Jedi Academy\\jasp.exe",
+      "reference_sha256": "9351a8de230fcd577e2b474889d08f38982450306767a6823dd659482566d6ce",
+      "reference_group": "1",
+      "reference_size": 32
+    },
+    "jka-mp": {
+      "source": "jka-mp.png",
+      "sha256": "1dd2617a23a3b9b02ef1c7be26ddfcfc44edb1a74bf967b2c13273ddf8e2f477",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "status": "imagegen",
+      "generated_file": "exec-9932bb94-ef54-4e1e-a4cd-817398973f8d.png",
+      "reference_executable": "E:\\Games\\Jedi Academy\\jamp.exe",
+      "reference_sha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+      "reference_group": "1",
+      "reference_size": 32
+    },
+    "jk2-sp": {
+      "source": "jk2-sp.png",
+      "sha256": "4b8d91dced50a10bee4b65ce17fb28db067a65ac9defa02c0c3bac6075bdeab8",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "status": "imagegen",
+      "generated_file": "exec-75f482ce-e786-4b32-a7f5-d865b369c501.png",
+      "reference_executable": "E:\\Games\\Jedi Outcast\\jk2sp.exe",
+      "reference_sha256": "0d3c635ee5b20ac32fc957e00cf21e65ebc1584112b11f6ae026706dcc0d0e0c",
+      "reference_group": "1",
+      "reference_size": 32
+    },
+    "jk2-mp": {
+      "source": "jk2-mp.png",
+      "sha256": "6ca16d483563fe1d3dddfeed5c59cf3c01686f368cefb0423064aa9d91db000f",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "status": "imagegen",
+      "generated_file": "exec-1cd34599-9f17-43a2-a46f-261559ba0f71.png",
+      "reference_executable": "E:\\Games\\Jedi Outcast\\jk2mp.exe",
+      "reference_sha256": "2f08dcf9a089cb66062766f4922fda63a9e553de893c174b497dfefeb7a1577a",
+      "reference_group": "1",
+      "reference_size": 32
+    },
+    "alice": {
+      "source": "alice.png",
+      "sha256": "382149836066d5e160b56d4a3c38ce8cadbcba3dc97fd18b4b07e3ba037aca93",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "status": "imagegen",
+      "generated_file": "exec-ebee840b-e089-4f10-9962-23848410d281.png",
+      "reference_executable": "E:\\Games\\Alice\\alice.exe",
+      "reference_sha256": "8aa22917b7707f0e1a7c4dbe9a3c38332b1873ae2059174ac5329de26921fc18",
+      "reference_group": "1",
+      "reference_size": 32
+    },
+    "fakk2": {
+      "source": "fakk2.png",
+      "sha256": "a3c9ad4bbec29c8def4a621ffb1e41c5bece0ed99eb66d485785106a4ba9b291",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "status": "imagegen",
+      "generated_file": "exec-c9a93199-6825-4b24-ac5f-1a18f79a3fb9.png",
+      "reference_executable": "E:\\Repositories\\fnTech3\\.tmp\\fakk2-install\\game\\fakk2.exe",
+      "reference_sha256": "a1980fbf35c6b195e5e7db029ea30a4c5e8cdd8df8d9514223c6b8f1fa90cf88",
+      "reference_group": "1",
+      "reference_size": 32
+    },
+    "mohaa": {
+      "source": "mohaa.png",
+      "sha256": "a9953057e331cd31c6daf40a1790557c626529c387655f2e5241d5e81d7e0214",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "status": "imagegen",
+      "scope": "standalone artwork; no engine profile",
+      "generated_file": "exec-fc48f693-049a-4049-ad09-846b000f137f.png",
+      "reference_executable": "E:\\Games\\Medal of Honor Allied Assault\\MOHAA.exe",
+      "reference_sha256": "7abe43b41746c87877507d4c2938f6f4c9471f8d559448eba4553faa962316eb",
+      "reference_group": "1",
+      "reference_size": 32
+    },
+    "q3test": {
+      "source": "q3test.png",
+      "sha256": "44c734392d2de50c633f1ab925090711ba033038f6d99fa002462c9af17c9478",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "status": "reused-master",
+      "generated_file": null,
+      "reference_executable": "Q3Test 1.02-1.08 quake3.exe (the six Win32 packages in docs/fntech3/Q3TEST.md)",
+      "reference_sha256": null,
+      "reference_group": "1",
+      "reference_size": 32,
+      "revision": "A byte copy of the q3-ihv master: every Q3Test executable carries the same 744-byte 32 px icon image (SHA-256 prefix cab95da626418b3b) as the IHV test's quake3.exe that master remakes, so no new artwork was generated."
+    }
+  },
+  "supplemental_references": {
+    "alice": {
+      "asset": "base/pak0.pk3:gfx/mainmenu/alice1c.tga",
+      "role": "Character detail; icon pose remains front-facing"
+    },
+    "fakk2": {
+      "asset": "Heavy Metal FAKK2/setup.bmp",
+      "role": "Skull, mask and ring materials; splash lettering omitted"
+    }
+  },
+  "blocked_generation": {
+    "profile": "rtcw-sp",
+    "attempts": 3,
+    "last_request_id": "484e39d5-2152-4780-89b2-0ec14e3d7302",
+    "error": "moderation_blocked at output stage"
+  }
+}

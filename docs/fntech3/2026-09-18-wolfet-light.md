@@ -32,9 +32,9 @@ ET's flag word has exactly three bits, recorded from its own `game/q_shared.h`:
 
 | Bit | Flag | What this engine does |
 | --- | --- | --- |
-| 31 | `REF_FORCE_DLIGHT` | Honoured: the light is drawn even when dynamic lights are switched off, which is what ET's own renderer does. Its cgame uses this for landmine and dynamite flashes. |
-| 30 | `REF_JUNIOR_DLIGHT` | The light is meant to affect only the dynamic light grid and not surfaces. This renderer has no such path, so the light is skipped and the console says once that grid-only lights are not drawn. Retail ET's own modules never set this bit. |
-| 29 | `REF_DIRECTED_DLIGHT` | The origin is a direction, not a position: a global directional source. This renderer has no such light, so it is skipped with a one-time notice rather than drawn as an ordinary point light at a position that is really a direction. |
+| 31 | `REF_FORCE_DLIGHT` | Honoured: the light is drawn even when dynamic lights are switched off, which is what ET's own renderer does. Its cgame uses this only for a thrown charge's glow. Until the [engine scene lights record](2026-09-24-wolfet-engine-lights.md) the renderer then cleared every light at `r_dynamiclight 0`, so the glow was not drawn after all. |
+| 30 | `REF_JUNIOR_DLIGHT` | The light is meant to affect only the dynamic light grid and not surfaces. This renderer has no such path, so the light is skipped and the console says once that grid-only lights are not drawn. Retail ET's own modules never set this bit. The light still takes one of the frame's 32, as ET's does ([engine scene lights record](2026-09-24-wolfet-engine-lights.md)). |
+| 29 | `REF_DIRECTED_DLIGHT` | The origin is a direction, not a position: a global directional source. This renderer has no such light, so it is skipped with a one-time notice rather than drawn as an ordinary point light at a position that is really a direction. ET's cgame sets it for a map `dlight` entity with angles, such as radar's lightning; the light still takes one of the frame's 32, as ET's does ([engine scene lights record](2026-09-24-wolfet-engine-lights.md)). |
 
 A non-zero shader handle is likewise reported once and the light drawn without
 it. Retail ET's own modules pass zero every time; a per-light material is a

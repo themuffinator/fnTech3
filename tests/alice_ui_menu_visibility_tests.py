@@ -17,7 +17,7 @@ class AliceUIMenuVisibilityTests(unittest.TestCase):
         self.body = source[start:source.index('\n}\n', start)]
 
     def test_alice_answers_from_its_menu_stack_before_the_catcher(self):
-        alice = self.body.index('if ( Com_GameIsAlice() ) {')
+        alice = self.body.index('if ( Com_GameIsRitual() ) {')
         self.assertIn('return CL_AliceUIMenuUp();', self.body[alice:])
         self.assertLess(self.body.index('if ( !uivm ) {'), alice)
         self.assertLess(alice, self.body.index('if ( !uivm->dllExports ) {'))

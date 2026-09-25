@@ -1,0 +1,3215 @@
+{
+  "record": "2026-09-24-alice-map-sidecars",
+  "date": "2026-09-24",
+  "baseCommit": "b68782bfe41eeff02097ec2b2eaeed3eb0a1b4db",
+  "dirtyTree": true,
+  "dirtyTreeNote": "The shared tree carried other sessions' uncommitted work; this change adds the files named here.",
+  "platform": "Windows 11 Home 10.0.26200, x86 builds",
+  "installation": {
+    "root": "E:/Games/Alice",
+    "pak": "base/pak0.pk3",
+    "pakBytes": 289276327,
+    "pakSha256": "6a63b59cd627902660bd4261461f904bf984e05891eb749d47bcc7fc8cedda62",
+    "aliceExeSha256": "8aa22917b7707f0e1a7c4dbe9a3c38332b1873ae2059174ac5329de26921fc18",
+    "readOnly": true,
+    "unchangedByEveryRuntimeProbe": true
+  },
+  "retailFacts": {
+    "surfaceparmTable": {
+      "address": "0x005294d0",
+      "entries": 36,
+      "recordBytes": 16,
+      "materials": {
+        "wood": "0x10000",
+        "metal": "0x20000",
+        "rock": "0x40000",
+        "dirt": "0x80000",
+        "grill": "0x100000",
+        "organic": "0x200000",
+        "squishy": "0x400000"
+      },
+      "other": {
+        "castshadow": "0x40",
+        "nodraw": "0x80",
+        "nodlight": "0x800000",
+        "hint": "0x1000000",
+        "slide": "0x2000000"
+      },
+      "liquids": {
+        "lava": "0x8",
+        "slime": "0x10",
+        "water": "0x20"
+      }
+    },
+    "entityLightLoader": {
+      "address": "0x0049a360",
+      "recordBytes": 60,
+      "maximum": 1532,
+      "fields": [
+        "origin[3]",
+        "color[3]",
+        "intensity",
+        "leaf",
+        "needsTrace",
+        "spot",
+        "spotDir[3]",
+        "spotRadiusByDistance",
+        "cap"
+      ]
+    },
+    "entityLightPower": {
+      "address": "0x004ab850",
+      "scaleAddress": "0x005004a0",
+      "scale": 30000.0,
+      "rule": "power = |intensity| * 30000 / d^2; below 1 skipped; clamped to cap when cap is set"
+    }
+  },
+  "audioZones": {
+    "generator": "scripts/generate_stock_alice_audio_zones.py",
+    "generatorSha256": "7f40e905127913207576b71581de29f4d1e1242bc4b10874113d1a07dad971f9",
+    "compiler": "meson/build/win32-dev/fnql-audiozonesc.exe",
+    "compilerSha256": "e0f3fd28725e1e4fe1b962c60348a8a21db3e6445f1e0e3f7a221a08931048af",
+    "compilerSourceSha256": "2589f0a99a104d899fbfb673c26e29b65250ca176beb05b42bd93237011dc6b2",
+    "profile": "alice",
+    "materialMap": "scripts/alice-audio-materials.txt",
+    "materialMapSha256": "7fd80a378ffee7b0323a0b86282e34950ca48e90d296ffce8b7390eff99b2812",
+    "samples": 32768,
+    "maxZones": 512,
+    "strict": false,
+    "summary": {
+      "maps": 36,
+      "passed": 36,
+      "zones": 13506,
+      "bytes": 2627694,
+      "grades": {
+        "excellent": 14,
+        "fair": 2,
+        "good": 20
+      },
+      "atZoneCap": [
+        "centipede1",
+        "fortress2",
+        "funhouse",
+        "garden1",
+        "garden2",
+        "garden4",
+        "hatter1",
+        "hedge3",
+        "jlair1",
+        "pandemonium",
+        "potears1",
+        "rchess1",
+        "skool1",
+        "skool2",
+        "utemple",
+        "wchess1",
+        "wforest"
+      ],
+      "withoutSkySurfaces": [
+        "garden1",
+        "garden2",
+        "gvillage"
+      ],
+      "warnings": {
+        "most lookups resolve to map-scale zones instead of specific volumes": 19,
+        "zones cover more than half of the sidecar bounds; generated volumes may have collapsed": 4
+      }
+    },
+    "reproducibility": {
+      "runs": 4,
+      "compilerBuilds": 2,
+      "byteIdenticalSidecars": 36
+    },
+    "maps": [
+      {
+        "map": "centipede1",
+        "pak": "pak0.pk3",
+        "entry": "maps/centipede1.bsp",
+        "bspBytes": 4562996,
+        "bspCrc32": "d538d914",
+        "bspSha256": "36773ad709086fffa9c348e8dfcea1c3c1825d5a68cd7b3e46cd6f4d69dc832a",
+        "zones": 512,
+        "grade": "good",
+        "confidence": {
+          "anomaly": 0.173,
+          "grade": "good",
+          "lookup": 0.117,
+          "material": 0.965,
+          "overall": 0.769,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 0,
+        "underwaterZones": 2,
+        "presets": {
+          "hall": 21,
+          "hallway": 23,
+          "room": 42,
+          "small-room": 421,
+          "stone-room": 3,
+          "underwater": 2
+        },
+        "materials": {
+          "liquid": 2,
+          "neutral": 36,
+          "soft": 416,
+          "stone": 58
+        },
+        "portals": 620,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "azbBytes": 71899,
+        "azbSha256": "d8efcfe146b1bbb1b2a8743b90cd813102f9d63140b73a5c71b281e6015a6ffe"
+      },
+      {
+        "map": "centipede2",
+        "pak": "pak0.pk3",
+        "entry": "maps/centipede2.bsp",
+        "bspBytes": 3317608,
+        "bspCrc32": "36cdc4ad",
+        "bspSha256": "442285f92be2d0a9fa0a2f9cf8baf90a3e70d5312ed0b34108c549508cb37162",
+        "zones": 327,
+        "grade": "good",
+        "confidence": {
+          "anomaly": 0.132,
+          "grade": "good",
+          "lookup": 0.302,
+          "material": 0.994,
+          "overall": 0.824,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 15,
+        "underwaterZones": 0,
+        "presets": {
+          "hall": 15,
+          "hallway": 24,
+          "outdoors": 13,
+          "room": 29,
+          "small-room": 244,
+          "stone-room": 2
+        },
+        "materials": {
+          "neutral": 4,
+          "sky": 4,
+          "soft": 281,
+          "stone": 38
+        },
+        "portals": 800,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "azbBytes": 63989,
+        "azbSha256": "8bb63ed02470c78806855b2ab2630094e8e209dada48f466d5803ac73bf31187"
+      },
+      {
+        "map": "facade",
+        "pak": "pak0.pk3",
+        "entry": "maps/facade.bsp",
+        "bspBytes": 5667704,
+        "bspCrc32": "1ac07d00",
+        "bspSha256": "c72321517c76ad6c395e6cf36c187f7ee522a4cc2c500bf7c92cb2284cd728d8",
+        "zones": 322,
+        "grade": "excellent",
+        "confidence": {
+          "anomaly": 0.009,
+          "grade": "excellent",
+          "lookup": 1.0,
+          "material": 0.96,
+          "overall": 0.988,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 47,
+        "underwaterZones": 2,
+        "presets": {
+          "hall": 64,
+          "hallway": 25,
+          "outdoors": 47,
+          "room": 5,
+          "small-room": 130,
+          "stone-room": 49,
+          "underwater": 2
+        },
+        "materials": {
+          "liquid": 2,
+          "metal": 15,
+          "neutral": 26,
+          "sky": 19,
+          "stone": 260
+        },
+        "portals": 1156,
+        "warnings": [],
+        "azbBytes": 79354,
+        "azbSha256": "6b68315b47b4fd1c6726dd594e015f638693b9bb79794261427ba7e06c02d95c"
+      },
+      {
+        "map": "fortress1",
+        "pak": "pak0.pk3",
+        "entry": "maps/fortress1.bsp",
+        "bspBytes": 4503220,
+        "bspCrc32": "61e2a1d4",
+        "bspSha256": "8154555e66ed937f6d95a831a357b745ce1ea706b6a98254f4ed7c29c50f6a10",
+        "zones": 234,
+        "grade": "excellent",
+        "confidence": {
+          "anomaly": 0.075,
+          "grade": "excellent",
+          "lookup": 0.661,
+          "material": 0.951,
+          "overall": 0.9,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 1,
+        "underwaterZones": 0,
+        "presets": {
+          "hall": 28,
+          "hallway": 53,
+          "outdoors": 1,
+          "room": 4,
+          "small-room": 130,
+          "stone-room": 18
+        },
+        "materials": {
+          "metal": 67,
+          "neutral": 23,
+          "sky": 1,
+          "soft": 13,
+          "stone": 130
+        },
+        "portals": 782,
+        "warnings": [],
+        "azbBytes": 55098,
+        "azbSha256": "6297d57a3a9910248fb0e3f77e28584f4792f5111c2390b5c6d1042c17bf3b4d"
+      },
+      {
+        "map": "fortress2",
+        "pak": "pak0.pk3",
+        "entry": "maps/fortress2.bsp",
+        "bspBytes": 5836804,
+        "bspCrc32": "37cc5cf5",
+        "bspSha256": "d64e1ecea002a901c1370756768662662a2ec82bd982c6c573d24907b84eca09",
+        "zones": 512,
+        "grade": "fair",
+        "confidence": {
+          "anomaly": 0.188,
+          "grade": "fair",
+          "lookup": 0.27,
+          "material": 0.774,
+          "overall": 0.75,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 42,
+        "underwaterZones": 1,
+        "presets": {
+          "hall": 18,
+          "hallway": 65,
+          "outdoors": 26,
+          "room": 7,
+          "small-room": 384,
+          "stone-room": 11,
+          "underwater": 1
+        },
+        "materials": {
+          "liquid": 1,
+          "metal": 71,
+          "neutral": 231,
+          "sky": 18,
+          "soft": 16,
+          "stone": 175
+        },
+        "portals": 1280,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "azbBytes": 101739,
+        "azbSha256": "258f88112f5453243ee87054f0a04d15399050a2d5571e04f2a12388425a0e72"
+      },
+      {
+        "map": "funhouse",
+        "pak": "pak0.pk3",
+        "entry": "maps/funhouse.bsp",
+        "bspBytes": 7145896,
+        "bspCrc32": "04027cdb",
+        "bspSha256": "04aa77a56d32e6cdf2fa91b11cf9608593d925a8afb2fb68720d1ae062a55ed1",
+        "zones": 512,
+        "grade": "excellent",
+        "confidence": {
+          "anomaly": 0.009,
+          "grade": "excellent",
+          "lookup": 1.0,
+          "material": 0.96,
+          "overall": 0.988,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 14,
+        "underwaterZones": 4,
+        "presets": {
+          "hall": 43,
+          "hallway": 57,
+          "outdoors": 13,
+          "room": 7,
+          "small-room": 347,
+          "stone-room": 41,
+          "underwater": 4
+        },
+        "materials": {
+          "liquid": 4,
+          "metal": 317,
+          "neutral": 41,
+          "sky": 6,
+          "soft": 53,
+          "stone": 91
+        },
+        "portals": 1384,
+        "warnings": [],
+        "azbBytes": 106240,
+        "azbSha256": "54573370fa583c476647546baee9c6533b612ce2c0e2a577bc98de2f58ae87f0"
+      },
+      {
+        "map": "garden1",
+        "pak": "pak0.pk3",
+        "entry": "maps/garden1.bsp",
+        "bspBytes": 6323368,
+        "bspCrc32": "cb85fdae",
+        "bspSha256": "37e02f5be66f053fdb67652fcc46a87886d2cb40916fe761afa8a0f1568b57c8",
+        "zones": 512,
+        "grade": "good",
+        "confidence": {
+          "anomaly": 0.351,
+          "grade": "good",
+          "lookup": 0.206,
+          "material": 0.989,
+          "overall": 0.798,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 0,
+        "underwaterZones": 17,
+        "presets": {
+          "hall": 53,
+          "hallway": 32,
+          "room": 87,
+          "small-room": 323,
+          "underwater": 17
+        },
+        "materials": {
+          "liquid": 17,
+          "neutral": 11,
+          "soft": 484
+        },
+        "portals": 216,
+        "warnings": [
+          "zones cover more than half of the sidecar bounds; generated volumes may have collapsed",
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "azbBytes": 53230,
+        "azbSha256": "145dd7dc96e1bfa8a2cd2225da9beb5443eca1ff06d325380aa7419f4dd7bdfa"
+      },
+      {
+        "map": "garden2",
+        "pak": "pak0.pk3",
+        "entry": "maps/garden2.bsp",
+        "bspBytes": 8172832,
+        "bspCrc32": "b34146dc",
+        "bspSha256": "ca3c2cd77ba92796520b9ca20d357b11973297e7c2e875cc34ab0c5806cf6820",
+        "zones": 512,
+        "grade": "good",
+        "confidence": {
+          "anomaly": 0.346,
+          "grade": "good",
+          "lookup": 0.229,
+          "material": 0.996,
+          "overall": 0.806,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 0,
+        "underwaterZones": 4,
+        "presets": {
+          "hall": 24,
+          "hallway": 21,
+          "room": 59,
+          "small-room": 403,
+          "stone-room": 1,
+          "underwater": 4
+        },
+        "materials": {
+          "liquid": 4,
+          "neutral": 4,
+          "soft": 486,
+          "stone": 18
+        },
+        "portals": 452,
+        "warnings": [
+          "zones cover more than half of the sidecar bounds; generated volumes may have collapsed",
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "azbBytes": 64225,
+        "azbSha256": "498321a03225fe583d62a11c5a318450d6a30a96a66c29d8717102f014fddb05"
+      },
+      {
+        "map": "garden3",
+        "pak": "pak0.pk3",
+        "entry": "maps/garden3.bsp",
+        "bspBytes": 3429376,
+        "bspCrc32": "d0d0e980",
+        "bspSha256": "0eeaac85dfdf1b8bee447a620aef56e6d4fc09b74abc01b80136a5084b436e13",
+        "zones": 373,
+        "grade": "excellent",
+        "confidence": {
+          "anomaly": 0.006,
+          "grade": "excellent",
+          "lookup": 1.0,
+          "material": 0.975,
+          "overall": 0.992,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 0,
+        "underwaterZones": 0,
+        "presets": {
+          "hall": 44,
+          "hallway": 14,
+          "room": 29,
+          "small-room": 281,
+          "stone-room": 5
+        },
+        "materials": {
+          "neutral": 19,
+          "soft": 300,
+          "stone": 54
+        },
+        "portals": 868,
+        "warnings": [],
+        "azbBytes": 70947,
+        "azbSha256": "6fe67a61805f1dc6de8a25abcdfe3c94d5715932607f82a85314a7a423c3e6b0"
+      },
+      {
+        "map": "garden4",
+        "pak": "pak0.pk3",
+        "entry": "maps/garden4.bsp",
+        "bspBytes": 5763900,
+        "bspCrc32": "4bf10630",
+        "bspSha256": "21df007755adee0045e78cfb52bfee29db1c0b83191db3c1a59d3b8335caa1f7",
+        "zones": 512,
+        "grade": "excellent",
+        "confidence": {
+          "anomaly": 0.002,
+          "grade": "excellent",
+          "lookup": 1.0,
+          "material": 0.991,
+          "overall": 0.997,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 0,
+        "underwaterZones": 0,
+        "presets": {
+          "hall": 55,
+          "hallway": 23,
+          "room": 3,
+          "small-room": 394,
+          "stone-room": 37
+        },
+        "materials": {
+          "neutral": 9,
+          "soft": 24,
+          "stone": 479
+        },
+        "portals": 884,
+        "warnings": [],
+        "azbBytes": 83810,
+        "azbSha256": "1e2fc5cba45b15068570dc90efb9df27535d306bff158e508f38d4fdf5366854"
+      },
+      {
+        "map": "grounds1",
+        "pak": "pak0.pk3",
+        "entry": "maps/grounds1.bsp",
+        "bspBytes": 2521040,
+        "bspCrc32": "0029ff82",
+        "bspSha256": "6e28ed62ae342ce495f043210ee65ee9cb56236fc1aa361f1a7f43b69b8cf926",
+        "zones": 153,
+        "grade": "good",
+        "confidence": {
+          "anomaly": 0.125,
+          "grade": "good",
+          "lookup": 0.377,
+          "material": 0.964,
+          "overall": 0.834,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 47,
+        "underwaterZones": 0,
+        "presets": {
+          "hall": 25,
+          "hallway": 7,
+          "outdoors": 39,
+          "room": 2,
+          "small-room": 72,
+          "stone-room": 8
+        },
+        "materials": {
+          "metal": 6,
+          "neutral": 11,
+          "sky": 10,
+          "soft": 11,
+          "stone": 115
+        },
+        "portals": 536,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "azbBytes": 37073,
+        "azbSha256": "250d88a015b30af5b2b611c0cb0f9c10e57558d765bc57c33da9b90976108ee8"
+      },
+      {
+        "map": "grounds2",
+        "pak": "pak0.pk3",
+        "entry": "maps/grounds2.bsp",
+        "bspBytes": 4891724,
+        "bspCrc32": "0ae0dcac",
+        "bspSha256": "335f9bcc8d313630b0d0cdeff5995cbb649c3e5d200c26bef5d7d874dca04f62",
+        "zones": 392,
+        "grade": "good",
+        "confidence": {
+          "anomaly": 0.083,
+          "grade": "good",
+          "lookup": 0.618,
+          "material": 0.952,
+          "overall": 0.89,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 68,
+        "underwaterZones": 37,
+        "presets": {
+          "hall": 48,
+          "hallway": 50,
+          "outdoors": 64,
+          "room": 8,
+          "small-room": 125,
+          "stone-room": 60,
+          "underwater": 37
+        },
+        "materials": {
+          "liquid": 37,
+          "neutral": 38,
+          "sky": 30,
+          "soft": 5,
+          "stone": 282
+        },
+        "portals": 1346,
+        "warnings": [],
+        "azbBytes": 93962,
+        "azbSha256": "c88af6c44e3ca7495a1917b8f9d7cf3eb89b6a6580c1d178e408c2acb1f66cd2"
+      },
+      {
+        "map": "gvillage",
+        "pak": "pak0.pk3",
+        "entry": "maps/gvillage.bsp",
+        "bspBytes": 4013332,
+        "bspCrc32": "d64b17fd",
+        "bspSha256": "e682523799c6424e0f576a2aab9f9a25a94deded5bd879284471df3ce07390ac",
+        "zones": 504,
+        "grade": "excellent",
+        "confidence": {
+          "anomaly": 0.003,
+          "grade": "excellent",
+          "lookup": 1.0,
+          "material": 0.988,
+          "overall": 0.996,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 0,
+        "underwaterZones": 9,
+        "presets": {
+          "hall": 18,
+          "hallway": 14,
+          "room": 13,
+          "small-room": 432,
+          "stone-room": 18,
+          "underwater": 9
+        },
+        "materials": {
+          "liquid": 9,
+          "metal": 25,
+          "neutral": 12,
+          "soft": 144,
+          "stone": 314
+        },
+        "portals": 1404,
+        "warnings": [],
+        "azbBytes": 106702,
+        "azbSha256": "35a45f39c3faff4bc4ef2b631c929b3c45a28e62d073261c65c4364c60f8692c"
+      },
+      {
+        "map": "hatter1",
+        "pak": "pak0.pk3",
+        "entry": "maps/hatter1.bsp",
+        "bspBytes": 6951076,
+        "bspCrc32": "d7e57181",
+        "bspSha256": "dd4d51423a55133583dd68ea3ab3ace742a7fa3beca130015d2e12f226a77793",
+        "zones": 512,
+        "grade": "excellent",
+        "confidence": {
+          "anomaly": 0.002,
+          "grade": "excellent",
+          "lookup": 1.0,
+          "material": 0.99,
+          "overall": 0.997,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 88,
+        "underwaterZones": 47,
+        "presets": {
+          "hall": 27,
+          "hallway": 71,
+          "outdoors": 35,
+          "room": 5,
+          "small-room": 284,
+          "stone-room": 43,
+          "underwater": 47
+        },
+        "materials": {
+          "liquid": 47,
+          "metal": 368,
+          "neutral": 10,
+          "sky": 24,
+          "soft": 13,
+          "stone": 50
+        },
+        "portals": 1782,
+        "warnings": [],
+        "azbBytes": 124288,
+        "azbSha256": "aab8895ce00b4fe3d9c661e3ffe698d22a494f0c9691bd0c447b085c4f751f24"
+      },
+      {
+        "map": "hatter2",
+        "pak": "pak0.pk3",
+        "entry": "maps/hatter2.bsp",
+        "bspBytes": 2182600,
+        "bspCrc32": "977f11ca",
+        "bspSha256": "0869141c1b1e46d79463a51a757f7ac2def0a7cfb472130a6b7163cb63ff82a9",
+        "zones": 284,
+        "grade": "good",
+        "confidence": {
+          "anomaly": 0.125,
+          "grade": "good",
+          "lookup": 0.355,
+          "material": 0.982,
+          "overall": 0.833,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 32,
+        "underwaterZones": 14,
+        "presets": {
+          "hall": 13,
+          "hallway": 30,
+          "outdoors": 25,
+          "small-room": 197,
+          "stone-room": 5,
+          "underwater": 14
+        },
+        "materials": {
+          "liquid": 14,
+          "metal": 249,
+          "neutral": 10,
+          "sky": 2,
+          "stone": 9
+        },
+        "portals": 742,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "azbBytes": 57783,
+        "azbSha256": "864e1174d778ed8c578cbe0af112596c39da782109ad5bced63127ef67d3b244"
+      },
+      {
+        "map": "hedge1",
+        "pak": "pak0.pk3",
+        "entry": "maps/hedge1.bsp",
+        "bspBytes": 2678552,
+        "bspCrc32": "43278a93",
+        "bspSha256": "7827eef5ff54aacd8d3f97ec257229833275015db7427d0b7c902b2805e1e8e8",
+        "zones": 177,
+        "grade": "excellent",
+        "confidence": {
+          "anomaly": 0.051,
+          "grade": "excellent",
+          "lookup": 0.735,
+          "material": 0.994,
+          "overall": 0.932,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 0,
+        "underwaterZones": 0,
+        "presets": {
+          "hall": 26,
+          "hallway": 32,
+          "room": 7,
+          "small-room": 91,
+          "stone-room": 21
+        },
+        "materials": {
+          "metal": 2,
+          "neutral": 2,
+          "sky": 2,
+          "soft": 69,
+          "stone": 102
+        },
+        "portals": 610,
+        "warnings": [],
+        "azbBytes": 42457,
+        "azbSha256": "7085c3a8198e697418771490d3e9f92c7b70bb0a54aec80c3c697a43e9ea523f"
+      },
+      {
+        "map": "hedge2",
+        "pak": "pak0.pk3",
+        "entry": "maps/hedge2.bsp",
+        "bspBytes": 5257304,
+        "bspCrc32": "ac7cb8e5",
+        "bspSha256": "107824f31f0572f30d9d40070718ac28ab352f971f0279bcad5040dd94d1915a",
+        "zones": 456,
+        "grade": "good",
+        "confidence": {
+          "anomaly": 0.091,
+          "grade": "good",
+          "lookup": 0.55,
+          "material": 0.971,
+          "overall": 0.879,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 52,
+        "underwaterZones": 91,
+        "presets": {
+          "hall": 24,
+          "hallway": 34,
+          "outdoors": 52,
+          "room": 24,
+          "small-room": 209,
+          "stone-room": 22,
+          "underwater": 91
+        },
+        "materials": {
+          "liquid": 91,
+          "metal": 66,
+          "neutral": 26,
+          "sky": 3,
+          "soft": 160,
+          "stone": 110
+        },
+        "portals": 1922,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "azbBytes": 125570,
+        "azbSha256": "527d3b82968964351336bda34aea33f9c5ab5abadf2abc7d56f9650c637f726e"
+      },
+      {
+        "map": "hedge3",
+        "pak": "pak0.pk3",
+        "entry": "maps/hedge3.bsp",
+        "bspBytes": 9370732,
+        "bspCrc32": "fd48fcd9",
+        "bspSha256": "b26ede3e6123afa2375de792641155b55c0e57ffcb1b1f62eea2e2e4c631f672",
+        "zones": 512,
+        "grade": "excellent",
+        "confidence": {
+          "anomaly": 0.005,
+          "grade": "excellent",
+          "lookup": 1.0,
+          "material": 0.976,
+          "overall": 0.993,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 24,
+        "underwaterZones": 20,
+        "presets": {
+          "hall": 48,
+          "hallway": 56,
+          "outdoors": 19,
+          "room": 35,
+          "small-room": 302,
+          "stone-room": 32,
+          "underwater": 20
+        },
+        "materials": {
+          "liquid": 20,
+          "metal": 239,
+          "neutral": 25,
+          "sky": 2,
+          "soft": 144,
+          "stone": 82
+        },
+        "portals": 1620,
+        "warnings": [],
+        "azbBytes": 116823,
+        "azbSha256": "c21d352d871a42b5e9c44c79aae2350f02e234d783322aee80c4927e1366f461"
+      },
+      {
+        "map": "jlair1",
+        "pak": "pak0.pk3",
+        "entry": "maps/jlair1.bsp",
+        "bspBytes": 7741340,
+        "bspCrc32": "58df8c14",
+        "bspSha256": "055ac6f1d1b4f434f65ff2bb4dd40295912acf818e9bebfede4b35d35f509eb5",
+        "zones": 512,
+        "grade": "good",
+        "confidence": {
+          "anomaly": 0.104,
+          "grade": "good",
+          "lookup": 0.488,
+          "material": 0.965,
+          "overall": 0.861,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 56,
+        "underwaterZones": 49,
+        "presets": {
+          "hall": 20,
+          "hallway": 38,
+          "outdoors": 28,
+          "room": 1,
+          "small-room": 342,
+          "stone-room": 34,
+          "underwater": 49
+        },
+        "materials": {
+          "liquid": 49,
+          "neutral": 36,
+          "sky": 15,
+          "soft": 32,
+          "stone": 380
+        },
+        "portals": 810,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "azbBytes": 80600,
+        "azbSha256": "9e8785874a0499ae4abad4e4ae795b319b326a3a8777913a61aa0338dfc4f2b3"
+      },
+      {
+        "map": "jlair2",
+        "pak": "pak0.pk3",
+        "entry": "maps/jlair2.bsp",
+        "bspBytes": 1921312,
+        "bspCrc32": "6087531c",
+        "bspSha256": "bec146d1b4aaf2a521e240ea4de6e57d591462a239f70707bfaed29e06dc3485",
+        "zones": 11,
+        "grade": "excellent",
+        "confidence": {
+          "anomaly": 0.031,
+          "grade": "excellent",
+          "lookup": 1.0,
+          "material": 0.864,
+          "overall": 0.959,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 6,
+        "underwaterZones": 0,
+        "presets": {
+          "hall": 4,
+          "outdoors": 4,
+          "small-room": 3
+        },
+        "materials": {
+          "neutral": 3,
+          "sky": 4,
+          "soft": 4
+        },
+        "portals": 20,
+        "warnings": [],
+        "azbBytes": 1816,
+        "azbSha256": "9bde4238f6388c5103763f2bf2b376547f56943c8475ff41b9109288ab1ed1be"
+      },
+      {
+        "map": "keep",
+        "pak": "pak0.pk3",
+        "entry": "maps/keep.bsp",
+        "bspBytes": 4501380,
+        "bspCrc32": "3790787f",
+        "bspSha256": "8c73bcde06a1747c18dca974d4f076ccadafed932d80fc2c898e532f1959a089",
+        "zones": 298,
+        "grade": "excellent",
+        "confidence": {
+          "anomaly": 0.008,
+          "grade": "excellent",
+          "lookup": 1.0,
+          "material": 0.963,
+          "overall": 0.989,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 13,
+        "underwaterZones": 28,
+        "presets": {
+          "hall": 38,
+          "hallway": 31,
+          "outdoors": 6,
+          "room": 1,
+          "small-room": 173,
+          "stone-room": 21,
+          "underwater": 28
+        },
+        "materials": {
+          "liquid": 28,
+          "metal": 84,
+          "neutral": 22,
+          "sky": 6,
+          "soft": 1,
+          "stone": 157
+        },
+        "portals": 932,
+        "warnings": [],
+        "azbBytes": 67443,
+        "azbSha256": "cb619e92c8b58a9d53cc77fd14cedd1269f08bff115643f1e21f4abc91662ffb"
+      },
+      {
+        "map": "pandemonium",
+        "pak": "pak0.pk3",
+        "entry": "maps/pandemonium.bsp",
+        "bspBytes": 5675452,
+        "bspCrc32": "d46869c7",
+        "bspSha256": "e934e1a6de5e5766601d32b4b703c7242fafa46399cb9836abebbd48d0cfd021",
+        "zones": 512,
+        "grade": "good",
+        "confidence": {
+          "anomaly": 0.076,
+          "grade": "good",
+          "lookup": 0.611,
+          "material": 0.987,
+          "overall": 0.899,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 0,
+        "underwaterZones": 6,
+        "presets": {
+          "hall": 20,
+          "hallway": 28,
+          "room": 7,
+          "small-room": 414,
+          "stone-room": 37,
+          "underwater": 6
+        },
+        "materials": {
+          "liquid": 6,
+          "metal": 42,
+          "neutral": 13,
+          "soft": 59,
+          "stone": 392
+        },
+        "portals": 936,
+        "warnings": [],
+        "azbBytes": 86322,
+        "azbSha256": "10a7051d61135fb1b1923424105b920d8ae8b2b487ba39d8067ade4e581f7743"
+      },
+      {
+        "map": "potears1",
+        "pak": "pak0.pk3",
+        "entry": "maps/potears1.bsp",
+        "bspBytes": 7165892,
+        "bspCrc32": "9f1505e5",
+        "bspSha256": "a4619eedd99f16b53e6070e31723e630a0b883dad48001281808bcaee8154b4e",
+        "zones": 512,
+        "grade": "excellent",
+        "confidence": {
+          "anomaly": 0.043,
+          "grade": "excellent",
+          "lookup": 0.781,
+          "material": 0.989,
+          "overall": 0.942,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 81,
+        "underwaterZones": 90,
+        "presets": {
+          "hall": 12,
+          "hallway": 35,
+          "outdoors": 65,
+          "room": 16,
+          "small-room": 264,
+          "stone-room": 30,
+          "underwater": 90
+        },
+        "materials": {
+          "liquid": 90,
+          "neutral": 11,
+          "sky": 4,
+          "soft": 213,
+          "stone": 194
+        },
+        "portals": 1328,
+        "warnings": [],
+        "azbBytes": 103803,
+        "azbSha256": "24312e4757719f84a7c3f8b9f2d1627c93f617f769c2b16c92f952d680a8797c"
+      },
+      {
+        "map": "potears2",
+        "pak": "pak0.pk3",
+        "entry": "maps/potears2.bsp",
+        "bspBytes": 3777348,
+        "bspCrc32": "b41b1e2a",
+        "bspSha256": "3a3540ba150691271a25d7590fee78d973c191cd12a9480659d261a215b40901",
+        "zones": 215,
+        "grade": "good",
+        "confidence": {
+          "anomaly": 0.146,
+          "grade": "good",
+          "lookup": 0.229,
+          "material": 0.995,
+          "overall": 0.806,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 19,
+        "underwaterZones": 13,
+        "presets": {
+          "hall": 14,
+          "hallway": 45,
+          "outdoors": 19,
+          "room": 14,
+          "small-room": 98,
+          "stone-room": 12,
+          "underwater": 13
+        },
+        "materials": {
+          "liquid": 13,
+          "neutral": 2,
+          "sky": 4,
+          "soft": 139,
+          "stone": 57
+        },
+        "portals": 570,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "azbBytes": 43917,
+        "azbSha256": "aac56a379ae523c9c83f5b7f0eee5573807cebdf1eca121ca02612ed4fbec197"
+      },
+      {
+        "map": "potears3",
+        "pak": "pak0.pk3",
+        "entry": "maps/potears3.bsp",
+        "bspBytes": 1014216,
+        "bspCrc32": "a3f3f985",
+        "bspSha256": "aabfcdf2ce406f9fc1873872f1341f6ed0b782f14d9c7b50337a5a720b0881a4",
+        "zones": 47,
+        "grade": "fair",
+        "confidence": {
+          "anomaly": 0.203,
+          "grade": "fair",
+          "lookup": 0.083,
+          "material": 0.862,
+          "overall": 0.729,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 0,
+        "underwaterZones": 1,
+        "presets": {
+          "hall": 1,
+          "hallway": 6,
+          "room": 6,
+          "small-room": 30,
+          "stone-room": 3,
+          "underwater": 1
+        },
+        "materials": {
+          "liquid": 1,
+          "neutral": 13,
+          "soft": 29,
+          "stone": 4
+        },
+        "portals": 156,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "azbBytes": 11004,
+        "azbSha256": "0f9f7ed568d3abcffd8f808fe64577413fd45197eb05f04318335c9f400681b6"
+      },
+      {
+        "map": "qlair",
+        "pak": "pak0.pk3",
+        "entry": "maps/qlair.bsp",
+        "bspBytes": 1441292,
+        "bspCrc32": "f094c31d",
+        "bspSha256": "79c46ee755cc92853858739567e565ebe984e82233249addea059225683bc0ec",
+        "zones": 87,
+        "grade": "good",
+        "confidence": {
+          "anomaly": 0.142,
+          "grade": "good",
+          "lookup": 0.421,
+          "material": 0.851,
+          "overall": 0.81,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 9,
+        "underwaterZones": 0,
+        "presets": {
+          "hall": 15,
+          "hallway": 16,
+          "outdoors": 9,
+          "room": 2,
+          "small-room": 40,
+          "stone-room": 5
+        },
+        "materials": {
+          "metal": 39,
+          "neutral": 26,
+          "sky": 2,
+          "soft": 3,
+          "stone": 17
+        },
+        "portals": 234,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "azbBytes": 17846,
+        "azbSha256": "40ba58d048fe1c22a735fd6ea86fcf0bd8c5e6debd78d74a476ad97c837f8f84"
+      },
+      {
+        "map": "rchess1",
+        "pak": "pak0.pk3",
+        "entry": "maps/rchess1.bsp",
+        "bspBytes": 5344008,
+        "bspCrc32": "b3ba5f82",
+        "bspSha256": "c134b9f56c828d1a85b5a470c360be4a753e84fa806a89565263e13a69637cb1",
+        "zones": 512,
+        "grade": "good",
+        "confidence": {
+          "anomaly": 0.113,
+          "grade": "good",
+          "lookup": 0.475,
+          "material": 0.937,
+          "overall": 0.85,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 87,
+        "underwaterZones": 7,
+        "presets": {
+          "hall": 19,
+          "hallway": 53,
+          "outdoors": 59,
+          "room": 10,
+          "small-room": 291,
+          "stone-room": 73,
+          "underwater": 7
+        },
+        "materials": {
+          "liquid": 7,
+          "metal": 4,
+          "neutral": 65,
+          "sky": 21,
+          "soft": 26,
+          "stone": 389
+        },
+        "portals": 1474,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "azbBytes": 110335,
+        "azbSha256": "4f718eee93beeace62e5bf4ecc5d49512e980781c5a688be8333821d10e826d9"
+      },
+      {
+        "map": "skool1",
+        "pak": "pak0.pk3",
+        "entry": "maps/skool1.bsp",
+        "bspBytes": 6402760,
+        "bspCrc32": "417d6af4",
+        "bspSha256": "544188d4193cd72567036606de8df37ef0d87931b96573bb153de87f81bee3e5",
+        "zones": 512,
+        "grade": "good",
+        "confidence": {
+          "anomaly": 0.106,
+          "grade": "good",
+          "lookup": 0.514,
+          "material": 0.935,
+          "overall": 0.859,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 78,
+        "underwaterZones": 0,
+        "presets": {
+          "hall": 20,
+          "hallway": 49,
+          "outdoors": 60,
+          "room": 29,
+          "small-room": 354
+        },
+        "materials": {
+          "neutral": 67,
+          "sky": 44,
+          "soft": 355,
+          "stone": 46
+        },
+        "portals": 1238,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "azbBytes": 99651,
+        "azbSha256": "7f5f69f6c57c6dc55de09f05554e4bb8848f35a4c54282411d9d29257395e2c0"
+      },
+      {
+        "map": "skool2",
+        "pak": "pak0.pk3",
+        "entry": "maps/skool2.bsp",
+        "bspBytes": 6374344,
+        "bspCrc32": "1fb829d1",
+        "bspSha256": "e2fc3b36d95ac0d0ef4b8dd064bd043b01fcab09eb1d15fdc9e89a3568581b69",
+        "zones": 512,
+        "grade": "good",
+        "confidence": {
+          "anomaly": 0.114,
+          "grade": "good",
+          "lookup": 0.487,
+          "material": 0.919,
+          "overall": 0.848,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 24,
+        "underwaterZones": 0,
+        "presets": {
+          "hall": 13,
+          "hallway": 23,
+          "outdoors": 8,
+          "room": 5,
+          "small-room": 463
+        },
+        "materials": {
+          "neutral": 83,
+          "sky": 15,
+          "soft": 333,
+          "stone": 81
+        },
+        "portals": 876,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "azbBytes": 83917,
+        "azbSha256": "3c68938e32050775741184722c1895d552a5f5f2de8b024a0c8c5d840079e7de"
+      },
+      {
+        "map": "tower1",
+        "pak": "pak0.pk3",
+        "entry": "maps/tower1.bsp",
+        "bspBytes": 2183428,
+        "bspCrc32": "420b075a",
+        "bspSha256": "a767bee01797fc67ee426865301bfd48c8532d23ce41225e2324cc358b71aae8",
+        "zones": 146,
+        "grade": "good",
+        "confidence": {
+          "anomaly": 0.348,
+          "grade": "good",
+          "lookup": 0.247,
+          "material": 0.969,
+          "overall": 0.802,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 6,
+        "underwaterZones": 7,
+        "presets": {
+          "hall": 26,
+          "hallway": 9,
+          "outdoors": 6,
+          "room": 3,
+          "small-room": 88,
+          "stone-room": 7,
+          "underwater": 7
+        },
+        "materials": {
+          "liquid": 7,
+          "metal": 35,
+          "neutral": 9,
+          "soft": 20,
+          "stone": 75
+        },
+        "portals": 430,
+        "warnings": [
+          "zones cover more than half of the sidecar bounds; generated volumes may have collapsed",
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "azbBytes": 31741,
+        "azbSha256": "fe5b89d4864208da297241844bf0faccc700e0f9174ae76f52ef9cdfc01839e5"
+      },
+      {
+        "map": "tower2",
+        "pak": "pak0.pk3",
+        "entry": "maps/tower2.bsp",
+        "bspBytes": 3209560,
+        "bspCrc32": "2a1c3873",
+        "bspSha256": "7a65625518ca12e219e5945be7f3a1c301a29dd9c50f20beb6cde6a99f06347d",
+        "zones": 259,
+        "grade": "good",
+        "confidence": {
+          "anomaly": 0.147,
+          "grade": "good",
+          "lookup": 0.242,
+          "material": 0.977,
+          "overall": 0.803,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 0,
+        "underwaterZones": 0,
+        "presets": {
+          "hall": 21,
+          "hallway": 23,
+          "small-room": 176,
+          "stone-room": 39
+        },
+        "materials": {
+          "metal": 197,
+          "neutral": 12,
+          "soft": 2,
+          "stone": 48
+        },
+        "portals": 804,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "azbBytes": 58420,
+        "azbSha256": "c1d803c0e39eeed9ba82d4bbbc8f6d9851376777f351694e297a49921b702482"
+      },
+      {
+        "map": "tower3",
+        "pak": "pak0.pk3",
+        "entry": "maps/tower3.bsp",
+        "bspBytes": 3404896,
+        "bspCrc32": "dd18516f",
+        "bspSha256": "36a5ab5a3de6a261f5a33d1cd41c69844a4906c41a9aee7db7830f988a26e676",
+        "zones": 158,
+        "grade": "good",
+        "confidence": {
+          "anomaly": 0.379,
+          "grade": "good",
+          "lookup": 0.048,
+          "material": 0.997,
+          "overall": 0.761,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 13,
+        "underwaterZones": 0,
+        "presets": {
+          "hall": 47,
+          "hallway": 4,
+          "outdoors": 13,
+          "small-room": 75,
+          "stone-room": 19
+        },
+        "materials": {
+          "metal": 105,
+          "neutral": 1,
+          "soft": 2,
+          "stone": 50
+        },
+        "portals": 312,
+        "warnings": [
+          "zones cover more than half of the sidecar bounds; generated volumes may have collapsed",
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "azbBytes": 27369,
+        "azbSha256": "3d8802e83b306d5794b66e82ec9bd5a545132cad1e6fe9f6013e14465bac2eec"
+      },
+      {
+        "map": "utemple",
+        "pak": "pak0.pk3",
+        "entry": "maps/utemple.bsp",
+        "bspBytes": 8102944,
+        "bspCrc32": "64440da6",
+        "bspSha256": "85836fc1ff9d105a3e87a2ab2e2ceb3b4e4855e5718f60f94b4a8f3abf6e272a",
+        "zones": 512,
+        "grade": "excellent",
+        "confidence": {
+          "anomaly": 0.001,
+          "grade": "excellent",
+          "lookup": 1.0,
+          "material": 0.994,
+          "overall": 0.998,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 0,
+        "underwaterZones": 478,
+        "presets": {
+          "hall": 7,
+          "hallway": 9,
+          "room": 1,
+          "small-room": 17,
+          "underwater": 478
+        },
+        "materials": {
+          "liquid": 478,
+          "neutral": 6,
+          "soft": 3,
+          "stone": 25
+        },
+        "portals": 762,
+        "warnings": [],
+        "azbBytes": 78661,
+        "azbSha256": "c19f3ad3db7d826b6f5f56371eebaf62db8b91dda208c9075708311ae6e94fdc"
+      },
+      {
+        "map": "wchess1",
+        "pak": "pak0.pk3",
+        "entry": "maps/wchess1.bsp",
+        "bspBytes": 7012340,
+        "bspCrc32": "107809a2",
+        "bspSha256": "433217552eccd1df6ec381008b505ca7ac6dea1e9a19a5b0c85bb43e0271857e",
+        "zones": 512,
+        "grade": "good",
+        "confidence": {
+          "anomaly": 0.126,
+          "grade": "good",
+          "lookup": 0.417,
+          "material": 0.924,
+          "overall": 0.831,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 85,
+        "underwaterZones": 1,
+        "presets": {
+          "hall": 17,
+          "hallway": 65,
+          "outdoors": 58,
+          "room": 11,
+          "small-room": 314,
+          "stone-room": 46,
+          "underwater": 1
+        },
+        "materials": {
+          "liquid": 1,
+          "neutral": 78,
+          "sky": 35,
+          "soft": 13,
+          "stone": 385
+        },
+        "portals": 1216,
+        "warnings": [
+          "most lookups resolve to map-scale zones instead of specific volumes"
+        ],
+        "azbBytes": 98710,
+        "azbSha256": "7aa87a88708e7d7507946b7c3fccf9d85dcfbd2e4f7b6c374f46cdc19939e405"
+      },
+      {
+        "map": "wchess2",
+        "pak": "pak0.pk3",
+        "entry": "maps/wchess2.bsp",
+        "bspBytes": 5664880,
+        "bspCrc32": "d7b9d174",
+        "bspSha256": "091e469e6069d067ce18fff1ec67e6133208045d2ec0798b0b40b6d4979ab7dc",
+        "zones": 359,
+        "grade": "good",
+        "confidence": {
+          "anomaly": 0.085,
+          "grade": "good",
+          "lookup": 0.636,
+          "material": 0.926,
+          "overall": 0.887,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 29,
+        "underwaterZones": 2,
+        "presets": {
+          "hall": 26,
+          "hallway": 32,
+          "outdoors": 24,
+          "room": 5,
+          "small-room": 209,
+          "stone-room": 61,
+          "underwater": 2
+        },
+        "materials": {
+          "liquid": 2,
+          "neutral": 53,
+          "sky": 6,
+          "soft": 7,
+          "stone": 291
+        },
+        "portals": 1040,
+        "warnings": [],
+        "azbBytes": 77647,
+        "azbSha256": "dd044b2583f6d69fae6ca2f033783c007478b9d3bf36db5154e147d6d7c811b0"
+      },
+      {
+        "map": "wforest",
+        "pak": "pak0.pk3",
+        "entry": "maps/wforest.bsp",
+        "bspBytes": 6998372,
+        "bspCrc32": "5e4574bc",
+        "bspSha256": "e7006b5ad52108e7f159d181813a44daa508c5dec9732e91f040898ff1a06578",
+        "zones": 512,
+        "grade": "excellent",
+        "confidence": {
+          "anomaly": 0.006,
+          "grade": "excellent",
+          "lookup": 1.0,
+          "material": 0.973,
+          "overall": 0.992,
+          "overlap": 1.0,
+          "portal": 1.0
+        },
+        "outdoorZones": 142,
+        "underwaterZones": 22,
+        "presets": {
+          "hall": 14,
+          "hallway": 33,
+          "outdoors": 87,
+          "room": 3,
+          "small-room": 333,
+          "stone-room": 20,
+          "underwater": 22
+        },
+        "materials": {
+          "liquid": 22,
+          "metal": 10,
+          "neutral": 28,
+          "sky": 64,
+          "soft": 102,
+          "stone": 286
+        },
+        "portals": 1094,
+        "warnings": [],
+        "azbBytes": 93303,
+        "azbSha256": "6c60be80b5603bff4e0ef3820965dbb715e199827d19b45d32b942ce00a5fa7b"
+      }
+    ]
+  },
+  "staticLights": {
+    "generator": "scripts/generate_stock_alice_lights.py",
+    "generatorSha256": "619accab7706387d82bbc56310eef34f29adb9ead3b01f3787db000908357cb2",
+    "rules": {
+      "source": "FAKK 42 lump 17, 60-byte records",
+      "excluded": {
+        "surfaceEmitter": "spot with negative radius-by-distance",
+        "nonPositiveIntensity": "intensity <= 0",
+        "black": "no colour",
+        "spotWithoutDirection": "spot direction not unit length"
+      },
+      "radius": "sqrt(30000 * intensity / 16): where retail's model light falls to 16",
+      "color": "record colour, times cap / 255 when cap is set, times its balance",
+      "balance": "each light scaled so the eight strongest default per-pixel contributions at its origin (radius x r_dlightScale 0.5, smoothstep(1 - d^2/R^2)) add at most 0.5",
+      "outerAngle": "degrees(atan(radius-by-distance))",
+      "selection": "at most 128; round-robin over PVS clusters, strongest first by max(colour) * intensity"
+    },
+    "summary": {
+      "maps": 36,
+      "compiledLights": 10184,
+      "excluded": {
+        "black": 460,
+        "nonPositiveIntensity": 1,
+        "surfaceEmitter": 1366
+      },
+      "usable": 8357,
+      "selected": 3968,
+      "atLimit": 26,
+      "balanced": 3162,
+      "bytes": 697339
+    },
+    "reproducibility": {
+      "runs": 3,
+      "byteIdenticalSidecars": 36
+    },
+    "maps": [
+      {
+        "map": "centipede1",
+        "pak": "pak0.pk3",
+        "entry": "maps/centipede1.bsp",
+        "bspBytes": 4562996,
+        "bspCrc32": "d538d914",
+        "bspSha256": "36773ad709086fffa9c348e8dfcea1c3c1825d5a68cd7b3e46cd6f4d69dc832a",
+        "compiledLights": 104,
+        "excluded": {},
+        "usable": 104,
+        "usableClusters": 55,
+        "selected": 104,
+        "selectedClusters": 55,
+        "selectedSpots": 5,
+        "selectedCapped": 34,
+        "selectedOutsideClusters": 0,
+        "dropped": 0,
+        "balanced": 93,
+        "smallestBalance": 0.0899,
+        "lightsBytes": 18671,
+        "lightsSha256": "7be1ba7a44de99cd73eb8345c9b072670e81a29e08bdc4de1b4df5463a1f07dd"
+      },
+      {
+        "map": "centipede2",
+        "pak": "pak0.pk3",
+        "entry": "maps/centipede2.bsp",
+        "bspBytes": 3317608,
+        "bspCrc32": "36cdc4ad",
+        "bspSha256": "442285f92be2d0a9fa0a2f9cf8baf90a3e70d5312ed0b34108c549508cb37162",
+        "compiledLights": 255,
+        "excluded": {
+          "surfaceEmitter": 120
+        },
+        "usable": 135,
+        "usableClusters": 63,
+        "selected": 128,
+        "selectedClusters": 63,
+        "selectedSpots": 0,
+        "selectedCapped": 103,
+        "selectedOutsideClusters": 1,
+        "dropped": 7,
+        "balanced": 57,
+        "smallestBalance": 0.1427,
+        "lightsBytes": 22919,
+        "lightsSha256": "8b7ceb260060be41a0ec81077aa66d321694c047283004bc629074140a79100d"
+      },
+      {
+        "map": "facade",
+        "pak": "pak0.pk3",
+        "entry": "maps/facade.bsp",
+        "bspBytes": 5667704,
+        "bspCrc32": "1ac07d00",
+        "bspSha256": "c72321517c76ad6c395e6cf36c187f7ee522a4cc2c500bf7c92cb2284cd728d8",
+        "compiledLights": 300,
+        "excluded": {},
+        "usable": 300,
+        "usableClusters": 114,
+        "selected": 128,
+        "selectedClusters": 114,
+        "selectedSpots": 0,
+        "selectedCapped": 37,
+        "selectedOutsideClusters": 2,
+        "dropped": 172,
+        "balanced": 109,
+        "smallestBalance": 0.0658,
+        "lightsBytes": 22350,
+        "lightsSha256": "a33df3a0f7923ab206685f1333bd8b42df553ec0af8c79d6e0ed174cb1cf333b"
+      },
+      {
+        "map": "fortress1",
+        "pak": "pak0.pk3",
+        "entry": "maps/fortress1.bsp",
+        "bspBytes": 4503220,
+        "bspCrc32": "61e2a1d4",
+        "bspSha256": "8154555e66ed937f6d95a831a357b745ce1ea706b6a98254f4ed7c29c50f6a10",
+        "compiledLights": 269,
+        "excluded": {
+          "black": 19,
+          "surfaceEmitter": 19
+        },
+        "usable": 231,
+        "usableClusters": 88,
+        "selected": 128,
+        "selectedClusters": 88,
+        "selectedSpots": 0,
+        "selectedCapped": 67,
+        "selectedOutsideClusters": 0,
+        "dropped": 103,
+        "balanced": 71,
+        "smallestBalance": 0.0848,
+        "lightsBytes": 22854,
+        "lightsSha256": "2bf3e2f01a422562da057f3f86e1f87bfdaac84d7126f3a9c7e353a2a8175244"
+      },
+      {
+        "map": "fortress2",
+        "pak": "pak0.pk3",
+        "entry": "maps/fortress2.bsp",
+        "bspBytes": 5836804,
+        "bspCrc32": "37cc5cf5",
+        "bspSha256": "d64e1ecea002a901c1370756768662662a2ec82bd982c6c573d24907b84eca09",
+        "compiledLights": 290,
+        "excluded": {},
+        "usable": 290,
+        "usableClusters": 104,
+        "selected": 128,
+        "selectedClusters": 104,
+        "selectedSpots": 0,
+        "selectedCapped": 14,
+        "selectedOutsideClusters": 0,
+        "dropped": 162,
+        "balanced": 121,
+        "smallestBalance": 0.0959,
+        "lightsBytes": 22544,
+        "lightsSha256": "7844bc88d0f2e9ff212c78860510d3f148a025c6289147e0a9bad412c501ecd7"
+      },
+      {
+        "map": "funhouse",
+        "pak": "pak0.pk3",
+        "entry": "maps/funhouse.bsp",
+        "bspBytes": 7145896,
+        "bspCrc32": "04027cdb",
+        "bspSha256": "04aa77a56d32e6cdf2fa91b11cf9608593d925a8afb2fb68720d1ae062a55ed1",
+        "compiledLights": 361,
+        "excluded": {},
+        "usable": 361,
+        "usableClusters": 251,
+        "selected": 128,
+        "selectedClusters": 128,
+        "selectedSpots": 11,
+        "selectedCapped": 4,
+        "selectedOutsideClusters": 0,
+        "dropped": 233,
+        "balanced": 124,
+        "smallestBalance": 0.1344,
+        "lightsBytes": 22953,
+        "lightsSha256": "482d53317dd241c27015b49489cf17fd9e6cbf6da6bcb9cb6b29676c64d2abd5"
+      },
+      {
+        "map": "garden1",
+        "pak": "pak0.pk3",
+        "entry": "maps/garden1.bsp",
+        "bspBytes": 6323368,
+        "bspCrc32": "cb85fdae",
+        "bspSha256": "37e02f5be66f053fdb67652fcc46a87886d2cb40916fe761afa8a0f1568b57c8",
+        "compiledLights": 111,
+        "excluded": {},
+        "usable": 111,
+        "usableClusters": 80,
+        "selected": 111,
+        "selectedClusters": 80,
+        "selectedSpots": 0,
+        "selectedCapped": 72,
+        "selectedOutsideClusters": 0,
+        "dropped": 0,
+        "balanced": 41,
+        "smallestBalance": 0.1602,
+        "lightsBytes": 19527,
+        "lightsSha256": "dac7d41e427e27586b9a91ef72384674e69b04ec18c8647793db19bda56b8827"
+      },
+      {
+        "map": "garden2",
+        "pak": "pak0.pk3",
+        "entry": "maps/garden2.bsp",
+        "bspBytes": 8172832,
+        "bspCrc32": "b34146dc",
+        "bspSha256": "ca3c2cd77ba92796520b9ca20d357b11973297e7c2e875cc34ab0c5806cf6820",
+        "compiledLights": 487,
+        "excluded": {
+          "surfaceEmitter": 251
+        },
+        "usable": 236,
+        "usableClusters": 147,
+        "selected": 128,
+        "selectedClusters": 128,
+        "selectedSpots": 5,
+        "selectedCapped": 47,
+        "selectedOutsideClusters": 1,
+        "dropped": 108,
+        "balanced": 100,
+        "smallestBalance": 0.2432,
+        "lightsBytes": 22811,
+        "lightsSha256": "a4b261f08c0737f9c626a9c737ec413e0dc342b923fa6986929335454ddd7ea1"
+      },
+      {
+        "map": "garden3",
+        "pak": "pak0.pk3",
+        "entry": "maps/garden3.bsp",
+        "bspBytes": 3429376,
+        "bspCrc32": "d0d0e980",
+        "bspSha256": "0eeaac85dfdf1b8bee447a620aef56e6d4fc09b74abc01b80136a5084b436e13",
+        "compiledLights": 123,
+        "excluded": {},
+        "usable": 123,
+        "usableClusters": 64,
+        "selected": 123,
+        "selectedClusters": 64,
+        "selectedSpots": 0,
+        "selectedCapped": 109,
+        "selectedOutsideClusters": 0,
+        "dropped": 0,
+        "balanced": 48,
+        "smallestBalance": 0.3121,
+        "lightsBytes": 21633,
+        "lightsSha256": "6e4b76a85ea0cd747f48cff3fe0718a4fbe65b5c052b0e4c430ff49da1a4d30f"
+      },
+      {
+        "map": "garden4",
+        "pak": "pak0.pk3",
+        "entry": "maps/garden4.bsp",
+        "bspBytes": 5763900,
+        "bspCrc32": "4bf10630",
+        "bspSha256": "21df007755adee0045e78cfb52bfee29db1c0b83191db3c1a59d3b8335caa1f7",
+        "compiledLights": 135,
+        "excluded": {},
+        "usable": 135,
+        "usableClusters": 83,
+        "selected": 128,
+        "selectedClusters": 83,
+        "selectedSpots": 0,
+        "selectedCapped": 118,
+        "selectedOutsideClusters": 3,
+        "dropped": 7,
+        "balanced": 23,
+        "smallestBalance": 0.1953,
+        "lightsBytes": 22681,
+        "lightsSha256": "e9234fbb3a9458b4ad18bffa65dd8a3f3743fab69fbb2c82b5151e77592fcf94"
+      },
+      {
+        "map": "grounds1",
+        "pak": "pak0.pk3",
+        "entry": "maps/grounds1.bsp",
+        "bspBytes": 2521040,
+        "bspCrc32": "0029ff82",
+        "bspSha256": "6e28ed62ae342ce495f043210ee65ee9cb56236fc1aa361f1a7f43b69b8cf926",
+        "compiledLights": 259,
+        "excluded": {},
+        "usable": 259,
+        "usableClusters": 106,
+        "selected": 128,
+        "selectedClusters": 106,
+        "selectedSpots": 0,
+        "selectedCapped": 2,
+        "selectedOutsideClusters": 1,
+        "dropped": 131,
+        "balanced": 127,
+        "smallestBalance": 0.0647,
+        "lightsBytes": 22698,
+        "lightsSha256": "de20a31c48aaa6983aab3c31990dc9fcea494ec8cc95bca8c8dacd369f63b84f"
+      },
+      {
+        "map": "grounds2",
+        "pak": "pak0.pk3",
+        "entry": "maps/grounds2.bsp",
+        "bspBytes": 4891724,
+        "bspCrc32": "0ae0dcac",
+        "bspSha256": "335f9bcc8d313630b0d0cdeff5995cbb649c3e5d200c26bef5d7d874dca04f62",
+        "compiledLights": 202,
+        "excluded": {},
+        "usable": 202,
+        "usableClusters": 144,
+        "selected": 128,
+        "selectedClusters": 128,
+        "selectedSpots": 0,
+        "selectedCapped": 0,
+        "selectedOutsideClusters": 1,
+        "dropped": 74,
+        "balanced": 128,
+        "smallestBalance": 0.1582,
+        "lightsBytes": 22757,
+        "lightsSha256": "abdc7d922c727ba62e9533afb3532cc12d75725b4fd3e2d273aabaf27640b771"
+      },
+      {
+        "map": "gvillage",
+        "pak": "pak0.pk3",
+        "entry": "maps/gvillage.bsp",
+        "bspBytes": 4013332,
+        "bspCrc32": "d64b17fd",
+        "bspSha256": "e682523799c6424e0f576a2aab9f9a25a94deded5bd879284471df3ce07390ac",
+        "compiledLights": 176,
+        "excluded": {
+          "surfaceEmitter": 6
+        },
+        "usable": 170,
+        "usableClusters": 116,
+        "selected": 128,
+        "selectedClusters": 116,
+        "selectedSpots": 0,
+        "selectedCapped": 18,
+        "selectedOutsideClusters": 2,
+        "dropped": 42,
+        "balanced": 124,
+        "smallestBalance": 0.1004,
+        "lightsBytes": 22081,
+        "lightsSha256": "e706e1138d246fc32f3f45f0568af237923a5c67f21a645c711edb3fcc5906f7"
+      },
+      {
+        "map": "hatter1",
+        "pak": "pak0.pk3",
+        "entry": "maps/hatter1.bsp",
+        "bspBytes": 6951076,
+        "bspCrc32": "d7e57181",
+        "bspSha256": "dd4d51423a55133583dd68ea3ab3ace742a7fa3beca130015d2e12f226a77793",
+        "compiledLights": 386,
+        "excluded": {
+          "black": 1,
+          "surfaceEmitter": 1
+        },
+        "usable": 384,
+        "usableClusters": 213,
+        "selected": 128,
+        "selectedClusters": 128,
+        "selectedSpots": 9,
+        "selectedCapped": 0,
+        "selectedOutsideClusters": 1,
+        "dropped": 256,
+        "balanced": 123,
+        "smallestBalance": 0.1859,
+        "lightsBytes": 22920,
+        "lightsSha256": "2a236b35e66d01db4e007bc122d1ccdb7cb62c8bbb3db72fbe94248fd282185f"
+      },
+      {
+        "map": "hatter2",
+        "pak": "pak0.pk3",
+        "entry": "maps/hatter2.bsp",
+        "bspBytes": 2182600,
+        "bspCrc32": "977f11ca",
+        "bspSha256": "0869141c1b1e46d79463a51a757f7ac2def0a7cfb472130a6b7163cb63ff82a9",
+        "compiledLights": 119,
+        "excluded": {
+          "black": 19
+        },
+        "usable": 100,
+        "usableClusters": 54,
+        "selected": 100,
+        "selectedClusters": 54,
+        "selectedSpots": 2,
+        "selectedCapped": 1,
+        "selectedOutsideClusters": 0,
+        "dropped": 0,
+        "balanced": 94,
+        "smallestBalance": 0.0896,
+        "lightsBytes": 17431,
+        "lightsSha256": "fbb1fc99be6cd6b7e355f4d185eab860c0812332008d8509800276bf9bb45d74"
+      },
+      {
+        "map": "hedge1",
+        "pak": "pak0.pk3",
+        "entry": "maps/hedge1.bsp",
+        "bspBytes": 2678552,
+        "bspCrc32": "43278a93",
+        "bspSha256": "7827eef5ff54aacd8d3f97ec257229833275015db7427d0b7c902b2805e1e8e8",
+        "compiledLights": 322,
+        "excluded": {
+          "surfaceEmitter": 1
+        },
+        "usable": 321,
+        "usableClusters": 159,
+        "selected": 128,
+        "selectedClusters": 128,
+        "selectedSpots": 0,
+        "selectedCapped": 0,
+        "selectedOutsideClusters": 1,
+        "dropped": 193,
+        "balanced": 128,
+        "smallestBalance": 0.1527,
+        "lightsBytes": 21964,
+        "lightsSha256": "a7dbfea884bd3944667d401fa79b075abfc0b7fc078a5034bce30a8f8fe369a9"
+      },
+      {
+        "map": "hedge2",
+        "pak": "pak0.pk3",
+        "entry": "maps/hedge2.bsp",
+        "bspBytes": 5257304,
+        "bspCrc32": "ac7cb8e5",
+        "bspSha256": "107824f31f0572f30d9d40070718ac28ab352f971f0279bcad5040dd94d1915a",
+        "compiledLights": 331,
+        "excluded": {},
+        "usable": 331,
+        "usableClusters": 212,
+        "selected": 128,
+        "selectedClusters": 128,
+        "selectedSpots": 0,
+        "selectedCapped": 17,
+        "selectedOutsideClusters": 1,
+        "dropped": 203,
+        "balanced": 114,
+        "smallestBalance": 0.1959,
+        "lightsBytes": 22061,
+        "lightsSha256": "66b81a76f755985cfc44f9c48c8699015fdc2c0628985a87c033a5ccd8f8f6f6"
+      },
+      {
+        "map": "hedge3",
+        "pak": "pak0.pk3",
+        "entry": "maps/hedge3.bsp",
+        "bspBytes": 9370732,
+        "bspCrc32": "fd48fcd9",
+        "bspSha256": "b26ede3e6123afa2375de792641155b55c0e57ffcb1b1f62eea2e2e4c631f672",
+        "compiledLights": 637,
+        "excluded": {},
+        "usable": 637,
+        "usableClusters": 361,
+        "selected": 128,
+        "selectedClusters": 128,
+        "selectedSpots": 0,
+        "selectedCapped": 1,
+        "selectedOutsideClusters": 1,
+        "dropped": 509,
+        "balanced": 127,
+        "smallestBalance": 0.1797,
+        "lightsBytes": 22259,
+        "lightsSha256": "d9d5d2fe7bd92a037f680b65039ec25adab0651643eced0648476addc59e9cd9"
+      },
+      {
+        "map": "jlair1",
+        "pak": "pak0.pk3",
+        "entry": "maps/jlair1.bsp",
+        "bspBytes": 7741340,
+        "bspCrc32": "58df8c14",
+        "bspSha256": "055ac6f1d1b4f434f65ff2bb4dd40295912acf818e9bebfede4b35d35f509eb5",
+        "compiledLights": 377,
+        "excluded": {
+          "surfaceEmitter": 2
+        },
+        "usable": 375,
+        "usableClusters": 180,
+        "selected": 128,
+        "selectedClusters": 128,
+        "selectedSpots": 0,
+        "selectedCapped": 124,
+        "selectedOutsideClusters": 1,
+        "dropped": 247,
+        "balanced": 95,
+        "smallestBalance": 0.1265,
+        "lightsBytes": 22611,
+        "lightsSha256": "d671398980776a172c42428d9b54b5cdcd152c6694cc5977b0c6a3b10f838be7"
+      },
+      {
+        "map": "jlair2",
+        "pak": "pak0.pk3",
+        "entry": "maps/jlair2.bsp",
+        "bspBytes": 1921312,
+        "bspCrc32": "6087531c",
+        "bspSha256": "bec146d1b4aaf2a521e240ea4de6e57d591462a239f70707bfaed29e06dc3485",
+        "compiledLights": 23,
+        "excluded": {},
+        "usable": 23,
+        "usableClusters": 12,
+        "selected": 23,
+        "selectedClusters": 12,
+        "selectedSpots": 0,
+        "selectedCapped": 0,
+        "selectedOutsideClusters": 0,
+        "dropped": 0,
+        "balanced": 23,
+        "smallestBalance": 0.0769,
+        "lightsBytes": 4185,
+        "lightsSha256": "cf15d92fa7ceb5e98a6fd638166fb522a6ad083976dcd0578010d1a9e0502e8d"
+      },
+      {
+        "map": "keep",
+        "pak": "pak0.pk3",
+        "entry": "maps/keep.bsp",
+        "bspBytes": 4501380,
+        "bspCrc32": "3790787f",
+        "bspSha256": "8c73bcde06a1747c18dca974d4f076ccadafed932d80fc2c898e532f1959a089",
+        "compiledLights": 252,
+        "excluded": {},
+        "usable": 252,
+        "usableClusters": 122,
+        "selected": 128,
+        "selectedClusters": 122,
+        "selectedSpots": 3,
+        "selectedCapped": 6,
+        "selectedOutsideClusters": 1,
+        "dropped": 124,
+        "balanced": 114,
+        "smallestBalance": 0.0722,
+        "lightsBytes": 22188,
+        "lightsSha256": "6287ef310a338f27b3434dd05f34db12159b111a9506d8a0283158c4e0d2112c"
+      },
+      {
+        "map": "pandemonium",
+        "pak": "pak0.pk3",
+        "entry": "maps/pandemonium.bsp",
+        "bspBytes": 5675452,
+        "bspCrc32": "d46869c7",
+        "bspSha256": "e934e1a6de5e5766601d32b4b703c7242fafa46399cb9836abebbd48d0cfd021",
+        "compiledLights": 307,
+        "excluded": {
+          "black": 57,
+          "surfaceEmitter": 10
+        },
+        "usable": 240,
+        "usableClusters": 147,
+        "selected": 128,
+        "selectedClusters": 128,
+        "selectedSpots": 1,
+        "selectedCapped": 5,
+        "selectedOutsideClusters": 1,
+        "dropped": 112,
+        "balanced": 127,
+        "smallestBalance": 0.15,
+        "lightsBytes": 22552,
+        "lightsSha256": "4e2aede97d4c10b3933977917bbb2ffd7972a4c8d55ecd615dee783637da5626"
+      },
+      {
+        "map": "potears1",
+        "pak": "pak0.pk3",
+        "entry": "maps/potears1.bsp",
+        "bspBytes": 7165892,
+        "bspCrc32": "9f1505e5",
+        "bspSha256": "a4619eedd99f16b53e6070e31723e630a0b883dad48001281808bcaee8154b4e",
+        "compiledLights": 183,
+        "excluded": {
+          "black": 2,
+          "surfaceEmitter": 180
+        },
+        "usable": 1,
+        "usableClusters": 1,
+        "selected": 1,
+        "selectedClusters": 1,
+        "selectedSpots": 0,
+        "selectedCapped": 0,
+        "selectedOutsideClusters": 0,
+        "dropped": 0,
+        "balanced": 1,
+        "smallestBalance": 0.5,
+        "lightsBytes": 357,
+        "lightsSha256": "386ee78d7296f57f405773f5c8dd095e182d8944eb2b880acd58ba51e988499c"
+      },
+      {
+        "map": "potears2",
+        "pak": "pak0.pk3",
+        "entry": "maps/potears2.bsp",
+        "bspBytes": 3777348,
+        "bspCrc32": "b41b1e2a",
+        "bspSha256": "3a3540ba150691271a25d7590fee78d973c191cd12a9480659d261a215b40901",
+        "compiledLights": 37,
+        "excluded": {
+          "nonPositiveIntensity": 1,
+          "surfaceEmitter": 30
+        },
+        "usable": 6,
+        "usableClusters": 5,
+        "selected": 6,
+        "selectedClusters": 5,
+        "selectedSpots": 0,
+        "selectedCapped": 0,
+        "selectedOutsideClusters": 0,
+        "dropped": 0,
+        "balanced": 6,
+        "smallestBalance": 0.25,
+        "lightsBytes": 1191,
+        "lightsSha256": "0badc943149a8a346f26cb35d1d49f8a721ead2728558d5c46216085fe5bc104"
+      },
+      {
+        "map": "potears3",
+        "pak": "pak0.pk3",
+        "entry": "maps/potears3.bsp",
+        "bspBytes": 1014216,
+        "bspCrc32": "a3f3f985",
+        "bspSha256": "aabfcdf2ce406f9fc1873872f1341f6ed0b782f14d9c7b50337a5a720b0881a4",
+        "compiledLights": 15,
+        "excluded": {
+          "black": 1
+        },
+        "usable": 14,
+        "usableClusters": 9,
+        "selected": 14,
+        "selectedClusters": 9,
+        "selectedSpots": 0,
+        "selectedCapped": 0,
+        "selectedOutsideClusters": 0,
+        "dropped": 0,
+        "balanced": 14,
+        "smallestBalance": 0.25,
+        "lightsBytes": 2537,
+        "lightsSha256": "a45fe17bd101e23c23bd05fa1dbe87e1e4ac77fce8c12ea1841f47b1f49d35c2"
+      },
+      {
+        "map": "qlair",
+        "pak": "pak0.pk3",
+        "entry": "maps/qlair.bsp",
+        "bspBytes": 1441292,
+        "bspCrc32": "f094c31d",
+        "bspSha256": "79c46ee755cc92853858739567e565ebe984e82233249addea059225683bc0ec",
+        "compiledLights": 33,
+        "excluded": {},
+        "usable": 33,
+        "usableClusters": 21,
+        "selected": 33,
+        "selectedClusters": 21,
+        "selectedSpots": 0,
+        "selectedCapped": 1,
+        "selectedOutsideClusters": 0,
+        "dropped": 0,
+        "balanced": 30,
+        "smallestBalance": 0.1505,
+        "lightsBytes": 5853,
+        "lightsSha256": "961142f6956058c042cfdc0ce4cf2b603e1eb6c17566f2dccc3da265077e45ac"
+      },
+      {
+        "map": "rchess1",
+        "pak": "pak0.pk3",
+        "entry": "maps/rchess1.bsp",
+        "bspBytes": 5344008,
+        "bspCrc32": "b3ba5f82",
+        "bspSha256": "c134b9f56c828d1a85b5a470c360be4a753e84fa806a89565263e13a69637cb1",
+        "compiledLights": 715,
+        "excluded": {
+          "black": 1,
+          "surfaceEmitter": 257
+        },
+        "usable": 457,
+        "usableClusters": 182,
+        "selected": 128,
+        "selectedClusters": 128,
+        "selectedSpots": 0,
+        "selectedCapped": 65,
+        "selectedOutsideClusters": 0,
+        "dropped": 329,
+        "balanced": 111,
+        "smallestBalance": 0.2019,
+        "lightsBytes": 22013,
+        "lightsSha256": "474ae1247fe8e028d7c1024b1910f5cb261a79e888d9ab04abf2649aa6446030"
+      },
+      {
+        "map": "skool1",
+        "pak": "pak0.pk3",
+        "entry": "maps/skool1.bsp",
+        "bspBytes": 6402760,
+        "bspCrc32": "417d6af4",
+        "bspSha256": "544188d4193cd72567036606de8df37ef0d87931b96573bb153de87f81bee3e5",
+        "compiledLights": 356,
+        "excluded": {},
+        "usable": 356,
+        "usableClusters": 133,
+        "selected": 128,
+        "selectedClusters": 128,
+        "selectedSpots": 5,
+        "selectedCapped": 43,
+        "selectedOutsideClusters": 1,
+        "dropped": 228,
+        "balanced": 117,
+        "smallestBalance": 0.1021,
+        "lightsBytes": 22569,
+        "lightsSha256": "2f1fc83cd7f57b04338c579ba0905f3fb20c165b4ef4ee7b994f4ff19d1e4de6"
+      },
+      {
+        "map": "skool2",
+        "pak": "pak0.pk3",
+        "entry": "maps/skool2.bsp",
+        "bspBytes": 6374344,
+        "bspCrc32": "1fb829d1",
+        "bspSha256": "e2fc3b36d95ac0d0ef4b8dd064bd043b01fcab09eb1d15fdc9e89a3568581b69",
+        "compiledLights": 245,
+        "excluded": {
+          "black": 6,
+          "surfaceEmitter": 6
+        },
+        "usable": 233,
+        "usableClusters": 132,
+        "selected": 128,
+        "selectedClusters": 128,
+        "selectedSpots": 6,
+        "selectedCapped": 43,
+        "selectedOutsideClusters": 0,
+        "dropped": 105,
+        "balanced": 114,
+        "smallestBalance": 0.1084,
+        "lightsBytes": 22658,
+        "lightsSha256": "12ccbdaa3cf4e6d795d4b17f181c73ef57130da1293da86c981090ff17949174"
+      },
+      {
+        "map": "tower1",
+        "pak": "pak0.pk3",
+        "entry": "maps/tower1.bsp",
+        "bspBytes": 2183428,
+        "bspCrc32": "420b075a",
+        "bspSha256": "a767bee01797fc67ee426865301bfd48c8532d23ce41225e2324cc358b71aae8",
+        "compiledLights": 218,
+        "excluded": {
+          "black": 1
+        },
+        "usable": 217,
+        "usableClusters": 113,
+        "selected": 128,
+        "selectedClusters": 113,
+        "selectedSpots": 0,
+        "selectedCapped": 2,
+        "selectedOutsideClusters": 1,
+        "dropped": 89,
+        "balanced": 127,
+        "smallestBalance": 0.107,
+        "lightsBytes": 22162,
+        "lightsSha256": "37a3ae73afd796fd727da81df0549145a9a1a9cf70f022e10ce494fbcf11fefa"
+      },
+      {
+        "map": "tower2",
+        "pak": "pak0.pk3",
+        "entry": "maps/tower2.bsp",
+        "bspBytes": 3209560,
+        "bspCrc32": "2a1c3873",
+        "bspSha256": "7a65625518ca12e219e5945be7f3a1c301a29dd9c50f20beb6cde6a99f06347d",
+        "compiledLights": 319,
+        "excluded": {},
+        "usable": 319,
+        "usableClusters": 152,
+        "selected": 128,
+        "selectedClusters": 128,
+        "selectedSpots": 0,
+        "selectedCapped": 7,
+        "selectedOutsideClusters": 1,
+        "dropped": 191,
+        "balanced": 123,
+        "smallestBalance": 0.1408,
+        "lightsBytes": 22038,
+        "lightsSha256": "99958c00f9044c3e0b92272e1af1fa3e4de62c865ea7fdb4134c161bdcece162"
+      },
+      {
+        "map": "tower3",
+        "pak": "pak0.pk3",
+        "entry": "maps/tower3.bsp",
+        "bspBytes": 3404896,
+        "bspCrc32": "dd18516f",
+        "bspSha256": "36a5ab5a3de6a261f5a33d1cd41c69844a4906c41a9aee7db7830f988a26e676",
+        "compiledLights": 341,
+        "excluded": {},
+        "usable": 341,
+        "usableClusters": 73,
+        "selected": 128,
+        "selectedClusters": 73,
+        "selectedSpots": 0,
+        "selectedCapped": 0,
+        "selectedOutsideClusters": 3,
+        "dropped": 213,
+        "balanced": 127,
+        "smallestBalance": 0.1174,
+        "lightsBytes": 22072,
+        "lightsSha256": "87e80946e4680888a897d88f52989d55bce3f202a319c3082e1ef0931d2b58fa"
+      },
+      {
+        "map": "utemple",
+        "pak": "pak0.pk3",
+        "entry": "maps/utemple.bsp",
+        "bspBytes": 8102944,
+        "bspCrc32": "64440da6",
+        "bspSha256": "85836fc1ff9d105a3e87a2ab2e2ceb3b4e4855e5718f60f94b4a8f3abf6e272a",
+        "compiledLights": 125,
+        "excluded": {},
+        "usable": 125,
+        "usableClusters": 84,
+        "selected": 125,
+        "selectedClusters": 84,
+        "selectedSpots": 20,
+        "selectedCapped": 4,
+        "selectedOutsideClusters": 1,
+        "dropped": 0,
+        "balanced": 125,
+        "smallestBalance": 0.1204,
+        "lightsBytes": 23052,
+        "lightsSha256": "b820edd9abc673d373313d553e3b71d0ad4bbb2d8b95b550fc1dc806dae38de7"
+      },
+      {
+        "map": "wchess1",
+        "pak": "pak0.pk3",
+        "entry": "maps/wchess1.bsp",
+        "bspBytes": 7012340,
+        "bspCrc32": "107809a2",
+        "bspSha256": "433217552eccd1df6ec381008b505ca7ac6dea1e9a19a5b0c85bb43e0271857e",
+        "compiledLights": 927,
+        "excluded": {
+          "black": 353,
+          "surfaceEmitter": 373
+        },
+        "usable": 201,
+        "usableClusters": 160,
+        "selected": 128,
+        "selectedClusters": 128,
+        "selectedSpots": 2,
+        "selectedCapped": 125,
+        "selectedOutsideClusters": 0,
+        "dropped": 73,
+        "balanced": 4,
+        "smallestBalance": 0.5592,
+        "lightsBytes": 22271,
+        "lightsSha256": "88ebb195aee4c274dd2d65fc56d343b5355ebd3ffb286bcf7789bb146d3114c1"
+      },
+      {
+        "map": "wchess2",
+        "pak": "pak0.pk3",
+        "entry": "maps/wchess2.bsp",
+        "bspBytes": 5664880,
+        "bspCrc32": "d7b9d174",
+        "bspSha256": "091e469e6069d067ce18fff1ec67e6133208045d2ec0798b0b40b6d4979ab7dc",
+        "compiledLights": 439,
+        "excluded": {
+          "surfaceEmitter": 16
+        },
+        "usable": 423,
+        "usableClusters": 148,
+        "selected": 128,
+        "selectedClusters": 128,
+        "selectedSpots": 0,
+        "selectedCapped": 27,
+        "selectedOutsideClusters": 0,
+        "dropped": 295,
+        "balanced": 106,
+        "smallestBalance": 0.1691,
+        "lightsBytes": 21623,
+        "lightsSha256": "849b02494df306bf137390fe56a8a0dd347bbc97fd424a03361402e8711acfce"
+      },
+      {
+        "map": "wforest",
+        "pak": "pak0.pk3",
+        "entry": "maps/wforest.bsp",
+        "bspBytes": 6998372,
+        "bspCrc32": "5e4574bc",
+        "bspSha256": "e7006b5ad52108e7f159d181813a44daa508c5dec9732e91f040898ff1a06578",
+        "compiledLights": 405,
+        "excluded": {
+          "surfaceEmitter": 94
+        },
+        "usable": 311,
+        "usableClusters": 190,
+        "selected": 128,
+        "selectedClusters": 128,
+        "selectedSpots": 0,
+        "selectedCapped": 91,
+        "selectedOutsideClusters": 1,
+        "dropped": 183,
+        "balanced": 46,
+        "smallestBalance": 0.2184,
+        "lightsBytes": 22293,
+        "lightsSha256": "8b969f0d2a1be3d415c3d324af7c483281e2d873b335a32b662444565add41aa"
+      }
+    ]
+  },
+  "package": {
+    "aliceEntries": 72,
+    "filesystemAllowlist": "maps/*.azb, maps/*.fog and maps/*.lights.json (code/qcommon/files.c)"
+  },
+  "runtime": {
+    "build": {
+      "directory": "meson/build/win32-alice-content",
+      "options": [
+        "alice-development=true",
+        "build-client=true",
+        "build-server=true"
+      ],
+      "exeSha256": "ebb9dafb3a4a03685d9fc9392bc75c70c7d77fff685e5438ac5e45bf829aa6a7",
+      "packageSha256": "e910f638e258be874efa4e4a200ae13158563dd8c524824b3f927f63ffa69fb8",
+      "packageAliceEntries": 72,
+      "renderers": {
+        "glx": "94855de0fc7ae3a3f0c0df657391a37b23fc2aa829c983c6048fa4435825b639",
+        "vk": "7e33d09ff8993a4cc9ea12f9512c20010242d9ab77ac0c4bdf3fff2829fc1bd2",
+        "rtx": "dc9ac2e5de810b2518ffc7eda7e6e3095701d1167cfd8a2a0def3d1863f51609"
+      }
+    },
+    "commandTemplate": "fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath <run>/home +set fs_game \"\" +set fs_cdpath \"\" +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 1 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer <renderer> +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +exec alice-probe.cfg +devmap <map>",
+    "conditions": "windowed 800x600 on an unswitched private desktop, isolated home path, no input injected, sound initialised",
+    "probes": {
+      "garden1-glx": {
+        "renderer": "glx",
+        "map": "garden1",
+        "zones": {
+          "garden1": 512
+        },
+        "lights": {
+          "garden1": {
+            "loaded": 111,
+            "point": 111,
+            "spot": 0,
+            "spatialized": 111,
+            "spatialFallback": 0,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        "rendererSha256": "94855de0fc7ae3a3f0c0df657391a37b23fc2aa829c983c6048fa4435825b639",
+        "exitCode": 0,
+        "screenshots": {
+          "sidecars-lights-off.png": "7fb9842c4fbd20b033ffa196e7259c7fa602418c4d88870e4b83b6679fedb433",
+          "sidecars-lights-on-again.png": "ca12f570277b3b9ce42d097248fbcf9f016f5351a00aacf6a942014eb69fdb1b",
+          "sidecars-lights-on.png": "d15ec5c979ecb0f0378ec3c5193d45073776f2feee6210194967187f5b61e88d"
+        },
+        "installationUnchanged": true,
+        "comparison": {
+          "meanAbsDiffOnOff": 0.723,
+          "meanAbsDiffOnOnAgain": 0.635,
+          "note": "no visible effect at the start: the nearest light is 810 units away with its colour scaled to 0.17 by its cap"
+        }
+      },
+      "hatter2-glx": {
+        "renderer": "glx",
+        "map": "hatter2",
+        "zones": {
+          "hatter2": 284
+        },
+        "lights": {
+          "hatter2": {
+            "loaded": 100,
+            "point": 98,
+            "spot": 2,
+            "spatialized": 100,
+            "spatialFallback": 0,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        "rendererSha256": "94855de0fc7ae3a3f0c0df657391a37b23fc2aa829c983c6048fa4435825b639",
+        "exitCode": 0,
+        "screenshots": {
+          "sidecars-lights-off.png": "47155986aa9b1e2590001616cdf876edf9f41e336c356f3a02f96823bf33b765",
+          "sidecars-lights-on-again.png": "c8a1ac5ffb7d1f24a9e861a0aa20aad225bf54b95e22fb983ca9f1f6bb407175",
+          "sidecars-lights-on.png": "a9cec5df2216d78718dac0deb0a1715852ee72906ce068eb624f7f7259111122"
+        },
+        "installationUnchanged": true,
+        "comparison": {
+          "meanRgbOn": [
+            86.48,
+            69.69,
+            42.41
+          ],
+          "meanRgbOff": [
+            76.31,
+            63.03,
+            39.33
+          ],
+          "meanRgbOnAgain": [
+            90.76,
+            71.93,
+            42.86
+          ],
+          "note": "an intensity-250 orange light 84 units from the start lights the floor and Alice; the animated disc on the left differs between every capture"
+        }
+      },
+      "hatter2-vk": {
+        "renderer": "vk",
+        "map": "hatter2",
+        "zones": {
+          "hatter2": 284
+        },
+        "lights": {
+          "hatter2": {
+            "loaded": 100,
+            "point": 98,
+            "spot": 2,
+            "spatialized": 100,
+            "spatialFallback": 0,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        "rendererSha256": "7e33d09ff8993a4cc9ea12f9512c20010242d9ab77ac0c4bdf3fff2829fc1bd2",
+        "exitCode": 0,
+        "screenshots": {
+          "sidecars-renderer.png": "af1b4c1a02bf8e3ce21b0e7ce7c88805254d958bba0bea292bba8581b3607945"
+        },
+        "installationUnchanged": true
+      },
+      "hatter2-rtx": {
+        "renderer": "rtx",
+        "map": "hatter2",
+        "zones": {
+          "hatter2": 284
+        },
+        "lights": {
+          "hatter2": {
+            "loaded": 100,
+            "point": 98,
+            "spot": 2,
+            "spatialized": 100,
+            "spatialFallback": 0,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        "rendererSha256": "dc9ac2e5de810b2518ffc7eda7e6e3095701d1167cfd8a2a0def3d1863f51609",
+        "exitCode": 0,
+        "screenshots": {
+          "sidecars-renderer.png": "002a440a5185b3ee7bf8d111ff7f42ba4be0f7964330abec9ebe8ef0f904999d"
+        },
+        "installationUnchanged": true
+      }
+    },
+    "rtxSweep": {
+      "maps": [
+        {
+          "map": "centipede1",
+          "zones": 512,
+          "lights": {
+            "loaded": 104,
+            "point": 99,
+            "spot": 5,
+            "spatialized": 104,
+            "spatialFallback": 0,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "centipede2",
+          "zones": 327,
+          "lights": {
+            "loaded": 128,
+            "point": 128,
+            "spot": 0,
+            "spatialized": 127,
+            "spatialFallback": 1,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "facade",
+          "zones": 322,
+          "lights": {
+            "loaded": 128,
+            "point": 128,
+            "spot": 0,
+            "spatialized": 126,
+            "spatialFallback": 2,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "fortress1",
+          "zones": 234,
+          "lights": {
+            "loaded": 128,
+            "point": 128,
+            "spot": 0,
+            "spatialized": 128,
+            "spatialFallback": 0,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "fortress2",
+          "zones": 512,
+          "lights": {
+            "loaded": 128,
+            "point": 128,
+            "spot": 0,
+            "spatialized": 128,
+            "spatialFallback": 0,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "funhouse",
+          "zones": 512,
+          "lights": {
+            "loaded": 128,
+            "point": 117,
+            "spot": 11,
+            "spatialized": 128,
+            "spatialFallback": 0,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "garden1",
+          "zones": 512,
+          "lights": {
+            "loaded": 111,
+            "point": 111,
+            "spot": 0,
+            "spatialized": 111,
+            "spatialFallback": 0,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "garden2",
+          "zones": 512,
+          "lights": {
+            "loaded": 128,
+            "point": 123,
+            "spot": 5,
+            "spatialized": 127,
+            "spatialFallback": 1,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "garden3",
+          "zones": 373,
+          "lights": {
+            "loaded": 123,
+            "point": 123,
+            "spot": 0,
+            "spatialized": 123,
+            "spatialFallback": 0,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "garden4",
+          "zones": 512,
+          "lights": {
+            "loaded": 128,
+            "point": 128,
+            "spot": 0,
+            "spatialized": 125,
+            "spatialFallback": 3,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "grounds1",
+          "zones": 153,
+          "lights": {
+            "loaded": 128,
+            "point": 128,
+            "spot": 0,
+            "spatialized": 127,
+            "spatialFallback": 1,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "grounds2",
+          "zones": 392,
+          "lights": {
+            "loaded": 128,
+            "point": 128,
+            "spot": 0,
+            "spatialized": 127,
+            "spatialFallback": 1,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "gvillage",
+          "zones": 504,
+          "lights": {
+            "loaded": 128,
+            "point": 128,
+            "spot": 0,
+            "spatialized": 126,
+            "spatialFallback": 2,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "hatter1",
+          "zones": 512,
+          "lights": {
+            "loaded": 128,
+            "point": 119,
+            "spot": 9,
+            "spatialized": 127,
+            "spatialFallback": 1,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "hatter2",
+          "zones": 284,
+          "lights": {
+            "loaded": 100,
+            "point": 98,
+            "spot": 2,
+            "spatialized": 100,
+            "spatialFallback": 0,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "hedge1",
+          "zones": 177,
+          "lights": {
+            "loaded": 128,
+            "point": 128,
+            "spot": 0,
+            "spatialized": 127,
+            "spatialFallback": 1,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "hedge2",
+          "zones": 456,
+          "lights": {
+            "loaded": 128,
+            "point": 128,
+            "spot": 0,
+            "spatialized": 127,
+            "spatialFallback": 1,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "hedge3",
+          "zones": 512,
+          "lights": {
+            "loaded": 128,
+            "point": 128,
+            "spot": 0,
+            "spatialized": 127,
+            "spatialFallback": 1,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "jlair1",
+          "zones": 512,
+          "lights": {
+            "loaded": 128,
+            "point": 128,
+            "spot": 0,
+            "spatialized": 127,
+            "spatialFallback": 1,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "jlair2",
+          "zones": 11,
+          "lights": {
+            "loaded": 23,
+            "point": 23,
+            "spot": 0,
+            "spatialized": 23,
+            "spatialFallback": 0,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "keep",
+          "zones": 298,
+          "lights": {
+            "loaded": 128,
+            "point": 125,
+            "spot": 3,
+            "spatialized": 127,
+            "spatialFallback": 1,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "pandemonium",
+          "zones": 512,
+          "lights": {
+            "loaded": 128,
+            "point": 127,
+            "spot": 1,
+            "spatialized": 127,
+            "spatialFallback": 1,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "potears1",
+          "zones": null,
+          "lights": null
+        },
+        {
+          "map": "potears2",
+          "zones": 215,
+          "lights": {
+            "loaded": 6,
+            "point": 6,
+            "spot": 0,
+            "spatialized": 6,
+            "spatialFallback": 0,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "potears3",
+          "zones": 47,
+          "lights": {
+            "loaded": 14,
+            "point": 14,
+            "spot": 0,
+            "spatialized": 14,
+            "spatialFallback": 0,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "qlair",
+          "zones": 87,
+          "lights": {
+            "loaded": 33,
+            "point": 33,
+            "spot": 0,
+            "spatialized": 33,
+            "spatialFallback": 0,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "rchess1",
+          "zones": 512,
+          "lights": {
+            "loaded": 128,
+            "point": 128,
+            "spot": 0,
+            "spatialized": 128,
+            "spatialFallback": 0,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "skool1",
+          "zones": 512,
+          "lights": {
+            "loaded": 128,
+            "point": 123,
+            "spot": 5,
+            "spatialized": 127,
+            "spatialFallback": 1,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "skool2",
+          "zones": 512,
+          "lights": {
+            "loaded": 128,
+            "point": 122,
+            "spot": 6,
+            "spatialized": 128,
+            "spatialFallback": 0,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "tower1",
+          "zones": 146,
+          "lights": {
+            "loaded": 128,
+            "point": 128,
+            "spot": 0,
+            "spatialized": 127,
+            "spatialFallback": 1,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "tower2",
+          "zones": 259,
+          "lights": {
+            "loaded": 128,
+            "point": 128,
+            "spot": 0,
+            "spatialized": 127,
+            "spatialFallback": 1,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "tower3",
+          "zones": 158,
+          "lights": {
+            "loaded": 128,
+            "point": 128,
+            "spot": 0,
+            "spatialized": 125,
+            "spatialFallback": 3,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "utemple",
+          "zones": 512,
+          "lights": {
+            "loaded": 125,
+            "point": 105,
+            "spot": 20,
+            "spatialized": 124,
+            "spatialFallback": 1,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "wchess1",
+          "zones": 512,
+          "lights": {
+            "loaded": 128,
+            "point": 126,
+            "spot": 2,
+            "spatialized": 128,
+            "spatialFallback": 0,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "wchess2",
+          "zones": 359,
+          "lights": {
+            "loaded": 128,
+            "point": 128,
+            "spot": 0,
+            "spatialized": 128,
+            "spatialFallback": 0,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        },
+        {
+          "map": "wforest",
+          "zones": 512,
+          "lights": {
+            "loaded": 128,
+            "point": 128,
+            "spot": 0,
+            "spatialized": 127,
+            "spatialFallback": 1,
+            "unsupported": 0,
+            "invalid": 0,
+            "overflow": 0
+          }
+        }
+      ],
+      "loaded": 35,
+      "exitCode": 0,
+      "seconds": 370.7,
+      "notReached": {
+        "potears1": "the client never became active: the server resent its gamestate until the next devmap. The cause was Alice fragment offsets read as shorts (a 38,135-byte gamestate); after that netchan fix, a glx client from meson/build/win32-alice-content reached CL_FirstSnapshot and loaded both files: 512 zones, 1 light, nothing skipped"
+      }
+    },
+    "installationUnchanged": true,
+    "installationNote": "the two potears1 runs wrote no manifest; afterwards no file under the installation had a modification time on 2026-09-24",
+    "staticLightBalance": {
+      "jlair2": {
+        "unbalancedOn": {
+          "meanRgb": [
+            67.6,
+            55.7,
+            38.7
+          ],
+          "nearWhitePixels": 15185
+        },
+        "balancedOn": {
+          "meanRgb": [
+            42.5,
+            34.4,
+            25.8
+          ],
+          "nearWhitePixels": 5069
+        },
+        "off": {
+          "meanRgb": [
+            39.6,
+            32.1,
+            24.2
+          ],
+          "nearWhitePixels": 3487
+        },
+        "unbalancedPackageSha256": "e910f638e258be874efa4e4a200ae13158563dd8c524824b3f927f63ffa69fb8",
+        "balancedPackageSha256": "eb89bfdc58c7b0188b5cbe9c3ecdc71efe4bf213fa0cb99c131c603b4adc492a",
+        "exeSha256": "ab23b7d8e34d31dbe9762bff8c20840962dcb712f51c00c3b0c870b8be5b367e",
+        "installationUnchanged": true
+      },
+      "hatter2": {
+        "unbalancedOn": {
+          "meanRgb": [
+            85.6,
+            67.5,
+            39.1
+          ],
+          "nearWhitePixels": 1356
+        },
+        "balancedOn": {
+          "meanRgb": [
+            80.5,
+            64.2,
+            37.7
+          ],
+          "nearWhitePixels": 1334
+        },
+        "off": {
+          "meanRgb": [
+            78.2,
+            65.4,
+            41.4
+          ],
+          "nearWhitePixels": 1318
+        },
+        "unbalancedPackageSha256": "e910f638e258be874efa4e4a200ae13158563dd8c524824b3f927f63ffa69fb8",
+        "balancedPackageSha256": "eb89bfdc58c7b0188b5cbe9c3ecdc71efe4bf213fa0cb99c131c603b4adc492a",
+        "exeSha256": "ab23b7d8e34d31dbe9762bff8c20840962dcb712f51c00c3b0c870b8be5b367e",
+        "installationUnchanged": true
+      }
+    },
+    "staticLightBalanceNote": "glx, captures just after skipcinematic with r_staticLights 1, then 0; the unbalanced files were the first generation, whose colours were the lights own; the RTX sweep and hatter2 probes above used them too",
+    "potears1AfterNetchanFix": {
+      "renderer": "glx",
+      "exeSha256": "425aa1a3152f1cb1b8f61e4e21bde225e47eaecd8a705f2e6dba8442cce8b4b0",
+      "packageSha256": "18d1e5e7d6f5f2b4f802f7f47e9e7690300b413f751130e6f454cbe4f04c1ae9",
+      "zones": 512,
+      "lights": {
+        "loaded": 1,
+        "point": 1,
+        "spot": 0,
+        "unsupported": 0,
+        "invalid": 0,
+        "overflow": 0
+      },
+      "gamestateResends": 0,
+      "installationUnchanged": true
+    }
+  }
+}

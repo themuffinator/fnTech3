@@ -1,5 +1,12 @@
 # Modern Audio Engine
 
+> **fnTech3 note.** This design note was written for FnQL, when Quake Live was
+> the only game. The same audio engine now renders every fnTech3 game with a
+> client; each game's own sound data reaches it through that game's adapter,
+> as the [Audio Guide](../AUDIO.md#each-games-sound) describes. The Quake Live
+> references below are the original examples, not limits. See the
+> [FnQL baseline documents](README.md).
+
 FnQL's modern audio engine is a client-side rendering upgrade around the
 retail Quake Live sound contract. Game code, modules, demos, network protocol,
 filesystem behavior, and accepted asset formats stay on the classic surface;

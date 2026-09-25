@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Return to Castle Wolfenstein (Single Player)
+GenericName=fnTech3 game profile
+Comment=Play Return to Castle Wolfenstein (Single Player) with fnTech3
+Exec=fntech3 +set com_gameProfile rtcw-sp
+Icon=fntech3-rtcw-sp
+Terminal=false
+Categories=Game;ActionGame;
+StartupWMClass=fntech3-rtcw-sp

@@ -14,9 +14,11 @@ typedef char fnRTCWFogUniformOffsetCheck[
  * retail's far-plane fog pass sets alpha to min( |v - eye| / distance, 1 )
  * per vertex (alice.exe 0x0049ebb0, colour 0x0049eb40), so the distance is
  * radial. A sky is fogged only when the far plane culls (RB_BeginSurface
- * 0x004927d3..0x004927ff). Blended stages take RTCW's neutral colour below.
- * A renderer whose view parameters carry the far plane defines
- * FN_RTCW_FOG_VK_ALICE before including this. */
+ * 0x004927d3..0x004927ff). An opaque surface's stages draw unfogged and
+ * take that pass instead (tr_ritual_far_fog.h); a blended one's stages take
+ * RTCW's neutral colours below, as Medal of Honor's all do. A renderer whose
+ * view parameters carry the far plane defines FN_RTCW_FOG_VK_ALICE before
+ * including this. */
 static fnRTCWFogDraw_t VK_AliceFarFogDraw( void ) {
 	fnRTCWFogDraw_t draw;
 	int channel;
@@ -48,11 +50,17 @@ void VK_SetRTCWFogParams( vkUniform_t *data, const shaderStage_t *stage ) {
 		qtrue );
 	int row, column;
 #ifdef FN_RTCW_FOG_VK_ALICE
-	if ( ri.gameId == COM_GAME_ALICE ) {
+	if ( R_GAME_HAS_RITUAL_VIEW( ri.gameId ) ) {
 		draw = VK_AliceFarFogDraw();
 	}
-#endif
+	if ( RB_RitualFarFogTakesPass( tess.shader ) ) {
+		draw.color[3] = 0;	/* RB_RitualFarFogPass fogs the surface once */
+	} else {
+		FnRTCWFogBlendColor( &draw, stage ? stage->stateBits : 0 );
+	}
+#else
 	FnRTCWFogBlendColor( &draw, stage ? stage->stateBits : 0 );
+#endif
 	Vector4Copy( draw.color, data->rtcwFogColor );
 	Vector4Copy( draw.params, data->rtcwFogParams );
 	/* Use the actual local-to-eye transform, including scaled models. Camera

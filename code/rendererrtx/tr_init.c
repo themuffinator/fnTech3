@@ -80,6 +80,10 @@ cvar_t	*r_skyportal_origin;
 cvar_t	*r_debuglines_depthmask;
 cvar_t	*r_stipplelines;
 
+// Medal of Honor: Allied Assault only
+cvar_t	*r_drawstaticdecals;
+cvar_t	*ter_minMarkRadius;
+
 cvar_t	*r_znear;
 cvar_t	*r_zproj;
 cvar_t	*r_stereoSeparation;
@@ -161,7 +165,6 @@ cvar_t	*r_ritualModelLights;
 cvar_t	*r_ritualModelLightsDebug;
 cvar_t	*r_surfaceLightProxies;
 cvar_t	*r_surfaceLightProxyMaxLights;
-cvar_t	*rtx_rt_surface_light_max;
 cvar_t	*r_surfaceLightProxyShadows;
 cvar_t	*r_surfaceLightProxyShadowMaxLights;
 cvar_t	*r_surfaceLightProxyDebug;
@@ -319,85 +322,38 @@ cvar_t	*rtx_debug_vk_validation;
 cvar_t	*rtx_caps_report;
 cvar_t	*rtx_rt_mode;
 cvar_t	*rtx_rt_require;
+cvar_t	*rtx_rt_backend;
 cvar_t	*rtx_rt_debug_visualizer;
-cvar_t	*rtx_rt_as_build_budget_mb;
-cvar_t	*rtx_rt_as_instance_budget;
-cvar_t	*rtx_rt_as_compaction;
+cvar_t	*rtx_rt_debug_light;
+cvar_t	*rtx_rt_debug_light_mode;
 cvar_t	*rtx_rt_debug_as_stats;
-cvar_t	*rtx_rt_temporal_enable;
-cvar_t	*rtx_rt_temporal_alpha;
-cvar_t	*rtx_rt_temporal_clamp;
-cvar_t	*rtx_rt_temporal_depth_reject;
-cvar_t	*rtx_rt_temporal_motion_reject;
-cvar_t	*rtx_rt_temporal_camera_cut;
-cvar_t	*rtx_rt_spatial_denoise;
-cvar_t	*rtx_rt_spatial_sigma_depth;
-cvar_t	*rtx_rt_spatial_sigma_normal;
-cvar_t	*rtx_rt_firefly_threshold;
-cvar_t	*rtx_rt_firefly_strength;
-cvar_t	*rtx_rt_tonemap_mode;
-cvar_t	*rtx_rt_exposure;
-cvar_t	*rtx_rt_auto_exposure;
-cvar_t	*rtx_rt_exposure_speed;
-cvar_t	*rtx_rt_exposure_min;
-cvar_t	*rtx_rt_exposure_max;
-cvar_t	*rtx_rt_motion_dynamic_scale;
-cvar_t	*rtx_rt_post_validate;
 cvar_t	*rtx_rt_perf_timing;
 cvar_t	*rtx_rt_perf_interval;
-cvar_t	*rtx_rt_adaptive_budget;
-cvar_t	*rtx_rt_target_frame_ms;
-cvar_t	*rtx_rt_budget_response;
-cvar_t	*rtx_rt_budget_min_scale;
-cvar_t	*rtx_rt_budget_max_scale;
-cvar_t	*rtx_rt_dynamic_resolution;
-cvar_t	*rtx_rt_dynamic_resolution_min;
-cvar_t	*rtx_rt_dynamic_resolution_max;
-cvar_t	*rtx_rt_dynamic_resolution_rate;
 cvar_t	*rtx_rt_async_overlap;
-cvar_t	*rtx_rt_as_rebuild_interval;
-cvar_t	*rtx_rt_as_dirty_threshold;
 cvar_t	*rtx_rt_texture_stream_budget_mb;
-cvar_t	*rtx_rt_texture_stream_stats;
-cvar_t	*rtx_rt_prep_frame_stride;
-cvar_t	*rtx_rt_quality_preset;
-cvar_t	*rtx_rt_first_person_priority;
-cvar_t	*rtx_rt_effect_radius_scale;
-cvar_t	*rtx_rt_effect_emissive_boost;
-cvar_t	*rtx_rt_marks_enable;
-cvar_t	*rtx_rt_particle_volume;
 cvar_t	*rtx_rt_ui_passthrough;
-cvar_t	*rtx_rt_camera_mode_validate;
-cvar_t	*rtx_rt_legacy_color_compat;
-cvar_t	*rtx_rt_raster_reference;
-cvar_t	*rtx_rt_readability_lift;
-cvar_t	*rtx_rt_readability_contrast;
-cvar_t	*rtx_rt_readability_saturation;
-cvar_t	*rtx_rt_readability_shadow_floor;
-cvar_t	*rtx_rt_dynamic_blas;
-cvar_t	*rtx_rt_dynamic_effects;
 cvar_t	*rtx_rt_iqm_skinning;
-cvar_t	*rtx_rt_masked_mode;
-cvar_t	*rtx_rt_masked_cutoff;
-cvar_t	*rtx_rt_material_debug;
-cvar_t	*rtx_rt_material_heuristics;
-cvar_t	*rtx_rt_material_override;
-cvar_t	*rtx_rt_material_roughness_override;
-cvar_t	*rtx_rt_material_metallic_override;
-cvar_t	*rtx_rt_material_emissive_override;
 cvar_t	*rtx_rt_emissive_scale;
-cvar_t	*rtx_rt_emissive_keyword_boost;
-cvar_t	*rtx_rt_shadow_mode;
-cvar_t	*rtx_rt_shadow_softness;
-cvar_t	*rtx_rt_indirect_bounce;
+cvar_t	*rtx_rt_emissive_light;
+cvar_t	*rtx_rt_exposure;
+cvar_t	*rtx_rt_exposure_bias;
+cvar_t	*rtx_rt_exposure_speed;
+cvar_t	*rtx_rt_tonemap_range;
+cvar_t	*rtx_rt_tonemap_curve;
+cvar_t	*rtx_rt_checkerboard;
+cvar_t	*rtx_rt_lighting;
+cvar_t	*rtx_rt_bounces;
+cvar_t	*rtx_rt_patch_shadows;
+cvar_t	*rtx_rt_material_maps;
+cvar_t	*rtx_rt_accumulate;
+cvar_t	*rtx_rt_specular;
+cvar_t	*rtx_rt_mis;
+cvar_t	*rtx_rt_dlight_scale;
+cvar_t	*rtx_rt_denoise;
+cvar_t	*rtx_rt_denoise_iterations;
 cvar_t	*rtx_rt_indirect_strength;
-cvar_t	*rtx_rt_reflection_strength;
 cvar_t	*rtx_rt_sky_intensity;
 cvar_t	*rtx_rt_sun_intensity;
-cvar_t	*rtx_rt_world_light_scale;
-cvar_t	*rtx_rt_refractive_mode;
-cvar_t	*rtx_rt_refractive_ior;
-cvar_t	*rtx_rt_max_lights;
 
 cvar_t	*r_marksOnTriangleMeshes;
 
@@ -953,7 +909,10 @@ static byte *RB_ReadPixels(int x, int y, int width, int height, size_t *offset, 
 	buffer = ri.Hunk_AllocateTempMemory(width * height * 4 + *offset + bufAlign - 1);
 	bufstart = PADP((intptr_t) buffer + *offset, bufAlign);
 
-	vk_read_pixels( bufstart, width, height );
+	if ( !vk_read_pixels( bufstart, width, height ) ) {
+		ri.Hunk_FreeTempMemory( buffer );
+		return NULL;
+	}
 
 	*offset = bufstart - buffer;
 	*padlen = PAD(linelen, packAlign) - linelen;
@@ -995,13 +954,17 @@ static byte *RB_ReadPixels(int x, int y, int width, int height, size_t *offset, 
 RB_TakeScreenshotPNG
 ==================
 */
-void RB_TakeScreenshotPNG( int x, int y, int width, int height, const char *fileName )
+qboolean RB_TakeScreenshotPNG( int x, int y, int width, int height, const char *fileName )
 {
 	byte *buffer;
 	size_t offset = 0, memcount;
 	int padlen;
 
 	buffer = RB_ReadPixels( x, y, width, height, &offset, &padlen, 0 );
+	if ( !buffer ) {
+		ri.Printf( PRINT_WARNING, "WARNING: %s was not written: the frame could not be read back.\n", fileName );
+		return qfalse;
+	}
 	memcount = ( width * 3 + padlen ) * height;
 
 	R_GammaCorrect( buffer + offset, memcount );
@@ -1010,6 +973,7 @@ void RB_TakeScreenshotPNG( int x, int y, int width, int height, const char *file
 	R_WriteScreenshotViewpos( fileName, backEnd.refdef.vieworg,
 		backEnd.refdef.viewaxis );
 	ri.Hunk_FreeTempMemory( buffer );
+	return qtrue;
 }
 
 
@@ -1018,7 +982,7 @@ void RB_TakeScreenshotPNG( int x, int y, int width, int height, const char *file
 RB_TakeScreenshot
 ==================
 */
-void RB_TakeScreenshot( int x, int y, int width, int height, const char *fileName )
+qboolean RB_TakeScreenshot( int x, int y, int width, int height, const char *fileName )
 {
 	const int header_size = 18;
 	byte *allbuf, *buffer;
@@ -1030,6 +994,10 @@ void RB_TakeScreenshot( int x, int y, int width, int height, const char *fileNam
 
 	offset = header_size;
 	allbuf = RB_ReadPixels( x, y, width, height, &offset, &padlen, 0 );
+	if ( !allbuf ) {
+		ri.Printf( PRINT_WARNING, "WARNING: %s was not written: the frame could not be read back.\n", fileName );
+		return qfalse;
+	}
 	buffer = allbuf + offset - header_size;
 
 	Com_Memset( buffer, 0, header_size );
@@ -1075,6 +1043,7 @@ void RB_TakeScreenshot( int x, int y, int width, int height, const char *fileNam
 		backEnd.refdef.viewaxis );
 
 	ri.Hunk_FreeTempMemory( allbuf );
+	return qtrue;
 }
 
 
@@ -1083,13 +1052,17 @@ void RB_TakeScreenshot( int x, int y, int width, int height, const char *fileNam
 RB_TakeScreenshotJPEG
 ==================
 */
-void RB_TakeScreenshotJPEG( int x, int y, int width, int height, const char *fileName )
+qboolean RB_TakeScreenshotJPEG( int x, int y, int width, int height, const char *fileName )
 {
 	byte *buffer;
 	size_t offset = 0, memcount;
 	int padlen;
 
 	buffer = RB_ReadPixels(x, y, width, height, &offset, &padlen, 0);
+	if ( !buffer ) {
+		ri.Printf( PRINT_WARNING, "WARNING: %s was not written: the frame could not be read back.\n", fileName );
+		return qfalse;
+	}
 	memcount = (width * 3 + padlen) * height;
 
 	// gamma correction
@@ -1100,6 +1073,7 @@ void RB_TakeScreenshotJPEG( int x, int y, int width, int height, const char *fil
 	R_WriteScreenshotViewpos( fileName, backEnd.refdef.vieworg,
 		backEnd.refdef.viewaxis );
 	ri.Hunk_FreeTempMemory( buffer );
+	return qtrue;
 }
 
 
@@ -1148,7 +1122,7 @@ static void FillBMPHeader( byte *buffer, int width, int height, int memcount, in
 RB_TakeScreenshotBMP
 ==================
 */
-void RB_TakeScreenshotBMP( int x, int y, int width, int height, const char *fileName, int clipboardOnly )
+qboolean RB_TakeScreenshotBMP( int x, int y, int width, int height, const char *fileName, int clipboardOnly )
 {
 	byte *allbuf;
 	byte *buffer; // destination buffer
@@ -1164,6 +1138,10 @@ void RB_TakeScreenshotBMP( int x, int y, int width, int height, const char *file
 	offset = header_size;
 
 	allbuf = RB_ReadPixels( x, y, width, height, &offset, &padlen, 4 );
+	if ( !allbuf ) {
+		ri.Printf( PRINT_WARNING, "WARNING: the screenshot was not taken: the frame could not be read back.\n" );
+		return qfalse;
+	}
 	buffer = allbuf + offset;
 
 	// scanline length
@@ -1226,6 +1204,7 @@ void RB_TakeScreenshotBMP( int x, int y, int width, int height, const char *file
 	}
 
 	ri.Hunk_FreeTempMemory( allbuf );
+	return qtrue;
 }
 
 
@@ -1528,7 +1507,16 @@ void RB_TakeSTVEFThumbnail( void ) {
 		return;
 	}
 	source = allsource + offset;
-	if ( aliceHeight > 0 ) {
+	if ( aliceHeight > 0 && ( ri.gameId == COM_GAME_FAKK2 || ri.gameId == COM_GAME_MOHAA ) ) {
+		// Heavy Metal: F.A.K.K.2's saveshot: the same reduction in colour, as a
+		// TGA's bytes (../compat/alice_saveshot.h), with the screen's gamma as
+		// a screenshot of it keeps. Medal of Honor's save picture is reduced
+		// the same way (OpenMoHAA R_ResampledScreenShot, reference only).
+		FNTECH3_Fakk2Saveshot( source, gls.captureWidth, gls.captureHeight,
+			gls.captureWidth * 3 + padlen, rgba, side, aliceHeight );
+		ri.Hunk_FreeTempMemory( allsource );
+		R_GammaCorrect( rgba, side * aliceHeight * 3 );
+	} else if ( aliceHeight > 0 ) {
 		// American McGee's Alice's saveshot: side by aliceHeight grey pixels
 		// reduced from the frame exactly as it was read, as retail reduces
 		// its own glReadPixels (../compat/alice_saveshot.h).
@@ -1575,8 +1563,8 @@ RE_CaptureAliceSaveshot
 
 American McGee's Alice's savegame picture, taken from the next frame drawn
 through the same capture as Elite Force's: width by height pixels of grey RGB,
-the bottom row first, with done set once they are there. A picture of NULL
-withdraws a request that has not been met.
+or F.A.K.K.2's in colour, the bottom row first, with done set once they are
+there. A picture of NULL withdraws a request that has not been met.
 ==================
 */
 static void RE_CaptureAliceSaveshot( byte *rgb, int width, int height, qboolean *done ) {
@@ -1768,7 +1756,10 @@ const void *RB_TakeVideoFrameCmd( const void *data )
 	cBuf = PADP(cmd->captureBuffer, packAlign);
 
 #ifdef USE_VULKAN
-	vk_read_pixels(cBuf, cmd->width, cmd->height);
+	if ( !vk_read_pixels( cBuf, cmd->width, cmd->height ) ) {
+		// no memory left to read the frame back: this video frame is skipped
+		return (const void *)(cmd + 1);
+	}
 #else
 	qglReadPixels(0, 0, cmd->width, cmd->height, GL_RGB, GL_UNSIGNED_BYTE, cBuf);
 #endif
@@ -2088,10 +2079,11 @@ static void VkInfo_f( void )
 		yn[ vk.caps.accelerationStructure ? 1 : 0 ],
 		yn[ vk.caps.rayQuery ? 1 : 0 ],
 		yn[ vk.caps.rayTracingPipeline ? 1 : 0 ] );
-	ri.Printf(PRINT_ALL, "rtx_rt_mode: requested=%d active=%d require=%d\n",
+	ri.Printf(PRINT_ALL, "rtx_rt_mode: requested=%d active=%d require=%d backend=%d\n",
 		vk.caps.requestedRtMode,
 		vk.caps.activeRtMode,
-		( rtx_rt_require && rtx_rt_require->integer ) ? 1 : 0 );
+		( rtx_rt_require && rtx_rt_require->integer ) ? 1 : 0,
+		vk.caps.rtBackend );
 }
 #endif
 
@@ -2139,6 +2131,8 @@ static void R_Register( void )
 	ri.Cmd_AddCommand( "advertlist", R_AdvertisementList_f );
 #ifdef USE_VULKAN
 	ri.Cmd_AddCommand( "vkinfo", VkInfo_f );
+	ri.Cmd_AddCommand( "rtx_rt_lightinfo", vk_rt_lightinfo_f );
+	ri.Cmd_AddCommand( "rtx_rt_pick", vk_rt_pick_f );
 #endif
 
 	//
@@ -2146,8 +2140,11 @@ static void R_Register( void )
 	//
 	r_fullbright = ri.Cvar_Get( "r_fullbright", "0", CVAR_ARCHIVE | CVAR_LATCH | CVAR_PROTECTED | CVAR_CLOUD );
 	ri.Cvar_SetDescription( r_fullbright, "Debugging tool to render the entire level without lighting." );
-	/* American McGee's Alice registers none (alice.exe 0x00475136). */
-	r_overBrightBits = ri.Cvar_Get( "r_overBrightBits", ri.gameId == COM_GAME_ALICE ? "0" : "1",
+	/* Neither Ritual engine registers an overbright bit: Heavy Metal: F.A.K.K.2
+	 * (fakk2.exe 1.02 0x00460d74), whose lightmaps take r_mapOverBrightBits'
+	 * whole shift and saturate where retail's do, and American McGee's Alice
+	 * (alice.exe 0x00475136). */
+	r_overBrightBits = ri.Cvar_Get( "r_overBrightBits", COM_GAME_ID_IS_RITUAL( ri.gameId ) ? "0" : "1",
 		CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_SetDescription( r_overBrightBits, "Sets the intensity of overall brightness of texture pixels." );
 	// Elite Force's maps are lit for one overbright bit (retail default "1").
@@ -2203,10 +2200,10 @@ static void R_Register( void )
 	// Alice ships detail stages off and switches them while drawing, from its
 	// own menu (alice.exe 0x004750b5 registers "0", archived, not latched;
 	// the stage is skipped at 0x00492a60).
-	r_detailTextures = ri.Cvar_Get( "r_detailtextures", ri.gameId == COM_GAME_ALICE ? "0" : "1",
-		ri.gameId == COM_GAME_ALICE ? CVAR_ARCHIVE_ND : CVAR_ARCHIVE_ND | CVAR_LATCH );
+	r_detailTextures = ri.Cvar_Get( "r_detailtextures", COM_GAME_ID_IS_RITUAL( ri.gameId ) ? "0" : "1",
+		COM_GAME_ID_IS_RITUAL( ri.gameId ) ? CVAR_ARCHIVE_ND : CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_SetDescription( r_detailTextures, "Enables usage of shader stages flagged as detail." );
-	if ( ri.gameId == COM_GAME_ALICE ) {
+	if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) ) {
 		// alice.exe 0x004759ac..0x00475b24: names, defaults and flags as retail
 		// registers them. r_shaderlod is read while shaders are parsed.
 		r_shaderlod = ri.Cvar_Get( "r_shaderlod", "0.5", CVAR_ARCHIVE_ND );
@@ -2232,6 +2229,37 @@ static void R_Register( void )
 		r_stipplelines = ri.Cvar_Get( "r_stipplelines", "1", CVAR_ARCHIVE_ND );
 		ri.Cvar_SetDescription( r_stipplelines, "Applies each game debug line's own stipple and width." );
 		R_AliceRegisterCvars();
+	} else if ( ri.gameId == COM_GAME_MOHAA ) {
+		R_MOHAARegisterLensFlareCvars();
+		// its permanent decals, built into the world (tr_mohaa_world.c):
+		// the advanced options' "Static Decals" box sets it, and so do the
+		// detail configs, high.cfg and medium.cfg on and low.cfg off
+		// (Pak0.pk3 ui/advancedoptions.urc)
+		r_drawstaticdecals = ri.Cvar_Get( "r_drawstaticdecals", "1", CVAR_ARCHIVE );
+		ri.Cvar_SetDescription( r_drawstaticdecals, "Draws the level's permanent decals." );
+		// the smallest decal cut on terrain; its default, OpenMoHAA's,
+		// keeps every bullet hole off it (tr_mohaa_marks_surface.h)
+		ter_minMarkRadius = ri.Cvar_Get( "ter_minMarkRadius", "8", CVAR_ARCHIVE );
+		ri.Cvar_SetDescription( ter_minMarkRadius, "Decals no larger than this leave no mark on terrain." );
+		// Medal of Honor's view reads the same far plane and sky portal
+		// overrides (R_GAME_HAS_RITUAL_VIEW); its engine keeps the far plane
+		// ones cheat-protected (OpenMoHAA renderergl1/tr_init.c)
+		r_farplane = ri.Cvar_Get( "r_farplane", "0", CVAR_CHEAT );
+		ri.Cvar_SetDescription( r_farplane, "Overrides the level's far plane distance when nonzero; r_farplane_color and r_farplane_nocull then apply." );
+		r_farplane_color = ri.Cvar_Get( "r_farplane_color", ".5 .5 .5", CVAR_CHEAT );
+		ri.Cvar_SetDescription( r_farplane_color, "Far plane fog colour used with r_farplane." );
+		r_farplane_nocull = ri.Cvar_Get( "r_farplane_nocull", "0", CVAR_CHEAT );
+		ri.Cvar_SetDescription( r_farplane_nocull, "With r_farplane, keep drawing what lies beyond the far plane." );
+		r_farplane_nofog = ri.Cvar_Get( "r_farplane_nofog", "0", CVAR_CHEAT );
+		ri.Cvar_SetDescription( r_farplane_nofog, "Disables the far plane's distance fog." );
+		r_farplane_pulse = ri.Cvar_Get( "r_farplane_pulse", "0", CVAR_CHEAT );
+		ri.Cvar_SetDescription( r_farplane_pulse, "With r_farplane, pulls the far plane in by up to this much along a sine wave." );
+		r_farplane_pulseFrequency = ri.Cvar_Get( "r_farplane_pulseFrequency", "0", CVAR_CHEAT );
+		ri.Cvar_SetDescription( r_farplane_pulseFrequency, "Period in seconds of r_farplane_pulse." );
+		r_skyportal = ri.Cvar_Get( "r_skyportal", "0", 0 );
+		ri.Cvar_SetDescription( r_skyportal, "Draws the level's sky portal from r_skyportal_origin instead of its own origin." );
+		r_skyportal_origin = ri.Cvar_Get( "r_skyportal_origin", "0 0 0", 0 );
+		ri.Cvar_SetDescription( r_skyportal_origin, "Sky portal origin used with r_skyportal." );
 	}
 	r_texturebits = ri.Cvar_Get( "r_texturebits", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_SetDescription( r_texturebits, "Number of texture bits per texture." );
@@ -2335,8 +2363,8 @@ static void R_Register( void )
 	// Alice's r_lodbias is a fraction taken off a TIKI model's level of
 	// detail, archived with a default of 0 (alice.exe 0x0047532e); -2 would
 	// hold every model at full detail.
-	r_lodbias = ri.Cvar_Get( "r_lodbias", ri.gameId == COM_GAME_ALICE ? "0" : "-2", CVAR_ARCHIVE_ND );
-	if ( ri.gameId == COM_GAME_ALICE ) {
+	r_lodbias = ri.Cvar_Get( "r_lodbias", COM_GAME_ID_IS_RITUAL( ri.gameId ) ? "0" : "-2", CVAR_ARCHIVE_ND );
+	if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) ) {
 		ri.Cvar_SetDescription( r_lodbias, "Lowers the level of detail of models: subtracted from the fraction of each model's vertices drawn (0 to 1); negative raises it." );
 	} else {
 		ri.Cvar_SetDescription( r_lodbias, "Sets the level of detail of in-game models:\n -2: Ultra (further delays LOD transition in the distance)\n -1: Very High (delays LOD transition in the distance)\n 0: High\n 1: Medium\n 2: Low" );
@@ -2514,10 +2542,6 @@ static void R_Register( void )
 	ri.Cvar_CheckRange( r_surfaceLightProxyMaxLights, "0", va( "%i", MAX_DLIGHTS ), CV_INTEGER );
 	ri.Cvar_SetDescription( r_surfaceLightProxyMaxLights, "Maximum number of surfacelight proxies promoted into a scene." );
 	ri.Cvar_SetGroup( r_surfaceLightProxyMaxLights, CVG_RENDERER );
-	rtx_rt_surface_light_max = ri.Cvar_Get( "rtx_rt_surface_light_max", "16", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_surface_light_max, "0", va( "%i", MAX_RT_SURFACELIGHT_LIGHTS ), CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_surface_light_max, "Maximum number of PVS-visible q3map_surfaceLight proxies selected as native RTX analytic lights." );
-	ri.Cvar_SetGroup( rtx_rt_surface_light_max, CVG_RENDERER );
 	r_surfaceLightProxyShadows = ri.Cvar_Get( "r_surfaceLightProxyShadows", "0", CVAR_ARCHIVE_ND );
 	ri.Cvar_CheckRange( r_surfaceLightProxyShadows, "0", "1", CV_INTEGER );
 	ri.Cvar_SetDescription( r_surfaceLightProxyShadows, "Allows promoted surfacelight proxies to enter the point-light shadow planner." );
@@ -2672,108 +2696,32 @@ static void R_Register( void )
 	ri.Cvar_SetGroup( rtx_caps_report, CVG_RENDERER );
 	rtx_rt_mode = ri.Cvar_Get( "rtx_rt_mode", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_CheckRange( rtx_rt_mode, "0", "2", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_mode, "Requested rendererrtx ray tracing capability mode (requires vid_restart):\n 0: raster fallback (default)\n 1: request ray-query capabilities while retaining raster output\n 2: request the ray-tracing pipeline; safely falls back when rtx_rt_require is 0" );
+	ri.Cvar_SetDescription( rtx_rt_mode, "Requested rendererrtx ray tracing capability mode (requires vid_restart):\n 0: raster fallback (default)\n 1: request ray-query capabilities while retaining raster output\n 2: the path tracer, tracing as rtx_rt_backend chooses; safely falls back when rtx_rt_require is 0" );
 	ri.Cvar_SetGroup( rtx_rt_mode, CVG_RENDERER );
 	rtx_rt_require = ri.Cvar_Get( "rtx_rt_require", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_CheckRange( rtx_rt_require, "0", "1", CV_INTEGER );
 	ri.Cvar_SetDescription( rtx_rt_require, "Capability gating policy for rtx_rt_mode (requires vid_restart):\n 0: fallback to mode 0 when unsupported\n 1: fail startup when requested mode is unsupported" );
 	ri.Cvar_SetGroup( rtx_rt_require, CVG_RENDERER );
+	rtx_rt_backend = ri.Cvar_Get( "rtx_rt_backend", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
+	ri.Cvar_CheckRange( rtx_rt_backend, "0", "2", CV_INTEGER );
+	ri.Cvar_SetDescription( rtx_rt_backend, "How the path tracer (rtx_rt_mode 2) traces rays (requires vid_restart):\n 0: the ray-tracing pipeline where the device offers it, else compute shaders (default)\n 1: the ray-tracing pipeline only\n 2: compute shaders over the renderer's own BVHs only" );
+	ri.Cvar_SetGroup( rtx_rt_backend, CVG_RENDERER );
 	rtx_rt_debug_visualizer = ri.Cvar_Get( "rtx_rt_debug_visualizer", "0", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_debug_visualizer, "0", "10", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_debug_visualizer, "RT debug visualizer mode:\n 0: shaded\n 1: instance ID\n 2: barycentrics\n 3: hit normal\n 4: albedo\n 5: roughness\n 6: emissive\n 7: light-count heatmap\n 8: metallic\n 9: motion vectors\n 10: temporal history blend" );
+	ri.Cvar_CheckRange( rtx_rt_debug_visualizer, "0", "9", CV_INTEGER );
+	ri.Cvar_SetDescription( rtx_rt_debug_visualizer, "Path tracer debug view (rtx_rt_mode 2):\n 0: final image\n 1: reflectance\n 2: shading normal\n 3: denoised irradiance\n 4: noisy irradiance\n 5: specular\n 6: emission\n 7: temporal history length\n 8: view depth\n 9: motion vectors" );
 	ri.Cvar_SetGroup( rtx_rt_debug_visualizer, CVG_RENDERER );
-	rtx_rt_as_build_budget_mb = ri.Cvar_Get( "rtx_rt_as_build_budget_mb", "96", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_as_build_budget_mb, "0", "2048", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_as_build_budget_mb, "Per-frame AS build memory budget in MB:\n 0: unlimited\n >0: throttle or defer BLAS/TLAS rebuild work when exceeded" );
-	ri.Cvar_SetGroup( rtx_rt_as_build_budget_mb, CVG_RENDERER );
-	rtx_rt_as_instance_budget = ri.Cvar_Get( "rtx_rt_as_instance_budget", "1024", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_as_instance_budget, "1", "16384", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_as_instance_budget, "Maximum dynamic model entities ingested into RT geometry per frame." );
-	ri.Cvar_SetGroup( rtx_rt_as_instance_budget, CVG_RENDERER );
-	rtx_rt_as_compaction = ri.Cvar_Get( "rtx_rt_as_compaction", "1", CVAR_ARCHIVE_ND | CVAR_LATCH );
-	ri.Cvar_CheckRange( rtx_rt_as_compaction, "0", "1", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_as_compaction, "Enable BLAS compaction and AS memory defragmentation workflow (requires vid_restart)." );
-	ri.Cvar_SetGroup( rtx_rt_as_compaction, CVG_RENDERER );
+	rtx_rt_debug_light = ri.Cvar_Get( "rtx_rt_debug_light", "-1", CVAR_TEMP );
+	ri.Cvar_CheckRange( rtx_rt_debug_light, "-1", NULL, CV_INTEGER );
+	ri.Cvar_SetDescription( rtx_rt_debug_light, "Path tracer diagnostic: the number of one light (rtx_rt_lightinfo lists them) that alone lights what the trace sees first; -1 for all." );
+	ri.Cvar_SetGroup( rtx_rt_debug_light, CVG_RENDERER );
+	rtx_rt_debug_light_mode = ri.Cvar_Get( "rtx_rt_debug_light_mode", "0", CVAR_TEMP );
+	ri.Cvar_CheckRange( rtx_rt_debug_light_mode, "0", "3", CV_INTEGER );
+	ri.Cvar_SetDescription( rtx_rt_debug_light_mode, "What rtx_rt_debug_light shows of its light:\n 0: its light, shadowed and filtered\n 1: its light, unshadowed\n 2: whether shadow rays reach it (white) or not\n 3: what the compilers' light filters pass of it" );
+	ri.Cvar_SetGroup( rtx_rt_debug_light_mode, CVG_RENDERER );
 	rtx_rt_debug_as_stats = ri.Cvar_Get( "rtx_rt_debug_as_stats", "0", CVAR_TEMP );
 	ri.Cvar_CheckRange( rtx_rt_debug_as_stats, "0", "2", CV_INTEGER );
 	ri.Cvar_SetDescription( rtx_rt_debug_as_stats, "RT AS stats verbosity:\n 0: disabled\n 1: startup and rebuild summaries\n 2: periodic TLAS/build, dispatch and throttled skip diagnostics" );
 	ri.Cvar_SetGroup( rtx_rt_debug_as_stats, CVG_RENDERER );
-	rtx_rt_temporal_enable = ri.Cvar_Get( "rtx_rt_temporal_enable", "1", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_temporal_enable, "0", "1", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_temporal_enable, "Enable temporal reprojection and accumulation in RT resolve path." );
-	ri.Cvar_SetGroup( rtx_rt_temporal_enable, CVG_RENDERER );
-	rtx_rt_temporal_alpha = ri.Cvar_Get( "rtx_rt_temporal_alpha", "0.88", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_temporal_alpha, "0", "0.98", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_temporal_alpha, "History blend factor for temporal accumulation (higher = more smoothing, more ghost risk)." );
-	ri.Cvar_SetGroup( rtx_rt_temporal_alpha, CVG_RENDERER );
-	rtx_rt_temporal_clamp = ri.Cvar_Get( "rtx_rt_temporal_clamp", "1.25", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_temporal_clamp, "0", "8", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_temporal_clamp, "Color clamp scale for temporal history rejection around current sample." );
-	ri.Cvar_SetGroup( rtx_rt_temporal_clamp, CVG_RENDERER );
-	rtx_rt_temporal_depth_reject = ri.Cvar_Get( "rtx_rt_temporal_depth_reject", "4.0", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_temporal_depth_reject, "0", "4096", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_temporal_depth_reject, "Depth mismatch threshold (world units) for temporal reprojection rejection." );
-	ri.Cvar_SetGroup( rtx_rt_temporal_depth_reject, CVG_RENDERER );
-	rtx_rt_temporal_motion_reject = ri.Cvar_Get( "rtx_rt_temporal_motion_reject", "18.0", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_temporal_motion_reject, "0", "256", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_temporal_motion_reject, "Motion-vector sensitivity multiplier for temporal history weight attenuation." );
-	ri.Cvar_SetGroup( rtx_rt_temporal_motion_reject, CVG_RENDERER );
-	rtx_rt_temporal_camera_cut = ri.Cvar_Get( "rtx_rt_temporal_camera_cut", "128.0", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_temporal_camera_cut, "0", "8192", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_temporal_camera_cut, "Camera position delta threshold (world units) that forces temporal history reset." );
-	ri.Cvar_SetGroup( rtx_rt_temporal_camera_cut, CVG_RENDERER );
-	rtx_rt_spatial_denoise = ri.Cvar_Get( "rtx_rt_spatial_denoise", "0", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_spatial_denoise, "0", "1", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_spatial_denoise, "Enable the experimental four-neighbour cross-bilateral RT filter (adds four radiance traces per pixel; disabled by default)." );
-	ri.Cvar_SetGroup( rtx_rt_spatial_denoise, CVG_RENDERER );
-	rtx_rt_spatial_sigma_depth = ri.Cvar_Get( "rtx_rt_spatial_sigma_depth", "2.5", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_spatial_sigma_depth, "0", "64", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_spatial_sigma_depth, "Depth-domain falloff for spatial denoise weights." );
-	ri.Cvar_SetGroup( rtx_rt_spatial_sigma_depth, CVG_RENDERER );
-	rtx_rt_spatial_sigma_normal = ri.Cvar_Get( "rtx_rt_spatial_sigma_normal", "24.0", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_spatial_sigma_normal, "0", "128", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_spatial_sigma_normal, "Normal-domain sharpness for spatial denoise weights." );
-	ri.Cvar_SetGroup( rtx_rt_spatial_sigma_normal, CVG_RENDERER );
-	rtx_rt_firefly_threshold = ri.Cvar_Get( "rtx_rt_firefly_threshold", "8.0", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_firefly_threshold, "0", NULL, CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_firefly_threshold, "Luminance threshold for firefly suppression in RT resolve." );
-	ri.Cvar_SetGroup( rtx_rt_firefly_threshold, CVG_RENDERER );
-	rtx_rt_firefly_strength = ri.Cvar_Get( "rtx_rt_firefly_strength", "0.75", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_firefly_strength, "0", "1", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_firefly_strength, "Firefly suppression intensity (0 disables clamping, 1 full clamp)." );
-	ri.Cvar_SetGroup( rtx_rt_firefly_strength, CVG_RENDERER );
-	rtx_rt_tonemap_mode = ri.Cvar_Get( "rtx_rt_tonemap_mode", "2", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_tonemap_mode, "0", "2", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_tonemap_mode, "RT-local tone mapping operator for the effective SDR compatibility path. When the scene-linear target is active, the shared final pass uses r_tonemap instead:\n 0: disabled\n 1: Reinhard\n 2: ACES fitted" );
-	ri.Cvar_SetGroup( rtx_rt_tonemap_mode, CVG_RENDERER );
-	rtx_rt_exposure = ri.Cvar_Get( "rtx_rt_exposure", "1.0", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_exposure, "0.01", "32", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_exposure, "Manual RT-local exposure used by the effective SDR compatibility path when auto exposure is disabled. An active scene-linear target uses r_tonemapExposure in the shared final pass." );
-	ri.Cvar_SetGroup( rtx_rt_exposure, CVG_RENDERER );
-	rtx_rt_auto_exposure = ri.Cvar_Get( "rtx_rt_auto_exposure", "1", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_auto_exposure, "0", "1", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_auto_exposure, "Enable RT-local exposure adaptation for the effective SDR compatibility path. The active scene-linear final pass remains controlled by r_tonemapExposure." );
-	ri.Cvar_SetGroup( rtx_rt_auto_exposure, CVG_RENDERER );
-	rtx_rt_exposure_speed = ri.Cvar_Get( "rtx_rt_exposure_speed", "0.08", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_exposure_speed, "0", "1", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_exposure_speed, "Exposure adaptation speed per frame (0 freezes exposure)." );
-	ri.Cvar_SetGroup( rtx_rt_exposure_speed, CVG_RENDERER );
-	rtx_rt_exposure_min = ri.Cvar_Get( "rtx_rt_exposure_min", "0.2", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_exposure_min, "0.01", "32", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_exposure_min, "Lower clamp for RT exposure adaptation." );
-	ri.Cvar_SetGroup( rtx_rt_exposure_min, CVG_RENDERER );
-	rtx_rt_exposure_max = ri.Cvar_Get( "rtx_rt_exposure_max", "4.0", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_exposure_max, "0.01", "64", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_exposure_max, "Upper clamp for RT exposure adaptation." );
-	ri.Cvar_SetGroup( rtx_rt_exposure_max, CVG_RENDERER );
-	rtx_rt_motion_dynamic_scale = ri.Cvar_Get( "rtx_rt_motion_dynamic_scale", "1.0", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_motion_dynamic_scale, "0", "4", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_motion_dynamic_scale, "Scale factor for dynamic-instance motion-vector reprojection compensation." );
-	ri.Cvar_SetGroup( rtx_rt_motion_dynamic_scale, CVG_RENDERER );
-	rtx_rt_post_validate = ri.Cvar_Get( "rtx_rt_post_validate", "1", CVAR_TEMP );
-	ri.Cvar_CheckRange( rtx_rt_post_validate, "0", "1", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_post_validate, "Emit one-time runtime post-stack ordering validation log (RT -> bloom -> gamma/UI)." );
-	ri.Cvar_SetGroup( rtx_rt_post_validate, CVG_RENDERER );
 	rtx_rt_perf_timing = ri.Cvar_Get( "rtx_rt_perf_timing", "0", CVAR_ARCHIVE_ND );
 	ri.Cvar_CheckRange( rtx_rt_perf_timing, "0", "2", CV_INTEGER );
 	ri.Cvar_SetDescription( rtx_rt_perf_timing, "RT performance instrumentation mode:\n 0: disabled\n 1: periodic summary\n 2: per-frame timing summary (GPU/CPU)" );
@@ -2782,221 +2730,106 @@ static void R_Register( void )
 	ri.Cvar_CheckRange( rtx_rt_perf_interval, "1", "4096", CV_INTEGER );
 	ri.Cvar_SetDescription( rtx_rt_perf_interval, "Frame interval for RT performance summary logging when rtx_rt_perf_timing = 1." );
 	ri.Cvar_SetGroup( rtx_rt_perf_interval, CVG_RENDERER );
-	rtx_rt_adaptive_budget = ri.Cvar_Get( "rtx_rt_adaptive_budget", "1", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_adaptive_budget, "0", "1", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_adaptive_budget, "Adaptive RT quality budget controller:\n 0: disabled\n 1: dynamically scales RT cost to track target frame time" );
-	ri.Cvar_SetGroup( rtx_rt_adaptive_budget, CVG_RENDERER );
-	rtx_rt_target_frame_ms = ri.Cvar_Get( "rtx_rt_target_frame_ms", "12.0", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_target_frame_ms, "4", "50", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_target_frame_ms, "Target frame time in milliseconds for adaptive RT budget and dynamic resolution control." );
-	ri.Cvar_SetGroup( rtx_rt_target_frame_ms, CVG_RENDERER );
-	rtx_rt_budget_response = ri.Cvar_Get( "rtx_rt_budget_response", "0.18", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_budget_response, "0.01", "1.0", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_budget_response, "Adaptive RT budget response factor (higher reacts faster, lower is smoother)." );
-	ri.Cvar_SetGroup( rtx_rt_budget_response, CVG_RENDERER );
-	rtx_rt_budget_min_scale = ri.Cvar_Get( "rtx_rt_budget_min_scale", "0.45", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_budget_min_scale, "0.1", "1.0", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_budget_min_scale, "Lower clamp for adaptive RT quality scaling." );
-	ri.Cvar_SetGroup( rtx_rt_budget_min_scale, CVG_RENDERER );
-	rtx_rt_budget_max_scale = ri.Cvar_Get( "rtx_rt_budget_max_scale", "1.25", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_budget_max_scale, "1.0", "2.0", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_budget_max_scale, "Upper clamp for adaptive RT quality scaling." );
-	ri.Cvar_SetGroup( rtx_rt_budget_max_scale, CVG_RENDERER );
-	rtx_rt_dynamic_resolution = ri.Cvar_Get( "rtx_rt_dynamic_resolution", "0", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_dynamic_resolution, "0", "1", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_dynamic_resolution, "Enable experimental adaptive RT internal resolution scaling; disabled by default until reconstruction support is proven for the active formats." );
-	ri.Cvar_SetGroup( rtx_rt_dynamic_resolution, CVG_RENDERER );
-	rtx_rt_dynamic_resolution_min = ri.Cvar_Get( "rtx_rt_dynamic_resolution_min", "0.60", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_dynamic_resolution_min, "0.25", "1.0", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_dynamic_resolution_min, "Minimum internal RT resolution scale when dynamic resolution is enabled." );
-	ri.Cvar_SetGroup( rtx_rt_dynamic_resolution_min, CVG_RENDERER );
-	rtx_rt_dynamic_resolution_max = ri.Cvar_Get( "rtx_rt_dynamic_resolution_max", "1.00", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_dynamic_resolution_max, "0.25", "1.5", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_dynamic_resolution_max, "Maximum internal RT resolution scale when dynamic resolution is enabled." );
-	ri.Cvar_SetGroup( rtx_rt_dynamic_resolution_max, CVG_RENDERER );
-	rtx_rt_dynamic_resolution_rate = ri.Cvar_Get( "rtx_rt_dynamic_resolution_rate", "0.08", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_dynamic_resolution_rate, "0.01", "1.0", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_dynamic_resolution_rate, "Dynamic resolution adaptation rate per frame." );
-	ri.Cvar_SetGroup( rtx_rt_dynamic_resolution_rate, CVG_RENDERER );
 	rtx_rt_async_overlap = ri.Cvar_Get( "rtx_rt_async_overlap", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_CheckRange( rtx_rt_async_overlap, "0", "1", CV_INTEGER );
 	ri.Cvar_SetDescription( rtx_rt_async_overlap, "Enable async queue overlap for selected RT-adjacent passes (requires vid_restart)." );
 	ri.Cvar_SetGroup( rtx_rt_async_overlap, CVG_RENDERER );
-	rtx_rt_as_rebuild_interval = ri.Cvar_Get( "rtx_rt_as_rebuild_interval", "1", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_as_rebuild_interval, "1", "16", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_as_rebuild_interval, "Minimum frame interval between dynamic BLAS rebuilds." );
-	ri.Cvar_SetGroup( rtx_rt_as_rebuild_interval, CVG_RENDERER );
-	rtx_rt_as_dirty_threshold = ri.Cvar_Get( "rtx_rt_as_dirty_threshold", "6.0", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_as_dirty_threshold, "0", "4096", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_as_dirty_threshold, "Dynamic scene centroid movement threshold (world units) before forcing a dynamic BLAS rebuild." );
-	ri.Cvar_SetGroup( rtx_rt_as_dirty_threshold, CVG_RENDERER );
 	rtx_rt_texture_stream_budget_mb = ri.Cvar_Get( "rtx_rt_texture_stream_budget_mb", "96", CVAR_ARCHIVE_ND );
 	ri.Cvar_CheckRange( rtx_rt_texture_stream_budget_mb, "0", "2048", CV_INTEGER );
 	ri.Cvar_SetDescription( rtx_rt_texture_stream_budget_mb, "Per-frame texture upload streaming budget in MB (0 disables throttling)." );
 	ri.Cvar_SetGroup( rtx_rt_texture_stream_budget_mb, CVG_RENDERER );
-	rtx_rt_texture_stream_stats = ri.Cvar_Get( "rtx_rt_texture_stream_stats", "0", CVAR_TEMP );
-	ri.Cvar_CheckRange( rtx_rt_texture_stream_stats, "0", "1", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_texture_stream_stats, "Emit periodic texture streaming residency/throughput stats." );
-	ri.Cvar_SetGroup( rtx_rt_texture_stream_stats, CVG_RENDERER );
-	rtx_rt_prep_frame_stride = ri.Cvar_Get( "rtx_rt_prep_frame_stride", "1", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_prep_frame_stride, "1", "8", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_prep_frame_stride, "CPU prep workload frame stride for RT dynamic scene prep (higher spreads work across frames)." );
-	ri.Cvar_SetGroup( rtx_rt_prep_frame_stride, CVG_RENDERER );
-	rtx_rt_quality_preset = ri.Cvar_Get( "rtx_rt_quality_preset", "3", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_quality_preset, "0", "4", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_quality_preset, "RT quality preset:\n 0: custom\n 1: low\n 2: medium\n 3: high\n 4: ultra" );
-	ri.Cvar_SetGroup( rtx_rt_quality_preset, CVG_RENDERER );
-	rtx_rt_first_person_priority = ri.Cvar_Get( "rtx_rt_first_person_priority", "1", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_first_person_priority, "0", "1", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_first_person_priority, "Prioritize first-person weapon model ingestion when RT dynamic entity budget is exceeded." );
-	ri.Cvar_SetGroup( rtx_rt_first_person_priority, CVG_RENDERER );
-	rtx_rt_effect_radius_scale = ri.Cvar_Get( "rtx_rt_effect_radius_scale", "1.2", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_effect_radius_scale, "0.1", "4", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_effect_radius_scale, "Scale applied to RT proxy radius/width for sprites, beams, muzzle flashes, and projectile effects." );
-	ri.Cvar_SetGroup( rtx_rt_effect_radius_scale, CVG_RENDERER );
-	rtx_rt_effect_emissive_boost = ri.Cvar_Get( "rtx_rt_effect_emissive_boost", "2.0", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_effect_emissive_boost, "0", NULL, CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_effect_emissive_boost, "Additional emissive multiplier for combat readability effects (muzzle flashes/projectiles/trails)." );
-	ri.Cvar_SetGroup( rtx_rt_effect_emissive_boost, CVG_RENDERER );
-	rtx_rt_marks_enable = ri.Cvar_Get( "rtx_rt_marks_enable", "1", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_marks_enable, "0", "1", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_marks_enable, "Include RE_AddPoly mark/decal surfaces in RT dynamic geometry even when dynamic effect mode is limited." );
-	ri.Cvar_SetGroup( rtx_rt_marks_enable, CVG_RENDERER );
-	rtx_rt_particle_volume = ri.Cvar_Get( "rtx_rt_particle_volume", "1", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_particle_volume, "0", "1", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_particle_volume, "Enable volumetric-style shading approximation for particle/smoke/spark RT proxy materials." );
-	ri.Cvar_SetGroup( rtx_rt_particle_volume, CVG_RENDERER );
 	rtx_rt_ui_passthrough = ri.Cvar_Get( "rtx_rt_ui_passthrough", "1", CVAR_ARCHIVE_ND );
 	ri.Cvar_CheckRange( rtx_rt_ui_passthrough, "0", "1", CV_INTEGER );
 	ri.Cvar_SetDescription( rtx_rt_ui_passthrough, "Skip RT trace dispatch for UI-only views (RDF_NOWORLDMODEL) to preserve console/HUD/cinematic composition." );
 	ri.Cvar_SetGroup( rtx_rt_ui_passthrough, CVG_RENDERER );
-	rtx_rt_camera_mode_validate = ri.Cvar_Get( "rtx_rt_camera_mode_validate", "1", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_camera_mode_validate, "0", "1", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_camera_mode_validate, "Validate camera mode transitions (third-person, spectator, demo seek) and force temporal resets when needed." );
-	ri.Cvar_SetGroup( rtx_rt_camera_mode_validate, CVG_RENDERER );
-	rtx_rt_legacy_color_compat = ri.Cvar_Get( "rtx_rt_legacy_color_compat", "1", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_legacy_color_compat, "0", "1", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_legacy_color_compat, "Apply legacy r_intensity brightness compatibility shaping to native RT output before the shared final pass." );
-	ri.Cvar_SetGroup( rtx_rt_legacy_color_compat, CVG_RENDERER );
-	rtx_rt_raster_reference = ri.Cvar_Get( "rtx_rt_raster_reference", "0", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_raster_reference, "0", "1", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_raster_reference, "RT primary-world shading policy:\n 0: native closest-hit RT lighting/material result (default)\n 1: use authored raster scene color/lightmaps as a compatibility reference with bounded RT visibility and ray-visible analytic-environment specular cues" );
-	ri.Cvar_SetGroup( rtx_rt_raster_reference, CVG_RENDERER );
-	rtx_rt_readability_lift = ri.Cvar_Get( "rtx_rt_readability_lift", "0", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_readability_lift, "-1", "1", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_readability_lift, "Gameplay readability lift applied after RT tone mapping." );
-	ri.Cvar_SetGroup( rtx_rt_readability_lift, CVG_RENDERER );
-	rtx_rt_readability_contrast = ri.Cvar_Get( "rtx_rt_readability_contrast", "1", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_readability_contrast, "0.2", "3", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_readability_contrast, "Gameplay readability contrast multiplier in RT resolve." );
-	ri.Cvar_SetGroup( rtx_rt_readability_contrast, CVG_RENDERER );
-	rtx_rt_readability_saturation = ri.Cvar_Get( "rtx_rt_readability_saturation", "1", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_readability_saturation, "0", "3", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_readability_saturation, "Gameplay readability saturation multiplier in RT resolve." );
-	ri.Cvar_SetGroup( rtx_rt_readability_saturation, CVG_RENDERER );
-	rtx_rt_readability_shadow_floor = ri.Cvar_Get( "rtx_rt_readability_shadow_floor", "0", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_readability_shadow_floor, "0", "0.5", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_readability_shadow_floor, "Minimum shadow luminance floor to preserve combat readability in dark regions." );
-	ri.Cvar_SetGroup( rtx_rt_readability_shadow_floor, CVG_RENDERER );
-	rtx_rt_dynamic_blas = ri.Cvar_Get( "rtx_rt_dynamic_blas", "0", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_dynamic_blas, "0", "1", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_dynamic_blas, "Enable the experimental dynamic-scene BLAS visibility/shadow proxy:\n 0: disabled (default; raster overlay preserves all entities/effects)\n 1: enabled (entities/effects can occlude RT shadow/visibility rays while raster remains authoritative for their primary color)" );
-	ri.Cvar_SetGroup( rtx_rt_dynamic_blas, CVG_RENDERER );
-	rtx_rt_dynamic_effects = ri.Cvar_Get( "rtx_rt_dynamic_effects", "1", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_dynamic_effects, "0", "2", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_dynamic_effects, "Dynamic RT effect proxy policy:\n 0: model geometry only\n 1: model geometry + sprite/beam proxies\n 2: mode 1 + RE_AddPoly surfaces" );
-	ri.Cvar_SetGroup( rtx_rt_dynamic_effects, CVG_RENDERER );
 	rtx_rt_iqm_skinning = ri.Cvar_Get( "rtx_rt_iqm_skinning", "1", CVAR_ARCHIVE_ND );
 	ri.Cvar_CheckRange( rtx_rt_iqm_skinning, "0", "2", CV_INTEGER );
 	ri.Cvar_SetDescription( rtx_rt_iqm_skinning, "IQM skinning policy for RT geometry:\n 0: bind-pose/static vertices\n 1: full CPU skinned interpolation\n 2: skinned, current frame only (no interpolation)" );
 	ri.Cvar_SetGroup( rtx_rt_iqm_skinning, CVG_RENDERER );
-	rtx_rt_masked_mode = ri.Cvar_Get( "rtx_rt_masked_mode", "1", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_masked_mode, "0", "1", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_masked_mode, "Masked material handling policy:\n 0: force opaque in RT path\n 1: honor shader alpha-test classification metadata" );
-	ri.Cvar_SetGroup( rtx_rt_masked_mode, CVG_RENDERER );
-	rtx_rt_masked_cutoff = ri.Cvar_Get( "rtx_rt_masked_cutoff", "-1", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_masked_cutoff, "-1", "1", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_masked_cutoff, "Override alpha-test cutoff for masked materials:\n -1: use shader-derived cutoff\n 0..1: force explicit cutoff" );
-	ri.Cvar_SetGroup( rtx_rt_masked_cutoff, CVG_RENDERER );
-	rtx_rt_material_debug = ri.Cvar_Get( "rtx_rt_material_debug", "0", CVAR_TEMP );
-	ri.Cvar_CheckRange( rtx_rt_material_debug, "0", "3", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_material_debug, "RT material ingestion diagnostics:\n 0: disabled\n 1: extraction summary only\n 2: include world material entries\n 3: include world + dynamic material entries" );
-	ri.Cvar_SetGroup( rtx_rt_material_debug, CVG_RENDERER );
-	rtx_rt_material_heuristics = ri.Cvar_Get( "rtx_rt_material_heuristics", "0", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_material_heuristics, "0", "1", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_material_heuristics,
-		"Experimental PBR/material guesses from legacy surface flags and shader/image names. Disabled by default because retail Quake Live names and gameplay flags are not PBR metadata." );
-	ri.Cvar_SetGroup( rtx_rt_material_heuristics, CVG_RENDERER );
-	rtx_rt_material_override = ri.Cvar_Get( "rtx_rt_material_override", "0", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_material_override, "0", "3", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_material_override, "Global RT material override mode:\n 0: disabled\n 1: matte clay\n 2: chrome\n 3: emissive white" );
-	ri.Cvar_SetGroup( rtx_rt_material_override, CVG_RENDERER );
-	rtx_rt_material_roughness_override = ri.Cvar_Get( "rtx_rt_material_roughness_override", "-1", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_material_roughness_override, "-1", "1", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_material_roughness_override, "Per-material roughness override:\n -1: disabled\n 0..1: force roughness value for all translated materials" );
-	ri.Cvar_SetGroup( rtx_rt_material_roughness_override, CVG_RENDERER );
-	rtx_rt_material_metallic_override = ri.Cvar_Get( "rtx_rt_material_metallic_override", "-1", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_material_metallic_override, "-1", "1", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_material_metallic_override, "Per-material metallic override:\n -1: disabled\n 0..1: force metallic value for all translated materials" );
-	ri.Cvar_SetGroup( rtx_rt_material_metallic_override, CVG_RENDERER );
-	rtx_rt_material_emissive_override = ri.Cvar_Get( "rtx_rt_material_emissive_override", "-1", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_material_emissive_override, "-1", NULL, CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_material_emissive_override, "Per-material emissive intensity override:\n -1: disabled\n >=0: force emissive scale for all translated materials" );
-	ri.Cvar_SetGroup( rtx_rt_material_emissive_override, CVG_RENDERER );
 	rtx_rt_emissive_scale = ri.Cvar_Get( "rtx_rt_emissive_scale", "1.0", CVAR_ARCHIVE_ND );
 	ri.Cvar_CheckRange( rtx_rt_emissive_scale, "0", NULL, CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_emissive_scale, "Global emissive baseline scale applied during material translation." );
+	ri.Cvar_SetDescription( rtx_rt_emissive_scale, "Scale of the path tracer's glowing material stages, the part of a surface's colour its light does not scale." );
 	ri.Cvar_SetGroup( rtx_rt_emissive_scale, CVG_RENDERER );
-	rtx_rt_emissive_keyword_boost = ri.Cvar_Get( "rtx_rt_emissive_keyword_boost", "2.5", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_emissive_keyword_boost, "0", NULL, CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_emissive_keyword_boost, "Additional emissive boost applied when shader/image names include emissive keywords (light, glow, emissive)." );
-	ri.Cvar_SetGroup( rtx_rt_emissive_keyword_boost, CVG_RENDERER );
-	rtx_rt_shadow_mode = ri.Cvar_Get( "rtx_rt_shadow_mode", "2", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_shadow_mode, "0", "2", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_shadow_mode, "RT shadow ray policy:\n 0: disabled\n 1: hard shadows\n 2: soft shadow cone sampling" );
-	ri.Cvar_SetGroup( rtx_rt_shadow_mode, CVG_RENDERER );
-	rtx_rt_shadow_softness = ri.Cvar_Get( "rtx_rt_shadow_softness", "0.25", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_shadow_softness, "0", "1", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_shadow_softness, "Soft shadow cone width scalar used by RT shadow queries." );
-	ri.Cvar_SetGroup( rtx_rt_shadow_softness, CVG_RENDERER );
-	rtx_rt_indirect_bounce = ri.Cvar_Get( "rtx_rt_indirect_bounce", "0", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_indirect_bounce, "0", "4", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_indirect_bounce, "Maximum secondary scene-radiance bounces (0..4). Zero disables diffuse transport; enabled reflections/refraction can still trace one continuation. Authored lightmaps remain a baked lighting contribution." );
-	ri.Cvar_SetGroup( rtx_rt_indirect_bounce, CVG_RENDERER );
-	rtx_rt_indirect_strength = ri.Cvar_Get( "rtx_rt_indirect_strength", "0.35", CVAR_ARCHIVE_ND );
+	rtx_rt_emissive_light = ri.Cvar_Get( "rtx_rt_emissive_light", "2.0", CVAR_ARCHIVE_ND );
+	ri.Cvar_CheckRange( rtx_rt_emissive_light, "0", "1000", CV_FLOAT );
+	ri.Cvar_SetDescription( rtx_rt_emissive_light, "Light a glowing shader without q3map_surfacelight gives off (rtx_rt_lighting 0), as a multiple of the radiance it shows: fullbright surfaces, glow stages and additive flames. 0 lights nothing with them." );
+	ri.Cvar_SetGroup( rtx_rt_emissive_light, CVG_RENDERER );
+	rtx_rt_exposure = ri.Cvar_Get( "rtx_rt_exposure", "0", CVAR_ARCHIVE_ND );
+	ri.Cvar_CheckRange( rtx_rt_exposure, "0", "64", CV_FLOAT );
+	ri.Cvar_SetDescription( rtx_rt_exposure, "Path tracer camera exposure where the sky and emitters light the scene (rtx_rt_lighting 0): 0 exposes and tone maps each view as Q2RTX does, with a curve fitted to its histogram; any other value multiplies the light by it, before a filmic curve." );
+	ri.Cvar_SetGroup( rtx_rt_exposure, CVG_RENDERER );
+	rtx_rt_exposure_bias = ri.Cvar_Get( "rtx_rt_exposure_bias", "0", CVAR_ARCHIVE_ND );
+	ri.Cvar_CheckRange( rtx_rt_exposure_bias, "-8", "8", CV_FLOAT );
+	ri.Cvar_SetDescription( rtx_rt_exposure_bias, "Stops added to the path tracer's automatic exposure and tone curve (rtx_rt_exposure 0); positive is brighter." );
+	ri.Cvar_SetGroup( rtx_rt_exposure_bias, CVG_RENDERER );
+	rtx_rt_exposure_speed = ri.Cvar_Get( "rtx_rt_exposure_speed", "1", CVAR_ARCHIVE_ND );
+	ri.Cvar_CheckRange( rtx_rt_exposure_speed, "0", "100", CV_FLOAT );
+	ri.Cvar_SetDescription( rtx_rt_exposure_speed, "How fast the path tracer's automatic exposure and tone curve adapt to a view, as an eye adapts: a darker view at this rate a second, a brighter at twice it, as Q2RTX's. 0 adapts at once." );
+	ri.Cvar_SetGroup( rtx_rt_exposure_speed, CVG_RENDERER );
+	rtx_rt_tonemap_range = ri.Cvar_Get( "rtx_rt_tonemap_range", "7", CVAR_ARCHIVE_ND );
+	ri.Cvar_CheckRange( rtx_rt_tonemap_range, "1", "16", CV_FLOAT );
+	ri.Cvar_SetDescription( rtx_rt_tonemap_range, "The display's range, in stops, that the path tracer's tone curve fits a view's brightness into (Q2RTX's tm_dyn_range_stops). Less compresses a view with bright windows and dark rooms more." );
+	ri.Cvar_SetGroup( rtx_rt_tonemap_range, CVG_RENDERER );
+	rtx_rt_tonemap_curve = ri.Cvar_Get( "rtx_rt_tonemap_curve", "0.5", CVAR_ARCHIVE_ND );
+	ri.Cvar_CheckRange( rtx_rt_tonemap_curve, "0", "1", CV_FLOAT );
+	ri.Cvar_SetDescription( rtx_rt_tonemap_curve, "Share of the path tracer's tone curve fitted to each view's histogram; the rest is Reinhard's curve behind the automatic exposure (Q2RTX's tm_reinhard is one minus this)." );
+	ri.Cvar_SetGroup( rtx_rt_tonemap_curve, CVG_RENDERER );
+	rtx_rt_checkerboard = ri.Cvar_Get( "rtx_rt_checkerboard", "0", CVAR_ARCHIVE_ND );
+	ri.Cvar_CheckRange( rtx_rt_checkerboard, "0", "2", CV_INTEGER );
+	ri.Cvar_SetDescription( rtx_rt_checkerboard, "Path tracer diffuse bounce, traced as Q2RTX traces its indirect light: half the pixels a frame in a checkerboard that alternates, filtered together.\n 0: on the compute backend only\n 1: always\n 2: never" );
+	ri.Cvar_SetGroup( rtx_rt_checkerboard, CVG_RENDERER );
+	rtx_rt_lighting = ri.Cvar_Get( "rtx_rt_lighting", "0", CVAR_ARCHIVE_ND );
+	ri.Cvar_CheckRange( rtx_rt_lighting, "0", "2", CV_INTEGER );
+	ri.Cvar_SetDescription( rtx_rt_lighting, "Path tracer light sources:\n 0: the sky (its own colour and q3map_sun) and the surfaces that give off light, q3map_surfacelight shaders and glowing ones (rtx_rt_emissive_light), with traced bounces and nothing baked, as Q2RTX lights\n 1: the lightmaps and light grid, with traced dynamic lights over them\n 2: the map compilers' own lights and light models" );
+	ri.Cvar_SetGroup( rtx_rt_lighting, CVG_RENDERER );
+	rtx_rt_bounces = ri.Cvar_Get( "rtx_rt_bounces", "1", CVAR_ARCHIVE_ND );
+	ri.Cvar_CheckRange( rtx_rt_bounces, "0", "4", CV_INTEGER );
+	ri.Cvar_SetDescription( rtx_rt_bounces, "Path tracer diffuse bounces per path, 0 to 4 (0 direct light only). A reflection's surface takes one bounce fewer. More bounces come closer to maps whose compiler baked radiosity (q3map2 -bounce)." );
+	ri.Cvar_SetGroup( rtx_rt_bounces, CVG_RENDERER );
+	rtx_rt_patch_shadows = ri.Cvar_Get( "rtx_rt_patch_shadows", "1", CVAR_ARCHIVE_ND );
+	ri.Cvar_CheckRange( rtx_rt_patch_shadows, "0", "1", CV_INTEGER );
+	ri.Cvar_SetDescription( rtx_rt_patch_shadows, "Curved patches cast shadows from the map's own lights and sun, as for maps compiled with -patchshadows (id's own maps). 0 lets those lights pass through them, as q3map and q3map2 do without the option." );
+	ri.Cvar_SetGroup( rtx_rt_patch_shadows, CVG_RENDERER );
+	rtx_rt_material_maps = ri.Cvar_Get( "rtx_rt_material_maps", "1", CVAR_ARCHIVE_ND | CVAR_LATCH );
+	ri.Cvar_CheckRange( rtx_rt_material_maps, "0", "1", CV_INTEGER );
+	ri.Cvar_SetDescription( rtx_rt_material_maps, "Path tracer materials take companion maps named after a lit stage's texture, as OpenJK's rend2 names them: <texture>_nh or <texture>_n (normals), <texture>_specGloss, <texture>_rmo or <texture>_orm (roughness and metalness). Requires vid_restart." );
+	ri.Cvar_SetGroup( rtx_rt_material_maps, CVG_RENDERER );
+	rtx_rt_accumulate =ri.Cvar_Get( "rtx_rt_accumulate", "1", CVAR_ARCHIVE_ND );
+	ri.Cvar_CheckRange( rtx_rt_accumulate, "0", "1", CV_INTEGER );
+	ri.Cvar_SetDescription( rtx_rt_accumulate, "Average path tracer samples while the view and the scene clock stand still (paused or frozen demos, photo captures)." );
+	ri.Cvar_SetGroup( rtx_rt_accumulate, CVG_RENDERER );
+	rtx_rt_specular = ri.Cvar_Get( "rtx_rt_specular", "1", CVAR_ARCHIVE_ND );
+	ri.Cvar_CheckRange( rtx_rt_specular, "0", "1", CV_INTEGER );
+	ri.Cvar_SetDescription( rtx_rt_specular, "Path tracer specular highlights and reflections." );
+	ri.Cvar_SetGroup( rtx_rt_specular, CVG_RENDERER );
+	rtx_rt_mis = ri.Cvar_Get( "rtx_rt_mis", "1", CVAR_ARCHIVE_ND );
+	ri.Cvar_CheckRange( rtx_rt_mis, "0", "1", CV_INTEGER );
+	ri.Cvar_SetDescription( rtx_rt_mis, "Glossy reflections share the map's surface lights with light sampling (multiple importance sampling): mirrors show the lights, highlights on them are less noisy. 0 leaves the lights to light sampling alone." );
+	ri.Cvar_SetGroup( rtx_rt_mis, CVG_RENDERER );
+	rtx_rt_dlight_scale = ri.Cvar_Get( "rtx_rt_dlight_scale", "1", CVAR_ARCHIVE_ND );
+	ri.Cvar_CheckRange( rtx_rt_dlight_scale, "0", "16", CV_FLOAT );
+	ri.Cvar_SetDescription( rtx_rt_dlight_scale, "Path tracer scale for dynamic lights (1 matches the raster light pass)." );
+	ri.Cvar_SetGroup( rtx_rt_dlight_scale, CVG_RENDERER );
+	rtx_rt_denoise = ri.Cvar_Get( "rtx_rt_denoise", "1", CVAR_ARCHIVE_ND );
+	ri.Cvar_CheckRange( rtx_rt_denoise, "0", "1", CV_INTEGER );
+	ri.Cvar_SetDescription( rtx_rt_denoise, "Path tracer denoiser: temporal accumulation and variance-guided spatial filtering of traced light." );
+	ri.Cvar_SetGroup( rtx_rt_denoise, CVG_RENDERER );
+	rtx_rt_denoise_iterations = ri.Cvar_Get( "rtx_rt_denoise_iterations", "4", CVAR_ARCHIVE_ND );
+	ri.Cvar_CheckRange( rtx_rt_denoise_iterations, "0", "6", CV_INTEGER );
+	ri.Cvar_SetDescription( rtx_rt_denoise_iterations, "Path tracer spatial filter passes; each doubles its reach." );
+	ri.Cvar_SetGroup( rtx_rt_denoise_iterations, CVG_RENDERER );
+	rtx_rt_indirect_strength = ri.Cvar_Get( "rtx_rt_indirect_strength", "1.0", CVAR_ARCHIVE_ND );
 	ri.Cvar_CheckRange( rtx_rt_indirect_strength, "0", NULL, CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_indirect_strength, "Scale for sampled diffuse scene transport when indirect bounces are enabled. The raster-reference mode retains its analytic environment diffuse term." );
+	ri.Cvar_SetDescription( rtx_rt_indirect_strength, "Scale of the path tracer's diffuse bounce light (rtx_rt_bounces). 1 is physically unscaled; 0 leaves direct light and ambient only, as the map compiler baked it." );
 	ri.Cvar_SetGroup( rtx_rt_indirect_strength, CVG_RENDERER );
-	rtx_rt_reflection_strength = ri.Cvar_Get( "rtx_rt_reflection_strength", "1.0", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_reflection_strength, "0", NULL, CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_reflection_strength, "Scale for GGX-sampled scene reflections in native shading, with analytic sky on misses. Raster-reference mode retains its bounded environment cue." );
-	ri.Cvar_SetGroup( rtx_rt_reflection_strength, CVG_RENDERER );
 	rtx_rt_sky_intensity = ri.Cvar_Get( "rtx_rt_sky_intensity", "1.0", CVAR_ARCHIVE_ND );
 	ri.Cvar_CheckRange( rtx_rt_sky_intensity, "0", NULL, CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_sky_intensity, "Environment sky intensity for RT miss shading and analytic diffuse/specular evaluation." );
+	ri.Cvar_SetDescription( rtx_rt_sky_intensity, "Scale of the sky that the path tracer's reflections and bounce rays see. The sky's light on the map comes from its q3map_surfacelight and q3map_sun." );
 	ri.Cvar_SetGroup( rtx_rt_sky_intensity, CVG_RENDERER );
-	rtx_rt_sun_intensity = ri.Cvar_Get( "rtx_rt_sun_intensity", "2.5", CVAR_ARCHIVE_ND );
+	rtx_rt_sun_intensity = ri.Cvar_Get( "rtx_rt_sun_intensity", "1.0", CVAR_ARCHIVE_ND );
 	ri.Cvar_CheckRange( rtx_rt_sun_intensity, "0", NULL, CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_sun_intensity, "Directional sun light intensity multiplier for RT lighting (higher defaults keep RT scenes out of underexposed states)." );
+	ri.Cvar_SetDescription( rtx_rt_sun_intensity, "Scale of q3map_sun's light in the path tracer. 1 matches the map compiler's lightmaps." );
 	ri.Cvar_SetGroup( rtx_rt_sun_intensity, CVG_RENDERER );
-	rtx_rt_world_light_scale = ri.Cvar_Get( "rtx_rt_world_light_scale", "0", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_world_light_scale, "0", NULL, CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_world_light_scale,
-		"Experimental scale for reconstructing BSP compile-time light entities as live RT direct lights. "
-		"This is approximate and disabled by default; zero leaves only authored sun, sidecar, and dynamic lights." );
-	ri.Cvar_SetGroup( rtx_rt_world_light_scale, CVG_RENDERER );
-	rtx_rt_refractive_mode = ri.Cvar_Get( "rtx_rt_refractive_mode", "1", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_refractive_mode, "0", "2", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_refractive_mode, "Experimental native translucent transport:\n 0: opaque\n 1: thin straight-through scene transmission\n 2: dielectric scene refraction with total internal reflection. Authored translucent raster stages remain raster-owned." );
-	ri.Cvar_SetGroup( rtx_rt_refractive_mode, CVG_RENDERER );
-	rtx_rt_refractive_ior = ri.Cvar_Get( "rtx_rt_refractive_ior", "1.33", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_refractive_ior, "1.0", "2.5", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_refractive_ior, "Index of refraction used by RT translucent/refractive shading mode." );
-	ri.Cvar_SetGroup( rtx_rt_refractive_ior, CVG_RENDERER );
-	rtx_rt_max_lights = ri.Cvar_Get( "rtx_rt_max_lights", "64", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_max_lights, "1", "256", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_max_lights, "Maximum dynamic lights uploaded to RT shading per frame." );
-	ri.Cvar_SetGroup( rtx_rt_max_lights, CVG_RENDERER );
 
 	r_debugLight = ri.Cvar_Get( "r_debuglight", "0", CVAR_TEMP );
 	ri.Cvar_SetDescription( r_debugLight, "Debugging tool to print ambient and directed lighting information." );
@@ -3027,7 +2860,12 @@ static void R_Register( void )
 	ri.Cvar_SetDescription( r_skipBackEnd, "Skips loading rendering backend." );
 
 	r_lerpmodels = ri.gameId == COM_GAME_QUAKE3_IHV ? ri.Cvar_Get( "r_lerpmodels", "1", 0 ) : NULL;
-	r_lodscale = ri.Cvar_Get( "r_lodscale", "5", ri.gameId == COM_GAME_ALICE ? 0 : CVAR_CHEAT );
+	// Medal of Honor's r_lodscale is its skeletal models' own, a player
+	// setting its advanced options set from 0.25 to 1.1 (Pak0.pk3
+	// ui/advancedoptions.urc), which the engine reads
+	// (code/mohaa/mohaa_render_api.cpp).
+	r_lodscale = ri.Cvar_Get( "r_lodscale", ri.gameId == COM_GAME_MOHAA ? "1.1" : "5",
+		COM_GAME_ID_IS_RITUAL( ri.gameId ) ? 0 : ri.gameId == COM_GAME_MOHAA ? CVAR_ARCHIVE : CVAR_CHEAT );
 	ri.Cvar_SetDescription( r_lodscale, "Set scale for level of detail adjustment." );
 	r_norefresh = ri.Cvar_Get ("r_norefresh", "0", CVAR_CHEAT);
 	ri.Cvar_SetDescription( r_norefresh, "Bypasses refreshing of the rendered scene." );
@@ -3458,7 +3296,7 @@ void R_Init( void ) {
 
 	R_InitFreeType();
 
-	if ( ri.gameId == COM_GAME_ALICE ) {
+	if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) || ri.gameId == COM_GAME_MOHAA ) {
 		R_AliceInitLensFlares();
 	}
 
@@ -3509,6 +3347,8 @@ static void RE_Shutdown( refShutdownCode_t code ) {
 	ri.Cmd_RemoveCommand( "shaderstate" );
 #ifdef USE_VULKAN
 	ri.Cmd_RemoveCommand( "vkinfo" );
+	ri.Cmd_RemoveCommand( "rtx_rt_lightinfo" );
+	ri.Cmd_RemoveCommand( "rtx_rt_pick" );
 #endif
 
 	if ( tr.registered ) {
@@ -4138,6 +3978,7 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 
 	re.MarkFragments = R_MarkFragments;
 	re.MarkRTCWFragments = R_MarkRTCWFragments;
+	re.MarkMOHAAFragments = R_MarkMOHAAFragments;
 	re.AddRTCWCoronaToScene = RE_AddRTCWCoronaToScene;
 	re.LerpTag = R_LerpTag;
 	re.LerpTagEntity = R_LerpTagEntity;
@@ -4159,6 +4000,7 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 	re.AddIHVParticlesToScene = RE_AddIHVParticlesToScene;
 	re.AddIHVEntitiesToScene = RE_AddIHVEntitiesToScene;
 	re.GetAliceTikiHandle = RE_GetAliceTikiHandle;
+	re.RegisterMOHAATiki = RE_RegisterMOHAATiki;
 	re.GetShaderImageSize = RE_GetShaderImageSize;
 	re.AliceSwipeBegin = RE_AliceSwipeBegin;
 	re.AliceSwipePoint = RE_AliceSwipePoint;

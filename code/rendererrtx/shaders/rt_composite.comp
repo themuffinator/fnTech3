@@ -1,0 +1,122 @@
+#version 460
+#extension GL_GOOGLE_include_directive : require
+
+// Path tracer composite, at display resolution: reflectance times filtered
+// diffuse irradiance, plus filtered specular and emission, exposed and tone
+// mapped where the sky and emitters light the scene (rt_tonemap.glsl), then
+// fogged as the raster pass fogs a surface, wherever the trace owns the
+// pixel; the raster frame elsewhere (sky, portal views, anything the trace
+// did not reach). The result is copied into the scene colour before the
+// raster overlay pass.
+
+#include "rt_common.glsl"
+#include "rt_denoise_common.glsl"
+#include "rt_tonemap.glsl"
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+const uint RT_VIEW_FINAL = 0u;
+const uint RT_VIEW_REFLECTANCE = 1u;
+const uint RT_VIEW_NORMAL = 2u;
+const uint RT_VIEW_IRRADIANCE = 3u;
+const uint RT_VIEW_NOISY_IRRADIANCE = 4u;
+const uint RT_VIEW_SPECULAR = 5u;
+const uint RT_VIEW_EMISSION = 6u;
+const uint RT_VIEW_HISTORY = 7u;
+const uint RT_VIEW_DEPTH = 8u;
+const uint RT_VIEW_MOTION = 9u;
+
+// q3map clamped a lightmap texel at 255, so the raster renderer's lighting
+// never exceeds one lightmap unit. Traced light has no such ceiling; near a
+// lamp it would wash surfaces to white. Keep irradiance as traced below
+// `knee`, then ease it toward `ceiling`, preserving hue.
+vec3 shoulder_irradiance(vec3 E, float knee, float ceiling)
+{
+	float l = max(max(E.r, E.g), E.b);
+	if (l <= knee) {
+		return E;
+	}
+	float range = ceiling - knee;
+	float compressed = knee + range * (1.0 - exp(-(l - knee) / range));
+	return E * (compressed / l);
+}
+
+// A fixed exposure's display without a tone mapper after this pass: the
+// filmic curve of ACES (Narkowicz's fit), which keeps shadows and mid-tones
+// and rolls highlights off toward white instead of clipping them
+vec3 tone_knee(vec3 c)
+{
+	c = max(c, vec3(0.0));
+	return clamp((c * (2.51 * c + 0.03)) / (c * (2.43 * c + 0.59) + 0.14), 0.0, 1.0);
+}
+
+void main()
+{
+	uint cur = pc.state.x & 1u;
+	uint final = pc.extra.z & 1u;
+	ivec2 px = ivec2(gl_GlobalInvocationID.xy);
+	if (any(greaterThanEqual(px, ivec2(pc.outputSize.xy)))) {
+		return;
+	}
+	vec2 uv = (vec2(px) + 0.5) * pc.outputSize.zw;
+	ivec2 tp = clamp(ivec2(uv * pc.traceSize.xy), ivec2(0), ivec2(pc.traceSize.xy) - 1);
+	uint info = imageLoad(u_info[cur], tp).r;
+	vec4 result = texelFetch(u_sceneColor, px + ivec2(pc.view.xy), 0);
+
+	if ((info & RT_PIXEL_OWNED) != 0u) {
+		vec3 R = imageLoad(u_reflectance, tp).rgb;
+		vec3 E = imageLoad(u_filterDiffuse[final], tp).rgb;
+		vec3 S = imageLoad(u_filterSpecular[final], tp).rgb;
+		vec4 emissionFog = imageLoad(u_emission, tp);
+		vec3 Em = emissionFog.rgb;
+		if ((pc.extra.w & RT_COMPOSITE_SHOULDER) != 0u) {
+			// the specular light the same lights reflect eases with it, or a
+			// lamp's own highlight would still wash its wall out
+			vec3 eased = shoulder_irradiance(E, 0.8, 1.25);
+			float peak = max(max(E.r, E.g), E.b);
+			S *= peak > 0.0 ? max(max(eased.r, eased.g), eased.b) / peak : 1.0;
+			E = eased;
+		}
+		vec3 color = R * E + S + Em;
+
+		uint view = pc.extra.y;
+		if (view == RT_VIEW_FINAL) {
+			// the camera exposes the light the surface returns
+			uint mode = uint(pc.exposure.x + 0.5);
+			if (mode == RT_EXPOSURE_AUTO) {
+				color = (pc.extra.w & RT_COMPOSITE_LINEAR) != 0u ? color * tone_exposure(pc.exposure.y) :
+					tone_encode(tone_map(max(color, vec3(0.0)), tone_base(tp, final), pc.exposure.y, pc.exposure.z));
+			} else if (mode == RT_EXPOSURE_FIXED) {
+				color *= pc.exposure.y;
+				if ((pc.extra.w & RT_COMPOSITE_KNEE) != 0u) {
+					color = tone_encode(tone_knee(color));
+				}
+			}
+			// the view's global fog, by the visibility the trace found at the
+			// surface (1 without fog), as the raster pass blends a fogged draw;
+			// the fog colour is what the view shows through the fog, as raster
+			// draws it
+			color = mix(pc.fog.rgb, color, clamp(emissionFog.a, 0.0, 1.0));
+		} else if (view == RT_VIEW_REFLECTANCE) {
+			color = R;
+		} else if (view == RT_VIEW_NORMAL) {
+			color = oct_decode(imageLoad(u_normalDepth[cur], tp).xy) * 0.5 + 0.5;
+		} else if (view == RT_VIEW_IRRADIANCE) {
+			color = E * 0.5;
+		} else if (view == RT_VIEW_NOISY_IRRADIANCE) {
+			color = imageLoad(u_noisyDiffuse, tp).rgb * 0.5;
+		} else if (view == RT_VIEW_SPECULAR) {
+			color = S;
+		} else if (view == RT_VIEW_EMISSION) {
+			color = Em;
+		} else if (view == RT_VIEW_HISTORY) {
+			color = vec3(imageLoad(u_histDiffuse[cur], tp).a / float(max(pc.extra.x, 1u)));
+		} else if (view == RT_VIEW_DEPTH) {
+			color = vec3(fract(imageLoad(u_normalDepth[cur], tp).z / 256.0));
+		} else if (view == RT_VIEW_MOTION) {
+			color = vec3(imageLoad(u_motion, tp).xy * 32.0 + 0.5, 0.5);
+		}
+		result = vec4(max(color, vec3(0.0)), 1.0);
+	}
+	imageStore(u_output, px, result);
+}

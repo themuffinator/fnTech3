@@ -1614,7 +1614,7 @@ static qboolean NET_GetCvars( void ) {
 	modified += net_ip->modified;
 	net_ip->modified = qfalse;
 
-	net_port = Cvar_Get( "net_port", va( "%i", PORT_SERVER ), CVAR_LATCH | CVAR_NORESTART );
+	net_port = Cvar_Get( "net_port", va( "%i", Com_GameDefaultServerPort() ), CVAR_LATCH | CVAR_NORESTART );
 	Cvar_CheckRange( net_port, "0", "65535", CV_INTEGER );
 	Cvar_SetDescription( net_port, "The network port to use (IPv4)." );
 	modified += net_port->modified;
@@ -1626,7 +1626,7 @@ static qboolean NET_GetCvars( void ) {
 	modified += net_ip6->modified;
 	net_ip6->modified = qfalse;
 
-	net_port6 = Cvar_Get( "net_port6", va( "%i", PORT_SERVER ), CVAR_LATCH | CVAR_NORESTART );
+	net_port6 = Cvar_Get( "net_port6", va( "%i", Com_GameDefaultServerPort() ), CVAR_LATCH | CVAR_NORESTART );
 	Cvar_CheckRange( net_port6, "0", "65535", CV_INTEGER );
 	Cvar_SetDescription( net_port6, "The network port to use (IPv6)." );
 	modified += net_port6->modified;

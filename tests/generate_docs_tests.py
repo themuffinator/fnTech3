@@ -27,6 +27,7 @@ FEATURE_HEADINGS = (
 )
 
 USER_GUIDES = (
+    "docs/GAMES.md",
     "docs/DISPLAY.md",
     "docs/RTX.md",
     "docs/VISUALS.md",
@@ -40,9 +41,12 @@ LINKED_USER_DOCS = (
     "README.md",
     "BUILD.md",
     "CREDITS.md",
-    "docs/fnql.md",
+    "docs/README.md",
     *USER_GUIDES,
     "docs/GLX.md",
+    "docs/fntech3/ARCHITECTURE.md",
+    "docs/fnql/README.md",
+    "docs/archive/README.md",
 )
 
 

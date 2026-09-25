@@ -84,6 +84,11 @@ typedef struct {
 
 	int			firstLeafSurface;
 	int			numLeafSurfaces;
+
+	/* Medal of Honor's terrain patches in this leaf, a range of the map's
+	 * leafterrains; zero on every other title's map. */
+	int			firstLeafTerrain;
+	int			numLeafTerrains;
 } cLeaf_t;
 
 typedef struct cmodel_s {
@@ -165,10 +170,28 @@ typedef struct {
 	int			numSurfaces;
 	cPatch_t	**surfaces;			// non-patches will be NULL
 
+	/* Medal of Honor's LOD terrain (cm_mohaa_terrain.c), and each leaf's
+	 * references into it. Empty on every other title's map. */
+	int			numTerrain;
+	struct cmTerrain_s	*terrain;
+	int			numLeafTerrains;
+	struct cmTerrain_s	**leafterrains;
+
+	/* Medal of Honor's sphere lights, which its client game asks for
+	 * (cm_mohaa_lights.c). NULL on every other title's map. */
+	struct cmMOHAALights_s	*mohaaLights;
+
 	int			floodvalid;
 	int			checkcount;					// incremented on each trace
 
 	unsigned int checksum;
+
+	/* What a curve hands a trace besides its surface flags. Quake III gives
+	 * its contents too; Q3Test's curves keep the trace's earlier contents when
+	 * a sweep hits one in 1.02 to 1.05, and when a start is found inside one in
+	 * every release. Set per map by CM_LoadMap; zero is Quake III's rule. */
+	qboolean	curveHitKeepsContents;
+	qboolean	curveInsideKeepsContents;
 } clipMap_t;
 
 
@@ -182,6 +205,7 @@ extern	int			c_traces, c_brush_traces, c_patch_traces;
 extern	cvar_t		*cm_noAreas;
 extern	cvar_t		*cm_noCurves;
 extern	cvar_t		*cm_playerCurveClip;
+extern	cvar_t		*cm_curveClipHack;	// Q3Test 1.02 to 1.05 only; NULL otherwise
 
 // cm_test.c
 

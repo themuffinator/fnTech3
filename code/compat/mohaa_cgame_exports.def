@@ -1,0 +1,55 @@
+/* Copyright (C) 2026 fnTech3 contributors. GPL-2.0-or-later.
+ *
+ * Medal of Honor: Allied Assault 1.00's thirty client-game export slots, as
+ * GetCGameAPI (0x300237e4) writes them into 0x30265508. The routine takes no
+ * argument; the import table reaches the module through export 0.
+ *
+ * FNTECH3_MOHAA_CGAME_EXPORT( slot, name, kind, evidence )
+ *
+ * `kind` is FUNCTION or NULL_DATA (written as zero). `evidence`:
+ *
+ *   LITERAL   the body's own string names it: 'StatsScreen' and 'ui_hud 1'
+ *             in the initializer, the mission's 'g_success' and the stats
+ *             menus in the frame, 'CG_PermanentMark', the scoreboard's column
+ *             names, 'dmmessage 0 *%i%i' in the capture key,
+ *             'CG_Command_ProcessFile: %s'
+ *   BEHAVIOUR slot 0 copies the 168 imports and stores the client number it
+ *             is handed; slot 1 hides the 'StatsScreen' menu
+ *   ORDER     the reference member at that position
+ *
+ * The names are OpenMoHAA's client-game export members (GPL-2.0-or-later).
+ * Its five 2.0 members after CG_CheckCaptureKey are not in 1.00; its
+ * commented-out profiling pointer is, written null at slot 28, and
+ * CG_Command_ProcessFile follows it.
+ */
+
+FNTECH3_MOHAA_CGAME_EXPORT(  0, Init,                        FUNCTION,  BEHAVIOUR )
+FNTECH3_MOHAA_CGAME_EXPORT(  1, Shutdown,                    FUNCTION,  BEHAVIOUR )
+FNTECH3_MOHAA_CGAME_EXPORT(  2, DrawActiveFrame,             FUNCTION,  LITERAL   )
+FNTECH3_MOHAA_CGAME_EXPORT(  3, ConsoleCommand,              FUNCTION,  ORDER     )
+FNTECH3_MOHAA_CGAME_EXPORT(  4, GetRendererConfig,           FUNCTION,  ORDER     )
+FNTECH3_MOHAA_CGAME_EXPORT(  5, Draw2D,                      FUNCTION,  ORDER     )
+FNTECH3_MOHAA_CGAME_EXPORT(  6, EyePosition,                 FUNCTION,  ORDER     )
+FNTECH3_MOHAA_CGAME_EXPORT(  7, EyeOffset,                   FUNCTION,  ORDER     )
+FNTECH3_MOHAA_CGAME_EXPORT(  8, EyeAngles,                   FUNCTION,  ORDER     )
+FNTECH3_MOHAA_CGAME_EXPORT(  9, SensitivityScale,            FUNCTION,  ORDER     )
+FNTECH3_MOHAA_CGAME_EXPORT( 10, ParseCGMessage,              FUNCTION,  ORDER     )
+FNTECH3_MOHAA_CGAME_EXPORT( 11, RefreshHudDrawElements,      FUNCTION,  ORDER     )
+FNTECH3_MOHAA_CGAME_EXPORT( 12, HudDrawShader,               FUNCTION,  ORDER     )
+FNTECH3_MOHAA_CGAME_EXPORT( 13, HudDrawFont,                 FUNCTION,  ORDER     )
+FNTECH3_MOHAA_CGAME_EXPORT( 14, GetParent,                   FUNCTION,  ORDER     )
+FNTECH3_MOHAA_CGAME_EXPORT( 15, GetObjectiveAlpha,           FUNCTION,  ORDER     )
+FNTECH3_MOHAA_CGAME_EXPORT( 16, PermanentMark,               FUNCTION,  LITERAL   )
+FNTECH3_MOHAA_CGAME_EXPORT( 17, PermanentTreadMarkDecal,     FUNCTION,  ORDER     )
+FNTECH3_MOHAA_CGAME_EXPORT( 18, PermanentUpdateTreadMark,    FUNCTION,  LITERAL   )
+FNTECH3_MOHAA_CGAME_EXPORT( 19, ProcessInitCommands,         FUNCTION,  LITERAL   )
+FNTECH3_MOHAA_CGAME_EXPORT( 20, EndTiki,                     FUNCTION,  ORDER     )
+FNTECH3_MOHAA_CGAME_EXPORT( 21, GetColumnName,               FUNCTION,  LITERAL   )
+FNTECH3_MOHAA_CGAME_EXPORT( 22, GetScoreBoardColor,          FUNCTION,  ORDER     )
+FNTECH3_MOHAA_CGAME_EXPORT( 23, GetScoreBoardFontColor,      FUNCTION,  ORDER     )
+FNTECH3_MOHAA_CGAME_EXPORT( 24, GetScoreBoardDrawHeader,     FUNCTION,  ORDER     )
+FNTECH3_MOHAA_CGAME_EXPORT( 25, GetScoreBoardPosition,       FUNCTION,  ORDER     )
+FNTECH3_MOHAA_CGAME_EXPORT( 26, WeaponCommandButtonBits,     FUNCTION,  ORDER     )
+FNTECH3_MOHAA_CGAME_EXPORT( 27, CheckCaptureKey,             FUNCTION,  LITERAL   )
+FNTECH3_MOHAA_CGAME_EXPORT( 28, profStruct,                  NULL_DATA, ORDER     )
+FNTECH3_MOHAA_CGAME_EXPORT( 29, Command_ProcessFile,         FUNCTION,  LITERAL   )

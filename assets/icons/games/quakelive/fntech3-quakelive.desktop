@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Quake Live
+GenericName=fnTech3 game profile
+Comment=Play Quake Live with fnTech3
+Exec=fntech3 +set com_gameProfile quakelive
+Icon=fntech3-quakelive
+Terminal=false
+Categories=Game;ActionGame;
+StartupWMClass=fntech3-quakelive

@@ -1181,7 +1181,7 @@ static const int numImageLoaders = ARRAY_LEN( imageLoaders );
  * title's: another profile never looks for an .ftx beside a missing image. */
 static qboolean R_ImageLoaderEnabled( int i )
 {
-	return imageLoaders[ i ].ImageLoader != R_LoadFTX || ri.gameId == COM_GAME_ALICE ? qtrue : qfalse;
+	return imageLoaders[ i ].ImageLoader != R_LoadFTX || COM_GAME_ID_IS_RITUAL( ri.gameId ) ? qtrue : qfalse;
 }
 
 /*
@@ -1212,7 +1212,7 @@ static const char *R_LoadImage( const char *name, byte **pic, int *width, int *h
 	 * extension replaced, and only falls back to the named file when no
 	 * FTX is there (retail alice.exe 0x00483e80). Its paks carry 5,893 FTX
 	 * images and 284 TGA ones, so the order decides which one is drawn. */
-	if ( ri.gameId == COM_GAME_ALICE && !Q_stricmp( ext, "tga" ) ) {
+	if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) && !Q_stricmp( ext, "tga" ) ) {
 		char ftxName[ MAX_QPATH ];
 
 		COM_StripExtension( localName, ftxName, sizeof( ftxName ) );
@@ -1298,6 +1298,69 @@ byte *R_LoadImagePixels( const char *name, int *width, int *height )
 
 	R_LoadImage( name, &pic, width, height );
 	return pic;
+}
+
+
+/*
+=================
+R_ImageSums
+
+An image's pixels summed for the path tracer's emitters (rt/rt_material.c):
+its plain average colour and alpha, and, when weight is given, the average
+of each pixel's colour at `scale` times weight() of that colour. All in 0..1.
+=================
+*/
+qboolean R_ImageSums( const char *name, const float scale[3], float ( *weight )( float r, float g, float b ),
+	float rgba[4], float weighted[3] )
+{
+	double sum[4] = { 0.0, 0.0, 0.0, 0.0 };
+	double part[3] = { 0.0, 0.0, 0.0 };
+	byte *pic;
+	const byte *pixel;
+	int width, height, pixels, i;
+
+	rgba[0] = rgba[1] = rgba[2] = 0.0f;
+	rgba[3] = 1.0f;
+	if ( weighted ) {
+		weighted[0] = weighted[1] = weighted[2] = 0.0f;
+	}
+	if ( !name || !name[0] ) {
+		return qfalse;
+	}
+	R_LoadImage( name, &pic, &width, &height );
+	if ( !pic || width <= 0 || height <= 0 ) {
+		if ( pic ) {
+			ri.Free( pic );
+		}
+		return qfalse;
+	}
+	pixels = width * height;
+	pixel = pic;
+	for ( i = 0; i < pixels; i++, pixel += 4 ) {
+		sum[0] += pixel[0];
+		sum[1] += pixel[1];
+		sum[2] += pixel[2];
+		sum[3] += pixel[3];
+		if ( weighted && weight ) {
+			const float r = pixel[0] / 255.0f * scale[0];
+			const float g = pixel[1] / 255.0f * scale[1];
+			const float b = pixel[2] / 255.0f * scale[2];
+			const float w = weight( r, g, b );
+			part[0] += r * w;
+			part[1] += g * w;
+			part[2] += b * w;
+		}
+	}
+	for ( i = 0; i < 4; i++ ) {
+		rgba[i] = (float)( sum[i] / ( (double)pixels * 255.0 ) );
+	}
+	if ( weighted ) {
+		for ( i = 0; i < 3; i++ ) {
+			weighted[i] = (float)( part[i] / (double)pixels );
+		}
+	}
+	ri.Free( pic );
+	return qtrue;
 }
 
 
@@ -1423,7 +1486,8 @@ image_t	*R_FindImageFile( const char *name, imgFlags_t flags )
 		return NULL;
 	}
 
-	if ( tr.mapLoading && r_mapGreyScale->value > 0 ) {
+	// a data map (a normal map's directions) is not a colour to grey
+	if ( tr.mapLoading && r_mapGreyScale->value > 0 && !( flags & IMGFLAG_COLORSPACE_DATA ) ) {
 		byte *img;
 		int i;
 		for ( i = 0, img = pic; i < width * height; i++, img += 4 ) {

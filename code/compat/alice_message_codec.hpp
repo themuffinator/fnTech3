@@ -137,17 +137,49 @@ inline bool VectorHas( const ChangeVector &vector, std::size_t field ) noexcept 
 	return ( vector[field >> 3] >> ( field & 7 ) ) & 1u;
 }
 
-inline std::uint32_t TaggedChanges( const Entity &from, const Entity &to ) noexcept {
+/* The entity and player codecs walk one title's records: its fields in the
+ * order its retail engine walks them, its dictionary of changed-field
+ * vectors, and the thirty-two byte block an entity sends under a mask of its
+ * own. Alice's are these. Heavy Metal: F.A.K.K.2's engine, which Alice's
+ * descends from, runs the same algorithm over its own entity record, tables
+ * and dictionary (code/compat/fakk2_message_codec.hpp). */
+struct AliceEntitySpec {
+	using Record = Entity;
+	static constexpr std::size_t FieldCount = FNTECH3_ALICE_ENTITY_STATE_FIELDS;
+	static constexpr const std::array<Field, FieldCount> &Fields = EntityFields;
+	static constexpr const std::array<ChangeVector, 31> &Vectors = ChangeVectors;
+	static const std::uint8_t *Block( const Record &record ) noexcept { return record.tagged; }
+	static std::uint8_t *Block( Record &record ) noexcept { return record.tagged; }
+};
+
+struct AlicePlayerSpec {
+	using Record = Player;
+	static constexpr std::size_t FieldCount = FNTECH3_ALICE_PLAYER_STATE_FIELDS;
+	static constexpr const std::array<Field, FieldCount> &Fields = PlayerFields;
+};
+
+template<class Spec>
+std::uint32_t BlockByteChanges( const typename Spec::Record &from,
+	const typename Spec::Record &to ) noexcept {
+	const std::uint8_t *before = Spec::Block( from );
+	const std::uint8_t *after = Spec::Block( to );
 	std::uint32_t mask = 0;
 	for ( std::size_t i = 0; i < kTaggedBytes; ++i ) {
-		if ( from.tagged[i] != to.tagged[i] ) mask |= 1u << i;
+		if ( before[i] != after[i] ) mask |= 1u << i;
 	}
 	return mask;
 }
 
+inline std::uint32_t TaggedChanges( const Entity &from, const Entity &to ) noexcept {
+	return BlockByteChanges<AliceEntitySpec>( from, to );
+}
+
 /* Writes the entity number too, as the retail encoder does. */
-template<class Writer>
-bool WriteEntity( Writer &io, const Entity *from, const Entity *to, bool force ) {
+template<class Spec, class Writer>
+bool WriteEntityAs( Writer &io, const typename Spec::Record *from,
+	const typename Spec::Record *to, bool force ) {
+	static_assert( Spec::FieldCount <= kVectorBytes * 8, "a vector has a bit for every field" );
+	using Record = typename Spec::Record;
 	if ( !from && !to ) return io.Good();
 	const int number = to ? to->number : from->number;
 	if ( number < 0 || number >= kMaxGentities ) return io.Fail();
@@ -156,19 +188,19 @@ bool WriteEntity( Writer &io, const Entity *from, const Entity *to, bool force )
 		io.Write( 1, 1 );
 		return io.Good();
 	}
-	const Entity empty{};
+	const Record empty{};
 	if ( !from ) from = &empty;
 
 	ChangeVector vector{};
 	bool any = false;
-	for ( std::size_t i = 0; i < EntityFields.size(); ++i ) {
-		if ( Word( *from, EntityFields[i].offset )
-			!= Word( *to, EntityFields[i].offset ) ) {
+	for ( std::size_t i = 0; i < Spec::FieldCount; ++i ) {
+		if ( Word( *from, Spec::Fields[i].offset )
+			!= Word( *to, Spec::Fields[i].offset ) ) {
 			vector[i >> 3] |= static_cast<std::uint8_t>( 1u << ( i & 7 ) );
 			any = true;
 		}
 	}
-	const std::uint32_t tagged = TaggedChanges( *from, *to );
+	const std::uint32_t tagged = BlockByteChanges<Spec>( *from, *to );
 
 	/* The retail encoder's quiet case needs both to be empty: a block-only
 	 * change still sends a delta, with an all-zero field vector. An unchanged
@@ -183,8 +215,8 @@ bool WriteEntity( Writer &io, const Entity *from, const Entity *to, bool force )
 	}
 
 	std::uint32_t symbol = kRawVectorSymbol;
-	for ( std::size_t i = 0; i < ChangeVectors.size(); ++i ) {
-		if ( ChangeVectors[i] == vector ) {
+	for ( std::size_t i = 0; i < Spec::Vectors.size(); ++i ) {
+		if ( Spec::Vectors[i] == vector ) {
 			symbol = static_cast<std::uint32_t>( i );
 			break;
 		}
@@ -195,31 +227,37 @@ bool WriteEntity( Writer &io, const Entity *from, const Entity *to, bool force )
 	io.Write( symbol, 5 );
 	if ( symbol == kRawVectorSymbol ) {
 		std::size_t i = 0;
-		for ( ; i + 8 <= EntityFields.size(); i += 8 ) io.Write( vector[i >> 3], 8 );
-		if ( EntityFields.size() & 7 ) {
-			io.Write( vector[i >> 3], static_cast<int>( EntityFields.size() & 7 ) );
+		for ( ; i + 8 <= Spec::FieldCount; i += 8 ) io.Write( vector[i >> 3], 8 );
+		if constexpr ( ( Spec::FieldCount & 7 ) != 0 ) {
+			io.Write( vector[i >> 3], static_cast<int>( Spec::FieldCount & 7 ) );
 		}
 	}
-	for ( std::size_t i = 0; i < EntityFields.size(); ++i ) {
+	for ( std::size_t i = 0; i < Spec::FieldCount; ++i ) {
 		if ( VectorHas( vector, i ) ) {
-			WriteScalar( io, Word( *to, EntityFields[i].offset ), EntityFields[i].bits );
+			WriteScalar( io, Word( *to, Spec::Fields[i].offset ), Spec::Fields[i].bits );
 		}
 	}
 	io.Write( tagged != 0, 1 );
 	if ( tagged ) {
 		io.Write( tagged, 32 );
 		for ( std::size_t i = 0; i < kTaggedBytes; ++i ) {
-			if ( tagged & ( 1u << i ) ) io.Write( to->tagged[i], 8 );
+			if ( tagged & ( 1u << i ) ) io.Write( Spec::Block( *to )[i], 8 );
 		}
 	}
 	return io.Good();
 }
 
+template<class Writer>
+bool WriteEntity( Writer &io, const Entity *from, const Entity *to, bool force ) {
+	return WriteEntityAs<AliceEntitySpec>( io, from, to, force );
+}
+
 /* The caller has read the entity number. A removal publishes number 1023. */
-template<class Reader>
-bool ReadEntity( Reader &io, const Entity *from, Entity *to, int number ) {
+template<class Spec, class Reader>
+bool ReadEntityAs( Reader &io, const typename Spec::Record *from,
+	typename Spec::Record *to, int number ) {
 	if ( !to || number < 0 || number >= kMaxGentities ) return io.Fail();
-	Entity result{};
+	typename Spec::Record result{};
 	if ( io.Read( 1 ) ) {
 		result.number = kMaxGentities - 1;
 	} else {
@@ -230,29 +268,29 @@ bool ReadEntity( Reader &io, const Entity *from, Entity *to, int number ) {
 			ChangeVector vector{};
 			if ( symbol == kRawVectorSymbol ) {
 				std::size_t i = 0;
-				for ( ; i + 8 <= EntityFields.size(); i += 8 ) {
+				for ( ; i + 8 <= Spec::FieldCount; i += 8 ) {
 					vector[i >> 3] = static_cast<std::uint8_t>( io.Read( 8 ) );
 				}
-				if ( EntityFields.size() & 7 ) {
+				if constexpr ( ( Spec::FieldCount & 7 ) != 0 ) {
 					vector[i >> 3] = static_cast<std::uint8_t>(
-						io.Read( static_cast<int>( EntityFields.size() & 7 ) ) );
+						io.Read( static_cast<int>( Spec::FieldCount & 7 ) ) );
 				}
-			} else if ( symbol < ChangeVectors.size() ) {
-				vector = ChangeVectors[symbol];
+			} else if ( symbol < Spec::Vectors.size() ) {
+				vector = Spec::Vectors[symbol];
 			} else {
 				return io.Fail();
 			}
-			for ( std::size_t i = 0; i < EntityFields.size() && io.Good(); ++i ) {
+			for ( std::size_t i = 0; i < Spec::FieldCount && io.Good(); ++i ) {
 				if ( VectorHas( vector, i ) ) {
-					SetWord( result, EntityFields[i].offset,
-						ReadScalar( io, EntityFields[i].bits ) );
+					SetWord( result, Spec::Fields[i].offset,
+						ReadScalar( io, Spec::Fields[i].bits ) );
 				}
 			}
 			if ( io.Good() && io.Read( 1 ) ) {
 				const std::uint32_t tagged = io.Read( 32 );
 				for ( std::size_t i = 0; i < kTaggedBytes && io.Good(); ++i ) {
 					if ( tagged & ( 1u << i ) ) {
-						result.tagged[i] = static_cast<std::uint8_t>( io.Read( 8 ) );
+						Spec::Block( result )[i] = static_cast<std::uint8_t>( io.Read( 8 ) );
 					}
 				}
 			}
@@ -261,6 +299,11 @@ bool ReadEntity( Reader &io, const Entity *from, Entity *to, int number ) {
 	if ( !io.Good() ) return false;
 	*to = result;
 	return true;
+}
+
+template<class Reader>
+bool ReadEntity( Reader &io, const Entity *from, Entity *to, int number ) {
+	return ReadEntityAs<AliceEntitySpec>( io, from, to, number );
 }
 
 /* The entity a gamestate's baselines are delta-coded from. Quake III's is all
@@ -318,12 +361,13 @@ void ReadBlock( Reader &io, std::int32_t *to ) {
 	}
 }
 
-template<class Writer>
-bool WritePlayer( Writer &io, const Player *from, const Player *to ) {
+template<class Spec, class Writer>
+bool WritePlayerAs( Writer &io, const typename Spec::Record *from,
+	const typename Spec::Record *to ) {
 	if ( !to ) return io.Fail();
-	const Player empty{};
+	const typename Spec::Record empty{};
 	if ( !from ) from = &empty;
-	for ( const Field &field : PlayerFields ) {
+	for ( const Field &field : Spec::Fields ) {
 		const std::uint32_t value = Word( *to, field.offset );
 		const bool changed = value != Word( *from, field.offset );
 		io.Write( changed, 1 );
@@ -335,12 +379,18 @@ bool WritePlayer( Writer &io, const Player *from, const Player *to ) {
 	return io.Good();
 }
 
-template<class Reader>
-bool ReadPlayer( Reader &io, const Player *from, Player *to ) {
+template<class Writer>
+bool WritePlayer( Writer &io, const Player *from, const Player *to ) {
+	return WritePlayerAs<AlicePlayerSpec>( io, from, to );
+}
+
+template<class Spec, class Reader>
+bool ReadPlayerAs( Reader &io, const typename Spec::Record *from,
+	typename Spec::Record *to ) {
 	if ( !to ) return io.Fail();
-	Player result{};
+	typename Spec::Record result{};
 	if ( from ) result = *from;
-	for ( const Field &field : PlayerFields ) {
+	for ( const Field &field : Spec::Fields ) {
 		if ( !io.Good() ) return false;
 		if ( io.Read( 1 ) ) {
 			SetWord( result, field.offset, ReadScalar( io, field.bits ) );
@@ -352,6 +402,11 @@ bool ReadPlayer( Reader &io, const Player *from, Player *to ) {
 	if ( !io.Good() ) return false;
 	*to = result;
 	return true;
+}
+
+template<class Reader>
+bool ReadPlayer( Reader &io, const Player *from, Player *to ) {
+	return ReadPlayerAs<AlicePlayerSpec>( io, from, to );
 }
 
 /* The user command. It carries no change vector: the time is sent either as

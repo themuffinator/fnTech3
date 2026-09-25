@@ -451,7 +451,7 @@ def extract_reflection(module: SpirvModule) -> Dict[str, object]:
 def discover_direct_variants(shader_dir: Path) -> List[ShaderVariant]:
 	variants: List[ShaderVariant] = []
 
-	direct_stages = ("vert", "frag", "rgen", "rmiss", "rchit", "rahit")
+	direct_stages = ("vert", "frag", "comp", "rgen", "rmiss", "rchit", "rahit")
 
 	for stage in direct_stages:
 		for shader_path in sorted(shader_dir.glob(f"*.{stage}"), key=lambda path: path.name.lower()):
@@ -531,12 +531,12 @@ def build_template_variants() -> List[ShaderVariant]:
 	variants.append(
 		ShaderVariant("frag_tx0_df", "gen_frag.tmpl", "frag", ("USE_CLX_IDENT", "USE_ATEST", "USE_DF"))
 	)
-	append_pair_variants(variants, "gen_frag.tmpl", "frag", "frag_tx1", ("USE_TX1",))
-	append_pair_variants(variants, "gen_frag.tmpl", "frag", "frag_tx1_ident1", ("USE_CLX_IDENT", "USE_TX1"))
-	append_pair_variants(variants, "gen_frag.tmpl", "frag", "frag_tx1_fixed", ("USE_FIXED_COLOR", "USE_TX1"))
-	append_pair_variants(variants, "gen_frag.tmpl", "frag", "frag_tx1_cl", ("USE_CL1", "USE_TX1"))
-	append_pair_variants(variants, "gen_frag.tmpl", "frag", "frag_tx2", ("USE_TX2",))
-	append_pair_variants(variants, "gen_frag.tmpl", "frag", "frag_tx2_cl", ("USE_CL2", "USE_TX2"))
+	append_pair_variants(variants, "gen_frag.tmpl", "frag", "frag_tx1", ("USE_TX1", "USE_ATEST"))
+	append_pair_variants(variants, "gen_frag.tmpl", "frag", "frag_tx1_ident1", ("USE_CLX_IDENT", "USE_TX1", "USE_ATEST"))
+	append_pair_variants(variants, "gen_frag.tmpl", "frag", "frag_tx1_fixed", ("USE_FIXED_COLOR", "USE_TX1", "USE_ATEST"))
+	append_pair_variants(variants, "gen_frag.tmpl", "frag", "frag_tx1_cl", ("USE_CL1", "USE_TX1", "USE_ATEST"))
+	append_pair_variants(variants, "gen_frag.tmpl", "frag", "frag_tx2", ("USE_TX2", "USE_ATEST"))
+	append_pair_variants(variants, "gen_frag.tmpl", "frag", "frag_tx2_cl", ("USE_CL2", "USE_TX2", "USE_ATEST"))
 
 	return variants
 
@@ -598,7 +598,7 @@ def compile_variant(glslang: Path, shader_dir: Path, temp_spv: Path, variant: Sh
 		str(temp_spv),
 		variant.source,
 	]
-	if variant.stage in {"rgen", "rmiss", "rchit", "rahit"}:
+	if variant.stage in {"rgen", "rmiss", "rchit", "rahit", "comp"}:
 		command.extend(["--target-env", "spirv1.4"])
 	command.extend(f"-D{macro}" for macro in variant.defines)
 

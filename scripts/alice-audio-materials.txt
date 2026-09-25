@@ -1,0 +1,46 @@
+# Material rules for American McGee's Alice's audio zones.
+#
+# Alice's maps carry almost no material surfaceparms (eight shader records in
+# the thirty-six retail maps), so zone materials come from shader names. The
+# compiler's own name tokens cover 54.7% of the retail maps' draw surfaces;
+# these rules add Alice's own texture vocabulary and raise that to 76.3%.
+# Each pattern was checked against every shader name the retail maps use: none
+# matches a name the compiler's own tokens give a different material, except
+# bark_water, which is both. Weight 1 puts every rule on a par with those
+# tokens: these are naming heuristics, not overrides.
+#
+# Patterns are case-insensitive substrings of the shader path.
+
+# stone and other hard surfaces
+/rok stone weight 1
+brk stone weight 1
+marb stone weight 1
+/cave stone weight 1
+stalag stone weight 1
+/ice stone weight 1
+bone stone weight 1
+plaster stone weight 1
+glass stone weight 1
+crystal stone weight 1
+mirror stone weight 1
+
+# foliage, earth and flesh
+bark soft weight 1
+hedgewall soft weight 1
+natural/hedge soft weight 1
+leaves soft weight 1
+/vine soft weight 1
+kelp soft weight 1
+drt soft weight 1
+grnd soft weight 1
+mud soft weight 1
+_wd soft weight 1
+/skin/ soft weight 1
+
+# machinery
+gear metal weight 1
+bronze metal weight 1
+pipe metal weight 1
+machine metal weight 1
+motor metal weight 1
+chain metal weight 1

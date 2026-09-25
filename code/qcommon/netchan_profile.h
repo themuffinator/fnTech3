@@ -33,6 +33,9 @@ version.
  * from the connect string's "protocol" key like every engine of this
  * lineage; the number is small because Ritual started its own count. */
 #define NETCHAN_ALICE_PROTOCOL_VERSION 1
+/* Medal of Honor: Allied Assault 1.00 speaks protocol 6 (OpenMoHAA: "MoHAA
+ * v 1.00 uses protocol version 6"); 1.11 is 8 and the expansions 15 and up. */
+#define NETCHAN_MOHAA_PROTOCOL_VERSION 6
 
 /* Parsers deliberately pass unknown numeric profiles to the rejecting lookup.
  * A fixed C++ underlying type makes that validation defined for every unsigned
@@ -58,12 +61,34 @@ typedef enum
 	 * q3_ihv_netchan.hpp implements it; no other profile shares it. */
 	NETCHAN_WIRE_Q3_IHV,
 	/* November 2000: Ritual's F.A.K.K.2 engine as American McGee's Alice
-	 * ships it. Quake III's netchan_t and fragmenting exactly -- retail
-	 * 0x00447080 writes the sequence, the client's qport, the payload and
-	 * nothing else -- over plain LSB-first bits and the same per-packet
-	 * scramble Holomatch uses. It carries its own message and reliable
-	 * limits, which are larger than Quake III's. */
-	NETCHAN_WIRE_ALICE
+	 * ships it. Quake III's netchan_t and fragmenting -- retail 0x00447080
+	 * writes the sequence, the client's qport, the payload and nothing
+	 * else, but a fragment's offset as a long -- over plain LSB-first bits
+	 * and the same per-packet scramble Holomatch uses. It carries its own
+	 * message and reliable limits, which are larger than Quake III's. */
+	NETCHAN_WIRE_ALICE,
+	/* December 2001: 2015's descendant of Quake III's netchan as Medal of
+	 * Honor: Allied Assault 1.00 ships it. Quake III 1.32's framing -- the
+	 * client's qport, the reliable-command XOR, Huffman-coded messages -- with
+	 * a fragment's offset written as a long, and its own opcodes past
+	 * svc_snapshot: centre print, location print and client-game messages
+	 * before the end-of-message byte, which is therefore 11, not 8. Its
+	 * out-of-band packets carry a direction byte after the four 0xff bytes.
+	 * The framing is OpenMoHAA's reading of the engine (code/qcommon/
+	 * net_chan.c, code/server/sv_net_chan.c); the retail executable could not
+	 * be read. */
+	NETCHAN_WIRE_MOHAA,
+	/* 1999: the public Q3Test releases, one profile over two channels that
+	 * are chosen by the pinned release, never by protocol number (40 is also
+	 * Elite Force single player's). 1.02 to 1.05 (protocols 35 and 36) keep
+	 * the IHV channel -- two sequence words with reliable bits, one reliable
+	 * block in flight, a word-wise key stream; 1.06 to 1.08 (38 to 40) send
+	 * Quake III's shape with a per-byte scrambler and every slice of a message
+	 * under one sequence. Neither has Huffman coding. Q3Test's own sessions
+	 * carry both (code/compat/q3test_netchan.hpp,
+	 * code/server/server_q3test_net.hpp). */
+	NETCHAN_WIRE_Q3TEST_A,
+	NETCHAN_WIRE_Q3TEST_B
 } netchanWireProfile_t;
 
 typedef enum {
@@ -79,7 +104,13 @@ typedef enum {
 	 * acknowledges, and a key stream seeded from the first word. */
 	NETCHAN_FEATURE_SEQUENCE_PAIR = 1u << 5,
 	NETCHAN_FEATURE_RELIABLE_SLOT = 1u << 6,
-	NETCHAN_FEATURE_PAYLOAD_KEYSTREAM = 1u << 7
+	NETCHAN_FEATURE_PAYLOAD_KEYSTREAM = 1u << 7,
+	/* A fragment's offset is a long, not Quake III's short, so the later
+	 * fragments of a message past 32 KB keep their places. Retail alice.exe
+	 * writes it with its 32-bit writer (0x0044710e) and the length with its
+	 * 16-bit one (0x00447119), and reads it back with its 32-bit reader
+	 * (0x00447423). */
+	NETCHAN_FEATURE_LONG_FRAGMENT_START = 1u << 8
 } netchanWireFeature_t;
 
 #ifdef __cplusplus
@@ -105,6 +136,9 @@ NETCHAN_PROFILE_INLINE netchanWireProfile_t Netchan_SelectWireProfile(
 	}
 	if ( protocol == NETCHAN_ALICE_PROTOCOL_VERSION ) {
 		return NETCHAN_WIRE_ALICE;
+	}
+	if ( protocol == NETCHAN_MOHAA_PROTOCOL_VERSION ) {
+		return NETCHAN_WIRE_MOHAA;
 	}
 	// Protocol 68 is always the Q3 framing contract. A loopback connection
 	// can skip the challenge exchange that normally sets legacyCompat.
@@ -133,11 +167,17 @@ NETCHAN_PROFILE_INLINE unsigned int Netchan_WireFeatures(
 		// Loopback only: no peer ever sees these bytes.
 		return NETCHAN_FEATURE_CLIENT_QPORT;
 	case NETCHAN_WIRE_Q3_IHV:
+	case NETCHAN_WIRE_Q3TEST_A:
 		return NETCHAN_FEATURE_CLIENT_QPORT |
 			NETCHAN_FEATURE_RAW_MESSAGES |
 			NETCHAN_FEATURE_SEQUENCE_PAIR |
 			NETCHAN_FEATURE_RELIABLE_SLOT |
 			NETCHAN_FEATURE_PAYLOAD_KEYSTREAM;
+	case NETCHAN_WIRE_Q3TEST_B:
+		return NETCHAN_FEATURE_CLIENT_QPORT |
+			NETCHAN_FEATURE_RAW_MESSAGES |
+			NETCHAN_FEATURE_SEQUENCE_PAIR |
+			NETCHAN_FEATURE_PACKET_SCRAMBLE;
 	case NETCHAN_WIRE_ALICE:
 		/* Retail alice.exe 0x00447204 writes net_qport only when the socket
 		 * is the client's, and 0x0044740e reads it back only when it is the
@@ -147,7 +187,12 @@ NETCHAN_PROFILE_INLINE unsigned int Netchan_WireFeatures(
 		 * bytes, without the oob flag a Huffman path would need. */
 		return NETCHAN_FEATURE_CLIENT_QPORT |
 			NETCHAN_FEATURE_PACKET_SCRAMBLE |
-			NETCHAN_FEATURE_RAW_MESSAGES;
+			NETCHAN_FEATURE_RAW_MESSAGES |
+			NETCHAN_FEATURE_LONG_FRAGMENT_START;
+	case NETCHAN_WIRE_MOHAA:
+		return NETCHAN_FEATURE_CLIENT_QPORT |
+			NETCHAN_FEATURE_RELIABLE_XOR |
+			NETCHAN_FEATURE_LONG_FRAGMENT_START;
 	case NETCHAN_WIRE_QL_RETAIL:
 	case NETCHAN_WIRE_RTCW_MP:
 	case NETCHAN_WIRE_WOLFET:
@@ -182,8 +227,18 @@ NETCHAN_PROFILE_INLINE int Netchan_ReliableCommandLimit( netchanWireProfile_t pr
 	 * adder at 0x0042a220 errors past 128 outstanding and indexes with
 	 * `and 0x7f`, and the server's at 0x00455a10 does the same. */
 	case NETCHAN_WIRE_ALICE: return 128;
-	/* IHV acknowledges one reliable block at a time, not a command ring. */
+	/* OpenMoHAA rings 512; this engine's storage holds 256, which only
+	 * changes when a client with that many unacknowledged commands is
+	 * dropped, not which command a sequence number keys. */
+	case NETCHAN_WIRE_MOHAA: return 256;
+	/* IHV acknowledges one reliable block at a time, not a command ring.
+	 * Q3Test from 1.06 rings 64 (1.06 SV_AddServerCommand 0x41d3b6,
+	 * CL_AddReliableCommand 0x4052a0); up to 1.05 it sends one reliable block
+	 * as IHV does, and this engine stages its commands in a ring of the same
+	 * size before they join the block. */
 	case NETCHAN_WIRE_Q3_IHV: return 0;
+	case NETCHAN_WIRE_Q3TEST_A:
+	case NETCHAN_WIRE_Q3TEST_B: return 64;
 	default: return 0;
 	}
 }
@@ -204,9 +259,26 @@ NETCHAN_PROFILE_INLINE int Netchan_MessageLimit( netchanWireProfile_t profile ) 
 	 * starts a game message gives MSG_Init 0xc000 bytes, in a frame sized
 	 * 0xc030 -- the buffer plus its locals, with no slack. */
 	case NETCHAN_WIRE_ALICE: return 49152;
-	case NETCHAN_WIRE_Q3_IHV: return 16368;
+	/* OpenMoHAA's MAX_MSGLEN, as Alice's. */
+	case NETCHAN_WIRE_MOHAA: return 49152;
+	case NETCHAN_WIRE_Q3_IHV:
+	case NETCHAN_WIRE_Q3TEST_A: return 16368;
+	/* 1.06 reassembles 16384 bytes (Netchan_Process 0x415c51). */
+	case NETCHAN_WIRE_Q3TEST_B: return 16384;
 	default: return 0;
 	}
+}
+
+/* The byte that ends a server message: Quake III's svc_EOF, except where a
+ * profile numbers opcodes of its own before it. */
+NETCHAN_PROFILE_INLINE int Netchan_ServerEOFOpcode( netchanWireProfile_t profile ) {
+	return profile == NETCHAN_WIRE_MOHAA ? 11 : 8;
+}
+
+/* Medal of Honor's out-of-band direction byte: 1 from a server, 2 from a
+ * client (OpenMoHAA NET_OutOfBandPrint), or 0 where a profile has none. */
+NETCHAN_PROFILE_INLINE int Netchan_OutOfBandDirectionByte( netchanWireProfile_t profile, int fromServer ) {
+	return profile == NETCHAN_WIRE_MOHAA ? ( fromServer ? 1 : 2 ) : 0;
 }
 
 #undef NETCHAN_PROFILE_INLINE

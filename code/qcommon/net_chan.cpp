@@ -168,6 +168,23 @@ void Netchan_Setup( netsrc_t sock, netchan_t *chan, const netadr_t *adr, int por
 
 /*
 =================
+WriteFragmentStart
+
+A fragment's offset: a long on a wire with NETCHAN_FEATURE_LONG_FRAGMENT_START,
+Quake III's short elsewhere.
+=================
+*/
+static void WriteFragmentStart( const netchan_t *chan, msg_t *send, int start ) {
+	if ( Netchan_WireHasFeature( chan->wireProfile, NETCHAN_FEATURE_LONG_FRAGMENT_START ) ) {
+		MSG_WriteLong( send, start );
+	} else {
+		MSG_WriteShort( send, start );
+	}
+}
+
+
+/*
+=================
 Netchan_TransmitNextFragment
 
 Send one fragment of the current message
@@ -210,7 +227,7 @@ void Netchan_TransmitNextFragment( netchan_t *chan ) {
 		fragmentLength = chan->unsentLength - chan->unsentFragmentStart;
 	}
 
-	MSG_WriteShort( &send, chan->unsentFragmentStart );
+	WriteFragmentStart( chan, &send, chan->unsentFragmentStart );
 	MSG_WriteShort( &send, fragmentLength );
 	MSG_WriteData( &send, chan->unsentBuffer + chan->unsentFragmentStart, fragmentLength );
 	ScrambleForWire( chan, &send );
@@ -278,7 +295,7 @@ static void Netchan_EnqueueFragments( const netchan_t *chan, const int length, c
 			fragmentLength = length - unsentFragmentStart;
 		}
 
-		MSG_WriteShort( &send, unsentFragmentStart );
+		WriteFragmentStart( chan, &send, unsentFragmentStart );
 		MSG_WriteShort( &send, fragmentLength );
 		MSG_WriteData( &send, data + unsentFragmentStart, fragmentLength );
 		ScrambleForWire( chan, &send );
@@ -486,7 +503,8 @@ qboolean Netchan_Process( netchan_t *chan, msg_t *msg ) {
 
 	// read the fragment information
 	if ( fragmented ) {
-		fragmentStart = MSG_ReadShort( msg );
+		fragmentStart = Netchan_WireHasFeature( chan->wireProfile, NETCHAN_FEATURE_LONG_FRAGMENT_START )
+			? MSG_ReadLong( msg ) : MSG_ReadShort( msg );
 		fragmentLength = MSG_ReadShort( msg );
 		if ( msg->readcount > msg->cursize ) {
 			return qfalse;
@@ -895,10 +913,17 @@ void QDECL NET_OutOfBandPrint( netsrc_t sock, const netadr_t *adr, const char *f
 	string[2] = -1;
 	string[3] = -1;
 
+	// Medal of Honor marks which way a packet travels after the header.
+	int header = 4;
+	if ( Com_GameIsMOHAA() ) {
+		string[header++] = static_cast<char>( Netchan_OutOfBandDirectionByte(
+			NETCHAN_WIRE_MOHAA, sock == NS_SERVER ) );
+	}
+
 	va_start( argptr, format );
-	Q_vsnprintf( string+4, sizeof(string)-4, format, argptr );
+	Q_vsnprintf( string+header, sizeof(string)-header, format, argptr );
 	va_end( argptr );
-	len = 4 + static_cast<int>( std::strlen( string + 4 ) );
+	len = header + static_cast<int>( std::strlen( string + header ) );
 
 	// send the datagram
 	NET_SendPacket( sock, len, string, adr );
@@ -930,13 +955,21 @@ void NET_OutOfBandCompress( netsrc_t sock, const netadr_t *adr, const byte *data
 	string[2] = 0xff;
 	string[3] = 0xff;
 
+	// Medal of Honor's direction byte follows the header, and the text is
+	// compressed from after "connect " as ever (OpenMoHAA NET_OutOfBandData).
+	int header = 4;
+	if ( Com_GameIsMOHAA() ) {
+		string[header++] = static_cast<byte>( Netchan_OutOfBandDirectionByte(
+			NETCHAN_WIRE_MOHAA, sock == NS_SERVER ) );
+	}
+
 	if ( len > 0 ) {
-		Com_Memcpy( string + 4, data, len );
+		Com_Memcpy( string + header, data, len );
 	}
 
 	MSG_InitOOB( &mbuf, string, sizeof( string ) );
-	mbuf.cursize = len+4;
-	Huff_Compress( &mbuf, 12 );
+	mbuf.cursize = len+header;
+	Huff_Compress( &mbuf, header + 8 );
 
 	// send the datagram
 	NET_SendPacket( sock, mbuf.cursize, mbuf.data, adr );
@@ -1020,7 +1053,7 @@ int NET_StringToAdr( const char *s, netadr_t *a, netadrtype_t family )
 	}
 	else
 	{
-		a->port = BigShort(PORT_SERVER);
+		a->port = BigShort(static_cast<short>(Com_GameDefaultServerPort()));
 		return 2;
 	}
 }

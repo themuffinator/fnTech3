@@ -50,7 +50,10 @@ static cvar_t developer;
 cvar_t *com_developer = &developer;
 static int game, reports;
 int Com_GameIsAlice( void ) { return game == 1; }
+int Com_GameIsRitual( void ) { return game == 1; }
 int Com_GameIsWolfET( void ) { return game == 2; }
+int Com_GameIsMOHAA( void ) { return game == 3; }
+int Com_GameIsQ3Test( void ) { return game == 4; }
 void QDECL Com_Printf( const char *fmt, ... ) { if ( strstr( fmt, "invalid bevel" ) ) reports++; }
 void QDECL Com_DPrintf( const char *fmt, ... ) {
 	if ( com_developer->integer && strstr( fmt, "invalid bevel" ) ) reports++;
@@ -117,6 +120,49 @@ int main( void ) {
 	assert( Reports( 2, 2 ) == 0 );
 	assert( Reports( 1, 1 ) == 0 );
 	assert( Reports( 1, 2 ) == Reports( 0, 1 ) );
+	/* Medal of Honor's, as OpenMoHAA reads 2015's engine, is Alice's. */
+	assert( Reports( 3, 1 ) == 0 );
+	assert( Reports( 3, 2 ) == Reports( 0, 1 ) );
+
+	/* Q3Test's facets keep only their three or four borders, so nothing is
+	 * bevelled or reported, and a facet wider than 4096 units is dropped
+	 * where Quake III keeps it. */
+	assert( Reports( 4, 1 ) == 0 && Reports( 4, 2 ) == 0 );
+	{
+		vec3_t points[9];
+		const struct patchCollide_s *pc;
+		int i, j, bevelled;
+		for ( j = 0; j < 3; j++ ) {
+			for ( i = 0; i < 3; i++ ) {
+				VectorSet( points[j * 3 + i], i * 32.0f, j * 32.0f, i == 1 ? 64.0f : 0.0f );
+			}
+		}
+		for ( game = 0; game <= 4; game += 4 ) {
+			pc = CM_GeneratePatchCollide( 3, 3, points, SUBDIVIDE_DISTANCE );
+			assert( pc->numFacets == 2 );
+			for ( i = bevelled = 0; i < pc->numFacets; i++ ) {
+				bevelled += pc->facets[i].numBorders > 4;
+				if ( game == 4 ) assert( pc->facets[i].numBorders == 3 || pc->facets[i].numBorders == 4 );
+			}
+			assert( game == 4 ? !bevelled : bevelled == pc->numFacets );
+		}
+		for ( j = 0; j < 3; j++ ) {
+			for ( i = 0; i < 3; i++ ) {
+				VectorSet( points[j * 3 + i], i * 2500.0f, j * 2500.0f, 0.0f );
+			}
+		}
+		game = 0;
+		assert( CM_GeneratePatchCollide( 3, 3, points, SUBDIVIDE_DISTANCE )->numFacets == 1 );
+		game = 4;
+		assert( CM_GeneratePatchCollide( 3, 3, points, SUBDIVIDE_DISTANCE )->numFacets == 0 );
+		for ( j = 0; j < 3; j++ ) {
+			for ( i = 0; i < 3; i++ ) {
+				VectorSet( points[j * 3 + i], i * 2048.0f, j * 2048.0f, 0.0f );
+			}
+		}
+		assert( CM_GeneratePatchCollide( 3, 3, points, SUBDIVIDE_DISTANCE )->numFacets == 1 );
+		game = 0;
+	}
 	return 0;
 }
 '''
@@ -176,10 +222,13 @@ static void Reset( int shaderNum ) {
 	generated = allocations = 0;
 }
 
+/* As CM_LoadMap calls it: a FAKK map's translated table, and none for every
+ * other map. */
 static void Load( const fakk_translation_t *fakk ) {
 	const lump_t surfs = { 0, (int)sizeof( map.surfaces ) };
 	const lump_t verts = { (int)sizeof( map.surfaces ), (int)sizeof( map.verts ) };
-	CMod_LoadPatches( &surfs, &verts, fakk );
+	CMod_LoadPatches( &surfs, &verts, fakk ? fakk->shaderSubdivisions : NULL,
+		fakk ? fakk->numShaderSubdivisions : 0 );
 }
 
 int main( void ) {
@@ -279,14 +328,26 @@ class AlicePatchCollisionTests(unittest.TestCase):
     def test_collision_loader_asks_for_the_counts_only_for_alice_maps(self):
         load = (ROOT / 'code/qcommon/cm_load.c').read_text(encoding='utf-8')
         loader = function(load, 'void CM_LoadMap(')
-        self.assertIn('CMod_LoadPatches( &header.lumps[LUMP_SURFACES], &header.lumps[LUMP_DRAWVERTS],\n'
-                      '\t\tbspFormat == COM_GAME_BSP_FAKK ? &fakkTranslated : NULL );', loader)
+        self.assertIn('if ( bspFormat == COM_GAME_BSP_FAKK ) {\n'
+                      '\t\tCMod_LoadPatches( &header.lumps[LUMP_SURFACES], &header.lumps[LUMP_DRAWVERTS],\n'
+                      '\t\t\tfakkTranslated.shaderSubdivisions, fakkTranslated.numShaderSubdivisions );', loader)
+        # Medal of Honor's maps carry the same counts in their own translation
+        self.assertIn('} else if ( bspFormat == COM_GAME_BSP_MOHAA ) {\n'
+                      '\t\tCMod_LoadPatches( &header.lumps[LUMP_SURFACES], &header.lumps[LUMP_DRAWVERTS],\n'
+                      '\t\t\tmohaaTranslated.shaderSubdivisions, mohaaTranslated.numShaders );', loader)
+        # and every other map has none
+        self.assertIn('} else {\n\t\tCMod_LoadPatches( &header.lumps[LUMP_SURFACES], &header.lumps[LUMP_DRAWVERTS], '
+                      'NULL, 0 );\n\t}', loader)
+        self.assertEqual(loader.count('CMod_LoadPatches('), 3)
         # the table lives in the translation, so it must be read before the
         # translation is freed
-        self.assertLess(loader.index('CMod_LoadPatches('), loader.index('Z_Free( fakkTranslated.data );'))
+        self.assertLess(loader.rindex('CMod_LoadPatches('), loader.index('Z_Free( fakkTranslated.data );'))
+        self.assertLess(loader.rindex('CMod_LoadPatches('), loader.index('Z_Free( mohaaTranslated.data );'))
         fakk = (ROOT / 'code/qcommon/bsp_fakk.h').read_text(encoding='utf-8')
         collision = function(fakk, 'static qboolean FAKK_TranslateToV46(\n')
         self.assertIn('FAKK_TRANSLATE_SHADER_SUBDIVISIONS', collision)
+        # the collision loader asks for them too, under either Ritual profile
+        self.assertIn('FAKK_TRANSLATE_SHADER_SUBDIVISIONS', loader)
         # the renderers ask for the light grid alone
         for renderer in ('renderer', 'renderervk', 'rendererrtx'):
             bsp = (ROOT / 'code' / renderer / 'tr_bsp.c').read_text(encoding='latin-1')

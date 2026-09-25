@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Quake III Arena
+GenericName=fnTech3 game profile
+Comment=Play Quake III Arena with fnTech3
+Exec=fntech3 +set com_gameProfile quake3
+Icon=fntech3-quake3
+Terminal=false
+Categories=Game;ActionGame;
+StartupWMClass=fntech3-quake3

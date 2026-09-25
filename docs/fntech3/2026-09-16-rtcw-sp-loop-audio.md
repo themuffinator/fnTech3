@@ -125,6 +125,48 @@ The RTCW OpenAL runs were focus-muted; legacy volumes were zero. Homes were
 removed and installation metadata remained unchanged. No OS captures or input
 injection were used.
 
+## The engine's own features (2026-09-24)
+
+Under invariant 11 of `AGENTS.md`, the OpenAL backend no longer pans an SP
+loop as retail's mixer does. It renders SP's data through the engine's own
+audio. The [Wolfenstein OpenAL voices
+record](2026-09-24-wolfenstein-openal-voices.md) has the design, tests and
+runtime evidence.
+
+Kept from retail:
+
+- the reset modes, the 128 separate submissions and the volume captured
+  with the master fade;
+- the effects stage, which still scales each source and its sends, with
+  `s_volume` quantized as above and the listener at unity;
+- the 255/127 cap and the disabled Doppler.
+
+Used:
+
+- **Positional rendering, with HRTF and the output mode.**
+- **The OpenAL distance model** across the submitted range's span: full
+  volume to 6.4% of it, the reference, and silent the range beyond, the far
+  end. It fades out toward that end, with air absorption. The loop plays at
+  its retail level, 90 over 256 of its captured volume, on a one-shot's
+  scale of 127.
+- **Traced occlusion and liquid boundaries**, on the direct and wet paths.
+- **The room reverb** from the level's audio zone sidecar or the traced room.
+- **The tone classes**: a loop has no channel, so it takes its sample
+  name's class or `world`.
+- **`s_pvs`**, when it is asked for.
+
+Left out:
+
+- **Retail's left/right balance.** Retail's exact gain and pan stay in the
+  legacy mixer (`s_backend legacy`), the explicit retail-exact option.
+- **Doppler.** Retail disables it for loops.
+- **A merge of duplicate loops.** Retail's inner merge loop never runs, so
+  there is none to adopt.
+
+On `escape1` the cell block's loops are positional behind the walls:
+occlusion 0.84 to 1.00, a bandpass tone, and stone-room sends from the 397
+zones of its sidecar.
+
 ## Limits
 
 These CPU/backend checks do not establish PCM phase, acoustic output or exact

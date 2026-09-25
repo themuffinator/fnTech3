@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "tr_local.h"
 #include "../renderercommon/tr_stvef_alpha.h"
+#include "../renderercommon/tr_rtcw_engine_lights.h"
 #include "tr_glx_compat.h"
 
 backEndData_t	*backEndData;
@@ -658,7 +659,7 @@ static void RB_BeginDrawingView( void ) {
 			const float *color = backEnd.refdef.rtcwFog.fog.color;
 			qglClearColor( color[0], color[1], color[2], 1 );
 			clearBits |= GL_COLOR_BUFFER_BIT;
-		} else if ( ri.gameId == COM_GAME_ALICE && backEnd.viewParms.aliceFarDistance != 0.0f &&
+		} else if ( R_GAME_HAS_RITUAL_VIEW( ri.gameId ) && backEnd.viewParms.aliceFarDistance != 0.0f &&
 			!backEnd.viewParms.aliceSkyPortalDrawn && !( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) ) {
 			// Alice clears a world view with a far plane to its fog colour,
 			// unless its sky portal was drawn into the frame first (alice.exe
@@ -669,7 +670,7 @@ static void RB_BeginDrawingView( void ) {
 		}
 	}
 	// Alice's keepDepth leaves the depth buffer as it is (0x00486366).
-	if ( ri.gameId == COM_GAME_ALICE && backEnd.refdef.alice.keepDepth ) {
+	if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) && backEnd.refdef.alice.keepDepth ) {
 		clearBits &= ~GL_DEPTH_BUFFER_BIT;
 	}
 
@@ -1487,6 +1488,45 @@ void RE_UploadCinematic( int w, int h, int cols, int rows, const byte *data, int
 
 /*
 =============
+RB_AliceBatchReadsColor
+
+American McGee's Alice's and Heavy Metal: F.A.K.K.2's SetColor is
+immediate: alice.exe's R_SetColor (0x00498b80) stores the colour `rgbGen
+global` and `alphaGen global` read and hands it to glColor4ubv, so every
+picture takes the colour it was drawn in. Medal of Honor's pictures read it
+through the same shader dialect -- 245 stages of its menu shaders -- and its
+title and legal pictures fade by it; 2015's SetColor is taken to be Alice's,
+as its fade cvars need [I]. This back end batches pictures and reads that
+colour when a batch is drawn, so a batch whose shader reads it is drawn
+before the colour changes.
+=============
+*/
+static qboolean RB_AliceBatchReadsColor( const float *next ) {
+	color4ub_t color;
+	int i;
+
+	if ( ( !COM_GAME_ID_IS_RITUAL( ri.gameId ) && ri.gameId != COM_GAME_MOHAA ) || !tess.numIndexes
+		|| !tess.shader ) {
+		return qfalse;
+	}
+	for ( i = 0; i < 4; i++ ) {
+		color.rgba[i] = next[i] * 255;
+	}
+	if ( color.u32 == backEnd.color2D.u32 ) {
+		return qfalse;
+	}
+	for ( i = 0; i < tess.shader->numUnfoggedPasses; i++ ) {
+		const shaderStage_t *stage = tess.shader->stages[i];
+		if ( stage && ( stage->rgbGen == CGEN_ALICE_GLOBAL || stage->alphaGen == AGEN_ALICE_GLOBAL ) ) {
+			return qtrue;
+		}
+	}
+	return qfalse;
+}
+
+
+/*
+=============
 RB_SetColor
 =============
 */
@@ -1494,6 +1534,9 @@ static const void *RB_SetColor( const void *data ) {
 	const setColorCommand_t	*cmd;
 
 	cmd = (const setColorCommand_t *)data;
+	if ( RB_AliceBatchReadsColor( cmd->color ) ) {
+		RB_EndSurface();
+	}
 
 	backEnd.color2D.rgba[0] = cmd->color[0] * 255;
 	backEnd.color2D.rgba[1] = cmd->color[1] * 255;
@@ -3858,7 +3901,9 @@ static void RB_LightingPass( void )
 
 	for ( i = 0; i < backEnd.viewParms.num_dlights; i++ )
 	{
-		dl = &backEnd.viewParms.dlights[i];
+		// RTCW draws the engine's own lights beneath its modules' (tr_rtcw_engine_lights.h)
+		dl = &backEnd.viewParms.dlights[ R_UsesRTCWLighting() ? RTCW_LightDrawIndex( i,
+			(int)backEnd.viewParms.num_dlights, backEnd.refdef.num_moduleDlights ) : i ];
 		if ( dl->head )
 		{
 			if ( !RB_SetDlightScissor( dl ) ) {

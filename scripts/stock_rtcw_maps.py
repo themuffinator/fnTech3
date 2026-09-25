@@ -20,7 +20,12 @@ STOCK_RTCW_MAPS = {
 }
 
 
+# Each map ships an audio zone file and a static light file.
+SIDECAR_SUFFIXES = (".azb", ".lights.json")
+
+
 if __name__ == "__main__":
     for profile, names in STOCK_RTCW_MAPS.items():
         for name in names:
-            print(f"{profile}/main/maps/{name}.azb")
+            for suffix in SIDECAR_SUFFIXES:
+                print(f"{profile}/main/maps/{name}{suffix}")

@@ -10,7 +10,14 @@
 #include "../renderercommon/tr_rtcw_fog_gpu.h"
 #include "vk.h"
 #include "rtx_mdr_geometry.h"
-#include "rtx_scene_signature.h"
+#include "rt/rt_gpu.h"
+#include "rt/rt_stage_source.h"
+
+// Path tracer (rt/rt_backend.c, included at the end of this file)
+static qboolean RT_TraceFrame( void );
+static void RT_InvalidateScene( void );
+static void RT_Shutdown( void );
+
 #include "../renderercommon/tr_menu_blur.h"
 #include "../renderercommon/tr_motion_blur.h"
 #include "../renderercommon/tr_underwater.h"
@@ -78,6 +85,8 @@ static PFN_vkCmdClearAttachments						qvkCmdClearAttachments;
 static PFN_vkCmdCopyBuffer								qvkCmdCopyBuffer;
 static PFN_vkCmdCopyBufferToImage						qvkCmdCopyBufferToImage;
 static PFN_vkCmdCopyImage								qvkCmdCopyImage;
+static PFN_vkCmdDispatch								qvkCmdDispatch;
+static PFN_vkCmdFillBuffer								qvkCmdFillBuffer;
 static PFN_vkCmdDraw									qvkCmdDraw;
 static PFN_vkCmdDrawIndexed								qvkCmdDrawIndexed;
 static PFN_vkCmdEndRenderPass							qvkCmdEndRenderPass;
@@ -93,6 +102,7 @@ static PFN_vkCmdSetViewport								qvkCmdSetViewport;
 static PFN_vkCmdWriteTimestamp							qvkCmdWriteTimestamp;
 static PFN_vkCreateBuffer								qvkCreateBuffer;
 static PFN_vkCreateCommandPool							qvkCreateCommandPool;
+static PFN_vkCreateComputePipelines					qvkCreateComputePipelines;
 static PFN_vkCreateDescriptorPool						qvkCreateDescriptorPool;
 static PFN_vkCreateDescriptorSetLayout					qvkCreateDescriptorSetLayout;
 static PFN_vkCreateFence								qvkCreateFence;
@@ -180,10 +190,12 @@ static PFN_vkCmdDebugMarkerInsertEXT					qvkCmdDebugMarkerInsertEXT;
 VkPipeline create_pipeline( const Vk_Pipeline_Def *def, renderPass_t renderPassIndex, uint32_t def_index );
 static const char *vk_result_string( VkResult code );
 static uint32_t find_memory_type( uint32_t memory_type_bits, VkMemoryPropertyFlags properties );
+static uint32_t find_memory_type2( uint32_t memory_type_bits, VkMemoryPropertyFlags properties, VkMemoryPropertyFlags *outprops );
 static VkCommandBuffer begin_command_buffer( void );
 static void end_command_buffer( VkCommandBuffer command_buffer, const char *location );
 static qboolean end_command_buffer_soft( VkCommandBuffer command_buffer, const char *location );
 static void vk_begin_post_bloom_render_pass( void );
+static void get_viewport_rect( VkRect2D *r );
 static void vk_begin_global_fog_render_pass( void );
 static void vk_begin_liquid_snapshot_render_pass( void );
 
@@ -279,7 +291,6 @@ static qboolean s_vkSwapchainResizeRestarting = qfalse;
 static VkResult s_vkSwapchainResizeResult = VK_SUCCESS;
 static qboolean s_vkValidationLayerEnabled = qfalse;
 static uint32_t s_vkInstanceApiVersion = VK_API_VERSION_1_0;
-static qboolean s_vkRtDynResBlitWarned = qfalse;
 static int s_vkRtTextureBudgetFrame = -1;
 static VkDeviceSize s_vkRtTextureBudgetUsed = 0;
 
@@ -305,162 +316,29 @@ typedef struct {
 	float texCoord[2];
 	uint32_t color;
 	uint32_t materialIndex;
-	float lightmapData[4];	// independent BSP lightmap UV, reserved[2]
+	// world: BSP lightmap st, unused, 1 where the map's lights pass through
+	// (extraction only); dynamic: shaderTexCoord st, shaderTime, 1 for a
+	// brush model (rt/rt_backend.c)
+	float lightmapData[4];
 } rtxRtPackedVertex_t;
 
 typedef char rtxRtPackedVertexSizeCheck[(sizeof(rtxRtPackedVertex_t) == 80) ? 1 : -1];
 typedef char rtxRtLightmapOffsetCheck[(offsetof(rtxRtPackedVertex_t, lightmapData) == 64) ? 1 : -1];
 
 typedef enum {
-	RTX_RT_COLORSPACE_LINEAR = 0,
-	RTX_RT_COLORSPACE_SRGB,
-	RTX_RT_COLORSPACE_HDR
-} rtxRtColorSpace_t;
-
-typedef enum {
 	RTX_RT_MATFLAG_NONE = 0,
 	RTX_RT_MATFLAG_MASKED = 1u << 0,
-	RTX_RT_MATFLAG_EMISSIVE = 1u << 1,
-	RTX_RT_MATFLAG_TRANSLUCENT = 1u << 2,
-	RTX_RT_MATFLAG_TWO_SIDED = 1u << 3,
-	RTX_RT_MATFLAG_SKY = 1u << 4,
-	RTX_RT_MATFLAG_DECAL = 1u << 5,
-	RTX_RT_MATFLAG_PARTICLE = 1u << 6,
-	RTX_RT_MATFLAG_EFFECT = 1u << 7,
-	RTX_RT_MATFLAG_ALPHA_LT = 1u << 8,
 	RTX_RT_MATFLAG_CULL_FRONT = 1u << 9,
 	RTX_RT_MATFLAG_CULL_BACK = 1u << 10,
-	RTX_RT_MATFLAG_RASTER_OVERLAY = 1u << 11,
-	RTX_RT_MATFLAG_SECONDARY_VISIBLE = 1u << 12,
-	RTX_RT_MATFLAG_RTCW_NOFOG = 1u << 13
+	RTX_RT_MATFLAG_RASTER_OVERLAY = 1u << 11
 } rtxRtMaterialFlags_t;
 
+/* A geometry's material slot names its shader (materialShaders) and keeps
+ * extraction flags; the path tracer maps the shader to its shared material
+ * table (rt/rt_material.c). */
 typedef struct {
-	char name[MAX_QPATH];
-	float baseColor[4];
-	float emissiveColor[3];
-	float emissiveScale;
-	float roughness;
-	float metallic;
-	float alphaCutoff;
 	uint32_t flags;
-	uint32_t albedoColorSpace;
-	uint32_t normalColorSpace;
-	uint32_t emissiveColorSpace;
-	int32_t albedoTextureIndex;
-	int32_t lightmapTextureIndex;
-	float lightmapScale;
-	uint32_t vertexLighting;
-	uint32_t sourceStageCount;
 } rtxRtMaterial_t;
-
-typedef struct {
-	float baseColor[4];
-	float emissiveColorScale[4];
-	float pbrParams[4];			// roughness, metallic, alphaCutoff, ior
-	uint32_t metadata[4];		// flags, albedoCS, normalCS, emissiveCS
-	uint32_t textureInfo[4];	// albedo, lightmap, vertex lighting bit, float bits of lightmap scale
-} rtxRtGpuMaterial_t;
-
-typedef struct {
-	float positionRadius[4];	// xyz + radius
-	float colorType[4];		// rgb + type (0 point, 1 directional)
-	float directionSoftness[4];	// xyz + softness
-	uint32_t metadata[4];		// light policy flags + reserved
-} rtxRtGpuLight_t;
-
-#define RTX_RT_LIGHT_FLAG_CASTS_SHADOWS ( 1u << 0 )
-#define RTX_RT_LIGHT_FLAG_SHADOW_ONLY ( 1u << 1 )
-
-#define RTX_RT_MAX_LIGHT_COORDINATE 16777216.0f
-#define RTX_RT_MAX_LIGHT_RADIUS 1048576.0f
-#define RTX_RT_MAX_LIGHT_RADIANCE 65536.0f
-
-#define RTX_RT_MAX_WORLD_ENTITY_LIGHTS 512
-
-typedef struct {
-	const world_t *world;
-	uint32_t count;
-	qboolean hasSkySurface;
-	qboolean warnedEmpty;
-	vec3_t worldspawnColor;
-	float worldspawnAmbient;
-	rtxRtGpuLight_t lights[RTX_RT_MAX_WORLD_ENTITY_LIGHTS];
-} rtxRtWorldLightCache_t;
-
-static rtxRtWorldLightCache_t s_vkRtWorldLightCache;
-
-static qboolean vk_rt_float_in_finite_range( float value, float minimum,
-	float maximum )
-{
-	return ( value == value && value >= minimum && value <= maximum ) ?
-		qtrue : qfalse;
-}
-
-static qboolean vk_rt_vec3_in_finite_range( const float *value, float limit )
-{
-	return ( value &&
-		vk_rt_float_in_finite_range( value[0], -limit, limit ) &&
-		vk_rt_float_in_finite_range( value[1], -limit, limit ) &&
-		vk_rt_float_in_finite_range( value[2], -limit, limit ) ) ?
-		qtrue : qfalse;
-}
-
-static qboolean vk_rt_gpu_light_is_valid( const rtxRtGpuLight_t *light )
-{
-	const float type = light ? light->colorType[3] : -1.0f;
-	float directionLengthSq;
-
-	if ( !light ||
-		!vk_rt_vec3_in_finite_range( light->colorType,
-			RTX_RT_MAX_LIGHT_RADIANCE ) ||
-		light->colorType[0] < 0.0f || light->colorType[1] < 0.0f ||
-		light->colorType[2] < 0.0f ||
-		!vk_rt_float_in_finite_range( light->directionSoftness[3],
-			0.0f, RTX_RT_MAX_LIGHT_RADIUS ) ) {
-		return qfalse;
-	}
-
-	if ( type == 1.0f ) {
-		if ( !vk_rt_vec3_in_finite_range( light->directionSoftness, 1.0f ) ) {
-			return qfalse;
-		}
-		directionLengthSq =
-			light->directionSoftness[0] * light->directionSoftness[0] +
-			light->directionSoftness[1] * light->directionSoftness[1] +
-			light->directionSoftness[2] * light->directionSoftness[2];
-		if ( !vk_rt_float_in_finite_range( directionLengthSq, 1.0e-8f, 1.0001f ) ) {
-			return qfalse;
-		}
-		/* An authored directional light has no finite origin/radius.  The
-		 * synthesized sky fallback may carry a bounded proxy volume. */
-		if ( light->positionRadius[3] != 0.0f &&
-			( !vk_rt_vec3_in_finite_range( light->positionRadius,
-				RTX_RT_MAX_LIGHT_COORDINATE ) ||
-			  !vk_rt_float_in_finite_range( light->positionRadius[3], 0.0f,
-				RTX_RT_MAX_LIGHT_RADIUS ) ) ) {
-			return qfalse;
-		}
-		return qtrue;
-	}
-
-	if ( type != 0.0f && type != 2.0f ) {
-		return qfalse;
-	}
-	if ( !vk_rt_vec3_in_finite_range( light->positionRadius,
-			RTX_RT_MAX_LIGHT_COORDINATE ) ||
-		!vk_rt_float_in_finite_range( light->positionRadius[3],
-			FLT_MIN, RTX_RT_MAX_LIGHT_RADIUS ) ) {
-		return qfalse;
-	}
-	if ( type == 2.0f &&
-		!vk_rt_vec3_in_finite_range( light->directionSoftness,
-			RTX_RT_MAX_LIGHT_COORDINATE ) ) {
-		return qfalse;
-	}
-
-	return qtrue;
-}
 
 typedef struct {
 	rtxRtPackedVertex_t *vertices;
@@ -481,116 +359,47 @@ typedef struct {
 	uint32_t sourceEffectCount;
 } rtxRtCpuGeometry_t;
 
-typedef struct {
-	float cameraOriginTanHalfFovX[4];
-	float cameraForwardTanHalfFovY[4];
-	float cameraRightWidth[4];
-	float cameraUpHeight[4];
-	float sunDirection[4];
-	float sunColorIntensity[4];
-	uint32_t debugMode;
-	uint32_t frameIndex;
-	uint32_t activeInstances;
-	uint32_t lightCount;
-	uint32_t worldMaterialCount;
-	uint32_t dynamicMaterialCount;
-	uint32_t shadowMode;
-	float shadowSoftness;
-	float indirectStrength;
-	float reflectionStrength;
-	float skyIntensity;
-	float refractionIor;
-	float sunIntensity;
-	uint32_t refractiveMode;
-	uint32_t indirectBounce;
-} rtxRtPushConstants_t;
-
-typedef struct {
-	float prevCameraOriginTanHalfFovX[4];
-	float prevCameraForwardTanHalfFovY[4];
-	float prevCameraRightWidth[4];
-	float prevCameraUpHeight[4];
-	float dynamicMotionAndExposure[4]; // xyz dynamic centroid delta, w exposure
-	float temporalParams0[4];          // alpha, clamp, depthReject, motionReject
-	float denoiseParams[4];            // depthSigma, normalSigma, fireflyThreshold, fireflyStrength
-	float exposureParams[4];           // exposureMin, exposureMax, exposureAdapt, dynamicMotionScale
-	float legacyColorParams[4];        // enabled, intensityScale, RT contribution strength, reserved
-	float readabilityParams[4];        // lift, contrast, saturation, shadowFloor
-	uint32_t modes[4];                 // temporalEnable, spatialEnable, tonemapMode, bitflags
-	vec4_t rtcwFogColor;
-	vec4_t rtcwFogParams;
-	vec4_t rtcwFogControl; // RTCW profile, far clip, reserved
-} rtxRtTemporalParams_t;
-
-#define RTX_RT_DESC_SET 0
-#define RTX_RT_DESC_BINDING_TLAS 0
-#define RTX_RT_DESC_BINDING_OUTPUT 1
-#define RTX_RT_DESC_BINDING_WORLD_VERTICES 2
-#define RTX_RT_DESC_BINDING_WORLD_INDICES 3
-#define RTX_RT_DESC_BINDING_WORLD_MATERIALS 4
-#define RTX_RT_DESC_BINDING_DYNAMIC_VERTICES 5
-#define RTX_RT_DESC_BINDING_DYNAMIC_INDICES 6
-#define RTX_RT_DESC_BINDING_DYNAMIC_MATERIALS 7
-#define RTX_RT_DESC_BINDING_LIGHTS 8
-#define RTX_RT_DESC_BINDING_HISTORY_IN 9
-#define RTX_RT_DESC_BINDING_HISTORY_OUT 10
-#define RTX_RT_DESC_BINDING_TEMPORAL_PARAMS 11
-#define RTX_RT_DESC_BINDING_SCENE_COLOR 12
-#define RTX_RT_DESC_BINDING_SCENE_TEXTURES 13
-#define RTX_RT_MAX_DEBUG_VISUALIZER 10
-#define RTX_RT_MAX_SCENE_TEXTURES MAX_DRAWIMAGES
-#define RTX_RT_INVALID_TEXTURE_INDEX 0xFFFFFFFFu
-
-#define RTX_RT_SCENE_COLOR_SAMPLER_COUNT 1u
-#define RTX_RT_STORAGE_BUFFER_COUNT 8u
-#define RTX_RT_STORAGE_IMAGE_COUNT 3u
+/* The descriptors the path tracer's layouts bind (rt/rt_backend.c): the
+ * ray-tracing set's buffers (bindings 1-9, the dynamic vertices' previous
+ * positions and the world triangles' lights), uniform block, texture table
+ * and output images
+ * in each ray-tracing stage, and the denoiser set's images (RT_DN_*: 20
+ * descriptors, the history and filter pairs counting twice) in compute. */
+#define RTX_RT_STORAGE_BUFFER_COUNT ( RT_BINDING_LIGHT_INDICES - RT_BINDING_WORLD_VERTICES + 3u )
+#define RTX_RT_UNIFORM_BUFFER_COUNT 1u
+#define RTX_RT_TRACE_STORAGE_IMAGE_COUNT ( RT_BINDING_OUT_INFO - RT_BINDING_OUT_COLOR + 1u )
+#define RTX_RT_DENOISE_STORAGE_IMAGE_COUNT 20u
+#define RTX_RT_STORAGE_IMAGE_COUNT RTX_RT_DENOISE_STORAGE_IMAGE_COUNT
 #define RTX_RT_ACCELERATION_STRUCTURE_COUNT 1u
-#define RTX_RT_SAMPLED_IMAGE_COUNT \
-	( RTX_RT_MAX_SCENE_TEXTURES + RTX_RT_SCENE_COLOR_SAMPLER_COUNT )
+#define RTX_RT_SAMPLED_IMAGE_COUNT RT_MAX_TEXTURES
 #define RTX_RT_PER_STAGE_RESOURCE_COUNT \
-	( RTX_RT_SAMPLED_IMAGE_COUNT + RTX_RT_STORAGE_BUFFER_COUNT + \
-	  RTX_RT_STORAGE_IMAGE_COUNT + RTX_RT_ACCELERATION_STRUCTURE_COUNT )
+	( RTX_RT_SAMPLED_IMAGE_COUNT + RTX_RT_STORAGE_BUFFER_COUNT + RTX_RT_UNIFORM_BUFFER_COUNT + \
+	  RTX_RT_TRACE_STORAGE_IMAGE_COUNT + RTX_RT_ACCELERATION_STRUCTURE_COUNT )
+/* The compute backend binds its BVH buffers in place of the TLAS: the
+ * world's nodes at the TLAS binding and three more (RT_BINDING_SW_*), all in
+ * the compute stage. */
+#define RTX_RT_COMPUTE_STORAGE_BUFFER_COUNT \
+	( RTX_RT_STORAGE_BUFFER_COUNT + 1u + ( RT_BINDING_SW_COUNT - RT_BINDING_COUNT ) )
+#define RTX_RT_COMPUTE_PER_STAGE_RESOURCE_COUNT \
+	( RTX_RT_SAMPLED_IMAGE_COUNT + RTX_RT_COMPUTE_STORAGE_BUFFER_COUNT + RTX_RT_UNIFORM_BUFFER_COUNT + \
+	  RTX_RT_TRACE_STORAGE_IMAGE_COUNT )
 
 /* Descriptor updates run on the renderer thread.  Keep the full fixed shader
  * table out of the call stack without paying a per-frame heap allocation. */
-static VkDescriptorImageInfo s_vkRtDescriptorImageInfos[4 + RTX_RT_MAX_SCENE_TEXTURES];
-
-#define RTX_RT_TEMPORAL_FLAG_HISTORY_VALID ( 1u << 0 )
-#define RTX_RT_TEMPORAL_FLAG_RESET ( 1u << 1 )
-#define RTX_RT_TEMPORAL_FLAG_AUTO_EXPOSURE ( 1u << 2 )
-#define RTX_RT_MODE_FLAG_PARTICLE_VOLUME ( 1u << 3 )
-#define RTX_RT_MODE_FLAG_RASTER_REFERENCE ( 1u << 4 )
-#define RTX_RT_MODE_FLAG_SCENE_LINEAR_OUTPUT ( 1u << 5 )
-#define RTX_RT_LEGACY_SUN_UNIT_SCALE ( 1.0f / 100.0f )
+static VkDescriptorImageInfo s_vkRtDescriptorImageInfos[RT_MAX_TEXTURES];
 
 static void vk_rt_shutdown( void );
 static qboolean vk_rt_trace_available( void );
 static qboolean vk_rt_init( void );
-static qboolean vk_rt_ensure_pipeline( void );
-static qboolean vk_rt_ensure_output_image( void );
-static qboolean vk_rt_ensure_temporal_params_buffer( void );
-static qboolean vk_rt_ensure_timing_query_pool( void );
-static void vk_rt_read_timing_query_results( void );
-static void vk_rt_update_scalability_controller( void );
-static void vk_rt_log_perf_summary( void );
-static qboolean vk_rt_ensure_world_blas( VkDeviceSize *frameBudgetBytesUsed, VkDeviceSize frameBudgetBytes );
-static qboolean vk_rt_ensure_dynamic_blas( VkDeviceSize *frameBudgetBytesUsed, VkDeviceSize frameBudgetBytes );
-static qboolean vk_rt_build_tlas( VkDeviceSize *frameBudgetBytesUsed, VkDeviceSize frameBudgetBytes );
 static void vk_rt_reset_state( void );
 static qboolean vk_rt_align_up_checked( VkDeviceSize value, VkDeviceSize alignment, VkDeviceSize *outValue );
-static qboolean vk_rt_budget_allows( VkDeviceSize bytesNeeded, VkDeviceSize *bytesUsed, VkDeviceSize budgetBytes );
 static qboolean vk_rt_create_buffer( VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryProps, qboolean needDeviceAddress, const char *debugName, rtxVkRtBuffer_t *outBuffer );
+static qboolean vk_rt_create_buffer_ex( VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryProps, VkMemoryPropertyFlags preferredProps, qboolean needDeviceAddress, const char *debugName, rtxVkRtBuffer_t *outBuffer );
 static void vk_rt_destroy_buffer( rtxVkRtBuffer_t *buffer );
 static qboolean vk_rt_upload_buffer_data( const rtxVkRtBuffer_t *buffer, const void *src, size_t bytes );
 static qboolean vk_rt_wait_for_inflight_frames( const char *reason );
-static qboolean vk_rt_ensure_buffer_capacity( rtxVkRtBuffer_t *buffer, VkDeviceSize minSize, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryProps, qboolean needDeviceAddress, const char *debugName );
 static void vk_rt_destroy_as( rtxVkRtAccelerationStructure_t *as );
 static qboolean vk_rt_create_as( VkAccelerationStructureTypeKHR type, VkDeviceSize size, const char *debugName, rtxVkRtAccelerationStructure_t *outAs );
-static qboolean vk_rt_ensure_scratch_buffer( VkDeviceSize minSize );
-static qboolean vk_rt_compact_as( rtxVkRtAccelerationStructure_t *as, VkQueryPool queryPool, uint32_t queryIndex, const char *debugName, uint64_t *savedBytes );
-static qboolean vk_rt_build_triangles_blas( rtxVkRtAccelerationStructure_t *outAs, const rtxVkRtBuffer_t *vertexBuffer, uint32_t vertexCount, VkDeviceSize vertexStride, const rtxVkRtBuffer_t *indexBuffer, uint32_t indexCount, qboolean opaqueGeometry, qboolean allowCompaction, const char *debugName );
-static qboolean vk_rt_extract_world_geometry( rtxRtCpuGeometry_t *geometry );
-static qboolean vk_rt_extract_dynamic_geometry( rtxRtCpuGeometry_t *geometry );
 static void vk_rt_cpu_geometry_init( rtxRtCpuGeometry_t *geometry );
 static void vk_rt_cpu_geometry_free( rtxRtCpuGeometry_t *geometry );
 static qboolean vk_rt_cpu_geometry_reserve( rtxRtCpuGeometry_t *geometry, uint32_t additionalVertices, uint32_t additionalIndices );
@@ -607,52 +416,14 @@ static qboolean vk_rt_append_brush_entity_geometry( rtxRtCpuGeometry_t *geometry
 static qboolean vk_rt_append_md3_entity_geometry( rtxRtCpuGeometry_t *geometry, const trRefEntity_t *ent );
 static qboolean vk_rt_append_iqm_entity_geometry( rtxRtCpuGeometry_t *geometry, const trRefEntity_t *ent );
 static qboolean vk_rt_append_mdr_entity_geometry( rtxRtCpuGeometry_t *geometry, const trRefEntity_t *ent );
-static qboolean vk_rt_append_sprite_entity_geometry( rtxRtCpuGeometry_t *geometry, const trRefEntity_t *ent );
-static qboolean vk_rt_append_beam_entity_geometry( rtxRtCpuGeometry_t *geometry, const trRefEntity_t *ent );
-static qboolean vk_rt_append_poly_geometry( rtxRtCpuGeometry_t *geometry, const srfPoly_t *poly );
 static qboolean vk_rt_append_dynamic_model_entity_geometry( rtxRtCpuGeometry_t *geometry, const trRefEntity_t *ent, uint32_t *outModelCount );
-static qboolean vk_rt_poly_is_mark_decal( const srfPoly_t *poly );
-static uint32_t vk_rt_estimate_dynamic_scene_signature( vec3_t outCentroid, uint32_t *outModelCount, uint32_t *outEffectCount, float quantStep );
-static void vk_rt_apply_effect_material_tuning( rtxRtCpuGeometry_t *geometry, uint32_t materialIndex, qboolean particleLike, qboolean decalLike );
 static void vk_rt_transform_geometry_range( rtxRtCpuGeometry_t *geometry, uint32_t firstVertex, const trRefEntity_t *ent );
-static qboolean vk_rt_generate_tangents( rtxRtCpuGeometry_t *geometry );
-static qboolean vk_rt_build_dynamic_scene_blas( VkDeviceSize *frameBudgetBytesUsed, VkDeviceSize frameBudgetBytes, VkDeviceSize *outBuildBytes );
-static qboolean vk_rt_ensure_descriptor_resources( void );
-static qboolean vk_rt_update_descriptor_set( void );
-static qboolean vk_rt_upload_material_buffer( const rtxRtMaterial_t *materials, uint32_t materialCount, rtxVkRtBuffer_t *targetBuffer, uint32_t *outMaterialCount, const char *debugName );
-static qboolean vk_rt_update_light_buffer( void );
-static void vk_rt_reset_world_light_cache( void );
-static void vk_rt_rebuild_world_light_cache( void );
-static qboolean vk_rt_consume_cvar_modified( cvar_t *cvar );
-static void vk_rt_handle_cached_resource_cvar_changes( void );
-static uint32_t vk_rt_append_world_entity_lights( rtxRtGpuLight_t *lights, uint32_t count, uint32_t maxLights );
-static uint32_t vk_rt_surface_light_reservation( uint32_t maxLights, uint32_t usedLights );
-static uint32_t vk_rt_append_surface_lights( rtxRtGpuLight_t *lights, uint32_t count, uint32_t maxLights );
-static qboolean vk_rt_world_has_sky_surface( void );
-static void vk_rt_estimate_world_bounds( vec3_t center, float *radius );
-static void vk_rt_resolve_sun_params( vec3_t outDirection, vec3_t outColor, qboolean *outFallbackFromSky );
-static qboolean vk_rt_build_sbt( void );
-static VkDeviceSize vk_rt_query_triangles_build_bytes( uint32_t vertexCount, uint32_t indexCount, qboolean opaqueGeometry, VkBuildAccelerationStructureFlagsKHR buildFlags );
-static VkDeviceSize vk_rt_query_tlas_build_bytes( uint32_t instanceCount, VkBuildAccelerationStructureFlagsKHR buildFlags );
-static uint32_t vk_rt_clamped_visualizer_mode( void );
-static uint32_t vk_rt_collect_instances( VkAccelerationStructureInstanceKHR *instances, uint32_t maxInstances, qboolean *throttledByInstanceBudget );
-static void vk_rt_fill_push_constants( rtxRtPushConstants_t *push );
-static qboolean vk_rt_update_temporal_state( void );
-static void vk_rt_reset_temporal_history( const char *reason );
-static void vk_rt_destroy_output_image( void );
 static const shader_t *vk_rt_resolve_md3_shader( const trRefEntity_t *ent, const md3Surface_t *surface, int ordinal );
 static const shader_t *vk_rt_resolve_iqm_shader( const trRefEntity_t *ent, const srfIQModel_t *surface );
 static void vk_rt_decode_md3_normal( short packedNormal, vec3_t outNormal );
 static void vk_rt_transform_point( const trRefEntity_t *ent, const vec3_t local, vec3_t world );
 static void vk_rt_transform_direction( const trRefEntity_t *ent, const vec3_t local, vec3_t world );
 static uint32_t vk_rt_color_u32_from_bytes( const byte *rgba );
-static qboolean vk_rt_material_name_contains_token( const char *name, const char *token );
-static float vk_rt_material_alpha_cutoff_from_state_bits( unsigned stateBits );
-static rtxRtColorSpace_t vk_rt_material_albedo_color_space( const image_t *image );
-static rtxRtColorSpace_t vk_rt_material_data_color_space( const image_t *image );
-static int32_t vk_rt_image_to_scene_texture_index( const image_t *image );
-static void vk_rt_translate_shader_to_material( const shader_t *shader, rtxRtMaterial_t *material );
-static void vk_rt_apply_material_overrides( rtxRtMaterial_t *material );
 static VkSampler vk_find_sampler( const Vk_Sampler_Def *def );
 
 static int vk_lifetime_debug_level( void )
@@ -685,6 +456,14 @@ typedef enum {
 	RTX_RT_MODE_RAY_TRACING_PIPELINE = 2
 } rtxRtMode_t;
 
+/* How the path tracer (mode 2) traces: rtx_rt_backend 0 takes the first
+ * available, 1 and 2 ask for one. */
+typedef enum {
+	RTX_RT_BACKEND_NONE = 0,
+	RTX_RT_BACKEND_HARDWARE = 1,	// VK_KHR_ray_tracing_pipeline over acceleration structures
+	RTX_RT_BACKEND_COMPUTE = 2		// compute shaders over the renderer's own BVHs (rt/rt_bvh.c)
+} rtxRtBackend_t;
+
 static int vk_caps_report_level( void )
 {
 	if ( !rtx_caps_report ) {
@@ -701,146 +480,29 @@ static int vk_requested_rt_mode( void )
 	return rtx_rt_mode->integer;
 }
 
+static int vk_requested_rt_backend( void )
+{
+	if ( !rtx_rt_backend ) {
+		return RTX_RT_BACKEND_NONE;
+	}
+	return (int)Com_Clamp( RTX_RT_BACKEND_NONE, RTX_RT_BACKEND_COMPUTE, rtx_rt_backend->integer );
+}
+
+static const char *vk_rt_backend_name( int backend )
+{
+	switch ( backend ) {
+	case RTX_RT_BACKEND_HARDWARE: return "ray_tracing_pipeline";
+	case RTX_RT_BACKEND_COMPUTE: return "compute";
+	default: return "none";
+	}
+}
+
 static qboolean vk_rt_mode_required( void )
 {
 	if ( !rtx_rt_require ) {
 		return qfalse;
 	}
 	return rtx_rt_require->integer ? qtrue : qfalse;
-}
-
-static int vk_rt_debug_visualizer_mode( void )
-{
-	if ( !rtx_rt_debug_visualizer ) {
-		return 0;
-	}
-	return rtx_rt_debug_visualizer->integer;
-}
-
-static int vk_rt_quality_preset( void )
-{
-	if ( !rtx_rt_quality_preset ) {
-		return 0;
-	}
-	return Com_Clamp( 0, 4, rtx_rt_quality_preset->integer );
-}
-
-static qboolean vk_rt_adaptive_budget_enabled( void )
-{
-	if ( !rtx_rt_adaptive_budget ) {
-		return qfalse;
-	}
-	return rtx_rt_adaptive_budget->integer ? qtrue : qfalse;
-}
-
-static float vk_rt_target_frame_ms( void )
-{
-	static const float presetTarget[5] = { 12.0f, 16.6f, 13.8f, 11.1f, 8.3f };
-	int preset = vk_rt_quality_preset();
-
-	if ( preset > 0 ) {
-		return presetTarget[preset];
-	}
-	if ( !rtx_rt_target_frame_ms ) {
-		return 12.0f;
-	}
-	return Com_Clamp( 4.0f, 50.0f, rtx_rt_target_frame_ms->value );
-}
-
-static float vk_rt_budget_response( void )
-{
-	if ( !rtx_rt_budget_response ) {
-		return 0.18f;
-	}
-	return Com_Clamp( 0.01f, 1.0f, rtx_rt_budget_response->value );
-}
-
-static float vk_rt_budget_min_scale( void )
-{
-	static const float presetMinScale[5] = { 0.45f, 0.40f, 0.45f, 0.50f, 0.60f };
-	int preset = vk_rt_quality_preset();
-
-	if ( preset > 0 ) {
-		return presetMinScale[preset];
-	}
-	if ( !rtx_rt_budget_min_scale ) {
-		return 0.45f;
-	}
-	return Com_Clamp( 0.1f, 1.0f, rtx_rt_budget_min_scale->value );
-}
-
-static float vk_rt_budget_max_scale( void )
-{
-	static const float presetMaxScale[5] = { 1.25f, 1.00f, 1.10f, 1.25f, 1.40f };
-	int preset = vk_rt_quality_preset();
-
-	if ( preset > 0 ) {
-		return presetMaxScale[preset];
-	}
-	if ( !rtx_rt_budget_max_scale ) {
-		return 1.25f;
-	}
-	return Com_Clamp( 1.0f, 2.0f, rtx_rt_budget_max_scale->value );
-}
-
-static int vk_rt_perf_timing_mode( void )
-{
-	if ( !rtx_rt_perf_timing ) {
-		return 0;
-	}
-	return Com_Clamp( 0, 2, rtx_rt_perf_timing->integer );
-}
-
-static int vk_rt_perf_interval_frames( void )
-{
-	if ( !rtx_rt_perf_interval ) {
-		return 120;
-	}
-	return Com_Clamp( 1, 4096, rtx_rt_perf_interval->integer );
-}
-
-static qboolean vk_rt_dynamic_resolution_enabled( void )
-{
-	if ( !rtx_rt_dynamic_resolution ) {
-		return qfalse;
-	}
-	return rtx_rt_dynamic_resolution->integer ? qtrue : qfalse;
-}
-
-static float vk_rt_dynamic_resolution_min_scale( void )
-{
-	static const float presetMin[5] = { 0.60f, 0.55f, 0.65f, 0.75f, 0.85f };
-	int preset = vk_rt_quality_preset();
-
-	if ( preset > 0 ) {
-		return presetMin[preset];
-	}
-	if ( !rtx_rt_dynamic_resolution_min ) {
-		return 0.60f;
-	}
-	return Com_Clamp( 0.25f, 1.0f, rtx_rt_dynamic_resolution_min->value );
-}
-
-static float vk_rt_dynamic_resolution_max_scale( void )
-{
-	static const float presetMax[5] = { 1.00f, 0.85f, 0.95f, 1.00f, 1.00f };
-	int preset = vk_rt_quality_preset();
-
-	if ( preset > 0 ) {
-		return presetMax[preset];
-	}
-	if ( !rtx_rt_dynamic_resolution_max ) {
-		return 1.00f;
-	}
-	return Com_Clamp( 0.25f, 1.5f, rtx_rt_dynamic_resolution_max->value );
-}
-
-static float vk_rt_dynamic_resolution_rate( void )
-{
-	if ( !rtx_rt_dynamic_resolution_rate ) {
-		return 0.08f;
-	}
-	return Com_Clamp( 0.01f, 1.0f, rtx_rt_dynamic_resolution_rate->value );
 }
 
 static qboolean vk_rt_async_overlap_enabled( void )
@@ -851,56 +513,12 @@ static qboolean vk_rt_async_overlap_enabled( void )
 	return rtx_rt_async_overlap->integer ? qtrue : qfalse;
 }
 
-static int vk_rt_as_rebuild_interval( void )
-{
-	static const int presetInterval[5] = { 1, 3, 2, 1, 1 };
-	int preset = vk_rt_quality_preset();
-
-	if ( preset > 0 ) {
-		return presetInterval[preset];
-	}
-	if ( !rtx_rt_as_rebuild_interval ) {
-		return 1;
-	}
-	return Com_Clamp( 1, 16, rtx_rt_as_rebuild_interval->integer );
-}
-
-static float vk_rt_as_dirty_threshold( void )
-{
-	if ( !rtx_rt_as_dirty_threshold ) {
-		return 6.0f;
-	}
-	return Com_Clamp( 0.0f, 4096.0f, rtx_rt_as_dirty_threshold->value );
-}
-
 static int vk_rt_texture_stream_budget_mb( void )
 {
 	if ( !rtx_rt_texture_stream_budget_mb ) {
 		return 96;
 	}
 	return Com_Clamp( 0, 2048, rtx_rt_texture_stream_budget_mb->integer );
-}
-
-static qboolean vk_rt_texture_stream_stats_enabled( void )
-{
-	if ( !rtx_rt_texture_stream_stats ) {
-		return qfalse;
-	}
-	return rtx_rt_texture_stream_stats->integer ? qtrue : qfalse;
-}
-
-static int vk_rt_prep_frame_stride( void )
-{
-	static const int presetStride[5] = { 1, 3, 2, 1, 1 };
-	int preset = vk_rt_quality_preset();
-
-	if ( preset > 0 ) {
-		return presetStride[preset];
-	}
-	if ( !rtx_rt_prep_frame_stride ) {
-		return 1;
-	}
-	return Com_Clamp( 1, 8, rtx_rt_prep_frame_stride->integer );
 }
 
 static int64_t vk_rt_now_microseconds( void )
@@ -917,511 +535,6 @@ static float vk_rt_elapsed_ms( int64_t startUs, int64_t endUs )
 		return 0.0f;
 	}
 	return (float)( (double)( endUs - startUs ) * ( 1.0 / 1000.0 ) );
-}
-
-static uint32_t vk_rt_hash_mix_u32( uint32_t hash, uint32_t value )
-{
-	return ( hash ^ value ) * 16777619u;
-}
-
-static uint32_t vk_rt_hash_quantized_float( uint32_t hash, float value, float quantStep )
-{
-	return vk_rt_hash_mix_u32( hash, RTX_QuantizeSceneFloat( value, quantStep ) );
-}
-
-static qboolean vk_rt_entity_visible_in_current_view( const trRefEntity_t *ent )
-{
-	if ( !ent ) {
-		return qfalse;
-	}
-
-	if ( ri.gameId == COM_GAME_QUAKE3_IHV && ent->e.q3IHV.active &&
-		!Q3IHV_EntityVisible( ent->e.q3IHV.flags, backEnd.viewParms.portalView != PV_NONE ) ) return qfalse;
-
-	// Match legacy visibility behavior for first/third-person entities.
-	if ( ( ent->e.renderfx & RF_FIRST_PERSON ) &&
-		( backEnd.viewParms.portalView != PV_NONE ||
-			( backEnd.refdef.rdflags & RDF_NOFIRSTPERSON ) ) ) {
-		return qfalse;
-	}
-	if ( ( ent->e.renderfx & RF_THIRD_PERSON ) && ( backEnd.viewParms.portalView == PV_NONE ) ) {
-		return qfalse;
-	}
-
-	return qtrue;
-}
-
-static qboolean vk_rt_model_casts_in_current_view( const trRefEntity_t *ent )
-{
-	/* Dynamic BLAS models are secondary geometry. The hidden first-person
-	 * player's body must still cast shadows, while view weapons and explicitly
-	 * shadow-disabled entities must not occlude world lighting. */
-	if ( !ent || ent->e.reType != RT_MODEL || ent->e.hModel <= 0 ||
-		( ent->e.renderfx & ( RF_NOSHADOW | RF_DEPTHHACK | RF_FIRST_PERSON ) ) ) {
-		return qfalse;
-	}
-	if ( ri.gameId == COM_GAME_QUAKE3_IHV && ent->e.q3IHV.active &&
-		!vk_rt_entity_visible_in_current_view( ent ) ) return qfalse;
-	return qtrue;
-}
-
-static uint32_t vk_rt_estimate_dynamic_scene_signature( vec3_t outCentroid, uint32_t *outModelCount, uint32_t *outEffectCount, float quantStep )
-{
-	uint32_t hash = 2166136261u;
-	vec3_t sumOrigin = { 0.0f, 0.0f, 0.0f };
-	uint32_t sampleCount = 0;
-	const float originQuant = MAX( 1.0f, quantStep );
-	const float axisQuant = 0.02f;
-	int i;
-
-	if ( outModelCount ) {
-		*outModelCount = 0;
-	}
-	if ( outEffectCount ) {
-		*outEffectCount = 0;
-	}
-
-	for ( i = 0; backEnd.refdef.entities && i < backEnd.refdef.num_entities; i++ ) {
-		const trRefEntity_t *ent = &backEnd.refdef.entities[i];
-		const refEntity_t *ref = &ent->e;
-		vec3_t sampledOrigin;
-		qboolean include = qfalse;
-		uint32_t modelHandle = 0u;
-
-		if ( ref->reType == RT_MODEL ? !vk_rt_model_casts_in_current_view( ent ) :
-			!vk_rt_entity_visible_in_current_view( ent ) ) {
-			continue;
-		}
-
-		VectorCopy( ref->origin, sampledOrigin );
-
-		switch ( ref->reType ) {
-		case RT_MODEL:
-			if ( ref->hModel <= 0 ) {
-				continue;
-			}
-			include = qtrue;
-			modelHandle = (uint32_t)ref->hModel;
-			if ( outModelCount ) {
-				*outModelCount += 1u;
-			}
-			hash = vk_rt_hash_mix_u32( hash, (uint32_t)ref->frame );
-			hash = vk_rt_hash_mix_u32( hash, (uint32_t)ref->oldframe );
-			hash = vk_rt_hash_mix_u32( hash, (uint32_t)ref->skinNum );
-			hash = vk_rt_hash_mix_u32( hash, (uint32_t)ref->customSkin );
-			if ( ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP )
-				hash = vk_rt_hash_mix_u32( hash, (uint32_t)ref->rtcw.blink );
-			hash = vk_rt_hash_quantized_float( hash, ref->backlerp, 0.01f );
-			hash = vk_rt_hash_quantized_float( hash, ref->axis[0][0], axisQuant );
-			hash = vk_rt_hash_quantized_float( hash, ref->axis[0][1], axisQuant );
-			hash = vk_rt_hash_quantized_float( hash, ref->axis[0][2], axisQuant );
-			hash = vk_rt_hash_quantized_float( hash, ref->axis[1][0], axisQuant );
-			hash = vk_rt_hash_quantized_float( hash, ref->axis[1][1], axisQuant );
-			hash = vk_rt_hash_quantized_float( hash, ref->axis[1][2], axisQuant );
-			hash = vk_rt_hash_quantized_float( hash, ref->axis[2][0], axisQuant );
-			hash = vk_rt_hash_quantized_float( hash, ref->axis[2][1], axisQuant );
-			hash = vk_rt_hash_quantized_float( hash, ref->axis[2][2], axisQuant );
-			break;
-		case RT_SPRITE:
-		case RT_BEAM:
-		case RT_RAIL_CORE:
-		case RT_RAIL_RINGS:
-		case RT_LIGHTNING:
-			include = qtrue;
-			hash = vk_rt_hash_quantized_float( hash, ref->radius, 0.125f );
-			hash = vk_rt_hash_quantized_float( hash, ref->rotation, 0.25f );
-			if ( outEffectCount ) {
-				*outEffectCount += 1u;
-			}
-			if ( ref->reType == RT_BEAM || ref->reType == RT_RAIL_CORE ||
-				ref->reType == RT_RAIL_RINGS || ref->reType == RT_LIGHTNING ) {
-				VectorAdd( ref->origin, ref->oldorigin, sampledOrigin );
-				VectorScale( sampledOrigin, 0.5f, sampledOrigin );
-				/* Equal beam midpoints do not imply equal length/direction. */
-				hash = vk_rt_hash_quantized_float( hash, ref->origin[0], originQuant );
-				hash = vk_rt_hash_quantized_float( hash, ref->origin[1], originQuant );
-				hash = vk_rt_hash_quantized_float( hash, ref->origin[2], originQuant );
-				hash = vk_rt_hash_quantized_float( hash, ref->oldorigin[0], originQuant );
-				hash = vk_rt_hash_quantized_float( hash, ref->oldorigin[1], originQuant );
-				hash = vk_rt_hash_quantized_float( hash, ref->oldorigin[2], originQuant );
-			}
-			break;
-		default:
-			break;
-		}
-
-		if ( !include ) {
-			continue;
-		}
-
-		if ( ri.gameId == COM_GAME_QUAKE3_IHV && ref->q3IHV.active ) {
-			int row, column;
-			uint32_t bits;
-			const vec3_t *axes = ( ref->q3IHV.flags & Q3IHV_ENTITY_FACE_VIEW ) ? backEnd.refdef.viewaxis : ref->axis;
-			hash = vk_rt_hash_mix_u32( hash, ref->q3IHV.flags );
-			if ( ref->reType == RT_MODEL ) hash = vk_rt_hash_mix_u32( hash,
-				(uint32_t)Q3IHV_ModelLerpEnabled( r_lerpmodels ? &r_lerpmodels->value : NULL ) );
-			for ( row = 0; row < 3; ++row ) {
-				memcpy( &bits, &ref->origin[row], 4 ); hash = vk_rt_hash_mix_u32( hash, bits );
-				memcpy( &bits, &ref->oldorigin[row], 4 ); hash = vk_rt_hash_mix_u32( hash, bits );
-				for ( column = 0; column < 3; ++column ) {
-					memcpy( &bits, &axes[row][column], 4 ); hash = vk_rt_hash_mix_u32( hash, bits );
-				}
-			}
-			memcpy( &bits, &ref->backlerp, 4 ); hash = vk_rt_hash_mix_u32( hash, bits );
-		}
-		hash = vk_rt_hash_mix_u32( hash, (uint32_t)ref->reType );
-		hash = vk_rt_hash_mix_u32( hash, modelHandle );
-		hash = vk_rt_hash_mix_u32( hash, (uint32_t)ref->renderfx );
-		hash = vk_rt_hash_mix_u32( hash, (uint32_t)ref->customShader );
-		hash = vk_rt_hash_mix_u32( hash, ref->shader.u32 );
-		hash = vk_rt_hash_quantized_float( hash, sampledOrigin[0], originQuant );
-		hash = vk_rt_hash_quantized_float( hash, sampledOrigin[1], originQuant );
-		hash = vk_rt_hash_quantized_float( hash, sampledOrigin[2], originQuant );
-
-		if ( vk_rt_vec3_in_finite_range( sampledOrigin, RTX_RT_MAX_LIGHT_COORDINATE ) ) {
-			VectorAdd( sumOrigin, sampledOrigin, sumOrigin );
-			sampleCount++;
-		}
-	}
-
-	hash = vk_rt_hash_mix_u32( hash, (uint32_t)backEnd.refdef.numPolys );
-	for ( i = 0; backEnd.refdef.polys && i < backEnd.refdef.numPolys; i++ ) {
-		const srfPoly_t *poly = &backEnd.refdef.polys[i];
-		int v;
-		hash = vk_rt_hash_mix_u32( hash, (uint32_t)poly->hShader );
-		hash = vk_rt_hash_mix_u32( hash, (uint32_t)poly->numVerts );
-		if ( poly->surfaceType == SF_IHV_PARTICLES ) {
-			int axis;
-			hash = vk_rt_hash_mix_u32( hash, SF_IHV_PARTICLES );
-			hash = vk_rt_hash_mix_u32( hash, R_ViewPassIsMirror( &backEnd.viewParms ) );
-			/* Particle depth scaling and orientation change with this view.
-			 * Exact bits also preserve the discontinuity at depth 20. */
-			for ( axis = 0; axis < 3; ++axis ) {
-				uint32_t bits;
-				memcpy( &bits, &backEnd.viewParms.or.origin[axis], sizeof( bits ) );
-				hash = vk_rt_hash_mix_u32( hash, bits );
-				for ( v = 0; v < 3; ++v ) {
-					memcpy( &bits, &backEnd.viewParms.or.axis[axis][v], sizeof( bits ) );
-					hash = vk_rt_hash_mix_u32( hash, bits );
-				}
-			}
-		}
-		for ( v = 0; poly->verts && v < poly->numVerts; v++ ) {
-			const polyVert_t *vertex = &poly->verts[v];
-			hash = vk_rt_hash_quantized_float( hash, vertex->xyz[0], originQuant );
-			hash = vk_rt_hash_quantized_float( hash, vertex->xyz[1], originQuant );
-			hash = vk_rt_hash_quantized_float( hash, vertex->xyz[2], originQuant );
-			hash = vk_rt_hash_quantized_float( hash, vertex->st[0], 0.001f );
-			hash = vk_rt_hash_quantized_float( hash, vertex->st[1], 0.001f );
-			hash = vk_rt_hash_mix_u32( hash, vertex->modulate.u32 );
-		}
-	}
-
-	if ( sampleCount > 0 ) {
-		const float invCount = 1.0f / (float)sampleCount;
-		VectorScale( sumOrigin, invCount, outCentroid );
-	} else {
-		VectorCopy( vk.rt.dynamic_centroid_prev, outCentroid );
-	}
-
-	return hash;
-}
-
-static qboolean vk_rt_supports_reconstruction_blit( void )
-{
-	VkFormatProperties srcProps;
-	VkFormatProperties dstProps;
-
-	qvkGetPhysicalDeviceFormatProperties( vk.physical_device, vk.rt.output_format, &srcProps );
-	if ( ( srcProps.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_SRC_BIT ) == 0 ) {
-		return qfalse;
-	}
-	if ( ( srcProps.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT ) == 0 ) {
-		return qfalse;
-	}
-
-	qvkGetPhysicalDeviceFormatProperties( vk.physical_device, vk.color_format, &dstProps );
-	if ( ( dstProps.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT ) == 0 ) {
-		return qfalse;
-	}
-
-	return qtrue;
-}
-
-static qboolean vk_rt_ensure_timing_query_pool( void )
-{
-	VkQueryPoolCreateInfo queryInfo;
-	VkResult result;
-
-	if ( vk_rt_perf_timing_mode() <= 0 ) {
-		if ( vk.rt.timing_query_pool != VK_NULL_HANDLE ) {
-			if ( !vk_rt_wait_for_inflight_frames( "RT timing query disable" ) ) {
-				return qfalse;
-			}
-			qvkDestroyQueryPool( vk.device, vk.rt.timing_query_pool, NULL );
-			vk.rt.timing_query_pool = VK_NULL_HANDLE;
-			vk.rt.timing_query_count = 0;
-		}
-		return qtrue;
-	}
-
-	if ( !qvkCreateQueryPool || !qvkCmdResetQueryPool || !qvkCmdWriteTimestamp || !qvkGetQueryPoolResults ) {
-		return qtrue;
-	}
-
-	if ( vk.rt.timing_query_pool != VK_NULL_HANDLE ) {
-		return qtrue;
-	}
-
-	vk.rt.timing_query_stride = 4;
-	vk.rt.timing_query_count = vk.rt.timing_query_stride * 2u;
-
-	Com_Memset( &queryInfo, 0, sizeof( queryInfo ) );
-	queryInfo.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
-	queryInfo.queryType = VK_QUERY_TYPE_TIMESTAMP;
-	queryInfo.queryCount = vk.rt.timing_query_count;
-
-	result = qvkCreateQueryPool( vk.device, &queryInfo, NULL, &vk.rt.timing_query_pool );
-	if ( result != VK_SUCCESS ) {
-		ri.Printf( PRINT_WARNING, "RTX RT: failed to create timing query pool: %s\n", vk_result_string( result ) );
-		vk.rt.timing_query_pool = VK_NULL_HANDLE;
-		vk.rt.timing_query_count = 0;
-		return qtrue;
-	}
-
-	return qtrue;
-}
-
-static void vk_rt_read_timing_query_results( void )
-{
-	uint64_t queryData[8];
-	const uint32_t currentSlot = (uint32_t)( tr.frameCount & 1 );
-	const uint32_t previousSlot = currentSlot ^ 1u;
-	const uint32_t baseQuery = previousSlot * vk.rt.timing_query_stride;
-	VkResult result;
-	double toMs;
-	uint64_t traceStart;
-	uint64_t traceEnd;
-	uint64_t copyEnd;
-	uint64_t frameEnd;
-	qboolean complete;
-
-	if ( vk_rt_perf_timing_mode() <= 0 ) {
-		return;
-	}
-
-	if ( vk.rt.timing_query_pool == VK_NULL_HANDLE || vk.rt.timing_query_stride < 4 || vk.rt.timing_query_count < 8 ) {
-		return;
-	}
-
-	Com_Memset( queryData, 0, sizeof( queryData ) );
-	result = qvkGetQueryPoolResults(
-		vk.device,
-		vk.rt.timing_query_pool,
-		baseQuery,
-		vk.rt.timing_query_stride,
-		sizeof( queryData ),
-		queryData,
-		sizeof( uint64_t ) * 2,
-		VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WITH_AVAILABILITY_BIT );
-	if ( result != VK_SUCCESS && result != VK_NOT_READY ) {
-		return;
-	}
-
-	complete = ( queryData[1] != 0u && queryData[3] != 0u && queryData[5] != 0u && queryData[7] != 0u ) ? qtrue : qfalse;
-	if ( !complete ) {
-		return;
-	}
-
-	traceStart = queryData[0];
-	traceEnd = queryData[2];
-	copyEnd = queryData[4];
-	frameEnd = queryData[6];
-	toMs = (double)MAX( 0.0f, vk.rt.gpu_timestamp_period_ns ) * ( 1.0 / 1000000.0 );
-
-	if ( traceEnd >= traceStart ) {
-		vk.rt.perf.gpu_trace_ms = (float)( (double)( traceEnd - traceStart ) * toMs );
-	}
-	if ( copyEnd >= traceEnd ) {
-		vk.rt.perf.gpu_copy_ms = (float)( (double)( copyEnd - traceEnd ) * toMs );
-	}
-	if ( frameEnd >= traceStart ) {
-		vk.rt.perf.gpu_frame_ms = (float)( (double)( frameEnd - traceStart ) * toMs );
-	}
-}
-
-static void vk_rt_update_scalability_controller( void )
-{
-	float sourceFrameMs;
-	float targetFrameMs;
-	float response;
-	float minScale;
-	float maxScale;
-
-	sourceFrameMs = ( vk_rt_perf_timing_mode() > 0 && vk.rt.perf.gpu_frame_ms > 0.0f ) ?
-		vk.rt.perf.gpu_frame_ms : vk.rt.perf.cpu_frame_ms;
-	targetFrameMs = vk_rt_target_frame_ms();
-	response = vk_rt_budget_response();
-	minScale = vk_rt_budget_min_scale();
-	maxScale = vk_rt_budget_max_scale();
-
-	if ( minScale > maxScale ) {
-		float tmp = minScale;
-		minScale = maxScale;
-		maxScale = tmp;
-	}
-
-	if ( !vk_rt_adaptive_budget_enabled() ) {
-		vk.rt.adaptive_budget_scale = 1.0f;
-	} else if ( sourceFrameMs > 0.0f && targetFrameMs > 0.0f ) {
-		const float delta = ( targetFrameMs - sourceFrameMs ) / targetFrameMs;
-		vk.rt.adaptive_budget_scale += response * delta;
-		vk.rt.adaptive_budget_scale = Com_Clamp( minScale, maxScale, vk.rt.adaptive_budget_scale );
-	} else {
-		vk.rt.adaptive_budget_scale = Com_Clamp( minScale, maxScale, vk.rt.adaptive_budget_scale );
-	}
-
-	if ( vk_rt_dynamic_resolution_enabled() ) {
-		float dynMin = vk_rt_dynamic_resolution_min_scale();
-		float dynMax = vk_rt_dynamic_resolution_max_scale();
-		float dynRate = vk_rt_dynamic_resolution_rate();
-
-		if ( dynMin > dynMax ) {
-			float tmp = dynMin;
-			dynMin = dynMax;
-			dynMax = tmp;
-		}
-
-		if ( sourceFrameMs > 0.0f && targetFrameMs > 0.0f ) {
-			const float delta = ( targetFrameMs - sourceFrameMs ) / targetFrameMs;
-			vk.rt.dynamic_resolution_target_scale += response * delta;
-		} else {
-			vk.rt.dynamic_resolution_target_scale = dynMax;
-		}
-
-		vk.rt.dynamic_resolution_target_scale = Com_Clamp( dynMin, dynMax, vk.rt.dynamic_resolution_target_scale );
-		vk.rt.dynamic_resolution_scale += ( vk.rt.dynamic_resolution_target_scale - vk.rt.dynamic_resolution_scale ) * dynRate;
-		vk.rt.dynamic_resolution_scale = Com_Clamp( dynMin, dynMax, vk.rt.dynamic_resolution_scale );
-	} else {
-		vk.rt.dynamic_resolution_target_scale = 1.0f;
-		vk.rt.dynamic_resolution_scale = 1.0f;
-	}
-}
-
-static void vk_rt_log_perf_summary( void )
-{
-	static uint64_t lastTextureBytes = 0;
-	static uint64_t lastTextureFlushes = 0;
-	static uint64_t lastAsyncSubmits = 0;
-	const int timingMode = vk_rt_perf_timing_mode();
-	const int interval = vk_rt_perf_interval_frames();
-	const qboolean wantTextureStats = vk_rt_texture_stream_stats_enabled();
-	const qboolean printPerFrame = ( timingMode >= 2 ) ? qtrue : qfalse;
-	const qboolean printPeriodic = ( ( tr.frameCount % interval ) == 0 ) ? qtrue : qfalse;
-
-	if ( timingMode <= 0 && !wantTextureStats ) {
-		return;
-	}
-	if ( !printPerFrame && !printPeriodic ) {
-		return;
-	}
-
-	if ( timingMode > 0 ) {
-		ri.Printf( PRINT_ALL,
-			"RTX RT perf: cpu(ms) dyn=%.3f world=%.3f tlas=%.3f temporal=%.3f dispatch=%.3f copy=%.3f frame=%.3f | gpu(ms) trace=%.3f copy=%.3f frame=%.3f | scale budget=%.3f dynres=%.3f (%ux%u)\n",
-			vk.rt.perf.cpu_dynamic_ms,
-			vk.rt.perf.cpu_world_ms,
-			vk.rt.perf.cpu_tlas_ms,
-			vk.rt.perf.cpu_temporal_ms,
-			vk.rt.perf.cpu_dispatch_ms,
-			vk.rt.perf.cpu_copy_ms,
-			vk.rt.perf.cpu_frame_ms,
-			vk.rt.perf.gpu_trace_ms,
-			vk.rt.perf.gpu_copy_ms,
-			vk.rt.perf.gpu_frame_ms,
-			vk.rt.adaptive_budget_scale,
-			vk.rt.dynamic_resolution_scale,
-			vk.rt.output_width,
-			vk.rt.output_height );
-	}
-
-	if ( wantTextureStats ) {
-		const uint64_t bytesDelta = vk.rt.stats.texture_stream_bytes - lastTextureBytes;
-		const uint64_t flushDelta = vk.rt.stats.texture_stream_flushes - lastTextureFlushes;
-		const uint64_t asyncDelta = vk.rt.stats.async_overlap_submits - lastAsyncSubmits;
-		const float mbDelta = (float)( (double)bytesDelta / ( 1024.0 * 1024.0 ) );
-
-		ri.Printf( PRINT_ALL,
-			"RTX RT stream: uploads=%.2fMB flushes=%llu asyncSubmits=%llu budget=%dMB staging=%lluKB rebuildSkips=%llu prepStrideSkips=%llu\n",
-			mbDelta,
-			(unsigned long long)flushDelta,
-			(unsigned long long)asyncDelta,
-			vk_rt_texture_stream_budget_mb(),
-			(unsigned long long)( vk_world.staging_buffer_size / 1024u ),
-			(unsigned long long)vk.rt.stats.dynamic_rebuild_skips,
-			(unsigned long long)vk.rt.stats.prep_stride_skips );
-
-		lastTextureBytes = vk.rt.stats.texture_stream_bytes;
-		lastTextureFlushes = vk.rt.stats.texture_stream_flushes;
-		lastAsyncSubmits = vk.rt.stats.async_overlap_submits;
-	}
-}
-
-static int vk_rt_as_build_budget_mb( void )
-{
-	static const int presetBudget[5] = { 96, 48, 96, 160, 256 };
-	int preset = vk_rt_quality_preset();
-	int base;
-	float scale = 1.0f;
-
-	if ( preset > 0 ) {
-		base = presetBudget[preset];
-	} else if ( rtx_rt_as_build_budget_mb ) {
-		base = rtx_rt_as_build_budget_mb->integer;
-	} else {
-		base = 0;
-	}
-
-	if ( base <= 0 ) {
-		return 0;
-	}
-
-	if ( vk_rt_adaptive_budget_enabled() ) {
-		scale = Com_Clamp( vk_rt_budget_min_scale(), vk_rt_budget_max_scale(), vk.rt.adaptive_budget_scale );
-	}
-
-	return Com_Clamp( 1, 4096, (int)( (float)base * scale ) );
-}
-
-static int vk_rt_as_instance_budget( void )
-{
-	static const int presetInstances[5] = { 1024, 384, 768, 1536, 3072 };
-	int preset = vk_rt_quality_preset();
-	int base;
-	float scale = 1.0f;
-
-	if ( preset > 0 ) {
-		base = presetInstances[preset];
-	} else if ( rtx_rt_as_instance_budget ) {
-		base = rtx_rt_as_instance_budget->integer;
-	} else {
-		base = 1024;
-	}
-
-	if ( vk_rt_adaptive_budget_enabled() ) {
-		scale = Com_Clamp( vk_rt_budget_min_scale(), vk_rt_budget_max_scale(), vk.rt.adaptive_budget_scale );
-	}
-
-	return Com_Clamp( 64, 16384, (int)( (float)base * scale ) );
-}
-
-static qboolean vk_rt_as_compaction_enabled( void )
-{
-	if ( !rtx_rt_as_compaction ) {
-		return qfalse;
-	}
-	return rtx_rt_as_compaction->integer ? qtrue : qfalse;
 }
 
 static int vk_rt_debug_as_stats_level( void )
@@ -1450,372 +563,12 @@ static qboolean vk_rt_debug_should_log_skip( int *lastLoggedFrame )
 	return qtrue;
 }
 
-static qboolean vk_rt_dynamic_blas_enabled( void )
-{
-	if ( !rtx_rt_dynamic_blas ) {
-		return qfalse;
-	}
-	return rtx_rt_dynamic_blas->integer ? qtrue : qfalse;
-}
-
-static qboolean vk_rt_temporal_enabled( void )
-{
-	if ( !rtx_rt_temporal_enable ) {
-		return qtrue;
-	}
-	return rtx_rt_temporal_enable->integer ? qtrue : qfalse;
-}
-
-static float vk_rt_temporal_alpha( void )
-{
-	if ( !rtx_rt_temporal_alpha ) {
-		return 0.88f;
-	}
-	return Com_Clamp( 0.0f, 0.98f, rtx_rt_temporal_alpha->value );
-}
-
-static float vk_rt_temporal_clamp_strength( void )
-{
-	if ( !rtx_rt_temporal_clamp ) {
-		return 1.25f;
-	}
-	return MAX( 0.0f, rtx_rt_temporal_clamp->value );
-}
-
-static float vk_rt_temporal_depth_reject( void )
-{
-	if ( !rtx_rt_temporal_depth_reject ) {
-		return 4.0f;
-	}
-	return MAX( 0.0f, rtx_rt_temporal_depth_reject->value );
-}
-
-static float vk_rt_temporal_motion_reject( void )
-{
-	if ( !rtx_rt_temporal_motion_reject ) {
-		return 18.0f;
-	}
-	return MAX( 0.0f, rtx_rt_temporal_motion_reject->value );
-}
-
-static float vk_rt_temporal_camera_cut_distance( void )
-{
-	if ( !rtx_rt_temporal_camera_cut ) {
-		return 128.0f;
-	}
-	return MAX( 0.0f, rtx_rt_temporal_camera_cut->value );
-}
-
-static qboolean vk_rt_spatial_denoise_enabled( void )
-{
-	if ( !rtx_rt_spatial_denoise ) {
-		return qtrue;
-	}
-	return rtx_rt_spatial_denoise->integer ? qtrue : qfalse;
-}
-
-static float vk_rt_spatial_sigma_depth( void )
-{
-	if ( !rtx_rt_spatial_sigma_depth ) {
-		return 2.5f;
-	}
-	return MAX( 0.0f, rtx_rt_spatial_sigma_depth->value );
-}
-
-static float vk_rt_spatial_sigma_normal( void )
-{
-	if ( !rtx_rt_spatial_sigma_normal ) {
-		return 24.0f;
-	}
-	return MAX( 0.0f, rtx_rt_spatial_sigma_normal->value );
-}
-
-static float vk_rt_firefly_threshold( void )
-{
-	if ( !rtx_rt_firefly_threshold ) {
-		return 8.0f;
-	}
-	return MAX( 0.0f, rtx_rt_firefly_threshold->value );
-}
-
-static float vk_rt_firefly_strength( void )
-{
-	if ( !rtx_rt_firefly_strength ) {
-		return 0.75f;
-	}
-	return Com_Clamp( 0.0f, 1.0f, rtx_rt_firefly_strength->value );
-}
-
-static int vk_rt_tonemap_mode( void )
-{
-	if ( !rtx_rt_tonemap_mode ) {
-		return 2;
-	}
-	return Com_Clamp( 0, 2, rtx_rt_tonemap_mode->integer );
-}
-
-static float vk_rt_exposure_manual( void )
-{
-	if ( !rtx_rt_exposure ) {
-		return 1.0f;
-	}
-	return Com_Clamp( 0.01f, 32.0f, rtx_rt_exposure->value );
-}
-
-static qboolean vk_rt_auto_exposure_enabled( void )
-{
-	if ( !rtx_rt_auto_exposure ) {
-		return qtrue;
-	}
-	return rtx_rt_auto_exposure->integer ? qtrue : qfalse;
-}
-
-static float vk_rt_exposure_speed( void )
-{
-	if ( !rtx_rt_exposure_speed ) {
-		return 0.08f;
-	}
-	return Com_Clamp( 0.0f, 1.0f, rtx_rt_exposure_speed->value );
-}
-
-static float vk_rt_exposure_min( void )
-{
-	if ( !rtx_rt_exposure_min ) {
-		return 0.2f;
-	}
-	return Com_Clamp( 0.01f, 32.0f, rtx_rt_exposure_min->value );
-}
-
-static float vk_rt_exposure_max( void )
-{
-	if ( !rtx_rt_exposure_max ) {
-		return 4.0f;
-	}
-	return Com_Clamp( 0.01f, 64.0f, rtx_rt_exposure_max->value );
-}
-
-static float vk_rt_motion_dynamic_scale( void )
-{
-	if ( !rtx_rt_motion_dynamic_scale ) {
-		return 1.0f;
-	}
-	return Com_Clamp( 0.0f, 4.0f, rtx_rt_motion_dynamic_scale->value );
-}
-
-static qboolean vk_rt_post_validate_enabled( void )
-{
-	if ( !rtx_rt_post_validate ) {
-		return qfalse;
-	}
-	return rtx_rt_post_validate->integer ? qtrue : qfalse;
-}
-
-static qboolean vk_rt_first_person_priority_enabled( void )
-{
-	if ( !rtx_rt_first_person_priority ) {
-		return qtrue;
-	}
-	return rtx_rt_first_person_priority->integer ? qtrue : qfalse;
-}
-
-static float vk_rt_effect_radius_scale( void )
-{
-	if ( !rtx_rt_effect_radius_scale ) {
-		return 1.2f;
-	}
-	return Com_Clamp( 0.1f, 4.0f, rtx_rt_effect_radius_scale->value );
-}
-
-static float vk_rt_effect_emissive_boost( void )
-{
-	if ( !rtx_rt_effect_emissive_boost ) {
-		return 2.0f;
-	}
-	return MAX( 0.0f, rtx_rt_effect_emissive_boost->value );
-}
-
-static qboolean vk_rt_marks_enabled( void )
-{
-	if ( !rtx_rt_marks_enable ) {
-		return qtrue;
-	}
-	return rtx_rt_marks_enable->integer ? qtrue : qfalse;
-}
-
-static qboolean vk_rt_particle_volume_enabled( void )
-{
-	if ( !rtx_rt_particle_volume ) {
-		return qtrue;
-	}
-	return rtx_rt_particle_volume->integer ? qtrue : qfalse;
-}
-
 static qboolean vk_rt_ui_passthrough_enabled( void )
 {
 	if ( !rtx_rt_ui_passthrough ) {
 		return qtrue;
 	}
 	return rtx_rt_ui_passthrough->integer ? qtrue : qfalse;
-}
-
-static qboolean vk_rt_camera_mode_validate_enabled( void )
-{
-	if ( !rtx_rt_camera_mode_validate ) {
-		return qtrue;
-	}
-	return rtx_rt_camera_mode_validate->integer ? qtrue : qfalse;
-}
-
-static qboolean vk_rt_raster_reference_enabled( void )
-{
-	if ( !rtx_rt_raster_reference ) {
-		return qfalse;
-	}
-	return rtx_rt_raster_reference->integer ? qtrue : qfalse;
-}
-
-static float vk_rt_world_light_scale( void )
-{
-	if ( !rtx_rt_world_light_scale ) {
-		return 0.0f;
-	}
-	return MAX( 0.0f, rtx_rt_world_light_scale->value );
-}
-
-static float vk_rt_legacy_intensity_scale( void )
-{
-	if ( !rtx_rt_legacy_color_compat ||
-		!rtx_rt_legacy_color_compat->integer ||
-		!r_intensity ) {
-		return 1.0f;
-	}
-	return Com_Clamp( 0.5f, 4.0f, r_intensity->value );
-}
-
-static float vk_rt_readability_lift( void )
-{
-	if ( !rtx_rt_readability_lift ) {
-		return 0.06f;
-	}
-	return Com_Clamp( -1.0f, 1.0f, rtx_rt_readability_lift->value );
-}
-
-static float vk_rt_readability_contrast( void )
-{
-	if ( !rtx_rt_readability_contrast ) {
-		return 1.05f;
-	}
-	return Com_Clamp( 0.2f, 3.0f, rtx_rt_readability_contrast->value );
-}
-
-static float vk_rt_readability_saturation( void )
-{
-	if ( !rtx_rt_readability_saturation ) {
-		return 1.08f;
-	}
-	return Com_Clamp( 0.0f, 3.0f, rtx_rt_readability_saturation->value );
-}
-
-static float vk_rt_readability_shadow_floor( void )
-{
-	if ( !rtx_rt_readability_shadow_floor ) {
-		return 0.05f;
-	}
-	return Com_Clamp( 0.0f, 0.5f, rtx_rt_readability_shadow_floor->value );
-}
-
-static int vk_rt_shadow_mode( void )
-{
-	if ( !rtx_rt_shadow_mode ) {
-		return 2;
-	}
-	return rtx_rt_shadow_mode->integer;
-}
-
-static float vk_rt_shadow_softness( void )
-{
-	if ( !rtx_rt_shadow_softness ) {
-		return 0.25f;
-	}
-	return MAX( 0.0f, rtx_rt_shadow_softness->value );
-}
-
-static uint32_t vk_rt_indirect_bounce_count( void )
-{
-	if ( !rtx_rt_indirect_bounce ) {
-		return qtrue;
-	}
-	return (uint32_t)Com_Clamp( 0, 4, rtx_rt_indirect_bounce->integer );
-}
-
-static float vk_rt_indirect_strength( void )
-{
-	if ( !rtx_rt_indirect_strength ) {
-		return 0.35f;
-	}
-	return MAX( 0.0f, rtx_rt_indirect_strength->value );
-}
-
-static float vk_rt_reflection_strength( void )
-{
-	if ( !rtx_rt_reflection_strength ) {
-		return 1.0f;
-	}
-	return MAX( 0.0f, rtx_rt_reflection_strength->value );
-}
-
-static float vk_rt_sky_intensity( void )
-{
-	if ( !rtx_rt_sky_intensity ) {
-		return 1.0f;
-	}
-	return MAX( 0.0f, rtx_rt_sky_intensity->value );
-}
-
-static float vk_rt_sun_intensity( void )
-{
-	if ( !rtx_rt_sun_intensity ) {
-		return 1.0f;
-	}
-	return MAX( 0.0f, rtx_rt_sun_intensity->value );
-}
-
-static int vk_rt_refractive_mode( void )
-{
-	if ( !rtx_rt_refractive_mode ) {
-		return 1;
-	}
-	return rtx_rt_refractive_mode->integer;
-}
-
-static float vk_rt_refractive_ior( void )
-{
-	if ( !rtx_rt_refractive_ior ) {
-		return 1.33f;
-	}
-	return Com_Clamp( 1.0f, 2.5f, rtx_rt_refractive_ior->value );
-}
-
-static uint32_t vk_rt_max_lights( void )
-{
-	static const int presetLights[5] = { 64, 24, 48, 64, 96 };
-	int preset = vk_rt_quality_preset();
-	int base;
-	float scale = 1.0f;
-
-	if ( preset > 0 ) {
-		base = presetLights[preset];
-	} else if ( rtx_rt_max_lights ) {
-		base = rtx_rt_max_lights->integer;
-	} else {
-		base = 64;
-	}
-
-	if ( vk_rt_adaptive_budget_enabled() ) {
-		scale = Com_Clamp( vk_rt_budget_min_scale(), vk_rt_budget_max_scale(), vk.rt.adaptive_budget_scale );
-	}
-
-	return (uint32_t)Com_Clamp( 8, 256, (int)( (float)base * scale ) );
 }
 
 static const char *vk_rt_mode_name( int mode )
@@ -1828,45 +581,33 @@ static const char *vk_rt_mode_name( int mode )
 	}
 }
 
+// The path tracer traces through VK_KHR_ray_tracing_pipeline
 static qboolean vk_rt_pipeline_enabled( void )
 {
-	return ( vk.caps.activeRtMode == RTX_RT_MODE_RAY_TRACING_PIPELINE ) ? qtrue : qfalse;
+	return ( vk.caps.activeRtMode == RTX_RT_MODE_RAY_TRACING_PIPELINE &&
+		vk.caps.rtBackend == RTX_RT_BACKEND_HARDWARE ) ? qtrue : qfalse;
 }
 
+// The path tracer runs, with either backend
 static qboolean vk_rt_trace_available( void )
 {
-	return vk_rt_pipeline_enabled();
+	return ( vk.caps.activeRtMode == RTX_RT_MODE_RAY_TRACING_PIPELINE &&
+		vk.caps.rtBackend != RTX_RT_BACKEND_NONE ) ? qtrue : qfalse;
+}
+
+// Whether this renderer instance traces: the shader parser looks for the
+// path tracer's material maps only then.
+qboolean vk_rt_tracing( void )
+{
+	return vk_rt_trace_available();
 }
 
 static void vk_rt_reset_state( void )
 {
 	Com_Memset( &vk.rt, 0, sizeof( vk.rt ) );
-	vk.rt.output_format = VK_FORMAT_R16G16B16A16_SFLOAT;
-	vk.rt.activeVisualizer = 0;
-	vk.rt.history_read_index = 0;
-	vk.rt.history_valid = qfalse;
-	vk.rt.temporal_reset_pending = qtrue;
-	vk.rt.temporal_has_prev_camera = qfalse;
-	vk.rt.temporal_prev_refdef_time = 0;
-	vk.rt.temporal_prev_rdflags = 0;
-	vk.rt.temporal_prev_stereo_frame = 0;
-	vk.rt.temporal_exposure = vk_rt_exposure_manual();
-	vk.rt.adaptive_budget_scale = 1.0f;
-	vk.rt.dynamic_resolution_scale = 1.0f;
-	vk.rt.dynamic_resolution_target_scale = 1.0f;
-	vk.rt.dynamic_scene_signature = 0u;
-	vk.rt.dynamic_last_rebuild_frame = -1;
 	vk.rt.gpu_timestamp_period_ns = 1.0f;
-	vk.rt.timing_query_pool = VK_NULL_HANDLE;
-	vk.rt.timing_query_count = 0;
-	vk.rt.timing_query_stride = 4;
-	VectorClear( vk.rt.dynamic_centroid_current );
-	VectorClear( vk.rt.dynamic_centroid_prev );
-	VectorClear( vk.rt.dynamic_last_rebuild_centroid );
-	s_vkRtDynResBlitWarned = qfalse;
 	s_vkRtTextureBudgetFrame = -1;
 	s_vkRtTextureBudgetUsed = 0;
-	vk_rt_reset_world_light_cache();
 }
 
 static qboolean vk_rt_align_up_checked( VkDeviceSize value, VkDeviceSize alignment, VkDeviceSize *outValue )
@@ -1894,24 +635,6 @@ static qboolean vk_rt_align_up_checked( VkDeviceSize value, VkDeviceSize alignme
 	}
 
 	*outValue = value + padding;
-	return qtrue;
-}
-
-static qboolean vk_rt_device_size_add_checked( VkDeviceSize lhs, VkDeviceSize rhs, VkDeviceSize *outValue )
-{
-	if ( !outValue || lhs > ( (VkDeviceSize)-1 ) - rhs ) {
-		return qfalse;
-	}
-	*outValue = lhs + rhs;
-	return qtrue;
-}
-
-static qboolean vk_rt_device_size_multiply_checked( VkDeviceSize lhs, VkDeviceSize rhs, VkDeviceSize *outValue )
-{
-	if ( !outValue || ( lhs != 0 && rhs > ( (VkDeviceSize)-1 ) / lhs ) ) {
-		return qfalse;
-	}
-	*outValue = lhs * rhs;
 	return qtrue;
 }
 
@@ -1951,40 +674,6 @@ static qboolean vk_rt_wait_for_inflight_frames( const char *reason )
 	return qtrue;
 }
 
-static uint32_t vk_rt_clamped_visualizer_mode( void )
-{
-	int mode = vk_rt_debug_visualizer_mode();
-	if ( mode < 0 ) {
-		mode = 0;
-	}
-	if ( mode > RTX_RT_MAX_DEBUG_VISUALIZER ) {
-		mode = RTX_RT_MAX_DEBUG_VISUALIZER;
-	}
-	return (uint32_t)mode;
-}
-
-static qboolean vk_rt_budget_allows( VkDeviceSize bytesNeeded, VkDeviceSize *bytesUsed, VkDeviceSize budgetBytes )
-{
-	if ( budgetBytes == 0 ) {
-		return qtrue;
-	}
-
-	if ( bytesNeeded > budgetBytes || *bytesUsed > budgetBytes || ( budgetBytes - *bytesUsed ) < bytesNeeded ) {
-		vk.rt.stats.throttled_builds++;
-		if ( vk_rt_debug_as_stats_level() >= 1 ) {
-			ri.Printf( PRINT_DEVELOPER,
-				"RTX RT: build throttled (needed=%llu, used=%llu, budget=%llu)\n",
-				(unsigned long long)bytesNeeded,
-				(unsigned long long)( *bytesUsed ),
-				(unsigned long long)budgetBytes );
-		}
-		return qfalse;
-	}
-
-	*bytesUsed += bytesNeeded;
-	return qtrue;
-}
-
 static VkDeviceAddress vk_get_buffer_device_address( const VkBufferDeviceAddressInfo *addressInfo )
 {
 	if ( qvkGetBufferDeviceAddress ) {
@@ -1997,6 +686,13 @@ static VkDeviceAddress vk_get_buffer_device_address( const VkBufferDeviceAddress
 }
 
 static qboolean vk_rt_create_buffer( VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryProps, qboolean needDeviceAddress, const char *debugName, rtxVkRtBuffer_t *outBuffer )
+{
+	return vk_rt_create_buffer_ex( size, usage, memoryProps, 0, needDeviceAddress, debugName, outBuffer );
+}
+
+/* memoryProps are required; preferredProps are taken as well where a memory
+ * type offers them and its heap has room. */
+static qboolean vk_rt_create_buffer_ex( VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryProps, VkMemoryPropertyFlags preferredProps, qboolean needDeviceAddress, const char *debugName, rtxVkRtBuffer_t *outBuffer )
 {
 	VkBufferCreateInfo bufferInfo;
 	VkMemoryRequirements memoryRequirements;
@@ -2027,7 +723,13 @@ static qboolean vk_rt_create_buffer( VkDeviceSize size, VkBufferUsageFlags usage
 	}
 
 	qvkGetBufferMemoryRequirements( vk.device, buffer, &memoryRequirements );
-	memoryType = find_memory_type( memoryRequirements.memoryTypeBits, memoryProps );
+	memoryType = ~0U;
+	if ( preferredProps ) {
+		memoryType = find_memory_type2( memoryRequirements.memoryTypeBits, memoryProps | preferredProps, NULL );
+	}
+	if ( memoryType == ~0U ) {
+		memoryType = find_memory_type( memoryRequirements.memoryTypeBits, memoryProps );
+	}
 
 	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	allocInfo.pNext = NULL;
@@ -2042,6 +744,14 @@ static qboolean vk_rt_create_buffer( VkDeviceSize size, VkBufferUsageFlags usage
 	}
 
 	result = qvkAllocateMemory( vk.device, &allocInfo, NULL, &memory );
+	if ( result != VK_SUCCESS && preferredProps ) {
+		// the preferred heap is full (a small BAR window): take the required type
+		const uint32_t requiredType = find_memory_type( memoryRequirements.memoryTypeBits, memoryProps );
+		if ( requiredType != memoryType ) {
+			allocInfo.memoryTypeIndex = requiredType;
+			result = qvkAllocateMemory( vk.device, &allocInfo, NULL, &memory );
+		}
+	}
 	if ( result != VK_SUCCESS ) {
 		ri.Printf( PRINT_ERROR, "RTX RT: failed to allocate buffer memory '%s': %s\n",
 			debugName ? debugName : "unnamed", vk_result_string( result ) );
@@ -2115,43 +825,6 @@ static void vk_rt_destroy_buffer( rtxVkRtBuffer_t *buffer )
 	Com_Memset( buffer, 0, sizeof( *buffer ) );
 }
 
-static qboolean vk_rt_ensure_buffer_capacity( rtxVkRtBuffer_t *buffer, VkDeviceSize minSize, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryProps, qboolean needDeviceAddress, const char *debugName )
-{
-	VkDeviceSize allocSize;
-
-	if ( !buffer ) {
-		return qfalse;
-	}
-
-	allocSize = ( minSize > 0 ) ? minSize : 1;
-
-	if ( buffer->buffer != VK_NULL_HANDLE && buffer->memory != VK_NULL_HANDLE ) {
-		if ( buffer->capacity >= allocSize && ( !needDeviceAddress || buffer->address != 0 ) ) {
-			return qtrue;
-		}
-
-		if ( buffer->capacity > 0 && buffer->capacity <= ( (VkDeviceSize)-1 ) / 2 ) {
-			VkDeviceSize grown = buffer->capacity * 2;
-			if ( grown > allocSize ) {
-				allocSize = grown;
-			}
-		}
-
-		if ( !vk_rt_wait_for_inflight_frames( debugName ) ) {
-			return qfalse;
-		}
-		vk_rt_destroy_buffer( buffer );
-	}
-
-	return vk_rt_create_buffer(
-		allocSize,
-		usage,
-		memoryProps,
-		needDeviceAddress,
-		debugName,
-		buffer );
-}
-
 static qboolean vk_rt_upload_buffer_data( const rtxVkRtBuffer_t *buffer, const void *src, size_t bytes )
 {
 	void *mapped = NULL;
@@ -2218,840 +891,6 @@ static qboolean vk_rt_upload_buffer_data( const rtxVkRtBuffer_t *buffer, const v
 	return qtrue;
 }
 
-static qboolean vk_rt_upload_material_buffer( const rtxRtMaterial_t *materials, uint32_t materialCount, rtxVkRtBuffer_t *targetBuffer, uint32_t *outMaterialCount, const char *debugName )
-{
-	rtxRtGpuMaterial_t *gpuMaterials = NULL;
-	const uint32_t uploadCount = materialCount > 0 ? materialCount : 1u;
-	size_t uploadBytes = (size_t)uploadCount * sizeof( rtxRtGpuMaterial_t );
-	uint32_t i;
-
-	gpuMaterials = (rtxRtGpuMaterial_t *)ri.Malloc( uploadBytes );
-	Com_Memset( gpuMaterials, 0, uploadBytes );
-
-	for ( i = 0; i < materialCount; i++ ) {
-		const rtxRtMaterial_t *src = &materials[i];
-		rtxRtGpuMaterial_t *dst = &gpuMaterials[i];
-
-		dst->baseColor[0] = src->baseColor[0];
-		dst->baseColor[1] = src->baseColor[1];
-		dst->baseColor[2] = src->baseColor[2];
-		dst->baseColor[3] = src->baseColor[3];
-		dst->emissiveColorScale[0] = src->emissiveColor[0];
-		dst->emissiveColorScale[1] = src->emissiveColor[1];
-		dst->emissiveColorScale[2] = src->emissiveColor[2];
-		dst->emissiveColorScale[3] = src->emissiveScale;
-		dst->pbrParams[0] = src->roughness;
-		dst->pbrParams[1] = src->metallic;
-		dst->pbrParams[2] = src->alphaCutoff;
-		dst->pbrParams[3] = vk_rt_refractive_ior();
-			dst->metadata[0] = src->flags;
-			dst->metadata[1] = src->albedoColorSpace;
-			dst->metadata[2] = src->normalColorSpace;
-			dst->metadata[3] = src->emissiveColorSpace;
-			dst->textureInfo[0] = ( src->albedoTextureIndex >= 0 ) ? (uint32_t)src->albedoTextureIndex : RTX_RT_INVALID_TEXTURE_INDEX;
-			dst->textureInfo[1] = ( src->lightmapTextureIndex >= 0 ) ? (uint32_t)src->lightmapTextureIndex : RTX_RT_INVALID_TEXTURE_INDEX;
-			dst->textureInfo[2] = src->vertexLighting ? 1u : 0u;
-			Com_Memcpy( &dst->textureInfo[3], &src->lightmapScale, sizeof( src->lightmapScale ) );
-		}
-
-	if ( materialCount == 0 ) {
-		gpuMaterials[0].baseColor[0] = 1.0f;
-		gpuMaterials[0].baseColor[1] = 1.0f;
-		gpuMaterials[0].baseColor[2] = 1.0f;
-		gpuMaterials[0].baseColor[3] = 1.0f;
-		gpuMaterials[0].pbrParams[0] = 0.85f;
-		gpuMaterials[0].pbrParams[3] = vk_rt_refractive_ior();
-		gpuMaterials[0].textureInfo[0] = RTX_RT_INVALID_TEXTURE_INDEX;
-		gpuMaterials[0].textureInfo[1] = RTX_RT_INVALID_TEXTURE_INDEX;
-	}
-
-	if ( !vk_rt_ensure_buffer_capacity(
-		targetBuffer,
-		(VkDeviceSize)uploadBytes,
-		VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-		qfalse,
-		debugName ) ) {
-		ri.Free( gpuMaterials );
-		return qfalse;
-	}
-
-	if ( !vk_rt_upload_buffer_data( targetBuffer, gpuMaterials, uploadBytes ) ) {
-		ri.Free( gpuMaterials );
-		return qfalse;
-	}
-
-	ri.Free( gpuMaterials );
-	if ( outMaterialCount ) {
-		*outMaterialCount = uploadCount;
-	}
-	return qtrue;
-}
-
-static qboolean vk_rt_parse_entity_vec3( const char *text, vec3_t outVec )
-{
-	const char *cursor;
-	int i;
-
-	if ( !text || !outVec ) {
-		return qfalse;
-	}
-
-	cursor = text;
-	for ( i = 0; i < 3; i++ ) {
-		char *end;
-		double parsed;
-
-		while ( *cursor && isspace( (unsigned char)*cursor ) ) {
-			cursor++;
-		}
-		if ( !*cursor ) {
-			return qfalse;
-		}
-		errno = 0;
-		end = NULL;
-		parsed = strtod( cursor, &end );
-		if ( end == cursor || !end || errno == ERANGE ||
-			!( parsed >= -(double)FLT_MAX && parsed <= (double)FLT_MAX ) ) {
-			return qfalse;
-		}
-		outVec[i] = (float)parsed;
-		cursor = end;
-	}
-
-	while ( *cursor && isspace( (unsigned char)*cursor ) ) {
-		cursor++;
-	}
-	return *cursor ? qfalse : qtrue;
-}
-
-static qboolean vk_rt_parse_entity_float_value( const char *text, float *outValue )
-{
-	char *end;
-	double parsed;
-	const char *cursor;
-
-	if ( !text || !outValue ) {
-		return qfalse;
-	}
-	cursor = text;
-	while ( *cursor && isspace( (unsigned char)*cursor ) ) {
-		cursor++;
-	}
-	if ( !*cursor ) {
-		return qfalse;
-	}
-	errno = 0;
-	end = NULL;
-	parsed = strtod( cursor, &end );
-	if ( end == cursor || !end || errno == ERANGE ||
-		!( parsed >= -(double)FLT_MAX && parsed <= (double)FLT_MAX ) ) {
-		return qfalse;
-	}
-	while ( *end && isspace( (unsigned char)*end ) ) {
-		end++;
-	}
-	if ( *end ) {
-		return qfalse;
-	}
-	*outValue = (float)parsed;
-	return qtrue;
-}
-
-static qboolean vk_rt_parse_entity_light_value( const char *text, float *outValue )
-{
-	float values[4];
-	const char *cursor;
-	int count = 0;
-
-	if ( !text || !outValue ) {
-		return qfalse;
-	}
-
-	cursor = text;
-	while ( count < 4 ) {
-		char *end;
-		double parsed;
-
-		while ( *cursor && isspace( (unsigned char)*cursor ) ) {
-			cursor++;
-		}
-		if ( !*cursor ) {
-			break;
-		}
-		errno = 0;
-		end = NULL;
-		parsed = strtod( cursor, &end );
-		if ( end == cursor || !end || errno == ERANGE ||
-			!( parsed >= -(double)FLT_MAX && parsed <= (double)FLT_MAX ) ) {
-			return qfalse;
-		}
-		values[count++] = (float)parsed;
-		cursor = end;
-	}
-
-	while ( *cursor && isspace( (unsigned char)*cursor ) ) {
-		cursor++;
-	}
-	if ( *cursor || ( count != 1 && count != 4 ) ) {
-		return qfalse;
-	}
-
-	*outValue = values[count == 4 ? 3 : 0];
-	return qtrue;
-}
-
-static qboolean vk_rt_world_has_sky_surface( void )
-{
-	const bmodel_t *worldModel;
-	int i;
-
-	if ( !tr.world || !tr.world->bmodels ) {
-		return qfalse;
-	}
-
-	worldModel = &tr.world->bmodels[0];
-	if ( !worldModel->firstSurface || worldModel->numSurfaces <= 0 ) {
-		return qfalse;
-	}
-
-	for ( i = 0; i < worldModel->numSurfaces; i++ ) {
-		const msurface_t *surf = &worldModel->firstSurface[i];
-		if ( surf->shader && surf->shader->isSky ) {
-			return qtrue;
-		}
-	}
-
-	return qfalse;
-}
-
-static void vk_rt_estimate_world_bounds( vec3_t center, float *radius )
-{
-	vec3_t mins = { -2048.0f, -2048.0f, -2048.0f };
-	vec3_t maxs = { 2048.0f, 2048.0f, 2048.0f };
-	vec3_t extents;
-
-	if ( tr.world && tr.world->bmodels ) {
-		const float *worldMins = tr.world->bmodels[0].bounds[0];
-		const float *worldMaxs = tr.world->bmodels[0].bounds[1];
-
-		if ( vk_rt_vec3_in_finite_range( worldMins,
-				RTX_RT_MAX_LIGHT_COORDINATE ) &&
-			vk_rt_vec3_in_finite_range( worldMaxs,
-				RTX_RT_MAX_LIGHT_COORDINATE ) &&
-			worldMins[0] <= worldMaxs[0] &&
-			worldMins[1] <= worldMaxs[1] &&
-			worldMins[2] <= worldMaxs[2] ) {
-			VectorCopy( worldMins, mins );
-			VectorCopy( worldMaxs, maxs );
-		}
-	}
-
-	VectorAdd( mins, maxs, center );
-	VectorScale( center, 0.5f, center );
-	VectorSubtract( maxs, mins, extents );
-
-	if ( radius ) {
-		const float estimatedRadius = 0.5f * VectorLength( extents );
-		*radius = vk_rt_float_in_finite_range( estimatedRadius, 0.0f,
-			RTX_RT_MAX_LIGHT_RADIUS ) ?
-				Com_Clamp( 1024.0f, RTX_RT_MAX_LIGHT_RADIUS,
-					estimatedRadius ) : 4096.0f;
-	}
-}
-
-static void vk_rt_resolve_sun_params( vec3_t outDirection, vec3_t outColor, qboolean *outFallbackFromSky )
-{
-	float sunLen;
-	const float minElevation = 0.25f;
-	const qboolean authoredSun =
-		( vk_rt_vec3_in_finite_range( tr.sunLight,
-			RTX_RT_MAX_LIGHT_RADIANCE ) &&
-		  tr.sunLight[0] >= 0.0f && tr.sunLight[1] >= 0.0f &&
-		  tr.sunLight[2] >= 0.0f &&
-		  VectorLengthSquared( tr.sunLight ) > 1e-8f ) ? qtrue : qfalse;
-
-	if ( outFallbackFromSky ) {
-		*outFallbackFromSky = qfalse;
-	}
-
-	if ( vk_rt_vec3_in_finite_range( tr.sunDirection,
-		RTX_RT_MAX_LIGHT_COORDINATE ) ) {
-		VectorCopy( tr.sunDirection, outDirection );
-		sunLen = VectorNormalize( outDirection );
-	} else {
-		sunLen = 0.0f;
-	}
-	if ( !vk_rt_float_in_finite_range( sunLen, FLT_MIN, FLT_MAX ) ||
-		!vk_rt_vec3_in_finite_range( outDirection, 1.0f ) ) {
-		// Match renderer default sky sun heading when map scripts do not provide q3map_sun.
-		VectorSet( outDirection, 0.45f, 0.30f, 0.90f );
-		VectorNormalize( outDirection );
-	}
-	// Keep only synthesized fallback light in a sensible upper-hemisphere band.
-	// Authored low-elevation suns must retain their map-defined direction.
-	if ( !authoredSun && outDirection[2] < minElevation ) {
-		const float targetXYLen = sqrtf( MAX( 0.0f, 1.0f - minElevation * minElevation ) );
-		const float currentXYLen = sqrtf( outDirection[0] * outDirection[0] + outDirection[1] * outDirection[1] );
-		if ( currentXYLen > 1e-5f ) {
-			const float scale = targetXYLen / currentXYLen;
-			outDirection[0] *= scale;
-			outDirection[1] *= scale;
-		} else {
-			outDirection[0] = 0.8321f;
-			outDirection[1] = 0.4962f;
-		}
-		outDirection[2] = minElevation;
-		VectorNormalize( outDirection );
-	}
-
-	if ( authoredSun ) {
-		/*
-		 * q3map_sun intensity is a compile-era light unit (retail values are
-		 * commonly 25..250), not scene-linear radiance. Normalize it at the
-		 * RT boundary while retaining the authored chroma and map variation.
-		 */
-		VectorScale( tr.sunLight, RTX_RT_LEGACY_SUN_UNIT_SCALE, outColor );
-		return;
-	}
-
-	vk_rt_rebuild_world_light_cache();
-
-	if ( s_vkRtWorldLightCache.hasSkySurface ) {
-		float ambientScale = Com_Clamp( 0.75f, 3.0f, 1.20f + s_vkRtWorldLightCache.worldspawnAmbient * ( 1.0f / 56.0f ) );
-		VectorScale( s_vkRtWorldLightCache.worldspawnColor, ambientScale, outColor );
-		if ( outFallbackFromSky ) {
-			*outFallbackFromSky = qtrue;
-		}
-		return;
-	}
-
-	VectorSet( outColor, 0.18f, 0.20f, 0.24f );
-}
-
-static void vk_rt_reset_world_light_cache( void )
-{
-	Com_Memset( &s_vkRtWorldLightCache, 0, sizeof( s_vkRtWorldLightCache ) );
-	VectorSet( s_vkRtWorldLightCache.worldspawnColor, 1.0f, 1.0f, 1.0f );
-	s_vkRtWorldLightCache.worldspawnAmbient = 5.0f;
-}
-
-static void vk_rt_rebuild_world_light_cache( void )
-{
-	const char *parse;
-	const char *token;
-	char keyName[MAX_TOKEN_CHARS];
-	char value[MAX_TOKEN_CHARS];
-	uint32_t truncated = 0;
-
-	if ( s_vkRtWorldLightCache.world == tr.world ) {
-		return;
-	}
-
-	vk_rt_reset_world_light_cache();
-	s_vkRtWorldLightCache.world = tr.world;
-
-	if ( !tr.world || !tr.world->entityString || !tr.world->entityString[0] ) {
-		return;
-	}
-
-	parse = tr.world->entityString;
-
-	while ( 1 ) {
-		char className[MAX_QPATH] = { 0 };
-		qboolean isLight = qfalse;
-		qboolean isWorldspawn = qfalse;
-		qboolean hasOrigin = qfalse;
-		qboolean hasColor = qfalse;
-		qboolean hasWorldColor = qfalse;
-		qboolean hasWorldAmbient = qfalse;
-		vec3_t origin = { 0.0f, 0.0f, 0.0f };
-		vec3_t color = { 1.0f, 1.0f, 1.0f };
-		vec3_t worldColor = { 1.0f, 1.0f, 1.0f };
-		float worldAmbient = 5.0f;
-		float lightValue = 300.0f;
-		float radiusValue = 0.0f;
-		float scaleValue = 1.0f;
-		float maxColor;
-		rtxRtGpuLight_t *dst;
-
-		token = COM_ParseExt( &parse, qtrue );
-		if ( !token[0] ) {
-			break;
-		}
-		if ( token[0] != '{' ) {
-			continue;
-		}
-
-		while ( 1 ) {
-			token = COM_ParseExt( &parse, qtrue );
-			if ( !token[0] ) {
-				break;
-			}
-			if ( token[0] == '}' ) {
-				break;
-			}
-
-			Q_strncpyz( keyName, token, sizeof( keyName ) );
-
-			token = COM_ParseExt( &parse, qfalse );
-			if ( !token[0] ) {
-				break;
-			}
-
-			Q_strncpyz( value, token, sizeof( value ) );
-
-			if ( !Q_stricmp( keyName, "classname" ) ) {
-				Q_strncpyz( className, value, sizeof( className ) );
-				isLight = ( !Q_stricmp( value, "light" ) ||
-					!Q_stricmp( value, "lightJunior" ) ) ? qtrue : qfalse;
-				continue;
-			}
-
-			if ( !Q_stricmp( keyName, "origin" ) ) {
-				if ( vk_rt_parse_entity_vec3( value, origin ) ) {
-					hasOrigin = qtrue;
-				}
-				continue;
-			}
-
-			if ( !Q_stricmp( keyName, "ambient" ) ) {
-				if ( vk_rt_parse_entity_float_value( value, &worldAmbient ) ) {
-					hasWorldAmbient = qtrue;
-				}
-				continue;
-			}
-
-			if ( !Q_stricmp( keyName, "_color" ) || !Q_stricmp( keyName, "color" ) ) {
-				vec3_t parsedColor;
-				if ( vk_rt_parse_entity_vec3( value, parsedColor ) ) {
-					VectorCopy( parsedColor, color );
-					hasColor = qtrue;
-					if ( !Q_stricmp( keyName, "_color" ) ) {
-						VectorCopy( parsedColor, worldColor );
-						hasWorldColor = qtrue;
-					}
-				}
-				continue;
-			}
-
-			if ( !Q_stricmp( keyName, "light" ) || !Q_stricmp( keyName, "_light" ) ) {
-				float parsedLight;
-				if ( vk_rt_parse_entity_light_value( value, &parsedLight ) ) {
-					lightValue = parsedLight;
-				}
-				continue;
-			}
-
-			if ( !Q_stricmp( keyName, "radius" ) || !Q_stricmp( keyName, "_radius" ) ) {
-				(void)vk_rt_parse_entity_float_value( value, &radiusValue );
-				continue;
-			}
-
-			if ( !Q_stricmp( keyName, "scale" ) ) {
-				(void)vk_rt_parse_entity_float_value( value, &scaleValue );
-				continue;
-			}
-		}
-
-		isWorldspawn = !Q_stricmp( className, "worldspawn" ) ? qtrue : qfalse;
-		if ( isWorldspawn ) {
-			float worldMaxColor = MAX( worldColor[0], MAX( worldColor[1], worldColor[2] ) );
-			if ( hasWorldColor && worldMaxColor > 1.0f ) {
-				VectorScale( worldColor, 1.0f / 255.0f, worldColor );
-			}
-			if ( hasWorldColor ) {
-				s_vkRtWorldLightCache.worldspawnColor[0] = Com_Clamp( 0.0f, 4.0f, worldColor[0] );
-				s_vkRtWorldLightCache.worldspawnColor[1] = Com_Clamp( 0.0f, 4.0f, worldColor[1] );
-				s_vkRtWorldLightCache.worldspawnColor[2] = Com_Clamp( 0.0f, 4.0f, worldColor[2] );
-			}
-			if ( hasWorldAmbient ) {
-				s_vkRtWorldLightCache.worldspawnAmbient = Com_Clamp( 0.0f, 1024.0f, worldAmbient );
-			}
-		}
-
-		if ( !isLight || !hasOrigin ) {
-			continue;
-		}
-		if ( !vk_rt_vec3_in_finite_range( origin,
-				RTX_RT_MAX_LIGHT_COORDINATE ) ) {
-			continue;
-		}
-
-		if ( s_vkRtWorldLightCache.count >= RTX_RT_MAX_WORLD_ENTITY_LIGHTS ) {
-			truncated++;
-			continue;
-		}
-
-	if ( !hasColor ) {
-		VectorSet( color, 1.0f, 1.0f, 1.0f );
-	}
-		maxColor = MAX( color[0], MAX( color[1], color[2] ) );
-		if ( maxColor > 1.0f ) {
-			VectorScale( color, 1.0f / 255.0f, color );
-		}
-		color[0] = Com_Clamp( 0.0f, 4.0f, color[0] );
-		color[1] = Com_Clamp( 0.0f, 4.0f, color[1] );
-		color[2] = Com_Clamp( 0.0f, 4.0f, color[2] );
-
-	lightValue = Com_Clamp( 1.0f, 8192.0f, lightValue );
-	scaleValue = Com_Clamp( 0.01f, 16.0f, scaleValue );
-
-		if ( radiusValue <= 0.0f ) {
-			radiusValue = MAX( 96.0f, lightValue * 1.5f );
-		}
-		radiusValue = Com_Clamp( 32.0f, 4096.0f, radiusValue );
-
-		dst = &s_vkRtWorldLightCache.lights[ s_vkRtWorldLightCache.count ];
-		Com_Memset( dst, 0, sizeof( *dst ) );
-		dst->positionRadius[0] = origin[0];
-		dst->positionRadius[1] = origin[1];
-		dst->positionRadius[2] = origin[2];
-		dst->positionRadius[3] = radiusValue;
-	dst->colorType[0] = color[0] * ( lightValue / 300.0f ) * scaleValue * vk_rt_world_light_scale();
-	dst->colorType[1] = color[1] * ( lightValue / 300.0f ) * scaleValue * vk_rt_world_light_scale();
-	dst->colorType[2] = color[2] * ( lightValue / 300.0f ) * scaleValue * vk_rt_world_light_scale();
-	dst->colorType[3] = 0.0f;
-		dst->directionSoftness[0] = 0.0f;
-		dst->directionSoftness[1] = 0.0f;
-		dst->directionSoftness[2] = 0.0f;
-		dst->directionSoftness[3] = vk_rt_shadow_softness();
-		dst->metadata[0] = RTX_RT_LIGHT_FLAG_CASTS_SHADOWS;
-		if ( vk_rt_gpu_light_is_valid( dst ) ) {
-			s_vkRtWorldLightCache.count++;
-		} else {
-			Com_Memset( dst, 0, sizeof( *dst ) );
-		}
-	}
-
-	s_vkRtWorldLightCache.hasSkySurface = vk_rt_world_has_sky_surface();
-
-	if ( vk_rt_world_light_scale() > 0.0f &&
-		s_vkRtWorldLightCache.count == 0 && !s_vkRtWorldLightCache.warnedEmpty ) {
-		ri.Printf( PRINT_WARNING,
-			"RTX RT: no map light entities detected in '%s'; direct RT lighting relies on sun and dynamic lights only.\n",
-			tr.world ? tr.world->baseName : "unknown" );
-		s_vkRtWorldLightCache.warnedEmpty = qtrue;
-	} else if ( vk_rt_world_light_scale() > 0.0f &&
-		s_vkRtWorldLightCache.count > 0 ) {
-		ri.Printf( PRINT_ALL,
-			"RTX RT: world entity lights active: %u%s\n",
-			s_vkRtWorldLightCache.count,
-			truncated ? va( " (%u truncated)", truncated ) : "" );
-	}
-}
-
-static uint32_t vk_rt_append_world_entity_lights( rtxRtGpuLight_t *lights, uint32_t count, uint32_t maxLights )
-{
-	const uint32_t available = ( maxLights > count ) ? ( maxLights - count ) : 0u;
-	uint32_t remaining;
-	uint32_t i;
-	float shadowSoftness;
-
-	if ( !lights || available == 0 ) {
-		return count;
-	}
-	if ( vk_rt_world_light_scale() <= 0.0f ) {
-		return count;
-	}
-
-	vk_rt_rebuild_world_light_cache();
-	if ( s_vkRtWorldLightCache.count == 0 ) {
-		return count;
-	}
-
-	shadowSoftness = vk_rt_shadow_softness();
-	remaining = available;
-
-	if ( s_vkRtWorldLightCache.count <= remaining ) {
-		for ( i = 0; i < s_vkRtWorldLightCache.count && count < maxLights; i++ ) {
-			rtxRtGpuLight_t candidate = s_vkRtWorldLightCache.lights[i];
-			candidate.directionSoftness[3] = shadowSoftness;
-			if ( vk_rt_gpu_light_is_valid( &candidate ) ) {
-				lights[count++] = candidate;
-			}
-		}
-		return count;
-	}
-
-	{
-		qboolean selected[RTX_RT_MAX_WORLD_ENTITY_LIGHTS];
-		uint32_t selectCount = 0;
-
-		Com_Memset( selected, 0, sizeof( selected ) );
-
-		while ( selectCount < remaining && count < maxLights ) {
-			uint32_t bestIndex = ~0u;
-			double bestDistSq = DBL_MAX;
-
-			for ( i = 0; i < s_vkRtWorldLightCache.count; i++ ) {
-				const rtxRtGpuLight_t *candidate = &s_vkRtWorldLightCache.lights[i];
-				double dx;
-				double dy;
-				double dz;
-				double distSq;
-
-				if ( selected[i] ) {
-					continue;
-				}
-				if ( !vk_rt_gpu_light_is_valid( candidate ) ) {
-					selected[i] = qtrue;
-					continue;
-				}
-
-				dx = candidate->positionRadius[0] - backEnd.refdef.vieworg[0];
-				dy = candidate->positionRadius[1] - backEnd.refdef.vieworg[1];
-				dz = candidate->positionRadius[2] - backEnd.refdef.vieworg[2];
-				distSq = dx * dx + dy * dy + dz * dz;
-
-				if ( distSq < bestDistSq ) {
-					bestDistSq = distSq;
-					bestIndex = i;
-				}
-			}
-
-			if ( bestIndex == ~0u ) {
-				break;
-			}
-
-			selected[bestIndex] = qtrue;
-			lights[count] = s_vkRtWorldLightCache.lights[bestIndex];
-			lights[count].directionSoftness[3] = shadowSoftness;
-			if ( vk_rt_gpu_light_is_valid( &lights[count] ) ) {
-				count++;
-			}
-			selectCount++;
-		}
-	}
-
-	return count;
-}
-
-static uint32_t vk_rt_surface_light_reservation( uint32_t maxLights, uint32_t usedLights )
-{
-	uint32_t available;
-	uint32_t reservationCap;
-	uint32_t selectedCount;
-
-	if ( vk_rt_raster_reference_enabled() ||
-		backEnd.refdef.numRtSurfaceLights <= 0 ||
-		usedLights >= maxLights ) {
-		return 0u;
-	}
-
-	selectedCount = (uint32_t)backEnd.refdef.numRtSurfaceLights;
-	available = maxLights - usedLights;
-	reservationCap = maxLights / 4u;
-	if ( reservationCap < 1u ) {
-		reservationCap = 1u;
-	} else if ( reservationCap > 2u ) {
-		reservationCap = 2u;
-	}
-
-	return MIN( selectedCount, MIN( reservationCap, available ) );
-}
-
-static uint32_t vk_rt_append_surface_lights( rtxRtGpuLight_t *lights,
-	uint32_t count, uint32_t maxLights )
-{
-	int i;
-
-	if ( !lights || count >= maxLights || vk_rt_raster_reference_enabled() ) {
-		return count;
-	}
-
-	for ( i = 0; i < backEnd.refdef.numRtSurfaceLights && count < maxLights; i++ ) {
-		const surfaceLightProxy_t *proxy = &backEnd.refdef.rtSurfaceLights[i];
-		rtxRtGpuLight_t candidate;
-		rtxRtGpuLight_t *dst;
-		vec3_t end;
-		const qboolean linear =
-			( proxy->projection == SURFACE_LIGHT_PROXY_LINEAR ) ?
-				qtrue : qfalse;
-
-		if ( !vk_rt_vec3_in_finite_range( proxy->origin,
-				RTX_RT_MAX_LIGHT_COORDINATE ) ||
-			!vk_rt_vec3_in_finite_range( proxy->color,
-				RTX_RT_MAX_LIGHT_RADIANCE ) ||
-			!vk_rt_float_in_finite_range( proxy->radius, FLT_MIN,
-				RTX_RT_MAX_LIGHT_RADIUS ) ||
-			( linear &&
-			  !vk_rt_vec3_in_finite_range( proxy->normal, 1.0f ) ) ) {
-			continue;
-		}
-		if ( linear ) {
-			VectorMA( proxy->origin, proxy->radius, proxy->normal, end );
-			if ( !vk_rt_vec3_in_finite_range( end,
-					RTX_RT_MAX_LIGHT_COORDINATE ) ) {
-				continue;
-			}
-		}
-
-		Com_Memset( &candidate, 0, sizeof( candidate ) );
-		candidate.positionRadius[0] = proxy->origin[0];
-		candidate.positionRadius[1] = proxy->origin[1];
-		candidate.positionRadius[2] = proxy->origin[2];
-		candidate.positionRadius[3] = proxy->radius;
-		candidate.colorType[0] = proxy->color[0];
-		candidate.colorType[1] = proxy->color[1];
-		candidate.colorType[2] = proxy->color[2];
-		candidate.colorType[3] = linear ? 2.0f : 0.0f;
-		if ( linear ) {
-			candidate.directionSoftness[0] = end[0];
-			candidate.directionSoftness[1] = end[1];
-			candidate.directionSoftness[2] = end[2];
-		}
-		candidate.directionSoftness[3] = vk_rt_shadow_softness();
-		candidate.metadata[0] = RTX_RT_LIGHT_FLAG_CASTS_SHADOWS;
-		if ( !vk_rt_gpu_light_is_valid( &candidate ) ) {
-			continue;
-		}
-		dst = &lights[count++];
-		*dst = candidate;
-	}
-
-	return count;
-}
-
-static qboolean vk_rt_update_light_buffer( void )
-{
-	rtxRtGpuLight_t *lights = NULL;
-	rtxVkRtBuffer_t *lightBuffer;
-	uint32_t maxLights = vk_rt_max_lights();
-	uint32_t count = 0;
-	uint32_t reservedSurfaceLights;
-	uint32_t gameplayLightLimit;
-	uint32_t uploadCount;
-	uint32_t bufferIndex = (uint32_t)( vk.cmd_index % NUM_COMMAND_BUFFERS );
-	size_t uploadBytes;
-	vec3_t sunDir;
-	vec3_t sunColor;
-	vec3_t sunOrigin;
-	float sunRadius;
-	qboolean fallbackSunFromSky = qfalse;
-	qboolean rasterReference = vk_rt_raster_reference_enabled();
-	qboolean traceLightShadows = vk_rt_shadow_mode() > 0 ? qtrue : qfalse;
-	int i;
-
-	lightBuffer = &vk.rt.light_buffer[bufferIndex];
-	lights = (rtxRtGpuLight_t *)ri.Malloc( maxLights * sizeof( rtxRtGpuLight_t ) );
-	Com_Memset( lights, 0, maxLights * sizeof( rtxRtGpuLight_t ) );
-
-	vk_rt_resolve_sun_params( sunDir, sunColor, &fallbackSunFromSky );
-	if ( VectorLengthSquared( sunColor ) > 1e-8f && count < maxLights ) {
-		rtxRtGpuLight_t sun;
-
-		Com_Memset( &sun, 0, sizeof( sun ) );
-		sun.colorType[0] = sunColor[0] * vk_rt_sun_intensity();
-		sun.colorType[1] = sunColor[1] * vk_rt_sun_intensity();
-		sun.colorType[2] = sunColor[2] * vk_rt_sun_intensity();
-		sun.colorType[3] = 1.0f;
-		sun.directionSoftness[0] = sunDir[0];
-		sun.directionSoftness[1] = sunDir[1];
-		sun.directionSoftness[2] = sunDir[2];
-		sun.directionSoftness[3] = vk_rt_shadow_softness();
-		sun.metadata[0] = RTX_RT_LIGHT_FLAG_CASTS_SHADOWS;
-
-		if ( fallbackSunFromSky ) {
-			vk_rt_estimate_world_bounds( sunOrigin, &sunRadius );
-			VectorMA( sunOrigin, sunRadius * 2.5f + 2048.0f, sunDir, sunOrigin );
-			sun.positionRadius[0] = sunOrigin[0];
-			sun.positionRadius[1] = sunOrigin[1];
-			sun.positionRadius[2] = sunOrigin[2];
-			sun.positionRadius[3] = MIN( sunRadius * 6.0f,
-				RTX_RT_MAX_LIGHT_RADIUS );
-		}
-		if ( vk_rt_gpu_light_is_valid( &sun ) ) {
-			lights[count++] = sun;
-		}
-	}
-
-	reservedSurfaceLights = vk_rt_surface_light_reservation( maxLights, count );
-	gameplayLightLimit = maxLights - reservedSurfaceLights;
-
-	/*
-	 * Compatibility composition keeps PMLIGHT authoritative for game and
-	 * promoted sidecar light color. Upload its shadow-casting lights as
-	 * visibility-only inputs so RT can occlude the raster-owned contribution
-	 * without adding it a second time. Experimental full-RT shading uploads
-	 * every light and uses the same castsRtShadows policy for direct lighting.
-	 */
-	for ( i = 0; i < backEnd.refdef.num_dlights && count < gameplayLightLimit; i++ ) {
-		const dlight_t *dl = &backEnd.refdef.dlights[i];
-		rtxRtGpuLight_t candidate;
-		rtxRtGpuLight_t *dst;
-		float radius = dl->radius;
-		qboolean shadowOnly = rasterReference;
-
-		if ( ( !rasterReference && backEnd.refdef.numRtSurfaceLights > 0 &&
-			( dl->sourceFlags & DLIGHT_SOURCE_SURFACE ) ) ||
-			!vk_rt_vec3_in_finite_range( dl->origin,
-				RTX_RT_MAX_LIGHT_COORDINATE ) ||
-			!vk_rt_vec3_in_finite_range( dl->color,
-				RTX_RT_MAX_LIGHT_RADIANCE ) ||
-			!vk_rt_float_in_finite_range( radius, FLT_MIN,
-				RTX_RT_MAX_LIGHT_RADIUS ) ||
-			( dl->linear && !vk_rt_vec3_in_finite_range( dl->origin2,
-				RTX_RT_MAX_LIGHT_COORDINATE ) ) ||
-			( shadowOnly && ( !traceLightShadows || !dl->castsRtShadows ) ) ) {
-			continue;
-		}
-
-		Com_Memset( &candidate, 0, sizeof( candidate ) );
-		candidate.positionRadius[0] = dl->origin[0];
-		candidate.positionRadius[1] = dl->origin[1];
-		candidate.positionRadius[2] = dl->origin[2];
-		candidate.positionRadius[3] = radius;
-		candidate.colorType[0] = dl->color[0];
-		candidate.colorType[1] = dl->color[1];
-		candidate.colorType[2] = dl->color[2];
-		candidate.colorType[3] = dl->linear ? 2.0f : 0.0f;
-		candidate.directionSoftness[0] = dl->linear ? dl->origin2[0] : 0.0f;
-		candidate.directionSoftness[1] = dl->linear ? dl->origin2[1] : 0.0f;
-		candidate.directionSoftness[2] = dl->linear ? dl->origin2[2] : 0.0f;
-		candidate.directionSoftness[3] = vk_rt_shadow_softness();
-		candidate.metadata[0] =
-			( dl->castsRtShadows ? RTX_RT_LIGHT_FLAG_CASTS_SHADOWS : 0u ) |
-			( shadowOnly ? RTX_RT_LIGHT_FLAG_SHADOW_ONLY : 0u );
-		if ( !vk_rt_gpu_light_is_valid( &candidate ) ) {
-			continue;
-		}
-		dst = &lights[count++];
-		*dst = candidate;
-	}
-
-	count = vk_rt_append_surface_lights( lights, count, maxLights );
-	count = vk_rt_append_world_entity_lights( lights, count, maxLights );
-
-	uploadCount = MAX( count, 1u );
-	uploadBytes = (size_t)uploadCount * sizeof( rtxRtGpuLight_t );
-
-	if ( !vk_rt_ensure_buffer_capacity(
-		lightBuffer,
-		(VkDeviceSize)uploadBytes,
-		VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-		qfalse,
-		va( "rt lights frame %u", bufferIndex ) ) ) {
-		ri.Free( lights );
-		return qfalse;
-	}
-
-	if ( count == 0 ) {
-		Com_Memset( &lights[0], 0, sizeof( lights[0] ) );
-	}
-
-	if ( !vk_rt_upload_buffer_data( lightBuffer, lights, uploadBytes ) ) {
-		ri.Free( lights );
-		return qfalse;
-	}
-
-	ri.Free( lights );
-	vk.rt.light_count = count;
-	vk.rt.stats.active_lights = count;
-	return qtrue;
-}
-
 static void vk_rt_destroy_as( rtxVkRtAccelerationStructure_t *as )
 {
 	if ( !as ) {
@@ -3103,241 +942,15 @@ static qboolean vk_rt_create_as( VkAccelerationStructureTypeKHR type, VkDeviceSi
 	return qtrue;
 }
 
-static qboolean vk_rt_ensure_scratch_buffer( VkDeviceSize minSize )
-{
-	VkDeviceSize alignment = 256;
-	VkDeviceSize alignedSize;
-	VkDeviceSize requiredSize;
-
-	if ( vk.rt.as_props.minAccelerationStructureScratchOffsetAlignment > alignment ) {
-		alignment = vk.rt.as_props.minAccelerationStructureScratchOffsetAlignment;
-	}
-
-	if ( !vk_rt_align_up_checked( minSize, alignment, &alignedSize ) ||
-		alignedSize > ( (VkDeviceSize)-1 ) - alignment ) {
-		return qfalse;
-	}
-	requiredSize = alignedSize + alignment;
-
-	if ( vk.rt.scratch_buffer.buffer != VK_NULL_HANDLE ) {
-		VkDeviceSize alignedAddressValue;
-		if ( vk_rt_align_up_checked( (VkDeviceSize)vk.rt.scratch_buffer.address,
-			alignment, &alignedAddressValue ) ) {
-			const VkDeviceSize alignedOffset = alignedAddressValue -
-				(VkDeviceSize)vk.rt.scratch_buffer.address;
-			if ( alignedOffset <= vk.rt.scratch_buffer.capacity &&
-				alignedSize <= vk.rt.scratch_buffer.capacity - alignedOffset ) {
-				return qtrue;
-			}
-		}
-	}
-
-	if ( vk.rt.scratch_buffer.buffer != VK_NULL_HANDLE ) {
-		if ( !vk_rt_wait_for_inflight_frames( "scratch buffer resize" ) ) {
-			return qfalse;
-		}
-	}
-	vk_rt_destroy_buffer( &vk.rt.scratch_buffer );
-
-	if ( !vk_rt_create_buffer(
-		requiredSize,
-		VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
-		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		qtrue,
-		"rt scratch",
-		&vk.rt.scratch_buffer ) ) {
-		return qfalse;
-	}
-
-	return qtrue;
-}
-
-static VkDeviceAddress vk_rt_scratch_device_address( void )
-{
-	VkDeviceSize alignment = 256;
-	VkDeviceSize alignedAddress;
-
-	if ( vk.rt.as_props.minAccelerationStructureScratchOffsetAlignment > alignment ) {
-		alignment = vk.rt.as_props.minAccelerationStructureScratchOffsetAlignment;
-	}
-
-	if ( !vk_rt_align_up_checked( (VkDeviceSize)vk.rt.scratch_buffer.address,
-		alignment, &alignedAddress ) ) {
-		return 0;
-	}
-	return (VkDeviceAddress)alignedAddress;
-}
-
-static qboolean vk_rt_require_scratch_device_address( VkDeviceAddress *outAddress )
-{
-	VkDeviceAddress alignedAddress;
-	VkDeviceSize alignedOffset;
-
-	if ( !outAddress ) {
-		return qfalse;
-	}
-
-	alignedAddress = vk_rt_scratch_device_address();
-	if ( alignedAddress == 0 || alignedAddress < vk.rt.scratch_buffer.address ) {
-		return qfalse;
-	}
-	alignedOffset = (VkDeviceSize)( alignedAddress - vk.rt.scratch_buffer.address );
-	if ( alignedOffset >= vk.rt.scratch_buffer.capacity ) {
-		return qfalse;
-	}
-
-	*outAddress = alignedAddress;
-	return qtrue;
-}
-
-static qboolean vk_rt_compact_as( rtxVkRtAccelerationStructure_t *as, VkQueryPool queryPool, uint32_t queryIndex, const char *debugName, uint64_t *savedBytes )
-{
-	VkCopyAccelerationStructureInfoKHR copyInfo;
-	rtxVkRtAccelerationStructure_t compactedAs;
-	VkCommandBuffer cmd;
-	VkDeviceSize compactedSize = 0;
-	VkDeviceSize oldSize = 0;
-	VkResult result;
-
-	if ( !as || !as->valid || as->handle == VK_NULL_HANDLE ) {
-		return qfalse;
-	}
-
-	result = qvkGetQueryPoolResults(
-		vk.device,
-		queryPool,
-		queryIndex,
-		1,
-		sizeof( compactedSize ),
-		&compactedSize,
-		sizeof( compactedSize ),
-		VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT );
-	if ( result != VK_SUCCESS || compactedSize == 0 || compactedSize >= as->size ) {
-		return qfalse;
-	}
-
-	if ( !vk_rt_create_as( VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR, compactedSize, debugName, &compactedAs ) ) {
-		return qfalse;
-	}
-
-	cmd = begin_command_buffer();
-
-	copyInfo.sType = VK_STRUCTURE_TYPE_COPY_ACCELERATION_STRUCTURE_INFO_KHR;
-	copyInfo.pNext = NULL;
-	copyInfo.src = as->handle;
-	copyInfo.dst = compactedAs.handle;
-	copyInfo.mode = VK_COPY_ACCELERATION_STRUCTURE_MODE_COMPACT_KHR;
-
-	qvkCmdCopyAccelerationStructureKHR( cmd, &copyInfo );
-	if ( !end_command_buffer_soft( cmd, __func__ ) ) {
-		vk_rt_destroy_as( &compactedAs );
-		return qfalse;
-	}
-
-	oldSize = as->size;
-	vk_rt_destroy_as( as );
-	*as = compactedAs;
-	// vk_rt_create_as() zeroes the struct it fills and never sets valid, so the
-	// whole-struct copy above would otherwise clear the flag the caller just
-	// set. We only get here when *as was valid on entry (checked above) and the
-	// compacted copy has been submitted, so it is valid by construction.
-	as->valid = qtrue;
-	as->compacted = qtrue;
-
-	{
-		VkAccelerationStructureDeviceAddressInfoKHR addressInfo;
-		addressInfo.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DEVICE_ADDRESS_INFO_KHR;
-		addressInfo.pNext = NULL;
-		addressInfo.accelerationStructure = as->handle;
-		as->deviceAddress = qvkGetAccelerationStructureDeviceAddressKHR( vk.device, &addressInfo );
-	}
-
-	if ( savedBytes ) {
-		*savedBytes += (uint64_t)( oldSize > compactedSize ? ( oldSize - compactedSize ) : 0 );
-	}
-
-	return qtrue;
-}
-
-static VkDeviceSize vk_rt_query_triangles_build_bytes( uint32_t vertexCount, uint32_t indexCount, qboolean opaqueGeometry, VkBuildAccelerationStructureFlagsKHR buildFlags )
-{
-	VkAccelerationStructureGeometryTrianglesDataKHR triangles;
-	VkAccelerationStructureGeometryKHR geometry;
-	VkAccelerationStructureBuildGeometryInfoKHR buildInfo;
-	VkAccelerationStructureBuildSizesInfoKHR buildSizes;
-	const uint32_t primitiveCount = indexCount / 3;
-
-	Com_Memset( &triangles, 0, sizeof( triangles ) );
-	triangles.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR;
-	triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
-	triangles.vertexData.deviceAddress = 0;
-	triangles.vertexStride = sizeof( rtxRtPackedVertex_t );
-	triangles.maxVertex = vertexCount ? ( vertexCount - 1 ) : 0;
-	triangles.indexType = VK_INDEX_TYPE_UINT32;
-	triangles.indexData.deviceAddress = 0;
-
-	Com_Memset( &geometry, 0, sizeof( geometry ) );
-	geometry.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR;
-	geometry.geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
-	geometry.flags = opaqueGeometry ? VK_GEOMETRY_OPAQUE_BIT_KHR : 0;
-	geometry.geometry.triangles = triangles;
-
-	Com_Memset( &buildInfo, 0, sizeof( buildInfo ) );
-	buildInfo.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR;
-	buildInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
-	buildInfo.flags = buildFlags;
-	buildInfo.geometryCount = 1;
-	buildInfo.pGeometries = &geometry;
-
-	Com_Memset( &buildSizes, 0, sizeof( buildSizes ) );
-	buildSizes.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR;
-
-	qvkGetAccelerationStructureBuildSizesKHR(
-		vk.device,
-		VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR,
-		&buildInfo,
-		&primitiveCount,
-		&buildSizes );
-
-	return buildSizes.accelerationStructureSize + buildSizes.buildScratchSize;
-}
-
-static VkDeviceSize vk_rt_query_tlas_build_bytes( uint32_t instanceCount, VkBuildAccelerationStructureFlagsKHR buildFlags )
-{
-	VkAccelerationStructureGeometryInstancesDataKHR instancesData;
-	VkAccelerationStructureGeometryKHR geometry;
-	VkAccelerationStructureBuildGeometryInfoKHR buildInfo;
-	VkAccelerationStructureBuildSizesInfoKHR buildSizes;
-
-	Com_Memset( &instancesData, 0, sizeof( instancesData ) );
-	instancesData.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR;
-	instancesData.arrayOfPointers = VK_FALSE;
-	instancesData.data.deviceAddress = 0;
-
-	Com_Memset( &geometry, 0, sizeof( geometry ) );
-	geometry.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR;
-	geometry.geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR;
-	geometry.geometry.instances = instancesData;
-
-	Com_Memset( &buildInfo, 0, sizeof( buildInfo ) );
-	buildInfo.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR;
-	buildInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
-	buildInfo.flags = buildFlags;
-	buildInfo.geometryCount = 1;
-	buildInfo.pGeometries = &geometry;
-
-	Com_Memset( &buildSizes, 0, sizeof( buildSizes ) );
-	buildSizes.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR;
-
-	qvkGetAccelerationStructureBuildSizesKHR(
-		vk.device,
-		VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR,
-		&buildInfo,
-		&instanceCount,
-		&buildSizes );
-
-	return buildSizes.accelerationStructureSize + buildSizes.buildScratchSize;
-}
+/*
+The path tracer's host arrays (the CPU geometry here, and those of rt/*.c)
+come from the renderer's own C heap, not the engine's zone. The zone grows in
+segments it never gives back, so a large map's world tree and light grid would
+hold that much of a 32-bit client's 2 GB address space for the rest of the
+session; the heap returns a large block to the system when it is freed.
+*/
+#define RT_HostAlloc( bytes ) malloc( (size_t)( bytes ) )
+#define RT_HostFree( block ) free( block )
 
 static void vk_rt_cpu_geometry_init( rtxRtCpuGeometry_t *geometry )
 {
@@ -3347,16 +960,16 @@ static void vk_rt_cpu_geometry_init( rtxRtCpuGeometry_t *geometry )
 static void vk_rt_cpu_geometry_free( rtxRtCpuGeometry_t *geometry )
 {
 	if ( geometry->vertices ) {
-		ri.Free( geometry->vertices );
+		RT_HostFree( geometry->vertices );
 	}
 	if ( geometry->indices ) {
-		ri.Free( geometry->indices );
+		RT_HostFree( geometry->indices );
 	}
 	if ( geometry->materials ) {
-		ri.Free( geometry->materials );
+		RT_HostFree( geometry->materials );
 	}
 	if ( geometry->materialShaders ) {
-		ri.Free( geometry->materialShaders );
+		RT_HostFree( geometry->materialShaders );
 	}
 	Com_Memset( geometry, 0, sizeof( *geometry ) );
 }
@@ -3438,16 +1051,16 @@ static qboolean vk_rt_cpu_geometry_reserve( rtxRtCpuGeometry_t *geometry, uint32
 	}
 
 	if ( newVertexBytes > 0 ) {
-		newVertices = (rtxRtPackedVertex_t *)ri.Malloc( (int)newVertexBytes );
+		newVertices = (rtxRtPackedVertex_t *)RT_HostAlloc( (int)newVertexBytes );
 		if ( !newVertices ) {
 			return qfalse;
 		}
 	}
 	if ( newIndexBytes > 0 ) {
-		newIndices = (uint32_t *)ri.Malloc( (int)newIndexBytes );
+		newIndices = (uint32_t *)RT_HostAlloc( (int)newIndexBytes );
 		if ( !newIndices ) {
 			if ( newVertices ) {
-				ri.Free( newVertices );
+				RT_HostFree( newVertices );
 			}
 			return qfalse;
 		}
@@ -3459,7 +1072,7 @@ static qboolean vk_rt_cpu_geometry_reserve( rtxRtCpuGeometry_t *geometry, uint32
 				(size_t)geometry->numVertices * sizeof( rtxRtPackedVertex_t ) );
 		}
 		if ( geometry->vertices ) {
-			ri.Free( geometry->vertices );
+			RT_HostFree( geometry->vertices );
 		}
 		geometry->vertices = newVertices;
 		geometry->vertexCapacity = newVertexCapacity;
@@ -3470,7 +1083,7 @@ static qboolean vk_rt_cpu_geometry_reserve( rtxRtCpuGeometry_t *geometry, uint32
 				(size_t)geometry->numIndices * sizeof( uint32_t ) );
 		}
 		if ( geometry->indices ) {
-			ri.Free( geometry->indices );
+			RT_HostFree( geometry->indices );
 		}
 		geometry->indices = newIndices;
 		geometry->indexCapacity = newIndexCapacity;
@@ -3507,14 +1120,14 @@ static qboolean vk_rt_cpu_geometry_reserve_materials( rtxRtCpuGeometry_t *geomet
 
 	materialBytes = (size_t)newCapacity * sizeof( rtxRtMaterial_t );
 	shaderBytes = (size_t)newCapacity * sizeof( shader_t * );
-	newMaterials = (rtxRtMaterial_t *)ri.Malloc( (int)materialBytes );
-	newMaterialShaders = (const shader_t **)ri.Malloc( (int)shaderBytes );
+	newMaterials = (rtxRtMaterial_t *)RT_HostAlloc( (int)materialBytes );
+	newMaterialShaders = (const shader_t **)RT_HostAlloc( (int)shaderBytes );
 	if ( !newMaterials || !newMaterialShaders ) {
 		if ( newMaterials ) {
-			ri.Free( newMaterials );
+			RT_HostFree( newMaterials );
 		}
 		if ( newMaterialShaders ) {
-			ri.Free( newMaterialShaders );
+			RT_HostFree( newMaterialShaders );
 		}
 		return qfalse;
 	}
@@ -3526,10 +1139,10 @@ static qboolean vk_rt_cpu_geometry_reserve_materials( rtxRtCpuGeometry_t *geomet
 			(size_t)geometry->numMaterials * sizeof( shader_t * ) );
 	}
 	if ( geometry->materials ) {
-		ri.Free( geometry->materials );
+		RT_HostFree( geometry->materials );
 	}
 	if ( geometry->materialShaders ) {
-		ri.Free( geometry->materialShaders );
+		RT_HostFree( geometry->materialShaders );
 	}
 
 	geometry->materials = newMaterials;
@@ -3546,439 +1159,6 @@ static uint32_t vk_rt_color_u32_from_bytes( const byte *rgba )
 	packed.rgba[2] = rgba ? rgba[2] : 255;
 	packed.rgba[3] = rgba ? rgba[3] : 255;
 	return packed.u32;
-}
-
-static qboolean vk_rt_material_name_contains_token( const char *name, const char *token )
-{
-	char loweredName[MAX_QPATH];
-	char loweredToken[64];
-
-	if ( !name || !token || !token[0] ) {
-		return qfalse;
-	}
-
-	Q_strncpyz( loweredName, name, sizeof( loweredName ) );
-	Q_strncpyz( loweredToken, token, sizeof( loweredToken ) );
-	Q_strlwr( loweredName );
-	Q_strlwr( loweredToken );
-
-	return strstr( loweredName, loweredToken ) ? qtrue : qfalse;
-}
-
-/*
- * American McGee's Alice's `alphatest <func> <ref>` (tr_alice_shader.h), as
- * the any-hit shader's one comparison against ref / 256: greater and gequal
- * keep alpha at or above it, less and lequal below it (RTX_RT_MATFLAG_ALPHA_LT).
- * Equal and notequal have no such cutoff and the surface stays unmasked; no
- * shipped script uses them.
- */
-static qboolean vk_rt_alice_alpha_below( unsigned stateBits )
-{
-	const unsigned func = ( stateBits & GLS_ALICE_ATEST_FUNC_BITS ) >> GLS_ALICE_ATEST_FUNC_SHIFT;
-	return ( func == 4 || func == 6 ) ? qtrue : qfalse;
-}
-
-static float vk_rt_material_alpha_cutoff_from_state_bits( unsigned stateBits )
-{
-	switch ( ( stateBits & GLS_ALICE_ATEST_FUNC_BITS ) >> GLS_ALICE_ATEST_FUNC_SHIFT ) {
-	case 3:	/* greater */
-	case 4:	/* less */
-	case 5:	/* gequal */
-	case 6:	/* lequal */
-		return (float)( ( stateBits & GLS_ALICE_ATEST_REF_BITS ) >> GLS_ALICE_ATEST_REF_SHIFT ) * ( 1.0f / 256.0f );
-	default:
-		break;
-	}
-	switch ( stateBits & GLS_ATEST_BITS ) {
-	case GLS_ATEST_GT_0:
-		return 1.0f / 255.0f;
-	case GLS_ATEST_GE_80:
-		return 0.5f;
-	case GLS_ATEST_LT_80:
-		return 0.5f;
-	default:
-		return 0.0f;
-	}
-}
-
-static rtxRtColorSpace_t vk_rt_material_albedo_color_space( const image_t *image )
-{
-	const char *name;
-
-	if ( !image || !image->imgName ) {
-		return RTX_RT_COLORSPACE_SRGB;
-	}
-
-	/*
-	 * An sRGB image view performs the authored-color decode before the ray
-	 * shader samples it. Material metadata describes the value returned by
-	 * the descriptor, not the source asset, so mark that sampled value linear
-	 * and keep closest-hit from applying the software decode a second time.
-	 */
-	if ( image->srgbDecode ) {
-		return RTX_RT_COLORSPACE_LINEAR;
-	}
-
-	if ( image->colorSpace == IMAGE_COLORSPACE_LINEAR ||
-		image->colorSpace == IMAGE_COLORSPACE_DATA ) {
-		return RTX_RT_COLORSPACE_LINEAR;
-	}
-
-	name = image->imgName;
-	if ( vk_rt_material_name_contains_token( name, ".hdr" ) || vk_rt_material_name_contains_token( name, ".exr" ) ) {
-		return RTX_RT_COLORSPACE_HDR;
-	}
-
-	return RTX_RT_COLORSPACE_SRGB;
-}
-
-static rtxRtColorSpace_t vk_rt_material_data_color_space( const image_t *image )
-{
-	if ( !image || !image->imgName ) {
-		return RTX_RT_COLORSPACE_LINEAR;
-	}
-
-	if ( vk_rt_material_name_contains_token( image->imgName, ".hdr" ) || vk_rt_material_name_contains_token( image->imgName, ".exr" ) ) {
-		return RTX_RT_COLORSPACE_HDR;
-	}
-
-	return RTX_RT_COLORSPACE_LINEAR;
-}
-
-static int32_t vk_rt_image_to_scene_texture_index( const image_t *image )
-{
-	int i;
-
-	if ( !image ) {
-		return -1;
-	}
-
-	for ( i = 0; i < tr.numImages; i++ ) {
-		if ( tr.images[i] == image ) {
-			return i;
-		}
-	}
-
-	return -1;
-}
-
-static void vk_rt_apply_material_overrides( rtxRtMaterial_t *material )
-{
-	if ( !material ) {
-		return;
-	}
-
-	if ( rtx_rt_material_override ) {
-		switch ( rtx_rt_material_override->integer ) {
-		case 1: // clay
-			material->metallic = 0.0f;
-			material->roughness = 1.0f;
-			material->emissiveScale = 0.0f;
-			VectorClear( material->emissiveColor );
-			break;
-		case 2: // chrome
-			material->metallic = 1.0f;
-			material->roughness = 0.05f;
-			break;
-		case 3: // emissive debug
-			material->flags |= RTX_RT_MATFLAG_EMISSIVE;
-			material->emissiveScale = 10.0f;
-			material->emissiveColor[0] = 1.0f;
-			material->emissiveColor[1] = 1.0f;
-			material->emissiveColor[2] = 1.0f;
-			break;
-		default:
-			break;
-		}
-	}
-
-	if ( rtx_rt_material_roughness_override && rtx_rt_material_roughness_override->value >= 0.0f ) {
-		material->roughness = Com_Clamp( 0.0f, 1.0f, rtx_rt_material_roughness_override->value );
-	}
-	if ( rtx_rt_material_metallic_override && rtx_rt_material_metallic_override->value >= 0.0f ) {
-		material->metallic = Com_Clamp( 0.0f, 1.0f, rtx_rt_material_metallic_override->value );
-	}
-	if ( rtx_rt_material_emissive_override && rtx_rt_material_emissive_override->value >= 0.0f ) {
-		material->flags |= RTX_RT_MATFLAG_EMISSIVE;
-		material->emissiveScale = MAX( 0.0f, rtx_rt_material_emissive_override->value );
-	}
-	if ( rtx_rt_masked_mode && rtx_rt_masked_mode->integer == 0 ) {
-		material->flags &= ~( RTX_RT_MATFLAG_MASKED | RTX_RT_MATFLAG_ALPHA_LT );
-		material->alphaCutoff = 0.0f;
-	}
-	if ( rtx_rt_masked_cutoff && rtx_rt_masked_cutoff->value >= 0.0f ) {
-		material->alphaCutoff = Com_Clamp( 0.0f, 1.0f, rtx_rt_masked_cutoff->value );
-		if ( material->alphaCutoff > 0.0f ) {
-			material->flags |= RTX_RT_MATFLAG_MASKED;
-		}
-	}
-}
-
-static void vk_rt_apply_native_bundle_lighting( const shader_t *shader,
-	const textureBundle_t *bundle, qboolean lightmap, rtxRtMaterial_t *material )
-{
-	if ( !R_RtShaderNativeSupported( shader ) ) {
-		return;
-	}
-	if ( lightmap ) {
-		material->lightmapTextureIndex = vk_rt_image_to_scene_texture_index( bundle->image[0] );
-		material->lightmapScale = ( bundle->rgbGen == CGEN_IDENTITY_LIGHTING ) ? tr.identityLight : 1.0f;
-	} else if ( ( bundle->vertexLightmap ||
-		( !shader->explicitlyDefined && shader->lightmapIndex == LIGHTMAP_BY_VERTEX &&
-		  bundle->rgbGen == CGEN_EXACT_VERTEX ) ) &&
-		( bundle->rgbGen == CGEN_EXACT_VERTEX || bundle->rgbGen == CGEN_VERTEX ) ) {
-		/* BSP vertex RGB carries baked irradiance independently of the base
-		 * texture's reflectance in the native path. */
-		material->vertexLighting = 1u;
-		material->lightmapTextureIndex = -1;
-		material->lightmapScale = ( bundle->rgbGen == CGEN_VERTEX ) ? tr.identityLight : 1.0f;
-	} else if ( bundle->rgbGen == CGEN_IDENTITY_LIGHTING ) {
-		VectorSet( material->baseColor, tr.identityLight, tr.identityLight, tr.identityLight );
-	}
-}
-
-static void vk_rt_translate_shader_to_material( const shader_t *shader, rtxRtMaterial_t *material )
-{
-	int i;
-	image_t *albedoImage = NULL;
-	image_t *fallbackImage = NULL;
-	float emissiveKeywordBoost = 1.0f;
-	const qboolean useHeuristics =
-		( rtx_rt_material_heuristics && rtx_rt_material_heuristics->integer ) ? qtrue : qfalse;
-
-	if ( shader && shader->remappedShader ) {
-		shader = shader->remappedShader;
-	}
-
-	Com_Memset( material, 0, sizeof( *material ) );
-	Q_strncpyz( material->name, shader ? shader->name : "<null>", sizeof( material->name ) );
-	material->baseColor[0] = 1.0f;
-	material->baseColor[1] = 1.0f;
-	material->baseColor[2] = 1.0f;
-	material->baseColor[3] = 1.0f;
-	material->roughness = 0.85f;
-	material->metallic = 0.0f;
-	material->alphaCutoff = 0.0f;
-	material->emissiveColor[0] = 0.0f;
-	material->emissiveColor[1] = 0.0f;
-	material->emissiveColor[2] = 0.0f;
-	material->emissiveScale = ( rtx_rt_emissive_scale ? MAX( 0.0f, rtx_rt_emissive_scale->value ) : 1.0f );
-	material->albedoColorSpace = RTX_RT_COLORSPACE_SRGB;
-	material->normalColorSpace = RTX_RT_COLORSPACE_LINEAR;
-	material->emissiveColorSpace = RTX_RT_COLORSPACE_SRGB;
-	material->albedoTextureIndex = -1;
-	material->lightmapTextureIndex = -1;
-	material->lightmapScale = 1.0f;
-
-	if ( useHeuristics && rtx_rt_emissive_keyword_boost ) {
-		emissiveKeywordBoost = MAX( 0.0f, rtx_rt_emissive_keyword_boost->value );
-	}
-
-	if ( !shader ) {
-		vk_rt_apply_material_overrides( material );
-		return;
-	}
-
-	if ( shader->rtcwNoFog &&
-		( !shader->stages[0] || !shader->stages[0]->rtcwFog ) ) {
-		material->flags |= RTX_RT_MATFLAG_RTCW_NOFOG;
-	}
-
-	if ( shader->cullType == CT_TWO_SIDED ) {
-		material->flags |= RTX_RT_MATFLAG_TWO_SIDED;
-	} else if ( shader->cullType == CT_BACK_SIDED ) {
-		material->flags |= RTX_RT_MATFLAG_CULL_FRONT;
-	} else {
-		material->flags |= RTX_RT_MATFLAG_CULL_BACK;
-	}
-	if ( shader->sort > SS_OPAQUE ) {
-		material->flags |= RTX_RT_MATFLAG_TRANSLUCENT;
-	}
-	if ( shader->sort == SS_DECAL ) {
-		material->flags |= RTX_RT_MATFLAG_DECAL;
-	}
-	if ( shader->isSky || ( shader->surfaceFlags & SURF_SKY ) ) {
-		material->flags |= RTX_RT_MATFLAG_SKY | RTX_RT_MATFLAG_EMISSIVE;
-		material->emissiveColor[0] = 1.0f;
-		material->emissiveColor[1] = 1.0f;
-		material->emissiveColor[2] = 1.0f;
-		material->emissiveScale = MAX( material->emissiveScale, 2.0f );
-	}
-	if ( useHeuristics ) {
-		if ( shader->surfaceFlags & SURF_METALSTEPS ) {
-			material->metallic = MAX( material->metallic, 0.85f );
-			material->roughness = MIN( material->roughness, 0.35f );
-		}
-		if ( shader->surfaceFlags & SURF_SLICK ) {
-			material->roughness = MIN( material->roughness, 0.2f );
-		}
-
-		if ( vk_rt_material_name_contains_token( shader->name, "metal" ) ) {
-			material->metallic = MAX( material->metallic, 0.75f );
-			material->roughness = MIN( material->roughness, 0.4f );
-		}
-		if ( vk_rt_material_name_contains_token( shader->name, "glass" ) ) {
-			material->flags |= RTX_RT_MATFLAG_TRANSLUCENT;
-			material->roughness = MIN( material->roughness, 0.08f );
-		}
-		if ( vk_rt_material_name_contains_token( shader->name, "decal" ) ||
-			vk_rt_material_name_contains_token( shader->name, "mark" ) ||
-			vk_rt_material_name_contains_token( shader->name, "bullet" ) ||
-			vk_rt_material_name_contains_token( shader->name, "scorch" ) ) {
-			material->flags |= RTX_RT_MATFLAG_DECAL;
-		}
-		if ( vk_rt_material_name_contains_token( shader->name, "particle" ) ||
-			vk_rt_material_name_contains_token( shader->name, "smoke" ) ||
-			vk_rt_material_name_contains_token( shader->name, "spark" ) ||
-			vk_rt_material_name_contains_token( shader->name, "muzzle" ) ||
-			vk_rt_material_name_contains_token( shader->name, "trail" ) ||
-			vk_rt_material_name_contains_token( shader->name, "flare" ) ||
-			vk_rt_material_name_contains_token( shader->name, "rail" ) ||
-			vk_rt_material_name_contains_token( shader->name, "plasma" ) ) {
-			material->flags |= RTX_RT_MATFLAG_PARTICLE | RTX_RT_MATFLAG_EFFECT | RTX_RT_MATFLAG_TRANSLUCENT;
-		}
-		if ( vk_rt_material_name_contains_token( shader->name, "grate" ) ||
-			vk_rt_material_name_contains_token( shader->name, "fence" ) ||
-			vk_rt_material_name_contains_token( shader->name, "foliage" ) ) {
-			material->flags |= RTX_RT_MATFLAG_MASKED;
-			material->alphaCutoff = MAX( material->alphaCutoff, 0.5f );
-		}
-	}
-
-	for ( i = 0; i < shader->numUnfoggedPasses; i++ ) {
-		const shaderStage_t *stage = shader->stages[i];
-		uint32_t bundleCount;
-		uint32_t bundleIndex;
-		unsigned blendBits;
-		float stageCutoff;
-
-		if ( !stage || !stage->active ) {
-			continue;
-		}
-
-		material->sourceStageCount++;
-
-		stageCutoff = vk_rt_material_alpha_cutoff_from_state_bits( stage->stateBits );
-		if ( stageCutoff > 0.0f ) {
-			material->flags |= RTX_RT_MATFLAG_MASKED;
-			material->alphaCutoff = MAX( material->alphaCutoff, stageCutoff );
-			if ( ( stage->stateBits & GLS_ATEST_BITS ) == GLS_ATEST_LT_80 ||
-				vk_rt_alice_alpha_below( stage->stateBits ) ) {
-				material->flags |= RTX_RT_MATFLAG_ALPHA_LT;
-			}
-		}
-
-		blendBits = stage->stateBits & GLS_BLEND_BITS;
-		if ( blendBits == ( GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE ) ) {
-			material->flags |= RTX_RT_MATFLAG_EMISSIVE;
-			material->emissiveScale = MAX( material->emissiveScale, 1.5f );
-		}
-
-		bundleCount = stage->numTexBundles;
-		if ( bundleCount == 0 ) {
-			bundleCount = 1;
-		}
-		bundleCount = MIN( bundleCount, (uint32_t)NUM_TEXTURE_BUNDLES );
-
-		for ( bundleIndex = 0; bundleIndex < bundleCount; bundleIndex++ ) {
-			const textureBundle_t *bundle = &stage->bundle[bundleIndex];
-			const image_t *image = bundle->image[0];
-			const qboolean lightmap =
-				( bundle->tcGen == TCGEN_LIGHTMAP ||
-					bundle->lightmap != LIGHTMAP_INDEX_NONE ||
-					( image && ( image->flags & IMGFLAG_LIGHTMAP ) ) ) ?
-						qtrue : qfalse;
-
-			if ( !fallbackImage && image ) {
-				fallbackImage = (image_t *)image;
-			}
-			if ( !albedoImage && image && !lightmap ) {
-				albedoImage = (image_t *)image;
-			}
-			/* Only the verified static subset owns authored lightmap shading.
-			 * Complex stages keep their raster composition contract. */
-			vk_rt_apply_native_bundle_lighting( shader, bundle, lightmap, material );
-
-			if ( !lightmap && bundle->rgbGen == CGEN_CONST ) {
-				material->baseColor[0] = bundle->constantColor.rgba[0] / 255.0f;
-				material->baseColor[1] = bundle->constantColor.rgba[1] / 255.0f;
-				material->baseColor[2] = bundle->constantColor.rgba[2] / 255.0f;
-				material->baseColor[3] = bundle->constantColor.rgba[3] / 255.0f;
-			}
-
-			if ( useHeuristics && !lightmap && image && image->imgName ) {
-				if ( vk_rt_material_name_contains_token( image->imgName, "_n" ) ||
-					vk_rt_material_name_contains_token( image->imgName, "normal" ) ) {
-					material->normalColorSpace = vk_rt_material_data_color_space( image );
-					material->roughness = MIN( material->roughness, 0.75f );
-				}
-
-				if ( vk_rt_material_name_contains_token( image->imgName, "metal" ) ||
-					vk_rt_material_name_contains_token( image->imgName, "_m" ) ) {
-					material->metallic = MAX( material->metallic, 0.9f );
-				}
-
-				if ( vk_rt_material_name_contains_token( image->imgName, "rough" ) ||
-					vk_rt_material_name_contains_token( image->imgName, "gloss" ) ) {
-					material->roughness = MIN( material->roughness, 0.6f );
-				}
-
-				if ( vk_rt_material_name_contains_token( image->imgName, "glow" ) ||
-					vk_rt_material_name_contains_token( image->imgName, "emissive" ) ||
-					vk_rt_material_name_contains_token( image->imgName, "light" ) ) {
-					material->flags |= RTX_RT_MATFLAG_EMISSIVE;
-					material->emissiveColor[0] = MAX( material->emissiveColor[0], 1.0f );
-					material->emissiveColor[1] = MAX( material->emissiveColor[1], 1.0f );
-					material->emissiveColor[2] = MAX( material->emissiveColor[2], 1.0f );
-					material->emissiveColorSpace = vk_rt_material_albedo_color_space( image );
-					material->emissiveScale = MAX( material->emissiveScale, emissiveKeywordBoost );
-				}
-
-				if ( vk_rt_material_name_contains_token( image->imgName, "decal" ) ||
-					vk_rt_material_name_contains_token( image->imgName, "mark" ) ||
-					vk_rt_material_name_contains_token( image->imgName, "scorch" ) ) {
-					material->flags |= RTX_RT_MATFLAG_DECAL;
-				}
-
-				if ( vk_rt_material_name_contains_token( image->imgName, "particle" ) ||
-					vk_rt_material_name_contains_token( image->imgName, "smoke" ) ||
-					vk_rt_material_name_contains_token( image->imgName, "spark" ) ||
-					vk_rt_material_name_contains_token( image->imgName, "muzzle" ) ||
-					vk_rt_material_name_contains_token( image->imgName, "trail" ) ||
-					vk_rt_material_name_contains_token( image->imgName, "flare" ) ||
-					vk_rt_material_name_contains_token( image->imgName, "rail" ) ) {
-					material->flags |= RTX_RT_MATFLAG_PARTICLE | RTX_RT_MATFLAG_EFFECT | RTX_RT_MATFLAG_TRANSLUCENT;
-				}
-			}
-		}
-	}
-
-	if ( material->flags & RTX_RT_MATFLAG_DECAL ) {
-		material->roughness = MIN( material->roughness, 0.55f );
-	}
-	if ( material->flags & RTX_RT_MATFLAG_PARTICLE ) {
-		material->roughness = MAX( material->roughness, 0.7f );
-	}
-
-	if ( !albedoImage ) {
-		albedoImage = fallbackImage;
-	}
-
-	if ( albedoImage ) {
-		material->albedoColorSpace = vk_rt_material_albedo_color_space( albedoImage );
-		material->emissiveColorSpace = vk_rt_material_albedo_color_space( albedoImage );
-		material->albedoTextureIndex = vk_rt_image_to_scene_texture_index( albedoImage );
-	} else {
-		material->albedoColorSpace = RTX_RT_COLORSPACE_SRGB;
-		material->emissiveColorSpace = RTX_RT_COLORSPACE_SRGB;
-		material->albedoTextureIndex = -1;
-	}
-
-	if ( material->flags & RTX_RT_MATFLAG_MASKED ) {
-		material->alphaCutoff = Com_Clamp( 0.0f, 1.0f, material->alphaCutoff );
-	}
-
-	vk_rt_apply_material_overrides( material );
 }
 
 static qboolean vk_rt_cpu_geometry_find_or_add_material_ex( rtxRtCpuGeometry_t *geometry, const shader_t *shader, uint32_t extraFlags, uint32_t *outMaterialIndex )
@@ -4002,8 +1182,8 @@ static qboolean vk_rt_cpu_geometry_find_or_add_material_ex( rtxRtCpuGeometry_t *
 		return qfalse;
 	}
 
-	vk_rt_translate_shader_to_material( shader, &material );
-	material.flags |= extraFlags;
+	Com_Memset( &material, 0, sizeof( material ) );
+	material.flags = extraFlags;
 	geometry->materials[ geometry->numMaterials ] = material;
 	geometry->materialShaders[ geometry->numMaterials ] = shader;
 
@@ -4013,56 +1193,6 @@ static qboolean vk_rt_cpu_geometry_find_or_add_material_ex( rtxRtCpuGeometry_t *
 
 	geometry->numMaterials++;
 	return qtrue;
-}
-
-static qboolean vk_rt_consume_cvar_modified( cvar_t *cvar )
-{
-	if ( !cvar || !cvar->modified ) {
-		return qfalse;
-	}
-
-	cvar->modified = qfalse;
-	return qtrue;
-}
-
-static void vk_rt_handle_cached_resource_cvar_changes( void )
-{
-	qboolean materialChanged = qfalse;
-	qboolean lightChanged;
-
-	lightChanged = vk_rt_consume_cvar_modified( rtx_rt_world_light_scale );
-	materialChanged |= vk_rt_consume_cvar_modified( rtx_rt_masked_mode );
-	materialChanged |= vk_rt_consume_cvar_modified( rtx_rt_masked_cutoff );
-	materialChanged |= vk_rt_consume_cvar_modified( rtx_rt_material_heuristics );
-	materialChanged |= vk_rt_consume_cvar_modified( rtx_rt_material_override );
-	materialChanged |= vk_rt_consume_cvar_modified( rtx_rt_material_roughness_override );
-	materialChanged |= vk_rt_consume_cvar_modified( rtx_rt_material_metallic_override );
-	materialChanged |= vk_rt_consume_cvar_modified( rtx_rt_material_emissive_override );
-	materialChanged |= vk_rt_consume_cvar_modified( rtx_rt_emissive_scale );
-	materialChanged |= vk_rt_consume_cvar_modified( rtx_rt_emissive_keyword_boost );
-	materialChanged |= vk_rt_consume_cvar_modified( rtx_rt_effect_radius_scale );
-	materialChanged |= vk_rt_consume_cvar_modified( rtx_rt_effect_emissive_boost );
-	materialChanged |= vk_rt_consume_cvar_modified( rtx_rt_marks_enable );
-	materialChanged |= vk_rt_consume_cvar_modified( rtx_rt_dynamic_effects );
-
-	if ( lightChanged ) {
-		vk_rt_reset_world_light_cache();
-		vk_rt_reset_temporal_history( "world light scale changed" );
-	}
-
-	if ( !materialChanged ) {
-		return;
-	}
-
-	if ( vk.rt.worldGeometryReady ||
-		vk.rt.world_blas.valid ||
-		vk.rt.dynamic_blas.valid ||
-		vk.rt.world_material_buffer.buffer != VK_NULL_HANDLE ||
-		vk.rt.dynamic_material_buffer.buffer != VK_NULL_HANDLE ) {
-		vk_rt_invalidate( "RT material/geometry configuration changed" );
-	} else {
-		vk_rt_reset_temporal_history( "RT material/geometry configuration changed" );
-	}
 }
 
 static qboolean vk_rt_cpu_geometry_find_or_add_material( rtxRtCpuGeometry_t *geometry, const shader_t *shader, uint32_t *outMaterialIndex )
@@ -4137,49 +1267,6 @@ static qboolean vk_rt_cpu_geometry_add_triangle( rtxRtCpuGeometry_t *geometry,
 	return qtrue;
 }
 
-static qboolean vk_rt_cpu_geometry_sanitize_indices( rtxRtCpuGeometry_t *geometry, uint32_t *outDroppedTriangles )
-{
-	uint32_t write = 0;
-	uint32_t droppedTriangles = 0;
-	uint32_t i;
-
-	if ( outDroppedTriangles ) {
-		*outDroppedTriangles = 0;
-	}
-
-	if ( !geometry || !geometry->indices || geometry->numVertices == 0 || geometry->numIndices == 0 ) {
-		return qtrue;
-	}
-
-	for ( i = 0; i + 2 < geometry->numIndices; i += 3 ) {
-		const uint32_t i0 = geometry->indices[i + 0];
-		const uint32_t i1 = geometry->indices[i + 1];
-		const uint32_t i2 = geometry->indices[i + 2];
-
-		if ( i0 >= geometry->numVertices || i1 >= geometry->numVertices || i2 >= geometry->numVertices ||
-			i0 == i1 || i1 == i2 || i0 == i2 ) {
-			droppedTriangles++;
-			continue;
-		}
-
-		geometry->indices[write + 0] = i0;
-		geometry->indices[write + 1] = i1;
-		geometry->indices[write + 2] = i2;
-		write += 3;
-	}
-
-	if ( i < geometry->numIndices ) {
-		droppedTriangles++;
-	}
-
-	geometry->numIndices = write;
-	if ( outDroppedTriangles ) {
-		*outDroppedTriangles = droppedTriangles;
-	}
-
-	return qtrue;
-}
-
 static qboolean vk_rt_append_surface_face_geometry( rtxRtCpuGeometry_t *geometry, const srfSurfaceFace_t *surface, const shader_t *shader, uint32_t materialFlags )
 {
 	const int *indices;
@@ -4222,7 +1309,9 @@ static qboolean vk_rt_append_surface_face_geometry( rtxRtCpuGeometry_t *geometry
 		floatint_t packedColor;
 
 		if ( surface->normals ) {
-			VectorCopy( &surface->normals[i * 3], normal );
+			// four floats a point (tr_bsp.c GenerateNormals, which smooths a
+			// face whose points do not share a plane: Enemy Territory's terrain)
+			VectorCopy( &surface->normals[i * 4], normal );
 		} else {
 			VectorCopy( surface->plane.normal, normal );
 		}
@@ -4425,566 +1514,6 @@ static qboolean vk_rt_append_surface_triangles_geometry( rtxRtCpuGeometry_t *geo
 	return qtrue;
 }
 
-static qboolean vk_rt_generate_tangents( rtxRtCpuGeometry_t *geometry )
-{
-	float *tan1;
-	float *tan2;
-	float *normalAccum;
-	uint32_t tri;
-	uint32_t i;
-
-	if ( !geometry || geometry->numVertices == 0 || geometry->numIndices < 3 ) {
-		return qtrue;
-	}
-
-	tan1 = (float *)ri.Malloc( geometry->numVertices * 3 * sizeof( float ) );
-	tan2 = (float *)ri.Malloc( geometry->numVertices * 3 * sizeof( float ) );
-	normalAccum = (float *)ri.Malloc( geometry->numVertices * 3 * sizeof( float ) );
-
-	Com_Memset( tan1, 0, geometry->numVertices * 3 * sizeof( float ) );
-	Com_Memset( tan2, 0, geometry->numVertices * 3 * sizeof( float ) );
-	Com_Memset( normalAccum, 0, geometry->numVertices * 3 * sizeof( float ) );
-
-	for ( tri = 0; tri + 2 < geometry->numIndices; tri += 3 ) {
-		uint32_t i0 = geometry->indices[ tri + 0 ];
-		uint32_t i1 = geometry->indices[ tri + 1 ];
-		uint32_t i2 = geometry->indices[ tri + 2 ];
-		rtxRtPackedVertex_t *v0;
-		rtxRtPackedVertex_t *v1;
-		rtxRtPackedVertex_t *v2;
-		vec3_t edge1;
-		vec3_t edge2;
-		vec3_t faceNormal;
-		float du1;
-		float dv1;
-		float du2;
-		float dv2;
-		float det;
-		float invDet;
-		vec3_t sdir;
-		vec3_t tdir;
-		int axis;
-
-		if ( i0 >= geometry->numVertices || i1 >= geometry->numVertices || i2 >= geometry->numVertices ) {
-			geometry->degenerateTriangleCount++;
-			continue;
-		}
-
-		v0 = &geometry->vertices[ i0 ];
-		v1 = &geometry->vertices[ i1 ];
-		v2 = &geometry->vertices[ i2 ];
-
-		VectorSubtract( v1->xyz, v0->xyz, edge1 );
-		VectorSubtract( v2->xyz, v0->xyz, edge2 );
-		CrossProduct( edge1, edge2, faceNormal );
-		if ( VectorLengthSquared( faceNormal ) > 1e-10f ) {
-			for ( axis = 0; axis < 3; axis++ ) {
-				normalAccum[i0 * 3 + axis] += faceNormal[axis];
-				normalAccum[i1 * 3 + axis] += faceNormal[axis];
-				normalAccum[i2 * 3 + axis] += faceNormal[axis];
-			}
-		}
-
-		du1 = v1->texCoord[0] - v0->texCoord[0];
-		dv1 = v1->texCoord[1] - v0->texCoord[1];
-		du2 = v2->texCoord[0] - v0->texCoord[0];
-		dv2 = v2->texCoord[1] - v0->texCoord[1];
-		det = du1 * dv2 - du2 * dv1;
-		if ( fabsf( det ) < 1e-12f ) {
-			geometry->degenerateTriangleCount++;
-			continue;
-		}
-
-		invDet = 1.0f / det;
-		sdir[0] = ( dv2 * edge1[0] - dv1 * edge2[0] ) * invDet;
-		sdir[1] = ( dv2 * edge1[1] - dv1 * edge2[1] ) * invDet;
-		sdir[2] = ( dv2 * edge1[2] - dv1 * edge2[2] ) * invDet;
-
-		tdir[0] = ( du1 * edge2[0] - du2 * edge1[0] ) * invDet;
-		tdir[1] = ( du1 * edge2[1] - du2 * edge1[1] ) * invDet;
-		tdir[2] = ( du1 * edge2[2] - du2 * edge1[2] ) * invDet;
-
-		for ( axis = 0; axis < 3; axis++ ) {
-			tan1[i0 * 3 + axis] += sdir[axis];
-			tan1[i1 * 3 + axis] += sdir[axis];
-			tan1[i2 * 3 + axis] += sdir[axis];
-
-			tan2[i0 * 3 + axis] += tdir[axis];
-			tan2[i1 * 3 + axis] += tdir[axis];
-			tan2[i2 * 3 + axis] += tdir[axis];
-		}
-	}
-
-	for ( i = 0; i < geometry->numVertices; i++ ) {
-		rtxRtPackedVertex_t *v = &geometry->vertices[i];
-		vec3_t n = { v->normal[0], v->normal[1], v->normal[2] };
-		vec3_t t = { tan1[i * 3 + 0], tan1[i * 3 + 1], tan1[i * 3 + 2] };
-		vec3_t b = { tan2[i * 3 + 0], tan2[i * 3 + 1], tan2[i * 3 + 2] };
-		float nLenSq = VectorLengthSquared( n );
-		float tLenSq = VectorLengthSquared( t );
-		float ndott;
-		vec3_t c;
-		float handedness;
-
-		if ( nLenSq < 1e-10f ) {
-			n[0] = normalAccum[i * 3 + 0];
-			n[1] = normalAccum[i * 3 + 1];
-			n[2] = normalAccum[i * 3 + 2];
-			if ( VectorLengthSquared( n ) < 1e-10f ) {
-				n[0] = 0.0f;
-				n[1] = 0.0f;
-				n[2] = 1.0f;
-			}
-		}
-		VectorNormalize( n );
-
-		if ( tLenSq < 1e-10f ) {
-			if ( fabsf( n[2] ) < 0.999f ) {
-				vec3_t up = { 0.0f, 0.0f, 1.0f };
-				CrossProduct( up, n, t );
-			} else {
-				vec3_t up = { 0.0f, 1.0f, 0.0f };
-				CrossProduct( up, n, t );
-			}
-		}
-
-		ndott = DotProduct( n, t );
-		VectorMA( t, -ndott, n, t );
-		if ( VectorNormalize( t ) == 0.0f ) {
-			t[0] = 1.0f;
-			t[1] = 0.0f;
-			t[2] = 0.0f;
-		}
-
-		CrossProduct( n, t, c );
-		handedness = ( DotProduct( c, b ) < 0.0f ) ? -1.0f : 1.0f;
-
-		v->normal[0] = n[0];
-		v->normal[1] = n[1];
-		v->normal[2] = n[2];
-		v->normal[3] = 0.0f;
-		v->tangent[0] = t[0];
-		v->tangent[1] = t[1];
-		v->tangent[2] = t[2];
-		v->tangent[3] = handedness;
-	}
-
-	ri.Free( tan1 );
-	ri.Free( tan2 );
-	ri.Free( normalAccum );
-	return qtrue;
-}
-
-static qboolean vk_rt_extract_world_geometry( rtxRtCpuGeometry_t *geometry )
-{
-	const bmodel_t *worldModel;
-	const shader_t *diagnosticShaders[128];
-	int diagnosticFog[128];
-	int diagnosticCount = 0;
-	qboolean diagnosticLimitReported = qfalse;
-	int i;
-	uint32_t faceCount = 0;
-	uint32_t gridCount = 0;
-	uint32_t triCount = 0;
-	uint32_t skySkipCount = 0;
-	uint32_t rasterOverlayOccluderCount = 0;
-	uint32_t fogOverlayOccluderCount = 0;
-	uint32_t nonOccludingOverlaySkipCount = 0;
-	uint32_t referenceTriangleCount = 0;
-	uint32_t shaderFallbacks = 0;
-	uint32_t nativeSurfaceCount = 0;
-	uint32_t nativeTriangleCount = 0;
-	uint32_t nativeMaterialCount = 0;
-
-	vk_rt_cpu_geometry_init( geometry );
-
-	if ( !tr.world || !tr.worldMapLoaded || !tr.world->bmodels ) {
-		return qfalse;
-	}
-
-	worldModel = &tr.world->bmodels[0];
-	if ( !worldModel->firstSurface || worldModel->numSurfaces <= 0 ) {
-		return qfalse;
-	}
-
-	for ( i = 0; i < worldModel->numSurfaces; i++ ) {
-		const msurface_t *surface = &worldModel->firstSurface[i];
-		const shader_t *shader = surface->shader ? surface->shader : tr.defaultShader;
-		uint32_t materialFlags = RTX_RT_MATFLAG_NONE;
-		uint32_t trianglesBefore;
-
-		if ( shader && vk_rt_debug_as_stats_level() >= 2 ) {
-			int entry;
-			for ( entry = 0; entry < diagnosticCount; entry++ ) {
-				if ( diagnosticShaders[entry] == shader && diagnosticFog[entry] == surface->fogIndex ) {
-					break;
-				}
-			}
-			if ( entry == diagnosticCount && diagnosticCount < (int)ARRAY_LEN( diagnosticShaders ) ) {
-				int stageIndex;
-				diagnosticShaders[diagnosticCount] = shader;
-				diagnosticFog[diagnosticCount++] = surface->fogIndex;
-				ri.Printf( PRINT_DEVELOPER,
-					"RTX RT native shader '%s': native=%d fog=%d sort=%g passes=%d remap=%d sky=%d polygonOffset=%d deforms=%d screenMap=%d vertexLight=%d\n",
-					shader->name, R_RtShaderNativeSupported( shader ) && surface->fogIndex == 0,
-					surface->fogIndex, (double)shader->sort, shader->numUnfoggedPasses,
-					shader->remappedShader != NULL, shader->isSky, shader->polygonOffset,
-					shader->numDeforms, shader->hasScreenMap, r_vertexLight ? r_vertexLight->integer : 0 );
-				for ( stageIndex = 0; stageIndex < shader->numUnfoggedPasses && stageIndex < MAX_SHADER_STAGES; stageIndex++ ) {
-					const shaderStage_t *stage = shader->stages[stageIndex];
-					uint32_t bundleIndex;
-					if ( !stage ) {
-						ri.Printf( PRINT_DEVELOPER, "  stage %d: missing\n", stageIndex );
-						continue;
-					}
-					ri.Printf( PRINT_DEVELOPER,
-						"  stage %d: active=%d depthFragment=%d state=0x%x bundles=%u mtEnv=0x%x mtEnv3=0x%x\n",
-						stageIndex, stage->active, stage->depthFragment, (unsigned int)stage->stateBits,
-						(unsigned int)stage->numTexBundles, (unsigned int)stage->mtEnv, (unsigned int)stage->mtEnv3 );
-					for ( bundleIndex = 0; bundleIndex < stage->numTexBundles && bundleIndex < NUM_TEXTURE_BUNDLES; bundleIndex++ ) {
-						const textureBundle_t *bundle = &stage->bundle[bundleIndex];
-						const image_t *image = bundle->image[0];
-						ri.Printf( PRINT_DEVELOPER,
-							"    bundle %u: image='%s' rgbGen=%d alphaGen=%d tcGen=%d lightmap=%d vertexLightmap=%d animations=%d tcmods=%d video=%d screen=%d imageFlags=0x%x\n",
-							bundleIndex, image ? image->imgName : "<none>", bundle->rgbGen,
-							bundle->alphaGen, bundle->tcGen, bundle->lightmap, bundle->vertexLightmap,
-							bundle->numImageAnimations, bundle->numTexMods, bundle->isVideoMap,
-							bundle->isScreenMap, image ? (unsigned int)image->flags : 0u );
-					}
-				}
-			} else if ( entry == diagnosticCount && !diagnosticLimitReported ) {
-				ri.Printf( PRINT_DEVELOPER, "RTX RT: native shader diagnostics capped at %u material/fog pairs\n",
-					(unsigned int)ARRAY_LEN( diagnosticShaders ) );
-				diagnosticLimitReported = qtrue;
-			}
-		}
-
-		if ( !surface->shader ) {
-			shaderFallbacks++;
-		}
-		if ( shader && ( shader->isSky || ( shader->surfaceFlags & SURF_SKY ) ) ) {
-			skySkipCount++;
-			continue;
-		}
-		if ( shader && shader->sort != SS_OPAQUE && shader->sort != SS_SEE_THROUGH ) {
-			/*
-			 * Portals, decals, banners and translucent effects remain entirely
-			 * authored.  Opaque and alpha-tested structural surfaces below
-			 * stay in the BLAS even when raster owns their final color.
-			 */
-			nonOccludingOverlaySkipCount++;
-			continue;
-		}
-
-		if ( surface->fogIndex != 0 || !R_RtShaderNativeSupported( shader ) ) {
-			materialFlags |= RTX_RT_MATFLAG_RASTER_OVERLAY;
-			if ( surface->fogIndex != 0 ) {
-				fogOverlayOccluderCount++;
-			} else {
-				rasterOverlayOccluderCount++;
-			}
-		}
-
-		trianglesBefore = geometry->sourceTriangleCount;
-		switch ( *surface->data ) {
-		case SF_FACE:
-		{
-			const srfSurfaceFace_t *face = (const srfSurfaceFace_t *)surface->data;
-			if ( !vk_rt_append_surface_face_geometry( geometry, (const srfSurfaceFace_t *)surface->data, shader, materialFlags ) ) {
-				vk_rt_cpu_geometry_free( geometry );
-				return qfalse;
-			}
-			referenceTriangleCount += (uint32_t)( face->numIndices / 3 );
-			faceCount++;
-			break;
-		}
-		case SF_GRID:
-		{
-			const srfGridMesh_t *grid = (const srfGridMesh_t *)surface->data;
-			if ( !vk_rt_append_surface_grid_geometry( geometry, (const srfGridMesh_t *)surface->data, shader, materialFlags ) ) {
-				vk_rt_cpu_geometry_free( geometry );
-				return qfalse;
-			}
-			if ( grid->width >= 2 && grid->height >= 2 ) {
-				referenceTriangleCount += (uint32_t)( ( grid->width - 1 ) * ( grid->height - 1 ) * 2 );
-			}
-			gridCount++;
-			break;
-		}
-		case SF_TRIANGLES:
-		{
-			const srfTriangles_t *tris = (const srfTriangles_t *)surface->data;
-			if ( !vk_rt_append_surface_triangles_geometry( geometry, (const srfTriangles_t *)surface->data, shader, materialFlags ) ) {
-				vk_rt_cpu_geometry_free( geometry );
-				return qfalse;
-			}
-			referenceTriangleCount += (uint32_t)( tris->numIndexes / 3 );
-			triCount++;
-			break;
-		}
-		default:
-			break;
-		}
-		if ( !( materialFlags & RTX_RT_MATFLAG_RASTER_OVERLAY ) && geometry->sourceTriangleCount > trianglesBefore ) {
-			nativeSurfaceCount++;
-			nativeTriangleCount += geometry->sourceTriangleCount - trianglesBefore;
-		}
-	}
-
-	if ( !vk_rt_generate_tangents( geometry ) ) {
-		vk_rt_cpu_geometry_free( geometry );
-		return qfalse;
-	}
-
-	vk.rt.stats.world_triangles = geometry->sourceTriangleCount;
-	vk.rt.world_masked_triangle_count = geometry->maskedTriangleCount;
-	vk.rt.stats.masked_triangles =
-		vk.rt.world_masked_triangle_count +
-		vk.rt.dynamic_masked_triangle_count;
-
-	if ( geometry->sourceTriangleCount != referenceTriangleCount ) {
-		ri.Printf( PRINT_WARNING,
-			"RTX RT: world triangle count mismatch (rt=%u raster_ref=%u)\n",
-			geometry->sourceTriangleCount,
-			referenceTriangleCount );
-	}
-
-	if ( vk_rt_debug_as_stats_level() >= 1 ) {
-		uint32_t materialIndex;
-		for ( materialIndex = 0; materialIndex < geometry->numMaterials; materialIndex++ ) {
-			if ( !( geometry->materials[materialIndex].flags & RTX_RT_MATFLAG_RASTER_OVERLAY ) ) {
-				nativeMaterialCount++;
-			}
-		}
-		ri.Printf( PRINT_DEVELOPER,
-			"RTX RT: native world coverage (surfaces=%u, triangles=%u/%u, materials=%u/%u, vertexLight=%d)\n",
-			nativeSurfaceCount, nativeTriangleCount, geometry->sourceTriangleCount,
-			nativeMaterialCount, geometry->numMaterials, r_vertexLight ? r_vertexLight->integer : 0 );
-		ri.Printf( PRINT_DEVELOPER,
-			"RTX RT: world extraction complete (faces=%u, grids=%u, triangles=%u, trianglesRef=%u, vertices=%u, indices=%u, materials=%u, maskedTriangles=%u, anyHitTriangles=%u, degenerate=%u, shaderFallbacks=%u)\n",
-			faceCount,
-			gridCount,
-			triCount,
-			referenceTriangleCount,
-			geometry->numVertices,
-			geometry->numIndices,
-			geometry->numMaterials,
-			geometry->maskedTriangleCount,
-			geometry->anyHitTriangleCount,
-			geometry->degenerateTriangleCount,
-			shaderFallbacks );
-		if ( skySkipCount > 0 ) {
-			ri.Printf( PRINT_DEVELOPER, "RTX RT: skipped %u sky surfaces from RT BLAS (sky handled via miss/environment)\n", skySkipCount );
-		}
-		if ( rasterOverlayOccluderCount > 0 ) {
-			ri.Printf( PRINT_DEVELOPER,
-				"RTX RT: retained %u authored-overlay structural surfaces as shadow/visibility occluders\n",
-				rasterOverlayOccluderCount );
-		}
-		if ( fogOverlayOccluderCount > 0 ) {
-			ri.Printf( PRINT_DEVELOPER,
-				"RTX RT: retained %u fogged structural surfaces as shadow/visibility occluders while raster owns fog color\n",
-				fogOverlayOccluderCount );
-		}
-		if ( nonOccludingOverlaySkipCount > 0 ) {
-			ri.Printf( PRINT_DEVELOPER,
-				"RTX RT: skipped %u non-structural authored overlay surfaces from RT BLAS\n",
-				nonOccludingOverlaySkipCount );
-		}
-	}
-
-	if ( rtx_rt_material_debug && rtx_rt_material_debug->integer >= 2 ) {
-		uint32_t maxPrint = MIN( geometry->numMaterials, 24u );
-		uint32_t texturedCount = 0u;
-		uint32_t m;
-		for ( m = 0; m < geometry->numMaterials; m++ ) {
-			if ( geometry->materials[m].albedoTextureIndex >= 0 ) {
-				texturedCount++;
-			}
-		}
-		ri.Printf( PRINT_DEVELOPER,
-			"RTX RT: world materials with albedo textures: %u / %u\n",
-			texturedCount,
-			geometry->numMaterials );
-		for ( m = 0; m < maxPrint; m++ ) {
-			const rtxRtMaterial_t *mat = &geometry->materials[m];
-			ri.Printf( PRINT_DEVELOPER,
-				"RTX RT material[%u] '%s': flags=0x%x base=(%.2f %.2f %.2f) rm=(%.2f %.2f) emissiveScale=%.2f alphaCutoff=%.2f cs=(%u %u %u) tex=%d\n",
-				m,
-				mat->name,
-				mat->flags,
-				mat->baseColor[0], mat->baseColor[1], mat->baseColor[2],
-				mat->roughness, mat->metallic,
-				mat->emissiveScale,
-				mat->alphaCutoff,
-				mat->albedoColorSpace,
-				mat->normalColorSpace,
-				mat->emissiveColorSpace,
-				mat->albedoTextureIndex );
-		}
-	}
-
-	return ( geometry->numVertices >= 3 && geometry->numIndices >= 3 ) ? qtrue : qfalse;
-}
-
-static qboolean vk_rt_build_triangles_blas( rtxVkRtAccelerationStructure_t *outAs, const rtxVkRtBuffer_t *vertexBuffer, uint32_t vertexCount, VkDeviceSize vertexStride, const rtxVkRtBuffer_t *indexBuffer, uint32_t indexCount, qboolean opaqueGeometry, qboolean allowCompaction, const char *debugName )
-{
-	VkAccelerationStructureGeometryTrianglesDataKHR triangles;
-	VkAccelerationStructureGeometryKHR geometry;
-	VkAccelerationStructureBuildGeometryInfoKHR buildInfo;
-	VkAccelerationStructureBuildSizesInfoKHR buildSizes;
-	VkAccelerationStructureBuildRangeInfoKHR rangeInfo;
-	VkAccelerationStructureBuildRangeInfoKHR *rangeInfos[1];
-	VkDeviceAddress scratchAddress = 0;
-	VkCommandBuffer cmd;
-	VkQueryPool queryPool = VK_NULL_HANDLE;
-	VkQueryPoolCreateInfo queryInfo;
-	VkResult result;
-	VkBuildAccelerationStructureFlagsKHR buildFlags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
-	uint64_t bytesSaved = 0;
-
-	if ( !vertexBuffer || !indexBuffer || vertexBuffer->address == 0 || indexBuffer->address == 0 ) {
-		ri.Printf( PRINT_WARNING,
-			"RTX RT: skipping BLAS build '%s' due to missing buffer device address (vtx=0x%llx idx=0x%llx)\n",
-			debugName ? debugName : "unnamed",
-			(unsigned long long)( vertexBuffer ? vertexBuffer->address : 0 ),
-			(unsigned long long)( indexBuffer ? indexBuffer->address : 0 ) );
-		return qfalse;
-	}
-
-	if ( allowCompaction ) {
-		buildFlags |= VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_COMPACTION_BIT_KHR;
-	}
-
-	Com_Memset( &triangles, 0, sizeof( triangles ) );
-	triangles.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR;
-	triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
-	triangles.vertexData.deviceAddress = vertexBuffer->address;
-	triangles.vertexStride = vertexStride;
-	triangles.maxVertex = vertexCount ? ( vertexCount - 1 ) : 0;
-	triangles.indexType = VK_INDEX_TYPE_UINT32;
-	triangles.indexData.deviceAddress = indexBuffer->address;
-
-	Com_Memset( &geometry, 0, sizeof( geometry ) );
-	geometry.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR;
-	geometry.geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
-	geometry.flags = opaqueGeometry ? VK_GEOMETRY_OPAQUE_BIT_KHR : 0;
-	geometry.geometry.triangles = triangles;
-
-	Com_Memset( &buildInfo, 0, sizeof( buildInfo ) );
-	buildInfo.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR;
-	buildInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
-	buildInfo.flags = buildFlags;
-	buildInfo.mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR;
-	buildInfo.geometryCount = 1;
-	buildInfo.pGeometries = &geometry;
-
-	Com_Memset( &buildSizes, 0, sizeof( buildSizes ) );
-	buildSizes.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR;
-	{
-		const uint32_t primitiveCount = indexCount / 3;
-		qvkGetAccelerationStructureBuildSizesKHR(
-			vk.device,
-			VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR,
-			&buildInfo,
-			&primitiveCount,
-			&buildSizes );
-	}
-
-	if ( outAs->valid ) {
-		if ( !vk_rt_wait_for_inflight_frames( debugName ? debugName : "BLAS rebuild" ) ) {
-			return qfalse;
-		}
-	}
-	vk_rt_destroy_as( outAs );
-	if ( !vk_rt_create_as( VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR, buildSizes.accelerationStructureSize, debugName, outAs ) ) {
-		return qfalse;
-	}
-
-	if ( !vk_rt_ensure_scratch_buffer( buildSizes.buildScratchSize ) ) {
-		vk_rt_destroy_as( outAs );
-		return qfalse;
-	}
-	if ( !vk_rt_require_scratch_device_address( &scratchAddress ) ) {
-		vk_rt_destroy_as( outAs );
-		return qfalse;
-	}
-
-	buildInfo.dstAccelerationStructure = outAs->handle;
-	buildInfo.scratchData.deviceAddress = scratchAddress;
-
-	Com_Memset( &rangeInfo, 0, sizeof( rangeInfo ) );
-	rangeInfo.primitiveCount = indexCount / 3;
-	rangeInfo.primitiveOffset = 0;
-	rangeInfo.firstVertex = 0;
-	rangeInfo.transformOffset = 0;
-	rangeInfos[0] = &rangeInfo;
-
-	if ( allowCompaction ) {
-		Com_Memset( &queryInfo, 0, sizeof( queryInfo ) );
-		queryInfo.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
-		queryInfo.queryType = VK_QUERY_TYPE_ACCELERATION_STRUCTURE_COMPACTED_SIZE_KHR;
-		queryInfo.queryCount = 1;
-
-		result = qvkCreateQueryPool( vk.device, &queryInfo, NULL, &queryPool );
-		if ( result != VK_SUCCESS ) {
-			ri.Printf( PRINT_WARNING, "RTX RT: failed to create compaction query pool: %s\n", vk_result_string( result ) );
-			queryPool = VK_NULL_HANDLE;
-		}
-	}
-
-	cmd = begin_command_buffer();
-	if ( queryPool != VK_NULL_HANDLE ) {
-		qvkCmdResetQueryPool( cmd, queryPool, 0, 1 );
-	}
-	qvkCmdBuildAccelerationStructuresKHR( cmd, 1, &buildInfo, (const VkAccelerationStructureBuildRangeInfoKHR *const *)rangeInfos );
-
-	if ( queryPool != VK_NULL_HANDLE ) {
-		qvkCmdWriteAccelerationStructuresPropertiesKHR(
-			cmd,
-			1,
-			&outAs->handle,
-			VK_QUERY_TYPE_ACCELERATION_STRUCTURE_COMPACTED_SIZE_KHR,
-			queryPool,
-			0 );
-	}
-
-	if ( !end_command_buffer_soft( cmd, __func__ ) ) {
-		ri.Printf( PRINT_WARNING,
-			"RTX RT: BLAS build submission failed for '%s' (verts=%u indices=%u)\n",
-			debugName ? debugName : "unnamed",
-			vertexCount,
-			indexCount );
-		vk_rt_destroy_as( outAs );
-		if ( queryPool != VK_NULL_HANDLE ) {
-			qvkDestroyQueryPool( vk.device, queryPool, NULL );
-		}
-		return qfalse;
-	}
-
-	outAs->valid = qtrue;
-	outAs->compacted = qfalse;
-
-	if ( queryPool != VK_NULL_HANDLE ) {
-		if ( vk_rt_compact_as( outAs, queryPool, 0, debugName, &bytesSaved ) ) {
-			outAs->compacted = qtrue;
-			vk.rt.stats.compacted_bytes_saved += bytesSaved;
-		}
-		qvkDestroyQueryPool( vk.device, queryPool, NULL );
-		queryPool = VK_NULL_HANDLE;
-	}
-
-	{
-		VkAccelerationStructureDeviceAddressInfoKHR addressInfo;
-		addressInfo.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DEVICE_ADDRESS_INFO_KHR;
-		addressInfo.pNext = NULL;
-		addressInfo.accelerationStructure = outAs->handle;
-		outAs->deviceAddress = qvkGetAccelerationStructureDeviceAddressKHR( vk.device, &addressInfo );
-	}
-
-	return qtrue;
-}
-
 static void vk_rt_transform_point( const trRefEntity_t *ent, const vec3_t local, vec3_t world )
 {
 	const vec3_t *axis = ( ri.gameId == COM_GAME_QUAKE3_IHV && ent->e.q3IHV.active &&
@@ -5039,40 +1568,6 @@ static void vk_rt_transform_geometry_range( rtxRtCpuGeometry_t *geometry, uint32
 		vertex->tangent[0] = worldTangent[0];
 		vertex->tangent[1] = worldTangent[1];
 		vertex->tangent[2] = worldTangent[2];
-	}
-}
-
-static void vk_rt_apply_effect_material_tuning( rtxRtCpuGeometry_t *geometry, uint32_t materialIndex, qboolean particleLike, qboolean decalLike )
-{
-	rtxRtMaterial_t *material;
-	float emissiveBoost;
-
-	if ( !geometry || materialIndex >= geometry->numMaterials ) {
-		return;
-	}
-
-	material = &geometry->materials[materialIndex];
-	material->flags |= RTX_RT_MATFLAG_EFFECT;
-
-	if ( particleLike ) {
-		material->flags |= RTX_RT_MATFLAG_PARTICLE | RTX_RT_MATFLAG_TRANSLUCENT;
-		material->roughness = MAX( material->roughness, 0.7f );
-	}
-
-	if ( decalLike ) {
-		material->flags |= RTX_RT_MATFLAG_DECAL;
-		material->roughness = MIN( material->roughness, 0.55f );
-	}
-
-	emissiveBoost = vk_rt_effect_emissive_boost();
-	if ( emissiveBoost > 0.0f && ( particleLike || ( material->flags & RTX_RT_MATFLAG_EMISSIVE ) ) ) {
-		material->flags |= RTX_RT_MATFLAG_EMISSIVE;
-		material->emissiveScale = MAX( material->emissiveScale, emissiveBoost );
-		if ( material->emissiveColor[0] <= 0.0f && material->emissiveColor[1] <= 0.0f && material->emissiveColor[2] <= 0.0f ) {
-			material->emissiveColor[0] = 1.0f;
-			material->emissiveColor[1] = 1.0f;
-			material->emissiveColor[2] = 1.0f;
-		}
 	}
 }
 
@@ -5194,260 +1689,6 @@ static const shader_t *vk_rt_resolve_iqm_shader( const trRefEntity_t *ent, const
 	return shader ? shader : tr.defaultShader;
 }
 
-static qboolean vk_rt_append_sprite_entity_geometry( rtxRtCpuGeometry_t *geometry, const trRefEntity_t *ent )
-{
-	const shader_t *shader;
-	uint32_t materialIndex = 0;
-	vec3_t left;
-	vec3_t up;
-	vec3_t normal;
-	vec3_t corners[4];
-	vec2_t texCoords[4] = {
-		{ 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f }
-	};
-	vec4_t tangent = { 1.0f, 0.0f, 0.0f, 1.0f };
-	uint32_t baseVertex;
-	uint32_t color;
-	float radius;
-	float ang;
-	float s;
-	float c;
-	int i;
-
-	radius = ent->e.radius;
-	if ( radius <= 0.0f ) {
-		radius = 8.0f;
-	}
-	radius *= vk_rt_effect_radius_scale();
-
-	shader = ent->e.customShader ? R_GetShaderByHandle( ent->e.customShader ) : tr.defaultShader;
-	if ( !vk_rt_cpu_geometry_find_or_add_material( geometry, shader, &materialIndex ) ) {
-		return qfalse;
-	}
-	vk_rt_apply_effect_material_tuning( geometry, materialIndex, qtrue, qfalse );
-
-	if ( ent->e.rotation == 0.0f ) {
-		VectorScale( backEnd.viewParms.or.axis[1], radius, left );
-		VectorScale( backEnd.viewParms.or.axis[2], radius, up );
-	} else {
-		ang = M_PI * ent->e.rotation / 180.0f;
-		s = sinf( ang );
-		c = cosf( ang );
-		VectorScale( backEnd.viewParms.or.axis[1], c * radius, left );
-		VectorMA( left, -s * radius, backEnd.viewParms.or.axis[2], left );
-		VectorScale( backEnd.viewParms.or.axis[2], c * radius, up );
-		VectorMA( up, s * radius, backEnd.viewParms.or.axis[1], up );
-	}
-
-	VectorSubtract( vec3_origin, backEnd.viewParms.or.axis[0], normal );
-	VectorNormalize( normal );
-
-	VectorAdd( ent->e.origin, left, corners[0] );
-	VectorAdd( corners[0], up, corners[0] );
-	VectorSubtract( ent->e.origin, left, corners[1] );
-	VectorAdd( corners[1], up, corners[1] );
-	VectorSubtract( ent->e.origin, left, corners[2] );
-	VectorSubtract( corners[2], up, corners[2] );
-	VectorAdd( ent->e.origin, left, corners[3] );
-	VectorSubtract( corners[3], up, corners[3] );
-
-	color = ent->e.shader.u32 ? ent->e.shader.u32 : 0xFFFFFFFFu;
-
-	if ( !vk_rt_cpu_geometry_reserve( geometry, 4, 6 ) ) {
-		return qfalse;
-	}
-
-	baseVertex = geometry->numVertices;
-	for ( i = 0; i < 4; i++ ) {
-		if ( !vk_rt_cpu_geometry_add_vertex( geometry, corners[i], normal, tangent, texCoords[i], color, materialIndex, NULL ) ) {
-			return qfalse;
-		}
-	}
-
-	if ( !vk_rt_cpu_geometry_add_index( geometry, baseVertex + 0 ) ||
-		!vk_rt_cpu_geometry_add_index( geometry, baseVertex + 1 ) ||
-		!vk_rt_cpu_geometry_add_index( geometry, baseVertex + 3 ) ||
-		!vk_rt_cpu_geometry_add_index( geometry, baseVertex + 3 ) ||
-		!vk_rt_cpu_geometry_add_index( geometry, baseVertex + 1 ) ||
-		!vk_rt_cpu_geometry_add_index( geometry, baseVertex + 2 ) ) {
-		return qfalse;
-	}
-
-	geometry->sourceTriangleCount += 2;
-	if ( geometry->materials[ materialIndex ].flags & RTX_RT_MATFLAG_MASKED ) {
-		geometry->maskedTriangleCount += 2;
-	}
-	geometry->sourceEffectCount++;
-	return qtrue;
-}
-
-#include "../renderercommon/tr_q3_ihv_beam_ray.h"
-
-static qboolean vk_rt_append_beam_entity_geometry( rtxRtCpuGeometry_t *geometry, const trRefEntity_t *ent )
-{
-	const shader_t *shader;
-	uint32_t materialIndex = 0;
-	vec3_t start;
-	vec3_t end;
-	vec3_t direction;
-	vec3_t view;
-	vec3_t side;
-	vec3_t normal;
-	vec3_t corners[4];
-	vec2_t texCoords[4] = {
-		{ 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f }
-	};
-	vec4_t tangent = { 1.0f, 0.0f, 0.0f, 1.0f };
-	uint32_t baseVertex;
-	float width;
-	uint32_t color;
-	int i;
-
-	if ( ri.gameId == COM_GAME_QUAKE3_IHV && ent->e.q3IHV.active )
-		return vk_rt_append_ihv_beam_geometry( geometry, ent );
-	VectorCopy( ent->e.origin, start );
-	VectorCopy( ent->e.oldorigin, end );
-	VectorSubtract( end, start, direction );
-	if ( VectorNormalize( direction ) == 0.0f ) {
-		return qtrue;
-	}
-
-	VectorSubtract( start, backEnd.viewParms.or.origin, view );
-	if ( VectorNormalize( view ) == 0.0f ) {
-		VectorSet( view, 0.0f, 0.0f, 1.0f );
-	}
-
-	CrossProduct( direction, view, side );
-	if ( VectorNormalize( side ) == 0.0f ) {
-		CrossProduct( direction, backEnd.viewParms.or.axis[2], side );
-		if ( VectorNormalize( side ) == 0.0f ) {
-			return qtrue;
-		}
-	}
-
-	width = ent->e.radius;
-	if ( width <= 0.0f ) {
-		width = ent->e.frame > 0 ? (float)ent->e.frame : 2.0f;
-	}
-	width *= vk_rt_effect_radius_scale();
-	VectorScale( side, width * 0.5f, side );
-
-	VectorAdd( start, side, corners[0] );
-	VectorSubtract( start, side, corners[1] );
-	VectorSubtract( end, side, corners[2] );
-	VectorAdd( end, side, corners[3] );
-
-	CrossProduct( side, direction, normal );
-	if ( VectorNormalize( normal ) == 0.0f ) {
-		VectorSet( normal, 0.0f, 0.0f, 1.0f );
-	}
-
-	shader = ent->e.customShader ? R_GetShaderByHandle( ent->e.customShader ) : tr.defaultShader;
-	if ( !vk_rt_cpu_geometry_find_or_add_material( geometry, shader, &materialIndex ) ) {
-		return qfalse;
-	}
-	vk_rt_apply_effect_material_tuning( geometry, materialIndex, qtrue, qfalse );
-
-	color = ent->e.shader.u32 ? ent->e.shader.u32 : 0xFFFFFFFFu;
-
-	if ( !vk_rt_cpu_geometry_reserve( geometry, 4, 6 ) ) {
-		return qfalse;
-	}
-
-	baseVertex = geometry->numVertices;
-	for ( i = 0; i < 4; i++ ) {
-		if ( !vk_rt_cpu_geometry_add_vertex( geometry, corners[i], normal, tangent, texCoords[i], color, materialIndex, NULL ) ) {
-			return qfalse;
-		}
-	}
-
-	if ( !vk_rt_cpu_geometry_add_index( geometry, baseVertex + 0 ) ||
-		!vk_rt_cpu_geometry_add_index( geometry, baseVertex + 1 ) ||
-		!vk_rt_cpu_geometry_add_index( geometry, baseVertex + 3 ) ||
-		!vk_rt_cpu_geometry_add_index( geometry, baseVertex + 3 ) ||
-		!vk_rt_cpu_geometry_add_index( geometry, baseVertex + 1 ) ||
-		!vk_rt_cpu_geometry_add_index( geometry, baseVertex + 2 ) ) {
-		return qfalse;
-	}
-
-	geometry->sourceTriangleCount += 2;
-	if ( geometry->materials[ materialIndex ].flags & RTX_RT_MATFLAG_MASKED ) {
-		geometry->maskedTriangleCount += 2;
-	}
-	geometry->sourceEffectCount++;
-	return qtrue;
-}
-
-#include "../renderercommon/tr_q3_ihv_particle_ray.h"
-
-static qboolean vk_rt_append_poly_geometry( rtxRtCpuGeometry_t *geometry, const srfPoly_t *poly )
-{
-	const shader_t *shader;
-	uint32_t materialIndex = 0;
-	uint32_t baseVertex;
-	vec3_t normal = { 0.0f, 0.0f, 1.0f };
-	vec4_t tangent = { 1.0f, 0.0f, 0.0f, 1.0f };
-	vec3_t edgeA;
-	vec3_t edgeB;
-	uint32_t triangleCount;
-	uint32_t indexCount;
-	int i;
-
-	if ( !poly || !poly->verts || poly->numVerts <= 0 ) {
-		return qtrue;
-	}
-	if ( poly->surfaceType == SF_IHV_PARTICLES ) return vk_rt_append_ihv_particle_geometry( geometry, poly );
-	if ( poly->numVerts < 3 ) return qtrue;
-	triangleCount = (uint32_t)poly->numVerts - 2u;
-	if ( !vk_rt_checked_u32_multiply( triangleCount, 3u, &indexCount ) ) {
-		ri.Printf( PRINT_WARNING, "RTX RT: refusing overflowing polygon geometry\n" );
-		return qfalse;
-	}
-
-	shader = poly->hShader ? R_GetShaderByHandle( poly->hShader ) : tr.defaultShader;
-	if ( !vk_rt_cpu_geometry_find_or_add_material( geometry, shader, &materialIndex ) ) {
-		return qfalse;
-	}
-	vk_rt_apply_effect_material_tuning(
-		geometry,
-		materialIndex,
-		( shader && shader->sort >= SS_BLEND0 ) ? qtrue : qfalse,
-		( shader && shader->sort == SS_DECAL ) ? qtrue : qfalse );
-
-	VectorSubtract( poly->verts[1].xyz, poly->verts[0].xyz, edgeA );
-	VectorSubtract( poly->verts[2].xyz, poly->verts[0].xyz, edgeB );
-	CrossProduct( edgeA, edgeB, normal );
-	if ( VectorNormalize( normal ) == 0.0f ) {
-		VectorSet( normal, 0.0f, 0.0f, 1.0f );
-	}
-
-	if ( !vk_rt_cpu_geometry_reserve( geometry, (uint32_t)poly->numVerts, indexCount ) ) {
-		return qfalse;
-	}
-
-	baseVertex = geometry->numVertices;
-	for ( i = 0; i < poly->numVerts; i++ ) {
-		const vec2_t st = { poly->verts[i].st[0], poly->verts[i].st[1] };
-		if ( !vk_rt_cpu_geometry_add_vertex( geometry, poly->verts[i].xyz, normal, tangent, st, poly->verts[i].modulate.u32, materialIndex, NULL ) ) {
-			return qfalse;
-		}
-	}
-
-	for ( i = 1; i < poly->numVerts - 1; i++ ) {
-		if ( !vk_rt_cpu_geometry_add_index( geometry, baseVertex + 0 ) ||
-			!vk_rt_cpu_geometry_add_index( geometry, baseVertex + (uint32_t)i ) ||
-			!vk_rt_cpu_geometry_add_index( geometry, baseVertex + (uint32_t)( i + 1 ) ) ) {
-			return qfalse;
-		}
-	}
-
-	geometry->sourceTriangleCount += triangleCount;
-	if ( geometry->materials[ materialIndex ].flags & RTX_RT_MATFLAG_MASKED ) {
-		geometry->maskedTriangleCount += triangleCount;
-	}
-	geometry->sourceEffectCount++;
-	return qtrue;
-}
 
 static const shader_t *vk_rt_resolve_mdr_shader( const trRefEntity_t *ent, const mdrSurface_t *surface )
 {
@@ -5629,9 +1870,6 @@ static qboolean vk_rt_append_md3_entity_geometry( rtxRtCpuGeometry_t *geometry, 
 
 		if ( !vk_rt_cpu_geometry_find_or_add_material( geometry, shader, &materialIndex ) ) {
 			return qfalse;
-		}
-		if ( ent->e.renderfx & RF_FIRST_PERSON ) {
-			vk_rt_apply_effect_material_tuning( geometry, materialIndex, qfalse, qfalse );
 		}
 
 		if ( surface->numVerts < 0 || surface->numTriangles < 0 ||
@@ -5932,9 +2170,6 @@ static qboolean vk_rt_append_iqm_entity_geometry( rtxRtCpuGeometry_t *geometry, 
 		if ( !vk_rt_cpu_geometry_find_or_add_material( geometry, shader, &materialIndex ) ) {
 			return qfalse;
 		}
-		if ( ent->e.renderfx & RF_FIRST_PERSON ) {
-			vk_rt_apply_effect_material_tuning( geometry, materialIndex, qfalse, qfalse );
-		}
 
 		if ( surface->num_vertexes < 0 || surface->num_triangles < 0 ||
 			!vk_rt_checked_u32_multiply( (uint32_t)surface->num_triangles, 3u,
@@ -6198,2106 +2433,6 @@ static qboolean vk_rt_append_dynamic_model_entity_geometry( rtxRtCpuGeometry_t *
 	return qtrue;
 }
 
-static qboolean vk_rt_poly_is_mark_decal( const srfPoly_t *poly )
-{
-	const shader_t *shader;
-
-	if ( !poly ) {
-		return qfalse;
-	}
-
-	shader = poly->hShader ? R_GetShaderByHandle( poly->hShader ) : NULL;
-	if ( !shader ) {
-		return qfalse;
-	}
-
-	if ( shader->sort == SS_DECAL ) {
-		return qtrue;
-	}
-	if ( !rtx_rt_material_heuristics || !rtx_rt_material_heuristics->integer ) {
-		return qfalse;
-	}
-
-	if ( vk_rt_material_name_contains_token( shader->name, "decal" ) ||
-		vk_rt_material_name_contains_token( shader->name, "mark" ) ||
-		vk_rt_material_name_contains_token( shader->name, "bullet" ) ||
-		vk_rt_material_name_contains_token( shader->name, "scorch" ) ||
-		vk_rt_material_name_contains_token( shader->name, "impact" ) ) {
-		return qtrue;
-	}
-
-	return qfalse;
-}
-
-static qboolean vk_rt_model_material_secondary_supported( const shader_t *shader )
-{
-	const shaderStage_t *stage;
-	const textureBundle_t *bundle;
-	if ( R_RtShaderNativeSupported( shader ) ) {
-		return qtrue;
-	}
-	/* Model skins use lightingDiffuse or vertex lighting in raster. Secondary
-	 * radiance evaluates lighting at the actual hit, retaining their texture
-	 * and alpha coverage; animated/multipass shader effects remain authored. */
-	if ( !shader || shader->remappedShader ||
-		( shader->sort != SS_OPAQUE && shader->sort != SS_SEE_THROUGH ) ||
-		shader->isSky || ( shader->surfaceFlags & SURF_SKY ) || shader->polygonOffset ||
-		shader->numDeforms != 0 || shader->hasScreenMap || shader->numUnfoggedPasses != 1 ) {
-		return qfalse;
-	}
-	stage = shader->stages[0];
-	if ( !stage || !stage->active || stage->depthFragment || stage->numTexBundles != 1 ||
-		stage->mtEnv || stage->mtEnv3 || !( stage->stateBits & GLS_DEPTHMASK_TRUE ) ||
-		( stage->stateBits & ( GLS_BLEND_BITS | GLS_DEPTHTEST_DISABLE | GLS_DEPTHFUNC_EQUAL | GLS_POLYMODE_LINE ) ) ) {
-		return qfalse;
-	}
-	bundle = &stage->bundle[0];
-	if ( !bundle->image[0] || bundle->numImageAnimations > 1 || bundle->numTexMods != 0 ||
-		bundle->isVideoMap || bundle->isScreenMap || bundle->tcGen != TCGEN_TEXTURE ||
-		( bundle->rgbGen != CGEN_IDENTITY && bundle->rgbGen != CGEN_IDENTITY_LIGHTING &&
-		  bundle->rgbGen != CGEN_CONST && bundle->rgbGen != CGEN_LIGHTING_DIFFUSE &&
-		  bundle->rgbGen != CGEN_VERTEX && bundle->rgbGen != CGEN_EXACT_VERTEX ) ||
-		( bundle->alphaGen != AGEN_SKIP && bundle->alphaGen != AGEN_IDENTITY ) ) {
-		return qfalse;
-	}
-	return qtrue;
-}
-
-static qboolean vk_rt_extract_dynamic_geometry( rtxRtCpuGeometry_t *geometry )
-{
-	uint32_t effectMode = ( rtx_rt_dynamic_effects ? (uint32_t)MAX( 0, rtx_rt_dynamic_effects->integer ) : 1u );
-	uint32_t entityBudget = (uint32_t)MAX( 1, vk_rt_as_instance_budget() );
-	qboolean prioritizeFirstPerson = vk_rt_first_person_priority_enabled();
-	qboolean allowMarks = vk_rt_marks_enabled();
-	uint32_t modelCount = 0;
-	uint32_t effectCount = 0;
-	int modelPasses = prioritizeFirstPerson ? 2 : 1;
-	int pass;
-	int i;
-
-	vk_rt_cpu_geometry_init( geometry );
-
-	if ( !backEnd.refdef.entities && !( backEnd.refdef.polys && ( effectMode >= 2 || allowMarks ) ) ) {
-		return qtrue;
-	}
-
-	for ( pass = 0; pass < modelPasses; pass++ ) {
-		for ( i = 0; backEnd.refdef.entities && i < backEnd.refdef.num_entities; i++ ) {
-			const trRefEntity_t *ent = &backEnd.refdef.entities[i];
-			qboolean isFirstPerson;
-
-			if ( ent->e.reType != RT_MODEL ) {
-				continue;
-			}
-			if ( !vk_rt_model_casts_in_current_view( ent ) ) {
-				continue;
-			}
-
-			isFirstPerson = ( ent->e.renderfx & RF_FIRST_PERSON ) ? qtrue : qfalse;
-			if ( prioritizeFirstPerson ) {
-				if ( pass == 0 && !isFirstPerson ) {
-					continue;
-				}
-				if ( pass == 1 && isFirstPerson ) {
-					continue;
-				}
-			}
-
-			if ( modelCount >= entityBudget ) {
-				continue;
-			}
-
-			if ( !vk_rt_append_dynamic_model_entity_geometry( geometry, ent, &modelCount ) ) {
-				vk_rt_cpu_geometry_free( geometry );
-				return qfalse;
-			}
-		}
-	}
-
-	/* Mark model materials before appending effects. Their ownership flag
-	 * also prevents a shared shader from aliasing a later particle material. */
-	for ( i = 0; i < (int)geometry->numMaterials; i++ ) {
-		if ( vk_rt_model_material_secondary_supported( geometry->materialShaders[i] ) ) {
-			geometry->materials[i].flags |= RTX_RT_MATFLAG_SECONDARY_VISIBLE;
-		}
-		geometry->materials[i].flags |= RTX_RT_MATFLAG_RASTER_OVERLAY;
-	}
-
-	if ( effectMode > 0 ) {
-		for ( i = 0; backEnd.refdef.entities && i < backEnd.refdef.num_entities; i++ ) {
-			const trRefEntity_t *ent = &backEnd.refdef.entities[i];
-
-			if ( !vk_rt_entity_visible_in_current_view( ent ) ) {
-				continue;
-			}
-
-			switch ( ent->e.reType ) {
-			case RT_SPRITE:
-				if ( !vk_rt_append_sprite_entity_geometry( geometry, ent ) ) {
-					vk_rt_cpu_geometry_free( geometry );
-					return qfalse;
-				}
-				effectCount++;
-				break;
-			case RT_BEAM:
-			case RT_RAIL_CORE:
-			case RT_RAIL_RINGS:
-			case RT_LIGHTNING:
-				if ( !vk_rt_append_beam_entity_geometry( geometry, ent ) ) {
-					vk_rt_cpu_geometry_free( geometry );
-					return qfalse;
-				}
-				effectCount++;
-				break;
-			default:
-				break;
-			}
-		}
-	}
-
-	if ( backEnd.refdef.polys && ( effectMode >= 2 || allowMarks ) ) {
-		for ( i = 0; i < backEnd.refdef.numPolys; i++ ) {
-			const srfPoly_t *poly = &backEnd.refdef.polys[i];
-			if ( effectMode < 2 && !vk_rt_poly_is_mark_decal( poly ) ) {
-				continue;
-			}
-			if ( !vk_rt_append_poly_geometry( geometry, poly ) ) {
-				vk_rt_cpu_geometry_free( geometry );
-				return qfalse;
-			}
-			effectCount++;
-		}
-	}
-
-	geometry->sourceEntityCount = modelCount;
-	geometry->sourceEffectCount = effectCount;
-
-	/*
-	 * Dynamic entities remain authored raster overlays.  Their RT geometry is
-	 * retained for shadow rays and supported model skins for indirect radiance,
-	 * while any-hit rejects primary camera rays to preserve raster animation.
-	 */
-	for ( i = 0; i < (int)geometry->numMaterials; i++ ) {
-		geometry->materials[i].flags |= RTX_RT_MATFLAG_RASTER_OVERLAY;
-	}
-	geometry->anyHitTriangleCount = geometry->sourceTriangleCount;
-
-	if ( geometry->numVertices >= 3 && geometry->numIndices >= 3 ) {
-		if ( !vk_rt_generate_tangents( geometry ) ) {
-			vk_rt_cpu_geometry_free( geometry );
-			return qfalse;
-		}
-	}
-
-	return qtrue;
-}
-
-static qboolean vk_rt_build_dynamic_scene_blas( VkDeviceSize *frameBudgetBytesUsed, VkDeviceSize frameBudgetBytes, VkDeviceSize *outBuildBytes )
-{
-	rtxRtCpuGeometry_t geometry;
-	VkBuildAccelerationStructureFlagsKHR flags;
-	VkDeviceSize buildBytes;
-	uint32_t droppedTriangles = 0;
-	vec3_t mins;
-	vec3_t maxs;
-	uint32_t v;
-
-	if ( outBuildBytes ) {
-		*outBuildBytes = 0;
-	}
-
-	if ( !vk_rt_extract_dynamic_geometry( &geometry ) ) {
-		return qfalse;
-	}
-
-	if ( !vk_rt_cpu_geometry_sanitize_indices( &geometry, &droppedTriangles ) ) {
-		vk_rt_cpu_geometry_free( &geometry );
-		return qfalse;
-	}
-	if ( droppedTriangles > 0 && vk_rt_debug_as_stats_level() >= 1 ) {
-		ri.Printf( PRINT_WARNING,
-			"RTX RT: dropped %u invalid/degenerate dynamic triangles before BLAS build\n",
-			droppedTriangles );
-	}
-
-	if ( geometry.numVertices > 0 ) {
-		VectorSet( mins, geometry.vertices[0].xyz[0], geometry.vertices[0].xyz[1], geometry.vertices[0].xyz[2] );
-		VectorCopy( mins, maxs );
-		for ( v = 1; v < geometry.numVertices; v++ ) {
-			const float *p = geometry.vertices[v].xyz;
-			mins[0] = MIN( mins[0], p[0] );
-			mins[1] = MIN( mins[1], p[1] );
-			mins[2] = MIN( mins[2], p[2] );
-			maxs[0] = MAX( maxs[0], p[0] );
-			maxs[1] = MAX( maxs[1], p[1] );
-			maxs[2] = MAX( maxs[2], p[2] );
-		}
-		VectorAdd( mins, maxs, vk.rt.dynamic_centroid_current );
-		VectorScale( vk.rt.dynamic_centroid_current, 0.5f, vk.rt.dynamic_centroid_current );
-	} else {
-		VectorCopy( vk.rt.dynamic_centroid_prev, vk.rt.dynamic_centroid_current );
-	}
-
-	if ( geometry.numVertices < 3 || geometry.numIndices < 3 ) {
-		if ( vk.rt.dynamic_blas.valid ||
-			vk.rt.dynamic_vertex_buffer.buffer != VK_NULL_HANDLE ||
-			vk.rt.dynamic_index_buffer.buffer != VK_NULL_HANDLE ||
-			vk.rt.dynamic_material_buffer.buffer != VK_NULL_HANDLE ) {
-			if ( !vk_rt_wait_for_inflight_frames( "dynamic geometry cleanup" ) ) {
-				vk_rt_cpu_geometry_free( &geometry );
-				return qfalse;
-			}
-		}
-		vk_rt_destroy_as( &vk.rt.dynamic_blas );
-		vk_rt_destroy_buffer( &vk.rt.dynamic_vertex_buffer );
-		vk_rt_destroy_buffer( &vk.rt.dynamic_index_buffer );
-		vk_rt_destroy_buffer( &vk.rt.dynamic_material_buffer );
-		vk.rt.dynamic_vertex_count = 0;
-		vk.rt.dynamic_index_count = 0;
-		vk.rt.dynamic_material_count = 0;
-		vk.rt.dynamic_entity_count = geometry.sourceEntityCount;
-		vk.rt.dynamic_effect_count = geometry.sourceEffectCount;
-		vk.rt.dynamic_masked_triangle_count = 0;
-		vk.rt.stats.dynamic_triangles = 0;
-		vk.rt.stats.masked_triangles = vk.rt.world_masked_triangle_count;
-		vk.rt.needsRebuild = qtrue;
-		vk_rt_cpu_geometry_free( &geometry );
-		return qtrue;
-	}
-
-	// Dynamic BLAS is rebuilt frequently; skip compaction to avoid query/copy overhead and instability.
-	flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
-	buildBytes = vk_rt_query_triangles_build_bytes(
-		geometry.numVertices,
-		geometry.numIndices,
-		geometry.anyHitTriangleCount == 0u ? qtrue : qfalse,
-		flags );
-	if ( outBuildBytes ) {
-		*outBuildBytes = buildBytes;
-	}
-	if ( !vk_rt_budget_allows( buildBytes, frameBudgetBytesUsed, frameBudgetBytes ) ) {
-		vk_rt_cpu_geometry_free( &geometry );
-		return qfalse;
-	}
-
-	/*
-	 * The dynamic buffers are host-visible and may still be consumed by an
-	 * in-flight frame.  Wait before writing them, not merely before replacing
-	 * the old BLAS after the upload has already happened.
-	 */
-	if ( vk.rt.dynamic_blas.valid &&
-		!vk_rt_wait_for_inflight_frames( "dynamic geometry upload" ) ) {
-		vk_rt_cpu_geometry_free( &geometry );
-		return qfalse;
-	}
-
-	if ( !vk_rt_ensure_buffer_capacity(
-		&vk.rt.dynamic_vertex_buffer,
-		geometry.numVertices * sizeof( rtxRtPackedVertex_t ),
-		VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
-			VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT |
-			VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR,
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-		qtrue,
-		"rt dynamic vertices" ) ||
-		!vk_rt_ensure_buffer_capacity(
-			&vk.rt.dynamic_index_buffer,
-			geometry.numIndices * sizeof( uint32_t ),
-			VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
-				VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT |
-				VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			qtrue,
-			"rt dynamic indices" ) ) {
-		vk_rt_cpu_geometry_free( &geometry );
-		return qfalse;
-	}
-
-	if ( !vk_rt_upload_buffer_data(
-		&vk.rt.dynamic_vertex_buffer,
-		geometry.vertices,
-		(size_t)geometry.numVertices * sizeof( rtxRtPackedVertex_t ) ) ||
-		!vk_rt_upload_buffer_data(
-			&vk.rt.dynamic_index_buffer,
-			geometry.indices,
-			(size_t)geometry.numIndices * sizeof( uint32_t ) ) ) {
-		vk_rt_cpu_geometry_free( &geometry );
-		return qfalse;
-	}
-
-	if ( !vk_rt_upload_material_buffer(
-		geometry.materials,
-		geometry.numMaterials,
-		&vk.rt.dynamic_material_buffer,
-		&vk.rt.dynamic_material_count,
-		"rt dynamic materials" ) ) {
-		vk_rt_cpu_geometry_free( &geometry );
-		return qfalse;
-	}
-
-	vk.rt.dynamic_vertex_count = geometry.numVertices;
-	vk.rt.dynamic_index_count = geometry.numIndices;
-	vk.rt.dynamic_entity_count = geometry.sourceEntityCount;
-	vk.rt.dynamic_effect_count = geometry.sourceEffectCount;
-	vk.rt.dynamic_masked_triangle_count = geometry.maskedTriangleCount;
-	vk.rt.stats.dynamic_triangles = geometry.sourceTriangleCount;
-	vk.rt.stats.masked_triangles =
-		vk.rt.world_masked_triangle_count +
-		vk.rt.dynamic_masked_triangle_count;
-
-	if ( !vk_rt_build_triangles_blas(
-		&vk.rt.dynamic_blas,
-		&vk.rt.dynamic_vertex_buffer,
-		vk.rt.dynamic_vertex_count,
-		sizeof( rtxRtPackedVertex_t ),
-		&vk.rt.dynamic_index_buffer,
-		vk.rt.dynamic_index_count,
-		geometry.anyHitTriangleCount == 0u ? qtrue : qfalse,
-		qfalse,
-		"rt dynamic scene blas" ) ) {
-		vk_rt_cpu_geometry_free( &geometry );
-		return qfalse;
-	}
-
-	vk.rt.stats.dynamic_build_bytes += (uint64_t)( vk.rt.dynamic_blas.size + vk.rt.scratch_buffer.allocationSize );
-	vk.rt.needsRebuild = qtrue;
-
-	if ( vk_rt_debug_as_stats_level() >= 1 ) {
-		ri.Printf( PRINT_DEVELOPER,
-			"RTX RT: dynamic extraction complete (entities=%u, effects=%u, vertices=%u, indices=%u, triangles=%u, materials=%u, maskedTriangles=%u, anyHitTriangles=%u, degenerate=%u)\n",
-			geometry.sourceEntityCount,
-			geometry.sourceEffectCount,
-			geometry.numVertices,
-			geometry.numIndices,
-			geometry.sourceTriangleCount,
-			geometry.numMaterials,
-			geometry.maskedTriangleCount,
-			geometry.anyHitTriangleCount,
-			geometry.degenerateTriangleCount );
-	}
-
-	if ( rtx_rt_material_debug && rtx_rt_material_debug->integer >= 3 ) {
-		uint32_t maxPrint = MIN( geometry.numMaterials, 24u );
-		uint32_t m;
-		for ( m = 0; m < maxPrint; m++ ) {
-			const rtxRtMaterial_t *mat = &geometry.materials[m];
-			ri.Printf( PRINT_DEVELOPER,
-				"RTX RT dynamic material[%u] '%s': flags=0x%x rm=(%.2f %.2f) emissiveScale=%.2f alphaCutoff=%.2f\n",
-				m,
-				mat->name,
-				mat->flags,
-				mat->roughness,
-				mat->metallic,
-				mat->emissiveScale,
-				mat->alphaCutoff );
-		}
-	}
-
-	vk_rt_cpu_geometry_free( &geometry );
-	return qtrue;
-}
-
-static qboolean vk_rt_ensure_descriptor_resources( void )
-{
-	VkDescriptorPoolSize poolSizes[4];
-	VkDescriptorPoolCreateInfo poolInfo;
-	VkDescriptorSetLayoutBinding bindings[14];
-	VkDescriptorSetLayoutCreateInfo layoutInfo;
-	VkPipelineLayoutCreateInfo pipelineLayoutInfo;
-	VkDescriptorSetAllocateInfo allocInfo;
-	VkDescriptorSetLayout descriptorLayouts[ NUM_COMMAND_BUFFERS ];
-	uint32_t i;
-	VkResult result;
-
-	if ( vk.rt.descriptor_set_layout != VK_NULL_HANDLE &&
-		vk.rt.descriptor_pool != VK_NULL_HANDLE &&
-		vk.rt.pipeline_layout != VK_NULL_HANDLE ) {
-		for ( i = 0; i < NUM_COMMAND_BUFFERS; i++ ) {
-			if ( vk.rt.descriptor_set[i] == VK_NULL_HANDLE ) {
-				break;
-			}
-		}
-		if ( i == NUM_COMMAND_BUFFERS ) {
-			return qtrue;
-		}
-	}
-
-	if ( vk.rt.descriptor_set_layout != VK_NULL_HANDLE ) {
-		qvkDestroyDescriptorSetLayout( vk.device, vk.rt.descriptor_set_layout, NULL );
-		vk.rt.descriptor_set_layout = VK_NULL_HANDLE;
-	}
-	if ( vk.rt.descriptor_pool != VK_NULL_HANDLE ) {
-		qvkDestroyDescriptorPool( vk.device, vk.rt.descriptor_pool, NULL );
-		vk.rt.descriptor_pool = VK_NULL_HANDLE;
-	}
-	if ( vk.rt.pipeline_layout != VK_NULL_HANDLE ) {
-		qvkDestroyPipelineLayout( vk.device, vk.rt.pipeline_layout, NULL );
-		vk.rt.pipeline_layout = VK_NULL_HANDLE;
-	}
-	Com_Memset( vk.rt.descriptor_set, 0, sizeof( vk.rt.descriptor_set ) );
-
-	poolSizes[0].type = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
-	poolSizes[0].descriptorCount = NUM_COMMAND_BUFFERS;
-	poolSizes[1].type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-	poolSizes[1].descriptorCount = NUM_COMMAND_BUFFERS * 3;
-	poolSizes[2].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	poolSizes[2].descriptorCount = NUM_COMMAND_BUFFERS * 8;
-	poolSizes[3].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	poolSizes[3].descriptorCount = NUM_COMMAND_BUFFERS * ( 1 + RTX_RT_MAX_SCENE_TEXTURES );
-
-	Com_Memset( &poolInfo, 0, sizeof( poolInfo ) );
-	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	poolInfo.maxSets = NUM_COMMAND_BUFFERS;
-	poolInfo.poolSizeCount = ARRAY_LEN( poolSizes );
-	poolInfo.pPoolSizes = poolSizes;
-	result = qvkCreateDescriptorPool( vk.device, &poolInfo, NULL, &vk.rt.descriptor_pool );
-	if ( result != VK_SUCCESS ) {
-		ri.Printf( PRINT_ERROR, "RTX RT: failed to create descriptor pool: %s\n", vk_result_string( result ) );
-		return qfalse;
-	}
-
-	Com_Memset( bindings, 0, sizeof( bindings ) );
-	bindings[0].binding = RTX_RT_DESC_BINDING_TLAS;
-	bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
-	bindings[0].descriptorCount = 1;
-	bindings[0].stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
-	bindings[1].binding = RTX_RT_DESC_BINDING_OUTPUT;
-	bindings[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-	bindings[1].descriptorCount = 1;
-	bindings[1].stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR;
-	bindings[2].binding = RTX_RT_DESC_BINDING_WORLD_VERTICES;
-	bindings[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	bindings[2].descriptorCount = 1;
-	bindings[2].stageFlags = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
-	bindings[3].binding = RTX_RT_DESC_BINDING_WORLD_INDICES;
-	bindings[3].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	bindings[3].descriptorCount = 1;
-	bindings[3].stageFlags = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
-	bindings[4].binding = RTX_RT_DESC_BINDING_WORLD_MATERIALS;
-	bindings[4].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	bindings[4].descriptorCount = 1;
-	bindings[4].stageFlags = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
-	bindings[5].binding = RTX_RT_DESC_BINDING_DYNAMIC_VERTICES;
-	bindings[5].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	bindings[5].descriptorCount = 1;
-	bindings[5].stageFlags = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
-	bindings[6].binding = RTX_RT_DESC_BINDING_DYNAMIC_INDICES;
-	bindings[6].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	bindings[6].descriptorCount = 1;
-	bindings[6].stageFlags = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
-	bindings[7].binding = RTX_RT_DESC_BINDING_DYNAMIC_MATERIALS;
-	bindings[7].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	bindings[7].descriptorCount = 1;
-	bindings[7].stageFlags = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
-	bindings[8].binding = RTX_RT_DESC_BINDING_LIGHTS;
-	bindings[8].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	bindings[8].descriptorCount = 1;
-	bindings[8].stageFlags = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR | VK_SHADER_STAGE_RAYGEN_BIT_KHR;
-	bindings[9].binding = RTX_RT_DESC_BINDING_HISTORY_IN;
-	bindings[9].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-	bindings[9].descriptorCount = 1;
-	bindings[9].stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR;
-	bindings[10].binding = RTX_RT_DESC_BINDING_HISTORY_OUT;
-	bindings[10].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-	bindings[10].descriptorCount = 1;
-	bindings[10].stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR;
-	bindings[11].binding = RTX_RT_DESC_BINDING_TEMPORAL_PARAMS;
-	bindings[11].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	bindings[11].descriptorCount = 1;
-	bindings[11].stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
-	bindings[12].binding = RTX_RT_DESC_BINDING_SCENE_COLOR;
-	bindings[12].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	bindings[12].descriptorCount = 1;
-	bindings[12].stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR;
-	bindings[13].binding = RTX_RT_DESC_BINDING_SCENE_TEXTURES;
-	bindings[13].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	bindings[13].descriptorCount = RTX_RT_MAX_SCENE_TEXTURES;
-	bindings[13].stageFlags = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
-
-	Com_Memset( &layoutInfo, 0, sizeof( layoutInfo ) );
-	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	layoutInfo.bindingCount = ARRAY_LEN( bindings );
-	layoutInfo.pBindings = bindings;
-	result = qvkCreateDescriptorSetLayout( vk.device, &layoutInfo, NULL, &vk.rt.descriptor_set_layout );
-	if ( result != VK_SUCCESS ) {
-		ri.Printf( PRINT_ERROR, "RTX RT: failed to create descriptor set layout: %s\n", vk_result_string( result ) );
-		return qfalse;
-	}
-
-	{
-		VkPushConstantRange pushRange;
-		pushRange.stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_MISS_BIT_KHR |
-			VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
-		pushRange.offset = 0;
-		pushRange.size = sizeof( rtxRtPushConstants_t );
-
-		Com_Memset( &pipelineLayoutInfo, 0, sizeof( pipelineLayoutInfo ) );
-		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		pipelineLayoutInfo.setLayoutCount = 1;
-		pipelineLayoutInfo.pSetLayouts = &vk.rt.descriptor_set_layout;
-		pipelineLayoutInfo.pushConstantRangeCount = 1;
-		pipelineLayoutInfo.pPushConstantRanges = &pushRange;
-		result = qvkCreatePipelineLayout( vk.device, &pipelineLayoutInfo, NULL, &vk.rt.pipeline_layout );
-		if ( result != VK_SUCCESS ) {
-			ri.Printf( PRINT_ERROR, "RTX RT: failed to create pipeline layout: %s\n", vk_result_string( result ) );
-			return qfalse;
-		}
-	}
-
-	Com_Memset( &allocInfo, 0, sizeof( allocInfo ) );
-	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocInfo.descriptorPool = vk.rt.descriptor_pool;
-	allocInfo.descriptorSetCount = NUM_COMMAND_BUFFERS;
-	for ( i = 0; i < NUM_COMMAND_BUFFERS; i++ ) {
-		descriptorLayouts[i] = vk.rt.descriptor_set_layout;
-	}
-	allocInfo.pSetLayouts = descriptorLayouts;
-	result = qvkAllocateDescriptorSets( vk.device, &allocInfo, vk.rt.descriptor_set );
-	if ( result != VK_SUCCESS ) {
-		ri.Printf( PRINT_ERROR, "RTX RT: failed to allocate RT descriptor sets: %s\n", vk_result_string( result ) );
-		return qfalse;
-	}
-
-	return qtrue;
-}
-
-static void vk_rt_destroy_output_image( void )
-{
-	int i;
-	for ( i = 0; i < 2; i++ ) {
-		if ( vk.rt.history_view[i] != VK_NULL_HANDLE ) {
-			qvkDestroyImageView( vk.device, vk.rt.history_view[i], NULL );
-			vk.rt.history_view[i] = VK_NULL_HANDLE;
-		}
-		if ( vk.rt.history_image[i] != VK_NULL_HANDLE ) {
-			qvkDestroyImage( vk.device, vk.rt.history_image[i], NULL );
-			vk.rt.history_image[i] = VK_NULL_HANDLE;
-		}
-		if ( vk.rt.history_memory[i] != VK_NULL_HANDLE ) {
-			qvkFreeMemory( vk.device, vk.rt.history_memory[i], NULL );
-			vk.rt.history_memory[i] = VK_NULL_HANDLE;
-		}
-	}
-	if ( vk.rt.output_view != VK_NULL_HANDLE ) {
-		qvkDestroyImageView( vk.device, vk.rt.output_view, NULL );
-		vk.rt.output_view = VK_NULL_HANDLE;
-	}
-	if ( vk.rt.output_image != VK_NULL_HANDLE ) {
-		qvkDestroyImage( vk.device, vk.rt.output_image, NULL );
-		vk.rt.output_image = VK_NULL_HANDLE;
-	}
-	if ( vk.rt.output_memory != VK_NULL_HANDLE ) {
-		qvkFreeMemory( vk.device, vk.rt.output_memory, NULL );
-		vk.rt.output_memory = VK_NULL_HANDLE;
-	}
-	vk.rt.output_width = 0;
-	vk.rt.output_height = 0;
-	vk.rt.history_read_index = 0;
-	vk.rt.history_valid = qfalse;
-	vk.rt.temporal_reset_pending = qtrue;
-}
-
-static qboolean vk_rt_ensure_output_image( void )
-{
-	VkImageCreateInfo imageInfo;
-	VkMemoryRequirements memoryRequirements;
-	VkMemoryAllocateInfo allocInfo;
-	VkImageViewCreateInfo viewInfo;
-	VkCommandBuffer cmd;
-	VkImageMemoryBarrier barriers[3];
-	VkImage *images[3] = {
-		&vk.rt.output_image,
-		&vk.rt.history_image[0],
-		&vk.rt.history_image[1]
-	};
-	VkImageView *views[3] = {
-		&vk.rt.output_view,
-		&vk.rt.history_view[0],
-		&vk.rt.history_view[1]
-	};
-	VkDeviceMemory *memories[3] = {
-		&vk.rt.output_memory,
-		&vk.rt.history_memory[0],
-		&vk.rt.history_memory[1]
-	};
-	const VkImageUsageFlags usages[3] = {
-		VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-		VK_IMAGE_USAGE_STORAGE_BIT,
-		VK_IMAGE_USAGE_STORAGE_BIT
-	};
-	VkResult result;
-	float resolutionScale = vk.rt.dynamic_resolution_scale;
-	uint32_t baseWidth = (uint32_t)MAX( 1, glConfig.vidWidth );
-	uint32_t baseHeight = (uint32_t)MAX( 1, glConfig.vidHeight );
-	uint32_t width;
-	uint32_t height;
-	int i;
-
-	if ( vk_rt_dynamic_resolution_enabled() ) {
-		float minScale = vk_rt_dynamic_resolution_min_scale();
-		float maxScale = vk_rt_dynamic_resolution_max_scale();
-		if ( minScale > maxScale ) {
-			float tmp = minScale;
-			minScale = maxScale;
-			maxScale = tmp;
-		}
-		resolutionScale = Com_Clamp( minScale, maxScale, resolutionScale );
-	} else {
-		resolutionScale = 1.0f;
-	}
-
-	width = (uint32_t)MAX( 1, (int)floorf( (float)baseWidth * resolutionScale + 0.5f ) );
-	height = (uint32_t)MAX( 1, (int)floorf( (float)baseHeight * resolutionScale + 0.5f ) );
-	vk.rt.dynamic_resolution_scale = MIN( (float)width / (float)baseWidth, (float)height / (float)baseHeight );
-
-	if ( vk.rt.output_image != VK_NULL_HANDLE &&
-		vk.rt.history_image[0] != VK_NULL_HANDLE &&
-		vk.rt.history_image[1] != VK_NULL_HANDLE &&
-		vk.rt.output_width == width &&
-		vk.rt.output_height == height ) {
-		return qtrue;
-	}
-
-	if ( vk.rt.output_image != VK_NULL_HANDLE ||
-		vk.rt.history_image[0] != VK_NULL_HANDLE ||
-		vk.rt.history_image[1] != VK_NULL_HANDLE ) {
-		if ( !vk_rt_wait_for_inflight_frames( "RT output resize" ) ) {
-			return qfalse;
-		}
-	}
-
-	vk_rt_destroy_output_image();
-	vk.rt.descriptorsValid = qfalse;
-	vk.rt.dispatchValid = qfalse;
-
-	for ( i = 0; i < 3; i++ ) {
-		Com_Memset( &imageInfo, 0, sizeof( imageInfo ) );
-		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-		imageInfo.imageType = VK_IMAGE_TYPE_2D;
-		imageInfo.extent.width = width;
-		imageInfo.extent.height = height;
-		imageInfo.extent.depth = 1;
-		imageInfo.mipLevels = 1;
-		imageInfo.arrayLayers = 1;
-		imageInfo.format = vk.rt.output_format;
-		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		imageInfo.usage = usages[i];
-		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-		result = qvkCreateImage( vk.device, &imageInfo, NULL, images[i] );
-		if ( result != VK_SUCCESS ) {
-			ri.Printf( PRINT_ERROR, "RTX RT: failed to create RT storage image %d: %s\n", i, vk_result_string( result ) );
-			vk_rt_destroy_output_image();
-			return qfalse;
-		}
-
-		qvkGetImageMemoryRequirements( vk.device, *images[i], &memoryRequirements );
-
-		Com_Memset( &allocInfo, 0, sizeof( allocInfo ) );
-		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		allocInfo.allocationSize = memoryRequirements.size;
-		allocInfo.memoryTypeIndex = find_memory_type( memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
-		result = qvkAllocateMemory( vk.device, &allocInfo, NULL, memories[i] );
-		if ( result != VK_SUCCESS ) {
-			ri.Printf( PRINT_ERROR, "RTX RT: failed to allocate RT storage image memory %d: %s\n", i, vk_result_string( result ) );
-			vk_rt_destroy_output_image();
-			return qfalse;
-		}
-
-		result = qvkBindImageMemory( vk.device, *images[i], *memories[i], 0 );
-		if ( result != VK_SUCCESS ) {
-			ri.Printf( PRINT_ERROR, "RTX RT: failed to bind RT storage image memory %d: %s\n", i, vk_result_string( result ) );
-			vk_rt_destroy_output_image();
-			return qfalse;
-		}
-
-		Com_Memset( &viewInfo, 0, sizeof( viewInfo ) );
-		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		viewInfo.image = *images[i];
-		viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		viewInfo.format = vk.rt.output_format;
-		viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		viewInfo.subresourceRange.baseMipLevel = 0;
-		viewInfo.subresourceRange.levelCount = 1;
-		viewInfo.subresourceRange.baseArrayLayer = 0;
-		viewInfo.subresourceRange.layerCount = 1;
-		result = qvkCreateImageView( vk.device, &viewInfo, NULL, views[i] );
-		if ( result != VK_SUCCESS ) {
-			ri.Printf( PRINT_ERROR, "RTX RT: failed to create RT storage image view %d: %s\n", i, vk_result_string( result ) );
-			vk_rt_destroy_output_image();
-			return qfalse;
-		}
-	}
-
-	cmd = begin_command_buffer();
-	for ( i = 0; i < 3; i++ ) {
-		Com_Memset( &barriers[i], 0, sizeof( barriers[i] ) );
-		barriers[i].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		barriers[i].oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		barriers[i].newLayout = VK_IMAGE_LAYOUT_GENERAL;
-		barriers[i].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barriers[i].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barriers[i].image = *images[i];
-		barriers[i].subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		barriers[i].subresourceRange.baseMipLevel = 0;
-		barriers[i].subresourceRange.levelCount = 1;
-		barriers[i].subresourceRange.baseArrayLayer = 0;
-		barriers[i].subresourceRange.layerCount = 1;
-		barriers[i].srcAccessMask = 0;
-		barriers[i].dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
-	}
-
-	qvkCmdPipelineBarrier(
-		cmd,
-		VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-		VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR,
-		0,
-		0, NULL,
-		0, NULL,
-		ARRAY_LEN( barriers ), barriers );
-	if ( !end_command_buffer_soft( cmd, __func__ ) ) {
-		vk_rt_destroy_output_image();
-		return qfalse;
-	}
-
-	vk.rt.output_width = width;
-	vk.rt.output_height = height;
-	vk.rt.history_read_index = 0;
-	vk.rt.history_valid = qfalse;
-	vk.rt.temporal_reset_pending = qtrue;
-	vk.rt.post_validation_logged = qfalse;
-
-	return qtrue;
-}
-
-static qboolean vk_rt_build_sbt( void )
-{
-	const uint32_t groupCount = 4;
-	const uint32_t handleSize = vk.rt.rt_pipeline_props.shaderGroupHandleSize;
-	const uint32_t handleAlignment = vk.rt.rt_pipeline_props.shaderGroupHandleAlignment;
-	const uint32_t groupBaseAlignment = vk.rt.rt_pipeline_props.shaderGroupBaseAlignment;
-	const VkDeviceSize raygenOffset = 0;
-	VkDeviceSize alignedHandleSize;
-	VkDeviceSize missOffset;
-	VkDeviceSize hitOffset;
-	VkDeviceSize missSize;
-	VkDeviceSize sbtSize;
-	VkDeviceSize handlesBytes;
-	VkDeviceSize nextOffset;
-	byte *handles = NULL;
-	size_t handlesSize;
-	void *mapped = NULL;
-	VkResult result;
-	byte *dst;
-
-	vk.rt.sbtValid = qfalse;
-	if ( handleSize == 0 || !vk_rt_is_power_of_two( handleAlignment ) ||
-		!vk_rt_is_power_of_two( groupBaseAlignment ) ) {
-		ri.Printf( PRINT_ERROR,
-			"RTX RT: invalid SBT handle layout (size=%u, alignment=%u, base=%u)\n",
-			handleSize, handleAlignment, groupBaseAlignment );
-		return qfalse;
-	}
-
-	if ( !vk_rt_align_up_checked( handleSize, handleAlignment, &alignedHandleSize ) ||
-		alignedHandleSize == 0 ||
-		alignedHandleSize > vk.rt.rt_pipeline_props.maxShaderGroupStride ||
-		!vk_rt_device_size_add_checked( raygenOffset, alignedHandleSize, &nextOffset ) ||
-		!vk_rt_align_up_checked( nextOffset, groupBaseAlignment, &missOffset ) ||
-		!vk_rt_device_size_multiply_checked( alignedHandleSize, 2, &missSize ) ||
-		!vk_rt_device_size_add_checked( missOffset, missSize, &nextOffset ) ||
-		!vk_rt_align_up_checked( nextOffset, groupBaseAlignment, &hitOffset ) ||
-		!vk_rt_device_size_add_checked( hitOffset, alignedHandleSize, &sbtSize ) ||
-		!vk_rt_device_size_multiply_checked( handleSize, groupCount, &handlesBytes ) ||
-		handlesBytes == 0 || handlesBytes > INT_MAX || sbtSize > SIZE_MAX ) {
-		ri.Printf( PRINT_ERROR, "RTX RT: unsafe or unsupported SBT layout reported by the device\n" );
-		return qfalse;
-	}
-	handlesSize = (size_t)handlesBytes;
-
-	handles = (byte *)ri.Malloc( handlesSize );
-	if ( !handles ) {
-		ri.Printf( PRINT_ERROR, "RTX RT: failed to allocate temporary shader group handle buffer\n" );
-		return qfalse;
-	}
-	Com_Memset( handles, 0, handlesSize );
-	result = qvkGetRayTracingShaderGroupHandlesKHR(
-		vk.device,
-		vk.rt.pipeline,
-		0,
-		groupCount,
-		handlesSize,
-		handles );
-	if ( result != VK_SUCCESS ) {
-		ri.Printf( PRINT_ERROR, "RTX RT: failed to get RT shader group handles: %s\n", vk_result_string( result ) );
-		ri.Free( handles );
-		return qfalse;
-	}
-
-	vk_rt_destroy_buffer( &vk.rt.sbt_buffer );
-	if ( !vk_rt_create_buffer(
-		sbtSize,
-		VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-		qtrue,
-		"rt sbt",
-		&vk.rt.sbt_buffer ) ) {
-		ri.Free( handles );
-		return qfalse;
-	}
-
-	result = qvkMapMemory( vk.device, vk.rt.sbt_buffer.memory, 0, sbtSize, 0, &mapped );
-	if ( result != VK_SUCCESS ) {
-		ri.Printf( PRINT_ERROR, "RTX RT: failed to map SBT buffer: %s\n", vk_result_string( result ) );
-		ri.Free( handles );
-		vk_rt_destroy_buffer( &vk.rt.sbt_buffer );
-		return qfalse;
-	}
-
-	Com_Memset( mapped, 0, (size_t)sbtSize );
-	dst = (byte *)mapped;
-	Com_Memcpy( dst + (size_t)raygenOffset, handles, handleSize );
-	Com_Memcpy( dst + (size_t)missOffset, handles + handleSize, handleSize );
-	Com_Memcpy( dst + (size_t)( missOffset + alignedHandleSize ), handles + ( handleSize * 2u ), handleSize );
-	Com_Memcpy( dst + (size_t)hitOffset, handles + ( handleSize * 3u ), handleSize );
-	qvkUnmapMemory( vk.device, vk.rt.sbt_buffer.memory );
-	ri.Free( handles );
-
-	if ( vk.rt.sbt_buffer.address == 0 ||
-		( vk.rt.sbt_buffer.address % groupBaseAlignment ) != 0 ) {
-		ri.Printf( PRINT_ERROR,
-			"RTX RT: SBT buffer address does not satisfy base alignment %u\n",
-			groupBaseAlignment );
-		vk_rt_destroy_buffer( &vk.rt.sbt_buffer );
-		return qfalse;
-	}
-
-	vk.rt.sbt_raygen.deviceAddress = vk.rt.sbt_buffer.address + raygenOffset;
-	vk.rt.sbt_raygen.stride = alignedHandleSize;
-	vk.rt.sbt_raygen.size = alignedHandleSize;
-
-	vk.rt.sbt_miss.deviceAddress = vk.rt.sbt_buffer.address + missOffset;
-	vk.rt.sbt_miss.stride = alignedHandleSize;
-	vk.rt.sbt_miss.size = missSize;
-
-	vk.rt.sbt_hit.deviceAddress = vk.rt.sbt_buffer.address + hitOffset;
-	vk.rt.sbt_hit.stride = alignedHandleSize;
-	vk.rt.sbt_hit.size = alignedHandleSize;
-
-	Com_Memset( &vk.rt.sbt_callable, 0, sizeof( vk.rt.sbt_callable ) );
-	vk.rt.sbtValid = qtrue;
-	return qtrue;
-}
-
-static qboolean vk_rt_ensure_pipeline( void )
-{
-	VkPipelineShaderStageCreateInfo stages[5];
-	VkRayTracingShaderGroupCreateInfoKHR groups[4];
-	VkRayTracingPipelineCreateInfoKHR pipelineInfo;
-	VkResult result;
-
-	if ( vk.rt.pipeline != VK_NULL_HANDLE && vk.rt.sbtValid ) {
-		return qtrue;
-	}
-
-	if ( !vk_rt_ensure_descriptor_resources() ) {
-		return qfalse;
-	}
-
-	if ( vk.modules.rt_rgen == VK_NULL_HANDLE || vk.modules.rt_rmiss == VK_NULL_HANDLE ||
-		vk.modules.rt_rmiss_shadow == VK_NULL_HANDLE || vk.modules.rt_rchit == VK_NULL_HANDLE ||
-		vk.modules.rt_rahit == VK_NULL_HANDLE ) {
-		ri.Printf( PRINT_ERROR, "RTX RT: ray tracing shader modules are missing\n" );
-		return qfalse;
-	}
-
-	if ( vk.rt.pipeline != VK_NULL_HANDLE ) {
-		qvkDestroyPipeline( vk.device, vk.rt.pipeline, NULL );
-		vk.rt.pipeline = VK_NULL_HANDLE;
-	}
-	vk.rt.sbtValid = qfalse;
-
-	Com_Memset( stages, 0, sizeof( stages ) );
-	stages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	stages[0].stage = VK_SHADER_STAGE_RAYGEN_BIT_KHR;
-	stages[0].module = vk.modules.rt_rgen;
-	stages[0].pName = "main";
-	stages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	stages[1].stage = VK_SHADER_STAGE_MISS_BIT_KHR;
-	stages[1].module = vk.modules.rt_rmiss;
-	stages[1].pName = "main";
-	stages[2].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	stages[2].stage = VK_SHADER_STAGE_MISS_BIT_KHR;
-	stages[2].module = vk.modules.rt_rmiss_shadow;
-	stages[2].pName = "main";
-	stages[3].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	stages[3].stage = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
-	stages[3].module = vk.modules.rt_rchit;
-	stages[3].pName = "main";
-	stages[4].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	stages[4].stage = VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
-	stages[4].module = vk.modules.rt_rahit;
-	stages[4].pName = "main";
-
-	Com_Memset( groups, 0, sizeof( groups ) );
-	groups[0].sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR;
-	groups[0].type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
-	groups[0].generalShader = 0;
-	groups[0].closestHitShader = VK_SHADER_UNUSED_KHR;
-	groups[0].anyHitShader = VK_SHADER_UNUSED_KHR;
-	groups[0].intersectionShader = VK_SHADER_UNUSED_KHR;
-
-	groups[1].sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR;
-	groups[1].type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
-	groups[1].generalShader = 1;
-	groups[1].closestHitShader = VK_SHADER_UNUSED_KHR;
-	groups[1].anyHitShader = VK_SHADER_UNUSED_KHR;
-	groups[1].intersectionShader = VK_SHADER_UNUSED_KHR;
-
-	groups[2].sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR;
-	groups[2].type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
-	groups[2].generalShader = 2;
-	groups[2].closestHitShader = VK_SHADER_UNUSED_KHR;
-	groups[2].anyHitShader = VK_SHADER_UNUSED_KHR;
-	groups[2].intersectionShader = VK_SHADER_UNUSED_KHR;
-
-	groups[3].sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR;
-	groups[3].type = VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR;
-	groups[3].generalShader = VK_SHADER_UNUSED_KHR;
-	groups[3].closestHitShader = 3;
-	groups[3].anyHitShader = 4;
-	groups[3].intersectionShader = VK_SHADER_UNUSED_KHR;
-
-	Com_Memset( &pipelineInfo, 0, sizeof( pipelineInfo ) );
-	pipelineInfo.sType = VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_KHR;
-	pipelineInfo.stageCount = ARRAY_LEN( stages );
-	pipelineInfo.pStages = stages;
-	pipelineInfo.groupCount = ARRAY_LEN( groups );
-	pipelineInfo.pGroups = groups;
-	pipelineInfo.maxPipelineRayRecursionDepth = 2;
-	pipelineInfo.layout = vk.rt.pipeline_layout;
-
-	result = qvkCreateRayTracingPipelinesKHR(
-		vk.device,
-		VK_NULL_HANDLE,
-		vk.pipelineCache,
-		1,
-		&pipelineInfo,
-		NULL,
-		&vk.rt.pipeline );
-	if ( result != VK_SUCCESS ) {
-		ri.Printf( PRINT_ERROR, "RTX RT: failed to create ray tracing pipeline: %s\n", vk_result_string( result ) );
-		return qfalse;
-	}
-
-	return vk_rt_build_sbt();
-}
-
-static qboolean vk_rt_update_descriptor_set( void )
-{
-	VkWriteDescriptorSetAccelerationStructureKHR asInfo;
-	VkDescriptorImageInfo *imageInfos = s_vkRtDescriptorImageInfos;
-	VkDescriptorBufferInfo bufferInfos[8];
-	VkWriteDescriptorSet writes[14];
-	VkDescriptorSet descriptorSet;
-	Vk_Sampler_Def sceneSamplerDef;
-	const image_t *sceneImage;
-	const rtxVkRtBuffer_t *dynamicVertices;
-	const rtxVkRtBuffer_t *dynamicIndices;
-	const rtxVkRtBuffer_t *dynamicMaterials;
-	const rtxVkRtBuffer_t *lightBuffer;
-	const rtxVkRtBuffer_t *temporalBuffer;
-	uint32_t i;
-	uint32_t historyReadIndex = vk.rt.history_read_index & 1u;
-	uint32_t historyWriteIndex = historyReadIndex ^ 1u;
-	uint32_t descriptorIndex = (uint32_t)( vk.cmd_index % NUM_COMMAND_BUFFERS );
-
-	descriptorSet = vk.rt.descriptor_set[descriptorIndex];
-	if ( descriptorSet == VK_NULL_HANDLE || !vk.rt.tlas.valid || vk.rt.output_view == VK_NULL_HANDLE ) {
-		return qfalse;
-	}
-	if ( vk.rt.history_view[historyReadIndex] == VK_NULL_HANDLE || vk.rt.history_view[historyWriteIndex] == VK_NULL_HANDLE ) {
-		return qfalse;
-	}
-	lightBuffer = &vk.rt.light_buffer[descriptorIndex];
-	temporalBuffer = &vk.rt.temporal_params_buffer[descriptorIndex];
-	if ( temporalBuffer->buffer == VK_NULL_HANDLE ) {
-		return qfalse;
-	}
-	if ( vk.color_image_view == VK_NULL_HANDLE ) {
-		return qfalse;
-	}
-
-	if ( vk.rt.world_vertex_buffer.buffer == VK_NULL_HANDLE ||
-		vk.rt.world_index_buffer.buffer == VK_NULL_HANDLE ||
-		vk.rt.world_material_buffer.buffer == VK_NULL_HANDLE ) {
-		return qfalse;
-	}
-
-	if ( !vk_rt_update_light_buffer() || lightBuffer->buffer == VK_NULL_HANDLE ) {
-		return qfalse;
-	}
-
-	dynamicVertices = ( vk.rt.dynamic_vertex_buffer.buffer != VK_NULL_HANDLE ) ? &vk.rt.dynamic_vertex_buffer : &vk.rt.world_vertex_buffer;
-	dynamicIndices = ( vk.rt.dynamic_index_buffer.buffer != VK_NULL_HANDLE ) ? &vk.rt.dynamic_index_buffer : &vk.rt.world_index_buffer;
-	dynamicMaterials = ( vk.rt.dynamic_material_buffer.buffer != VK_NULL_HANDLE ) ? &vk.rt.dynamic_material_buffer : &vk.rt.world_material_buffer;
-
-	Com_Memset( &asInfo, 0, sizeof( asInfo ) );
-	asInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR;
-	asInfo.accelerationStructureCount = 1;
-	asInfo.pAccelerationStructures = &vk.rt.tlas.handle;
-
-	Com_Memset( imageInfos, 0, sizeof( s_vkRtDescriptorImageInfos ) );
-	imageInfos[0].sampler = VK_NULL_HANDLE;
-	imageInfos[0].imageView = vk.rt.output_view;
-	imageInfos[0].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-	imageInfos[1].sampler = VK_NULL_HANDLE;
-	imageInfos[1].imageView = vk.rt.history_view[historyReadIndex];
-	imageInfos[1].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-	imageInfos[2].sampler = VK_NULL_HANDLE;
-	imageInfos[2].imageView = vk.rt.history_view[historyWriteIndex];
-	imageInfos[2].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-	Com_Memset( &sceneSamplerDef, 0, sizeof( sceneSamplerDef ) );
-	sceneSamplerDef.gl_mag_filter = GL_LINEAR;
-	sceneSamplerDef.gl_min_filter = GL_LINEAR;
-	sceneSamplerDef.address_mode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-	sceneSamplerDef.max_lod_1_0 = qtrue;
-	sceneSamplerDef.noAnisotropy = qtrue;
-	imageInfos[3].sampler = vk_find_sampler( &sceneSamplerDef );
-	imageInfos[3].imageView = vk.color_image_view;
-	imageInfos[3].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	for ( i = 0; i < RTX_RT_MAX_SCENE_TEXTURES; i++ ) {
-		sceneImage = ( i < (uint32_t)tr.numImages ) ? tr.images[i] : NULL;
-		if ( !sceneImage || sceneImage->view == VK_NULL_HANDLE ) {
-			sceneImage = tr.whiteImage;
-		}
-		if ( !sceneImage || sceneImage->view == VK_NULL_HANDLE ) {
-			imageInfos[4 + i].sampler = imageInfos[3].sampler;
-			imageInfos[4 + i].imageView = imageInfos[3].imageView;
-			imageInfos[4 + i].imageLayout = imageInfos[3].imageLayout;
-			continue;
-		}
-
-		Com_Memset( &sceneSamplerDef, 0, sizeof( sceneSamplerDef ) );
-		sceneSamplerDef.address_mode = sceneImage->wrapClampMode;
-		if ( sceneImage->flags & IMGFLAG_MIPMAP ) {
-			sceneSamplerDef.gl_mag_filter = gl_filter_max;
-			sceneSamplerDef.gl_min_filter = gl_filter_min;
-		} else {
-			sceneSamplerDef.gl_mag_filter = GL_LINEAR;
-			sceneSamplerDef.gl_min_filter = GL_LINEAR;
-			sceneSamplerDef.noAnisotropy = qtrue;
-		}
-		imageInfos[4 + i].sampler = vk_find_sampler( &sceneSamplerDef );
-		imageInfos[4 + i].imageView = sceneImage->view;
-		imageInfos[4 + i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	}
-
-	Com_Memset( bufferInfos, 0, sizeof( bufferInfos ) );
-	bufferInfos[0].buffer = vk.rt.world_vertex_buffer.buffer;
-	bufferInfos[0].offset = 0;
-	bufferInfos[0].range = VK_WHOLE_SIZE;
-	bufferInfos[1].buffer = vk.rt.world_index_buffer.buffer;
-	bufferInfos[1].offset = 0;
-	bufferInfos[1].range = VK_WHOLE_SIZE;
-	bufferInfos[2].buffer = vk.rt.world_material_buffer.buffer;
-	bufferInfos[2].offset = 0;
-	bufferInfos[2].range = VK_WHOLE_SIZE;
-	bufferInfos[3].buffer = dynamicVertices->buffer;
-	bufferInfos[3].offset = 0;
-	bufferInfos[3].range = VK_WHOLE_SIZE;
-	bufferInfos[4].buffer = dynamicIndices->buffer;
-	bufferInfos[4].offset = 0;
-	bufferInfos[4].range = VK_WHOLE_SIZE;
-	bufferInfos[5].buffer = dynamicMaterials->buffer;
-	bufferInfos[5].offset = 0;
-	bufferInfos[5].range = VK_WHOLE_SIZE;
-	bufferInfos[6].buffer = lightBuffer->buffer;
-	bufferInfos[6].offset = 0;
-	bufferInfos[6].range = VK_WHOLE_SIZE;
-	bufferInfos[7].buffer = temporalBuffer->buffer;
-	bufferInfos[7].offset = 0;
-	bufferInfos[7].range = VK_WHOLE_SIZE;
-
-	Com_Memset( writes, 0, sizeof( writes ) );
-	writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	writes[0].pNext = &asInfo;
-	writes[0].dstSet = descriptorSet;
-	writes[0].dstBinding = RTX_RT_DESC_BINDING_TLAS;
-	writes[0].descriptorCount = 1;
-	writes[0].descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
-
-	writes[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	writes[1].dstSet = descriptorSet;
-	writes[1].dstBinding = RTX_RT_DESC_BINDING_OUTPUT;
-	writes[1].descriptorCount = 1;
-	writes[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-	writes[1].pImageInfo = &imageInfos[0];
-
-	writes[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	writes[2].dstSet = descriptorSet;
-	writes[2].dstBinding = RTX_RT_DESC_BINDING_WORLD_VERTICES;
-	writes[2].descriptorCount = 1;
-	writes[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	writes[2].pBufferInfo = &bufferInfos[0];
-
-	writes[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	writes[3].dstSet = descriptorSet;
-	writes[3].dstBinding = RTX_RT_DESC_BINDING_WORLD_INDICES;
-	writes[3].descriptorCount = 1;
-	writes[3].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	writes[3].pBufferInfo = &bufferInfos[1];
-
-	writes[4].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	writes[4].dstSet = descriptorSet;
-	writes[4].dstBinding = RTX_RT_DESC_BINDING_WORLD_MATERIALS;
-	writes[4].descriptorCount = 1;
-	writes[4].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	writes[4].pBufferInfo = &bufferInfos[2];
-
-	writes[5].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	writes[5].dstSet = descriptorSet;
-	writes[5].dstBinding = RTX_RT_DESC_BINDING_DYNAMIC_VERTICES;
-	writes[5].descriptorCount = 1;
-	writes[5].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	writes[5].pBufferInfo = &bufferInfos[3];
-
-	writes[6].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	writes[6].dstSet = descriptorSet;
-	writes[6].dstBinding = RTX_RT_DESC_BINDING_DYNAMIC_INDICES;
-	writes[6].descriptorCount = 1;
-	writes[6].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	writes[6].pBufferInfo = &bufferInfos[4];
-
-	writes[7].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	writes[7].dstSet = descriptorSet;
-	writes[7].dstBinding = RTX_RT_DESC_BINDING_DYNAMIC_MATERIALS;
-	writes[7].descriptorCount = 1;
-	writes[7].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	writes[7].pBufferInfo = &bufferInfos[5];
-
-	writes[8].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	writes[8].dstSet = descriptorSet;
-	writes[8].dstBinding = RTX_RT_DESC_BINDING_LIGHTS;
-	writes[8].descriptorCount = 1;
-	writes[8].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	writes[8].pBufferInfo = &bufferInfos[6];
-
-	writes[9].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	writes[9].dstSet = descriptorSet;
-	writes[9].dstBinding = RTX_RT_DESC_BINDING_HISTORY_IN;
-	writes[9].descriptorCount = 1;
-	writes[9].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-	writes[9].pImageInfo = &imageInfos[1];
-
-	writes[10].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	writes[10].dstSet = descriptorSet;
-	writes[10].dstBinding = RTX_RT_DESC_BINDING_HISTORY_OUT;
-	writes[10].descriptorCount = 1;
-	writes[10].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-	writes[10].pImageInfo = &imageInfos[2];
-
-	writes[11].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	writes[11].dstSet = descriptorSet;
-	writes[11].dstBinding = RTX_RT_DESC_BINDING_TEMPORAL_PARAMS;
-	writes[11].descriptorCount = 1;
-	writes[11].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	writes[11].pBufferInfo = &bufferInfos[7];
-
-	writes[12].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	writes[12].dstSet = descriptorSet;
-	writes[12].dstBinding = RTX_RT_DESC_BINDING_SCENE_COLOR;
-	writes[12].descriptorCount = 1;
-	writes[12].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	writes[12].pImageInfo = &imageInfos[3];
-
-	writes[13].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	writes[13].dstSet = descriptorSet;
-	writes[13].dstBinding = RTX_RT_DESC_BINDING_SCENE_TEXTURES;
-	writes[13].descriptorCount = RTX_RT_MAX_SCENE_TEXTURES;
-	writes[13].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	writes[13].pImageInfo = &imageInfos[4];
-
-	qvkUpdateDescriptorSets( vk.device, ARRAY_LEN( writes ), writes, 0, NULL );
-	vk.rt.descriptorsValid = qtrue;
-	return qtrue;
-}
-
-static qboolean vk_rt_ensure_dynamic_blas( VkDeviceSize *frameBudgetBytesUsed, VkDeviceSize frameBudgetBytes )
-{
-	VkDeviceSize ignoredBuildBytes = 0;
-	vec3_t estimatedCentroid;
-	uint32_t estimatedModelCount = 0;
-	uint32_t estimatedEffectCount = 0;
-	uint32_t estimatedSignature = 0u;
-	const int rebuildInterval = vk_rt_as_rebuild_interval();
-	const int prepStride = vk_rt_prep_frame_stride();
-	const float dirtyThreshold = MAX( 0.0f, vk_rt_as_dirty_threshold() );
-	const qboolean hadDynamicResources =
-		( vk.rt.dynamic_blas.valid ||
-			vk.rt.dynamic_vertex_buffer.buffer != VK_NULL_HANDLE ||
-			vk.rt.dynamic_index_buffer.buffer != VK_NULL_HANDLE ||
-			vk.rt.dynamic_material_buffer.buffer != VK_NULL_HANDLE ) ? qtrue : qfalse;
-	qboolean forceRebuild = qfalse;
-	qboolean shouldRebuild = qfalse;
-
-	if ( !vk_rt_dynamic_blas_enabled() ) {
-		const qboolean dynamicStateChanged =
-			hadDynamicResources ||
-			vk.rt.dynamic_entity_count != 0u ||
-			vk.rt.dynamic_effect_count != 0u ||
-			vk.rt.dynamic_scene_signature != 0u;
-
-		if ( hadDynamicResources ) {
-			if ( vk_rt_debug_as_stats_level() >= 1 ) {
-				ri.Printf( PRINT_DEVELOPER, "RTX RT: dynamic BLAS disabled via rtx_rt_dynamic_blas 0, using world-only TLAS instances\n" );
-			}
-			if ( !vk_rt_wait_for_inflight_frames( "dynamic BLAS disable" ) ) {
-				return qfalse;
-			}
-		}
-
-		vk_rt_destroy_as( &vk.rt.dynamic_blas );
-		vk_rt_destroy_buffer( &vk.rt.dynamic_vertex_buffer );
-		vk_rt_destroy_buffer( &vk.rt.dynamic_index_buffer );
-		vk_rt_destroy_buffer( &vk.rt.dynamic_material_buffer );
-		vk.rt.dynamic_vertex_count = 0;
-		vk.rt.dynamic_index_count = 0;
-		vk.rt.dynamic_material_count = 0;
-		vk.rt.dynamic_entity_count = 0;
-		vk.rt.dynamic_effect_count = 0;
-		vk.rt.dynamic_masked_triangle_count = 0;
-		vk.rt.stats.dynamic_triangles = 0;
-		vk.rt.stats.masked_triangles = vk.rt.world_masked_triangle_count;
-		vk.rt.dynamic_scene_signature = 0u;
-		vk.rt.dynamic_last_rebuild_frame = tr.frameCount;
-		VectorCopy( vk.rt.dynamic_centroid_prev, vk.rt.dynamic_centroid_current );
-		VectorCopy( vk.rt.dynamic_centroid_prev, vk.rt.dynamic_last_rebuild_centroid );
-		if ( dynamicStateChanged ) {
-			vk.rt.needsRebuild = qtrue;
-		}
-		return qtrue;
-	}
-
-	estimatedSignature = vk_rt_estimate_dynamic_scene_signature(
-		estimatedCentroid,
-		&estimatedModelCount,
-		&estimatedEffectCount,
-		MAX( 1.0f, dirtyThreshold * 0.25f ) );
-	vk.rt.dynamic_entity_count = estimatedModelCount;
-	vk.rt.dynamic_effect_count = estimatedEffectCount;
-	VectorCopy( estimatedCentroid, vk.rt.dynamic_centroid_current );
-
-	if ( !hadDynamicResources && estimatedModelCount == 0u && estimatedEffectCount == 0u && backEnd.refdef.numPolys == 0 ) {
-		vk.rt.dynamic_scene_signature = estimatedSignature;
-		vk.rt.dynamic_last_rebuild_frame = tr.frameCount;
-		vk.rt.dynamic_masked_triangle_count = 0;
-		vk.rt.stats.dynamic_triangles = 0;
-		vk.rt.stats.masked_triangles = vk.rt.world_masked_triangle_count;
-		return qtrue;
-	}
-
-	if ( !hadDynamicResources ) {
-		shouldRebuild = qtrue;
-	} else {
-		vec3_t delta;
-		float centroidDelta;
-		const int framesSinceRebuild = ( vk.rt.dynamic_last_rebuild_frame >= 0 ) ?
-			( tr.frameCount - vk.rt.dynamic_last_rebuild_frame ) : rebuildInterval;
-
-		VectorSubtract( estimatedCentroid, vk.rt.dynamic_last_rebuild_centroid, delta );
-		centroidDelta = VectorLength( delta );
-
-		forceRebuild = ( estimatedModelCount == 0u && estimatedEffectCount == 0u && backEnd.refdef.numPolys == 0 ) ? qtrue : qfalse;
-		if ( !forceRebuild && prepStride > 1 && ( tr.frameCount % prepStride ) != 0 ) {
-			vk.rt.stats.prep_stride_skips++;
-			return qtrue;
-		}
-		if ( !forceRebuild && framesSinceRebuild < rebuildInterval ) {
-			vk.rt.stats.dynamic_rebuild_skips++;
-			return qtrue;
-		}
-		if ( !forceRebuild &&
-			estimatedSignature == vk.rt.dynamic_scene_signature &&
-			centroidDelta < dirtyThreshold ) {
-			vk.rt.stats.dynamic_rebuild_skips++;
-			return qtrue;
-		}
-
-		shouldRebuild = qtrue;
-	}
-
-	if ( !shouldRebuild ) {
-		return qtrue;
-	}
-
-	if ( !vk_rt_build_dynamic_scene_blas( frameBudgetBytesUsed, frameBudgetBytes, &ignoredBuildBytes ) ) {
-		return qfalse;
-	}
-
-	vk.rt.dynamic_scene_signature = estimatedSignature;
-	vk.rt.dynamic_last_rebuild_frame = tr.frameCount;
-	VectorCopy( vk.rt.dynamic_centroid_current, vk.rt.dynamic_last_rebuild_centroid );
-
-	return qtrue;
-}
-
-static qboolean vk_rt_ensure_world_blas( VkDeviceSize *frameBudgetBytesUsed, VkDeviceSize frameBudgetBytes )
-{
-	rtxRtCpuGeometry_t geometry;
-	VkBuildAccelerationStructureFlagsKHR flags;
-	VkDeviceSize buildBytes;
-	uint32_t droppedTriangles = 0;
-
-	if ( vk.rt.world_blas.valid && vk.rt.worldGeometryReady ) {
-		return qtrue;
-	}
-
-	if ( !vk_rt_extract_world_geometry( &geometry ) ) {
-		vk_rt_cpu_geometry_free( &geometry );
-		return qfalse;
-	}
-
-	if ( !vk_rt_cpu_geometry_sanitize_indices( &geometry, &droppedTriangles ) ) {
-		vk_rt_cpu_geometry_free( &geometry );
-		return qfalse;
-	}
-	if ( droppedTriangles > 0 && vk_rt_debug_as_stats_level() >= 1 ) {
-		ri.Printf( PRINT_WARNING,
-			"RTX RT: dropped %u invalid/degenerate world triangles before BLAS build\n",
-			droppedTriangles );
-	}
-
-	flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR |
-		( vk_rt_as_compaction_enabled() ? VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_COMPACTION_BIT_KHR : 0 );
-	buildBytes = vk_rt_query_triangles_build_bytes(
-		geometry.numVertices,
-		geometry.numIndices,
-		geometry.anyHitTriangleCount == 0u ? qtrue : qfalse,
-		flags );
-	if ( !vk_rt_budget_allows( buildBytes, frameBudgetBytesUsed, frameBudgetBytes ) ) {
-		vk_rt_cpu_geometry_free( &geometry );
-		return qfalse;
-	}
-
-	if ( !vk_rt_ensure_buffer_capacity(
-		&vk.rt.world_vertex_buffer,
-		geometry.numVertices * sizeof( rtxRtPackedVertex_t ),
-		VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
-			VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT |
-			VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR,
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-		qtrue,
-		"rt world vertices" ) ||
-		!vk_rt_ensure_buffer_capacity(
-			&vk.rt.world_index_buffer,
-			geometry.numIndices * sizeof( uint32_t ),
-			VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
-				VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT |
-				VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			qtrue,
-			"rt world indices" ) ) {
-		vk_rt_cpu_geometry_free( &geometry );
-		return qfalse;
-	}
-
-	if ( !vk_rt_upload_buffer_data(
-		&vk.rt.world_vertex_buffer,
-		geometry.vertices,
-		(size_t)geometry.numVertices * sizeof( rtxRtPackedVertex_t ) ) ||
-		!vk_rt_upload_buffer_data(
-			&vk.rt.world_index_buffer,
-			geometry.indices,
-			(size_t)geometry.numIndices * sizeof( uint32_t ) ) ) {
-		vk_rt_cpu_geometry_free( &geometry );
-		return qfalse;
-	}
-
-	if ( !vk_rt_upload_material_buffer(
-		geometry.materials,
-		geometry.numMaterials,
-		&vk.rt.world_material_buffer,
-		&vk.rt.world_material_count,
-		"rt world materials" ) ) {
-		vk_rt_cpu_geometry_free( &geometry );
-		return qfalse;
-	}
-
-	vk.rt.world_vertex_count = geometry.numVertices;
-	vk.rt.world_index_count = geometry.numIndices;
-
-	if ( !vk_rt_build_triangles_blas(
-		&vk.rt.world_blas,
-		&vk.rt.world_vertex_buffer,
-		vk.rt.world_vertex_count,
-		sizeof( rtxRtPackedVertex_t ),
-		&vk.rt.world_index_buffer,
-		vk.rt.world_index_count,
-		geometry.anyHitTriangleCount == 0u ? qtrue : qfalse,
-		vk_rt_as_compaction_enabled(),
-		"rt world blas" ) ) {
-		vk_rt_cpu_geometry_free( &geometry );
-		return qfalse;
-	}
-
-	vk.rt.worldGeometryReady = qtrue;
-	vk.rt.stats.world_build_bytes += (uint64_t)( vk.rt.world_blas.size + vk.rt.scratch_buffer.allocationSize );
-	vk.rt.needsRebuild = qtrue;
-	vk_rt_cpu_geometry_free( &geometry );
-	return qtrue;
-}
-
-static uint32_t vk_rt_collect_instances( VkAccelerationStructureInstanceKHR *instances, uint32_t maxInstances, qboolean *throttledByInstanceBudget )
-{
-	uint32_t count = 0;
-
-	if ( throttledByInstanceBudget ) {
-		*throttledByInstanceBudget = qfalse;
-	}
-
-	if ( maxInstances == 0 ) {
-		return 0;
-	}
-
-	if ( vk.rt.world_blas.valid ) {
-		VkAccelerationStructureInstanceKHR *worldInstance = &instances[count++];
-		Com_Memset( worldInstance, 0, sizeof( *worldInstance ) );
-		worldInstance->transform.matrix[0][0] = 1.0f;
-		worldInstance->transform.matrix[1][1] = 1.0f;
-		worldInstance->transform.matrix[2][2] = 1.0f;
-		worldInstance->instanceCustomIndex = 0;
-		worldInstance->mask = 0xFF;
-		worldInstance->instanceShaderBindingTableRecordOffset = 0;
-		worldInstance->flags =
-			VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR |
-			VK_GEOMETRY_INSTANCE_TRIANGLE_FLIP_FACING_BIT_KHR;
-		worldInstance->accelerationStructureReference = vk.rt.world_blas.deviceAddress;
-	}
-
-	if ( !vk.rt.dynamic_blas.valid ) {
-		return count;
-	}
-
-	if ( count >= maxInstances ) {
-		if ( throttledByInstanceBudget ) {
-			*throttledByInstanceBudget = qtrue;
-		}
-		return count;
-	}
-
-	{
-		VkAccelerationStructureInstanceKHR *dynamicInstance = &instances[count++];
-		Com_Memset( dynamicInstance, 0, sizeof( *dynamicInstance ) );
-		dynamicInstance->transform.matrix[0][0] = 1.0f;
-		dynamicInstance->transform.matrix[1][1] = 1.0f;
-		dynamicInstance->transform.matrix[2][2] = 1.0f;
-		dynamicInstance->instanceCustomIndex = 1;
-		dynamicInstance->mask = 0xFF;
-		dynamicInstance->instanceShaderBindingTableRecordOffset = 0;
-		dynamicInstance->flags =
-			VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR |
-			VK_GEOMETRY_INSTANCE_TRIANGLE_FLIP_FACING_BIT_KHR;
-		dynamicInstance->accelerationStructureReference = vk.rt.dynamic_blas.deviceAddress;
-	}
-
-	return count;
-}
-
-static qboolean vk_rt_build_tlas( VkDeviceSize *frameBudgetBytesUsed, VkDeviceSize frameBudgetBytes )
-{
-	VkAccelerationStructureInstanceKHR *instances = NULL;
-	uint32_t requestedCapacity;
-	uint32_t instanceCount;
-	VkDeviceAddress instanceDataAddress;
-	VkDeviceAddress scratchAddress;
-	qboolean throttled = qfalse;
-	VkBuildAccelerationStructureFlagsKHR buildFlags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
-	VkDeviceSize buildBytes;
-	VkAccelerationStructureGeometryInstancesDataKHR instancesData;
-	VkAccelerationStructureGeometryKHR geometry;
-	VkAccelerationStructureBuildGeometryInfoKHR buildInfo;
-	VkAccelerationStructureBuildSizesInfoKHR buildSizes;
-	VkAccelerationStructureBuildRangeInfoKHR rangeInfo;
-	VkAccelerationStructureBuildRangeInfoKHR *rangeInfos[1];
-	VkAccelerationStructureDeviceAddressInfoKHR addressInfo;
-	VkCommandBuffer cmd;
-
-	requestedCapacity = 4;
-
-	instances = (VkAccelerationStructureInstanceKHR *)ri.Malloc(
-		requestedCapacity * sizeof( VkAccelerationStructureInstanceKHR ) );
-	if ( !instances ) {
-		return qfalse;
-	}
-
-	instanceCount = vk_rt_collect_instances( instances, requestedCapacity, &throttled );
-	if ( throttled ) {
-		vk.rt.stats.throttled_builds++;
-	}
-	if ( instanceCount == 0 ) {
-		ri.Free( instances );
-		return qfalse;
-	}
-	if ( vk.rt.tlas.valid && vk.rt.tlasValid && !vk.rt.needsRebuild && vk.rt.tlas_instance_count == instanceCount ) {
-		ri.Free( instances );
-		return qtrue;
-	}
-
-	buildBytes = vk_rt_query_tlas_build_bytes( instanceCount, buildFlags );
-	if ( !vk_rt_budget_allows( buildBytes, frameBudgetBytesUsed, frameBudgetBytes ) ) {
-		ri.Free( instances );
-		return qfalse;
-	}
-
-	if ( vk.rt.tlas_instance_capacity < instanceCount || vk.rt.tlas_instance_buffer.buffer == VK_NULL_HANDLE ) {
-		if ( !vk_rt_ensure_buffer_capacity(
-			&vk.rt.tlas_instance_buffer,
-			requestedCapacity * sizeof( VkAccelerationStructureInstanceKHR ),
-			VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT |
-				VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			qtrue,
-			"rt tlas instances" ) ) {
-			ri.Free( instances );
-			return qfalse;
-		}
-		vk.rt.tlas_instance_capacity = requestedCapacity;
-	}
-
-	if ( !vk_rt_upload_buffer_data(
-		&vk.rt.tlas_instance_buffer,
-		instances,
-		(size_t)instanceCount * sizeof( VkAccelerationStructureInstanceKHR ) ) ) {
-		ri.Free( instances );
-		return qfalse;
-	}
-	vk.rt.tlas_instance_count = instanceCount;
-	ri.Free( instances );
-
-	instanceDataAddress = vk.rt.tlas_instance_buffer.address;
-	Com_Memset( &instancesData, 0, sizeof( instancesData ) );
-	instancesData.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR;
-	instancesData.arrayOfPointers = VK_FALSE;
-	instancesData.data.deviceAddress = instanceDataAddress;
-
-	Com_Memset( &geometry, 0, sizeof( geometry ) );
-	geometry.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR;
-	geometry.geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR;
-	geometry.geometry.instances = instancesData;
-
-	Com_Memset( &buildInfo, 0, sizeof( buildInfo ) );
-	buildInfo.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR;
-	buildInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
-	buildInfo.flags = buildFlags;
-	buildInfo.mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR;
-	buildInfo.geometryCount = 1;
-	buildInfo.pGeometries = &geometry;
-
-	Com_Memset( &buildSizes, 0, sizeof( buildSizes ) );
-	buildSizes.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR;
-	qvkGetAccelerationStructureBuildSizesKHR(
-		vk.device,
-		VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR,
-		&buildInfo,
-		&instanceCount,
-		&buildSizes );
-
-	if ( vk.rt.tlas.valid ) {
-		if ( !vk_rt_wait_for_inflight_frames( "TLAS rebuild" ) ) {
-			return qfalse;
-		}
-	}
-	vk_rt_destroy_as( &vk.rt.tlas );
-	if ( !vk_rt_create_as( VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR, buildSizes.accelerationStructureSize, "rt tlas", &vk.rt.tlas ) ) {
-		return qfalse;
-	}
-
-	if ( !vk_rt_ensure_scratch_buffer( buildSizes.buildScratchSize ) ) {
-		return qfalse;
-	}
-	if ( !vk_rt_require_scratch_device_address( &scratchAddress ) ) {
-		return qfalse;
-	}
-
-	buildInfo.dstAccelerationStructure = vk.rt.tlas.handle;
-	buildInfo.scratchData.deviceAddress = scratchAddress;
-
-	Com_Memset( &rangeInfo, 0, sizeof( rangeInfo ) );
-	rangeInfo.primitiveCount = instanceCount;
-	rangeInfo.primitiveOffset = 0;
-	rangeInfo.firstVertex = 0;
-	rangeInfo.transformOffset = 0;
-	rangeInfos[0] = &rangeInfo;
-
-	cmd = begin_command_buffer();
-	qvkCmdBuildAccelerationStructuresKHR( cmd, 1, &buildInfo, (const VkAccelerationStructureBuildRangeInfoKHR *const *)rangeInfos );
-	if ( !end_command_buffer_soft( cmd, __func__ ) ) {
-		vk_rt_destroy_as( &vk.rt.tlas );
-		vk.rt.tlasValid = qfalse;
-		return qfalse;
-	}
-
-	addressInfo.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DEVICE_ADDRESS_INFO_KHR;
-	addressInfo.pNext = NULL;
-	addressInfo.accelerationStructure = vk.rt.tlas.handle;
-	vk.rt.tlas.deviceAddress = qvkGetAccelerationStructureDeviceAddressKHR( vk.device, &addressInfo );
-	vk.rt.tlas.valid = qtrue;
-	vk.rt.tlasValid = qtrue;
-	vk.rt.descriptorsValid = qfalse;
-	vk.rt.needsRebuild = qfalse;
-	vk.rt.stats.tlas_build_bytes += (uint64_t)( vk.rt.tlas.size + vk.rt.scratch_buffer.allocationSize );
-
-	return qtrue;
-}
-
-static qboolean vk_rt_ensure_temporal_params_buffer( void )
-{
-	const uint32_t bufferIndex = (uint32_t)( vk.cmd_index % NUM_COMMAND_BUFFERS );
-	rtxVkRtBuffer_t *temporalBuffer = &vk.rt.temporal_params_buffer[bufferIndex];
-
-	if ( temporalBuffer->buffer != VK_NULL_HANDLE ) {
-		return qtrue;
-	}
-	return vk_rt_create_buffer(
-		sizeof( rtxRtTemporalParams_t ),
-		VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-		qfalse,
-		va( "rt temporal params frame %u", bufferIndex ),
-		temporalBuffer );
-}
-
-static void vk_rt_reset_temporal_history( const char *reason )
-{
-	if ( vk_rt_debug_as_stats_level() >= 1 ) {
-		ri.Printf( PRINT_DEVELOPER, "RTX RT: temporal history reset (%s)\n", reason ? reason : "unspecified" );
-	}
-	vk.rt.history_valid = qfalse;
-	vk.rt.temporal_reset_pending = qtrue;
-	vk.rt.stats.history_resets++;
-}
-
-static qboolean vk_rt_update_temporal_state( void )
-{
-	rtxRtTemporalParams_t params;
-	const float halfFovX = tanf( DEG2RAD( backEnd.viewParms.fovX * 0.5f ) );
-	const float halfFovY = tanf( DEG2RAD( backEnd.viewParms.fovY * 0.5f ) );
-	vec3_t currentOrigin;
-	vec3_t currentForward;
-	vec3_t currentRight;
-	vec3_t currentUp;
-	vec3_t originDelta;
-	vec3_t dynamicDelta;
-	float cutDistance = vk_rt_temporal_camera_cut_distance();
-	float forwardDot = 1.0f;
-	float moveDistance = 0.0f;
-	float exposureMin = vk_rt_exposure_min();
-	float exposureMax = vk_rt_exposure_max();
-	float exposureAdapt = vk_rt_exposure_speed();
-	float exposureTarget;
-	float sceneLumaEstimate;
-	int refdefTime = backEnd.refdef.time;
-	int timeDelta = 0;
-	qboolean modeValidation = vk_rt_camera_mode_validate_enabled();
-	qboolean temporalReset = vk.rt.temporal_reset_pending;
-	uint32_t flags = 0;
-	qboolean logReset = temporalReset;
-
-	/* Changed transport must not be blended with the previous lighting model. */
-	if ( vk_rt_consume_cvar_modified( rtx_rt_indirect_bounce ) |
-		vk_rt_consume_cvar_modified( rtx_rt_indirect_strength ) |
-		vk_rt_consume_cvar_modified( rtx_rt_reflection_strength ) |
-		vk_rt_consume_cvar_modified( rtx_rt_refractive_mode ) |
-		vk_rt_consume_cvar_modified( rtx_rt_refractive_ior ) ) {
-		temporalReset = qtrue;
-		logReset = qtrue;
-	}
-
-	VectorCopy( backEnd.viewParms.or.origin, currentOrigin );
-	VectorCopy( backEnd.viewParms.or.axis[0], currentForward );
-	VectorScale( backEnd.viewParms.or.axis[1], -1.0f, currentRight );
-	VectorCopy( backEnd.viewParms.or.axis[2], currentUp );
-
-	if ( !vk_rt_ensure_temporal_params_buffer() ) {
-		return qfalse;
-	}
-
-	if ( vk.rt.temporal_has_prev_camera ) {
-		VectorSubtract( currentOrigin, vk.rt.temporal_prev_origin, originDelta );
-		moveDistance = VectorLength( originDelta );
-		forwardDot = DotProduct( currentForward, vk.rt.temporal_prev_forward );
-		if ( ( cutDistance > 0.0f && moveDistance > cutDistance ) || forwardDot < 0.5f ) {
-			temporalReset = qtrue;
-			logReset = qtrue;
-		}
-		if ( fabsf( halfFovX - vk.rt.temporal_prev_tan_half_fov_x ) > 0.01f ||
-			fabsf( halfFovY - vk.rt.temporal_prev_tan_half_fov_y ) > 0.01f ) {
-			temporalReset = qtrue;
-			logReset = qtrue;
-		}
-		if ( modeValidation ) {
-			timeDelta = refdefTime - vk.rt.temporal_prev_refdef_time;
-			if ( backEnd.refdef.rdflags != vk.rt.temporal_prev_rdflags ||
-				backEnd.refdef.stereoFrame != vk.rt.temporal_prev_stereo_frame ||
-				timeDelta < -1 || timeDelta > 250 ) {
-				temporalReset = qtrue;
-				logReset = qtrue;
-			}
-		}
-	} else {
-		temporalReset = qtrue;
-		logReset = qtrue;
-	}
-
-	if ( rtx_rt_temporal_enable && rtx_rt_temporal_enable->modified ) {
-		rtx_rt_temporal_enable->modified = qfalse;
-		temporalReset = qtrue;
-		logReset = qtrue;
-	}
-	if ( rtx_rt_temporal_alpha && rtx_rt_temporal_alpha->modified ) {
-		rtx_rt_temporal_alpha->modified = qfalse;
-		temporalReset = qtrue;
-		logReset = qtrue;
-	}
-	if ( rtx_rt_temporal_clamp && rtx_rt_temporal_clamp->modified ) {
-		rtx_rt_temporal_clamp->modified = qfalse;
-		temporalReset = qtrue;
-		logReset = qtrue;
-	}
-	if ( rtx_rt_temporal_depth_reject && rtx_rt_temporal_depth_reject->modified ) {
-		rtx_rt_temporal_depth_reject->modified = qfalse;
-		temporalReset = qtrue;
-		logReset = qtrue;
-	}
-	if ( rtx_rt_temporal_motion_reject && rtx_rt_temporal_motion_reject->modified ) {
-		rtx_rt_temporal_motion_reject->modified = qfalse;
-		temporalReset = qtrue;
-		logReset = qtrue;
-	}
-	if ( rtx_rt_temporal_camera_cut && rtx_rt_temporal_camera_cut->modified ) {
-		rtx_rt_temporal_camera_cut->modified = qfalse;
-		temporalReset = qtrue;
-		logReset = qtrue;
-	}
-	if ( rtx_rt_spatial_denoise && rtx_rt_spatial_denoise->modified ) {
-		rtx_rt_spatial_denoise->modified = qfalse;
-		temporalReset = qtrue;
-		logReset = qtrue;
-	}
-	if ( rtx_rt_spatial_sigma_depth && rtx_rt_spatial_sigma_depth->modified ) {
-		rtx_rt_spatial_sigma_depth->modified = qfalse;
-		temporalReset = qtrue;
-		logReset = qtrue;
-	}
-	if ( rtx_rt_spatial_sigma_normal && rtx_rt_spatial_sigma_normal->modified ) {
-		rtx_rt_spatial_sigma_normal->modified = qfalse;
-		temporalReset = qtrue;
-		logReset = qtrue;
-	}
-	if ( rtx_rt_firefly_threshold && rtx_rt_firefly_threshold->modified ) {
-		rtx_rt_firefly_threshold->modified = qfalse;
-	}
-	if ( rtx_rt_firefly_strength && rtx_rt_firefly_strength->modified ) {
-		rtx_rt_firefly_strength->modified = qfalse;
-	}
-	if ( rtx_rt_tonemap_mode && rtx_rt_tonemap_mode->modified ) {
-		rtx_rt_tonemap_mode->modified = qfalse;
-	}
-	if ( rtx_rt_exposure && rtx_rt_exposure->modified ) {
-		rtx_rt_exposure->modified = qfalse;
-	}
-	if ( rtx_rt_auto_exposure && rtx_rt_auto_exposure->modified ) {
-		rtx_rt_auto_exposure->modified = qfalse;
-	}
-	if ( rtx_rt_exposure_speed && rtx_rt_exposure_speed->modified ) {
-		rtx_rt_exposure_speed->modified = qfalse;
-	}
-	if ( rtx_rt_exposure_min && rtx_rt_exposure_min->modified ) {
-		rtx_rt_exposure_min->modified = qfalse;
-	}
-	if ( rtx_rt_exposure_max && rtx_rt_exposure_max->modified ) {
-		rtx_rt_exposure_max->modified = qfalse;
-	}
-	if ( rtx_rt_motion_dynamic_scale && rtx_rt_motion_dynamic_scale->modified ) {
-		rtx_rt_motion_dynamic_scale->modified = qfalse;
-	}
-	if ( rtx_rt_particle_volume && rtx_rt_particle_volume->modified ) {
-		rtx_rt_particle_volume->modified = qfalse;
-		temporalReset = qtrue;
-		logReset = qtrue;
-	}
-	if ( rtx_rt_legacy_color_compat && rtx_rt_legacy_color_compat->modified ) {
-		rtx_rt_legacy_color_compat->modified = qfalse;
-		temporalReset = qtrue;
-		logReset = qtrue;
-	}
-	if ( rtx_rt_raster_reference && rtx_rt_raster_reference->modified ) {
-		rtx_rt_raster_reference->modified = qfalse;
-		temporalReset = qtrue;
-		logReset = qtrue;
-	}
-	if ( rtx_rt_readability_lift && rtx_rt_readability_lift->modified ) {
-		rtx_rt_readability_lift->modified = qfalse;
-		temporalReset = qtrue;
-		logReset = qtrue;
-	}
-	if ( rtx_rt_readability_contrast && rtx_rt_readability_contrast->modified ) {
-		rtx_rt_readability_contrast->modified = qfalse;
-		temporalReset = qtrue;
-		logReset = qtrue;
-	}
-	if ( rtx_rt_readability_saturation && rtx_rt_readability_saturation->modified ) {
-		rtx_rt_readability_saturation->modified = qfalse;
-		temporalReset = qtrue;
-		logReset = qtrue;
-	}
-	if ( rtx_rt_readability_shadow_floor && rtx_rt_readability_shadow_floor->modified ) {
-		rtx_rt_readability_shadow_floor->modified = qfalse;
-		temporalReset = qtrue;
-		logReset = qtrue;
-	}
-	if ( r_intensity && r_intensity->modified ) {
-		r_intensity->modified = qfalse;
-		temporalReset = qtrue;
-		logReset = qtrue;
-	}
-
-	if ( exposureMin > exposureMax ) {
-		float tmp = exposureMin;
-		exposureMin = exposureMax;
-		exposureMax = tmp;
-	}
-
-	if ( !vk.rt.temporal_has_prev_camera ) {
-		vk.rt.temporal_exposure = vk_rt_exposure_manual();
-	}
-
-	/*
-	 * This SDR-only compatibility exposure is deliberately stable. Raw light
-	 * count is not an energy estimate: maps with many tiny compile lights
-	 * otherwise collapse to the minimum exposure even when their total
-	 * contribution is modest. Keep the empirically calibrated sun control
-	 * until a measured GPU luminance reduction replaces this heuristic.
-	 */
-	sceneLumaEstimate = 0.20f +
-		( 0.35f * vk_rt_sun_intensity() * RTX_RT_LEGACY_SUN_UNIT_SCALE );
-	sceneLumaEstimate = MAX( 0.03f, sceneLumaEstimate );
-
-	if ( vk_rt_auto_exposure_enabled() ) {
-		exposureTarget = 0.18f / sceneLumaEstimate;
-		vk.rt.temporal_exposure = vk.rt.temporal_exposure + ( exposureTarget - vk.rt.temporal_exposure ) * exposureAdapt;
-	} else {
-		vk.rt.temporal_exposure = vk_rt_exposure_manual();
-	}
-	vk.rt.temporal_exposure = Com_Clamp( exposureMin, exposureMax, vk.rt.temporal_exposure );
-
-	VectorSubtract( vk.rt.dynamic_centroid_current, vk.rt.dynamic_centroid_prev, dynamicDelta );
-
-	Com_Memset( &params, 0, sizeof( params ) );
-	if ( vk.rt.temporal_has_prev_camera ) {
-		params.prevCameraOriginTanHalfFovX[0] = vk.rt.temporal_prev_origin[0];
-		params.prevCameraOriginTanHalfFovX[1] = vk.rt.temporal_prev_origin[1];
-		params.prevCameraOriginTanHalfFovX[2] = vk.rt.temporal_prev_origin[2];
-		params.prevCameraOriginTanHalfFovX[3] = vk.rt.temporal_prev_tan_half_fov_x;
-		params.prevCameraForwardTanHalfFovY[0] = vk.rt.temporal_prev_forward[0];
-		params.prevCameraForwardTanHalfFovY[1] = vk.rt.temporal_prev_forward[1];
-		params.prevCameraForwardTanHalfFovY[2] = vk.rt.temporal_prev_forward[2];
-		params.prevCameraForwardTanHalfFovY[3] = vk.rt.temporal_prev_tan_half_fov_y;
-		params.prevCameraRightWidth[0] = vk.rt.temporal_prev_right[0];
-		params.prevCameraRightWidth[1] = vk.rt.temporal_prev_right[1];
-		params.prevCameraRightWidth[2] = vk.rt.temporal_prev_right[2];
-		params.prevCameraRightWidth[3] = (float)vk.rt.output_width;
-		params.prevCameraUpHeight[0] = vk.rt.temporal_prev_up[0];
-		params.prevCameraUpHeight[1] = vk.rt.temporal_prev_up[1];
-		params.prevCameraUpHeight[2] = vk.rt.temporal_prev_up[2];
-		params.prevCameraUpHeight[3] = (float)vk.rt.output_height;
-	} else {
-		params.prevCameraOriginTanHalfFovX[0] = currentOrigin[0];
-		params.prevCameraOriginTanHalfFovX[1] = currentOrigin[1];
-		params.prevCameraOriginTanHalfFovX[2] = currentOrigin[2];
-		params.prevCameraOriginTanHalfFovX[3] = halfFovX;
-		params.prevCameraForwardTanHalfFovY[0] = currentForward[0];
-		params.prevCameraForwardTanHalfFovY[1] = currentForward[1];
-		params.prevCameraForwardTanHalfFovY[2] = currentForward[2];
-		params.prevCameraForwardTanHalfFovY[3] = halfFovY;
-		params.prevCameraRightWidth[0] = currentRight[0];
-		params.prevCameraRightWidth[1] = currentRight[1];
-		params.prevCameraRightWidth[2] = currentRight[2];
-		params.prevCameraRightWidth[3] = (float)vk.rt.output_width;
-		params.prevCameraUpHeight[0] = currentUp[0];
-		params.prevCameraUpHeight[1] = currentUp[1];
-		params.prevCameraUpHeight[2] = currentUp[2];
-		params.prevCameraUpHeight[3] = (float)vk.rt.output_height;
-	}
-
-	params.dynamicMotionAndExposure[0] = dynamicDelta[0];
-	params.dynamicMotionAndExposure[1] = dynamicDelta[1];
-	params.dynamicMotionAndExposure[2] = dynamicDelta[2];
-	params.dynamicMotionAndExposure[3] = vk.rt.temporal_exposure;
-
-	params.temporalParams0[0] = vk_rt_temporal_alpha();
-	params.temporalParams0[1] = vk_rt_temporal_clamp_strength();
-	params.temporalParams0[2] = vk_rt_temporal_depth_reject();
-	params.temporalParams0[3] = vk_rt_temporal_motion_reject();
-
-	params.denoiseParams[0] = vk_rt_spatial_sigma_depth();
-	params.denoiseParams[1] = vk_rt_spatial_sigma_normal();
-	params.denoiseParams[2] = vk_rt_firefly_threshold();
-	params.denoiseParams[3] = vk_rt_firefly_strength();
-
-	params.exposureParams[0] = exposureMin;
-	params.exposureParams[1] = exposureMax;
-	params.exposureParams[2] = exposureAdapt;
-	params.exposureParams[3] = vk_rt_motion_dynamic_scale();
-
-	params.legacyColorParams[0] = vk_rt_raster_reference_enabled() ? 1.0f : 0.0f;
-	params.legacyColorParams[1] = vk_rt_legacy_intensity_scale();
-	/*
-	 * Preserve the authored raster base and bound RT shadow/specular cues.
-	 * The compact RT material representation does not yet express the full
-	 * lightmap and multi-stage shader language.
-	 */
-	params.legacyColorParams[2] = 0.35f;
-	params.legacyColorParams[3] = 0.0f;
-
-	params.readabilityParams[0] = vk_rt_readability_lift();
-	params.readabilityParams[1] = vk_rt_readability_contrast();
-	params.readabilityParams[2] = vk_rt_readability_saturation();
-	params.readabilityParams[3] = vk_rt_readability_shadow_floor();
-
-	{
-		const fnRTCWFogDraw_t fog = FnRTCWFogDraw( &backEnd.refdef.rtcwFog,
-			qfalse, qfalse, qfalse, qfalse,
-			ri.gameId == COM_GAME_RTCW_SP && backEnd.refdef.rtcw.snooperView ? qtrue : qfalse, qtrue );
-		Vector4Copy( fog.color, params.rtcwFogColor );
-		Vector4Copy( fog.params, params.rtcwFogParams );
-		params.rtcwFogControl[0] = ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP ? 1.0f : 0.0f;
-		params.rtcwFogControl[1] = backEnd.viewParms.zFar;
-	}
-
-	params.modes[0] = vk_rt_temporal_enabled() ? 1u : 0u;
-	params.modes[1] = vk_rt_spatial_denoise_enabled() ? 1u : 0u;
-	params.modes[2] = (uint32_t)vk_rt_tonemap_mode();
-	flags = 0u;
-	if ( vk.rt.history_valid && !temporalReset ) {
-		flags |= RTX_RT_TEMPORAL_FLAG_HISTORY_VALID;
-	}
-	if ( temporalReset ) {
-		flags |= RTX_RT_TEMPORAL_FLAG_RESET;
-	}
-	if ( vk_rt_auto_exposure_enabled() ) {
-		flags |= RTX_RT_TEMPORAL_FLAG_AUTO_EXPOSURE;
-	}
-	if ( vk_rt_particle_volume_enabled() ) {
-		flags |= RTX_RT_MODE_FLAG_PARTICLE_VOLUME;
-	}
-	if ( vk_rt_raster_reference_enabled() ) {
-		flags |= RTX_RT_MODE_FLAG_RASTER_REFERENCE;
-	}
-	if ( vk_scene_linear_enabled() ) {
-		flags |= RTX_RT_MODE_FLAG_SCENE_LINEAR_OUTPUT;
-	}
-	params.modes[3] = flags;
-
-	if ( !vk_rt_upload_buffer_data(
-		&vk.rt.temporal_params_buffer[ vk.cmd_index % NUM_COMMAND_BUFFERS ],
-		&params,
-		sizeof( params ) ) ) {
-		return qfalse;
-	}
-
-	if ( temporalReset ) {
-		vk.rt.history_valid = qfalse;
-		vk.rt.temporal_reset_pending = qfalse;
-		if ( logReset ) {
-			if ( vk_rt_debug_as_stats_level() >= 1 ) {
-				ri.Printf( PRINT_DEVELOPER,
-					"RTX RT: temporal reset applied (cameraMove=%.2f cameraDot=%.3f cutoff=%.2f rdflags=0x%x->0x%x timeDelta=%d)\n",
-					moveDistance,
-					forwardDot,
-					cutDistance,
-					vk.rt.temporal_prev_rdflags,
-					backEnd.refdef.rdflags,
-					timeDelta );
-			}
-			vk.rt.stats.history_resets++;
-		}
-	}
-
-	VectorCopy( currentOrigin, vk.rt.temporal_prev_origin );
-	VectorCopy( currentForward, vk.rt.temporal_prev_forward );
-	VectorCopy( currentRight, vk.rt.temporal_prev_right );
-	VectorCopy( currentUp, vk.rt.temporal_prev_up );
-	vk.rt.temporal_prev_tan_half_fov_x = halfFovX;
-	vk.rt.temporal_prev_tan_half_fov_y = halfFovY;
-	vk.rt.temporal_prev_refdef_time = refdefTime;
-	vk.rt.temporal_prev_rdflags = backEnd.refdef.rdflags;
-	vk.rt.temporal_prev_stereo_frame = (int)backEnd.refdef.stereoFrame;
-	vk.rt.temporal_has_prev_camera = qtrue;
-
-	return qtrue;
-}
-
-static void vk_rt_fill_push_constants( rtxRtPushConstants_t *push )
-{
-	const float halfFovX = tanf( DEG2RAD( backEnd.viewParms.fovX * 0.5f ) );
-	const float halfFovY = tanf( DEG2RAD( backEnd.viewParms.fovY * 0.5f ) );
-	vec3_t sunDir;
-	vec3_t sunColor;
-
-	Com_Memset( push, 0, sizeof( *push ) );
-	push->cameraOriginTanHalfFovX[0] = backEnd.viewParms.or.origin[0];
-	push->cameraOriginTanHalfFovX[1] = backEnd.viewParms.or.origin[1];
-	push->cameraOriginTanHalfFovX[2] = backEnd.viewParms.or.origin[2];
-	push->cameraOriginTanHalfFovX[3] = halfFovX;
-
-	push->cameraForwardTanHalfFovY[0] = backEnd.viewParms.or.axis[0][0];
-	push->cameraForwardTanHalfFovY[1] = backEnd.viewParms.or.axis[0][1];
-	push->cameraForwardTanHalfFovY[2] = backEnd.viewParms.or.axis[0][2];
-	push->cameraForwardTanHalfFovY[3] = halfFovY;
-
-	push->cameraRightWidth[0] = -backEnd.viewParms.or.axis[1][0];
-	push->cameraRightWidth[1] = -backEnd.viewParms.or.axis[1][1];
-	push->cameraRightWidth[2] = -backEnd.viewParms.or.axis[1][2];
-	push->cameraRightWidth[3] = (float)vk.rt.output_width;
-
-	push->cameraUpHeight[0] = backEnd.viewParms.or.axis[2][0];
-	push->cameraUpHeight[1] = backEnd.viewParms.or.axis[2][1];
-	push->cameraUpHeight[2] = backEnd.viewParms.or.axis[2][2];
-	push->cameraUpHeight[3] = (float)vk.rt.output_height;
-
-	vk_rt_resolve_sun_params( sunDir, sunColor, NULL );
-
-	push->sunDirection[0] = sunDir[0];
-	push->sunDirection[1] = sunDir[1];
-	push->sunDirection[2] = sunDir[2];
-	push->sunDirection[3] = 0.0f;
-
-	push->sunColorIntensity[0] = sunColor[0];
-	push->sunColorIntensity[1] = sunColor[1];
-	push->sunColorIntensity[2] = sunColor[2];
-	push->sunColorIntensity[3] = vk_rt_sun_intensity();
-
-	push->debugMode = vk.rt.activeVisualizer;
-	push->frameIndex = tr.frameCount;
-	push->activeInstances = vk.rt.tlas_instance_count;
-	push->lightCount = vk.rt.light_count;
-	push->worldMaterialCount = vk.rt.world_material_count;
-	push->dynamicMaterialCount = vk.rt.dynamic_material_count;
-	push->shadowMode = (uint32_t)Com_Clamp( 0, 2, vk_rt_shadow_mode() );
-	push->shadowSoftness = vk_rt_shadow_softness();
-	push->indirectStrength = vk_rt_indirect_strength();
-	push->reflectionStrength = vk_rt_reflection_strength();
-	push->skyIntensity = vk_rt_sky_intensity();
-	push->refractionIor = vk_rt_refractive_ior();
-	push->sunIntensity = vk_rt_sun_intensity();
-	push->refractiveMode = (uint32_t)Com_Clamp( 0, 2, vk_rt_refractive_mode() );
-	push->indirectBounce = vk_rt_indirect_bounce_count();
-}
-
 static qboolean vk_rt_init( void )
 {
 	if ( vk.rt.initialized ) {
@@ -8321,7 +2456,8 @@ static qboolean vk_rt_init( void )
 		VkPhysicalDeviceProperties2 props2;
 		Com_Memset( &props2, 0, sizeof( props2 ) );
 		props2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
-		props2.pNext = &vk.rt.rt_pipeline_props;
+		// the compute backend has no ray-tracing properties to ask for
+		props2.pNext = vk_rt_pipeline_enabled() ? &vk.rt.rt_pipeline_props : NULL;
 		if ( qvkGetPhysicalDeviceProperties2 ) {
 			qvkGetPhysicalDeviceProperties2( vk.physical_device, &props2 );
 		} else {
@@ -8331,147 +2467,78 @@ static qboolean vk_rt_init( void )
 			props2.properties.limits.timestampPeriod : 1.0f;
 	}
 
-	vk.rt.needsRebuild = qtrue;
-	vk.rt.enabled = qtrue;
 	vk.rt.initialized = qtrue;
 	return qtrue;
 }
 
 void vk_rt_invalidate( const char *reason )
 {
-	int i;
-
 	if ( !vk.rt.initialized ) {
 		return;
 	}
-
 	if ( vk_rt_debug_as_stats_level() >= 1 ) {
 		ri.Printf( PRINT_DEVELOPER, "RTX RT: invalidating RT state (%s)\n", reason ? reason : "unspecified" );
 	}
-
 	if ( !vk_rt_wait_for_inflight_frames( reason ? reason : "RT state invalidation" ) ) {
 		return;
 	}
-
-	vk_rt_destroy_as( &vk.rt.world_blas );
-	vk_rt_destroy_buffer( &vk.rt.world_vertex_buffer );
-	vk_rt_destroy_buffer( &vk.rt.world_index_buffer );
-	vk_rt_destroy_buffer( &vk.rt.world_material_buffer );
-	vk_rt_destroy_as( &vk.rt.dynamic_blas );
-	vk_rt_destroy_buffer( &vk.rt.dynamic_vertex_buffer );
-	vk_rt_destroy_buffer( &vk.rt.dynamic_index_buffer );
-	vk_rt_destroy_buffer( &vk.rt.dynamic_material_buffer );
-	vk_rt_destroy_as( &vk.rt.tlas );
-	vk_rt_destroy_buffer( &vk.rt.tlas_instance_buffer );
-	for ( i = 0; i < NUM_COMMAND_BUFFERS; i++ ) {
-		vk_rt_destroy_buffer( &vk.rt.light_buffer[i] );
-	}
-
-	vk.rt.world_vertex_count = 0;
-	vk.rt.world_index_count = 0;
-	vk.rt.world_material_count = 0;
-	vk.rt.world_masked_triangle_count = 0;
-	vk.rt.dynamic_vertex_count = 0;
-	vk.rt.dynamic_index_count = 0;
-	vk.rt.dynamic_material_count = 0;
-	vk.rt.dynamic_entity_count = 0;
-	vk.rt.dynamic_effect_count = 0;
-	vk.rt.dynamic_masked_triangle_count = 0;
-	vk.rt.light_count = 0;
-	vk.rt.tlas_instance_count = 0;
-	vk.rt.tlas_instance_capacity = 0;
-	vk.rt.stats.world_triangles = 0;
-	vk.rt.stats.dynamic_triangles = 0;
-	vk.rt.stats.masked_triangles = 0;
-	vk.rt.stats.active_lights = 0;
-	vk.rt.worldGeometryReady = qfalse;
-	vk.rt.tlasValid = qfalse;
+	RT_InvalidateScene();
 	vk.rt.dispatchValid = qfalse;
-	vk.rt.descriptorsValid = qfalse;
-	vk.rt.needsRebuild = qtrue;
-	vk.rt.generation++;
-	vk_rt_reset_temporal_history( reason );
-	vk.rt.history_read_index = 0;
-	vk.rt.temporal_has_prev_camera = qfalse;
-	vk.rt.post_validation_logged = qfalse;
-	vk.rt.dynamic_scene_signature = 0u;
-	vk.rt.dynamic_last_rebuild_frame = -1;
-	VectorClear( vk.rt.dynamic_centroid_current );
-	VectorClear( vk.rt.dynamic_centroid_prev );
-	VectorClear( vk.rt.dynamic_last_rebuild_centroid );
-	vk_rt_reset_world_light_cache();
 }
 
 static void vk_rt_shutdown( void )
 {
-	int i;
-
 	if ( !vk.rt.initialized ) {
 		return;
 	}
-
-	vk_rt_destroy_output_image();
-	vk_rt_destroy_buffer( &vk.rt.sbt_buffer );
-	vk_rt_destroy_as( &vk.rt.tlas );
-	vk_rt_destroy_as( &vk.rt.dynamic_blas );
-	vk_rt_destroy_as( &vk.rt.world_blas );
-	vk_rt_destroy_buffer( &vk.rt.tlas_instance_buffer );
-	vk_rt_destroy_buffer( &vk.rt.dynamic_vertex_buffer );
-	vk_rt_destroy_buffer( &vk.rt.dynamic_index_buffer );
-	vk_rt_destroy_buffer( &vk.rt.dynamic_material_buffer );
-	vk_rt_destroy_buffer( &vk.rt.world_vertex_buffer );
-	vk_rt_destroy_buffer( &vk.rt.world_index_buffer );
-	vk_rt_destroy_buffer( &vk.rt.world_material_buffer );
-	vk_rt_destroy_buffer( &vk.rt.scratch_buffer );
-	for ( i = 0; i < NUM_COMMAND_BUFFERS; i++ ) {
-		vk_rt_destroy_buffer( &vk.rt.light_buffer[i] );
-		vk_rt_destroy_buffer( &vk.rt.temporal_params_buffer[i] );
-	}
-
-	if ( vk.rt.pipeline != VK_NULL_HANDLE ) {
-		qvkDestroyPipeline( vk.device, vk.rt.pipeline, NULL );
-		vk.rt.pipeline = VK_NULL_HANDLE;
-	}
-	if ( vk.rt.pipeline_layout != VK_NULL_HANDLE ) {
-		qvkDestroyPipelineLayout( vk.device, vk.rt.pipeline_layout, NULL );
-		vk.rt.pipeline_layout = VK_NULL_HANDLE;
-	}
-	if ( vk.rt.descriptor_set_layout != VK_NULL_HANDLE ) {
-		qvkDestroyDescriptorSetLayout( vk.device, vk.rt.descriptor_set_layout, NULL );
-		vk.rt.descriptor_set_layout = VK_NULL_HANDLE;
-	}
-	if ( vk.rt.descriptor_pool != VK_NULL_HANDLE ) {
-		qvkDestroyDescriptorPool( vk.device, vk.rt.descriptor_pool, NULL );
-		vk.rt.descriptor_pool = VK_NULL_HANDLE;
-	}
-	if ( vk.rt.compaction_query_pool != VK_NULL_HANDLE ) {
-		qvkDestroyQueryPool( vk.device, vk.rt.compaction_query_pool, NULL );
-		vk.rt.compaction_query_pool = VK_NULL_HANDLE;
-	}
-	if ( vk.rt.timing_query_pool != VK_NULL_HANDLE ) {
-		qvkDestroyQueryPool( vk.device, vk.rt.timing_query_pool, NULL );
-		vk.rt.timing_query_pool = VK_NULL_HANDLE;
-	}
-
+	RT_Shutdown();
 	vk_rt_reset_state();
 }
 
 qboolean vk_rt_primary_view_eligible( void )
 {
-	return ( vk.caps.activeRtMode == 2 &&
+	static int lastRefusedFrame = -1;
+	const qboolean eligible = ( vk.caps.activeRtMode == 2 &&
 		vk.fboActive &&
 		!( backEnd.refdef.rdflags & ( RDF_NOWORLDMODEL | RDF_HYPERSPACE ) ) &&
-		vk.renderPassIndex == RENDER_PASS_MAIN &&
+		// an earlier view of the frame (RTCW's portal sky) may have ended the
+		// main pass, and this one then draws in the post-bloom pass
+		( vk.renderPassIndex == RENDER_PASS_MAIN || vk.renderPassIndex == RENDER_PASS_POST_BLOOM ) &&
 		backEnd.viewParms.portalView == PV_NONE &&
+		// RTCW's and ET's portal sky is drawn first, behind the view it is
+		// seen from: tracing it would leave that view to raster
+		!backEnd.refdef.skyboxPortalScene &&
+		// RTCW's snooper scope is a heat picture, not a lit scene: white
+		// for every lightmap, bright players, no dynamic light or fog
+		!backEnd.refdef.rtcw.snooperView &&
 		backEnd.viewParms.stereoFrame == STEREO_CENTER &&
 		!glConfig.stereoEnabled &&
-		backEnd.viewParms.viewportX == 0 &&
-		backEnd.viewParms.viewportY == 0 &&
-		backEnd.viewParms.viewportWidth == glConfig.vidWidth &&
-		backEnd.viewParms.viewportHeight == glConfig.vidHeight &&
+		// the main view: most of the screen (Enemy Territory insets its own by
+		// a pixel), where a picture-in-picture view stays raster
+		backEnd.viewParms.viewportX >= 0 &&
+		backEnd.viewParms.viewportY >= 0 &&
+		backEnd.viewParms.viewportX + backEnd.viewParms.viewportWidth <= glConfig.vidWidth &&
+		backEnd.viewParms.viewportY + backEnd.viewParms.viewportHeight <= glConfig.vidHeight &&
+		(int64_t)backEnd.viewParms.viewportWidth * backEnd.viewParms.viewportHeight * 2 >=
+			(int64_t)glConfig.vidWidth * glConfig.vidHeight &&
 		!( vk.rt.dispatchValid &&
 			vk.rt.lastFrameBuilt == (uint32_t)tr.frameCount ) ) ?
 			qtrue : qfalse;
+
+	// why a world view is left to raster (rtx_rt_debug_as_stats 2); a portal
+	// sky always is, and would take the report from the view behind it
+	if ( !eligible && vk.caps.activeRtMode == 2 && !( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) &&
+		!backEnd.refdef.skyboxPortalScene && vk_rt_debug_should_log_skip( &lastRefusedFrame ) ) {
+		ri.Printf( PRINT_DEVELOPER, "RTX RT: view left to raster: fbo=%d rdflags=0x%x renderPass=%d portalView=%d "
+			"stereo=%d viewport=%d,%d %dx%d of %dx%d, traced this frame=%d\n",
+			vk.fboActive ? 1 : 0, backEnd.refdef.rdflags, (int)vk.renderPassIndex,
+			(int)backEnd.viewParms.portalView, (int)backEnd.viewParms.stereoFrame,
+			backEnd.viewParms.viewportX, backEnd.viewParms.viewportY,
+			backEnd.viewParms.viewportWidth, backEnd.viewParms.viewportHeight,
+			glConfig.vidWidth, glConfig.vidHeight,
+			( vk.rt.dispatchValid && vk.rt.lastFrameBuilt == (uint32_t)tr.frameCount ) ? 1 : 0 );
+	}
+	return eligible;
 }
 
 qboolean vk_rt_trace_frame( void )
@@ -8480,34 +2547,25 @@ qboolean vk_rt_trace_frame( void )
 	static int lastUiSkipFrame = -1;
 	static int lastHyperspaceSkipFrame = -1;
 	static int lastNonPrimarySkipFrame = -1;
-	VkDeviceSize budgetBytes = 0;
-	VkDeviceSize frameBuildBytesUsed = 0;
-	VkImageMemoryBarrier sceneColorBarrier;
-	VkImageMemoryBarrier traceBarriers[3];
-	rtxRtPushConstants_t push;
-	int budgetMb;
-	int64_t cpuFrameStartUs = 0;
-	int64_t cpuStageStartUs = 0;
-	int64_t cpuNowUs = 0;
-	qboolean needCpuTiming = qfalse;
-	qboolean timingEnabled = qfalse;
-	uint32_t timingBaseQuery = 0u;
-	qboolean copiedToColor = qfalse;
 
 	if ( !vk_rt_trace_available() ) {
+		ri.Printf( PRINT_DEVELOPER, "RTX RT: no tracing backend is available\n" );
 		return qfalse;
 	}
 
 	if ( !vk.active || !vk.cmd || vk.cmd->command_buffer == VK_NULL_HANDLE ) {
+		ri.Printf( PRINT_DEVELOPER, "RTX RT: no frame is being recorded\n" );
 		return qfalse;
 	}
 
 	if ( !vk.rt.initialized && !vk_rt_init() ) {
+		ri.Printf( PRINT_DEVELOPER, "RTX RT: the path tracer could not be initialised\n" );
 		return qfalse;
 	}
 
 	if ( !tr.worldMapLoaded || !tr.world ) {
 		vk.rt.stats.skipped_dispatches++;
+		ri.Printf( PRINT_DEVELOPER, "RTX RT: no world is loaded\n" );
 		return qfalse;
 	}
 
@@ -8535,11 +2593,10 @@ qboolean vk_rt_trace_frame( void )
 	}
 
 	/*
-	 * Portal/mirror views and screen-map capture commands render into
-	 * sub-views of the frame.  The RT output is a full-size image, so tracing
-	 * them here would overwrite unrelated pixels and invalidate resources
-	 * referenced by earlier commands.  Their raster result is composited by
-	 * the primary view's portal shader instead.
+	 * The trace covers one view a frame, the main one.  Portal/mirror views
+	 * and screen-map capture commands render into sub-views of the frame, and
+	 * tracing them would replace the resources earlier commands reference.
+	 * Their raster result is composited by the main view's portal shader.
 	 */
 	if ( !vk_rt_primary_view_eligible() ) {
 		vk.rt.stats.skipped_dispatches++;
@@ -8557,418 +2614,7 @@ qboolean vk_rt_trace_frame( void )
 		return qfalse;
 	}
 
-	vk_rt_read_timing_query_results();
-	vk_rt_update_scalability_controller();
-	vk_rt_handle_cached_resource_cvar_changes();
-
-	needCpuTiming = ( vk_rt_perf_timing_mode() > 0 || vk_rt_adaptive_budget_enabled() || vk_rt_dynamic_resolution_enabled() ) ? qtrue : qfalse;
-	if ( needCpuTiming ) {
-		cpuFrameStartUs = vk_rt_now_microseconds();
-		vk.rt.perf.cpu_dynamic_ms = 0.0f;
-		vk.rt.perf.cpu_world_ms = 0.0f;
-		vk.rt.perf.cpu_tlas_ms = 0.0f;
-		vk.rt.perf.cpu_temporal_ms = 0.0f;
-		vk.rt.perf.cpu_dispatch_ms = 0.0f;
-		vk.rt.perf.cpu_copy_ms = 0.0f;
-	}
-
-	budgetMb = vk_rt_as_build_budget_mb();
-	if ( budgetMb > 0 ) {
-		budgetBytes = (VkDeviceSize)budgetMb * 1024u * 1024u;
-	}
-
-	vk.rt.activeVisualizer = vk_rt_clamped_visualizer_mode();
-
-	if ( !vk_rt_ensure_pipeline() || !vk_rt_ensure_output_image() ) {
-		vk.rt.stats.skipped_dispatches++;
-		return qfalse;
-	}
-
-	/* Resolve the complete output-to-scene composition plan before ending the
-	 * raster pass.  A permissive failure therefore leaves the complete raster
-	 * frame and its render pass intact; strict mode can fail closed upstream. */
-	if ( vk.rt.output_width != (uint32_t)glConfig.vidWidth ||
-		vk.rt.output_height != (uint32_t)glConfig.vidHeight ||
-		vk.rt.output_format != vk.color_format ) {
-		if ( !vk_rt_supports_reconstruction_blit() ) {
-			if ( !s_vkRtDynResBlitWarned ) {
-				ri.Printf( PRINT_WARNING,
-					"RTX RT: no valid output composition path for %s -> %s; preserving the complete raster frame\n",
-					vk_format_string( vk.rt.output_format ),
-					vk_format_string( vk.color_format ) );
-				s_vkRtDynResBlitWarned = qtrue;
-			}
-			vk.rt.stats.skipped_dispatches++;
-			return qfalse;
-		}
-	}
-
-	if ( needCpuTiming ) {
-		cpuStageStartUs = vk_rt_now_microseconds();
-	}
-	if ( !vk_rt_ensure_dynamic_blas( &frameBuildBytesUsed, budgetBytes ) ) {
-		vk.rt.stats.skipped_dispatches++;
-		return qfalse;
-	}
-	if ( needCpuTiming ) {
-		cpuNowUs = vk_rt_now_microseconds();
-		vk.rt.perf.cpu_dynamic_ms = vk_rt_elapsed_ms( cpuStageStartUs, cpuNowUs );
-	}
-
-	if ( needCpuTiming ) {
-		cpuStageStartUs = vk_rt_now_microseconds();
-	}
-	if ( !vk_rt_ensure_world_blas( &frameBuildBytesUsed, budgetBytes ) ) {
-		vk.rt.stats.skipped_dispatches++;
-		return qfalse;
-	}
-	if ( needCpuTiming ) {
-		cpuNowUs = vk_rt_now_microseconds();
-		vk.rt.perf.cpu_world_ms = vk_rt_elapsed_ms( cpuStageStartUs, cpuNowUs );
-	}
-
-	if ( needCpuTiming ) {
-		cpuStageStartUs = vk_rt_now_microseconds();
-	}
-	if ( !vk_rt_build_tlas( &frameBuildBytesUsed, budgetBytes ) ) {
-		vk.rt.stats.skipped_dispatches++;
-		return qfalse;
-	}
-	if ( needCpuTiming ) {
-		cpuNowUs = vk_rt_now_microseconds();
-		vk.rt.perf.cpu_tlas_ms = vk_rt_elapsed_ms( cpuStageStartUs, cpuNowUs );
-	}
-
-	if ( needCpuTiming ) {
-		cpuStageStartUs = vk_rt_now_microseconds();
-	}
-	if ( !vk_rt_update_temporal_state() ) {
-		vk.rt.stats.skipped_dispatches++;
-		return qfalse;
-	}
-	if ( needCpuTiming ) {
-		cpuNowUs = vk_rt_now_microseconds();
-		vk.rt.perf.cpu_temporal_ms = vk_rt_elapsed_ms( cpuStageStartUs, cpuNowUs );
-	}
-
-	if ( !vk_rt_update_descriptor_set() || !vk.rt.sbtValid ) {
-		vk.rt.stats.skipped_dispatches++;
-		return qfalse;
-	}
-
-	vk_end_render_pass();
-
-	/*
-	 * The raster reference is sampled directly by raygen.  Keep this barrier
-	 * local to the active RT path so raster-only devices never see an RT stage
-	 * in their render-pass dependencies.
-	 */
-	Com_Memset( &sceneColorBarrier, 0, sizeof( sceneColorBarrier ) );
-	sceneColorBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	sceneColorBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	sceneColorBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	sceneColorBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	sceneColorBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	sceneColorBarrier.image = vk.color_image;
-	sceneColorBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	sceneColorBarrier.subresourceRange.levelCount = 1;
-	sceneColorBarrier.subresourceRange.layerCount = 1;
-	sceneColorBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	sceneColorBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-	qvkCmdPipelineBarrier(
-		vk.cmd->command_buffer,
-		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-		VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR,
-		0,
-		0, NULL,
-		0, NULL,
-		1, &sceneColorBarrier );
-
-	if ( vk_rt_ensure_timing_query_pool() &&
-		vk.rt.timing_query_pool != VK_NULL_HANDLE &&
-		qvkCmdResetQueryPool &&
-		qvkCmdWriteTimestamp ) {
-		const uint32_t querySlot = (uint32_t)( tr.frameCount & 1u );
-		timingBaseQuery = querySlot * vk.rt.timing_query_stride;
-		qvkCmdResetQueryPool( vk.cmd->command_buffer, vk.rt.timing_query_pool, timingBaseQuery, vk.rt.timing_query_stride );
-		qvkCmdWriteTimestamp(
-			vk.cmd->command_buffer,
-			VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR,
-			vk.rt.timing_query_pool,
-			timingBaseQuery + 0u );
-		timingEnabled = qtrue;
-	}
-
-	if ( needCpuTiming ) {
-		cpuStageStartUs = vk_rt_now_microseconds();
-	}
-
-	Com_Memset( traceBarriers, 0, sizeof( traceBarriers ) );
-	{
-		const uint32_t historyReadIndex = vk.rt.history_read_index & 1u;
-		const uint32_t historyWriteIndex = historyReadIndex ^ 1u;
-		int barrierIndex;
-
-		for ( barrierIndex = 0; barrierIndex < ARRAY_LEN( traceBarriers ); barrierIndex++ ) {
-			traceBarriers[barrierIndex].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-			traceBarriers[barrierIndex].oldLayout = VK_IMAGE_LAYOUT_GENERAL;
-			traceBarriers[barrierIndex].newLayout = VK_IMAGE_LAYOUT_GENERAL;
-			traceBarriers[barrierIndex].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			traceBarriers[barrierIndex].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			traceBarriers[barrierIndex].subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			traceBarriers[barrierIndex].subresourceRange.baseMipLevel = 0;
-			traceBarriers[barrierIndex].subresourceRange.levelCount = 1;
-			traceBarriers[barrierIndex].subresourceRange.baseArrayLayer = 0;
-			traceBarriers[barrierIndex].subresourceRange.layerCount = 1;
-			traceBarriers[barrierIndex].srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-		}
-
-		traceBarriers[0].image = vk.rt.output_image;
-		traceBarriers[0].dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-		traceBarriers[1].image = vk.rt.history_image[historyReadIndex];
-		traceBarriers[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-		traceBarriers[2].image = vk.rt.history_image[historyWriteIndex];
-		traceBarriers[2].dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-	}
-	qvkCmdPipelineBarrier(
-		vk.cmd->command_buffer,
-		VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR,
-		VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR,
-		0,
-		0, NULL,
-		0, NULL,
-		ARRAY_LEN( traceBarriers ), traceBarriers );
-
-	qvkCmdBindPipeline( vk.cmd->command_buffer, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, vk.rt.pipeline );
-	qvkCmdBindDescriptorSets(
-		vk.cmd->command_buffer,
-		VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR,
-		vk.rt.pipeline_layout,
-		0,
-		1,
-		&vk.rt.descriptor_set[ vk.cmd_index % NUM_COMMAND_BUFFERS ],
-		0,
-		NULL );
-
-	vk_rt_fill_push_constants( &push );
-	qvkCmdPushConstants(
-		vk.cmd->command_buffer,
-		vk.rt.pipeline_layout,
-		VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_MISS_BIT_KHR |
-			VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR,
-		0,
-		sizeof( push ),
-		&push );
-
-	qvkCmdTraceRaysKHR(
-		vk.cmd->command_buffer,
-		&vk.rt.sbt_raygen,
-		&vk.rt.sbt_miss,
-		&vk.rt.sbt_hit,
-		&vk.rt.sbt_callable,
-		vk.rt.output_width,
-		vk.rt.output_height,
-		1 );
-
-	if ( timingEnabled ) {
-		qvkCmdWriteTimestamp(
-			vk.cmd->command_buffer,
-			VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR,
-			vk.rt.timing_query_pool,
-			timingBaseQuery + 1u );
-	}
-	if ( needCpuTiming ) {
-		cpuNowUs = vk_rt_now_microseconds();
-		vk.rt.perf.cpu_dispatch_ms = vk_rt_elapsed_ms( cpuStageStartUs, cpuNowUs );
-		cpuStageStartUs = vk_rt_now_microseconds();
-	}
-
-	if ( vk.fboActive ) {
-		VkImageMemoryBarrier copyBarriers[2];
-		VkImageCopy copyRegion;
-		const qboolean needsFormatConversion =
-			( vk.rt.output_format != vk.color_format ) ? qtrue : qfalse;
-		const qboolean needsReconstruction =
-			( vk.rt.output_width != (uint32_t)glConfig.vidWidth ||
-				vk.rt.output_height != (uint32_t)glConfig.vidHeight ) ? qtrue : qfalse;
-		const qboolean needsBlit = ( needsReconstruction || needsFormatConversion ) ? qtrue : qfalse;
-		const qboolean canReconstructionBlit = needsBlit ? vk_rt_supports_reconstruction_blit() : qfalse;
-
-		Com_Memset( copyBarriers, 0, sizeof( copyBarriers ) );
-		copyBarriers[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		copyBarriers[0].oldLayout = VK_IMAGE_LAYOUT_GENERAL;
-		copyBarriers[0].newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-		copyBarriers[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		copyBarriers[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		copyBarriers[0].image = vk.rt.output_image;
-		copyBarriers[0].subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		copyBarriers[0].subresourceRange.levelCount = 1;
-		copyBarriers[0].subresourceRange.layerCount = 1;
-		copyBarriers[0].srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-		copyBarriers[0].dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-
-		copyBarriers[1].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		copyBarriers[1].oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		copyBarriers[1].newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-		copyBarriers[1].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		copyBarriers[1].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		copyBarriers[1].image = vk.color_image;
-		copyBarriers[1].subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		copyBarriers[1].subresourceRange.levelCount = 1;
-		copyBarriers[1].subresourceRange.layerCount = 1;
-		copyBarriers[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		copyBarriers[1].dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-
-		qvkCmdPipelineBarrier(
-			vk.cmd->command_buffer,
-			VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-			VK_PIPELINE_STAGE_TRANSFER_BIT,
-			0,
-			0, NULL,
-			0, NULL,
-			2, copyBarriers );
-
-		Com_Memset( &copyRegion, 0, sizeof( copyRegion ) );
-		copyRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		copyRegion.srcSubresource.layerCount = 1;
-		copyRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		copyRegion.dstSubresource.layerCount = 1;
-		copyRegion.extent.depth = 1;
-
-		if ( needsBlit && canReconstructionBlit ) {
-			VkImageBlit blitRegion;
-			Com_Memset( &blitRegion, 0, sizeof( blitRegion ) );
-			blitRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			blitRegion.srcSubresource.layerCount = 1;
-			blitRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			blitRegion.dstSubresource.layerCount = 1;
-			blitRegion.srcOffsets[1].x = (int32_t)vk.rt.output_width;
-			blitRegion.srcOffsets[1].y = (int32_t)vk.rt.output_height;
-			blitRegion.srcOffsets[1].z = 1;
-			blitRegion.dstOffsets[1].x = glConfig.vidWidth;
-			blitRegion.dstOffsets[1].y = glConfig.vidHeight;
-			blitRegion.dstOffsets[1].z = 1;
-
-			qvkCmdBlitImage(
-				vk.cmd->command_buffer,
-				vk.rt.output_image,
-				VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-				vk.color_image,
-				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-				1,
-				&blitRegion,
-				VK_FILTER_LINEAR );
-			copiedToColor = qtrue;
-		} else if ( !needsBlit ) {
-			copyRegion.extent.width = vk.rt.output_width;
-			copyRegion.extent.height = vk.rt.output_height;
-
-			qvkCmdCopyImage(
-				vk.cmd->command_buffer,
-				vk.rt.output_image,
-				VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-				vk.color_image,
-				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-				1,
-				&copyRegion );
-			copiedToColor = qtrue;
-		} else {
-			if ( needsBlit && !canReconstructionBlit && !s_vkRtDynResBlitWarned ) {
-				ri.Printf( PRINT_WARNING,
-					"RTX RT: output blit path unavailable for output/color formats (%s -> %s)%s%s; preserving the complete raster frame\n",
-					vk_format_string( vk.rt.output_format ),
-					vk_format_string( vk.color_format ),
-					needsReconstruction ? ", reconstruction requested" : "",
-					needsFormatConversion ? ", format conversion required" : "" );
-				s_vkRtDynResBlitWarned = qtrue;
-			}
-		}
-
-		copyBarriers[0].oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-		copyBarriers[0].newLayout = VK_IMAGE_LAYOUT_GENERAL;
-		copyBarriers[0].srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-		copyBarriers[0].dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-
-		copyBarriers[1].oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-		copyBarriers[1].newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		copyBarriers[1].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		copyBarriers[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT |
-			VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
-			VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-
-		qvkCmdPipelineBarrier(
-			vk.cmd->command_buffer,
-			VK_PIPELINE_STAGE_TRANSFER_BIT,
-			VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR |
-				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
-				VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-			0,
-			0, NULL,
-			0, NULL,
-			2, copyBarriers );
-	}
-	if ( timingEnabled ) {
-		qvkCmdWriteTimestamp(
-			vk.cmd->command_buffer,
-			copiedToColor ? VK_PIPELINE_STAGE_TRANSFER_BIT : VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR,
-			vk.rt.timing_query_pool,
-			timingBaseQuery + 2u );
-		qvkCmdWriteTimestamp(
-			vk.cmd->command_buffer,
-			VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-			vk.rt.timing_query_pool,
-			timingBaseQuery + 3u );
-	}
-	if ( needCpuTiming ) {
-		cpuNowUs = vk_rt_now_microseconds();
-		vk.rt.perf.cpu_copy_ms = vk_rt_elapsed_ms( cpuStageStartUs, cpuNowUs );
-	}
-
-	vk_begin_post_bloom_render_pass();
-
-	vk.rt.dispatchValid = qtrue;
-	vk.rt.lastFrameBuilt = tr.frameCount;
-	vk.rt.stats.dispatch_count++;
-	vk.rt.history_read_index ^= 1u;
-	vk.rt.history_valid = qtrue;
-	VectorCopy( vk.rt.dynamic_centroid_current, vk.rt.dynamic_centroid_prev );
-	if ( needCpuTiming ) {
-		cpuNowUs = vk_rt_now_microseconds();
-		vk.rt.perf.cpu_frame_ms = vk_rt_elapsed_ms( cpuFrameStartUs, cpuNowUs );
-	}
-	vk_rt_log_perf_summary();
-
-	if ( copiedToColor && vk_rt_post_validate_enabled() && !vk.rt.post_validation_logged ) {
-		ri.Printf( PRINT_ALL,
-			"RTX RT post stack validation: trace->copy->post_bloom->gamma ordering active (HUD/UI/cinematics remain in post-bloom/main composition path)\n" );
-		ri.Printf( PRINT_ALL,
-			"RTX RT primary dispatch validation: vkCmdTraceRaysKHR output copied to scene color; shading=%s; raster_role=depth_fallback_overlay\n",
-			vk_rt_raster_reference_enabled() ? "raster_reference_compat" : "native_rt" );
-		vk.rt.post_validation_logged = qtrue;
-	}
-
-	if ( vk_rt_debug_as_stats_level() >= 2 && ( ( tr.frameCount & 127 ) == 0 ) ) {
-		ri.Printf( PRINT_DEVELOPER,
-			"RTX RT stats: world=%lluB dynamic=%lluB tlas=%lluB compact_saved=%lluB dispatch=%llu skipped=%llu throttled=%llu historyResets=%llu tris(world=%llu dynamic=%llu masked=%llu) mats(world=%u dynamic=%u) dyn(entities=%u effects=%u) lights=%llu\n",
-			(unsigned long long)vk.rt.stats.world_build_bytes,
-			(unsigned long long)vk.rt.stats.dynamic_build_bytes,
-			(unsigned long long)vk.rt.stats.tlas_build_bytes,
-			(unsigned long long)vk.rt.stats.compacted_bytes_saved,
-			(unsigned long long)vk.rt.stats.dispatch_count,
-			(unsigned long long)vk.rt.stats.skipped_dispatches,
-			(unsigned long long)vk.rt.stats.throttled_builds,
-			(unsigned long long)vk.rt.stats.history_resets,
-			(unsigned long long)vk.rt.stats.world_triangles,
-			(unsigned long long)vk.rt.stats.dynamic_triangles,
-			(unsigned long long)vk.rt.stats.masked_triangles,
-			vk.rt.world_material_count,
-			vk.rt.dynamic_material_count,
-			vk.rt.dynamic_entity_count,
-			vk.rt.dynamic_effect_count,
-			(unsigned long long)vk.rt.stats.active_lights );
-	}
-
-	return copiedToColor;
+	return RT_TraceFrame();
 }
 
 static const char *vk_capability_value( qboolean supported )
@@ -9008,10 +2654,10 @@ static void vk_report_capabilities( const char *context )
 			vk_capability_value( vk.caps.rayTracingPipeline ) );
 	}
 
-	ri.Printf( PRINT_ALL, "RTX capability gate: requested=%s (%d), active=%s (%d), require=%d\n",
+	ri.Printf( PRINT_ALL, "RTX capability gate: requested=%s (%d), active=%s (%d), require=%d, backend=%s\n",
 		vk_rt_mode_name( vk.caps.requestedRtMode ), vk.caps.requestedRtMode,
 		vk_rt_mode_name( vk.caps.activeRtMode ), vk.caps.activeRtMode,
-		vk_rt_mode_required() ? 1 : 0 );
+		vk_rt_mode_required() ? 1 : 0, vk_rt_backend_name( vk.caps.rtBackend ) );
 }
 
 static const char *vk_lifetime_state_name( rtxVkLifetimeState_t state )
@@ -10371,16 +4017,18 @@ static void vk_create_render_passes( void )
 		// post-bloom pass
 		// color buffer
 		attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_LOAD; // load from previous pass
-		 // depth buffer
+		 // depth buffer; a view traced after an earlier view of the frame
+		 // ended the main pass draws its base in this pass, and its overlay
+		 // then loads that depth after the trace
 		attachments[1].loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
 		attachments[1].storeOp =
 			( motionBlurEnabled || globalFogEnabled || depthFadeActive ||
-			  liquidCaptureActive ) ?
+			  liquidCaptureActive || vk_rt_trace_available() ) ?
 			VK_ATTACHMENT_STORE_OP_STORE : VK_ATTACHMENT_STORE_OP_DONT_CARE;
 		attachments[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
 		attachments[1].stencilStoreOp =
 			( ( motionBlurEnabled || globalFogEnabled || depthFadeActive ||
-				liquidCaptureActive ) &&
+				liquidCaptureActive || vk_rt_trace_available() ) &&
 			  glConfig.stencilBits ) ?
 				VK_ATTACHMENT_STORE_OP_STORE : VK_ATTACHMENT_STORE_OP_DONT_CARE;
 		if ( vk.msaaActive ) {
@@ -11757,7 +5405,7 @@ static qboolean vk_alice_line_rasterization( VkPhysicalDevice physical_device )
 
 	vk.lineStipple = qfalse;
 	Com_Memset( &vk_alice_line_features, 0, sizeof( vk_alice_line_features ) );
-	if ( ri.gameId != COM_GAME_ALICE ||
+	if ( !COM_GAME_ID_IS_RITUAL( ri.gameId ) ||
 		( qvkGetPhysicalDeviceFeatures2 == NULL && qvkGetPhysicalDeviceFeatures2KHR == NULL ) ) {
 		return qfalse;
 	}
@@ -11910,6 +5558,8 @@ static qboolean vk_create_device( VkPhysicalDevice physical_device, int device_i
 		VkFormatProperties rtOutputFormatProperties;
 		VkFormatProperties rtColorFormatProperties;
 		qboolean rtOutputFormatSupported = qfalse;
+		qboolean hardwareRt = qfalse;
+		qboolean computeRt = qfalse;
 		qboolean rtPropertiesAvailable = qfalse;
 		qboolean rtShaderGroupLayoutValid = qfalse;
 		VkDeviceSize rtShaderGroupStride = 0;
@@ -12047,22 +5697,13 @@ static qboolean vk_create_device( VkPhysicalDevice physical_device, int device_i
 			physical_device,
 			vk.color_format,
 			&rtColorFormatProperties );
-		if ( ( rtOutputFormatProperties.optimalTilingFeatures &
-				( VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT | VK_FORMAT_FEATURE_TRANSFER_SRC_BIT ) ) ==
-			( VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT | VK_FORMAT_FEATURE_TRANSFER_SRC_BIT ) ) {
-			if ( vk.color_format == VK_FORMAT_R16G16B16A16_SFLOAT &&
-				!vk_rt_dynamic_resolution_enabled() ) {
-				rtOutputFormatSupported =
-					( rtColorFormatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_TRANSFER_DST_BIT ) != 0
-						? qtrue : qfalse;
-			} else {
-				rtOutputFormatSupported =
-					( rtOutputFormatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_SRC_BIT ) != 0 &&
-					( rtOutputFormatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT ) != 0 &&
-					( rtColorFormatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT ) != 0
-						? qtrue : qfalse;
-			}
-		}
+		// the composite is a storage image blitted (nearest) into scene colour
+		rtOutputFormatSupported =
+			( rtOutputFormatProperties.optimalTilingFeatures &
+				( VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT | VK_FORMAT_FEATURE_BLIT_SRC_BIT ) ) ==
+				( VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT | VK_FORMAT_FEATURE_BLIT_SRC_BIT ) &&
+			( rtColorFormatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT ) != 0
+				? qtrue : qfalse;
 
 		device_extension_count = 0;
 
@@ -12097,9 +5738,13 @@ static qboolean vk_create_device( VkPhysicalDevice physical_device, int device_i
 			const int requestedRtMode = ( requestedRtModeRaw < RTX_RT_MODE_DISABLED || requestedRtModeRaw > RTX_RT_MODE_RAY_TRACING_PIPELINE )
 				? RTX_RT_MODE_DISABLED : requestedRtModeRaw;
 			int activeRtMode = RTX_RT_MODE_DISABLED;
+			int rtBackend = RTX_RT_BACKEND_NONE;
+			const int requestedBackend = vk_requested_rt_backend();
 			char missingCaps[256];
+			char computeMissing[256];
 
 			missingCaps[0] = '\0';
+			computeMissing[0] = '\0';
 
 			if ( requestedRtMode == RTX_RT_MODE_RAY_QUERY || requestedRtMode == RTX_RT_MODE_RAY_TRACING_PIPELINE ) {
 				if ( !featureQueryAvailable ) {
@@ -12138,7 +5783,7 @@ static qboolean vk_create_device( VkPhysicalDevice physical_device, int device_i
 					Q_strcat( missingCaps, sizeof( missingCaps ), VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME );
 				}
 				if ( requestedRtMode == RTX_RT_MODE_RAY_TRACING_PIPELINE &&
-					physicalDeviceProperties.limits.maxPushConstantsSize < sizeof( rtxRtPushConstants_t ) ) {
+					physicalDeviceProperties.limits.maxPushConstantsSize < sizeof( rtDenoisePush_t ) ) {
 					if ( missingCaps[0] ) Q_strcat( missingCaps, sizeof( missingCaps ), ", " );
 					Q_strcat( missingCaps, sizeof( missingCaps ), "maxPushConstantsSize" );
 				}
@@ -12168,9 +5813,10 @@ static qboolean vk_create_device( VkPhysicalDevice physical_device, int device_i
 					if ( missingCaps[0] ) Q_strcat( missingCaps, sizeof( missingCaps ), ", " );
 					Q_strcat( missingCaps, sizeof( missingCaps ), "maxPerStageResources" );
 				}
+				// every ray starts in ray generation: a recursion depth of one
 				if ( requestedRtMode == RTX_RT_MODE_RAY_TRACING_PIPELINE &&
 					( !rtPropertiesAvailable ||
-						rtPipelineProperties.maxRayRecursionDepth < 2 ||
+						rtPipelineProperties.maxRayRecursionDepth < 1 ||
 						!rtShaderGroupLayoutValid ) ) {
 					if ( missingCaps[0] ) Q_strcat( missingCaps, sizeof( missingCaps ), ", " );
 					Q_strcat( missingCaps, sizeof( missingCaps ), "ray-tracing pipeline limits" );
@@ -12188,9 +5834,82 @@ static qboolean vk_create_device( VkPhysicalDevice physical_device, int device_i
 				}
 			}
 
+			/* The compute backend needs no acceleration structures: the
+			 * texture table's non-uniform indexing, the SPIR-V 1.4 its compute
+			 * shaders are built for, and the trace's descriptors in the
+			 * compute stage. */
+			if ( requestedRtMode == RTX_RT_MODE_RAY_TRACING_PIPELINE ) {
+				if ( !featureQueryAvailable ) {
+					Q_strcat( computeMissing, sizeof( computeMissing ), "vkGetPhysicalDeviceFeatures2" );
+				}
+				if ( !descriptorIndexing ) {
+					if ( computeMissing[0] ) Q_strcat( computeMissing, sizeof( computeMissing ), ", " );
+					Q_strcat( computeMissing, sizeof( computeMissing ), VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME );
+				}
+				if ( !spirv14 ) {
+					if ( computeMissing[0] ) Q_strcat( computeMissing, sizeof( computeMissing ), ", " );
+					Q_strcat( computeMissing, sizeof( computeMissing ), VK_KHR_SPIRV_1_4_EXTENSION_NAME );
+				}
+				if ( !shaderFloatControls ) {
+					if ( computeMissing[0] ) Q_strcat( computeMissing, sizeof( computeMissing ), ", " );
+					Q_strcat( computeMissing, sizeof( computeMissing ), VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME );
+				}
+				if ( physicalDeviceProperties.limits.maxPushConstantsSize < sizeof( rtDenoisePush_t ) ) {
+					if ( computeMissing[0] ) Q_strcat( computeMissing, sizeof( computeMissing ), ", " );
+					Q_strcat( computeMissing, sizeof( computeMissing ), "maxPushConstantsSize" );
+				}
+				if ( physicalDeviceProperties.limits.maxPerStageDescriptorStorageBuffers < RTX_RT_COMPUTE_STORAGE_BUFFER_COUNT ||
+					physicalDeviceProperties.limits.maxDescriptorSetStorageBuffers < RTX_RT_COMPUTE_STORAGE_BUFFER_COUNT ) {
+					if ( computeMissing[0] ) Q_strcat( computeMissing, sizeof( computeMissing ), ", " );
+					Q_strcat( computeMissing, sizeof( computeMissing ), "storage-buffer descriptor limits" );
+				}
+				if ( physicalDeviceProperties.limits.maxPerStageDescriptorStorageImages < RTX_RT_STORAGE_IMAGE_COUNT ||
+					physicalDeviceProperties.limits.maxDescriptorSetStorageImages < RTX_RT_STORAGE_IMAGE_COUNT ) {
+					if ( computeMissing[0] ) Q_strcat( computeMissing, sizeof( computeMissing ), ", " );
+					Q_strcat( computeMissing, sizeof( computeMissing ), "storage-image descriptor limits" );
+				}
+				if ( physicalDeviceProperties.limits.maxPerStageDescriptorSampledImages < RTX_RT_SAMPLED_IMAGE_COUNT ||
+					physicalDeviceProperties.limits.maxDescriptorSetSampledImages < RTX_RT_SAMPLED_IMAGE_COUNT ||
+					physicalDeviceProperties.limits.maxPerStageDescriptorSamplers < RTX_RT_SAMPLED_IMAGE_COUNT ||
+					physicalDeviceProperties.limits.maxDescriptorSetSamplers < RTX_RT_SAMPLED_IMAGE_COUNT ) {
+					if ( computeMissing[0] ) Q_strcat( computeMissing, sizeof( computeMissing ), ", " );
+					Q_strcat( computeMissing, sizeof( computeMissing ), "sampled-image descriptor limits" );
+				}
+				if ( physicalDeviceProperties.limits.maxPerStageResources < RTX_RT_COMPUTE_PER_STAGE_RESOURCE_COUNT ) {
+					if ( computeMissing[0] ) Q_strcat( computeMissing, sizeof( computeMissing ), ", " );
+					Q_strcat( computeMissing, sizeof( computeMissing ), "maxPerStageResources" );
+				}
+				if ( !rtOutputFormatSupported ) {
+					if ( computeMissing[0] ) Q_strcat( computeMissing, sizeof( computeMissing ), ", " );
+					Q_strcat( computeMissing, sizeof( computeMissing ), "RT output composition format support" );
+				}
+
+				if ( requestedBackend != RTX_RT_BACKEND_COMPUTE && missingCaps[0] == '\0' ) {
+					rtBackend = RTX_RT_BACKEND_HARDWARE;
+				} else if ( requestedBackend != RTX_RT_BACKEND_HARDWARE && computeMissing[0] == '\0' ) {
+					rtBackend = RTX_RT_BACKEND_COMPUTE;
+					if ( requestedBackend == RTX_RT_BACKEND_NONE ) {
+						ri.Printf( PRINT_ALL, "Vulkan: the ray-tracing pipeline is unavailable (missing: %s); "
+							"the path tracer traces with compute shaders\n", missingCaps );
+					}
+				} else {
+					// what the requested backend, or each backend, lacks
+					char both[256];
+					if ( requestedBackend == RTX_RT_BACKEND_COMPUTE ) {
+						Q_strncpyz( both, computeMissing, sizeof( both ) );
+					} else if ( requestedBackend == RTX_RT_BACKEND_NONE ) {
+						Com_sprintf( both, sizeof( both ), "%s; compute backend: %s", missingCaps, computeMissing );
+					} else {
+						Q_strncpyz( both, missingCaps, sizeof( both ) );
+					}
+					Q_strncpyz( missingCaps, both, sizeof( missingCaps ) );
+				}
+			}
+
 			if ( requestedRtMode == RTX_RT_MODE_DISABLED ) {
 				activeRtMode = RTX_RT_MODE_DISABLED;
-			} else if ( missingCaps[0] == '\0' ) {
+			} else if ( requestedRtMode == RTX_RT_MODE_RAY_TRACING_PIPELINE ? rtBackend != RTX_RT_BACKEND_NONE :
+				missingCaps[0] == '\0' ) {
 				activeRtMode = requestedRtMode;
 			} else if ( vk_rt_mode_required() ) {
 				ri.Error( ERR_FATAL,
@@ -12207,6 +5926,7 @@ static qboolean vk_create_device( VkPhysicalDevice physical_device, int device_i
 
 			vk.caps.requestedRtMode = requestedRtMode;
 			vk.caps.activeRtMode = activeRtMode;
+			vk.caps.rtBackend = ( activeRtMode == RTX_RT_MODE_RAY_TRACING_PIPELINE ) ? rtBackend : RTX_RT_BACKEND_NONE;
 		}
 
 		device_extension_list[ device_extension_count++ ] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
@@ -12214,7 +5934,15 @@ static qboolean vk_create_device( VkPhysicalDevice physical_device, int device_i
 			device_extension_list[ device_extension_count++ ] = VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME;
 		}
 
-		if ( vk.caps.activeRtMode >= RTX_RT_MODE_RAY_QUERY ) {
+		// ray queries and the ray-tracing pipeline need acceleration structures
+		hardwareRt = ( vk.caps.activeRtMode == RTX_RT_MODE_RAY_QUERY || vk_rt_pipeline_enabled() ) ? qtrue : qfalse;
+		computeRt = ( vk_rt_trace_available() && !vk_rt_pipeline_enabled() ) ? qtrue : qfalse;
+		if ( computeRt && !core12 ) {
+			device_extension_list[ device_extension_count++ ] = VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME;
+			device_extension_list[ device_extension_count++ ] = VK_KHR_SPIRV_1_4_EXTENSION_NAME;
+			device_extension_list[ device_extension_count++ ] = VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME;
+		}
+		if ( hardwareRt ) {
 			device_extension_list[ device_extension_count++ ] = VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME;
 			if ( !core12 ) {
 				device_extension_list[ device_extension_count++ ] = VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME;
@@ -12334,14 +6062,15 @@ static qboolean vk_create_device( VkPhysicalDevice physical_device, int device_i
 			pNextPtr = (const void **)&devaddr_features.pNext;
 		}
 
-		if ( vk.caps.activeRtMode >= RTX_RT_MODE_RAY_QUERY ) {
+		if ( hardwareRt || computeRt ) {
 			Com_Memset( &descriptor_indexing_features, 0, sizeof( descriptor_indexing_features ) );
 			*pNextPtr = &descriptor_indexing_features;
 			descriptor_indexing_features.pNext = NULL;
 			descriptor_indexing_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES;
 			descriptor_indexing_features.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
 			pNextPtr = (const void **)&descriptor_indexing_features.pNext;
-
+		}
+		if ( hardwareRt ) {
 			Com_Memset( &accel_struct_features, 0, sizeof( accel_struct_features ) );
 			*pNextPtr = &accel_struct_features;
 			accel_struct_features.pNext = NULL;
@@ -12363,7 +6092,7 @@ static qboolean vk_create_device( VkPhysicalDevice physical_device, int device_i
 			pNextPtr = (const void **)&ray_query_features.pNext;
 		}
 
-		if ( vk.caps.activeRtMode == RTX_RT_MODE_RAY_TRACING_PIPELINE ) {
+		if ( vk_rt_pipeline_enabled() ) {
 			Com_Memset( &rt_pipeline_features, 0, sizeof( rt_pipeline_features ) );
 			*pNextPtr = &rt_pipeline_features;
 			rt_pipeline_features.pNext = NULL;
@@ -12654,6 +6383,8 @@ static void init_vulkan_library( void )
 	INIT_DEVICE_FUNCTION(vkCmdCopyBuffer)
 	INIT_DEVICE_FUNCTION(vkCmdCopyBufferToImage)
 	INIT_DEVICE_FUNCTION(vkCmdCopyImage)
+	INIT_DEVICE_FUNCTION(vkCmdDispatch)
+	INIT_DEVICE_FUNCTION(vkCmdFillBuffer)
 	INIT_DEVICE_FUNCTION(vkCmdDraw)
 	INIT_DEVICE_FUNCTION(vkCmdDrawIndexed)
 	INIT_DEVICE_FUNCTION(vkCmdEndRenderPass)
@@ -12670,7 +6401,7 @@ static void init_vulkan_library( void )
 			vk.lineStipple = qfalse;
 		}
 	}
-	if ( ri.gameId == COM_GAME_ALICE ) {
+	if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) ) {
 		ri.Printf( PRINT_ALL, "...Alice debug lines: %s, %s\n",
 			vk.wideLines ? "each line's width" : "one pixel wide (no wideLines)",
 			vk.lineStipple ? "stippled (VK_EXT_line_rasterization)" : "solid (no stippled VK_EXT_line_rasterization lines)" );
@@ -12679,6 +6410,7 @@ static void init_vulkan_library( void )
 	INIT_DEVICE_FUNCTION(vkCmdWriteTimestamp)
 	INIT_DEVICE_FUNCTION(vkCreateBuffer)
 	INIT_DEVICE_FUNCTION(vkCreateCommandPool)
+	INIT_DEVICE_FUNCTION(vkCreateComputePipelines)
 	INIT_DEVICE_FUNCTION(vkCreateDescriptorPool)
 	INIT_DEVICE_FUNCTION(vkCreateDescriptorSetLayout)
 	INIT_DEVICE_FUNCTION(vkCreateFence)
@@ -12848,6 +6580,8 @@ static void deinit_device_functions( void )
 	qvkCmdCopyBuffer							= NULL;
 	qvkCmdCopyBufferToImage						= NULL;
 	qvkCmdCopyImage								= NULL;
+	qvkCmdDispatch								= NULL;
+	qvkCmdFillBuffer							= NULL;
 	qvkCmdDraw									= NULL;
 	qvkCmdDrawIndexed							= NULL;
 	qvkCmdEndRenderPass							= NULL;
@@ -12863,6 +6597,7 @@ static void deinit_device_functions( void )
 	qvkCmdWriteTimestamp						= NULL;
 	qvkCreateBuffer								= NULL;
 	qvkCreateCommandPool						= NULL;
+	qvkCreateComputePipelines					= NULL;
 	qvkCreateDescriptorPool						= NULL;
 	qvkCreateDescriptorSetLayout				= NULL;
 	qvkCreateFence								= NULL;
@@ -13903,6 +7638,13 @@ qboolean vk_alloc_vbo( const byte *vbo_data, int vbo_size )
 #endif
 
 #include "shaders/spirv/shader_data.c"
+
+// the path tracer: materials, lights, the compute backend's BVHs, acceleration
+// structures, trace, denoiser
+#include "rt/rt_material.c"
+#include "rt/rt_lights.c"
+#include "rt/rt_bvh.c"
+#include "rt/rt_backend.c"
 #define SHADER_MODULE(name) SHADER_MODULE(name,sizeof(name))
 
 static void vk_create_shader_modules( void )
@@ -14142,18 +7884,33 @@ static void vk_create_shader_modules( void )
 	SET_OBJECT_NAME( vk.modules.gamma_fs, "gamma post-processing fragment module", VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT );
 	SET_OBJECT_NAME( vk.modules.gamma_vs, "gamma post-processing vertex module", VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT );
 
-	if ( vk_rt_pipeline_enabled() ) {
-		vk.modules.rt_rgen = SHADER_MODULE( rt_main_rgen_spv );
-		vk.modules.rt_rmiss = SHADER_MODULE( rt_main_rmiss_spv );
-		vk.modules.rt_rmiss_shadow = SHADER_MODULE( rt_shadow_rmiss_spv );
-		vk.modules.rt_rchit = SHADER_MODULE( rt_main_rchit_spv );
-		vk.modules.rt_rahit = SHADER_MODULE( rt_main_rahit_spv );
+	if ( vk_rt_trace_available() ) {
+		if ( vk_rt_pipeline_enabled() ) {
+			vk.modules.rt_rgen = SHADER_MODULE( rt_main_rgen_spv );
+			vk.modules.rt_rmiss = SHADER_MODULE( rt_main_rmiss_spv );
+			vk.modules.rt_rmiss_shadow = SHADER_MODULE( rt_shadow_rmiss_spv );
+			vk.modules.rt_rmiss_filter = SHADER_MODULE( rt_filter_rmiss_spv );
+			vk.modules.rt_rchit = SHADER_MODULE( rt_main_rchit_spv );
+			vk.modules.rt_rahit = SHADER_MODULE( rt_main_rahit_spv );
+			vk.modules.rt_rahit_filter = SHADER_MODULE( rt_filter_rahit_spv );
 
-		SET_OBJECT_NAME( vk.modules.rt_rgen, "rt raygen module", VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT );
-		SET_OBJECT_NAME( vk.modules.rt_rmiss, "rt miss module", VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT );
-		SET_OBJECT_NAME( vk.modules.rt_rmiss_shadow, "rt shadow miss module", VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT );
-		SET_OBJECT_NAME( vk.modules.rt_rchit, "rt closest-hit module", VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT );
-		SET_OBJECT_NAME( vk.modules.rt_rahit, "rt any-hit module", VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT );
+			SET_OBJECT_NAME( vk.modules.rt_rgen, "rt raygen module", VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT );
+			SET_OBJECT_NAME( vk.modules.rt_rmiss, "rt miss module", VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT );
+			SET_OBJECT_NAME( vk.modules.rt_rmiss_shadow, "rt shadow miss module", VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT );
+			SET_OBJECT_NAME( vk.modules.rt_rchit, "rt closest-hit module", VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT );
+			SET_OBJECT_NAME( vk.modules.rt_rahit, "rt any-hit module", VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT );
+			SET_OBJECT_NAME( vk.modules.rt_rmiss_filter, "rt filter miss module", VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT );
+			SET_OBJECT_NAME( vk.modules.rt_rahit_filter, "rt filter any-hit module", VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT );
+		} else {
+			vk.modules.rt_trace = SHADER_MODULE( rt_trace_comp_spv );
+			SET_OBJECT_NAME( vk.modules.rt_trace, "rt compute trace module", VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT );
+		}
+		vk.modules.rt_composite = SHADER_MODULE( rt_composite_comp_spv );
+		vk.modules.rt_tonemap = SHADER_MODULE( rt_tonemap_comp_spv );
+		vk.modules.rt_denoise_temporal = SHADER_MODULE( rt_denoise_temporal_comp_spv );
+		vk.modules.rt_denoise_atrous = SHADER_MODULE( rt_denoise_atrous_comp_spv );
+		SET_OBJECT_NAME( vk.modules.rt_composite, "rt composite module", VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT );
+		SET_OBJECT_NAME( vk.modules.rt_tonemap, "rt tone mapping module", VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT );
 	}
 }
 
@@ -16488,6 +10245,15 @@ void vk_create_pipelines( void )
 	vk_alloc_persistent_pipelines();
 
 	vk.pipelines_world_base = vk.pipelines_count;
+
+	// The path tracer's pipelines are compiled now, before a level's images
+	// and world take the address space: a 32-bit client's driver compiles the
+	// compute backend's trace in the same 2 GB, and fails when a large level
+	// has left it too little. A failure here leaves the first traced frame
+	// to try again.
+	if ( vk_rt_trace_available() && ( vk.rt.initialized || vk_rt_init() ) && !RT_EnsurePipelines() ) {
+		vk_rt_shutdown();
+	}
 }
 
 
@@ -16974,6 +10740,34 @@ void vk_shutdown( refShutdownCode_t code )
 	if ( vk.modules.rt_rahit != VK_NULL_HANDLE ) {
 		qvkDestroyShaderModule( vk.device, vk.modules.rt_rahit, NULL );
 		vk.modules.rt_rahit = VK_NULL_HANDLE;
+	}
+	if ( vk.modules.rt_trace != VK_NULL_HANDLE ) {
+		qvkDestroyShaderModule( vk.device, vk.modules.rt_trace, NULL );
+		vk.modules.rt_trace = VK_NULL_HANDLE;
+	}
+	if ( vk.modules.rt_rmiss_filter != VK_NULL_HANDLE ) {
+		qvkDestroyShaderModule( vk.device, vk.modules.rt_rmiss_filter, NULL );
+		vk.modules.rt_rmiss_filter = VK_NULL_HANDLE;
+	}
+	if ( vk.modules.rt_rahit_filter != VK_NULL_HANDLE ) {
+		qvkDestroyShaderModule( vk.device, vk.modules.rt_rahit_filter, NULL );
+		vk.modules.rt_rahit_filter = VK_NULL_HANDLE;
+	}
+	if ( vk.modules.rt_composite != VK_NULL_HANDLE ) {
+		qvkDestroyShaderModule( vk.device, vk.modules.rt_composite, NULL );
+		vk.modules.rt_composite = VK_NULL_HANDLE;
+	}
+	if ( vk.modules.rt_tonemap != VK_NULL_HANDLE ) {
+		qvkDestroyShaderModule( vk.device, vk.modules.rt_tonemap, NULL );
+		vk.modules.rt_tonemap = VK_NULL_HANDLE;
+	}
+	if ( vk.modules.rt_denoise_temporal != VK_NULL_HANDLE ) {
+		qvkDestroyShaderModule( vk.device, vk.modules.rt_denoise_temporal, NULL );
+		vk.modules.rt_denoise_temporal = VK_NULL_HANDLE;
+	}
+	if ( vk.modules.rt_denoise_atrous != VK_NULL_HANDLE ) {
+		qvkDestroyShaderModule( vk.device, vk.modules.rt_denoise_atrous, NULL );
+		vk.modules.rt_denoise_atrous = VK_NULL_HANDLE;
 	}
 
 __cleanup:
@@ -19543,10 +13337,16 @@ static void get_scissor_rect(VkRect2D *r) {
 		if (r->offset.y < 0)
 			r->offset.y = 0;
 
-		if (r->offset.x + r->extent.width > glConfig.vidWidth)
-			r->extent.width = glConfig.vidWidth - r->offset.x;
-		if (r->offset.y + r->extent.height > glConfig.vidHeight)
-			r->extent.height = glConfig.vidHeight - r->offset.y;
+		// clamp to the render pass's own target: a shadow atlas tile lies
+		// beyond the window's width
+		if ( (uint32_t)r->offset.x >= vk.renderWidth )
+			r->extent.width = 0;
+		else if (r->offset.x + r->extent.width > vk.renderWidth)
+			r->extent.width = vk.renderWidth - r->offset.x;
+		if ( (uint32_t)r->offset.y >= vk.renderHeight )
+			r->extent.height = 0;
+		else if (r->offset.y + r->extent.height > vk.renderHeight)
+			r->extent.height = vk.renderHeight - r->offset.y;
 	}
 }
 
@@ -19611,6 +13411,9 @@ void vk_clear_color( const vec4_t color ) {
 	get_scissor_rect( &clear_rect.rect );
 	clear_rect.baseArrayLayer = 0;
 	clear_rect.layerCount = 1;
+	if ( clear_rect.rect.extent.width == 0 || clear_rect.rect.extent.height == 0 ) {
+		return;	// nothing of the view lies in the target
+	}
 
 	qvkCmdClearAttachments( vk.cmd->command_buffer, 1, &attachment, 1, &clear_rect );
 }
@@ -19628,9 +13431,12 @@ static void vk_clear_depth_internal( qboolean clear_stencil, qboolean force )
 	 * Depth can be cleared more than once in one command buffer (portals,
 	 * stereo eyes, and later primary views).  A prior scene-depth snapshot is
 	 * no longer valid even when this clear is elided for an already-clean
-	 * attachment.
+	 * attachment.  That includes a view begun in the post-bloom pass: RTCW's
+	 * and ET's portal sky is a full-screen view whose snapshot ends the main
+	 * pass, and the view behind it clears depth in the post-bloom pass that
+	 * follows; its soft particles must fade against its own depth.
 	 */
-	if ( vk.renderPassIndex == RENDER_PASS_MAIN ) {
+	if ( vk.renderPassIndex == RENDER_PASS_MAIN || vk.renderPassIndex == RENDER_PASS_POST_BLOOM ) {
 		vk.liquidDepth.copied = qfalse;
 	}
 
@@ -19657,6 +13463,9 @@ static void vk_clear_depth_internal( qboolean clear_stencil, qboolean force )
 	get_scissor_rect( &clear_rect[0].rect );
 	clear_rect[0].baseArrayLayer = 0;
 	clear_rect[0].layerCount = 1;
+	if ( clear_rect[0].rect.extent.width == 0 || clear_rect[0].rect.extent.height == 0 ) {
+		return;	// nothing of the view lies in the target
+	}
 
 	qvkCmdClearAttachments( vk.cmd->command_buffer, 1, &attachment, 1, clear_rect );
 }
@@ -21299,7 +15108,12 @@ static qboolean is_bgr( VkFormat format ) {
 }
 
 
-void vk_read_pixels( byte *buffer, uint32_t width, uint32_t height )
+/*
+Read the frame back for a screenshot or a video frame. False, with nothing
+read, when the device has no memory left for the copy: another program may
+hold it, and a screenshot is not worth ending the game over.
+*/
+qboolean vk_read_pixels( byte *buffer, uint32_t width, uint32_t height )
 {
 	VkCommandBuffer command_buffer;
 	VkDeviceMemory memory;
@@ -21356,7 +15170,10 @@ void vk_read_pixels( byte *buffer, uint32_t width, uint32_t height )
 	desc.pQueueFamilyIndices = NULL;
 	desc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
-	VK_CHECK( qvkCreateImage( vk.device, &desc, NULL, &dstImage ) );
+	if ( qvkCreateImage( vk.device, &desc, NULL, &dstImage ) != VK_SUCCESS ) {
+		ri.Printf( PRINT_WARNING, "WARNING: %s(): no image to read the frame back into\n", __func__ );
+		return qfalse;
+	}
 
 	qvkGetImageMemoryRequirements( vk.device, dstImage, &memory_requirements );
 
@@ -21376,7 +15193,9 @@ void vk_read_pixels( byte *buffer, uint32_t width, uint32_t height )
 			memory_reqs = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 			alloc_info.memoryTypeIndex = find_memory_type2( memory_requirements.memoryTypeBits, memory_reqs, &memory_flags );
 			if ( alloc_info.memoryTypeIndex == ~0U ) {
-				ri.Error( ERR_FATAL, "%s(): failed to find matching memory type for image capture", __func__ );
+				ri.Printf( PRINT_WARNING, "WARNING: %s(): no host-visible memory type for image capture\n", __func__ );
+				qvkDestroyImage( vk.device, dstImage, NULL );
+				return qfalse;
 			}
 		}
 	}
@@ -21388,7 +15207,12 @@ void vk_read_pixels( byte *buffer, uint32_t width, uint32_t height )
 		invalidate_ptr = qtrue;
 	}
 
-	VK_CHECK(qvkAllocateMemory(vk.device, &alloc_info, NULL, &memory));
+	if ( qvkAllocateMemory( vk.device, &alloc_info, NULL, &memory ) != VK_SUCCESS ) {
+		ri.Printf( PRINT_WARNING, "WARNING: %s(): no memory left to read the frame back (%u bytes)\n", __func__,
+			(unsigned)alloc_info.allocationSize );
+		qvkDestroyImage( vk.device, dstImage, NULL );
+		return qfalse;
+	}
 	VK_CHECK(qvkBindImageMemory(vk.device, dstImage, memory, 0));
 
 	command_buffer = begin_command_buffer();
@@ -21536,6 +15360,7 @@ void vk_read_pixels( byte *buffer, uint32_t width, uint32_t height )
 
 		end_command_buffer( command_buffer, "restore layout" );
 	}
+	return qtrue;
 }
 
 

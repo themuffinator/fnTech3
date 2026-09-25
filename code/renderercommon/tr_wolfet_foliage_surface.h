@@ -9,7 +9,9 @@ static void RB_SurfaceWolfETFoliage( void *data ) {
 	const srfWolfETFoliage_t *srf = (const srfWolfETFoliage_t *)data;
 	const float *cull = tess.shader->wolfetDistanceCull;
 	const int active = FnWolfET_DistanceCullActive( cull );
-	const float fovX = backEnd.viewParms.fovX;
+	/* ET scales a depth by the field it was given; widened for a wider screen
+	 * (r_fovCorrection), foliage keeps the distance it had on a 4:3 one. */
+	const float fovX = backEnd.refdef.fovXAuthored > 0.0f ? backEnd.refdef.fovXAuthored : backEnd.viewParms.fovX;
 	float axis[4], farNormal[3], farDist;
 	vec3_t local;
 	int o, i;

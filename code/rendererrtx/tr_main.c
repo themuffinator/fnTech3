@@ -1491,7 +1491,10 @@ R_MirrorViewBySurface
 Returns qtrue if another view has been rendered
 ========================
 */
+#include "../renderercommon/tr_rtcw_engine_lights.h"
+
 extern int r_numdlights;
+extern int r_numModuleDlights;
 static qboolean R_MirrorViewBySurface( const drawSurf_t *drawSurf, int entityNum ) {
 	viewParms_t		newParms;
 	viewParms_t		oldParms;
@@ -1543,6 +1546,13 @@ static qboolean R_MirrorViewBySurface( const drawSurf_t *drawSurf, int entityNum
 		int copyCount = MIN( (int)oldParms.num_dlights,
 			(int)ARRAY_LEN( backEndData->dlights ) - r_numdlights );
 		int i;
+
+		if ( R_ReservesModuleLights() ) {
+			// the engine's own lights never take a slot RTCW's or ET's modules may still claim
+			copyCount = RTCW_PortalLightCopies( (int)oldParms.num_dlights,
+				tr.refdef.num_moduleDlights, r_numdlights, (int)ARRAY_LEN( backEndData->dlights ),
+				RTCW_EngineLightEnd( (int)ARRAY_LEN( backEndData->dlights ), r_numModuleDlights, r_numdlights ) );
+		}
 
 		newParms.dlights = &backEndData->dlights[r_numdlights];
 		newParms.num_dlights = copyCount;
@@ -3251,7 +3261,11 @@ static void R_AddEntitySurfaces( void ) {
 
 		// Alice draws a sky entity only in its sky portal's view, and a portal
 		// view only the entities flagged for one (R_AliceEntityInView)
-		if ( ri.gameId == COM_GAME_ALICE && !R_AliceEntityInView( ent ) ) {
+		if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) && !R_AliceEntityInView( ent ) ) {
+			continue;
+		}
+		// and Medal of Honor its own sky entities (R_MOHAAEntityInView)
+		if ( ri.gameId == COM_GAME_MOHAA && !R_MOHAAEntityInView( ent ) ) {
 			continue;
 		}
 
@@ -3331,6 +3345,9 @@ static void R_AddEntitySurfaces( void ) {
 				case MOD_ALICE_TIKI:
 					R_AddAliceTikiSurfaces( ent );
 					break;
+				case MOD_MOHAA_TIKI:
+					R_AddMOHAATikiSurfaces( ent );
+					break;
 				case MOD_ALICE_SPRITE:
 					// Retail's model table skips a sprite submitted as a
 					// plain model (0x00478f78 sends type 6 to 0x00478f34).
@@ -3407,7 +3424,7 @@ static void R_AliceSetupFarPlane( void ) {
 	view->aliceFarFog = qfalse;
 	view->aliceFarCull = qfalse;
 	view->aliceSkyPortalDrawn = qfalse;
-	if ( ri.gameId != COM_GAME_ALICE || R_ViewPassIsPortal( view ) ) {
+	if ( !R_GAME_HAS_RITUAL_VIEW( ri.gameId ) || R_ViewPassIsPortal( view ) ) {
 		return;
 	}
 
@@ -3448,7 +3465,7 @@ the sky portal: retail counts it instead of adding it (alice.exe 0x00491dc0,
 =================
 */
 qboolean R_AliceCollectSkyPortalSurface( const shader_t *shader ) {
-	if ( ri.gameId != COM_GAME_ALICE || !shader || !shader->alicePortalSky ) {
+	if ( !R_GAME_HAS_RITUAL_VIEW( ri.gameId ) || !shader || !shader->alicePortalSky ) {
 		return qfalse;
 	}
 	tr.numAliceSkyPortalSurfaces++;
@@ -3478,7 +3495,7 @@ static void R_AliceRenderSkyPortal( void ) {
 	viewParms_t saved, sky;
 	vec3_t origin;
 
-	if ( ri.gameId != COM_GAME_ALICE || !tr.numAliceSkyPortalSurfaces ||
+	if ( !R_GAME_HAS_RITUAL_VIEW( ri.gameId ) || !tr.numAliceSkyPortalSurfaces ||
 		!tr.refdef.alice.skyPortal || tr.aliceSkyPortalRendered ) {
 		return;
 	}
@@ -3545,7 +3562,7 @@ void R_AliceQueueDebugLines( void ) {
 	const void *lines;
 	int count = 0;
 
-	if ( ri.gameId != COM_GAME_ALICE || !ri.AliceDebugLines ||
+	if ( !COM_GAME_ID_IS_RITUAL( ri.gameId ) || !ri.AliceDebugLines ||
 		( tr.refdef.rdflags & RDF_NOWORLDMODEL ) || R_ViewPassIsPortal( &tr.viewParms ) ) {
 		return;
 	}
@@ -3579,7 +3596,7 @@ static void R_GenerateDrawSurfs( void ) {
 
 	R_AddPolygonSurfaces();
 
-	if ( ri.gameId == COM_GAME_ALICE && !( tr.refdef.rdflags & RDF_NOWORLDMODEL ) ) {
+	if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) && !( tr.refdef.rdflags & RDF_NOWORLDMODEL ) ) {
 		R_AddAliceSwipeSurfaces();
 	}
 

@@ -80,6 +80,17 @@ static void TestNativeModuleNames()
 			const auto *profile = Com_GameManagerProfileAt( p );
 			for ( const char *module : { "cgame", "qagame", "ui" } ) {
 				char name[64];
+				if ( profile->id == COM_GAME_Q3TEST ) {
+					// Every Q3Test installer put its Win32 x86 libraries in the
+					// installation root, uix86.dll included from 1.06.
+					const bool available = !std::strcmp( host.arch, "x86" ) && !std::strcmp( host.ext, ".dll" );
+					std::memset( name, 0x5a, sizeof( name ) );
+					assert( !!Com_GameManagerNativeModuleFilename( profile, module, host.arch, host.ext, 0, name, sizeof( name ) ) == available );
+					if ( available ) assert( name == std::string( module ) + "x86.dll" );
+					else for ( char byte : name ) assert( byte == 0x5a );
+					assert( !Com_GameManagerNativeModuleFilename( profile, module, host.arch, host.ext, 1, name, sizeof( name ) ) );
+					continue;
+				}
 				if ( profile->id == COM_GAME_QUAKE3_IHV ) {
 					const bool available = !std::strcmp( host.arch, "x86" ) && !std::strcmp( host.ext, ".dll" ) && std::strcmp( module, "ui" );
 					std::memset( name, 0x5a, sizeof( name ) );
@@ -89,12 +100,18 @@ static void TestNativeModuleNames()
 					assert( !Com_GameManagerNativeModuleFilename( profile, module, host.arch, host.ext, 1, name, sizeof( name ) ) );
 					continue;
 				}
-				if ( profile->titleId == COM_GAME_TITLE_ALICE ) {
-					// Ritual shipped Win32 x86 libraries only: fgamex86.dll for
-					// the game and cgamex86.dll for the client game, both in
-					// base/. The menus are the engine's, so there is no UI module.
+				if ( profile->titleId == COM_GAME_TITLE_ALICE || profile->titleId == COM_GAME_TITLE_FAKK2
+					|| profile->titleId == COM_GAME_TITLE_MOHAA ) {
+					// Ritual shipped Win32 x86 libraries only: fgamex86.dll (Alice)
+					// or gamex86.dll (F.A.K.K.2) for the game and cgamex86.dll for
+					// the client game, both beside the paks. The menus are the
+					// engine's, so there is no UI module. Medal of Honor's are named
+					// as F.A.K.K.2's, in main/.
+					const bool fakk2 = profile->titleId == COM_GAME_TITLE_FAKK2
+						|| profile->titleId == COM_GAME_TITLE_MOHAA;
 					const char *leaf = !std::strcmp( module, "ui" ) ? nullptr
-						: !std::strcmp( module, "cgame" ) ? "cgamex86.dll" : "fgamex86.dll";
+						: !std::strcmp( module, "cgame" ) ? "cgamex86.dll"
+						: fakk2 ? "gamex86.dll" : "fgamex86.dll";
 					const bool retail = leaf && !std::strcmp( host.arch, "x86" )
 						&& !std::strcmp( host.ext, ".dll" );
 					std::memset( name, 0x5a, sizeof( name ) );
@@ -250,7 +267,7 @@ static void TestNativeModuleNames()
 			assert( ( result != 0 ) == present );
 			if ( present && profile->id == COM_GAME_STVEF_SP ) {
 				assert( root == 1 && !std::strcmp( output, "efgamex86.dll" ) );
-			} else if ( present && profile->id == COM_GAME_QUAKE3_IHV ) {
+			} else if ( present && ( profile->id == COM_GAME_QUAKE3_IHV || profile->id == COM_GAME_Q3TEST ) ) {
 				assert( root == 1 && !std::strcmp( output, "cgamex86.dll" ) );
 			} else if ( present && profile->titleId == COM_GAME_TITLE_JKA ) {
 				// Jedi Academy's single player takes its client game from the
@@ -334,8 +351,8 @@ static void TestNativeModuleCalls()
 
 static void TestManager()
 {
-	assert( Com_GameManagerTitleCount() == 8 );
-	assert( Com_GameManagerProfileCount() == 13 );
+	assert( Com_GameManagerTitleCount() == 10 );
+	assert( Com_GameManagerProfileCount() == 16 );
 	assert( !Com_GameManagerTitleAt( UINT_MAX ) );
 	assert( !Com_GameManagerProfileAt( UINT_MAX ) );
 	assert( !Com_GameManagerProfileAt( Com_GameManagerProfileCount() ) );
@@ -357,7 +374,8 @@ static void TestManager()
 		const auto *title = Com_GameManagerTitleAt( t );
 		assert( title == Com_GameManagerTitleById( title->id ) );
 		const auto count = Com_GameManagerTitleProfileCount( title->id );
-		assert( count == ( title->id == COM_GAME_TITLE_QUAKE3 || title->id == COM_GAME_TITLE_RTCW
+		// Quake III holds the retail line, the IHV test and the Q3Test releases.
+		assert( count == ( title->id == COM_GAME_TITLE_QUAKE3 ? 3u : title->id == COM_GAME_TITLE_RTCW
 			|| title->id == COM_GAME_TITLE_STVEF || title->id == COM_GAME_TITLE_JKA
 			|| title->id == COM_GAME_TITLE_JK2 ? 2u : 1u ) );
 		for ( unsigned i = 0; i < count; ++i ) {
@@ -384,7 +402,8 @@ static void TestManager()
 		| COM_GAME_MARKER_STVEF_SP | COM_GAME_MARKER_STVEF_MP | COM_GAME_MARKER_QUAKE3_IHV
 		| COM_GAME_MARKER_JKA_SP | COM_GAME_MARKER_JKA_MP
 		| COM_GAME_MARKER_JK2_SP | COM_GAME_MARKER_JK2_MP
-		| COM_GAME_MARKER_ALICE ) );
+		| COM_GAME_MARKER_ALICE | COM_GAME_MARKER_FAKK2 | COM_GAME_MARKER_MOHAA
+		| COM_GAME_MARKER_Q3TEST ) );
 	// Jedi Academy's two modes share one installation, as RTCW's and Elite
 	// Force's do, so each mode matches an installation carrying both.
 	const auto *jkaSp = Com_GameProfileById( COM_GAME_JKA_SP );
@@ -533,7 +552,7 @@ static void TestBspFormats()
 {
 	static_assert( sizeof( comGameBspFormat_t ) == 4 );
 	assert( !Com_GameProfile() );
-	for ( int version : { INT_MIN, -1, 0, 1, 42, 43, 44, 45, 46, 47, 48, INT_MAX } ) {
+	for ( int version : { INT_MIN, -1, 0, 1, 12, 17, 18, 19, 20, 21, 42, 43, 44, 45, 46, 47, 48, INT_MAX } ) {
 		assert( Com_GameBspFormat( version ) == COM_GAME_BSP_UNSUPPORTED );
 		assert( Com_GameManagerBspFormat( nullptr, version ) == COM_GAME_BSP_UNSUPPORTED );
 		for ( unsigned p = 0; p < Com_GameManagerProfileCount(); ++p ) {
@@ -546,12 +565,22 @@ static void TestBspFormats()
 			const bool rbsp = jka || profile->titleId == COM_GAME_TITLE_JK2;
 			// Alice is a Ritual F.A.K.K.2 engine: "FAKK" 42 and nothing else,
 			// with the same 512 submodels its own bounds check admits.
+			// F.A.K.K.2 itself admits its own 12 and nothing else, and 384
+			// submodels, the bound fakk2.exe 1.02 checks (0x0042575f).
 			const bool fakk = profile->titleId == COM_GAME_TITLE_ALICE;
+			const bool fakk2 = profile->titleId == COM_GAME_TITLE_FAKK2;
+			// Medal of Honor 1.00 admits its own "2015" 19 and nothing else, and
+			// 1,024 submodels, the maps' own ceiling.
+			const bool mohaa = profile->titleId == COM_GAME_TITLE_MOHAA;
 			const bool wide = rtcw || jka || fakk || profile->id == COM_GAME_JK2_SP;
-			assert( profile->collisionModelHandleCount == ( wide ? 512 : 256 ) );
+			assert( profile->collisionModelHandleCount == ( mohaa ? 1024 : fakk2 ? 384 : wide ? 512 : 256 ) );
 			const bool stvef = profile->titleId == COM_GAME_TITLE_STVEF;
 			const auto expected = profile->id == COM_GAME_QUAKE3_IHV ? ( version == 43 ? COM_GAME_BSP_QUAKE3_IHV : COM_GAME_BSP_UNSUPPORTED )
+				// Q3Test's releases read IBSP 44 (1.02 to 1.05) or 45 (1.06 to 1.08).
+				: profile->id == COM_GAME_Q3TEST ? ( version == 44 || version == 45 ? COM_GAME_BSP_Q3TEST : COM_GAME_BSP_UNSUPPORTED )
+				: mohaa ? ( version == 19 ? COM_GAME_BSP_MOHAA : COM_GAME_BSP_UNSUPPORTED )
 				: fakk ? ( version == 42 ? COM_GAME_BSP_FAKK : COM_GAME_BSP_UNSUPPORTED )
+				: fakk2 ? ( version == 12 ? COM_GAME_BSP_FAKK : COM_GAME_BSP_UNSUPPORTED )
 				: rbsp ? ( version == 1 ? COM_GAME_BSP_RBSP : COM_GAME_BSP_UNSUPPORTED )
 				: stvef ? ( version == 46 ? COM_GAME_BSP_QUAKE3 : COM_GAME_BSP_UNSUPPORTED )
 				: version == 47
@@ -758,17 +787,72 @@ int main()
 	assert( Com_ProtocolFamilyForVersion( 91 ) ==
 		COM_PROTOCOL_FAMILY_QUAKELIVE );
 	assert( Com_ProtocolFamilyForVersion( 69 ) == 0 );
-	// Alice's protocol 1 belongs to Alice alone, and no other profile
-	// admits it.
-	assert( Com_ProtocolFamilyForVersion( 1 ) == COM_PROTOCOL_FAMILY_ALICE );
+	// Protocol 1 is spoken by Alice's engine and by F.A.K.K.2's, and no
+	// other profile admits it. Each of the two admits only its own family.
+	assert( Com_ProtocolFamilyForVersion( 1 )
+		== ( COM_PROTOCOL_FAMILY_ALICE | COM_PROTOCOL_FAMILY_FAKK2 ) );
 	{
 		const auto *alice = Com_GameProfileById( COM_GAME_ALICE );
+		const auto *fakk2 = Com_GameProfileById( COM_GAME_FAKK2 );
 		assert( alice && Com_GameProfileAllowsProtocol( alice, 1 ) );
+		assert( fakk2 && Com_GameProfileAllowsProtocol( fakk2, 1 ) );
+		assert( alice->allowedProtocolFamilies == COM_PROTOCOL_FAMILY_ALICE );
+		assert( fakk2->allowedProtocolFamilies == COM_PROTOCOL_FAMILY_FAKK2 );
 		for ( unsigned p = 0; p < Com_GameManagerProfileCount(); ++p ) {
 			const auto *other = Com_GameManagerProfileAt( p );
-			if ( other != alice ) assert( !Com_GameProfileAllowsProtocol( other, 1 ) );
+			if ( other != alice && other != fakk2 ) assert( !Com_GameProfileAllowsProtocol( other, 1 ) );
 			else assert( !Com_GameProfileAllowsProtocol( other, 68 ) );
 		}
+		// The two Ritual titles share an engine lineage and nothing that
+		// would let one profile's modules load under the other.
+		assert( !Com_GameProfileAllowsModuleApi( alice, COM_MODULE_API_FAKK2_NATIVE ) );
+		assert( !Com_GameProfileAllowsModuleApi( fakk2, COM_MODULE_API_ALICE_NATIVE ) );
+		assert( Com_GameProfileAllowsModuleApi( fakk2, COM_MODULE_API_FAKK2_NATIVE ) );
+		assert( !std::strcmp( fakk2->baseGame, "fakk" ) && !std::strcmp( fakk2->basePakName, "pak0.pk3" ) );
+		assert( fakk2 == Com_GameManagerFindProfile( "FAKK2" ) );
+		assert( fakk2 == Com_GameManagerFindProfile( "hmfakk2" ) );
+		assert( fakk2->maxConfigstrings == 1200 && fakk2->playerConfigstringBase == 768 );
+		assert( fakk2->maxClients == 128 && fakk2->bots.reliableCommands == 64 );
+		assert( alice->bots.reliableCommands == 128 );
+		assert( !std::strcmp( Com_GameManagerConfigFile( fakk2, 0 ), "config.cfg" ) );
+		assert( Com_GameManagerInstallationMatches( fakk2, COM_GAME_MARKER_FAKK2 ) );
+		assert( !Com_GameManagerInstallationMatches( fakk2, COM_GAME_MARKER_FAKK2 | COM_GAME_MARKER_ALICE ) );
+		assert( !Com_GameManagerInstallationMatches( alice, COM_GAME_MARKER_FAKK2 ) );
+	}
+	// Medal of Honor: Allied Assault 1.00 speaks protocol 6, which no other
+	// profile admits, and loads its own function-table modules from main/.
+	assert( Com_ProtocolFamilyForVersion( 6 ) == COM_PROTOCOL_FAMILY_MOHAA );
+	{
+		const auto *mohaa = Com_GameProfileById( COM_GAME_MOHAA );
+		assert( mohaa && Com_GameProfileAllowsProtocol( mohaa, 6 ) );
+		assert( mohaa->allowedProtocolFamilies == COM_PROTOCOL_FAMILY_MOHAA );
+		assert( !Com_GameProfileAllowsProtocol( mohaa, 8 ) && !Com_GameProfileAllowsProtocol( mohaa, 1 ) );
+		for ( unsigned p = 0; p < Com_GameManagerProfileCount(); ++p ) {
+			const auto *other = Com_GameManagerProfileAt( p );
+			if ( other != mohaa ) {
+				assert( !Com_GameProfileAllowsProtocol( other, 6 ) );
+				assert( !Com_GameProfileAllowsModuleApi( other, COM_MODULE_API_MOHAA_NATIVE ) );
+			}
+		}
+		assert( Com_GameProfileAllowsModuleApi( mohaa, COM_MODULE_API_MOHAA_NATIVE ) );
+		assert( !Com_GameProfileAllowsModuleApi( mohaa, COM_MODULE_API_FAKK2_NATIVE ) );
+		assert( !Com_GameProfileAllowsModuleApi( mohaa, COM_MODULE_API_ALICE_NATIVE ) );
+		assert( !std::strcmp( mohaa->baseGame, "main" ) && !std::strcmp( mohaa->basePakName, "Pak0.pk3" ) );
+		assert( mohaa == Com_GameManagerFindProfile( "MOHAA" ) );
+		assert( mohaa == Com_GameManagerFindProfile( "medalofhonor" ) );
+		assert( mohaa->maxClients == 64 && mohaa->maxConfigstrings == 2736 );
+		assert( mohaa->playerConfigstringBase == 1684 && mohaa->bots.reliableCommands == 0 );
+		// pure proves the general references alone; sv_pure is off by default
+		assert( mohaa->pureProof == COM_PURE_PROOF_MOHAA_REFERENCES && !std::strcmp( mohaa->server.pure, "0" ) );
+		for ( int id = COM_GAME_AUTO + 1; id < COM_GAME_COUNT; ++id ) {
+			const auto *other = Com_GameProfileById( static_cast<comGameId_t>( id ) );
+			assert( !other || other == mohaa || other->pureProof != COM_PURE_PROOF_MOHAA_REFERENCES );
+		}
+		assert( !std::strcmp( Com_GameManagerConfigFile( mohaa, 0 ), "configs/unnamedsoldier.cfg" ) );
+		assert( Com_GameManagerIsConfigFile( "configs/unnamedsoldier.cfg" ) );
+		assert( Com_GameManagerInstallationMatches( mohaa, COM_GAME_MARKER_MOHAA ) );
+		assert( !Com_GameManagerInstallationMatches( mohaa, COM_GAME_MARKER_MOHAA | COM_GAME_MARKER_RTCW_SP ) );
+		assert( !Com_GameManagerInstallationMatches( Com_GameProfileById( COM_GAME_RTCW_SP ), COM_GAME_MARKER_MOHAA ) );
 	}
 	for ( int protocol : { 66, 67 } ) {
 		assert( Com_GameProfileAllowsProtocol( Com_GameProfileById( COM_GAME_QUAKE3 ), protocol ) );

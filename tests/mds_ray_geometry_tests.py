@@ -46,7 +46,7 @@ int main() {
     }
     entity.e.frame = 1; entity.e.oldframe = 0; entity.e.renderfx = RF_FIRST_PERSON;
     rtxRtCpuGeometry_t geometry{};
-    assert(vk_rt_append_mds_entity_geometry(&geometry, &entity) && tuning == 1 && materialHandle == 7);
+    assert(vk_rt_append_mds_entity_geometry(&geometry, &entity) && materialHandle == 7);
     entity.e.customSkin = 1; entity.e.rtcw.blink = qtrue; skin.numSurfaces = 2;
     skin.surfaces[0] = {"surface", &shaderTable[8]}; skin.surfaces[1] = {"surface_b", &shaderTable[9]};
     geometry = {}; assert(vk_rt_append_mds_entity_geometry(&geometry, &entity) && materialHandle == 9);

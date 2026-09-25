@@ -24,7 +24,7 @@ class DemoProfileSelectionTests(unittest.TestCase):
             re.sub(r"/\*.*?\*/", "", table.group(1), flags=re.S).split(",") if entry.strip())
         self.assertEqual(demo_protocols, "66, 67, OLD_PROTOCOL_VERSION, NEW_PROTOCOL_VERSION, 43, 45, 46, 48, "
             "QL_RETAIL_PROTOCOL_VERSION, NETCHAN_RTCW_SP_PROTOCOL_VERSION, "
-            "NETCHAN_RTCW_MP_PROTOCOL_VERSION, 0")
+            "NETCHAN_RTCW_MP_PROTOCOL_VERSION, NETCHAN_WOLFET_PROTOCOL_VERSION, NETCHAN_MOHAA_PROTOCOL_VERSION, 0")
         def function(signature):
             start = source.index(signature)
             return source[start:source.index("\n}", start)+2]
@@ -41,15 +41,21 @@ class DemoProfileSelectionTests(unittest.TestCase):
 #include "code/qcommon/q3_demo_protocol.hpp"
 #include "code/client/client_alice_demo.hpp"
 enum { COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, COM_GAME_RTCW_SP, COM_GAME_RTCW_MP,
-       COM_GAME_WOLFET, COM_GAME_STVEF_MP, COM_GAME_ALICE, OLD_PROTOCOL_VERSION = 68, NEW_PROTOCOL_VERSION = 71,
+       COM_GAME_WOLFET, COM_GAME_STVEF_MP, COM_GAME_ALICE, COM_GAME_FAKK2, COM_GAME_MOHAA,
+       OLD_PROTOCOL_VERSION = 68, NEW_PROTOCOL_VERSION = 71,
        QL_RETAIL_PROTOCOL_VERSION = 91, NETCHAN_RTCW_SP_PROTOCOL_VERSION = 49,
        NETCHAN_RTCW_MP_PROTOCOL_VERSION = 60, NETCHAN_STVEF_HM_PROTOCOL_VERSION = 24,
-       NETCHAN_ALICE_PROTOCOL_VERSION = 1 };
+       NETCHAN_ALICE_PROTOCOL_VERSION = 1, NETCHAN_MOHAA_PROTOCOL_VERSION = 6,
+       NETCHAN_WOLFET_PROTOCOL_VERSION = 84 };
 struct Profile { int id; const char *displayName = "fixture"; } profile;
 Profile *Com_GameProfile() { return &profile; }
 int Com_GameIsRTCWSP() { return profile.id == COM_GAME_RTCW_SP; }
 int Com_GameIsSTVEFMP() { return profile.id == COM_GAME_STVEF_MP; }
 int Com_GameIsAlice() { return profile.id == COM_GAME_ALICE; }
+int Com_GameIsRitual() { return profile.id == COM_GAME_ALICE || profile.id == COM_GAME_FAKK2; }
+// Q3Test plays its demos with its own reader (cl_q3test.cpp).
+int Com_GameIsQ3Test() { return 0; }
+void CL_Q3TestPlayDemo_f() {}
 const int demo_protocols[] = {''' + demo_protocols + r'''};
 bool Com_DemoProtocolSupported(int p) {
     for (int value : demo_protocols) if (value && value == p) return true;
@@ -157,7 +163,7 @@ int main() {
     // the Q3-only dm3 fallback; Q3 never opens an RTCW demo.
     const std::vector<std::string> everything = {"demos/mixed.dm_66", "demos/mixed.dm_67",
         "demos/mixed.dm_68", "demos/mixed.dm_71", "demos/mixed.dm_91",
-        "demos/mixed.dm_49", "demos/mixed.dm_60", "demos/mixed.dm3"};
+        "demos/mixed.dm_49", "demos/mixed.dm_60", "demos/mixed.dm3", "demos/mixed.dm_6"};
     for (int id : {COM_GAME_RTCW_SP, COM_GAME_RTCW_MP}) {
         profile.id = id;
         const int own = id == COM_GAME_RTCW_SP ? 49 : 60, other = id == COM_GAME_RTCW_SP ? 60 : 49;
@@ -196,11 +202,24 @@ int main() {
         argument = cross; attempts.clear();
         CL_PlayDemo_f(); assert(transitions == 1 && attempts.empty());
     }
-    // ET demo playback is unimplemented: nothing is admitted.
+    // ET plays its own dm_84 demos alone (et.exe names them after its
+    // protocol); no other profile admits 84.
     profile.id = COM_GAME_WOLFET;
     for (int protocol : {49, 60, 66, 67, 68, 71, 91}) assert(!CL_DemoProtocolSupported(protocol));
+    assert(CL_DemoProtocolSupported(84));
     files = std::set<std::string>(everything.begin(), everything.end()); attempts.clear();
-    assert(CL_WalkDemoExt("mixed", name, sizeof(name), handle) == -1 && attempts.empty());
+    assert(CL_WalkDemoExt("mixed", name, sizeof(name), handle) == -1);
+    assert(attempts == std::vector<std::string>{"demos/mixed.dm_84"});
+    files.insert("demos/mixed.dm_84"); attempts.clear();
+    assert(CL_WalkDemoExt("mixed", name, sizeof(name), handle) == 84);
+    assert(attempts == std::vector<std::string>{"demos/mixed.dm_84"});
+    files.erase("demos/mixed.dm_84");
+    for (int id : {COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, COM_GAME_RTCW_SP, COM_GAME_RTCW_MP,
+                   COM_GAME_STVEF_MP, COM_GAME_ALICE, COM_GAME_FAKK2, COM_GAME_MOHAA}) {
+        profile.id = id;
+        assert(!CL_DemoProtocolSupported(84));
+    }
+    profile.id = COM_GAME_WOLFET;
 
     // Elite Force Holomatch plays only its .efdemo files, and only it does.
     profile.id = COM_GAME_STVEF_MP;
@@ -249,6 +268,42 @@ int main() {
         profile.id = id; before = transitions; argument = "mixed.dm3"; attempts.clear();
         CL_PlayDemo_f(); assert(transitions == before && attempts.empty());
         assert(!CL_DemoNameCallback_f("x.dm3", 5));
+    }
+
+    // Medal of Honor plays only its own dm_6 demos (protocol 6), and only it
+    // does; it has no dm3 fallback and never reaches another profile's codec.
+    profile.id = COM_GAME_MOHAA;
+    files = std::set<std::string>(everything.begin(), everything.end());
+    files.insert("demos/mixed.efdemo"); attempts.clear();
+    assert(CL_WalkDemoExt("mixed", name, sizeof(name), handle) == 6);
+    assert(attempts == std::vector<std::string>{"demos/mixed.dm_6"});
+    files.erase("demos/mixed.dm_6"); attempts.clear();
+    assert(CL_WalkDemoExt("mixed", name, sizeof(name), handle) == -1 && !handle);
+    assert(attempts == std::vector<std::string>{"demos/mixed.dm_6"});
+    for (int protocol : {1, 24, 43, 45, 46, 48, 49, 60, 66, 67, 68, 71, 91})
+        assert(!CL_DemoProtocolSupported(protocol));
+    assert(CL_DemoProtocolSupported(6));
+    assert(CL_DemoNameCallback_f("x.DM_6", 6) && !CL_DemoNameCallback_f("x.dm3", 5));
+    assert(!CL_DemoNameCallback_f("x.dm_68", 7) && !CL_DemoNameCallback_f("x.efdemo", 8));
+    before = transitions;
+    for (const char *cross : {"mixed.dm_68", "mixed.dm_91", "mixed.dm_60", "mixed.dm3",
+                              "mixed.efdemo"}) {
+        argument = cross; attempts.clear();
+        CL_PlayDemo_f(); assert(transitions == before && attempts.empty());
+    }
+    files.insert("demos/mixed.dm_6"); argument = "mixed.dm_6"; attempts.clear();
+    CL_PlayDemo_f();
+    assert(transitions == before + 1 && attempts == std::vector<std::string>{"demos/mixed.dm_6"});
+    // No other profile admits protocol 6, searches for a dm_6 or opens one.
+    for (int id : {COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, COM_GAME_RTCW_SP, COM_GAME_RTCW_MP,
+                   COM_GAME_WOLFET, COM_GAME_STVEF_MP, COM_GAME_ALICE, COM_GAME_FAKK2}) {
+        profile.id = id; before = transitions;
+        assert(!CL_DemoProtocolSupported(6) && !CL_DemoNameCallback_f("x.dm_6", 6));
+        attempts.clear(); CL_WalkDemoExt("mixed", name, sizeof(name), handle);
+        for (const auto &p : attempts) assert(p != "demos/mixed.dm_6");
+        argument = "mixed.dm_6"; attempts.clear(); CL_PlayDemo_f();
+        assert(transitions == before);
+        for (const auto &p : attempts) assert(p != "demos/mixed.dm_6");
     }
 }
 '''

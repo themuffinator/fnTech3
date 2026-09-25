@@ -10,6 +10,8 @@ General Public License, version 2 or (at your option) any later version.
 #ifndef FNTECH3_GAME_PROFILE_H
 #define FNTECH3_GAME_PROFILE_H
 
+#include "q3test_release.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -33,6 +35,12 @@ typedef enum comGameId_e
 	COM_GAME_JK2_SP,
 	COM_GAME_JK2_MP,
 	COM_GAME_ALICE,
+	COM_GAME_FAKK2,
+	COM_GAME_MOHAA,
+	/* The public Q3Test builds 1.02 to 1.08 (1999). One profile under the
+	 * Quake III title; it pins one release's contracts at startup
+	 * (q3test_release.h). */
+	COM_GAME_Q3TEST,
 	COM_GAME_COUNT
 } comGameId_t;
 
@@ -48,7 +56,9 @@ typedef enum comGameTitleId_e
 	COM_GAME_TITLE_STVEF,
 	COM_GAME_TITLE_JKA,
 	COM_GAME_TITLE_JK2,
-	COM_GAME_TITLE_ALICE
+	COM_GAME_TITLE_ALICE,
+	COM_GAME_TITLE_FAKK2,
+	COM_GAME_TITLE_MOHAA
 } comGameTitleId_t;
 
 /* BSP version 47 is ambiguous without a title: RTCW has 17 lumps, while
@@ -70,12 +80,22 @@ typedef enum comGameBspFormat_e
 	 * Jedi Academy both use it, and every map either ships reads through the
 	 * one translator: 41 of Outcast's and 57 of Academy's. */
 	COM_GAME_BSP_RBSP,
-	/* Ritual's own ident: "FAKK" version 42, the Alice revision of the
-	 * Heavy Metal: F.A.K.K.2 format. Its header carries a checksum Quake
-	 * III's does not, and its twenty lumps are in a different order and
-	 * include side equations, light definitions and terrain, for which
-	 * IBSP 46 has no counterpart. */
-	COM_GAME_BSP_FAKK
+	/* Ritual's own ident, "FAKK": version 12 for Heavy Metal: F.A.K.K.2
+	 * and version 42 for Alice's revision of it. Its header carries a
+	 * checksum Quake III's does not, and its twenty lumps are in a different
+	 * order and include entity lights and per-surface light definitions, for
+	 * which IBSP 46 has no counterpart. Both versions share one record layout;
+	 * each profile admits only its own version. */
+	COM_GAME_BSP_FAKK,
+	/* 2015's ident for Medal of Honor: "2015" version 19 in Allied Assault
+	 * 1.00. Its header carries the checksum Ritual's does, but its 28 lumps
+	 * are its own: side equations for fence masks, terrain patches, sphere
+	 * lights and static models, and 64-byte leaves that index the last two. */
+	COM_GAME_BSP_MOHAA,
+	/* The Q3Test releases' "IBSP" 44 (1.02 to 1.05) and 45 (1.06 to 1.08),
+	 * Quake III's own format before its 1.09 revision. The Q3Test profile
+	 * admits only the version its pinned release shipped. */
+	COM_GAME_BSP_Q3TEST
 } comGameBspFormat_t;
 
 typedef enum comGameDetectionStatus_e {
@@ -121,7 +141,19 @@ enum {
 	COM_GAME_MARKER_JK2_MP = 1 << 12,
 	/* Alice is one title with one mode, so its base/pak0.pk3 sets a
 	 * single mark and no mode choice is asked of the player. */
-	COM_GAME_MARKER_ALICE = 1 << 13
+	COM_GAME_MARKER_ALICE = 1 << 13,
+	/* Heavy Metal: F.A.K.K.2 is one title with one mode as well, marked by
+	 * its fakk/pak0.pk3. */
+	COM_GAME_MARKER_FAKK2 = 1 << 14,
+	/* Medal of Honor: Allied Assault is one title and one mode here, marked
+	 * by its main/Pak0.pk3. Return to Castle Wolfenstein's base directory is
+	 * also main/ and its base pak the same name in lower case, so one file can
+	 * answer both titles' probes; only its contents decide which it is. */
+	COM_GAME_MARKER_MOHAA = 1 << 15,
+	/* A Q3Test installation: its demoq3/pak0.pk3 and the Win32 modules beside
+	 * the executable, recognized structurally (q3test_install.hpp), since the
+	 * 1.11 demo keeps a pak of the same name in the same directory. */
+	COM_GAME_MARKER_Q3TEST = 1 << 16
 };
 
 enum {
@@ -150,9 +182,20 @@ enum {
 	COM_PROTOCOL_FAMILY_JK2_SP = 1 << 15,
 	COM_PROTOCOL_FAMILY_JK2_MP = 1 << 16,
 	/* Alice speaks protocol 1, read from retail alice.exe's own cvar
-	 * registration and from the connect userinfo it writes. No other
-	 * supported title uses that number. */
-	COM_PROTOCOL_FAMILY_ALICE = 1 << 17
+	 * registration and from the connect userinfo it writes. */
+	COM_PROTOCOL_FAMILY_ALICE = 1 << 17,
+	/* Heavy Metal: F.A.K.K.2 speaks protocol 1 too: PROTOCOL_VERSION in the
+	 * engine header Ritual shipped with its SDK. The two titles share the
+	 * number and nothing else, so each profile admits only its own family. */
+	COM_PROTOCOL_FAMILY_FAKK2 = 1 << 18,
+	/* Medal of Honor: Allied Assault 1.00 speaks protocol 6. MOHAA.exe is
+	 * encrypted on disk, so the number is OpenMoHAA's reading of the 1.00
+	 * engine rather than one read here; 1.11 and later speak 8. */
+	COM_PROTOCOL_FAMILY_MOHAA = 1 << 19,
+	/* Q3Test: 35 (1.02, 1.03), 36 (1.05), 38 (1.06), 39 (1.07) and 40 (1.08),
+	 * read from each executable. 40 is also three single players' number; the
+	 * profile admits only the protocol of the release it pinned. */
+	COM_PROTOCOL_FAMILY_Q3TEST = 1 << 20
 };
 
 enum {
@@ -174,7 +217,22 @@ enum {
 	 * and cgamex86.dll exporting GetCGameAPI, each a function table
 	 * rather than Quake III's dllEntry/vmMain pair. Its menus are the
 	 * engine's own .urc resources, so there is no UI module. */
-	COM_MODULE_API_ALICE_NATIVE = 1 << 7
+	COM_MODULE_API_ALICE_NATIVE = 1 << 7,
+	/* Heavy Metal: F.A.K.K.2: the same two entry points, from gamex86.dll
+	 * and cgamex86.dll in fakk/, over the shorter tables Alice later grew:
+	 * 105 game and 124 client-game imports rather than 111 and 125. */
+	COM_MODULE_API_FAKK2_NATIVE = 1 << 8,
+	/* Medal of Honor: Allied Assault: gamex86.dll's GetGameAPI and
+	 * cgamex86.dll's GetCGameAPI in main/, over 2015's own tables -- 167 game
+	 * and 168 client-game imports, game API version 11 -- which share the
+	 * entry points' names with Ritual's and little else. Both libraries import
+	 * their allocator from system86.dll in the installation root. */
+	COM_MODULE_API_MOHAA_NATIVE = 1 << 9,
+	/* Q3Test: qagamex86.dll's GetGameAPI (plus GetBotAIAPI from 1.06),
+	 * cgamex86.dll's GetCGameAPI (1.05 to 1.07) or dllEntry/vmMain with its
+	 * own syscall numbers (1.08), and uix86.dll's GetUIAPI (1.06 to 1.08),
+	 * all in the installation root. */
+	COM_MODULE_API_Q3TEST_NATIVE = 1 << 10
 };
 
 /* Engine defaults are separate from limits and module-owned game rules.
@@ -218,10 +276,11 @@ typedef struct comGameBotPolicy_s {
 	 * no channel, so no wire profile can supply it: 64 in quake3.exe 1.32,
 	 * quakelive_steam.exe, stvoyHM.exe and the three single-player engines,
 	 * 128 in jamp.exe, jk2mp.exe and alice.exe, and 256 in WolfSP.exe,
-	 * WolfMP.exe, et.exe and etded.exe. Zero where the engine rings no
-	 * commands at all, as the IHV test does, and then no bot takes a client
-	 * slot. docs/fntech3/2026-09-24-bot-reliable-windows.md has the
-	 * addresses. */
+	 * WolfMP.exe, et.exe and etded.exe. F.A.K.K.2's 1.0 engine is encrypted
+	 * on disk; the 1.02 patch's fakk2.exe rings 64 (0x004468dd), as Ritual's
+	 * SDK header has it. Zero where the engine rings no commands at all, as
+	 * the IHV test does, and then no bot takes a client slot.
+	 * docs/fntech3/2026-09-24-bot-reliable-windows.md has the addresses. */
 	int reliableCommands;
 } comGameBotPolicy_t;
 
@@ -252,7 +311,11 @@ typedef enum comGamePureProof_e {
 	COM_PURE_PROOF_QL_NATIVE,
 	COM_PURE_PROOF_RTCW_NATIVE,
 	COM_PURE_PROOF_WOLFET_NATIVE,
-	COM_PURE_PROOF_JKA_NATIVE
+	COM_PURE_PROOF_JKA_NATIVE,
+	/* Medal of Honor: the general pak references alone, `cp refs... mixed`,
+	 * with no server id, module checksum or `@` (its modules are loose
+	 * files in main/, not in a pak). */
+	COM_PURE_PROOF_MOHAA_REFERENCES
 } comGamePureProof_t;
 
 typedef enum comGameEntityHullPolicy_e {
@@ -371,6 +434,29 @@ int Com_GameIsJK2( void );
 int Com_GameIsJK2SP( void );
 int Com_GameIsJK2MP( void );
 int Com_GameIsAlice( void );
+int Com_GameIsFAKK2( void );
+/* Alice or Heavy Metal: F.A.K.K.2: the two titles on Ritual's engine, which
+ * share its engine-side behaviour where neither profile's own contract says
+ * otherwise. Contract values that differ between them are chosen by profile,
+ * never through this. */
+int Com_GameIsRitual( void );
+/* Medal of Honor: Allied Assault. 2015 licensed Ritual's engine, but its
+ * modules, records and formats are its own, so it is never a Ritual profile:
+ * where it shares a path with Alice's engine the call site names it. */
+int Com_GameIsMOHAA( void );
+/* The Q3Test releases (q3test_release.h names the pinned one). */
+int Com_GameIsQ3Test( void );
+/* The protocol the active profile speaks by default: a Q3Test release's own
+ * number, otherwise the catalog's preferred protocol. */
+int Com_GamePreferredProtocol( void );
+int Com_GamePreferredDemoProtocol( void );
+/* The server port a profile listens on when net_port is not set. */
+int Com_GameDefaultServerPort( void );
+/* How much configstring text a profile's gamestate may hold. */
+int Com_GameStateCharLimit( void );
+/* The same test on a profile id, for code that holds its own copy of the
+ * selection -- the renderers keep one in their import table. */
+#define COM_GAME_ID_IS_RITUAL( id ) ( ( id ) == COM_GAME_ALICE || ( id ) == COM_GAME_FAKK2 )
 /* RTCW SP/MP, ET and Jedi Academy multiplayer all prove pure admission with
  * their native cgame and UI module files rather than QVMs or one retail binary. */
 int Com_PureProofIsNativeModulePair( const comGameProfile_t *profile );

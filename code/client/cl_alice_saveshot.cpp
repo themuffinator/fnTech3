@@ -14,7 +14,8 @@ otherwise it hides the console, the menus and the HUD for one frame, draws
 that frame and runs the renderer's `screenshot` with the same arguments. With
 a path and both sizes, the renderer reads the whole frame back and reduces it
 to a grey picture of that size, written as an uncompressed TGA
-(code/compat/alice_saveshot.h).
+(code/compat/alice_saveshot.h). Heavy Metal: F.A.K.K.2's renderer reduces it
+the same way in colour.
 
 This engine's renderer takes the picture from its own render target as the
 frame finishes (re.CaptureAliceSaveshot), so the image is the frame the
@@ -47,8 +48,8 @@ bool aliceSaveshotDrawing;
 ====================
 CL_AliceWriteSaveshot
 
-Draw one frame and keep it as a width by height grey TGA at path, in the home
-path. False, with nothing written, when there is no renderer, when the
+Draw one frame and keep it as a width by height TGA at path, in the home path:
+grey for Alice, in colour for F.A.K.K.2. False, with nothing written, when there is no renderer, when the
 renderer cannot take the picture, or when it drew no frame.
 ====================
 */

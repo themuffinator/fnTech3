@@ -26,7 +26,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "cm_game_contract.h"
 #include "bsp_rbsp.h"
 #include "bsp_fakk.h"
+#include "cm_mohaa_terrain.h"
+#include "cm_mohaa_lights.h"
 #include "bsp_v43.h"
+#include "bsp_q3test.h"
 #include "ql_bsp.h"
 
 #ifdef BSPC
@@ -68,6 +71,7 @@ static byte *cmod_base;
 cvar_t		*cm_noAreas;
 cvar_t		*cm_noCurves;
 cvar_t		*cm_playerCurveClip;
+cvar_t		*cm_curveClipHack;
 #endif
 
 static cmodel_t box_model;
@@ -554,13 +558,16 @@ static void CMod_LoadVisibility( const lump_t *l ) {
 =================
 CMod_LoadPatches
 
-`fakk` is an Alice map's translation, NULL for every other map. Alice's
-engine builds no collision for a patch whose shader is neither solid nor a
-clip, and subdivides the rest by their shader's own count (see bsp_fakk.h).
+`subdivisions` is each shader's subdivision count when the map carries one --
+an Alice, F.A.K.K.2 or Medal of Honor map -- and NULL for every other map.
+Those engines build no collision for a patch whose shader is neither solid
+nor a clip, and subdivide the rest by their shader's own count (see
+bsp_fakk.h; Medal of Honor's MASK_CLICK is the same five bits).
 =================
 */
 #define	MAX_PATCH_VERTS		1024
-static void CMod_LoadPatches( const lump_t *surfs, const lump_t *verts, const fakk_translation_t *fakk ) {
+static void CMod_LoadPatches( const lump_t *surfs, const lump_t *verts,
+	const int32_t *shaderSubdivisions, int numShaderSubdivisions ) {
 	drawVert_t	*dv, *dv_p;
 	dsurface_t	*in;
 	int			count;
@@ -600,7 +607,7 @@ static void CMod_LoadPatches( const lump_t *surfs, const lump_t *verts, const fa
 		}
 		// FIXME: check for non-colliding patches
 		// (Alice's engine does: alice.exe 0x004306a1..0x004306bc)
-		if ( fakk && !( cm.shaders[shaderNum].contentFlags & FAKK_PATCH_COLLISION_CONTENTS ) ) {
+		if ( shaderSubdivisions && !( cm.shaders[shaderNum].contentFlags & FAKK_PATCH_COLLISION_CONTENTS ) ) {
 			continue;
 		}
 
@@ -632,10 +639,9 @@ static void CMod_LoadPatches( const lump_t *surfs, const lump_t *verts, const fa
 		patch->surfaceFlags = cm.shaders[shaderNum].surfaceFlags;
 
 		subdivisions = SUBDIVIDE_DISTANCE;
-		if ( fakk ) {
+		if ( shaderSubdivisions ) {
 			// alice.exe 0x00430780..0x0043078c
-			subdivisions = fakk->shaderSubdivisions && shaderNum < fakk->numShaderSubdivisions
-				? fakk->shaderSubdivisions[shaderNum] : 0;
+			subdivisions = shaderNum < numShaderSubdivisions ? shaderSubdivisions[shaderNum] : 0;
 			if ( subdivisions < FAKK_PATCH_MIN_SUBDIVISIONS ) {
 				subdivisions = FAKK_PATCH_MIN_SUBDIVISIONS;
 			}
@@ -674,6 +680,96 @@ static uint32_t CM_Checksum( const dheader_t *header ) {
 }
 #endif
 
+/*
+=================
+CMod_LoadMOHAATerrain
+
+Medal of Honor's LOD terrain: one collision patch per terrain record, and each
+leaf's range of references into them. Every index is bounded before use; a
+map whose references leave their tables is refused rather than traced.
+=================
+*/
+static void CMod_LoadMOHAATerrain( const mohaa_translation_t *translation ) {
+	int i;
+
+	cm.numTerrain = 0;
+	cm.terrain = NULL;
+	cm.numLeafTerrains = 0;
+	cm.leafterrains = NULL;
+	if ( !translation || !translation->numTerrain ) {
+		return;
+	}
+
+	CM_MOHAA_PrepareTerrainCollide();
+
+	cm.numTerrain = translation->numTerrain;
+	cm.terrain = Hunk_Alloc( cm.numTerrain * sizeof( cm.terrain[0] ), h_high );
+	for ( i = 0; i < cm.numTerrain; i++ ) {
+		const dterrainPatchMOHAA_t *patch = &translation->terrain[i];
+		const int shaderNum = (uint16_t)LittleShort( patch->iShader );
+
+		if ( shaderNum >= cm.numShaders ) {
+			Com_Error( ERR_DROP, "%s: terrain patch %i has bad shader %i", __func__, i, shaderNum );
+		}
+		CM_MOHAA_GenerateTerrainCollide( patch, &cm.terrain[i].tc );
+		cm.terrain[i].contents = cm.shaders[shaderNum].contentFlags;
+		cm.terrain[i].surfaceFlags = cm.shaders[shaderNum].surfaceFlags;
+		cm.terrain[i].shaderNum = shaderNum;
+	}
+
+	cm.numLeafTerrains = translation->numTerrainIndexes;
+	cm.leafterrains = Hunk_Alloc( ( cm.numLeafTerrains ? cm.numLeafTerrains : 1 ) * sizeof( cm.leafterrains[0] ), h_high );
+	for ( i = 0; i < cm.numLeafTerrains; i++ ) {
+		const int index = (int16_t)LittleShort( translation->terrainIndexes[i] );
+
+		if ( index < 0 || index >= cm.numTerrain ) {
+			Com_Error( ERR_DROP, "%s: terrain index %i names patch %i of %i", __func__, i, index, cm.numTerrain );
+		}
+		cm.leafterrains[i] = &cm.terrain[index];
+	}
+
+	for ( i = 0; i < cm.numLeafs && i < translation->numLeafs; i++ ) {
+		const int first = translation->leafTerrain[i * 2];
+		const int count = translation->leafTerrain[i * 2 + 1];
+
+		if ( count < 0 || first < 0 || first > cm.numLeafTerrains || count > cm.numLeafTerrains - first ) {
+			Com_Error( ERR_DROP, "%s: leaf %i has a bad terrain range", __func__, i );
+		}
+		cm.leafs[i].firstLeafTerrain = first;
+		cm.leafs[i].numLeafTerrains = count;
+	}
+}
+
+#ifndef BSPC
+/*
+=================
+CM_Q3TestCurveRules
+
+What Q3Test's curves hand a trace, by release. 1.02 to 1.05's patches carry
+their contents and flags from the translation (bsp_q3test.h); 1.06 and 1.07
+read a patch's surface flags from its shader's contents as well (1.06
+CMod_LoadPatches 0x00409cf0), which 1.08 corrected (0x0040a690). A sweep that
+hits a curve takes its contents too only from 1.06 (1.02 0x0040d270, 1.06
+0x0040e2d0), and a start found inside one never does (docs/fntech3/Q3TEST.md).
+=================
+*/
+static void CM_Q3TestCurveRules( void ) {
+	const q3testRelease_t *release = Com_Q3TestRelease();
+	const q3testReleaseId_t id = release ? release->id : Q3TEST_RELEASE_NONE;
+	int i;
+
+	cm.curveHitKeepsContents = id <= Q3TEST_RELEASE_1_05 ? qtrue : qfalse;
+	cm.curveInsideKeepsContents = qtrue;
+	if ( id == Q3TEST_RELEASE_1_06 || id == Q3TEST_RELEASE_1_07 ) {
+		for ( i = 0; i < cm.numSurfaces; i++ ) {
+			if ( cm.surfaces[i] ) {
+				cm.surfaces[i]->surfaceFlags = cm.surfaces[i]->contents;
+			}
+		}
+	}
+}
+#endif
+
 static void *CM_BSP43Alloc( int size ) {
 	return Z_Malloc( size );
 }
@@ -701,6 +797,8 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 	bsp43_translation_t translated = { 0 };
 	rbsp_translation_t rbspTranslated = { 0 };
 	fakk_translation_t fakkTranslated = { 0 };
+	mohaa_translation_t mohaaTranslated = { 0 };
+	q3tBspTranslation_t q3testTranslated = { 0 };
 
 	if ( !name || !name[0] ) {
 		Com_Error( ERR_DROP, "%s: NULL name", __func__ );
@@ -713,6 +811,12 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 	Cvar_SetDescription( cm_noCurves, "Do not collide against curves." );
 	cm_playerCurveClip = Cvar_Get( "cm_playerCurveClip", "1", CVAR_ARCHIVE_ND | CVAR_CHEAT );
 	Cvar_SetDescription( cm_playerCurveClip, "Collide player against curves." );
+	/* Q3Test 1.02 to 1.05 register one more; only 1.02 and 1.03 read it
+	 * (cm_patch.c CM_Q3TestPositionTest). */
+	if ( Com_GameIsQ3Test() && Com_Q3TestRelease() && Com_Q3TestRelease()->bspVersion == Q3TEST_BSP_VERSION_44 ) {
+		cm_curveClipHack = Cvar_Get( "cm_curveClipHack", "0", 0 );
+		Cvar_SetDescription( cm_curveClipHack, "Let a box start inside a curve's bounds count as inside it (Q3Test 1.02-1.03)." );
+	}
 #endif
 
 	Com_DPrintf( "%s( '%s', %i )\n", __func__, name, clientload );
@@ -769,8 +873,10 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 	/* Peers advertise the checksum of the installed file. Translation is an
 	 * internal representation and must not change that identity. */
 	if ( length < (int)( bspFormat == COM_GAME_BSP_QUAKE3_IHV ? sizeof( dheader43_t )
+		: bspFormat == COM_GAME_BSP_Q3TEST ? 8 + Q3TEST_BSP_LUMPS_44 * 8
 		: bspFormat == COM_GAME_BSP_RBSP ? sizeof( dheaderRBSP_t )
-		: bspFormat == COM_GAME_BSP_FAKK ? sizeof( dheaderFAKK_t ) : sizeof( dheader_t ) ) ) {
+		: bspFormat == COM_GAME_BSP_FAKK ? sizeof( dheaderFAKK_t )
+		: bspFormat == COM_GAME_BSP_MOHAA ? sizeof( dheaderMOHAA_t ) : sizeof( dheader_t ) ) ) {
 		Com_Error( ERR_DROP, "%s: %s has truncated header", __func__, name );
 	}
 	sourceChecksum = LittleLong( Com_BlockChecksum( buf, length ) );
@@ -803,20 +909,55 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 		buf = rbspTranslated.data;
 		length = rbspTranslated.length;
 	}
-	/* Alice's maps reach the shared collision loader the same way. Its
-	 * ident is Ritual's rather than id's, so an untranslated FAKK map
-	 * would otherwise be read as a Quake III header that is not there. */
+	/* Alice's and F.A.K.K.2's maps reach the shared collision loader the
+	 * same way. Their ident is Ritual's rather than id's, so an untranslated
+	 * FAKK map would otherwise be read as a Quake III header that is not
+	 * there. Each profile's translation admits only its own version. */
 	if ( bspFormat == COM_GAME_BSP_FAKK ) {
 		char translateError[128];
+		const qboolean fakk2 = Com_GameIsFAKK2() ? qtrue : qfalse;
 
-		if ( !FAKK_TranslateToV46( buf, length, CM_BSP43Alloc, CM_BSP43Free,
-			&fakkTranslated, translateError, sizeof( translateError ) ) ) {
-			Com_Error( ERR_DROP, "%s: %s could not translate FAKK v42: %s", __func__, name, translateError );
+		if ( !FAKK_TranslateToV46Ex( buf, length, CM_BSP43Alloc, CM_BSP43Free,
+			&fakkTranslated, translateError, sizeof( translateError ),
+			FAKK_TRANSLATE_SHADER_SUBDIVISIONS | ( fakk2 ? FAKK_TRANSLATE_VERSION_FAKK2 : 0 ) ) ) {
+			Com_Error( ERR_DROP, "%s: %s could not translate FAKK v%i: %s", __func__, name,
+				fakk2 ? FAKK_VERSION_FAKK2 : FAKK_VERSION_ALICE, translateError );
 		}
 
 		FS_FreeFile( buf );
 		buf = fakkTranslated.data;
 		length = fakkTranslated.length;
+	}
+	/* Medal of Honor's maps too: 2015's own ident and version 19, with the
+	 * terrain and the rest collision needs carried beside the translation. */
+	if ( bspFormat == COM_GAME_BSP_MOHAA ) {
+		char translateError[128];
+
+		if ( !MOHAA_TranslateToV46( buf, length, CM_BSP43Alloc, CM_BSP43Free,
+			&mohaaTranslated, translateError, sizeof( translateError ) ) ) {
+			Com_Error( ERR_DROP, "%s: %s could not translate 2015 v%i: %s", __func__, name,
+				MOHAA_BSP_VERSION, translateError );
+		}
+
+		FS_FreeFile( buf );
+		buf = mohaaTranslated.data;
+		length = mohaaTranslated.length;
+	}
+	/* Q3Test's maps are IBSP 44 (1.02 to 1.05) and 45 (1.06 to 1.08), each
+	 * release admitting only its own (code/qcommon/bsp_q3test.h). */
+	if ( bspFormat == COM_GAME_BSP_Q3TEST ) {
+		char translateError[128];
+		const int version = (int32_t)QLBSP_ReadLE32( (byte *)buf + 4 );
+
+		if ( !Q3TestBSP_TranslateToV46( buf, length, CM_BSP43Alloc, CM_BSP43Free,
+			&q3testTranslated, translateError, sizeof( translateError ) ) ) {
+			Com_Error( ERR_DROP, "%s: %s could not translate Q3Test IBSP v%i: %s", __func__, name,
+				version, translateError );
+		}
+
+		FS_FreeFile( buf );
+		buf = q3testTranslated.data;
+		length = q3testTranslated.length;
 	}
 	if ( length < sizeof( dheader_t ) ) {
 		Com_Error( ERR_DROP, "%s: %s has truncated header", __func__, name );
@@ -863,8 +1004,22 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 	CMod_LoadNodes (&header.lumps[LUMP_NODES]);
 	CMod_LoadEntityString (&header.lumps[LUMP_ENTITIES]);
 	CMod_LoadVisibility( &header.lumps[LUMP_VISIBILITY] );
-	CMod_LoadPatches( &header.lumps[LUMP_SURFACES], &header.lumps[LUMP_DRAWVERTS],
-		bspFormat == COM_GAME_BSP_FAKK ? &fakkTranslated : NULL );
+	if ( bspFormat == COM_GAME_BSP_FAKK ) {
+		CMod_LoadPatches( &header.lumps[LUMP_SURFACES], &header.lumps[LUMP_DRAWVERTS],
+			fakkTranslated.shaderSubdivisions, fakkTranslated.numShaderSubdivisions );
+	} else if ( bspFormat == COM_GAME_BSP_MOHAA ) {
+		CMod_LoadPatches( &header.lumps[LUMP_SURFACES], &header.lumps[LUMP_DRAWVERTS],
+			mohaaTranslated.shaderSubdivisions, mohaaTranslated.numShaders );
+		CMod_LoadMOHAATerrain( &mohaaTranslated );
+		CMod_LoadMOHAALights( &mohaaTranslated );
+	} else {
+		CMod_LoadPatches( &header.lumps[LUMP_SURFACES], &header.lumps[LUMP_DRAWVERTS], NULL, 0 );
+	}
+#ifndef BSPC
+	if ( bspFormat == COM_GAME_BSP_Q3TEST ) {
+		CM_Q3TestCurveRules();
+	}
+#endif
 
 	CMod_CheckLeafBrushes();
 
@@ -887,6 +1042,10 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 		Z_Free( rbspTranslated.data );
 	} else if ( fakkTranslated.data ) {
 		Z_Free( fakkTranslated.data );
+	} else if ( mohaaTranslated.data ) {
+		Z_Free( mohaaTranslated.data );
+	} else if ( q3testTranslated.data ) {
+		Z_Free( q3testTranslated.data );
 	} else {
 		// we are NOT freeing the file, because it is cached for the ref
 		FS_FreeFile( buf );
@@ -964,6 +1123,11 @@ int CM_NumClusters( void ) {
 
 int CM_NumInlineModels( void ) {
 	return cm.numSubModels;
+}
+
+
+int CM_NumLeafs( void ) {
+	return cm.numLeafs;
 }
 
 

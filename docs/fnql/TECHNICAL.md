@@ -2,19 +2,27 @@
 
 ## Purpose
 
-This file preserves the inherited FnQL subsystem contracts, repository history,
-and workflow. fnTech3's current mission is one shared engine for Quake III Arena,
-Quake Live, and Return to Castle Wolfenstein SP/MP. Its
-[project rules](../../AGENTS.md), [build guide](../../BUILD.md), and
-[compatibility ledger](../fntech3/COMPATIBILITY.md) define the current scope and
-release requirements. The ledger takes precedence over historical FnQL status
-or release claims below. User startup guidance lives in the
-[README](../../README.md).
+These were FnQL's maintainer notes, written when Quake Live was the only game
+the engine ran. fnTech3 keeps them, and ships them in its release packages,
+because much of their content still holds: the Quake Live profile's engine
+constraints and reference contracts, the collision-capsule findings, and the
+shared shadow-mapping and audio designs that now serve every game.
+
+They are not fnTech3's overview. fnTech3 targets nine games through fourteen
+profiles; its [architecture overview](../fntech3/ARCHITECTURE.md), the
+[project rules](../../AGENTS.md), the [build guide](../../BUILD.md) and the
+[compatibility ledger](../fntech3/COMPATIBILITY.md) define its current scope,
+and the ledger takes precedence over any status or release claim below.
+Releases follow [RELEASING.md](../fntech3/RELEASING.md). The index of these
+FnQL documents is [README.md](README.md), and user startup guidance lives in
+the [Games Guide](../GAMES.md).
 
 ## Inherited FnQL project constraints
 
-FnQL exists to modernize the Quake Live engine without losing retail Steam
-compatibility or the useful FnQ3 modernization baseline:
+FnQL existed to modernize the Quake Live engine without losing retail Steam
+compatibility or the useful FnQ3 modernization baseline. Its constraints
+still govern the `quakelive` profile, alongside fnTech3's own invariants in
+[AGENTS.md](../../AGENTS.md):
 
 1. Retail Quake Live compatibility is the primary target.
 2. Demo, protocol, filesystem, pak/pk3, VM/native module ABI, renderer data,
@@ -46,8 +54,10 @@ files ahead of install packages in the search order.
 
 ## Reference Baselines
 
-Local checkout and install paths are intentionally kept in [`AGENTS.md`](../../AGENTS.md)
-so this maintainer document stays portable.
+These are FnQL's own import baselines. fnTech3's pinned FnQuake3 and FnQL
+merger references are in [CREDITS.md](../../CREDITS.md) and
+[AGENTS.md](../../AGENTS.md), which also keeps the local checkout and
+install paths so this document stays portable.
 
 - FnQ3 import baseline: remote `https://github.com/themuffinator/FnQ3.git`,
   commit `91c28d77878302ae67119fc3a29643cc20ce8489`. The initial import copied
@@ -133,233 +143,60 @@ renderer coverage, and feature-local fallback behavior are recorded in
 
 ## Repository Layout
 
-- [`code/`](../../code): engine and platform code.
-- [`docs/`](../../docs): technical docs, upstream reference material, and README templates.
-- [`version/`](../../version): shared project version metadata.
-- [`scripts/`](../../scripts): repo-local automation for docs and release packaging.
-- [`.install/`](../../.install): tracked distribution docs plus generated manifests and package archives.
-- [`.tmp/`](../../.tmp): ignored scratch workspace for temporary outputs.
+The repository layout, profile catalog, adapters and subsystem map are
+described in the [architecture overview](../fntech3/ARCHITECTURE.md).
+`.install/` holds tracked distribution documents and generated manifests;
+`.tmp/` is the ignored scratch workspace.
 
-## Versioning
+## Versioning, docs and releases
 
-The canonical metadata lives in [`version/fnql_version.h`](../../version/fnql_version.h).
+FnQL versioned itself from `version/fnql_version.h`, queued release notes in
+[`CHANGELOG.md`](./CHANGELOG.md) and [`RELEASE_COMPLETION.md`](./RELEASE_COMPLETION.md),
+published manual releases with generated notes, and announced them on Discord
+through `scripts/discord_release.py`. fnTech3 does none of that:
 
-That header feeds:
+- [`version/fntech3_version.h`](../../version/fntech3_version.h) is the single
+  source of the version and of the supported-game line; the FnQL header remains
+  only as legacy metadata.
+- User-visible changes go in the root [CHANGELOG.md](../../CHANGELOG.md).
+- `README.md` and `.install/README.html` are generated from the templates in
+  [`docs/templates/`](../templates/README.md.in) by
+  `python scripts/generate_docs.py`; edit the templates, not the outputs.
+- [RELEASING.md](../fntech3/RELEASING.md) describes preparing a version, the
+  tag, and the draft prerelease the `release` workflow builds. The workflow
+  sends no announcements and uses no AI service.
+- [`scripts/release.py`](../../scripts/release.py) packages deterministic
+  Windows `.zip` and Linux `.tar.gz` archives. It includes this document, the
+  changelog, the compatibility ledger with its evidence records, the legal
+  notices and the generated `README.html`; it excludes every retail and
+  proprietary file, including the optional Steam provider; and it verifies
+  executable identity, i386 architecture, file modes and archive paths. The
+  Linux archive must contain `fntech3`, `fntech3.ded`, all three renderer
+  modules and both package sidecars.
+- `fnql-web.pak` is a release-root sidecar, not an entry in `fntech3-pkg.fnz`.
+  Its source is limited to `code/client/webui/`; `scripts/build_webpak.py`
+  rejects retail `bundle.js` and `web.pak` content.
 
-- runtime version strings via [`code/qcommon/q_shared.h`](../../code/qcommon/q_shared.h)
-- Windows resource metadata via [`code/win32/win_resource.rc`](../../code/win32/win_resource.rc)
-- Meson and Make version reporting
-- documentation rendering
-- manual and tagged release archive naming
-
-Current policy:
-
-- Tagged releases use semantic version tags in the form `vX.Y.Z`.
-- Manual release runs produce unique version/date/commit tags (e.g. `0.1.0.42-20240403-abc12345`) and matching package prefixes without a channel word.
-- The base version in `fnql_version.h` should always represent the next intended stable release line.
-- Completed work first lands in [`docs/fnql/RELEASE_COMPLETION.md`](./RELEASE_COMPLETION.md), then is distilled into the `Unreleased` queue in [`docs/fnql/CHANGELOG.md`](./CHANGELOG.md). GitHub release entries are the durable published history.
-- For a release that needs editorially reviewed prose, add a tracked note under [`docs/fnql/releases/`](./releases/README.md), named for the full release tag (preferred) or the display version. The manual release helper uses it before generated notes.
-- Use [`scripts/changelog.py`](../../scripts/changelog.py) to extract, clean up, promote, or reset the pending changelog section.
-
-Typical changelog helper usage:
-
-```powershell
-python scripts/changelog.py section --version Unreleased
-python scripts/changelog.py section --version Unreleased --clean
-python scripts/changelog.py cleanup --version Unreleased
-python scripts/changelog.py prepare-release --version 0.1.0 --date 2026-04-25
-python scripts/changelog.py clear-unreleased
-```
-
-## Docs Flow
-
-The user-facing docs are generated from templates:
-
-- [`docs/templates/README.md.in`](../templates/README.md.in)
-- [`docs/templates/install-readme.html.in`](../templates/install-readme.html.in)
-
-Refresh them with:
-
-```powershell
-python scripts/generate_docs.py
-```
-
-That command rewrites:
-
-- [`README.md`](../../README.md)
-- [`.install/README.html`](../../.install/README.html)
-
-## Release Packaging
-
-The packaging entry point is [`scripts/release.py`](../../scripts/release.py).
-Manual release CI orchestration lives in [`scripts/manual_release.py`](../../scripts/manual_release.py).
-
-Typical local usage:
-
-```powershell
-python scripts/manual_release.py summary
-python scripts/release.py --channel manual --artifact-root <downloaded-artifacts-dir>
-python scripts/release.py --channel release --artifact-root <downloaded-artifacts-dir> --ref-name v0.1.0 --glx-proof-root <reviewed-glx-proof-root>
-```
-
-The `--channel manual` command is suitable for a local, unpublished snapshot
-and may omit runtime proof. Public manual publishing is stricter: the release
-workflow adds `--require-glx-proof` and revalidates a reviewed proof root before
-packaging.
-
-The script:
-
-1. refreshes generated docs
-2. stages each platform artifact under `.tmp/release/`
-3. filters build-system byproducts, debug symbols, editor files, caches, and temporary files out of the staged package
-4. injects only the shared package docs needed by players and maintainers
-5. deterministically rebuilds the project-owned sparse `fnql-web.pak` settings overlay
-6. writes versioned archives into `.install/packages/`: deterministic `.zip`
-   for Windows and deterministic permission-preserving `.tar.gz` for Linux
-7. emits `.install/release-manifest.json` and `.install/SHA256SUMS.txt`
-
-`fnql-web.pak` is a release-root sidecar, not an entry in `fntech3-pkg.fnz`.
-Its source is limited to `code/client/webui/`; `scripts/build_webpak.py`
-explicitly rejects retail `bundle.js` and `web.pak` content. Release layout
-validation requires both sidecar archives beside the executable.
-
-Archive generation does not trust metadata preserved by CI artifact transfer.
-The packager sorts members, normalizes owner/group/timestamps and regular-file
-modes, restores mode `0755` to ELF files, and uses mode `0644` for data and
-documentation. Linux archive validation reopens the tarball and requires the
-`fnql` client, `fnql.ded`, all three public renderer modules, both package
-sidecars, `LICENSE`, and `docs/fnql/TECHNICAL.md`; it also rejects links,
-non-regular entries, unsafe paths, non-i386 ELF files, and non-canonical modes.
-This is necessary because downloaded CI artifacts do not reliably retain Unix
-executable bits. Windows ZIP members use fixed timestamps and modes as well, so
-identical staged bytes produce identical archives on repeated packaging runs.
-Public packaging accepts exactly `windows-mingw-x86`, `windows-msvc-x86`, and
-`linux-x86`; missing or additional artifact directories fail packaging.
-macOS release jobs are absent because retail Quake Live has no macOS game
-modules or QVMs. Windows and Linux remain under the strict i386 retail-facing
-policy.
-
-Manual release publishing follows the same staged-maintenance model used by
-openQ4: completed work is collected in the release-completion list, promoted to
-the player-facing `Unreleased` queue, then either curated in a tracked release
-note or reduced to compact highlights from the changelog, commits, and changed
-files. A tag-specific curated note wins over a version-specific one. Without a
-curated note, the workflow uses GitHub Copilot with
-[`.github/release-notes-instructions.md`](../../.github/release-notes-instructions.md)
-when available and otherwise falls back to the repo-local GitHub Models prompt
-in [`scripts/manual_release.py`](../../scripts/manual_release.py). After a
-release is created from a branch, CI resets
-`docs/fnql/CHANGELOG.md` to an empty categorized `Unreleased` template and
-commits that reset to the release branch.
-
-For a public manual release, provide Windows and Linux self-hosted GPU runner
-labels plus the legitimate retail basepaths and reviewed proof directories when
-dispatching `.github/workflows/release.yml`. After all three release artifacts
-are built, a matrix downloads the exact same-run `windows-mingw-x86`,
-`windows-msvc-x86`, and `linux-x86` artifacts onto the matching proof runner.
-Each row runs `rc-smoke`, `rc-parity`, and `rc-proof` against that artifact's
-client and sibling GLx module. Publishing depends on all three rows.
-
-Every proof manifest records `proofVariant`, the workflow run and attempt, the
-full source commit, and SHA-256/size/PE-or-ELF/bit-width/machine identities for
-both the client and GLx module. The packager reads those same two native files
-back from each completed release archive and rejects any identity mismatch.
-This proves both distributed Windows compiler variants independently instead of
-treating generic `windows-x86` evidence as interchangeable. Dry runs, external
-runtime executables, stale attempts, missing variants, and failed proof rows
-cannot authorize publication.
-
-## Discord Release Announcement
-
-The final stage of manual release publishing announces the release on Discord
-through [`scripts/discord_release.py`](../../scripts/discord_release.py). The
-step runs after the GitHub release is created and after the pending changelog is
-reset, and it only runs when the release itself was created successfully.
-
-The announcement webhook is never stored in the repository. Set the
-`DISCORD_RELEASE_WEBHOOK` repository secret; the publish job exposes it to the
-script as `FNQL_DISCORD_WEBHOOK_URL` and skips the announcement when the secret
-is absent.
-
-The script builds the payload from `.install/release-manifest.json` and
-`.tmp/release-notes.md`, so the embed always matches the published archives and
-release notes:
-
-- a short headline with the Quake Live emote and the `@quake-live` plus
-  playtester role mentions, followed by an embed titled `FnQL <version>`
-- a release-focused intro, a `#fnql` feedback line, and a single `Highlights`
-  block from the generated or curated release notes
-- a `Full release notes and downloads` link, then `Version`, `State`, and
-  `Downloads` fields, where downloads are ordered
-  Windows MSVC, Windows MinGW, Linux, then the source archive
-- a brilliant red (`0xE60000`) embed highlight
-- a feedback request in `#fnql`; only the two explicit headline roles are
-  allowed to notify, so generated notes can never trigger a mass ping
-
-Optional environment overrides: `FNQL_DISCORD_RELEASE_COLOR`,
-`FNQL_DISCORD_RELEASE_EMOJI`, `FNQL_DISCORD_RELEASE_MENTIONS`,
-`FNQL_DISCORD_USERNAME`, `FNQL_DISCORD_AVATAR_URL`, and
-`FNQL_DISCORD_FEEDBACK_CHANNEL` (a `<#channel-id>` mention). The release
-workflow maps the corresponding repository variables when present; its FnQL
-defaults use `<:quakelive:1390987057454776481>`,
-`<@&1424165541572120647> <@&1390287267276525628>`, and
-`<#1528370439997362216>`.
-
-Preview the exact payload before a release without posting anything:
-
-```powershell
-python scripts/discord_release.py --dry-run --release-tag 0.1.0.58-20260728-f35445c9
-```
-
-The script only posts to official Discord webhook hosts over HTTPS, retries rate
-limits and transient failures, and reports the delivery status without echoing
-the webhook URL.
+The legacy `manual_release.py` tooling and the `manual` packaging channel
+remain for historical local snapshots only.
 
 ## CI Notes
 
-`.github/workflows/linux-verification.yml` runs the complete configured Meson
-regression suite for every pull request. `.github/workflows/release.yml` owns
-main-branch build validation and manual release publishing; it runs the full
-Python source suite plus the full configured Meson suite in both Windows x86
-release builds and a Linux i686 Meson build.
-`.github/workflows/issue-triage.yml` owns automated new-issue triage, with maintainer tuning documented in [`ISSUE_TRIAGE.md`](./ISSUE_TRIAGE.md).
-
-Expected behavior:
-
-- pull requests build and run the complete x86 regression suite without publishing
-- `main` pushes validate the main branch without publishing a release
-- manual `workflow_dispatch` runs publish a new version/date/commit release for
-  the selected ref only after the supplied Windows and Linux GLx proof runs
-  revalidate successfully
-- published GitHub releases upload archives whose names match the release tag identity
-- a successful manual publish ends by announcing the release on Discord when
-  `DISCORD_RELEASE_WEBHOOK` is configured
-- every FnQL build, test, runtime proof, and release artifact is 32-bit x86 on
-  Windows (MSYS2 and MSVC) and Linux;
-  Windows matches the retail cgame/UI/Awesomium ABI, while Linux dedicated
-  servers match retail `qagamei386.so`. 64-bit, ARM, and macOS targets are not
-  built, tested, packaged, or used as validation
-- both Windows packages fetch the provider version pinned in
-  `version/fnql_steam_provider.json`, verify its SHA-256 and PE i386 identity,
-  and include only `fnql_steam.dll`; provider source and Valve's
-  `steam_api.dll` remain excluded
-- MinGW release links its compiler, C++ and bundled compression runtimes
-  statically, while MSVC uses its static runtime; a PE import audit rejects
-  known unshipped compiler/runtime DLL dependencies before artifact upload
-- `scripts/release.py` requires the exact supported Windows/Linux artifact set,
-  applies platform-specific architecture policy, and verifies recognized PE
-  and ELF headers before a public archive is emitted
-- Linux release artifacts build inside an Ubuntu 20.04 userspace and run `scripts/check_elf_glibc.py --max-glibc 2.31` before upload so hosted runner image changes do not raise the packaged glibc requirement unexpectedly.
-
-- Linux artifacts are published as `.tar.gz`, not ZIP, so executable modes
-  survive installation. `scripts/release.py` recreates canonical tar metadata
-  after artifact download and `scripts/verify_release_layout.py` validates the
-  resulting tarball as well as staged directories, `.fnz`, and Windows ZIPs.
+[`.github/workflows/linux-verification.yml`](../../.github/workflows/linux-verification.yml)
+runs the configured Meson regression suite for pull requests.
+[`.github/workflows/release.yml`](../../.github/workflows/release.yml) validates
+`main` and builds tagged draft prereleases, running the Python source suite and
+the Meson suites for both Windows x86 builds and Linux i686.
+[`.github/workflows/issue-triage.yml`](../../.github/workflows/issue-triage.yml)
+triages new issues; see [`ISSUE_TRIAGE.md`](./ISSUE_TRIAGE.md). Every build,
+test and release artifact is 32-bit x86 on Windows (MinGW and MSVC) and Linux;
+Linux release artifacts are built in an Ubuntu 20.04 userspace and checked with
+`scripts/check_elf_glibc.py --max-glibc 2.31`.
 
 Renderer-focused verification lives beside the release packaging flow:
 
-- [`docs/fnql/RTX_RENDERER.md`](./RTX_RENDERER.md) defines the optional fifth
-  renderer's Quake Live API/BSP boundary, hybrid base/overlay ownership,
+- [`docs/fnql/RTX_RENDERER.md`](./RTX_RENDERER.md) defines the RTX
+  renderer's module and BSP boundary, hybrid base/overlay ownership,
   conservative defaults, capability failure policy, and retail-safe runtime
   smoke procedure. [`scripts/rtx_runtime_smoke.py`](../../scripts/rtx_runtime_smoke.py)
   keeps raster-module evidence separate from strict native-RT evidence.
@@ -379,9 +216,9 @@ Dry-run renderer gate artifacts are planning evidence only. Blocking release evi
 
 ## Shadowmapping
 
-Shadowmapping in FnQL is a renderer-local lighting layer. It may improve
-how maps, effects, and authored light cues read on screen, but it must not
-change retail demo playback, protocol behavior, VM execution, filesystem
+Shadowmapping in fnTech3 is a renderer-local lighting layer, shared by every
+game. It may improve how maps, effects, and authored light cues read on
+screen, but it must not change retail demo playback, protocol behavior, VM execution, filesystem
 search order, map loading, or game-side entity state. Treat every
 shadowmapping change as visual and compatibility-sensitive at the same time:
 the visuals are optional, while the render order, asset acceptance, and
@@ -561,7 +398,7 @@ meson compile -C .tmp\meson-dlight fnql_glx_x86 fnql_vk_x86
 ## Audio Backend Notes
 
 - [`AUDIO_ENGINE.md`](./AUDIO_ENGINE.md) is the detailed architecture and source-layout reference for the modern audio engine.
-- The default client audio path is the OpenAL backend selected by `s_backend openal`.
+- The default client audio path is the OpenAL backend selected by `s_backend openal`, for every game. Each game's sound data -- channels, distance laws, loops, ambient sets, Ritual's aliases -- reaches it through that game's adapter; the player-facing summary is the [Audio Guide](../AUDIO.md#each-games-sound).
 - `s_backend legacy` keeps the original software mixer/device backend available as a fallback path while implementing the retail QL voice and timing surface.
 - Client audio now lives under [`code/client/audio`](../../code/client/audio): the stable `S_*` facade is at the module root, the original mixer is in `legacy/`, codecs are in `codecs/`, the OpenAL backend is in `openal/`, and reusable policy/sidecar headers used by tools and tests are in `shared/`.
 - OpenAL headers are provided through the Meson `openal-soft` subproject fallback or a system OpenAL development package. The client still loads the OpenAL runtime dynamically so startup can fall back to the legacy mixer when the runtime is unavailable.
@@ -589,7 +426,7 @@ Audio zones are an optional polishing path, not a map requirement. Missing files
 Runtime behavior:
 
 - Current map `maps/foo.bsp` maps to sidecar `maps/foo.azb`.
-- `fntech3-pkg.fnz` next to the executable has priority for packaged FnQL data-only sidecars. The loader searches only `games/<profile>/<gamedir>/` entries for the active canonical profile, in mod/base order, then falls back to normal filesystem and pak search. There is no unscoped or cross-profile fallback; see [the package contract](../fntech3/PACKAGES.md).
+- `fntech3-pkg.fnz` next to the executable has priority for packaged data-only sidecars. The loader searches only `games/<profile>/<gamedir>/` entries for the active canonical profile, in mod/base order, then falls back to normal filesystem and pak search. There is no unscoped or cross-profile fallback; see [the package contract](../fntech3/PACKAGES.md).
 - `s_alAudioZones 1` enables sidecar loading; `s_alAudioZones 0` forces generic heuristics.
 - The sidecar is rechecked when the active map path or the cvar state changes.
 - Higher `priority` wins for overlapping zones. Equal priorities prefer the smaller AABB so nested rooms override broader area zones naturally.
@@ -648,5 +485,9 @@ Accepted environment names are `small-room`, `room`, `stone-room`, `hallway`, `h
 
 ## Naming
 
-Active build, packaging, and distribution surfaces should use `FnQL` naming consistently.
-Historical upstream references should only remain where they are part of provenance, copyright notices, or archived material.
+Project-owned names, outputs and documents use fnTech3. Compatibility-bound
+names stay as they are wherever packages, configs, retail modules or tests
+depend on them: the renderer modules `fnql_<renderer>_<arch>`, `fnql-web.pak`,
+`fnql-audiozonesc`, the sound and console shader names, cvar names, protocol
+tokens and legacy aliases. Historical upstream names remain only where they
+are provenance, copyright notices or archived material.

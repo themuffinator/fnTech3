@@ -963,23 +963,15 @@ static qboolean SysCon_EnsureCreated( void )
 	SDL_SetWindowMinimumSize( s_syscon.window, SYSCON_MIN_WIDTH, SYSCON_MIN_HEIGHT );
 	SDL_StartTextInput( s_syscon.window );
 
-#ifdef USE_ICON
+	// Match the game window: the active game's built-in icon once a profile is
+	// selected (unless cl_gameIcon is 0), the fnTech3 icon before that.
 	{
-		SDL_Surface *icon;
-
-		icon = SDL_CreateSurfaceFrom(
-			CLIENT_WINDOW_ICON.width,
-			CLIENT_WINDOW_ICON.height,
-			SDL_PIXELFORMAT_RGBA32,
-			(void *)CLIENT_WINDOW_ICON.pixel_data,
-			CLIENT_WINDOW_ICON.bytes_per_pixel * CLIENT_WINDOW_ICON.width
-		);
-		if ( icon ) {
-			SDL_SetWindowIcon( s_syscon.window, icon );
-			SDL_DestroySurface( icon );
-		}
+		const comGameProfile_t *profile = Com_GameProfile();
+		const char *gameIcon = profile ? Cvar_VariableString( "cl_gameIcon" ) : "0";
+		const fntech3::icon::Mode mode = fntech3::icon::ModeFromCvar( *gameIcon ? atoi( gameIcon ) : 1 );
+		fntech3::icon::SetWindowIcon( s_syscon.window, NULL, COM_GAME_AUTO, profile ? profile->key : NULL,
+			mode == fntech3::icon::Mode::Engine ? mode : fntech3::icon::Mode::BuiltIn );
 	}
-#endif
 
 	s_syscon.windowID = SDL_GetWindowID( s_syscon.window );
 	s_syscon.videoStarted = startVideo ? qtrue : qfalse;

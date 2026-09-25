@@ -1,0 +1,69 @@
+/* Copyright (C) 2026 fnTech3 contributors. GPL-2.0-or-later.
+ *
+ * Medal of Honor: Allied Assault 1.00's game export record, as GetGameAPI
+ * (0x310d7d10) fills it at 0x31212ce0: 41 pointer-sized members, 0xa4 bytes.
+ * The record lies in the library's zero-initialised data, so a member the
+ * routine never writes is null.
+ *
+ * FNTECH3_MOHAA_GAME_EXPORT( slot, name, kind, evidence )
+ *
+ * `kind` is FUNCTION, NULL_FUNCTION (a function member 1.00 leaves null) or
+ * DATA. `evidence` is how the member was named:
+ *
+ *   LITERAL    the body's own string names it: "==== InitGame ====",
+ *              "Banned IP", "%s has entered the battle", the ubersound and
+ *              uberdialog parse banners, "Persistant data from an older
+ *              version"
+ *   VALUE      the routine writes a telling constant: the API version 11,
+ *              the entity size 852, zero for the profiling and error members
+ *   ORDER      the reference member at that position, between members named
+ *              another way
+ *
+ * The names are OpenMoHAA's game export members (GPL-2.0-or-later), whose
+ * order 1.00 already has. Slots 15 to 17 -- the reference's BotBegin,
+ * BotThink and PrepFrame -- are never written: 1.00 has no bots, and the
+ * engine must not call a null member. The gentities, num_entities and
+ * max_entities members are written by Init, not here.
+ */
+
+FNTECH3_MOHAA_GAME_EXPORT(  0, apiversion,            DATA,          VALUE   )
+FNTECH3_MOHAA_GAME_EXPORT(  1, Init,                  FUNCTION,      LITERAL )
+FNTECH3_MOHAA_GAME_EXPORT(  2, Shutdown,              FUNCTION,      LITERAL )
+FNTECH3_MOHAA_GAME_EXPORT(  3, Cleanup,               FUNCTION,      LITERAL )
+FNTECH3_MOHAA_GAME_EXPORT(  4, Precache,              FUNCTION,      ORDER   )
+FNTECH3_MOHAA_GAME_EXPORT(  5, SetMap,                FUNCTION,      ORDER   )
+FNTECH3_MOHAA_GAME_EXPORT(  6, Restart,               FUNCTION,      ORDER   )
+FNTECH3_MOHAA_GAME_EXPORT(  7, SetTime,               FUNCTION,      ORDER   )
+FNTECH3_MOHAA_GAME_EXPORT(  8, SpawnEntities,         FUNCTION,      ORDER   )
+FNTECH3_MOHAA_GAME_EXPORT(  9, ClientConnect,         FUNCTION,      LITERAL )
+FNTECH3_MOHAA_GAME_EXPORT( 10, ClientBegin,           FUNCTION,      LITERAL )
+FNTECH3_MOHAA_GAME_EXPORT( 11, ClientUserinfoChanged, FUNCTION,      LITERAL )
+FNTECH3_MOHAA_GAME_EXPORT( 12, ClientDisconnect,      FUNCTION,      LITERAL )
+FNTECH3_MOHAA_GAME_EXPORT( 13, ClientCommand,         FUNCTION,      ORDER   )
+FNTECH3_MOHAA_GAME_EXPORT( 14, ClientThink,           FUNCTION,      ORDER   )
+FNTECH3_MOHAA_GAME_EXPORT( 15, BotBegin,              NULL_FUNCTION, ORDER   )
+FNTECH3_MOHAA_GAME_EXPORT( 16, BotThink,              NULL_FUNCTION, ORDER   )
+FNTECH3_MOHAA_GAME_EXPORT( 17, PrepFrame,             NULL_FUNCTION, ORDER   )
+FNTECH3_MOHAA_GAME_EXPORT( 18, RunFrame,              FUNCTION,      ORDER   )
+FNTECH3_MOHAA_GAME_EXPORT( 19, ServerSpawned,         FUNCTION,      ORDER   )
+FNTECH3_MOHAA_GAME_EXPORT( 20, RegisterSounds,        FUNCTION,      LITERAL )
+FNTECH3_MOHAA_GAME_EXPORT( 21, AllowPaused,           FUNCTION,      ORDER   )
+FNTECH3_MOHAA_GAME_EXPORT( 22, ConsoleCommand,        FUNCTION,      ORDER   )
+FNTECH3_MOHAA_GAME_EXPORT( 23, ArchivePersistant,     FUNCTION,      LITERAL )
+FNTECH3_MOHAA_GAME_EXPORT( 24, WriteLevel,            FUNCTION,      ORDER   )
+FNTECH3_MOHAA_GAME_EXPORT( 25, ReadLevel,             FUNCTION,      ORDER   )
+FNTECH3_MOHAA_GAME_EXPORT( 26, LevelArchiveValid,     FUNCTION,      ORDER   )
+FNTECH3_MOHAA_GAME_EXPORT( 27, ArchiveInteger,        FUNCTION,      ORDER   )
+FNTECH3_MOHAA_GAME_EXPORT( 28, ArchiveFloat,          FUNCTION,      ORDER   )
+FNTECH3_MOHAA_GAME_EXPORT( 29, ArchiveString,         FUNCTION,      ORDER   )
+FNTECH3_MOHAA_GAME_EXPORT( 30, ArchiveSvsTime,        FUNCTION,      ORDER   )
+FNTECH3_MOHAA_GAME_EXPORT( 31, TIKI_Orientation,      FUNCTION,      ORDER   )
+FNTECH3_MOHAA_GAME_EXPORT( 32, DebugCircle,           FUNCTION,      ORDER   )
+FNTECH3_MOHAA_GAME_EXPORT( 33, SetFrameNumber,        FUNCTION,      ORDER   )
+FNTECH3_MOHAA_GAME_EXPORT( 34, SoundCallback,         FUNCTION,      LITERAL )
+FNTECH3_MOHAA_GAME_EXPORT( 35, profStruct,            DATA,          VALUE   )
+FNTECH3_MOHAA_GAME_EXPORT( 36, gentities,             DATA,          ORDER   )
+FNTECH3_MOHAA_GAME_EXPORT( 37, gentitySize,           DATA,          VALUE   )
+FNTECH3_MOHAA_GAME_EXPORT( 38, num_entities,          DATA,          ORDER   )
+FNTECH3_MOHAA_GAME_EXPORT( 39, max_entities,          DATA,          ORDER   )
+FNTECH3_MOHAA_GAME_EXPORT( 40, errorMessage,          DATA,          VALUE   )

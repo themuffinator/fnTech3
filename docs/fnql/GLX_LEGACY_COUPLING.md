@@ -13,9 +13,12 @@ added.
 
 ## Ratchet Rules
 
-- The current ratchet budget is 25 legacy renderer C sources. It rose from 24
+- The current ratchet budget is 26 legacy renderer C sources. It rose from 24
   on 2026-09-24 for `tr_alice.c`, American McGee's Alice's front end, whose
-  Vulkan and RTX copies must keep its text (`tests/alice_renderer_parity_tests.py`).
+  Vulkan and RTX copies must keep its text (`tests/alice_renderer_parity_tests.py`),
+  and to 26 on 2026-09-25 for `tr_mohaa.c`, Medal of Honor: Allied Assault's
+  model front end, whose Vulkan and RTX copies differ from it only in their
+  renderers' tessellation rules.
 - New GLx work must not add another `code/renderer/*.c` source to the GLx module
   without updating this ledger and intentionally raising or rebalancing the
   budget.
@@ -44,6 +47,7 @@ added.
 | `code/renderer/tr_mesh.c` | MD3/IQM mesh surface preparation and LOD selection. | Keep model compatibility, then feed GLx-native dynamic/model packets. |
 | `code/renderer/tr_model.c` | Model registry, loaders, and legacy model handles. | Retain asset ABI and move draw payload handoff behind typed model packets. |
 | `code/renderer/tr_model_iqm.c` | IQM loader and animation support. | Keep loader compatibility while separating renderer submission data. |
+| `code/renderer/tr_mohaa.c` | Medal of Honor: Allied Assault's TIKI model surfaces: skin and custom-shader choice, and back-end skinning from the pose the engine computes, entered through the legacy front end. | Keep in step with the Vulkan and RTX copies; move with the front end when GLx owns model submission. |
 | `code/renderer/tr_scene.c` | Refdef scene ingestion, entities, polys, dlights, and draw-surface staging. | Preserve engine ABI and make staged scene products renderer-neutral. |
 | `code/renderer/tr_shade.c` | Shader-stage iteration, prepared arrays, dynamic lights, fog, and GLx stream handoff. | Continue narrowing to GLx material/state blocks and streamed submissions. |
 | `code/renderer/tr_shade_calc.c` | CPU color and texcoord generation for id Tech 3 shader stages. | Retain for compatibility until GLx-native material grammar covers these transforms. |

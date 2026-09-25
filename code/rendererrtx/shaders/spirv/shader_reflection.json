@@ -1,7 +1,7 @@
 {
   "schema": "q3rtx.rendererrtx.shader_reflection.v1",
   "generator": "code/rendererrtx/shaders/build_shaders.py",
-  "shader_count": 89,
+  "shader_count": 96,
   "shaders": [
     {
       "symbol": "color_vert_spv",
@@ -524,11 +524,763 @@
       }
     },
     {
+      "symbol": "rt_composite_comp_spv",
+      "source": "rt_composite.comp",
+      "stage": "comp",
+      "defines": [],
+      "byte_size": 18836,
+      "reflection": {
+        "descriptor_bindings": [
+          {
+            "name": "u_noisyDiffuse",
+            "set": 0,
+            "binding": 0,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_noisySpecular",
+            "set": 0,
+            "binding": 1,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_reflectance",
+            "set": 0,
+            "binding": 2,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_normalDepth",
+            "set": 0,
+            "binding": 3,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_motion",
+            "set": 0,
+            "binding": 4,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_info",
+            "set": 0,
+            "binding": 5,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_histDiffuse",
+            "set": 0,
+            "binding": 6,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_histSpecular",
+            "set": 0,
+            "binding": 7,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_histMoments",
+            "set": 0,
+            "binding": 8,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_filterDiffuse",
+            "set": 0,
+            "binding": 9,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_filterSpecular",
+            "set": 0,
+            "binding": 10,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_emission",
+            "set": 0,
+            "binding": 11,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_output",
+            "set": 0,
+            "binding": 12,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_sceneColor",
+            "set": 0,
+            "binding": 13,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "combined_image_sampler",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_tone",
+            "set": 0,
+            "binding": 14,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          }
+        ],
+        "push_constants": [
+          {
+            "name": "pc",
+            "size_bytes": 128
+          }
+        ]
+      }
+    },
+    {
+      "symbol": "rt_denoise_atrous_comp_spv",
+      "source": "rt_denoise_atrous.comp",
+      "stage": "comp",
+      "defines": [],
+      "byte_size": 17448,
+      "reflection": {
+        "descriptor_bindings": [
+          {
+            "name": "u_noisyDiffuse",
+            "set": 0,
+            "binding": 0,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_noisySpecular",
+            "set": 0,
+            "binding": 1,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_reflectance",
+            "set": 0,
+            "binding": 2,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_normalDepth",
+            "set": 0,
+            "binding": 3,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_motion",
+            "set": 0,
+            "binding": 4,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_info",
+            "set": 0,
+            "binding": 5,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_histDiffuse",
+            "set": 0,
+            "binding": 6,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_histSpecular",
+            "set": 0,
+            "binding": 7,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_histMoments",
+            "set": 0,
+            "binding": 8,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_filterDiffuse",
+            "set": 0,
+            "binding": 9,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_filterSpecular",
+            "set": 0,
+            "binding": 10,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_emission",
+            "set": 0,
+            "binding": 11,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_output",
+            "set": 0,
+            "binding": 12,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_sceneColor",
+            "set": 0,
+            "binding": 13,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "combined_image_sampler",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_tone",
+            "set": 0,
+            "binding": 14,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          }
+        ],
+        "push_constants": [
+          {
+            "name": "pc",
+            "size_bytes": 128
+          }
+        ]
+      }
+    },
+    {
+      "symbol": "rt_denoise_temporal_comp_spv",
+      "source": "rt_denoise_temporal.comp",
+      "stage": "comp",
+      "defines": [],
+      "byte_size": 17140,
+      "reflection": {
+        "descriptor_bindings": [
+          {
+            "name": "u_noisyDiffuse",
+            "set": 0,
+            "binding": 0,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_noisySpecular",
+            "set": 0,
+            "binding": 1,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_reflectance",
+            "set": 0,
+            "binding": 2,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_normalDepth",
+            "set": 0,
+            "binding": 3,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_motion",
+            "set": 0,
+            "binding": 4,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_info",
+            "set": 0,
+            "binding": 5,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_histDiffuse",
+            "set": 0,
+            "binding": 6,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_histSpecular",
+            "set": 0,
+            "binding": 7,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_histMoments",
+            "set": 0,
+            "binding": 8,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_filterDiffuse",
+            "set": 0,
+            "binding": 9,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_filterSpecular",
+            "set": 0,
+            "binding": 10,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_emission",
+            "set": 0,
+            "binding": 11,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_output",
+            "set": 0,
+            "binding": 12,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_sceneColor",
+            "set": 0,
+            "binding": 13,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "combined_image_sampler",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_tone",
+            "set": 0,
+            "binding": 14,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          }
+        ],
+        "push_constants": [
+          {
+            "name": "pc",
+            "size_bytes": 128
+          }
+        ]
+      }
+    },
+    {
+      "symbol": "rt_tonemap_comp_spv",
+      "source": "rt_tonemap.comp",
+      "stage": "comp",
+      "defines": [],
+      "byte_size": 19296,
+      "reflection": {
+        "descriptor_bindings": [
+          {
+            "name": "u_noisyDiffuse",
+            "set": 0,
+            "binding": 0,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_noisySpecular",
+            "set": 0,
+            "binding": 1,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_reflectance",
+            "set": 0,
+            "binding": 2,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_normalDepth",
+            "set": 0,
+            "binding": 3,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_motion",
+            "set": 0,
+            "binding": 4,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_info",
+            "set": 0,
+            "binding": 5,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_histDiffuse",
+            "set": 0,
+            "binding": 6,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_histSpecular",
+            "set": 0,
+            "binding": 7,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_histMoments",
+            "set": 0,
+            "binding": 8,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_filterDiffuse",
+            "set": 0,
+            "binding": 9,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_filterSpecular",
+            "set": 0,
+            "binding": 10,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_emission",
+            "set": 0,
+            "binding": 11,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_output",
+            "set": 0,
+            "binding": 12,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_sceneColor",
+            "set": 0,
+            "binding": 13,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "combined_image_sampler",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_tone",
+            "set": 0,
+            "binding": 14,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          }
+        ],
+        "push_constants": [
+          {
+            "name": "pc",
+            "size_bytes": 128
+          }
+        ]
+      }
+    },
+    {
+      "symbol": "rt_trace_comp_spv",
+      "source": "rt_trace.comp",
+      "stage": "comp",
+      "defines": [],
+      "byte_size": 227388,
+      "reflection": {
+        "descriptor_bindings": [
+          {
+            "name": "u_worldBvh",
+            "set": 0,
+            "binding": 0,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_worldVertices",
+            "set": 0,
+            "binding": 1,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_worldIndices",
+            "set": 0,
+            "binding": 2,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_dynamicVertices",
+            "set": 0,
+            "binding": 3,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_dynamicIndices",
+            "set": 0,
+            "binding": 4,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_materials",
+            "set": 0,
+            "binding": 5,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_stages",
+            "set": 0,
+            "binding": 6,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_lights",
+            "set": 0,
+            "binding": 7,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_lightGrid",
+            "set": 0,
+            "binding": 8,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_lightIndices",
+            "set": 0,
+            "binding": 9,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "id_1555",
+            "set": 0,
+            "binding": 10,
+            "storage_class": "Uniform",
+            "descriptor_class": "uniform_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_textures",
+            "set": 0,
+            "binding": 11,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "combined_image_sampler",
+            "descriptor_count": 2048
+          },
+          {
+            "name": "u_outColor",
+            "set": 0,
+            "binding": 12,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_outSpecular",
+            "set": 0,
+            "binding": 13,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_outReflectance",
+            "set": 0,
+            "binding": 14,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_outNormalDepth",
+            "set": 0,
+            "binding": 15,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_outEmission",
+            "set": 0,
+            "binding": 16,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_outMotion",
+            "set": 0,
+            "binding": 17,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_outInfo",
+            "set": 0,
+            "binding": 18,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_dynamicPrevious",
+            "set": 0,
+            "binding": 19,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_primitiveLights",
+            "set": 0,
+            "binding": 20,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_worldTris",
+            "set": 0,
+            "binding": 21,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_dynamicBvh",
+            "set": 0,
+            "binding": 22,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_dynamicTris",
+            "set": 0,
+            "binding": 23,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          }
+        ],
+        "push_constants": []
+      }
+    },
+    {
       "symbol": "rt_main_rgen_spv",
       "source": "rt_main.rgen",
       "stage": "rgen",
       "defines": [],
-      "byte_size": 39056,
+      "byte_size": 194660,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -540,52 +1292,178 @@
             "descriptor_count": 1
           },
           {
-            "name": "u_output",
+            "name": "u_worldVertices",
             "set": 0,
             "binding": 1,
-            "storage_class": "UniformConstant",
-            "descriptor_class": "storage_image",
-            "descriptor_count": 1
-          },
-          {
-            "name": "u_historyIn",
-            "set": 0,
-            "binding": 9,
-            "storage_class": "UniformConstant",
-            "descriptor_class": "storage_image",
-            "descriptor_count": 1
-          },
-          {
-            "name": "u_historyOut",
-            "set": 0,
-            "binding": 10,
-            "storage_class": "UniformConstant",
-            "descriptor_class": "storage_image",
-            "descriptor_count": 1
-          },
-          {
-            "name": "u_temporal",
-            "set": 0,
-            "binding": 11,
             "storage_class": "StorageBuffer",
             "descriptor_class": "storage_buffer",
             "descriptor_count": 1
           },
           {
-            "name": "u_sceneColor",
+            "name": "u_worldIndices",
+            "set": 0,
+            "binding": 2,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_dynamicVertices",
+            "set": 0,
+            "binding": 3,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_dynamicIndices",
+            "set": 0,
+            "binding": 4,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_materials",
+            "set": 0,
+            "binding": 5,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_stages",
+            "set": 0,
+            "binding": 6,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_lights",
+            "set": 0,
+            "binding": 7,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_lightGrid",
+            "set": 0,
+            "binding": 8,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_lightIndices",
+            "set": 0,
+            "binding": 9,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "id_1453",
+            "set": 0,
+            "binding": 10,
+            "storage_class": "Uniform",
+            "descriptor_class": "uniform_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_textures",
+            "set": 0,
+            "binding": 11,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "combined_image_sampler",
+            "descriptor_count": 2048
+          },
+          {
+            "name": "u_outColor",
             "set": 0,
             "binding": 12,
             "storage_class": "UniformConstant",
-            "descriptor_class": "combined_image_sampler",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_outSpecular",
+            "set": 0,
+            "binding": 13,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_outReflectance",
+            "set": 0,
+            "binding": 14,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_outNormalDepth",
+            "set": 0,
+            "binding": 15,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_outEmission",
+            "set": 0,
+            "binding": 16,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_outMotion",
+            "set": 0,
+            "binding": 17,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_outInfo",
+            "set": 0,
+            "binding": 18,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_dynamicPrevious",
+            "set": 0,
+            "binding": 19,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_primitiveLights",
+            "set": 0,
+            "binding": 20,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
             "descriptor_count": 1
           }
         ],
-        "push_constants": [
-          {
-            "name": "pc",
-            "size_bytes": 156
-          }
-        ]
+        "push_constants": []
+      }
+    },
+    {
+      "symbol": "rt_filter_rmiss_spv",
+      "source": "rt_filter.rmiss",
+      "stage": "rmiss",
+      "defines": [],
+      "byte_size": 308,
+      "reflection": {
+        "descriptor_bindings": [],
+        "push_constants": []
       }
     },
     {
@@ -593,15 +1471,10 @@
       "source": "rt_main.rmiss",
       "stage": "rmiss",
       "defines": [],
-      "byte_size": 5508,
+      "byte_size": 1268,
       "reflection": {
         "descriptor_bindings": [],
-        "push_constants": [
-          {
-            "name": "pc",
-            "size_bytes": 156
-          }
-        ]
+        "push_constants": []
       }
     },
     {
@@ -609,7 +1482,7 @@
       "source": "rt_shadow.rmiss",
       "stage": "rmiss",
       "defines": [],
-      "byte_size": 756,
+      "byte_size": 316,
       "reflection": {
         "descriptor_bindings": [],
         "push_constants": []
@@ -620,7 +1493,18 @@
       "source": "rt_main.rchit",
       "stage": "rchit",
       "defines": [],
-      "byte_size": 74736,
+      "byte_size": 2124,
+      "reflection": {
+        "descriptor_bindings": [],
+        "push_constants": []
+      }
+    },
+    {
+      "symbol": "rt_filter_rahit_spv",
+      "source": "rt_filter.rahit",
+      "stage": "rahit",
+      "defines": [],
+      "byte_size": 18672,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -634,7 +1518,7 @@
           {
             "name": "u_worldVertices",
             "set": 0,
-            "binding": 2,
+            "binding": 1,
             "storage_class": "StorageBuffer",
             "descriptor_class": "storage_buffer",
             "descriptor_count": 1
@@ -642,15 +1526,7 @@
           {
             "name": "u_worldIndices",
             "set": 0,
-            "binding": 3,
-            "storage_class": "StorageBuffer",
-            "descriptor_class": "storage_buffer",
-            "descriptor_count": 1
-          },
-          {
-            "name": "u_worldMaterials",
-            "set": 0,
-            "binding": 4,
+            "binding": 2,
             "storage_class": "StorageBuffer",
             "descriptor_class": "storage_buffer",
             "descriptor_count": 1
@@ -658,7 +1534,7 @@
           {
             "name": "u_dynamicVertices",
             "set": 0,
-            "binding": 5,
+            "binding": 3,
             "storage_class": "StorageBuffer",
             "descriptor_class": "storage_buffer",
             "descriptor_count": 1
@@ -666,15 +1542,23 @@
           {
             "name": "u_dynamicIndices",
             "set": 0,
-            "binding": 6,
+            "binding": 4,
             "storage_class": "StorageBuffer",
             "descriptor_class": "storage_buffer",
             "descriptor_count": 1
           },
           {
-            "name": "u_dynamicMaterials",
+            "name": "u_materials",
             "set": 0,
-            "binding": 7,
+            "binding": 5,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_stages",
+            "set": 0,
+            "binding": 6,
             "storage_class": "StorageBuffer",
             "descriptor_class": "storage_buffer",
             "descriptor_count": 1
@@ -682,34 +1566,61 @@
           {
             "name": "u_lights",
             "set": 0,
+            "binding": 7,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_lightGrid",
+            "set": 0,
             "binding": 8,
             "storage_class": "StorageBuffer",
             "descriptor_class": "storage_buffer",
             "descriptor_count": 1
           },
           {
-            "name": "u_temporal",
+            "name": "u_lightIndices",
             "set": 0,
-            "binding": 11,
+            "binding": 9,
             "storage_class": "StorageBuffer",
             "descriptor_class": "storage_buffer",
             "descriptor_count": 1
           },
           {
-            "name": "u_sceneTextures",
+            "name": "id_144",
             "set": 0,
-            "binding": 13,
+            "binding": 10,
+            "storage_class": "Uniform",
+            "descriptor_class": "uniform_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_textures",
+            "set": 0,
+            "binding": 11,
             "storage_class": "UniformConstant",
             "descriptor_class": "combined_image_sampler",
             "descriptor_count": 2048
+          },
+          {
+            "name": "u_dynamicPrevious",
+            "set": 0,
+            "binding": 19,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_primitiveLights",
+            "set": 0,
+            "binding": 20,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
           }
         ],
-        "push_constants": [
-          {
-            "name": "pc",
-            "size_bytes": 156
-          }
-        ]
+        "push_constants": []
       }
     },
     {
@@ -717,13 +1628,21 @@
       "source": "rt_main.rahit",
       "stage": "rahit",
       "defines": [],
-      "byte_size": 12160,
+      "byte_size": 54352,
       "reflection": {
         "descriptor_bindings": [
           {
+            "name": "u_tlas",
+            "set": 0,
+            "binding": 0,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "acceleration_structure",
+            "descriptor_count": 1
+          },
+          {
             "name": "u_worldVertices",
             "set": 0,
-            "binding": 2,
+            "binding": 1,
             "storage_class": "StorageBuffer",
             "descriptor_class": "storage_buffer",
             "descriptor_count": 1
@@ -731,15 +1650,7 @@
           {
             "name": "u_worldIndices",
             "set": 0,
-            "binding": 3,
-            "storage_class": "StorageBuffer",
-            "descriptor_class": "storage_buffer",
-            "descriptor_count": 1
-          },
-          {
-            "name": "u_worldMaterials",
-            "set": 0,
-            "binding": 4,
+            "binding": 2,
             "storage_class": "StorageBuffer",
             "descriptor_class": "storage_buffer",
             "descriptor_count": 1
@@ -747,7 +1658,7 @@
           {
             "name": "u_dynamicVertices",
             "set": 0,
-            "binding": 5,
+            "binding": 3,
             "storage_class": "StorageBuffer",
             "descriptor_class": "storage_buffer",
             "descriptor_count": 1
@@ -755,13 +1666,29 @@
           {
             "name": "u_dynamicIndices",
             "set": 0,
+            "binding": 4,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_materials",
+            "set": 0,
+            "binding": 5,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_stages",
+            "set": 0,
             "binding": 6,
             "storage_class": "StorageBuffer",
             "descriptor_class": "storage_buffer",
             "descriptor_count": 1
           },
           {
-            "name": "u_dynamicMaterials",
+            "name": "u_lights",
             "set": 0,
             "binding": 7,
             "storage_class": "StorageBuffer",
@@ -769,20 +1696,55 @@
             "descriptor_count": 1
           },
           {
-            "name": "u_sceneTextures",
+            "name": "u_lightGrid",
             "set": 0,
-            "binding": 13,
+            "binding": 8,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_lightIndices",
+            "set": 0,
+            "binding": 9,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "id_936",
+            "set": 0,
+            "binding": 10,
+            "storage_class": "Uniform",
+            "descriptor_class": "uniform_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_textures",
+            "set": 0,
+            "binding": 11,
             "storage_class": "UniformConstant",
             "descriptor_class": "combined_image_sampler",
             "descriptor_count": 2048
+          },
+          {
+            "name": "u_dynamicPrevious",
+            "set": 0,
+            "binding": 19,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_primitiveLights",
+            "set": 0,
+            "binding": 20,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
           }
         ],
-        "push_constants": [
-          {
-            "name": "pc",
-            "size_bytes": 156
-          }
-        ]
+        "push_constants": []
       }
     },
     {
@@ -2406,13 +3368,14 @@
       "source": "gen_frag.tmpl",
       "stage": "frag",
       "defines": [
-        "USE_TX1"
+        "USE_TX1",
+        "USE_ATEST"
       ],
-      "byte_size": 6000,
+      "byte_size": 9508,
       "reflection": {
         "descriptor_bindings": [
           {
-            "name": "id_87",
+            "name": "id_143",
             "set": 0,
             "binding": 0,
             "storage_class": "Uniform",
@@ -2445,13 +3408,14 @@
       "stage": "frag",
       "defines": [
         "USE_TX1",
+        "USE_ATEST",
         "USE_FOG"
       ],
-      "byte_size": 8448,
+      "byte_size": 11908,
       "reflection": {
         "descriptor_bindings": [
           {
-            "name": "id_78",
+            "name": "id_84",
             "set": 0,
             "binding": 0,
             "storage_class": "Uniform",
@@ -2492,13 +3456,14 @@
       "stage": "frag",
       "defines": [
         "USE_CLX_IDENT",
-        "USE_TX1"
+        "USE_TX1",
+        "USE_ATEST"
       ],
-      "byte_size": 5856,
+      "byte_size": 9364,
       "reflection": {
         "descriptor_bindings": [
           {
-            "name": "id_83",
+            "name": "id_139",
             "set": 0,
             "binding": 0,
             "storage_class": "Uniform",
@@ -2532,13 +3497,14 @@
       "defines": [
         "USE_CLX_IDENT",
         "USE_TX1",
+        "USE_ATEST",
         "USE_FOG"
       ],
-      "byte_size": 8304,
+      "byte_size": 11764,
       "reflection": {
         "descriptor_bindings": [
           {
-            "name": "id_78",
+            "name": "id_84",
             "set": 0,
             "binding": 0,
             "storage_class": "Uniform",
@@ -2579,13 +3545,14 @@
       "stage": "frag",
       "defines": [
         "USE_FIXED_COLOR",
-        "USE_TX1"
+        "USE_TX1",
+        "USE_ATEST"
       ],
-      "byte_size": 6076,
+      "byte_size": 9584,
       "reflection": {
         "descriptor_bindings": [
           {
-            "name": "id_87",
+            "name": "id_143",
             "set": 0,
             "binding": 0,
             "storage_class": "Uniform",
@@ -2619,13 +3586,14 @@
       "defines": [
         "USE_FIXED_COLOR",
         "USE_TX1",
+        "USE_ATEST",
         "USE_FOG"
       ],
-      "byte_size": 8524,
+      "byte_size": 11984,
       "reflection": {
         "descriptor_bindings": [
           {
-            "name": "id_78",
+            "name": "id_84",
             "set": 0,
             "binding": 0,
             "storage_class": "Uniform",
@@ -2666,13 +3634,14 @@
       "stage": "frag",
       "defines": [
         "USE_CL1",
-        "USE_TX1"
+        "USE_TX1",
+        "USE_ATEST"
       ],
-      "byte_size": 8264,
+      "byte_size": 11708,
       "reflection": {
         "descriptor_bindings": [
           {
-            "name": "id_87",
+            "name": "id_143",
             "set": 0,
             "binding": 0,
             "storage_class": "Uniform",
@@ -2706,13 +3675,14 @@
       "defines": [
         "USE_CL1",
         "USE_TX1",
+        "USE_ATEST",
         "USE_FOG"
       ],
-      "byte_size": 10664,
+      "byte_size": 14092,
       "reflection": {
         "descriptor_bindings": [
           {
-            "name": "id_78",
+            "name": "id_84",
             "set": 0,
             "binding": 0,
             "storage_class": "Uniform",
@@ -2752,13 +3722,14 @@
       "source": "gen_frag.tmpl",
       "stage": "frag",
       "defines": [
-        "USE_TX2"
+        "USE_TX2",
+        "USE_ATEST"
       ],
-      "byte_size": 6748,
+      "byte_size": 10256,
       "reflection": {
         "descriptor_bindings": [
           {
-            "name": "id_87",
+            "name": "id_143",
             "set": 0,
             "binding": 0,
             "storage_class": "Uniform",
@@ -2799,13 +3770,14 @@
       "stage": "frag",
       "defines": [
         "USE_TX2",
+        "USE_ATEST",
         "USE_FOG"
       ],
-      "byte_size": 9196,
+      "byte_size": 12656,
       "reflection": {
         "descriptor_bindings": [
           {
-            "name": "id_78",
+            "name": "id_84",
             "set": 0,
             "binding": 0,
             "storage_class": "Uniform",
@@ -2854,13 +3826,14 @@
       "stage": "frag",
       "defines": [
         "USE_CL2",
-        "USE_TX2"
+        "USE_TX2",
+        "USE_ATEST"
       ],
-      "byte_size": 10324,
+      "byte_size": 13768,
       "reflection": {
         "descriptor_bindings": [
           {
-            "name": "id_87",
+            "name": "id_143",
             "set": 0,
             "binding": 0,
             "storage_class": "Uniform",
@@ -2902,13 +3875,14 @@
       "defines": [
         "USE_CL2",
         "USE_TX2",
+        "USE_ATEST",
         "USE_FOG"
       ],
-      "byte_size": 12724,
+      "byte_size": 16152,
       "reflection": {
         "descriptor_bindings": [
           {
-            "name": "id_78",
+            "name": "id_84",
             "set": 0,
             "binding": 0,
             "storage_class": "Uniform",

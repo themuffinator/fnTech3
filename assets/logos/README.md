@@ -9,17 +9,50 @@ The approved mark is the first generated version, with a black numeral **3** on 
 | [fntech3-logo.png](fntech3-logo.png) | 980 × 1605, transparent PNG | Original vertical emblem |
 | [fntech3-readme-banner.png](fntech3-readme-banner.png) | 2172 × 724, transparent PNG | Horizontal README banner with subtitle on the expanded orange flame base |
 | [fntech3-social-banner.jpg](fntech3-social-banner.jpg) | 1600 × 900, opaque JPEG | 16:9 social preview with a soft-focused fiery backdrop, subtitle and centered game icons |
+| [fntech3-game-silhouettes.png](fntech3-game-silhouettes.png) | 2229 × 292, transparent PNG | Ten grey game silhouettes in a single row below the README banner |
 
 Both banners include the subtitle **Unified source port for id Tech 3**. The original vertical emblem has no subtitle.
 
-Only the social banner includes the game-icon row beneath the subtitle, ordered **Quake III Arena, Quake Live, Return to Castle Wolfenstein, Wolfenstein: Enemy Territory** from left to right. The README banner retains its subtitle without game icons. Game profile compatibility evidence remains in the [compatibility ledger](../../docs/fntech3/COMPATIBILITY.md).
+The social banner has a newly generated row of ten icons in their original
+colours. The README places a separate grey silhouette strip beneath its
+horizontal flame banner. Both rows show one icon per title, ordered by original
+PC release: **Quake III Arena, Heavy Metal: F.A.K.K.2, Star Trek Voyager:
+Elite Force, American McGee's Alice, Return to Castle Wolfenstein, Medal of
+Honor: Allied Assault, Jedi Outcast, Wolfenstein: Enemy Territory, Jedi Academy,
+Quake Live**. The social banner uses icons at half the previous width and
+height in a compact centered row; the README strip remains 720 pixels wide.
 
-The small monochrome emblems were generated using visual references for [Quake III Arena](https://www.steamgriddb.com/game/2255/icons), [Quake Live](https://x.com/QuakeLive), and [Return to Castle Wolfenstein](https://freebiesupply.com/logos/return-to-castle-wolfenstein-logo/). Only the emblem shapes informed the edit; decorative finishes and title lettering were omitted.
+These rows use the [imagegen application-icon remakes](../icons/games/README.md)
+as visual references. The RTCW title uses its completed multiplayer emblem.
+MOHAA is included as standalone artwork; it has no implemented fnTech3 profile.
+The row identifies games, not their current compatibility status. Profile
+evidence remains in the [compatibility ledger](../../docs/fntech3/COMPATIBILITY.md).
 
-The fourth emblem uses the original [Enemy Territory application icon](https://github.com/id-Software/Enemy-Territory/blob/40342a9e3690cb5b627a433d4d5cbf30e3c57698/src/win32/wolfet.ico) as a visual reference. Its winged symbol and ET monogram were generated in the same orange treatment; the reference icon is not bundled. The built-in image generation edit preserves the approved logo, subtitle and backdrop. The social banner was exported at 1600 × 900, JPEG quality 92.
+Both game rows are raster artwork created with the built-in image generation
+tool. The silhouette strip restores the user's preferred earlier artwork,
+rearranged by copying its exact pixels into release order. It is not redrawn,
+recoloured or resampled. No SVG or procedurally drawn icon supplies either row.
+The silhouette strip
+has transparent space between its marks and through their interior cutouts,
+so the same PNG can sit on light or dark README backgrounds. The source game
+icons retain their original colours and backgrounds in their own exports.
 
-The root README embeds the horizontal banner at 720 pixels wide. Its source is maintained in [the README template](../../docs/templates/README.md.in); the existing [documentation generator](../../scripts/generate_docs.py) preserves the banner on regeneration.
+The root README embeds the horizontal banner and the silhouette strip at
+720 pixels wide. Their placement is maintained in
+[the README template](../../docs/templates/README.md.in); run
+`python scripts/generate_docs.py` after editing that template.
 
 The social banner is below GitHub's 1 MB limit. Upload it in the repository's **Settings → General → Social preview → Edit → Upload an image**. Adding an image file to the repository alone does not select it as the social preview. See [GitHub's social preview instructions](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/customizing-your-repositorys-social-media-preview).
 
-Artwork was created with the built-in image generation tool using the user-supplied visual reference. The social banner was exported as a 1600 × 900 JPEG at quality 92 for the required aspect ratio and upload size. The original logo and horizontal PNG preserve their generated alpha channels. [Generation prompts](PROMPTS.md) document the two banner designs.
+The unmodified social-banner output and user-supplied preferred silhouette
+reference are retained under `sources/`, alongside the assembled silhouette
+master, with hashes and provenance in
+[the source manifest](sources/manifest.json).
+`python scripts/export_brand_artwork.py` exports the social JPEG at quality 92
+and rearranges the preferred silhouettes using transparent seams between
+icons. It verifies that every nontransparent reference pixel occurs exactly
+once with its original RGBA value. The strip export trims spare outer canvas
+and adds a transparent margin without resizing the artwork. The original
+vertical logo and horizontal flame banner remain
+unchanged. [Generation prompts](PROMPTS.md) record the current revisions and
+the earlier banner designs.

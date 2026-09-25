@@ -138,7 +138,7 @@ class AliceRendererParityTests(unittest.TestCase):
                 backend = read(renderer, 'tr_backend.c')
                 self.assertRegex(backend, r'RB_RenderFlares\(\);\n\n\t// Alice.s lens flares[^\n]*\n[^\n]*\n\tRB_AliceLensFlares\(\);')
                 main = read(renderer, 'tr_main.c')
-                self.assertIn('if ( ri.gameId == COM_GAME_ALICE && !R_AliceEntityInView( ent ) ) {', main)
+                self.assertIn('if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) && !R_AliceEntityInView( ent ) ) {', main)
                 bsp = read(renderer, 'tr_bsp.c')
                 self.assertIn('!strcmp( keyname, "sunflare" )', bsp)
                 self.assertIn('!strcmp( keyname, "sunflare_inportalsky" )', bsp)
@@ -146,8 +146,12 @@ class AliceRendererParityTests(unittest.TestCase):
                 self.assertIn('R_AliceRegisterCvars();', init)
                 self.assertIn('R_AliceInitLensFlares();', init)
                 self.assertIn('re.AddAliceLightToScene = RE_AddAliceLightToScene;', init)
-                self.assertIn('ri.Cvar_Get( "r_lodbias", ri.gameId == COM_GAME_ALICE ? "0" : "-2", CVAR_ARCHIVE_ND )', init)
-                self.assertIn('ri.Cvar_Get( "r_lodscale", "5", ri.gameId == COM_GAME_ALICE ? 0 : CVAR_CHEAT )', init)
+                self.assertIn('ri.Cvar_Get( "r_lodbias", COM_GAME_ID_IS_RITUAL( ri.gameId ) ? "0" : "-2", CVAR_ARCHIVE_ND )', init)
+                # Alice's r_lodscale is unprotected; Medal of Honor's is its
+                # own archived setting (tests/mohaa_permanent_decal_tests.py)
+                self.assertIn('ri.Cvar_Get( "r_lodscale", ri.gameId == COM_GAME_MOHAA ? "1.1" : "5",\n'
+                              '\t\tCOM_GAME_ID_IS_RITUAL( ri.gameId ) ? 0 : ri.gameId == COM_GAME_MOHAA ? '
+                              'CVAR_ARCHIVE : CVAR_CHEAT )', init)
                 self.assertEqual(read(renderer, 'tr_scene.c').count('dl->aliceFlare = 0;'), 2)
                 # the stencil shadows' multiply is GL's 0.6, not the fog
                 # colour or intensity the last stage's uniform carries, in
@@ -162,8 +166,12 @@ class AliceRendererParityTests(unittest.TestCase):
     def test_world_load_sets_the_loading_stages(self):
         public = (ROOT / 'code/renderercommon/tr_public.h').read_text(encoding='latin-1')
         imports = public[public.index('typedef struct refimport_s {'):public.index('} refimport_t;')]
-        # appended after every earlier entry, so a shorter table is a prefix
-        self.assertTrue(imports.rstrip().endswith('void\t(*AliceLoadingStage)( int stage );'))
+        # appended after every earlier entry, so a shorter table is a prefix;
+        # only Medal of Honor's table, appended since, follows it
+        stage = 'void\t(*AliceLoadingStage)( int stage );'
+        after = [line.strip() for line in imports[imports.index(stage) + len(stage):].splitlines()
+                 if line.strip() and not line.strip().startswith('//')]
+        self.assertEqual(after, ['const struct mohaaRenderImport_s *MOHAARender;'])
         client = (ROOT / 'code/client/cl_main.cpp').read_text(encoding='latin-1')
         self.assertIn('rimp.AliceLoadingStage = Com_AliceLoadingStage;', client)
         for renderer in ('renderer',) + VULKAN:
@@ -171,7 +179,7 @@ class AliceRendererParityTests(unittest.TestCase):
                 bsp = read(renderer, 'tr_bsp.c')
                 load = function(bsp, 'void RE_LoadWorldMap( const char *name ) {')
                 body = load[load.index('{'):]
-                pattern = r'if \( ri\.gameId == COM_GAME_ALICE && ri\.AliceLoadingStage \) \{\n\t\tri\.AliceLoadingStage\( (\d) \);\n\t\}'
+                pattern = r'if \( COM_GAME_ID_IS_RITUAL\( ri\.gameId \) && ri\.AliceLoadingStage \) \{\n\t\tri\.AliceLoadingStage\( (\d) \);\n\t\}'
                 calls = list(re.finditer(pattern, body))
                 self.assertEqual([m.group(1) for m in calls], ['7', '8'])
                 # 7 before anything the load does, 8 after everything; inline,

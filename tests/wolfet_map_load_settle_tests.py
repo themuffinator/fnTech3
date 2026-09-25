@@ -7,10 +7,13 @@ frame the same way (0x446b14..0x446b3a). Between them it drops every bot from a
 single-player or co-op game type, with no reason (0x446a3f..0x446a7b). Every
 other retail engine runs three frames and its last one the same way, each at
 the current time before advancing it (2026-09-24-settle-frame-order.md), and
-so does every other profile here, but for the IHV test's frames and Alice's
-own where this tree has them. This compiles the production block of
-SV_SpawnServer, from the settling frames to the last frame, and runs it for
-all thirteen profiles.
+so does every other profile here, but for the IHV test's frames, Alice's
+own, which F.A.K.K.2 shares, and Medal of Honor's own, where this tree has
+them. Q3Test settles as the others do, but frees its bots' slots without
+asking the reloaded game (1.02 SV_SpawnServer 0x41be5c, 1.06 0x41cede) and
+runs no last frame, except 1.08, which runs three (0x41d876..0x41d8c7). This
+compiles the production block of SV_SpawnServer, from the settling frames to
+the last frame, and runs it for all sixteen profiles, Q3Test's 1.08 apart.
 """
 from pathlib import Path
 import shutil
@@ -27,11 +30,20 @@ PRELUDE = r'''
 #include <cstdio>
 #include <string>
 #include <vector>
-enum { Q3, QL, RTCW_SP, RTCW_MP, WOLFET, STVEF_SP, STVEF_MP, Q3_IHV, JKA_SP, JKA_MP, JK2_SP, JK2_MP, ALICE, PROFILES };
+enum { Q3, QL, RTCW_SP, RTCW_MP, WOLFET, STVEF_SP, STVEF_MP, Q3_IHV, JKA_SP, JKA_MP, JK2_SP, JK2_MP, ALICE, FAKK2,
+       MOHAA, Q3TEST, Q3TEST_1_08, PROFILES };
 static int profile;
 int Com_GameIsWolfET(){return profile==WOLFET;}
 int Com_GameIsQuake3IHV(){return profile==Q3_IHV;}
 int Com_GameIsAlice(){return profile==ALICE;}
+int Com_GameIsRitual(){return profile==ALICE||profile==FAKK2;}
+int Com_GameIsMOHAA(){return profile==MOHAA;}
+// Q3Test's releases differ here only in 1.08, the one on protocol 40.
+int Com_GameIsQ3Test(){return profile==Q3TEST||profile==Q3TEST_1_08;}
+struct Q3TestRelease { int protocol; };
+const Q3TestRelease *Com_Q3TestRelease(){
+ static Q3TestRelease release;release.protocol=profile==Q3TEST_1_08?40:39;return &release;
+}
 typedef int qboolean;
 static constexpr int qfalse=0;
 // Game types 0 and 1 are single player and co-op, as a gameinfo.dat can name
@@ -48,6 +60,7 @@ enum { GSA_INIT, GSA_SENT_ONCE, GSA_SENT_MANY, GSA_ACKED };
 enum { GAME_INIT, GAME_SHUTDOWN, GAME_CLIENT_CONNECT, GAME_CLIENT_BEGIN, GAME_RUN_FRAME=8 };
 struct client_t {
  int state; struct { struct { int type; } remoteAddress; } netchan; int gamestateAck; void *gentity; bool refused;
+ char name[32];
 };
 struct SV_ClientSlot { client_t &client; int index; };
 static client_t clients[8];
@@ -69,6 +82,8 @@ void Cbuf_Wait(){++waits;}
 void SV_CreateBaseline(){events.push_back({"baseline",0,0,sv.time,""});}
 // Alice's own frames are its record's; here the call is all that counts.
 void SV_AliceSettle(qboolean restored){events.push_back({"alice",restored,0,sv.time,""});}
+// So are Medal of Honor's, which its own game runs.
+void SV_MOHAASettle(){events.push_back({"mohaa",0,0,sv.time,""});}
 intptr_t VM_Call(void *vm,int count,int call,...){
  assert(vm==gvm);
  va_list args;va_start(args,call);intptr_t result=0;
@@ -96,12 +111,15 @@ void SV_ClientEnterWorld(client_t *client,const void *cmd){
 '''
 CHECKS = r'''
 static std::vector<Event> Expected(int p,int type,bool killBots){
- const bool et=p==WOLFET, ihv=p==Q3_IHV&&ihvPath, alice=p==ALICE&&alicePath;
+ const bool et=p==WOLFET, ihv=p==Q3_IHV&&ihvPath, alice=(p==ALICE||p==FAKK2)&&alicePath, mohaa=p==MOHAA&&mohaaPath;
+ const bool q3test=(p==Q3TEST||p==Q3TEST_1_08)&&q3testPath;
  const int start=10000;
  int time=start, game=start;
  std::vector<Event> want;
  if(alice){
   want.push_back({"alice",1,0,start,""});
+ }else if(mohaa){
+  want.push_back({"mohaa",0,0,start,""});
  }else{
   // Every profile runs each frame at the current time, then advances it, as
   // every retail engine does, so the first frame and its bots are given the
@@ -121,12 +139,17 @@ static std::vector<Event> Expected(int p,int type,bool killBots){
  const bool dropBots=killBots||(et&&(type==0||type==1));
  for(int slot=2;slot<8;++slot){
   const bool bot=slot==5||slot==6;
+  // Q3Test frees its bots' slots and tells the game nothing.
+  if(bot&&q3test)continue;
   if(bot&&dropBots){want.push_back({"drop",slot,0,time,et?"":"was kicked"});continue;}
   want.push_back({"connect",slot,bot?1:0,time,""});
   if(slot==7)want.push_back({"drop",slot,0,time,"refused"});
   else if(bot)want.push_back({"enter",slot,game-start,time,""});
  }
- if(!ihv&&!alice){
+ if(q3test){
+  // Only 1.08 runs frames after reconnecting its clients: three, with no bots.
+  for(int i=0;i<(p==Q3TEST_1_08?3:0);++i){want.push_back({"frame",time,0,time,""});time+=100;}
+ }else if(!ihv&&!alice&&!mohaa){
   want.push_back({"frame",time,0,time,""});
   want.push_back({"botframe",time,0,time,""});
  }
@@ -139,7 +162,10 @@ int main(){
   // GAME_INIT was given sv.time as the level's start.
   sv.time=initTime=lastFrame=10000;svs.time=50000;
   const int states[8]={CS_FREE,CS_ZOMBIE,CS_CONNECTED,CS_PRIMED,CS_ACTIVE,CS_ACTIVE,CS_PRIMED,CS_ACTIVE};
-  for(int i=0;i<8;++i)clients[i]={states[i],{{i==5||i==6?NA_BOT:NA_IP}},GSA_ACKED,&clients[i],i==7};
+  for(int i=0;i<8;++i){
+   clients[i]={states[i],{{i==5||i==6?NA_BOT:NA_IP}},GSA_ACKED,&clients[i],i==7};
+   std::snprintf(clients[i].name,sizeof clients[i].name,"player%d",i);
+  }
   Spawn(killBots,1);
   const std::vector<Event> want=Expected(p,type,killBots);
   if(events!=want){
@@ -150,18 +176,27 @@ int main(){
    std::printf("profile %d, game type %d, killBots %d\n",p,type,killBots);
    return 1;
   }
-  const bool et=p==WOLFET, ihv=p==Q3_IHV&&ihvPath, alice=p==ALICE&&alicePath;
+  const bool et=p==WOLFET, ihv=p==Q3_IHV&&ihvPath, alice=(p==ALICE||p==FAKK2)&&alicePath, mohaa=p==MOHAA&&mohaaPath;
+  const bool q3test=(p==Q3TEST||p==Q3TEST_1_08)&&q3testPath, q3test108=q3test&&p==Q3TEST_1_08;
   // ET leaves the level 700 ms on, Quake III's load 400 ms and the IHV
   // test's 300 ms. Each frame counts down a console wait, and a last frame
-  // takes 100 ms of the server's own clock.
-  const int end=et?10700:ihv?10300:alice?10000:10400;
-  if(sv.time!=end||svs.time!=(ihv||alice?50000:50100)||waits!=(et?7:alice?1:4)){
+  // takes 100 ms of the server's own clock. Alice's and Medal of Honor's
+  // games run their own frames, and neither has a last frame here. Q3Test
+  // leaves at 300 ms, but for 1.08's three last frames, which count no wait.
+  const int end=et?10700:ihv?10300:alice||mohaa?10000:q3test?(q3test108?10600:10300):10400;
+  const int serverEnd=ihv||alice||mohaa?50000:q3test?(q3test108?50300:50000):50100;
+  if(sv.time!=end||svs.time!=serverEnd||waits!=(et?7:alice||mohaa?1:4)){
    std::printf("profile %d: sv.time %d, svs.time %d, %d waits\n",p,sv.time,svs.time,waits);
    return 1;
   }
   // Each person the game takes back waits for the new gamestate.
   for(int i=2;i<5;++i)assert(clients[i].state==CS_CONNECTED&&clients[i].gamestateAck==GSA_INIT&&!clients[i].gentity);
   assert(clients[0].state==CS_FREE&&clients[1].state==CS_ZOMBIE&&clients[7].state==CS_ZOMBIE);
+  // Q3Test's bots leave their slots free and nameless.
+  if(q3test&&!(clients[5].state==CS_FREE&&clients[6].state==CS_FREE&&!clients[5].name[0]&&!clients[6].name[0])){
+   std::printf("profile %d: a bot kept its slot or name\n",p);
+   return 1;
+  }
  }
  return 0;
 }
@@ -216,6 +251,16 @@ MUTATIONS = {
         'if ( killBots || ( wolfET', 'if ( ( !wolfET && killBots ) || ( wolfET'),
     'ET drops its bots with a reason': ('wolfET ? "" : "was kicked"', '"was kicked"'),
     'every profile drops its bots with no reason': ('wolfET ? "" : "was kicked"', '""'),
+    'Medal of Honor settles in the engine\'s three frames': (
+        'Com_GameIsMOHAA() ) {\n\t\t// Medal of Honor', 'false ) {\n\t\t// Medal of Honor'),
+    'Medal of Honor runs a last frame': ('&& !Com_GameIsMOHAA() ) {', ') {'),
+    'Q3Test asks its reloaded game about its bots': ('NA_BOT && Com_GameIsQ3Test() ) {', 'NA_BOT && false ) {'),
+    "Q3Test keeps its bots' names": ('\t\t\t\tslot.client.name[0] = 0;\n', ''),
+    'Q3Test runs the others\' last frame': (
+        '} else if ( Com_GameIsQ3Test() ) {\n\t\t/* Q3Test runs no frame here',
+        '} else if ( false ) {\n\t\t/* Q3Test runs no frame here'),
+    'Q3Test 1.08 runs no last frames': ('Com_Q3TestRelease()->protocol == 40', 'false'),
+    "every Q3Test release runs 1.08's last frames": ('Com_Q3TestRelease()->protocol == 40', 'true'),
 }
 
 
@@ -233,9 +278,11 @@ def settle_block(init):
 
 class WolfETMapLoadSettleTests(unittest.TestCase):
     def run_checks(self, block, folder, name):
-        # The IHV test and Alice take their own paths where this tree has them.
-        paths = ('static const bool ihvPath = %s, alicePath = %s;\n'
-                 % (str('Com_GameIsQuake3IHV()' in block).lower(), str('SV_AliceSettle(' in block).lower()))
+        # The IHV test, Alice, Medal of Honor and Q3Test take their own paths
+        # where this tree has them.
+        paths = ('static const bool ihvPath = %s, alicePath = %s, mohaaPath = %s, q3testPath = %s;\n'
+                 % (str('Com_GameIsQuake3IHV()' in block).lower(), str('SV_AliceSettle(' in block).lower(),
+                    str('SV_MOHAASettle(' in block).lower(), str('Com_GameIsQ3Test()' in block).lower()))
         source = (PRELUDE + paths + 'static void Spawn( qboolean killBots, qboolean aliceRestored ) {\n'
                   '\tbool isBot;\n\t(void)aliceRestored;\n' + block + '}\n' + CHECKS)
         cpp = folder / f'{name}.cpp'

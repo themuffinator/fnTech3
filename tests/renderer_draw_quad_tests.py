@@ -52,6 +52,9 @@ static stretchPicCommand_t *R_GetCommandBuffer(int bytes) {
 static shader_t *R_GetShaderByHandle(int handle) {
     ++lookups; assert(handle == 17 || handle == 19); return handle == 17 ? &shaderA : &shaderB;
 }
+// Q3Test's pictures are its own (tr_q3test_2d.h); every other profile draws
+// the shader it names.
+static shader_t *R_Q3Test2DShader(shader_t *shader) { return shader; }
 static void QDECL Error(errorParm_t, const char *, ...) { throw 7; }
 static struct { decltype(&::Error) Error; } ri{Error};
 static void RB_EndSurface() { ++flushes; tess.numVertexes = tess.numIndexes = 0; }

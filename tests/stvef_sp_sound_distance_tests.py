@@ -9,8 +9,10 @@ Force's executables register (0x41fad2), and a mono device hears a sound on
 both channels at three quarters. Multiplayer keeps Quake III's own distances
 (stvoyHM.exe 0x42a580), so none of this may reach it, or any other profile.
 
-The checks pin the distances themselves, the channel numbers single player's
-sounds arrive on, and both sound backends measuring the same way.
+The checks pin the distances themselves, the same law as each channel's span
+for a backend with a distance model of its own, the channel numbers single
+player's sounds arrive on, the legacy mixer measuring as retail does, and the
+OpenAL backend taking the spans (stvef_sp_openal_voice_tests runs it).
 """
 from pathlib import Path
 import os
@@ -90,6 +92,42 @@ static void Falloff() {
 	assert( Ahead( 1200, -1 ) == Ahead( 1200, 0 ) );
 }
 
+static bool Near( float a, float b ) { return a - b < 0.01f && b - a < 0.01f; }
+
+static void Spans() {
+	// The same law as the distances a backend with its own distance model
+	// takes: full volume out to the first, silent from the second on.
+	ef::Span span = ef::ChannelSpan( 0 );
+	assert( span.full == 256.0f && Near( span.silent, 1506.0f ) );
+	span = ef::ChannelSpan( ef::VoiceChannel );
+	assert( span.full == 1024.0f && Near( span.silent, 2274.0f ) );
+	span = ef::ChannelSpan( ef::AttenuatedVoiceChannel );
+	assert( span.full == 38.4000015f && Near( span.silent, 288.4f ) );
+	for ( const int channel : { -1, 1, 2, 4, 5, 15, 18 } ) {
+		assert( ef::ChannelSpan( channel ).full == 256.0f );
+	}
+	// Between them, the law's own gain is retail's measure without its pan:
+	// a sound ahead takes the separation's half of it on each channel.
+	for ( const int channel : { 0, ef::VoiceChannel, ef::AttenuatedVoiceChannel } ) {
+		span = ef::ChannelSpan( channel );
+		for ( float distance = 0; distance < 2400; distance += 7.5f ) {
+			const float measured = static_cast<float>( Ahead( distance, channel ) ) / 127.0f;
+			const float gain = ef::SpanGain( span, distance );
+			assert( gain >= 0.0f && gain <= 1.0f && measured - gain < 0.01f && gain - measured < 0.01f );
+		}
+		assert( ef::SpanGain( span, span.silent ) == 0.0f && ef::SpanGain( span, span.full ) == 1.0f );
+	}
+	assert( ef::SpanGain( span, -1.0f ) == 1.0f && ef::SpanGain( span, INFINITY ) == 0.0f );
+
+	// The attenuated voice is a voice to the engine's tone classes, and the
+	// menu channels are single player's own.
+	assert( ef::ToneChannel( ef::AttenuatedVoiceChannel ) == ef::VoiceChannel );
+	for ( const int channel : { 0, 2, 3, 6, 15, 18 } ) {
+		assert( ef::ToneChannel( channel ) == channel );
+	}
+	assert( ef::IsMenuChannel( 18 ) && ef::IsMenuChannel( 19 ) && !ef::IsMenuChannel( 7 ) && !ef::IsMenuChannel( 15 ) );
+}
+
 static void Spread() {
 	const float right[3] = { 0, -100, 0 };
 
@@ -132,6 +170,7 @@ static void AtTheListener() {
 
 int main() {
 	Falloff();
+	Spans();
 	Spread();
 	AtTheListener();
 	return 0;
@@ -192,6 +231,10 @@ class STVEFSPSoundDistanceTests(unittest.TestCase):
         self.assertIn('inline constexpr int VoiceChannel = %d;' % numbers['CHAN_VOICE'], self.header)
         self.assertIn('inline constexpr int AttenuatedVoiceChannel = %d;'
                       % (announcer + 1 + single['CHAN_VOICE_ATTEN']), self.header)
+        # The two menu channels are marshalled the same way.
+        self.assertIn('inline constexpr int MenuChannel = %d;' % (announcer + 1 + single['CHAN_MENU1']), self.header)
+        self.assertIn('inline constexpr int SecondMenuChannel = %d;' % (announcer + 1 + single['CHAN_MENU2']),
+                      self.header)
 
     def test_the_sounds_the_player_makes(self):
         # Retail holds back every channel the game numbers below its ambient
@@ -249,22 +292,25 @@ class STVEFSPSoundDistanceTests(unittest.TestCase):
         self.assertIn('S_SpatializeOrigin (origin, ch->master_vol, &ch->leftvol, &ch->rightvol, ch->entchannel);', mixer)
         self.assertEqual(4, mixer.count('&right_total, CHAN_AUTO)') + mixer.count('&right, CHAN_AUTO)'))
 
-    def test_the_openal_backend_measures_the_same_way(self):
+    def test_the_openal_backend_renders_the_law_as_spans(self):
+        # The OpenAL backend takes each channel's distances rather than
+        # retail's gain and pan: the device's distance model across the span,
+        # faded toward its silent end, and the law's own gain only where the
+        # device has no model (stvef_sp_openal_voice_tests runs it).
         world = read('code/client/audio/openal/AudioSystemWorld.inl')
         apply = function(world, 'void Q3SoundWorld::ApplyVoice( SoundVoice &voice, qboolean softMuted ) {')
-        self.assertIn('const bool stvefSpatial = Com_GameIsSTVEFSP() && !voice.stvefAmbient;', apply)
-        self.assertIn('} else if ( stvefSpatial ) {', apply)
-        self.assertIn('S_STVEFSeparation(), voice.entchannel );', apply)
-        # The device may not attenuate what single player has measured
-        # itself, and the fade that hides the device's own floor would cut a
-        # voice short of the distance it carries.
-        self.assertIn('const bool worldDistance = positionalSource && !stvefSpatial;', apply)
-        self.assertIn('const bool useOpenALDistance = worldDistance && device_->UsesOpenALDistanceAttenuation();', apply)
-        self.assertIn('ConfigureSourceDistance( voice.source, worldDistance,', apply)
-        self.assertIn('if ( worldDistance ) {\n\t\t\t\thorizonGain = HorizonGain(', apply)
-        # A single player sound is still placed in the world, so the engine's
-        # reverb and occlusion reach it as they reach every other profile's.
-        self.assertNotIn('stvefSpatial', re.search(r'\tconst bool rtcwSpatial = .*', apply).group( 0 ))
+        self.assertIn('if ( Com_GameIsSTVEFSP() ) {\n\t\tApplySTVEFVoice( voice, softMuted );', apply)
+        span = function(world, 'static fntech3::audio::stvef::Span STVEFVoiceSpan( const SoundVoice &voice ) {')
+        self.assertIn('ChannelSpan( voice.stvefAmbient ? -1 : voice.entchannel );', span)
+        body = function(world, 'void Q3SoundWorld::ApplySTVEFVoice( SoundVoice &voice, qboolean softMuted ) {')
+        self.assertIn('device_->ConfigureSourceDistanceRange( voice.source, span.full, span.silent );', body)
+        self.assertIn('gain *= modelDistance ? HorizonGainAt( distance, span.silent ) : stvef::SpanGain( span, distance );',
+                      body)
+        self.assertIn('stvef::SpreadRadius( stvef::SeparationSpread( separation ), distance )', body)
+        # Retail's pan reaches no placed voice; only the room tone, a centred
+        # sound, keeps the share of it the separation leaves.
+        self.assertEqual(1, body.count('stvef::Spatialize('))
+        self.assertIn('if ( voice.stvefAmbient && listenerSound ) {', body)
 
 
 if __name__ == '__main__':

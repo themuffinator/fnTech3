@@ -98,7 +98,9 @@ The draft contains exactly:
 
 Downloads are also retained as the `release-v0.1.0` workflow artifact for 30
 days. The packager includes the changelog, compatibility ledger and legal
-notices. All packages are engine-only. RTCW development remains disabled.
+notices. All packages are engine-only, and none enables a game development
+option: they start Quake III Arena and Quake Live and refuse the experimental
+games.
 
 Verify the five uploaded assets and release notes, extract and test the target
 builds with legitimate installations and isolated writable home paths, and

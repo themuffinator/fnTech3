@@ -229,6 +229,19 @@ static int forced_unload;
 
 static struct vm_s vmTable[ VM_COUNT ];
 
+// The address range each slot's last native module occupied, reserved from
+// its unload until the slot loads again, so that a 32-bit client's renderer
+// restart cannot split the only hole large enough to reload it
+// (Sys_UnloadLibraryHeld; nothing is held on other platforms).
+static void *vmLibraryHold[ VM_COUNT ];
+
+static void VM_ReleaseLibraryHold( vmIndex_t index ) {
+	if ( (unsigned)index < VM_COUNT && vmLibraryHold[ index ] ) {
+		Sys_ReleaseLibraryHold( vmLibraryHold[ index ] );
+		vmLibraryHold[ index ] = NULL;
+	}
+}
+
 // Pure Quake Live servers still require the retail native UI and cgame.  Keep
 // a bounded copy of modules which the local installation opened successfully
 // before a server could influence filesystem search order.  A pure restart may
@@ -2303,6 +2316,8 @@ vm_t *VM_CreateTable( vmIndex_t index, const char *symbolName, vmMainFunc_t disp
 		return NULL;
 	}
 
+	VM_ReleaseLibraryHold( index );
+
 	filename[0] = '\0';
 	for ( candidate = 0; Com_GameManagerNativeModuleCandidate( Com_GameProfile(), VM_ProfileName( index ),
 		ARCH_STRING, DLL_EXT, candidate, filename, sizeof( filename ), &installationRoot ); ++candidate ) {
@@ -2374,6 +2389,9 @@ vm_t *VM_CreateNative( vmIndex_t index, syscall_t systemCalls, dllSyscall_t dllS
 		}
 		return vm;
 	}
+
+	// the range the slot's previous module held is this one's to load into
+	VM_ReleaseLibraryHold( index );
 
 	name = VM_ProfileName( index );
 
@@ -2517,8 +2535,14 @@ void VM_Free( vm_t *vm ) {
 	if ( vm->destroy )
 		vm->destroy( vm );
 
-	if ( vm->dllHandle )
-		Sys_UnloadLibrary( vm->dllHandle );
+	if ( vm->dllHandle ) {
+		if ( (unsigned)vm->index < VM_COUNT ) {
+			VM_ReleaseLibraryHold( vm->index );
+			vmLibraryHold[ vm->index ] = Sys_UnloadLibraryHeld( vm->dllHandle );
+		} else {
+			Sys_UnloadLibrary( vm->dllHandle );
+		}
+	}
 
 #if 0	// now automatically freed by hunk
 	if ( vm->codeBase.ptr ) {

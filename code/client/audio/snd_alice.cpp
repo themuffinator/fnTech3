@@ -606,7 +606,7 @@ sfx::Frame MakeFrame() {
 }
 
 sfx::Device *RequireDevice( const char *what ) {
-	if ( !Com_GameIsAlice() ) Com_Error( ERR_DROP, "%s requested for another game profile", what );
+	if ( !Com_GameIsRitual() ) Com_Error( ERR_DROP, "%s requested for another game profile", what );
 	return S_AliceDevice();
 }
 
@@ -757,10 +757,14 @@ extern "C" void S_AliceUpdateEntity( int entnum, const vec3_t origin, const vec3
 	engine.UpdateEntity( entnum, origin, velocity, useListener != qfalse, cl.serverTime );
 }
 
-/* Import 40 (0x0044cf80, 0x00471000): kept whatever s_reverb says, applied
- * only when it is 1. */
+/* Import 40 (0x0044cf80): the room the client game names, from its player
+ * state. The OpenAL backend plays its own room -- the map's audio zones or
+ * the traced room -- and a named one replaces it; see S_AliceNamedRoom. */
 extern "C" void S_AliceSetReverb( int type, float level ) {
 	if ( !RequireDevice( "Alice reverb" ) ) return;
+	if ( type != reverbType || level != reverbLevel ) {
+		Com_DPrintf( "Alice room: environment %i at level %.2f\n", type, static_cast<double>( level ) );
+	}
 	reverbType = type;
 	reverbLevel = level;
 }
@@ -774,7 +778,7 @@ extern "C" void S_AliceSetGlobalAmbientVolumeLevel( float volume ) {
 /* The server command `fadesound <ms>` (0x004241f6) and the engine's own
  * cancel with 0 (0x0042aa6f, 0x0042ab90, 0x0042d89f). */
 extern "C" void S_AliceFadeSound( float ms ) {
-	if ( !Com_GameIsAlice() ) Com_Error( ERR_DROP, "Alice fade requested for another game profile" );
+	if ( !Com_GameIsRitual() ) Com_Error( ERR_DROP, "Alice fade requested for another game profile" );
 	fade.Start( ms, cls.realtime );
 }
 
@@ -784,19 +788,19 @@ extern "C" void S_AliceFadeSound( float ms ) {
 
 /* Import 42 (0x0044f7a0). */
 extern "C" void S_AliceMusicNewSoundtrack( const char *name ) {
-	if ( !Com_GameIsAlice() ) return;
+	if ( !Com_GameIsRitual() ) return;
 	NewSoundtrack( name );
 }
 
 /* Import 43 (0x0044f860). */
 extern "C" void S_AliceMusicUpdateMood( int current, int fallback ) {
-	if ( !Com_GameIsAlice() ) return;
+	if ( !Com_GameIsRitual() ) return;
 	music.UpdateMood( current, fallback, musicLog );
 }
 
 /* Import 44 (0x0044f980). */
 extern "C" void S_AliceMusicUpdateVolume( float volume, float fadeTime ) {
-	if ( !Com_GameIsAlice() ) return;
+	if ( !Com_GameIsRitual() ) return;
 	music.UpdateVolume( volume, fadeTime, cls.realtime );
 }
 
@@ -804,7 +808,7 @@ extern "C" void S_AliceMusicUpdateVolume( float volume, float fadeTime ) {
  * stops, the moods go to none and the soundtrack loses its name, so the
  * next level's name reloads it from the top. The table stays. */
 extern "C" void S_AliceMusicFreeAll( void ) {
-	if ( !Com_GameIsAlice() || !SoundStarted() ) return;
+	if ( !Com_GameIsRitual() || !SoundStarted() ) return;
 	music.FreeAll( player, musicLog );
 	soundtrackName.clear();
 	songsLoaded = false;
@@ -814,13 +818,13 @@ extern "C" void S_AliceMusicFreeAll( void ) {
  * "music/intro" (0x0042b5d8, 0x0042b62b), a file no pak has; the load fails
  * and whatever table was there stays. */
 extern "C" void S_AliceMusicSoundtrackAfterRestart( void ) {
-	if ( !Com_GameIsAlice() || cls.state == CA_ACTIVE ) return;
+	if ( !Com_GameIsRitual() || cls.state == CA_ACTIVE ) return;
 	NewSoundtrack( "music/intro" );
 }
 
 /* Once a frame (0x0044f5b0): the song-end check comes before the reload. */
 extern "C" void S_AliceMusicUpdate( void ) {
-	if ( !Com_GameIsAlice() || !SoundStarted() ) return;
+	if ( !Com_GameIsRitual() || !SoundStarted() ) return;
 	if ( musicActive ) {
 		music.CheckSongEnds( player );
 		if ( !songsLoaded && !soundtrackName.empty() ) {
@@ -839,7 +843,7 @@ extern "C" void S_AliceMusicUpdate( void ) {
 
 /* 0x0046eef0, from CL_PlayCinematic (0x0042745d). */
 extern "C" qboolean S_AliceMP3Preload( const char *name ) {
-	if ( !Com_GameIsAlice() ) return qfalse;
+	if ( !Com_GameIsRitual() ) return qfalse;
 	if ( mp3Held ) ReleaseMP3();
 	if ( !SoundStarted() || !name || !ReadImage( name, mp3Image ) ) return qfalse;
 	mp3Held = true;
@@ -849,7 +853,7 @@ extern "C" qboolean S_AliceMP3Preload( const char *name ) {
 /* 0x0046ef90, from CL_PlayCinematic once the first frame is decoded
  * (0x00427569), which asks for a single pass. */
 extern "C" qboolean S_AliceMP3PlayPreloaded( qboolean loop ) {
-	if ( !Com_GameIsAlice() || !mp3Held || !SoundStarted() ) return qfalse;
+	if ( !Com_GameIsRitual() || !mp3Held || !SoundStarted() ) return qfalse;
 	if ( !BeginMP3( loop != qfalse ) ) return qfalse;
 	Com_Printf( "Playing mp3\n" );
 	return qtrue;
@@ -857,7 +861,7 @@ extern "C" qboolean S_AliceMP3PlayPreloaded( qboolean loop ) {
 
 /* 0x004725b0, from the cinematic's shutdown (0x004257f4). */
 extern "C" void S_AliceMP3Free( void ) {
-	if ( !Com_GameIsAlice() ) return;
+	if ( !Com_GameIsRitual() ) return;
 	if ( mp3Held ) ReleaseMP3();
 }
 
@@ -868,10 +872,10 @@ extern "C" void S_AliceMP3Free( void ) {
 /* The Miles start (0x0046e4a0) and S_Init's Alice parts, once the cvars
  * S_Init owns are registered and before a backend starts. */
 extern "C" void S_AliceSoundInit( void ) {
-	if ( !Com_GameIsAlice() ) return;
-	s_reverb = Cvar_Get( "s_reverb", "0", CVAR_ARCHIVE | CVAR_LATCH );
+	if ( !Com_GameIsRitual() ) return;
+	s_reverb = Cvar_Get( "s_reverb", "1", CVAR_ARCHIVE );
 	Cvar_CheckRange( s_reverb, "0", "1", CV_INTEGER );
-	Cvar_SetDescription( s_reverb, "Plays American McGee's Alice's room reverb, as retail's s_reverb 1 does, on the OpenAL backend's EFX path. Off by default, as retail ships it. Requires snd_restart." );
+	Cvar_SetDescription( s_reverb, "Lets a room American McGee's Alice's client game names -- a map's reverb trigger -- replace the OpenAL backend's own room from the map's audio zones or the traced room. The room reverb itself follows s_alReverb." );
 	s_show_sounds = Cvar_Get( "s_show_sounds", "0", 0 );
 	Cvar_SetDescription( s_show_sounds, "Prints every American McGee's Alice sound as it starts and stops." );
 	fade = sfx::Fade{};
@@ -886,7 +890,7 @@ extern "C" void S_AliceSoundInit( void ) {
 /* Once a backend runs: retail adds its commands with Miles (0x0046e793) and
  * in S_Init (0x0044c811). */
 extern "C" void S_AliceRegisterCommands( void ) {
-	if ( !Com_GameIsAlice() ) return;
+	if ( !Com_GameIsRitual() ) return;
 	Cmd_AddCommand( "play", Play_f );
 	Cmd_AddCommand( "sounddump", SoundDump_f );
 	Cmd_AddCommand( "playsong", PlaySong_f );
@@ -898,7 +902,7 @@ extern "C" void S_AliceRegisterCommands( void ) {
 /* The part of S_Update (0x00471090) before the backend mixes: the ambient
  * level, pausing, the fade and s_volume, and reaping the loops. */
 extern "C" void S_AliceSoundUpdate( void ) {
-	if ( !Com_GameIsAlice() ) return;
+	if ( !Com_GameIsRitual() ) return;
 	sfx::Device *device = S_AliceDevice();
 	if ( !device ) return;
 	/* [0x00c301e8] is taken to be the key catchers: its readers are the menu
@@ -922,7 +926,7 @@ extern "C" void S_AliceSoundUpdate( void ) {
 /* S_StopAllSounds and S_DisableSounds: every voice ends and every loop
  * record goes (0x004713f0). */
 extern "C" void S_AliceSoundStopAll( void ) {
-	if ( !Com_GameIsAlice() ) return;
+	if ( !Com_GameIsRitual() ) return;
 	sfx::Device *device = S_AliceDevice();
 	if ( device ) engine.StopAll( *device );
 }
@@ -933,7 +937,7 @@ extern "C" void S_AliceSoundStopAll( void ) {
  * the two players and the stream let go, and the next start picks up where
  * the manager is. */
 extern "C" void S_AliceSoundShutdown( void ) {
-	if ( !Com_GameIsAlice() ) return;
+	if ( !Com_GameIsRitual() ) return;
 	Cmd_RemoveCommand( "sounddump" );
 	Cmd_RemoveCommand( "playsong" );
 	Cmd_RemoveCommand( "loadsoundtrack" );
@@ -949,10 +953,12 @@ int S_AliceListenerNumber( void ) {
 	return engine.Listener();
 }
 
-/* What the OpenAL backend reads for its reverb: whether Alice's room reverb
- * is on, and the environment and level the client game last asked for. */
-bool S_AliceReverb( int *type, float *level ) {
+/* The room the client game last named, for the OpenAL backend's environment.
+ * A level of 0 names none: the player starts there, and no shipped map has a
+ * reverb trigger to raise it. */
+bool S_AliceNamedRoom( int *type, float *level ) {
 	if ( type ) *type = reverbType;
 	if ( level ) *level = reverbLevel;
-	return Com_GameIsAlice() && s_reverb && s_reverb->integer == 1;
+	return Com_GameIsRitual() && s_reverb && s_reverb->integer != 0 &&
+		reverbLevel > 0.0f && fntech3::audio::alice::sfx::NearestReverbPreset( reverbType ) != nullptr;
 }

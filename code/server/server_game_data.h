@@ -107,6 +107,10 @@ public:
 
 	static std::size_t EntityPrefixBytesForProfile( comGameId_t profile );
 	static std::size_t PlayerStateBytesForProfile( comGameId_t profile );
+	/* The Q3Test profile's records follow its pinned release's protocol
+	 * (35, 36, 38, 39 or 40). Its game loader names it once, before binding;
+	 * until then the profile has no layout. */
+	static bool SelectQ3TestProtocol( int protocol );
 
 	bool EntityRefAt( std::int32_t index, GameEntityRef &destination ) const;
 	bool EntityRefForPointer( const void *pointer,
@@ -198,6 +202,12 @@ public:
 	// overload remains unavailable for IHV until its shared projections are pinned.
 	bool ReadPlayerState( std::int32_t clientIndex,
 		fntech3_q3_ihv_playerState_t &destination ) const;
+	// Q3Test's snapshots carry each release's exact records: the 204-byte
+	// entity state and the whole player state, whose size the release sets.
+	bool ReadQ3TestEntityState( const GameEntityRef &reference, void *destination,
+		std::size_t bytes ) const;
+	bool ReadQ3TestPlayerState( std::int32_t clientIndex, void *destination,
+		std::size_t bytes ) const;
 	bool GetPlayerPing( std::int32_t clientIndex,
 		std::int32_t &destination ) const;
 	bool SetPlayerPing( std::int32_t clientIndex, std::int32_t value );

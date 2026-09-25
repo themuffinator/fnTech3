@@ -35,6 +35,7 @@ void		CM_ModelBounds( clipHandle_t model, vec3_t mins, vec3_t maxs );
 
 int			CM_NumClusters (void);
 int			CM_NumInlineModels( void );
+int			CM_NumLeafs( void );
 char		*CM_EntityString (void);
 
 // returns an ORed contents mask
@@ -53,6 +54,9 @@ byte		*CM_ClusterPVS (int cluster);
 int			CM_ClusterBytes( void );
 
 int			CM_PointLeafnum( const vec3_t p );
+// Medal of Honor's lights reaching a point, the sun first (cm_mohaa_lights.c)
+int			CM_MOHAAGatherLights( const vec3_t point, const byte *areamask, vec3_t *lightPositions,
+				vec3_t *lightIntensities, int maxLights );
 
 // only returns non-solid leafs
 // overflow if return listsize and if *lastLeaf != list[listsize-1]
@@ -61,6 +65,8 @@ int			CM_BoxLeafnums( const vec3_t mins, const vec3_t maxs, int *list,
 
 // Quake III IHV's Quake II-style record: the first node the box straddles,
 // or -1 when the box stays on one side of every node it reaches.
+// Q3Test 1.05's client game reads brushes in its engine's own shape (cm_test.c)
+int			CM_Q3TestBoxBrushes( const vec3_t mins, const vec3_t maxs, void **list, int listsize, int *lastLeaf );
 int			CM_BoxLeafnumsTopnode( const vec3_t mins, const vec3_t maxs, int *list,
 								int listsize, int *topnode );
 qboolean	CM_HeadnodeVisible( int nodenum, const byte *visbits );

@@ -72,7 +72,11 @@ void CL_AliceRegisterClientArt( void ) {
 	CL_AliceArtRendererStarted();
 	cls.whiteShader = CL_AliceWhite();
 	cls.consoleShader = cls.whiteShader;
-	cls.charSetShader = CL_AliceConsoleCharset();
+	/* Heavy Metal: F.A.K.K.2 ships Quake III's character sheet itself --
+	 * gfx/2d/bigchars, which its scripts/gfx.shader declares -- so its
+	 * console draws from that rather than from a sheet built out of a font. */
+	cls.charSetShader = Com_GameIsFAKK2() ? re.RegisterShaderNoMip( "gfx/2d/bigchars" )
+		: CL_AliceConsoleCharset();
 	cls.recordShader = 0;
 	cls.consoleLogoShader = 0;
 	cls.cursorShader = re.RegisterShaderNoMip( "gfx/2d/mouse_arrow" );

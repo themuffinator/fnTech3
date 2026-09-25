@@ -154,6 +154,61 @@ AUX_SOURCE_DIRECTORY(code/botlib BOTLIB_SRCS)
 ADD_LIBRARY(botlib OBJECT ${BOTLIB_SRCS})
 TARGET_COMPILE_DEFINITIONS(botlib PRIVATE BOTLIB)
 
+# Medal of Honor's TIKI, skeletor and alias runtime keeps OpenMoHAA's upstream
+# names and headers (see code/mohaa/README.md). Its sources include "q_shared.h"
+# and "qcommon.h" by bare name, so code/mohaa/qcommon leads the include path.
+# The client and the dedicated server link the same objects, as meson does.
+SET(MOHAA_SRCS
+	code/mohaa/corepp/con_set.cpp
+	code/mohaa/corepp/mem_blockalloc.cpp
+	code/mohaa/corepp/mem_tempalloc.cpp
+	code/mohaa/corepp/str.cpp
+	code/mohaa/corepp/tiki_main.cpp
+	code/mohaa/corepp/tiki_script.cpp
+	code/mohaa/qcommon/alias.c
+	code/mohaa/qcommon/mohaa_q_shared.c
+	code/mohaa/skeletor/bonetable.cpp
+	code/mohaa/skeletor/skeletor.cpp
+	code/mohaa/skeletor/skeletor_imports.cpp
+	code/mohaa/skeletor/skeletor_loadanimation.cpp
+	code/mohaa/skeletor/skeletor_model_files.cpp
+	code/mohaa/skeletor/skeletor_utilities.cpp
+	code/mohaa/skeletor/skeletorbones.cpp
+	code/mohaa/skeletor/tokenizer.cpp
+	code/mohaa/tiki/tiki_anim.cpp
+	code/mohaa/tiki/tiki_cache.cpp
+	code/mohaa/tiki/tiki_commands.cpp
+	code/mohaa/tiki/tiki_files.cpp
+	code/mohaa/tiki/tiki_frame.cpp
+	code/mohaa/tiki/tiki_imports.cpp
+	code/mohaa/tiki/tiki_mesh.cpp
+	code/mohaa/tiki/tiki_parse.cpp
+	code/mohaa/tiki/tiki_skel.cpp
+	code/mohaa/tiki/tiki_surface.cpp
+	code/mohaa/tiki/tiki_tag.cpp
+	code/mohaa/tiki/tiki_utility.cpp
+	code/mohaa/mohaa_engine.cpp
+	code/mohaa/mohaa_system86.cpp
+	code/mohaa/mohaa_render_api.cpp
+	code/mohaa/mohaa_tiki_api.cpp)
+ADD_LIBRARY(mohaa_tiki OBJECT ${MOHAA_SRCS})
+TARGET_INCLUDE_DIRECTORIES(mohaa_tiki PRIVATE code/mohaa/qcommon code)
+IF(MSVC)
+	TARGET_COMPILE_OPTIONS(mohaa_tiki PRIVATE /wd4018 /wd4101 /wd4189 /wd4305 /wd4389
+		/wd4456 /wd4457 /wd4458 /wd4459 /wd4701)
+ELSE()
+	# Upstream type-puns floats (SkelQuat's Slerp), so it is built without
+	# strict aliasing, as meson builds every source.
+	TARGET_COMPILE_OPTIONS(mohaa_tiki PRIVATE -fno-strict-aliasing
+		-Wno-unknown-warning-option -Wno-sign-compare
+		-Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function
+		-Wno-unused-value -Wno-maybe-uninitialized -Wno-parentheses
+		-Wno-format-truncation -Wno-stringop-truncation -Wno-char-subscripts
+		$<$<COMPILE_LANGUAGE:C>:-Wno-pointer-sign>
+		$<$<COMPILE_LANGUAGE:CXX>:-Wno-class-memaccess>
+		$<$<COMPILE_LANGUAGE:CXX>:-Wno-reorder>)
+ENDIF()
+
 SET(SERVER_SRCS
 	code/server/factory_catalog.cpp
 	code/server/factory_rotation.cpp
@@ -763,6 +818,9 @@ IF(UNIX)
 		code/unix/unix_shared.cpp
 		code/unix/unix_syscon.cpp
 		code/unix/linux_signals.cpp)
+	# Without Windows resources the client links the game icons' PNG frames.
+	SET(Q3_CLIENT_RESOURCES code/platform/game_icon_data.cpp)
+	SET(Q3_SERVER_RESOURCES)
 
 	IF(USE_SDL)
 		SET(Q3_UI_SRCS
@@ -817,8 +875,10 @@ ELSEIF(WIN32)
 	SET(Q3_SRCS
 		code/win32/win_main.cpp
 		code/win32/win_shared.cpp
-		code/win32/win_syscon.cpp
-		code/win32/win_resource.rc)
+		code/win32/win_syscon.cpp)
+	# The client's script wraps win_resource.rc and adds every game's icon.
+	SET(Q3_CLIENT_RESOURCES code/win32/win_client_resource.rc)
+	SET(Q3_SERVER_RESOURCES code/win32/win_resource.rc)
 
 	SET(Q3_UI_SRCS
 		code/win32/win_gamma.cpp
@@ -873,8 +933,8 @@ ENDIF()
 
 # client executable
 
-ADD_EXECUTABLE(${CNAME}${BINEXT} ${CLIENT_EXE_TYPE} ${Q3_SRCS})
-TARGET_LINK_LIBRARIES(${CNAME}${BINEXT} qcommon botlib client q3ui Threads::Threads ZLIB::ZLIB ${FNQL_CLIENT_LINK_LIBS})
+ADD_EXECUTABLE(${CNAME}${BINEXT} ${CLIENT_EXE_TYPE} ${Q3_SRCS} ${Q3_CLIENT_RESOURCES})
+TARGET_LINK_LIBRARIES(${CNAME}${BINEXT} qcommon botlib mohaa_tiki client q3ui Threads::Threads ZLIB::ZLIB ${FNQL_CLIENT_LINK_LIBS})
 set_property(TARGET ${CNAME}${BINEXT} PROPERTY LINKER_LANGUAGE CXX)
 IF(APPLE)
 	SET_TARGET_PROPERTIES(${CNAME}${BINEXT} PROPERTIES
@@ -906,8 +966,8 @@ ENDIF()
 
 # dedicated server executable
 
-ADD_EXECUTABLE(${DNAME}${BINEXT} ${SERVER_EXE_TYPE} ${Q3_SRCS})
-TARGET_LINK_LIBRARIES(${DNAME}${BINEXT} qcommon_ded botlib Threads::Threads ZLIB::ZLIB)
+ADD_EXECUTABLE(${DNAME}${BINEXT} ${SERVER_EXE_TYPE} ${Q3_SRCS} ${Q3_SERVER_RESOURCES})
+TARGET_LINK_LIBRARIES(${DNAME}${BINEXT} qcommon_ded botlib mohaa_tiki Threads::Threads ZLIB::ZLIB)
 set_property(TARGET ${DNAME}${BINEXT} PROPERTY LINKER_LANGUAGE CXX)
 #TARGET_LINK_OPTIONS(${DNAME} PRIVATE -fno-pie) # v3.13+
 

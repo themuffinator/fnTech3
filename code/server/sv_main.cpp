@@ -316,6 +316,12 @@ void QDECL SV_SendServerCommand( client_t *cl, const char *fmt, ... ) {
 	len = Q_vsnprintf( message.data(), SV_ArraySize(message), fmt, argptr );
 	va_end( argptr );
 
+	// Q3Test's commands travel each release's own way.
+	if ( Com_GameIsQ3Test() ) {
+		SV_Q3TestSendServerCommand( cl, message.data() );
+		return;
+	}
+
 	if ( cl != nullptr ) {
 		// outdated clients can't properly decode 1023-chars-long strings
 		// http://aluigi.altervista.org/adv/q3msgboom-adv.txt
@@ -1083,7 +1089,9 @@ static void SVC_RemoteCommand( const netadr_t *from ) {
 	}
 
 	pw = Cmd_Argv( 1 );
-	if ( ( sv_rconPassword->string[0] && strcmp( pw, sv_rconPassword->string ) == 0 ) ||
+	// Q3Test 1.02 names its password rcon_password.
+	const char *const rconPassword = Com_GameIsQ3Test() ? SV_Q3TestRconPassword() : sv_rconPassword->string;
+	if ( ( rconPassword[0] && strcmp( pw, rconPassword ) == 0 ) ||
 		( rconPassword2[0] && strcmp( pw, rconPassword2 ) == 0 ) ) {
 		valid = true;
 		Com_Printf( "Rcon from %s: %s\n", NET_AdrToString( from ), Cmd_ArgsFrom( 2 ) );
@@ -1131,8 +1139,19 @@ static void SVC_RemoteCommand( const netadr_t *from ) {
 		while ( *cmd_aux == ' ' )
 			cmd_aux++;
 
-		Cmd_ExecuteString( cmd_aux );
+		// Run a copy, as Quake III 1.32 did: Cmd_ExecuteString tokenizes into
+		// the buffer cmd_aux points into, so a command nothing here knows was
+		// forwarded to the server as that buffer's shifted tail, short by the
+		// length of "rcon <password> ".
+		std::array<char, BIG_INFO_STRING> command{};
+		Q_strncpyz( command.data(), cmd_aux, SV_ArraySize( command ) );
+		Cmd_ExecuteString( command.data() );
 	}
+}
+
+
+void SV_RemoteCommandPacket( const netadr_t *from ) {
+	SVC_RemoteCommand( from );
 }
 
 
@@ -1162,18 +1181,26 @@ static void SV_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 
 	MSG_BeginReadingOOB( msg );
 	MSG_ReadLong( msg );		// skip the -1 marker
+	// Medal of Honor's packets carry a direction byte after the marker, and
+	// its connect text starts one byte later.
+	const int header = Com_GameIsMOHAA() ? 5 : 4;
+	if ( header == 5 ) {
+		MSG_ReadByte( msg );
+	}
 
-	if ( msg->cursize >= 12 && std::equal( CONNECT_PREFIX, CONNECT_PREFIX + sizeof( CONNECT_PREFIX ) - 1,
-			reinterpret_cast<const char *>( msg->data + 4 ) ) ) {
+	if ( msg->cursize >= header + 8 && std::equal( CONNECT_PREFIX, CONNECT_PREFIX + sizeof( CONNECT_PREFIX ) - 1,
+			reinterpret_cast<const char *>( msg->data + header ) ) ) {
 		if ( msg->cursize > MAX_INFO_STRING*2 ) { // if we assume 200% compression ratio on userinfo
 			if ( com_developer->integer ) {
 				Com_Printf( "%s : connect packet is too long - %i\n", NET_AdrToString( from ), msg->cursize );
 			}
 			return;
 		}
-		// Elite Force clients send connect as plain text.
-		if ( !Com_GameIsSTVEFMP() ) {
-			if ( !Huff_Decompress( msg, 12 ) ) {
+		// Elite Force clients send connect as plain text, as Ritual's engine
+		// does: fakk2.exe 1.02 prints it (0x00421686) and its server reads the
+		// line with no Huffman stage (0x00447100).
+		if ( !Com_GameIsSTVEFMP() && !Com_GameIsRitual() ) {
+			if ( !Huff_Decompress( msg, header + 8 ) ) {
 				return;
 			}
 		}
@@ -1237,6 +1264,11 @@ void SV_PacketEvent( const netadr_t *from, msg_t *msg ) {
 	// Dedicated IHV developer probes exercise native game imports only. Its
 	// protocol-33 envelopes must never enter the retail packet dispatcher.
 	if ( Com_GameIsQuake3IHV() ) return;
+	// Q3Test's packets are its own sessions' (server_q3test_net.hpp).
+	if ( Com_GameIsQ3Test() ) {
+		SV_Q3TestPacketEvent( from, msg );
+		return;
+	}
 	int			qport;
 	SV_SteamHandleIncomingPacket( from, msg );
 

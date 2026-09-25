@@ -118,6 +118,29 @@ def check_source(label: str, relative_path: str, failures: list[str]) -> None:
     require(loader, "tr.staticMapLights.count = 0;", f"{label} parse-failed count reset", failures)
     require(loader, "WARNING: failed to parse static map lights file %s", f"{label} parse warning", failures)
 
+    # A map in a folder of maps/ (Medal of Honor's DM/, obj/, briefing/) finds
+    # its lights beside it; the base-name lookup stays the fallback.
+    require(loader, "R_StaticMapLightsFilename( filename, sizeof( filename ) );", f"{label} sidecar name", failures)
+    naming = section(
+        source,
+        "static void R_StaticMapLightsFilename",
+        "static void R_LoadStaticMapLightsForWorld",
+        f"{label} sidecar naming",
+        failures,
+    )
+    require_order(
+        naming,
+        [
+            'Com_sprintf( filename, size, "maps/%s.lights.json", s_worldData.baseName );',
+            "COM_StripExtension( s_worldData.name, nested, sizeof( nested ) );",
+            'Q_strcat( nested, sizeof( nested ), ".lights.json" );',
+            "if ( Q_stricmp( nested, filename ) && ri.FS_ReadFile( nested, NULL ) > 0 ) {",
+            "Q_strncpyz( filename, nested, size );",
+        ],
+        f"{label} folder lookup before base name",
+        failures,
+    )
+
 
 def main() -> int:
     failures: list[str] = []

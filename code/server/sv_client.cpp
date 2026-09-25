@@ -684,7 +684,7 @@ static void SV_WriteDemoFileMessage( client_t *client, const msg_t *msg, int seq
 	}
 
 	MSG_Copy( &demoMsg, demoBuffer.data(), Netchan_MessageLimit( client->netchan.wireProfile ) + 8, msg );
-	MSG_WriteByte( &demoMsg, svc_EOF );
+	MSG_WriteByte( &demoMsg, Netchan_ServerEOFOpcode( client->netchan.wireProfile ) );
 
 	swlen = LittleLong( sequence );
 	FS_Write( &swlen, 4, client->demoRecordFile );
@@ -803,8 +803,11 @@ static void SV_WriteDemoGamestate( client_t *client )
 		SV_WriteBaselineMessage( msg, nullstate, entityNum,
 			client->netchan.wireProfile );
 	}
+	if ( client->netchan.wireProfile == NETCHAN_WIRE_MOHAA ) {
+		SV_MOHAAWriteBaselines( &msg );
+	}
 
-	MSG_WriteByte( &msg, svc_EOF );
+	MSG_WriteByte( &msg, Netchan_ServerEOFOpcode( client->netchan.wireProfile ) );
 	MSG_WriteLong( &msg, SV_ClientIndex( client ) );
 	MSG_WriteLong( &msg, sv.checksumFeed );
 
@@ -1973,8 +1976,9 @@ gotnewcl:
 		SV_InjectLocation( newcl->tld, newcl->country );
 	}
 
-	// send the connect packet to the client
-	if ( cl_proto == QL_RETAIL_PROTOCOL_VERSION && !longstr ) {
+	// send the connect packet to the client; Ritual's servers send the bare
+	// keyword too (fakk2.exe 1.02 0x004439fd, alice.exe 0x0045293f)
+	if ( ( cl_proto == QL_RETAIL_PROTOCOL_VERSION && !longstr ) || Com_GameIsRitual() ) {
 		NET_OutOfBandPrint( NS_SERVER, from, "connectResponse" );
 	} else if ( longstr ) {
 		NET_OutOfBandPrint( NS_SERVER, from, "connectResponse %d %d", challenge, sv_proto );
@@ -2085,6 +2089,11 @@ or crashing -- SV_FinalMessage() will handle that
 =====================
 */
 void SV_DropClient( client_t *drop, const char *reason ) {
+	// Q3Test drops a client each release's way (server_q3test_net.hpp).
+	if ( Com_GameIsQ3Test() ) {
+		SV_Q3TestDropClient( drop, reason );
+		return;
+	}
 	std::array<char, sizeof( drop->name )> name{};
 	bool isBot;
 
@@ -2110,6 +2119,11 @@ void SV_DropClient( client_t *drop, const char *reason ) {
 			// Enemy Territory pops the notice up instead of printing it
 			// (et.exe 0x441937, etded.exe 0x427f57).
 			SV_SendServerCommand( nullptr, "cpm \"%s" S_COLOR_WHITE " %s\n\"", name.data(), reason );
+		} else if ( Com_GameIsRitual() ) {
+			// Alice's and F.A.K.K.2's engines print the name and the reason
+			// with no colour reset between them (alice.exe 0x004529fb,
+			// fakk2.exe 1.02 0x00443abb).
+			SV_SendServerCommand( nullptr, "print \"%s %s\n\"", name.data(), reason );
 		} else {
 			SV_SendServerCommand( nullptr, "print \"%s" S_COLOR_WHITE " %s\n\"", name.data(), reason );
 		}
@@ -2122,7 +2136,13 @@ void SV_DropClient( client_t *drop, const char *reason ) {
 	// add the disconnect command
 	// The game callback can change the entity or its cast flag.
 	if ( reason && !( Com_GameIsRTCWSP() && SV_ClientIsRTCWCastAI( drop ) ) ) {
-		SV_SendServerCommand( drop, "disconnect \"%s\"", reason );
+		if ( Com_GameIsRitual() ) {
+			// Theirs is a bare `disconnect`, and their clients print no
+			// reason (alice.exe 0x00452a6b, fakk2.exe 1.02 0x00443b2b).
+			SV_SendServerCommand( drop, "disconnect" );
+		} else {
+			SV_SendServerCommand( drop, "disconnect \"%s\"", reason );
+		}
 	}
 
 	if ( isBot ) {
@@ -2185,7 +2205,7 @@ int SV_RemainingGameState( void )
 	// so estimating it as Q3 wrongly dropped big maps to degraded pure.
 	// Alice's gamestate is its own encoding too, with baselines from its own
 	// null entity.
-	const bool ownWire = Com_GameIsRTCW() || Com_GameIsSTVEFMP() || Com_GameIsAlice();
+	const bool ownWire = Com_GameIsRTCW() || Com_GameIsSTVEFMP() || Com_GameIsRitual();
 	const netchanWireProfile_t wire = ownWire
 		? Netchan_SelectWireProfile( Com_GameProfile()->preferredProtocol, 0 )
 		: NETCHAN_WIRE_QL_RETAIL;
@@ -2347,13 +2367,17 @@ static void SV_SendClientGameState( client_t *client ) {
 		}
 	}
 
-	// write the baselines
-	for ( int entityNum : SV_Indices( MAX_GENTITIES ) ) {
-		if ( !sv.baselineUsed[ entityNum ] ) {
-			continue;
+	// write the baselines; Medal of Honor's are its own entity states
+	if ( client->netchan.wireProfile == NETCHAN_WIRE_MOHAA ) {
+		SV_MOHAAWriteBaselines( &msg );
+	} else {
+		for ( int entityNum : SV_Indices( MAX_GENTITIES ) ) {
+			if ( !sv.baselineUsed[ entityNum ] ) {
+				continue;
+			}
+			SV_WriteBaselineMessage( msg, nullstate, entityNum,
+				client->netchan.wireProfile );
 		}
-		SV_WriteBaselineMessage( msg, nullstate, entityNum,
-			client->netchan.wireProfile );
 	}
 
 	if ( SV_LegacyFraming( client ) ) {
@@ -2361,7 +2385,7 @@ static void SV_SendClientGameState( client_t *client ) {
 		// Holomatch cgame reads its number from the first snapshot.
 		MSG_WriteByte( &msg, svc_bad );
 	} else {
-		MSG_WriteByte( &msg, svc_EOF );
+		MSG_WriteByte( &msg, Netchan_ServerEOFOpcode( client->netchan.wireProfile ) );
 
 		MSG_WriteLong( &msg, SV_ClientIndex( client ) );
 	}
@@ -2856,7 +2880,7 @@ static int SV_WriteDownloadToClient( client_t *cl )
 			} else {
 				MSG_WriteStringForWireProfile(
 					&msg, errorMessage.data(), cl->netchan.wireProfile );
-				MSG_WriteByte( &msg, svc_EOF );
+				MSG_WriteByte( &msg, Netchan_ServerEOFOpcode( cl->netchan.wireProfile ) );
 			}
 			SV_Netchan_Transmit( cl, &msg );
 
@@ -2952,7 +2976,7 @@ static int SV_WriteDownloadToClient( client_t *cl )
 		MSG_WriteData( &msg, cl->downloadBlocks[curindex], cl->downloadBlockSize[curindex] );
 
 	if ( !SV_LegacyFraming( cl ) ) {
-		MSG_WriteByte( &msg, svc_EOF );
+		MSG_WriteByte( &msg, Netchan_ServerEOFOpcode( cl->netchan.wireProfile ) );
 	}
 	SV_Netchan_Transmit( cl, &msg );
 
@@ -3121,7 +3145,12 @@ static void SV_VerifyPaks_f( client_t *cl ) {
 
 		nBinChkSum = nUiChkSum = nChkSum1 = 0;
 		const bool qvmProof = Com_GameProfile()->pureProof == COM_PURE_PROOF_QVM;
-		if ( qvmProof ) {
+		// Medal of Honor proves its general references alone: its modules are
+		// loose files, and its cp names no server id (OpenMoHAA).
+		const bool referencesOnly = Com_GameProfile()->pureProof == COM_PURE_PROOF_MOHAA_REFERENCES;
+		if ( referencesOnly ) {
+			// No module checksum to find.
+		} else if ( qvmProof ) {
 			bGood = FS_FileIsInPAK( "vm/cgame.qvm", &nBinChkSum, nullptr );
 			if ( !FS_FileIsInPAK( "vm/ui.qvm", &nUiChkSum, nullptr ) ) {
 				bGood = false;
@@ -3147,7 +3176,7 @@ static void SV_VerifyPaks_f( client_t *cl ) {
 		nCurArg = 1;
 
 		// Q3 66/67 and Holomatch omit serverId: cp cgame ui @ refs... mixed.
-		const bool noServerId = SV_LegacyFraming( cl ) ||
+		const bool noServerId = referencesOnly || SV_LegacyFraming( cl ) ||
 			fnql::protocol::Q3PureChecksumsOmitServerId( cl->netchan.wireProfile );
 		int incomingServerId = sv.serverId;
 		if ( noServerId ) {
@@ -3173,29 +3202,32 @@ static void SV_VerifyPaks_f( client_t *cl ) {
 			// Q3/RTCW MP: cp serverId cgame ui @ refs... mixedChecksum (zero refs allowed).
 			// QL: cp serverId bin @ firstref refs... mixedChecksum.
 			// Holomatch: cp cgame ui @ refs... mixedChecksum.
-			if (nClientPaks < ( noServerId ? 5 : 6 )) {
+			// Medal of Honor: cp refs... mixedChecksum.
+			if (nClientPaks < ( referencesOnly ? 2 : noServerId ? 5 : 6 )) {
 				bGood = false;
 				break;
 			}
-			// verify first to be the binary checksum
-			pArg = Cmd_Argv(nCurArg++);
-			int moduleChecksum;
-			if ( !SV_ParsePureChecksum( pArg, moduleChecksum ) || moduleChecksum != nBinChkSum ) {
-				bGood = false;
-				break;
-			}
-			if ( qvmProof || Com_PureProofIsNativeModulePair( Com_GameProfile() ) ) {
-				if ( !SV_ParsePureChecksum( Cmd_Argv(nCurArg++), moduleChecksum )
-					|| moduleChecksum != nUiChkSum ) {
+			if ( !referencesOnly ) {
+				// verify first to be the binary checksum
+				pArg = Cmd_Argv(nCurArg++);
+				int moduleChecksum;
+				if ( !SV_ParsePureChecksum( pArg, moduleChecksum ) || moduleChecksum != nBinChkSum ) {
 					bGood = false;
 					break;
 				}
-			}
-			// should be sitting at the delimeter now
-			pArg = Cmd_Argv(nCurArg++);
-			if ( strcmp( pArg, "@" ) != 0 ) {
-				bGood = false;
-				break;
+				if ( qvmProof || Com_PureProofIsNativeModulePair( Com_GameProfile() ) ) {
+					if ( !SV_ParsePureChecksum( Cmd_Argv(nCurArg++), moduleChecksum )
+						|| moduleChecksum != nUiChkSum ) {
+						bGood = false;
+						break;
+					}
+				}
+				// should be sitting at the delimeter now
+				pArg = Cmd_Argv(nCurArg++);
+				if ( strcmp( pArg, "@" ) != 0 ) {
+					bGood = false;
+					break;
+				}
 			}
 			// store checksums since tokenization is not re-entrant
 			for (i = 0; nCurArg < nClientPaks; i++) {
@@ -3581,7 +3613,7 @@ static const ucmd_t *SV_FindClientCommand( const char *name )
 		// American McGee's Alice has no download: retail alice.exe's engine
 		// knows two client commands, userinfo and disconnect (its table at
 		// 0x0051a398), so these names reach the game module as they do there.
-		if ( Com_GameIsAlice() && ( ucmd.func == SV_BeginDownload_f || ucmd.func == SV_NextDownload_f
+		if ( Com_GameIsRitual() && ( ucmd.func == SV_BeginDownload_f || ucmd.func == SV_NextDownload_f
 			|| ucmd.func == SV_StopDownload_f || ucmd.func == SV_DoneDownload_f ) ) {
 			return nullptr;
 		}
@@ -3746,6 +3778,11 @@ each of the backup packets.
 ==================
 */
 static void SV_UserMove( client_t *cl, msg_t *msg, bool delta ) {
+	// Medal of Honor's moves carry its eyes and its own command record.
+	if ( cl->netchan.wireProfile == NETCHAN_WIRE_MOHAA ) {
+		SV_MOHAAUserMove( cl, msg, delta ? qtrue : qfalse );
+		return;
+	}
 	int			key;
 	int			cmdCount;
 	static const usercmd_t nullcmd{};

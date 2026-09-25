@@ -1,5 +1,9 @@
 # In-Game Menu Soft Focus
 
+> **fnTech3 note.** Written for FnQL; `cl_menuBlur` now works in every fnTech3
+> game except Alice and F.A.K.K.2, whose engine draws its own menus. See the
+> [Aspect Handling Guide](../ASPECT_CORRECTION.md#menu-and-cinematic-controls).
+
 ## Scope
 
 While an in-game menu owns the screen, FnQL replaces the frame behind it with a soft-focus copy of itself, so the menu reads as the foreground instead of competing with a sharp, still-animating scene. The effect exists only while a menu is open: gameplay is never softened, and nothing about the frame the player shoots into changes.

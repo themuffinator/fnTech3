@@ -30,6 +30,7 @@ static comGameProfile_t profile;
 static bool missingProfile;
 const comGameProfile_t *Com_GameProfile() { return missingProfile ? nullptr : &profile; }
 int Com_GameIsQuake3() { return profile.id == COM_GAME_QUAKE3; }
+int Com_GameIsSTVEF() { return profile.id == COM_GAME_STVEF_SP || profile.id == COM_GAME_STVEF_MP; }
 void QDECL Com_Error(errorParm_t, const char *, ...) { throw 7; }
 static void *VM_ArgPtr(intptr_t address) { return reinterpret_cast<void *>(address); }
 void *VM_ExplicitArgPtr(const vm_t *, intptr_t address) { return reinterpret_cast<void *>(address); }

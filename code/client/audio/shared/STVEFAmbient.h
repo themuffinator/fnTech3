@@ -19,7 +19,10 @@
  * device hears both channels at three quarters. A sound carries full volume
  * to 256 units and falls silent by 1,506, except on the two voice channels:
  * a voice holds to 1,024 units, and an attenuated voice holds to 38.4 and
- * falls five times as fast, silent by about 290.
+ * falls five times as fast, silent by about 290. The legacy mixer plays this
+ * law and pan as they are; the OpenAL backend takes the law as each channel's
+ * span and the separation as a spread, and renders them with its own distance
+ * model and panning.
  *
  * An ambient set's looping wave comes with the volume the set has faded to;
  * retail keeps at most 32 loops a frame and merges those playing the same
@@ -45,6 +48,10 @@ inline constexpr float AttenuatedVoiceAttenuation = 0.004f;
  * CL_STVEFSPSoundChannel; stvef_sp_sound_distance_tests pins the pair). */
 inline constexpr int VoiceChannel = 3;
 inline constexpr int AttenuatedVoiceChannel = 12;
+/* Single player's two menu channels take numbers above the engine's the same
+ * way. */
+inline constexpr int MenuChannel = 18;
+inline constexpr int SecondMenuChannel = 19;
 
 /* Single player holds back the sounds the listener's own entity makes,
  * on every channel the game numbers below its ambient one
@@ -71,6 +78,87 @@ inline void ChannelFalloff( int channel, float &fullVolume, float &attenuation )
 		fullVolume = FullVolumeDistance;
 		attenuation = Attenuation;
 	}
+}
+
+/*
+ * The same law for a backend that measures distance itself: a channel's
+ * distances, full volume out to `full` and silent from `silent` on, falling in
+ * a straight line between. OpenAL's clamped linear model with these as its
+ * reference and max distances is the law exactly.
+ */
+struct Span {
+	float full = FullVolumeDistance;
+	float silent = FullVolumeDistance + 1.0f / Attenuation;
+};
+
+inline Span ChannelSpan( int channel ) {
+	Span span;
+	float attenuation = Attenuation;
+	ChannelFalloff( channel, span.full, attenuation );
+	span.silent = span.full + 1.0f / attenuation;
+	return span;
+}
+
+/* The law's gain at a distance, without the pan. */
+inline float SpanGain( const Span &span, float distance ) {
+	if ( !std::isfinite( distance ) || !( distance < span.silent ) ) {
+		return 0.0f;
+	}
+	if ( distance <= span.full ) {
+		return 1.0f;
+	}
+	return 1.0f - ( distance - span.full ) / ( span.silent - span.full );
+}
+
+/* The channel whose tone class the engine gives a sound: the attenuated
+ * voice is a voice, and the rest are the engine's own channels or have no
+ * class. */
+inline int ToneChannel( int channel ) {
+	return channel == AttenuatedVoiceChannel ? VoiceChannel : channel;
+}
+
+inline bool IsMenuChannel( int channel ) {
+	return channel == MenuChannel || channel == SecondMenuChannel;
+}
+
+/* The room tone of the set the player is in is played at the view origin the
+ * cgame hands over (S_UpdateAmbientSet 0x41dd20), which is the listener's own:
+ * a loop this near is heard at the listener, not from any direction. */
+inline constexpr float AtListenerDistance = 1.0f;
+
+/*
+ * The separation as the angle a placed source is spread across. Retail keeps
+ * (1 - s) / s of a side sound's difference between its near and far channel
+ * (0x4205dd): all of it at the default half, none at 1. A first-order
+ * panner keeps (1 + cos(spread / 2)) / 2 of a source's direction (OpenAL
+ * Soft's spherical source, core/mixer.cpp), so the two are matched here. At or
+ * below the half a point source is left as it is: nothing is narrower.
+ */
+inline float SeparationSpread( float separation ) {
+	constexpr float pi = 3.14159265358979f;
+	separation = std::clamp( separation, 0.0f, 1.0f );
+	if ( !( separation > Separation ) ) {
+		return 0.0f;
+	}
+	const float kept = ( 1.0f - separation ) / separation;
+	return std::clamp( 2.0f * std::acos( std::clamp( 2.0f * kept - 1.0f, -1.0f, 1.0f ) ), 0.0f, 2.0f * pi );
+}
+
+/* The radius that spreads a source across `spread` radians when heard from
+ * `distance`: OpenAL Soft's AL_EXT_SOURCE_RADIUS subtends 2 asin(r / d), and
+ * from inside the radius 2 pi - pi d / r (alc/alu.cpp). */
+inline float SpreadRadius( float spread, float distance ) {
+	constexpr float pi = 3.14159265358979f;
+	if ( !( spread > 0.0f ) || !( distance > 0.0f ) || !std::isfinite( distance ) ) {
+		return 0.0f;
+	}
+	if ( spread <= pi ) {
+		return distance * std::sin( spread * 0.5f );
+	}
+	// A whole sphere is reached only at the source itself; this is within a
+	// ten-thousandth of it.
+	const float remaining = ( std::max )( 2.0f * pi - spread, pi * 1.0e-4f );
+	return distance * pi / remaining;
 }
 
 struct AmbientLoop {

@@ -395,6 +395,13 @@ static void R_AddWorldSurface( msurface_t *surf, int dlightBits ) {
 	surf->viewCount = tr.viewCount;
 	// FIXME: bmodel fog?
 
+	// Medal of Honor's permanent decals, built into the world, are drawn
+	// only while r_drawstaticdecals is set
+	if ( tr.world->mohaaNumDecals && r_drawstaticdecals && !r_drawstaticdecals->integer
+		&& R_MOHAAStaticDecal( tr.world, surf ) ) {
+		return;
+	}
+
 	// try to cull before dlighting or adding
 	if ( R_CullSurface( surf->data, surf->shader ) ) {
 		return;
@@ -712,8 +719,9 @@ static int R_AddAdvertisementSurface( qlAdvertisement_t *advertisement ) {
 R_UpdateAdvertisements
 
 Retail QL advertisement brush models are submitted after the ordinary world
-walk and remain raster-owned. This preserves their dynamic loading-view bridge
-and keeps them out of the static RT world ownership decision.
+walk, which preserves their dynamic loading-view bridge. The path tracer
+takes their surfaces into its static world (rt_backend.c RT_ExtractWorld), so
+a traced view shows them lit in place rather than what lies behind them.
 =================
 */
 void R_UpdateAdvertisements( void ) {

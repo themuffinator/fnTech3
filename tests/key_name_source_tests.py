@@ -49,6 +49,8 @@ static int Com_HexStrToInt( const char *str ) {
 	}
 	return n;
 }
+static int mohaa;
+static int Com_GameIsMOHAA( void ) { return mohaa; }
 TABLES
 STRING_TO_KEYNUM
 KEYNUM_TO_STRING
@@ -83,6 +85,25 @@ int main() {
 			assert( Key_StringToKeynum( Name( kn->keynum ).c_str() ) == kn->keynum );
 		}
 	}
+
+	// Medal of Honor's default.cfg binds the left modifiers as LALT, LCTRL and
+	// LSHIFT. Only its profile reads those names, as the modifier keys
+	// themselves, and nothing writes them back; every other profile refuses
+	// them, and the tables every profile reads keep their keys under it.
+	for ( const keyname_t *kn = keyaliasesMOHAA; kn->name; ++kn ) {
+		mohaa = 0;
+		assert( Key_StringToKeynum( kn->name ) == -1 );
+		mohaa = 1;
+		assert( Key_StringToKeynum( kn->name ) == kn->keynum );
+		assert( Key_StringToKeynum( Name( kn->keynum ).c_str() ) == kn->keynum );
+		for ( int keynum = 0; keynum < MAX_KEYS; ++keynum ) assert( Name( keynum ) != kn->name );
+	}
+	assert( Key_StringToKeynum( "lalt" ) == K_ALT && Key_StringToKeynum( "LCtrl" ) == K_CTRL );
+	assert( Key_StringToKeynum( "lshift" ) == K_SHIFT );
+	for ( const keyname_t *table : { keynames, keyaliases } )
+		for ( const keyname_t *kn = table; kn->name; ++kn )
+			assert( Key_StringToKeynum( kn->name ) == kn->keynum );
+	mohaa = 0;
 	return 0;
 }
 """
@@ -99,11 +120,12 @@ def function(source: str, signature: str) -> str:
 
 
 def key_tables(source: str) -> str:
-    """keyname_t and both key name tables, from keys.c."""
+    """keyname_t and every key name table, from keys.c: the printed one, the
+    aliases every profile reads, and Medal of Honor's own aliases."""
     start = source.index("typedef struct {")
-    end = source.index("\n};\n", source.index("\n};\n", start) + 1) + 4
+    end = source.index("\n};\n", source.index("keyaliasesMOHAA[]", start)) + 4
     tables = source[start:end]
-    assert "keynames[]" in tables and "keyaliases[]" in tables
+    assert "keynames[]" in tables and "keyaliases[]" in tables and "keyaliasesMOHAA[]" in tables
     return tables
 
 

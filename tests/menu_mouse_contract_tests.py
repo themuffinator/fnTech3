@@ -31,6 +31,7 @@ int catcher, calls, lane, outX, outY;
 bool delayElapsed=true, ignoreMouse=false;
 int Com_GameIsQuakeLive() { return profile==COM_GAME_QUAKELIVE; }
 int Com_GameIsAlice() { return profile==COM_GAME_ALICE; }
+int Com_GameIsRitual() { return profile==COM_GAME_ALICE || profile==COM_GAME_FAKK2; }
 bool aliceCursorMode;
 int cursorCalls;
 void CL_AliceMoveCursor(int,int) { ++cursorCalls; }

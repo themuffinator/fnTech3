@@ -1590,5 +1590,6 @@ void (*rb_surfaceTable[SF_NUM_SURFACE_TYPES])( void *) = {
 	(void(*)(void*))RB_SurfaceWolfETDecal,	// SF_WOLFET_DECAL
 	(void(*)(void*))RB_SurfaceIHVParticles,	// SF_IHV_PARTICLES
 	(void(*)(void*))RB_SurfaceAliceTiki,		// SF_ALICE_TIKI
-	(void(*)(void*))RB_SurfaceAliceSwipe		// SF_ALICE_SWIPE
+	(void(*)(void*))RB_SurfaceAliceSwipe,		// SF_ALICE_SWIPE
+	(void(*)(void*))RB_SurfaceMOHAATiki		// SF_MOHAA_TIKI
 };

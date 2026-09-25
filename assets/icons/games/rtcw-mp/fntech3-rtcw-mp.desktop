@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Return to Castle Wolfenstein (Multiplayer)
+GenericName=fnTech3 game profile
+Comment=Play Return to Castle Wolfenstein (Multiplayer) with fnTech3
+Exec=fntech3 +set com_gameProfile rtcw-mp
+Icon=fntech3-rtcw-mp
+Terminal=false
+Categories=Game;ActionGame;
+StartupWMClass=fntech3-rtcw-mp

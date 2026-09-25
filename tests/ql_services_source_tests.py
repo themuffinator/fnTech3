@@ -113,7 +113,11 @@ class QLServicesSourceTests(unittest.TestCase):
         client = (ROOT / "code/client/cl_main.cpp").read_text(encoding="utf-8")
         server = (ROOT / "code/server/sv_client.cpp").read_text(encoding="utf-8")
         self.assertIn("#define DEFAULT_PROTOCOL_VERSION\tQL_RETAIL_PROTOCOL_VERSION", header)
-        self.assertIn("Com_GameProfile()->preferredProtocol", common)
+        profile = (ROOT / "code/qcommon/game_profile.cpp").read_text(encoding="utf-8")
+        self.assertIn('Cvar_Get( "protocol", va( "%i", Com_GamePreferredProtocol() ), 0 )', common)
+        # Only a pinned Q3Test release replaces the profile's own protocol.
+        self.assertIn("return release ? release->protocol : activeProfile ? activeProfile->preferredProtocol : 0;",
+                      profile)
         self.assertIn("CL_ActiveWireProfile() ).demoProtocol", client)
         self.assertIn("SV_DemoProtocol( const client_t *client )", server)
 

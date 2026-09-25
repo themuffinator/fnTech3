@@ -54,9 +54,10 @@ loop comparisons continue to cover all six tested ranges.
 The legacy backend keeps RTCW entity positions separate from loop submissions
 and preserves them across sound clears. Audio updates refresh dynamic gains,
 including full-volume listener/menu sounds. OpenAL uses the same allocation
-and gain policy, bypassing Q3 duplication limits, distance shaders, PVS culling
-and environmental processing for RTCW one-shots. Its completed sources release
-their logical slots; source-allocation failure leaves no occupied orphan slot.
+policy and bypasses Q3's duplication limits. It rendered each one-shot with
+this gain and pan until 2026-09-24, when it adopted the engine's own features
+(see below). Its completed sources release their logical slots, and a
+source-allocation failure leaves no occupied orphan slot.
 Existing SP effects/master fades apply after spatial gain. Hardware source
 limits can still cause OpenAL starts to drop; output-device parity is open.
 
@@ -130,6 +131,48 @@ All runtime probes use isolated writable homes on a private, unswitched
 desktop, force 640×480 windowed mode, disable input capture and leave installed
 files unchanged. The probes request muted audio. Captures come from the engine
 render target; temporary homes were removed after checking containment/links.
+
+## The engine's own features (2026-09-24)
+
+Under invariant 11 of `AGENTS.md`, the OpenAL backend no longer pans a
+one-shot as retail's mixer does. It renders RTCW's data through the engine's
+own audio, as it renders every profile's sounds. The [Wolfenstein OpenAL
+voices record](2026-09-24-wolfenstein-openal-voices.md) has the design, tests
+and runtime evidence. The allocation above and SP's effects stage are
+unchanged.
+
+Used:
+
+- **Positional rendering, with HRTF and the output mode**, for a one-shot
+  away from the listener.
+- **The OpenAL distance model** across the fixed range's span: full volume to
+  80 units, the reference, and silent at 1,330, the far end. It fades out
+  toward that end, with air absorption. This is a Quake III world sound's
+  span. `s_alDistanceModel linear_clamped` plays retail's line exactly.
+- **Traced occlusion and liquid boundaries**, on the direct and wet paths. A
+  one-shot past 1,330 is silent and not traced.
+- **The room reverb** from the map's audio zone sidecar, 32 of them for SP
+  and 15 for MP, or from the traced room.
+- **Tone classes** by channel. RTCW's channel numbers are Quake III's.
+- **`s_pvs`**, when it is asked for.
+
+At the listener:
+
+- A one-shot is head-relative at full level. It takes the room, not
+  occlusion.
+- A local channel (1, 6 or 7) there is an interface sound: dry, local or
+  announcer tone.
+- Elsewhere a local channel is attenuated where it is, as retail attenuates
+  every sound but the listener's own.
+
+Left out:
+
+- **Retail's left/right balance.** The device places the voice. Retail's
+  exact gain and pan stay in the legacy mixer (`s_backend legacy`), the
+  explicit retail-exact option.
+- **Doppler.** A one-shot carries no velocity.
+- **The weapon sound shaders.** They ship rules for Quake III and Quake Live
+  samples only, so none apply.
 
 ## Remaining work
 

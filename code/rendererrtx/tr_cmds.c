@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 #include "tr_local.h"
+#include "../renderercommon/tr_q3test_2d.h"
 #include "../renderercommon/tr_screenshot_pending.h"
 
 /*
@@ -748,7 +749,7 @@ void RE_StretchPic( float x, float y, float w, float h,
 		return;
 	}
 	cmd->commandId = RC_STRETCH_PIC;
-	cmd->shader = R_GetShaderByHandle( hShader );
+	cmd->shader = R_Q3Test2DShader( R_GetShaderByHandle( hShader ) );
 	cmd->x = x;
 	cmd->y = y;
 	cmd->w = w;

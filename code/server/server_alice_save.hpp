@@ -364,7 +364,10 @@ bool SV_AlicePlayerAlive() {
 	if ( !entity || !aliceGameData.clients || aliceGameData.clientBytes <= 0 ) {
 		return false;
 	}
-	const byte *client = *SV_AliceEntityField<const byte *>( entity, kAliceEntityClient );
+	/* F.A.K.K.2's game client pointer is the first word past its own, shorter
+	 * entity state: the entity record's shared half starts there. */
+	const byte *client = *SV_AliceEntityField<const byte *>( entity,
+		SV_RitualIsFAKK2() ? FNTECH3_FAKK2_R_CLIENT : kAliceEntityClient );
 	const byte *first = static_cast<const byte *>( aliceGameData.clients );
 	const std::ptrdiff_t offset = client - first;
 	if ( !client || offset < 0 || offset % aliceGameData.clientBytes
@@ -717,9 +720,10 @@ read. It has no spmap, spdevmap or map_restart; `restart` is its reload.
 ====================
 */
 void SV_AliceAddCommands( void ) {
-	/* `config` names the savegames. Retail keeps it in the registry and
-	 * defaults it to "config.cfg" (0x004398ff..0x004399c8); fnTech3 has no
-	 * registry and defaults it to the profile's configuration file. */
+	/* `config` names the savegames and the configuration file. Retail keeps
+	 * it in the registry and defaults it to "config.cfg" (0x004398ff..
+	 * 0x004399c8); fnTech3 has no registry, and Com_SelectRitualConfig has
+	 * already set it at startup. This covers a cvar emptied since. */
 	cvar_t *config = Cvar_Get( "config", "", 0 );
 	if ( !config->string[0] ) {
 		const char *profileConfig = Com_GameProfile()->clientConfig;
@@ -828,7 +832,7 @@ void SV_AliceFlushModels( void ) {
 
 	AliceTiki_Clear();
 	std::memset( aliceModelTiki, 0, sizeof( aliceModelTiki ) );
-	Com_DPrintf( "Alice model cache flushed: %i definitions\n", count );
+	Com_DPrintf( "%s model cache flushed: %i definitions\n", SV_RitualName(), count );
 }
 
 /*

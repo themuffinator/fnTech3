@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Heavy Metal: F.A.K.K.2
+GenericName=fnTech3 game profile
+Comment=Play Heavy Metal: F.A.K.K.2 with fnTech3
+Exec=fntech3 +set com_gameProfile fakk2
+Icon=fntech3-fakk2
+Terminal=false
+Categories=Game;ActionGame;
+StartupWMClass=fntech3-fakk2

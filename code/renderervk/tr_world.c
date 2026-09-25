@@ -395,6 +395,13 @@ static void R_AddWorldSurface( msurface_t *surf, int dlightBits ) {
 	surf->viewCount = tr.viewCount;
 	// FIXME: bmodel fog?
 
+	// Medal of Honor's permanent decals, built into the world, are drawn
+	// only while r_drawstaticdecals is set
+	if ( tr.world->mohaaNumDecals && r_drawstaticdecals && !r_drawstaticdecals->integer
+		&& R_MOHAAStaticDecal( tr.world, surf ) ) {
+		return;
+	}
+
 	// try to cull before dlighting or adding
 	if ( R_CullSurface( surf->data, surf->shader ) ) {
 		return;

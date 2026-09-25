@@ -700,10 +700,12 @@ extern "C" void S_PaintChannels( int endtime ) {
 	snd_vol = wolfensteinFade ? fntech3::audio::rtcw::EffectsMixVolume( s_volume->value, masterGain ) : s_volume->value * 255;
 	// American McGee's Alice's voices carry s_volume in their own volumes, as
 	// retail hands it to Miles with each sample (alice.exe 0x00472580).
-	const bool alice = Com_GameIsAlice() != 0;
+	const bool alice = Com_GameIsRitual() != 0;
 	if ( alice ) snd_vol = 255;
 
-	if ( (!gw_active && !gw_minimized && s_muteWhenUnfocused->integer) || (gw_minimized && s_muteWhenMinimized->integer) ) {
+	// An offscreen window (a private probe desktop) still mixes, into the
+	// secondary buffer, so its output stays silent without changing the mix.
+	if ( gw_offscreen || (!gw_active && !gw_minimized && s_muteWhenUnfocused->integer) || (gw_minimized && s_muteWhenMinimized->integer) ) {
 		buffer = dma_buffer2;
 		if ( !muted ) {
 			// switching to muted, clear hardware buffer

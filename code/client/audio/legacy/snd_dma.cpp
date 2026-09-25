@@ -342,7 +342,7 @@ static void S_Base_SoundInfo( void ) {
 		Com_Printf( "Master volume: %.2f\n", s_volume != nullptr ? s_volume->value : 1.0f );
 		Com_Printf( "Mute state: %s%s\n",
 			s_soundMuted ? "registration-muted (normal during startup/registration)" :
-				( focusMuted ? "focus-muted" : "audible" ),
+				( focusMuted ? "focus-muted" : gw_offscreen ? "offscreen-muted (window's desktop is not on screen)" : "audible" ),
 			( s_volume != nullptr && s_volume->value <= 0.0f ) ? ", master volume is zero" : "" );
 		Com_Printf("%5d channels\n", dma.channels);
 		Com_Printf("%5d samples\n", dma.samples);
@@ -598,14 +598,14 @@ static sfxHandle_t S_Base_RegisterSound( const char *name, qboolean compressed )
 
 	sfx->inMemory = qfalse;
 	sfx->soundCompressed = compressed;
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		// Alice tries a sound that failed again at every registration.
 		sfx->defaultSound = qfalse;
 	}
 
 	S_memoryLoad( sfx );
 
-	if ( Com_GameIsAlice() && !sfx->defaultSound && sfx->soundChannels == 2
+	if ( Com_GameIsRitual() && !sfx->defaultSound && sfx->soundChannels == 2
 		&& !std::strstr( sfx->soundName, ".mp3" ) ) {
 		// American McGee's Alice refuses a stereo WAV outright and tries it
 		// again at the next registration (alice.exe 0x0044e560).
@@ -663,10 +663,11 @@ static void S_Base_BeginRegistration( void ) {
 		auto *sample = S_KnownSfxAt(s_numSfx++);
 		Q_strncpyz(sample->soundName, fntech3::audio::rtcw::DefaultSoundName, sizeof(sample->soundName));
 		S_Base_LoadRTCWDefaultSound(sample);
-	} else if ( Com_GameIsAlice() ) {
+	} else if ( Com_GameIsRitual() || Com_GameIsMOHAA() ) {
 		// American McGee's Alice's handle 0 is ***DEFAULT***, registered at
 		// S_Init and never loaded (alice.exe 0x0044c893): a sound handed 0
-		// plays nothing.
+		// plays nothing. Medal of Honor's engine, of the same line, reserves
+		// the same name (OpenMoHAA snd_dma_new.cpp S_Init).
 		auto *sample = S_KnownSfxAt( s_numSfx++ );
 		Q_strncpyz( sample->soundName, "***DEFAULT***", sizeof( sample->soundName ) );
 		sample->defaultSound = qtrue;
@@ -1185,10 +1186,14 @@ public:
 		Start( voice, false, v.played );
 	}
 
-	void Place( int voice, const float *position, float gain, float direct, int pan ) override {
-		if ( voice < 0 || voice >= alicesfx::AllVoices || !position ) return;
+	// The legacy mixer has no distance model, occlusion or reverb of its own,
+	// so it plays the engine's own gain, obstruction and pan.
+	void Place( int voice, const alicesfx::Placement &placement ) override {
+		if ( voice < 0 || voice >= alicesfx::AllVoices ) return;
+		const float *position = placement.position.data();
+		const int pan = placement.pan;
 		AliceLegacyVoice &v = aliceVoices[voice];
-		const float level = ( std::max )( 0.0f, gain * direct );
+		const float level = ( std::max )( 0.0f, placement.gain * placement.direct );
 		float leftScale = 1.0f, rightScale = 1.0f;
 		if ( pan >= 0 ) {
 			// A dialog's 2-D pan, 64 at the centre, taken as a balance.
@@ -1421,6 +1426,30 @@ static void S_Base_AddSTVEFAmbientLoopingSound( const vec3_t origin, sfxHandle_t
 	if ( !sample->inMemory ) S_memoryLoad( sample );
 	if ( !sample->soundLength ) Com_Error( ERR_DROP, "%s has length 0", sample->soundName );
 	stvefAmbientLoops.Append( origin, handle, volume );
+}
+
+/*
+==================
+S_Base_StartMOHAASound and S_Base_AddMOHAALoopingSound
+
+Medal of Honor's sounds here keep their volume; this mixer has one distance
+model and no pitch, so the alias's distances and pitch go unused, and it keeps
+no channel of 2015's own, so a sound neither ends its entity channel's last
+nor is ended by the client game's stop.
+==================
+*/
+static void S_Base_AddLoopingSound( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfxHandle );
+
+static void S_Base_StartMOHAASound( const vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx,
+	float volume, float minDist, float maxDist, float pitch, int mohaaChannel ) {
+	(void)minDist; (void)maxDist; (void)pitch; (void)mohaaChannel;
+	S_Base_StartSound( origin, entnum, entchannel, sfx, volume < 0.0f ? 1.0f : volume );
+}
+
+static void S_Base_AddMOHAALoopingSound( int slot, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx,
+	float volume, float minDist, float maxDist, float pitch ) {
+	(void)volume; (void)minDist; (void)maxDist; (void)pitch;
+	S_Base_AddLoopingSound( slot, origin, velocity, sfx );
 }
 
 static void S_Base_AddLoopingSound( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfxHandle ) {
@@ -1824,7 +1853,7 @@ static void S_Base_Respatialize( int entityNum, const vec3_t head, vec3_t axis[3
 	VectorCopy(axis[1], listener_axis[1]);
 	VectorCopy(axis[2], listener_axis[2]);
 
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		// Alice's engine places its own voices once the listener is known.
 		return;
 	}
@@ -2051,7 +2080,7 @@ static void S_Update_( int msec ) {
 	S_Base_UpdateBackgroundTrack();
 	S_Base_UpdateRTCWEntityStreams();
 
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		S_AddAliceLoopSounds();
 	}
 
@@ -2242,7 +2271,7 @@ static void S_Base_UpdateBackgroundTrack( void ) {
 	// don't bother playing anything if musicvolume is 0. American McGee's
 	// Alice's stream goes on being read: its songs keep playing at volume 0,
 	// run out and hand over as retail's do.
-	const bool alice = Com_GameIsAlice() != 0;
+	const bool alice = Com_GameIsRitual() != 0;
 	if ( s_musicVolume->value == 0.0f && !alice ) {
 		return;
 	}
@@ -2525,6 +2554,8 @@ extern "C" qboolean S_Base_Init( soundInterface_t *si ) {
 	si->AddLoopingSound = S_Base_AddLoopingSound;
 	si->AddRTCWLoopingSound = S_Base_AddRTCWLoopingSound;
 	si->AddSTVEFAmbientLoopingSound = S_Base_AddSTVEFAmbientLoopingSound;
+	si->StartMOHAASound = S_Base_StartMOHAASound;
+	si->AddMOHAALoopingSound = S_Base_AddMOHAALoopingSound;
 	si->STVEFSPMouths = S_Base_STVEFSPMouths;
 	si->AddRealLoopingSound = S_Base_AddRealLoopingSound;
 	si->StopLoopingSound = S_Base_StopLoopingSound;

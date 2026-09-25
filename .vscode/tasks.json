@@ -28,7 +28,12 @@
         "-WolfETDevelopment",
         "-STVEFDevelopment",
         "-JKADevelopment",
+        "-JK2Development",
+        "-Q3IHVDevelopment",
         "-AliceDevelopment",
+        "-FAKK2Development",
+        "-MOHAADevelopment",
+        "-Q3TestDevelopment",
         "-Archive",
         "-SetupOnly"
       ],
@@ -36,7 +41,7 @@
         "$gcc",
         "$msCompile"
       ],
-      "detail": "Windows x86 development build for Q3, QL, RTCW SP/MP, Enemy Territory, Elite Force SP/Holomatch and GLx/Vulkan/RTX. RTCW, ET and Elite Force adapters remain experimental."
+      "detail": "Windows x86 development build for Q3, QL, RTCW SP/MP, Enemy Territory, Elite Force SP/Holomatch, Jedi Academy SP/MP, Jedi Outcast SP/MP, Alice, F.A.K.K.2, Medal of Honor, the Q3 IHV Test (dedicated only) and GLx/Vulkan/RTX. Every profile but Q3 and QL remains experimental."
     },
     {
       "label": "meson: build all games",
@@ -62,14 +67,19 @@
         "-WolfETDevelopment",
         "-STVEFDevelopment",
         "-JKADevelopment",
+        "-JK2Development",
+        "-Q3IHVDevelopment",
         "-AliceDevelopment",
+        "-FAKK2Development",
+        "-MOHAADevelopment",
+        "-Q3TestDevelopment",
         "-Archive"
       ],
       "problemMatcher": [
         "$gcc",
         "$msCompile"
       ],
-      "detail": "Windows x86 development build for Q3, QL, RTCW SP/MP, Enemy Territory, Elite Force SP/Holomatch and GLx/Vulkan/RTX. RTCW, ET and Elite Force adapters remain experimental.",
+      "detail": "Windows x86 development build for Q3, QL, RTCW SP/MP, Enemy Territory, Elite Force SP/Holomatch, Jedi Academy SP/MP, Jedi Outcast SP/MP, Alice, F.A.K.K.2, Medal of Honor, the Q3 IHV Test (dedicated only) and GLx/Vulkan/RTX. Every profile but Q3 and QL remains experimental.",
       "group": {
         "kind": "build",
         "isDefault": true
@@ -99,7 +109,12 @@
         "-WolfETDevelopment",
         "-STVEFDevelopment",
         "-JKADevelopment",
+        "-JK2Development",
+        "-Q3IHVDevelopment",
         "-AliceDevelopment",
+        "-FAKK2Development",
+        "-MOHAADevelopment",
+        "-Q3TestDevelopment",
         "-Archive",
         "-WithSteam"
       ],
@@ -107,7 +122,7 @@
         "$gcc",
         "$msCompile"
       ],
-      "detail": "Windows x86 development build for Q3, QL, RTCW SP/MP, Enemy Territory, Elite Force SP/Holomatch and GLx/Vulkan/RTX. RTCW, ET and Elite Force adapters remain experimental."
+      "detail": "Windows x86 development build for Q3, QL, RTCW SP/MP, Enemy Territory, Elite Force SP/Holomatch, Jedi Academy SP/MP, Jedi Outcast SP/MP, Alice, F.A.K.K.2, Medal of Honor, the Q3 IHV Test (dedicated only) and GLx/Vulkan/RTX. Every profile but Q3 and QL remains experimental."
     },
     {
       "label": "meson: setup",

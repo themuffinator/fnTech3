@@ -19,6 +19,14 @@ static cvar_t gameType{}, dedicated{};
 cvar_t *sv_gametype=&gameType,*com_dedicated=&dedicated;
 int Com_GameIsRTCWSP(){return profile.id==COM_GAME_RTCW_SP;}
 int Com_GameIsRTCWMP(){return profile.id==COM_GAME_RTCW_MP;}
+int Com_GameIsMOHAA(){return profile.id==COM_GAME_MOHAA;}
+// Q3Test's commands and info strings are its own sessions'; no profile here
+// selects it.
+int Com_GameIsQ3Test(){return 0;}
+void SV_Q3TestSendServerCommand(client_t*,const char*){assert(false);}
+void SV_Q3TestConfigstringChanged(int){assert(false);}
+const char *SV_Q3TestSysteminfo(){assert(false);return "";}
+const char *SV_Q3TestServerinfo(){assert(false);return "";}
 int Com_GameConfigstringLimit(){return 32;}
 static int drops;
 void SV_DropClient(client_t *client,const char*){++drops;client->state=CS_ZOMBIE;}

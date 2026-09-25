@@ -891,6 +891,7 @@ struct ModernOpenALCapabilities {
 	bool uhj = false;
 	bool uhjEx = false;
 	bool sourceSpatialize = false;
+	bool sourceRadius = false;
 	bool sourceLatency = false;
 	ALCint hrtfStatus = -1;
 	ALCint hrtfCount = 0;
@@ -1257,6 +1258,15 @@ static std::string AudioZoneQpathForCurrentMap() {
 	std::array<char, MAX_QPATH> stripped;
 	std::array<char, MAX_QPATH> zonePath;
 	COM_StripExtension( cl.mapname, stripped.data(), static_cast<int>( stripped.size() ) );
+	// After a Ritual level change the map is named with its spawn target
+	// (`training$spawn_fakkhouse`), as retail's server info names it; the BSP,
+	// and so its zones, is the part before the `$`.
+	if ( Com_GameIsRitual() ) {
+		char *target = strchr( stripped.data(), '$' );
+		if ( target ) {
+			*target = '\0';
+		}
+	}
 	if ( stripped[0] == '\0' ) {
 		return std::string();
 	}
@@ -1551,8 +1561,7 @@ static float AudibilityHorizonDistance( float rangeScale ) {
 // clamped OpenAL distance models hold a residual gain floor forever. Fading
 // the final stretch of the legacy range keeps far-away sounds out of the mix
 // without changing close and mid-range rolloff.
-static float HorizonGain( float distance, float rangeScale ) {
-	const float horizon = AudibilityHorizonDistance( rangeScale );
+static float HorizonGainAt( float distance, float horizon ) {
 	const float fadeStart = horizon * kHorizonFadeStartFraction;
 	if ( distance <= fadeStart ) {
 		return 1.0f;
@@ -1561,6 +1570,10 @@ static float HorizonGain( float distance, float rangeScale ) {
 		return 0.0f;
 	}
 	return 1.0f - SmoothStep( ( distance - fadeStart ) / ( horizon - fadeStart ) );
+}
+
+static float HorizonGain( float distance, float rangeScale ) {
+	return HorizonGainAt( distance, AudibilityHorizonDistance( rangeScale ) );
 }
 
 static bool PointInLiquid( const float *origin ) {

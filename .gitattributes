@@ -11,3 +11,6 @@ pkg/games/**/*.json text eol=lf
 # Apple signing/notarization property lists require canonical LF text.
 misc/macos/*.plist.in text eol=lf
 misc/macos/*.entitlements text eol=lf
+
+# freedesktop launcher templates are installed on Linux; keep them LF everywhere.
+assets/icons/**/*.desktop text eol=lf

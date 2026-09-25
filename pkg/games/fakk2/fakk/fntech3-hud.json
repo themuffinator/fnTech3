@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "name": "health_and_water",
+      "match": { "region": { "x": 0, "y": 0, "w": 144, "h": 144 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "top" }
+    },
+    {
+      "name": "weapons_and_ammo",
+      "match": { "region": { "x": 432, "y": 0, "w": 208, "h": 112 } },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "top" }
+    },
+    {
+      "name": "boss_health",
+      "match": { "region": { "x": 0, "y": 208, "w": 148, "h": 64 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "center" }
+    }
+  ]
+}

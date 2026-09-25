@@ -114,5 +114,27 @@ inline LoopGains SpatializeLoop( const Loop &loop, const float *listener,
 	return {channel(gains.left), channel(gains.right)};
 }
 
+// Retail's range for every one-shot (SOUND_RANGE_DEFAULT), which a loop
+// submitted with range 0 takes too.
+constexpr float OneShotRange = 1250.0f;
+
+// The span of the law above, for a renderer whose own distance model carries
+// a sound across it: full volume out to 6.4% of the range, silent the range
+// beyond that. Nothing for a range the law would not play.
+struct LawDistances { float full = 0.0f, silent = 0.0f; };
+inline LawDistances Distances( float range ) {
+	if ( !( range > 0.0f ) || !std::isfinite( range ) ) return {};
+	const float full = range * 0.064f;
+	return { full, full + range };
+}
+
+// A loop's level where the law is at full volume, on the one-shots' scale of
+// 127: its submitted volume over 256 of the loops' 90, capped as retail caps
+// each channel. It is SpatializeLoop's figure for a loop at the listener.
+inline int LoopLevel( const Loop &loop ) {
+	if ( loop.volume <= 0 ) return 0;
+	return (std::min)( 255, static_cast<int>( static_cast<float>( loop.volume * 90 ) / 256.0f ) );
+}
+
 } // namespace fntech3::audio::rtcw
 #endif

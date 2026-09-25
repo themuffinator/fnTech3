@@ -1,0 +1,29 @@
+#version 460
+#extension GL_EXT_ray_tracing : require
+#extension GL_EXT_nonuniform_qualifier : require
+#extension GL_GOOGLE_include_directive : require
+
+// Any hit of a filter ray (hit group 1, rt_trace_hw.glsl rt_trace_filter):
+// each alphashadow or lightfilter surface along the segment scales the light
+// the ray carries (rt_filter.glsl), and the ray goes on past it; once nothing
+// is left the ray stops.
+
+#include "rt_common.glsl"
+#include "rt_bindings.glsl"
+#include "rt_material.glsl"
+#include "rt_geometry.glsl"
+#include "rt_filter.glsl"
+
+rayPayloadInEXT vec3 filterTransmission;
+hitAttributeEXT vec2 bary;
+
+void main()
+{
+	RtTriangle tri = rt_fetch_triangle(gl_InstanceCustomIndexEXT, uint(gl_GeometryIndexEXT), uint(gl_PrimitiveID));
+	filterTransmission *= rt_filter_transmission(tri, bary);
+	if (all(lessThanEqual(filterTransmission, vec3(0.001)))) {
+		filterTransmission = vec3(0.0);
+		terminateRayEXT;
+	}
+	ignoreIntersectionEXT;
+}

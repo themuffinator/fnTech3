@@ -4129,6 +4129,8 @@ struct NotifyContract {
 	int			teamWidth = 25;
 	int			tellWidth = 30;
 	int			buddyWidth = 30;
+	bool		zeroHides = false;	// con_notifytime 0 hides even a line printed this frame
+	int			chatY = -1;			// the chat line's virtual height; under the lines when -1
 };
 
 struct ChatCommand {
@@ -4186,6 +4188,18 @@ static NotifyContract Con_NotifyContract( comGameId_t profile ) {
 		contract.smallChat = true;
 		contract.sayWidth = 55;
 		contract.teamWidth = 50;
+		break;
+	case COM_GAME_MOHAA:
+		// Medal of Honor draws no console lines over play: its engine UI shows
+		// the game's messages in its message boxes (OpenMoHAA cl_ui.cpp
+		// UI_PrintConsole), so the lines start switched off -- all of them,
+		// though its client game echoes a command every frame at developer 1.
+		contract.notifyTime = "0";
+		contract.zeroHides = true;
+		// Its chat line sits where 2015's one-message chat window did, two
+		// thirds of the way down (OpenMoHAA cl_ui.cpp
+		// getQuickMessageDMConsoleRectangle), clear of the compass.
+		contract.chatY = 316;
 		break;
 	default:
 		break;
@@ -4409,12 +4423,36 @@ static const ChatCommand con_stvefSPChatCommands[] = {
 	{ "messagemode", Con_STVEFSPMessageMode_f }
 };
 
+/*
+================
+Con_OpenChat
+
+Medal of Honor's client game registers its own messagemode, say and their
+kin, and opens the chat line through import 159 (cl_mohaa_cgame.cpp), so the
+engine names none of its own there.
+================
+*/
+void Con_OpenChat( qboolean team ) {
+	chat_playerNum = -1;
+	chat_team = team;
+	chat_buddy = qfalse;
+	Con_ResetChatField( team ? ChatMode::Team : ChatMode::Say );
+	Key_SetCatcher( Key_GetCatcher() | KEYCATCH_MESSAGE );
+}
+
+void Con_CloseChat( void ) {
+	Key_SetCatcher( Key_GetCatcher() & ~KEYCATCH_MESSAGE );
+	Field_Clear( &chatField );
+}
+
 static ChatCommandSet Con_ChatCommands( comGameId_t profile ) {
 	switch ( profile ) {
 	case COM_GAME_WOLFET:
 		return { con_wolfetChatCommands, static_cast<int>( ARRAY_LEN( con_wolfetChatCommands ) ) };
 	case COM_GAME_STVEF_SP:
 		return { con_stvefSPChatCommands, static_cast<int>( ARRAY_LEN( con_stvefSPChatCommands ) ) };
+	case COM_GAME_MOHAA:
+		return { nullptr, 0 };
 	default:
 		return { con_chatCommands, static_cast<int>( ARRAY_LEN( con_chatCommands ) ) };
 	}
@@ -5367,7 +5405,8 @@ static void Con_DrawClassicNotify( void )
 				continue;
 			}
 			const int time = con.times[ i % NUM_CON_TIMES ];
-			if ( time == 0 || cls.realtime - time > notifyTime ) {
+			if ( time == 0 || cls.realtime - time > notifyTime
+				|| ( contract.zeroHides && notifyTime <= 0.0f ) ) {
 				continue;
 			}
 			if ( contract.catchers && cl.snap.ps.pm_type != PM_INTERMISSION
@@ -5441,6 +5480,9 @@ static void Con_DrawClassicNotify( void )
 
 	if ( cls.glconfig.vidHeight > 0 ) {
 		v = static_cast<int>( v / ( cls.glconfig.vidHeight / 480.0 ) );
+	}
+	if ( contract.chatY >= 0 ) {
+		v = contract.chatY;
 	}
 	SCR_DrawBigString( SMALLCHAR_WIDTH, v, prompt, 1.0f, qfalse );
 	Field_BigDraw( &chatField, skip * BIGCHAR_WIDTH, v,
@@ -5705,6 +5747,9 @@ static bool Con_NotifyDrawn( void ) {
 		return cls.state == CA_DISCONNECTED || cls.state == CA_ACTIVE || cls.state == CA_CINEMATIC;
 	case COM_GAME_WOLFET:
 		return cls.state == CA_ACTIVE && con_drawnotify && con_drawnotify->integer;
+	case COM_GAME_FAKK2:
+		// F.A.K.K.2's SDK documents the same console window and mini console
+		// (ui_consoleposition, ui_minicon) Alice's engine kept.
 	case COM_GAME_ALICE:
 		// alice.exe has no notify lines; its console text reaches the screen
 		// only in the console window and the optional mini console

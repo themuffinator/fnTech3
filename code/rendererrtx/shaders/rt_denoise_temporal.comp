@@ -1,0 +1,140 @@
+#version 460
+#extension GL_GOOGLE_include_directive : require
+
+// Denoiser, step 1: temporal accumulation.
+//
+// Reproject each pixel's history by its motion vector, keep the bilinear taps
+// whose previous depth, normal and material agree with this frame's surface,
+// and blend this frame's noisy diffuse and specular into them. Luminance
+// moments ride along so the spatial passes can estimate variance.
+
+#include "rt_common.glsl"
+#include "rt_denoise_common.glsl"
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+void main()
+{
+	ivec2 p = ivec2(gl_GlobalInvocationID.xy);
+	if (!in_trace(p)) {
+		return;
+	}
+	uint cur = pc.state.x & 1u;
+	uint prev = cur ^ 1u;
+	uint info = imageLoad(u_info[cur], p).r;
+
+	if ((info & RT_PIXEL_OWNED) == 0u) {
+		imageStore(u_filterDiffuse[0], p, vec4(0.0));
+		imageStore(u_filterSpecular[0], p, vec4(0.0));
+		imageStore(u_histDiffuse[cur], p, vec4(0.0));
+		imageStore(u_histSpecular[cur], p, vec4(0.0));
+		imageStore(u_histMoments[cur], p, vec4(0.0));
+		return;
+	}
+
+	vec3 D = max(imageLoad(u_noisyDiffuse, p).rgb, vec3(0.0));
+	vec3 S = max(imageLoad(u_noisySpecular, p).rgb, vec3(0.0));
+	vec4 nd = imageLoad(u_normalDepth[cur], p);
+	vec3 n = oct_decode(nd.xy);
+	float z = nd.z;
+	vec4 motion = imageLoad(u_motion, p);
+	float expectedPrevZ = motion.z;
+
+	vec2 uv = (vec2(p) + 0.5) * pc.traceSize.zw;
+	vec2 prevPos = (uv - motion.xy) * pc.traceSize.xy - 0.5;
+	ivec2 base = ivec2(floor(prevPos));
+	vec2 f = prevPos - vec2(base);
+
+	vec3 histD = vec3(0.0);
+	vec3 histS = vec3(0.0);
+	vec4 histM = vec4(0.0);
+	float histLen = 0.0;
+	float wsum = 0.0;
+
+	// motion.w: a moving surface new this frame has nothing to reproject
+	if ((pc.state.w & RT_DENOISE_FLAG_HISTORY_VALID) != 0u && motion.w < 0.5) {
+		for (int i = 0; i < 4; i++) {
+			ivec2 q = base + ivec2(i & 1, i >> 1);
+			if (!in_trace(q)) {
+				continue;
+			}
+			float bw = ((i & 1) != 0 ? f.x : 1.0 - f.x) * ((i >> 1) != 0 ? f.y : 1.0 - f.y);
+			if (bw <= 1e-4) {
+				continue;
+			}
+			uint pinfo = imageLoad(u_info[prev], q).r;
+			if ((pinfo & RT_PIXEL_OWNED) == 0u || (pinfo >> 8u) != (info >> 8u)) {
+				continue;
+			}
+			vec4 pnd = imageLoad(u_normalDepth[prev], q);
+			if (abs(pnd.z - expectedPrevZ) > 0.04 * abs(expectedPrevZ) + 2.0) {
+				continue;
+			}
+			if (dot(oct_decode(pnd.xy), n) < 0.85) {
+				continue;
+			}
+			vec4 hd = imageLoad(u_histDiffuse[prev], q);
+			vec4 hs = imageLoad(u_histSpecular[prev], q);
+			histD += hd.rgb * bw;
+			histS += hs.rgb * bw;
+			histM += imageLoad(u_histMoments[prev], q) * bw;
+			histLen += hs.a * bw;
+			wsum += bw;
+		}
+	}
+
+	float lD = denoise_luminance(D);
+	float lS = denoise_luminance(S);
+	vec4 moments = vec4(lD, lD * lD, lS, lS * lS);
+	float len = 1.0;
+	vec3 accD = D;
+	vec3 accS = S;
+
+	if (wsum > 0.01) {
+		histD /= wsum;
+		histS /= wsum;
+		histM /= wsum;
+		histLen /= wsum;
+		float maxHistory = float(max(pc.extra.x, 1u));
+		// moving surfaces reproject along their own motion; a shorter history
+		// still lets lighting that moves with them settle quickly
+		if ((info & (RT_PIXEL_DYNAMIC | RT_PIXEL_WEAPON)) != 0u) {
+			maxHistory = min(maxHistory, 16.0);
+		}
+		len = min(histLen + 1.0, maxHistory);
+		float alpha = max(1.0 / len, pc.params.x);
+
+		// clip outliers against the history: one very bright sample on a
+		// long history is a firefly, not a lighting change
+		float histL = denoise_luminance(histD);
+		if (len > 4.0 && lD > 8.0 * histL + 0.05) {
+			D *= (8.0 * histL + 0.05) / max(lD, 1e-6);
+			lD = denoise_luminance(D);
+		}
+		float histLS = denoise_luminance(histS);
+		if (len > 4.0 && lS > 8.0 * histLS + 0.05) {
+			S *= (8.0 * histLS + 0.05) / max(lS, 1e-6);
+			lS = denoise_luminance(S);
+		}
+		moments = vec4(lD, lD * lD, lS, lS * lS);
+
+		accD = mix(histD, D, alpha);
+		accS = mix(histS, S, alpha);
+		moments = mix(histM, moments, alpha);
+	}
+
+	float varD = max(moments.y - moments.x * moments.x, 0.0);
+	float varS = max(moments.w - moments.z * moments.z, 0.0);
+	if (len < 4.0) {
+		// too little history for its moments: assume noise as large as the
+		// signal so the spatial passes blur until history builds up
+		varD = max(varD, lD * lD * (4.0 - len) * 0.25);
+		varS = max(varS, lS * lS * (4.0 - len) * 0.25);
+	}
+
+	imageStore(u_filterDiffuse[0], p, vec4(accD, varD));
+	imageStore(u_filterSpecular[0], p, vec4(accS, varS));
+	imageStore(u_histDiffuse[cur], p, vec4(accD, len));
+	imageStore(u_histSpecular[cur], p, vec4(accS, len));
+	imageStore(u_histMoments[cur], p, moments);
+}

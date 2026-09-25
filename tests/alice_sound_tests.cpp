@@ -66,6 +66,8 @@ struct FakeDevice : sfx::Device {
 		float gain = -1.0f;
 		float direct = 1.0f;
 		int pan = -1;
+		/* The whole of the last placement. */
+		sfx::Placement placement;
 		/* The loop block the voice holds, or -1 without one; how many were
 		 * handed over; and whether the last came before the voice started. */
 		int blockStart = -1;
@@ -140,12 +142,13 @@ struct FakeDevice : sfx::Device {
 		if ( Playing( voice ) ) voices[static_cast<std::size_t>( voice )].paused = true;
 	}
 	void Resume( int voice ) override { voices[static_cast<std::size_t>( voice )].paused = false; }
-	void Place( int voice, const float *position, float gain, float direct, int pan ) override {
+	void Place( int voice, const sfx::Placement &placement ) override {
 		VoiceRecord &v = voices[static_cast<std::size_t>( voice )];
-		std::memcpy( v.position, position, sizeof( v.position ) );
-		v.gain = gain;
-		v.direct = direct;
-		v.pan = pan;
+		std::memcpy( v.position, placement.position.data(), sizeof( v.position ) );
+		v.gain = placement.gain;
+		v.direct = placement.direct;
+		v.pan = placement.pan;
+		v.placement = placement;
 	}
 	/* A sample running out by itself. */
 	void Finish( int voice ) { voices[static_cast<std::size_t>( voice )].playing = false; }
@@ -345,6 +348,15 @@ void CheckOneShots() {
 	CHECK( device.voices[0].starts == 1 && device.voices[0].playing );
 	/* Miles holds 127 and the distance halves it. */
 	CHECK( Near( device.voices[0].gain, 0.5f ) );
+	/* A backend with a distance model of its own gets the parts: full
+	 * volume, the record's min distance and 64 times it, heard and coming
+	 * from the same place, on the channel it was started on. */
+	{
+		const sfx::Placement &placed = device.voices[0].placement;
+		CHECK( placed.role == sfx::Role::World && Near( placed.volume, 1.0f ) );
+		CHECK( Near( placed.minDist, sfx::DefaultMinDist ) && Near( placed.maxDist, sfx::DefaultMinDist * sfx::MaxDistanceScale ) );
+		CHECK( Near( placed.source[0], 320.0f ) && Near( placed.position[0], 320.0f ) && placed.channel == 1 );
+	}
 	/* At the listener there is nothing in the way; the one trace a second
 	 * was made. */
 	CHECK( world.traces == 1 && Near( device.voices[0].direct, 1.0f ) );
@@ -440,6 +452,8 @@ void CheckChannels() {
 	frame.master = 0.4f;
 	ui.StartSound( menu, log, nullptr, 0, sfx::MenuChannel, click, -1.0f, -1.0f, frame );
 	CHECK( menu.voices[0].starts == 1 && Near( menu.voices[0].gain, 101.0f / 127.0f ) );
+	/* It is an interface sound: no room, no distance. */
+	CHECK( menu.voices[0].placement.role == sfx::Role::Interface && menu.voices[0].placement.channel == sfx::MenuChannel );
 	/* Any other channel starts at the faded master volume. */
 	const int bang = menu.Add( "sound/bang.wav" );
 	ui.StartSound( menu, log, nullptr, 0, 1, bang, -1.0f, -1.0f, frame );
@@ -477,6 +491,8 @@ void CheckEntitiesAndVolume() {
 	engine.UpdateEntity( 7, moved, kOrigin, true, 1100 );
 	engine.Respatialize( device, world, log, 0, kOrigin, kIdentity, At( 1100 ) );
 	CHECK( Near( device.voices[0].position[0], 0.0f ) && Near( device.voices[0].gain, 1.0f ) );
+	/* It is the listener's own, with no distance to model. */
+	CHECK( device.voices[0].placement.role == sfx::Role::Listener && device.voices[0].placement.minDist == 0.0f );
 
 	/* A one-shot with a loop block stops once its entity goes stale. */
 	engine.StartSound( device, log, given, 8, 1, hum, -1.0f, -1.0f, At( 1200 ) );
@@ -554,6 +570,13 @@ void CheckLoops() {
 	const float *p = device.voices[static_cast<std::size_t>( voice )].position;
 	CHECK( Near( std::sqrt( p[0] * p[0] + p[1] * p[1] + p[2] * p[2] ), 80.0f, 1e-3f ) );
 	CHECK( p[0] > p[1] && p[1] > 0.0f );
+	/* The members' distances are in the group's volume, so there is no
+	 * distance left to model; it comes from its louder member, ahead. */
+	{
+		const sfx::Placement &placed = device.voices[static_cast<std::size_t>( voice )].placement;
+		CHECK( placed.role == sfx::Role::World && placed.minDist == 0.0f && Near( placed.volume, placed.gain ) );
+		CHECK( Near( placed.source[0], 160.0f ) && Near( placed.source[1], 0.0f ) );
+	}
 	/* The voice is entity 0, channel 0, so no one-shot takes it over. */
 	CHECK( engine.VoiceAt( voice ).entnum == 0 && engine.VoiceAt( voice ).entchannel == 0 && engine.VoiceAt( voice ).loopOwned );
 
@@ -796,9 +819,39 @@ void CheckDialogs() {
 	engine.Respatialize( device, world, log, 0, kOrigin, kIdentity, At( 0 ) );
 	CHECK( device.voices[sfx::Voices].starts == 1 && Near( device.voices[sfx::Voices].gain, 63.0f / 127.0f ) );
 	CHECK( device.voices[sfx::Voices].pan >= 0 );
+	/* A line in the world: its volume, and its min distance with no far end. */
+	{
+		const sfx::Placement &placed = device.voices[sfx::Voices].placement;
+		CHECK( placed.role == sfx::Role::Dialog && Near( placed.volume, 1.0f ) && placed.channel == 6 );
+		CHECK( Near( placed.minDist, sfx::DefaultMinDist ) && placed.maxDist == 0.0f && Near( placed.position[0], 320.0f ) );
+	}
 	/* Four at most. */
 	for ( int i = 0; i < 4; ++i ) engine.StartSound( device, log, nullptr, 4, 6, line, -1.0f, -1.0f, At( 0 ) );
 	CHECK( log.Said( "Could not find a free dialog channel" ) );
+}
+
+/* A moving loop is attenuated by the backend from its own origin, so it hands
+ * over its volume, its min distance and its motion. */
+void CheckMovingLoopPlacement() {
+	FakeDevice device;
+	FakeWorld world;
+	FakeLog log;
+	sfx::SoundInfoTable infos;
+	sfx::Engine engine;
+	engine.SetInfos( &infos );
+	engine.Reset( 1.0f );
+	const int engineHum = device.Add( "sound/engine.wav" );
+	const float at[3] = { 320.0f, 0.0f, 0.0f };
+	const float moving[3] = { 0.0f, 50.0f, 0.0f };
+	engine.ClearLoopingSounds();
+	engine.AddLoopingSound( device, log, at, moving, engineHum, -1.0f, -1.0f, At( 0, 100 ) );
+	engine.Respatialize( device, world, log, 0, kOrigin, kIdentity, At( 0, 100 ) );
+	const int voice = engine.LoopAt( 0 ).voice;
+	CHECK( voice >= 0 );
+	const sfx::Placement &placed = device.voices[static_cast<std::size_t>( voice )].placement;
+	CHECK( placed.role == sfx::Role::World && Near( placed.volume, 1.0f ) && Near( placed.gain, 0.5f ) );
+	CHECK( Near( placed.minDist, sfx::DefaultMinDist ) && Near( placed.maxDist, sfx::DefaultMinDist * sfx::MaxDistanceScale ) );
+	CHECK( Near( placed.velocity[1], 50.0f ) && Near( placed.position[0], 320.0f ) && Near( placed.source[0], 320.0f ) );
 }
 
 } // namespace
@@ -813,6 +866,7 @@ int main() {
 	CheckLoopBlockArithmetic();
 	CheckLoopBlocks();
 	CheckDialogs();
+	CheckMovingLoopPlacement();
 	std::cout << "alice sound tests passed\n";
 	return 0;
 }

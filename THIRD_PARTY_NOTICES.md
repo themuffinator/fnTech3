@@ -39,6 +39,17 @@ the published [RTCW SP](https://github.com/id-Software/RTCW-SP) and
 source references were inspected only for behavior; no implementation text
 or proprietary menu assets are incorporated.
 
+The Heavy Metal: F.A.K.K.2 HUD JSON preset is original fnTech3 data authored
+from the placement of the game's four retail HUD menus, observed in a
+legitimate installation, and from fnTech3's own HUD draw dump. No retail menu
+file, text or asset is incorporated.
+
+The Enemy Territory, Elite Force and Alice HUD JSON presets are original
+fnTech3 data authored from fnTech3's own HUD draw dumps and from layout facts
+observed in the Enemy Territory GPL source, Raven's Elite Force single-player
+SDK and the Elite-Reinforce port. Those sources, and Lilium Voyager's engine,
+were inspected only for behavior; no implementation text is incorporated.
+
 The Q3 assets under `pkg/games/quake3/` are incorporated from the
 [FnQuake3 package tree](https://github.com/themuffinator/FnQ3/tree/7d8c9629cdc7979f09697266470359101ffd9eda/pkg),
 whose GPL-2.0-or-later engine lineage and GPLv2 `LICENSE` are compatible with
@@ -82,6 +93,23 @@ only independently generated synthetic packet vectors are checked in. Retail
 modules, maps, configuration assets and packets containing private data are not
 redistributed. The [ET evidence record](docs/fntech3/2026-09-17-wolfet-contracts.md)
 separates source/unit evidence from installed observations and open gates.
+
+## OpenMoHAA
+
+Medal of Honor: Allied Assault support incorporates code from
+[OpenMoHAA](https://github.com/openmoh/openmohaa/tree/ab43a0def6c4feccedae36fdb58c2e007d7e4c35)
+at `ab43a0def6c4feccedae36fdb58c2e007d7e4c35`, copyright the OpenMoHAA team,
+id Software and, for the terrain collision, Leszek Godlewski, under
+GPL-2.0-or-later, which is compatible with fnTech3's GPL license: the model
+runtime under `code/mohaa/` (listed file by file in its
+[README](code/mohaa/README.md)), `code/qcommon/mohaa_msg.cpp`,
+`code/qcommon/cm_mohaa_terrain.c`, `code/qcommon/mohaa_terrain_squares.h`,
+`code/client/cl_mohaa.cpp`, `code/server/server_mohaa_net.hpp` and
+`code/server/server_mohaa_world.hpp`.
+Each keeps its original copyright and licence header, and the changes are
+noted in it. The rest of the profile consults OpenMoHAA as a reference only.
+No retail Medal of Honor module, runtime (`MOHAA.exe`, `system86.dll`) or
+asset is redistributed; `system86.dll` is loaded from the user's installation.
 
 ## Elite Force references and minimp3
 

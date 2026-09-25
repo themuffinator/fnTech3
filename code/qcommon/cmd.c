@@ -62,8 +62,9 @@ static void Cmd_Wait_f( void ) {
 	if ( Cmd_Argc() == 2 ) {
 		cmd_wait = atoi( Cmd_Argv( 1 ) );
 		// Alice keeps a negative count, which its Cbuf_Execute treats as no
-		// wait at all (alice.exe 0x00437a12..0x00437a1a).
-		if ( cmd_wait < 0 && !Com_GameIsAlice() )
+		// wait at all (alice.exe 0x00437a12..0x00437a1a); Medal of Honor's
+		// wait is Alice's, counted in milliseconds (OpenMoHAA cmd.c).
+		if ( cmd_wait < 0 && !Com_GameIsRitual() && !Com_GameIsMOHAA() )
 			cmd_wait = 1; // ignore the argument
 	} else {
 		cmd_wait = 1;
@@ -277,13 +278,27 @@ void Cbuf_ExecuteText( cbufExec_t exec_when, const char *text )
 	switch (exec_when)
 	{
 	case EXEC_NOW:
-		if ( Com_GameIsAlice() ) {
-			// Alice's runs the one line and nothing else: a pending wait and
-			// the rest of the buffer stay as they were (alice.exe
-			// Cbuf_ExecuteText 0x00437b6b).
+		if ( Com_GameIsRitual() ) {
+			// Alice's runs the one line and nothing else, and echoes nothing:
+			// a pending wait and the rest of the buffer stay as they were
+			// (alice.exe Cbuf_ExecuteText 0x00437b6b; F.A.K.K.2 1.02's
+			// fakk2.exe 0x0042c57b the same).
 			if ( text && text[0] != '\0' ) {
-				Com_DPrintf( S_COLOR_YELLOW "EXEC_NOW %s\n", text );
 				Cmd_ExecuteString( text );
+			}
+			break;
+		}
+		if ( Com_GameIsMOHAA() ) {
+			// Medal of Honor's keeps a pending wait too: its client game
+			// runs a line now every frame, which must not cut short the
+			// millisecond waits its server stuffs (OpenMoHAA cmd.c). Nor
+			// does it echo the line under developer, which would print
+			// ui_removehud or ui_addhud hud_stopwatch every frame (the
+			// Draw2D export's stopwatch, 1.00 cgamex86.dll 0x3001fc1e).
+			if ( text && text[0] != '\0' ) {
+				Cmd_ExecuteString( text );
+			} else {
+				Cbuf_Execute();
 			}
 			break;
 		}
@@ -363,7 +378,7 @@ void Cbuf_Execute( void )
 	int i, n, quotes;
 	qboolean in_star_comment;
 	qboolean in_slash_comment;
-	const qboolean aliceWait = Com_GameIsAlice() ? qtrue : qfalse;
+	const qboolean aliceWait = Com_GameIsRitual() || Com_GameIsMOHAA() ? qtrue : qfalse;
 	const int frameMsec = cmd_frameMsec;
 
 	cmd_frameMsec = 0;
@@ -477,8 +492,9 @@ Cbuf_Wait
 */
 void Cbuf_Wait( void )
 {
-	// Alice's wait is measured in milliseconds by Cbuf_Execute itself.
-	if ( cmd_wait > 0 && !Com_GameIsAlice() ) {
+	// Alice's and Medal of Honor's waits are measured in milliseconds by
+	// Cbuf_Execute itself.
+	if ( cmd_wait > 0 && !Com_GameIsRitual() && !Com_GameIsMOHAA() ) {
 		--cmd_wait;
 	}
 }
@@ -1109,7 +1125,6 @@ static void Cmd_ListAliases( void ) {
 
 static void Cmd_Alias_f( void ) {
 	cmdAlias_t *alias;
-	int index;
 
 	if ( Cmd_Argc() == 1 ) {
 		Cmd_ListAliases();
@@ -1124,6 +1139,39 @@ static void Cmd_Alias_f( void ) {
 		return;
 	}
 
+	// Ritual's alias takes every word after the name (alice.exe 0x00437e90
+	// joins them); this one keeps the words as typed, so a quoted item name
+	// inside -- a weapon group's `use "Rocket Launcher" dual` -- survives.
+	if ( Com_GameIsRitual() && Cmd_Argc() > 3 ) {
+		int start = Cmd_ArgOffset( 2 );
+		if ( Cmd_ArgQuoted( 2 ) && start > 0 ) {
+			start--;
+		}
+		Cmd_SetAlias( Cmd_Argv( 1 ), Cmd_Cmd() + start );
+		return;
+	}
+
+	Cmd_SetAlias( Cmd_Argv( 1 ), Cmd_Argv( 2 ) );
+}
+
+
+/*
+============
+Cmd_SetAlias
+
+Sets or replaces an alias from engine code, which Heavy Metal: F.A.K.K.2's
+weapon groups need (saveweaps, alice.exe 0x0041020f).
+============
+*/
+void Cmd_SetAlias( const char *name, const char *command ) {
+	cmdAlias_t *alias;
+	int index;
+
+	if ( !name || !name[0] || !command ) {
+		return;
+	}
+
+	alias = Cmd_FindAlias( name );
 	if ( !alias ) {
 		for ( index = 0; index < MAX_CMD_ALIASES; index++ ) {
 			if ( !cmd_aliases[ index ].inUse ) {
@@ -1134,13 +1182,12 @@ static void Cmd_Alias_f( void ) {
 	}
 
 	if ( !alias ) {
-		Com_Printf( "Alias capacity reached; remove an alias before adding '%s'.\n",
-			Cmd_Argv( 1 ) );
+		Com_Printf( "Alias capacity reached; remove an alias before adding '%s'.\n", name );
 		return;
 	}
 
-	Q_strncpyz( alias->name, Cmd_Argv( 1 ), sizeof( alias->name ) );
-	Q_strncpyz( alias->command, Cmd_Argv( 2 ), sizeof( alias->command ) );
+	Q_strncpyz( alias->name, name, sizeof( alias->name ) );
+	Q_strncpyz( alias->command, command, sizeof( alias->command ) );
 	alias->inUse = qtrue;
 	cvar_modifiedFlags |= CVAR_ARCHIVE;
 }
@@ -1174,8 +1221,17 @@ void Cmd_WriteAliases( fileHandle_t file ) {
 	FS_Printf( file, "unaliasall" Q_NEWLINE );
 	for ( index = 0; index < MAX_CMD_ALIASES; index++ ) {
 		if ( cmd_aliases[ index ].inUse ) {
+			const char *command = cmd_aliases[ index ].command;
+			// Quotes cannot nest, so a Ritual alias holding quoted words is
+			// written bare and read back whole by Cmd_Alias_f. Retail wrote
+			// it quoted, less its last letter (alice.exe 0x004380f4), and
+			// lost such an alias on the next start.
+			if ( Com_GameIsRitual() && strchr( command, '"' ) && !strchr( command, ';' ) ) {
+				FS_Printf( file, "alias %s %s" Q_NEWLINE, cmd_aliases[ index ].name, command );
+				continue;
+			}
 			FS_Printf( file, "alias %s \"%s\"" Q_NEWLINE,
-				cmd_aliases[ index ].name, cmd_aliases[ index ].command );
+				cmd_aliases[ index ].name, command );
 		}
 	}
 }

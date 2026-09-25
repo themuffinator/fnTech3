@@ -292,6 +292,89 @@ int CM_BoxBrushes( const vec3_t mins, const vec3_t maxs, cbrush_t **list, int li
 	return ll.count;
 }
 
+#ifndef BSPC
+/*
+==================
+CM_Q3TestBoxBrushes
+
+Q3Test 1.05's client game clips its marks against the engine's own brushes:
+its slot 19 returns brush pointers and the module reads them (1.05 quake3.exe
+0x0040d130, cgamex86.dll 0x1000bb10). Retail's brush is 40 bytes -- contents,
+bounds, side count, side pointer, check count -- and its side 8, a plane
+pointer and the surface flags; this engine's records are larger. So the map's
+brushes are mirrored in retail's shape, with planes shared since cplane_t is
+retail's 20 bytes, and the list holds pointers into the mirror. *lastLeaf gets
+the node the box first splits at, -1 when it never splits.
+==================
+*/
+typedef struct {
+	int			contents;
+	vec3_t		bounds[2];
+	int			numsides;
+	void		*sides;
+	int			checkcount;
+} q3testBrush_t;
+
+typedef struct {
+	cplane_t	*plane;
+	int			surfaceFlags;
+} q3testBrushSide_t;
+
+static q3testBrush_t		*q3testBrushes;
+static q3testBrushSide_t	*q3testBrushSides;
+static const cbrush_t		*q3testMirroredBrushes;
+static int					q3testMirroredCount = -1;
+
+int CM_Q3TestBoxBrushes( const vec3_t mins, const vec3_t maxs, void **list, int listsize, int *lastLeaf ) {
+	leafList_t	ll;
+	cbrush_t	*found[256];
+	int			i, j;
+
+	if ( q3testMirroredBrushes != cm.brushes || q3testMirroredCount != cm.numBrushes ) {
+		if ( q3testBrushes ) Z_Free( q3testBrushes );
+		if ( q3testBrushSides ) Z_Free( q3testBrushSides );
+		q3testBrushes = Z_Malloc( ( cm.numBrushes + 1 ) * sizeof( *q3testBrushes ) );
+		q3testBrushSides = Z_Malloc( ( cm.numBrushSides + 1 ) * sizeof( *q3testBrushSides ) );
+		for ( i = 0; i < cm.numBrushSides; i++ ) {
+			q3testBrushSides[i].plane = cm.brushsides[i].plane;
+			q3testBrushSides[i].surfaceFlags = cm.brushsides[i].surfaceFlags;
+		}
+		for ( i = 0; i < cm.numBrushes; i++ ) {
+			const cbrush_t *b = &cm.brushes[i];
+			q3testBrushes[i].contents = b->contents;
+			VectorCopy( b->bounds[0], q3testBrushes[i].bounds[0] );
+			VectorCopy( b->bounds[1], q3testBrushes[i].bounds[1] );
+			q3testBrushes[i].numsides = b->numsides;
+			q3testBrushes[i].sides = b->sides ? &q3testBrushSides[b->sides - cm.brushsides] : NULL;
+		}
+		q3testMirroredBrushes = cm.brushes;
+		q3testMirroredCount = cm.numBrushes;
+	}
+
+	cm.checkcount++;
+	VectorCopy( mins, ll.bounds[0] );
+	VectorCopy( maxs, ll.bounds[1] );
+	ll.count = 0;
+	ll.maxcount = listsize < (int)ARRAY_LEN( found ) ? listsize : (int)ARRAY_LEN( found );
+	ll.list = (void *)found;
+	ll.storeLeafs = CM_StoreBrushes;
+	ll.lastLeaf = 0;
+	ll.topnode = -1;
+	ll.overflowed = qfalse;
+	CM_BoxLeafnums_r( &ll, 0 );
+
+	for ( i = 0; i < ll.count; i++ ) {
+		j = (int)( found[i] - cm.brushes );
+		q3testBrushes[j].checkcount = found[i]->checkcount;
+		list[i] = &q3testBrushes[j];
+	}
+	if ( lastLeaf ) {
+		*lastLeaf = ll.topnode;
+	}
+	return ll.count;
+}
+#endif
+
 
 //====================================================================
 

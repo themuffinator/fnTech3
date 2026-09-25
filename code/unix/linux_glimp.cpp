@@ -54,6 +54,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../client/input_compat.hpp"
 #include "../platform/window_placement.hpp"
 #include "../platform/application_icon_data.h"
+#include "../platform/game_icon_builtin.hpp"
 #include "linux_local.h"
 #include "unix_glw.h"
 
@@ -3155,24 +3156,39 @@ rserr_t GLW_SetMode( int mode, const char *modeFS, qboolean fullscreen, qboolean
 	}
 
 	XStoreName( dpy, win, cl_title );
+	// Desktops pair the window with fntech3-<profile>.desktop by WM_CLASS.
+	const comGameProfile_t *iconProfile = Com_GameProfile();
+	cvar_t *gameIcon = Cvar_Get( "cl_gameIcon", "1", CVAR_ARCHIVE );
+	Cvar_SetDescription( gameIcon, fntech3::icon::ModeDescription() );
+	const fntech3::icon::Mode iconMode = fntech3::icon::ModeFromCvar( gameIcon->integer );
+	const char *iconKey = iconProfile ? iconProfile->key : NULL;
+	const std::string applicationId = fntech3::icon::ApplicationId( iconKey, iconMode );
 	XClassHint applicationClass;
-	applicationClass.res_name = const_cast<char *>( "fntech3" );
-	applicationClass.res_class = const_cast<char *>( "fntech3" );
+	applicationClass.res_name = const_cast<char *>( applicationId.c_str() );
+	applicationClass.res_class = const_cast<char *>( applicationId.c_str() );
 	XSetClassHint( dpy, win, &applicationClass );
 
-	// EWMH uses 32-bit ARGB values stored in native unsigned longs by Xlib.
-	// The SDL backend can also inherit installation PNGs; this minimal native
-	// X11 backend always publishes the built-in engine icon.
-	unsigned long iconPixels[2 + FNTECH3_ICON_SIZE * FNTECH3_ICON_SIZE];
-	iconPixels[0] = iconPixels[1] = FNTECH3_ICON_SIZE;
-	for ( unsigned i = 0; i < FNTECH3_ICON_SIZE * FNTECH3_ICON_SIZE; ++i ) {
-		const unsigned char *rgba = FNTECH3_ICON_RGBA + i * 4;
-		iconPixels[i + 2] = (unsigned long)rgba[3] << 24 |
-			(unsigned long)rgba[0] << 16 | (unsigned long)rgba[1] << 8 | rgba[2];
+	// EWMH _NET_WM_ICON: one or more width, height, ARGB runs, each value in a
+	// native unsigned long. The window manager picks the best size. ELF
+	// installations carry no icon, so mode 2 also shows the built-in remake.
+	std::vector<unsigned long> iconPixels;
+	const auto appendIcon = [&iconPixels]( unsigned width, unsigned height, const unsigned char *rgba ) {
+		iconPixels.push_back( width );
+		iconPixels.push_back( height );
+		for ( size_t i = 0; i < size_t( width ) * height; ++i, rgba += 4 ) {
+			iconPixels.push_back( (unsigned long)rgba[3] << 24 | (unsigned long)rgba[0] << 16 |
+				(unsigned long)rgba[1] << 8 | rgba[2] );
+		}
+	};
+	if ( iconMode != fntech3::icon::Mode::Engine ) {
+		for ( const fntech3::icon::Image &image : fntech3::icon::DecodeBuiltinImages( iconKey ) )
+			appendIcon( image.width, image.height, image.rgba.data() );
 	}
+	if ( iconPixels.empty() )
+		appendIcon( FNTECH3_ICON_SIZE, FNTECH3_ICON_SIZE, FNTECH3_ICON_RGBA );
 	XChangeProperty( dpy, win, XInternAtom( dpy, "_NET_WM_ICON", False ),
-		XA_CARDINAL, 32, PropModeReplace, (unsigned char *)iconPixels,
-		2 + FNTECH3_ICON_SIZE * FNTECH3_ICON_SIZE );
+		XA_CARDINAL, 32, PropModeReplace, (unsigned char *)iconPixels.data(),
+		(int)iconPixels.size() );
 
 	// Keep the native fallback consistent with SDL: the window manager owns
 	// interactive sizing and the client refreshes its renderer after it settles.

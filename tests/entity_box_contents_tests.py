@@ -78,6 +78,16 @@ void CM_TraceThroughPatchCollide( traceWork_t *tw, const struct patchCollide_s *
 qboolean CM_PositionTestInPatchCollide( traceWork_t *tw, const struct patchCollide_s *pc ) {
 	(void)tw; (void)pc; return qfalse;
 }
+#include "code/qcommon/cm_mohaa_terrain.h"
+void CM_MOHAA_TraceThroughTerrainCollide( traceWork_t *tw, const mohaaTerrainCollide_t *tc ) {
+	(void)tw; (void)tc;
+}
+qboolean CM_MOHAA_PositionTestInTerrainCollide( traceWork_t *tw, const mohaaTerrainCollide_t *tc ) {
+	(void)tw; (void)tc; return qfalse;
+}
+/* Q3Test's box brushes are copied into the zone (cm_test.c). */
+void *Z_Malloc( int size ) { return calloc( 1, (size_t)size ); }
+void Z_Free( void *ptr ) { free( ptr ); }
 static cmodel_t box_model;
 static cplane_t *box_planes;
 static cbrush_t *box_brush;
@@ -123,6 +133,7 @@ REAL_PRELUDE = SERVER_HEADERS + r'''
 #include "code/compat/game_abi_adapter.h"
 #include "code/compat/rtcw_module_abi.h"
 #include "code/compat/stvef_game_abi.h"
+#include "code/compat/q3test_game_abi.h"
 void QDECL Com_Printf(const char *,...){}
 void QDECL Com_DPrintf(const char *,...){}
 extern "C" void Fixture_LoadEmptyWorld(void);

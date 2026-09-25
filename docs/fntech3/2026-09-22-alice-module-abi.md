@@ -676,9 +676,9 @@ direction and squares it off -- larger than the true bounds and never smaller,
 which is what keeps a query from missing something.
 
 Two of those are firm for a different reason than the rest: `+0x218` and
-`+0x224` are handed straight to the engine's temporary box-model routine as a
-mins/maxs pair, so their type and order are fixed by the call rather than by
-resemblance. The solid type at `+0x27c` being compared against three small
+`+0x224` are handed straight to the engine's bounding-box packer (`0x0044a000`)
+and temporary box-model routine as a mins/maxs pair, so their type and order
+are fixed by the call rather than by resemblance. The solid type at `+0x27c` being compared against three small
 integers is what a `solid_t` enum looks like, but which value means what is not
 established here.
 
@@ -852,12 +852,26 @@ engine keeps for the title is that set and nothing else:
 
 - **The area query** walks the linked set and returns every entity whose
   absolute bounds meet the box it was given.
-- **`ClipToEntity`** traces against one entity through the clip handle linking
-  wrote -- a brush model against its own brushes at its own origin and angles,
-  anything else against the temporary box built from its bounds.
+- **`ClipToEntity`** traces against one entity through the clip model built
+  as it clips, as retail's `SV_ClipHandleForEntity` does (`0x004577b0`,
+  called at `0x00453709` and `0x0045821b`): a brush model against its own
+  inline model at its own origin and angles, anything else against the
+  temporary box rebuilt from its own bounds and contents -- Ritual's
+  `CM_TempBoxModel` takes the contents (`0x00430f50`). Until 2026-09-24 this
+  used a handle kept from linking, which named whichever entity's box was
+  built last, and linking kept none for a brush model: bullets and blows went
+  through actors, and traces through doors and platforms.
 - **The trace** does the world first and then every linked entity the moving
-  box could reach, keeping the nearest hit and reporting that entity's number
-  rather than the world's.
+  box could reach, as retail's entity pass does (`0x00458130..0x004582e5`):
+  nothing that is not solid, not the passing entity, its owner, its own
+  missiles or its owner's other missiles, and nothing whose contents the mask
+  does not take. It keeps the nearest hit, and any solid start, and reports
+  that entity's number rather than the world's.
+- **The state's solid** (`+0x1b4`), which the client game unpacks to clip
+  against the entity, is written by the link as retail writes it
+  (`0x00457a78..0x00457bfc`): a bounding box packed by `0x0044a000`, the
+  brush-model marker `0xffffff`, or zero. It had held the temporary box's
+  handle, which unpacks as a box 511 units wide and none high.
 
 A sector tree would be faster than walking the set, and a level's several
 hundred entities do not need one. What matters more is that the structure is

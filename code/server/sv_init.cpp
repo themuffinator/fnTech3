@@ -45,7 +45,11 @@ constexpr std::array<QLCvarConfigstringChannel, 4> kQLCvarConfigstringChannels{{
 }
 
 void SV_UpdateSysteminfoConfigstring() {
-	if ( Com_GameIsQuake3IHV() ) {
+	if ( Com_GameIsQ3Test() ) {
+		SV_SetConfigstring( CS_SYSTEMINFO, SV_Q3TestSysteminfo() );
+		// 1.02-1.05 publish cheats in the serverinfo instead.
+		SV_SetConfigstring( CS_SERVERINFO, SV_Q3TestServerinfo() );
+	} else if ( Com_GameIsQuake3IHV() ) {
 		// Original 0x41986e..0x4198bd publishes these two keys before SpawnEntities.
 		// API 4 clients do not consume the retail sv_* systeminfo contract.
 		SV_SetConfigstring( 1, va( "\\serverid\\%i\\mapChecksum\\%s", sv.serverId,
@@ -130,8 +134,9 @@ void SV_UpdateConfigstrings(client_t *client)
 		if(!client->csUpdated[index])
 			continue;
 
-		// do not always send server info to all clients
-		if ( index == CS_SERVERINFO ) {
+		// do not always send server info to all clients (Medal of Honor has
+		// no such flag; see SV_SetConfigstring)
+		if ( index == CS_SERVERINFO && !Com_GameIsMOHAA() ) {
 			sharedEntity_t entity;
 			if ( !SV_ReadGameEntityByNum( SV_ClientIndex( client ), &entity ) ) {
 				Com_Error( ERR_DROP, "%s: invalid client gentity", __func__ );
@@ -162,6 +167,13 @@ void SV_SetConfigstring (int index, const char *val) {
 		val = "";
 	}
 
+	// Q3Test's info strings are its releases' own (server_q3test_net.hpp).
+	if ( Com_GameIsQ3Test() && index == CS_SERVERINFO ) {
+		val = SV_Q3TestServerinfo();
+	} else if ( Com_GameIsQ3Test() && index == CS_SYSTEMINFO ) {
+		val = SV_Q3TestSysteminfo();
+	}
+
 	// don't bother broadcasting an update if no change
 	if ( !strcmp( val, sv.configstrings[ index ] ) ) {
 		return;
@@ -174,6 +186,11 @@ void SV_SetConfigstring (int index, const char *val) {
 	// IHV carries one sequence for every configstring change in each snapshot
 	// header, so a client can tell which updates it has already seen.
 	sv.configstringSequence++;
+
+	if ( Com_GameIsQ3Test() ) {
+		SV_Q3TestConfigstringChanged( index );
+		return;
+	}
 
 	// send it to all the clients if we aren't
 	// spawning a new server
@@ -191,8 +208,9 @@ void SV_SetConfigstring (int index, const char *val) {
 				}
 				continue;
 			}
-			// do not always send server info to all clients
-			if ( index == CS_SERVERINFO ) {
+			// do not always send server info to all clients. Medal of Honor's
+			// entities are not Quake III's and it has no such flag.
+			if ( index == CS_SERVERINFO && !Com_GameIsMOHAA() ) {
 				sharedEntity_t entity;
 				if ( !SV_ReadGameEntityByNum( SV_ClientIndex( &client ),
 					&entity ) ) {
@@ -331,6 +349,16 @@ static void SV_CreateBaseline( void ) {
 	// rule for which entities get one (server_q3_ihv_game.hpp).
 	if ( Com_GameIsQuake3IHV() ) {
 		SV_IHVServerBaselines();
+		return;
+	}
+	// Medal of Honor's baselines are its own entity states.
+	if ( Com_GameIsMOHAA() ) {
+		SV_MOHAACreateBaselines();
+		return;
+	}
+	// So are Q3Test's.
+	if ( Com_GameIsQ3Test() ) {
+		SV_Q3TestCreateBaselines();
 		return;
 	}
 
@@ -651,7 +679,7 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	// carries and `nextmap` repeats (server_alice_save.hpp).
 	char aliceBsp[MAX_QPATH];
 	const char *bspName = mapname;
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		bspName = SV_AlicePrepareSpawn( mapname, aliceBsp, sizeof( aliceBsp ) );
 	}
 
@@ -674,7 +702,7 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 
 	// With the old game, the client game and the renderer all shut down,
 	// nothing holds a handle into Alice's model definition cache.
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		SV_AliceFlushModels();
 	}
 
@@ -721,7 +749,7 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	// set nextmap to the same map, but it may be overridden
 	// by the game startup or another console command
 	// Alice's already names this map, as `map <whole argument>`.
-	if ( !Com_GameIsAlice() ) {
+	if ( !Com_GameIsRitual() ) {
 		Cvar_Set( "nextmap", "map_restart 0" );
 	}
 //	Cvar_Set( "nextmap", va("map %s", server) );
@@ -745,7 +773,7 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 		// Alice's level clock restarts with every level (at zero, or at a
 		// save's time), so its connected clients carry the old one until they
 		// acknowledge the new gamestate, as they do when sv_levelTimeReset is set.
-		if ( client.state >= CS_CONNECTED && ( sv_levelTimeReset->integer || Com_GameIsAlice() ) ) {
+		if ( client.state >= CS_CONNECTED && ( sv_levelTimeReset->integer || Com_GameIsRitual() ) ) {
 			client.oldServerTime = sv.time;
 		} else {
 			client.oldServerTime = 0;
@@ -757,13 +785,16 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	// wipe the entire per-level structure
 	SV_ClearServer();
 	sv.maxclients = preservedMaxClients;
+	if ( Com_GameIsQ3Test() ) {
+		SV_Q3TestSpawnReset();
+	}
 	for ( int index : SV_Indices( Com_GameConfigstringLimit() ) ) {
 		sv.configstrings[index] = CopyString("");
 	}
 	// Alice's load of the level it is running keeps that level's
 	// configstrings, as retail's spawn keeps its server state for one
 	// (server_alice_save.hpp).
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		SV_AliceRestoreConfigstrings();
 	}
 
@@ -802,6 +833,14 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 
 	// clear physics interaction links
 	SV_ClearWorld();
+	// Ritual's world clear also names the inline models in the model block.
+	if ( Com_GameIsRitual() ) {
+		SV_AliceRegisterInlineModels();
+	}
+	// Medal of Honor's entities are linked into a world of its own.
+	if ( Com_GameIsMOHAA() ) {
+		SV_MOHAAClearWorld();
+	}
 
 	// media configstring setting should be done during
 	// the loading stage, so connected clients don't have
@@ -817,10 +856,21 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 		SV_UpdateSysteminfoConfigstring();
 		SV_SetConfigstring( CS_SERVERINFO, Cvar_InfoString( CVAR_SERVERINFO, nullptr ) );
 	}
+	/* Every Q3Test engine starts a level at 1000 (SV_SpawnServer 1.02
+	 * 0x41bc00, 1.06 0x41cd10). 1.02 to 1.05 publish the system and server
+	 * info before the game spawns; 1.06 and later only after reconnecting
+	 * the clients, as this engine does for every profile below. */
+	if ( Com_GameIsQ3Test() ) {
+		sv.time = 1000;
+		if ( Com_Q3TestRelease()->protocol <= 36 ) {
+			SV_UpdateSysteminfoConfigstring();
+			SV_SetConfigstring( CS_SERVERINFO, Cvar_InfoString( CVAR_SERVERINFO, nullptr ) );
+		}
+	}
 	if ( !SV_RTCWRestoreSaveTime() ) {
 		Com_Error(ERR_DROP, "Cannot restore RTCW save time");
 	}
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		SV_AliceRestoreLevelTime();
 	}
 	Cmd_TokenizeString( spawnCommand );
@@ -832,7 +882,11 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 
 	// Alice's game spawns its level, or reads it back from a save, as a step
 	// of its own after Init.
-	const qboolean aliceRestored = Com_GameIsAlice() ? SV_AliceSpawnLevel() : qfalse;
+	const qboolean aliceRestored = Com_GameIsRitual() ? SV_AliceSpawnLevel() : qfalse;
+	// Medal of Honor's game spawns its level in steps of its own after Init.
+	if ( Com_GameIsMOHAA() ) {
+		SV_MOHAASpawnLevel( mapname );
+	}
 
 	// don't allow a map_restart if game is modified
 	if ( sv_ammoPack ) {
@@ -843,10 +897,13 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	sv_pure->modified = qfalse;
 
 	// run a few frames to allow everything to settle
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		// Alice's three run at 0, 100 and 200, and none follow a level read
 		// back from a save.
 		SV_AliceSettle( aliceRestored );
+	} else if ( Com_GameIsMOHAA() ) {
+		// Medal of Honor's three each advance the clock first.
+		SV_MOHAASettle();
 	} else if ( Com_GameIsWolfET() ) {
 		// Enemy Territory runs six, each with its bots at the current time
 		// before advancing it (et.exe 0x4469e1..0x446a12, etded.exe
@@ -885,6 +942,14 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 		if ( slot.client.state >= CS_CONNECTED ) {
 			const char *denied;
 
+			/* Q3Test frees a bot's slot and clears its name without calling
+			 * the game: the reloaded module knows nothing of it (1.02
+			 * SV_SpawnServer 0x41be5c, 1.06 0x41cede). */
+			if ( slot.client.netchan.remoteAddress.type == NA_BOT && Com_GameIsQ3Test() ) {
+				slot.client.state = CS_FREE;
+				slot.client.name[0] = 0;
+				continue;
+			}
 			if ( slot.client.netchan.remoteAddress.type == NA_BOT ) {
 				// Enemy Territory also drops every bot from a single-player or
 				// co-op game type, and gives no reason (et.exe
@@ -933,7 +998,18 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 		SV_BotFrame( sv.time );
 		sv.time += 100;
 		svs.time += 100;
-	} else if ( !Com_GameIsQuake3IHV() && !Com_GameIsAlice() ) {
+	} else if ( Com_GameIsQ3Test() ) {
+		/* Q3Test runs no frame here, except 1.08, which runs three more
+		 * after reconnecting its clients (0x41d876..0x41d8c7). */
+		if ( Com_Q3TestRelease()->protocol == 40 ) {
+			for ( int ignored : SV_Indices( 3 ) ) {
+				(void)ignored;
+				VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );
+				sv.time += 100;
+				svs.time += 100;
+			}
+		}
+	} else if ( !Com_GameIsQuake3IHV() && !Com_GameIsRitual() && !Com_GameIsMOHAA() ) {
 		// So does every other retail engine's (quake3.exe 0x438f02..0x438f31,
 		// quakelive_steam.exe 0x4e388b..0x4e38b4, WolfSP.exe 0x437103..0x43712f,
 		// WolfMP.exe 0x4395b1..0x4395e2, stvoy.exe 0x425be2..0x425bfb,
@@ -1057,8 +1133,11 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 		SV_MapPoolRefreshCvars();
 	}
 
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		SV_AliceSpawnDone();
+	}
+	if ( Com_GameIsMOHAA() ) {
+		SV_MOHAASpawnDone();
 	}
 
 	// suppress hitch warning
@@ -1104,6 +1183,9 @@ void SV_Init( void )
 		sv_ammoPack = nullptr;
 	}
 	Cvar_Get ("sv_keywords", "", CVAR_SERVERINFO);
+	if ( Com_GameIsQ3Test() ) {
+		SV_Q3TestRegisterCvars();
+	}
 	//Cvar_Get ("protocol", va("%i", PROTOCOL_VERSION), CVAR_SERVERINFO | CVAR_ROM);
 	if ( Com_GameIsQuake3IHV() ) {
 		// IHV's first configstring is the serverinfo, and its protocol-33
@@ -1213,6 +1295,12 @@ void SV_Init( void )
 
 	// systeminfo
 	sv_cheats = Cvar_Get( "sv_cheats", "1", CVAR_SYSTEMINFO | CVAR_ROM );
+	if ( Com_GameIsMOHAA() ) {
+		// Medal of Honor's game reads 2015's own cheat switch, which that
+		// engine registers at 1 and sets as each map starts (SV_Map_f;
+		// OpenMoHAA's Cvar_Init and SV_Init [O]).
+		Cvar_Get( "cheats", "1", CVAR_LATCH | CVAR_SYSTEMINFO );
+	}
 	sv_serverid = Cvar_Get( "sv_serverid", "0", CVAR_SYSTEMINFO | CVAR_ROM );
 	sv_pure = SV_RegisterPureMode();
 	Cvar_SetDescription( sv_pure, "Requires clients to only get data from pack archives the server is using." );
@@ -1367,6 +1455,12 @@ to totally exit after returning from this function.
 static void SV_FinalMessage( const char *message ) {
 	int			j;
 
+	if ( Com_GameIsQ3Test() ) {
+		SV_Q3TestFinalMessage( message );
+		NET_FlushPacketQueue( 99999 );
+		return;
+	}
+
 	// send it twice, ignoring rate
 	for ( j = 0 ; j < 2 ; j++ ) {
 		for ( client_t &client : SV_Clients() ) {
@@ -1431,6 +1525,10 @@ void SV_Shutdown( const char *finalmsg ) {
 		for ( client_t &client : SV_Clients() ) {
 			SV_FreeClient( &client );
 		}
+	}
+	// Q3Test's client channels go with their slots.
+	if ( Com_GameIsQ3Test() ) {
+		SV_Q3TestClearSessions();
 	}
 
 	// free current level

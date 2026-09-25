@@ -24,6 +24,7 @@ const comGameProfile_t *Com_GameProfile(){return profile;}
 int Com_GameIsRTCWSP(){return profile->id==COM_GAME_RTCW_SP;}
 int Com_GameIsRTCWMP(){return profile->id==COM_GAME_RTCW_MP;}
 int Com_GameIsWolfET(){return profile->id==COM_GAME_WOLFET;}
+int Com_GameIsMOHAA(){return profile->titleId==COM_GAME_TITLE_MOHAA;}
 void QDECL Com_Error(errorParm_t,const char*,...){throw 7;}
 int Com_GameIsQuakeLive(){return profile->id==COM_GAME_QUAKELIVE;}
 struct Value {cvar_t cvar{};std::string value,latched;};
@@ -44,7 +45,7 @@ void Cvar_SetLatched(const char *name,const char *text){auto &v=values[name];v.l
 void Cvar_SetIntegerValue(const char *name,int value){Cvar_Set(name,std::to_string(value).c_str());}
 cvar_t *sv_gametype,*sv_maxclients;
 static cvar_t running{},dedicated{};
-cvar_t *com_sv_running=&running,*com_dedicated=&dedicated;
+cvar_t *com_sv_running=&running,*com_dedicated=&dedicated,*com_developer;
 void QDECL Com_Printf(const char *,...){}
 int QDECL Com_sprintf(char *dest,int size,const char *format,...){va_list args;va_start(args,format);int n=vsnprintf(dest,size,format,args);va_end(args);return n;}
 int Q_stricmp(const char *a,const char *b){return strcmp(a,b);}
@@ -132,16 +133,58 @@ int main(){
    assert(!values.count("g_gameskill"));
    continue;
   }
-  if(p.titleId==COM_GAME_TITLE_ALICE){
+  if(p.titleId==COM_GAME_TITLE_ALICE||p.titleId==COM_GAME_TITLE_FAKK2){
    // No sv_pure registration was found in the retail binary, so the
    // profile claims none: the cvar starts at zero and unlatched. Its one
    // mode takes the one slot retail's SV_Init registers (0x0045567c) and
    // Quake's frag limit, and the engine owns no skill cvar here.
+   // F.A.K.K.2's profile carries Alice's policy unchanged.
    values.clear();auto *mode=SV_RegisterPureMode();
    assert(mode->integer==0&&!(mode->flags&CVAR_LATCH)&&(mode->flags&CVAR_SYSTEMINFO));
    Cvar_Set("sv_pure","1");assert(SV_RegisterPureMode()->integer==1);
    values.clear();SV_TestServerDefaults();
    assert(sv_gametype->integer==0&&sv_maxclients->integer==1);
+   assert(values["fraglimit"].cvar.integer==20);
+   assert(values["fraglimit"].cvar.flags&CVAR_SERVERINFO);
+   assert(values["timelimit"].cvar.flags&CVAR_SERVERINFO);
+   assert(!values.count("g_gameskill"));
+   continue;
+  }
+  if(p.id==COM_GAME_MOHAA){
+   // Medal of Honor claims no sv_pure registration either, takes one slot
+   // and Quake's frag limit, and owns no skill cvar.
+   values.clear();auto *mode=SV_RegisterPureMode();
+   assert(mode->integer==0&&!(mode->flags&CVAR_LATCH)&&(mode->flags&CVAR_SYSTEMINFO));
+   Cvar_Set("sv_pure","1");assert(SV_RegisterPureMode()->integer==1);
+   values.clear();SV_TestServerDefaults();
+   assert(sv_gametype->integer==0&&sv_maxclients->integer==1);
+   assert(values["fraglimit"].cvar.integer==20);
+   assert(values["fraglimit"].cvar.flags&CVAR_SERVERINFO);
+   assert(values["timelimit"].cvar.flags&CVAR_SERVERINFO);
+   assert(!values.count("g_gameskill"));
+   // It keeps Quake III's map commands, but its single player is game type
+   // 0, which spmap selects, and Quake III's 2 is its team match: map and
+   // devmap keep whatever type is set.
+   for(const char *cmd:{"spmap","spdevmap","map","devmap"})for(int type:{0,2,4}){
+    command=cmd;map="synthetic";values.clear();SV_TestServerDefaults();
+    Cvar_Set("g_gametype",std::to_string(type).c_str());
+    spawns=pure=probes=0;available=true;argc=2;SV_Map_f();
+    assert(spawns==1&&probes==1&&pure==0);
+    assert(sv_gametype->integer==(cmd[0]=='s'?0:type)&&sv_maxclients->integer==1);
+    assert(values["sv_cheats"].cvar.integer==(std::string(cmd).find("dev")!=std::string::npos));
+    assert(!values.count("gamestate")&&!values.count("g_gameskill"));
+   }
+   continue;
+  }
+  if(p.id==COM_GAME_Q3TEST){
+   // No Q3Test engine registers sv_pure (1.08 SV_Init 0x0041d8f0), so the
+   // profile claims none; it takes eight slots and Quake's frag limit, and
+   // owns no skill cvar.
+   values.clear();auto *mode=SV_RegisterPureMode();
+   assert(mode->integer==0&&!(mode->flags&CVAR_LATCH)&&(mode->flags&CVAR_SYSTEMINFO));
+   Cvar_Set("sv_pure","1");assert(SV_RegisterPureMode()->integer==1);
+   values.clear();SV_TestServerDefaults();
+   assert(sv_gametype->integer==0&&sv_maxclients->integer==8);
    assert(values["fraglimit"].cvar.integer==20);
    assert(values["fraglimit"].cvar.flags&CVAR_SERVERINFO);
    assert(values["timelimit"].cvar.flags&CVAR_SERVERINFO);

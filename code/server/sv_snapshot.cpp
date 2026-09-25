@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "server_alice_snapshot.hpp"
 #include "../qcommon/netchan_safety.hpp"
 
+#include <algorithm>
 #include <array>
 
 
@@ -134,6 +135,26 @@ static void SV_EmitPacketEntities( const clientSnapshot_t *from,
 
 /*
 ==================
+SV_WriteRitualTimeResidual
+
+Ritual's snapshots follow the server time with the milliseconds the server
+has run past its last frame, clamped to a byte: fakk2.exe 1.02 writes
+min( sv.timeResidual, 255 ) there (SV_WriteSnapshotToClient 0x00447b13,
+the residual SV_Frame 0x00447650 keeps at 0x009cbc74), and both retail
+clients read it before the delta byte (fakk2.exe 0x0042385e, alice.exe
+0x0042dc6e). Without it a retail reader takes the delta byte for it and the
+flags for the delta.
+==================
+*/
+static void SV_WriteRitualTimeResidual( const client_t *client, msg_t *msg ) {
+	if ( client->netchan.wireProfile == NETCHAN_WIRE_ALICE ) {
+		MSG_WriteByte( msg, std::clamp( sv.timeResidual, 0, 255 ) );
+	}
+}
+
+
+/*
+==================
 SV_WriteAliceSnapshotTail
 
 What American McGee's Alice sends after its packet entities, as retail
@@ -232,6 +253,7 @@ static void SV_WriteSnapshotToClient( const client_t *client, msg_t *msg ) {
 	} else {
 		MSG_WriteLong( msg, sv.time );
 	}
+	SV_WriteRitualTimeResidual( client, msg );
 
 	// what we are delta'ing from
 	MSG_WriteByte( msg, lastframe );
@@ -315,6 +337,7 @@ void SV_WriteLegacyDownloadSnapshot( const client_t *client, msg_t *msg ) {
 	MSG_WriteByte( msg, svc_snapshot );
 	MSG_WriteLong( msg, client->lastClientCommand );
 	MSG_WriteLong( msg, client->oldServerTime ? sv.time + client->oldServerTime : sv.time );
+	SV_WriteRitualTimeResidual( client, msg );
 	MSG_WriteByte( msg, 0 ); // not delta compressed
 	if ( client->rateDelayed ) {
 		snapFlags |= SNAPFLAG_RATE_DELAYED;
@@ -1145,6 +1168,10 @@ static void SV_BuildAliceClientSnapshot( client_t *client, clientSnapshot_t *fra
 	snapshot::ViewOrigin( frame->ps.pm_flags, frame->ps.origin, frame->ps.viewheight,
 		frame->ps.alice.camera_origin, origin );
 
+	/* Heavy Metal: F.A.K.K.2's records are walked the same way at their own
+	 * offsets: its engine is Alice's ancestor and could not be read. */
+	const snapshot::Offsets &offsets = Com_GameIsFAKK2()
+		? snapshot::kFAKK2Offsets : snapshot::kAliceOffsets;
 	AliceSnapshotWorld world{ frame };
 	snapshot::Numbers numbers;
 	const int self = SV_ClientIndex( client );
@@ -1153,12 +1180,12 @@ static void SV_BuildAliceClientSnapshot( client_t *client, clientSnapshot_t *fra
 		Com_Error( ERR_DROP, "%s: client %i has no entity", __func__, self );
 		return;
 	}
-	svEntity_t *ownEntity = snapshot::SvEntityFor( world, own );
+	svEntity_t *ownEntity = snapshot::SvEntityFor( world, own, offsets );
 	if ( !ownEntity ) {
 		return;
 	}
-	snapshot::AddEntToSnapshot( *ownEntity, own, numbers, sv.snapshotCounter, false, false );
-	snapshot::AddEntitiesVisibleFromPoint( world, origin, numbers, nullptr, false );
+	snapshot::AddEntToSnapshot( *ownEntity, own, numbers, sv.snapshotCounter, false, false, offsets );
+	snapshot::AddEntitiesVisibleFromPoint( world, origin, numbers, nullptr, false, offsets );
 
 	if ( !snapshot::SortNumbers( numbers ) ) {
 		Com_Error( ERR_DROP, "SV_QsortEntityStates: duplicated entity" );
@@ -1234,9 +1261,10 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 		return;
 	}
 
-	// American McGee's Alice walks the game's own records and stores what
-	// each client's walk chose (SV_BuildAliceClientSnapshot).
-	if ( Com_GameIsAlice() ) {
+	// American McGee's Alice and Heavy Metal: F.A.K.K.2 walk the game's own
+	// records and store what each client's walk chose
+	// (SV_BuildAliceClientSnapshot).
+	if ( Com_GameIsRitual() ) {
 		SV_BuildAliceClientSnapshot( client, frame );
 		return;
 	}
@@ -1323,6 +1351,11 @@ void SV_SendClientSnapshot( client_t *client ) {
 	if ( Com_GameIsRTCWSP() && SV_ClientIsRTCWCastAI( client ) ) {
 		return;
 	}
+	// Medal of Honor's clients are sent the game's own records.
+	if ( Com_GameIsMOHAA() ) {
+		SV_MOHAASendClientSnapshot( client );
+		return;
+	}
 
 	std::array<byte, MAX_GAME_MSGLEN_BUF> msg_buf{};
 	msg_t		msg;
@@ -1378,6 +1411,11 @@ SV_SendClientMessages
 void SV_SendClientMessages( void )
 {
 	svs.msgTime = Sys_Milliseconds();
+
+	if ( Com_GameIsQ3Test() ) {
+		SV_Q3TestSendClientMessages();
+		return;
+	}
 
 	// send a message to each connected client
 	for ( client_t &client : SV_Clients() )

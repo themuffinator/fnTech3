@@ -295,6 +295,7 @@ MINIMP3DIR ?= subprojects/minimp3
 
 CMDIR=$(MOUNT_DIR)/qcommon
 COMPATDIR=$(MOUNT_DIR)/compat
+MOHAADIR=$(MOUNT_DIR)/mohaa
 UDIR=$(MOUNT_DIR)/unix
 W32DIR=$(MOUNT_DIR)/win32
 BLIBDIR=$(MOUNT_DIR)/botlib
@@ -875,6 +876,29 @@ $(echo_cmd) "DED_CXX $<"
 $(Q)$(CXX) $(CXXFLAGS) -DDEDICATED -o $@ -c $<
 endef
 
+# Medal of Honor's TIKI, skeletor and alias runtime keeps OpenMoHAA's upstream
+# names and headers (see code/mohaa/README.md). Its sources include "q_shared.h"
+# and "qcommon.h" by bare name, so code/mohaa/qcommon leads the include path.
+# The client and the dedicated server link the same objects, as meson does.
+MOHAA_WFLAGS = -Wno-unknown-warning-option -Wno-sign-compare -Wno-unused-variable \
+  -Wno-unused-but-set-variable -Wno-unused-function -Wno-unused-value \
+  -Wno-maybe-uninitialized -Wno-parentheses -Wno-format-truncation \
+  -Wno-stringop-truncation -Wno-char-subscripts
+# Upstream type-puns floats (SkelQuat's Slerp), so it is built without strict
+# aliasing, as meson builds every source.
+MOHAA_CFLAGS = -I$(MOHAADIR)/qcommon -I$(MOUNT_DIR) -fno-strict-aliasing $(MOHAA_WFLAGS)
+MOHAA_CXX_WFLAGS = -Wno-class-memaccess -Wno-reorder -Wno-misleading-indentation
+
+define DO_MOHAA_CC
+$(echo_cmd) "MOHAA_CC $<"
+$(Q)$(CC) $(CFLAGS) $(MOHAA_CFLAGS) -Wno-strict-prototypes -Wno-pointer-sign -o $@ -c $<
+endef
+
+define DO_MOHAA_CXX
+$(echo_cmd) "MOHAA_CXX $<"
+$(Q)$(CXX) $(CXXFLAGS) $(MOHAA_CFLAGS) $(MOHAA_CXX_WFLAGS) -o $@ -c $<
+endef
+
 # RTCW module light parameters and projected vertices may be non-finite.
 # These boundary files require IEEE arithmetic even in legacy fast-math builds.
 RENDERER_FP_CFLAGS = $(if $(filter tr_scene.c tr_shade.c,$(notdir $<)),-fno-fast-math)
@@ -1053,6 +1077,7 @@ endif
 	@if [ ! -d $(B)/rendx ];then $(MKDIR) $(B)/rendx;fi
 	@if [ ! -d $(B)/rendv ];then $(MKDIR) $(B)/rendv;fi
 	@if [ ! -d $(B)/rendrtx ];then $(MKDIR) $(B)/rendrtx;fi
+	@if [ ! -d $(B)/mohaa ];then $(MKDIR) $(B)/mohaa;fi
 ifneq ($(BUILD_SERVER),0)
 	@if [ ! -d $(B)/ded ];then $(MKDIR) $(B)/ded/qvm;fi
 endif
@@ -1065,6 +1090,8 @@ Q3RENDXOBJ = \
   $(B)/rendx/tr_animation.o \
   $(B)/rendx/tr_alice.o \
   $(B)/rendx/tr_alice_tiki.o \
+  $(B)/rendx/tr_mohaa.o \
+  $(B)/rendx/tr_mohaa_world.o \
   $(B)/rendx/tr_arb.o \
   $(B)/rendx/tr_backend.o \
   $(B)/rendx/tr_bsp.o \
@@ -1121,6 +1148,8 @@ Q3RENDVOBJ = \
   $(B)/rendv/tr_animation.o \
   $(B)/rendv/tr_alice.o \
   $(B)/rendv/tr_alice_tiki.o \
+  $(B)/rendv/tr_mohaa.o \
+  $(B)/rendv/tr_mohaa_world.o \
   $(B)/rendv/tr_backend.o \
   $(B)/rendv/tr_bsp.o \
   $(B)/rendv/tr_cmds.o \
@@ -1245,6 +1274,40 @@ VORBISOBJ = \
 endif
 endif
 
+MOHAAOBJ = \
+  $(B)/mohaa/con_set.o \
+  $(B)/mohaa/mem_blockalloc.o \
+  $(B)/mohaa/mem_tempalloc.o \
+  $(B)/mohaa/str.o \
+  $(B)/mohaa/tiki_main.o \
+  $(B)/mohaa/tiki_script.o \
+  $(B)/mohaa/alias.o \
+  $(B)/mohaa/mohaa_q_shared.o \
+  $(B)/mohaa/bonetable.o \
+  $(B)/mohaa/skeletor.o \
+  $(B)/mohaa/skeletor_imports.o \
+  $(B)/mohaa/skeletor_loadanimation.o \
+  $(B)/mohaa/skeletor_model_files.o \
+  $(B)/mohaa/skeletor_utilities.o \
+  $(B)/mohaa/skeletorbones.o \
+  $(B)/mohaa/tokenizer.o \
+  $(B)/mohaa/tiki_anim.o \
+  $(B)/mohaa/tiki_cache.o \
+  $(B)/mohaa/tiki_commands.o \
+  $(B)/mohaa/tiki_files.o \
+  $(B)/mohaa/tiki_frame.o \
+  $(B)/mohaa/tiki_imports.o \
+  $(B)/mohaa/tiki_mesh.o \
+  $(B)/mohaa/tiki_parse.o \
+  $(B)/mohaa/tiki_skel.o \
+  $(B)/mohaa/tiki_surface.o \
+  $(B)/mohaa/tiki_tag.o \
+  $(B)/mohaa/tiki_utility.o \
+  $(B)/mohaa/mohaa_engine.o \
+  $(B)/mohaa/mohaa_system86.o \
+  $(B)/mohaa/mohaa_render_api.o \
+  $(B)/mohaa/mohaa_tiki_api.o
+
 Q3OBJ = \
   $(B)/client/cl_cgame.o \
   $(B)/client/cl_hud.o \
@@ -1270,8 +1333,20 @@ Q3OBJ = \
   $(B)/client/cl_alice_saveshot.o \
   $(B)/client/cl_alice_screen.o \
   $(B)/client/cl_alice_ui.o \
+  $(B)/client/cl_fakk2_inventory.o \
+  $(B)/client/cl_mohaa.o \
+  $(B)/client/cl_mohaa_cgame.o \
+  $(B)/client/cl_mohaa_decals.o \
+  $(B)/client/cl_mohaa_sound.o \
+  $(B)/client/cl_mohaa_ui.o \
+  $(B)/client/cl_q3test.o \
+  $(B)/client/cl_q3test_cgame.o \
+  $(B)/client/cl_q3test_menus.o \
+  $(B)/client/cl_q3test_ui.o \
   \
   $(B)/client/cm_load.o \
+  $(B)/client/cm_mohaa_terrain.o \
+  $(B)/client/cm_mohaa_lights.o \
   $(B)/client/cm_patch.o \
   $(B)/client/cm_polylib.o \
   $(B)/client/cm_test.o \
@@ -1298,6 +1373,8 @@ Q3OBJ = \
   $(B)/client/md4.o \
   $(B)/client/md5.o \
   $(B)/client/msg.o \
+  $(B)/client/mohaa_msg.o \
+  $(MOHAAOBJ) \
   $(B)/client/net_chan.o \
   $(B)/client/net_ip.o \
   $(B)/client/huffman.o \
@@ -1442,7 +1519,7 @@ ifdef MINGW
     $(B)/client/win_main.o \
     $(B)/client/win_shared.o \
     $(B)/client/win_syscon.o \
-    $(B)/client/win_resource.o
+    $(B)/client/win_client_resource.o
 
 ifeq ($(USE_SDL),1)
     Q3OBJ += \
@@ -1476,7 +1553,8 @@ else # !MINGW
     $(B)/client/unix_syscon.o \
     $(B)/client/unix_main.o \
     $(B)/client/unix_shared.o \
-    $(B)/client/linux_signals.o
+    $(B)/client/linux_signals.o \
+    $(B)/client/game_icon_data.o
 
 ifeq ($(USE_SDL),1)
     Q3OBJ += \
@@ -1553,6 +1631,8 @@ Q3DOBJ = \
   $(B)/ded/sv_zmq.o \
   \
   $(B)/ded/cm_load.o \
+  $(B)/ded/cm_mohaa_terrain.o \
+  $(B)/ded/cm_mohaa_lights.o \
   $(B)/ded/cm_patch.o \
   $(B)/ded/cm_polylib.o \
   $(B)/ded/cm_test.o \
@@ -1577,6 +1657,8 @@ Q3DOBJ = \
   $(B)/ded/md4.o \
   $(B)/ded/md5.o \
   $(B)/ded/msg.o \
+  $(B)/ded/mohaa_msg.o \
+  $(MOHAAOBJ) \
   $(B)/ded/net_chan.o \
   $(B)/ded/net_ip.o \
   $(B)/ded/huffman.o \
@@ -1700,6 +1782,21 @@ $(B)/client/%.o: $(CMDIR)/%.cpp
 $(B)/client/%.o: $(COMPATDIR)/%.c
 	$(DO_CC)
 
+$(B)/mohaa/%.o: $(MOHAADIR)/%.cpp
+	$(DO_MOHAA_CXX)
+
+$(B)/mohaa/%.o: $(MOHAADIR)/corepp/%.cpp
+	$(DO_MOHAA_CXX)
+
+$(B)/mohaa/%.o: $(MOHAADIR)/qcommon/%.c
+	$(DO_MOHAA_CC)
+
+$(B)/mohaa/%.o: $(MOHAADIR)/skeletor/%.cpp
+	$(DO_MOHAA_CXX)
+
+$(B)/mohaa/%.o: $(MOHAADIR)/tiki/%.cpp
+	$(DO_MOHAA_CXX)
+
 $(B)/client/%.o: $(PDIR)/%.cpp
 	$(DO_CXX)
 
@@ -1782,6 +1879,9 @@ $(B)/client/%.o: $(W32DIR)/%.cpp
 	$(DO_CXX)
 
 $(B)/client/win_resource.o $(B)/ded/win_resource.o: assets/icons/fntech3.ico
+# The client's script includes win_resource.rc and every game's icon.
+$(B)/client/win_client_resource.o: assets/icons/fntech3.ico $(W32DIR)/win_resource.rc \
+    $(W32DIR)/win_game_icons.rc $(wildcard assets/icons/games/*/*.ico)
 
 $(B)/client/%.o: $(W32DIR)/%.rc
 	$(DO_WINDRES)

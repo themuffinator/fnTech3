@@ -44,7 +44,6 @@ static qboolean vk_rt_append_mdc_entity_geometry( rtxRtCpuGeometry_t *geometry, 
 		if ( !vk_rt_checked_u32_multiply( surface->numTriangles, 3, &indexCount ) ||
 			!vk_rt_cpu_geometry_find_or_add_material( geometry, shader, &material ) ||
 			!vk_rt_cpu_geometry_reserve( geometry, surface->numVerts, indexCount ) ) return qfalse;
-		if ( ent->e.renderfx & RF_FIRST_PERSON ) vk_rt_apply_effect_material_tuning( geometry, material, qfalse, qfalse );
 		base = geometry->numVertices;
 		for ( vertex = 0; vertex < surface->numVerts; ++vertex ) {
 			vec3_t local, normal, world, worldNormal;

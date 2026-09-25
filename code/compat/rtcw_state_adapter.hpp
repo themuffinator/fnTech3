@@ -265,8 +265,8 @@ bool Command( External &external, Internal &internal ) noexcept {
 
 inline bool FromInternal( const gameState_t &source, fntech3_rtcw_gameState_t &destination ) noexcept {
 	static_assert( MAX_GAME_CONFIGSTRINGS >= FNTECH3_RTCW_MAX_CONFIGSTRINGS );
-	static_assert( MAX_GAMESTATE_CHARS == FNTECH3_RTCW_MAX_GAMESTATE_CHARS );
-	if ( source.dataCount < 1 || source.dataCount > MAX_GAMESTATE_CHARS ||
+	static_assert( MAX_GAMESTATE_CHARS >= FNTECH3_RTCW_MAX_GAMESTATE_CHARS );
+	if ( source.dataCount < 1 || source.dataCount > FNTECH3_RTCW_MAX_GAMESTATE_CHARS ||
 		source.stringData[0] != '\0' || source.stringData[source.dataCount - 1] != '\0' ) return false;
 	for ( int index = 0; index < FNTECH3_RTCW_MAX_CONFIGSTRINGS; ++index ) {
 		if ( source.stringOffsets[index] < 0 || source.stringOffsets[index] >= source.dataCount ) return false;

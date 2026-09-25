@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Star Trek: Voyager - Elite Force (Single Player)
+GenericName=fnTech3 game profile
+Comment=Play Star Trek: Voyager - Elite Force (Single Player) with fnTech3
+Exec=fntech3 +set com_gameProfile stvef-sp
+Icon=fntech3-stvef-sp
+Terminal=false
+Categories=Game;ActionGame;
+StartupWMClass=fntech3-stvef-sp

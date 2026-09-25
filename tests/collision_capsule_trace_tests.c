@@ -21,6 +21,7 @@ version.
 
 #include "cm_local.h"
 #include "cm_trace_contract.h"
+#include "cm_mohaa_terrain.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -148,6 +149,20 @@ qboolean CM_PositionTestInPatchCollide( traceWork_t *tw, const struct patchColli
 {
 	(void)tw;
 	(void)pc;
+	return qfalse;
+}
+
+/* Medal of Honor's terrain; this stub world has none. */
+void CM_MOHAA_TraceThroughTerrainCollide( traceWork_t *tw, const mohaaTerrainCollide_t *tc )
+{
+	(void)tw;
+	(void)tc;
+}
+
+qboolean CM_MOHAA_PositionTestInTerrainCollide( traceWork_t *tw, const mohaaTerrainCollide_t *tc )
+{
+	(void)tw;
+	(void)tc;
 	return qfalse;
 }
 

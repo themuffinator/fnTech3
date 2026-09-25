@@ -337,7 +337,10 @@ class WolfETRendererWiringTests(unittest.TestCase):
             with self.subTest(renderer=renderer):
                 bsp = read(f'code/{renderer}/tr_bsp.c')
                 self.assertIn('maxPoints = ri.gameId == COM_GAME_WOLFET ? SHADER_MAX_VERTEXES : MAX_FACE_POINTS;', bsp)
-                self.assertIn('ri.gameId == COM_GAME_WOLFET ? lightmapNum : LIGHTMAP_BY_VERTEX', bsp)
+                # Medal of Honor's terrain, built into triangle surfaces, keeps its
+                # patch's lightmap too; every other profile's are vertex-lit
+                self.assertIn('ri.gameId == COM_GAME_WOLFET || ri.gameId == COM_GAME_MOHAA ? lightmapNum : '
+                              'LIGHTMAP_BY_VERTEX', bsp)
                 self.assertIn('ri.gameId == COM_GAME_WOLFET ) tr.sunShader = NULL;', bsp)
 
     def test_the_shader_dialect_is_read_for_et_alone(self):
@@ -420,7 +423,10 @@ class WolfETEngineWiringTests(unittest.TestCase):
         self.assertIn('SV_GameTypeIsSinglePlayer( Cvar_VariableIntegerValue( "g_gametype" ) )',
                       read('code/server/sv_client.cpp'))
         commands = read('code/server/sv_ccmds.cpp')
-        self.assertIn('if( !Com_GameIsWolfET() && sv_gametype->integer == GT_SINGLE_PLAYER ) {', commands)
+        # Neither ET nor Medal of Honor, whose game type 2 is team match, has
+        # its game type turned into a free-for-all by an ordinary map command.
+        self.assertIn('if( !Com_GameIsWolfET() && !Com_GameIsMOHAA() && sv_gametype->integer == GT_SINGLE_PLAYER ) {',
+                      commands)
         self.assertIn('singlePlayerCommand && Com_GameIsWolfET() && !SV_WolfETSinglePlayerEnabled()', commands)
         self.assertIn('Cvar_Set("g_currentRound", "0");', commands)
         self.assertIn('Cvar_Set("g_nextTimeLimit", "0");', commands)

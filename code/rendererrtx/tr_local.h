@@ -295,7 +295,11 @@ typedef enum {
 	DEFORM_TEXT7,
 	// American McGee's Alice: waves the normals, not the positions
 	// (`deformVertexes wavenormal`, retail type 16, alice.exe 0x0048dfee)
-	DEFORM_ALICE_WAVENORMAL
+	DEFORM_ALICE_WAVENORMAL,
+	// Medal of Honor (see code/renderercommon/tr_mohaa_shade.h)
+	DEFORM_MOHAA_FLAP_S,			// swung along the normal by s
+	DEFORM_MOHAA_FLAP_T,			// ... by t
+	DEFORM_MOHAA_LIGHTGLOW			// sprites pulled toward the viewer
 } deform_t;
 
 typedef enum {
@@ -315,7 +319,13 @@ typedef enum {
 	AGEN_ALICE_ONE_MINUS_DOT,		// grazing the viewer, scaled into a range
 	AGEN_ALICE_GLOBAL,				// the last SetColor's alpha
 	AGEN_ALICE_SKY_ALPHA,			// the view's sky alpha
-	AGEN_ALICE_ONE_MINUS_SKY_ALPHA
+	AGEN_ALICE_ONE_MINUS_SKY_ALPHA,
+	// Medal of Honor (see code/renderercommon/tr_mohaa_shade.h)
+	AGEN_MOHAA_DIST_FADE,			// opaque near the viewer, clear past a range
+	AGEN_MOHAA_ONE_MINUS_DIST_FADE,
+	AGEN_MOHAA_SCOORD,				// from s, scaled and held between caps
+	AGEN_MOHAA_TCOORD,				// ... from t
+	AGEN_MOHAA_COLOR_PASS			// `oneMinusVertex`: the colour pass's alpha
 } alphaGen_t;
 
 typedef enum {
@@ -333,7 +343,13 @@ typedef enum {
 	CGEN_CONST,				// fixed color
 	// American McGee's Alice (see code/renderercommon/tr_alice_shader.h)
 	CGEN_ALICE_GLOBAL,		// the last SetColor's colour
-	CGEN_ALICE_COLORWAVE	// a waveform times a fixed colour
+	CGEN_ALICE_COLORWAVE,	// a waveform times a fixed colour
+	// Medal of Honor (see code/renderercommon/tr_mohaa_shade.h)
+	CGEN_MOHAA_DOT,			// facing the viewer, scaled into a range
+	CGEN_MOHAA_ONE_MINUS_DOT,
+	CGEN_MOHAA_SCOORD,		// from s, scaled and held between caps
+	CGEN_MOHAA_TCOORD,		// ... from t
+	CGEN_MOHAA_LIGHTING		// the map's colours on the world, else diffuse lighting
 } colorGen_t;
 
 typedef enum {
@@ -344,7 +360,10 @@ typedef enum {
 	TCGEN_ENVIRONMENT_MAPPED,
 	TCGEN_ENVIRONMENT_MAPPED_FP, // with correct first-person mapping
 	TCGEN_FOG,
-	TCGEN_VECTOR			// S and T from world coordinates
+	TCGEN_VECTOR,			// S and T from world coordinates
+	// Medal of Honor: the environment reflected in world space
+	// (code/renderercommon/tr_mohaa_shade.h)
+	TCGEN_MOHAA_ENVIRONMENT_MODEL
 } texCoordGen_t;
 
 typedef enum {
@@ -383,6 +402,10 @@ typedef enum {
 	TMOD_ALICE_OFFSET,		// offset whose components may come from the entity
 	TMOD_ALICE_MACRO,		// planar projection by the normal's base axis
 	TMOD_ALICE_PARALLAX,	// shifted by the viewer's position
+	// Medal of Honor (see code/renderercommon/tr_mohaa_shade.h)
+	TMOD_MOHAA_WAVETRANS,	// s shifted by a waveform
+	TMOD_MOHAA_WAVETRANT,	// t shifted by a waveform
+	TMOD_MOHAA_BULGE,		// parsed; changes nothing
 } texMod_t;
 
 #define	MAX_SHADER_DEFORMS	3
@@ -432,7 +455,7 @@ typedef struct {
 } texModInfo_t;
 
 
-#define MAX_IMAGE_ANIMATIONS		24
+#define MAX_IMAGE_ANIMATIONS		64
 #define MAX_IMAGE_ANIMATIONS_VQ3	8
 
 #define LIGHTMAP_INDEX_NONE			0
@@ -471,6 +494,8 @@ typedef struct {
 	// +0x138 bit 0 and +0x134)
 	unsigned int	aliceAnimMapOnce : 1;
 	unsigned int	aliceFrameFromEntity : 1;
+	// Medal of Honor: `animMapPhase`'s head start, in seconds
+	float			mohaaAnimPhase;
 } textureBundle_t;
 
 #ifdef USE_VULKAN
@@ -502,6 +527,11 @@ typedef struct {
 	float			aliceSpecular[4];
 	qboolean		aliceSpecularCustom;
 	qboolean		aliceDynamic;
+
+	// Medal of Honor: `sCoord`/`tCoord`'s range and byte caps
+	// (code/renderercommon/tr_mohaa_shade.h)
+	float			mohaaCoordRange[2];
+	int				mohaaCoordCaps[2];
 
 #ifdef USE_VULKAN
 	uint32_t		tessFlags;
@@ -553,7 +583,18 @@ typedef struct {
 	vec3_t	color;
 	float	depthForOpaque;
 	q3IHVFogParms_t ihv;
+	int		q3testType;	// Q3Test fogParms' fifth value: the visible face
 } fogParms_t;
+
+#define RT_COMPILED_ALPHASHADOW	1
+#define RT_COMPILED_LIGHTFILTER	2
+
+// a shader's companion material map, by its channels (the path tracer's
+// RtMaterial.maps.z)
+#define RT_MATERIAL_MAP_NONE		0
+#define RT_MATERIAL_MAP_SPECGLOSS	1	// specular colour, gloss in alpha
+#define RT_MATERIAL_MAP_RMO			2	// roughness, metalness, occlusion
+#define RT_MATERIAL_MAP_ORM			3	// occlusion, roughness, metalness
 
 typedef struct shader_s {
 	qboolean ihvModelLightmap; // Native model sampling, before stage collapse
@@ -592,6 +633,9 @@ typedef struct shader_s {
 	qboolean	surfaceLightValid;
 	float		surfaceLight;
 	float		surfaceLightSubdivide;
+	qboolean	rtBacksplashValid;		// q3map_backsplash <percent> <distance>
+	float		rtBacksplashFraction;
+	float		rtBacksplashDistance;
 	qboolean	surfaceLightColorValid;
 	vec3_t		surfaceLightColor;
 	qboolean	surfaceLightImageColorValid;
@@ -600,6 +644,11 @@ typedef struct shader_s {
 
 	float		portalRange;			// distance to fog out at
 	float		portalRangeR;
+
+	// Medal of Honor's `alphaGen distFade`: opaque to this distance, clear
+	// the range further (code/renderercommon/tr_mohaa_shade.h)
+	float		mohaaDistNear;
+	float		mohaaDistRange;
 
 	qboolean	multitextureEnv;		// if shader has multitexture stage(s)
 
@@ -632,6 +681,45 @@ typedef struct shader_s {
 
 	int			numUnfoggedPasses;
 	shaderStage_t	*stages[MAX_SHADER_STAGES];
+
+	// The active stages before multitexture folding, for the path tracer's
+	// GPU stage programs (rt/rt_stage_source.h)
+	int			rtNumStages;
+	struct rtStageSource_s *rtStages;
+	// q3map's surface-light colour: q3map_lightRGB, else the normalised
+	// average of q3map_lightImage, qer_editorimage or the shader-named image
+	qboolean	rtEmitColorValid;
+	vec3_t		rtEmitColor;
+	// q3map_sun as written, whatever the shader's skyparms: the path tracer
+	// picks the map's sun as its compiler did (rt/rt_lights.c)
+	qboolean	rtSunValid;
+	vec3_t		rtSunColor;				// scaled so its largest component is 1
+	vec3_t		rtSunDirection;			// toward the sun
+	float		rtSunIntensity;
+	float		rtSunDeviance;			// q3map_sunExt: degrees; one sample
+	int			rtSunSamples;			// keeps the sun's direction
+	qboolean	rtSunExtended;			// written as q3map_sunExt, which only q3map2 reads
+	// q3map2's q3map_skyLight: a dome of suns lighting the map where it sees
+	// the sky (rt/rt_lights.c), in the surface-light colour
+	float		rtSkyLightValue;
+	int			rtSkyLightIterations;
+	// the loaded map's BSP marks it sky (surfaceparm sky as its compiler saw
+	// the shader), though a later script may have dropped the parm
+	qboolean	rtCompiledSky;
+	// ... translucent (surfaceparm trans), and alphashadow or lightfilter:
+	// the map compiler's lights passed through it, or through it filtered
+	qboolean	rtCompiledTranslucent;
+	int			rtCompiledFilter;		// RT_COMPILED_ALPHASHADOW | RT_COMPILED_LIGHTFILTER
+	// companion material maps of the rtStages entry rtMaterialStage, which
+	// only the path tracer samples (tr_shader.c R_RtFindMaterialMaps)
+	image_t		*rtNormalMap;
+	image_t		*rtMaterialMap;
+	int			rtMaterialMapType;		// RT_MATERIAL_MAP_*
+	int			rtMaterialStage;
+	// the image the map compilers filtered light with at an alphashadow or
+	// lightfilter surface, or none found (tr_shader.c R_RtFindLightImage)
+	image_t		*rtLightImage;
+	qboolean	rtLightImageMissing;
 
 #ifdef USE_PMLIGHT
 	int			lightingStage;
@@ -677,6 +765,8 @@ typedef struct shader_s {
 	float		aliceSubdivisions;
 	qboolean	aliceNoStatic;
 
+	int		q3test2D;		// Q3Test: this shader's 2D picture shader, once made (tr_q3test_2d.h)
+
 	struct	shader_s	*next;
 } shader_t;
 
@@ -695,7 +785,6 @@ typedef struct shader_s {
 #define ALICE_SHADER_FROM_ENTITY			1234567.0f
 
 #define MAX_SURFACELIGHT_PROXIES 256
-#define MAX_RT_SURFACELIGHT_LIGHTS 16
 
 typedef enum {
 	SURFACE_LIGHT_PROXY_POINT,
@@ -728,6 +817,7 @@ typedef struct {
 typedef struct {
 	int			x, y, width, height;
 	float		fov_x, fov_y;
+	float		fovXAuthored;	// fov_x as the game gave it, before the FOV correction
 	vec3_t		vieworg;
 	vec3_t		viewaxis[3];		// transformation matrix
 
@@ -746,6 +836,9 @@ typedef struct {
 	char		text[MAX_RENDER_STRINGS][MAX_RENDER_STRING_LENGTH];
 	rtcwRenderView_t rtcw;
 	aliceRenderView_t alice;
+	// RTCW's and Enemy Territory's portal sky: a scene their client games
+	// draw before the view it is seen from (their RDF_SKYBOXPORTAL)
+	qboolean	skyboxPortalScene;
 	fnRTCWFogFrame_t rtcwFog;
 	int numRTCWCoronas;
 	fnRTCWCorona_t rtcwCoronas[FN_RTCW_MAX_CORONAS];
@@ -755,9 +848,8 @@ typedef struct {
 
 	unsigned int num_dlights;
 	struct dlight_s	*dlights;
-
-	int			numRtSurfaceLights;
-	surfaceLightProxy_t rtSurfaceLights[MAX_RT_SURFACELIGHT_LIGHTS];
+	// leading dlights the scene's modules submitted; the engine's own follow them
+	int			num_moduleDlights;
 
 	int			numLiquidInteractions;
 	liquidInteraction_t liquidInteractions[LIQUID_MAX_ACTIVE_IMPULSES];
@@ -1070,6 +1162,7 @@ typedef enum {
 	SF_IHV_PARTICLES,
 	SF_ALICE_TIKI,
 	SF_ALICE_SWIPE,
+	SF_MOHAA_TIKI,
 
 	SF_NUM_SURFACE_TYPES,
 	SF_MAX = 0x7fffffff			// ensures that sizeof( surfaceType_t ) == sizeof( int )
@@ -1356,6 +1449,10 @@ typedef struct {
 
 	int			numsurfaces;
 	msurface_t	*surfaces;
+	int			mohaaFirstDecal;		// Medal of Honor's permanent decals, built into
+	int			mohaaNumDecals;			// the surfaces by tr_mohaa_world.c
+	int			mohaaFirstTerrain;		// and its terrain, a surface a patch in the
+	int			mohaaNumTerrain;		// map's order
 
 	int			numAdvertisements;
 	qlAdvertisement_t	*advertisements;
@@ -1388,6 +1485,20 @@ typedef struct {
 	char		*entityString;
 	const char	*entityParsePoint;
 } world_t;
+
+// One of Medal of Honor's permanent decals (tr_mohaa_world.c).
+static ID_INLINE qboolean R_MOHAAStaticDecal( const world_t *world, const msurface_t *surf ) {
+	const int index = (int)( surf - world->surfaces );
+	return world->mohaaNumDecals > 0 && index >= world->mohaaFirstDecal
+		&& index < world->mohaaFirstDecal + world->mohaaNumDecals ? qtrue : qfalse;
+}
+
+// The Medal of Honor terrain patch a surface is, or -1 (tr_mohaa_world.c).
+static ID_INLINE int R_MOHAATerrainPatch( const world_t *world, const msurface_t *surf ) {
+	const int index = (int)( surf - world->surfaces );
+	return world->mohaaNumTerrain > 0 && index >= world->mohaaFirstTerrain
+		&& index < world->mohaaFirstTerrain + world->mohaaNumTerrain ? index - world->mohaaFirstTerrain : -1;
+}
 
 #define MAX_STATIC_MAP_LIGHTS 128
 
@@ -1452,7 +1563,6 @@ typedef struct {
 	int			promotedThisFrame;
 	int			shadowEligibleThisFrame;
 	int			spotShadowDeferredThisFrame;
-	int			selectedThisFrame;
 	int			skippedDisabledThisFrame;
 	int			skippedPVSThisFrame;
 	int			skippedBudgetThisFrame;
@@ -1829,7 +1939,8 @@ typedef enum {
 	MOD_WOLFET_SKELETON,
 	MOD_IHV_BEAM,
 	MOD_ALICE_TIKI,
-	MOD_ALICE_SPRITE
+	MOD_ALICE_SPRITE,
+	MOD_MOHAA_TIKI
 } modtype_t;
 
 // American McGee's Alice's definition surface flags the renderer reads.
@@ -1849,6 +1960,19 @@ typedef struct aliceSurface_s {
 	int				numSkins;
 	struct shader_s	*shaders[4];
 } aliceSurface_t;
+
+// One surface of a Medal of Honor TIKI model, skinned by the engine with the
+// pose its entity gets this frame; see tr_mohaa.c.
+typedef struct mohaaSurface_s {
+	surfaceType_t	surfaceType;
+	struct model_s	*model;
+	int				index;
+	int				flags;
+	int				numVerts;
+	int				numIndexes;
+	int				numSkins;
+	struct shader_s	*shaders[4];
+} mohaaSurface_t;
 
 typedef struct aliceSprite_s {
 	float			width, height;
@@ -1878,6 +2002,9 @@ typedef struct model_s {
 	struct aliceSurface_s	*aliceSurfaces;
 	int		numAliceSurfaces;
 	struct aliceSprite_s	*aliceSprite;	// only if type == MOD_ALICE_SPRITE
+	const void	*mohaaTiki;			// only if type == MOD_MOHAA_TIKI: the engine's definition
+	struct mohaaSurface_s	*mohaaSurfaces;
+	int		numMohaaSurfaces;
 
 	int			 numLods;
 } model_t;
@@ -2367,8 +2494,7 @@ extern cvar_t	*r_staticLightShadows;		// 0 - 1
 extern cvar_t	*r_staticLightShadowMaxLights; // 0 - MAX_DLIGHTS
 extern cvar_t	*r_staticLightDebug;			// 0 - 1
 extern cvar_t	*r_surfaceLightProxies;		// 0 - 1
-extern cvar_t	*r_surfaceLightProxyMaxLights;	// 0 - MAX_RT_SURFACELIGHT_LIGHTS
-extern cvar_t	*rtx_rt_surface_light_max;	// 0 - MAX_RT_SURFACELIGHT_LIGHTS (native RT selection)
+extern cvar_t	*r_surfaceLightProxyMaxLights;	// 0 - MAX_DLIGHTS
 extern cvar_t	*r_surfaceLightProxyShadows;	// 0 - 1
 extern cvar_t	*r_surfaceLightProxyShadowMaxLights; // 0 - MAX_DLIGHTS
 extern cvar_t	*r_surfaceLightProxyDebug;	// 0 - 1
@@ -2456,6 +2582,8 @@ extern	cvar_t	*r_speeds;				// various levels of information display
 extern  cvar_t	*r_detailTextures;		// enables/disables detail texturing stages
 // American McGee's Alice only (registered for that profile, null otherwise)
 extern	cvar_t	*r_shaderlod;			// `if shaderlod <f>` passes when this exceeds f
+extern	cvar_t	*r_drawstaticdecals;	// Medal of Honor: draws the level's permanent decals
+extern	cvar_t	*ter_minMarkRadius;		// Medal of Honor: the smallest decal cut on terrain
 extern	cvar_t	*r_farplane;			// overrides the far plane distance when nonzero
 extern	cvar_t	*r_farplane_color;
 extern	cvar_t	*r_farplane_nocull;
@@ -2535,85 +2663,38 @@ extern	cvar_t	*rtx_debug_vk_validation;
 extern	cvar_t	*rtx_caps_report;
 extern	cvar_t	*rtx_rt_mode;
 extern	cvar_t	*rtx_rt_require;
+extern	cvar_t	*rtx_rt_backend;
 extern	cvar_t	*rtx_rt_debug_visualizer;
-extern	cvar_t	*rtx_rt_as_build_budget_mb;
-extern	cvar_t	*rtx_rt_as_instance_budget;
-extern	cvar_t	*rtx_rt_as_compaction;
+extern	cvar_t	*rtx_rt_debug_light;
+extern	cvar_t	*rtx_rt_debug_light_mode;
 extern	cvar_t	*rtx_rt_debug_as_stats;
-extern	cvar_t	*rtx_rt_temporal_enable;
-extern	cvar_t	*rtx_rt_temporal_alpha;
-extern	cvar_t	*rtx_rt_temporal_clamp;
-extern	cvar_t	*rtx_rt_temporal_depth_reject;
-extern	cvar_t	*rtx_rt_temporal_motion_reject;
-extern	cvar_t	*rtx_rt_temporal_camera_cut;
-extern	cvar_t	*rtx_rt_spatial_denoise;
-extern	cvar_t	*rtx_rt_spatial_sigma_depth;
-extern	cvar_t	*rtx_rt_spatial_sigma_normal;
-extern	cvar_t	*rtx_rt_firefly_threshold;
-extern	cvar_t	*rtx_rt_firefly_strength;
-extern	cvar_t	*rtx_rt_tonemap_mode;
-extern	cvar_t	*rtx_rt_exposure;
-extern	cvar_t	*rtx_rt_auto_exposure;
-extern	cvar_t	*rtx_rt_exposure_speed;
-extern	cvar_t	*rtx_rt_exposure_min;
-extern	cvar_t	*rtx_rt_exposure_max;
-extern	cvar_t	*rtx_rt_motion_dynamic_scale;
-extern	cvar_t	*rtx_rt_post_validate;
 extern	cvar_t	*rtx_rt_perf_timing;
 extern	cvar_t	*rtx_rt_perf_interval;
-extern	cvar_t	*rtx_rt_adaptive_budget;
-extern	cvar_t	*rtx_rt_target_frame_ms;
-extern	cvar_t	*rtx_rt_budget_response;
-extern	cvar_t	*rtx_rt_budget_min_scale;
-extern	cvar_t	*rtx_rt_budget_max_scale;
-extern	cvar_t	*rtx_rt_dynamic_resolution;
-extern	cvar_t	*rtx_rt_dynamic_resolution_min;
-extern	cvar_t	*rtx_rt_dynamic_resolution_max;
-extern	cvar_t	*rtx_rt_dynamic_resolution_rate;
 extern	cvar_t	*rtx_rt_async_overlap;
-extern	cvar_t	*rtx_rt_as_rebuild_interval;
-extern	cvar_t	*rtx_rt_as_dirty_threshold;
 extern	cvar_t	*rtx_rt_texture_stream_budget_mb;
-extern	cvar_t	*rtx_rt_texture_stream_stats;
-extern	cvar_t	*rtx_rt_prep_frame_stride;
-extern	cvar_t	*rtx_rt_quality_preset;
-extern	cvar_t	*rtx_rt_first_person_priority;
-extern	cvar_t	*rtx_rt_effect_radius_scale;
-extern	cvar_t	*rtx_rt_effect_emissive_boost;
-extern	cvar_t	*rtx_rt_marks_enable;
-extern	cvar_t	*rtx_rt_particle_volume;
 extern	cvar_t	*rtx_rt_ui_passthrough;
-extern	cvar_t	*rtx_rt_camera_mode_validate;
-extern	cvar_t	*rtx_rt_legacy_color_compat;
-extern	cvar_t	*rtx_rt_raster_reference;
-extern	cvar_t	*rtx_rt_readability_lift;
-extern	cvar_t	*rtx_rt_readability_contrast;
-extern	cvar_t	*rtx_rt_readability_saturation;
-extern	cvar_t	*rtx_rt_readability_shadow_floor;
-extern	cvar_t	*rtx_rt_dynamic_blas;
-extern	cvar_t	*rtx_rt_dynamic_effects;
 extern	cvar_t	*rtx_rt_iqm_skinning;
-extern	cvar_t	*rtx_rt_masked_mode;
-extern	cvar_t	*rtx_rt_masked_cutoff;
-extern	cvar_t	*rtx_rt_material_debug;
-extern	cvar_t	*rtx_rt_material_heuristics;
-extern	cvar_t	*rtx_rt_material_override;
-extern	cvar_t	*rtx_rt_material_roughness_override;
-extern	cvar_t	*rtx_rt_material_metallic_override;
-extern	cvar_t	*rtx_rt_material_emissive_override;
 extern	cvar_t	*rtx_rt_emissive_scale;
-extern	cvar_t	*rtx_rt_emissive_keyword_boost;
-extern	cvar_t	*rtx_rt_shadow_mode;
-extern	cvar_t	*rtx_rt_shadow_softness;
-extern	cvar_t	*rtx_rt_indirect_bounce;
+extern	cvar_t	*rtx_rt_emissive_light;
+extern	cvar_t	*rtx_rt_exposure;
+extern	cvar_t	*rtx_rt_exposure_bias;
+extern	cvar_t	*rtx_rt_exposure_speed;
+extern	cvar_t	*rtx_rt_tonemap_range;
+extern	cvar_t	*rtx_rt_tonemap_curve;
+extern	cvar_t	*rtx_rt_checkerboard;
+extern	cvar_t	*rtx_rt_lighting;
+extern	cvar_t	*rtx_rt_bounces;
+extern	cvar_t	*rtx_rt_patch_shadows;
+extern	cvar_t	*rtx_rt_material_maps;
+extern	cvar_t	*rtx_rt_accumulate;
+extern	cvar_t	*rtx_rt_specular;
+extern	cvar_t	*rtx_rt_mis;
+extern	cvar_t	*rtx_rt_dlight_scale;
+extern	cvar_t	*rtx_rt_denoise;
+extern	cvar_t	*rtx_rt_denoise_iterations;
 extern	cvar_t	*rtx_rt_indirect_strength;
-extern	cvar_t	*rtx_rt_reflection_strength;
 extern	cvar_t	*rtx_rt_sky_intensity;
 extern	cvar_t	*rtx_rt_sun_intensity;
-extern	cvar_t	*rtx_rt_world_light_scale;
-extern	cvar_t	*rtx_rt_refractive_mode;
-extern	cvar_t	*rtx_rt_refractive_ior;
-extern	cvar_t	*rtx_rt_max_lights;
 
 extern	cvar_t	*r_printShaders;
 
@@ -2632,6 +2713,11 @@ qboolean R_LoadAliceSprite( model_t *mod, const char *name );
 void R_AliceModelBounds( const model_t *mod, vec3_t mins, vec3_t maxs );
 void R_AddAliceTikiSurfaces( trRefEntity_t *ent );
 void RB_SurfaceAliceTiki( void *data );
+// Medal of Honor's TIKI models (tr_mohaa.c).
+qhandle_t RE_RegisterMOHAATiki( const char *name, const void *tiki );
+void R_MOHAAModelBounds( const model_t *mod, vec3_t mins, vec3_t maxs );
+void R_AddMOHAATikiSurfaces( trRefEntity_t *ent );
+void RB_SurfaceMOHAATiki( void *data );
 void RB_SurfaceAliceSprite( void );
 int RE_GetAliceTikiHandle( qhandle_t handle );
 void RE_GetShaderImageSize( qhandle_t handle, int *width, int *height );
@@ -2648,11 +2734,17 @@ qboolean RB_AliceSkipStage( const shaderStage_t *stage );
 void RA_TikiBeginFrame( void );
 // Alice's view filter, lens flares, dynamic-light types and lighting (tr_alice.c)
 qboolean R_AliceEntityInView( const trRefEntity_t *ent );
+qboolean R_MOHAAEntityInView( const trRefEntity_t *ent );
 void R_AliceRegisterCvars( void );
 void R_AliceInitLensFlares( void );
 void R_AliceSetSunFlare( const vec3_t origin );
 void R_AliceSetSunFlareInPortalSky( void );
 void RB_AliceLensFlares( void );
+void R_MOHAASetSunFlare( const vec3_t direction, const char *section );
+void R_MOHAABeginSunKeys( void );
+qboolean R_MOHAASunKey( const char *key, const char *value );
+void R_MOHAAEndSunKeys( void );
+void R_MOHAARegisterLensFlareCvars( void );
 void RE_AddAliceLightToScene( const vec3_t org, float intensity, float r, float g, float b, int type );
 void R_SetupAliceEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent, const vec3_t lightOrigin,
 	const float *localPoint, float reach );
@@ -2797,6 +2889,8 @@ const void *RB_TakeVideoFrameCmd( const void *data );
 
 float R_ClampDenorm( float v );
 qboolean R_ImageAverageColor( const char *name, vec3_t color );
+qboolean R_ImageSums( const char *name, const float scale[3], float ( *weight )( float r, float g, float b ),
+	float rgba[4], float weighted[3] );
 byte	*R_LoadImagePixels( const char *name, int *width, int *height );
 
 //
@@ -2808,7 +2902,6 @@ shader_t *R_FindAliceSurfaceShader( const char *name, qboolean mipmaps, qboolean
 shader_t	*R_GetShaderByHandle( qhandle_t hShader );
 shader_t	*R_GetShaderByState( int index, long *cycleTime );
 shader_t	*R_FindShaderByName( const char *name );
-qboolean	R_RtShaderNativeSupported( const shader_t *shader );
 void		R_InitShaders( void );
 void		R_ShaderList_f( void );
 void		RE_RemapShader(const char *oldShader, const char *newShader, const char *timeOffset);
@@ -2881,6 +2974,7 @@ typedef struct shaderCommands_s
 
 #ifdef USE_VULKAN
 	Vk_Depth_Range depthRange;
+	qboolean	rtFogOnly;	// the path tracer drew this batch; draw only its fog
 #endif
 
 	// info extracted from current shader
@@ -3044,6 +3138,9 @@ MARKERS, POLYGON PROJECTION ON WORLD POLYGONS
 void RE_AddRTCWCoronaToScene( const fnRTCWCorona_t *corona );
 int R_MarkRTCWFragments( int rotation, const vec3_t *corners, const vec3_t projection,
 	int maxPoints, fnRTCWMarkPoint_t *points, int maxFragments, markFragment_t *fragments );
+int R_MarkMOHAAFragments( int model, const vec3_t angles, const vec3_t origin, int numPoints, const vec3_t *points,
+	const vec3_t projection, int maxPoints, vec3_t pointBuffer, int maxFragments, markFragment_t *fragments,
+	int *patches, float radiusSquared );
 int R_MarkFragments( int numPoints, const vec3_t *points, const vec3_t projection,
 				   int maxPoints, vec3_t pointBuffer, int maxFragments, markFragment_t *fragmentBuffer );
 
@@ -3344,10 +3441,10 @@ extern	int		max_polyverts;
 extern	backEndData_t	*backEndData;
 
 void RB_ExecuteRenderCommands( const void *data );
-void RB_TakeScreenshot( int x, int y, int width, int height, const char *fileName );
-void RB_TakeScreenshotPNG( int x, int y, int width, int height, const char *fileName );
-void RB_TakeScreenshotJPEG( int x, int y, int width, int height, const char *fileName );
-void RB_TakeScreenshotBMP( int x, int y, int width, int height, const char *fileName, int clipboard );
+qboolean RB_TakeScreenshot( int x, int y, int width, int height, const char *fileName );
+qboolean RB_TakeScreenshotPNG( int x, int y, int width, int height, const char *fileName );
+qboolean RB_TakeScreenshotJPEG( int x, int y, int width, int height, const char *fileName );
+qboolean RB_TakeScreenshotBMP( int x, int y, int width, int height, const char *fileName, int clipboard );
 void RB_TakeLevelShot( void );
 void RB_TakeSTVEFThumbnail( void );
 
@@ -3395,6 +3492,12 @@ int R_GetLightmapCoords( const int lightmapIndex, float *x, float *y );
 
 static ID_INLINE qboolean R_UsesRTCWLighting( void ) {
 	return ( ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP ) ? qtrue : qfalse;
+}
+
+// RTCW's and Enemy Territory's modules own 32 lights a frame, and keep their
+// forced lights at r_dynamiclight 0 (tr_rtcw_engine_lights.h)
+static ID_INLINE qboolean R_ReservesModuleLights( void ) {
+	return ( R_UsesRTCWLighting() || ri.gameId == COM_GAME_WOLFET ) ? qtrue : qfalse;
 }
 
 static ID_INLINE int R_GetDlightMode( void ) {

@@ -35,7 +35,7 @@ them is described in the [cgame record](2026-09-19-stvef-sp-cgame.md).
 | A sub-wave | Once a fresh random delay of `timeBetweenWaves` seconds has passed, one of the set's sounds at a random volume from its range scaled by the set's volume, never above it, on the ambient channel (`0x41dc00`, `S_StartAmbientSound` `0x420680`) | The same delay, volume and channel |
 | A set around a point | Full volume within half its radius, then falling to nothing at the radius; its sounds play at the point and belong to the entity that asked. The answer is when the set last played, which the game keeps for each of its sounding entities (`S_AddLocalSet` `0x41dda0`, `0x41da60`) | The same, and the client's own time for a set this engine does not know, as retail answers |
 | A mover's sound | The set's sound for the stage asked for, or none where the set is not one the engine read (`AS_GetBModelSound` `0x41ddf0`) | The same. The sets are read as the cgame starts, so a level's movers ask before there are any and take their looping sound from the sets the level before left behind, as they do in retail |
-| Distances | Full volume within 256 units of the listener, then falling by 0.0008 a unit to silence at 1,506, panned by the listener's right axis and the stereo separation, or both channels at three quarters on a mono device (`S_SpatializeOrigin` `0x420510`) | The same for the ambient loops, and, since the [sound distance record](2026-09-20-stvef-sp-sound-distances.md), for the rest of single player's sounds, each channel at the distance retail gives it and spread by retail's own `s_separation` |
+| Distances | Full volume within 256 units of the listener, then falling by 0.0008 a unit to silence at 1,506, panned by the listener's right axis and the stereo separation, or both channels at three quarters on a mono device (`S_SpatializeOrigin` `0x420510`) | The same for the ambient loops, and, since the [sound distance record](2026-09-20-stvef-sp-sound-distances.md), for the rest of single player's sounds, each channel at the distance retail gives it and spread by retail's own `s_separation`. That is the legacy mixer. Since 2026-09-24 the OpenAL backend places each loop at its own point and renders the same 256-to-1,506 span with the engine's distance model, occlusion, room reverb, tone and HRTF; the room tone, played at the listener, takes the room but no occlusion ([the engine's own features](2026-09-20-stvef-sp-sound-distances.md#the-engines-own-features)) |
 
 ## Results
 
@@ -69,6 +69,10 @@ with an isolated writable home path, on `tutorial`:
   calls, the file being read as a level loads with only the level's sets
   loaded, the crossfade, the timing and volume of sub-waves, the local
   set's radius, and both sound backends.
+- `stvef_sp_openal_voice_tests` runs the OpenAL backend's rendering of the
+  loops since 2026-09-24: a loop around a point placed at its set's volume
+  over a one-shot's 127, the room tone at the listener, and loops past their
+  span or faded out keeping no source.
 
 ## Remaining
 

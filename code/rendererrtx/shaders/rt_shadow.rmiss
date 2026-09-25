@@ -1,23 +1,11 @@
 #version 460
 #extension GL_EXT_ray_tracing : require
 
-struct RtRadiancePayload {
-	vec3 color;
-	float hitT;
-	vec3 normal;
-	uint flags;
-	float shadowFactor;
-	float shadowResponse;
-	vec3 shadowLoss;
-	vec3 nextOrigin;
-	vec3 nextDirection;
-	vec3 nextWeight;
-	uint pathDepth;
-};
+// Shadow miss: nothing blocked the path to the light.
 
-layout(location = 1) rayPayloadInEXT RtRadiancePayload payloadShadow;
+layout(location = 1) rayPayloadInEXT float shadowVisible;
 
 void main()
 {
-	payloadShadow.shadowFactor = 1.0;
+	shadowVisible = 1.0;
 }

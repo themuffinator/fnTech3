@@ -129,15 +129,35 @@ void DrawModel( const HudModel &model, int frame, const hud::Widget &widget, flo
 	if ( !model.handle ) {
 		return;
 	}
-	vec3_t mins, maxs;
-	re.ModelBounds( model.handle, mins, maxs );
 	const float W = static_cast<float>( cls.glconfig.vidWidth );
 	const float H = static_cast<float>( cls.glconfig.vidHeight );
+	refdef_t view{};
+	view.x = static_cast<int>( W / 640.0f * widget.offsetX );
+	view.y = static_cast<int>( H / 480.0f * widget.offsetY );
+	view.width = cls.glconfig.vidWidth;
+	view.height = cls.glconfig.vidHeight;
+	view.fov_x = view.fov_y = 30.0f;
+	AxisClear( view.viewaxis );
+	view.time = cl.serverTime;
+	view.rdflags = RDF_NOWORLDMODEL;
+	view.alice.keepDepth = skipDepthClear && skipDepthClear->integer ? qtrue : qfalse;
+	/* Retail's view is the whole screen, so on a wider one each widget grows
+	 * and spreads. The HUD's aspect rules (cl_hud.cpp, fntech3-hud.json) make
+	 * it a 4:3 screen's, anchored where its rule says, and the model is sized
+	 * for that view as retail sizes it for a 4:3 screen. */
+	CL_HudAdjustRefdef( &view );
+	if ( view.width <= 0 || view.height <= 0 ) {
+		return;
+	}
+
+	vec3_t mins, maxs;
+	re.ModelBounds( model.handle, mins, maxs );
+	const float viewAspect = static_cast<float>( view.width ) / static_cast<float>( view.height );
 	// The largest extent, taking the later axis on a tie, as retail compares.
 	float extent = maxs[1] - mins[1];
 	if ( !( extent > maxs[2] - mins[2] ) ) extent = maxs[2] - mins[2];
 	if ( !( extent > maxs[0] - mins[0] ) ) extent = maxs[0] - mins[0];
-	const float distance = extent * ( widget.scale * ( 4.0f / 3.0f ) / ( W / H ) ) * 0.5f / 0.268f;
+	const float distance = extent * ( widget.scale * ( 4.0f / 3.0f ) / viewAspect ) * 0.5f / 0.268f;
 
 	refEntity_t entity{};
 	entity.reType = RT_MODEL;
@@ -157,17 +177,6 @@ void DrawModel( const HudModel &model, int frame, const hud::Widget &widget, flo
 	alice.torsoCrossblendLerp = 0.0f;
 	alice.useLegs = qtrue;
 	alice.scale = 1.0f;
-
-	refdef_t view{};
-	view.x = static_cast<int>( W / 640.0f * widget.offsetX );
-	view.y = static_cast<int>( H / 480.0f * widget.offsetY );
-	view.width = cls.glconfig.vidWidth;
-	view.height = cls.glconfig.vidHeight;
-	view.fov_x = view.fov_y = 30.0f;
-	AxisClear( view.viewaxis );
-	view.time = cl.serverTime;
-	view.rdflags = RDF_NOWORLDMODEL;
-	view.alice.keepDepth = skipDepthClear && skipDepthClear->integer ? qtrue : qfalse;
 
 	re.ClearScene();
 	re.AddRefEntityToScene( &entity, qfalse );
@@ -320,9 +329,10 @@ bool DialogLineVisible( float y ) {
 } // namespace
 
 void CL_AliceHudInit( void ) {
-	hudEnabled = Cvar_Get( "ui_hud", "1", CVAR_ARCHIVE );
-	subtitlesEnabled = Cvar_Get( "ui_subtitles", "1", CVAR_ARCHIVE );
-	skipDepthClear = Cvar_Get( "ui_skipDepthClear", "1", 0 );
+	hudEnabled = Cvar_Get( "ui_hud", "1", CL_RitualUiHudFlags() );
+	// F.A.K.K.2 has neither (cl_alice_ui.cpp's RegisterCvars).
+	subtitlesEnabled = Com_GameIsFAKK2() ? nullptr : Cvar_Get( "ui_subtitles", "1", CVAR_ARCHIVE );
+	skipDepthClear = Com_GameIsFAKK2() ? nullptr : Cvar_Get( "ui_skipDepthClear", "1", 0 );
 	// The font's picture and the models are registered again by the new
 	// renderer. The widgets' own state carries over, as retail builds them
 	// once (UI_Init 0x00410bc9).
@@ -339,7 +349,16 @@ void CL_AliceHudShutdown( void ) {
  * (stats[5] bit 0), with ui_hud set, in the game, with no letterbox, menu or
  * loading screen (UI_Update 0x0040c93a). */
 void CL_AliceHudFrame( bool allowed ) {
-	allowed = allowed && hudEnabled && hudEnabled->integer && !( cl.snap.ps.alice.block[0][5] & 1 );
+	/* AliceHud is Alice's own widget; Heavy Metal: F.A.K.K.2's HUD is its
+	 * .urc menus, which its engine shows with ui_hud set, in the game, with
+	 * no letterbox or menu up, and neither the cinematic flag nor a delay
+	 * (fakk2.exe 1.02 0x0040b29b..0x0040b2d1; cl_alice_ui.cpp). */
+	allowed = allowed && hudEnabled && hudEnabled->integer;
+	if ( Com_GameIsFAKK2() ) {
+		CL_RitualHudMenusFrame( allowed );
+		allowed = false;
+	}
+	allowed = allowed && !CL_RitualInCinematic();
 	if ( !allowed ) {
 		hudDelay = 0;
 		hudShown = false;
@@ -360,9 +379,11 @@ void CL_AliceHudDraw( void ) {
 	if ( !hudShown || cls.state != CA_ACTIVE ) {
 		return;
 	}
+	CL_HudBeginFrame();
 	for ( std::size_t i = 0; i < std::size( hud::Widgets ); ++i ) {
 		WidgetDraw( i );
 	}
+	CL_HudEndFrame();
 }
 
 /* UI_WidgetPrint's search finds the one desktop widget with a name. */

@@ -22,7 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_shade.c
 
 #include "tr_local.h"
+#include "../renderercommon/tr_mohaa_shade.h"
 #include "../renderercommon/tr_q3_ihv_fog_vk.h"
+#include "../renderercommon/tr_ritual_far_fog_render.h"
 #include "../renderercommon/tr_rtcw_normal_fade.h"
 #include "../renderercommon/tr_stvef_alpha.h"
 
@@ -94,11 +96,18 @@ static VkDescriptorSet R_AnimatedImageDescriptor( const textureBundle_t *bundle 
 		return vk.screenMap.color_descriptor;
 	}
 
+	// RTCW SP's snooper scope shows the world with every lightmap white, as
+	// R_BindAnimatedImage below does
+	if ( bundle->lightmap != LIGHTMAP_INDEX_NONE && ri.gameId == COM_GAME_RTCW_SP &&
+		backEnd.refdef.rtcw.snooperView ) {
+		return R_ImageDescriptor( tr.whiteImage );
+	}
+
 	if ( bundle->numImageAnimations <= 1 ) {
 		return R_ImageDescriptor( bundle->image[0] );
 	}
 
-	v = tess.shaderTime * bundle->imageAnimationSpeed;
+	v = ( tess.shaderTime + bundle->mohaaAnimPhase ) * bundle->imageAnimationSpeed;
 	index = v;
 
 	// American McGee's Alice: `frameFromEntity` takes the frame from the
@@ -142,6 +151,14 @@ static void R_BindAnimatedImage( const textureBundle_t *bundle ) {
 		return;
 	}
 
+	// RTCW SP's snooper scope shows the world with every lightmap white (its
+	// renderer's R_BindAnimatedImage binds tr.whiteImage for them)
+	if ( bundle->lightmap != LIGHTMAP_INDEX_NONE && ri.gameId == COM_GAME_RTCW_SP &&
+		backEnd.refdef.rtcw.snooperView ) {
+		GL_Bind( tr.whiteImage );
+		return;
+	}
+
 	if ( bundle->numImageAnimations <= 1 ) {
 		GL_Bind( bundle->image[0] );
 		return;
@@ -153,7 +170,9 @@ static void R_BindAnimatedImage( const textureBundle_t *bundle ) {
 	//index = v;
 	//index >>= FUNCTABLE_SIZE2;
 
-	v = tess.shaderTime * bundle->imageAnimationSpeed; // fix for frameloss bug -EC-
+	// fix for frameloss bug -EC-; Medal of Honor's `animMapPhase` starts
+	// its frames later by its phase
+	v = ( tess.shaderTime + bundle->mohaaAnimPhase ) * bundle->imageAnimationSpeed;
 	index = v;
 
 	if ( index < 0 ) {
@@ -323,8 +342,12 @@ void RB_BeginSurface( shader_t *shader, int fogNum ) {
 	qboolean liquidNeedsNormal;
 #endif
 
+	fogNum = RB_RitualSurfaceFogNum( shader, fogNum );
+
 #ifdef USE_VBO
-	if ( shader->isStaticShader && !shader->remappedShader && !RB_Q3IHVFog( fogNum ) ) {
+	/* the Ritual far-fog pass reads the vertices from tess.xyz */
+	if ( shader->isStaticShader && !shader->remappedShader && !RB_Q3IHVFog( fogNum ) &&
+		!RB_RitualFarFogTakesPass( shader ) ) {
 		tess.allowVBO = qtrue;
 	} else {
 		tess.allowVBO = qfalse;
@@ -890,6 +913,9 @@ void R_ComputeColors( const int b, color4ub_t *dest, const shaderStage_t *pStage
 		case CGEN_LIGHTING_DIFFUSE:
 			RB_CalcDiffuseColor( ( unsigned char * ) dest );
 			break;
+		case CGEN_MOHAA_LIGHTING:
+			RB_MOHAACalcLightingColor( ( unsigned char * ) dest );
+			break;
 		case CGEN_EXACT_VERTEX:
 			Com_Memcpy( dest, tess.vertexColors, tess.numVertexes * sizeof( tess.vertexColors[0] ) );
 			break;
@@ -958,6 +984,14 @@ void R_ComputeColors( const int b, color4ub_t *dest, const shaderStage_t *pStage
 		case CGEN_ALICE_COLORWAVE:
 			RB_AliceCalcColorWave( &pStage->bundle[b].rgbWave, pStage->bundle[b].constantColor, dest->rgba );
 			break;
+		case CGEN_MOHAA_DOT:
+		case CGEN_MOHAA_ONE_MINUS_DOT:
+			RB_MOHAACalcDotColor( pStage, pStage->bundle[b].rgbGen == CGEN_MOHAA_ONE_MINUS_DOT ? qtrue : qfalse, dest->rgba );
+			break;
+		case CGEN_MOHAA_SCOORD:
+		case CGEN_MOHAA_TCOORD:
+			RB_MOHAACalcCoordColors( pStage, pStage->bundle[b].rgbGen == CGEN_MOHAA_TCOORD ? qtrue : qfalse, qfalse, dest->rgba );
+			break;
 	}
 
 	//
@@ -1004,6 +1038,26 @@ void R_ComputeColors( const int b, color4ub_t *dest, const shaderStage_t *pStage
 	case AGEN_ALICE_ONE_MINUS_SKY_ALPHA:
 		RB_AliceCalcSkyAlpha( pStage->bundle[b].alphaGen == AGEN_ALICE_ONE_MINUS_SKY_ALPHA ? qtrue : qfalse,
 			dest->rgba );
+		break;
+	case AGEN_MOHAA_DIST_FADE:
+	case AGEN_MOHAA_ONE_MINUS_DIST_FADE:
+		RB_MOHAACalcDistFadeAlpha( pStage->bundle[b].alphaGen == AGEN_MOHAA_ONE_MINUS_DIST_FADE ? qtrue : qfalse,
+			dest->rgba );
+		break;
+	case AGEN_MOHAA_SCOORD:
+	case AGEN_MOHAA_TCOORD:
+		RB_MOHAACalcCoordColors( pStage, pStage->bundle[b].alphaGen == AGEN_MOHAA_TCOORD ? qtrue : qfalse, qtrue,
+			dest->rgba );
+		break;
+	case AGEN_MOHAA_COLOR_PASS:
+		/* Ritual's renderer has no alpha of its own for `oneMinusVertex`
+		 * (alice.exe 0x00493cc4): the colour pass's stands, identity
+		 * lighting's at full as under retail's identity light of one. */
+		if ( pStage->bundle[b].rgbGen == CGEN_IDENTITY_LIGHTING ) {
+			for ( i = 0; i < tess.numVertexes; i++ ) {
+				dest[i].rgba[3] = 0xff;
+			}
+		}
 		break;
 	case AGEN_ENTITY:
 		RB_CalcAlphaFromEntity( dest->rgba );
@@ -1120,6 +1174,9 @@ void R_ComputeTexCoords( const int b, const textureBundle_t *bundle ) {
 	case TCGEN_ENVIRONMENT_MAPPED_FP:
 		RB_CalcEnvironmentTexCoordsFP( ( float * ) dst, bundle->isScreenMap );
 		break;
+	case TCGEN_MOHAA_ENVIRONMENT_MODEL:
+		RB_MOHAACalcEnvironmentModelTexCoords( ( float * ) dst );
+		break;
 	case TCGEN_BAD:
 		return;
 	}
@@ -1202,6 +1259,13 @@ void R_ComputeTexCoords( const int b, const textureBundle_t *bundle ) {
 			src = dst;
 			break;
 
+		case TMOD_MOHAA_WAVETRANS:
+		case TMOD_MOHAA_WAVETRANT:
+		case TMOD_MOHAA_BULGE:
+			RB_MOHAACalcTexMod( &bundle->texMods[tm], (const float *) src, (float *) dst );
+			src = dst;
+			break;
+
 		default:
 			ri.Error( ERR_DROP, "ERROR: unknown texmod '%d' in shader '%s'", bundle->texMods[tm].type, tess.shader->name );
 			break;
@@ -1221,7 +1285,7 @@ void R_ComputeTexCoords( const int b, const textureBundle_t *bundle ) {
 */
 qboolean RB_AliceSkipStage( const shaderStage_t *stage )
 {
-	if ( ri.gameId != COM_GAME_ALICE ) {
+	if ( !COM_GAME_ID_IS_RITUAL( ri.gameId ) ) {
 		return qfalse;
 	}
 	if ( stage->isDetail && !r_detailTextures->integer ) {
@@ -2205,6 +2269,11 @@ void RB_StageIteratorGeneric( void )
 		RB_FogPass();
 #endif
 	}
+#ifdef USE_VULKAN
+	if ( RB_RitualFarFogTakesPass( tess.shader ) ) {
+		RB_RitualFarFogPass( rebindIndex );
+	}
+#endif
 }
 
 #else

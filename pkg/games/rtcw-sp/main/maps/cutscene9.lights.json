@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "generator": "fnTech3 scripts/generate_stock_rtcw_lights.py",
+  "map": "cutscene9",
+  "profile": "rtcw-sp",
+  "source": "IBSP 47 entity lump, the map's compiled light entities",
+  "dlightScale": 1,
+  "lights": [
+    {"name": "cutscene9-light-0062", "type": "spot", "origin": [704, 1648, -472], "direction": [0.13897, -0.92066, -0.36479], "color": [0.8086, 0.7325, 0.6533], "intensity": 226.7, "radius": 226.7, "outerAngle": 25.94, "castsShadows": true},
+    {"name": "cutscene9-light-0094", "type": "spot", "origin": [-256, 1819, -531], "direction": [0, 0.9752, 0.22132], "color": [0.6501, 0.7294, 0.8086], "intensity": 160.3, "radius": 160.3, "outerAngle": 21.17, "castsShadows": true},
+    {"name": "cutscene9-light-0102", "type": "spot", "origin": [-256, 1770, -473], "direction": [0, 0, -1], "color": [0.6501, 0.7294, 0.8086], "intensity": 75.6, "radius": 75.6, "outerAngle": 68.11, "castsShadows": true}
+  ]
+}

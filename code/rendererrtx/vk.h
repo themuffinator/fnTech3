@@ -299,8 +299,20 @@ void vk_get_pipeline_def( uint32_t pipeline, Vk_Pipeline_Def *def );
 void vk_create_post_process_pipeline( int program_index, uint32_t width, uint32_t height );
 void vk_create_pipelines( void );
 qboolean vk_rt_primary_view_eligible( void );
+qboolean vk_rt_tracing( void );
 qboolean vk_rt_trace_frame( void );
+void vk_rt_lightinfo_f( void );
+void vk_rt_pick_f( void );
 void vk_rt_invalidate( const char *reason );
+struct shader_s;
+// Which pass draws a surface while the path tracer owns the primary view
+typedef enum {
+	RT_SURFACE_RASTER,		// the overlay pass, after the trace
+	RT_SURFACE_TRACED,		// the base pass for depth; the trace replaces its colour
+	RT_SURFACE_BASE_RASTER,	// the base pass, and the raster colour is kept (sky, portals)
+	RT_SURFACE_TRACED_FOGGED	// traced, and the overlay pass adds its fog pass
+} rtSurfaceOwner_t;
+rtSurfaceOwner_t vk_rt_surface_owner( int entityNum, const struct shader_s *shader, int fogNum, int surfaceType );
 void vk_draw_global_fog( void );
 qboolean vk_draw_underwater( void );
 void vk_draw_world_cel_outline( void );
@@ -362,7 +374,7 @@ void vk_bind_lighting( int stage, int bundle );
 void vk_draw_geometry( Vk_Depth_Range depth_range, qboolean indexed );
 void vk_draw_dot( uint32_t storage_offset );
 
-void vk_read_pixels( byte* buffer, uint32_t width, uint32_t height ); // screenshots
+qboolean vk_read_pixels( byte* buffer, uint32_t width, uint32_t height ); // screenshots: false when not read
 qboolean vk_bloom( void );
 qboolean vk_menu_blur( float strength );
 qboolean vk_motion_blur( void );
@@ -441,6 +453,7 @@ typedef struct {
 	qboolean rayTracingPipeline;
 	int requestedRtMode;
 	int activeRtMode;
+	int rtBackend;		// how mode 2 traces (rtxRtBackend_t in vk.c)
 } rtxVkCapabilityTable_t;
 
 typedef struct {
@@ -723,6 +736,13 @@ typedef struct {
 		VkShaderModule rt_rmiss_shadow;
 		VkShaderModule rt_rchit;
 		VkShaderModule rt_rahit;
+		VkShaderModule rt_trace;	// the compute backend's trace
+		VkShaderModule rt_rmiss_filter;	// filter rays (alphashadow, lightfilter)
+		VkShaderModule rt_rahit_filter;
+		VkShaderModule rt_composite;
+		VkShaderModule rt_tonemap;		// the traced view's tone mapper, before the composite
+		VkShaderModule rt_denoise_temporal;
+		VkShaderModule rt_denoise_atrous;
 	} modules;
 
 	VkPipelineCache pipelineCache;
@@ -800,136 +820,24 @@ typedef struct {
 	VkPipeline global_fog_pipeline;
 	VkPipeline liquid_snapshot_pipeline;
 
+	// the path tracer's device state; its scene, pipelines and images are
+	// rt/rt_backend.c's
 	struct {
 		qboolean initialized;
-		qboolean enabled;
-		qboolean needsRebuild;
-		qboolean worldGeometryReady;
-		qboolean descriptorsValid;
-		qboolean sbtValid;
-		qboolean dispatchValid;
-		qboolean tlasValid;
-		uint32_t generation;
+		qboolean dispatchValid;		// this frame's primary view was traced
 		uint32_t lastFrameBuilt;
-		uint32_t activeVisualizer;
-
-		VkDescriptorPool descriptor_pool;
-		VkDescriptorSetLayout descriptor_set_layout;
-		VkPipelineLayout pipeline_layout;
-		VkDescriptorSet descriptor_set[ NUM_COMMAND_BUFFERS ];
-		VkPipeline pipeline;
-
-		rtxVkRtBuffer_t world_vertex_buffer;
-		rtxVkRtBuffer_t world_index_buffer;
-		rtxVkRtBuffer_t world_material_buffer;
-		uint32_t world_vertex_count;
-		uint32_t world_index_count;
-		uint32_t world_material_count;
-		uint32_t world_masked_triangle_count;
-
-		rtxVkRtBuffer_t dynamic_vertex_buffer;
-		rtxVkRtBuffer_t dynamic_index_buffer;
-		rtxVkRtBuffer_t dynamic_material_buffer;
-		uint32_t dynamic_vertex_count;
-		uint32_t dynamic_index_count;
-		uint32_t dynamic_material_count;
-		uint32_t dynamic_entity_count;
-		uint32_t dynamic_effect_count;
-		uint32_t dynamic_masked_triangle_count;
-		rtxVkRtBuffer_t light_buffer[ NUM_COMMAND_BUFFERS ];
-		uint32_t light_count;
-
-		rtxVkRtBuffer_t tlas_instance_buffer;
-		uint32_t tlas_instance_capacity;
-		uint32_t tlas_instance_count;
-
-		rtxVkRtAccelerationStructure_t world_blas;
-		rtxVkRtAccelerationStructure_t dynamic_blas;
-		rtxVkRtAccelerationStructure_t tlas;
-		rtxVkRtBuffer_t scratch_buffer;
-
-		VkQueryPool compaction_query_pool;
-		uint32_t compaction_query_count;
-
-		rtxVkRtBuffer_t sbt_buffer;
-		VkStridedDeviceAddressRegionKHR sbt_raygen;
-		VkStridedDeviceAddressRegionKHR sbt_miss;
-		VkStridedDeviceAddressRegionKHR sbt_hit;
-		VkStridedDeviceAddressRegionKHR sbt_callable;
-
-		VkImage output_image;
-		VkImageView output_view;
-		VkDeviceMemory output_memory;
-		VkImage history_image[2];
-		VkImageView history_view[2];
-		VkDeviceMemory history_memory[2];
-		VkFormat output_format;
-		uint32_t output_width;
-		uint32_t output_height;
-		uint32_t history_read_index;
-		qboolean history_valid;
-		qboolean temporal_reset_pending;
-		qboolean temporal_has_prev_camera;
-		qboolean post_validation_logged;
-		float adaptive_budget_scale;
-		float dynamic_resolution_scale;
-		float dynamic_resolution_target_scale;
-		uint32_t dynamic_scene_signature;
-		int dynamic_last_rebuild_frame;
-		float dynamic_last_rebuild_centroid[3];
-		VkQueryPool timing_query_pool;
-		uint32_t timing_query_count;
-		uint32_t timing_query_stride;
 		float gpu_timestamp_period_ns;
-		float temporal_prev_origin[3];
-		float temporal_prev_forward[3];
-		float temporal_prev_right[3];
-		float temporal_prev_up[3];
-		float temporal_prev_tan_half_fov_x;
-		float temporal_prev_tan_half_fov_y;
-		int temporal_prev_refdef_time;
-		int temporal_prev_rdflags;
-		int temporal_prev_stereo_frame;
-		float temporal_exposure;
-		float dynamic_centroid_current[3];
-		float dynamic_centroid_prev[3];
-		rtxVkRtBuffer_t temporal_params_buffer[ NUM_COMMAND_BUFFERS ];
 
 		VkPhysicalDeviceRayTracingPipelinePropertiesKHR rt_pipeline_props;
 		VkPhysicalDeviceAccelerationStructurePropertiesKHR as_props;
 
 		struct {
-			uint64_t world_build_bytes;
-			uint64_t dynamic_build_bytes;
-			uint64_t tlas_build_bytes;
-			uint64_t compacted_bytes_saved;
-			uint64_t throttled_builds;
-			uint64_t dynamic_rebuild_skips;
-			uint64_t prep_stride_skips;
 			uint64_t dispatch_count;
 			uint64_t skipped_dispatches;
-			uint64_t world_triangles;
-			uint64_t dynamic_triangles;
-			uint64_t masked_triangles;
-			uint64_t active_lights;
-			uint64_t history_resets;
 			uint64_t async_overlap_submits;
 			uint64_t texture_stream_flushes;
 			uint64_t texture_stream_bytes;
 		} stats;
-
-		struct {
-			float cpu_dynamic_ms;
-			float cpu_world_ms;
-			float cpu_tlas_ms;
-			float cpu_temporal_ms;
-			float cpu_dispatch_ms;
-			float cpu_copy_ms;
-			float cpu_frame_ms;
-			float gpu_trace_ms;
-			float gpu_copy_ms;
-			float gpu_frame_ms;
-		} perf;
 	} rt;
 
 	uint32_t frame_count;

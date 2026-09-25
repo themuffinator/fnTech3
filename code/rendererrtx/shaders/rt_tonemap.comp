@@ -1,0 +1,191 @@
+#version 460
+#extension GL_GOOGLE_include_directive : require
+
+// The traced view's tone mapper (rt_tonemap.glsl), run between the denoiser
+// and the composite; pc.view.z picks the pass. The histogram pass takes a
+// 16 x 16 tile of trace pixels per workgroup; the curve pass is a single
+// workgroup, an invocation for each histogram bin.
+
+#include "rt_common.glsl"
+#include "rt_denoise_common.glsl"
+#include "rt_tonemap.glsl"
+
+layout(local_size_x = 256) in;
+
+shared uint s_bins[RT_TONE_BINS];
+shared float s_scratch[256];
+
+void histogram_pass()
+{
+	uint tid = gl_LocalInvocationIndex;
+	if (tid < RT_TONE_BINS) {
+		s_bins[tid] = 0u;
+	}
+	barrier();
+	ivec2 tp = ivec2(gl_WorkGroupID.xy) * 16 + ivec2(int(tid % 16u), int(tid / 16u));
+	if (in_trace(tp) && (imageLoad(u_info[pc.state.x & 1u], tp).r & RT_PIXEL_OWNED) != 0u) {
+		float lum = tone_base(tp, pc.extra.z & 1u);
+		// the middle of the view counts most, as Q2RTX weighs it, and fog
+		// hides the light it covers
+		vec2 d = (vec2(tp) + 0.5) * pc.traceSize.zw - 0.5;
+		float weight = clamp(1.0 - length(d) * 1.5, 0.01, 1.0) * clamp(imageLoad(u_emission, tp).a, 0.0, 1.0);
+		if (lum > 0.0 && weight > 0.0) {
+			// shared between the two nearest bins
+			float x = tone_bin(lum);
+			uint left = uint(x);
+			float upper = fract(x) * weight;
+			atomicAdd(s_bins[left], uint((weight - upper) * RT_TONE_FIXED + 0.5));
+			if (left + 1u < RT_TONE_BINS) {
+				atomicAdd(s_bins[left + 1u], uint(upper * RT_TONE_FIXED + 0.5));
+			}
+		}
+	}
+	barrier();
+	if (tid < RT_TONE_BINS && s_bins[tid] != 0u) {
+		atomicAdd(u_tone.histogram[tid], s_bins[tid]);
+	}
+}
+
+// The sum over the workgroup; every invocation calls it
+float group_sum(float v)
+{
+	uint tid = gl_LocalInvocationIndex;
+	s_scratch[tid] = v;
+	barrier();
+	for (uint k = 128u; k > 0u; k >>= 1u) {
+		if (tid < k) {
+			s_scratch[tid] += s_scratch[tid + k];
+		}
+		barrier();
+	}
+	float sum = s_scratch[0];
+	barrier();
+	return sum;
+}
+
+// The inclusive prefix sum over the bins' invocations; every invocation
+// calls it
+float bin_prefix(float v)
+{
+	uint tid = gl_LocalInvocationIndex;
+	s_scratch[tid] = v;
+	barrier();
+	for (uint k = 1u; k < RT_TONE_BINS; k <<= 1u) {
+		float add = (tid < RT_TONE_BINS && tid >= k) ? s_scratch[tid - k] : 0.0;
+		barrier();
+		s_scratch[tid] += add;
+		barrier();
+	}
+	float sum = s_scratch[tid];
+	barrier();
+	return sum;
+}
+
+void curve_pass()
+{
+	uint tid = gl_LocalInvocationIndex;
+	bool bin = tid < RT_TONE_BINS;
+	float count = bin ? float(u_tone.histogram[tid]) / RT_TONE_FIXED : 0.0;
+	bool fresh = u_tone.frames == 0u;
+	// a view the trace does not own anything of keeps the last curve
+	if (group_sum(count) > 0.0) {
+		float dt = pc.params.x;
+		float speed = pc.params.y;
+		float range = pc.params.z;
+		float binLog = RT_TONE_LOG_MIN + float(tid) * RT_TONE_BIN_STOPS;
+		// each bin holds a pixel's weight more, so none is empty
+		float h = bin ? count + 1.0 : 0.0;
+		float p = h / group_sum(h);
+
+		// the exposure: the mean log luminance between the 70th and 90th
+		// percentiles, each bin counted for its share inside them
+		float cdf = bin_prefix(p);
+		float inside = bin ? max(0.0, min(cdf, 0.9) - max(cdf - p, 0.7)) : 0.0;
+		float band = group_sum(inside);
+		float viewLog = group_sum(inside * binLog) / max(band, 1e-6);
+		float meteredLog = clamp(viewLog, log2(RT_TONE_MIN_LUMINANCE), log2(RT_TONE_MAX_LUMINANCE));
+		if (!fresh && speed > 0.0) {
+			// brightening adapts twice as fast as darkening, as in Q2RTX
+			float previous = u_tone.adaptedLog;
+			meteredLog = mix(meteredLog, previous, exp(-dt * speed * (previous < meteredLog ? 2.0 : 1.0)));
+		}
+
+		// the curve's slopes: those that least distort each bin's contrast,
+		// weighed by its pixels, within `range` stops in all (Eilertsen et
+		// al., equation 14). A bin whose slope would be negative gets none;
+		// the threshold that finds them is iterated (their equation 17).
+		// Light below the noise floor takes no part.
+		float q = (bin && binLog >= RT_TONE_NOISE_STOPS) ? p : 0.0;
+		float inverse = q > 0.0 ? 1.0 / q : 0.0;
+		float bins = range / RT_TONE_BIN_STOPS;
+		float threshold = 1e-16;
+		for (uint i = 0u; i < 16u; i++) {
+			float passed = (bin && q >= threshold) ? 1.0 : 0.0;
+			float kept = group_sum(passed);
+			float inverseSum = group_sum(inverse * passed);
+			threshold = inverseSum > 0.0 ? (kept - bins) / inverseSum : 0.0;
+		}
+		float passed = (bin && q >= threshold) ? 1.0 : 0.0;
+		float kept = group_sum(passed);
+		float inverseSum = group_sum(inverse * passed);
+		float slope = passed * (1.0 + (inverseSum > 0.0 ? inverse * (bins - kept) / inverseSum : 0.0));
+
+		// blurred (a Gaussian of 12 bins either way, as Q2RTX's), so the
+		// curve bends gently across a shadow's edge
+		s_scratch[tid] = slope;
+		barrier();
+		float blurred = 0.0;
+		if (bin) {
+			float weights = 0.0;
+			for (int dx = -13; dx <= 13; dx++) {
+				float w = exp(-float(dx * dx) / (2.0 * 12.0 * 12.0));
+				blurred += w * s_scratch[clamp(int(tid) + dx, 0, int(RT_TONE_BINS) - 1)];
+				weights += w;
+			}
+			blurred /= weights;
+		}
+		barrier();
+
+		// integrated: each bin's log display luminance, rising from -range,
+		// and as much darker or brighter as the view is past the range the
+		// exposure adapts over
+		float curve = (bin_prefix(blurred) - blurred) * RT_TONE_BIN_STOPS - range +
+			(viewLog - clamp(viewLog, log2(RT_TONE_MIN_LUMINANCE), log2(RT_TONE_MAX_LUMINANCE)));
+
+		// below the noise floor, half of the light's own contrast from where
+		// the curve meets the floor (Q2RTX's tm_noise_blend)
+		const float noiseBin = (RT_TONE_NOISE_STOPS - RT_TONE_LOG_MIN) / RT_TONE_BIN_STOPS;
+		s_scratch[tid] = curve;
+		barrier();
+		float atNoise = s_scratch[uint(noiseBin)];
+		barrier();
+		if (bin && float(tid) < noiseBin) {
+			float own = atNoise + (float(tid) - noiseBin) * RT_TONE_BIN_STOPS;
+			curve = mix(own, curve, mix(smoothstep(0.5 * noiseBin, noiseBin, float(tid)), 1.0, RT_TONE_NOISE_BLEND));
+		}
+
+		if (bin) {
+			if (!fresh && speed > 0.0) {
+				float previous = u_tone.curve[tid];
+				curve = mix(curve, previous, exp(-dt * speed * (previous < curve ? 2.0 : 1.0)));
+			}
+			u_tone.curve[tid] = curve;
+		}
+		if (tid == 0u) {
+			u_tone.adaptedLog = meteredLog;
+			u_tone.frames = 1u;
+		}
+	}
+	if (bin) {
+		u_tone.histogram[tid] = 0u;
+	}
+}
+
+void main()
+{
+	if (pc.view.z == RT_TONE_PASS_CURVE) {
+		curve_pass();
+	} else {
+		histogram_pass();
+	}
+}

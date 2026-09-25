@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "name": "health_caps",
+      "match": { "shader": "gfx/interface/healthcap*" },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "bottom" }
+    },
+    {
+      "name": "armor_caps",
+      "match": { "shader": "gfx/interface/armorcap*" },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "bottom" }
+    },
+    {
+      "name": "health_and_armor_sliders",
+      "match": { "shader": "gfx/interface/ammobar", "region": { "x": 60, "y": 425, "w": 95, "h": 50 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "bottom" }
+    },
+    {
+      "name": "health_and_armor_numbers",
+      "match": { "shader": "gfx/2d/numbers/*", "region": { "x": 20, "y": 420, "w": 64, "h": 58 } },
+      "mode": "uniform",
+      "align": { "x": "left", "y": "bottom" }
+    },
+    {
+      "name": "ammo_upper_caps",
+      "match": { "shader": "gfx/interface/ammouppercap*" },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "bottom" }
+    },
+    {
+      "name": "ammo_lower_caps",
+      "match": { "shader": "gfx/interface/ammolowercap*" },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "bottom" }
+    },
+    {
+      "name": "ammo_slider",
+      "match": { "shader": "gfx/interface/ammobar", "region": { "x": 570, "y": 425, "w": 50, "h": 50 } },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "bottom" }
+    },
+    {
+      "name": "ammo_number",
+      "match": { "shader": "gfx/2d/numbers/*", "region": { "x": 565, "y": 420, "w": 60, "h": 40 } },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "bottom" }
+    },
+    {
+      "name": "score_box",
+      "match": { "region": { "x": 600, "y": 385, "w": 40, "h": 32 } },
+      "mode": "uniform",
+      "align": { "x": "right", "y": "bottom" }
+    }
+  ]
+}

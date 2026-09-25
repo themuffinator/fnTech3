@@ -298,8 +298,15 @@ class ScreenshotRequestTests(unittest.TestCase):
             with self.subTest(renderer=renderer):
                 backend = read('code/%s/tr_backend.c' % renderer)
                 for name in ('PNG', 'TGA', 'JPG', 'BMP'):
-                    self.assertIn('if ( !backEnd.screenShot%ssilent ) {\n\t\t\t\tri.Printf( PRINT_ALL, "Wrote %%s\\n", '
-                                  'backEnd.screenshot%s );' % (name, name), backend)
+                    wrote = 'ri.Printf( PRINT_ALL, "Wrote %%s\\n", backEnd.screenshot%s );' % name
+                    if renderer == 'rendererrtx':
+                        # its writers say whether the frame was read back, and
+                        # a frame that was not is reported by the writer alone
+                        call = backend[:backend.index(wrote)]
+                        call = ' '.join(call[call.rindex('if ( RB_TakeScreenshot'):].split())
+                        self.assertTrue(call.endswith('&& !backEnd.screenShot%ssilent ) {' % name), call)
+                    else:
+                        self.assertIn('if ( !backEnd.screenShot%ssilent ) {\n\t\t\t\t' % name + wrote, backend)
 
 
 AUTO_RECORD_PRELUDE = r'''
@@ -317,7 +324,7 @@ typedef int qboolean;
 enum { qfalse, qtrue, FS_INVALID_HANDLE = -1, MAX_OSPATH = 128, MAX_QPATH = 64,
        CA_DISCONNECTED = 1, CA_CONNECTED = 5, CA_LOADING = 6, CA_ACTIVE = 8, EXEC_NOW = 0 };
 enum { COM_GAME_QUAKE3, COM_GAME_QUAKE_LIVE, COM_GAME_RTCW_SP, COM_GAME_RTCW_MP, COM_GAME_WOLFET,
-       COM_GAME_STVEF_MP, COM_GAME_ALICE };
+       COM_GAME_STVEF_MP, COM_GAME_ALICE, COM_GAME_MOHAA };
 #define S_COLOR_YELLOW "^3"
 #define Com_sprintf snprintf
 #define Com_Memset std::memset
@@ -341,11 +348,20 @@ static std::string argument, printed;
 static int Com_GameIsRTCWSP() { return game == COM_GAME_RTCW_SP; }
 static int Com_GameIsSTVEFMP() { return game == COM_GAME_STVEF_MP; }
 static int Com_GameIsAlice() { return game == COM_GAME_ALICE; }
+static int Com_GameIsRitual() { return game == COM_GAME_ALICE; }
+static int Com_GameIsMOHAA() { return game == COM_GAME_MOHAA; }
+// Q3Test records with its own recorder (cl_q3test.cpp).
+static int Com_GameIsQ3Test() { return 0; }
+static void CL_Q3TestRecord_f() {}
+/* cl_mohaa.h: Medal of Honor's own snapshots, entities and baselines. */
+static int mohaaClears;
+static void CL_MOHAAClearState( void ) { ++mohaaClears; }
 static netchanWireProfile_t CL_ActiveWireProfile() {
     return game == COM_GAME_RTCW_SP ? NETCHAN_WIRE_RTCW_SP :
         game == COM_GAME_RTCW_MP ? NETCHAN_WIRE_RTCW_MP :
         game == COM_GAME_STVEF_MP ? NETCHAN_WIRE_STVEF_HM :
-        game == COM_GAME_ALICE ? NETCHAN_WIRE_ALICE : NETCHAN_WIRE_LEGACY_Q3;
+        game == COM_GAME_ALICE ? NETCHAN_WIRE_ALICE :
+        game == COM_GAME_MOHAA ? NETCHAN_WIRE_MOHAA : NETCHAN_WIRE_LEGACY_Q3;
 }
 static int Cmd_Argc() { return argument.empty() ? 1 : 2; }
 static const char *Cmd_Argv(int) { return argument.c_str(); }
@@ -477,7 +493,10 @@ static void Frames(int count) { for (int i = 0; i < count; ++i) AutoRecordFrame(
 int main() {
     /* The predicate is CL_Record_f's own refusal, for every profile and value. */
     for (int profile : { COM_GAME_QUAKE3, COM_GAME_QUAKE_LIVE, COM_GAME_RTCW_SP, COM_GAME_RTCW_MP,
-                         COM_GAME_WOLFET, COM_GAME_STVEF_MP, COM_GAME_ALICE }) {
+                         COM_GAME_WOLFET, COM_GAME_STVEF_MP, COM_GAME_ALICE, COM_GAME_MOHAA }) {
+        /* Clearing the state clears Medal of Honor's own records, and only its. */
+        mohaaClears = 0; game = profile; CL_ClearState();
+        assert(mohaaClears == (profile == COM_GAME_MOHAA ? 1 : 0));
         for (float sync : { 0.0f, 0.5f, 1.0f }) {
             NewLevel(profile, sync);
             const bool predicted = CL_RecordRefusedForSynchronousClients();
@@ -527,7 +546,8 @@ int main() {
 
     /* Every other profile keeps trying every frame: an attempt that fails for
        any other reason is repeated, as it always was. */
-    for (int profile : { COM_GAME_QUAKE3, COM_GAME_QUAKE_LIVE, COM_GAME_RTCW_MP, COM_GAME_WOLFET }) {
+    for (int profile : { COM_GAME_QUAKE3, COM_GAME_QUAKE_LIVE, COM_GAME_RTCW_MP, COM_GAME_WOLFET,
+                         COM_GAME_MOHAA }) {
         NewLevel(profile, 0.0f);
         openFails = true;
         Frames(50);
@@ -606,8 +626,8 @@ class AliceCinematicServerShutdownTests(unittest.TestCase):
         order = [shutdown.index('Cvar_Set( "sv_killserver", "2" );'), shutdown.index('SV_Shutdown( "" );'),
                  shutdown.index('Cvar_Set( "sv_killserver", "0" );')]
         self.assertEqual(order, sorted(order))
-        # Only Alice's CIN_Play reaches this binding.
-        self.assertIn('if ( Com_GameIsAlice() ) {\n\t\tif ( cls.state != CA_CINEMATIC ) {', cin)
+        # Only Alice's CIN_Play, or F.A.K.K.2's, reaches this binding.
+        self.assertIn('if ( Com_GameIsRitual() ) {\n\t\tif ( cls.state != CA_CINEMATIC ) {', cin)
 
     def test_server_shutdown_honours_the_request_and_nothing_else_changes(self):
         server = read('code/server/sv_init.cpp')

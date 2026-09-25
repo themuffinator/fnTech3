@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "generator": "fnTech3 scripts/generate_stock_mohaa_lights.py",
+  "map": "m5l2a",
+  "source": "2015 19 lump 19, the map's sphere lights",
+  "lights": []
+}

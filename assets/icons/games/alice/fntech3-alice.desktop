@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=American McGee's Alice
+GenericName=fnTech3 game profile
+Comment=Play American McGee's Alice with fnTech3
+Exec=fntech3 +set com_gameProfile alice
+Icon=fntech3-alice
+Terminal=false
+Categories=Game;ActionGame;
+StartupWMClass=fntech3-alice

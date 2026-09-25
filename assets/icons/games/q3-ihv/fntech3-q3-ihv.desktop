@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Quake III Arena (IHV Test)
+GenericName=fnTech3 game profile
+Comment=Play Quake III Arena (IHV Test) with fnTech3
+Exec=fntech3 +set com_gameProfile q3-ihv
+Icon=fntech3-q3-ihv
+Terminal=false
+Categories=Game;ActionGame;
+StartupWMClass=fntech3-q3-ihv

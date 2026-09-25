@@ -1,0 +1,90 @@
+# Material rules for Heavy Metal: F.A.K.K.2's audio zones.
+#
+# F.A.K.K.2's maps carry almost no material surfaceparms (two `metal` and two
+# `wood` shaders in the thirty retail maps), so zone materials come from shader
+# names, as Alice's do. The compiler's own name tokens cover 42.0% of the retail
+# maps' draw surfaces; these rules add F.A.K.K.2's own texture vocabulary --
+# its level folders and its wl_/fl_/wa_ prefixes -- and raise that to 87.6%.
+# Each pattern was checked against every shader name the retail maps use. The
+# only names where a rule and a compiler token disagree are the Water level's
+# walls, statues and glass tubes, which its `water` token calls liquid, and the
+# church's wood trim, which is both. Weight 1 puts every rule on a par with the
+# compiler's tokens: these are naming heuristics, not overrides.
+#
+# Patterns are case-insensitive substrings of the shader path.
+
+# the cemetery's and the Eden town's masonry, caves, crystal and asteroid rock
+cemwall stone weight 1
+cembroke stone weight 1
+cemcolumn stone weight 1
+cemtrim stone weight 1
+cemrunner stone weight 1
+cemfloor stone weight 1
+cemwl stone weight 1
+cemstair stone weight 1
+cemtablet stone weight 1
+cemobelisk stone weight 1
+we_cemetary/ceiling stone weight 1
+cave stone weight 1
+crystal stone weight 1
+asteroid stone weight 1
+church stone weight 1
+neweden stone weight 1
+edentown stone weight 1
+edenhouse stone weight 1
+fl_street stone weight 1
+cobble stone weight 1
+basement stone weight 1
+column stone weight 1
+fl_temple stone weight 1
+fount stone weight 1
+statue stone weight 1
+ornatewall stone weight 1
+basicwall stone weight 1
+bloodwall stone weight 1
+glass stone weight 1
+
+# Otto's machine hall and the other machinery
+textures/otto/ metal weight 1
+machines metal weight 1
+technowall metal weight 1
+shgen metal weight 1
+pipe metal weight 1
+screw metal weight 1
+chain metal weight 1
+
+# swamp mud, trees and plants, hay, wooden sheds and cloth
+fl_swamp soft weight 1
+fl_ground soft weight 1
+fl64_swamp soft weight 1
+swampedge soft weight 1
+swamptree soft weight 1
+insidetree soft weight 1
+swbranch soft weight 1
+edentree soft weight 1
+treewood soft weight 1
+treetop soft weight 1
+deadtree soft weight 1
+models/plants/ soft weight 1
+swplant soft weight 1
+edenplant soft weight 1
+healthplant soft weight 1
+leaf soft weight 1
+fern soft weight 1
+mush soft weight 1
+cattail soft weight 1
+hay soft weight 1
+barn soft weight 1
+boathouse soft weight 1
+hut soft weight 1
+fence soft weight 1
+tarp soft weight 1
+fabric soft weight 1
+banner soft weight 1
+rope soft weight 1
+creepershit soft weight 1
+
+# rivers and water sheets, F.A.K.K.2's wa_ textures
+/wa_ liquid weight 1
+/$wa_ liquid weight 1
+river liquid weight 1

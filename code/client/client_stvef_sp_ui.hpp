@@ -101,6 +101,8 @@ void CL_STVEFSPUIAddLight( const float *origin, float intensity, float r, float 
 }
 void CL_STVEFSPUIRenderScene( const fntech3_stvef_refdef_t *view ) {
 	refdef_t refdef = CL_ModuleRefdef( uivm, reinterpret_cast<intptr_t>( view ) );
+	// A menu scene keeps its authored FOV.
+	refdef.rdflags |= RDF_NOFOVCORRECTION;
 	CL_UIAdjustRefdef( &refdef );
 	re.RenderScene( &refdef );
 }

@@ -41,7 +41,9 @@ class RootArchiveTests(unittest.TestCase):
         cls.executable = directory / "root_archive_probe.exe"
         result = subprocess.run(
             [compiler, *compiler_target_args(compiler), "-std=c++17", "-O2",
-             "-DFNTECH3_RTCW_DEVELOPMENT", "-I", str(ROOT), str(source),
+             "-DFNTECH3_RTCW_DEVELOPMENT", "-DFNTECH3_ALICE_DEVELOPMENT", "-DFNTECH3_FAKK2_DEVELOPMENT",
+             "-DFNTECH3_WOLFET_DEVELOPMENT", "-DFNTECH3_STVEF_DEVELOPMENT", "-DFNTECH3_MOHAA_DEVELOPMENT",
+             "-I", str(ROOT), str(source),
              str(ROOT / "code/qcommon/game_profile.cpp"), "-o", str(cls.executable)],
             cwd=directory, capture_output=True, text=True, timeout=120,
         )
@@ -49,7 +51,14 @@ class RootArchiveTests(unittest.TestCase):
             raise AssertionError(result.stdout + result.stderr)
 
     def test_profile_isolation_precedence_bounds_and_read_failures(self):
-        for profile_id, key in enumerate(("quake3", "quakelive", "rtcw-sp", "rtcw-mp"), 1):
+        header = (ROOT / "code/qcommon/game_profile.h").read_text()
+        enum = header[header.index("COM_GAME_AUTO = 0,"):header.index("COM_GAME_COUNT")]
+        ids = [name.strip() for name in enum.split(",") if name.strip()]
+        profiles = [*enumerate(("quake3", "quakelive", "rtcw-sp", "rtcw-mp"), 1),
+                    (ids.index("COM_GAME_ALICE"), "alice"), (ids.index("COM_GAME_FAKK2"), "fakk2"),
+                    (ids.index("COM_GAME_WOLFET"), "wolfet"), (ids.index("COM_GAME_STVEF_SP"), "stvef-sp"),
+                    (ids.index("COM_GAME_STVEF_MP"), "stvef-mp"), (ids.index("COM_GAME_MOHAA"), "mohaa")]
+        for profile_id, key in profiles:
             with self.subTest(profile=key):
                 result = subprocess.run([str(self.executable), str(profile_id), key],
                                         capture_output=True, text=True, timeout=30)

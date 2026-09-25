@@ -123,9 +123,12 @@ static void checkLifecycle(){
  for(const auto &p:profiles){profile=&p;reset();
   if(!p.bots.navigationWorlds){
    // Jedi Academy's and Jedi Outcast's single players have no bot library
-   // either, and Alice's engine carries none at all.
+   // either, and Ritual's engine, Alice's or F.A.K.K.2's, carries none at all;
+   // nor does Medal of Honor 1.00, whose game exports no bot entry points,
+   // and no Q3Test release shipped one.
    assert((p.id==COM_GAME_QUAKE3_IHV||p.id==COM_GAME_JKA_SP||p.id==COM_GAME_JK2_SP
-    ||p.id==COM_GAME_ALICE)&&!BotLibClientCapacity());
+    ||p.id==COM_GAME_ALICE||p.id==COM_GAME_FAKK2||p.id==COM_GAME_MOHAA
+    ||p.id==COM_GAME_Q3TEST)&&!BotLibClientCapacity());
    const auto opened=logOpen,closed=logClose;const auto previousMap=loadedMap;
    for(int attempt=0;attempt<2;++attempt){
     assert(Export_BotLibSetup()==BLERR_LIBRARYNOTSETUP);

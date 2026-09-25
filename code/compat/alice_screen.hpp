@@ -283,6 +283,7 @@ enum class IntroAction {
 	Video,       /* states 4 and 5 */
 	MainMenu,    /* states 6 and 100 */
 	Skip,        /* states 7 to 99, and any outside -1..100 */
+	End,         /* F.A.K.K.2's state -1: the plate put away, nothing queued */
 };
 
 struct IntroStep {
@@ -293,6 +294,9 @@ struct IntroStep {
 	const char *videoFlags = nullptr; /* its cinematic flag: "25" or "26" */
 	int videoResumeState = 0; /* the state that flag resumes at */
 	float plateFrom = 0.0f, plateTo = 0.0f, plateMs = 0.0f;
+	const char *plateImage = nullptr; /* a plate step's picture */
+	float plateScale = 0.0f;          /* ...and its size over the image's */
+	bool soundtrack = false;          /* the step starts the menu soundtrack */
 };
 
 /* The legal plate is drawn 1.8 times its image's size (0x005315fc). */
@@ -313,6 +317,7 @@ inline IntroStep Intro( int state ) {
 	case -1:
 		step.action = IntroAction::Soundtrack;
 		step.nextState = 0;
+		step.soundtrack = true;
 		return step;
 	case 0:
 		step.action = IntroAction::Black;
@@ -324,18 +329,21 @@ inline IntroStep Intro( int state ) {
 		step.nextState = 2;
 		step.waitMs = 1000;
 		step.plateFrom = 0.0f; step.plateTo = 1.0f; step.plateMs = 1000.0f;
+		step.plateImage = IntroPlateImage; step.plateScale = IntroPlateScale;
 		return step;
 	case 2:
 		step.action = IntroAction::PlateHold;
 		step.nextState = 3;
 		step.waitMs = 5000;
 		step.plateFrom = 1.0f; step.plateTo = 1.0f; step.plateMs = 0.0f;
+		step.plateImage = IntroPlateImage; step.plateScale = IntroPlateScale;
 		return step;
 	case 3:
 		step.action = IntroAction::PlateOut;
 		step.nextState = 4;
 		step.waitMs = 1000;
 		step.plateFrom = 1.0f; step.plateTo = 0.0f; step.plateMs = 1000.0f;
+		step.plateImage = IntroPlateImage; step.plateScale = IntroPlateScale;
 		return step;
 	case 4:
 		step.action = IntroAction::Video;
@@ -355,6 +363,7 @@ inline IntroStep Intro( int state ) {
 	case 100:
 		step.action = IntroAction::MainMenu;
 		step.nextState = 0;
+		step.soundtrack = true;
 		return step;
 	default:
 		step.action = IntroAction::Skip;
@@ -363,6 +372,66 @@ inline IntroStep Intro( int state ) {
 		step.waitMs = 0;
 		return step;
 	}
+}
+
+/* Heavy Metal: F.A.K.K.2's intro (fakk2.exe 1.02 _intro 0x0040e0b0, the same
+ * "wait %d; _intro" chain, plate 0x0040ad90 drawn as Alice's is): the menu
+ * soundtrack `music/intro`, then Ritual's plate and Gathering's, each faded
+ * in over a second, held three and faded out over one at 1.5 times their
+ * size, then the main menu. No movie plays. A map loaded (state -1) only puts
+ * the plate away (0x0040e2f0), and so does the menu's step once it is pushed,
+ * which queues nothing more. Out of range, a state steps up as Alice's does. */
+inline constexpr float Fakk2IntroPlateScale = 1.5f;                     /* 0x0040e0f8 */
+inline constexpr const char *Fakk2IntroPlates[2] = {
+	"textures/menu/ritual",                                             /* 0x0040eda1 */
+	"textures/menu/gathering",                                          /* 0x0040ee60 */
+};
+
+inline IntroStep Fakk2Intro( int state ) {
+	IntroStep step;
+	switch ( state ) {
+	case -1:
+		step.action = IntroAction::End;
+		step.nextState = 0;
+		return step;
+	case 0:
+		step.action = IntroAction::Soundtrack;   /* 0x0040e0e1 */
+		step.nextState = 1;
+		step.waitMs = 3000;
+		step.soundtrack = true;
+		return step;
+	case 1:
+	case 4:
+		step.action = IntroAction::PlateIn;
+		step.waitMs = 1000;
+		step.plateFrom = 0.0f; step.plateTo = 1.0f; step.plateMs = 1000.0f;
+		break;
+	case 2:
+	case 5:
+		step.action = IntroAction::PlateHold;
+		step.waitMs = 3000;
+		step.plateFrom = 1.0f; step.plateTo = 1.0f; step.plateMs = 0.0f;
+		break;
+	case 3:
+	case 6:
+		step.action = IntroAction::PlateOut;
+		step.waitMs = 1000;
+		step.plateFrom = 1.0f; step.plateTo = 0.0f; step.plateMs = 1000.0f;
+		break;
+	case 7:
+		step.action = IntroAction::MainMenu;     /* 0x0040e289 */
+		step.nextState = 0;
+		return step;
+	default:
+		step.action = IntroAction::Skip;
+		step.nextState = static_cast<int>( static_cast<unsigned>( state ) + 1u );
+		step.waitMs = 0;
+		return step;
+	}
+	step.nextState = state + 1;
+	step.plateImage = Fakk2IntroPlates[state < 4 ? 0 : 1];
+	step.plateScale = Fakk2IntroPlateScale;
+	return step;
 }
 
 /* The legal plate's alpha: from + (to - from) * t over the fade length, with t

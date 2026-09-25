@@ -77,6 +77,10 @@ cvar_t	*r_skyportal_origin;
 cvar_t	*r_debuglines_depthmask;
 cvar_t	*r_stipplelines;
 
+// Medal of Honor: Allied Assault only
+cvar_t	*r_drawstaticdecals;
+cvar_t	*ter_minMarkRadius;
+
 cvar_t	*r_znear;
 cvar_t	*r_zproj;
 cvar_t	*r_stereoSeparation;
@@ -2133,7 +2137,16 @@ void RB_TakeSTVEFThumbnail( void ) {
 		return;
 	}
 	source = allsource + offset;
-	if ( aliceHeight > 0 ) {
+	if ( aliceHeight > 0 && ( ri.gameId == COM_GAME_FAKK2 || ri.gameId == COM_GAME_MOHAA ) ) {
+		// Heavy Metal: F.A.K.K.2's saveshot: the same reduction in colour, as a
+		// TGA's bytes (../compat/alice_saveshot.h), with the screen's gamma as
+		// a screenshot of it keeps. Medal of Honor's save picture is reduced
+		// the same way (OpenMoHAA R_ResampledScreenShot, reference only).
+		FNTECH3_Fakk2Saveshot( source, gls.captureWidth, gls.captureHeight,
+			gls.captureWidth * 3 + padlen, rgba, side, aliceHeight );
+		ri.Hunk_FreeTempMemory( allsource );
+		R_GammaCorrect( rgba, side * aliceHeight * 3 );
+	} else if ( aliceHeight > 0 ) {
 		// American McGee's Alice's saveshot: side by aliceHeight grey pixels
 		// reduced from the frame exactly as it was read, as retail reduces
 		// its own glReadPixels (../compat/alice_saveshot.h).
@@ -2180,8 +2193,8 @@ RE_CaptureAliceSaveshot
 
 American McGee's Alice's savegame picture, taken from the next frame drawn
 through the same capture as Elite Force's: width by height pixels of grey RGB,
-the bottom row first, with done set once they are there. A picture of NULL
-withdraws a request that has not been met.
+or F.A.K.K.2's in colour, the bottom row first, with done set once they are
+there. A picture of NULL withdraws a request that has not been met.
 ==================
 */
 static void RE_CaptureAliceSaveshot( byte *rgb, int width, int height, qboolean *done ) {
@@ -2740,8 +2753,11 @@ static void R_Register( void )
 	//
 	r_fullbright = ri.Cvar_Get( "r_fullbright", "0", CVAR_ARCHIVE | CVAR_LATCH | CVAR_PROTECTED | CVAR_CLOUD );
 	ri.Cvar_SetDescription( r_fullbright, "Debugging tool to render the entire level without lighting." );
-	/* American McGee's Alice registers none (alice.exe 0x00475136). */
-	r_overBrightBits = ri.Cvar_Get( "r_overBrightBits", ri.gameId == COM_GAME_ALICE ? "0" : "1",
+	/* Neither Ritual engine registers an overbright bit: Heavy Metal: F.A.K.K.2
+	 * (fakk2.exe 1.02 0x00460d74), whose lightmaps take r_mapOverBrightBits'
+	 * whole shift and saturate where retail's do, and American McGee's Alice
+	 * (alice.exe 0x00475136). */
+	r_overBrightBits = ri.Cvar_Get( "r_overBrightBits", COM_GAME_ID_IS_RITUAL( ri.gameId ) ? "0" : "1",
 		CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_SetDescription( r_overBrightBits, "Sets the intensity of overall brightness of texture pixels." );
 	// Elite Force's maps are lit for one overbright bit (retail default "1").
@@ -2798,10 +2814,10 @@ static void R_Register( void )
 	// Alice ships detail stages off and switches them while drawing, from its
 	// own menu (alice.exe 0x004750b5 registers "0", archived, not latched;
 	// the stage is skipped at 0x00492a60).
-	r_detailTextures = ri.Cvar_Get( "r_detailtextures", ri.gameId == COM_GAME_ALICE ? "0" : "1",
-		ri.gameId == COM_GAME_ALICE ? CVAR_ARCHIVE_ND : CVAR_ARCHIVE_ND | CVAR_LATCH );
+	r_detailTextures = ri.Cvar_Get( "r_detailtextures", COM_GAME_ID_IS_RITUAL( ri.gameId ) ? "0" : "1",
+		COM_GAME_ID_IS_RITUAL( ri.gameId ) ? CVAR_ARCHIVE_ND : CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_SetDescription( r_detailTextures, "Enables usage of shader stages flagged as detail." );
-	if ( ri.gameId == COM_GAME_ALICE ) {
+	if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) ) {
 		// alice.exe 0x004759ac..0x00475b24: names, defaults and flags as retail
 		// registers them. r_shaderlod is read while shaders are parsed.
 		r_shaderlod = ri.Cvar_Get( "r_shaderlod", "0.5", CVAR_ARCHIVE_ND );
@@ -2827,6 +2843,37 @@ static void R_Register( void )
 		r_stipplelines = ri.Cvar_Get( "r_stipplelines", "1", CVAR_ARCHIVE_ND );
 		ri.Cvar_SetDescription( r_stipplelines, "Applies each game debug line's own stipple and width." );
 		R_AliceRegisterCvars();
+	} else if ( ri.gameId == COM_GAME_MOHAA ) {
+		R_MOHAARegisterLensFlareCvars();
+		// its permanent decals, built into the world (tr_mohaa_world.c):
+		// the advanced options' "Static Decals" box sets it, and so do the
+		// detail configs, high.cfg and medium.cfg on and low.cfg off
+		// (Pak0.pk3 ui/advancedoptions.urc)
+		r_drawstaticdecals = ri.Cvar_Get( "r_drawstaticdecals", "1", CVAR_ARCHIVE );
+		ri.Cvar_SetDescription( r_drawstaticdecals, "Draws the level's permanent decals." );
+		// the smallest decal cut on terrain; its default, OpenMoHAA's,
+		// keeps every bullet hole off it (tr_mohaa_marks_surface.h)
+		ter_minMarkRadius = ri.Cvar_Get( "ter_minMarkRadius", "8", CVAR_ARCHIVE );
+		ri.Cvar_SetDescription( ter_minMarkRadius, "Decals no larger than this leave no mark on terrain." );
+		// Medal of Honor's view reads the same far plane and sky portal
+		// overrides (R_GAME_HAS_RITUAL_VIEW); its engine keeps the far plane
+		// ones cheat-protected (OpenMoHAA renderergl1/tr_init.c)
+		r_farplane = ri.Cvar_Get( "r_farplane", "0", CVAR_CHEAT );
+		ri.Cvar_SetDescription( r_farplane, "Overrides the level's far plane distance when nonzero; r_farplane_color and r_farplane_nocull then apply." );
+		r_farplane_color = ri.Cvar_Get( "r_farplane_color", ".5 .5 .5", CVAR_CHEAT );
+		ri.Cvar_SetDescription( r_farplane_color, "Far plane fog colour used with r_farplane." );
+		r_farplane_nocull = ri.Cvar_Get( "r_farplane_nocull", "0", CVAR_CHEAT );
+		ri.Cvar_SetDescription( r_farplane_nocull, "With r_farplane, keep drawing what lies beyond the far plane." );
+		r_farplane_nofog = ri.Cvar_Get( "r_farplane_nofog", "0", CVAR_CHEAT );
+		ri.Cvar_SetDescription( r_farplane_nofog, "Disables the far plane's distance fog." );
+		r_farplane_pulse = ri.Cvar_Get( "r_farplane_pulse", "0", CVAR_CHEAT );
+		ri.Cvar_SetDescription( r_farplane_pulse, "With r_farplane, pulls the far plane in by up to this much along a sine wave." );
+		r_farplane_pulseFrequency = ri.Cvar_Get( "r_farplane_pulseFrequency", "0", CVAR_CHEAT );
+		ri.Cvar_SetDescription( r_farplane_pulseFrequency, "Period in seconds of r_farplane_pulse." );
+		r_skyportal = ri.Cvar_Get( "r_skyportal", "0", 0 );
+		ri.Cvar_SetDescription( r_skyportal, "Draws the level's sky portal from r_skyportal_origin instead of its own origin." );
+		r_skyportal_origin = ri.Cvar_Get( "r_skyportal_origin", "0 0 0", 0 );
+		ri.Cvar_SetDescription( r_skyportal_origin, "Sky portal origin used with r_skyportal." );
 	}
 	r_texturebits = ri.Cvar_Get( "r_texturebits", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_SetDescription( r_texturebits, "Number of texture bits per texture." );
@@ -2860,8 +2907,8 @@ static void R_Register( void )
 	// Alice's r_lodbias is a fraction taken off a TIKI model's level of
 	// detail, archived with a default of 0 (alice.exe 0x0047532e); -2 would
 	// hold every model at full detail.
-	r_lodbias = ri.Cvar_Get( "r_lodbias", ri.gameId == COM_GAME_ALICE ? "0" : "-2", CVAR_ARCHIVE_ND );
-	if ( ri.gameId == COM_GAME_ALICE ) {
+	r_lodbias = ri.Cvar_Get( "r_lodbias", COM_GAME_ID_IS_RITUAL( ri.gameId ) ? "0" : "-2", CVAR_ARCHIVE_ND );
+	if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) ) {
 		ri.Cvar_SetDescription( r_lodbias, "Lowers the level of detail of models: subtracted from the fraction of each model's vertices drawn (0 to 1); negative raises it." );
 	} else {
 		ri.Cvar_SetDescription( r_lodbias, "Sets the level of detail of in-game models:\n -2: Ultra (further delays LOD transition in the distance)\n -1: Very High (delays LOD transition in the distance)\n 0: High\n 1: Medium\n 2: Low" );
@@ -3472,7 +3519,12 @@ static void R_Register( void )
 	r_lerpmodels = ri.gameId == COM_GAME_QUAKE3_IHV ? ri.Cvar_Get( "r_lerpmodels", "1", 0 ) : NULL;
 	// Alice registers r_lodscale without cheat protection (alice.exe
 	// 0x00475687) and caps it at 20 where it is read.
-	r_lodscale = ri.Cvar_Get( "r_lodscale", "5", ri.gameId == COM_GAME_ALICE ? 0 : CVAR_CHEAT );
+	// Medal of Honor's r_lodscale is its skeletal models' own, a player
+	// setting its advanced options set from 0.25 to 1.1 (Pak0.pk3
+	// ui/advancedoptions.urc), which the engine reads
+	// (code/mohaa/mohaa_render_api.cpp).
+	r_lodscale = ri.Cvar_Get( "r_lodscale", ri.gameId == COM_GAME_MOHAA ? "1.1" : "5",
+		COM_GAME_ID_IS_RITUAL( ri.gameId ) ? 0 : ri.gameId == COM_GAME_MOHAA ? CVAR_ARCHIVE : CVAR_CHEAT );
 	ri.Cvar_SetDescription( r_lodscale, "Set scale for level of detail adjustment." );
 	r_norefresh = ri.Cvar_Get ("r_norefresh", "0", CVAR_CHEAT);
 	ri.Cvar_SetDescription( r_norefresh, "Bypasses refreshing of the rendered scene." );
@@ -3713,7 +3765,7 @@ void R_Init( void ) {
 
 	R_InitFreeType();
 
-	if ( ri.gameId == COM_GAME_ALICE ) {
+	if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) || ri.gameId == COM_GAME_MOHAA ) {
 		R_AliceInitLensFlares();
 	}
 
@@ -3900,6 +3952,7 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 
 	re.MarkFragments = R_MarkFragments;
 	re.MarkRTCWFragments = R_MarkRTCWFragments;
+	re.MarkMOHAAFragments = R_MarkMOHAAFragments;
 	re.AddRTCWCoronaToScene = RE_AddRTCWCoronaToScene;
 	re.LerpTag = R_LerpTag;
 	re.LerpTagEntity = R_LerpTagEntity;
@@ -3921,6 +3974,7 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 	re.AddIHVParticlesToScene = RE_AddIHVParticlesToScene;
 	re.AddIHVEntitiesToScene = RE_AddIHVEntitiesToScene;
 	re.GetAliceTikiHandle = RE_GetAliceTikiHandle;
+	re.RegisterMOHAATiki = RE_RegisterMOHAATiki;
 	re.GetShaderImageSize = RE_GetShaderImageSize;
 	re.AliceSwipeBegin = RE_AliceSwipeBegin;
 	re.AliceSwipePoint = RE_AliceSwipePoint;

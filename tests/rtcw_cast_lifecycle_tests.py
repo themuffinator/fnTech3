@@ -18,6 +18,12 @@ def source():
 serverStatic_t svs{};
 int Com_GameIsRTCWSP(){return profile.id==COM_GAME_RTCW_SP;}
 int Com_GameIsRTCWMP(){return profile.id==COM_GAME_RTCW_MP;}
+int Com_GameIsMOHAA(){return profile.id==COM_GAME_MOHAA;}
+int Com_GameIsRitual(){return profile.id==COM_GAME_ALICE||profile.id==COM_GAME_FAKK2;}
+// Q3Test drops a client each release's way (server_q3test_net.hpp); the
+// shared path stands in for its catalog entry here.
+int Com_GameIsQ3Test(){return 0;}
+void SV_Q3TestDropClient(client_t*,const char*){assert(false);}
 int Com_GameClientLimit(){return Com_GameIsRTCW()?128:64;}
 static cvar_t timeout{},zombieTime{},quitOnEmpty{},maxclients{},gametype{};
 cvar_t *sv_timeout=&timeout,*sv_zombietime=&zombieTime,*sv_quitOnEmpty=&quitOnEmpty,*sv_maxclients=&maxclients;
@@ -57,6 +63,7 @@ static void SV_BuildClientSnapshot(client_t *c){assert(c==svs.clients);events.em
 void MSG_Init(msg_t *msg,byte *data,int size){*msg={};msg->data=data;msg->maxsize=size;events.emplace_back("message");}
 void MSG_WriteLong(msg_t *msg,int n){assert(n==73&&msg->allowoverflow);events.emplace_back("ack");}
 void MSG_STVEFBitstream(msg_t*){assert(false);} // no Elite Force client is driven here
+void SV_MOHAASendClientSnapshot(client_t*){assert(false);} // nor any Medal of Honor client
 void SV_UpdateServerCommandsToClient(client_t*,msg_t*){events.emplace_back("commands");}
 static void SV_WriteSnapshotToClient(const client_t*,msg_t *msg){events.emplace_back("writeSnapshot");msg->overflowed=overflow?qtrue:qfalse;}
 void MSG_Clear(msg_t *msg){msg->cursize=0;events.emplace_back("clear");}

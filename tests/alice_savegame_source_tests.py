@@ -71,10 +71,10 @@ class AliceSavegameSourceTests(unittest.TestCase):
     def test_alice_takes_the_place_of_the_quake_iii_map_set(self):
         commands = read('code/server/sv_ccmds.cpp')
         add = function(commands, 'void SV_AddOperatorCommands( void ) {')
-        branch = add[add.index('if ( Com_GameIsAlice() ) {'):]
+        branch = add[add.index('if ( Com_GameIsRitual() ) {'):]
         self.assertLess(branch.index('SV_AliceAddCommands();'), branch.index('return;'))
         # The Quake III set is added after the Alice branch has returned.
-        self.assertLess(add.index('if ( Com_GameIsAlice() ) {'), add.index('SV_AddCommandSet( mapCommands );'))
+        self.assertLess(add.index('if ( Com_GameIsRitual() ) {'), add.index('SV_AddCommandSet( mapCommands );'))
         registered = function(self.save, 'void SV_AliceAddCommands( void ) {')
         for name in ('map', 'devmap', 'gamemap', 'restart', 'savegame', 'autosavegame',
                      'loadgame', 'loadbrokengame', 'pause'):
@@ -84,17 +84,18 @@ class AliceSavegameSourceTests(unittest.TestCase):
 
     def test_the_spawn_is_alice_only_where_it_differs(self):
         spawn = function(self.init, 'void SV_SpawnServer( const char *mapname, qboolean killBots ) {')
-        self.assertIn('if ( Com_GameIsAlice() ) {\n\t\tbspName = SV_AlicePrepareSpawn( mapname, aliceBsp, sizeof( aliceBsp ) );', spawn)
+        self.assertIn('if ( Com_GameIsRitual() ) {\n\t\tbspName = SV_AlicePrepareSpawn( mapname, aliceBsp, sizeof( aliceBsp ) );', spawn)
         self.assertIn('CM_LoadMap( va( "maps/%s.bsp", bspName ), qfalse, &checksum );', spawn)
         self.assertIn('Cvar_Set( "mapname", mapname );', spawn)
-        self.assertIn('if ( !Com_GameIsAlice() ) {\n\t\tCvar_Set( "nextmap", "map_restart 0" );', spawn)
-        self.assertIn('if ( Com_GameIsAlice() ) {\n\t\tSV_AliceFlushModels();', spawn)
-        self.assertIn('const qboolean aliceRestored = Com_GameIsAlice() ? SV_AliceSpawnLevel() : qfalse;', spawn)
+        self.assertIn('if ( !Com_GameIsRitual() ) {\n\t\tCvar_Set( "nextmap", "map_restart 0" );', spawn)
+        self.assertIn('if ( Com_GameIsRitual() ) {\n\t\tSV_AliceFlushModels();', spawn)
+        self.assertIn('const qboolean aliceRestored = Com_GameIsRitual() ? SV_AliceSpawnLevel() : qfalse;', spawn)
         self.assertIn('SV_AliceSettle( aliceRestored );', spawn)
         # Every other profile keeps its three frames and its fourth.
         self.assertIn('SV_Indices( 3 ) ) {\n\t\t\t(void)ignored;\n\t\t\tCbuf_Wait();\n'
                       '\t\t\tVM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );', spawn)
-        last = spawn[spawn.index('} else if ( !Com_GameIsQuake3IHV() && !Com_GameIsAlice() ) {'):]
+        # (Medal of Honor settles its own way and runs no fourth either)
+        last = spawn[spawn.index('} else if ( !Com_GameIsQuake3IHV() && !Com_GameIsRitual() && !Com_GameIsMOHAA() ) {'):]
         self.assertLess(last.index('VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );'), last.index('\n\t}\n'))
         # The flush follows the client's shutdown and precedes the new game.
         self.assertLess(spawn.index('CL_ShutdownAll();'), spawn.index('SV_AliceFlushModels();'))
@@ -155,7 +156,7 @@ class AliceSavegameSourceTests(unittest.TestCase):
 
     def test_the_error_unwind_drops_a_pending_load(self):
         common = read('code/qcommon/common.c')
-        self.assertIn('if ( Com_GameIsAlice() ) {\n\t\tSV_AliceSaveAbort();', common)
+        self.assertIn('if ( Com_GameIsRitual() ) {\n\t\tSV_AliceSaveAbort();', common)
 
     def test_the_renderers_take_the_saveshot_from_the_frame(self):
         self.assertIn('void (*CaptureAliceSaveshot)( byte *rgb, int width, int height, qboolean *done );',

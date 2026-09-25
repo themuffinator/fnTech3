@@ -1,20 +1,20 @@
 # Console Guide
 
-FnQL treats the console as its own configurable subsystem rather than as an afterthought hanging off HUD or menu scaling. This guide walks through the settings that shape how the console looks, feels, and behaves in day-to-day use.
+fnTech3 treats the console as its own configurable subsystem rather than as an afterthought hanging off HUD or menu scaling. Every game with a client gets the same console -- scaling, smooth scrolling, completion, selection and clipboard -- drawn in that game's own font and art, with the notify and chat lines its original engine drew. This guide walks through the settings that shape how the console looks, feels, and behaves in day-to-day use.
 
-For FOV, HUD, menu, and cinematic presentation controls, see the [Aspect Handling guide](ASPECT_CORRECTION.md). Engine HUD/FOV correction is available for Q3 and RTCW; retail Quake Live cgame owns its projection.
+For FOV, HUD, menu, and cinematic presentation controls, see the [Aspect Handling guide](ASPECT_CORRECTION.md). Engine HUD/FOV correction is available for Quake III Arena and RTCW; the other games' modules own their projection.
 
 ## Overview
 
 If you just want the short version: you can choose whether the console stays full-width or centered, whether it scrolls instantly or smoothly, how it looks, and how much modern input help you want while typing.
 
-Under the Quake Live profile, console-owned text uses Quake Live's bundled `fonts/droidsansmono.ttf` through the renderer's retail-compatible FontStash/STB path. This covers scrollback, input, completion results, notify lines, live chat, and the clock/version labels. Every other profile draws the console with its own bitmap charset, as its original engine does: the renderer does not load Quake Live's faces, or a system substitute for them, outside Quake Live. The character cell belongs to the profile too. Quake Live uses retail QL's 12×24 base cell and half-size default geometry, exposed as the normalized `con_scale 1`; at the observed 768-pixel retail reference height this is a 6×12 cell. Quake III, RTCW, Enemy Territory and Elite Force use their original 8×16 small character, which `con_scaleUniform 1` scales with the 640×480 virtual screen as FnQuake3 does: 8×16 at 640×480, 12×24 at 1280×720. Font sizes, baselines, glyph bounds, mono advances, kerning, and ascender/descender handling come from the same historical rasterizer family as retail. If the host TTF lane is unavailable or no retail TTF can be mounted, FnQL falls back to the legacy bitmap charset so the console remains usable.
+Under the Quake Live profile, console-owned text uses Quake Live's bundled `fonts/droidsansmono.ttf` through the renderer's retail-compatible FontStash/STB path. This covers scrollback, input, completion results, notify lines, live chat, and the clock/version labels. Every other profile draws the console with its own bitmap charset, as its original engine does: Quake III Arena, RTCW single player and F.A.K.K.2 use `gfx/2d/bigchars`, RTCW multiplayer its HUD font `gfx/2d/hudchars`, Enemy Territory `gfx/2d/consolechars`, Elite Force its `gfx/2d/charsgrid_med` grid, and Alice a sheet built from `courier-14`, the font its console window used. The renderer does not load Quake Live's faces, or a system substitute for them, outside Quake Live. The character cell belongs to the profile too. Quake Live uses retail QL's 12×24 base cell and half-size default geometry, exposed as the normalized `con_scale 1`; at the observed 768-pixel retail reference height this is a 6×12 cell. Quake III, RTCW, Enemy Territory and Elite Force use their original 8×16 small character, which `con_scaleUniform 1` scales with the 640×480 virtual screen as FnQuake3 does: 8×16 at 640×480, 12×24 at 1280×720. Font sizes, baselines, glyph bounds, mono advances, kerning, and ascender/descender handling come from the same historical rasterizer family as retail. If the host TTF lane is unavailable or no retail TTF can be mounted, the Quake Live console falls back to the legacy bitmap charset so it remains usable.
 
 - `con_screenExtents 0`: Use the full screen width for the console display.
 - `con_screenExtents 1`: Keep the entire console display in centered 4:3 space.
 - `con_scaleUniform 0`: Keep the console font in native pixel sizing.
 - `con_scaleUniform 1`: Scale the console font from centered 4:3 space and relayout it within the current console extents.
-- `con_scale`: Set the base console font size before the active scaling mode is applied. The default is `1`; the archived FnQL scaling range remains supported.
+- `con_scale`: Set the base console font size before the active scaling mode is applied. The default is `1`; values saved by FnQL configs keep working.
 - `con_speed`: Control how quickly the console opens and closes.
 - `con_scrollLines`: Control how many lines a normal console scroll step moves.
 - `con_scrollSmooth 0`: Keep console scrollback movement immediate.
@@ -110,12 +110,13 @@ Console input now exposes live, tab-based completion instead of only dumping a s
 Once the console is shut, each profile draws what its original engine leaves on screen.
 
 - Quake Live draws its retail live chat overlay while chat is open: a translucent strip near the bottom of the screen, its prompt in the console font, and a field its cgame sizes. It draws no recent console lines and has no `con_notifytime`.
-- Every other profile draws its latest console lines at the top of the screen, in the console's own cell, for `con_notifytime` seconds, then its chat prompt and field under them:
+- Quake III Arena, RTCW, Enemy Territory and Elite Force draw their latest console lines at the top of the screen, in the console's own cell, for `con_notifytime` seconds, then their chat prompt and field under them:
   - Quake III and RTCW single player: `say:` or `say_team:` in big characters. RTCW single player also draws them over a cinematic.
   - RTCW multiplayer: the same, with the prompt translated, and nothing at all while the limbo menu is open.
   - Enemy Territory: the same, with a `say_fireteam:` prompt, but only while the cheat `con_drawnotify` is set; its cgame draws its own chat and messages. Its engine's chat commands are `clMessageMode`, `clMessageMode2` and `clMessageMode3`.
   - Elite Force Holomatch: `say:` or `say_team:` in small characters.
   - Elite Force single player: the lines only. Its `messagemode` readies the field but opens nothing, as `stvoy.exe`'s does.
+- Alice and F.A.K.K.2 draw no notify lines, as their original engine drew none; console text reaches the screen only in the console.
 - `con_notifytime` defaults to each engine's value: 3, or 7 in RTCW multiplayer and Enemy Territory, or 5 in Elite Force Holomatch.
 - `cl_conXOffset` moves the lines in Quake III, RTCW and Enemy Territory, whose engines have it.
 - In Quake III, RTCW and Enemy Territory a menu or the cgame's own input hides the chat line, and the lines except at intermission. Elite Force hides neither.
@@ -123,7 +124,7 @@ Once the console is shut, each profile draws what its original engine leaves on 
 
 ## Console Chat
 
-When you press `Enter` on plain text in the console while connected, FnQL can either keep the legacy `cmd say` path or send the input more directly as quoted chat.
+When you press `Enter` on plain text in the console while connected, fnTech3 can either keep the legacy `cmd say` path or send the input more directly as quoted chat.
 
 - `con_sayRaw 0` keeps the legacy behavior and remains the default.
 - `con_sayRaw 1` sends plain console text through the raw quoted `say` path instead, which preserves the input line more closely than the tokenized `cmd say` route.
@@ -144,7 +145,7 @@ The console background and accent colors can be customized directly, so you can 
 - `con_versionColor`: Set the version and clock text color with `R G B` values from `0-255`.
 - `con_fade 1`: Fade the console background, text, and accents in and out during open and close transitions.
 
-`con_backgroundStyle 1` is the default in every profile. The textured style draws the profile's own console shader. Under RTCW and Enemy Territory, once the console is at least half open, the game's logo is laid over that background, under the text, as each retail engine does: RTCW SP's `console2` over `console`, and RTCW MP's and Enemy Territory's `console2-16bit` over `console-16bit`. The logo keeps its 4:3 shape, centered in the console's width. RTCW MP also writes console text in its HUD font, `gfx/2d/hudchars`, as retail does.
+`con_backgroundStyle 1` is the default in every profile. The textured style draws the profile's own console shader; Alice and F.A.K.K.2 ship no console art, so both styles draw a flat background there. Under RTCW and Enemy Territory, once the console is at least half open, the game's logo is laid over that background, under the text, as each retail engine does: RTCW SP's `console2` over `console`, and RTCW MP's and Enemy Territory's `console2-16bit` over `console-16bit`. The logo keeps its 4:3 shape, centered in the console's width. RTCW MP also writes console text in its HUD font, `gfx/2d/hudchars`, as retail does.
 
 Legacy compatibility notes:
 

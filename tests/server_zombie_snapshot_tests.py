@@ -73,6 +73,15 @@ EMPTY = {
     'NETCHAN_WIRE_STVEF_SP': STVEF_SP,
     'NETCHAN_WIRE_ALICE': ALICE,
     'NETCHAN_WIRE_Q3_IHV': None,
+    # Medal of Honor's clients are sent the game's own records by
+    # SV_MOHAASendClientSnapshot (server_mohaa_game.hpp), which
+    # SV_SendClientSnapshot takes before this writer; msg.cpp's
+    # MSG_LayoutIsServed refuses its layout here rather than guess one.
+    'NETCHAN_WIRE_MOHAA': None,
+    # Q3Test's clients are served by their own sessions
+    # (server_q3test_net.hpp), which SV_SendClientMessages takes first.
+    'NETCHAN_WIRE_Q3TEST_A': None,
+    'NETCHAN_WIRE_Q3TEST_B': None,
 }
 # What a zombie's snapshot carries after its entities: Alice's empty sound
 # block is one clear presence bit (alice.exe 0x00456cff).
@@ -90,6 +99,7 @@ def wire_profiles():
 PRELUDE = r'''
 #include "code/server/server.h"
 #include "code/qcommon/netchan_safety.hpp"
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
 #include <memory>
@@ -188,6 +198,10 @@ static msg_t Header( const Case &c, const client_t &client, const msg_t &out, bo
 	if ( MSG_ReadByte( &in ) != svc_snapshot ) Fail( c, "opcode" );
 	if ( SV_LegacyFraming( &client ) && MSG_ReadLong( &in ) != client.lastClientCommand ) Fail( c, "legacy acknowledgement" );
 	if ( MSG_ReadLong( &in ) != sv.time ) Fail( c, "server time" );
+	// Ritual's clients read the server's time residual, clamped to a byte,
+	// before the delta byte (alice.exe 0x0042dc6e, fakk2.exe 0x0042385e).
+	if ( c.profile == NETCHAN_WIRE_ALICE && MSG_ReadByte( &in ) != std::clamp( sv.timeResidual, 0, 255 ) )
+		Fail( c, "time residual" );
 	if ( MSG_ReadByte( &in ) != 0 ) Fail( c, "delta" );
 	const int flags = MSG_ReadByte( &in );
 	if ( ( ( flags & SNAPFLAG_NOT_ACTIVE ) != 0 ) == active ) Fail( c, "snapshot flags" );
@@ -280,6 +294,8 @@ static void Active( const Case &c ) {
 }
 
 int main() {
+	// A residual no delta, flag or area byte could be mistaken for.
+	sv.timeResidual = 37;
 	for ( const Case &c : cases ) {
 		if ( c.refused ) {
 			if ( !Refused( c ) ) Fail( c, "a profile without a layout wrote a snapshot" );
@@ -328,6 +344,8 @@ def production():
              'write': function(snapshot, 'static void SV_WriteSnapshotToClient( const client_t *client, msg_t *msg ) {')}
     if 'SV_WriteAliceSnapshotTail(' in parts['write']:
         parts = dict(tail=function(snapshot, 'static void SV_WriteAliceSnapshotTail('), **parts)
+    if 'SV_WriteRitualTimeResidual(' in parts['write']:
+        parts = dict(residual=function(snapshot, 'static void SV_WriteRitualTimeResidual('), **parts)
     return parts
 
 

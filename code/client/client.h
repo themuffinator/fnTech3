@@ -564,8 +564,13 @@ qboolean CL_LegacyFraming( void );
 static inline float CL_CharsetCellWidth( void ) {
 	return Com_GameIsSTVEF() ? 0.03125f : 0.0625f;
 }
+// Ritual's protocol 1 is one wire for Alice and F.A.K.K.2, whose engines ring
+// 128 and 64 commands (alice.exe 0x0042a220, fakk2.exe 1.02 0x0041ffaf); the
+// profile holds its engine's count.
 static inline int CL_ReliableCommandLimit( void ) {
-	return Netchan_ReliableCommandLimit( CL_ActiveWireProfile() );
+	const netchanWireProfile_t wire = CL_ActiveWireProfile();
+	return wire == NETCHAN_WIRE_ALICE ? Com_GameProfile()->bots.reliableCommands
+		: Netchan_ReliableCommandLimit( wire );
 }
 
 void CL_InitDownloads( void );
@@ -636,6 +641,7 @@ float *QDECL CL_AliceGetCameraOffset( qboolean *lookActive, qboolean *resetView 
 void CL_AliceSetCursorMode( qboolean on );
 qboolean CL_AliceCursorMode( void );
 void CL_AliceGetMouseState( int *x, int *y, int *buttons );
+void CL_AliceSetMousePosition( int x, int y );
 qboolean CL_AliceMouseButtonEvent( int key, qboolean down );
 
 //
@@ -643,6 +649,9 @@ qboolean CL_AliceMouseButtonEvent( int key, qboolean down );
 //
 extern  field_t     chatField;
 extern  field_t     g_consoleField;
+// Medal of Honor's chat line target: 0 all, -1 the team, else a client
+// (set by its client game's import 159, cl_mohaa_cgame.cpp).
+extern  int         chat_dmTarget;
 
 void Field_Draw( field_t *edit, int x, int y, int width, qboolean showCursor, qboolean noColorEscape );
 void Field_BigDraw( field_t *edit, int x, int y, int width, qboolean showCursor, qboolean noColorEscape );
@@ -650,6 +659,8 @@ void CL_ToggleMenu_f( void );
 // Alice's alt and ctrl binding tables and their commands.
 void CL_AliceInitKeyCommands( void );
 void CL_AliceShutdownKeyCommands( void );
+// A probe's synthetic input: in_synthesize and its command-line switch.
+void CL_InitSyntheticInput( void );
 void Key_AliceWriteModifierBindings( fileHandle_t f, int keynum );
 
 //
@@ -692,6 +703,10 @@ void Con_PageDown( int lines );
 void Con_Top( void );
 void Con_Bottom( void );
 void Con_Close( void );
+// The chat line opened, to all or to the team, and closed; Medal of Honor's
+// client game opens it through import 159.
+void Con_OpenChat( qboolean team );
+void Con_CloseChat( void );
 
 void CL_LoadConsoleHistory( void );
 void CL_SaveConsoleHistory( void );
@@ -796,7 +811,7 @@ void CIN_UploadCinematic(int handle);
 void CIN_CloseAllVideos(void);
 
 //
-// cl_hud.cpp -- legacy cgame presentation; inert for Quake Live
+// cl_hud.cpp -- legacy cgame presentation; inert for Quake Live and MoHAA
 //
 void CL_HudInit( void );
 void CL_HudShutdown( void );
@@ -806,6 +821,15 @@ void CL_HudEndFrame( void );
 void CL_HudRegisterShaderName( qhandle_t shader, const char *name );
 void CL_HudAdjustRefdef( refdef_t *refdef );
 qboolean CL_HudAdjustPic( float *x, float *y, float *w, float *h, qhandle_t shader );
+// A screen of the game's own that owns the frame: its HUD rules pause and the
+// screen is one centred 4:3 composite, or it is drawn stretched as retail drew
+// it (one holding world views of its own). Set by the client each frame.
+enum { HUD_PANEL_NONE, HUD_PANEL_CENTERED, HUD_PANEL_STRETCHED };
+void CL_HudSetGamePanel( int panel );
+// The screen a client game about to read its glconfig is told it has: the 4:3
+// frame while HUD correction is on, so its own views and the points it
+// projects onto its 2D are 4:3 ones; unchanged otherwise.
+void CL_HudModuleScreen( int *width, int *height );
 void CL_HudDrawStretchPic( float x, float y, float w, float h,
 	float s1, float t1, float s2, float t2, qhandle_t shader );
 

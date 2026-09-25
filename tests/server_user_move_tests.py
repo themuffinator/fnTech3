@@ -30,6 +30,7 @@ constexpr int MAX_RELIABLE_COMMANDS = 64;
 constexpr int PACKET_BACKUP = 32;
 constexpr int PACKET_MASK = PACKET_BACKUP - 1;
 [[maybe_unused]] constexpr int ERR_DROP = 1;
+typedef enum { qfalse = 0, qtrue } qboolean;
 enum { CS_ZOMBIE, CS_PRIMED, CS_ACTIVE };
 struct usercmd_t { int serverTime = 0; };
 struct msg_t {
@@ -99,6 +100,13 @@ void SV_ClientThink(client_t *client, const usercmd_t *cmd) {
     ++client->thought;
     client->lastUsercmd = *cmd;
 }
+// Medal of Honor's reader (server_mohaa_game.hpp) owns its moves whole.
+static int mohaaMoves;
+static qboolean mohaaDelta = qfalse;
+void SV_MOHAAUserMove(client_t *, msg_t *, qboolean delta) {
+    ++mohaaMoves;
+    mohaaDelta = delta;
+}
 
 // The entire SV_UserMove implementation is inserted here from sv_client.cpp.
 @SV_USER_MOVE@
@@ -138,6 +146,20 @@ int main() {
                 CHECK(peer.frames[1].messageAcked == 1000);
             }
         }
+    }
+    CHECK(mohaaMoves == 0);
+    // Medal of Honor's moves carry its own command record, so a client on its
+    // wire is handed to its game's reader, delta flag and all, and no Quake
+    // command is decoded, dropped or executed here.
+    for (const bool delta : {false, true}) {
+        client_t client{};
+        client.netchan.wireProfile = NETCHAN_WIRE_MOHAA;
+        msg_t moves{};
+        moves.expectedProfile = NETCHAN_WIRE_MOHAA;
+        const int before = mohaaMoves;
+        SV_UserMove(&client, &moves, delta);
+        CHECK(mohaaMoves == before + 1 && mohaaDelta == (delta ? qtrue : qfalse));
+        CHECK(moves.decoded == 0 && client.dropped == 0 && client.thought == 0);
     }
     // Loading an SP save rewinds the game clock while retaining the local
     // connection. Other profiles must continue rejecting duplicate/old input.

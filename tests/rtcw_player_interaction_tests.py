@@ -30,6 +30,8 @@ int Com_GameIsRTCWSP() { return profile==COM_GAME_RTCW_SP; }
 int Com_GameIsRTCWMP() { return profile==COM_GAME_RTCW_MP; }
 int Com_GameIsSTVEFMP() { return profile==COM_GAME_STVEF_MP; }
 int Com_GameIsAlice() { return profile==COM_GAME_ALICE; }
+int Com_GameIsRitual() { return profile==COM_GAME_ALICE || profile==COM_GAME_FAKK2; }
+int Com_GameIsMOHAA() { return profile==COM_GAME_MOHAA; }
 static int catcher, anykeydown, com_frameTime=100;
 static unsigned frame_msec=16;
 static int Key_GetCatcher() { return catcher; }

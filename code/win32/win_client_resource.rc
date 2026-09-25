@@ -1,0 +1,7 @@
+// Client executable resources: the shared engine script plus the built-in
+// game icons. The resource compiler numbers RT_ICON images from 1 in every
+// script, so linking two icon-bearing .res files would collide; compiling both
+// through this one script keeps every image id unique. The dedicated server
+// links win_resource.rc alone.
+#include "win_resource.rc"
+#include "win_game_icons.rc"

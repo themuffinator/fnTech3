@@ -16,10 +16,13 @@ The port has two useful operating states:
 
 - `rtx_rt_mode 0` loads the RTX module but uses its complete raster path. This
   is the hardware-independent compatibility and module-lifecycle gate.
-- `rtx_rt_mode 2` requests native ray-tracing-pipeline composition. With
-  `rtx_rt_require 0`, an unsupported device retains the complete raster frame.
-  With `rtx_rt_require 1`, capability or primary-dispatch failure is fatal; a
-  raster-only frame is never reported as successful required-RT output.
+- `rtx_rt_mode 2` requests the path tracer, which traces through the Vulkan
+  ray-tracing pipeline or, where the device lacks it, a compute backend that
+  traverses the renderer's own bounding volume hierarchies (`rtx_rt_backend`
+  forces either). With `rtx_rt_require 0`, a device that can trace neither way
+  retains the complete raster frame. With `rtx_rt_require 1`, capability or
+  primary-dispatch failure is fatal; a raster-only frame is never reported as
+  successful required-RT output.
 
 The renderer module is supported, while native ray-tracing mode remains an
 explicit capability-gated path. Release-quality native-RT claims still
@@ -44,42 +47,53 @@ The required boundary is:
 - the retained FontStash host-text exports for drawing, measurement, metrics,
   and atlas diagnostics;
 - `RDF_NOFIRSTPERSON` behavior for retail capture and view composition;
-- no active renderer-side `r_fovCorrection` path for the QL profile. The shared
-  renderer's correction and `RDF_NOFOVCORRECTION` opt-out are for Q3/RTCW. Retail
-  Quake Live game modules already provide the compatible horizontal-FOV
-  behavior, so applying an inherited renderer correction would distort it a
-  second time.
+- the QL profile's own `r_fovCorrection` rule. Retail Quake Live game modules
+  keep a 4:3 vertical FOV and widen the horizontal one only for their four
+  `r_aspectRatio` shapes (4:3, 5:4, 16:10, 16:9). On any other shape the
+  renderer widens that horizontal FOV by the view's shape over the preset's.
+  On a preset's shape it changes nothing, so the modules' own correction is
+  never applied twice. The 4:3 rule the other games take is never applied to
+  QL.
 
 The renderer remains an engine module. It does not include, reconstruct, or
 replace retail `cgame`, UI, or `qagame` code.
 
-## Hybrid Frame Ownership
+## Frame Ownership
 
-Native RT is deliberately restricted to an eligible primary view: a full-size,
-center-eye, non-portal world view with compatible history and output extent.
-Portals, mirrors, stereo eyes, cube captures, partial viewports, HUD-only views,
-and other secondary work retain complete raster behavior.
+Native RT is deliberately restricted to an eligible primary view: a
+center-eye, non-portal world view inside the screen and covering at least half
+of it, traced into its own rectangle (Enemy Territory insets its main view by
+a pixel). Portals, mirrors, stereo eyes, cube captures, smaller viewports,
+HUD-only views, and other secondary work retain complete raster behavior.
 
 An eligible primary frame is composed in this order:
 
-1. The raster base draws the RT-eligible opaque world subset. It supplies
-   compatible depth and is also a complete fallback if tracing cannot run.
-2. Primary rays replace the eligible base color only after a successful trace
-   and scene-color transfer.
-3. The complementary raster overlay draws everything not owned by the native
-   subset: advertisements, entities, sky, portals, authored special stages,
-   alpha-tested and translucent content, decals, particles, beams, marks,
-   flares, fogged surfaces, and enhanced liquids.
+1. The raster base pass draws the surfaces the path tracer owns, for their
+   depth, and the sky and portal surfaces, whose raster colour is kept. With
+   the overlay it is also a complete raster frame if tracing cannot run.
+2. The path tracer rebuilds the frame's dynamic acceleration structures (or,
+   on the compute backend, bounding volume hierarchies), traces one primary
+   ray per pixel against the world, the entities' posed models and the
+   first-person weapon, shades the hits it owns with their shader materials
+   and the map's lights, denoises them with each moving entity's own motion
+   and writes them over the raster colour.
+3. The complementary raster overlay draws everything the tracer does not own:
+   blended, additive and decal surfaces, deformed geometry, particles,
+   beams, sprites, marks, flares, liquids and advertisements, plus the fog
+   pass of each traced surface inside a fog volume. A failed trace leaves the
+   base pass's complete raster draw, fog included, standing.
 4. World-space post effects, optional global fog, bloom, tone mapping, and the
    final SDR transform run in their defined order. Later HUD-only scenes remain
    raster-owned.
 
-The base and overlay classifiers must remain complements. A surface may not be
-silently omitted, and a blended or authored-special surface may not become an
-ordinary opaque RT material merely because its texture name resembles one.
-When fallback is permitted, a trace, copy, or capability failure preserves the
-already complete raster result. When strict RT is requested, the same failure
-must stop the run.
+The base and overlay classifiers are complements (`RB_DrawSurfIncluded`,
+`vk_rt_surface_owner`): every surface is drawn exactly once. Ownership comes
+from the shader's stages alone (`rt/rt_material.c`): the tracer owns a surface
+whose first stage writes depth without blending, or whose stages alpha-test;
+a blended or authored-special surface never becomes an opaque traced material
+because its texture name resembles one. When fallback is permitted, a trace,
+copy, or capability failure preserves the already complete raster result.
+When strict RT is requested, the same failure stops the run.
 
 ## Conservative Defaults
 
@@ -91,15 +105,15 @@ against the existing renderers.
 | --- | ---: | --- |
 | `rtx_rt_mode` | `0` | Load the module in raster fallback; native RT requires an explicit request and `vid_restart`. |
 | `rtx_rt_require` | `0` | Permit honest fallback unless the operator explicitly asks to fail closed. |
+| `rtx_rt_backend` | `0` | Trace with the ray-tracing pipeline where the device offers it, else with compute; forcing either is explicit. |
+| `rtx_rt_material_maps` | `1` | Traced materials take a texture pack's companion normal and material maps when one supplies them; retail paks carry none, so retail appearance is unchanged. |
 | `rtx_rt_async_overlap` | `0` | Keep experimental queue overlap disabled. |
-| `rtx_rt_dynamic_blas` | `0` | Keep experimental dynamic acceleration-structure participation disabled. |
-| `rtx_rt_material_heuristics` | `0` | Do not reinterpret retail surface flags or shader/image names as PBR material metadata. |
 | `r_globalFog` | `0` | Do not load or apply optional map fog sidecars by default. |
 | `r_fogMode` | `0` | Preserve the legacy BSP fog lookup unless analytic fog is selected explicitly. |
 | `r_liquid` | `0` | Preserve authored liquid stages without the enhanced screen-space layer by default. |
 | `r_underwater` | `0` | Keep the classic dry presentation while submerged unless the submerged-view compositor is requested. |
 | `r_hdr` | `1` | Use high-precision scene storage that stays display-referred, as in GLx and Vulkan. Scene-linear colour (sRGB texture decode and linear blending) needs `r_srgbTextures 1` and a non-legacy tone mapper, colour grading or an active HDR presentation. |
-| `r_surfaceLightProxies` | `0` | Do not infer analytic emitters from compiled surface-light metadata by default. |
+| `r_surfaceLightProxies` | `0` | Do not infer raster analytic emitters from compiled surface-light metadata by default. The path tracer lights surface lights from the map itself and does not use these proxies. |
 
 `rtx_rt_mode 1` is a capability-development mode that requests ray-query
 support while retaining raster output. It is not a hidden substitute for mode
@@ -127,9 +141,20 @@ The renderer also treats retail content as untrusted input:
 - WebUI dimensions are bounded before calculating RGBA upload bytes;
 - material ownership remains conservative. Broad texture-name guesses and
   unrelated surface flags are not compatibility evidence;
-- static collapsed base-times-lightmap surfaces carry independent BSP lightmap
-  UVs and a separate texture/scale in the native material contract. Complex,
-  animated, fogged, or blended authored stages retain raster ownership;
+- traced materials evaluate the shader's own stages (blend functions, colour,
+  alpha and texture-coordinate generators and modifiers, animated maps and
+  alpha tests) with bounded stage, modifier, material and texture indices;
+  blended, deformed and screen-mapped shaders retain raster ownership;
+- map lights, their grid and the sun are validated as finite and in range
+  before they reach a GPU buffer; a malformed entity or surface light is
+  dropped rather than clamped into the scene;
+- the compute backend's hierarchies are bounded (at most 2^22 triangles,
+  splits by surface-area heuristic to depth 40 and middle splits past it,
+  leaves of four triangles or, where splitting stops paying, up to 64), so
+  its shaders' 64-entry traversal stack cannot overflow;
+- companion material maps are looked up only under names no retail pak uses
+  for a pair of textures, through the shader image policy, and a map the
+  shader draws as a stage of its own is never taken as a companion;
 - trace/copy failures leave render-pass state recoverable for fallback, or
   terminate a strict-RT run explicitly.
 
@@ -176,8 +201,8 @@ The probe:
   writing beneath it;
 - creates a unique per-profile `fs_homepath` below `.tmp`;
 - forces `r_fullscreen 0` and a bounded custom window;
-- disables downloads, sound, optional presentation effects, dynamic BLAS, and
-  async overlap and material-name heuristics to isolate renderer activation;
+- disables downloads, sound, optional presentation effects and async overlap
+  to isolate renderer activation;
 - never connects to a server and never synthesizes a Steam ticket or successful
   authorization decision;
 - requests renderer diagnostics, captures a PNG screenshot, and collects all
@@ -262,18 +287,25 @@ native-RT runtime evidence.
   readback path. The RTX renderer rejects that subcommand without writing files
   instead of emitting a misleading single-face image; ordinary screenshots,
   clipboard BMP capture, AVI frames, and levelshots remain available.
-- Dynamic BLAS participation remains experimental and default-off. Dynamic
-  entities remain raster-visible. Explicit activation includes eligible posed
-  MD3/IQM/MDR and brush models in shadow and secondary radiance geometry, while
-  keeping primary composition raster-owned. First-person/depth-hacked and
-  no-shadow models are excluded from this caster path.
-- Portals, mirrors, stereo/cube views, partial viewports, and later secondary
-  scenes are deliberately raster-owned until they have independent history and
-  composition contracts.
+- Entity models are traced when their format is one the tracer poses (MD3,
+  MDR, IQM, MDC, MDS, ET meshes and brush models). Other entity types and
+  formats (sprites, beams, rails, IHV beams, Alice's TIKI models) keep raster
+  ownership and are neither shadowed nor reflected.
+- Portals, mirrors, stereo/cube views, viewports under half the screen, and
+  later secondary scenes are deliberately raster-owned until they have
+  independent history and composition contracts.
 - Raster-overlay pixels are composited after native tracing and are not
   retroactively relit by the RT pass.
-- Surface-light reconstruction is approximate renderer lighting metadata, not
-  game state, and remains default-off.
+- The path tracer lights a map from its compiled light entities, surface
+  lights, sun and ambient with the compilers' light models, and adds bounce
+  light the compilers never baked. Traced scenes are therefore brighter in
+  enclosed spaces than their lightmaps; `rtx_rt_lighting 1` keeps the
+  lightmaps. `alphashadow` and q3map2's `lightfilter` surfaces filter the
+  map's light as their compiler did. The deviance of q3map2's
+  `q3map_sunExt`, and its `_deviance`, `_samples`, `_filterradius` and `_sun`
+  light keys, are not reproduced.
+- Participating media are not traced: fog volumes and global fog remain raster
+  passes over the traced colour.
 - Optional global fog, enhanced liquid presentation, and scene-linear HDR are
   independent opt-ins. Enabling native RT does not silently enable them.
 - A complete maintained GPU/driver promotion corpus has not been established.

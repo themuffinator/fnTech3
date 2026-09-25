@@ -69,6 +69,9 @@ variation on an existing profile's:
   `UIAlice3D` are engine classes.
 - **The sound system is Miles, not Quake III's.** `s_milesdriver` defaults to
   `auto` at call site `0x0042cb19`, with `s_reverb` and `s_speaker_type` beside it.
+- **`r_useglfog` is registered as 1** (`0x00475b06`), as F.A.K.K.2's renderer
+  registers it. No Alice menu shows it. fnTech3 registers it for both titles,
+  for F.A.K.K.2's advanced options menu, and its renderers do not read it.
 
 Both retail modules export Ritual's `str` class alongside their entry point, so
 engine and modules share a C++ string implementation across the library
@@ -83,7 +86,7 @@ title eventually gets has to reproduce it.
 | Base pak | `pak0.pk3` | the installation |
 | Protocol | 1 | `Cvar_Get( "protocol", va( "%i", 1 ), CVAR_SERVERINFO \| CVAR_ROM )`, whose name push is at `0x00455624`, and the same `va( "%i", 1 )` written into the connect userinfo at push site `0x0042b8ce` |
 | Demo extension | `.dm3`, fixed | `demos/%s.dm3` |
-| Client configuration | `config.cfg` | the engine's own literal; `default.cfg`, `autoexec.cfg`, `localized.cfg` and `menu.cfg` are the other four it executes |
+| Client configuration | `config.cfg`, or the file the `config` cvar names | the engine's own literal; `default.cfg`, `autoexec.cfg`, `localized.cfg` and `menu.cfg` are the other four it executes. A command-line `config` longer than one character replaces it and is kept in the registry (`0x004398ff..0x004399c8`), and the configuration is written back to the cvar's file (`0x00439eb0`). fnTech3 follows both but keeps no registry ([savegame record](2026-09-23-alice-savegames.md)) |
 | Game module | `base/fgamex86.dll`, exporting `GetGameAPI` | the module's export table; `Sys_GetGameAPI without Sys_UnloadingGame` is the engine's own error |
 | Client game module | `base/cgamex86.dll`, exporting `GetCGameAPI` | the module's export table; `GetProcAddress failed on GetCGameAPI` is the engine's own error |
 | Menu module | none | no third library ships, and the menus are `.urc` resources |

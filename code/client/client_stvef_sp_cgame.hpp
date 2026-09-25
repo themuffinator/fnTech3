@@ -26,6 +26,8 @@
  * frame being drawn is not one to keep. */
 static void CL_STVEFSPDrawScreenshot( float x, float y, float w, float h ) {
 	STVEFSPScreenshot &screenshot = CL_STVEFSPScreenshot();
+	// In the cgame's screen, placed as its other pictures are.
+	if ( !CL_HudAdjustPic( &x, &y, &w, &h, 0 ) ) return;
 	re.DrawStretchRaw( static_cast<int>( x ), static_cast<int>( y ), static_cast<int>( w ), static_cast<int>( h ),
 		FNTECH3_STVEF_SP_SCREENSHOT_SIZE, FNTECH3_STVEF_SP_SCREENSHOT_SIZE, screenshot.rgba, 0, qtrue );
 }
@@ -195,9 +197,19 @@ static bool CL_STVEFSPCgameCall( intptr_t *args, intptr_t &operation, intptr_t &
 		// renderers keep no scissor state for 2D drawing.
 		Com_DPrintf( "Elite Force SP cgame scissor ignored\n" );
 		return true;
-	case Call::CG_GETGLCONFIG:
-		CL_CopySTVEFSPGlconfig( VMA(1), cls.glconfig );
+	case Call::CG_GETGLCONFIG: {
+		/* Single player projects world points onto its 2D (the crosshair's
+		 * brackets, the tricorder's labels) with the view it computed. Told its
+		 * screen is the 4:3 frame, it computes a 4:3 view, and the engine then
+		 * widens the world and places the 2D (cl_hud.cpp), so both agree. */
+		glconfig_t config = cls.glconfig;
+		CL_HudModuleScreen( &config.vidWidth, &config.vidHeight );
+		if ( config.vidHeight > 0 ) {
+			config.windowAspect = static_cast<float>( config.vidWidth ) / static_cast<float>( config.vidHeight );
+		}
+		CL_CopySTVEFSPGlconfig( VMA(1), config );
 		return true;
+	}
 	case Call::CG_GETGAMESTATE: {
 		fntech3_stvef_gameState_t *destination = VMA(1);
 		if ( !destination || !fntech3::stvef::state::FromInternal( cl.gameState, *destination ) ) {

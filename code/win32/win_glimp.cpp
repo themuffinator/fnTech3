@@ -1025,10 +1025,15 @@ static qboolean GLW_CreateWindow( int width, int height, int colorbits, qboolean
 	}
 
 	// Refresh also when vid_restart reuses the native window.
-	static fntech3::icon::WindowIcons gameIcons;
-	gameIcons.Apply( g_wv.hWnd, Cvar_VariableString( "fs_basepath" ),
-		Com_GameProfile() ? Com_GameProfile()->id : COM_GAME_AUTO,
-		Cvar_Get( "cl_gameIcon", "1", CVAR_ARCHIVE )->integer != 0 );
+	{
+		static fntech3::icon::WindowIcons gameIcons;
+		const comGameProfile_t *profile = Com_GameProfile();
+		cvar_t *gameIcon = Cvar_Get( "cl_gameIcon", "1", CVAR_ARCHIVE );
+		Cvar_SetDescription( gameIcon, fntech3::icon::ModeDescription() );
+		gameIcons.Apply( g_wv.hWnd, Cvar_VariableString( "fs_basepath" ),
+			profile ? profile->id : COM_GAME_AUTO, profile ? profile->key : NULL,
+			fntech3::icon::ModeFromCvar( gameIcon->integer ) );
+	}
 
 	if ( colorbits == 0 )
 		colorbits = dm_desktop.dmBitsPerPel;

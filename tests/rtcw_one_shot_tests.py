@@ -254,6 +254,7 @@ static bool IsLocalOnlyChannel(int channel){return channel==1||channel==6||chann
 static bool Com_GameIsSTVEFSP(){return false;}
 static float S_STVEFSeparation(){return 0.5f;}
 static int generic=0;static SpatialParams ComputeSpatialParams(const float *,const float *,const float (*)[3],int,float,float){++generic;return {0.42f,0.1f};}
+static float level=0;
 static SpatialParams calculate(bool shot,bool loop,int entity,int channel,const float *voiceOrigin){
  struct {bool rtcwOneShot,rtcwLoop;int entnum,entchannel;Loop rtcwLoopData;bool stvefAmbient;int stvefVolume;}
   voice{shot,loop,entity,channel,{},false,0};
@@ -261,16 +262,21 @@ static SpatialParams calculate(bool shot,bool loop,int entity,int channel,const 
  const int listenerNumber_=0;const float referenceScale=1,rangeScale=1;
  struct {float value[3]{};const float *Data()const{return value;}}listenerOrigin_;
  const float listenerAxis_[3][3]={{1,0,0},{0,1,0},{0,0,1}};
+ float fullLevel=1.0f;
 ''' + declarations + block + r'''
+ level=fullLevel;
  return spatial;
 }
 int main(){
  const float point[]={0,100,0};
+ // The device places a one-shot, so no pan is measured: the law's gain alone,
+ // for every channel away from the listener, as retail attenuates them all.
  for(int channel=0;channel<8;++channel){
-  auto gain=calculate(true,false,200,channel,point);assert(gain.gain==124.f/127.f&&gain.pan==-1&&!generic);
+  auto gain=calculate(true,false,200,channel,point);assert(gain.gain==124.f/127.f&&gain.pan==0&&level==1&&!generic);
   gain=calculate(true,false,0,channel,point);assert(gain.gain==1&&gain.pan==0&&!generic);
  }
- auto gain=calculate(false,true,0,0,point);assert(gain.gain==44.f/127.f&&gain.pan==0&&!generic);
+ // A loop at its origin: 255 over 256 of the loops' 90, as its full level too.
+ auto gain=calculate(false,true,0,0,point);assert(gain.gain==89.f/127.f&&gain.pan==0&&level==89.f/127.f&&!generic);
  gain=calculate(false,false,200,0,point);assert(gain.gain==0.42f&&generic==1);
  gain=calculate(false,false,200,1,point);assert(gain.gain==1&&generic==1);
 }

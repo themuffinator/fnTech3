@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "tr_local.h"
 #include "../renderercommon/tr_rtcw_shader_text.h"
 #include "../renderercommon/tr_q3_ihv_shader_text.h"
+#include "../renderercommon/tr_q3test_shader_text.h"
 #include "../renderercommon/tr_rtcw_shader_material.h"
 #include "../renderercommon/tr_rtcw_normal_fade_parser.h"
 #include <float.h>
@@ -39,14 +40,262 @@ static	shaderStage_t	stages[MAX_SHADER_STAGES];
 static	shader_t		shader;
 static	texModInfo_t	texMods[MAX_SHADER_STAGES][TR_MAX_TEXMODS+1]; // reserve one additional texmod for lightmap atlas correction
 
+#ifdef USE_VULKAN
+#include "rt/rt_stage_source.h"
+
+// The shader being finished's stages before multitexture folding; copied into
+// the permanent shader for the path tracer's material programs.
+static	rtStageSource_t	rtStageSnapshot[MAX_SHADER_STAGES];
+static	int				rtStageSnapshotCount;
+// qer_editorimage and q3map_lightImage of the shader being parsed
+static	char			rtEditorImage[MAX_QPATH];
+static	char			rtLightImage[MAX_QPATH];
+
+/*
+q3map colours a surface light with q3map_lightRGB, else the normalised
+average colour of q3map_lightImage, qer_editorimage or the image named like
+the shader, in that order (q3map/shaders.c LoadShaderImage and light.c).
+*/
+static void R_RtResolveEmitColor( void )
+{
+	vec3_t color;
+	float maxColor;
+
+	shader.rtEmitColorValid = qfalse;
+	VectorSet( shader.rtEmitColor, 1.0f, 1.0f, 1.0f );
+	// q3map2 lights a sky light in the colour a surface light would have
+	if ( ( !shader.surfaceLightValid || shader.surfaceLight <= 0.0f ) && !( shader.rtSkyLightValue > 0.0f ) ) {
+		return;
+	}
+
+	if ( shader.surfaceLightColorValid ) {
+		VectorCopy( shader.surfaceLightColor, color );
+	} else if ( shader.surfaceLightImageColorValid ) {
+		VectorCopy( shader.surfaceLightImageColor, color );
+	} else if ( !( rtEditorImage[0] && R_ImageAverageColor( rtEditorImage, color ) ) &&
+		!R_ImageAverageColor( shader.name, color ) ) {
+		// q3map lights a surface whose image it cannot find in white
+		VectorSet( color, 1.0f, 1.0f, 1.0f );
+	}
+
+	maxColor = MAX( color[0], MAX( color[1], color[2] ) );
+	if ( !( maxColor > 0.0f ) ) {
+		return;
+	}
+	VectorScale( color, 1.0f / maxColor, shader.rtEmitColor );
+	shader.rtEmitColorValid = qtrue;
+}
+
+static void R_RtSnapshotStages( int numStages )
+{
+	int i, n;
+
+	rtStageSnapshotCount = 0;
+	for ( i = 0; i < numStages && i < MAX_SHADER_STAGES; i++ ) {
+		const shaderStage_t *pStage = &stages[i];
+		const textureBundle_t *bundle = &pStage->bundle[0];
+		rtStageSource_t *source;
+
+		if ( !pStage->active || !bundle->image[0] ) {
+			continue;
+		}
+
+		source = &rtStageSnapshot[ rtStageSnapshotCount++ ];
+		Com_Memset( source, 0, sizeof( *source ) );
+		source->numImages = MAX( 1, MIN( bundle->numImageAnimations, RT_STAGE_MAX_ANIMATIONS ) );
+		for ( n = 0; n < source->numImages; n++ ) {
+			source->images[n] = bundle->image[n] ? bundle->image[n] : bundle->image[0];
+		}
+		source->animSpeed = (float)bundle->imageAnimationSpeed;
+		source->stateBits = pStage->stateBits;
+		source->tcGen = bundle->tcGen;
+		VectorCopy( bundle->tcGenVectors[0], source->tcGenVectors[0] );
+		VectorCopy( bundle->tcGenVectors[1], source->tcGenVectors[1] );
+		source->numTexMods = MIN( bundle->numTexMods, RT_STAGE_MAX_TEXMODS );
+		if ( source->numTexMods > 0 && bundle->texMods ) {
+			Com_Memcpy( source->texMods, bundle->texMods, source->numTexMods * sizeof( texModInfo_t ) );
+		}
+		source->rgbGen = bundle->rgbGen;
+		source->rgbWave = bundle->rgbWave;
+		source->alphaGen = bundle->alphaGen;
+		source->alphaWave = bundle->alphaWave;
+		source->constantColor = bundle->constantColor;
+		source->lightmap = bundle->lightmap;
+		source->vertexLightmap = bundle->vertexLightmap;
+		source->isDetail = pStage->isDetail;
+		source->isVideoMap = bundle->isVideoMap;
+		source->isScreenMap = bundle->isScreenMap;
+	}
+}
+#endif
+
 #include "../renderercommon/tr_wolfet_shader.h"
 
 static image_t *R_FindShaderImage( const char *name, imgFlags_t flags ) {
 	return R_FindImageFile( name, R_RTCWShaderImageFlags( name, flags, shader.rtcwCompression, shader.rtcwCharacterMip ? qtrue : qfalse ) );
 }
 
+#ifdef USE_VULKAN
+static qboolean R_RtSnapshotLit( void )
+{
+	int i;
+
+	for ( i = 0; i < rtStageSnapshotCount; i++ ) {
+		const rtStageSource_t *s = &rtStageSnapshot[i];
+		if ( s->lightmap != LIGHTMAP_INDEX_NONE || s->tcGen == TCGEN_LIGHTMAP ||
+			s->rgbGen == CGEN_LIGHTING_DIFFUSE ) {
+			return qtrue;
+		}
+		if ( ( s->rgbGen == CGEN_VERTEX || s->rgbGen == CGEN_EXACT_VERTEX ) &&
+			( s->vertexLightmap || shader.lightmapIndex == LIGHTMAP_BY_VERTEX ) ) {
+			return qtrue;
+		}
+	}
+	return qfalse;
+}
+
+// A companion map the shader draws in a stage of its own stays a stage.
+static image_t *R_RtCompanionMap( const char *base, const char *suffix, imgFlags_t flags )
+{
+	char name[MAX_QPATH];
+	image_t *image;
+	int i, n;
+
+	COM_StripExtension( base, name, sizeof( name ) );
+	if ( strlen( name ) + strlen( suffix ) >= sizeof( name ) ) {
+		return NULL;
+	}
+	Q_strcat( name, sizeof( name ), suffix );
+	image = R_FindShaderImage( name, flags );
+	if ( !image ) {
+		return NULL;
+	}
+	for ( i = 0; i < rtStageSnapshotCount; i++ ) {
+		for ( n = 0; n < rtStageSnapshot[i].numImages; n++ ) {
+			if ( rtStageSnapshot[i].images[n] == image ) {
+				return NULL;
+			}
+		}
+	}
+	return image;
+}
+
+/*
+Quake III materials give the path tracer their colours and emission; a
+texture pack may add the rest as companion images named after the texture of
+a lit material's first stage, as OpenJK's rend2 finds them (a reference
+observation of codemp/rd-rend2/tr_shader.cpp and tr_image.cpp):
+
+- <texture>_nh, a normal map with height in alpha, else <texture>_n;
+- <texture>_specGloss (specular colour, gloss in alpha), else <texture>_rmo
+  (roughness, metalness, occlusion), else <texture>_orm (occlusion,
+  roughness, metalness).
+
+No Quake III, Quake Live, Return to Castle Wolfenstein or Enemy Territory pak
+pairs any texture with an image under these names. The maps follow the stage's
+own coordinates and modifiers; only the path tracer samples them.
+*/
+static void R_RtFindMaterialMaps( void )
+{
+	const rtStageSource_t *base = NULL;
+	imgFlags_t dataFlags;
+	const char *name;
+	int i;
+
+	shader.rtNormalMap = NULL;
+	shader.rtMaterialMap = NULL;
+	shader.rtMaterialMapType = RT_MATERIAL_MAP_NONE;
+	shader.rtMaterialStage = -1;
+	if ( !rtx_rt_material_maps || !rtx_rt_material_maps->integer || !vk_rt_tracing() ||
+		!R_RtSnapshotLit() ) {
+		return;
+	}
+
+	for ( i = 0; i < rtStageSnapshotCount; i++ ) {
+		const rtStageSource_t *s = &rtStageSnapshot[i];
+		if ( s->lightmap != LIGHTMAP_INDEX_NONE || s->tcGen == TCGEN_LIGHTMAP ||
+			s->tcGen == TCGEN_ENVIRONMENT_MAPPED || s->tcGen == TCGEN_ENVIRONMENT_MAPPED_FP ||
+			s->tcGen == TCGEN_FOG || s->isDetail || s->isVideoMap || s->isScreenMap ||
+			!s->images[0] || ( s->images[0]->flags & IMGFLAG_LIGHTMAP ) ) {
+			continue;
+		}
+		base = s;
+		shader.rtMaterialStage = i;
+		break;
+	}
+	if ( !base ) {
+		return;
+	}
+	name = base->images[0]->imgName;
+	if ( !name[0] || name[0] == '*' || name[0] == '$' ) {
+		shader.rtMaterialStage = -1;
+		return;
+	}
+
+	dataFlags = ( base->images[0]->flags & ( IMGFLAG_MIPMAP | IMGFLAG_PICMIP | IMGFLAG_CLAMPTOEDGE ) ) |
+		IMGFLAG_NOLIGHTSCALE | IMGFLAG_NO_COMPRESSION | IMGFLAG_COLORSPACE_DATA;
+	shader.rtNormalMap = R_RtCompanionMap( name, "_nh", dataFlags );
+	if ( !shader.rtNormalMap ) {
+		shader.rtNormalMap = R_RtCompanionMap( name, "_n", dataFlags );
+	}
+	// the specular colour is a colour, loaded as the texture is
+	shader.rtMaterialMap = R_RtCompanionMap( name, "_specGloss", base->images[0]->flags & ~IMGFLAG_RGB );
+	if ( shader.rtMaterialMap ) {
+		shader.rtMaterialMapType = RT_MATERIAL_MAP_SPECGLOSS;
+	} else if ( ( shader.rtMaterialMap = R_RtCompanionMap( name, "_rmo", dataFlags ) ) != NULL ) {
+		shader.rtMaterialMapType = RT_MATERIAL_MAP_RMO;
+	} else if ( ( shader.rtMaterialMap = R_RtCompanionMap( name, "_orm", dataFlags ) ) != NULL ) {
+		shader.rtMaterialMapType = RT_MATERIAL_MAP_ORM;
+	}
+
+	if ( !shader.rtNormalMap && !shader.rtMaterialMap ) {
+		shader.rtMaterialStage = -1;
+		return;
+	}
+	ri.Printf( PRINT_DEVELOPER, "RTX RT: %s takes %s%s%s\n", shader.name,
+		shader.rtNormalMap ? shader.rtNormalMap->imgName : "",
+		shader.rtNormalMap && shader.rtMaterialMap ? " and " : "",
+		shader.rtMaterialMap ? shader.rtMaterialMap->imgName : "" );
+}
+
+/*
+The image the map compilers filtered light with at an alphashadow or
+lightfilter surface: q3map_lightImage, else qer_editorimage, else the image
+named like the shader (q3map/shaders.c LoadShaderImage; q3map2's
+LoadShaderImages), whatever the shader draws. Neither found, they used a
+white, opaque image (rtLightImageMissing). The path tracer reads it as they
+did, texel by texel at the surface's own texture coordinates
+(rt_filter.glsl).
+*/
+static void R_RtFindLightImage( void )
+{
+	const char *names[3];
+	int i;
+
+	shader.rtLightImage = NULL;
+	shader.rtLightImageMissing = qfalse;
+	if ( !vk_rt_tracing() || !( shader.surfaceFlags & ( SURF_ALPHASHADOW | SURF_LIGHTFILTER ) ) ) {
+		return;
+	}
+	names[0] = rtLightImage;
+	names[1] = rtEditorImage;
+	names[2] = shader.name;
+	for ( i = 0; i < 3; i++ ) {
+		if ( names[i][0] ) {
+			shader.rtLightImage = R_FindShaderImage( names[i],
+				IMGFLAG_NOLIGHTSCALE | IMGFLAG_NO_COMPRESSION | IMGFLAG_COLORSPACE_DATA );
+			if ( shader.rtLightImage ) {
+				return;
+			}
+		}
+	}
+	shader.rtLightImageMissing = qtrue;
+}
+#endif
+
 #include "../renderercommon/tr_q3_ihv_shader.h"
 #include "../renderercommon/tr_q3_ihv_fog_parser.h"
+#include "../renderercommon/tr_q3test_shader_dialect.h"
 // The Vulkan family keeps rgbGen, alphaGen, constantColor and rgbWave on each
 // texture bundle; a parsed stage writes bundle 0.
 #define R_ALICE_GEN( stage ) ( &( stage )->bundle[0] )
@@ -439,19 +688,19 @@ static void ParseWaveForm( const char **text, waveForm_t *wave )
 ParseTexMod
 ===================
 */
-static void ParseTexMod( const char *_text, shaderStage_t *stage )
+static void ParseTexMod( const char *_text, textureBundle_t *bundle )
 {
 	const char *token;
 	const char **text = &_text;
 	texModInfo_t *tmi;
 
-	if ( stage->bundle[0].numTexMods == TR_MAX_TEXMODS ) {
+	if ( bundle->numTexMods == TR_MAX_TEXMODS ) {
 		ri.Error( ERR_DROP, "ERROR: too many tcMod stages in shader '%s'", shader.name );
 		return;
 	}
 
-	tmi = &stage->bundle[0].texMods[stage->bundle[0].numTexMods];
-	stage->bundle[0].numTexMods++;
+	tmi = &bundle->texMods[bundle->numTexMods];
+	bundle->numTexMods++;
 
 	token = COM_ParseExt( text, qfalse );
 
@@ -680,10 +929,12 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 	int i, depthMaskBits = GLS_DEPTHMASK_TRUE, blendSrcBits = 0, blendDstBits = 0, atestBits = 0, depthFuncBits = 0;
 	qboolean depthMaskExplicit = qfalse;
 	aliceStageParse_t aliceStage;
+	qboolean q3testClamp;
 	char aliceKeyword[MAX_TOKEN_CHARS];
 
 	stage->active = qfalse;
 	R_AliceBeginStage( &aliceStage );
+	q3testClamp = R_Q3TestShaderDialect() && R_Q3TestStageClamps( *text ) ? qtrue : qfalse;
 
 	while ( 1 )
 	{
@@ -759,6 +1010,15 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 				continue;
 			}
 		}
+		// Q3Test's clampTexCoords clamps the stage's map (tr_q3test_shader_dialect.h).
+		if ( R_Q3TestShaderDialect() && !Q_stricmp( token, "clampTexCoords" ) )
+		{
+			continue;
+		}
+		if ( q3testClamp && !Q_stricmp( token, "map" ) && R_Q3TestImageFollows( *text ) )
+		{
+			token = "clampmap";
+		}
 		//
 		// map <name>
 		//
@@ -773,16 +1033,16 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 
 			if ( !Q_stricmp( token, "$whiteimage" ) )
 			{
-				stage->bundle[0].image[0] = tr.whiteImage;
+				stage->bundle[aliceStage.bundle].image[0] = tr.whiteImage;
 				continue;
 			}
 			else if ( !Q_stricmp( token, "$lightmap" ) )
 			{
-				stage->bundle[0].lightmap = LIGHTMAP_INDEX_SHADER; // regular lightmap
+				stage->bundle[aliceStage.bundle].lightmap = LIGHTMAP_INDEX_SHADER; // regular lightmap
 				if ( shader.lightmapIndex < 0 || !tr.lightmaps ) {
-					stage->bundle[0].image[0] = tr.whiteImage;
+					stage->bundle[aliceStage.bundle].image[0] = tr.whiteImage;
 				} else {
-					stage->bundle[0].image[0] = tr.lightmaps[shader.lightmapIndex];
+					stage->bundle[aliceStage.bundle].image[0] = tr.lightmaps[shader.lightmapIndex];
 				}
 				continue;
 			}
@@ -797,10 +1057,10 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 				// not merged, so the modulo was the identity).
 				const int page = tr.mergeLightmaps ? ( lightmapIndex / tr.lightmapMod ) : lightmapIndex;
 				if ( lightmapIndex < 0 || tr.lightmaps == NULL || page >= tr.numLightmaps ) {
-					stage->bundle[0].image[0] = tr.whiteImage;
+					stage->bundle[aliceStage.bundle].image[0] = tr.whiteImage;
 				} else {
-					stage->bundle[0].lightmap = LIGHTMAP_INDEX_OFFSET + lightmapIndex; //custom index
-					stage->bundle[0].image[0] = tr.lightmaps[page];
+					stage->bundle[aliceStage.bundle].lightmap = LIGHTMAP_INDEX_OFFSET + lightmapIndex; //custom index
+					stage->bundle[aliceStage.bundle].image[0] = tr.lightmaps[page];
 				}
 				continue;
 			}
@@ -817,9 +1077,9 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 				if (shader.noLightScale)
 					flags |= IMGFLAG_NOLIGHTSCALE;
 
-				stage->bundle[0].image[0] = R_FindShaderImage( token, flags );
+				stage->bundle[aliceStage.bundle].image[0] = R_FindShaderImage( token, flags );
 
-				if ( !stage->bundle[0].image[0] )
+				if ( !stage->bundle[aliceStage.bundle].image[0] )
 				{
 					ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
 					return qfalse;
@@ -836,7 +1096,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 			if ( !Q_stricmp( token, "screenMap" ) ) {
 				flags = IMGFLAG_NONE;
 				if ( vk.fboActive ) {
-					stage->bundle[0].isScreenMap = 1;
+					stage->bundle[aliceStage.bundle].isScreenMap = 1;
 					shader.hasScreenMap = 1;
 				}
 			} else {
@@ -847,7 +1107,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 			if ( !token[0] )
 			{
 				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for '%s' keyword in shader '%s'\n",
-					stage->bundle[0].isScreenMap ? "screenMap" : "clampMap", shader.name );
+					stage->bundle[aliceStage.bundle].isScreenMap ? "screenMap" : "clampMap", shader.name );
 				return qfalse;
 			}
 
@@ -860,8 +1120,8 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 			if (shader.noLightScale)
 				flags |= IMGFLAG_NOLIGHTSCALE;
 
-			stage->bundle[0].image[0] = R_FindShaderImage( token, flags );
-			if ( !stage->bundle[0].image[0] )
+			stage->bundle[aliceStage.bundle].image[0] = R_FindShaderImage( token, flags );
+			if ( !stage->bundle[aliceStage.bundle].image[0] )
 			{
 				ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
 				return qfalse;
@@ -873,8 +1133,8 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 		else if ( !Q_stricmp( token, "animMap" ) )
 		{
 			int	totalImages = 0;
-			// Alice keeps 64 frames (alice.exe 0x0048c5bc); the engine keeps
-			// MAX_IMAGE_ANIMATIONS, three times the most any shipped script uses.
+			// Ritual's engines keep 64 frames (alice.exe 0x0048c5bc, fakk2.exe
+			// 1.02 0x00476e00), and so does this one: F.A.K.K.2's caustics use 47.
 			int maxAnimations = s_extendedShader || R_AliceShaderDialect() ? MAX_IMAGE_ANIMATIONS :
 				R_WolfensteinShaderDialect() ?
 				MAX_IMAGE_ANIMATIONS_RTCW : MAX_IMAGE_ANIMATIONS_VQ3;
@@ -885,7 +1145,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 				ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'animMap' keyword in shader '%s'\n", shader.name );
 				return qfalse;
 			}
-			stage->bundle[0].imageAnimationSpeed = Q_atof( token );
+			stage->bundle[aliceStage.bundle].imageAnimationSpeed = Q_atof( token );
 
 			// parse up to MAX_IMAGE_ANIMATIONS animations
 			while ( 1 ) {
@@ -895,7 +1155,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 				if ( !token[0] ) {
 					break;
 				}
-				num = stage->bundle[0].numImageAnimations;
+				num = stage->bundle[aliceStage.bundle].numImageAnimations;
 				if ( num < maxAnimations ) {
 					imgFlags_t flags = IMGFLAG_NONE;
 
@@ -908,13 +1168,13 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 					if (shader.noLightScale)
 						flags |= IMGFLAG_NOLIGHTSCALE;
 
-					stage->bundle[0].image[num] = R_FindShaderImage( token, flags );
-					if ( !stage->bundle[0].image[num] )
+					stage->bundle[aliceStage.bundle].image[num] = R_FindShaderImage( token, flags );
+					if ( !stage->bundle[aliceStage.bundle].image[num] )
 					{
 						ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
 						return qfalse;
 					}
-					stage->bundle[0].numImageAnimations++;
+					stage->bundle[aliceStage.bundle].numImageAnimations++;
 				}
 				totalImages++;
 			}
@@ -938,9 +1198,9 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 				if ( !tr.scratchImage[ handle ] ) {
 					tr.scratchImage[ handle ] = R_CreateImage( va( "*scratch%i", handle ), NULL, NULL, 256, 256, IMGFLAG_CLAMPTOEDGE | IMGFLAG_RGB | IMGFLAG_NOSCALE );
 				}
-				stage->bundle[0].isVideoMap = qtrue;
-				stage->bundle[0].videoMapHandle = handle;
-				stage->bundle[0].image[0] = tr.scratchImage[ handle ];
+				stage->bundle[aliceStage.bundle].isVideoMap = qtrue;
+				stage->bundle[aliceStage.bundle].videoMapHandle = handle;
+				stage->bundle[aliceStage.bundle].image[0] = tr.scratchImage[ handle ];
 			} else {
 				ri.Printf( PRINT_WARNING, "WARNING: could not load '%s' for 'videoMap' keyword in shader '%s'\n", token, shader.name );
 			}
@@ -1027,6 +1287,10 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 			} else if ( !Q_stricmp( token, "blend" ) ) {
 				blendSrcBits = GLS_SRCBLEND_SRC_ALPHA;
 				blendDstBits = GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA;
+			} else if ( ri.gameId == COM_GAME_MOHAA && !Q_stricmp( token, "alphaadd" ) ) {
+				// Medal of Honor: added in proportion to its alpha
+				blendSrcBits = GLS_SRCBLEND_SRC_ALPHA;
+				blendDstBits = GLS_DSTBLEND_ONE;
 			} else {
 				// complex double blends
 				blendSrcBits = NameToSrcBlendMode( token );
@@ -1213,11 +1477,11 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 			if ( !Q_stricmp( token, "environment" ) )
 			{
 				const char *t = *text;
-				stage->bundle[0].tcGen = TCGEN_ENVIRONMENT_MAPPED;
+				stage->bundle[aliceStage.bundle].tcGen = TCGEN_ENVIRONMENT_MAPPED;
 				token = COM_ParseExt( text, qfalse );
 				if ( Q_stricmp( token, "firstPerson" ) == 0 )
 				{
-					stage->bundle[0].tcGen = TCGEN_ENVIRONMENT_MAPPED_FP;
+					stage->bundle[aliceStage.bundle].tcGen = TCGEN_ENVIRONMENT_MAPPED_FP;
 				}
 				else
 				{
@@ -1226,18 +1490,18 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 			}
 			else if ( !Q_stricmp( token, "lightmap" ) )
 			{
-				stage->bundle[0].tcGen = TCGEN_LIGHTMAP;
+				stage->bundle[aliceStage.bundle].tcGen = TCGEN_LIGHTMAP;
 			}
 			else if ( !Q_stricmp( token, "texture" ) || !Q_stricmp( token, "base" ) )
 			{
-				stage->bundle[0].tcGen = TCGEN_TEXTURE;
+				stage->bundle[aliceStage.bundle].tcGen = TCGEN_TEXTURE;
 			}
 			else if ( !Q_stricmp( token, "vector" ) )
 			{
-				ParseVector( text, 3, stage->bundle[0].tcGenVectors[0] );
-				ParseVector( text, 3, stage->bundle[0].tcGenVectors[1] );
+				ParseVector( text, 3, stage->bundle[aliceStage.bundle].tcGenVectors[0] );
+				ParseVector( text, 3, stage->bundle[aliceStage.bundle].tcGenVectors[1] );
 
-				stage->bundle[0].tcGen = TCGEN_VECTOR;
+				stage->bundle[aliceStage.bundle].tcGen = TCGEN_VECTOR;
 			}
 			else
 			{
@@ -1260,7 +1524,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 				Q_strcat( buffer, sizeof (buffer), " " );
 			}
 
-			ParseTexMod( buffer, stage );
+			ParseTexMod( buffer, &stage->bundle[aliceStage.bundle] );
 
 			continue;
 		}
@@ -1359,7 +1623,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 			depthFuncBits |
 			aliceBits;
 	}
-	R_AliceEndStage( &aliceStage );
+	R_AliceEndStage( stage, &aliceStage );
 
 	stage->active = qtrue;
 
@@ -2074,6 +2338,34 @@ static void ParseQ3MapSurfaceLight( const char **text )
 	}
 }
 
+/*
+q3map_backsplash <percent> <distance>: the point light the map compilers put
+in front of this shader's area lights (rt/rt_lights.c). Values the compilers
+could not have meant (not finite, out of any sane range) leave their default.
+*/
+static void ParseQ3MapBacksplash( const char **text )
+{
+	const char *token;
+	float percent, distance;
+
+	token = COM_ParseExt( text, qfalse );
+	if ( !token[0] ) {
+		return;
+	}
+	percent = Q_atof( token );
+	token = COM_ParseExt( text, qfalse );
+	if ( !token[0] ) {
+		return;
+	}
+	distance = Q_atof( token );
+	if ( !( percent >= 0.0f && percent <= 1000.0f ) || !( distance >= -65536.0f && distance <= 65536.0f ) ) {
+		return;
+	}
+	shader.rtBacksplashValid = qtrue;
+	shader.rtBacksplashFraction = percent * 0.01f;
+	shader.rtBacksplashDistance = distance;
+}
+
 static void ParseQ3MapLightSubdivide( const char **text )
 {
 	const char *token;
@@ -2144,6 +2436,9 @@ static void ParseQ3MapLightImage( const char **text )
 	if ( !token[0] ) {
 		return;
 	}
+#ifdef USE_VULKAN
+	Q_strncpyz( rtLightImage, token, sizeof( rtLightImage ) );
+#endif
 
 	if ( !R_ImageAverageColor( token, color ) ) {
 		ri.Printf( PRINT_DEVELOPER,
@@ -2185,12 +2480,22 @@ static qboolean ParseShader( const char **text )
 	vec3_t skySunDirection = { 0.0f, 0.0f, 0.0f };
 	vec3_t skySunLight = { 0.0f, 0.0f, 0.0f };
 	float skySunIntensity;
+	float skySunDeviance;
+	int skySunSamples;
+	qboolean skySunExtended;
 	int aliceIfDepth;
 
 	numStages = 0;
 	skySunValid = qfalse;
 	skySunIntensity = 0.0f;
+	skySunDeviance = 0.0f;
+	skySunSamples = 1;
+	skySunExtended = qfalse;
 	aliceIfDepth = 0;
+#ifdef USE_VULKAN
+	rtEditorImage[0] = '\0';
+	rtLightImage[0] = '\0';
+#endif
 
 	s_extendedShader = (*text >= s_extensionOffset);
 
@@ -2224,6 +2529,7 @@ static qboolean ParseShader( const char **text )
 			return qfalse;
 		}
 		if ( rtcwFogDirective ) continue;
+		if ( R_Q3TestFogDirective( token, text ) ) continue;
 		rtcwFogDirective = R_RTCWShaderFogDirective( token, text );
 		if ( rtcwFogDirective < 0 ) {
 			ri.Printf( PRINT_WARNING, "WARNING: invalid RTCW fog directive in shader %s\n", shader.name );
@@ -2266,6 +2572,14 @@ static qboolean ParseShader( const char **text )
 		}
 		// skip stuff that only the QuakeEdRadient needs
 		else if ( !Q_stricmpn( token, "qer", 3 ) ) {
+#ifdef USE_VULKAN
+			// q3map colours a surface light from the editor image when no
+			// q3map_lightImage is given (q3map/shaders.c LoadShaderImage)
+			if ( !Q_stricmp( token, "qer_editorimage" ) ) {
+				token = COM_ParseExt( text, qfalse );
+				Q_strncpyz( rtEditorImage, token, sizeof( rtEditorImage ) );
+			}
+#endif
 			SkipRestOfLine( text );
 			continue;
 		}
@@ -2273,9 +2587,23 @@ static qboolean ParseShader( const char **text )
 		else if ( !Q_stricmp( token, "q3map_sun" ) ||
 			!Q_stricmp( token, "q3map_sunExt" ) ||
 			!Q_stricmp( token, "q3map_sunExt2" ) ) {
+			const qboolean extended = !Q_stricmp( token, "q3map_sunExt" ) ? qtrue : qfalse;
 			if ( ParseSkySunParms( text, skySunColor,
 				skySunDirection, skySunLight, &skySunIntensity ) ) {
 				skySunValid = qtrue;
+				// q3map2's extended sun spreads it over an angular deviance
+				// (degrees) in as many samples (shaders.c, CreateSunLight)
+				skySunDeviance = 0.0f;
+				skySunSamples = 1;
+				skySunExtended = extended;
+				if ( extended ) {
+					token = COM_ParseExt( text, qfalse );
+					if ( token[0] ) {
+						skySunDeviance = Q_atof( token );
+						token = COM_ParseExt( text, qfalse );
+						skySunSamples = token[0] ? atoi( token ) : 0;
+					}
+				}
 			}
 			SkipRestOfLine( text );
 			continue;
@@ -2308,6 +2636,11 @@ static qboolean ParseShader( const char **text )
 			SkipRestOfLine( text );
 			continue;
 		}
+		else if ( !Q_stricmp( token, "q3map_backsplash" ) ) {
+			ParseQ3MapBacksplash( text );
+			SkipRestOfLine( text );
+			continue;
+		}
 		else if ( !Q_stricmp( token, "q3map_lightRGB" ) ||
 			!Q_stricmp( token, "q3map_lightColor" ) ) {
 			ParseQ3MapLightRGB( text );
@@ -2316,6 +2649,16 @@ static qboolean ParseShader( const char **text )
 		}
 		else if ( !Q_stricmp( token, "q3map_lightImage" ) ) {
 			ParseQ3MapLightImage( text );
+			SkipRestOfLine( text );
+			continue;
+		}
+		// q3map2's sky light: q3map_skyLight <value> <iterations>, a negative
+		// value none and at least two iterations (shaders.c)
+		else if ( !Q_stricmp( token, "q3map_skyLight" ) ) {
+			token = COM_ParseExt( text, qfalse );
+			shader.rtSkyLightValue = MAX( Q_atof( token ), 0.0f );
+			token = COM_ParseExt( text, qfalse );
+			shader.rtSkyLightIterations = MAX( atoi( token ), 2 );
 			SkipRestOfLine( text );
 			continue;
 		}
@@ -2385,6 +2728,7 @@ static qboolean ParseShader( const char **text )
 				return qfalse;
 			}
 			if ( ihv ) continue;
+			if ( R_Q3TestFogParms( text ) ) continue;
 			Com_Memset( &shader.fogParms.ihv, 0, sizeof( shader.fogParms.ihv ) );
 			if ( !ParseVector( text, 3, shader.fogParms.color ) ) {
 				return qfalse;
@@ -2478,7 +2822,7 @@ static qboolean ParseShader( const char **text )
 		// American McGee's Alice: how a sprite drawn with this shader faces
 		// (retail's parser at 0x0048cb82 also resets its scale to one) and how
 		// large it is against its image
-		else if ( ri.gameId == COM_GAME_ALICE && !Q_stricmp( token, "spritegen" ) )
+		else if ( R_AliceShaderDialect() && !Q_stricmp( token, "spritegen" ) )
 		{
 			token = COM_ParseExt( text, qfalse );
 			if ( !token[0] ) {
@@ -2499,7 +2843,7 @@ static qboolean ParseShader( const char **text )
 			shader.aliceSpriteScale = 1.0f;
 			continue;
 		}
-		else if ( ri.gameId == COM_GAME_ALICE && !Q_stricmp( token, "spritescale" ) )
+		else if ( R_AliceShaderDialect() && !Q_stricmp( token, "spritescale" ) )
 		{
 			token = COM_ParseExt( text, qfalse );
 			if ( !token[0] ) {
@@ -2563,6 +2907,14 @@ static qboolean ParseShader( const char **text )
 		}
 	}
 
+	if ( numStages == 0 && R_Q3TestStagelessSky( shader.surfaceFlags, shader.isSky ) ) {
+		const char *black = R_Q3TestBlackStage;
+		if ( ParseStage( &stages[0], &black ) ) {
+			FinishStage( &stages[0] );
+			numStages = 1;
+		}
+	}
+
 	//
 	// ignore shaders that don't have any stages, unless it is a sky or fog
 	//
@@ -2579,6 +2931,17 @@ static qboolean ParseShader( const char **text )
 		VectorCopy( skySunLight, shader.skySunLight );
 		shader.skySunIntensity = skySunIntensity;
 	}
+#ifdef USE_VULKAN
+	if ( skySunValid ) {
+		shader.rtSunValid = qtrue;
+		VectorCopy( skySunColor, shader.rtSunColor );
+		VectorCopy( skySunDirection, shader.rtSunDirection );
+		shader.rtSunIntensity = skySunIntensity;
+		shader.rtSunDeviance = skySunDeviance;
+		shader.rtSunSamples = skySunSamples;
+		shader.rtSunExtended = skySunExtended;
+	}
+#endif
 
 	return qtrue;
 }
@@ -2706,7 +3069,8 @@ static int CollapseMultitexture( unsigned int st0bits, shaderStage_t *st0, shade
 		return 0;
 	}
 
-	// the multitexture pipelines have no alpha test (Alice's included)
+	// a collapsed pass alpha-tests its first bundle alone (gen_frag.tmpl), so
+	// alpha-tested stages (Alice's included) are left to draw separately
 	if ( st0->depthFragment || (st0->stateBits & ( GLS_ATEST_BITS | GLS_ALICE_ATEST_BITS )) ) {
 		return 0;
 	}
@@ -3343,6 +3707,18 @@ static shader_t *GeneratePermanentShader( void ) {
 		}
 	}
 
+#ifdef USE_VULKAN
+	newShader->rtNumStages = 0;
+	newShader->rtStages = NULL;
+	if ( rtStageSnapshotCount > 0 ) {
+		size = rtStageSnapshotCount * sizeof( rtStageSource_t );
+		newShader->rtStages = ri.Hunk_Alloc( size, h_low );
+		Com_Memcpy( newShader->rtStages, rtStageSnapshot, size );
+		newShader->rtNumStages = rtStageSnapshotCount;
+	}
+	rtStageSnapshotCount = 0;
+#endif
+
 	SortNewShader();
 
 	hash = generateHashValue(newShader->name, FILE_HASH_SIZE);
@@ -3538,7 +3914,9 @@ static void DetectNeeds( void )
 		if ( shader.deforms[i].deformation >= DEFORM_TEXT0 && shader.deforms[i].deformation <= DEFORM_TEXT7 ) {
 			shader.needsNormal = qtrue;
 		}
-		if ( shader.deforms[i].deformation == DEFORM_ALICE_WAVENORMAL ) {
+		if ( shader.deforms[i].deformation == DEFORM_ALICE_WAVENORMAL
+			|| shader.deforms[i].deformation == DEFORM_MOHAA_FLAP_S
+			|| shader.deforms[i].deformation == DEFORM_MOHAA_FLAP_T ) {
 			shader.needsNormal = qtrue;
 		}
 	}
@@ -3814,6 +4192,12 @@ static shader_t *FinishShader( void ) {
 				pStage->bundle[0].tcGen = TCGEN_TEXTURE;
 			}
 		}
+		// Medal of Honor's world shaders mostly put the lightmap in a
+		// `nextbundle`, which its engine counts as the lightmap stage too
+		// (OpenMoHAA's FinishShader)
+		if ( ri.gameId == COM_GAME_MOHAA && pStage->bundle[1].lightmap != LIGHTMAP_INDEX_NONE ) {
+			hasLightmapStage = qtrue;
+		}
 
 		// not a true lightmap but we want to leave existing
 		// behaviour in place and not print out a warning
@@ -3893,6 +4277,14 @@ static shader_t *FinishShader( void ) {
 			pStage->bundle[0].alphaGen = AGEN_SKIP;
 	}
 
+#ifdef USE_VULKAN
+	// The path tracer takes the stages as authored, before vertex-light mode
+	// collapses them for raster (it supplies the light either way); RTCW's
+	// diffuse-lit brush-model copy below still applies to them.
+	R_RtSnapshotStages( stage );
+	R_RtFindMaterialMaps();
+#endif
+
 	// Vertex-light mode must consume the original stage layout before white
 	// lightmap stages are simplified away. Retail applies this collapse whenever
 	// vertex lighting is active, including when r_fullbright is also set.
@@ -3925,11 +4317,23 @@ static shader_t *FinishShader( void ) {
 	if ( shader.rtcwModelDiffuse && stage > 0 ) {
 		stages[0].bundle[0].rgbGen = CGEN_LIGHTING_DIFFUSE;
 		shader.needsNormal = qtrue;
+#ifdef USE_VULKAN
+		if ( rtStageSnapshotCount > 0 ) {
+			rtStageSnapshot[0].rgbGen = CGEN_LIGHTING_DIFFUSE;
+		}
+#endif
 	}
 
 	for ( i = 0; i < stage; i++ ) {
-		stages[ i ].numTexBundles = 1;
+		stages[ i ].numTexBundles = R_AliceStageBundles( &stages[ i ] );
 	}
+
+#ifdef USE_VULKAN
+	R_RtResolveEmitColor();
+	R_RtFindLightImage();
+	rtEditorImage[0] = '\0';
+	rtLightImage[0] = '\0';
+#endif
 
 	//
 	// look for multitexture potential
@@ -4401,117 +4805,6 @@ qboolean R_LiquidShaderSupported( const shader_t *materialShader )
 		}
 	}
 	return qtrue;
-}
-
-qboolean R_RtShaderNativeSupported( const shader_t *materialShader )
-{
-#ifdef USE_VULKAN
-	const shaderStage_t *stage;
-	int baseBundleCount = 0;
-	int lightmapBundleCount = 0;
-	uint32_t bundleCount;
-	uint32_t i;
-
-	/*
-	 * Native closest-hit shading intentionally owns only the static subset of
-	 * the Quake shader language that it can reproduce without silently
-	 * dropping authored animation, coordinate generation, blending, or
-	 * deformation.  Everything else remains a raster overlay while its
-	 * opaque geometry can still participate in RT visibility.
-	 */
-	if ( !materialShader ||
-		materialShader->remappedShader ||
-		materialShader->sort != SS_OPAQUE ||
-		materialShader->isSky ||
-		( materialShader->surfaceFlags & SURF_SKY ) ||
-		materialShader->polygonOffset ||
-		materialShader->numDeforms != 0 ||
-		materialShader->hasScreenMap ||
-		materialShader->numUnfoggedPasses != 1 ) {
-		return qfalse;
-	}
-
-	stage = materialShader->stages[0];
-	if ( !stage ||
-		!stage->active ||
-		stage->depthFragment ||
-		!( stage->stateBits & GLS_DEPTHMASK_TRUE ) ||
-		( stage->stateBits & ( GLS_BLEND_BITS | GLS_ATEST_BITS |
-			GLS_DEPTHTEST_DISABLE | GLS_DEPTHFUNC_EQUAL |
-			GLS_POLYMODE_LINE ) ) ) {
-		return qfalse;
-	}
-
-	bundleCount = stage->numTexBundles;
-	if ( bundleCount < 1 || bundleCount > 2 ||
-		( bundleCount == 1 && ( stage->mtEnv || stage->mtEnv3 ) ) ||
-		( bundleCount == 2 &&
-			( ( stage->mtEnv != GL_MODULATE && stage->mtEnv != GL_BLEND_MODULATE ) || stage->mtEnv3 ) ) ) {
-		return qfalse;
-	}
-	/* GL_BLEND_MODULATE still multiplies the two texture/color results.
-	 * CollapseMultitexture selects it when bundle color generators differ;
-	 * validate each generator below instead of discarding that exact product. */
-
-	for ( i = 0; i < bundleCount; i++ ) {
-		const textureBundle_t *bundle = &stage->bundle[i];
-		const image_t *image = bundle->image[0];
-		const qboolean lightmap =
-			( bundle->tcGen == TCGEN_LIGHTMAP ||
-				bundle->lightmap != LIGHTMAP_INDEX_NONE ||
-				( image && ( image->flags & IMGFLAG_LIGHTMAP ) ) ) ?
-				qtrue : qfalse;
-
-		if ( !image ||
-			bundle->numImageAnimations > 1 ||
-			bundle->numTexMods != 0 ||
-			bundle->isVideoMap ||
-			bundle->isScreenMap ) {
-			return qfalse;
-		}
-
-		if ( lightmap ) {
-			if ( bundle->tcGen != TCGEN_LIGHTMAP ||
-				( bundle->rgbGen != CGEN_IDENTITY &&
-				  bundle->rgbGen != CGEN_IDENTITY_LIGHTING ) ||
-				( bundle->alphaGen != AGEN_SKIP &&
-				  bundle->alphaGen != AGEN_IDENTITY ) ) {
-				return qfalse;
-			}
-			lightmapBundleCount++;
-			continue;
-		}
-
-		if ( bundle->tcGen != TCGEN_TEXTURE ||
-			( bundle->rgbGen != CGEN_IDENTITY &&
-			  bundle->rgbGen != CGEN_IDENTITY_LIGHTING &&
-			  bundle->rgbGen != CGEN_CONST &&
-			  !( bundleCount == 1 &&
-				( bundle->vertexLightmap ||
-				  ( !materialShader->explicitlyDefined && materialShader->lightmapIndex == LIGHTMAP_BY_VERTEX &&
-					bundle->rgbGen == CGEN_EXACT_VERTEX ) ) &&
-				( bundle->rgbGen == CGEN_EXACT_VERTEX || bundle->rgbGen == CGEN_VERTEX ) ) ) ||
-			( bundle->alphaGen != AGEN_SKIP &&
-			  bundle->alphaGen != AGEN_IDENTITY &&
-			  !( bundle->alphaGen == AGEN_CONST &&
-				bundle->constantColor.rgba[3] == 255 ) ) ) {
-			return qfalse;
-		}
-		baseBundleCount++;
-	}
-
-	/* Native vertices carry independent lightmap coordinates and baked RGB.
-	 * Accept the exact base-times-lightmap product or the renderer-generated
-	 * single-bundle vertex-lightmap replacement. The implicit BY_VERTEX shader
-	 * created by R_CreateDefaultShading has the same baked role without setting
-	 * bundle.vertexLightmap. Authored vertex stages without provenance and
-	 * animated stages stay raster owned. */
-	return ( baseBundleCount == 1 && lightmapBundleCount <= 1 ) ?
-		qtrue : qfalse;
-#else
-	(void)materialShader;
-	return qfalse;
-#endif
 }
 
 
@@ -5121,6 +5414,7 @@ static int loadShaderBuffers( char **shaderFiles, const int numShaderFiles, char
 		}
 
 		R_Q3IHVRepairShaderText( buffers[i], summand, filename );
+		R_Q3TestRepairShaderText( buffers[i], summand, filename );
 
 		// comment some buggy shaders from pak0
 		if ( summand == 35910 && strcmp( shaderFiles[i], "sky.shader" ) == 0 )

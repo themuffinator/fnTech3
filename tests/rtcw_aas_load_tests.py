@@ -108,7 +108,7 @@ static void checkMaps(){
  for(const auto &p:profiles){profile=&p;
   if(!p.bots.navigationWorlds){
    assert(p.id==COM_GAME_QUAKE3_IHV||p.id==COM_GAME_JKA_SP||p.id==COM_GAME_JK2_SP
-    ||p.id==COM_GAME_ALICE);
+    ||p.id==COM_GAME_ALICE||p.id==COM_GAME_FAKK2||p.id==COM_GAME_MOHAA||p.id==COM_GAME_Q3TEST);
    for(const char *map:{static_cast<const char*>(nullptr),"test"})assert(AAS_LoadMap(map)==BLERR_LIBRARYNOTSETUP);
    assert(opened.empty()&&allocations.empty()&&!fileOpen);continue;
   }

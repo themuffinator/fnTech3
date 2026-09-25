@@ -50,6 +50,7 @@ class AliceMenuSourceTests(unittest.TestCase):
             'centerprint': 'CenterPrint_f', 'locationprint': 'LocationPrint_f',
             'ui_resetcvars': 'UiResetCvars_f', 'ui_restorecvars': 'UiRestoreCvars_f',
             'ui_setcvars': 'UiSetCvars_f', 'ui_showmouse': 'UiShowMouse_f', 'ui_hidemouse': 'UiHideMouse_f',
+            'ui_checkrestart': 'UiCheckRestart_f',
         })
         self.assertIn('static_assert( std::size( kCommands ) == std::size( kCommandHandlers )', self.ui)
 

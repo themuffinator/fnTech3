@@ -1,0 +1,94 @@
+{
+  "date": "2026-09-24",
+  "tool": "built-in image_gen.imagegen; Pillow for lossless silhouette arrangement and raster exports",
+  "game_icon_order": [
+    "quake3",
+    "fakk2",
+    "stvef-sp",
+    "alice",
+    "rtcw-mp",
+    "mohaa",
+    "jk2-sp",
+    "wolfet",
+    "jka-sp",
+    "quakelive"
+  ],
+  "game_references": "../../icons/games/sources/manifest.json",
+  "prompts": "../PROMPTS.md",
+  "source_files": "Unmodified generated social banner, unchanged user-supplied preferred silhouette reference, and a losslessly assembled silhouette master",
+  "export_script": "../../../scripts/export_brand_artwork.py",
+  "exports": {
+    "social-banner": {
+      "source": "fntech3-social-banner.png",
+      "generated_file": "exec-ba9140b9-9fbc-46ff-b518-315c7a086e71.png",
+      "export": "../fntech3-social-banner.jpg",
+      "source_size": [
+        1672,
+        941
+      ],
+      "source_mode": "RGB",
+      "source_sha256": "5b9dd50b1d7f76bc7359622bfe440e12db461422d0e6eb2401d99c85caeb1acb",
+      "export_size": [
+        1600,
+        900
+      ],
+      "export_mode": "RGB",
+      "export_sha256": "8886220408f1bf4c2a3161dd67a5e03273fe7d86cf3ad0ad3421ffb08504caf3",
+      "icon_scale_revision": "Imagegen edit targeting 50% of the previous width and height for every footer icon; compact centered row."
+    },
+    "game-silhouettes": {
+      "source": "fntech3-game-silhouettes.png",
+      "export": "../fntech3-game-silhouettes.png",
+      "source_size": [
+        2217,
+        724
+      ],
+      "source_mode": "RGBA",
+      "source_sha256": "af53f210323fede52dd2c70d577b5925029f9a1cb6b21f21b258ba58e1cd7866",
+      "export_size": [
+        2229,
+        292
+      ],
+      "export_mode": "RGBA",
+      "export_sha256": "d3de6e4664218ba06785445e4767e85b3827072156236f259a2bd92668dcddff",
+      "revision": "User-authorized lossless rearrangement of the preferred reference into chronological order. Every fragment and nontransparent reference pixel is preserved exactly in the assembled master. No redraw, recolouring or resampling; README display width remains 720 px.",
+      "reference": {
+        "source": "fntech3-game-silhouettes-preferred.png",
+        "origin": "User-selected earlier imagegen silhouette artwork, supplied as codex-clipboard-afb436bf-1caf-4eab-9257-0f5ecc1d31c5.png",
+        "size": [
+          2172,
+          724
+        ],
+        "mode": "RGBA",
+        "sha256": "e7a23083122b3f6e7d7a571707985c17efd413c3b8eb1595dbe9329f68333d36",
+        "icon_order": [
+          "quake3",
+          "quakelive",
+          "rtcw-mp",
+          "wolfet",
+          "stvef-sp",
+          "jka-sp",
+          "jk2-sp",
+          "alice",
+          "fakk2",
+          "mohaa"
+        ]
+      },
+      "export_crop": "Crop to the assembled alpha >= 16 bounds and add 16 px of transparent margin. No pixel values inside the crop are changed."
+    }
+  },
+  "compatibility_note": "One emblem per title; MOHAA is standalone artwork and has no implemented engine profile.",
+  "chronology_basis": "Original PC release chronology, ignoring later platform ports and storefront rereleases.",
+  "chronology_references": {
+    "quake3": "https://www.mobygames.com/game/649/quake-iii-arena/releases/",
+    "fakk2": "https://www.mobygames.com/game/2187/heavy-metal-fakk-2/",
+    "stvef-sp": "https://gamefaqs.gamespot.com/pc/339660-star-trek-voyager-elite-force/data",
+    "alice": "https://en.wikipedia.org/wiki/American_McGee%27s_Alice",
+    "rtcw-mp": "https://store.steampowered.com/app/9010/",
+    "mohaa": "https://en.wikipedia.org/wiki/Medal_of_Honor%3A_Allied_Assault",
+    "jk2-sp": "https://en.wikipedia.org/wiki/Star_Wars_Jedi_Knight_II%3A_Jedi_Outcast",
+    "wolfet": "https://investor.activision.com/node/16091",
+    "jka-sp": "https://support.starwars.com/hc/en-us/articles/360000701826-About-STAR-WARS-Jedi-Knight-Jedi-Academy",
+    "quakelive": "https://www.wired.com/2009/02/quake-live-ente/"
+  }
+}

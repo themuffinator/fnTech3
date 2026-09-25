@@ -10,7 +10,8 @@
  * The pak is a zip: the central directory is found from its end record, and an
  * entry stored or deflated is returned whole (deflate through the engine's own
  * puff.c). Set FNTECH3_ALICE_PATH to an installation root to override the
- * default of E:/Games/Alice. */
+ * default of E:/Games/Alice. A pak can also be named by its whole path, as
+ * the Heavy Metal: F.A.K.K.2 tests name fakk/pak0.pk3. */
 
 #include <cstdint>
 #include <cstdlib>
@@ -35,23 +36,12 @@ public:
 #pragma warning( suppress : 4996 )
 #endif
 		const char *root = std::getenv( "FNTECH3_ALICE_PATH" );
-		path_ = std::string( root && root[0] ? root : "E:/Games/Alice" ) + "/base/" + pakName;
-		file_.open( path_, std::ios::binary );
-		if ( !file_ ) return;
-		file_.seekg( 0, std::ios::end );
-		const std::streamoff length = file_.tellg();
-		const std::streamoff tail = length < 66000 ? length : 66000;
-		std::vector<std::uint8_t> end( static_cast<std::size_t>( tail ) );
-		file_.seekg( length - tail );
-		file_.read( reinterpret_cast<char *>( end.data() ), tail );
-		for ( std::streamoff i = tail - 22; i >= 0; --i ) {
-			if ( U32( &end[static_cast<std::size_t>( i )] ) == 0x06054b50u ) {
-				const std::uint8_t *record = &end[static_cast<std::size_t>( i )];
-				ReadDirectory( U16( record + 10 ), U32( record + 12 ), U32( record + 16 ) );
-				break;
-			}
-		}
+		Open( std::string( root && root[0] ? root : "E:/Games/Alice" ) + "/base/" + pakName );
 	}
+
+	/* A pak by its whole path, for the other Ritual title's installation. */
+	struct Path_ { std::string path; };
+	explicit AlicePak( const Path_ &whole ) { Open( whole.path ); }
 
 	bool Available() const { return !entries_.empty(); }
 	const std::string &Path() const { return path_; }
@@ -84,6 +74,25 @@ public:
 	}
 
 private:
+	void Open( const std::string &path ) {
+		path_ = path;
+		file_.open( path_, std::ios::binary );
+		if ( !file_ ) return;
+		file_.seekg( 0, std::ios::end );
+		const std::streamoff length = file_.tellg();
+		const std::streamoff tail = length < 66000 ? length : 66000;
+		std::vector<std::uint8_t> end( static_cast<std::size_t>( tail ) );
+		file_.seekg( length - tail );
+		file_.read( reinterpret_cast<char *>( end.data() ), tail );
+		for ( std::streamoff i = tail - 22; i >= 0; --i ) {
+			if ( U32( &end[static_cast<std::size_t>( i )] ) == 0x06054b50u ) {
+				const std::uint8_t *record = &end[static_cast<std::size_t>( i )];
+				ReadDirectory( U16( record + 10 ), U32( record + 12 ), U32( record + 16 ) );
+				break;
+			}
+		}
+	}
+
 	static std::uint16_t U16( const std::uint8_t *p ) { return static_cast<std::uint16_t>( p[0] | p[1] << 8 ); }
 	static std::uint32_t U32( const std::uint8_t *p ) {
 		return static_cast<std::uint32_t>( p[0] ) | static_cast<std::uint32_t>( p[1] ) << 8

@@ -192,6 +192,13 @@ struct soundInterface_t {
 	void (*AddLoopingSound)( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx );
 	void (*AddRTCWLoopingSound)( const vec3_t origin, const vec3_t velocity, int range, sfxHandle_t sfx, int volume );
 	void (*AddSTVEFAmbientLoopingSound)( const vec3_t origin, sfxHandle_t sfx, int volume );
+	// Medal of Honor's sounds and loops with their alias's volume, distances
+	// (full volume inside minDist, silent past maxDist) and pitch.
+	void (*StartMOHAASound)( const vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx,
+		float volume, float minDist, float maxDist, float pitch, int mohaaChannel );
+	void (*StopMOHAASound)( int entnum, int mohaaChannel );
+	void (*AddMOHAALoopingSound)( int slot, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx,
+		float volume, float minDist, float maxDist, float pitch );
 	// How wide a mouth each entity holds, for Elite Force SP alone.
 	const int *(*STVEFSPMouths)( void );
 	void (*AddWolfETLoopingSound)( const vec3_t origin, const vec3_t velocity, int range, sfxHandle_t sfx, int volume, int soundTime );
@@ -367,9 +374,13 @@ fntech3::audio::alice::sfx::Device *S_AliceDevice( void );
 bool S_AliceBackendStarted( void );
 // The entity the last Alice respatialize named the listener (0x0069ffb4).
 int S_AliceListenerNumber( void );
-// Whether Alice's room reverb is on (s_reverb 1), and the environment and
-// level the client game last set (import 40).
-bool S_AliceReverb( int *type, float *level );
+// The room Alice's client game last named (import 40): true while it names
+// one -- a known environment at a level above 0 -- and s_reverb lets it
+// replace the engine's own room.
+bool S_AliceNamedRoom( int *type, float *level );
+// The same for Medal of Honor's client game (import 65), whose rooms are the
+// same 26 EAX environments.
+bool S_MOHAANamedRoom( int *type, float *level );
 }
 #endif
 

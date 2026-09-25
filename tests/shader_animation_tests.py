@@ -71,10 +71,11 @@ int main() {
         const bool rtcw = profile == COM_GAME_RTCW_SP || profile == COM_GAME_RTCW_MP;
         for (int extended : {0, 1}) {
             s_extendedShader = extended;
-            // Alice keeps as many frames as the engine can (retail keeps 64)
-            // in a renderer that carries its dialect.
-            const int limit = extended ? 24 : rtcw ? 16 : profile == COM_GAME_ALICE ? ALICE_ANIMATION_LIMIT : 8;
-            for (int count : {0, 1, 8, 9, 15, 16, 17, 24, 25, 64}) {
+            // Ritual's dialect keeps retail's 64 frames (alice.exe 0x0048c5bc,
+            // fakk2.exe 1.02 0x00476e00; F.A.K.K.2's caustics use 47) in a
+            // renderer that carries it, as do extended shaders.
+            const int limit = extended ? 64 : rtcw ? 16 : profile == COM_GAME_ALICE ? ALICE_ANIMATION_LIMIT : 8;
+            for (int count : {0, 1, 8, 9, 15, 16, 17, 24, 25, 47, 64, 65}) {
                 Reset(); shaderStage_t stage{};
                 auto input = Animation(count); const char *text = input.c_str();
                 assert(ParseAnimation(&stage, &text));
@@ -147,8 +148,11 @@ class ShaderAnimationTests(unittest.TestCase):
                     branch = stage[start:end].replace('else if', 'if', 1)
                     parser = '''static qboolean ParseAnimation(shaderStage_t *stage, const char **text) {
                         const char *token = COM_ParseExt(text, qtrue);
+                        // The Ritual dialect's nextBundle selects bundle 1; no stage here takes it.
+                        const struct { int bundle; } aliceStage{};
+                        (void)aliceStage;
                     ''' + branch + 'else return qfalse; return qtrue;}\n'
-                    defines += '\n#define ALICE_ANIMATION_LIMIT %d\n' % (24 if 'R_AliceShaderDialect()' in branch else 8)
+                    defines += '\n#define ALICE_ANIMATION_LIMIT %d\n' % (64 if 'R_AliceShaderDialect()' in branch else 8)
                     fixture = common(renderer) + '\n#include <cstdlib>\n' + defines + '\n' + HOST + tokenizer()
                     fixture += '\n#include "code/renderercommon/tr_rtcw_shader_material.h"\n' + records + parser + CHECKS
                     cpp = Path(temp) / f'{renderer}.cpp'

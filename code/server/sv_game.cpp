@@ -32,6 +32,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../compat/rtcw_state_adapter.hpp"
 #include "../compat/rtcw_savegame.hpp"
 #include "../compat/stvef_game_abi.h"
+#include "../compat/q3test_game_abi.h"
 #include "../qcommon/vm_rtcw_filesystem.hpp"
 #define JSON_IMPLEMENTATION
 #include "../qcommon/json.h"
@@ -121,6 +122,16 @@ constexpr ServerFlagMapping aliceServerFlags[] = {
 	{ FNTECH3_ALICE_SVF_BROADCAST, SVF_BROADCAST },
 	{ FNTECH3_ALICE_SVF_PORTAL, SVF_PORTAL }
 };
+/* Q3Test's engines test four bits and nothing else (1.02 0x41d5bc,
+ * 0x419c7b, 0x41d5ec, 0x41d6af), at Quake III's own positions
+ * (q3test_game_abi.h, checked in server_q3test_game.hpp); any other bit is
+ * the module's. */
+constexpr ServerFlagMapping q3testServerFlags[] = {
+	{ SVF_NOCLIENT, SVF_NOCLIENT },
+	{ SVF_BOT, SVF_BOT },
+	{ SVF_BROADCAST, SVF_BROADCAST },
+	{ SVF_PORTAL, SVF_PORTAL }
+};
 constexpr ServerFlagMapping wolfetServerFlags[] = {
 	{ FNTECH3_WOLFET_SVF_IGNOREBMODELEXTENTS, SVF_WOLFET_ORIGIN_ONLY },
 	{ FNTECH3_WOLFET_SVF_SELF_PORTAL, SVF_WOLFET_SELF_PORTAL },
@@ -140,9 +151,18 @@ int ServerFlagsToInternal( comGameId_t profile, int flags ) {
 			if ( static_cast<uint32_t>( flags ) & bit.external ) result |= bit.internal;
 		return static_cast<int>( result );
 	}
-	if ( profile == COM_GAME_ALICE ) {
+	/* F.A.K.K.2's bits are Alice's: its SDK header numbers the no-client,
+	 * bot, broadcast, portal, send-by-PVS, send-once and sent flags 0 to 4, 14
+	 * and 15, the positions alice.exe's walk tests. */
+	if ( profile == COM_GAME_ALICE || profile == COM_GAME_FAKK2 ) {
 		uint32_t result = 0;
 		for ( const auto &bit : aliceServerFlags )
+			if ( static_cast<uint32_t>( flags ) & bit.external ) result |= bit.internal;
+		return static_cast<int>( result );
+	}
+	if ( profile == COM_GAME_Q3TEST ) {
+		uint32_t result = 0;
+		for ( const auto &bit : q3testServerFlags )
 			if ( static_cast<uint32_t>( flags ) & bit.external ) result |= bit.internal;
 		return static_cast<int>( result );
 	}
@@ -176,7 +196,17 @@ int ServerFlagsFromInternal( comGameId_t profile, int flags, int previous ) {
 		std::memcpy( &output, &result, sizeof( output ) );
 		return output;
 	}
-	if ( profile == COM_GAME_ALICE ) {
+	if ( profile == COM_GAME_Q3TEST ) {
+		uint32_t kept = static_cast<uint32_t>( previous );
+		for ( const auto &bit : q3testServerFlags ) {
+			kept &= ~bit.external;
+			if ( static_cast<uint32_t>( flags ) & bit.internal ) kept |= bit.external;
+		}
+		int output;
+		std::memcpy( &output, &kept, sizeof( output ) );
+		return output;
+	}
+	if ( profile == COM_GAME_ALICE || profile == COM_GAME_FAKK2 ) {
 		// Every bit this engine does not map stays exactly as the module left it.
 		uint32_t kept = static_cast<uint32_t>( previous );
 		for ( const auto &bit : aliceServerFlags ) {
@@ -1093,6 +1123,9 @@ static intptr_t SV_RTCWGameSharedCall( fntech3::rtcw::module::Call call ) {
 #include "server_stvef_sp_save.hpp"
 #include "server_q3_ihv_game.hpp"
 #include "server_alice_game.hpp"
+#include "server_mohaa_game.hpp"
+#include "server_q3test_game.hpp"
+#include "server_q3test_net.hpp"
 
 static intptr_t SV_GameSystemCalls( intptr_t *args ) {
 
@@ -3203,10 +3236,12 @@ void SV_RestartGameProgs( void ) {
 	InvalidateServerGameData();
 	SV_ResetGameCvarRegistration();
 
-	if ( Com_GameIsSTVEFSP() ) {
-		// The function-table game reloads through GetGameAPI.
+	if ( Com_GameIsSTVEFSP() || Com_GameIsQ3Test() ) {
+		// The function-table game reloads through GetGameAPI. Every Q3Test
+		// engine unloads its library for a restart too, so its static data
+		// starts afresh (1.02 restart 0x419e50, 1.06 map_restart 0x41add0).
 		VM_Free( gvm );
-		gvm = SV_STVEFSPLoadGame();
+		gvm = Com_GameIsQ3Test() ? SV_Q3TestLoadGame() : SV_STVEFSPLoadGame();
 		if ( !gvm ) {
 			Com_Error( ERR_DROP, "VM_Restart on game failed" );
 		}
@@ -3324,6 +3359,14 @@ void SV_InitGameProgs( void ) {
 		bot_enable = 0;
 	}
 
+	/* No Q3Test release shipped its bot library, qabotx86.dll, nor any bot
+	 * data; with bot_enable 1, 1.06 to 1.08 stop fatally ("Couldn't load
+	 * bot"), and 1.02 to 1.05 have no path that spawns one. Bots stay off. */
+	if ( Com_GameIsQ3Test() && bot_enable ) {
+		Com_Printf( S_COLOR_YELLOW "Couldn't load bot: Q3Test shipped no bot library (qabotx86.dll); bots stay off.\n" );
+		bot_enable = 0;
+	}
+
 	/* Jedi Academy's single player hands the engine a function table rather
 	 * than numbering its calls, and no side of that boundary exists yet.
 	 * Multiplayer's numbered boundary is served as far as it reaches, and
@@ -3341,7 +3384,9 @@ void SV_InitGameProgs( void ) {
 		if ( !gvm ) gvm = SV_IHVLoadGame();
 	} else {
 		gvm = Com_GameIsSTVEFSP() ? SV_STVEFSPLoadGame()
-			: Com_GameIsAlice() ? SV_AliceLoadGame()
+			: Com_GameIsQ3Test() ? SV_Q3TestLoadGame()
+			: Com_GameIsRitual() ? SV_AliceLoadGame()
+			: Com_GameIsMOHAA() ? SV_MOHAALoadGame()
 			: SV_LoadGameModule( static_cast<vmInterpret_t>( Cvar_VariableIntegerValue( "vm_game" ) ) );
 	}
 	if ( !gvm ) {

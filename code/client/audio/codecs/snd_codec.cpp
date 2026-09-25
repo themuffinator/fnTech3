@@ -164,10 +164,11 @@ extern "C" void S_CodecInit( void ) {
 
 #ifdef USE_CODEC_MP3
 	// Elite Force stores most sounds and all music as MP3, and American
-	// McGee's Alice all of its music. Retail Quake and Wolfenstein engines
-	// never decode MP3, so their extension fallback must not start finding
-	// .mp3 files; the codec joins only those two titles.
-	if ( Com_GameIsSTVEF() || Com_GameIsAlice() ) {
+	// McGee's Alice all of its music; Medal of Honor its music, stereo
+	// ambience and briefings. Retail Quake and Wolfenstein engines never
+	// decode MP3, so their extension fallback must not start finding .mp3
+	// files; the codec joins only those titles.
+	if ( Com_GameIsSTVEF() || Com_GameIsRitual() || Com_GameIsMOHAA() ) {
 		S_CodecRegister( &mp3_codec );
 	}
 #endif

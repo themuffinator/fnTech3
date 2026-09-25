@@ -27,6 +27,7 @@ extern "C" {
 
 #include "../renderercommon/ql_font_text.h"
 #include "client_stvef_sp_screen.hpp"
+#include "cl_mohaa.h"
 
 #include <algorithm>
 #include <array>
@@ -952,6 +953,9 @@ static DemoRecordingNotice SCR_DemoRecordingNotice( comGameId_t profile ) {
 		// stvoy.exe cannot record a demo.
 	case COM_GAME_ALICE:
 		// alice.exe records without one: it has no "RECORDING" string.
+	case COM_GAME_FAKK2:
+		// F.A.K.K.2's engine is taken to share its descendant's rule; its
+		// own string pool is encrypted on disk.
 		return { false, false, 0, 0, 0 };
 	default:
 		// quake3.exe 1.32, WolfSP.exe and stvoyHM.exe.
@@ -1206,7 +1210,7 @@ void SCR_Init( void ) {
 	r_debugFontAtlas = Cvar_Get( "r_debugFontAtlas", "0", CVAR_TEMP );
 	// Enemy Territory's UI draws its own connect screen and ships no such art.
 	// Alice has none either: its loading screen is the world map.
-	scr_connectBackground = Com_GameIsWolfET() || Com_GameIsAlice() ? 0
+	scr_connectBackground = Com_GameIsWolfET() || Com_GameIsRitual() ? 0
 		: re.RegisterShaderNoMip( "ui/assets/backscreen_smoke" );
 
 	scr_initialized = true;
@@ -1284,10 +1288,13 @@ static void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 	// screen, and they draw only while they hold the keys (stvoy.exe
 	// SCR_DrawScreenField 0x40a130).
 	const bool refreshEveryFrame = Com_GameIsSTVEFSP();
+	// Medal of Honor's save picture is one frame of the view alone: no menu,
+	// no softening behind one and no console (cl_mohaa_ui.cpp `saveshot`).
+	const bool viewOnly = Com_GameIsMOHAA() && CL_MOHAAViewOnlyFrame();
 
 	// American McGee's Alice's engine draws its whole frame itself, view,
 	// menus and all (cl_alice_screen.cpp).
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		re.BeginFrame( stereoFrame );
 		CL_AliceUpdateScreenField( stereoFrame );
 		return;
@@ -1405,7 +1412,8 @@ static void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 	// browserSuppressUiRefresh term the menu's own draw does: without it the
 	// whole pyramid ran every frame while the browser owned the surface, with
 	// nothing sharp ever drawn over the softened frame.
-	menuBlurStrength = SCR_UpdateMenuBlurStrength(
+	// A view-only frame leaves the fade where it was for the frames around it.
+	menuBlurStrength = viewOnly ? 0.0f : SCR_UpdateMenuBlurStrength(
 		uiVisible && !uiFullscreen && !browserSuppressUiRefresh
 		&& cls.state == CA_ACTIVE );
 	if ( menuBlurStrength > 0.0f && re.DrawMenuBlur ) {
@@ -1430,7 +1438,9 @@ static void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 	// around that either left it drawing with the descriptor sets bloom's blend
 	// pass had bound - so it did not appear at all - or dimmed the live HUD
 	// underneath it while the request faded out.  See MENU_SOFT_FOCUS.md.
-	Con_DrawConsole ();
+	if ( !viewOnly ) {
+		Con_DrawConsole ();
+	}
 
 	// debug graph can be drawn on top of anything
 	if ( cl_debuggraph->integer || cl_timegraph->integer || cl_debugMove->integer ) {

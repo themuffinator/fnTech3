@@ -26,11 +26,13 @@ extern "C" {
 }
 
 #include "client_cpp.h"
+#include "client_q3test.h"
 #include "input_compat.hpp"
 #include "alice_input.hpp"
 #include "../compat/rtcw_game_abi.h"
 #include "../compat/stvef_game_abi.h"
 #include "../qcommon/netchan_safety.hpp"
+#include "cl_mohaa.h"
 
 #include <array>
 #include <cmath>
@@ -306,7 +308,7 @@ static void CL_AddViewAngleDelta( int axis, float delta ) {
 static void IN_CenterView( void ) {
 	// Alice's centerview (0x00428080) also raises the flag import 47 reports,
 	// on which the client game resynchronises its copy of the camera offset.
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		aliceCameraReset = true;
 	}
 	cl.viewangles[PITCH] = -SHORT2ANGLE(cl.snap.ps.delta_angles[PITCH]);
@@ -545,11 +547,14 @@ static void IN_RTCWButtonUp( void ) {
 
 static bool IN_CommandBindingEnabled( const InputCommandBinding& binding ) {
 	if ( binding.rtcwOnly && !Com_GameIsRTCW() ) return false;
-	if ( binding.notAlice && Com_GameIsAlice() ) return false;
+	if ( binding.notAlice && Com_GameIsRitual() ) return false;
 	if ( binding.profile == COM_GAME_RTCW_SP ) return Com_GameIsRTCWSP();
 	if ( binding.profile == COM_GAME_RTCW_MP ) return Com_GameIsRTCWMP();
 	if ( binding.profile == COM_GAME_STVEF_MP ) return Com_GameIsSTVEFMP();
-	if ( binding.profile == COM_GAME_ALICE ) return Com_GameIsAlice();
+	// F.A.K.K.2 shares these buttons at the same bits: its SDK header
+	// numbers attackright 0, attackleft 1, sneak 2, holster 4 and use 5.
+	if ( binding.profile == COM_GAME_ALICE ) return Com_GameIsRitual();
+	if ( binding.profile == COM_GAME_MOHAA ) return Com_GameIsMOHAA() != 0;
 	return true;
 }
 
@@ -665,6 +670,19 @@ static constexpr std::array kInputCommandBindings{
 	InputCommandBinding{ "-use", IN_ButtonUp<5>, false, COM_GAME_ALICE },
 	InputCommandBinding{ "+cameralook", IN_CameraLookDown, false, COM_GAME_ALICE },
 	InputCommandBinding{ "-cameralook", IN_CameraLookUp, false, COM_GAME_ALICE },
+	// Medal of Honor's own names for its buttons (OpenMoHAA CL_InitInput):
+	// primary and secondary attack on 0 and 1, use on 3, the leans on 4
+	// and 5; +attack stays the primary.
+	InputCommandBinding{ "+attackprimary", IN_ButtonDown<0>, false, COM_GAME_MOHAA },
+	InputCommandBinding{ "-attackprimary", IN_ButtonUp<0>, false, COM_GAME_MOHAA },
+	InputCommandBinding{ "+attacksecondary", IN_ButtonDown<1>, false, COM_GAME_MOHAA },
+	InputCommandBinding{ "-attacksecondary", IN_ButtonUp<1>, false, COM_GAME_MOHAA },
+	InputCommandBinding{ "+use", IN_ButtonDown<3>, false, COM_GAME_MOHAA },
+	InputCommandBinding{ "-use", IN_ButtonUp<3>, false, COM_GAME_MOHAA },
+	InputCommandBinding{ "+leanleft", IN_ButtonDown<4>, false, COM_GAME_MOHAA },
+	InputCommandBinding{ "-leanleft", IN_ButtonUp<4>, false, COM_GAME_MOHAA },
+	InputCommandBinding{ "+leanright", IN_ButtonDown<5>, false, COM_GAME_MOHAA },
+	InputCommandBinding{ "-leanright", IN_ButtonUp<5>, false, COM_GAME_MOHAA },
 	InputCommandBinding{ "+mlook", IN_MLookDown },
 	InputCommandBinding{ "-mlook", IN_MLookUp },
 };
@@ -859,7 +877,7 @@ void CL_MouseEvent( int dx, int dy /*, int time*/ ) {
 		// selected by an earlier queued key event (for example Escape) after the
 		// platform already queued this delta; never reinterpret it as a position.
 		return;
-	} else if ( Com_GameIsAlice() && aliceCursorMode ) {
+	} else if ( Com_GameIsRitual() && aliceCursorMode ) {
 		// Retail tests no catcher here. This engine's console keeps its own
 		// mouse above: retail's console is one of its menus, which run with the
 		// cursor on, so there the two never compete.
@@ -995,7 +1013,7 @@ static void CL_JoystickMove( usercmd_t *cmd ) {
 	// so this path is a capability beyond it. Its command has no walking bit
 	// -- bit 4 is holster -- and its move bytes clamp at -128, so a mouse move
 	// that reached -128 must not be pulled to -127 on the way through here.
-	const bool alice = Com_GameIsAlice() != 0;
+	const bool alice = Com_GameIsRitual() != 0;
 	const auto clampMove = [alice]( int value ) -> signed char {
 		return alice
 			? static_cast<signed char>( fntech3::alice::input::ClampChar( value ) )
@@ -1086,10 +1104,11 @@ static void CL_LogRetailMouseMotion(
 CL_RetailMouseMove
 
 Independently implements the retail Quake Live gameplay transform while the
-legacy styles remain available through cl_mouseAccelStyle 0 and 1.
+legacy styles remain available through cl_mouseAccelStyle 0 and 1. Returns
+whether the mouse moved this command.
 =================
 */
-static void CL_RetailMouseMove( usercmd_t *cmd ) {
+static bool CL_RetailMouseMove( usercmd_t *cmd ) {
 	const float rawX = static_cast<float>( cl.mouseDx[cl.mouseIndex] );
 	const float rawY = static_cast<float>( cl.mouseDy[cl.mouseIndex] );
 
@@ -1102,7 +1121,7 @@ static void CL_RetailMouseMove( usercmd_t *cmd ) {
 		m_filter->integer, 0, fnql::input::kRetailMouseFilterMaximum );
 	if ( rawX == 0.0f && rawY == 0.0f && filterSamples == 0 ) {
 		retailMouseFilter.Reset( { cl.viewangles[YAW], cl.viewangles[PITCH] } );
-		return;
+		return false;
 	}
 
 	fnql::input::RetailMouseParameters parameters;
@@ -1160,21 +1179,23 @@ static void CL_RetailMouseMove( usercmd_t *cmd ) {
 		fnql::input::FiniteOr( view.yaw, unfiltered.yaw );
 	cl.viewangles[PITCH] =
 		fnql::input::FiniteOr( view.pitch, unfiltered.pitch );
+	return rawX != 0.0f || rawY != 0.0f;
 }
 
 
 /*
 =================
 CL_MouseMove
+
+Returns whether the mouse moved this command.
 =================
 */
-static void CL_MouseMove( usercmd_t *cmd )
+static bool CL_MouseMove( usercmd_t *cmd )
 {
 	float mx, my;
 
 	if ( cl_mouseAccelStyle->integer == 2 ) {
-		CL_RetailMouseMove( cmd );
-		return;
+		return CL_RetailMouseMove( cmd );
 	}
 
 	CL_UpdateMouseAccelDebugLog( false );
@@ -1201,7 +1222,7 @@ static void CL_MouseMove( usercmd_t *cmd )
 	cl.mouseDy[cl.mouseIndex] = 0;
 
 	if (mx == 0.0f && my == 0.0f)
-		return;
+		return false;
 
 	if ( cl_mouseAccel->value != 0.0f )
 	{
@@ -1270,6 +1291,29 @@ static void CL_MouseMove( usercmd_t *cmd )
 	else
 		cmd->forwardmove = ClampCharMove( CL_SafeMoveValue(
 			cmd->forwardmove, -m_forward->value * my ) );
+	return true;
+}
+
+
+/*
+=================
+CL_MOHAAMouseMove
+
+2015's CL_MouseMove (OpenMoHAA cl_input.cpp) is Quake III's but for two
+things. Its client game has no SetUserCmdValue import to hand the engine a
+scale, so the engine asks for one on every move: export 9, SensitivityScale,
+which in 1.00 returns the fov_y / 75 the view set last frame (cgamex86.dll
+0x30047619, 0x30048909). Left at nought, the scale turned every mouse move
+into none. And a move sets the "any key" bit (14), which 1.00's game reads
+before the move bytes when it decides a player is idle (g_inactiveKick,
+gamex86.dll 0x3111769b), so a player who only turns is not.
+=================
+*/
+static void CL_MOHAAMouseMove( usercmd_t *cmd ) {
+	cl.cgameSensitivity = CL_MOHAACGameSensitivityScale();
+	if ( CL_MouseMove( cmd ) ) {
+		cmd->buttons |= 1 << 14;
+	}
 }
 
 
@@ -1385,6 +1429,77 @@ static void CL_CmdButtons( usercmd_t *cmd ) {
 		cmd->buttons |= Com_GameIsRTCW() ? FNTECH3_RTCW_BUTTON_ANY :
 			Com_GameIsSTVEFMP() ? FNTECH3_STVEF_MP_BUTTON_ANY : BUTTON_ANY;
 	}
+}
+
+
+/*
+==============
+CL_MOHAACmdButtons
+
+Medal of Honor's command bits (OpenMoHAA CL_CmdButtons): the first fifteen
+buttons as pressed; talk (bit 6) while a menu or the console holds the keys;
+run (bit 2) when +speed and cl_run disagree; the client game's weapon
+command in the bits it chooses; "any key" (bit 14) whenever a key is down,
+and the mouse bit (15) when one is down and nothing captures input. There is
+no Quake III walking bit: bit 4 is the left lean.
+==============
+*/
+static void CL_MOHAACmdButtons( usercmd_t *cmd ) {
+	const bool gameplayInputCaptured = fnql::input::CatcherBlocksGameplayInput(
+		Key_GetCatcher(), KEYCATCH_RETAIL_MOUSEPASS );
+	int buttons = 0;
+
+	for ( std::size_t i = 0; i < in_buttons.size(); i++ ) {
+		if ( i < 15 && ( in_buttons[i].active || in_buttons[i].wasPressed ) ) {
+			buttons |= 1 << static_cast<int>( i );
+		}
+		in_buttons[i].wasPressed = false;
+	}
+	if ( gameplayInputCaptured ) {
+		buttons |= 1 << 6;
+	}
+	if ( in_speed.active != ( cl_run->integer != 0 ) ) {
+		buttons |= 1 << 2;
+	}
+	if ( cgvm ) {
+		buttons |= CL_MOHAACGameWeaponCommandButtonBits();
+	}
+	if ( anykeydown ) {
+		buttons |= 1 << 14;
+		if ( !gameplayInputCaptured ) {
+			buttons |= 1 << 15;
+		}
+	}
+	cmd->buttons = buttons & 0xffff;
+}
+
+
+/*
+================
+CL_MOHAAKeyMove
+
+Medal of Honor moves at full speed on every held key (OpenMoHAA CL_KeyMove);
++speed only sets the run bit. +right and +left strafe only under +strafe.
+================
+*/
+static void CL_MOHAAKeyMove( usercmd_t *cmd ) {
+	constexpr int movespeed = 127;
+	int forward = 0, side = 0, up = 0;
+
+	if ( in_strafe.active ) {
+		side = CL_SafeMoveValue( side, movespeed * CL_KeyState( &in_right ) );
+		side = CL_SafeMoveValue( side, -movespeed * CL_KeyState( &in_left ) );
+	}
+	side = CL_SafeMoveValue( side, movespeed * CL_KeyState( &in_moveright ) );
+	side = CL_SafeMoveValue( side, -movespeed * CL_KeyState( &in_moveleft ) );
+	up = CL_SafeMoveValue( up, movespeed * CL_KeyState( &in_up ) );
+	up = CL_SafeMoveValue( up, -movespeed * CL_KeyState( &in_down ) );
+	forward = CL_SafeMoveValue( forward, movespeed * CL_KeyState( &in_forward ) );
+	forward = CL_SafeMoveValue( forward, -movespeed * CL_KeyState( &in_back ) );
+
+	cmd->forwardmove = ClampCharMove( forward );
+	cmd->rightmove = ClampCharMove( side );
+	cmd->upmove = ClampCharMove( up );
 }
 
 
@@ -1530,7 +1645,7 @@ void CL_AliceSetCursorMode( qboolean on ) {
 
 
 qboolean CL_AliceCursorMode( void ) {
-	return Com_GameIsAlice() && aliceCursorMode ? qtrue : qfalse;
+	return Com_GameIsRitual() && aliceCursorMode ? qtrue : qfalse;
 }
 
 
@@ -1552,6 +1667,21 @@ void CL_AliceGetMouseState( int *x, int *y, int *buttons ) {
 	if ( buttons ) {
 		*buttons = aliceCursorMode ? aliceMouseButtons : 0;
 	}
+}
+
+
+/*
+=================
+CL_AliceSetMousePosition
+
+Retail's 0x004282f0: puts the cursor at a point in pixels, held to the video
+size as its motion is. Heavy Metal: F.A.K.K.2's inventory moves it onto the
+type or item it picks.
+=================
+*/
+void CL_AliceSetMousePosition( int x, int y ) {
+	aliceCursorX = fntech3::alice::input::CursorStep( 0, x, cls.glconfig.vidWidth );
+	aliceCursorY = fntech3::alice::input::CursorStep( 0, y, cls.glconfig.vidHeight );
 }
 
 
@@ -1669,12 +1799,16 @@ static usercmd_t CL_CreateCmd( void ) {
 	// keyboard angle adjustment
 	CL_AdjustAngles ();
 
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		// Alice's builder (CL_CreateCmd 0x00428800) runs the same steps in
 		// the same order, each with rules of its own.
 		CL_AliceCmdButtons( &cmd );
 		CL_AliceKeyMove( &cmd );
 		CL_AliceMouseMove( &cmd );
+	} else if ( Com_GameIsMOHAA() ) {
+		CL_MOHAACmdButtons( &cmd );
+		CL_MOHAAKeyMove( &cmd );
+		CL_MOHAAMouseMove( &cmd );
 	} else {
 		CL_CmdButtons( &cmd );
 
@@ -1980,6 +2114,11 @@ void CL_WritePacket( int repeat ) {
 		// write the command count
 		MSG_WriteByte( &buf, count );
 
+		// Medal of Honor's move carries the player's eyes first.
+		if ( clc.netchan.wireProfile == NETCHAN_WIRE_MOHAA ) {
+			CL_MOHAAWriteEyeInfo( &buf );
+		}
+
 		// use the checksum feed in the key
 		key = clc.checksumFeed;
 		// also use the message acknowledge
@@ -1995,7 +2134,10 @@ void CL_WritePacket( int repeat ) {
 			j = fnql::net::CounterAdd(
 				firstCommand, static_cast<std::uint32_t>( i ) ) & CMD_MASK;
 			cmd = &cl.cmds[j];
-			if ( !MSG_WriteDeltaUsercmdKeyForWireProfile( &buf, key,
+			if ( clc.netchan.wireProfile == NETCHAN_WIRE_MOHAA ) {
+				// and its own command record (cl_mohaa.cpp)
+				CL_MOHAAWriteDeltaUsercmdKey( &buf, key, *oldcmd, *cmd );
+			} else if ( !MSG_WriteDeltaUsercmdKeyForWireProfile( &buf, key,
 				oldcmd, cmd, clc.netchan.wireProfile ) ) {
 				Com_Error( ERR_DROP,
 					"CL_WritePacket: invalid frozen wire profile" );
@@ -2061,6 +2203,12 @@ void CL_SendCmd( void ) {
 	// we create commands even if a demo is playing,
 	CL_CreateNewCommands();
 
+	// Q3Test's session decides when and what to send (cl_q3test.cpp).
+	if ( Com_GameIsQ3Test() ) {
+		CL_Q3TestSendCmd();
+		return;
+	}
+
 	// don't send a packet if the last packet was sent too recently
 	if ( !CL_ReadyToSendPacket() ) {
 		if ( cl_showSend->integer ) {
@@ -2082,12 +2230,13 @@ void CL_InitInput( void ) {
 	// American McGee's Alice registers its input cvars under its own names,
 	// defaults and flags (alice.exe CL_Init 0x0042c8a5..0x0042ca99); every
 	// other profile keeps the registrations below unchanged.
-	const bool alice = Com_GameIsAlice() != 0;
+	const bool alice = Com_GameIsRitual() != 0;
 
 	IN_AddCommandBindings();
 	if ( alice ) {
+		// The alt and ctrl binding commands are the key system's, registered
+		// with bind before default.cfg runs (Com_InitKeyCommands).
 		Cmd_AddCommand( "+togglemouse", IN_AliceToggleMouse );
-		CL_AliceInitKeyCommands();
 	}
 
 	cl_nodelta = Cvar_Get( "cl_nodelta", "0", 0 );
@@ -2222,7 +2371,7 @@ void CL_ClearInput( void ) {
 	mouseAccelDebugOpenFailed = false;
 	retailMouseFilter.Reset();
 	IN_RemoveCommandBindings();
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		Cmd_RemoveCommand( "+togglemouse" );
 		CL_AliceShutdownKeyCommands();
 		// The cursor belongs to the menus a restarted client will open again.

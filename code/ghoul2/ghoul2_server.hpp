@@ -331,7 +331,9 @@ public:
 		const float *angles, int flags, int up, int right, int forward,
 		int blendTime, int currentTime );
 	/* How a bone was bent, or null. */
-	const BoneAngles *BoneAngles( void *pointer, int modelIndex, const char *boneName );
+	/* `struct`: the member takes the record's name, which GCC then refuses
+	 * for the return type without it. */
+	const struct BoneAngles *BoneAngles( void *pointer, int modelIndex, const char *boneName );
 
 	/* Set one bone of one model playing. The bone is named, as bolts are, and
 	 * a name the skeleton does not carry is refused rather than recorded
@@ -340,7 +342,7 @@ public:
 		int startFrame, int endFrame, int flags, float speed, int currentTime,
 		int setFrame, int blendTime );
 	/* What a bone was set playing, or null. */
-	const BoneAnimation *BoneAnimation( void *pointer, int modelIndex,
+	const struct BoneAnimation *BoneAnimation( void *pointer, int modelIndex,
 		const char *boneName );
 
 	/* Add a bolt to one of an instance's models, by the name of a surface or

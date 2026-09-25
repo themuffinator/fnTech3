@@ -49,7 +49,7 @@ struct dlight_t {
 };
 static struct { dlight_t dlights[64]; } data, *backEndData=&data;
 static struct { bool registered=true; int frameCount=1; } tr;
-static int r_numdlights;
+static int r_numdlights, r_numModuleDlights;
 enum { GLHW_GENERIC, GLHW_RIVA128, GLHW_PERMEDIA2 };
 static struct { int hardwareType; } glConfig;
 static cvar_t dynamic{}, radiusScale{}; static cvar_t *r_dynamiclight=&dynamic;
@@ -79,7 +79,7 @@ int main() {
     const vec3_t origin={1,2,3}, color={0.25f,0.5f,1};
     for(auto mode:{COM_GAME_RTCW_SP,COM_GAME_RTCW_MP}) for(int dynamicMode:{-1,0,1,2,3})
     for(float scale:{-1.f,0.f,0.125f,1.f,2.f}) for(uint32_t flags:{0u,1u,2u,10u,11u,0x80000000u,0x40000000u,0xc0000002u}) {
-        ri.gameId=mode; dynamic.integer=dynamicMode; radiusScale.value=scale; r_numdlights=0;
+        ri.gameId=mode; dynamic.integer=dynamicMode; radiusScale.value=scale; r_numdlights=r_numModuleDlights=0;
         std::memset(&data,0x55,sizeof(data)); const auto saved=data;
         const bool enabled=((flags&0x80000000u) || (dynamicMode!=0 && dynamicMode!=2)) && (mode!=COM_GAME_RTCW_SP || scale>0);
         RE_AddRTCWLightToScene(origin,1000,color[0],color[1],color[2],static_cast<int>(flags));
@@ -94,24 +94,43 @@ int main() {
         assert(!std::memcmp(&data.dlights[1],&saved.dlights[1],sizeof(data)-sizeof(dlight_t)));
     }
     assert(registrations==1); ri.gameId=COM_GAME_RTCW_MP; dynamic.integer=1;
-    for(int count:{-1,32,64,INT_MAX}) {
-        r_numdlights=count; const auto saved=data; RE_AddRTCWLightToScene(origin,1000,1,1,1,0);
-        assert(r_numdlights==count && !std::memcmp(&data,&saved,sizeof(data)));
+    // Retail's 32 a frame count module lights alone; a full frame refuses too.
+    for(int modules:{-1,32,33,INT_MAX}) {
+        r_numdlights=0; r_numModuleDlights=modules; const auto saved=data; RE_AddRTCWLightToScene(origin,1000,1,1,1,0);
+        assert(!r_numdlights && r_numModuleDlights==modules && !std::memcmp(&data,&saved,sizeof(data)));
     }
-    r_numdlights=0;
+    for(int count:{-1,64,65,INT_MAX}) {
+        r_numdlights=count; r_numModuleDlights=0; const auto saved=data; RE_AddRTCWLightToScene(origin,1000,1,1,1,0);
+        assert(r_numdlights==count && !r_numModuleDlights && !std::memcmp(&data,&saved,sizeof(data)));
+    }
+    // Slots the engine's own lights and portal copies hold take none of the 32.
+    r_numdlights=40; r_numModuleDlights=31; RE_AddRTCWLightToScene(origin,1000,1,1,1,0);
+    assert(r_numdlights==41 && r_numModuleDlights==32 && data.dlights[40].radius==1000);
+    RE_AddRTCWLightToScene(origin,1000,1,1,1,0); assert(r_numdlights==41 && r_numModuleDlights==32);
+    r_numdlights=r_numModuleDlights=0;
     for(int hardware:{GLHW_RIVA128,GLHW_PERMEDIA2}) { glConfig.hardwareType=hardware; RE_AddRTCWLightToScene(origin,1000,1,1,1,0); assert(!r_numdlights); }
     glConfig.hardwareType=GLHW_GENERIC; tr.registered=false; RE_AddRTCWLightToScene(origin,1000,1,1,1,0); assert(!r_numdlights); tr.registered=true;
     for(float bad:{std::numeric_limits<float>::infinity(),std::numeric_limits<float>::quiet_NaN(),FLT_MAX})
         Reject([&]{RE_AddRTCWLightToScene(origin,bad,1,1,1,0);});
     // Retail MP's empty player preview produces an infinite light position.
-    // Cull every non-finite axis before scene publication or shader lookup.
+    // Cull every non-finite axis before scene publication or shader lookup, but
+    // count the light among the 32 whenever retail would have stored it.
+    int counted=0;
     for(int axis=0;axis<3;++axis) for(float bad:{std::numeric_limits<float>::infinity(),
             -std::numeric_limits<float>::infinity(),std::numeric_limits<float>::quiet_NaN()}) {
         vec3_t badOrigin={1,2,3}; badOrigin[axis]=bad;
         const auto saved=data; const auto beforeLookups=lookups;
         RE_AddRTCWLightToScene(badOrigin,1000,1,1,1,11);
         assert(!r_numdlights && !std::memcmp(&data,&saved,sizeof(data)) && lookups==beforeLookups);
+        assert(r_numModuleDlights==++counted);
+        // Lights retail itself refuses are not counted: no radius, or unforced at r_dynamiclight 0.
+        RE_AddRTCWLightToScene(badOrigin,0,1,1,1,0);
+        dynamic.integer=0; RE_AddRTCWLightToScene(badOrigin,1000,1,1,1,0); dynamic.integer=1;
+        assert(!r_numdlights && r_numModuleDlights==counted);
     }
+    r_numModuleDlights=32; { vec3_t badOrigin={std::numeric_limits<float>::infinity(),2,3};
+        RE_AddRTCWLightToScene(badOrigin,1000,1,1,1,0); assert(r_numModuleDlights==32); }
+    r_numModuleDlights=0;
     Reject([&]{RE_AddRTCWLightToScene(origin,1000,1,1,std::numeric_limits<float>::quiet_NaN(),0);});
     Reject([&]{RE_AddRTCWLightToScene(origin,1000,1,1,1,65);});
     const auto saved=data; failLookup=true; Reject([&]{RE_AddRTCWLightToScene(origin,1000,1,1,1,10);}); failLookup=false;
@@ -121,7 +140,7 @@ int main() {
     dynamic.integer=1; intensity.value=2;
     for(auto profile:{COM_GAME_RTCW_SP,COM_GAME_RTCW_MP}) for(int quality:{1,2})
     for(float scale:{0.125f,1.f,2.f}) for(int flags:{0,1,2,10,11}) {
-        ri.gameId=profile; mode.integer=quality; radiusScale.value=scale; r_numdlights=0;
+        ri.gameId=profile; mode.integer=quality; radiusScale.value=scale; r_numdlights=r_numModuleDlights=0;
         RE_AddRTCWLightToScene(origin,200,.25f,.5f,1,flags);
         assert(r_numdlights==1);
         const auto &light=data.dlights[0];
@@ -133,9 +152,11 @@ int main() {
     }
     ri.gameId=COM_GAME_RTCW_MP; radiusScale.value=1; intensity.value=1;
     for(float bad:{0.f,-1.f,std::numeric_limits<float>::infinity(),std::numeric_limits<float>::quiet_NaN()}) {
-        r_numdlights=0; radiusScale.value=bad; const auto saved=data;
+        r_numdlights=r_numModuleDlights=0; radiusScale.value=bad; const auto saved=data;
         RE_AddRTCWLightToScene(origin,200,1,1,1,0);
-        assert(!r_numdlights && !std::memcmp(&data,&saved,sizeof(data)));
+        // Retail MP stores this light; the per-pixel path cannot draw it, but it
+        // still takes one of the 32.
+        assert(!r_numdlights && r_numModuleDlights==1 && !std::memcmp(&data,&saved,sizeof(data)));
     }
     radiusScale.value=1;
     // A complete flicker cycle crossing a projection band never shrinks the
@@ -144,12 +165,12 @@ int main() {
     const float radii[]={125,130,120,150,91,216,100};
     float far=0;
     for(float radius:radii) {
-        ++tr.frameCount; r_numdlights=0; RE_AddRTCWLightToScene(origin,radius,1,.5f,.2f,0);
+        ++tr.frameCount; r_numdlights=r_numModuleDlights=0; RE_AddRTCWLightToScene(origin,radius,1,.5f,.2f,0);
         assert(data.dlights[0].radius==radius && data.dlights[0].shadowProjectionFar>=far);
         far=data.dlights[0].shadowProjectionFar;
     }
     assert(far==256);
-    tr.frameCount+=121; r_numdlights=0; RE_AddRTCWLightToScene(origin,100,1,.5f,.2f,0);
+    tr.frameCount+=121; r_numdlights=r_numModuleDlights=0; RE_AddRTCWLightToScene(origin,100,1,.5f,.2f,0);
     assert(data.dlights[0].shadowProjectionFar==128);
     // Independent origins, bounded eviction, and a restarted renderer's frame clock.
     rtcwLightShadowHistory_t history[2]{};
@@ -176,6 +197,106 @@ int main() {
     assert(RTCW_ProjectLightVertex(zero,1,color,badOrigin).clip==255);
 }
 '''
+
+ENGINE_CHECKS = r'''
+#include <algorithm>
+#include <random>
+static const vec3_t lightOrigin={1,2,3};
+// One frame's plan: each scene's module submissions, the engine's budget in
+// it, and its portal views (siblings, or each nested in the one before).
+struct PlannedScene { int submissions,engine,portals; bool nested; };
+struct Outcome { std::vector<int> accepted; int engineSlots,moduleSlots,maxEngine; };
+static Outcome RunFrame(const std::vector<PlannedScene> &plan, bool engine) {
+    Outcome out{}; r_numdlights=r_numModuleDlights=0; int moduleSlots=0;
+    for(const auto &scene:plan) {
+        const int first=r_numdlights;
+        for(int i=0;i<scene.submissions;++i) {
+            const int modulesBefore=r_numModuleDlights, count=r_numdlights;
+            RE_AddRTCWLightToScene(lightOrigin,200,1,1,1,0);
+            const bool accepted=r_numdlights==count+1;
+            assert(accepted==(modulesBefore<32 && count<64) && r_numModuleDlights==modulesBefore+accepted);
+            // Before this change a module light was refused once the frame held
+            // 32 slots of any kind, portal copies included; none is refused now
+            // that was accepted then.
+            if(moduleSlots<32) assert(accepted);
+            if(accepted) { ++moduleSlots; out.accepted.push_back(i); }
+        }
+        const int modules=r_numdlights-first;
+        if(engine) {
+            const int end=RTCW_EngineLightEnd(64,r_numModuleDlights,first);
+            for(int i=0;i<scene.engine && r_numdlights<end;++i) data.dlights[r_numdlights++].sentinel=-1;
+        }
+        const int set=r_numdlights-first;
+        assert(set>=modules && set<=RTCW_SCENE_LIGHTS && r_numdlights<=64);
+        int parent=set;
+        for(int portal=0;portal<scene.portals;++portal) {
+            const int copies=RTCW_PortalLightCopies(parent,modules,r_numdlights,64,
+                RTCW_EngineLightEnd(64,r_numModuleDlights,r_numdlights));
+            // A leading run of the parent's set: its module lights first.
+            assert(copies>=0 && copies<=parent && r_numdlights+copies<=64);
+            const int moduleCopies=std::min(copies,std::min(parent,modules));
+            // Module copies take any free slot, as every profile's do.
+            assert(moduleCopies==std::min(std::min(parent,modules),64-r_numdlights));
+            moduleSlots+=moduleCopies; r_numdlights+=copies;
+            if(scene.nested) parent=copies;
+        }
+        // The engine never holds more than the 32 slots the modules cannot claim.
+        out.maxEngine=std::max(out.maxEngine,r_numdlights-moduleSlots);
+        assert(r_numdlights-moduleSlots<=32);
+    }
+    out.moduleSlots=moduleSlots; out.engineSlots=r_numdlights-moduleSlots;
+    return out;
+}
+int main() {
+    ri.gameId=COM_GAME_RTCW_MP; dynamic.integer=1; mode.integer=2; radiusScale.value=1; intensity.value=1;
+    // Engine lights join only the per-pixel modes, where an unforced light is
+    // drawn, and never the snooper's heat view.
+    for(int dlightMode:{0,1,2}) for(int dynamicLight:{-1,0,1,2,3}) for(int snooper:{0,1})
+        assert(RTCW_SceneTakesEngineLights(dlightMode,dynamicLight,snooper)==
+            (dlightMode!=0 && dynamicLight!=0 && dynamicLight!=2 && !snooper));
+    // The modules' remaining slots stay free, and a set keeps within 32.
+    assert(RTCW_EngineLightEnd(64,0,0)==32 && RTCW_EngineLightEnd(64,10,0)==32 && RTCW_EngineLightEnd(64,10,20)==42);
+    assert(RTCW_EngineLightEnd(64,32,40)==64 && RTCW_EngineLightEnd(64,32,20)==52 && RTCW_EngineLightEnd(64,-5,-1)==32);
+    assert(RTCW_EngineLightEnd(64,INT_MAX,-1)==64 && RTCW_EngineLightEnd(64,INT_MIN,0)==32);
+    // Portal copies: module lights while the frame has room, the engine's only to their end.
+    assert(RTCW_PortalLightCopies(0,0,0,64,64)==0 && RTCW_PortalLightCopies(5,5,64,64,64)==0);
+    assert(RTCW_PortalLightCopies(5,5,-1,64,64)==0 && RTCW_PortalLightCopies(-3,0,0,64,64)==0);
+    assert(RTCW_PortalLightCopies(20,12,30,64,42)==12 && RTCW_PortalLightCopies(20,12,30,64,50)==20);
+    assert(RTCW_PortalLightCopies(20,12,30,64,45)==15 && RTCW_PortalLightCopies(20,12,58,64,64)==6);
+    assert(RTCW_PortalLightCopies(8,12,30,64,30)==8 && RTCW_PortalLightCopies(8,-1,30,64,34)==4);
+    // The per-light pass draws the engine's first, then the module's in order.
+    for(int count=0;count<=RTCW_SCENE_LIGHTS;++count) for(int modules=-1;modules<=count+1;++modules) {
+        std::vector<int> order;
+        for(int position=0;position<count;++position) order.push_back(RTCW_LightDrawIndex(position,count,modules));
+        std::vector<int> sorted=order; std::sort(sorted.begin(),sorted.end());
+        for(int i=0;i<count;++i) assert(sorted[i]==i);
+        const int leading=modules<=0 || modules>=count ? 0 : count-modules;
+        for(int i=0;i<count;++i) assert(order[i]==(modules<=0 || modules>=count ? i : i<leading ? modules+i : i-leading));
+    }
+    std::mt19937 rng(0x7c3d11u);
+    int portalFrames=0,engineFrames=0,limitedFrames=0;
+    for(int frame=0;frame<20000;++frame) {
+        std::vector<PlannedScene> plan(1+rng()%4);
+        const bool portals=rng()%3==0;
+        for(auto &scene:plan) {
+            scene.submissions=int(rng()%41); scene.engine=int(rng()%33);
+            scene.portals=portals ? int(rng()%4) : 0; scene.nested=rng()&1;
+        }
+        const auto with=RunFrame(plan,true), without=RunFrame(plan,false);
+        assert(!without.engineSlots && with.engineSlots>=0 && with.engineSlots<=32);
+        int submitted=0; for(const auto &scene:plan) submitted+=scene.submissions;
+        if(!portals) {
+            // Retail's rule exactly: the first 32 a frame, whatever the engine added.
+            assert(with.accepted==without.accepted && int(with.accepted.size())==std::min(submitted,32));
+        }
+        portalFrames+=portals; engineFrames+=with.engineSlots>0;
+        limitedFrames+=with.accepted.size()!=without.accepted.size();
+    }
+    assert(portalFrames>5000 && engineFrames>15000);
+    std::printf("{\"portalFrames\":%d,\"engineFrames\":%d,\"limitedFrames\":%d}\n",portalFrames,engineFrames,limitedFrames);
+}
+'''
+
 
 BACKEND = COMMON + r'''
 #define SHADER_MAX_VERTEXES 16
@@ -574,6 +695,99 @@ int main() {
                 if pmlight: flags+=['-DUSE_PMLIGHT']
                 with self.subTest(renderer=renderer,pmlight=pmlight):
                     self.compile_run(entity_fixture(renderer)+ENTITY_CHECKS,flags)
+
+    def test_engine_scene_lights_keep_the_modules_frame(self):
+        self.compile_run(SCENE[:SCENE.index('int main()')]+ENGINE_CHECKS,('-DUSE_PMLIGHT',))
+
+    def test_each_renderer_bounds_and_orders_engine_scene_lights(self):
+        prelude=COMMON+r'''
+#include "code/renderercommon/tr_rtcw_engine_lights.h"
+#include <algorithm>
+struct dlight_t { void *head; int id; };
+static struct { dlight_t dlights[64]; } data, *backEndData=&data;
+static struct { struct { struct { qboolean snooperView; } rtcw; } refdef; } tr;
+static int r_numModuleDlights, r_firstSceneDlight;
+static cvar_t dynamic{}, mode{}; static cvar_t *r_dynamiclight=&dynamic;
+static struct { comGameId_t gameId; } ri;
+static qboolean R_UsesRTCWLighting() { return ri.gameId==COM_GAME_RTCW_SP || ri.gameId==COM_GAME_RTCW_MP ? qtrue : qfalse; }
+static qboolean R_ReservesModuleLights() { return R_UsesRTCWLighting() || ri.gameId==COM_GAME_WOLFET ? qtrue : qfalse; }
+static int R_GetDlightMode() { return mode.integer; }
+typedef int rbDrawSurfsMode_t;
+static struct {
+    struct { unsigned num_dlights; dlight_t *dlights; int scissorX,scissorY,scissorWidth,scissorHeight; } viewParms;
+    struct { int num_moduleDlights; } refdef;
+} backEnd;
+static struct { qboolean dlightPass; dlight_t *light; } tess;
+static std::vector<int> drawn;
+static void RB_RenderLitSurfList(dlight_t *dl, rbDrawSurfsMode_t=0) { assert(tess.dlightPass && tess.light==dl); drawn.push_back(dl->id); }
+static qboolean RB_SetDlightScissor(const dlight_t *) { return qtrue; }
+static void qglScissor(int,int,int,int) {}
+static void GL_ProgramDisable() {}
+'''
+        checks=r'''
+int main() {
+    for(auto profile:{COM_GAME_QUAKE3,COM_GAME_QUAKELIVE,COM_GAME_WOLFET,COM_GAME_ALICE,COM_GAME_RTCW_SP,COM_GAME_RTCW_MP}) {
+        ri.gameId=profile;
+        const bool rtcw=profile==COM_GAME_RTCW_SP || profile==COM_GAME_RTCW_MP;
+        for(int dlightMode:{0,1,2}) for(int dynamicLight:{0,1,2,3}) for(int snooper:{0,1})
+        for(int modules:{0,10,31,32}) for(int first:{0,20,40}) {
+            mode.integer=dlightMode; dynamic.integer=dynamicLight; tr.refdef.rtcw.snooperView=snooper ? qtrue : qfalse;
+            r_numModuleDlights=modules; r_firstSceneDlight=first;
+            const int end=R_EngineSceneLightEnd();
+            // ET keeps its modules' frame in every mode, and takes no
+            // engine light at r_dynamiclight 0 (tests/wolfet_light_tests.py).
+            if(profile==COM_GAME_WOLFET) assert(end==(dynamicLight ? std::min(32+modules,first+32) : 0));
+            // Every other profile keeps the whole frame, as before.
+            else if(!rtcw) assert(end==64);
+            else if(!dlightMode || !dynamicLight || dynamicLight==2 || snooper) assert(end==0);
+            else assert(end==std::min(32+modules,first+32));
+        }
+        // Each view's per-light pass: RTCW draws the engine's lights first.
+        for(unsigned count:{0u,1u,5u,32u}) for(int modules:{-1,0,1,3,5,32}) {
+            for(unsigned i=0;i<count;++i) { data.dlights[i].id=int(i); data.dlights[i].head=i==2 ? nullptr : &data; }
+            backEnd.viewParms.num_dlights=count; backEnd.viewParms.dlights=data.dlights;
+            backEnd.refdef.num_moduleDlights=modules; drawn.clear();
+            RUN_LIGHTING_PASS;
+            // The engine's lights follow the scene's modules' in a view's set.
+            const int leading=rtcw && modules>0 && modules<int(count) ? modules : 0;
+            std::vector<int> expected;
+            for(int index=leading;index<int(count);++index) if(index!=2) expected.push_back(index);
+            for(int index=0;index<leading;++index) if(index!=2) expected.push_back(index);
+            assert(drawn==expected && !tess.dlightPass);
+        }
+    }
+}
+'''
+        for renderer in ('renderer','renderervk','rendererrtx'):
+            scene=(ROOT/'code'/renderer/'tr_scene.c').read_text()
+            backend=(ROOT/'code'/renderer/'tr_backend.c').read_text()
+            end=function(scene,'static int R_EngineSceneLightEnd(')
+            rtx=renderer=='rendererrtx'
+            lighting=function(backend,'static void RB_LightingPass( '+(
+                'rbDrawSurfsMode_t mode, qboolean finish )\n{' if rtx else 'void )\n{'))
+            run='RB_LightingPass(0,qtrue)' if rtx else 'RB_LightingPass()'
+            with self.subTest(renderer=renderer):
+                self.compile_run(prelude+end+lighting+checks.replace('RUN_LIGHTING_PASS',run))
+                # The engine's scene lights take their bound from R_EngineSceneLightEnd
+                # alone, after the scene's module lights are counted.
+                render=scene[scene.index('void RE_RenderScene('):]
+                count=render.index('tr.refdef.num_moduleDlights = r_numdlights - r_firstSceneDlight;')
+                bound=render.index('const int lightEnd = R_EngineSceneLightEnd();')
+                self.assertLess(count,bound)
+                self.assertNotIn('if ( !R_UsesRTCWLighting() ) {\n\t\tR_Add',render)
+                for name in ('R_AddStaticMapLightsToScene','R_AddSurfaceLightProxiesToScene')+(
+                        () if renderer=='rendererrtx' else ('R_AddDlightTestLightsToScene',)):
+                    self.assertIn(name+'( fd, lightEnd );',render[bound:])
+                    body=function(scene,'static void '+name+'( const refdef_t *fd, int lightEnd )')
+                    self.assertNotIn('ARRAY_LEN( backEndData->dlights )',body)
+                self.assertIn('r_numModuleDlights = 0;',function(scene,'void R_InitNextFrame('))
+        # Portal and mirror views copy the engine's lights only within the bound.
+        plan=(ROOT/'code/renderercommon/tr_portal_plan.h').read_text()
+        rtx=(ROOT/'code/rendererrtx/tr_main.c').read_text()
+        self.assertIn('RTCW_PortalLightCopies( (int)plan->parentParms.num_dlights,',
+                      function(plan,'static void R_PortalCopyDlightsForPlan('))
+        self.assertIn('RTCW_PortalLightCopies( (int)oldParms.num_dlights,',
+                      function(rtx,'static qboolean R_MirrorViewBySurface('))
 
     def test_material_pass_preservation(self):
         for renderer in ('renderer','renderervk','rendererrtx'):

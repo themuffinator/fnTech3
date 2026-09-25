@@ -26,6 +26,7 @@ extern "C" {
 }
 
 #include "client_cpp.h"
+#include "client_q3test.h"
 #include "canvas_geometry.hpp"
 #include "client_cvar_compat.hpp"
 #include "client_alice_demo.hpp"
@@ -36,6 +37,7 @@ extern "C" {
 #include "../qcommon/protocol_contract.hpp"
 #include "../qcommon/q3_demo_protocol.hpp"
 #include "../qcommon/netchan_safety.hpp"
+#include "../qcommon/ritual_handshake.hpp"
 #include "../qcommon/rtcw_handshake.hpp"
 #include "../qcommon/stvef_handshake.hpp"
 #include "../qcommon/steam_identity.hpp"
@@ -45,6 +47,8 @@ extern "C" {
 #include "../qcommon/alice_tiki.h"
 #include "../qcommon/alice_runtime.h"
 #include "../compat/alice_render_abi.h"
+#include "cl_mohaa.h"
+#include "../mohaa/mohaa_tiki.h"
 
 #include <algorithm>
 #include <array>
@@ -624,7 +628,8 @@ static bool CL_ParseDemoProtocolExtension( const char *ext, int *protocol )
 
 // Each profile plays only the demo protocols it owns. Original RTCW SP and MP
 // each name demos after their single wire protocol (cl_main.c, CL_Record_f).
-// ET demo playback is not implemented, so ET admits none.
+// ET names its demos after protocol 84 (et.exe CL_Record_f, dm_84) and reads
+// them with its own wire.
 static bool CL_DemoProtocolSupported( int protocol )
 {
 	if ( !Com_DemoProtocolSupported( protocol ) ) {
@@ -639,6 +644,11 @@ static bool CL_DemoProtocolSupported( int protocol )
 		return protocol == NETCHAN_RTCW_SP_PROTOCOL_VERSION;
 	case COM_GAME_RTCW_MP:
 		return protocol == NETCHAN_RTCW_MP_PROTOCOL_VERSION;
+	case COM_GAME_WOLFET:
+		return protocol == NETCHAN_WOLFET_PROTOCOL_VERSION;
+	case COM_GAME_MOHAA:
+		// Medal of Honor names its demos after protocol 6, dm_6.
+		return protocol == NETCHAN_MOHAA_PROTOCOL_VERSION;
 	default:
 		return false;
 	}
@@ -647,6 +657,7 @@ static bool CL_DemoProtocolSupported( int protocol )
 static netchanWireProfile_t CL_DemoWireProfileForProtocol( int protocol )
 {
 	if ( protocol == 66 ) return NETCHAN_WIRE_Q3_66;
+	if ( protocol == NETCHAN_MOHAA_PROTOCOL_VERSION ) return NETCHAN_WIRE_MOHAA;
 	if ( protocol == 67 ) return NETCHAN_WIRE_Q3_67;
 	if ( protocol == QL_RETAIL_PROTOCOL_VERSION ) {
 		return NETCHAN_WIRE_QL_RETAIL;
@@ -656,6 +667,9 @@ static netchanWireProfile_t CL_DemoWireProfileForProtocol( int protocol )
 	}
 	if ( protocol == NETCHAN_RTCW_MP_PROTOCOL_VERSION ) {
 		return NETCHAN_WIRE_RTCW_MP;
+	}
+	if ( protocol == NETCHAN_WOLFET_PROTOCOL_VERSION ) {
+		return NETCHAN_WIRE_WOLFET;
 	}
 	if ( protocol == NETCHAN_STVEF_HM_PROTOCOL_VERSION ) {
 		return NETCHAN_WIRE_STVEF_HM;
@@ -675,6 +689,8 @@ static bool CL_WireProfileKeepsDm68Fallback( netchanWireProfile_t profile )
 
 netchanWireProfile_t CL_ActiveWireProfile( void )
 {
+	// Q3Test's channel is its release's, never chosen by protocol number.
+	if ( Com_GameIsQ3Test() ) return CL_Q3TestWireProfile();
 	if ( clc.demoplaying ) return clc.demoWireProfile;
 	// Before a connection exists, queued commands already belong to the
 	// selected game. A zeroed netchan must not impose Q3's window on RTCW.
@@ -698,8 +714,8 @@ netchanWireProfile_t CL_ActiveWireProfile( void )
 qboolean CL_LegacyFraming( void )
 {
 	const netchanWireProfile_t profile = CL_ActiveWireProfile();
-	return ToQboolean( profile != NETCHAN_WIRE_Q3_IHV &&
-		Netchan_WireHasFeature( profile, NETCHAN_FEATURE_RAW_MESSAGES ) != 0 );
+	return ToQboolean( profile != NETCHAN_WIRE_Q3_IHV && profile != NETCHAN_WIRE_Q3TEST_A
+		&& profile != NETCHAN_WIRE_Q3TEST_B && Netchan_WireHasFeature( profile, NETCHAN_FEATURE_RAW_MESSAGES ) != 0 );
 }
 
 /*
@@ -957,6 +973,11 @@ stop recording a demo
 */
 void CL_StopRecord_f( void ) {
 
+	if ( Com_GameIsQ3Test() ) {
+		CL_Q3TestStopRecord_f();
+		return;
+	}
+
 	if ( clc.recordfile != FS_INVALID_HANDLE ) {
 		std::array<char, MAX_OSPATH> tempName;
 		std::array<char, MAX_OSPATH> finalName;
@@ -1124,22 +1145,29 @@ static void CL_WriteGamestate( qboolean initial )
 	}
 
 	// baselines, as deltas from the profile's null entity (alice.exe
-	// CL_Record_f 0x0042a60b fills Alice's own)
-	MSG_NullEntityStateForWireProfile( &nullstate, CL_ActiveWireProfile() );
-	for ( i = 0; i < MAX_GENTITIES ; i++ ) {
-		if ( !cl.baselineUsed[ i ] )
-			continue;
-		ent = &cl.entityBaselines[ i ];
-		MSG_WriteByte( &msg, svc_baseline );
-		CL_WriteDeltaEntityForActiveProfile(
-			&msg, &nullstate, ent, qtrue );
+	// CL_Record_f 0x0042a60b fills Alice's own). Medal of Honor's are the
+	// game's own records, which cl_mohaa.cpp keeps and writes.
+	if ( CL_ActiveWireProfile() == NETCHAN_WIRE_MOHAA ) {
+		CL_MOHAAWriteBaselines( &msg );
+	} else {
+		MSG_NullEntityStateForWireProfile( &nullstate, CL_ActiveWireProfile() );
+		for ( i = 0; i < MAX_GENTITIES ; i++ ) {
+			if ( !cl.baselineUsed[ i ] )
+				continue;
+			ent = &cl.entityBaselines[ i ];
+			MSG_WriteByte( &msg, svc_baseline );
+			CL_WriteDeltaEntityForActiveProfile(
+				&msg, &nullstate, ent, qtrue );
+		}
 	}
 
 	// finalize message
 	if ( stvef ) {
 		MSG_WriteByte( &msg, svc_bad );
 	} else {
-		MSG_WriteByte( &msg, svc_EOF );
+		// Medal of Honor's end byte is 11, past its own three opcodes.
+		const int endOfMessage = Netchan_ServerEOFOpcode( CL_ActiveWireProfile() );
+		MSG_WriteByte( &msg, endOfMessage );
 
 		// finished writing the gamestate stuff
 
@@ -1150,7 +1178,7 @@ static void CL_WriteGamestate( qboolean initial )
 		MSG_WriteLong( &msg, clc.checksumFeed );
 
 		// finished writing the client packet
-		MSG_WriteByte( &msg, svc_EOF );
+		MSG_WriteByte( &msg, endOfMessage );
 	}
 
 	// write it to the demo file
@@ -1374,6 +1402,11 @@ static void CL_Record_f( void ) {
 	int protocol;
 	qtime_t		t;
 
+	if ( Com_GameIsQ3Test() ) {
+		CL_Q3TestRecord_f();
+		return;
+	}
+
 	if ( Cmd_Argc() > 2 ) {
 		Com_Printf( "record <demoname>\n" );
 		return;
@@ -1526,7 +1559,7 @@ static void CL_CompleteRecordName(const char *args, int argNum )
 
 		if ( Com_GameIsSTVEFMP() ) {
 			Com_sprintf( demoExt.data(), static_cast<int>( demoExt.size() ), ".%s", STVEF_DEMOEXT );
-		} else if ( Com_GameIsAlice() ) {
+		} else if ( Com_GameIsRitual() ) {
 			Com_sprintf( demoExt.data(), static_cast<int>( demoExt.size() ), ".%s", fntech3::alice::demo::kExtension );
 		} else {
 			Com_sprintf( demoExt.data(), static_cast<int>( demoExt.size() ), "." DEMOEXT "%d", com_protocol->integer );
@@ -1605,6 +1638,14 @@ void CL_ReadDemoMessage( void ) {
 	std::array<byte, MAX_GAME_MSGLEN_BUF> bufData;
 	fnql::demo::EnvelopeResult envelope;
 
+	// Q3Test's .dm3 records carry no sequence (cl_q3test.cpp).
+	if ( Com_GameIsQ3Test() ) {
+		if ( !CL_Q3TestReadDemoMessage() ) {
+			CL_DemoCompleted();
+		}
+		return;
+	}
+
 	if ( clc.demofile == FS_INVALID_HANDLE ) {
 		CL_DemoCompleted();
 		return;
@@ -1655,7 +1696,10 @@ void CL_ReadDemoMessage( void ) {
 	// has no room for Alice's sound block. alice.exe never re-records: its
 	// reader copies nothing to a recording (CL_ReadDemoMessage 0x0042a760),
 	// so a demo recorded during playback keeps only its gamestate there too.
-	if ( clc.demorecording && CL_ActiveWireProfile() != NETCHAN_WIRE_ALICE ) {
+	// Medal of Honor's snapshots are the game's records, which Quake III's
+	// writer cannot carry either, so its re-recording keeps the same.
+	if ( clc.demorecording && CL_ActiveWireProfile() != NETCHAN_WIRE_ALICE
+		&& CL_ActiveWireProfile() != NETCHAN_WIRE_MOHAA ) {
 		// track changes and write new message
 		if ( clc.eventMask & EM_GAMESTATE ) {
 			CL_WriteGamestate( qfalse );
@@ -1695,9 +1739,13 @@ CL_WalkDemoExt
 static int CL_WalkDemoExt( const char *arg, char *name, int name_len, ScopedFileHandle &handle )
 {
 	int preferredProtocol;
+	bool searched;
 	int i;
 
 	handle.reset();
+	// The caller names this path when nothing opens, so it names the demo
+	// even in a profile with no format to search.
+	Com_sprintf( name, name_len, "demos/%s", arg );
 
 	// Holomatch has one demo format, named after the game.
 	if ( Com_GameIsSTVEFMP() ) {
@@ -1713,6 +1761,7 @@ static int CL_WalkDemoExt( const char *arg, char *name, int name_len, ScopedFile
 
 	preferredProtocol = ( Com_GameProfile()->id == COM_GAME_QUAKELIVE ) ?
 		QL_RETAIL_PROTOCOL_VERSION : 0;
+	searched = preferredProtocol != 0;
 
 	// Search only the active profile's formats. Preserve Q3's historical
 	// order; QL owns protocol 91 and must not fall back to a Q3 codec.
@@ -1727,6 +1776,7 @@ static int CL_WalkDemoExt( const char *arg, char *name, int name_len, ScopedFile
 			!CL_DemoProtocolSupported( demo_protocols[ i ] ) ) {
 			continue;
 		}
+		searched = true;
 		if ( CL_TryDemoProtocol( arg, demo_protocols[ i ], name, name_len,
 			handle ) ) {
 			return demo_protocols[ i ];
@@ -1734,7 +1784,14 @@ static int CL_WalkDemoExt( const char *arg, char *name, int name_len, ScopedFile
 	}
 
 	// Pre-1.27 dm3 files are Q3 message bodies; no other profile parses them.
-	if ( Com_GameProfile()->id != COM_GAME_QUAKE3 ) return -1;
+	if ( Com_GameProfile()->id != COM_GAME_QUAKE3 ) {
+		// A profile that admits no demo protocol at all says so.
+		if ( !searched ) {
+			Com_Printf( "%s demo playback is not implemented.\n",
+				Com_GameProfile()->displayName );
+		}
+		return -1;
+	}
 
 	Com_sprintf( name, name_len, "demos/%s.%s", arg, LEGACY_DEMOEXT );
 	OpenPureFileRead( name, handle );
@@ -1765,7 +1822,7 @@ static qboolean CL_DemoNameCallback_f( const char *filename, int length )
 		!Q_stricmp( filename + length - static_cast<int>( strlen( LEGACY_DEMOEXT ) ), LEGACY_DEMOEXT ) )
 		// Quake III's pre-1.27 demos and every Alice demo share the extension;
 		// the profile says whose they are.
-		return ToQboolean( Com_GameProfile()->id == COM_GAME_QUAKE3 || Com_GameIsAlice() );
+		return ToQboolean( Com_GameProfile()->id == COM_GAME_QUAKE3 || Com_GameIsRitual() );
 
 	extension = COM_GetExtension( filename );
 	if ( CL_IsSTVEFDemoExt( extension ) )
@@ -1830,12 +1887,18 @@ static void CL_PlayDemo_f( void ) {
 		return;
 	}
 
+	// Q3Test plays its own .dm3 (cl_q3test.cpp).
+	if ( Com_GameIsQ3Test() ) {
+		CL_Q3TestPlayDemo_f();
+		return;
+	}
+
 	// open the demo file
 	arg = Cmd_Argv( 1 );
 
 	// check for an explicit demo extension first
 	ext_test = strrchr(arg, '.');
-	const bool alice = Com_GameIsAlice() != 0;
+	const bool alice = Com_GameIsRitual() != 0;
 	if ( alice )
 	{
 		// Alice has one demo format under one extension, and finds the file
@@ -2039,7 +2102,7 @@ void CL_ShutdownAll( void ) {
 	// clear and mute all sounds until next registration
 	S_DisableSounds();
 	CL_WebHost_NotifySoundsStopped();
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		// Alice's client flush frees the music and ends any sound fade
 		// (alice.exe 0x0042aa67, 0x0042aa6f).
 		S_AliceMusicFreeAll();
@@ -2133,7 +2196,7 @@ void CL_MapLoading( void ) {
 	Con_Close();
 	Key_SetCatcher( 0 );
 	// Alice's engine UI raises its loading screen and forces its menus away.
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		CL_AliceMapLoading();
 	}
 
@@ -2181,7 +2244,7 @@ Called before parsing a gamestate
 void CL_ClearState( void ) {
 
 //	S_StopAllSounds();
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		// Alice's own state clear still frees the music and ends any sound
 		// fade (alice.exe 0x0042ab88, 0x0042ab90).
 		S_AliceMusicFreeAll();
@@ -2192,6 +2255,10 @@ void CL_ClearState( void ) {
 	// snapshot/entity limits are represented. Aggregate assignment materializes
 	// a full temporary on MSVC, so clear the POD state directly in place.
 	Com_Memset( &cl, 0, sizeof( cl ) );
+	// Medal of Honor keeps its snapshots, entities and baselines apart.
+	if ( Com_GameIsMOHAA() ) {
+		CL_MOHAAClearState();
+	}
 
 	// A new level or connection gets one automatic `record` attempt again.
 	cl_autoRecordRefused = false;
@@ -2671,7 +2738,7 @@ qboolean CL_Disconnect( qboolean showMainMenu ) {
 	SCR_StopCinematic();
 	S_StopAllSounds();
 	CL_WebHost_NotifySoundsStopped();
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		// Alice's disconnect flushes the client as a map load does
 		// (alice.exe 0x0042ab6f to 0x0042aa60).
 		S_AliceMusicFreeAll();
@@ -2701,8 +2768,15 @@ qboolean CL_Disconnect( qboolean showMainMenu ) {
 	// send a disconnect message to the server
 	// send it a few times in case one is dropped
 	if ( cls.state >= CA_CONNECTED && cls.state != CA_CINEMATIC && !clc.demoplaying ) {
-		CL_AddReliableCommand( "disconnect", qtrue );
-		CL_WritePacket( 2 );
+		if ( Com_GameIsQ3Test() ) {
+			CL_Q3TestDisconnect();
+		} else {
+			CL_AddReliableCommand( "disconnect", qtrue );
+			CL_WritePacket( 2 );
+		}
+	}
+	if ( Com_GameIsQ3Test() ) {
+		CL_Q3TestClearConnection();
 	}
 
 #ifdef USE_CURL
@@ -3061,6 +3135,9 @@ static void CL_Connect_f( void ) {
 
 	// clear any previous "server full" type messages
 	clc.serverMessage[0] = '\0';
+	if ( Com_GameIsQ3Test() ) {
+		CL_Q3TestUIServerMessage( "" );
+	}
 
 	// if running a local server, kill it
 	if ( com_sv_running->integer && !strcmp( server, "localhost" ) ) {
@@ -3081,7 +3158,7 @@ static void CL_Connect_f( void ) {
 	clc.serverAddress = addr;
 
 	if (clc.serverAddress.port == 0) {
-		clc.serverAddress.port = BigShort( PORT_SERVER );
+		clc.serverAddress.port = BigShort( static_cast<short>( Com_GameDefaultServerPort() ) );
 	}
 
 	serverString = NET_AdrToStringwPort( &clc.serverAddress );
@@ -3170,7 +3247,7 @@ static void CL_Rcon_f( void ) {
 			return;
 		}
 		if ( rcon_address.port == 0 ) {
-			rcon_address.port = BigShort( PORT_SERVER );
+			rcon_address.port = BigShort( static_cast<short>( Com_GameDefaultServerPort() ) );
 		}
 	}
 
@@ -3208,9 +3285,11 @@ static void CL_SendPureChecksums( void ) {
 
 	// Q3, RTCW and ET have distinct cgame/UI slots in the filesystem proof.
 	// Retail QL prefixes one native-module pak before its general references.
-	// Elite Force Holomatch names no server id (stvoyHM.exe 0x40df30).
+	// Elite Force Holomatch names no server id (stvoyHM.exe 0x40df30), and
+	// Medal of Honor neither a server id nor a module (OpenMoHAA).
 	if ( CL_LegacyFraming() ||
-		fnql::protocol::Q3PureChecksumsOmitServerId( CL_ActiveWireProfile() ) ) {
+		fnql::protocol::Q3PureChecksumsOmitServerId( CL_ActiveWireProfile() ) ||
+		Com_GameProfile()->pureProof == COM_PURE_PROOF_MOHAA_REFERENCES ) {
 		len = Com_sprintf( cMsg.data(), static_cast<int>( cMsg.size() ), "cp " );
 	} else if ( Com_GameProfile()->pureProof == COM_PURE_PROOF_QVM ||
 		Com_PureProofIsNativeModulePair( Com_GameProfile() ) ) {
@@ -3387,7 +3466,7 @@ static void CL_Vid_Restart( refShutdownCode_t shutdownCode ) {
 	// clear and mute all sounds until next registration
 	S_DisableSounds();
 	CL_WebHost_NotifySoundsStopped();
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		// Alice's vid_restart frees the music first (alice.exe 0x0042b592).
 		S_AliceMusicFreeAll();
 	}
@@ -3439,7 +3518,7 @@ static void CL_Vid_Restart( refShutdownCode_t shutdownCode ) {
 	// public cvars. Refresh the retained WebUI schema once after that lifecycle
 	// boundary instead of rediscovering every cvar on a frame timer.
 	CL_WebHost_InvalidateConfigSnapshot();
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		// Outside a level Alice names "music/intro" last (alice.exe 0x0042b5d8).
 		S_AliceMusicSoundtrackAfterRestart();
 	}
@@ -3538,7 +3617,7 @@ static void CL_Snd_Restart_f( void )
 
 	// sound will be reinitialized by vid_restart
 	CL_Vid_Restart( REF_KEEP_CONTEXT /*REF_KEEP_WINDOW*/ );
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		// Alice's snd_restart ends by naming "music/intro" outside a level
 		// (alice.exe 0x0042b62b); after the restart above it names nothing new.
 		S_AliceMusicSoundtrackAfterRestart();
@@ -3737,6 +3816,28 @@ static void CL_DownloadsComplete( void ) {
 
 /*
 =================
+CL_Q3TestStartCGame
+
+A Q3Test gamestate is in: load the client game as CL_DownloadsComplete does,
+with no downloads, pure checksums or packet of its own -- Q3Test has none of
+those, and its session sends its own packets.
+=================
+*/
+void CL_Q3TestStartCGame( void ) {
+	cls.state = CA_LOADING;
+	Com_EventLoop();
+	if ( cls.state != CA_LOADING ) {
+		return;
+	}
+	Cvar_Set( "r_uiFullScreen", "0" );
+	CL_FlushMemory();
+	cls.cgameStarted = qtrue;
+	CL_InitCGame();
+}
+
+
+/*
+=================
 CL_BeginDownload
 
 Requests a file to download from the server.  Stores it in the current
@@ -3883,7 +3984,7 @@ static void CL_InitLegacyDownloads( void ) {
 	// American McGee's Alice's client downloads nothing: retail alice.exe
 	// has no download command, and its server no download to answer one
 	// (the engine's client commands are userinfo and disconnect, 0x0051a398).
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		CL_DownloadsComplete();
 		return;
 	}
@@ -3975,6 +4076,12 @@ static void CL_CheckForResend( void ) {
 	std::array<char, MAX_INFO_STRING> data;
 	bool		notOverflowed;
 	qboolean	infoTruncated;
+
+	// Q3Test connects each release's own way (cl_q3test.cpp).
+	if ( Com_GameIsQ3Test() ) {
+		CL_Q3TestCheckForResend();
+		return;
+	}
 
 	// don't send anything if playing back a demo
 	if ( clc.demoplaying ) {
@@ -4087,8 +4194,9 @@ static void CL_CheckForResend( void ) {
 		}
 
 		len = Com_sprintf( data.data(), static_cast<int>( data.size() ), "connect \"%s\"", info.data() );
-		if ( Com_GameIsSTVEFMP() ) {
-			// Holomatch sends its connect as plain text (stvoyHM.exe 0x40e41f).
+		if ( Com_GameIsSTVEFMP() || Com_GameIsRitual() ) {
+			// Holomatch sends its connect as plain text (stvoyHM.exe 0x40e41f),
+			// and so does Ritual's engine (fakk2.exe 1.02 0x00421686).
 			NET_OutOfBandPrint( NS_CLIENT, &clc.serverAddress, "%s", data.data() );
 		} else {
 			// NOTE TTimo don't forget to set the right data length!
@@ -4368,6 +4476,9 @@ static bool CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 
 	MSG_BeginReadingOOB( msg );
 	MSG_ReadLong( msg );	// skip the -1
+	if ( Com_GameIsMOHAA() ) {
+		MSG_ReadByte( msg );	// Medal of Honor's direction byte
+	}
 
 	s = MSG_ReadStringLine( msg );
 
@@ -4449,6 +4560,73 @@ static bool CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 			const int ownProtocol = Com_GameProfile()->preferredProtocol;
 			if ( !fntech3::stvef::handshake::ServerAcceptsRetailProtocol(
 				reply.advertisedProtocol, ownProtocol ) ) {
+				Com_Printf( S_COLOR_YELLOW "Warning: Server reports protocol version %d, "
+					"we have %d. Trying anyways.\n", reply.advertisedProtocol, ownProtocol );
+			}
+			clc.compat = qfalse;
+			clc.handshakeProtocol = ownProtocol;
+			clc.challenge = reply.challenge;
+			cls.state = CA_CHALLENGING;
+			clc.connectPacketCount = 0;
+			clc.connectTime = -99999;
+			clc.serverAddress = *from;
+			CL_EraseSteamChallengePayload();
+			Com_DPrintf( "challengeResponse: %d\n", clc.challenge );
+			return true;
+		}
+
+		// Ritual's engine: retail servers send the challenge alone and ours
+		// echo the nonce; the client speaks only its own protocol, 1
+		// (ritual_handshake.hpp).
+		if ( Com_GameIsRitual() ) {
+			std::array<const char *, 4> tokens{};
+			const int count = std::min( Cmd_Argc(), static_cast<int>( tokens.size() ) );
+			for ( int i = 0; i < count; ++i ) {
+				tokens[i] = Cmd_Argv( i );
+			}
+			const auto reply = fntech3::ritual::handshake::ParseChallengeReply( count,
+				tokens.data(), clc.challenge, NET_CompareAdr( from, &clc.serverAddress ) != qfalse );
+			if ( !reply.accepted ) {
+				Com_DPrintf( "Challenge response did not prove its source. Ignored.\n" );
+				return false;
+			}
+			const int ownProtocol = Com_GameProfile()->preferredProtocol;
+			if ( reply.advertisedProtocol && reply.advertisedProtocol != ownProtocol ) {
+				Com_Printf( S_COLOR_YELLOW "Warning: Server reports protocol version %d, "
+					"we have %d. Trying anyways.\n", reply.advertisedProtocol, ownProtocol );
+			}
+			clc.compat = qfalse;
+			clc.handshakeProtocol = ownProtocol;
+			clc.challenge = reply.challenge;
+			cls.state = CA_CHALLENGING;
+			clc.connectPacketCount = 0;
+			clc.connectTime = -99999;
+			clc.serverAddress = *from;
+			CL_EraseSteamChallengePayload();
+			Com_DPrintf( "challengeResponse: %d\n", clc.challenge );
+			return true;
+		}
+
+		// Medal of Honor: 2015's servers send the challenge alone (OpenMoHAA
+		// SV_GetChallenge) and ours echo the nonce and name protocol 6, the
+		// only one the client speaks. The reply's shape is the one Ritual's
+		// servers use, so the same title-neutral reader checks it. Quake
+		// III's path below would take 6 for an old protocol and connect with
+		// 68, which the server refuses.
+		if ( Com_GameIsMOHAA() ) {
+			std::array<const char *, 4> tokens{};
+			const int count = std::min( Cmd_Argc(), static_cast<int>( tokens.size() ) );
+			for ( int i = 0; i < count; ++i ) {
+				tokens[i] = Cmd_Argv( i );
+			}
+			const auto reply = fntech3::ritual::handshake::ParseChallengeReply( count,
+				tokens.data(), clc.challenge, NET_CompareAdr( from, &clc.serverAddress ) != qfalse );
+			if ( !reply.accepted ) {
+				Com_DPrintf( "Challenge response did not prove its source. Ignored.\n" );
+				return false;
+			}
+			const int ownProtocol = Com_GameProfile()->preferredProtocol;
+			if ( reply.advertisedProtocol && reply.advertisedProtocol != ownProtocol ) {
 				Com_Printf( S_COLOR_YELLOW "Warning: Server reports protocol version %d, "
 					"we have %d. Trying anyways.\n", reply.advertisedProtocol, ownProtocol );
 			}
@@ -4614,6 +4792,34 @@ static bool CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 				return false;
 			}
 			clc.compat = qfalse;
+		} else if ( Com_GameIsRitual() ) {
+			// Ritual's servers answer with the bare keyword (fakk2.exe 1.02
+			// 0x004439fd); one that echoes a challenge must echo ours.
+			std::array<const char *, 2> tokens{};
+			const int count = std::min( Cmd_Argc(), static_cast<int>( tokens.size() ) );
+			for ( int i = 0; i < count; ++i ) {
+				tokens[i] = Cmd_Argv( i );
+			}
+			negotiatedProtocol = Com_GameProfile()->preferredProtocol;
+			if ( !fntech3::ritual::handshake::AcceptConnectReply( count, tokens.data(), clc.challenge ) ) {
+				Com_Printf( "ConnectResponse with bad challenge received. Ignored.\n" );
+				return false;
+			}
+			clc.compat = qfalse;
+		} else if ( Com_GameIsMOHAA() ) {
+			// 2015's servers echo the challenge (OpenMoHAA SV_DirectConnect);
+			// the connection speaks protocol 6 whatever else follows.
+			std::array<const char *, 2> tokens{};
+			const int count = std::min( Cmd_Argc(), static_cast<int>( tokens.size() ) );
+			for ( int i = 0; i < count; ++i ) {
+				tokens[i] = Cmd_Argv( i );
+			}
+			negotiatedProtocol = Com_GameProfile()->preferredProtocol;
+			if ( !fntech3::ritual::handshake::AcceptConnectReply( count, tokens.data(), clc.challenge ) ) {
+				Com_Printf( "ConnectResponse with bad challenge received. Ignored.\n" );
+				return false;
+			}
+			clc.compat = qfalse;
 		} else if ( !clc.compat &&
 			( !contract || contract->family != fnql::protocol::Family::QuakeLive ) ) {
 			// first argument: challenge response
@@ -4775,6 +4981,12 @@ A packet has arrived from the main event loop
 */
 void CL_PacketEvent( const netadr_t *from, msg_t *msg ) {
 	int		headerBytes;
+
+	// Q3Test's packets are its own session's (cl_q3test.cpp).
+	if ( Com_GameIsQ3Test() ) {
+		CL_Q3TestPacketEvent( from, msg );
+		return;
+	}
 
 	if ( msg->cursize < 5 ) {
 		Com_DPrintf( "%s: Runt packet\n", NET_AdrToStringwPort( from ) );
@@ -5132,6 +5344,11 @@ void CL_Frame( int msec, int realMsec ) {
 		return;
 	}
 
+	// No call into Q3Test's menu module is on the stack between frames.
+	if ( Com_GameIsQ3Test() ) {
+		CL_Q3TestUIFrame();
+	}
+
 	CL_UpdateRetailVideoBridgeOwnership();
 	CL_CheckWindowResize();
 
@@ -5367,7 +5584,7 @@ static void FORMAT_PRINTF(2, 3) QDECL CL_RefPrintf( printParm_t level, const cha
 	Q_vsnprintf( msg.data(), static_cast<int>( msg.size() ), fmt, argptr );
 	va_end( argptr );
 
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		// Alice's renderer speaks to developers only: its warnings print at
 		// developer 2 alone, and its errors and developer lines go through
 		// the developer print (alice.exe CL_RefPrintf 0x0042c2d0..0x0042c366,
@@ -5491,13 +5708,25 @@ static void CL_InitRenderer( void ) {
 	// glyphs fill the left half of each cell (see CL_CharsetCellWidth). It
 	// has no recording icon either. American McGee's Alice ships none of these
 	// names and registers its own (cl_alice.cpp).
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		CL_AliceRegisterClientArt();
+	} else if ( Com_GameIsQ3Test() ) {
+		// Q3Test's paks have no recording icon, "white" or "console": its fills
+		// take the renderer's own white, its console is the conback picture (the
+		// `conback` cvar's default, 1.06 CL_Init 0x4072c9) and its menus' cursor
+		// is menu/arena/3_cursor2. It has no console logo layer.
+		cls.charSetShader = re.RegisterShader( "gfx/2d/bigchars" );
+		cls.recordShader = 0;
+		cls.whiteShader = re.RegisterShaderNoMip( "*white" );
+		cls.consoleShader = re.RegisterShaderNoMip( "gfx/2d/conback" );
+		cls.cursorShader = re.RegisterShaderNoMip( "menu/arena/3_cursor2" );
 	} else {
 	cls.charSetShader = Com_GameIsSTVEF() ? re.RegisterShaderNoMip( "gfx/2d/charsgrid_med" )
 		: re.RegisterShader( wolfet ? "gfx/2d/consolechars" : rtcwMP ? "gfx/2d/hudchars" : "gfx/2d/bigchars" );
 	cls.recordShader = wolfet || Com_GameIsSTVEF() ? 0 : re.RegisterShaderNoMip( "icons/record" );
-	cls.whiteShader = re.RegisterShader( "white" );
+	// Medal of Honor's "white" is an additive sprite (scripts/sprites.shader),
+	// so its fills take the engine's own opaque white instead.
+	cls.whiteShader = Com_GameIsMOHAA() ? CL_MOHAAWhite() : re.RegisterShader( "white" );
 	// Q3 owns the stock "console" shader. QL's pak00 contains duplicate
 	// definitions with that name, including one referencing absent Q3 images;
 	// only QL needs the uniquely named sidecar alias for its retail variant.
@@ -5683,7 +5912,7 @@ static qboolean CL_AliceRendererTrace( const vec3_t start, const vec3_t end, int
 	using traceFunction = void ( QDECL * )( fntech3_alice_trace_t *result, const float *start,
 		const float *mins, const float *maxs, const float *end, int passEntityNum,
 		int contentMask, int cylinder, int clipEntities, const char *description );
-	if ( !Com_GameIsAlice() || !cgvm || !start || !end ) {
+	if ( !Com_GameIsRitual() || !cgvm || !start || !end ) {
 		return qfalse;
 	}
 	uint32_t address;
@@ -5885,6 +6114,8 @@ static void CL_InitRef( void ) {
 	rimp.AliceDebugLines = []( int *count ) -> const void * { *count = *Alice_DebugLineCount(); return *Alice_DebugLineArray(); };
 	rimp.AliceTrace = CL_AliceRendererTrace;
 	rimp.AliceLoadingStage = Com_AliceLoadingStage;
+	// Medal of Honor's renderer asks the engine to pose and skin its models.
+	rimp.MOHAARender = MOHAA_RenderImport();
 	ret = GetRefAPI( REF_API_VERSION, &rimp );
 
 	Com_Printf( "-------------------------------\n");
@@ -6693,6 +6924,27 @@ void CL_Init( void ) {
 	Cvar_Get ("sex", "male", CVAR_USERINFO | CVAR_ARCHIVE_ND );
 	Cvar_Get ("cl_anonymous", "0", CVAR_USERINFO | CVAR_ARCHIVE_ND );
 
+	if ( Com_GameIsRitual() ) {
+		/* Both Ritual clients register these beside cg_predictItems (fakk2.exe
+		 * 1.02 0x00422806..0x0042284e, alice.exe 0x0042cafd..0x0042cb39). The
+		 * game module reads com_blood for its gore; the options menus show the
+		 * Miles driver and speaker type, which this engine's audio does not
+		 * use, and the sound quality its sound init registers (0x0043e6b8). */
+		Cvar_Get( "com_blood", "1", CVAR_ARCHIVE | CVAR_USERINFO | CVAR_SERVERINFO );
+		Cvar_Get( "s_milesdriver", "auto", CVAR_ARCHIVE );
+		Cvar_Get( "s_speaker_type", "0", CVAR_ARCHIVE );
+		Cvar_Get( "s_khz", "22", CVAR_ARCHIVE_ND | CVAR_LATCH );
+		/* Their input registers the joystick threshold the controls menu
+		 * shows (fakk2.exe 0x0045768a, alice.exe 0x0046adba); this engine's
+		 * reads it only where its input has joystick support. */
+		Cvar_Get( "joy_threshold", "0.15", CVAR_ARCHIVE );
+		/* Their renderers register r_useglfog as 1 (fakk2.exe 0x004616fc,
+		 * alice.exe 0x00475b06): a level's distance fog drawn with GL's own
+		 * fog (fakk2.exe 0x0047c599). F.A.K.K.2's advanced options menu
+		 * shows it; this engine's renderers draw that fog their own way. */
+		Cvar_SetDescription( Cvar_Get( "r_useglfog", "1", CVAR_ARCHIVE ),
+			"Retail's switch to GL fog for a level's distance fog, shown in F.A.K.K.2's advanced options. fnTech3's renderers draw that fog their own way and do not read it." );
+	}
 	Cvar_Get ("password", "", CVAR_USERINFO | CVAR_NORESTART);
 	Cvar_Get ("cg_predictItems", "1", CVAR_USERINFO | CVAR_ARCHIVE );
 	if ( Com_GameIsRTCW() ) {
@@ -6750,8 +7002,8 @@ void CL_Init( void ) {
 #endif
 	Cmd_AddCommand ("disconnect", CL_Disconnect_f);
 	// Alice's togglemenu names the menu it toggles (0x0040cbb0).
-	Cmd_AddCommand( "togglemenu", Com_GameIsAlice() ? CL_AliceToggleMenu_f : CL_ToggleMenu_f );
-	if ( Com_GameIsAlice() ) {
+	Cmd_AddCommand( "togglemenu", Com_GameIsRitual() ? CL_AliceToggleMenu_f : CL_ToggleMenu_f );
+	if ( Com_GameIsRitual() ) {
 		// Alice's client registers aliasdump beside its own commands
 		// (0x0042ccaa): the global alias list, made if it does not exist yet
 		// (0x00423ac0), printed under developer.
@@ -6859,7 +7111,7 @@ void CL_Shutdown( const char *finalmsg, qboolean quit ) {
 	Cmd_RemoveCommand ("renderer_switch");
 #endif
 	Cmd_RemoveCommand ("disconnect");
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		Cmd_RemoveCommand( "aliasdump" ); // 0x0042ce23
 	}
 	Cmd_RemoveCommand ("record");
@@ -6979,6 +7231,9 @@ static void CL_Q3ProtocolInfo( const netadr_t *from, const char *info ) {
 	if ( reported == 66 || reported == 67 || reported == 68 ) clc.handshakeProtocol = reported;
 }
 
+// When the last `localservers` broadcast went out, which times a LAN answer.
+static int cl_localServersQueryTime;
+
 static void CL_ServerInfoPacket( const netadr_t *from, msg_t *msg ) {
 	int		i, type, len;
 	std::array<char, MAX_INFO_STRING> info;
@@ -7065,6 +7320,11 @@ static void CL_ServerInfoPacket( const netadr_t *from, msg_t *msg ) {
 	// add this to the list
 	cls.numlocalservers = i+1;
 	CL_InitServerInfo( &cls.localServers[i], from );
+	// Medal of Honor's LAN list shows the answer itself, timed from the scan
+	// (OpenMoHAA CL_ServerInfoPacket); Quake III's menus ping for it instead.
+	if ( Com_GameIsMOHAA() ) {
+		CL_SetServerInfo( &cls.localServers[i], infoString, Sys_Milliseconds() - cl_localServersQueryTime );
+	}
 
 	Q_strncpyz( info.data(), MSG_ReadString( msg ), static_cast<int>( info.size() ) );
 	len = static_cast<int>( strlen( info.data() ) );
@@ -7289,6 +7549,11 @@ static void CL_LocalServers_f( void ) {
 	int			i, j, n;
 	netadr_t	to;
 
+	if ( Com_GameIsQ3Test() ) {
+		CL_Q3TestLocalServers_f();
+		return;
+	}
+
 	Com_Printf( "Scanning for servers on the local network...\n");
 
 	// reset the list, waiting for response
@@ -7305,6 +7570,14 @@ static void CL_LocalServers_f( void ) {
 	// by the server.  We don't care about that here, but master servers
 	// can use that to prevent spoofed server responses from invalid ip
 	message = "\377\377\377\377getinfo xxx";
+	if ( Com_GameIsMOHAA() ) {
+		// Medal of Honor's packets carry a direction byte after the marker,
+		// and its Join LAN Game menu shows the scan in this cvar (OpenMoHAA
+		// CL_LocalServers_f).
+		message = "\377\377\377\377\002getinfo xxx";
+		Cvar_Set( "cl_langamerefreshstatus", "Scanning for servers on the local network..." );
+	}
+	cl_localServersQueryTime = Sys_Milliseconds();
 	n = static_cast<int>( strlen( message ) );
 
 	// send each message twice in case one is dropped
@@ -7313,7 +7586,7 @@ static void CL_LocalServers_f( void ) {
 		// we support multiple server ports so a single machine
 		// can nicely run multiple servers
 		for ( j = 0 ; j < NUM_SERVER_PORTS ; j++ ) {
-			to.port = BigShort( static_cast<short>( PORT_SERVER + j ) );
+			to.port = BigShort( static_cast<short>( Com_GameDefaultServerPort() + j ) );
 
 			to.type = NA_BROADCAST;
 			NET_SendPacket( NS_CLIENT, n, message, &to );
@@ -7340,6 +7613,11 @@ static void CL_GlobalServers_f( void ) {
 	int			count, i, masterNum;
 	std::array<char, 1024> command;
 	const char	*masteraddress;
+
+	if ( Com_GameIsQ3Test() ) {
+		CL_Q3TestGlobalServers_f();
+		return;
+	}
 
 	if ( (count = Cmd_Argc()) < 3 || (masterNum = std::atoi( Cmd_Argv(1) )) < 0 || masterNum > MAX_MASTER_SERVERS )
 	{
@@ -7593,6 +7871,11 @@ static void CL_Ping_f( void ) {
 	const char*		server;
 	int			argc;
 	netadrtype_t	family = NA_UNSPEC;
+
+	if ( Com_GameIsQ3Test() ) {
+		CL_Q3TestPing_f();
+		return;
+	}
 
 	argc = Cmd_Argc();
 

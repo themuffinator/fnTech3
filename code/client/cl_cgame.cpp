@@ -28,6 +28,7 @@ extern "C" {
 }
 
 #include "client_cpp.h"
+#include "client_q3test.h"
 #include "client_cvar_compat.hpp"
 #include "ql_font_bridge.hpp"
 #include "../compat/game_abi_adapter.h"
@@ -44,6 +45,7 @@ extern "C" {
 #include "../qcommon/vm_rtcw_filesystem.hpp"
 #include "client_rtcw_camera.hpp"
 #include "client_wolfet_camera.hpp"
+#include "cl_mohaa.h"
 
 #include <algorithm>
 #include <array>
@@ -1705,7 +1707,7 @@ static void CL_ConfigstringModified( void ) {
 
 		len = strlen( dup );
 
-		if ( len + 1 + cl.gameState.dataCount > MAX_GAMESTATE_CHARS ) {
+		if ( len + 1 + cl.gameState.dataCount > Com_GameStateCharLimit() ) {
 			Com_Error( ERR_DROP, "%s: MAX_GAMESTATE_CHARS exceeded", __func__ );
 		}
 
@@ -1860,6 +1862,13 @@ static qboolean CL_GetServerCommand( int serverCommandNumber ) {
 }
 
 
+/* Medal of Honor's client game reads its server commands through its own
+ * import table (cl_mohaa_cgame.cpp); the reading is this one. */
+qboolean CL_GetServerCommandForProfile( int serverCommandNumber ) {
+	return CL_GetServerCommand( serverCommandNumber );
+}
+
+
 /*
 ====================
 CL_CM_LoadMap
@@ -1900,6 +1909,9 @@ void CL_ShutdownCGame( void ) {
 	VM_Free( cgvm );
 	cgvm = nullptr;
 	FS_VM_CloseFiles( H_CGAME );
+	if ( Com_GameIsQ3Test() ) {
+		CL_Q3TestShutdownCGame();
+	}
 }
 
 
@@ -3805,6 +3817,12 @@ void CL_RegisterCGameCvars( void ) {
 	if ( Com_GameIsSTVEFSP() ) {
 		return;
 	}
+	// Ritual's client game is a function table without a cvar-registration
+	// entry; the generic loader only loads and refuses it. So are Medal of
+	// Honor's and Q3Test's.
+	if ( Com_GameIsRitual() || Com_GameIsMOHAA() || Com_GameIsQ3Test() ) {
+		return;
+	}
 
 	interpret = static_cast<vmInterpret_t>( Cvar_VariableIntegerValue( "vm_cgame" ) );
 	registrationVm = CL_LoadCGameVM( interpret );
@@ -3885,10 +3903,16 @@ void CL_InitCGame( void ) {
 			Com_Error( ERR_DROP, "Elite Force SP's cgame needs its game running on the local server" );
 		}
 		cgvm = VM_CreateHosted( VM_CGAME, CL_STVEFSPCgameEntry );
-	} else if ( Com_GameIsAlice() ) {
+	} else if ( Com_GameIsRitual() ) {
 		/* Alice's client game is a function table whose entry point takes no
 		 * argument: the imports go to its first export instead. */
 		cgvm = CL_AliceLoadCGame();
+	} else if ( Com_GameIsMOHAA() ) {
+		/* So is Medal of Honor's, with 168 imports (cl_mohaa_cgame.cpp). */
+		cgvm = CL_MOHAALoadCGame();
+	} else if ( Com_GameIsQ3Test() ) {
+		/* Q3Test's are each release's own (cl_q3test_cgame.cpp). */
+		cgvm = CL_Q3TestLoadCGame();
 	} else {
 		cgvm = CL_LoadCGameVM( interpret );
 	}
@@ -3900,7 +3924,9 @@ void CL_InitCGame( void ) {
 	// init for this gamestate
 	// use the lastExecutedServerCommand instead of the serverCommandSequence
 	// otherwise server commands sent just before a gamestate are dropped
-	if ( Com_GameIsWolfET() ) {
+	if ( Com_GameIsQ3Test() ) {
+		CL_Q3TestInitCGameModule();
+	} else if ( Com_GameIsWolfET() ) {
 		// ET's cgame is told whether it is replaying a demo at initialisation.
 		VM_Call( cgvm, 4, CG_INIT, clc.serverMessageSequence, clc.lastExecutedServerCommand,
 			clc.clientNum, clc.demoplaying ? 1 : 0 );
@@ -3908,8 +3934,11 @@ void CL_InitCGame( void ) {
 		VM_Call( cgvm, 3, CG_INIT, clc.serverMessageSequence, clc.lastExecutedServerCommand, clc.clientNum );
 	}
 
-	// reset any CVAR_CHEAT cvars registered by cgame
-	if ( !clc.demoplaying && !cl_connectedToCheatServer )
+	// reset any CVAR_CHEAT cvars registered by cgame. Q3Test resets them only
+	// when its systeminfo turns cheats off (CL_Q3TestSystemInfoChanged): no
+	// release's CL_InitCGame calls Cvar_SetCheatState (1.06 0x4116b0 and 1.08
+	// 0x412050 each have that one caller).
+	if ( !clc.demoplaying && !cl_connectedToCheatServer && !Com_GameIsQ3Test() )
 		Cvar_SetCheatState();
 
 	// Registering a cvar here resets a value the server's systeminfo created to
@@ -3955,11 +3984,53 @@ See if the current console command is claimed by the cgame
 ====================
 */
 
+/*
+Enemy Territory draws screens of its own through the same 2D calls as its HUD,
+laid out for a 4:3 screen, which the HUD's corner rules would pull apart
+(cl_hud.cpp). The engine sees each one: its limbo panel, with a world view
+of its own, by the flag its cgame reports every frame (bit 1 of
+CG_SETUSERCMDVALUE's flags, cg.showGameView), and drawn stretched as retail
+drew it; the end-of-round debriefing by the intermission movement type (5);
+the scoreboard and the expanded command map by the cgame commands that hold
+them up, each kept a moment after its release for its fade or slide out.
+*/
+static bool wolfetScoresHeld = false;
+static bool wolfetMapHeld = false;
+static int wolfetPanelUntil = 0;
+
+static void CL_WolfETTrackPanelCommand( const char *command ) {
+	if ( !Q_stricmp( command, "+scores" ) ) {
+		wolfetScoresHeld = true;
+	} else if ( !Q_stricmp( command, "-scores" ) ) {
+		wolfetScoresHeld = false;
+		wolfetPanelUntil = cls.realtime + 250;
+	} else if ( !Q_stricmp( command, "+mapexpand" ) ) {
+		wolfetMapHeld = true;
+	} else if ( !Q_stricmp( command, "-mapexpand" ) ) {
+		wolfetMapHeld = false;
+		wolfetPanelUntil = cls.realtime + 300;
+	}
+}
+
+static int CL_WolfETHudPanel( void ) {
+	if ( cl.cgameWolfETCommand.flags & 1 ) {
+		return HUD_PANEL_STRETCHED;
+	}
+	if ( cl.snap.ps.pm_type == 5 || wolfetScoresHeld || wolfetMapHeld || cls.realtime < wolfetPanelUntil ) {
+		return HUD_PANEL_CENTERED;
+	}
+	return HUD_PANEL_NONE;
+}
+
 qboolean CL_GameCommand( void ) {
 	bool bRes;
 
 	if ( !cgvm ) {
 		return qfalse;
+	}
+
+	if ( Com_GameIsWolfET() ) {
+		CL_WolfETTrackPanelCommand( Cmd_Argv( 0 ) );
 	}
 
 	bRes = VM_Call( cgvm, 0, CG_CONSOLE_COMMAND ) != 0;
@@ -3976,6 +4047,7 @@ CL_CGameRendering
 =====================
 */
 void CL_CGameRendering( stereoFrame_t stereo ) {
+	CL_HudSetGamePanel( Com_GameIsWolfET() ? CL_WolfETHudPanel() : HUD_PANEL_NONE );
 	CL_HudBeginFrame();
 	VM_Call( cgvm, 3, CG_DRAW_ACTIVE_FRAME, cl.serverTime, stereo, clc.demoplaying );
 	CL_HudEndFrame();
@@ -4068,8 +4140,13 @@ static void CL_FirstSnapshot( void ) {
 		return;
 	}
 	cls.state = CA_ACTIVE;
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		CL_AliceFirstSnapshot();
+	}
+	// A local Medal of Honor level waits for its player's first frame to
+	// start (OpenMoHAA UI_ServerLoaded, from CL_FirstSnapshot).
+	if ( Com_GameIsMOHAA() && com_sv_running && com_sv_running->integer ) {
+		SV_MOHAAServerLoaded();
 	}
 	Com_Printf( "CL_FirstSnapshot: %s, cgame %d ms, snapshot wait %d ms\n",
 		cl.mapname, cl_cgameLoadDuration, Sys_Milliseconds() - cl_cgameLoadFinished );

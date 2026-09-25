@@ -43,8 +43,11 @@ constexpr char kLegacyHudScriptFile[] = "fnq3-hud.json";
 constexpr char kHudDumpFile[] = "fntech3-hud-dump.json";
 constexpr int kHudMaxScriptBytes = 256 * 1024;
 
-// Selected once at client startup. QL owns its HUD projection, even if a
-// config happens to contain these cvars or a legacy HUD script.
+// Selected once at client startup for every game whose HUD assumes a 4:3
+// screen. QL's and MoHAA's modules place their own HUDs for any screen, even
+// if a config happens to contain these cvars or a legacy HUD script. Alice's
+// and F.A.K.K.2's HUDs are drawn by the engine, which routes them through
+// here.
 bool hudSupported = false;
 cvar_t *cl_hudAspect = nullptr;
 cvar_t *cl_hudDump = nullptr;
@@ -57,7 +60,10 @@ constexpr int kHudMaxDumpGroups = 1024;
 
 enum class HudTransformMode {
 	Stretch,
-	Uniform
+	Uniform,
+	// Uniform, then each edge that touches the 640x480 frame reaches the
+	// screen's edge: a mask beside a centred picture, such as a scope's bars.
+	Extend
 };
 
 enum class HudAlignX {
@@ -149,6 +155,23 @@ int hudDumpGroupCount = 0;
 bool hudDumpDirty = false;
 int hudDumpPrevValue = 0;
 
+// A screen of the game's own drawn in place of its HUD or over it, as the
+// client's frame reports it (CL_HudSetGamePanel). Centered pauses the rules,
+// so the screen stays one 4:3 composite; Stretched draws it as retail did,
+// for one that holds world views of its own.
+int hudGamePanel = HUD_PANEL_NONE;
+
+// The screen the client game was told it draws on. It is the real screen
+// unless the game was given the 4:3 frame (CL_HudModuleScreen), in which
+// case its own views and projections are 4:3 ones.
+int hudModuleWidth = 0;
+int hudModuleHeight = 0;
+
+bool CL_HudModuleFramed() {
+	return hudModuleWidth > 0 && hudModuleHeight > 0
+		&& ( hudModuleWidth != cls.glconfig.vidWidth || hudModuleHeight != cls.glconfig.vidHeight );
+}
+
 const HudRule *CL_HudFindRule( const HudDrawCapture *draw );
 
 qboolean QBool( bool value ) {
@@ -235,6 +258,11 @@ qboolean CL_HudParseMode( const char *value, HudTransformMode *mode ) {
 
 	if ( !Q_stricmp( value, "uniform" ) ) {
 		*mode = HudTransformMode::Uniform;
+		return qtrue;
+	}
+
+	if ( !Q_stricmp( value, "extend" ) ) {
+		*mode = HudTransformMode::Extend;
 		return qtrue;
 	}
 
@@ -597,9 +625,11 @@ void CL_HudApplyStretch( float *x, float *y, float *w, float *h ) {
 	*h *= yscale;
 }
 
+// From the pixels of the screen the client game draws on to its 640x480 units.
 void CL_HudUnstretch( float x, float y, float w, float h, float *outX, float *outY, float *outW, float *outH ) {
-	const float xscale = cls.glconfig.vidWidth / 640.0f;
-	const float yscale = cls.glconfig.vidHeight / 480.0f;
+	const bool framed = CL_HudModuleFramed();
+	const float xscale = ( framed ? hudModuleWidth : cls.glconfig.vidWidth ) / 640.0f;
+	const float yscale = ( framed ? hudModuleHeight : cls.glconfig.vidHeight ) / 480.0f;
 
 	if ( xscale == 0.0f || yscale == 0.0f ) {
 		*outX = x;
@@ -649,12 +679,34 @@ void CL_HudApplyUniform( float *x, float *y, float *w, float *h, HudAlignX align
 	*h *= cls.scale;
 }
 
+// Each edge of the 640x480 draw that touches the frame's is carried out to the
+// screen's. Flipped draws keep their uniform placement.
+void CL_HudExtendToEdges( const HudDrawCapture *draw, float *x, float *y, float *w, float *h ) {
+	if ( !( draw->w > 0.0f ) || !( draw->h > 0.0f ) ) {
+		return;
+	}
+	if ( draw->x <= 0.0f ) {
+		*w += *x;
+		*x = 0.0f;
+	}
+	if ( draw->x + draw->w >= SCREEN_WIDTH ) {
+		*w = cls.glconfig.vidWidth - *x;
+	}
+	if ( draw->y <= 0.0f ) {
+		*h += *y;
+		*y = 0.0f;
+	}
+	if ( draw->y + draw->h >= SCREEN_HEIGHT ) {
+		*h = cls.glconfig.vidHeight - *y;
+	}
+}
+
 void CL_HudTransformRect( const HudDrawCapture *draw, float *x, float *y, float *w, float *h ) {
 	HudTransformMode mode = CL_HudIsFullscreenLike( draw->x, draw->y, draw->w, draw->h ) ? HudTransformMode::Stretch : HudTransformMode::Uniform;
 	HudAlignX alignX = HudAlignX::Center;
 	HudAlignY alignY = HudAlignY::Middle;
 
-	if ( hudScriptLoaded && hudNumRules > 0 ) {
+	if ( hudScriptLoaded && hudNumRules > 0 && hudGamePanel != HUD_PANEL_CENTERED ) {
 		const HudRule *rule = CL_HudFindRule( draw );
 		if ( rule ) {
 			mode = rule->mode;
@@ -676,6 +728,9 @@ void CL_HudTransformRect( const HudDrawCapture *draw, float *x, float *y, float 
 		CL_HudApplyStretch( x, y, w, h );
 	} else {
 		CL_HudApplyUniform( x, y, w, h, alignX, alignY );
+		if ( mode == HudTransformMode::Extend ) {
+			CL_HudExtendToEdges( draw, x, y, w, h );
+		}
 	}
 }
 
@@ -1007,17 +1062,18 @@ extern "C" void CL_HudReload_f( void ) {
 }
 
 extern "C" void CL_HudInit( void ) {
-	hudSupported = Com_GameIsQuake3() || Com_GameIsRTCW();
+	hudSupported = Com_GameIsQuake3() || Com_GameIsRTCW() || Com_GameIsWolfET() || Com_GameIsSTVEF()
+		|| Com_GameIsRitual();
 	cl_hudAspect = nullptr;
 	cl_hudDump = nullptr;
 	if ( !hudSupported ) return;
 	cl_hudAspect = Cvar_Get( "cl_hudAspect", "1", CVAR_ARCHIVE );
 	Cvar_CheckRange( cl_hudAspect, "0", "1", CV_INTEGER );
 	Cvar_SetDescription( cl_hudAspect,
-		"Q3/RTCW HUD aspect correction: 0 stretch, 1 uniform 4:3 with optional fntech3-hud.json rules (legacy fnq3-hud.json). Inactive in Quake Live." );
+		"HUD aspect correction: 0 stretch, 1 uniform 4:3 with optional fntech3-hud.json rules (legacy fnq3-hud.json). Inactive in Quake Live and MoHAA, whose modules place their own HUDs." );
 	cl_hudDump = Cvar_Get( "cl_hudDump", "0", CVAR_ARCHIVE );
 	Cvar_CheckRange( cl_hudDump, "0", "1", CV_INTEGER );
-	Cvar_SetDescription( cl_hudDump, "Write deduplicated cgame HUD groups to fntech3-hud-dump.json in the active writable game directory. Inactive in Quake Live." );
+	Cvar_SetDescription( cl_hudDump, "Write deduplicated HUD draw groups to fntech3-hud-dump.json in the active writable game directory. Inactive in Quake Live and MoHAA." );
 	hudLastAspectMode = -1;
 	hudDumpPrevValue = cl_hudDump ? cl_hudDump->integer : 0;
 	hudNumShaderNames = 0;
@@ -1028,6 +1084,9 @@ extern "C" void CL_HudInit( void ) {
 	hudFrameDrawCount = 0;
 	hudDumpGroupCount = 0;
 	hudDumpDirty = false;
+	hudGamePanel = HUD_PANEL_NONE;
+	hudModuleWidth = 0;
+	hudModuleHeight = 0;
 	Cmd_AddCommand( "hud_reload", CL_HudReload_f );
 }
 
@@ -1049,6 +1108,9 @@ extern "C" void CL_HudResetCGame( void ) {
 	hudDumpGroupCount = 0;
 	hudDumpDirty = false;
 	hudScriptWarned = false;
+	hudGamePanel = HUD_PANEL_NONE;
+	hudModuleWidth = 0;
+	hudModuleHeight = 0;
 	CL_HudClearRules();
 }
 
@@ -1098,6 +1160,28 @@ extern "C" void CL_HudRegisterShaderName( qhandle_t shader, const char *name ) {
 	hudNumShaderNames++;
 }
 
+extern "C" void CL_HudSetGamePanel( int panel ) {
+	hudGamePanel = hudSupported ? panel : HUD_PANEL_NONE;
+}
+
+extern "C" void CL_HudModuleScreen( int *width, int *height ) {
+	hudModuleWidth = 0;
+	hudModuleHeight = 0;
+	if ( !hudSupported || !width || !height || !cl_hudAspect || cl_hudAspect->integer <= 0
+		|| !( cls.scale > 0.0f ) || cls.glconfig.vidWidth <= 0 || cls.glconfig.vidHeight <= 0 ) {
+		return;
+	}
+	const int frameWidth = static_cast<int>( std::lround( 640.0 * cls.scale ) );
+	const int frameHeight = static_cast<int>( std::lround( 480.0 * cls.scale ) );
+	if ( frameWidth <= 0 || frameHeight <= 0 ) {
+		return;
+	}
+	hudModuleWidth = frameWidth;
+	hudModuleHeight = frameHeight;
+	*width = frameWidth;
+	*height = frameHeight;
+}
+
 extern "C" void CL_HudAdjustRefdef( refdef_t *refdef ) {
 	HudDrawCapture draw;
 	float x;
@@ -1105,9 +1189,13 @@ extern "C" void CL_HudAdjustRefdef( refdef_t *refdef ) {
 	float w;
 	float h;
 
-	if ( !hudSupported || !refdef || ( refdef->rdflags & RDF_NOWORLDMODEL ) == 0
-		|| refdef->width <= 0 || refdef->height <= 0
+	if ( !hudSupported || !refdef || refdef->width <= 0 || refdef->height <= 0
 		|| cls.glconfig.vidWidth <= 0 || cls.glconfig.vidHeight <= 0 ) {
+		return;
+	}
+	// The world view is the game's own unless the game was given the 4:3 frame.
+	const bool world = ( refdef->rdflags & RDF_NOWORLDMODEL ) == 0;
+	if ( world && !CL_HudModuleFramed() ) {
 		return;
 	}
 
@@ -1117,16 +1205,33 @@ extern "C" void CL_HudAdjustRefdef( refdef_t *refdef ) {
 	draw.textLike = false;
 	draw.refdef = true;
 
-	CL_HudCaptureDraw( &draw );
-
-	refdef->rdflags |= RDF_NOFOVCORRECTION;
-
-	if ( !cl_hudAspect || cl_hudAspect->integer <= 0 ) {
-		return;
+	if ( !world ) {
+		CL_HudCaptureDraw( &draw );
+		refdef->rdflags |= RDF_NOFOVCORRECTION;
 	}
 
-	CL_HudEnsureRules();
-	CL_HudTransformRect( &draw, &x, &y, &w, &h );
+	x = draw.x;
+	y = draw.y;
+	w = draw.w;
+	h = draw.h;
+	if ( !cl_hudAspect || cl_hudAspect->integer <= 0 || hudGamePanel == HUD_PANEL_STRETCHED ) {
+		// Retail's stretch: the game's own pixels, or its 4:3 frame stretched.
+		if ( !CL_HudModuleFramed() ) return;
+		CL_HudApplyStretch( &x, &y, &w, &h );
+	} else if ( world ) {
+		// A world view filling the frame fills the screen, and the renderer
+		// widens its field of view (r_fovCorrection); a smaller one the game cut
+		// from its 4:3 frame keeps that shape and the fields of view it was given.
+		if ( CL_HudIsFullscreenLike( draw.x, draw.y, draw.w, draw.h ) ) {
+			CL_HudApplyStretch( &x, &y, &w, &h );
+		} else {
+			CL_HudApplyUniform( &x, &y, &w, &h, HudAlignX::Center, HudAlignY::Middle );
+			refdef->rdflags |= RDF_NOFOVCORRECTION;
+		}
+	} else {
+		CL_HudEnsureRules();
+		CL_HudTransformRect( &draw, &x, &y, &w, &h );
+	}
 	// A bad viewport must not cause undefined float-to-int conversions.
 	const double rounded[] = { std::round( static_cast<double>( x ) ), std::round( static_cast<double>( y ) ),
 		std::round( static_cast<double>( w ) ), std::round( static_cast<double>( h ) ) };
@@ -1163,12 +1268,18 @@ extern "C" qboolean CL_HudAdjustPic( float *x, float *y, float *w, float *h, qha
 
 	CL_HudCaptureDraw( &draw );
 
-	if ( !cl_hudAspect || cl_hudAspect->integer <= 0 ) {
-		return qtrue;
+	if ( !cl_hudAspect || cl_hudAspect->integer <= 0 || hudGamePanel == HUD_PANEL_STRETCHED ) {
+		// Retail's stretch: the game's own pixels, or its 4:3 frame stretched.
+		if ( !CL_HudModuleFramed() ) return qtrue;
+		*x = draw.x;
+		*y = draw.y;
+		*w = draw.w;
+		*h = draw.h;
+		CL_HudApplyStretch( x, y, w, h );
+	} else {
+		CL_HudEnsureRules();
+		CL_HudTransformRect( &draw, x, y, w, h );
 	}
-
-	CL_HudEnsureRules();
-	CL_HudTransformRect( &draw, x, y, w, h );
 	return QBool( std::isfinite( *x ) && std::isfinite( *y ) && std::isfinite( *w ) && std::isfinite( *h ) );
 }
 

@@ -54,6 +54,11 @@ typedef ALCboolean ( ALC_APIENTRY *LPALCREOPENDEVICESOFT )( ALCdevice *device, c
 #define AL_DIRECT_CHANNELS_SOFT 0x1033
 #endif
 
+#ifndef AL_EXT_SOURCE_RADIUS
+#define AL_EXT_SOURCE_RADIUS
+#define AL_SOURCE_RADIUS 0x1031
+#endif
+
 #ifndef AL_SOFT_loop_points
 #define AL_SOFT_loop_points
 #define AL_LOOP_POINTS_SOFT 0x2015

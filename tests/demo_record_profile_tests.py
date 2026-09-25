@@ -69,6 +69,9 @@ static void FS_Rename(const char *from,const char *to) {
 }
 static void Com_Printf(const char *text) { printed = text; }
 static void CL_SetDemoRecordingCvars(const char *) {}
+/* Q3Test records with its own recorder (cl_q3test.cpp). */
+static int Com_GameIsQ3Test() { return 0; }
+static void CL_Q3TestStopRecord_f() {}
 '''
         fixture += fallback + "\n" + finalizer
         fixture += "\nstatic void InitializeCompatibility() { " + initializer + " }\n"
@@ -219,6 +222,9 @@ static int FS_FOpenFileWrite(const char *name) { opened = name; return 4; }
 static void Com_TruncateLongString(char *out, const char *in) { snprintf(out, 32, "%s", in); }
 static void CL_WebView_PublishGameDemo(const char *, const char *) {}
 static void CL_SetDemoRecordingCvars(const char *) {}
+/* Q3Test records with its own recorder (cl_q3test.cpp). */
+static int Com_GameIsQ3Test() { return 0; }
+static void CL_Q3TestRecord_f() {}
 static void CL_WriteGamestate(qboolean initial) { assert(initial); ++gamestates; }
 /* Demo files already on disk, and every name the automatic search probed. */
 struct ScopedFileHandle {};

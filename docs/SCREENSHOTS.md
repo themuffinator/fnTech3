@@ -1,14 +1,14 @@
 # Screenshot Guide
 
-FnQL keeps the classic screenshot commands, then extends them into a more flexible capture system for organized shot libraries, reproducible camera setups, and cube-map extraction. This guide covers the screenshot commands, naming rules, metadata sidecars, watermark options, and cube-map capture behavior.
+fnTech3 keeps the classic screenshot commands in every game, then extends them into a more flexible capture system for organized shot libraries, reproducible camera setups, and cube-map extraction. This guide covers the screenshot commands, naming rules, metadata sidecars, watermark options, and cube-map capture behavior.
 
-All screenshot output is written under the active game directory in `screenshots/`.
+All screenshot output is written under the writable home, in the running game's directory: `<fs_homepath>/<game directory>/screenshots/`, for example `baseq3/screenshots/` for Quake III Arena and Quake Live, `main/screenshots/` for RTCW, `etmain/` for Enemy Territory, `baseEF/` for Elite Force, `base/` for Alice and `fakk/` for F.A.K.K.2 -- or the `fs_game` mod's directory when one is active. See the [Games Guide](GAMES.md#where-files-are-read-and-written) for where the home is.
 
 ## Color Capture Policy
 
 Screenshots, levelshots, cube-map faces, clipboard BMP captures, and AVI frame capture default to SDR sRGB byte output. This remains true even when the renderer is using the scene-linear HDR pipeline internally: the final output transform is captured after tone mapping so existing PNG, TGA, JPG, BMP, baselines, and scripts keep their historical expectations.
 
-`r_screenshotCaptureMode` records the explicit capture policy:
+`r_screenshotCaptureMode` records the explicit capture policy on the GLx and RTX renderers (Vulkan does not have it):
 
 - `0`: SDR sRGB byte capture. This is the default.
 - `1`: Reserved scene-linear HDR export request. It currently falls back to SDR sRGB byte output and prints a warning; use it only when a capture run needs to prove that an HDR-aware request was made explicitly.
@@ -28,7 +28,7 @@ The standard commands remain familiar:
 - `screenshotJPEG`: Save a JPG screenshot.
 - `screenshotBMP`: Save a BMP screenshot.
 - `screenshot levelshot`: Save a levelshot to `levelshots/<map>.tga` using the current levelshot sizing and crop settings.
-- `screenshot cubemap`: Save a six-face PNG cube map on the OpenGL-lineage and Vulkan renderers.
+- `screenshot cubemap`: Save a six-face PNG cube map on the OpenGL-lineage and Vulkan renderers. The RTX renderer refuses cube-map capture and writes no files.
 - `screenshotPNG cubemap`: Explicit PNG cube-map command.
 - `screenshotTGA cubemap`: Save a six-face TGA cube map.
 - `screenshotJPEG cubemap`: Save a six-face JPG cube map.
@@ -70,6 +70,8 @@ Capture visibility rules:
 - Levelshots are rendered on a dedicated capture frame so the hide settings above can take effect reliably.
 - If `r_levelshotHideHud 0`, the levelshot includes the current HUD.
 - If `r_levelshotHideViewWeapon 0`, the levelshot includes the current first-person weapon model.
+- Hiding needs the game's HUD and weapon to pass through the engine where it can leave them out. That holds in Quake III Arena, Quake Live and Elite Force, and for RTCW's HUD. Enemy Territory, Alice and F.A.K.K.2 keep both in the shot, and RTCW keeps its weapon.
+- Elite Force single player's loading screen shows `levelshots/<map>.tga` when the game finds one, and otherwise a picture kept from the last frame.
 
 Examples:
 
@@ -116,14 +118,19 @@ seta r_levelshotSize "512"
 screenshot levelshot
 ```
 
+## Game-Specific Captures
+
+- Alice and F.A.K.K.2 also have their original engine's `saveshot <name> <width> <height>`, which writes a reduced greyscale `screenshots/<name>.tga`; the games use it for their save pictures.
+- Every game's captures follow the same naming, metadata and watermark rules below.
+
 ## Automatic Naming
 
-When you do not pass an explicit filename, FnQL builds one from `r_screenshotNameFormat`.
+When you do not pass an explicit filename, fnTech3 builds one from `r_screenshotNameFormat`.
 
 - `r_screenshotNameFormat "shot-{date}-{time}"`: Default pattern.
 - File extensions still come from the command you used, so the pattern only controls the base name.
 - Tokens are sanitized automatically so map names and command names stay filesystem-safe.
-- If a generated name already exists, FnQL appends an iterator automatically unless your pattern already uses one.
+- If a generated name already exists, fnTech3 appends an iterator automatically unless your pattern already uses one.
 
 Supported tokens:
 
@@ -151,11 +158,11 @@ seta r_screenshotNameFormat "{map}-{cmd}-{iter:4}"
 seta r_screenshotNameFormat "{map}-{datetime}-{face}"
 ```
 
-If a cube-map pattern does not include `{face}`, FnQL appends the face name automatically so the six outputs stay distinct.
+If a cube-map pattern does not include `{face}`, fnTech3 appends the face name automatically so the six outputs stay distinct.
 
 ## View Metadata Sidecars
 
-Set `r_screenshotWriteViewpos 1` to make FnQL write a plain-text sidecar next to each saved screenshot.
+Set `r_screenshotWriteViewpos 1` to make fnTech3 write a plain-text sidecar next to each saved screenshot.
 
 - The sidecar uses the same base filename as the image and ends in `.txt`.
 - Each file stores the current map name, view origin, view angles, and a ready-to-paste `setviewpos` command.
@@ -176,9 +183,9 @@ This is useful when you want to recreate a shot later, compare captures across b
 
 ## Watermarks
 
-FnQL can composite an image watermark directly into saved screenshots.
+fnTech3 can composite an image watermark directly into saved screenshots.
 
-- `r_screenshotWatermark`: Path to the watermark image. Supported formats are `png`, `tga`, `jpg`, `jpeg`, and `bmp`.
+- `r_screenshotWatermark`: Path to the watermark image, which you supply in the game's filesystem (loose or in a pak). No watermark image ships with fnTech3. Supported formats are `png`, `tga`, `jpg`, `jpeg`, and `bmp`.
 - `r_screenshotWatermarkAlignment`: Alignment of the watermark inside the 4:3 safe area.
 - `r_screenshotWatermarkScreenAlignment`: Alignment of that 4:3 safe area inside the full screenshot.
 - `r_screenshotWatermarkMargin`: Margin in pixels from the aligned edges.
@@ -197,16 +204,16 @@ Supported alignment values for both alignment cvars:
 
 Behavior notes:
 
-- The watermark image is not rescaled by the engine. FnQL draws it at its source size.
+- The watermark image is not rescaled by the engine. fnTech3 draws it at its source size.
 - Placement is computed against a 4:3 safe area first, then that safe area is placed inside the actual screenshot using `r_screenshotWatermarkScreenAlignment`.
 - This makes it practical to keep watermark placement stable across 4:3 and widescreen captures.
-- If the watermark image cannot be loaded, the screenshot is still saved and FnQL prints a warning.
+- If the watermark image cannot be loaded, the screenshot is still saved and fnTech3 prints a warning.
 - Watermarks are disabled for cube-map capture so every face remains a clean 1:1 tile.
 
 Example:
 
 ```cfg
-seta r_screenshotWatermark "gfx/watermarks/fnql-mark.png"
+seta r_screenshotWatermark "gfx/watermarks/my-mark.png"
 seta r_screenshotWatermarkAlignment "bottom-right"
 seta r_screenshotWatermarkScreenAlignment "center"
 seta r_screenshotWatermarkMargin "24"
@@ -246,6 +253,7 @@ Renderer status:
 
 - GLx renderer: full cube-map capture support.
 - Vulkan renderer: full cube-map capture support with the same face names, orientation, visibility controls, and SDR output contract.
+- RTX renderer: no cube-map capture yet; the command reports that and writes nothing. Ordinary screenshots and levelshots work.
 
 ## Recommended Starting Points
 
@@ -260,7 +268,7 @@ For a capture setup with a logo watermark:
 
 ```cfg
 seta r_screenshotNameFormat "{map}-{datetime}"
-seta r_screenshotWatermark "gfx/watermarks/fnql-mark.png"
+seta r_screenshotWatermark "gfx/watermarks/my-mark.png"
 seta r_screenshotWatermarkAlignment "bottom-right"
 seta r_screenshotWatermarkScreenAlignment "center"
 seta r_screenshotWatermarkMargin "16"

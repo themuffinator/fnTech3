@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "cm_local.h"
 #include "cm_game_contract.h"
 #include "cm_trace_contract.h"
+#include "cm_mohaa_terrain.h"
 
 // always use bbox vs. bbox collision and never capsule vs. bbox or vice versa
 //#define ALWAYS_BBOX_VS_BBOX
@@ -281,9 +282,29 @@ static void CM_TestInLeaf( traceWork_t *tw, const cLeaf_t *leaf ) {
 			if ( CM_PositionTestInPatchCollide( tw, patch->pc ) ) {
 				tw->trace.startsolid = tw->trace.allsolid = qtrue;
 				tw->trace.fraction = 0;
-				tw->trace.contents = patch->contents;
+				// Q3Test leaves the contents alone (1.02 0x0040d160's caller)
+				if ( !cm.curveInsideKeepsContents ) {
+					tw->trace.contents = patch->contents;
+				}
 				return;
 			}
+		}
+	}
+
+	// test against Medal of Honor's terrain patches; OpenMoHAA tests every
+	// one whatever the trace's mask, and so does this
+	for ( k = 0 ; k < leaf->numLeafTerrains ; k++ ) {
+		cmTerrain_t *terrain = cm.leafterrains[ leaf->firstLeafTerrain + k ];
+		if ( !terrain || terrain->checkcount == cm.checkcount ) {
+			continue;
+		}
+		terrain->checkcount = cm.checkcount;
+
+		if ( CM_MOHAA_PositionTestInTerrainCollide( tw, &terrain->tc ) ) {
+			tw->trace.startsolid = tw->trace.allsolid = qtrue;
+			tw->trace.fraction = 0;
+			tw->trace.contents = terrain->contents;
+			return;
 		}
 	}
 }
@@ -467,7 +488,10 @@ static void CM_TraceThroughPatch( traceWork_t *tw, const cPatch_t *patch ) {
 
 	if ( tw->trace.fraction < oldFrac ) {
 		tw->trace.surfaceFlags = patch->surfaceFlags;
-		tw->trace.contents = patch->contents;
+		// Q3Test 1.02 to 1.05 leave the contents alone (1.02 0x0040d270)
+		if ( !cm.curveHitKeepsContents ) {
+			tw->trace.contents = patch->contents;
+		}
 	}
 }
 
@@ -720,6 +744,26 @@ static void CM_TraceThroughLeaf( traceWork_t *tw, const cLeaf_t *leaf ) {
 			if ( !tw->trace.fraction ) {
 				return;
 			}
+		}
+	}
+
+	// trace against Medal of Honor's terrain patches in the leaf
+	for ( k = 0 ; k < leaf->numLeafTerrains ; k++ ) {
+		cmTerrain_t *terrain = cm.leafterrains[ leaf->firstLeafTerrain + k ];
+		const float oldFraction = tw->trace.fraction;
+
+		if ( !terrain || terrain->checkcount == cm.checkcount ) {
+			continue;
+		}
+		terrain->checkcount = cm.checkcount;
+
+		CM_MOHAA_TraceThroughTerrainCollide( tw, &terrain->tc );
+		if ( tw->trace.fraction < oldFraction ) {
+			tw->trace.surfaceFlags = terrain->surfaceFlags;
+			tw->trace.contents = terrain->contents;
+		}
+		if ( !tw->trace.fraction ) {
+			return;
 		}
 	}
 }

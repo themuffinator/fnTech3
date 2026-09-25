@@ -1,0 +1,28 @@
+#version 460
+#extension GL_EXT_nonuniform_qualifier : require
+#extension GL_GOOGLE_include_directive : require
+
+// The path tracer without VK_KHR_ray_tracing_pipeline: the per-pixel work of
+// rt_path.glsl, tracing BVHs of the compute backend's own (rt_trace_sw.glsl).
+
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
+
+#define RT_SOFTWARE_TRACE 1
+
+#include "rt_common.glsl"
+#include "rt_bindings.glsl"
+#include "rt_material.glsl"
+#include "rt_geometry.glsl"
+#include "rt_filter.glsl"
+#include "rt_trace_sw.glsl"
+#include "rt_path.glsl"
+
+void main()
+{
+	ivec2 size = imageSize(u_outColor);
+	ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
+	if (pixel.x >= size.x || pixel.y >= size.y) {
+		return;
+	}
+	rt_path_main(pixel, vec2(size));
+}

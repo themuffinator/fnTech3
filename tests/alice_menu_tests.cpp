@@ -69,6 +69,14 @@ void TestColours() {
 	CHECK( &ShadeColor( border, Shade::Light ) == &border.light );
 }
 
+void TestCheckBox() {
+	// Alice's box at 0 and its title after it; F.A.K.K.2's box 16 in and its
+	// title 48 in, where both retail engines print it.
+	static_assert( CheckSize == 16.0f && Fakk2CheckIndent == 16.0f );
+	static_assert( CheckTitleX( 0.0f ) == 16.0f && CheckTitleX( Fakk2CheckIndent ) == 48.0f );
+	std::cout << "alice_menu_tests: checkbox indents\n";
+}
+
 void TestSlider() {
 	Slider slider;
 	CHECK( slider.min == 0.0f && slider.max == 100.0f && slider.step == 1.0f && slider.type == SliderType::Integer );
@@ -114,6 +122,21 @@ void TestSlider() {
 	Slider camera;
 	camera.min = 76.0f; camera.max = 192.0f; camera.step = -1.0f; camera.value = 120.0f;
 	CHECK( Stepped( camera, 1 ) == 192.0f && Stepped( camera, -1 ) == 192.0f );
+	// F.A.K.K.2 holds to min and then max whatever the step: the same on an
+	// ordinary range, and a reversed one always lands on max.
+	volume.value = 0.98f;
+	CHECK( SteppedFakk2( volume, 1 ) == 1.0f );
+	volume.value = 0.02f;
+	CHECK( SteppedFakk2( volume, -1 ) == 0.0f );
+	picmip.value = 1.0f;
+	CHECK( SteppedFakk2( picmip, 1 ) == 0.0f && SteppedFakk2( picmip, -1 ) == 0.0f );
+	CHECK( SteppedFakk2( camera, 1 ) == 119.0f && SteppedFakk2( camera, -1 ) == 121.0f );
+	// Its 192-wide sliders: arrows 15, a thumb 10, the thumb 15 + 152t across.
+	Slider fakk2;
+	fakk2.arrowWidth = 15; fakk2.thumbWidth = 10.0f; fakk2.min = 0.0f; fakk2.max = 1.0f; fakk2.value = 1.0f;
+	const SliderTrack groove = TrackFor( fakk2, 385.0f, 192.0f );
+	CHECK( groove.start == 405 && groove.end == 557 );
+	CHECK( ThumbCenter( fakk2, groove ) - fakk2.thumbWidth * 0.5f == 167.0f );
 
 	camera.type = SliderType::Integer;
 	camera.value = 119.9f;
@@ -184,6 +207,19 @@ void TestBindScript() {
 	CHECK( layout.items[1].loop && layout.items[1].rotation == -45.0f );
 	CHECK( layout.items[2].command == "use blunderbuss" && layout.items[2].anim.empty() );
 
+	// Heavy Metal: F.A.K.K.2's third words are pictures (fakk2.exe 1.02
+	// header 0x00410580, binditem 0x00411c90, bind_fillwidth 0x00411f50).
+	const std::string fakk2 =
+		"header 1 \"Action\" \"textures/bind/action\"\r\n"
+		"header 3 \"Alternate\"\r\n"
+		"bind_fillwidth 16 \"textures/menu/F_A\"\r\n"
+		"binditem \"Left Attack\"       +attackleft               \"textures/bind/leftattack\"\r\n";
+	const BindLayout pictures = ParseBindScript( fakk2.data(), fakk2.size() );
+	CHECK( pictures.headers[0] == "Action" && pictures.headerMaterials[0] == "textures/bind/action" );
+	CHECK( pictures.headers[2] == "Alternate" && pictures.headerMaterials[2].empty() );
+	CHECK( pictures.fillWidth == 16 && pictures.fillMaterial == "textures/menu/F_A" );
+	CHECK( pictures.items.size() == 1 && pictures.items[0].material == "textures/bind/leftattack" );
+
 	CHECK( BindPageSize( 300.0f, 22 ) == 12 && BindPageSize( 300.0f, 0 ) == 0 );
 	CHECK( VisibleRowTop( 3, 0, 22 ) == 88 && VisibleRowTop( 3, 3, 22 ) == 22 );
 	CHECK( RowVisible( 12, 0, 22, 300.0f ) && !RowVisible( 13, 0, 22, 300.0f ) && !RowVisible( 0, 1, 22, 300.0f ) );
@@ -233,6 +269,31 @@ void TestSaves() {
 	CHECK( CTimeText( when ) == "Fri Sep  4 07:05:09 2026" );
 }
 
+void TestSaveList() {
+	// The drawn list's columns (0x0041a150): 40, 20 and 40 per cent, cut to whole units.
+	static_assert( SaveColumns == 3, "Location, elapsed time and date" );
+	CHECK( std::string( SaveColumnTitles[1] ) == "Elapased Time" );
+	CHECK( SaveColumnWidth( 0, 512.0f ) == 204 && SaveColumnWidth( 1, 512.0f ) == 102 && SaveColumnWidth( 2, 512.0f ) == 204 );
+	CHECK( SaveHeaderHeight( 16 ) == 20 );
+	// The level's seconds as hours, then two-digit minutes and seconds (0x0041aa3a).
+	CHECK( ElapsedText( 0 ) == "0:00:00" && ElapsedText( 1999 ) == "0:00:01" );
+	CHECK( ElapsedText( 3723000 ) == "1:02:03" && ElapsedText( 36000000 + 59000 ) == "10:00:59" );
+	CHECK( ElapsedText( -5000 ) == "0:00:00" );
+	// F.A.K.K.2's list: 160 high, a 16-unit line, 20 of header: eight whole rows.
+	CHECK( SaveRowsPerPage( 160.0f, 16 ) == 8 && SaveRowsPerPage( 10.0f, 16 ) == 1 && SaveRowsPerPage( 160.0f, 0 ) == 1 );
+	// The first row shown moves only as far as keeps the choice on the page.
+	CHECK( SaveTopFor( 1, 0, 7, 10 ) == 0 && SaveTopFor( 8, 0, 7, 10 ) == 1 && SaveTopFor( 10, 0, 7, 10 ) == 3 );
+	CHECK( SaveTopFor( 2, 3, 7, 10 ) == 1 && SaveTopFor( 0, 9, 7, 10 ) == 3 && SaveTopFor( 1, 5, 7, 3 ) == 0 );
+	// A chosen row is the page's choice, which loadgame and removegame read.
+	SavePage page;
+	SelectSaveRow( page, 8 );
+	CHECK( page.page == 1 && page.tab == 2 && page.Selected() == 8 );
+	SelectSaveRow( page, 1 );
+	CHECK( page.page == 0 && page.tab == 1 && page.Selected() == 1 );
+	SelectSaveRow( page, 0 );
+	CHECK( page.Selected() == 1 );
+}
+
 void TestScroll() {
 	CHECK( EdgeAlpha( 100.0f, 122.0f, 280.0f ) == 1.0f );
 	CHECK( Near( EdgeAlpha( 20.0f, 42.0f, 280.0f ), 0.5f ) );
@@ -243,6 +304,48 @@ void TestScroll() {
 	CHECK( Near( EdgeAlpha( 20.0f, 30.0f, 40.0f ), 0.25f ) );
 	CHECK( ResetScrollPosition( 161.0f, 22.0f ) == -3542.0f && ResetScrollPosition( 0.0f, 22.0f ) == -0.0f );
 	static_assert( DefaultScrollSpeed == 0.2f, "UIAutoScroll's default speed (0x004c0393)" );
+}
+
+/* The composite a set of kept shares draws back to, one grey value a layer. */
+float Composite( const std::vector<KeptLayer> &layers, const std::vector<float> &values ) {
+	const std::vector<float> alpha = KeptAlphas( layers );
+	float out = 0.0f;
+	for ( std::size_t i = 0; i < layers.size(); ++i ) out = alpha[i] * values[i] + ( 1.0f - alpha[i] ) * out;
+	return out;
+}
+
+/* F.A.K.K.2's uncleared screen under its menus, as shares. */
+void TestKeptImage() {
+	enum { Black, Fill, Art, OtherArt };
+	std::vector<KeptLayer> layers;
+	KeepDraw( layers, Black, -1, 1.0f );
+	CHECK( layers.size() == 1 && layers[0].share == 1.0f );
+	// A menu shown whole leaves its fill under its pictures: only they show.
+	KeepDraw( layers, Fill, 0, 1.0f );
+	KeepDraw( layers, Art, 0, 1.0f );
+	CHECK( layers[0].share == 0.0f && layers[1].share == 0.0f && layers[2].share == 1.0f );
+	DropFaintLayers( layers );
+	CHECK( layers.size() == 1 && layers[0].kind == Art );
+	// Fading at a steady alpha f, the pictures keep 1 / (2 - f) and the white
+	// fill (1 - f) / (2 - f): a going menu hazes, never darkens.
+	for ( int frame = 0; frame < 200; ++frame ) {
+		KeepDraw( layers, Fill, 0, 0.2f );
+		KeepDraw( layers, Art, 0, 0.2f );
+	}
+	float art = 0.0f, fill = 0.0f;
+	for ( const KeptLayer &layer : layers ) ( layer.kind == Art ? art : fill ) += layer.share;
+	CHECK( Near( art, 1.0f / 1.8f ) && Near( fill, 0.8f / 1.8f ) );
+	// The next menu's pictures cover the last one's share by share.
+	KeepDraw( layers, OtherArt, 1, 0.5f );
+	float shares = 0.0f;
+	for ( const KeptLayer &layer : layers ) shares += layer.share;
+	CHECK( Near( shares, 1.0f ) );
+	// Drawn back from the lowest up, the layers leave each its share.
+	const std::vector<float> values = { 0.9f, 0.3f, 0.6f };
+	float expected = 0.0f;
+	for ( std::size_t i = 0; i < layers.size(); ++i ) expected += layers[i].share * values[i];
+	CHECK( Near( Composite( layers, values ), expected ) );
+	CHECK( KeptAlphas( layers ).back() == 0.5f );
 }
 
 /* The retail bind.scr and keybind.scr, when an installation is here. */
@@ -282,12 +385,15 @@ void TestRetailFiles() {
 
 int main() {
 	TestColours();
+	TestCheckBox();
 	TestSlider();
 	TestList();
 	TestField();
 	TestBindScript();
 	TestSaves();
+	TestSaveList();
 	TestScroll();
+	TestKeptImage();
 	TestRetailFiles();
 	std::cout << "alice_menu_tests: ok\n";
 	return 0;

@@ -23,6 +23,22 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "cm_local.h"
 #include "cm_patch.h"
 
+#ifndef BSPC
+/*
+Q3Test's curves are Quake III's grid with three differences: a facet is kept
+when its winding spans no more than 4096 units on every axis, it gains no
+bevels, and every trace, a box's as well as a point's, runs the point
+algorithm, widened by the box, whenever cm_playerCurveClip is set or the trace
+is a point. Its position tests differ by release (CM_Q3TestPositionTest).
+Observations: docs/fntech3/Q3TEST.md.
+*/
+#define	Q3TEST_FACET_EXTENT		4096.0f
+
+static qboolean CM_Q3TestCurves( void ) {
+	return Com_GameIsQ3Test() ? qtrue : qfalse;
+}
+#endif
+
 /*
 
 This file does not reference any globals, and has these entry points:
@@ -818,6 +834,18 @@ static qboolean CM_ValidateFacet( const facet_t *facet ) {
 	WindingBounds( w, bounds[0], bounds[1] );
 	FreeWinding( w );
 
+#ifndef BSPC
+	// Q3Test bounds only the winding's extent (1.02 0x0040a4a0)
+	if ( CM_Q3TestCurves() ) {
+		for ( j = 0 ; j < 3 ; j++ ) {
+			if ( !( bounds[1][j] - bounds[0][j] <= Q3TEST_FACET_EXTENT ) ) {
+				return qfalse;
+			}
+		}
+		return qtrue;
+	}
+#endif
+
 	for ( j = 0 ; j < 3 ; j++ ) {
 		if ( bounds[1][j] - bounds[0][j] > MAX_MAP_BOUNDS ) {
 			return qfalse;		// we must be missing a plane
@@ -846,6 +874,13 @@ static void CM_AddFacetBevels( facet_t *facet ) {
 	winding_t *w, *w2;
 	vec3_t mins, maxs, vec, vec2;
 	double d, d1[3], d2[3];
+
+#ifndef BSPC
+	// Q3Test's facets keep their three or four borders alone
+	if ( CM_Q3TestCurves() ) {
+		return;
+	}
+#endif
 
 	Vector4Copy( planes[ facet->surfacePlane ].plane, plane );
 
@@ -985,8 +1020,11 @@ static void CM_AddFacetBevels( facet_t *facet ) {
 						// Enemy Territory drops this report: its maps make many
 						if ( !Com_GameIsWolfET() ) {
 							// Alice's engine makes it only at developer 2
-							// (alice.exe 0x004320b4..0x004320c4)
-							if ( !Com_GameIsAlice() || ( com_developer && com_developer->integer == 2 ) ) {
+							// (alice.exe 0x004320b4..0x004320c4); F.A.K.K.2's
+							// is taken to share its ancestor's rule, and
+							// Medal of Honor's is OpenMoHAA's reading of 2015's
+							if ( !( Com_GameIsRitual() || Com_GameIsMOHAA() ) ||
+								( com_developer && com_developer->integer == 2 ) ) {
 								Com_DPrintf("WARNING: CM_AddFacetBevels... invalid bevel\n");
 							}
 						}
@@ -1279,12 +1317,14 @@ TRACE TESTING
 
 /*
 ====================
-CM_TracePointThroughPatchCollide
+CM_TracePatchFacets
 
-  special case for point traces because the patch collide "brushes" have no volume
+  the point trace: each plane is widened by the trace's box, so a box
+  trace -- which Q3Test runs through here too -- treats the curve as facets
+  without volume
 ====================
 */
-static void CM_TracePointThroughPatchCollide( traceWork_t *tw, const struct patchCollide_s *pc ) {
+static void CM_TracePatchFacets( traceWork_t *tw, const struct patchCollide_s *pc ) {
 	qboolean	frontFacing[MAX_PATCH_PLANES];
 	float		intersection[MAX_PATCH_PLANES];
 	float		intersect;
@@ -1296,12 +1336,6 @@ static void CM_TracePointThroughPatchCollide( traceWork_t *tw, const struct patc
 #ifndef BSPC
 	static cvar_t *cv;
 #endif //BSPC
-
-#ifndef BSPC
-	if ( !cm_playerCurveClip->integer || !tw->isPoint ) {
-		return;
-	}
-#endif
 
 	// determine the trace's relationship to all planes
 	pp = pc->planes;
@@ -1382,6 +1416,24 @@ static void CM_TracePointThroughPatchCollide( traceWork_t *tw, const struct patc
 
 /*
 ====================
+CM_TracePointThroughPatchCollide
+
+  special case for point traces because the patch collide "brushes" have no volume
+====================
+*/
+static void CM_TracePointThroughPatchCollide( traceWork_t *tw, const struct patchCollide_s *pc ) {
+#ifndef BSPC
+	if ( !cm_playerCurveClip->integer || !tw->isPoint ) {
+		return;
+	}
+#endif
+
+	CM_TracePatchFacets( tw, pc );
+}
+
+
+/*
+====================
 CM_CheckFacetPlane
 ====================
 */
@@ -1442,6 +1494,18 @@ void CM_TraceThroughPatchCollide( traceWork_t *tw, const struct patchCollide_s *
 #ifndef BSPC
 	static cvar_t *cv;
 #endif //BSPC
+
+#ifndef BSPC
+	// Q3Test traces every curve by facets, with no bounds test first,
+	// whenever curves clip players or the trace is a point
+	// (1.02 0x0040a610, 1.08 0x0040cda0)
+	if ( CM_Q3TestCurves() ) {
+		if ( cm_playerCurveClip->integer || tw->isPoint ) {
+			CM_TracePatchFacets( tw, pc );
+		}
+		return;
+	}
+#endif
 
 	if ( !CM_BoundsIntersect( tw->bounds[0], tw->bounds[1],
 				pc->bounds[0], pc->bounds[1] ) ) {
@@ -1570,6 +1634,64 @@ POSITION TEST
 =======================================================================
 */
 
+#ifndef BSPC
+/*
+====================
+CM_Q3TestPositionTest
+
+Q3Test 1.02 and 1.03 find a start inside a curve wherever their bounds meet,
+but only with cm_curveClipHack set, which it is not by default, and with
+cm_playerCurveClip set or a point test (1.02 0x0040a8a0). 1.05 to 1.08 place
+the start against every plane of the curve, widened by the box's extent along
+it -- behind, in front, or straddling -- and find it inside a facet whose
+surface plane it straddles and each of whose borders it straddles or lies on
+the inner side of (1.05 0x0040b0a0, 1.08 0x0040d030). A point is inside only
+exactly on a facet.
+====================
+*/
+static qboolean CM_Q3TestPositionTest( const traceWork_t *tw, const struct patchCollide_s *pc ) {
+	enum { BEHIND, IN_FRONT, STRADDLING };
+	int				side[MAX_PATCH_PLANES];
+	const q3testRelease_t *release = Com_Q3TestRelease();
+	const patchPlane_t *pp;
+	const facet_t	*facet;
+	int				i, j;
+
+	for ( i = 0 ; i < 3 ; i++ ) {
+		if ( pc->bounds[1][i] < tw->bounds[0][i] || tw->bounds[1][i] < pc->bounds[0][i] ) {
+			return qfalse;
+		}
+	}
+	if ( !release || release->id == Q3TEST_RELEASE_1_02 || release->id == Q3TEST_RELEASE_1_03 ) {
+		return cm_curveClipHack && cm_curveClipHack->integer
+			&& ( cm_playerCurveClip->integer || tw->isPoint ) ? qtrue : qfalse;
+	}
+
+	for ( i = 0, pp = pc->planes ; i < pc->numPlanes ; i++, pp++ ) {
+		const float d = DotProduct( tw->start, pp->plane ) - pp->plane[3];
+		const float extent = fabs( DotProduct( tw->offsets[ pp->signbits ], pp->plane ) );
+
+		side[i] = d < -extent ? BEHIND : d <= extent ? STRADDLING : IN_FRONT;
+	}
+	for ( i = 0, facet = pc->facets ; i < pc->numFacets ; i++, facet++ ) {
+		if ( side[facet->surfacePlane] != STRADDLING ) {
+			continue;
+		}
+		for ( j = 0 ; j < facet->numBorders ; j++ ) {
+			const int s = side[facet->borderPlanes[j]];
+
+			if ( s != STRADDLING && s != ( facet->borderInward[j] ? IN_FRONT : BEHIND ) ) {
+				break;
+			}
+		}
+		if ( j == facet->numBorders ) {
+			return qtrue;
+		}
+	}
+	return qfalse;
+}
+#endif
+
 /*
 ====================
 CM_PositionTestInPatchCollide
@@ -1582,6 +1704,12 @@ qboolean CM_PositionTestInPatchCollide( traceWork_t *tw, const struct patchColli
 	facet_t	*facet;
 	float plane[4];
 	vec3_t startp;
+
+#ifndef BSPC
+	if ( CM_Q3TestCurves() ) {
+		return CM_Q3TestPositionTest( tw, pc );
+	}
+#endif
 
 	if (tw->isPoint) {
 		return qfalse;

@@ -419,7 +419,9 @@ public:
 	void UpdateListener( const float *origin, const float *velocity, const float axis[3][3] ) const;
 	void SetSourceSpatialize( ALuint source, bool spatialize ) const;
 	void SetSourceDirectChannels( ALuint source, bool directChannels ) const;
+	void SetSourceRadius( ALuint source, float radius ) const;
 	void ConfigureSourceDistance( ALuint source, bool worldDistance, float referenceScale = kDefaultSoundShaderScale, float rangeScale = kDefaultSoundShaderScale ) const;
+	void ConfigureSourceDistanceRange( ALuint source, float referenceDistance, float maxDistance ) const;
 	bool UsesOpenALDistanceAttenuation() const;
 	bool BeginDeferredUpdates() const;
 	void EndDeferredUpdates() const;
@@ -1167,6 +1169,7 @@ void OpenALDevice::DiscoverALCapabilities() {
 	capabilities_.uhj = HasALExtension( "AL_SOFT_UHJ" );
 	capabilities_.uhjEx = HasALExtension( "AL_SOFT_UHJ_ex" );
 	capabilities_.sourceSpatialize = HasALExtension( "AL_SOFT_source_spatialize" );
+	capabilities_.sourceRadius = HasALExtension( "AL_EXT_SOURCE_RADIUS" );
 	capabilities_.sourceLatency = HasALExtension( "AL_SOFT_source_latency" );
 	capabilities_.sourceEvents = HasALExtension( "AL_SOFT_events" );
 
@@ -1291,6 +1294,7 @@ void OpenALDevice::PrintCapabilityMatrix() const {
 		YesNo( caps.uhjEx ) );
 	Com_Printf( "  AL_EXT_BFORMAT: %s\n", AvailableUnavailable( caps.bFormat ) );
 	Com_Printf( "  AL_SOFT_source_spatialize: %s\n", AvailableUnavailable( caps.sourceSpatialize ) );
+	Com_Printf( "  AL_EXT_SOURCE_RADIUS: %s\n", AvailableUnavailable( caps.sourceRadius ) );
 	Com_Printf( "  AL_SOFT_source_latency: %s (alGetSourcedvSOFT %s)\n",
 		AvailableUnavailable( caps.sourceLatency ),
 		LoadedMissing( caps.alGetSourcedvSOFT ) );
@@ -1396,6 +1400,7 @@ void OpenALDevice::ResetSource( ALuint source ) const {
 	}
 	SetSourceSpatialize( source, false );
 	SetSourceDirectChannels( source, false );
+	SetSourceRadius( source, 0.0f );
 	loader_.alSourcei( source, AL_SOURCE_RELATIVE, AL_TRUE );
 	loader_.alSourcef( source, AL_GAIN, 1.0f );
 	loader_.alSourcef( source, AL_MIN_GAIN, 0.0f );
@@ -1722,7 +1727,9 @@ void OpenALDevice::SetMasterGain( float gain ) {
 		return;
 	}
 
-	gain = ClampFloat( gain, 0.0f, 2.0f );
+	// An offscreen window (a private probe desktop) is silenced at the
+	// listener alone, so every source keeps the gains a probe reads back.
+	gain = gw_offscreen ? 0.0f : ClampFloat( gain, 0.0f, 2.0f );
 	if ( gain == appliedMasterGain_ ) {
 		return;
 	}
@@ -1784,6 +1791,17 @@ void OpenALDevice::SetSourceSpatialize( ALuint source, bool spatialize ) const {
 	loader_.alGetError();
 }
 
+// A placed source's size: OpenAL Soft spreads it across the angle it
+// subtends. A runtime without AL_EXT_SOURCE_RADIUS keeps every source a point.
+void OpenALDevice::SetSourceRadius( ALuint source, float radius ) const {
+	if ( !loader_.Ready() || source == 0 || !capabilities_.sourceRadius ) {
+		return;
+	}
+
+	loader_.alSourcef( source, AL_SOURCE_RADIUS, std::isfinite( radius ) ? ( std::max )( radius, 0.0f ) : 0.0f );
+	loader_.alGetError();
+}
+
 void OpenALDevice::SetSourceDirectChannels( ALuint source, bool directChannels ) const {
 	if ( !loader_.Ready() || source == 0 || !capabilities_.directChannels ) {
 		return;
@@ -1821,6 +1839,29 @@ void OpenALDevice::ConfigureSourceDistance( ALuint source, bool worldDistance, f
 		const float airAbsorption = worldDistance ?
 			ClampFloat( ( s_alAirAbsorption != nullptr ) ? s_alAirAbsorption->value : 0.0f, 0.0f, 10.0f ) : 0.0f;
 		loader_.alSourcef( source, AL_AIR_ABSORPTION_FACTOR, airAbsorption );
+	}
+	loader_.alGetError();
+}
+
+// A world source whose game gives its own distances: full volume inside
+// `referenceDistance`, the active distance model's rolloff from there, clamped
+// at `maxDistance` (none when it is not past the reference), and the same air
+// absorption as every world source.
+void OpenALDevice::ConfigureSourceDistanceRange( ALuint source, float referenceDistance, float maxDistance ) const {
+	if ( !loader_.Ready() || source == 0 ) {
+		return;
+	}
+
+	referenceDistance = ( std::max )( referenceDistance, 1.0f );
+	if ( !( maxDistance > referenceDistance ) ) {
+		maxDistance = ( std::numeric_limits<float>::max )();
+	}
+	loader_.alSourcef( source, AL_REFERENCE_DISTANCE, referenceDistance );
+	loader_.alSourcef( source, AL_MAX_DISTANCE, maxDistance );
+	loader_.alSourcef( source, AL_ROLLOFF_FACTOR, kOpenALRolloffFactor );
+	if ( efxAvailable_ ) {
+		loader_.alSourcef( source, AL_AIR_ABSORPTION_FACTOR,
+			ClampFloat( ( s_alAirAbsorption != nullptr ) ? s_alAirAbsorption->value : 0.0f, 0.0f, 10.0f ) );
 	}
 	loader_.alGetError();
 }

@@ -42,9 +42,10 @@ def ordered(test, text, parts):
 
 
 ALICE_BRANCH = (
-    "\t// American McGee's Alice walks the game's own records and stores what\n"
-    "\t// each client's walk chose (SV_BuildAliceClientSnapshot).\n"
-    "\tif ( Com_GameIsAlice() ) {\n"
+    "\t// American McGee's Alice and Heavy Metal: F.A.K.K.2 walk the game's own\n"
+    "\t// records and store what each client's walk chose\n"
+    "\t// (SV_BuildAliceClientSnapshot).\n"
+    "\tif ( Com_GameIsRitual() ) {\n"
     "\t\tSV_BuildAliceClientSnapshot( client, frame );\n"
     "\t\treturn;\n"
     "\t}\n\n"
@@ -53,6 +54,7 @@ ALICE_BRANCH = (
 
 WRAPPER_PRELUDE = r'''
 #include "code/qcommon/alice_tiki.h"
+#include "code/compat/fakk2_convert.hpp"
 #include <cassert>
 #include <cstdarg>
 #include <cstring>
@@ -189,7 +191,7 @@ class AliceSnapshotSourceTests(unittest.TestCase):
     def test_other_profiles_keep_their_snapshot_path(self):
         build = function(self.snapshot, 'static void SV_BuildClientSnapshot( client_t *client ) {')
         # One branch, after the entity check and before the common frame is built.
-        self.assertEqual(build.count('Com_GameIsAlice()'), 1)
+        self.assertEqual(build.count('Com_GameIsRitual()'), 1)
         ordered(self, build, ['if ( !client->gentity ) {', ALICE_BRANCH,
                               'SV_BuildCommonSnapshot();', 'SV_AddEntitiesVisibleFromPoint( org, frame, entityNumbers, false );'])
         rest = build.replace(ALICE_BRANCH, '')
@@ -212,8 +214,8 @@ class AliceSnapshotSourceTests(unittest.TestCase):
     def test_alice_snapshots_are_built_in_retail_order(self):
         build = function(self.snapshot, 'static void SV_BuildAliceClientSnapshot( client_t *client, clientSnapshot_t *frame ) {')
         ordered(self, build, ['sv.snapshotCounter++;', 'snapshot::ViewOrigin( frame->ps.pm_flags',
-                              'world.Entity( self )', 'snapshot::AddEntToSnapshot( *ownEntity, own, numbers, sv.snapshotCounter, false, false );',
-                              'snapshot::AddEntitiesVisibleFromPoint( world, origin, numbers, nullptr, false );',
+                              'world.Entity( self )', 'snapshot::AddEntToSnapshot( *ownEntity, own, numbers, sv.snapshotCounter, false, false, offsets );',
+                              'snapshot::AddEntitiesVisibleFromPoint( world, origin, numbers, nullptr, false, offsets );',
                               'snapshot::SortNumbers( numbers )', 'areaWords[areaWord] ^= -1;',
                               'SV_StoreAliceSnapshotFrame( frame, numbers );'])
         self.assertIn('"SV_QsortEntityStates: duplicated entity"', build)
@@ -237,16 +239,20 @@ class AliceSnapshotSourceTests(unittest.TestCase):
         self.assertIn('kCameraViewFlag = 0x100u', walk)
         self.assertIn('"SV_AddEntitiesVisibleFromPoint: duplicate sky origin"', walk)
         self.assertIn('"SV_SvEntityForGentity: bad gEnt"', walk)
+        # Alice's walk reads its own record's offsets; F.A.K.K.2 passes its own.
+        self.assertIn('inline constexpr Offsets kAliceOffsets{ kNumber, kOrigin, kOrigin2, kLoopSound,\n'
+                      '\tkLoopSoundMinDist, kParent, kModelIndex, kRenderfx, kBindParent, kInuse, kLinked,\n'
+                      '\tkSvFlags, kRadius, kCentroid };', walk)
         body = walk[walk.index('void AddEntitiesVisibleFromPoint( World &world'):]
-        ordered(self, body, ['ReadInt( entity, kInuse )', 'FNTECH3_ALICE_SVF_ENGINE_VISITED',
-                             'ReadInt( entity, kLinked )', 'parentNumber = ReadInt( entity, kBindParent );',
+        ordered(self, body, ['ReadInt( entity, o.inuse )', 'FNTECH3_ALICE_SVF_ENGINE_VISITED',
+                             'ReadInt( entity, o.linked )', 'parentNumber = ReadInt( entity, o.bindParent );',
                              'FNTECH3_ALICE_RF_DONTDRAW', 'FNTECH3_ALICE_RF_SKYORIGIN',
                              'FNTECH3_ALICE_SVF_BROADCAST | FNTECH3_ALICE_SVF_BROADCAST_ALT',
                              'parentEntity->snapshotCounter == counter', 'FNTECH3_ALICE_SVF_ALWAYS_RELEVANT',
                              'kGlobalLoopSoundBits', 'world.AreasConnected( area, visibility->areanum )',
-                             'BeyondFarPlane(', 'PvsVisible(', 'MarkDual( entity );',
+                             'BeyondFarPlane(', 'PvsVisible(', 'MarkDual( entity, o );',
                              'FNTECH3_ALICE_SVF_PORTAL ) && svEntity != portal',
-                             'ReadVector( skyEntity, kOrigin, origin );'])
+                             'ReadVector( skyEntity, o.origin, origin );'])
 
     def test_far_plane_and_sky_portal_live_in_the_server_state(self):
         server = self.header[self.header.index('typedef struct {\n\tserverState_t\tstate;'):]
@@ -259,7 +265,7 @@ class AliceSnapshotSourceTests(unittest.TestCase):
         self.assertNotIn('float aliceFarPlane;', self.game)
         entity = function(self.game, 'unsigned char *SV_AliceGameEntity( int number ) {')
         self.assertIn('serverGameData.EntityRefAt( number, reference )', entity)
-        self.assertIn('!Com_GameIsAlice()', entity)
+        self.assertIn('!Com_GameIsRitual()', entity)
         # Defined outside the file's anonymous namespace, so sv_snapshot.cpp links it.
         self.assertGreater(self.game.index('unsigned char *SV_AliceGameEntity( int number ) {'),
                            self.game.index('} // namespace\n'))
@@ -277,7 +283,7 @@ class AliceSnapshotSourceTests(unittest.TestCase):
         # After the spawn's own reset and before the module is loaded.
         ordered(self, self.init, ['SV_ClearServer();\n\tsv.maxclients = preservedMaxClients;',
                                   'sv.configstrings[index] = CopyString("");',
-                                  'if ( Com_GameIsAlice() ) {\n\t\tSV_AliceRestoreConfigstrings();\n\t}',
+                                  'if ( Com_GameIsRitual() ) {\n\t\tSV_AliceRestoreConfigstrings();\n\t}',
                                   'SV_InitGameProgs();'])
         fill = function(self.game, 'void SV_AliceFillImports() {')
         ordered(self, fill, ['std::memset( aliceModelTiki, 0, sizeof( aliceModelTiki ) );',
@@ -350,11 +356,11 @@ class AliceSnapshotSourceTests(unittest.TestCase):
         client = read('code/server/sv_client.cpp')
         find = function(client, 'static const ucmd_t *SV_FindClientCommand( const char *name )')
         ordered(self, find, ['!strcmp( ucmd.name, "wwwdl" ) && !Com_GameIsWolfET()',
-                             'if ( Com_GameIsAlice() && ( ucmd.func == SV_BeginDownload_f || ucmd.func == SV_NextDownload_f',
+                             'if ( Com_GameIsRitual() && ( ucmd.func == SV_BeginDownload_f || ucmd.func == SV_NextDownload_f',
                              'ucmd.func == SV_StopDownload_f || ucmd.func == SV_DoneDownload_f ) ) {\n\t\t\treturn nullptr;',
                              'return &ucmd;'])
         legacy = function(read('code/client/cl_main.cpp'), 'static void CL_InitLegacyDownloads( void ) {')
-        ordered(self, legacy, ['if ( Com_GameIsAlice() ) {\n\t\tCL_DownloadsComplete();\n\t\treturn;\n\t}',
+        ordered(self, legacy, ['if ( Com_GameIsRitual() ) {\n\t\tCL_DownloadsComplete();\n\t\treturn;\n\t}',
                                'if ( !(cl_allowDownload->integer & DLF_ENABLE) )', 'CL_NextDownload();'])
 
     def test_the_walk_is_registered_as_a_unit_test(self):

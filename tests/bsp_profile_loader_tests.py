@@ -41,9 +41,10 @@ PRELUDE = r'''
 static const comGameProfile_t *profile;
 static std::vector<byte> input;
 static std::set<void *> files, allocations;
-static int lengthOverride = INT_MAX, formatCalls, translations, rbspTranslations, fakkTranslations, lumpLoads, advertisements;
+static int lengthOverride = INT_MAX, formatCalls, translations, rbspTranslations, fakkTranslations, mohaaTranslations, lumpLoads, advertisements;
+static int q3testTranslations, q3testCurveRules;
 static int fileReleases, allocationReleases, checksumCalls;
-static bool missing, failTranslation;
+static bool missing, failTranslation, rebuildWorld;
 static std::string diagnostic;
 static comGameBspFormat_t Format(int version) {
     ++formatCalls;
@@ -62,7 +63,7 @@ static unsigned Com_BlockChecksum(const void *data, int length) {
     assert(!std::memcmp(data, input.data(), input.size()));
     ++checksumCalls; return 12345;
 }
-static cvar_t variable, *cm_noAreas, *cm_noCurves, *cm_playerCurveClip;
+static cvar_t variable, *cm_noAreas, *cm_noCurves, *cm_playerCurveClip, *cm_curveClipHack;
 static cvar_t *Cvar_Get(const char *, const char *, int) { return &variable; }
 static void Cvar_SetDescription(cvar_t *, const char *) {}
 static int FS_ReadFile(const char *, void **out) {
@@ -119,10 +120,16 @@ static qboolean RBSP_TranslateToV46(const void *data, int length,
 /* Alice's maps arrive through their own translator, which the FAKK codec
    tests cover; here it only has to be reached and released. */
 struct dheaderFAKK_t { int ident; int version; int checksum; lump_t lumps[20]; };
-struct fakk_translation_t { void *data; int length; };
+struct fakk_translation_t { void *data; int length;
+    const int32_t *shaderSubdivisions; int numShaderSubdivisions; };
 /* The renderers ask the translator to carry the light grid too, and take its
-   192x192x320 cell. */
+   192x192x320 cell; the collision loader asks for the shader subdivision
+   counts; and F.A.K.K.2's loaders ask for its own version 12. */
 #define FAKK_TRANSLATE_LIGHTGRID 0x0001
+#define FAKK_TRANSLATE_SHADER_SUBDIVISIONS 0x0002
+#define FAKK_TRANSLATE_VERSION_FAKK2 0x0004
+#define FAKK_VERSION_ALICE 42
+#define FAKK_VERSION_FAKK2 12
 #define FAKK_LIGHTGRID_SIZE_X 192.0f
 #define FAKK_LIGHTGRID_SIZE_Y 192.0f
 #define FAKK_LIGHTGRID_SIZE_Z 320.0f
@@ -147,6 +154,62 @@ static qboolean FAKK_TranslateToV46(const void *data, int length,
     header->ident = BSP_IDENT; header->version = 46;
     out->data = header; out->length = sizeof(*header); return qtrue;
 }
+/* Medal of Honor's "2015" 19 maps arrive through 2015's own translator
+   (code/qcommon/bsp_mohaa.h), which carries each shader's subdivision count
+   and the terrain past the last lump; the collision loader reads both. Only
+   the members the loaders here read are declared. */
+#define MOHAA_BSP_IDENT (('5' << 24) + ('1' << 16) + ('0' << 8) + '2')
+#define MOHAA_BSP_VERSION 19
+struct dheaderMOHAA_t { int ident; int version; int checksum; lump_t lumps[28]; };
+struct mohaa_translation_t { void *data; int length;
+    const int32_t *shaderSubdivisions; int numShaders; };
+static qboolean MOHAA_TranslateToV46(const void *data, int length,
+        void *(*alloc)(int), void (*)(void *), mohaa_translation_t *out,
+        char *error, size_t capacity) {
+    *out = {}; ++mohaaTranslations;
+    assert(length >= int(sizeof(dheaderMOHAA_t)));
+    assert(QLBSP_ReadLE32((const byte *)data + 4) == MOHAA_BSP_VERSION);
+    if (failTranslation) {
+        Q_strncpyz(error, "fixture translation rejected", int(capacity)); return qfalse;
+    }
+    auto *header = (dheader_t *)alloc(sizeof(dheader_t)); std::memset(header, 0, sizeof(*header));
+    header->ident = BSP_IDENT; header->version = 46;
+    out->data = header; out->length = sizeof(*header); return qtrue;
+}
+/* Q3Test's IBSP 44 and 45 maps arrive through its own translator
+   (code/qcommon/bsp_q3test.h), which tests/q3test_bsp_tests.cpp covers; here
+   it only has to be reached and released, and the collision loader has to
+   apply the pinned release's curve rules. */
+#define Q3TEST_BSP_VERSION_44 44
+#define Q3TEST_BSP_LUMPS_44 15
+struct q3tBspTranslation_t { void *data; int length; };
+static qboolean Q3TestBSP_TranslateToV46(const void *data, int length,
+        void *(*alloc)(int), void (*)(void *), q3tBspTranslation_t *out,
+        char *error, size_t capacity) {
+    *out = {}; ++q3testTranslations;
+    const int version = int(QLBSP_ReadLE32((const byte *)data + 4));
+    assert(length >= 8 + Q3TEST_BSP_LUMPS_44 * 8 && (version == 44 || version == 45));
+    if (failTranslation) {
+        Q_strncpyz(error, "fixture translation rejected", int(capacity)); return qfalse;
+    }
+    auto *header = (dheader_t *)alloc(sizeof(dheader_t)); std::memset(header, 0, sizeof(*header));
+    header->ident = BSP_IDENT; header->version = 46;
+    out->data = header; out->length = sizeof(*header); return qtrue;
+}
+static void CM_Q3TestCurveRules() { ++q3testCurveRules; }
+/* The renderers rebuild a world with terrain, static models or decals into
+   a new buffer, which replaces the translation; one with none keeps it. The
+   map's own name finds its decal file. */
+struct mohaaBuiltSurfaces_t { int firstTerrain, numTerrain, firstDecal, numDecals; };
+static qboolean R_MOHAABuildWorld(const mohaa_translation_t *translation, const char *mapName, void **data,
+        int *length, mohaaBuiltSurfaces_t *built) {
+    *data = nullptr; *length = 0; *built = {};
+    assert(mapName && !std::strcmp(mapName, "maps/fixture.bsp"));
+    if (!rebuildWorld) return qfalse;
+    *data = Allocate(translation->length);
+    std::memcpy(*data, translation->data, translation->length);
+    *length = translation->length; return qtrue;
+}
 static byte *cmod_base, *fileBase;
 static int c_gridVerts;
 static struct { char name[MAX_QPATH]; int checksum; } cm;
@@ -163,6 +226,7 @@ LUMP_SERVICE(CMod_LoadShaders) LUMP_SERVICE(CMod_LoadLeafs) LUMP_SERVICE(CMod_Lo
 LUMP_SERVICE(CMod_LoadLeafSurfaces) LUMP_SERVICE(CMod_LoadPlanes) LUMP_SERVICE(CMod_LoadBrushSides)
 LUMP_SERVICE(CMod_LoadBrushes) LUMP_SERVICE(CMod_LoadSubmodels) LUMP_SERVICE(CMod_LoadNodes)
 LUMP_SERVICE(CMod_LoadEntityString) LUMP_SERVICE(CMod_LoadVisibility) LUMP_SERVICE(CMod_LoadPatches)
+LUMP_SERVICE(CMod_LoadMOHAATerrain) LUMP_SERVICE(CMod_LoadMOHAALights)
 LUMP_SERVICE(R_LoadLightmaps) LUMP_SERVICE(R_LoadShaders) LUMP_SERVICE(R_LoadPlanes)
 LUMP_SERVICE(R_LoadFogs) LUMP_SERVICE(R_LoadSurfaces) LUMP_SERVICE(R_LoadMarksurfaces)
 LUMP_SERVICE(R_LoadNodesAndLeafs) LUMP_SERVICE(R_LoadSubmodels) LUMP_SERVICE(R_LoadVisibility)
@@ -204,7 +268,8 @@ static struct {
     comGameId_t gameId;
     decltype(&Com_AliceLoadingStage) AliceLoadingStage;
 } ri{Com_Error, FS_ReadFile, FS_FreeFile, Allocate, Z_Free, HunkAlloc, Format};
-static struct World { char name[MAX_QPATH], baseName[MAX_QPATH]; int dataSize; float lightGridSize[3]; } s_worldData;
+static struct World { char name[MAX_QPATH], baseName[MAX_QPATH]; int dataSize; float lightGridSize[3];
+    int mohaaFirstDecal, mohaaNumDecals, mohaaFirstTerrain, mohaaNumTerrain; } s_worldData;
 static struct { qboolean worldMapLoaded, mapLoading; World *world;
     fnRTCWWorldShader_t rtcwWorld; void *sunShader; } tr;
 constexpr int LIGHTMAP_NONE = -1;
@@ -218,9 +283,10 @@ static void Reset() {
     for (void *p : files) std::free(p);
     for (void *p : allocations) std::free(p);
     files.clear(); allocations.clear(); diagnostic.clear();
-    formatCalls = translations = rbspTranslations = fakkTranslations = lumpLoads = advertisements = 0;
+    formatCalls = translations = rbspTranslations = fakkTranslations = mohaaTranslations = lumpLoads = advertisements = 0;
+    q3testTranslations = q3testCurveRules = 0;
     fileReleases = allocationReleases = checksumCalls = 0;
-    missing = failTranslation = false; lengthOverride = INT_MAX;
+    missing = failTranslation = rebuildWorld = false; lengthOverride = INT_MAX;
     cm = {}; tr = {}; s_worldData = {}; ri.GameBspFormat = Format;
 }
 static void Word(std::size_t offset, uint32_t value) {
@@ -237,6 +303,10 @@ static void Map(int version, bool ql = false) {
         Word(8 + 8 * LUMP_ENTITIES, 144); Word(12 + 8 * LUMP_ENTITIES, 16);
         std::memcpy(input.data() + 144, "{\n\"classname\"\n}", 16);
     }
+}
+static void MOHAAMap(int version) {
+    input.assign(sizeof(dheaderMOHAA_t), 0);
+    Word(0, MOHAA_BSP_IDENT); Word(4, version);
 }
 static void Collision(const char *name) { int checksum = -1; CM_LoadMap(name, qfalse, &checksum); assert(checksum == 12345); }
 using Loader = void (*)(const char *);
@@ -300,6 +370,48 @@ int main() {
                     Load(loader, false, "size/offset"); assert(!lumpLoads && !advertisements);
                 }
             }
+        }
+        // Medal of Honor admits only "2015" 19. Every loader hands it to 2015's
+        // translator and releases what that returns, and a renderer also
+        // releases the translation when it rebuilds the world from it.
+        profile = Com_GameProfileById(COM_GAME_MOHAA);
+        for (bool rebuilt : {false, true}) {
+            Reset(); MOHAAMap(MOHAA_BSP_VERSION); rebuildWorld = rebuilt; Load(loader, true);
+            assert(mohaaTranslations == 1 && !translations && !rbspTranslations && !fakkTranslations);
+            assert(!advertisements && allocationReleases == (rebuilt && loader != Collision ? 2 : 1));
+        }
+        Reset(); MOHAAMap(MOHAA_BSP_VERSION); failTranslation = true;
+        Load(loader, false, "fixture translation rejected"); assert(!lumpLoads && mohaaTranslations == 1);
+        if (loader == Collision) assert(cm.checksum == 0);
+        for (int version : {INT_MIN, -1, 0, 12, 17, 18, 20, 21, 42, 43, 46, 47, INT_MAX}) {
+            Reset(); MOHAAMap(version); Load(loader, false, "unsupported by the selected game");
+            assert(!mohaaTranslations && !lumpLoads && !checksumCalls);
+        }
+        if (loader == Collision) {
+            // Peers advertise the installed file's checksum, so a map shorter
+            // than 2015's header is refused before that is taken.
+            for (unsigned size = 8; size < sizeof(dheaderMOHAA_t); ++size) {
+                Reset(); MOHAAMap(MOHAA_BSP_VERSION); input.resize(size);
+                Load(loader, false, "truncated header"); assert(!checksumCalls && !mohaaTranslations);
+            }
+        }
+        // Q3Test admits IBSP 44 and 45 while no release is pinned, as here;
+        // every loader translates and releases them, and only the collision
+        // loader applies the release's curve rules, once.
+        profile = Com_GameProfileById(COM_GAME_Q3TEST);
+        for (int version : {44, 45}) {
+            Reset(); Map(version); Load(loader, true);
+            assert(q3testTranslations == 1 && !translations && !rbspTranslations && !fakkTranslations);
+            assert(!mohaaTranslations && allocationReleases == 1 && !advertisements);
+            assert(q3testCurveRules == (loader == Collision ? 1 : 0));
+            Reset(); Map(version); failTranslation = true;
+            Load(loader, false, "fixture translation rejected");
+            assert(!lumpLoads && q3testTranslations == 1 && !q3testCurveRules);
+            if (loader == Collision) assert(cm.checksum == 0);
+        }
+        for (int version : {INT_MIN, -1, 0, 12, 19, 42, 43, 46, 47, INT_MAX}) {
+            Reset(); Map(version); Load(loader, false, "unsupported by the selected game");
+            assert(!q3testTranslations && !lumpLoads && !checksumCalls);
         }
         Reset(); profile = nullptr; Map(47);
         Load(loader, false, "unsupported by the selected game"); assert(!lumpLoads);

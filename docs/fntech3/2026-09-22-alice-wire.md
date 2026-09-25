@@ -58,6 +58,14 @@ Constants measured from the transmitter:
 | `MAX_PACKETLEN` | 1400 | `MSG_Init(&send, buf, 0x578)` at `0x004470a3`, and the scramble errors with the literal `MAX_PACKETLEN` past `0x578` |
 | `FRAGMENT_SIZE` | 1300 | `cmp esi, 0x514` at `0x00447090` chooses the fragmenting path |
 | fragment bit | `0x80000000` | `or edx, 0x80000000` at `0x004470c1` |
+| fragment offset | a long, 32 bits | written by the 32-bit writer `0x00445740` at `0x0044710e`, and read back by the 32-bit reader `0x00445930` at `0x00447423`; Quake III's is a short |
+| fragment length | a short, 16 bits | the 16-bit writer `0x00445720` at `0x00447119`, and the reader `0x00445900` |
+
+The long offset is what lets a message pass 32 KB. fnTech3 wrote and read a
+short there until 2026-09-24, so every offset past 32,767 arrived negative and
+the fragment was dropped. A F.A.K.K.2 client could not enter `oracle`, whose
+gamestate is 40,244 bytes, and a retail peer would have misread every fragment
+(`NETCHAN_FEATURE_LONG_FRAGMENT_START`, `tests/netchan_profile_tests.cpp`).
 
 The qport is one-sided in both directions. The transmitter writes it only when
 `chan->sock` is zero (`test eax, eax` / `jne` at `0x004471fd`), and
@@ -155,6 +163,20 @@ nothing would answer:
 
 `connectResponse` carries no payload, as Quake III's does not: `0x0045293f`
 sends the bare string.
+
+**The connect is plain text.** Alice has no Huffman stage anywhere, and
+Heavy Metal: F.A.K.K.2 1.02 shows the handshake in full
+(`code/qcommon/ritual_handshake.hpp`; the F.A.K.K.2 record has the
+addresses). The client asks with a bare `getchallenge` and reads only the
+challenge from the reply. It then prints `connect "<userinfo>"` with
+`protocol 1`, and the server reads it as a line and answers the bare
+`connectResponse`. fnTech3 had only ever run Ritual sessions locally. Over a
+network its server Huffman-decoded the plain `connect`, which failed and
+dropped it unlogged. Its client compressed the `connect` and asked for
+protocol 68. Both now follow retail under both Ritual profiles, and a retail
+F.A.K.K.2 client joins an fnTech3 server and plays. Alice's own
+`connectResponse` sender (`0x0045293f`) agrees with the bare reply; its
+client's side has not been read.
 
 **There is no download path.** Alice has the `svc_download` opcode, but its
 client's server-message jump table at `0x0042e278` routes opcode six to the
@@ -379,6 +401,24 @@ client commands, `userinfo` and `disconnect` (its table at `0x0051a398`), and
 has no `download`, `nextdl`, `stopdl` or `donedl`. Under Alice those four now
 reach the game module, as any other name does in retail, and the client
 starts no download (`CL_InitLegacyDownloads` completes at once).
+
+### The time residual
+
+After the server time, a snapshot carries one more byte:
+`min(sv.timeResidual, 255)`, the milliseconds the server has run past its
+last frame. `SV_WriteSnapshotToClient` writes it at
+`0x00456c63..0x00456c7b`, and `CL_ParseSnapshot` reads it next, before the
+delta byte (`0x0042dc6e`), and keeps it with the snapshot. fnTech3 sent and
+read neither, which agreed with itself and with no retail reader: retail
+would take the delta byte for the residual and the flags for the delta. Both
+of fnTech3's snapshot writers now send it, and its client reads and drops it.
+Retail's `CL_SetCGameTime` takes only the flags and the time. The omission
+surfaced when retail `fakk2.exe` 1.02, whose engine writes the byte at
+`0x00447b13` and reads it at `0x0042385e`, overran the first snapshot of an
+fnTech3 demo ([F.A.K.K.2 contracts](2026-09-24-fakk2-contracts.md)). No
+retail Alice client has read the corrected snapshot: `alice.exe` is
+SafeDisc-wrapped, and its `secdrv.sys` does not load on this machine's
+Windows 11.
 
 ### Evidence
 

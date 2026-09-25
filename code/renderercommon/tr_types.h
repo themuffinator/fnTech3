@@ -184,6 +184,34 @@ typedef struct {
 	const void *bones;			// renderer scratch: this frame's posed skeleton
 } aliceRenderEntity_t;
 
+// Medal of Honor: Allied Assault's model state. Its client game's 412-byte
+// render entity (code/compat/mohaa_cgame_abi.h) is translated into this; the
+// engine poses a TIKI model from it (code/renderercommon/tr_mohaa_render.h).
+typedef struct {
+	int index;					// an animation of the definition
+	float time;					// seconds into it
+	float weight;				// its share of the pose
+} mohaaFrameInfo_t;
+
+typedef struct {
+	const void *tiki;			// the engine's definition, or NULL
+	int entityNumber;			// whose skeleton, ENTITYNUM_NONE for none
+	mohaaFrameInfo_t frameInfo[16];
+	int boneTag[5];				// -1 for an unused controller
+	float boneQuat[5][4];
+	float actionWeight;
+} mohaaPoseInput_t;
+
+typedef struct {
+	mohaaPoseInput_t pose;
+	float scale;
+	int renderfx;				// 2015's own render flags, at its own bit positions
+	byte surfaces[32];			// per-surface state: skin offset, hidden bit, crossfade
+	float shaderData[2];
+	const float *bones;			// renderer scratch: this frame's bone frame
+	float lod;					// renderer scratch: its level-of-detail metric, negative for full detail
+} mohaaRenderEntity_t;
+
 typedef struct {
 	refEntityType_t	reType;
 	int			renderfx;
@@ -224,6 +252,7 @@ typedef struct {
 	stvefRenderEntity_t stvef;
 	fnQ3IHVEntityState_t q3IHV;
 	aliceRenderEntity_t alice;
+	mohaaRenderEntity_t mohaa;
 } refEntity_t;
 
 
@@ -276,6 +305,11 @@ typedef struct {
 	vec3_t skyAxis[3];
 	qboolean keepDepth;
 } aliceRenderView_t;
+
+// The profiles whose views have that far plane and sky portal: Alice and
+// F.A.K.K.2, and Medal of Honor, whose engine inherits them from Ritual's.
+// Medal of Honor is named here, not made a Ritual profile.
+#define R_GAME_HAS_RITUAL_VIEW( id ) ( COM_GAME_ID_IS_RITUAL( id ) || ( id ) == COM_GAME_MOHAA )
 
 typedef struct {
 	int			x, y, width, height;

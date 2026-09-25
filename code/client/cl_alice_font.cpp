@@ -54,6 +54,52 @@ std::string LowerName( const char *name ) {
 float VidWidth() { return static_cast<float>( cls.glconfig.vidWidth ); }
 float VidHeight() { return static_cast<float>( cls.glconfig.vidHeight ); }
 
+/* The rectangle, in pixels, the 2D draws are cut to while one is set. */
+bool clipOn = false;
+float clipRect[4];
+
+/* Whether the draws are F.A.K.K.2's HUD menus, which the HUD's aspect rules
+ * place (cl_hud.cpp). */
+bool hudLayout = false;
+
+/* The name a HUD rule knows a picture by: the art's own, `white` for a fill,
+ * and the picture its script maps for a font's glyphs. */
+std::string HudShaderName( qhandle_t shader ) {
+	if ( !shader ) return std::string();
+	if ( shader == aliceWhite ) return "white";
+	for ( const auto &entry : aliceShaders ) {
+		if ( entry.second == shader ) return entry.first;
+	}
+	for ( const CachedFont &cached : aliceFonts ) {
+		if ( cached.shader == shader ) return "gfx/fonts/" + cached.name;
+	}
+	return std::string();
+}
+
+/* A quad and its texture coordinates cut to the clip, as a scissor leaves it;
+ * false when nothing of it is left. */
+bool ClipQuad( float &x, float &y, float &w, float &h, float &s0, float &t0, float &s1, float &t1 ) {
+	if ( !( w > 0.0f ) || !( h > 0.0f ) ) return false;
+	const float left = clipRect[0], top = clipRect[1];
+	const float right = left + clipRect[2], bottom = top + clipRect[3];
+	float x0 = x, y0 = y, x1 = x + w, y1 = y + h;
+	float ns0 = s0, nt0 = t0, ns1 = s1, nt1 = t1;
+	if ( x0 < left ) { ns0 = s0 + ( left - x ) / w * ( s1 - s0 ); x0 = left; }
+	if ( x1 > right ) { ns1 = s0 + ( right - x ) / w * ( s1 - s0 ); x1 = right; }
+	if ( y0 < top ) { nt0 = t0 + ( top - y ) / h * ( t1 - t0 ); y0 = top; }
+	if ( y1 > bottom ) { nt1 = t0 + ( bottom - y ) / h * ( t1 - t0 ); y1 = bottom; }
+	if ( !( x1 > x0 ) || !( y1 > y0 ) ) return false;
+	x = x0;
+	y = y0;
+	w = x1 - x0;
+	h = y1 - y0;
+	s0 = ns0;
+	t0 = nt0;
+	s1 = ns1;
+	t1 = nt1;
+	return true;
+}
+
 /* The font's picture, registered again after a renderer restart the way
  * retail re-registers it when the renderer's sequence moves (0x004986ac). */
 qhandle_t FontShader( CachedFont &cached ) {
@@ -84,10 +130,11 @@ qhandle_t FontShader( CachedFont &cached ) {
 
 void DrawQuad( const font::Quad &quad, qhandle_t shader, bool rotated ) {
 	if ( !rotated ) {
-		re.DrawStretchPic( quad.x[0], quad.y[0], quad.x[1] - quad.x[0], quad.y[2] - quad.y[0],
+		CL_RitualStretchPic( quad.x[0], quad.y[0], quad.x[1] - quad.x[0], quad.y[2] - quad.y[0],
 			quad.s0, quad.t0, quad.s1, quad.t1, shader );
 		return;
 	}
+	// A turned glyph is drawn whole; no retail menu turns its text.
 	if ( !re.DrawQuad ) {
 		return;
 	}
@@ -218,6 +265,18 @@ qhandle_t CL_AliceShader( const char *name ) {
 	return shader;
 }
 
+const char *CL_RitualDefaultFont( void ) {
+	/* The font a .urc widget starts with: the menu loader's InitFrame gives
+	 * F.A.K.K.2's verdana-12 (fakk2.exe 1.02 0x004aad60) where Alice's gives
+	 * courier-14. A bare UIFont is verdana-14 there (0x004b0253), but no .urc
+	 * widget keeps a bare one. */
+	return Com_GameIsFAKK2() ? "verdana-12" : "courier-14";
+}
+
+const char *CL_RitualMenuSoundtrack( void ) {
+	return Com_GameIsFAKK2() ? "music/intro.mus" : fntech3::alice::screen::IntroSoundtrack;
+}
+
 qhandle_t CL_AliceWhite( void ) {
 	if ( aliceWhiteEpoch == aliceArtEpoch ) {
 		return aliceWhite;
@@ -235,7 +294,7 @@ qhandle_t CL_AliceWhite( void ) {
 
 void CL_AliceFill( float x, float y, float w, float h, const float *rgba ) {
 	re.SetColor( rgba );
-	re.DrawStretchPic( x, y, w, h, 0, 0, 1, 1, CL_AliceWhite() );
+	CL_RitualStretchPic( x, y, w, h, 0, 0, 1, 1, CL_AliceWhite() );
 	re.SetColor( nullptr );
 }
 
@@ -244,8 +303,37 @@ void CL_AliceDrawPic( float x, float y, float w, float h, const float *rgba, qha
 		return;
 	}
 	re.SetColor( rgba );
-	re.DrawStretchPic( x, y, w, h, 0, 0, 1, 1, shader );
+	CL_RitualStretchPic( x, y, w, h, 0, 0, 1, 1, shader );
 	re.SetColor( nullptr );
+}
+
+void CL_RitualSetClip( const float *rect ) {
+	clipOn = rect != nullptr;
+	if ( rect ) {
+		for ( int i = 0; i < 4; ++i ) clipRect[i] = rect[i];
+	}
+}
+
+void CL_RitualStretchPic( float x, float y, float w, float h, float s0, float t0, float s1, float t1,
+	qhandle_t shader ) {
+	if ( clipOn && !ClipQuad( x, y, w, h, s0, t0, s1, t1 ) ) {
+		return;
+	}
+	/* A HUD menu's quad is cut in the stretched screen, as every menu's is,
+	 * then placed by the rule its name and place match. */
+	if ( hudLayout ) {
+		CL_HudRegisterShaderName( shader, HudShaderName( shader ).c_str() );
+		if ( !CL_HudAdjustPic( &x, &y, &w, &h, shader ) ) return;
+	}
+	re.DrawStretchPic( x, y, w, h, s0, t0, s1, t1, shader );
+}
+
+void CL_RitualSetHudLayout( bool on ) {
+	hudLayout = on;
+}
+
+bool CL_RitualHudLayout( void ) {
+	return hudLayout;
 }
 
 void CL_AliceShaderSize( qhandle_t shader, int *width, int *height ) {

@@ -1,5 +1,10 @@
 # Changelog
 
+> Historical FnQL record. fnTech3 does not use this file: its changes are
+> kept in the root [CHANGELOG.md](../../CHANGELOG.md) and released as described
+> in [RELEASING.md](../fntech3/RELEASING.md). See the
+> [FnQL baseline documents](README.md).
+
 This is the player-facing release-note queue for the next FnQL release.
 
 Keep short user-facing bullets under `Unreleased` as changes land. Start with

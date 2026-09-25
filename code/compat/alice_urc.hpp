@@ -184,8 +184,12 @@ inline bool EqualsNoCase( const std::string &a, const char *b ) {
 }
 
 /* The class a `resource` token instantiates, or an empty string for a token
- * naming no widget class. The ten classes are the ones the retail executable
- * registers under a .urc-visible name; `Label` alone is translated. */
+ * naming no widget class this client serves. Retail puts "UI" before any
+ * token and takes whatever registered class answers to it, case aside
+ * (0x004cc327, getClass 0x0042e9d0) -- about 35 classes; these are the ones
+ * Alice's and Heavy Metal: F.A.K.K.2's menus use. `Label` alone is translated,
+ * and exactly (0x0040e240): a lowercase `label` is a plain UILabel, which
+ * draws as a FakkLabel without its keywords. */
 inline std::string CanonicalClass( const std::string &token ) {
 	static const char *const kClasses[][2] = {
 		{ "Label", "FakkLabel" },
@@ -198,6 +202,8 @@ inline std::string CanonicalClass( const std::string &token ) {
 		{ "FakkLoadGameClass", "UIFAKKLoadGameClass" },
 		{ "AutoScroll", "UIAutoScroll" },
 		{ "Alice3D", "UIAlice3D" },
+		{ "PulldownMenuContainer", "UIPulldownMenuContainer" },
+		{ "MultiLineEdit", "UIMultiLineEdit" },
 	};
 	for ( const auto &entry : kClasses ) {
 		if ( EqualsNoCase( token, entry[0] ) ) return entry[1];

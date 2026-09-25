@@ -39,14 +39,28 @@ static_assert( Netchan_WireFeatures( NETCHAN_WIRE_STVEF_SP ) == NETCHAN_FEATURE_
 static_assert( Netchan_MessageLimit( NETCHAN_WIRE_STVEF_HM ) == 16384 );
 static_assert( Netchan_ReliableCommandLimit( NETCHAN_WIRE_STVEF_HM ) == 64 );
 // American McGee's Alice: Holomatch's framing choices on Ritual's engine,
-// with its own message and reliable-command limits. Both compatibility
+// with its own message and reliable-command limits, and a fragment offset
+// written as a long (alice.exe 0x0044710e, read back at 0x00447423) so a
+// 48 KB message's later fragments keep their places. Both compatibility
 // settings resolve it, because protocol 1 is nobody else's.
 static_assert( Netchan_SelectWireProfile( 1, 0 ) == NETCHAN_WIRE_ALICE );
 static_assert( Netchan_SelectWireProfile( 1, 1 ) == NETCHAN_WIRE_ALICE );
 static_assert( Netchan_SelectWireProfile( NETCHAN_ALICE_PROTOCOL_VERSION, 0 ) ==
 	NETCHAN_WIRE_ALICE );
 static_assert( Netchan_WireFeatures( NETCHAN_WIRE_ALICE ) ==
-	Netchan_WireFeatures( NETCHAN_WIRE_STVEF_HM ) );
+	( Netchan_WireFeatures( NETCHAN_WIRE_STVEF_HM ) | NETCHAN_FEATURE_LONG_FRAGMENT_START ) );
+// These wires keep Quake III's short offset.
+static_assert( !Netchan_WireHasFeature( NETCHAN_WIRE_LEGACY_Q3, NETCHAN_FEATURE_LONG_FRAGMENT_START ) );
+static_assert( !Netchan_WireHasFeature( NETCHAN_WIRE_Q3_66, NETCHAN_FEATURE_LONG_FRAGMENT_START ) );
+static_assert( !Netchan_WireHasFeature( NETCHAN_WIRE_Q3_67, NETCHAN_FEATURE_LONG_FRAGMENT_START ) );
+static_assert( !Netchan_WireHasFeature( NETCHAN_WIRE_IOQ3, NETCHAN_FEATURE_LONG_FRAGMENT_START ) );
+static_assert( !Netchan_WireHasFeature( NETCHAN_WIRE_QL_RETAIL, NETCHAN_FEATURE_LONG_FRAGMENT_START ) );
+static_assert( !Netchan_WireHasFeature( NETCHAN_WIRE_RTCW_SP, NETCHAN_FEATURE_LONG_FRAGMENT_START ) );
+static_assert( !Netchan_WireHasFeature( NETCHAN_WIRE_RTCW_MP, NETCHAN_FEATURE_LONG_FRAGMENT_START ) );
+static_assert( !Netchan_WireHasFeature( NETCHAN_WIRE_WOLFET, NETCHAN_FEATURE_LONG_FRAGMENT_START ) );
+static_assert( !Netchan_WireHasFeature( NETCHAN_WIRE_STVEF_HM, NETCHAN_FEATURE_LONG_FRAGMENT_START ) );
+static_assert( !Netchan_WireHasFeature( NETCHAN_WIRE_STVEF_SP, NETCHAN_FEATURE_LONG_FRAGMENT_START ) );
+static_assert( !Netchan_WireHasFeature( NETCHAN_WIRE_Q3_IHV, NETCHAN_FEATURE_LONG_FRAGMENT_START ) );
 static_assert( !Netchan_WireHasFeature( NETCHAN_WIRE_ALICE,
 	NETCHAN_FEATURE_RELIABLE_XOR ) );
 static_assert( !Netchan_WireHasFeature( NETCHAN_WIRE_ALICE,

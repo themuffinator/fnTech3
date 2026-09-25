@@ -131,6 +131,8 @@ static bool S_ValidSoundInterface( const soundInterface_t *s )
 	if( !s->AddLoopingSound ) return false;
 	if( !s->AddRTCWLoopingSound ) return false;
 	if( !s->AddSTVEFAmbientLoopingSound ) return false;
+	if( !s->StartMOHAASound ) return false;
+	if( !s->AddMOHAALoopingSound ) return false;
 	if( !s->STVEFSPMouths ) return false;
 	if( !s->AddRealLoopingSound ) return false;
 	if( !s->StopLoopingSound ) return false;
@@ -185,7 +187,7 @@ S_StartSoundVolume
 */
 extern "C" void S_StartSoundVolume( vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx, float volume )
 {
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		// Alice's 32 voices are the engine's own; nothing else may take one.
 		S_AliceStartSound( origin, entnum, entchannel, sfx, volume, -1.0f );
 		return;
@@ -350,7 +352,7 @@ S_StartLocalSoundVolume
 */
 extern "C" void S_StartLocalSoundVolume( sfxHandle_t sfx, int channelNum, float volume )
 {
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		// A local sound is Alice's menu channel at the listener (0x0044ce10).
 		S_AliceStartSound( nullptr, S_AliceListenerNumber(), 9, sfx, volume, -1.0f );
 		return;
@@ -536,6 +538,49 @@ extern "C" const int *S_STVEFSPMouths( void )
 }
 
 
+extern "C" void S_StartMOHAASound( const vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx,
+	float volume, float minDist, float maxDist, float pitch, int mohaaChannel )
+{
+	if ( si.StartMOHAASound ) si.StartMOHAASound( origin, entnum, entchannel, sfx, volume, minDist, maxDist, pitch, mohaaChannel );
+}
+
+extern "C" void S_StopMOHAASound( int entnum, int mohaaChannel )
+{
+	if ( si.StopMOHAASound ) si.StopMOHAASound( entnum, mohaaChannel );
+}
+
+extern "C" void S_AddMOHAALoopingSound( int slot, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx,
+	float volume, float minDist, float maxDist, float pitch )
+{
+	if ( si.AddMOHAALoopingSound ) si.AddMOHAALoopingSound( slot, origin, velocity, sfx, volume, minDist, maxDist, pitch );
+}
+
+/* Medal of Honor's room: the EAX environment and level its client game
+ * names from the player state (import 65, S_SetReverb), which a level's
+ * script sets for a place (OpenMoHAA cg_snapshot.c, reference only). */
+static int mohaaReverbType;
+static float mohaaReverbLevel;
+static cvar_t *s_mohaaReverb;
+
+extern "C" void S_MOHAASetReverb( int type, float level )
+{
+	if ( type != mohaaReverbType || level != mohaaReverbLevel ) {
+		Com_DPrintf( "Medal of Honor room: environment %i at level %.2f\n", type, static_cast<double>( level ) );
+	}
+	mohaaReverbType = type;
+	mohaaReverbLevel = level;
+}
+
+/* True while the named room is one to play: a known environment at a level
+ * above 0, with s_reverb letting it replace the engine's own room. */
+bool S_MOHAANamedRoom( int *type, float *level )
+{
+	if ( type ) *type = mohaaReverbType;
+	if ( level ) *level = mohaaReverbLevel;
+	return Com_GameIsMOHAA() && s_mohaaReverb && s_mohaaReverb->integer != 0 && mohaaReverbLevel > 0.0f
+		&& mohaaReverbType >= 0 && mohaaReverbType < 26;
+}
+
 extern "C" void S_AddSTVEFAmbientLoopingSound( const vec3_t origin, sfxHandle_t sfx, int volume )
 {
 	if ( si.AddSTVEFAmbientLoopingSound ) si.AddSTVEFAmbientLoopingSound( origin, sfx, volume );
@@ -613,7 +658,7 @@ extern "C" void S_Update( int msec )
 		// an array the engine fills as it plays (stvoy.exe 0x421480).
 		SV_STVEFSPVoiceVolumes( S_STVEFSPMouths() );
 	}
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		S_AliceMusicUpdate();
 	}
 }
@@ -958,7 +1003,7 @@ extern "C" void S_Init( void )
 
 	// American McGee's Alice ships full volume and music at 0.60
 	// (alice.exe S_Init 0x0044c6f0); the other games keep the tree's own.
-	const bool alice = Com_GameIsAlice() != 0;
+	const bool alice = Com_GameIsRitual() != 0;
 	s_volume = Cvar_Get( "s_volume", alice ? "1.0" : "0.8", CVAR_ARCHIVE );
 	Cvar_CheckRange( s_volume, "0", "2", CV_FLOAT );
 	Cvar_SetDescription( s_volume, "Sets master volume for all game audio." );
@@ -1028,6 +1073,13 @@ extern "C" void S_Init( void )
 		Cvar_SetDescription( s_threshold2, "How loud a voice must be for Elite Force single player to open the speaker's mouth past its narrowest." );
 		Cvar_SetDescription( s_threshold3, "How loud a voice must be for Elite Force single player to open the speaker's mouth wider still." );
 		Cvar_SetDescription( s_threshold4, "How loud a voice must be for Elite Force single player to open the speaker's mouth its widest." );
+	}
+	if ( Com_GameIsMOHAA() ) {
+		s_mohaaReverb = Cvar_Get( "s_reverb", "1", CVAR_ARCHIVE );
+		Cvar_CheckRange( s_mohaaReverb, "0", "1", CV_INTEGER );
+		Cvar_SetDescription( s_mohaaReverb, "Lets the room a Medal of Honor level's script names -- an EAX "
+			"environment and level -- replace the OpenAL backend's own room from the map's audio zones or the "
+			"traced room. The room reverb itself follows s_alReverb." );
 	}
 	s_alDevice = Cvar_Get( "s_alDevice", "", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	Cvar_SetDescription( s_alDevice, "Selects the OpenAL playback device when s_backend is set to openal.\n"

@@ -27,6 +27,7 @@ extern "C" {
 
 #include "client_cpp.h"
 #include "client_wolfet_state.hpp"
+#include "cl_mohaa.h"
 #include "../compat/wolfet_module_abi.h"
 #include "../qcommon/netchan_safety.hpp"
 
@@ -795,6 +796,16 @@ static void CL_ParseSnapshot( msg_t *msg ) {
 
 	newSnap.serverTime = MSG_ReadLong( msg );
 
+	// Ritual's servers follow the time with the milliseconds they have run
+	// past their last frame, clamped to a byte (fakk2.exe 1.02
+	// SV_WriteSnapshotToClient 0x00447b13). Both retail clients read it next
+	// (fakk2.exe 0x0042385e, alice.exe 0x0042dc6e) and keep it with the
+	// snapshot, but CL_SetCGameTime takes only the flags and the time, so it
+	// is consumed here and not used.
+	if ( CL_ActiveWireProfile() == NETCHAN_WIRE_ALICE ) {
+		(void)MSG_ReadByte( msg );
+	}
+
 	// if we were just unpaused, we can only *now* really let the
 	// change come into effect or the client hangs.
 	cl_paused->modified = qfalse;
@@ -1153,8 +1164,9 @@ static void CL_ParseGamestate( msg_t *msg ) {
 		}
 
 		// Elite Force ends the list with a zero byte, or with the end of a
-		// demo's record (stvoyHM.exe CL_ParseGamestate 0x411320).
-		if ( stvef ? cmd <= 0 : cmd == svc_EOF ) {
+		// demo's record (stvoyHM.exe CL_ParseGamestate 0x411320). Medal of
+		// Honor's end byte is 11, past its three extra opcodes.
+		if ( stvef ? cmd <= 0 : cmd == Netchan_ServerEOFOpcode( CL_ActiveWireProfile() ) ) {
 			break;
 		}
 
@@ -1175,7 +1187,7 @@ static void CL_ParseGamestate( msg_t *msg ) {
 				continue;
 			}
 
-			if ( len + 1 + cl.gameState.dataCount > MAX_GAMESTATE_CHARS ) {
+			if ( len + 1 + cl.gameState.dataCount > Com_GameStateCharLimit() ) {
 				Com_Error( ERR_DROP, "%s: MAX_GAMESTATE_CHARS exceeded: %i", __func__,
 					len + 1 + cl.gameState.dataCount );
 			}
@@ -1192,6 +1204,9 @@ static void CL_ParseGamestate( msg_t *msg ) {
 					return;
 				}
 			}
+		} else if ( cmd == svc_baseline && CL_ActiveWireProfile() == NETCHAN_WIRE_MOHAA ) {
+			// Medal of Honor's baselines are its own entity states.
+			CL_MOHAAParseBaseline( msg );
 		} else if ( cmd == svc_baseline ) {
 			newnum = MSG_ReadEntitynum( msg );
 
@@ -1602,9 +1617,33 @@ void CL_ParseServerMessage( msg_t *msg ) {
 		cmd = MSG_ReadByte( msg );
 
 		// An Elite Force message ends where its data ends.
-		if ( stvef ? cmd == -1 : cmd == svc_EOF ) {
+		if ( stvef ? cmd == -1 : cmd == Netchan_ServerEOFOpcode( CL_ActiveWireProfile() ) ) {
 			SHOWNET( msg, "END OF MESSAGE" );
 			break;
+		}
+
+		// Medal of Honor sends its own snapshot, and three opcodes past it
+		// where Quake III ends its message: a centre print, a located print
+		// and a client-game message (cl_mohaa.cpp).
+		if ( CL_ActiveWireProfile() == NETCHAN_WIRE_MOHAA && cmd >= svc_snapshot && cmd <= 10 ) {
+			static const char *const names[] = { "svc_snapshot", "svc_centerprint", "svc_locprint",
+				"svc_cgameMessage" };
+			SHOWNET( msg, names[cmd - svc_snapshot] );
+			switch ( cmd ) {
+			case svc_snapshot:
+				CL_MOHAAParseSnapshot( msg );
+				break;
+			case 8:
+				CL_MOHAAParseCenterprint( msg );
+				break;
+			case 9:
+				CL_MOHAAParseLocationprint( msg );
+				break;
+			default:
+				CL_MOHAAParseCGameMessage( msg );
+				break;
+			}
+			continue;
 		}
 
 		// American McGee's Alice adds two opcodes past the snapshot, a centre

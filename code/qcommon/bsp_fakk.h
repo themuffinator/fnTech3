@@ -5,10 +5,12 @@ Copyright (C) 2026 fnTech3 contributors
 This file is part of fnTech3 and is distributed under the terms of the GNU
 General Public License, version 2 or (at your option) any later version.
 
-FAKK 42 compatibility
+FAKK 12 and FAKK 42 compatibility
 
-American McGee's Alice runs Ritual Entertainment's Heavy Metal: F.A.K.K.2
-engine, and its maps are that engine's "FAKK" format at version 42. The
+Heavy Metal: F.A.K.K.2's maps are Ritual's "FAKK" format at version 12, and
+American McGee's Alice, which runs the same engine, carries it at version 42
+with the records unchanged. What follows was measured on Alice's; F.A.K.K.2's
+thirty retail maps were then checked against every record size below. The
 header carries a checksum Quake III's does not, and the twenty lumps are in
 F.A.K.K.2's own order rather than Quake III's. Three of them -- the entity
 lights, their visibility and the per-surface light definitions -- have no
@@ -49,9 +51,17 @@ text is incorporated from that SDK or from any other reconstruction.
 // little-endian "FAKK"
 #define FAKK_IDENT			( ( 'K' << 24 ) + ( 'K' << 16 ) + ( 'A' << 8 ) + 'F' )
 /* Ritual's own Heavy Metal: F.A.K.K.2 maps are version 12 and Medal of Honor:
- * Allied Assault reuses the ident again at other versions. Alice is 42, and
- * only 42 is admitted here: the ident alone does not identify the format. */
+ * Allied Assault reuses the ident again at other versions. Alice is 42. The
+ * ident alone does not identify the format, so a translation admits exactly
+ * one version: 42 unless the caller asks for F.A.K.K.2's own 12.
+ *
+ * The two versions share every record this file reads. All thirty retail
+ * F.A.K.K.2 maps tile their files with the same twenty lumps, divide by the
+ * same record sizes, carry one 52-byte light definition per surface, and
+ * reproduce their light grid's point count with the same 192x192x320 cell;
+ * see docs/fntech3/2026-09-24-fakk2-contracts.md. */
 #define FAKK_VERSION_ALICE	42
+#define FAKK_VERSION_FAKK2	12
 
 /* F.A.K.K.2's lump order. These are not Quake III's indices, and the three
  * at the end have no Quake III counterpart. */
@@ -162,6 +172,9 @@ typedef struct {
 /* The collision loader asks for each shader's subdivision count, which the
  * Quake III shader record has no room for. */
 #define FAKK_TRANSLATE_SHADER_SUBDIVISIONS	0x0002
+/* The map is F.A.K.K.2's own version 12 rather than Alice's 42. Only the
+ * F.A.K.K.2 profile's loaders set it, so neither title reads the other's. */
+#define FAKK_TRANSLATE_VERSION_FAKK2	0x0004
 
 typedef struct {
 	int32_t		ident;
@@ -257,7 +270,8 @@ static qboolean FAKK_AppendLump( int *length, const int bytes, int *offset )
 ==================
 FAKK_TranslateToV46Ex
 
-Present a FAKK 42 map to an IBSP 46 loader. The caller owns the returned
+Present a FAKK 42 map -- or a FAKK 12 one, when the caller sets
+FAKK_TRANSLATE_VERSION_FAKK2 -- to an IBSP 46 loader. The caller owns the returned
 buffer through freeFn. Every read is bounded by the validated lump directory;
 no index inside a record is followed here, because the loaders validate those
 themselves. `flags` selects what is carried beyond the collision records.
@@ -334,7 +348,8 @@ static qboolean FAKK_TranslateToV46Ex(
 
 	memcpy( &source, inputData, sizeof( source ) );
 	if ( LittleLong( source.ident ) != FAKK_IDENT
-		|| LittleLong( source.version ) != FAKK_VERSION_ALICE ) {
+		|| LittleLong( source.version ) != ( ( flags & FAKK_TRANSLATE_VERSION_FAKK2 )
+			? FAKK_VERSION_FAKK2 : FAKK_VERSION_ALICE ) ) {
 		FAKK_SetError( error, errorSize, "FAKK translator received the wrong map format" );
 		return qfalse;
 	}

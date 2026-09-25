@@ -211,11 +211,21 @@ class RendererContractSourceTests(unittest.TestCase):
         launch = json.loads(
             (ROOT / ".vscode" / "launch.json").read_text(encoding="utf-8")
         )
+        inputs = {entry["id"]: entry for entry in launch.get("inputs", [])}
         selectors = set()
         for configuration in launch["configurations"]:
             args = configuration.get("args", [])
             if "cl_renderer" in args:
-                selectors.add(args[args.index("cl_renderer") + 1])
+                selector = args[args.index("cl_renderer") + 1]
+                if selector.startswith("${input:"):
+                    # A pick-map launch asks for its renderer from exactly
+                    # these choices.
+                    entry = inputs[selector[len("${input:") : -1]]
+                    self.assertEqual(entry["type"], "pickString")
+                    self.assertEqual(tuple(entry["options"]), RENDERERS)
+                    self.assertIn(entry["default"], RENDERERS)
+                    continue
+                selectors.add(selector)
         self.assertEqual(selectors, set(RENDERERS))
 
     def test_web_settings_use_exact_renderer_selectors(self) -> None:

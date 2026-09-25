@@ -16,8 +16,10 @@ SV_BotGetConsoleMessage, does:
     jk2mp.exe            0x44e2e0 cmp 0x81/and 0x7f   128  0x4476e0
 
 The single-player engines have no bot library: stvoy.exe (0x425eb0),
-jasp.exe (0x43a200) and jk2sp.exe (0x437700) ring 64 command pointers, and
-alice.exe (0x455a10) rings 128. The IHV test's quake3.exe has one reliable
+jasp.exe (0x43a200) and jk2sp.exe (0x437700) ring 64 command pointers,
+alice.exe (0x455a10) rings 128 and fakk2.exe 1.02 (0x4468c0) 64. Those two
+share protocol 1 and its wire, so a network client on it rings the profile's
+window rather than the wire's. The IHV test's quake3.exe has one reliable
 slot and no ring. Every retail bot allocator (quake3.exe 0x4318c0,
 quakelive_steam.exe 0x4dcd30, WolfSP.exe 0x42f850, WolfMP.exe 0x431fc0,
 et.exe 0x43ef20, etded.exe 0x4252f0, stvoyHM.exe 0x42d330, jamp.exe 0x455050,
@@ -58,6 +60,11 @@ serverStatic_t svs{};
 static cvar_t dedicated{},fps{};
 cvar_t *com_dedicated=&dedicated,*sv_fps=&fps;
 int Com_GameIsRTCWMP(){return profile.id==COM_GAME_RTCW_MP;}
+// Q3Test's commands take its own sessions (server_q3test_net.hpp), which seat
+// no bot, since no release shipped a bot library; the shared path stands in
+// for its catalog entry here.
+int Com_GameIsQ3Test(){return 0;}
+void SV_Q3TestSendServerCommand(client_t*,const char*){assert(false);}
 static std::vector<std::pair<int,std::string>> drops;
 void SV_DropClient(client_t *client,const char *reason){
  drops.emplace_back(SV_ClientIndex(client),reason);client->state=CS_ZOMBIE;
@@ -82,7 +89,16 @@ struct Pin { const char *key; int window; };
 static const Pin pins[]={
  {"quake3",64},{"quakelive",64},{"rtcw-sp",256},{"rtcw-mp",256},{"wolfet",256},
  {"stvef-sp",64},{"stvef-mp",64},{"q3-ihv",0},{"jka-sp",64},{"jka-mp",128},
- {"jk2-sp",64},{"jk2-mp",128},{"alice",128}};
+ {"jk2-sp",64},{"jk2-mp",128},{"alice",128},
+ // The 1.02 patch's fakk2.exe drops a client at the 65th (0x004468dd).
+ {"fakk2",64},
+ // MOHAA.exe 1.00 is encrypted on disk too, but it has no bot library and its
+ // gamex86.dll exports no bot entry points, so no bot ever takes a client slot.
+ {"mohaa",0},
+ // Q3Test 1.06 to 1.08 ring 64 commands and drop a client past them
+ // (1.06 SV_AddServerCommand 0x0041d3a0, 1.08 0x0041dd10); only those
+ // releases' game libraries carry the bot AI (GetBotAIAPI).
+ {"q3test",64}};
 static int pinned(const char *key){
  for(const Pin &pin:pins)if(!std::strcmp(pin.key,key))return pin.window;
  std::fprintf(stderr,"profile %s has no pinned bot window\n",key);std::exit(2);
@@ -137,10 +153,16 @@ static void freshSlot(int window){
  fills(slot,window);
 }
 
+// Ritual's protocol 1 is one wire for Alice and F.A.K.K.2, whose engines ring
+// 128 and 64: a client on it rings the profile's own window.
+static int wireWindow(netchanWireProfile_t wire,int window){
+ return wire==NETCHAN_WIRE_ALICE?window:Netchan_ReliableCommandLimit(wire);
+}
+
 // A slot a network client left, whichever window its wire rang.
 static void afterNetworkClient(int window,netchanWireProfile_t wire,netadrtype_t address){
  reset();
- const int slot=profile.bots.firstClientSlot,own=Netchan_ReliableCommandLimit(wire);
+ const int slot=profile.bots.firstClientSlot,own=wireWindow(wire,window);
  client_t &c=clients[slot];
  // Counters well past every mask, as a long session leaves them.
  c.state=CS_ACTIVE;c.netchan.remoteAddress.type=address;c.netchan.wireProfile=wire;
@@ -186,13 +208,14 @@ static void noRing(){
  for(size_t i=0;i<clients.size();++i)assert(!std::memcmp(&clients[i],&before[i],sizeof(client_t)));
 }
 
-// A network client still rings its wire's window, whatever the profile.
-static void networkClients(){
+// A network client still rings its wire's window, whatever the profile, but
+// on Ritual's wire it rings the profile's.
+static void networkClients(int window){
  for(unsigned w=0;w<64;++w){
   const netchanWireProfile_t wire=netchanWireProfile_t(w);
   for(netadrtype_t address:{NA_BAD,NA_LOOPBACK,NA_IP}){
    client_t c;std::memset(&c,0,sizeof c);c.netchan.remoteAddress.type=address;c.netchan.wireProfile=wire;
-   assert(SV_ReliableCommandLimit(&c)==Netchan_ReliableCommandLimit(wire));
+   assert(SV_ReliableCommandLimit(&c)==wireWindow(wire,window));
   }
  }
 }
@@ -212,11 +235,11 @@ static void quakeLivePercent(){
 
 int main(){
  svs.clients=clients.data();sv.maxclients=int(clients.size());svs.time=4321;fps.integer=20;
- networkClients();
  for(const comGameProfile_t &entry:profiles){
   profile=entry;
   const int window=pinned(profile.key);
   assert(profile.bots.reliableCommands==window);
+  networkClients(window);
   if(window==0){noRing();continue;}
   // The ring's mask needs a power of two, within the engine's storage.
   assert((window&(window-1))==0&&window<=MAX_GAME_RELIABLE_COMMANDS);
@@ -237,10 +260,13 @@ int main(){
 # Each mutation replaces text in one production piece and must fail.
 MUTATIONS = {
     "a bot rings its slot's wire, as before": (
-        'limit', 'if ( client->netchan.remoteAddress.type == NA_BOT ) {\n'
+        'limit', 'if ( client->netchan.remoteAddress.type == NA_BOT\n'
+                 '\t\t|| client->netchan.wireProfile == NETCHAN_WIRE_ALICE ) {\n'
                  '\t\treturn Com_GameProfile()->bots.reliableCommands;\n\t}\n\t', ''),
     "every client rings its profile's window": (
         'limit', 'client->netchan.remoteAddress.type == NA_BOT', 'true'),
+    "a Ritual client rings Alice's window under F.A.K.K.2": (
+        'limit', '\n\t\t|| client->netchan.wireProfile == NETCHAN_WIRE_ALICE', ''),
     'a bot keeps leftovers rung under another window': (
         'static int SV_BotAllocateClientSlot(',
         'if ( SV_ReliableCommandLimit( cl ) != previousWindow ) {', 'if ( false ) {'),

@@ -38,6 +38,7 @@ extern "C" {
 
 #include "client_cpp.h"
 #include "client_alice_cinematic.hpp"
+#include "cl_mohaa.h"
 
 #include <algorithm>
 #include <array>
@@ -154,9 +155,18 @@ static void CL_RunCinematicNextmap( void )
 
 	// Alice's end prefixes `map`, stops at a leading ';' and resumes its
 	// engine UI's intro (CIN_Finish 0x004257a0).
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		CL_AliceCinematicEnd();
 		return;
+	}
+
+	// Medal of Honor's movie sound ends with it, and its startup intro goes
+	// on from its own movies' ends (cl_mohaa_ui.cpp).
+	if ( Com_GameIsMOHAA() ) {
+		CL_MOHAAMovieSoundStop();
+		if ( CL_MOHAAIntroMovieEnded() ) {
+			return;
+		}
 	}
 
 	s = Cvar_VariableString( "nextmap" );
@@ -1407,7 +1417,7 @@ static void RoQInterrupt()
 			case	ZA_SOUND_MONO:
 				// Alice decodes a movie's own sound and plays none of it
 				// (alice.exe 0x00425ac1, 0x00425ae5); its sound is the MP3.
-				if (!cinTable[currentHandle].silent && !Com_GameIsAlice()) {
+				if (!cinTable[currentHandle].silent && !Com_GameIsRitual()) {
 					// two output shorts per input byte
 					unsigned int decodeBytes = cinTable[currentHandle].RoQFrameSize;
 					if ( decodeBytes > sbuf.size() / 2 )
@@ -1421,7 +1431,7 @@ static void RoQInterrupt()
 					RoQReject( "incomplete stereo sample" );
 					return;
 				}
-				if (!cinTable[currentHandle].silent && !Com_GameIsAlice()) {
+				if (!cinTable[currentHandle].silent && !Com_GameIsRitual()) {
 					if (cinTable[currentHandle].numQuads == -1) {
 						S_Update( 333 );
 						s_rawend = s_soundtime;
@@ -1538,7 +1548,7 @@ static qboolean RoQ_init( void )
 
 static void RoQShutdown( void ) {
 	if ( currentHandle < 0 ) return;
-	if ( Com_GameIsAlice() && currentHandle == CL_handle ) {
+	if ( Com_GameIsRitual() && currentHandle == CL_handle ) {
 		// The cinematic's MP3 goes with it (alice.exe 0x004257f4).
 		S_AliceMP3Free();
 	}
@@ -2068,7 +2078,7 @@ void CL_PlayCinematic_f( void ) {
 	s = Cmd_Argv(2);
 
 	// Alice's `cinematic` (0x004276c0) ignores a request while one plays.
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		if ( cls.state != CA_CINEMATIC ) {
 			Com_DPrintf( "SCR_PlayCinematic( %s )\n", arg );
 			CL_AliceCinematicPlay( arg, s );
@@ -2095,6 +2105,9 @@ void CL_PlayCinematic_f( void ) {
 	}
 	const bool letterBox = Com_GameIsRTCWSP() && s && s[0] == '3';
 	if ( letterBox ) bits |= RTCW_SP_CIN_LETTERBOX;
+	// Medal of Honor plays a movie's sound from a file beside it, never the
+	// RoQ's own (cl_mohaa_sound.cpp).
+	if ( Com_GameIsMOHAA() ) bits |= CIN_silent;
 
 	S_StopAllSounds ();
 
@@ -2106,6 +2119,9 @@ void CL_PlayCinematic_f( void ) {
 		} while ( CL_handle >= 0 && CL_handle < MAX_VIDEO_HANDLES &&
 			cinTable[CL_handle].buf == nullptr && cinTable[CL_handle].status == FMV_PLAY );
 		// A malformed movie may close its handle before producing a first frame.
+		if ( Com_GameIsMOHAA() && CL_handle >= 0 ) {
+			CL_MOHAAMovieSoundStart( arg );
+		}
 	} else {
 		// An optional logo may be absent from an installed release. Continue
 		// the queued movie/map instead of abandoning the startup sequence.
@@ -2124,6 +2140,9 @@ void SCR_DrawCinematic( void ) {
 void SCR_RunCinematic( void ) {
 	if (CL_handle >= 0 && CL_handle < MAX_VIDEO_HANDLES) {
 		CIN_RunCinematic(CL_handle);
+		if ( Com_GameIsMOHAA() ) {
+			CL_MOHAAMovieSoundUpdate();
+		}
 	}
 }
 
@@ -2132,7 +2151,7 @@ void SCR_StopCinematic( void ) {
 	// Alice's CIN_Stop (0x00425770): a movie stopped while it plays ends
 	// without resuming the intro where its flags said; the intro goes to its
 	// main menu instead.
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		fntech3::alice::cinematic::Stop( cls.state == CA_CINEMATIC, aliceCinematic );
 	}
 	if (CL_handle >= 0 && CL_handle < MAX_VIDEO_HANDLES) {

@@ -50,6 +50,7 @@ static fntech3::audio::rtcw::MasterFade wolfetMaster;
 static int Com_GameIsWolfET(){return 0;}
 // Alice's music stream is exercised by its own tests.
 static int Com_GameIsAlice(){return 0;}
+static int Com_GameIsRitual(){return 0;}
 static auto &S_RTCWMusic(){return music;}
 static auto &S_RTCWMasterFade(){return master;}
 static auto &S_WolfETMasterFade(){return wolfetMaster;}

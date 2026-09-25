@@ -13,6 +13,20 @@ executable hashes, original-engine protocol observations, pak/module/demo
 metadata, commands and probe outcomes. No archive, retail executable, module or
 asset is redistributed.
 
+## At a glance
+
+| Releases | Protocol | Live play with the original engine | Recordings |
+| --- | --- | --- | --- |
+| 1.32, 1.32b, 1.32c | 68 | Both directions | Record and play |
+| ioquake3-compatible | 71 | Both directions | Record and play |
+| 1.29f/g/h, 1.30, 1.31 | 66, 67 | Both directions, short sessions | Record and play; interchange with the original engines |
+| 1.11 to 1.27 | 43, 45, 46, 48 | Not implemented | Play |
+| Q3Test 1.02 to 1.08 | 35 to 40 | Not implemented | Refused with a diagnostic |
+| IHV Test | 33 | Not implemented | Not implemented; see the [IHV ledger](Q3_IHV.md) |
+
+The [Games Guide](../GAMES.md#quake-iii-arena-quake3) gives the player's view
+of the same table.
+
 ## Release ledger
 
 `Interop` below means short active sessions in both directions with the named

@@ -716,6 +716,107 @@ void Sys_UnloadLibrary( void *handle )
 
 /*
 =================
+Sys_UnloadLibraryHeld
+
+Unloads a native game module and keeps the address range its image
+occupied reserved until Sys_ReleaseLibraryHold, which the engine calls just
+before that module's slot loads again. A 32-bit process has 2 GB: a
+renderer restart allocates between a client game module's unload and its
+reload, and the hole the module left is often the only one still large
+enough for it (Enemy Territory's cgame image is 57 MB), so without the hold
+the restart's allocations and the UI module split it and the reload fails.
+A 64-bit process has no such shortage and holds nothing. Returns NULL when
+nothing is held: the image is still mapped by another reference, or another
+thread took part of the range first.
+=================
+*/
+void *Sys_UnloadLibraryHeld( void *handle )
+{
+#if defined( _WIN64 )
+	Sys_UnloadLibrary( handle );
+	return NULL;
+#else
+	const BYTE *image = static_cast<const BYTE *>( handle );
+	SIZE_T size = 0;
+
+	if ( !image ) {
+		return NULL;
+	}
+	const IMAGE_DOS_HEADER *dos = reinterpret_cast<const IMAGE_DOS_HEADER *>( image );
+	if ( dos->e_magic == IMAGE_DOS_SIGNATURE && dos->e_lfanew > 0 ) {
+		const IMAGE_NT_HEADERS *nt = reinterpret_cast<const IMAGE_NT_HEADERS *>( image + dos->e_lfanew );
+		if ( nt->Signature == IMAGE_NT_SIGNATURE ) {
+			size = nt->OptionalHeader.SizeOfImage;
+		}
+	}
+	FreeLibrary( static_cast<HMODULE>( handle ) );
+	return size ? VirtualAlloc( handle, size, MEM_RESERVE, PAGE_NOACCESS ) : NULL;
+#endif
+}
+
+
+/*
+=================
+Sys_ReleaseLibraryHold
+=================
+*/
+void Sys_ReleaseLibraryHold( void *hold )
+{
+	if ( hold )
+		VirtualFree( hold, 0, MEM_RELEASE );
+}
+
+
+#ifndef DEDICATED
+/*
+=================
+WIN_UpdateOffscreen
+
+A window on a desktop other than the input desktop, such as a probe's
+private desktop, holds focus there while nobody can see or hear it, so
+audio treats it as offscreen. When the input desktop cannot be read, as
+while the session is locked, a state already determined stands. Until one
+is, as for a client started during a lock, only a desktop named Default,
+the one a session shows after sign-in, counts as on screen: a probe on its
+private desktop is silent from the start, and a game on the normal desktop
+sounds as it always has.
+=================
+*/
+static void WIN_UpdateOffscreen( void )
+{
+	static int lastCheck;
+	static qboolean checked;
+	static qboolean determined;
+	const int now = Sys_Milliseconds();
+
+	if ( checked && now - lastCheck < 500 ) {
+		return;
+	}
+	checked = qtrue;
+	lastCheck = now;
+
+	WCHAR inputName[256], ownName[256];
+	HDESK own = GetThreadDesktop( GetCurrentThreadId() );
+	if ( own == NULL || !GetUserObjectInformationW( own, UOI_NAME, ownName, sizeof( ownName ), NULL ) ) {
+		return;
+	}
+	HDESK input = OpenInputDesktop( 0, FALSE, DESKTOP_READOBJECTS );
+	if ( input != NULL ) {
+		if ( GetUserObjectInformationW( input, UOI_NAME, inputName, sizeof( inputName ), NULL ) ) {
+			gw_offscreen = _wcsicmp( inputName, ownName ) != 0 ? qtrue : qfalse;
+			determined = qtrue;
+		}
+		CloseDesktop( input );
+	}
+	if ( !determined ) {
+		gw_offscreen = _wcsicmp( ownName, L"Default" ) != 0 ? qtrue : qfalse;
+	}
+}
+#endif
+
+
+/*
+=================
 Sys_SendKeyEvents
 
 Platform-dependent event handling
@@ -724,8 +825,10 @@ Platform-dependent event handling
 void Sys_SendKeyEvents( void )
 {
 #ifndef DEDICATED
-	if ( !com_dedicated->integer )
+	if ( !com_dedicated->integer ) {
+		WIN_UpdateOffscreen();
 		HandleEvents();
+	}
 	else
 #endif
 	HandleConsoleEvents();
@@ -977,6 +1080,11 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 	SetErrorMode( SEM_FAILCRITICALERRORS );
 
 	SetUnhandledExceptionFilter( ExceptionFilter );
+
+#ifndef DEDICATED
+	// before any startup sound can reach a device
+	WIN_UpdateOffscreen();
+#endif
 
 	Com_Init( sys_cmdline );
 

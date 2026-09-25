@@ -27,6 +27,8 @@ extern "C" {
 }
 
 #include "client_cpp.h"
+#include "client_q3test.h"
+#include "cl_mohaa.h"
 #include "ql_font_bridge.hpp"
 #include "../compat/game_abi_adapter.h"
 #include "../compat/rtcw_module_abi.h"
@@ -1605,7 +1607,8 @@ static intptr_t CL_UISystemCalls( intptr_t *args ) {
 
 	case UI_R_RENDERSCENE: {
 		refdef_t refdef = CL_ModuleRefdef( uivm, args[1] );
-		if ( Com_GameIsQuake3() ) {
+		// Menu scenes keep their authored FOV in every game the renderer corrects.
+		if ( Com_GameIsQuake3() || Com_GameIsSTVEF() ) {
 			refdef.rdflags |= RDF_NOFOVCORRECTION;
 		}
 		CL_UIAdjustRefdef( &refdef );
@@ -2657,7 +2660,7 @@ qboolean CL_UIMenusAreVisible( void ) {
 	if ( !uivm ) {
 		return qfalse;
 	}
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		// Alice's engine UI keeps its own menu stack, which a menu that takes
 		// no keys -- the credits after the ending -- still occupies.
 		return CL_AliceUIMenuUp();
@@ -2720,6 +2723,9 @@ void CL_ShutdownUI( void ) {
 	VM_Free( uivm );
 	uivm = nullptr;
 	FS_VM_CloseFiles( H_Q3UI );
+	if ( Com_GameIsQ3Test() ) {
+		CL_Q3TestShutdownUI();
+	}
 }
 
 
@@ -2794,10 +2800,29 @@ void CL_InitUI( void ) {
 	 * installation ships no ui library of any kind. The engine's own UI
 	 * (cl_alice_ui.cpp) stands in the module's place, hosted with no library,
 	 * so the client's uivm call sites reach it as they would a module. */
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		uivm = CL_AliceLoadUI();
 		if ( !uivm ) {
 			Com_Error( ERR_FATAL, "Alice's engine UI could not be hosted" );
+		}
+		VM_Call( uivm, 1, UI_INIT, (cls.state >= CA_AUTHORIZING && cls.state < CA_ACTIVE) );
+		return;
+	}
+	/* Q3Test's is a function table from 1.06 and engine menus before it
+	 * (cl_q3test_ui.cpp). */
+	if ( Com_GameIsQ3Test() ) {
+		uivm = CL_Q3TestLoadUI();
+		if ( !uivm ) {
+			Com_Error( ERR_FATAL, "Couldn't load ui" );
+		}
+		VM_Call( uivm, 1, UI_INIT, (cls.state >= CA_AUTHORIZING && cls.state < CA_ACTIVE) );
+		return;
+	}
+	/* Medal of Honor has no menu module either (cl_mohaa_ui.cpp). */
+	if ( Com_GameIsMOHAA() ) {
+		uivm = CL_MOHAALoadUI();
+		if ( !uivm ) {
+			Com_Error( ERR_FATAL, "Medal of Honor's engine UI could not be hosted" );
 		}
 		VM_Call( uivm, 1, UI_INIT, (cls.state >= CA_AUTHORIZING && cls.state < CA_ACTIVE) );
 		return;

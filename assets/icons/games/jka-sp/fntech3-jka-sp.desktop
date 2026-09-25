@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Star Wars Jedi Knight: Jedi Academy (Single Player)
+GenericName=fnTech3 game profile
+Comment=Play Star Wars Jedi Knight: Jedi Academy (Single Player) with fnTech3
+Exec=fntech3 +set com_gameProfile jka-sp
+Icon=fntech3-jka-sp
+Terminal=false
+Categories=Game;ActionGame;
+StartupWMClass=fntech3-jka-sp

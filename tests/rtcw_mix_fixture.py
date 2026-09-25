@@ -20,7 +20,7 @@ static std::array<portable_samplepair_t,PAINTBUFFER_SIZE> paintbuffer;
 static portable_samplepair_t s_rawsamples[MAX_RAW_SAMPLES];
 static std::array<portable_samplepair_t,MAX_RAW_SAMPLES> s_rtcwMusicRawSamples;
 static int s_rawend=0,s_rtcwMusicRawEnd=0,s_paintedtime=0,s_soundtime=0,snd_vol=0;
-static bool s_soundStarted=true,s_soundMuted=false,gw_active=true,gw_minimized=false;
+static bool s_soundStarted=true,s_soundMuted=false,gw_active=true,gw_minimized=false,gw_offscreen=false;
 static struct {int integer=0;} mute;
 static auto *s_muteWhenUnfocused=&mute,*s_muteWhenMinimized=&mute;
 static byte hardware[128],secondary[128];static byte *dma_buffer2=secondary;

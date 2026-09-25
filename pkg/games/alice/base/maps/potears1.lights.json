@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "generator": "fnTech3 scripts/generate_stock_alice_lights.py",
+  "map": "potears1",
+  "source": "FAKK 42 lump 17, the map's compiled entity lights",
+  "lights": [
+    {"name": "potears1-light-0000", "type": "point", "origin": [-1968, 3064, 1312], "color": [0.2, 0.5, 0.45], "intensity": 120, "radius": 474.3, "castsShadows": true}
+  ]
+}

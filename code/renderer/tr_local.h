@@ -252,7 +252,11 @@ typedef enum {
 	DEFORM_TEXT7,
 	// American McGee's Alice: waves the normals, not the positions
 	// (`deformVertexes wavenormal`, retail type 16, alice.exe 0x0048dfee)
-	DEFORM_ALICE_WAVENORMAL
+	DEFORM_ALICE_WAVENORMAL,
+	// Medal of Honor (see code/renderercommon/tr_mohaa_shade.h)
+	DEFORM_MOHAA_FLAP_S,			// swung along the normal by s
+	DEFORM_MOHAA_FLAP_T,			// ... by t
+	DEFORM_MOHAA_LIGHTGLOW			// sprites pulled toward the viewer
 } deform_t;
 
 typedef enum {
@@ -272,7 +276,13 @@ typedef enum {
 	AGEN_ALICE_ONE_MINUS_DOT,		// grazing the viewer, scaled into a range
 	AGEN_ALICE_GLOBAL,				// the last SetColor's alpha
 	AGEN_ALICE_SKY_ALPHA,			// the view's sky alpha
-	AGEN_ALICE_ONE_MINUS_SKY_ALPHA
+	AGEN_ALICE_ONE_MINUS_SKY_ALPHA,
+	// Medal of Honor (see code/renderercommon/tr_mohaa_shade.h)
+	AGEN_MOHAA_DIST_FADE,			// opaque near the viewer, clear past a range
+	AGEN_MOHAA_ONE_MINUS_DIST_FADE,
+	AGEN_MOHAA_SCOORD,				// from s, scaled and held between caps
+	AGEN_MOHAA_TCOORD,				// ... from t
+	AGEN_MOHAA_COLOR_PASS			// `oneMinusVertex`: the colour pass's alpha
 } alphaGen_t;
 
 typedef enum {
@@ -290,7 +300,13 @@ typedef enum {
 	CGEN_CONST,				// fixed color
 	// American McGee's Alice (see code/renderercommon/tr_alice_shader.h)
 	CGEN_ALICE_GLOBAL,		// the last SetColor's colour
-	CGEN_ALICE_COLORWAVE	// a waveform times a fixed colour
+	CGEN_ALICE_COLORWAVE,	// a waveform times a fixed colour
+	// Medal of Honor (see code/renderercommon/tr_mohaa_shade.h)
+	CGEN_MOHAA_DOT,			// facing the viewer, scaled into a range
+	CGEN_MOHAA_ONE_MINUS_DOT,
+	CGEN_MOHAA_SCOORD,		// from s, scaled and held between caps
+	CGEN_MOHAA_TCOORD,		// ... from t
+	CGEN_MOHAA_LIGHTING		// the map's colours on the world, else diffuse lighting
 } colorGen_t;
 
 typedef enum {
@@ -301,7 +317,10 @@ typedef enum {
 	TCGEN_ENVIRONMENT_MAPPED,
 	TCGEN_ENVIRONMENT_MAPPED_FP, // with correct first-person mapping
 	TCGEN_FOG,
-	TCGEN_VECTOR			// S and T from world coordinates
+	TCGEN_VECTOR,			// S and T from world coordinates
+	// Medal of Honor: the environment reflected in world space
+	// (code/renderercommon/tr_mohaa_shade.h)
+	TCGEN_MOHAA_ENVIRONMENT_MODEL
 } texCoordGen_t;
 
 typedef enum {
@@ -340,6 +359,10 @@ typedef enum {
 	TMOD_ALICE_OFFSET,		// offset whose components may come from the entity
 	TMOD_ALICE_MACRO,		// planar projection by the normal's base axis
 	TMOD_ALICE_PARALLAX,	// shifted by the viewer's position
+	// Medal of Honor (see code/renderercommon/tr_mohaa_shade.h)
+	TMOD_MOHAA_WAVETRANS,	// s shifted by a waveform
+	TMOD_MOHAA_WAVETRANT,	// t shifted by a waveform
+	TMOD_MOHAA_BULGE,		// parsed; changes nothing
 } texMod_t;
 
 #define	MAX_SHADER_DEFORMS	3
@@ -389,7 +412,7 @@ typedef struct {
 } texModInfo_t;
 
 
-#define MAX_IMAGE_ANIMATIONS		24
+#define MAX_IMAGE_ANIMATIONS		64
 #define MAX_IMAGE_ANIMATIONS_VQ3	8
 
 #define LIGHTMAP_INDEX_NONE			0
@@ -418,6 +441,8 @@ typedef struct {
 	// +0x138 bit 0 and +0x134)
 	unsigned int	aliceAnimMapOnce : 1;
 	unsigned int	aliceFrameFromEntity : 1;
+	// Medal of Honor: `animMapPhase`'s head start, in seconds
+	float			mohaaAnimPhase;
 } textureBundle_t;
 
 #define NUM_TEXTURE_BUNDLES 2
@@ -458,6 +483,11 @@ typedef struct {
 	float			aliceSpecular[4];
 	qboolean		aliceSpecularCustom;
 	qboolean		aliceDynamic;
+
+	// Medal of Honor: `sCoord`/`tCoord`'s range and byte caps
+	// (code/renderercommon/tr_mohaa_shade.h)
+	float			mohaaCoordRange[2];
+	int				mohaaCoordCaps[2];
 
 	short			vboVPindex[3];		// normal, eye-in, eye-out
 	short			vboFPindex[2];		// normal, fog-blend
@@ -501,6 +531,7 @@ typedef struct {
 	vec3_t	color;
 	float	depthForOpaque;
 	q3IHVFogParms_t ihv;
+	int		q3testType;	// Q3Test fogParms' fifth value: the visible face
 } fogParms_t;
 
 typedef struct shader_s {
@@ -548,6 +579,11 @@ typedef struct shader_s {
 
 	float		portalRange;			// distance to fog out at
 	float		portalRangeR;
+
+	// Medal of Honor's `alphaGen distFade`: opaque to this distance, clear
+	// the range further (code/renderercommon/tr_mohaa_shade.h)
+	float		mohaaDistNear;
+	float		mohaaDistRange;
 
 	qboolean	multitextureEnv;		// if shader has multitexture stage(s)
 
@@ -619,6 +655,8 @@ typedef struct shader_s {
 	float		aliceSubdivisions;
 	qboolean	aliceNoStatic;
 
+	int		q3test2D;		// Q3Test: this shader's 2D picture shader, once made (tr_q3test_2d.h)
+
 	struct	shader_s	*next;
 } shader_t;
 
@@ -642,6 +680,7 @@ typedef struct shader_s {
 typedef struct {
 	int			x, y, width, height;
 	float		fov_x, fov_y;
+	float		fovXAuthored;	// fov_x as the game gave it, before the FOV correction
 	vec3_t		vieworg;
 	vec3_t		viewaxis[3];		// transformation matrix
 
@@ -669,6 +708,8 @@ typedef struct {
 
 	unsigned int num_dlights;
 	struct dlight_s	*dlights;
+	// leading dlights the scene's modules submitted; the engine's own follow them
+	int			num_moduleDlights;
 
 	int			numLiquidInteractions;
 	liquidInteraction_t liquidInteractions[LIQUID_MAX_ACTIVE_IMPULSES];
@@ -1416,6 +1457,7 @@ typedef enum {
 	SF_IHV_PARTICLES,
 	SF_ALICE_TIKI,
 	SF_ALICE_SWIPE,
+	SF_MOHAA_TIKI,
 
 	SF_NUM_SURFACE_TYPES,
 	SF_MAX = 0x7fffffff			// ensures that sizeof( surfaceType_t ) == sizeof( int )
@@ -1708,6 +1750,10 @@ typedef struct {
 
 	int			numsurfaces;
 	msurface_t	*surfaces;
+	int			mohaaFirstDecal;		// Medal of Honor's permanent decals, built into
+	int			mohaaNumDecals;			// the surfaces by tr_mohaa_world.c
+	int			mohaaFirstTerrain;		// and its terrain, a surface a patch in the
+	int			mohaaNumTerrain;		// map's order
 
 	int			numAdvertisements;
 	qlAdvertisement_t	*advertisements;
@@ -1741,6 +1787,20 @@ typedef struct {
 	const char	*entityParsePoint;
 } world_t;
 
+// One of Medal of Honor's permanent decals (tr_mohaa_world.c).
+static ID_INLINE qboolean R_MOHAAStaticDecal( const world_t *world, const msurface_t *surf ) {
+	const int index = (int)( surf - world->surfaces );
+	return world->mohaaNumDecals > 0 && index >= world->mohaaFirstDecal
+		&& index < world->mohaaFirstDecal + world->mohaaNumDecals ? qtrue : qfalse;
+}
+
+// The Medal of Honor terrain patch a surface is, or -1 (tr_mohaa_world.c).
+static ID_INLINE int R_MOHAATerrainPatch( const world_t *world, const msurface_t *surf ) {
+	const int index = (int)( surf - world->surfaces );
+	return world->mohaaNumTerrain > 0 && index >= world->mohaaFirstTerrain
+		&& index < world->mohaaFirstTerrain + world->mohaaNumTerrain ? index - world->mohaaFirstTerrain : -1;
+}
+
 //======================================================================
 
 typedef enum {
@@ -1755,7 +1815,8 @@ typedef enum {
 	MOD_WOLFET_SKELETON,
 	MOD_IHV_BEAM,
 	MOD_ALICE_TIKI,
-	MOD_ALICE_SPRITE
+	MOD_ALICE_SPRITE,
+	MOD_MOHAA_TIKI
 } modtype_t;
 
 // American McGee's Alice's definition surface flags the renderer reads.
@@ -1775,6 +1836,19 @@ typedef struct aliceSurface_s {
 	int				numSkins;
 	struct shader_s	*shaders[4];
 } aliceSurface_t;
+
+// One surface of a Medal of Honor TIKI model, skinned by the engine with the
+// pose its entity gets this frame; see tr_mohaa.c.
+typedef struct mohaaSurface_s {
+	surfaceType_t	surfaceType;
+	struct model_s	*model;
+	int				index;
+	int				flags;
+	int				numVerts;
+	int				numIndexes;
+	int				numSkins;
+	struct shader_s	*shaders[4];
+} mohaaSurface_t;
 
 typedef struct aliceSprite_s {
 	float			width, height;
@@ -1804,6 +1878,9 @@ typedef struct model_s {
 	struct aliceSurface_s	*aliceSurfaces;
 	int		numAliceSurfaces;
 	struct aliceSprite_s	*aliceSprite;	// only if type == MOD_ALICE_SPRITE
+	const void	*mohaaTiki;			// only if type == MOD_MOHAA_TIKI: the engine's definition
+	struct mohaaSurface_s	*mohaaSurfaces;
+	int		numMohaaSurfaces;
 
 	int			 numLods;
 } model_t;
@@ -2381,6 +2458,8 @@ extern	cvar_t	*r_speeds;				// various levels of information display
 extern  cvar_t	*r_detailTextures;		// enables/disables detail texturing stages
 // American McGee's Alice only (registered for that profile, null otherwise)
 extern	cvar_t	*r_shaderlod;			// `if shaderlod <f>` passes when this exceeds f
+extern	cvar_t	*r_drawstaticdecals;	// Medal of Honor: draws the level's permanent decals
+extern	cvar_t	*ter_minMarkRadius;		// Medal of Honor: the smallest decal cut on terrain
 extern	cvar_t	*r_farplane;			// overrides the far plane distance when nonzero
 extern	cvar_t	*r_farplane_color;
 extern	cvar_t	*r_farplane_nocull;
@@ -2476,6 +2555,11 @@ qboolean R_LoadAliceSprite( model_t *mod, const char *name );
 void R_AliceModelBounds( const model_t *mod, vec3_t mins, vec3_t maxs );
 void R_AddAliceTikiSurfaces( trRefEntity_t *ent );
 void RB_SurfaceAliceTiki( void *data );
+// Medal of Honor's TIKI models (tr_mohaa.c).
+qhandle_t RE_RegisterMOHAATiki( const char *name, const void *tiki );
+void R_MOHAAModelBounds( const model_t *mod, vec3_t mins, vec3_t maxs );
+void R_AddMOHAATikiSurfaces( trRefEntity_t *ent );
+void RB_SurfaceMOHAATiki( void *data );
 void RB_SurfaceAliceSprite( void );
 int RE_GetAliceTikiHandle( qhandle_t handle );
 void RE_GetShaderImageSize( qhandle_t handle, int *width, int *height );
@@ -2491,11 +2575,17 @@ qboolean RB_AliceSkipStage( const shaderStage_t *stage );
 void RA_TikiBeginFrame( void );
 // Alice's view filter, lens flares, dynamic-light types and lighting (tr_alice.c)
 qboolean R_AliceEntityInView( const trRefEntity_t *ent );
+qboolean R_MOHAAEntityInView( const trRefEntity_t *ent );
 void R_AliceRegisterCvars( void );
 void R_AliceInitLensFlares( void );
 void R_AliceSetSunFlare( const vec3_t origin );
 void R_AliceSetSunFlareInPortalSky( void );
 void RB_AliceLensFlares( void );
+void R_MOHAASetSunFlare( const vec3_t direction, const char *section );
+void R_MOHAABeginSunKeys( void );
+qboolean R_MOHAASunKey( const char *key, const char *value );
+void R_MOHAAEndSunKeys( void );
+void R_MOHAARegisterLensFlareCvars( void );
 void RE_AddAliceLightToScene( const vec3_t org, float intensity, float r, float g, float b, int type );
 void R_SetupAliceEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent, const vec3_t lightOrigin,
 	const float *localPoint, float reach );
@@ -2966,6 +3056,9 @@ MARKERS, POLYGON PROJECTION ON WORLD POLYGONS
 void RE_AddRTCWCoronaToScene( const fnRTCWCorona_t *corona );
 int R_MarkRTCWFragments( int rotation, const vec3_t *corners, const vec3_t projection,
 	int maxPoints, fnRTCWMarkPoint_t *points, int maxFragments, markFragment_t *fragments );
+int R_MarkMOHAAFragments( int model, const vec3_t angles, const vec3_t origin, int numPoints, const vec3_t *points,
+	const vec3_t projection, int maxPoints, vec3_t pointBuffer, int maxFragments, markFragment_t *fragments,
+	int *patches, float radiusSquared );
 int R_MarkFragments( int numPoints, const vec3_t *points, const vec3_t projection,
 				   int maxPoints, vec3_t pointBuffer, int maxFragments, markFragment_t *fragmentBuffer );
 
@@ -3480,6 +3573,12 @@ int R_GetLightmapCoords( const int lightmapIndex, float *x, float *y );
 
 static ID_INLINE qboolean R_UsesRTCWLighting( void ) {
 	return ( ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP ) ? qtrue : qfalse;
+}
+
+// RTCW's and Enemy Territory's modules own 32 lights a frame, and keep their
+// forced lights at r_dynamiclight 0 (tr_rtcw_engine_lights.h)
+static ID_INLINE qboolean R_ReservesModuleLights( void ) {
+	return ( R_UsesRTCWLighting() || ri.gameId == COM_GAME_WOLFET ) ? qtrue : qfalse;
 }
 
 #endif //TR_LOCAL_H

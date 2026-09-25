@@ -15,9 +15,10 @@ require an active connection and preserve their disabled/muted behavior.
 
 The legacy mixer consumes separate RTCW loop records and retains duplicate
 channels. OpenAL uses submission slots, clears missing voices on the next
-update, and virtualizes inaudible voices. Its RTCW loops use the shared linear
-range/gain calculation without adding Q3 distance attenuation, shader gain,
-Doppler or environmental tone shaping. Newly allocated or resumed sources
+update, and virtualizes inaudible voices. Until 2026-09-24 its RTCW loops
+used the shared linear range/gain calculation for their gain and pan. They
+now use the engine's own features instead (see below). Newly allocated or
+resumed sources
 join a common sample cycle using the device clock or monotonic fallback.
 This timing policy has bounded arithmetic tests; it does not establish original
 PCM phase or acoustic parity through an output device.
@@ -33,6 +34,48 @@ The client now validates their integer encodings and updates all coordinates
 atomically, retaining signed zero and clearing the position with map state.
 The optional server-requested visible-client policy and its handshake remain
 open; this import alone does not establish that policy.
+
+## The engine's own features (2026-09-24)
+
+Under invariant 11 of `AGENTS.md`, the OpenAL backend no longer pans an MP
+loop as retail's mixer does. It renders MP's data through the engine's own
+audio. The [Wolfenstein OpenAL voices
+record](2026-09-24-wolfenstein-openal-voices.md) has the design, tests and
+runtime evidence.
+
+Kept from retail:
+
+- the 128 submissions, each on its own voice;
+- the range and volume words;
+- the virtualization by retail's own gains;
+- the common sample cycle;
+- the disabled Doppler.
+
+Used:
+
+- **Positional rendering, with HRTF and the output mode.**
+- **The OpenAL distance model** across the range's span: full volume to 6.4%
+  of it, silent the range beyond, 80 to 1,330 for range 0. It fades out
+  toward the silent end, with air absorption. The loop plays at retail's
+  level, 90 over 256 of its volume.
+- **Traced occlusion and liquid boundaries**, on the direct and wet paths.
+- **The room reverb** from the map's audio zone sidecar, 15 of them for MP,
+  or from the traced room.
+- **The tone classes**, by sample name or `world`.
+- **`s_pvs`**, when it is asked for.
+
+Left out:
+
+- **Retail's left/right balance.** It stays in the legacy mixer
+  (`s_backend legacy`), the explicit retail-exact option.
+- **Doppler.** Retail disables it for loops.
+- **The weapon sound shaders.** They have no RTCW rules.
+- **Merging duplicates.** Retail's merge loop never runs, so there is none to
+  adopt.
+
+On `mp_beach` the loops in range play positionally at 0.70 (89/127) with
+`world` tone, traced occlusion up to 0.74 and sends into the 246-zone
+sidecar's outdoor-to-hall room.
 
 ## Evidence
 

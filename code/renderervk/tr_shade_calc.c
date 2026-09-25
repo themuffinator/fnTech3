@@ -63,7 +63,7 @@ static const waveForm_t *R_AliceWave( const waveForm_t *wf, waveForm_t *resolved
 {
 	const byte *bytes;
 
-	if ( ri.gameId != COM_GAME_ALICE ||
+	if ( !COM_GAME_ID_IS_RITUAL( ri.gameId ) ||
 		( wf->base != ALICE_SHADER_FROM_ENTITY && wf->amplitude != ALICE_SHADER_FROM_ENTITY &&
 		  wf->phase != ALICE_SHADER_FROM_ENTITY && wf->frequency != ALICE_SHADER_FROM_ENTITY ) ) {
 		return wf;
@@ -430,6 +430,9 @@ static void GlobalVectorToLocal( const vec3_t in, vec3_t out ) {
 	out[2] = DotProduct( in, backEnd.or.axis[2] );
 }
 
+#define R_MOHAA_SHADE_IMPLEMENTATION
+#include "../renderercommon/tr_mohaa_shade.h"
+
 
 /*
 =====================
@@ -638,7 +641,7 @@ void RB_DeformTessGeometry( void ) {
 		ds = &tess.shader->deforms[ i ];
 
 		// Alice: `fromEntity` wave parameters resolved for this entity
-		if ( ri.gameId == COM_GAME_ALICE ) {
+		if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) ) {
 			aliceDeform = *ds;
 			aliceDeform.deformationWave = *R_AliceWave( &ds->deformationWave, &aliceWave );
 			ds = &aliceDeform;
@@ -649,6 +652,13 @@ void RB_DeformTessGeometry( void ) {
 			break;
 		case DEFORM_ALICE_WAVENORMAL:
 			RB_AliceCalcWaveNormals( ds );
+			break;
+		case DEFORM_MOHAA_FLAP_S:
+		case DEFORM_MOHAA_FLAP_T:
+			RB_MOHAAFlapDeform( ds, ds->deformation == DEFORM_MOHAA_FLAP_T ? qtrue : qfalse );
+			break;
+		case DEFORM_MOHAA_LIGHTGLOW:
+			RB_MOHAALightGlowDeform();
 			break;
 		case DEFORM_NORMALS:
 			RB_CalcDeformNormals( ds );
@@ -826,7 +836,7 @@ void RB_CalcWaveAlpha( const waveForm_t *wf, unsigned char *dstColors )
 		glow = wf->base + R_NoiseGet4f( 0, 0, 0, ( tess.shaderTime + wf->phase ) * wf->frequency ) * wf->amplitude;
 		// American McGee's Alice clamps a noise alpha as it clamps any other
 		// (alice.exe 0x0049e6d0); 21 of its shipped stages use one.
-		if ( ri.gameId == COM_GAME_ALICE ) {
+		if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) ) {
 			glow = glow < 0.0f ? 0.0f : glow > 1.0f ? 1.0f : glow;
 		}
 	} else {
@@ -1404,6 +1414,23 @@ static void RB_CalcDiffuseColor_scalar( unsigned char *colors )
 
 void RB_CalcDiffuseColor( unsigned char *colors )
 {
+	/* Alice and F.A.K.K.2 compile a static model into the world as vertex-lit
+	 * triangles, and its shader's `rgbGen lightingDiffuse` then has no entity
+	 * to take light from: fakk2.exe 1.02 calls no lighting function for the
+	 * world entity and leaves whatever colours it last wrote (0x0047d45a).
+	 * This engine lights such a surface with the colours the map baked on its
+	 * vertices, as it does Medal of Honor's static models (AGENTS.md
+	 * invariant 11); it had drawn their leaves, banners and lamps black. */
+	if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) && backEnd.currentEntity == &tr.worldEntity ) {
+		int i;
+		for ( i = 0; i < tess.numVertexes; i++, colors += 4 ) {
+			colors[0] = (byte)( tess.vertexColors[i].rgba[0] * tr.identityLight );
+			colors[1] = (byte)( tess.vertexColors[i].rgba[1] * tr.identityLight );
+			colors[2] = (byte)( tess.vertexColors[i].rgba[2] * tr.identityLight );
+			colors[3] = 255;
+		}
+		return;
+	}
 	RB_CalcDiffuseColor_scalar( colors );
 }
 

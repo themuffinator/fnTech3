@@ -327,7 +327,10 @@ class HuffmanInputBoundaryTests(unittest.TestCase):
         self.assertIn("(size_t)bloc >= bitCount", decoder)
         self.assertIn("if (!Huff_Receive", decoder)
         self.assertIn("qboolean Huff_Decompress", decoder)
-        self.assertIn("if ( !Huff_Decompress( msg, 12 ) )", server)
+        # The connect text starts 12 bytes in, or 13 for Medal of Honor,
+        # whose packets carry a direction byte after the marker.
+        self.assertIn("const int header = Com_GameIsMOHAA() ? 5 : 4;", server)
+        self.assertIn("if ( !Huff_Decompress( msg, header + 8 ) ) {\n\t\t\t\treturn;", server)
 
 class RendererModelLoaderTests(unittest.TestCase):
     """The three backends carry independent copies -- each must be gated."""
@@ -421,14 +424,36 @@ class RendererLightmapTests(unittest.TestCase):
 
 
 class VulkanRendererTests(unittest.TestCase):
-    def test_rtx_compaction_preserves_the_acceleration_structure_valid_flag(self) -> None:
-        source = read("code/rendererrtx/vk.c")
-        # anchor on the definition; a forward declaration appears far earlier
-        block = body(source, "uint64_t *savedBytes )\n{", "\n}\n")
-        # vk_rt_create_as() zeroes the struct, so the copy cleared the flag
-        self.assertIn("*as = compactedAs;", block)
-        self.assertIn("as->valid = qtrue;", block)
-        self.assertLess(block.index("*as = compactedAs;"), block.index("as->valid = qtrue;"))
+    def test_rtx_instances_reference_only_acceleration_structures_built_this_frame(self) -> None:
+        source = read("code/rendererrtx/rt/rt_backend.c")
+        block = body(source, "static qboolean RT_RecordAccelerationStructures(", "\n}\n")
+        # a class's BLAS from an earlier use of this frame slot is never
+        # instanced: its flag is cleared before this frame's build is prepared
+        # and set only once the preparation succeeds
+        clear = block.index("frame->blas[c].built = qfalse;")
+        prepare = block.index("RT_PrepareBlas( &frame->blas[c]")
+        mark = block.index("frame->blas[c].built = qtrue;")
+        self.assertLess(clear, prepare)
+        self.assertLess(prepare, mark)
+        self.assertIn("if ( frame->blas[c].built ) {", block[mark:])
+        self.assertIn("if ( s_rt.worldBlas.built ) {", block)
+        # the compute backend rebuilds its instance table each frame from the
+        # trees it built this frame
+        compute = body(source, "static qboolean RT_RecordComputeScene(", "\n}\n")
+        reset = compute.index("frame->swInstanceCount = 0;")
+        self.assertLess(compute.index("RT_BvhReset( &s_rt.bvh );"), compute.index("RT_BvhAppend("))
+        self.assertLess(compute.index("RT_BvhAppend("), compute.index("trees[c].valid = qtrue;"))
+        self.assertLess(compute.index("trees[c].valid = qtrue;"), reset)
+        self.assertLess(reset, compute.index("RT_AddComputeInstance("))
+        add = body(source, "static void RT_AddComputeInstance(", "\n}\n")
+        self.assertIn("if ( !tree->valid || frame->swInstanceCount >= RT_SW_MAX_INSTANCES ) {", add)
+        # vk_rt_create_as() zeroes the structure before creating it
+        create = body(
+            read("code/rendererrtx/vk.c"),
+            "rtxVkRtAccelerationStructure_t *outAs )\n{",
+            "\n}\n",
+        )
+        self.assertIn("Com_Memset( outAs, 0, sizeof( *outAs ) );", create)
 
     def test_renderervk_depth_barriers_cover_the_stencil_aspect(self) -> None:
         source = read("code/renderervk/vk.c")

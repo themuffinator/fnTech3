@@ -32,6 +32,7 @@
 #include "../compat/alice_module_abi.h"
 #include "../compat/alice_state_adapter.hpp"
 #include "../compat/alice_render_abi.h"
+#include "../compat/fakk2_convert.hpp"
 #include "../qcommon/alice_runtime.h"
 #include "../qcommon/alice_tiki.h"
 
@@ -64,10 +65,12 @@ game table's: the two tables are different lengths and different orders.
 */
 template<int Slot>
 intptr_t QDECL CL_AliceUnservedCGameImport() {
+	const bool fakk2 = Com_GameIsFAKK2() != 0;
 	Com_Error( ERR_DROP,
-		"Alice's client game called import %i, which fnTech3 does not serve. "
+		"%s client game called import %i, which fnTech3 does not serve. "
 		"The module ran to this point; this call is the next thing it needs. "
-		"See docs/fntech3/COMPATIBILITY.md#alice-gate-matrix.", Slot );
+		"See docs/fntech3/COMPATIBILITY.md#%s.", fakk2 ? "F.A.K.K.2's" : "Alice's", Slot,
+		fakk2 ? "fakk2-gate-matrix" : "alice-gate-matrix" );
 	return 0;
 }
 
@@ -237,8 +240,18 @@ void QDECL CL_AliceGetGameState( fntech3_alice_gamestate_t *state ) {
 			"with nowhere to put it" );
 		return;
 	}
-	static_assert( sizeof( state->stringData ) == sizeof( cl.gameState.stringData ),
-		"Alice's string data is this engine's" );
+	/* The engine's store is sized for the largest profile's game state
+	 * (Medal of Honor's); Alice's parser holds hers to 16,000 bytes, so the
+	 * first 16,000 are all of it and the count is checked before it crosses. */
+	static_assert( sizeof( state->stringData ) <= sizeof( cl.gameState.stringData ),
+		"Alice's string data fits in this engine's" );
+	if ( cl.gameState.dataCount < 0 ||
+		cl.gameState.dataCount > static_cast<int>( sizeof( state->stringData ) ) ) {
+		Com_Error( ERR_DROP, "Alice's game state holds %i bytes of strings, "
+			"past the %i this title has", cl.gameState.dataCount,
+			static_cast<int>( sizeof( state->stringData ) ) );
+		return;
+	}
 	*state = {};
 
 	for ( int i = 0; i < FNTECH3_ALICE_MAX_CONFIGSTRINGS; i++ ) {
@@ -636,9 +649,13 @@ void QDECL CL_AliceAddRefEntityToScene( const fntech3_alice_refEntity_t *e ) {
 
 /* Slot 58. Retail copies a sprite's model, origin, scale, axis, colour,
  * render flags and shader time into a list of its own and draws each as a
- * quad in world space, with the shader its model names. */
+ * quad in world space, with the shader its model names. F.A.K.K.2's engine
+ * adds every sprite it is given (fakk2.exe 1.02 RE_AddRefSpriteToScene
+ * 0x0047b760 tests no render flag): an emitter's sprites carry the flags of
+ * the entity that emits them, and a smokestack is hidden (RF_DONTDRAW) while
+ * its smoke draws. */
 void QDECL CL_AliceAddRefSpriteToScene( const fntech3_alice_refEntity_t *e ) {
-	if ( !e || ( e->renderfx & FNTECH3_ALICE_RF_DONTDRAW ) ) {
+	if ( !e || ( !Com_GameIsFAKK2() && ( e->renderfx & FNTECH3_ALICE_RF_DONTDRAW ) ) ) {
 		return;
 	}
 	refEntity_t ent;
@@ -787,9 +804,17 @@ void QDECL CL_AliceTransformedBoxTrace( fntech3_alice_trace_t *results, const fl
 	CL_AliceCopyTrace( results, trace );
 }
 
+/* Slot 28, retail's own CM_TempBoxModel (alice.exe 0x00430f50), which writes
+ * the contents it is given into the box brush. The server's clips build the
+ * same shared box with each entity's contents, so the box keeps none of its
+ * own between calls. */
 clipHandle_t QDECL CL_AliceTempBoxModel( const float *mins, const float *maxs, int contents ) {
-	(void)contents;
-	return mins && maxs ? CM_TempBoxModel( mins, maxs, qfalse ) : 0;
+	if ( !mins || !maxs ) {
+		return 0;
+	}
+	const clipHandle_t box = CM_TempBoxModel( mins, maxs, qfalse );
+	CM_SetTempBoxModelContents( contents );
+	return box;
 }
 
 /* Slot 29. Alice's fragment carries the plane its points lie in, which the
@@ -1258,6 +1283,263 @@ void CL_AliceFillCGameImports() {
 #undef SERVE_CGAME
 }
 
+/* ---- Heavy Metal: F.A.K.K.2's client game -------------------------------- */
+
+/* F.A.K.K.2's cgamex86.dll is the parent of Alice's and is served from the
+ * same functions: its 124 slots are the first 124 of Alice's table, member for
+ * member (code/compat/fakk2_module_abi.h). Where a slot hands over a record
+ * whose shape the two titles do not share -- a render entity, the view, a
+ * snapshot's entities, the game state, a command list, a mark fragment, the
+ * bone controllers -- the F.A.K.K.2 record crosses into Alice's first
+ * (code/compat/fakk2_convert.hpp). */
+std::intptr_t fakk2CGameImport[FNTECH3_FAKK2_CGAME_IMPORT_SLOTS];
+
+bool CL_RitualIsFAKK2() {
+	return Com_GameIsFAKK2() != 0;
+}
+
+/* The render entities as F.A.K.K.2 submitted them, beside Alice's copies at
+ * the same indices, so slot 63 can hand one back in the module's own layout. */
+std::array<fntech3_fakk2_refEntity_t, FNTECH3_ALICE_MAX_RENDER_ENTITIES> fakk2SceneEntities;
+
+void QDECL CL_FAKK2AddRefEntityToScene( const fntech3_fakk2_refEntity_t *e ) {
+	if ( !e ) {
+		return;
+	}
+	fntech3_alice_refEntity_t alice;
+	fntech3::fakk2::convert::RefEntityToAlice( *e, alice );
+	const int index = aliceNumSceneEntities;
+	CL_AliceAddRefEntityToScene( &alice );
+	if ( aliceNumSceneEntities > index ) {
+		fakk2SceneEntities[index] = *e;
+	}
+}
+
+void QDECL CL_FAKK2AddRefSpriteToScene( const fntech3_fakk2_refEntity_t *e ) {
+	if ( !e ) {
+		return;
+	}
+	fntech3_alice_refEntity_t alice;
+	fntech3::fakk2::convert::RefEntityToAlice( *e, alice );
+	CL_AliceAddRefSpriteToScene( &alice );
+}
+
+fntech3_fakk2_refEntity_t *QDECL CL_FAKK2GetRenderEntity( int entityNumber ) {
+	for ( int i = 0; i < aliceNumSceneEntities; i++ ) {
+		if ( aliceSceneEntities[i].entityNumber == entityNumber ) {
+			return &fakk2SceneEntities[i];
+		}
+	}
+	return nullptr;
+}
+
+void QDECL CL_FAKK2RenderScene( const fntech3_fakk2_refdef_t *fd ) {
+	if ( !fd ) {
+		return;
+	}
+	fntech3_alice_refdef_t alice;
+	fntech3::fakk2::convert::RefdefToAlice( *fd, alice );
+	CL_AliceRenderScene( &alice );
+}
+
+/* Slot 73, which F.A.K.K.2's client game calls at four arguments -- both of
+ * its sites, 0x3001f65e and 0x3001f793, clean up four -- and Alice's never
+ * does: a box of the colour R_SetColor set, filled with the renderer's white
+ * image, which is what the SDK's declaration of it as x, y, width and height
+ * describes. */
+void QDECL CL_FAKK2DrawBox( float x, float y, float w, float h ) {
+	re.DrawStretchPic( x, y, w, h, 0.0f, 0.0f, 1.0f, 1.0f, cls.whiteShader );
+}
+
+/* Slot 74: F.A.K.K.2's 1,200 configstrings over the same string data. */
+void QDECL CL_FAKK2GetGameState( fntech3_fakk2_gamestate_t *state ) {
+	if ( !state ) {
+		Com_Error( ERR_DROP, "F.A.K.K.2's client game asked for the game state "
+			"with nowhere to put it" );
+		return;
+	}
+	static_assert( sizeof( state->stringData ) <= sizeof( cl.gameState.stringData ),
+		"F.A.K.K.2's string data fits in this engine's" );
+	if ( cl.gameState.dataCount < 0 ||
+		cl.gameState.dataCount > static_cast<int>( sizeof( state->stringData ) ) ) {
+		Com_Error( ERR_DROP, "F.A.K.K.2's game state holds %i bytes of strings, "
+			"past the %i this title has", cl.gameState.dataCount,
+			static_cast<int>( sizeof( state->stringData ) ) );
+		return;
+	}
+	std::memset( state, 0, sizeof( *state ) );
+	for ( int i = 0; i < FNTECH3_FAKK2_MAX_CONFIGSTRINGS; i++ ) {
+		state->stringOffsets[i] = cl.gameState.stringOffsets[i];
+	}
+	for ( int i = FNTECH3_FAKK2_MAX_CONFIGSTRINGS; i < MAX_GAME_CONFIGSTRINGS; i++ ) {
+		if ( cl.gameState.stringOffsets[i] ) {
+			Com_Error( ERR_DROP, "F.A.K.K.2's game state holds configstring %i, "
+				"past the %i this title has", i, FNTECH3_FAKK2_MAX_CONFIGSTRINGS );
+			return;
+		}
+	}
+	std::memcpy( state->stringData, cl.gameState.stringData, sizeof( state->stringData ) );
+	state->dataCount = cl.gameState.dataCount;
+}
+
+/* Slot 75: Alice's snapshot, built as her accessor builds it -- parents before
+ * their attached children -- and then carried into F.A.K.K.2's record. */
+fntech3_alice_snapshot_t fakk2SnapshotScratch;
+
+qboolean QDECL CL_FAKK2GetSnapshot( int snapshotNumber, fntech3_fakk2_snapshot_t *snapshot ) {
+	if ( !snapshot || !CL_AliceGetSnapshot( snapshotNumber, &fakk2SnapshotScratch ) ) {
+		return qfalse;
+	}
+	const fntech3_alice_snapshot_t &from = fakk2SnapshotScratch;
+	snapshot->snapFlags = from.snapFlags;
+	snapshot->ping = from.ping;
+	snapshot->serverTime = from.serverTime;
+	std::memcpy( snapshot->areamask, from.areamask, sizeof( snapshot->areamask ) );
+	snapshot->ps = from.ps;
+	snapshot->numEntities = from.numEntities;
+	for ( int i = 0; i < from.numEntities; i++ ) {
+		fntech3::fakk2::convert::EntityFromAlice( from.entities[i], snapshot->entities[i] );
+	}
+	snapshot->numServerCommands = from.numServerCommands;
+	snapshot->serverCommandSequence = from.serverCommandSequence;
+	snapshot->number_of_sounds = from.number_of_sounds;
+	std::memcpy( snapshot->sounds, from.sounds, sizeof( snapshot->sounds ) );
+	return qtrue;
+}
+
+qboolean QDECL CL_FAKK2GetParseEntityState( int parseEntityNumber, fntech3_fakk2_entityState_t *state ) {
+	fntech3_alice_entityState_t alice;
+	if ( !state || !CL_AliceGetParseEntityState( parseEntityNumber, &alice ) ) {
+		return qfalse;
+	}
+	fntech3::fakk2::convert::EntityFromAlice( alice, *state );
+	return qtrue;
+}
+
+/* Slots 91 and 104, into F.A.K.K.2's 128-command, ten-argument record. */
+fntech3_alice_tiki_cmd_t fakk2CGameCommandScratch;
+
+qboolean CL_FAKK2Commands( qboolean found, fntech3_fakk2_tiki_cmd_t *commands ) {
+	if ( !commands ) {
+		return qfalse;
+	}
+	if ( !found ) {
+		commands->num_cmds = 0;
+		return qfalse;
+	}
+	if ( !fntech3::fakk2::convert::CommandsFromAlice( fakk2CGameCommandScratch, *commands ) ) {
+		Com_DPrintf( "a command list longer than F.A.K.K.2's 128 commands of ten arguments was cut short\n" );
+	}
+	return qtrue;
+}
+
+qboolean QDECL CL_FAKK2InitCommands( int tiki, fntech3_fakk2_tiki_cmd_t *commands ) {
+	std::memset( &fakk2CGameCommandScratch, 0, sizeof( fakk2CGameCommandScratch ) );
+	return CL_FAKK2Commands( CL_AliceInitCommands( tiki, &fakk2CGameCommandScratch ), commands );
+}
+
+qboolean QDECL CL_FAKK2FrameCommands( int tiki, int anim, int frame, fntech3_fakk2_tiki_cmd_t *commands ) {
+	std::memset( &fakk2CGameCommandScratch, 0, sizeof( fakk2CGameCommandScratch ) );
+	return CL_FAKK2Commands( CL_AliceFrameCommands( tiki, anim, frame, &fakk2CGameCommandScratch ),
+		commands );
+}
+
+/* Slot 29, into Quake III's eight-byte fragments. */
+int QDECL CL_FAKK2MarkFragments( int numPoints, const vec3_t *points, const float *projection,
+	int maxPoints, float *pointBuffer, int maxFragments, fntech3_fakk2_markFragment_t *fragments ) {
+	if ( !fragments || maxFragments <= 0 ) {
+		return 0;
+	}
+	std::vector<fntech3_alice_markFragment_t> alice( static_cast<std::size_t>( maxFragments ) );
+	const int count = CL_AliceMarkFragments( numPoints, points, projection, maxPoints,
+		pointBuffer, maxFragments, alice.data() );
+	fntech3::fakk2::convert::FragmentsFromAlice( alice.data(), count, fragments );
+	return count;
+}
+
+/* Slots 115 to 118, with the bone controllers as the two arrays F.A.K.K.2
+ * keeps them in, and slot 118's entity in F.A.K.K.2's layout. */
+AliceCGameOrientation *QDECL CL_FAKK2TagOrientation( AliceCGameOrientation *out, int tiki, int anim,
+	int frame, int tag, float scale, const int32_t *boneTag, const float ( *boneQuat )[4] ) {
+	fntech3_alice_bonectrl_t controllers[FNTECH3_ALICE_BONE_CONTROLLERS];
+	fntech3::fakk2::convert::ControllersToAlice( boneTag, boneQuat, controllers );
+	return CL_AliceTagOrientation( out, tiki, anim, frame, tag, scale, controllers );
+}
+
+AliceCGameOrientation *QDECL CL_FAKK2TagOrientationEx( AliceCGameOrientation *out, int tiki, int anim,
+	int frame, int tag, float scale, const int32_t *boneTag, const float ( *boneQuat )[4],
+	int crossblendAnim, int crossblendFrame, float crossblendLerp, int useLegs, int useTorso,
+	int torsoAnim, int torsoFrame, int torsoCrossblendAnim, int torsoCrossblendFrame,
+	float torsoCrossblendLerp ) {
+	fntech3_alice_bonectrl_t controllers[FNTECH3_ALICE_BONE_CONTROLLERS];
+	fntech3::fakk2::convert::ControllersToAlice( boneTag, boneQuat, controllers );
+	AliceTiki_TagOrientationEx( tiki, anim, frame, tag, scale, controllers, crossblendAnim,
+		crossblendFrame, crossblendLerp, useLegs ? qtrue : qfalse, useTorso ? qtrue : qfalse,
+		torsoAnim, torsoFrame, torsoCrossblendAnim, torsoCrossblendFrame, torsoCrossblendLerp,
+		out->origin, out->axis );
+	return out;
+}
+
+AliceCGameOrientation *QDECL CL_FAKK2TagNamedOrientation( AliceCGameOrientation *out, int tiki,
+	int anim, int frame, float scale, const char *tagName, const int32_t *boneTag,
+	const float ( *boneQuat )[4] ) {
+	fntech3_alice_bonectrl_t controllers[FNTECH3_ALICE_BONE_CONTROLLERS];
+	fntech3::fakk2::convert::ControllersToAlice( boneTag, boneQuat, controllers );
+	return CL_AliceTagNamedOrientation( out, tiki, anim, frame, scale, tagName, controllers );
+}
+
+AliceCGameOrientation *QDECL CL_FAKK2TagLerpedOrientation( AliceCGameOrientation *out, int tiki,
+	const fntech3_fakk2_refEntity_t *entity, int tag ) {
+	fntech3_alice_refEntity_t alice;
+	if ( !entity ) {
+		return CL_AliceTagLerpedOrientation( out, tiki, nullptr, tag );
+	}
+	fntech3::fakk2::convert::RefEntityToAlice( *entity, alice );
+	return CL_AliceTagLerpedOrientation( out, tiki, &alice, tag );
+}
+
+/* Build F.A.K.K.2's table from Alice's: the same services at the same
+ * positions, and F.A.K.K.2's own records where the two differ. Slot 0 is the
+ * import table's version, CGAME_IMPORT_API_VERSION 3 in the SDK's header;
+ * the retail module never reads it (no instruction in cgamex86.dll addresses
+ * its copy at 0x301a3a20), and it is filled rather than left null. */
+void CL_FAKK2FillCGameImports() {
+	for ( int slot = 0; slot < FNTECH3_FAKK2_CGAME_IMPORT_SLOTS; slot++ ) {
+		fakk2CGameImport[slot] = aliceCGameImport.slot[fntech3::fakk2::module::AliceCgameSlot( slot )];
+	}
+	fakk2CGameImport[0] = 3;
+
+#define SERVE_FAKK2( index, fn ) \
+	fakk2CGameImport[index] = reinterpret_cast<std::intptr_t>( &fn )
+
+	SERVE_FAKK2( FNTECH3_FAKK2_CG_CM_MarkFragments, CL_FAKK2MarkFragments );
+	SERVE_FAKK2( FNTECH3_ALICE_CG_R_RenderScene, CL_FAKK2RenderScene );
+	SERVE_FAKK2( FNTECH3_ALICE_CG_R_AddRefEntityToScene, CL_FAKK2AddRefEntityToScene );
+	SERVE_FAKK2( FNTECH3_ALICE_CG_R_AddRefSpriteToScene, CL_FAKK2AddRefSpriteToScene );
+	SERVE_FAKK2( FNTECH3_ALICE_CG_R_GetRenderEntity, CL_FAKK2GetRenderEntity );
+	SERVE_FAKK2( FNTECH3_FAKK2_CG_R_DrawBox, CL_FAKK2DrawBox );
+	SERVE_FAKK2( FNTECH3_FAKK2_CG_GetGameState, CL_FAKK2GetGameState );
+	SERVE_FAKK2( FNTECH3_FAKK2_CG_GetSnapshot, CL_FAKK2GetSnapshot );
+	SERVE_FAKK2( FNTECH3_ALICE_CG_GetParseEntityState, CL_FAKK2GetParseEntityState );
+	SERVE_FAKK2( FNTECH3_FAKK2_CG_InitCommands, CL_FAKK2InitCommands );
+	SERVE_FAKK2( FNTECH3_FAKK2_CG_Frame_Commands, CL_FAKK2FrameCommands );
+	SERVE_FAKK2( FNTECH3_FAKK2_CG_Tag_Orientation, CL_FAKK2TagOrientation );
+	SERVE_FAKK2( FNTECH3_FAKK2_CG_Tag_OrientationEx, CL_FAKK2TagOrientationEx );
+	SERVE_FAKK2( FNTECH3_FAKK2_CG_Tag_NamedOrientation, CL_FAKK2TagNamedOrientation );
+	SERVE_FAKK2( FNTECH3_ALICE_CG_Tag_LerpedOrientation, CL_FAKK2TagLerpedOrientation );
+
+#undef SERVE_FAKK2
+}
+
+int CL_FAKK2ServedCGameImports() {
+	int served = 0;
+	for ( int slot = 1; slot < FNTECH3_FAKK2_CGAME_IMPORT_SLOTS; slot++ ) {
+		served += fakk2CGameImport[slot]
+			!= aliceCGameUnserved.slot[fntech3::fakk2::module::AliceCgameSlot( slot )];
+	}
+	return served;
+}
+
 /* The seven exports, at the argument counts their own bodies read and the
  * retail engine's own call sites push. */
 typedef void ( QDECL *AliceCGameInit_t )( CGameImportTable *imports,
@@ -1309,8 +1591,11 @@ intptr_t QDECL CL_AliceCgameEntry( int command, ... ) {
 	switch ( command ) {
 	case CG_INIT: {
 		auto init = CL_AliceCGameExport<AliceCGameInit_t>( FNTECH3_ALICE_CGE_Init );
-		init( &aliceCGameImport, args[0], args[1] );
-		Com_Printf( "Alice client game initialized.\n" );
+		/* F.A.K.K.2's initializer copies its own 124 slots from the same
+		 * position and reads the same two sequence numbers (0x30022470). */
+		init( CL_RitualIsFAKK2() ? reinterpret_cast<CGameImportTable *>( fakk2CGameImport )
+			: &aliceCGameImport, args[0], args[1] );
+		Com_Printf( "%s client game initialized.\n", CL_RitualIsFAKK2() ? "F.A.K.K.2" : "Alice" );
 		return 0;
 	}
 	case CG_SHUTDOWN: {
@@ -1378,15 +1663,20 @@ vm_t *CL_AliceLoadCGame() {
 
 	const std::intptr_t *exports =
 		static_cast<const std::intptr_t *>( getCGameAPI() );
+	const bool fakk2 = CL_RitualIsFAKK2();
+	const char *title = fakk2 ? "F.A.K.K.2's" : "Alice's";
 	if ( !exports ) {
 		VM_Free( vm );
-		Com_Error( ERR_DROP, "Alice's client game published no export table" );
+		Com_Error( ERR_DROP, "%s client game published no export table", title );
 		return nullptr;
 	}
-	for ( int i = 0; i < FNTECH3_ALICE_CGAME_EXPORT_SLOTS; i++ ) {
+	/* F.A.K.K.2's GetCGameAPI (0x300224e0) writes the first six of Alice's
+	 * seven, in the same order; the seventh is Alice's own. */
+	const int exportSlots = fakk2 ? FNTECH3_FAKK2_CGAME_EXPORT_SLOTS : FNTECH3_ALICE_CGAME_EXPORT_SLOTS;
+	for ( int i = 0; i < exportSlots; i++ ) {
 		if ( !exports[i] ) {
 			VM_Free( vm );
-			Com_Error( ERR_DROP, "Alice's client game left its %s export empty",
+			Com_Error( ERR_DROP, "%s client game left its %s export empty", title,
 				fntech3::alice::module::kCGameExports[i].name );
 			return nullptr;
 		}
@@ -1394,6 +1684,13 @@ vm_t *CL_AliceLoadCGame() {
 
 	aliceCGameExports = exports;
 	CL_AliceFillCGameImports();
+	if ( fakk2 ) {
+		CL_FAKK2FillCGameImports();
+		Com_Printf( "F.A.K.K.2 client game loaded: table at %p\n", (const void *)exports );
+		Com_Printf( "  %i of %i client-game imports are served; the rest drop by name.\n",
+			CL_FAKK2ServedCGameImports(), FNTECH3_FAKK2_CGAME_IMPORT_SLOTS - 1 );
+		return vm;
+	}
 
 	Com_Printf( "Alice client game loaded: table at %p\n", (const void *)exports );
 	Com_Printf( "  %i of %i client-game imports are served; the rest drop by name.\n",

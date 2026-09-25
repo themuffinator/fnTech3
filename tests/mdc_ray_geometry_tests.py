@@ -27,7 +27,7 @@ struct rtxRtCpuGeometry_t {
     struct { float xyz[3], normal[3], uv[2]; } vertices[3];
     unsigned triangles[1][3];
 };
-static int failure, tuning, materialHandle;
+static int failure, materialHandle;
 static qboolean vk_rt_checked_u32_multiply(uint32_t a, uint32_t b, uint32_t *out) {
     if (a > UINT32_MAX / b) return qfalse; *out = a * b; return qtrue;
 }
@@ -37,9 +37,6 @@ static qboolean vk_rt_cpu_geometry_find_or_add_material(rtxRtCpuGeometry_t *geom
 }
 static qboolean vk_rt_cpu_geometry_reserve(rtxRtCpuGeometry_t *, uint32_t verts, uint32_t indexes) {
     assert(verts == 3 && indexes == 3); return failure == 2 ? qfalse : qtrue;
-}
-static void vk_rt_apply_effect_material_tuning(rtxRtCpuGeometry_t *, uint32_t material, qboolean a, qboolean b) {
-    assert(material == 0 && !a && !b); ++tuning;
 }
 static void vk_rt_transform_point(const trRefEntity_t *ent, const vec3_t local, vec3_t world) {
     for (int i = 0; i < 3; ++i) world[i] = local[i] + ent->e.origin[i];
@@ -90,7 +87,7 @@ int main() {
     entity.e.frame = 2; entity.e.oldframe = 0; entity.e.renderfx = RF_FIRST_PERSON;
     entity.e.skinNum = -1;
     rtxRtCpuGeometry_t geometry{};
-    assert(vk_rt_append_mdc_entity_geometry(&geometry, &entity) && tuning == 1 && materialHandle == 7);
+    assert(vk_rt_append_mdc_entity_geometry(&geometry, &entity) && materialHandle == 7);
     skin.numSurfaces = 1; skin.surfaces[0] = {"surface", &shaderTable[8]}; entity.e.customSkin = 1;
     geometry = {}; assert(vk_rt_append_mdc_entity_geometry(&geometry, &entity) && materialHandle == 8 && !geometry.maskedTriangleCount);
     skin.surfaces[0].name = "absent";

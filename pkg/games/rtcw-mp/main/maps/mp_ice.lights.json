@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "generator": "fnTech3 scripts/generate_stock_rtcw_lights.py",
+  "map": "mp_ice",
+  "profile": "rtcw-mp",
+  "source": "IBSP 47 entity lump, the map's compiled light entities",
+  "dlightScale": 0.5,
+  "lights": [
+    {"name": "mp_ice-light-0554", "type": "point", "origin": [-3920, -824, 64], "color": [0.7957, 0.746, 0.8952], "intensity": 185.3, "radius": 185.3, "castsShadows": true},
+    {"name": "mp_ice-light-0555", "type": "point", "origin": [-3952, -824, 64], "color": [0.7957, 0.746, 0.8952], "intensity": 185.3, "radius": 185.3, "castsShadows": true},
+    {"name": "mp_ice-light-0556", "type": "point", "origin": [-3920, -776, 64], "color": [0.7957, 0.746, 0.8952], "intensity": 185.3, "radius": 185.3, "castsShadows": true},
+    {"name": "mp_ice-light-0557", "type": "point", "origin": [-3952, -776, 64], "color": [0.7957, 0.746, 0.8952], "intensity": 185.3, "radius": 185.3, "castsShadows": true},
+    {"name": "mp_ice-light-0558", "type": "point", "origin": [-4272, -824, 64], "color": [0.7957, 0.746, 0.8952], "intensity": 185.3, "radius": 185.3, "castsShadows": true},
+    {"name": "mp_ice-light-0559", "type": "point", "origin": [-4304, -824, 64], "color": [0.7957, 0.746, 0.8952], "intensity": 185.3, "radius": 185.3, "castsShadows": true},
+    {"name": "mp_ice-light-0560", "type": "point", "origin": [-4272, -776, 64], "color": [0.7957, 0.746, 0.8952], "intensity": 185.3, "radius": 185.3, "castsShadows": true},
+    {"name": "mp_ice-light-0561", "type": "point", "origin": [-4304, -776, 64], "color": [0.7957, 0.746, 0.8952], "intensity": 185.3, "radius": 185.3, "castsShadows": true},
+    {"name": "mp_ice-light-0562", "type": "point", "origin": [-2752, 704, 32], "color": [0.7957, 0.746, 0.8952], "intensity": 117.2, "radius": 117.2, "castsShadows": true},
+    {"name": "mp_ice-light-0563", "type": "point", "origin": [-2752, 640, 32], "color": [0.7957, 0.746, 0.8952], "intensity": 117.2, "radius": 117.2, "castsShadows": true},
+    {"name": "mp_ice-light-0564", "type": "point", "origin": [-2752, 576, 32], "color": [0.7957, 0.746, 0.8952], "intensity": 117.2, "radius": 117.2, "castsShadows": true},
+    {"name": "mp_ice-light-0565", "type": "point", "origin": [-2816, 704, 64], "color": [0.7957, 0.746, 0.8952], "intensity": 117.2, "radius": 117.2, "castsShadows": true},
+    {"name": "mp_ice-light-0566", "type": "point", "origin": [-2816, 640, 64], "color": [0.7957, 0.746, 0.8952], "intensity": 117.2, "radius": 117.2, "castsShadows": true}
+  ]
+}

@@ -48,6 +48,9 @@ struct {bool demoplaying;netchanWireProfile_t demoWireProfile;struct{netchanWire
 struct {connstate_t state;}cls;
 comGameProfile_t selected{};
 const comGameProfile_t *Com_GameProfile(){return &selected;}
+// Q3Test's wire is its pinned release's (cl_q3test.cpp).
+int Com_GameIsQ3Test(){return 0;}
+netchanWireProfile_t CL_Q3TestWireProfile(){assert(false);return NETCHAN_WIRE_Q3TEST_B;}
 ''' + implementation + r'''
 int main(){
  struct Mode{int protocol;netchanWireProfile_t wire;int commands;};
@@ -79,10 +82,11 @@ int main(){
 #include <string>
 #include <initializer_list>
 struct {unsigned before;gameState_t gameState;unsigned after;} cl;
-int limit,clients,playerBase,refreshes;
+int limit,clients,playerBase,charLimit,refreshes;
 int Com_GameConfigstringLimit(){return limit;}
 int Com_GameClientLimit(){return clients;}
 int Com_GamePlayerConfigstringBase(){return playerBase;}
+int Com_GameStateCharLimit(){return charLimit;}
 std::string indexArg;
 char payload[64];
 const char *Cmd_Argv(int){return indexArg.c_str();}
@@ -93,10 +97,27 @@ void CL_SystemInfoChanged(qboolean){}
 void CL_WebHost_InvalidateFriendSnapshot(){++refreshes;}
 ''' + implementation + r'''
 void update(int index,const char *text){indexArg=std::to_string(index);strcpy(payload,text);CL_ConfigstringModified();}
+// Fill the text from `slot` up to exactly the profile's own limit, which is
+// accepted; one byte more than that drops, whatever the storage holds.
+void fillToLimit(int slot){
+ std::string text;int last=-1;
+ while(cl.gameState.dataCount<charLimit){
+  const int remaining=charLimit-cl.gameState.dataCount;assert(remaining>=2);
+  int length=std::min(62,remaining-1);
+  if(remaining-(length+1)==1)--length;  // never leave a single byte over
+  text.assign(length,char('a'+slot%26));last=slot;update(slot++,text.c_str());
+ }
+ assert(cl.gameState.dataCount==charLimit&&charLimit<=MAX_GAMESTATE_CHARS);
+ text+='z';
+ try{update(last,text.c_str());assert(false);}catch(Drop&){}
+}
 int main(){
- struct Mode{int strings,clients,players;};
- for(Mode mode:{Mode{1024,64,544},Mode{2048,128,544},Mode{2048,64,576}}){
-  limit=mode.strings;clients=mode.clients;playerBase=mode.players;cl={};
+ // Quake III, RTCW SP and RTCW MP keep Quake III's 16,000 bytes of text;
+ // Medal of Honor 1.00 has 2,736 strings, its players at 1,684, and 32,000.
+ struct Mode{int strings,clients,players,chars;};
+ for(Mode mode:{Mode{1024,64,544,16000},Mode{2048,128,544,16000},Mode{2048,64,576,16000},
+                Mode{2736,64,1684,32000}}){
+  limit=mode.strings;clients=mode.clients;playerBase=mode.players;charLimit=mode.chars;cl={};
   cl.before=0x55aa55aa;cl.after=0xaa55aa55;cl.gameState.dataCount=1;refreshes=0;
   update(2,"first");update(limit-1,"last");
   assert(!strcmp(cl.gameState.stringData+cl.gameState.stringOffsets[2],"first"));
@@ -104,11 +125,14 @@ int main(){
   update(playerBase+clients-1,"player");assert(refreshes==1);
   update(playerBase+clients,"after players");assert(refreshes==1);
   const auto saved=cl;
-  for(int index:{-1,limit,2048,0x7fffffff}){
+  for(int index:{-1,limit,2048,MAX_GAME_CONFIGSTRINGS,0x7fffffff}){
+   if(index>=0&&index<limit)continue;  // 2048 is one of Medal of Honor's own
    try{update(index,"invalid");assert(false);}catch(Drop&){}
    assert(!memcmp(&cl,&saved,sizeof(cl)));
   }
   for(int i=limit;i<MAX_GAME_CONFIGSTRINGS;++i)assert(cl.gameState.stringOffsets[i]==0);
+  assert(cl.before==0x55aa55aa&&cl.after==0xaa55aa55);
+  fillToLimit(3);
   assert(cl.before==0x55aa55aa&&cl.after==0xaa55aa55);
  }
 }
@@ -155,8 +179,11 @@ void run(netchanWireProfile_t profile,int length,int capacity,bool expected,nets
   append(msg,1u|FragmentBit,4);
   if(sock==NS_SERVER)append(msg,123,2);
   if(Netchan_WireHasFeature(profile,NETCHAN_FEATURE_SEQUENCE_CHECKSUM))append(msg,SequenceChecksum(chan.challenge,1),4);
-  append(msg,start,2);append(msg,count,2);
+  // Alice's wire carries the offset as a long (alice.exe 0x0044710e).
+  append(msg,start,Netchan_WireHasFeature(profile,NETCHAN_FEATURE_LONG_FRAGMENT_START)?4:2);append(msg,count,2);
   for(int i=0;i<count;++i)append(msg,value(start+i),1);
+  if(Netchan_WireHasFeature(profile,NETCHAN_FEATURE_PACKET_SCRAMBLE))
+   assert(fntech3::stvef::netchan::Scramble(msg.data,static_cast<std::size_t>(msg.cursize)));
   result=Netchan_Process(&chan,&msg)!=qfalse;
   if(start+count<length)assert(!result&&chan.incomingSequence==0);
   assert(storage.front()==0xa5&&storage.back()==0xa5);
@@ -168,13 +195,16 @@ void run(netchanWireProfile_t profile,int length,int capacity,bool expected,nets
  }else assert(chan.incomingSequence==0);
 }
 int main(){
- for(auto profile:{NETCHAN_WIRE_LEGACY_Q3,NETCHAN_WIRE_IOQ3,NETCHAN_WIRE_QL_RETAIL,NETCHAN_WIRE_RTCW_SP,NETCHAN_WIRE_RTCW_MP}){
+ for(auto profile:{NETCHAN_WIRE_LEGACY_Q3,NETCHAN_WIRE_IOQ3,NETCHAN_WIRE_QL_RETAIL,NETCHAN_WIRE_RTCW_SP,NETCHAN_WIRE_RTCW_MP,
+   NETCHAN_WIRE_ALICE}){
   const int limit=Netchan_MessageLimit(profile);
   for(auto sock:{NS_CLIENT,NS_SERVER}){
    run(profile,limit,limit+4,true,sock);
    run(profile,limit,limit,false,sock); // buffer has no room for the sequence header
    run(profile,limit+1,MAX_GAME_MSGLEN+8,false,sock);
-   run(profile,20000,MAX_GAME_MSGLEN+8,limit==32768,sock);
+   run(profile,20000,MAX_GAME_MSGLEN+8,limit>=20000,sock);
+   // F.A.K.K.2's oracle gamestate: its later fragments start past 32,767.
+   if(profile==NETCHAN_WIRE_ALICE)run(profile,40244,MAX_GAME_MSGLEN+8,true,sock);
   }
  }
  netchan_t invalid{};invalid.wireProfile=static_cast<netchanWireProfile_t>(99);

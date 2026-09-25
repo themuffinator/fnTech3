@@ -241,8 +241,6 @@ def profile_cvars(profile_name: str, width: int, height: int, game_profile: str 
         "r_surfaceLightProxies": "0",
         "r_vertexLight": "0",
         "rtx_rt_async_overlap": "0",
-        "rtx_rt_dynamic_blas": "0",
-        "rtx_rt_material_heuristics": "0",
         "rtx_rt_mode": str(spec["requested"]),
         "rtx_rt_require": str(spec["require"]),
         "s_initsound": "0",

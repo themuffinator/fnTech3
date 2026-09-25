@@ -20,7 +20,7 @@ class RTCWGamestateBudgetTests(unittest.TestCase):
         # Elite Force Holomatch measures its own raw-bit wire the same way, and
         # so does Alice, whose baselines start from its own null entity.
         self.assertIn(
-            'const bool ownWire = Com_GameIsRTCW() || Com_GameIsSTVEFMP() || Com_GameIsAlice();',
+            'const bool ownWire = Com_GameIsRTCW() || Com_GameIsSTVEFMP() || Com_GameIsRitual();',
             self.body)
         self.assertIn('MSG_NullEntityStateForWireProfile( &nullstate, wire );', self.body)
         self.assertIn('const netchanWireProfile_t wire = ownWire', self.body)

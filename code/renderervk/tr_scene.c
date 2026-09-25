@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderercommon/tr_wolfet_global_fog_scene.h"
 #include "../renderercommon/tr_rtcw_corona_scene.h"
 #include "../renderercommon/tr_wolfet_decal_scene.h"
+#include "../renderercommon/tr_rtcw_engine_lights.h"
 
 static int			r_firstSceneDrawSurf;
 #ifdef USE_PMLIGHT
@@ -37,6 +38,7 @@ static int			r_firstSceneLitSurf;
 
 int			r_numdlights;
 static int			r_firstSceneDlight;
+int			r_numModuleDlights;	// this frame's RTCW or ET module lights, among r_numdlights
 
 static int			r_numentities;
 static int			r_firstSceneEntity;
@@ -202,6 +204,7 @@ void R_InitNextFrame( void ) {
 
 	r_numdlights = 0;
 	r_firstSceneDlight = 0;
+	r_numModuleDlights = 0;
 
 	r_numentities = 0;
 	r_firstSceneEntity = 0;
@@ -808,7 +811,9 @@ static void R_ResetStaticMapLightFrameCounters( void )
 	tr.staticMapLights.skippedBudgetThisFrame = 0;
 }
 
-static void R_AddStaticMapLightsToScene( const refdef_t *fd )
+// lightEnd is one past the last frame slot the engine's own lights may fill
+// in this scene, or zero when the scene takes none (R_EngineSceneLightEnd)
+static void R_AddStaticMapLightsToScene( const refdef_t *fd, int lightEnd )
 {
 	qboolean selected[MAX_STATIC_MAP_LIGHTS];
 	qboolean visible[MAX_STATIC_MAP_LIGHTS];
@@ -824,15 +829,15 @@ static void R_AddStaticMapLightsToScene( const refdef_t *fd )
 	if ( !tr.staticMapLights.loaded || tr.staticMapLights.parseFailed || tr.staticMapLights.count <= 0 ) {
 		return;
 	}
-	if ( !r_staticLights || !r_staticLights->integer || ( fd->rdflags & RDF_NOWORLDMODEL ) ) {
+	if ( !r_staticLights || !r_staticLights->integer || ( fd->rdflags & RDF_NOWORLDMODEL ) || lightEnd <= 0 ) {
 		tr.staticMapLights.skippedDisabledThisFrame = tr.staticMapLights.count;
 		return;
 	}
 
 	budget = r_staticLightMaxLights ? r_staticLightMaxLights->integer : 8;
 	budget = (int)Com_Clamp( 0.0f, (float)MAX_DLIGHTS, (float)budget );
-	if ( budget > (int)ARRAY_LEN( backEndData->dlights ) - r_numdlights ) {
-		budget = (int)ARRAY_LEN( backEndData->dlights ) - r_numdlights;
+	if ( budget > lightEnd - r_numdlights ) {
+		budget = lightEnd - r_numdlights;
 	}
 	if ( budget <= 0 ) {
 		tr.staticMapLights.skippedBudgetThisFrame = tr.staticMapLights.count;
@@ -882,7 +887,7 @@ static void R_AddStaticMapLightsToScene( const refdef_t *fd )
 			}
 		}
 
-		if ( bestIndex < 0 || bestPriority <= 0.0f || r_numdlights >= ARRAY_LEN( backEndData->dlights ) ) {
+		if ( bestIndex < 0 || bestPriority <= 0.0f || r_numdlights >= lightEnd ) {
 			break;
 		}
 
@@ -984,7 +989,7 @@ static void R_SurfaceLightProxySpotEnd( const surfaceLightProxy_t *proxy, vec3_t
 	VectorMA( proxy->origin, proxy->radius, proxy->normal, end );
 }
 
-static void R_AddSurfaceLightProxiesToScene( const refdef_t *fd )
+static void R_AddSurfaceLightProxiesToScene( const refdef_t *fd, int lightEnd )
 {
 	qboolean selected[MAX_SURFACELIGHT_PROXIES];
 	qboolean visible[MAX_SURFACELIGHT_PROXIES];
@@ -1002,15 +1007,16 @@ static void R_AddSurfaceLightProxiesToScene( const refdef_t *fd )
 	if ( !tr.surfaceLightProxies.built || tr.surfaceLightProxies.count <= 0 ) {
 		return;
 	}
-	if ( !r_surfaceLightProxies || !r_surfaceLightProxies->integer || ( fd->rdflags & RDF_NOWORLDMODEL ) ) {
+	if ( !r_surfaceLightProxies || !r_surfaceLightProxies->integer || ( fd->rdflags & RDF_NOWORLDMODEL ) ||
+		lightEnd <= 0 ) {
 		tr.surfaceLightProxies.skippedDisabledThisFrame = tr.surfaceLightProxies.count;
 		return;
 	}
 
 	budget = r_surfaceLightProxyMaxLights ? r_surfaceLightProxyMaxLights->integer : 4;
 	budget = (int)Com_Clamp( 0.0f, (float)MAX_DLIGHTS, (float)budget );
-	if ( budget > (int)ARRAY_LEN( backEndData->dlights ) - r_numdlights ) {
-		budget = (int)ARRAY_LEN( backEndData->dlights ) - r_numdlights;
+	if ( budget > lightEnd - r_numdlights ) {
+		budget = lightEnd - r_numdlights;
 	}
 	if ( budget <= 0 ) {
 		tr.surfaceLightProxies.skippedBudgetThisFrame = tr.surfaceLightProxies.count;
@@ -1066,7 +1072,7 @@ static void R_AddSurfaceLightProxiesToScene( const refdef_t *fd )
 			}
 		}
 
-		if ( bestIndex < 0 || bestPriority <= 0.0f || r_numdlights >= ARRAY_LEN( backEndData->dlights ) ) {
+		if ( bestIndex < 0 || bestPriority <= 0.0f || r_numdlights >= lightEnd ) {
 			break;
 		}
 
@@ -1189,7 +1195,7 @@ void R_DlightTest_f( void )
 }
 
 
-static void R_AddDlightTestLightsToScene( const refdef_t *fd )
+static void R_AddDlightTestLightsToScene( const refdef_t *fd, int lightEnd )
 {
 	static const vec3_t colors[] = {
 		{ 1.00f, 0.30f, 0.18f },
@@ -1217,7 +1223,7 @@ static void R_AddDlightTestLightsToScene( const refdef_t *fd )
 	phase = fd->time * 0.001f;
 	VectorMA( fd->vieworg, r_dlightTestState.distance, fd->viewaxis[0], base );
 
-	for ( i = 0; i < count && r_numdlights < ARRAY_LEN( backEndData->dlights ); i++ ) {
+	for ( i = 0; i < count && r_numdlights < lightEnd; i++ ) {
 		const float angle = phase * 0.7f + ( 6.28318530718f * i ) / (float)count;
 		const float side = cosf( angle ) * r_dlightTestState.distance * 0.75f;
 		const float lift = r_dlightTestState.height + sinf( angle ) * r_dlightTestState.distance * 0.35f;
@@ -1290,11 +1296,13 @@ void RE_AddAliceLightToScene( const vec3_t org, float intensity, float r, float 
 	} else {
 		RE_AddLightToScene( org, intensity, r, g, b );
 	}
-	if ( ri.gameId != COM_GAME_ALICE || r_numdlights == before ) {
+	if ( !( COM_GAME_ID_IS_RITUAL( ri.gameId ) || ri.gameId == COM_GAME_MOHAA ) || r_numdlights == before ) {
 		return;
 	}
 	dl = &backEndData->dlights[r_numdlights - 1];
-	dl->aliceFlare = type & 3;
+	/* Medal of Honor flares a lens-flare or an additive light, not a view
+	 * lens-flare one (OpenMoHAA's R_DrawLensFlares [O]). */
+	dl->aliceFlare = ri.gameId == COM_GAME_MOHAA ? ( ( type & 5 ) ? 1 : 0 ) : type & 3;
 	VectorCopy( org, dl->aliceFlareOrigin );
 	VectorSet( dl->aliceFlareColor, r, g, b );
 }
@@ -1429,6 +1437,31 @@ static void R_RenderScreenshotCubemapViews( void )
 	tr.cubemapDrawSurfLimitHit = qfalse;
 }
 
+#ifdef USE_PMLIGHT
+/*
+=====================
+R_EngineSceneLightEnd
+
+One past the last frame slot the engine's own scene lights may fill, or zero
+when this scene takes none. RTCW's and ET's keep their modules' 32 lights a
+frame. RTCW's join only where an ordinary RTCW light is drawn per pixel, and
+ET's only where an unforced ET light is drawn (tr_rtcw_engine_lights.h).
+=====================
+*/
+static int R_EngineSceneLightEnd( void )
+{
+	if ( !R_ReservesModuleLights() ) {
+		return (int)ARRAY_LEN( backEndData->dlights );
+	}
+	if ( R_UsesRTCWLighting() ? !RTCW_SceneTakesEngineLights( R_GetDlightMode(), r_dynamiclight->integer,
+		tr.refdef.rtcw.snooperView ) : !WolfET_SceneTakesEngineLights( r_dynamiclight->integer ) ) {
+		return 0;
+	}
+	return RTCW_EngineLightEnd( (int)ARRAY_LEN( backEndData->dlights ), r_numModuleDlights,
+		r_firstSceneDlight );
+}
+#endif
+
 void *R_GetCommandBuffer( int bytes );
 
 /*
@@ -1471,6 +1504,7 @@ void RE_RenderScene( const refdef_t *fd ) {
 	tr.refdef.height = fd->height;
 	tr.refdef.fov_x = fd->fov_x;
 	tr.refdef.fov_y = fd->fov_y;
+	tr.refdef.fovXAuthored = fd->fov_x;
 	R_ApplyProfileFovCorrection( fd, &tr.refdef.fov_x, &tr.refdef.fov_y );
 
 	VectorCopy( fd->vieworg, tr.refdef.vieworg );
@@ -1483,7 +1517,7 @@ void RE_RenderScene( const refdef_t *fd ) {
 	tr.refdef.rtcw = fd->rtcw;
 	// American McGee's Alice: far plane, sky portal and keepDepth, as its
 	// RE_RenderScene copies them (alice.exe 0x00491870); one sky portal a scene
-	if ( ri.gameId == COM_GAME_ALICE ) {
+	if ( R_GAME_HAS_RITUAL_VIEW( ri.gameId ) ) {
 		tr.refdef.alice = fd->alice;
 	} else {
 		Com_Memset( &tr.refdef.alice, 0, sizeof( tr.refdef.alice ) );
@@ -1514,11 +1548,15 @@ void RE_RenderScene( const refdef_t *fd ) {
 		}
 	}
 
+	// the scene's module lights lead its set; the engine's own follow them
+	tr.refdef.num_moduleDlights = r_numdlights - r_firstSceneDlight;
 #ifdef USE_PMLIGHT
-	if ( !R_UsesRTCWLighting() ) {
-		R_AddDlightTestLightsToScene( fd );
-		R_AddStaticMapLightsToScene( fd );
-		R_AddSurfaceLightProxiesToScene( fd );
+	{
+		const int lightEnd = R_EngineSceneLightEnd();
+
+		R_AddDlightTestLightsToScene( fd, lightEnd );
+		R_AddStaticMapLightsToScene( fd, lightEnd );
+		R_AddSurfaceLightProxiesToScene( fd, lightEnd );
 	}
 #endif
 
@@ -1547,8 +1585,9 @@ void RE_RenderScene( const refdef_t *fd ) {
 	tr.refdef.polys = &backEndData->polys[r_firstScenePoly];
 
 	// turn off dynamic lighting globally by clearing all the
-	// dlights if it needs to be disabled
-	if ( ( !R_UsesRTCWLighting() && r_dynamiclight->integer == 0 ) || glConfig.hardwareType == GLHW_PERMEDIA2 ) {
+	// dlights if it needs to be disabled; RTCW's and ET's modules keep
+	// their forced lights at r_dynamiclight 0, as their own renderers do
+	if ( ( !R_ReservesModuleLights() && r_dynamiclight->integer == 0 ) || glConfig.hardwareType == GLHW_PERMEDIA2 ) {
 		tr.refdef.num_dlights = 0;
 	}
 

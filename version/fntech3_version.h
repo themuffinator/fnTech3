@@ -17,7 +17,7 @@ version.
 #define FNTECH3_PROJECT_NAME "fnTech3"
 #define FNTECH3_PROJECT_NAME_SHORT "fnTech3"
 #define FNTECH3_DISPLAY_NAME "fnTech3"
-#define FNTECH3_COMPATIBILITY_TARGET "Quake III Arena, Quake Live, Return to Castle Wolfenstein (SP/MP), Wolfenstein: Enemy Territory, Star Trek Voyager: Elite Force (SP/Holomatch), Star Wars Jedi Knight: Jedi Academy (SP/MP), and American McGee's Alice"
+#define FNTECH3_COMPATIBILITY_TARGET "Quake III Arena, Quake Live, Return to Castle Wolfenstein (SP/MP), Wolfenstein: Enemy Territory, Star Trek Voyager: Elite Force (SP/Holomatch), Star Wars Jedi Knight: Jedi Academy (SP/MP), Star Wars Jedi Knight II: Jedi Outcast (SP/MP), American McGee's Alice, Heavy Metal: F.A.K.K.2, and Medal of Honor: Allied Assault"
 
 /* Canonical release version. Use scripts/release_workflow.py prepare to update
  * every representation together. Published versions use MAJOR.MINOR.PATCH;

@@ -1,16 +1,31 @@
 # Display Guide
 
-FnQL splits display settings across three layers: how the window or fullscreen mode is created, how the scene is rendered internally, and which post-processing controls are applied to the final image. This guide covers renderer choice, video mode selection, framebuffer-based rendering, anti-aliasing, bloom, soft particles, and the related scene presentation controls.
+fnTech3's renderers draw every game with a client: Quake III Arena, Quake
+Live, Return to Castle Wolfenstein, Enemy Territory, Elite Force, Alice and
+F.A.K.K.2. The same three renderers, display modes and post-processing serve
+all of them, fed with each game's own maps, models, shaders, lights and fog.
+Where a game behaves differently -- a default, a format it alone uses, or a
+feature it cannot use -- this guide says so.
 
-For FOV, HUD, menu, and cinematic layout on widescreen displays, use the separate [Aspect Handling Guide](ASPECT_CORRECTION.md). Q3 and RTCW offer engine correction; retail Quake Live cgame owns its HUD projection and world FOV. For screenshot output and capture-specific options, use the [Screenshot Guide](SCREENSHOTS.md).
+Display settings fall into three layers: how the window or fullscreen mode is
+created, how the scene is rendered internally, and which post-processing is
+applied to the final image. This guide covers renderer choice, video modes,
+the framebuffer path, anti-aliasing, lighting and shadows, fog, liquids, bloom
+and the other scene controls.
+
+For FOV, HUD, menu and cinematic layout on widescreen displays, see the
+[Aspect Handling Guide](ASPECT_CORRECTION.md). For screenshot output and
+capture options, see the [Screenshot Guide](SCREENSHOTS.md). Which game runs
+at all is described in the [Games Guide](GAMES.md).
 
 ## Renderer Choice
 
-`cl_renderer` selects the rendering backend and requires `vid_restart`.
+`cl_renderer` selects the rendering backend and requires `vid_restart`. All
+three renderers are available in every game with a client.
 
 - `cl_renderer glx`: Canonical OpenGL-lineage renderer and client default, with compatibility tiers, streaming, static-world, material, postprocess, output, and profiling paths.
 - `cl_renderer vk`: Vulkan raster renderer with FBO rendering, HDR, multisampling, supersampling, render scaling, shader-based SDR gamma/overbright, greyscale, and bloom.
-- `cl_renderer rtx`: Vulkan ray-tracing renderer; full RT mode requires a ray-tracing-capable Vulkan GPU. See the [RTX Renderer Guide](fnql/RTX_RENDERER.md).
+- `cl_renderer rtx`: Vulkan ray-tracing renderer. It draws a complete raster frame by default and path traces the main view with `rtx_rt_mode 2`; see the [RTX Renderer Guide](RTX.md).
 
 Only `glx`, `vk`, and `rtx` are valid renderer selectors. See [GLX.md](GLX.md) for GLx diagnostics and troubleshooting.
 
@@ -37,8 +52,8 @@ Windowed placement is checked against the display's usable work area using the
 complete native frame, including resize borders and the title bar. This keeps
 the chrome reachable after a DPI change, dock/taskbar change, monitor removal,
 or renderer restart. On Wayland, the compositor owns top-level placement and
-server-side decorations by protocol, so FnQL leaves that policy to it instead
-of issuing unsupported position requests.
+server-side decorations by protocol, so fnTech3 leaves that policy to it
+instead of issuing unsupported position requests.
 
 Fullscreen picks one of two forms automatically. A request that matches the current desktop resolution with `r_displayRefresh 0` uses borderless desktop fullscreen: no display mode change, so alt-tab, other monitors, and the desktop layout are left alone. Any other resolution, or an explicit `r_displayRefresh`, switches the display to the closest matching mode at or above the requested size. The console line `...fullscreen <width>x<height>@<rate>Hz (exclusive|desktop)` reports what was actually applied; if no mode is large enough for the request, the engine says so and falls back to desktop fullscreen.
 
@@ -71,6 +86,19 @@ seta r_customHeight "900"
 vid_restart
 ```
 
+### Window Title And Icon
+
+The window and console titles name the running game, for example
+`fnTech3 0.1.0 - Return to Castle Wolfenstein (Multiplayer)`; `+set cl_title`
+on the command line replaces the title. The window, taskbar and Dock icon is
+the running game's own application icon, remade at high resolution:
+
+- `cl_gameIcon 1`: The built-in remake of the active game's icon. This is the default.
+- `cl_gameIcon 2`: The installation's own icon where the platform can read one, otherwise the remake.
+- `cl_gameIcon 0`: fnTech3's own icon.
+
+`cl_gameIcon` takes effect at the next `vid_restart`.
+
 ### Fast Windowed/Fullscreen Toggle
 
 `vid_restart fast` (alias: `vid_restart keep_window`) restarts the renderer while keeping the game window alive. When only the windowed/fullscreen state, borders, size, or position changed, the existing window is morphed in place instead of being destroyed and re-created, which avoids the desktop flicker and focus churn of a full restart:
@@ -91,7 +119,7 @@ These settings control the render path behind the display output.
 - `r_fbo`: Enables framebuffer-object rendering. This is the foundation for the modern display path and is required for bloom, motion blur, enhanced liquid refraction, optional global fog, HDR, multisample anti-aliasing, supersampling, greyscale, and arbitrary internal render resolutions.
 - `r_hdr`: Selects the HDR-capable FBO render pipeline.
   - `0`: Display-referred SDR compatibility path.
-  - `1`: High-precision FBO path. With the default legacy tone mapper this preserves Quake III's display-referred lighting; non-legacy tone mapping, color grading, and explicit HDR output use scene-linear color.
+  - `1`: High-precision FBO path. With the default legacy tone mapper this preserves each game's display-referred lighting; non-legacy tone mapping, color grading, and explicit HDR output use scene-linear color.
   - `-1`: Legacy debug alias for `r_hdrPrecision -1` without enabling scene-linear HDR.
 - `r_hdrPrecision`: Controls the internal FBO color storage used by the display pipeline.
   - `0`: Automatic. SDR uses 8-bit normalized storage; `r_hdr 1` uses `RGBA16F` floating-point scene storage.
@@ -149,7 +177,8 @@ vid_restart
 These settings affect the rendered scene itself rather than the window mode.
 
 - `r_gamma`: Gamma correction factor. This is one of the first settings to check if the whole frame looks too dark or too washed out.
-- `r_ignorehwgamma`: Force the software/shader gamma path and never write the display's hardware ramp. Latched; requires `vid_restart`.
+- `r_ignorehwgamma`: Force the software/shader gamma path and never write the display's hardware ramp. Latched; requires `vid_restart`. Any nonzero value, including the `-1` Enemy Territory's own configs use, disables the hardware ramp.
+- `r_mapOverBrightBits`: Overbright bits baked into the map's lighting. The default is each game's own: `1` for Elite Force, whose maps are lit for one bit, `0` for Alice, whose engine draws its maps' light as the map holds it, and `2` elsewhere. Latched.
 - `r_tonemap`: Final-pass tone scale for `r_hdr 1`.
   - `0`: Legacy gamma/overbright behavior.
   - `1`: Simple Reinhard, the per-channel `x / (1 + x)` curve. Existing configs that referred to this as `Reinhard` keep the same behavior for this release cycle.
@@ -183,13 +212,13 @@ These settings affect the rendered scene itself rather than the window mode.
 - `r_colorGradeLUTScale`: Scene-linear RGB range represented by the LUT. Default `4.0` maps `0..4` into the LUT domain.
 - `r_greyscale`: Full-frame desaturation. Requires `r_fbo 1`.
 
-`r_fovCorrection 1` restores 4:3-authored world FOV correction for Q3 and RTCW in all renderers. Set it to `0` for mods that already correct FOV. See [ASPECT_CORRECTION.md](ASPECT_CORRECTION.md) for HUD rules and presentation controls. Native QL cgame geometry and world FOV are passed through without an engine-side post-correction.
+`r_fovCorrection 1` fits the world FOV to the screen's shape in all renderers, keeping its vertical framing. It applies to every game written for a 4:3 screen. In Quake Live it completes the game's own Hor+, which fits only 4:3, 5:4, 16:10 and 16:9 screens. Set it to `0` for mods that already correct FOV, or for the game's FOV exactly as retail drew it. See [ASPECT_CORRECTION.md](ASPECT_CORRECTION.md) for HUD rules and presentation controls.
 
 ### Hardware Gamma Ramps
 
 A display's gamma ramp is owned by the desktop, not by the game: it is global to
-the monitor and survives the process. FnQL therefore takes it over only when it
-has something to add that the renderer cannot do itself.
+the monitor and survives the process. fnTech3 therefore takes it over only when
+it has something to add that the renderer cannot do itself.
 
 - With `r_fbo 1` (the default for every renderer) gamma is applied by the output
   shader, so the ramp is left alone and the monitor keeps its ICC calibration.
@@ -213,7 +242,7 @@ Soft particles use the scene depth buffer to fade supported translucent effects 
 
 - `r_depthFade`: Enables soft-particle depth fade for supported translucent shaders. Default is `1`. This is latched, so use `vid_restart` after changing it.
 
-Supported shaders include the built-in explosion, smoke, plasma, bullet, rail, BFG, and blood effect shaders that FnQL marks for depth fade automatically, plus content shaders that declare `q3map_depthFade <distance> <bias>`. Opaque shaders, depth-writing shaders, and blend modes that cannot be faded safely keep their normal behavior.
+Supported shaders include the built-in Quake III explosion, smoke, plasma, bullet, rail, BFG, and blood effect shaders that fnTech3 marks for depth fade automatically, plus content shaders in any game that declare `q3map_depthFade <distance> <bias>`. Opaque shaders, depth-writing shaders, and blend modes that cannot be faded safely keep their normal behavior. While RTCW's or Enemy Territory's own fog is drawing, depth fade falls back to the plain path.
 
 Renderer notes:
 
@@ -229,24 +258,29 @@ vid_restart
 
 ## Dynamic Lighting And Shadowing
 
-FnQL keeps classic Quake III dynamic lights available, then adds optional higher-quality dynamic-light rendering and shadow maps on the GLx/OpenGL-lineage and Vulkan paths. These effects are visual-only renderer features: they do not change demos, protocol behavior, map data, or game logic.
+fnTech3 keeps each game's classic dynamic lights available, then adds optional higher-quality per-pixel dynamic lights and shadow maps on the GLx/OpenGL-lineage and Vulkan paths. These effects are visual-only renderer features: they do not change demos, protocol behavior, map data, or game logic. The defaults are the same in every game.
 
 Dynamic lighting controls:
 
 - `r_dynamiclight`: Enables dynamic lights such as weapon flashes and projectile lights. Default is `1`.
 - `r_dlightMode`: Selects the dynamic-light renderer.
-  - `0`: Vanilla Quake III style dynamic lights.
+  - `0`: The game's classic dynamic lights: Quake III's projected lights, or RTCW's own.
   - `1`: High-quality per-pixel dynamic lights on world surfaces.
   - `2`: Same as `1`, and also applies dynamic lights to entity models.
   - The desktop default is `2`; constrained ARM builds retain the compatibility default `0`.
-- `r_dlightScale`: Scales dynamic-light radius. Default is `0.5`.
+- `r_dlightScale`: Scales dynamic-light radius. Default is `0.5`, or `1.0` in RTCW single player, which also lifts the usual `0.1`--`1` range.
 - `r_dlightIntensity`: Scales dynamic-light intensity without changing radius. Default is `1.0`.
 - `r_dlightFalloff`: Blends the high-quality dynamic-light attenuation toward a smoother edge falloff. Default is `1`.
 - `r_dlightSaturation`: Adjusts dynamic-light color saturation in linear light. Default is `0.8`.
 
+Game notes:
+
+- **RTCW and Enemy Territory:** the lights their modules place -- muzzle flashes, flames, explosions and forced lights -- also reach the per-pixel path, up to the modules' 32 lights per frame. RTCW sends them there at `r_dlightMode 1` or `2`, except at `r_dynamiclight 2` and through the snooper scope; ET does whenever `r_dynamiclight` is on. Lights the game forces still draw at `r_dynamiclight 0`. RTCW's darkening and flame lights never cast shadows.
+- **Quake III Arena:** a map with the IHV Test's fog falls back to `r_dlightMode 0` in every renderer.
+
 Classic model shadow controls:
 
-- `cg_shadows`: Selects the classic player/model shadow mode.
+- `cg_shadows`: Selects the classic player/model shadow mode in games whose client module offers it.
   - `0`: Disabled.
   - `1`: Classic blob/blur-style model shadows.
   - `2`: Stencil shadow volumes. This needs an available stencil buffer; `cl_stencilbits 8` is the usual compatible setting.
@@ -269,6 +303,9 @@ Dynamic-light shadow-map controls:
 - `r_dlightShadowDebug`: Prints dynamic-light shadow planning and atlas counters. Use this or `r_speeds 4` when you want to confirm the effective atlas size and per-face resolution.
 - `r_muzzleFlashDlightOffset`: Moves recognized weapon muzzle-flash lights along the submitted flash model's forward axis, in world units. Default is `8`; use `0` for the retail origin.
 - `r_muzzleFlashDlightShadows`: Allows recognized weapon muzzle-flash lights to cast shadows. Default is `1`; set it to `0` to keep the light while disabling only its shadows.
+- `r_spotShadows`: Enables the spotlight shadow atlas used by spot lights from static light files and surface-light proxies. Default is `0`; latched.
+
+Shadow casters are opaque world surfaces and curves, and MD3, MDR, IQM, and RTCW's MDC and MDS models; alpha-tested and deformed shaders do not cast. Enemy Territory's skeletal models and the TIKI models of Alice and F.A.K.K.2 do not cast shadow-map shadows yet.
 
 Quality-first dynamic-light shadow-map setup:
 
@@ -284,7 +321,31 @@ vid_restart
 
 If the debug output reports a smaller face size than requested, reduce `r_dlightShadowMaxLights` before increasing any bias values. Bias tuning is mainly for fixing acne, shimmering, or detached-looking shadows; the defaults are the best first pass for normal play.
 
-Directional cascaded shadow maps are available with `r_csmShadows 1` on GLx and Vulkan. They use parsed `q3map_sun`/`q3map_sunExt`/`q3map_sunExt2` sky shader parameters for the sun direction, color, and strength, and shadow opaque BSP world geometry, entity models, and brush models.
+Directional cascaded shadow maps are available with `r_csmShadows 1` on GLx and Vulkan in any game whose map has a sky sun. They use parsed `q3map_sun`/`q3map_sunExt`/`q3map_sunExt2` sky shader parameters for the sun direction, color, and strength, and shadow opaque BSP world geometry, entity models, and brush models.
+
+## Static Map Lights
+
+Maps are lit by baked lightmaps, which a moving model cannot cast a shadow into. Static map lights add a map's own light sources back as per-pixel lights, so models are lit by them and, within the shadow budget, cast shadows from them. They come from `maps/<map>.lights.json` sidecar files, which only the renderer reads: they change no map data, collision, demos, or game logic.
+
+fnTech3's engine package ships a light file, generated from the light sources compiled into the map itself, for every stock map of:
+
+- Return to Castle Wolfenstein: all 32 single-player and 15 multiplayer maps, each fitted for its own mode;
+- American McGee's Alice: all 36 maps;
+- Heavy Metal: F.A.K.K.2: all 30 maps;
+- Medal of Honor: Allied Assault: all 54 maps, each file beside its map in the folder its pak keeps it in.
+
+A file in the engine package takes precedence over one in the game or a mod, and a mod can supply files for maps without one. No light files ship for Quake III Arena, Quake Live, Enemy Territory, or Elite Force; Enemy Territory's stock maps have no light entities to convert.
+
+- `r_staticLights`: Enables static map lights. Default is `1`.
+- `r_staticLightMaxLights`: Maximum static lights promoted into one scene. Default is `8`.
+- `r_staticLightShadows`: Lets eligible static point lights enter the dynamic-light shadow planner. Default is `1`. Shadows also need `r_dlightShadows 1` and `r_dlightMode 1` or `2`.
+- `r_staticLightShadowMaxLights`: Maximum static lights allowed to cast shadows in one scene. Default is `2`.
+- `r_staticLightDebug`: Prints loading and promotion counters. Cheat-protected.
+- `r_staticLightReload`: Reloads the current map's light file.
+
+A light file is JSON: `{"version": 1, "lights": [ ... ]}`, where each light has a `type` of `point` or `spot`, an `origin`, a `color`, an `intensity` and a `radius`, plus a `direction` and cone angles for spots, and optional `castsShadows`, `priority` and `style` fields. Unknown keys are ignored, and a map holds at most 128 lights. Spot lights cast shadows only with `r_spotShadows 1`.
+
+Surface-light proxies are a separate, optional source: `r_surfaceLightProxies 1` promotes the map's non-sky `q3map_surfaceLight` surfaces into proxy lights, with `r_surfaceLightProxyMaxLights` (default `4`), `r_surfaceLightProxyShadows` (default `0`) and `r_surfaceLightProxyShadowMaxLights` (default `1`).
 
 ## Texture Picmip
 
@@ -293,6 +354,7 @@ Picmip lowers texture upload resolution to trade sharpness for memory use and sp
 Controls:
 
 - `r_picmip`: Texture reduction amount. `0` keeps full upload resolution. Higher values progressively shift eligible images down by powers of two.
+- `r_picmip2`: RTCW single player only: the separate character-texture reduction its original engine had. `0` keeps full resolution.
 - `r_picmipFilter`: Filters which shader paths are allowed to use `r_picmip`. Default is `1`.
   - `0`: Legacy behavior. Any picmip-capable shader or raw image can be reduced unless it was explicitly marked `nopicmip`.
   - `1`: Allow `textures/*`. This is the default and keeps normal world-material textures under picmip while treating most UI, model, effect, and utility shaders like `nopicmip`.
@@ -386,15 +448,21 @@ seta r_celShadingWorldDepthThreshold "0.0015"
 
 For a harsher stylized model-lighting look, reduce `r_celShadingSteps` to `2` or `3`. For a softer result, keep the outline enabled but raise `r_celShadingSteps` to `5` or `6`. For stronger world edges, raise `r_celShadingWorldWidth`; for fewer world edges, raise `r_celShadingWorldDepthThreshold`.
 
-## Map Flares And Lens Effects
+## Map Flares, Coronas And Lens Effects
 
-Quake Live maps can author flare surfaces as part of the BSP. FnQL keeps the original visibility, fog, distance falloff, and fade behavior, while offering an enhanced optical presentation on GLx/OpenGL and Vulkan.
+Maps can author flare surfaces as part of the BSP, as many Quake III and Quake Live maps do. fnTech3 keeps the original visibility, fog, distance falloff, and fade behavior, while offering an enhanced optical presentation on GLx/OpenGL and Vulkan.
 
-- `r_flares 0`: Disable map flares. This remains the default.
+- `r_flares 0`: Disable map flares. This is the default outside RTCW.
 - `r_flares 1`: Draw the classic Quake III corona only. Existing configurations retain their original presentation.
 - `r_flares 2`: Draw the classic corona and supplement it with a broad source halo, a restrained horizontal lens streak, and chromatic aperture ghosts along the light-to-screen-centre axis.
 
 The enhanced effect reuses the retail flare image through a dedicated additive surface, so black texels stay neutral and no replacement assets or map-format change are required. It also reuses the classic flare's occlusion and fade result; hidden lights cannot leave detached lens ghosts behind. Bloom is optional, but enabling it can make the brightest corona layers spread more naturally.
+
+Game notes:
+
+- **RTCW** draws its own coronas instead of map flare surfaces, as its original engine did, and `r_flares` takes that engine's meanings: `1` (the default) draws the coronas the game places, `2` draws a corona on every dynamic light, and `3` draws both. `r_flareFade` defaults to `5` there, and `10` elsewhere.
+- **Enemy Territory** uses the same corona path, but its `r_flares` default is `0`, so its coronas are off until you enable them.
+- **Alice and F.A.K.K.2** draw their maps' sun flares and light coronas: `r_sunflare`, `r_place_sunflare` and `r_sunflare_inportalsky` are the original engine's sun-flare controls, and `r_lightcoronasize` (default `0.1`) scales the coronas.
 
 ## Enhanced Liquids
 
@@ -421,6 +489,8 @@ vid_restart
 
 This is an intentionally inexpensive screen-space effect, not a second mirrored world render, a depth-ray-marched SSR, or a fluid simulation. Both the refraction and the reflection can only reuse the same-frame color already captured from the current view: objects outside the screen, behind the camera, occluded, or drawn later in the transparent sort cannot appear in either, and the reflection projects each mirrored ray to a single proxy distance rather than searching the depth buffer for a true hit. Warp and reflection fade near screen edges, and the reflection cleanly falls back to a material sheen where its sample is invalid. Unusually early custom sorts, alpha-tested liquid stages, depth-fade or line-mode stages, and nonstandard depth-test modes retain their fully authored appearance because a geometry-only underlay cannot reproduce their coverage safely. Ripples are bounded visual responses to player and missile motion with amplitude independent of ambient warp; they distort the sampled image but do not deform the liquid mesh or change collision, buoyancy, player movement, projectile paths, networking, game logic, or demo state. If the framebuffer path or private liquid snapshot is unavailable, the original authored liquid remains visible.
 
+Game notes: the ripple impulses come from the Quake III-style client-game path, which Quake III Arena, Quake Live and Elite Force use; RTCW, Enemy Territory, Alice and F.A.K.K.2 do not feed it, so their liquids get refraction and reflection without interaction ripples. RTCW's and ET's own water ripples are drawn separately, as their original engines drew them. While RTCW's or ET's fog is drawing, enhanced liquids fall back to the plain path.
+
 For the pass ordering, backend tiers, dedicated snapshot, and compatibility invariants, see [Liquid Rendering](fnql/LIQUID_RENDERING.md).
 
 ## Underwater View
@@ -435,6 +505,8 @@ While the camera is under water, slime, or lava, the OpenGL-lineage renderers, i
 
 Entering and leaving a liquid ramps the whole layer over about a fifth of a second, so a surface crossing does not pop. The HUD and console are drawn after the layer and stay sharp. The distance tint needs a usable depth texture; without one the warp and edge darkening still apply.
 
+The layer learns that the view is submerged from the Quake III-style client-game path, which Quake III Arena, Quake Live and Elite Force use. RTCW, Enemy Territory, Alice and F.A.K.K.2 do not send that signal, so the layer stays off in those games.
+
 The effect requires `r_fbo 1`. Changing `r_underwater` allocates renderer resources, so issue `vid_restart` after changing it. The other four settings can be tuned live. A balanced starting point is:
 
 ```cfg
@@ -447,15 +519,32 @@ This is a post-process on the frame that has already been rendered, not a refrac
 
 For the submersion feed, pass ordering, backend tiers, and compatibility invariants, see [Underwater View](fnql/UNDERWATER_VIEW.md).
 
-## Optional Global Fog
+## Fog
 
-Map authors and mods can add a visual-only, depth-aware atmospheric layer with a `maps/<map>.fog` sidecar. FnQL does not ship map fog profiles, and the feature does not replace authored BSP fog or affect visibility, collision, game state, networking, demos, or module ABIs.
+### RTCW And Enemy Territory Fog
 
-- `r_globalFog`: Enables sidecar loading and composition on the OpenGL-lineage and Vulkan renderers. The default is `0`; changing it requires `vid_restart`.
+Return to Castle Wolfenstein draws the distance fog its maps and game scripts set, including sky fog and fog the game changes during play. Enemy Territory's whole-map fog, which its game module can retune, goes through the same path; its on-screen result has not yet been confirmed.
+
+- `r_wolffog`: Draws that fog. Default is `1`; `0` turns RTCW's and ET's scene and sky fog off.
+
+### Optional Global Fog
+
+Map authors and mods can add a visual-only, depth-aware atmospheric layer with a `maps/<map>.fog` sidecar. fnTech3's engine package ships conservative fog presets for Quake Live's stock maps and for Quake III Arena and Team Arena maps, and a mod can supply one for any game. The feature does not replace authored BSP fog or affect visibility, collision, game state, networking, demos, or module ABIs.
+
+- `r_globalFog`: Enables sidecar loading and composition on the OpenGL-lineage and Vulkan renderers, and on RTX with `r_fbo 1` and no multisampling. The default is `0`; changing it requires `vid_restart`.
 - `r_globalFogStrength`: Live opacity multiplier from `0.0` to `1.0`, with a default of `1.0`.
 - `r_fbo 1` and a usable depth texture are required. Missing or invalid sidecars and optional-shader failures disable only the fog layer; they never prevent `glx`, `vk`, or `rtx` from starting.
 
 See [Global Fog Sidecars](fnql/GLOBAL_FOG.md) for the bounded file format, search precedence, curve definitions, and fallback contract.
+
+### Alice And F.A.K.K.2 Far Plane
+
+Ritual's engine gives each level a far plane: past a set distance the view fades into a fog colour and stops drawing. fnTech3 draws it as the level sets it, and keeps the original engine's overrides:
+
+- `r_farplane`: Overrides the level's far-plane distance when nonzero; `r_farplane_color` sets the fog colour and `r_farplane_nocull 1` keeps drawing beyond it.
+- `r_farplane_nofog`: Turns the far plane's distance fog off.
+- `r_farplane_pulse` and `r_farplane_pulseFrequency`: Pull the far plane in and out along a sine wave.
+- `r_skyportal` and `r_skyportal_origin`: Draw the level's sky portal from another origin.
 
 ## Bloom
 
@@ -625,6 +714,31 @@ seta r_hudExcludePostProcess "1"
 
 The blur is skipped below a sub-pixel motion threshold and capped at a 32-pixel radius, preventing needless work during stationary play and pathological smearing during fast turns. Long frame stalls, minimize/restore, stereo rendering, large camera cuts, and teleports reset the camera sample. GLX allocates its scratch buffer lazily when motion first needs it and can toggle the effect live. Vulkan allocates its scratch image at renderer initialization, so changing `r_motionBlur` there requires `vid_restart`.
 
+## Game-Specific Renderer Settings
+
+A few renderer settings exist only in the game whose engine had them, with that engine's defaults:
+
+| Game | Setting | Default | Effect |
+| --- | --- | --- | --- |
+| RTCW (both modes) | `r_flares` | `1` | Coronas; see [Map Flares, Coronas And Lens Effects](#map-flares-coronas-and-lens-effects). |
+| RTCW (both modes) | `r_flareFade` | `5` | Corona fade distance; `10` in other games. Cheat-protected. |
+| RTCW single player | `r_picmip2` | `0` | Character-texture picmip. |
+| RTCW single player | `r_dlightScale` | `1.0` | Dynamic-light radius scale, `0.5` in other games. |
+| RTCW and Enemy Territory | `r_wolffog` | `1` | The games' own fog. |
+| Enemy Territory | `r_drawfoliage` | `1` | Draws foliage models. Cheat-protected. |
+| Elite Force | `r_mapOverBrightBits` | `1` | Map overbright bits, `2` in other games. |
+| Alice | `r_mapOverBrightBits` | `0` | Map overbright bits; Alice's engine draws each map's light unshifted. |
+| Alice and F.A.K.K.2 | `r_overBrightBits` | `0` | Overbright bits, `1` in other games. Latched. |
+| Alice and F.A.K.K.2 | `r_shaderlod` | `0.5` | Keeps a shader's `if shaderlod` blocks above this level; applies when shaders load. |
+| Alice and F.A.K.K.2 | `r_detailtextures` | `0` | Detail shader stages; `1`, and latched, in other games. |
+| Alice and F.A.K.K.2 | `r_lodscale` | `5` | Model level-of-detail scale, adjustable without cheats as in the original engine. |
+| Alice and F.A.K.K.2 | `r_farplane`, `r_skyportal` | `0` | See [Alice And F.A.K.K.2 Far Plane](#alice-and-fakk2-far-plane). |
+| Alice and F.A.K.K.2 | `r_sunflare`, `r_lightcoronasize` | `0`, `0.1` | Sun flares and light coronas. |
+| Alice and F.A.K.K.2 | `r_ritualModelLights` | `1` | Lights the characters and weapons the game flags from the map's compiled lights, as the original engines do; `0` lights every model from the light grid. `r_ritualModelLightsDebug` (cheat-protected) prints what each one takes. |
+| Alice and F.A.K.K.2 | `r_ambientScale` | `0.5` | Scales the light grid's ambient on the models it lights, as the original engines do; `0.6` in Quake III and the other games. Cheat-protected. |
+| Quake Live | `r_ambientScale` | `10` | The same scale, a player option from `1` to `100` as in the original: the Video page's Ambient Light Scale. Kept in `repconfig.cfg`. |
+| Quake III IHV Test | `r_lerpmodels` | `1` | Model frame interpolation. |
+
 ## When To Use `vid_restart`
 
 Use `vid_restart` after changes to:
@@ -642,12 +756,16 @@ Use `vid_restart` after changes to:
 - `r_depthFade`
 - `r_renderWidth`, `r_renderHeight`, `r_renderScale`
 - `r_ext_supersample`
+- `r_dlightShadows`, `r_spotShadows`, `r_csmShadows`
+- `r_mapOverBrightBits`, `r_picmip`, `r_picmip2`
+- `cl_gameIcon`
 - OpenGL or GLx `r_bloom_passes`
 - OpenGL or GLx `r_hdrBloomFormat`
 - Vulkan `r_bloom`
 - Vulkan `r_motionBlur`
 - `r_liquid` or `r_liquidResolution`
 - `r_underwater`
+- `r_globalFog`
 
 For pure window-state changes (`r_fullscreen`, `r_mode`, `r_noborder`, window size or position), prefer `vid_restart fast`: it applies the change on the existing window when possible and falls back to a full restart automatically. See [Fast Windowed/Fullscreen Toggle](#fast-windowedfullscreen-toggle).
 
@@ -686,6 +804,8 @@ Settings that are usually safe to tune live:
 - `r_celShadingWorldWidth`
 - `r_celShadingWorldAlpha`
 - `r_celShadingWorldDepthThreshold`
+- `r_staticLights` (use `r_staticLightReload` after editing a light file)
+- `r_wolffog`, `r_farplane` and its companions
 - OpenGL or GLx `r_bloom_blend_base`
 - OpenGL or GLx `r_bloom_filter_size`
 - OpenGL or GLx `r_bloom_reflection`
@@ -694,6 +814,7 @@ If a live change does not seem to take effect immediately, `vid_restart` is the 
 
 ## Related Guides
 
-- [ASPECT_CORRECTION.md](ASPECT_CORRECTION.md) for HUD, menu, and cinematic presentation.
+- [ASPECT_CORRECTION.md](ASPECT_CORRECTION.md) for FOV, HUD, menu, and cinematic presentation.
 - [VISUALS.md](VISUALS.md) for player highlighting and other visual presentation controls.
 - [SCREENSHOTS.md](SCREENSHOTS.md) for screenshot and capture output options.
+- [RTX.md](RTX.md) for the path tracer, which lights each map from the same light entities as the static map lights.

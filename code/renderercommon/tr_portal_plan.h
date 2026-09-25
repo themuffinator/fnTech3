@@ -47,7 +47,10 @@ typedef struct {
 #define PORTAL_VIEW_STACK_PLANS 4
 
 #ifdef USE_PMLIGHT
+#include "tr_rtcw_engine_lights.h"
+
 extern int r_numdlights;
+extern int r_numModuleDlights;
 #endif
 
 static void R_PortalMirrorPoint( const vec3_t in, const orientation_t *surface, const orientation_t *camera, vec3_t out ) {
@@ -405,6 +408,15 @@ static void R_PortalCopyDlightsForPlan( portalViewPlan_t *plan ) {
 	}
 
 	copyCount = MIN( (int)plan->parentParms.num_dlights, available );
+	if ( R_ReservesModuleLights() ) {
+		// the engine's own lights never take a slot RTCW's or ET's modules may still claim
+		copyCount = RTCW_PortalLightCopies( (int)plan->parentParms.num_dlights,
+			tr.refdef.num_moduleDlights, r_numdlights, (int)ARRAY_LEN( backEndData->dlights ),
+			RTCW_EngineLightEnd( (int)ARRAY_LEN( backEndData->dlights ), r_numModuleDlights, r_numdlights ) );
+		if ( copyCount <= 0 ) {
+			return;
+		}
+	}
 	plan->viewParms.dlights = &backEndData->dlights[r_numdlights];
 	plan->viewParms.num_dlights = copyCount;
 	for ( i = 0; i < copyCount; i++ ) {

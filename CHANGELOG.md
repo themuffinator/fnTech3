@@ -12,9 +12,43 @@ historical upstream records, not fnTech3 release history. See the
 
 ### Highlights
 
-- Introduce fnTech3's shared engine distribution and startup game profiles for
-  Quake III Arena and Quake Live, based on the documented FnQuake3 and FnQL
-  baselines. Supply a legitimate installation of the selected game.
+- Introduce fnTech3's shared engine distribution and startup game profiles,
+  based on the documented FnQuake3 and FnQL baselines. Quake III Arena and
+  Quake Live start in every build; Return to Castle Wolfenstein, Enemy
+  Territory, Elite Force, Jedi Academy, Jedi Outcast, American McGee's Alice,
+  Heavy Metal: F.A.K.K.2, Medal of Honor: Allied Assault, the Quake III
+  IHV Test and the Q3Test releases are experimental profiles that start only in developer builds. Supply a legitimate installation of the
+  selected game ([Games Guide](docs/GAMES.md)).
+- Path trace the main view with the RTX renderer's `rtx_rt_mode 2`. The world,
+  posed models and the first-person weapon are traced with their shader
+  stages as authored and lit as Q2RTX lights Quake II: from the sky, its
+  `q3map_sun` and the surfaces that give off light -- `q3map_surfacelight`
+  shaders, glow stages, additive flames, and the bright texels of shaders
+  drawn fullbright, which the scene now lights as it lights any surface --
+  with nothing baked, in linear light, and seen through Q2RTX's tone mapper:
+  a curve fitted to each view's histogram, as Eilertsen, Mantiuk and Unger
+  fit theirs, to the light a surface receives so that textures keep their
+  detail, blended with Reinhard's curve behind an exposure metered on the
+  view's 70th to 90th brightness percentiles (`rtx_rt_lighting 1` lights the
+  world from its lightmaps instead, `2` from the map compilers' own lights
+  and light models; `alphashadow` and `lightfilter` surfaces filter the light
+  as the compilers read them), and by the
+  game's dynamic lights, shadowed and reaching what the raster light pass
+  reaches (RTCW's darkening and flame light materials multiply what they
+  reach, as its renderer drew them), plus up to four
+  diffuse bounces (`rtx_rt_bounces`) and glossy reflections that share the
+  map's surface lights with light sampling (`rtx_rt_mis`), then denoised
+  along each moving model's own motion; blended surfaces, effects, fog, a
+  portal sky and the HUD keep drawing with them as in raster, and RTCW's and
+  Enemy Territory's global fog fogs traced surfaces as it fogs raster ones.
+  Drivers without the Vulkan ray-tracing pipeline, such as the 32-bit one the
+  shared Windows client runs on the development machine, trace with compute
+  shaders instead (`rtx_rt_backend`). A texture pack may add normal,
+  specular, roughness and metalness maps under OpenJK rend2's names
+  (`rtx_rt_material_maps`). It replaces the earlier hybrid tracer and its
+  experimental controls, among them `rtx_rt_dynamic_blas`,
+  `rtx_rt_material_heuristics`, `rtx_rt_raster_reference` and the exposure,
+  temporal and quality-preset cvars ([guide](docs/RTX.md)).
 
 ### Compatibility
 
@@ -34,6 +68,121 @@ historical upstream records, not fnTech3 release history. See the
   registers. RTCW, Enemy Territory, Elite Force and the Jedi single-player
   engines register `0.5` too and are left for now
   ([record](docs/fntech3/2026-09-25-ambient-scale.md)).
+- **Play the Q3Test releases of 1999.** A `q3test` profile
+  (`-Dq3test-development=true`, Windows x86) pins the release its
+  installation holds -- 1.02 and 1.03's servers, 1.05 to 1.08's clients --
+  and runs its own modules, protocol (35 to 40) and maps (IBSP 44 and 45,
+  translated in memory with Q3Test's own curve collision). The dedicated
+  server hosts each release's retail clients, up to the 128 every release
+  allowed; the client joins fnTech3's and
+  each retail server, runs 1.05 to 1.08's client games and 1.06 to 1.08's
+  menus (1.05's engine menus are fnTech3's own, driving the same cvars and
+  commands), browses LAN and master lists, and records and plays `.dm3`
+  demos, the six shipped ones included. The releases' shader dialect
+  (`fogParms` with five values, `fogonly`, `clampTexCoords`), their
+  alpha-blended 2D pictures and a broken shader in 1.06 to 1.08's
+  `gfx.shader` are read as each release read them, and serverinfo and
+  systeminfo carry each release's keys. `scripts/probe_q3test.py` runs every
+  pairing, including a headless protocol client for 1.02 and 1.03, which have
+  no retail client, and checks the sound a demo replay mixes
+  ([Q3Test ledger](docs/fntech3/Q3TEST.md)).
+
+- Trace Quake Live's advertisements. The renderer draws a map's
+  advertisement brush models as world surfaces, which the path tracer left
+  out, so a traced view showed the wall behind each billboard instead of its
+  poster; they are now traced in place, lit by the scene, their shaders'
+  environment-mapped sheen given to traced reflections.
+- Trace Enemy Territory's terrain with its own normals. The renderer smooths
+  a face whose points share no plane into four floats a point, and the path
+  tracer read them three apart, so on `goldrush` the blended ground traced as
+  flat grey facets lit as if they stood on edge.
+- Say "Wrote" only for a screenshot written. The RTX renderer printed
+  `Wrote <file>` after a frame it could not read back, which it had already
+  reported unwritten.
+- Compile the path tracer's pipelines when the RTX renderer starts, before a
+  level's images and world load. On a 32-bit Windows client the driver
+  compiles the compute backend's trace in the client's own address space,
+  and after Quake Live's `campgrounds` had loaded the compile failed about
+  half the time, leaving the view to raster (or failing `rtx_rt_require 1`).
+- Play Enemy Territory demos. The `wolfet` profile now opens `.dm_84`
+  demos, as `et.exe` names them, and reads them with ET's own wire; no other
+  profile opens one. fnTech3 plays a demo retail `et.exe` 2.60b recorded and
+  `et.exe` plays one fnTech3 recorded, each to the same number of timedemo
+  frames as the other engine and with the same view at every sampled frame;
+  the retail client game draws its demo controls in both.
+- Keep a 32-bit Windows client's native game module reloadable across a
+  renderer restart. The engine now holds the address range an unloaded
+  module occupied until that module's slot loads again. Enemy Territory's
+  57 MB client game module used to fail to reload ("VM_Create on cgame
+  failed") after a traced `vid_restart` on its larger maps, because the
+  restart's allocations and the UI module split the only hole left large
+  enough; it now loads back at its preferred base every time.
+- Name the demo that `demo` could not open. Given a name without an
+  extension, a profile that plays no demos printed `couldn't open` followed
+  by an uninitialised buffer. It now says that the profile's demo playback
+  is not implemented and names `demos/<name>`. Other
+  profiles still name the last file they looked for, such as Quake III's
+  `.dm3` fallback.
+- Render Elite Force single player's sounds with the engine's own audio
+  pipeline instead of retail's gain and pan. Each channel's retail distances
+  -- full volume to 256 units and silent by 1,506, a voice's 1,024 to 2,274,
+  an attenuated voice's 38.4 to 288.4 -- go to the OpenAL distance model with
+  its fade toward the silent end and its air absorption, and every voice gets
+  traced occlusion, zone or traced room reverb, tone classes by channel and
+  HRTF. The ambient sets' loops are placed at their own points instead of
+  panned head-relative, and the room tone plays at the listener, in the
+  room. `s_separation` above its default spreads placed voices through
+  OpenAL Soft's source radius, `s_alDistanceModel linear_clamped` plays
+  retail's straight-line law exactly, and the legacy mixer keeps retail's
+  gain and pan. A voice started beyond Quake III's 1,530-unit cull distance
+  but within its own range now plays, and `s_alDebugDump` prints each
+  voice's dry and wet gains
+  ([record](docs/fntech3/2026-09-20-stvef-sp-sound-distances.md#the-engines-own-features)).
+- Render Return to Castle Wolfenstein's and Enemy Territory's sounds with the
+  engine's own audio pipeline instead of retail's gain and pan.
+  - Retail's law goes to the OpenAL distance model, with its fade toward the
+    silent end and its air absorption. A sound is at full volume to 6.4% of
+    its range and silent the range beyond it: 80 to 1,330 units for every
+    one-shot.
+  - Every voice gets traced occlusion, tone classes by channel, HRTF, and
+    reverb from the room its map's audio zones or the traced room give. The
+    47 RTCW and 6 ET zone sidecars had loaded but were never heard.
+  - Retail's slot allocation, loop levels and phase, single player's effects
+    fade and RTCW's disabled loop Doppler are kept.
+  - `s_alDistanceModel linear_clamped` plays retail's straight-line law
+    exactly, and the legacy mixer keeps retail's gain and pan
+    ([record](docs/fntech3/2026-09-24-wolfenstein-openal-voices.md)).
+- Give RTCW single player and multiplayer the engine's own scene lights: a
+  map's static light file (`maps/<map>.lights.json`), surface-light proxies
+  and `r_dlightTest`, which every other profile already had. RTCW's modules
+  keep the 32 lights a frame retail accepts: the engine's lights take only
+  slots those modules can no longer claim -- RTCW draws its sky portal as a
+  scene of its own before the main view submits any light -- and a portal
+  view's copies no longer count against them. The engine's lights are drawn
+  beneath the modules' own, so RTCW's darkening light still darkens them as
+  it darkens the lightmap. They are added only in the per-pixel modes
+  (`r_dlightMode 1` and `2`): mode 0 stays the original projected lights, and
+  `r_dynamiclight 0` or `2`, which keep only forced module lights, and the
+  snooper scope's heat view add none
+  ([record](docs/fntech3/2026-09-24-rtcw-engine-lights.md)).
+- Keep Enemy Territory's 32 module lights a frame free of the engine's own
+  scene lights, as RTCW's are: static map lights, surface-light proxies and
+  `r_dlightTest` take only slots ET's cgame and UI can no longer claim, so a
+  sky portal's or a portal view's engine lights no longer refuse the main
+  view's own. ET's forced lights, such as a thrown charge's glow, now stay
+  drawn at `r_dynamiclight 0`, as in ET, where every light used to be
+  cleared, and the engine adds none of its own there. Directed and
+  grid-only lights, still not drawn, take one of the 32 as ET's own do
+  ([record](docs/fntech3/2026-09-24-wolfet-engine-lights.md)).
+- Ship a static light file for each of RTCW's 32 official single-player and
+  15 multiplayer maps, 4,316 lights converted from the maps' own `light`
+  entities under the light compiler's conventions. Each light's radius and
+  brightness are fitted to the light retail baked into the map, for its
+  mode's `r_dlightScale`; grid-only, non-dynamic, negative lights and those
+  at a fixture the cgame already lights are left out, and 128 are kept a map
+  across its areas. The package validator now also refuses a packaged light
+  file that a renderer would reject or cut short
+  ([record](docs/fntech3/2026-09-24-rtcw-map-lights.md)).
 - Draw American McGee's Alice with no overbright bits by default, as
   `alice.exe` does: it registers `r_overBrightBits` and
   `r_mapOverBrightBits` as `0` and draws each map's light as the map holds
@@ -307,6 +456,10 @@ historical upstream records, not fnTech3 release history. See the
   console and that text now use the profile's own bitmap charset, as the
   original engines do and as non-Windows builds already did. Quake Live is
   unchanged.
+- Skip a screenshot or video frame the RTX renderer has no GPU memory left
+  to read back, with a warning, instead of ending the game. Another program
+  holding the device's memory made the readback's allocation fail, which was
+  fatal.
 - Keep the RTX renderer display-referred at its default `r_hdr 1`, as GLx and
   Vulkan are, in every profile. RTX treated `r_hdr 1` alone as scene-linear
   colour, so it decoded every texture from sRGB and blended in linear light.
@@ -1490,6 +1643,339 @@ historical upstream records, not fnTech3 release history. See the
   other error still fail on the first attempt. No other platform is affected,
   since only Windows denies a replacement over an open file.
 
+- Add Heavy Metal: F.A.K.K.2 as a ninth title and the `fakk2` profile, gated
+  behind `-Dfakk2-development=true`. F.A.K.K.2 runs Ritual's own engine, the
+  parent of Alice's, and is served through Alice's adapters: its 105-slot game
+  and 124-slot client-game tables map onto Alice's slot for slot, and its
+  shorter entity state, render entity, view, snapshot, game state and command
+  lists cross into Alice's records at the module boundary. Its `FAKK` 12 maps
+  load in collision and all three renderers, every map spawns through the
+  retail game module, and a developer client draws the retail main menu and
+  `fakkhouse`, saves and loads back, and records and plays back a demo. Its
+  `fakk2.exe` is encrypted on disk, so its engine behaviour is taken from the
+  retail modules and data and, where they do not settle it, from Alice's
+  engine ([record](docs/fntech3/2026-09-24-fakk2-contracts.md)). A copy of the
+  retail disc is refused by name, since its game libraries are still inside the
+  installer's cabinets.
+- Give each inline model its own model index in Alice and F.A.K.K.2, as their
+  engines do when the world is cleared (`alice.exe` 0x00457960). Model
+  definitions could take a brush model's index, and the game module then ran
+  that definition's init commands on the brush entity: F.A.K.K.2's
+  `fakkhouse` lost its sky camera that way and drew a black sky.
+- Draw a Ritual shader's `nextBundle` stages. F.A.K.K.2's scripts put a second
+  texture bundle on 58 stages -- its menu art, HUD gauges, water and blood --
+  which every renderer refused, and those shaders fell back to the default.
+  They now draw both bundles with `GL_MODULATE`, as Ritual's engine does.
+- Give a Ritual picture the colour it was drawn in. Alice's and F.A.K.K.2's
+  `rgbGen global` shaders read the colour the last `SetColor` set, which
+  Ritual's engine applies at once; fnTech3 batched pictures and read the colour
+  when the batch was drawn, after the menu code had reset it to white, so
+  F.A.K.K.2's menu clouds drew at full strength over the whole menu.
+- Give F.A.K.K.2 its HUD, inventory and weapon groups. Its HUD is four of its
+  menus made of stat bars with their flash, numbers and the weapons' models,
+  shown by which weapons are in hand and whether a boss lives; its inventory
+  opens from the weapon keys and the mouse wheel with the held items' models;
+  `saveweaps` keeps the weapons in hand as a `weapgroup` alias, which the
+  configuration now keeps between sessions with its quoted names intact.
+- Read F.A.K.K.2's own player-state slots for the cinematic flag, the fade and
+  the letterbox. The client read Alice's, so it drew letterbox bars from the
+  left weapon's maximum ammunition and could skip a cinematic that was not
+  playing instead of opening the menu.
+- Light a model drawn without a world in F.A.K.K.2, as Quake III does. Its HUD
+  and inventory draw lit weapon models in such views and add no light, and
+  Alice's rule of starting them unlit drew black silhouettes.
+- Serve F.A.K.K.2's menu widgets: its resolution and texture pulldowns, the
+  graphics menu's report box, linked labels shown as words ("Default",
+  "Trilinear"), whole-menu fades, the boss bar's slide, its own slider thumbs
+  and scrollbars, and the Apply buttons' restart check. Linked labels in both
+  Ritual titles now show a setting's pending value, as their engines do.
+- Ship an audio zone file and a static light file for each of F.A.K.K.2's
+  thirty maps, generated from the retail maps as Alice's are, so its levels get
+  fnTech3's room acoustics and static map lights. The lights' colours are
+  balanced so that the per-pixel lights no longer wash levels out. The zone
+  compiler now reads F.A.K.K.2's own map version under `--profile fakk2`.
+- Load a Ritual level's audio zones after a level change that names a spawn
+  target. F.A.K.K.2's exits change level with `gamemap "training$spawn_fakkhouse"`,
+  and the zone lookup asked for `training$spawn_fakkhouse.azb`; it now reads
+  the level's own `training.azb`. Fifteen of F.A.K.K.2's 27 exits name a spawn
+  target. None of Alice's do, and other profiles are unchanged.
+- Start F.A.K.K.2's menu widgets in `verdana-12`, as its retail menu loader
+  does, rather than `verdana-14`: their text had been a size too large. The
+  load/save list now shows each save's level title, newest first, the chosen
+  one black on white, as retail's does; retail's own load menu lists and
+  pictures saves fnTech3 wrote.
+- Draw and drive F.A.K.K.2's controls-menu bind list as its retail menu
+  does: its Action, Primary and Alternate columns of pictures, each key's own
+  picture or name, and a second key per action that can be bound, cleared and
+  shown. Enter and a second click on a key cell wait for a key, and any mouse
+  button binds while one waits. It had been drawn as Alice's two-column text
+  list, with no alternate key.
+- Register the Ritual clients' `com_blood` (default 1, sent in the userinfo
+  and serverinfo), `s_milesdriver`, `s_speaker_type`, `s_khz` and
+  `joy_threshold` (0.15), as both retail clients do. F.A.K.K.2's game module
+  reads `com_blood` for its gore, and the options menus show the others. They
+  had drawn blank, EXCESSIVE VIOLENCE unticked, and the joystick threshold at
+  zero on Windows, whose input has no joystick layer.
+- Draw F.A.K.K.2's scrollbars and save list as its retail menus do: light
+  grey, black-edged scrollbars whose arrows grey out while there is nothing to
+  scroll, always shown beside the save list; dark column headers with white
+  titles; and the `no_saved_games` picture when no save is chosen.
+- Draw F.A.K.K.2's sliders as its retail menus do: an arrow 15 units wide at
+  each end, lit while held, and a thumb 10 units wide, lit while dragged. They
+  had no arrows, and a thumb 8 units wide that sat off retail's. `thumbshader`,
+  `leftshader` and `rightshader` now replace their pictures. The arrows step
+  as retail's do.
+- Cut each F.A.K.K.2 menu widget's drawing to its own frame within its menu,
+  as retail's per-widget scissor does. The graphics report's last line had
+  run half out of its box and over the frame below.
+- Add `ui_menuDissolve` for F.A.K.K.2, off by default: set to 1, its
+  full-screen menus fade over what the screen last showed, as its retail
+  engine's uncleared screen leaves them. A closing menu hazes white over its
+  own picture and the next one comes up through the haze. By default they
+  still fade over black.
+- Load a save by double-clicking it in F.A.K.K.2's Load/Save list, as
+  retail's list control does. Page Up and Page Down now go to the shown
+  page's first or last save before paging on, Left and Right step like Up and
+  Down, and the mouse wheel scrolls the list.
+- Stop saving F.A.K.K.2's `ui_hud` in its configuration: retail keeps the HUD
+  switch only for the session. Alice's `ui_subtitles`, `ui_skipDepthClear`,
+  `ui_crosshair` and `ui_jumpreticle` are no longer registered for F.A.K.K.2,
+  whose engine has none of them.
+- Ring 64 reliable commands on F.A.K.K.2's wire, as retail `fakk2.exe` 1.02
+  does, where fnTech3 rang Alice's 128: the two titles share protocol 1, so a
+  client on it now rings its profile's window. A server drops a client at
+  its 65th unacknowledged command, and a retail client on an fnTech3 server
+  now gets that drop where it used to fail on its own.
+- Bound an F.A.K.K.2 map at 384 inline models, as `fakk2.exe` 1.02 does,
+  rather than Alice's 512. No retail map has more than 201.
+- Read and write Alice's and F.A.K.K.2's configuration in the file their
+  `config` cvar names, as both retail engines do: `+set config julie.cfg`
+  keeps its own settings and saves. fnTech3 had followed the cvar for the
+  save names alone. Retail kept the name in the registry for later launches;
+  fnTech3 keeps it for the launch that names it.
+- Indent F.A.K.K.2's menu checkboxes as its retail menus do: the box 16 units
+  in and its title 48, where fnTech3 had drawn them by Alice's rule at the
+  widget's edge.
+- Register `r_useglfog` (default 1) for Alice and F.A.K.K.2, as both retail
+  renderers do, so F.A.K.K.2's advanced options menu shows "Use GL Fog" as
+  retail's does. fnTech3's renderers draw distance fog their own way and do
+  not read it.
+- Light the static models Alice and F.A.K.K.2 compile into their maps with
+  the colours the map baked on them, in all three renderers. Their shaders
+  light by entity (`rgbGen lightingDiffuse`), and the world gives none, so
+  F.A.K.K.2's banners, ferns, leaves, lamps and cloth, and Alice's kelp on
+  `utemple`, drew black or vanished into the dark behind them.
+- Fog Alice's and F.A.K.K.2's far-plane fog as their engines do: an opaque
+  surface's stages draw unfogged, then one pass of the fog colour over them,
+  thicker with distance. Each stage had been fogged on its own, a texture over
+  a lightmap fading toward white, so distant walls on six F.A.K.K.2 maps and
+  two of Alice's grew brighter with the fog on than off. F.A.K.K.2's `fog`
+  now matches retail's view region for region.
+- Keep up to 64 frames of an animated shader stage, as Alice's and
+  F.A.K.K.2's engines do. F.A.K.K.2's water caustics have 47, and the last
+  23 had been dropped, so they cycled in half the time.
+- Draw no fog volume on an Alice or F.A.K.K.2 surface while the far-plane fog
+  is on, as their engines do. F.A.K.K.2's `over` and `under` start the camera
+  inside a black fog volume, which had halved the tunnel's brightness and
+  left Julie nearly black.
+- Give an F.A.K.K.2 lightmap stage that names no colour retail's default,
+  identity rather than Quake III's identity lighting, so it and the texture
+  over it draw as one pass, as retail's do.
+- Announce a client leaving an Alice or F.A.K.K.2 server as their engines do,
+  `print "%s %s\n"` with no colour code after the name, and send the client
+  a bare `disconnect`, where fnTech3 had sent Quake III's forms.
+- Use an F.A.K.K.2 inventory item in the hand chosen, as retail does. A
+  one-handed weapon used from a hand it does not fit is refused rather than
+  going to the other hand, and the commands name the hand as retail's do
+  (`use "GreenSword" righthand`).
+- Print F.A.K.K.2's centre and located messages and its frame counter in
+  `facfont-20`, the font its retail view is built with, rather than the menus'
+  `verdana-14`. They now match retail's in glyphs and place.
+- Draw Heavy Metal: F.A.K.K.2 with no overbright bits by default, as its
+  retail engine does. Most of its shaders' lightmap stages had taken Quake
+  III's identity lighting, which each overbright bit halves. Its grass and
+  floors drew at seven tenths of retail's brightness, and blood on the ground
+  looked darker with them. Its frames now match retail's region for region on
+  the GL renderer. Alice draws with none as well; other profiles keep one bit.
+- Light the F.A.K.K.2 menu button that has the keys, as retail does. Its
+  hover picture stays on the button the mouse last came onto, or the arrow
+  keys chose, and each menu opens with the keys on its first entry, or the one
+  it last had: the main menu opens with NEW GAME pulsing. fnTech3 had lit a
+  button only while the mouse was over it. Alice's buttons are unchanged.
+- Draw F.A.K.K.2's inventory as retail `fakk2.exe` 1.02 draws it. Each cell's
+  ammunition gauge fills its copper groove from the bottom, under the cell
+  art rather than over it; a picked item shows its own selected picture; and
+  the column lights its current type whenever the cursor is over it. Weapon
+  models no longer vanish where the world behind their cell is nearer, which
+  had hidden the light sword: the view kept Alice's `ui_skipDepthClear`,
+  which F.A.K.K.2 does not have.
+- Send and read F.A.K.K.2's own message bodies, as the official 1.02 patch's
+  plain `fakk2.exe` reads them. Its entity table has 73 fields and its own
+  31-entry dictionary, and its player state sends `pm_flags` and `gravity` in
+  16 bits. fnTech3 had sent Alice's shape, and retail `fakk2.exe` refused
+  fnTech3's F.A.K.K.2 demos. It now plays them through.
+- Carry the server's time residual in every Ritual snapshot, the byte
+  `alice.exe` and `fakk2.exe` both write after the server time and read before
+  the delta byte. Without it, a retail reader took the delta byte for the
+  residual.
+- Show F.A.K.K.2's HUD by its own engine's rule. The one-handed weapon HUD
+  shows its rings even with empty hands. The HUD comes up as soon as the
+  letterbox goes, without Alice's cinematic check or 550 ms delay.
+- Keep F.A.K.K.2's HUD in shape on widescreen displays. Its HUD menus now take
+  the HUD correction Quake III Arena and RTCW use: the engine package's
+  `fntech3-hud.json` holds the health gauge to the upper left, the weapon
+  rings and their models to the upper right and the boss's bar to the left,
+  each at its 4:3 proportions, where they had stretched with the screen.
+  `cl_hudAspect 0` stretches them again, and `cl_hudDump` and `hud_reload`
+  work in F.A.K.K.2 as in those games
+  ([Aspect Handling Guide](docs/ASPECT_CORRECTION.md)).
+- Keep the HUD and the view of every game written for 4:3 screens in shape on
+  widescreen displays. Enemy Territory, both Elite Force modes, Alice and
+  F.A.K.K.2 now take the HUD correction Quake III Arena and RTCW use, each
+  with stock rules in the engine package, and all of them and Medal of Honor
+  widen the world view to keep its 4:3 vertical framing (`r_fovCorrection`).
+  Alice's gauges and cards no longer grow on wider screens. Enemy Territory's
+  scoreboard and expanded map draw as centered 4:3 screens, and Elite Force
+  single player's target brackets stay on their targets. A new `extend` rule
+  mode carries a scope's or a letterbox's masks to the screen's edges
+  ([Aspect Handling Guide](docs/ASPECT_CORRECTION.md)). Medal of Honor's
+  first-person arms, whose unposed bounds stand behind the eye, are no longer
+  culled from the widened view, and its model detail and Enemy Territory's
+  foliage distance keep the field of view the game gave. Quake Live's own Hor+
+  fits only 4:3, 5:4, 16:10 and 16:9 screens and stretched the world sideways
+  on any other, by a third at 21:9; `r_fovCorrection` now completes it,
+  keeping its vertical view, and its markers follow.
+- Draw the sprites of hidden F.A.K.K.2 emitters, as retail does: the smoke
+  of `fakkhouse`'s chimneys, and blood splats.
+- Let traces hit Ritual entities as retail `alice.exe` does. Each clip now
+  builds the entity's clip model at that moment: a brush model's own model,
+  or a box from the entity's bounds and contents. Before, a stale shared box
+  let F.A.K.K.2's bullets and sword blows pass through monsters, and traces
+  pass through doors and platforms. The trace's entity pass also skips what
+  retail skips (non-solid entities, the tracer's owner and missiles, contents
+  the trace ignores). The link publishes each entity's `solid` packed as
+  retail packs it, which clients use to clip. Alice gets the same fixes.
+- List the saves in F.A.K.K.2's Load/Save menu. Its save list is drawn as
+  retail's list control draws it: headers, then a line a save with its map,
+  level time and date, the chosen one highlighted. The keys and a click choose
+  the save the buttons load or delete, and its picture shows beside the list.
+  The menu had shown an empty box. Alice's menu keeps its list hidden.
+- Send a fragment's offset as a long on the Ritual wire, as retail `alice.exe`
+  does. A short one cut off every message past 32 KB, so a F.A.K.K.2 client
+  could not enter `oracle`, whose gamestate is 40 KB, and a retail Alice peer
+  would have misread every fragment. Other profiles keep Quake III's short.
+- Connect to Ritual servers, and accept their clients, with their own
+  handshake. Under Alice and F.A.K.K.2 the connect is plain text with
+  protocol 1, and the server answers with a bare `connectResponse`, as
+  `fakk2.exe` 1.02 does. fnTech3's server had dropped a retail client's plain
+  connect in a failed Huffman decode, and its own client had asked for
+  protocol 68. Retail F.A.K.K.2 now joins an fnTech3 server and plays, and
+  fnTech3's client joins over the network too.
+- Make F.A.K.K.2's save pictures as its own engine does: in colour, each
+  channel averaged. They had been made as Alice's are, grey and brightened,
+  which turned F.A.K.K.2's rooms almost white.
+- Show F.A.K.K.2's version as `1.02` in its menus, the `shortversion` its
+  1.02 engine registers. It had shown Alice's `1.00`.
+- Play F.A.K.K.2's own intro: its soundtrack, then the Ritual Entertainment
+  and Gathering of Developers plates, each faded in, held and faded out, then
+  the main menu. It had gone straight to the menu. BACK TO GAME is offered
+  only in a game, as its engine does after the intro and on Escape, and
+  Escape no longer waits for the intro to end.
+
+- Add Medal of Honor: Allied Assault as a tenth title and the `mohaa` profile,
+  gated behind `-Dmohaa-development=true`. It runs 2015's engine, which
+  descends from Ritual's and Quake III's, and is served through adapters of
+  its own: the retail 1.00 game and client-game libraries run from the user's
+  installation with its own `system86.dll`, their 167 game and 168
+  client-game imports mapped from the libraries themselves. All fifty-four
+  maps spawn on the dedicated server and load in the client; each of the
+  forty-three single-player maps, briefings and credits included, plays its
+  opening with its scripts and AI running, and saves, loads and level exits
+  work in play. The retail menus, HUD, scoreboard, loading bar and message
+  boxes are served by the engine's own UI, and the GL, Vulkan and RTX
+  renderers draw the worlds, terrain, TIKI models, far-plane fog and the sun's
+  lens flare. Two clients find a dedicated server on the LAN list, join it
+  over protocol 6 and play free-for-all, team, round-based and objective
+  matches. The retail `MOHAA.exe` is SafeDisc-encrypted and cannot run on
+  current Windows, so the engine's rules come from the two plain libraries,
+  the game's data and [OpenMoHAA](https://github.com/openmoh/openmohaa)'s
+  reconstruction, parts of which are incorporated under its GPL licence, and
+  no frame, packet or save has been compared with retail's
+  ([record](docs/fntech3/2026-09-24-mohaa-contracts.md)).
+- Light Medal of Honor's terrain with its own lightmaps. Every map's terrain
+  had drawn unlit, at full brightness: on a night level such as `m1l2a` the
+  sand glared white instead of lying dark around the lamps.
+- Stop Medal of Honor's screen flashes and fades from dropping the game. Each
+  frame they drew registered a new blank picture, and a long battle such as
+  the Omaha Beach landing used up the renderer's picture slots within a few
+  minutes. The picture is now registered once.
+- Serve Medal of Honor's developer file pickers, `viewspawnlist`,
+  `lod_spawnlist` and `soundpicker`, which its model viewer, LOD tool and
+  sound menus open.
+- Admit Medal of Honor clients to pure servers. With `sv_pure 1` the client
+  now proves the paks it read from as 2015's engine does, naming no server id
+  or module, since 1.00's modules are not in a pak. A pure server had dropped
+  every client. `sv_pure` stays off by default, as in the original game, and
+  a client can download an archive the server uses and then join.
+- Alpha-test multitexture stages in the Vulkan and RTX renderers. Their
+  two- and three-bundle shaders were compiled without the alpha test, so a
+  stage that alpha-tests one texture and multiplies another in the same pass
+  drew its whole quad. Medal of Honor's foliage and fences are such stages,
+  and its tree lines showed the far-plane clear where the sky belonged. They
+  now match the GL renderer. A stage without an alpha test is unchanged.
+- Turn Medal of Honor's view with the mouse. Its client game has no import
+  to hand the engine a mouse scale, so the scale stayed at nought and a
+  moving mouse turned nothing. The engine now asks the client game for it on
+  every move, as the original engine does, and a move counts as activity for
+  the server's idle kick.
+- Stop filling Medal of Honor's console with `EXEC_NOW ui_removehud
+  hud_stopwatch` under `developer 1`. Its client game runs that line every
+  frame; the engine no longer echoes such lines for Medal of Honor, Alice or
+  F.A.K.K.2, whose own engines never did.
+- Forward a command the server does not know, sent by rcon to a listen
+  server, whole. It had reached the game short by the length of
+  `rcon <password> `.
+- Start each Medal of Honor level with only its own sound aliases, on a
+  server and on a client of a remote one. Every level's aliases had stayed
+  for the rest of the session, so a later level found sounds its data does
+  not give it, and its client game's parse printed about 1,900
+  duplicate-alias lines under `developer 1`. A `restart`, or a
+  load of the running level's save, keeps them, as the original engine does.
+  A sound a level plays while it spawns, such as a vehicle's idle, still
+  finds no alias: the original game registers them only after the spawn too.
+- Draw Medal of Honor's permanent decals, the posters, signs, cracks and
+  stains its designers laid on eleven maps, in every renderer. The advanced
+  options' "Static Decals" box shows and hides them.
+- Light Medal of Honor's bullet holes, scorches and other lit marks. Their
+  light was handed to the client game on the wrong scale, and every lit mark
+  drew black.
+- Draw Medal of Honor's character and prop models at the detail their
+  distance calls for, by the level-of-detail records the game ships with
+  them. The advanced options' model detail choice now takes effect; the
+  renderers had refused to let it set `r_lodscale`.
+- Serve Medal of Honor's decal editor and level-of-detail tool, which its
+  developer menus open (F6 and `l` in `development.cfg`): with
+  `dcl_editmode 1` a level's decals can be laid, changed and saved, and
+  `lod_spawn` shows a model at any level of detail, whose record
+  `lod_save 1` writes. Both write the original game's own file formats.
+- Stop drawing the Medal of Honor terrain its maps take out. A map's terrain
+  can leave out triangles, which players walk through and the original game
+  never drew; fnTech3 drew them all, up to four in five of a map's terrain
+  triangles, and now leaves out the same ones its collision does.
+- Leave Medal of Honor's decals on terrain and on doors and other moving
+  brushes. Scorches and the decal editor's decals now reach terrain, and marks
+  on a door swing with it; the decal editor had re-cut a level's terrain
+  decals to nothing. Bullet holes still leave terrain alone, as the original
+  game's renderer does; `ter_minMarkRadius 0` lets them mark it too.
+- Cast Medal of Honor's "Complex" shadows from the level's lights. The game
+  asks which lights reach a character and was told none, so the advanced
+  options' Complex shadows fell back to the Simple ones.
+- Let Medal of Honor players chat in multiplayer. The game's `say` and
+  `sayteam` keys (`y` and `t`) opened nothing, and the chat line that did open
+  sent a command the game never reads; they now open the chat line, whose
+  words reach everyone, the team or one player as the original game sends
+  them.
+
 ### Builds and Packaging
 
 - Start independent fnTech3 versioning at 0.1.0, with reviewed changelog entries
@@ -1498,9 +1984,57 @@ historical upstream records, not fnTech3 release history. See the
   SHA-256 checksums, source commit identity, notices and compatibility evidence.
 - Distribute the engine and project-owned content only; retail game modules,
   proprietary runtimes and game assets must come from the user's installation.
+- Show each game's own icon, remade at high resolution, on every platform.
+  The client carries an original vector remake of every supported game's
+  application icon, from Quake III Arena's red emblem to Alice's portrait,
+  and by default uses the active game's as its window, taskbar and Dock icon.
+  Most retail executables' icons stop at 32 px (RTCW single player's reaches
+  128 and Quake Live's 256) and could only be borrowed on Windows from an
+  installed executable; the remakes need nothing installed, and Windows binds
+  exact frames for the window's DPI. `cl_gameIcon 2` still prefers the
+  installation's own icon and `0` keeps fnTech3's. `fntech3.exe` exposes every game's icon to
+  shortcuts, Linux gets hicolor icons and a launcher template per game whose
+  application id the window now reports, and each game has a macOS `.icns`
+  ([game icons](assets/icons/games/README.md)). The legacy Make build's SDL
+  console no longer names an icon that no longer exists.
+- Build on Linux with GCC again. The bot library's AAS loader, the
+  navigation graph and the Ghoul2 server declarations had used constructs
+  MSVC accepts and GCC refuses; the i686 client (meson) and dedicated
+  server (make and CMake) now build from an unmodified tree.
 
 ### Documentation and Tooling
 
+- Rewrite the documentation for fnTech3 instead of FnQL. A new
+  [documentation index](docs/README.md) replaces `docs/fnql.md`; the
+  [Games Guide](docs/GAMES.md) covers choosing a profile, installations,
+  writable homes and each game's status; the
+  [architecture overview](docs/fntech3/ARCHITECTURE.md) maps profiles, adapters
+  and subsystems for maintainers; and the Build Guide lists every game's
+  development option. The player guides now say which games each feature
+  applies to -- static map lights, fog, coronas, player highlighting, FOV and
+  HUD correction, cube-map capture -- and the Audio Guide describes how each
+  game's sound is rendered and its retail-exact option. The FnQL documents are
+  indexed as the Quake Live profile's reference, upstream history moved to
+  `docs/archive/`, and the issue-triage script reads documents that exist.
+
+- Generate F.A.K.K.2's delta tables and dictionary from the official 1.02
+  patch's `fakk2.exe`, with `scripts/generate_fakk2_wire_tables.py`. Its
+  `--check` mode, run by `tests/fakk2_wire_tests.py` when that executable is
+  present, compares them with the executable.
+- Check a Ritual-engine client's sound from the engine's own capture instead
+  of by ear, with `scripts/probe_ritual_audio.py`. It records a demo, replays
+  it into `video` with and without the soundtrack, and looks for each effect
+  the playback started in the recorded mix, using that effect's own WAV from
+  the installation. `docs/fntech3/2026-09-24-fakk2-contracts.md` records what
+  it found on F.A.K.K.2's `fakkhouse`.
+- Drive a Ritual-engine client's menus and play in automated probes without
+  touching the keyboard or mouse. `in_synthesize` queues keys, typed
+  characters, mouse motion and console lines in the engine's own event queue.
+  It exists only under Alice, F.A.K.K.2 and Medal of Honor, and only a client
+  started with `+set in_synthetic 1` accepts it.
+  `scripts/probe_ritual_client.py --actions` turns a short script (point,
+  click, press, down, up, type, motion, shot) into chained steps. Each key or
+  button's command runs before the probe goes on.
 - Record the retail entity-type switches of `WolfMP.exe`, `WolfSP.exe` and
   `et.exe`, the host-font gate and the RTX colour-space finding in
   `docs/fntech3/2026-09-23-rtcw-water-ripples.md`. Regression tests run each
@@ -1522,8 +2056,12 @@ historical upstream records, not fnTech3 release history. See the
 
 ### Known limitations
 
-- Full unified compatibility is not established. Q3 and QL remain subject to
-  the open gates in the [compatibility ledger](docs/fntech3/COMPATIBILITY.md).
-- RTCW single-player and multiplayer profiles remain experimental and disabled
-  in default release builds. Development probes require `-Drtcw-development=true`.
+- Full unified compatibility is not established for any profile. Q3 and QL
+  remain subject to the open gates in the
+  [compatibility ledger](docs/fntech3/COMPATIBILITY.md).
+- Every other profile -- RTCW single player and multiplayer, Enemy Territory,
+  Elite Force single player and Holomatch, Jedi Academy and Jedi Outcast in
+  both modes, Alice, F.A.K.K.2, Medal of Honor and the IHV Test -- remains
+  experimental and disabled in release builds. Development probes need that game's option, such
+  as `-Drtcw-development=true`; see the [Build Guide](BUILD.md#game-development-options).
 - macOS and additional CPU architectures are outside this release matrix.

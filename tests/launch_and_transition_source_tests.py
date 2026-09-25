@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import unittest
 from pathlib import Path
 
@@ -29,66 +30,121 @@ def function_body(source: str, name: str) -> str:
 class LaunchAndTransitionSourceTests(unittest.TestCase):
     def test_vscode_launches_keep_profile_services_and_target_matching_binary(self) -> None:
         launch = json.loads(read_source(".vscode/launch.json"))
+        inputs = {entry["id"]: entry for entry in launch["inputs"]}
+        renderers = ("glx", "vk", "rtx")
+        titles = {
+            "q3": "Q3", "ql": "QL", "rtcw-sp": "RTCW SP", "rtcw-mp": "RTCW MP", "wolfet": "ET",
+            "stvef-sp": "EF SP", "stvef-mp": "EF MP", "q3-ihv": "Q3 IHV", "jka-sp": "JKA SP",
+            "jka-mp": "JKA MP", "jk2-sp": "JK2 SP", "jk2-mp": "JK2 MP", "alice": "Alice",
+        }
+        single_player = ("rtcw-sp", "stvef-sp", "jka-sp", "jk2-sp", "alice")
+        # IHV's client is blocked, Jedi Academy's client refuses its modules by
+        # name and nothing is wired for Jedi Outcast's, so each launches only
+        # its dedicated server.
+        client_profiles = ("q3", "ql", "rtcw-sp", "rtcw-mp", "wolfet", "stvef-sp", "stvef-mp", "alice")
+        # Profiles added after ET bind loopback as ET's launches do.
+        loopback_profiles = ("wolfet", "stvef-sp", "stvef-mp", "jka-sp", "jka-mp", "jk2-sp", "jk2-mp", "alice")
+
+        def input_values(value: str) -> list[str]:
+            entry = inputs[value[len("${input:") : -1]]
+            self.assertEqual(entry["type"], "pickString", value)
+            values = [option if isinstance(option, str) else option["value"] for option in entry["options"]]
+            self.assertEqual(len(values), len(set(values)), value)
+            self.assertIn(entry["default"], values, value)
+            return values
 
         self.assertTrue(launch["configurations"])
         combinations = set()
+        pickers = set()
+        named_dedicated = set()
         names = set()
         wolfet_homes = set()
         for configuration in launch["configurations"]:
             args = configuration["args"]
+            name = configuration["name"]
             profile = args[args.index("com_gameProfile") + 1] if "com_gameProfile" in args else "auto"
-            self.assertIn(profile, ("auto", "q3", "quake3", "ql", "quakelive", "rtcw-sp", "rtcw-mp", "wolfet"))
-            local_services = profile in ("q3", "quake3", "rtcw-sp", "rtcw-mp", "wolfet")
+            self.assertIn(profile, titles)
             steam_index = args.index("com_steamIntegration")
-            self.assertEqual(args[steam_index + 1], "0" if local_services else "1", configuration["name"])
+            self.assertEqual(args[steam_index + 1], "1" if profile == "ql" else "0", name)
             # Launching must not implicitly rebuild the engine. These profiles
             # intentionally target the selected, already-built x86 binary;
             # the separate build tasks below provide explicit Steam staging.
-            self.assertNotIn("preLaunchTask", configuration, configuration["name"])
-            self.assertNotIn("disabled", configuration["name"].lower())
-            self.assertNotIn(configuration["name"], names)
-            names.add(configuration["name"])
+            self.assertNotIn("preLaunchTask", configuration, name)
+            self.assertNotIn("disabled", name.lower())
+            self.assertNotIn(name, names)
+            names.add(name)
             self.assertIn("meson\\build\\win32-dev\\", configuration["program"])
-            self.assertIn("fs_basepath", args)
-            self.assertIn("fs_homepath", args)
+            base_path = args[args.index("fs_basepath") + 1]
+            self.assertEqual(inputs[base_path[len("${input:") : -1]]["type"], "promptString", name)
+            home = args[args.index("fs_homepath") + 1]
+            self.assertTrue(home.startswith(f"${{workspaceFolder}}/.tmp/vscode/{profile}/"), name)
             client = configuration["program"].endswith("\\fntech3.exe")
+            if client:
+                self.assertIn(profile, client_profiles, name)
+            else:
+                self.assertTrue(configuration["program"].endswith("\\fntech3.ded.exe"), name)
+                self.assertEqual(args[args.index("dedicated") + 1], "1", name)
             command = "+spmap" if profile == "rtcw-sp" else "+map"
             if profile == "wolfet" and client:
                 # ET's client launches start their maps as its client probe does.
                 command = "+devmap"
             map_name = args[args.index(command) + 1] if command in args else None
+            picker = bool(map_name) and map_name.startswith("${input:")
+            if picker:
+                input_values(map_name)
+                pickers.add((profile, client))
+                self.assertEqual(name, f"{titles[profile]} pick map" + ("" if client else " ded"))
             if profile == "ql" and map_name:
-                self.assertEqual(args[args.index(command) + 2], "ffa")
-            if profile == "wolfet":
-                # Each ET launch has its own writable home and binds loopback
-                # only; the client, unlike the dedicated server, also opens IPv6.
-                home = args[args.index("fs_homepath") + 1]
-                self.assertTrue(home.startswith("${workspaceFolder}/.tmp/"), configuration["name"])
-                self.assertNotIn(home, wolfet_homes, configuration["name"])
-                wolfet_homes.add(home)
-                self.assertEqual(args[args.index("net_ip") + 1], "127.0.0.1", configuration["name"])
-                if client:
-                    self.assertEqual(args[args.index("net_ip6") + 1], "::1", configuration["name"])
-            if "cl_renderer" in args:
-                renderer = args[args.index("cl_renderer") + 1]
-                combinations.add((profile, renderer, bool(map_name)))
-                mode = {"rtcw-sp": "SP", "wolfet": "ET"}.get(profile, "MP")
-                if map_name:
-                    self.assertRegex(configuration["name"], rf"^{mode} {map_name} .+ {renderer}$")
+                factory = args[args.index(command) + 2]
+                if picker:
+                    self.assertIn("ffa", input_values(factory))
+                    self.assertEqual(inputs[factory[len("${input:") : -1]]["default"], "ffa")
                 else:
-                    title = {"q3": "Q3", "ql": "QL", "rtcw-sp": "RTCW SP", "rtcw-mp": "RTCW MP", "wolfet": "ET"}[profile]
-                    self.assertEqual(configuration["name"], f"{title} {renderer}")
+                    self.assertEqual(factory, "ffa")
+            if profile == "wolfet":
+                # Each ET launch has its own writable home.
+                self.assertNotIn(home, wolfet_homes, name)
+                wolfet_homes.add(home)
+            if profile in loopback_profiles:
+                # These launches bind loopback only; the client, unlike the
+                # dedicated server, also opens IPv6.
+                self.assertEqual(args[args.index("net_ip") + 1], "127.0.0.1", name)
+                if client:
+                    self.assertEqual(args[args.index("net_ip6") + 1], "::1", name)
+            if profile == "q3-ihv":
+                # IHV's server drops every packet, so its probes run offline.
+                self.assertEqual(args[args.index("net_enabled") + 1], "0", name)
+            mode = "SP" if profile in single_player else "ET" if profile == "wolfet" else "MP"
+            if not client:
+                self.assertNotIn("cl_renderer", args, name)
+                if map_name and not picker:
+                    named_dedicated.add(profile)
+                    self.assertRegex(name, rf"^{mode} {re.escape(map_name)} .+ ded$")
+                continue
+            renderer = args[args.index("cl_renderer") + 1]
+            if picker:
+                self.assertEqual(input_values(renderer), list(renderers), name)
+                self.assertTrue(home.endswith(("/" + renderer, "/" + map_name)), name)
+            else:
+                combinations.add((profile, renderer, bool(map_name)))
+                if map_name:
+                    self.assertRegex(name, rf"^{mode} {re.escape(map_name)} .+ {renderer}$")
+                else:
+                    self.assertEqual(name, f"{titles[profile]} {renderer}")
                     self.assertFalse(any(arg in args for arg in ("+map", "+spmap", "+devmap", "+spdevmap")))
                     self.assertNotIn("com_introplayed", args)
-                self.assertEqual(args[args.index("r_fullscreen") + 1], "0")
-                if not local_services:
-                    self.assertEqual(args[args.index("cl_webuiEnable") + 1], "1")
+            self.assertEqual(args[args.index("r_fullscreen") + 1], "0")
+            self.assertEqual(args[args.index("cl_webuiEnable") + 1], "1" if profile == "ql" else "0", name)
         self.assertEqual(combinations, {
             (profile, renderer, map_launch)
-            for profile in ("q3", "ql", "rtcw-sp", "rtcw-mp")
-            for renderer in ("glx", "vk", "rtx")
+            for profile in client_profiles
+            for renderer in renderers
             for map_launch in (False, True)
-        } | {("wolfet", "glx", False), ("wolfet", "glx", True)})
+            if profile != "wolfet" or renderer == "glx" or not map_launch
+        })
+        self.assertEqual(pickers, {(profile, True) for profile in client_profiles}
+                         | {(profile, False) for profile in titles})
+        self.assertEqual(named_dedicated, set(titles))
 
     def test_vscode_build_tasks_stage_the_steam_provider(self) -> None:
         tasks = json.loads(read_source(".vscode/tasks.json"))["tasks"]
@@ -283,7 +339,10 @@ class LaunchAndTransitionSourceTests(unittest.TestCase):
 
         self.assertFalse((ROOT / "pkg/games/quakelive/baseq3/fnql-hud.json").exists())
         hud = read_source("code/client/cl_hud.cpp")
-        self.assertIn("hudSupported = Com_GameIsQuake3() || Com_GameIsRTCW();", hud)
+        # Every game whose HUD assumes a 4:3 screen; QL's and MoHAA's modules place their own.
+        supported = " ".join(hud.split("\n\thudSupported = ", 1)[1].split(";", 1)[0].split())
+        self.assertEqual(supported, "Com_GameIsQuake3() || Com_GameIsRTCW() || Com_GameIsWolfET() "
+                                    "|| Com_GameIsSTVEF() || Com_GameIsRitual()")
         self.assertIn("if ( !hudSupported ) return qtrue;", hud)
         self.assertIn("CL_HudDrawStretchPic", cgame)
         self.assertNotIn("cl_hudAspect", main)
@@ -292,7 +351,10 @@ class LaunchAndTransitionSourceTests(unittest.TestCase):
         fov = read_source("code/renderercommon/tr_q3_fov.h")
         self.assertIn('ri.Cvar_VariableString( "com_gameProfile" )', fov)
         self.assertIn('!Q_stricmp( profile, "quake3" )', fov)
-        self.assertNotIn('!Q_stricmp( profile, "quakelive" )', fov)
+        # Quake Live's cgame fits its own Hor+ to four shapes; it takes a rule of
+        # its own for the rest, never the 4:3 one.
+        ql_branch = fov.split('if ( quakeLive ) {\n\t\tR_CorrectQLViewportFov(', 1)[1]
+        self.assertLess(ql_branch.index('return;'), ql_branch.index('R_CorrectQ3ViewportFov('))
         self.assertIn("if ( !correction || !correction->integer", fov)
 
     def test_screen_update_recursion_is_depth_bounded(self) -> None:

@@ -44,11 +44,15 @@ struct ViewPrint {
 };
 
 ViewPrint viewPrint;
-/* View3D's font, created with the view (UI_Init 0x004104d0). */
+/* View3D's font, created with the view: courier-14 in Alice (UI_Init
+ * 0x00410840), facfont-20 in F.A.K.K.2 (fakk2.exe 1.02 0x0040ecb2). */
 int viewFont = -1;
 cvar_t *alice_fps;
 /* One frame drawn with only the view (saveshot 0x0042d570). */
 int cleanShotFrames;
+/* Whether the last frame showed the game's view, which a full-screen menu
+ * coming up over it in F.A.K.K.2 fades in over (CL_RitualMenuCarry). */
+bool viewShownLast;
 /* The frame rate the counter shows, averaged as retail keeps it (0x00bd1d50). */
 int fpsTimes[16];
 int fpsIndex;
@@ -56,9 +60,13 @@ int fpsIndex;
 float VidWidth() { return static_cast<float>( cls.glconfig.vidWidth ); }
 float VidHeight() { return static_cast<float>( cls.glconfig.vidHeight ); }
 
+const char *ViewFontName() {
+	return Com_GameIsFAKK2() ? "facfont-20" : "courier-14";
+}
+
 int ViewFont() {
 	if ( viewFont < 0 ) {
-		viewFont = CL_AliceFontRegister( "courier-14" );
+		viewFont = CL_AliceFontRegister( ViewFontName() );
 	}
 	return viewFont;
 }
@@ -88,7 +96,9 @@ void SetPrint( const char *text, float alpha ) {
 }
 
 /* The screen fade (0x00420620): only in the game and with a blend alpha. The
- * colour is left set, as retail leaves it; the next draw sets its own. */
+ * colour is left set, as retail leaves it; the next draw sets its own.
+ * F.A.K.K.2's game module writes only the first two kinds, 0 and 1
+ * (STAT_ADDFADE, fakk/gamex86.dll 0x100cc3a4). */
 void DrawFade() {
 	if ( cls.state != CA_ACTIVE ) {
 		return;
@@ -98,7 +108,7 @@ void DrawFade() {
 		return;
 	}
 	const float W = VidWidth(), H = VidHeight();
-	switch ( screen::FadeKind( Stats()[6] ) ) {
+	switch ( screen::FadeKind( Stats()[CL_RitualFadeStat()] ) ) {
 	case screen::Fade::Blend:
 		CL_AliceFill( 0, 0, W, H, blend );
 		break;
@@ -128,12 +138,13 @@ void DrawFade() {
 }
 
 /* The letterbox (0x00420570): two black bars of the stat's fraction of the
- * view's height. Its state also hides the HUD. */
+ * view's height. Its state also hides the HUD. F.A.K.K.2's game module keeps
+ * the stat, scaled alike, in its own slot (CL_RitualLetterboxStat). */
 bool DrawLetterbox() {
 	if ( cls.state != CA_ACTIVE ) {
 		return false;
 	}
-	const float fraction = screen::LetterboxFraction( Stats()[7] );
+	const float fraction = screen::LetterboxFraction( Stats()[CL_RitualLetterboxStat()] );
 	if ( fraction <= 0.0f ) {
 		return false;
 	}
@@ -289,7 +300,7 @@ void CL_AliceClearPrints( void ) {
 void CL_AliceScreenInit( void ) {
 	// `fps` is Com_Init's in retail (0x00439b05, archived, default 0).
 	alice_fps = Cvar_Get( "fps", "0", CVAR_ARCHIVE );
-	viewFont = CL_AliceFontRegister( "courier-14" );
+	viewFont = CL_AliceFontRegister( ViewFontName() );
 	Cmd_AddCommand( "saveshot", CL_AliceSaveShot_f );
 }
 
@@ -318,6 +329,8 @@ void CL_AliceUpdateScreenField( stereoFrame_t stereo ) {
 
 	// The loading screen owns the frame; nothing else is drawn.
 	if ( CL_AliceLoadingActive() ) {
+		CL_RitualEndMenuCarry();
+		viewShownLast = false;
 		CL_AliceClearBlack();
 		CL_AliceDrawLoadingScreen();
 		return;
@@ -327,15 +340,24 @@ void CL_AliceUpdateScreenField( stereoFrame_t stereo ) {
 	if ( CL_AliceUIFullscreenMenuUp() ) {
 		// The menu hides the view. This engine's frame begins uncleared, and
 		// retail's menus fill their own background, so black goes under them.
+		// With ui_menuDissolve, F.A.K.K.2's keep what the screen showed as
+		// they fade: the game's view, drawn here, or a menu (CL_RitualMenuCarry).
 		CL_AliceClearBlack();
-	} else if ( cls.state < CA_ACTIVE ) {
-		CL_AliceClearBlack();
-		CL_AliceUIDrawIntroPlate();
-	} else if ( cls.state == CA_ACTIVE || cls.state == CA_CINEMATIC ) {
-		showView = true;
+		if ( CL_RitualMenuCarry( viewShownLast ) ) {
+			DrawView( stereo, false );
+		}
 	} else {
-		CL_AliceClearBlack();
+		CL_RitualEndMenuCarry();
+		if ( cls.state < CA_ACTIVE ) {
+			CL_AliceClearBlack();
+			CL_AliceUIDrawIntroPlate();
+		} else if ( cls.state == CA_ACTIVE || cls.state == CA_CINEMATIC ) {
+			showView = true;
+		} else {
+			CL_AliceClearBlack();
+		}
 	}
+	viewShownLast = showView;
 
 	bool letterbox = false;
 	if ( showView ) {

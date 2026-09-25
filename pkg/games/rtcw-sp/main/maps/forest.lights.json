@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "generator": "fnTech3 scripts/generate_stock_rtcw_lights.py",
+  "map": "forest",
+  "profile": "rtcw-sp",
+  "source": "IBSP 47 entity lump, the map's compiled light entities",
+  "dlightScale": 1,
+  "lights": [
+    {"name": "forest-light-0083", "type": "point", "origin": [-2676, -1064, 416], "color": [0.0773, 0.0907, 0.0976], "intensity": 92.6, "radius": 92.6, "castsShadows": true},
+    {"name": "forest-light-0101", "type": "point", "origin": [1728, -5248, 534], "color": [0.8952, 0.6284, 0.3581], "intensity": 117.2, "radius": 117.2, "castsShadows": true},
+    {"name": "forest-light-0106", "type": "point", "origin": [1728, -4992, 512], "color": [0.0519, 0.0519, 0.0739], "intensity": 692.2, "radius": 692.2, "castsShadows": true},
+    {"name": "forest-light-0576", "type": "spot", "origin": [1728, -5248, 550], "direction": [0.4126, 0.77643, -0.47636], "color": [0.8086, 0.5676, 0.3235], "intensity": 130.9, "radius": 130.9, "outerAngle": 16.7, "castsShadows": true}
+  ]
+}

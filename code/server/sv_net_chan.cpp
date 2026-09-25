@@ -216,7 +216,7 @@ void SV_Netchan_Transmit( client_t *client, msg_t *msg)
 	// Holomatch messages end where their data ends; retail clients reject
 	// the svc_EOF opcode itself.
 	if ( !SV_LegacyFraming( client ) ) {
-		MSG_WriteByte( msg, svc_EOF );
+		MSG_WriteByte( msg, Netchan_ServerEOFOpcode( client->netchan.wireProfile ) );
 	}
 	SV_WolfETWriteBinaryMessage( msg, static_cast<int>( client - svs.clients ) );
 

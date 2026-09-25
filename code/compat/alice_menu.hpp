@@ -146,9 +146,14 @@ inline const Rgba &ShadeColor( const BorderColor &border, Shade shade ) {
 
 /* ---- UICheckBox (constructor 0x004e0200) --------------------------------- */
 
-/* The box is 16 units square at x 0, centred vertically, and the title
- * follows it (Draw 0x004e0af0). */
+/* The box is 16 units square, centred vertically, at an indent the
+ * constructor sets, and the title follows it at twice that indent past the
+ * box (Draw 0x004e0af0). Alice's indent is 0 (0x004e0290); F.A.K.K.2's is 16
+ * (fakk2.exe 1.02 0x004bae69..0x004bae7a, Draw 0x004bb6e0..0x004bb84b), so
+ * its box sits 16 units in and its title 48. */
 inline constexpr float CheckSize = 16.0f;
+inline constexpr float Fakk2CheckIndent = 16.0f;
+inline constexpr float CheckTitleX( float indent ) { return indent * 2.0f + CheckSize; }
 
 /* The cvar a checkbox writes (0x004e05e0 through 0x004c1900) and the text its
  * stuff command gets after it (" 1\n" 0x0052cf4c, " 0\n" 0x0052cf48). */
@@ -227,6 +232,16 @@ inline float Stepped( const Slider &slider, int direction ) {
 		if ( value > slider.min ) value = slider.min;
 		if ( value < slider.max ) value = slider.max;
 	}
+	return value;
+}
+
+/* Heavy Metal: F.A.K.K.2's arrows (fakk2.exe 1.02 0x004b5a20 up, 0x004b5a70
+ * down) hold the value to min and then to max whatever the step's sign, so a
+ * reversed range always lands on max. */
+inline float SteppedFakk2( const Slider &slider, int direction ) {
+	float value = direction > 0 ? slider.value + slider.step : slider.value - slider.step;
+	if ( value < slider.min ) value = slider.min;
+	if ( value > slider.max ) value = slider.max;
 	return value;
 }
 
@@ -350,6 +365,9 @@ struct BindItem {
 	std::string name, command, anim, shader;
 	bool loop = false;
 	float rotation = 0.0f;
+	/* Heavy Metal: F.A.K.K.2 reads the third word as the row's picture
+	 * (fakk2.exe 1.02 binditem 0x00411c90), where Alice reads an animation. */
+	std::string material;
 };
 
 struct BindLayout {
@@ -365,6 +383,10 @@ struct BindLayout {
 	Rgba selectForeground, selectBackground;
 	std::string changeSound, activeSound, enterSound;
 	std::string headers[3];
+	/* F.A.K.K.2's pictures: each header's third word (0x00410580) and the fill
+	 * strips' second (bind_fillwidth 0x00411f50). */
+	std::string headerMaterials[3];
+	std::string fillMaterial;
 	std::vector<BindItem> items;
 };
 
@@ -393,7 +415,10 @@ inline BindLayout ParseBindScript( const char *text, std::size_t length ) {
 		const auto number = [&args]() { return args.empty() ? 0 : std::atoi( args[0].c_str() ); };
 		if ( is( "bind_width" ) ) layout.width = number();
 		else if ( is( "bind_height" ) ) layout.height = number();
-		else if ( is( "bind_fillwidth" ) ) layout.fillWidth = number();
+		else if ( is( "bind_fillwidth" ) ) {
+			layout.fillWidth = number();
+			if ( args.size() > 1 ) layout.fillMaterial = args[1];
+		}
 		else if ( is( "bind_commandwidth" ) ) layout.commandWidth = number();
 		else if ( is( "bind_commandheight" ) ) layout.commandHeight = number();
 		else if ( is( "bind_primarykeywidth" ) ) layout.primaryKeyWidth = number();
@@ -418,7 +443,10 @@ inline BindLayout ParseBindScript( const char *text, std::size_t length ) {
 			// header <column 1..3> "<text>" (0x00413e50); retail's file has them commented out.
 			if ( args.size() >= 2 ) {
 				const int column = std::atoi( args[0].c_str() );
-				if ( column >= 1 && column <= 3 ) layout.headers[column - 1] = args[1];
+				if ( column >= 1 && column <= 3 ) {
+					layout.headers[column - 1] = args[1];
+					if ( args.size() > 2 ) layout.headerMaterials[column - 1] = args[2];
+				}
 			}
 		} else if ( is( "binditem" ) ) {
 			// binditem "<name>" <command> [anim [looped [rotation [shader]]]] (0x004155f0).
@@ -426,7 +454,7 @@ inline BindLayout ParseBindScript( const char *text, std::size_t length ) {
 			BindItem item;
 			item.name = args[0];
 			item.command = args[1];
-			if ( args.size() > 2 ) item.anim = args[2];
+			if ( args.size() > 2 ) item.anim = item.material = args[2];
 			if ( args.size() > 3 ) item.loop = urc::EqualsNoCase( args[3], "true" );
 			if ( args.size() > 4 ) item.rotation = static_cast<float>( std::atof( args[4].c_str() ) );
 			if ( args.size() > 5 ) item.shader = args[5];
@@ -515,7 +543,8 @@ inline const KeyAlias *FindKeyAlias( const std::vector<KeyAlias> &aliases, const
 
 /* One row of the list the refresh builds (0x0041a210) from a `.ssv` header. */
 struct SaveRow {
-	std::string map;       // header +0x48, the list's first column
+	std::string map;       // header +0x48, the list's first column in Alice
+	std::string comment;   // header +0x08, F.A.K.K.2's first column (the level's title)
 	std::string name;      // header +0x88, the archive name loadgame is given
 	int32_t saveTime = 0;  // header +0x00, time_t, the column the list sorts by
 	int32_t levelTime = 0; // header +0x04, milliseconds
@@ -586,6 +615,63 @@ inline std::string CTimeText( const std::tm &t ) {
 	return text;
 }
 
+/* The list control's own drawing of the saves (UIListCtrl::Draw 0x004ce3a0:
+ * the headers 0x004cde00, the rows 0x004ce010), which F.A.K.K.2's load menu
+ * shows and Alice's hides behind its pictures (`neverdraw`). Its columns
+ * (0x0041a150) are the map, the level's time and the save's date, over 40,
+ * 20 and 40 per cent of the list's width (0x004ff884, 0x004ff880), each cut
+ * to a whole unit. The second title is retail's own spelling. */
+inline constexpr int SaveColumns = 3;
+inline constexpr const char *SaveColumnTitles[SaveColumns] = { "Location", "Elapased Time", "Date & Time" };
+
+inline int SaveColumnWidth( int column, float listWidth ) {
+	return static_cast<int>( listWidth * ( column == 1 ? 0.2f : 0.4f ) );
+}
+
+/* The header: a line with 2 units above and below it (0x004cde20..0x004cde2e,
+ * the padding at 0x004cdd3a). A row is one line. */
+inline int SaveHeaderHeight( int lineHeight ) { return lineHeight + 4; }
+
+/* The level's time (0x0041aa3a): whole seconds -- the refresh divides the
+ * header's milliseconds by 1,000 (0x0041a5b0) -- as hours, then minutes and
+ * seconds of two digits. */
+inline std::string ElapsedText( int32_t levelTime ) {
+	const int seconds = levelTime > 0 ? static_cast<int>( levelTime / 1000 ) : 0;
+	char text[32];
+	std::snprintf( text, sizeof( text ), "%d:%02d:%02d", seconds / 3600, seconds % 3600 / 60, seconds % 60 );
+	return text;
+}
+
+/* The rows below the header that fit whole: a page for the scrollbar and the
+ * page keys. Retail draws one more while its top is inside the list
+ * (0x004ce179), cut by the list's edge. */
+inline int SaveRowsPerPage( float listHeight, int lineHeight ) {
+	if ( lineHeight <= 0 ) return 1;
+	const int rows = static_cast<int>( ( listHeight - static_cast<float>( SaveHeaderHeight( lineHeight ) ) )
+		/ static_cast<float>( lineHeight ) );
+	return rows > 1 ? rows : 1;
+}
+
+/* The first row shown, moved only as far as keeps the chosen row (1-based)
+ * on the page. */
+inline int SaveTopFor( int current, int top, int page, int count ) {
+	const int maxTop = count > page ? count - page : 0;
+	if ( current > 0 ) {
+		if ( current - 1 < top ) top = current - 1;
+		if ( current - 1 >= top + page ) top = current - page;
+	}
+	if ( top > maxTop ) top = maxTop;
+	return top < 0 ? 0 : top;
+}
+
+/* The page and picture a list row stands for, so the list's choice is the
+ * one `loadgame` and `removegame` read (0x0041bcb0 takes the page's). */
+inline void SelectSaveRow( SavePage &page, int row ) {
+	if ( row <= 0 ) return;
+	page.page = ( row - 1 ) / ShotsPerPage;
+	page.tab = ( row - 1 ) % ShotsPerPage + 1;
+}
+
 /* ---- UIAutoScroll (constructor 0x004c0340) -------------------------------- */
 
 inline constexpr float DefaultScrollSpeed = 0.2f;   // 0x004c0393
@@ -617,6 +703,58 @@ inline float EdgeAlpha( float top, float bottom, float height ) {
 /* `resetscroll [line]` (0x004c0490): the given line at the top, or the first. */
 inline float ResetScrollPosition( float line, float lineHeight ) {
 	return -( lineHeight * line );
+}
+
+/* ---- an uncleared screen, as shares -------------------------------------- */
+
+/* Heavy Metal: F.A.K.K.2's screen is not cleared under its full-screen menus
+ * (cl_alice_ui.cpp's MenuCarry), so what it shows is kept as shares of the
+ * layers drawn into it: a draw at alpha a leaves every share 1 - a of itself
+ * and adds a to its own layer's. `kind` and `menu` name a layer; the caller
+ * gives them meaning. */
+struct KeptLayer {
+	int kind = 0;
+	int menu = -1;
+	float share = 0.0f;
+};
+
+inline void KeepDraw( std::vector<KeptLayer> &layers, int kind, int menu, float a ) {
+	if ( !( a > 0.0f ) ) return;
+	if ( a > 1.0f ) a = 1.0f;
+	bool found = false;
+	for ( KeptLayer &layer : layers ) {
+		layer.share *= 1.0f - a;
+		if ( layer.kind == kind && layer.menu == menu ) {
+			layer.share += a;
+			found = true;
+		}
+	}
+	if ( !found ) {
+		KeptLayer layer;
+		layer.kind = kind;
+		layer.menu = menu;
+		layer.share = a;
+		layers.push_back( layer );
+	}
+}
+
+/* Shares too faint to see (under 1/512) are dropped. */
+inline void DropFaintLayers( std::vector<KeptLayer> &layers ) {
+	layers.erase( std::remove_if( layers.begin(), layers.end(),
+		[]( const KeptLayer &layer ) { return layer.share < 1.0f / 512.0f; } ), layers.end() );
+}
+
+/* The alpha each layer is drawn at, from the first up, to leave it its share:
+ * from the last down, its share of what the layers after it let through. */
+inline std::vector<float> KeptAlphas( const std::vector<KeptLayer> &layers ) {
+	std::vector<float> alpha( layers.size(), 0.0f );
+	float through = 1.0f;
+	for ( std::size_t i = layers.size(); i-- > 0; ) {
+		const float share = layers[i].share;
+		alpha[i] = through > 0.0f ? std::min( share / through, 1.0f ) : 0.0f;
+		through -= share;
+	}
+	return alpha;
 }
 
 } // namespace menu

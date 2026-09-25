@@ -100,7 +100,7 @@ static void FnTech3_CopyInternalIntArray( int *destination,
 typedef char q3GameStateCapacityCheck[
 	(MAX_CONFIGSTRINGS == FNTECH3_Q3_MAX_CONFIGSTRINGS &&
 	 MAX_GAME_CONFIGSTRINGS >= FNTECH3_Q3_MAX_CONFIGSTRINGS &&
-	 MAX_GAMESTATE_CHARS == FNTECH3_Q3_MAX_GAMESTATE_CHARS) ? 1 : -1];
+	 MAX_GAMESTATE_CHARS >= FNTECH3_Q3_MAX_GAMESTATE_CHARS) ? 1 : -1];
 
 void FnTech3_Q3GameStateFromInternal( fntech3_q3_gameState_t *destination,
 	const gameState_t *source ) {
@@ -115,7 +115,7 @@ void FnTech3_Q3GameStateFromInternal( fntech3_q3_gameState_t *destination,
 typedef char qlGameStateCapacityCheck[
 	(MAX_CONFIGSTRINGS == FNTECH3_QL_MAX_CONFIGSTRINGS &&
 	 MAX_GAME_CONFIGSTRINGS >= FNTECH3_QL_MAX_CONFIGSTRINGS &&
-	 MAX_GAMESTATE_CHARS == FNTECH3_QL_MAX_GAMESTATE_CHARS) ? 1 : -1];
+	 MAX_GAMESTATE_CHARS >= FNTECH3_QL_MAX_GAMESTATE_CHARS) ? 1 : -1];
 
 void FnTech3_QLGameStateFromInternal( fntech3_ql_gameState_t *destination,
 	const gameState_t *source ) {

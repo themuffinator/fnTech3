@@ -212,7 +212,7 @@ class AliceCinematicTests(unittest.TestCase):
 
     def test_command_dispatches_before_the_shared_path(self):
         command = function(self.cin, 'void CL_PlayCinematic_f( void ) {')
-        alice = command.index('if ( Com_GameIsAlice() ) {')
+        alice = command.index('if ( Com_GameIsRitual() ) {')
         # Ignored while one plays (0x004276c0), then CIN_Play(argv 1, argv 2).
         self.assertLess(alice, command.index('if (cls.state == CA_CINEMATIC) {'))
         self.assertLess(alice, command.index('CL_ShouldSkipIdLogoCinematic'))
@@ -255,7 +255,11 @@ class AliceCinematicTests(unittest.TestCase):
         self.assertIn('introState = state;', setter)
         self.assertNotIn('_intro', setter)
         soundtrack = step[step.index('case screen::IntroAction::Soundtrack:'):]
-        self.assertIn('S_AliceMusicNewSoundtrack( screen::IntroSoundtrack );', soundtrack)
+        self.assertIn('S_AliceMusicNewSoundtrack( CL_RitualMenuSoundtrack() );', soundtrack)
+        # Alice's menu soundtrack is still its intro; F.A.K.K.2 names its own.
+        font = (ROOT / 'code/client/cl_alice_font.cpp').read_text(encoding='utf-8')
+        self.assertIn(': fntech3::alice::screen::IntroSoundtrack;',
+                      function(font, 'const char *CL_RitualMenuSoundtrack( void ) {'))
         # The `_intro` a movie appends behind its map runs while this client
         # has its hosted UI down for the load; the command must outlive that.
         removed = self.ui[self.ui.index('const char *const kCommands[] = {'):]

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Star Wars Jedi Knight II: Jedi Outcast (Multiplayer)
+GenericName=fnTech3 game profile
+Comment=Play Star Wars Jedi Knight II: Jedi Outcast (Multiplayer) with fnTech3
+Exec=fntech3 +set com_gameProfile jk2-mp
+Icon=fntech3-jk2-mp
+Terminal=false
+Categories=Game;ActionGame;
+StartupWMClass=fntech3-jk2-mp

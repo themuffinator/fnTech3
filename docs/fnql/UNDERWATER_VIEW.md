@@ -1,5 +1,10 @@
 # Underwater View
 
+> **fnTech3 note.** Written for FnQL. The submersion feed comes from the Quake
+> III-style client-game path, so the layer works in Quake III Arena, Quake Live
+> and Elite Force; RTCW, Enemy Territory, Alice and F.A.K.K.2 do not send it.
+> See the [Display Guide](../DISPLAY.md#underwater-view).
+
 ## Scope
 
 FnQL's underwater view is an opt-in, visual-only post-process layer applied to the finished 3D scene while the camera is submerged in a liquid. It resamples the frame through an animated screen-space wave field with a small per-channel dispersion, darkens the periphery, and absorbs the scene toward a medium colour with eye distance. With `r_underwater 0` the renderers behave exactly as before.

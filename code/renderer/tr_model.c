@@ -345,13 +345,20 @@ qhandle_t RE_RegisterModel( const char *name ) {
 	/* American McGee's Alice names two kinds of model Quake III has no
 	 * loader for: a model definition, which the engine loads and shares, and
 	 * a sprite, which is a shader of the same name. */
-	if ( ri.gameId == COM_GAME_ALICE ) {
+	if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) ) {
 		if ( !Q_stricmp( ext, "tik" ) ) {
 			return R_LoadAliceTiki( mod, name ) ? mod->index : 0;
 		}
 		if ( !Q_stricmp( ext, "spr" ) ) {
 			return R_LoadAliceSprite( mod, name ) ? mod->index : 0;
 		}
+	}
+
+	/* Medal of Honor's sprite is the same kind of model, a shader named like
+	 * the `.spr` (OpenMoHAA's SPR_RegisterSprite); its model definitions come
+	 * through RE_RegisterMOHAATiki instead. */
+	if ( ri.gameId == COM_GAME_MOHAA && !Q_stricmp( ext, "spr" ) ) {
+		return R_LoadAliceSprite( mod, name ) ? mod->index : 0;
 	}
 
 	if( *ext )
@@ -1232,6 +1239,9 @@ void R_ModelBounds( qhandle_t handle, vec3_t mins, vec3_t maxs ) {
 		return;
 	} else if ( model->type == MOD_ALICE_TIKI || model->type == MOD_ALICE_SPRITE ) {
 		R_AliceModelBounds( model, mins, maxs );
+		return;
+	} else if ( model->type == MOD_MOHAA_TIKI ) {
+		R_MOHAAModelBounds( model, mins, maxs );
 		return;
 	} else if ( model->type == MOD_MDS ) {
 		VectorCopy( model->mds->frames[0].bounds[0], mins );

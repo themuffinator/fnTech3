@@ -313,10 +313,18 @@ class STVEFSPAmbientTests(unittest.TestCase):
         self.assertIn('stvefAmbientLoops_.Append( origin, handle, volume )', openal)
         self.assertIn('voice.stvefAmbient = true;', openal)
         self.assertIn('voice.entnum = ENTITYNUM_NONE;', openal)
-        apply = function(world, 'void Q3SoundWorld::ApplyVoice( SoundVoice &voice, qboolean softMuted ) {')
-        self.assertIn('const bool rtcwSpatial = voice.rtcwLoop || voice.rtcwOneShot || voice.stvefAmbient;', apply)
-        self.assertIn('if ( voice.stvefAmbient ) {', apply)
-        self.assertIn('fntech3::audio::stvef::Spatialize( voiceOrigin,', apply)
+        # Each loop is its own placed voice, at its set's volume over a
+        # one-shot's 127 and measured as a sound with no channel; the room
+        # tone, played where the listener is, is heard there
+        # (stvef_sp_openal_voice_tests runs both).
+        apply = function(world, 'void Q3SoundWorld::ApplySTVEFVoice( SoundVoice &voice, qboolean softMuted ) {')
+        self.assertIn('float gain = voice.stvefAmbient ? static_cast<float>( voice.stvefVolume ) / 127.0f : '
+                      'voice.volumeScale;', apply)
+        self.assertIn('if ( voice.stvefAmbient && listenerSound ) {', apply)
+        span = function(world, 'static fntech3::audio::stvef::Span STVEFVoiceSpan( const SoundVoice &voice ) {')
+        self.assertIn('ChannelSpan( voice.stvefAmbient ? -1 : voice.entchannel );', span)
+        at = function(world, 'static bool STVEFHeardAtListener( const SoundVoice &voice, float distance, int listenerNumber ) {')
+        self.assertIn('voice.stvefAmbient ? distance < fntech3::audio::stvef::AtListenerDistance', at)
         backend = read('code/client/audio/openal/AudioSystemBackend.inl')
         self.assertIn('void AudioSystem::AddSTVEFAmbientLoopingSound( const float *origin, sfxHandle_t handle, int volume ) {',
                       backend)

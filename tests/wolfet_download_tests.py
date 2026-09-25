@@ -171,7 +171,8 @@ class WolfETDownloadTests(unittest.TestCase):
             'RTCW_MP': 'main', 'WOLFET': 'etmain', 'STVEF_SP': 'baseEF',
             'STVEF_MP': 'baseEF', 'QUAKE3_IHV': 'baseq3', 'JKA_SP': 'base',
             'JKA_MP': 'base', 'JK2_SP': 'base', 'JK2_MP': 'base',
-            'ALICE': 'base'})
+            'ALICE': 'base', 'FAKK2': 'fakk', 'MOHAA': 'main',
+            'Q3TEST': 'demoq3'})
 
     def test_download_paths_use_the_profile_policy(self):
         """Neither the server nor the client may fall back to Quake's BASEGAME."""

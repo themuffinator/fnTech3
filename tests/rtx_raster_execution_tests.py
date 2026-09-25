@@ -46,6 +46,10 @@ class RtxRasterExecutionTests(unittest.TestCase):
         flag = re.search(r"^#define DSF_SHADOW_CASTER_ONLY .+$", header, re.M).group(0)
         mode = source[source.index("typedef enum {\n\tRB_DRAWSURFS_ALL"):
                       source.index("} rbDrawSurfsMode_t;") + len("} rbDrawSurfsMode_t;")]
+        vk_header = (ROOT / "code/rendererrtx/vk.h").read_text(encoding="utf-8")
+        owner = vk_header[vk_header.index("typedef enum {\n\tRT_SURFACE_RASTER"):
+                          vk_header.index("} rtSurfaceOwner_t;") + len("} rtSurfaceOwner_t;")]
+        fog_overlay = re.search(r"^static qboolean rb_rtFogOverlay;$", source, re.M).group(0)
         fixture = r'''
 #include <assert.h>
 #include <limits.h>
@@ -56,7 +60,7 @@ class RtxRasterExecutionTests(unittest.TestCase):
 #define QSORT_REFENTITYNUM_MASK 255u
 #define VK_NULL_HANDLE 0
 typedef int qboolean;
-enum { qfalse, qtrue, REFENTITYNUM_WORLD = 0, RF_DEPTHHACK = 1, RF_CROSSHAIR = 2,
+enum { qfalse, qtrue, SF_BAD = 0, REFENTITYNUM_WORLD = 0, RF_DEPTHHACK = 1, RF_CROSSHAIR = 2,
        RENDER_PASS_MAIN = 1, RENDER_PASS_SCREENMAP = 2, RENDER_PASS_POST_BLOOM = 3,
        SS_OPAQUE = 3, SS_FOG = 5, DEPTH_RANGE_NORMAL = 0, DEPTH_RANGE_WEAPON = 1 };
 typedef struct { int integer; float value; } cvar_t;
@@ -65,8 +69,10 @@ static cvar_t *r_liquid = &enabled, *r_liquidRefraction = &enabled,
               *r_liquidReflection = &enabled;
 static struct { cvar_t *forceMergeEntities; } qlRendererCvars = { &disabled };
 typedef struct { int entityMergable, nativeSupported, liquid; float sort, timeOffset; } shader_t;
-typedef struct { int type, id; } surfaceType_t;
-typedef struct { unsigned sort, flags; int *surface; } drawSurf_t;
+/* the engine's surfaceType_t is the int a surface pointer points at */
+typedef int surfaceType_t;
+typedef struct { surfaceType_t type; int id; } fixtureSurface_t;
+typedef struct { unsigned sort, flags; surfaceType_t *surface; } drawSurf_t;
 typedef struct { float modelMatrix[16]; } orientation_t;
 typedef struct {
     int intShaderTime;
@@ -79,21 +85,24 @@ static struct {
     struct { int c_surfaces; } pc;
 } backEnd;
 static struct { entity_t worldEntity; } tr;
-static struct { shader_t *shader; double shaderTime; int depthRange; } tess;
+static struct { shader_t *shader; double shaderTime; int depthRange; int rtFogOnly; } tess;
 static struct { int fboActive, renderPassIndex;
                 struct { int color_descriptor; } liquidSnapshot; } vk = {1, RENDER_PASS_MAIN, {1}};
 static struct { float modelview_transform[16]; } vk_world;
-static shader_t shaders[3] = {{0}, {0, 1, 0, SS_OPAQUE, 0}, {0, 0, 0, SS_OPAQUE, 0}};
-static int rendered[16], renderedCount, snapshotChecks, decompositions;
-static int R_RtShaderNativeSupported(const shader_t *shader) { return shader->nativeSupported; }
+/* nativeSupported: 0 raster, 1 traced, 2 traced inside a fog volume */
+/* shaders[4]: traced, sorted past opaque (an alpha-tested see-through surface) */
+static shader_t shaders[5] = {{0}, {0, 1, 0, SS_OPAQUE, 0}, {0, 0, 0, SS_OPAQUE, 0}, {0, 2, 0, SS_OPAQUE, 0},
+                              {0, 1, 0, SS_OPAQUE + 1, 0}};
+static int rendered[16], fogOnlyAtDraw[16], renderedCount, snapshotChecks, decompositions;
 static void R_DecomposeSort(unsigned sort, int *entity, shader_t **shader, int *fog, int *dlight) {
     ++decompositions; *entity = sort & 255; *shader = &shaders[sort >> 8]; *fog = 0; *dlight = 0;
 }
 static int RB_ShaderNeedsLiquidSnapshot(const shader_t *shader) { ++snapshotChecks; return shader->liquid; }
 static int RB_IsPrimaryFullView(void) { return 1; }
 static int vk_depth_fade_ready(void) { return 0; }
-static int vk_depth_fade_available(void) { return 0; }
-static void vk_copy_depth_fade(void) { assert(0); }
+static int depthFadeAvailable, depthFadeCopies;
+static int vk_depth_fade_available(void) { return depthFadeAvailable; }
+static void vk_copy_depth_fade(void) { ++depthFadeCopies; }
 static void RB_EndSurface(void) {}
 // Elite Force's forced entity alpha changes how a batch is drawn, not which.
 static void RB_EndSurfaceWithSTVEFAlpha(void) { RB_EndSurface(); }
@@ -104,9 +113,20 @@ static void R_RotateForEntity(entity_t *entity, viewParms_t *view, orientation_t
     (void)entity; *out = view->world;
 }
 static void vk_update_mvp(const void *matrix) { (void)matrix; }
-static void Draw(int *surface) { rendered[renderedCount++] = ((surfaceType_t *)surface)->id; }
-static void (*rb_surfaceTable[])(int *) = {Draw};
-''' + flag + '\n' + mode + '\n' + '\n'.join(function(source, signature) for signature in (
+static void Draw(surfaceType_t *surface) {
+    fogOnlyAtDraw[renderedCount] = tess.rtFogOnly;
+    rendered[renderedCount++] = ((fixtureSurface_t *)surface)->id;
+}
+static void (*rb_surfaceTable[])(surfaceType_t *) = {Draw};
+''' + flag + '\n' + mode + '\n' + owner + '\n' + fog_overlay + r'''
+static rtSurfaceOwner_t vk_rt_surface_owner(int entityNum, const shader_t *shader, int fogNum, int surfaceType) {
+    (void)fogNum; (void)surfaceType;
+    /* this fixture's entity surfaces stay with raster */
+    if (entityNum != REFENTITYNUM_WORLD) return RT_SURFACE_RASTER;
+    return shader->nativeSupported == 2 ? RT_SURFACE_TRACED_FOGGED :
+        shader->nativeSupported ? RT_SURFACE_TRACED : RT_SURFACE_RASTER;
+}
+''' + '\n'.join(function(source, signature) for signature in (
             "static qboolean RB_DrawSurfIncluded(",
             "static qboolean RB_DrawSurfListNeedsLiquidSnapshot(",
             "static void RB_RenderDrawSurfList(")) + r'''
@@ -120,7 +140,7 @@ static void Expect(drawSurf_t *draws, int count, rbDrawSurfsMode_t mode, const i
     assert(backEnd.refdef.floatTime == 15.0);
 }
 int main(void) {
-    surfaceType_t surfaces[8];
+    fixtureSurface_t surfaces[8];
     drawSurf_t draws[8];
     unsigned sorts[] = {256, 256, 256, 256, 512, 257, 512, 257};
     int expectedAll[] = {1, 3, 4, 5}, expectedBase[] = {1, 3}, expectedOverlay[] = {4, 5};
@@ -150,6 +170,39 @@ int main(void) {
     assert(!RB_DrawSurfListNeedsLiquidSnapshot(draws + 1, 1, RB_DRAWSURFS_RT_OVERLAY));
     /* Visibility filtering must preserve the list for subsequent shadow passes. */
     assert(draws[0].flags == DSF_SHADOW_CASTER_ONLY && draws[2].flags == DSF_SHADOW_CASTER_ONLY);
+    /* A traced surface inside fog: the base pass draws it; the overlay returns
+     * it, for its fog pass alone, only after a completed trace. */
+    {
+        drawSurf_t fogged[2];
+        int expectedFogged[] = {6, 7};
+        fogged[0].sort = fogged[1].sort = 768;
+        fogged[0].surface = &surfaces[6].type; fogged[1].surface = &surfaces[7].type;
+        fogged[0].flags = fogged[1].flags = 0;
+        rb_rtFogOverlay = qfalse;
+        Expect(fogged, 2, RB_DRAWSURFS_RT_BASE, expectedFogged, 2);
+        assert(!fogOnlyAtDraw[0] && !fogOnlyAtDraw[1]);
+        Expect(fogged, 2, RB_DRAWSURFS_RT_OVERLAY, NULL, 0);
+        rb_rtFogOverlay = qtrue;
+        Expect(fogged, 2, RB_DRAWSURFS_RT_OVERLAY, expectedFogged, 2);
+        assert(fogOnlyAtDraw[0] && fogOnlyAtDraw[1]);
+        assert(!tess.rtFogOnly);
+        rb_rtFogOverlay = qfalse;
+    }
+    /* A traced surface sorted past opaque, in a map with depth fade: the base
+     * pass before the trace leaves the depth snapshot (and the render pass it
+     * opens) to the overlay list; a raster frame takes it there. */
+    {
+        drawSurf_t seeThrough[1];
+        int expectedSeeThrough[] = {5};
+        seeThrough[0].sort = 1024; seeThrough[0].surface = &surfaces[5].type; seeThrough[0].flags = 0;
+        depthFadeAvailable = 1;
+        depthFadeCopies = 0;
+        Expect(seeThrough, 1, RB_DRAWSURFS_RT_BASE, expectedSeeThrough, 1);
+        assert(depthFadeCopies == 0);
+        Expect(seeThrough, 1, RB_DRAWSURFS_ALL, expectedSeeThrough, 1);
+        assert(depthFadeCopies == 1);
+        depthFadeAvailable = 0;
+    }
     return 0;
 }
 '''

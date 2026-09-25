@@ -221,6 +221,7 @@
     <ClCompile Include="..\..\renderer\tr_mesh.c" />
     <ClCompile Include="..\..\renderer\tr_model.c" />
     <ClCompile Include="..\..\renderer\tr_model_iqm.c" />
+    <ClCompile Include="..\..\renderer\tr_mohaa.c" />
     <ClCompile Include="..\..\renderercommon\tr_noise.c" />
     <ClCompile Include="..\..\renderer\tr_scene.c" />
     <ClCompile Include="..\..\renderer\tr_shade.c" />

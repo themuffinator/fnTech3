@@ -1,5 +1,11 @@
 # Global Fog Sidecars
 
+> **fnTech3 note.** Written for FnQL; the sidecar format, lookup and fallback
+> rules below now apply to every fnTech3 game, each reading only its own
+> package namespace. fnTech3 ships presets for Quake Live's stock maps and for
+> Quake III Arena and Team Arena maps. See the
+> [Display Guide](../DISPLAY.md#optional-global-fog).
+
 FnQL supports an optional, visual-only global-fog layer for map authors. It is
 disabled by default and does not alter BSP fog volumes, visibility, collision,
 network state, demos, or the VM/native-module ABI. The feature therefore does

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Quake III Arena (Q3Test)
+GenericName=fnTech3 game profile
+Comment=Play Quake III Arena (Q3Test) with fnTech3
+Exec=fntech3 +set com_gameProfile q3test
+Icon=fntech3-q3test
+Terminal=false
+Categories=Game;ActionGame;
+StartupWMClass=fntech3-q3test

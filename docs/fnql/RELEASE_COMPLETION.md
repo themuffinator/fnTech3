@@ -1,5 +1,10 @@
 # FnQL Release Completion List
 
+> Historical FnQL record. fnTech3 does not use this file: its changes are
+> kept in the root [CHANGELOG.md](../../CHANGELOG.md) and released as described
+> in [RELEASING.md](../fntech3/RELEASING.md). See the
+> [FnQL baseline documents](README.md).
+
 Use this file as the source list for release changelog entries.
 
 Process:

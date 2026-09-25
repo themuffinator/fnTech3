@@ -58,6 +58,14 @@ glwstate_t glw_state;
 
 SDL_Window *SDL_window = NULL;
 static fnql::sdl::ScopedGLContext SDL_glContext;
+
+static fntech3::icon::Mode GLW_GameIconMode( void )
+{
+	cvar_t *gameIcon = Cvar_Get( "cl_gameIcon", "1", CVAR_ARCHIVE );
+	Cvar_SetDescription( gameIcon, fntech3::icon::ModeDescription() );
+	return fntech3::icon::ModeFromCvar( gameIcon->integer );
+}
+
 #ifdef USE_VULKAN_API
 static PFN_vkGetInstanceProcAddr qvkGetInstanceProcAddr;
 #endif
@@ -1071,9 +1079,10 @@ static rserr_t GLW_SetMode( int mode, const char *modeFS, qboolean fullscreen, q
 
 	if ( SDL_window )
 	{
+		const comGameProfile_t *profile = Com_GameProfile();
 		fntech3::icon::SetWindowIcon( SDL_window, Cvar_VariableString( "fs_basepath" ),
-			Com_GameProfile() ? Com_GameProfile()->id : COM_GAME_AUTO,
-			Cvar_Get( "cl_gameIcon", "1", CVAR_ARCHIVE )->integer != 0 );
+			profile ? profile->id : COM_GAME_AUTO, profile ? profile->key : NULL,
+			GLW_GameIconMode() );
 	}
 	else
 	{
@@ -1141,11 +1150,19 @@ static rserr_t GLimp_StartDriverAndSetMode( int mode, const char *modeFS, qboole
 		fullscreen = qfalse;
 	}
 
+	// SDL reads the id when it creates a window (Wayland app_id, X11 WM_CLASS),
+	// so each game can pair with its own launcher and icon on Linux desktops.
+	{
+		const comGameProfile_t *profile = Com_GameProfile();
+		const std::string applicationId = fntech3::icon::ApplicationId(
+			profile ? profile->key : NULL, GLW_GameIconMode() );
+		SDL_SetHint( SDL_HINT_APP_ID, applicationId.c_str() );
+	}
+
 	if ( !SDL_WasInit( SDL_INIT_VIDEO ) )
 	{
 		const char *driverName;
 
-		SDL_SetHint( SDL_HINT_APP_ID, "fntech3" );
 		if ( !SDL_Init( SDL_INIT_VIDEO ) )
 		{
 			Com_Printf( "SDL_Init( SDL_INIT_VIDEO ) FAILED (%s)\n", SDL_GetError() );

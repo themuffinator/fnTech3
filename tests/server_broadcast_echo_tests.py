@@ -37,6 +37,10 @@ static cvar_t dedicated{};
 cvar_t *com_dedicated=&dedicated;
 int Com_GameIsRTCWMP(){return profile.id==COM_GAME_RTCW_MP;}
 int Com_GameIsWolfET(){return profile.id==COM_GAME_WOLFET;}
+// Q3Test's broadcasts take its own sessions (server_q3test_net.hpp); the
+// shared path stands in for its catalog entry here.
+int Com_GameIsQ3Test(){return 0;}
+void SV_Q3TestSendServerCommand(client_t*,const char*){assert(false);}
 static std::vector<std::string> printed;
 void QDECL Com_Printf(const char *format,...){
  std::vector<char> text(1<<14);va_list args;va_start(args,format);

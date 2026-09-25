@@ -98,6 +98,8 @@ struct entityState_s;
 struct playerState_s;
 
 void MSG_WriteBits( msg_t *msg, int value, int bits );
+// The bit reader, for codecs outside msg.cpp; negative widths sign-extend.
+int MSG_ReadBitsExternal( msg_t *msg, int bits );
 
 void MSG_WriteChar (msg_t *sb, int c);
 void MSG_WriteByte (msg_t *sb, int c);
@@ -160,6 +162,8 @@ void MSG_ReadDeltaEntityLegacy( msg_t *msg, const entityState_t *from, entitySta
 // The entity a gamestate's baselines are delta-coded from: zero, except Alice's.
 void MSG_NullEntityStateForWireProfile( entityState_t *state,
 	netchanWireProfile_t profile );
+// Heavy Metal: F.A.K.K.2's bodies on the Alice wire profile; set once with the game profile.
+void MSG_UseFAKK2Bodies( qboolean fakk2 );
 
 void MSG_WriteDeltaPlayerstate( msg_t *msg, const playerState_t *from, const playerState_t *to );
 void MSG_ReadDeltaPlayerstate( msg_t *msg, const playerState_t *from, playerState_t *to );
@@ -637,6 +641,8 @@ void	Cmd_AddCommand( const char *cmd_name, xcommand_t function );
 void	Cmd_RemoveCommand( const char *cmd_name );
 void	Cmd_RemoveCgameCommands( void );
 void	Cmd_WriteAliases( fileHandle_t file );
+// sets or replaces an alias, as the `alias` command does
+void	Cmd_SetAlias( const char *name, const char *command );
 
 typedef void (*completionFunc_t)( const char *args, int argNum );
 
@@ -1196,6 +1202,9 @@ void		Com_StartupVariable( const char *match );
 // only a set with the exact name.  Only used during startup.
 
 void		Com_WriteConfiguration( void );
+// The configuration file this process executes and writes back: the
+// profile's own, or the one a Ritual profile's `config` cvar names.
+const char	*Com_ConfigFile( void );
 int			Com_HexStrToInt( const char *str );
 qboolean	Com_GetHashColor( const char *str, byte *color );
 
@@ -1254,6 +1263,7 @@ extern	int		com_frameTime;
 #ifndef DEDICATED
 extern	qboolean	gw_minimized;
 extern	qboolean	gw_active;
+extern	qboolean	gw_offscreen;
 #endif
 
 extern	qboolean	com_errorEntered;
@@ -1646,6 +1656,8 @@ void *Sys_LoadLibrary( const char *name );
 void *Sys_LoadFunction( void *handle, const char *name );
 int   Sys_LoadFunctionErrors( void );
 void  Sys_UnloadLibrary( void *handle );
+void  *Sys_UnloadLibraryHeld( void *handle );
+void  Sys_ReleaseLibraryHold( void *hold );
 
 // adaptive huffman functions
 void Huff_Compress( msg_t *buf, int offset );

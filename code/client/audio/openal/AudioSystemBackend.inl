@@ -36,6 +36,11 @@ public:
 	void AddLoopingSound( int entityNum, const float *origin, const float *velocity, sfxHandle_t sfxHandle );
 	void AddRTCWLoopingSound( const float *origin, const float *velocity, int range, sfxHandle_t handle, int volume );
 	void AddSTVEFAmbientLoopingSound( const float *origin, sfxHandle_t handle, int volume );
+	void StartMOHAASound( const float *origin, int entnum, int entchannel, sfxHandle_t handle,
+		float volume, float minDist, float maxDist, float pitch, int mohaaChannel );
+	void StopMOHAASound( int entnum, int mohaaChannel );
+	void AddMOHAALoopingSound( int slot, const float *origin, const float *velocity, sfxHandle_t handle,
+		float volume, float minDist, float maxDist, float pitch );
 	const int *STVEFSPMouths();
 	void AddWolfETLoopingSound( const float *origin, const float *velocity, int range, sfxHandle_t handle, int volume, int soundTime );
 	void AddRealLoopingSound( int entityNum, const float *origin, const float *velocity, sfxHandle_t sfxHandle );
@@ -91,8 +96,8 @@ private:
 		void Stop( int voice ) override { system_.world_.AliceStop( voice ); }
 		void Pause( int voice ) override { system_.world_.AlicePause( voice ); }
 		void Resume( int voice ) override { system_.world_.AliceResume( voice ); }
-		void Place( int voice, const float *position, float gain, float direct, int ) override {
-			system_.world_.AlicePlace( voice, position, gain, direct );
+		void Place( int voice, const fntech3::audio::alice::sfx::Placement &placement ) override {
+			system_.world_.AlicePlace( voice, placement );
 		}
 	private:
 		AudioSystem &system_;
@@ -413,6 +418,16 @@ bool AudioSystem::Init( soundInterface_t *si ) {
 	si->AddLoopingSound = []( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfxHandle ) { AudioSystem::Get().AddLoopingSound( entityNum, origin, velocity, sfxHandle ); };
 	si->AddRTCWLoopingSound = []( const vec3_t origin, const vec3_t velocity, int range, sfxHandle_t handle, int volume ) { AudioSystem::Get().AddRTCWLoopingSound( origin, velocity, range, handle, volume ); };
 	si->AddSTVEFAmbientLoopingSound = []( const vec3_t origin, sfxHandle_t handle, int volume ) { AudioSystem::Get().AddSTVEFAmbientLoopingSound( origin, handle, volume ); };
+	si->StartMOHAASound = []( const vec3_t origin, int entnum, int entchannel, sfxHandle_t handle,
+		float volume, float minDist, float maxDist, float pitch, int mohaaChannel ) {
+		AudioSystem::Get().StartMOHAASound( origin, entnum, entchannel, handle, volume, minDist, maxDist, pitch,
+			mohaaChannel );
+	};
+	si->StopMOHAASound = []( int entnum, int mohaaChannel ) { AudioSystem::Get().StopMOHAASound( entnum, mohaaChannel ); };
+	si->AddMOHAALoopingSound = []( int slot, const vec3_t origin, const vec3_t velocity, sfxHandle_t handle,
+		float volume, float minDist, float maxDist, float pitch ) {
+		AudioSystem::Get().AddMOHAALoopingSound( slot, origin, velocity, handle, volume, minDist, maxDist, pitch );
+	};
 	si->STVEFSPMouths = []() { return AudioSystem::Get().STVEFSPMouths(); };
 	si->AddRealLoopingSound = []( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfxHandle ) { AudioSystem::Get().AddRealLoopingSound( entityNum, origin, velocity, sfxHandle ); };
 	si->StopLoopingSound = []( int entityNum ) { AudioSystem::Get().StopLoopingSound( entityNum ); };
@@ -510,9 +525,10 @@ void AudioSystem::BeginRegistration() {
 	}
 
 	weaponSoundShaders_.EnsureLoaded();
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() || Com_GameIsMOHAA() ) {
 		// American McGee's Alice's handle 0 is ***DEFAULT***, registered at
-		// S_Init and never loaded (alice.exe 0x0044c893).
+		// S_Init and never loaded (alice.exe 0x0044c893); Medal of Honor's
+		// engine reserves the same name (OpenMoHAA snd_dma_new.cpp S_Init).
 		const std::string placeholder = "***DEFAULT***";
 		samples_.emplace_back( placeholder, weaponSoundShaders_.Find( placeholder ) );
 		return;
@@ -574,7 +590,7 @@ sfxHandle_t AudioSystem::RegisterSound( const char *sample, qboolean /*compresse
 // American McGee's Alice refuses a stereo WAV outright, and tries it again at
 // the next registration (alice.exe 0x0044e560).
 bool AudioSystem::RefuseAliceStereo( SoundSample &sample ) {
-	if ( !Com_GameIsAlice() || sample.Channels() != 2 || sample.Name().find( ".mp3" ) != std::string::npos ) {
+	if ( !Com_GameIsRitual() || sample.Channels() != 2 || sample.Name().find( ".mp3" ) != std::string::npos ) {
 		return false;
 	}
 	Com_Printf( "%s is a stereo wav file\n", sample.Name().c_str() );
@@ -786,7 +802,7 @@ void AudioSystem::UpdateBackgroundTrack() {
 	const float musicVolume = ( s_musicVolume != nullptr ) ? s_musicVolume->value : 1.0f;
 	// American McGee's Alice's stream goes on being read at volume 0: its
 	// songs keep playing silently, run out and hand over as retail's do.
-	if ( musicVolume > 0.0f || Com_GameIsRTCWSP() || Com_GameIsAlice() ) {
+	if ( musicVolume > 0.0f || Com_GameIsRTCWSP() || Com_GameIsRitual() ) {
 		ServiceBackgroundTrack();
 	}
 	if ( Com_GameIsRTCWSP() ) {
@@ -976,6 +992,43 @@ const int *AudioSystem::STVEFSPMouths() {
 	return world_.STVEFSPMouths();
 }
 
+void AudioSystem::StartMOHAASound( const float *origin, int entnum, int entchannel, sfxHandle_t handle,
+	float volume, float minDist, float maxDist, float pitch, int mohaaChannel ) {
+	if ( !started_ || hardMuted_ ) {
+		return;
+	}
+	if ( origin == nullptr && ( entnum < 0 || entnum >= MAX_GENTITIES ) ) {
+		Com_Error( ERR_DROP, "S_StartMOHAASound: bad entitynum %i", entnum );
+	}
+	SoundSample *sample = GetSample( handle );
+	if ( sample == nullptr ) {
+		Com_Printf( S_COLOR_YELLOW "S_StartMOHAASound: handle %i out of range\n", handle );
+		return;
+	}
+	if ( !sample->EnsureLoaded( device_, handle == 0 ) ) {
+		return;
+	}
+	world_.StartMOHAASound( entnum, entchannel, handle, sample, origin, volume, minDist, maxDist, pitch, mohaaChannel );
+}
+
+void AudioSystem::StopMOHAASound( int entnum, int mohaaChannel ) {
+	if ( started_ ) {
+		world_.StopMOHAASound( entnum, mohaaChannel );
+	}
+}
+
+void AudioSystem::AddMOHAALoopingSound( int slot, const float *origin, const float *velocity, sfxHandle_t handle,
+	float volume, float minDist, float maxDist, float pitch ) {
+	if ( !started_ || hardMuted_ || cls.state != CA_ACTIVE ) {
+		return;
+	}
+	SoundSample *sample = GetSample( handle );
+	if ( sample == nullptr || !sample->EnsureLoaded( device_, handle == 0 ) ) {
+		return;
+	}
+	world_.AddMOHAALoopingSound( slot, origin, velocity, handle, sample, volume, minDist, maxDist, pitch );
+}
+
 void AudioSystem::AddSTVEFAmbientLoopingSound( const float *origin, sfxHandle_t handle, int volume ) {
 	if ( !started_ || hardMuted_ || cls.state != CA_ACTIVE || volume <= 0
 		|| !world_.AcceptsSTVEFAmbientLoop() ) return;
@@ -1062,7 +1115,7 @@ void AudioSystem::Update( int msec ) {
 	// American McGee's Alice's voices carry s_volume in their own gains, as
 	// retail hands it to Miles with each sample, and its music and cinematic
 	// track never take it (alice.exe 0x00472580, 0x00472210).
-	device_.SetMasterGain( Com_GameIsRTCWSP() || Com_GameIsAlice() ? 1.0f : ( s_volume != nullptr ? s_volume->value : 1.0f ) );
+	device_.SetMasterGain( Com_GameIsRTCWSP() || Com_GameIsRitual() ? 1.0f : ( s_volume != nullptr ? s_volume->value : 1.0f ) );
 	device_.ApplyDopplerState();
 	const bool deferredUpdates = device_.BeginDeferredUpdates();
 	world_.Update( softMuted );
@@ -1078,7 +1131,7 @@ void AudioSystem::Update( int msec ) {
 	voicePlayer_.Update( softMuted ? 0.0f : voiceVolume * streamGain );
 	const float musicVolume = ( s_musicVolume != nullptr ) ? s_musicVolume->value : 1.0f;
 	// Alice's stream arrives at the volumes Miles would have been handed.
-	if ( !Com_GameIsRTCWSP() ) musicPlayer_.Update( softMuted ? 0.0f : ( Com_GameIsAlice() ? 1.0f : musicVolume ) );
+	if ( !Com_GameIsRTCWSP() ) musicPlayer_.Update( softMuted ? 0.0f : ( Com_GameIsRitual() ? 1.0f : musicVolume ) );
 	UpdateBackgroundTrack();
 }
 
@@ -1118,7 +1171,7 @@ void AudioSystem::SoundInfo() {
 	Com_Printf( "Master volume: %.2f\n", s_volume != nullptr ? s_volume->value : 1.0f );
 	Com_Printf( "Mute state: %s%s\n",
 		hardMuted_ ? "registration-muted (normal during startup/registration)" :
-			( focusMuted ? "focus-muted" : "audible" ),
+			( focusMuted ? "focus-muted" : gw_offscreen ? "offscreen-muted (window's desktop is not on screen)" : "audible" ),
 		( s_volume != nullptr && s_volume->value <= 0.0f ) ? ", master volume is zero" : "" );
 	Com_Printf( "OpenAL library: %s\n", device_.LibraryName().empty() ? "unknown" : device_.LibraryName().c_str() );
 	Com_Printf( "Requested device: %s\n", device_.RequestedDeviceName().empty() ? "default" : device_.RequestedDeviceName().c_str() );

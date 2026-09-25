@@ -93,6 +93,11 @@ int Com_GameIsQuakeLive( void ) { return Is( COM_GAME_QUAKELIVE ); }
 int Com_GameIsWolfET( void ) { return Is( COM_GAME_WOLFET ); }
 int Com_GameIsRTCWSP( void ) { return Is( COM_GAME_RTCW_SP ); }
 int Com_GameIsSTVEFMP( void ) { return Is( COM_GAME_STVEF_MP ); }
+// Q3Test records with its own recorder (cl_q3test.cpp), which writes no cvar
+// either; the shared recorder stands in for it here.
+int Com_GameIsQ3Test( void ) { return 0; }
+void CL_Q3TestRecord_f( void ) {}
+void CL_Q3TestStopRecord_f( void ) {}
 
 // The engine's cvars, by name. Like the engine's, a write creates a cvar that
 // does not exist yet, so a stray write in another profile shows up as a cvar.

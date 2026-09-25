@@ -49,7 +49,7 @@ static void checkBoundary(bool native){
  for(const auto &p:profiles){profile=&p;const bool rtcw=Com_GameIsRTCW();
   if(!p.bots.navigationWorlds){
    assert(p.id==COM_GAME_QUAKE3_IHV||p.id==COM_GAME_JKA_SP||p.id==COM_GAME_JK2_SP
-    ||p.id==COM_GAME_ALICE);
+    ||p.id==COM_GAME_ALICE||p.id==COM_GAME_FAKK2||p.id==COM_GAME_MOHAA||p.id==COM_GAME_Q3TEST);
    for(int count:{8,128,256}){botlibglobals.maxclients=count;
     assert(EA_Setup()==BLERR_LIBRARYNOTSETUP&&allocations.empty());}
    EA_Shutdown();assert(allocations.empty());continue;

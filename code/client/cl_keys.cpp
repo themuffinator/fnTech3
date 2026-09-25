@@ -83,6 +83,7 @@ qboolean	chat_team;
 qboolean	chat_buddy;		// Enemy Territory's fireteam chat
 
 int			chat_playerNum;
+int			chat_dmTarget;		// Medal of Honor's: 0 all, -1 the team, else a client
 }
 
 static void Field_CharEvent( field_t *edit, int ch );
@@ -706,7 +707,13 @@ static void Message_Key( int key ) {
 	if ( key == K_ENTER || key == K_KP_ENTER )
 	{
 		if ( chatField.buffer[0] && cls.state == CA_ACTIVE ) {
-			if (chat_playerNum != -1 )
+			// 1.00's Medal of Honor game reads no say, say_team or tell,
+			// only its own dmmessage: the target, then the words
+			// (gamex86.dll's commands; OpenMoHAA cl_ui.cpp
+			// DMConsoleCommandHandler)
+			if ( Com_GameIsMOHAA() )
+				Com_sprintf( buffer.data(), static_cast<int>( buffer.size() ), "dmmessage %i %s\n", chat_dmTarget, chatField.buffer );
+			else if (chat_playerNum != -1 )
 
 				Com_sprintf( buffer.data(), static_cast<int>( buffer.size() ), "tell %i \"%s\"\n", chat_playerNum, chatField.buffer );
 
@@ -805,6 +812,11 @@ static int CL_ModuleKeyEvent( int key ) {
 	if ( Com_GameIsQuake3() ) {
 		return FnTech3_Q3KeyEventFromInternal( key );
 	}
+	// Q3Test's menu modules (1.06-1.08) number keys as Quake III does; 1.05's
+	// menus are this engine's own.
+	if ( Com_GameIsQ3Test() && Com_Q3TestRelease()->id >= Q3TEST_RELEASE_1_06 ) {
+		return FnTech3_Q3KeyEventFromInternal( key );
+	}
 	if ( Com_GameIsSTVEF() ) {
 		return FnTech3_STVEFKeyEventFromInternal( key );
 	}
@@ -868,7 +880,7 @@ is how its default.cfg's F1 quickload and F4 quicksave work from a menu.
 =============
 */
 static bool CL_AliceMenuBoundKey( int key ) {
-	return Com_GameIsAlice() && key >= K_F1 && key <= K_F12;
+	return Com_GameIsRitual() && key >= K_F1 && key <= K_F12;
 }
 
 
@@ -1082,7 +1094,7 @@ static void CL_ToggleMenuInternal( int key, qboolean sendKeyUp, unsigned time ) 
 	// retail's order: the intro's refusal, the double press, the menus, the
 	// scripted cinematic's `skipcinematic` and the cinematic stop
 	// (CL_KeyEvent 0x00429d9d..0x00429e63).
-	if ( Com_GameIsAlice() && !( Key_GetCatcher( ) & KEYCATCH_UI ) ) {
+	if ( Com_GameIsRitual() && !( Key_GetCatcher( ) & KEYCATCH_UI ) ) {
 		CL_AliceEscape();
 		return;
 	}
@@ -1189,7 +1201,7 @@ went down under that modifier, and otherwise its own.
 */
 static void CL_KeyDownBinding( int key, unsigned time )
 {
-	if ( Com_GameIsAlice() && CL_AliceModifierKeyDown( key, time ) ) {
+	if ( Com_GameIsRitual() && CL_AliceModifierKeyDown( key, time ) ) {
 		return;
 	}
 	Key_ParseBinding( key, qtrue, time );
@@ -1215,7 +1227,7 @@ static void CL_KeyDownEvent( int key, unsigned time )
 
 	// Alice's modifiers, console keys and cursor-mode mouse buttons are
 	// settled before anything routes the key.
-	if ( Com_GameIsAlice() && CL_AliceKeyFilter( key, qtrue ) ) {
+	if ( Com_GameIsRitual() && CL_AliceKeyFilter( key, qtrue ) ) {
 		return;
 	}
 
@@ -1247,7 +1259,7 @@ static void CL_KeyDownEvent( int key, unsigned time )
 	// such key clears nextdemo and becomes Escape (alice.exe 0x00429d56..
 	// 0x00429d8d, which tests clc.demoplaying beside the cinematic state).
 	if ( ( key < 128 || key == K_MOUSE1 )
-		&& ( cls.state == CA_CINEMATIC || ( Com_GameIsAlice() && clc.demoplaying ) )
+		&& ( cls.state == CA_CINEMATIC || ( Com_GameIsRitual() && clc.demoplaying ) )
 		&& Key_GetCatcher() == 0 ) {
 		if ( Cvar_VariableIntegerValue( "com_cameraMode" ) == 0 ) {
 			Cvar_Set ("nextdemo","");
@@ -1324,7 +1336,7 @@ static void CL_KeyUpEvent( int key, unsigned time )
 		return;
 	}
 
-	if ( Com_GameIsAlice() && CL_AliceKeyFilter( key, qfalse ) ) {
+	if ( Com_GameIsRitual() && CL_AliceKeyFilter( key, qfalse ) ) {
 		return;
 	}
 
@@ -1335,7 +1347,7 @@ static void CL_KeyUpEvent( int key, unsigned time )
 	if (CL_RTCWCameraKeyAction(Com_GameIsRTCWSP(), cl.rtcwCameraMode,
 		Key_GetCatcher(), key, false) != rtcwCameraKeyAction::Pass) return;
 
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		CL_AliceModifierKeyUp( key, time );
 	}
 
@@ -1420,7 +1432,7 @@ void CL_CharEvent( int key )
 
 	// Alice's two console keys never type (CL_CharEvent 0x0042a140 drops
 	// both before anything sees them).
-	if ( Com_GameIsAlice() && ( *codepoint == '`' || *codepoint == '~' ) ) {
+	if ( Com_GameIsRitual() && ( *codepoint == '`' || *codepoint == '~' ) ) {
 		return;
 	}
 
@@ -1492,7 +1504,7 @@ void Key_ClearStates( void )
 
 	// Alice's Key_ClearStates (0x0042a170) clears each key's alt and ctrl
 	// flags too; the releases above have already sent what they owed.
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		for ( int key = 0; key < MAX_KEYS; ++key ) {
 			aliceAltKeys[key].pressed = false;
 			aliceCtrlKeys[key].pressed = false;
@@ -1840,6 +1852,48 @@ void CL_AliceUnctrlBind_f( void ) { CL_AliceUnbindCommand( aliceCtrlKeys, "unctr
 void CL_AliceAltBindList_f( void ) { CL_AliceBindListCommand( aliceAltKeys ); }
 void CL_AliceCtrlBindList_f( void ) { CL_AliceBindListCommand( aliceCtrlKeys ); }
 
+/* A probe's synthetic input, for exercising the Ritual and Medal of Honor UIs
+ * and play where no keyboard or mouse may be used: a key, typed characters or
+ * relative motion goes into the engine's own event queue, where the platform
+ * layer puts real input, so the client takes it as it takes that. A window on
+ * a private desktop never has focus, and the platform layer drops real input
+ * while it has none; these events skip that layer. Only a client started with
+ * +set in_synthetic 1 accepts them: the cvar is init-only, so nothing a server,
+ * a menu or a config can send turns it on. */
+cvar_t *in_synthetic;
+
+void CL_SynthesizeInput_f( void ) {
+	if ( !in_synthetic || !in_synthetic->integer ) {
+		Com_Printf( "in_synthesize needs +set in_synthetic 1 on the command line\n" );
+		return;
+	}
+	const char *kind = Cmd_Argv( 1 );
+	const int now = Sys_Milliseconds();
+	if ( !Q_stricmp( kind, "key" ) && Cmd_Argc() == 4 ) {
+		const int key = Key_StringToKeynum( Cmd_Argv( 2 ) );
+		if ( key <= 0 || key >= MAX_KEYS ) {
+			Com_Printf( "in_synthesize: unknown key \"%s\"\n", Cmd_Argv( 2 ) );
+			return;
+		}
+		Sys_QueEvent( now, SE_KEY, key, atoi( Cmd_Argv( 3 ) ) ? qtrue : qfalse, 0, nullptr );
+	} else if ( !Q_stricmp( kind, "char" ) && Cmd_Argc() >= 3 ) {
+		for ( const char *c = Cmd_ArgsFrom( 2 ); *c; ++c ) {
+			Sys_QueEvent( now, SE_CHAR, static_cast<unsigned char>( *c ), 0, 0, nullptr );
+		}
+	} else if ( !Q_stricmp( kind, "motion" ) && Cmd_Argc() == 4 ) {
+		Sys_QueEvent( now, SE_MOUSE, atoi( Cmd_Argv( 2 ) ), atoi( Cmd_Argv( 3 ) ), 0, nullptr );
+	} else if ( !Q_stricmp( kind, "console" ) && Cmd_Argc() >= 3 ) {
+		/* A console line, queued as the system console queues typed text, so
+		 * it reaches the command buffer after whatever the events ahead of it
+		 * appended: a probe continues behind a command the UI runs for a
+		 * click, instead of holding it back behind its own waits. */
+		char *line = CopyString( Cmd_ArgsFrom( 2 ) );
+		Sys_QueEvent( now, SE_CONSOLE, 0, 0, static_cast<int>( strlen( line ) + 1 ), line );
+	} else {
+		Com_Printf( "usage: in_synthesize key <name> <1|0> | char <text> | motion <dx> <dy> | console <line>\n" );
+	}
+}
+
 } // namespace
 
 
@@ -1867,13 +1921,25 @@ void CL_AliceInitKeyCommands( void ) {
 }
 
 
+/*
+===================
+CL_InitSyntheticInput
+
+in_synthesize and its switch, registered beside bind for the Ritual profiles
+and Medal of Honor, whose probes play without a keyboard or mouse.
+===================
+*/
+void CL_InitSyntheticInput( void ) {
+	in_synthetic = Cvar_Get( "in_synthetic", "0", CVAR_INIT );
+	Cvar_SetDescription( in_synthetic, "Lets in_synthesize queue key, character and motion events, for automated probes. Command line only." );
+	Cmd_AddCommand( "in_synthesize", CL_SynthesizeInput_f );
+}
+
+
+/* The commands stay, as bind does: Com_InitKeyCommands registers them once,
+ * before default.cfg runs, as retail's Key_Init does (0x00429b60). The input
+ * shutdown only lets go of a held modifier. */
 void CL_AliceShutdownKeyCommands( void ) {
-	Cmd_RemoveCommand( "altbind" );
-	Cmd_RemoveCommand( "unaltbind" );
-	Cmd_RemoveCommand( "ctrlbind" );
-	Cmd_RemoveCommand( "unctrlbind" );
-	Cmd_RemoveCommand( "altbindlist" );
-	Cmd_RemoveCommand( "ctrlbindlist" );
 	aliceAltHeld = false;
 	aliceCtrlHeld = false;
 }
@@ -1890,7 +1956,7 @@ bind line.
 ===================
 */
 void Key_AliceWriteModifierBindings( fileHandle_t f, int keynum ) {
-	if ( !Com_GameIsAlice() || keynum < 0 || keynum >= MAX_KEYS ) {
+	if ( !Com_GameIsRitual() || keynum < 0 || keynum >= MAX_KEYS ) {
 		return;
 	}
 	const char *alt = aliceAltKeys[keynum].binding;

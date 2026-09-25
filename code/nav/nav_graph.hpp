@@ -183,7 +183,7 @@ private:
 	bool Join( int from, int to, int cost );
 	static long long Pair( int from, int to )
 	{
-		return ( long long( from ) << 32 ) | (unsigned)to;
+		return ( static_cast<long long>( from ) << 32 ) | (unsigned)to;
 	}
 
 	std::vector<Node> nodes_;

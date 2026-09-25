@@ -38,8 +38,23 @@ static const char *Profile(const char *name) {
     ++profileReads;
     return profile;
 }
+static int Corrected(void) {
+    static const char *const corrected[] = {"quake3", "rtcw-sp", "rtcw-mp", "wolfet", "stvef-sp", "stvef-mp",
+        "alice", "fakk2", "mohaa"};
+    for (size_t i = 0; i < sizeof(corrected) / sizeof(corrected[0]); ++i)
+        if (!strcmp(profile, corrected[i])) return 1;
+    return 0;
+}
+static cvar_t aspectPreset = {0};
+static int presetReads;
 static cvar_t *Register(const char *name, const char *value, int flags) {
-    assert(!strcmp(profile, "quake3") || !strcmp(profile, "rtcw-sp") || !strcmp(profile, "rtcw-mp"));
+    if (!strcmp(name, "r_aspectRatio")) {
+        /* The preset Quake Live's client publishes for its cgame; read, never owned. */
+        assert(!strcmp(profile, "quakelive") && !strcmp(value, "0") && flags == 0);
+        ++presetReads;
+        return &aspectPreset;
+    }
+    assert(Corrected() || !strcmp(profile, "quakelive"));
     assert(!strcmp(name, "r_fovCorrection") && !strcmp(value, "1"));
     assert(flags == CVAR_ARCHIVE_ND);
     ++registrations;
@@ -79,7 +94,47 @@ int main(int argc, char **argv) {
 #if defined(USE_FBO) || defined(USE_VULKAN)
     gls.windowWidth = 1920; gls.windowHeight = 1080;
 #endif
-    if (strcmp(profile, "quake3") && strcmp(profile, "rtcw-sp") && strcmp(profile, "rtcw-mp")) {
+    if (!strcmp(profile, "quakelive")) {
+        /* Its cgame fits its own view to four shapes: 16:9 on a 16:9 screen is left alone. */
+        aspectPreset.integer = 1;
+        ExpectFov(view, 90.0f, 60.0f);
+        assert(registrations == 1 && presetReads == 1 && profileReads == 1);
+        /* At 21:9 its 16:9 field is widened; its vertical field is kept. */
+        view.width = glConfig.vidWidth = 2560;
+        glConfig.windowAspect = 2560.0f / 1080.0f;
+        ExpectFov(view, 106.260205f, 60.0f);
+        view.rdflags = RDF_NOWORLDMODEL;
+        ExpectFov(view, 90.0f, 60.0f);   /* HUD and menu model scenes */
+        view.rdflags = RDF_NOFOVCORRECTION;
+        ExpectFov(view, 90.0f, 60.0f);
+        view.rdflags = 0; enabled.integer = 0;
+        ExpectFov(view, 90.0f, 60.0f);   /* retail's own field */
+        enabled.integer = 1;
+        /* 3:2 publishes the 4:3 preset, whose field is widened too. */
+        aspectPreset.integer = 0;
+        view.width = glConfig.vidWidth = 1440; view.height = glConfig.vidHeight = 960;
+        glConfig.windowAspect = 1.5f;
+        ExpectFov(view, 96.732921f, 60.0f);
+        view.width = glConfig.vidWidth = 1024; view.height = glConfig.vidHeight = 768;
+        glConfig.windowAspect = 4.0f / 3.0f;
+        ExpectFov(view, 90.0f, 60.0f);
+        aspectPreset.integer = 2;
+        view.width = glConfig.vidWidth = 1920; view.height = glConfig.vidHeight = 1200;
+        glConfig.windowAspect = 1.6f;
+        ExpectFov(view, 90.0f, 60.0f);
+        aspectPreset.integer = 3;
+        view.width = glConfig.vidWidth = 1280; view.height = glConfig.vidHeight = 1024;
+        glConfig.windowAspect = 1.25f;
+        ExpectFov(view, 90.0f, 60.0f);
+        view.width = glConfig.vidWidth = 1080; view.height = glConfig.vidHeight = 1920;
+        glConfig.windowAspect = 1080.0f / 1920.0f;
+        ExpectFov(view, 48.455491f, 60.0f); /* narrower than its narrowest preset */
+        view.width = -1;
+        ExpectFov(view, 90.0f, 60.0f);
+        assert(registrations == 1 && presetReads == 1 && profileReads == 1);
+        return 0;
+    }
+    if (!Corrected()) {
         for (flag = 0; flag < 16; ++flag) {
             view.rdflags = flag;
             ExpectFov(view, 90.0f, 60.0f);
@@ -109,6 +164,17 @@ int main(int argc, char **argv) {
     view.height = glConfig.vidHeight = 768;
     glConfig.windowAspect = 4.0f / 3.0f;
     ExpectFov(view, 90.0f, 60.0f);
+    /* A view the game cuts from a 4:3 screen, a letterbox, was authored so. */
+    view.height = 576;
+    ExpectFov(view, 90.0f, 60.0f);
+    /* The same cut of a 16:9 screen keeps its 4:3 framing, widened. */
+    view.width = glConfig.vidWidth = 1920;
+    view.height = 810; glConfig.vidHeight = 1080;
+    glConfig.windowAspect = 16.0f / 9.0f;
+    ExpectFov(view, 106.260205f, 58.715507f);
+    view.width = glConfig.vidWidth = 1024;
+    view.height = glConfig.vidHeight = 768;
+    glConfig.windowAspect = 4.0f / 3.0f;
     glConfig.windowAspect = 16.0f / 9.0f;
     ExpectFov(view, 106.260205f, 73.739795f); /* Stretched 4:3 render target. */
 #if defined(USE_FBO) || defined(USE_VULKAN)
@@ -162,7 +228,8 @@ class Q3FovProfileTests(unittest.TestCase):
                         command.append("-lm")
                     build = subprocess.run(command, text=True, capture_output=True, timeout=60)
                     self.assertEqual(build.returncode, 0, build.stdout + build.stderr)
-                    for profile in ("quake3", "quakelive", "rtcw-sp", "rtcw-mp", "unknown"):
+                    for profile in ("quake3", "quakelive", "rtcw-sp", "rtcw-mp", "wolfet", "stvef-sp", "stvef-mp",
+                                    "alice", "fakk2", "mohaa", "q3-ihv", "unknown"):
                         result = subprocess.run([str(executable), profile],
                             text=True, capture_output=True, timeout=15)
                         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
@@ -172,9 +239,25 @@ class Q3FovProfileTests(unittest.TestCase):
             source = (ROOT / "code" / backend / "tr_scene.c").read_text(encoding="utf-8")
             self.assertIn('#include "../renderercommon/tr_q3_fov.h"', source)
             self.assertIn("R_ApplyProfileFovCorrection( fd, &tr.refdef.fov_x, &tr.refdef.fov_y );", source)
+            # Detail and distance rules scaled by the field keep the one the game gave.
+            self.assertLess(source.index("tr.refdef.fovXAuthored = fd->fov_x;"),
+                            source.index("R_ApplyProfileFovCorrection( fd, &tr.refdef.fov_x, &tr.refdef.fov_y );"))
+            # MoHAA's first-person body stands behind the eye; its unposed bounds
+            # must not cull its arms from a widened field.
+            mohaa = (ROOT / "code" / backend / "tr_mohaa.c").read_text(encoding="utf-8")
+            self.assertIn("if ( !( ent->e.renderfx & RF_DEPTHHACK ) && R_CullLocalBox( bounds ) == CULL_OUT ) {", mohaa)
+            self.assertIn("tr.refdef.fovXAuthored > 0.0f ? tr.refdef.fovXAuthored : tr.viewParms.fovX", mohaa)
+        foliage = (ROOT / "code/renderercommon/tr_wolfet_foliage_surface.h").read_text(encoding="utf-8")
+        self.assertIn("backEnd.refdef.fovXAuthored > 0.0f ? backEnd.refdef.fovXAuthored : backEnd.viewParms.fovX",
+                      foliage)
         ui = (ROOT / "code/client/cl_ui.cpp").read_text(encoding="utf-8")
         render = ui.split("case UI_R_RENDERSCENE:", 1)[1].split("case UI_R_SETCOLOR:", 1)[0]
-        self.assertRegex(render, r"if \( Com_GameIsQuake3\(\) \)\s*\{\s*refdef.rdflags \|= RDF_NOFOVCORRECTION;")
+        self.assertRegex(render, r"if \( Com_GameIsQuake3\(\) \|\| Com_GameIsSTVEF\(\) \)\s*\{\s*"
+                                 r"refdef.rdflags \|= RDF_NOFOVCORRECTION;")
+        # Elite Force single player's menus reach the renderer by their own table.
+        sp_ui = (ROOT / "code/client/client_stvef_sp_ui.hpp").read_text(encoding="utf-8")
+        scene = sp_ui.split("void CL_STVEFSPUIRenderScene(", 1)[1].split("\n}", 1)[0]
+        self.assertLess(scene.index("refdef.rdflags |= RDF_NOFOVCORRECTION;"), scene.index("re.RenderScene( &refdef );"))
 
 
 if __name__ == "__main__":

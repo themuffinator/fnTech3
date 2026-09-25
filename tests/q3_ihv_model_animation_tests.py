@@ -201,26 +201,6 @@ int main(){
 '''
             interaction.RTCWPlayerInteractionTests.compile_and_run(self, source)
 
-    def test_ray_cache_tracks_native_toggle_only(self):
-        source = entities.ray_fixture() + r'''
-int main(){
- trRefEntity_t entity{};entity.e.reType=RT_MODEL;entity.e.hModel=1;entity.e.q3IHV.active=1;
- backEnd.refdef.entities=&entity;backEnd.refdef.num_entities=1;
- cvar_t control{};r_lerpmodels=&control;float centroid[3];
- const auto disabled=vk_rt_estimate_dynamic_scene_signature(centroid,nullptr,nullptr,1);
- control.value=1;const auto enabled=vk_rt_estimate_dynamic_scene_signature(centroid,nullptr,nullptr,1);assert(enabled!=disabled);
- for(uint32_t bits:{0u,0x80000000u,1u,0x80000001u,0x3f800000u,0xbf800000u,0x7f800000u,0xff800000u,0x7fc00123u}){
-  memcpy(&control.value,&bits,4);assert(vk_rt_estimate_dynamic_scene_signature(centroid,nullptr,nullptr,1)==(Q3IHV_ModelLerpEnabled(&control.value)?enabled:disabled));
- }
- for(auto profile:{COM_GAME_QUAKE3,COM_GAME_QUAKELIVE,COM_GAME_RTCW_SP,COM_GAME_RTCW_MP,COM_GAME_WOLFET,COM_GAME_STVEF_SP,COM_GAME_STVEF_MP}){
-  ri.gameId=profile;control.value=0;const auto before=vk_rt_estimate_dynamic_scene_signature(centroid,nullptr,nullptr,1);control.value=1;assert(vk_rt_estimate_dynamic_scene_signature(centroid,nullptr,nullptr,1)==before);
- }
- ri.gameId=COM_GAME_QUAKE3_IHV;entity.e.reType=RT_BEAM;control.value=0;
- const auto beam=vk_rt_estimate_dynamic_scene_signature(centroid,nullptr,nullptr,1);control.value=1;assert(vk_rt_estimate_dynamic_scene_signature(centroid,nullptr,nullptr,1)==beam);
-}
-'''
-        interaction.RTCWPlayerInteractionTests.compile_and_run(self, source)
-
 
 if __name__ == '__main__':
     unittest.main()

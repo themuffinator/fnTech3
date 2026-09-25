@@ -34,8 +34,13 @@ static int profile, reads, writes, registrations, commands, draws, liveFiles;
 static void (*reload)();
 static std::array<float, 8> submitted;
 static qhandle_t submittedShader, pictureShader = 17;
+// 0 Q3, 1 QL, 2 RTCW SP, 3 RTCW MP, 4 F.A.K.K.2, 5 ET, 6 EF SP, 7 EF MP, 8 Alice, 9 MoHAA
 int Com_GameIsQuake3() { return profile == 0; }
 int Com_GameIsRTCW() { return profile == 2 || profile == 3; }
+int Com_GameIsWolfET() { return profile == 5; }
+int Com_GameIsSTVEF() { return profile == 6 || profile == 7; }
+int Com_GameIsRitual() { return profile == 4 || profile == 8; }
+static bool Unsupported() { return profile == 1 || profile == 9; }
 cvar_t *Cvar_Get(const char *name, const char *value, int) {
     ++registrations;
     auto entry = variables.emplace(name, cvar_t{});
@@ -114,8 +119,8 @@ int main(int argc, char **argv) {
     assert(argc == 3 || argc == 4); profile = std::atoi(argv[1]); re.DrawStretchPic = Draw;
     cls.charSetShader = 1; cls.whiteShader = 2; cls.consoleShader = 3;
     Size(1920, 1080);
-    // Even explicitly set legacy settings cannot opt QL into correction.
-    if (profile == 1) {
+    // Even explicitly set legacy settings cannot opt QL or MoHAA into correction.
+    if (Unsupported()) {
         variables["cl_hudAspect"].integer = variables["cl_hudDump"].integer = 1;
         files["fntech3-hud.json"] = "[{\"mode\":\"uniform\"}]";
     }
@@ -125,7 +130,7 @@ int main(int argc, char **argv) {
     const auto original = view;
     CL_HudRegisterShaderName(17,"icons/test");
     CL_HudBeginFrame(); Picture(); CL_HudAdjustRefdef(&view); CL_HudEndFrame();
-    if (profile == 1) {
+    if (Unsupported()) {
         Expect(300,90,120,90); assert(!std::memcmp(&original,&view,sizeof(view)));
         CL_HudResetCGame(); CL_HudShutdown();
         assert(reads==0 && writes==0 && registrations==0 && commands==0); return 0;
@@ -193,7 +198,7 @@ int main(int argc, char **argv) {
     capture.integer=0; float x=NAN,y=0,w=1,h=1; assert(!CL_HudAdjustPic(&x,&y,&w,&h,17));
     Size(0,0); Picture(); Expect(300,90,120,90);
     if (argc == 4) {
-        // Exercise the shipped RTCW rules with stock module draw coordinates.
+        // Exercise the shipped rules with stock module and menu draw coordinates.
         std::ifstream preset(argv[3]); assert(preset);
         Rules(std::string(std::istreambuf_iterator<char>(preset), {}));
         Size(2560,1080);
@@ -224,7 +229,124 @@ int main(int argc, char **argv) {
             sample("icons/holdable",600,310,36,36,2470);
             sample("gfx/2d/hudchars",500,398,10,10,1125); // long pickup line stays together
             sample("ui/hint",296,420,48,48,1226);
-        } else {
+        } else if (profile == 4) {
+            // F.A.K.K.2's HUD menus as its UI draws them: each widget cut to its
+            // menu and the screen, in the menus' 640x480 units.
+            sample("textures/hud/health_gradient",1,22,64,72,2.25f);
+            sample("textures/hud/water_gradient",63,22,64,72,141.75f);
+            sample("textures/hud/health_thingie",0,0,128,128,0);
+            sample("textures/hud/ammo_gradient_right",601,50,32,32,2472.25f);
+            sample("textures/hud/ammo_gradient_left",456,50,32,32,2146);
+            sample("textures/hud/weapon_right",544,0,96,96,2344);
+            sample("textures/hud/weapon_left",448,0,96,96,2128);
+            sample("textures/hud/2handed",448,0,192,96,2128);
+            sample("textures/menu/bosshealth",0,224,128,32,0);
+            sample("textures/menu/bosshealth_bar",0,240,64,16,0);
+            sample("textures/menu/bosshealth",0,224,62,32,0); // sliding in from the left
+            // A hand's model view goes with its menu, keeping its fields of view.
+            refdef_t hand{}; hand.x=468*4; hand.y=45; hand.width=56*4; hand.height=126;
+            hand.fov_x=hand.fov_y=30; hand.rdflags=RDF_NOWORLDMODEL;
+            CL_HudAdjustRefdef(&hand);
+            assert(hand.x==2173 && hand.y==45 && hand.width==126 && hand.height==126);
+            assert(hand.fov_x==30 && hand.fov_y==30);
+        } else if (profile == 8) {
+            // Alice's HUD widgets: each a view of the whole screen shifted by
+            // its offset from the centre, which the rules make a 4:3 screen's.
+            const auto widget = [](float offsetX, float offsetY, int expectedX, int expectedY) {
+                refdef_t v{}; v.x=int(2560/640.0f*offsetX); v.y=int(1080/480.0f*offsetY);
+                v.width=2560; v.height=1080; v.fov_x=v.fov_y=30; v.rdflags=RDF_NOWORLDMODEL;
+                CL_HudAdjustRefdef(&v);
+                if (v.x!=expectedX || v.y!=expectedY || v.width!=1440 || v.height!=1080) {
+                    std::fprintf(stderr, "widget %f: %d %d %d %d\n", offsetX, v.x, v.y, v.width, v.height); std::abort();
+                }
+                assert(v.fov_x==30 && v.fov_y==30);
+            };
+            widget(-312,-25,-702,-56); widget(-312,42,-702,94); // health back, riser and bar
+            widget(312,-25,1822,-56); widget(312,42,1822,94);   // mana
+            widget(-275,182,-619,409); widget(275,182,1739,409); // weapon and powerup cards
+        } else if (profile == 5) {
+            // Enemy Territory's stock HUD (cg_draw.c's rectangles).
+            sample("gfx/2d/compass.tga",508,8,124,124,2263);
+            sample("levelshots/oasis_cc_automap",520,20,100,100,2290);
+            sample("ui/assets/mp_arrow_blue.tga",564,64,12,12,2389);
+            sample("white",585,152,52,14,2436.25f);            // timer box
+            sample("sprintbar",4,388,32,72,9);
+            sample("gfx/hud/ic_health",24,464,12,12,54);
+            sample("gfx/limbo/ic_engineer",112,444,14,14,252);
+            sample("icons/iconw_thompson_1_select",558,424,60,32,2375.5f);
+            sample("gfx/hud/ic_power",626,464,8,14,2528.5f);
+            sample("lagometer",592,280,48,48,2452);
+            sample("AxisHelmet",4,360,48,24,9);
+            sample("white",10,11,204,16,22.5f);                // fireteam overlay
+            sample("white",50,208,10,64,112.5f);               // weapon stability
+            // Popups and the big popup keep their text beside their icons.
+            sample("sprites/voiceChat",4,360,20,20,569);
+            sample("gfx/limbo/cm_flagallied",584,270,48,48,1874);
+            // A scope's side masks reach the screen's edges beside its centred reticle.
+            CL_HudRegisterShaderName(17,"white");
+            Picture(0,0,80*4,1080); Expect(0,0,740,1080);
+            Picture(560*4,0,80*4,1080); Expect(1820,0,740,1080);
+            // Its own screens: the rules pause, or it is drawn as retail drew it.
+            CL_HudSetGamePanel(HUD_PANEL_CENTERED);
+            CL_HudRegisterShaderName(17,"gfx/2d/compass.tga");
+            Picture(508*4,8*2.25f,124*4,124*2.25f); Expect(1703,18,279,279);
+            CL_HudSetGamePanel(HUD_PANEL_STRETCHED);
+            Picture(508*4,8*2.25f,124*4,124*2.25f); Expect(508*4,18,124*4,279);
+            refdef_t head{}; head.x=44*4; head.y=873; head.width=62*4; head.height=180;
+            head.fov_x=8; head.fov_y=10; head.rdflags=RDF_NOWORLDMODEL;
+            const refdef_t retailHead = head; CL_HudAdjustRefdef(&head);
+            assert(head.x==retailHead.x && head.width==retailHead.width && (head.rdflags & RDF_NOFOVCORRECTION));
+            CL_HudSetGamePanel(HUD_PANEL_NONE);
+            Picture(508*4,8*2.25f,124*4,124*2.25f); Expect(2263,18,279,279);
+            // Its world view is its own: no correction moves it.
+            refdef_t world{}; world.x=287*4; world.y=859; world.width=128*4; world.height=216;
+            world.fov_x=60; world.fov_y=30; const refdef_t retailWorld = world;
+            CL_HudAdjustRefdef(&world); assert(!std::memcmp(&world,&retailWorld,sizeof(world)));
+        } else if (profile == 6 || profile == 7) {
+            // Elite Force's LCARS gauges, keyed to their own art: the sliders'
+            // art is also the talk box's and the zoom ticks', which stay centred.
+            sample("gfx/interface/healthcap1",5,429,32,64,11.25f);
+            sample("gfx/interface/ammobar",72,429,73,41,162);
+            sample("gfx/interface/armorcap1",20,458,32,16,45);
+            sample("gfx/2d/numbers/one",25,425,16,32,56.25f);
+            sample("gfx/2d/numbers/t_one",46,458,16,16,103.5f);
+            sample("gfx/interface/ammouppercap1",613,429,32,64,2499.25f);
+            sample("gfx/interface/ammobar",578,458,33,12,2420.5f);
+            sample("gfx/2d/numbers/three",575,425,16,32,2413.75f);
+            sample("gfx/interface/ammobar",75,71,70,338,728.75f);  // zoom ticks
+            sample("gfx/2d/numbers/one",468,100,16,32,1613);       // zoom readout
+            if (profile == 7) {
+                sample("gfx/2d/select",621,389,19,24,2517.25f);   // score box
+            } else {
+                // Single player is told its screen is the 4:3 frame, so its view
+                // and the points it projects are 4:3 ones; its pixels are mapped.
+                int frameW = 2560, frameH = 1080;
+                CL_HudModuleScreen(&frameW, &frameH); assert(frameW==1440 && frameH==1080);
+                CL_HudRegisterShaderName(17,"gfx/interface/healthcap1");
+                Picture(5*2.25f,429*2.25f,32*2.25f,64*2.25f); Expect(11.25f,965.25f,72,144);
+                CL_HudRegisterShaderName(17,"white");
+                Picture(0,0,1440,1080); Expect(0,0,2560,1080);         // fades stretch
+                Picture(0,0,1440,48*2.25f); Expect(0,0,2560,108);      // cutscene letterbox
+                Picture(0,432*2.25f,1440,48*2.25f); Expect(0,972,2560,108);
+                refdef_t world{}; world.width=1440; world.height=1080; world.fov_x=80; world.fov_y=64;
+                CL_HudAdjustRefdef(&world);
+                assert(world.x==0 && world.width==2560 && world.height==1080 && !(world.rdflags & RDF_NOFOVCORRECTION));
+                world = refdef_t{}; world.x=360; world.y=270; world.width=720; world.height=540;
+                world.fov_x=80; world.fov_y=64; CL_HudAdjustRefdef(&world); // cg_viewsize 50
+                assert(world.x==920 && world.y==270 && world.width==720 && world.height==540);
+                assert(world.rdflags & RDF_NOFOVCORRECTION);
+                refdef_t talker{}; talker.x=int(-6*2.25f); talker.y=int(25*2.25f); talker.width=162; talker.height=162;
+                talker.fov_x=talker.fov_y=30; talker.rdflags=RDF_NOWORLDMODEL;
+                CL_HudAdjustRefdef(&talker); assert(talker.x==547 && talker.width==162); // stays with its talk box
+                variables["cl_hudAspect"].integer=0;                   // retail's stretch of its frame
+                CL_HudRegisterShaderName(17,"gfx/interface/healthcap1");
+                Picture(5*2.25f,429*2.25f,32*2.25f,64*2.25f); Expect(20,965.25f,128,144);
+                variables["cl_hudAspect"].integer=1;
+                CL_HudResetCGame(); frameW = 2560; frameH = 1080;
+                variables["cl_hudAspect"].integer=0; CL_HudModuleScreen(&frameW, &frameH);
+                assert(frameW==2560 && frameH==1080); variables["cl_hudAspect"].integer=1;
+            }
+        } else if (profile == 3) {
             sample("ui_mp/assets/hudsprint.tga",5,390,16,80,11.25f);
             sample("white",5,396,16,65.6f,11.25f);
             sample("gfx/2d/numbers/one_32b",30,445,16,25,67.5f);
@@ -253,7 +375,7 @@ int main(int argc, char **argv) {
         Picture(0,0,2560,1080); Expect(0,0,2560,1080);
         // Bottom anchors also apply on portrait displays; crosshair stays centered.
         Size(1080,1920);
-        if (profile != 0) {
+        if (profile == 2 || profile == 3) {
             CL_HudRegisterShaderName(17,profile==2 ? "font/health" : "gfx/2d/numbers/one_32b");
             Picture(30*1.6875f,445*4,16*1.6875f,25*4);
             Expect(50.625f,1860.9375f,27,42.1875f);
@@ -305,19 +427,26 @@ class HudAspectTests(unittest.TestCase):
             build = subprocess.run([compiler, *target, "-std=c++17", "-I", str(ROOT),
                 str(fixture), "-o", str(executable)], cwd=ROOT, capture_output=True, text=True, timeout=60)
             self.assertEqual(build.returncode, 0, build.stdout + build.stderr)
-            for profile in range(4):
+            presets = {
+                0: "quake3/baseq3/fnq3-hud.json",
+                2: "rtcw-sp/main/fntech3-hud.json",
+                3: "rtcw-mp/main/fntech3-hud.json",
+                4: "fakk2/fakk/fntech3-hud.json",
+                5: "wolfet/etmain/fntech3-hud.json",
+                6: "stvef-sp/baseEF/fntech3-hud.json",
+                7: "stvef-mp/baseEF/fntech3-hud.json",
+                8: "alice/base/fntech3-hud.json",
+            }
+            for profile in range(10):
                 with self.subTest(profile=profile):
                     output = path / f"dump-{profile}.json"
                     command = [str(executable), str(profile), str(output)]
-                    if profile == 0:
-                        command.append(str(ROOT / "pkg/games/quake3/baseq3/fnq3-hud.json"))
-                    elif profile in (2, 3):
-                        mode = "sp" if profile == 2 else "mp"
-                        command.append(str(ROOT / "pkg" / "games" / f"rtcw-{mode}" / "main" / "fntech3-hud.json"))
+                    if profile in presets:
+                        command.append(str(ROOT / "pkg" / "games" / presets[profile]))
                     result = subprocess.run(command,
                         cwd=ROOT, capture_output=True, text=True, timeout=15)
                     self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-                    if profile != 1:
+                    if profile not in (1, 9):
                         rules = json.loads(output.read_text(encoding="utf-8"))["rules"]
                         self.assertTrue(any(rule["match"].get("refdef") for rule in rules))
                         self.assertEqual(len(rules), 2)

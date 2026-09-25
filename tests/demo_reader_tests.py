@@ -161,6 +161,9 @@ std::ptrdiff_t FileRead(int, byte *p, std::size_t n) {
  cursor+=n; return n;
 }
 void CL_DemoCompleted() { ++completed; }
+// Q3Test reads its demos with its own reader (cl_q3test.cpp).
+int Com_GameIsQ3Test() { return 0; }
+bool CL_Q3TestReadDemoMessage() { return false; }
 void Com_Printf(const char *s) { output+=s; }
 void Com_Error(int, const char *, int) { ++dropped; }
 void CL_ParseServerMessage(msg_t *m) { ++parsed; assert(m->readcount==0); }

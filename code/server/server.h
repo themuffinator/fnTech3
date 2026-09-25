@@ -277,9 +277,13 @@ typedef struct client_s {
 /* A network client rings the window its wire negotiated. A bot never sets up
  * a channel, so its slot's wire profile is the last network client's there,
  * or Quake III's in a slot none has used; it rings its profile's own window
- * instead, the one fixed count that each retail engine gives every client. */
+ * instead, the one fixed count that each retail engine gives every client.
+ * Ritual's protocol 1 is one wire for Alice and F.A.K.K.2, whose engines ring
+ * 128 and 64 (alice.exe 0x00455a10, fakk2.exe 1.02 0x004468dd), so its
+ * clients ring the profile's window too. */
 static inline int SV_ReliableCommandLimit( const client_t *client ) {
-	if ( client->netchan.remoteAddress.type == NA_BOT ) {
+	if ( client->netchan.remoteAddress.type == NA_BOT
+		|| client->netchan.wireProfile == NETCHAN_WIRE_ALICE ) {
 		return Com_GameProfile()->bots.reliableCommands;
 	}
 	return Netchan_ReliableCommandLimit( client->netchan.wireProfile );
@@ -524,6 +528,8 @@ void SV_STVEFSPTestSave( void );
 void SV_AliceAddCommands( void );
 const char *SV_AlicePrepareSpawn( const char *server, char *bsp, int size );
 void SV_AliceFlushModels( void );
+/* The inline models' names in the model block, as the world is cleared. */
+void SV_AliceRegisterInlineModels( void );
 void SV_AliceRestoreLevelTime( void );
 qboolean SV_AliceSpawnLevel( void );
 void SV_AliceSettle( qboolean restored );
@@ -535,6 +541,43 @@ void SV_AliceRestoreConfigstrings( void );
  * its game module published, or null (server_alice_game.hpp); the snapshot
  * walk reads and writes it as retail's does. */
 unsigned char *SV_AliceGameEntity( int number );
+/* Medal of Honor: Allied Assault's game module and the steps of its level
+ * spawn that differ from Quake III's (server_mohaa_game.hpp): its own world
+ * for the module's entity records, the model cache and the game's Cleanup,
+ * SetTime, SetMap, Precache and SpawnEntities in 2015's order, the three
+ * settle frames after advancing the clock, and its native baselines. */
+vm_t *SV_MOHAALoadGame( void );
+void SV_MOHAAClearWorld( void );
+void SV_MOHAASpawnLevel( const char *mapname );
+void SV_MOHAASettle( void );
+void SV_MOHAACreateBaselines( void );
+void SV_MOHAASpawnDone( void );
+void SV_MOHAAServerLoaded( void );
+/* Its single-player level flow: gamemap, restart and the savegame commands
+ * (server_mohaa_save.hpp). */
+void SV_MOHAAAddCommands( void );
+/* Its protocol-6 clients (server_mohaa_net.hpp): the gamestate's baselines,
+ * each snapshot with what the game queued since the last, and each move. */
+void SV_MOHAAWriteBaselines( msg_t *msg );
+void SV_MOHAASendClientSnapshot( client_t *client );
+/* Q3Test's own sessions (server_q3test_net.hpp): connectionless verbs, both
+ * netchans, gamestates, commands and snapshots, each release's way. */
+void SV_Q3TestPacketEvent( const netadr_t *from, msg_t *msg );
+void SV_Q3TestSendClientMessages( void );
+void SV_Q3TestSendServerCommand( client_t *client, const char *text );
+void SV_Q3TestConfigstringChanged( int index );
+const char *SV_Q3TestSysteminfo( void );
+const char *SV_Q3TestServerinfo( void );
+const char *SV_Q3TestRconPassword( void );
+void SV_Q3TestRegisterCvars( void );
+void SV_Q3TestCreateBaselines( void );
+void SV_Q3TestSpawnReset( void );
+void SV_Q3TestDropClient( client_t *drop, const char *reason );
+void SV_Q3TestFinalMessage( const char *message );
+void SV_Q3TestClearSessions( void );
+// rcon for a packet whose line the caller has tokenized
+void SV_RemoteCommandPacket( const netadr_t *from );
+void SV_MOHAAUserMove( client_t *cl, msg_t *msg, qboolean delta );
 /* Quake III IHV builds its own native snapshots for its own client
  * records (server_q3_ihv_game.hpp); its clients are not retail clients. */
 void SV_IHVServerFrame( void );

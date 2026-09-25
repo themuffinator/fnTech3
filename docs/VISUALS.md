@@ -1,6 +1,6 @@
 # Visuals Guide
 
-FnQL keeps retail Quake Live visuals as the baseline, then adds a few optional engine-side presentation controls on top. This guide covers the current player highlight controls and points to the more focused guides for renderer display effects, menu/cinematic aspect handling, and console presentation.
+fnTech3 keeps each game's own visuals as the baseline, then adds a few optional engine-side presentation controls on top. This guide covers the player highlight controls and points to the more focused guides for renderer display effects, menu/cinematic aspect handling, and console presentation.
 
 ## Cel Shading
 
@@ -9,6 +9,10 @@ Cel-shaded model lighting, model outlines, first-person weapon outline tuning, m
 ## Player Highlighting
 
 Player highlighting is off by default. When enabled, it draws an extra pass on player models using a rimlight, a stencil outline, or both.
+
+It works where the game's player models reach the renderer through the engine's Quake III-style entity path, which is where the engine can tell a player from any other model: Quake III Arena and Quake Live. Elite Force's models take the same path, but whether its player models are recognized has not been checked. RTCW, Enemy Territory, Alice and F.A.K.K.2 submit their models another way, so highlighting has no effect there.
+
+A model counts as a player when it is a `lower`, `upper` or `head` model (or skin) under `models/players/`, and it is matched to a player in the current snapshot. Team modes are recognized from `g_gametype` and the red or blue skin the player wears.
 
 - `cl_playerHighlight 0`: Disable player highlighting.
 - `cl_playerHighlight 1`: Enable rimlight only.
@@ -26,7 +30,7 @@ Behavior notes:
 
 ## Highlight Colors
 
-FnQL uses separate base colors for red team, blue team, and non-team modes.
+fnTech3 uses separate base colors for red team, blue team, and non-team modes.
 
 - `cl_playerHighlightRedColor`: Base color for red-team players.
 - `cl_playerHighlightBlueColor`: Base color for blue-team players.
@@ -61,7 +65,7 @@ If you want relationship-based coloring instead of fixed red/blue team colors, u
 - `cl_playerHighlightEnemyColor`
 - `cl_playerHighlightTeammateColor`
 
-These are blank by default. When blank, FnQL uses the base red, blue, or free color cvars.
+These are blank by default. When blank, fnTech3 uses the base red, blue, or free color cvars.
 
 Override behavior:
 
@@ -121,11 +125,13 @@ The old `cl_enemyHighlight*` names have been replaced by `cl_playerHighlight*`.
 
 ## In The Menu
 
-The Quake Live settings menu carries these controls in its **Team** section.
-The teammate and opponent overrides sit at the bottom of the retail teammate and
-enemy columns, next to the force-model and screen-damage rows they belong with,
-and a **Player Highlighting** block below holds the mode, both pass intensities,
-the outline thickness, and the red, blue, and free-for-all colors.
+In Quake Live, fnTech3's WebUI settings pages (`fnql-web.pak`) carry these
+controls in the **Team** section. The teammate and opponent overrides sit at
+the bottom of the retail teammate and enemy columns, next to the force-model
+and screen-damage rows they belong with, and a **Player Highlighting** block
+below holds the mode, both pass intensities, the outline thickness, and the
+red, blue, and free-for-all colors. The other games have no menu entry for
+them; set the cvars in the console or a config.
 
 ## Related Guides
 

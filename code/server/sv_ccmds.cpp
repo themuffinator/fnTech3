@@ -238,6 +238,11 @@ static void SV_Map_f( void ) {
 		}
 		if ( Com_GameIsWolfET() ) {
 			Cvar_SetIntegerValue( "g_gametype", SV_WolfETDefaultSinglePlayerGameType() );
+		} else if ( Com_GameIsMOHAA() ) {
+			// Medal of Honor's single player is game type 0 (its briefing
+			// maps start the campaign with `spmap`); Quake III's 2 is its
+			// team match.
+			Cvar_Set( "g_gametype", serverPolicy.gameType );
 		} else {
 			Cvar_SetIntegerValue( "g_gametype", GT_SINGLE_PLAYER );
 		}
@@ -264,7 +269,9 @@ static void SV_Map_f( void ) {
 		// for an ordinary map command. Enemy Territory numbers its game
 		// types differently and changes none of them here: its game reloads
 		// a map in Objective, type 2, by this very command.
-		if( !Com_GameIsWolfET() && sv_gametype->integer == GT_SINGLE_PLAYER ) {
+		// Medal of Honor's 2 is team match and its `map` keeps whatever
+		// game type is set, single player included.
+		if( !Com_GameIsWolfET() && !Com_GameIsMOHAA() && sv_gametype->integer == GT_SINGLE_PLAYER ) {
 			Cvar_SetIntegerValue( "g_gametype", GT_FFA );
 			killBots = true;
 		} else {
@@ -311,6 +318,14 @@ static void SV_Map_f( void ) {
 		Cvar_SetIntegerValue("gamestate", FNTECH3_RTCW_MP_GS_INITIALIZE);
 		Cvar_Set("g_currentRound", "0");
 		Cvar_Set("g_nextTimeLimit", "0");
+	}
+	// Medal of Honor's `cheats` is set before the game starts: on for a
+	// one-player server or a devmap, off for any other map, and left as it is
+	// in developer mode (OpenMoHAA's SV_Map_f [O]). The 1.00 game refuses
+	// every cheat while `thereisnomonkey` is 0 all the same, and clears
+	// `cheats` then (gamex86.dll 0x310cfe61..0x310cfeb0).
+	if ( Com_GameIsMOHAA() && !( com_developer && com_developer->integer ) ) {
+		Cvar_Set( "cheats", ( cheat || sv_maxclients->integer == 1 ) ? "1" : "0" );
 	}
 	SV_SpawnServer( mapname.data(), SV_QBool( killBots ) );
 
@@ -1958,7 +1973,7 @@ void SV_AddOperatorCommands( void ) {
 		Cmd_SetCommandCompletionFunc( "loadtransition", SV_CompleteMapName );
 		return;
 	}
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		// American McGee's Alice's map, devmap, gamemap, restart, pause and
 		// savegame commands take the place of the Quake III map set, which it
 		// does not have (server_alice_save.hpp).
@@ -1970,6 +1985,12 @@ void SV_AddOperatorCommands( void ) {
 	}
 	SV_AddCommandSet( mapCommands );
 	SV_SetMapCompletionForCommands( mapCommands );
+	if ( Com_GameIsMOHAA() ) {
+		// Medal of Honor's level changes, restarts and savegames, beside the
+		// Quake III map set it keeps (server_mohaa_save.hpp).
+		SV_MOHAAAddCommands();
+		Cmd_SetCommandCompletionFunc( "gamemap", SV_CompleteMapName );
+	}
 	if ( Com_GameIsQuakeLive() ) {
 		SV_AddCommandSet( qlFactoryCommands );
 	}

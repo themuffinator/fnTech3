@@ -131,20 +131,34 @@ int main(){
 #include <cstdarg>
 #include <cstdio>
 #include <string>
+#include <utility>
+#include <vector>
 #define CHECK(x) do{if(!(x)){std::fprintf(stderr,"%d: %s\n",__LINE__,#x);return 1;}}while(0)
 server_t sv{};int cvar_modifiedFlags;
 static comGameId_t profile;static int infoCalls,index;static std::string value;
+static std::vector<std::pair<int,std::string>> sets;
 int Com_GameIsQuake3IHV(){return profile==COM_GAME_QUAKE3_IHV;}
+int Com_GameIsQ3Test(){return profile==COM_GAME_Q3TEST;}
+const char *SV_Q3TestSysteminfo(){return "q3test systeminfo";}
+const char *SV_Q3TestServerinfo(){return "q3test serverinfo";}
 const char *Cvar_InfoString_Big(int flag,qboolean *truncated){if(flag!=CVAR_SYSTEMINFO||truncated)std::abort();++infoCalls;return "retail info";}
 const char *Cvar_VariableString(const char *name){if(std::string(name)!="sv_mapChecksum")std::abort();return "-99";}
 const char *QDECL va(const char *format,...){static char text[1024];va_list args;va_start(args,format);vsnprintf(text,sizeof text,format,args);va_end(args);return text;}
-void SV_SetConfigstring(int i,const char *text){index=i;value=text;}
+void SV_SetConfigstring(int i,const char *text){index=i;value=text;sets.emplace_back(i,text);}
 ''' + function(source, 'void SV_UpdateSysteminfoConfigstring(') + r'''
 int main(){
  sv.serverId=-7;
- for(auto id:{COM_GAME_QUAKE3,COM_GAME_QUAKELIVE,COM_GAME_RTCW_SP,COM_GAME_RTCW_MP,COM_GAME_WOLFET,COM_GAME_STVEF_SP,COM_GAME_STVEF_MP,COM_GAME_QUAKE3_IHV}){
-  profile=id;infoCalls=0;cvar_modifiedFlags=CVAR_SYSTEMINFO|CVAR_SERVERINFO;SV_UpdateSysteminfoConfigstring();
-  CHECK(index==1&&cvar_modifiedFlags==CVAR_SERVERINFO);
+ for(auto id:{COM_GAME_QUAKE3,COM_GAME_QUAKELIVE,COM_GAME_RTCW_SP,COM_GAME_RTCW_MP,COM_GAME_WOLFET,COM_GAME_STVEF_SP,COM_GAME_STVEF_MP,COM_GAME_QUAKE3_IHV,COM_GAME_Q3TEST}){
+  profile=id;infoCalls=0;sets.clear();cvar_modifiedFlags=CVAR_SYSTEMINFO|CVAR_SERVERINFO;SV_UpdateSysteminfoConfigstring();
+  CHECK(cvar_modifiedFlags==CVAR_SERVERINFO);
+  // Q3Test publishes its release's own systeminfo, then its serverinfo.
+  if(id==COM_GAME_Q3TEST){
+   CHECK(infoCalls==0&&sets.size()==2);
+   CHECK(sets[0].first==1&&sets[0].second=="q3test systeminfo");
+   CHECK(sets[1].first==0&&sets[1].second=="q3test serverinfo");
+   continue;
+  }
+  CHECK(index==1&&sets.size()==1);
   CHECK(id==COM_GAME_QUAKE3_IHV?(infoCalls==0&&value=="\\serverid\\-7\\mapChecksum\\-99"):(infoCalls==1&&value=="retail info"));
  }
 }

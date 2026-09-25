@@ -698,15 +698,24 @@ public:
 	bool rtcwOneShot = false;
 	fntech3::audio::rtcw::Loop rtcwLoopData;
 	// Elite Force single player's ambient loops carry the volume their set
-	// has faded to and are spatialized the way retail spatializes them.
+	// has faded to, and are measured as sounds with no channel of their own.
 	bool stvefAmbient = false;
 	int stvefVolume = 0;
 	// American McGee's Alice's voices are placed by the engine in
-	// shared/AliceSound.h, which measures their distance itself: the gain
-	// includes it, and `aliceDirect` is the obstruction of the direct path.
+	// shared/AliceSound.h: where each is heard, its volume and min distance,
+	// its role and channel, which this world renders through its own
+	// distance model, occlusion, room reverb and tone.
 	bool alice = false;
-	float aliceGain = 0.0f;
-	float aliceDirect = 1.0f;
+	fntech3::audio::alice::sfx::Placement alicePlacement;
+	// Medal of Honor's voices carry their alias's distances and pitch: full
+	// volume inside mohaaMinDist and the device's rolloff to mohaaMaxDist
+	// (none set: the engine's range), at mohaaPitch times the rate.
+	float mohaaMinDist = 0.0f;
+	float mohaaMaxDist = 0.0f;
+	float mohaaPitch = 1.0f;
+	// 2015's own channel of a Medal of Honor one-shot, which several of the
+	// engine's share; -1 for any other.
+	int mohaaChannel = -1;
 	bool liquidBoundary = false;
 	float occlusion = 0.0f;
 	float occlusionTarget = 0.0f;
@@ -762,8 +771,11 @@ public:
 		stvefAmbient = false;
 		stvefVolume = 0;
 		alice = false;
-		aliceGain = 0.0f;
-		aliceDirect = 1.0f;
+		alicePlacement = {};
+		mohaaMinDist = 0.0f;
+		mohaaMaxDist = 0.0f;
+		mohaaPitch = 1.0f;
+		mohaaChannel = -1;
 		liquidBoundary = false;
 		occlusion = 0.0f;
 		occlusionTarget = 0.0f;
@@ -1044,6 +1056,13 @@ public:
 	void AddSTVEFAmbientLoopingSound( const float *origin, sfxHandle_t handle, int volume, SoundSample *sample );
 	void AddWolfETLoopingSound( const float *origin, const float *velocity, int range, sfxHandle_t handle, int volume, SoundSample *sample, float master, int soundTime );
 	void StartSound( int entityNum, int entchannel, sfxHandle_t handle, SoundSample *sample, const float *origin, float volume );
+	// Medal of Honor's one-shots and loops, placed with their alias's
+	// distances and pitch.
+	void StartMOHAASound( int entityNum, int entchannel, sfxHandle_t handle, SoundSample *sample, const float *origin,
+		float volume, float minDist, float maxDist, float pitch, int mohaaChannel );
+	void StopMOHAASound( int entityNum, int mohaaChannel );
+	void AddMOHAALoopingSound( int slot, const float *origin, const float *velocity, sfxHandle_t handle,
+		SoundSample *sample, float volume, float minDist, float maxDist, float pitch );
 	void StartRTCWSound( int entity, int channel, sfxHandle_t handle, SoundSample *sample, const float *origin, int flags );
 	void StartWolfETSound( int entity, int channel, sfxHandle_t handle, SoundSample *sample, const float *origin, int flags, int volume );
 	int RTCWVoiceAmplitude( int entity, int amplitude ) const;
@@ -1060,7 +1079,7 @@ public:
 	void AliceStop( int voice );
 	void AlicePause( int voice );
 	void AliceResume( int voice );
-	void AlicePlace( int voice, const float *position, float gain, float direct );
+	void AlicePlace( int voice, const fntech3::audio::alice::sfx::Placement &placement );
 	qboolean GetSpatialDebugInfo( spatialAudioDebugInfo_t *info, const OpenALDevice &device, int preferredEntity, int overlayMode ) const;
 	void DumpSpatialDebug( const OpenALDevice &device, int preferredEntity ) const;
 	void PrintAudioZoneInfo() const;
@@ -1075,10 +1094,19 @@ public:
 private:
 	void ApplyVoice( SoundVoice &voice, qboolean softMuted );
 	void ApplyAliceVoice( SoundVoice &voice, qboolean softMuted );
+	void ApplySTVEFVoice( SoundVoice &voice, qboolean softMuted );
 	SoundVoice *AliceVoice( int voice );
 	const SoundVoice *AliceVoice( int voice ) const;
 	void PlayOneShot( SoundVoice *voice, int entityNum, int entchannel, sfxHandle_t handle,
 		SoundSample *sample, const float *origin, float volume, int startTime );
+	// The distances, pitch and channel the next one-shot takes (StartMOHAASound).
+	struct MOHAASpan {
+		float minDist = 0.0f;
+		float maxDist = 0.0f;
+		float pitch = 1.0f;
+		int channel = -1;
+	};
+	MOHAASpan mohaaNext_;
 	void CleanupFinishedVoices();
 	bool RefreshAudioZonesForCurrentMap();
 	EnvironmentState EvaluateCurrentListenerEnvironment() const;
@@ -1333,6 +1361,51 @@ void Q3SoundWorld::AddWolfETLoopingSound( const float *origin, const float *velo
 	voice.doppler = false;
 }
 
+/* Medal of Honor's sounds are the engine's own one-shots and loops, placed
+ * with the distances and pitch of the alias that chose them. A distance below
+ * zero is the game's "none": 200 units of full volume, and silence 64 times
+ * that far (OpenMoHAA snd_openal_new.cpp S_OPENAL_StartSound, reference). */
+void Q3SoundWorld::StartMOHAASound( int entityNum, int entchannel, sfxHandle_t handle, SoundSample *sample,
+	const float *origin, float volume, float minDist, float maxDist, float pitch, int mohaaChannel ) {
+	if ( minDist < 0.0f ) minDist = 200.0f;
+	if ( maxDist < 0.0f ) maxDist = minDist * 64.0f;
+	// An entity's sound on a channel of its own ends the one before it there,
+	// as 2015's channel picker takes that channel over; the automatic
+	// channel, and sounds that belong to no entity, stack.
+	if ( entityNum != ENTITYNUM_NONE && mohaaChannel > 0 ) {
+		StopMOHAASound( entityNum, mohaaChannel );
+	}
+	mohaaNext_.minDist = minDist;
+	mohaaNext_.maxDist = maxDist;
+	mohaaNext_.pitch = pitch > 0.0f ? pitch : 1.0f;
+	mohaaNext_.channel = mohaaChannel;
+	StartSound( entityNum, entchannel, handle, sample, origin, volume < 0.0f ? 1.0f : volume );
+	mohaaNext_ = MOHAASpan();
+}
+
+void Q3SoundWorld::StopMOHAASound( int entityNum, int mohaaChannel ) {
+	for ( SoundVoice &voice : oneShots_ ) {
+		if ( voice.active && voice.entnum == entityNum && voice.mohaaChannel == mohaaChannel ) {
+			voice.Release( *device_ );
+		}
+	}
+}
+
+void Q3SoundWorld::AddMOHAALoopingSound( int slot, const float *origin, const float *velocity, sfxHandle_t handle,
+	SoundSample *sample, float volume, float minDist, float maxDist, float pitch ) {
+	if ( !sample || slot < 0 || slot >= static_cast<int>( loopVoices_.size() ) ) return;
+	AddLoopingSound( slot, origin, velocity, handle, sample, qfalse );
+	SoundVoice &voice = loopVoices_[slot];
+	if ( minDist < 0.0f ) {
+		minDist = 200.0f;
+		maxDist = 12800.0f;
+	}
+	voice.volumeScale = ClampFloat( volume < 0.0f ? 1.0f : volume, 0.0f, 2.0f );
+	voice.mohaaMinDist = minDist;
+	voice.mohaaMaxDist = maxDist;
+	voice.mohaaPitch = pitch > 0.0f ? pitch : 1.0f;
+}
+
 /* Elite Force single player submits its ambient loops without an entity or
  * a velocity, each with the volume its set has faded to (0x420bd0). */
 void Q3SoundWorld::AddSTVEFAmbientLoopingSound( const float *origin, sfxHandle_t handle,
@@ -1481,8 +1554,10 @@ void Q3SoundWorld::StartSound( int entityNum, int entchannel, sfxHandle_t handle
 		const float *soundOrigin = ( origin != nullptr ) ? origin : entityOrigins_[entityNum].Data();
 		const SoundShaderSettings &shader = sample->Shader();
 		const float rangeScale = shader.enabled ? shader.rangeScale : kDefaultSoundShaderScale;
-		if ( DistanceBetweenPoints( soundOrigin, listenerOrigin_.Data() ) >
-			AudibilityHorizonDistance( rangeScale ) * kOneShotCullMargin ) {
+		// Elite Force single player's voices carry to 2,274 units.
+		const float horizon = Com_GameIsSTVEFSP() ? fntech3::audio::stvef::ChannelSpan( entchannel ).silent :
+			AudibilityHorizonDistance( rangeScale );
+		if ( DistanceBetweenPoints( soundOrigin, listenerOrigin_.Data() ) > horizon * kOneShotCullMargin ) {
 			return;
 		}
 	}
@@ -1573,6 +1648,10 @@ void Q3SoundWorld::PlayOneShot( SoundVoice *voice, int entityNum, int entchannel
 	voice->origin.Set( origin );
 	voice->velocity = Vec3f();
 	voice->volumeScale = ClampFloat( volume, 0.0f, 2.0f );
+	voice->mohaaMinDist = mohaaNext_.minDist;
+	voice->mohaaMaxDist = mohaaNext_.maxDist;
+	voice->mohaaPitch = mohaaNext_.pitch;
+	voice->mohaaChannel = mohaaNext_.channel;
 	voice->doppler = qfalse;
 	voice->looping = qfalse;
 	voice->killWhenUnrefreshed = qfalse;
@@ -1656,30 +1735,46 @@ bool Q3SoundWorld::RefreshAudioZonesForCurrentMap() {
 }
 
 EnvironmentState Q3SoundWorld::EvaluateCurrentListenerEnvironment() const {
-	if ( Com_GameIsAlice() ) {
-		// American McGee's Alice has no reverb but the room its client game
-		// names, and none at all unless s_reverb is 1 (alice.exe 0x00471000),
-		// which it ships at 0. The room is played with the nearest of the
-		// presets here, sent at retail's software-provider level
-		// (0x00470f50); an environment outside retail's 26 changes nothing.
-		int type = 0;
-		float level = 0.0f;
-		if ( !S_AliceReverb( &type, &level ) ) {
-			return EnvironmentState();
-		}
-		const char *preset = fntech3::audio::alice::sfx::NearestReverbPreset( type );
-		if ( preset == nullptr ) {
-			return targetEnvironment_;
-		}
+	int aliceRoom = 0;
+	float aliceLevel = 0.0f;
+	if ( Com_GameIsRitual() && S_AliceNamedRoom( &aliceRoom, &aliceLevel ) ) {
+		// A room American McGee's Alice's client game names -- a map's reverb
+		// trigger, through import 40 -- is authored, so it outranks the map's
+		// generated zones and the traced room, as an authored zone outranks a
+		// generated one. It plays with the nearest of the presets here, sent
+		// at retail's software-provider level (alice.exe 0x00470f50). No
+		// shipped map names one; s_reverb 0 ignores them.
 		EnvironmentState state;
-		for ( int i = 0; i < static_cast<int>( sizeof( kReverbPresets ) / sizeof( kReverbPresets[0] ) ); ++i ) {
+		const char *preset = fntech3::audio::alice::sfx::NearestReverbPreset( aliceRoom );
+		for ( int i = 0; preset != nullptr && i < static_cast<int>( sizeof( kReverbPresets ) / sizeof( kReverbPresets[0] ) ); ++i ) {
 			if ( !std::strcmp( kReverbPresets[i].name, preset ) ) {
 				SetEnvironmentPreset( state, i );
 				break;
 			}
 		}
 		const float reverbGain = ( s_alReverbGain != nullptr ) ? s_alReverbGain->value : 1.0f;
-		state.baseWet = ClampFloat( fntech3::audio::alice::sfx::ReverbLevel( type, level ) * reverbGain, 0.0f, 1.0f );
+		state.baseWet = ClampFloat( fntech3::audio::alice::sfx::ReverbLevel( aliceRoom, aliceLevel ) * reverbGain, 0.0f, 1.0f );
+		return state;
+	}
+	int mohaaRoom = 0;
+	float mohaaLevel = 0.0f;
+	if ( Com_GameIsMOHAA() && S_MOHAANamedRoom( &mohaaRoom, &mohaaLevel ) ) {
+		// A room a Medal of Honor level's script names (the player state's
+		// reverb type and level, through client-game import 65) is authored
+		// in the same way, and is one of the same 26 EAX environments, which
+		// the same Miles software provider scaled by the same volumes
+		// (OpenMoHAA snd_openal_new.cpp's table equals alice.exe's at
+		// 0x0051f944). So it plays with the same nearest preset and send.
+		EnvironmentState state;
+		const char *preset = fntech3::audio::alice::sfx::NearestReverbPreset( mohaaRoom );
+		for ( int i = 0; preset != nullptr && i < static_cast<int>( sizeof( kReverbPresets ) / sizeof( kReverbPresets[0] ) ); ++i ) {
+			if ( !std::strcmp( kReverbPresets[i].name, preset ) ) {
+				SetEnvironmentPreset( state, i );
+				break;
+			}
+		}
+		const float reverbGain = ( s_alReverbGain != nullptr ) ? s_alReverbGain->value : 1.0f;
+		state.baseWet = ClampFloat( fntech3::audio::alice::sfx::ReverbLevel( mohaaRoom, mohaaLevel ) * reverbGain, 0.0f, 1.0f );
 		return state;
 	}
 	if ( audioZones_.Loaded() ) {
@@ -1777,6 +1872,36 @@ void Q3SoundWorld::UpdateVoiceEnvironment( SoundVoice &voice, const float *voice
 	voice.nextEnvironmentUpdateTime = now + kVoiceEnvironmentIntervalMs;
 }
 
+/*
+Return to Castle Wolfenstein's and Enemy Territory's voices. The shared RTCW
+headers keep retail's bookkeeping -- which slot a sound takes and what it
+cuts (RTCWOneShots.h), each frame's loop submissions, their volumes and
+phase (RTCWLoops.h), single player's effects fade -- and retail's law for how
+far a sound carries: full volume out to 6.4% of its range, silent the range
+beyond that, the range being 1,250 units for every one-shot and the one
+submitted for a loop. This world renders that data as it renders every
+profile's sounds (AGENTS.md invariant 11), not as retail's mixer panned it:
+
+- positional, so HRTF and the active output mode place it;
+- the OpenAL distance model across the law's span, the full-volume distance
+  as the reference and the silent one as the far end, faded out toward it,
+  with the air absorption every world source has. A one-shot's span is a
+  Quake III world sound's, and s_alDistanceModel linear_clamped plays the
+  law itself;
+- the traced occlusion and liquid boundaries, on the direct and wet paths;
+- the room reverb from the map's audio zones or the traced room;
+- the tone classes by channel, whose numbers RTCW and ET share with Quake III;
+- s_pvs, where it is asked for.
+
+A loop plays at its retail level, its submitted volume over 256 of the
+loops' 90 against a one-shot's 127, and an ET one-shot at the volume it was
+submitted with. A voice at the listener takes the room but no occlusion, and
+a local channel there is an interface sound, dry and head-relative; retail
+attenuates a local channel anywhere else by where it is, and so does this
+world. No loop takes Doppler, as RTCW's retail mixer disables it. A device
+without a distance model plays the law's own gain without its pan. Retail's
+exact gain and pan remain the legacy mixer's (s_backend legacy).
+*/
 void Q3SoundWorld::ApplyVoice( SoundVoice &voice, qboolean softMuted ) {
 	if ( !voice.active || voice.source == 0 || voice.sample == nullptr ) {
 		return;
@@ -1785,15 +1910,27 @@ void Q3SoundWorld::ApplyVoice( SoundVoice &voice, qboolean softMuted ) {
 		ApplyAliceVoice( voice, softMuted );
 		return;
 	}
+	if ( Com_GameIsSTVEFSP() ) {
+		ApplySTVEFVoice( voice, softMuted );
+		return;
+	}
 
 	const float *voiceOrigin = voice.fixedOrigin ? voice.origin.Data() : entityOrigins_[voice.entnum].Data();
 	const float *sourceVelocity = voice.velocity.Data();
 	const bool listenerAttached = !voice.rtcwLoop && ( voice.entnum == listenerNumber_ );
-	const bool rtcwSpatial = voice.rtcwLoop || voice.rtcwOneShot || voice.stvefAmbient;
+	// RTCW's and Enemy Territory's voices, rendered from retail's data as
+	// described above.
+	const bool wolfenstein = voice.rtcwLoop || voice.rtcwOneShot;
+	// Elite Force single player's ambient loops are still panned
+	// head-relative as retail pans them, without the engine's own features.
+	const bool retailPanned = voice.stvefAmbient;
 	// Elite Force single player measures its own distances, so the device
 	// attenuates nothing for it; the voice stays positional all the same.
 	const bool stvefSpatial = Com_GameIsSTVEFSP() && !voice.stvefAmbient;
-	const bool localOnly = !rtcwSpatial && IsLocalOnlyChannel( voice.entchannel );
+	// Retail Wolfenstein attenuates every sound but the listener's own by
+	// where it is, whatever its channel, so a local channel is an interface
+	// sound only at the listener.
+	const bool localOnly = !retailPanned && IsLocalOnlyChannel( voice.entchannel ) && ( !wolfenstein || listenerAttached );
 	const bool stereoSample = ( voice.sample->Channels() > 1 );
 	const bool twoChannelSample = ( voice.sample->Channels() == 2 );
 	const bool encodedSoundField = voice.sample->EncodedSoundField();
@@ -1801,18 +1938,31 @@ void Q3SoundWorld::ApplyVoice( SoundVoice &voice, qboolean softMuted ) {
 	const bool spatializedStereoWorldSource = ( twoChannelSample && !encodedSoundField && stereoSpatializeRequested && device_->Capabilities().sourceSpatialize &&
 		!listenerAttached && !localOnly );
 	const bool monoWorldSource = ( voice.sample->Channels() == 1 && !listenerAttached && !localOnly );
-	const bool positionalSource = !rtcwSpatial && ( monoWorldSource || spatializedStereoWorldSource );
+	const bool positionalSource = !retailPanned && ( monoWorldSource || spatializedStereoWorldSource );
 	const bool pvsCulled = positionalSource && s_pvs != nullptr && s_pvs->integer &&
 		!S_OriginInPVS( listenerOrigin_.Data(), voiceOrigin );
 	const bool directStereoSource = stereoSample && !encodedSoundField && !spatializedStereoWorldSource;
 	const bool worldDistance = positionalSource && !stvefSpatial;
 	const bool useOpenALDistance = worldDistance && device_->UsesOpenALDistanceAttenuation();
 	const SoundShaderSettings &shader = voice.sample->Shader();
-	const float gainScale = shader.enabled && !rtcwSpatial ? shader.gainScale : kDefaultSoundShaderScale;
-	const float referenceScale = shader.enabled ? shader.referenceScale : kDefaultSoundShaderScale;
-	const float rangeScale = shader.enabled ? shader.rangeScale : kDefaultSoundShaderScale;
+	const float gainScale = shader.enabled && !retailPanned ? shader.gainScale : kDefaultSoundShaderScale;
+	// Medal of Honor's alias distances stand in for the sound shader's.
+	const bool mohaaSpan = voice.mohaaMinDist > 0.0f;
+	const float referenceScale = mohaaSpan ? voice.mohaaMinDist / kOpenALReferenceDistance
+		: shader.enabled ? shader.referenceScale : kDefaultSoundShaderScale;
+	const float rangeScale = mohaaSpan && voice.mohaaMaxDist > voice.mohaaMinDist
+		? voice.mohaaMaxDist / kOpenALMaxDistance
+		: shader.enabled ? shader.rangeScale : kDefaultSoundShaderScale;
 	const float wetScale = shader.enabled ? shader.wetScale : kDefaultSoundShaderScale;
-	const float pitchScale = shader.enabled && !rtcwSpatial ? shader.pitchScale : kDefaultSoundShaderScale;
+	const float pitchScale = shader.enabled && !retailPanned ? shader.pitchScale : kDefaultSoundShaderScale;
+	// The span of the Wolfenstein law: the one-shots' fixed range, or the
+	// range a loop was submitted with.
+	const fntech3::audio::rtcw::LawDistances wolfensteinSpan = wolfenstein ?
+		fntech3::audio::rtcw::Distances( voice.rtcwLoop ? voice.rtcwLoopData.range : fntech3::audio::rtcw::OneShotRange ) :
+		fntech3::audio::rtcw::LawDistances{};
+	// What a world voice the device attenuates is played at: unity, or a
+	// Wolfenstein loop's own level.
+	float fullLevel = 1.0f;
 	SpatialParams spatial;
 	if ( voice.stvefAmbient ) {
 		// Retail's own distances and stereo separation (0x420510): the pan
@@ -1822,12 +1972,6 @@ void Q3SoundWorld::ApplyVoice( SoundVoice &voice, qboolean softMuted ) {
 			false, S_STVEFSeparation() );
 		const int sum = gains.left + gains.right;
 		spatial.gain = ( std::min )( 1.0f, static_cast<float>( sum ) / 255.0f );
-		spatial.pan = sum ? static_cast<float>( gains.right - gains.left ) / sum : 0.0f;
-	} else if ( voice.rtcwLoop ) {
-		const auto gains = fntech3::audio::rtcw::SpatializeLoop( voice.rtcwLoopData,
-			listenerOrigin_.Data(), listenerAxis_ );
-		spatial.gain = static_cast<float>( (std::max)( gains.left, gains.right ) ) / 127.0f;
-		const int sum = gains.left + gains.right;
 		spatial.pan = sum ? static_cast<float>( gains.right - gains.left ) / sum : 0.0f;
 	} else if ( listenerAttached || localOnly ) {
 		spatial.gain = 1.0f;
@@ -1841,17 +1985,23 @@ void Q3SoundWorld::ApplyVoice( SoundVoice &voice, qboolean softMuted ) {
 		spatial.gain = static_cast<float>( ( std::max )( gains.left, gains.right ) ) / 127.0f;
 		const int sum = gains.left + gains.right;
 		spatial.pan = sum ? static_cast<float>( gains.right - gains.left ) / sum : 0.0f;
-	} else if ( voice.rtcwOneShot ) {
-		const auto gains = fntech3::audio::rtcw::SpatializeOrigin(voiceOrigin, 1250.0f, 127,
-			listenerOrigin_.Data(), listenerAxis_);
-		spatial.gain = static_cast<float>((std::max)(gains.left, gains.right)) / 127.0f;
-		const int sum = gains.left + gains.right;
-		spatial.pan = sum ? static_cast<float>(gains.right - gains.left) / sum : 0.0f;
+	} else if ( wolfenstein ) {
+		// Retail's law without its pan: the gain where the device measures no
+		// distance of its own. The device places the voice either way.
+		const auto measured = voice.rtcwLoop ?
+			fntech3::audio::rtcw::SpatializeLoop( voice.rtcwLoopData, listenerOrigin_.Data(), listenerAxis_, true ) :
+			fntech3::audio::rtcw::SpatializeOrigin( voiceOrigin, fntech3::audio::rtcw::OneShotRange, 127,
+				listenerOrigin_.Data(), listenerAxis_, true );
+		spatial.gain = static_cast<float>( measured.left ) / 127.0f;
+		spatial.pan = 0.0f;
+		if ( voice.rtcwLoop ) {
+			fullLevel = static_cast<float>( fntech3::audio::rtcw::LoopLevel( voice.rtcwLoopData ) ) / 127.0f;
+		}
 	} else {
 		spatial = ComputeSpatialParams( voiceOrigin, listenerOrigin_.Data(), listenerAxis_, 127, referenceScale, rangeScale );
 	}
 
-	float gain = useOpenALDistance ? 1.0f : spatial.gain;
+	float gain = useOpenALDistance ? fullLevel : spatial.gain;
 	float horizonGain = 1.0f;
 	float directGain = 1.0f;
 	float directToneHF = environment_.directHF;
@@ -1865,10 +2015,23 @@ void Q3SoundWorld::ApplyVoice( SoundVoice &voice, qboolean softMuted ) {
 		spatial.pan = 0.0f;
 	}
 
-	if ( !localOnly && !rtcwSpatial ) {
+	if ( !localOnly && !retailPanned ) {
 		const float distance = listenerAttached ? 0.0f : DistanceBetweenPoints( voiceOrigin, listenerOrigin_.Data() );
 		if ( listenerAttached || pvsCulled ) {
 			ResetVoiceOcclusion( voice, 0.0f, now );
+		} else if ( wolfenstein ) {
+			// Nothing is traced for a voice the law has silenced. The device's
+			// model keeps a floor past its max distance, so the voice is faded
+			// out toward the law's silent end.
+			if ( distance < wolfensteinSpan.silent ) {
+				UpdateVoiceEnvironment( voice, voiceOrigin );
+				SmoothVoiceOcclusion( voice, now );
+			} else {
+				ResetVoiceOcclusion( voice, 0.0f, now );
+			}
+			if ( useOpenALDistance ) {
+				horizonGain = HorizonGainAt( distance, wolfensteinSpan.silent );
+			}
 		} else {
 			UpdateVoiceEnvironment( voice, voiceOrigin );
 			SmoothVoiceOcclusion( voice, now );
@@ -1896,9 +2059,9 @@ void Q3SoundWorld::ApplyVoice( SoundVoice &voice, qboolean softMuted ) {
 	// Music and raw audio have independent volume and master-fade stages.
 	if ( Com_GameIsRTCWSP() ) gain *= fntech3::audio::rtcw::EffectsMixVolume(
 		s_volume != nullptr ? s_volume->value : 1.0f, S_RTCWMasterFade().current ) / 256.0f;
-	pitch = ClampFloat( pitch * pitchScale, 0.5f, 2.0f );
+	pitch = ClampFloat( pitch * pitchScale * voice.mohaaPitch, 0.5f, 2.0f );
 
-	const VoiceToneSettings toneSettings = rtcwSpatial ? VoiceToneSettings{} :
+	const VoiceToneSettings toneSettings = retailPanned ? VoiceToneSettings{} :
 		BuildVoiceToneSettings( voice, environment_, listenerAttached, localOnly, stereoSample, positionalSource, occlusion, directToneHF, wetGain, wetGainHF );
 
 	voice.debugGain = gain;
@@ -1923,7 +2086,11 @@ void Q3SoundWorld::ApplyVoice( SoundVoice &voice, qboolean softMuted ) {
 		device_->SetSourceSpatialize( voice.source, true );
 		device_->SetSourceDirectChannels( voice.source, false );
 		device_->AL().alSourcei( voice.source, AL_SOURCE_RELATIVE, AL_FALSE );
-		device_->ConfigureSourceDistance( voice.source, worldDistance, referenceScale, rangeScale );
+		if ( wolfenstein && useOpenALDistance ) {
+			device_->ConfigureSourceDistanceRange( voice.source, wolfensteinSpan.full, wolfensteinSpan.silent );
+		} else {
+			device_->ConfigureSourceDistance( voice.source, worldDistance, referenceScale, rangeScale );
+		}
 		device_->AL().alSource3f( voice.source, AL_POSITION, voiceOrigin[0], voiceOrigin[1], voiceOrigin[2] );
 		if ( voice.doppler ) {
 			device_->AL().alSource3f( voice.source, AL_VELOCITY, sourceVelocity[0], sourceVelocity[1], sourceVelocity[2] );
@@ -1940,6 +2107,186 @@ void Q3SoundWorld::ApplyVoice( SoundVoice &voice, qboolean softMuted ) {
 	}
 
 	device_->ApplyVoiceRouting( voice.source, voice.directFilter, voice.sendFilter, gain, directGain, toneSettings.directTone, toneSettings.sendTone, voice.routeCache );
+
+	if ( voice.looping ) {
+		ALint state = 0;
+		device_->AL().alGetSourcei( voice.source, AL_SOURCE_STATE, &state );
+		if ( state != AL_PLAYING ) {
+			device_->AL().alSourcei( voice.source, AL_BUFFER, voice.sample->Buffer() );
+			device_->AL().alSourcei( voice.source, AL_LOOPING, AL_TRUE );
+			device_->AL().alSourcePlay( voice.source );
+		}
+	}
+}
+
+/*
+Elite Force single player's voices. The shared header (shared/STVEFAmbient.h)
+keeps retail's data -- how far each channel carries at full volume and where
+it falls silent (stvoy.exe 0x420510), the volume an ambient set has faded to,
+the sounds the player makes held back as they start, and the stereo
+separation -- and this world renders it as it renders every profile's sounds
+(AGENTS.md invariant 11), not as retail's mixer panned it:
+
+- positional, so HRTF and the active output mode place it;
+- the OpenAL distance model across the channel's span, the full-volume
+  distance as the reference and the silent one as the far end, faded out
+  toward it, with the air absorption every world source has: 1,024 to 2,274
+  units for a voice, 38.4 to 288.4 for an attenuated voice, and 256 to 1,506
+  for every other channel and the ambient loops. s_alDistanceModel
+  linear_clamped plays retail's law itself;
+- the traced occlusion and liquid boundaries, on the direct and wet paths;
+- the room reverb from the map's audio zones or the traced room;
+- the tone classes by channel, the attenuated voice as a voice;
+- s_separation above its default half, as a spread of each placed voice
+  toward both channels (the source's radius, AL_EXT_SOURCE_RADIUS);
+- s_pvs and Doppler, where they are asked for.
+
+An ambient loop plays at its set's volume over a one-shot's 127, as retail
+hands both to its mixer. The room tone of the set the player is in is heard
+at the listener: it takes the room but no occlusion, at the level retail's
+separation leaves a centred sound. A voice from the listener's own entity
+takes the room but no occlusion too, and a local, announcer or menu channel
+there is an interface sound, dry and head-relative; away from the listener
+retail measures a local channel by where it is, and so does this world. A
+device without a distance model plays the law's own gain without its pan.
+Retail's exact gain and pan remain the legacy mixer's (s_backend legacy).
+*/
+
+// The span of the law a voice is measured by: its channel's, or, for an
+// ambient set's loop, a sound's with no channel of its own (0x420d28).
+static fntech3::audio::stvef::Span STVEFVoiceSpan( const SoundVoice &voice ) {
+	return fntech3::audio::stvef::ChannelSpan( voice.stvefAmbient ? -1 : voice.entchannel );
+}
+
+// A voice from the listener's entity, or the room tone played where the
+// listener is.
+static bool STVEFHeardAtListener( const SoundVoice &voice, float distance, int listenerNumber ) {
+	return voice.stvefAmbient ? distance < fntech3::audio::stvef::AtListenerDistance : voice.entnum == listenerNumber;
+}
+
+// A loop the law has silenced -- past the far end of its span, or an ambient
+// set faded out -- which keeps no source. One at the listener never is.
+static bool STVEFLoopSilent( const SoundVoice &voice, float distance, int listenerNumber ) {
+	if ( voice.stvefAmbient && voice.stvefVolume <= 0 ) {
+		return true;
+	}
+	return !STVEFHeardAtListener( voice, distance, listenerNumber ) && !( distance < STVEFVoiceSpan( voice ).silent );
+}
+
+void Q3SoundWorld::ApplySTVEFVoice( SoundVoice &voice, qboolean softMuted ) {
+	namespace stvef = fntech3::audio::stvef;
+	const float *voiceOrigin = voice.fixedOrigin ? voice.origin.Data() : entityOrigins_[voice.entnum].Data();
+	const float *sourceVelocity = voice.velocity.Data();
+	const float distance = DistanceBetweenPoints( voiceOrigin, listenerOrigin_.Data() );
+	const stvef::Span span = STVEFVoiceSpan( voice );
+	const float separation = S_STVEFSeparation();
+	const bool listenerSound = STVEFHeardAtListener( voice, distance, listenerNumber_ );
+	const bool interfaceSound = listenerSound && !voice.stvefAmbient &&
+		( IsLocalOnlyChannel( voice.entchannel ) || stvef::IsMenuChannel( voice.entchannel ) );
+	const bool stereoSample = voice.sample->Channels() > 1;
+	const bool encodedSoundField = voice.sample->EncodedSoundField();
+	const bool spatializedStereo = voice.sample->Channels() == 2 && !encodedSoundField && !listenerSound &&
+		s_alSpatializeStereo != nullptr && s_alSpatializeStereo->integer && device_->Capabilities().sourceSpatialize;
+	const bool positional = !listenerSound && ( voice.sample->Channels() == 1 || spatializedStereo );
+	const bool directStereo = stereoSample && !encodedSoundField && !spatializedStereo;
+	const bool pvsCulled = !listenerSound && s_pvs != nullptr && s_pvs->integer &&
+		!S_OriginInPVS( listenerOrigin_.Data(), voiceOrigin );
+	const bool modelDistance = positional && device_->UsesOpenALDistanceAttenuation();
+	const int now = Sys_Milliseconds();
+
+	// The level retail hands its mixer, over a one-shot's 127: a one-shot's
+	// volume, or the volume an ambient set has faded to, out of 255. The room
+	// tone at the listener is a centred sound, which retail's separation
+	// leaves at its share on each channel, half at the default.
+	float gain = voice.stvefAmbient ? static_cast<float>( voice.stvefVolume ) / 127.0f : voice.volumeScale;
+	if ( voice.stvefAmbient && listenerSound ) {
+		gain = static_cast<float>( stvef::Spatialize( listenerOrigin_.Data(), static_cast<float>( voice.stvefVolume ),
+			listenerOrigin_.Data(), listenerAxis_, false, separation ).left ) / 127.0f;
+	} else if ( !listenerSound ) {
+		// The device's model keeps a floor past its max distance, so the voice
+		// is faded out toward the law's silent end; without a model, the law's
+		// own gain.
+		gain *= modelDistance ? HorizonGainAt( distance, span.silent ) : stvef::SpanGain( span, distance );
+	}
+
+	float occlusion = 0.0f;
+	float directGain = 1.0f;
+	float directToneHF = environment_.directHF;
+	float wetGain = 0.0f;
+	float wetGainHF = environment_.wetHF;
+	// Nothing is traced at the listener, or for a voice the law has silenced.
+	if ( !listenerSound && !pvsCulled && distance < span.silent ) {
+		UpdateVoiceEnvironment( voice, voiceOrigin );
+		SmoothVoiceOcclusion( voice, now );
+	} else {
+		ResetVoiceOcclusion( voice, 0.0f, now );
+	}
+	if ( !interfaceSound ) {
+		occlusion = voice.occlusion;
+		const float distanceMix = listenerSound ? 0.0f : ClampFloat( distance / 512.0f, 0.0f, 1.0f );
+		directGain = occ::DirectGain( occlusion );
+		directToneHF = occ::DirectHF( environment_.directHF, occlusion );
+		wetGain = ClampFloat( occ::WetGain( environment_.baseWet, distanceMix, occlusion ), 0.0f, 2.0f );
+		wetGainHF = occ::WetHF( environment_.wetHF, occlusion );
+	}
+	if ( softMuted || pvsCulled ) {
+		gain = 0.0f;
+		wetGain = 0.0f;
+	}
+	gain = ClampFloat( gain, 0.0f, 2.0f );
+
+	// The tone classes go by the engine's channels, on which single player's
+	// attenuated voice is a voice.
+	const int channel = voice.entchannel;
+	voice.entchannel = stvef::ToneChannel( channel );
+	const VoiceToneSettings toneSettings = BuildVoiceToneSettings( voice, environment_, listenerSound, interfaceSound,
+		stereoSample, positional, occlusion, directToneHF, wetGain, wetGainHF );
+	voice.entchannel = channel;
+	const float radius = positional ? stvef::SpreadRadius( stvef::SeparationSpread( separation ), distance ) : 0.0f;
+
+	voice.debugGain = gain;
+	voice.debugPan = 0.0f;
+	voice.debugDryGain = directGain;
+	voice.debugWetGain = wetGain;
+	voice.debugPitch = 1.0f;
+	voice.debugDistance = distance;
+	voice.debugPositional = positional;
+	voice.debugDirect = !positional && directStereo;
+	voice.debugToneClass = tone::SoundToneClassName( toneSettings.soundClass );
+	voice.debugDirectTone = AudioFilterKindName( toneSettings.directTone.kind );
+	voice.debugSendTone = AudioFilterKindName( toneSettings.sendTone.kind );
+	voice.debugDirectToneLF = toneSettings.directTone.gainLF;
+	voice.debugDirectToneHF = toneSettings.directTone.gainHF;
+	voice.debugSendToneLF = toneSettings.sendTone.gainLF;
+	voice.debugSendToneHF = toneSettings.sendTone.gainHF;
+
+	device_->AL().alSourcef( voice.source, AL_PITCH, 1.0f );
+	if ( positional ) {
+		device_->SetSourceSpatialize( voice.source, true );
+		device_->SetSourceDirectChannels( voice.source, false );
+		device_->AL().alSourcei( voice.source, AL_SOURCE_RELATIVE, AL_FALSE );
+		if ( modelDistance ) {
+			device_->ConfigureSourceDistanceRange( voice.source, span.full, span.silent );
+		} else {
+			device_->ConfigureSourceDistance( voice.source, false, kDefaultSoundShaderScale, kDefaultSoundShaderScale );
+		}
+		device_->AL().alSource3f( voice.source, AL_POSITION, voiceOrigin[0], voiceOrigin[1], voiceOrigin[2] );
+		if ( voice.doppler ) {
+			device_->AL().alSource3f( voice.source, AL_VELOCITY, sourceVelocity[0], sourceVelocity[1], sourceVelocity[2] );
+		} else {
+			device_->AL().alSource3f( voice.source, AL_VELOCITY, 0.0f, 0.0f, 0.0f );
+		}
+	} else {
+		device_->SetSourceSpatialize( voice.source, false );
+		device_->SetSourceDirectChannels( voice.source, directStereo );
+		device_->AL().alSourcei( voice.source, AL_SOURCE_RELATIVE, AL_TRUE );
+		device_->ConfigureSourceDistance( voice.source, false, kDefaultSoundShaderScale, kDefaultSoundShaderScale );
+		device_->AL().alSource3f( voice.source, AL_POSITION, 0.0f, 0.0f, -1.0f );
+		device_->AL().alSource3f( voice.source, AL_VELOCITY, 0.0f, 0.0f, 0.0f );
+	}
+	device_->SetSourceRadius( voice.source, radius );
+	device_->ApplyVoiceRouting( voice.source, voice.directFilter, voice.sendFilter, gain, directGain,
+		toneSettings.directTone, toneSettings.sendTone, voice.routeCache );
 
 	if ( voice.looping ) {
 		ALint state = 0;
@@ -2233,7 +2580,7 @@ void Q3SoundWorld::DumpSpatialDebug( const OpenALDevice &device, int preferredEn
 		if ( !voice.active ) {
 			continue;
 		}
-		Com_Printf( "loop ent=%d mode=%s tone=%s/%s sample=%s dist=%.1f occ=%.2f target=%.2f gain=%.2f pan=%.2f pitch=%.2f liquid=%d virtual=%d transient=%d refreshed=%d\n",
+		Com_Printf( "loop ent=%d mode=%s tone=%s/%s sample=%s dist=%.1f occ=%.2f target=%.2f gain=%.2f pan=%.2f pitch=%.2f dry=%.2f wet=%.2f liquid=%d virtual=%d transient=%d refreshed=%d\n",
 			voice.entnum,
 			VoiceRouteName( voice ),
 			voice.debugToneClass,
@@ -2245,6 +2592,8 @@ void Q3SoundWorld::DumpSpatialDebug( const OpenALDevice &device, int preferredEn
 			voice.debugGain,
 			voice.debugPan,
 			voice.debugPitch,
+			voice.debugDryGain,
+			voice.debugWetGain,
 			voice.liquidBoundary ? 1 : 0,
 			( voice.source == 0 ) ? 1 : 0,
 			voice.killWhenUnrefreshed ? 1 : 0,
@@ -2254,7 +2603,7 @@ void Q3SoundWorld::DumpSpatialDebug( const OpenALDevice &device, int preferredEn
 		if ( !voice.active ) {
 			continue;
 		}
-		Com_Printf( "shot ent=%d mode=%s tone=%s/%s sample=%s dist=%.1f occ=%.2f target=%.2f gain=%.2f pan=%.2f pitch=%.2f\n",
+		Com_Printf( "shot ent=%d mode=%s tone=%s/%s sample=%s dist=%.1f occ=%.2f target=%.2f gain=%.2f pan=%.2f pitch=%.2f dry=%.2f wet=%.2f\n",
 			voice.entnum,
 			VoiceRouteName( voice ),
 			voice.debugToneClass,
@@ -2265,7 +2614,9 @@ void Q3SoundWorld::DumpSpatialDebug( const OpenALDevice &device, int preferredEn
 			voice.occlusionTarget,
 			voice.debugGain,
 			voice.debugPan,
-			voice.debugPitch );
+			voice.debugPitch,
+			voice.debugDryGain,
+			voice.debugWetGain );
 	}
 	Com_Printf( "-------------------------------\n" );
 }
@@ -2295,15 +2646,53 @@ void Q3SoundWorld::CleanupFinishedVoices() {
 }
 
 /*
-American McGee's Alice's voices. The engine in shared/AliceSound.h has
-measured each voice's distance and folded it into the gain, as the
-single-player Elite Force voices are measured, so the device attenuates
-nothing more; the voice stays positional, so HRTF and the panning of the
-active output mode still place it. A voice heard at the listener's own
-position sits on the listener. Alice sends to the room reverb only when
-s_reverb asks it to, and takes none of the engine's own occlusion or tone
-shaping: retail's single obstruction step is in the direct gain.
+American McGee's Alice's voices. The engine in shared/AliceSound.h keeps
+retail's bookkeeping -- which voice a sound takes, when it starts, how the
+loops merge -- and hands each voice over with Alice's own data: where it is
+heard, its volume, the min distance its sound's record gives, its role and
+its channel. This world renders that data as it renders every profile's
+sounds (AGENTS.md invariant 11), not as Miles did:
+
+- the OpenAL distance model, with the min distance as the reference and 64
+  times it as the far end -- the clamped inverse model is retail's own law,
+  full inside the min distance and min over distance beyond -- faded out
+  toward the far end, with the air absorption every world source has;
+- the traced occlusion and liquid boundaries, on the direct and wet paths;
+- the room reverb from the map's audio zones or the traced room, which a
+  room the client game names may replace (s_reverb);
+- the tone classes, by the channel the sound plays on;
+- s_pvs and Doppler, where they are asked for.
+
+A merged loop group arrives with its members' distances already in its
+volume and is heard from near the listener; its occlusion is traced from its
+loudest member. A voice heard at the listener takes the room but no
+occlusion, and an interface sound stays dry and head-relative. A device
+without a distance model plays the engine's own measured gain. Retail's
+obstruction step belongs to the legacy mixer, which has none of this.
 */
+
+// Ritual's sound channels -- F.A.K.K.2's soundChannel_t, whose menu channel 9
+// alice.exe confirms -- as the Quake III channel whose tone class each
+// shares. Ritual's 6 and 7 are dialog, where Quake III has its local and
+// announcer channels, so a raw Ritual channel must never reach this world's
+// channel rules.
+static int AliceToneChannel( int channel ) {
+	switch ( channel ) {
+	case 2: // weapon
+	case 8: // weapon idle
+		return CHAN_WEAPON;
+	case 3: // voice
+	case 6: // dialog
+	case 7: // secondary dialog
+		return CHAN_VOICE;
+	case 4:
+		return CHAN_ITEM;
+	case 5:
+		return CHAN_BODY;
+	default:
+		return CHAN_AUTO;
+	}
+}
 SoundVoice *Q3SoundWorld::AliceVoice( int voice ) {
 	return voice >= 0 && voice < fntech3::audio::alice::sfx::AllVoices ? &oneShots_[static_cast<size_t>( voice )] : nullptr;
 }
@@ -2356,8 +2745,7 @@ bool Q3SoundWorld::AlicePrepare( int voice, sfxHandle_t handle, SoundSample *sam
 	v->volumeScale = 1.0f;
 	v->doppler = false;
 	v->looping = false;
-	v->aliceGain = 0.0f;
-	v->aliceDirect = 1.0f;
+	v->alicePlacement = {};
 	ResetVoiceOcclusion( *v, 0.0f, Sys_Milliseconds() );
 	return true;
 }
@@ -2423,55 +2811,121 @@ void Q3SoundWorld::AliceResume( int voice ) {
 	}
 }
 
-void Q3SoundWorld::AlicePlace( int voice, const float *position, float gain, float direct ) {
+void Q3SoundWorld::AlicePlace( int voice, const fntech3::audio::alice::sfx::Placement &placement ) {
 	SoundVoice *v = AliceVoice( voice );
-	if ( v == nullptr || !v->alice || position == nullptr ) {
+	if ( v == nullptr || !v->alice ) {
 		return;
 	}
-	v->origin.Set( position );
-	v->aliceGain = gain;
-	v->aliceDirect = direct;
+	v->alicePlacement = placement;
+	v->origin.Set( placement.position.data() );
+	v->velocity.Set( placement.velocity.data() );
+	v->entchannel = AliceToneChannel( placement.channel );
+	v->doppler = ( s_doppler != nullptr && s_doppler->integer != 0 && VectorLengthSquared( v->velocity.Data() ) > 0.0f );
 	if ( v->source != 0 ) {
 		ApplyAliceVoice( *v, lastSoftMuted_ ? qtrue : qfalse );
 	}
 }
 
 void Q3SoundWorld::ApplyAliceVoice( SoundVoice &voice, qboolean softMuted ) {
-	if ( voice.source == 0 || device_ == nullptr ) {
+	namespace sfx = fntech3::audio::alice::sfx;
+	if ( voice.source == 0 || device_ == nullptr || voice.sample == nullptr ) {
 		return;
 	}
 	// Each frame's update passes the focus mute through here; a voice placed
 	// between updates takes the last one.
 	lastSoftMuted_ = softMuted != qfalse;
-	const float *position = voice.origin.Data();
-	int reverbType = 0;
-	float reverbLevel = 0.0f;
-	const bool reverb = S_AliceReverb( &reverbType, &reverbLevel );
-	const float gain = softMuted ? 0.0f : voice.aliceGain;
-	const float wet = ( reverb && !softMuted ) ? ClampFloat( environment_.baseWet, 0.0f, 1.0f ) : 0.0f;
-	const AudioFilterSettings sendTone = wet > 0.001f ? LowPassFilter( wet, environment_.wetHF ) : NoFilter();
+	const sfx::Placement &placement = voice.alicePlacement;
+	const float *position = placement.position.data();
+	const float distance = DistanceBetweenPoints( position, listenerOrigin_.Data() );
+	const bool interfaceSound = placement.role == sfx::Role::Interface;
+	const bool listenerSound = placement.role == sfx::Role::Listener;
+	const bool stereoSample = voice.sample->Channels() > 1;
+	const bool positional = !interfaceSound && !listenerSound && !stereoSample;
+	const bool pvsCulled = positional && s_pvs != nullptr && s_pvs->integer &&
+		!S_OriginInPVS( listenerOrigin_.Data(), placement.source.data() );
+	const bool modelDistance = positional && placement.minDist > 0.0f && device_->UsesOpenALDistanceAttenuation();
+	const int now = Sys_Milliseconds();
+
+	float gain = placement.gain;
+	if ( modelDistance ) {
+		gain = placement.volume;
+		if ( placement.maxDist > 0.0f ) {
+			gain *= HorizonGainAt( distance, placement.maxDist );
+		}
+	}
+
+	float occlusion = 0.0f;
+	float directGain = 1.0f;
+	float directToneHF = environment_.directHF;
+	float wetGain = 0.0f;
+	float wetGainHF = environment_.wetHF;
+	if ( positional && !pvsCulled ) {
+		UpdateVoiceEnvironment( voice, placement.source.data() );
+		SmoothVoiceOcclusion( voice, now );
+	} else {
+		ResetVoiceOcclusion( voice, 0.0f, now );
+	}
+	if ( !interfaceSound ) {
+		occlusion = voice.occlusion;
+		const float distanceMix = listenerSound ? 0.0f : ClampFloat( distance / 512.0f, 0.0f, 1.0f );
+		directGain = occ::DirectGain( occlusion );
+		directToneHF = occ::DirectHF( environment_.directHF, occlusion );
+		wetGain = ClampFloat( occ::WetGain( environment_.baseWet, distanceMix, occlusion ), 0.0f, 2.0f );
+		wetGainHF = occ::WetHF( environment_.wetHF, occlusion );
+	}
+	if ( softMuted || pvsCulled ) {
+		gain = 0.0f;
+		wetGain = 0.0f;
+	}
+	gain = ClampFloat( gain, 0.0f, 2.0f );
+	const VoiceToneSettings toneSettings = BuildVoiceToneSettings( voice, environment_, listenerSound, interfaceSound,
+		stereoSample, positional, occlusion, directToneHF, wetGain, wetGainHF );
+	// A dialog's 2-D pan (0 to 127, 64 at the centre) where it cannot be placed.
+	const float pan = placement.pan >= 0 ? ClampFloat( ( static_cast<float>( placement.pan ) - 64.0f ) / 63.5f, -1.0f, 1.0f ) : 0.0f;
 
 	voice.debugGain = gain;
-	voice.debugPan = 0.0f;
-	voice.debugDryGain = voice.aliceDirect;
-	voice.debugWetGain = wet;
+	voice.debugPan = positional ? 0.0f : pan;
+	voice.debugDryGain = directGain;
+	voice.debugWetGain = wetGain;
 	voice.debugPitch = 1.0f;
-	voice.debugDistance = DistanceBetweenPoints( position, listenerOrigin_.Data() );
-	voice.debugPositional = true;
-	voice.debugDirect = false;
-	voice.debugToneClass = "alice";
-	voice.debugDirectTone = AudioFilterKindName( AudioFilterKind::None );
-	voice.debugSendTone = AudioFilterKindName( sendTone.kind );
+	voice.debugDistance = distance;
+	voice.debugPositional = positional;
+	voice.debugDirect = !positional && stereoSample;
+	voice.debugToneClass = tone::SoundToneClassName( toneSettings.soundClass );
+	voice.debugDirectTone = AudioFilterKindName( toneSettings.directTone.kind );
+	voice.debugSendTone = AudioFilterKindName( toneSettings.sendTone.kind );
+	voice.debugDirectToneLF = toneSettings.directTone.gainLF;
+	voice.debugDirectToneHF = toneSettings.directTone.gainHF;
+	voice.debugSendToneLF = toneSettings.sendTone.gainLF;
+	voice.debugSendToneHF = toneSettings.sendTone.gainHF;
 
 	device_->AL().alSourcef( voice.source, AL_PITCH, 1.0f );
-	device_->SetSourceSpatialize( voice.source, true );
-	device_->SetSourceDirectChannels( voice.source, false );
-	device_->AL().alSourcei( voice.source, AL_SOURCE_RELATIVE, AL_FALSE );
-	device_->ConfigureSourceDistance( voice.source, false, kDefaultSoundShaderScale, kDefaultSoundShaderScale );
-	device_->AL().alSource3f( voice.source, AL_POSITION, position[0], position[1], position[2] );
-	device_->AL().alSource3f( voice.source, AL_VELOCITY, 0.0f, 0.0f, 0.0f );
-	device_->ApplyVoiceRouting( voice.source, voice.directFilter, voice.sendFilter, gain, voice.aliceDirect,
-		NoFilter(), sendTone, voice.routeCache );
+	if ( positional ) {
+		device_->SetSourceSpatialize( voice.source, true );
+		device_->SetSourceDirectChannels( voice.source, false );
+		device_->AL().alSourcei( voice.source, AL_SOURCE_RELATIVE, AL_FALSE );
+		if ( modelDistance ) {
+			device_->ConfigureSourceDistanceRange( voice.source, placement.minDist, placement.maxDist );
+		} else {
+			device_->ConfigureSourceDistance( voice.source, false, kDefaultSoundShaderScale, kDefaultSoundShaderScale );
+		}
+		device_->AL().alSource3f( voice.source, AL_POSITION, position[0], position[1], position[2] );
+		const float *velocity = voice.velocity.Data();
+		if ( voice.doppler ) {
+			device_->AL().alSource3f( voice.source, AL_VELOCITY, velocity[0], velocity[1], velocity[2] );
+		} else {
+			device_->AL().alSource3f( voice.source, AL_VELOCITY, 0.0f, 0.0f, 0.0f );
+		}
+	} else {
+		device_->SetSourceSpatialize( voice.source, false );
+		device_->SetSourceDirectChannels( voice.source, stereoSample );
+		device_->AL().alSourcei( voice.source, AL_SOURCE_RELATIVE, AL_TRUE );
+		device_->ConfigureSourceDistance( voice.source, false, kDefaultSoundShaderScale, kDefaultSoundShaderScale );
+		device_->AL().alSource3f( voice.source, AL_POSITION, pan * kPanScale, 0.0f, -1.0f );
+		device_->AL().alSource3f( voice.source, AL_VELOCITY, 0.0f, 0.0f, 0.0f );
+	}
+	device_->ApplyVoiceRouting( voice.source, voice.directFilter, voice.sendFilter, gain, directGain,
+		toneSettings.directTone, toneSettings.sendTone, voice.routeCache );
 }
 
 void Q3SoundWorld::Update( qboolean softMuted ) {
@@ -2503,12 +2957,12 @@ void Q3SoundWorld::Update( qboolean softMuted ) {
 		// logical state stays, but the OpenAL source and filters go back to
 		// the pool so audible sounds never starve. They resume seamlessly
 		// when the listener comes back into range.
-		if ( voice.stvefAmbient ) {
-			const auto gains = fntech3::audio::stvef::Spatialize( voice.origin.Data(),
-				static_cast<float>( voice.stvefVolume ), listenerOrigin_.Data(), listenerAxis_ );
-			if ( !gains.left && !gains.right ) {
+		if ( Com_GameIsSTVEFSP() ) {
+			// Elite Force single player's loops, by their own law.
+			const float *voiceOrigin = voice.fixedOrigin ? voice.origin.Data() : entityOrigins_[voice.entnum].Data();
+			if ( STVEFLoopSilent( voice, DistanceBetweenPoints( voiceOrigin, listenerOrigin_.Data() ), listenerNumber_ ) ) {
 				voice.ReleaseSource( *device_ );
-				voice.refreshedThisFrame = qfalse;
+				voice.refreshedThisFrame = voice.killWhenUnrefreshed ? qfalse : qtrue;
 				continue;
 			}
 		} else if ( voice.rtcwLoop ) {

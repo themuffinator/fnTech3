@@ -153,18 +153,23 @@ int main(int argc, char **argv) {
     expectRead("maps/shared.azb", "adjacent package");
     expectRead("MAPS/SHARED.AZB", "adjacent package");
     archives[appArchive][base + "maps/shared.fog"] = "fog";
+    archives[appArchive][base + "maps/shared.lights.json"] = "static lights";
     archives[appArchive][base + "sound/fnql-weapon-sounds.sndshd"] = "sound";
     archives[appArchive][base + "scripts/fnql.shader"] = "shader";
     expectRead("maps/shared.fog", "fog");
+    expectRead("maps/shared.lights.json", "static lights");
+    assert(!FS_RootArchiveAllowsFile("shared.lights.json"));
     expectRead("sound/fnql-weapon-sounds.sndshd", "sound");
     expectRead("scripts/fnql.shader", "shader");
     for (const char *path : {"fnq3-hud.json", "fntech3-hud.json"}) {
         archives[appArchive][base + path] = "profile HUD rules";
-        const bool supported = Com_GameIsQuake3() || Com_GameIsRTCW();
+        const bool supported = Com_GameIsQuake3() || Com_GameIsRTCW() || Com_GameIsWolfET() || Com_GameIsSTVEF()
+            || Com_GameIsRitual();
         assert(bool(FS_RootArchiveAllowsFile(path)) == supported);
         assert(FS_ReadFileFromRootArchive(path, nullptr) == (supported ? 17 : -1));
     }
-    for (const char *path : {"default.cfg", "vm/cgame.qvm", "scripts/custom.shader", "maps/shared.bsp", "fntech3-hud-dump.json", "custom-hud.json"}) {
+    for (const char *path : {"default.cfg", "vm/cgame.qvm", "scripts/custom.shader", "maps/shared.bsp", "fntech3-hud-dump.json", "custom-hud.json",
+                             "maps/shared.json", "maps/shared.lights"}) {
         archives[appArchive][base + path] = "not allowlisted";
         expectRead(path, nullptr);
     }

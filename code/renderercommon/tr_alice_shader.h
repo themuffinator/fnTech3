@@ -30,8 +30,10 @@
  *  - GL_State reapplies `alphatest` only when the reference byte changes
  *    (0x00485dd7); fnTech3 reapplies it whenever the function or reference
  *    does.
- *  - `tcGen vector` always writes bundle 0 (0x0048c4c2); fnTech3 has no
- *    `nextBundle`, so bundle 0 is the only one it can write.
+ *  - `tcGen vector` always writes bundle 0 (0x0048c4c2), even after
+ *    `nextBundle`; fnTech3 writes the bundle `nextBundle` selected, as every
+ *    other texture keyword does. No shipped Alice or Heavy Metal: F.A.K.K.2
+ *    script puts `tcGen vector` after `nextBundle`.
  * Out-of-range constant colours are clamped to a byte rather than wrapped as
  * retail's ftol-to-byte store does (0x0048bd5b); no shipped value exceeds 1. */
 
@@ -58,8 +60,13 @@
 static void ParseWaveForm( const char **text, waveForm_t *wave );
 static qboolean ParseVector( const char **text, int count, float *v );
 
+/* Medal of Honor's scripts are written in the same dialect: 2015's renderer
+ * is F.A.K.K.2's descendant, with the same `nextBundle` second bundle, the
+ * same sort scale with a portal sky at 2 and the same sprite keywords
+ * (OpenMoHAA renderergl1/tr_shader.c and tr_local.h, reference only; its
+ * own executable is SafeDisc-wrapped). Its extra keywords are its own. */
 static qboolean R_AliceShaderDialect( void ) {
-	return ri.gameId == COM_GAME_ALICE ? qtrue : qfalse;
+	return COM_GAME_ID_IS_RITUAL( ri.gameId ) || ri.gameId == COM_GAME_MOHAA ? qtrue : qfalse;
 }
 
 /* Retail reads a vector as N bare tokens (0x0048d1d0): `rgbGen const 1 1 1`,
@@ -257,6 +264,11 @@ static int R_AliceShaderDirective( const char *keyword, const char **text, int *
 		shader.noMipMaps = 1;
 		return 1;
 	}
+	/* Medal of Honor keeps surfaces with this shader out of its surface
+	 * merging, which this engine does not do. */
+	if ( ri.gameId == COM_GAME_MOHAA && !Q_stricmp( keyword, "noMerge" ) ) {
+		return 1;
+	}
 	return 0;
 }
 
@@ -264,9 +276,15 @@ static int R_AliceShaderDirective( const char *keyword, const char **text, int *
 
 typedef struct {
 	int depthTestBits;		/* GLS_DEPTHTEST_DISABLE after `noDepthTest` */
+	int bundle;				/* the texture bundle the image and texture-coordinate
+							 * keywords fill: 0, or 1 after `nextBundle` */
 	unsigned noMipMaps : 1;	/* the shader-level flags, restored at the stage's end */
 	unsigned noPicMip : 1;
 } aliceStageParse_t;
+
+/* A second bundle's texture modifiers, one set per stage; bundle 0's are the
+ * renderer's own. GeneratePermanentShader copies both. */
+static texModInfo_t aliceBundleTexMods[MAX_SHADER_STAGES][TR_MAX_TEXMODS + 1];
 
 static void R_AliceBeginStage( aliceStageParse_t *parse ) {
 	Com_Memset( parse, 0, sizeof( *parse ) );
@@ -275,27 +293,71 @@ static void R_AliceBeginStage( aliceStageParse_t *parse ) {
 }
 
 /* Stage-level `nomipmaps`/`nopicmip` last to the stage's end (0x0048b4d8,
- * 0x0048b561); image loads inside the stage read the shader's flags. */
-static void R_AliceEndStage( const aliceStageParse_t *parse ) {
+ * 0x0048b561); image loads inside the stage read the shader's flags.
+ *
+ * A stage that took `nextBundle` draws both bundles at once, the second
+ * through the next texture unit with GL_MODULATE: the stage's multitexture
+ * bits (+0x280) hold 1 (0x0048c3a0), which the draw turns into GL_MODULATE,
+ * 2 being GL_ADD (0x00492d8f..0x00492dbe). The stage's colour, alpha and
+ * blend are its own, as Quake III's collapsed stages' are. */
+static void R_AliceEndStage( shaderStage_t *stage, const aliceStageParse_t *parse ) {
 	if ( !R_AliceShaderDialect() ) {
 		return;
 	}
 	shader.noMipMaps = parse->noMipMaps;
 	shader.noPicMip = parse->noPicMip;
+	if ( !parse->bundle ) {
+		return;
+	}
+	if ( !stage->bundle[1].image[0] ) {
+		/* [I] retail would bind no image here; no shipped Alice script does
+		 * it, while Medal of Honor's debris sprites do, so for it this is
+		 * only a developer's note */
+		ri.Printf( ri.gameId == COM_GAME_MOHAA ? PRINT_DEVELOPER : PRINT_WARNING,
+			"WARNING: nextBundle without an image in shader '%s'\n", shader.name );
+		Com_Memset( &stage->bundle[1], 0, sizeof( stage->bundle[1] ) );
+		return;
+	}
+	stage->mtEnv = GL_MODULATE;
+	stage->tessFlags |= TESS_ST1;
+	shader.multitextureEnv = qtrue;
 }
 
 /* A stage that names no `rgbGen` and ends on its first bundle, that bundle
- * being `$lightmap`, takes identity (alice.exe 0x0048c648..0x0048c678),
- * where Quake III's rule gives an unblended stage identity lighting; Ritual
- * numbers identity 1 and identity lighting 2 (0x0048c678, 0x0048c684). With
- * no overbright bits, Alice's default, the two colours are the same. Every
- * lightmap stage Alice ships is identity already, 1,369 of 1,387 by name and
- * the rest by Quake III's rule for their blends, so the rule changes none of
- * them. This parser reads no `nextBundle`, so every stage ends on its first
- * bundle. */
+ * being `$lightmap`, takes identity (fakk2.exe 1.02 0x00476e8c..0x00476ebc,
+ * alice.exe 0x0048c648..0x0048c678), where Quake III's rule gives an
+ * unblended stage identity lighting. Ritual numbers identity 1 and identity
+ * lighting 2 (0x00476454, 0x00476475), and collapses two stages only when
+ * their colours match (FinishShader 0x00478fa8), so a lightmap and the
+ * texture filtering it draw as one multitexture pass. With no overbright
+ * bits, both engines' default, the two colours are the same. Every lightmap
+ * stage Alice ships is identity already, 1,369 of 1,387 by name and the rest
+ * by Quake III's rule for their blends, so the rule changes none of them. */
 static qboolean R_RitualLightmapStageIdentity( const shaderStage_t *stage, const aliceStageParse_t *parse ) {
-	(void)parse;
-	return ri.gameId == COM_GAME_ALICE && stage->bundle[0].lightmap != LIGHTMAP_INDEX_NONE ? qtrue : qfalse;
+	return COM_GAME_ID_IS_RITUAL( ri.gameId ) && !parse->bundle && stage->bundle[0].lightmap != LIGHTMAP_INDEX_NONE
+		? qtrue : qfalse;
+}
+
+/* Whether a stage's second bundle is one `nextBundle` filled rather than one
+ * a multitexture collapse moved there: only the former keeps its modifiers
+ * in aliceBundleTexMods, and a stage keeps them when stages move. */
+static qboolean R_AliceStageHasNextBundle( const shaderStage_t *stage ) {
+	int i;
+	if ( !stage->bundle[1].image[0] ) {
+		return qfalse;
+	}
+	for ( i = 0; i < MAX_SHADER_STAGES; i++ ) {
+		if ( stage->bundle[1].texMods == aliceBundleTexMods[i] ) {
+			return qtrue;
+		}
+	}
+	return qfalse;
+}
+
+/* How many bundles a parsed stage fills before any collapse: two after
+ * `nextBundle`. */
+static int R_AliceStageBundles( const shaderStage_t *stage ) {
+	return R_AliceShaderDialect() && R_AliceStageHasNextBundle( stage ) ? 2 : 1;
 }
 
 static imgFlags_t R_AliceStageImageFlags( void ) {
@@ -350,6 +412,31 @@ static void R_AliceParseDotRange( const char **text, shaderStage_t *stage ) {
 	stage->aliceDotRange[1] = Q_atof( token );
 }
 
+/* Medal of Honor's `sCoord`/`tCoord` numbers: min 0 and max 1, then byte
+ * caps low 0 and high 255 given as fractions of one. */
+static void R_MOHAAParseCoordRange( const char **text, shaderStage_t *stage ) {
+	const char *token;
+	stage->mohaaCoordRange[0] = 0.0f;
+	stage->mohaaCoordRange[1] = 1.0f;
+	stage->mohaaCoordCaps[0] = 0;
+	stage->mohaaCoordCaps[1] = 255;
+	token = COM_ParseExt( text, qfalse );
+	if ( !token[0] ) return;
+	stage->mohaaCoordRange[0] = Q_atof( token );
+	token = COM_ParseExt( text, qfalse );
+	if ( !token[0] ) return;
+	stage->mohaaCoordRange[1] = Q_atof( token );
+	token = COM_ParseExt( text, qfalse );
+	if ( !token[0] ) return;
+	stage->mohaaCoordCaps[0] = (int)( Q_atof( token ) * 255.0f );
+	token = COM_ParseExt( text, qfalse );
+	if ( !token[0] ) {
+		ri.Printf( PRINT_WARNING, "WARNING: missing sCoord or tCoord parm 'max' in shader '%s'\n", shader.name );
+		return;
+	}
+	stage->mohaaCoordCaps[1] = (int)( Q_atof( token ) * 255.0f );
+}
+
 /* Returns 1 handled, 0 not Alice's (text untouched), -1 fail. `keyword` must
  * not be COM's token buffer: rgbGen/alphaGen/tcGen look ahead at their value
  * and decline Quake III's. */
@@ -377,8 +464,27 @@ static int R_AliceStageDirective( shaderStage_t *stage, const char *keyword, con
 		*atestBits = (int)R_AliceAlphaTestBits( text );
 		return 1;
 	}
+	/* The bundle being filled's flag (0x0048c3d5). */
 	if ( !Q_stricmp( keyword, "frameFromEntity" ) ) {
-		stage->bundle[0].aliceFrameFromEntity = 1;
+		stage->bundle[parse->bundle].aliceFrameFromEntity = 1;
+		return 1;
+	}
+	/* 0x0048c378: the keywords after it fill the stage's second bundle. A
+	 * card without multitexture, or a third bundle, fails the shader
+	 * (0x0048d051, 0x0048d073). */
+	if ( !Q_stricmp( keyword, "nextBundle" ) ) {
+		const int index = (int)( stage - stages );
+		if ( !R_ALICE_MULTITEXTURE() ) {
+			ri.Printf( PRINT_WARNING, "WARNING: nextBundle on a card without multitexturing in shader '%s'\n", shader.name );
+			return -1;
+		}
+		if ( parse->bundle + 1 >= 2 || index < 0 || index >= MAX_SHADER_STAGES ) {
+			ri.Printf( PRINT_WARNING, "WARNING: too many nextBundle commands in shader '%s'\n", shader.name );
+			return -1;
+		}
+		parse->bundle = 1;
+		stage->bundle[1].texMods = aliceBundleTexMods[index];
+		stage->bundle[1].numTexMods = 0;
 		return 1;
 	}
 	if ( !Q_stricmp( keyword, "nomipmaps" ) ) {
@@ -392,11 +498,11 @@ static int R_AliceStageDirective( shaderStage_t *stage, const char *keyword, con
 	if ( !Q_stricmp( keyword, "force32bit" ) ) {
 		return 1;
 	}
-	/* `animMapOnce` is animMap stopping on its last frame (0x0048c556). The
-	 * engine keeps MAX_IMAGE_ANIMATIONS frames; retail keeps 64 (0x0048c5bc),
-	 * the shipped scripts use at most 8. */
+	/* `animMapOnce` is animMap stopping on its last frame (0x0048c556). It
+	 * keeps MAX_IMAGE_ANIMATIONS frames, retail's 64 (0x0048c5bc); the shipped
+	 * scripts use at most 8. */
 	if ( !Q_stricmp( keyword, "animMapOnce" ) ) {
-		textureBundle_t *bundle = &stage->bundle[0];
+		textureBundle_t *bundle = &stage->bundle[parse->bundle];
 		int total = 0;
 		token = COM_ParseExt( text, qfalse );
 		if ( !token[0] ) {
@@ -424,6 +530,62 @@ static int R_AliceStageDirective( shaderStage_t *stage, const char *keyword, con
 		}
 		return 1;
 	}
+	/* Medal of Honor: `animMap` whose frames start `phase` seconds in. */
+	if ( ri.gameId == COM_GAME_MOHAA && !Q_stricmp( keyword, "animMapPhase" ) ) {
+		textureBundle_t *bundle = &stage->bundle[parse->bundle];
+		token = COM_ParseExt( text, qfalse );
+		if ( !token[0] ) {
+			ri.Printf( PRINT_WARNING, "WARNING: missing parameter for 'animMapPhase' keyword in shader '%s'\n", shader.name );
+			return -1;
+		}
+		bundle->imageAnimationSpeed = Q_atof( token );
+		token = COM_ParseExt( text, qfalse );
+		if ( !token[0] ) {
+			ri.Printf( PRINT_WARNING, "WARNING: missing phase for 'animMapPhase' keyword in shader '%s'\n", shader.name );
+			return -1;
+		}
+		bundle->mohaaAnimPhase = Q_atof( token );
+		for ( ;; ) {
+			token = COM_ParseExt( text, qfalse );
+			if ( !token[0] ) break;
+			if ( bundle->numImageAnimations < MAX_IMAGE_ANIMATIONS ) {
+				bundle->image[bundle->numImageAnimations] = R_FindShaderImage( token, R_AliceStageImageFlags() );
+				if ( !bundle->image[bundle->numImageAnimations] ) {
+					ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
+					return -1;
+				}
+				bundle->numImageAnimations++;
+			}
+		}
+		return 1;
+	}
+	/* Medal of Honor's `clampmapx`/`clampmapy` clamp one axis and repeat
+	 * the other. The engine's images clamp both or neither; the image repeats
+	 * here, which only its clamped edge can tell apart. */
+	if ( ri.gameId == COM_GAME_MOHAA && ( !Q_stricmp( keyword, "clampmapx" ) || !Q_stricmp( keyword, "clampmapy" ) ) ) {
+		textureBundle_t *bundle = &stage->bundle[parse->bundle];
+		token = COM_ParseExt( text, qfalse );
+		if ( !token[0] ) {
+			ri.Printf( PRINT_WARNING, "WARNING: missing parameter for '%s' keyword in shader '%s'\n", keyword, shader.name );
+			return -1;
+		}
+		bundle->image[0] = R_FindShaderImage( token, R_AliceStageImageFlags() );
+		if ( !bundle->image[0] ) {
+			ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
+			return -1;
+		}
+		return 1;
+	}
+	/* Medal of Honor's `depthFunc always` passes every fragment. */
+	if ( ri.gameId == COM_GAME_MOHAA && !Q_stricmp( keyword, "depthFunc" ) ) {
+		token = COM_ParseExt( &cursor, qfalse );
+		if ( Q_stricmp( token, "always" ) ) {
+			return 0;
+		}
+		*text = cursor;
+		parse->depthTestBits = GLS_DEPTHTEST_DISABLE;
+		return 1;
+	}
 	if ( !Q_stricmp( keyword, "rgbGen" ) ) {
 		token = COM_ParseExt( &cursor, qfalse );
 		/* 0x0048bacd..0x0048bde0 */
@@ -434,6 +596,28 @@ static int R_AliceStageDirective( shaderStage_t *stage, const char *keyword, con
 			if ( R_ALICE_GEN( stage )->alphaGen == AGEN_IDENTITY ) {
 				R_ALICE_GEN( stage )->alphaGen = AGEN_VERTEX;
 			}
+		} else if ( ri.gameId == COM_GAME_MOHAA && !Q_stricmp( token, "static" ) ) {
+			/* Medal of Honor's static models are lit by the colours their map
+			 * gives each vertex, which the world builder puts on the vertices
+			 * (tr_mohaa_world.c). */
+			R_ALICE_GEN( stage )->rgbGen = CGEN_VERTEX;
+		} else if ( ri.gameId == COM_GAME_MOHAA && ( !Q_stricmp( token, "lightingSpherical" )
+			|| !Q_stricmp( token, "lightingGrid" ) ) ) {
+			/* Its models' lighting from the map's lights and light grid is the
+			 * engine's own entity lighting here, and a static model's the
+			 * colours the map lit it with (AGENTS.md invariant 11;
+			 * tr_mohaa_shade.h). */
+			R_ALICE_GEN( stage )->rgbGen = CGEN_MOHAA_LIGHTING;
+		} else if ( ri.gameId == COM_GAME_MOHAA && ( !Q_stricmp( token, "dot" ) || !Q_stricmp( token, "oneMinusDot" ) ) ) {
+			R_ALICE_GEN( stage )->rgbGen = !Q_stricmp( token, "dot" ) ? CGEN_MOHAA_DOT : CGEN_MOHAA_ONE_MINUS_DOT;
+			*text = cursor;
+			R_AliceParseDotRange( text, stage );
+			return 1;
+		} else if ( ri.gameId == COM_GAME_MOHAA && ( !Q_stricmp( token, "sCoord" ) || !Q_stricmp( token, "tCoord" ) ) ) {
+			R_ALICE_GEN( stage )->rgbGen = !Q_stricmp( token, "sCoord" ) ? CGEN_MOHAA_SCOORD : CGEN_MOHAA_TCOORD;
+			*text = cursor;
+			R_MOHAAParseCoordRange( text, stage );
+			return 1;
 		} else if ( !Q_stricmp( token, "global" ) || !Q_stricmp( token, "globalColor" ) ) {
 			R_ALICE_GEN( stage )->rgbGen = CGEN_ALICE_GLOBAL;
 		} else if ( !Q_stricmp( token, "const" ) || !Q_stricmp( token, "constant" ) ) {
@@ -468,6 +652,32 @@ static int R_AliceStageDirective( shaderStage_t *stage, const char *keyword, con
 			R_ALICE_GEN( stage )->alphaGen = AGEN_ENTITY;
 		} else if ( !Q_stricmp( token, "fromClient" ) ) {
 			R_ALICE_GEN( stage )->alphaGen = AGEN_VERTEX;
+		} else if ( ri.gameId == COM_GAME_MOHAA && ( !Q_stricmp( token, "distFade" ) || !Q_stricmp( token, "oneMinusDistFade" ) ) ) {
+			/* The distances are the shader's: the last stage to name them sets
+			 * them for all. */
+			R_ALICE_GEN( stage )->alphaGen = !Q_stricmp( token, "distFade" ) ? AGEN_MOHAA_DIST_FADE : AGEN_MOHAA_ONE_MINUS_DIST_FADE;
+			*text = cursor;
+			shader.mohaaDistNear = 256.0f;
+			shader.mohaaDistRange = 256.0f;
+			token = COM_ParseExt( text, qfalse );
+			if ( token[0] ) {
+				shader.mohaaDistNear = Q_atof( token );
+				token = COM_ParseExt( text, qfalse );
+				if ( token[0] ) {
+					shader.mohaaDistRange = Q_atof( token );
+				}
+			}
+			return 1;
+		} else if ( ri.gameId == COM_GAME_MOHAA && !Q_stricmp( token, "oneMinusVertex" ) ) {
+			/* No alpha of its own in Ritual's back end (0x00493cc4), unlike
+			 * Quake III's one-minus kept for Alice above; Medal of Honor's HUD
+			 * art is drawn in opaque white through it. */
+			R_ALICE_GEN( stage )->alphaGen = AGEN_MOHAA_COLOR_PASS;
+		} else if ( ri.gameId == COM_GAME_MOHAA && ( !Q_stricmp( token, "sCoord" ) || !Q_stricmp( token, "tCoord" ) ) ) {
+			R_ALICE_GEN( stage )->alphaGen = !Q_stricmp( token, "sCoord" ) ? AGEN_MOHAA_SCOORD : AGEN_MOHAA_TCOORD;
+			*text = cursor;
+			R_MOHAAParseCoordRange( text, stage );
+			return 1;
 		} else if ( !Q_stricmp( token, "global" ) || !Q_stricmp( token, "globalAlpha" ) ) {
 			R_ALICE_GEN( stage )->alphaGen = AGEN_ALICE_GLOBAL;
 		} else if ( !Q_stricmp( token, "skyAlpha" ) ) {
@@ -518,13 +728,18 @@ static int R_AliceStageDirective( shaderStage_t *stage, const char *keyword, con
 	/* Bare-float vectors (0x0048c4c2..0x0048c4eb). */
 	if ( !Q_stricmp( keyword, "tcGen" ) || !Q_stricmp( keyword, "texgen" ) ) {
 		token = COM_ParseExt( &cursor, qfalse );
+		if ( ri.gameId == COM_GAME_MOHAA && !Q_stricmp( token, "environmentModel" ) ) {
+			stage->bundle[parse->bundle].tcGen = TCGEN_MOHAA_ENVIRONMENT_MODEL;
+			*text = cursor;
+			return 1;
+		}
 		if ( Q_stricmp( token, "vector" ) ) {
 			return 0;
 		}
 		*text = cursor;
-		R_AliceParseFloats( text, 3, stage->bundle[0].tcGenVectors[0] );
-		R_AliceParseFloats( text, 3, stage->bundle[0].tcGenVectors[1] );
-		stage->bundle[0].tcGen = TCGEN_VECTOR;
+		R_AliceParseFloats( text, 3, stage->bundle[parse->bundle].tcGenVectors[0] );
+		R_AliceParseFloats( text, 3, stage->bundle[parse->bundle].tcGenVectors[1] );
+		stage->bundle[parse->bundle].tcGen = TCGEN_VECTOR;
 		return 1;
 	}
 	return 0;
@@ -610,6 +825,24 @@ static qboolean R_AliceParseTexMod( const char *type, const char **text, texModI
 		tmi->type = TMOD_ALICE_MACRO;
 		return qtrue;
 	}
+	/* Medal of Honor: s or t shifted by a waveform. */
+	if ( ri.gameId == COM_GAME_MOHAA && ( !Q_stricmp( type, "wavetrans" ) || !Q_stricmp( type, "wavetrant" ) ) ) {
+		/* decided before the waveform's tokens reuse `type`'s buffer */
+		const texMod_t mod = !Q_stricmp( type, "wavetrans" ) ? TMOD_MOHAA_WAVETRANS : TMOD_MOHAA_WAVETRANT;
+		ParseWaveForm( text, &tmi->wave );
+		tmi->type = mod;
+		return qtrue;
+	}
+	/* Medal of Honor: width, amplitude, frequency and phase, which change
+	 * nothing (code/renderercommon/tr_mohaa_shade.h). */
+	if ( ri.gameId == COM_GAME_MOHAA && !Q_stricmp( type, "bulge" ) ) {
+		if ( !R_AliceTexModFloat( text, &tmi->wave.base, "bulge" ) || !R_AliceTexModFloat( text, &tmi->wave.amplitude, "bulge" )
+			|| !R_AliceTexModFloat( text, &tmi->wave.frequency, "bulge" ) || !R_AliceTexModFloat( text, &tmi->wave.phase, "bulge" ) ) {
+			return qtrue;
+		}
+		tmi->type = TMOD_MOHAA_BULGE;
+		return qtrue;
+	}
 	/* Shifted by the viewer's x and y times two rates (type 10, 0x0048dbed). */
 	if ( !Q_stricmp( type, "parallax" ) ) {
 		if ( !R_AliceTexModFloat( text, &values[0], "parallax" ) || !R_AliceTexModFloat( text, &values[1], "parallax" ) ) {
@@ -634,6 +867,52 @@ static qboolean R_AliceParseDeform( const char *subtype, const char **text, defo
 	int i;
 	if ( !R_AliceShaderDialect() ) {
 		return qfalse;
+	}
+	/* Medal of Honor's `lightglow`: autosprite, pulled toward the viewer. */
+	if ( ri.gameId == COM_GAME_MOHAA && !Q_stricmp( subtype, "lightglow" ) ) {
+		ds->deformation = DEFORM_MOHAA_LIGHTGLOW;
+		return qtrue;
+	}
+	/* Medal of Honor's `flap <s|t> <div> <waveform> [min max]`. */
+	if ( ri.gameId == COM_GAME_MOHAA && !Q_stricmp( subtype, "flap" ) ) {
+		qboolean useT;
+		token = COM_ParseExt( text, qfalse );
+		if ( token[0] == 's' || token[0] == 'S' ) {
+			useT = qfalse;
+		} else if ( token[0] == 't' || token[0] == 'T' ) {
+			useT = qtrue;
+		} else {
+			ri.Printf( PRINT_WARNING, "WARNING: deformVertexes flap requires 's' or 't' in shader '%s'\n", shader.name );
+			return qtrue;
+		}
+		token = COM_ParseExt( text, qfalse );
+		if ( !token[0] ) {
+			ri.Printf( PRINT_WARNING, "WARNING: missing deformVertexes flap parm in shader '%s'\n", shader.name );
+			return qtrue;
+		}
+		div = Q_atof( token );
+		if ( div != 0.0f ) {
+			ds->deformationSpread = 1.0f / div;
+		} else {
+			ds->deformationSpread = 100.0f;
+			ri.Printf( PRINT_WARNING, "WARNING: illegal div value of 0 in deformVertexes command for shader '%s'\n", shader.name );
+		}
+		ParseWaveForm( text, &ds->deformationWave );
+		ds->deformation = useT ? DEFORM_MOHAA_FLAP_T : DEFORM_MOHAA_FLAP_S;
+		ds->bulgeWidth = 0.0f;
+		ds->bulgeHeight = 1.0f;
+		token = COM_ParseExt( text, qfalse );
+		if ( !token[0] ) {
+			return qtrue;
+		}
+		ds->bulgeWidth = Q_atof( token );
+		token = COM_ParseExt( text, qfalse );
+		if ( !token[0] ) {
+			ri.Printf( PRINT_WARNING, "WARNING: missing deformVertexes parm 'max' in shader '%s'\n", shader.name );
+			return qtrue;
+		}
+		ds->bulgeHeight = Q_atof( token );
+		return qtrue;
 	}
 	if ( Q_stricmp( subtype, "wavenormal" ) ) {
 		return qfalse;
@@ -672,6 +951,11 @@ static qboolean R_AliceStageIsCPUOnly( const shaderStage_t *stage ) {
 	switch ( R_ALICE_GEN( stage )->rgbGen ) {
 	case CGEN_ALICE_GLOBAL:
 	case CGEN_ALICE_COLORWAVE:
+	case CGEN_MOHAA_DOT:
+	case CGEN_MOHAA_ONE_MINUS_DOT:
+	case CGEN_MOHAA_SCOORD:
+	case CGEN_MOHAA_TCOORD:
+	case CGEN_MOHAA_LIGHTING:
 		return qtrue;
 	default:
 		break;
@@ -682,6 +966,11 @@ static qboolean R_AliceStageIsCPUOnly( const shaderStage_t *stage ) {
 	case AGEN_ALICE_GLOBAL:
 	case AGEN_ALICE_SKY_ALPHA:
 	case AGEN_ALICE_ONE_MINUS_SKY_ALPHA:
+	case AGEN_MOHAA_DIST_FADE:
+	case AGEN_MOHAA_ONE_MINUS_DIST_FADE:
+	case AGEN_MOHAA_SCOORD:
+	case AGEN_MOHAA_TCOORD:
+	case AGEN_MOHAA_COLOR_PASS:
 		return qtrue;
 	case AGEN_LIGHTING_SPECULAR:
 		if ( stage->aliceSpecularCustom ) return qtrue;
@@ -691,6 +980,7 @@ static qboolean R_AliceStageIsCPUOnly( const shaderStage_t *stage ) {
 	}
 	for ( b = 0; b < NUM_TEXTURE_BUNDLES; b++ ) {
 		if ( stage->bundle[b].aliceAnimMapOnce || stage->bundle[b].aliceFrameFromEntity ) return qtrue;
+		if ( stage->bundle[b].tcGen == TCGEN_MOHAA_ENVIRONMENT_MODEL || stage->bundle[b].mohaaAnimPhase != 0.0f ) return qtrue;
 		for ( m = 0; m < stage->bundle[b].numTexMods; m++ ) {
 			if ( stage->bundle[b].texMods[m].type >= TMOD_ALICE_SCROLL ) return qtrue;
 		}
@@ -735,11 +1025,13 @@ static void R_AliceFinishShaderStages( int numStages ) {
 }
 
 /* A multitexture collapse would lose a detail stage's per-draw skip or an
- * Alice colour or alpha source's parameters. */
+ * Alice colour or alpha source's parameters, and would overwrite the second
+ * bundle a `nextBundle` stage already fills. */
 static qboolean R_AliceStageCollapses( const shaderStage_t *stage ) {
 	if ( !R_AliceShaderDialect() ) {
 		return qtrue;
 	}
+	if ( R_AliceStageHasNextBundle( stage ) ) return qfalse;
 	if ( stage->isDetail ) return qfalse;
 	if ( R_ALICE_GEN( stage )->rgbGen >= CGEN_ALICE_GLOBAL ) return qfalse;
 	if ( R_ALICE_GEN( stage )->alphaGen >= AGEN_ALICE_DOT ) return qfalse;
@@ -757,7 +1049,10 @@ static qboolean R_AliceKeepsDetailStage( void ) {
 static qboolean R_AliceStageNeedsNormal( const shaderStage_t *stage ) {
 	int b, m;
 	if ( R_ALICE_GEN( stage )->alphaGen == AGEN_ALICE_DOT || R_ALICE_GEN( stage )->alphaGen == AGEN_ALICE_ONE_MINUS_DOT ) return qtrue;
+	if ( R_ALICE_GEN( stage )->rgbGen == CGEN_MOHAA_DOT || R_ALICE_GEN( stage )->rgbGen == CGEN_MOHAA_ONE_MINUS_DOT
+		|| R_ALICE_GEN( stage )->rgbGen == CGEN_MOHAA_LIGHTING ) return qtrue;
 	for ( b = 0; b < NUM_TEXTURE_BUNDLES; b++ ) {
+		if ( stage->bundle[b].tcGen == TCGEN_MOHAA_ENVIRONMENT_MODEL ) return qtrue;
 		for ( m = 0; m < stage->bundle[b].numTexMods; m++ ) {
 			if ( stage->bundle[b].texMods[m].type == TMOD_ALICE_MACRO ) return qtrue;
 		}

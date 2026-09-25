@@ -3103,7 +3103,7 @@ static qboolean vk_alice_line_rasterization( VkPhysicalDevice physical_device )
 
 	vk.lineStipple = qfalse;
 	Com_Memset( &vk_alice_line_features, 0, sizeof( vk_alice_line_features ) );
-	if ( ri.gameId != COM_GAME_ALICE ||
+	if ( !COM_GAME_ID_IS_RITUAL( ri.gameId ) ||
 		( qvkGetPhysicalDeviceFeatures2 == NULL && qvkGetPhysicalDeviceFeatures2KHR == NULL ) ) {
 		return qfalse;
 	}
@@ -3773,7 +3773,7 @@ static void init_vulkan_library( void )
 			vk.lineStipple = qfalse;
 		}
 	}
-	if ( ri.gameId == COM_GAME_ALICE ) {
+	if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) ) {
 		ri.Printf( PRINT_ALL, "...Alice debug lines: %s, %s\n",
 			vk.wideLines ? "each line's width" : "one pixel wide (no wideLines)",
 			vk.lineStipple ? "stippled (VK_EXT_line_rasterization)" : "solid (no stippled VK_EXT_line_rasterization lines)" );

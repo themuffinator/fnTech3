@@ -69,6 +69,11 @@ std::string LoadingMapName() {
 
 void CL_AliceLoadingInit( void ) {
 	mapListRead = false;
+	titleFont = -1;
+	// Heavy Metal: F.A.K.K.2's loading screen has no map list or title.
+	if ( Com_GameIsFAKK2() ) {
+		return;
+	}
 	ReadMapList();
 	titleFont = CL_AliceFontRegister( screen::LoadingTitleFont );
 }
@@ -96,6 +101,27 @@ CL_AliceDrawLoadingScreen
 ====================
 */
 void CL_AliceDrawLoadingScreen( void ) {
+	/* Heavy Metal: F.A.K.K.2 has no world map. Its UI registers
+	 * textures/menu/loading as it starts (fakk2.exe 1.02 0x0040ece7); while a
+	 * level loads it fills the screen black (0x0040acd0) and draws the picture
+	 * white at its own size, centred on the view's full-screen frame
+	 * (0x0040b14c..0x0040b222). Retail counts that size in pixels; this client
+	 * scales it with the window, as it does the menus. Both languages' pictures
+	 * are 256 by 256, pulsed by a second additive pass in scripts/menu.shader. */
+	if ( Com_GameIsFAKK2() ) {
+		static const float white[4] = { 1, 1, 1, 1 };
+		const qhandle_t loading = CL_AliceShader( "textures/menu/loading" );
+		int width = 0, height = 0;
+		if ( re.GetShaderImageSize ) re.GetShaderImageSize( loading, &width, &height );
+		const float w = width * ( cls.glconfig.vidWidth / 640.0f );
+		const float h = height * ( cls.glconfig.vidHeight / 480.0f );
+		CL_AliceClearBlack();
+		if ( width > 0 && height > 0 ) {
+			CL_AliceDrawPic( ( cls.glconfig.vidWidth - w ) * 0.5f, ( cls.glconfig.vidHeight - h ) * 0.5f, w, h, white,
+				loading );
+		}
+		return;
+	}
 	ReadMapList();
 	const float sx = cls.glconfig.vidWidth / 640.0f;
 	const float sy = cls.glconfig.vidHeight / 480.0f;

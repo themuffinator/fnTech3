@@ -1217,6 +1217,42 @@ constexpr std::int32_t kBspVersionQ3 = 46;
 constexpr std::int32_t kBspVersionQL = 47;
 constexpr std::size_t kBspHeaderLumps = 17;
 constexpr std::size_t kBspHeaderSize = 8u + kBspHeaderLumps * 8u;
+
+// American McGee's Alice maps are Ritual's FAKK format at version 42: a
+// checksum follows the version, and twenty lumps follow that in F.A.K.K.2's
+// own order. The records read here are Quake III's, except that a shader and a
+// surface each carry one trailing field (see docs/fntech3/2026-09-22-alice-maps.md).
+// Heavy Metal: F.A.K.K.2's own maps are FAKK version 12, with the same header,
+// lumps and records on all thirty retail maps
+// (docs/fntech3/2026-09-24-fakk2-contracts.md).
+constexpr std::int32_t kFakkIdent = ( 'K' << 24 ) + ( 'K' << 16 ) + ( 'A' << 8 ) + 'F';
+constexpr std::int32_t kFakkVersionAlice = 42;
+constexpr std::int32_t kFakkVersionFakk2 = 12;
+constexpr std::size_t kFakkHeaderLumps = 20;
+constexpr std::size_t kFakkHeaderSize = 12u + kFakkHeaderLumps * 8u;
+constexpr std::size_t kQ3ShaderBytes = 72u;
+constexpr std::size_t kQ3SurfaceBytes = 104u;
+constexpr std::size_t kFakkShaderBytes = 76u;
+constexpr std::size_t kFakkSurfaceBytes = 108u;
+// Medal of Honor: Allied Assault's maps are 2015's own format: ident "2015",
+// version 19, a checksum after the version, and 28 lumps. Four records differ
+// from Quake III's, each keeping Quake III's fields at their offsets and
+// adding its own after them: a shader (140 bytes), a surface (108), a leaf
+// (64, adding its terrain and static model ranges) and a brush side (12).
+// The terrain patches, 388 bytes each, and the leafs' terrain indexes, two
+// bytes each, are read too (docs/fntech3/2026-09-24-mohaa-maps.md).
+constexpr std::int32_t kMohaaIdent = ( '5' << 24 ) + ( '1' << 16 ) + ( '0' << 8 ) + '2';
+constexpr std::int32_t kMohaaVersion = 19;
+constexpr std::size_t kMohaaHeaderLumps = 28;
+constexpr std::size_t kMohaaHeaderSize = 12u + kMohaaHeaderLumps * 8u;
+constexpr std::size_t kMohaaShaderBytes = 140u;
+constexpr std::size_t kMohaaSurfaceBytes = 108u;
+constexpr std::size_t kMohaaLeafBytes = 64u;
+constexpr std::size_t kMohaaBrushSideBytes = 12u;
+constexpr std::size_t kMohaaTerrainPatchBytes = 388u;
+constexpr std::size_t kMohaaTerrainPatchShaderOffset = 40u;
+constexpr std::size_t kMohaaLumpTerrain = 22u;
+constexpr std::size_t kMohaaLumpTerrainIndexes = 23u;
 constexpr std::size_t kBspMaxQpath = 64u;
 constexpr float kMinimumLeafExtent = 4.0f;
 constexpr float kPortalMinimumOpenness = 0.04f;
@@ -1339,6 +1375,9 @@ struct BspLeaf {
 	std::int32_t numLeafSurfaces = 0;
 	std::int32_t firstLeafBrush = 0;
 	std::int32_t numLeafBrushes = 0;
+	// A 2015 map's range of its terrain indexes; none elsewhere.
+	std::int32_t firstTerrainPatch = 0;
+	std::int32_t numTerrainPatches = 0;
 };
 
 struct BspBrush {
@@ -1374,10 +1413,15 @@ struct MaterialOverrideRule {
 };
 
 // Surface flag bits are shared across titles but not their meanings.
-enum class MaterialFlags { Quake, Rtcw, WolfET };
+enum class MaterialFlags { Quake, Rtcw, WolfET, Alice, Mohaa };
 
 struct BspMap {
 	std::int32_t version = 0;
+	// A FAKK map: Ritual's surface flags, which only the alice (FAKK 42) and fakk2
+	// (FAKK 12) profiles read.
+	bool fakk = false;
+	// A 2015 map: 2015's surface flags, which only the mohaa profile reads.
+	bool mohaa = false;
 	// The same surface flag bits mean different materials in different titles.
 	MaterialFlags materialFlags = MaterialFlags::Quake;
 	Vec3 worldMins;
@@ -1391,6 +1435,10 @@ struct BspMap {
 	std::vector<BspBrush> brushes;
 	std::vector<BspBrushSide> brushSides;
 	std::vector<BspSurface> surfaces;
+	// A 2015 map's terrain: each patch's shader, and the patches each leaf's
+	// range of indexes names.
+	std::vector<std::int32_t> terrainShaders;
+	std::vector<std::int32_t> terrainIndexes;
 };
 
 struct LeafAcoustics {
@@ -1442,38 +1490,78 @@ static std::string ReadBspStringAt( const std::vector<std::uint8_t> &data, std::
 	return text;
 }
 
-static bool ReadBspLumps( const std::vector<std::uint8_t> &data, std::array<BspLump, kBspHeaderLumps> &lumps, std::int32_t &version, std::string &error ) {
-	if ( data.size() < kBspHeaderSize ) {
+// The lump whose directory entry is at `offset`, refusing one outside the file.
+static bool ReadBspLumpAt( const std::vector<std::uint8_t> &data, std::size_t offset, BspLump &lump, std::string &error ) {
+	const std::int32_t fileOffset = ReadBspI32At( data, offset );
+	const std::int32_t fileLength = ReadBspI32At( data, offset + 4u );
+	if ( fileOffset < 0 || fileLength < 0 ) {
+		error = "BSP has a negative lump offset or length";
+		return false;
+	}
+	const std::size_t begin = static_cast<std::size_t>( fileOffset );
+	const std::size_t length = static_cast<std::size_t>( fileLength );
+	if ( begin > data.size() || length > data.size() - begin ) {
+		error = "BSP has an out-of-range lump";
+		return false;
+	}
+	lump.offset = begin;
+	lump.length = length;
+	return true;
+}
+
+static bool ReadBspLumps( const std::vector<std::uint8_t> &data, std::array<BspLump, kBspHeaderLumps> &lumps, std::int32_t &version, bool &fakk, bool &mohaa, std::string &error ) {
+	// Where each Quake III lump sits in F.A.K.K.2's order. Lumps 17 to 19 of a
+	// FAKK map -- entity lights, their visibility, light definitions -- have no
+	// Quake III slot and are not read.
+	static constexpr std::array<std::size_t, kBspHeaderLumps> kFakkLumpForQ3 = {
+		14, 0, 1, 9, 8, 7, 6, 13, 11, 10, 4, 5, 12, 3, 2, 16, 15
+	};
+	// And in 2015's. A 2015 map has no fog lump, and its light grid is not
+	// Quake III's, so those two read as empty; the terrain is read apart.
+	constexpr std::size_t kNoLump = ~std::size_t( 0 );
+	static constexpr std::array<std::size_t, kBspHeaderLumps> kMohaaLumpForQ3 = {
+		14, 0, 1, 9, 8, 7, 6, 13, 12, 11, 4, 5, kNoLump, 3, 2, kNoLump, 15
+	};
+
+	if ( data.size() < 8u ) {
 		error = "BSP header is truncated";
 		return false;
 	}
 	const std::int32_t ident = ReadBspI32At( data, 0u );
 	version = ReadBspI32At( data, 4u );
-	if ( ident != kBspIdent ) {
-		error = "not an IBSP file";
+	fakk = ident == kFakkIdent;
+	mohaa = ident == kMohaaIdent;
+	if ( ident != kBspIdent && !fakk && !mohaa ) {
+		error = "not an IBSP, FAKK or 2015 file";
 		return false;
 	}
-	if ( version != kBspVersionQ3 && version != kBspVersionQL ) {
+	if ( fakk && version != kFakkVersionAlice && version != kFakkVersionFakk2 ) {
+		error = "unsupported FAKK version " + std::to_string( version ) + "; automatic audio-zone generation supports Alice's FAKK 42 and F.A.K.K.2's FAKK 12";
+		return false;
+	}
+	if ( mohaa && version != kMohaaVersion ) {
+		error = "unsupported 2015 version " + std::to_string( version ) + "; automatic audio-zone generation supports Medal of Honor: Allied Assault's 2015 19";
+		return false;
+	}
+	if ( !fakk && !mohaa && version != kBspVersionQ3 && version != kBspVersionQL ) {
 		error = "unsupported BSP version " + std::to_string( version ) + "; automatic audio-zone generation supports IBSP 46/47";
+		return false;
+	}
+	const std::size_t headerSize = fakk ? kFakkHeaderSize : mohaa ? kMohaaHeaderSize : kBspHeaderSize;
+	if ( data.size() < headerSize ) {
+		error = "BSP header is truncated";
 		return false;
 	}
 
 	for ( std::size_t i = 0; i < kBspHeaderLumps; ++i ) {
-		const std::size_t offset = 8u + i * 8u;
-		const std::int32_t fileOffset = ReadBspI32At( data, offset );
-		const std::int32_t fileLength = ReadBspI32At( data, offset + 4u );
-		if ( fileOffset < 0 || fileLength < 0 ) {
-			error = "BSP has a negative lump offset or length";
+		if ( mohaa && kMohaaLumpForQ3[i] == kNoLump ) {
+			lumps[i] = BspLump();
+			continue;
+		}
+		const std::size_t offset = fakk ? 12u + kFakkLumpForQ3[i] * 8u : mohaa ? 12u + kMohaaLumpForQ3[i] * 8u : 8u + i * 8u;
+		if ( !ReadBspLumpAt( data, offset, lumps[i], error ) ) {
 			return false;
 		}
-		const std::size_t begin = static_cast<std::size_t>( fileOffset );
-		const std::size_t length = static_cast<std::size_t>( fileLength );
-		if ( begin > data.size() || length > data.size() - begin ) {
-			error = "BSP has an out-of-range lump";
-			return false;
-		}
-		lumps[i].offset = begin;
-		lumps[i].length = length;
 	}
 	return true;
 }
@@ -1513,24 +1601,39 @@ static bool LoadBspMap( const std::filesystem::path &path, BspMap &map, std::str
 	}
 
 	std::array<BspLump, kBspHeaderLumps> lumps;
-	if ( !ReadBspLumps( data, lumps, map.version, error ) ) {
+	if ( !ReadBspLumps( data, lumps, map.version, map.fakk, map.mohaa, error ) ) {
 		return false;
 	}
+	// A FAKK shader and surface each end in a subdivision field, and a 2015
+	// shader, surface, leaf and brush side each add fields after Quake III's;
+	// the fields read here keep Quake III's offsets.
+	const std::size_t shaderBytes = map.fakk ? kFakkShaderBytes : map.mohaa ? kMohaaShaderBytes : kQ3ShaderBytes;
+	const std::size_t surfaceBytes = map.fakk ? kFakkSurfaceBytes : map.mohaa ? kMohaaSurfaceBytes : kQ3SurfaceBytes;
+	const std::size_t leafBytes = map.mohaa ? kMohaaLeafBytes : 48u;
+	const std::size_t brushSideBytes = map.mohaa ? kMohaaBrushSideBytes : 8u;
 
-	if ( !ValidateLumpRecordSize( lumps[BspLumpShaders], 72u, "shader", error ) ||
+	if ( !ValidateLumpRecordSize( lumps[BspLumpShaders], shaderBytes, "shader", error ) ||
 		!ValidateLumpRecordSize( lumps[BspLumpPlanes], 16u, "plane", error ) ||
-		!ValidateLumpRecordSize( lumps[BspLumpLeafs], 48u, "leaf", error ) ||
+		!ValidateLumpRecordSize( lumps[BspLumpLeafs], leafBytes, "leaf", error ) ||
 		!ValidateLumpRecordSize( lumps[BspLumpLeafSurfaces], 4u, "leaf-surface", error ) ||
 		!ValidateLumpRecordSize( lumps[BspLumpLeafBrushes], 4u, "leaf-brush", error ) ||
 		!ValidateLumpRecordSize( lumps[BspLumpBrushes], 12u, "brush", error ) ||
-		!ValidateLumpRecordSize( lumps[BspLumpBrushSides], 8u, "brush-side", error ) ||
-		!ValidateLumpRecordSize( lumps[BspLumpSurfaces], 104u, "surface", error ) ) {
+		!ValidateLumpRecordSize( lumps[BspLumpBrushSides], brushSideBytes, "brush-side", error ) ||
+		!ValidateLumpRecordSize( lumps[BspLumpSurfaces], surfaceBytes, "surface", error ) ) {
+		return false;
+	}
+	BspLump terrainLump;
+	BspLump terrainIndexLump;
+	if ( map.mohaa && ( !ReadBspLumpAt( data, 12u + kMohaaLumpTerrain * 8u, terrainLump, error ) ||
+		!ReadBspLumpAt( data, 12u + kMohaaLumpTerrainIndexes * 8u, terrainIndexLump, error ) ||
+		!ValidateLumpRecordSize( terrainLump, kMohaaTerrainPatchBytes, "terrain", error ) ||
+		!ValidateLumpRecordSize( terrainIndexLump, 2u, "terrain-index", error ) ) ) {
 		return false;
 	}
 
 	const BspLump &shaderLump = lumps[BspLumpShaders];
-	map.shaders.reserve( shaderLump.length / 72u );
-	for ( std::size_t offset = shaderLump.offset; offset < shaderLump.offset + shaderLump.length; offset += 72u ) {
+	map.shaders.reserve( shaderLump.length / shaderBytes );
+	for ( std::size_t offset = shaderLump.offset; offset < shaderLump.offset + shaderLump.length; offset += shaderBytes ) {
 		BspShader shader;
 		shader.name = ReadBspStringAt( data, offset, kBspMaxQpath );
 		shader.surfaceFlags = ReadBspI32At( data, offset + 64u );
@@ -1573,8 +1676,8 @@ static bool LoadBspMap( const std::filesystem::path &path, BspMap &map, std::str
 	}
 
 	const BspLump &leafLump = lumps[BspLumpLeafs];
-	map.leafs.reserve( leafLump.length / 48u );
-	for ( std::size_t offset = leafLump.offset; offset < leafLump.offset + leafLump.length; offset += 48u ) {
+	map.leafs.reserve( leafLump.length / leafBytes );
+	for ( std::size_t offset = leafLump.offset; offset < leafLump.offset + leafLump.length; offset += leafBytes ) {
 		BspLeaf leaf;
 		leaf.cluster = ReadBspI32At( data, offset );
 		leaf.area = ReadBspI32At( data, offset + 4u );
@@ -1585,7 +1688,23 @@ static bool LoadBspMap( const std::filesystem::path &path, BspMap &map, std::str
 		leaf.numLeafSurfaces = ReadBspI32At( data, offset + 36u );
 		leaf.firstLeafBrush = ReadBspI32At( data, offset + 40u );
 		leaf.numLeafBrushes = ReadBspI32At( data, offset + 44u );
+		if ( map.mohaa ) {
+			leaf.firstTerrainPatch = ReadBspI32At( data, offset + 48u );
+			leaf.numTerrainPatches = ReadBspI32At( data, offset + 52u );
+		}
 		map.leafs.push_back( leaf );
+	}
+
+	// A terrain patch names its shader in an unsigned 16-bit field; each leaf
+	// lists its patches as signed 16-bit indexes.
+	map.terrainShaders.reserve( terrainLump.length / kMohaaTerrainPatchBytes );
+	for ( std::size_t offset = terrainLump.offset; offset < terrainLump.offset + terrainLump.length; offset += kMohaaTerrainPatchBytes ) {
+		const std::size_t field = offset + kMohaaTerrainPatchShaderOffset;
+		map.terrainShaders.push_back( static_cast<std::int32_t>( data[field] | ( data[field + 1u] << 8u ) ) );
+	}
+	map.terrainIndexes.reserve( terrainIndexLump.length / 2u );
+	for ( std::size_t offset = terrainIndexLump.offset; offset < terrainIndexLump.offset + terrainIndexLump.length; offset += 2u ) {
+		map.terrainIndexes.push_back( static_cast<std::int16_t>( data[offset] | ( data[offset + 1u] << 8u ) ) );
 	}
 
 	const BspLump &leafSurfaceLump = lumps[BspLumpLeafSurfaces];
@@ -1614,8 +1733,8 @@ static bool LoadBspMap( const std::filesystem::path &path, BspMap &map, std::str
 	}
 
 	const BspLump &brushSideLump = lumps[BspLumpBrushSides];
-	map.brushSides.reserve( brushSideLump.length / 8u );
-	for ( std::size_t offset = brushSideLump.offset; offset < brushSideLump.offset + brushSideLump.length; offset += 8u ) {
+	map.brushSides.reserve( brushSideLump.length / brushSideBytes );
+	for ( std::size_t offset = brushSideLump.offset; offset < brushSideLump.offset + brushSideLump.length; offset += brushSideBytes ) {
 		BspBrushSide side;
 		side.planeNum = ReadBspI32At( data, offset );
 		side.shaderNum = ReadBspI32At( data, offset + 4u );
@@ -1626,8 +1745,8 @@ static bool LoadBspMap( const std::filesystem::path &path, BspMap &map, std::str
 	}
 
 	const BspLump &surfaceLump = lumps[BspLumpSurfaces];
-	map.surfaces.reserve( surfaceLump.length / 104u );
-	for ( std::size_t offset = surfaceLump.offset; offset < surfaceLump.offset + surfaceLump.length; offset += 104u ) {
+	map.surfaces.reserve( surfaceLump.length / surfaceBytes );
+	for ( std::size_t offset = surfaceLump.offset; offset < surfaceLump.offset + surfaceLump.length; offset += surfaceBytes ) {
 		BspSurface surface;
 		surface.shaderNum = ReadBspI32At( data, offset );
 		surface.surfaceType = ReadBspI32At( data, offset + 8u );
@@ -1915,10 +2034,55 @@ static int DominantPresetOverride( const LeafAcoustics &acoustics ) {
 
 static void AccumulateShaderAcoustics( const BspShader &shader, MaterialFlags materialFlags, const std::vector<MaterialOverrideRule> &overrides, float roleWeight, LeafAcoustics &acoustics ) {
 	const double weight = static_cast<double>( roleWeight );
-	if ( shader.surfaceFlags & SURF_METALSTEPS ) {
+	// 2015 numbers fifteen materials from bit 13: paper, wood, metal, rock, dirt,
+	// grill, grass, mud, puddle, glass, gravel, sand, foliage, snow, carpet
+	// (OpenMoHAA's surfaceflags.h, reference only). Its compiler writes one of
+	// them into every face of the fifty-four retail maps, rock where a shader
+	// names none, so on a 2015 map they are the material and the shader-name
+	// tokens below are not consulted for it.
+	constexpr std::int32_t kMohaaMetal = 0x8000 | 0x40000; // metal, grill
+	constexpr std::int32_t kMohaaStone = 0x10000 | 0x400000; // rock, glass
+	constexpr std::int32_t kMohaaSoft = 0x2000 | 0x4000 | 0x20000 | 0x80000 | 0x100000 | 0x800000 |
+		0x1000000 | 0x2000000 | 0x4000000 | 0x8000000; // paper, wood, dirt, grass, mud, gravel, sand, foliage, snow, carpet
+	constexpr std::int32_t kMohaaLiquid = 0x200000; // puddle
+	const bool mohaaMaterial = materialFlags == MaterialFlags::Mohaa &&
+		( shader.surfaceFlags & ( kMohaaMetal | kMohaaStone | kMohaaSoft | kMohaaLiquid ) ) != 0;
+	if ( materialFlags != MaterialFlags::Alice && materialFlags != MaterialFlags::Mohaa && ( shader.surfaceFlags & SURF_METALSTEPS ) ) {
 		AddMaterialVote( acoustics, static_cast<std::uint8_t>( azfmt::MaterialClass::Metal ), weight );
 	}
-	if ( materialFlags == MaterialFlags::Rtcw ) {
+	if ( materialFlags == MaterialFlags::Mohaa ) {
+		// Quake III's 0x40 (flesh) is 2015's castshadow and its 0x1000 (metal
+		// steps) 2015's overbright, so neither votes. Acoustic grouping is ours.
+		if ( shader.surfaceFlags & kMohaaMetal ) {
+			AddMaterialVote( acoustics, static_cast<std::uint8_t>( azfmt::MaterialClass::Metal ), weight );
+		}
+		if ( shader.surfaceFlags & kMohaaStone ) {
+			AddMaterialVote( acoustics, static_cast<std::uint8_t>( azfmt::MaterialClass::Stone ), weight );
+		}
+		if ( shader.surfaceFlags & kMohaaSoft ) {
+			AddMaterialVote( acoustics, static_cast<std::uint8_t>( azfmt::MaterialClass::Soft ), weight );
+		}
+		if ( shader.surfaceFlags & kMohaaLiquid ) {
+			AddMaterialVote( acoustics, static_cast<std::uint8_t>( azfmt::MaterialClass::Liquid ), weight );
+		}
+	} else if ( materialFlags == MaterialFlags::Alice ) {
+		// alice.exe's own surfaceparm table (0x005294d0) numbers the materials
+		// from bit 16: wood, metal, rock, dirt, grill, organic, squishy. Quake
+		// III's 0x40 (flesh) is Ritual's castshadow and its 0x1000 (metal
+		// steps) is unused, so neither votes. Acoustic grouping is ours.
+		constexpr int metalSurfaces = 0x20000 | 0x100000; // metal, grill
+		constexpr int stoneSurfaces = 0x40000; // rock
+		constexpr int softSurfaces = 0x10000 | 0x80000 | 0x200000 | 0x400000; // wood, dirt, organic, squishy
+		if ( shader.surfaceFlags & metalSurfaces ) {
+			AddMaterialVote( acoustics, static_cast<std::uint8_t>( azfmt::MaterialClass::Metal ), weight );
+		}
+		if ( shader.surfaceFlags & stoneSurfaces ) {
+			AddMaterialVote( acoustics, static_cast<std::uint8_t>( azfmt::MaterialClass::Stone ), weight );
+		}
+		if ( shader.surfaceFlags & softSurfaces ) {
+			AddMaterialVote( acoustics, static_cast<std::uint8_t>( azfmt::MaterialClass::Soft ), weight );
+		}
+	} else if ( materialFlags == MaterialFlags::Rtcw ) {
 		// Disk-flag facts shared by original RTCW SP/MP src/game/surfaceflags.h
 		// and iortcw SP/MP code/qcommon/surfaceflags.h. Acoustic grouping is ours.
 		// In particular 0x40 is ceramic, not Q3/QL flesh; BSP 47 alone cannot
@@ -1959,13 +2123,13 @@ static void AccumulateShaderAcoustics( const BspShader &shader, MaterialFlags ma
 	if ( ContainsAnyToken( name, { "water", "slime", "lava", "liquid", "pool", "slosh" } ) ) {
 		AddMaterialVote( acoustics, static_cast<std::uint8_t>( azfmt::MaterialClass::Liquid ), weight );
 	}
-	if ( ContainsAnyToken( name, { "stone", "rock", "gothic", "brick", "concrete", "cement", "base_wall", "marble", "tile" } ) ) {
+	if ( !mohaaMaterial && ContainsAnyToken( name, { "stone", "rock", "gothic", "brick", "concrete", "cement", "base_wall", "marble", "tile" } ) ) {
 		AddMaterialVote( acoustics, static_cast<std::uint8_t>( azfmt::MaterialClass::Stone ), weight );
 	}
-	if ( ContainsAnyToken( name, { "metal", "grate", "proto", "base_trim", "clang", "steel", "iron" } ) ) {
+	if ( !mohaaMaterial && ContainsAnyToken( name, { "metal", "grate", "proto", "base_trim", "clang", "steel", "iron" } ) ) {
 		AddMaterialVote( acoustics, static_cast<std::uint8_t>( azfmt::MaterialClass::Metal ), weight );
 	}
-	if ( ContainsAnyToken( name, { "flesh", "organic", "cloth", "terrain", "grass", "sand", "dirt", "carpet", "wood" } ) ) {
+	if ( !mohaaMaterial && ContainsAnyToken( name, { "flesh", "organic", "cloth", "terrain", "grass", "sand", "dirt", "carpet", "wood" } ) ) {
 		AddMaterialVote( acoustics, static_cast<std::uint8_t>( azfmt::MaterialClass::Soft ), weight );
 	}
 
@@ -1980,6 +2144,18 @@ static void AccumulateShaderAcoustics( const BspShader &shader, MaterialFlags ma
 		}
 		acoustics.overrideFlags = static_cast<std::uint8_t>( acoustics.overrideFlags | rule.flags );
 	}
+}
+
+// Brush sides that are never drawn say nothing about the room. Ritual numbers
+// nodraw as Quake III does but moves hint to bit 24 and has no skip; RTCW and
+// Enemy Territory use bit 24 for rubble, so the mask follows the profile.
+// 2015 moves hint to bit 30 and has no skip either; its 0x100 and 0x200 are
+// nolightmap and alphashadow, which are drawn.
+static std::int32_t UndrawnBrushSideFlags( MaterialFlags materialFlags ) {
+	constexpr std::int32_t kAliceHint = 0x1000000;
+	constexpr std::int32_t kMohaaHint = 0x40000000;
+	return materialFlags == MaterialFlags::Alice ? SURF_NODRAW | kAliceHint :
+		materialFlags == MaterialFlags::Mohaa ? SURF_NODRAW | kMohaaHint : SURF_NODRAW | SURF_SKIP | SURF_HINT;
 }
 
 // A BSP leaf is convex, so testing its centre against the brush half-spaces is
@@ -2025,6 +2201,34 @@ static LeafAcoustics AnalyzeLeafAcoustics( const BspMap &map, const BspLeaf &lea
 				continue;
 			}
 			const BspShader &shader = map.shaders[static_cast<std::size_t>( shaderNum )];
+			// 2015's compiler keeps invisible shadow casters (caulkshadow) as
+			// surfaces; they are not what the room is seen to be made of.
+			if ( map.mohaa && ( shader.surfaceFlags & SURF_NODRAW ) ) {
+				continue;
+			}
+			acoustics.drawSurfaceWeight += static_cast<double>( kDrawSurfaceRoleWeight );
+			if ( shader.surfaceFlags & SURF_SKY ) {
+				acoustics.skyDrawSurfaceWeight += static_cast<double>( kDrawSurfaceRoleWeight );
+			}
+			AccumulateShaderAcoustics( shader, map.materialFlags, overrides, kDrawSurfaceRoleWeight, acoustics );
+		}
+	}
+
+	// A 2015 leaf's terrain patches are drawn ground, each a surface of its own.
+	if ( leaf.firstTerrainPatch >= 0 && leaf.numTerrainPatches > 0 &&
+		static_cast<std::size_t>( leaf.firstTerrainPatch ) <= map.terrainIndexes.size() ) {
+		const std::size_t begin = static_cast<std::size_t>( leaf.firstTerrainPatch );
+		const std::size_t count = ( std::min )( static_cast<std::size_t>( leaf.numTerrainPatches ), map.terrainIndexes.size() - begin );
+		for ( std::size_t i = 0; i < count; ++i ) {
+			const std::int32_t patch = map.terrainIndexes[begin + i];
+			if ( patch < 0 || static_cast<std::size_t>( patch ) >= map.terrainShaders.size() ) {
+				continue;
+			}
+			const std::int32_t shaderNum = map.terrainShaders[static_cast<std::size_t>( patch )];
+			if ( shaderNum < 0 || static_cast<std::size_t>( shaderNum ) >= map.shaders.size() ) {
+				continue;
+			}
+			const BspShader &shader = map.shaders[static_cast<std::size_t>( shaderNum )];
 			acoustics.drawSurfaceWeight += static_cast<double>( kDrawSurfaceRoleWeight );
 			if ( shader.surfaceFlags & SURF_SKY ) {
 				acoustics.skyDrawSurfaceWeight += static_cast<double>( kDrawSurfaceRoleWeight );
@@ -2056,7 +2260,7 @@ static LeafAcoustics AnalyzeLeafAcoustics( const BspMap &map, const BspLeaf &lea
 				const std::size_t sideCount = ( std::min )( static_cast<std::size_t>( brush.numSides ), map.brushSides.size() - sideBegin );
 				for ( std::size_t sideIndex = 0; sideIndex < sideCount; ++sideIndex ) {
 					const BspBrushSide &side = map.brushSides[sideBegin + sideIndex];
-					if ( side.surfaceFlags & ( SURF_NODRAW | SURF_SKIP | SURF_HINT ) ) {
+					if ( side.surfaceFlags & UndrawnBrushSideFlags( map.materialFlags ) ) {
 						continue;
 					}
 					if ( side.shaderNum >= 0 && static_cast<std::size_t>( side.shaderNum ) < map.shaders.size() ) {
@@ -2879,8 +3083,8 @@ static int FromBspCommand( int argc, char **argv ) {
 			}
 			profile = argv[++i];
 			if ( profile != "quake3" && profile != "quakelive" && profile != "rtcw-sp" && profile != "rtcw-mp" &&
-				profile != "wolfet" ) {
-				std::cerr << "--profile must be quake3, quakelive, rtcw-sp, rtcw-mp, or wolfet\n";
+				profile != "wolfet" && profile != "alice" && profile != "fakk2" && profile != "mohaa" ) {
+				std::cerr << "--profile must be quake3, quakelive, rtcw-sp, rtcw-mp, wolfet, alice, fakk2, or mohaa\n";
 				return 2;
 			}
 		} else if ( arg == "--max-zones" ) {
@@ -2926,12 +3130,36 @@ static int FromBspCommand( int argc, char **argv ) {
 		std::cerr << input.string() << ": " << error << "\n";
 		return 1;
 	}
-	if ( !profile.empty() && map.version != ( profile == "quake3" ? kBspVersionQ3 : kBspVersionQL ) ) {
+	// A 2015 map's surface flags are 2015's, so only the mohaa profile may read
+	// one, and it reads nothing else.
+	const bool mohaaProfile = profile == "mohaa";
+	if ( map.mohaa != mohaaProfile ) {
+		std::cerr << input.string() << ": " << ( map.mohaa ? std::string( "a 2015 map needs --profile mohaa" ) :
+			"BSP version does not match --profile " + profile ) << "\n";
+		return 1;
+	}
+	// A FAKK map's surface flags are Ritual's, so only the two Ritual profiles may
+	// read one, each its own title's version, and they read nothing else.
+	const bool ritualProfile = profile == "alice" || profile == "fakk2";
+	if ( map.fakk != ritualProfile ) {
+		std::cerr << input.string() << ": " << ( !map.fakk ? "BSP version does not match --profile " + profile :
+			map.version == kFakkVersionFakk2 ? std::string( "a FAKK 12 map needs --profile fakk2" ) :
+			std::string( "a FAKK 42 map needs --profile alice" ) ) << "\n";
+		return 1;
+	}
+	if ( map.fakk && map.version != ( profile == "fakk2" ? kFakkVersionFakk2 : kFakkVersionAlice ) ) {
+		std::cerr << input.string() << ": unsupported FAKK version " << map.version << " for --profile " << profile
+			<< "; " << ( map.version == kFakkVersionFakk2 ? "F.A.K.K.2's FAKK 12 maps need --profile fakk2" :
+			"Alice's FAKK 42 maps need --profile alice" ) << "\n";
+		return 1;
+	}
+	if ( !profile.empty() && !map.fakk && !map.mohaa && map.version != ( profile == "quake3" ? kBspVersionQ3 : kBspVersionQL ) ) {
 		std::cerr << input.string() << ": BSP version does not match --profile " << profile << "\n";
 		return 1;
 	}
 	map.materialFlags = profile == "rtcw-sp" || profile == "rtcw-mp" ? MaterialFlags::Rtcw :
-		profile == "wolfet" ? MaterialFlags::WolfET : MaterialFlags::Quake;
+		profile == "wolfet" ? MaterialFlags::WolfET : ritualProfile ? MaterialFlags::Alice :
+		mohaaProfile ? MaterialFlags::Mohaa : MaterialFlags::Quake;
 
 	std::vector<Zone> overrideZones;
 	if ( !overridePath.empty() ) {
@@ -3564,12 +3792,13 @@ static void PrintUsage( const char *argv0 ) {
 	std::cerr
 		<< "Usage:\n"
 		<< "  " << argv0 << " [-o output.azb] input.audiozones\n"
-		<< "  " << argv0 << " --from-bsp [-o output.azb] [--profile quake3|quakelive|rtcw-sp|rtcw-mp|wolfet] [--merge overrides.audiozones] [--material-map audio-materials.txt] [--max-zones N] input.bsp\n"
+		<< "  " << argv0 << " --from-bsp [-o output.azb] [--profile quake3|quakelive|rtcw-sp|rtcw-mp|wolfet|alice|fakk2|mohaa] [--merge overrides.audiozones] [--material-map audio-materials.txt] [--max-zones N] input.bsp\n"
 		<< "  " << argv0 << " --dump input.azb\n"
 		<< "  " << argv0 << " --audit [--strict] [--samples N] input.azb\n\n"
-		<< "BSP generation reads IBSP v46/v47 leaves, clusters, areas, surfaces, brushes, and shaders.\n"
-		<< "Specify --profile rtcw-sp or rtcw-mp for RTCW material flags, or wolfet for Enemy Territory's;\n"
-		<< "the default retains Q3/QL interpretation.\n"
+		<< "BSP generation reads IBSP v46/v47, FAKK v42/v12 and 2015 v19 leaves, clusters, areas, surfaces, terrain, brushes, and shaders.\n"
+		<< "Specify --profile rtcw-sp or rtcw-mp for RTCW material flags, wolfet for Enemy Territory's,\n"
+		<< "alice for American McGee's Alice's FAKK 42 maps, fakk2 for Heavy Metal: F.A.K.K.2's FAKK 12 maps,\n"
+		<< "or mohaa for Medal of Honor: Allied Assault's 2015 19 maps; the default retains Q3/QL interpretation.\n"
 		<< "Material maps use: shader/pattern material [preset name] [flag outdoor] [weight N].\n"
 		<< "Generated zones use negative priorities, so merged manual override zones win naturally.\n\n"
 		<< "Text format:\n"

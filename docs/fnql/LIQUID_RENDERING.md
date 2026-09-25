@@ -1,5 +1,11 @@
 # Liquid Rendering
 
+> **fnTech3 note.** Written for FnQL; the liquid effect is available in every
+> fnTech3 game. Its interaction ripples are fed from the Quake III-style
+> client-game path, which Quake III Arena, Quake Live and Elite Force use, and
+> it falls back to the plain path while RTCW's or Enemy Territory's own fog
+> draws. See the [Display Guide](../DISPLAY.md#enhanced-liquids).
+
 ## Scope
 
 FnQL's enhanced liquid path is an opt-in renderer extension for existing idTech3 liquid shaders. It adds warped sampling of a same-frame scene-color snapshot, a Fresnel-weighted single-tap screen-space reflection of that same snapshot, and visual ripple impulses without changing BSP data, collision, snapshots, prediction, protocols, demos, or VM-visible gameplay. With `r_liquid 0`, the renderer follows the authored liquid path alone.

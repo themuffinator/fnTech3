@@ -3374,11 +3374,11 @@ class AliceInputSourceTests(unittest.TestCase):
         bindings = self.bindings()
         enabled = function_body(self.client, "IN_CommandBindingEnabled")
         self.assertIn(
-            "if ( binding.profile == COM_GAME_ALICE ) return Com_GameIsAlice();",
+            "if ( binding.profile == COM_GAME_ALICE ) return Com_GameIsRitual();",
             enabled,
         )
         self.assertIn(
-            "if ( binding.notAlice && Com_GameIsAlice() ) return false;",
+            "if ( binding.notAlice && Com_GameIsRitual() ) return false;",
             enabled,
         )
 
@@ -3397,14 +3397,18 @@ class AliceInputSourceTests(unittest.TestCase):
             (entry,) = bindings[sign + "cameralook"]
             self.assertIn("COM_GAME_ALICE", entry)
             self.assertIn("IN_CameraLook", entry)
-            # Elite Force's +use is button 6 and Alice's button 5; each is gated.
+            # Elite Force's +use is button 6, Alice's button 5 and Medal of
+            # Honor's button 3; each is gated.
             uses = bindings[sign + "use"]
-            self.assertEqual(len(uses), 2)
+            self.assertEqual(len(uses), 3)
             self.assertTrue(
                 any("<6>" in u and "COM_GAME_STVEF_MP" in u for u in uses)
             )
             self.assertTrue(
                 any("<5>" in u and "COM_GAME_ALICE" in u for u in uses)
+            )
+            self.assertTrue(
+                any("<3>" in u and "COM_GAME_MOHAA" in u for u in uses)
             )
 
         # Retail registers no +attack and nothing past +button6.
@@ -3424,6 +3428,15 @@ class AliceInputSourceTests(unittest.TestCase):
             init,
             "if ( alice ) {",
             'Cmd_AddCommand( "+togglemouse", IN_AliceToggleMouse );',
+        )
+        # The alt and ctrl binding commands are registered beside bind, so
+        # they exist before default.cfg runs.
+        self.assertNotIn("CL_AliceInitKeyCommands();", init)
+        assert_order(
+            self,
+            function_body(read_text("code/qcommon/keys.c"), "Com_InitKeyCommands"),
+            'Cmd_AddCommand( "bind", Key_Bind_f );',
+            "if ( Com_GameIsRitual() ) {",
             "CL_AliceInitKeyCommands();",
         )
         self.assertNotIn("+togglemouse", bindings)
@@ -3458,7 +3471,7 @@ class AliceInputSourceTests(unittest.TestCase):
             self,
             create,
             "CL_AdjustAngles ();",
-            "if ( Com_GameIsAlice() ) {",
+            "if ( Com_GameIsRitual() ) {",
             "CL_AliceCmdButtons( &cmd );",
             "CL_AliceKeyMove( &cmd );",
             "CL_AliceMouseMove( &cmd );",
@@ -3476,7 +3489,7 @@ class AliceInputSourceTests(unittest.TestCase):
 
     def test_alice_cvars_and_camera_import(self) -> None:
         init = function_body(self.client, "CL_InitInput")
-        self.assertIn("const bool alice = Com_GameIsAlice() != 0;", init)
+        self.assertIn("const bool alice = Com_GameIsRitual() != 0;", init)
         self.assertIn('Cvar_Get( "freelook", "1", CVAR_ARCHIVE )', init)
         self.assertIn('Cvar_Get( "cl_maxpackets", "30", CVAR_ARCHIVE )', init)
         self.assertIn(
@@ -3504,7 +3517,7 @@ class AliceInputSourceTests(unittest.TestCase):
         )
         center = function_body(self.client, "IN_CenterView")
         assert_order(
-            self, center, "Com_GameIsAlice()", "aliceCameraReset = true;"
+            self, center, "Com_GameIsRitual()", "aliceCameraReset = true;"
         )
 
         mouse = function_body(self.client, "CL_MouseEvent")
@@ -3513,7 +3526,7 @@ class AliceInputSourceTests(unittest.TestCase):
             mouse,
             "KEYCATCH_CONSOLE",
             "KEYCATCH_BROWSER",
-            "Com_GameIsAlice() && aliceCursorMode",
+            "Com_GameIsRitual() && aliceCursorMode",
             "CL_AliceMoveCursor( dx, dy );",
             "cl.mouseDx[cl.mouseIndex]",
         )
@@ -3524,7 +3537,7 @@ class AliceInputSourceTests(unittest.TestCase):
             self,
             key_down,
             "anykeydown++;",
-            "Com_GameIsAlice() && CL_AliceKeyFilter( key, qtrue )",
+            "Com_GameIsRitual() && CL_AliceKeyFilter( key, qtrue )",
             "key == K_CONSOLE",
             "!CL_AliceMenuBoundKey( key )",
             "cls.state == CA_DISCONNECTED",
@@ -3536,7 +3549,7 @@ class AliceInputSourceTests(unittest.TestCase):
             self,
             key_up,
             "if ( wasDown )",
-            "Com_GameIsAlice() && CL_AliceKeyFilter( key, qfalse )",
+            "Com_GameIsRitual() && CL_AliceKeyFilter( key, qfalse )",
             "CL_AliceModifierKeyUp( key, time );",
             "Key_ParseBinding( key, qfalse, time );",
         )
@@ -3561,7 +3574,7 @@ class AliceInputSourceTests(unittest.TestCase):
         )
         char_event = function_body(self.keys, "CL_CharEvent")
         self.assertIn(
-            "Com_GameIsAlice() && ( *codepoint == '`' || *codepoint == '~' )",
+            "Com_GameIsRitual() && ( *codepoint == '`' || *codepoint == '~' )",
             char_event,
         )
 
@@ -3570,7 +3583,7 @@ class AliceInputSourceTests(unittest.TestCase):
             self,
             toggle,
             "KEYCATCH_CONSOLE",
-            "Com_GameIsAlice() && !( Key_GetCatcher( ) & KEYCATCH_UI )",
+            "Com_GameIsRitual() && !( Key_GetCatcher( ) & KEYCATCH_UI )",
             "CL_AliceEscape();",
             "if ( !uivm )",
         )
@@ -3581,13 +3594,19 @@ class AliceInputSourceTests(unittest.TestCase):
         assert_order(
             self,
             function_body(read_text("code/client/cl_alice_ui.cpp"), "EscapeKey"),
-            "if ( EscapeBlockedByIntro() ) return;",
-            "Now() - lastEscapeTime < 1000 && cls.state != CA_CINEMATIC",
+            # F.A.K.K.2 is exempt from both Alice-only tests.
+            "if ( !fakk2 && EscapeBlockedByIntro() ) return;",
+            "Now() - lastEscapeTime < 1000 && ( fakk2 || cls.state != CA_CINEMATIC )",
             "if ( !menuStack.empty() ) {",
-            "cls.state == CA_ACTIVE && ( cl.snap.ps.alice.block[0][5] & 1 )",
+            "cls.state == CA_ACTIVE && CL_RitualInCinematic()",
             'Cbuf_AddText( "skipcinematic\\n" );',
             "cls.state <= CA_DISCONNECTED || cls.state == CA_ACTIVE",
         )
+        # The cinematic flag is Alice's stat 5 and F.A.K.K.2's stat 14, bit 0 of
+        # each (fakk/gamex86.dll stores it at 0x100d135f).
+        ui = read_text("code/client/client_alice_ui.hpp")
+        self.assertIn("return Com_GameIsFAKK2() ? fntech3::fakk2::hud::StatCinematic : 5;", ui)
+        self.assertIn("return ( cl.snap.ps.alice.block[0][CL_RitualCinematicStat()] & 1 ) != 0;", ui)
 
         init = function_body(self.keys, "CL_AliceInitKeyCommands")
         for command in (

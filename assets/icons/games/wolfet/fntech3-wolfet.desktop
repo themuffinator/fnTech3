@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Wolfenstein: Enemy Territory
+GenericName=fnTech3 game profile
+Comment=Play Wolfenstein: Enemy Territory with fnTech3
+Exec=fntech3 +set com_gameProfile wolfet
+Icon=fntech3-wolfet
+Terminal=false
+Categories=Game;ActionGame;
+StartupWMClass=fntech3-wolfet

@@ -55,6 +55,8 @@ const int demo_protocols[] = {
 	QL_RETAIL_PROTOCOL_VERSION,
 	NETCHAN_RTCW_SP_PROTOCOL_VERSION,
 	NETCHAN_RTCW_MP_PROTOCOL_VERSION,
+	NETCHAN_WOLFET_PROTOCOL_VERSION,
+	NETCHAN_MOHAA_PROTOCOL_VERSION,
 	0
 };
 
@@ -149,6 +151,7 @@ qboolean	com_fullyInitialized = qfalse;
 qboolean	gw_minimized = qfalse; // this will be always true for dedicated servers
 #ifndef DEDICATED
 qboolean	gw_active = qtrue;
+qboolean	gw_offscreen = qfalse; // window's desktop is not the one on screen
 #endif
 
 static char com_errorMessage[ MAXPRINTMSG ];
@@ -411,7 +414,7 @@ void NORETURN FORMAT_PRINTF(2, 3) QDECL Com_Error( errorParm_t code, const char 
 			SV_STVEFSPSaveAbort();
 		}
 	}
-	if ( Com_GameIsAlice() ) {
+	if ( Com_GameIsRitual() ) {
 		SV_AliceSaveAbort();
 	}
 
@@ -3237,6 +3240,58 @@ static void Com_Crash_f( void ) {
 
 /*
 ==================
+Com_SelectRitualConfig
+
+Ritual's Com_Init names the configuration by its `config` cvar: the name the
+command line gives, if longer than one character, else the one it saved in
+the registry, else config.cfg (alice.exe 0x004398ff..0x004399c8, fakk2.exe
+1.02 0x0042e15f..0x0042e228). fnTech3 keeps no registry, so a name holds for
+its launch only.
+==================
+*/
+static void Com_SelectRitualConfig( void )
+{
+	Com_StartupVariable( "config" );
+	if ( strlen( Cvar_Get( "config", "", 0 )->string ) <= 1 ) {
+		Cvar_Set( "config", Com_GameProfile()->clientConfig );
+	}
+}
+
+
+/*
+==================
+Com_ConfigFile
+
+Ritual's engines also write the configuration back to the file the `config`
+cvar names, as it stands then (alice.exe 0x00439eb0, fakk2.exe 1.02
+0x0042e710). The default name keeps the profile's own file, which fnTech3's
+dedicated server keeps apart as config_server.cfg. A name without an
+extension is given .cfg, as `exec` reads it (fakk2.exe 0x0042c6d1); retail
+wrote it bare (0x0042e650), so the file it wrote was never the one it read
+back. As `writeconfig` does, a name no file may carry, such as a library's,
+keeps the profile's own.
+==================
+*/
+const char *Com_ConfigFile( void )
+{
+	static char name[MAX_QPATH];
+	const char *config, *extension;
+
+	if ( !Com_GameIsRitual() ) {
+		return Com_GameConfigFile();
+	}
+	config = Cvar_VariableString( "config" );
+	if ( !config[0] || !Q_stricmp( config, Com_GameProfile()->clientConfig ) ) {
+		return Com_GameConfigFile();
+	}
+	Q_strncpyz( name, config, sizeof( name ) );
+	COM_DefaultExtension( name, sizeof( name ), ".cfg" );
+	return FS_AllowedExtension( name, qfalse, &extension ) ? name : Com_GameConfigFile();
+}
+
+
+/*
+==================
 Com_ExecuteCfg
 
 For controlling environment variables
@@ -3246,6 +3301,25 @@ static void Com_ExecuteCfg( void )
 {
 	Cbuf_ExecuteText(EXEC_NOW, "exec default.cfg\n");
 	Cbuf_Execute(); // Always execute after exec to prevent text buffer overflowing
+
+	// Ritual's Com_Init queues menu.cfg after default.cfg, then the saved
+	// configuration unless in safe mode, then localized.cfg and autoexec.cfg
+	// (alice.exe 0x004398eb..0x00439a13). Heavy Metal: F.A.K.K.2's menu.cfg
+	// holds its camera, skill and binding defaults.
+	if ( Com_GameIsRitual() ) {
+		Cbuf_ExecuteText( EXEC_NOW, "exec menu.cfg\n" );
+		Cbuf_Execute();
+		Com_SelectRitualConfig();
+		if ( !Com_SafeMode() ) {
+			Cbuf_ExecuteText( EXEC_NOW, va( "exec %s\n", Com_ConfigFile() ) );
+			Cbuf_Execute();
+		}
+		Cbuf_ExecuteText( EXEC_NOW, "exec localized.cfg\n" );
+		Cbuf_Execute();
+		Cbuf_ExecuteText( EXEC_NOW, "exec autoexec.cfg\n" );
+		Cbuf_Execute();
+		return;
+	}
 
 	if ( !Com_GameIsQuakeLive() ) {
 		const qboolean safeMode = Com_SafeMode();
@@ -4175,6 +4249,22 @@ static void Com_InitGameProfile( void ) {
 	if ( !Com_ActivateGameProfile( detection.profile->id ) ) {
 		Com_Error( ERR_FATAL, "fnTech3 attempted to change an active game profile" );
 	}
+	if ( Com_GameIsQ3Test() ) {
+		/* Q3Test's releases do not share a protocol, a map format or a module
+		 * table, so one is pinned here, from the installation, before any of
+		 * them starts. */
+		const char *root = inputs.basePath ? inputs.basePath : inputs.appPath;
+		const q3testReleaseId_t release = Com_Q3TestDetectRelease( root );
+		if ( !Com_Q3TestActivateRelease( release ) ) {
+			Com_Error( ERR_FATAL, "Q3Test: %s is not a recognized Q3Test 1.02, 1.03, 1.05, 1.06, 1.07 or 1.08 "
+				"installation. Set fs_basepath to the folder holding quake3.exe, qagamex86.dll and demoq3/pak0.pk3.",
+				root && root[0] ? root : "the installation" );
+		}
+		Com_Printf( "Q3Test release %s (protocol %i, BSP %i)\n", Com_Q3TestRelease()->version,
+			Com_Q3TestRelease()->protocol, Com_Q3TestRelease()->bspVersion );
+	}
+	// F.A.K.K.2 shares Alice's framing but delta-codes its own records.
+	MSG_UseFAKK2Bodies( Com_GameIsFAKK2() ? qtrue : qfalse );
 
 	// The console already exists; client windows are created after profile selection.
 	if ( !com_customClientTitle ) {
@@ -4190,7 +4280,7 @@ static void Com_InitGameProfile( void ) {
 	com_gameProfile->flags &= ~CVAR_USER_CREATED;
 	com_gameProfile->flags |= CVAR_INIT | CVAR_PROTECTED | CVAR_ROM;
 	Cvar_SetDescription( com_gameProfile,
-		"Immutable compatibility profile selected at startup. Use auto, quake3, quakelive, rtcw-sp, rtcw-mp, wolfet, stvef-sp, stvef-mp, q3-ihv, jka-sp, or jka-mp on the command line." );
+		"Immutable compatibility profile selected at startup. Use auto, quake3, quakelive, rtcw-sp, rtcw-mp, wolfet, stvef-sp, stvef-mp, q3-ihv, jka-sp, jka-mp, jk2-sp, jk2-mp, alice, fakk2, mohaa, or q3test on the command line." );
 
 	Com_Printf( "Game profile: %s (%s, detected from %s)\n",
 		detection.profile->displayName, detection.profile->key,
@@ -4202,6 +4292,8 @@ static void Com_InitGameProfile( void ) {
 			? "EXPERIMENTAL ELITE FORCE DEVELOPMENT BUILD: %s. Compatibility gates remain open.\n"
 			: Com_GameIsJKA()
 			? "EXPERIMENTAL JEDI ACADEMY DEVELOPMENT BUILD: %s. Compatibility gates remain open.\n"
+			: Com_GameIsQ3Test()
+			? "EXPERIMENTAL Q3TEST DEVELOPMENT BUILD: %s. Compatibility gates remain open.\n"
 			: "EXPERIMENTAL RTCW DEVELOPMENT BUILD: %s. Compatibility gates remain open.\n",
 			detection.profile->runtimeBlocker );
 	}
@@ -4299,7 +4391,7 @@ void Com_Init( char *commandLine ) {
 
 	Com_InitGameProfile();
 
-	com_protocol = Cvar_Get( "protocol", va( "%i", Com_GameProfile()->preferredProtocol ), 0 );
+	com_protocol = Cvar_Get( "protocol", va( "%i", Com_GamePreferredProtocol() ), 0 );
 	Cvar_SetDescription( com_protocol,
 		"Network protocol version. The selected game profile supplies the compatibility-safe default." );
 	if ( Q_stristr( com_protocol->string, "-compat" ) > com_protocol->string ) {
@@ -4551,6 +4643,13 @@ void Com_Init( char *commandLine ) {
 
 	Com_Printf( "--- Common Initialization Complete ---\n" );
 
+	// Ritual's engine names its release here, read-only: "1.00" in alice.exe
+	// (0x00439c9e), "1.02" in fakk2.exe 1.02 (0x0042e4fd), whose main and quit
+	// menus show it.
+	if ( Com_GameIsRitual() ) {
+		Cvar_Get( "shortversion", Com_GameIsFAKK2() ? "1.02" : "1.00", CVAR_ROM );
+	}
+
 	// Retail dedicated configuration selects its first map through this
 	// hook (normally `startRandomMap`) after common initialization and
 	// after any explicit late startup commands already in the buffer.
@@ -4582,6 +4681,12 @@ static void Com_WriteConfigToFile( const char *filename ) {
 	Key_WriteBindings( f );
 #endif
 	Cvar_WriteVariables( f );
+	// Ritual's configuration keeps the aliases too (alice.exe 0x004380a0), which
+	// holds Heavy Metal: F.A.K.K.2's weapon groups between sessions.
+	if ( Com_GameIsRitual() ) {
+		FS_Printf( f, "// Aliases" Q_NEWLINE );
+		Cmd_WriteAliases( f );
+	}
 	FS_FCloseFile( f );
 }
 
@@ -4661,10 +4766,10 @@ void Com_WriteConfiguration( void ) {
 			return;
 		}
 	} else {
-		Com_WriteConfigToFile( Com_GameConfigFile() );
+		Com_WriteConfigToFile( Com_ConfigFile() );
 	}
 #else
-	Com_WriteConfigToFile( Com_GameConfigFile() );
+	Com_WriteConfigToFile( Com_ConfigFile() );
 #endif
 	cvar_modifiedFlags &= ~( CVAR_ARCHIVE | CVAR_CLOUD );
 

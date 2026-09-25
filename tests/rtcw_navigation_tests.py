@@ -91,7 +91,7 @@ static void checkWorlds(){
  for(const auto &p:profiles){profile=&p;const int count=p.bots.navigationWorlds;
   if(!count){
    assert(p.id==COM_GAME_QUAKE3_IHV||p.id==COM_GAME_JKA_SP||p.id==COM_GAME_JK2_SP
-    ||p.id==COM_GAME_ALICE);auto *previous=aas_currentWorld;
+    ||p.id==COM_GAME_ALICE||p.id==COM_GAME_FAKK2||p.id==COM_GAME_MOHAA||p.id==COM_GAME_Q3TEST);auto *previous=aas_currentWorld;
    for(int index:{-1,0,1,2})assert(!AAS_SetCurrentWorld(index)&&aas_currentWorld==previous);
    assert(AAS_Setup()==BLERR_LIBRARYNOTSETUP&&allocations.empty());
    assert(aas_currentWorld==previous&&!aasworld.entities);

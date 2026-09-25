@@ -32,6 +32,9 @@ void Com_DPrintf(const char*,...){}
 void CL_AddReliableCommand(const char*,bool){}
 void CL_WritePacket(int){}
 void CL_ClearState(){}
+int Com_GameIsQ3Test(){return 0;}
+void CL_Q3TestDisconnect(){assert(false);}
+void CL_Q3TestClearConnection(){assert(false);}
 void Com_Memset(void*p,int value,int n){assert(!liveEasy&&!liveMulti);memset(p,value,n);}
 '''+cleanup+'\nvoid disconnect(){'+sequence+r'''
 }

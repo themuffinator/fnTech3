@@ -42,7 +42,8 @@ static bool Com_GameIsSTVEFMP() { return stvef; }
 static bool Com_GameIsSTVEFSP() { return stvefSp; }
 static bool alice;
 static bool aliceMenus;
-static bool Com_GameIsAlice() { return alice; }
+// Alice or F.A.K.K.2: the menus Ritual's engine UI keeps.
+static bool Com_GameIsRitual() { return alice; }
 static qboolean CL_AliceUIMenuUp() { return aliceMenus ? qtrue : qfalse; }
 static int Key_GetCatcher() { return catcher; }
 static int VM_Call(vm_t *vm, int count, int ordinal) {

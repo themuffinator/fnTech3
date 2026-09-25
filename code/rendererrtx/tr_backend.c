@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "tr_local.h"
 #include "../renderercommon/tr_stvef_alpha.h"
+#include "../renderercommon/tr_rtcw_engine_lights.h"
 
 backEndData_t	*backEndData;
 backEndState_t	backEnd;
@@ -710,7 +711,7 @@ static void RB_BeginDrawingView( void ) {
 
 #ifdef USE_VULKAN
 	// Alice's keepDepth leaves the depth buffer as it is (0x00486366).
-	if ( !( ri.gameId == COM_GAME_ALICE && backEnd.refdef.alice.keepDepth ) ) {
+	if ( !( COM_GAME_ID_IS_RITUAL( ri.gameId ) && backEnd.refdef.alice.keepDepth ) ) {
 		vk_clear_depth( qtrue );
 	}
 	{
@@ -724,7 +725,7 @@ static void RB_BeginDrawingView( void ) {
 				color[channel] = Com_Clamp( 0, 1, backEnd.refdef.rtcwFog.fog.color[channel] );
 			color[3] = 1;
 			vk_clear_color( color );
-		} else if ( ri.gameId == COM_GAME_ALICE && backEnd.viewParms.aliceFarDistance != 0.0f &&
+		} else if ( R_GAME_HAS_RITUAL_VIEW( ri.gameId ) && backEnd.viewParms.aliceFarDistance != 0.0f &&
 			!backEnd.viewParms.aliceSkyPortalDrawn && !( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) ) {
 			// Alice clears a world view with a far plane to its fog colour,
 			// unless its sky portal was drawn into the frame first (alice.exe
@@ -864,29 +865,41 @@ static void RB_RunScheduledShadowManagerPreMainPasses( drawSurf_t *drawSurfs, in
 }
 #endif
 
-static qboolean RB_DrawSurfIncluded( int entityNum, const shader_t *shader, int fogNum, rbDrawSurfsMode_t mode )
-{
-	const qboolean rtBaseSurface =
-		( entityNum == REFENTITYNUM_WORLD &&
-			R_RtShaderNativeSupported( shader ) &&
-			fogNum == 0 ) ? qtrue : qfalse;
+// The trace completed this view: its fogged surfaces take their fog passes
+// in the overlay (set only around the overlay's draw list).
+static qboolean rb_rtFogOverlay;
 
+static qboolean RB_DrawSurfIncluded( int entityNum, const shader_t *shader, int fogNum,
+	const surfaceType_t *surface, rbDrawSurfsMode_t mode, qboolean *fogOnly )
+{
+	rtSurfaceOwner_t owner;
+
+	if ( fogOnly ) {
+		*fogOnly = qfalse;
+	}
 	if ( mode == RB_DRAWSURFS_ALL ) {
 		return qtrue;
 	}
-	if ( mode == RB_DRAWSURFS_RT_BASE ) {
-		return rtBaseSurface;
-	}
 
 	/*
-	 * The pre-trace raster pass contains only static world materials whose
-	 * coverage and base texture semantics are faithfully represented by
-	 * closest-hit shading. Draw every other surface exactly once after the
-	 * trace: entities, remaps, animated/deformed/multi-stage materials,
-	 * portals, sky, decals, alpha/translucency, fogged world, particles,
-	 * effects and stencil shadow volumes.
+	 * The base pass draws what the path tracer owns, for depth (its colour is
+	 * replaced), and the sky and portals, whose raster colour is kept. The
+	 * overlay pass after the trace draws every other surface exactly once:
+	 * blended, additive and decal materials, fog, particles, effects, and
+	 * anything whose geometry the trace does not reproduce. A traced surface
+	 * inside a fog volume also returns to the overlay for its fog pass alone
+	 * (fogOnly), unless the trace failed and the base pass's complete raster
+	 * draw, fog included, stands; lighting passes never take it.
 	 */
-	return rtBaseSurface ? qfalse : qtrue;
+	owner = vk_rt_surface_owner( entityNum, shader, fogNum, surface ? (int)*surface : (int)SF_BAD );
+	if ( mode == RB_DRAWSURFS_RT_BASE ) {
+		return owner != RT_SURFACE_RASTER ? qtrue : qfalse;
+	}
+	if ( owner == RT_SURFACE_TRACED_FOGGED && fogOnly && rb_rtFogOverlay ) {
+		*fogOnly = qtrue;
+		return qtrue;
+	}
+	return owner == RT_SURFACE_RASTER ? qtrue : qfalse;
 }
 
 #ifdef USE_VULKAN
@@ -960,7 +973,7 @@ static qboolean RB_DrawSurfListNeedsLiquidSnapshot( drawSurf_t *drawSurfs,
 		}
 		R_DecomposeSort( drawSurfs[i].sort, &entityNum, &shader,
 			&fogNum, &dlighted );
-		if ( !RB_DrawSurfIncluded( entityNum, shader, fogNum, mode ) ) {
+		if ( !RB_DrawSurfIncluded( entityNum, shader, fogNum, drawSurfs[i].surface, mode, NULL ) ) {
 			continue;
 		}
 		if ( RB_ShaderNeedsLiquidSnapshot( shader ) ) {
@@ -984,6 +997,7 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs, rbDr
 	drawSurf_t		*drawSurf;
 	unsigned int	oldSort;
 	qboolean		sortDecomposed;
+	qboolean		fogOnly;
 #ifdef USE_PMLIGHT
 	float			oldShaderSort;
 	qboolean		csmReceiverDrawn;
@@ -1033,10 +1047,11 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs, rbDr
 			continue;
 		}
 		sortDecomposed = qfalse;
+		fogOnly = qfalse;
 		if ( mode != RB_DRAWSURFS_ALL ) {
 			R_DecomposeSort( drawSurf->sort, &entityNum, &shader, &fogNum, &dlighted );
 			sortDecomposed = qtrue;
-			if ( !RB_DrawSurfIncluded( entityNum, shader, fogNum, mode ) ) {
+			if ( !RB_DrawSurfIncluded( entityNum, shader, fogNum, drawSurf->surface, mode, &fogOnly ) ) {
 				continue;
 			}
 		}
@@ -1054,7 +1069,11 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs, rbDr
 		if ( vk.renderPassIndex == RENDER_PASS_SCREENMAP && entityNum != REFENTITYNUM_WORLD && backEnd.refdef.entities[ entityNum ].e.renderfx & RF_DEPTHHACK ) {
 			continue;
 		}
-		if ( !depthFadeSnapshot && shader &&
+		/* In RT composition the overlay list, after the trace, takes the
+		 * depth-fade snapshot: taken in the base pass (at an alpha-tested
+		 * surface the tracer owns) it would leave the post-bloom pass open,
+		 * and the trace refuses the view. */
+		if ( !depthFadeSnapshot && mode != RB_DRAWSURFS_RT_BASE && shader &&
 			shader->sort > SS_OPAQUE &&
 			RB_IsPrimaryFullView() &&
 			( vk.renderPassIndex == RENDER_PASS_MAIN ||
@@ -1079,6 +1098,12 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs, rbDr
 			//if ( oldShader != NULL ) {
 				RB_EndSurfaceWithSTVEFAlpha();
 			//}
+#ifdef USE_VULKAN
+			// the fog-only state belongs to one batch of this list; it lasts
+			// through the batch's own restarts (VBO transitions, overflow)
+			// but not into the passes interleaved below
+			tess.rtFogOnly = qfalse;
+#endif
 #ifdef USE_PMLIGHT
 			#define INSERT_POINT SS_FOG
 			if ( !csmReceiverDrawn && oldShaderSort < INSERT_POINT && shader->sort >= INSERT_POINT ) {
@@ -1144,6 +1169,9 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs, rbDr
 			}
 #endif
 			RB_BeginSurface( shader, fogNum );
+#ifdef USE_VULKAN
+			tess.rtFogOnly = fogOnly;
+#endif
 			oldShader = shader;
 		}
 
@@ -1267,6 +1295,9 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs, rbDr
 	if ( oldShader != NULL ) {
 		RB_EndSurface();
 	}
+#ifdef USE_VULKAN
+	tess.rtFogOnly = qfalse;
+#endif
 
 #ifdef USE_PMLIGHT
 	if ( !csmReceiverDrawn ) {
@@ -1363,7 +1394,7 @@ static void RB_RenderLitSurfList( dlight_t* dl, rbDrawSurfsMode_t mode ) {
 		if ( mode != RB_DRAWSURFS_ALL ) {
 			R_DecomposeLitSort( litSurf->sort, &entityNum, &shader, &fogNum );
 			sortDecomposed = qtrue;
-			if ( !RB_DrawSurfIncluded( entityNum, shader, fogNum, mode ) ) {
+			if ( !RB_DrawSurfIncluded( entityNum, shader, fogNum, litSurf->surface, mode, NULL ) ) {
 				continue;
 			}
 		}
@@ -1661,6 +1692,45 @@ void RE_UploadCinematic( int w, int h, int cols, int rows, const byte *data, int
 
 /*
 =============
+RB_AliceBatchReadsColor
+
+American McGee's Alice's and Heavy Metal: F.A.K.K.2's SetColor is
+immediate: alice.exe's R_SetColor (0x00498b80) stores the colour `rgbGen
+global` and `alphaGen global` read and hands it to glColor4ubv, so every
+picture takes the colour it was drawn in. Medal of Honor's pictures read it
+through the same shader dialect -- 245 stages of its menu shaders -- and its
+title and legal pictures fade by it; 2015's SetColor is taken to be Alice's,
+as its fade cvars need [I]. This back end batches pictures and reads that
+colour when a batch is drawn, so a batch whose shader reads it is drawn
+before the colour changes.
+=============
+*/
+static qboolean RB_AliceBatchReadsColor( const float *next ) {
+	color4ub_t color;
+	int i;
+
+	if ( ( !COM_GAME_ID_IS_RITUAL( ri.gameId ) && ri.gameId != COM_GAME_MOHAA ) || !tess.numIndexes
+		|| !tess.shader ) {
+		return qfalse;
+	}
+	for ( i = 0; i < 4; i++ ) {
+		color.rgba[i] = next[i] * 255;
+	}
+	if ( color.u32 == backEnd.color2D.u32 ) {
+		return qfalse;
+	}
+	for ( i = 0; i < tess.shader->numUnfoggedPasses; i++ ) {
+		const shaderStage_t *stage = tess.shader->stages[i];
+		if ( stage && ( stage->bundle[0].rgbGen == CGEN_ALICE_GLOBAL || stage->bundle[0].alphaGen == AGEN_ALICE_GLOBAL ) ) {
+			return qtrue;
+		}
+	}
+	return qfalse;
+}
+
+
+/*
+=============
 RB_SetColor
 =============
 */
@@ -1669,6 +1739,9 @@ static const void *RB_SetColor( const void *data ) {
 
 	cmd = (const setColorCommand_t *)data;
 	RB_FrameGraph_NotePass( RTX_FRAME_PASS_UI_2D );
+	if ( RB_AliceBatchReadsColor( cmd->color ) ) {
+		RB_EndSurface();
+	}
 
 	backEnd.color2D.rgba[0] = cmd->color[0] * 255;
 	backEnd.color2D.rgba[1] = cmd->color[1] * 255;
@@ -3760,7 +3833,9 @@ static void RB_LightingPass( rbDrawSurfsMode_t mode, qboolean finish )
 
 	for ( i = 0; i < backEnd.viewParms.num_dlights; i++ )
 	{
-		dl = &backEnd.viewParms.dlights[i];
+		// RTCW draws the engine's own lights beneath its modules' (tr_rtcw_engine_lights.h)
+		dl = &backEnd.viewParms.dlights[ R_UsesRTCWLighting() ? RTCW_LightDrawIndex( i,
+			(int)backEnd.viewParms.num_dlights, backEnd.refdef.num_moduleDlights ) : i ];
 		if ( dl->head )
 		{
 			tess.light = dl;
@@ -4052,25 +4127,6 @@ static const void *RB_DrawSurfs( const void *data ) {
 
 #ifdef USE_VULKAN
 	if ( rtComposition ) {
-#ifdef USE_PMLIGHT
-		const qboolean rasterOwnsRtBaseLights =
-			( rtx_rt_raster_reference &&
-				rtx_rt_raster_reference->integer ) ? qtrue : qfalse;
-
-		/*
-		 * Compatibility composition samples the raster base in raygen.
-		 * Put base-surface PMLIGHT into that reference before tracing so
-		 * visibility-only RT lights can occlude the contribution they own.
-		 * Overlay surfaces remain lit later at their original composition
-		 * point. Full-RT mode still owns base lighting itself.
-		 */
-		if ( rasterOwnsRtBaseLights &&
-			backEnd.refdef.numLitSurfs && backEnd.viewParms.num_dlights ) {
-			RB_BeginDrawingLitSurfs();
-			RB_LightingPass( RB_DRAWSURFS_RT_BASE, qfalse );
-		}
-#endif
-
 		requiredPrimaryTrace =
 			( rtx_rt_require && rtx_rt_require->integer &&
 				rtComposition ) ?
@@ -4084,10 +4140,11 @@ static const void *RB_DrawSurfs( const void *data ) {
 
 #ifdef USE_PMLIGHT
 		/*
-		 * Experimental full-RT shading owns base lights when tracing succeeds.
-		 * A skipped/failed trace recovers that raster contribution here.
+		 * The path tracer lights the surfaces it owns with the scene's
+		 * dynamic lights. A skipped or failed trace leaves the base pass's
+		 * raster draw standing, so its dynamic light pass is drawn here.
 		 */
-		if ( !rasterOwnsRtBaseLights && !rtTraceCompleted &&
+		if ( !rtTraceCompleted &&
 			backEnd.refdef.numLitSurfs && backEnd.viewParms.num_dlights ) {
 			RB_BeginDrawingLitSurfs();
 			RB_LightingPass( RB_DRAWSURFS_RT_BASE, qfalse );
@@ -4097,8 +4154,10 @@ static const void *RB_DrawSurfs( const void *data ) {
 		/* The trace validates its composition path before ending the raster
 		 * pass.  Success continues in post-bloom; a permissive failure keeps the
 		 * complete raster pass active.  The overlay is submitted exactly once in
-		 * either state. */
+		 * either state, with traced surfaces' fog passes only after a trace. */
+		rb_rtFogOverlay = rtTraceCompleted;
 		RB_RenderDrawSurfList( cmd->drawSurfs, cmd->numDrawSurfs, RB_DRAWSURFS_RT_OVERLAY );
+		rb_rtFogOverlay = qfalse;
 	}
 #endif
 
@@ -4507,26 +4566,26 @@ static const void *RB_SwapBuffers( const void *data ) {
 		&& tr.frameCount > 1 ) {
 #endif
 		if ( backEnd.screenshotMask & SCREENSHOT_PNG && backEnd.screenshotPNG[0] ) {
-			RB_TakeScreenshotPNG( 0, 0, gls.captureWidth, gls.captureHeight, backEnd.screenshotPNG );
-			if ( !backEnd.screenShotPNGsilent ) {
+			if ( RB_TakeScreenshotPNG( 0, 0, gls.captureWidth, gls.captureHeight, backEnd.screenshotPNG ) &&
+				!backEnd.screenShotPNGsilent ) {
 				ri.Printf( PRINT_ALL, "Wrote %s\n", backEnd.screenshotPNG );
 			}
 		}
 		if ( backEnd.screenshotMask & SCREENSHOT_TGA && backEnd.screenshotTGA[0] ) {
-			RB_TakeScreenshot( 0, 0, gls.captureWidth, gls.captureHeight, backEnd.screenshotTGA );
-			if ( !backEnd.screenShotTGAsilent ) {
+			if ( RB_TakeScreenshot( 0, 0, gls.captureWidth, gls.captureHeight, backEnd.screenshotTGA ) &&
+				!backEnd.screenShotTGAsilent ) {
 				ri.Printf( PRINT_ALL, "Wrote %s\n", backEnd.screenshotTGA );
 			}
 		}
 		if ( backEnd.screenshotMask & SCREENSHOT_JPG && backEnd.screenshotJPG[0] ) {
-			RB_TakeScreenshotJPEG( 0, 0, gls.captureWidth, gls.captureHeight, backEnd.screenshotJPG );
-			if ( !backEnd.screenShotJPGsilent ) {
+			if ( RB_TakeScreenshotJPEG( 0, 0, gls.captureWidth, gls.captureHeight, backEnd.screenshotJPG ) &&
+				!backEnd.screenShotJPGsilent ) {
 				ri.Printf( PRINT_ALL, "Wrote %s\n", backEnd.screenshotJPG );
 			}
 		}
 		if ( backEnd.screenshotMask & SCREENSHOT_BMP && ( backEnd.screenshotBMP[0] || ( backEnd.screenshotMask & SCREENSHOT_BMP_CLIPBOARD ) ) ) {
-			RB_TakeScreenshotBMP( 0, 0, gls.captureWidth, gls.captureHeight, backEnd.screenshotBMP, backEnd.screenshotMask & SCREENSHOT_BMP_CLIPBOARD );
-			if ( !backEnd.screenShotBMPsilent ) {
+			if ( RB_TakeScreenshotBMP( 0, 0, gls.captureWidth, gls.captureHeight, backEnd.screenshotBMP,
+					backEnd.screenshotMask & SCREENSHOT_BMP_CLIPBOARD ) && !backEnd.screenShotBMPsilent ) {
 				ri.Printf( PRINT_ALL, "Wrote %s\n", backEnd.screenshotBMP );
 			}
 		}
