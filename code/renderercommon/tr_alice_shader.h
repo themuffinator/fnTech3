@@ -284,6 +284,20 @@ static void R_AliceEndStage( const aliceStageParse_t *parse ) {
 	shader.noPicMip = parse->noPicMip;
 }
 
+/* A stage that names no `rgbGen` and ends on its first bundle, that bundle
+ * being `$lightmap`, takes identity (alice.exe 0x0048c648..0x0048c678),
+ * where Quake III's rule gives an unblended stage identity lighting; Ritual
+ * numbers identity 1 and identity lighting 2 (0x0048c678, 0x0048c684). With
+ * no overbright bits, Alice's default, the two colours are the same. Every
+ * lightmap stage Alice ships is identity already, 1,369 of 1,387 by name and
+ * the rest by Quake III's rule for their blends, so the rule changes none of
+ * them. This parser reads no `nextBundle`, so every stage ends on its first
+ * bundle. */
+static qboolean R_RitualLightmapStageIdentity( const shaderStage_t *stage, const aliceStageParse_t *parse ) {
+	(void)parse;
+	return ri.gameId == COM_GAME_ALICE && stage->bundle[0].lightmap != LIGHTMAP_INDEX_NONE ? qtrue : qfalse;
+}
+
 static imgFlags_t R_AliceStageImageFlags( void ) {
 	imgFlags_t flags = IMGFLAG_NONE;
 	if ( !shader.noMipMaps ) flags |= IMGFLAG_MIPMAP;

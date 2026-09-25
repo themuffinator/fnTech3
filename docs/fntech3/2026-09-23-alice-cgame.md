@@ -129,8 +129,14 @@ been established. It is now: the retail renderer's loader at `0x0049acb0` is
 Quake III's `R_LoadLightGrid` -- it writes the 192x192x320 cell, derives the
 point count from the world bounds, refuses a lump that is not eight bytes a
 point with `WARNING: light grid mismatch`, and colour-shifts bytes 0-2 and
-3-5 of each point exactly as Quake III does. So the record is Quake III's
-eight bytes.
+3-5 of each point. So the record is Quake III's eight bytes.
+
+Correction (2026-09-25): the shift is not exactly Quake III's. `alice.exe`
+shifts by the overbright bits alone (`0x0049adf7..0x0049ae15`), where Quake
+III shifts by the map's bits less the overbright bits. At retail's default of
+no overbright bits a point's colours stay as the map holds them. fnTech3 now
+gets the same result from its own shift with both of Alice's settings at `0`
+([overbright record](2026-09-25-alice-overbright.md)).
 
 `FAKK_TranslateToV46Ex` in `code/qcommon/bsp_fakk.h` now takes a flag that
 carries lump 16 into Quake III's light grid slot. The three renderers'

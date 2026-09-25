@@ -383,6 +383,28 @@ static int HostChecks( void ) {
 		stages[0].bundle[0].aliceFrameFromEntity && stages[0].bundle[0].imageAnimationSpeed == 10 );
 	CHECK( stages[0].bundle[0].tcGen == TCGEN_VECTOR && Near( stages[0].bundle[0].tcGenVectors[1][1], 1 ) );
 
+	/* Alice: a stage ending on a first bundle of `$lightmap` with no rgbGen
+	 * takes identity whatever its blend, as alice.exe's parser gives it
+	 * (0x0048c648..0x0048c678); Alice draws with no overbright bits, as
+	 * alice.exe registers (0x00475136, 0x0047529e) */
+	CHECK( HostParseText( COM_GAME_ALICE, "{\n{\nmap $lightmap\n}\n{\nmap a.tga\nblendFunc GL_DST_COLOR GL_ZERO\n}\n}\n" ) );
+	CHECK( R_ALICE_GEN( &stages[0] )->rgbGen == CGEN_IDENTITY && R_ALICE_GEN( &stages[1] )->rgbGen == CGEN_IDENTITY &&
+		R_ALICE_GEN( &stages[0] )->alphaGen == R_ALICE_GEN( &stages[1] )->alphaGen );
+	CHECK( HostParseText( COM_GAME_ALICE, "{\n{\nmap $lightmap\nblendFunc add\n}\n}\n" ) &&
+		R_ALICE_GEN( &stages[0] )->rgbGen == CGEN_IDENTITY );
+	CHECK( HostParseText( COM_GAME_ALICE, "{\n{\nmap $lightmap\nrgbGen identityLighting\n}\n}\n" ) &&
+		R_ALICE_GEN( &stages[0] )->rgbGen == CGEN_IDENTITY_LIGHTING );
+	CHECK( HostParseText( COM_GAME_ALICE, "{\n{\nmap a.tga\n}\n}\n" ) &&
+		R_ALICE_GEN( &stages[0] )->rgbGen == CGEN_IDENTITY_LIGHTING );
+	/* every other profile keeps Quake III's rule */
+	for ( game = COM_GAME_QUAKE3; game < COM_GAME_COUNT; game = (comGameId_t)( game + 1 ) ) {
+		if ( game == COM_GAME_ALICE ) continue;
+		CHECK( HostParseText( game, "{\n{\nmap $lightmap\n}\n}\n" ) &&
+			R_ALICE_GEN( &stages[0] )->rgbGen == CGEN_IDENTITY_LIGHTING );
+		CHECK( HostParseText( game, "{\n{\nmap $lightmap\nblendFunc add\n}\n}\n" ) &&
+			R_ALICE_GEN( &stages[0] )->rgbGen == CGEN_IDENTITY_LIGHTING );
+	}
+
 	/* Alice's nomipmaps leaves picmip alone; stage-level flags end with the stage */
 	CHECK( HostParseText( COM_GAME_ALICE, "{\nnomipmaps\n{\nmap a.tga\n}\n}\n" ) );
 	CHECK( shader.noMipMaps && !shader.noPicMip );

@@ -2738,10 +2738,17 @@ static void R_Register( void )
 	//
 	r_fullbright = ri.Cvar_Get( "r_fullbright", "0", CVAR_ARCHIVE | CVAR_LATCH | CVAR_PROTECTED | CVAR_CLOUD );
 	ri.Cvar_SetDescription( r_fullbright, "Debugging tool to render the entire level without lighting." );
-	r_overBrightBits = ri.Cvar_Get( "r_overBrightBits", "1", CVAR_ARCHIVE_ND | CVAR_LATCH );
+	/* American McGee's Alice registers none (alice.exe 0x00475136). */
+	r_overBrightBits = ri.Cvar_Get( "r_overBrightBits", ri.gameId == COM_GAME_ALICE ? "0" : "1",
+		CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_SetDescription( r_overBrightBits, "Sets the intensity of overall brightness of texture pixels." );
 	// Elite Force's maps are lit for one overbright bit (retail default "1").
+	// Alice's are lit for none: alice.exe registers "0" (0x0047529e), never
+	// reads it, and shifts lightmaps, vertex colours and the light grid by the
+	// overbright bits alone (0x0049ba40, 0x0049acb0), so at its default they
+	// draw as the map holds them.
 	r_mapOverBrightBits = ri.Cvar_Get( "r_mapOverBrightBits",
+		ri.gameId == COM_GAME_ALICE ? "0" :
 		( ri.gameId == COM_GAME_STVEF_SP || ri.gameId == COM_GAME_STVEF_MP ) ? "1" : "2",
 		CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_SetDescription( r_mapOverBrightBits, "Sets the number of overbright bits baked into all lightmaps and map data." );

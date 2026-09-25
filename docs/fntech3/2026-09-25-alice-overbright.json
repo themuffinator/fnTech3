@@ -1,0 +1,1054 @@
+{
+  "record": "2026-09-25-alice-overbright.md",
+  "date": "2026-09-25",
+  "profile": "alice",
+  "platform": "Windows 11 Home 10.0.26200, x86 client, NVIDIA GeForce RTX 4060 Laptop GPU (GL 4.6.0 NVIDIA 591.74)",
+  "baseCommit": "b68782bfe41eeff02097ec2b2eaeed3eb0a1b4db",
+  "builds": {
+    "before": {
+      "folder": ".tmp/runtime/alice-overbright-before",
+      "source": "meson/build/win32-fakk2 (alice- and fakk2-development, debugoptimized) from the shared working tree at 12:30 local, before this change",
+      "fntech3.exe": "ae1518651ca4285e5986252b0c58974e2dd368fe0360362ed2624391b461b14f",
+      "fnql_glx_x86.dll": "3f9ab04b00066b52bbce9a185ff09f9c125b923f2b1e8af1f86d520a99db4db3",
+      "fnql_vk_x86.dll": "514a5f0a260d9cc754260f74925ac17d20ee69b14e105163ff90983ac87b7edd",
+      "fnql_rtx_x86.dll": "ec7c9b6776fe27bf071db5cf687a95e4975a1f58bc9c01bcc97f45366d3acabb"
+    },
+    "after": {
+      "folder": ".tmp/runtime/alice-overbright-after",
+      "source": "meson/build/win32-alice-client (alice-development) from the shared working tree at 12:51 local, with this change",
+      "fntech3.exe": "0ff579fcf21c3b445d0515d3b0d0810be6908f8177adf5023119da9c11c99bd7",
+      "fnql_glx_x86.dll": "e05aad3914d899f518c1165880175bafea0c52e81c23f7aa4f16dca93017375a",
+      "fnql_vk_x86.dll": "be89ed0dcefbdfa4e9788475afbd67e6eae20b186a022847304df14ec2ac104c",
+      "fnql_rtx_x86.dll": "776262ded7b28436052967c4d2b27242ca0a3aaec51068ac83d3473ed2836412"
+    },
+    "committedState": {
+      "folder": ".tmp/alice-overbright/head-export/build",
+      "source": "git archive of the base commit with only this change applied, configured as win32-dev (strict warnings, debugoptimized) plus alice-development; all 1,351 targets built",
+      "fntech3.exe": "f8e367068519956fda7c83bb467ca5830474b608d05fec69a25363a8e9003029",
+      "fnql_glx_x86.dll": "92f335cad0ea8e3149c42144607670840f9ac4aa7cf77d96917d67427c43ed11",
+      "fnql_vk_x86.dll": "115a2fabee5fd5667c4f64fde8f2bb3a31ce0627a3a2cd1977f3b6191fa4b9eb",
+      "fnql_rtx_x86.dll": "1c42c4c0e6b9ce634dce6b21ac61a46bf376625e8e06b20d48bdbee77168fa10",
+      "mesonTests": "169 run (every fnTech3 test but fnql_python_source_regressions): 167 passed, 2 skipped, 0 failed",
+      "pythonSuite": "python -m pytest tests: 2,001 passed, 76 skipped, 0 failed in 950 s"
+    }
+  },
+  "installation": {
+    "path": "E:\\Games\\Alice (read only; every run checked it unchanged)",
+    "alice.exe": {
+      "bytes": 2209835,
+      "sha256": "8aa22917b7707f0e1a7c4dbe9a3c38332b1873ae2059174ac5329de26921fc18"
+    },
+    "base/pak0.pk3": {
+      "bytes": 289276327,
+      "sha256": "6a63b59cd627902660bd4261461f904bf984e05891eb749d47bcc7fc8cedda62"
+    },
+    "shadowedConfig": "each probe home held an empty base/config.cfg, so the installation's own config.cfg (r_texturebits 16) did not apply"
+  },
+  "staticReading": {
+    "r_overBrightBits": "0x00475136: push 0x21; push \"0\"; push \"r_overBrightBits\"; call [0xe9d6e4]; stored at 0xf01a20",
+    "r_mapOverBrightBits": "0x0047529e: push 0x20; push \"0\"; push \"r_mapOverBrightBits\"; call; stored at 0xf02f40, which no instruction reads",
+    "R_SetColorMappings": "0x00484d20: tr.overbrightBits (0xe9e124) = r_overBrightBits, 0 without hardware gamma (0xf02edc) or outside fullscreen (0xf02ef8), at most 2 (1 at 16 bits); identityLight 0xe9e11c = 1 / (1 << bits)",
+    "R_ColorShiftLightingBytes": "0x0049ba40: shift by tr.overbrightBits, normalised by the brightest channel above 255; called by the lightmap loader 0x0049afa0 (0x0049b542) and a surface parser 0x0049bb70 (0x0049bde4)",
+    "inlineShifts": "light grid 0x0049acb0 (0x0049adf7, 0x0049ae8a), surface vertex colours 0x0049c1a0 (0x0049c385) and 0x0049c4e0 (0x0049c731)",
+    "modelLightScale": "0x004abb80 multiplies six light colours by 1 << tr.overbrightBits (none at 0)",
+    "shaderDefault": "0x0048c63e..0x0048c684: rgbGen unset -> identity (1) for a first-bundle $lightmap (0x0048c648..0x0048c678), else identityLighting (2) for blend source 0, 2 or 5, else identity"
+  },
+  "shaderCorpus": {
+    "scripts": 52,
+    "lightmapStages": 1387,
+    "rgbGenIdentity": 1369,
+    "noRgbGen": 18,
+    "noRgbGenBlends": {
+      "GL_DST_COLOR GL_ZERO": 7,
+      "GL_ONE_MINUS_SRC_ALPHA GL_ONE": 6,
+      "GL_ZERO GL_SRC_COLOR": 4,
+      "filter": 1
+    },
+    "note": "every no-rgbGen lightmap stage is blended with a source factor Quake III's rule already gives identity, so the Ritual rule changes no shipped Alice stage"
+  },
+  "comparisons": {
+    "glDefaultOverZero": {
+      "garden1": 1.959,
+      "utemple": 2.222,
+      "centipede1": 2.678
+    },
+    "vulkanDefaultOverZero": {
+      "garden1": 1.977,
+      "utemple": 2.229,
+      "centipede1": 2.683
+    },
+    "vulkanBloomOverNoBloomAtZero": {
+      "garden1": 1.0,
+      "utemple": 1.003,
+      "centipede1": 1.0
+    },
+    "vulkanBloomOverNoBloomAtOld": {
+      "garden1": 1.0,
+      "utemple": 1.0,
+      "centipede1": 1.0
+    },
+    "afterDefaultOverAfterExplicitZero": {
+      "garden1": 1.0,
+      "utemple": 0.996,
+      "centipede1": 1.0
+    },
+    "afterExplicitOldOverAfterDefault": {
+      "garden1": 1.959,
+      "utemple": 2.225,
+      "centipede1": 2.679
+    },
+    "mainMenuOldOverNew": 0.997,
+    "committedStateOverAfter": {
+      "garden1": 0.998
+    },
+    "afterVulkanOverGl": {
+      "garden1": 1.015,
+      "centipede1": 1.025
+    },
+    "afterRtxOverGl": {
+      "garden1": 1.015,
+      "centipede1": 1.026
+    },
+    "aliceModelDefaultOverZero": {
+      "garden1": 3.16,
+      "utemple": 2.91,
+      "centipede1": 2.88
+    },
+    "hudGaugesDefaultOverZero": {
+      "garden1": [
+        1.59,
+        1.5
+      ],
+      "utemple": [
+        1.6,
+        1.51
+      ],
+      "centipede1": [
+        1.63,
+        1.51
+      ]
+    },
+    "staticLightsOnOverOffFloor": {
+      "hatter2": {
+        "default": [
+          1.352,
+          1.346
+        ],
+        "ob0map0": [
+          1.356,
+          1.354
+        ]
+      },
+      "jlair2": {
+        "default": [
+          1.207,
+          1.214
+        ],
+        "ob0map0": [
+          1.207,
+          1.214
+        ]
+      }
+    }
+  },
+  "runs": [
+    {
+      "run": "after-glx-centipede1-default",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-after\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\after-glx-centipede1-default\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=glx",
+        "ui_subtitles=0"
+      ],
+      "steps": "devmap centipede1\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "0ff579fcf21c3b445d0515d3b0d0810be6908f8177adf5023119da9c11c99bd7",
+      "rendererSha256": "e05aad3914d899f518c1165880175bafea0c52e81c23f7aa4f16dca93017375a",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 0 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "63b31bd8be46ef90b8d2c05a9d9daf17bbf54da2ccd41f36af3ed10b95507e7f",
+          "meanLuma": 26.0,
+          "nearWhitePixels": 0
+        }
+      }
+    },
+    {
+      "run": "after-glx-centipede1-ob0map0",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-after\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\after-glx-centipede1-ob0map0\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +set r_overBrightBits 0 +set r_mapOverBrightBits 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=glx",
+        "ui_subtitles=0",
+        "r_overBrightBits=0",
+        "r_mapOverBrightBits=0"
+      ],
+      "steps": "devmap centipede1\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "0ff579fcf21c3b445d0515d3b0d0810be6908f8177adf5023119da9c11c99bd7",
+      "rendererSha256": "e05aad3914d899f518c1165880175bafea0c52e81c23f7aa4f16dca93017375a",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 0 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "1be0eec1cacd2babbf0c3123022b435432ed65f77357532322ab557855a89b3e",
+          "meanLuma": 26.0,
+          "nearWhitePixels": 0
+        }
+      }
+    },
+    {
+      "run": "after-glx-centipede1-ob1map2",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-after\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\after-glx-centipede1-ob1map2\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +set r_overBrightBits 1 +set r_mapOverBrightBits 2 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=glx",
+        "ui_subtitles=0",
+        "r_overBrightBits=1",
+        "r_mapOverBrightBits=2"
+      ],
+      "steps": "devmap centipede1\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "0ff579fcf21c3b445d0515d3b0d0810be6908f8177adf5023119da9c11c99bd7",
+      "rendererSha256": "e05aad3914d899f518c1165880175bafea0c52e81c23f7aa4f16dca93017375a",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 1 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "eec8f1334b197e61135d2175ce3d0462e8ec0b8564e10412c0821613f577a263",
+          "meanLuma": 69.5,
+          "nearWhitePixels": 165
+        }
+      }
+    },
+    {
+      "run": "after-glx-garden1-default",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-after\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\after-glx-garden1-default\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=glx",
+        "ui_subtitles=0"
+      ],
+      "steps": "devmap garden1\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "0ff579fcf21c3b445d0515d3b0d0810be6908f8177adf5023119da9c11c99bd7",
+      "rendererSha256": "e05aad3914d899f518c1165880175bafea0c52e81c23f7aa4f16dca93017375a",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 0 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "faa61bd072d851f816b8a03bae59ef9b26d0e9bfe791fd9e84f6c27e0c2b7159",
+          "meanLuma": 27.1,
+          "nearWhitePixels": 0
+        }
+      }
+    },
+    {
+      "run": "after-glx-garden1-ob0map0",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-after\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\after-glx-garden1-ob0map0\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +set r_overBrightBits 0 +set r_mapOverBrightBits 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=glx",
+        "ui_subtitles=0",
+        "r_overBrightBits=0",
+        "r_mapOverBrightBits=0"
+      ],
+      "steps": "devmap garden1\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "0ff579fcf21c3b445d0515d3b0d0810be6908f8177adf5023119da9c11c99bd7",
+      "rendererSha256": "e05aad3914d899f518c1165880175bafea0c52e81c23f7aa4f16dca93017375a",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 0 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "eaa66e257a96310a0218cb0a84ad39ced8cf3c3f382a8eac72dadb983ea9f965",
+          "meanLuma": 27.1,
+          "nearWhitePixels": 0
+        }
+      }
+    },
+    {
+      "run": "after-glx-garden1-ob1map2",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-after\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\after-glx-garden1-ob1map2\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +set r_overBrightBits 1 +set r_mapOverBrightBits 2 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=glx",
+        "ui_subtitles=0",
+        "r_overBrightBits=1",
+        "r_mapOverBrightBits=2"
+      ],
+      "steps": "devmap garden1\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "0ff579fcf21c3b445d0515d3b0d0810be6908f8177adf5023119da9c11c99bd7",
+      "rendererSha256": "e05aad3914d899f518c1165880175bafea0c52e81c23f7aa4f16dca93017375a",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 1 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "c74f9426968560e03a64d7f34d3075cfd3023fed8dbd442295803dab8c3397a5",
+          "meanLuma": 53.1,
+          "nearWhitePixels": 3
+        }
+      }
+    },
+    {
+      "run": "after-glx-utemple-default",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-after\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\after-glx-utemple-default\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=glx",
+        "ui_subtitles=0"
+      ],
+      "steps": "devmap utemple\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "0ff579fcf21c3b445d0515d3b0d0810be6908f8177adf5023119da9c11c99bd7",
+      "rendererSha256": "e05aad3914d899f518c1165880175bafea0c52e81c23f7aa4f16dca93017375a",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 0 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "4fd141c020eb74d5c00fa40bbe19d2cc3aa577647377fe19ba5b11a7eef168a2",
+          "meanLuma": 30.6,
+          "nearWhitePixels": 0
+        }
+      }
+    },
+    {
+      "run": "after-glx-utemple-ob0map0",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-after\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\after-glx-utemple-ob0map0\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +set r_overBrightBits 0 +set r_mapOverBrightBits 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=glx",
+        "ui_subtitles=0",
+        "r_overBrightBits=0",
+        "r_mapOverBrightBits=0"
+      ],
+      "steps": "devmap utemple\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "0ff579fcf21c3b445d0515d3b0d0810be6908f8177adf5023119da9c11c99bd7",
+      "rendererSha256": "e05aad3914d899f518c1165880175bafea0c52e81c23f7aa4f16dca93017375a",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 0 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "3dd6b0e9a358f46273294ba78fed3db8102c3d2500fe4266f3bdaa9a87e27613",
+          "meanLuma": 30.7,
+          "nearWhitePixels": 0
+        }
+      }
+    },
+    {
+      "run": "after-glx-utemple-ob1map2",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-after\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\after-glx-utemple-ob1map2\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +set r_overBrightBits 1 +set r_mapOverBrightBits 2 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=glx",
+        "ui_subtitles=0",
+        "r_overBrightBits=1",
+        "r_mapOverBrightBits=2"
+      ],
+      "steps": "devmap utemple\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "0ff579fcf21c3b445d0515d3b0d0810be6908f8177adf5023119da9c11c99bd7",
+      "rendererSha256": "e05aad3914d899f518c1165880175bafea0c52e81c23f7aa4f16dca93017375a",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 1 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "89e8666420528636cb99990c99c25ab330153cc3dbb72f1041fa073019ebd0ed",
+          "meanLuma": 68.1,
+          "nearWhitePixels": 0
+        }
+      }
+    },
+    {
+      "run": "after-rtx-centipede1-default",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-after\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\after-rtx-centipede1-default\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer rtx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=rtx",
+        "ui_subtitles=0"
+      ],
+      "steps": "devmap centipede1\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "0ff579fcf21c3b445d0515d3b0d0810be6908f8177adf5023119da9c11c99bd7",
+      "rendererSha256": "776262ded7b28436052967c4d2b27242ca0a3aaec51068ac83d3473ed2836412",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 0 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "a47fa2b794c038e8fbb949a1733af9e52be30a3ff013a679665ea917c20d7d47",
+          "meanLuma": 26.6,
+          "nearWhitePixels": 0
+        }
+      }
+    },
+    {
+      "run": "after-rtx-garden1-default",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-after\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\after-rtx-garden1-default\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer rtx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=rtx",
+        "ui_subtitles=0"
+      ],
+      "steps": "devmap garden1\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "0ff579fcf21c3b445d0515d3b0d0810be6908f8177adf5023119da9c11c99bd7",
+      "rendererSha256": "776262ded7b28436052967c4d2b27242ca0a3aaec51068ac83d3473ed2836412",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 0 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "50cc1e0c6b912ccf267c4a4735e42c3a9aeee69281ec000d607857beb5569f45",
+          "meanLuma": 27.5,
+          "nearWhitePixels": 0
+        }
+      }
+    },
+    {
+      "run": "after-vk-centipede1-default",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-after\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\after-vk-centipede1-default\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer vk +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=vk",
+        "ui_subtitles=0"
+      ],
+      "steps": "devmap centipede1\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "0ff579fcf21c3b445d0515d3b0d0810be6908f8177adf5023119da9c11c99bd7",
+      "rendererSha256": "be89ed0dcefbdfa4e9788475afbd67e6eae20b186a022847304df14ec2ac104c",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 0 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "f7f88c22fef56bde048ae9c8a43a6974bef97bf920b9078438c9f34dffae6808",
+          "meanLuma": 26.6,
+          "nearWhitePixels": 0
+        }
+      }
+    },
+    {
+      "run": "after-vk-garden1-default",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-after\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\after-vk-garden1-default\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer vk +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=vk",
+        "ui_subtitles=0"
+      ],
+      "steps": "devmap garden1\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "0ff579fcf21c3b445d0515d3b0d0810be6908f8177adf5023119da9c11c99bd7",
+      "rendererSha256": "be89ed0dcefbdfa4e9788475afbd67e6eae20b186a022847304df14ec2ac104c",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 0 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "4e9607095ba343135cb5d3824692206ed16f0f1ef11efcbd7c4b4d3196b2eea9",
+          "meanLuma": 27.5,
+          "nearWhitePixels": 0
+        }
+      }
+    },
+    {
+      "run": "before-glx-centipede1-default",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-before\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\before-glx-centipede1-default\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=glx",
+        "ui_subtitles=0"
+      ],
+      "steps": "devmap centipede1\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "ae1518651ca4285e5986252b0c58974e2dd368fe0360362ed2624391b461b14f",
+      "rendererSha256": "3f9ab04b00066b52bbce9a185ff09f9c125b923f2b1e8af1f86d520a99db4db3",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 1 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "eec8f1334b197e61135d2175ce3d0462e8ec0b8564e10412c0821613f577a263",
+          "meanLuma": 69.5,
+          "nearWhitePixels": 165
+        }
+      }
+    },
+    {
+      "run": "before-glx-centipede1-ob0map0",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-before\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\before-glx-centipede1-ob0map0\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +set r_overBrightBits 0 +set r_mapOverBrightBits 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=glx",
+        "ui_subtitles=0",
+        "r_overBrightBits=0",
+        "r_mapOverBrightBits=0"
+      ],
+      "steps": "devmap centipede1\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "ae1518651ca4285e5986252b0c58974e2dd368fe0360362ed2624391b461b14f",
+      "rendererSha256": "3f9ab04b00066b52bbce9a185ff09f9c125b923f2b1e8af1f86d520a99db4db3",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 0 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "060c7d1b5d8274e371df44be0f45594a2781c995f14ec222cf3a9c0dae7a4998",
+          "meanLuma": 26.0,
+          "nearWhitePixels": 0
+        }
+      }
+    },
+    {
+      "run": "before-glx-garden1-default",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-before\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\before-glx-garden1-default\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=glx",
+        "ui_subtitles=0"
+      ],
+      "steps": "devmap garden1\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "ae1518651ca4285e5986252b0c58974e2dd368fe0360362ed2624391b461b14f",
+      "rendererSha256": "3f9ab04b00066b52bbce9a185ff09f9c125b923f2b1e8af1f86d520a99db4db3",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 1 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "bb2c853c647de2cc2f5ff9c3f3ec4b3f3a10ead549df701fb5a45b50e7ac77b0",
+          "meanLuma": 53.1,
+          "nearWhitePixels": 3
+        }
+      }
+    },
+    {
+      "run": "before-glx-garden1-ob0map0",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-before\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\before-glx-garden1-ob0map0\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +set r_overBrightBits 0 +set r_mapOverBrightBits 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=glx",
+        "ui_subtitles=0",
+        "r_overBrightBits=0",
+        "r_mapOverBrightBits=0"
+      ],
+      "steps": "devmap garden1\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "ae1518651ca4285e5986252b0c58974e2dd368fe0360362ed2624391b461b14f",
+      "rendererSha256": "3f9ab04b00066b52bbce9a185ff09f9c125b923f2b1e8af1f86d520a99db4db3",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 0 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "c90828ba35431d5cb984d7abf08bb0d86970b065f1d7192c0a514795ed286633",
+          "meanLuma": 27.1,
+          "nearWhitePixels": 0
+        }
+      }
+    },
+    {
+      "run": "before-glx-utemple-default",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-before\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\before-glx-utemple-default\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=glx",
+        "ui_subtitles=0"
+      ],
+      "steps": "devmap utemple\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "ae1518651ca4285e5986252b0c58974e2dd368fe0360362ed2624391b461b14f",
+      "rendererSha256": "3f9ab04b00066b52bbce9a185ff09f9c125b923f2b1e8af1f86d520a99db4db3",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 1 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "324ffcc69302c8872b3f92415ac6abff0661551a45a7c6ad5afdaf263b8e4d57",
+          "meanLuma": 68.2,
+          "nearWhitePixels": 0
+        }
+      }
+    },
+    {
+      "run": "before-glx-utemple-ob0map0",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-before\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\before-glx-utemple-ob0map0\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +set r_overBrightBits 0 +set r_mapOverBrightBits 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=glx",
+        "ui_subtitles=0",
+        "r_overBrightBits=0",
+        "r_mapOverBrightBits=0"
+      ],
+      "steps": "devmap utemple\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "ae1518651ca4285e5986252b0c58974e2dd368fe0360362ed2624391b461b14f",
+      "rendererSha256": "3f9ab04b00066b52bbce9a185ff09f9c125b923f2b1e8af1f86d520a99db4db3",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 0 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "b7e844016cb34628d3c6971939ecf324d00c4eb56154c070e798844249dff316",
+          "meanLuma": 30.7,
+          "nearWhitePixels": 0
+        }
+      }
+    },
+    {
+      "run": "before-vk-centipede1-default",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-before\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\before-vk-centipede1-default\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer vk +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=vk",
+        "ui_subtitles=0"
+      ],
+      "steps": "devmap centipede1\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "ae1518651ca4285e5986252b0c58974e2dd368fe0360362ed2624391b461b14f",
+      "rendererSha256": "514a5f0a260d9cc754260f74925ac17d20ee69b14e105163ff90983ac87b7edd",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 1 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "ec4afff4bba4b097b846aae89c8102bec2da796c7e3d2219801f7c66b01bbe08",
+          "meanLuma": 71.4,
+          "nearWhitePixels": 153
+        }
+      }
+    },
+    {
+      "run": "before-vk-centipede1-default-nobloom",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-before\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\before-vk-centipede1-default-nobloom\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer vk +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +set r_bloom 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=vk",
+        "ui_subtitles=0",
+        "r_bloom=0"
+      ],
+      "steps": "devmap centipede1\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "ae1518651ca4285e5986252b0c58974e2dd368fe0360362ed2624391b461b14f",
+      "rendererSha256": "514a5f0a260d9cc754260f74925ac17d20ee69b14e105163ff90983ac87b7edd",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 1 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "db4927ee55d790afa413fcbc0f2fce80f6eac2096a84735559555278dd45a533",
+          "meanLuma": 71.4,
+          "nearWhitePixels": 153
+        }
+      }
+    },
+    {
+      "run": "before-vk-centipede1-ob0map0",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-before\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\before-vk-centipede1-ob0map0\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer vk +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +set r_overBrightBits 0 +set r_mapOverBrightBits 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=vk",
+        "ui_subtitles=0",
+        "r_overBrightBits=0",
+        "r_mapOverBrightBits=0"
+      ],
+      "steps": "devmap centipede1\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "ae1518651ca4285e5986252b0c58974e2dd368fe0360362ed2624391b461b14f",
+      "rendererSha256": "514a5f0a260d9cc754260f74925ac17d20ee69b14e105163ff90983ac87b7edd",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 0 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "01d0835eb46bc62a77dd99b5e72869a496799f29047a36e52c2b9ca3d38e9465",
+          "meanLuma": 26.6,
+          "nearWhitePixels": 0
+        }
+      }
+    },
+    {
+      "run": "before-vk-centipede1-ob0map0-nobloom",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-before\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\before-vk-centipede1-ob0map0-nobloom\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer vk +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +set r_overBrightBits 0 +set r_mapOverBrightBits 0 +set r_bloom 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=vk",
+        "ui_subtitles=0",
+        "r_overBrightBits=0",
+        "r_mapOverBrightBits=0",
+        "r_bloom=0"
+      ],
+      "steps": "devmap centipede1\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "ae1518651ca4285e5986252b0c58974e2dd368fe0360362ed2624391b461b14f",
+      "rendererSha256": "514a5f0a260d9cc754260f74925ac17d20ee69b14e105163ff90983ac87b7edd",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 0 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "ae64184ab0d5f550518310ceb3bbe84fed086c83b43992e4927b8a915f1c96e8",
+          "meanLuma": 26.6,
+          "nearWhitePixels": 0
+        }
+      }
+    },
+    {
+      "run": "before-vk-garden1-default",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-before\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\before-vk-garden1-default\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer vk +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=vk",
+        "ui_subtitles=0"
+      ],
+      "steps": "devmap garden1\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "ae1518651ca4285e5986252b0c58974e2dd368fe0360362ed2624391b461b14f",
+      "rendererSha256": "514a5f0a260d9cc754260f74925ac17d20ee69b14e105163ff90983ac87b7edd",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 1 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "724ce4867d8898fff48e6c46d7bc361837fc7e8b045a207dc71a7bef9aee7a39",
+          "meanLuma": 54.3,
+          "nearWhitePixels": 2
+        }
+      }
+    },
+    {
+      "run": "before-vk-garden1-default-nobloom",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-before\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\before-vk-garden1-default-nobloom\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer vk +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +set r_bloom 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=vk",
+        "ui_subtitles=0",
+        "r_bloom=0"
+      ],
+      "steps": "devmap garden1\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "ae1518651ca4285e5986252b0c58974e2dd368fe0360362ed2624391b461b14f",
+      "rendererSha256": "514a5f0a260d9cc754260f74925ac17d20ee69b14e105163ff90983ac87b7edd",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 1 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "334a1314e82784690b3b518475efcbe2b950933d88532d673ba3e50085163466",
+          "meanLuma": 54.4,
+          "nearWhitePixels": 2
+        }
+      }
+    },
+    {
+      "run": "before-vk-garden1-ob0map0",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-before\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\before-vk-garden1-ob0map0\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer vk +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +set r_overBrightBits 0 +set r_mapOverBrightBits 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=vk",
+        "ui_subtitles=0",
+        "r_overBrightBits=0",
+        "r_mapOverBrightBits=0"
+      ],
+      "steps": "devmap garden1\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "ae1518651ca4285e5986252b0c58974e2dd368fe0360362ed2624391b461b14f",
+      "rendererSha256": "514a5f0a260d9cc754260f74925ac17d20ee69b14e105163ff90983ac87b7edd",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 0 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "cc78593fdac5f75547956420b63d547d91e23cb6527c3a56956ac96f6cd28b9d",
+          "meanLuma": 27.5,
+          "nearWhitePixels": 0
+        }
+      }
+    },
+    {
+      "run": "before-vk-garden1-ob0map0-nobloom",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-before\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\before-vk-garden1-ob0map0-nobloom\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer vk +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +set r_overBrightBits 0 +set r_mapOverBrightBits 0 +set r_bloom 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=vk",
+        "ui_subtitles=0",
+        "r_overBrightBits=0",
+        "r_mapOverBrightBits=0",
+        "r_bloom=0"
+      ],
+      "steps": "devmap garden1\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "ae1518651ca4285e5986252b0c58974e2dd368fe0360362ed2624391b461b14f",
+      "rendererSha256": "514a5f0a260d9cc754260f74925ac17d20ee69b14e105163ff90983ac87b7edd",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 0 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "4e9607095ba343135cb5d3824692206ed16f0f1ef11efcbd7c4b4d3196b2eea9",
+          "meanLuma": 27.5,
+          "nearWhitePixels": 0
+        }
+      }
+    },
+    {
+      "run": "before-vk-utemple-default",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-before\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\before-vk-utemple-default\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer vk +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=vk",
+        "ui_subtitles=0"
+      ],
+      "steps": "devmap utemple\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "ae1518651ca4285e5986252b0c58974e2dd368fe0360362ed2624391b461b14f",
+      "rendererSha256": "514a5f0a260d9cc754260f74925ac17d20ee69b14e105163ff90983ac87b7edd",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 1 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "39c8601ce42aeae20d3f838ccbb2be7e4c736a3ec813a02c7df7d80b3b593c4e",
+          "meanLuma": 69.6,
+          "nearWhitePixels": 0
+        }
+      }
+    },
+    {
+      "run": "before-vk-utemple-default-nobloom",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-before\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\before-vk-utemple-default-nobloom\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer vk +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +set r_bloom 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=vk",
+        "ui_subtitles=0",
+        "r_bloom=0"
+      ],
+      "steps": "devmap utemple\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "ae1518651ca4285e5986252b0c58974e2dd368fe0360362ed2624391b461b14f",
+      "rendererSha256": "514a5f0a260d9cc754260f74925ac17d20ee69b14e105163ff90983ac87b7edd",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 1 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "1daef559dbb0b2926428ca91f30984a4af8317e2cd65a9fe6c8fd43550303314",
+          "meanLuma": 69.6,
+          "nearWhitePixels": 0
+        }
+      }
+    },
+    {
+      "run": "before-vk-utemple-ob0map0",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-before\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\before-vk-utemple-ob0map0\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer vk +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +set r_overBrightBits 0 +set r_mapOverBrightBits 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=vk",
+        "ui_subtitles=0",
+        "r_overBrightBits=0",
+        "r_mapOverBrightBits=0"
+      ],
+      "steps": "devmap utemple\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "ae1518651ca4285e5986252b0c58974e2dd368fe0360362ed2624391b461b14f",
+      "rendererSha256": "514a5f0a260d9cc754260f74925ac17d20ee69b14e105163ff90983ac87b7edd",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 0 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "3591f86a3541cb6ae6211bb64b7f35fd77e6b4f04fb85d13ad38cef3b49d26c5",
+          "meanLuma": 31.2,
+          "nearWhitePixels": 0
+        }
+      }
+    },
+    {
+      "run": "before-vk-utemple-ob0map0-nobloom",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-before\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\before-vk-utemple-ob0map0-nobloom\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer vk +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +set r_overBrightBits 0 +set r_mapOverBrightBits 0 +set r_bloom 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=vk",
+        "ui_subtitles=0",
+        "r_overBrightBits=0",
+        "r_mapOverBrightBits=0",
+        "r_bloom=0"
+      ],
+      "steps": "devmap utemple\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "ae1518651ca4285e5986252b0c58974e2dd368fe0360362ed2624391b461b14f",
+      "rendererSha256": "514a5f0a260d9cc754260f74925ac17d20ee69b14e105163ff90983ac87b7edd",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 0 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "34befdad0026e1d924105e99f1b9aaf89eb6b868349bf6284cc9a82538ae4364",
+          "meanLuma": 31.1,
+          "nearWhitePixels": 0
+        }
+      }
+    },
+    {
+      "run": "headexport-glx-garden1-default",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\head-export\\build\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\headexport-glx-garden1-default\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=glx",
+        "ui_subtitles=0"
+      ],
+      "steps": "devmap garden1\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG shot\nwait 1500\nquit\n",
+      "exeSha256": "f8e367068519956fda7c83bb467ca5830474b608d05fec69a25363a8e9003029",
+      "rendererSha256": "92f335cad0ea8e3149c42144607670840f9ac4aa7cf77d96917d67427c43ed11",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 0 overbright bits",
+      "screenshots": {
+        "shot.png": {
+          "sha256": "82a924abdf39b77eaf73b30723fe1b18719ebe443cf03165f1eab83d0300a2bd",
+          "meanLuma": 27.0,
+          "nearWhitePixels": 0
+        }
+      }
+    },
+    {
+      "run": "menu-glx-main-default",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-after\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\menu-glx-main-default\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=glx",
+        "ui_subtitles=0"
+      ],
+      "steps": "wait 4000\npushmenu main\nwait 3000\nscreenshotPNG menu\nwait 1500\nquit\n",
+      "exeSha256": "0ff579fcf21c3b445d0515d3b0d0810be6908f8177adf5023119da9c11c99bd7",
+      "rendererSha256": "e05aad3914d899f518c1165880175bafea0c52e81c23f7aa4f16dca93017375a",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 0 overbright bits",
+      "screenshots": {
+        "menu.png": {
+          "sha256": "051e1621388e3c357ffb86d83b573755bac09b85b93347e0b8f396270fead961",
+          "meanLuma": 44.8,
+          "nearWhitePixels": 3484
+        }
+      }
+    },
+    {
+      "run": "menu-glx-main-ob1map2",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-after\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\menu-glx-main-ob1map2\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +set r_overBrightBits 1 +set r_mapOverBrightBits 2 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=glx",
+        "ui_subtitles=0",
+        "r_overBrightBits=1",
+        "r_mapOverBrightBits=2"
+      ],
+      "steps": "wait 4000\npushmenu main\nwait 3000\nscreenshotPNG menu\nwait 1500\nquit\n",
+      "exeSha256": "0ff579fcf21c3b445d0515d3b0d0810be6908f8177adf5023119da9c11c99bd7",
+      "rendererSha256": "e05aad3914d899f518c1165880175bafea0c52e81c23f7aa4f16dca93017375a",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 1 overbright bits",
+      "screenshots": {
+        "menu.png": {
+          "sha256": "62d442a8657b9c50efbdf764047e582d563c3401bfbc4f50b0e73c0b380ce548",
+          "meanLuma": 44.6,
+          "nearWhitePixels": 3434
+        }
+      }
+    },
+    {
+      "run": "onoff-glx-hatter2-default",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-before\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\onoff-glx-hatter2-default\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=glx",
+        "ui_subtitles=0"
+      ],
+      "steps": "devmap hatter2\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG on\nwait 300\nr_staticLights 0\nwait 800\nscreenshotPNG off\nwait 1500\nquit\n",
+      "exeSha256": "ae1518651ca4285e5986252b0c58974e2dd368fe0360362ed2624391b461b14f",
+      "rendererSha256": "3f9ab04b00066b52bbce9a185ff09f9c125b923f2b1e8af1f86d520a99db4db3",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 1 overbright bits",
+      "screenshots": {
+        "off.png": {
+          "sha256": "f0e21b7b5bfa477127c948e06cb59646f1346d8029d0ec36175d79a7550269b0",
+          "meanLuma": 63.8,
+          "nearWhitePixels": 1062
+        },
+        "on.png": {
+          "sha256": "a34523991a49065112e42bdbecb7af0f5252ea71036cd51f0e1fd97afbca1ac3",
+          "meanLuma": 65.5,
+          "nearWhitePixels": 563
+        }
+      }
+    },
+    {
+      "run": "onoff-glx-hatter2-ob0map0",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-before\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\onoff-glx-hatter2-ob0map0\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +set r_overBrightBits 0 +set r_mapOverBrightBits 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=glx",
+        "ui_subtitles=0",
+        "r_overBrightBits=0",
+        "r_mapOverBrightBits=0"
+      ],
+      "steps": "devmap hatter2\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG on\nwait 300\nr_staticLights 0\nwait 800\nscreenshotPNG off\nwait 1500\nquit\n",
+      "exeSha256": "ae1518651ca4285e5986252b0c58974e2dd368fe0360362ed2624391b461b14f",
+      "rendererSha256": "3f9ab04b00066b52bbce9a185ff09f9c125b923f2b1e8af1f86d520a99db4db3",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 0 overbright bits",
+      "screenshots": {
+        "off.png": {
+          "sha256": "b7a455f71fc66e396c5829f9ab5a6f7669ed19aec88425625de5526edadf9df2",
+          "meanLuma": 33.7,
+          "nearWhitePixels": 16
+        },
+        "on.png": {
+          "sha256": "4e2076ab622de22565e1190807d2fa3c09ca6bde58053337e35ce22f41aa6e74",
+          "meanLuma": 35.9,
+          "nearWhitePixels": 14
+        }
+      }
+    },
+    {
+      "run": "onoff-glx-jlair2-default",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-before\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\onoff-glx-jlair2-default\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=glx",
+        "ui_subtitles=0"
+      ],
+      "steps": "devmap jlair2\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG on\nwait 300\nr_staticLights 0\nwait 800\nscreenshotPNG off\nwait 1500\nquit\n",
+      "exeSha256": "ae1518651ca4285e5986252b0c58974e2dd368fe0360362ed2624391b461b14f",
+      "rendererSha256": "3f9ab04b00066b52bbce9a185ff09f9c125b923f2b1e8af1f86d520a99db4db3",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 1 overbright bits",
+      "screenshots": {
+        "off.png": {
+          "sha256": "d592b0037a26d6c802bcaee3f95be0b07d70e46333f23a1a7bc6ab4c0d2f99a2",
+          "meanLuma": 32.3,
+          "nearWhitePixels": 4344
+        },
+        "on.png": {
+          "sha256": "0105dcaa620595754e96ec3e4d33df2bdbc92634b11956770d78376dff63d8ab",
+          "meanLuma": 34.0,
+          "nearWhitePixels": 5897
+        }
+      }
+    },
+    {
+      "run": "onoff-glx-jlair2-ob0map0",
+      "command": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\alice-overbright-before\\fntech3.exe +set com_gameProfile alice +set fs_basepath E:\\Games\\Alice +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\alice-overbright\\runs\\onoff-glx-jlair2-ob0map0\\home +set fs_game  +set fs_cdpath  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 4 +set net_ip 127.0.0.1 +set net_port 0 +set developer 1 +set ui_subtitles 0 +set r_overBrightBits 0 +set r_mapOverBrightBits 0 +exec ritual-probe.cfg",
+      "settings": [
+        "cl_renderer=glx",
+        "ui_subtitles=0",
+        "r_overBrightBits=0",
+        "r_mapOverBrightBits=0"
+      ],
+      "steps": "devmap jlair2\nwait 12000\nskipcinematic\nwait 4000\nscreenshotPNG on\nwait 300\nr_staticLights 0\nwait 800\nscreenshotPNG off\nwait 1500\nquit\n",
+      "exeSha256": "ae1518651ca4285e5986252b0c58974e2dd368fe0360362ed2624391b461b14f",
+      "rendererSha256": "3f9ab04b00066b52bbce9a185ff09f9c125b923f2b1e8af1f86d520a99db4db3",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "gammaLine": "GAMMA: hardware w/ 0 overbright bits",
+      "screenshots": {
+        "off.png": {
+          "sha256": "5879a93f58a4ef8192f8354ea295b45a8465078bfbe70c6b58ebcf2ba8152c77",
+          "meanLuma": 15.8,
+          "nearWhitePixels": 1
+        },
+        "on.png": {
+          "sha256": "5b7fb983009d8508fab4c6e1fa2ad9aabfa2681a583877ccca90f11e5e1ade30",
+          "meanLuma": 16.8,
+          "nearWhitePixels": 2
+        }
+      }
+    }
+  ]
+}

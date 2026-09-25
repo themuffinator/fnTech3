@@ -1285,7 +1285,9 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 	// if cgen isn't explicitly specified, use either identity or identitylighting
 	//
 	if ( stage->bundle[0].rgbGen == CGEN_BAD ) {
-		if ( blendSrcBits == 0 ||
+		if ( R_RitualLightmapStageIdentity( stage, &aliceStage ) ) {
+			stage->bundle[0].rgbGen = CGEN_IDENTITY;
+		} else if ( blendSrcBits == 0 ||
 			blendSrcBits == GLS_SRCBLEND_ONE ||
 			blendSrcBits == GLS_SRCBLEND_SRC_ALPHA ) {
 			stage->bundle[0].rgbGen = CGEN_IDENTITY_LIGHTING;

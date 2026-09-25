@@ -18,6 +18,16 @@ historical upstream records, not fnTech3 release history. See the
 
 ### Compatibility
 
+- Draw American McGee's Alice with no overbright bits by default, as
+  `alice.exe` does: it registers `r_overBrightBits` and
+  `r_mapOverBrightBits` as `0` and draws each map's light as the map holds
+  it. Under this engine's usual one bit over two, `garden1`, `utemple` and
+  `centipede1` drew two to nearly three times as bright, and Alice herself
+  about three times. A lightmap stage that names no colour now takes
+  retail's identity; every stage Alice ships already did. Models, lit only by
+  the light grid and not by retail's compiled lights, may now look darker
+  than retail's. Other profiles are unchanged
+  ([record](docs/fntech3/2026-09-25-alice-overbright.md)).
 - Let an Enemy Territory dedicated server make bots, as `etded.exe` does.
   `spawnbot` with `bot_enable 1` failed in the bot library, which looked
   below `botfiles` for the `botfiles/chars.h` that ET's character includes,
