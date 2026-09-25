@@ -63,8 +63,7 @@
       ['r_mode', 'full mode (resolution)'],
       ['r_windowedmode', 'windowed mode (resolution)'],
       ['r_lightmap', 'enable lightmaps'],
-      ['r_fullbright', 'enable full bright'],
-      ['r_ambientscale', 'ambient light scale']
+      ['r_fullbright', 'enable full bright']
     ],
     game: [
       ['com_allowconsole', 'enable console']

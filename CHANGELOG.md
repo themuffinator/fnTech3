@@ -18,6 +18,22 @@ historical upstream records, not fnTech3 release history. See the
 
 ### Compatibility
 
+- Scale the light grid's ambient on models by each game's own
+  `r_ambientScale`. fnTech3 used Quake III's `0.6` for every profile.
+  American McGee's Alice and Heavy Metal: F.A.K.K.2 register `0.5`, so the
+  props and items they light from the grid drew 2% to 14% brighter than
+  retail at the same light. Alice now takes `0.5`, and F.A.K.K.2's profile
+  takes it too when it lands; its props then draw within about 3% of
+  `fakk2.exe`'s own frames. Their characters and weapons take the maps'
+  compiled lights and are unchanged. Quake Live raised it to `10` and made
+  it a player option: the `ql` profile now defaults to `10`, takes 1 to 100
+  as retail does, keeps it in `repconfig.cfg`, and shows the Video page's
+  Ambient Light Scale row, which had been hidden as a cheat control. A
+  player model on `campgrounds` now draws about 2.4 times as bright as
+  before, at retail's default. Quake III keeps `0.6`, as `quake3.exe` 1.32
+  registers. RTCW, Enemy Territory, Elite Force and the Jedi single-player
+  engines register `0.5` too and are left for now
+  ([record](docs/fntech3/2026-09-25-ambient-scale.md)).
 - Draw American McGee's Alice with no overbright bits by default, as
   `alice.exe` does: it registers `r_overBrightBits` and
   `r_mapOverBrightBits` as `0` and draws each map's light as the map holds

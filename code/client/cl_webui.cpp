@@ -3408,6 +3408,7 @@ static void CL_WebHost_BuildConfigCvarJson( char *buffer, size_t bufferSize ) {
 
 		// Lighting and shadowing.
 		"r_dynamiclight",
+		"r_ambientScale",
 		"r_dlightMode",
 		"r_dlightScale",
 		"r_dlightIntensity",

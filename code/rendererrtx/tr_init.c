@@ -2608,7 +2608,20 @@ static void R_Register( void )
 	r_railSegmentLength = ri.Cvar_Get( "r_railSegmentLength", "32", CVAR_ARCHIVE_ND );
 	ri.Cvar_SetDescription( r_railSegmentLength, "Length of segments in railgun trails." );
 
-	r_ambientScale = ri.Cvar_Get( "r_ambientScale", "0.6", CVAR_CHEAT );
+	// Each engine scales the light grid's ambient on the models it lights from
+	// the grid by its own default: Quake III by 0.6 (quake3.exe 1.32
+	// 0x0045152a), both Ritual engines by 0.5 (alice.exe 0x004754ed, fakk2.exe
+	// 1.02 0x00461123). Quake Live raised it to 10 and made it a player option,
+	// 1 to 100, kept in the replicated config and offered by its Video menu
+	// (quakelive_steam.exe 0x00449013). Its third flag, 0x1000, marks a bounded
+	// cvar there; here that bit would be CVAR_VM_CREATED, so the range is given
+	// by Cvar_CheckRange instead.
+	r_ambientScale = ri.Cvar_Get( "r_ambientScale",
+		ri.gameId == COM_GAME_QUAKELIVE ? "10" : RITUAL_ML_PROFILE( ri.gameId ) ? "0.5" : "0.6",
+		ri.gameId == COM_GAME_QUAKELIVE ? CVAR_PROTECTED | CVAR_CLOUD : CVAR_CHEAT );
+	if ( ri.gameId == COM_GAME_QUAKELIVE ) {
+		ri.Cvar_CheckRange( r_ambientScale, "1", "100", CV_FLOAT );
+	}
 	ri.Cvar_SetDescription( r_ambientScale, "Light grid ambient light scaling on entity models." );
 	r_directedScale = ri.Cvar_Get( "r_directedScale", "1", CVAR_CHEAT );
 	ri.Cvar_SetDescription( r_directedScale, "Light grid direct light scaling on entity models." );

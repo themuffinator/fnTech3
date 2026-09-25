@@ -195,12 +195,14 @@ stale rows behind.
 
 Retail rows FnQL cannot honor are hidden rather than left inert: the entire
 legacy post-processing column on Video, its `r_mode`/`r_windowedmode` rows
-because FnQL's video mode table uses different indices, the `r_lightmap`,
-`r_fullbright` and `r_ambientscale` debug/cheat rows, `com_allowconsole`, and
-the `s_announcervolume`, `s_killbeepvolume`, `s_mutebackground` and `s_ambient`
+because FnQL's video mode table uses different indices, the `r_lightmap` and
+`r_fullbright` debug/cheat rows, `com_allowconsole`, and the
+`s_announcervolume`, `s_killbeepvolume`, `s_mutebackground` and `s_ambient`
 rows that have no engine lane. Video and Sound carry a short note explaining the
 removal, and take over the retail Apply button so it stays at the end of the
-page.
+page. The retail Ambient Light Scale row stays: under the `ql` profile
+`r_ambientScale` is a player option, 1 to 100 with a default of 10, as retail
+registers it.
 
 #### Injection rules
 

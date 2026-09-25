@@ -1,0 +1,6740 @@
+{
+ "record": "2026-09-25-ambient-scale.md",
+ "date": "2026-09-25",
+ "profiles": [
+  "alice",
+  "fakk2",
+  "ql",
+  "q3"
+ ],
+ "platform": "Windows 11 Home 10.0.26200, x86 client, NVIDIA GeForce RTX 4060 Laptop GPU",
+ "baseCommit": "075abddc2b88b53a319a3156df3d476db84d626d",
+ "builds": {
+  "dir": "meson/build/win32-alice-client (-Dalice-development=true -Dfakk2-development=true)",
+  "before": "fntech3.exe built 14:31, renderers 14:38, from the shared tree on the base commit",
+  "after": "fntech3.exe, the three renderers and fnql-web.pak rebuilt in place at 17:47 from the shared tree with this change; fntech3-pkg.fnz left as it was",
+  "hashesPerBatch": {
+   "after-alice-binaries": {
+    "exeDir": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client",
+    "binaries": {
+     "fnql_glx_x86.dll": "35234cab04261e0d4941006ab278567500c65adfeac25413cd9ccbc71071d121",
+     "fnql_rtx_x86.dll": "c9b48fb09c54a467366de0d145655c40a533be7c4e04d972a3661c6f7bb6bcc0",
+     "fnql_vk_x86.dll": "15544cdaef564d12d6eda98da7ee541a1d570c76b68cb53b37310ff3dcd8aac9",
+     "fntech3.exe": "67da26a7280e93b49e1cdb839a8b939f3e322eab739e15f25de8365700e1d637"
+    },
+    "unchangedDuringRuns": true
+   },
+   "after-fakk2-binaries": {
+    "exeDir": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client",
+    "binaries": {
+     "fnql_glx_x86.dll": "35234cab04261e0d4941006ab278567500c65adfeac25413cd9ccbc71071d121",
+     "fnql_rtx_x86.dll": "c9b48fb09c54a467366de0d145655c40a533be7c4e04d972a3661c6f7bb6bcc0",
+     "fnql_vk_x86.dll": "15544cdaef564d12d6eda98da7ee541a1d570c76b68cb53b37310ff3dcd8aac9",
+     "fntech3.exe": "67da26a7280e93b49e1cdb839a8b939f3e322eab739e15f25de8365700e1d637"
+    },
+    "unchangedDuringRuns": true
+   },
+   "afternostatic-fakk2-binaries": {
+    "exeDir": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client",
+    "binaries": {
+     "fnql_glx_x86.dll": "35234cab04261e0d4941006ab278567500c65adfeac25413cd9ccbc71071d121",
+     "fnql_rtx_x86.dll": "c9b48fb09c54a467366de0d145655c40a533be7c4e04d972a3661c6f7bb6bcc0",
+     "fnql_vk_x86.dll": "15544cdaef564d12d6eda98da7ee541a1d570c76b68cb53b37310ff3dcd8aac9",
+     "fntech3.exe": "67da26a7280e93b49e1cdb839a8b939f3e322eab739e15f25de8365700e1d637"
+    },
+    "unchangedDuringRuns": true
+   },
+   "before-alice-binaries": {
+    "exeDir": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client",
+    "binaries": {
+     "fnql_glx_x86.dll": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+     "fnql_rtx_x86.dll": "d5b004c77904c265aff39735b3b2c937bda5b3c09609b8dbc69a8a7f344ea765",
+     "fnql_vk_x86.dll": "304b472634aebee3e486bdb73fa8b32915334f39066b7635739f4c0c51cfe7e3",
+     "fntech3.exe": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7"
+    },
+    "unchangedDuringRuns": true
+   },
+   "before-fakk2-binaries": {
+    "exeDir": "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client",
+    "binaries": {
+     "fnql_glx_x86.dll": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+     "fnql_rtx_x86.dll": "d5b004c77904c265aff39735b3b2c937bda5b3c09609b8dbc69a8a7f344ea765",
+     "fnql_vk_x86.dll": "304b472634aebee3e486bdb73fa8b32915334f39066b7635739f4c0c51cfe7e3",
+     "fntech3.exe": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7"
+    },
+    "unchangedDuringRuns": true
+   }
+  }
+ },
+ "sessionState": {
+  "start": {
+   "time": "2026-09-25 17:48:00",
+   "sessionLocked": false,
+   "inputDesktop": "Default",
+   "displayState": 1,
+   "idleMs": 360609
+  },
+  "end": {
+   "time": "2026-09-25 18:02:20",
+   "sessionLocked": false,
+   "inputDesktop": "Default",
+   "displayState": 1,
+   "idleMs": 546766
+  },
+  "note": "unlocked when checked at 17:15:42 before the first run too"
+ },
+ "installations": {
+  "alice": "E:\\Games\\Alice (read only)",
+  "fakk2": ".tmp/fakk2-install/game (laid down from the retail disc; read only)",
+  "ql": "E:\\SteamLibrary\\steamapps\\common\\Quake Live (read only)",
+  "note": "every run checked its installation unchanged"
+ },
+ "method": {
+  "ritualSteps": "devmap <map>; wait 12000; skipcinematic; wait 4000; r_ambientScale; then screenshotPNG at the default and at 0, 4, 0, 4, 0.6, 0.5, 0.6, 0.5, 1.7 s apart (.tmp/ritual-ambient-scale/steps-ab.cfg)",
+  "gridMask": "luma up by more than 24 from 0 to 4 in both pairs, the 0.6 capture between them, each pair of equal settings within 4; Alice: outer 40 columns (HUD) left out (.tmp/ritual-ambient-scale/measure.py)",
+  "vulkanRtx": "measured on the GL run mask of the same map and build, bloom hazing their own 0-against-4 pair (measure_on_mask.py)",
+  "buildComparison": "first capture (each build at its default) of the two builds, on the before GL mask (build_compare.py)",
+  "retailComparison": "retail fakk2.exe 1.02 capture of the same spawn from the earlier sweep, aligned by gradient correlation within 40 px (retail_compare.py)",
+  "ql": "devmap campgrounds ffa; team f; cg_thirdPerson 1; captures at the default and at 0.6, 10, 0.6, 10, 1; then 150 and 0.5 printed (ql_probe.py measure); map campgrounds ffa without cheats: set 25, cvarlist, quit, configs read back (ql_probe.py option); web interface: web_changeHash #/settings/video, web_status, web_dumpSurface (ql_webui_probe.py)"
+ },
+ "retailReadings": {
+  "method": "capstone disassembly of each executable's code section; addresses are virtual addresses in the image; scripts .tmp/ritual-ambient-scale/cvar_defaults.py, data_refs.py and survey.py",
+  "alice.exe": {
+   "sha256": "8aa22917b7707f0e1a7c4dbe9a3c38332b1873ae2059174ac5329de26921fc18",
+   "r_ambientScale": "0x004754ed: push 0x200; push \"0.5\" (0x005217a4); push \"r_ambientScale\" (0x00521794); call [0x00e9d6e4] at 0x00475501; pointer stored at 0x00f02f10 (0x00475516)",
+   "r_directedScale": "0x00475507: push 0x200; push \"1\"; push \"r_directedScale\"; call at 0x0047551b; pointer stored at 0x00f02ff4 (0x0047552b)",
+   "reads": "only R_SetupEntityLighting 0x004ac7e0: ambient (ent+0x1e4..0x1ec) times [0x00f02f10]->value at 0x004acb70..0x004acba8, directed (ent+0x1f4..0x1fc) times [0x00f02ff4]->value at 0x004acbae..0x004acbea",
+   "order": "trilerp of eight grid samples; renormalise by 1/total when 0 < total < 0.99 (0x004acb02..0x004acb66; 0.0 at 0x004ff3a8, 0.99 at 0x005004a8); scale; VectorNormalize2 into ent+0x1d8 (call 0x00448f60); minlight add 32 * identityLight (0x004ffa00 = 32.0) when renderfx & 0x20000 (0x004acc66); flat 150 * identityLight (0x0050044c = 150.0) without the grid (0x004acc28), unscaled"
+  },
+  "fakk2.exe 1.02": {
+   "sha256": "681bc51c3343d01d772c5ae4aae7523ae4547350b243c875156e138043335785",
+   "r_ambientScale": "0x00461123: push 0x200; push \"0.5\" (0x004ec118); push \"r_ambientScale\" (0x004f3acc); call [0x00cdbce4] at 0x00461137; pointer stored at 0x00d3e3f0 (0x0046114c)",
+   "r_directedScale": "0x0046113d: push 0x200; push \"1\"; push \"r_directedScale\"; call at 0x00461151; pointer stored at 0x00d3e4c8 (0x00461166)",
+   "reads": "only R_SetupEntityLighting 0x0048ed10: ambient (ent+0x184..0x18c) at 0x0048f0b5..0x0048f0ed, directed (ent+0x194..0x19c) at 0x0048f0f3..0x0048f131",
+   "order": "as alice.exe: renormalise (0x0048f045; 0.99 at 0x004d6058), scale, VectorNormalize2 into ent+0x178 (call 0x0043c580), minlight when renderfx & 0x20000 (0x0048f1a5), flat 150 without the grid (0x0048f143)"
+  },
+  "quake3.exe 1.32": {
+   "sha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+   "r_ambientScale": "0x0045152a: push 0x200; push \"0.6\" (0x004cbd70); push \"r_ambientScale\" (0x004cbd60); call [0x00c37b00] at 0x0045153e; pointer stored at 0x00c64678 (0x00451556), read at 0x0047120e",
+   "r_directedScale": "0x00451547: push 0x200; push \"1\"; push \"r_directedScale\"; pointer stored at 0x00c6472c, read at 0x00471241"
+  },
+  "quakelive_steam.exe": {
+   "sha256": "c926fe9f6c851e00b3b9332e88903ad01f28fdd60454873891c0158f5ded1299",
+   "linked": "0x5751f20b (2016-06-03)",
+   "r_ambientScale": "0x00449013: push 0x81800; push \"100\" (0x0052f690); push \"1\" (0x00551624); push \"10\" (0x0052f68c); push \"r_ambientScale\" (0x0052f67c); call [0x01740d44] at 0x00449031; pointer stored at 0x01740f88 (0x00449046)",
+   "r_directedScale": "0x0044935b: push 0x200; push \"1\"; push \"r_directedScale\"; call [0x01740d40] at 0x0044936f; pointer stored at 0x01743c14 (0x00449384)",
+   "importTable": "CL_InitRef (0x004b9bf0) builds the refimport table on its stack: +0x20 Cvar_Get 0x004ce0d0 (0x004b9c9b), +0x24 the bounded Cvar_Get 0x004cdd30 (0x004b9ca2); GetRefAPI 0x00449f70 copies 0x1b dwords to ri at 0x01740d20",
+   "boundedCvarGet": "0x004cdd30 (name, default, min, max, flags): min and max parsed with atof into cvar+0x34 and +0x38 (strings at +0x14, +0x18); an existing cvar's value above max becomes max, below min becomes min (0x004cdf0d..0x004cdf5c); flags |= 0x1000 on create (0x004ce059) and on re-registration (0x004cde16); no rounding",
+   "cvarSet": "0x004cd064..0x004cd0cf: flags & 0x2000 snaps to min or max; flags & 0x1000 clamps to the nearer bound; otherwise the value stands",
+   "grid": "R_SetupEntityLightingGrid 0x0044a810: renormalise when 0 < total < 0.99 (0x0052f790), ambient times r_ambientScale at 0x0044ab56..0x0044ab86, directed times r_directedScale at 0x0044ab89..0x0044abb6; caller R_SetupEntityLighting 0x0044acb0: flat 150 without the grid (0x0052f7b8), + 32 * identityLight (0x0052f7b0), dlights (16.0 at 0x0052f7a8, 0x0052f0b0), ambient kept to identityLightByte (0x01717680) at 0x0044af19..0x0044af8c",
+   "flags": "0x81800 = 0x800 protected (replicated repconfig.cfg), 0x1000 bounded, 0x80000 cloud",
+   "webPak": "web.pak settings metadata: \"r_ambientscale\": {\"title\": \"Ambient Light Scale\", \"min\": \"1\", \"max\": \"100\", \"step\": \"1\", \"type\": \"range\"}; the Video page lists r_dynamiclight, r_ambientscale, cg_shadows in that order",
+   "installationConfigs": "the replicated configs the retail client wrote (repconfig.cfg) hold seta r_ambientScale \"10\"; a hardware config written by FnQL (qzconfig.cfg) holds \"0.6\""
+  },
+  "qlsrp": "QLSRP src/code/renderer/tr_init.c registers ri.Cvar_GetBounded( \"r_ambientScale\", \"10\", \"1\", \"100\", ... ) and calls AssertCvarRange( r_ambientScale, 1, 100, qtrue ) (integral); retail has no such check on the cvar and its bounded Cvar_Get never rounds",
+  "openmohaa": "OpenMoHAA ab43a0d renderergl1/renderergl2 tr_init.c register r_ambientScale \"0.6\" CVAR_CHEAT (ioquake3's); MOHAA.exe 1.00 is SafeDisc-encrypted and holds no plain \"r_ambientScale\""
+ },
+ "survey": {
+  "q3": {
+   "size": 909312,
+   "sha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+   "timestamp": "0x3da1eb35",
+   "r_ambientScale": [
+    {
+     "string": "0x004cbd60",
+     "namePush": "0x00451534",
+     "args": [
+      {
+       "at": "0x0045152f",
+       "operand": "0x4cbd70",
+       "string": "'0.6'"
+      },
+      {
+       "at": "0x0045152a",
+       "operand": "0x200",
+       "string": null
+      }
+     ],
+     "next": [
+      "call dword ptr [0xc37b00] @0x0045153e"
+     ]
+    }
+   ],
+   "r_directedScale": [
+    {
+     "string": "0x004cbd50",
+     "namePush": "0x00451551",
+     "args": [
+      {
+       "at": "0x0045154c",
+       "operand": "0x4c0420",
+       "string": "'1'"
+      },
+      {
+       "at": "0x00451547",
+       "operand": "0x200",
+       "string": null
+      }
+     ],
+     "next": [
+      "call dword ptr [0xc37b00] @0x0045155b"
+     ]
+    }
+   ]
+  },
+  "ql": {
+   "size": 2107904,
+   "sha256": "c926fe9f6c851e00b3b9332e88903ad01f28fdd60454873891c0158f5ded1299",
+   "timestamp": "0x5751f20b",
+   "r_ambientScale": [
+    {
+     "string": "0x0052f67c",
+     "namePush": "0x00449027",
+     "args": [
+      {
+       "at": "0x00449022",
+       "operand": "0x52f68c",
+       "string": "'10'"
+      },
+      {
+       "at": "0x0044901d",
+       "operand": "0x551624",
+       "string": "'1'"
+      },
+      {
+       "at": "0x00449018",
+       "operand": "0x52f690",
+       "string": "'100'"
+      },
+      {
+       "at": "0x00449013",
+       "operand": "0x81800",
+       "string": null
+      }
+     ],
+     "next": [
+      "call dword ptr [0x1740d44] @0x00449031"
+     ]
+    }
+   ],
+   "r_directedScale": [
+    {
+     "string": "0x0052f474",
+     "namePush": "0x00449365",
+     "args": [
+      {
+       "at": "0x00449360",
+       "operand": "0x551624",
+       "string": "'1'"
+      },
+      {
+       "at": "0x0044935b",
+       "operand": "0x200",
+       "string": null
+      }
+     ],
+     "next": [
+      "call dword ptr [0x1740d40] @0x0044936f"
+     ]
+    }
+   ]
+  },
+  "rtcw-sp": {
+   "size": 1286144,
+   "sha256": "07d206f61da5c80562ff60d68c645bca349b31adb5d7e0e7f186d61ad46683c7",
+   "timestamp": "0x3cd036dd",
+   "r_ambientScale": [
+    {
+     "string": "0x004ed3a8",
+     "namePush": "0x00447138",
+     "args": [
+      {
+       "at": "0x00447133",
+       "operand": "0x4e78e4",
+       "string": "'0.5'"
+      },
+      {
+       "at": "0x0044712e",
+       "operand": "0x200",
+       "string": null
+      }
+     ],
+     "next": [
+      "call dword ptr [0x117371c] @0x0044713d"
+     ]
+    }
+   ],
+   "r_directedScale": [
+    {
+     "string": "0x004ed398",
+     "namePush": "0x0044714d",
+     "args": [
+      {
+       "at": "0x00447148",
+       "operand": "0x4dda28",
+       "string": "'1'"
+      },
+      {
+       "at": "0x00447143",
+       "operand": "0x200",
+       "string": null
+      }
+     ],
+     "next": [
+      "call dword ptr [0x117371c] @0x00447157"
+     ]
+    }
+   ]
+  },
+  "rtcw-mp": {
+   "size": 1081344,
+   "sha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+   "timestamp": "0x3dbd5b83",
+   "r_ambientScale": [
+    {
+     "string": "0x004f426c",
+     "namePush": "0x0045ae6d",
+     "args": [
+      {
+       "at": "0x0045ae68",
+       "operand": "0x4ed85c",
+       "string": "'0.5'"
+      },
+      {
+       "at": "0x0045ae63",
+       "operand": "0x200",
+       "string": null
+      }
+     ],
+     "next": [
+      "call dword ptr [0x1207028] @0x0045ae77"
+     ]
+    }
+   ],
+   "r_directedScale": [
+    {
+     "string": "0x004f425c",
+     "namePush": "0x0045ae87",
+     "args": [
+      {
+       "at": "0x0045ae82",
+       "operand": "0x4e6aec",
+       "string": "'1'"
+      },
+      {
+       "at": "0x0045ae7d",
+       "operand": "0x200",
+       "string": null
+      }
+     ],
+     "next": [
+      "call dword ptr [0x1207028] @0x0045ae91"
+     ]
+    }
+   ]
+  },
+  "wolfet": {
+   "size": 1667072,
+   "sha256": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e",
+   "timestamp": "0x60f7263b",
+   "r_ambientScale": [
+    {
+     "string": "0x0056d0bc",
+     "namePush": "0x0049d9d0",
+     "args": [
+      {
+       "at": "0x0049d9cb",
+       "operand": "0x55c264",
+       "string": "'0.5'"
+      },
+      {
+       "at": "0x0049d9c6",
+       "operand": "0x200",
+       "string": null
+      }
+     ],
+     "next": [
+      "call dword ptr [0x1824c28] @0x0049d9da"
+     ]
+    }
+   ],
+   "r_directedScale": [
+    {
+     "string": "0x0056d0cc",
+     "namePush": "0x0049d9ea",
+     "args": [
+      {
+       "at": "0x0049d9e5",
+       "operand": "0x5588b4",
+       "string": "'1'"
+      },
+      {
+       "at": "0x0049d9e0",
+       "operand": "0x200",
+       "string": null
+      }
+     ],
+     "next": [
+      "call dword ptr [0x1824c28] @0x0049d9f4"
+     ]
+    }
+   ]
+  },
+  "stvef-sp": {
+   "size": 675840,
+   "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74",
+   "timestamp": "0x3adb539a",
+   "r_ambientScale": [
+    {
+     "string": "0x00496ae8",
+     "namePush": "0x00440a45",
+     "args": [
+      {
+       "at": "0x00440a3b",
+       "operand": "0x491dcc",
+       "string": "'0.5'"
+      },
+      {
+       "at": "0x00440a36",
+       "operand": "0x200",
+       "string": null
+      }
+     ],
+     "next": [
+      "call dword ptr [0xaa1afc] @0x00440a4a"
+     ]
+    }
+   ],
+   "r_directedScale": [
+    {
+     "string": "0x00496ad8",
+     "namePush": "0x00440a5d",
+     "args": [
+      {
+       "at": "0x00440a58",
+       "operand": "0x48875c",
+       "string": "'1'"
+      },
+      {
+       "at": "0x00440a53",
+       "operand": "0x200",
+       "string": null
+      }
+     ],
+     "next": [
+      "call dword ptr [0xaa1afc] @0x00440a67"
+     ]
+    }
+   ]
+  },
+  "stvef-mp": {
+   "size": 925696,
+   "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+   "timestamp": "0x3adde3c8",
+   "r_ambientScale": [
+    {
+     "string": "0x004d07a8",
+     "namePush": "0x00453c69",
+     "args": [
+      {
+       "at": "0x00453c64",
+       "operand": "0x4ca750",
+       "string": "'0.5'"
+      },
+      {
+       "at": "0x00453c5f",
+       "operand": "0x200",
+       "string": null
+      }
+     ],
+     "next": [
+      "call dword ptr [0xac4484] @0x00453c73"
+     ]
+    }
+   ],
+   "r_directedScale": [
+    {
+     "string": "0x004d0798",
+     "namePush": "0x00453c83",
+     "args": [
+      {
+       "at": "0x00453c7e",
+       "operand": "0x4c1f1c",
+       "string": "'1'"
+      },
+      {
+       "at": "0x00453c79",
+       "operand": "0x200",
+       "string": null
+      }
+     ],
+     "next": [
+      "call dword ptr [0xac4484] @0x00453c8d"
+     ]
+    }
+   ]
+  },
+  "q3-ihv": {
+   "size": 725042,
+   "sha256": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37",
+   "timestamp": "0x36c4a216",
+   "r_ambientScale": "string not found",
+   "r_directedScale": "string not found"
+  },
+  "jka-sp": {
+   "size": 1236992,
+   "sha256": "9351a8de230fcd577e2b474889d08f38982450306767a6823dd659482566d6ce",
+   "timestamp": "0x3f999a27",
+   "r_ambientScale": [
+    {
+     "string": "0x0050d98c",
+     "namePush": "0x00469da3",
+     "args": [
+      {
+       "at": "0x00469d9e",
+       "operand": "0x51432c",
+       "string": "'0.5'"
+      },
+      {
+       "at": "0x00469d99",
+       "operand": "0x200",
+       "string": null
+      }
+     ],
+     "next": [
+      "call 0x41bc70 @0x00469dad"
+     ]
+    }
+   ],
+   "r_directedScale": [
+    {
+     "string": "0x0050d97c",
+     "namePush": "0x00469dbc",
+     "args": [
+      {
+       "at": "0x00469db7",
+       "operand": "0x5062f4",
+       "string": "'1'"
+      },
+      {
+       "at": "0x00469db2",
+       "operand": "0x200",
+       "string": null
+      }
+     ],
+     "next": [
+      "call 0x41bc70 @0x00469dc6"
+     ]
+    }
+   ]
+  },
+  "jka-mp": {
+   "size": 1527808,
+   "sha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+   "timestamp": "0x3faa8a05",
+   "r_ambientScale": [
+    {
+     "string": "0x00556e10",
+     "namePush": "0x004a25b1",
+     "args": [
+      {
+       "at": "0x004a25a7",
+       "operand": "0x556e20",
+       "string": "'0.6'"
+      },
+      {
+       "at": "0x004a25a2",
+       "operand": "0x200",
+       "string": null
+      }
+     ],
+     "next": [
+      "call 0x439470 @0x004a25b6"
+     ]
+    }
+   ],
+   "r_directedScale": [
+    {
+     "string": "0x00556e00",
+     "namePush": "0x004a25c5",
+     "args": [
+      {
+       "at": "0x004a25c0",
+       "operand": "0x5654a8",
+       "string": "'1'"
+      },
+      {
+       "at": "0x004a25bb",
+       "operand": "0x200",
+       "string": null
+      }
+     ],
+     "next": [
+      "call 0x439470 @0x004a25cf"
+     ]
+    }
+   ]
+  },
+  "jk2-sp": {
+   "size": 999482,
+   "sha256": "0d3c635ee5b20ac32fc957e00cf21e65ebc1584112b11f6ae026706dcc0d0e0c",
+   "timestamp": "0x3c840a46",
+   "r_ambientScale": [
+    {
+     "string": "0x004e2c30",
+     "namePush": "0x0046ea5f",
+     "args": [
+      {
+       "at": "0x0046ea5a",
+       "operand": "0x4dba6c",
+       "string": "'0.5'"
+      },
+      {
+       "at": "0x0046ea55",
+       "operand": "0x200",
+       "string": null
+      }
+     ],
+     "next": [
+      "call dword ptr [0x12e3700] @0x0046ea64"
+     ]
+    }
+   ],
+   "r_directedScale": [
+    {
+     "string": "0x004e2c20",
+     "namePush": "0x0046ea74",
+     "args": [
+      {
+       "at": "0x0046ea6f",
+       "operand": "0x4d55c0",
+       "string": "'1'"
+      },
+      {
+       "at": "0x0046ea6a",
+       "operand": "0x200",
+       "string": null
+      }
+     ],
+     "next": [
+      "call dword ptr [0x12e3700] @0x0046ea7e"
+     ]
+    }
+   ]
+  },
+  "jk2-mp": {
+   "size": 1126400,
+   "sha256": "2f08dcf9a089cb66062766f4922fda63a9e553de893c174b497dfefeb7a1577a",
+   "timestamp": "0x3c832b11",
+   "r_ambientScale": [
+    {
+     "string": "0x00500fe4",
+     "namePush": "0x0047f20a",
+     "args": [
+      {
+       "at": "0x0047f205",
+       "operand": "0x500ff4",
+       "string": "'0.6'"
+      },
+      {
+       "at": "0x0047f200",
+       "operand": "0x200",
+       "string": null
+      }
+     ],
+     "next": [
+      "call dword ptr [0x1a4fbe8] @0x0047f214"
+     ]
+    }
+   ],
+   "r_directedScale": [
+    {
+     "string": "0x00500fd4",
+     "namePush": "0x0047f224",
+     "args": [
+      {
+       "at": "0x0047f21f",
+       "operand": "0x4f1424",
+       "string": "'1'"
+      },
+      {
+       "at": "0x0047f21a",
+       "operand": "0x200",
+       "string": null
+      }
+     ],
+     "next": [
+      "call dword ptr [0x1a4fbe8] @0x0047f22e"
+     ]
+    }
+   ]
+  },
+  "alice": {
+   "size": 2209835,
+   "sha256": "8aa22917b7707f0e1a7c4dbe9a3c38332b1873ae2059174ac5329de26921fc18",
+   "timestamp": "0x3a10caae",
+   "r_ambientScale": [
+    {
+     "string": "0x00521794",
+     "namePush": "0x004754f7",
+     "args": [
+      {
+       "at": "0x004754f2",
+       "operand": "0x5217a4",
+       "string": "'0.5'"
+      },
+      {
+       "at": "0x004754ed",
+       "operand": "0x200",
+       "string": null
+      }
+     ],
+     "next": [
+      "call dword ptr [0xe9d6e4] @0x00475501"
+     ]
+    }
+   ],
+   "r_directedScale": [
+    {
+     "string": "0x00521784",
+     "namePush": "0x00475511",
+     "args": [
+      {
+       "at": "0x0047550c",
+       "operand": "0x50c22c",
+       "string": "'1'"
+      },
+      {
+       "at": "0x00475507",
+       "operand": "0x200",
+       "string": null
+      }
+     ],
+     "next": [
+      "call dword ptr [0xe9d6e4] @0x0047551b"
+     ]
+    }
+   ]
+  },
+  "fakk2": {
+   "size": 1318912,
+   "sha256": "681bc51c3343d01d772c5ae4aae7523ae4547350b243c875156e138043335785",
+   "timestamp": "0x39a2a6ce",
+   "r_ambientScale": [
+    {
+     "string": "0x004f3acc",
+     "namePush": "0x0046112d",
+     "args": [
+      {
+       "at": "0x00461128",
+       "operand": "0x4ec118",
+       "string": "'0.5'"
+      },
+      {
+       "at": "0x00461123",
+       "operand": "0x200",
+       "string": null
+      }
+     ],
+     "next": [
+      "call dword ptr [0xcdbce4] @0x00461137"
+     ]
+    }
+   ],
+   "r_directedScale": [
+    {
+     "string": "0x004f3abc",
+     "namePush": "0x00461147",
+     "args": [
+      {
+       "at": "0x00461142",
+       "operand": "0x4dfaf8",
+       "string": "'1'"
+      },
+      {
+       "at": "0x0046113d",
+       "operand": "0x200",
+       "string": null
+      }
+     ],
+     "next": [
+      "call dword ptr [0xcdbce4] @0x00461151"
+     ]
+    }
+   ]
+  },
+  "mohaa": {
+   "size": 2511445,
+   "sha256": "7abe43b41746c87877507d4c2938f6f4c9471f8d559448eba4553faa962316eb",
+   "timestamp": "0x3c0fa7f6",
+   "r_ambientScale": "string not found",
+   "r_directedScale": "string not found"
+  },
+  "q3test-1.02": {
+   "size": 688180,
+   "sha256": "86da36081878d5586d5621709f48a7e621db3c24d33fa4b45838b08d01020d4a",
+   "timestamp": "0x37228c46",
+   "r_ambientScale": "string not found",
+   "r_directedScale": "string not found"
+  },
+  "q3test-1.03": {
+   "size": 692276,
+   "sha256": "313ed8d1b71296b834b806b64c0f5929eb5bdd05eb7ce96b9c7fdb7369ecbf79",
+   "timestamp": "0x3727f07d",
+   "r_ambientScale": "string not found",
+   "r_directedScale": "string not found"
+  },
+  "q3test-1.05": {
+   "size": 696372,
+   "sha256": "05579377e09286d658aef430d6fb45dc6c4fc4578988cea83afa51459768fcf8",
+   "timestamp": "0x3736948c",
+   "r_ambientScale": "string not found",
+   "r_directedScale": "string not found"
+  },
+  "q3test-1.06": {
+   "size": 651264,
+   "sha256": "a18c714fac103c4634fc08c88b2dd1c7b63720c8ddb8ec0f408e00d7ccb63db3",
+   "timestamp": "0x378fd2ba",
+   "r_ambientScale": [
+    {
+     "string": "0x00464a04",
+     "namePush": "0x004263c7",
+     "args": [
+      {
+       "at": "0x004263c2",
+       "operand": "0x4619a4",
+       "string": "'0.5'"
+      },
+      {
+       "at": "0x004263c0",
+       "operand": "0",
+       "string": null
+      }
+     ],
+     "next": [
+      "call dword ptr [0x980fd4] @0x004263d1"
+     ]
+    }
+   ],
+   "r_directedScale": [
+    {
+     "string": "0x004649f4",
+     "namePush": "0x004263de",
+     "args": [
+      {
+       "at": "0x004263d9",
+       "operand": "0x45a93c",
+       "string": "'1'"
+      },
+      {
+       "at": "0x004263d7",
+       "operand": "0",
+       "string": null
+      }
+     ],
+     "next": [
+      "call dword ptr [0x980fd4] @0x004263e8"
+     ]
+    }
+   ]
+  },
+  "q3test-1.07": {
+   "size": 651264,
+   "sha256": "a507b42aa346dd7c67f0fdd33c42e88c3ee144d91bce3dea0a3fb06aa7368962",
+   "timestamp": "0x37940afc",
+   "r_ambientScale": [
+    {
+     "string": "0x00464a24",
+     "namePush": "0x004263f0",
+     "args": [
+      {
+       "at": "0x004263eb",
+       "operand": "0x4619d4",
+       "string": "'0.5'"
+      },
+      {
+       "at": "0x004263e6",
+       "operand": "0x200",
+       "string": null
+      }
+     ],
+     "next": [
+      "call dword ptr [0x980ff4] @0x004263fa"
+     ]
+    }
+   ],
+   "r_directedScale": [
+    {
+     "string": "0x00464a14",
+     "namePush": "0x0042640a",
+     "args": [
+      {
+       "at": "0x00426405",
+       "operand": "0x45a93c",
+       "string": "'1'"
+      },
+      {
+       "at": "0x00426400",
+       "operand": "0x200",
+       "string": null
+      }
+     ],
+     "next": [
+      "call dword ptr [0x980ff4] @0x00426414"
+     ]
+    }
+   ]
+  },
+  "q3test-1.08": {
+   "size": 655360,
+   "sha256": "89a7dfb431c6738a13e1e44d0c2d76d69107c6e0791a64f6a49830e1a51c547b",
+   "timestamp": "0x37a67da7",
+   "r_ambientScale": [
+    {
+     "string": "0x0046603c",
+     "namePush": "0x00427010",
+     "args": [
+      {
+       "at": "0x0042700b",
+       "operand": "0x462a48",
+       "string": "'0.5'"
+      },
+      {
+       "at": "0x00427006",
+       "operand": "0x200",
+       "string": null
+      }
+     ],
+     "next": [
+      "call dword ptr [0x982794] @0x0042701a"
+     ]
+    }
+   ],
+   "r_directedScale": [
+    {
+     "string": "0x0046602c",
+     "namePush": "0x0042702a",
+     "args": [
+      {
+       "at": "0x00427025",
+       "operand": "0x45b9b4",
+       "string": "'1'"
+      },
+      {
+       "at": "0x00427020",
+       "operand": "0x200",
+       "string": null
+      }
+     ],
+     "next": [
+      "call dword ptr [0x982794] @0x00427034"
+     ]
+    }
+   ]
+  }
+ },
+ "runs": [
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/after-alice-glx-centipede1",
+   "build": "after",
+   "profile": "alice",
+   "renderer": "glx",
+   "map": "centipede1",
+   "settings": {
+    "com_gameProfile": "alice",
+    "cl_renderer": "glx",
+    "ui_subtitles": "0"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.6,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "67da26a7280e93b49e1cdb839a8b939f3e322eab739e15f25de8365700e1d637",
+   "rendererSha256": "35234cab04261e0d4941006ab278567500c65adfeac25413cd9ccbc71071d121",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ]
+    ],
+    "gridPixels": 11648,
+    "stableGridPixels": 1404,
+    "maskBox": [
+     273,
+     37,
+     759,
+     389
+    ],
+    "luma06": 28.52,
+    "luma05": 27.86,
+    "luma06repeat": 28.21,
+    "luma05repeat": 27.86,
+    "ratio05over06": 0.9769,
+    "ratioRepeat": 0.9876,
+    "noise06": 0.9891,
+    "rgb06": [
+     33.2,
+     26.39,
+     27.24
+    ],
+    "rgb05": [
+     28.49,
+     27.35,
+     28.83
+    ],
+    "lumaZero": 22.72,
+    "lumaFour": 60.93,
+    "linear05over06": 0.9664,
+    "ambientShareAt06": 0.2014,
+    "defaultVs06": {
+     "meanAbs": 0.595,
+     "identical": 0.9256,
+     "maskMeanAbs": 0.971
+    },
+    "defaultVs05": {
+     "meanAbs": 10.246,
+     "identical": 0.035,
+     "maskMeanAbs": 2.049
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/after-alice-glx-garden1",
+   "build": "after",
+   "profile": "alice",
+   "renderer": "glx",
+   "map": "garden1",
+   "settings": {
+    "com_gameProfile": "alice",
+    "cl_renderer": "glx",
+    "ui_subtitles": "0"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.5,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "67da26a7280e93b49e1cdb839a8b939f3e322eab739e15f25de8365700e1d637",
+   "rendererSha256": "35234cab04261e0d4941006ab278567500c65adfeac25413cd9ccbc71071d121",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ]
+    ],
+    "gridPixels": 1848,
+    "stableGridPixels": 738,
+    "maskBox": [
+     40,
+     147,
+     82,
+     292
+    ],
+    "luma06": 31.57,
+    "luma05": 30.89,
+    "luma06repeat": 31.45,
+    "luma05repeat": 30.85,
+    "ratio05over06": 0.9785,
+    "ratioRepeat": 0.9809,
+    "noise06": 0.9962,
+    "rgb06": [
+     41.55,
+     30.17,
+     12.59
+    ],
+    "rgb05": [
+     40.91,
+     29.38,
+     12.36
+    ],
+    "lumaZero": 27.88,
+    "lumaFour": 54.02,
+    "linear05over06": 0.9795,
+    "ambientShareAt06": 0.1233,
+    "defaultVs06": {
+     "meanAbs": 0.678,
+     "identical": 0.8637,
+     "maskMeanAbs": 0.614
+    },
+    "defaultVs05": {
+     "meanAbs": 4.619,
+     "identical": 0.1,
+     "maskMeanAbs": 0.392
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/after-alice-glx-hatter2",
+   "build": "after",
+   "profile": "alice",
+   "renderer": "glx",
+   "map": "hatter2",
+   "settings": {
+    "com_gameProfile": "alice",
+    "cl_renderer": "glx",
+    "ui_subtitles": "0"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.3,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "67da26a7280e93b49e1cdb839a8b939f3e322eab739e15f25de8365700e1d637",
+   "rendererSha256": "35234cab04261e0d4941006ab278567500c65adfeac25413cd9ccbc71071d121",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ]
+    ],
+    "gridPixels": 14601,
+    "stableGridPixels": 382,
+    "maskBox": [
+     232,
+     206,
+     390,
+     293
+    ],
+    "luma06": 33.56,
+    "luma05": 30.71,
+    "luma06repeat": 33.34,
+    "luma05repeat": 30.72,
+    "ratio05over06": 0.9151,
+    "ratioRepeat": 0.9214,
+    "noise06": 0.9934,
+    "rgb06": [
+     39.96,
+     31.09,
+     29.49
+    ],
+    "rgb05": [
+     36.35,
+     28.57,
+     26.93
+    ],
+    "lumaZero": 17.71,
+    "lumaFour": 107.07,
+    "linear05over06": 0.9282,
+    "ambientShareAt06": 0.4308,
+    "defaultVs06": {
+     "meanAbs": 7.69,
+     "identical": 0.6291,
+     "maskMeanAbs": 2.648
+    },
+    "defaultVs05": {
+     "meanAbs": 13.514,
+     "identical": 0.0818,
+     "maskMeanAbs": 2.044
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/after-alice-glx-hedge1",
+   "build": "after",
+   "profile": "alice",
+   "renderer": "glx",
+   "map": "hedge1",
+   "settings": {
+    "com_gameProfile": "alice",
+    "cl_renderer": "glx",
+    "ui_subtitles": "0"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.1,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "67da26a7280e93b49e1cdb839a8b939f3e322eab739e15f25de8365700e1d637",
+   "rendererSha256": "35234cab04261e0d4941006ab278567500c65adfeac25413cd9ccbc71071d121",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ]
+    ],
+    "gridPixels": 8421,
+    "stableGridPixels": 4344,
+    "maskBox": [
+     338,
+     237,
+     462,
+     371
+    ],
+    "luma06": 29.14,
+    "luma05": 27.59,
+    "luma06repeat": 29.12,
+    "luma05repeat": 27.59,
+    "ratio05over06": 0.9468,
+    "ratioRepeat": 0.9475,
+    "noise06": 0.9993,
+    "rgb06": [
+     44.66,
+     24.26,
+     13.54
+    ],
+    "rgb05": [
+     42.15,
+     23.08,
+     12.64
+    ],
+    "lumaZero": 19.24,
+    "lumaFour": 58.86,
+    "linear05over06": 0.9607,
+    "ambientShareAt06": 0.236,
+    "defaultVs06": {
+     "meanAbs": 0.959,
+     "identical": 0.9104,
+     "maskMeanAbs": 1.595
+    },
+    "defaultVs05": {
+     "meanAbs": 10.325,
+     "identical": 0.0261,
+     "maskMeanAbs": 1.957
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/after-alice-glx-pandemonium",
+   "build": "after",
+   "profile": "alice",
+   "renderer": "glx",
+   "map": "pandemonium",
+   "settings": {
+    "com_gameProfile": "alice",
+    "cl_renderer": "glx",
+    "ui_subtitles": "0"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.3,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "67da26a7280e93b49e1cdb839a8b939f3e322eab739e15f25de8365700e1d637",
+   "rendererSha256": "35234cab04261e0d4941006ab278567500c65adfeac25413cd9ccbc71071d121",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ]
+    ],
+    "gridPixels": 3823,
+    "stableGridPixels": 602,
+    "maskBox": [
+     554,
+     81,
+     677,
+     119
+    ],
+    "luma06": 14.81,
+    "luma05": 12.94,
+    "luma06repeat": 14.61,
+    "luma05repeat": 12.94,
+    "ratio05over06": 0.8737,
+    "ratioRepeat": 0.8857,
+    "noise06": 0.9865,
+    "rgb06": [
+     20.31,
+     13.88,
+     5.2
+    ],
+    "rgb05": [
+     17.38,
+     12.2,
+     5.17
+    ],
+    "lumaZero": 3.86,
+    "lumaFour": 51.26,
+    "linear05over06": 0.892,
+    "ambientShareAt06": 0.6481,
+    "defaultVs06": {
+     "meanAbs": 0.891,
+     "identical": 0.9186,
+     "maskMeanAbs": 1.845
+    },
+    "defaultVs05": {
+     "meanAbs": 13.154,
+     "identical": 0.07,
+     "maskMeanAbs": 2.102
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/after-alice-glx-utemple",
+   "build": "after",
+   "profile": "alice",
+   "renderer": "glx",
+   "map": "utemple",
+   "settings": {
+    "com_gameProfile": "alice",
+    "cl_renderer": "glx",
+    "ui_subtitles": "0"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.3,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "67da26a7280e93b49e1cdb839a8b939f3e322eab739e15f25de8365700e1d637",
+   "rendererSha256": "35234cab04261e0d4941006ab278567500c65adfeac25413cd9ccbc71071d121",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ]
+    ],
+    "gridPixels": 1262,
+    "stableGridPixels": 31,
+    "maskBox": [
+     363,
+     257,
+     443,
+     282
+    ],
+    "luma06": 30.49,
+    "luma05": 29.53,
+    "luma06repeat": 30.01,
+    "luma05repeat": 29.65,
+    "ratio05over06": 0.9685,
+    "ratioRepeat": 0.988,
+    "noise06": 0.9843,
+    "rgb06": [
+     7.45,
+     40.29,
+     40.48
+    ],
+    "rgb05": [
+     6.81,
+     39.06,
+     40.03
+    ],
+    "lumaZero": 15.52,
+    "lumaFour": 71.15,
+    "linear05over06": 0.9417,
+    "ambientShareAt06": 0.3497,
+    "defaultVs06": {
+     "meanAbs": 6.586,
+     "identical": 0.0528,
+     "maskMeanAbs": 12.799
+    },
+    "defaultVs05": {
+     "meanAbs": 3.228,
+     "identical": 0.0967,
+     "maskMeanAbs": 13.581
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/after-alice-rtx-centipede1",
+   "build": "after",
+   "profile": "alice",
+   "renderer": "rtx",
+   "map": "centipede1",
+   "settings": {
+    "com_gameProfile": "alice",
+    "cl_renderer": "rtx",
+    "ui_subtitles": "0"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.3,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "67da26a7280e93b49e1cdb839a8b939f3e322eab739e15f25de8365700e1d637",
+   "rendererSha256": "c9b48fb09c54a467366de0d145655c40a533be7c4e04d972a3661c6f7bb6bcc0",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ]
+    ],
+    "gridPixels": 11690,
+    "stableGridPixels": 1407,
+    "maskBox": [
+     273,
+     37,
+     759,
+     389
+    ],
+    "luma06": 28.71,
+    "luma05": 28.14,
+    "luma06repeat": 28.5,
+    "luma05repeat": 28.14,
+    "ratio05over06": 0.9801,
+    "ratioRepeat": 0.9874,
+    "noise06": 0.9927,
+    "rgb06": [
+     33.43,
+     26.51,
+     27.64
+    ],
+    "rgb05": [
+     28.95,
+     27.49,
+     29.4
+    ],
+    "lumaZero": 22.93,
+    "lumaFour": 61.18,
+    "linear05over06": 0.9666,
+    "ambientShareAt06": 0.2001,
+    "defaultVs06": {
+     "meanAbs": 0.634,
+     "identical": 0.9169,
+     "maskMeanAbs": 0.975
+    },
+    "defaultVs05": {
+     "meanAbs": 10.31,
+     "identical": 0.035,
+     "maskMeanAbs": 2.038
+    }
+   },
+   "onGlMask": {
+    "run": "after-alice-rtx-centipede1",
+    "maskFrom": "before-alice-glx-centipede1",
+    "alignment": 0.988,
+    "pixels": 1322,
+    "maskPixels": 1563,
+    "luma06": 28.67,
+    "luma05": 28.19,
+    "luma06repeat": 28.53,
+    "luma05repeat": 28.18,
+    "lumaDefault": 27.7,
+    "ratio05over06": 0.9833,
+    "ratioRepeat": 0.9877,
+    "noise06": 0.9951
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/after-alice-rtx-hedge1",
+   "build": "after",
+   "profile": "alice",
+   "renderer": "rtx",
+   "map": "hedge1",
+   "settings": {
+    "com_gameProfile": "alice",
+    "cl_renderer": "rtx",
+    "ui_subtitles": "0"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.3,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "67da26a7280e93b49e1cdb839a8b939f3e322eab739e15f25de8365700e1d637",
+   "rendererSha256": "c9b48fb09c54a467366de0d145655c40a533be7c4e04d972a3661c6f7bb6bcc0",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ]
+    ],
+    "gridPixels": 8705,
+    "stableGridPixels": 4414,
+    "maskBox": [
+     338,
+     237,
+     456,
+     371
+    ],
+    "luma06": 30.22,
+    "luma05": 28.65,
+    "luma06repeat": 30.21,
+    "luma05repeat": 28.65,
+    "ratio05over06": 0.948,
+    "ratioRepeat": 0.9484,
+    "noise06": 0.9997,
+    "rgb06": [
+     46.14,
+     25.18,
+     14.42
+    ],
+    "rgb05": [
+     43.62,
+     23.98,
+     13.49
+    ],
+    "lumaZero": 20.12,
+    "lumaFour": 60.17,
+    "linear05over06": 0.9617,
+    "ambientShareAt06": 0.2299,
+    "defaultVs06": {
+     "meanAbs": 0.965,
+     "identical": 0.8882,
+     "maskMeanAbs": 1.625
+    },
+    "defaultVs05": {
+     "meanAbs": 10.751,
+     "identical": 0.0261,
+     "maskMeanAbs": 1.921
+    }
+   },
+   "onGlMask": {
+    "run": "after-alice-rtx-hedge1",
+    "maskFrom": "before-alice-glx-hedge1",
+    "alignment": 0.966,
+    "pixels": 3989,
+    "maskPixels": 4344,
+    "luma06": 29.39,
+    "luma05": 27.82,
+    "luma06repeat": 29.38,
+    "luma05repeat": 27.82,
+    "lumaDefault": 27.76,
+    "ratio05over06": 0.9466,
+    "ratioRepeat": 0.9469,
+    "noise06": 0.9997
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/after-alice-vk-centipede1",
+   "build": "after",
+   "profile": "alice",
+   "renderer": "vk",
+   "map": "centipede1",
+   "settings": {
+    "com_gameProfile": "alice",
+    "cl_renderer": "vk",
+    "ui_subtitles": "0"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.6,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "67da26a7280e93b49e1cdb839a8b939f3e322eab739e15f25de8365700e1d637",
+   "rendererSha256": "15544cdaef564d12d6eda98da7ee541a1d570c76b68cb53b37310ff3dcd8aac9",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ]
+    ],
+    "gridPixels": 12106,
+    "stableGridPixels": 1578,
+    "maskBox": [
+     273,
+     37,
+     759,
+     389
+    ],
+    "luma06": 28.31,
+    "luma05": 27.84,
+    "luma06repeat": 28.22,
+    "luma05repeat": 27.84,
+    "ratio05over06": 0.9834,
+    "ratioRepeat": 0.9865,
+    "noise06": 0.9968,
+    "rgb06": [
+     33.28,
+     26.05,
+     26.92
+    ],
+    "rgb05": [
+     29.13,
+     27.03,
+     28.61
+    ],
+    "lumaZero": 22.49,
+    "lumaFour": 61.07,
+    "linear05over06": 0.9659,
+    "ambientShareAt06": 0.2047,
+    "defaultVs06": {
+     "meanAbs": 0.615,
+     "identical": 0.9162,
+     "maskMeanAbs": 0.968
+    },
+    "defaultVs05": {
+     "meanAbs": 10.305,
+     "identical": 0.0351,
+     "maskMeanAbs": 2.068
+    }
+   },
+   "onGlMask": {
+    "run": "after-alice-vk-centipede1",
+    "maskFrom": "before-alice-glx-centipede1",
+    "alignment": 0.99,
+    "pixels": 1448,
+    "maskPixels": 1563,
+    "luma06": 28.35,
+    "luma05": 27.92,
+    "luma06repeat": 28.29,
+    "luma05repeat": 27.92,
+    "lumaDefault": 27.38,
+    "ratio05over06": 0.9848,
+    "ratioRepeat": 0.9869,
+    "noise06": 0.9979
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/after-alice-vk-hedge1",
+   "build": "after",
+   "profile": "alice",
+   "renderer": "vk",
+   "map": "hedge1",
+   "settings": {
+    "com_gameProfile": "alice",
+    "cl_renderer": "vk",
+    "ui_subtitles": "0"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.3,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "67da26a7280e93b49e1cdb839a8b939f3e322eab739e15f25de8365700e1d637",
+   "rendererSha256": "15544cdaef564d12d6eda98da7ee541a1d570c76b68cb53b37310ff3dcd8aac9",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ]
+    ],
+    "gridPixels": 8680,
+    "stableGridPixels": 4416,
+    "maskBox": [
+     338,
+     237,
+     456,
+     371
+    ],
+    "luma06": 30.22,
+    "luma05": 28.65,
+    "luma06repeat": 30.21,
+    "luma05repeat": 28.65,
+    "ratio05over06": 0.948,
+    "ratioRepeat": 0.9484,
+    "noise06": 0.9997,
+    "rgb06": [
+     46.14,
+     25.19,
+     14.42
+    ],
+    "rgb05": [
+     43.62,
+     23.98,
+     13.49
+    ],
+    "lumaZero": 20.13,
+    "lumaFour": 60.17,
+    "linear05over06": 0.9617,
+    "ambientShareAt06": 0.2298,
+    "defaultVs06": {
+     "meanAbs": 0.937,
+     "identical": 0.8877,
+     "maskMeanAbs": 1.625
+    },
+    "defaultVs05": {
+     "meanAbs": 10.764,
+     "identical": 0.0261,
+     "maskMeanAbs": 1.923
+    }
+   },
+   "onGlMask": {
+    "run": "after-alice-vk-hedge1",
+    "maskFrom": "before-alice-glx-hedge1",
+    "alignment": 0.974,
+    "pixels": 3989,
+    "maskPixels": 4344,
+    "luma06": 29.39,
+    "luma05": 27.82,
+    "luma06repeat": 29.38,
+    "luma05repeat": 27.82,
+    "lumaDefault": 27.76,
+    "ratio05over06": 0.9466,
+    "ratioRepeat": 0.9469,
+    "noise06": 0.9997
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/after-fakk2-glx-cemetery",
+   "build": "after",
+   "profile": "fakk2",
+   "renderer": "glx",
+   "map": "cemetery",
+   "settings": {
+    "com_gameProfile": "fakk2",
+    "cl_renderer": "glx"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.1,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "67da26a7280e93b49e1cdb839a8b939f3e322eab739e15f25de8365700e1d637",
+   "rendererSha256": "35234cab04261e0d4941006ab278567500c65adfeac25413cd9ccbc71071d121",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ]
+    ],
+    "gridPixels": 30392,
+    "stableGridPixels": 30374,
+    "maskBox": [
+     149,
+     23,
+     649,
+     318
+    ],
+    "luma06": 52.82,
+    "luma05": 49.12,
+    "luma06repeat": 52.82,
+    "luma05repeat": 49.12,
+    "ratio05over06": 0.93,
+    "ratioRepeat": 0.93,
+    "noise06": 1.0,
+    "rgb06": [
+     55.34,
+     54.97,
+     35.13
+    ],
+    "rgb05": [
+     51.61,
+     51.04,
+     32.71
+    ],
+    "lumaZero": 29.94,
+    "lumaFour": 79.59,
+    "linear05over06": 0.9668,
+    "ambientShareAt06": 0.1992,
+    "defaultVs06": {
+     "meanAbs": 0.725,
+     "identical": 0.8439,
+     "maskMeanAbs": 3.703
+    },
+    "defaultVs05": {
+     "meanAbs": 0.425,
+     "identical": 0.9412,
+     "maskMeanAbs": 0.0
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/after-fakk2-glx-fakkhouse",
+   "build": "after",
+   "profile": "fakk2",
+   "renderer": "glx",
+   "map": "fakkhouse",
+   "settings": {
+    "com_gameProfile": "fakk2",
+    "cl_renderer": "glx"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.1,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "67da26a7280e93b49e1cdb839a8b939f3e322eab739e15f25de8365700e1d637",
+   "rendererSha256": "35234cab04261e0d4941006ab278567500c65adfeac25413cd9ccbc71071d121",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ]
+    ],
+    "gridPixels": 411,
+    "stableGridPixels": 82,
+    "maskBox": [
+     687,
+     307,
+     704,
+     324
+    ],
+    "luma06": 68.47,
+    "luma05": 64.94,
+    "luma06repeat": 68.32,
+    "luma05repeat": 64.69,
+    "ratio05over06": 0.9484,
+    "ratioRepeat": 0.9469,
+    "noise06": 0.9978,
+    "rgb06": [
+     63.59,
+     76.7,
+     38.96
+    ],
+    "rgb05": [
+     60.4,
+     72.79,
+     36.44
+    ],
+    "lumaZero": 41.48,
+    "lumaFour": 101.85,
+    "linear05over06": 0.9701,
+    "ambientShareAt06": 0.1792,
+    "defaultVs06": {
+     "meanAbs": 2.379,
+     "identical": 0.8697,
+     "maskMeanAbs": 3.314
+    },
+    "defaultVs05": {
+     "meanAbs": 2.198,
+     "identical": 0.8722,
+     "maskMeanAbs": 0.254
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/after-fakk2-glx-homes1",
+   "build": "after",
+   "profile": "fakk2",
+   "renderer": "glx",
+   "map": "homes1",
+   "settings": {
+    "com_gameProfile": "fakk2",
+    "cl_renderer": "glx"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.1,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "67da26a7280e93b49e1cdb839a8b939f3e322eab739e15f25de8365700e1d637",
+   "rendererSha256": "35234cab04261e0d4941006ab278567500c65adfeac25413cd9ccbc71071d121",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ]
+    ],
+    "gridPixels": 7432,
+    "stableGridPixels": 6848,
+    "maskBox": [
+     72,
+     16,
+     299,
+     220
+    ],
+    "luma06": 40.64,
+    "luma05": 37.74,
+    "luma06repeat": 40.67,
+    "luma05repeat": 37.73,
+    "ratio05over06": 0.9286,
+    "ratioRepeat": 0.9277,
+    "noise06": 1.0007,
+    "rgb06": [
+     44.08,
+     40.62,
+     31.72
+    ],
+    "rgb05": [
+     40.98,
+     37.72,
+     29.34
+    ],
+    "lumaZero": 22.18,
+    "lumaFour": 74.57,
+    "linear05over06": 0.9564,
+    "ambientShareAt06": 0.2616,
+    "defaultVs06": {
+     "meanAbs": 2.442,
+     "identical": 0.8649,
+     "maskMeanAbs": 2.922
+    },
+    "defaultVs05": {
+     "meanAbs": 3.032,
+     "identical": 0.8802,
+     "maskMeanAbs": 0.054
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/after-fakk2-glx-over",
+   "build": "after",
+   "profile": "fakk2",
+   "renderer": "glx",
+   "map": "over",
+   "settings": {
+    "com_gameProfile": "fakk2",
+    "cl_renderer": "glx"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 32.8,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "67da26a7280e93b49e1cdb839a8b939f3e322eab739e15f25de8365700e1d637",
+   "rendererSha256": "35234cab04261e0d4941006ab278567500c65adfeac25413cd9ccbc71071d121",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ]
+    ],
+    "gridPixels": 2457,
+    "stableGridPixels": 2360,
+    "maskBox": [
+     460,
+     259,
+     625,
+     362
+    ],
+    "luma06": 60.71,
+    "luma05": 57.7,
+    "luma06repeat": 60.71,
+    "luma05repeat": 57.7,
+    "ratio05over06": 0.9504,
+    "ratioRepeat": 0.9504,
+    "noise06": 1.0,
+    "rgb06": [
+     74.52,
+     60.57,
+     25.2
+    ],
+    "rgb05": [
+     70.38,
+     57.71,
+     24.39
+    ],
+    "lumaZero": 42.65,
+    "lumaFour": 102.05,
+    "linear05over06": 0.9712,
+    "ambientShareAt06": 0.1728,
+    "defaultVs06": {
+     "meanAbs": 2.693,
+     "identical": 0.7289,
+     "maskMeanAbs": 3.009
+    },
+    "defaultVs05": {
+     "meanAbs": 2.58,
+     "identical": 0.7376,
+     "maskMeanAbs": 0.003
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/after-fakk2-glx-swamp1",
+   "build": "after",
+   "profile": "fakk2",
+   "renderer": "glx",
+   "map": "swamp1",
+   "settings": {
+    "com_gameProfile": "fakk2",
+    "cl_renderer": "glx"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.1,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "67da26a7280e93b49e1cdb839a8b939f3e322eab739e15f25de8365700e1d637",
+   "rendererSha256": "35234cab04261e0d4941006ab278567500c65adfeac25413cd9ccbc71071d121",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ]
+    ],
+    "gridPixels": 5644,
+    "stableGridPixels": 181,
+    "maskBox": [
+     450,
+     442,
+     797,
+     552
+    ],
+    "luma06": 42.61,
+    "luma05": 41.64,
+    "luma06repeat": 42.75,
+    "luma05repeat": 41.49,
+    "ratio05over06": 0.9772,
+    "ratioRepeat": 0.9705,
+    "noise06": 1.0033,
+    "rgb06": [
+     38.11,
+     48.45,
+     24.39
+    ],
+    "rgb05": [
+     37.12,
+     47.43,
+     23.7
+    ],
+    "lumaZero": 34.0,
+    "lumaFour": 89.92,
+    "linear05over06": 0.967,
+    "ambientShareAt06": 0.1979,
+    "defaultVs06": {
+     "meanAbs": 0.737,
+     "identical": 0.8509,
+     "maskMeanAbs": 1.566
+    },
+    "defaultVs05": {
+     "meanAbs": 0.584,
+     "identical": 0.8853,
+     "maskMeanAbs": 0.975
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/after-fakk2-glx-water",
+   "build": "after",
+   "profile": "fakk2",
+   "renderer": "glx",
+   "map": "water",
+   "settings": {
+    "com_gameProfile": "fakk2",
+    "cl_renderer": "glx"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.0,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "67da26a7280e93b49e1cdb839a8b939f3e322eab739e15f25de8365700e1d637",
+   "rendererSha256": "35234cab04261e0d4941006ab278567500c65adfeac25413cd9ccbc71071d121",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ]
+    ],
+    "gridPixels": 1271,
+    "stableGridPixels": 1083,
+    "maskBox": [
+     35,
+     268,
+     658,
+     343
+    ],
+    "luma06": 62.0,
+    "luma05": 56.71,
+    "luma06repeat": 61.99,
+    "luma05repeat": 56.7,
+    "ratio05over06": 0.9147,
+    "ratioRepeat": 0.9147,
+    "noise06": 0.9998,
+    "rgb06": [
+     42.84,
+     68.03,
+     81.19
+    ],
+    "rgb05": [
+     38.59,
+     62.34,
+     75.3
+    ],
+    "lumaZero": 26.42,
+    "lumaFour": 99.21,
+    "linear05over06": 0.9513,
+    "ambientShareAt06": 0.2924,
+    "defaultVs06": {
+     "meanAbs": 4.926,
+     "identical": 0.1108,
+     "maskMeanAbs": 5.363
+    },
+    "defaultVs05": {
+     "meanAbs": 5.336,
+     "identical": 0.1104,
+     "maskMeanAbs": 0.208
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/after-fakk2-rtx-cemetery",
+   "build": "after",
+   "profile": "fakk2",
+   "renderer": "rtx",
+   "map": "cemetery",
+   "settings": {
+    "com_gameProfile": "fakk2",
+    "cl_renderer": "rtx"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.1,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "67da26a7280e93b49e1cdb839a8b939f3e322eab739e15f25de8365700e1d637",
+   "rendererSha256": "c9b48fb09c54a467366de0d145655c40a533be7c4e04d972a3661c6f7bb6bcc0",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ]
+    ],
+    "gridPixels": 30565,
+    "stableGridPixels": 30548,
+    "maskBox": [
+     149,
+     23,
+     649,
+     318
+    ],
+    "luma06": 52.74,
+    "luma05": 49.04,
+    "luma06repeat": 52.74,
+    "luma05repeat": 49.04,
+    "ratio05over06": 0.9298,
+    "ratioRepeat": 0.9298,
+    "noise06": 1.0,
+    "rgb06": [
+     55.26,
+     54.89,
+     35.07
+    ],
+    "rgb05": [
+     51.53,
+     50.96,
+     32.63
+    ],
+    "lumaZero": 29.89,
+    "lumaFour": 79.65,
+    "linear05over06": 0.9667,
+    "ambientShareAt06": 0.1998,
+    "defaultVs06": {
+     "meanAbs": 0.736,
+     "identical": 0.8284,
+     "maskMeanAbs": 3.704
+    },
+    "defaultVs05": {
+     "meanAbs": 0.452,
+     "identical": 0.9234,
+     "maskMeanAbs": 0.0
+    }
+   },
+   "onGlMask": {
+    "run": "after-fakk2-rtx-cemetery",
+    "maskFrom": "before-fakk2-glx-cemetery",
+    "alignment": 0.981,
+    "pixels": 30372,
+    "maskPixels": 30374,
+    "luma06": 52.83,
+    "luma05": 49.12,
+    "luma06repeat": 52.83,
+    "luma05repeat": 49.12,
+    "lumaDefault": 49.12,
+    "ratio05over06": 0.9298,
+    "ratioRepeat": 0.9298,
+    "noise06": 1.0
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/after-fakk2-rtx-over",
+   "build": "after",
+   "profile": "fakk2",
+   "renderer": "rtx",
+   "map": "over",
+   "settings": {
+    "com_gameProfile": "fakk2",
+    "cl_renderer": "rtx"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.1,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "67da26a7280e93b49e1cdb839a8b939f3e322eab739e15f25de8365700e1d637",
+   "rendererSha256": "c9b48fb09c54a467366de0d145655c40a533be7c4e04d972a3661c6f7bb6bcc0",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ]
+    ],
+    "gridPixels": 2767,
+    "stableGridPixels": 2636,
+    "maskBox": [
+     459,
+     259,
+     625,
+     362
+    ],
+    "luma06": 91.49,
+    "luma05": 87.48,
+    "luma06repeat": 91.49,
+    "luma05repeat": 87.48,
+    "ratio05over06": 0.9562,
+    "ratioRepeat": 0.9562,
+    "noise06": 1.0,
+    "rgb06": [
+     107.81,
+     91.74,
+     47.4
+    ],
+    "rgb05": [
+     102.91,
+     87.65,
+     46.15
+    ],
+    "lumaZero": 69.79,
+    "lumaFour": 142.41,
+    "linear05over06": 0.9775,
+    "ambientShareAt06": 0.135,
+    "defaultVs06": {
+     "meanAbs": 2.566,
+     "identical": 0.7236,
+     "maskMeanAbs": 4.01
+    },
+    "defaultVs05": {
+     "meanAbs": 2.45,
+     "identical": 0.7373,
+     "maskMeanAbs": 0.001
+    }
+   },
+   "onGlMask": {
+    "run": "after-fakk2-rtx-over",
+    "maskFrom": "before-fakk2-glx-over",
+    "alignment": 0.972,
+    "pixels": 2361,
+    "maskPixels": 2361,
+    "luma06": 101.74,
+    "luma05": 97.68,
+    "luma06repeat": 101.74,
+    "luma05repeat": 97.68,
+    "lumaDefault": 97.68,
+    "ratio05over06": 0.9601,
+    "ratioRepeat": 0.9601,
+    "noise06": 1.0
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/after-fakk2-vk-cemetery",
+   "build": "after",
+   "profile": "fakk2",
+   "renderer": "vk",
+   "map": "cemetery",
+   "settings": {
+    "com_gameProfile": "fakk2",
+    "cl_renderer": "vk"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.3,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "67da26a7280e93b49e1cdb839a8b939f3e322eab739e15f25de8365700e1d637",
+   "rendererSha256": "15544cdaef564d12d6eda98da7ee541a1d570c76b68cb53b37310ff3dcd8aac9",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ]
+    ],
+    "gridPixels": 30565,
+    "stableGridPixels": 30544,
+    "maskBox": [
+     149,
+     23,
+     649,
+     318
+    ],
+    "luma06": 52.74,
+    "luma05": 49.04,
+    "luma06repeat": 52.74,
+    "luma05repeat": 49.04,
+    "ratio05over06": 0.9298,
+    "ratioRepeat": 0.9298,
+    "noise06": 1.0,
+    "rgb06": [
+     55.26,
+     54.89,
+     35.06
+    ],
+    "rgb05": [
+     51.52,
+     50.96,
+     32.63
+    ],
+    "lumaZero": 29.88,
+    "lumaFour": 79.65,
+    "linear05over06": 0.9667,
+    "ambientShareAt06": 0.1999,
+    "defaultVs06": {
+     "meanAbs": 0.73,
+     "identical": 0.8279,
+     "maskMeanAbs": 3.705
+    },
+    "defaultVs05": {
+     "meanAbs": 0.449,
+     "identical": 0.9244,
+     "maskMeanAbs": 0.0
+    }
+   },
+   "onGlMask": {
+    "run": "after-fakk2-vk-cemetery",
+    "maskFrom": "before-fakk2-glx-cemetery",
+    "alignment": 0.982,
+    "pixels": 30372,
+    "maskPixels": 30374,
+    "luma06": 52.83,
+    "luma05": 49.12,
+    "luma06repeat": 52.83,
+    "luma05repeat": 49.12,
+    "lumaDefault": 49.12,
+    "ratio05over06": 0.9298,
+    "ratioRepeat": 0.9298,
+    "noise06": 1.0
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/after-fakk2-vk-over",
+   "build": "after",
+   "profile": "fakk2",
+   "renderer": "vk",
+   "map": "over",
+   "settings": {
+    "com_gameProfile": "fakk2",
+    "cl_renderer": "vk"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.1,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "67da26a7280e93b49e1cdb839a8b939f3e322eab739e15f25de8365700e1d637",
+   "rendererSha256": "15544cdaef564d12d6eda98da7ee541a1d570c76b68cb53b37310ff3dcd8aac9",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ]
+    ],
+    "gridPixels": 2724,
+    "stableGridPixels": 2636,
+    "maskBox": [
+     459,
+     259,
+     625,
+     362
+    ],
+    "luma06": 91.52,
+    "luma05": 87.45,
+    "luma06repeat": 91.52,
+    "luma05repeat": 87.45,
+    "ratio05over06": 0.9555,
+    "ratioRepeat": 0.9555,
+    "noise06": 1.0,
+    "rgb06": [
+     107.84,
+     91.78,
+     47.42
+    ],
+    "rgb05": [
+     102.92,
+     87.6,
+     46.11
+    ],
+    "lumaZero": 69.82,
+    "lumaFour": 142.4,
+    "linear05over06": 0.9775,
+    "ambientShareAt06": 0.1349,
+    "defaultVs06": {
+     "meanAbs": 2.703,
+     "identical": 0.723,
+     "maskMeanAbs": 4.073
+    },
+    "defaultVs05": {
+     "meanAbs": 2.577,
+     "identical": 0.7352,
+     "maskMeanAbs": 0.002
+    }
+   },
+   "onGlMask": {
+    "run": "after-fakk2-vk-over",
+    "maskFrom": "before-fakk2-glx-over",
+    "alignment": 0.975,
+    "pixels": 2361,
+    "maskPixels": 2361,
+    "luma06": 101.74,
+    "luma05": 97.64,
+    "luma06repeat": 101.74,
+    "luma05repeat": 97.64,
+    "lumaDefault": 97.65,
+    "ratio05over06": 0.9597,
+    "ratioRepeat": 0.9597,
+    "noise06": 1.0
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/afternostatic-fakk2-glx-cemetery",
+   "build": "afternostatic",
+   "profile": "fakk2",
+   "renderer": "glx",
+   "map": "cemetery",
+   "settings": {
+    "com_gameProfile": "fakk2",
+    "cl_renderer": "glx",
+    "r_staticLights": "0"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.1,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "67da26a7280e93b49e1cdb839a8b939f3e322eab739e15f25de8365700e1d637",
+   "rendererSha256": "35234cab04261e0d4941006ab278567500c65adfeac25413cd9ccbc71071d121",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ]
+    ],
+    "gridPixels": 30395,
+    "stableGridPixels": 30373,
+    "maskBox": [
+     149,
+     23,
+     649,
+     318
+    ],
+    "luma06": 52.82,
+    "luma05": 49.12,
+    "luma06repeat": 52.82,
+    "luma05repeat": 49.12,
+    "ratio05over06": 0.93,
+    "ratioRepeat": 0.93,
+    "noise06": 1.0,
+    "rgb06": [
+     55.34,
+     54.97,
+     35.14
+    ],
+    "rgb05": [
+     51.61,
+     51.04,
+     32.71
+    ],
+    "lumaZero": 29.94,
+    "lumaFour": 79.6,
+    "linear05over06": 0.9668,
+    "ambientShareAt06": 0.1992,
+    "defaultVs06": {
+     "meanAbs": 0.726,
+     "identical": 0.8438,
+     "maskMeanAbs": 3.703
+    },
+    "defaultVs05": {
+     "meanAbs": 0.426,
+     "identical": 0.9412,
+     "maskMeanAbs": 0.0
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/afternostatic-fakk2-glx-homes1",
+   "build": "afternostatic",
+   "profile": "fakk2",
+   "renderer": "glx",
+   "map": "homes1",
+   "settings": {
+    "com_gameProfile": "fakk2",
+    "cl_renderer": "glx",
+    "r_staticLights": "0"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.1,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "67da26a7280e93b49e1cdb839a8b939f3e322eab739e15f25de8365700e1d637",
+   "rendererSha256": "35234cab04261e0d4941006ab278567500c65adfeac25413cd9ccbc71071d121",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.5"
+     ]
+    ],
+    "gridPixels": 7299,
+    "stableGridPixels": 6593,
+    "maskBox": [
+     72,
+     18,
+     299,
+     345
+    ],
+    "luma06": 40.1,
+    "luma05": 37.15,
+    "luma06repeat": 40.1,
+    "luma05repeat": 37.18,
+    "ratio05over06": 0.9264,
+    "ratioRepeat": 0.9272,
+    "noise06": 1.0,
+    "rgb06": [
+     43.53,
+     40.08,
+     31.25
+    ],
+    "rgb05": [
+     40.37,
+     37.13,
+     28.84
+    ],
+    "lumaZero": 21.59,
+    "lumaFour": 74.61,
+    "linear05over06": 0.9551,
+    "ambientShareAt06": 0.2692,
+    "defaultVs06": {
+     "meanAbs": 2.527,
+     "identical": 0.8639,
+     "maskMeanAbs": 3.006
+    },
+    "defaultVs05": {
+     "meanAbs": 3.021,
+     "identical": 0.8808,
+     "maskMeanAbs": 0.029
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-alice-glx-centipede1",
+   "build": "before",
+   "profile": "alice",
+   "renderer": "glx",
+   "map": "centipede1",
+   "settings": {
+    "com_gameProfile": "alice",
+    "cl_renderer": "glx",
+    "ui_subtitles": "0"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.1,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 12091,
+    "stableGridPixels": 1563,
+    "maskBox": [
+     273,
+     37,
+     759,
+     389
+    ],
+    "luma06": 28.13,
+    "luma05": 27.56,
+    "luma06repeat": 27.93,
+    "luma05repeat": 27.56,
+    "ratio05over06": 0.9797,
+    "ratioRepeat": 0.9868,
+    "noise06": 0.9929,
+    "rgb06": [
+     33.08,
+     25.92,
+     26.5
+    ],
+    "rgb05": [
+     28.71,
+     26.88,
+     28.07
+    ],
+    "lumaZero": 22.31,
+    "lumaFour": 60.76,
+    "linear05over06": 0.9658,
+    "ambientShareAt06": 0.2054,
+    "defaultVs06": {
+     "meanAbs": 0.566,
+     "identical": 0.9505,
+     "maskMeanAbs": 0.0
+    },
+    "defaultVs05": {
+     "meanAbs": 10.236,
+     "identical": 0.035,
+     "maskMeanAbs": 2.101
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-alice-glx-facade",
+   "build": "before",
+   "profile": "alice",
+   "renderer": "glx",
+   "map": "facade",
+   "settings": {
+    "com_gameProfile": "alice",
+    "cl_renderer": "glx",
+    "ui_subtitles": "0"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.1,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 1826,
+    "stableGridPixels": 0,
+    "defaultVs06": {
+     "meanAbs": 1.144,
+     "identical": 0.9234,
+     "maskMeanAbs": null
+    },
+    "defaultVs05": {
+     "meanAbs": 6.119,
+     "identical": 0.0522,
+     "maskMeanAbs": null
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-alice-glx-fortress1",
+   "build": "before",
+   "profile": "alice",
+   "renderer": "glx",
+   "map": "fortress1",
+   "settings": {
+    "com_gameProfile": "alice",
+    "cl_renderer": "glx",
+    "ui_subtitles": "0"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.1,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 478,
+    "stableGridPixels": 0,
+    "defaultVs06": {
+     "meanAbs": 0.512,
+     "identical": 0.9635,
+     "maskMeanAbs": null
+    },
+    "defaultVs05": {
+     "meanAbs": 10.44,
+     "identical": 0.1681,
+     "maskMeanAbs": null
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-alice-glx-garden1",
+   "build": "before",
+   "profile": "alice",
+   "renderer": "glx",
+   "map": "garden1",
+   "settings": {
+    "com_gameProfile": "alice",
+    "cl_renderer": "glx",
+    "ui_subtitles": "0"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.1,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 1843,
+    "stableGridPixels": 732,
+    "maskBox": [
+     40,
+     147,
+     82,
+     292
+    ],
+    "luma06": 31.57,
+    "luma05": 30.9,
+    "luma06repeat": 31.45,
+    "luma05repeat": 30.86,
+    "ratio05over06": 0.9788,
+    "ratioRepeat": 0.9812,
+    "noise06": 0.9962,
+    "rgb06": [
+     41.55,
+     30.18,
+     12.59
+    ],
+    "rgb05": [
+     40.92,
+     29.39,
+     12.37
+    ],
+    "lumaZero": 27.88,
+    "lumaFour": 54.05,
+    "linear05over06": 0.9794,
+    "ambientShareAt06": 0.1234,
+    "defaultVs06": {
+     "meanAbs": 0.676,
+     "identical": 0.8689,
+     "maskMeanAbs": 0.15
+    },
+    "defaultVs05": {
+     "meanAbs": 4.623,
+     "identical": 0.0974,
+     "maskMeanAbs": 0.829
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-alice-glx-gvillage",
+   "build": "before",
+   "profile": "alice",
+   "renderer": "glx",
+   "map": "gvillage",
+   "settings": {
+    "com_gameProfile": "alice",
+    "cl_renderer": "glx",
+    "ui_subtitles": "0"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.1,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 498,
+    "stableGridPixels": 29,
+    "maskBox": [
+     450,
+     311,
+     473,
+     317
+    ],
+    "luma06": 29.95,
+    "luma05": 29.06,
+    "luma06repeat": 30.22,
+    "luma05repeat": 29.03,
+    "ratio05over06": 0.9703,
+    "ratioRepeat": 0.9606,
+    "noise06": 1.009,
+    "rgb06": [
+     38.38,
+     27.24,
+     21.83
+    ],
+    "rgb05": [
+     37.31,
+     26.55,
+     20.31
+    ],
+    "lumaZero": 19.7,
+    "lumaFour": 61.2,
+    "linear05over06": 0.96,
+    "ambientShareAt06": 0.2401,
+    "defaultVs06": {
+     "meanAbs": 0.409,
+     "identical": 0.9627,
+     "maskMeanAbs": 0.0
+    },
+    "defaultVs05": {
+     "meanAbs": 13.919,
+     "identical": 0.0274,
+     "maskMeanAbs": 2.323
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-alice-glx-hatter2",
+   "build": "before",
+   "profile": "alice",
+   "renderer": "glx",
+   "map": "hatter2",
+   "settings": {
+    "com_gameProfile": "alice",
+    "cl_renderer": "glx",
+    "ui_subtitles": "0"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.0,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 14732,
+    "stableGridPixels": 382,
+    "maskBox": [
+     241,
+     206,
+     390,
+     293
+    ],
+    "luma06": 33.64,
+    "luma05": 30.78,
+    "luma06repeat": 33.4,
+    "luma05repeat": 30.77,
+    "ratio05over06": 0.915,
+    "ratioRepeat": 0.9213,
+    "noise06": 0.9929,
+    "rgb06": [
+     40.06,
+     31.16,
+     29.54
+    ],
+    "rgb05": [
+     36.44,
+     28.63,
+     26.97
+    ],
+    "lumaZero": 17.78,
+    "lumaFour": 106.98,
+    "linear05over06": 0.9284,
+    "ambientShareAt06": 0.4294,
+    "defaultVs06": {
+     "meanAbs": 7.712,
+     "identical": 0.6309,
+     "maskMeanAbs": 0.008
+    },
+    "defaultVs05": {
+     "meanAbs": 13.526,
+     "identical": 0.0817,
+     "maskMeanAbs": 3.14
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-alice-glx-hedge1",
+   "build": "before",
+   "profile": "alice",
+   "renderer": "glx",
+   "map": "hedge1",
+   "settings": {
+    "com_gameProfile": "alice",
+    "cl_renderer": "glx",
+    "ui_subtitles": "0"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.1,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 8443,
+    "stableGridPixels": 4344,
+    "maskBox": [
+     338,
+     237,
+     462,
+     371
+    ],
+    "luma06": 29.14,
+    "luma05": 27.59,
+    "luma06repeat": 29.12,
+    "luma05repeat": 27.59,
+    "ratio05over06": 0.9468,
+    "ratioRepeat": 0.9475,
+    "noise06": 0.9993,
+    "rgb06": [
+     44.66,
+     24.26,
+     13.54
+    ],
+    "rgb05": [
+     42.16,
+     23.08,
+     12.64
+    ],
+    "lumaZero": 19.24,
+    "lumaFour": 58.86,
+    "linear05over06": 0.9607,
+    "ambientShareAt06": 0.236,
+    "defaultVs06": {
+     "meanAbs": 0.886,
+     "identical": 0.9318,
+     "maskMeanAbs": 0.001
+    },
+    "defaultVs05": {
+     "meanAbs": 10.319,
+     "identical": 0.0262,
+     "maskMeanAbs": 2.289
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-alice-glx-jlair2",
+   "build": "before",
+   "profile": "alice",
+   "renderer": "glx",
+   "map": "jlair2",
+   "settings": {
+    "com_gameProfile": "alice",
+    "cl_renderer": "glx",
+    "ui_subtitles": "0"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 32.8,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 249,
+    "stableGridPixels": 0,
+    "defaultVs06": {
+     "meanAbs": 16.65,
+     "identical": 0.2228,
+     "maskMeanAbs": null
+    },
+    "defaultVs05": {
+     "meanAbs": 17.111,
+     "identical": 0.2633,
+     "maskMeanAbs": null
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-alice-glx-pandemonium",
+   "build": "before",
+   "profile": "alice",
+   "renderer": "glx",
+   "map": "pandemonium",
+   "settings": {
+    "com_gameProfile": "alice",
+    "cl_renderer": "glx",
+    "ui_subtitles": "0"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.1,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 3825,
+    "stableGridPixels": 602,
+    "maskBox": [
+     554,
+     81,
+     677,
+     119
+    ],
+    "luma06": 14.81,
+    "luma05": 12.95,
+    "luma06repeat": 14.61,
+    "luma05repeat": 12.94,
+    "ratio05over06": 0.8744,
+    "ratioRepeat": 0.8857,
+    "noise06": 0.9865,
+    "rgb06": [
+     20.31,
+     13.88,
+     5.2
+    ],
+    "rgb05": [
+     17.38,
+     12.2,
+     5.17
+    ],
+    "lumaZero": 3.86,
+    "lumaFour": 51.26,
+    "linear05over06": 0.892,
+    "ambientShareAt06": 0.6481,
+    "defaultVs06": {
+     "meanAbs": 0.847,
+     "identical": 0.9236,
+     "maskMeanAbs": 0.009
+    },
+    "defaultVs05": {
+     "meanAbs": 13.155,
+     "identical": 0.07,
+     "maskMeanAbs": 2.612
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-alice-glx-skool1",
+   "build": "before",
+   "profile": "alice",
+   "renderer": "glx",
+   "map": "skool1",
+   "settings": {
+    "com_gameProfile": "alice",
+    "cl_renderer": "glx",
+    "ui_subtitles": "0"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.1,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 473,
+    "stableGridPixels": 0,
+    "defaultVs06": {
+     "meanAbs": 0.473,
+     "identical": 0.9426,
+     "maskMeanAbs": null
+    },
+    "defaultVs05": {
+     "meanAbs": 5.556,
+     "identical": 0.0461,
+     "maskMeanAbs": null
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-alice-glx-tower1",
+   "build": "before",
+   "profile": "alice",
+   "renderer": "glx",
+   "map": "tower1",
+   "settings": {
+    "com_gameProfile": "alice",
+    "cl_renderer": "glx",
+    "ui_subtitles": "0"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.1,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 480,
+    "stableGridPixels": 0,
+    "defaultVs06": {
+     "meanAbs": 1.064,
+     "identical": 0.9469,
+     "maskMeanAbs": null
+    },
+    "defaultVs05": {
+     "meanAbs": 8.231,
+     "identical": 0.0464,
+     "maskMeanAbs": null
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-alice-glx-utemple",
+   "build": "before",
+   "profile": "alice",
+   "renderer": "glx",
+   "map": "utemple",
+   "settings": {
+    "com_gameProfile": "alice",
+    "cl_renderer": "glx",
+    "ui_subtitles": "0"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.0,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 1453,
+    "stableGridPixels": 64,
+    "maskBox": [
+     354,
+     257,
+     454,
+     325
+    ],
+    "luma06": 30.08,
+    "luma05": 27.85,
+    "luma06repeat": 29.98,
+    "luma05repeat": 27.91,
+    "ratio05over06": 0.9259,
+    "ratioRepeat": 0.931,
+    "noise06": 0.9967,
+    "rgb06": [
+     8.3,
+     39.64,
+     37.95
+    ],
+    "rgb05": [
+     7.7,
+     36.62,
+     35.52
+    ],
+    "lumaZero": 14.69,
+    "lumaFour": 66.17,
+    "linear05over06": 0.9426,
+    "ambientShareAt06": 0.3445,
+    "defaultVs06": {
+     "meanAbs": 6.632,
+     "identical": 0.0525,
+     "maskMeanAbs": 22.962
+    },
+    "defaultVs05": {
+     "meanAbs": 2.773,
+     "identical": 0.1129,
+     "maskMeanAbs": 23.946
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-alice-glx-wchess1",
+   "build": "before",
+   "profile": "alice",
+   "renderer": "glx",
+   "map": "wchess1",
+   "settings": {
+    "com_gameProfile": "alice",
+    "cl_renderer": "glx",
+    "ui_subtitles": "0"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.3,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 11094,
+    "stableGridPixels": 131,
+    "maskBox": [
+     311,
+     14,
+     559,
+     398
+    ],
+    "luma06": 24.69,
+    "luma05": 99.05,
+    "luma06repeat": 24.6,
+    "luma05repeat": 98.93,
+    "ratio05over06": 4.0117,
+    "ratioRepeat": 4.0215,
+    "noise06": 0.9964,
+    "rgb06": [
+     24.48,
+     24.85,
+     24.44
+    ],
+    "rgb05": [
+     97.01,
+     100.34,
+     97.75
+    ],
+    "lumaZero": 13.02,
+    "lumaFour": 113.99,
+    "linear05over06": 0.9104,
+    "ambientShareAt06": 0.5377,
+    "defaultVs06": {
+     "meanAbs": 7.679,
+     "identical": 0.8791,
+     "maskMeanAbs": 80.708
+    },
+    "defaultVs05": {
+     "meanAbs": 12.634,
+     "identical": 0.0474,
+     "maskMeanAbs": 6.594
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-alice-rtx-centipede1",
+   "build": "before",
+   "profile": "alice",
+   "renderer": "rtx",
+   "map": "centipede1",
+   "settings": {
+    "com_gameProfile": "alice",
+    "cl_renderer": "rtx",
+    "ui_subtitles": "0"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.4,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "d5b004c77904c265aff39735b3b2c937bda5b3c09609b8dbc69a8a7f344ea765",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 10971,
+    "stableGridPixels": 1186,
+    "maskBox": [
+     273,
+     37,
+     759,
+     389
+    ],
+    "luma06": 29.42,
+    "luma05": 28.79,
+    "luma06repeat": 29.22,
+    "luma05repeat": 28.79,
+    "ratio05over06": 0.9786,
+    "ratioRepeat": 0.9853,
+    "noise06": 0.9932,
+    "rgb06": [
+     33.57,
+     27.37,
+     29.09
+    ],
+    "rgb05": [
+     29.88,
+     28.02,
+     29.92
+    ],
+    "lumaZero": 23.65,
+    "lumaFour": 61.97,
+    "linear05over06": 0.9674,
+    "ambientShareAt06": 0.1955,
+    "defaultVs06": {
+     "meanAbs": 0.622,
+     "identical": 0.9369,
+     "maskMeanAbs": 0.106
+    },
+    "defaultVs05": {
+     "meanAbs": 10.309,
+     "identical": 0.035,
+     "maskMeanAbs": 2.134
+    }
+   },
+   "onGlMask": {
+    "run": "before-alice-rtx-centipede1",
+    "maskFrom": "before-alice-glx-centipede1",
+    "alignment": 0.989,
+    "pixels": 1174,
+    "maskPixels": 1563,
+    "luma06": 29.17,
+    "luma05": 28.61,
+    "luma06repeat": 29.07,
+    "luma05repeat": 28.62,
+    "lumaDefault": 29.14,
+    "ratio05over06": 0.9808,
+    "ratioRepeat": 0.9845,
+    "noise06": 0.9966
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-alice-rtx-hedge1",
+   "build": "before",
+   "profile": "alice",
+   "renderer": "rtx",
+   "map": "hedge1",
+   "settings": {
+    "com_gameProfile": "alice",
+    "cl_renderer": "rtx",
+    "ui_subtitles": "0"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.2,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "d5b004c77904c265aff39735b3b2c937bda5b3c09609b8dbc69a8a7f344ea765",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 8695,
+    "stableGridPixels": 4414,
+    "maskBox": [
+     338,
+     237,
+     456,
+     371
+    ],
+    "luma06": 30.22,
+    "luma05": 28.65,
+    "luma06repeat": 30.21,
+    "luma05repeat": 28.65,
+    "ratio05over06": 0.948,
+    "ratioRepeat": 0.9484,
+    "noise06": 0.9997,
+    "rgb06": [
+     46.14,
+     25.18,
+     14.42
+    ],
+    "rgb05": [
+     43.62,
+     23.98,
+     13.49
+    ],
+    "lumaZero": 20.12,
+    "lumaFour": 60.17,
+    "linear05over06": 0.9617,
+    "ambientShareAt06": 0.2299,
+    "defaultVs06": {
+     "meanAbs": 0.932,
+     "identical": 0.9094,
+     "maskMeanAbs": 0.001
+    },
+    "defaultVs05": {
+     "meanAbs": 10.752,
+     "identical": 0.0261,
+     "maskMeanAbs": 2.264
+    }
+   },
+   "onGlMask": {
+    "run": "before-alice-rtx-hedge1",
+    "maskFrom": "before-alice-glx-hedge1",
+    "alignment": 0.966,
+    "pixels": 3989,
+    "maskPixels": 4344,
+    "luma06": 29.39,
+    "luma05": 27.82,
+    "luma06repeat": 29.38,
+    "luma05repeat": 27.82,
+    "lumaDefault": 29.39,
+    "ratio05over06": 0.9466,
+    "ratioRepeat": 0.9469,
+    "noise06": 0.9997
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-alice-vk-centipede1",
+   "build": "before",
+   "profile": "alice",
+   "renderer": "vk",
+   "map": "centipede1",
+   "settings": {
+    "com_gameProfile": "alice",
+    "cl_renderer": "vk",
+    "ui_subtitles": "0"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.4,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "304b472634aebee3e486bdb73fa8b32915334f39066b7635739f4c0c51cfe7e3",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 11586,
+    "stableGridPixels": 1420,
+    "maskBox": [
+     273,
+     37,
+     759,
+     389
+    ],
+    "luma06": 28.86,
+    "luma05": 28.35,
+    "luma06repeat": 28.77,
+    "luma05repeat": 28.35,
+    "ratio05over06": 0.9823,
+    "ratioRepeat": 0.9854,
+    "noise06": 0.9969,
+    "rgb06": [
+     33.59,
+     26.65,
+     27.82
+    ],
+    "rgb05": [
+     29.79,
+     27.49,
+     29.05
+    ],
+    "lumaZero": 23.04,
+    "lumaFour": 61.51,
+    "linear05over06": 0.9666,
+    "ambientShareAt06": 0.2003,
+    "defaultVs06": {
+     "meanAbs": 0.602,
+     "identical": 0.9408,
+     "maskMeanAbs": 0.014
+    },
+    "defaultVs05": {
+     "meanAbs": 10.293,
+     "identical": 0.0351,
+     "maskMeanAbs": 2.109
+    }
+   },
+   "onGlMask": {
+    "run": "before-alice-vk-centipede1",
+    "maskFrom": "before-alice-glx-centipede1",
+    "alignment": 0.991,
+    "pixels": 1351,
+    "maskPixels": 1563,
+    "luma06": 28.72,
+    "luma05": 28.22,
+    "luma06repeat": 28.68,
+    "luma05repeat": 28.22,
+    "lumaDefault": 28.73,
+    "ratio05over06": 0.9826,
+    "ratioRepeat": 0.984,
+    "noise06": 0.9986
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-alice-vk-hedge1",
+   "build": "before",
+   "profile": "alice",
+   "renderer": "vk",
+   "map": "hedge1",
+   "settings": {
+    "com_gameProfile": "alice",
+    "cl_renderer": "vk",
+    "ui_subtitles": "0"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.9,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "304b472634aebee3e486bdb73fa8b32915334f39066b7635739f4c0c51cfe7e3",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 8694,
+    "stableGridPixels": 4416,
+    "maskBox": [
+     338,
+     237,
+     456,
+     371
+    ],
+    "luma06": 30.22,
+    "luma05": 28.65,
+    "luma06repeat": 30.21,
+    "luma05repeat": 28.65,
+    "ratio05over06": 0.948,
+    "ratioRepeat": 0.9484,
+    "noise06": 0.9997,
+    "rgb06": [
+     46.14,
+     25.19,
+     14.42
+    ],
+    "rgb05": [
+     43.62,
+     23.98,
+     13.49
+    ],
+    "lumaZero": 20.13,
+    "lumaFour": 60.17,
+    "linear05over06": 0.9617,
+    "ambientShareAt06": 0.2298,
+    "defaultVs06": {
+     "meanAbs": 0.934,
+     "identical": 0.9093,
+     "maskMeanAbs": 0.001
+    },
+    "defaultVs05": {
+     "meanAbs": 10.774,
+     "identical": 0.0261,
+     "maskMeanAbs": 2.267
+    }
+   },
+   "onGlMask": {
+    "run": "before-alice-vk-hedge1",
+    "maskFrom": "before-alice-glx-hedge1",
+    "alignment": 0.963,
+    "pixels": 3989,
+    "maskPixels": 4344,
+    "luma06": 29.39,
+    "luma05": 27.82,
+    "luma06repeat": 29.38,
+    "luma05repeat": 27.82,
+    "lumaDefault": 29.39,
+    "ratio05over06": 0.9466,
+    "ratioRepeat": 0.9469,
+    "noise06": 0.9997
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-fakk2-glx-cemetery",
+   "build": "before",
+   "profile": "fakk2",
+   "renderer": "glx",
+   "map": "cemetery",
+   "settings": {
+    "com_gameProfile": "fakk2",
+    "cl_renderer": "glx"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.3,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 30391,
+    "stableGridPixels": 30374,
+    "maskBox": [
+     149,
+     23,
+     649,
+     318
+    ],
+    "luma06": 52.82,
+    "luma05": 49.12,
+    "luma06repeat": 52.82,
+    "luma05repeat": 49.12,
+    "ratio05over06": 0.93,
+    "ratioRepeat": 0.93,
+    "noise06": 1.0,
+    "rgb06": [
+     55.34,
+     54.97,
+     35.13
+    ],
+    "rgb05": [
+     51.61,
+     51.04,
+     32.71
+    ],
+    "lumaZero": 29.94,
+    "lumaFour": 79.59,
+    "linear05over06": 0.9668,
+    "ambientShareAt06": 0.1992,
+    "defaultVs06": {
+     "meanAbs": 0.444,
+     "identical": 0.9407,
+     "maskMeanAbs": 0.002
+    },
+    "defaultVs05": {
+     "meanAbs": 0.708,
+     "identical": 0.8443,
+     "maskMeanAbs": 3.701
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-fakk2-glx-fakkhouse",
+   "build": "before",
+   "profile": "fakk2",
+   "renderer": "glx",
+   "map": "fakkhouse",
+   "settings": {
+    "com_gameProfile": "fakk2",
+    "cl_renderer": "glx"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.1,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 456,
+    "stableGridPixels": 83,
+    "maskBox": [
+     687,
+     302,
+     704,
+     324
+    ],
+    "luma06": 68.56,
+    "luma05": 64.97,
+    "luma06repeat": 68.4,
+    "luma05repeat": 64.72,
+    "ratio05over06": 0.9476,
+    "ratioRepeat": 0.9462,
+    "noise06": 0.9977,
+    "rgb06": [
+     63.83,
+     76.67,
+     39.16
+    ],
+    "rgb05": [
+     60.58,
+     72.72,
+     36.58
+    ],
+    "lumaZero": 41.27,
+    "lumaFour": 102.86,
+    "linear05over06": 0.9695,
+    "ambientShareAt06": 0.1829,
+    "defaultVs06": {
+     "meanAbs": 2.362,
+     "identical": 0.8701,
+     "maskMeanAbs": 0.242
+    },
+    "defaultVs05": {
+     "meanAbs": 2.17,
+     "identical": 0.8712,
+     "maskMeanAbs": 3.828
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-fakk2-glx-homes1",
+   "build": "before",
+   "profile": "fakk2",
+   "renderer": "glx",
+   "map": "homes1",
+   "settings": {
+    "com_gameProfile": "fakk2",
+    "cl_renderer": "glx"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 34.1,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 7401,
+    "stableGridPixels": 6742,
+    "maskBox": [
+     72,
+     16,
+     299,
+     345
+    ],
+    "luma06": 40.69,
+    "luma05": 37.75,
+    "luma06repeat": 40.7,
+    "luma05repeat": 37.76,
+    "ratio05over06": 0.9277,
+    "ratioRepeat": 0.9278,
+    "noise06": 1.0002,
+    "rgb06": [
+     44.16,
+     40.66,
+     31.7
+    ],
+    "rgb05": [
+     41.02,
+     37.73,
+     29.3
+    ],
+    "lumaZero": 22.15,
+    "lumaFour": 74.85,
+    "linear05over06": 0.9562,
+    "ambientShareAt06": 0.263,
+    "defaultVs06": {
+     "meanAbs": 2.367,
+     "identical": 0.8828,
+     "maskMeanAbs": 0.02
+    },
+    "defaultVs05": {
+     "meanAbs": 3.001,
+     "identical": 0.8645,
+     "maskMeanAbs": 2.956
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-fakk2-glx-landersroost",
+   "build": "before",
+   "profile": "fakk2",
+   "renderer": "glx",
+   "map": "landersroost",
+   "settings": {
+    "com_gameProfile": "fakk2",
+    "cl_renderer": "glx"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.1,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 96,
+    "stableGridPixels": 7,
+    "maskBox": [
+     400,
+     354,
+     495,
+     541
+    ],
+    "luma06": 94.85,
+    "luma05": 94.95,
+    "luma06repeat": 94.9,
+    "luma05repeat": 95.0,
+    "ratio05over06": 1.0011,
+    "ratioRepeat": 1.0011,
+    "noise06": 1.0005,
+    "rgb06": [
+     108.57,
+     93.86,
+     64.0
+    ],
+    "rgb05": [
+     108.57,
+     94.0,
+     64.14
+    ],
+    "lumaZero": 11.58,
+    "lumaFour": 95.0,
+    "linear05over06": 0.9134,
+    "ambientShareAt06": 0.5194,
+    "defaultVs06": {
+     "meanAbs": 0.51,
+     "identical": 0.9579,
+     "maskMeanAbs": 29.644
+    },
+    "defaultVs05": {
+     "meanAbs": 0.481,
+     "identical": 0.9595,
+     "maskMeanAbs": 29.744
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-fakk2-glx-otto",
+   "build": "before",
+   "profile": "fakk2",
+   "renderer": "glx",
+   "map": "otto",
+   "settings": {
+    "com_gameProfile": "fakk2",
+    "cl_renderer": "glx"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.1,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 5,
+    "stableGridPixels": 0,
+    "defaultVs06": {
+     "meanAbs": 0.294,
+     "identical": 0.964,
+     "maskMeanAbs": null
+    },
+    "defaultVs05": {
+     "meanAbs": 0.279,
+     "identical": 0.9636,
+     "maskMeanAbs": null
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-fakk2-glx-over",
+   "build": "before",
+   "profile": "fakk2",
+   "renderer": "glx",
+   "map": "over",
+   "settings": {
+    "com_gameProfile": "fakk2",
+    "cl_renderer": "glx"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.6,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 2460,
+    "stableGridPixels": 2361,
+    "maskBox": [
+     460,
+     259,
+     625,
+     522
+    ],
+    "luma06": 60.71,
+    "luma05": 57.69,
+    "luma06repeat": 60.71,
+    "luma05repeat": 57.69,
+    "ratio05over06": 0.9503,
+    "ratioRepeat": 0.9503,
+    "noise06": 1.0,
+    "rgb06": [
+     74.51,
+     60.58,
+     25.22
+    ],
+    "rgb05": [
+     70.36,
+     57.71,
+     24.4
+    ],
+    "lumaZero": 42.65,
+    "lumaFour": 102.04,
+    "linear05over06": 0.9712,
+    "ambientShareAt06": 0.1728,
+    "defaultVs06": {
+     "meanAbs": 2.609,
+     "identical": 0.7398,
+     "maskMeanAbs": 0.013
+    },
+    "defaultVs05": {
+     "meanAbs": 2.571,
+     "identical": 0.7339,
+     "maskMeanAbs": 3.008
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-fakk2-glx-shield",
+   "build": "before",
+   "profile": "fakk2",
+   "renderer": "glx",
+   "map": "shield",
+   "settings": {
+    "com_gameProfile": "fakk2",
+    "cl_renderer": "glx"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.1,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 314,
+    "stableGridPixels": 0,
+    "defaultVs06": {
+     "meanAbs": 0.458,
+     "identical": 0.9349,
+     "maskMeanAbs": null
+    },
+    "defaultVs05": {
+     "meanAbs": 0.472,
+     "identical": 0.9348,
+     "maskMeanAbs": null
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-fakk2-glx-swamp1",
+   "build": "before",
+   "profile": "fakk2",
+   "renderer": "glx",
+   "map": "swamp1",
+   "settings": {
+    "com_gameProfile": "fakk2",
+    "cl_renderer": "glx"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.1,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 5682,
+    "stableGridPixels": 232,
+    "maskBox": [
+     462,
+     442,
+     797,
+     552
+    ],
+    "luma06": 43.08,
+    "luma05": 42.12,
+    "luma06repeat": 43.34,
+    "luma05repeat": 41.86,
+    "ratio05over06": 0.9777,
+    "ratioRepeat": 0.9659,
+    "noise06": 1.006,
+    "rgb06": [
+     38.31,
+     49.09,
+     24.66
+    ],
+    "rgb05": [
+     37.24,
+     48.04,
+     24.42
+    ],
+    "lumaZero": 33.78,
+    "lumaFour": 90.92,
+    "linear05over06": 0.9663,
+    "ambientShareAt06": 0.2024,
+    "defaultVs06": {
+     "meanAbs": 0.764,
+     "identical": 0.8521,
+     "maskMeanAbs": 0.773
+    },
+    "defaultVs05": {
+     "meanAbs": 0.581,
+     "identical": 0.8833,
+     "maskMeanAbs": 1.352
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-fakk2-glx-towncenter_evil",
+   "build": "before",
+   "profile": "fakk2",
+   "renderer": "glx",
+   "map": "towncenter_evil",
+   "settings": {
+    "com_gameProfile": "fakk2",
+    "cl_renderer": "glx"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.1,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 1045,
+    "stableGridPixels": 13,
+    "maskBox": [
+     11,
+     253,
+     64,
+     271
+    ],
+    "luma06": 6.83,
+    "luma05": 6.25,
+    "luma06repeat": 7.98,
+    "luma05repeat": 6.83,
+    "ratio05over06": 0.9151,
+    "ratioRepeat": 0.8559,
+    "noise06": 1.1684,
+    "rgb06": [
+     6.69,
+     6.92,
+     6.69
+    ],
+    "rgb05": [
+     6.23,
+     6.38,
+     5.62
+    ],
+    "lumaZero": 6.25,
+    "lumaFour": 145.76,
+    "linear05over06": 0.8717,
+    "ambientShareAt06": 0.77,
+    "defaultVs06": {
+     "meanAbs": 2.731,
+     "identical": 0.8677,
+     "maskMeanAbs": 3.33
+    },
+    "defaultVs05": {
+     "meanAbs": 3.061,
+     "identical": 0.8932,
+     "maskMeanAbs": 3.386
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-fakk2-glx-training",
+   "build": "before",
+   "profile": "fakk2",
+   "renderer": "glx",
+   "map": "training",
+   "settings": {
+    "com_gameProfile": "fakk2",
+    "cl_renderer": "glx"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 32.9,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 138,
+    "stableGridPixels": 47,
+    "maskBox": [
+     23,
+     301,
+     55,
+     330
+    ],
+    "luma06": 104.8,
+    "luma05": 97.97,
+    "luma06repeat": 104.8,
+    "luma05repeat": 97.97,
+    "ratio05over06": 0.9348,
+    "ratioRepeat": 0.9348,
+    "noise06": 1.0,
+    "rgb06": [
+     104.17,
+     105.02,
+     105.34
+    ],
+    "rgb05": [
+     97.45,
+     98.11,
+     98.64
+    ],
+    "lumaZero": 62.46,
+    "lumaFour": 145.39,
+    "linear05over06": 0.9723,
+    "ambientShareAt06": 0.1661,
+    "defaultVs06": {
+     "meanAbs": 0.721,
+     "identical": 0.9535,
+     "maskMeanAbs": 0.0
+    },
+    "defaultVs05": {
+     "meanAbs": 0.676,
+     "identical": 0.9561,
+     "maskMeanAbs": 6.833
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-fakk2-glx-water",
+   "build": "before",
+   "profile": "fakk2",
+   "renderer": "glx",
+   "map": "water",
+   "settings": {
+    "com_gameProfile": "fakk2",
+    "cl_renderer": "glx"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 35.0,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 1270,
+    "stableGridPixels": 1083,
+    "maskBox": [
+     35,
+     268,
+     658,
+     348
+    ],
+    "luma06": 61.81,
+    "luma05": 56.54,
+    "luma06repeat": 61.81,
+    "luma05repeat": 56.53,
+    "ratio05over06": 0.9147,
+    "ratioRepeat": 0.9146,
+    "noise06": 1.0,
+    "rgb06": [
+     42.74,
+     67.82,
+     80.9
+    ],
+    "rgb05": [
+     38.5,
+     62.14,
+     75.06
+    ],
+    "lumaZero": 26.29,
+    "lumaFour": 99.06,
+    "linear05over06": 0.9511,
+    "ambientShareAt06": 0.2934,
+    "defaultVs06": {
+     "meanAbs": 4.963,
+     "identical": 0.1128,
+     "maskMeanAbs": 0.092
+    },
+    "defaultVs05": {
+     "meanAbs": 5.331,
+     "identical": 0.108,
+     "maskMeanAbs": 5.306
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-fakk2-glx-zoo",
+   "build": "before",
+   "profile": "fakk2",
+   "renderer": "glx",
+   "map": "zoo",
+   "settings": {
+    "com_gameProfile": "fakk2",
+    "cl_renderer": "glx"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.1,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 5,
+    "stableGridPixels": 0,
+    "defaultVs06": {
+     "meanAbs": 0.343,
+     "identical": 0.9674,
+     "maskMeanAbs": null
+    },
+    "defaultVs05": {
+     "meanAbs": 0.337,
+     "identical": 0.9676,
+     "maskMeanAbs": null
+    }
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-fakk2-rtx-cemetery",
+   "build": "before",
+   "profile": "fakk2",
+   "renderer": "rtx",
+   "map": "cemetery",
+   "settings": {
+    "com_gameProfile": "fakk2",
+    "cl_renderer": "rtx"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.6,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "d5b004c77904c265aff39735b3b2c937bda5b3c09609b8dbc69a8a7f344ea765",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 30563,
+    "stableGridPixels": 30548,
+    "maskBox": [
+     149,
+     23,
+     649,
+     318
+    ],
+    "luma06": 52.74,
+    "luma05": 49.04,
+    "luma06repeat": 52.74,
+    "luma05repeat": 49.04,
+    "ratio05over06": 0.9298,
+    "ratioRepeat": 0.9298,
+    "noise06": 1.0,
+    "rgb06": [
+     55.26,
+     54.89,
+     35.07
+    ],
+    "rgb05": [
+     51.53,
+     50.96,
+     32.63
+    ],
+    "lumaZero": 29.89,
+    "lumaFour": 79.65,
+    "linear05over06": 0.9667,
+    "ambientShareAt06": 0.1998,
+    "defaultVs06": {
+     "meanAbs": 0.444,
+     "identical": 0.9243,
+     "maskMeanAbs": 0.0
+    },
+    "defaultVs05": {
+     "meanAbs": 0.739,
+     "identical": 0.8279,
+     "maskMeanAbs": 3.704
+    }
+   },
+   "onGlMask": {
+    "run": "before-fakk2-rtx-cemetery",
+    "maskFrom": "before-fakk2-glx-cemetery",
+    "alignment": 0.981,
+    "pixels": 30372,
+    "maskPixels": 30374,
+    "luma06": 52.83,
+    "luma05": 49.12,
+    "luma06repeat": 52.83,
+    "luma05repeat": 49.12,
+    "lumaDefault": 52.83,
+    "ratio05over06": 0.9298,
+    "ratioRepeat": 0.9298,
+    "noise06": 1.0
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-fakk2-rtx-over",
+   "build": "before",
+   "profile": "fakk2",
+   "renderer": "rtx",
+   "map": "over",
+   "settings": {
+    "com_gameProfile": "fakk2",
+    "cl_renderer": "rtx"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.3,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "d5b004c77904c265aff39735b3b2c937bda5b3c09609b8dbc69a8a7f344ea765",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 2707,
+    "stableGridPixels": 2637,
+    "maskBox": [
+     459,
+     259,
+     625,
+     522
+    ],
+    "luma06": 91.48,
+    "luma05": 87.46,
+    "luma06repeat": 91.48,
+    "luma05repeat": 87.46,
+    "ratio05over06": 0.9561,
+    "ratioRepeat": 0.9561,
+    "noise06": 1.0,
+    "rgb06": [
+     107.78,
+     91.74,
+     47.41
+    ],
+    "rgb05": [
+     102.88,
+     87.63,
+     46.15
+    ],
+    "lumaZero": 69.78,
+    "lumaFour": 142.38,
+    "linear05over06": 0.9775,
+    "ambientShareAt06": 0.135,
+    "defaultVs06": {
+     "meanAbs": 2.534,
+     "identical": 0.7347,
+     "maskMeanAbs": 0.011
+    },
+    "defaultVs05": {
+     "meanAbs": 2.528,
+     "identical": 0.7264,
+     "maskMeanAbs": 4.009
+    }
+   },
+   "onGlMask": {
+    "run": "before-fakk2-rtx-over",
+    "maskFrom": "before-fakk2-glx-over",
+    "alignment": 0.973,
+    "pixels": 2361,
+    "maskPixels": 2361,
+    "luma06": 101.74,
+    "luma05": 97.68,
+    "luma06repeat": 101.74,
+    "luma05repeat": 97.68,
+    "lumaDefault": 101.73,
+    "ratio05over06": 0.9601,
+    "ratioRepeat": 0.9601,
+    "noise06": 1.0
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-fakk2-vk-cemetery",
+   "build": "before",
+   "profile": "fakk2",
+   "renderer": "vk",
+   "map": "cemetery",
+   "settings": {
+    "com_gameProfile": "fakk2",
+    "cl_renderer": "vk"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.6,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "304b472634aebee3e486bdb73fa8b32915334f39066b7635739f4c0c51cfe7e3",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 30832,
+    "stableGridPixels": 1,
+    "maskBox": [
+     429,
+     476,
+     429,
+     476
+    ],
+    "luma06": 115.07,
+    "luma05": 115.96,
+    "luma06repeat": 115.07,
+    "luma05repeat": 113.77,
+    "ratio05over06": 1.0077,
+    "ratioRepeat": 0.9887,
+    "noise06": 1.0,
+    "rgb06": [
+     160.0,
+     99.0,
+     80.0
+    ],
+    "rgb05": [
+     161.0,
+     100.0,
+     80.0
+    ],
+    "lumaZero": 32.8,
+    "lumaFour": 115.47,
+    "linear05over06": 0.9543,
+    "ambientShareAt06": 0.2743,
+    "defaultVs06": {
+     "meanAbs": 0.444,
+     "identical": 0.9244,
+     "maskMeanAbs": 82.277
+    },
+    "defaultVs05": {
+     "meanAbs": 0.754,
+     "identical": 0.8251,
+     "maskMeanAbs": 83.163
+    }
+   },
+   "onGlMask": {
+    "run": "before-fakk2-vk-cemetery",
+    "maskFrom": "before-fakk2-glx-cemetery",
+    "alignment": 0.98,
+    "pixels": 30372,
+    "maskPixels": 30374,
+    "luma06": 52.83,
+    "luma05": 49.12,
+    "luma06repeat": 52.83,
+    "luma05repeat": 49.12,
+    "lumaDefault": 52.83,
+    "ratio05over06": 0.9298,
+    "ratioRepeat": 0.9298,
+    "noise06": 1.0
+   }
+  },
+  {
+   "run": ".tmp/ritual-ambient-scale/runs/before-fakk2-vk-over",
+   "build": "before",
+   "profile": "fakk2",
+   "renderer": "vk",
+   "map": "over",
+   "settings": {
+    "com_gameProfile": "fakk2",
+    "cl_renderer": "vk"
+   },
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 33.4,
+   "installationUnchanged": true,
+   "captures": [
+    "a_default.png",
+    "b_zero.png",
+    "b_zero2.png",
+    "c_four.png",
+    "c_four2.png",
+    "d_06.png",
+    "e_05.png",
+    "f_06.png",
+    "g_05.png"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "304b472634aebee3e486bdb73fa8b32915334f39066b7635739f4c0c51cfe7e3",
+   "ownMask": {
+    "cvars": [
+     [
+      "r_ambientScale",
+      "0.6",
+      "0.6"
+     ],
+     [
+      "r_directedScale",
+      "1",
+      "1"
+     ],
+     [
+      "r_ambientScale",
+      "0.5",
+      "0.6"
+     ]
+    ],
+    "gridPixels": 2724,
+    "stableGridPixels": 2636,
+    "maskBox": [
+     459,
+     259,
+     625,
+     362
+    ],
+    "luma06": 91.52,
+    "luma05": 87.45,
+    "luma06repeat": 91.52,
+    "luma05repeat": 87.45,
+    "ratio05over06": 0.9555,
+    "ratioRepeat": 0.9555,
+    "noise06": 1.0,
+    "rgb06": [
+     107.84,
+     91.78,
+     47.42
+    ],
+    "rgb05": [
+     102.92,
+     87.6,
+     46.11
+    ],
+    "lumaZero": 69.82,
+    "lumaFour": 142.4,
+    "linear05over06": 0.9775,
+    "ambientShareAt06": 0.1349,
+    "defaultVs06": {
+     "meanAbs": 2.682,
+     "identical": 0.7333,
+     "maskMeanAbs": 0.002
+    },
+    "defaultVs05": {
+     "meanAbs": 2.647,
+     "identical": 0.7243,
+     "maskMeanAbs": 4.074
+    }
+   },
+   "onGlMask": {
+    "run": "before-fakk2-vk-over",
+    "maskFrom": "before-fakk2-glx-over",
+    "alignment": 0.975,
+    "pixels": 2361,
+    "maskPixels": 2361,
+    "luma06": 101.74,
+    "luma05": 97.64,
+    "luma06repeat": 101.74,
+    "luma05repeat": 97.64,
+    "lumaDefault": 101.73,
+    "ratio05over06": 0.9597,
+    "ratioRepeat": 0.9597,
+    "noise06": 1.0
+   }
+  }
+ ],
+ "buildComparisons": [
+  {
+   "map": "garden1",
+   "renderer": "glx",
+   "maskFrom": "before-alice-glx-garden1",
+   "pixels": 732,
+   "before06": 31.66,
+   "after05": 31.11,
+   "identicalOutsideMask": 0.9946,
+   "identicalInMask": 0.1762,
+   "afterOverBefore": 0.9826
+  },
+  {
+   "map": "utemple",
+   "renderer": "glx",
+   "maskFrom": "before-alice-glx-utemple",
+   "pixels": 64,
+   "before06": 49.84,
+   "after05": 47.83,
+   "identicalOutsideMask": 0.9835,
+   "identicalInMask": 0.0938,
+   "afterOverBefore": 0.9597
+  },
+  {
+   "map": "centipede1",
+   "renderer": "glx",
+   "maskFrom": "before-alice-glx-centipede1",
+   "pixels": 1563,
+   "before06": 28.13,
+   "after05": 27.54,
+   "identicalOutsideMask": 0.9543,
+   "identicalInMask": 0.0102,
+   "afterOverBefore": 0.979
+  },
+  {
+   "map": "hatter2",
+   "renderer": "glx",
+   "maskFrom": "before-alice-glx-hatter2",
+   "pixels": 382,
+   "before06": 33.63,
+   "after05": 30.99,
+   "identicalOutsideMask": 0.9556,
+   "identicalInMask": 0.0105,
+   "afterOverBefore": 0.9215
+  },
+  {
+   "map": "pandemonium",
+   "renderer": "glx",
+   "maskFrom": "before-alice-glx-pandemonium",
+   "pixels": 602,
+   "before06": 14.81,
+   "after05": 12.97,
+   "identicalOutsideMask": 0.9591,
+   "identicalInMask": 0.0,
+   "afterOverBefore": 0.8758
+  },
+  {
+   "map": "hedge1",
+   "renderer": "glx",
+   "maskFrom": "before-alice-glx-hedge1",
+   "pixels": 4344,
+   "before06": 29.14,
+   "after05": 27.54,
+   "identicalOutsideMask": 0.9804,
+   "identicalInMask": 0.0,
+   "afterOverBefore": 0.9451
+  },
+  {
+   "map": "cemetery",
+   "renderer": "glx",
+   "maskFrom": "before-fakk2-glx-cemetery",
+   "pixels": 30374,
+   "before06": 52.82,
+   "after05": 49.12,
+   "identicalOutsideMask": 0.9553,
+   "identicalInMask": 0.0001,
+   "afterOverBefore": 0.93
+  },
+  {
+   "map": "homes1",
+   "renderer": "glx",
+   "maskFrom": "before-fakk2-glx-homes1",
+   "pixels": 6742,
+   "before06": 40.71,
+   "after05": 37.72,
+   "identicalOutsideMask": 0.9596,
+   "identicalInMask": 0.0,
+   "afterOverBefore": 0.9266
+  },
+  {
+   "map": "over",
+   "renderer": "glx",
+   "maskFrom": "before-fakk2-glx-over",
+   "pixels": 2361,
+   "before06": 60.7,
+   "after05": 57.69,
+   "identicalOutsideMask": 0.897,
+   "identicalInMask": 0.0,
+   "afterOverBefore": 0.9504
+  },
+  {
+   "map": "water",
+   "renderer": "glx",
+   "maskFrom": "before-fakk2-glx-water",
+   "pixels": 1083,
+   "before06": 61.83,
+   "after05": 56.57,
+   "identicalOutsideMask": 0.7848,
+   "identicalInMask": 0.0009,
+   "afterOverBefore": 0.9149
+  },
+  {
+   "map": "fakkhouse",
+   "renderer": "glx",
+   "maskFrom": "before-fakk2-glx-fakkhouse",
+   "pixels": 83,
+   "before06": 68.8,
+   "after05": 65.19,
+   "identicalOutsideMask": 0.9672,
+   "identicalInMask": 0.0,
+   "afterOverBefore": 0.9475
+  },
+  {
+   "map": "swamp1",
+   "renderer": "glx",
+   "maskFrom": "before-fakk2-glx-swamp1",
+   "pixels": 232,
+   "before06": 43.05,
+   "after05": 41.85,
+   "identicalOutsideMask": 0.9499,
+   "identicalInMask": 0.7672,
+   "afterOverBefore": 0.9721
+  },
+  {
+   "map": "hedge1",
+   "renderer": "vk",
+   "maskFrom": "before-alice-glx-hedge1",
+   "pixels": 4344,
+   "before06": 29.72,
+   "after05": 28.08,
+   "identicalOutsideMask": 0.9801,
+   "identicalInMask": 0.0,
+   "afterOverBefore": 0.9448
+  },
+  {
+   "map": "centipede1",
+   "renderer": "vk",
+   "maskFrom": "before-alice-glx-centipede1",
+   "pixels": 1563,
+   "before06": 28.64,
+   "after05": 27.42,
+   "identicalOutsideMask": 0.978,
+   "identicalInMask": 0.0134,
+   "afterOverBefore": 0.9574
+  },
+  {
+   "map": "cemetery",
+   "renderer": "vk",
+   "maskFrom": "before-fakk2-glx-cemetery",
+   "pixels": 30374,
+   "before06": 52.83,
+   "after05": 49.12,
+   "identicalOutsideMask": 0.9549,
+   "identicalInMask": 0.0,
+   "afterOverBefore": 0.9298
+  },
+  {
+   "map": "over",
+   "renderer": "vk",
+   "maskFrom": "before-fakk2-glx-over",
+   "pixels": 2361,
+   "before06": 101.73,
+   "after05": 97.65,
+   "identicalOutsideMask": 0.9876,
+   "identicalInMask": 0.044,
+   "afterOverBefore": 0.9599
+  },
+  {
+   "map": "hedge1",
+   "renderer": "rtx",
+   "maskFrom": "before-alice-glx-hedge1",
+   "pixels": 4344,
+   "before06": 29.71,
+   "after05": 28.08,
+   "identicalOutsideMask": 0.9801,
+   "identicalInMask": 0.0,
+   "afterOverBefore": 0.9451
+  },
+  {
+   "map": "centipede1",
+   "renderer": "rtx",
+   "maskFrom": "before-alice-glx-centipede1",
+   "pixels": 1563,
+   "before06": 28.78,
+   "after05": 27.81,
+   "identicalOutsideMask": 0.9778,
+   "identicalInMask": 0.0505,
+   "afterOverBefore": 0.9663
+  },
+  {
+   "map": "cemetery",
+   "renderer": "rtx",
+   "maskFrom": "before-fakk2-glx-cemetery",
+   "pixels": 30374,
+   "before06": 52.83,
+   "after05": 49.12,
+   "identicalOutsideMask": 0.956,
+   "identicalInMask": 0.0001,
+   "afterOverBefore": 0.9298
+  },
+  {
+   "map": "over",
+   "renderer": "rtx",
+   "maskFrom": "before-fakk2-glx-over",
+   "pixels": 2361,
+   "before06": 101.73,
+   "after05": 97.68,
+   "identicalOutsideMask": 0.9895,
+   "identicalInMask": 0.044,
+   "afterOverBefore": 0.9602
+  }
+ ],
+ "retailFrameComparisons": {
+  "after-cemetery": {
+   "map": "cemetery",
+   "retailFrame": ".tmp\\fakk2\\sweep\\cemetery\\frames\\retail\\fakk\\screenshots\\shot0000.tga",
+   "match": 0.515,
+   "shift": [
+    0,
+    0
+   ],
+   "pixels": 30374,
+   "retail": 47.56,
+   "fn06": 52.82,
+   "fn05": 49.12,
+   "retailOver06": 0.9004,
+   "retailOver05": 0.9682
+  },
+  "after-homes1": {
+   "map": "homes1",
+   "retailFrame": ".tmp\\fakk2\\sweep\\homes1\\frames\\retail\\fakk\\screenshots\\shot0000.tga",
+   "match": 0.629,
+   "shift": [
+    0,
+    0
+   ],
+   "pixels": 6848,
+   "retail": 36.53,
+   "fn06": 40.64,
+   "fn05": 37.74,
+   "retailOver06": 0.8989,
+   "retailOver05": 0.9679
+  },
+  "afternostatic-cemetery": {
+   "map": "cemetery",
+   "retailFrame": ".tmp\\fakk2\\sweep\\cemetery\\frames\\retail\\fakk\\screenshots\\shot0000.tga",
+   "match": 0.515,
+   "shift": [
+    0,
+    0
+   ],
+   "pixels": 30373,
+   "retail": 47.56,
+   "fn06": 52.82,
+   "fn05": 49.12,
+   "retailOver06": 0.9004,
+   "retailOver05": 0.9682
+  },
+  "afternostatic-homes1": {
+   "map": "homes1",
+   "retailFrame": ".tmp\\fakk2\\sweep\\homes1\\frames\\retail\\fakk\\screenshots\\shot0000.tga",
+   "match": 0.627,
+   "shift": [
+    0,
+    0
+   ],
+   "pixels": 6593,
+   "retail": 35.94,
+   "fn06": 40.1,
+   "fn05": 37.15,
+   "retailOver06": 0.8963,
+   "retailOver05": 0.9674
+  },
+  "before-cemetery": {
+   "map": "cemetery",
+   "retailFrame": ".tmp\\fakk2\\sweep\\cemetery\\frames\\retail\\fakk\\screenshots\\shot0000.tga",
+   "match": 0.515,
+   "shift": [
+    0,
+    0
+   ],
+   "pixels": 30374,
+   "retail": 47.56,
+   "fn06": 52.82,
+   "fn05": 49.12,
+   "retailOver06": 0.9004,
+   "retailOver05": 0.9682
+  },
+  "before-homes1": {
+   "map": "homes1",
+   "retailFrame": ".tmp\\fakk2\\sweep\\homes1\\frames\\retail\\fakk\\screenshots\\shot0000.tga",
+   "match": 0.63,
+   "shift": [
+    0,
+    0
+   ],
+   "pixels": 6742,
+   "retail": 36.51,
+   "fn06": 40.69,
+   "fn05": 37.75,
+   "retailOver06": 0.8973,
+   "retailOver05": 0.9672
+  },
+  "before-over": {
+   "map": "over",
+   "retailFrame": ".tmp\\fakk2\\sweep\\over\\frames\\retail\\fakk\\screenshots\\shot0000.tga",
+   "match": 0.45,
+   "shift": [
+    0,
+    0
+   ],
+   "pixels": 2361,
+   "retail": 50.05,
+   "fn06": 60.71,
+   "fn05": 57.69,
+   "retailOver06": 0.8244,
+   "retailOver05": 0.8676
+  },
+  "before-water": {
+   "map": "water",
+   "retailFrame": ".tmp\\fakk2\\sweep\\water\\frames\\retail\\fakk\\screenshots\\shot0000.tga",
+   "match": 0.15,
+   "shift": [
+    2,
+    8
+   ],
+   "pixels": 1083,
+   "retail": 51.93,
+   "fn06": 61.81,
+   "fn05": 56.54,
+   "retailOver06": 0.8402,
+   "retailOver05": 0.9185
+  }
+ },
+ "qlRuns": [
+  {
+   "command": [
+    "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe",
+    "+set",
+    "com_gameProfile",
+    "ql",
+    "+set",
+    "fs_basepath",
+    "E:\\SteamLibrary\\steamapps\\common\\Quake Live",
+    "+set",
+    "fs_homepath",
+    "E:\\Repositories\\fnTech3\\.tmp\\ritual-ambient-scale\\ql-runs\\after-measure-glx\\home",
+    "+set",
+    "fs_game",
+    "",
+    "+set",
+    "fs_cdpath",
+    "",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "-1",
+    "+set",
+    "r_customWidth",
+    "800",
+    "+set",
+    "r_customHeight",
+    "600",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "in_joystick",
+    "0",
+    "+set",
+    "in_nograb",
+    "1",
+    "+set",
+    "s_initsound",
+    "0",
+    "+set",
+    "com_steamIntegration",
+    "0",
+    "+set",
+    "fs_skipWorkshop",
+    "1",
+    "+set",
+    "cl_webuiEnable",
+    "0",
+    "+set",
+    "cl_renderer",
+    "glx",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "net_ip",
+    "127.0.0.1",
+    "+set",
+    "net_port",
+    "0",
+    "+set",
+    "net_ip6",
+    "::1",
+    "+set",
+    "net_port6",
+    "0",
+    "+set",
+    "net_enabled",
+    "1",
+    "+set",
+    "com_maxfps",
+    "60",
+    "+exec",
+    "probe.cfg",
+    "+devmap",
+    "campgrounds",
+    "ffa"
+   ],
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 15.8,
+   "screenshots": [
+    "a_default.png",
+    "b_06.png",
+    "c_10.png",
+    "d_06.png",
+    "e_10.png",
+    "f_1.png"
+   ],
+   "cvarLines": [
+    "\"r_ambientScale\" is:\"10^7\" default:\"10^7\"",
+    "\"r_directedScale\" is:\"1^7\" default:\"1^7\"",
+    "WARNING: cvar 'r_ambientScale' is out of range (min '1'), setting to '1'",
+    "\"r_ambientScale\" is:\"1^7\" default:\"10^7\"",
+    "WARNING: cvar 'r_ambientScale' is out of range (min '1'), setting to '1'",
+    "WARNING: cvar 'r_ambientScale' is out of range (max '100'), setting to '100'",
+    "\"r_ambientScale\" is:\"100^7\" default:\"10^7\"",
+    "WARNING: cvar 'r_ambientScale' is out of range (min '1'), setting to '1'",
+    "\"r_ambientScale\" is:\"1^7\" default:\"10^7\""
+   ],
+   "configs": {
+    "qzconfig.cfg": [],
+    "repconfig.cfg": [
+     "seta r_ambientScale \"1\""
+    ]
+   },
+   "exeSha256": "67da26a7280e93b49e1cdb839a8b939f3e322eab739e15f25de8365700e1d637",
+   "rendererSha256": "35234cab04261e0d4941006ab278567500c65adfeac25413cd9ccbc71071d121",
+   "exeUnchanged": true,
+   "installationUnchanged": true,
+   "run": ".tmp/ritual-ambient-scale/ql-runs/after-measure-glx",
+   "measure": {
+    "run": "after-measure-glx",
+    "pixels": 2937,
+    "a_default": 81.16,
+    "b_06": 35.23,
+    "c_10": 81.24,
+    "d_06": 34.94,
+    "e_10": 81.0,
+    "f_1": 34.9,
+    "tenOver06": 2.306,
+    "tenOver06Repeat": 2.3183,
+    "saturatedAt10": 0.0456,
+    "maskBox": [
+     345,
+     341,
+     542,
+     599
+    ]
+   }
+  },
+  {
+   "command": [
+    "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe",
+    "+set",
+    "com_gameProfile",
+    "ql",
+    "+set",
+    "fs_basepath",
+    "E:\\SteamLibrary\\steamapps\\common\\Quake Live",
+    "+set",
+    "fs_homepath",
+    "E:\\Repositories\\fnTech3\\.tmp\\ritual-ambient-scale\\ql-runs\\after-option-glx\\home",
+    "+set",
+    "fs_game",
+    "",
+    "+set",
+    "fs_cdpath",
+    "",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "-1",
+    "+set",
+    "r_customWidth",
+    "800",
+    "+set",
+    "r_customHeight",
+    "600",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "in_joystick",
+    "0",
+    "+set",
+    "in_nograb",
+    "1",
+    "+set",
+    "s_initsound",
+    "0",
+    "+set",
+    "com_steamIntegration",
+    "0",
+    "+set",
+    "fs_skipWorkshop",
+    "1",
+    "+set",
+    "cl_webuiEnable",
+    "0",
+    "+set",
+    "cl_renderer",
+    "glx",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "net_ip",
+    "127.0.0.1",
+    "+set",
+    "net_port",
+    "0",
+    "+set",
+    "net_ip6",
+    "::1",
+    "+set",
+    "net_port6",
+    "0",
+    "+set",
+    "net_enabled",
+    "1",
+    "+set",
+    "com_maxfps",
+    "60",
+    "+exec",
+    "probe.cfg",
+    "+map",
+    "campgrounds",
+    "ffa"
+   ],
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 4.5,
+   "screenshots": [],
+   "cvarLines": [
+    "\"r_ambientScale\" is:\"10^7\" default:\"10^7\"",
+    "\"r_ambientScale\" is:\"25^7\" default:\"10^7\"",
+    "          r_ambientScale \"25\""
+   ],
+   "configs": {
+    "qzconfig.cfg": [],
+    "repconfig.cfg": [
+     "seta r_ambientScale \"25\""
+    ]
+   },
+   "exeSha256": "67da26a7280e93b49e1cdb839a8b939f3e322eab739e15f25de8365700e1d637",
+   "rendererSha256": "35234cab04261e0d4941006ab278567500c65adfeac25413cd9ccbc71071d121",
+   "exeUnchanged": true,
+   "installationUnchanged": true,
+   "run": ".tmp/ritual-ambient-scale/ql-runs/after-option-glx"
+  },
+  {
+   "command": [
+    "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe",
+    "+set",
+    "com_gameProfile",
+    "ql",
+    "+set",
+    "fs_basepath",
+    "E:\\SteamLibrary\\steamapps\\common\\Quake Live",
+    "+set",
+    "fs_homepath",
+    "E:\\Repositories\\fnTech3\\.tmp\\ritual-ambient-scale\\ql-runs\\after-webui\\home",
+    "+set",
+    "fs_game",
+    "",
+    "+set",
+    "fs_cdpath",
+    "",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "-1",
+    "+set",
+    "r_customWidth",
+    "1280",
+    "+set",
+    "r_customHeight",
+    "720",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "in_joystick",
+    "0",
+    "+set",
+    "in_nograb",
+    "1",
+    "+set",
+    "s_initsound",
+    "0",
+    "+set",
+    "com_steamIntegration",
+    "0",
+    "+set",
+    "fs_skipWorkshop",
+    "1",
+    "+set",
+    "cl_webuiEnable",
+    "1",
+    "+set",
+    "cl_renderer",
+    "glx",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "net_ip",
+    "127.0.0.1",
+    "+set",
+    "net_port",
+    "0",
+    "+set",
+    "net_ip6",
+    "::1",
+    "+set",
+    "net_port6",
+    "0",
+    "+set",
+    "net_enabled",
+    "1",
+    "+set",
+    "com_maxfps",
+    "60",
+    "+exec",
+    "webstep.cfg"
+   ],
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 28.5,
+   "surface": true,
+   "logLines": [
+    "VM_LoadDll: loaded native module cache 'E:\\Repositories\\fnTech3\\.tmp\\ritual-ambient-scale\\ql-runs\\after-webui\\home\\.tmp\\native\\0cf88d67472d2545cefc14cf0933e138\\qagamex86.dll'",
+    "VM_LoadDll: loaded native module cache 'E:\\Repositories\\fnTech3\\.tmp\\ritual-ambient-scale\\ql-runs\\after-webui\\home\\.tmp\\native\\0cf88d67472d2545cefc14cf0933e138\\cgamex86.dll'",
+    "web.pak datapack mounted from E:\\SteamLibrary\\steamapps\\common\\Quake Live\\web.pak",
+    "fnql-web.pak sparse overlay mounted from E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fnql-web.pak",
+    "VM_LoadDll: loaded native module cache 'E:\\Repositories\\fnTech3\\.tmp\\ritual-ambient-scale\\ql-runs\\after-webui\\home\\.tmp\\native\\0cf88d67472d2545cefc14cf0933e138\\uix86.dll'",
+    "execing webstep.cfg",
+    "^5WebUI qz social bridge request createlobby ignored: Steamworks bridge is unavailable.",
+    "^5WebUI qz social bridge request requestuserstats ignored: Steamworks bridge is unavailable.",
+    "WebUI document status: loading=1 crashed=0 nativeError=0 cursorValid=0 cursorX=0 cursorY=0 ready=1 assetLocation=1 blankLocation=0 locationLength=23 hidden=0 headChildren=8 bodyChildren=2 bodyWidth=1920 bodyHeight=0 bodyDisplayNone=0 bodyOpacity=100 elements=77 images=3 imagesLoaded=2 textLength=157 titleLength=10 app=1 bridge=1 qz=1 qzSteamId=0 qzPlayerNameLength=13 qzFriendCount=0 mapCount=93 ffaMapCount=46 nanOutputs=0 selects=0 openSelects=0 selectLeft=-1 selectTop=-1 selectRight=-1 selectBottom=-1 steamAvatarImages=1 mainHook=1 fnqlStyle=1 fnqlScript=1 fnqlRows=0 fnqlGroups=0 fnqlHiddenRetailRows=0 fnqlActions=0",
+    "WebUI location: asset://ql/index.html#/",
+    "^5WebUI qz social bridge request requestuserstats ignored: Steamworks bridge is unavailable.",
+    "WebUI document status: loading=1 crashed=0 nativeError=0 cursorValid=0 cursorX=0 cursorY=0 ready=1 assetLocation=1 blankLocation=0 locationLength=37 hidden=0 headChildren=8 bodyChildren=2 bodyWidth=1920 bodyHeight=0 bodyDisplayNone=0 bodyOpacity=100 elements=389 images=1 imagesLoaded=0 textLength=1574 titleLength=10 app=1 bridge=1 qz=1 qzSteamId=0 qzPlayerNameLength=13 qzFriendCount=0 mapCount=93 ffaMapCount=46 nanOutputs=0 selects=10 openSelects=0 selectLeft=0 selectTop=0 selectRight=0 selectBottom=0 steamAvatarImages=1 mainHook=1 fnqlStyle=1 fnqlScript=1 fnqlRows=4 fnqlGroups=0 fnqlHiddenRetailRows=14 fnqlActions=1",
+    "WebUI location: asset://ql/index.html#/settings/video",
+    "\"r_ambientScale\" is:\"10^7\" default:\"10^7\"",
+    "Wrote screenshots/webui-surface.tga"
+   ],
+   "exeSha256": "67da26a7280e93b49e1cdb839a8b939f3e322eab739e15f25de8365700e1d637",
+   "webPakSha256": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+   "installationUnchanged": true,
+   "run": ".tmp/ritual-ambient-scale/ql-runs/after-webui"
+  },
+  {
+   "command": [
+    "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe",
+    "+set",
+    "com_gameProfile",
+    "ql",
+    "+set",
+    "fs_basepath",
+    "E:\\SteamLibrary\\steamapps\\common\\Quake Live",
+    "+set",
+    "fs_homepath",
+    "E:\\Repositories\\fnTech3\\.tmp\\ritual-ambient-scale\\ql-runs\\before-measure-glx\\home",
+    "+set",
+    "fs_game",
+    "",
+    "+set",
+    "fs_cdpath",
+    "",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "-1",
+    "+set",
+    "r_customWidth",
+    "800",
+    "+set",
+    "r_customHeight",
+    "600",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "in_joystick",
+    "0",
+    "+set",
+    "in_nograb",
+    "1",
+    "+set",
+    "s_initsound",
+    "0",
+    "+set",
+    "com_steamIntegration",
+    "0",
+    "+set",
+    "fs_skipWorkshop",
+    "1",
+    "+set",
+    "cl_webuiEnable",
+    "0",
+    "+set",
+    "cl_renderer",
+    "glx",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "net_ip",
+    "127.0.0.1",
+    "+set",
+    "net_port",
+    "0",
+    "+set",
+    "net_ip6",
+    "::1",
+    "+set",
+    "net_port6",
+    "0",
+    "+set",
+    "net_enabled",
+    "1",
+    "+set",
+    "com_maxfps",
+    "60",
+    "+exec",
+    "probe.cfg",
+    "+devmap",
+    "campgrounds",
+    "ffa"
+   ],
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 16.3,
+   "screenshots": [
+    "a_default.png",
+    "b_06.png",
+    "c_10.png",
+    "d_06.png",
+    "e_10.png",
+    "f_1.png"
+   ],
+   "cvarLines": [
+    "\"r_ambientScale\" is:\"0.6^7\" default:\"0.6^7\"",
+    "\"r_directedScale\" is:\"1^7\" default:\"1^7\"",
+    "\"r_ambientScale\" is:\"0.6^7\" default:\"0.6^7\"",
+    "\"r_ambientScale\" is:\"150^7\" default:\"0.6^7\"",
+    "\"r_ambientScale\" is:\"0.5^7\" default:\"0.6^7\""
+   ],
+   "configs": {
+    "qzconfig.cfg": [],
+    "repconfig.cfg": []
+   },
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+   "exeUnchanged": true,
+   "installationUnchanged": true,
+   "run": ".tmp/ritual-ambient-scale/ql-runs/before-measure-glx",
+   "measure": {
+    "run": "before-measure-glx",
+    "pixels": 2536,
+    "a_default": 32.53,
+    "b_06": 33.06,
+    "c_10": 80.97,
+    "d_06": 32.64,
+    "e_10": 80.76,
+    "f_1": 37.22,
+    "tenOver06": 2.4492,
+    "tenOver06Repeat": 2.4743,
+    "saturatedAt10": 0.0382,
+    "maskBox": [
+     345,
+     342,
+     542,
+     599
+    ]
+   }
+  },
+  {
+   "command": [
+    "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe",
+    "+set",
+    "com_gameProfile",
+    "ql",
+    "+set",
+    "fs_basepath",
+    "E:\\SteamLibrary\\steamapps\\common\\Quake Live",
+    "+set",
+    "fs_homepath",
+    "E:\\Repositories\\fnTech3\\.tmp\\ritual-ambient-scale\\ql-runs\\before-option-glx\\home",
+    "+set",
+    "fs_game",
+    "",
+    "+set",
+    "fs_cdpath",
+    "",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "-1",
+    "+set",
+    "r_customWidth",
+    "800",
+    "+set",
+    "r_customHeight",
+    "600",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "in_joystick",
+    "0",
+    "+set",
+    "in_nograb",
+    "1",
+    "+set",
+    "s_initsound",
+    "0",
+    "+set",
+    "com_steamIntegration",
+    "0",
+    "+set",
+    "fs_skipWorkshop",
+    "1",
+    "+set",
+    "cl_webuiEnable",
+    "0",
+    "+set",
+    "cl_renderer",
+    "glx",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "net_ip",
+    "127.0.0.1",
+    "+set",
+    "net_port",
+    "0",
+    "+set",
+    "net_ip6",
+    "::1",
+    "+set",
+    "net_port6",
+    "0",
+    "+set",
+    "net_enabled",
+    "1",
+    "+set",
+    "com_maxfps",
+    "60",
+    "+exec",
+    "probe.cfg",
+    "+map",
+    "campgrounds",
+    "ffa"
+   ],
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 5.0,
+   "screenshots": [],
+   "cvarLines": [
+    "\"r_ambientScale\" is:\"0.6^7\" default:\"0.6^7\"",
+    "r_ambientScale is cheat protected.",
+    "\"r_ambientScale\" is:\"0.6^7\" default:\"0.6^7\"",
+    "       C  r_ambientScale \"0.6\""
+   ],
+   "configs": {
+    "qzconfig.cfg": [],
+    "repconfig.cfg": []
+   },
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "rendererSha256": "b1baa319ab2d7bb66422f808d8e0135f6d05226e217ac2bf8f850d68a6e2c609",
+   "exeUnchanged": true,
+   "installationUnchanged": true,
+   "run": ".tmp/ritual-ambient-scale/ql-runs/before-option-glx"
+  },
+  {
+   "command": [
+    "E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fntech3.exe",
+    "+set",
+    "com_gameProfile",
+    "ql",
+    "+set",
+    "fs_basepath",
+    "E:\\SteamLibrary\\steamapps\\common\\Quake Live",
+    "+set",
+    "fs_homepath",
+    "E:\\Repositories\\fnTech3\\.tmp\\ritual-ambient-scale\\ql-runs\\before-webui\\home",
+    "+set",
+    "fs_game",
+    "",
+    "+set",
+    "fs_cdpath",
+    "",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "-1",
+    "+set",
+    "r_customWidth",
+    "1280",
+    "+set",
+    "r_customHeight",
+    "720",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "in_joystick",
+    "0",
+    "+set",
+    "in_nograb",
+    "1",
+    "+set",
+    "s_initsound",
+    "0",
+    "+set",
+    "com_steamIntegration",
+    "0",
+    "+set",
+    "fs_skipWorkshop",
+    "1",
+    "+set",
+    "cl_webuiEnable",
+    "1",
+    "+set",
+    "cl_renderer",
+    "glx",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "net_ip",
+    "127.0.0.1",
+    "+set",
+    "net_port",
+    "0",
+    "+set",
+    "net_ip6",
+    "::1",
+    "+set",
+    "net_port6",
+    "0",
+    "+set",
+    "net_enabled",
+    "1",
+    "+set",
+    "com_maxfps",
+    "60",
+    "+exec",
+    "webstep.cfg"
+   ],
+   "exitCode": 0,
+   "forcedStop": false,
+   "seconds": 29.0,
+   "surface": true,
+   "logLines": [
+    "VM_LoadDll: loaded native module cache 'E:\\Repositories\\fnTech3\\.tmp\\ritual-ambient-scale\\ql-runs\\before-webui\\home\\.tmp\\native\\4c970f89e4961d70860ed9e3e4bf43ea\\qagamex86.dll'",
+    "VM_LoadDll: loaded native module cache 'E:\\Repositories\\fnTech3\\.tmp\\ritual-ambient-scale\\ql-runs\\before-webui\\home\\.tmp\\native\\4c970f89e4961d70860ed9e3e4bf43ea\\cgamex86.dll'",
+    "web.pak datapack mounted from E:\\SteamLibrary\\steamapps\\common\\Quake Live\\web.pak",
+    "fnql-web.pak sparse overlay mounted from E:\\Repositories\\fnTech3\\meson\\build\\win32-alice-client\\fnql-web.pak",
+    "VM_LoadDll: loaded native module cache 'E:\\Repositories\\fnTech3\\.tmp\\ritual-ambient-scale\\ql-runs\\before-webui\\home\\.tmp\\native\\4c970f89e4961d70860ed9e3e4bf43ea\\uix86.dll'",
+    "execing webstep.cfg",
+    "^5WebUI qz social bridge request createlobby ignored: Steamworks bridge is unavailable.",
+    "^5WebUI qz social bridge request requestuserstats ignored: Steamworks bridge is unavailable.",
+    "WebUI document status: loading=1 crashed=0 nativeError=0 cursorValid=0 cursorX=0 cursorY=0 ready=1 assetLocation=1 blankLocation=0 locationLength=23 hidden=0 headChildren=8 bodyChildren=2 bodyWidth=1920 bodyHeight=0 bodyDisplayNone=0 bodyOpacity=100 elements=77 images=3 imagesLoaded=2 textLength=157 titleLength=10 app=1 bridge=1 qz=1 qzSteamId=0 qzPlayerNameLength=13 qzFriendCount=0 mapCount=93 ffaMapCount=46 nanOutputs=0 selects=0 openSelects=0 selectLeft=-1 selectTop=-1 selectRight=-1 selectBottom=-1 steamAvatarImages=1 mainHook=1 fnqlStyle=1 fnqlScript=1 fnqlRows=0 fnqlGroups=0 fnqlHiddenRetailRows=0 fnqlActions=0",
+    "WebUI location: asset://ql/index.html#/",
+    "^5WebUI qz social bridge request requestuserstats ignored: Steamworks bridge is unavailable.",
+    "WebUI document status: loading=1 crashed=0 nativeError=0 cursorValid=0 cursorX=0 cursorY=0 ready=1 assetLocation=1 blankLocation=0 locationLength=37 hidden=0 headChildren=8 bodyChildren=2 bodyWidth=1920 bodyHeight=0 bodyDisplayNone=0 bodyOpacity=100 elements=389 images=1 imagesLoaded=0 textLength=1574 titleLength=10 app=1 bridge=1 qz=1 qzSteamId=0 qzPlayerNameLength=13 qzFriendCount=0 mapCount=93 ffaMapCount=46 nanOutputs=0 selects=10 openSelects=0 selectLeft=0 selectTop=0 selectRight=0 selectBottom=0 steamAvatarImages=1 mainHook=1 fnqlStyle=1 fnqlScript=1 fnqlRows=4 fnqlGroups=0 fnqlHiddenRetailRows=15 fnqlActions=1",
+    "WebUI location: asset://ql/index.html#/settings/video",
+    "\"r_ambientScale\" is:\"0.6^7\" default:\"0.6^7\"",
+    "Wrote screenshots/webui-surface.tga"
+   ],
+   "exeSha256": "884e2a5a1f6057c2b9500925e82d204700d431b0606e1f8a7a0455fb695c4da7",
+   "webPakSha256": "6c210165880fff668900fd3e4e3c90137623043e1b5315f24b693f367f756382",
+   "installationUnchanged": true,
+   "run": ".tmp/ritual-ambient-scale/ql-runs/before-webui"
+  }
+ ]
+}

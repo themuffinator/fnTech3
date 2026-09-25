@@ -103,8 +103,11 @@ point each second, with the grid's at the same point.
 | `centipede1` | 1136 -1712 -406 | 69 61 65 / 232 224 247 | 180 182 199 244 171 18 | 228 204 213 / 82 161 225 |
 | `jlair2` | -848 416 98 | 153 130 96 / 255 217 161 | 255 255 255 255 255 0 | 278 231 158 / 161 131 85 |
 
-The grid's ambient is its stored ambient times `r_ambientScale`, 0.6. The
-fitted ambient is printed before the renderer keeps it to 255. An independent
+The grid's ambient is its stored ambient times `r_ambientScale`, then 0.6,
+Quake III's default; `alice.exe` and `fakk2.exe` register 0.5, which the
+Ritual profiles have used since
+([ambient scale record](2026-09-25-ambient-scale.md)). The fitted ambient is
+printed before the renderer keeps it to 255. An independent
 Python model of the law, written from the disassembly before the engine's,
 gave `garden1`'s six directions within one unit of the engine's at Alice's
 start.

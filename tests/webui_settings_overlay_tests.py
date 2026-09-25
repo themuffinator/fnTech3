@@ -220,6 +220,8 @@ class SettingsOverlayContractTests(unittest.TestCase):
             "r_picmip",
             "r_vertexLight",
             "r_dynamiclight",
+            # Quake Live's player option "Ambient Light Scale", 1 to 100.
+            "r_ambientScale",
             "r_fastsky",
             "s_volume",
             "s_musicVolume",
@@ -248,10 +250,19 @@ class SettingsOverlayContractTests(unittest.TestCase):
             "cg_vignette",
             "r_lightmap",
             "r_fullbright",
-            "r_ambientscale",
         ):
             with self.subTest(cvar=name):
                 self.assertNotIn(name, allowlist)
+
+    def test_overlay_keeps_the_retail_ambient_light_scale_row(self) -> None:
+        # Quake Live's r_ambientScale is a player option, 1 to 100 (default
+        # 10), which the ql profile registers as retail does, so the retail
+        # Video row stays visible.
+        unsupported = re.search(
+            r"var RETAIL_UNSUPPORTED = \{(.*?)\n  \};", overlay_source(), re.S
+        )
+        assert unsupported is not None, "RETAIL_UNSUPPORTED table not found"
+        self.assertNotIn("r_ambientscale", unsupported.group(1).lower())
 
     def test_allowlist_has_no_duplicate_entries(self) -> None:
         names = [name.lower() for name in allowlist_cvars()]
