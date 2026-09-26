@@ -80,8 +80,8 @@ meson test -C meson/build
 ```
 
 Meson uses system libraries first, then the wrap files under `subprojects/`
-for SDL3, OpenAL headers, libcurl, libjpeg-turbo, Ogg/Vorbis, minimp3 and
-FontStash when fallback downloads are allowed. Use `--wrap-mode=nofallback` for
+for SDL3, OpenAL headers, libcurl, libjpeg-turbo, Ogg/Vorbis, FreeType, zlib,
+minimp3 and FontStash when fallback downloads are allowed. Use `--wrap-mode=nofallback` for
 a system-only build, or `--wrap-mode=forcefallback` to exercise the subproject
 path. Do not add private in-tree copies of third-party libraries; the wraps own
 the bundled fallbacks.
@@ -321,9 +321,9 @@ the retail engines and a headless protocol client
 127.0.0.1, windowed on a private desktop, capturing engine screenshots:
 
 ```powershell
-python scripts/probe_q3test.py fntech3-client --installation "<Q3Test 1.08 installation>" --release 1.08 --server meson/build/win32-q3test/fntech3.ded.exe --client meson/build/win32-q3test/fntech3.exe --target retail --output .tmp/q3test/probes/client-108
-python scripts/probe_q3test.py protocol-client --installation "<Q3Test 1.02 installation>" --release 1.02 --server meson/build/win32-q3test/fntech3.ded.exe --probe meson/build/win32-q3test/fntech3_q3test_client_probe.exe --target fntech3 --output .tmp/q3test/probes/protocol-102
-python scripts/probe_q3test.py fntech3-client --installation "<Q3Test 1.08 installation>" --release 1.08 --client meson/build/win32-q3test/fntech3.exe --target demo --demo q3demo1 --video sound --output .tmp/q3test/probes/sound-108
+python scripts/probe_q3test.py fntech3-client --installation "<Q3Test 1.08 installation>" --release 1.08 --server meson/build/win32-dev/fntech3.ded.exe --client meson/build/win32-dev/fntech3.exe --target retail --output .tmp/q3test/probes/client-108
+python scripts/probe_q3test.py protocol-client --installation "<Q3Test 1.02 installation>" --release 1.02 --server meson/build/win32-dev/fntech3.ded.exe --probe meson/build/win32-dev/fntech3_q3test_client_probe.exe --target fntech3 --output .tmp/q3test/probes/protocol-102
+python scripts/probe_q3test.py fntech3-client --installation "<Q3Test 1.08 installation>" --release 1.08 --client meson/build/win32-dev/fntech3.exe --target demo --demo q3demo1 --video sound --output .tmp/q3test/probes/sound-108
 ```
 
 `--video` records a demo replay with the engine's `video` command through the
@@ -383,20 +383,21 @@ See the [Medal of Honor gate matrix](docs/fntech3/COMPATIBILITY.md#medal-of-hono
 
 VS Code's default `meson: build all games` task builds the client, dedicated
 server, all three renderers, and runtime packages in `meson/build/win32-dev`
-with debug symbols (`RelWithDebInfo`). It enables every development profile
-the launches use -- `-RTCWDevelopment`, `-WolfETDevelopment`,
-`-STVEFDevelopment`, `-JKADevelopment`, `-JK2Development`, `-Q3IHVDevelopment`,
-`-AliceDevelopment`, `-FAKK2Development` and `-MOHAADevelopment` -- each passing
-the matching Meson option. The matching `(Steam)` task additionally builds the optional private
-provider. The release and debug tasks keep those profiles gated.
+with debug symbols (`RelWithDebInfo`). It enables every development profile:
+`-RTCWDevelopment`, `-WolfETDevelopment`, `-STVEFDevelopment`,
+`-JKADevelopment`, `-JK2Development`, `-Q3IHVDevelopment`, `-AliceDevelopment`,
+`-FAKK2Development`, `-MOHAADevelopment` and `-Q3TestDevelopment`, each passing
+the matching Meson option. The matching `(Steam)` task additionally builds the
+optional private provider. The release and debug tasks keep those profiles
+gated.
 
 All launch configurations use the already-built `win32-dev` binaries and have
 no `preLaunchTask`. Build with Ctrl+Shift+B, then select a launch in Run and
 Debug (Microsoft C/C++ extension, Windows). Launches are grouped by game and
 mode, one group per profile. Normal startup entries are named `Q3 glx`,
 `QL vk`, `RTCW SP rtx`, `EF MP glx` or `Alice vk`, with all three renderers
-for every profile whose client runs: Q3, QL, RTCW SP and MP, ET, Elite Force
-SP (`EF SP`) and Holomatch (`EF MP`), and Alice. They use normal game startup
+for Q3, QL, RTCW SP and MP, ET, Elite Force SP (`EF SP`) and Holomatch
+(`EF MP`), and Alice. They use normal game startup
 without a map command or forced intro skipping. Map launch names follow
 `SP/MP bspname Map Title glx/vk/rtx`. The starter maps are Q3's `q3dm1`
 (Arena Gate), QL's `campgrounds` (Campgrounds), RTCW SP's `escape1` (Escape),
@@ -416,12 +417,13 @@ keeps its own writable home under `.tmp/vscode/wolfet/client/`. `ET pick map`
 and `ET pick map ded` do the same for a map and, for the client, a renderer
 chosen at launch.
 
-Every profile also has a dedicated-server launch of a starter map, named
+Each of those profiles also has a dedicated-server launch of a starter map, named
 `SP/MP bspname Map Title ded`: those above, plus the IHV Test's `ihv_test1`,
 Jedi Academy's `t1_sour` and `mp/ffa1`, and Jedi Outcast's `kejim_post` and
 `ffa_bespin`. Those five profiles have dedicated launches only: the IHV
 client is blocked, Jedi Academy's client refuses its modules by name, and
-nothing is wired for Jedi Outcast's.
+nothing is wired for Jedi Outcast's. F.A.K.K.2, Medal of Honor and Q3Test have
+no launches yet; start them from the command line or with their probe scripts.
 
 `<name> pick map` launches, such as `Q3 pick map` or `JKA MP pick map ded`,
 ask for any of the profile's stock maps, labelled with the game's own titles
@@ -502,7 +504,7 @@ MinGW toolchain uses the same command; the Windows dependencies are bundled.
 Copy the binaries from the `build` directory, or stage them with
 `make install DESTDIR=<output folder>`. Install into a folder of your own, not
 into a game installation. Before the first Make build from a clean checkout,
-run `meson subprojects download fontstash` (see
+run `meson subprojects download fontstash minimp3` (see
 [Make and CMake](#make-and-cmake)).
 
 ## Linux
@@ -613,7 +615,7 @@ sudo apt install gcc-multilib g++-multilib make python3 pkg-config \
   libogg-dev:i386 libopenal-dev:i386 libvorbis-dev:i386 libx11-dev:i386 \
   libxrandr-dev:i386 libxxf86dga-dev:i386 libxxf86vm-dev:i386 \
   mesa-common-dev:i386
-meson subprojects download fontstash
+meson subprojects download fontstash minimp3
 make -j"$(nproc)" release ARCH=x86 COMPILE_ARCH=x86 USE_SDL=0 \
   USE_RENDERER_DLOPEN=1 USE_GLX=1 USE_VK=1 USE_RTX=1
 make install ARCH=x86 COMPILE_ARCH=x86 USE_SDL=0 DESTDIR="$PWD/.tmp/linux-x86/"
@@ -632,11 +634,13 @@ The legacy Makefile and CMake inputs remain available while CI and packaging
 finish migrating; new local work should prefer Meson. The Visual Studio
 solution is a frontend for the Meson graph, not a separate source list.
 
-Make and CMake use the same pinned FontStash source owned by
-`subprojects/fontstash.wrap`. Before the first Make or CMake build from a clean
-checkout, fetch it with `meson subprojects download fontstash`. Client builds
-fail at configuration time if that dependency is unavailable; they never
-substitute the incomplete host-font stubs.
+Make and CMake use the same pinned FontStash and minimp3 sources owned by
+`subprojects/fontstash.wrap` and `subprojects/minimp3.wrap`. Before the first
+Make or CMake build from a clean checkout, fetch them with
+`meson subprojects download fontstash minimp3`; CMake's default
+`USE_SYSTEM_JPEG=OFF` also needs `meson subprojects download libjpeg-turbo`.
+Client builds fail at configuration time if a dependency is unavailable; they
+never substitute the incomplete host-font stubs.
 
 Makefile options for Linux i686 and MinGW32 builds:
 

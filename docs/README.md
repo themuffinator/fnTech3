@@ -6,7 +6,7 @@ server and three renderer modules -- aims to run Quake III Arena, Quake Live,
 Return to Castle Wolfenstein, Wolfenstein: Enemy Territory, Star Trek Voyager:
 Elite Force, Star Wars Jedi Knight: Jedi Academy, Star Wars Jedi Knight II:
 Jedi Outcast, American McGee's Alice, Heavy Metal: F.A.K.K.2 and Medal of
-Honor: Allied Assault. Each process selects one of fifteen game profiles at
+Honor: Allied Assault. Each process selects one of sixteen game profiles at
 startup and keeps it until it exits.
 
 Quake III Arena and Quake Live start in every build; the other games need a
@@ -70,8 +70,9 @@ Start with the [README](../README.md) for an overview, then the
   [Elite Force contracts](fntech3/2026-09-18-stvef-contracts.md),
   [Jedi Academy contracts](fntech3/2026-09-21-jka-contracts.md),
   [Jedi Outcast contracts](fntech3/2026-09-22-jk2-contracts.md),
-  [Alice contracts](fntech3/2026-09-22-alice-contracts.md) and
-  [F.A.K.K.2 contracts](fntech3/2026-09-24-fakk2-contracts.md).
+  [Alice contracts](fntech3/2026-09-22-alice-contracts.md),
+  [F.A.K.K.2 contracts](fntech3/2026-09-24-fakk2-contracts.md) and
+  [Medal of Honor contracts](fntech3/2026-09-24-mohaa-contracts.md).
 
 ### Tools and data formats
 

@@ -276,8 +276,8 @@ jobs:
           submodules: recursive
           persist-credentials: false
 
-      - name: Fetch pinned FontStash source
-        run: meson subprojects download fontstash
+      - name: Fetch pinned FontStash and minimp3 sources
+        run: meson subprojects download fontstash minimp3
 
       - name: Build
         run: |

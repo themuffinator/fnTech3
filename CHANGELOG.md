@@ -17,8 +17,9 @@ historical upstream records, not fnTech3 release history. See the
   Quake Live start in every build; Return to Castle Wolfenstein, Enemy
   Territory, Elite Force, Jedi Academy, Jedi Outcast, American McGee's Alice,
   Heavy Metal: F.A.K.K.2, Medal of Honor: Allied Assault, the Quake III
-  IHV Test and the Q3Test releases are experimental profiles that start only in developer builds. Supply a legitimate installation of the
-  selected game ([Games Guide](docs/GAMES.md)).
+  IHV Test and the Q3Test releases are experimental profiles that start only
+  in developer builds. Supply a legitimate installation of the selected game
+  ([Games Guide](docs/GAMES.md)).
 - Path trace the main view with the RTX renderer's `rtx_rt_mode 2`. The world,
   posed models and the first-person weapon are traced with their shader
   stages as authored and lit as Q2RTX lights Quake II: from the sky, its
@@ -1146,7 +1147,6 @@ historical upstream records, not fnTech3 release history. See the
   in front of it. The only defined reading of -1 is that there is no pass
   entity, so this engine says that deliberately rather than reproduce it by
   reading out of bounds, and serves the trace on its own for the purpose.
-
 
   The blocker was this title's input frame, and the engine is no help with it:
   the record is 28 bytes and the engine copies it whole -- its reader is a

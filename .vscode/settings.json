@@ -1,4 +1,4 @@
 {
-  "C_Cpp.default.compileCommands": "${workspaceFolder}\\meson\\build\\compile_commands.json",
+  "C_Cpp.default.compileCommands": "${workspaceFolder}\\meson\\build\\win32-dev\\compile_commands.json",
   "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild"
 }
