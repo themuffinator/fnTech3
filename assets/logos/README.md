@@ -1,6 +1,9 @@
 # fnTech3 logos
 
 Executable and desktop icon exports are in [assets/icons](../icons/README.md).
+The flame emblem's generation prompts are in
+[sources/fntech3-flame-logo-prompts.md](sources/fntech3-flame-logo-prompts.md),
+beside the PNG they produced.
 
 The approved mark is the first generated version, with a black numeral **3** on the orange flame body. Its original PNG is preserved unchanged.
 
