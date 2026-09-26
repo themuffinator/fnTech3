@@ -289,7 +289,6 @@ RXDIR=$(MOUNT_DIR)/rendererglx
 RVDIR=$(MOUNT_DIR)/renderervk
 RTXDIR=$(MOUNT_DIR)/rendererrtx
 SDLDIR=$(MOUNT_DIR)/sdl
-SDLHDIR=$(MOUNT_DIR)/libsdl/include
 FONTSTASHDIR ?= subprojects/fontstash/src
 MINIMP3DIR ?= subprojects/minimp3
 
@@ -299,9 +298,6 @@ MOHAADIR=$(MOUNT_DIR)/mohaa
 UDIR=$(MOUNT_DIR)/unix
 W32DIR=$(MOUNT_DIR)/win32
 BLIBDIR=$(MOUNT_DIR)/botlib
-JPDIR=$(MOUNT_DIR)/libjpeg
-OGGDIR=$(MOUNT_DIR)/libogg
-VORBISDIR=$(MOUNT_DIR)/libvorbis
 CLIENTAUDIODIR=$(CDIR)/audio
 CLIENTAUDIOCODECSDIR=$(CLIENTAUDIODIR)/codecs
 CLIENTAUDIOLEGACYDIR=$(CLIENTAUDIODIR)/legacy
@@ -365,10 +361,6 @@ ifeq ($(USE_SYSTEM_OGG),1)
   ifeq ($(OGG_LIBS),)
     OGG_LIBS = -logg
   endif
-else
-  ifeq ($(OGG_FLAGS),)
-    OGG_FLAGS = -I$(OGGDIR)/include
-  endif
 endif
 ifeq ($(USE_SYSTEM_VORBIS),1)
   ifeq ($(VORBIS_FLAGS),)
@@ -376,10 +368,6 @@ ifeq ($(USE_SYSTEM_VORBIS),1)
   endif
   ifeq ($(VORBIS_LIBS),)
     VORBIS_LIBS = -lvorbisfile
-  endif
-else
-  ifeq ($(VORBIS_FLAGS),)
-    VORBIS_FLAGS = -I$(VORBISDIR)/include -I$(VORBISDIR)/lib
   endif
 endif
 
@@ -602,31 +590,22 @@ ifdef MINGW
   CLIENT_LDFLAGS=$(LDFLAGS)
 
   ifeq ($(USE_SDL),1)
-    BASE_CFLAGS += -DUSE_LOCAL_HEADERS=1 -I$(SDLHDIR)
-    #CLIENT_CFLAGS += -DUSE_LOCAL_HEADERS=1
-    ifeq ($(ARCH),x86)
-      CLIENT_LDFLAGS += -L$(MOUNT_DIR)/libsdl/windows/mingw/lib32
-      CLIENT_LDFLAGS += -lSDL3
-      CLIENT_EXTRA_FILES += $(MOUNT_DIR)/libsdl/windows/mingw/lib32/SDL3.dll
-    else
-      CLIENT_LDFLAGS += -L$(MOUNT_DIR)/libsdl/windows/mingw/lib64
-      CLIENT_LDFLAGS += -lSDL3
-      CLIENT_EXTRA_FILES += $(MOUNT_DIR)/libsdl/windows/mingw/lib64/SDL3.dll
-    endif
-  endif
-
-  ifeq ($(ARCH),x86)
-    ifneq ($(wildcard $(MOUNT_DIR)/openal/windows/x86/OpenAL32.dll),)
-      CLIENT_EXTRA_FILES += $(MOUNT_DIR)/openal/windows/x86/OpenAL32.dll
-    endif
-  else
-    ifneq ($(wildcard $(MOUNT_DIR)/openal/windows/x64/OpenAL32.dll),)
-      CLIENT_EXTRA_FILES += $(MOUNT_DIR)/openal/windows/x64/OpenAL32.dll
-    endif
+    # SDL3 comes from the toolchain (MSYS2's mingw-w64-i686-sdl3, or pkg-config
+    # sdl3 for a cross compiler), as on every other platform: the in-tree copy
+    # under code/libsdl was removed. Its DLL is copied beside the client when
+    # pkg-config names where it is installed.
+    BASE_CFLAGS += $(SDL_INCLUDE)
+    CLIENT_LDFLAGS += $(SDL_LIBS)
+    SDL_DLL ?= $(wildcard $(shell $(PKG_CONFIG) --silence-errors --variable=prefix sdl3)/bin/SDL3.dll)
+    CLIENT_EXTRA_FILES += $(SDL_DLL)
   endif
 
   ifeq ($(USE_CURL),1)
     CLIENT_LDFLAGS += $(CURL_LIBS)
+  endif
+
+  ifeq ($(USE_SYSTEM_JPEG),1)
+    CLIENT_LDFLAGS += $(JPEG_LIBS)
   endif
 
   ifeq ($(USE_OGG_VORBIS),1)
@@ -785,6 +764,37 @@ endif # !MINGW
 ZLIB_CFLAGS ?= $(shell pkg-config --cflags zlib 2>/dev/null)
 ZLIB_LIBS ?= -lz
 override BASE_CFLAGS += $(FNQL_REQUIRED_ARCH_CFLAGS) $(ZLIB_CFLAGS)
+
+# FreeType rasterizes TrueType fonts and Quake Live's host text; Meson builds
+# require it for clients. USE_FREETYPE=1 requires it here too, and
+# USE_FREETYPE=0 builds without it, when fonts fall back to their pre-rendered
+# glyph pages. Left unset, a client build uses FreeType when pkg-config's
+# freetype2 (or plain -lfreetype) links a probe for this target, since a host
+# library of another width is found as readily as the target's. The probe's
+# result is exported, so the recursive build does not repeat it.
+RENDERER_LIBS =
+ifeq ($(BUILD_CLIENT),1)
+  ifneq ($(USE_FREETYPE),0)
+    ifneq ($(call bin_path, $(PKG_CONFIG)),)
+      FREETYPE_CFLAGS ?= $(shell $(PKG_CONFIG) --silence-errors --cflags freetype2)
+      FREETYPE_LIBS ?= $(shell $(PKG_CONFIG) --silence-errors --libs freetype2)
+    endif
+    ifeq ($(strip $(FREETYPE_LIBS)),)
+      FREETYPE_LIBS = -lfreetype
+    endif
+    ifeq ($(origin USE_FREETYPE),undefined)
+      ifeq ($(FNQL_REQUIRE_BUILD_INPUTS),1)
+        FREETYPE_PROBE = $(BUILD_DIR)/freetype-probe$(BINEXT)
+        USE_FREETYPE := $(shell $(MKDIR) $(BUILD_DIR) && printf '#include <ft2build.h>\n#include FT_FREETYPE_H\nint main(void) { FT_Library library; return FT_Init_FreeType(&library); }\n' | $(CC) $(FNQL_REQUIRED_ARCH_CFLAGS) $(FREETYPE_CFLAGS) -x c - -x none -o $(FREETYPE_PROBE) $(FNQL_REQUIRED_ARCH_LDFLAGS) $(FREETYPE_LIBS) >/dev/null 2>&1 && echo 1 || echo 0; rm -f $(FREETYPE_PROBE))
+        export USE_FREETYPE
+      endif
+    endif
+  endif
+endif
+ifeq ($(USE_FREETYPE),1)
+  override BASE_CFLAGS += -DBUILD_FREETYPE $(FREETYPE_CFLAGS)
+  RENDERER_LIBS += $(FREETYPE_LIBS)
+endif
 LDFLAGS += $(ZLIB_LIBS)
 override CFLAGS += $(FNQL_REQUIRED_ARCH_CFLAGS)
 override CXXFLAGS += $(FNQL_REQUIRED_ARCH_CFLAGS)
@@ -1067,13 +1077,6 @@ makedirs:
 	@if [ ! -d $(BUILD_DIR) ];then $(MKDIR) $(BUILD_DIR);fi
 	@if [ ! -d $(B) ];then $(MKDIR) $(B);fi
 	@if [ ! -d $(B)/client ];then $(MKDIR) $(B)/client/qvm;fi
-	@if [ ! -d $(B)/client/jpeg ];then $(MKDIR) $(B)/client/jpeg;fi
-ifeq ($(USE_SYSTEM_OGG),0)
-	@if [ ! -d $(B)/client/ogg ];then $(MKDIR) $(B)/client/ogg;fi
-endif
-ifeq ($(USE_SYSTEM_VORBIS),0)
-	@if [ ! -d $(B)/client/vorbis ];then $(MKDIR) $(B)/client/vorbis;fi
-endif
 	@if [ ! -d $(B)/rendx ];then $(MKDIR) $(B)/rendx;fi
 	@if [ ! -d $(B)/rendv ];then $(MKDIR) $(B)/rendv;fi
 	@if [ ! -d $(B)/rendrtx ];then $(MKDIR) $(B)/rendrtx;fi
@@ -1192,87 +1195,6 @@ ifneq ($(USE_RENDERER_DLOPEN), 0)
 endif
 
 Q3RENDRTXOBJ = $(patsubst $(B)/rendv/%,$(B)/rendrtx/%,$(Q3RENDVOBJ))
-
-JPGOBJ = \
-  $(B)/client/jpeg/jaricom.o \
-  $(B)/client/jpeg/jcapimin.o \
-  $(B)/client/jpeg/jcapistd.o \
-  $(B)/client/jpeg/jcarith.o \
-  $(B)/client/jpeg/jccoefct.o  \
-  $(B)/client/jpeg/jccolor.o \
-  $(B)/client/jpeg/jcdctmgr.o \
-  $(B)/client/jpeg/jchuff.o   \
-  $(B)/client/jpeg/jcinit.o \
-  $(B)/client/jpeg/jcmainct.o \
-  $(B)/client/jpeg/jcmarker.o \
-  $(B)/client/jpeg/jcmaster.o \
-  $(B)/client/jpeg/jcomapi.o \
-  $(B)/client/jpeg/jcparam.o \
-  $(B)/client/jpeg/jcprepct.o \
-  $(B)/client/jpeg/jcsample.o \
-  $(B)/client/jpeg/jctrans.o \
-  $(B)/client/jpeg/jdapimin.o \
-  $(B)/client/jpeg/jdapistd.o \
-  $(B)/client/jpeg/jdarith.o \
-  $(B)/client/jpeg/jdatadst.o \
-  $(B)/client/jpeg/jdatasrc.o \
-  $(B)/client/jpeg/jdcoefct.o \
-  $(B)/client/jpeg/jdcolor.o \
-  $(B)/client/jpeg/jddctmgr.o \
-  $(B)/client/jpeg/jdhuff.o \
-  $(B)/client/jpeg/jdinput.o \
-  $(B)/client/jpeg/jdmainct.o \
-  $(B)/client/jpeg/jdmarker.o \
-  $(B)/client/jpeg/jdmaster.o \
-  $(B)/client/jpeg/jdmerge.o \
-  $(B)/client/jpeg/jdpostct.o \
-  $(B)/client/jpeg/jdsample.o \
-  $(B)/client/jpeg/jdtrans.o \
-  $(B)/client/jpeg/jerror.o \
-  $(B)/client/jpeg/jfdctflt.o \
-  $(B)/client/jpeg/jfdctfst.o \
-  $(B)/client/jpeg/jfdctint.o \
-  $(B)/client/jpeg/jidctflt.o \
-  $(B)/client/jpeg/jidctfst.o \
-  $(B)/client/jpeg/jidctint.o \
-  $(B)/client/jpeg/jmemmgr.o \
-  $(B)/client/jpeg/jmemnobs.o \
-  $(B)/client/jpeg/jquant1.o \
-  $(B)/client/jpeg/jquant2.o \
-  $(B)/client/jpeg/jutils.o
-
-ifeq ($(USE_OGG_VORBIS),1)
-ifeq ($(USE_SYSTEM_OGG),0)
-OGGOBJ = \
-  $(B)/client/ogg/bitwise.o \
-  $(B)/client/ogg/framing.o
-endif
-
-ifeq ($(USE_SYSTEM_VORBIS),0)
-VORBISOBJ = \
-  $(B)/client/vorbis/analysis.o \
-  $(B)/client/vorbis/bitrate.o \
-  $(B)/client/vorbis/block.o \
-  $(B)/client/vorbis/codebook.o \
-  $(B)/client/vorbis/envelope.o \
-  $(B)/client/vorbis/floor0.o \
-  $(B)/client/vorbis/floor1.o \
-  $(B)/client/vorbis/info.o \
-  $(B)/client/vorbis/lookup.o \
-  $(B)/client/vorbis/lpc.o \
-  $(B)/client/vorbis/lsp.o \
-  $(B)/client/vorbis/mapping0.o \
-  $(B)/client/vorbis/mdct.o \
-  $(B)/client/vorbis/psy.o \
-  $(B)/client/vorbis/registry.o \
-  $(B)/client/vorbis/res0.o \
-  $(B)/client/vorbis/smallft.o \
-  $(B)/client/vorbis/sharedbook.o \
-  $(B)/client/vorbis/synthesis.o \
-  $(B)/client/vorbis/vorbisfile.o \
-  $(B)/client/vorbis/window.o
-endif
-endif
 
 MOHAAOBJ = \
   $(B)/mohaa/con_set.o \
@@ -1444,13 +1366,8 @@ Q3OBJ = \
   $(B)/client/l_script.o \
   $(B)/client/l_struct.o
 
-ifneq ($(USE_SYSTEM_JPEG),1)
-  Q3OBJ += $(JPGOBJ)
-endif
-
 ifeq ($(USE_OGG_VORBIS),1)
-  Q3OBJ += $(OGGOBJ) $(VORBISOBJ) \
-    $(B)/client/snd_codec_ogg.o
+  Q3OBJ += $(B)/client/snd_codec_ogg.o
 endif
 
 ifeq ($(USE_CODEC_MP3),1)
@@ -1590,23 +1507,28 @@ endif # !MINGW
 
 # client binary
 
+ifneq ($(USE_RENDERER_DLOPEN),1)
+  # The renderer's objects are linked into the client.
+  CLIENT_RENDERER_LIBS = $(RENDERER_LIBS)
+endif
+
 $(B)/$(TARGET_CLIENT): $(Q3OBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(CXX) -o $@ $(Q3OBJ) $(CLIENT_LDFLAGS) $(LDFLAGS)
+	$(Q)$(CXX) -o $@ $(Q3OBJ) $(CLIENT_LDFLAGS) $(CLIENT_RENDERER_LIBS) $(LDFLAGS)
 
 # modular renderers
 
 $(B)/$(TARGET_RENDX): $(Q3RENDXOBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(CXX) -o $@ $(Q3RENDXOBJ) $(SHLIBCFLAGS) $(SHLIBLDFLAGS)
+	$(Q)$(CXX) -o $@ $(Q3RENDXOBJ) $(SHLIBCFLAGS) $(SHLIBLDFLAGS) $(RENDERER_LIBS)
 
 $(B)/$(TARGET_RENDV): $(Q3RENDVOBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(CXX) -o $@ $(Q3RENDVOBJ) $(SHLIBCFLAGS) $(SHLIBLDFLAGS)
+	$(Q)$(CXX) -o $@ $(Q3RENDVOBJ) $(SHLIBCFLAGS) $(SHLIBLDFLAGS) $(RENDERER_LIBS)
 
 $(B)/$(TARGET_RENDRTX): $(Q3RENDRTXOBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(CXX) -o $@ $(Q3RENDRTXOBJ) $(SHLIBCFLAGS) $(SHLIBLDFLAGS)
+	$(Q)$(CXX) -o $@ $(Q3RENDRTXOBJ) $(SHLIBCFLAGS) $(SHLIBLDFLAGS) $(RENDERER_LIBS)
 
 #############################################################################
 # DEDICATED SERVER
@@ -1808,15 +1730,6 @@ $(B)/client/%.o: $(BLIBDIR)/%.c
 
 $(B)/client/%.o: $(BLIBDIR)/%.cpp
 	$(DO_BOT_CXX)
-
-$(B)/client/jpeg/%.o: $(JPDIR)/%.c
-	$(DO_CC)
-
-$(B)/client/ogg/%.o: $(OGGDIR)/src/%.c
-	$(DO_CC)
-
-$(B)/client/vorbis/%.o: $(VORBISDIR)/lib/%.c
-	$(DO_CC)
 
 $(B)/client/%.o: $(SDLDIR)/%.c
 	$(DO_CC)

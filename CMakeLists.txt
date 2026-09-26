@@ -90,6 +90,8 @@ OPTION(USE_VK "Build the Vulkan renderer module" ON)
 OPTION(USE_RTX "Build the ray-tracing renderer module" ON)
 OPTION(USE_GLX "Build the GLx OpenGL-lineage renderer module" ON)
 OPTION(USE_SYSTEM_JPEG "Use a system libjpeg instead of the Meson-fetched libjpeg-turbo source tree" OFF)
+SET(USE_FREETYPE AUTO CACHE STRING "Rasterize TrueType fonts with FreeType: AUTO, ON or OFF")
+set_property(CACHE USE_FREETYPE PROPERTY STRINGS AUTO ON OFF)
 OPTION(USE_RENDERER_DLOPEN "" ON)
 OPTION(FNQL_AUDIO_LOOPBACK_TESTS "Build deterministic audio runtime and OpenAL loopback tests" ON)
 OPTION(FNQL_GLX_LOGIC_TESTS "Build deterministic GLx renderer logic tests" ON)
@@ -731,6 +733,46 @@ endif()
 ADD_COMPILE_DEFINITIONS(BUILD_FONTSTASH)
 INCLUDE_DIRECTORIES(SYSTEM "${FNQL_FONTSTASH_INCLUDE_DIR}")
 
+# FreeType rasterizes TrueType fonts and Quake Live's host text; Meson builds
+# require it for clients. ON requires it here too and OFF builds without it,
+# when fonts fall back to their pre-rendered glyph pages. AUTO uses a FreeType
+# that links a probe for this target, since a host library of another width is
+# found as readily as the target's.
+SET(FNQL_FREETYPE_LIBRARY)
+IF(USE_FREETYPE STREQUAL "ON")
+	find_package(Freetype REQUIRED)
+	SET(FNQL_FREETYPE_LIBRARY Freetype::Freetype)
+ELSEIF(USE_FREETYPE STREQUAL "AUTO")
+	find_package(Freetype QUIET)
+	IF(FREETYPE_FOUND)
+		SET(FNQL_FREETYPE_PROBE_SOURCE
+			"${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/fnql_freetype_probe.c")
+		FILE(WRITE "${FNQL_FREETYPE_PROBE_SOURCE}" [=[
+#include <ft2build.h>
+#include FT_FREETYPE_H
+int main(void) { FT_Library library; return FT_Init_FreeType(&library); }
+]=])
+		UNSET(FNQL_FREETYPE_LINKS CACHE)
+		UNSET(FNQL_FREETYPE_LINKS)
+		TRY_COMPILE(FNQL_FREETYPE_LINKS
+			"${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/fnql_freetype_probe"
+			"${FNQL_FREETYPE_PROBE_SOURCE}"
+			CMAKE_FLAGS "-DINCLUDE_DIRECTORIES=${FREETYPE_INCLUDE_DIRS}"
+			LINK_LIBRARIES ${FREETYPE_LIBRARIES}
+			OUTPUT_VARIABLE FNQL_FREETYPE_PROBE_OUTPUT)
+		IF(FNQL_FREETYPE_LINKS)
+			SET(FNQL_FREETYPE_LIBRARY Freetype::Freetype)
+		ENDIF()
+	ENDIF()
+ELSEIF(NOT USE_FREETYPE STREQUAL "OFF")
+	MESSAGE(FATAL_ERROR "Unsupported USE_FREETYPE='${USE_FREETYPE}'; choose AUTO, ON or OFF")
+ENDIF()
+IF(FNQL_FREETYPE_LIBRARY)
+	MESSAGE(STATUS "FreeType fonts: enabled")
+ELSE()
+	MESSAGE(STATUS "FreeType fonts: disabled; fonts use their pre-rendered glyph pages")
+ENDIF()
+
 AUX_SOURCE_DIRECTORY(code/renderercommon RENDERER_COMMON_SRCS)
 AUX_SOURCE_DIRECTORY(code/renderer RENDERER_GL_SRCS)
 AUX_SOURCE_DIRECTORY(code/rendererglx RENDERER_GLX_SRCS)
@@ -808,6 +850,10 @@ FOREACH(FNQL_RENDERER_KIND glx vk rtx)
 	ENDIF()
 	IF(TARGET ${FNQL_RENDERER_TARGET})
 		TARGET_LINK_LIBRARIES(${FNQL_RENDERER_TARGET} PRIVATE ZLIB::ZLIB)
+		IF(FNQL_FREETYPE_LIBRARY)
+			TARGET_COMPILE_DEFINITIONS(${FNQL_RENDERER_TARGET} PRIVATE BUILD_FREETYPE)
+			TARGET_LINK_LIBRARIES(${FNQL_RENDERER_TARGET} PRIVATE ${FNQL_FREETYPE_LIBRARY})
+		ENDIF()
 	ENDIF()
 ENDFOREACH()
 
@@ -974,25 +1020,6 @@ set_property(TARGET ${DNAME}${BINEXT} PROPERTY LINKER_LANGUAGE CXX)
 IF(WIN32)
 	TARGET_LINK_LIBRARIES(${CNAME}${BINEXT} winmm comctl32 ws2_32)
 	TARGET_LINK_LIBRARIES(${DNAME}${BINEXT} winmm comctl32 ws2_32)
-
-	SET(FNQL_OPENAL_DLL "${CMAKE_CURRENT_SOURCE_DIR}/code/openal/windows/x86/OpenAL32.dll")
-
-	if(DEFINED FNQL_OPENAL_DLL AND EXISTS "${FNQL_OPENAL_DLL}")
-		add_custom_command(
-			TARGET ${CNAME}${BINEXT} POST_BUILD
-			COMMAND ${CMAKE_COMMAND} -E copy_if_different
-				"${FNQL_OPENAL_DLL}"
-				"$<TARGET_FILE_DIR:${CNAME}${BINEXT}>"
-		)
-		if(FNQL_AUDIO_LOOPBACK_TESTS AND TARGET fnql_audio_loopback_tests)
-			add_custom_command(
-				TARGET fnql_audio_loopback_tests POST_BUILD
-				COMMAND ${CMAKE_COMMAND} -E copy_if_different
-					"${FNQL_OPENAL_DLL}"
-					"$<TARGET_FILE_DIR:fnql_audio_loopback_tests>"
-			)
-		endif()
-	endif()
 ELSE()
 	TARGET_LINK_LIBRARIES(${CNAME}${BINEXT} m ${CMAKE_DL_LIBS})
 	TARGET_LINK_LIBRARIES(${DNAME}${BINEXT} m ${CMAKE_DL_LIBS})

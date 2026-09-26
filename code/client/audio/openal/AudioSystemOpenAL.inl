@@ -70,13 +70,6 @@ bool OpenALLoader::Load() {
 		const std::string binaryDir = binaryPath;
 		candidateLibraries.push_back( binaryDir + "\\OpenAL32.dll" );
 		candidateLibraries.push_back( binaryDir + "\\soft_oal.dll" );
-#if defined(_M_ARM64)
-		// No bundled ARM64 OpenAL runtime is staged currently.
-#elif defined(_WIN64)
-		candidateLibraries.push_back( binaryDir + "\\..\\..\\..\\openal\\windows\\x64\\OpenAL32.dll" );
-#else
-		candidateLibraries.push_back( binaryDir + "\\..\\..\\..\\openal\\windows\\x86\\OpenAL32.dll" );
-#endif
 	}
 	// Prefer a discoverable OpenAL Soft runtime (its conventional install name
 	// is soft_oal.dll) before the legacy Creative router that ships as the

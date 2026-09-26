@@ -492,15 +492,23 @@ and the [2026-09-06 runtime report](docs/fntech3/2026-09-06-rtx-round.md).
 ### MSYS2 and MinGW
 
 The Makefile builds the MinGW32 client and server. With MSYS2, install the
-dependencies from the `MSYS2 MSYS` shell:
+toolchain and the client's libraries from the `MSYS2 MSYS` shell:
 
 ```sh
 pacman -Syu
-pacman -S make mingw-w64-i686-gcc
+pacman -S make mingw-w64-i686-gcc mingw-w64-i686-pkgconf mingw-w64-i686-python \
+  mingw-w64-i686-sdl3 mingw-w64-i686-openal mingw-w64-i686-libjpeg-turbo \
+  mingw-w64-i686-curl mingw-w64-i686-libvorbis mingw-w64-i686-freetype \
+  mingw-w64-i686-zlib
 ```
 
-then build from the `MSYS2 MINGW32` shell with `make ARCH=x86`. A standalone
-MinGW toolchain uses the same command; the Windows dependencies are bundled.
+then build from the `MSYS2 MINGW32` shell with `make ARCH=x86`. Nothing is
+bundled: the libraries come from the toolchain, found through `pkg-config`,
+and `SDL3.dll` is copied beside the client when `pkg-config` names its
+prefix. A dedicated server (`BUILD_CLIENT=0`) needs only the compiler, zlib
+and Python. At run time the client loads OpenAL from `soft_oal.dll` or
+`OpenAL32.dll` beside it or on the `PATH`; MSYS2's OpenAL Soft is
+`libopenal-1.dll`, so copy it beside the client as `soft_oal.dll`.
 Copy the binaries from the `build` directory, or stage them with
 `make install DESTDIR=<output folder>`. Install into a folder of your own, not
 into a game installation. Before the first Make build from a clean checkout,
@@ -642,6 +650,15 @@ Make or CMake build from a clean checkout, fetch them with
 Client builds fail at configuration time if a dependency is unavailable; they
 never substitute the incomplete host-font stubs.
 
+FreeType, which Meson requires for clients, is detected rather than required
+by Make and CMake: a client build rasterizes TrueType fonts and Quake Live's
+host text with it when a FreeType links for the 32-bit target, and otherwise
+builds without it, when fonts fall back to their pre-rendered glyph pages.
+Make's `USE_FREETYPE=1` and CMake's `-DUSE_FREETYPE=ON` require it instead,
+and `USE_FREETYPE=0` or `-DUSE_FREETYPE=OFF` leave it out. Make reads its
+flags from `pkg-config freetype2`, or `FREETYPE_CFLAGS` and `FREETYPE_LIBS`
+when set; CMake uses `find_package(Freetype)`.
+
 Makefile options for Linux i686 and MinGW32 builds:
 
 | Option | Effect |
@@ -657,6 +674,7 @@ Makefile options for Linux i686 and MinGW32 builds:
 | `USE_SYSTEM_JPEG=1` | Use the system JPEG library, enabled by default. |
 | `USE_SYSTEM_OGG=1`, `USE_SYSTEM_VORBIS=1` | Use the system Ogg/Vorbis libraries, enabled by default. |
 | `USE_CURL=1` | Use the system cURL library, enabled by default. Meson builds use the `subprojects/curl.wrap` fallback when no system libcurl is available. |
+| `USE_FREETYPE=1` | Require FreeType for TrueType fonts and Quake Live's host text; `0` builds without it. Unset, a client uses FreeType when it links for the target. |
 
 Examples:
 
