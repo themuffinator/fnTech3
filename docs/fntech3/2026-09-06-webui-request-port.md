@@ -28,7 +28,7 @@ Raw SHA-256 values pin the uncommitted production source files:
 | `code/client/webui_request_schedule.hpp` | `5c4a72fc144e8d8f45fb7b9b85041636289f8683d0b1af8fee2ce4252d451abb` |
 | `code/client/webui_resource_queue.hpp` | `c02ff7c1fd261f673d8c0b521da928f37aa8b1f47c7cd41c2591ffee3be72cae` |
 
-The local [source manifest](../../.tmp/fnql-webui-port-20260906/source-manifest.json)
+The local source manifest (`.tmp/fnql-webui-port-20260906/source-manifest.json`)
 also records test/script hashes, selected files, and the initial worktree
 status; the reviewed diff is saved beside it. Disposable investigation output remains under
 `.tmp/fnql-webui-port-20260906/`; no proprietary fixture was copied into it.
@@ -109,9 +109,9 @@ images. No gameplay or engine-renderer observation is claimed.
 | External retail `awesomium_process.exe` | `3067bdb00878ebf271f210d06257dc5f0fd4d4c34bb17195fbad067db3174c6f` |
 | External retail `web.pak` | `338862a0384f71fb962a71e0c77a686ae5d2204c88eebe9ccea3a8dfee13793b` |
 
-Local logs: [build](../../.tmp/fnql-webui-port-20260906/build.log),
-[full tests](../../.tmp/fnql-webui-port-20260906/tests.log), and
-[retail probe](../../.tmp/fnql-webui-port-20260906/retail.log).
+Local logs: build (`.tmp/fnql-webui-port-20260906/build.log`),
+full tests (`.tmp/fnql-webui-port-20260906/tests.log`), and
+retail probe (`.tmp/fnql-webui-port-20260906/retail.log`).
 
 The runtime-tag install refreshed `.install/windows-x86` with the same eight
 engine-owned build artifacts. All staged hashes match the build; Windows
@@ -120,7 +120,7 @@ passed (149 audio-zone sidecars, 149 fog sidecars, one sound shader). The staged
 client has the hash above. Updated credits, notices, ledger, and this record
 accompany it. The stage's `ARTIFACTS.json` separates this update's validation
 from the earlier engine-session evidence; no new Q3/QL game session was run.
-The local [validation manifest](../../.tmp/fnql-webui-port-20260906/validation-manifest.json)
+The local validation manifest (`.tmp/fnql-webui-port-20260906/validation-manifest.json`)
 records current source and staged-artifact hashes.
 
 ## Limits and unrelated findings
@@ -139,4 +139,4 @@ records current source and staged-artifact hashes.
   against x86 CRT libraries (`LNK4272`/`LNK1120`), outside the WebUI changes.
   The complete suite passed from the normal shell; no unrelated test implementation is
   changed to conceal that toolchain conflict. The first run is preserved in
-  [its log](../../.tmp/fnql-webui-port-20260906/tests-msvc-environment.log).
+  its log (`.tmp/fnql-webui-port-20260906/tests-msvc-environment.log`).

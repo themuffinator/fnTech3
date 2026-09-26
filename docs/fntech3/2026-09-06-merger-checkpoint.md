@@ -31,16 +31,16 @@ later: the SHA-256 recorded at execution time is the relevant identity.
 | QL Vulkan and RTX-raster client smokes | `.tmp/meson-msvc-x86-release/fntech3.exe` | `489ca70ed1f53abbe1223e468115c8c1cfcaa5aa7779d25acd882e6195edf147` |
 | Later Q3 GLx and Vulkan pure-session smokes | `.tmp/meson-msvc-x86-release/fntech3.exe` | `ff8da716e1e5f7f5d369b4aba455350f36b0344cb336d9e9fb573106af0af30f` |
 
-Sources: [dedicated manifest](../../.tmp/profile-probe-boundaries/manifest.json),
-[QL GLx manifest](../../.tmp/client-ql-glx-release/manifest.json),
-[QL Vulkan manifest](../../.tmp/client-ql-vk-release/manifest.json), and
-[QL RTX manifest](../../.tmp/client-ql-rtx-release/manifest.json).
+Sources: dedicated manifest (`.tmp/profile-probe-boundaries/manifest.json`),
+QL GLx manifest (`.tmp/client-ql-glx-release/manifest.json`),
+QL Vulkan manifest (`.tmp/client-ql-vk-release/manifest.json`), and
+QL RTX manifest (`.tmp/client-ql-rtx-release/manifest.json`).
 
 All runs were on Windows x86 engine binaries. The release build configuration
 records MSVC, `buildtype=release`, `strict-warnings=true`,
 `b_vscrt=static_from_buildtype`, `default_library=static`, dynamically loaded
 `glx,vk,rtx` renderer modules, and GLx as default. See the
-[release setup log](../../.tmp/resume-release-setup.log). The dedicated binary
+release setup log (`.tmp/resume-release-setup.log`). The dedicated binary
 above came from the earlier build directory, not that final release build.
 
 The initial client manifests do **not** record renderer-DLL hashes. This limits their
@@ -64,10 +64,10 @@ autorecord disabled, and `r_fullscreen=0`. The command queued a map, waited
 | QL / explicit `ql` | `campgrounds`, factory `ffa` | Retail `qagamex86.dll`, API 10; botlib initialized | Protocol 91, requested map, `pure=1`, zero clients | 0 / 7.875 s |
 
 The console logs record game shutdown and AAS shutdown for all four runs.
-Evidence: [Q3 automatic](../../.tmp/profile-probe-boundaries/q3-auto-console.log),
-[Q3 explicit](../../.tmp/profile-probe-boundaries/q3-q3-console.log),
-[QL automatic](../../.tmp/profile-probe-boundaries/ql-auto-console.log), and
-[QL explicit](../../.tmp/profile-probe-boundaries/ql-ql-console.log).
+Evidence: Q3 automatic (`.tmp/profile-probe-boundaries/q3-auto-console.log`),
+Q3 explicit (`.tmp/profile-probe-boundaries/q3-q3-console.log`),
+QL automatic (`.tmp/profile-probe-boundaries/ql-auto-console.log`), and
+QL explicit (`.tmp/profile-probe-boundaries/ql-ql-console.log`).
 
 Installation identities recorded by the manifest:
 
@@ -100,9 +100,9 @@ startup; no OS screen capture was used.
 
 | Renderer | Observed device/API | Scope of observation | Local console log |
 | --- | --- | --- | --- |
-| GLx | NVIDIA GeForce RTX 4060 Laptop GPU; OpenGL 4.6.0, NVIDIA 591.74 | GL46 renderer bootstrap, active local session, PNG, clean exit | [GLx log](../../.tmp/client-ql-glx-release/console.log) |
-| Vulkan | Same GPU, device `0x28a0`; Vulkan API 1.4.325, driver 591.74.0.0 | Vulkan raster path, active local session, PNG, clean exit | [Vulkan log](../../.tmp/client-ql-vk-release/console.log) |
-| RTX | Same Vulkan device/API/driver | **Raster path only.** Capability gate reports `requested=disabled (0), active=disabled (0), require=0`; ray tracing was not exercised | [RTX log](../../.tmp/client-ql-rtx-release/console.log) |
+| GLx | NVIDIA GeForce RTX 4060 Laptop GPU; OpenGL 4.6.0, NVIDIA 591.74 | GL46 renderer bootstrap, active local session, PNG, clean exit | GLx log (`.tmp/client-ql-glx-release/console.log`) |
+| Vulkan | Same GPU, device `0x28a0`; Vulkan API 1.4.325, driver 591.74.0.0 | Vulkan raster path, active local session, PNG, clean exit | Vulkan log (`.tmp/client-ql-vk-release/console.log`) |
+| RTX | Same Vulkan device/API/driver | **Raster path only.** Capability gate reports `requested=disabled (0), active=disabled (0), require=0`; ray tracing was not exercised | RTX log (`.tmp/client-ql-rtx-release/console.log`) |
 
 Screenshot fingerprints identify the locally retained evidence; the images are
 not distributed with the repository:
@@ -119,7 +119,7 @@ nonfatal conflicting initial-value warnings for WebUI resource-bridge cvars;
 WebUI presentation was disabled, so this path still requires separate work.
 
 The contemporaneous Q3 client attempt in
-[the Q3 GLx manifest](../../.tmp/client-q3-glx-final/manifest.json) used client
+the Q3 GLx manifest (`.tmp/client-q3-glx-final/manifest.json`) used client
 hash `489ca70ed1f53abbe1223e468115c8c1cfcaa5aa7779d25acd882e6195edf147`,
 timed out, and produced no screenshot. Earlier Q3 logs also record repeated
 dropped gamestates. Despite the investigation directory's `-final` suffix,
@@ -128,16 +128,16 @@ Q3 probes below followed profile/framing/pure and VM float-boundary fixes.
 
 ## Later Q3 pure-session probes
 
-The later [GLx manifest](../../.tmp/client-q3-glx-pure/manifest.json) and
-[Vulkan manifest](../../.tmp/client-q3-vk-pure/manifest.json) record the same
+The later GLx manifest (`.tmp/client-q3-glx-pure/manifest.json`) and
+Vulkan manifest (`.tmp/client-q3-vk-pure/manifest.json`) record the same
 rebuilt client SHA-256
 `ff8da716e1e5f7f5d369b4aba455350f36b0344cb336d9e9fb573106af0af30f`.
 Both selected `q3`, used the legitimate Quake III installation with fresh
 writable homes, and launched `devmap q3dm6` with the same window, input,
 audio, WebUI, Steam, and download constraints as the QL probes. Both exited 0.
 
-The [GLx log](../../.tmp/client-q3-glx-pure/console.log) and
-[Vulkan log](../../.tmp/client-q3-vk-pure/console.log) record fallback from
+The GLx log (`.tmp/client-q3-glx-pure/console.log`) and
+Vulkan log (`.tmp/client-q3-vk-pure/console.log`) record fallback from
 unavailable native DLLs to the installed `qagame.qvm`, `ui.qvm`, and
 `cgame.qvm`, followed by successful compilation and initialization. After the
 client's Q3 `cp` checksum command, both sessions advance from `CS_PRIMED` to
@@ -175,11 +175,11 @@ metadata.
 
 | Dated checkpoint | Observed result | Limitation |
 | --- | --- | --- |
-| 2026-09-06 full pytest with built `FNQL_AUDIOZONESC` | **1210 passed, 3 skipped, 25,481 subtests; 59.08 s** | Pre-final source checkpoint. Two opt-in cgame runtime probes skipped; one Windows symlink-privilege test skipped. [Local log](../../.tmp/resume-pytest-final.log) |
-| Later 2026-09-06 full pytest after pure/profile/float fixes, with built `FNQL_AUDIOZONESC` | **1212 passed, 3 skipped, 25,481 subtests; 63.71 s** | Settled-source Python-suite checkpoint. The same two opt-in cgame runtime probes and one Windows symlink-privilege test skipped. Final artifact/runtime validation remains separate. [Local log](../../.tmp/resume-pytest-settled.log) |
-| 2026-09-06 complete Meson test attempt | **100 passed, 1 failed, 1 skipped** | Audio authoring audit lacked its generated `.azb` fixture. [Preserved run log](../../.tmp/resume-meson-tests.log) |
+| 2026-09-06 full pytest with built `FNQL_AUDIOZONESC` | **1210 passed, 3 skipped, 25,481 subtests; 59.08 s** | Pre-final source checkpoint. Two opt-in cgame runtime probes skipped; one Windows symlink-privilege test skipped. Local log (`.tmp/resume-pytest-final.log`) |
+| Later 2026-09-06 full pytest after pure/profile/float fixes, with built `FNQL_AUDIOZONESC` | **1212 passed, 3 skipped, 25,481 subtests; 63.71 s** | Settled-source Python-suite checkpoint. The same two opt-in cgame runtime probes and one Windows symlink-privilege test skipped. Final artifact/runtime validation remains separate. Local log (`.tmp/resume-pytest-settled.log`) |
+| 2026-09-06 complete Meson test attempt | **100 passed, 1 failed, 1 skipped** | Audio authoring audit lacked its generated `.azb` fixture. Preserved run log (`.tmp/resume-meson-tests.log`) |
 | Follow-up audio fixture/audit | Project-authored fixture generated; focused audit **1/1 passed** | `build_by_default: true` now creates the fixture during normal compilation. |
-| Complete Meson rerun after fixture repair and pure/profile/float fixes | **101 passed, 0 failed, 1 skipped** | Audio loopback test returned its supported skip code 77. The Python aggregate also passed. [Preserved run log](../../.tmp/resume-final-meson-tests.log) |
+| Complete Meson rerun after fixture repair and pure/profile/float fixes | **101 passed, 0 failed, 1 skipped** | Audio loopback test returned its supported skip code 77. The Python aggregate also passed. Preserved run log (`.tmp/resume-final-meson-tests.log`) |
 
 The static Windows dependency audit found a client importing `z-1.dll` in an
 earlier debugoptimized build. Release CI already selected static zlib; the
@@ -261,11 +261,11 @@ archive validated with 149 audio-zone sidecars, 149 fog sidecars, and one sound
 shader. The proprietary provider, retail assets/modules, and development
 dependency outputs were absent.
 
-The [staged manifest](../../.tmp/staged-artifacts.json) records the install
+The staged manifest (`.tmp/staged-artifacts.json`) records the install
 command, dirty HEAD, complete artifact hashes, and validation outcomes. The
 same staged dedicated binary had SHA-256
 `b5e6ce00bf49a9b0d36134f32583d839e80ea8aefab4dcc2ab2480493c5ccd26`.
-All four [packaged dedicated probes](../../.tmp/profile-probe-packaged/manifest.json)
+All four packaged dedicated probes (`.tmp/profile-probe-packaged/manifest.json`)
 passed with fresh homes: Q3 auto/explicit in 15.891/15.313 seconds and QL
 auto/explicit in 7.844/7.938 seconds. Each returned the requested map,
 protocol, and challenge, loaded its game module, and shut down cleanly.
@@ -294,12 +294,12 @@ unchanged across the six packaged client runs):
 | `fntech3.exe` | `7f2e388947ec00ee6f9fae08450a84c3e00717f78689a765201dcf2f5644eddd` |
 
 The dependency and root-archive audits pass for this set. The final
-[dedicated manifest](../../.tmp/profile-probe-config-final/manifest.json)
+dedicated manifest (`.tmp/profile-probe-config-final/manifest.json`)
 records four more successful runs: Q3 auto/explicit in 15.782/15.281 seconds;
 QL auto/explicit in 7.859/7.891 seconds. All exited 0 and advertised the
 expected map, protocol, and challenge.
 
-The [packaged client summary](../../.tmp/packaged-runtime-summary.json)
+The packaged client summary (`.tmp/packaged-runtime-summary.json`)
 records all six Q3/QL by GLx/Vulkan/RTX combinations. Each manifest now
 includes all loaded engine/renderer/sidecar hashes, the base-pak hash, the
 exact command, and its isolated home. All reach `CS_ACTIVE` after pure
@@ -318,8 +318,8 @@ these are successful startup checks, not six visual-parity passes.
 
 ### Final demo and config probes
 
-The [Q3 demo manifest](../../.tmp/demo-q3-staged-final-config/manifest.json)
-and [QL demo manifest](../../.tmp/demo-ql-staged-final-config/manifest.json)
+The Q3 demo manifest (`.tmp/demo-q3-staged-final-config/manifest.json`)
+and QL demo manifest (`.tmp/demo-ql-staged-final-config/manifest.json`)
 use the final staged client hash above. Both profiles record a short local
 session and play the resulting demo in another process to normal
 `CL_NextDemo` completion. All four processes exit 0, with clean shutdown,
@@ -349,7 +349,7 @@ used a private Windows desktop, never switched to the user input desktop,
 with windowed and input-disabled settings. The retail executable failed
 before engine logging or network startup: its error text was `Failed to find
 Steam`. No interop is claimed. The
-[local blocker summary](../../.tmp/q3-interop-result.json) retains fixture,
+local blocker summary (`.tmp/q3-interop-result.json`) retains fixture,
 process, and diagnostic provenance. All probe processes were stopped.
 
 ### Final automated verification
@@ -358,7 +358,7 @@ The complete Meson suite after the config/demo corrections passed **101
 tests, 0 failed, 1 skipped**. The skipped OpenAL loopback test reported
 `ALC_SOFT_loopback` unavailable. Its Python unittest aggregate ran 1,210
 tests with three supported skips. See the
-[final Meson log](../../.tmp/resume-config-demo-meson-tests.log). This was a
+final Meson log (`.tmp/resume-config-demo-meson-tests.log`). This was a
 fresh release build configuration followed by incremental fixes, on the
 dirty source state identified above; it is not a clean-checkout release
 reproducibility claim.
@@ -368,7 +368,7 @@ subtests, with 3 skips**, in 102.43 seconds. The skips are two opt-in graphical
 cgame harness probes and a Windows symlink-privilege case. The direct runtime
 probes above provide separate module observations; they do not relabel the
 skipped harness checks as passed. See the
-[final pytest log](../../.tmp/resume-pytest-delivery.log). `git diff --check`
+final pytest log (`.tmp/resume-pytest-delivery.log`). `git diff --check`
 also passed.
 
 ### Local delivery artifact
