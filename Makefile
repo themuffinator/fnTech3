@@ -1844,7 +1844,8 @@ $(B)/ded/%.o: $(W32DIR)/%.cpp
 $(B)/ded/%.o: $(W32DIR)/%.rc
 	$(DO_WINDRES)
 
-$(B)/$(ROOT_ARCHIVE): $(TARGETS) $(PKG_FILES) scripts/build_root_archive.py scripts/root_archive.py scripts/stock_q3_assets.py scripts/stock_ql_maps.py scripts/stock_rtcw_maps.py scripts/fntech3_meta.py
+# root_archive.py imports every game's stock_*.py inventory.
+$(B)/$(ROOT_ARCHIVE): $(TARGETS) $(PKG_FILES) scripts/build_root_archive.py scripts/root_archive.py $(wildcard scripts/stock_*.py) scripts/fntech3_meta.py
 	$(echo_cmd) "ROOTARCHIVE $@"
 	$(Q)$(PYTHON) scripts/build_root_archive.py --package-root "$(PKG_ROOT)" --output "$@"
 
