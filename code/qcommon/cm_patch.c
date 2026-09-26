@@ -342,6 +342,12 @@ static void CM_SubdivideGridColumns( cGrid_t *grid, float subdivisions ) {
 		//
 		// we need to subdivide the curve
 		//
+		// Two more columns must still fit. Only a damaged patch, one whose
+		// control points lie far off its curve, needs more; the id Tech 3
+		// sources this descends from write past the grid here.
+		if ( grid->width + 2 > MAX_GRID_SIZE ) {
+			Com_Error( ERR_DROP, "CM_SubdivideGridColumns: subdivided grid is > MAX_GRID_SIZE" );
+		}
 		for ( j = 0 ; j < grid->height ; j++ ) {
 			vec3_t	prev, mid, next;
 
