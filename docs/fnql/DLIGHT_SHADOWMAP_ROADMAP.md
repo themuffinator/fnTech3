@@ -581,7 +581,7 @@ Build and script evidence:
 - `[x]` `python tests\dlight_shadow_release_gate_tests.py` passed after
   surfacelight validation artifact documentation on June 4, 2026.
 - `[x]` `git diff --check -- docs\fnql\DLIGHT_SHADOWMAP_ROADMAP.md
-  docs-dev\plans\2026-06-03-vk-shadowmapping.md
+  docs\fnql\plans\2026-06-03-vk-shadowmapping.md
   tests\surfacelight_validation_docs_tests.py` passed after surfacelight
   validation artifact documentation on June 4, 2026; Git reported only
   existing LF-to-CRLF working-copy warnings.

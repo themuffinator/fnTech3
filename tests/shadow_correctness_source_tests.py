@@ -142,7 +142,7 @@ class ShadowCorrectnessSourceTests(unittest.TestCase):
                 self.assertIn("Com_Memset( &tr.shadowCorrectnessDebug", main)
 
     def test_implementation_tracking_checklist_is_current(self):
-        plan = read_text("docs-dev/plans/2026-06-15-shadowmapping.md")
+        plan = read_text("docs/fnql/plans/2026-06-15-shadowmapping.md")
 
         self.assertIn("### Implementation tracking checklist", plan)
         self.assertIn("- [x] Round 1:", plan)

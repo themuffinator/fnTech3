@@ -1806,7 +1806,7 @@ def parse_glx_feature_matrix() -> list[dict[str, str]]:
 class GlxArchitecturalCutoverPlanTests(unittest.TestCase):
     @staticmethod
     def _plan_section(start: str, end: str) -> str:
-        plan = (ROOT / "docs" / "plans" / "glx-review-9-5-26.md").read_text(encoding="utf-8")
+        plan = (ROOT / "docs" / "fnql" / "plans" / "2026-05-09-glx-review.md").read_text(encoding="utf-8")
         return plan.split(start, 1)[1].split(end, 1)[0]
 
     def assert_tasks_are_implemented(self, section: str, tasks: tuple[str, ...]) -> None:

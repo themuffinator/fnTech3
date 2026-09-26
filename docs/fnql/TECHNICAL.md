@@ -378,7 +378,7 @@ in [`docs/DISPLAY.md`](../DISPLAY.md#dynamic-lighting-and-shadowing). The
 maintainer implementation ledger lives in
 [`DLIGHT_SHADOWMAP_ROADMAP.md`](./DLIGHT_SHADOWMAP_ROADMAP.md), with the
 broader historical plan in
-[`docs-dev/plans/2026-06-03-vk-shadowmapping.md`](../../docs-dev/plans/2026-06-03-vk-shadowmapping.md).
+[`docs/fnql/plans/2026-06-03-vk-shadowmapping.md`](plans/2026-06-03-vk-shadowmapping.md).
 Before enabling real shadow maps by default, require non-dry-run GLx and
 Vulkan runtime evidence with retail assets, passing release-gate summaries,
 reviewed screenshots or diffs, and RenderDoc inspection notes for atlas

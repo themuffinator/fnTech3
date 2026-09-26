@@ -68,3 +68,4 @@ its changes go in the root [CHANGELOG.md](../../CHANGELOG.md).
 | --- | --- |
 | [CHANGELOG.md](CHANGELOG.md), [RELEASE_COMPLETION.md](RELEASE_COMPLETION.md), [releases/](releases/README.md) | FnQL's release-note queue and curated notes. Nothing reads the queue now; the legacy `scripts/manual_release.py` snapshot tooling still looks for curated notes in `releases/`. |
 | [GLX_PROMOTION.md](GLX_PROMOTION.md), [GLX_ROLLBACK_PACKAGE.md](GLX_ROLLBACK_PACKAGE.md) | The completed promotion of GLx over the retired `opengl` and `opengl2` renderers. |
+| [plans/](plans/README.md) | The renderer and audio reviews and plans of May and June 2026. |

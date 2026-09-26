@@ -6,7 +6,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 ROADMAP = ROOT / "docs" / "fnql" / "DLIGHT_SHADOWMAP_ROADMAP.md"
-PLAN = ROOT / "docs-dev" / "plans" / "2026-06-03-vk-shadowmapping.md"
+PLAN = ROOT / "docs" / "fnql" / "plans" / "2026-06-03-vk-shadowmapping.md"
 
 
 def require(text: str, needle: str, label: str, failures: list[str]) -> None:

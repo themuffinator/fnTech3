@@ -102,5 +102,5 @@ establishes compatibility for a profile.
 - [Upstream archive](archive/README.md) -- the Quake3e engine reference and
   change history, id Software's Q3Test and Linux readmes, and other historical
   material.
-- `docs/plans/` and `docs-dev/plans/` -- design reviews and plans from the
-  FnQL renderer and audio work, kept as history.
+- [FnQL design reviews and plans](fnql/plans/README.md) -- the reviews and
+  plans from FnQL's renderer and audio work, kept as history.
