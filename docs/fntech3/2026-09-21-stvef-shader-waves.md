@@ -107,7 +107,7 @@ table that the original [cgame/UI](2026-09-18-stvef-holomatch-cgame-ui.md) and
 
 ## Reproduction and remaining gates
 
-The [manifest](evidence/2026-09-21-stvef-shader-waves.json) records source,
+The [manifest](2026-09-21-stvef-shader-waves.json) records source,
 fixture, retail and built-binary identities, commands, logs, image hashes,
 all image metrics and the separate before/after observations. Local probes
 and analysis remain under `.tmp/stvef-gaps`; independent runtime homes are

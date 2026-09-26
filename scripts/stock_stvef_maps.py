@@ -5,8 +5,8 @@ no BSP. The 33 Holomatch maps are the ones scripts/arenas.txt and
 scripts/xpack.arena declare, which leaves the 66 single-player and tour maps.
 Ten single-player maps start with an underscore and ten more live in the
 maps/tour/ subdirectory, so entries are map paths rather than bare names.
-Observed 2026-09-22; source identities are recorded in
-docs/fntech3/evidence/2026-09-22-stvef-audio-zones.json.
+Observed 2026-09-22; source identities are recorded under audioZones in
+docs/fntech3/2026-09-22-stvef-presentation-assets.json.
 """
 
 STOCK_STVEF_MAPS = {

@@ -37,7 +37,7 @@ active network state, restart, write before/after screenshots and exit normally
 along with their servers. QL remains at the native join UI; this does not claim
 an entered-match test. Exact results,
 source/artifact identities and log hashes are in the
-[evidence record](evidence/2026-09-08-vulkan-descriptor-restart.json).
+[evidence record](2026-09-08-vulkan-descriptor-restart.json).
 
 The Linux build is the earlier `b5776c9` checkout with the recorded Unix
 exit/X11/console fixes and this Vulkan correction; it is not a fresh clean

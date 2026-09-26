@@ -149,7 +149,7 @@ has no such step, and ET's GPL server has no `oldServerTime` at all.
   `pak0.pk3`
   `712966b20e06523fe81419516500e499c86b2b4fec823856ddbd333fcb3d26e5`. The
   commands, configs and per-step results are in the
-  [evidence file](evidence/2026-09-24-wolfet-pending-map-restart.json).
+  [evidence file](2026-09-24-wolfet-pending-map-restart.json).
 
 ## Not established
 

@@ -36,7 +36,7 @@ normally. Each used a fresh writable Linux home, pure mode enabled, Steam
 integration and Workshop disabled, and automatic recording disabled. No
 client, input control or screen capture was used; installations were read-only.
 
-The [evidence record](evidence/2026-09-08-clean-linux.json) contains exact
+The [evidence record](2026-09-08-clean-linux.json) contains exact
 configuration/build/test commands, test results, log hashes, executable
 identity and profile manifests. These probes establish dedicated discovery
 and startup, not live client pure admission or retail interoperability.

@@ -17,7 +17,7 @@ The Windows MSVC x86 client/dedicated rebuild, existing profile tests and Steam
 path tests pass. The same rebuilt dedicated binary also automatically selects
 Q3 and QL against their legitimate installations, loads q3dm6/campgrounds and
 shuts down normally using isolated writable homes. The
-[startup record](evidence/2026-09-08-profile-path-conversion.json) pins its
+[startup record](2026-09-08-profile-path-conversion.json) pins its
 identity, commands, configs and module-loading excerpts. No game client,
 input control or screenshot capture was used for these dedicated probes.
 

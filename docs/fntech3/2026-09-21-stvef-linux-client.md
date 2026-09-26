@@ -38,7 +38,7 @@ its `CL_FirstSnapshot` message is emitted after setting `cls.state=CA_ACTIVE`.
 Checking that message together with the server's `ClientBegin: 2` corrects the
 assertion without relabelling a failed engine run or changing engine behavior.
 
-The [manifest](evidence/2026-09-21-stvef-linux-client.json) records commands,
+The [manifest](2026-09-21-stvef-linux-client.json) records commands,
 binary and asset identities, active-state/backend evidence, packet counts,
 demo/frame hashes and capture hashes. Private logs, scripts and outputs remain
 in `.tmp/stvef-gaps/linux-client-*` and `E:\Games\fnTech3-tests\linux-client-*`.

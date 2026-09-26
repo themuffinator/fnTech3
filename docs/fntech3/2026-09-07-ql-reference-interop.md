@@ -6,7 +6,7 @@ dedicated server. Both connections negotiated protocol 91, passed pure
 admission and reached `CS_ACTIVE`. Each engine screenshot showed the native
 QL join UI over the campgrounds world. All four processes exited normally.
 
-The [evidence record](evidence/2026-09-07-ql-reference-interop.json) contains
+The [evidence record](2026-09-07-ql-reference-interop.json) contains
 exact executable/renderer/package hashes, fixture hashes, startup commands,
 generated configs and decisive log lines. The reference artifacts came from
 the existing `FnQL/meson/build-win32` directory. Their exact source revision is

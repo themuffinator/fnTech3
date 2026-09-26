@@ -20,7 +20,7 @@ pure sessions. Both profiles passed admission, reached active state, received
 snapshots, rendered their world/HUD or native join UI and exited normally.
 Engine PNGs were visually inspected. Client, dedicated, renderer and package
 hashes were checked directly against the ZIP entries. The
-[evidence bundle](evidence/2026-09-08-packaged-profiles.json) records all stage
+[evidence bundle](2026-09-08-packaged-profiles.json) records all stage
 files, exact runtime commands/configs and log/image hashes.
 
 Runs used legitimate installations, isolated writable homes, windowed GLx and

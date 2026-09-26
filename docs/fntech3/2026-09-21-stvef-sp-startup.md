@@ -45,7 +45,7 @@ the new probe. Windows and Linux client/dedicated builds complete. The full
 Windows suite passes 120 targets with two skips and no failures; its Python
 aggregate runs 1,854 tests with 72 skips in 804.985 seconds. Individual
 results, commands, artifacts and hashes are recorded in the
-[manifest](evidence/2026-09-21-stvef-sp-startup.json).
+[manifest](2026-09-21-stvef-sp-startup.json).
 
 ## Runtime coverage
 

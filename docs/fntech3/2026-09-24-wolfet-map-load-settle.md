@@ -225,7 +225,7 @@ reason, `was kicked`.
   same hash before and after its runs. The module and `pak0.pk3`
   (`712966b20e06523fe81419516500e499c86b2b4fec823856ddbd333fcb3d26e5`) were
   retail's. The commands, configs, digests and per-step results are in the
-  [evidence file](evidence/2026-09-24-wolfet-map-load-settle.json). The lines
+  [evidence file](2026-09-24-wolfet-map-load-settle.json). The lines
   themselves quote the retail map script, so the evidence keeps only their
   digest.
 

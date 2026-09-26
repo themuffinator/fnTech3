@@ -32,7 +32,7 @@ separate pinned-runtime loopback result remains documented in the
 
 ## Runtime scope
 
-Runtime records are in the [download evidence](evidence/2026-09-08-pak-download-policy.json).
+Runtime records are in the [download evidence](2026-09-08-pak-download-policy.json).
 Both probes use the rebuilt shared x86 binaries, isolated writable homes,
 windowed GLx on an unswitched private desktop, disabled input capture and
 disabled Steam integration. Screenshots come from the engine render target.

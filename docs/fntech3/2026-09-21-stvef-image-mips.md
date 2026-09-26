@@ -45,7 +45,7 @@ modules. The full Windows suite passes 120 targets with two skips and no
 failures. Its Python aggregate runs 1,853 tests with 72 skips in 836.390
 seconds. Individual results and the precise executable, module, source
 and log hashes are in the
-[evidence manifest](evidence/2026-09-21-stvef-image-mips.json).
+[evidence manifest](2026-09-21-stvef-image-mips.json).
 The wider Linux suite was not rerun; its previously recorded failures remain
 open.
 

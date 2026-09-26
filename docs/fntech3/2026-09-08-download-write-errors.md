@@ -25,7 +25,7 @@ complete results for newly opened and existing handles. Storage operations
 are controlled stubs: these tests do not fill a physical disk or inject an
 operating-system device failure.
 
-The change is independently authored. The [evidence record](evidence/2026-09-08-download-write-errors.json)
+The change is independently authored. The [evidence record](2026-09-08-download-write-errors.json)
 contains build/suite results and bounded runtime non-regression probes. Retail
 map data used in temporary loopback download fixtures remains local and is
 deleted with the isolated homes; it is not committed or published. Runtime
@@ -58,7 +58,7 @@ with the second reaching active state after pure admission. The downloaded
 archive hash matched the temporary server fixture, snapshots continued, the
 engine screenshot showed world/HUD gameplay and both processes exited normally.
 Exact configurations, hashes and excerpts are in the
-[reconnect record](evidence/2026-09-08-http-reconnect.json).
+[reconnect record](2026-09-08-http-reconnect.json).
 
 The earlier script had queued a long wait, screenshot and quit immediately
 after connecting. `CL_Reconnect_f` appends its connect command to that same

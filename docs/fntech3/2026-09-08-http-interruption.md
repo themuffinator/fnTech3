@@ -17,7 +17,7 @@ Both retries produced an archive matching the server fixture SHA-256, completed
 automatic HTTP reconnection and native/QVM pure admission as appropriate, and
 continued receiving snapshots. Engine screenshots showed Q3 world/HUD and QL
 native join UI/world. Retried clients and dedicated servers exited normally.
-The [evidence record](evidence/2026-09-08-http-interruption.json) pins executable
+The [evidence record](2026-09-08-http-interruption.json) pins executable
 hashes, exact startup scripts, failure messages, temporary-file observations,
 retry hashes and process outcomes.
 

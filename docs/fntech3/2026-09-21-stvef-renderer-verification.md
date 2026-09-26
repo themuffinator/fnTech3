@@ -20,7 +20,7 @@ tracing disabled.
 Twenty-one windowed runs use the same production client and renderer DLLs,
 except for a private scissor probe linked with one instrumented screen object.
 The production source and executable are unchanged by that probe. The
-[manifest](evidence/2026-09-21-stvef-renderer-verification.json) records their
+[manifest](2026-09-21-stvef-renderer-verification.json) records their
 SHA-256 identities, commands, backend log proof and 107 engine captures.
 
 | Probe | Verified backends | Observation |

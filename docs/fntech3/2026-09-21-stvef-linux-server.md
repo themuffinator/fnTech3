@@ -62,7 +62,7 @@ The [fixture follow-up](2026-09-21-stvef-linux-fixtures.md) resolves all 115
 architecture reports and passes all Elite Force Python fixtures on both
 hosts; unrelated Linux checks remain open.
 
-The [manifest](evidence/2026-09-21-stvef-linux-server.json) records the source
+The [manifest](2026-09-21-stvef-linux-server.json) records the source
 states, binary and installed-pak hashes, configuration, commands, selected
 events, capture/demo hashes and playback frame counts. Initial sessions used
 the include-only build; retail-client sessions and startup checks used the

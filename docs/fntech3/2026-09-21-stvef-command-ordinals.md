@@ -149,7 +149,7 @@ unchanged.
 
 ## Evidence and remaining gates
 
-The [manifest](evidence/2026-09-21-stvef-command-ordinals.json) records source,
+The [manifest](2026-09-21-stvef-command-ordinals.json) records source,
 executable, module, pak, probe and fixture identities; commands, settings,
 logs and captures; build/test outcomes; native and runtime comparisons; and
 manual-stage provenance. Raw diagnostics and captures remain in the

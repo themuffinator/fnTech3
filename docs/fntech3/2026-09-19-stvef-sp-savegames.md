@@ -126,7 +126,7 @@ with its health and armour. The two engines' saves of the same level have the
 same engine chunks, the same 484-byte portal state and the same 76
 configstrings; fnTech3 keeps 14 userinfo cvars where retail keeps 9, because
 this engine registers more of them. The
-[runtime record](evidence/2026-09-19-stvef-sp-savegames.json) holds each
+[runtime record](2026-09-19-stvef-sp-savegames.json) holds each
 save's chunks. The installation was left unchanged.
 
 ## Tests

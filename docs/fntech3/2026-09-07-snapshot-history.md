@@ -22,7 +22,7 @@ Validation at `7fc00d5` plus this patch:
 - Snapshot/history and native bridge tests passed together (32 tests).
 - Windows MSVC x86 client compilation passed. Both profiles passed local pure
   admission, reached active state, produced inspected engine screenshots and
-  exited normally. The [runtime record](evidence/2026-09-07-snapshot-history.json)
+  exited normally. The [runtime record](2026-09-07-snapshot-history.json)
   contains hashes, commands, configs and log excerpts. Isolated homes,
   windowed GLx, an unswitched private desktop and disabled input capture were
   used; no user input injection or OS screen capture occurred.

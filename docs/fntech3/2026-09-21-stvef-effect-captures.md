@@ -106,7 +106,7 @@ existing production builds and their full Windows suite results remain
 those in the [force-feedback record](2026-09-21-stvef-force-feedback.md);
 this slice changes no production C/C++ source and does not rerun that suite.
 
-The [evidence manifest](evidence/2026-09-21-stvef-effect-captures.json) pins
+The [evidence manifest](2026-09-21-stvef-effect-captures.json) pins
 the production and instrumented binaries separately, the retail inputs,
 scripts, logs, screenshots, shader observations, diagnostic counts and all
 image metrics. Retained local evidence is under `.tmp/stvef-gaps`, with

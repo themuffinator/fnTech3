@@ -32,7 +32,7 @@ exits normally along with its dedicated server (both status zero, neither
 forcibly terminated). The inspected screenshot has readable world and HUD
 textures. This modified client is built from the earlier `b5776c9` checkout with
 the Unix exit correction and this lifecycle correction; it is not a new clean
-checkout build. The [evidence record](evidence/2026-09-08-x11-extension-lifetime.json)
+checkout build. The [evidence record](2026-09-08-x11-extension-lifetime.json)
 pins source changes, artifacts, commands, installation identity and log hashes.
 
 This closes the reproduced DGA stale-callback shutdown defect. SDL texture

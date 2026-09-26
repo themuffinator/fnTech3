@@ -15,7 +15,7 @@ lineage also limits the independence of this peer check.
 
 ## Identity and reproduction record
 
-The [machine-readable record](evidence/2026-09-07-q3-reference.json) contains
+The [machine-readable record](2026-09-07-q3-reference.json) contains
 the exact executable/renderer/package hashes, command argument arrays, authored
 configs, pak hashes, UTC times, log hashes, decisive log lines and screenshot
 hashes for both directions. fnTech3 was checked out clean at

@@ -25,7 +25,7 @@ Validation at `6a552c5` plus this patch:
   QL restores `4.75`. All four exit normally. QL leaves the Q3 config hash
   unchanged, and the returning Q3 launch leaves both QL config hashes unchanged.
 
-The [runtime record](evidence/2026-09-07-config-migration.json) contains
+The [runtime record](2026-09-07-config-migration.json) contains
 binary identity, commands, test configs, config hashes and console observations.
 The probes use stock Q3 assets and the legitimate QL installation, windowed
 GLx, disabled mouse/joystick capture and isolated writes. Sensitivity is only
@@ -44,7 +44,7 @@ Q3 retained `2`, compiled the retail qagame QVM and loaded q3dm6. QL selected
 `0`, loaded retail native qagame API 10 and loaded campgrounds/ffa. Both reached
 the post-map script marker and shut down normally. These short startup probes
 do not establish a live client connection or sustained dedicated operation.
-The [dedicated and suite record](evidence/2026-09-07-dedicated-config-migration.json)
+The [dedicated and suite record](2026-09-07-dedicated-config-migration.json)
 contains executable identity, full arguments/configs and log excerpts.
 
 The complete local Meson suite at that revision passed 110 tests with zero

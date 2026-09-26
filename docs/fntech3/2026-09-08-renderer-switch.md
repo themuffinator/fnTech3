@@ -26,7 +26,7 @@ All clients force windowed mode and disable input grabbing. Linux runs under
 private Xvfb with Mesa software GL/Vulkan; Windows uses private desktops that
 are never switched onto the user's display. Writable homes are temporary and
 isolated. Screenshots come from the engine, and neither retail inputs nor
-screenshots are committed. The [evidence record](evidence/2026-09-08-renderer-switch.json)
+screenshots are committed. The [evidence record](2026-09-08-renderer-switch.json)
 pins commands, configurations, profiles, artifact hashes, fixture identities,
 transition traces and log/screenshot hashes. The modified Linux checkout's
 source lineage remains explicit; it is not a fresh clean build.

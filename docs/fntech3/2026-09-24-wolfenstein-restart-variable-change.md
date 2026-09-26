@@ -114,7 +114,7 @@ baseline, `ec0348ec5f2bf6a8dc4bc8c6f2f26b8003910c374bf489815eb9603e8b09c685`,
 and the candidate, the same export plus only this change,
 `576488b78dc696254e086eec269858c5134642ae2b926ef869aa749cf724bd4b`. Every run
 used the retail modules and paks the
-[evidence file](evidence/2026-09-24-wolfenstein-restart-variable-change.json)
+[evidence file](2026-09-24-wolfenstein-restart-variable-change.json)
 lists, and left the installation's inventory unchanged. The two games agreed
 at every step, so each cell below holds for both.
 
@@ -189,7 +189,7 @@ four runs.
 - `tests/rtcw_match_restart_tests.py`, which compiles the command up to this
   check, passes unchanged.
 - The runtime runs above. The
-  [evidence file](evidence/2026-09-24-wolfenstein-restart-variable-change.json)
+  [evidence file](2026-09-24-wolfenstein-restart-variable-change.json)
   holds each run's commands, hashes and per-step counts, including the
   earlier four-step runs the retail proof outcomes come from.
 - Both exports built with strict warnings. The full Python suite passed on the

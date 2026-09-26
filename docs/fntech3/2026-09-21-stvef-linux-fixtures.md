@@ -32,7 +32,7 @@ has an ET packet-probe target error and a macOS packaging check that requires
 POSIX file modes unavailable on this DrvFS mount. These are retained rather
 than suppressed or represented as an Elite Force pass.
 
-The [manifest](evidence/2026-09-21-stvef-linux-fixtures.json) records source
+The [manifest](2026-09-21-stvef-linux-fixtures.json) records source
 hashes, counts, timings, log identities and remaining failure details. Logs
 remain under `.tmp/stvef-gaps`. No full Linux suite pass or release
 compatibility claim is made.

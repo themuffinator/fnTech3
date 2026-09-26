@@ -127,6 +127,8 @@ evidence.
 - Record observed facts separately from inferences. Pin compatibility-sensitive
   constants to a source, fixture, packet transcript, module probe, or retail
   observation.
+- Keep a record's machine-readable companion beside it in `docs/fntech3/`,
+  named like the record with a `.json` extension, not in a subfolder.
 - Validate malformed input, bounds, partial initialization, shutdown, path
   containment, and fallback behavior alongside the happy path.
 - Compare every compatibility change against all affected profiles where the

@@ -18,7 +18,7 @@ produced one connection and also reached active state.
 Both sessions continued receiving snapshots, rendered the native QL join UI
 over the world, and exited normally on client and server. Exact command lines,
 startup scripts, binary hashes, archive hashes and excerpts are in the
-[evidence manifest](evidence/2026-09-08-ql-downloads.json). The scripts use
+[evidence manifest](2026-09-08-ql-downloads.json). The scripts use
 `activeAction` to schedule engine screenshots and quit after play starts,
 leaving the automatic reconnect command free to execute. Windowed GLx,
 isolated writable homes, disabled input capture and an unswitched private

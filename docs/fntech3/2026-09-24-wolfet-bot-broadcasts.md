@@ -177,7 +177,7 @@ None of the 248 `chat "console: floodN"` broadcasts said in those steps is
 among them. The 257th line repeats the first, because the dump reads the ring
 past its end. The 258th is the update that overflowed. The run quit with exit
 code 0, and the installation's file inventory was unchanged. The
-[evidence file](evidence/2026-09-24-wolfet-bot-broadcasts.json) holds the
+[evidence file](2026-09-24-wolfet-bot-broadcasts.json) holds the
 commands, the listings and the counts.
 
 So, in retail:
@@ -284,7 +284,7 @@ were read as reference observations. No text from them is incorporated.
   `tests/untrusted_asset_bounds_tests.py` and
   `tests/input_system_source_tests.py`, which read these functions, pass.
 - The retail run, the fnTech3 runs and the scratch harness above. The
-  [evidence file](evidence/2026-09-24-wolfet-bot-broadcasts.json) records
+  [evidence file](2026-09-24-wolfet-bot-broadcasts.json) records
   each server's hash, command line and outcome.
 - Both dedicated servers were built from a `git archive` of `2d35919` for
   Windows x86 with MSVC, `debugoptimized` and strict warnings, with the RTCW,

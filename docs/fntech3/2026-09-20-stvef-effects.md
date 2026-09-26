@@ -83,7 +83,7 @@ captures do not establish full image parity. Repeated retail shield captures
 also vary after snapshot time is held, so the wave fix alone does not close
 the broader effect comparison.
 
-The [evidence manifest](evidence/2026-09-20-stvef-effects.json) records build,
+The [evidence manifest](2026-09-20-stvef-effects.json) records build,
 source, retail and fixture identities, commands, sanitizer observations and
 capture hashes. Local probes, logs and images remain under
 `.tmp/stvef-gaps/surface-runtime` and its parent in the isolated worktree.

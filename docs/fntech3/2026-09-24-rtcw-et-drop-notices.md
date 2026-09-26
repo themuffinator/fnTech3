@@ -83,7 +83,7 @@ The other supported engines, which this change leaves alone:
 | `fakk2` | `fakk2.exe` 1.02, `681bc51c3343d01d772c5ae4aae7523ae4547350b243c875156e138043335785` | `0x443aa0` | `print "%s %s\n"`, `0x443abb` | `disconnect`, `0x443b2b` |
 
 Addresses in the Notice and Addressed columns are where each string's address
-is pushed. The [evidence file](evidence/2026-09-24-rtcw-et-drop-notices.json)
+is pushed. The [evidence file](2026-09-24-rtcw-et-drop-notices.json)
 also gives each string's own address and each call. What follows from the
 tables:
 

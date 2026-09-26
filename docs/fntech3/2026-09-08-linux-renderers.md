@@ -11,7 +11,7 @@ non-SDL X11 client build, not the separate bundled-SDL build path.
 All 670 configured build steps completed. The client and GLx, Vulkan and RTX
 modules are ELF 32-bit Intel 80386 artifacts. Client loader dependencies
 resolve to the installed i386 libraries. Artifact hashes and exact commands
-are in the [evidence record](evidence/2026-09-08-linux-renderers.json).
+are in the [evidence record](2026-09-08-linux-renderers.json).
 
 Missing system dependencies used the repository's existing wrap fallbacks:
 FreeType 2.14.3, libjpeg-turbo 3.1.4.1, OpenAL Soft 1.25.2 headers and

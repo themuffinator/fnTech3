@@ -13,7 +13,7 @@ demo-message error.
 | pak0.pk3 | demos/demo001.dm3 | Completed |
 | pak0.pk3 | demos/demo002.dm3 | Completed |
 
-The [evidence record](evidence/2026-09-07-q3-shipped-demos.json) identifies the
+The [evidence record](2026-09-07-q3-shipped-demos.json) identifies the
 clean checkout `b72e5a5`, reused client hash, exact demo-member hashes, startup
 commands, generated configs, outcomes, timedemo frame counts and warnings.
 The binary is the same build used for the preceding entity-history probes;
@@ -44,7 +44,7 @@ stock-rendering evidence.
 All four demos were rerun against the existing external fixture containing
 only pak0 through pak8, with fresh writable homes. All four again reached
 normal completion, processed frames and exited cleanly. The
-[stock-fixture record](evidence/2026-09-07-q3-stock-demo-isolation.json) includes
+[stock-fixture record](2026-09-07-q3-stock-demo-isolation.json) includes
 the complete nine-pak hash inventory, demo hashes, commands and outcomes.
 Logs remain in `.tmp/demo-q3-builtin-stock-*/`.
 
@@ -63,7 +63,7 @@ from the same pak0–pak8 fixture. It processed the same 1,346 frames, reached
 the completion marker and exited cleanly. Both engines emitted exactly two
 `CM_AddFacetBevels... invalid bevel` warnings. Their current `cm_patch.c`
 source files also match after line-ending normalization. The
-[reference record](evidence/2026-09-07-q3-bevel-reference.json) preserves the
+[reference record](2026-09-07-q3-bevel-reference.json) preserves the
 binary hash, commands, outcomes and comparison.
 
 The first reference probe completed playback but did not honor fnTech3's

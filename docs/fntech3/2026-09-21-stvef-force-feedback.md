@@ -90,7 +90,7 @@ feedback controller.
 
 ## Validation and reproduction
 
-The [evidence manifest](evidence/2026-09-21-stvef-force-feedback.json) records
+The [evidence manifest](2026-09-21-stvef-force-feedback.json) records
 source and binary identities, build/test results, native helper identity, exact
 runtime commands, logs and captures. The five compiled regression groups run
 the production table, scheduler, runtime bridge and controller with an owned

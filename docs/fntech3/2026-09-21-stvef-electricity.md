@@ -85,7 +85,7 @@ through the x86 build wrapper passed. No complete production suite was
 rerun for these test/evidence changes; the previous build and suite results
 remain in the [force-feedback record](2026-09-21-stvef-force-feedback.md).
 
-The [manifest](evidence/2026-09-21-stvef-electricity.json) keeps instrumented
+The [manifest](2026-09-21-stvef-electricity.json) keeps instrumented
 and production identities distinct, and records the native observations,
 commands, source files, logs, screenshots, controls and image metrics.
 Local probes and their build outputs are retained under `.tmp/stvef-gaps`.

@@ -44,7 +44,7 @@ game frame at the same time.
 | Jedi Outcast SP 1.02a `jk2sp.exe` | `0d3c635e…cc0d0e0c` | none | `0x4372d8..0x437308`, `0x43736c..0x437386` | `sv.time` (`0x126bb24`), `0x436da2` |
 
 The full digests are in the
-[evidence file](evidence/2026-09-24-settle-frame-order.json). "None" means the
+[evidence file](2026-09-24-settle-frame-order.json). "None" means the
 executable holds no `map_restart` string at all. Enemy Territory 2.60b's
 `et.exe` and `etded.exe` run six frames the same way, as the ET records show.
 The IHV test's frames already ran at 1000, 1100 and 1200 (`Q3_IHV.md`), and
@@ -198,7 +198,7 @@ the command fnTech3 gives them now does the same.
   every command once. Retail's MP levels ran 6,800 and 6,100 ms before the
   next restart, and its SP levels 7,950 and 2,550 ms. Earlier runs of both
   modes gave the same digests. The commands, configs, digests and per-level
-  results are in the [evidence file](evidence/2026-09-24-settle-frame-order.json);
+  results are in the [evidence file](2026-09-24-settle-frame-order.json);
   the lines quote the retail map scripts, so it keeps only their digests.
 
 ## Not established

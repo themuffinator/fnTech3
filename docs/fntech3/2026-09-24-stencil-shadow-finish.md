@@ -56,7 +56,7 @@ and `.tmp/runtime/shadowfinish-after/`. They share `fntech3.exe` (SHA-256
 change. Every run was windowed on a private desktop with no input, in an
 isolated home, and every installation's file inventory was unchanged
 afterwards. The full manifest is
-[the evidence file](evidence/2026-09-24-stencil-shadow-finish.json).
+[the evidence file](2026-09-24-stencil-shadow-finish.json).
 
 ### RTCW multiplayer, `mp_ice`
 

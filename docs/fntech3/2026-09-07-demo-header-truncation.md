@@ -23,7 +23,7 @@ Validation at `ae91465` plus this patch:
   and exit normally. These are synthetic envelope-only inputs, not gameplay
   or malformed message-body coverage.
 
-The [runtime record](evidence/2026-09-07-demo-header-truncation.json) contains
+The [runtime record](2026-09-07-demo-header-truncation.json) contains
 the executable hash, complete commands/configs, exact synthetic bytes and
 outcomes. Legitimate installations supply startup resources; each run uses a
 separate writable home outside the repository, removed after logs are saved.

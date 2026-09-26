@@ -29,7 +29,7 @@ platform backend and renderer linkage, so they do not isolate which difference
 causes the texture corruption.
 
 Exact commands, artifacts, log hashes, screenshots hashes and observed results
-are in the [evidence record](evidence/2026-09-08-linux-client-runtime.json).
+are in the [evidence record](2026-09-08-linux-client-runtime.json).
 The proprietary scene screenshots stay in ignored local probe output.
 
 The available retail QL `bin.pk3` contains Windows cgame/UI modules and Linux

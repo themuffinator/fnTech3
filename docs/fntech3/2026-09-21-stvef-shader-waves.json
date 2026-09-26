@@ -6464,7 +6464,7 @@
       "sha256": "c905c237c505b7226065f0d3d43b2bbb535d5e87f9db3f1f68906c82593ac5ed"
     }
   ],
-  "spInstallationReference": "docs/fntech3/evidence/2026-09-21-stvef-sp-clock.json",
+  "spInstallationReference": "docs/fntech3/2026-09-21-stvef-sp-clock.json",
   "spGameModules": [
     {
       "path": "E:\\Games\\Star Trek Voyager Elite Force\\efgamex86.dll",

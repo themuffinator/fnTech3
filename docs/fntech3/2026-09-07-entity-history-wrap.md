@@ -20,7 +20,7 @@ short Q3 `.dm_68` and QL `.dm_91` demos using legitimate local installations.
 Both recordings started/stopped normally; both files contained the terminal
 trailer; playback reached the configured completion marker. All four runs
 exited normally without truncation warnings or reported demo-message errors.
-The [runtime manifest](evidence/2026-09-07-entity-history-wrap.json) records
+The [runtime manifest](2026-09-07-entity-history-wrap.json) records
 binary/base-pak/demo hashes, commands, configs and outcomes. Logs and generated
 demos remain local in `.tmp/demo-{profile}-entity-wrap/`.
 

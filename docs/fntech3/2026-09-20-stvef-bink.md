@@ -93,7 +93,7 @@ establish the following:
 - Missing and malformed movies return cleanly. A synthetic damaged header
   shadowing either resolution falls back to the other installed resolution.
 
-[The evidence manifest](evidence/2026-09-20-stvef-bink.json) records executable,
+[The evidence manifest](2026-09-20-stvef-bink.json) records executable,
 runtime, renderer and fixture identities, commands, selected tracks and capture
 hashes. Logs and engine captures remain under `.tmp/stvef-gaps/` in the isolated
 `stvef-support` checkout. No operating-system capture was used.

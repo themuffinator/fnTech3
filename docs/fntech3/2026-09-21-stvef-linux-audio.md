@@ -40,7 +40,7 @@ An initial diagnostic run exposed an unrelated logging issue: leaving
 closed. The final probes restore `fs_debug 0` before quitting and retain stdout
 independently. The production logging code is unchanged.
 
-The [manifest](evidence/2026-09-21-stvef-linux-audio.json) records the source,
+The [manifest](2026-09-21-stvef-linux-audio.json) records the source,
 ELF/runtime identities, build commands, configuration, selected paths, output
 hashes and measurements. Logs remain in `.tmp/stvef-gaps/linux-audio-*` and the
 `E:\Games\fnTech3-tests\linux-audio-*` homes. No proprietary audio is committed.

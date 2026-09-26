@@ -5,7 +5,7 @@ tests with zero failures and one unavailable OpenAL-loopback skip. The
 aggregate Python suite ran 1,250 tests with seven skips. This includes the
 new native/pure selection and shader RGB parser regressions.
 
-The [local record](evidence/2026-09-08-regression-checkpoint.json) pins
+The [local record](2026-09-08-regression-checkpoint.json) pins
 executable/renderer and log hashes. The run used `vcvars32` and the existing
 Meson build with `--no-rebuild --print-errorlogs` after rebuilding changed
 targets. It establishes complete local regression coverage, not a clean build

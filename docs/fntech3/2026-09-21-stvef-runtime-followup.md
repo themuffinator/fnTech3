@@ -68,7 +68,7 @@ The retail SP module remains a Windows x86 boundary.
 
 ## Reproduction and limits
 
-The [manifest](evidence/2026-09-21-stvef-runtime-followup.json) records
+The [manifest](2026-09-21-stvef-runtime-followup.json) records
 source/binary identities, exact commands, saves, logs, captures and native
 instruction addresses. Homes are independent copies under
 `E:/Games/fnTech3-tests`; Windows uses a private desktop that is never

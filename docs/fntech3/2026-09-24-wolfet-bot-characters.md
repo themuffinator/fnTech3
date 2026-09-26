@@ -274,7 +274,7 @@ incorporated.
   `tests/bot_profile_defaults_tests.py` now checks `bot_thinktime`'s
   default in every profile, and stubs `Com_GameIsWolfET`.
 - The runs above. The
-  [evidence file](evidence/2026-09-24-wolfet-bot-characters.json) holds each
+  [evidence file](2026-09-24-wolfet-bot-characters.json) holds each
   server's hash, command line, bot rows, pending-command summary and outcome.
 - Every probe run left the installation's file inventory unchanged. The
   debugger runs used isolated homes too, and after all the runs no file in

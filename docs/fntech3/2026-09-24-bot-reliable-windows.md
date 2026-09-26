@@ -115,7 +115,7 @@ commands a bot held before "Server command overflow":
 `stvef-sp`, `jka-sp`, `jk2-sp` and `alice` offer their games no bot allocation,
 and `q3-ihv` keeps its bots in its own table, so none of them seats a bot in a
 client slot. The harness's numbers for every wire in every profile are in
-the [evidence file](evidence/2026-09-24-bot-reliable-windows.json).
+the [evidence file](2026-09-24-bot-reliable-windows.json).
 
 Before this change the index math stayed consistent only because a bot kept
 both the slot's wire profile and its counters. A window taken from the
@@ -224,7 +224,7 @@ any of them, or from any source, is incorporated.
   sessions' uncommitted
   work, including the bot-library changes of
   `2026-09-24-wolfet-bot-characters.md`, which let `spawnbot` make an ET bot at
-  all. The [evidence file](evidence/2026-09-24-bot-reliable-windows.json)
+  all. The [evidence file](2026-09-24-bot-reliable-windows.json)
   records the snapshot, both servers' hashes, each command line and the
   counts.
 - The shared tree built with the change for Windows x86 with MSVC,

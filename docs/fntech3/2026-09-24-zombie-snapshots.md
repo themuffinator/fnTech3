@@ -43,7 +43,7 @@ commands, and then failed.
 
 A diagnostic wrapper around the same probe adds `cl_shownet 2` to one retail
 client, which then prints how it parses every message. The runs are listed in
-the [evidence file](evidence/2026-09-24-zombie-snapshots.json).
+the [evidence file](2026-09-24-zombie-snapshots.json).
 
 - The dropped client. The message holding the notice, the configstring change
   and `disconnect` opened with those three commands and a snapshot. RTCW MP

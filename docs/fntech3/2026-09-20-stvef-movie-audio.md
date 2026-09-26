@@ -75,7 +75,7 @@ the observer receives no movie PCM and records no buffer play calls.
 
 ## Scope and retained evidence
 
-The [evidence manifest](evidence/2026-09-20-stvef-movie-audio.json) pins the
+The [evidence manifest](2026-09-20-stvef-movie-audio.json) pins the
 runtime, client, renderer, probe and fixture identities and records commands,
 PCM hashes, native failure observations and output-meter results. Local source,
 logs and captures remain in `.tmp/stvef-gaps` in the isolated worktree; test

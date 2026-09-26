@@ -30,7 +30,7 @@ Validation at `6f7669b` plus this patch:
   replay to normal completion. The existing truncated external QL recording
   still reports truncation and exits cleanly, without being counted as a pass.
 
-The [runtime record](evidence/2026-09-07-demo-profile-isolation.json) contains
+The [runtime record](2026-09-07-demo-profile-isolation.json) contains
 binary hashes, commands/configs and outcomes. Runs used isolated writable homes,
 windowed GLx, disabled mouse/joystick capture and startup console commands. No
 input injection or screen capture was used; no proprietary inputs were added.
@@ -53,7 +53,7 @@ Both returned to the next scripted command and continued receiving snapshots
 without reconnecting. Each server recorded exactly one transition to
 `CS_ACTIVE`; both clients and servers exited normally. Engine-generated PNGs
 showed the Q3 world/HUD and QL world/native join screen beneath the console.
-The [active-session record](evidence/2026-09-07-active-demo-rejection.json)
+The [active-session record](2026-09-07-active-demo-rejection.json)
 contains exact binary hashes, startup arguments, configs, log excerpts and
 screenshot hashes. These probes supplied no cross-profile demo file; the
 executable harness above covers rejection when such files exist. Runs used

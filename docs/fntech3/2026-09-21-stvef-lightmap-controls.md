@@ -8,7 +8,7 @@ format, and neither retail control was registered.
 
 Production commit `8435103` follows the
 [compression-method correction](2026-09-21-stvef-compression-method.md).
-The [evidence record](evidence/2026-09-21-stvef-lightmap-controls.json)
+The [evidence record](2026-09-21-stvef-lightmap-controls.json)
 pins native observations, exact sources and binaries, regression results,
 runtime commands and retained files. Implementation is independent; no
 proprietary executable bytes, modules or assets are committed.

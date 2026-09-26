@@ -142,7 +142,7 @@ FnQuake3 text was used.
   (1,832 passed, 77 skipped for runtime opt-ins and tools that export did not
   build, 37,810 subtests), and `scripts/release_workflow.py check` agrees. The
   commands, identities and per-run results are in the
-  [evidence file](evidence/2026-09-24-client-slot-stack-overflow.json).
+  [evidence file](2026-09-24-client-slot-stack-overflow.json).
 
 ## Not established
 

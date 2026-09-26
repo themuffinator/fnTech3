@@ -7,7 +7,7 @@ so the retail setting could change without reaching the renderer. This also
 explains most of the static corridor difference in the preceding
 [startup/capture record](2026-09-21-stvef-sp-startup.md).
 
-The [machine-readable record](evidence/2026-09-21-stvef-texture-compression.json)
+The [machine-readable record](2026-09-21-stvef-texture-compression.json)
 contains commands, source and executable identities, effective settings,
 image measurements and local evidence paths. No retail executable, module,
 asset, disassembly or screenshot is incorporated in the repository.

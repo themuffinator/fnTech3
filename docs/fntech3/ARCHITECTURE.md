@@ -263,13 +263,16 @@ full runtime-test rules.
 ### Evidence records
 
 Each compatibility change is recorded in a dated document under
-`docs/fntech3/`, often with a machine-readable `.json` companion: what was
-observed, what was inferred, the executable identity, commit, platform,
-profile, command, installation identity and outcome. The ledger defines the
-evidence levels (Source, Unit, Build, Fixture, Live, Interop) and links each
-record from the gate it moves. Records never include retail files or
-credentials. Release packages ship the whole `docs/fntech3/` tree, and the
-packager checks that every link between its documents resolves.
+`docs/fntech3/`, often with a machine-readable companion: what was observed,
+what was inferred, the executable identity, commit, platform, profile,
+command, installation identity and outcome. A companion sits beside its
+record and shares its name, `2026-09-24-x.json` beside `2026-09-24-x.md`;
+any further data file takes the record's date and a name of its own, in the
+same folder. The ledger defines the evidence levels (Source, Unit, Build,
+Fixture, Live, Interop) and links each record from the gate it moves.
+Records never include retail files or credentials. Release packages ship the
+whole `docs/fntech3/` tree, and the packager checks that every link between
+its documents resolves.
 
 ## Documentation, versions and releases
 

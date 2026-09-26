@@ -88,7 +88,7 @@ shortening `TEMP` and `TMP` to `.tmp/w` inside this worktree. The complete
 Python aggregate then succeeds: 1,844 tests, 72 skips, no failures, in
 688.260 seconds.
 Together with the initial run, all 120 applicable Meson targets pass and
-two skip. The [manifest](evidence/2026-09-21-stvef-sp-clock.json) preserves
+two skip. The [manifest](2026-09-21-stvef-sp-clock.json) preserves
 the initial failure, focused retry and full aggregate retry separately.
 The previously recorded broader Linux failures remain open; the Linux host checks are not a full-suite pass.
 

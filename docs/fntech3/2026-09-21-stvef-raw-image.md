@@ -116,7 +116,7 @@ command. No keyboard or mouse input is controlled, injected or captured.
 Scripts, logs and the trace binaries remain in the worktree's
 `.tmp/stvef-gaps`; the runtime homes remain under `E:/Games/fnTech3-tests`.
 
-The [evidence manifest](evidence/2026-09-21-stvef-raw-image.json) identifies
+The [evidence manifest](2026-09-21-stvef-raw-image.json) identifies
 the baseline source objects, the recorded native provenance, the mutation
 check and the runtime sessions.
 

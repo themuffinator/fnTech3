@@ -1329,7 +1329,7 @@
       "bytes": 21373,
       "sha256": "60b19259dbd5d4f302c78ae97038ed96e57fb384928277033a8bce5a9cd4a202"
     },
-    "evidence": "docs/fntech3/evidence/2026-09-21-stvef-effect-captures.json"
+    "evidence": "docs/fntech3/2026-09-21-stvef-effect-captures.json"
   },
   "nativeProbe": {
     "command": [

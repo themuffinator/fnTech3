@@ -194,7 +194,7 @@ opened with `toggleconsole` from a config and captured with `screenshotPNG`.
 On `mp_beach`, the cgame's `CloseLimboMenu` command closed the limbo menu
 first. No input was sent.
 [`scripts/probe_rtcw_console.py`](../../scripts/probe_rtcw_console.py) runs
-each case; the [evidence file](evidence/2026-09-23-rtcw-mp-console.json)
+each case; the [evidence file](2026-09-23-rtcw-mp-console.json)
 holds the commands, hashes and outcomes.
 
 | Run | Before | After |

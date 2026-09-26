@@ -24,7 +24,7 @@
       "sha256": "edbafb637cd03f85a831de650e62657629e91d6210585dc4f6d782a2e2669c54"
     }
   ],
-  "originalRun": "evidence/2026-09-21-stvef-linux-server.json",
+  "originalRun": "2026-09-21-stvef-linux-server.json",
   "originalArchitectureFailureReportsResolved": 115,
   "linuxDirect": {
     "tests": 375,

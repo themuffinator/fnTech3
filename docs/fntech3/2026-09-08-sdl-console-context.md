@@ -24,7 +24,7 @@ alignment 4. The inspected engine screenshot has readable world textures and
 HUD elements. A subsequent embedded GLx build removes the temporary upload
 instrumentation and exercises Q3 pure admission, snapshots, an engine-command
 `vid_restart`, screenshots before/after restart and normal shutdown. The
-[evidence record](evidence/2026-09-08-sdl-console-context.json) pins the artifacts,
+[evidence record](2026-09-08-sdl-console-context.json) pins the artifacts,
 source changes, commands, fixture identity, observations and log hashes.
 
 The regression test executes production `SysCon_Render` against controlled SDL

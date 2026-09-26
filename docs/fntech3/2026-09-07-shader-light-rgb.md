@@ -26,7 +26,7 @@ Validation at `c43f673` plus this patch:
   fixture (79 frames). All six exit normally with no truncation, invalid RGB
   or missing-parenthesis diagnostics. Timing is not a performance comparison.
 
-The [runtime record](evidence/2026-09-07-shader-light-rgb.json) contains
+The [runtime record](2026-09-07-shader-light-rgb.json) contains
 artifact and observed add-on hashes, commands/configs and frame summaries.
 Runs use isolated writable homes, windowed rendering, disabled input capture,
 audio, Steam and WebUI, and no input injection. No proprietary inputs or

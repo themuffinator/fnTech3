@@ -63,7 +63,7 @@ at `(299, 200)`, proving rounding after the lower-left conversion. Every
 process exited normally. No operating-system capture or input injection
 was used. The temporary drawing block was removed after the probe.
 
-[The evidence manifest](evidence/2026-09-20-stvef-scissor.json) records
+[The evidence manifest](2026-09-20-stvef-scissor.json) records
 commands, executable and renderer hashes, pixel counts and image hashes.
 Build logs and the synthetic engine captures remain under
 `.tmp/stvef-gaps/` in the isolated `stvef-support` checkout.

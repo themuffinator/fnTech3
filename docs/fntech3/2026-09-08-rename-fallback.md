@@ -30,7 +30,7 @@ durability. A failed copy may leave partial destination content, and the
 existing `FS_Rename` destination-removal behavior is unchanged. Broader
 replacement/rollback semantics and power-loss handling remain open.
 
-The [validation record](evidence/2026-09-08-rename-fallback.json) records the
+The [validation record](2026-09-08-rename-fallback.json) records the
 shared Windows x86 build, full suite and both profiles' HTTP download/reconnect
 non-regressions. Those windowed probes use isolated homes, disabled input
 capture and engine screenshots on an unswitched private desktop. Retail

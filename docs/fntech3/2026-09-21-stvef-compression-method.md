@@ -8,7 +8,7 @@ when available; other values prefer ARB, and an unavailable preferred method
 falls back to the supported one. With compression disabled or neither method
 available, the reported capability remains none.
 
-The [evidence record](evidence/2026-09-21-stvef-compression-method.json)
+The [evidence record](2026-09-21-stvef-compression-method.json)
 pins native observations, sources, binaries, checks, runtime commands and
 retained local files. Production commit `891d694` follows the earlier
 [control registration](2026-09-21-stvef-texture-compression.md) and

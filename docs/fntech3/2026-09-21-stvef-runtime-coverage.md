@@ -46,7 +46,7 @@ A [later Linux i686 probe](2026-09-21-stvef-runtime-followup.md) completes a
 llvmpipe's software Vulkan driver. That adds platform-specific functional
 evidence without changing this Windows x86 capability limit or proving SP RT.
 
-The [manifest](evidence/2026-09-21-stvef-runtime-coverage.json) records the
+The [manifest](2026-09-21-stvef-runtime-coverage.json) records the
 executable, renderer and installation identities, commands, settings, complete
 frame counts, capability messages, logs and capture hashes. All tests use
 isolated writable homes, windowed mode, disabled mouse/joystick input and a

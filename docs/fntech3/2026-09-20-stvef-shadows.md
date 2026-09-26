@@ -36,7 +36,7 @@ fixture allows 0.00003 for floating-point rounding.
 All 11 focused Windows tests pass. The new fixture also passes on Ubuntu with
 Clang x86 and address/undefined-behavior sanitizers. All three Windows x86
 renderers build successfully. Final suite and live image results are recorded
-in the [evidence manifest](evidence/2026-09-20-stvef-shadows.json).
+in the [evidence manifest](2026-09-20-stvef-shadows.json).
 The complete Windows x86 suite passes 120 targets with two skips; the Python
 target passes 1,843 tests with 72 conditional skips.
 

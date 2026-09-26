@@ -126,7 +126,7 @@ x86 with MSVC (`debugoptimized`, strict warnings, `-Drtcw-development=true`,
 project's 118 C++ meson tests, 116 pass and 2 skip for their environment: the
 system OpenAL has no `ALC_SOFT_loopback`, and no retail Quake Live path is set.
 pytest passes 1,832 tests, with 76 skipped. The
-[evidence file](evidence/2026-09-23-wolfenstein-console-logo.json) holds these
+[evidence file](2026-09-23-wolfenstein-console-logo.json) holds these
 results and every run below.
 
 ### Runtime

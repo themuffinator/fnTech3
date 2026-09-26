@@ -28,7 +28,7 @@ Validation at `8d813ea` plus this patch:
   pure sessions, reached `CS_ACTIVE`, wrote engine screenshots and exited
   normally. Screenshots were inspected for world/UI/console rendering.
 
-The [runtime record](evidence/2026-09-07-ql-snapshot-marshalling.json) preserves
+The [runtime record](2026-09-07-ql-snapshot-marshalling.json) preserves
 binary hashes, commands, generated configs and decisive log lines. Probes used
 isolated homes, an unswitched private desktop, windowed GLx, disabled input
 capture/audio/Steam/WebUI and engine `screenshotPNG`; no input injection or OS

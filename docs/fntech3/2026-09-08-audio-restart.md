@@ -24,7 +24,7 @@ injected. Windowed GLx engine screenshots after restart were visually inspected
 and showed Q3 world/HUD or QL world/native join UI. WebUI and Steam remained
 disabled; homes were isolated and installations unchanged.
 
-The [evidence record](evidence/2026-09-08-audio-restart.json) contains exact
+The [evidence record](2026-09-08-audio-restart.json) contains exact
 engine hashes, commands/configs and audio diagnostics. Proprietary resources
 and screenshots were not committed. Existing resource/font warnings remain;
 the OpenAL capability limitation is now recorded explicitly. Audible quality,
@@ -54,7 +54,7 @@ Both profile clients also completed their muted local pure sessions and one
 output, limiter enabled and an active 48,000 Hz/100 Hz context before and after
 restart. Snapshots continued, engine screenshots showed world/HUD or native
 join UI, and client/server exits were normal. The same window/input/home
-restrictions above apply. The [OpenAL Soft record](evidence/2026-09-08-openal-soft.json)
+restrictions above apply. The [OpenAL Soft record](2026-09-08-openal-soft.json)
 pins the build command, source/runtime hashes, complete loopback results and
 profile runtime observations.
 
@@ -73,7 +73,7 @@ and executed `snd_restart`. Afterward, `s_info` reported the default request
 and a connected active device without a stale fallback label. Snapshots
 continued and both clients and servers exited normally.
 
-The [device-fallback record](evidence/2026-09-08-audio-device-fallback.json)
+The [device-fallback record](2026-09-08-audio-device-fallback.json)
 contains exact arguments/configs, binary/runtime hashes and before/after
 diagnostics. Output remained muted, homes isolated and input capture disabled;
 no system device settings were changed. This validates unavailable-name
@@ -95,7 +95,7 @@ Both sessions had one sound initialization and one server-observed transition
 to an active client. No initialization was logged between the recovery
 markers; snapshots continued after reopening and after the ending marker.
 Engine screenshots showed Q3 world/HUD and QL native join UI/world. Both
-clients and servers exited normally. The [live-reopen record](evidence/2026-09-08-audio-live-reopen.json)
+clients and servers exited normally. The [live-reopen record](2026-09-08-audio-live-reopen.json)
 pins commands/configs, executable/runtime hashes and log observations.
 
 Output remained muted, input capture disabled and writable homes isolated on

@@ -90,7 +90,7 @@ captures and three held-frame quality captures:
   Every in-game movie reports `cl_paused 1` during playback and
   `cl_paused 0` on return, with the level still connected.
 
-The [evidence manifest](evidence/2026-09-20-stvef-cinematic-presentation.json)
+The [evidence manifest](2026-09-20-stvef-cinematic-presentation.json)
 records source and executable identities, native observations, commands and
 capture hashes. Logs and engine images remain in
 `.tmp/stvef-gaps/bink-presentation-captures` and

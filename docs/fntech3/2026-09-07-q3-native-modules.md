@@ -19,7 +19,7 @@ project source lists were built without source edits using MSVC x86 into
 qagame, cgame and UI fixture DLLs. GPL compatibility was checked against its
 source headers and `COPYING.txt`. Source/header hashes, compiler response
 arguments and DLL hashes are recorded in the
-[evidence bundle](evidence/2026-09-07-q3-native-modules.json). DLLs remain
+[evidence bundle](2026-09-07-q3-native-modules.json). DLLs remain
 disposable test artifacts and are not added to the engine distribution.
 
 Validation at `62f97d1` plus the loader correction:
@@ -67,7 +67,7 @@ The client processed the `map_restart` server command and continued receiving
 snapshots and rendering the world/native join UI. Both clients and servers
 exited normally. Post-restart engine PNGs were visually inspected.
 
-The [map-restart record](evidence/2026-09-07-native-map-restart.json) includes
+The [map-restart record](2026-09-07-native-map-restart.json) includes
 artifact hashes, full arguments/configs and lifecycle excerpts. The windowed,
 isolated-home, no-input-control restrictions above remain in force. Audio,
 WebUI and Steam were disabled. This adds one bounded restart per profile;

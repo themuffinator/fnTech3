@@ -72,7 +72,7 @@ under AddressSanitizer, UndefinedBehaviorSanitizer and float-cast-overflow
 checks. All 64 focused SP tests pass there. Windows and Linux client/dedicated
 builds complete. The full Windows suite passes 120 targets with two skips and
 no failures; its Python aggregate passes 1,852 tests with 72 skips in
-697.127 seconds. The [manifest](evidence/2026-09-21-stvef-sp-cadence.json)
+697.127 seconds. The [manifest](2026-09-21-stvef-sp-cadence.json)
 records individual target results. The wider Linux suite was not rerun and
 its previously recorded failures remain open.
 

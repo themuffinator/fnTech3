@@ -117,7 +117,7 @@ diagnostic logging is in production code.
 
 ## Evidence scope and open gates
 
-The [manifest](evidence/2026-09-21-stvef-player-snapshots.json) records commits,
+The [manifest](2026-09-21-stvef-player-snapshots.json) records commits,
 source/executable/module/pak hashes, commands and configuration templates,
 per-session homes, logs and screenshot identities, comparisons, native trace
 samples, build/test logs and staged artifacts. The collector rechecks 1,406

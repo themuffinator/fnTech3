@@ -23,7 +23,7 @@ world/native join screen. These observations establish recovery, not exact
 image parity across independently spawned viewpoints or elapsed game time.
 RTX logs explicitly report ray tracing disabled before and after restart.
 
-The [evidence record](evidence/2026-09-07-renderer-restart.json) includes
+The [evidence record](2026-09-07-renderer-restart.json) includes
 executable/renderer hashes, full command vectors, console configs, fixture
 identity, log excerpts and screenshot hashes. Q3 used the isolated retail
 pak0–pak8 fixture; QL used its legitimate installation. Each run had separate
@@ -56,7 +56,7 @@ normally. All six post-switch engine PNGs were visually inspected: Q3 retained
 its world/HUD and QL retained its world/native join UI through the return to
 GLx. This is a functional rendering check, not pixel-parity evidence.
 
-The [cycle record](evidence/2026-09-07-renderer-cycle.json) contains exact
+The [cycle record](2026-09-07-renderer-cycle.json) contains exact
 commands/configs, artifact and image hashes, fixture identity and log excerpts.
 The same windowed, isolated-home, no-input-control restrictions above apply.
 Audio, WebUI and Steam remained disabled; ray tracing stayed disabled in RTX.
@@ -78,7 +78,7 @@ and 19 pure proofs including initial admission. Three engine screenshots were
 written per profile; visual inspection of the final images showed intact Q3
 world/HUD and QL world/native join UI. All processes exited normally.
 
-The [repeated-switch record](evidence/2026-09-08-renderer-switch-stress.json)
+The [repeated-switch record](2026-09-08-renderer-switch-stress.json)
 contains exact binaries, arguments/configs, transition counts, snapshot counts
 and log/image hashes. Total probe durations include scheduled server idle time
 after the clients exited and are not gameplay-performance measurements.

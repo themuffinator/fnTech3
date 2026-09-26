@@ -104,6 +104,6 @@ runtime issue, not a fnTech3 network failure. The final fnTech3 executable
 completed an additional protocol-26 pure session against its own server.
 
 Detailed final build, suite, demo and download results are recorded in the
-[evidence manifest](evidence/2026-09-20-stvef-ioef.json). Local logs, captures,
+[evidence manifest](2026-09-20-stvef-ioef.json). Local logs, captures,
 isolated profiles and probe helpers are under `.tmp/stvef-gaps/ioef-*`; installed
 content and generated demo payloads are not committed.

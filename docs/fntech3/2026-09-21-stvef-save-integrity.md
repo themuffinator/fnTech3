@@ -11,7 +11,7 @@ The initial extracted-function regression writes real temporary files and
 forces the first `fwrite` boundary to fail. Before the correction, the engine
 reports success and replaces the old save with the incomplete output:
 `original preserved=0; replacements=1`. The
-[evidence manifest](evidence/2026-09-21-stvef-save-integrity.json) identifies
+[evidence manifest](2026-09-21-stvef-save-integrity.json) identifies
 the baseline source objects and the expected-failure log.
 
 `SV_STVEFSPAppendChunk` already returned failure for a short write, but callers

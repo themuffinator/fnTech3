@@ -4,7 +4,7 @@ An existing user-supplied `.dm_91` recording was replayed with the unified QL
 profile at clean checkout `d8753b9`, using the current Windows x86 client. The
 recording engine is unknown, so this is not asserted to be a retail-authored
 golden fixture. Its identity and exact startup command are in the
-[evidence record](evidence/2026-09-07-ql-truncated-demo.json); original user
+[evidence record](2026-09-07-ql-truncated-demo.json); original user
 paths and gameplay logs are not committed.
 
 The client loaded the native modules/world and processed 115 timedemo frames.

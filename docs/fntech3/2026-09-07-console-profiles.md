@@ -20,7 +20,7 @@ screenshots were inspected: Q3 shows its console over q3dm6, and QL shows its
 console over the native campgrounds join UI/world. Neither run reports the
 missing QL console texture. Both client/server pairs exited normally.
 
-The [evidence record](evidence/2026-09-07-console-profiles.json) contains exact
+The [evidence record](2026-09-07-console-profiles.json) contains exact
 commands, generated configs, hashes and log excerpts, based on `cc6537a` plus
 the console patch. Client SHA-256 is
 `cc98ce03a69b32f2575f9aa13c571a123f797322160a00230f316ee2ab0613a2`;

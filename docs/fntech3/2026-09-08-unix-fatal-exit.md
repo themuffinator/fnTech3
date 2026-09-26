@@ -24,7 +24,7 @@ A native i686 X11 client rebuild applies only these two source corrections
 to the earlier `b5776c9` checkout; it is no longer claimed as that clean build.
 The repeated windowed private-Xvfb probe still encounters the Mesa GLX shutdown
 fault. Its failure status is checked separately from successful pure admission
-and screenshot output. The [evidence record](evidence/2026-09-08-unix-fatal-exit.json)
+and screenshot output. The [evidence record](2026-09-08-unix-fatal-exit.json)
 pins the modified source/artifact hashes and runtime logs.
 
 A debugger run of the original fault stops inside

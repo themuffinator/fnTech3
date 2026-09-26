@@ -107,7 +107,7 @@ suite passes 120 targets with two skips; its Python aggregate runs 1,861 tests
 with 72 skips in 726.625 seconds. The SP-command-only checkpoint separately
 passes 1,860 Python tests. Individual results, executable/installation hashes,
 source commits, commands and all runtime trials are recorded in the
-[manifest](evidence/2026-09-21-stvef-map-reloads.json).
+[manifest](2026-09-21-stvef-map-reloads.json).
 
 The manual installation at `E:/Games/fnTech3-tests/stvef-manual` is refreshed
 to source commit `25dcde9`. Its eight existing settings/save/launcher files

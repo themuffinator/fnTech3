@@ -29,7 +29,7 @@ not a new Huffman codec or captured malformed-network transcript.
 
 The implementation and test are independently authored; no external source
 text was incorporated. Runtime and suite results are recorded in the
-[evidence manifest](evidence/2026-09-08-download-chunk-bounds.json).
+[evidence manifest](2026-09-08-download-chunk-bounds.json).
 
 The shared Windows x86 client rebuild passes. The complete Meson suite passes
 110 tests, zero failures and one unavailable OpenAL-loopback skip; the aggregate

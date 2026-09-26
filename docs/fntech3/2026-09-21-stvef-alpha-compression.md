@@ -7,7 +7,7 @@ made the menu setting effective but still left those images uncompressed.
 The retained OpenGL paths in Vulkan/RTX receive the same format correction;
 their shipping Vulkan upload paths remain uncompressed.
 
-The [evidence record](evidence/2026-09-21-stvef-alpha-compression.json)
+The [evidence record](2026-09-21-stvef-alpha-compression.json)
 pins native observations, sources, binaries, test results, runtime commands,
 image measurements and retained local files. Implementation is independent;
 only numeric observations and owned regression code are committed.

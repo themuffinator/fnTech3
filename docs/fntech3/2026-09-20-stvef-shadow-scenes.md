@@ -34,6 +34,6 @@ evidence for the exact projection/extrusion contract; these observations add
 visible coverage for all three legacy modes. Broader scenes and complete image
 parity remain open.
 
-The [evidence manifest](evidence/2026-09-20-stvef-shadow-scenes.json) records
+The [evidence manifest](2026-09-20-stvef-shadow-scenes.json) records
 binary, pak, save and probe identities, every command, capture hash and image
 measurement. Local scripts and images are in `.tmp/stvef-gaps/shadow-wide-*`.

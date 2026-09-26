@@ -241,7 +241,7 @@ installation's file inventory unchanged.
 - `ql`, `campgrounds` (`ffa`): no lines, and the overlay as before: the strip
   near the bottom and `say: |` in its host face.
 
-The [evidence file](evidence/2026-09-23-profile-notify-lines.json) holds each
+The [evidence file](2026-09-23-profile-notify-lines.json) holds each
 run's command, action, outcome and capture hashes.
 
 A retail `stvoyHM.exe` comparison was also tried, with the same isolated
