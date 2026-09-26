@@ -85,9 +85,10 @@ Start with the [README](../README.md) for an overview, then the
   administrators.
 - [Server firewall examples](firewall/fw-q3host.sh) -- rate-limiting rules for
   a server port, with an [OpenWrt variant](firewall/fw-openwrt.txt).
-- [Quake III URL handler](q3url_add.cmd) -- registers `q3a://` links to
-  launch fnTech3's Quake III profile on Windows;
-  [`q3url_rem.cmd`](q3url_rem.cmd) removes it.
+- [Quake III URL handler](q3url_add.cmd) -- registers `q3a://` links that
+  launch fnTech3's Quake III profile on Windows, reading the Quake III
+  installation named as its argument and writing to a home folder of their
+  own; [`q3url_rem.cmd`](q3url_rem.cmd) removes it.
 
 ## Inherited documentation
 
