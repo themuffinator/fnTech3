@@ -20,8 +20,13 @@ for 120 frames before quitting:
 
 Each run ends in one of: `loaded` (the level rendered and the client quit
 normally), `rejected` (an engine error was printed and the process was still
-running two seconds later), `crashed` (the process died with a failure status)
-or `hung` (none of these within the time limit). Only `crashed` and `hung` fail.
+running two seconds later), `faulted` (the same, but the error is the engine's
+own report of a hardware exception it caught, such as an access violation),
+`crashed` (the process died with a failure status) or `hung` (none of these
+within the time limit). `faulted`, `crashed` and `hung` fail.
+Quake Live's retail `sv_errorExit` makes a listen server's recoverable error
+fatal, and a fatal error's dialog cannot be dismissed on a private desktop, so
+every run sets it to 0 and sees the loader's own verdict.
 Windows only: windowed on unswitched private desktops with sound and
 mouse/joystick input disabled; console commands only. Damaged copies are
 deleted after each run and only their hashes kept.
@@ -48,6 +53,9 @@ GAMES = {'q3': 'baseq3', 'ql': 'baseq3', 'rtcw-sp': 'main', 'rtcw-mp': 'main'}
 RECORDS = [1, 72, 16, 36, 48, 4, 4, 40, 12, 8, 44, 4, 72, 104, 128 * 128 * 3, 8, 1]
 LOADED = 'BSP_FAULT_LOADED'
 ERROR = re.compile(r'^ERROR: .*$', re.M)
+# win_main.cpp's exception filter reports a caught hardware exception this way.
+FAULT = 'Unhandled exception caught'
+OUTCOMES = ('loaded', 'rejected', 'faulted', 'crashed', 'hung')
 
 
 def map_from_paks(installation, game, name):
@@ -123,8 +131,8 @@ def play(client, installation, profile, name, payload, output):
     for key, value in dict(com_gameProfile=profile, fs_basepath=str(installation), fs_homepath=str(home), fs_game='',
                            r_fullscreen='0', r_mode='3', in_mouse='0', in_joystick='0', in_nograb='1',
                            s_initsound='0', com_steamIntegration='0', fs_skipWorkshop='1', cl_webuiEnable='0',
-                           cl_renderer='glx', logfile='2', net_port='0', sv_master1='', sv_master2='',
-                           sv_master3='').items():
+                           cl_renderer='glx', logfile='2', net_port='0', sv_errorExit='0', sv_master1='',
+                           sv_master2='', sv_master3='').items():
         command += ['+set', key, value]
     command += ['+exec', 'probe.cfg']
     log = game / 'qconsole.log'
@@ -153,7 +161,7 @@ def play(client, installation, profile, name, payload, output):
     elif code == 0 and LOADED in text and not errors:
         outcome = 'loaded'
     elif errors and alive_after:
-        outcome = 'rejected'
+        outcome = 'faulted' if FAULT in errors[0] else 'rejected'
     else:
         outcome = 'hung'
     return dict(outcome=outcome, exitCode=code, forcedTermination=forced,
@@ -188,11 +196,10 @@ def main():
     report = dict(profile=args.profile, map=source, mapBytes=len(data), mapSha256=hashlib.sha256(data).hexdigest(),
                   version=version, lumps=table, fuzz=dict(count=args.fuzz, seed=args.seed),
                   clientSha256=hashlib.sha256(client.read_bytes()).hexdigest(),
-                  outcomes={o: sum(r['outcome'] == o for r in rows.values())
-                            for o in ('loaded', 'rejected', 'crashed', 'hung')},
+                  outcomes={o: sum(r['outcome'] == o for r in rows.values()) for o in OUTCOMES},
                   variants=rows, sourceCommit=subprocess.run(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True,
                                                              capture_output=True).stdout.strip())
-    report['passed'] = not report['outcomes']['crashed'] and not report['outcomes']['hung']
+    report['passed'] = not any(report['outcomes'][o] for o in ('faulted', 'crashed', 'hung'))
     (output / 'result.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
     print(json.dumps(report['outcomes']))
     return 0 if report['passed'] else 1
