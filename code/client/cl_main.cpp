@@ -34,7 +34,7 @@ extern "C" {
 #include "demo_stream.hpp"
 #include "retail_challenge.hpp"
 #include "window_resize.hpp"
-#include "../qcommon/protocol_contract.hpp"
+#include "../qcommon/protocol_contract_profile.hpp"
 #include "../qcommon/q3_demo_protocol.hpp"
 #include "../qcommon/netchan_safety.hpp"
 #include "../qcommon/ritual_handshake.hpp"
@@ -4893,7 +4893,8 @@ static bool CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 		contract = fnql::protocol::Find(
 			negotiatedProtocol, clc.compat != qfalse );
 		if ( !contract || !Com_GameProfileAllowsProtocol(
-			Com_GameProfile(), negotiatedProtocol ) ) {
+			Com_GameProfile(), negotiatedProtocol )
+			|| !fnql::protocol::ServesProfile( *contract, Com_GameProfile() ) ) {
 			Com_Printf(
 				"ConnectResponse selected protocol %d, which is not supported by the active %s profile. Ignored.\n",
 				negotiatedProtocol, Com_GameProfile()->displayName );

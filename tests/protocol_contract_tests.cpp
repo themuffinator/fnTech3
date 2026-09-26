@@ -1,4 +1,5 @@
 #include "protocol_contract.hpp"
+#include "protocol_contract_profile.hpp"
 #include "q3_demo_protocol.hpp"
 #include "q3_pak_contract.h"
 #include <cassert>
@@ -103,6 +104,33 @@ static_assert( &ForWireProfile( NETCHAN_WIRE_QL_RETAIL ) == &QuakeLive );
 static_assert( &ForWireProfile( NETCHAN_WIRE_IOQ3 ) == &Ioquake3 );
 static_assert( TryForWireProfile( NETCHAN_WIRE_LEGACY_Q3 ) == &LegacyQuake3 );
 static_assert( TryForWireProfile( static_cast<netchanWireProfile_t>( 99 ) ) == nullptr );
+
+// A number several games speak finds one game's contract, which serves only
+// that game's profiles: 26 is ioEF's, not Jedi Academy's; 40 Elite Force
+// single player's, not the Jedi titles' or Q3Test 1.08's; and the legacy
+// fallback that takes 15 and 33 is Quake III's, not Jedi Outcast's or IHV's.
+static_assert( ServesProfileFamilies( *Find( 26 ), COM_PROTOCOL_FAMILY_IOEF ) );
+static_assert( !ServesProfileFamilies( *Find( 26, true ), COM_PROTOCOL_FAMILY_JKA_MP ) );
+static_assert( ServesProfileFamilies( *Find( 40 ), COM_PROTOCOL_FAMILY_STVEF_SP ) );
+static_assert( !ServesProfileFamilies( *Find( 40, true ), COM_PROTOCOL_FAMILY_JKA_SP
+	| COM_PROTOCOL_FAMILY_JK2_SP | COM_PROTOCOL_FAMILY_Q3TEST ) );
+static_assert( !ServesProfileFamilies( *Find( 15, true ), COM_PROTOCOL_FAMILY_JK2_MP ) );
+static_assert( !ServesProfileFamilies( *Find( 33, true ), COM_PROTOCOL_FAMILY_QUAKE3_IHV ) );
+static_assert( ServesProfileFamilies( *Find( 24 ), COM_PROTOCOL_FAMILY_STVEF_HM )
+	&& !ServesProfileFamilies( *Find( 24 ), COM_PROTOCOL_FAMILY_IOEF ) );
+static_assert( ServesProfileFamilies( *Find( 66 ), COM_PROTOCOL_FAMILY_Q3_POINT_RELEASES )
+	&& ServesProfileFamilies( *Find( 68 ), COM_PROTOCOL_FAMILY_LEGACY_QUAKE3 )
+	&& ServesProfileFamilies( *Find( 71 ), COM_PROTOCOL_FAMILY_IOQUAKE3 )
+	&& ServesProfileFamilies( *Find( 91 ), COM_PROTOCOL_FAMILY_QUAKELIVE ) );
+static_assert( !ServesProfileFamilies( *Find( 68 ), COM_PROTOCOL_FAMILY_QUAKELIVE
+	| COM_PROTOCOL_FAMILY_RTCW_MP | COM_PROTOCOL_FAMILY_WOLFET ) );
+static_assert( ServesProfileFamilies( *Find( 49 ), COM_PROTOCOL_FAMILY_RTCW_SP )
+	&& ServesProfileFamilies( *Find( 60 ), COM_PROTOCOL_FAMILY_RTCW_MP )
+	&& ServesProfileFamilies( *Find( 84 ), COM_PROTOCOL_FAMILY_WOLFET )
+	&& ServesProfileFamilies( *Find( 6 ), COM_PROTOCOL_FAMILY_MOHAA ) );
+// F.A.K.K.2 crosses Alice's wire with its own records.
+static_assert( ServesProfileFamilies( *Find( 1 ), COM_PROTOCOL_FAMILY_ALICE )
+	&& ServesProfileFamilies( *Find( 1 ), COM_PROTOCOL_FAMILY_FAKK2 ) );
 
 static_assert( QuakeLive.wireProfile == NETCHAN_WIRE_QL_RETAIL );
 static_assert( QuakeLive.gameMessageLayout == GameMessageLayout::QuakeLive );

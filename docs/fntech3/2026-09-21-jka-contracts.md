@@ -133,6 +133,16 @@ number, and each profile admits only the family it was registered with. A
 `jka-mp` profile accepts 26 and refuses 40; `stvef-sp` accepts 40 and neither
 accepts the other title's module or wire contract.
 
+Admitting a number is not yet a connection. Until 2026-09-26 the server and
+client took the contract `fnql::protocol::Find` chose for the number without
+asking whose it was, so a `jka-mp` server would have served a protocol-26
+client under ioEF's contract, and a `jk2-mp` one a protocol-15 client under
+Quake III's legacy fallback. Each contract now names the profile families it
+serves (`code/qcommon/protocol_contract_profile.hpp`), `SV_DirectConnect` and
+the client's `connectResponse` refuse one that is not the active profile's,
+and `tests/game_profile_tests.cpp` checks that no contract serves either Jedi
+title. Neither title's network client connects until its own codec exists.
+
 ## Deliberately not claimed
 
 This slice claims none of the following. Later slices on the same day extended

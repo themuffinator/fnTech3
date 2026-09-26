@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "server.h"
 #include "server_wolfet_client.hpp"
 #include "../compat/wolfet_module_abi.h"
-#include "../qcommon/protocol_contract.hpp"
+#include "../qcommon/protocol_contract_profile.hpp"
 #include "../qcommon/netchan_safety.hpp"
 #include "../qcommon/rtcw_handshake.hpp"
 #include "../platform/fnql_steam.h"
@@ -1693,7 +1693,9 @@ void SV_DirectConnect( const netadr_t *from ) {
 		}
 	}
 	protocolContract = fnql::protocol::Find( cl_proto, compat );
-	if ( !protocolContract ) {
+	// A number several games speak (26, 40) keeps only this profile's contract.
+	if ( !protocolContract
+		|| !fnql::protocol::ServesProfile( *protocolContract, Com_GameProfile() ) ) {
 		if ( !SVC_RateLimit( &bucket, 10, 200 ) ) {
 			NET_OutOfBandPrint( NS_SERVER, from,
 				"print\nUnsupported protocol version %i.\n", cl_proto );

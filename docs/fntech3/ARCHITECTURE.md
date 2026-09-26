@@ -66,7 +66,10 @@ bot policy, pure-proof method, userinfo defaults and startup cinematics.
 The same protocol number can belong to several games -- 40 is spoken by three
 single-player loopbacks, 26 by Holomatch's successors and Jedi Academy, 1 by
 both Ritual games -- so a number maps to protocol *families* and each profile
-admits only its own.
+admits only its own. A connection also keeps the wire contract chosen for its
+number only when that contract serves the profile
+(`code/qcommon/protocol_contract_profile.hpp`), so a profile with no wire of
+its own, as the Jedi titles' are so far, refuses network clients.
 
 ### Selection
 
