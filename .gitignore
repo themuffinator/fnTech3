@@ -1,5 +1,6 @@
 build/
-meson/build/
+/build-*/
+/meson/
 output/
 .vs/
 .vscode/*
@@ -15,7 +16,6 @@ __pycache__/
 .tmp/
 # Local reverse-engineering notes of retail binaries; never committed.
 .ref/
-make-macosx-values.local
 subprojects/*
 !subprojects/*.wrap
 !subprojects/packagefiles/
