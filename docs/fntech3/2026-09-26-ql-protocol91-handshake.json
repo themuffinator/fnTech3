@@ -1,0 +1,38 @@
+{
+  "date": "2026-09-26",
+  "scope": "scripts/probe_protocol91.py's four connectionless checks against an fnTech3 Quake Live dedicated server on loopback: protocol 91 in getinfo, the FnQL nonce echo, the retail binary SteamID/ticket challenge and silence for a malformed ticket.",
+  "runsUtc": {
+    "start": "2026-09-26T20:49:01+00:00",
+    "end": "2026-09-26T20:49:03+00:00",
+    "basis": "modification times of the probe's output files"
+  },
+  "commit": "3089df2e0758a287ee2142316cf3b3945e53cc71",
+  "probe": {
+    "path": "scripts/probe_protocol91.py",
+    "sha256": "2e94edf5914703ab171aa25c660818fd1321d5cddb6e52181ae3390a02550170",
+    "sha256Basis": "LF text, as committed",
+    "lastChangedBy": "297f3626"
+  },
+  "harness": ".tmp/probe-records/protocol91_run.py (local, not committed): starts the server on a private desktop, waits for getstatus, runs the probe, then stops the server.",
+  "server": {
+    "path": "meson/build/win32-dev/fntech3.ded.exe",
+    "sha256": "37e548bd0f30ffc07d98ac302740cb9dc65e7d459ae7a042c537f144fca430f4",
+    "platform": "Windows 11 x64 host, Windows x86 build: meson/build/win32-dev, MSVC 19.44, debugoptimized, strict warnings, renderers glx/vk/rtx as modules; RTCW, WolfET and Elite Force development gates on",
+    "command": "+set com_gameProfile quakelive +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Quake Live +set fs_homepath .tmp\\probe-records\\protocol91\\server-home +set dedicated 1 +set net_ip 127.0.0.1 +set net_port 54826 +set sv_pure 0 +set bot_enable 0 +set logfile 2 +set sv_master1  +set sv_master2  +set sv_master3  +set sv_master4  +set sv_master5  +map campgrounds ffa"
+  },
+  "installation": "E:\\SteamLibrary\\steamapps\\common\\Quake Live",
+  "environment": "Dedicated server on an unswitched private desktop with an isolated fs_homepath, bound to 127.0.0.1 on a free port, pure and bots off; the probe sends from an ephemeral loopback port.",
+  "serverReady": true,
+  "serverRunningAfter": true,
+  "probeExitCode": 0,
+  "checks": {
+    "protocol-91 info": "PASS",
+    "FnQL nonce echo": "PASS",
+    "retail binary challenge": "PASS",
+    "malformed ticket silence": "PASS"
+  },
+  "summary": {
+    "passed": true,
+    "checks": 4
+  }
+}

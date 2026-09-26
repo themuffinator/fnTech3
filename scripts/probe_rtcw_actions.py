@@ -18,6 +18,7 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tests'))
+from compiler_support import compiler_target_args
 from rtcw_actions_tests import action_source
 from rtcw_server_world_tests import function
 
@@ -26,13 +27,13 @@ COMPARE = r'''
 static unsigned comparisons;
 static void compare(){
  bot_input_t input;EA_GetInput(0,.125f,&input);
- auto actual=fntech3::rtcw::bot::ActionOutput(input,EA_RTCWExtraInputFlags(0));
+ auto actual=fntech3::rtcw::bot::ActionOutput(input,EA_ExtraInputFlags(0));
  reference::bot_input_t expected;reference::EA_GetInput(0,.125f,&expected);
  static_assert(sizeof(actual)==sizeof(expected));assert(!memcmp(&actual,&expected,sizeof(actual)));++comparisons;
 }
 static void restore(const fntech3_rtcw_bot_input_t &input){
  bot_input_t state;assert(fntech3::rtcw::bot::ActionInput(input,state));
- EA_RestoreRTCWInput(0,&state,unsigned(input.actionflags)&~0x3fffu);
+ EA_RestoreInput(0,&state,unsigned(input.actionflags)&~0x3fffu);
  reference::bot_input_t expected;std::memcpy(&expected,&input,sizeof(input));reference::EA_ResetInput(0,&expected);
 }
 int main(){
@@ -115,7 +116,8 @@ def main():
         if match[1] != 'EA_Shutdown':
             source += '\n' + function(original, match[0])
     source += COMPARE
-    target = [f'--target={args.target}'] if args.target else ([] if os.name == 'nt' else ['-m32'])
+    # Without --target, the 32-bit target the tests use (compiler_support.py).
+    target = [f'--target={args.target}'] if args.target else compiler_target_args(compiler)
     triple = subprocess.check_output([compiler, *target, '-dumpmachine'], cwd=ROOT, text=True).strip()
     flags = ['-fsanitize=address,undefined', '-fno-omit-frame-pointer', '-g'] if args.sanitize else []
     if os.name == 'nt' and triple.startswith('x86_64'):

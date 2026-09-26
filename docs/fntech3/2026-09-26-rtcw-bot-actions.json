@@ -1,0 +1,324 @@
+{
+  "date": "2026-09-26",
+  "scope": "fnTech3's botlib elementary actions (code/botlib/be_ea.cpp through code/compat/rtcw_bot_actions.hpp) against the unchanged EA_ functions of the original RTCW SP and MP source releases and of iortcw: action state, flag aliases, reset/get and command text. No game module, asset or input is used.",
+  "commit": "3089df2e0758a287ee2142316cf3b3945e53cc71",
+  "probe": {
+    "path": "scripts/probe_rtcw_actions.py",
+    "sha256": "253c03e3ac2f9af40e578bf1a6f03f6820c6fbb47ead6afcb5e7d1b7c36db0ba",
+    "sha256Basis": "LF text, as committed",
+    "lastChangedBy": "the commit that adds this record"
+  },
+  "hashBasis": "implementation and adapter hashes are of the Windows checkout's CRLF working-tree bytes, which every run read (WSL through /mnt/e)",
+  "implementation": {
+    "path": "code/botlib/be_ea.cpp",
+    "sha256": "28df949d3e2134f68deb15428ab69bb7f3ae2004a27d9820308be0fad4692d05"
+  },
+  "adapter": {
+    "path": "code/compat/rtcw_bot_actions.hpp",
+    "sha256": "f82217d2ada2d0650b7a0271f2d778cdc594c95933ec3083533ecb3ef4d177ae"
+  },
+  "referenceTrees": {
+    "original SP": "RTCW-SP-master (id Software GPL source release)",
+    "original MP": "RTCW-MP-master (id Software GPL source release)",
+    "iortcw": "iortcw-master SP/ and MP/"
+  },
+  "runs": [
+    {
+      "report": "sp-original",
+      "utc": "2026-09-26T20:43:45.284883+00:00",
+      "mode": "sp",
+      "reference": "original",
+      "target": "i686-pc-windows-msvc",
+      "sanitized": false,
+      "compiler": "clang++.EXE",
+      "flags": [
+        "--target=i686-pc-windows-msvc",
+        "-std=c++17",
+        "-O2"
+      ],
+      "references": [
+        {
+          "path": "RTCW-SP-master/src/botlib/be_ea.c",
+          "sha256": "e27a7faecf13d93b03fac8854cf1d402029b3e414854effbf95f4bb808a502bc"
+        },
+        {
+          "path": "RTCW-SP-master/src/game/botlib.h",
+          "sha256": "3b26a628a8f5527f1dd45958a52846424c58701bf046f0710e058600187d9e97"
+        }
+      ],
+      "buildExitCode": 0,
+      "exitCode": 0,
+      "comparisons": 344099,
+      "passed": true,
+      "implementationSha256": "28df949d3e2134f68deb15428ab69bb7f3ae2004a27d9820308be0fad4692d05",
+      "adapterSha256": "f82217d2ada2d0650b7a0271f2d778cdc594c95933ec3083533ecb3ef4d177ae"
+    },
+    {
+      "report": "mp-original",
+      "utc": "2026-09-26T20:43:47.863741+00:00",
+      "mode": "mp",
+      "reference": "original",
+      "target": "i686-pc-windows-msvc",
+      "sanitized": false,
+      "compiler": "clang++.EXE",
+      "flags": [
+        "--target=i686-pc-windows-msvc",
+        "-std=c++17",
+        "-O2"
+      ],
+      "references": [
+        {
+          "path": "RTCW-MP-master/src/botlib/be_ea.c",
+          "sha256": "c4eaf6476d2a2f926e4ce538eac8438d3444bed503ffd73a1ee1b682c17f1069"
+        },
+        {
+          "path": "RTCW-MP-master/src/game/botlib.h",
+          "sha256": "d74b4bc31b2ca9d9538677882cea79d0d5802fcc9541cfb9258851171c6ca6b0"
+        }
+      ],
+      "buildExitCode": 0,
+      "exitCode": 0,
+      "comparisons": 344099,
+      "passed": true,
+      "implementationSha256": "28df949d3e2134f68deb15428ab69bb7f3ae2004a27d9820308be0fad4692d05",
+      "adapterSha256": "f82217d2ada2d0650b7a0271f2d778cdc594c95933ec3083533ecb3ef4d177ae"
+    },
+    {
+      "report": "sp-iortcw",
+      "utc": "2026-09-26T20:43:50.661377+00:00",
+      "mode": "sp",
+      "reference": "iortcw",
+      "target": "i686-pc-windows-msvc",
+      "sanitized": false,
+      "compiler": "clang++.EXE",
+      "flags": [
+        "--target=i686-pc-windows-msvc",
+        "-std=c++17",
+        "-O2"
+      ],
+      "references": [
+        {
+          "path": "iortcw-master/SP/code/botlib/be_ea.c",
+          "sha256": "189d93643b7599b65c59e0240bb42f2c19fb20cea16db3149c8e693548e1ec68"
+        },
+        {
+          "path": "iortcw-master/SP/code/botlib/botlib.h",
+          "sha256": "2bcfd5a01d2104b86be47261e71402a0d7a3f5963f757602866574d5cd994e0f"
+        }
+      ],
+      "buildExitCode": 0,
+      "exitCode": 0,
+      "comparisons": 344099,
+      "passed": true,
+      "implementationSha256": "28df949d3e2134f68deb15428ab69bb7f3ae2004a27d9820308be0fad4692d05",
+      "adapterSha256": "f82217d2ada2d0650b7a0271f2d778cdc594c95933ec3083533ecb3ef4d177ae"
+    },
+    {
+      "report": "mp-iortcw",
+      "utc": "2026-09-26T20:43:53.356738+00:00",
+      "mode": "mp",
+      "reference": "iortcw",
+      "target": "i686-pc-windows-msvc",
+      "sanitized": false,
+      "compiler": "clang++.EXE",
+      "flags": [
+        "--target=i686-pc-windows-msvc",
+        "-std=c++17",
+        "-O2"
+      ],
+      "references": [
+        {
+          "path": "iortcw-master/MP/code/botlib/be_ea.c",
+          "sha256": "cb16b270329215e289d4974a7208d32b61ab4dd5c3be7fff3bab7c44e96fb42f"
+        },
+        {
+          "path": "iortcw-master/MP/code/botlib/botlib.h",
+          "sha256": "35652d8b862ebe654d7df73e1315fc7adb5938d87e4a26dc040cfb487454a7f2"
+        }
+      ],
+      "buildExitCode": 0,
+      "exitCode": 0,
+      "comparisons": 344099,
+      "passed": true,
+      "implementationSha256": "28df949d3e2134f68deb15428ab69bb7f3ae2004a27d9820308be0fad4692d05",
+      "adapterSha256": "f82217d2ada2d0650b7a0271f2d778cdc594c95933ec3083533ecb3ef4d177ae"
+    },
+    {
+      "report": "sp-original-sanitized-linux",
+      "utc": "2026-09-26T20:44:21.907247+00:00",
+      "mode": "sp",
+      "reference": "original",
+      "target": "i386-pc-linux-gnu",
+      "sanitized": true,
+      "compiler": "clang++",
+      "flags": [
+        "-m32",
+        "-fsanitize=address,undefined",
+        "-fno-omit-frame-pointer",
+        "-g",
+        "-std=c++17",
+        "-O2"
+      ],
+      "references": [
+        {
+          "path": "RTCW-SP-master/src/botlib/be_ea.c",
+          "sha256": "e27a7faecf13d93b03fac8854cf1d402029b3e414854effbf95f4bb808a502bc"
+        },
+        {
+          "path": "RTCW-SP-master/src/game/botlib.h",
+          "sha256": "3b26a628a8f5527f1dd45958a52846424c58701bf046f0710e058600187d9e97"
+        }
+      ],
+      "buildExitCode": 0,
+      "exitCode": 0,
+      "comparisons": 344099,
+      "passed": true,
+      "implementationSha256": "28df949d3e2134f68deb15428ab69bb7f3ae2004a27d9820308be0fad4692d05",
+      "adapterSha256": "f82217d2ada2d0650b7a0271f2d778cdc594c95933ec3083533ecb3ef4d177ae"
+    },
+    {
+      "report": "mp-original-sanitized-linux",
+      "utc": "2026-09-26T20:44:37.397040+00:00",
+      "mode": "mp",
+      "reference": "original",
+      "target": "i386-pc-linux-gnu",
+      "sanitized": true,
+      "compiler": "clang++",
+      "flags": [
+        "-m32",
+        "-fsanitize=address,undefined",
+        "-fno-omit-frame-pointer",
+        "-g",
+        "-std=c++17",
+        "-O2"
+      ],
+      "references": [
+        {
+          "path": "RTCW-MP-master/src/botlib/be_ea.c",
+          "sha256": "c4eaf6476d2a2f926e4ce538eac8438d3444bed503ffd73a1ee1b682c17f1069"
+        },
+        {
+          "path": "RTCW-MP-master/src/game/botlib.h",
+          "sha256": "d74b4bc31b2ca9d9538677882cea79d0d5802fcc9541cfb9258851171c6ca6b0"
+        }
+      ],
+      "buildExitCode": 0,
+      "exitCode": 0,
+      "comparisons": 344099,
+      "passed": true,
+      "implementationSha256": "28df949d3e2134f68deb15428ab69bb7f3ae2004a27d9820308be0fad4692d05",
+      "adapterSha256": "f82217d2ada2d0650b7a0271f2d778cdc594c95933ec3083533ecb3ef4d177ae"
+    },
+    {
+      "report": "sp-iortcw-sanitized-linux",
+      "utc": "2026-09-26T20:44:48.040217+00:00",
+      "mode": "sp",
+      "reference": "iortcw",
+      "target": "i386-pc-linux-gnu",
+      "sanitized": true,
+      "compiler": "clang++",
+      "flags": [
+        "-m32",
+        "-fsanitize=address,undefined",
+        "-fno-omit-frame-pointer",
+        "-g",
+        "-std=c++17",
+        "-O2"
+      ],
+      "references": [
+        {
+          "path": "iortcw-master/SP/code/botlib/be_ea.c",
+          "sha256": "189d93643b7599b65c59e0240bb42f2c19fb20cea16db3149c8e693548e1ec68"
+        },
+        {
+          "path": "iortcw-master/SP/code/botlib/botlib.h",
+          "sha256": "2bcfd5a01d2104b86be47261e71402a0d7a3f5963f757602866574d5cd994e0f"
+        }
+      ],
+      "buildExitCode": 0,
+      "exitCode": 0,
+      "comparisons": 344099,
+      "passed": true,
+      "implementationSha256": "28df949d3e2134f68deb15428ab69bb7f3ae2004a27d9820308be0fad4692d05",
+      "adapterSha256": "f82217d2ada2d0650b7a0271f2d778cdc594c95933ec3083533ecb3ef4d177ae"
+    },
+    {
+      "report": "mp-iortcw-sanitized-linux",
+      "utc": "2026-09-26T20:45:01.889774+00:00",
+      "mode": "mp",
+      "reference": "iortcw",
+      "target": "i386-pc-linux-gnu",
+      "sanitized": true,
+      "compiler": "clang++",
+      "flags": [
+        "-m32",
+        "-fsanitize=address,undefined",
+        "-fno-omit-frame-pointer",
+        "-g",
+        "-std=c++17",
+        "-O2"
+      ],
+      "references": [
+        {
+          "path": "iortcw-master/MP/code/botlib/be_ea.c",
+          "sha256": "cb16b270329215e289d4974a7208d32b61ab4dd5c3be7fff3bab7c44e96fb42f"
+        },
+        {
+          "path": "iortcw-master/MP/code/botlib/botlib.h",
+          "sha256": "35652d8b862ebe654d7df73e1315fc7adb5938d87e4a26dc040cfb487454a7f2"
+        }
+      ],
+      "buildExitCode": 0,
+      "exitCode": 0,
+      "comparisons": 344099,
+      "passed": true,
+      "implementationSha256": "28df949d3e2134f68deb15428ab69bb7f3ae2004a27d9820308be0fad4692d05",
+      "adapterSha256": "f82217d2ada2d0650b7a0271f2d778cdc594c95933ec3083533ecb3ef4d177ae"
+    },
+    {
+      "report": "sp-original-sanitized",
+      "utc": "2026-09-26T20:44:04.033526+00:00",
+      "mode": "sp",
+      "reference": "original",
+      "target": "i686-pc-windows-msvc",
+      "sanitized": true,
+      "compiler": "clang++.EXE",
+      "flags": [
+        "--target=i686-pc-windows-msvc",
+        "-fsanitize=address,undefined",
+        "-fno-omit-frame-pointer",
+        "-g",
+        "-std=c++17",
+        "-O2"
+      ],
+      "references": [
+        {
+          "path": "RTCW-SP-master/src/botlib/be_ea.c",
+          "sha256": "e27a7faecf13d93b03fac8854cf1d402029b3e414854effbf95f4bb808a502bc"
+        },
+        {
+          "path": "RTCW-SP-master/src/game/botlib.h",
+          "sha256": "3b26a628a8f5527f1dd45958a52846424c58701bf046f0710e058600187d9e97"
+        }
+      ],
+      "buildExitCode": 1181,
+      "exitCode": null,
+      "comparisons": 0,
+      "passed": false,
+      "implementationSha256": "28df949d3e2134f68deb15428ab69bb7f3ae2004a27d9820308be0fad4692d05",
+      "adapterSha256": "f82217d2ada2d0650b7a0271f2d778cdc594c95933ec3083533ecb3ef4d177ae"
+    }
+  ],
+  "summary": {
+    "runs": 9,
+    "passed": 8,
+    "comparisonsPerPassingRun": [
+      344099
+    ],
+    "notBuilt": [
+      "sp-original-sanitized"
+    ],
+    "note": "The Windows sanitized build could not link: this toolchain has no AddressSanitizer or UndefinedBehaviorSanitizer runtime for i686-pc-windows-msvc. The four sanitized runs used Ubuntu clang 18.1.3 -m32 under WSL instead."
+  },
+  "note": "Reference implementation text is compiled only in each disposable fixture under .tmp/; none of it is committed."
+}

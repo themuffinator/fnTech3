@@ -1,0 +1,139 @@
+{
+  "date": "2026-09-26",
+  "scope": "One client and one dedicated-server executable run q3, ql, rtcw-sp and rtcw-mp in turn, each against its own installation and a fresh home: every client reaches its stock map and writes an engine screenshot, every multiplayer server answers getstatus. No input, no gameplay.",
+  "runsUtc": {
+    "start": "2026-09-26T20:45:28+00:00",
+    "end": "2026-09-26T20:47:03+00:00",
+    "basis": "modification times of the probe's output files"
+  },
+  "commit": "3089df2e0758a287ee2142316cf3b3945e53cc71",
+  "probe": {
+    "path": "scripts/probe_release_profiles.py",
+    "sha256": "313f1e8ce101d3468bd8b09e282a2527544100b2b3dbbe4cd74b53e57f9cc000",
+    "sha256Basis": "LF text, as committed",
+    "lastChangedBy": "297f3626"
+  },
+  "client": {
+    "path": "meson/build/win32-dev/fntech3.exe",
+    "sha256": "b9531242c0d971d1528f1b80a9d59666d2fab48061e6b8d780cc071fe7cba527",
+    "platform": "Windows 11 x64 host, Windows x86 build: meson/build/win32-dev, MSVC 19.44, debugoptimized, strict warnings, renderers glx/vk/rtx as modules; RTCW, WolfET and Elite Force development gates on"
+  },
+  "server": {
+    "path": "meson/build/win32-dev/fntech3.ded.exe",
+    "sha256": "37e548bd0f30ffc07d98ac302740cb9dc65e7d459ae7a042c537f144fca430f4",
+    "platform": "Windows 11 x64 host, Windows x86 build: meson/build/win32-dev, MSVC 19.44, debugoptimized, strict warnings, renderers glx/vk/rtx as modules; RTCW, WolfET and Elite Force development gates on"
+  },
+  "installations": {
+    "q3": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+    "ql": "E:\\SteamLibrary\\steamapps\\common\\Quake Live",
+    "rtcw": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein"
+  },
+  "environment": "Windowed on unswitched private desktops (tests/windows_private_process.py), one fresh process and isolated fs_homepath per run under .tmp/probe-records/, sound and mouse/joystick input disabled, Steam integration and the WebUI off, loopback UDP only, console commands only. Retail installations were read, never written. GLx renderer, pure off, bots off.",
+  "clients": {
+    "q3": {
+      "exitCode": 0,
+      "forcedTermination": false,
+      "elapsedSeconds": 8.5,
+      "errors": [],
+      "modules": [
+        "vm/cgame",
+        "vm/qagame",
+        "vm/ui"
+      ],
+      "screenshots": [
+        {
+          "name": "release-q3.png",
+          "sha256": "e55c456f465a1b801612f881f078fb09283677d0ce5e075d9d301960632a06b8"
+        }
+      ],
+      "command": "+set com_gameProfile q3 +set fs_basepath C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena +set fs_homepath .tmp\\probe-records\\release-profiles\\q3-client +set fs_game  +set r_fullscreen 0 +set r_mode 3 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_port 0 +set com_introplayed 1 +set cl_allowDownload 0 +set bot_enable 0 +set sv_pure 0 +set con_notifytime 0 +set activeAction wait 200; screenshotPNG release-q3; wait 5; quit +set sv_master1  +set sv_master2  +set sv_master3  +set sv_master4  +set sv_master5  +devmap q3dm1"
+    },
+    "ql": {
+      "exitCode": 0,
+      "forcedTermination": false,
+      "elapsedSeconds": 10.5,
+      "errors": [],
+      "modules": [
+        "cgamex86.dll",
+        "qagamex86.dll",
+        "uix86.dll"
+      ],
+      "screenshots": [
+        {
+          "name": "release-ql.png",
+          "sha256": "e2f17dd65a8398fd791a9b38beacec104f38f4a3f191b58be0e5758e08f02a08"
+        }
+      ],
+      "command": "+set com_gameProfile ql +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Quake Live +set fs_homepath .tmp\\probe-records\\release-profiles\\ql-client +set fs_game  +set r_fullscreen 0 +set r_mode 3 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_port 0 +set com_introplayed 1 +set cl_allowDownload 0 +set bot_enable 0 +set sv_pure 0 +set con_notifytime 0 +set activeAction wait 200; screenshotPNG release-ql; wait 5; quit +set sv_master1  +set sv_master2  +set sv_master3  +set sv_master4  +set sv_master5  +devmap campgrounds ffa"
+    },
+    "rtcw-sp": {
+      "exitCode": 0,
+      "forcedTermination": false,
+      "elapsedSeconds": 13.0,
+      "errors": [],
+      "modules": [
+        "cgamex86.dll",
+        "qagamex86.dll",
+        "uix86.dll"
+      ],
+      "screenshots": [
+        {
+          "name": "release-rtcw-sp.png",
+          "sha256": "b026d9fddc1dc203dff93dc6a026a345cfe3e55db36423e24f70cc3a93e9732b"
+        }
+      ],
+      "command": "+set com_gameProfile rtcw-sp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath .tmp\\probe-records\\release-profiles\\rtcw-sp-client +set fs_game  +set r_fullscreen 0 +set r_mode 3 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_port 0 +set com_introplayed 1 +set cl_allowDownload 0 +set bot_enable 0 +set sv_pure 0 +set con_notifytime 0 +set activeAction wait 300; screenshotPNG release-rtcw-sp; wait 5; quit +set sv_master1  +set sv_master2  +set sv_master3  +set sv_master4  +set sv_master5  +spdevmap escape1"
+    },
+    "rtcw-mp": {
+      "exitCode": 0,
+      "forcedTermination": false,
+      "elapsedSeconds": 9.5,
+      "errors": [],
+      "modules": [
+        "cgame_mp_x86.dll",
+        "qagame_mp_x86.dll",
+        "ui_mp_x86.dll"
+      ],
+      "screenshots": [
+        {
+          "name": "release-rtcw-mp.png",
+          "sha256": "96749dcb178c9d14f89e862031e3d520f3941f01f9edf6dc6b5ff1c858351411"
+        }
+      ],
+      "command": "+set com_gameProfile rtcw-mp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath .tmp\\probe-records\\release-profiles\\rtcw-mp-client +set fs_game  +set r_fullscreen 0 +set r_mode 3 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set logfile 2 +set net_port 0 +set com_introplayed 1 +set cl_allowDownload 0 +set bot_enable 0 +set sv_pure 0 +set con_notifytime 0 +set activeAction wait 180; CloseLimboMenu; wait 120; screenshotPNG release-rtcw-mp; wait 5; quit +set g_gametype 5 +set sv_master1  +set sv_master2  +set sv_master3  +set sv_master4  +set sv_master5  +devmap mp_beach"
+    }
+  },
+  "servers": {
+    "q3": {
+      "exitCode": 0,
+      "forcedTermination": false,
+      "elapsedSeconds": 20.5,
+      "answeredGetstatus": true,
+      "errors": [],
+      "command": "+set com_gameProfile q3 +set fs_basepath C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena +set fs_homepath .tmp\\probe-records\\release-profiles\\q3-server +set dedicated 1 +set net_ip 127.0.0.1 +set net_port 52522 +set sv_pure 0 +set bot_enable 0 +set logfile 2 +set sv_punkbuster 0 +set sv_master1  +set sv_master2  +set sv_master3  +set sv_master4  +set sv_master5  +map q3dm1 +exec release.cfg"
+    },
+    "ql": {
+      "exitCode": 0,
+      "forcedTermination": false,
+      "elapsedSeconds": 11.0,
+      "answeredGetstatus": true,
+      "errors": [],
+      "command": "+set com_gameProfile ql +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Quake Live +set fs_homepath .tmp\\probe-records\\release-profiles\\ql-server +set dedicated 1 +set net_ip 127.0.0.1 +set net_port 59283 +set sv_pure 0 +set bot_enable 0 +set logfile 2 +set sv_punkbuster 0 +set sv_master1  +set sv_master2  +set sv_master3  +set sv_master4  +set sv_master5  +map campgrounds ffa +exec release.cfg"
+    },
+    "rtcw-mp": {
+      "exitCode": 0,
+      "forcedTermination": false,
+      "elapsedSeconds": 21.1,
+      "answeredGetstatus": true,
+      "errors": [],
+      "command": "+set com_gameProfile rtcw-mp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath .tmp\\probe-records\\release-profiles\\rtcw-mp-server +set dedicated 1 +set net_ip 127.0.0.1 +set net_port 65372 +set sv_pure 0 +set bot_enable 0 +set logfile 2 +set sv_punkbuster 0 +set g_gametype 5 +set sv_master1  +set sv_master2  +set sv_master3  +set sv_master4  +set sv_master5  +map mp_beach +exec release.cfg"
+    }
+  },
+  "summary": {
+    "passed": true,
+    "failures": [],
+    "clientRuns": 4,
+    "serverRuns": 3
+  },
+  "note": "Screenshots and console logs stay under .tmp/probe-records/release-profiles/; only their hashes are kept."
+}
