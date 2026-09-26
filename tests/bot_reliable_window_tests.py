@@ -38,6 +38,7 @@ import os
 import shutil
 import subprocess
 import tempfile
+import time
 import unittest
 
 from compiler_support import compiler_target_args
@@ -234,6 +235,11 @@ static void quakeLivePercent(){
 }
 
 int main(){
+#ifdef _MSC_VER
+ // A failed check aborts without Windows fault reporting, whose snapshot of
+ // the process keeps its executable mapped after the process has exited.
+ _set_abort_behavior(0,_WRITE_ABORT_MSG|_CALL_REPORTFAULT);
+#endif
  svs.clients=clients.data();sv.maxclients=int(clients.size());svs.time=4321;fps.integer=20;
  for(const comGameProfile_t &entry:profiles){
   profile=entry;
@@ -309,6 +315,19 @@ def source(parts):
     return PRELUDE + '\n'.join(parts.values()) + '\n' + CHECKS
 
 
+def remove_folder(folder):
+    # Windows can hold an executable for a moment after its process exits (an
+    # antivirus scan of a new file, fault reporting), and deleting it then
+    # fails with "Access is denied"; give it a few seconds before failing.
+    for _ in range(50):
+        try:
+            shutil.rmtree(folder)
+            return
+        except PermissionError:
+            time.sleep(0.1)
+    shutil.rmtree(folder)
+
+
 class BotReliableWindowTests(unittest.TestCase):
     def run_probe(self, folder, name, text, objects):
         cpp = folder / f'{name}.cpp'
@@ -328,24 +347,24 @@ class BotReliableWindowTests(unittest.TestCase):
             target = ['-DFNTECH3_Q3_ONLY']
         self.flags = [*target, '-std=c++17', '-D_CRT_SECURE_NO_WARNINGS', '-I', str(ROOT)]
         production = pieces()
-        with tempfile.TemporaryDirectory(prefix='bot-window-') as directory:
-            folder = Path(directory)
-            objects = []
-            for name, path, language in (('view', 'code/server/server_game_data.cpp', []),
-                                         ('adapter', 'code/compat/game_abi_adapter.c', ['-x', 'c++'])):
-                built = subprocess.run([self.compiler, *self.flags, '-c', *language, str(ROOT / path),
-                                        '-o', str(folder / f'{name}.o')],
-                                       cwd=ROOT, capture_output=True, text=True, timeout=180)
-                self.assertEqual(built.returncode, 0, built.stdout + built.stderr)
-                objects.append(str(folder / f'{name}.o'))
-            ran = self.run_probe(folder, 'production', source(production), objects)
-            self.assertEqual(ran.returncode, 0, ran.stdout + ran.stderr)
-            for index, (description, (piece, old, new)) in enumerate(MUTATIONS.items()):
-                with self.subTest(mutation=description):
-                    self.assertEqual(production[piece].count(old), 1, old)
-                    mutated = dict(production, **{piece: production[piece].replace(old, new)})
-                    ran = self.run_probe(folder, f'mutation{index}', source(mutated), objects)
-                    self.assertNotEqual(ran.returncode, 0, description)
+        folder = Path(tempfile.mkdtemp(prefix='bot-window-'))
+        self.addCleanup(remove_folder, folder)
+        objects = []
+        for name, path, language in (('view', 'code/server/server_game_data.cpp', []),
+                                     ('adapter', 'code/compat/game_abi_adapter.c', ['-x', 'c++'])):
+            built = subprocess.run([self.compiler, *self.flags, '-c', *language, str(ROOT / path),
+                                    '-o', str(folder / f'{name}.o')],
+                                   cwd=ROOT, capture_output=True, text=True, timeout=180)
+            self.assertEqual(built.returncode, 0, built.stdout + built.stderr)
+            objects.append(str(folder / f'{name}.o'))
+        ran = self.run_probe(folder, 'production', source(production), objects)
+        self.assertEqual(ran.returncode, 0, ran.stdout + ran.stderr)
+        for index, (description, (piece, old, new)) in enumerate(MUTATIONS.items()):
+            with self.subTest(mutation=description):
+                self.assertEqual(production[piece].count(old), 1, old)
+                mutated = dict(production, **{piece: production[piece].replace(old, new)})
+                ran = self.run_probe(folder, f'mutation{index}', source(mutated), objects)
+                self.assertNotEqual(ran.returncode, 0, description)
 
 
 if __name__ == '__main__':
